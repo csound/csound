@@ -84,9 +84,12 @@ extern "C"
 		return OK;
 	}
 	
-	int vstinit_free(void*data)
+	int vstdeinit(void*data)
 	{
-		return OK;
+  		VSTINIT *p = (VSTINIT *)data;
+		ENVIRON *csound = p->h.insdshead->csound;
+		VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
+		//delete plugin;
 	}
 	
 	int vstinfo(void *data)
@@ -97,23 +100,23 @@ extern "C"
 		return OK;
 	}
 	
-	int vstplug_init(void *data)
+	int vstaudio_init(void *data)
 	{
-		VSTPLUG_ *p = (VSTPLUG_ *)data;
+		VSTAUDIO *p = (VSTAUDIO *)data;
   		ENVIRON *csound = p->h.insdshead->csound;
 		VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
-		plugin->Debug("vstplug_init.\n");
+		plugin->Debug("vstaudio_init.\n");
 		p->framesPerBlock = csound->GetKsmps(csound);
   		p->channels = csound->GetNchnls(csound);
 		return OK;
 	}
 	
-	int vstplug(void *data)
+	int vstaudio(void *data)
 	{
-		VSTPLUG_ *p = (VSTPLUG_ *)data;
+		VSTAUDIO *p = (VSTAUDIO *)data;
   		//ENVIRON *csound = p->h.insdshead->csound;
 		VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
-		//plugin->Debug("vstplug: plugin %x.\n", plugin);
+		//plugin->Debug("vstaudio: plugin %x.\n", plugin);
         if(!p->h.insdshead->nxtact) {
             for(size_t i = 0; i < p->framesPerBlock; i++) {
                 plugin->inputs_[0][i] = p->ain1[i] / SCALING_FACTOR;
@@ -135,12 +138,12 @@ extern "C"
 		return OK;
 	}
 	
-	int vstplugg(void *data)
+	int vstaudiog(void *data)
 	{
-		VSTPLUG_ *p = (VSTPLUG_ *)data;
+		VSTAUDIO *p = (VSTAUDIO *)data;
   		//ENVIRON *csound = p->h.insdshead->csound;
 		VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
-		//plugin->Debug("vstplug: plugin %x.\n", plugin);
+		//plugin->Debug("vstaudio: plugin %x.\n", plugin);
         for(size_t i = 0; i < p->framesPerBlock; i++) {
             plugin->inputs_[0][i] = p->ain1[i] / SCALING_FACTOR;
             plugin->inputs_[1][i] = p->ain2[i] / SCALING_FACTOR;
@@ -181,28 +184,28 @@ extern "C"
  		return OK;		
 	}
 	
-	int outvst_init(void *data)
+	int vstmidiout_init(void *data)
 	{
-		OUTVST_ *p = (OUTVST_ *)data;
+		VSTMIDIOUT *p = (VSTMIDIOUT *)data;
   		ENVIRON *csound = p->h.insdshead->csound;
         VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
-  		plugin->Debug("outvst_init.\n");
+  		plugin->Debug("vstmidiout_init.\n");
 		p->oldkstatus = 0;
 		p->oldkchan = 0;
 		p->oldkvalue = 0;
 		return OK;
 	}
 	
-	int outvst (void *data)
+	int vstmidiout (void *data)
 	{
-		OUTVST_ *p = (OUTVST_ *)data;
+		VSTMIDIOUT *p = (VSTMIDIOUT *)data;
   		ENVIRON *csound = p->h.insdshead->csound;
         VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
 		if(round(p->oldkstatus) == round(*p->kstatus) &&
 		   round(p->oldkchan) == round(*p->kchan) &&
 		   round(p->oldkvalue) == round(*p->kdata1))
 		   return OK;
-  		plugin->Debug("outvst.\n");
+  		plugin->Debug("vstmidiout.\n");
     	p->oldkstatus = *p->kstatus;
     	p->oldkchan = *p->kchan;
      	p->oldkvalue = *p->kdata1;		
@@ -257,37 +260,37 @@ extern "C"
 		return OK;
 	}
 	
-	int vstpret_init (void *data)
+	int vstparamget_init (void *data)
 	{
   		return OK; 
 	}
 		
-	int vstpret(void *data)
+	int vstparamget(void *data)
 	{
-		VSTPRET *p = (VSTPRET *)data;
+		VSTPARAMGET *p = (VSTPARAMGET *)data;
   		ENVIRON *csound = p->h.insdshead->csound;
 		VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
-		plugin->Debug("vstpret(%d).\n", int(*p->kparam));
+		plugin->Debug("vstparamset(%d).\n", int(*p->kparam));
 		*p->kvalue = plugin->GetParamValue(int(*p->kparam));
 		if ((*p->kvalue) == -1)
 			plugin->Log("Invalid parameter number %d.\n", int(*p->kparam));
 		return OK;	
 	}	
 	
-	int vstpsend_init (void *data)
+	int vstparamset_init (void *data)
 	{
-		VSTPSEND *p = (VSTPSEND *)data;
+		VSTPARAMSET *p = (VSTPARAMSET *)data;
   		ENVIRON *csound = p->h.insdshead->csound;
 		VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
-		plugin->Debug("vstpsend_init.\n");
+		plugin->Debug("vstparamset_init.\n");
 		p->oldkparam = 0;
 		p->oldkvalue = 0;
   		return OK; 
 	}
 	
-	int vstpsend(void *data)
+	int vstparamset(void *data)
 	{
-		VSTPSEND *p = (VSTPSEND *)data;
+		VSTPARAMSET *p = (VSTPARAMSET *)data;
   		ENVIRON *csound = p->h.insdshead->csound;
 		VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
 		if(*p->kparam == p->oldkparam &&
@@ -300,9 +303,9 @@ extern "C"
 		return OK;	
 	}
 	
-	int vstbload(void *data)
+	int vstbankload(void *data)
 	{
-  		VSTBLOAD *p = (VSTBLOAD *)data;
+  		VSTBANKLOAD *p = (VSTBANKLOAD *)data;
 		ENVIRON *csound = p->h.insdshead->csound;
 		VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
 		void *dummyPointer = 0;          
@@ -367,26 +370,25 @@ extern "C"
 		ENVIRON *csound = p->h.insdshead->csound;
 		VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
 		plugin->SetCurrentProgram(*p->iprogram);
-		//return OK;
+		return OK;
     }
 
-	int vstedit(void *data)
+	int vstedit_init(void *data)
 	{
   		VSTEDIT *p = (VSTEDIT *)data;
-		ENVIRON *csound = p->h.insdshead->csound;
-		VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
-		plugin->OpenEditor();
-		//return OK;
+        VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
+        plugin->OpenEditor();
+		return OK;
     }
 	
     int vstedit_deinit(void *data)
 	{
   		VSTEDIT *p = (VSTEDIT *)data;
-		ENVIRON *csound = p->h.insdshead->csound;
 		VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
 		plugin->CloseEditor();
-		//return OK;
+		return OK;
     }
+
 #ifdef WIN32
 	void path_convert(char* in)
 	{
@@ -412,17 +414,17 @@ extern "C"
 #endif
 	
     OENTRY vstOentry[] = { 
-        {"vstinit",    sizeof(VSTINIT),    1, "i",  "So",    &vstinit,       0,         0,         &vstinit_free  },
-		{"vstinfo",    sizeof(VSTINFO),    1, "",   "i",     &vstinfo,       0,         0,         0              },
-		{"vstplug",    sizeof(VSTPLUG_),   5, "mm", "iaa",   &vstplug_init,  0,         &vstplug,  0              },
-		{"vstplugg",   sizeof(VSTPLUG_),   5, "mm", "iaa",   &vstplug_init,  0,         &vstplugg, 0              },
-		{"vstnote",    sizeof(VSTNOTE),    3, "",   "ikkkk", &vstnote_init,  &vstnote,  0,         0              },
-		{"vstout",     sizeof(OUTVST_),    3, "",   "ikkkk", &outvst_init,   &outvst,   0,         0              },
-  		{"vstpret",    sizeof(VSTPRET),    3, "k",  "ik",    &vstpret_init,  &vstpret,  0,         0              },
-  		{"vstpsend",   sizeof(VSTPSEND),   3, "",   "ikk",   &vstpsend_init, &vstpsend, 0,         0              },
-    	{"vstbload",   sizeof(VSTBLOAD),   1, "" ,  "iS",    &vstbload,      0,         0,         0              },
-    	{"vstprogset", sizeof(VSTPROGSET), 1, "" ,  "iS",    &vstprogset,    0,         0,         0              },
-    	{"vstedit",    sizeof(VSTEDIT),    1, "" ,  "i",     &vstedit,       0,         0,         &vstedit_deinit}
+        {"vstinit",     sizeof(VSTINIT),     1, "i",  "So",    &vstinit,          0,            0,          &vstdeinit     },
+		{"vstinfo",     sizeof(VSTINFO),     1, "",   "i",     &vstinfo,          0,            0,          0              },
+		{"vstaudio",    sizeof(VSTAUDIO),    5, "mm", "iaa",   &vstaudio_init,    0,            &vstaudio,  0              },
+		{"vstaudiog",   sizeof(VSTAUDIO),    5, "mm", "iaa",   &vstaudio_init,    0,            &vstaudiog, 0              },
+		{"vstnote",     sizeof(VSTNOTE),     3, "",   "ikkkk", &vstnote_init,     &vstnote,     0,          0              },
+		{"vstmidiout",  sizeof(VSTMIDIOUT),  3, "",   "ikkkk", &vstmidiout_init,  &vstmidiout,  0,          0              },
+  		{"vstparamget", sizeof(VSTPARAMGET), 3, "k",  "ik",    &vstparamget_init, &vstparamget, 0,          0              },
+  		{"vstparamset", sizeof(VSTPARAMSET), 3, "",   "ikk",   &vstparamset_init, &vstparamset, 0,          0              },
+    	{"vstbankload", sizeof(VSTBANKLOAD), 1, "" ,  "iS",    &vstbankload,      0,            0,          0              },
+    	{"vstprogset",  sizeof(VSTPROGSET),  1, "" ,  "iS",    &vstprogset,       0,            0,          0              },
+    	{"vstedit",     sizeof(VSTEDIT),     1, "" ,  "ik",    &vstedit_init,     0,            0,          &vstedit_deinit}
     };
    
     /**

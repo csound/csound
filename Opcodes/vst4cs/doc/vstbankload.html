@@ -5,9 +5,9 @@
 	<TITLE>vst4cs</TITLE>
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 1.1.1  (Win32)">
 	<META NAME="AUTHOR" CONTENT="Andres Cabrera">
-	<META NAME="CREATED" CONTENT="20040719;21052590">
+	<META NAME="CREATED" CONTENT="20040719;21052526">
 	<META NAME="CHANGEDBY" CONTENT="Michael Gogins">
-	<META NAME="CHANGED" CONTENT="20040719;21433060">
+	<META NAME="CHANGED" CONTENT="20040719;21430392">
 	<STYLE>
 	<!--
 		TD P { color: #000000 }
@@ -45,21 +45,21 @@
 	</TR>
 </TABLE>
 <HR>
-<H1><A NAME="BABO"></A>vstinfo</H1>
+<H1><A NAME="BABO"></A>vstbankload</H1>
 <P><A NAME="AEN6067"></A>vst4cs -- VST plugin hosting in Csound on
 Windows. 
 </P>
 <H2><A NAME="AEN6072"></A>Description</H2>
-<P><I>vstinfo</I> displays the parameters and the programs of a VST
+<P><I>vstbankload</I> is used for loading parameter banks to a VST
 plugin.</P>
 <H2><A NAME="AEN6079"></A>Syntax</H2>
-<P><B>vstinfo </B><SPAN STYLE="font-weight: medium">instance</SPAN></P>
+<P><B>vstbankload </B><SPAN STYLE="font-weight: medium">instance, ipath</SPAN></P>
 <H2>Initialization</H2>
 <P><I>instance</I> -- the number which identifies the plugin,
 returned previously by the <I>vstinit</I> opcode.</P>
-<P>The <I>verbose</I> flag in <I>vstinit</I> gives the same
-information as <I>vstinfo</I>. <I>vstinfo</I> is useful after loading
-parameter banks, or when plugin changes paramters dynamically.</P>
+<P><I>ipath</I> -- the full pathname of the parameter bank (.fxb
+file). 
+</P>
 <H2><A NAME="AEN6083"></A>Performance</H2>
 <H2><A NAME="AEN60831"></A>Examples</H2>
 <PRE>/* orc */
@@ -75,7 +75,8 @@ endin
 /* sco */
 i 3 0 21
 i4 1 1 57 32
-e</PRE><H2>
+e
+</PRE><H2>
 <A NAME="AEN6152"></A>Credits</H2>
 <TABLE WIDTH=156 BORDER=0 CELLPADDING=2 CELLSPACING=0>
 	<COL WIDTH=152>
