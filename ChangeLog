@@ -1,3 +1,14 @@
+2003-11-29	Steven Yi 	<stevenyi@csounds.com>
+
+	* H/cs.h - all thing except compability macros moved out to csoundCore.h
+	
+	* H/csoundCore.h - contains everything except compability macros
+	
+	* Top/csound.c - edited to use ENVIRON, #include csoundCore.h instead of 
+	cs.h (macros were getting in the way of compiling), still needs to be 
+	reconciled with main.c::csoundCompile before being usable
+	
+
 2003-11-25  John ffitch  <jpff@codemist.co.uk>
 
 	* OOps/vbap_zak.c (vbap_zak_moving_init): Fix zastart/zkstart
