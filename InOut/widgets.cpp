@@ -192,7 +192,8 @@ static void infoff(MYFLT p1)           /*  turn off an indef copy of instr p1  *
           && ip->actflg                 /*      active       */
           //&& ip->offtim < 0             /*      but indef,   */
           && ip->p1 == p1) {
-        VMSG(printf("turning off inf copy of instr %d\n",insno);)
+        //VMSG(printf("turning off inf copy of instr %d\n",insno);)
+	printf("turning off inf copy of instr %d\n",insno);
         deact(ip);
         return;                     /*  turn it off */
       }
@@ -1485,7 +1486,7 @@ extern "C" void save_snap(FLSAVESNAPS* p)
 #endif
     char     s[MAXNAME];
     string  filename;
-    if (*p->filename == sstrcod) { // if char string name given
+    if (*p->filename == SSTRCOD) { // if char string name given
       if (p->STRARG == NULL) strcpy(s,unquote(currevent->strarg));
       else strcpy(s, unquote(p->STRARG));
     }
@@ -1535,7 +1536,7 @@ extern "C" void load_snap(FLLOADSNAPS* p)
 {
     char     s[MAXNAME];
     string  filename;
-    if (*p->filename == sstrcod) { // if char string name given
+    if (*p->filename == SSTRCOD) { // if char string name given
       if (p->STRARG == NULL) strcpy(s,unquote(currevent->strarg));
       else strcpy(s, unquote(p->STRARG));
     }
@@ -1638,7 +1639,7 @@ char * GetString(MYFLT pname, char *t)
 {
     char    *Name=  new char[MAXNAME];
     allocatedStrings.push_back(Name);
-    if (pname == sstrcod) {
+    if (pname == SSTRCOD) {
       if (t == NULL) strcpy(Name,unquote(currevent->strarg));
       else strcpy(Name, unquote(t));
     }
@@ -2743,7 +2744,7 @@ extern "C" void fl_slider_bank(FLSLIDERBANK *p)
 {
     char s[MAXNAME];
     char *t = p->STRARG;
-    if (*p->names == sstrcod) {
+    if (*p->names == SSTRCOD) {
       if (t == NULL) strcpy(s,unquote(currevent->strarg));
       else strcpy(s, unquote(t));
 
@@ -3390,8 +3391,8 @@ extern "C" void fl_roller(FLROLLER *p)
 
 extern "C" void FLprintkset(FLPRINTK *p)
 {
-    if (*p->ptime < FL(1.0) / ekr)
-      p->ctime = FL(1.0) / ekr;
+    if (*p->ptime < FL(1.0) / global_ekr)
+      p->ctime = FL(1.0) / global_ekr;
     else        p->ctime = *p->ptime;
 
     p->initime = (MYFLT) kcounter * onedkr;
