@@ -93,7 +93,7 @@ extern "C" {
   {
     ENVIRON *p;
     void    *saved_hostdata;
-    char    *s, *s2;
+    char    *s;
     int     i, max_len;
 
     p = (ENVIRON*) csound;
@@ -109,20 +109,7 @@ extern "C" {
     max_len = 21;
     csoundCreateGlobalVariable(csound, "_RTAUDIO", (size_t) max_len);
     s = csoundQueryGlobalVariable(csound, "_RTAUDIO");
-    s2 = csoundGetEnv(csound, "CSRTAUDIO");
-    if (s2 != NULL && s2[0] != '\0') {
-      if ((int) strlen(s2) < max_len) {
-        strcpy(s, s2);
-      }
-      else {
-        p->Message(csound, Str("WARNING: CSRTAUDIO='%s' is too long, using "
-                               "PortAudio as default instead\n"), s2);
-        strcpy(s, "PortAudio");
-      }
-    }
-    else {
-      strcpy(s, "PortAudio");
-    }
+    strcpy(s, "PortAudio");
     csoundCreateConfigurationVariable(csound, "rtaudio", s,
                                       CSOUNDCFG_STRING, 0, NULL, &max_len,
                                       "Real time audio module name", NULL);

@@ -54,6 +54,14 @@
 	* Top/argdecode.c:
 	  new command line option: --env (sets/appends to environment variable)
 	  removed empty function argdecodeRESET()
+	* H/soundio.h:
+	  added prototypes for type2sf() and sf2type()
+	* OOps/sndinfUG.c:
+	  fixes in filelen, filenchnls, and filesr (filepeak is still broken)
+	* Top/csound.c:
+	  removed use of CSRTAUDIO environment variable
+	* sndinfo/sndinfo_main.c:
+	  fixed crash
 
 2005-03-01  Michael Gogins <gogins@pipeline.com>
 	* Updated CsoundVST code to use Istvan Varga's MIDI driver system,
