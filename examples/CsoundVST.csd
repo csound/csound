@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
-csound -f -h -d -n -m7 temp.orc temp.sco
+csound -f -h -+rtmidi=null -M0 -d -n -m7 temp.orc temp.sco
 </CsOptions>
 <CsInstruments>
 sr = 44100
@@ -1402,6 +1402,7 @@ endin
 </CsInstruments>
 <CsScore>
 f 0 1000
+
 
 </CsScore>
 </CsoundSynthesizer>
