@@ -21,13 +21,14 @@ elif sys.platform == 'cygwin':
 elif sys.platform[:3] == 'win':
     #for the basic build use: (modify paths to your system)
     #the location of the mingw compiler:
-    customLIBPATH.append('c:/tools/mingw/lib')
     customCPPPATH.append('c:/tools/Python23/include')
     customCPPPATH.append('c:/tools/msys/1.0/local/include')
-    customLIBPATH.append('c:/tools/msys/1.0/local/lib')
+    #customCPPPATH.append('C:/tools/libsndfile-1.0.10pre8/src')
+    # Order is important here. Keep local paths in front of system paths.
     customLIBPATH.append('c:/projects/csound5/windows_dlls')
     customLIBPATH.append('c:/projects/csound5/cygwin_import_libs')
-    customCPPPATH.append('C:/tools/libsndfile-1.0.10pre8/src')
+    customLIBPATH.append('c:/tools/mingw/lib')
+    customLIBPATH.append('c:/tools/msys/1.0/local/lib')
     #inside the windows_dlls directory should be libsndfile.dll
     #if you don't have it or have built it yourself use: (and change accordingly)
     #customLIBPATH.append('C:/tools/libsndfile-1.0.10pre8')

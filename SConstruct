@@ -126,23 +126,24 @@ commonEnvironment.Prepend(SHLINKFLAGS = customSHLINKFLAGS)
 
 Help(opts.GenerateHelpText(commonEnvironment))
 
-commonEnvironment.Append(CPPPATH  = ['.', './H'])
-commonEnvironment.Append(CCFLAGS = Split('-DCSOUND_WITH_API -g -O2'))
-commonEnvironment.Append(CXXFLAGS = Split('-DCSOUND_WITH_API -fexceptions'))
-
 # Define options for different platforms.
 
 print "Build platform is '" + getPlatform() + "'."
 print "SCons tools on this platform: ", commonEnvironment['TOOLS']
 print
 
-commonEnvironment.Append(LIBPATH = '#.')
-commonEnvironment.Append(CPPFLAGS = ['-DBETA'])
+commonEnvironment.Prepend(CPPPATH  = ['.', './H'])
+commonEnvironment.Prepend(CCFLAGS = Split('-DCSOUND_WITH_API -g -O2'))
+commonEnvironment.Prepend(CXXFLAGS = Split('-DCSOUND_WITH_API -fexceptions'))
+commonEnvironment.Prepend(LIBPATH = ['.', '#.'])
+commonEnvironment.Prepend(CPPFLAGS = ['-DBETA'])
+commonEnvironment.Prepend(LIBPATH = ['.', '#.', '/usr/lib', '/usr/local/lib'])
+
 if commonEnvironment['useDouble']:
-    print 'Using double-precision floating point for audio samples.'
+    print 'CONFIGURATION DECISION: Using double-precision floating point for audio samples.'
     commonEnvironment.Append(CPPFLAGS = ['-DUSE_DOUBLE'])
 else:
-    print 'Using single-precision floating point for audio samples.'
+    print 'CONFIGURATION DECISION: Using single-precision floating point for audio samples.'
 
 # Define different build environments for different types of targets.
 
@@ -152,14 +153,12 @@ if getPlatform() == 'linux':
     commonEnvironment.Append(CPPPATH = '/usr/include')
     commonEnvironment.Append(CCFLAGS = "-Wall")
     commonEnvironment.Append(CCFLAGS = "-DPIPES")
-    commonEnvironment.Append(LIBPATH = ['.', '#.', '/usr/lib', '/usr/local/lib'])
 elif getPlatform() == 'darwin':
     commonEnvironment.Append(CCFLAGS = "-DMACOSX")
     commonEnvironment.Append(CPPPATH = '/usr/local/include')
     commonEnvironment.Append(CPPPATH = '/usr/include')
     commonEnvironment.Append(CCFLAGS = "-Wall")
     commonEnvironment.Append(CCFLAGS = "-DPIPES")
-    commonEnvironment.Append(LIBPATH = ['.', '#.', '/usr/lib', '/usr/local/lib'])
 elif getPlatform() == 'mingw' or getPlatform() == 'cygwin':
     commonEnvironment.Append(CPPPATH = '/usr/local/include')
     commonEnvironment.Append(CPPPATH = '/usr/include')
@@ -170,7 +169,6 @@ elif getPlatform() == 'mingw' or getPlatform() == 'cygwin':
     commonEnvironment.Append(CCFLAGS = "-DPIPES")
     commonEnvironment.Append(CCFLAGS = "-DOS_IS_WIN32")
     commonEnvironment.Append(CCFLAGS = "-mthreads")
-    commonEnvironment.Append(LIBPATH = ['.', '#.', '/usr/include/lib', '/usr/local/lib'])    
     
 if (commonEnvironment['makeDynamic'] == 0) and (getPlatform() != 'linux') and (getPlatform() != 'darwin'):
     commonEnvironment.Append(LINKFLAGS = '-static')
@@ -181,7 +179,7 @@ else:
 # Adding libraries and flags if using -mno-cygwin with cygwin
 
 if commonEnvironment['noCygwin'] and getPlatform() == 'cygwin':
-    print 'Using -mno-cygwin.'
+    print 'CONFIGURATION DECISION: Using -mno-cygwin.'
     commonEnvironment.Prepend(CCFLAGS = ['-mno-cygwin'])
     commonEnvironment.Prepend(CPPFLAGS = ['-mno-cygwin'])
     commonEnvironment.Append(LIBS = ['m'])    
@@ -240,7 +238,7 @@ if configure.CheckFunc("itoa") or getPlatform() == 'mingw':
 if not (configure.CheckHeader("Opcodes/Loris/src/loris.h") and configure.CheckHeader("fftw3.h")):
     commonEnvironment["buildLoris"] = 0
 else:
-    print "Building Loris Python extension and Csound opcodes."
+    print "CONFIGURATION DECISION: Building Loris Python extension and Csound opcodes."
         
 # Package contents.
 
@@ -399,7 +397,7 @@ if getPlatform() == 'mingw':
 #############################################################################
 
 if commonEnvironment['generatePDF']==1:
-    print 'Generating PDF documentation.'
+    print 'CONFIGURATION DECISION: Generating PDF documentation.'
     csoundPdf = commonEnvironment.Command('csound.pdf', 'csound.tex', 'pdflatex $SOURCE')
     zipDependencies.append(csoundPdf)
 
@@ -511,12 +509,12 @@ Top/threads.c
 ''')
 
 if (commonEnvironment['usePortAudio']==1) and portaudioFound:
-    print 'Building with PortAudio.'
+    print 'CONFIGURATION DECISION: Building with PortAudio.'
     libCsoundSources.append('InOut/rtpa.c')
     libCsoundSources.append('InOut/pa_blocking.c')
     
 if (commonEnvironment['useFLTK'] and fltkFound):
-    print 'Building with FLTK for graphs and widgets.'
+    print 'CONFIGURATION DECISION: Building with FLTK for graphs and widgets.'
     libCsoundSources.append('InOut/FL_graph.cpp')
     libCsoundSources.append('InOut/winFLTK.c')
     libCsoundSources.append('InOut/widgets.cpp')
@@ -793,7 +791,7 @@ zipDependencies.append(csoundProgramEnvironment.Program('csound',
     ['frontends/csound/csound_main.c']))
     
 if (commonEnvironment['buildCsoundVST'] == 1) and boostFound and fltkFound:    
-    print 'Building CsoundVST plugin and standalone.'
+    print 'CONFIGURATION DECISION: Building CsoundVST plugin and standalone.'
     vstEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
     guiProgramEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
     vstEnvironment.Prepend(LIBS = ['csound', 'sndfile'])
@@ -870,6 +868,7 @@ if (commonEnvironment['buildCsoundVST'] == 1) and boostFound and fltkFound:
     csoundvst = vstEnvironment.SharedLibrary('CsoundVST', csoundVstSources, SHLIBPREFIX = '_')
     Depends(csoundvst, 'frontends/CsoundVST/CsoundVST_wrap.cc')
     zipDependencies.append(csoundvst)
+    Depends(csoundvst, staticLibrary)
     if getPlatform() == 'mingw' or getPlatform() == 'cygwin':
         Depends(csoundvst, pyrun)
 
@@ -920,7 +919,7 @@ if (commonEnvironment['buildCsoundVST'] == 1) and boostFound and fltkFound:
         pluginLibraries.append(py)
 
 if (commonEnvironment['generateTags']) and (getPlatform() == 'linux' or getPlatform() == 'cygwin'):
-    print "Calling TAGS"
+    print "CONFIGURATION DECISION: Calling TAGS"
     allSources = string.join(glob.glob('*/*.h*'))
     allSources = allSources + ' ' + string.join(glob.glob('*/*.hpp'))
     allSources = allSources + ' ' + string.join(glob.glob('*/*/*.c*'))
@@ -931,7 +930,7 @@ if (commonEnvironment['generateTags']) and (getPlatform() == 'linux' or getPlatf
     Depends(tags, staticLibrary)
 
 if commonEnvironment['generateXmg']:
-    print "Calling makedb"
+    print "CONFIGURATION DECISION: Calling makedb"
     if getPlatform() == 'mingw':
         xmgs = commonEnvironment.Command('American.xmg', ['strings/all_strings'], 'makedb strings/all_strings American')
         xmgs1 = commonEnvironment.Command('English.xmg', ['strings/english-strings'], 'makedb strings/english-strings English')
@@ -951,7 +950,7 @@ if commonEnvironment['generateXmg']:
 zipDependencies += pluginLibraries
     
 if commonEnvironment['generateZip']:    
-    print 'Compiling zip file for release.'
+    print 'CONFIGURATION DECISION: Compiling zip file for release.'
     zip = commonEnvironment.Command(zipfilename, staticLibrary, buildzip)
     for node in zipDependencies:
         Depends(zip, node)
