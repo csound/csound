@@ -22,11 +22,12 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 //  02111-1307 USA
 
-#ifndef _VSTPLUGIN_HOST
-#define _VSTPLUGIN_HOST
+#ifndef VSTPLUGIN_HOST_H
+#define VSTPLUGIN_HOST_H
 
 #include "cs.h"
 #include "AEffectx.h"
+#include "AEffEditor.hpp"
 #include <vector>
 
 typedef enum {
@@ -51,12 +52,15 @@ MIDI_PITCHBEND = 224,
 
 typedef AEffect* (*PVSTMAIN)(audioMasterCallback audioMaster);
 
+class Fl_Window;
+
 class VSTPlugin
 {
 public:
     ENVIRON *csound;
 	void *libraryHandle;
 	AEffect *aeffect;
+	Fl_Window *window;
 	void *windowHandle;
 	char productName[64];
 	char vendorName[64];
@@ -92,8 +96,7 @@ public:
 	virtual void SetShowParameters(bool s);
 	virtual void OnEditorClose();
 	virtual void SetEditWindow(void *h);
-	//CEditorThread* b;
-	//virtual RECT GetEditorRect();
+	virtual ERect GetEditorRect();
 	virtual void EditorIdle();
 	virtual void edit(void);
 	virtual bool replace();
@@ -128,6 +131,8 @@ public:
 	virtual bool AddNoteOff(int channel,  MYFLT note);
 	virtual void Log(const char *format,...);
 	virtual void Debug(const char *format,...);
+	virtual void OpenEditor();
+	virtual void CloseEditor();
     static bool OnInputConnected(AEffect *effect, long input);
     static bool OnOutputConnected(AEffect *effect, long output);
 	static long OnGetVersion(AEffect *effect);
@@ -159,4 +164,5 @@ inline void VSTPlugin::process(float **ins, float **outs, long frames)
     }
 }
 
-#endif // _VSTPLUGIN_HOST
+#endif
+
