@@ -249,7 +249,7 @@ fi
 
 if test "$USE_GUI" = yes; then
      FLTKOBJ="widgets.$ac_objext"
-     FLTKSRC="widgets.cpp"
+     FLTKSRC="InOut/widgets.cpp"
          AC_PATH_PROG(FLTK_CONFIG,fltk-config)
          AC_LANG_CPLUSPLUS
          AC_LANG_C
