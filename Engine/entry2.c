@@ -222,7 +222,7 @@ OENTRY opcodlst_2[] = {
 { "xadsr", S(EXXPSEG),   7,     "s",    "iiiio", xdsrset, kxpseg, expseg    },
 { "mxadsr", S(EXPSEG),   7,     "s",    "iiiioj", mxdsrset, kxpsegr, expsegr },
 { "schedule", S(SCHED),  1,     "",     "Siim", schedule, schedwatch, NULL },
-{ "schedwhen", S(WSCHED),3,     "",     "Skkkm",ifschedule, kschedule, NULL },
+{ "schedwhen", S(WSCHED),3,     "",     "kkkkm",ifschedule, kschedule, NULL },
 { "schedkwhen", S(TRIGINSTR), 3,"",     "kkkkkz",triginset, ktriginstr, NULL },
 { "schedkwhennamed", S(TRIGINSTR), 3,"", "kkkSkz",triginset, ktriginstr, NULL },
 { "trigseq", S(TRIGSEQ), 3,     "",     "kkkkkz", trigseq_set, trigseq, NULL },
