@@ -221,8 +221,11 @@ int MIDIinsert(ENVIRON *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     INSDS    *ip, **ipp;
     int err = 0;
 
+    if (insno <= 0)
+      return 0;     /* muted */
+
     cpu_power_busy += instrtxtp[insno]->cpuload;
-    if (cpu_power_busy > FL(100.0)) { /* if there is no more cpu processing time*/
+    if (cpu_power_busy > FL(100.0)) {   /* if there is no more cpu time*/
       cpu_power_busy -= instrtxtp[insno]->cpuload;
       if (O.msglevel & WARNMSG)
         printf(Str(

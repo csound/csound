@@ -352,9 +352,10 @@ static int WriteMidiData_(void *csound_, void *userData,
         csound->Message(csound, Str(" *** PortMIDI: invalid MIDI out data\n"));
         break;
       }
-      if (st >= 0xF0) {
-        csound->Message(csound, Str(" *** PortMIDI: MIDI out: "
-                                    "only channel messages are supported\n"));
+      if (st >= 0xF0 && st < 0xF8) {
+        csound->Message(csound, Str(" *** PortMIDI: MIDI out: system message "
+                                    "0x%02X is not supported\n"),
+                                (unsigned int) st);
         break;
       }
       nbytes -= (datbyts[(st - 0x80) >> 4] + 1);
