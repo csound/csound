@@ -657,6 +657,8 @@ static int process_rt_event(ENVIRON *csound, int sensType)
             ip->m_sust = 1;             /*    let the note ring   */
             chn->ksuscnt++;
           }
+          else
+            Mxtroffs++;
         }
         else                            /*  else some kind of off */
           xturnoff(csound, ip);
