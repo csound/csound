@@ -263,16 +263,21 @@ int CsoundVST::perform()
   int result = 0;
   if(getCppSound())
     {
-      if(getIsVst() || !isMultiThreaded)
+      if(getIsVst())
     	{
 	  csoundSetYieldCallback(getCppSound()->getCsound(), nonThreadYieldCallback); 
 	  performanceThreadRoutine();
     	}
-      else
+      else if(getIsMultiThreaded())
     	{
 	  csoundSetYieldCallback(getCppSound()->getCsound(), threadYieldCallback); 
 	  result = (int) csound::System::createThread(performanceThreadRoutine_, this, 0);
     	}
+      else
+	{
+	  csoundSetYieldCallback(getCppSound()->getCsound(), threadYieldCallback); 
+	  performanceThreadRoutine();
+	}
     }
   return result;
 }

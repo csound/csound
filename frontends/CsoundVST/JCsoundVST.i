@@ -29,14 +29,6 @@
 %}
 %apply int { size_t };
 %include "Silence.hpp"
-// Need to rename the CsoundVST class to prevent a name conflict
-// with the CsoundVST module.
-%inline %{
-class CsoundVST;
-%}
-%rename(JCsoundVST) CsoundVST;
-%include "Shell.hpp"
-%include "CsoundVST.hpp"
 
 // Enable the JNI class to load the required native library.
 %pragma(java) jniclasscode=%{
@@ -49,5 +41,19 @@ class CsoundVST;
     }
   }
 %}
+
+// Currently, there is a problem with running Python or accessing Python
+// variables in the Java virtual machine. Therefore it is not possible
+// to run CsoundVST from Java at this time. CppSound however works fine.
+
+// Need to rename the CsoundVST class to prevent a name conflict
+// with the CsoundVST module.
+//%inline %{
+//class CsoundVST;
+//%}
+//%rename(JCsoundVST) CsoundVST;
+//%include "Shell.hpp"
+//%include "CsoundVST.hpp"
+
 
 #endif
