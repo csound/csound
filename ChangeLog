@@ -1,13 +1,19 @@
+2004-11-02  John Fitch  <jpff@eriboll.local.>
+
+	* Top/threads.c: OSX threads like Linux
+
+	* InOut/rtpa.c: Use callback stuff for OSX
+
 2004-10-24  Michael Gogins <gogins@pipeline.com>
 
 	* Renamed libsndfile.dll.0.0.19.
     
-    * Updated documentation to provide improved directions for extending Csound
-    with builtin or plugin opcodes.
+        * Updated documentation to provide improved directions for extending
+	Csound with builtin or plugin opcodes.   
     
-    * Fixed badly formatted tables in documentation.
+        * Fixed badly formatted tables in documentation.
     
-    * Improved API documentation with simple examples.
+        * Improved API documentation with simple examples.
 
 
 2004-10-26  John ffitch  <jpff@codemist.co.uk>
