@@ -1,5 +1,10 @@
 2004-05-20  John ffitch  <jpff@codemist.co.uk>
 
+	* InOut/rtpa.c (playopen_): Decode dac:xxx rather than environment
+	variable 
+
+	* InOut/libsnd.c (sfopenin, sfopenout): Decode dac:xxx style device
+
 	* H/csoundCore.h (ENVIRON_): type in instance was wrong (missing *)
 
 	* H/csoundCore.h (ENVIRON_): 

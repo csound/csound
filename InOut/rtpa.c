@@ -41,6 +41,16 @@ extern  OPARMS  O;
 #  define _pclose pclose
 #endif
 
+typedef struct PaAlsaStreamInfo
+{
+    unsigned long size;
+    int/*PaHostApiTypeId*/ hostApiType;
+    unsigned long version;
+
+    const char *deviceString;
+}
+PaAlsaStreamInfo;
+
 static int getshift(int dsize)  /* turn sample- or frame-size into shiftsize */
 {
     switch (dsize) {
@@ -57,11 +67,41 @@ void recopen_(int nchanls, int dsize, float sr, int scale)
 /* open for audio input */
 {
     struct PaStreamParameters paStreamParameters_;
-    PaError paError;
+    PaError paError = Pa_Initialize();
+#if defined(LINUX)
+    PaAlsaStreamInfo info;
+#endif
+    if ( paError != paNoError )
+      goto error;
     oMaxLag = O.oMaxLag;        /* import DAC setting from command line   */
     if (oMaxLag <= 0)           /* if DAC sampframes ndef in command line */
       oMaxLag = IODACSAMPS;     /*    use the default value               */
-    paStreamParameters_.device = 0;
+#if defined(LINUX)
+    printf("extdev=%p\n", rtin_devs);
+    if (rtin_devs!=NULL && strlen(rtin_devs)!=0) {
+      info.deviceString = rtin_devs;
+      err_printf("Using Portaudio Device %s\n", rtin_devs);
+      info.hostApiType = paALSA;
+      info.version = 1;
+      info.size = sizeof(info);
+      paStreamParameters_.device = paUseHostApiSpecificDeviceSpecification;
+      paStreamParameters_.hostApiSpecificStreamInfo = &info;
+    }
+    else {
+#endif
+      if (rtin_dev == 1024) {
+        paStreamParameters_.device = 1;
+        err_printf(Str(X_30,
+                       "No PortAudio device given; defaulting to device 1.\n"));
+      }
+      else {
+        paStreamParameters_.device = rtin_dev;
+        err_printf(Str(X_39,"Using Portaudio Device %i\n"), rtin_dev);
+      }
+      paStreamParameters_.hostApiSpecificStreamInfo = NULL;
+#if defined(LINUX)
+    }
+#endif
     paStreamParameters_.channelCount = nchnls;
     paStreamParameters_.sampleFormat = (dsize==1?paInt8:
                                         dsize==2?paInt16:
@@ -69,7 +109,6 @@ void recopen_(int nchanls, int dsize, float sr, int scale)
                                         dsize==8?paInt24:
                                         paCustomFormat);
     paStreamParameters_.suggestedLatency = ((double) sr) / ((double) oMaxLag);
-    paStreamParameters_.hostApiSpecificStreamInfo = 0;
     paError = Pa_OpenStream (&pa_in,
                              &paStreamParameters_,
                              NULL,
@@ -109,16 +148,6 @@ void listPortAudioDevices(void)
     }
 }
 
-typedef struct PaAlsaStreamInfo
-{
-    unsigned long size;
-    int/*PaHostApiTypeId*/ hostApiType;
-    unsigned long version;
-
-    const char *deviceString;
-}
-PaAlsaStreamInfo;
-
 void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
                                                   /* open for audio output */
 {
@@ -126,7 +155,6 @@ void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
     PaError paError = Pa_Initialize();
 #if defined(LINUX)
     PaAlsaStreamInfo info;
-    char *extdev = getenv("CSDEV");
 #endif
     if ( paError != paNoError )
       goto error;
@@ -138,10 +166,10 @@ void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
       oMaxLag = IODACSAMPS;     /*    use the default value               */
 
 #if defined(LINUX)
-    printf("extenv=%p\n");
-    if (extdev!=NULL && strlen(extdev)!=0) {
-      info.deviceString = extdev;
-      err_printf("Using Portaudio Device %s\n", extdev);
+    printf("extdev=%p\n", rtout_devs);
+    if (rtout_devs!=NULL && strlen(rtout_devs)!=0) {
+      info.deviceString = rtout_devs;
+      err_printf("Using Portaudio Device %s\n", rtout_devs);
       info.hostApiType = paALSA;
       info.version = 1;
       info.size = sizeof(info);

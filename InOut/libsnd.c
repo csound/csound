@@ -354,10 +354,18 @@ void sfopenin(void)             /* init for continuous soundin */
               || strcmp(O.infilename,"adc") == 0)) {
 #if defined(WIN32) || defined(LINUX)
       rtin_dev = 0;
-      if (strncmp(O.infilename,"devaudio", 8) == 0)
-        sscanf(O.infilename+8, "%d", &rtin_dev);
-      else if (strncmp(O.infilename,"adc", 3) == 0)
-        sscanf(O.infilename+3, "%d", &rtin_dev);
+      if (strncmp(O.infilename,"devaudio", 8) == 0) {
+        if (O.infilename[8]==':')
+          rtin_devs = &(O.infilename[9]);
+        else
+          sscanf(O.infilename+8, "%d", &rtin_dev);
+      }
+      else if (strncmp(O.infilename,"adc", 3) == 0) {
+        if (O.infilename[3]==':')
+          rtin_devs = &(O.infilename[4]);
+        else
+          sscanf(O.infilename+3, "%d", &rtin_dev);
+      }
 #endif
       sfname = O.infilename;
       recopen_(nchnls,O.insampsiz,(float)esr,2);  /* open devaudio for input */
@@ -440,10 +448,18 @@ void sfopenout(void)                            /* init for sound out       */
 # endif
              || strcmp(O.outfilename,"dac") == 0) {
 #if defined(WIN32) || defined(LINUX)
-      if (strncmp(O.outfilename,"devaudio", 8) == 0)
-        sscanf(O.outfilename+8, "%d", &rtout_dev);
-      else if (strncmp(O.outfilename,"dac", 3) == 0)
-        sscanf(O.outfilename+3, "%d", &rtout_dev);
+      if (strncmp(O.outfilename,"devaudio", 8) == 0) {
+        if (O.outfilename[8]==':')
+          rtout_devs = &(O.outfilename[9]);
+        else
+          sscanf(O.outfilename+8, "%d", &rtout_dev);
+      }
+      else if (strncmp(O.outfilename,"dac", 3) == 0) {
+        if (O.outfilename[3]==':')
+          rtout_devs = &(O.outfilename[4]);
+        else
+          sscanf(O.outfilename+3, "%d", &rtout_dev);
+      }
 #endif
       sfoutname = O.outfilename;
       playopen_(nchnls, O.sfsampsize, (float)esr, 2);  /* open devaudio for out */
