@@ -2,6 +2,12 @@
 	* Engine/insert.c:
 	* OOps/schedule.c:
 	  fixes in schedule opcodes
+	* SConstruct:
+	  removed checks for some unused headers
+	* H/sysdep.h:
+	  set DIRSEP to '\\' on Windows
+	* Engine/envvar.c:
+	  try_file_open(): do not test for directory on Windows (breaks WINE)
 
 2005-03-08	Istvan Varga	<istvan@csounds.com>
 	* Engine/insert.c:
