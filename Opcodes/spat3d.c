@@ -323,7 +323,7 @@ int spat3d_set_opcode_params (ENVIRON *csound, SPAT3D *p)
         p->ftable = NULL;
       }
       else {
-        ftp = ftfind(p->h.insdshead->csound, p->args[xift]);
+        ftp = ftfind(csound, p->args[xift]);
         if ((ftp == NULL) || (ftp->flen < 64)) {
           p->ftable = NULL;
         }
@@ -343,7 +343,7 @@ int spat3d_set_opcode_params (ENVIRON *csound, SPAT3D *p)
         p->outft = NULL; p->outftlnth = 0;
       }
       else {
-        if ((ftp = ftfind(p->h.insdshead->csound,p->args[xioutft])) == NULL) {
+        if ((ftp = ftfind(csound,p->args[xioutft])) == NULL) {
           p->outft = NULL; p->outftlnth = 0;
         } else {
           p->outft = ftp->ftable;
@@ -446,7 +446,7 @@ int    spat3diset (ENVIRON *csound, SPAT3D *p)
 
 /* spat3d wall perf */
 
-void    spat3d_wall_perf (
+void    spat3d_wall_perf (ENVIRON       *csound,/* General environment          */
                           SPAT3D        *p,     /* opcode struct                */
                           MYFLT         *xn,    /* input signal                 */
                           SPAT3D_WALL   *ws,    /* wall parameters structure    */
@@ -589,7 +589,7 @@ void    spat3d_wall_perf (
 
     for (nn = 0; nn < 6; nn++)
       if (ws->nextRefl[nn] != NULL)
-        spat3d_wall_perf (p, ws->yn,
+        spat3d_wall_perf (csound, p, ws->yn,
                           (SPAT3D_WALL *) ws->nextRefl[nn],
                           X, Y, Z);
 }
@@ -632,7 +632,7 @@ int    spat3d (ENVIRON *csound, SPAT3D *p)
     case 0:     *(p->Wb - 1) = p->Wb[j] = p->Wb[j + 1] = p->Wb[j + 2] =
                   FL(0.0);
     }
-    spat3d_wall_perf (p, p->args[4], (SPAT3D_WALL *) p->ws.auxp,
+    spat3d_wall_perf (csound, p, p->args[4], (SPAT3D_WALL *) p->ws.auxp,
                       *(p->args[5]), *(p->args[6]), *(p->args[7]));
     switch (p->zout) {  /* copy extra samples from beginning and */
     case 4:             /* end of delay line                     */

@@ -206,7 +206,7 @@ int posc_set(ENVIRON *csound, POSC *p)
 {
     FUNC *ftp;
 
-    if ((ftp = ftnp2find(p->h.insdshead->csound,p->ift)) == NULL) return NOTOK;
+    if ((ftp = ftnp2find(csound,p->ift)) == NULL) return NOTOK;
     p->ftp        = ftp;
     p->tablen     = ftp->flen;
     p->tablenUPsr = p->tablen * onedsr;
@@ -414,7 +414,7 @@ int lposc_set(ENVIRON *csound, LPOSC *p)
     FUNC *ftp;
     MYFLT  loop, end, looplength;
 
-    if ((ftp = ftnp2find(p->h.insdshead->csound, p->ift)) == NULL) return NOTOK;
+    if ((ftp = ftnp2find(csound, p->ift)) == NULL) return NOTOK;
     if (!(p->fsr=ftp->gen01args.sample_rate)) {
       printf(Str(X_970,"losc: no sample rate stored in function assuming=sr\n"));
       p->fsr=esr;
@@ -807,7 +807,7 @@ int vibrato_set(ENVIRON *csound, VIBRATO *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) != NULL) {
+    if ((ftp = ftfind(csound, p->ifn)) != NULL) {
       p->ftp = ftp;
       if (*p->iphs >= 0)
         p->lphs = ((long)(*p->iphs * FMAXLEN)) & PHMASK;
@@ -885,7 +885,7 @@ int vibr_set(ENVIRON *csound, VIBR *p)
 #define cpsMaxRate      FL(2.28100)
 #define iphs            FL(0.0)
 
-    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) != NULL) {
+    if ((ftp = ftfind(csound, p->ifn)) != NULL) {
       p->ftp = ftp;
       p->lphs = ((long)(iphs * FMAXLEN)) & PHMASK;
     }
@@ -1124,7 +1124,7 @@ int jittersa(ENVIRON *csound, JITTERS *p)
 int kDiscreteUserRand(ENVIRON *csound, DURAND *p)
 { /* gab d5*/
     if (p->pfn != (long)*p->tableNum) {
-      if ( (p->ftp = ftfindp(p->h.insdshead->csound, p->tableNum) ) == NULL) {
+      if ( (p->ftp = ftfindp(csound, p->tableNum) ) == NULL) {
         sprintf(errmsg, Str(X_315,"Invalid ftable no. %f"), *p->tableNum);
         return perferror(errmsg);
       }
@@ -1147,7 +1147,7 @@ int aDiscreteUserRand(ENVIRON *csound, DURAND *p)
     long n = ksmps, flen;
 
     if (p->pfn != (long)*p->tableNum) {
-      if ( (p->ftp = ftfindp(p->h.insdshead->csound, p->tableNum) ) == NULL) {
+      if ( (p->ftp = ftfindp(csound, p->tableNum) ) == NULL) {
         sprintf(errmsg, Str(X_315,"Invalid ftable no. %f"), *p->tableNum);
         return perferror(errmsg);
       }
@@ -1167,7 +1167,7 @@ int kContinuousUserRand(ENVIRON *csound, CURAND *p)
     long indx;
     MYFLT findx, fract, v1, v2;
     if (p->pfn != (long)*p->tableNum) {
-      if ( (p->ftp = ftfindp(p->h.insdshead->csound, p->tableNum) ) == NULL) {
+      if ( (p->ftp = ftfindp(csound, p->tableNum) ) == NULL) {
         sprintf(errmsg, Str(X_315,"Invalid ftable no. %f"), *p->tableNum);
         return perferror(errmsg);
       }
@@ -1203,7 +1203,7 @@ int aContinuousUserRand(ENVIRON *csound, CURAND *p)
     MYFLT findx, fract,v1,v2;
 
     if (p->pfn != (long)*p->tableNum) {
-      if ( (p->ftp = ftfindp(p->h.insdshead->csound, p->tableNum) ) == NULL) {
+      if ( (p->ftp = ftfindp(csound, p->tableNum) ) == NULL) {
         sprintf(errmsg, Str(X_315,"Invalid ftable no. %f"), *p->tableNum);
         return perferror(errmsg);
       }

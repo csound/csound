@@ -36,8 +36,8 @@ int wtinit(ENVIRON *csound, WAVETER *p)
 {
     /* DECLARE */
     int i;
-    FUNC *ftpx = ftfind(p->h.insdshead->csound, p->i_tabx);
-    FUNC *ftpy = ftfind(p->h.insdshead->csound, p->i_taby);
+    FUNC *ftpx = ftfind(csound, p->i_tabx);
+    FUNC *ftpy = ftfind(csound, p->i_taby);
 
     /* CHECK */
     if ((ftpx == NULL)||(ftpy == NULL)) {
@@ -118,8 +118,8 @@ int scanhinit(ENVIRON *csound, SCANHAMMER *p)
   int srcpos = 0;
   int dstpos = (int)(*p->ipos + FL(0.5));
 
-  FUNC *fsrc = ftfind(p->h.insdshead->csound, p->isrc); /* Source table */
-  FUNC *fdst = ftfind(p->h.insdshead->csound, p->idst); /* Destination table */
+  FUNC *fsrc = ftfind(csound, p->isrc); /* Source table */
+  FUNC *fdst = ftfind(csound, p->idst); /* Destination table */
 
   if (fsrc->flen > fdst->flen) {
     return initerror(Str(X_1789,
@@ -151,11 +151,11 @@ int scanhinit(ENVIRON *csound, SCANHAMMER *p)
 int scantinit(ENVIRON *csound, SCANTABLE *p)
 {
     /* DECLARE */
-    FUNC *fpoint = ftfind(p->h.insdshead->csound, p->i_point);
-    FUNC *fmass  = ftfind(p->h.insdshead->csound, p->i_mass);
-    FUNC *fstiff = ftfind(p->h.insdshead->csound, p->i_stiff);
-    FUNC *fdamp  = ftfind(p->h.insdshead->csound, p->i_damp);
-    FUNC *fvel   = ftfind(p->h.insdshead->csound, p->i_vel);
+    FUNC *fpoint = ftfind(csound, p->i_point);
+    FUNC *fmass  = ftfind(csound, p->i_mass);
+    FUNC *fstiff = ftfind(csound, p->i_stiff);
+    FUNC *fdamp  = ftfind(csound, p->i_damp);
+    FUNC *fvel   = ftfind(csound, p->i_vel);
 
     /* CHECK */
     if (fpoint == NULL) {
@@ -201,18 +201,18 @@ int scantinit(ENVIRON *csound, SCANTABLE *p)
 
 
 
-int scantPerf(SCANTABLE *p)
+int scantPerf(ENVIRON *csound, SCANTABLE *p)
 {
     int i;
     MYFLT force, fc1, fc2;
     int next, last;
 
     /* DECLARE */
-    FUNC *fpoint = ftfind(p->h.insdshead->csound, p->i_point);
-    FUNC *fmass  = ftfind(p->h.insdshead->csound, p->i_mass);
-    FUNC *fstiff = ftfind(p->h.insdshead->csound, p->i_stiff);
-    FUNC *fdamp  = ftfind(p->h.insdshead->csound, p->i_damp);
-    FUNC *fvel   = ftfind(p->h.insdshead->csound, p->i_vel);
+    FUNC *fpoint = ftfind(csound, p->i_point);
+    FUNC *fmass  = ftfind(csound, p->i_mass);
+    FUNC *fstiff = ftfind(csound, p->i_stiff);
+    FUNC *fdamp  = ftfind(csound, p->i_damp);
+    FUNC *fvel   = ftfind(csound, p->i_vel);
 
 
 

@@ -70,7 +70,7 @@ int grainsetv4(ENVIRON *csound, GRAINV4 *p)
     MYFLT       pitch[4];
 
     /* call ftfind() to get the function table...*/
-    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) != NULL) {
+    if ((ftp = ftfind(csound, p->ifn)) != NULL) {
 #ifdef BETA
       printf("granule_set: Find ftable OK...\n");
 #endif
@@ -86,7 +86,7 @@ int grainsetv4(ENVIRON *csound, GRAINV4 *p)
 #endif
 
     if (*p->ifnenv > 0) {
-      if ((ftp_env = ftfind(p->h.insdshead->csound, p->ifnenv)) != NULL) {
+      if ((ftp_env = ftfind(csound, p->ifnenv)) != NULL) {
 #ifdef BETA
         printf("granule_set: Find ftable for envelop OK...\n");
 #endif

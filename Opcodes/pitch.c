@@ -565,7 +565,7 @@ int adsyntset(ENVIRON *csound, ADSYNT *p)
 
     p->inerr = 0;
 
-    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) != NULL) {
+    if ((ftp = ftfind(csound, p->ifn)) != NULL) {
       p->ftp = ftp;
     }
     else {
@@ -578,7 +578,7 @@ int adsyntset(ENVIRON *csound, ADSYNT *p)
       count = 1;
     p->count = count;
 
-    if ((ftp = ftfind(p->h.insdshead->csound, p->ifreqtbl)) != NULL) {
+    if ((ftp = ftfind(csound, p->ifreqtbl)) != NULL) {
       p->freqtp = ftp;
     }
     else {
@@ -591,7 +591,7 @@ int adsyntset(ENVIRON *csound, ADSYNT *p)
                     "adsynt: partial count is greater than freqtable size!"));
     }
 
-    if ((ftp = ftfind(p->h.insdshead->csound, p->iamptbl)) != NULL) {
+    if ((ftp = ftfind(csound, p->iamptbl)) != NULL) {
       p->amptp = ftp;
     }
     else {
@@ -676,7 +676,7 @@ int hsboscset(ENVIRON *csound, HSBOSC *p)
     FUNC        *ftp;
     int         octcnt, i;
 
-    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) != NULL) {
+    if ((ftp = ftfind(csound, p->ifn)) != NULL) {
       p->ftp = ftp;
       if (*p->ioctcnt < 2)
         octcnt = 3;
@@ -690,7 +690,7 @@ int hsboscset(ENVIRON *csound, HSBOSC *p)
           p->lphs[i] = ((long)(*p->iphs * FMAXLEN)) & PHMASK;
         }
     }
-    if ((ftp = ftfind(p->h.insdshead->csound, p->imixtbl)) != NULL) {
+    if ((ftp = ftfind(csound, p->imixtbl)) != NULL) {
       p->mixtp = ftp;
     }
     return OK;
@@ -1568,7 +1568,7 @@ int Foscset(ENVIRON *csound, XOSC *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = ftnp2find(p->h.insdshead->csound, p->ifn)) != NULL) { /* Allow any length */
+    if ((ftp = ftnp2find(csound, p->ifn)) != NULL) { /* Allow any length */
       p->ftp = ftp;
       if (*p->iphs >= 0) {
         p->lphs = *p->iphs * ftp->flen;

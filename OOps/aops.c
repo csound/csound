@@ -447,7 +447,7 @@ int ftlen(ENVIRON *csound, EVAL *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = ftnp2find(p->h.insdshead->csound, p->a)) != NULL)
+    if ((ftp = ftnp2find(csound, p->a)) != NULL)
       *p->r = (MYFLT)ftp->flen;
     else
       *p->r = -FL(1.0);      /* Return something */
@@ -458,7 +458,7 @@ int ftchnls(ENVIRON *csound, EVAL *p)
 {
     FUNC *ftp;
 
-    if ((ftp = ftnp2find(p->h.insdshead->csound,p->a)) != NULL)
+    if ((ftp = ftnp2find(csound,p->a)) != NULL)
       *p->r = (MYFLT)ftp->nchanls;
     else
       *p->r = -FL(1.0);      /* Return something */
@@ -468,7 +468,7 @@ int ftchnls(ENVIRON *csound, EVAL *p)
 int ftlptim(ENVIRON *csound, EVAL *p)
 {
     FUNC    *ftp;
-    if ((ftp = ftnp2find(p->h.insdshead->csound,p->a)) == NULL) return OK;
+    if ((ftp = ftnp2find(csound,p->a)) == NULL) return OK;
     if (ftp->loopmode1)
       *p->r = ftp->begin1 * onedsr;
     else {
@@ -482,7 +482,7 @@ int ftlptim(ENVIRON *csound, EVAL *p)
 int numsamp(ENVIRON *csound, EVAL *p)           /***** nsamp by G.Maldonado ****/
 {
     FUNC        *ftp;
-    if ((ftp = ftfind(p->h.insdshead->csound, p->a)) != NULL)
+    if ((ftp = ftfind(csound, p->a)) != NULL)
       *p->r = (MYFLT) ftp->soundend;
     else
       *p->r = FL(0.0);
@@ -492,7 +492,7 @@ int numsamp(ENVIRON *csound, EVAL *p)           /***** nsamp by G.Maldonado ****
 int ftsr(ENVIRON *csound, EVAL *p)              /**** ftsr by G.Maldonado ****/
 {
     FUNC        *ftp;
-    if ((ftp = ftfind(p->h.insdshead->csound, p->a)) != NULL)
+    if ((ftp = ftfind(csound, p->a)) != NULL)
       *p->r = ftp->gen01args.sample_rate;
     else
       *p->r = FL(0.0);
@@ -620,7 +620,7 @@ int cpsxpch(ENVIRON *csound, XENH *p)
     }
     else {                      /* Values in a table */
       MYFLT t = - *p->et;
-      FUNC* ftp = ftfind(p->h.insdshead->csound, &t);
+      FUNC* ftp = ftfind(csound, &t);
       long len;
       if (ftp == NULL) {
         sprintf(errmsg, Str(X_387,"No tuning table %d\n"), (int)(- *p->et));
@@ -649,7 +649,7 @@ int cps2pch(ENVIRON *csound, XENH *p)
     }
     else {
       MYFLT t = - *p->et;
-      FUNC* ftp = ftfind(p->h.insdshead->csound, &t);
+      FUNC* ftp = ftfind(csound, &t);
       long len;
       if (ftp == NULL) {
         sprintf(errmsg,Str(X_387,"No tuning table %d\n"), (int)(- *p->et));
@@ -677,7 +677,7 @@ int cpstun_i(ENVIRON *csound, CPSTUNI *p)
     int numgrades;
     int basekeymidi;
     MYFLT basefreq, factor,interval;
-    if ((ftp = ftfind(p->h.insdshead->csound, p->tablenum)) == NULL) {
+    if ((ftp = ftfind(csound, p->tablenum)) == NULL) {
       return perferror(Str(X_1666,"cpstun: invalid table"));
     }
     func = ftp->ftable;
@@ -711,7 +711,7 @@ int cpstun(ENVIRON *csound, CPSTUN *p)
       int numgrades;
       int basekeymidi;
       MYFLT basefreq, factor,interval;
-      if ((ftp = ftfind(p->h.insdshead->csound, p->tablenum)) == NULL) {
+      if ((ftp = ftfind(csound, p->tablenum)) == NULL) {
         return perferror(Str(X_1666,"cpstun: invalid table"));
       }
       func = ftp->ftable;

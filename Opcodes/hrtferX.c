@@ -84,7 +84,7 @@ int hrtferxkSet(ENVIRON *csound, HRTFER *p)
     if (esr != SAMP_RATE) {
       printf (Str(X_399,"Orchestra sampling rate is not compatible with HRTF.\n"));
       printf (Str(X_462,"Should be %d...exiting.\n"), SAMP_RATE);
-      longjmp(p->h.insdshead->csound->exitjmp_,1);
+      longjmp(csound->exitjmp_,1);
     }
 
     if (*p->ifilno == SSTRCOD)

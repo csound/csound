@@ -184,7 +184,7 @@ int pvset(ENVIRON *csound, PVOC *p)
     }
 
     if (*p->igatefun > 0)
-      if ((AmpGateFunc = ftfind(p->h.insdshead->csound, p->igatefun)) == NULL)
+      if ((AmpGateFunc = ftfind(csound, p->igatefun)) == NULL)
         return NOTOK;
     p->AmpGateFunc = AmpGateFunc;
 

@@ -38,12 +38,12 @@
 
 /* external prototypes */
 static void error(ENVIRON*, const char*, const char*);
-static void pluckSetFilters(WGPLUCK*, MYFLT, MYFLT);
-static MYFLT *pluckShape(WGPLUCK*);    /* pluck shape function */
+static void pluckSetFilters(ENVIRON*, WGPLUCK*, MYFLT, MYFLT);
+static MYFLT *pluckShape(ENVIRON*, WGPLUCK*);    /* pluck shape function */
 
 /* ***** plucked string class member function definitions ***** */
 static /* pluck::excite -- excitation function for plucked string */
-int pluckExcite(WGPLUCK* p)
+int pluckExcite(ENVIRON *csound, WGPLUCK* p)
 {
     MYFLT *shape;
     int i;
@@ -55,10 +55,10 @@ int pluckExcite(WGPLUCK* p)
       p->pickSamp = 1;
 
     /* set the bridge filter coefficients for the correct magnitude response */
-    pluckSetFilters(p,*p->Aw0,*p->AwPI);/*attenuation in dB at w0 and PI*/
+    pluckSetFilters(csound, p,*p->Aw0,*p->AwPI);/*attenuation in dB at w0 and PI*/
 
     /* add the pick shape to the waveguide rails */
-    shape = pluckShape(p);    /* Efficiency loss here */
+    shape = pluckShape(csound,p);    /* Efficiency loss here */
 
     /* add shape to lower rail */
     for (i=0;i<size;i++) {
@@ -84,7 +84,7 @@ int pluckExcite(WGPLUCK* p)
 }
 
 /* ::pluck -- create the plucked-string instrument */
-int pluckPluck(WGPLUCK* p)
+int pluckPluck(ENVIRON *csound, WGPLUCK* p)
 {
     /* ndelay = total required delay - 1.0 */
     len_t ndelay = (len_t) (esr / *p->freq - FL(1.0));
@@ -108,7 +108,7 @@ int pluckPluck(WGPLUCK* p)
     printf("Constructing waveguide...");
 #endif
 
-    waveguideWaveguide(p->h.insdshead->csound,
+    waveguideWaveguide(csound,
                        (waveguide*)&p->wg,             /* waveguide       */
                        (MYFLT)*p->freq,                /* f0 frequency    */
                        (MYFLT*)p->upperData.auxp,      /* upper rail data */
@@ -130,7 +130,7 @@ int pluckPluck(WGPLUCK* p)
 #ifdef WG_VERBOSE
     printf("Exciting the string...");
 #endif
-    pluckExcite(p);
+    pluckExcite(csound,p);
 #ifdef WG_VERBOSE
     printf("done\n");
 #endif
@@ -139,7 +139,7 @@ int pluckPluck(WGPLUCK* p)
 
 
 /* pluck::setFilters -- frequency dependent filter calculations */
-static void pluckSetFilters(WGPLUCK* p, MYFLT A_w0, MYFLT A_PI)
+static void pluckSetFilters(ENVIRON *csound, WGPLUCK* p, MYFLT A_w0, MYFLT A_PI)
 {
     /* Define the required magnitude response of H1 at w0 and PI */
 
@@ -163,7 +163,7 @@ static void pluckSetFilters(WGPLUCK* p, MYFLT A_w0, MYFLT A_PI)
 }
 
 /* ::pluckShape -- the pluck function for a string */
-static MYFLT *pluckShape(WGPLUCK* p)
+static MYFLT *pluckShape(ENVIRON *csound, WGPLUCK* p)
 {
     MYFLT scale = *p->amp;
     MYFLT  *shape;
@@ -174,7 +174,7 @@ static MYFLT *pluckShape(WGPLUCK* p)
     /* This memory must be freed after use */
     shape = (MYFLT *) mmalloc(len*sizeof(MYFLT));
     if (!shape)
-      error(p->h.insdshead->csound, Str(X_231,"Couldn't allocate for initial shape"),"<pluckShape>");
+      error(csound, Str(X_231,"Couldn't allocate for initial shape"),"<pluckShape>");
 
     scale = FL(0.5) * scale;      /* Scale was squared!! */
     for (i=0;i<p->pickSamp;i++)
@@ -196,7 +196,7 @@ inline void guideRailUpdate(guideRail *gr,MYFLT samp)
 }
 
 /* ::getSamps -- the sample generating routine */
-int pluckGetSamps(WGPLUCK* p)
+int pluckGetSamps(ENVIRON *csound, WGPLUCK* p)
 {
     MYFLT       yr0,yl0,yrM,ylM;        /* Key positions on the waveguide */
     MYFLT *ar = p->out;    /* The sample output buffer */

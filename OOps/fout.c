@@ -48,9 +48,9 @@ struct fileinTag {
     long        cnt;
 };
 
-#define file_opened ((struct fileinTag *)(p->h.insdshead->csound->file_opened_))
-#define file_max (p->h.insdshead->csound->file_max_)
-#define file_num (p->h.insdshead->csound->file_num_)
+#define file_opened ((struct fileinTag *)(csound->file_opened_))
+#define file_max (csound->file_max_)
+#define file_num (csound->file_num_)
 
 /* static struct fileinTag *file_opened = NULL; */
 /* static int file_max = 0;        /\* Size of file_opened structure *\/ */

@@ -687,7 +687,7 @@ int hammondB3(ENVIRON *csound, FM4OP *p)
 /*                                                          */
 /************************************************************/
 
-MYFLT FM4Alg6_tick(FM4OPV *q)
+MYFLT FM4Alg6_tick(ENVIRON *csound, FM4OPV *q)
 {
     MYFLT       temp,temp2;
     FM4OP       *p = (FM4OP*)q;
@@ -991,7 +991,7 @@ int FMVoiceset(ENVIRON *csound, FM4OPV *q)
     return OK;
 }
 
-int FMVoice(FM4OPV *q)
+int FMVoice(ENVIRON *csound, FM4OPV *q)
 {
     FM4OP       *p = (FM4OP *)q;
     MYFLT       amp = *q->amp * AMP_RSCALE;
@@ -1010,7 +1010,7 @@ int FMVoice(FM4OPV *q)
 
     do {
         MYFLT   lastOutput;
-        lastOutput = FM4Alg6_tick(q);
+        lastOutput = FM4Alg6_tick(csound,q);
         *ar++ = lastOutput*AMP_SCALE*FL(0.8);
     } while (--nsmps);
 
@@ -1032,7 +1032,7 @@ int FMVoice(FM4OPV *q)
 /*                                                       */
 /*********************************************************/
 
-MYFLT FM4Alg4_tick(FM4OP *p, MYFLT c1, MYFLT c2)
+MYFLT FM4Alg4_tick(ENVIRON *csound, FM4OP *p, MYFLT c1, MYFLT c2)
 {
     MYFLT       temp;
     MYFLT       lastOutput;
@@ -1122,7 +1122,7 @@ int percflute(ENVIRON *csound, FM4OP *p)
     p->gains[3] = amp * FM4Op_gains[85] * FL(0.5);
     do {
       MYFLT   lastOutput;
-      lastOutput = FM4Alg4_tick(p, c1, c2);
+      lastOutput = FM4Alg4_tick(csound, p, c1, c2);
       *ar++ = lastOutput*AMP_SCALE*FL(2.0);
     } while (--nsmps);
     return OK;

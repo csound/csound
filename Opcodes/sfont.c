@@ -159,7 +159,7 @@ int SfLoad(ENVIRON *csound, SFLOAD *p)          /* open a file and return its ha
     SFBANK *sf;
     strcpy(fname, unquote(p->STRARG));
     Gfname = fname;
-    SoundFontLoad(p->h.insdshead->csound, fname);
+    SoundFontLoad(csound, fname);
     *p->ihandle = (float) currSFndx;
     sf = &sfArray[currSFndx];
     qsort(sf->preset, sf->presets_num, sizeof(presetType),

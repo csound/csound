@@ -2276,7 +2276,7 @@ int ftgen(ENVIRON *csound, FTGEN *p) /* set up and call any GEN routine */
     }
     else ftevt->strarg = NULL;                    /* else no string */
     ftevt->pcnt = p->INOCOUNT;
-    if ((ftp = hfgens(p->h.insdshead->csound, ftevt)) != NULL) /* call the fgen */
+    if ((ftp = hfgens(csound, ftevt)) != NULL) /* call the fgen */
       *p->ifno = (MYFLT)ftp->fno;                 /* record the fno */
     else if (ftevt->p[1] >=0) {
       mfree(ftevt);
@@ -2311,10 +2311,10 @@ int ftload(ENVIRON *csound, FTLOAD *p)
         /* ***** Need to do byte order here ***** */
         ff->flen = header.flen;
         header.fno = ff->fno;
-        if ((ftp = ftfind(p->h.insdshead->csound,*argp)) != NULL) {
+        if ((ftp = ftfind(csound,*argp)) != NULL) {
           MYFLT *table = ftp->ftable;
           memcpy(ftp, &header, sizeof(FUNC)-sizeof(MYFLT)-SSTRSIZ);
-          ftp = ftalloc(p->h.insdshead->csound);
+          ftp = ftalloc(csound);
           fread(table, sizeof(float), ff->flen, file);
           /* ***** Need to do byte order here ***** */
         }
@@ -2327,7 +2327,7 @@ int ftload(ENVIRON *csound, FTLOAD *p)
       while (nargs--) {
         FUNC header;
         char s[64], *s1;
-        FGDATA *ff = &(p->h.insdshead->csound->ff);
+        FGDATA *ff = &(csound->ff);
 
         ff->fno = (int) **argp;
         /* IMPORTANT!! If FUNC structure and/or GEN01ARGS structure
@@ -2384,11 +2384,11 @@ int ftload(ENVIRON *csound, FTLOAD *p)
            in text format */
         ff->flen = header.flen;
         header.fno = ff->fno;
-        if ((ftp = ftfind(p->h.insdshead->csound,*argp)) != NULL) {
+        if ((ftp = ftfind(csound,*argp)) != NULL) {
           long j;
           MYFLT *table = ftp->ftable;
           memcpy(ftp, &header, sizeof(FUNC)-sizeof(MYFLT));
-          ftp = ftalloc(p->h.insdshead->csound);
+          ftp = ftalloc(csound);
           for (j=0; j < ff->flen; j++) {
             fgets(s, 64, file);
             table[j] = (MYFLT)atof(s);
@@ -2437,7 +2437,7 @@ int ftsave(ENVIRON *csound, FTLOAD *p)
       while (nargs--) {
         FUNC *ftp;
 
-        if ((ftp = ftfind(p->h.insdshead->csound,*argp)) != NULL) {
+        if ((ftp = ftfind(csound,*argp)) != NULL) {
           MYFLT *table = ftp->ftable;
           long flen = ftp->flen;
           fwrite(ftp, sizeof(FUNC)-sizeof(MYFLT)-SSTRSIZ, 1, file);
@@ -2453,7 +2453,7 @@ int ftsave(ENVIRON *csound, FTLOAD *p)
       while (nargs--)  {
         FUNC *ftp;
 
-        if ((ftp = ftfind(p->h.insdshead->csound,*argp)) != NULL) {
+        if ((ftp = ftfind(csound,*argp)) != NULL) {
           long flen = ftp->flen;
           long j;
           MYFLT *table = ftp->ftable;
