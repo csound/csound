@@ -84,31 +84,31 @@ static void diskin2_read_buffer(DISKIN2 *p, int bufReadPos)
 /* of opcode 'p', at sample index 'n' (0 <= n < ksmps), with amplitude  */
 /* scale 'scl'.                                                         */
 
-#define DISKIN2_GET_SAMPLE(p,pos,n,scl)                         \
-{                                                               \
-    long filePos;                                               \
-    int  bufPos, i;                                             \
-                                                                \
-    filePos = (long) (pos);                                     \
-    if (p->wrapMode) {                                          \
-      if (filePos >= p->fileLength)                             \
-        filePos -= p->fileLength;                               \
-      else if (filePos < 0L)                                    \
-        filePos += p->fileLength;                               \
-    }                                                           \
-    bufPos = (int) (filePos - p->bufStartPos);                  \
-    if (bufPos < 0 || bufPos >= p->bufSize) {                   \
-      /* not in current buffer frame, need to read file */      \
-      diskin2_read_buffer(p, bufPos);                           \
-      /* recalculate buffer position */                         \
-      bufPos = (int) (filePos - p->bufStartPos);                \
-    }                                                           \
-    /* copy all channels from buffer */                         \
-    bufPos *= p->nChannels;                                     \
-    i = 0;                                                      \
-    do {                                                        \
-      p->aOut[i][n] += ((MYFLT) (scl) * p->buf[bufPos++]);      \
-    } while (++i < p->nChannels);                               \
+#define DISKIN2_GET_SAMPLE(p,pos,n,scl)                     \
+{                                                           \
+    long filePos_;                                          \
+    int  bufPos_, i_;                                       \
+                                                            \
+    filePos_ = (long) (pos);                                \
+    if (p->wrapMode) {                                      \
+      if (filePos_ >= p->fileLength)                        \
+        filePos_ -= p->fileLength;                          \
+      else if (filePos_ < 0L)                               \
+        filePos_ += p->fileLength;                          \
+    }                                                       \
+    bufPos_ = (int) (filePos_ - p->bufStartPos);            \
+    if (bufPos_ < 0 || bufPos_ >= p->bufSize) {             \
+      /* not in current buffer frame, need to read file */  \
+      diskin2_read_buffer(p, bufPos_);                      \
+      /* recalculate buffer position */                     \
+      bufPos_ = (int) (filePos_ - p->bufStartPos);          \
+    }                                                       \
+    /* copy all channels from buffer */                     \
+    bufPos_ *= p->nChannels;                                \
+    i_ = 0;                                                 \
+    do {                                                    \
+      p->aOut[i_][n] += (MYFLT) (scl) * p->buf[bufPos_++];  \
+    } while (++i_ < p->nChannels);                          \
 }
 
 /* ------------- set up fast sine generator ------------- */
@@ -116,33 +116,31 @@ static void diskin2_read_buffer(DISKIN2 *p, int bufReadPos)
 /*   a: amplitude                                         */
 /*   f: frequency (-PI - PI)                              */
 /*   p: initial phase (0 - PI/2)                          */
+/*   c: 2.0 * cos(f) - 2.0                                */
 /* Output args:                                           */
 /*  *x: first output sample                               */
-/*  *c, *v: coefficients for calculating next sample as   */
-/*          shown below:                                  */
+/*  *v: coefficients for calculating next sample as       */
+/*      shown below:                                      */
 /*            v = v + c * x                               */
 /*            x = x + v                                   */
-/*          These values are calculated by:               */
+/*          These values are calculated as follows:       */
 /*            x = y[0]                                    */
-/*            c = 2.0 * cos(f) - 2.0                      */
 /*            v = y[1] - (c + 1.0) * y[0]                 */
 /*          where y[0], and y[1] are the first, and       */
 /*          second sample of the sine wave to be          */
 /*          generated, respectively.                      */
 /* -------- written by Istvan Varga, Jan 28 2002 -------- */
 
-static void init_sine_gen(double a, double f, double p,
-                           double *x, double *c, double *v)
-{
-    double  y0, y1;                 /* these should be doubles */
-
-    y0 = sin(p);
-    y1 = sin(p + f);
-    *x = y0;
-    *c = 2.0 * cos(f) - 2.0;
-    *v = y1 - *c * y0 - y0;
-    /* amp. scale */
-    *x *= a; *v *= a;
+#define INIT_SINE_GEN(a,f,p,c,x,v)                              \
+{                                                               \
+    double  y0_, y1_;           /* these should be doubles */   \
+                                                                \
+    y0_ = sin(p);                                               \
+    y1_ = sin((p) + (f));                                       \
+    *(x) = y0_;                                                 \
+    *(v) = y1_ - ((c) * y0_) - y0_;                             \
+    /* amp. scale */                                            \
+    *(x) *= (a); *(v) *= (a);                                   \
 }
 
 /* calculate buffer size in sample frames */
@@ -178,26 +176,18 @@ int diskin2_init(ENVIRON *csound, DISKIN2 *p)
     SF_INFO sfinfo;
     int     i, n;
 
-    /* skip initialisation if requested */
-    /* FIXME: this may be broken */
-    if (*(p->iSkipInit) != FL(0.0))
-      return OK;
+    /* check number of channels */
     p->nChannels = (int) (p->OUTOCOUNT);
     if (p->nChannels < 1 || p->nChannels > DISKIN2_MAXCHN) {
       initerror(Str("diskin2: invalid number of channels"));
       return NOTOK;
     }
-    /* interpolation window size: valid settings are 1 (no interpolation), */
-    /* 2 (linear interpolation), 4 (cubic interpolation), and integer */
-    /* multiples of 4 in the range 8 to 1024 (sinc interpolation) */
-    p->winSize = (int) (*(p->iWinSize) + FL(0.5));
-    if (p->winSize < 1)
-      p->winSize = 4;               /* use cubic interpolation by default */
-    else if (p->winSize > 2) {
-      /* cubic/sinc: round to nearest integer multiple of 4 */
-      p->winSize = (p->winSize + 2) & (~3);
-      if (p->winSize > 1024)
-        p->winSize = 1024;
+    /* if already open, close old file first */
+    if (p->fdch.fd != NULL) {
+      /* skip initialisation if requested */
+      if (*(p->iSkipInit) != FL(0.0))
+        return OK;
+      fdclose(&(p->fdch));
     }
     /* open file */
     if (*(p->iFileCode) == SSTRCOD && p->STRARG != NULL) {
@@ -265,53 +255,59 @@ int diskin2_init(ENVIRON *csound, DISKIN2 *p)
     }
     mfree(csound, s);
     /* record file handle so that it will be closed at note-off */
-    if (p->fdch.fd != NULL) {
-      sf_close(p->fdch.fd);
-      p->fdch.fd = (void*) p->sf;
-    }
-    else {
-      memset(&(p->fdch), 0, sizeof(FDCH));
-      p->fdch.fd = (void*) p->sf;
-      fdrecord(&(p->fdch));
-    }
+    memset(&(p->fdch), 0, sizeof(FDCH));
+    p->fdch.fd = (void*) p->sf;
+    fdrecord(&(p->fdch));
     /* check number of channels in file (must equal the number of outargs) */
     if (sfinfo.channels != p->nChannels) {
       initerror(Str("diskin2: number of output args inconsistent with "
                     "number of file channels"));
       return NOTOK;
     }
+    /* skip initialisation if requested */
+    if (p->initDone && *(p->iSkipInit) != FL(0.0))
+      return OK;
+    /* interpolation window size: valid settings are 1 (no interpolation), */
+    /* 2 (linear interpolation), 4 (cubic interpolation), and integer */
+    /* multiples of 4 in the range 8 to 1024 (sinc interpolation) */
+    p->winSize = (int) (*(p->iWinSize) + FL(0.5));
+    if (p->winSize < 1)
+      p->winSize = 4;               /* use cubic interpolation by default */
+    else if (p->winSize > 2) {
+      /* cubic/sinc: round to nearest integer multiple of 4 */
+      p->winSize = (p->winSize + 2) & (~3);
+      if (p->winSize > 1024)
+        p->winSize = 1024;
+    }
     /* set file parameters from header info */
     p->fileLength = (long) sfinfo.frames;
+    p->warpScale = 1.0;
     if ((int) (csound->esr_ + FL(0.5)) != sfinfo.samplerate) {
-      if (p->winSize == 1) {
-        csoundMessage(csound, Str("diskin2: warning: file sample rate (%d) "
-                                  "!= orchestra sr (%d)\n"), sfinfo.samplerate,
-                              (int) (csound->esr_ + FL(0.5)));
-        p->warpScale = FL(1.0);
+      if (p->winSize != 1) {
+        /* will automatically convert sample rate if interpolation is enabled */
+        p->warpScale = (double) sfinfo.samplerate / (double) csound->esr_;
       }
-      else    /* will automatically convert sample rate if interpolation is  */
-        p->warpScale = (MYFLT) sfinfo.samplerate / csound->esr_;  /* enabled */
+      else {
+        csound->Message(csound,
+                        Str("diskin2: warning: file sample rate (%d) "
+                            "!= orchestra sr (%d)\n"),
+                        sfinfo.samplerate, (int) (csound->esr_ + FL(0.5)));
+      }
     }
-    else
-      p->warpScale = FL(1.0);
     /* wrap mode */
     p->wrapMode = (*(p->iWrapMode) == FL(0.0) ? 0 : 1);
     if (p->fileLength < 1L)
       p->wrapMode = 0;
     /* initialise read position */
-    pos = (double) *(p->iSkipTime) * (double) csound->esr_;
-    pos *= (double) p->warpScale;
-    p->pos_int = (long) (pos >= 0.0 ? pos : pos - 1.0);
-    p->pos_frac = (int) (((pos - (double) p->pos_int) * (double) POS_FRAC_SCALE)
-                         + 0.5);
-    p->pos_int += ((long) p->pos_frac >> POS_FRAC_SHIFT);   /* safety */
+    pos = (double) *(p->iSkipTime) * (double) csound->esr_ * p->warpScale;
+    pos *= (double) POS_FRAC_SCALE;
+    p->pos_frac = (int64_t) (pos >= 0.0 ? (pos + 0.5) : (pos - 0.5));
     if (p->wrapMode) {
-      p->pos_int %= p->fileLength;
-      if (p->pos_int < 0L)
-        p->pos_int += p->fileLength;
+      p->pos_frac %= ((int64_t) p->fileLength << POS_FRAC_SHIFT);
+      if (p->pos_frac < (int64_t) 0)
+        p->pos_frac += ((int64_t) p->fileLength << POS_FRAC_SHIFT);
     }
-    p->pos_frac &= POS_FRAC_MASK;
-    p->pos_frac_inc = 0;
+    p->pos_frac_inc = (int64_t) 0;
     p->prv_kTranspose = FL(0.0);
     /* constant for window calculation */
     p->winFact = (MYFLT) ((1.0 - pow((double) p->winSize * 0.85172, -0.89624))
@@ -332,17 +328,20 @@ int diskin2_init(ENVIRON *csound, DISKIN2 *p)
     return OK;
 }
 
-#define DISKIN2_FILE_POS_INC                                \
-{                                                           \
-    p->pos_frac += p->pos_frac_inc;                         \
-    p->pos_int += ((long) p->pos_frac >> POS_FRAC_SHIFT);   \
-    p->pos_frac &= POS_FRAC_MASK;                           \
-    if (p->wrapMode) {                                      \
-      if (p->pos_int >= p->fileLength)                      \
-        p->pos_int -= p->fileLength;                        \
-      else if (p->pos_int < 0L)                             \
-        p->pos_int += p->fileLength;                        \
-    }                                                       \
+#define DISKIN2_FILE_POS_INC                                        \
+{                                                                   \
+    p->pos_frac += p->pos_frac_inc;                                 \
+    ndx = (long) (p->pos_frac >> POS_FRAC_SHIFT);                   \
+    if (p->wrapMode) {                                              \
+      if (ndx >= p->fileLength) {                                   \
+        ndx -= p->fileLength;                                       \
+        p->pos_frac -= ((int64_t) p->fileLength << POS_FRAC_SHIFT); \
+      }                                                             \
+      else if (ndx < 0L) {                                          \
+        ndx += p->fileLength;                                       \
+        p->pos_frac += ((int64_t) p->fileLength << POS_FRAC_SHIFT); \
+      }                                                             \
+    }                                                               \
 }
 
 int diskin2_perf(ENVIRON *csound, DISKIN2 *p)
@@ -358,20 +357,20 @@ int diskin2_perf(ENVIRON *csound, DISKIN2 *p)
     }
     if (*(p->kTranspose) != p->prv_kTranspose) {
       p->prv_kTranspose = *(p->kTranspose);
-      p->pos_frac_inc = (int) ((double) p->prv_kTranspose
-                               * (double) p->warpScale
-                               * (double) POS_FRAC_SCALE + 0.5);
+      p->pos_frac_inc = (int64_t) ((double) p->prv_kTranspose * p->warpScale
+                                   * (double) POS_FRAC_SCALE + 0.5);
     }
     /* clear outputs to zero first */
     for (chn = 0; chn < p->nChannels; chn++)
       for (nn = 0; nn < csound->ksmps_; nn++)
         p->aOut[chn][nn] = FL(0.0);
+    /* file read position (updated by DISKIN2_FILE_POS_INC macro) */
+    ndx = (long) (p->pos_frac >> POS_FRAC_SHIFT);
     switch (p->winSize) {
       case 1:                   /* ---- no interpolation ---- */
         for (nn = 0; nn < csound->ksmps_; nn++) {
-          ndx = p->pos_int;
-          if (p->pos_frac >= (POS_FRAC_SCALE >> 1))
-            ndx++;      /* round to nearest sample */
+          if (p->pos_frac & ((int64_t) POS_FRAC_SCALE >> 1))
+            ndx++;                      /* round to nearest sample */
           DISKIN2_GET_SAMPLE(p, ndx, nn, FL(1.0));
           /* update file position */
           DISKIN2_FILE_POS_INC;
@@ -379,10 +378,9 @@ int diskin2_perf(ENVIRON *csound, DISKIN2 *p)
         break;
       case 2:                   /* ---- linear interpolation ---- */
         for (nn = 0; nn < csound->ksmps_; nn++) {
-          frac = (MYFLT) p->pos_frac * (FL(1.0) / (MYFLT) POS_FRAC_SCALE);
-          a0 = FL(1.0) - frac;
-          a1 = frac;
-          ndx = p->pos_int;
+          a1 = (MYFLT) ((int) (p->pos_frac & (int64_t) POS_FRAC_MASK))
+               * (FL(1.0) / (MYFLT) POS_FRAC_SCALE);
+          a0 = FL(1.0) - a1;
           DISKIN2_GET_SAMPLE(p, ndx, nn, a0);
           ndx++;
           DISKIN2_GET_SAMPLE(p, ndx, nn, a1);
@@ -392,12 +390,13 @@ int diskin2_perf(ENVIRON *csound, DISKIN2 *p)
         break;
       case 4:                   /* ---- cubic interpolation ---- */
         for (nn = 0; nn < csound->ksmps_; nn++) {
-          frac = (MYFLT) p->pos_frac * (FL(1.0) / (MYFLT) POS_FRAC_SCALE);
+          frac = (MYFLT) ((int) (p->pos_frac & (int64_t) POS_FRAC_MASK))
+                 * (FL(1.0) / (MYFLT) POS_FRAC_SCALE);
           a3 = frac * frac; a3 -= FL(1.0); a3 *= (FL(1.0) / FL(6.0));
           a2 = frac; a2 += FL(1.0); a0 = (a2 *= FL(0.5)); a0 -= FL(1.0);
           a1 = FL(3.0) * a3; a2 -= a1; a0 -= a3; a1 -= frac;
           a0 *= frac; a1 *= frac; a2 *= frac; a3 *= frac; a1 += FL(1.0);
-          ndx = p->pos_int - 1L;                /* sample -1 */
+          ndx--;                                /* sample -1 */
           DISKIN2_GET_SAMPLE(p, ndx, nn, a0);
           ndx++;                                /* sample 0 */
           DISKIN2_GET_SAMPLE(p, ndx, nn, a1);
@@ -411,27 +410,33 @@ int diskin2_perf(ENVIRON *csound, DISKIN2 *p)
         break;
       default:                  /* ---- sinc interpolation ---- */
         wsized2 = p->winSize >> 1;
-        if (abs(p->pos_frac_inc) > (POS_FRAC_SCALE + (POS_FRAC_SCALE >> 10))) {
+        nn = POS_FRAC_SCALE + (POS_FRAC_SCALE >> 12);
+        if (p->pos_frac_inc > (int64_t) nn ||
+            p->pos_frac_inc < (int64_t) (-nn)) {
           warp = 1;                     /* enable warp */
-          onedwarp = (MYFLT) POS_FRAC_SCALE / (MYFLT) (abs(p->pos_frac_inc));
+          onedwarp = (p->pos_frac_inc >= (int64_t) 0 ?
+                      ((MYFLT) nn / (MYFLT) p->pos_frac_inc)
+                      : ((MYFLT) (-nn) / (MYFLT) p->pos_frac_inc));
           pidwarp_d = PI * (double) onedwarp;
+          c = 2.0 * cos(pidwarp_d) - 2.0;
           /* correct window for kwarp */
           x = v = (double) wsized2; x *= x; x = 1.0 / x;
-          v *= (double) onedwarp; v -= (double)((int) v) + 0.5; v *= 4.0 * v;
+          v *= (double) onedwarp; v -= (double) ((int) v) + 0.5; v *= 4.0 * v;
           winFact = (MYFLT) (((double) p->winFact - x) * v + x);
         }
         else {
           warp = 0;
-          onedwarp = FL(1.0);
-          pidwarp_d = PI;
+          onedwarp = FL(0.0);
+          pidwarp_d = c = 0.0;
           winFact = p->winFact;
         }
         for (nn = 0; nn < csound->ksmps_; nn++) {
-          frac_d = (double) p->pos_frac * (1.0 / (double) POS_FRAC_SCALE);
-          ndx = p->pos_int + (long) (1 - wsized2);
+          frac_d = (double) ((int) (p->pos_frac & (int64_t) POS_FRAC_MASK))
+                   * (1.0 / (double) POS_FRAC_SCALE);
+          ndx += (long) (1 - wsized2);
           d = (double) (1 - wsized2) - frac_d;
           if (warp) {                           /* ---- warp enabled ---- */
-            init_sine_gen((1.0 / PI), pidwarp_d, pidwarp_d * d, &x, &c, &v);
+            INIT_SINE_GEN((1.0 / PI), pidwarp_d, (pidwarp_d * d), c, &x, &v);
             /* samples -(window size / 2 - 1) to -1 */
             i = wsized2 - 1;
             do {

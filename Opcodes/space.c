@@ -174,7 +174,6 @@ int spsend(ENVIRON *csound, SPSEND *p)
 {
     MYFLT       *r1, *r2, *r3, *r4, *rrev1, *rrev2, *rrev3, *rrev4;
     SPACE *q = p->space;
-    int n;
 
     r1 = p->r1;
     r2 = p->r2;

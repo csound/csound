@@ -1,4 +1,16 @@
 2005-03-22	Istvan Varga	<istvan@csounds.com>
+	* H/diskin2.h:
+	* OOps/diskin2.c:
+	  various minor code changes
+	* Top/one_file.c:
+	  fixed CsFileB tag
+	* util1/csd_util/base64.c:
+	* util1/csd_util/cs.c:
+	* util1/csd_util/csb64enc.c:
+	* util1/csd_util/makecsd.c:
+	  new utilities
+
+2005-03-21	Istvan Varga	<istvan@csounds.com>
 	* Engine/entry1.c:
 	* H/diskin2.h:
 	* OOps/diskin2.c:
