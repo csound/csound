@@ -69,6 +69,7 @@ opts.Add('customCXXFLAGS')
 opts.Add('customLIBS')
 opts.Add('customLIBPATH')
 opts.Add('customSHLINKFLAGS')
+opts.Add('customSWIGFLAGS')
 opts.Add('useDouble', 
     'Set to 1 to use double-precision floating point for audio samples.', 
     0)
@@ -127,6 +128,8 @@ customLIBPATH = commonEnvironment['customLIBPATH']
 commonEnvironment.Prepend(LIBPATH = customLIBPATH)
 customSHLINKFLAGS = commonEnvironment['customSHLINKFLAGS']
 commonEnvironment.Prepend(SHLINKFLAGS = customSHLINKFLAGS)
+customSWIGFLAGS = commonEnvironment['customSWIGFLAGS']
+commonEnvironment.Prepend(SWIGFLAGS = customSWIGFLAGS)
 
 Help(opts.GenerateHelpText(commonEnvironment))
 
