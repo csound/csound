@@ -531,19 +531,17 @@ static void m_sysex(PmEvent *sbuf, PmEvent *sp) /* sys_excl msg, sexbuf: ID + da
     }
 }
 
-static short datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0 };
+/* static short datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0 }; */
 static short m_clktim = 0;
 static short m_sensing = 0;
-extern long GetMIDIData(void);
 
 int sensMidi(void)         /* sense a MIDI event, collect the data & dispatch */
 {                          /*  called from kperf(), return(2) if MIDI on/off  */
     long midiev;
     short  c, type;
     MEVENT *mep = Midevtblk;
-    static  short datreq, datcnt;
 
- nxtchr:
+ nxtmsg:
     if (bufp >= endatp) {
       if (!GetMIDIData())
         return (0);
@@ -558,19 +556,19 @@ int sensMidi(void)         /* sense a MIDI event, collect the data & dispatch */
         if (c & 0x08)                    /* sys_realtime:     */
           switch (lo3) {                 /*   dispatch now    */
           case 0: m_clktim++;
-            goto nxtchr;
+            goto nxtmsg;
           case 2: m_start();
-            goto nxtchr;
+            goto nxtmsg;
           case 3: m_contin();
-            goto nxtchr;
+            goto nxtmsg;
           case 4: m_stop();
-            goto nxtchr;
+            goto nxtmsg;
           case 6: m_sensing = 1;
-            goto nxtchr;
+            goto nxtmsg;
           case 7: m_sysReset();
-            goto nxtchr;
+            goto nxtmsg;
           default: printf(Str(X_1316,"undefined sys-realtime msg %x\n"),c);
-            goto nxtchr;
+            goto nxtmsg;
           }
         else {                           /* sys_non-realtime status:   */
           if (sexp != NULL) {            /* implies           */
@@ -578,26 +576,25 @@ int sensMidi(void)         /* sense a MIDI event, collect the data & dispatch */
             sexp = NULL;
           }
           switch (lo3) {                 /* dispatch on lo3:  */
-          case 7: goto nxtchr;           /* EOX: already done */
+          case 7: goto nxtmsg;           /* EOX: already done */
           case 0: sexp = sexbuf;         /* sys_ex begin:     */
-            goto nxtchr;                 /*   goto copy data  */
+            goto nxtmsg;                 /*   goto copy data  */
           case 1:                        /* sys_common:       */
-          case 3: datreq = 1;            /*   need some data  */
+          case 3: 
+            mep->dat1 =  Pm_MessageData1(midiev); /* need 1 byte  */
             break;
-          case 2: datreq = 2;            /*   (so build evt)  */
+          case 2:
+            mep->dat1 =  Pm_MessageData1(midiev);
+            mep->dat2 =  Pm_MessageData2(midiev);
             break;
           case 6: m_tuneReq();           /*   this do immed   */
-            goto nxtchr;
+            goto nxtmsg;
           default: printf(Str(X_1317,"undefined sys_common msg %x\n"), c);
-            datreq = 32767; /* waste any data following */
-            datcnt = 0;
-            goto nxtchr;
+            goto nxtmsg;
           }
         }
         mep->type = type;               /* begin sys_com event  */
         mep->chan = lo3;                /* holding code in chan */
-        datcnt = 0;
-        goto nxtchr;
       }
       else {                            /* other status types:  */
         short chan;
@@ -610,9 +607,8 @@ int sensMidi(void)         /* sense a MIDI event, collect the data & dispatch */
           m_chn_init(mep, chan);
         mep->type = type;               /* & begin new event */
         mep->chan = chan;
-        datreq = datbyts[(type>>4) & 0x7];
-        datcnt = 0;
-        goto nxtchr;
+        mep->dat1 =  Pm_MessageData1(midiev);
+        mep->dat2 =  Pm_MessageData2(midiev);
       }
     }
     if (sexp != NULL) {                 /* NON-STATUS byte:      */
@@ -621,13 +617,8 @@ int sensMidi(void)         /* sense a MIDI event, collect the data & dispatch */
         sexp++;
       }
       else printf(Str(X_1262,"system exclusive buffer overflow\n"));
-      goto nxtchr;
+      goto nxtmsg;
     }
-    if (datcnt == 0)
-      mep->dat1 = c;                    /* else normal data      */
-    else mep->dat2 = c;
-    if (++datcnt < datreq)              /* if msg incomplete     */
-      goto nxtchr;                      /*   get next char       */
     /*
      *  Enter the input event into a buffer used by 'midiin'.
      *  This is a horrible hack that emulates what DirectCsound does,
@@ -642,13 +633,12 @@ int sensMidi(void)         /* sense a MIDI event, collect the data & dispatch */
       MIDIINbufIndex &= MIDIINBUFMSK;
       *pMessage++ = mep->type | mep->chan;
       *pMessage++ = (unsigned char)mep->dat1;
-      *pMessage = (datreq < 2 ? (unsigned char) 0 : mep->dat2);
+      *pMessage =  (unsigned char)mep->dat2;
     }
-    datcnt = 0;                         /* else allow a repeat   */
     /* NB:  this allows repeat in syscom 1,2,3 too */
     if (mep->type > NOTEON_TYPE) {      /* if control or syscom  */
       m_chanmsg(mep);                   /*   handle from here    */
-      goto nxtchr;                      /*   & go look for more  */
+      goto nxtmsg;                      /*   & go look for more  */
     }
     return(2);                          /* else it's note_on/off */
 }
