@@ -3,25 +3,25 @@
 #include <iostream>
 #include <fstream>
 
-int Counterpoint::PerfectConsonance[13] =   {1,0,0,0,0,0,0,1,0,0,0,0,1};
-int Counterpoint::ImperfectConsonance[13] = {0,0,0,1,1,0,0,0,1,1,0,0,0};
-int Counterpoint::Dissonance[13] =          {0,1,1,0,0,1,1,0,0,0,1,1,0};
-int Counterpoint::_Ionian[12] =     {1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1};
-int Counterpoint::_Dorian[12] =     {1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0};
-int Counterpoint::_Phrygian[12] =   {1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0};
-int Counterpoint::_Lydian[12] =     {1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1};
-int Counterpoint::_Mixolydian[12] = {1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0};
-int Counterpoint::_Aeolian[12] =    {1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0};
-int Counterpoint::_Locrian[12] =    {1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0};
-int Counterpoint::BadMelodyInterval[13] = {0,0,0,0,0,0,1,0,0,1,1,1,0};
-int Counterpoint::Indx[17] = {0,1,-1,2,-2,3,-3,0,4,-4,5,7,-5,8,12,-7,-12};
+int Counterpoint::PerfectConsonance[13] =   {1,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  1};
+int Counterpoint::ImperfectConsonance[13] = {0,  0,  0,  1,  1,  0,  0,  0,  1,  1,  0,  0,  0};
+int Counterpoint::Dissonance[13] =          {0,  1,  1,  0,  0,  1,  1,  0,  0,  0,  1,  1,  0};
+int Counterpoint::_Ionian[12] =             {1,  0,  1,  0,  1,  1,  0,  1,  0,  1,  0,  1};
+int Counterpoint::_Dorian[12] =             {1,  0,  1,  1,  0,  1,  0,  1,  0,  1,  1,  0};
+int Counterpoint::_Phrygian[12] =           {1,  1,  0,  1,  0,  1,  0,  1,  1,  0,  1,  0};
+int Counterpoint::_Lydian[12] =             {1,  0,  1,  0,  1,  0,  1,  1,  0,  1,  0,  1};
+int Counterpoint::_Mixolydian[12] =         {1,  0,  1,  0,  1,  1,  0,  1,  0,  1,  1,  0};
+int Counterpoint::_Aeolian[12] =            {1,  0,  1,  1,  0,  1,  0,  1,  0,  0,  1,  0};
+int Counterpoint::_Locrian[12] =            {1,  1,  0,  1,  0,  1,  1,  0,  1,  0,  1,  0};
+int Counterpoint::BadMelodyInterval[13] =   {0,  0,  0,  0,  0,  0,  1,  0,  0,  1,  1,  1,  0};
+int Counterpoint::Indx[17] =                {0,  1, -1,  2, -2,  3, -3,  0,  4, -4,  5,  7, -5,  8, 12, -7,-12};
 double Counterpoint::inverse_rscl = .000061035156;
 
 void Counterpoint::initialize(int mostnotes, int mostvoices)
 {
   randx = 1;
   MostNotes = mostnotes;
-  MostVoices = mostvoices + 1;
+  MostVoices = mostvoices;
   Ctrpt.resize(MostNotes, MostVoices, 0.0);
   Onset.resize(MostNotes, MostVoices, 0.0);
   Dur.resize(MostNotes, MostVoices, 0.0);
@@ -50,7 +50,7 @@ void Counterpoint::clear()
 
 void Counterpoint::counterpoint(int OurMode, int *StartPitches, int CurV, int cantuslen, int Species, int *cantus)
 {
-  initialize((cantuslen + 1) * 9, CurV);
+  initialize((cantuslen * 8) + 1, CurV + 1);
   if(StartPitches)
     {
       for (int i = 0; i < CurV; i++) 
