@@ -121,7 +121,7 @@ struct pollfd midipoll;
 #endif
 #    define INBAUD    EXTB  /* ioctl baud rate: EXTA = 19200, EXTB = 38400 */
      static struct sgttyb tty;
-#elif defined MACOSX
+#elif defined __MACH__
         static struct sgttyb tty;
 #endif
 

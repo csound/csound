@@ -37,9 +37,6 @@ int dnoise(int argc, char **argv);
 void cscorinit(void), cscore(void);
 void *mmalloc(long), *mcalloc(long);
 void *mrealloc(void*, long), mfree(void*);
-#ifdef CWIN
-void all_free(void);
-#endif
 void auxalloc(long, AUXCH *), auxchfree(INSDS *);
 void fdrecord(FDCH *), fdclose(FDCH *), fdchclose(INSDS *);
 void warning(char *);

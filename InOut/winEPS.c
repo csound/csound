@@ -138,7 +138,7 @@ void PS_MakeGraph(WINDAT *wdptr, char *name)
         printf(Str(X_79,"** Warning **  PostScript file %s cannot be opened \n"),
                pathnam);
       else {
-#ifdef MACOSX
+#ifdef __MACH__
                                 /* No idea why these are not declared */
         extern struct tm* localtime(const time_t*);
         extern char* asctime(const struct tm*);

@@ -134,7 +134,7 @@ void set_rt_priority(int argc, char **argv)
 
 #endif
 
-#if !defined(LINUX) && !defined(SGI) && !defined(__BEOS__) && !defined(MACOSX)
+#if !defined(LINUX) && !defined(SGI) && !defined(__BEOS__) && !defined(__MACH__)
 static char *signal_to_string(int sig)
 {
     switch(sig) {
@@ -230,7 +230,7 @@ static char *signal_to_string(int sig)
     }
 }
 
-#ifndef MACOSX
+#ifndef __MACH__
 void psignal(int sig, char *str)
 {
     err_printf( "%s: %s\n", str, signal_to_string(sig));
@@ -259,7 +259,7 @@ static void signal_handler(int sig)
 static void install_signal_handler(void)
 {
     int *x;
-#if defined(LINUX) || defined(SGI) || defined(sol) || defined(MACOSX)
+#if defined(LINUX) || defined(SGI) || defined(sol) || defined(__MACH__)
     int sigs[] = { SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGTRAP, SIGABRT, SIGIOT,
                    SIGBUS, SIGFPE, SIGSEGV, SIGPIPE, SIGALRM, SIGTERM, SIGXCPU,
                    SIGXFSZ, -1};

@@ -104,7 +104,7 @@ extern  int     audiofd;
 #ifdef PIPES
 FILE* pin=NULL, *pout=NULL;
 /*sbrandon: added NeXT to line below*/
-# if defined(SGI) || defined(LINUX) || defined(__BEOS__) || defined(NeXT) || defined(__MACH__) || defined(MACOSX)
+# if defined(SGI) || defined(LINUX) || defined(__BEOS__) || defined(NeXT) || defined(__MACH__)
 #  define _popen popen
 #  define _pclose pclose
 # endif
@@ -260,7 +260,7 @@ static int audread(char *inbuf, int nbytes) /* diskfile read option for
     return(sreadin(isfd,inbuf,nbytes,p));
 }
 
-#if !defined(SYMANTEC) && !defined(mac_classic) && !defined(LINUX) && !defined(__BEOS__) && !defined(MACOSX)
+#if !defined(SYMANTEC) && !defined(mac_classic) && !defined(LINUX) && !defined(__BEOS__) && !defined(__MACH__)
 extern int write(int, const void*, unsigned int);
 #endif
 

@@ -38,7 +38,7 @@ int sndinfo(int argc, char **argv)
     HEADATA *hdr, *readheader(int, char*, SOUNDIN*);
     extern  char *getstrformat(int);
 
-    if (!POLL_EVENTS()) exit(1);
+/*     if (!POLL_EVENTS()) exit(1); */
     sssfinit();
 
     while (--argc) {
@@ -138,9 +138,7 @@ int sndinfo(int argc, char **argv)
       mfree((char *)p);
       close(infd);
     }
-#ifndef CWIN
     exit(0);
-#endif
     return 0;
 }
 

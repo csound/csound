@@ -89,7 +89,7 @@ void *csoundGetLibrarySymbol(void *library,
   return procedureAddress;
 }
 
-#elif defined(MACOSX)
+#elif defined(__MACH__)
 
 #define ERR_STR_LEN 255
 

@@ -38,12 +38,12 @@
 
 void RTclose(void);
 extern int close(int);
-#if !defined(mac_classic) && !defined(SYMANTEC) && !defined(LINUX) && !defined(MACOSX)
+#if !defined(mac_classic) && !defined(SYMANTEC) && !defined(LINUX) && !defined(__MACH__)
 extern int read(int, void*, unsigned);
 #endif
 
 #ifdef PIPES
-# if defined(SGI) || defined(LINUX) || defined(NeXT) || defined(MACOSX)
+# if defined(SGI) || defined(LINUX) || defined(NeXT) || defined(__MACH__)
 #  define _popen popen
 #  define _pclose pclose
 # elif defined(__BEOS__) || defined(__MACH__)
