@@ -304,7 +304,7 @@ static inline void convert_samples( const double * src, float * tgt, int nn )
 {
   for(int i = 0; i < nn; i++)
     {
-      tgt[i] = src[i];
+      tgt[i] = src[i] * FL(32767);
     }
 /*   do  */
 /*     { */
@@ -534,10 +534,10 @@ LorisReader::LorisReader( const string & fname, double fadetime, INSDS * owner, 
     {
       _envelopes.labelAt(i) = _partials[i].label();
 #ifdef DEBUG_LORISGENS
-      for(Partial_ConstIterator j = _partials[i].begin(); j != _partials[i].end(); ++j)
-	{
-	  fprintf(stderr, "** partial %i freq %f  amp %f  bw %f\n", i, j->frequency(), j->amplitude(), j->bandwidth());
-	}
+/*       for(Partial_ConstIterator j = _partials[i].begin(); j != _partials[i].end(); ++j) */
+/* 	{ */
+/* 	  fprintf(stderr, "** partial %i freq %f  amp %f  bw %f\n", i, j->frequency(), j->amplitude(), j->bandwidth()); */
+/* 	} */
 #endif
     }
 	
