@@ -73,9 +73,11 @@ opts.Add('noCygwin',
 commonEnvironment = Environment(options = opts)
 if commonEnvironment['useMingw'] and (sys.platform[:3] == 'win' or sys.platform == 'cygwin'):
     print 'Using mingw.'
-    commonEnvironment.Append(tools = ['mingw'])
+    commonEnvironment.Append(TOOLS = ['mingw'])
     
 Help(opts.GenerateHelpText(commonEnvironment))
+
+print "Tools: ", commonEnvironment['TOOLS']
 
 commonEnvironment.Append(CPPPATH  = ['.', './H'])
 commonEnvironment.Append(CCFLAGS = '-DCSOUND_WITH_API')
@@ -634,7 +636,7 @@ ustubProgramEnvironment.Program('srconv',
 csoundProgramEnvironment.Program('csound', 
     ['frontends/csound/csound_main.c'])
     
-if commonEnvironment['buildCsoundVST'] == 1 and boostFound and fltkFound and sys.platform[:5] != 'linux':    
+if commonEnvironment['buildCsoundVST'] == 1 and boostFound and fltkFound:    
     print 'Building CsoundVST plugin and standalone.'
     vstEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
     guiProgramEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
@@ -718,7 +720,8 @@ if commonEnvironment['buildCsoundVST'] == 1 and boostFound and fltkFound and sys
     frontends/CsoundVST/System.cpp
     ''')
     csoundvst = vstEnvironment.SharedLibrary('CsoundVST', csoundVstSources, SHLIBPREFIX = '_')
-    Depends(csoundvst, pyrun)
+    if (commonEnvironment['useMingw'] and (sys.platform[:3] == 'win' or sys.platform == 'cygwin')) or (sys.platform == 'cygwin'):
+        Depends(csoundvst, pyrun)
 
     csoundvstGui = guiProgramEnvironment.Program('CsoundVST', ['frontends/CsoundVST/csoundvst_main.cpp']) 
 
