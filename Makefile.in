@@ -428,6 +428,9 @@ csound.xmg:	strings/all_strings English.xmg
 makedb:	strings/makedb.c H/text.h
 	$(CC) -I H -o makedb strings/makedb.c
 
+$(AUDOBJ): $(AUDSRC)
+	$(CC) $(CFLAGS) -I H -c $I/$*.c -o $*.$(o)
+
 $(COBJE): $(CSRCE)
 	$(CC) $(CFLAGS) -I H -c $E/$*.c -o $*.$(o)
 
