@@ -215,11 +215,21 @@ int insert(ENVIRON *csound, int insno, EVTBLK *newevtp)
       return(inerrcnt);
     }
     if (ip->p3 > FL(0.0) && ip->offtim > 0.0) { /* if still finite time, */
-      ip->offtim = csound->sensEvents_state.timeOffs
-                   + (double) ip->p2 + (double) ip->p3;
+      double p2;
+      p2 = (double) ip->p2 + csound->sensEvents_state.timeOffs;
+      ip->offtim = p2 + (double) ip->p3;
+      if (O.Beatmode) {
+        p2 -= csound->sensEvents_state.curTime;
+        p2 /= csound->sensEvents_state.beatTime;
+        p2 += csound->sensEvents_state.curBeat;
+        ip->offbet = p2 + ((double) ip->p3 / csound->sensEvents_state.beatTime);
+      }
       schedofftim(ip);                          /*   put in turnoff list */
     }
-    else ip->offtim = -1.0;                     /*   else mark indef     */
+    else {
+      ip->offbet = -1.0;
+      ip->offtim = -1.0;                        /*   else mark indef     */
+    }
     if (O.odebug) {
       printf("instr %d now active:\n",insno); showallocs();
     }
@@ -1145,14 +1155,14 @@ INSDS *insert_event(ENVIRON *csound,
                     int midi)
 {
     int pcnt = narg + 3;
-    int insno = (int)instr, saved_inerrcnt = inerrcnt;
+    int insno = (int) instr, saved_inerrcnt = inerrcnt;
     int saved_reinitflag = reinitflag, saved_tieflag = tieflag;
     INSDS *saved_curip = curip, *ip = NULL;
     INSDS *prvp, *nxtp;                                 /* IV - Nov 16 2002 */
     OPDS  *saved_ids = ids;
     INSTRTXT  *tp;
 
-    printf("insert_event: %.0f %f %f ...\n", instr, when, dur);
+    printf("insert_event: %d %f %f ...\n", insno, when, dur);
 
     inerrcnt = tieflag = reinitflag = 0;        /* IV - Nov 16 2002 */
     if (instrtxtp[insno] == NULL) {
@@ -1163,9 +1173,8 @@ INSDS *insert_event(ENVIRON *csound,
     /* Insert this event into event queue */
     if (O.odebug) printf("activating instr %d\n",insno);
     tp = instrtxtp[insno];
-    if (tp->mdepends & 04) {
-      printf(Str(
-                 "instr %d expects midi event data, cannot run from score\n"),
+    if ((tp->mdepends & 4) && !midi) {
+      printf(Str("instr %d expects midi event data, cannot run from score\n"),
              insno);
       perferrcnt++;
       goto endsched;
@@ -1200,7 +1209,7 @@ INSDS *insert_event(ENVIRON *csound,
       ip = NULL; goto endsched;
     }
     /* Add an active instrument */
-    if (tp->active++ > tp->maxalloc && tp->maxalloc > 0) {
+    if (++tp->active > tp->maxalloc && tp->maxalloc > 0) {
       tp->active--;
       if (O.msglevel & WARNMSG)
         printf(Str("WARNING: cannot allocate last note because it exceeds"
@@ -1230,20 +1239,20 @@ INSDS *insert_event(ENVIRON *csound,
                 insno, (int) tp->pmax, pcnt);
         printf(Str("WARNING: %s\n"), errmsg);
       }
-      ip->offbet = (dur >= FL(0.0) ? (double) when + (double) dur : -1.0);
       ip->p1 = instr;
       ip->p2 = when;
       ip->p3 = dur;
       flp = &(ip->p1) + 3;
       if (O.odebug) printf(Str("psave beg at %p\n"),flp);
       for (i = 0; i < imax; i++) {
-        if (i < narg )
+        if (i < narg)
           *flp++ = *(args[i]);
         else
           *flp++ = FL(0.0);
       }
       if (O.odebug) printf(Str("   ending at %p\n"),flp);
     }
+    ip->offbet = (double) ip->p3;
     ip->offtim = (double) ip->p3;       /* & duplicate p3 for now */
     ip->xtratim = 0;
     ip->relesing = 0;
@@ -1267,16 +1276,25 @@ INSDS *insert_event(ENVIRON *csound,
             opcodlst[ids->optext->t.opnum].opname);      */
       (*ids->iopadr)(csound,ids);
     }
-    if (inerrcnt || !ip->p3) {
-      deact(ip);
+    if (inerrcnt || ip->p3 == FL(0.0)) {
+      xturnoff_now(csound, ip);
       ip = NULL; goto endsched;
     }
-    if (!midi  &&               /* if not MIDI activated, */
+    if (!midi &&                /* if not MIDI activated, */
         ip->p3 > FL(0.0)) {     /* and still finite time, */
-      ip->offtim = (double) ip->p2 + (double) ip->p3;
+      double p2;
+      p2 = (double) ip->p2 + csound->sensEvents_state.timeOffs;
+      ip->offtim = p2 + (double) ip->p3;
+      p2 -= csound->sensEvents_state.curTime;
+      p2 /= csound->sensEvents_state.beatTime;
+      p2 += csound->sensEvents_state.curBeat;
+      ip->offbet = p2 + ((double) ip->p3 / csound->sensEvents_state.beatTime);
       schedofftim(ip);          /*       put in turnoff list */
     }
-    else ip->offtim = -1.0;     /* else mark indef */
+    else {
+      ip->offbet = -1.0;
+      ip->offtim = -1.0;        /* else mark indef */
+    }
     if (O.odebug) {
       printf("instr %d now active:\n",insno); showallocs();
     }
@@ -1546,4 +1564,3 @@ int useropcd2(ENVIRON *csound, UOPCODE *p)
       while (pds->nxtp) pds = pds->nxtp;    /* loop to last opds */
     return OK;
 }
-
