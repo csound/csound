@@ -33,50 +33,52 @@ Copy documentation and source where it suits you.
 See the HTML documentation for new opcodes.
 
 
-Changes by Michael Gogins
--------------------------
+Changes 
+-------
 
-Add to Csound 5 CVS and SConstruct.
+Add to Csound 5 CVS and SConstruct (mkg).
 
-Use MYFLT for compiling with either single or double precision.
+Use MYFLT for compiling with either single or double precision (mkg).
 
-Change many parameters and non-in/out fields from MYFLT* to MYFLT or other type.
+Change many parameters and non-in/out fields from MYFLT* to MYFLT or other type (mkg).
 
-Add virtual destructor to VSTHost class.
+Add virtual destructor to VSTHost class (mkg).
 
 Remove Windows-specific header files and data types 
-to enable building on Linux and OS X.
+to enable building on Linux and OS X (mkg).
 
 Use cross-platform Csound API functions for loading shared libraries 
-and getting function addresses.
+and getting function addresses (mkg).
 
-Use std collections throughout -- no explicit heap memory management at all.
+Use std collections throughout -- no explicit heap memory management at all (mkg).
 
-Use Csound message printing functions throughout.
+Use Csound message printing functions throughout (mkg).
 
-Remove all redundant comments.
+Remove all redundant comments (mkg).
 
-Simplify turnoff code in vstnote.
+Simplify turnoff code in vstnote (mkg).
 
-Enable fractional pitches.
+Enable fractional pitches (mkg).
 
-Cleanup plugin memory allocated on the heap (by using std::vector).
+Cleanup plugin memory allocated on the heap (by using std::vector) (mkg).
 
-Write audio only on last instance of vstplug.
+Write audio only on last instance of vstplug (mkg).
 
-Moved all VSTPlugin function implementations to vsthost.cpp 
-except for some functions kept inline for speed.
+Move all VSTPlugin function implementations to vsthost.cpp 
+except for some functions kept inline for speed (mkg).
+
+Make all static members of VSTPlugin non-static (mkg).
+
+Add the ability to load programs and program banks (ac), and to set programs (mkg).
+
+Implement plugin edit windows (mkg).
 
 
 To Do
 -----
 
-Make static members of VSTPlugin non-static.
+Complete and refine message levels.
 
-Add the ability to load programs and program banks, and to set programs.
-
-Implement plugin edit windows.
-
-To do: Message levels.
+Change editor to krate so orcs can open/close/reopen editors.
 
 
