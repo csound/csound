@@ -625,7 +625,20 @@ extern "C" {
 
 int playopen_dummy(void *csound, csRtAudioParams *parm)
 {
-    csound = csound; parm = parm;
+    char *s;
+
+    parm = parm;
+    /* find out if the use of dummy real-time audio functions was requested, */
+    /* or an unknown plugin name was specified; the latter case is an error */
+    s = (char*) csoundQueryGlobalVariable(csound, "_RTAUDIO");
+    if (s != NULL && !(strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
+                       strcmp(s, "NULL") == 0)) {
+      if (s[0] == '\0')
+        err_printf(Str(" *** error: rtaudio module set to empty string\n"));
+      else
+        err_printf(Str(" *** error: unknown rtaudio module: '%s'\n"), s);
+      return CSOUND_ERROR;
+    }
     /* IV - Feb 08 2005: avoid locking up the system with --sched */
 #ifdef LINUX
     if (sched_getscheduler(0) != SCHED_OTHER) {
@@ -643,7 +656,20 @@ void rtplay_dummy(void *csound, void *outBuf, int nbytes)
 
 int recopen_dummy(void *csound, csRtAudioParams *parm)
 {
-    csound = csound; parm = parm;
+    char *s;
+
+    parm = parm;
+    /* find out if the use of dummy real-time audio functions was requested, */
+    /* or an unknown plugin name was specified; the latter case is an error */
+    s = (char*) csoundQueryGlobalVariable(csound, "_RTAUDIO");
+    if (s != NULL && !(strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
+                       strcmp(s, "NULL") == 0)) {
+      if (s[0] == '\0')
+        err_printf(Str(" *** error: rtaudio module set to empty string\n"));
+      else
+        err_printf(Str(" *** error: unknown rtaudio module: '%s'\n"), s);
+      return CSOUND_ERROR;
+    }
     /* IV - Feb 08 2005: avoid locking up the system with --sched */
 #ifdef LINUX
     if (sched_getscheduler(0) != SCHED_OTHER) {
@@ -660,7 +686,7 @@ int rtrecord_dummy(void *csound, void *inBuf, int nbytes)
     csound = csound;
     for (i = 0; i < (nbytes / (int) sizeof(MYFLT)); i++)
       ((MYFLT*) inBuf)[i] = FL(0.0);
-    return (nbytes / (int) sizeof(MYFLT));
+    return nbytes;
 }
 
 void rtclose_dummy(void *csound)
