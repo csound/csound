@@ -1,4 +1,11 @@
 2005-01-29	Istvan Varga	<istvan@csounds.com>
+	* SConstruct:
+	* InOut/rtalsa.c:
+	  added ALSA real-time audio; disabled by default, as it is
+	  currently quite limited (no device selection, only float samples
+	  are supported).
+
+2005-01-29	Istvan Varga	<istvan@csounds.com>
 	* H/csound.h, H/csoundCore.h:
 	* Engine/namedins.c, Engine/oload.c, Top/csound.c:
 	  new function: csoundQueryGlobalVariableNoCheck()
