@@ -17,7 +17,7 @@ For Cygwin, run SCons.bat in the Python directory
 '''
 import os
 import sys
-import strings
+import string
 
 #############################################################################
 #
