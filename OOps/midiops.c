@@ -29,8 +29,7 @@
 
 #define dv127   (FL(1.0)/FL(127.0))
 
-extern  void    m_chinsno(ENVIRON *csound, short chan, short insno);
-extern  MCHNBLK *m_getchnl(ENVIRON *csound, short chan);
+extern int m_chinsno(ENVIRON *csound, short chan, short insno);
 
 #define MIDI_VALUE(m,field) ((m != (MCHNBLK *) NULL) ? m->field : FL(0.0))
 
@@ -56,17 +55,15 @@ int massign(ENVIRON *csound, MASSIGN *p)
     long  instno;
 
     if (*(p->insno) < FL(0.5))
-      m_chinsno(csound, chnl, (short) 0);
-    else {
-      if ((instno = strarg2insno(p->insno, p->STRARG)) < 1) return NOTOK;
-      m_chinsno(csound, chnl, (short) instno);
-    }
-    return OK;
+      return m_chinsno(csound, chnl, (short) 0);
+    if ((instno = strarg2insno(p->insno, p->STRARG)) < 1)
+      return NOTOK;
+    return m_chinsno(csound, chnl, (short) instno);
 }
 
 int ctrlinit(ENVIRON *csound, CTLINIT *p)
 {
-    short chnl = (short)(*p->chnl - FL(1.0));
+    short chnl = (short) (*p->chnl - FL(0.5));
     short nargs = p->INOCOUNT;
     if ((nargs & 0x1) == 0) {
         initerror(Str("uneven ctrl pairs"));
@@ -76,8 +73,7 @@ int ctrlinit(ENVIRON *csound, CTLINIT *p)
         MCHNBLK *chn;
         MYFLT **argp = p->ctrls;
         short ctlno, nctls = nargs >> 1;
-        if ((chn = M_CHNBP[chnl]) == NULL)
-            chn = m_getchnl(csound, chnl);
+        chn = M_CHNBP[chnl];
         do {
             ctlno = (short) **argp++;
             if (ctlno < 0 || ctlno > 127) {
@@ -238,18 +234,16 @@ int kcpsmidib(ENVIRON *csound, MIDIKMB *p)
     return OK;
 }
 
-int ampmidi(ENVIRON *csound, MIDIAMP *p)        /* convert midi veloc to amplitude */
-                                /*   valid only at I-time          */
-{
+int ampmidi(ENVIRON *csound, MIDIAMP *p)  /* convert midi veloc to amplitude */
+{                                         /*   valid only at I-time          */
     MYFLT amp;
     long  fno;
     FUNC *ftp;
 
     amp = curip->m_veloc / FL(128.0);             /* amp = normalised veloc */
-    if ((fno = (long)*p->ifn) > 0) {
-                                /* if valid ftable,       */
+    if ((fno = (long)*p->ifn) > 0) {              /* if valid ftable,       */
       if ((ftp = ftfind(csound, p->ifn)) == NULL)
-        return NOTOK;                                /*     use amp as index   */
+        return NOTOK;                             /*     use amp as index   */
       amp = *(ftp->ftable + (long)(amp * ftp->flen));
     }
     *p->r = amp * *p->imax;                       /* now scale the output   */
@@ -257,16 +251,23 @@ int ampmidi(ENVIRON *csound, MIDIAMP *p)        /* convert midi veloc to amplitu
 }
 
 /*      MWB 2/11/97  New optional field to set pitch bend range
-        I also changed each of the xxxmidib opcodes, adding * p->scale*/
+        I also changed each of the xxxmidib opcodes, adding * p->scale */
 int midibset(ENVIRON *csound, MIDIKMB *p)
 {
-    if (*p->iscal > 0) {
+    MCHNBLK *chn;
+
+    chn = p->h.insdshead->m_chnbp;
+    if (*p->iscal > FL(0.0))
       p->scale = *p->iscal;
-    }
-    else {
+    else if (chn != NULL)
+      p->scale = chn->pbensens;
+    else
       p->scale = FL(2.0);
-    }
-    p->prvbend = FL(0.0);          /* Start from sane position */
+    /* Start from sane position */
+    if (chn != NULL)
+      p->prvbend = chn->pchbend;
+    else
+      p->prvbend = FL(0.0);
     return OK;
 }
 
@@ -284,30 +285,13 @@ int aftouch(ENVIRON *csound, MIDIKMAP *p)
     return OK;
 }
 
-/* void chpress(MIDIKMB *p) */
-/* { */
-/*     INSDS *lcurip = p->h.insdshead; */
-/*     *p->r = lcurip->m_chnbp->chnpress * p->scale; */
-/* } */
-
-/* void pbenset(MIDIKMB *p) */
-/* { */
-/*     p->scale = *p->iscal; */
-/* } */
-
-/* void pchbend(MIDIKMB *p) */
-/* { */
-/*     INSDS *lcurip = p->h.insdshead; */
-/*     *p->r = lcurip->m_chnbp->pchbend * p->scale; */
-/* } */
-
 int imidictl(ENVIRON *csound, MIDICTL *p)
 {
     long  ctlno;
     if ((ctlno = (long)*p->ictlno) < 0 || ctlno > 127)
       initerror(Str("illegal controller number"));
     else *p->r = MIDI_VALUE(curip->m_chnbp, ctl_val[ctlno])
-           * (*p->ihi - *p->ilo) * dv127 + *p->ilo;
+                 * (*p->ihi - *p->ilo) * dv127 + *p->ilo;
     return OK;
 }
 
@@ -320,18 +304,6 @@ int mctlset(ENVIRON *csound, MIDICTL *p)
       p->ctlno = ctlno;
       p->scale = (*p->ihi - *p->ilo) * dv127;
       p->lo = *p->ilo;
-#ifdef never                                            /* IV - Jul 11 2002 */
-      /* MWB If the controller value is 0, it is initialised to the optional
-         value */
-      /*
-       * the m_chnbp pointer may very well be null here, so we better check
-       * [nicb@axnet.it]
-       */
-      if (p->h.insdshead->m_chnbp != (MCHNBLK *) NULL)
-      if (p->h.insdshead->m_chnbp->ctl_val[p->ctlno] == 0) {
-        p->h.insdshead->m_chnbp->ctl_val[p->ctlno] = p->lo;
-      }
-#endif
     }
     return OK;
 }
@@ -363,18 +335,6 @@ int maftset(ENVIRON *csound, MIDICTL *p)
       p->ctlno = ctlno;
       p->scale = (*p->ihi - *p->ilo) * dv127;
       p->lo = *p->ilo;
-#ifdef never                                            /* IV - Jul 11 2002 */
-      /* MWB If the controller value is 0, it is initialised to the optional
-         value */
-      /*
-       * the m_chnbp pointer may very well be null here, so we better check
-       * [nicb@axnet.it]
-       */
-      if (p->h.insdshead->m_chnbp != (MCHNBLK *) NULL)
-      if (p->h.insdshead->m_chnbp->polyaft[p->ctlno] == 0) {
-        p->h.insdshead->m_chnbp->polyaft[p->ctlno] = p->lo;
-      }
-#endif
     }
     return OK;
 }
@@ -408,8 +368,11 @@ int midichn(ENVIRON *csound, MIDICHN *p)
 
 int pgmassign(ENVIRON *csound, PGMASSIGN *p)
 {
-    int pgm, ins;
+    int pgm, ins, chn;
 
+    chn = (int) (*p->ichn + 0.5);
+    if (chn < 0 || chn > 16)
+      return initerror(Str("illegal channel number"));
     /* IV - Oct 31 2002: allow named instruments */
     if (*p->inst == SSTRCOD) {
       if (p->STRARG != NULL)
@@ -418,16 +381,32 @@ int pgmassign(ENVIRON *csound, PGMASSIGN *p)
         ins = (int) strarg2insno(p->inst, unquote(currevent->strarg));
     } else
       ins = (int) (*(p->inst) + FL(0.5));
-    if (*(p->ipgm) == FL(0.0)) {        /* program = 0: assign all pgms */
-      for (pgm = 0; pgm < 128; pgm++) csound->midiGlobals->pgm2ins[pgm] = ins;
+    if (*(p->ipgm) < FL(0.5)) {         /* program <= 0: assign all pgms */
+      if (!chn) {                           /* on all channels */
+        for (chn = 0; chn < 16; chn++)
+          for (pgm = 0; pgm < 128; pgm++)
+            M_CHNBP[chn]->pgm2ins[pgm] = ins;
+      }
+      else {                                /* or selected channel only */
+        chn--;
+        for (pgm = 0; pgm < 128; pgm++)
+          M_CHNBP[chn]->pgm2ins[pgm] = ins;
+      }
     }
-    else {
-      pgm = (int) (*(p->ipgm) + FL(0.5)) - 1;
+    else {                              /* program > 0: assign selected pgm */
+      pgm = (int) (*(p->ipgm) - FL(0.5));
       if (pgm < 0 || pgm > 127) {
         initerror(Str("pgmassign: invalid program number"));
         return NOTOK;
       }
-      csound->midiGlobals->pgm2ins[pgm] = ins;
+      if (!chn) {                           /* on all channels */
+        for (chn = 0; chn < 16; chn++)
+          M_CHNBP[chn]->pgm2ins[pgm] = ins;
+      }
+      else {                                /* or selected channel only */
+        chn--;
+        M_CHNBP[chn]->pgm2ins[pgm] = ins;
+      }
     }
     return OK;
 }

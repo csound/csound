@@ -266,36 +266,27 @@ extern "C" {
 #define DKBAS  25
 
   typedef struct mchnblk {
-    short  pgmno;
-    short  insno;
-    /*      short  Omni; */
-    /*      short  Poly; */
-    /*         short  bas_chnl; */
-    /*      short  nchnls; */
+    short  pgmno;           /* most recently received program change */
+    short  insno;           /* instrument number assigned to this channel */
     short  RegParNo;
     short  mono;
     MONPCH *monobas;
     MONPCH *monocur;
-    struct insds *kinsptr[128];
-    struct insds *ksusptr[128];
-    MYFLT  polyaft[128];
-    MYFLT  ctl_val[128];    /* ... with GS vib_rate,, stored in c102-c109 */
-    /*      float  katouch[128]; */
-    /*      short  ctl_byt[128]; */
-    short  ksuscnt;
-    short  sustaining;
-    MYFLT  aftouch;
-    /*      float  chnpress; */
-    MYFLT  pchbend;
-    /*      float  posbend; */
-    /*      float  pbensens; */
+    struct insds *kinsptr[128]; /* list of active notes (NULL: not active) */
+    struct insds *ksusptr[128]; /* list of held notes (NULL: not sustaining) */
+    MYFLT  polyaft[128];    /* polyphonic pressure indexed by note number */
+    MYFLT  ctl_val[136];    /* ... with GS vib_rate, stored in c128-c135 */
+    short  pgm2ins[128];    /* program change to instr number (<=0: ignore) */
+    short  ksuscnt;         /* number of held (sustaining) notes */
+    short  sustaining;      /* current state of sustain pedal (0: off) */
+    MYFLT  aftouch;         /* channel pressure (0-127) */
+    MYFLT  pchbend;         /* pitch bend (-1 to 1) */
+    MYFLT  pbensens;        /* pitch bend sensitivity in semitones */
     DKLST  *klists;         /* chain of dpgm keylists */
     DPARM  *dparms;         /* drumset params     */
     int    dpmsb;
     int    dplsb;
-    /*      float  finetune; */
-    /*      float  crsetune; */
-    /*    float  tuning; */    /* displ in semitones */
+    int    datenabl;
   } MCHNBLK;
 
   /*
@@ -545,7 +536,6 @@ extern "C" {
   typedef struct midiglobals {
     MEVENT  *Midevtblk;
     int     sexp;
-    int     pgm2ins[128];
     int     MIDIoutDONE;
     int     MIDIINbufIndex;
     MIDIMESSAGE MIDIINbuffer2[MIDIINBUFMAX];
@@ -559,6 +549,8 @@ extern "C" {
     void    *midiInUserData;
     void    *midiOutUserData;
     void    *midiFileData;
+    int     rawControllerMode;
+    char    muteTrackList[256];
     unsigned char mbuf[MBUFSIZ];
     unsigned char *bufp, *endatp;
     short   datreq, datcnt;

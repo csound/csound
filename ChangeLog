@@ -1,3 +1,42 @@
+2005-02-27	Istvan Varga	<istvan@csounds.com>
+	* Engine/entry2.c:
+	* H/midiops.h:
+	* OOps/midiops.c:
+	  added optional i-time parameter (defaults to 0) to pgmassign,
+	  selects MIDI channel (zero means all channels)
+	* Engine/musmon.c:
+	  fixed terminating on end of MIDI file (-T flag)
+	* H/csoundCore.h:
+	  moved pgm2ins[] from MGLOBAL to MCHNBLK to allow setting per channel
+	  other changes in MCHNBLK and MGLOBAL
+	* H/midiops.h:
+	* InOut/midirecv.c:
+	  do not use MIDI controllers (<128) for storing Csound internal data
+	  Roland NRPNS (VIB_RATE etc.) moved to controllers 128-135
+	  removed MOD_VOLUME
+	  removed BENDSENS (replaced with MYFLT MCHNBLK.pbensens)
+	  removed DATENABL (replaced with int MCHNBLK.datenabl)
+	* InOut/midifile.c:
+	  reduced memory usage of event list
+	  do not print any text meta events when message level is zero
+	  allow muting tracks with -+mute_tracks option (for example,
+	  -+mute_tracks=0010001 will mute the third and seventh tracks;
+	  tempo events are still used even if a track is muted)
+	* InOut/midirecv.c:
+	  allow setting program change to instrument routing per channel
+	  implemented "raw" controller mode (-+raw_controller_mode=yes),
+	  which means all control changes are simply stored without handling
+	  e.g. RPNs or sustain pedal changes in a special way
+	  do not "pollute" controller space with Csound internal data
+	  cleaned up code
+	* OOps/midiops.c:
+	  cpsmidib and similar opcodes now use bend range RPN information
+	  cleaned up code
+	* Top/csound.c:
+	  do not initialise pgm2ins[] here (now done by m_chn_init_all())
+	  new command line option: -+mute_tracks=STRING
+	  new command line option: -+raw_controller_mode=BOOLEAN
+
 2005-02-26	Istvan Varga	<istvan@csounds.com>
 	* InOut/libsnd_u.c:
 	  fixed bug in sndgetset(): sfinfo structure was uninitialised

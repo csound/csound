@@ -35,26 +35,22 @@
 #define PCHBEND_TYPE  0xE0
 #define SYSTEM_TYPE   0xF0
 
-#define DATENABL        3       /* unused ctl_val spc */
 #define DATENTRY        6
 #define VOLUME          7
-#define MOD_VOLUME      9       /* unused ctl_val spc */
 #define SUSTAIN_SW      64
 #define NRPNLSB         98
 #define NRPNMSB         99
 #define RPNLSB          100
 #define RPNMSB          101
 
-#define VIB_RATE        102     /* ROLAND EXTENDED CTRLS */
-#define VIB_DEPTH       103     /* in unused ctl_val spc */
-#define VIB_DELAY       104
-#define TVF_CUTOFF      105
-#define TVF_RESON       106
-#define TVA_RIS         107
-#define TVA_DEC         108
-#define TVA_RLS         109
-
-#define BENDSENS        110     /* unused ctl_val spc */
+#define VIB_RATE        128     /* ROLAND EXTENDED CTRLS */
+#define VIB_DEPTH       129     /* in unused ctl_val spc */
+#define VIB_DELAY       130
+#define TVF_CUTOFF      131
+#define TVF_RESON       132
+#define TVA_RIS         133
+#define TVA_DEC         134
+#define TVA_RLS         135
 
 typedef struct {
     OPDS   h;
@@ -112,9 +108,6 @@ typedef struct {
     MYFLT  *r;
 } MIDIAGE;
 
-/* void m_chinsno(short, short); */
-/* MCHNBLK *m_getchnl(short); */
-
 typedef struct {
     OPDS   h;
     MYFLT *r, *tablenum;
@@ -133,7 +126,7 @@ typedef struct {
 
 typedef struct {
     OPDS   h;
-    MYFLT  *ipgm, *inst;
+    MYFLT  *ipgm, *inst, *ichn;
 } PGMASSIGN;
 
 #endif
