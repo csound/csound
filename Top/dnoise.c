@@ -90,7 +90,7 @@ extern ENVIRON cenviron;
 #define ERR(x)          perror(x); exit(1)
 #define FIND(MSG)   if (*s == '\0')  \
                         if (!(--argc) || (((s = *argv++) != NULL) && *s == '-')) \
-                            dieu(MSG);
+                            dieu(MSG)
 
 void dnoise_usage(int);
 void fast(MYFLT*, int);
@@ -234,9 +234,6 @@ int dnoise(int argc, char **argv)
     char        *envoutyp = NULL;
     char        outformch = 's';
 
-#ifdef mills_macintoshxx
-    argc = 0; argv = NULL;
-#endif
     init_getstring(argc, argv);
 
     O.filnamspace = outfile = (char*)mmalloc((long)1024);
@@ -255,214 +252,205 @@ int dnoise(int argc, char **argv)
         dieu(errmsg);
       }
     }
-#ifdef mills_macintoshxx
-    do_mac_dialogs();
-    argc = gargc; argv = gargv;
-#else
-      {
-        ++argv;
-        while (--argc>0) {
-          s = *argv++;
-          if (*s++ == '-') {                        /* read all flags:  */
-            while ((c = *s++) != '\0') {
-              switch (c) {
-              case 'j':
-                FIND("")
-                  while (*++s);
-                break;
-              case 'o':
-                FIND(Str(X_1052,"no outfilename"))
-                  O.outfilename = outfile;            /* soundout name */
-                while ((*outfile++ = *s++)); s--;
-                if (strcmp(O.outfilename,"stdin") == 0)
-                  die(Str(X_156,"-o cannot be stdin"));
-                if (strcmp(O.outfilename,"stdout") == 0) {
-#if defined(THINK_C) || defined(mac_classic)
-                  die(Str(X_1244,"stdout audio not supported"));
-#else
-                  if ((O.stdoutfd = dup(1)) < 0) /* redefine stdout */
-                    die(Str(X_1290,"too many open files"));
-                  dup2(2,1);                /* & send 1's to stderr */
-#endif
-                }
-                break;
-              case 'i':
-                FIND(Str(X_1016,"no noisefilename"))
-                  {
-                    char *nn = nfile;
-                    while ((*nn++ = *s++)); s--;
-                  }
-                break;
-              case 'A':
-                if (O.filetyp == TYP_WAV) {
-                  if (envoutyp == NULL) goto outtyp;
-                  if (O.msglevel & WARNMSG)
-                    printf(Str(X_95,
-                               "WARNING: -A overriding local default WAV out\n"));
-                }
-                O.filetyp = TYP_AIFF;     /* AIFF output request*/
-                break;
-              case 'J':
-                if (O.filetyp == TYP_AIFF ||
-                    O.filetyp == TYP_WAV) {
-                  if (envoutyp == NULL) goto outtyp;
-                  if (O.msglevel & WARNMSG)
-                    printf(Str(X_110,
-                               "WARNING: -J overriding local default "
-                               "AIFF/WAV out\n"));
-                }
-                O.filetyp = TYP_IRCAM;      /* IRCAM output request */
-                break;
-              case 'W':
-                if (O.filetyp == TYP_AIFF) {
-                  if (envoutyp == NULL) goto outtyp;
-                  if (O.msglevel & WARNMSG)
-                    printf(Str(X_131,
-                               "WARNING: -W overriding local default AIFF out\n"));
-                }
-                O.filetyp = TYP_WAV;      /* WAV output request */
-                break;
-              case 'h':
-                O.sfheader = 0;           /* skip sfheader  */
-                break;
-              case 'c':
-                if (O.outformat) goto outform;
-                outformch = c;
-                O.outformat = AE_CHAR;     /* 8-bit char soundfile */
-                break;
-              case '8':
-                if (O.outformat) goto outform;
-                outformch = c;
-                O.outformat = AE_UNCH;     /* 8-bit unsigned char file */
-                break;
-/*               case 'a': */
-/*                 if (O.outformat) goto outform; */
-/*                 outformch = c; */
-/*                 O.outformat = AE_ALAW;     /\* a-law soundfile *\/ */
-/*                 break; */
-/*               case 'u': */
-/*                 if (O.outformat) goto outform; */
-/*                 outformch = c; */
-/*                 O.outformat = AE_ULAW;     /\* mu-law soundfile *\/ */
-/*                 break; */
-              case 's':
-                if (O.outformat) goto outform;
-                outformch = c;
-                O.outformat = AE_SHORT;    /* short_int soundfile */
-                break;
-              case 'l':
-                if (O.outformat) goto outform;
-                outformch = c;
-                O.outformat = AE_LONG;     /* long_int soundfile */
-                break;
-              case 'f':
-                if (O.outformat) goto outform;
-                outformch = c;
-                O.outformat = AE_FLOAT;    /* float soundfile */
-                break;
-              case 'R':
-                O.rewrt_hdr = 1;
-                break;
-              case 'H':
-                if (isdigit(*s)) {
-                  int n;
-                  sscanf(s, "%d%n", &O.heartbeat, &n);
-                  s += n;
-                }
-                else O.heartbeat = 1;
-                break;
-              case 't':
-                FIND("no t arg");
-#if defined(USE_DOUBLE)
-                sscanf(s,"%lf",&th);
-#else
-                sscanf(s,"%f",&th);
-#endif
-                while (*++s);
-                break;
-              case 'S':
-                FIND("no s arg");
-                sscanf(s,"%d", &sh);
-                while (*++s);
-                break;
-              case 'm':
-                FIND("no m arg");
-#if defined(USE_DOUBLE)
-                sscanf(s,"%lf",&g0);
-#else
-                sscanf(s,"%f",&g0);
-#endif
-                while (*++s);
-                break;
-              case 'n':
-                FIND("no n arg");
-                sscanf(s,"%d", &m);
-                while (*++s);
-                break;
-              case 'b':
-                FIND("no b arg");
-#if defined(USE_DOUBLE)
-                sscanf(s,"%lf",&beg);
-#else
-                sscanf(s,"%f",&beg);
-#endif
-                while (*++s);
-                break;
-              case 'B': FIND("no B arg");
-                sscanf(s,"%ld", &Beg);
-                while (*++s);
-                break;
-              case 'e': FIND("no e arg");
-#if defined(USE_DOUBLE)
-                sscanf(s,"%lf",&end);
-#else
-                sscanf(s,"%f",&end);
-#endif
-                while (*++s);
-                break;
-              case 'E': FIND("no E arg");
-                sscanf(s,"%ld", &End);
-                while (*++s);
-                break;
-              case 'N': FIND("no N arg");
-                sscanf(s,"%d", &N);
-                while (*++s);
-                break;
-              case 'M': FIND("no M arg");
-                sscanf(s,"%d", &M);
-                while (*++s);
-                break;
-              case 'L': FIND("no L arg");
-                sscanf(s,"%d", &L);
-                while (*++s);
-                break;
-              case 'w': FIND("no w arg");
-                sscanf(s,"%d", &W);
-                while (*++s);
-                break;
-              case 'D': FIND("no D arg");
-                sscanf(s,"%d", &D);
-                while (*++s);
-                break;
-              case 'V':
-                Verbose = 1; break;
-              default:
-                printf("Looking at %c\n", c);
-                dnoise_usage(1);    /* this exits with error */
+    {
+      ++argv;
+      while (--argc>0) {
+        s = *argv++;
+        if (*s++ == '-') {                        /* read all flags:  */
+          while ((c = *s++) != '\0') {
+            switch (c) {
+            case 'j':
+              FIND("");
+              while (*++s);
+              break;
+            case 'o':
+              FIND(Str(X_1052,"no outfilename"));
+                O.outfilename = outfile;            /* soundout name */
+              while ((*outfile++ = *s++)); s--;
+              if (strcmp(O.outfilename,"stdin") == 0)
+                die(Str(X_156,"-o cannot be stdin"));
+              if (strcmp(O.outfilename,"stdout") == 0) {
+                if ((O.stdoutfd = dup(1)) < 0) /* redefine stdout */
+                  die(Str(X_1290,"too many open files"));
+                dup2(2,1);                /* & send 1's to stderr */
               }
+              break;
+            case 'i':
+              FIND(Str(X_1016,"no noisefilename"));
+              {
+                char *nn = nfile;
+                while ((*nn++ = *s++)); s--;
+              }
+              break;
+            case 'A':
+              if (O.filetyp == TYP_WAV) {
+                if (envoutyp == NULL) goto outtyp;
+                if (O.msglevel & WARNMSG)
+                  printf(Str(X_95,
+                             "WARNING: -A overriding local default WAV out\n"));
+              }
+              O.filetyp = TYP_AIFF;     /* AIFF output request*/
+              break;
+            case 'J':
+              if (O.filetyp == TYP_AIFF ||
+                  O.filetyp == TYP_WAV) {
+                if (envoutyp == NULL) goto outtyp;
+                if (O.msglevel & WARNMSG)
+                  printf(Str(X_110,
+                             "WARNING: -J overriding local default "
+                             "AIFF/WAV out\n"));
+              }
+              O.filetyp = TYP_IRCAM;      /* IRCAM output request */
+              break;
+            case 'W':
+              if (O.filetyp == TYP_AIFF) {
+                if (envoutyp == NULL) goto outtyp;
+                if (O.msglevel & WARNMSG)
+                  printf(Str(X_131,
+                             "WARNING: -W overriding local default AIFF out\n"));
+              }
+              O.filetyp = TYP_WAV;      /* WAV output request */
+              break;
+            case 'h':
+              O.sfheader = 0;           /* skip sfheader  */
+              break;
+            case 'c':
+              if (O.outformat) goto outform;
+              outformch = c;
+              O.outformat = AE_CHAR;     /* 8-bit char soundfile */
+              break;
+            case '8':
+              if (O.outformat) goto outform;
+              outformch = c;
+              O.outformat = AE_UNCH;     /* 8-bit unsigned char file */
+              break;
+            case 'a':
+              if (O.outformat) goto outform;
+              outformch = c;
+              O.outformat = AE_ALAW;     /* a-law soundfile */
+              break;
+            case 'u':
+              if (O.outformat) goto outform;
+              outformch = c;
+              O.outformat = AE_ULAW;     /* mu-law soundfile */
+              break;
+            case 's':
+              if (O.outformat) goto outform;
+              outformch = c;
+              O.outformat = AE_SHORT;    /* short_int soundfile */
+              break;
+            case 'l':
+              if (O.outformat) goto outform;
+              outformch = c;
+              O.outformat = AE_LONG;     /* long_int soundfile */
+              break;
+            case 'f':
+              if (O.outformat) goto outform;
+              outformch = c;
+              O.outformat = AE_FLOAT;    /* float soundfile */
+              break;
+            case 'R':
+              O.rewrt_hdr = 1;
+              break;
+            case 'H':
+              if (isdigit(*s)) {
+                int n;
+                sscanf(s, "%d%n", &O.heartbeat, &n);
+                s += n;
+              }
+              else O.heartbeat = 1;
+              break;
+            case 't':
+              FIND("no t arg");
+#if defined(USE_DOUBLE)
+              sscanf(s,"%lf",&th);
+#else
+              sscanf(s,"%f",&th);
+#endif
+              while (*++s);
+              break;
+            case 'S':
+              FIND("no s arg");
+              sscanf(s,"%d", &sh);
+              while (*++s);
+              break;
+            case 'm':
+              FIND("no m arg");
+#if defined(USE_DOUBLE)
+              sscanf(s,"%lf",&g0);
+#else
+              sscanf(s,"%f",&g0);
+#endif
+              while (*++s);
+              break;
+            case 'n':
+              FIND("no n arg");
+              sscanf(s,"%d", &m);
+              while (*++s);
+              break;
+            case 'b':
+              FIND("no b arg");
+#if defined(USE_DOUBLE)
+              sscanf(s,"%lf",&beg);
+#else
+              sscanf(s,"%f",&beg);
+#endif
+              while (*++s);
+              break;
+            case 'B': FIND("no B arg");
+              sscanf(s,"%ld", &Beg);
+              while (*++s);
+              break;
+            case 'e': FIND("no e arg");
+#if defined(USE_DOUBLE)
+              sscanf(s,"%lf",&end);
+#else
+              sscanf(s,"%f",&end);
+#endif
+              while (*++s);
+              break;
+            case 'E': FIND("no E arg");
+              sscanf(s,"%ld", &End);
+              while (*++s);
+              break;
+            case 'N': FIND("no N arg");
+              sscanf(s,"%d", &N);
+              while (*++s);
+              break;
+            case 'M': FIND("no M arg");
+              sscanf(s,"%d", &M);
+              while (*++s);
+              break;
+            case 'L': FIND("no L arg");
+              sscanf(s,"%d", &L);
+              while (*++s);
+              break;
+            case 'w': FIND("no w arg");
+              sscanf(s,"%d", &W);
+              while (*++s);
+              break;
+            case 'D': FIND("no D arg");
+              sscanf(s,"%d", &D);
+              while (*++s);
+              break;
+            case 'V':
+              Verbose = 1; break;
+            default:
+              printf("Looking at %c\n", c);
+              dnoise_usage(1);    /* this exits with error */
             }
           }
-          else if (infile==NULL) {
-            infile = --s;
-            printf("Infile set to %s\n", infile);
-          }
-          else {
-            printf("End with %s\n", s);
-            dnoise_usage(1);
-          }
+        }
+        else if (infile==NULL) {
+          infile = --s;
+          printf("Infile set to %s\n", infile);
+        }
+        else {
+          printf("End with %s\n", s);
+          dnoise_usage(1);
         }
       }
-#endif
+    }
     if (nfile==NULL) {
       err_printf( "Must have an example noise file (-I name)\n");
       exit(1);
@@ -1213,16 +1201,8 @@ static int writebuffer(MYFLT *outbuf, int nbytes)
     return nbytes/sizeof(MYFLT);
 }
 
-#define MUCLIP  32635
-#define BIAS    0x84
-#define MUZERO  0x02
-#define ZEROTRAP
+/* #define MUCLIP  32635 */
+/* #define BIAS    0x84 */
+/* #define MUZERO  0x02 */
+/* #define ZEROTRAP */
 
-#ifdef mills_macintoshxx
-void die(char *s)
-{
-    printf("%s\n", s);
-    while (!Button());
-    ExitToShell();
-}
-#endif
