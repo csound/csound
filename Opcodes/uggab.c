@@ -652,7 +652,6 @@ int loopseg_set(ENVIRON *csound, LOOPSEG *p)
     return OK;
 }
 
-
 int loopseg(ENVIRON *csound, LOOPSEG *p)
 {
     MYFLT **argp = p->argums;
@@ -661,7 +660,7 @@ int loopseg(ENVIRON *csound, LOOPSEG *p)
     int nsegs = p->nsegs;
     int j;
 
-    *argp[nsegs] = *argp[0];
+/*     *argp[nsegs] = *argp[0]; */
     if (*p->retrig) {
       phs    = 0.0;
       p->phs = 0.0;
@@ -674,7 +673,7 @@ int loopseg(ENVIRON *csound, LOOPSEG *p)
 
     for ( j=0; j < nsegs; j+=2) {
       beg_seg += *argp[j] / durtot;
-      end_seg = beg_seg + *argp[j+2] / durtot;
+      end_seg = beg_seg + *argp[(j+2)%nsegs] / durtot;
       if (beg_seg <= phs && end_seg > phs) {
         MYFLT diff = end_seg - beg_seg;
         MYFLT fract = ((MYFLT)phs-beg_seg)/diff;
@@ -702,7 +701,7 @@ int lpshold(ENVIRON *csound, LOOPSEG *p)
     int nsegs = p->nsegs;
     int j;
 
-    *argp[nsegs] = *argp[0];
+/*     *argp[nsegs] = *argp[0]; */
     if (*p->retrig) {
       phs    = 0.0;
       p->phs = 0.0;
@@ -710,7 +709,7 @@ int lpshold(ENVIRON *csound, LOOPSEG *p)
     else
       phs    = p->phs;
 
-    for ( j=0; j <=nsegs; j+=2)
+    for ( j=0; j <nsegs; j+=2)  /* gab 25/9/2002 fix */
       durtot += *argp[j];
 
     for ( j=0; j < nsegs; j+=2) {
