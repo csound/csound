@@ -160,4 +160,3 @@ int rvbset(REVERB *p);
 int reverb(REVERB *p);
 int panset(PAN *p);
 int pan(PAN *p);
-
