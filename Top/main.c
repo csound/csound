@@ -332,22 +332,23 @@ int csoundCompile(void *csound, int argc, char **argv)
     e0dbfs = DFLT_DBFS;
     dbfs_init(e0dbfs);
     /* may get changed by an orch */
-    if (sizeof(MYFLT)==sizeof(float))
-      err_printf(
-#ifdef BETA
-                 "Csound Version %d.%.02dbeta (%s)\n",
+#ifndef USE_DOUBLE
+    err_printf(
+# ifdef BETA
+               "Csound Version %d.%.02dbeta (%s)\n",
+# else
+               Str(X_237,"Csound Version %d.%.02d (%s)\n"),
+# endif
+               VERSION, SUBVER, __DATE__);
 #else
-                 Str(X_237,"Csound Version %d.%.02d (%s)\n"),
+    err_printf(
+# ifdef BETA
+               "Csound(d) Version %d.%.02dbeta (%s)\n",
+# else
+               Str(X_1545,"Csound(d) Version %d.%.02d (%s)\n"),
+# endif
+               VERSION, SUBVER, __DATE__);
 #endif
-                 VERSION, SUBVER, __DATE__);
-    else
-      err_printf(
-#ifdef BETA
-                 "Csound(d) Version %d.%.02dbeta (%s)\n",
-#else
-                 Str(X_1545,"Csound(d) Version %d.%.02d (%s)\n"),
-#endif
-                 VERSION, SUBVER, __DATE__);
 #if !defined(mills_macintosh) && !defined(SYMANTEC)
     {
       char *getenv(const char*);

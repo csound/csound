@@ -83,10 +83,11 @@ int cvanal(int argc, char **argv)
         switch (*s++) {
         case 's':
           FIND(Str(X_1057,"no sampling rate"))
-            if (sizeof(MYFLT)==sizeof(float))
-              sscanf(s,"%f",&sr);
-            else
-              sscanf(s,"%lf",&sr);
+#ifdef USE_DOUBLE
+          sscanf(s,"%lf",&sr);
+#else
+          sscanf(s,"%f",&sr);
+#endif
           break;
         case 'c':
           FIND(Str(X_1026,"no channel"))
@@ -96,17 +97,19 @@ int cvanal(int argc, char **argv)
           break;
         case 'b':
           FIND(Str(X_1025,"no begin time"))
-            if (sizeof(MYFLT)==sizeof(float))
-              sscanf(s,"%f",&beg_time);
-            else
-              sscanf(s,"%lf",&beg_time);
+#ifdef USE_DOUBLE
+          sscanf(s,"%lf",&beg_time);
+#else
+          sscanf(s,"%f",&beg_time);
+#endif
           break;
         case 'd':
           FIND(Str(X_1030,"no duration time"))
-            if (sizeof(MYFLT)==sizeof(float))
-              sscanf(s,"%f",&input_dur);
-            else
-              sscanf(s,"%lf",&input_dur);
+#ifdef USE_DOUBLE
+          sscanf(s,"%lf",&input_dur);
+#else
+          sscanf(s,"%f",&input_dur);
+#endif
           break;
         default:   quit(Str(X_1352,"unrecognised switch option"));
         }
