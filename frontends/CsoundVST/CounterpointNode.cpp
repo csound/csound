@@ -90,7 +90,7 @@ namespace csound
     double z = 0;
     double pcs = 4095.0;
     Score generated;
-    for(size_t voice = 0; voice < Ctrpt.size2(); voice++)
+    for(size_t voice = 0; voice < voices; voice++)
       {
 	double time = 0;
 	for(int note = 1; note <= TotalNotes[voice]; note++)
