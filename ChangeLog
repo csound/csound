@@ -1,3 +1,9 @@
+2004-07-09  John ffitch  <jpff@codemist.co.uk>
+
+	* Engine/otran.c (otran): Move initialisation of pool to start of
+	otran so strings work!
+	(constndx): from here
+
 2004-07-04  John ffitch  <jpff@codemist.co.uk>
 
 	* strings/all_strings: Added string 226
