@@ -116,7 +116,7 @@ int ags(PGRA *p)               /*      Granular U.G. a-rate main routine       *
     } while (--i);
 
     for (i = 0 ; i < ksmps_ ; i++) {
-      if (gcount >= FL(0.1)) { /* I wonder..... */
+      if (gcount >= FL(1.0)) { /* I wonder..... */
         gcount = FL(0.0);
         amp = *xamp + Unirand(*p->kabnd);
         isc = (long) Unirand(p->pr);

@@ -1,3 +1,7 @@
+2003-11-22  John ffitch  <jpff@codemist.co.uk>
+
+	* Opcodes/grain.c (ags): Check gcount against 1 rather than 0.1
+
 2003-11-07  John D. Ramsdell  <ramsdell@mitre.org>
 
 	* Top/getstring.c (init_getstring): The default location for the
