@@ -44,25 +44,25 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ar1, /**ar2,*ar3,*ar4,*/ *ain,*ifilno,*channel,*partitionSize;
-    long	numPartitions;
-    long    Hlen, Hlenpadded;//,incount,outcnt,obufsiz;
-   /* int     nchanls;*/ 	/* number of channels we are actually processing */
-    complex	*cvlut;		/* lookup table used for fft */
+    MYFLT   *ar1, *ar2, *ar3, *ar4, *ain,*ifilno,*partitionSize,*channel;
+    long    numPartitions;
+    long    Hlen, Hlenpadded;
+    int     nchanls;    /* number of channels we are actually processing */
+    complex *cvlut;             /* lookup table used for fft */
 
-    AUXCH   H;			/* array of Impulse Responses */
+    AUXCH   H;                  /* array of Impulse Responses */
 
-    AUXCH   savedInput;	/* the last Hlen input samps for overlap-save method */
-    long	inCount;	/* index to write to savedInput */
+    AUXCH   savedInput; /* the last Hlen input samps for overlap-save method */
+    long    inCount;    /* index to write to savedInput */
 
-    AUXCH   workBuf;	/* work buf for current partion convolution */
-    MYFLT	*workWrite;	/* current index for writing input samps */
+    AUXCH   workBuf;    /* work buf for current partion convolution */
+    MYFLT   *workWrite; /* current index for writing input samps */
 
-    AUXCH   convBuf;	/* circular buf accumulating partitioned convolutions */
-    long	curPart;	/* "current" segment in convBuf */
+    AUXCH   convBuf;    /* circular buf accumulating partitioned convolutions */
+    long    curPart;    /* "current" segment in convBuf */
 
-    AUXCH   output;		/* circular buf accumulating output samples */
-    long	outBufSiz;	/* hlenpadded or 2*ksmps, whichever is greater */
-    MYFLT	*outWrite, *outRead; /* i/o pointers to the output buf */
-    long	outCount;	/* number of valid samples in the outbuf */
+    AUXCH   output;             /* circular buf accumulating output samples */
+    long    outBufSiz;  /* hlenpadded or 2*ksmps, whichever is greater */
+    MYFLT   *outWrite, *outRead; /* i/o pointers to the output buf */
+    long    outCount;   /* number of valid samples in the outbuf */
 } PCONVOLVE;
