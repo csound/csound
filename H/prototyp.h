@@ -96,6 +96,7 @@ extern void (*csoundExternalMidiDeviceOpenCallback)(void *csound);
 extern int (*csoundExternalMidiReadCallback)(void *csound, unsigned char *midiData, int size);
 extern int (*csoundExternalMidiWriteCallback)(void *csound, unsigned char *midiData);
 extern void (*csoundExternalMidiDeviceCloseCallback)(void *csound);
+extern void rtclose_(void);
 
 #ifdef __cplusplus
 }
