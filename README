@@ -29,6 +29,9 @@ the portaudio library to read and write real-time audio,
 the SDIF library to read and write SDIF files,
 and the fltk library to graph function tables and draw control widgets.
 
+CsoundVST needs Python 2.3, SWIG, and boost 
+(put the boost source directories into /usr/local, i.e. /usr/local/boost). 
+
 [Windows dependencies]
 
 Csound5 on Windows is built with Cygwin, 
@@ -70,3 +73,54 @@ After this completes, a Makefile will be generated. Now type:
 	make
 
 and this will start the build process.  
+
+[HOW TO MAKE A NEW PLUGIN OPCODE]-------------------------------------------
+
+The following assumes you already know how to make a regular Csound opcode.
+Supposing that your opcode is named xxx, perform the following steps:
+
+(1)	Write your xxx.c and xxx.h file as you would for a regular 
+	Csound opcode. Put the files in the csound5/Opcodes directory.
+
+(2)	#include "csdl.h" in your opcode sources. This causes the
+	plugin development environment to simulate the regular Csound opcode
+	development environment.
+
+(3)	Add your OENTRY records and opcode registration functions 
+	at the bottom of your C file. Example 
+	(but you can have as many opcodes in one plugin as you like):
+		
+	#define S       sizeof
+
+	static OENTRY localops[] = {
+	{ "xxx", S(XXX), 5, "a", "ao", (SUBR)xxxset, NULL, (SUBR)xxx}
+	};
+
+	/*
+	 * The following macro from csdl.h defines 
+	 * the "opcode_size()" and "opcode_init()" 
+	 * opcode registration functions for the localops table.
+	 */
+	LINKAGE
+		
+(4)	Add your plugin as a new target in plugin opcodes section 
+	of the Csound 5 Makefile.am:
+
+	pkglib_LTLIBRARIES+=xxx.la
+		
+(5)	Add rules to build your plugin in the Csound 5 Makefile.am
+	(the autotools will fill in the correct compiler and linker
+	flags for your system):
+
+	xxx_la_SOURCES=Opcodes/xxx.c
+	xxx_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+	xxx_la_CFLAGS=@PLUGIN_CFLAGS@
+	xxx_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+	xxx_la_LIBADD=@PLUGIN_LIBADD@
+		
+(6)	Regenerate the Makefile in the csound5 directory, and rebuild:
+
+	autoreconf -i -f
+	./configure
+	make
+
