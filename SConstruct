@@ -91,6 +91,9 @@ opts.Add('generatePDF',
 opts.Add('makeDynamic',
     'Set to 1 to generate dynamically linked programs',
     0)
+opts.Add('generateXmg',
+    'Set to 1 to generate string database',
+    0)
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -808,7 +811,6 @@ if (commonEnvironment['buildCsoundVST'] == 1) and boostFound and fltkFound:
 if commonEnvironment['generateTags'] == 1 and (getPlatform() == 'linux' or getPlatform() == 'cygwin'):
     print "Calling TAGS"
     allSources = string.join(glob.glob('*/*.h*'))
-    allSources = allSources + ' ' + string.join(glob.glob('*/*.h'))
     allSources = allSources + ' ' + string.join(glob.glob('*/*.hpp'))
     allSources = allSources + ' ' + string.join(glob.glob('*/*/*.c*'))
     allSources = allSources + ' ' + string.join(glob.glob('*/*/*.h'))
@@ -816,4 +818,11 @@ if commonEnvironment['generateTags'] == 1 and (getPlatform() == 'linux' or getPl
     tags = commonEnvironment.Command('TAGS', Split(allSources), 'etags $SOURCES')
     Depends(tags, staticLibrary)
 
-
+if commonEnvironment['generateXmg'] == 1:
+    print "Calling makedb"
+    xmgs = commonEnvironment.Command('American.xmg', ['strings/all_strings'], './makedb strings/all_strings American')
+    xmgs1 = commonEnvironment.Command('English.xmg', ['strings/english_strings'], './makedb strings/english_strings English')
+    xmgs2 = commonEnvironment.Command('csound.xmg', ['strings/english_strings'], './makedb strings/english_strings csound')
+    Depends(xmgs, makedb)
+    Depends(xmgs1, makedb)
+    Depends(xmgs2, makedb)
