@@ -253,7 +253,7 @@ int csoundSetEnv(void *csound, const char *name, const char *value)
       *pp = p;
     }
     /* print debugging info if requested */
-    if (((ENVIRON*) csound)->oparms_->odebug) {
+    if (((ENVIRON*) csound)->oparms->odebug) {
       ((ENVIRON*) csound)->Message(csound, Str("Environment variable '%s' "
                                                "has been set to "), name);
       if (value == NULL)
@@ -565,7 +565,7 @@ static char *csoundFindInputFile_(void *csound,
       s2[len2] = DIRSEP;
       s2[len2 + 1] = '\0';
       strcat(s2, name);
-      if (((ENVIRON*) csound)->oparms_->odebug)
+      if (((ENVIRON*) csound)->oparms->odebug)
         csoundMessage(csound, Str("  Trying file '%s'...\n"), s2);
       if (try_file_open(s2)) {
         /* found file, clean up and return with full name */
@@ -608,14 +608,14 @@ PUBLIC char *csoundFindInputFile(void *csound,
 
     if (csound == NULL || filename == NULL || filename[0] == '\0')
       return NULL;
-    if (((ENVIRON*) csound)->oparms_->odebug) {
+    if (((ENVIRON*) csound)->oparms->odebug) {
       csoundMessage(csound, Str("Searching for input file '%s'"), filename);
       if (envList != NULL && envList[0] != '\0')
         csoundMessage(csound, Str(" in %s"), envList);
       csoundMessage(csound, "\n");
     }
     name_found = csoundFindInputFile_(csound, filename, envList);
-    if (((ENVIRON*) csound)->oparms_->odebug) {
+    if (((ENVIRON*) csound)->oparms->odebug) {
       if (name_found != NULL)
         csoundMessage(csound, Str("Found '%s'\n"), name_found);
       else
@@ -778,7 +778,7 @@ static char *csoundFindOutputFile_(void *csound,
       s2[len2] = DIRSEP;
       s2[len2 + 1] = '\0';
       strcat(s2, name);
-      if (((ENVIRON*) csound)->oparms_->odebug)
+      if (((ENVIRON*) csound)->oparms->odebug)
         csoundMessage(csound, Str("  Trying file '%s'...\n"), s2);
       if (try_outfile_open(s2)) {
         /* found file, clean up and return with full name */
@@ -834,14 +834,14 @@ PUBLIC char *csoundFindOutputFile(void *csound,
 
     if (csound == NULL || filename == NULL || filename[0] == '\0')
       return NULL;
-    if (((ENVIRON*) csound)->oparms_->odebug) {
+    if (((ENVIRON*) csound)->oparms->odebug) {
       csoundMessage(csound, Str("Searching for output file '%s'"), filename);
       if (envList != NULL && envList[0] != '\0')
         csoundMessage(csound, Str(" in %s"), envList);
       csoundMessage(csound, "\n");
     }
     name_found = csoundFindOutputFile_(csound, filename, envList);
-    if (((ENVIRON*) csound)->oparms_->odebug) {
+    if (((ENVIRON*) csound)->oparms->odebug) {
       if (name_found != NULL)
         csoundMessage(csound, Str("Found '%s'\n"), name_found);
       else

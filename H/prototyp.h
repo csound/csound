@@ -48,7 +48,7 @@ void    csoundDie(void *, const char *, ...);
 void    csoundWarning(void *, const char *, ...);
 void    csoundDebugMsg(void *, const char *, ...);
 void    putop(TEXT *), putstrg(char *);
-void    rdorchfile(void), otran(void), resetouts(void);
+void    rdorchfile(ENVIRON*), otran(ENVIRON*), resetouts(ENVIRON*);
 char    argtyp(char *);
 TEXT    *getoptxt(int *);
 int     express(ENVIRON *, char *);

@@ -26,8 +26,6 @@
 #include <ctype.h>
 #include "namedins.h"           /* IV - Oct 31 2002 */
 
-/*int     sectcnt;*/                /* count of sections in scorefile       */
-/*SRTBLK  *frstbp;                 logical frstblk in srtblk chain      */
 static SRTBLK  *bp, *prvibp;    /* current srtblk,  prev w/same int(p1) */
 static char    *sp, *nxp;       /* string pntrs into srtblk text        */
 static int     op;              /* opcode of current event              */
@@ -103,8 +101,7 @@ static void expand_nxp(void)
     nxp = (char *)curmem + sizeof(MEMHDR);
     return;
  margerr:
-    err_printf(Str("sread:  text space overrun, increase MARGIN\n"));
-    longjmp(cenviron.exitjmp_,1);
+    csoundDie(&cenviron, Str("sread:  text space overrun, increase MARGIN"));
 }
 
 typedef struct scotables {
@@ -133,7 +130,7 @@ static void scorerr(char *s)
       }
       curr--;
     }
-    longjmp(cenviron.exitjmp_,1);
+    longjmp(cenviron.exitjmp, 1);
 }
 
 
@@ -153,8 +150,8 @@ MYFLT operate(MYFLT a, MYFLT b, char c)
     case '|': ans = (MYFLT)(((long)a)|((long)b)); break;
     case '#': ans = (MYFLT)(((long)a)^((long)b)); break;
     default:
-      err_printf(Str("Internal error op=%c\n"), c);
-      longjmp(cenviron.exitjmp_,1);
+      csoundDie(&cenviron, Str("Internal error op=%c"), c);
+      ans = FL(0.0);    /* compiler only */
     }
     return ans;
 }
@@ -219,8 +216,8 @@ top:
       }
       mm = mm_save;
       if (mm == NULL) {
-        err_printf(Str("Macro expansion symbol ($) without macro name\n"));
-        longjmp(cenviron.exitjmp_,1);
+        csoundDie(&cenviron,
+                  Str("Macro expansion symbol ($) without macro name"));
       }
       if (strlen (mm->name) != i) {
 /*         fprintf (stderr, "Warning: $%s matches macro name $%s\n", */
@@ -275,8 +272,7 @@ top:
 /*         printf("Expanding includes to %d\n", input_size); */
         inputs = mrealloc(&cenviron, inputs, input_size*sizeof(struct in_stack));
         if (inputs == NULL) {
-          printf(Str("No space for include files"));
-          longjmp(cenviron.exitjmp_,1);
+          csoundDie(&cenviron, Str("No space for include files"));
         }
         str = &inputs[old];     /* In case it moves */
       }
@@ -306,8 +302,7 @@ top:
         case '5': case '6': case '7': case '8': case '9':
         case '.':
           if (type==1) {
-            err_printf(Str("Number not allowed in context []\n"));
-            longjmp(cenviron.exitjmp_,1);
+            csoundDie(&cenviron, Str("Number not allowed in context []"));
           }
           i = 0;
           while (isdigit(c) || c=='.' || c=='e' || c=='E') {
@@ -320,8 +315,7 @@ top:
           break;
         case '~':
           if (type==1) {
-            err_printf(Str("Random not in context []\n"));
-            longjmp(cenviron.exitjmp_,1);
+            csoundDie(&cenviron, Str("Random not in context []"));
           }
           *++pv = (MYFLT) rand()/(MYFLT)RAND_MAX;
           type = 1;
@@ -329,8 +323,7 @@ top:
           break;
         case '@':
           if (type==1) {
-            err_printf(Str("Upper not in context []\n"));
-            longjmp(cenviron.exitjmp_,1);
+            csoundDie(&cenviron, Str("Upper not in context []"));
           }
           {
             int n = 0;
@@ -349,8 +342,8 @@ top:
           break;
         case '+': case '-':
           if (type==0) {
-            err_printf(Str("Operator %c not allowed in context []\n"), c);
-            longjmp(cenviron.exitjmp_,1);
+            csoundDie(&cenviron,
+                      Str("Operator %c not allowed in context []"), c);
           }
           if (*op != '[' && *op != '(') {
             MYFLT v = operate(*(pv-1), *pv, *op);
@@ -363,8 +356,8 @@ top:
         case '/':
         case '%':
           if (type==0) {
-            err_printf(Str("Operator %c not allowed in context []\n"), c);
-            longjmp(cenviron.exitjmp_,1);
+            csoundDie(&cenviron,
+                      Str("Operator %c not allowed in context []"), c);
           }
           if (*op == '*' || *op == '/' || *op == '%') {
             MYFLT v = operate(*(pv-1), *pv, *op);
@@ -377,8 +370,8 @@ top:
         case '|':
         case '#':
           if (type==0) {
-            err_printf(Str("Operator %c not allowed in context []\n"), c);
-            longjmp(cenviron.exitjmp_,1);
+            csoundDie(&cenviron,
+                      Str("Operator %c not allowed in context []"), c);
           }
           if (*op == '|' || *op == '&' || *op == '#') {
             MYFLT v = operate(*(pv-1), *pv, *op);
@@ -389,15 +382,15 @@ top:
           *++op = c; c = getscochar(1); break;
         case '(':
           if (type==1) {
-            err_printf(Str("Open bracket not allowed in context []\n"));
-            longjmp(cenviron.exitjmp_,1);
+            csoundDie(&cenviron,
+                      Str("Open bracket not allowed in context []"));
           }
           type = 0;
           *++op = c; c = getscochar(1); break;
         case ')':
           if (type==0) {
-            err_printf(Str("Closing bracket not allowed in context []\n"));
-            longjmp(cenviron.exitjmp_,1);
+            csoundDie(&cenviron,
+                      Str("Closing bracket not allowed in context []"));
           }
           while (*op != '(') {
             MYFLT v = operate(*(pv-1), *pv, *op);
@@ -411,8 +404,8 @@ top:
           *++op = c; c = getscochar(1); break;
         case ']':
           if (type==0) {
-            err_printf(Str("Closing bracket not allowed in context []\n"));
-            longjmp(cenviron.exitjmp_,1);
+            csoundDie(&cenviron,
+                      Str("Closing bracket not allowed in context []"));
           }
           while (*op != '[') {
             MYFLT v = operate(*(pv-1), *pv, *op);
@@ -428,8 +421,7 @@ top:
           continue;
         default:
           printf("read %c(%.2x)\n", c, c);
-          printf(Str("Incorrect evaluation\n"));
-          longjmp(cenviron.exitjmp_,1);
+          csoundDie(&cenviron, Str("Incorrect evaluation"));
         }
       } while (c!='$');
       /* Make string macro or value */
@@ -451,8 +443,7 @@ top:
           input_size += 20;
           inputs = mrealloc(&cenviron, inputs, input_size*sizeof(struct in_stack));
           if (inputs == NULL) {
-            printf(Str("No space for include files"));
-            longjmp(cenviron.exitjmp_,1);
+            csoundDie(&cenviron, Str("No space for include files"));
           }
           str = &inputs[old];     /* In case it moves */
         }
@@ -601,11 +592,11 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
     int  rtncod;                /* return code to calling program:      */
                                 /*   2 = section read, more remaining   */
                                 /*   1 = last section,   0 = null file  */
-    bp = prvibp = frstbp = NULL;
+    bp = prvibp = cenviron.frstbp = NULL;
     nxp = NULL;
     warpin = 0;
     lincnt = 1;
-    sectcnt++;
+    cenviron.sectcnt++;
     rtncod = 1;
     salcinit();              /* init the mem space for this section */
 
@@ -885,8 +876,7 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
 /*               printf("Expanding includes to %d\n", input_size); */
               inputs = mrealloc(&cenviron, inputs, input_size*sizeof(struct in_stack));
               if (inputs == NULL) {
-                printf(Str("No space for include files"));
-                longjmp(cenviron.exitjmp_,1);
+                csoundDie(&cenviron, Str("No space for include files"));
               }
               str = &inputs[old];     /* In case it moves */
             }
@@ -895,8 +885,8 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
             str->file = fopen(names[i].file, "r");
             /*RWD 3:2000*/
             if (str->file==NULL) {
-              printf(Str("cannot open input file %s\n"),names[i].file);
-              longjmp(cenviron.exitjmp_,1);
+              csoundDie(&cenviron, Str("cannot open input file %s"),
+                                   names[i].file);
             }
             str->body = mmalloc(&cenviron, strlen(names[i].file)+1);
             fseek(str->file, names[i].posit, SEEK_SET);
@@ -989,7 +979,7 @@ static void ifa(void)
     while (getpfld()) {             /* while there's another pfield,  */
       if (++bp->pcnt == PMAX) {
         err_printf(Str("sread: instr pcount exceeds PMAX\n"));
-        err_printf(Str("\t sect %d line %d\n"), sectcnt, lincnt);
+        err_printf(Str("\t sect %d line %d\n"), cenviron.sectcnt, lincnt);
         err_printf(Str("      remainder of line flushed\n"));
         flushlin();
         continue;
@@ -1005,7 +995,7 @@ static void ifa(void)
           /* stof() assumes no leading whitespace -- 070204, akozar */
           err_printf(Str(
                          "sread: illegal space following %s, sect %d line %d:  "),
-                     (foundplus?"^+":"^"),sectcnt,lincnt);
+                     (foundplus?"^+":"^"),cenviron.sectcnt,lincnt);
           err_printf(Str("   zero substituted.\n"));
           prvp2 = bp->p2val = prvp2;
         }
@@ -1082,9 +1072,8 @@ static void setprv(void)        /*  set insno = (int) p1val     */
       /* unquote instrument name */
       c = name; while (*++s != '"') *c++ = *s; *c = '\0';
       /* find corresponding insno */
-      if (!(n = (short) named_instr_find(name))) {
-        err_printf(Str(
-                       "WARNING: instr %s not found, assuming insno = -1\n"),
+      if (!(n = (short) named_instr_find(&cenviron, name))) {
+        err_printf(Str("WARNING: instr %s not found, assuming insno = -1\n"),
                    name);
         n = -1;
       }
@@ -1107,7 +1096,7 @@ static void carryerror(void)    /* print offending text line */
     err_printf(
        Str(
            "sread: illegal use of carry, sect %d line %d,   0 substituted\n"),
-       sectcnt,lincnt);
+       cenviron.sectcnt,lincnt);
     *(nxp-3) = SP;
     p = bp->text;
     while (p <= nxp-2)
@@ -1190,8 +1179,8 @@ static void salcblk(void)       /* alloc a srtblk from current mem space:   */
 #else
     bp = (SRTBLK *) ((((long) nxp) + 3) & -4);
 #endif
-    if (frstbp == NULL)
-      frstbp = bp;
+    if (cenviron.frstbp == NULL)
+      cenviron.frstbp = bp;
     if (prvbp != NULL)
       prvbp->nxtblk = bp;           /* link with prev srtblk        */
     bp->prvblk = prvbp;
@@ -1371,8 +1360,7 @@ static int sget1(void)          /* get first non-white, non-comment char */
 /*           printf("Expanding includes to %d\n", input_size); */
           inputs = mrealloc(&cenviron, inputs, input_size*sizeof(struct in_stack));
           if (inputs == NULL) {
-            printf(Str("No space for include files"));
-            longjmp(cenviron.exitjmp_,1);
+            csoundDie(&cenviron, Str("No space for include files"));
           }
           str = &inputs[old];     /* In case it moves */
         }
@@ -1386,8 +1374,8 @@ static int sget1(void)          /* get first non-white, non-comment char */
 /*           str--; input_cnt--; */
         }
         else {
-          str->body = mmalloc(&cenviron, strlen(name_full)+1);
-          strcpy(str->body, name_full);
+          str->body = mmalloc(&cenviron, strlen(cenviron.name_full)+1);
+          strcpy(str->body, cenviron.name_full);
           goto srch;
         }
       }
@@ -1466,7 +1454,7 @@ static int getop(void)          /* get next legal opcode */
       break;            /* if ok, go with it    */
     default:            /*   else complain      */
       err_printf( Str("sread: illegal opcode %c, sect %d line %d\n"),
-                  c,sectcnt,lincnt);
+                  c,cenviron.sectcnt,lincnt);
       err_printf(Str("      remainder of line flushed\n"));
       flushlin();
       goto nextc;
@@ -1491,7 +1479,7 @@ static int getpfld(void)             /* get pfield val from SCOREIN file */
       ungetscochar(c);                        /* then no more pfields    */
       if (linpos)
         err_printf(Str("sread: unexpected char %c, sect %d line %d\n"),
-                   c, sectcnt, lincnt);
+                   c, cenviron.sectcnt, lincnt);
       return(0);                              /*    so return            */
     }
     p = sp = nxp;                         /* else start copying to text  */
@@ -1501,13 +1489,13 @@ static int getpfld(void)             /* get pfield val from SCOREIN file */
       /* IV - Oct 31 2002: allow string instr name for i and q events */
       if (bp->pcnt < 3 && !((op == 'i' || op == 'q') && !bp->pcnt)) {
         err_printf(Str("sread: illegally placed string, sect %d line %d\n"),
-                   sectcnt,lincnt);
+                   cenviron.sectcnt,lincnt);
         return(0);
       }
       while ((c = getscochar(1)) != '"') {
         if (c == LF || c == EOF) {
           err_printf(Str("sread: unmatched quote, sect %d line %d\n"),
-                     sectcnt,lincnt);
+                     cenviron.sectcnt,lincnt);
           return(0);
         }
         *p++ = c;                       /*   copy to matched quote */
@@ -1531,7 +1519,7 @@ static int getpfld(void)             /* get pfield val from SCOREIN file */
           sp += change;
           {                       /* reset the chain as well */
             SRTBLK* pp;
-            pp = frstbp = (SRTBLK*)(((char*)frstbp)+change);
+            pp = cenviron.frstbp = (SRTBLK*)(((char*)cenviron.frstbp)+change);
             while (pp) {
               if (pp->prvblk) pp->prvblk = (SRTBLK*)(((char*)pp->prvblk)+change);
               if (pp->nxtblk) pp->nxtblk = (SRTBLK*)(((char*)pp->nxtblk)+change);
@@ -1576,7 +1564,7 @@ static int getpfld(void)             /* get pfield val from SCOREIN file */
         sp += change;
         {                       /* reset the chain as well */
           SRTBLK* pp;
-          pp = frstbp = (SRTBLK*)(((char*)frstbp)+change);
+          pp = cenviron.frstbp = (SRTBLK*)(((char*)cenviron.frstbp)+change);
           while (pp) {
             if (pp->prvblk) pp->prvblk = (SRTBLK*)(((char*)pp->prvblk)+change);
             if (pp->nxtblk) pp->nxtblk = (SRTBLK*)(((char*)pp->nxtblk)+change);
@@ -1610,7 +1598,7 @@ MYFLT stof(char s[])            /* convert string to MYFLT  */
 #endif
     if (s == p || (*p != SP && *p != LF)) {
       err_printf(Str("sread: illegal number format, sect %d line %d:  "),
-                 sectcnt,lincnt);
+                 cenviron.sectcnt,lincnt);
       p = s;
       while (*p != SP && *p != LF) {
         err_printf("%c", *p);
@@ -1621,3 +1609,4 @@ MYFLT stof(char s[])            /* convert string to MYFLT  */
     }
     return x;
 }
+

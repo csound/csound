@@ -37,7 +37,7 @@ int scxtract(FILE *scin, FILE * scout, FILE *xfile) /* called from xmain.c
     SCOREIN = scin;
     SCOREOUT = scout;
 
-    sectcnt = 0;
+    cenviron.sectcnt = 0;
     sread_init();
     do {
       if ((n = sread()) > 0) {
@@ -50,3 +50,4 @@ int scxtract(FILE *scin, FILE * scout, FILE *xfile) /* called from xmain.c
     sfree();        /* return all memory used */
     return(0);
 }
+

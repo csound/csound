@@ -60,7 +60,7 @@ static  NAME    *lclnamset(char *);
 void    putop(TEXT*);
 
 
-extern  void    rdorchfile(void);
+extern  void    rdorchfile(ENVIRON*);
 extern  int     getopnum(char *);
 
 extern  void    (*spinrecv)(void*), (*spoutran)(void*);
@@ -110,17 +110,18 @@ void tranRESET(void)
     tran_ksmps  = -FL(1.0);
     tran_nchnls = DFLT_NCHNLS;
     tran_0dbfs  = FL(32768.0);
-    nlabels     = NLABELS;
+    cenviron.nlabels = NLABELS;
     /* IV - Oct 12 2002: free all instrument names */
-    while (opcodeInfo != NULL) {
-      OPCODINFO *inm = opcodeInfo->prv;
+    while (cenviron.opcodeInfo != NULL) {
+      OPCODINFO *inm = cenviron.opcodeInfo->prv;
       /* note: out_ndx_list should not be mfree'd */
-      if (opcodeInfo->in_ndx_list != NULL) mfree(&cenviron, opcodeInfo->in_ndx_list);
-      mfree(&cenviron, opcodeInfo);
-      opcodeInfo = inm;
+      if (cenviron.opcodeInfo->in_ndx_list != NULL)
+        mfree(&cenviron, cenviron.opcodeInfo->in_ndx_list);
+      mfree(&cenviron, cenviron.opcodeInfo);
+      cenviron.opcodeInfo = inm;
     }
-    named_instr_free();         /* IV - Oct 31 2002 */
-    opcode_list_free();
+    named_instr_free(&cenviron);        /* IV - Oct 31 2002 */
+    opcode_list_free(&cenviron);
 }
 
 
@@ -232,7 +233,7 @@ static int parse_opcode_args(OENTRY *opc)
     return err;
 }
 
-void otran(void)
+void otran(ENVIRON *csound)
 {
     TEXT        *tp, *getoptxt(int *);
     int         init = 1;
@@ -244,16 +245,16 @@ void otran(void)
     long        pmax = -1, nn;
     long        n, opdstot=0, count, sumcount, instxtcount, optxtcount;
 
-    gbl.names  = (NAME *)mmalloc(&cenviron, (long)(GNAMES*sizeof(NAME)));
+    gbl.names  = (NAME *)mmalloc(csound, (long)(GNAMES*sizeof(NAME)));
     gbl.namlim = gbl.names + GNAMES;
     gbl.nxtslot = gbl.names;
     gbl.next = NULL;
-    lcl.names = (NAME *)mmalloc(&cenviron, (long)(LNAMES*sizeof(NAME)));
+    lcl.names = (NAME *)mmalloc(csound, (long)(LNAMES*sizeof(NAME)));
     lcl.namlim = lcl.names + LNAMES;
     lcl.next = NULL;
-    instrtxtp = (INSTRTXT **)mcalloc(&cenviron, (long)((1+maxinsno)*sizeof(INSTRTXT*)));
-    opcodeInfo = NULL;  /* IV - Oct 20 2002 */
-    opcode_list_create();               /* IV - Oct 31 2002 */
+    instrtxtp = (INSTRTXT **) mcalloc(csound, (1+maxinsno) * sizeof(INSTRTXT*));
+    csound->opcodeInfo = NULL;          /* IV - Oct 20 2002 */
+    opcode_list_create(csound);         /* IV - Oct 31 2002 */
 
     gblnamset("sr");            /* enter global reserved words */
     gblnamset("kr");
@@ -267,11 +268,11 @@ void otran(void)
     displop1 = getopnum("print");       /* opnums that need "signal name" */
     displop2 = getopnum("display");
     displop3 = getopnum("dispfft");
-/*     displop4 = getopnum("specdisp"); */
+/*  csound->displop4 = getopnum("specdisp"); */
 
-    rdorchfile();                               /* go read orch file    */
+    rdorchfile(csound);                 /* go read orch file    */
     if (pool == NULL) {
-      pool = (MYFLT *)mmalloc(&cenviron, (long)NCONSTS * sizeof(MYFLT));
+      pool = (MYFLT *)mmalloc(csound, (long)NCONSTS * sizeof(MYFLT));
       *pool = (MYFLT)SSTRCOD;
       poolcount = 1;
       nconsts = NCONSTS;
@@ -282,7 +283,7 @@ void otran(void)
         switch (opnum) {
         case INSTR:
         case OPCODE:            /* IV - Sep 8 2002 */
-            ip = (INSTRTXT *) mcalloc(&cenviron, (long)sizeof(INSTRTXT));
+            ip = (INSTRTXT *) mcalloc(csound, (long)sizeof(INSTRTXT));
             prvinstxt = prvinstxt->nxtinstxt = ip;
             txtcpy((char *)&ip->t,(char *)tp);
             prvbp = (OPTXT *) ip;               /* begin an optxt chain */
@@ -313,7 +314,7 @@ void otran(void)
 /*                err_printf(Str("Extending instr number from %d to %d\n"),
                   old_maxinsno, maxinsno); */
                     instrtxtp = (INSTRTXT**)
-                      mrealloc(&cenviron, instrtxtp,
+                      mrealloc(csound, instrtxtp,
                                (long)((1+maxinsno)*sizeof(INSTRTXT*)));
                   /* Array expected to be nulled so.... */
                     for (i=old_maxinsno+1; i<=maxinsno; i++) instrtxtp[i]=NULL;
@@ -340,7 +341,7 @@ void otran(void)
                     err++; continue;
                   }
                   /* IV - Oct 31 2002: store the name */
-                  if (!named_instr_alloc(c, ip, insno_priority)) {
+                  if (!named_instr_alloc(csound, c, ip, insno_priority)) {
                     sprintf(errmsg,"instr %s redefined", c);
                     synterr(errmsg);
                     err++; continue;
@@ -368,17 +369,16 @@ void otran(void)
                 synterr(Str("invalid name for opcode"));
                 continue;
               }
-                if (ip->t.inlist->count != 3) {
-                  sprintf(errmsg,
-                          Str("opcode declaration error "
-                              "(usage: opcode name, outtypes, intypes) -- opcode %s"),
-                        name);
+              if (ip->t.inlist->count != 3) {
+                sprintf(errmsg, Str("opcode declaration error "
+                                    "(usage: opcode name, outtypes, intypes) "
+                                    "-- opcode %s"), name);
                 synterr(errmsg);
                 continue;
               }
 
               /* IV - Oct 31 2002: check if opcode is already defined */
-              newopnum = find_opcode(name);
+              newopnum = find_opcode(csound, name);
               if (newopnum) {
                 /* IV - Oct 31 2002: redefine old opcode if possible */
                 if (newopnum < SETEND || !strcmp(name, "subinstr")) {
@@ -389,33 +389,33 @@ void otran(void)
               }
               newopnum = opcListNumItems;
               /* IV - Oct 31 2002: reduced number of calls to mrealloc() */
-              if (!(newopnum & 0xFFL) || !opcodeInfo)
+              if (!(newopnum & 0xFFL) || !csound->opcodeInfo)
                 opcodlst = (OENTRY *)
-                  mrealloc(&cenviron, opcodlst,
+                  mrealloc(csound, opcodlst,
                            sizeof(OENTRY) * ((newopnum | 0xFFL) + 1L));
               oplstend = newopc = opcodlst + newopnum;
               oplstend++;
               /* IV - Oct 31 2002 */
               /* store the name in a linked list (note: must use mcalloc) */
-              inm = (OPCODINFO *) mcalloc(&cenviron, sizeof(OPCODINFO));
+              inm = (OPCODINFO *) mcalloc(csound, sizeof(OPCODINFO));
               inm->name = name;
               inm->intypes = alp->arg[2];
               inm->outtypes = alp->arg[1];
               inm->ip = ip;
-              inm->prv = opcodeInfo;
-              opcodeInfo = inm;
+              inm->prv = csound->opcodeInfo;
+              csound->opcodeInfo = inm;
               /* IV - Oct 31 2002: */
               /* create a fake opcode so we can call it as such */
-              opc = opcodlst + find_opcode(".userOpcode");
+              opc = opcodlst + find_opcode(csound, ".userOpcode");
               memcpy(newopc, opc, sizeof(OENTRY));
               newopc->opname = name;
               newopc->useropinfo = (void*) inm; /* ptr to opcode parameters */
-              opcode_list_add_entry(newopnum, 1);
+              opcode_list_add_entry(csound, newopnum, 1);
               ip->insname = name; ip->opcode_info = inm; /* IV - Nov 10 2002 */
               /* check in/out types and copy to the opcode's */
-              newopc->outypes = mmalloc(&cenviron, strlen(alp->arg[1]) + 1);
+              newopc->outypes = mmalloc(csound, strlen(alp->arg[1]) + 1);
                 /* IV - Sep 8 2002: opcodes have an optional arg for ksmps */
-              newopc->intypes = mmalloc(&cenviron, strlen(alp->arg[2]) + 2);
+              newopc->intypes = mmalloc(csound, strlen(alp->arg[2]) + 2);
               if (parse_opcode_args(newopc)) continue;
               n = -2;
 /* ---- IV - Oct 16 2002: end of new code ----> */
@@ -427,8 +427,8 @@ void otran(void)
                 lcl.next = NULL;
                 while (lll) {
                     struct namepool *n = lll->next;
-                    mfree(&cenviron, lll->names);
-                    mfree(&cenviron, lll);
+                    mfree(csound, lll->names);
+                    mfree(csound, lll);
                     lll = n;
                 }
             }
@@ -441,7 +441,7 @@ void otran(void)
             break;
         case ENDIN:
         case ENDOP:             /* IV - Sep 8 2002 */
-            bp = (OPTXT *) mcalloc(&cenviron, (long)sizeof(OPTXT));
+            bp = (OPTXT *) mcalloc(csound, (long)sizeof(OPTXT));
             txtcpy((char *)&bp->t, (char *)tp);
             prvbp->nxtop = bp;
             bp->nxtop = NULL;   /* terminate the optxt chain */
@@ -477,7 +477,7 @@ void otran(void)
             n = -1;             /* No longer in an instrument */
             break;
         default:
-            bp = (OPTXT *) mcalloc(&cenviron, (long)sizeof(OPTXT));
+            bp = (OPTXT *) mcalloc(csound, (long)sizeof(OPTXT));
             txtcpy((char *)&bp->t,(char *)tp);
             prvbp = prvbp->nxtop = bp;  /* link into optxt chain */
             threads |= opcodlst[opnum].thread;
@@ -488,7 +488,8 @@ void otran(void)
                 s = alp->arg[--nn];
                 strargsize += (long)strlen(s) +  1L;/* sum the chars */
               }
-            if (opnum == displop2 || opnum == displop3 || opnum == displop4) {
+            if (opnum == displop2 || opnum == displop3 ||
+                opnum == csound->displop4) {
               alp=bp->t.inlist;
               s = alp->arg[0];
               strargsize += (long)strlen(s) + 1L;
@@ -529,13 +530,13 @@ void otran(void)
             break;
         }
     }
-    if (n != -1) synterr(Str("Missing endin"));
-
-        /* now add the instruments with names, assigning them fake instr numbers */
-    named_instr_assign_numbers();               /* IV - Oct 31 2002 */
-    if (opcodeInfo) {
+    if (n != -1)
+      synterr(Str("Missing endin"));
+    /* now add the instruments with names, assigning them fake instr numbers */
+    named_instr_assign_numbers(csound);         /* IV - Oct 31 2002 */
+    if (csound->opcodeInfo) {
       int num = maxinsno;       /* store after any other instruments */
-      OPCODINFO *inm = opcodeInfo;
+      OPCODINFO *inm = csound->opcodeInfo;
       /* IV - Oct 31 2002: now add user defined opcodes */
       while (inm) {
         /* we may need to expand the instrument array */
@@ -544,7 +545,7 @@ void otran(void)
           i = (maxopcno > 0 ? maxopcno : maxinsno);
           maxopcno = i + MAXINSNO;
           instrtxtp = (INSTRTXT**)
-            mrealloc(&cenviron, instrtxtp, (long) ((1 + maxopcno) * sizeof(INSTRTXT*)));
+            mrealloc(csound, instrtxtp, (1 + maxopcno) * sizeof(INSTRTXT*));
           /* Array expected to be nulled so.... */
           while (++i <= maxopcno) instrtxtp[i] = NULL;
         }
@@ -616,7 +617,7 @@ void otran(void)
     if (synterrcnt) {
       printf(Str("%d syntax errors in orchestra.  compilation invalid\n"),
              synterrcnt);
-      longjmp(cenviron.exitjmp_,1);
+      longjmp(csound->exitjmp, 1);
     }
     if (O.odebug) {
       long n; MYFLT *p;
@@ -630,7 +631,7 @@ void otran(void)
     gblacount = gblnxtacnt;
 
     if (strargsize) {
-      strargspace = mcalloc(&cenviron, (long)strargsize);
+      strargspace = mcalloc(csound, (long)strargsize);
       strargptr = strargspace;
     }
     ip = &instxtanchor;
@@ -647,19 +648,19 @@ void otran(void)
         if ((count = ttp->outlist->count)!=0)       /* slots in all arglists */
           sumcount += count +1;
       }
-      ip->optxtcount = optxtcount;            /* optxts in this instxt */
+      ip->optxtcount = optxtcount;              /* optxts in this instxt */
     }
-    argoffsize = (sumcount + 1) * sizeof(int);/* alloc all plus 1 null */
-    ARGOFFSPACE = (int *) mmalloc(&cenviron, (long)argoffsize);   /* as argoff ints */
-    nxtargoffp = ARGOFFSPACE;
-    nulloffs = (ARGOFFS *) ARGOFFSPACE;         /* setup the null argoff */
+    argoffsize = (sumcount + 1) * sizeof(int);  /* alloc all plus 1 null */
+    csound->argoffspace = (int*) mmalloc(csound, argoffsize); /*as argoff ints*/
+    nxtargoffp = csound->argoffspace;
+    nulloffs = (ARGOFFS *) csound->argoffspace; /* setup the null argoff */
     *nxtargoffp++ = 0;
     argofflim = nxtargoffp + sumcount;
     ip = &instxtanchor;
     while ((ip = ip->nxtinstxt) != NULL)        /* add all other entries */
         insprep(ip);                            /*   as combined offsets */
     if (O.odebug) {
-      int *p = ARGOFFSPACE;
+      int *p = csound->argoffspace;
       printf("argoff array:\n");
       do {
         printf("\t%d", *p++);
@@ -667,9 +668,9 @@ void otran(void)
       printf("\n");
     }
     if (nxtargoffp != argofflim)
-      csoundDie(&cenviron, Str("inconsistent argoff sumcount"));
+      csoundDie(csound, Str("inconsistent argoff sumcount"));
     if (strargsize && strargptr != strargspace + strargsize)
-      csoundDie(&cenviron, Str("inconsistent strarg sizecount"));
+      csoundDie(csound, Str("inconsistent strarg sizecount"));
 
     ip = &instxtanchor;                         /* set the OPARMS values */
     instxtcount = optxtcount = 0;
@@ -683,7 +684,7 @@ void otran(void)
     O.gblfixed = gblnxtkcnt;
     O.gblacount = gblnxtacnt;
     O.argoffsize = argoffsize;
-    O.argoffspace = (char *)ARGOFFSPACE;
+    O.argoffspace = (char *) csound->argoffspace;
     O.strargsize = strargsize;
     O.strargspace = strargspace;
 }
@@ -702,9 +703,9 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
     ARGOFFS     *outoffs, *inoffs;
     int         indx, *ndxp;
 
-    labels = (char **)mmalloc(&cenviron, (nlabels) * sizeof(char *));
+    labels = (char **)mmalloc(&cenviron, (cenviron.nlabels) * sizeof(char *));
     lblsp = labels;
-    larg = (LBLARG *)mmalloc(&cenviron, (ngotos) * sizeof(LBLARG));
+    larg = (LBLARG *)mmalloc(&cenviron, (cenviron.ngotos) * sizeof(LBLARG));
     largp = larg;
     lclkcnt = tp->lclkcnt;
     lcldcnt = tp->lcldcnt;
@@ -735,13 +736,15 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
           || opnum == ENDOP)            /* (IV - Oct 31 2002: or ENDOP) */
         break;
       if (opnum == LABEL) {
-        if (lblsp - labels >= nlabels) {
-          int oldn = lblsp-labels;
-          nlabels += NLABELS;
-          if (lblsp - labels >= nlabels) nlabels = lblsp - labels + 2;
-          printf(Str("LABELS list is full...extending to %d\n"), nlabels);
+        if (lblsp - labels >= cenviron.nlabels) {
+          int oldn = lblsp - labels;
+          cenviron.nlabels += NLABELS;
+          if (lblsp - labels >= cenviron.nlabels)
+            cenviron.nlabels = lblsp - labels + 2;
+          printf(Str("LABELS list is full...extending to %d\n"),
+                 cenviron.nlabels);
           labels =
-            (char**)mrealloc(&cenviron, labels,(long)nlabels*sizeof(char *));
+            (char**)mrealloc(&cenviron, labels, cenviron.nlabels*sizeof(char*));
           lblsp = &labels[oldn];
         }
         *lblsp++ = ttp->opcod;
@@ -775,7 +778,8 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
             } while (*s++);
           }
         }
-        else if (opnum==displop2 || opnum==displop3 || opnum==displop4) {
+        else if (opnum == displop2 || opnum == displop3 ||
+                 opnum == cenviron.displop4) {
           char *s = inlist->arg[0];
           optxt->t.strargs[0] = strargptr;
           do {
@@ -787,13 +791,15 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
         ndxp = inoffs->indx;
         for (n=0; n < inlist->count; n++, argp++, ndxp++) {
           if (n < inreqd && ep->intypes[n] == 'l') {
-            if (largp - larg >= ngotos) {
-              int oldn = ngotos;
-              ngotos += NGOTOS;
-              printf(Str("GOTOS list is full..extending to %d\n"), ngotos);
-              if (largp - larg >= ngotos) ngotos = largp - larg + 1;
+            if (largp - larg >= cenviron.ngotos) {
+              int oldn = cenviron.ngotos;
+              cenviron.ngotos += NGOTOS;
+              printf(Str("GOTOS list is full..extending to %d\n"),
+                     cenviron.ngotos);
+              if (largp - larg >= cenviron.ngotos)
+                cenviron.ngotos = largp - larg + 1;
               larg = (LBLARG *)
-                mrealloc(&cenviron, larg,(long)ngotos*sizeof(LBLARG));
+                mrealloc(&cenviron, larg, cenviron.ngotos * sizeof(LBLARG));
               largp = &larg[oldn];
             }
             if (O.odebug) printf("\t***lbl");  /* if arg is label,  */
