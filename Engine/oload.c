@@ -107,6 +107,8 @@ void csoundSetRtplayCallback(void *, void (*)(char *, int));
 void csoundSetRecopenCallback(void *, void (*)(int, int, float, int));
 void csoundSetRtrecordCallback(void *, int (*)(char *, int));
 void csoundSetRtcloseCallback(void *, void (*)(void));
+int csoundGetDebug(void *);
+void csoundSetDebug(void *,int);
 int csoundTableLength(void *csound, int table);
 MYFLT csoundTableGet(void *csound, int table, int index);
 void csoundTableSet(void *csound, int table, int index, MYFLT value);
@@ -130,8 +132,6 @@ long strarg2insno (MYFLT *p, char *s);
 long strarg2opcno (MYFLT *p, char *s, int);
 void rewriteheader(SNDFILE* ofd, int verbose);
 void writeheader(int ofd, char *ofname);
-int csoundGetDebug(void *);
-void csoundSetDebug(void *,int);
 
 static  MYFLT   *gbloffbas;
 
@@ -277,7 +277,7 @@ ENVIRON cenviron_ = {
         csoundSetDebug,
         csoundTableLength,
         csoundTableGet,
-        csoundTableSet,
+        csoundTableSet, 
         /*
         * Data fields.
         */
