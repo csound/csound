@@ -1218,6 +1218,7 @@ INSDS *insert_event(MYFLT instr,
                     MYFLT **args,
                     int midi)
 {
+    int pcnt = narg + 3;
     int insno = (int)instr, saved_inerrcnt = inerrcnt;
     int saved_reinitflag = reinitflag, saved_tieflag = tieflag;
     INSDS *saved_curip = curip, *ip = NULL;
@@ -1296,13 +1297,13 @@ INSDS *insert_event(MYFLT instr,
     ip->actflg++;             /*        and mark the instr active */
  init:
     {
-      int   n = -3, m = 0;
+      int i;
+      int imax = tp->pmax - 3;
       MYFLT  *flp;
-
-      if ((int) tp->pmax != narg &&
+      if ((int) tp->pmax != pcnt &&
           (O.msglevel & WARNMSG)) {
         sprintf(errmsg,Str(X_928,"instr %d pmax = %d, note pcnt = %d"),
-                insno, (int) tp->pmax, narg);
+                insno, (int) tp->pmax, pcnt);
         printf(Str(X_526,"WARNING: %s\n"), errmsg);
       }
       ip->offbet = (dur >= FL(0.0) ? when + dur : FL(-1.0));
@@ -1311,16 +1312,11 @@ INSDS *insert_event(MYFLT instr,
       ip->p3 = dur;
       flp = &(ip->p1) + 3;
       if (O.odebug) printf(Str(X_1137,"psave beg at %p\n"),flp);
-      if (narg >= instrtxtp[insno]->pmax) {
-        /* copy p-fields */
-        n += instrtxtp[insno]->pmax;
-        while (n--) *flp++ = *(args[m++]);
-      }
-      else {
-        n += narg;
-        while (n-- > 0) *flp++ = *(args[m++]);
-        /* insufficient p-fields given, pad with zeroes */
-        while (m++ < instrtxtp[insno]->pmax) *flp++ = FL(0.0);
+      for (i = 0; i < imax; i++) {
+          if (i < narg ) 
+            *flp++ = *(args[i]);
+          else
+            *flp++ = FL(0.0);
       }
       if (O.odebug) printf(Str(X_6,"   ending at %p\n"),flp);
     }
