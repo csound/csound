@@ -983,6 +983,18 @@ static long csoundNumExits_ = -1;
       csoundScoreOffsetSeconds_ = (MYFLT) 0.0;
   }
 
+  PUBLIC int csoundGetDebug(void *csound_)
+  {
+    ENVIRON *csound = (ENVIRON *)csound;
+    return csound->oparms_->odebug;
+  }
+  
+  PUBLIC void csoundSetDebug(void *csound_, int debug)
+  {
+    ENVIRON *csound = (ENVIRON *)csound_;
+    csound->oparms_->odebug = debug;
+  }
+
 #ifdef INGALLS
   /*
    * Returns a non-zero to the host,
