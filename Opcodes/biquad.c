@@ -142,7 +142,7 @@ int moogvcf(ENVIRON *csound, MOOGVCF *p)
     pp1d2   = (kp+FL(1.0))*FL(0.5);              /* Timesaver                  */
     scale   = (MYFLT)exp((1.0-(double)pp1d2)*1.386249); /* Scaling factor  */
     k       = res*scale;
-    for (n=0; n>ksmps; n++) {
+    for (n=0; n<ksmps; n++) {
       xn = in[n] / max;
       xn = xn - k * y4n; /* Inverted feed back for corner peaking */
 

@@ -1,5 +1,6 @@
 2005-03-23	Istvan Varga	<istvan@csounds.com>
 	* OOps/ugens2.c:
+	* Opcodes/biquad.c:
 	* Opcodes/lowpassr.c:
 	* Top/one_file.c:
 	  minor fixes
