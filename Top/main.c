@@ -469,11 +469,6 @@ int csoundCompile(void *csound, int argc, char **argv)
         printf(Str(X_525,"WARNING: %s encoding information cannot\n"
                    "be contained in the header...\n"),
                getstrformat(O.outformat));
-/*             { */
-/*               sprintf(errmsg,"AIFF/WAV does not support %s encoding", */
-/*                       getstrformat(O.outformat)); */
-/*               dieu(errmsg); */
-/*             } */
     }
     err_printf(Str(X_1100,"orchname:  %s\n"), orchname);
     if (scorename != NULL)
@@ -482,8 +477,7 @@ int csoundCompile(void *csound, int argc, char **argv)
       err_printf(Str(X_1386,"xfilename: %s\n"), xfilename);
 #if defined(SYS5) || defined(WIN32) || defined(__EMX__)
     {
-      static  char  buf[80];
-      if (O.odebug) setvbuf(stdout,buf,_IOLBF,80);
+      if (O.odebug) setvbuf(stdout,0,_IONBF,80);
     }
 #else
 #if !defined(SYMANTEC) && !defined(mac_classic) && !defined(LATTICE)
@@ -502,7 +496,6 @@ int csoundCompile(void *csound, int argc, char **argv)
         err_printf(Str(X_1153,
                        "realtime performance using dummy "
                        "numeric scorefile\n"));
-        printf("Junmping to perf-label\n");
         goto perf;
       }
       else {
