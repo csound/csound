@@ -55,7 +55,6 @@ static void  (*spoutran)(MYFLT *);
 
 /* Externs */
 extern long getsndin(int, float *, long, SOUNDIN *);
-extern void rewriteheader(int,long);
 extern int  openout(char *, int), getsizformat(int);
 extern int  sndgetset(SOUNDIN *);
 extern void writeheader(int, char*);

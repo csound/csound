@@ -88,7 +88,7 @@ static void (*spoutran)(MYFLT *);
 
 /* Externs */
 extern long getsndin(int, MYFLT *, long, SOUNDIN *);
-extern void bytrev2(char *, int), bytrev4(char *, int), rewriteheader(int,long);
+extern void bytrev2(char *, int), bytrev4(char *, int);
 extern int  openout(char *, int), bytrevhost(void), getsizformat(int);
 extern void writeheader(int, char *);
 extern char *getstrformat(int);

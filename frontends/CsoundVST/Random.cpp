@@ -35,7 +35,7 @@ namespace csound
 	}
 
 	Random::Random() : 
-	row(0), 
+	    row(0), 
 		column(Event::HOMOGENEITY), 
 		eventCount(0), 
 		incrementTime(true),

@@ -188,9 +188,8 @@ void CsoundVstFltk::updateModel()
 
 long CsoundVstFltk::getRect(ERect **erect)
 {
-	static ERect rVST = {0, 0, 24, kEditorWidth / 2};
 	static ERect r = {0, 0, kEditorHeight, kEditorWidth};
-	*erect = csoundVST->getIsVst() ? &r : &r;
+	*erect = &r;
 	return true;
 }
 
