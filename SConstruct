@@ -130,6 +130,9 @@ opts.Add('Word64',
 opts.Add('dynamicCsoundLibrary',
     'Build dynamic Csound library instead of libcsound.a',
     '0')
+opts.Add('install',
+    'Enables the Install targets',
+    '1')
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -885,7 +888,7 @@ else:
         pyrunEnvironment = vstEnvironment.Copy()
         pyrunEnvironment.Append(CCFLAGS = '-DSWIG_GLOBAL')
         pyrun = pyrunEnvironment.SharedLibrary('pyrun', ['frontends/CsoundVST/pyrun.c'])
-	libs.append(pyrun)
+        libs.append(pyrun)
         #vstEnvironment.Append(LIBS = ['pyrun'])
         vstEnvironment.Append(LIBS = ['fltk_images'])
         vstEnvironment.Append(LIBS = ['fltk'])
@@ -944,12 +947,12 @@ else:
     csoundVstPythonWrapper = vstEnvironment.SharedObject('frontends/CsoundVST/CsoundVST.i', SWIGFLAGS = [swigflags,'-python'])
     csoundVstSources.append(csoundVstPythonWrapper)
     if configure.CheckHeader('jni.h', language = 'C++'):
-	print 'CONFIGURATION DECISION: Building Java wrappers for CsoundVST.'
+        print 'CONFIGURATION DECISION: Building Java wrappers for CsoundVST.'
         csoundVstJavaWrapper = vstEnvironment.SharedObject('frontends/CsoundVST/JCsoundVST.i', SWIGFLAGS = [swigflags,'-java', '-package', 'CsoundVST'])
         csoundVstSources.append(csoundVstJavaWrapper)
-    	jcsound = vstEnvironment.Java(target = 'frontends/CsoundVST/classes', source = '.')
-    	zipDependencies.append(jcsound)
-	jcsoundJar = vstEnvironment.Jar('CsoundVST.jar', 'frontends/CsoundVST/classes', JARCHDIR = 'frontends/CsoundVST/classes')
+        jcsound = vstEnvironment.Java(target = 'frontends/CsoundVST/classes', source = '.')
+        zipDependencies.append(jcsound)
+    jcsoundJar = vstEnvironment.Jar('CsoundVST.jar', 'frontends/CsoundVST/classes', JARCHDIR = 'frontends/CsoundVST/classes')
     csoundvst = vstEnvironment.SharedLibrary('CsoundVST', csoundVstSources, SHLIBPREFIX = '_')
     Depends(csoundvst, 'frontends/CsoundVST/CsoundVST_wrap.cc')
     zipDependencies.append(csoundvst)
@@ -976,22 +979,22 @@ else:
         # the Csound opcodes (modified for Csound 5).
         # It is assumed that you have copied all contents of the Loris distribution
         # into the csound5/Opcodes/Loris directory, e.g.
-	# csound5/Opcodes/Loris/src/*, etc.
+    # csound5/Opcodes/Loris/src/*, etc.
         lorisEnvironment = vstEnvironment.Copy();
         lorisEnvironment.Append(CCFLAGS = '-DHAVE_FFTW3_H -DDEBUG_LORISGENS -D_MSC_VER')
         lorisEnvironment.Append(CPPPATH = Split('Opcodes/Loris Opcodes/Loris/src ./'))
         lorisEnvironment.Append(LIBS = ['fftw3'])
         lorisSources = glob.glob('Opcodes/Loris/src/*.C')
         lorisSources.append('Opcodes/Loris/scripting/loris.i')
-	# The following file has been patched for Csound 5 and you should update it from Csound 5 CVS.
+    # The following file has been patched for Csound 5 and you should update it from Csound 5 CVS.
         lorisSources.append('Opcodes/Loris/lorisgens5.C')
         lorisEnvironment.Append(SWIGPATH = ['./'])
         lorisEnvironment.Prepend(SWIGFLAGS = Split('-module loris -c++ -python -DHAVE_FFTW3_H -I./Opcodes/Loris/src -I.'))
         loris = lorisEnvironment.SharedLibrary('loris', lorisSources, SHLIBPREFIX = '_')
         Depends(loris, csoundvst)
         pluginLibraries.append(loris)
-	libs.append(loris)
-	libs.append('loris.py')
+    libs.append(loris)
+    libs.append('loris.py')
 
     pyEnvironment = pluginEnvironment.Copy();
     if getPlatform() == 'linux':
@@ -1064,16 +1067,17 @@ OPCODE_DIR = PREFIX + "/lib/csound/opcodes"
 INCLUDE_DIR = PREFIX + "/include/csound"
 LIB_DIR = PREFIX + "/lib"
 
-installExecutables = Alias('install-executables',
-    Install(BIN_DIR, executables))
+if commonEnvironment['install']=='1':
+    installExecutables = Alias('install-executables',
+        Install(BIN_DIR, executables))
 
-installOpcodes = Alias('install-opcodes',
-    Install(OPCODE_DIR, pluginLibraries))
+    installOpcodes = Alias('install-opcodes',
+        Install(OPCODE_DIR, pluginLibraries))
 
-installHeaders = Alias('install-headers',
-    Install(INCLUDE_DIR, headers))
+    installHeaders = Alias('install-headers',
+        Install(INCLUDE_DIR, headers))
 
-installLibs = Alias('install-libs',
-    Install(LIB_DIR, libs))
+    installLibs = Alias('install-libs',
+        Install(LIB_DIR, libs))
 
-Alias('install', [installExecutables, installOpcodes, installLibs, installHeaders])
+    Alias('install', [installExecutables, installOpcodes, installLibs, installHeaders])
