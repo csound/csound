@@ -18,6 +18,10 @@ int  ExitGraph(void){int ExitGraph_();}
 #endif
 
 void pvsys_release(void) {};
+int  csoundYield(void* csound)
+{
+    return 1;
+}
 
 int main(int argc, char **argv)
 {

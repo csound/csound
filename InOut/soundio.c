@@ -292,7 +292,6 @@ static void audwrite(char *outbuf, int nbytes)
       else err_printf("\a");
 
     }
-/*     if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); */
 }
 #ifdef NeXT /*sbrandon: for RT playback */
 static void swaprtplay(char *outbuf, int nbytes)

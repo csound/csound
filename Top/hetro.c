@@ -113,6 +113,7 @@ static  void    average(long,double *,double *,long);
 static  void    output(long, int, int);
 static  void    output_ph(long), filedump(void), quit(char *);
 extern  int     close(int);
+extern int csoundYield(void *);
 
 #define sgn(x)  (x<0.0 ? -1 : 1)
 #define u(x)    (x>0.0 ? 1 : 0)
@@ -261,7 +262,6 @@ extern  long     getsndin(int, MYFLT*, long, SOUNDIN*);
             FREQS[i] = (MYFLT *) dsp;   dsp += mgfrspc;
         }
         lpinit();                               /* calculate LPF coeffs.  */
-/*         if (!POLL_EVENTS()) exit(1); */
         adp = auxp;                     /* point to beg sample data block */
         for (hno = 0; hno < hmax; hno++) {      /* for requested harmonics*/
             double *dblp;
@@ -276,7 +276,7 @@ extern  long     getsndin(int, MYFLT*, long, SOUNDIN*);
             err_printf(Str(X_599,"analyzing harmonic #%d\n"),hno);
             err_printf(Str(X_778,"freq est %6.1f,"), cur_est);
             hetdyn(hno);                /* perform actual computation */
-/*             if (!POLL_EVENTS()) exit(1); */
+            if (!csoundYield(NULL)) exit(1);
             err_printf(Str(X_20," max found %6.1f, rel amp %6.1f\n"), max_frq, max_amp);
         }
         mfree(dspace);
@@ -334,7 +334,6 @@ static void hetdyn(int hno)                           /* HETERODYNE FILTER */
             *cos_p++ = (double)(*ptr) * cos(phase);
             *sin_p++ = (double)(*ptr) * sin(phase);
         }
-/*         if (!POLL_EVENTS()) exit(1); */
 
         cos_p = cos_wp = c_p;
         sin_p = sin_wp = s_p;
@@ -358,7 +357,6 @@ static void hetdyn(int hno)                           /* HETERODYNE FILTER */
                     temp_a = temp_b = 0;
                 }
             }
-/*             if (!POLL_EVENTS()) exit(1); */
             PUTVAL(cos_mul,smplno,temp_a);     /* store values into buffers*/
             PUTVAL(sin_mul,smplno,temp_b);
             if ((freq_c <= 1) || (smplno < 3)) {
@@ -378,7 +376,6 @@ static void hetdyn(int hno)                           /* HETERODYNE FILTER */
                 skip = 0;       /* quit if no more samples in file */
                 break;
             }
-/*             if (!POLL_EVENTS()) exit(1); */
         }
 }
 

@@ -38,7 +38,6 @@ int sndinfo(int argc, char **argv)
     HEADATA *hdr, *readheader(int, char*, SOUNDIN*);
     extern  char *getstrformat(int);
 
-/*     if (!POLL_EVENTS()) exit(1); */
     sssfinit();
 
     while (--argc) {
@@ -133,7 +132,7 @@ int sndinfo(int argc, char **argv)
       transport.state |= kFileReOpened;
       O.outbufsamps = 8192;
       O.oMaxLag = 4096;
-      while (POLL_EVENTS());
+      while (csoundYield(NULL));
 #endif
       mfree((char *)p);
       close(infd);

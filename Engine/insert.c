@@ -48,6 +48,7 @@ void    showallocs(void);
 extern  void    putop(TEXT*);
 void    deact(INSDS *), schedofftim(INSDS *);
 int     sensOrcEvent(void);     /* For triginstr (re Aug 1999) */
+extern  int      csoundYield(void*);
 
 void insertRESET(void)
 {
@@ -669,7 +670,7 @@ long kperf(long kcnt)   /* perform currently active instrs for kcnt kperiods */
         while (pcnt!=0) {
           long pp = (pcnt>128 ? 128 : pcnt);
           (*nzerotran)(pp);     /*   send chunk up to kcnt zerospouts  */
-/*           if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); */
+          if (!csoundYield(&cenviron)) longjmp(cenviron.exitjmp_,1);
           pcnt -= pp;
         }
       }
@@ -696,7 +697,7 @@ long kperf(long kcnt)   /* perform currently active instrs for kcnt kperiods */
       spoutactive = 0;        /*   make spout inactive   */
       ip = &actanchor;
       while ((ip = ip->nxtact) != NULL) { /*   for each instr active */
-/*         if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); /\* PC GUI needs attention *\/ */
+        if (!csoundYield(&cenviron)) longjmp(cenviron.exitjmp_,1); /* PC GUI needs attention */
         pds = (OPDS *)ip;
         while ((pds = pds->nxtp) != NULL) {
           (*pds->opadr)(pds); /*      run each opcode    */

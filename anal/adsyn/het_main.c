@@ -37,6 +37,10 @@ void KillXYin(XYINDAT *x){KillXYin_(x);}
 int  ExitGraph(void){ExitGraph_();}
 
 void pvsys_release(void) {};
+int  csoundYield(void* csound)
+{
+    return 1;
+}
 
 #endif
 int main(int argc, char **argv)

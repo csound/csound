@@ -53,6 +53,7 @@ static  void    quit(char *), lpdieu(char *), usage(void);
 extern  void    ptable(MYFLT, MYFLT, MYFLT, int);
 extern  MYFLT   getpch(MYFLT*);
 extern  int     openout(char*, int);
+extern  int     csoundYield(void *);
 extern  OPARMS  O;
 
 #ifdef mills_macintosh
@@ -742,9 +743,9 @@ int lpanal(int argc, char **argv)
 
         /* Get next sound frame */
             if ((n = getsndin(infd, sigbuf2, (long)slice, p)) == 0)
-                break;          /* refil til EOF */
-
-        } while (/*POLL_EVENTS() &&*/ counter < analframes); /* or nsmps done */
+                break;          /* refill til EOF */
+            if (!csoundYield(NULL)) break;
+        } while (counter < analframes); /* or nsmps done */
 
    /* clean up stuff */
         dispexit();

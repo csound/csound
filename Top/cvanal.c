@@ -44,7 +44,7 @@ static void takeFFT(SOUNDIN *inputSound, CVSTRUCT *outputCVH,
 static void quit(char *msg);
 static void PrintBuf(MYFLT *buf, long size, char *msg);
 static int CVAlloc(CVSTRUCT**, long, int, MYFLT, int, int, long, int, int);
-
+int csoundYield(void *csound);
 
 #define SF_UNK_LEN      -1      /* code for sndfile len unkown  */
 
@@ -207,12 +207,11 @@ static void takeFFT(
         *fp2++ = *fp1;
         fp1 += nchanls;
       }
-/*       if (!POLL_EVENTS()) exit(1); */
       fp1 = inbuf + i + 1;
       /*printf("about to FFT\n");*/
       /* PrintBuf(outbuf, Hlenpadded, "normalised & padded"); */
       FFT2realpacked((complex *)outbuf, Hlenpadded,basis);
-/*       if (!POLL_EVENTS()) exit(1); */
+      if (!csoundYield(NULL)) exit(1);
       /*printf("finished FFTing\n");*/
       /* PrintBuf(Buf, 2*Hlenpadded, X_761,"FFT'd"); */
       /* write straight out, just the indep vals */
