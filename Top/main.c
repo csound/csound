@@ -679,6 +679,7 @@ void mainRESET(ENVIRON *p)
     p->nrecs_ = 0;
     p->orchname_ = NULL;
     p->scorename_ = NULL;
+    MidiClose(p);
 }
 
 /**
