@@ -1,5 +1,8 @@
 2004-11-16  John ffitch  <jpff@codemist.co.uk>
 
+	* OOps/ugens2.c (itable, itabli, itabl3): Need to check OK rather
+	than assume true=OK
+
 	* Engine/fgens.c: All over removed statics into the environment or
 	into arguments.  Make ftfind etc take extra argument.  Should
 	assist with reentrance.

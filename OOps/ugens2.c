@@ -217,19 +217,19 @@ int ktabl3(TABLE*);
 
 int itable(TABLE *p)
 {
-    if (itblchk(p)) return ktable(p);
+    if (itblchk(p)==OK) return ktable(p);
     return NOTOK;
 }
 
 int itabli(TABLE *p)
 {
-    if (itblchk(p)) return ktabli(p);
+    if (itblchk(p)==OK) return ktabli(p);
     return NOTOK;
 }
 
 int itabl3(TABLE *p)
 {
-    if (itblchk(p)) ktabl3(p);
+    if (itblchk(p)==OK) ktabl3(p);
     return NOTOK;
 }
 
