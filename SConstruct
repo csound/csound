@@ -728,6 +728,7 @@ if commonEnvironment['buildCsoundVST'] == 1 and boostFound and fltkFound and sys
 allSources = string.join(glob.glob('*/*.h*'))
 allSources = allSources + ' ' + string.join(glob.glob('*/*.h*'))
 allSources = allSources + ' ' + string.join(glob.glob('*/*/*.c*'))
-allSources = allSources + ' ' + string.join(glob.glob('*/*/*.h*'))
+allSources = allSources + ' ' + string.join(glob.glob('*/*/*.h'))
+allSources = allSources + ' ' + string.join(glob.glob('*/*/*.hpp'))
 tags = commonEnvironment.Command('TAGS', Split(allSources), 'etags $SOURCES')
 Depends(tags, staticLibrary)

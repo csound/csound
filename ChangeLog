@@ -1,3 +1,17 @@
+2004-04-06  John ffitch  <jpff@codemist.co.uk>
+
+	* InOut/FL_graph.cpp (draw): Initialise win_h
+
+2004-04-05  John ffitch  <jpff@codemist.co.uk>
+
+	* H/csound.h: rtplay__ needs to have void* argument
+
+	* OOps/midirecv.c (csoundDefaultMidiOpen): Needs void* argument
+
+	* Top/csound.c: mainRESET needs an argument
+
+	* Engine/linevent.c (newevent): needs csound argument
+
 2004-03-14  John ffitch  <jpff@codemist.co.uk>
 
 	* OOps/fout.c (infile_act): renamed from infile to avoid name
@@ -13,7 +27,6 @@
 	by Anthony Kozar
 
 2004-02-29	Steven Yi	<stevenyi@csounds.com>
-	
 
 	* InOut/rtpa.c: modifed code to use PortAudio device 1 by default if 
 	none given.  Messages are now given to user if defaulting to device 1 
