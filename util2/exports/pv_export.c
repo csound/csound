@@ -79,6 +79,9 @@ int main(int argc, char **argv)
       case PVE_WRERR:
         msg = Str(X_1381,"write error");
         break;
+      default:
+        msg = "???";
+        break;
       }
       fprintf(stderr, Str(X_256,"Error reading PV header: %s\n"), msg);
       exit(1);
