@@ -253,11 +253,11 @@ void psignal(int sig, char *str)
 
 static void signal_handler(int sig)
 {
-    psignal(sig, "Csound tidy up");
-    fltk_abort = 1;
 #if defined(USE_FLTK) && defined(SIGALRM)
     if (sig == SIGALRM) return;
 #endif
+    psignal(sig, "Csound tidy up");
+    fltk_abort = 1;
 #ifdef RTAUDIO
     rtclose_();
 #endif
