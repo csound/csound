@@ -34,6 +34,11 @@ extern u_char *mbuf, *bufp, *bufend, *endatp;
 
 #define MBUFSIZ   1024
 
+#ifdef PORTMIDI
+#include <portmidi.h>
+
+PortMidiStream* midistream;
+#else
 #ifdef WIN32                    /* IV - Nov 10 2002 */
 #undef u_char
 #undef u_short
@@ -47,6 +52,7 @@ static int tmpbuf_ndx_r, tmpbuf_ndx_w;
 #else
 static int  rtfd = 0;        /* init these to stdin */
 #endif
+#endif /* PortMIDI */
 
 #ifdef HAVE_SGTTY_H
 # include <sgtty.h>
@@ -67,16 +73,6 @@ static int  rtfd = 0;        /* init these to stdin */
 #endif
 
 #ifdef SGI
-/************************************/
-/* obsolete SGI code                */
-/*                                  */
-/*#    include <sys/termio.h>       */
-/*#    include <sys/stropts.h>      */
-/*#    include <sys/z8530.h>        */
-/*     static struct termio tty;    */
-/*     static struct strioctl str;  */
-/************************************/
-
 /*******************************************/
 /* Irix media library MIDI implementation  */
 /* (Victor Lazzarini, feb 2001)            */
@@ -206,6 +202,8 @@ void CALLBACK win32_midi_in_handler(HMIDIIN, UINT, DWORD, DWORD, DWORD);
 
 void OpenMIDIDevice(void)
 {
+#ifdef PORTMIDI
+#else
 #if defined(WIN32)                              /* IV - Nov 10 2002 */
     int     nr_devs, dev_num;
     MIDIINCAPSA caps;
@@ -266,46 +264,7 @@ void OpenMIDIDevice(void)
         dies(Str(X_756,"fcntl failed on %s"), O.Midiname);
 # endif
 #endif
-#ifdef SGI
-      /*******************obsolete SGI code**************************************/
-      /*       new implementation using the Irix media library
-
-      {
-        int arg;
-        tty.c_iflag = IGNBRK;
-        tty.c_oflag = 0;
-        tty.c_cflag = B9600 | CS8 | CREAD | CLOCAL | HUPCL;
-        tty.c_lflag = 0;
-        tty.c_line = 1;
-        tty.c_cc[VINTR] = 0;
-        tty.c_cc[VQUIT] = 0;
-        tty.c_cc[VERASE] = 0;
-        tty.c_cc[VKILL] = 0;
-        tty.c_cc[VMIN] = 1;
-        tty.c_cc[VTIME] = 0;
-        ioctl(rtfd, TCSETAF, &tty);
-
-        str.ic_cmd = SIOC_RS422;
-        str.ic_timout = 0;
-        str.ic_len = 4;
-        arg = RS422_ON;
-        str.ic_dp = (char *)&arg;
-        if (ioctl(rtfd, I_STR, &str) < 0) {
-          perror(Str(X_202,"cannot ioctl RS422"));
-          exit(1);
-        }
-        str.ic_cmd = SIOC_EXTCLK;
-        str.ic_timout = 0;
-        str.ic_len = 4;
-        arg = EXTCLK_32X;
-        str.ic_dp = (char *)&arg;
-        if (ioctl(rtfd, I_STR, &str) < 0) {
-          perror(Str(X_199,"cannot ioctl EXTCLK"));
-          exit(1);
-        }
-     }
-****************************************************************************/
-#elif defined sun
+#if defined sun
       while (ioctl(rtfd, I_POP, 0) == 0)  /* pop the 2 STREAMS modules */
         ;                               /*  betwn user & uart driver */
       gtty(rtfd, &tty);
@@ -461,6 +420,7 @@ void OpenMIDIDevice(void)
 #endif
         }
 #endif          /* WIN32 IV - Nov 10 2002 */
+#endif /* PortMIDI */
 }
 
 /* IV - Nov 10 2002 */
@@ -641,6 +601,9 @@ kern_return_t
 
 void CloseMIDIDevice(void)
 {
+#if PORTMIDI
+    Pm_Close(midistream);
+#else
 #ifdef WIN32                            /* IV - Nov 10 2002 */
     if (midiInStop(hMidiIn) != MMSYSERR_NOERROR  ||
         midiInReset(hMidiIn) != MMSYSERR_NOERROR ||
@@ -663,6 +626,7 @@ void CloseMIDIDevice(void)
     if (rtfd) mdClosePort(sgiport);
 #endif
 #endif      /* WIN32 */
+#endif /* PortMIDI */
 }
 
 
