@@ -40,7 +40,7 @@
 #endif
 
 # define APIVERSION 1  /* should be increased anytime a new version
-			  contains changes that an older host will
+                          contains changes that an older host will
                           not be able to handle -- most likely this
                           will be an change to an API function or
                           the GLOBALS struct */

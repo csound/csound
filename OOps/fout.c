@@ -519,7 +519,7 @@ int infile_set(INFILE *p)
     return OK;
 }
 
-int infile(INFILE *p)
+int infile_act(INFILE *p)
 {
     p->infilep(p);
     return OK;

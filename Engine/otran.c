@@ -1,4 +1,4 @@
-/*  
+/*
     otran.c:
 
     Copyright (C) 1991, 1997, 2003 Barry Vercoe, John ffitch, Istvan Varga
@@ -420,7 +420,7 @@ void otran(void)
               putop(&bp->t);
               printf("pmax %ld, kcnt %d, dcnt %d, wcnt %d, acnt %d pcnt %d\n",
                      pmax,lclnxtkcnt,lclnxtdcnt,lclnxtwcnt,lclnxtacnt,lclnxtpcnt);
-            } 
+            }
             ip->pmax = (short)pmax;
 #ifdef __alpha__
             /*
@@ -453,7 +453,7 @@ void otran(void)
             prvbp = prvbp->nxtop = bp;  /* link into optxt chain */
             threads |= opcodlst[opnum].thread;
             opdstot += opcodlst[opnum].dsblksiz;        /* sum opds's */
-            if (O.odebug) putop(&bp->t); 
+            if (O.odebug) putop(&bp->t);
             if (opnum == displop1)                      /* display op arg ? */
               for (alp=bp->t.inlist, nn=alp->count; nn>0; ) {
                 s = alp->arg[--nn];
@@ -567,12 +567,12 @@ void otran(void)
     }
     if (O.odebug) {
       long n; MYFLT *p;
-      printf("poolcount = %ld, strargsize = %ld\n", poolcount,strargsize); 
+      printf("poolcount = %ld, strargsize = %ld\n", poolcount,strargsize);
       printf("pool:");
       for (n = poolcount, p = pool; n--; p++)
         printf("\t%g", *p);
       printf("\n");
-    } 
+    }
     gblfixed = gblnxtkcnt;
     gblacount = gblnxtacnt;
 
@@ -611,7 +611,7 @@ void otran(void)
       do printf("\t%d", *p++);
       while (p < argofflim);
       printf("\n");
-    } 
+    }
     if (nxtargoffp != argofflim)
       die(Str(X_901,"inconsistent argoff sumcount"));
     if (strargsize && strargptr != strargspace + strargsize)
@@ -694,7 +694,7 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
         continue;
       }
       ep = &opcodlst[opnum];
-      if (O.odebug) printf("%s argndxs:", ep->opname); 
+      if (O.odebug) printf("%s argndxs:", ep->opname);
       if ((outlist = ttp->outlist) == nullist || !outlist->count)
         ttp->outoffs = nulloffs;
       else {
@@ -704,7 +704,7 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
         ndxp = outoffs->indx;
         while (n--) {
           *ndxp++ = indx = plgndx(*argp++);
-          if (O.odebug) printf("\t%d",indx); 
+          if (O.odebug) printf("\t%d",indx);
         }
       }
       if ((inlist = ttp->inlist) == nullist || !inlist->count)
@@ -762,7 +762,7 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
               indx = 1;                 /*  cod=1st pool val */
             }
             else indx = plgndx(s);      /* else normal index */
-            if (O.odebug) printf("\t%d",indx); 
+            if (O.odebug) printf("\t%d",indx);
             *ndxp = indx;
           }
         }

@@ -1,4 +1,4 @@
-/*  
+/*
     entry1.c:
 
     Copyright (C) 1991 Barry Vercoe, John ffitch
@@ -142,7 +142,7 @@ int    balnset(void*), balance(void*);
 int    sndinset(void*), soundin(void*);
 int    sndo1set(void*), soundout(void*), sndo2set(void*), soundouts(void*);
 int    in(void*),  ins(void*), inq(void*), inh(void*),  ino(void*), in16(void*);
-int    in32(void*), inall(void*); 
+int    in32(void*), inall(void*);
 int    out(void*),  outs(void*), outs1(void*), outs2(void*), outall(void*);
 int    outq(void*), outq1(void*), outq2(void*), outq3(void*), outq4(void*);
 int    igoto(void*), kgoto(void*), icgoto(void*), kcgoto(void*);
@@ -675,7 +675,7 @@ OENTRY opcodlst_1[] = {
 { "peak_a",   S(PEAK),  4,     "k",     "a",    NULL,    NULL,     (SUBR)peaka},
 { "printk", S(PRINTK),  3,     "",      "iko",  (SUBR)printkset, (SUBR)printk, NULL},
 { "printks",S(PRINTKS), 3,     "",      "SiM",  (SUBR)printksset,(SUBR)printks, NULL},
-{ "prints",S(PRINTS),   1,     "",      "SM",	(SUBR)printsset, NULL, NULL },
+{ "prints",S(PRINTS),   1,     "",      "SM",   (SUBR)printsset, NULL, NULL },
 { "printk2", S(PRINTK2),3,     "",      "ko",   (SUBR)printk2set, (SUBR)printk2, NULL},
 { "fprints", S(FPRINTF),1,     "",      "SSM",  (SUBR)fprintf_i, NULL, NULL },
 { "fprintks", S(FPRINTF), 3,   "",      "SSM",  (SUBR)fprintf_set, (SUBR)fprintf_k, NULL },
@@ -686,7 +686,7 @@ OENTRY opcodlst_1[] = {
 { "fouti", S(IOUTFILE),  1,     "",     "iiim", ioutfile_set               },
 { "foutir", S(IOUTFILE_R), 3,   "",     "iiim", ioutfile_set_r, ioutfile_r },
 { "fiopen", S(FIOPEN),   1,     "i",    "Si",   fiopen                      },
-{ "fin", S(INFILE),      5,     "",     "Siiy", infile_set,  NULL, infile  },
+{ "fin", S(INFILE),      5,     "",     "Siiy", infile_set,  NULL, infile_act  },
 { "fink", S(KINFILE),    3,     "",     "Siiz", kinfile_set, kinfile       },
 { "fini", S(I_INFILE),   1,     "",     "Siim", i_infile                   },
 { "portk",  S(KPORT),   3, "k",     "kko",  (SUBR)kporset, (SUBR)kport, NULL    },

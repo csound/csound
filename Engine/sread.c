@@ -1,4 +1,4 @@
-/*  
+/*
     sread.c:
 
     Copyright (C) 1991, 1997 Barry Vercoe, John ffitch

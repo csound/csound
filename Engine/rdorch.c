@@ -1,4 +1,4 @@
-/*  
+/*
     rdorch.c:
 
     Copyright (C) 1991-2002 Barry Vercoe, John ffitch, Istvan Varga
@@ -682,7 +682,7 @@ int splitline(void)     /* split next orch line into atomic groups */
  nxtlin:
     if ((lp = linadr[++curline]) == NULL)       /* point at next line   */
       return(0);
-    if (O.odebug) printf(Str(X_321,"LINE %d:\n"),curline); 
+    if (O.odebug) printf(Str(X_321,"LINE %d:\n"),curline);
     linlabels = opgrpno = 0;
     grpcnt = prvif = prvelsif = logical = condassgn = parens = collecting = 0;
     cp = collectbuf;
@@ -995,7 +995,7 @@ int splitline(void)     /* split next orch line into atomic groups */
     }
     linopnum = opnum;                   /* else save full line ops */
     linopcod = opcod;
-    if (O.odebug) printgroups(grpcnt); 
+    if (O.odebug) printgroups(grpcnt);
     return(grpcnt);
 }
 
@@ -1119,7 +1119,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         }
         linopnum = opnum;
         linopcod = opcod;
-        if (O.odebug) printf(Str(X_1004,"modified opcod: %s\n"),opcod); 
+        if (O.odebug) printf(Str(X_1004,"modified opcod: %s\n"),opcod);
       }
       else if (opcodlst[linopnum].dsblksiz == 0xfffd) {
         if ((c = argtyp(group[opgrpno ] )) != 'a') c = 'k';
@@ -1134,7 +1134,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         }
         linopnum = opnum;
         linopcod = opcod;
-        if (O.odebug) printf(Str(X_1004,"modified opcod: %s\n"),opcod); 
+        if (O.odebug) printf(Str(X_1004,"modified opcod: %s\n"),opcod);
       }
       else if (opcodlst[linopnum].dsblksiz == 0xfffe) { /* Two tags for OSCIL's */
           /*    if (strcmp(linopcod,"oscil") == 0  */
@@ -1145,7 +1145,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         isopcod(str); /*  opcode with suffix */
         linopnum = opnum;
         linopcod = opcod;
-        if (O.odebug) printf(Str(X_1004,"modified opcod: %s\n"),opcod); 
+        if (O.odebug) printf(Str(X_1004,"modified opcod: %s\n"),opcod);
         c = argtyp(group[nxtest]);            /* reset outype params */
       }                                 /* need we reset outype again here ? */
       else if (opcodlst[linopnum].dsblksiz == 0xfffc) { /* For divz types */
@@ -1367,7 +1367,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
                   Str(X_914,"input arg '%s' used before defined"),s);
           synterr(errmsg);
         }
-        if (O.odebug) printf("treqd %c, tfound %c\n",treqd,tfound); 
+        if (O.odebug) printf("treqd %c, tfound %c\n",treqd,tfound);
         if (tfound == 'a' && n < 15) { /*JMC added for FOG*/
           /* 4 for FOF, 8 for FOG; expanded to 15  */
           tp->xincod += (n < 2 ? (2 - n) : (1 << n));
@@ -1405,7 +1405,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
           }
       }
       }
-      if (O.odebug) printf(Str(X_1387,"xincod = %d\n"),tp->xincod); 
+      if (O.odebug) printf(Str(X_1387,"xincod = %d\n"),tp->xincod);
       /* IV - Sep 1 2002: added 'X' type, and xoutcod */
       tp->xoutcod = 0;
       /* IV - Oct 24 2002: moved argument parsing for xin here */
@@ -1452,7 +1452,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         /* IV - Sep 1 2002: xoutcod is the same as xincod for input, */
         /* but the lowest two bits are not swapped */
         if (tfound == 'a' && n < 15) tp->xoutcod |= (1 << n);
-        if (O.odebug) printf(Str(X_1295,"treqd %c, tfound %c\n"),treqd,tfound); 
+        if (O.odebug) printf(Str(X_1295,"treqd %c, tfound %c\n"),treqd,tfound);
         if (tfound_m & (ARGTYP_d | ARGTYP_w))
           if (lgprevdef) {
             sprintf(errmsg,

@@ -42,7 +42,7 @@ INSDS   *instance(int);
 /* glob int     tieflag = 0;               toggled by insert for tigoto */
 static  int     reinitflag = 0;         /* toggled by reinit for others */
 static  OPDS    *ids, *pds;             /* used by init and perf loops  */
-					/*  & modified by igoto, kgoto  */
+                                        /*  & modified by igoto, kgoto  */
 static  OPDS    opdstmp;
 void    showallocs(void);
 extern  void    putop(TEXT*);
@@ -716,20 +716,20 @@ long kperf(long kcnt)   /* perform currently active instrs for kcnt kperiods */
     clocks = clocks*.9 + (clockEnd - clockStart)*.1/(double)(kreq*ksmps);
     /* test printouts */
     /*  temp += kreq;
-	if (temp > ekr*.05) {
-	int i;
-	double total = 0;
+        if (temp > ekr*.05) {
+        int i;
+        double total = 0;
 
-	for (i = 0; i < numClockPoints; i++)
-	total += clocksPerFrame[i];
+        for (i = 0; i < numClockPoints; i++)
+        total += clocksPerFrame[i];
 
-	printf("cpu load is: %f\n", esr*total/(double)(numClockPoints*CLOCKS_PER_SEC));
-	printf("cpu load[filt]: %f\n", esr*clocks/(double)(CLOCKS_PER_SEC));
-	printf("rendering rate is: %f\n", (double)(CLOCKS_PER_SEC*temp)/(ekr*(clockEnd - lastClock)));
-	lastClock = clockEnd;
-	temp = 0;
-	}
-	*/
+        printf("cpu load is: %f\n", esr*total/(double)(numClockPoints*CLOCKS_PER_SEC));
+        printf("cpu load[filt]: %f\n", esr*clocks/(double)(CLOCKS_PER_SEC));
+        printf("rendering rate is: %f\n", (double)(CLOCKS_PER_SEC*temp)/(ekr*(clockEnd - lastClock)));
+        lastClock = clockEnd;
+        temp = 0;
+        }
+        */
 #endif
     return(kreq);
 }

@@ -1,3 +1,8 @@
+2004-03-14  John ffitch  <jpff@codemist.co.uk>
+
+	* OOps/fout.c (infile_act): renamed from infile to avoid name
+	clash with linsndfile support
+
 2004-03-11  John ffitch  <jpff@codemist.co.uk>
 
 	* InOut/libsnd.c (sfopenout): Added test.au as a default name

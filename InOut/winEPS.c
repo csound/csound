@@ -25,7 +25,7 @@
 #include "cwindow.h"
 #include <math.h>
 
-/*----------------------------------------  winEPS.c ---------------------------
+/*--------------------------------------  winEPS.c ---------------------------
  *
  *  Write Csound's graphics in PostScript format into a file for later viewing.
  *
@@ -64,7 +64,7 @@
  *  at:  fabio@ts.go.dlr.de      Thanks.
  *
  *
-  ----------------------------------------------------------------------------*/
+  --------------------------------------------------------------------------*/
 
 #ifdef HAVE_STRING_H
 # include <string.h>

@@ -1,4 +1,4 @@
-/*  
+/*
     ugrw1.c:
 
     Copyright (C) 1997 Robin Whittle
@@ -2984,7 +2984,8 @@ int printksset(PRINTKS *p)
           }
         }
         /* This case is from matt ingalls */
-        else if	(temp == '%') {	/* an extra option to specify tab and return as %t and %r*/ 
+        else if (temp == '%') { /* an extra option to specify tab and
+                                   return as %t and %r*/
           switch (tempn) {
           case 'r': case 'R':
             *sdest++ = '\r';
@@ -2998,7 +2999,7 @@ int printksset(PRINTKS *p)
             *sdest++ = '\t';
             sarg++;
             break;
-          case '!':	/* and a ';' */
+          case '!':     /* and a ';' */
             *sdest++ = ';';
             sarg++;
             break;
@@ -3025,13 +3026,13 @@ void sprints(char *outstring, char *fmt, MYFLT **kvals, long numVals)
     char strseg[8192];
     int i = 0, j = 0;
     char *segwaiting = 0;
-	
-    while (*fmt) {		
+
+    while (*fmt) {
       if (*fmt == '%') {
-        /* if already a segment waiting, then lets print it */			
+        /* if already a segment waiting, then lets print it */
         if (segwaiting) {
           strseg[i] = '\0';
-          
+
           switch (*segwaiting) {
           case 'd':
           case 'i':
@@ -3048,24 +3049,24 @@ void sprints(char *outstring, char *fmt, MYFLT **kvals, long numVals)
           case 'l':
             sprintf(outstring, strseg, (long)(*kvals[j]+.5));
             break;
-            
+
           default:
             sprintf(outstring, strseg, *kvals[j]);
             break;
           }
           outstring += strlen(outstring);
-          
+
           i = 0;
           segwaiting = 0;
-          
+
           /* prevent potential problems if user didnt give enough input params */
           if (j < numVals-1)
             j++;
         }
-        
+
         /* copy the '%' */
         strseg[i++] = *fmt++;
-        
+
         /* find the format code */
         segwaiting = fmt;
         while (*segwaiting && !isalpha(*segwaiting))
@@ -3074,7 +3075,7 @@ void sprints(char *outstring, char *fmt, MYFLT **kvals, long numVals)
       else
         strseg[i++] = *fmt++;
     }
-    
+
     if (i) {
       strseg[i] = '\0';
       if (segwaiting) {
@@ -3094,7 +3095,7 @@ void sprints(char *outstring, char *fmt, MYFLT **kvals, long numVals)
         case 'l':
           sprintf(outstring, strseg, (long)(*kvals[j]+.5));
           break;
-          
+
         default:
           sprintf(outstring, strseg, *kvals[j]);
           break;
@@ -3115,7 +3116,7 @@ int printks(PRINTKS *p)
 {
     MYFLT       timel;
     long        cycles;
-    char 	string[8192]; /* matt ingals replacement */
+    char        string[8192]; /* matt ingals replacement */
 
     /*-----------------------------------*/
 
@@ -3172,7 +3173,7 @@ int printks(PRINTKS *p)
 int printsset(PRINTS *p)
 {
     PRINTKS pk;
-    char 	string[8192];
+    char        string[8192];
     MYFLT ptime = 1;
     pk.h = p->h;
     pk.ifilcod = p->ifilcod;
