@@ -152,6 +152,7 @@ void CsoundVST::performanceThreadRoutine()
 	getCppSound()->stop();
 	getCppSound()->setExternalMidiEnabled(false);
 	getCppSound()->setExternalMidiReadCallback(0);
+	csoundSetMessageCallback(getCppSound()->getCsound(), &csound::System::message);
 	if(getIsPython())
 	{
 		Shell::save(Shell::getFilename());
@@ -217,15 +218,18 @@ static int nonThreadYieldCallback(void *)
 int CsoundVST::perform()
 {
 	int result = 0;
-	if(getIsVst())
+	if(getCppSound())
 	{
-	    csoundSetYieldCallback(getCppSound()->getCsound(), nonThreadYieldCallback); 
-		performanceThreadRoutine();
-	}
-	else
-	{
-	    csoundSetYieldCallback(getCppSound()->getCsound(), threadYieldCallback); 
-		result = (int) csound::System::createThread(performanceThreadRoutine_, this, 0);
+    	if(getIsVst())
+    	{
+    	    csoundSetYieldCallback(getCppSound()->getCsound(), nonThreadYieldCallback); 
+    		performanceThreadRoutine();
+    	}
+    	else
+    	{
+    	    csoundSetYieldCallback(getCppSound()->getCsound(), threadYieldCallback); 
+    		result = (int) csound::System::createThread(performanceThreadRoutine_, this, 0);
+    	}
 	}
 	return result;
 }
@@ -267,6 +271,10 @@ void CsoundVST::open()
 	// but damned if I could figure out how, and this works.
 	PyObject* pyCppSound = PyObject_CallMethod(pyCsound, "getThis", "");
 	cppSound = (CppSound *) PyLong_AsLong(pyCppSound);
+	if(!cppSound)
+	{
+        throw "No cppSound in CsoundVST::open()... check your Python environment.";
+	}
 	std::string filename_ = getFilename();
 	if(filename_.length() > 0)
 	{

@@ -25,11 +25,13 @@
 
 int main(int argc, char **argv)
 {
+#if defined(WIN32)
         HINSTANCE lib = LoadLibrary("_CsoundVST.dll");
         AEffect* (*plugin_main)(audioMasterCallback audioMaster) = (AEffect* (*)(audioMasterCallback audioMaster)) GetProcAddress(lib, "main");
         std::cout << "lib = " << lib << " main = " << (void *)plugin_main << std::endl;
         int (*init_CsoundVST)() = (int (*)()) GetProcAddress(lib, "init_CsoundVST");
         std::cout << "lib = " << lib << " init_CsoundVST = " << (void *)init_CsoundVST << std::endl;
+#endif
 		CsoundVST *csoundVST = CreateCsoundVST();
 		AEffEditor *editor = csoundVST->getEditor();
 		editor->open(0);

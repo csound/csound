@@ -106,7 +106,7 @@ static std::string about =
 
 static const char *removeCarriageReturns(std::string &buffer)
 {
-	int position = -1;
+	size_t position = 0;
 	while((position = buffer.find("\r")) != std::string::npos)
 	{
 		buffer.erase(position, 1);
@@ -148,7 +148,6 @@ csoundVST((CsoundVST *)audioEffect),
 useCount(0)
 {
 	instances.push_back(this);
-	csoundSetMessageCallback(csoundVST->getCppSound()->getCsound(), &csound::System::message);
 	csound::System::setMessageCallback(&CsoundVstFltk::messageCallback);
 	csoundVST->setEditor(this);
 }
@@ -160,14 +159,15 @@ CsoundVstFltk::~CsoundVstFltk(void)
 
 void CsoundVstFltk::updateCaption()
 {
-	std::string caption = "[ C S O U N D   V S T ] ";
+	static std::string caption;
+    caption = "[ C S O U N D   V S T ] ";
 	if(csoundVST->getIsPython())
 	{
 		caption.append(csoundVST->Shell::getFilename());
 	}
-	else
+	else if(!csoundVST->getIsVst())
 	{
-		caption.append(csoundVST->getCppSound()->CsoundFile::getFilename());
+        caption.append(csoundVST->getCppSound()->CsoundFile::getFilename());
 	}
 	csoundVstUi->label(caption.c_str());
 }
@@ -314,7 +314,7 @@ void CsoundVstFltk::update()
 	if(csoundVstUi)
 	{
 		updateCaption();
-		std::string buffer;
+		static std::string buffer;
 		this->settingsVstPluginModeEffect->value(!csoundVST->getIsSynth());
 		this->settingsVstPluginModeInstrument->value(csoundVST->getIsSynth());
 		this->settingsCsoundPerformanceModeClassic->value(!csoundVST->getIsPython());
