@@ -27,13 +27,6 @@
 
 int pvlook(int, char **);
 
-#ifndef POLL_EVENTS
-int POLL_EVENTS()
-{
-    return 1;
-}
-#endif
-
 int main(int argc, char *argv[])
 {
     if ( argc == 1 ) {
@@ -61,13 +54,4 @@ int main(int argc, char *argv[])
 }
 
 
-#ifndef CWIN
-#include <stdarg.h>
-void err_printf(char *fmt, ...)
-{
-    va_list a;
-    va_start(a, fmt);
-    vfprintf(stderr, fmt, a);
-    va_end(a);
-}
-#endif
+

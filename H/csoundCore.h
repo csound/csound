@@ -757,7 +757,7 @@ typedef struct ENVIRON_
 
 #include "prototyp.h"
 extern void err_printf(char *, ...);
-#ifdef FLTK_GUI
+#ifdef USE_FLTK
 #define printf csoundMessage0
 extern void csoundMessage0(const char *, ...);
 #endif /* POLL_EVENTS */
