@@ -265,7 +265,8 @@ int musmon(void)
       printf(Str(X_956,"k-period aligned audio buffering\n"));
 #ifdef mills_macintosh
       if (O.msglevel & WARNMSG)
-        printf(Str(X_536,"WARNING: Will probably not work with playback routines\n"));
+        printf(Str(X_536,
+                   "WARNING: Will probably not work with playback routines\n"));
 #endif
     }
     if (!O.inbufsamps) {                  /* else keep the user values    */
@@ -584,6 +585,7 @@ static int playevents(void)  /* play all events in a score or an lplay list */
           if (segamps || (sormsg && rngflg))
             printf("B%7.3f ..%7.3f T%7.3f TT%7.3f M:",
                    prvbt,  curbt,  curp2,  timtot+curp2);
+          printf("Score event %c\n", e->opcod);
         }
         if (segamps || (sormsg && rngflg)) {
           for (n=nchnls, maxp=maxamp; n--;)
@@ -909,7 +911,6 @@ int sensevents(void)
     retest:
       offonly = 0;
       currevent = e;
-
       switch(e->opcod) {
       case 'w':
         if (O.Beatmode)                     /* Beatmode: read 'w'  */
@@ -1218,7 +1219,7 @@ int sensevents(void)
     return(1);  /* done with entire score */
 }
 
-
+#ifndef CSOUND_WITH_API
 /* fillbuffer() calls kperf just enough so that an audioOutBuffer
    was filled [with audwrite() or rtplay()]
 
@@ -1246,7 +1247,11 @@ int fillbuffer(int sensEventRate)
 
     while (!done && sampsNeeded > 0) {
       if (++sensCount == sensEventRate) {
+        printf("****(c) timtot=%f curbt=%f curp2=%f\n",
+               timtot, curbt, curp2);
         done = sensevents();
+        printf("****(d) timtot=%f curbt=%f curp2=%f\n",
+               timtot, curbt, curp2);
         sensCount = 0;
       }
 
@@ -1269,3 +1274,4 @@ int fillbuffer(int sensEventRate)
 
     return(done);
 }
+#endif
