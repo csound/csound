@@ -19,7 +19,7 @@
 * License along with this software; if not, write to the Free Software
 * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-#ifdef _MSC_VER
+#ifdef _MSC_VER && !defined(__GNUC__)
 #pragma warning (disable:4786) 
 #endif
 #include "Composition.hpp"
@@ -27,7 +27,10 @@
 
 namespace csound 
 {
-	Composition::Composition() : cppSound(&cppSound_), tonesPerOctave(12.0), conformPitches(false)
+	Composition::Composition() : 
+        tonesPerOctave(12.0),
+        conformPitches(false),
+		cppSound(&cppSound_)
 	{
 	}
 
