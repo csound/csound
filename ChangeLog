@@ -1,3 +1,9 @@
+2004-08-12  Michael Gogins <gogins@pipeline.com>
+
+	* Re-arranged sections in csound.pdf to be more helpful for beginners.
+	
+	* Updated csound.pdf to reflect availability of ASIO on Windows.
+
 2004-08-10  Michael Gogins <gogins@pipeline.com>
 
 	* Implemented threads and mutexes in the Csound API for Windows and Linux,
