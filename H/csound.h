@@ -702,6 +702,16 @@ extern "C" {
         * audio playback and recording.
         */
         PUBLIC void csoundSetRtcloseCallback(void *csound, void (*rtclose__)(void));
+        
+        /**
+        * Returns whether Csound is in debug mode.
+        */
+        PUBLIC int csoundGetDebug(void *csound);
+        
+        /**
+        * Sets whether Csound is in debug mode.
+        */
+        PUBLIC void csoundSetDebug(void *csound, int debug);
 
 #ifdef __cplusplus
 };
