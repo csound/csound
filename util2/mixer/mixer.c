@@ -87,7 +87,6 @@ static void MixSound(int, SNDFILE*);
 /* Externs */
 extern long getsndin(SNDFILE*, MYFLT *, long, SOUNDIN *);
 extern int  openout(char *, int), getsizformat(int);
-extern void writeheader(int, char *);
 extern char *getstrformat(int);
 extern SNDFILE *sndgetset(SOUNDIN *);
 extern short sfsampsize(int);
