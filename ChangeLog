@@ -3,6 +3,8 @@
 	  fixes in Maldonado opcodes
 	* Top/dl_opcodes.c:
 	  fixed -v crash
+	* Engine/memalloc.c:
+	  print function name correctly
 
 2005-02-28	Istvan Varga	<istvan@csounds.com>
 	* cleanup.sh:
