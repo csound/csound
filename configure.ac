@@ -8,7 +8,7 @@ AC_PREREQ(2.57)
 AC_INIT([Csound], [5.0])
 
 # Information on the package
-AC_CONFIG_SRCDIR([Top/ccsound.c])
+AC_CONFIG_SRCDIR([Top/argdecode.c])
 AM_CONFIG_HEADER([H/config.h])
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
@@ -40,9 +40,9 @@ AC_DEFINE([CSOUND_WITH_API], 1, [Define when building Csound with the Csound API
 
 AC_ARG_ENABLE([double],
         AC_HELP_STRING([--enable-double],
-                [enable the use of double precision floating point internally, default=yes]),
+                [enable the use of double precision floating point internally, default=no]),
         [USE_DOUBLE="$enableval"],
-        [USE_DOUBLE=yes])
+        [USE_DOUBLE=no])
 
 if test "x$USE_DOUBLE" = xyes; then
   AC_DEFINE([USE_DOUBLE], 1, [Define when using double precision floating point])
