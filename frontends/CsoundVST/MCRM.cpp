@@ -20,6 +20,7 @@
 * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 #include "MCRM.hpp"
+#include <boost/numeric/ublas/operation.hpp>
 
 namespace csound
 {
@@ -78,7 +79,8 @@ namespace csound
 			for(size_t s = 0; s < transformations.size(); s++)
 			{
 				const ublas::matrix<double> &t = transformations[s];
-				Event e = ublas::prod(t, event);
+				Event e;
+				ublas::axpy_prod(t, event, e);
 				double w = 0.0;
 				if(weight == -1.0)
 				{

@@ -833,6 +833,7 @@ else:
         vstEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
         vstEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
         vstEnvironment.Append(SHLINKFLAGS = '--enable-extra-pe-debug')
+        vstEnvironment.Append(CCFLAGS = ['-DNDEBUG'])
         if getPlatform() == 'cygwin':
                 vstEnvironment.Append(CCFLAGS = ['-D_MSC_VER'])
         guiProgramEnvironment.Prepend(LINKFLAGS = ['-mwindows'])
@@ -857,6 +858,8 @@ else:
     frontends/CsoundVST/audioeffectx.cpp 
     frontends/CsoundVST/Composition.cpp 
     frontends/CsoundVST/Conversions.cpp 
+    frontends/CsoundVST/Counterpoint.cpp 
+    frontends/CsoundVST/CounterpointNode.cpp 
     frontends/CsoundVST/CppSound.cpp 
     frontends/CsoundVST/CsoundFile.cpp 
     frontends/CsoundVST/Cell.cpp 
@@ -903,6 +906,9 @@ else:
     guiProgramEnvironment.Append(LIBS = ['CsoundVST'])
     zipDependencies.append(csoundvstGui)
     Depends(csoundvstGui, csoundvst)
+
+    #counterpoint = vstEnvironment.Program('counterpoint', ['frontends/CsoundVST/Counterpoint.cpp', 'frontends/CsoundVST/CounterpointMain.cpp' ])
+    #zipDependencies.append(counterpoint)
      
     # Build the Loris and Python opcodes here because they depend 
     # on the same things as CsoundVST.
