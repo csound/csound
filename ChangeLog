@@ -8,6 +8,12 @@
 	* OOps/sdif.c:
 	* Top/csound.c:
 	  minor fixes; removed a few more static variables
+	* Engine/express.c:
+	* Engine/rdorch.c:
+	* Opcodes/ugmoss.c:
+	  fixed binary operators
+	* OOps/ugrw1.c:
+	  fixed printk2 opcode
 
 2005-03-30  John ff  <jpff@codemist.co.uk>
 
