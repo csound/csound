@@ -1,3 +1,30 @@
+2005-04-06	Istvan Varga	<istvan@csounds.com>
+	* Engine/fgens.c:
+	  use csound->Message() instead of printf()
+	  added ENVIRON* pointer and variable arg list to fterror()
+	  replaced use of deprecated FFT functions with csound->RealFFT()
+	  limited line length to 80 characters
+	* Engine/oload.c:
+	* H/cs.h:
+	* H/csoundCore.h:
+	  removed deprecated functions from ENVIRON:
+	    err_printf, IsPowerOfTwo, FFT2torlpacked, FFT2realpacked, cxmult,
+	    csoundPrintf
+	* H/fft.h, H/ugens9.h, OOps/disprep.c, OOps/dsputil.c, OOps/fft.c:
+	* OOps/pvinterp.c, OOps/pvread.c, OOps/ugens8.c, OOps/ugens9.c:
+	* OOps/vpvoc.c, Opcodes/oscbnk.c, SConstruct, Top/cvanal.c:
+	* Top/pvanal.c:
+	  removed deprecated FFT functions; use fftlib.c interface instead
+	* H/prototyp.h:
+	  declare err_printf and csoundPrintf here (deprecated functions)
+	* InOut/widgets.cpp:
+	  use csound->Message() instead of csound->Printf()
+	* Top/csound.c:
+	  deprecated functions: err_printf, csoundPrintf
+	* Top/main.c:
+	  do not call fftRESET() (this function was removed)
+	  err_printf moved to Top/csound.c
+
 2005-04-05	Istvan Varga	<istvan@csounds.com>
 	* Engine/sread.c:
 	* H/sort.h:
