@@ -410,7 +410,7 @@ else:
     print 'CONFIGURATION DECISION: Generating PDF documentation.'
     refmanPdf = commonEnvironment.Command('doc/latex/refman.tex', 'Doxyfile', ['doxygen $SOURCE'])
     zipDependencies.append(refmanPdf)
-    csoundPdf = commonEnvironment.Command('refman.pdf', 'doc/latex/refman.tex', ['pdflatex --include-directory=doc/latex --interaction=batchmode $SOURCE'])
+    csoundPdf = commonEnvironment.Command('refman.pdf', 'doc/latex/refman.tex', ['pdflatex --include-directory=doc/latex --interaction=batchmode --job-name=csound $SOURCE'])
     zipDependencies.append(csoundPdf)
     
 makedb = ustubProgramEnvironment.Program('makedb', 
