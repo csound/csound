@@ -838,7 +838,7 @@ if commonEnvironment['generateXmg'] == 1:
     Depends(xmgs2, makedb)
     zipDependencies.append(xmgs2)
     
-zip = commonEnvironment.Command(zipfilename, csoundvstGui, buildzip)
+zip = commonEnvironment.Command(zipfilename, staticLibrary, buildzip)
 for node in zipDependencies:
     Depends(zip, node)
 
