@@ -21,19 +21,5 @@ static NGFENS localfgens[] = {
 
 static OENTRY localops[] = {};
 
-long opcode_size(void)
-{
-    if (localops==NULL) return 0x80000000;
-    else return ((sizeof(localops))|0x80000000);
-}
-
-OENTRY *opcode_init(ENVIRON *xx)
-{
-    return localops;
-}
-
-NGFENS *fgen_init(ENVIRON *xx)
-{
-    return localfgens;
-}
+FLINKAGE
 
