@@ -30,6 +30,13 @@
 /* ********************************************************************** */
 /* ********************************************************************** */
 
+#ifdef MSVC
+#      define  u_char  unsigned char
+#      define  u_short unsigned short
+#      define  u_int   unsigned int
+#      define  u_long  unsigned long
+#endif
+
 extern u_char *mbuf, *bufp, *bufend, *endatp;
 
 #define MBUFSIZ   1024

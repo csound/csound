@@ -1,3 +1,11 @@
+2004-12-20  John ffitch  <jpff@codemist.co.uk>
+
+	* OOps/mididevice.c: 
+	* Top/main.c (signal_handler, csoundCompile): 
+	* InOut/widgets.cpp (SNAPSHOT): 
+	* H/sysdep.h: 
+	* H/csoundCore.h: Added code to allow MSVC compilation
+
 2004-12-19  Michael Gogins <gogins@pipeline.com>
 
 	* Added Java wrapper for the Csound API via CppSound. 

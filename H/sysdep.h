@@ -104,10 +104,12 @@ extern  off_t lseek(int, off_t, int);
 #      include <io.h>
 #     else
 #     ifdef WIN32
-#      define  u_char  unsigned char
-#      define  u_short unsigned short
-#      define  u_int   unsigned int
-#      define  u_long  unsigned long
+#      ifndef MSVC
+#       define  u_char  unsigned char
+#       define  u_short unsigned short
+#       define  u_int   unsigned int
+#       define  u_long  unsigned long
+#      endif
 #      if !defined(O_NDELAY)
 #       define  O_NDELAY (0)
 #                  endif
