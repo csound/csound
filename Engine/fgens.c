@@ -23,7 +23,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"                 /*                              FGENS.C         */
+#include "cs.h"             /*                              FGENS.C         */
 #include <ctype.h>
 #include "soundio.h"
 #include "cwindow.h"
@@ -42,35 +42,32 @@ extern double besseli(double);
 
 /* typedef void    (*GEN)(FUNC *, ENVIRON *); */
 
-static void   gen01raw(FUNC*,ENVIRON*);
-static void   gen01(FUNC*,ENVIRON*), gen02(FUNC*,ENVIRON*), gen03(FUNC*,ENVIRON*);
-static void   gen04(FUNC*,ENVIRON*), gen05(FUNC*,ENVIRON*), gen06(FUNC*,ENVIRON*);
-static void   gen07(FUNC*,ENVIRON*), gen08(FUNC*,ENVIRON*), gen09(FUNC*,ENVIRON*);
-static void   gen10(FUNC*,ENVIRON*), gen11(FUNC*,ENVIRON*), gen12(FUNC*,ENVIRON*);
-static void   gen13(FUNC*,ENVIRON*), gen14(FUNC*,ENVIRON*), gen15(FUNC*,ENVIRON*);
-static void   gen17(FUNC*,ENVIRON*), gen18(FUNC*,ENVIRON*);
-static void   gen19(FUNC*,ENVIRON*), gen20(FUNC*,ENVIRON*), gen21(FUNC*,ENVIRON*);
-static void   gen23(FUNC*,ENVIRON*), gen24(FUNC*,ENVIRON*), gen16(FUNC*,ENVIRON*);
-static void   gen25(FUNC*,ENVIRON*), gen27(FUNC*,ENVIRON*), gen28(FUNC*,ENVIRON*);
-static void   gen30(FUNC*,ENVIRON*), gen31(FUNC*,ENVIRON*), gen32(FUNC*,ENVIRON*);
-static void   gen33(FUNC*,ENVIRON*), gen34(FUNC*,ENVIRON*), gen40(FUNC*,ENVIRON*);
-static void   gen41(FUNC*,ENVIRON*), gen42(FUNC*,ENVIRON*), gen43(FUNC*,ENVIRON*);
-static void   gn1314(FUNC*,ENVIRON*, MYFLT, MYFLT);
-static void   GENUL(FUNC*,ENVIRON*);
+static void gen01raw(FUNC*,ENVIRON*);
+static void gen01(FUNC*,ENVIRON*), gen02(FUNC*,ENVIRON*), gen03(FUNC*,ENVIRON*);
+static void gen04(FUNC*,ENVIRON*), gen05(FUNC*,ENVIRON*), gen06(FUNC*,ENVIRON*);
+static void gen07(FUNC*,ENVIRON*), gen08(FUNC*,ENVIRON*), gen09(FUNC*,ENVIRON*);
+static void gen10(FUNC*,ENVIRON*), gen11(FUNC*,ENVIRON*), gen12(FUNC*,ENVIRON*);
+static void gen13(FUNC*,ENVIRON*), gen14(FUNC*,ENVIRON*), gen15(FUNC*,ENVIRON*);
+static void gen17(FUNC*,ENVIRON*), gen18(FUNC*,ENVIRON*);
+static void gen19(FUNC*,ENVIRON*), gen20(FUNC*,ENVIRON*), gen21(FUNC*,ENVIRON*);
+static void gen23(FUNC*,ENVIRON*), gen24(FUNC*,ENVIRON*), gen16(FUNC*,ENVIRON*);
+static void gen25(FUNC*,ENVIRON*), gen27(FUNC*,ENVIRON*), gen28(FUNC*,ENVIRON*);
+static void gen30(FUNC*,ENVIRON*), gen31(FUNC*,ENVIRON*), gen32(FUNC*,ENVIRON*);
+static void gen33(FUNC*,ENVIRON*), gen34(FUNC*,ENVIRON*), gen40(FUNC*,ENVIRON*);
+static void gen41(FUNC*,ENVIRON*), gen42(FUNC*,ENVIRON*), gen43(FUNC*,ENVIRON*);
+static void gn1314(FUNC*,ENVIRON*, MYFLT, MYFLT);
+static void gen51(FUNC*, ENVIRON*);
+static void GENUL(FUNC*,ENVIRON*);
 
-static  GEN     or_sub[GENMAX+1] = { GENUL,
-                                     gen01, gen02, gen03, gen04, gen05,
-                                     gen06, gen07, gen08, gen09, gen10,
-                                     gen11, gen12, gen13, gen14, gen15,
-                                     gen16, gen17, gen18, gen19, gen20,
-                                     gen21, GENUL, gen23, gen24, gen25,
-                                     GENUL, gen27, gen28, GENUL, gen30,
-                                     gen31, gen32, gen33, gen34, GENUL,
-                                     GENUL, GENUL, GENUL, GENUL, gen40,
-                                     gen41, gen42, gen43 };
-/* **** Now in ENVIRON **** */
-/* static  GEN    *gensub = NULL; */
-/* static  int    genmax = GENMAX+1; */
+static GEN or_sub[GENMAX + 1] = {
+    GENUL,
+    gen01, gen02, gen03, gen04, gen05, gen06, gen07, gen08, gen09, gen10,
+    gen11, gen12, gen13, gen14, gen15, gen16, gen17, gen18, gen19, gen20,
+    gen21, GENUL, gen23, gen24, gen25, GENUL, gen27, gen28, GENUL, gen30,
+    gen31, gen32, gen33, gen34, GENUL, GENUL, GENUL, GENUL, GENUL, gen40,
+    gen41, gen42, gen43, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL,
+    gen51, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL
+};
 
 typedef struct namedgen {
         char            *name;
@@ -78,7 +75,6 @@ typedef struct namedgen {
         struct namedgen *next;
 } NAMEDGEN;
 NAMEDGEN *namedgen = NULL;
-
 
 #define tpd360  (0.017453293)
 
@@ -2742,6 +2738,41 @@ void gen43(FUNC *ftp, ENVIRON *csound)
       fp[i/2] = (MYFLT)accum/frames;
       framep = startp;
       accum = 0.0;
+    }
+}
+
+static void gen51(FUNC *ftp, ENVIRON *csound)   /* Gab 1/3/2005 */
+{
+    int   j, notenum, grade, numgrades, basekeymidi, nvals;
+    MYFLT basefreq, factor, interval;
+    MYFLT *fp = ftp->ftable, *pp;
+
+    nvals       = csound->ff.flenp1 - 1;
+    pp          = &(csound->ff.e.p[5]);
+    numgrades   = (int) *pp++;
+    interval    = *pp++;
+    basefreq    = *pp++;
+    basekeymidi = (int) *pp++;
+
+    if ((csound->ff.e.pcnt - 8) != numgrades) {
+      fterror(&(csound->ff), Str("gen51: invalid number of p-fields"));
+      return;
+    }
+
+    for (j = 0; j < nvals; j++) {
+      notenum = j;
+      if (notenum < basekeymidi) {
+        notenum = basekeymidi - notenum;
+        grade  = (numgrades - (notenum % numgrades)) % numgrades;
+        factor = -((MYFLT) ((int) ((notenum + numgrades - 1) / numgrades)));
+      }
+      else {
+        notenum = notenum - basekeymidi;
+        grade  = notenum % numgrades;
+        factor = (MYFLT) ((int) (notenum / numgrades));
+      }
+      factor = (MYFLT) pow((double) interval, (double) factor);
+      fp[j] = pp[grade] * factor * basefreq;
     }
 }
 

@@ -36,9 +36,9 @@
 #include <math.h>
 
 #define DEFAULT_SRATE   44100.0
-#define MIN_SRATE       (DEFAULT_SRATE * 0.125)
-#define MAX_SRATE       (DEFAULT_SRATE * 8.0)
-#define MAX_PITCHMOD    10.0
+#define MIN_SRATE       5000.0
+#define MAX_SRATE       1000000.0
+#define MAX_PITCHMOD    20.0
 #define DELAYPOS_SHIFT  28
 #define DELAYPOS_SCALE  0x10000000
 #define DELAYPOS_MASK   0x0FFFFFFF
@@ -80,7 +80,6 @@ typedef struct {
     MYFLT       *aoutL, *aoutR, *ainL, *ainR, *kFeedBack, *kLPFreq;
     MYFLT       *iSampleRate, *iPitchMod, *iSkipInit;
     double      sampleRate;
-    double      jpState;
     double      dampFact;
     MYFLT       prv_LPFreq;
     int         initDone;
@@ -160,57 +159,6 @@ static void init_delay_line(SC_REVERB *p, delayLine *lp, int n)
       lp->buf[i] = FL(0.0);
 }
 
-static void delay_line_perform(SC_REVERB *p, delayLine *lp, MYFLT inSig, int n)
-{
-    double  vm1, v0, v1, v2, am1, a0, a1, a2, frac, x;
-    int     readPos;
-
-    /* send input signal and feedback to delay line */
-    lp->buf[lp->writePos] = (MYFLT) ((double) inSig + p->jpState
-                                     - lp->filterState);
-    if (++lp->writePos >= lp->bufferSize)
-      lp->writePos -= lp->bufferSize;
-    /* read from delay line */
-    if (lp->readPosFrac >= DELAYPOS_SCALE) {
-      lp->readPos += (lp->readPosFrac >> DELAYPOS_SHIFT);
-      lp->readPosFrac &= DELAYPOS_MASK;
-    }
-    if (lp->readPos >= lp->bufferSize)
-      lp->readPos -= lp->bufferSize;
-    readPos = lp->readPos;
-    frac = (double) lp->readPosFrac * (1.0 / (double) DELAYPOS_SCALE);
-    if (readPos > 0 && readPos < (lp->bufferSize - 2)) {
-      vm1 = (double) (lp->buf[readPos - 1]);
-      v0 = (double) (lp->buf[readPos]);
-      v1 = (double) (lp->buf[readPos + 1]);
-      v2 = (double) (lp->buf[readPos + 2]);
-    }
-    else {
-      /* at buffer wrap-around, need to check index */
-      if (--readPos < 0) readPos += lp->bufferSize;
-      vm1 = (double) lp->buf[readPos];
-      if (++readPos >= lp->bufferSize) readPos -= lp->bufferSize;
-      v0 = (double) lp->buf[readPos];
-      if (++readPos >= lp->bufferSize) readPos -= lp->bufferSize;
-      v1 = (double) lp->buf[readPos];
-      if (++readPos >= lp->bufferSize) readPos -= lp->bufferSize;
-      v2 = (double) lp->buf[readPos];
-    }
-    lp->readPosFrac += lp->readPosFrac_inc;
-    /* with cubic interpolation */
-    a2 = frac * frac; a2 -= 1.0; a2 *= (1.0 / 6.0);
-    a1 = frac; a1 += 1.0; a1 *= 0.5; am1 = a1 - 1.0;
-    a0 = 3.0 * a2; a1 -= a0; am1 -= a2; a0 -= frac;
-    x = (am1 * vm1 + a0 * v0 + a1 * v1 + a2 * v2) * frac + v0;
-    /* lowpass filter */
-    x *= (double) *(p->kFeedBack);
-    x = (lp->filterState - x) * p->dampFact + x;
-    lp->filterState = x;
-    /* start next random line segment if current one has reached endpoint */
-    if (--(lp->randLine_cnt) <= 0)
-      next_random_lineseg(p, lp, n);
-}
-
 static int sc_reverb_init(ENVIRON *csound, SC_REVERB *p)
 {
     int i, nBytes;
@@ -218,9 +166,9 @@ static int sc_reverb_init(ENVIRON *csound, SC_REVERB *p)
     /* check for valid parameters */
     if (*(p->iSampleRate) <= FL(0.0))
       p->sampleRate = (double) csound->esr_;
-    else if (*(p->iSampleRate) >= MIN_SRATE && *(p->iSampleRate) <= MAX_SRATE)
+    else
       p->sampleRate = (double) *(p->iSampleRate);
-    else {
+    if (p->sampleRate < MIN_SRATE || p->sampleRate > MAX_SRATE) {
       initerror(Str("reverbsc: sample rate is out of range"));
       return NOTOK;
     }
@@ -244,8 +192,6 @@ static int sc_reverb_init(ENVIRON *csound, SC_REVERB *p)
       init_delay_line(p, p->delayLines[i], i);
       nBytes += delay_line_bytes_alloc(p, i);
     }
-    p->jpState = 0.0;
-    p->dampFact = 0.0;
     p->prv_LPFreq = FL(-1.0);
     p->initDone = 1;
 
@@ -254,8 +200,10 @@ static int sc_reverb_init(ENVIRON *csound, SC_REVERB *p)
 
 static int sc_reverb_perf(ENVIRON *csound, SC_REVERB *p)
 {
-    double  aoutL, aoutR;
-    int     i, j;
+    double    ainL, ainR, aoutL, aoutR;
+    double    vm1, v0, v1, v2, am1, a0, a1, a2, frac;
+    delayLine *lp;
+    int       i, n, readPos;
 
     if (p->initDone <= 0) {
       perferror(Str("reverbsc: not initialised"));
@@ -269,27 +217,68 @@ static int sc_reverb_perf(ENVIRON *csound, SC_REVERB *p)
     }
     /* update delay lines */
     for (i = 0; i < csound->ksmps_; i++) {
-      /* calculate "resultant junction pressure" */
-      p->jpState = 0.0;
-      for (j = 0; j < 8; j++)
-        p->jpState += p->delayLines[j]->filterState;
-      p->jpState *= jpScale;
-      delay_line_perform(p, p->delayLines[0], p->ainL[i], 0);
-      aoutL = p->delayLines[0]->filterState;
-      delay_line_perform(p, p->delayLines[1], p->ainR[i], 1);
-      aoutR = p->delayLines[1]->filterState;
-      delay_line_perform(p, p->delayLines[2], p->ainL[i], 2);
-      aoutL += p->delayLines[2]->filterState;
-      delay_line_perform(p, p->delayLines[3], p->ainR[i], 3);
-      aoutR += p->delayLines[3]->filterState;
-      delay_line_perform(p, p->delayLines[4], p->ainL[i], 4);
-      aoutL += p->delayLines[4]->filterState;
-      delay_line_perform(p, p->delayLines[5], p->ainR[i], 5);
-      aoutR += p->delayLines[5]->filterState;
-      delay_line_perform(p, p->delayLines[6], p->ainL[i], 6);
-      aoutL += p->delayLines[6]->filterState;
-      delay_line_perform(p, p->delayLines[7], p->ainR[i], 7);
-      aoutR += p->delayLines[7]->filterState;
+      /* calculate "resultant junction pressure" and mix to input signals */
+      ainL = aoutL = aoutR = 0.0;
+      for (n = 0; n < 8; n++)
+        ainL += p->delayLines[n]->filterState;
+      ainL *= jpScale;
+      ainR = ainL + (double) p->ainR[i];
+      ainL = ainL + (double) p->ainL[i];
+      /* loop through all delay lines */
+      for (n = 0; n < 8; n++) {
+        lp = p->delayLines[n];
+        /* send input signal and feedback to delay line */
+        lp->buf[lp->writePos] = (MYFLT) ((n & 1 ? ainR : ainL)
+                                         - lp->filterState);
+        if (++lp->writePos >= lp->bufferSize)
+          lp->writePos -= lp->bufferSize;
+        /* read from delay line with cubic interpolation */
+        if (lp->readPosFrac >= DELAYPOS_SCALE) {
+          lp->readPos += (lp->readPosFrac >> DELAYPOS_SHIFT);
+          lp->readPosFrac &= DELAYPOS_MASK;
+        }
+        if (lp->readPos >= lp->bufferSize)
+          lp->readPos -= lp->bufferSize;
+        readPos = lp->readPos;
+        frac = (double) lp->readPosFrac * (1.0 / (double) DELAYPOS_SCALE);
+        /* calculate interpolation coefficients */
+        a2 = frac * frac; a2 -= 1.0; a2 *= (1.0 / 6.0);
+        a1 = frac; a1 += 1.0; a1 *= 0.5; am1 = a1 - 1.0;
+        a0 = 3.0 * a2; a1 -= a0; am1 -= a2; a0 -= frac;
+        /* read four samples for interpolation */
+        if (readPos > 0 && readPos < (lp->bufferSize - 2)) {
+          vm1 = (double) (lp->buf[readPos - 1]);
+          v0 = (double) (lp->buf[readPos]);
+          v1 = (double) (lp->buf[readPos + 1]);
+          v2 = (double) (lp->buf[readPos + 2]);
+        }
+        else {
+          /* at buffer wrap-around, need to check index */
+          if (--readPos < 0) readPos += lp->bufferSize;
+          vm1 = (double) lp->buf[readPos];
+          if (++readPos >= lp->bufferSize) readPos -= lp->bufferSize;
+          v0 = (double) lp->buf[readPos];
+          if (++readPos >= lp->bufferSize) readPos -= lp->bufferSize;
+          v1 = (double) lp->buf[readPos];
+          if (++readPos >= lp->bufferSize) readPos -= lp->bufferSize;
+          v2 = (double) lp->buf[readPos];
+        }
+        v0 = (am1 * vm1 + a0 * v0 + a1 * v1 + a2 * v2) * frac + v0;
+        /* update buffer read position */
+        lp->readPosFrac += lp->readPosFrac_inc;
+        /* apply feedback gain and lowpass filter */
+        v0 *= (double) *(p->kFeedBack);
+        v0 = (lp->filterState - v0) * p->dampFact + v0;
+        lp->filterState = v0;
+        /* mix to output */
+        if (n & 1)
+          aoutR += v0;
+        else
+          aoutL += v0;
+        /* start next random line segment if current one has reached endpoint */
+        if (--(lp->randLine_cnt) <= 0)
+          next_random_lineseg(p, lp, n);
+      }
       p->aoutL[i] = (MYFLT) (aoutL * outputGain);
       p->aoutR[i] = (MYFLT) (aoutR * outputGain);
     }
