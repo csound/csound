@@ -627,6 +627,7 @@ static int decode_long(void *csound,
   /* -h */
   else if (!(strcmp (s, "noheader"))) {
     O.sfheader = 0;          /* skip sfheader  */
+    O.filetyp = TYP_RAW;
     return 1;
   }
   else if (!(strncmp (s, "heartbeat=", 10))) {
@@ -1130,6 +1131,7 @@ int argdecode(void *csound,
           break;
         case 'h':
           O.sfheader = 0;           /* skip sfheader  */
+          O.filetyp = TYP_RAW;
           break;
         case 'c':
         case 'a':
