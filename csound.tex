@@ -49,15 +49,13 @@ Once you have either unpacked a binary distribution, or built Csound from source
 
 Consult the Csound language documentation for instructions on how to install and configure Csound.
 
-On Windows, make sure that the \texttt{windows\_dlls} directory is in your \texttt{PATH} environment variable, or else copy the files in it to your Windows \texttt{system32} directory. 
+On Windows, make sure that the \texttt{csound5} directory is in your \texttt{PATH} environment variable, or else copy the files in it to your Windows \texttt{system32} directory. 
+
+On Windows, make sure the directory or directories (normally the \texttt{csound5} directory) containing the Csound executables directory and all the Csound plugin opcodes are also in your \texttt{PATH} variable. On Unix and Linux, either install the Csound program in one of the system bin directories, typically \texttt{/usr/local/bin}, and the Csound and plugin shared libraries in one of the system lib directories, typically \texttt{/usr/local/lib}; or make sure that the directory containing the Csound and plugin shared libraries is in your \texttt{LD\_LIBRARY\_PATH} environment variable. This variable may have a different name in different operating systems.
 
 \subsection{CsoundVST}
-CsoundVST requires some additional configuration:
-\begin{enumerate}
-\item Make sure that the Csound executables are in your \texttt{PATH} environment variable. 
-\item On Windows, make sure the directory containing the \texttt{\_CsoundVST.dll} file and all the Csound plugin opcodes is also in your \texttt{PATH} variable. On Unix and Linux, either install the Csound program in one of the system bin directories, typically \texttt{/usr/local/bin},  and the Csound and plugin shared libraries in one of the system lib directories, typically \texttt{/usr/local/lib}; or make sure that the directory containing the \texttt{\_CsoundVST.so} file and all the Csound plugin opcodes is in your \texttt{LD\_LIBRARY\_PATH} environment variable. This variable may have a different name in different operating systems.
-\item On all platforms, CsoundVST requires that you have Python installed on your computer. The directory containing the \texttt{\_CsoundVST} shared library and the \texttt{CsoundVST.py} file must be in your \texttt{PYTHONPATH} environment variable, so that the Python runtime knows how to load these files.
-\end{enumerate}
+
+CsoundVST requires some additional configuration. On all platforms, CsoundVST requires that you have Python installed on your computer. The directory containing the \texttt{\_CsoundVST} shared library and the \texttt{CsoundVST.py} file must be in your \texttt{PYTHONPATH} environment variable, so that the Python runtime knows how to load these files.
 
 \section{Using}
 
