@@ -350,7 +350,8 @@ ENVIRON cenviron_ = {
         (MEMFIL*) NULL, /* rwd_memfiles */
         0,              /* FFT_max_size */
         NULL,           /* FFT_table_1 */
-        NULL            /* FFT_table_2 */
+        NULL,           /* FFT_table_2 */
+        NULL, NULL, NULL /* tseg, tpsave, tplim */
 };
 
 OPARMS O;

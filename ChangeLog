@@ -1,3 +1,7 @@
+2005-03-30  John ff  <jpff@codemist.co.uk>
+
+	* Engine/twarp.c: Removed statics from file
+
 2005-03-29	Istvan Varga	<istvan@csounds.com>
 	* more API changes (affecting a large number of files)
 	* Opcodes/newfils.c:
