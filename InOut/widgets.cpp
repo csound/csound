@@ -1276,7 +1276,8 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
             ((Fl_Positioner*) o)->xvalue(log(val/fld.min) / log(base)) ;
             break;
           default:
-            if (O.msglevel & WARNMSG) printf("WARNING (SNAPSHOT::get): not implemented yet; exp=%d\n", fld.exp);
+            if (O.msglevel & WARNMSG) printf("WARNING (SNAPSHOT::get): "
+                        "not implemented yet; exp=%d\n", fld.exp);
             break;
         }
         val = fld.value2; min = fld.min2; max = fld.max2;
@@ -1292,7 +1293,8 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
             ((Fl_Positioner*) o)->yvalue(log(val/fld.min2) / log(base)) ;
             break;
           default:
-            if (O.msglevel & WARNMSG) printf("WARNING (SNAPSHOT::get): not implemented yet; exp2=%d\n", fld.exp2);
+            if (O.msglevel & WARNMSG) printf("WARNING (SNAPSHOT::get): "
+                        "not implemented yet; exp2=%d\n", fld.exp2);
             break;
         }
         o->do_callback(o, opcode);
@@ -1338,9 +1340,11 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
               break;
             default:
               ((Fl_Valuator *) grup->child(j))->value(val);
-              //if (O.msglevel & WARNMSG)
-              //  printf("WARNING: not implemented yet (bogus)");
+              /*
+              if (O.msglevel & WARNMSG)
+                printf("WARNING: not implemented yet (bogus)");
               break;
+              */
           }
           grup->child(j)->do_callback( grup->child(j),
                                        (void *) &(p->slider_data[j]));
@@ -1359,7 +1363,8 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
             break;
           default:
             if (O.msglevel & WARNMSG)
-              printf("WARNING (SNAPSHOT::get): not implemented yet; exp=%d\n", fld.exp);
+              printf("WARNING (SNAPSHOT::get): not implemented yet; "
+                            "exp=%d\n", fld.exp);
             break;
         }
         o->do_callback(o, opcode);
@@ -1719,7 +1724,7 @@ static void __cdecl fltkKeybRun(void *s)
     oKeyb->show();
     //Fl::run();
     bool run = true;
-    while(run) {
+    while(run && kcnt) {
       Fl::lock();
       run = Fl::wait();
       int temp = FLkeyboard_sensing();
@@ -2337,7 +2342,8 @@ extern "C" int fl_setWidgetValuei(FL_SET_WIDGET_VALUE_I *p)
         val = (log(val/v.min) / log(base)) ;
         break;
       default:
-        if (O.msglevel & WARNMSG) printf("WARNING (fl_setWidgetValuei): not implemented yet; exp=%d\n", v.exponential);
+        if (O.msglevel & WARNMSG) printf("WARNING (fl_setWidgetValuei): "
+                "not implemented yet; exp=%d\n", v.exponential);
     }
     Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
 #if 0 /* this is broken */
@@ -2396,7 +2402,8 @@ extern "C" int fl_setWidgetValue_set(FL_SET_WIDGET_VALUE *p)
       p->log_base = log(base);
       break;
     default:
-      if (O.msglevel & WARNMSG) printf("WARNING (fl_setWidgetValue_set): not implemented yet; exp=%d\n", v.exponential);
+      if (O.msglevel & WARNMSG) printf("WARNING (fl_setWidgetValue_set): "
+            "not implemented yet; exp=%d\n", v.exponential);
       return NOTOK;
     }
     return OK;
@@ -2417,7 +2424,8 @@ extern "C" int fl_setWidgetValue(FL_SET_WIDGET_VALUE *p)
         val = (log(val/p->min) / p->log_base) ;
         break;
       default:
-        if (O.msglevel & WARNMSG) printf("WARNING (fl_setWidgetValue): not implemented yet; exp=%d\n", p->exp);
+        if (O.msglevel & WARNMSG) printf("WARNING (fl_setWidgetValue): not "
+                "implemented yet; exp=%d\n", p->exp);
         return NOTOK;
       }
       Fl_Widget *o = (Fl_Widget *) p->WidgAddress;

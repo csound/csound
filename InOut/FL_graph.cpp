@@ -300,12 +300,12 @@ extern "C"
         menu[m].user_data_ = NULL;
         menu[m].text = "(deleted)";
     }
-
+    
     int myFLwait()
     {
         if (form==NULL) return 1;
         end->show();
-        while (end->value()==0) {
+        while (end->value()==0 && kcnt) {
             Fl::lock();
             Fl::wait(0.5);
             Fl::unlock();
