@@ -624,6 +624,8 @@ zipDependencies.append(pluginEnvironment.SharedLibrary('space',
     ['Opcodes/space.c']))
 zipDependencies.append(pluginEnvironment.SharedLibrary('spat3d', 
     ['Opcodes/spat3d.c']))
+zipDependencies.append(pluginEnvironment.SharedLibrary('ugens7', 
+    ['Opcodes/ugens7.c']))
 zipDependencies.append(pluginEnvironment.SharedLibrary('ugensa', 
     ['Opcodes/ugensa.c']))
 zipDependencies.append(pluginEnvironment.SharedLibrary('uggab', 
