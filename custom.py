@@ -19,16 +19,17 @@ if sys.platform[:5] == 'linux':
     platform = 'linux'
 elif sys.platform == 'cygwin':
     platform = 'cygwin'
-    customCPPPATH.append('c:/tools/Python23/include')
+    customCPPPATH.append('c:/apcc/tools/Python23/include')
     customLIBPATH.append('cygwin_import_libs')
 elif sys.platform[:3] == 'win':
     # For the basic build you need MinGW, MSys, and libsndfile.
     # Add them here:
-    customLIBPATH.append('c:/tools/mingw/lib')
-    customCPPPATH.append('c:/tools/msys/1.0/local/include')
-    customLIBPATH.append('c:/tools/msys/1.0/local/lib')
+    customLIBPATH.append('c:/apcc/tools/mingw/lib')
+    customCPPPATH.append('c:/apcc/tools/msys/1.0/local/include')
+    customLIBPATH.append('c:/apcc/tools/msys/1.0/local/lib')
     # If libsndfile is not in a standard location add it here:
-    # customLIBPATH.append('C:/tools/libsndfile-1.0.10')
+    customCPPPATH.append('C:/apcc/tools/libsndfile-1.0.10/src')
+    customLIBPATH.append('C:/apcc/tools/libsndfile-1.0.10')
     ################################################################
     # If you want real-time audio you need PortAudio.
     # If it is not in a standard location add it here
@@ -52,13 +53,13 @@ elif sys.platform[:3] == 'win':
     # If you want to build CsoundVST you need boost.
     # If it is not in a standard lcoation add it here
     # (you do NOT need to build it first):
-    customCPPPATH.append('c:/tools/boost')
+    customCPPPATH.append('c:/apcc/tools/boost')
     ################################################################
     # If you want to build the FluidSynth opcodes 
     # you need FluidSynth. If it is not a standard location,
     # add it here (you do NOT need to build it first):
-    customLIBPATH.append('c:/tools/fluidsynth')
-    customCPPPATH.append('c:/tools/fluidsynth/include')
+    customLIBPATH.append('c:/apcc/tools/fluidsynth-1.0.3-win32')
+    customCPPPATH.append('c:/apcc/tools/fluidsynth-1.0.3-win32/include')
     ################################################################
     platform = 'mingw'
 else:
