@@ -35,6 +35,8 @@ VSTPlugin::VSTPlugin(ENVIRON *csound_) :
     windowHandle(0), 
     csound(csound_), 
     aeffect(0), 
+    editor(0),
+    hasEditor(false),
     libraryHandle(0), 
     overwrite(false),
     showParameters(false),
@@ -225,7 +227,7 @@ void VSTPlugin::Info()
 	pluginIsSynth = (aeffect->flags & effFlagsIsSynth)?true:false;
 	csound->Message(csound,"Is synthesizer? %s\n",(pluginIsSynth==true?"Yes":"No"));
 	overwrite = (aeffect->flags & effFlagsCanReplacing)?true:false;
-	editor = (aeffect->flags & effFlagsHasEditor)?true:false;
+	hasEditor = (aeffect->flags & effFlagsHasEditor)?true:false;
 	csound->Message(csound,"Number of inputs: %i\n", getNumInputs());
 	csound->Message(csound,"Number of outputs: %i\n", getNumOutputs());
 	long nparams=NumParameters();
@@ -331,39 +333,31 @@ bool VSTPlugin::replace()
 	return overwrite;
 }
 
-void VSTPlugin::edit()
-{	
-	if(aeffect) { 		
-		if( ( editor ) && (!edited)) {			
-			edited = true;
-			//b = (CEditorThread*) AfxBeginThread(RUNTIME_CLASS( CEditorThread ) );
-			/*b =  new CEditorThread();			
-			b->SetPlugin( this );			
-			b->CreateThread();	*/		
-		}
-	}
-}
-
 void VSTPlugin::EditorIdle()
 {
 	Dispatch(effEditIdle,0,0, windowHandle,0.0f);			
 }
 
+
 ERect VSTPlugin::GetEditorRect()
 {
-	ERect rect;
-	Dispatch(effEditGetRect,0,0, &rect,0.0f);				
+    ERect *rect_ = 0;
+	Dispatch(effEditGetRect,0,0, &rect_,0.0f);	
+	rect = *rect_;
 	return rect;
 }
 
 void VSTPlugin::OpenEditor()
 {
-    ERect rect = GetEditorRect();
+    GetEditorRect();
+    Debug("ERect top %d left %d right %d bottom %d.\n", rect.top, rect.left, 
+        rect.right, rect.bottom);
     window = new Fl_Window(rect.right, rect.bottom, GetName());
-    window->end();
-	windowHandle = fl_xid(window);
-	SetEditWindow(windowHandle);
+    Debug("Window 0x%x.\n", window);
     window->show();						
+	windowHandle = fl_xid(window);
+    Debug("windowHandle 0x%x.\n", windowHandle);
+	SetEditWindow(windowHandle);
 }
 
 void VSTPlugin::CloseEditor()
@@ -569,7 +563,7 @@ bool VSTPlugin::OnOutputConnected(AEffect *effect, long output)
 long VSTPlugin::Master(AEffect *effect, long opcode, long index, 
     long value, void *ptr, float opt)
 {
-    // These messages are to tell Csound what the plugins want it to do.
+    // These messages are to tell Csound what the plugin wants it to do.
     fprintf(stdout, "VSTPlugin::Master(AEffect 0x%x, opcode %d, index %d, "
         "value %d, ptr 0x%x, opt %f)\n",
         effect, opcode, index, value, ptr, opt);
@@ -646,8 +640,8 @@ long VSTPlugin::Master(AEffect *effect, long opcode, long index,
 	case audioMasterIOChanged:
         if(plugin) plugin->Log("VST master dispatcher: IOchanged\n");
         break;
-	case audioMasterSizeWindow:					
-        if(plugin) plugin->Log("VST master dispatcher: Size Window\n");
+	case audioMasterSizeWindow:
+        if(plugin) ptr = &plugin->rect;//plugin->Log("VST master dispatcher: Size Window\n");
         break;
 	case audioMasterGetBlockSize:				
         if(plugin) plugin->Log("VST master dispatcher: GetBlockSize\n");

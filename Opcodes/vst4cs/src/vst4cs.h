@@ -114,11 +114,11 @@ typedef struct VSTPROGSET_ {
 	MYFLT *iprogram;
 } VSTPROGSET;
 
-typedef struct VSTEDITDLG_ {
+typedef struct VSTEDIT_ {
 	OPDS h;
 	// Inputs.
 	MYFLT *iVSThandle;
-} VSTEDITDLG;
+} VSTEDIT;
 
 #endif
 

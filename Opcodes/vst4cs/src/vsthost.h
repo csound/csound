@@ -60,6 +60,9 @@ public:
     ENVIRON *csound;
 	void *libraryHandle;
 	AEffect *aeffect;
+	bool hasEditor;
+	AEffEditor *editor;
+	ERect rect;
 	Fl_Window *window;
 	void *windowHandle;
 	char productName[64];
@@ -81,7 +84,6 @@ public:
 	size_t framesPerBlock;
 	size_t channels;
 	char midiChannel;
-	bool editor;
 	
     VSTPlugin(ENVIRON *csound);
 	virtual ~VSTPlugin();
@@ -98,7 +100,6 @@ public:
 	virtual void SetEditWindow(void *h);
 	virtual ERect GetEditorRect();
 	virtual void EditorIdle();
-	virtual void edit(void);
 	virtual bool replace();
 	virtual void Free();
 	virtual int Instantiate(const char *libraryPathname);
