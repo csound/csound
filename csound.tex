@@ -69,19 +69,21 @@ To build Csound 5:
 \item FLTK version 1.1.x for displaying graphs of function tables, and for widget opcodes, from \linebreak[3] \texttt{http://www.fltk.org}.
 \end{enumerate}
 \end{enumerate}
-If you also want to build CsoundVST, you will need in addition:
+
+If you also want to build CsoundVST, you must configure the FLTK libraries to enable threads (\texttt{./configure ---enable-threads}). And you will need to install these additional packages:
+
 \begin{enumerate}
 \item The Software Interface and Wrapper Generator (SWIG) for generating Python interfaces to CsoundVST (required for CsoundVST), from \linebreak[3] \texttt{http://www.swig.org}.
 \item The boost C++ template libraries for random numbers and linear algebra (required for CsoundVST), from \linebreak[4] \texttt{http://www.boost.org}.
 \end{enumerate}
+
 \subsection{Platforms}
+
 Currently, Csound 5 builds and runs on Windows using either the Cygwin environment (\texttt{http://www.cygwin.com}), or the MinGW \linebreak[4] (\texttt{http://www.mingw.org}) environment with the MSys shell \linebreak[4] (\texttt{http://www.mingw.org/msys.shtml}). Both of these environments are free, open source, and emulate the standard Unix/Linux environment and tools. On Linux, Csound 5 builds using the standard tools. Unix should work the same way as Linux.
 
 On Windows, the Cygwin build procedure is more like the Linux one. However, the MinGW build is preferred, since the resulting executables do not require the Cygwin DLLs and run faster.
 
 \subsubsection{Linux}
-
-For CsoundVST, you must configure the FLTK libraries to enable threads (\texttt{./configure ---enable-threads}).
 
 If you have properly installed all the dependencies mentioned above, you can build Csound 5 and CsoundVST simply by opening a console, changing to the \texttt{csound5} directory, and executing the \texttt{scons} command. To see the various configuration options, execute \texttt{scons -h}.
 
@@ -389,14 +391,18 @@ This is a ``to do'' list, not necessarily complete, for Csound and CsoundVST:
 
 \begin{enumerate}
 \item In preparation for a beta file release package:
+\begin{enumerate}
 \item Complete this document sufficiently to get users started building and running Csound and CsoundVST with MinGW and Linux.
 \item Get MIDI input and output working better on Windows (that is, a lower latency for PortAudio).
+\end{enumerate}
 \item Longer term:
+\begin{enumerate}
 \item Gabriel's Python opcodes.
 \item The Loris plugin opcodes.
 \item The ATS opcodes.
 \item The STK plugin opcodes.
 \item Investigate the Python runtime situation on MinGW.
+\end{enumerate}
 \end{enumerate}
 
 \end{document}
