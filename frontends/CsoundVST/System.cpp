@@ -78,7 +78,7 @@ namespace csound
     return (lock != 0);
   }
 
-  void ThreadLock::wait(size_t milliseconds)
+  void ThreadLock::startWait(size_t milliseconds)
   {
     if(lock)
       {
