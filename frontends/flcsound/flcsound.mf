@@ -1,0 +1,41 @@
+% Icon maker for flCsound.
+% Used at mag steps of 1, 2, 3, 4, 5, and 6.
+
+mode_def xbm =
+  proofing:=0;
+  fontmaking:=1;
+  tracingtitles:=1;
+  pixels_per_inch:=72.27;	% One pixel per point
+  blacker:=0;
+  fillin:=0;
+  o_correction:=1;
+enddef;
+
+if unknown mode: mode=xbm; fi
+
+mode_setup;
+font_size 16pt#;
+
+beginchar("O", 16pt#, 16pt#, 0); "The flCsound icon as letter O";
+  pickup pencircle scaled 2pt;
+
+  lft x1 = w/3 - eps; top y1 = h + eps;
+  lft x2 = -eps; y2 = (h-d)/2;
+  x3 = x1; bot y3 = -d - eps;
+  draw z1..z2..z3;
+
+  x4 = x1; y4 = y2;
+  rt x5 = w + eps; y5 = y4;
+  draw z4..z5;
+
+  x6 = x1; y6 = 2(h-d)/3 + eps;
+  x7 = x5; y7 = y1;
+  draw z6..z7;
+
+  x8 = x1; y8 = (h-d)/3 - eps;
+  x9 = x7; y9 = y3;
+  draw z8..z9;
+
+  labels(range 1 thru 9);
+endchar;
+end;
