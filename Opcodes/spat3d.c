@@ -614,7 +614,7 @@ int    spat3d (ENVIRON *csound, SPAT3D *p)
     if (p->maxdep < 0) return OK;  /* depth < 0 : nothing to render */
 
     if ((p->ws.auxp == NULL) || (p->y.auxp == NULL)) {
-      perferror (Str(X_1558,"spat3d: not initialised"));
+      perferror (Str("spat3d: not initialised"));
       return NOTOK;
     }
 
@@ -772,7 +772,7 @@ int    spat3di (ENVIRON *csound, SPAT3D *p)
     if (p->maxdep < 0) return OK;  /* depth < 0 : nothing to render */
 
     if ((p->ws.auxp == NULL) || (p->y.auxp == NULL)) {
-      perferror (Str(X_1559,"spat3di: not initialised"));
+      perferror (Str("spat3di: not initialised"));
       return NOTOK;
     }
 

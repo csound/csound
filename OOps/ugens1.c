@@ -82,10 +82,10 @@ int expset(ENVIRON *csound, EXPON *p)
         p->val = a;
       }
       else if (a == FL(0.0))
-        return initerror(Str(X_600,"arg1 is zero"));
+        return initerror(Str("arg1 is zero"));
       else if (b == FL(0.0))
-        return initerror(Str(X_601,"arg2 is zero"));
-      else return initerror(Str(X_1346,"unlike signs"));
+        return initerror(Str("arg2 is zero"));
+      else return initerror(Str("unlike signs"));
     }
     return OK;
 }
@@ -164,7 +164,7 @@ int klnseg(ENVIRON *csound, LINSEG *p)
 {
     *p->rslt = p->curval;               /* put the cur value    */
     if (p->auxch.auxp==NULL) {          /* RWD fix */
-      die(Str(X_550,"\nError: linseg not initialised (krate)\n"));
+      die(Str("\nError: linseg not initialised (krate)\n"));
     }
     if (p->segsrem) {                   /* done if no more segs */
       if (--p->curcnt <= 0) {           /* if done cur segment  */
@@ -205,7 +205,7 @@ int linseg(ENVIRON *csound, LINSEG *p)
     int         nsmps = ksmps;
 
     if (p->auxch.auxp==NULL) {  /* RWD fix */
-      return perferror(Str(X_967,"linseg: not initialised (arate)\n"));
+      return perferror(Str("linseg: not initialised (arate)\n"));
     }
 
     val = p->curval;                      /* sav the cur value    */
@@ -468,10 +468,10 @@ int xsgset(ENVIRON *csound, EXXPSEG *p)
  experr:
     n = segp - p->cursegp + 1;
     if (val == FL(0.0))
-      sprintf(errmsg,Str(X_952,"ival%d is zero"), n);
+      sprintf(errmsg,Str("ival%d is zero"), n);
     else if (nxtval == FL(0.0))
-      sprintf(errmsg,Str(X_952,"ival%d is zero"), n+1);
-    else sprintf(errmsg,Str(X_953,"ival%d sign conflict"), n+1);
+      sprintf(errmsg,Str("ival%d is zero"), n+1);
+    else sprintf(errmsg,Str("ival%d sign conflict"), n+1);
     return initerror(errmsg);
 }
 
@@ -515,10 +515,10 @@ int xsgset2(ENVIRON *csound, EXPSEG2 *p)  /*gab-A1 (G.Maldonado) */
  experr:
     n = segp - p->cursegp + 1;
     if (val == FL(0.0))
-      sprintf(errmsg,Str(X_952,"ival%d is zero"), n);
+      sprintf(errmsg,Str("ival%d is zero"), n);
     else if (nxtval == FL(0.0))
-      sprintf(errmsg,Str(X_952,"ival%d is zero"), n+1);
-    else sprintf(errmsg,Str(X_953,"ival%d sign conflict"), n+1);
+      sprintf(errmsg,Str("ival%d is zero"), n+1);
+    else sprintf(errmsg,Str("ival%d sign conflict"), n+1);
     return NOTOK;
 }
 
@@ -620,7 +620,7 @@ int kxpseg(ENVIRON *csound, EXXPSEG *p)
 
     segp = p->cursegp;
     if (p->auxch.auxp==NULL) { /* RWD fix */
-      return perferror(Str(X_750,"expseg (krate): not initialised"));
+      return perferror(Str("expseg (krate): not initialised"));
     }
     while (--segp->cnt < 0)
       p->cursegp = ++segp;
@@ -638,7 +638,7 @@ int expseg(ENVIRON *csound, EXXPSEG *p)
 
     segp = p->cursegp;
     if (p->auxch.auxp==NULL) { /* RWD fix */
-      return perferror(Str(X_749,"expseg (arate): not initialised"));
+      return perferror(Str("expseg (arate): not initialised"));
     }
     while (--segp->cnt < 0)
       p->cursegp = ++segp;
@@ -693,10 +693,10 @@ int xsgrset(ENVIRON *csound, EXPSEG *p)
  experr:
     n = segp - p->cursegp + 2;
     if (prvpt == FL(0.0))
-      sprintf(errmsg,Str(X_952,"ival%d is zero"), n);
+      sprintf(errmsg,Str("ival%d is zero"), n);
     else if (segp->nxtpt == FL(0.0))
-      sprintf(errmsg,Str(X_952,"ival%d is zero"), n+1);
-    else sprintf(errmsg,Str(X_953,"ival%d sign conflict"), n+1);
+      sprintf(errmsg,Str("ival%d is zero"), n+1);
+    else sprintf(errmsg,Str("ival%d sign conflict"), n+1);
     return initerror(errmsg);
 }
 
@@ -938,7 +938,7 @@ int lnrset(ENVIRON *csound, LINENR *p)
       if (relestim > p->h.insdshead->xtratim)
         p->h.insdshead->xtratim = relestim;
       if (*p->iatdec <= FL(0.0)) {
-        return initerror(Str(X_1075,"non-positive iatdec"));
+        return initerror(Str("non-positive iatdec"));
       }
       else p->mlt2 = (MYFLT) pow((double)*p->iatdec, ((double)onedkr/ *p->idec));
     }
@@ -1032,7 +1032,7 @@ int evxset(ENVIRON *csound, ENVLPX *p)
       }
       if (iatss != FL(1.0) && (ixmod = *p->ixmod) != FL(0.0)) {
         if (fabs(ixmod) > .95) {
-          return initerror(Str(X_954,"ixmod out of range."));
+          return initerror(Str("ixmod out of range."));
         }
         ixmod = -(MYFLT)sin(sin(ixmod));
         prod = ixmod * iatss;
@@ -1060,7 +1060,7 @@ int evxset(ENVIRON *csound, ENVLPX *p)
         irise = FL(0.0);  /* in case irise < 0 */
       }
       if (!(*(ftp->ftable + ftp->flen))) {
-        return initerror(Str(X_1168,"rise func ends with zero"));
+        return initerror(Str("rise func ends with zero"));
       }
       cnt1 = (long) ((idur - irise - *p->idec) * ekr + FL(0.5));
       if (cnt1 < 0L) {
@@ -1075,7 +1075,7 @@ int evxset(ENVIRON *csound, ENVLPX *p)
       p->mlt1 = (MYFLT) pow((double)iatss, (1.0/nk));
       if (*p->idec > FL(0.0)) {
         if (*p->iatdec <= FL(0.0)) {
-          return initerror(Str(X_1075,"non-positive iatdec"));
+          return initerror(Str("non-positive iatdec"));
         }
         p->mlt2 = (MYFLT) pow((double)*p->iatdec,
                               ((double)onedkr / *p->idec));
@@ -1094,7 +1094,7 @@ int knvlpx(ENVIRON *csound, ENVLPX *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {        /* RWD fix */
-      return perferror(Str(X_720,"envlpx(krate): not initialised"));
+      return perferror(Str("envlpx(krate): not initialised"));
     }
 
     if ((phs = p->phs) >= 0) {
@@ -1106,7 +1106,7 @@ int knvlpx(ENVIRON *csound, ENVLPX *p)
       if (phs >= MAXLEN) {  /* check that 2**N+1th pnt is good */
         p->val = *(ftp->ftable + ftp->flen );
         if (!p->val) {
-          return perferror(Str(X_719,"envlpx rise func ends with zero"));
+          return perferror(Str("envlpx rise func ends with zero"));
         }
         p->val -= p->asym;
         phs = -1L;
@@ -1141,7 +1141,7 @@ int envlpx(ENVIRON *csound, ENVLPX *p)
     if ((phs = p->phs) >= 0L) {
       ftp = p->ftp;
       if (ftp==NULL) { /* RWD fix */
-        return perferror(Str(X_720,"envlpx(krate): not initialised"));
+        return perferror(Str("envlpx(krate): not initialised"));
       }
       fract = (MYFLT) PFRAC(phs);
       ftab = ftp->ftable + (phs >> ftp->lobits);
@@ -1151,7 +1151,7 @@ int envlpx(ENVIRON *csound, ENVLPX *p)
       if (phs >= MAXLEN) {  /* check that 2**N+1th pnt is good */
         nxtval = *(ftp->ftable + ftp->flen );
         if (!nxtval) {
-          return perferror(Str(X_719,"envlpx rise func ends with zero"));
+          return perferror(Str("envlpx rise func ends with zero"));
         }
         nxtval -= p->asym;
         phs = -1;
@@ -1199,7 +1199,7 @@ int evrset(ENVIRON *csound, ENVLPR *p)
     }
     if (iatss != FL(1.0) && (ixmod = *p->ixmod) != FL(0.0)) {
       if (fabs(ixmod) > .95) {
-        return initerror(Str(X_954,"ixmod out of range."));
+        return initerror(Str("ixmod out of range."));
       }
       ixmod = -(MYFLT)sin(sin((double)ixmod));
       prod = ixmod * iatss;
@@ -1227,7 +1227,7 @@ int evrset(ENVIRON *csound, ENVLPR *p)
       irise = FL(0.0);          /* in case irise < 0 */
     }
     if (!(*(ftp->ftable + ftp->flen))) {
-      return initerror(Str(X_1168,"rise func ends with zero"));
+      return initerror(Str("rise func ends with zero"));
     }
     p->mlt1 = (MYFLT)pow((double)iatss, (double)onedkr);
     if (*p->idec > FL(0.0)) {
@@ -1237,7 +1237,7 @@ int evrset(ENVIRON *csound, ENVLPR *p)
       else if (rlscnt > p->h.insdshead->xtratim)
         p->h.insdshead->xtratim = (int)rlscnt;
       if ((p->atdec = *p->iatdec) <= FL(0.0) ) {
-        return initerror(Str(X_1075,"non-positive iatdec"));
+        return initerror(Str("non-positive iatdec"));
       }
     }
     p->asym = asym;

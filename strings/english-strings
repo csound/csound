@@ -346,7 +346,7 @@
 346,"Minimum frequency too low"
 347,"Missing argument terminator\n%.98s"
 348,"Missing endin"
-349,"Must be \"on or \"off\""
+349,"Must be \"on\" or \"off\""
 350,"Must specify 2 or more letters of keyword"
 351,""
 352,"Name not found"
@@ -412,7 +412,6 @@
 412,"PVOC debug : one frame gets through \n"
 413,"PVOC frame %d bigger than %ld in %s"
 414,"PVOC frame %ld seems too small in %s"
-415,"WARNING: PVOC ktimpnt truncated to last frame"
 415,"WARNING: PVOC ktimpnt truncated to last frame\n"
 416,"PVOC timpnt < 0"
 417,"PVOC transpose too high"
@@ -693,7 +692,7 @@
 692,"deltapi: not initialised"
 693,"deltapn: not initialised"
 694,""
-695,"diskin cannot find \"%s
+695,"diskin cannot find \"%s\""
 696,"diskin cannot open %s"
 697,"diskin read error - during backwards playback"
 698,"diskin seek error during reinit"
@@ -1203,7 +1202,7 @@
 1202,"soundfile read error, could not fill first frame"
 1203,"soundfile write returned bytecount of %d, not %d\n"
 1204,"WARNING: soundin %s superceded by %s header format %s\n"
-1205,"soundin cannot find \"%s
+1205,"soundin cannot find \"%s\""
 1206,"soundin cannot open %s"
 1207,""
 1208,"soundin seek error"
@@ -1462,7 +1461,7 @@
 1461,"delayw: associated delayr not found"
 1462,"deltap: associated delayr not found"
 1463,"diskinfo cannot open %s"
-1464,"diskinfo cannot find \"%s
+1464,"diskinfo cannot find \"%s\""
 1465,"fprint: cannot open outfile %s"
 1466,"fout: invalid file handle"
 1467,"foutk: cannot open outfile %s"
@@ -1490,14 +1489,14 @@
 1489,"Scansynth window"
 1490,"vermp: Trajectory table includes values out of range"
 1491,""
-1492,"\nPreset list of \"%s
+1492,"\nPreset list of \"%s\""
 1493,"%3d) %-20s\tprog:%-3d bank:%d\n"
-1494,"\nAssigning all Presets of \"%s
+1494,"\nAssigning all Presets of \"%s\""
 1495,"%3d<--%-20s\t(prog:%-3d bank:%d)\n"
 1496,"\nAll presets have been assigned to preset handles from %d to %d \n\n"
-1497,"\nInstrument list of \"%s
+1497,"\nInstrument list of \"%s\""
 1498,"sfpreset: preset handle too big (%d), max: %d"
-1499,"sfpreset: cannot find any preset having prog.number %d and bank number %d in SoundFont file \"%s
+1499,"sfpreset: cannot find any preset having prog.number %d and bank number %d in SoundFont file \"%s\""
 1500,"sfinstr: instrument out of range"
 1501,"scanux: Could not find ifnnit ftable"
 1502,"scanux: Could not find ifninit ftable"
@@ -1805,7 +1804,7 @@
 1804,"subinstr: not initialised"
 1805,"WARNING: LineBuffer Overflow - Input Data has been Lost\n"
 1806,"WARNING: Input ignored, RT Line Events (-L) has not been initialised\n"
-1807,"event: string name is allowed only for \"i\
+1807,"event: string name is allowed only for \"i\""
 1808," - note deleted. instr %s undefined\n"
 1809,"Setting instrument %s %s\n"
 1810,"on"

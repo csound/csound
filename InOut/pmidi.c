@@ -123,7 +123,7 @@ long GetMIDIData(void)
     else {
       int retval = Pm_Poll(midistream);
       if (retval<0) {
-        printf(Str(X_1185,"sensMIDI: retval errno %d\n"),errno);
+        printf(Str("sensMIDI: retval errno %d\n"),errno);
       }
       else if (retval) {           /* Pm_Poll return TRUE, FALSE or error!! */
         long n = Pm_Read(midistream, mbuf, MBUFSIZ);
@@ -198,7 +198,7 @@ static void sustsoff(MCHNBLK *chn)  /* turnoff all notes in chnl sust array */
         if (--suscnt == 0)  break;
       }
     }
-    if (suscnt) printf(Str(X_1251,"sustain count still %d\n"), suscnt);
+    if (suscnt) printf(Str("sustain count still %d\n"), suscnt);
     chn->ksuscnt = 0;
 }
 
@@ -221,7 +221,7 @@ void m_chanmsg(MEVENT *mep) /* exec non-note chnl_voice & chnl_mode cmnds */
       if (n > 0 && n <= maxinsno            /* if corresp instr exists  */
           && instrtxtp[n] != NULL) {        /*     assign as pgmno      */
         chn->pgmno = n;                     /* else ignore prog. change */
-        printf(Str(X_991,"midi channel %d now using instr %d\n"),
+        printf(Str("midi channel %d now using instr %d\n"),
                mep->chan+1,chn->pgmno);
       }
       break;
@@ -257,7 +257,7 @@ void m_chanmsg(MEVENT *mep) /* exec non-note chnl_voice & chnl_mode cmnds */
           case 99: ctl = TVA_RIS;         break;
           case 100:ctl = TVA_DEC;         break;
           case 102:ctl = TVA_RLS;         break;
-          default:printf(Str(X_1327,"unknown NPRN lsb %d\n"), lsb);
+          default:printf(Str("unknown NPRN lsb %d\n"), lsb);
             goto err;
           }
           fval = (MYFLT) (mep->dat2 - 64);
@@ -266,7 +266,7 @@ void m_chanmsg(MEVENT *mep) /* exec non-note chnl_voice & chnl_mode cmnds */
         else {
           if (msb < 24 || msb == 25 || msb == 27 ||
               msb > 31 || lsb < 25  || lsb > 87)
-            printf(Str(X_1333,"unknown drum param nos, msb %ld lsb %ld\n"),
+            printf(Str("unknown drum param nos, msb %ld lsb %ld\n"),
                    (long)msb, (long)lsb);
           else {
             static int drtab[8] = {0,0,1,1,2,3,4,5};
@@ -281,7 +281,7 @@ void m_chanmsg(MEVENT *mep) /* exec non-note chnl_voice & chnl_mode cmnds */
                 fval = xx + *fp;    /* optionally map */
               }
             }
-            printf(Str(X_195,"CHAN %ld DRUMKEY %ld not in keylst,"
+            printf(Str("CHAN %ld DRUMKEY %ld not in keylst,"
                    " PARAM %ld NOT UPDATED\n"),
                    (long)mep->chan+1, (long)lsb, (long)msb);
           }
@@ -326,15 +326,15 @@ void m_chanmsg(MEVENT *mep) /* exec non-note chnl_voice & chnl_mode cmnds */
               if (index) {
                 int insno = inxp->inslst[index-1];
                 xturnon(insno, xtratim);          /*     & schedstart this */
-                printf(Str(X_934,"instr %ld now on\n"), (long)insno);
+                printf(Str("instr %ld now on\n"), (long)insno);
               }
             }
-            else printf(Str(X_908,"index %ld exceeds ctrl %ld exclus list\n"),
+            else printf(Str("index %ld exceeds ctrl %ld exclus list\n"),
                         (long)index, (long)n);
             return;
           }
 #endif
-        printf(Str(X_678,"ctrl %ld has no exclus list\n"), (long)n);
+        printf(Str("ctrl %ld has no exclus list\n"), (long)n);
         break;
       }
 /* modemsg: */
@@ -377,7 +377,7 @@ void m_chanmsg(MEVENT *mep) /* exec non-note chnl_voice & chnl_mode cmnds */
         }
         chn->mono = 0;
       }
-      else printf(Str(X_661,"chnl mode msg %d not implemented\n"), n);
+      else printf(Str("chnl mode msg %d not implemented\n"), n);
       break;
     case AFTOUCH_TYPE:
       chn->aftouch = mep->dat1;                 /* chanl (all-key) Press */
@@ -398,12 +398,12 @@ void m_chanmsg(MEVENT *mep) /* exec non-note chnl_voice & chnl_mode cmnds */
         m_song_sel((long)mep->dat1);
         break;
       default:
-        sprintf(errmsg,Str(X_1353,"unrecognised sys_common type %d"), mep->chan);
+        sprintf(errmsg,Str("unrecognised sys_common type %d"), mep->chan);
         die(errmsg);
       }
       break;
     default:
-      sprintf(errmsg,Str(X_1351,"unrecognised message type %d"), mep->type);
+      sprintf(errmsg,Str("unrecognised message type %d"), mep->type);
       die(errmsg);
     }
 }
@@ -419,7 +419,7 @@ void m_chn_init(MEVENT *mep, short chan)
       while (instrtxtp[defaultinsno]==NULL) {
         defaultinsno++;
         if (defaultinsno>maxinsno)
-          die(Str(X_993,"midi init cannot find any instrs"));
+          die(Str("midi init cannot find any instrs"));
       }
     }
     if ((chn = M_CHNBP[chan]) == NULL)
@@ -431,7 +431,7 @@ void m_chn_init(MEVENT *mep, short chan)
     mep->chan = chan;
     mep->dat1 = 121;  /* reset all controllers */
     m_chanmsg(mep);
-    printf(Str(X_992,"midi channel %d using instr %d\n"), chan + 1, chn->pgmno);
+    printf(Str("midi channel %d using instr %d\n"), chan + 1, chn->pgmno);
 }
 
 static void ctlreset(short chan)    /* reset all controllers for this channel */
@@ -447,7 +447,7 @@ MCHNBLK *m_getchnl(short chan)          /* get or create a chnlblk ptr */
 {
     MCHNBLK *chn;
     if (chan < 0 || chan >= MAXCHAN) {
-      sprintf(errmsg,Str(X_870,"illegal midi chnl no %d"), chan+1);
+      sprintf(errmsg,Str("illegal midi chnl no %d"), chan+1);
       die(errmsg);
     }
     if ((chn = M_CHNBP[chan]) == NULL) {
@@ -464,17 +464,17 @@ void m_chinsno(short chan, short insno)   /* assign an insno to a chnl */
     MCHNBLK  *chn = NULL;
 
     if (insno <= 0 /* || insno >= maxinsno */ || instrtxtp[insno] == NULL) {
-      printf(Str(X_310,"Insno = %d\n"), insno);
-      die(Str(X_1336,"unknown instr"));
+      printf(Str("Insno = %d\n"), insno);
+      die(Str("unknown instr"));
     }
     if (M_CHNBP[chan] != NULL)
-      printf(Str(X_987,"massign: chnl %d exists, ctrls now defaults\n"), chan+1);
+      printf(Str("massign: chnl %d exists, ctrls now defaults\n"), chan+1);
     chn = m_getchnl(chan);
     chn->insno = insno;
     chn->pchbend = FL(0.0);     /* Mid value */
     /*    chn->posbend = FL(0.5); */          /* for pos pchbend (0 - 1.0) */
     ctlreset(chan);
-    printf(Str(X_660,"chnl %d using instr %d\n"), chan+1, chn->insno);
+    printf(Str("chnl %d using instr %d\n"), chan+1, chn->insno);
 }
 
 static void AllNotesOff(MCHNBLK *chn)
@@ -526,7 +526,7 @@ static void m_sysex(PmEvent *sbuf, PmEvent *sp) /* sys_excl msg, sexbuf: ID + da
 {
     int nbytes = sp - sbuf;
     if (++sexcnt >= 100) {
-      printf(Str(X_178,"100th system exclusive $%x, length %d\n"),
+      printf(Str("100th system exclusive $%x, length %d\n"),
              *sbuf, nbytes);
       sexcnt = 0;
     }
@@ -572,7 +572,7 @@ int sensMidi(void)         /* sense a MIDI event, collect the data & dispatch */
             goto nxtmsg;
           case 7: m_sysReset();
             goto nxtmsg;
-          default: printf(Str(X_1316,"undefined sys-realtime msg %x\n"),c);
+          default: printf(Str("undefined sys-realtime msg %x\n"),c);
             goto nxtmsg;
           }
         else {                           /* sys_non-realtime status:   */
@@ -594,7 +594,7 @@ int sensMidi(void)         /* sense a MIDI event, collect the data & dispatch */
             break;
           case 6: m_tuneReq();           /*   this do immed   */
             goto nxtmsg;
-          default: printf(Str(X_1317,"undefined sys_common msg %x\n"), c);
+          default: printf(Str("undefined sys_common msg %x\n"), c);
             goto nxtmsg;
           }
         }
@@ -620,7 +620,7 @@ int sensMidi(void)         /* sense a MIDI event, collect the data & dispatch */
         sexp->message = c;              /*    special data sav   */
         sexp++;
       }
-      else printf(Str(X_1262,"system exclusive buffer overflow\n"));
+      else printf(Str("system exclusive buffer overflow\n"));
       goto nxtmsg;
     }
 

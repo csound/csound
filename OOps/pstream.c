@@ -73,7 +73,7 @@ int fassign(ENVIRON *csound, FASSIGN *p)
     long framesize;
     float *fout,*fsrc;
     if (!fsigs_equal(p->fout,p->fsrc))
-      die(Str(X_1824,"fsig = : formats are different.\n"));
+      die(Str("fsig = : formats are different.\n"));
     fout = (float *) p->fout->frame.auxp;
     fsrc = (float *) p->fsrc->frame.auxp;
 
@@ -108,10 +108,10 @@ int pvadsynset(ENVIRON *csound, PVADS *p)
     noscs   = N/2 + 1;                     /* max possible */
     n_oscs = (long) *p->n_oscs;    /* user param*/
     if (n_oscs <=0)
-      die(Str(X_1573,"pvadsyn: bad value for inoscs\n"));
+      die(Str("pvadsyn: bad value for inoscs\n"));
     /* remove this when I know how to do it... */
     if (p->fsig->format != PVS_AMP_FREQ)
-      die(Str(X_1574,"pvadsyn: format must be amp-freq (0).\n"));
+      die(Str("pvadsyn: format must be amp-freq (0).\n"));
     p->format = p->fsig->format;
     /* interesting question: could noscs be krate variable?
      * answer: yes, but adds complexity to oscbank, as have to set/reset each osc when started
@@ -121,13 +121,13 @@ int pvadsynset(ENVIRON *csound, PVADS *p)
     startbin = (long) *p->ibin;            /* default 0 */
     binoffset = (long) *p->ibinoffset; /* default 1 */
     if (startbin        < 0 || startbin > noscs)
-      die(Str(X_1575,"pvsadsyn: ibin parameter out of range.\n"));
+      die(Str("pvsadsyn: ibin parameter out of range.\n"));
     if (startbin + n_oscs > noscs)
-      die(Str(X_1576,"pvsadsyn: ibin + inoscs too large.\n"));
+      die(Str("pvsadsyn: ibin + inoscs too large.\n"));
     /* calc final max bin target */
     p->maxosc = startbin + (n_oscs * binoffset);
     if (p->maxosc > noscs)
-      die(Str(X_1577,"pvsadsyn: ibin + (inoscs * ibinoffset) too large."));
+      die(Str("pvsadsyn: ibin + (inoscs * ibinoffset) too large."));
 
     p->outptr = 0;
     p->lastframe = 0;
@@ -241,7 +241,7 @@ int pvadsyn(ENVIRON *csound, PVADS *p)
     MYFLT *aout = p->aout;
 
     if (p->outbuf.auxp==NULL) {
-      die(Str(X_1578,"pvsynth: Not initialised.\n"));
+      die(Str("pvsynth: Not initialised.\n"));
     }
     for (i=0;i < ksmps;i++)
       aout[i] = adsyn_tick(p);
@@ -263,7 +263,7 @@ int pvscrosset(ENVIRON *csound, PVSCROSS *p)
 
     /* make sure fdest is same format */
     if (!fsigs_equal(p->fsrc,p->fdest))
-      die(Str(X_1579,"pvscross: source and dest signals must have same format\n"));
+      die(Str("pvscross: source and dest signals must have same format\n"));
 
     /* setup output signal */
     if (p->fout->frame.auxp==NULL)
@@ -290,13 +290,13 @@ int pvscross(ENVIRON *csound, PVSCROSS *p)
     float *fout = (float *) p->fout->frame.auxp;
 
     if (fout==NULL)
-      die(Str(X_1580,"pvscross: not initialised\n"));
+      die(Str("pvscross: not initialised\n"));
 
     /* make sure sigs have same format as output */
     if (!fsigs_equal(p->fout,p->fsrc))
-      die(Str(X_1581,"pvscross: mismatch in fsrc format\n"));
+      die(Str("pvscross: mismatch in fsrc format\n"));
     if (!fsigs_equal(p->fout,p->fdest))
-      die(Str(X_1582,"pvscross: mismatch in fdest format\n"));
+      die(Str("pvscross: mismatch in fdest format\n"));
 
     /* only process when a new frame is ready */
     if (p->lastframe < p->fsrc->framecount) {
@@ -343,17 +343,17 @@ int pvsfreadset(ENVIRON *csound, PVSFREAD *p)
     }
 
     if (p->nframes <= 0)
-      die(Str(X_1583,"pvsfread: file is empty!\n"));
+      die(Str("pvsfread: file is empty!\n"));
     /* special case if only one frame - it is an impulse response */
     if (p->nframes == 1)
-      die(Str(X_1584,"pvsfread: file has only one frame (= impulse response).\n"));
+      die(Str("pvsfread: file has only one frame (= impulse response).\n"));
     if (p->overlap < ksmps)
-      die(Str(X_1585,"pvsfread: analysis frame overlap must be >= ksmps\n"));
+      die(Str("pvsfread: analysis frame overlap must be >= ksmps\n"));
     p->blockalign = (p->fftsize+2) * p->chans;
     if ((*p->ichan) >= p->chans)
-      die(Str(X_1586,"pvsfread: ichan value exceeds file channel count.\n"));
+      die(Str("pvsfread: ichan value exceeds file channel count.\n"));
     if ((long) (*p->ichan) < 0)
-      die(Str(X_1587,"pvsfread: ichan cannot be negative.\n"));
+      die(Str("pvsfread: ichan cannot be negative.\n"));
 
     N = p->fftsize;
     /* setup output signal */
@@ -389,7 +389,7 @@ int pvsfread(ENVIRON *csound, PVSFREAD *p)
     float *fout = (float *) p->fout->frame.auxp;
 
     if (fout==NULL)
-      die(Str(X_1588,"pvsfread: not initialised.\n"));
+      die(Str("pvsfread: not initialised.\n"));
 
     pmem = (float *) p->membase;
     framesize = p->fftsize+2;
@@ -447,7 +447,7 @@ int pvsmaskaset(ENVIRON *csound, PVSMASKA *p)
     p->format  = p->fsrc->format;
     p->fftsize = N;
     if (!(p->format==PVS_AMP_FREQ) || (p->format==PVS_AMP_PHASE))
-      die(Str(X_1589,"pvsmaska: signal format must be amp-phase or amp-freq.\n"));
+      die(Str("pvsmaska: signal format must be amp-phase or amp-freq.\n"));
     /* setup output signal */
     if (p->fout->frame.auxp==NULL)
       auxalloc((N+2)*sizeof(float),&p->fout->frame);    /* RWD MUST be 32bit */
@@ -465,7 +465,7 @@ int pvsmaskaset(ENVIRON *csound, PVSMASKA *p)
 
     /* require at least size of nbins */
     if (p->maskfunc->flen + 1 <         nbins)
-      die(Str(X_1590,"pvsmaska: ftable too small.\n"));
+      die(Str("pvsmaska: ftable too small.\n"));
 
     /* clip any negative values in table */
     ftable = p->maskfunc->ftable;
@@ -493,13 +493,13 @@ int pvsmaska(ENVIRON *csound, PVSMASKA *p)
     fsrc = (float *) p->fsrc->frame.auxp;
 
     if (fout==NULL)
-      die(Str(X_1591,"pvsmaska: not initialised\n"));
+      die(Str("pvsmaska: not initialised\n"));
 
     if (depth < FL(0.0)) {
       /* need the warning: but krate linseg can give below-zeroes incorrectly */
       if (!p->nwarned)  {
         if (O.msglevel & WARNMSG)
-          printf(Str(X_1592,
+          printf(Str(
                      "WARNING: pvsmaska: negative value for kdepth; clipped to zero.\n"));
         p->nwarned = 1;
       }
@@ -508,7 +508,7 @@ int pvsmaska(ENVIRON *csound, PVSMASKA *p)
     if (depth > 1.0f) {
       if (!p->pwarned)  {
         if (O.msglevel & WARNMSG)
-          printf(Str(X_1593,"WARNING: pvsmaska: kdepth > 1: clipped.\n"));
+          printf(Str("WARNING: pvsmaska: kdepth > 1: clipped.\n"));
         p->pwarned = 1;
       }
       depth = FL(1.0);
@@ -559,11 +559,11 @@ int pvsftwset(ENVIRON *csound, PVSFTW *p)
     p->lastframe = 0;
 
     if (!(p->format==PVS_AMP_FREQ) || (p->format==PVS_AMP_PHASE))
-      die(Str(X_1594,"pvsftw: signal format must be amp-phase or amp-freq.\n"));
+      die(Str("pvsftw: signal format must be amp-phase or amp-freq.\n"));
     if (*p->ifna < 1.0f)
-      die(Str(X_1595,"pvsftw: bad value for ifna.\n"));
+      die(Str("pvsftw: bad value for ifna.\n"));
     if (*p->ifnf < 0.0f)                /* 0 = notused */
-      die(Str(X_1596,"pvsftw: bad value for ifnf.\n"));
+      die(Str("pvsftw: bad value for ifnf.\n"));
     p->outfna = ftfind(csound, p->ifna);
     if (p->outfna==NULL)
       return NOTOK;
@@ -573,7 +573,7 @@ int pvsftwset(ENVIRON *csound, PVSFTW *p)
     flena = p->outfna->flen + 1;
 
     if (flena < nbins)
-      die(Str(X_1597,"pvsftw: amps ftable too small.\n"));
+      die(Str("pvsftw: amps ftable too small.\n"));
 
     /* init tables */
     ftablea = p->outfna->ftable;
@@ -589,7 +589,7 @@ int pvsftwset(ENVIRON *csound, PVSFTW *p)
       if (ftablef) {
         flenf = p->outfnf->flen+1;
         if (flenf < nbins)
-          die(Str(X_1598,"pvsftw: freqs ftable too small.\n"));
+          die(Str("pvsftw: freqs ftable too small.\n"));
         for (i=0;i < nbins;i++)
           ftablef[i] = fsrc[(i*2) + 1];
       }
@@ -610,13 +610,13 @@ int pvsftw(ENVIRON *csound, PVSFTW *p)
     fsrc = (float *) p->fsrc->frame.auxp;
 
     if (fsrc==NULL)
-      die(Str(X_1599,"pvsftw: not initialised\n"));
+      die(Str("pvsftw: not initialised\n"));
     if (ftablea==NULL)
-      die(Str(X_1600,"pvsftw: no amps ftable!\n"));
+      die(Str("pvsftw: no amps ftable!\n"));
     if (p->outfnf) {
       ftablef = p->outfnf->ftable;
       if (ftablef==NULL)
-        die(Str(X_1601,"pvsftw: no freqs ftable!\n"));
+        die(Str("pvsftw: no freqs ftable!\n"));
     }
     nbins = p->fftsize/2 + 1;
 
@@ -660,12 +660,12 @@ int pvsftrset(ENVIRON *csound, PVSFTR *p)
     nbins = p->fftsize/2 + 1;
 
     if (!(p->format==PVS_AMP_FREQ) || (p->format==PVS_AMP_PHASE))
-      die(Str(X_1602,"pvsftr: signal format must be amp-phase or amp-freq.\n"));
+      die(Str("pvsftr: signal format must be amp-phase or amp-freq.\n"));
     /* ifn = 0 = notused */
     if (*p->ifna < 0.0f)
-      die(Str(X_1603,"pvsftr: bad value for ifna.\n"));
+      die(Str("pvsftr: bad value for ifna.\n"));
     if (*p->ifnf < 0.0f)
-      die(Str(X_1604,"pvsftr: bad value for ifnf.\n"));
+      die(Str("pvsftr: bad value for ifnf.\n"));
 
     /* if ifna=0; no amps to read; one assumes the user ias changing freqs only,
        otherwise, there is no change!
@@ -677,7 +677,7 @@ int pvsftrset(ENVIRON *csound, PVSFTR *p)
       p->ftablea = p->infna->ftable;
       flena = p->infna->flen + 1;
       if (flena < nbins)
-        die(Str(X_1605,"pvsftr: amps ftable too small.\n"));
+        die(Str("pvsftr: amps ftable too small.\n"));
     }
     fdest = (float *) p->fdest->frame.auxp;                /* RWD MUST be 32bit */
 
@@ -694,7 +694,7 @@ int pvsftrset(ENVIRON *csound, PVSFTR *p)
       p->ftablef = p->infnf->ftable;
       flenf = p->infnf->flen+1;
       if (flenf < nbins)
-        die(Str(X_1606,"pvsftr: freqs ftable too small.\n"));
+        die(Str("pvsftr: freqs ftable too small.\n"));
       for (i=0;i < nbins;i++)
         fdest[(i*2) + 1] = (float) p->ftablef[i];
 
@@ -711,7 +711,7 @@ int pvsftr(ENVIRON *csound, PVSFTR *p)
 
     fdest = (float *) p->fdest->frame.auxp;
     if (fdest==NULL)
-      die(Str(X_1607,"pvsftr: not initialised\n"));
+      die(Str("pvsftr: not initialised\n"));
     nbins = p->fftsize/2 + 1;
 
     /* only write when a new frame is ready */
@@ -778,7 +778,7 @@ static int pvx_loadfile(const char *fname,PVSFREAD *p,MEMFIL **mfp)
 
     pvx_id = pvoc_openfile(fname,&pvdata,&fmt);
     if (pvx_id < 0) {
-      sprintf(errmsg,Str(X_1608,"unable to open pvocex file %s.\n"),fname);
+      sprintf(errmsg,Str("unable to open pvocex file %s.\n"),fname);
       return 0;
     }
     /* fft size must be <= PVFRAMSIZE (=8192) for Csound */
@@ -790,21 +790,21 @@ static int pvx_loadfile(const char *fname,PVSFREAD *p,MEMFIL **mfp)
 
     /* also, accept only 32bit floats for now */
     if (pvdata.wWordFormat != PVOC_IEEE_FLOAT) {
-      sprintf(errmsg,Str(X_1609,"pvoc-ex file %s is not 32bit floats\n"),fname);
+      sprintf(errmsg,Str("pvoc-ex file %s is not 32bit floats\n"),fname);
       return 0;
     }
 
     /* FOR NOW, accept only PVOC_AMP_FREQ : later, we can convert */
     /* NB Csound knows no other: frameFormat is not read anywhere! */
     if (pvdata.wAnalFormat != PVOC_AMP_FREQ) {
-      sprintf(errmsg,Str(X_1610,"pvoc-ex file %s not in AMP_FREQ format\n"),fname);
+      sprintf(errmsg,Str("pvoc-ex file %s not in AMP_FREQ format\n"),fname);
       return 0;
     }
     p->format = PVS_AMP_FREQ;
     /* ignore the window spec until we can use it! */
     totalframes = pvoc_framecount(pvx_id);
     if (totalframes == 0) {
-      sprintf(errmsg,Str(X_1611,"pvoc-ex file %s is empty!\n"),fname);
+      sprintf(errmsg,Str("pvoc-ex file %s is empty!\n"),fname);
       return 0;
     }
 
@@ -834,12 +834,12 @@ static int pvx_loadfile(const char *fname,PVSFREAD *p,MEMFIL **mfp)
         pFrame += framelen;
       }
       if (rc <0) {
-        sprintf(errmsg,Str(X_1612,"error reading pvoc-ex file %s\n"),fname);
+        sprintf(errmsg,Str("error reading pvoc-ex file %s\n"),fname);
         mfree(memblock);
         return 0;
       }
       if (i < totalframes) {
-        sprintf(errmsg,Str(X_1613,"error reading pvoc-ex file %s after %d frames\n"),fname,i);
+        sprintf(errmsg,Str("error reading pvoc-ex file %s after %d frames\n"),fname,i);
         mfree(memblock);
         return 0;
       }
@@ -852,7 +852,7 @@ static int pvx_loadfile(const char *fname,PVSFREAD *p,MEMFIL **mfp)
 
     if ((p->arate = (MYFLT) fmt.nSamplesPerSec) != esr &&
         (O.msglevel & WARNMSG)) { /* & chk the data */
-      printf(Str(X_63,"WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
+      printf(Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
               fname, p->arate, esr);
     }
     p->fftsize  = pvx_fftsize;
@@ -889,7 +889,7 @@ static int pvx_loadfile(const char *fname,PVSFREAD *p,MEMFIL **mfp)
       mfil->endp = mfil->beginp + mem_wanted;
       mfil->length = mem_wanted;
       /*from memfiles.c */
-      printf(Str(X_764,"file %s (%ld bytes) loaded into memory\n"), fname,mem_wanted);
+      printf(Str("file %s (%ld bytes) loaded into memory\n"), fname,mem_wanted);
       add_memfil(mfil);
     }
 

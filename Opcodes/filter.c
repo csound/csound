@@ -184,7 +184,7 @@ int ifilter(ENVIRON *csound, FILTER* p)
     /* First check bounds on initialization arguments */
     if ((p->numb<1) || (p->numb>(MAXZEROS+1)) ||
         (p->numa<0) || (p->numa>MAXPOLES))
-      return initerror(Str(X_278,
+      return initerror(Str(
                            "Filter order out of bounds: (1<=nb<51, 0<=na<=50)"));
 
     /* Calculate the total delay in samples and allocate memory for it */
@@ -222,7 +222,7 @@ int izfilter(ENVIRON *csound, ZFILTER *p)
     /* First check bounds on initialization arguments */
     if ((p->numb<1) || (p->numb>(MAXZEROS+1)) ||
         (p->numa<0) || (p->numa>MAXPOLES))
-      return initerror(Str(X_278,
+      return initerror(Str(
                            "Filter order out of bounds: (1<=nb<51, 0<=na<=50)"));
 
     /* Calculate the total delay in samples and allocate memory for it */
@@ -677,7 +677,7 @@ void laguer(ENVIRON *csound, fcomplex a[], int m, fcomplex *x, int *its)
       if (iter % MT) *x = x1;
       else *x = Csub(*x,RCmul(frac[iter/MT],dx));
     }
-    csound->die_(csound->getstring_(X_1289,"too many iterations in laguer"));
+    csound->die_(csound->LocalizeString("too many iterations in laguer"));
     return;
 }
 #undef EPSS
@@ -860,8 +860,8 @@ fcomplex RCmul(double x, fcomplex a)
 
 static OENTRY localops[] = {
 { "filter2",0xffff,                                                     },
-{ "filter2_a",  S(FILTER), 5, "a", "aiim", (SUBR)ifilter, NULL, (SUBR)afilter},
-{ "filter2_k", S(FILTER), 3,  "k", "kiim", (SUBR)ifilter, (SUBR)kfilter,NULL },
+{ "filter2.a",  S(FILTER), 5, "a", "aiim", (SUBR)ifilter, NULL, (SUBR)afilter},
+{ "filter2.k", S(FILTER), 3,  "k", "kiim", (SUBR)ifilter, (SUBR)kfilter,NULL },
 { "zfilter2", S(ZFILTER), 5,  "a", "akkiim", (SUBR)izfilter, NULL, (SUBR)azfilter},
 };
 

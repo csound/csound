@@ -29,7 +29,10 @@
 static char *rcsid = "$Id$";
 /*
  *      $Log$
- *      Revision 1.4  2004-09-27 05:52:31  jpff
+ *      Revision 1.5  2005-01-27 19:22:50  istvanv
+ *      Merged changes from 4.24.1, including new localization system, timers, and allow use of underscore character in opcode names
+ *
+ *      Revision 1.4  2004/09/27 05:52:31  jpff
  *      Minor coding
  *
  *      Revision 1.3  2004/06/07 11:33:09  jpff
@@ -110,7 +113,7 @@ fft_(MYFLT *a, MYFLT *b, int nseg, int n, int nspn, int isn)
     ntot=abs(nspn*nseg);
 
     if (isn*ntot == 0) {
-      err_printf(Str(X_1661,"\nerror - zero in fft parameters %d %d %d %d"),
+      err_printf(Str("\nerror - zero in fft parameters %d %d %d %d"),
               nseg, n, nspn, isn);
       return;
     }
@@ -142,7 +145,7 @@ fft_(MYFLT *a, MYFLT *b, int nseg, int n, int nspn, int isn)
       maxp = m + kt + 1;
     if (m+kt > 15) {
       err_printf(
-              Str(X_1662,"\nerror - fft parameter n has more than 15 factors : %d"), n);
+              Str("\nerror - fft parameter n has more than 15 factors : %d"), n);
       return;
     }
     if (kt!=0) {
@@ -842,7 +845,7 @@ reals_(MYFLT *a, MYFLT *b, int n, int isn)
     inc = abs(isn);
     nf = abs(n);
     if (nf*isn==0) {
-      err_printf(Str(X_1663,"\nerror - zero in reals parameters : %d : %d "),n,isn);
+      err_printf(Str("\nerror - zero in reals parameters : %d : %d "),n,isn);
       return;
     }
     nk = (nf*inc) + 2;

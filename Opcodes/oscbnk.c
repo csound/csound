@@ -416,7 +416,7 @@ int    oscbnk(ENVIRON *csound, OSCBNK *p)
       return OK;         /* nothing to render */
     }
     else if ((p->seed == 0L) || (p->osc == NULL)) {
-      return perferror(Str(X_1665,"oscbnk: not initialised"));
+      return perferror(Str("oscbnk: not initialised"));
     }
 
     /* check oscillator ftable */
@@ -675,7 +675,7 @@ int grain2(ENVIRON *csound, GRAIN2 *p)
       return OK;                   /* nothing to render */
     }
     else if ((p->seed == 0L) || (p->osc == NULL)) {
-      return perferror(Str(X_1668,"grain2: not initialised"));
+      return perferror(Str("grain2: not initialised"));
     }
 
     /* check grain ftable */
@@ -829,7 +829,7 @@ int grain3(ENVIRON *csound, GRAIN3 *p)
     for (nn = 0; nn < ksmps; nn++) p->ar[nn] = FL(0.0);
 
     if ((p->seed == 0L) || (p->osc == NULL)) {
-      return perferror(Str(X_1669,"grain3: not initialised"));
+      return perferror(Str("grain3: not initialised"));
     }
 
     /* assign object data to local variables */
@@ -892,13 +892,13 @@ int grain3(ENVIRON *csound, GRAIN3 *p)
     w_frq_f = onedsr / *(p->kgdur);             /* window frequency     */
     if ((w_frq_f < (FL(1.0) / (MYFLT) OSCBNK_PHSMAX)) ||
         (w_frq_f >= FL(1.0))) {
-      return perferror(Str(X_1670,"grain3: invalid grain duration"));
+      return perferror(Str("grain3: invalid grain duration"));
     }
     w_frq = OSCBNK_PHS2INT(w_frq_f);
     x_frq_f = onedsr * *(p->kdens);             /* density              */
     if ((x_frq_f < (FL(1.0) / (MYFLT) OSCBNK_PHSMAX)) ||
         (x_frq_f >= FL(1.0))) {
-      return perferror(Str(X_1671,"grain3: invalid grain density"));
+      return perferror(Str("grain3: invalid grain density"));
     }
     x_frq = OSCBNK_PHS2INT(x_frq_f);
     wfdivxf = w_frq_f / ((MYFLT) OSCBNK_PHSMAX * x_frq_f);
@@ -922,7 +922,7 @@ int grain3(ENVIRON *csound, GRAIN3 *p)
                                    frq_scl, f_nolock);
         if (++(p->osc_end) > p->osc_max) p->osc_end = p->osc;
         if (p->osc_end == p->osc_start) {
-          return perferror(Str(X_1672,"grain3 needs more overlaps"));
+          return perferror(Str("grain3 needs more overlaps"));
         }
         g_ph -= g_frq;
       }
@@ -943,7 +943,7 @@ int grain3(ENVIRON *csound, GRAIN3 *p)
         grain3_init_grain(p, p->osc_end, w_ph, *phs);
         if (++(p->osc_end) > p->osc_max) p->osc_end = p->osc;
         if (p->osc_end == p->osc_start) {
-          return perferror(Str(X_1672,"grain3 needs more overlaps"));
+          return perferror(Str("grain3 needs more overlaps"));
         }
       }
 
@@ -1043,7 +1043,7 @@ int rnd31k(ENVIRON *csound, RND31 *p)
     int rmode;
 
     if ((p->seed < 1L) || (p->seed > 0x7FFFFFFEL)) {
-      return perferror(Str(X_1673,"rnd31: not initialised"));
+      return perferror(Str("rnd31: not initialised"));
     }
 
     /* random distribution */
@@ -1070,7 +1070,7 @@ int rnd31a(ENVIRON *csound, RND31 *p)
     int rmode, nn;
 
     if ((p->seed < 1L) || (p->seed > 0x7FFFFFFEL)) {
-      return perferror(Str(X_1673,"rnd31: not initialised"));
+      return perferror(Str("rnd31: not initialised"));
     }
 
     /* random distribution */
@@ -1714,7 +1714,7 @@ int vco2init(ENVIRON *csound, VCO2INIT *p)
     ftnum = base_ftable = (int) (*(p->iftnum) + FL(0.5));
     if (ftnum < 1) ftnum = base_ftable = -1;
     if ((waveforms < -1 && ftnum < 1) || ftnum > 1000000) {
-      return initerror(Str(X_1761,"vco2init: invalid base ftable number"));
+      return initerror(Str("vco2init: invalid base ftable number"));
     }
     *(p->ift) = (MYFLT) ftnum;
     if (!waveforms) return OK;     /* nothing to do */
@@ -1725,21 +1725,21 @@ int vco2init(ENVIRON *csound, VCO2INIT *p)
     /* and override with user specified values (if there are any) */
     if (*(p->ipmul) > FL(0.0)) {
       if (*(p->ipmul) < FL(1.00999) || *(p->ipmul) > FL(2.00001)) {
-        return initerror(Str(X_1763,"vco2init: invalid partial number multiplier"));
+        return initerror(Str("vco2init: invalid partial number multiplier"));
       }
       tp.npart_mul = (double) *(p->ipmul);
     }
     if (*(p->iminsiz) > FL(0.0)) {
       i = (int) (*(p->iminsiz) + FL(0.5));
       if (i < 16 || i > 262144 || (i & (i - 1))) {
-        return initerror(Str(X_1764,"vco2init: invalid min table size"));
+        return initerror(Str("vco2init: invalid min table size"));
       }
       tp.min_size = i;
     }
     if (*(p->imaxsiz) > FL(0.0)) {
       i = (int) (*(p->imaxsiz) + FL(0.5));
       if (i < 16 || i > 16777216 || (i & (i - 1)) || i < tp.min_size) {
-        return initerror(Str(X_1765,"vco2init: invalid max table size"));
+        return initerror(Str("vco2init: invalid max table size"));
       }
       tp.max_size = i;
     }
@@ -1753,14 +1753,14 @@ int vco2init(ENVIRON *csound, VCO2INIT *p)
         if (waveforms & (1 << w)) {
           ftnum = vco2_tables_create(csound, w, ftnum, &tp);
           if (base_ftable > 0 && ftnum <= 0) {
-            return initerror(Str(X_787,"ftgen error"));
+            return initerror(Str("ftgen error"));
           }
         }
       }
     else {                      /* user defined, requires source ftable */
       if ((ftp = ftfind(csound, p->isrcft)) == NULL ||
           ftp->flen < 4) {
-        return initerror(Str(X_1766,"vco2init: invalid source ftable"));
+        return initerror(Str("vco2init: invalid source ftable"));
       }
       /* analyze source table, and store results in table params structure */
       i = ftp->flen;
@@ -1778,7 +1778,7 @@ int vco2init(ENVIRON *csound, VCO2INIT *p)
         /* free memory used by FFT buffer */
         mfree(tp.w_fftbuf);
       if (base_ftable > 0 && ftnum <= 0) {
-        return initerror(Str(X_787,"ftgen error"));
+        return initerror(Str("ftgen error"));
       }
     }
     *(p->ift) = (MYFLT) ftnum;
@@ -1800,7 +1800,7 @@ int vco2ftset(ENVIRON *csound, VCO2FT *p)
     if (w < 0) w = 4 - w;
     if (w >= vco2_nr_table_arrays || vco2_tables[w] == NULL
         || vco2_tables[w]->base_ftnum < 1) {
-      return initerror(Str(X_1721,"vco2ft: table array not found for this waveform"));
+      return initerror(Str("vco2ft: table array not found for this waveform"));
     }
 #ifdef VCO2FT_USE_TABLE
     p->nparts_tabl = vco2_tables[w]->nparts_tabl;
@@ -1869,7 +1869,7 @@ int vco2ftp(ENVIRON *csound, VCO2FT *p)
 
 int vco2ft(ENVIRON *csound, VCO2FT *p)
 {
-    return perferror(Str(X_1722,"vco2ft: not initialised"));
+    return perferror(Str("vco2ft: not initialised"));
 }
 
 /* ---- vco2 opcode (initialisation) ---- */
@@ -1883,7 +1883,7 @@ int vco2set(ENVIRON *csound, VCO2 *p)
 
     /* check number of args */
     if (p->INOCOUNT > 6) {
-      return initerror(Str(X_1723,"vco2: too many input arguments"));
+      return initerror(Str("vco2: too many input arguments"));
     }
     mode = (int) (*(p->imode) + FL(0.5)) & 0x1F;
     if (mode & 1) return OK;               /* skip initialisation */
@@ -1892,10 +1892,10 @@ int vco2set(ENVIRON *csound, VCO2 *p)
     if ((mode & 14) == 2 || (mode & 14) == 4) min_args = 4;
     if (mode & 16) min_args = 5;
     if (p->INOCOUNT < min_args) {
-      return initerror(Str(X_1724,"vco2: insufficient required arguments"));
+      return initerror(Str("vco2: insufficient required arguments"));
     }
     if (p->XINCODE) {
-      return initerror(Str(X_1725,"vco2: invalid argument type"));
+      return initerror(Str("vco2: invalid argument type"));
     }
     /* select table array and algorithm, according to waveform */
     tnum = tnums[(mode & 14) >> 1];
@@ -1906,7 +1906,7 @@ int vco2set(ENVIRON *csound, VCO2 *p)
         vco2_tables_create(csound, tnum, -1, NULL);
       else {
         return
-          initerror(Str(X_1768,
+          initerror(Str(
                         "vco2: table array not found for user defined waveform"));
       }
     }
@@ -1951,7 +1951,7 @@ int vco2(ENVIRON *csound, VCO2 *p)
     MYFLT   f, f1, npart, *nparts, pfrac, v, *ftable, kamp, *ar;
     if (p->tables == NULL) {
 #endif
-      return perferror(Str(X_1726,"vco2: not initialised"));
+      return perferror(Str("vco2: not initialised"));
     }
     /* if 1st k-cycle, initialise now */
     if (p->init_k) {
@@ -2075,15 +2075,15 @@ static OENTRY localops[] = {
 { "grain3",   S(GRAIN3), 5, "a", "kkkkkkikikkoo",
                                  (SUBR)grain3set, NULL, (SUBR)grain3   },
 { "rnd31",    0xFFFF                                                          },
-{ "rnd31_i",  S(RND31),  1, "i", "iio",  (SUBR)rnd31i, NULL, NULL             },
-{ "rnd31_k",  S(RND31),  3, "k", "kko",  (SUBR)rnd31set, (SUBR)rnd31k, NULL   },
-{ "rnd31_a",  S(RND31),  5, "a", "kko",  (SUBR)rnd31set, NULL, (SUBR)rnd31a   },
+{ "rnd31.i",  S(RND31),  1, "i", "iio",  (SUBR)rnd31i, NULL, NULL             },
+{ "rnd31.k",  S(RND31),  3, "k", "kko",  (SUBR)rnd31set, (SUBR)rnd31k, NULL   },
+{ "rnd31.a",  S(RND31),  5, "a", "kko",  (SUBR)rnd31set, NULL, (SUBR)rnd31a   },
 /* IV - Aug 23 2002, IV - Sep 5 2002 */
 { "oscilikt", 0xFFFE                                                          },
-{ "oscilikt_kk",S(OSCKT), 7,"s", "kkkoo",  (SUBR)oscktset, (SUBR)kosclikt, (SUBR)osckkikt   },
-{ "oscilikt_ka",S(OSCKT), 5,"a", "kakoo",  (SUBR)oscktset, NULL,  (SUBR)osckaikt },
-{ "oscilikt_ak",S(OSCKT), 5,"a", "akkoo",  (SUBR)oscktset, NULL,  (SUBR)oscakikt },
-{ "oscilikt_aa",S(OSCKT), 5,"a", "aakoo",  (SUBR)oscktset, NULL,  (SUBR)oscaaikt },
+{ "oscilikt.kk",S(OSCKT), 7,"s", "kkkoo",  (SUBR)oscktset, (SUBR)kosclikt, (SUBR)osckkikt   },
+{ "oscilikt.ka",S(OSCKT), 5,"a", "kakoo",  (SUBR)oscktset, NULL,  (SUBR)osckaikt },
+{ "oscilikt.ak",S(OSCKT), 5,"a", "akkoo",  (SUBR)oscktset, NULL,  (SUBR)oscakikt },
+{ "oscilikt.aa",S(OSCKT), 5,"a", "aakoo",  (SUBR)oscktset, NULL,  (SUBR)oscaaikt },
 { "osciliktp", S(OSCKTP),5, "a", "kkko",   (SUBR)oscktpset, NULL, (SUBR)oscktp   },
 { "oscilikts", S(OSCKTS),5, "a", "xxkako", (SUBR)oscktsset, NULL, (SUBR)osckts   },
 /* IV - Sep 25 2002 -- new opcodes: vco2init, vco2ft, vco2 */

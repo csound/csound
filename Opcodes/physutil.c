@@ -141,8 +141,7 @@ void Envelope_keyOff(Envelope *e)
 void Envelope_setRate(ENVIRON *csound, Envelope *e, MYFLT aRate)
 {
     if (aRate < FL(0.0)) {
-        csound->err_printf_(csound->getstring_(X_1010,
-                                               "negative rates not allowed!!, correcting\n"));
+        csound->err_printf_(csound->LocalizeString("negative rates not allowed!!, correcting\n"));
         e->rate = -aRate;
     }
     else e->rate = aRate;
@@ -200,7 +199,7 @@ MYFLT Envelope_tick(Envelope *e)
 
 void Envelope_print(ENVIRON *csound, Envelope *p)
 {
-    csound->Printf(csound->getstring_(X_252,"Envelope: value=%f target=%f rate=%f state=%d\n"),
+    csound->Printf(csound->LocalizeString("Envelope: value=%f target=%f rate=%f state=%d\n"),
            p->value, p->target, p->rate, p->state);
 }
 
@@ -339,7 +338,7 @@ void ADSR_keyOff(ADSR *a)
 void ADSR_setAttackRate(ENVIRON *csound, ADSR *a, MYFLT aRate)
 {
     if (aRate < FL(0.0)) {
-        csound->Printf(csound->getstring_(X_1010,
+        csound->Printf(csound->LocalizeString(
                                "negative rates not allowed!!, correcting\n"));
         a->attackRate = -aRate;
     }
@@ -351,7 +350,7 @@ void ADSR_setAttackRate(ENVIRON *csound, ADSR *a, MYFLT aRate)
 void ADSR_setDecayRate(ENVIRON *csound, ADSR *a, MYFLT aRate)
 {
     if (aRate < FL(0.0)) {
-        csound->Printf(csound->getstring_(X_1010,
+        csound->Printf(csound->LocalizeString(
                                "negative rates not allowed!!, correcting\n"));
         a->decayRate = -aRate;
     }
@@ -362,7 +361,7 @@ void ADSR_setDecayRate(ENVIRON *csound, ADSR *a, MYFLT aRate)
 void ADSR_setSustainLevel(ENVIRON *csound, ADSR *a, MYFLT aLevel)
 {
     if (aLevel < FL(0.0) ) {
-        csound->Printf(csound->getstring_(X_472,
+        csound->Printf(csound->LocalizeString(
                                "Sustain level out of range!!, correcting\n"));
         a->sustainLevel = FL(0.0);
     }
@@ -372,7 +371,7 @@ void ADSR_setSustainLevel(ENVIRON *csound, ADSR *a, MYFLT aLevel)
 void ADSR_setReleaseRate(ENVIRON *csound, ADSR *a, MYFLT aRate)
 {
     if (aRate < FL(0.0)) {
-        csound->Printf(csound->getstring_(X_1010,
+        csound->Printf(csound->LocalizeString(
                                "negative rates not allowed!!, correcting\n"));
         a->releaseRate = -aRate;
     }
@@ -383,7 +382,7 @@ void ADSR_setReleaseRate(ENVIRON *csound, ADSR *a, MYFLT aRate)
 void ADSR_setAttackTime(ENVIRON *csound, ADSR *a, MYFLT aTime)
 {
     if (aTime < FL(0.0)) {
-      csound->Printf(csound->getstring_(X_1819,
+      csound->Printf(csound->LocalizeString(
                              "negative times not allowed!!, correcting\n"));
       a->attackRate = FL(1.0) /(-aTime*csound->esr_);
     }
@@ -393,7 +392,7 @@ void ADSR_setAttackTime(ENVIRON *csound, ADSR *a, MYFLT aTime)
 void ADSR_setDecayTime(ENVIRON *csound, ADSR *a, MYFLT aTime)
 {
     if (aTime < FL(0.0)) {
-      csound->Printf(csound->getstring_(X_1819,
+      csound->Printf(csound->LocalizeString(
                              "negative times not allowed!!, correcting\n"));
       a->decayRate = FL(1.0) /(-aTime*csound->esr_);
     }
@@ -403,7 +402,7 @@ void ADSR_setDecayTime(ENVIRON *csound, ADSR *a, MYFLT aTime)
 void ADSR_setReleaseTime(ENVIRON *csound, ADSR *a, MYFLT aTime)
 {
     if (aTime < FL(0.0)) {
-      csound->Printf(csound->getstring_(X_1819,
+      csound->Printf(csound->LocalizeString(
                              "negative times not allowed!!, correcting\n"));
      a->releaseRate = FL(1.0) /(-aTime*csound->esr_);
     }

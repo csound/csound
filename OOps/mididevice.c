@@ -213,7 +213,7 @@ void OpenMIDIDevice(void)
 
     nr_devs = (int) midiInGetNumDevs();
     if (nr_devs < 1) {
-      die(Str(X_359,"No MIDI device available\n"));
+      die(Str("No MIDI device available\n"));
     }
     if (isdigit(O.Midiname[0])) {
       dev_num = atoi(O.Midiname);
@@ -227,15 +227,15 @@ void OpenMIDIDevice(void)
       for (dev_num = 0; dev_num < nr_devs; dev_num++) {
         midiInGetDevCapsA((UINT) dev_num, (LPMIDIINCAPSA) &caps,
                           (UINT) sizeof(MIDIINCAPSA));
-        err_printf(Str(X_54,"MIDI out %d \"%s\"\n"), dev_num, caps.szPname);
+        err_printf(Str("MIDI out %d \"%s\"\n"), dev_num, caps.szPname);
       }
       dev_num = atoi(O.Midiname);
       if (dev_num >= nr_devs) {
         /* not found, print error message and list of available devices */
-        err_printf(Str(X_52,"\nMIDI in device \"%s\" not found\n"), O.Midiname);
+        err_printf(Str("\nMIDI in device \"%s\" not found\n"), O.Midiname);
         longjmp(cenviron.exitjmp_,1);
       }
-      err_printf(Str(X_55,"Assigned MIDI output to device %d\n"), dev_num);
+      err_printf(Str("Assigned MIDI output to device %d\n"), dev_num);
 /*     for (dev_num = 0; dev_num < nr_devs; dev_num++) { */
 /*       midiInGetDevCapsA((UINT) dev_num, (LPMIDIINCAPSA) &caps, */
 /*                         (UINT) sizeof(MIDIINCAPSA)); */
@@ -248,31 +248,31 @@ void OpenMIDIDevice(void)
     if (midiInOpen(&hMidiIn, (UINT) dev_num, (DWORD) win32_midi_in_handler,
                    (DWORD) 0, CALLBACK_FUNCTION) != MMSYSERR_NOERROR
         || midiInStart(hMidiIn) != MMSYSERR_NOERROR) {
-      die(Str(X_57,"Error opening MIDI in device"));
+      die(Str("Error opening MIDI in device"));
     }
 #else
     if (strcmp(O.Midiname,"stdin") == 0) {
 #if defined(mac_classic) || defined(SYMANTEC) || defined(WIN32) || defined(__BEOS__)   /*** double condition for the moment (see above) ***/
-      {  die(Str(X_437,"RT Midi_event Console not implemented")); }
+      {  die(Str("RT Midi_event Console not implemented")); }
 # elif defined (DOSGCC) || defined (__WATCOMC__)
       { if (O.msglevel & WARNMSG)
-        printf(Str(X_118,"WARNING: -M stdin: system has no fcntl reading stdin\n")); }
+        printf(Str("WARNING: -M stdin: system has no fcntl reading stdin\n")); }
 # else
       if (fcntl(rtfd, F_SETFL, fcntl(rtfd, F_GETFL, 0) | O_NDELAY) < 0) {
-        perror(Str(X_757,"fcntl"));
-        die(Str(X_117,"-M stdin fcntl failed"));
+        perror(Str("fcntl"));
+        die(Str("-M stdin fcntl failed"));
       }
 #endif
     }
     else {                   /* open MIDI device, & set nodelay on reads  */
       if ((rtfd = open(O.Midiname, O_RDONLY | O_NDELAY, 0)) < 0)
-        dies(Str(X_210,"Cannot open %s"), O.Midiname);
+        dies(Str("Cannot open %s"), O.Midiname);
 #if defined (DOSGCC) || defined (__WATCOMC__) || defined(WIN32) || defined(__EMX__)
       { if (O.msglevel & WARNMSG)
-        printf(Str(X_827,"WARNING: have not figured out DOS or BCC fcntl yet !!!\n")); }
+        printf(Str("WARNING: have not figured out DOS or BCC fcntl yet !!!\n")); }
 #else
       if (fcntl(rtfd, F_SETFL, fcntl(rtfd, F_GETFL, 0) | O_NDELAY) < 0)
-        dies(Str(X_756,"fcntl failed on %s"), O.Midiname);
+        dies(Str("fcntl failed on %s"), O.Midiname);
 #endif
 #if defined sun
       while (ioctl(rtfd, I_POP, 0) == 0)  /* pop the 2 STREAMS modules */
@@ -293,22 +293,22 @@ void OpenMIDIDevice(void)
         rtfd = 0 ;
             /* look up midi port on localhost */
         r = netname_look_up(name_server_port, "", midiPort, &dev_port);
-        mach_error(Str(X_1282,"timer_track: netname_look_up error"), r);
+        mach_error(Str("timer_track: netname_look_up error"), r);
             /* Become owner of the device. */
         r = port_allocate(task_self(), &owner_port);
-        machError(Str(X_592,"allocate owner port"), r);
+        machError(Str("allocate owner port"), r);
         neg_port = PORT_NULL;
         r = midi_set_owner(dev_port, owner_port, &neg_port);
-        midiError(Str(X_617,"become owner"), r);
+        midiError(Str("become owner"), r);
             /* Get the timer port for the device. */
         r = midi_get_out_timer_port(dev_port, &timer_port);
-        midiError(Str(X_1114,"output timer port"), r);
+        midiError(Str("output timer port"), r);
             /*  Get the receive port for the device. */
         r = midi_get_recv(dev_port, owner_port, &recv_port);
-        midiError(Str(X_1157,"recv port"), r);
+        midiError(Str("recv port"), r);
             /* Find out what time it is (and other vital information). */
         r = port_allocate(task_self(), &recv_reply_port);
-        machError(Str(X_594,"allocate timer reply port"), r);
+        machError(Str("allocate timer reply port"), r);
             /* Tell it to ignore system messages we are not interested in. */
         r = midi_set_sys_ignores(recv_port,
                                  (MIDI_IGNORE_ACTIVE_SENS
@@ -332,13 +332,13 @@ void OpenMIDIDevice(void)
         midiTimerError("midi_get_data", r);
             /* Allocate port set.  */
         r = port_set_allocate(task_self(), &port_set);
-        machError(Str(X_593,"allocate port set"), r);
+        machError(Str("allocate port set"), r);
             /* Add data receive port to port set. */
         r = port_set_add(task_self(), port_set, recv_reply_port);
-        machError(Str(X_584,"add recv_reply_port to set"), r);
+        machError(Str("add recv_reply_port to set"), r);
             /* Start the timer up.  */
         r = timer_start(timer_port, owner_port);
-        midiError(Str(X_1281,"timer start"), r);
+        midiError(Str("timer start"), r);
             /* allocate the message structure */
         in_msg = (msg_header_t *)malloc(MSG_SIZE_MAX);
       }
@@ -346,31 +346,31 @@ void OpenMIDIDevice(void)
 # ifdef HAVE_TERMIOS_H
       if (isatty(rtfd)) {
         if (tcgetattr(rtfd, &tty) < 0) {
-          perror(Str(X_1273,"tcgetattr"));
-          die(Str(X_331,"MIDI receive: cannot get termios info."));
+          perror(Str("tcgetattr"));
+          die(Str("MIDI receive: cannot get termios info."));
         }
         cfmakeraw(&tty);
         if (cfsetispeed(&tty, INBAUD) < 0) {
-          perror(Str(X_653,"cfsetispeed"));
-          die(Str(X_333,"MIDI receive: cannot set input baud rate."));
+          perror(Str("cfsetispeed"));
+          die(Str("MIDI receive: cannot set input baud rate."));
         }
         if (tcsetattr(rtfd, TCSANOW, &tty) < 0) {
-          perror(Str(X_1274,"tcsetattr"));
-          die(Str(X_334,"MIDI receive: cannot set termios."));
+          perror(Str("tcsetattr"));
+          die(Str("MIDI receive: cannot set termios."));
         }
       }/* HAVE_TERMIOS_H */
 # elif defined HAVE_BSD_SGTTY_H
       if (isatty(rtfd)) {
         if (ioctl(rtfd, TIOCGETP, &tty) < 0) {
-          perror(Str(X_946,"ioctl"));
-          die(Str(X_332,"MIDI receive: cannot get tty settings."));
+          perror(Str("ioctl"));
+          die(Str("MIDI receive: cannot get tty settings."));
         }
         tty.sg_ispeed = INBAUD;            /* set baud rate         */
         tty.sg_flags = RAW;                /* and no I/O processing */
         if (ioctl(rtfd, TIOCSETP, &tty) < 0)
           {
-            perror(Str(X_946,"ioctl"));
-            die(Str(X_335,"MIDI receive: cannot set tty settings"));
+            perror(Str("ioctl"));
+            die(Str("MIDI receive: cannot set tty settings"));
           }
       }
 # endif /* HAVE_BSD_SGTTY_H */
@@ -425,7 +425,7 @@ void OpenMIDIDevice(void)
         }
       }
       if (gMidiInPort < B_OK) {
-        die(Str(X_1548,"Failed to open MIDI input port to Csound Server."));
+        die(Str("Failed to open MIDI input port to Csound Server."));
       }
 #endif
         }
@@ -536,7 +536,7 @@ long GetMIDIData(void)
       /* Don't rely on the value of tv now! */
 
       if (retval) {
-        if (retval<0) printf(Str(X_1185,"sensMIDI: retval errno %d"),errno);
+        if (retval<0) printf(Str("sensMIDI: retval errno %d"),errno);
         if ((n = read(rtfd, (char *)mbuf, MBUFSIZ)) > 0) {
           bufp = mbuf;
           endatp = mbuf + n;
@@ -615,7 +615,7 @@ void CloseMIDIDevice(void)
     if (midiInStop(hMidiIn) != MMSYSERR_NOERROR  ||
         midiInReset(hMidiIn) != MMSYSERR_NOERROR ||
         midiInClose(hMidiIn) != MMSYSERR_NOERROR) {
-      die(Str(X_57,"Error closing MIDI in device"));
+      die(Str("Error closing MIDI in device"));
     }
 #else
     extern int close(int);

@@ -41,7 +41,7 @@
 
 void het_import_usage(void)
 {
-    fprintf(stderr, Str(X_517,"Usage: het_import commafile hetfile\n"));
+    fprintf(stderr, Str("Usage: het_import commafile hetfile\n"));
     exit(1);
 }
 
@@ -72,12 +72,12 @@ int main(int argc, char **argv)
 
     infd = fopen(argv[1], "r");
     if (infd == NULL) {
-        fprintf(stderr, Str(X_213,"Cannot open input comma file%s\n"), argv[1]);
+        fprintf(stderr, Str("Cannot open input comma file%s\n"), argv[1]);
         exit(1);
     }
     outf = fopen(argv[2], "wb");
     if (outf == NULL) {
-        fprintf(stderr, Str(X_216,"Cannot open output hetro file %s\n"), argv[2]);
+        fprintf(stderr, Str("Cannot open output hetro file %s\n"), argv[2]);
         exit(1);
     }
 

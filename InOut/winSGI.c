@@ -78,7 +78,7 @@ MakeGraph_(WINDAT *wdptr, char *name)
       fminit();
       fnt = fmfindfont("Helvetica");
       if (!fnt) {
-        err_printf( Str(X_1378,"winGL:MakeGraph: fmfindfont failed.\n"));
+        err_printf( Str("winGL:MakeGraph: fmfindfont failed.\n"));
         exit(-1);
       }
       fnt = fmscalefont(fnt, 12.0);
@@ -162,7 +162,7 @@ DrawGraph_(WINDAT *wdptr)
 
     if (wdptr->caption) {
       cmov2(0.05, -1.15);
-      sprintf(string,Str(X_50,"%s %d pts, max %f"),
+      sprintf(string,Str("%s %d pts, max %f"),
               wdptr->caption, wdptr->npts,wdptr->oabsmax);
       fmprStr(string);
     }
@@ -219,7 +219,7 @@ MakeXYin_(XYINDAT *xyptr, float x, float y)
       fminit();
       fnt = fmfindfont("Helvetica");
       if (!fnt) {
-        err_printf( Str(X_1378,"winGL:MakeGraph: fmfindfont failed.\n"));
+        err_printf( Str("winGL:MakeGraph: fmfindfont failed.\n"));
         exit(-1);
       }
       fnt = fmscalefont(fnt, 12.0);

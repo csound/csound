@@ -2,6 +2,7 @@
     makedb.c:
 
     Copyright (C) 1999 John ffitch
+    Jan 27 2005: replaced with new implementation by Istvan Varga
 
     This file is part of Csound.
 
@@ -34,125 +35,150 @@
 #include <ctype.h>
 #include "text.h"
 
-#define DEBUG (0)
-
-long benlong(long lval)       /* coerce a natural long into a bigendian long */
+static int read_line(FILE *f, unsigned char *buf)
 {
-    char  benchar[4];
-    char *p = benchar;
+    int i, j, c;
 
-    *p++ = (char)(0xFF & (lval >> 24));
-    *p++ = (char)(0xFF & (lval >> 16));
-    *p++ = (char)(0xFF & (lval >> 8));
-    *p   = (char)(0xFF & lval);
-    return(*(long *)benchar);
+    i = j = 0;
+    do {
+      c = fgetc(f);
+      if (c == EOF || c == '\n')
+        break;
+      if (c == '"' && !(i > 0 && buf[i - 1] == (unsigned char) '\\'))
+        j = 1 - j;
+      else if (j) {
+        buf[i] = (unsigned char) c;
+        if (i > 0 && buf[i - 1] == (unsigned char) '\\') {
+          if (c == 't')
+            buf[--i] = '\t';
+          else if (c == 'r')
+            buf[--i] = '\r';
+          else if (c == 'n')
+            buf[--i] = '\n';
+          else if (c == 'a')
+            buf[--i] = '\a';
+          else if (c == 'b')
+            buf[--i] = '\b';
+          else if (c == '"')
+            buf[--i] = '"';
+          else if (c == '\\')
+            buf[--i] = '\\';
+        }
+        i++;
+      }
+    } while (1);
+    buf[i] = '\0';
+    return (c == EOF ? -1 : 0);
 }
 
-/* String file will have a header string (X_HEADER) and then 10 characters
-   making a language for identification
-*/
+/* File format of string database files:                                    */
+/*                                                                          */
+/* Bytes 0 to 3:    magic number (the string "cStr")                        */
+/* Bytes 4, 5:      file version (two bytes, big-endian, should be 0x1000)  */
+/* Bytes 6, 7:      language code (two bytes, big-endian; see n_getstr.h)   */
+/* Bytes 8 to 11:   number of strings (four bytes, big-endian, must be > 0) */
+/* From byte 12:                                                            */
+/*   list of strings, in the following format:                              */
+/*     0x81     (1 byte)                                                    */
+/*     original string, terminated with '\0' (maximum length is 16383)      */
+/*     0x82     (1 byte)                                                    */
+/*     translated string, terminated with '\0' (maximum length is 16383)    */
+/*   there should be as many string pairs as defined by bytes 8 to 11.      */
 
 int main(int argc, char **argv)
 {
-    char buff[256];
-    long strings[X_MAXNUM];
-    long loc, baseloc;
-    int j;
-    int n;
-    long item = 0;
     FILE *db;
-    FILE *raw;
-    char dbname[16];
-    char lang[30] = {'E', 'n', 'g', 'l', 'i', 's', 'h', '\0'};
-    int order = ('t'<<24)|('x'<<16)|('t'<<8);
+    FILE *base;
+    FILE *trans;
+    int  langcode, i, nmsgs;
+    char buf[768];
+    unsigned char buf2[768];
 
-    if (argc>=2) raw = fopen(argv[1], "rb");
-    else raw = fopen("all_strings", "rb");
-    if (raw == NULL) {
-      fprintf(stderr, "Failed to open input file\n");
-      exit(1);
+    /* find out language, and open files */
+    base = fopen("strings/english-strings", "rb");
+    if (argc < 3) {
+      langcode = CSLANGUAGE_ENGLISH_UK;
+      strcpy(&(buf[0]), "csound");
     }
-    if (argc==3) {
-      /* 7 is length of `English' and there are 10 maximum */
-      int len = strlen(argv[2]);
-      if (len>29) len = 29;
-      strncpy(lang, argv[2], len);
-      memset(lang+len, '\0', 30-len); /* Null rest */
+    else {
+      for (i = 0; (i < strlen(argv[2]) && i < 251); i++)
+        buf[i] = (argv[2][i] >= 'A' && argv[2][i] <= 'Z' ?
+                  argv[2][i] - 'A' + 'a' : argv[2][i]);
+      buf[i] = '\0';
+      if (strncmp(&(buf[0]), "american", 7) == 0 ||
+          strncmp(&(buf[0]), "us", 2) == 0)
+        langcode = CSLANGUAGE_ENGLISH_US;
+      else if (strncmp(&(buf[0]), "french", 6) == 0)
+        langcode = CSLANGUAGE_FRENCH;
+      else if (strncmp(&(buf[0]), "spanish", 7) == 0)
+        langcode = CSLANGUAGE_SPANISH;
+      else if (strncmp(&(buf[0]), "german", 6) == 0)
+        langcode = CSLANGUAGE_GERMAN;
+      else if (strncmp(&(buf[0]), "italian", 7) == 0)
+        langcode = CSLANGUAGE_ITALIAN;
+      else
+        langcode = CSLANGUAGE_ENGLISH_UK;
+      strcpy(&(buf[0]), argv[2]);
     }
-    strcpy(dbname, lang); strcat(dbname, ".xmg"); /* ****** */
-    if (DEBUG) fprintf(stderr, "DBname = >>%s<<\n", dbname);
-    db = fopen(dbname, "wb");
-    if (db == NULL) {
-      fprintf(stderr, "Failed to create DB file\n");
-      exit(1);
+    strcat(&(buf[0]), ".xmg");
+    db = fopen(&(buf[0]), "wb");
+#if 0
+    switch (langcode) {
+      case CSLANGUAGE_ENGLISH_US:
+        strcpy(&(buf[0]), "strings/all_strings");     break;
+      case CSLANGUAGE_FRENCH:
+        strcpy(&(buf[0]), "strings/french-strings");  break;
+      case CSLANGUAGE_SPANISH:
+        strcpy(&(buf[0]), "strings/spanish-strings"); break;
+      case CSLANGUAGE_GERMAN:
+        strcpy(&(buf[0]), "strings/german-strings");  break;
+      case CSLANGUAGE_ITALIAN:
+        strcpy(&(buf[0]), "strings/italian-strings"); break;
+      default:
+        strcpy(&(buf[0]), "strings/english-strings");
     }
-    fwrite(&order, sizeof(int), 1, db);
-    fwrite(X_HEADER, sizeof(X_HEADER)-1, 1, db);
-    fwrite(lang, sizeof(char), 30, db);
-    n = X_MAXNUM;
-    n = benlong(n);
-    fwrite(&n, sizeof(long), 1, db);
-    baseloc = ftell(db);
-    for (j=0; j<X_MAXNUM; j++) strings[j] = 0L;
-    fwrite(strings, sizeof(long), X_MAXNUM, db); /* Write header */
-    loc = ftell(db);
-    if (DEBUG) fprintf(stderr, "Baseloc=%lx Loc=%lx\n", baseloc, loc);
-    for (;;) {                  /* Read the text until ended */
-      long n = 0;
-      long i;
-      int ch = getc(raw);
-      while (ch=='\r' || ch =='\n') ch = getc(raw);
-      if (DEBUG) fprintf(stderr, "Read '%c'(%.2x)\n", ch, ch);
-      while (isdigit(ch)) {
-        if (DEBUG) fprintf(stderr, "Read '%c'(%.2x)\n", ch, ch);
-        n = n*10+ch-'0';
-        ch = getc(raw);
-      }
-      if (DEBUG) fprintf(stderr, "String# %ld\n", n);
-      if (ch==EOF) break;
-      if (ch!=',') {
-        fprintf(stderr,
-                "item %ld/%ld: Syntax error -- expecting comma got '%c'%2x\n",
-                item, n, ch, ch);
-        exit(1);
-      }
-      item = n;
-      i = 0;
-      while ((ch=getc(raw))!='"') ;
-                                /* Now read the string */
-      while ((ch = getc(raw))!='"') {
-        if (ch=='\\') {
-          ch=getc(raw);
-          switch (ch) {
-          case 'a':
-            ch = '\a'; break;
-          case 'b':
-            ch = '\b'; break;
-          case 'n':
-            ch = '\n'; break;
-          case 'r':
-            ch = '\r'; break;
-          case 't':
-            ch = '\t'; break;
-          default:
-            break;
-          }
-        }
-        buff[i++]=ch;
-      }
-      buff[i++] = '\0';
-      strings[n] = loc;
-      n = benlong(i);
-      fwrite(&n, sizeof(long), 1, db);
-      fwrite(buff, sizeof(char), i, db);
-      loc = ftell(db);
-      while ((ch=getc(raw))!='\n');
+#endif
+    if (argc > 1)
+      trans = fopen(argv[1], "rb");
+    else
+      trans = fopen("strings/english-strings", "rb");
+    if (base == NULL || trans == NULL || db == NULL) {
+      fprintf(stderr, "makedb: error opening file\n");
+      return -1;
     }
-    fseek(db, baseloc, SEEK_SET);
-    for (j=0; j<X_MAXNUM; j++) strings[j] = benlong(strings[j]);
-    fwrite(strings, sizeof(long), X_MAXNUM, db); /* rewrite header */
-    fclose(raw);
-    fclose(db);
+    /* write file header */
+    fputc('c', db); fputc('S', db); fputc('t', db); fputc('r', db);
+    fputc(0x10, db); fputc(0x00, db);
+    fputc(((langcode & 0xFF00) >> 8), db); fputc((langcode & 0xFF), db);
+    /* do not know the number of messages yet; will update later */
+    fputc(0x00, db); fputc(0x00, db); fputc(0x00, db); fputc(0x00, db);
+    nmsgs = 0;
+    do {
+      if (read_line(base, (unsigned char*) &(buf[0])) != 0 ||
+          read_line(trans, (unsigned char*) &(buf2[0])) != 0)
+        break;
+      if ((char) buf[0] == '\0' || (char) buf2[0] == '\0')
+        continue;
+      if (strcmp((char*) &(buf[0]), (char*) &(buf2[0])) == 0)
+        continue;
+      nmsgs++;
+      fputc(0x81, db);
+      fwrite((void*) &(buf[0]),
+             (size_t) 1, strlen((char*) &(buf[0])) + (size_t) 1, db);
+      fputc(0x82, db);
+      fwrite((void*) &(buf2[0]),
+             (size_t) 1, strlen((char*) &(buf2[0])) + (size_t) 1, db);
+    } while (1);
+    /* write number of messages */
+    fseek(db, 8L, SEEK_SET);
+    fputc(((nmsgs & 0x7F000000) >> 24), db);
+    fputc(((nmsgs & 0x00FF0000) >> 16), db);
+    fputc(((nmsgs & 0x0000FF00) >> 8), db);
+    fputc((nmsgs & 0x000000FF), db);
+    /* done creating database */
+    fflush(db);
+    fclose(base); fclose(trans); fclose(db);
     fprintf(stderr, "OK\n");
-    return(0);
+    return 0;
 }
+

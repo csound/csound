@@ -56,12 +56,12 @@ int cvset(ENVIRON *csound, CONVOLVE *p)
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename, cvfilnam) != 0)
                                 /* if file not already readin */
       if ( (mfp = ldmemfile(cvfilnam)) == NULL) {
-        sprintf(errmsg,Str(X_196,"CONVOLVE cannot load %s"), cvfilnam);
+        sprintf(errmsg,Str("CONVOLVE cannot load %s"), cvfilnam);
         goto cverr;
       }
     cvh = (CVSTRUCT *)mfp->beginp;
     if (cvh->magic != CVMAGIC) {
-      sprintf(errmsg,Str(X_59,"%s not a CONVOLVE file (magic %ld)"),
+      sprintf(errmsg,Str("%s not a CONVOLVE file (magic %ld)"),
               cvfilnam, cvh->magic );
       goto cverr;
     }
@@ -73,7 +73,7 @@ int cvset(ENVIRON *csound, CONVOLVE *p)
         p->nchanls = nchanls;
       else {
         sprintf(errmsg,
-                Str(X_198,
+                Str(
                     "CONVOLVE: output channels not equal "
                     "to number of channels in source"));
         goto cverr;
@@ -83,7 +83,7 @@ int cvset(ENVIRON *csound, CONVOLVE *p)
       if (*p->channel <= nchanls) {
         if (p->OUTOCOUNT != 1) {
           sprintf(errmsg,
-                  Str(X_198,"CONVOLVE: output channels not equal "
+                  Str("CONVOLVE: output channels not equal "
                       "to number of channels in source"));
           goto cverr;
         }
@@ -92,7 +92,7 @@ int cvset(ENVIRON *csound, CONVOLVE *p)
       }
       else {
         sprintf(errmsg,
-                Str(X_197,"CONVOLVE: channel number greater than "
+                Str("CONVOLVE: channel number greater than "
                     "number of channels in source"));
         goto cverr;
       }
@@ -107,11 +107,11 @@ int cvset(ENVIRON *csound, CONVOLVE *p)
 
     if ((cvh->samplingRate) != esr &&
         (O.msglevel & WARNMSG)) { /* & chk the data */
-      printf(Str(X_63,"WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
+      printf(Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
               cvfilnam, cvh->samplingRate, esr);
     }
     if (cvh->dataFormat != CVMYFLT) {
-      sprintf(errmsg,Str(X_1357,"unsupported CONVOLVE data format %ld in %s"),
+      sprintf(errmsg,Str("unsupported CONVOLVE data format %ld in %s"),
               cvh->dataFormat, cvfilnam);
       goto cverr;
     }
@@ -173,7 +173,7 @@ int convolve(ENVIRON *csound, CONVOLVE *p)
     ar[3] = p->ar4;
 
     if (p->auxch.auxp==NULL) {
-      return perferror(Str(X_667,"convolve: not initialised"));
+      return perferror(Str("convolve: not initialised"));
     }
   /* First dump as much pre-existing audio in output buffer as possible */
     if (outcnt > 0) {

@@ -88,7 +88,7 @@ int tempset(ENVIRON *csound, TEMPO *p)
     MYFLT tempo;
 
     if ((tempo = *p->istartempo) <= FL(0.0)) {
-      return initerror(Str(X_864,"illegal istartempo value"));
+      return initerror(Str("illegal istartempo value"));
     }
     else {
       settempo(tempo);
@@ -249,7 +249,7 @@ int musmon(ENVIRON *csound)
     dispinit();                 /* initialise graphics or character display */
     oload(csound);              /* set globals and run inits */
     if (O.FMidiin) FMidiOpen();
-    printf(Str(X_1099,"orch now loaded\n"));
+    printf(Str("orch now loaded\n"));
 #ifdef mills_macintosh
     fflush(stdout);
 #endif
@@ -262,10 +262,10 @@ int musmon(ENVIRON *csound)
     if (O.Linein)  RTLineset();     /* if realtime input expected   */
     if (O.outbufsamps < 0) {        /* if k-aligned iobufs requestd */
       O.inbufsamps = O.outbufsamps *= -ksmps; /*  set from absolute value */
-      printf(Str(X_956,"k-period aligned audio buffering\n"));
+      printf(Str("k-period aligned audio buffering\n"));
 #ifdef mills_macintosh
       if (O.msglevel & WARNMSG)
-        printf(Str(X_536,
+        printf(Str(
                    "WARNING: Will probably not work with playback routines\n"));
 #endif
     }
@@ -277,16 +277,16 @@ int musmon(ENVIRON *csound)
 #ifdef mills_macintosh
     if (IsNotAPowerOf2(O.outbufsamps) != 0) {
       O.outbufsamps = RoundDownToPowerOf2(O.outbufsamps);
-      printf(Str(X_1164,"reset output buffer blocksize to power of 2 (%ld)\n"),
+      printf(Str("reset output buffer blocksize to power of 2 (%ld)\n"),
              O.outbufsamps);
     }
     if (IsNotAPowerOf2(O.inbufsamps) != 0) {
       O.inbufsamps = RoundDownToPowerOf2(O.inbufsamps);
-      printf(Str(X_1163,"reset input buffers blocksize to power of 2 (%ld)\n"),
+      printf(Str("reset input buffers blocksize to power of 2 (%ld)\n"),
              O.inbufsamps);
     }
 #endif
-    printf(Str(X_602,"audio buffered in %d sample-frame blocks\n"),
+    printf(Str("audio buffered in %d sample-frame blocks\n"),
            O.outbufsamps);
     O.inbufsamps *= nchnls;         /* now adjusted for n channels  */
     O.outbufsamps *= nchnls;
@@ -304,7 +304,7 @@ int musmon(ENVIRON *csound)
     /*        if (!O.Linein) { */   /*  *************** */
     if (!(scfp = fopen(O.playscore, "r"))) {
       if (!O.Linein) {
-        dies(Str(X_649,"cannot reopen %s"), O.playscore);
+        dies(Str("cannot reopen %s"), O.playscore);
       }
     }
     if (O.usingcscore) {
@@ -312,9 +312,9 @@ int musmon(ENVIRON *csound)
         lsect = (EVENT *) mmalloc((long)sizeof(EVENT));
         lsect->op = 'l';
       }
-      printf(Str(X_1361,"using Cscore processing\n"));
+      printf(Str("using Cscore processing\n"));
       if (!(oscfp = fopen("cscore.out", "w")))  /* override stdout in   */
-        die(Str(X_631,"cannot create cscore.out"));/* rdscor for cscorefns */
+        die(Str("cannot create cscore.out"));/* rdscor for cscorefns */
       cscorinit();
       cscore(csound);      /* call cscore, optionally re-enter via lplay() */
       fclose(oscfp);
@@ -322,22 +322,22 @@ int musmon(ENVIRON *csound)
       if (lplayed) return 0;
 
       if (!(scfp = fopen("cscore.out", "r")))   /*   rd from cscore.out */
-        die(Str(X_650,"cannot reopen cscore.out"));
+        die(Str("cannot reopen cscore.out"));
       if (!(oscfp = fopen("cscore.srt", "w")))  /*   writ to cscore.srt */
-        die(Str(X_651,"cannot reopen cscore.srt"));
-      printf(Str(X_1196,"sorting cscore.out ..\n"));
+        die(Str("cannot reopen cscore.srt"));
+      printf(Str("sorting cscore.out ..\n"));
       scsort(scfp, oscfp);                      /* call the sorter again */
       fclose(scfp); scfp = NULL;
       fclose(oscfp);
-      printf(Str(X_564,"\t... done\n"));
+      printf(Str("\t... done\n"));
       if (!(scfp = fopen("cscore.srt", "r")))   /*   rd from cscore.srt */
-        die(Str(X_651,"cannot reopen cscore.srt"));
-      printf(Str(X_1127,"playing from cscore.srt\n"));
+        die(Str("cannot reopen cscore.srt"));
+      printf(Str("playing from cscore.srt\n"));
       O.usingcscore = 0;
     }
     if (e == NULL)
       e = scorevtblk = (EVTBLK *) mmalloc((long)sizeof(EVTBLK));
-    printf(Str(X_448,"SECTION %d:\n"),++sectno);
+    printf(Str("SECTION %d:\n"),++sectno);
 #ifdef mills_macintosh
     fflush(stdout);
 #endif
@@ -361,19 +361,19 @@ int cleanup(void)
 {
     int     n;
 
-    printf(Str(X_716,"end of score.\t\t   overall amps:"));
+    printf(Str("end of score.\t\t   overall amps:"));
     if (scfp) {
       fclose(scfp); scfp = NULL;
     }
     for (maxp=omaxamp, n=nchnls; n--; )
       print_maxamp (*maxp++);                   /* IV - Jul 9 2002 */
     if (O.outformat != AE_FLOAT) {
-      printf(Str(X_554,"\n\t   overall samples out of range:"));
+      printf(Str("\n\t   overall samples out of range:"));
       for (rngp=orngcnt, n=nchnls; n--; )
         printf("%9ld", *rngp++);
     }
     /*      if (O.Linein)  RTclose(); */ /* now done via atexit */
-    printf(Str(X_548,"\n%d errors in performance\n"),perferrcnt);
+    printf(Str("\n%d errors in performance\n"),perferrcnt);
 #ifdef RTAUDIO
     rtclose_();
 #endif
@@ -381,7 +381,7 @@ int cleanup(void)
       sfclosein();
     if (O.sfwrite)
       sfcloseout();
-    else printf(Str(X_1061,"no sound written to disk\n"));
+    else printf(Str("no sound written to disk\n"));
     if (O.ringbell) beep();
     return dispexit();      /* hold or terminate the display output     */
     /* for Mac, dispexit returns 0 to exit immediately */
@@ -392,14 +392,14 @@ void beep(void)
 #ifdef mills_macintosh
     SysBeep(10000);
 #else
-    printf(Str(X_28,"%c\tbeep!\n"),'\007');
+    printf(Str("%c\tbeep!\n"),'\007');
 #endif
 }
 
 int lplay(ENVIRON *csound, EVLIST *a) /* cscore re-entry into musmon */
 {
     lplayed = 1;
-    if (!sectno)  printf(Str(X_448,"SECTION %d:\n"),++sectno);
+    if (!sectno)  printf(Str("SECTION %d:\n"),++sectno);
     ep = &a->e[1];            /* from 1st evlist member */
     epend = ep + a->nevents;  /*   to last              */
     playevents(csound);       /* play list members      */
@@ -421,7 +421,7 @@ void xturnon(int insno, long xtratim) /* schedule a later turnon        */
 
     while (tp->insno && ++tp < tpend);  /* quick see if list is full */
     if (tp >= tpend)
-      printf(Str(X_1293,"too many turnons waiting\n"));
+      printf(Str("too many turnons waiting\n"));
     else {
       TRNON *prvtp = tp - 1;
       while (prvtp >= turnons && prvtp->ktime > ktime) {
@@ -450,13 +450,13 @@ void kturnon(ENVIRON *csound)/* turn on instrs due in turnon list */
       int n;
       e->p[1] = (MYFLT)insno;                   /* for each instr due */
       if (instrtxtp[insno] == NULL) {           /*     turnon now     */
-        printf(Str(X_1299,"turnon deleted. instr %d undefined\n"), insno);
+        printf(Str("turnon deleted. instr %d undefined\n"), insno);
         perferrcnt++;
       }
       else if ((n = insert(csound,insno, e)) != 0) {
-        printf(Str(X_1298,"turnon deleted. instr %d "), insno);
-        if (n < 0) printf(Str(X_990,"memory fault\n"));
-        else printf(Str(X_822,"had %d init errors\n"), n);
+        printf(Str("turnon deleted. instr %d "), insno);
+        if (n < 0) printf(Str("memory fault\n"));
+        else printf(Str("had %d init errors\n"), n);
         perferrcnt++;
       }
       tp->insno = 0;                            /*      & mark it done */
@@ -542,13 +542,13 @@ static int playevents(ENVIRON *csound)
         offonly = 1;
         break;
       default:
-        printf(Str(X_723,"error in score.  illegal opcode %c (ASCII %d)\n"),
+        printf(Str("error in score.  illegal opcode %c (ASCII %d)\n"),
                e->opcod, e->opcod);
         perferrcnt++;
         continue;
       }
       if (MTrkend && O.termifend && frstoff == NULL) {
-        printf(Str(X_1278,"terminating. "));
+        printf(Str("terminating. "));
         return(0);             /* aborting with perf incomplete */
       }
       if (O.Beatmode)
@@ -592,7 +592,7 @@ static int playevents(ENVIRON *csound)
             print_maxamp (*maxp++);             /* IV - Jul 9 2002 */
           printf("\n");
           if (rngflg) {
-            printf(Str(X_560,"\t number of samples out of range:"));
+            printf(Str("\t number of samples out of range:"));
             for (n=nchnls, rngp=rngcnt; n--;)
               printf("%9ld", *rngp++);
             printf("\n");
@@ -641,8 +641,8 @@ static int playevents(ENVIRON *csound)
         insno = chn->pgmno;
         if (mep->type == NOTEON_TYPE && mep->dat2) { /* midi note ON: */
           if ((n = MIDIinsert(csound,insno,chn,mep))) {  /* alloc,init,activ */
-            printf(Str(X_568,"\t\t   T%7.3f - note deleted. "), curp2);
-            printf(Str(X_926,"instr %d had %d init errors\n"), insno, n);
+            printf(Str("\t\t   T%7.3f - note deleted. "), curp2);
+            printf(Str("instr %d had %d init errors\n"), insno, n);
             perferrcnt++;
           }
         }
@@ -679,11 +679,11 @@ static int playevents(ENVIRON *csound)
           if ((insno = (int) named_instr_find(e->strarg)) < 1) {
             if (sensType) printf("\t\t   T%7.3f",curp2);
             else  printf("\t  B%7.3f",curbt);
-            printf(Str(X_1808," - note deleted. instr %s undefined\n"), e->strarg);
+            printf(Str(" - note deleted. instr %s undefined\n"), e->strarg);
             perferrcnt++; break;
           }
-          printf(Str(X_1809,"Setting instrument %s %s\n"),
-                 e->strarg, (e->p[3]==0 ? Str(X_1811,"off") : Str(X_1810,"on")));
+          printf(Str("Setting instrument %s %s\n"),
+                 e->strarg, (e->p[3]==0 ? Str("off") : Str("on")));
           instrtxtp[insno]->muted = (short)e->p[3];
         }
         else {                                          /* IV - Oct 31 2002 */
@@ -691,13 +691,13 @@ static int playevents(ENVIRON *csound)
           if (insno > maxinsno || instrtxtp[insno] == NULL) {
             if (sensType) printf("\t\t   T%7.3f",curp2);
             else  printf("\t  B%7.3f",curbt);
-            printf(Str(X_16," - note deleted. instr %d(%d) undefined\n"),
+            printf(Str(" - note deleted. instr %d(%d) undefined\n"),
                    insno, maxinsno);
             perferrcnt++;
           }
           else {
-            printf(Str(X_1812,"Setting instrument %d %s\n"),
-                   insno, (e->p[3]==0 ? Str(X_1811,"off") : (Str(X_1810,"on"))));
+            printf(Str("Setting instrument %d %s\n"),
+                   insno, (e->p[3]==0 ? Str("off") : (Str("on"))));
             instrtxtp[insno]->muted = (short)e->p[3];
           }
         }
@@ -707,7 +707,7 @@ static int playevents(ENVIRON *csound)
           if ((insno = (int) named_instr_find(e->strarg)) < 1) {
             if (sensType) printf("\t\t   T%7.3f",curp2);
             else  printf("\t  B%7.3f",curbt);
-            printf(Str(X_1808," - note deleted. instr %s undefined\n"), e->strarg);
+            printf(Str(" - note deleted. instr %s undefined\n"), e->strarg);
             perferrcnt++; break;
           }
           e->p[1] = (MYFLT) insno;
@@ -716,7 +716,7 @@ static int playevents(ENVIRON *csound)
           if ((n = insert(csound, insno,e))) {  /* else aloc,init,activat */
             if (sensType) printf("\t\t   T%7.3f",curp2);
             else  printf("\t  B%7.3f",curbt);
-            printf(Str(X_1813," - note deleted.  i%d (%s) had %d init errors\n"),
+            printf(Str(" - note deleted.  i%d (%s) had %d init errors\n"),
                    insno, e->strarg, n);
             perferrcnt++;
           }
@@ -726,7 +726,7 @@ static int playevents(ENVIRON *csound)
           if (insno > maxinsno || instrtxtp[insno] == NULL) {
             if (sensType) printf("\t\t   T%7.3f",curp2);
             else  printf("\t  B%7.3f",curbt);
-            printf(Str(X_16," - note deleted. instr %d(%d) undefined\n"),
+            printf(Str(" - note deleted. instr %d(%d) undefined\n"),
                    insno, maxinsno);
             perferrcnt++;
           }
@@ -738,7 +738,7 @@ static int playevents(ENVIRON *csound)
             if ((n = insert(csound,insno,e))) {  /* else aloc,init,activat */
               if (sensType) printf("\t\t   T%7.3f",curp2);
               else  printf("\t  B%7.3f",curbt);
-              printf(Str(X_15," - note deleted.  i%d had %d init errors\n"),
+              printf(Str(" - note deleted.  i%d had %d init errors\n"),
                      insno, n);
               perferrcnt++;
             }
@@ -751,7 +751,7 @@ static int playevents(ENVIRON *csound)
       case 'a':
         curp2 = e->p[2] + e->p[3];
         curbt = e->p2orig + e->p3orig;
-        printf(Str(X_1280,"time advanced %5.3f beats by score request\n"),
+        printf(Str("time advanced %5.3f beats by score request\n"),
                e->p3orig);
         break;
       }
@@ -765,12 +765,12 @@ static int playevents(ENVIRON *csound)
       continue;                      /* else get next score event   */
 
     lcode:
-      printf(Str(X_714,"end of lplay event list\t      peak amps:"));
+      printf(Str("end of lplay event list\t      peak amps:"));
       for (n=nchnls, maxp=smaxamp; n--; )
         print_maxamp (*maxp++);                 /* IV - Jul 9 2002 */
       printf("\n");
       if (srngflg) {
-        printf(Str(X_560,"\t number of samples out of range:"));
+        printf(Str("\t number of samples out of range:"));
         for (n=nchnls, srngp=srngcnt; n--; )
           printf("%9ld", *srngp++);
         printf("\n");
@@ -783,12 +783,12 @@ static int playevents(ENVIRON *csound)
           || (opcod == 'e' && sectno > 1)) {
         timtot += curp2;
         prvbt = curbt = curp2 = FL(0.0);
-        printf(Str(X_717,"end of section %d\t sect peak amps:"),sectno);
+        printf(Str("end of section %d\t sect peak amps:"),sectno);
         for (n=nchnls, maxp=smaxamp; n--; )
           print_maxamp (*maxp++);               /* IV - Jul 9 2002 */
         printf("\n");
         if (srngflg) {
-          printf(Str(X_560,"\t number of samples out of range:"));
+          printf(Str("\t number of samples out of range:"));
           for (n=nchnls, srngp=srngcnt; n--; )
             printf("%9ld", *srngp++);
           printf("\n");
@@ -816,7 +816,7 @@ static int playevents(ENVIRON *csound)
         if (actanchor.nxtact == NULL)           /*   if no indef ins */
           rlsmemfiles();                        /*    purge memfiles */
         curp2 = curbt = FL(0.0);                /*   reset sec times */
-        printf(Str(X_448,"SECTION %d:\n"), ++sectno);
+        printf(Str("SECTION %d:\n"), ++sectno);
 #ifdef mills_macintosh
         fflush(stdout);
 #endif
@@ -858,7 +858,7 @@ int sensevents(ENVIRON *csound)
             print_maxamp (*maxp++);             /* IV - Jul 9 2002 */
           printf("\n");
           if (rngflg) {
-            printf(Str(X_560,"\t number of samples out of range:"));
+            printf(Str("\t number of samples out of range:"));
             for (n=nchnls, rngp=rngcnt; n--;)
               printf("%9ld", *rngp++);
             printf("\n");
@@ -956,14 +956,14 @@ int sensevents(ENVIRON *csound)
         offonly = 1;
         break;
       default:
-        printf(Str(X_723,"error in score.  illegal opcode %c (ASCII %d)\n"),
+        printf(Str("error in score.  illegal opcode %c (ASCII %d)\n"),
                e->opcod, e->opcod);
         perferrcnt++;
         return(0);
       }
 
       if (MTrkend && O.termifend && frstoff == NULL) {
-        printf(Str(X_1278,"terminating. "));
+        printf(Str("terminating. "));
         return(0);             /* aborting with perf incomplete */
       }
 
@@ -1016,7 +1016,7 @@ int sensevents(ENVIRON *csound)
 /*                     e->p[3] = e->p3orig * betsiz; */
 /*                   if (n = insert(insno, e)) {  /\* alloc,init,activate *\/ */
 /*                     printf("\t\t   T%7.3f",curp2); */
-/*                     printf(Str(X_1481, */
+/*                     printf(Str(*/
 /*                                "schedkwhen note deleted." */
 /*                                "  i%d had %d init errors\n"), */
 /*                            insno, n); */
@@ -1059,8 +1059,8 @@ int sensevents(ENVIRON *csound)
       insno = chn->pgmno;
       if (mep->type == NOTEON_TYPE && mep->dat2) { /* midi note ON: */
         if ((n = MIDIinsert(csound,insno,chn,mep))) {  /* alloc,init,activ */
-          printf(Str(X_568,"\t\t   T%7.3f - note deleted. "), curp2);
-          printf(Str(X_926,"instr %d had %d init errors\n"), insno, n);
+          printf(Str("\t\t   T%7.3f - note deleted. "), curp2);
+          printf(Str("instr %d had %d init errors\n"), insno, n);
           perferrcnt++;
         }
       }
@@ -1097,7 +1097,7 @@ int sensevents(ENVIRON *csound)
         if ((insno = (int) named_instr_find(e->strarg)) < 1) {
           if (sensType) printf("\t\t   T%7.3f",curp2);
           else  printf("\t  B%7.3f",curbt);
-          printf(Str(X_1808," - note deleted. instr %s undefined\n"), e->strarg);
+          printf(Str(" - note deleted. instr %s undefined\n"), e->strarg);
           perferrcnt++; break;
         }
         e->p[1] = (MYFLT) insno;
@@ -1106,7 +1106,7 @@ int sensevents(ENVIRON *csound)
         if ((n = insert(csound,insno,e))) {  /* else aloc,init,activat */
           if (sensType) printf("\t\t   T%7.3f", curp2);
           else  printf("\t  B%7.3f", curbt);
-          printf(Str(X_1813," - note deleted.  i%d (%s) had %d init errors\n"),
+          printf(Str(" - note deleted.  i%d (%s) had %d init errors\n"),
                  insno, e->strarg, n);
           perferrcnt++;
         }
@@ -1116,7 +1116,7 @@ int sensevents(ENVIRON *csound)
         if (insno > maxinsno || instrtxtp[insno] == NULL) {
           if (sensType) printf("\t\t   T%7.3f",curp2);
           else  printf("\t  B%7.3f",curbt);
-          printf(Str(X_16," - note deleted. instr %d(%d) undefined\n"),
+          printf(Str(" - note deleted. instr %d(%d) undefined\n"),
                  insno, maxinsno);
           perferrcnt++;
         }
@@ -1128,7 +1128,7 @@ int sensevents(ENVIRON *csound)
           if ((n = insert(csound,insno,e))) {  /* else aloc,init,activat */
             if (sensType) printf("\t\t   T%7.3f",curp2);
             else  printf("\t  B%7.3f",curbt);
-            printf(Str(X_15," - note deleted.  i%d had %d init errors\n"),
+            printf(Str(" - note deleted.  i%d had %d init errors\n"),
                    insno, n);
             perferrcnt++;
           }
@@ -1141,7 +1141,7 @@ int sensevents(ENVIRON *csound)
     case 'a':
       curp2 = e->p[2] + e->p[3];
       curbt = e->p2orig + e->p3orig;
-      printf(Str(X_1280,"time advanced %5.3f beats by score request\n"),
+      printf(Str("time advanced %5.3f beats by score request\n"),
              e->p3orig);
       break;
     }
@@ -1156,12 +1156,12 @@ int sensevents(ENVIRON *csound)
     return(0);                     /* else get next score event   */
 
  lcode:
-    printf(Str(X_714,"end of lplay event list\t      peak amps:"));
+    printf(Str("end of lplay event list\t      peak amps:"));
     for (n=nchnls, maxp=smaxamp; n--; )
       print_maxamp (*maxp++);                   /* IV - Jul 9 2002 */
     printf("\n");
     if (srngflg) {
-      printf(Str(X_560,"\t number of samples out of range:"));
+      printf(Str("\t number of samples out of range:"));
       for (n=nchnls, srngp=srngcnt; n--; )
         printf("%9ld", *srngp++);
       printf("\n");
@@ -1174,12 +1174,12 @@ int sensevents(ENVIRON *csound)
         (opcod == 'e' && sectno > 1)) {
       timtot += curp2;
       nxtim = nxtbt = prvbt = curbt = curp2 = FL(0.0);
-      printf(Str(X_717,"end of section %d\t sect peak amps:"),sectno);
+      printf(Str("end of section %d\t sect peak amps:"),sectno);
       for (n=nchnls, maxp=smaxamp; n--; )
         print_maxamp (*maxp++);                 /* IV - Jul 9 2002 */
       printf("\n");
       if (srngflg) {
-        printf(Str(X_560,"\t number of samples out of range:"));
+        printf(Str("\t number of samples out of range:"));
         for (n=nchnls, srngp=srngcnt; n--; )
           printf("%9ld", *srngp++);
         printf("\n");
@@ -1207,7 +1207,7 @@ int sensevents(ENVIRON *csound)
       if (actanchor.nxtact == NULL)           /*   if no indef ins */
         rlsmemfiles();                        /*    purge memfiles */
       nxtim = nxtbt = curp2 = curbt = FL(0.0);        /*   reset sec times */
-      printf(Str(X_448,"SECTION %d:\n"), ++sectno);
+      printf(Str("SECTION %d:\n"), ++sectno);
 #ifdef mills_macintosh
       fflush(stdout);
 #endif

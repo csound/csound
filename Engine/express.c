@@ -107,7 +107,7 @@ int express(char *s)
         ttt->str += (tt-tokenstring);
       tokenstring = tt;               /* Reset string and length */
       stringend = tokenstring + (toklen = n);
-      printf(Str(X_494,"Token length extended to %ld\n"), toklen);
+      printf(Str("Token length extended to %ld\n"), toklen);
     }
 
     token = tokens;
@@ -123,7 +123,7 @@ int express(char *s)
           else {                  /* neg symbol: prv / illegal */
             if (token > tokens
                 && *(token-1)->str == '/')
-              XERROR(Str(X_706,"divide by unary minus"))
+              XERROR(Str("divide by unary minus"))
                 token++->str = strminus1;
             token++->str = strmult;
             token->str = t;     /* else -1 * symbol */
@@ -131,7 +131,7 @@ int express(char *s)
           c = *s++;               /* beg rem of token */
         }
         else if (c == '*' || c == '/' || c == '%')  /* unary mlt, div */
-          XERROR(Str(X_1314,"unary mult or divide"))      /*   illegal */
+          XERROR(Str("unary mult or divide"))      /*   illegal */
             open = 0;
       }
       *t++ = c;                       /* copy this character or    */
@@ -151,7 +151,7 @@ int express(char *s)
           *t++ = *s++;                /*      copy entire token    */
       *t++ = '\0';                    /* terminate this token      */
       if (t >= stringend) {           /* Extend token length as required */
-        XERROR(Str(X_1283,"token storage LENTOT exceeded"));
+        XERROR(Str("token storage LENTOT exceeded"));
       }
       if ((tokend - token)<= 4) {     /* Extend token array and friends */
         int n = token - tokens;
@@ -160,7 +160,7 @@ int express(char *s)
         tokenlist =
           (TOKEN**) mrealloc(tokenlist, (toklength+TOKMAX)*sizeof(TOKEN*));
         toklength += TOKMAX;
-/*         printf(Str(X_495,"Tokens length extended to %d\n"), toklength); */
+/*         printf(Str("Tokens length extended to %d\n"), toklength); */
         token  = tokens + n;
         tokend = tokens + toklength;
       }
@@ -233,7 +233,7 @@ int express(char *s)
       }
       else if (*token->str == ')') {
         if (token++ && *(*pushp++)->str != '(')
-          XERROR(Str(X_1380,"within parens"))
+          XERROR(Str("within parens"))
       }
       else if ((token+1)->str!=NULL && token->prec < (token+1)->prec)
         *--pushp = token++;
@@ -254,7 +254,7 @@ int express(char *s)
     if (polcnt >= polmax) {
       polmax = polcnt+POLMAX;
       polish = (POLISH*) mrealloc(polish,polmax*sizeof(POLISH));
-/*       printf(Str(X_265,"Extending Polish array length %ld\n"), polmax); */
+/*       printf(Str("Extending Polish array length %ld\n"), polmax); */
 /*      XERROR("polish storage POLMAX exceeded"); */
     }
     pp = &polish[polcnt-1];
@@ -271,13 +271,13 @@ int express(char *s)
         pp->arg[1] = copystring((*--argp)->str);
         c = argtyp(pp->arg[1]);                      /* whose aki type */
         if (c == 'B' || c == 'b')
-          XERROR(Str(X_999,"misplaced relational op"))
+          XERROR(Str("misplaced relational op"))
         if (c != 'a' && c != 'k')
           c = 'i';                                   /*   (simplified)  */
-        sprintf(op, "%s_%c", (*revp)->str, c); /* Type at end now */
-        if (strcmp(op,"i_k") == 0)
+        sprintf(op, "%s.%c", (*revp)->str, c); /* Type at end now */
+        if (strcmp(op,"i.k") == 0)
           outype = 'i';                   /* i(karg) is irreg. */
-        else if (strcmp(op,"a_k") == 0)
+        else if (strcmp(op,"a.k") == 0)
           outype = 'a';                   /* a(karg) is irreg. */
         else outype = c;                    /* else outype=intype */
       }
@@ -288,30 +288,30 @@ int express(char *s)
           strcpy(op,"xor");
         else if (c == BITCLR)
           strcpy(op,"and");
-        else printf(Str(X_262,"Expression got lost\n"));
+        else printf(Str("Expression got lost\n"));
         goto common_ops;
       }
       else if (prec >= BITOPS && argcnt == 1) { /* bit op:    */
         if ((c = *(*revp)->str) == '¬')
           strcpy(op,"not");
-        else printf(Str(X_262,"Expression got lost\n"));
+        else printf(Str("Expression got lost\n"));
         pp->incount = 1;                    /*   copy 1 arg txts */
         pp->arg[1] = copystring((*--argp)->str);
         e = argtyp(pp->arg[1]);
         if (e == 'B' || e == 'b')
-          XERROR(Str(X_999,"misplaced relational op"))
+          XERROR(Str("misplaced relational op"))
 /*              printf("op=%s e=%c c=%c\n", op, e, c); */
         if (e == 'a') {                     /*   to complete optxt*/
           if (c=='¬')
-            strcat(op,"_a");
+            strcat(op,".a");
           outype = 'a';
         }
         else if (e == 'k') {
-          if (c == '¬') strcat(op,"_k");
+          if (c == '¬') strcat(op,".k");
           outype = 'k';
         }
         else {
-          if (c == '¬') strcat(op,"_i");
+          if (c == '¬') strcat(op,".i");
           outype = 'i';
         }
       }
@@ -328,7 +328,7 @@ int express(char *s)
           strcpy(op,"mod");
         else if (c == '^')
           strcpy(op,"pow");
-        else printf(Str(X_262,"Expression got lost\n"));
+        else printf(Str("Expression got lost\n"));
       common_ops:
         pp->incount = 2;                    /*   copy 2 arg txts */
         pp->arg[2] = copystring((*--argp)->str);
@@ -336,27 +336,27 @@ int express(char *s)
         e = argtyp(pp->arg[1]);
         d = argtyp(pp->arg[2]);             /*   now use argtyps */
         if (e == 'B' || e == 'b' || d == 'B' || d == 'b' )
-          XERROR(Str(X_999,"misplaced relational op"))
+          XERROR(Str("misplaced relational op"))
 /*              printf("op=%s e=%c c=%c d=%c\n", op, e, c, d); */
         if (e == 'a') {                     /*   to complet optxt*/
           if (c=='^' && (d == 'c' || d == 'k'|| d == 'i' || d == 'p'))
-            strcat(op,"_a");
-          else if (d == 'a') strcat(op,"_aa");
-          else               strcat(op,"_ak");
+            strcat(op,".a");
+          else if (d == 'a') strcat(op,".aa");
+          else               strcat(op,".ak");
           outype = 'a';
         }
         else if (d == 'a') {
-          strcat(op,"_ka");
+          strcat(op,".ka");
           outype = 'a';
         }
         else if (e == 'k' || d == 'k') {
-          if (c == '^') strcat(op,"_k");
-          else          strcat(op,"_kk");
+          if (c == '^') strcat(op,".k");
+          else          strcat(op,".kk");
           outype = 'k';
         }
         else {
-          if (c == '^') strcat(op,"_i");
-          else          strcat(op,"_ii");
+          if (c == '^') strcat(op,".i");
+          else          strcat(op,".ii");
           outype = 'i';
         }
       }
@@ -370,9 +370,9 @@ int express(char *s)
         c = argtyp(pp->arg[1]);
         d = argtyp(pp->arg[2]);             /*   now use argtyps */
         if (c == 'a' || d == 'a')           /*   to determ outs  */
-          XERROR(Str(X_603,"audio relational"))
+          XERROR(Str("audio relational"))
         if (c == 'B' || c == 'b' || d == 'B' || d == 'b' )
-          XERROR(Str(X_999,"misplaced relational op"))
+          XERROR(Str("misplaced relational op"))
         if (c == 'k' || d == 'k')
           outype = 'B';
         else outype = 'b';
@@ -389,7 +389,7 @@ int express(char *s)
         else if ((c == 'B' || c == 'b') &&
                  (d == 'B' || d == 'b'))
           outype = 'B';
-        else XERROR(Str(X_906,"incorrect logical argumemts"))
+        else XERROR(Str("incorrect logical argumemts"))
                }
       else if (prec == CONDVAL && argcnt >= 3) { /* cond vals:     */
         strcpy(op,": ");                    /*   init op as ': ' */
@@ -403,7 +403,7 @@ int express(char *s)
         if ((b != 'B' && b != 'b') ||       /*   chk argtypes, */
             c == 'B' || c == 'b'   || d == 'B' || d == 'b' ||
             (c == 'a' && d != 'a') || (d == 'a' && c != 'a'))
-          XERROR(Str(X_905,"incorrect cond value format"))
+          XERROR(Str("incorrect cond value format"))
         outype = 'i';                       /*   determine outyp */
         if (b == 'B' || c == 'k' || d == 'k')
           outype = 'k';
@@ -411,7 +411,7 @@ int express(char *s)
           outype = 'a';
         *(op+1) = outype;                   /*   & complet opcod */
       }
-      else XERROR(Str(X_944,"insufficient terms"))
+      else XERROR(Str("insufficient terms"))
       s = &buffer[0] /* pp->arg[0] */;        /* now create outarg */
       if (outype=='a') sprintf(s,"#a%d",acount++); /* acc. to type */
       else if (outype=='k') sprintf(s,"#k%d",kcount++);
@@ -424,10 +424,10 @@ int express(char *s)
     }
     if (argp - tokenlist == 1)
       return(polcnt);                           /* finally, return w. polcnt */
-    XERROR(Str(X_1277,"term count"))
+    XERROR(Str("term count"))
 
  error:
-    synterr(Str(X_748,"expression syntax"));    /* or gracefully report error*/
+    synterr(Str("expression syntax"));    /* or gracefully report error*/
     printf(" %s: %s\n",xprmsg,sorig);
     strcpy(tokenstring,"1");
     return(-1);

@@ -162,7 +162,7 @@ int wgpluck(ENVIRON *csound, WGPLUCK2 *p)
     MYFLT   reflect = *p->reflect;
 
     if (reflect <= FL(0.0) || reflect >= FL(1.0)) {
-      printf(Str(X_443,"Reflection invalid (%f)\n"), reflect);
+      printf(Str("Reflection invalid (%f)\n"), reflect);
       reflect = FL(0.5);
     }
     ar   = p->ar;
@@ -176,7 +176,7 @@ int wgpluck(ENVIRON *csound, WGPLUCK2 *p)
     pickfrac = pickup & OVERMSK;
     pickup = pickup>>OVERSHT;
     if (pickup<0 || pickup > p->rail_len) {
-      printf(Str(X_423,"Pickup out of range (%f)\n"), p->pickup);
+      printf(Str("Pickup out of range (%f)\n"), p->pickup);
       pickup =  p->rail_len * (OVERCNT/2);
       pickfrac = pickup & OVERMSK;
       pickup = pickup>>OVERSHT;

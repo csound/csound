@@ -39,7 +39,7 @@ int main(int argc, char **argv)
   if (argc==2)
   {
     if (!(infile=fopen(argv[1],"r")))
-     die(Str(X_214, "Can't open input file"));
+     die(Str("Can't open input file"));
     name=argv[1];
   }
   else if (argc==1)

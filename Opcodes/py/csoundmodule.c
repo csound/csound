@@ -354,7 +354,7 @@ csound_ievent(PyObject *self, PyObject *args)
   starttime = when;
   if (starttime < FZERO) {
     starttime = FZERO;
-    warning(Str(X_1483,"queue_ievent warning: negative onset reset to zero"));
+    warning(Str("queue_ievent warning: negative onset reset to zero"));
   }
 
   /* Add current time (see note about kadjust in triginset() above) */
@@ -406,7 +406,7 @@ csound_eevent(PyObject *self, PyObject *args)
   starttime = onset;
   if (starttime < FZERO) {
     starttime = FZERO;
-    warning(Str(X_1483,"queue_ievent warning: negative onset reset to zero"));
+    warning(Str("queue_ievent warning: negative onset reset to zero"));
   }
 
   /* Add current time (see note about kadjust in triginset() above) */

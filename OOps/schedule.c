@@ -69,7 +69,7 @@ void queue_event(MYFLT instr,
     printf("queue_event: %.0f %f %f ...\n", instr, when, dur);
     insno = (int)instr;
     if (instrtxtp[insno] == NULL) {
-      printf(Str(X_1177,"schedule event ignored. instr %d undefined\n"), insno);
+      printf(Str("schedule event ignored. instr %d undefined\n"), insno);
       perferrcnt++;
       return;
     }
@@ -82,7 +82,7 @@ void queue_event(MYFLT instr,
     if (starttime < FZERO) {
       starttime = FZERO;
       if (O.msglevel & WARNMSG)
-        printf(Str(X_1483,"WARNING: schedkwhen warning: negative kwhen reset to zero\n"));
+        printf(Str("WARNING: schedkwhen warning: negative kwhen reset to zero\n"));
     }
     /* Add current time (see note about kadjust in triginset() above) */
     newnode->kstart = (long)(starttime * global_ekr + FL(0.5));
@@ -144,7 +144,7 @@ int schedule(SCHED *p)
     }
     else which = (int)(FL(0.5)+*p->which);
     if (which==0) {
-      return initerror(Str(X_311,"Instrument not defined"));
+      return initerror(Str("Instrument not defined"));
     }
     if (which >= curip->p1 || *p->when>0) {
       RSCHED *rr;
@@ -226,7 +226,7 @@ int kschedule(ENVIRON *csound, WSCHED *p)
         (*p->which == SSTRCOD) ? (p->STRARG!=NULL ? named_instr_find(p->STRARG) :
           named_instr_find(currevent->strarg)) : (int)(FL(0.5)+*p->which);
       if (which==0) {
-        return perferror(Str(X_311,"Instrument not defined"));
+        return perferror(Str("Instrument not defined"));
       }
       p->midi = (dur<=FL(0.0));
       p->todo = 0;
@@ -298,7 +298,7 @@ int lfoset(ENVIRON *csound, LFO *p)
 /*        printf("Table set up (max is %d)\n", MAXPHASE>>10); */
     }
     else if (type>5 || type<0) {
-      sprintf(errmsg, Str(X_320,"LFO: unknown oscilator type %d"), type);
+      sprintf(errmsg, Str("LFO: unknown oscilator type %d"), type);
       return initerror(errmsg);
     }
     p->lasttype = type;
@@ -316,7 +316,7 @@ int lfok(ENVIRON *csound, LFO *p)
     phs = p->phs;
     switch (p->lasttype) {
     default:
-      sprintf(errmsg, Str(X_320,"LFO: unknown oscilator type %d"), p->lasttype);
+      sprintf(errmsg, Str("LFO: unknown oscilator type %d"), p->lasttype);
       return perferror(errmsg);
     case 0:
       iphs = phs >> 12;
@@ -372,7 +372,7 @@ int lfoa(ENVIRON *csound, LFO *p)
     do {
       switch (p->lasttype) {
       default:
-        sprintf(errmsg, Str(X_320,"LFO: unknown oscilator type %d"), p->lasttype);
+        sprintf(errmsg, Str("LFO: unknown oscilator type %d"), p->lasttype);
         return perferror(errmsg);
       case 0:
         iphs = phs >> 12;
@@ -477,7 +477,7 @@ int ktriginstr(ENVIRON *csound, TRIGINSTR *p)
       absinsno = abs((int) (insno = *p->args[0]));
     /* Check that instrument is defined */
     if (absinsno > maxinsno || instrtxtp[absinsno] == NULL) {
-      printf(Str(X_1482,"schedkwhen ignored. Instrument %d undefined\n"),
+      printf(Str("schedkwhen ignored. Instrument %d undefined\n"),
              absinsno);
       perferrcnt++;
       return NOTOK;
@@ -530,7 +530,7 @@ int ktriginstr(ENVIRON *csound, TRIGINSTR *p)
     if (starttime < FZERO) {
       starttime = FZERO;
       if (O.msglevel & WARNMSG)
-        printf(Str(X_1483,"WARNING: schedkwhen warning: negative kwhen reset to zero\n"));
+        printf(Str("WARNING: schedkwhen warning: negative kwhen reset to zero\n"));
     }
     /* Add current time (see note about kadjust in triginset() above) */
     starttime += (MYFLT)(global_kcounter + p->kadjust) * global_onedkr;
@@ -578,7 +578,7 @@ int trigseq_set(ENVIRON *csound, TRIGSEQ *p)     /* by G.Maldonado */
 {
     FUNC *ftp;
     if ((ftp = ftfind(csound, p->kfn)) == NULL) {
-      return initerror(Str(X_1535,"trigseq: incorrect table number"));
+      return initerror(Str("trigseq: incorrect table number"));
     }
     p->done=0;
     p->table = ftp->ftable;
@@ -600,7 +600,7 @@ int trigseq(ENVIRON *csound, TRIGSEQ *p)
       if (p->pfn != (long)*p->kfn) {
         FUNC *ftp;
         if ((ftp = ftfindp(csound, p->kfn)) == NULL) {
-          return perferror(Str(X_1535,"trigseq: incorrect table number"));
+          return perferror(Str("trigseq: incorrect table number"));
         }
         p->pfn = (long)*p->kfn;
         p->table = ftp->ftable;

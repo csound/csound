@@ -100,7 +100,7 @@ int pvreadset(ENVIRON *csound, PVREAD *p)
         return OK;
       }
       if ( (mfp = ldmemfile(pvfilnam)) == NULL) {
-        sprintf(errmsg,Str(X_419,"PVREAD cannot load %s"), pvfilnam);
+        sprintf(errmsg,Str("PVREAD cannot load %s"), pvfilnam);
         goto pverr;
       }
     }
@@ -116,7 +116,7 @@ int pvreadset(ENVIRON *csound, PVREAD *p)
       auxalloc(sizeof(MYFLT)*PVFFTSIZE, &p->fftBuf);
     pvh = (PVSTRUCT *)mfp->beginp;
     if (pvh->magic != PVMAGIC) {
-      sprintf(errmsg,Str(X_60,"%s not a PVOC file (magic %ld)"),
+      sprintf(errmsg,Str("%s not a PVOC file (magic %ld)"),
               pvfilnam, pvh->magic );
       goto pverr;
     }
@@ -125,26 +125,26 @@ int pvreadset(ENVIRON *csound, PVREAD *p)
     chans    = pvh->channels;
     if ((p->asr = pvh->samplingRate) != esr &&
         (O.msglevel & WARNMSG)) { /* & chk the data */
-      printf(Str(X_63,"WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
+      printf(Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
               pvfilnam, p->asr, esr);
     }
     if (pvh->dataFormat != PVMYFLT) {
-      sprintf(errmsg,Str(X_1359,"unsupported PVOC data format %ld in %s"),
+      sprintf(errmsg,Str("unsupported PVOC data format %ld in %s"),
               pvh->dataFormat, pvfilnam);
       goto pverr;
     }
     if (p->frSiz > PVFRAMSIZE) {
-      sprintf(errmsg,Str(X_413,"PVOC frame %d bigger than %ld in %s"),
+      sprintf(errmsg,Str("PVOC frame %d bigger than %ld in %s"),
               p->frSiz, PVFRAMSIZE, pvfilnam);
       goto pverr;
     }
     if (p->frSiz < 128) {
-      sprintf(errmsg,Str(X_414,"PVOC frame %ld seems too small in %s"),
+      sprintf(errmsg,Str("PVOC frame %ld seems too small in %s"),
               p->frSiz, pvfilnam);
       goto pverr;
     }
     if (chans != 1) {
-      sprintf(errmsg,Str(X_32,"%d chans (not 1) in PVOC file %s"),
+      sprintf(errmsg,Str("%d chans (not 1) in PVOC file %s"),
               chans, pvfilnam);
       goto pverr;
     }
@@ -174,14 +174,14 @@ int pvread(ENVIRON *csound, PVREAD *p)
 /*     if (pdebug) { printf("<%7.4f>",*p->ktimpnt); fflush(stdout); } */
 
     if ((frIndx = *p->ktimpnt * p->frPrtim) < 0) {
-      return perferror(Str(X_416,"PVOC timpnt < 0"));
+      return perferror(Str("PVOC timpnt < 0"));
     }
     if (frIndx > p->maxFr) {  /* not past last one */
       frIndx = (MYFLT)p->maxFr;
       if (p->prFlg) {
         p->prFlg = 0;   /* false */
         if (O.msglevel & WARNMSG)
-          printf(Str(X_415,"WARNING: PVOC ktimpnt truncated to last frame"));
+          printf(Str("WARNING: PVOC ktimpnt truncated to last frame"));
       }
     }
     FetchInOne(p->frPtr,buf,size,frIndx, p->mybin);
@@ -294,7 +294,7 @@ int pvocex_loadfile(const char *fname,PVREAD *p,MEMFIL **mfp)
 
     if ((p->asr = (MYFLT) fmt.nSamplesPerSec) != esr &&
         (O.msglevel & WARNMSG)) { /* & chk the data */
-      printf(Str(X_63,"WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
+      printf(Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
               fname, p->asr, esr);
     }
     p->frSiz = pvx_fftsize;
@@ -322,7 +322,7 @@ int pvocex_loadfile(const char *fname,PVREAD *p,MEMFIL **mfp)
       mfil->endp = mfil->beginp + mem_wanted;
       mfil->length = mem_wanted;
       /*from memfiles.c */
-      printf(Str(X_764,"file %s (%ld bytes) loaded into memory\n"),
+      printf(Str("file %s (%ld bytes) loaded into memory\n"),
              fname,mem_wanted);
       add_memfil(mfil);
     }

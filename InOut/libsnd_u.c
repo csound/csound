@@ -117,7 +117,7 @@ SNDFILE *SAsndgetset(
    cvanal could handle stereo, or quad, soundfiles */
     if (channel < 1 || ((channel > 4) && (channel != ALLCHNLS))) {
 /*        if (channel < 1 || channel > 4)  { */   /* SAsnd is chan 1,2,3 or 4 */
-      printf(Str(X_658,"channel request %d illegal\n"), channel);
+      printf(Str("channel request %d illegal\n"), channel);
       return(NULL);
     }
     p->channel = channel;
@@ -126,7 +126,7 @@ SNDFILE *SAsndgetset(
       return(NULL);
     if (p->framesrem < 0 ) {
       if (O.msglevel & WARNMSG)
-        printf(Str(X_1318,
+        printf(Str(
                    "WARNING: undetermined file length, will attempt requested duration\n"));
     }
     else {
@@ -138,12 +138,12 @@ SNDFILE *SAsndgetset(
       else if ((p->getframes = (long)(p->sr * *ainput_dur)) > p->framesrem) {
         p->getframes = p->framesrem;
         if (O.msglevel & WARNMSG)
-          printf(Str(X_789,"WARNING: full requested duration not available\n"));
+          printf(Str("WARNING: full requested duration not available\n"));
       }
-      printf(Str(X_598,"analyzing %ld sample frames (%3.1f secs)"),
+      printf(Str("analyzing %ld sample frames (%3.1f secs)"),
              p->getframes, *ainput_dur);
       if (*abeg_time != 0.0)
-        printf(Str(X_18," from timepoint %3.1f\n"), *abeg_time);
+        printf(Str(" from timepoint %3.1f\n"), *abeg_time);
       else printf("\n");
     }
     return infile;
@@ -219,7 +219,7 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
     long    filno;
 
     if ((n = p->OUTOCOUNT) && n > 24) { /* if appl,chkchnls */
-      sprintf(errmsg,Str(X_1209,"soundin: illegal no of receiving channels"));
+      sprintf(errmsg,Str("soundin: illegal no of receiving channels"));
       goto errtn;
     }
     if (*p->ifilno == SSTRCOD) {                 /* if char string name given */
@@ -234,9 +234,9 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
     sfname = soundiname;
     if ((sinfd = openin(sfname)) < 0) {              /* open with full dir paths */
       if (isfullpath(sfname))
-        sprintf(errmsg,Str(X_1206,"soundin cannot open %s"), sfname);
+        sprintf(errmsg,Str("soundin cannot open %s"), sfname);
       else sprintf(errmsg,
-                   Str(X_1205,"soundin cannot find \"%s\" in its search paths"),
+                   Str("soundin cannot find \"%s\" in its search paths"),
                    sfname);
       goto errtn;
     }
@@ -269,13 +269,13 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
           && hdr->aiffdata->loopmode1 != 0          /* looping aiff:         */
           && (p->analonly || p->OUTOCOUNT)) {       /*     ok for gen01 only */
         if (O.msglevel & WARNMSG)
-          printf(Str(X_586,"WARNING: aiff looping file, once through only\n"));
+          printf(Str("WARNING: aiff looping file, once through only\n"));
       }
 #endif
       if (p->analonly) {                          /* anal: if sr param val */
         if (p->sr != 0 && p->sr != sfinfo.samplerate) {  /*   use it       */
           if (O.msglevel & WARNMSG)
-            printf(Str(X_162,"WARNING: -s %ld overriding soundfile sr %ld\n"),
+            printf(Str("WARNING: -s %ld overriding soundfile sr %ld\n"),
                    p->sr, sfinfo.samplerate);
           /*           sfinfo.samplerate = p->sr; */
         }
@@ -283,7 +283,7 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
       else if (sfinfo.samplerate != esr &&
                (O.msglevel & WARNMSG)) {            /* non-anal:  cmp w. esr */
         if (O.msglevel & WARNMSG)
-          printf(Str(X_62,"WARNING: %s sr = %ld, orch sr = %7.1f\n"),
+          printf(Str("WARNING: %s sr = %ld, orch sr = %7.1f\n"),
                  sfname, sfinfo.samplerate, esr);
       }
       if (p->OUTOCOUNT) {                            /* for orch SOUNDIN: */
@@ -291,7 +291,7 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
           if (O.msglevel & WARNMSG) {
             if (O.msglevel & WARNMSG)
               printf(errmsg,
-                     Str(X_58, "WARNING: %s nchnls = %d, soundin reading "
+                     Str("WARNING: %s nchnls = %d, soundin reading "
                          "as if nchnls = %d\n"),
                      sfname, sfinfo.channels , (int) p->OUTOCOUNT);
           }
@@ -299,13 +299,13 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
         }
       }                                            /* else chk sufficient */
       else if (p->channel != ALLCHNLS && p->channel > sfinfo.channels) {
-        sprintf(errmsg,Str(X_1162,"req chan %d, file %s has only %ld"),
+        sprintf(errmsg,Str("req chan %d, file %s has only %ld"),
                 p->channel, sfname, sfinfo.channels);
         die(errmsg);
       }
       if (p->format && sf2format(sfinfo.format) != p->format &&
           (O.msglevel & WARNMSG)) {
-        printf(Str(X_1204,"WARNING: soundin %s superceded by "
+        printf(Str("WARNING: soundin %s superceded by "
                    "%s header format %s\n"),
                getstrformat((int)p->format), sfname,
                getstrformat((int)sf2format(sfinfo.format)));
@@ -320,25 +320,25 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
         p->channel = p->OUTOCOUNT;
       else if (p->channel == ALLCHNLS)
         p->channel = 1;
-      printf(Str(X_604,"audio sr = %ld, "), p->sr);
+      printf(Str("audio sr = %ld, "), p->sr);
       if (p->nchanls == 1)
-        printf(Str(X_1006,"monaural\n"));
+        printf(Str("monaural\n"));
       else {
-        printf(Str(X_64,"%s, reading "),
-               p->nchanls == 2 ? Str(X_1246,"stereo") :
-               p->nchanls == 4 ? Str(X_1148,"quad") :
-               p->nchanls == 6 ? Str(X_830,"hex") :
-               p->nchanls == 8 ? Str(X_1088,"oct") :
-               Str(X_1556,"chanels-"), p->nchanls);
+        printf(Str("%s, reading "),
+               p->nchanls == 2 ? Str("stereo") :
+               p->nchanls == 4 ? Str("quad") :
+               p->nchanls == 6 ? Str("hex") :
+               p->nchanls == 8 ? Str("oct") :
+               Str("chanels-"), p->nchanls);
         if (p->channel == ALLCHNLS)
-          printf(Str(X_51,"%s channels\n"),
-                 p->nchanls == 2 ? Str(X_619,"both") : Str(X_591,"all"));
-        else printf(Str(X_655,"channel %d\n"), p->channel);
+          printf(Str("%s channels\n"),
+                 p->nchanls == 2 ? Str("both") : Str("all"));
+        else printf(Str("channel %d\n"), p->channel);
       }
-      printf(Str(X_25,"opening %s infile %s\n"),
+      printf(Str("opening %s infile %s\n"),
              type2string(p->filetyp), sfname);
       if (p->sampframsiz <= 0)                       /* must know framsiz */
-        die(Str(X_882,"illegal sampframsiz"));
+        die(Str("illegal sampframsiz"));
       p->audrem = sfinfo.frames * sfinfo.channels;
       p->framesrem = sfinfo.frames;    /*   find frames rem */
       skipframes = (long)(*p->iskptim * p->sr);
@@ -351,7 +351,7 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
       }
       else {                                          /* for greater skiptime: */
         if (sf_seek(infile, (off_t)skipframes, SEEK_SET) < 0)  /* else seek to bndry */
-          die(Str(X_1208,"soundin seek error"));
+          die(Str("soundin seek error"));
         if ((n = sreadin(infile,p->inbuf,SNDINBUFSIZ,p)) == 0) /* now rd fulbuf */
           p->endfile = 1;
         p->inbufp = p->inbuf;
@@ -371,18 +371,18 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
 char *getstrformat(int format)  /* used here, and in sfheader.c */
 {
     switch(format) {
-    case AE_UNCH:  return(Str(X_1356,"unsigned bytes")); /* J. Mohr 1995 Oct 17 */
-    case AE_CHAR:  return(Str(X_1190,"signed chars"));
-    case AE_ALAW:  return(Str(X_589,"alaw bytes"));
-    case AE_ULAW:  return(Str(X_1304,"ulaw bytes"));
-    case AE_SHORT: return(Str(X_1189,"shorts"));
-    case AE_LONG:  return(Str(X_969,"longs"));
-    case AE_FLOAT: return(Str(X_769,"floats"));
+    case AE_UNCH:  return(Str("unsigned bytes")); /* J. Mohr 1995 Oct 17 */
+    case AE_CHAR:  return(Str("signed chars"));
+    case AE_ALAW:  return(Str("alaw bytes"));
+    case AE_ULAW:  return(Str("ulaw bytes"));
+    case AE_SHORT: return(Str("shorts"));
+    case AE_LONG:  return(Str("longs"));
+    case AE_FLOAT: return(Str("floats"));
     case AE_24INT: return "24bit ints";                 /*RWD 5:2001 */
     default:
       {
         char st[80];
-        sprintf(st, Str(X_1343,"unknown sound format %d(0x%x)"), format, format);
+        sprintf(st, Str("unknown sound format %d(0x%x)"), format, format);
         die(st); return(NULL);
       }
     }
@@ -404,7 +404,7 @@ int sreadin(                    /* special handling of sound input       */
       n = sf_read_MYFLT(infd, inb+ntot, (nsamples-ntot)/p->nchanls);
 /*       printf("***        : n=%d\n", n); */
       if (n<0)
-        die(Str(X_1201,"soundfile read error"));
+        die(Str("soundfile read error"));
     } while (n > 0 && (ntot += n*p->nchanls) < nsamples);
     if (p->audrem > 0) {        /* AIFF:                  */
       if (ntot > p->audrem)     /*   chk haven't exceeded */
@@ -424,6 +424,6 @@ void dbfs_init(MYFLT dbfs)
     dbfs_to_long  = FL(2147483647.0) / dbfs;
     long_to_dbfs  = dbfs / FL(2147483647.0);
     /* probably want this message written just before note messages start... */
-    err_printf(Str(X_1715,"0dBFS level = %.1f\n"),dbfs);
+    err_printf(Str("0dBFS level = %.1f\n"),dbfs);
 }
 

@@ -63,7 +63,7 @@ int vdelay(ENVIRON *csound, VDEL *p)              /*      vdelay  routine */
     MYFLT *buf = (MYFLT *)p->aux.auxp;
 
     if (buf==NULL) {            /* RWD fix */
-      return perferror(Str(X_1372,"vdelay: not initialised"));
+      return perferror(Str("vdelay: not initialised"));
     }
     maxd = (unsigned long) (1+*p->imaxd * ESR);
     nn = ksmps;
@@ -145,7 +145,7 @@ int vdelay3(ENVIRON *csound, VDEL *p)           /*      vdelay routine with cubi
     MYFLT *buf = (MYFLT *)p->aux.auxp;
 
     if (buf==NULL) {            /* RWD fix */
-      return perferror(Str(X_1371,"vdelay3: not initialised"));
+      return perferror(Str("vdelay3: not initialised"));
     }
     maxd = (unsigned long) (*p->imaxd * ESR);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
@@ -343,7 +343,7 @@ int vdelayx(ENVIRON *csound, VDELX *p)              /*      vdelayx routine  */
     long   i, i2, xpos;
 
     if (buf1 == NULL) {
-      return initerror(Str(X_1372,"vdelay: not initialised"));         /* RWD fix */
+      return initerror(Str("vdelay: not initialised"));         /* RWD fix */
     }
     maxd = (long) (*p->imaxd * esr);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
@@ -407,7 +407,7 @@ int vdelayxw(ENVIRON *csound, VDELX *p)              /*      vdelayxw routine  *
     long   i, i2, xpos;
 
     if (buf1 == NULL) {
-      return perferror(Str(X_1372,"vdelay: not initialised"));         /* RWD fix */
+      return perferror(Str("vdelay: not initialised"));         /* RWD fix */
     }
     maxd = (long) (*p->imaxd * esr);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
@@ -472,7 +472,7 @@ int vdelayxs(ENVIRON *csound, VDELXS *p)              /*      vdelayxs routine  
     long   i, i2, xpos;
 
     if ((buf1 == NULL) || (buf2 == NULL)) {
-      return perferror(Str(X_1372,"vdelay: not initialised"));         /* RWD fix */
+      return perferror(Str("vdelay: not initialised"));         /* RWD fix */
     }
     maxd = (long) (*p->imaxd * esr);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
@@ -539,7 +539,7 @@ int vdelayxws(ENVIRON *csound, VDELXS *p)              /*      vdelayxws routine
     long   i, i2, xpos;
 
     if ((buf1 == NULL) || (buf2 == NULL)) {
-      return perferror(Str(X_1372,"vdelay: not initialised"));         /* RWD fix */
+      return perferror(Str("vdelay: not initialised"));         /* RWD fix */
     }
     maxd = (long) (*p->imaxd * esr);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
@@ -611,7 +611,7 @@ int vdelayxq(ENVIRON *csound, VDELXQ *p)              /*      vdelayxq routine  
     long   i, i2, xpos;
 
     if ((buf1 == NULL) || (buf2 == NULL) || (buf3 == NULL) || (buf4 == NULL)) {
-      return perferror(Str(X_1372,"vdelay: not initialised"));         /* RWD fix */
+      return perferror(Str("vdelay: not initialised"));         /* RWD fix */
     }
     maxd = (long) (*p->imaxd * esr);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
@@ -689,7 +689,7 @@ int vdelayxwq(ENVIRON *csound, VDELXQ *p)              /*      vdelayxwq routine
     long   i, i2, xpos;
 
     if ((buf1 == NULL) || (buf2 == NULL) || (buf3 == NULL) || (buf4 == NULL)) {
-      return perferror(Str(X_1372,"vdelay: not initialised"));         /* RWD fix */
+      return perferror(Str("vdelay: not initialised"));         /* RWD fix */
     }
     maxd = (long) (*p->imaxd * esr);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
@@ -752,7 +752,7 @@ int multitap_set(ENVIRON *csound, MDEL *p)
     MYFLT *buf, max = FL(0.0);
 
     if (p->INOCOUNT/2 == (MYFLT)p->INOCOUNT/FL(2.0))
-      die(Str(X_539,"Wrong input count in multitap\n"));
+      die(Str("Wrong input count in multitap\n"));
 
     for (n = 0; n < p->INOCOUNT - 1; n += 2) {
       if (max < *p->ndel[n]) max = *p->ndel[n];
@@ -783,7 +783,7 @@ int multitap_play(ENVIRON *csound, MDEL *p)
     MYFLT max = (MYFLT)p->max;
 
     if (buf==NULL) {            /* RWD fix */
-      return initerror(Str(X_1008,"multitap: not initialised"));
+      return initerror(Str("multitap: not initialised"));
     }
     do {
       buf[indx] = *in++;      /*      Write input     */
@@ -886,7 +886,7 @@ int nreverb_set(ENVIRON *csound, NREV *p)   /* 6-comb/lowpass, 5-allpass reverbe
     int c_time, a_time;
 
     if (*p->hdif > FL(1.0) || *p->hdif < FL(0.0))
-      die(Str(X_294,"High frequency diffusion not in (0, 1)\n"));
+      die(Str("High frequency diffusion not in (0, 1)\n"));
 
     if (*p->istor == FL(0.0) || p->temp.auxp == NULL) {
       auxalloc(ksmps * sizeof(MYFLT), &p->temp);
@@ -938,22 +938,22 @@ int nreverb(ENVIRON *csound, NREV *p)
     MYFLT      time = *p->time;
 
     if (p->temp.auxp==NULL) {
-      return initerror(Str(X_1165,"reverb2: not initialised"));
+      return initerror(Str("reverb2: not initialised"));
     }
     do {
       *out++ = FL(0.0);
     } while (--n);
     if (*p->time != p->prev_time || *p->hdif != p->prev_hdif) {
       if (hdif > FL(1.0)) {
-        printf(Str(X_532,"Warning: High frequency diffusion>1\n"));
+        printf(Str("Warning: High frequency diffusion>1\n"));
         hdif = FL(1.0);
       }
       if (hdif < FL(0.0))       {
-        printf(Str(X_531,"Warning: High frequency diffusion<0\n"));
+        printf(Str("Warning: High frequency diffusion<0\n"));
         hdif = FL(0.0);
       }
       if (time <= FL(0.0))       {
-        printf(Str(X_356,"Non positive reverb time\n"));
+        printf(Str("Non positive reverb time\n"));
         time = FL(0.001);
       }
       for (i = 0; i < Combs; i++)   {
@@ -1056,7 +1056,7 @@ int reverbx_set(ENVIRON *csound, NREV2 *p)
     int cmbAllocSize, alpAllocSize;
 
     if (*p->hdif > 1.0f || *p->hdif < FL(0.0))
-      die(Str(X_294,"High frequency diffusion not in (0, 1)\n"));
+      die(Str("High frequency diffusion not in (0, 1)\n"));
 
     /* Init comb constants and allocate dynamised work space */
     if (*p->inumCombs < FL(1.0)) {  /* Using old defaults */
@@ -1073,7 +1073,7 @@ int reverbx_set(ENVIRON *csound, NREV2 *p)
         return NOTOK;
       if (ftCombs->flen < p->numCombs * 2) {
         sprintf(errmsg,
-                Str(X_1547,
+                Str(
                     "reverbx; Combs ftable must have %d time and %d gain values"),
                 p->numCombs, p->numCombs);
         return initerror(errmsg);
@@ -1105,7 +1105,7 @@ int reverbx_set(ENVIRON *csound, NREV2 *p)
         return NOTOK;
       if (ftAlpas->flen < p->numAlpas * 2) {
         sprintf(errmsg,
-                Str(X_1548, "reverbx; Alpas ftable must have"
+                Str("reverbx; Alpas ftable must have"
                     " %d time and %d gain values"),
                 p->numAlpas, p->numAlpas);
         return initerror(errmsg);
@@ -1209,7 +1209,7 @@ int reverbx(ENVIRON *csound, NREV2 *p)
     int numAlpas = p->numAlpas;
 
     if (p->temp.auxp==NULL) {
-      return initerror(Str(X_1546,"reverbx: not initialised"));
+      return initerror(Str("reverbx: not initialised"));
     }
     buf = (MYFLT*)(p->temp.auxp);
     in = p->in;
@@ -1219,15 +1219,15 @@ int reverbx(ENVIRON *csound, NREV2 *p)
     } while (--n);
     if (*p->time != p->prev_time || *p->hdif != p->prev_hdif) {
       if (hdif > FL(1.0)) {
-        printf(Str(X_532,"Warning: High frequency diffusion>1\n"));
+        printf(Str("Warning: High frequency diffusion>1\n"));
         hdif = FL(1.0);
       }
       if (hdif < FL(0.0))       {
-        printf(Str(X_531,"Warning: High frequency diffusion<0\n"));
+        printf(Str("Warning: High frequency diffusion<0\n"));
         hdif = FL(0.0);
       }
       if (time <= FL(0.0))       {
-        printf(Str(X_356,"Non positive reverb time\n"));
+        printf(Str("Non positive reverb time\n"));
         time = FL(0.001);
       }
       for (i = 0; i < numCombs; i++)   {

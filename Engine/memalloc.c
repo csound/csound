@@ -24,8 +24,6 @@
 #include "cs.h"                         /*              MEMALLOC.C      */
 /*RWD 9:2000 for pvocex support */
 #include "pvfileio.h"
-/*RWD 9:2000 fix memory leak in strings array */
-extern void free_strings(void);
 /* global here so reachable by all standalones */
 extern void rlsmemfiles(void);
 
@@ -71,14 +69,13 @@ void memRESET(void)
     apsize = 0;
     /*RWD 9:2000 not terribly vital, but good to do this somewhere... */
     pvsys_release();
-    free_strings();
 }
 
 static void memdie(long nbytes)
 {
-    err_printf(Str(X_989,"memory allocate failure for %d\n"), nbytes);
+    err_printf(Str("memory allocate failure for %d\n"), nbytes);
 #ifdef mills_macintosh
-    err_printf(Str(X_1297,"try increasing preferred size setting for "
+    err_printf(Str("try increasing preferred size setting for "
                    "the Perf Application\n"));
 #endif
     longjmp(cenviron.exitjmp_,1);

@@ -51,12 +51,12 @@ int main(int argc, char **argv)
 		het_export_usage();
 	inf = ldmemfile(argv[1]);
 	if (inf == NULL) {
-		fprintf(stderr, Str(X_214,"Cannot open input file %s\n"), argv[1]);
+		fprintf(stderr, Str("Cannot open input file %s\n"), argv[1]);
 		exit(1);
 	}
 	outf = fopen(argv[2], "w");
 	if (outf == NULL) {
-		fprintf(stderr, Str(X_215,"Cannot open output file %s\n"), argv[2]);
+		fprintf(stderr, Str("Cannot open output file %s\n"), argv[2]);
 		exit(1);
 	}
 	adp = (short *) inf->beginp;

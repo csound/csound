@@ -49,41 +49,41 @@ int sndinfo(int argc, char **argv)
         continue;
       }
       if ((infd = openin(infilnam)) < 0) {
-        printf(Str(X_73,"%s:\n\tcould not find\n"), retfilnam);
+        printf(Str("%s:\n\tcould not find\n"), retfilnam);
         continue;
       }
       if ((hndl = sf_open_fd(infd, SFM_READ, &sf_info, 1))==NULL) {
-        printf(Str(X_223,"%s: Not a sound file\n"), retfilnam);
+        printf(Str("%s: Not a sound file\n"), retfilnam);
         close(infd);
       }
       else {
         printf("%s:\n", retfilnam);
         switch (sf_info.channels) {
         case 1:
-          strcpy(channame, Str(X_1005,"monaural"));
+          strcpy(channame, Str("monaural"));
           break;
         case 2:
-          strcpy(channame, Str(X_1246,"stereo"));
+          strcpy(channame, Str("stereo"));
           break;
         case 4:
-          strcpy(channame, Str(X_1148,"quad"));
+          strcpy(channame, Str("quad"));
           break;
         case 6:
-          strcpy(channame, Str(X_830,"hex"));
+          strcpy(channame, Str("hex"));
           break;
         case 8:
-          strcpy(channame, Str(X_1088,"oct"));
+          strcpy(channame, Str("oct"));
           break;
         default:
           sprintf(channame, "%d-channel", sf_info.channels);
           break;
         }
-        printf(Str(X_579,"\tsrate %ld, %s, %ld bit %s, %4.2f seconds\n"),
+        printf(Str("\tsrate %ld, %s, %ld bit %s, %4.2f seconds\n"),
                sf_info.samplerate, channame,
                sfsampsize(sf_info.format) * 8,
                type2string(sf2type(sf_info.format)),
                (MYFLT)sf_info.frames / sf_info.samplerate);
-        printf(Str(X_225,"\t(%ld sample frames)\n"),
+        printf(Str("\t(%ld sample frames)\n"),
                (long)sf_info.frames);
         sf_close(hndl);
       }

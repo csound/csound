@@ -41,7 +41,7 @@
     unsigned char chan = p->slchan = (unsigned char)((*p->ichan)-1); \
     char sbuf[120];                                               \
     if (chan  > 15)  {                                            \
-      return initerror(Str(X_840,"illegal channel"));             \
+      return initerror(Str("illegal channel"));             \
     }                                                             \
     {                                                             \
       MYFLT value;                                                \
@@ -55,13 +55,13 @@
       *slnum = (unsigned char) *sld->ictlno;                      \
         if (*slnum > 127) {                                       \
           sprintf(sbuf,                                           \
-                  Str(X_843,"illegal control number at position n.%d"), j); \
+                  Str("illegal control number at position n.%d"), j); \
           return initerror(sbuf);                                 \
         }                                                         \
         if ((value=*sld->initvalue) < (*min=*sld->imin) ||        \
             value > (*max=*sld->imax) ) {                         \
           sprintf(sbuf,                                           \
-                  Str(X_856,"illegal initvalue at position n.%d"),\
+                  Str("illegal initvalue at position n.%d"),\
                   j);                                             \
           return initerror(sbuf);                                 \
         }                                                         \
@@ -148,7 +148,7 @@ int slider64(ENVIRON *csound, SLIDER64 *p)
     unsigned char chan = p->slchan = (unsigned char)((*p->ichan)-1); \
     char sbuf[120];                                               \
     if (chan  > 15)  {                                            \
-      return initerror(Str(X_840,"illegal channel"));             \
+      return initerror(Str("illegal channel"));             \
     }                                                             \
     {                                                             \
       MYFLT value;                                                \
@@ -164,13 +164,13 @@ int slider64(ENVIRON *csound, SLIDER64 *p)
       *slnum = (unsigned char) *sld->ictlno;                      \
         if (*slnum > 127) {                                       \
           sprintf(sbuf,                                           \
-                  Str(X_843,"illegal control number at position n.%d"), j); \
+                  Str("illegal control number at position n.%d"), j); \
           return initerror(sbuf);                                 \
         }                                                         \
         if ((value=*sld->initvalue) < (*min=*sld->imin) ||        \
             value > (*max=*sld->imax) ) {                         \
           sprintf(sbuf,                                           \
-                  Str(X_856,"illegal initvalue at position n.%d"), j); \
+                  Str("illegal initvalue at position n.%d"), j); \
           return initerror(sbuf);                                 \
         }                                                         \
         if (*sld->ifn > 0)   *ftp++ = ftfind(csound, sld->ifn);   \
@@ -206,7 +206,8 @@ int slider64(ENVIRON *csound, SLIDER64 *p)
       value = value * (*max++ - *min) + *min; /* scales the output */ \
       min++;                                                      \
       **result++ =                                                \
-        *yt1++ = *c1++ * value + *c2++ * *yt1; /* filters the output */ \
+        *yt1 = *c1++ * value + *c2++ * *yt1; /* filters the output */ \
+      yt1++;                                                      \
     }                                                             \
     return OK;                                                    \
 }
@@ -259,7 +260,7 @@ int slider64f(ENVIRON *csound, SLIDER64f *p)
     unsigned char chan= (unsigned char) ((*p->ichan)-1);          \
     char sbuf[120];                                               \
     if (chan  > 15)  {                                            \
-      return initerror(Str(X_840,"illegal channel"));             \
+      return initerror(Str("illegal channel"));             \
     }                                                             \
     {                                                             \
       MYFLT value;                                                \
@@ -273,7 +274,7 @@ int slider64f(ENVIRON *csound, SLIDER64f *p)
       while (j++ < n) {                                           \
         slnum=(unsigned char) *sld->ictlno;                       \
         if (slnum > 127) {                                        \
-          sprintf(sbuf, Str(X_843,"illegal control number at position n.%d"), j); \
+          sprintf(sbuf, Str("illegal control number at position n.%d"), j); \
           return initerror(sbuf);                                 \
         }                                                         \
         value = chanblock[slnum] * oneTOf7bit;                    \
@@ -319,7 +320,7 @@ int islider64(ENVIRON *csound, ISLIDER64 *p)
     unsigned char chan= p->slchan = (unsigned char)((*p->ichan)-1);    \
     char sbuf[120];                                                    \
     if (chan  > 15)  {                                                 \
-      return initerror(Str(X_840,"illegal channel"));                  \
+      return initerror(Str("illegal channel"));                  \
     }                                                                  \
     {                                                                  \
       MYFLT value;                                                     \
@@ -335,21 +336,21 @@ int islider64(ENVIRON *csound, ISLIDER64 *p)
         *slnum_msb = (unsigned char)*sld->ictlno_msb;                  \
         if (*slnum_msb > 127) {                                        \
           sprintf(sbuf,                                                \
-                  Str(X_872,"illegal msb control number at position n.%d"), \
+                  Str("illegal msb control number at position n.%d"), \
                   j);                                                  \
           return initerror(sbuf);                                      \
         }                                                              \
         *slnum_lsb = (unsigned char)*sld->ictlno_lsb;                  \
         if (*slnum_lsb > 127) {                                        \
           sprintf(sbuf,                                                \
-                  Str(X_868,"illegal lsb control number at position n.%d"), \
+                  Str("illegal lsb control number at position n.%d"), \
                   j);                                                  \
           return initerror(sbuf);                                      \
         }                                                              \
         if ((value=*sld->initvalue) < (*min=*sld->imin) ||             \
             value > (*max=*sld->imax) ) {                              \
           sprintf(sbuf,                                                \
-                  Str(X_856,"illegal initvalue at position n.%d"), j); \
+                  Str("illegal initvalue at position n.%d"), j); \
           return initerror(sbuf);                                      \
         }                                                              \
         if (*sld->ifn > 0)   *ftp++ = ftfind(csound, sld->ifn);        \
@@ -416,7 +417,7 @@ int slider32bit14(ENVIRON *csound, SLIDER32BIT14 *p)
     unsigned char chan = (unsigned char)((*p->ichan)-1);               \
     char sbuf[120];                                                    \
     if (chan  > 15)  {                                                 \
-      return initerror(Str(X_840,"illegal channel"));                  \
+      return initerror(Str("illegal channel"));                  \
     }                                                                  \
     {                                                                  \
       MYFLT value;                                                     \
@@ -431,14 +432,14 @@ int slider32bit14(ENVIRON *csound, SLIDER32BIT14 *p)
         slnum_msb=(unsigned char)*sld->ictlno_msb;                     \
         if (slnum_msb > 127) {                                         \
           sprintf(sbuf,                                                \
-                  Str(X_872,"illegal msb control number at position n.%d"), \
+                  Str("illegal msb control number at position n.%d"), \
                   j);                                                  \
           return initerror(sbuf);                                      \
         }                                                              \
         slnum_lsb=(unsigned char)*sld->ictlno_lsb;                     \
         if (slnum_lsb > 127) {                                         \
           sprintf(sbuf,                                                \
-                  Str(X_868,"illegal lsb control number at position n.%d"), \
+                  Str("illegal lsb control number at position n.%d"), \
                   j);                                                  \
           return initerror(sbuf);                                      \
         }                                                              \
@@ -478,14 +479,14 @@ static OENTRY localops[] = {
 { "slider32", 0xffff,                                                   },
 { "slider64", 0xffff,                                                   },
 { "slider8", 0xffff,                                                    },
-{ "slider8_k", S(SLIDER8), 3, "kkkkkkkk",  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+{ "slider8.k", S(SLIDER8), 3, "kkkkkkkk",  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                               "iiiiiiii", (SUBR)slider_i8, (SUBR)slider8, NULL },
 { "slider8f", S(SLIDER8f), 3, "kkkkkkkk","iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiii",
                                         (SUBR)slider_i8f, (SUBR)slider8f, NULL },
-{ "slider8_i", S(SLIDER8), 1, "iiiiiiii", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+{ "slider8.i", S(SLIDER8), 1, "iiiiiiii", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
                                           (SUBR)islider8, NULL, NULL },
-{ "slider16_k", S(SLIDER16), 3, "kkkkkkkkkkkkkkkk",
+{ "slider16.k", S(SLIDER16), 3, "kkkkkkkkkkkkkkkk",
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiii",
@@ -495,11 +496,11 @@ static OENTRY localops[] = {
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiii",
                                         (SUBR)slider_i16f, (SUBR)slider16f, NULL },
-{ "slider16_i", S(SLIDER16), 1, "iiiiiiiiiiiiiiii",
+{ "slider16.i", S(SLIDER16), 1, "iiiiiiiiiiiiiiii",
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
                                         (SUBR)islider16, NULL, NULL       },
-{ "slider32_k", S(SLIDER32),  3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
+{ "slider32.k", S(SLIDER32),  3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
@@ -514,13 +515,13 @@ static OENTRY localops[] = {
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiii",
                                         (SUBR)slider_i32f, (SUBR)slider32f, NULL },
-{ "slider32_i", S(SLIDER32), 1, "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+{ "slider32.i", S(SLIDER32), 1, "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiii",
                                         (SUBR)islider32, NULL, NULL  },
-{ "slider64_k", S(SLIDER64), 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
+{ "slider64.k", S(SLIDER64), 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
                               "kkkkkkkkkkkkkkkkkkk",
                                         "iiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiii"
@@ -555,7 +556,7 @@ static OENTRY localops[] = {
                                         "iiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiii",
                                         (SUBR)slider_i64f, (SUBR)slider64f, NULL },
-{ "slider64_i", S(SLIDER64), 1, "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+{ "slider64.i", S(SLIDER64), 1, "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                 "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
                                         "iiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiii"
@@ -569,12 +570,12 @@ static OENTRY localops[] = {
                                         "iiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiii",
                                         (SUBR)islider64, NULL, NULL  },
-{ "s16b14_k", S(SLIDER16BIT14), 3, "kkkkkkkkkkkkkkkk",
+{ "s16b14.k", S(SLIDER16BIT14), 3, "kkkkkkkkkkkkkkkk",
                                    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
                                  (SUBR)slider_i16bit14, (SUBR)slider16bit14, NULL},
-{ "s32b14_k", S(SLIDER32BIT14), 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
+{ "s32b14.k", S(SLIDER32BIT14), 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
@@ -582,14 +583,14 @@ static OENTRY localops[] = {
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
                                  (SUBR)slider_i32bit14, (SUBR)slider32bit14, NULL},
-{ "s16b14_i", S(ISLIDER16BIT14), 1, "iiiiiiiiiiiiiiii",
+{ "s16b14.i", S(ISLIDER16BIT14), 1, "iiiiiiiiiiiiiiii",
                                         "iiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiii",
                                         (SUBR)islider16bit14, NULL, NULL  },
-{ "s32b14_i", S(ISLIDER32BIT14), 1, "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+{ "s32b14.i", S(ISLIDER32BIT14), 1, "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"

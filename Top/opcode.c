@@ -71,7 +71,7 @@ opcodelist *new_opcode_list(void)
         list->size ++;
     }
                                 /* Sort into alphabetical order */
-    printf(Str(X_37,"%d opcodes\n"), list->size);
+    printf(Str("%d opcodes\n"), list->size);
     qsort(list->table, list->size, sizeof(sortable), mystrcmp);
 
    return list;

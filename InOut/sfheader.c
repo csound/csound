@@ -64,7 +64,7 @@ char *findsfcode(int ctype)     /* locate start of sfcode in current in_header *
         CODE_HDR *cdhp;
 
         if (ctype <= 0 || ctype > SF_CODMAX)
-            die(Str(X_883,"illegal sfcode type"));
+            die(Str("illegal sfcode type"));
         for (cp = incodbeg; cp < incodend;) { /* starting from beg codespace */
             cdhp = (CODE_HDR *)cp;
             if (cdhp->type == ctype)             /* if find required code */
@@ -73,7 +73,7 @@ char *findsfcode(int ctype)     /* locate start of sfcode in current in_header *
                 break;
             if (cdhp->blksiz <= 0                /* if false-sized struct or */
              || (cp += cdhp->blksiz) < incodbeg) {/* wrap-around from bad hdr */
-                err_printf(Str(X_1186,"sfheader codes corrupted\n"));    /* complain */
+                err_printf(Str("sfheader codes corrupted\n"));    /* complain */
                 break;
             }
         }
@@ -87,7 +87,7 @@ char *creatsfcode(int ctype)    /* add a new sfcode struct to current out_header
         CODE_HDR *cdhp;
 
         if (ctype <= 0 || ctype > SF_CODMAX)
-            die(Str(X_883,"illegal sfcode type"));
+            die(Str("illegal sfcode type"));
         for (cp=outcodbeg; cp<outcodend; ) { /* starting from beg codespace  */
             cdhp = (CODE_HDR *)cp;
             if (cdhp->type == SF_END) {             /* if find end code      */
@@ -98,7 +98,7 @@ char *creatsfcode(int ctype)    /* add a new sfcode struct to current out_header
             }
             if (cdhp->blksiz <= 0                /* if false-sized struct or */
              ||(cp += cdhp->blksiz) < outcodbeg) {/* wrap-around from bad hdr */
-                err_printf(Str(X_1186,"sfheader codes corrupted\n"));    /* complain */
+                err_printf(Str("sfheader codes corrupted\n"));    /* complain */
                 break;
             }
         }

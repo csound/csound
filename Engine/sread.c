@@ -93,7 +93,7 @@ static void expand_nxp(void)
       curmem = curmem->nxtmem;
     else {                                   /*      or alloc a new */
       MEMHDR *prvmem = curmem;
-      err_printf(Str(X_1239,"sread: requesting more memory\n"));
+      err_printf(Str("sread: requesting more memory\n"));
       curmem = (MEMHDR *) mcalloc((long)MEMSIZ);
       prvmem->nxtmem = curmem;
       curmem->nxtmem = NULL;
@@ -103,7 +103,7 @@ static void expand_nxp(void)
     nxp = (char *)curmem + sizeof(MEMHDR);
     return;
  margerr:
-    err_printf(Str(X_1233,"sread:  text space overrun, increase MARGIN\n"));
+    err_printf(Str("sread:  text space overrun, increase MARGIN\n"));
     longjmp(cenviron.exitjmp_,1);
 }
 
@@ -117,18 +117,18 @@ static void scorerr(char *s)
 {
     struct in_stack *curr = str;
 
-    printf(Str(X_1178,"score error:  %s on line %d position %d"),
+    printf(Str("score error:  %s on line %d position %d"),
            s, str->line, linepos);
 
     while (curr!=inputs) {
       if (curr->string) {
         MACRO *mm = NULL;
         while (mm != curr->mac) mm = mm->next;
-        printf(Str(X_625,"called from line %d of macro %s\n"),
+        printf(Str("called from line %d of macro %s\n"),
                curr->line, mm->name);
       }
       else {
-        printf(Str(X_896,"in line %f of file input %s\n"),
+        printf(Str("in line %f of file input %s\n"),
                curr->line, curr->body);
       }
       curr--;
@@ -153,7 +153,7 @@ MYFLT operate(MYFLT a, MYFLT b, char c)
     case '|': ans = (MYFLT)(((long)a)|((long)b)); break;
     case '#': ans = (MYFLT)(((long)a)^((long)b)); break;
     default:
-      err_printf(Str(X_312,"Internal error op=%c\n"), c);
+      err_printf(Str("Internal error op=%c\n"), c);
       longjmp(cenviron.exitjmp_,1);
     }
     return ans;
@@ -219,7 +219,7 @@ top:
       }
       mm = mm_save;
       if (mm == NULL) {
-        err_printf(Str(X_1711,"Macro expansion symbol ($) without macro name\n"));
+        err_printf(Str("Macro expansion symbol ($) without macro name\n"));
         longjmp(cenviron.exitjmp_,1);
       }
       if (strlen (mm->name) != i) {
@@ -235,14 +235,14 @@ top:
 #ifdef MACDEBUG
       printf("Macro %s found\n", name);
 #endif
-      if (mm==NULL) scorerr(Str(X_504,"Undefined macro"));
+      if (mm==NULL) scorerr(Str("Undefined macro"));
 #ifdef MACDEBUG
       printf("Found macro %s required %d arguments\n", mm->name, mm->acnt);
 #endif
                                 /* Should bind arguments here */
                                 /* How do I recognise entities?? */
       if (mm->acnt) {
-        if ((c=getscochar(1))!='(') scorerr(Str(X_474,"Syntax error in macro call"));
+        if ((c=getscochar(1))!='(') scorerr(Str("Syntax error in macro call"));
         for (j=0; j<mm->acnt; j++) {
           char term = (j==mm->acnt-1 ? ')' : '\'');
           char trm1 = (j==mm->acnt-1 ? ')' : '#');
@@ -275,7 +275,7 @@ top:
 /*         printf("Expanding includes to %d\n", input_size); */
         inputs = realloc(inputs, input_size*sizeof(struct in_stack));
         if (inputs == NULL) {
-          printf(Str(X_1692, "No space for include files"));
+          printf(Str("No space for include files"));
           longjmp(cenviron.exitjmp_,1);
         }
         str = &inputs[old];     /* In case it moves */
@@ -306,7 +306,7 @@ top:
         case '5': case '6': case '7': case '8': case '9':
         case '.':
           if (type==1) {
-            err_printf(Str(X_393,"Number not allowed in context []\n"));
+            err_printf(Str("Number not allowed in context []\n"));
             longjmp(cenviron.exitjmp_,1);
           }
           i = 0;
@@ -320,7 +320,7 @@ top:
           break;
         case '~':
           if (type==1) {
-            err_printf(Str(X_438,"Random not in context []\n"));
+            err_printf(Str("Random not in context []\n"));
             longjmp(cenviron.exitjmp_,1);
           }
           *++pv = (MYFLT) rand()/(MYFLT)RAND_MAX;
@@ -329,7 +329,7 @@ top:
           break;
         case '@':
           if (type==1) {
-            err_printf(Str(X_1454,"Upper not in context []\n"));
+            err_printf(Str("Upper not in context []\n"));
             longjmp(cenviron.exitjmp_,1);
           }
           {
@@ -349,7 +349,7 @@ top:
           break;
         case '+': case '-':
           if (type==0) {
-            err_printf(Str(X_398,"Operator %c not allowed in context []\n"), c);
+            err_printf(Str("Operator %c not allowed in context []\n"), c);
             longjmp(cenviron.exitjmp_,1);
           }
           if (*op != '[' && *op != '(') {
@@ -363,7 +363,7 @@ top:
         case '/':
         case '%':
           if (type==0) {
-            err_printf(Str(X_398,"Operator %c not allowed in context []\n"), c);
+            err_printf(Str("Operator %c not allowed in context []\n"), c);
             longjmp(cenviron.exitjmp_,1);
           }
           if (*op == '*' || *op == '/' || *op == '%') {
@@ -377,7 +377,7 @@ top:
         case '|':
         case '#':
           if (type==0) {
-            err_printf(Str(X_398,"Operator %c not allowed in context []\n"), c);
+            err_printf(Str("Operator %c not allowed in context []\n"), c);
             longjmp(cenviron.exitjmp_,1);
           }
           if (*op == '|' || *op == '&' || *op == '#') {
@@ -389,14 +389,14 @@ top:
           *++op = c; c = getscochar(1); break;
         case '(':
           if (type==1) {
-            err_printf(Str(X_397,"Open bracket not allowed in context []\n"));
+            err_printf(Str("Open bracket not allowed in context []\n"));
             longjmp(cenviron.exitjmp_,1);
           }
           type = 0;
           *++op = c; c = getscochar(1); break;
         case ')':
           if (type==0) {
-            err_printf(Str(X_222,"Closing bracket not allowed in context []\n"));
+            err_printf(Str("Closing bracket not allowed in context []\n"));
             longjmp(cenviron.exitjmp_,1);
           }
           while (*op != '(') {
@@ -411,7 +411,7 @@ top:
           *++op = c; c = getscochar(1); break;
         case ']':
           if (type==0) {
-            err_printf(Str(X_222,"Closing bracket not allowed in context []\n"));
+            err_printf(Str("Closing bracket not allowed in context []\n"));
             longjmp(cenviron.exitjmp_,1);
           }
           while (*op != '[') {
@@ -428,7 +428,7 @@ top:
           continue;
         default:
           printf("read %c(%.2x)\n", c, c);
-          printf(Str(X_306,"Incorrect evaluation\n"));
+          printf(Str("Incorrect evaluation\n"));
           longjmp(cenviron.exitjmp_,1);
         }
       } while (c!='$');
@@ -451,7 +451,7 @@ top:
           input_size += 20;
           inputs = realloc(inputs, input_size*sizeof(struct in_stack));
           if (inputs == NULL) {
-            printf(Str(X_1692, "No space for include files"));
+            printf(Str("No space for include files"));
             longjmp(cenviron.exitjmp_,1);
           }
           str = &inputs[old];     /* In case it moves */
@@ -488,12 +488,12 @@ static int nested_repeat(void)  /* gab A9*/
           c[j]=' ';
           c[j+1]='\0';
         }
-        printf(Str(X_1324,"%s Nested LOOP terminated, level:%d\n"),
+        printf(Str("%s Nested LOOP terminated, level:%d\n"),
                c,repeat_index);
 
       }
       else
-        printf(Str(X_1305,"External LOOP terminated, level:%d\n"),
+        printf(Str("External LOOP terminated, level:%d\n"),
                repeat_index);
       if (strcmp(repeat_name_n[repeat_index], macros->name)==0) {
         MACRO *mm=macros->next;
@@ -506,7 +506,7 @@ static int nested_repeat(void)  /* gab A9*/
         while (strcmp(repeat_name_n[repeat_index], nn->name)!=0) {
           mm = nn; nn = nn->next;
           if (nn==NULL)
-            scorerr(Str(X_505,"Undefining undefined macro"));
+            scorerr(Str("Undefining undefined macro"));
         }
         mfree(nn->name); mfree(nn->body);
         mm->next = nn->next; mfree(nn);
@@ -526,11 +526,11 @@ static int nested_repeat(void)  /* gab A9*/
           c[j]=' ';
           c[j+1]='\0';
         }
-        printf(Str(X_1121,"%s  Nested LOOP section (%d) Level:%d\n"),
+        printf(Str("%s  Nested LOOP section (%d) Level:%d\n"),
                c, i, repeat_index);
       }
       else
-        printf(Str(X_1077," External LOOP section (%d) Level:%d\n"),
+        printf(Str(" External LOOP section (%d) Level:%d\n"),
                i, repeat_index);
       *(nxp-2) = 's'; *nxp++ =  LF;
       return 1;
@@ -550,7 +550,7 @@ static int do_repeat(void)      /* At end of section repeat if necessary */
     repeat_cnt--;
     if (repeat_cnt==0) { /* Expired */
       /* Delete macro */
-      printf(Str(X_329,"Loop terminated\n"));
+      printf(Str("Loop terminated\n"));
       if (strcmp(repeat_name, macros->name)==0) {
         MACRO *mm=macros->next;
         mfree(macros->name); mfree(macros->body);
@@ -562,7 +562,7 @@ static int do_repeat(void)      /* At end of section repeat if necessary */
         while (strcmp(repeat_name, nn->name)!=0) {
           mm = nn; nn = nn->next;
           if (nn==NULL)
-            scorerr(Str(X_505,"Undefining undefined macro"));
+            scorerr(Str("Undefining undefined macro"));
         }
         mfree(nn->name); mfree(nn->body);
         mm->next = nn->next; mfree(nn);
@@ -574,7 +574,7 @@ static int do_repeat(void)      /* At end of section repeat if necessary */
       sscanf(repeat_mm->body, "%d", &i);
       i = i + repeat_inc;
       sprintf(repeat_mm->body, "%d", i);
-      printf(Str(X_445,"Repeat section (%d)\n"), i);
+      printf(Str("Repeat section (%d)\n"), i);
       *(nxp-2) = 's'; *nxp++ = LF;
       if (memend - nxp < MARGIN) {            /* if this memblk exhausted */
         expand_nxp();
@@ -632,7 +632,7 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
           char *old_nxp = nxp-2;
           getpfld();
           clock_base = stof(sp);
-          printf(Str(X_221,"Clockbase = %f\n"), clock_base);
+          printf(Str("Clockbase = %f\n"), clock_base);
           flushlin();
           op = getop();
           nxp = old_nxp;
@@ -679,7 +679,7 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
 /*           } */
           if (str->string) {
             int c;
-            err_printf(Str(X_996,"LOOP not at top level; ignored\n"));
+            err_printf(Str("LOOP not at top level; ignored\n"));
             do {    /* Ignore rest of line */
               c = getscochar(1);
             } while (c != LF && c != EOF);
@@ -705,11 +705,11 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
                 st[j]=' ';
                 st[j+1]='\0';
               }
-              printf(Str(X_995,"%s Nested LOOP=%d Level:%d\n"), st,
+              printf(Str("%s Nested LOOP=%d Level:%d\n"), st,
                      repeat_cnt_n[repeat_index], repeat_index);
             }
             else
-              printf(Str(X_994,"External LOOP=%d Level:%d\n"),
+              printf(Str("External LOOP=%d Level:%d\n"),
                      repeat_cnt_n[repeat_index], repeat_index);
             do {
               c = getscochar(1);
@@ -764,7 +764,7 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
         }
         if (str->string) {
           int c;
-          err_printf(Str(X_444,"Repeat not at top level; ignored\n"));
+          err_printf(Str("Repeat not at top level; ignored\n"));
           do {    /* Ignore rest of line */
             c = getscochar(1);
           } while (c != LF && c != EOF);
@@ -781,7 +781,7 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
             repeat_cnt = 10 * repeat_cnt + c - '0';
             c = getscochar(1);
           } while (isdigit(c));
-          printf(Str(X_446,"Repeats=%d\n"), repeat_cnt);
+          printf(Str("Repeats=%d\n"), repeat_cnt);
           do {
             c = getscochar(1);
           } while (c==' '||c=='\t');
@@ -832,7 +832,7 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
             buff[i++]=c;
           } while (isalpha(c=getscochar(1))|| (i!=0 && (isdigit(c)||c=='_')));
           buff[i]=0;
-          printf(Str(X_353,"Named section >>>%s<<<\n"), buff);
+          printf(Str("Named section >>>%s<<<\n"), buff);
           for (i=0; i<=next_name; i++)
             if (strcmp(buff, names[i].name)==0) break;
           if (i>next_name) {
@@ -846,12 +846,12 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
             names[next_name].posit = ftell(str->file);
             names[next_name].file = mmalloc(strlen(str->body)+1);
             strcpy(names[next_name].file, str->body);
-            printf(Str(X_40,"%d: File %s position %ld\n"),
+            printf(Str("%d: File %s position %ld\n"),
                    next_name, names[next_name].file,
                    names[next_name].posit);
           }
           else {
-            err_printf(Str(X_301,"Ignoring name %s not in file\n"), buff);
+            err_printf(Str("Ignoring name %s not in file\n"), buff);
             names[i].name[0] = '\0'; /* Destroy name */
           }
           op = getop();
@@ -874,9 +874,9 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
           flushlin();
           for (i = 0; i<=next_name; i++)
             if (strcmp(buff, names[i].name)==0) break;
-          if (i>next_name) err_printf(Str(X_352,"Name not found"), buff);
+          if (i>next_name) err_printf(Str("Name not found"), buff);
           else {
-            printf(Str(X_249,"Duplicate %d: %s (%s,%ld)\n"),
+            printf(Str("Duplicate %d: %s (%s,%ld)\n"),
                    i, buff, names[i].file, names[i].posit);
             input_cnt++;
             if (input_cnt>=input_size) {
@@ -885,7 +885,7 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
 /*               printf("Expanding includes to %d\n", input_size); */
               inputs = realloc(inputs, input_size*sizeof(struct in_stack));
               if (inputs == NULL) {
-                printf(Str(X_1692, "No space for include files"));
+                printf(Str("No space for include files"));
                 longjmp(cenviron.exitjmp_,1);
               }
               str = &inputs[old];     /* In case it moves */
@@ -895,7 +895,7 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
             str->file = fopen(names[i].file, "r");
             /*RWD 3:2000*/
             if (str->file==NULL) {
-              printf(Str(X_214,"cannot open input file %s\n"),names[i].file);
+              printf(Str("cannot open input file %s\n"),names[i].file);
               longjmp(cenviron.exitjmp_,1);
             }
             str->body = mmalloc(strlen(names[i].file)+1);
@@ -913,7 +913,7 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
           char *old_nxp = nxp-2;
           getpfld();
           warp_factor = stof(sp);
-          printf(Str(X_535,"Warp_factor = %f\n"), warp_factor);
+          printf(Str("Warp_factor = %f\n"), warp_factor);
           flushlin();
           op = getop();
           nxp = old_nxp;
@@ -940,7 +940,7 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
         };
         break;
       default:
-        err_printf(Str(X_1232,"sread is confused on legal opcodes\n"));
+        err_printf(Str("sread is confused on legal opcodes\n"));
         break;
       }
     }
@@ -988,9 +988,9 @@ static void ifa(void)
     bp->pcnt = 0;
     while (getpfld()) {             /* while there's another pfield,  */
       if (++bp->pcnt == PMAX) {
-        err_printf(Str(X_1238,"sread: instr pcount exceeds PMAX\n"));
-        err_printf(Str(X_561,"\t sect %d line %d\n"), sectcnt, lincnt);
-        err_printf(Str(X_3,"      remainder of line flushed\n"));
+        err_printf(Str("sread: instr pcount exceeds PMAX\n"));
+        err_printf(Str("\t sect %d line %d\n"), sectcnt, lincnt);
+        err_printf(Str("      remainder of line flushed\n"));
         flushlin();
         continue;
       }
@@ -998,15 +998,15 @@ static void ifa(void)
         int foundplus = 0;
         if (*(sp+1)=='+') { sp++; foundplus = 1; }
         if (prvp2<0) {
-          err_printf(Str(X_369,"No previous event in ^\n"));
+          err_printf(Str("No previous event in ^\n"));
           prvp2 = bp->p2val = warp_factor*stof(sp+1);
         }
         else if (isspace(*(sp+1))) {
           /* stof() assumes no leading whitespace -- 070204, akozar */
-          err_printf(Str(X_226,
+          err_printf(Str(
                          "sread: illegal space following %s, sect %d line %d:  "),
                      (foundplus?"^+":"^"),sectcnt,lincnt);
-          err_printf(Str(X_8,"   zero substituted.\n"));
+          err_printf(Str("   zero substituted.\n"));
           prvp2 = bp->p2val = prvp2;
         }
         else prvp2 = bp->p2val = prvp2 + warp_factor*stof(sp+1);
@@ -1083,7 +1083,7 @@ static void setprv(void)        /*  set insno = (int) p1val     */
       c = name; while (*++s != '"') *c++ = *s; *c = '\0';
       /* find corresponding insno */
       if (!(n = (short) named_instr_find(name))) {
-        err_printf(Str(X_1822,
+        err_printf(Str(
                        "WARNING: instr %s not found, assuming insno = -1\n"),
                    name);
         n = -1;
@@ -1105,7 +1105,7 @@ static void carryerror(void)    /* print offending text line */
     char *p;
 
     err_printf(
-       Str(X_1236,
+       Str(
            "sread: illegal use of carry, sect %d line %d,   0 substituted\n"),
        sectcnt,lincnt);
     *(nxp-3) = SP;
@@ -1254,7 +1254,7 @@ static int sget1(void)          /* get first non-white, non-comment char */
       }
       if (c==' ' || c=='\t') goto again;
       if (c!='\n' && c!=EOF) {
-        err_printf(Str(X_303,"Improper \\"));
+        err_printf(Str("Improper \\"));
         while (c!='\n' && c!=EOF) c = getscochar(1);
       }
       goto srch;
@@ -1288,7 +1288,7 @@ static int sget1(void)          /* get first non-white, non-comment char */
         if ((c = getscochar(1))!='e' || (c = getscochar(1))!='f' ||
             (c = getscochar(1))!='i' || (c = getscochar(1))!='n' ||
             (c = getscochar(1))!='e') {
-          err_printf(Str(X_390,"Not #define"));
+          err_printf(Str("Not #define"));
           flushlin();
           goto srch;
         }
@@ -1297,7 +1297,7 @@ static int sget1(void)          /* get first non-white, non-comment char */
           mname[i++] = c;
         } while (isalpha(c = getscochar(1)) || (i!=0 && (isdigit(c)||c=='_')));
         mname[i] = '\0';
-        printf(Str(X_341,"Macro definition for %s\n"), mname);
+        printf(Str("Macro definition for %s\n"), mname);
         mm->name = mmalloc(i+1);
         strcpy(mm->name, mname);
         if (c == '(') { /* arguments */
@@ -1320,7 +1320,7 @@ static int sget1(void)          /* get first non-white, non-comment char */
             while (isspace(c)) c = getscochar(1);
           } while (c=='\'' || c=='#');
           if (c!=')') {
-            err_printf(Str(X_984,"macro error\n"));
+            err_printf(Str("macro error\n"));
             flushlin();
             goto srch;
           }
@@ -1343,7 +1343,7 @@ static int sget1(void)          /* get first non-white, non-comment char */
         mm->body[i]='\0';
         mm->next = macros;
         macros = mm;
-        printf(Str(X_340,"Macro %s with %d arguments defined\n"),
+        printf(Str("Macro %s with %d arguments defined\n"),
                mm->name, mm->acnt);
         c = ' ';
         flushlin();
@@ -1354,7 +1354,7 @@ static int sget1(void)          /* get first non-white, non-comment char */
         if ((c = getscochar(1))!='n' || (c = getscochar(1))!='c' ||
             (c = getscochar(1))!='l' || (c = getscochar(1))!='u' ||
             (c = getscochar(1))!='d' || (c = getscochar(1))!='e') {
-          err_printf(Str(X_391,"Not #include"));
+          err_printf(Str("Not #include"));
           flushlin();
           goto srch;
         }
@@ -1371,7 +1371,7 @@ static int sget1(void)          /* get first non-white, non-comment char */
 /*           printf("Expanding includes to %d\n", input_size); */
           inputs = realloc(inputs, input_size*sizeof(struct in_stack));
           if (inputs == NULL) {
-            printf(Str(X_1692, "No space for include files"));
+            printf(Str("No space for include files"));
             longjmp(cenviron.exitjmp_,1);
           }
           str = &inputs[old];     /* In case it moves */
@@ -1381,7 +1381,7 @@ static int sget1(void)          /* get first non-white, non-comment char */
         str->file = fopen_path(mname, scorename, "INCDIR", "r");
         if (str->file==0) {
           char buff[256];
-          sprintf(buff,Str(X_209,"Cannot open #include'd file %s\n"), mname);
+          sprintf(buff,Str("Cannot open #include'd file %s\n"), mname);
           scorerr(buff);
 /*           str--; input_cnt--; */
         }
@@ -1394,7 +1394,7 @@ static int sget1(void)          /* get first non-white, non-comment char */
       else if (c=='u') {
         if ((c = getscochar(1))!='n' || (c = getscochar(1))!='d' ||
             (c = getscochar(1))!='e' || (c = getscochar(1))!='f') {
-          err_printf(Str(X_392,"Not #undef"));
+          err_printf(Str("Not #undef"));
           flushlin();
           goto srch;
         }
@@ -1403,7 +1403,7 @@ static int sget1(void)          /* get first non-white, non-comment char */
           mname[i++] = c;
         } while (isalpha(c = getscochar(1))|| (i!=0 && (isdigit(c)||'_')));
         mname[i] = '\0';
-        printf(Str(X_982,"macro %s undefined\n"), mname);
+        printf(Str("macro %s undefined\n"), mname);
         if (strcmp(mname, macros->name)==0) {
           MACRO *mm=macros->next;
           mfree(macros->name); mfree(macros->body);
@@ -1416,7 +1416,7 @@ static int sget1(void)          /* get first non-white, non-comment char */
           MACRO *nn = mm->next;
           while (strcmp(mname, nn->name)!=0) {
             mm = nn; nn = nn->next;
-            if (nn==NULL) scorerr(Str(X_505,"Undefining undefined macro"));
+            if (nn==NULL) scorerr(Str("Undefining undefined macro"));
           }
           mfree(nn->name); mfree(nn->body);
           for (i=0; i<nn->acnt; i++)
@@ -1427,7 +1427,7 @@ static int sget1(void)          /* get first non-white, non-comment char */
         lincnt++;
       }
       else {
-        err_printf(Str(X_507,"unknown # option"));
+        err_printf(Str("unknown # option"));
         flushlin();
         goto srch;
       }
@@ -1465,9 +1465,9 @@ static int getop(void)          /* get next legal opcode */
     case EOF:
       break;            /* if ok, go with it    */
     default:            /*   else complain      */
-      err_printf( Str(X_1235,"sread: illegal opcode %c, sect %d line %d\n"),
+      err_printf( Str("sread: illegal opcode %c, sect %d line %d\n"),
                   c,sectcnt,lincnt);
-      err_printf(Str(X_3,"      remainder of line flushed\n"));
+      err_printf(Str("      remainder of line flushed\n"));
       flushlin();
       goto nextc;
     }
@@ -1490,7 +1490,7 @@ static int getpfld(void)             /* get pfield val from SCOREIN file */
         && c != '"' && c != '~' ) {
       ungetscochar(c);                        /* then no more pfields    */
       if (linpos)
-        err_printf(Str(X_1240,"sread: unexpected char %c, sect %d line %d\n"),
+        err_printf(Str("sread: unexpected char %c, sect %d line %d\n"),
                    c, sectcnt, lincnt);
       return(0);                              /*    so return            */
     }
@@ -1500,13 +1500,13 @@ static int getpfld(void)             /* get pfield val from SCOREIN file */
     if (c == '"') {                           /* if have quoted string,  */
       /* IV - Oct 31 2002: allow string instr name for i and q events */
       if (bp->pcnt < 3 && !((op == 'i' || op == 'q') && !bp->pcnt)) {
-        err_printf(Str(X_1237,"sread: illegally placed string, sect %d line %d\n"),
+        err_printf(Str("sread: illegally placed string, sect %d line %d\n"),
                    sectcnt,lincnt);
         return(0);
       }
       while ((c = getscochar(1)) != '"') {
         if (c == LF || c == EOF) {
-          err_printf(Str(X_1241,"sread: unmatched quote, sect %d line %d\n"),
+          err_printf(Str("sread: unmatched quote, sect %d line %d\n"),
                      sectcnt,lincnt);
           return(0);
         }
@@ -1609,14 +1609,14 @@ MYFLT stof(char s[])            /* convert string to MYFLT  */
     if (*(p - 1) == SP) p--;
 #endif
     if (s == p || (*p != SP && *p != LF)) {
-      err_printf(Str(X_1234,"sread: illegal number format, sect %d line %d:  "),
+      err_printf(Str("sread: illegal number format, sect %d line %d:  "),
                  sectcnt,lincnt);
       p = s;
       while (*p != SP && *p != LF) {
         err_printf("%c", *p);
         *p++ = '0';
       }
-      err_printf(Str(X_8,"   zero substituted.\n"));
+      err_printf(Str("   zero substituted.\n"));
       return FL(0.0);
     }
     return x;

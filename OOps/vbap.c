@@ -249,7 +249,7 @@ void choose_ls_triplets(ls lss[CHANNELS],
     struct ls_triplet_chain *trip_ptr, *prev, *tmp_ptr;
 
     if (ls_amount == 0) {
-      err_printf(Str(X_76,"Number of loudspeakers is zero\nExiting\n"));
+      err_printf(Str("Number of loudspeakers is zero\nExiting\n"));
       longjmp(cenviron.exitjmp_,-1);
   }
 
@@ -562,7 +562,7 @@ void vbap_ls_init (ENVIRON *csound, VBAP_LS_INIT *p)
     dim = (int) *p->dim;
     printf("dim : %d\n",dim);
     if (!((dim==2) || (dim == 3))) {
-      err_printf(Str(X_78,"Error in loudspeaker dimension.\n"));
+      err_printf(Str("Error in loudspeaker dimension.\n"));
       exit (-1);
     }
     count = (int) *p->ls_amount;
@@ -586,7 +586,7 @@ void vbap_ls_init (ENVIRON *csound, VBAP_LS_INIT *p)
     }
     ls_amount = (int)*p->ls_amount;
     if (ls_amount < dim) {
-      err_printf(Str(X_84,"Too few loudspeakers\n"));
+      err_printf(Str("Too few loudspeakers\n"));
       exit (-1);
     }
 
@@ -611,7 +611,7 @@ void  calculate_3x3_matrixes(struct ls_triplet_chain *ls_triplets,
     int triplet_amount = 0, i,j,k;
 
     if (tr_ptr == NULL) {
-      err_printf(Str(X_85,"Not valid 3-D configuration\n"));
+      err_printf(Str("Not valid 3-D configuration\n"));
       longjmp(cenviron.exitjmp_,-1);
     }
 
@@ -658,9 +658,9 @@ void  calculate_3x3_matrixes(struct ls_triplet_chain *ls_triplets,
     }
 
     k=3;
-    printf(Str(X_92,"\nConfigured loudspeakers\n"));
+    printf(Str("\nConfigured loudspeakers\n"));
     for (i=0; i < triplet_amount; i++) {
-      printf(Str(X_93,"Triplet %d Loudspeakers: "), i);
+      printf(Str("Triplet %d Loudspeakers: "), i);
       for (j=0; j < 3; j++) {
         printf("%d ", (int) ls_table[k++]);
       }
@@ -757,9 +757,9 @@ void choose_ls_tuplets( ls lss[CHANNELS],
       }
     }
     k=3;
-    printf(Str(X_92,"\nConfigured loudspeakers\n"));
+    printf(Str("\nConfigured loudspeakers\n"));
     for (i=0; i < amount; i++) {
-      printf(Str(X_98,"Pair %d Loudspeakers: "), i);
+      printf(Str("Pair %d Loudspeakers: "), i);
       for (j=0; j < 2; j++) {
         printf("%d ", (int) ls_table[k++]);
       }

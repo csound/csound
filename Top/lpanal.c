@@ -307,9 +307,9 @@ void
     printf("%s\n", where);
     for (i=0; i<poleCount; i++) {
       if (isMagn)
-        printf(Str(X_343,"magnitude: %f   Phase: %f\n"), part1[i], part2[i]);
+        printf(Str("magnitude: %f   Phase: %f\n"), part1[i], part2[i]);
       else
-        printf(Str(X_441,"Real: %f   Imag: %f\n"), part1[i], part2[i]);
+        printf(Str("Real: %f   Imag: %f\n"), part1[i], part2[i]);
     }
 #endif
 }
@@ -322,9 +322,9 @@ void DumpPoles(int poleCount, double *part1, double *part2, int isMagn, char *wh
     printf("%s\n", where);
     for (i=0; i<poleCount; i++) {
       if (isMagn)
-        printf(Str(X_343,"magnitude: %f   Phase: %f\n"), part1[i], part2[i]);
+        printf(Str("magnitude: %f   Phase: %f\n"), part1[i], part2[i]);
       else
-        printf(Str(X_441,"Real: %f   Imag: %f\n"), part1[i], part2[i]);
+        printf(Str("Real: %f   Imag: %f\n"), part1[i], part2[i]);
     }
 #endif
 }
@@ -378,7 +378,7 @@ int DoPoleInterpolation(int poleCount,
     int i;
 
     if (poleCount%2!=0) {
-      printf (Str(X_208,"Cannot handle uneven pole count yet \n"));
+      printf (Str("Cannot handle uneven pole count yet \n"));
       return (FALSE);
     }
 
@@ -478,7 +478,7 @@ int lpanal(int argc, char **argv)
 
    /* Parse argument until no more found %-( */
         if (!(--argc))
-            lpdieu(Str(X_939,"insufficient arguments"));
+            lpdieu(Str("insufficient arguments"));
         do {
             char *s = *++argv;
             if (*s++ == '-')
@@ -486,35 +486,35 @@ int lpanal(int argc, char **argv)
                 case 'j':       FIND("")
                                 while (*s++); s--;
                                 break;
-                case 's':       FIND(Str(X_1057,"no sampling rate"))
+                case 's':       FIND(Str("no sampling rate"))
 #if defined(USE_DOUBLE)
                     sscanf(s,"%lf",&sr); break;
 #else
                     sscanf(s,"%f",&sr); break;
 #endif
-                case 'c':       FIND(Str(X_1026,"no channel"))
+                case 'c':       FIND(Str("no channel"))
                     sscanf(s,"%d",&channel); break;
-                case 'b':       FIND(Str(X_1025,"no begin time"))
+                case 'b':       FIND(Str("no begin time"))
 #if defined(USE_DOUBLE)
                     sscanf(s,"%lf",&beg_time); break;
 #else
                     sscanf(s,"%f",&beg_time); break;
 #endif
-                case 'd':       FIND(Str(X_1030,"no duration time"))
+                case 'd':       FIND(Str("no duration time"))
 #if defined(USE_DOUBLE)
                     sscanf(s,"%lf",&input_dur); break;
 #else
                     sscanf(s,"%f",&input_dur); break;
 #endif
-                case 'p':       FIND(Str(X_1054,"no poles"))
+                case 'p':       FIND(Str("no poles"))
                     sscanf(s,"%d",&poleCount); break;
-                case 'h':       FIND(Str(X_1037,"no hopsize"))
+                case 'h':       FIND(Str("no hopsize"))
                     sscanf(s,"%d",&slice); break;
-                case 'C':       FIND(Str(X_1028,"no comment string"))
+                case 'C':       FIND(Str("no comment string"))
                     strncat(tp,s,(LPBUFSIZ - sizeof(LPHEADER) + 4));
                     tp += strlen(tp);
                     break;
-                case 'P':       FIND(Str(X_1045,"no low frequency"))
+                case 'P':       FIND(Str("no low frequency"))
 #if defined(USE_DOUBLE)
                     sscanf(s,"%lf",&pchlow);
 #else
@@ -522,13 +522,13 @@ int lpanal(int argc, char **argv)
 #endif
                     if (pchlow == 0.) doPitch = 0;     /* -P0 inhibits ptrack */
                     break;
-                case 'Q':       FIND(Str(X_1036,"no high frequency"))
+                case 'Q':       FIND(Str("no high frequency"))
 #if defined(USE_DOUBLE)
                     sscanf(s,"%lf",&pchhigh); break;
 #else
                     sscanf(s,"%f",&pchhigh); break;
 #endif
-                case 'v':       FIND(Str(X_1065,"no verbose level"))
+                case 'v':       FIND(Str("no verbose level"))
                     sscanf(s,"%d",&verbose);
                     if (verbose > 1)  debug = 1;
                     break;
@@ -536,7 +536,7 @@ int lpanal(int argc, char **argv)
                     break;
                 case 'a':       storePoles=TRUE;
                     break;
-                default: sprintf(errmsg,Str(X_1350,"unrecognised flag -%c"), *--s);
+                default: sprintf(errmsg,Str("unrecognised flag -%c"), *--s);
                          lpdieu(errmsg);
                 }
             else break;
@@ -544,52 +544,52 @@ int lpanal(int argc, char **argv)
 
    /* Do some checks on arguments we got */
 
-        if (argc != 2)  lpdieu(Str(X_907,"incorrect number of filenames"));
+        if (argc != 2)  lpdieu(Str("incorrect number of filenames"));
         infilnam = *argv++;
         outfilnam = *argv;
         if (poleCount > MAXPOLES)
-            quit(Str(X_1132,"poles exceeds maximum allowed"));
+            quit(Str("poles exceeds maximum allowed"));
                                 /* Allocate space now */
         coef = (MYFLT*) mmalloc((NDATA+poleCount*2)*sizeof(MYFLT));
                                 /* Space allocated */
         if (slice < poleCount * 5)
           if (O.msglevel & WARNMSG)
-            printf(Str(X_831,"WARNING: hopsize may be too small, recommend at least poleCount * 5\n"));
+            printf(Str("WARNING: hopsize may be too small, recommend at least poleCount * 5\n"));
 
         if ((WINDIN = slice * 2) > MAXWINDIN)
-          quit(Str(X_915,"input framesize (inter-frame-offset*2) exceeds maximum allowed"));
+          quit(Str("input framesize (inter-frame-offset*2) exceeds maximum allowed"));
         if ((input_dur < 0) || (beg_time < 0))
-            quit(Str(X_912,"input and begin times cannot be less than zero"));
+            quit(Str("input and begin times cannot be less than zero"));
 
         if (verbose) {
-            err_printf(Str(X_440,"Reading sound from %s, writing lpfile to %s\n"),
+            err_printf(Str("Reading sound from %s, writing lpfile to %s\n"),
                     infilnam, outfilnam);
-            err_printf(Str(X_1133,"poles=%d hopsize=%d begin=%4.1f duration=%4.1f\n"),
+            err_printf(Str("poles=%d hopsize=%d begin=%4.1f duration=%4.1f\n"),
                     poleCount, slice, beg_time, input_dur);
-            err_printf(Str(X_972,"lpheader comment:\n%s\n"), lph->text);
+            err_printf(Str("lpheader comment:\n%s\n"), lph->text);
             if (pchlow > 0.)
-              err_printf(Str(X_1122,"pch track range: %5.1f - %5.1f Hz\n"),pchlow,pchhigh);
-            else err_printf(Str(X_1125,"pitch tracking inhibited\n"));
+              err_printf(Str("pch track range: %5.1f - %5.1f Hz\n"),pchlow,pchhigh);
+            else err_printf(Str("pitch tracking inhibited\n"));
         }
         if ((input_dur < 0) || (beg_time < 0))
-            quit(Str(X_912,"input and begin times cannot be less than zero"));
+            quit(Str("input and begin times cannot be less than zero"));
 
         if (storePoles)
-          err_printf(Str(X_522,"Using pole storage method\n"));
+          err_printf(Str("Using pole storage method\n"));
         else
-          err_printf(Str(X_521,"Using filter coefficient storage method\n"));
+          err_printf(Str("Using filter coefficient storage method\n"));
 
    /* Get information on input sound */
         if (
          (infd = SAsndgetset(infilnam,&p,&beg_time,&input_dur,&sr,channel))<0) {
-            sprintf(errmsg,Str(X_735,"error while opening %s"), retfilnam);
+            sprintf(errmsg,Str("error while opening %s"), retfilnam);
             quit(errmsg);
         }
 
    /* Try to open output file */
 
         if ((ofd = openout(outfilnam, 1)) < 0)  /* open output file */
-            quit(Str(X_632,"cannot create output file"));
+            quit(Str("cannot create output file"));
 
    /* Prepare header */
 
@@ -611,7 +611,7 @@ int lpanal(int argc, char **argv)
    /* Write header to disk */
         if ((nb = write(ofd,(char *)lph,(int)lph->headersize)) <
             lph->headersize)
-            quit(Str(X_630,"cannot write header"));
+            quit(Str("cannot write header"));
 
 /* get buffer size for one analysis frame: filtercoef or poles + freq/rms/... */
         osiz = (poleCount*(storePoles?2:1) + NDATA) * sizeof(MYFLT);
@@ -622,7 +622,7 @@ int lpanal(int argc, char **argv)
 
    /* Try to read first frame in buffer */
         if ((n = getsndin(infd, sigbuf, (long)WINDIN, p)) < WINDIN)
-            quit(Str(X_1202,"soundfile read error, could not fill first frame"));
+            quit(Str("soundfile read error, could not fill first frame"));
 
    /* initialize frame pitch table ? */
         if (doPitch)
@@ -687,7 +687,7 @@ int lpanal(int argc, char **argv)
                        &poleFound,2000,&indic,workArray1);
 
               if (poleFound!=poleCount) {
-                err_printf(Str(X_283,"Found only %d poles...sorry\n"), poleFound);
+                err_printf(Str("Found only %d poles...sorry\n"), poleFound);
 #if !defined(mills_macintosh)
                 exit(-1);
 #else
@@ -711,7 +711,7 @@ int lpanal(int argc, char **argv)
                 printf("filterCoef: %f\n", filterCoef[i]);
 #endif
                 if (filterCoef[i]-polyReal[poleCount-i]>1e-10)
-                  err_printf(Str(X_254,"Error in coef %d : %f <> %f \n"),
+                  err_printf(Str("Error in coef %d : %f <> %f \n"),
                              i, filterCoef[i], polyReal[poleCount-i]);
               }
               err_printf(".");
@@ -754,7 +754,7 @@ int lpanal(int argc, char **argv)
 
         /* Write frame to disk */
             if ((nb = write(ofd, (char *)coef, osiz)) != osiz)
-                quit(Str(X_1381,"write error"));
+                quit(Str("write error"));
             memcpy(sigbuf, sigbuf2, sizeof(MYFLT)*slice);
 
         /* Some unused stuff. I think from when all snd was in mem */
@@ -769,7 +769,7 @@ int lpanal(int argc, char **argv)
 
    /* clean up stuff */
         dispexit();
-        printf(Str(X_35,"%d lpc frames written to %s\n"), counter, outfilnam);
+        printf(Str("%d lpc frames written to %s\n"), counter, outfilnam);
         close(infd);
         close(ofd);
         free(a); free(x);
@@ -783,7 +783,7 @@ int lpanal(int argc, char **argv)
 static void quit(char *msg)
 {
         printf("lpanal: %s\n", msg);
-        die(Str(X_597,"analysis aborted"));
+        die(Str("analysis aborted"));
 }
 
 static void lpdieu(char *msg)
@@ -887,7 +887,7 @@ static void gauss(double (*a/*old*/)[MAXPOLES], double *bold, double b[])
       }
       if (amax < 1e-20) {
         printf("Row %d or %d have maximum of %g\n", i, poleCount, amax);
-        die(Str(X_791,"gauss: ill-conditioned"));
+        die(Str("gauss: ill-conditioned"));
       }
       if (i != istar) {
         for (j=0; j < poleCount;++j)  {    /* switch rows */
@@ -919,7 +919,7 @@ static void gauss(double (*a/*old*/)[MAXPOLES], double *bold, double b[])
     if (fabs(a[poleCount-1][poleCount-1]) < 1e-20) {
       printf("Row %d or %d have maximum of %g\n",
              poleCount-1, poleCount, fabs(a[poleCount-1][poleCount-1]));
-      die(Str(X_791,"gauss: ill-conditioned"));
+      die(Str("gauss: ill-conditioned"));
     }
 
     b[poleCount-1] = c[poleCount-1] / a[poleCount-1][poleCount-1];
@@ -940,38 +940,38 @@ static void gauss(double (*a/*old*/)[MAXPOLES], double *bold, double b[])
 
 static void usage(void)
 {
-    err_printf(Str(X_500,"USAGE:\tlpanal [flags] infilename outfilename\n"));
-    err_printf(Str(X_580,"\twhere flag options are:\n"));
-    err_printf(Str(X_163,
+    err_printf(Str("USAGE:\tlpanal [flags] infilename outfilename\n"));
+    err_printf(Str("\twhere flag options are:\n"));
+    err_printf(Str(
                "-s<srate>\tinput sample rate (defaults to header else %7.1f.)\n"),
                DFLT_SR);
-    err_printf(Str(X_140,
+    err_printf(Str(
                    "-c<chnlreq>\trequested channel of sound (default chan 1)\n"));
-    err_printf(Str(X_139,
+    err_printf(Str(
                "-b<begin>\tbegin time in seconds into soundfile (default 0.0)\n"));
-    err_printf(Str(X_142,
+    err_printf(Str(
          "-d<duration>\tseconds of sound to be analysed (default: to EOF)\n"));
-    err_printf(Str(X_158,
+    err_printf(Str(
                    "-p<npoles>\tnumber of poles for analysis (default %d)\n"),
                DEFpoleCount);
-    err_printf(Str(X_148,
+    err_printf(Str(
                    "-h<hopsize>\toffset between frames in samples (default %d)\n"),
                DEFSLICE);
-    err_printf(Str(X_571,"\t\t\t(framesize will be twice <hopsize>)\n"));
-    err_printf(Str(X_101,
+    err_printf(Str("\t\t\t(framesize will be twice <hopsize>)\n"));
+    err_printf(Str(
                    "-C<string>\tcomment field of lp header (default empty)\n"));
-    err_printf(Str(X_122,
+    err_printf(Str(
                "-P<mincps>\tlower limit for pitch search (default %5.1f Hz)\n"),
                PITCHMIN);
-    err_printf(Str(X_570,"\t\t\t(-P0 inhibits pitch tracking)\n"));
-    err_printf(Str(X_124,
+    err_printf(Str("\t\t\t(-P0 inhibits pitch tracking)\n"));
+    err_printf(Str(
                "-Q<maxcps>\tupper limit for pitch search (default %5.1f Hz)\n"),
                PITCHMAX);
-    err_printf(Str(X_167,
+    err_printf(Str(
                "-v<verblevel>\tprinting verbosity: 0=none, 1=verbose, 2=debug."));
-    err_printf(Str(X_14," (default 0)\n"));
-    err_printf(Str(X_146,"-g\tgraphical display of results\n"));
-    err_printf(Str(X_135,"-a\t\talternate (pole) file storage\n"));
-    err_printf(Str(X_91,"-- fname\tLog output to file\n"));
-    err_printf(Str(X_1182,"see also:  Csound Manual Appendix\n"));
+    err_printf(Str(" (default 0)\n"));
+    err_printf(Str("-g\tgraphical display of results\n"));
+    err_printf(Str("-a\t\talternate (pole) file storage\n"));
+    err_printf(Str("-- fname\tLog output to file\n"));
+    err_printf(Str("see also:  Csound Manual Appendix\n"));
 }

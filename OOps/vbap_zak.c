@@ -90,7 +90,7 @@ int vbap_zak_control(ENVIRON *csound, VBAP_ZAK *p)
     int n = p->n;
     MYFLT tmp_gains[MAXCHNLS],sum = FL(0.0);
     if (p->dim == 2 && fabs(*p->ele) > 0.0) {
-      err_printf(Str(X_1693,"Warning: truncating elevation to 2-D plane\n"));
+      err_printf(Str("Warning: truncating elevation to 2-D plane\n"));
       *p->ele = FL(0.0);
     }
 
@@ -197,10 +197,10 @@ int vbap_zak_init(ENVIRON *csound, VBAP_ZAK  *p)
     /* Check to see this index is within the limits of za space.    */
     indx = (long) *p->ndx;
     if (indx > zalast) {
-      return perferror(Str(X_1531,"outz index > isizea. No output"));
+      return perferror(Str("outz index > isizea. No output"));
     }
     else if (indx < 0) {
-      return perferror(Str(X_1532,"outz index < 0. No output."));
+      return perferror(Str("outz index < 0. No output."));
     }
     /* Now read from the array in za space and write to the output. */
     p->out_array     = csound->zastart_ + (indx * ksmps);/* outputs */
@@ -215,7 +215,7 @@ int vbap_zak_init(ENVIRON *csound, VBAP_ZAK  *p)
     ptr              = &(ls_table[3]);
     auxalloc(p->ls_set_am * sizeof (LS_SET), &p->aux);
     if (p->aux.auxp==NULL) {
-      return initerror(Str(X_668,"could not allocate memory"));
+      return initerror(Str("could not allocate memory"));
     }
     p->ls_sets = (LS_SET*) p->aux.auxp;
     ls_set_ptr = p->ls_sets;
@@ -233,7 +233,7 @@ int vbap_zak_init(ENVIRON *csound, VBAP_ZAK  *p)
 
     /* other initialization */
     if (p->dim == 2 && fabs(*p->ele) > 0.0) {
-      err_printf(Str(X_1693,"Warning: truncating elevation to 2-D plane\n"));
+      err_printf(Str("Warning: truncating elevation to 2-D plane\n"));
       *p->ele = FL(0.0);
     }
     p->ang_dir.azi = (MYFLT) *p->azi;
@@ -304,7 +304,7 @@ int vbap_zak_moving_control(ENVIRON *csound, VBAP_ZAK_MOVING  *p)
     MYFLT coeff, angle;
     MYFLT tmp_gains[MAXCHNLS],sum = FL(0.0); /* Array long enough */
     if (p->dim == 2 && fabs(p->ang_dir.ele) > 0.0) {
-      err_printf(Str(X_1693,"Warning: truncating elevation to 2-D plane\n"));
+      err_printf(Str("Warning: truncating elevation to 2-D plane\n"));
       p->ang_dir.ele = FL(0.0);
     }
 
@@ -331,10 +331,10 @@ int vbap_zak_moving_control(ENVIRON *csound, VBAP_ZAK_MOVING  *p)
         }
       }
       if ((p->fld[abs(p->next_fld)]==NULL))
-        die(Str(X_1702,"Missing fields in vbapzmove\n"));
+        die(Str("Missing fields in vbapzmove\n"));
       if (*p->field_am >= FL(0.0) && p->dim == 2) /* point-to-point */
         if (fabs(fabs(*p->fld[p->next_fld] - *p->fld[p->curr_fld]) - 180.0) < 1.0)
-          err_printf(Str(X_1694,"Warning: Ambiguous transition 180 degrees.\n"));
+          err_printf(Str("Warning: Ambiguous transition 180 degrees.\n"));
     }
     if (*p->field_am >= FL(0.0)) { /* point-to-point */
       if (p->dim == 3) { /* 3-D*/
@@ -373,7 +373,7 @@ int vbap_zak_moving_control(ENVIRON *csound, VBAP_ZAK_MOVING  *p)
         p->ang_dir.ele = FL(0.0);
       }
       else {
-        die(Str(X_1696,"Wrong dimension\n"));
+        die(Str("Wrong dimension\n"));
       }
     }
     else { /* angular velocities */
@@ -491,10 +491,10 @@ int vbap_zak_moving_init(ENVIRON *csound, VBAP_ZAK_MOVING  *p)
     /* Check to see this index is within the limits of za space.    */
     indx = (long) *p->ndx;
     if (indx > zalast) {
-      return perferror(Str(X_1531,"outz index > isizea. No output"));
+      return perferror(Str("outz index > isizea. No output"));
     }
     else if (indx < 0) {
-      return perferror(Str(X_1532,"outz index < 0. No output."));
+      return perferror(Str("outz index < 0. No output."));
     }
     /* Now read from the array in za space and write to the output. */
     p->out_array     = csound->zastart_ + (indx * ksmps);/* outputs */
@@ -510,7 +510,7 @@ int vbap_zak_moving_init(ENVIRON *csound, VBAP_ZAK_MOVING  *p)
     ptr              = &(ls_table[3]);
     auxalloc(p->ls_set_am * sizeof (LS_SET), &p->aux);
     if (p->aux.auxp==NULL) {
-      return initerror(Str(X_668,"could not allocate memory"));
+      return initerror(Str("could not allocate memory"));
     }
     p->ls_sets = (LS_SET*) p->aux.auxp;
     ls_set_ptr = p->ls_sets;
@@ -529,7 +529,7 @@ int vbap_zak_moving_init(ENVIRON *csound, VBAP_ZAK_MOVING  *p)
     /* other initialization */
     p->ele_vel = FL(1.0);    /* functions specific to movement */
     if (fabs(*p->field_am) < (2+ (p->dim - 2)*2)) {
-      printf(Str(X_1703,"Have to have at least %d directions in vbapzmove\n"),2+ (p->dim - 2)*2);
+      printf(Str("Have to have at least %d directions in vbapzmove\n"),2+ (p->dim - 2)*2);
       longjmp(cenviron.exitjmp_,-1);
     }
     if (p->dim == 2)
@@ -537,7 +537,7 @@ int vbap_zak_moving_init(ENVIRON *csound, VBAP_ZAK_MOVING  *p)
     else if (p->dim == 3)
       p->point_change_interval = (int) (ekr * *p->dur / ((fabs(*p->field_am) / 2.0) - 1.0 ));
     else
-      die(Str(X_1696,"Wrong dimension\n"));
+      die(Str("Wrong dimension\n"));
     p->point_change_counter = 0;
     p->curr_fld = 0;
     p->next_fld = 1;

@@ -41,9 +41,8 @@ static int make_Modal4(ENVIRON *csound,
 
     if ((ftp = csound->ftfind_(csound,ifn)) != NULL)
       m->vibr = ftp;
-    else {
-      csound->perferror_(csound->getstring_(X_381, /* Expect sine wave */
-                                            "No table for Modal4 case"));
+    else {                                              /* Expect sine wave */
+      csound->perferror_(csound->LocalizeString("No table for Modal4 case"));
       return NOTOK;
     }
     make_Envelope(&m->envelope);
@@ -269,7 +268,7 @@ int marimbaset(ENVIRON *csound, MARIMBA *p)
       p->m4.wave = ftp;
     else {
       perferror
-        (Str(X_380,
+        (Str(
              "No table for Marimba strike")); /* Expect an impulslything */
       return NOTOK;
     }
@@ -316,11 +315,11 @@ int marimbaset(ENVIRON *csound, MARIMBA *p)
       if (itemp < triples) {
         p->multiStrike = 2;
         if (oparms_->msglevel & 02)
-          printf(Str(X_1247,"striking three times here!!!\n"));
+          printf(Str("striking three times here!!!\n"));
       }
       else if (itemp < doubles) {
         p->multiStrike = 1;
-        if (oparms_->msglevel & 02) printf(Str(X_1248,"striking twice here!!\n"));
+        if (oparms_->msglevel & 02) printf(Str("striking twice here!!\n"));
       }
       else p->multiStrike = 0;
     }
@@ -391,7 +390,7 @@ int vibraphnset(ENVIRON *csound, VIBRAPHN *p)
     if ((ftp = ftfind(csound, p->ifn)) != NULL)
       p->m4.wave = ftp;         /* Expect an impulslything */
     else {
-      return perferror(Str(X_385,
+      return perferror(Str(
                     "No table for Vibraphone strike"));
     }
 
@@ -481,7 +480,7 @@ int agogobelset(ENVIRON *csound, VIBRAPHN *p)
     /* Expect an impulslything */
     if ((ftp = ftfind(csound, p->ifn)) != NULL) p->m4.wave = ftp;
     else {
-      return perferror(Str(X_374,
+      return perferror(Str(
                     "No table for Agogobell strike"));
     }
 

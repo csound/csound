@@ -136,12 +136,14 @@ extern "C" {
 #include "sysdep.h"
 #include "cwindow.h"
 #include "opcode.h"
+#include "text.h"
 #include <stdarg.h>
     %}
 #else
 #include "sysdep.h"
 #include "cwindow.h"
 #include "opcode.h"
+#include "text.h"
 #include <stdarg.h>
 #endif
   /**
@@ -695,7 +697,7 @@ extern "C" {
    * Sets a function to be called by Csound for performing real-time audio recording.
    */
   PUBLIC void csoundSetRtrecordCallback(void *csound,
-					int (*rtrecord__)(char *inBuf, int nbytes));
+					int (*rtrecord__)(void *inBuf, int nbytes));
 
   /**
    * Sets a function to be called by Csound for closing real-time
@@ -775,6 +777,86 @@ extern "C" {
    * Returns whether or not the FLTK widget thread calls Fl::lock().
    */
   PUBLIC int csoundGetFLTKThreadLocking(void *csound);
+
+#ifndef RTCLOCK_S_DEFINED
+#define RTCLOCK_S_DEFINED
+
+typedef struct RTCLOCK_S {
+    unsigned long   starttime_real_high;
+    unsigned long   starttime_real_low;
+    double          real_time_to_seconds_scale;
+    unsigned long   starttime_CPU_high;
+    unsigned long   starttime_CPU_low;
+    double          CPU_time_to_seconds_scale;
+} RTCLOCK;
+
+#endif
+
+  /**
+   * initialise a timer structure
+   */
+  PUBLIC void timers_struct_init(RTCLOCK*);
+
+  /**
+   * Return the elapsed real time (in seconds) since the specified timer
+   * structure was initialised.
+   */
+  PUBLIC double timers_get_real_time(RTCLOCK*);
+
+  /**
+   * Return the elapsed CPU time (in seconds) since the specified timer
+   * structure was initialised.
+   */
+  PUBLIC double timers_get_CPU_time(RTCLOCK*);
+
+  /**
+   * Return a 32-bit unsigned integer to be used as seed from current time.
+   */
+  PUBLIC unsigned long timers_random_seed(void);
+
+  /**
+   * Set language to 'lang_code' (lang_code can be for example
+   * CSLANGUAGE_ENGLISH_UK or CSLANGUAGE_FRENCH or many others,
+   * see n_getstr.h for the list of languages). This affects all
+   * Csound instances running in the address space of the current
+   * process. The special language code CSLANGUAGE_DEFAULT can be
+   * used to disable translation of messages and free all memory
+   * allocated by a previous call to csoundSetLanguage().
+   * csoundSetLanguage() loads all files for the selected language
+   * from the directory specified by the CSSTRNGS environment
+   * variable.
+   */
+  PUBLIC void csoundSetLanguage(cslanguage_t lang_code);
+
+  /**
+   * Translate string 's' to the current language, and return
+   * pointer to the translated message. This may be the same as
+   * 's' if language was set to CSLANGUAGE_DEFAULT.
+   */
+  PUBLIC char *csoundLocalizeString(const char *s);
+
+  /**
+   * Allocate nbytes bytes of memory that can be accessed later by calling
+   * csoundQueryGlobalVariable() with the specified name; the space is
+   * cleared to zero.
+   * Returns zero on success, or a non-zero error code if the name is already
+   * in use or there is not enough memory.
+   */
+  PUBLIC int csoundCreateGlobalVariable(void *csound, const char *name,
+                                        size_t nbytes);
+
+  /**
+   * Get pointer to space allocated with the name "name".
+   * Returns NULL if the specified name is not defined.
+   */
+  PUBLIC void *csoundQueryGlobalVariable(void *csound, const char *name);
+
+  /**
+   * Free memory allocated for "name" and remove "name" from the database.
+   * Returns zero on success, or a non-zero error code if the name is
+   * not defined.
+   */
+  PUBLIC int csoundDestroyGlobalVariable(void *csound, const char *name);
 
 #ifdef __cplusplus
 };

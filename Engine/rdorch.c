@@ -311,13 +311,13 @@ void rdorchfile(void)           /* read entire orch file into txt space */
         typemask_tabl_out[pos] = *ptr++;
       }
     }
-    printf(Str(X_1098,"orch compiler:\n"));
+    printf(Str("orch compiler:\n"));
     if ((fp = fopen(orchname,"r")) == NULL)
-      dies(Str(X_645,"cannot open orch file %s"),orchname);
+      dies(Str("cannot open orch file %s"),orchname);
     if (fseek(fp, 0L, SEEK_END) != 0)
-      dies(Str(X_626,"cannot find end of file %s"),orchname);
+      dies(Str("cannot find end of file %s"),orchname);
     if ((ORCHSIZ = ftell(fp)) <= 0)
-      dies(Str(X_786,"ftell error on %s"),orchname);
+      dies(Str("ftell error on %s"),orchname);
     rewind(fp);
     inputs = (struct in_stack*)mmalloc(20*sizeof(struct in_stack));
     input_size = 20;
@@ -430,13 +430,13 @@ void rdorchfile(void)           /* read entire orch file into txt space */
         if (c=='d') {
           if ((c = getorchar())!='e' || (c = getorchar())!='f' ||
               (c = getorchar())!='i' || (c = getorchar())!='n' ||
-              (c = getorchar())!='e') lexerr(Str(X_390,"Not #define"));
+              (c = getorchar())!='e') lexerr(Str("Not #define"));
           while (isspace(c = getorchar()));
           do {
             mname[i++] = c;
           } while (isalpha(c = getorchar())|| (i!=0 && (isdigit(c)||c=='_')));
           mname[i] = '\0';
-          printf(Str(X_341,"Macro definition for %s\n"), mname);
+          printf(Str("Macro definition for %s\n"), mname);
           mm->name = mmalloc(i+1);
           strcpy(mm->name, mname);
           if (c == '(') {       /* arguments */
@@ -459,11 +459,11 @@ void rdorchfile(void)           /* read entire orch file into txt space */
               if (arg>=mm->margs) {
                 mm = (MACRO*)mrealloc(mm, sizeof(MACRO)+mm->margs*sizeof(char*));
                 mm->margs += MARGS;
-/*                    lexerr(Str(X_496,"Too many arguments to macro")); */
+/*                    lexerr(Str("Too many arguments to macro")); */
               }
               while (isspace(c)) c = getorchar();
             } while (c=='\'' || c=='#');
-            if (c!=')') printf(Str(X_984,"macro error\n"));
+            if (c!=')') printf(Str("macro error\n"));
           }
           mm->acnt = arg;
           i = 0;
@@ -496,7 +496,7 @@ void rdorchfile(void)           /* read entire orch file into txt space */
             if ((c = getorchar())!='c' || (c = getorchar())!='l' ||
                 (c = getorchar())!='u' || (c = getorchar())!='d' ||
                 (c = getorchar())!='e')
-              lexerr(Str(X_391,"Not #include"));
+              lexerr(Str("Not #include"));
             while (isspace(c = getorchar()));
             delim = c;
             i = 0;
@@ -511,14 +511,14 @@ void rdorchfile(void)           /* read entire orch file into txt space */
               input_size += 20;
               inputs = mrealloc(inputs, input_size*sizeof(struct in_stack));
               if (inputs == NULL) {
-                die(Str(X_1692, "No space for include files"));
+                die(Str("No space for include files"));
               }
             }
             str++;
             str->string = 0;
             str->file = fopen_path(mname, orchname, "INCDIR", "r");
             if (str->file==0) {
-              printf(Str(X_209,"Cannot open #include'd file %s\n"), mname);
+              printf(Str("Cannot open #include'd file %s\n"), mname);
               /* Should this stop things?? */
             str--; input_cnt--;
             }
@@ -554,13 +554,13 @@ void rdorchfile(void)           /* read entire orch file into txt space */
         else if (c=='u') {
           if ((c = getorchar())!='n' || (c = getorchar())!='d' ||
               (c = getorchar())!='e' || (c = getorchar())!='f')
-            lexerr(Str(X_392,"Not #undef"));
+            lexerr(Str("Not #undef"));
           while (isspace(c = getorchar()));
           do {
             mname[i++] = c;
           } while (isalpha(c = getorchar())|| (i!=0 && (isdigit(c)||c=='_')));
           mname[i] = '\0';
-          printf(Str(X_982,"macro %s undefined\n"), mname);
+          printf(Str("macro %s undefined\n"), mname);
           if (strcmp(mname, macros->name)==0) {
             MACRO *mm=macros->next;
             mfree(macros->name); mfree(macros->body);
@@ -573,7 +573,7 @@ void rdorchfile(void)           /* read entire orch file into txt space */
             MACRO *nn = mm->next;
             while (strcmp(mname, nn->name)!=0) {
               mm = nn; nn = nn->next;
-              if (nn==NULL) lexerr(Str(X_505,"Undefining undefined macro"));
+              if (nn==NULL) lexerr(Str("Undefining undefined macro"));
             }
             mfree(nn->name); mfree(nn->body);
             for (i=0; i<nn->acnt; i++)
@@ -583,7 +583,7 @@ void rdorchfile(void)           /* read entire orch file into txt space */
           while (c!='\n') c = getorchar(); /* ignore rest of line */
         }
         else {
-          err_printf(Str(X_533,"Warning: Unknown # option"));
+          err_printf(Str("Warning: Unknown # option"));
           ungetorchar(c);
           c = '#';
         }
@@ -605,7 +605,7 @@ void rdorchfile(void)           /* read entire orch file into txt space */
         }
         mm = mm_save;
         if (mm == NULL) {
-          err_printf(Str(X_1711,
+          err_printf(Str(
                          "Macro expansion symbol ($) without macro name\n"));
           longjmp(cenviron.exitjmp_,1);
         }
@@ -620,7 +620,7 @@ void rdorchfile(void)           /* read entire orch file into txt space */
         }
         if (c!='.') { ungetorchar(c); }
         if (mm==NULL) {
-          lexerr(Str(X_504,"Undefined macro"));
+          lexerr(Str("Undefined macro"));
           continue;
         }
 #ifdef MACDEBUG
@@ -630,7 +630,7 @@ void rdorchfile(void)           /* read entire orch file into txt space */
         /* Should bind arguments here */
         /* How do I recognise entities?? */
         if (mm->acnt) {
-          if ((c=getorchar())!='(') lexerr(Str(X_474,"Syntax error in macro call"));
+          if ((c=getorchar())!='(') lexerr(Str("Syntax error in macro call"));
           for (j=0; j<mm->acnt; j++) {
             char term = (j==mm->acnt-1 ? ')' : '\'');
             char trm1 = (j==mm->acnt-1 ? ')' : '#'); /* Compatability */
@@ -645,7 +645,7 @@ void rdorchfile(void)           /* read entire orch file into txt space */
             nn->body = (char*)mmalloc(100);
             while ((c = getorchar())!= term && c!=trm1) {
               if (i>98) {
-                printf(Str(X_347,"Missing argument terminator\n%.98s"), nn->body);
+                printf(Str("Missing argument terminator\n%.98s"), nn->body);
                 longjmp(cenviron.exitjmp_,1);
               }
               nn->body[i++] = c;
@@ -669,7 +669,7 @@ void rdorchfile(void)           /* read entire orch file into txt space */
           input_size += 20;
           inputs = mrealloc(inputs, input_size*sizeof(struct in_stack));
           if (inputs == NULL) {
-            die(Str(X_1692, "No space for include files"));
+            die(Str("No space for include files"));
           }
           }
         str++;
@@ -680,13 +680,13 @@ void rdorchfile(void)           /* read entire orch file into txt space */
       }
     }
     if (cp >= endspace) {
-      die(Str(X_766,"file too large for ortext space")); /* Ought to extend */
+      die(Str("file too large for ortext space")); /* Ought to extend */
     }
     if (*(cp-1) != '\n')                /* if no final NL,      */
       *cp++ = '\n';                     /*    add one           */
     else --lincnt;
     linadr[lincnt+1] = NULL;            /* terminate the adrs list */
-    printf(Str(X_34,"%d lines read\n"),lincnt);
+    printf(Str("%d lines read\n"),lincnt);
     fclose(fp);                         /* close the file       */
     curline = 0;                        /*   & reset to line 1  */
     while (macros) {                    /* Clear all macros */
@@ -717,7 +717,7 @@ static int splitline(void) /* split next orch line into atomic groups */
  nxtlin:
     if ((lp = linadr[++curline]) == NULL)       /* point at next line   */
       return(0);
-    if (O.odebug) printf(Str(X_321,"LINE %d:\n"),curline);
+    if (O.odebug) printf(Str("LINE %d:\n"),curline);
     linlabels = opgrpno = 0;
     grpcnt = prvif = prvelsif = logical = condassgn = parens = collecting = 0;
     cp = collectbuf;
@@ -726,7 +726,7 @@ static int splitline(void) /* split next orch line into atomic groups */
         int i;
         char *nn = mcalloc(lenmax+LENMAX);
         memcpy(nn, collectbuf, lenmax); /* Copy data */
-        if (nn==NULL) die(Str(X_966,"line LENMAX exceeded"));
+        if (nn==NULL) die(Str("line LENMAX exceeded"));
         cp = (cp - collectbuf) + nn;    /* Adjust pointer  */
         for (i=0; i<grpcnt; i++) group[i] += (nn-collectbuf);
         mfree(collectbuf);              /* Need to correct grp vector */
@@ -737,31 +737,31 @@ static int splitline(void) /* split next orch line into atomic groups */
       }
       if (c == '"') {                     /* quoted string:    */
         if (collecting) {
-          synterrp(lp-1,Str(X_1326,"unexpected quote character"));
+          synterrp(lp-1,Str("unexpected quote character"));
           continue;
         }
         if (grpcnt >= grpmax) {
           group = (char **)mrealloc(group,((grpmax+=GRPMAX)+1)*sizeof(char*));
           grpsav=(char **) mrealloc(grpsav,(grpmax+1)*sizeof(char*));
-          if (group==NULL || grpsav==NULL) die(Str(X_290,"GRPMAX overflow"));
+          if (group==NULL || grpsav==NULL) die(Str("GRPMAX overflow"));
         }
         grpp = group[grpcnt++] = cp;
         *cp++ = c;                      /*  cpy to nxt quote */
         while ((*cp++ = c = *lp++) != '"' && c != '\n');
         if (c == '\n')
-          synterrp(lp-1,Str(X_1348,"unmatched quotes"));
+          synterrp(lp-1,Str("unmatched quotes"));
         collecting = 1;                 /*   & resume chking */
         continue;
       }
       if (c == '{' && *lp == '{') {                     /* multiline quoted string:    */
         if (collecting) {
-          synterrp(lp-1,Str(X_1326,"unexpected quote character"));
+          synterrp(lp-1,Str("unexpected quote character"));
           continue;
         }
         if (grpcnt >= grpmax) {
           group = (char **)mrealloc(group,((grpmax+=GRPMAX)+1)*sizeof(char*));
           grpsav=(char **) mrealloc(grpsav,(grpmax+1)*sizeof(char*));
-          if (group==NULL || grpsav==NULL) die(Str(X_290,"GRPMAX overflow"));
+          if (group==NULL || grpsav==NULL) die(Str("GRPMAX overflow"));
         }
         grpp = group[grpcnt++] = cp;
         *cp++ = c;                      /*  cpy to nxt quote */
@@ -788,7 +788,7 @@ static int splitline(void) /* split next orch line into atomic groups */
           goto nxtl;
         }
         if (ll == NULL) {
-          synterrp(lp-2, Str(X_514,"Unmatched comment"));
+          synterrp(lp-2, Str("Unmatched comment"));
           lp = eol+1; break;
         }
         lp = ll+2;
@@ -806,12 +806,12 @@ static int splitline(void) /* split next orch line into atomic groups */
           else if (strcmp(grpp,"elseif") == 0) { /* of elseif opcod */
             static int repeatingElseifLine = 0;
             if (!iflabels) { /* check to see we had an 'if' before  */
-              synterr(Str(X_1719,
+              synterr(Str(
                           "invalid 'elseif' statement.  must have a corresponding 'if'\n"));
               goto nxtlin;
             }
             if (!iflabels->els[0]) { /* check to see we did not have an 'else' before */
-              synterr(Str(X_1716,"'elseif' statement cannot occur after an 'else'"));
+              synterr(Str("'elseif' statement cannot occur after an 'else'"));
               goto nxtlin;
             }
             /* 'elseif' requires 2 additional lines */
@@ -866,9 +866,9 @@ static int splitline(void) /* split next orch line into atomic groups */
       }
       if (c == ',') {                   /* comma:        */
         if (!collecting)
-          synterrp(lp-1,Str(X_997,"misplaced comma"));
+          synterrp(lp-1,Str("misplaced comma"));
         if (parens) {
-          synterrp(lp-2,Str(X_1315,"unbalanced parens"));
+          synterrp(lp-2,Str("unbalanced parens"));
           parens = 0;
         }
         *cp++ = '\0';                   /*  terminate strng */
@@ -923,7 +923,7 @@ static int splitline(void) /* split next orch line into atomic groups */
           group = (char**)mcalloc(((grpmax+=GRPMAX)+1)*sizeof(char*));
           grpsav =(char**)mcalloc((grpmax+1)*sizeof(char*));
           if (group==NULL || grpsav==NULL)
-            die(Str(X_290,"GRPMAX overflow"));
+            die(Str("GRPMAX overflow"));
         }
         grpp = group[grpcnt++] = cp;
       }
@@ -949,7 +949,7 @@ static int splitline(void) /* split next orch line into atomic groups */
       else if (c == ':' && condassgn)
         ;
       else {
-        sprintf(errmsg,Str(X_841,"illegal character %c"),c);
+        sprintf(errmsg,Str("illegal character %c"),c);
         synterrp(lp-1,errmsg);
       }
       *cp++ = c;                        /* then collect the char   */
@@ -962,13 +962,13 @@ static int splitline(void) /* split next orch line into atomic groups */
       if (strncmp(grpp,"else", 4) == 0) { /* 'else' */
         static int repeatingElseLine = 0;
         if (!iflabels) { /* check to see we had an 'if' before  */
-          synterr(Str(X_1717,
+          synterr(Str(
                       "invalid 'else' statement.  must have a corresponding 'if'"));
           goto nxtlin;
         }
         if (repeatingElseLine) {        /* add the elselabel */
           if (!iflabels->els[0]) { /* check to see we had not another 'else'   */
-            synterr(Str(X_1718,"duplicate 'else' statement"));
+            synterr(Str("duplicate 'else' statement"));
             goto nxtlin;
           }
           linlabels++;
@@ -993,7 +993,7 @@ static int splitline(void) /* split next orch line into atomic groups */
         /* replace 'endif' with the synthesized label */
         struct iflabel *prv;
         if (!iflabels) { /* check to see we had an 'if' before  */
-          synterr(Str(X_1719,"invalid 'endif' statement.  must have a corresponding 'if'"));
+          synterr(Str("invalid 'endif' statement.  must have a corresponding 'if'"));
           goto nxtlin;
         }
         if (iflabels->els[0]) {
@@ -1023,9 +1023,9 @@ static int splitline(void) /* split next orch line into atomic groups */
           opgrpno = grpcnt;
     }
     if (parens)                         /* check balanced parens   */
-      synterrp(lp-1,Str(X_1315,"unbalanced parens"));
+      synterrp(lp-1,Str("unbalanced parens"));
     if (grpcnt > linlabels && !opgrpno) {       /* if no full line opcod,  */
-      synterr(Str(X_1042,"no legal opcode"));   /*      complain &         */
+      synterr(Str("no legal opcode"));   /*      complain &         */
       goto nxtlin;                              /*      try another        */
     }
     linopnum = opnum;                   /* else save full line ops */
@@ -1113,7 +1113,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         int n;
         pol = &polish[--polcnt];        /*    grab top one      */
         if (isopcod(pol->opcod) == 0) { /* and check it out  */
-          synterr(Str(X_877,"illegal opcod from expr anal"));
+          synterr(Str("illegal opcod from expr anal"));
           goto tstnxt;
         }
         tp->opnum = opnum;              /* ok to send subop */
@@ -1143,10 +1143,10 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
           ) {
         if (c == 'p')   c = 'i';
         if (c == '?')   c = 'a';                /* tmp */
-        sprintf(str, "%s_%c", linopcod, c);
+        sprintf(str, "%s.%c", linopcod, c);
         if (!(isopcod(str))) {
-          printf(Str(X_270,"Failed to find %s\n"), str);
-          sprintf(errmsg,Str(X_1111,"output arg '%s' illegal type"),
+          printf(Str("Failed to find %s\n"), str);
+          sprintf(errmsg,Str("output arg '%s' illegal type"),
                   group[nxtest]);
           synterr(errmsg);                      /* report syntax error     */
           nxtest = 100;                         /* step way over this line */
@@ -1154,14 +1154,14 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         }
         linopnum = opnum;
         linopcod = opcod;
-        if (O.odebug) printf(Str(X_1004,"modified opcod: %s\n"),opcod);
+        if (O.odebug) printf(Str("modified opcod: %s\n"),opcod);
       }
       else if (opcodlst[linopnum].dsblksiz == 0xfffd) {
         if ((c = argtyp(group[opgrpno ] )) != 'a') c = 'k';
-        sprintf(str, "%s_%c", linopcod, c);
+        sprintf(str, "%s.%c", linopcod, c);
         if (!(isopcod(str))) {
-          printf(Str(X_270,"Failed to find %s\n"), str);
-          sprintf(errmsg,Str(X_1111,"output arg '%s' illegal type"),
+          printf(Str("Failed to find %s\n"), str);
+          sprintf(errmsg,Str("output arg '%s' illegal type"),
                   group[nxtest]);
           synterr(errmsg);                      /* report syntax error     */
           nxtest = 100;                         /* step way over this line */
@@ -1169,18 +1169,18 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         }
         linopnum = opnum;
         linopcod = opcod;
-        if (O.odebug) printf(Str(X_1004,"modified opcod: %s\n"),opcod);
+        if (O.odebug) printf(Str("modified opcod: %s\n"),opcod);
       }
       else if (opcodlst[linopnum].dsblksiz == 0xfffe) { /* Two tags for OSCIL's */
           /*    if (strcmp(linopcod,"oscil") == 0  */
           /*           || strcmp(linopcod,"oscili") == 0) { */
         if ((c = argtyp(group[opgrpno ] )) != 'a') c = 'k';
         if ((d = argtyp(group[opgrpno+1])) != 'a') d = 'k';
-        sprintf(str,"%s_%c%c",linopcod,c,d);
+        sprintf(str,"%s.%c%c",linopcod,c,d);
         isopcod(str); /*  opcode with suffix */
         linopnum = opnum;
         linopcod = opcod;
-        if (O.odebug) printf(Str(X_1004,"modified opcod: %s\n"),opcod);
+        if (O.odebug) printf(Str("modified opcod: %s\n"),opcod);
         c = argtyp(group[nxtest]);            /* reset outype params */
       }                                 /* need we reset outype again here ? */
       else if (opcodlst[linopnum].dsblksiz == 0xfffc) { /* For divz types */
@@ -1191,7 +1191,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
           if (c != 'a') c = 'k';
           if (d != 'a') d = 'k';
         }
-        sprintf(str,"divz_%c%c",c,d);
+        sprintf(str,"divz.%c%c",c,d);
         isopcod(str); /*  opcode with suffix */
         linopnum = opnum;
         linopcod = opcod;
@@ -1201,7 +1201,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
     tp->opcod = strsav(linopcod);               /*   full line opcode   */
     /* IV - Oct 24 2002: check for invalid use of setksmps */
     if (!opcodblk && !strcmp(linopcod, "setksmps"))
-      synterr(Str(X_1749,"setksmps is allowed only in user opcodes"));
+      synterr(Str("setksmps is allowed only in user opcodes"));
     if (strncmp(linopcod,"out",3) == 0 && /* but take case of MIDI ops */
         (linopcod[3] == '\0' || linopcod[3] == 's' ||
          linopcod[3] == 'q'  || linopcod[3] == 'h' ||
@@ -1223,7 +1223,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         else if (tran_nchnls == 8)  isopcod("outo");
         else if (tran_nchnls == 16) isopcod("outx");
         else if (tran_nchnls == 32) isopcod("out32");
-        err_printf(Str(X_56,"%s inconsistent with global nchnls (%d); replaced with %s\n"),
+        err_printf(Str("%s inconsistent with global nchnls (%d); replaced with %s\n"),
                    linopcod,tran_nchnls,opcod);
         tp->opnum = linopnum = opnum;
         tp->opcod = strsav(linopcod = opcod);
@@ -1250,9 +1250,9 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
     tp->xincod = 0;
     if (tp->opnum == OPCODE) {  /* IV - Sep 8 2002: added OPCODE and ENDOP */
       if (opcodblk)
-        synterr(Str(X_1781,"opcode blks cannot be nested (missing 'endop'?)"));
+        synterr(Str("opcode blks cannot be nested (missing 'endop'?)"));
       else if (instrblk)
-        synterr(Str(X_1782,"opcode not allowed in instr block"));
+        synterr(Str("opcode not allowed in instr block"));
       else instrblk = opcodblk = 1;
       resetouts();                              /* reset #out counts */
       lblclear();                               /* restart labelist  */
@@ -1260,16 +1260,16 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
     else if (tp->opnum == ENDOP) {      /* IV - Sep 8 2002:     ENDOP:  */
       lblchk();                         /* chk missed labels */
       if (!instrblk)
-        synterr(Str(X_1783,"unmatched endop"));
+        synterr(Str("unmatched endop"));
       else if (!opcodblk)
-        synterr(Str(X_1784,"endop not allowed in instr block"));
+        synterr(Str("endop not allowed in instr block"));
       else instrblk = opcodblk = 0;
     }
     else if (tp->opnum == INSTR) {      /* IV - Sep 8 2002: for opcod INSTR  */
       if (opcodblk)     /* IV - Sep 8 2002 */
-        synterr(Str(X_1785,"instr not allowed in opcode block"));
+        synterr(Str("instr not allowed in opcode block"));
       else if (instrblk)
-        synterr(Str(X_936,"instr blocks cannot be nested (missing 'endin'?)"));
+        synterr(Str("instr blocks cannot be nested (missing 'endin'?)"));
       else instrblk = 1;
       resetouts();                              /* reset #out counts */
       lblclear();                               /* restart labelist  */
@@ -1277,9 +1277,9 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
     else if (tp->opnum == ENDIN) {                      /* ENDIN:       */
       lblchk();                         /* chk missed labels */
       if (opcodblk)
-        synterr(Str(X_1786,"endin not allowed in opcode blk"));     /* IV - Sep 8 2002 */
+        synterr(Str("endin not allowed in opcode blk"));     /* IV - Sep 8 2002 */
       else if (!instrblk)
-        synterr(Str(X_1347,"unmatched endin"));
+        synterr(Str("unmatched endin"));
       else instrblk = 0;
     }
     else {                                      /* for all other opcodes:  */
@@ -1289,13 +1289,13 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
       char      xtypes[OPCODENUMOUTS + 1];      /* IV - Oct 24 2002 */
 
       if (!instrblk)
-        synterr(Str(X_998,"misplaced opcode"));
+        synterr(Str("misplaced opcode"));
       /* IV - Oct 24 2002: moved argument parsing for xout here */
       n = incnt;
       nreqd = -1;
       if (!strcmp(ep->opname, "xout")) {
         if (!opcodblk)
-          synterr(Str(X_1735,"xout is allowed only in user opcodes"));
+          synterr(Str("xout is allowed only in user opcodes"));
         else {
           /* IV - Oct 24 2002: opcodeInfo always points to the most recently */
           /* defined user opcode (or named instrument) structure; in this */
@@ -1322,11 +1322,11 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
       if (n > nreqd) {                  /* IV - Oct 24 2002: end of new code */
         if ((treqd = types[nreqd-1]) == 'n') {/* indef args: */
           if (!(incnt & 01))          /* require odd */
-            synterr(Str(X_1003,"missing or extra arg"));
+            synterr(Str("missing or extra arg"));
         }       /* IV - Sep 1 2002: added 'M' */
         else if (treqd != 'm' && treqd != 'z' &&
                  treqd != 'y' && treqd != 'Z' && treqd != 'M')/* else any no */
-          synterr(Str(X_1287,"too many input args"));
+          synterr(Str("too many input args"));
       }
       else if (incnt < nreqd) {         /*  or set defaults: */
         do {
@@ -1348,7 +1348,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
           case 'm': nreqd--;
             break;
           default:  synterr(
-                            Str(X_942,"insufficient required arguments"));
+                            Str("insufficient required arguments"));
             goto chkin;
           }
         } while (incnt < nreqd);
@@ -1390,7 +1390,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         }
         else treqd = types[n];          /*       or given)   */
         if (treqd == 'l') {             /* if arg takes lbl  */
-          if (O.odebug) printf(Str(X_1296,"treqd = l\n"));
+          if (O.odebug) printf(Str("treqd = l\n"));
           lblrequest(s);                /*      req a search */
           continue;                     /*      chk it later */
         }
@@ -1399,7 +1399,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         tfound_m = typemask_tabl[(unsigned char) tfound];
         if (!(tfound_m & (ARGTYP_c | ARGTYP_p | ARGTYP_S)) && !lgprevdef) {
           sprintf(errmsg,
-                  Str(X_914,"input arg '%s' used before defined"),s);
+                  Str("input arg '%s' used before defined"),s);
           synterr(errmsg);
         }
         if (O.odebug) printf("treqd %c, tfound %c\n",treqd,tfound);
@@ -1440,7 +1440,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
           }
       }
       }
-      if (O.odebug) printf(Str(X_1387,"xincod = %d\n"),tp->xincod);
+      if (O.odebug) printf(Str("xincod = %d\n"),tp->xincod);
       /* IV - Sep 1 2002: added 'X' type, and xoutcod */
       tp->xoutcod = 0;
       /* IV - Oct 24 2002: moved argument parsing for xin here */
@@ -1448,7 +1448,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
       nreqd = -1;
       if (!strcmp(ep->opname, "xin")) {
         if (!opcodblk)
-          synterr(Str(X_1731,"xin is allowed only in user opcodes"));
+          synterr(Str("xin is allowed only in user opcodes"));
         else {
           /* IV - Oct 24 2002: opcodeInfo always points to the most recently */
           /* defined user opcode (or named instrument) structure; in this */
@@ -1475,7 +1475,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
       if ((n != nreqd)                  /* IV - Oct 24 2002: end of new code */
           && ((*types != (char)'m' && *types != (char)'z' && *types != 'X')
               || !n || n > MAXCHNLS))
-        synterr(Str(X_873,"illegal no of output args"));
+        synterr(Str("illegal no of output args"));
       if (n > nreqd) n = nreqd; /* IV - Oct 24 2002: need this check */
       while (n--) {                                     /* outargs:  */
         long    tfound_m;       /* IV - Oct 31 2002 */
@@ -1487,17 +1487,17 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         /* IV - Sep 1 2002: xoutcod is the same as xincod for input, */
         /* but the lowest two bits are not swapped */
         if (tfound == 'a' && n < 15) tp->xoutcod |= (1 << n);
-        if (O.odebug) printf(Str(X_1295,"treqd %c, tfound %c\n"),treqd,tfound);
+        if (O.odebug) printf(Str("treqd %c, tfound %c\n"),treqd,tfound);
         if (tfound_m & (ARGTYP_d | ARGTYP_w))
           if (lgprevdef) {
             sprintf(errmsg,
-                    Str(X_1112,"output name previously used, type '%c' must be uniquely defined"),
+                    Str("output name previously used, type '%c' must be uniquely defined"),
                     tfound);
             synterr(errmsg);
           }
         /* IV - Oct 31 2002: simplified code */
         if (!(tfound_m & typemask_tabl_out[(unsigned char) treqd])) {
-        sprintf(errmsg,Str(X_1111,"output arg '%s' illegal type"),s);
+        sprintf(errmsg,Str("output arg '%s' illegal type"),s);
         synterr(errmsg);
       }
       }
@@ -1541,7 +1541,7 @@ static void intyperr(int n, char tfound, char expect)
         }
         sprintf(
                 errmsg,
-                Str(X_913,
+                Str(
                     "input arg '%s' of type %s not allowed when expecting %c"),
                 s,t,expect);
         synterr(errmsg);
@@ -1566,7 +1566,7 @@ int getopnum(char *s)           /* tst a string against opcodlst  */
 
     if ((n = find_opcode(s))) return n;         /* IV - Oct 31 2002 */
     printf("opcode=%s\n", s);
-    die(Str(X_1341,"unknown opcode"));
+    die(Str("unknown opcode"));
     return(0);  /* compiler only */
 }
 
@@ -1618,7 +1618,7 @@ static void lblrequest(char *s)
     if (++lblcnt >= lblmax) {
       LBLREQ *tmp = mrealloc(lblreq, (lblmax += LBLMAX)*sizeof(LBLREQ));
       if (tmp==NULL)
-        die(Str(X_962,"label list is full"));
+        die(Str("label list is full"));
       lblreq = tmp;
     }
     lblreq[req].reqline = curline;
@@ -1632,13 +1632,13 @@ static void lblfound(char *s)
     for (req=0; req<lblcnt; req++ )
       if (strcmp(lblreq[req].label,s) == 0) {
         if (lblreq[req].reqline == 0)
-          synterr(Str(X_709,"duplicate label"));
+          synterr(Str("duplicate label"));
         goto noprob;
       }
     if (++lblcnt >= lblmax) {
       LBLREQ *tmp = mrealloc(lblreq, (lblmax += LBLMAX)*sizeof(LBLREQ));
       if (tmp==NULL)
-        die(Str(X_962,"label list is full"));
+        die(Str("label list is full"));
       lblreq = tmp;
     }
     lblreq[req].label = s;
@@ -1654,7 +1654,7 @@ static void lblchk(void)
     for (req=0; req<lblcnt; req++ )
       if ((n = lblreq[req].reqline)) {
         char    *s;
-        printf(Str(X_724,"error line %d.  unknown label:\n"),n);
+        printf(Str("error line %d.  unknown label:\n"),n);
         s = linadr[n];
         do {
           printf("%c", *s);
@@ -1668,9 +1668,9 @@ void synterr(char *s)
     int c;
     char        *cp;
 
-    printf(Str(X_745,"error:  %s"),s);
+    printf(Str("error:  %s"),s);
     if ((cp = linadr[curline]) != NULL) {
-      printf(Str(X_83,", line %d:\n"),curline);
+      printf(Str(", line %d:\n"),curline);
       do {
         printf("%c", (c = *cp++));
       } while (c != '\n');
@@ -1698,15 +1698,15 @@ void synterrp(char *errp, char *s)
 static void lexerr(char *s)
 {
     struct in_stack *curr = str;
-    printf(Str(X_745,"error:  %s"),s);
+    printf(Str("error:  %s"),s);
     while (curr!=inputs) {
       if (curr->string) {
         MACRO *mm = macros;
         while (mm != curr->mac) mm = mm->next;
-        printf(Str(X_625,"called from line %d of macro %s\n"), curr->line, mm->name);
+        printf(Str("called from line %d of macro %s\n"), curr->line, mm->name);
       }
       else {
-        printf(Str(X_896,"in line %f of file input %s\n"), curr->line, curr->body);
+        printf(Str("in line %f of file input %s\n"), curr->line, curr->body);
       }
       curr--;
     }

@@ -81,7 +81,7 @@ int pvset(ENVIRON *csound, PVOC *p)
       }
       else
         if ((mfp = ldmemfile(pvfilnam)) == NULL) {
-          sprintf(errmsg,Str(X_411,"PVOC cannot load %s"), pvfilnam);
+          sprintf(errmsg,Str("PVOC cannot load %s"), pvfilnam);
           goto pverr;
       }
     }
@@ -96,12 +96,12 @@ int pvset(ENVIRON *csound, PVOC *p)
       if (pvh->magic != PVMAGIC) {
         /* try byte-reversal to read Mac on PC and vv*/
         if (!byterev_pvoc(mfp)) {
-          sprintf(errmsg,Str(X_60,"%s not a PVOC file (magic %ld)"),
+          sprintf(errmsg,Str("%s not a PVOC file (magic %ld)"),
                   pvfilnam, pvh->magic );
           goto pverr;
         }
         else
-          printf(Str(X_1674,"applied byte-reversal\n"));
+          printf(Str("applied byte-reversal\n"));
       }
       chans    = pvh->channels;
       p->frSiz = pvh->frameSize;
@@ -134,26 +134,26 @@ int pvset(ENVIRON *csound, PVOC *p)
     if (old_format) {
       if ((p->asr = pvh->samplingRate) != esr &&
           (O.msglevel & WARNMSG)) { /* & chk the data */
-        printf(Str(X_63,"WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
+        printf(Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
                 pvfilnam, p->asr, esr);
       }
       if (pvh->dataFormat != PVMYFLT) {
-        sprintf(errmsg,Str(X_1359,"unsupported PVOC data format %ld in %s"),
+        sprintf(errmsg,Str("unsupported PVOC data format %ld in %s"),
                 pvh->dataFormat, pvfilnam);
         goto pverr;
       }
       if (p->frSiz > PVFRAMSIZE) {
-        sprintf(errmsg,Str(X_413,"PVOC frame %d bigger than %ld in %s"),
+        sprintf(errmsg,Str("PVOC frame %d bigger than %ld in %s"),
                 p->frSiz, PVFRAMSIZE, pvfilnam);
         goto pverr;
       }
       if (p->frSiz < 128) {
-        sprintf(errmsg,Str(X_414,"PVOC frame %ld seems too small in %s"),
+        sprintf(errmsg,Str("PVOC frame %ld seems too small in %s"),
                 p->frSiz, pvfilnam);
         goto pverr;
       }
       if (chans != 1) {
-        sprintf(errmsg,Str(X_32,"%d chans (not 1) in PVOC file %s"),
+        sprintf(errmsg,Str("%d chans (not 1) in PVOC file %s"),
                 chans, pvfilnam);
         goto pverr;
       }
@@ -178,7 +178,7 @@ int pvset(ENVIRON *csound, PVOC *p)
     }
     if ((OPWLEN/2 + 1)>PVWINLEN ) {
       sprintf(errmsg,
-              Str(X_960,"ksmps of %d needs wdw of %d, max is %d for pv %s\n"),
+              Str("ksmps of %d needs wdw of %d, max is %d for pv %s\n"),
               ksmps, (OPWLEN/2 + 1), PVWINLEN, pvfilnam);
       goto pverr;
     }
@@ -226,28 +226,28 @@ int pvoc(ENVIRON *csound, PVOC *p)
     MYFLT  pex;
 
     if (p->auxch.auxp==NULL) {
-      return perferror(Str(X_1147,"pvoc: not initialised"));
+      return perferror(Str("pvoc: not initialised"));
     }
     pex = *p->kfmod;
     outlen = (int)(((MYFLT)size)/pex);
     /* use outlen to check window/krate/transpose combinations */
     if (outlen>PVFFTSIZE) {  /* Maximum transposition down is one octave */
                              /* ..so we won't run into buf2Size problems */
-      return perferror(Str(X_418,"PVOC transpose too low"));
+      return perferror(Str("PVOC transpose too low"));
     }
     if (outlen<2*ksmps) {    /* minimum post-squeeze windowlength */
-      return perferror(Str(X_417,"PVOC transpose too high"));
+      return perferror(Str("PVOC transpose too high"));
     }
     buf2Size = OPWLEN;       /* always window to same length after DS */
     if ((frIndx = *p->ktimpnt * p->frPrtim) < 0) {
-      return perferror(Str(X_416,"PVOC timpnt < 0"));
+      return perferror(Str("PVOC timpnt < 0"));
     }
     if (frIndx > p->maxFr) {  /* not past last one */
       frIndx = (MYFLT)p->maxFr;
       if (p->prFlg) {
         p->prFlg = 0;   /* false */
         if (O.msglevel & WARNMSG)
-          printf(Str(X_415,"WARNING: PVOC ktimpnt truncated to last frame\n"));
+          printf(Str("WARNING: PVOC ktimpnt truncated to last frame\n"));
       }
     }
     FetchIn(p->frPtr,buf,size,frIndx);
@@ -314,20 +314,20 @@ int pvx_loadfile(const char *fname,PVOC *p,MEMFIL **mfp)
     framelen = 2 * pvdata.nAnalysisBins;
     if (pvx_fftsize > PVFRAMSIZE) {
       sprintf(errmsg,
-              Str(X_1675,"pvoc-ex file %s: FFT size %d too large for Csound\n"),
+              Str("pvoc-ex file %s: FFT size %d too large for Csound\n"),
               fname,pvx_fftsize);
       return NOTOK;
     }
 
     /* have to reject m/c files for now, until opcodes upgraded*/
     if (fmt.nChannels > 1) {
-      sprintf(errmsg,Str(X_1676,"pvoc-ex file %s is not mono\n"),fname);
+      sprintf(errmsg,Str("pvoc-ex file %s is not mono\n"),fname);
       return NOTOK;
     }
 
     /* also, accept only 32bit floats for now */
     if (pvdata.wWordFormat != PVOC_IEEE_FLOAT) {
-      sprintf(errmsg,Str(X_1677,"pvoc-ex file %s is not 32bit floats\n"),fname);
+      sprintf(errmsg,Str("pvoc-ex file %s is not 32bit floats\n"),fname);
       return NOTOK;
     }
 
@@ -335,14 +335,14 @@ int pvx_loadfile(const char *fname,PVOC *p,MEMFIL **mfp)
     /* NB Csound knows no other: frameFormat is not read anywhere! */
     if (pvdata.wAnalFormat != PVOC_AMP_FREQ) {
       sprintf(errmsg,
-              Str(X_1678,"pvoc-ex file %s not in AMP_FREQ format\n"),fname);
+              Str("pvoc-ex file %s not in AMP_FREQ format\n"),fname);
       return NOTOK;
     }
     /* ignore the window spec until we can use it! */
     totalframes = pvoc_framecount(pvx_id);
 
     if (totalframes == 0) {
-      sprintf(errmsg,Str(X_1679,"pvoc-ex file %s is empty!\n"),fname);
+      sprintf(errmsg,Str("pvoc-ex file %s is empty!\n"),fname);
       return NOTOK;
     }
     if (!find_memfile(fname,&mfil)) {
@@ -368,14 +368,14 @@ int pvx_loadfile(const char *fname,PVOC *p,MEMFIL **mfp)
       }
       /* so far, not been able to provoke entry to these blocks! */
       if (rc <0) {
-        sprintf(errmsg,Str(X_1680,"error reading pvoc-ex file %s\n"),fname);
+        sprintf(errmsg,Str("error reading pvoc-ex file %s\n"),fname);
         mfree(memblock);
         return NOTOK;
       }
       if (i < totalframes) {
         /* if rc==0, there may be an error in the file header */
         sprintf(errmsg,
-                Str(X_1681,"error reading pvoc-ex file %s after %d frames\n"),
+                Str("error reading pvoc-ex file %s after %d frames\n"),
                 fname,i);
         /* be strict. */
         mfree(memblock);
@@ -387,7 +387,7 @@ int pvx_loadfile(const char *fname,PVOC *p,MEMFIL **mfp)
     pvoc_closefile(pvx_id);
     if ((p->asr = (MYFLT) fmt.nSamplesPerSec) != esr &&
         (O.msglevel & WARNMSG)) { /* & chk the data */
-      printf(Str(X_63,"WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
+      printf(Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
               fname, p->asr, esr);
     }
     p->frSiz    = pvx_fftsize;
@@ -412,7 +412,7 @@ int pvx_loadfile(const char *fname,PVOC *p,MEMFIL **mfp)
       mfil->endp = mfil->beginp + mem_wanted;
       mfil->length = mem_wanted;
       /*from memfiles.c */
-      printf(Str(X_764,"file %s (%ld bytes) loaded into memory\n"),
+      printf(Str("file %s (%ld bytes) loaded into memory\n"),
              fname,mem_wanted);
       add_memfil(mfil);
     }
@@ -448,7 +448,7 @@ static int byterev_pvoc(MEMFIL *mfil)
     extra = sizeof(PVSTRUCT) - pvh->headBsize;
     if (extra > 0) {
       if (extra%sizeof(long) != 0) {
-        printf(Str(X_1682,"pvoc file has bad data alignment\n"));
+        printf(Str("pvoc file has bad data alignment\n"));
         return NOTOK;
       }
       lptr += (extra / sizeof(long));

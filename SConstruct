@@ -162,6 +162,7 @@ if getPlatform() == 'linux':
     commonEnvironment.Append(CCFLAGS = "-DLINUX")
     commonEnvironment.Append(CPPPATH = '/usr/local/include')
     commonEnvironment.Append(CPPPATH = '/usr/include')
+    commonEnvironment.Append(CPPPATH = '/usr/X11R6/include')
     commonEnvironment.Append(CCFLAGS = "-Wall")
     commonEnvironment.Append(CCFLAGS = "-DPIPES")
 elif getPlatform() == 'darwin':

@@ -74,7 +74,7 @@ int cvanal(int argc, char **argv)
     dbfs_init(DFLT_DBFS);
 
     if (!(--argc)) {
-        quit(Str(X_939,"insufficient arguments"));
+        quit(Str("insufficient arguments"));
         return 0;
     }
     do {
@@ -82,7 +82,7 @@ int cvanal(int argc, char **argv)
       if (*s++ == '-')
         switch (*s++) {
         case 's':
-          FIND(Str(X_1057,"no sampling rate"))
+          FIND(Str("no sampling rate"))
 #ifdef USE_DOUBLE
           sscanf(s,"%lf",&sr);
 #else
@@ -90,13 +90,13 @@ int cvanal(int argc, char **argv)
 #endif
           break;
         case 'c':
-          FIND(Str(X_1026,"no channel"))
+          FIND(Str("no channel"))
             sscanf(s,"%d",&channel);
           if ((channel < 1) || (channel > 4))
-            quit(Str(X_656,"channel must be in the range 1 to 4"));
+            quit(Str("channel must be in the range 1 to 4"));
           break;
         case 'b':
-          FIND(Str(X_1025,"no begin time"))
+          FIND(Str("no begin time"))
 #ifdef USE_DOUBLE
           sscanf(s,"%lf",&beg_time);
 #else
@@ -104,24 +104,24 @@ int cvanal(int argc, char **argv)
 #endif
           break;
         case 'd':
-          FIND(Str(X_1030,"no duration time"))
+          FIND(Str("no duration time"))
 #ifdef USE_DOUBLE
           sscanf(s,"%lf",&input_dur);
 #else
           sscanf(s,"%f",&input_dur);
 #endif
           break;
-        default:   quit(Str(X_1352,"unrecognised switch option"));
+        default:   quit(Str("unrecognised switch option"));
         }
       else break;
     } while (--argc);
 
-    if (argc !=  2) quit(Str(X_876,"illegal number of filenames"));
+    if (argc !=  2) quit(Str("illegal number of filenames"));
     infilnam = *argv++;
     outfilnam = *argv;
 
     if ((infd = SAsndgetset(infilnam,&p,&beg_time,&input_dur,&sr,channel))<0) {
-      sprintf(errmsg,Str(X_735,"error while opening %s"), retfilnam);
+      sprintf(errmsg,Str("error while opening %s"), retfilnam);
       quit(errmsg);
     }
     sr = (MYFLT)p->sr;
@@ -137,15 +137,15 @@ int cvanal(int argc, char **argv)
     /* alloc & fill CV hdrblk */
     if ((err = CVAlloc(&cvh, Estdatasiz, CVMYFLT, sr, p->nchanls,channel,
                        Hlen,CVRECT,4))) {
-      err_printf( Str(X_680,"cvanal: Error allocating header\n"));
+      err_printf( Str("cvanal: Error allocating header\n"));
       exit(1);
     }
 
     if ((ofd = openout(outfilnam, 1)) < 0)     /* open the output CV file */
-      quit(Str(X_632,"cannot create output file"));
+      quit(Str("cannot create output file"));
                                                /* & wrt hdr into the file */
     if ((nb = write(ofd,(char *)cvh,(int)cvh->headBsize)) < cvh->headBsize)
-      quit(Str(X_630,"cannot write header"));
+      quit(Str("cannot write header"));
 
     basis = AssignBasis(NULL,Hlenpadded);      /* set up FFT tables */
     takeFFT(p, cvh, Hlenpadded,infd, ofd);
@@ -160,8 +160,8 @@ int cvanal(int argc, char **argv)
 
 static void quit(char *msg)
 {
-    err_printf(Str(X_679,"cvanal error: %s\n"), msg);
-    err_printf(Str(X_516,"Usage: cvanal [-d<duration>] "
+    err_printf(Str("cvanal error: %s\n"), msg);
+    err_printf(Str("Usage: cvanal [-d<duration>] "
                          "[-c<channel>] [-b<begin time>] <input soundfile>"
                          " <output impulse response FFT file> \n"));
     exit(1);
@@ -184,7 +184,7 @@ static void takeFFT(
     inbuf   = fp1 = (MYFLT *)mmalloc(Hlen * nchanls * sizeof(MYFLT));
     if ( (read_in = getsndin(infd, inbuf, (long)(Hlen*nchanls),p)) <
          (Hlen*nchanls) )
-      die(Str(X_965,"less sound than expected!"));
+      die(Str("less sound than expected!"));
 
     /* normalize the samples read in. (Only if short data. Should really do
        other formats too, with the appropriate scale factor) */

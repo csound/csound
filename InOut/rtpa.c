@@ -108,7 +108,7 @@ void recopen_(int nchnls_, int dsize_, float sr_, int scale_)
 #endif
       if (rtin_dev == 1024) {
         rtin_dev = paStreamParameters_.device = Pa_GetDefaultInputDevice();
-        err_printf(Str(X_30,
+        err_printf(Str(
                        "No PortAudio input device given; "
                        "defaulting to device %d\n"), rtin_dev);
         paStreamParameters_.suggestedLatency =
@@ -134,13 +134,13 @@ void recopen_(int nchnls_, int dsize_, float sr_, int scale_)
     audrecv = rtrecord_;
     inbufrem = O.inbufsamps;
     isfopen = 1;
-    err_printf(Str(X_39,"Opened PortAudio input device %i.\n"),
+    err_printf(Str("Opened PortAudio input device %i.\n"),
                paStreamParameters_.device);
     return;
  error:
-    err_printf(Str(X_41,"PortAudio error %d: %s.\n"),
+    err_printf(Str("PortAudio error %d: %s.\n"),
                paError, Pa_GetErrorText(paError));
-    die(Str(X_1307,"Unable to open PortAudio input device."));
+    die(Str("Unable to open PortAudio input device."));
 }
 
 void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
@@ -172,7 +172,7 @@ void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
         rtout_dev = paStreamParameters_.device = Pa_GetDefaultOutputDevice();
         paStreamParameters_.suggestedLatency =
           Pa_GetDeviceInfo(rtout_dev)->defaultLowOutputLatency;
-        err_printf(Str(X_30,
+        err_printf(Str(
                        "No PortAudio output device given; "
                        "defaulting to device %d.\n"),
                    paStreamParameters_.device);
@@ -199,13 +199,13 @@ void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
     nzerotran = zerosf;       /* quick zeros */
     outbufrem = O.outbufsamps;
     osfopen = 1;
-    err_printf(Str(X_39,"Opened PortAudio output device %i.\n"),
+    err_printf(Str("Opened PortAudio output device %i.\n"),
                paStreamParameters_.device);
     return;
  error:
-    err_printf(Str(X_41,"PortAudio error %d: %s.\n"),
+    err_printf(Str("PortAudio error %d: %s.\n"),
                paError, Pa_GetErrorText(paError));
-    die(Str(X_1308,"Unable to open PortAudio output device."));
+    die(Str("Unable to open PortAudio output device."));
 }
 
 int rtrecord_(void *inbuf_, int bytes_) /* get samples from ADC */

@@ -206,7 +206,7 @@ int rsnset(ENVIRON *csound, RESON *p)
     int scale;
     p->scale = scale = (int)*p->iscl;
     if (scale && scale != 1 && scale != 2) {
-      sprintf(errmsg,Str(X_880,"illegal reson iscl value, %f"),*p->iscl);
+      sprintf(errmsg,Str("illegal reson iscl value, %f"),*p->iscl);
       return initerror(errmsg);
     }
     p->prvcf = p->prvbw = -FL(100.0);
@@ -267,7 +267,7 @@ int rsnsetx(ENVIRON *csound, RESONX *p) /* Gabriel Maldonado, modifies for arb o
       auxalloc((long)(p->loop*2*sizeof(MYFLT)), &p->aux);
     p->yt1 = (MYFLT*)p->aux.auxp; p->yt2 = (MYFLT*)p->aux.auxp + p->loop;
     if (scale && scale != 1 && scale != 2) {
-      sprintf(errmsg,Str(X_880,"illegal reson iscl value, %f"),*p->iscl);
+      sprintf(errmsg,Str("illegal reson iscl value, %f"),*p->iscl);
       return initerror(errmsg);
     }
     p->prvcf = p->prvbw = -FL(100.0);
@@ -423,7 +423,7 @@ int lprdset(ENVIRON *csound, LPREAD *p)
       goto lpend;                             /* rtn if file prv known */
     /* Load analysis in memory file */
     if ((mfp = ldmemfile(lpfilname)) == NULL) {     /* else read file  */
-      sprintf(errmsg,Str(X_322,"LPREAD cannot load %s"),lpfilname);
+      sprintf(errmsg,Str("LPREAD cannot load %s"),lpfilname);
       goto lperr;
     }
     /* Store memory file location in opcode */
@@ -435,19 +435,19 @@ int lprdset(ENVIRON *csound, LPREAD *p)
     if ((magic==LP_MAGIC)||(magic==LP_MAGIC2)) {
       p->storePoles = (magic==LP_MAGIC2);
 
-      printf(Str(X_520,"Using %s type of file.\n"),
-             p->storePoles?Str(X_1131,"pole"):Str(X_767,"filter coefficient"));
+      printf(Str("Using %s type of file.\n"),
+             p->storePoles?Str("pole"):Str("filter coefficient"));
       /* Store header length */
       p->headlongs = lph->headersize/sizeof(long);
       /* Check if input values where available */
       if (*p->inpoles || *p->ifrmrate) {
         if (O.msglevel & WARNMSG)
-          printf(Str(X_973,"WARNING: lpheader overriding inputs\n"));
+          printf(Str("WARNING: lpheader overriding inputs\n"));
       }
       /* Check orc/analysis sample rate compatibility */
       if (lph->srate != esr) {
         if (O.msglevel & WARNMSG)
-          printf(Str(X_971,"WARNING: lpfile srate != orch sr\n"));
+          printf(Str("WARNING: lpfile srate != orch sr\n"));
       }
       p->npoles = lph->npoles;                /* note npoles, etc. */
       /* Store header info in opcode */
@@ -455,7 +455,7 @@ int lprdset(ENVIRON *csound, LPREAD *p)
       p->framrat16 = lph->framrate * FL(65536.0);/* scaled framno cvt */
     }
     else if (BYTREVL(lph->lpmagic) == LP_MAGIC) {   /* Header reversed:  */
-      sprintf(errmsg,Str(X_765,"file %s bytes are in wrong order"),lpfilname);
+      sprintf(errmsg,Str("file %s bytes are in wrong order"),lpfilname);
       goto lperr;
     }
     else {                                          /* No Header on file:*/
@@ -464,13 +464,13 @@ int lprdset(ENVIRON *csound, LPREAD *p)
       p->nvals = p->npoles + 4;
       p->framrat16 = *p->ifrmrate * FL(65536.0);
       if (!p->npoles || !p->framrat16) {
-        sprintf(errmsg,Str(X_937,"insufficient args and no file header"));
+        sprintf(errmsg,Str("insufficient args and no file header"));
         goto lperr;
       }
     }
     /* Check  pole number */
     if (p->npoles > MAXPOLES) {
-      sprintf(errmsg,Str(X_1081,"npoles > MAXPOLES"));
+      sprintf(errmsg,Str("npoles > MAXPOLES"));
       goto lperr;
     }
     /* Look for total frame data size (file size - header) */
@@ -478,7 +478,7 @@ int lprdset(ENVIRON *csound, LPREAD *p)
     /* Store the size of a frame in integer */
     p->lastfram16 = (((totvals - p->nvals) / p->nvals) << 16) - 1;
     if (O.odebug)
-      printf(Str(X_1080,
+      printf(Str(
                  "npoles %ld, nvals %ld, totvals %ld, lastfram16 = %lx\n"),
              p->npoles, p->nvals, totvals, p->lastfram16);
  lpend:
@@ -509,18 +509,18 @@ int lpread(ENVIRON *csound, LPREAD *p)
     MYFLT   interMagn[MAXPOLES], interPhas[MAXPOLES];
 
     if (p->mfp==NULL) {
-      return perferror(Str(X_978,"lpread: not initialised"));
+      return perferror(Str("lpread: not initialised"));
     }
   /* Locate frame position range */
     if ((framphase = (long)(*p->ktimpt*p->framrat16)) < 0) { /* for kfram reqd */
-      return perferror(Str(X_977,"lpread timpnt < 0"));
+      return perferror(Str("lpread timpnt < 0"));
     }
     if (framphase > p->lastfram16) {                /* not past last one */
       framphase = p->lastfram16;
       if (!p->lastmsg) {
         p->lastmsg = 1;
         if (O.msglevel & WARNMSG)
-          printf(Str(X_976,"WARNING: lpread ktimpnt truncated to last frame\n"));
+          printf(Str("WARNING: lpread ktimpnt truncated to last frame\n"));
       }
     }
   /* Locate frames bounding current time */
@@ -549,7 +549,7 @@ int lpread(ENVIRON *csound, LPREAD *p)
         DoPoleInterpolation(p->npoles,poleMagn1,polePhas1,poleMagn2,
                             polePhas2,fract,interMagn,interPhas);
       if (!status) {
-        return perferror(Str(X_313,"Interpolation failed\n"));
+        return perferror(Str("Interpolation failed\n"));
       }
       for (i=0; i<p->npoles; i++) {
         *cp++ = interMagn[i];
@@ -692,7 +692,7 @@ int lpfrsnset(ENVIRON *csound, LPFRESON *p)
    /* Connect to previously loaded analysis file */
 
     if (lprdadr[currentLPCSlot]->storePoles) {
-      return initerror(Str(X_430,"Pole file not supported for this opcode !\n"));
+      return initerror(Str("Pole file not supported for this opcode !\n"));
     }
     p->lpread = lprdadr[currentLPCSlot];
     p->prvratio = FL(1.0);
@@ -715,7 +715,7 @@ int lpfreson(ENVIRON *csound, LPFRESON *p)
 
     if (*p->kfrqratio != p->prvratio) {             /* for new freqratio */
       if (*p->kfrqratio <= FL(0.0)) {
-        sprintf(errmsg,Str(X_848,"illegal frqratio, %5.2f"),*p->kfrqratio);
+        sprintf(errmsg,Str("illegal frqratio, %5.2f"),*p->kfrqratio);
         return perferror(errmsg);
       }                                             /*      calculate d  */
       p->d = (*p->kfrqratio - FL(1.0)) / (*p->kfrqratio + FL(1.0));
@@ -904,7 +904,7 @@ int lpslotset(ENVIRON *csound, LPSLOT *p)
 
     n = (int)*(p->islotnum);
     if (n<0)
-      return initerror(Str(X_980,"lpslot number should be positive\n"));
+      return initerror(Str("lpslot number should be positive\n"));
     else {
       if (n>=max_lpc_slot) {
         max_lpc_slot = n + MAX_LPC_SLOT;
@@ -919,7 +919,7 @@ int lpitpset(ENVIRON *csound, LPINTERPOL *p)
 {
 
     if ((int)*(p->islot1)>max_lpc_slot || (int)*(p->islot2)>max_lpc_slot)
-      return initerror(Str(X_979, "LPC slot is not allocated\n"));
+      return initerror(Str("LPC slot is not allocated\n"));
   /* Get lpread pointers */
     p->lp1 = lprdadr[(int)*(p->islot1)];
     p->lp2 = lprdadr[(int)*(p->islot2)];
@@ -927,15 +927,15 @@ int lpitpset(ENVIRON *csound, LPINTERPOL *p)
   /* Check if workable */
 
     if ((!p->lp1->storePoles) || (!p->lp2->storePoles)) {
-      return initerror(Str(X_974,"lpinterpol works only with poles files.."));
+      return initerror(Str("lpinterpol works only with poles files.."));
     }
     if (p->lp1->npoles != p->lp2->npoles) {
-      return initerror(Str(X_489,"The poles files have different pole count\n"));
+      return initerror(Str("The poles files have different pole count\n"));
     }
 
 #if 0                   /* This is incorrect C */
     if (&p->kcoefs-p != &p->lp1->kcoefs-p->lp1)
-      return initerror(Str(X_1117,"padding error"));
+      return initerror(Str("padding error"));
 #endif
 
     p->npoles = p->lp1->npoles;
@@ -954,7 +954,7 @@ int lpinterpol(ENVIRON *csound, LPINTERPOL *p)
 
     /* RWD: guessing this... */
     if (p->lp1==NULL || p->lp2==NULL) {
-      return perferror(Str(X_975,"lpinterpol: not initialised"));
+      return perferror(Str("lpinterpol: not initialised"));
     }
     cp1 =  p->lp1->kcoefs;
     cp2 =  p->lp2->kcoefs;
@@ -969,7 +969,7 @@ int lpinterpol(ENVIRON *csound, LPINTERPOL *p)
     status = DoPoleInterpolation(p->npoles,poleMagn1,polePhas1,poleMagn2,
                                      polePhas2,*p->kmix,interMagn,interPhas);
     if (!status) {
-      return perferror(Str(X_313,"Interpolation failed\n"));
+      return perferror(Str("Interpolation failed\n"));
     }
 
     cp = p->kcoefs;      /* This is where the coefs get stored */

@@ -46,7 +46,7 @@ int dconvset(ENVIRON *csound, DCONV *p)
         p->len = ftp->flen; /* correct len if flen shorter */
     }
     else {
-      return initerror(Str(X_1557,"No table for dconv"));
+      return initerror(Str("No table for dconv"));
     }
     if (p->sigbuf.auxp == NULL || p->sigbuf.size < (int)(p->len*sizeof(MYFLT)))
       auxalloc(p->len*sizeof(MYFLT), &p->sigbuf);
@@ -272,18 +272,18 @@ int vcombset(ENVIRON *csound, VCOMB *p)
 
     if (*p->insmps != FL(0.0)) {
       if ((lpsiz = (long)(FL(0.5)+*p->imaxlpt)) <= 0) {
-        return initerror(Str(X_867,"illegal loop time"));
+        return initerror(Str("illegal loop time"));
       }
     }
     else if ((lpsiz = (long)(*p->imaxlpt * esr)) <= 0) {
-      return initerror(Str(X_867,"illegal loop time"));
+      return initerror(Str("illegal loop time"));
     }
     nbytes = lpsiz * sizeof(MYFLT);
     if (p->auxch.auxp == NULL || nbytes != p->auxch.size) {
       auxalloc((long)nbytes, &p->auxch);
       p->pntr = (MYFLT *) p->auxch.auxp;
       if (p->pntr==NULL) {
-        return initerror(Str(X_668,"could not allocate memory"));
+        return initerror(Str("could not allocate memory"));
       }
     }
     else if (!(*p->istor)) {
@@ -309,7 +309,7 @@ int vcomb(ENVIRON *csound, VCOMB *p)
     MYFLT       g = p->g;
 
     if (p->auxch.auxp==NULL) {
-      return perferror(Str(X_1685,"vcomb: not initialised"));
+      return perferror(Str("vcomb: not initialised"));
     }
     ar = p->ar;
     asig = p->asig;
@@ -360,7 +360,7 @@ int valpass(ENVIRON *csound, VCOMB *p)
     MYFLT       y, z, g = p->g;
 
     if (p->auxch.auxp==NULL) {
-      return perferror(Str(X_1686,"valpass: not initialised"));
+      return perferror(Str("valpass: not initialised"));
     }
     ar = p->ar;
     asig = p->asig;
@@ -415,24 +415,24 @@ int ftmorfset(ENVIRON *csound, FTMORF *p)
       p->resfn = ftp, len = p->resfn->flen;     /* and set it up */
     }
     else {
-      return initerror(Str(X_1687,"iresfn for ftmorf does not exist"));
+      return initerror(Str("iresfn for ftmorf does not exist"));
     }
 
     if ((ftp = ftfind(csound, p->iftfn)) != NULL) {     /* make sure ftfn exists */
       p->ftfn = ftp;                            /* and set it up */
     }
     else {
-      return initerror(Str(X_1688,"iftfn for ftmorf doesnt exist"));
+      return initerror(Str("iftfn for ftmorf doesnt exist"));
     }
 
     do {                /* make sure tables in ftfn exist and are right size*/
       if ((ftp = ftfind(csound, p->ftfn->ftable + j)) != NULL) {
         if ((unsigned int)ftp->flen != len) {
-          return initerror(Str(X_1689,"table in iftfn for ftmorf wrong size"));
+          return initerror(Str("table in iftfn for ftmorf wrong size"));
         }
       }
       else {
-        return initerror(Str(X_1690,"table in iftfn for ftmorf does not exist"));
+        return initerror(Str("table in iftfn for ftmorf does not exist"));
       }
     } while (++j < p->ftfn->flen);
 
@@ -473,24 +473,24 @@ static OENTRY localops[] = {
 { "vcomb", S(VCOMB),  5, "a", "akxioo", (SUBR)vcombset, NULL, (SUBR)vcomb     },
 { "valpass", S(VCOMB),5, "a", "akxioo", (SUBR)vcombset, NULL, (SUBR)valpass   },
 { "ftmorf", S(FTMORF),3, "",  "kii",  (SUBR)ftmorfset,  (SUBR)ftmorf, NULL    },
-{ "and_ii",  S(AOP),  1, "i", "ii",   (SUBR)and_kk                  },
-{ "and_kk",  S(AOP),  2, "k", "kk",   NULL,   (SUBR)and_kk          },
-{ "and_ka",  S(AOP),  4, "a", "ka",   NULL,   NULL,   (SUBR)and_ka  },
-{ "and_ak",  S(AOP),  4, "a", "ak",   NULL,   NULL,   (SUBR)and_ak  },
-{ "and_aa",  S(AOP),  4, "a", "aa",   NULL,   NULL,   (SUBR)and_aa  },
-{ "or_ii",   S(AOP),  1, "i", "ii",   (SUBR)or_kk                   },
-{ "or_kk",   S(AOP),  1, "i", "kk",   (SUBR)or_kk                   },
-{ "or_ka",   S(AOP),  4, "a", "ka",   NULL,   (SUBR)or_kk,          },
-{ "or_ak",   S(AOP),  4, "a", "ak",   NULL,   NULL,   (SUBR)or_ak   },
-{ "or_aa",   S(AOP),  4, "a", "aa",   NULL,   NULL,   (SUBR)or_aa   },
-{ "xor_ii",  S(AOP),  1, "i", "ii",   (SUBR)xor_kk                  },
-{ "xor_kk",  S(AOP),  2, "k", "kk",   NULL,   (SUBR)xor_kk          },
-{ "xor_ka",  S(AOP),  4, "a", "ka",   NULL,   NULL,   (SUBR)xor_ka  },
-{ "xor_ak",  S(AOP),  4, "a", "ak",   NULL,   NULL,   (SUBR)xor_ak  },
-{ "xor_aa",  S(AOP),  4, "a", "aa",   NULL,   NULL,   (SUBR)xor_aa  },
-{ "not_i",   S(AOP),  1, "i", "i",    (SUBR)not_k                   },
-{ "not_k",   S(AOP),  2, "k", "k",    NULL,   (SUBR)not_k           },
-{ "not_a",   S(AOP),  4, "a", "a",    NULL,   NULL,   (SUBR)not_a   },
+{ "and.ii",  S(AOP),  1, "i", "ii",   (SUBR)and_kk                  },
+{ "and.kk",  S(AOP),  2, "k", "kk",   NULL,   (SUBR)and_kk          },
+{ "and.ka",  S(AOP),  4, "a", "ka",   NULL,   NULL,   (SUBR)and_ka  },
+{ "and.ak",  S(AOP),  4, "a", "ak",   NULL,   NULL,   (SUBR)and_ak  },
+{ "and.aa",  S(AOP),  4, "a", "aa",   NULL,   NULL,   (SUBR)and_aa  },
+{ "or.ii",   S(AOP),  1, "i", "ii",   (SUBR)or_kk                   },
+{ "or.kk",   S(AOP),  1, "i", "kk",   (SUBR)or_kk                   },
+{ "or.ka",   S(AOP),  4, "a", "ka",   NULL,   (SUBR)or_kk,          },
+{ "or.ak",   S(AOP),  4, "a", "ak",   NULL,   NULL,   (SUBR)or_ak   },
+{ "or.aa",   S(AOP),  4, "a", "aa",   NULL,   NULL,   (SUBR)or_aa   },
+{ "xor.ii",  S(AOP),  1, "i", "ii",   (SUBR)xor_kk                  },
+{ "xor.kk",  S(AOP),  2, "k", "kk",   NULL,   (SUBR)xor_kk          },
+{ "xor.ka",  S(AOP),  4, "a", "ka",   NULL,   NULL,   (SUBR)xor_ka  },
+{ "xor.ak",  S(AOP),  4, "a", "ak",   NULL,   NULL,   (SUBR)xor_ak  },
+{ "xor.aa",  S(AOP),  4, "a", "aa",   NULL,   NULL,   (SUBR)xor_aa  },
+{ "not.i",   S(AOP),  1, "i", "i",    (SUBR)not_k                   },
+{ "not.k",   S(AOP),  2, "k", "k",    NULL,   (SUBR)not_k           },
+{ "not.a",   S(AOP),  4, "a", "a",    NULL,   NULL,   (SUBR)not_a   },
 };
 
 LINKAGE

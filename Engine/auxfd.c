@@ -93,7 +93,7 @@ void fdclose(FDCH *fdchp)       /* close a file and remove from fd chain */
       else prvchp = nxtchp;
     }
     fdchprint(curip);
-    sprintf(errmsg,Str(X_759,"fdclose: no record of fd %d"), fdchp->fd);
+    sprintf(errmsg,Str("fdclose: no record of fd %d"), fdchp->fd);
     die(errmsg);
 }
 
@@ -107,7 +107,7 @@ void auxchfree(INSDS *ip)       /* release all xds in instr auxp chain  */
     while ((curchp = curchp->nxtchp) != NULL) { /* for all xp's in chain: */
       if ((auxp = curchp->auxp) == NULL) {
         auxchprint(ip);
-        dies(Str(X_608,"auxchfree: illegal auxp %lx in chain"),auxp);
+        dies(Str("auxchfree: illegal auxp %lx in chain"),auxp);
       }
       mfree(auxp);                      /*      free the space  */
       curchp->auxp = NULL;              /*      & delete the pntr */
@@ -138,9 +138,9 @@ static void auxchprint(INSDS *ip)   /* print the xp chain for this insds blk */
 {
     AUXCH       *curchp = &ip->auxch;
 
-    printf(Str(X_609,"auxlist for instr %d (%lx):\n"), ip->insno, ip);
+    printf(Str("auxlist for instr %d (%lx):\n"), ip->insno, ip);
     while ((curchp = curchp->nxtchp) != NULL)         /* chain through auxlocs */
-      printf(Str(X_574,"\tauxch at %lx: size %lx, auxp %lx, endp %lx\n"),
+      printf(Str("\tauxch at %lx: size %lx, auxp %lx, endp %lx\n"),
              curchp, curchp->size, curchp->auxp, curchp->endp);
 }
 
@@ -148,8 +148,8 @@ static void fdchprint(INSDS *ip)   /* print the fd chain for this insds blk */
 {
     FDCH        *curchp = &ip->fdch;
 
-    printf(Str(X_760,"fdlist for instr %d (%lx):"), ip->insno, ip);
+    printf(Str("fdlist for instr %d (%lx):"), ip->insno, ip);
     while ((curchp = curchp->nxtchp) != NULL)    /* chain through fdlocs */
-      printf(Str(X_12,"  fd %p/%d in %lx"), curchp->fd, curchp->fdc, curchp);
+      printf(Str("  fd %p/%d in %lx"), curchp->fd, curchp->fdc, curchp);
     printf("\n");
 }

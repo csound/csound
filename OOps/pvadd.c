@@ -98,13 +98,13 @@ int pvaddset(ENVIRON *csound, PVADD *p)
     else sprintf(pvfilnam,"pvoc.%d", (int)*p->ifilno);
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename, pvfilnam) != 0)
       if ( (mfp = ldmemfile(pvfilnam)) == NULL) {
-        sprintf(errmsg,Str(X_408,"PVADD cannot load %s"), pvfilnam);
+        sprintf(errmsg,Str("PVADD cannot load %s"), pvfilnam);
         goto pverr;
       }
 
     pvh = (PVSTRUCT *)mfp->beginp;
     if (pvh->magic != PVMAGIC) {
-      sprintf(errmsg,Str(X_60,"%s not a PVOC file (magic %ld)"),
+      sprintf(errmsg,Str("%s not a PVOC file (magic %ld)"),
               pvfilnam, pvh->magic );
       goto pverr;
     }
@@ -135,26 +135,26 @@ int pvaddset(ENVIRON *csound, PVADD *p)
 
     if ((p->asr = pvh->samplingRate) != esr &&
         (O.msglevel & WARNMSG)) { /* & chk the data */
-      printf(Str(X_63,"WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
+      printf(Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
              pvfilnam, p->asr, esr);
     }
     if (pvh->dataFormat != PVMYFLT) {
-      sprintf(errmsg,Str(X_1358,"unsupported PV data format %ld in %s"),
+      sprintf(errmsg,Str("unsupported PV data format %ld in %s"),
               pvh->dataFormat, pvfilnam);
       goto pverr;
     }
     if (p->frSiz > PVFRAMSIZE) {
-      sprintf(errmsg,Str(X_406,"PV frame %d bigger than %ld in %s"),
+      sprintf(errmsg,Str("PV frame %d bigger than %ld in %s"),
               p->frSiz, PVFRAMSIZE, pvfilnam);
       goto pverr;
     }
     if (p->frSiz < 128) {
-      sprintf(errmsg,Str(X_407,"PV frame %ld seems too small in %s"),
+      sprintf(errmsg,Str("PV frame %ld seems too small in %s"),
               p->frSiz, pvfilnam);
       goto pverr;
     }
     if (chans != 1) {
-      sprintf(errmsg,Str(X_32,"%d chans (not 1) in PVOC file %s"),
+      sprintf(errmsg,Str("%d chans (not 1) in PVOC file %s"),
               chans, pvfilnam);
       goto pverr;
     }
@@ -205,23 +205,23 @@ int pvadd(ENVIRON *csound, PVADD *p)
 
 
     if (p->auxch.auxp==NULL) {
-      return perferror(Str(X_1140,"pvadd: not initialised"));
+      return perferror(Str("pvadd: not initialised"));
     }
 
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str(X_1140,"pvadd: not initialised"));
+      return perferror(Str("pvadd: not initialised"));
     }
 
     if ((frIndx = *p->ktimpnt * p->frPrtim) < 0) {
-      return perferror(Str(X_410,"PVADD timpnt < 0"));
+      return perferror(Str("PVADD timpnt < 0"));
     }
     if (frIndx > p->maxFr) { /* not past last one */
       frIndx = (MYFLT)p->maxFr;
       if (p->prFlg) {
         p->prFlg = 0;   /* false */
         if (O.msglevel & WARNMSG)
-          printf(Str(X_409,"WARNING: PVADD ktimpnt truncated to last frame"));
+          printf(Str("WARNING: PVADD ktimpnt truncated to last frame"));
       }
     }
     FetchInForAdd(p->frPtr,p->buf, size, frIndx,

@@ -173,7 +173,7 @@ void named_instr_assign_numbers (void)
         inm2->instno = (long) num;
         instrtxtp[num] = inm2->ip;
         if (O.msglevel)
-          printf(Str(X_19,"instr %s uses instrument number %d\n"),
+          printf(Str("instr %s uses instrument number %d\n"),
                  inm2->name, num);
       }
     }
@@ -273,7 +273,7 @@ long strarg2opcno (MYFLT *p, char *s, int force_opcode)
       if (inm) insno = (long) inm->instno;
     }
     if (insno < 1) {
-      initerror(Str(X_21,"cannot find the specified instrument or opcode"));
+      initerror(Str("cannot find the specified instrument or opcode"));
       insno = -1;
     }
     return insno;
@@ -289,7 +289,7 @@ void opcode_list_create (void)
     int     n = oplstend - opcodlst;
 
     if (opcode_list) {
-      die(Str(X_23,"internal error: opcode list has already been created"));
+      die(Str("internal error: opcode list has already been created"));
       return;
     }
     opcode_list = (void*) mcalloc(sizeof(int) * 256);
