@@ -30,3 +30,4 @@ B1.     Loading of deferred files in gen1 suspect
 
 B2.     Many differences between FL code on Csound and CsoundAV
 
+B3.     In no output format given does not have a sane default.
