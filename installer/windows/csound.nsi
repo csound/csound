@@ -80,6 +80,9 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\libCsoundVST.a
   SetOutPath $INSTDIR\include
   File ..\..\H\csound.h
+  File ..\..\H\sysdep.h
+  File ..\..\H\cwindow.h
+  File ..\..\H\opcode.h
   File ..\..\frontends\CsoundVST\*.hpp
   SetOutPath $INSTDIR\examples
   File ..\..\examples\*.csd
