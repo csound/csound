@@ -1,11 +1,17 @@
+2004-10-20  John ffitch  <jpff@codemist.co.uk>
+
+	* OOps/ugens6.c (delrset): NULL list of delays for safety
+	(delayr): Need to save curp at end of each k-cycle
+
 2004-09-12  Michael Gogins <gogins@pipeline.com>
 
-	* Added csound::Score::getCsoundScore method in CsoundVST for easier use of 
-    algorithmic composition classes in other Csound-based systems.
-    
-    * Updated csound.pdf with API documentation.
-    
-    * Restored real-time audio code to more functional version.
+	* Added csound::Score::getCsoundScore method in CsoundVST for
+	easier use of algorithmic composition classes in other
+	Csound-based systems.
+
+        * Updated csound.pdf with API documentation.
+
+        * Restored real-time audio code to more functional version.
 
 2004-10-16  John ffitch  <jpff@codemist.co.uk>
 
