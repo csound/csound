@@ -249,7 +249,7 @@ if getPlatform() == 'linux':
 	commonEnvironment.Append(CCFLAGS = "-O2")
 	commonEnvironment.Append(CCFLAGS = "-Wall")
 	commonEnvironment.Append(CCFLAGS = "-DPIPES")
-	commonEnvironment.Append(LIBPATH = ['.', '#.', '/usr/include/lib', '/usr/local/lib'])
+	commonEnvironment.Append(LIBPATH = ['.', '#.', '/usr/lib', '/usr/local/lib'])
 elif getPlatform() == 'darwin':
 	commonEnvironment.Append(CCFLAGS = "-DMACOSX")
 	commonEnvironment.Append(CPPPATH = '/usr/local/include')

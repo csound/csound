@@ -42,18 +42,23 @@
 #endif
 
 struct fileinTag {
-    SNDFILE*    file;
+    SNDFILE*    file;           /* Used in audio cases */
     FILE*       raw;            /* Only used if text file */
     char        *name;
     long        cnt;
 };
 
-static struct fileinTag *file_opened = NULL;
-static int file_max = 0;        /* Size of file_opened structure */
-static int file_num = -1;              /* Last number used */
+#define file_opened ((struct fileinTag *)(p->h.insdshead->csound->file_opened_))
+#define file_max (p->h.insdshead->csound->file_max_)
+#define file_num (p->h.insdshead->csound->file_num_)
+
+/* static struct fileinTag *file_opened = NULL; */
+/* static int file_max = 0;        /\* Size of file_opened structure *\/ */
+/* static int file_num = -1;              /\* Last number used *\/ */
 
 static void close_files(void)
 {
+#ifdef ACCESS_TO_ENVIRON
     while (file_num>=0) {
       printf("%d (%s):", file_num, file_opened[file_num].name);
       if (file_opened[file_num].raw != NULL)
@@ -63,6 +68,7 @@ static void close_files(void)
       file_num--;
       printf(" closed\n");
     }
+#endif
 }
 
 int outfile(OUTFILE *p)
@@ -107,15 +113,6 @@ int outfile_set(OUTFILE *p)
         if (!strcmp(file_opened[j].name,fname)) {
           p->fp = file_opened[j].file;
           p->idx = n = j;
-          switch((int) (*p->iflag+FL(0.5))) {
-          case 0:
-            break;
-          case 1:
-            break;
-          case 2:
-            break;
-          default:
-          }
           return OK;
         }
       }
@@ -142,7 +139,7 @@ int outfile_set(OUTFILE *p)
         file_num++;
         if (file_num>=file_max) {
           if (file_max==0) atexit(close_files);
-          file_max += 4;
+          file_max += 4;        /* Expand by 4 each time */
           file_opened = (struct fileinTag*)
             mrealloc(file_opened, sizeof(struct fileinTag)*file_max);
         }
@@ -246,35 +243,14 @@ int koutfile_set(KOUTFILE *p)
 int fiopen(FIOPEN *p)          /* open a file and return its handle  */
 {                              /* the handle is simply a stack index */
     char fname[FILENAME_MAX];
-/*     char *omodes[] = {"w", "r", "wb", "rb"}; */
-    SNDFILE *fp = NULL;
-    SF_INFO sfinfo;
+    char *omodes[] = {"w", "r", "wb", "rb"};
     FILE *rfp = NULL;
     int idx = (int)*p->iascii;
     strcpy(fname, unquote(p->STRARG));
     if (idx<0 || idx>3) idx=0;
-    switch (idx) {
-    case 0:                     /* Text write */
-      if ((rfp = fopen(fname,"w")) == NULL)
-        dies(Str(X_1468,"fout: cannot open outfile %s"),fname);
-      break;
-    case 1:
-      if ((rfp = fopen(fname,"r")) == NULL)
-        dies(Str(X_1468,"fout: cannot open outfile %s"),fname);
-      break;
-    default:
-    case 2:
-      sfinfo.format = SF_FORMAT_WAV | SF_FORMAT_PCM_16;
-      sfinfo.channels = 2;
-      sfinfo.samplerate = (long)esr;
-      if ((fp = sf_open(fname, SFM_WRITE, &sfinfo))==NULL)
-        dies(Str(X_1468,"fout: cannot open outfile %s"),fname);
-      break;
-    case 3:
-      if ((fp = sf_open(fname, SFM_READ, &sfinfo))==NULL)
-        dies(Str(X_1468,"fout: cannot open outfile %s"),fname);
-      break;
-    }
+    if ((rfp = fopen(fname,omodes[idx])) == NULL)
+      dies(Str(X_1468,"fout: cannot open outfile %s"),fname);
+    if (idx>1) setbuf(rfp, NULL);
     file_num++;
     if (file_num>=file_max) {
       if (file_max==0) atexit(close_files);
@@ -284,7 +260,7 @@ int fiopen(FIOPEN *p)          /* open a file and return its handle  */
     }
     file_opened[file_num].name = (char*)mmalloc(strlen(fname)+1);
     strcpy(file_opened[file_num].name, fname);
-    file_opened[file_num].file=fp;
+    file_opened[file_num].file=NULL;
     file_opened[file_num].raw=rfp;
     *p->ihandle = (MYFLT) file_num;
     return OK;
@@ -299,17 +275,15 @@ int ioutfile_set(IOUTFILE *p)
 {
     int j;
     MYFLT **args=p->argums;
-    SNDFILE *fil;
     FILE* rfil;
     int n = (int) *p->ihandle;
     if (n<0 || n>file_num)
       die(Str(X_1469,"fouti: invalid file handle"));
-    fil = file_opened[n].file;
     rfil = file_opened[n].raw;
-    if (fil == NULL) die(Str(X_1469,"fouti: invalid file handle"));
+    if (rfil == NULL) die(Str(X_1469,"fouti: invalid file handle"));
     if (*p->iascii == 0) { /* ascii format */
       switch ((int) *p->iflag) {
-      case 1: { /* whith prefix (i-statement, p1, p2 and p3) */
+      case 1: { /* with prefix (i-statement, p1, p2 and p3) */
         int p1 = (int) p->h.insdshead->insno;
         double p2 =   (double) kcounter * onedkr;
         double p3 = p->h.insdshead->p3;
@@ -319,7 +293,7 @@ int ioutfile_set(IOUTFILE *p)
           fprintf(rfil, "i %i %f . ", p1, p2);
       }
       break;
-      case 2: /* whith prefix (start at 0 time) */
+      case 2: /* with prefix (start at 0 time) */
         if (kreset == 0) kreset = kcounter;
         {
           int p1 = (int) p->h.insdshead->insno;
@@ -341,10 +315,9 @@ int ioutfile_set(IOUTFILE *p)
       putc('\n',rfil);
     }
     else { /* binary format */
-      MYFLT vals[VARGMAX];
-      for (j=0; j < p->INOCOUNT - 3;j++)
-        vals[j] = *args[j];
-      sf_writef_MYFLT(fil, vals, 1);
+      for (j=0; j < p->INOCOUNT - 3;j++) {
+        fwrite(args[j], sizeof(MYFLT),1, rfil);
+      }
     }
     return OK;
 }
@@ -369,13 +342,11 @@ int ioutfile_r(IOUTFILE_R *p)
       if (p->done) {
         int j;
         MYFLT **args=p->argums;
-        SNDFILE *fil;
         FILE *rfil;
         int n = (int) *p->ihandle;
         if (n<0 || n>file_num) die(Str(X_1469,"fouti: invalid file handle"));
-        fil = file_opened[n].file;
         rfil = file_opened[n].raw;
-        if (fil == NULL) die(Str(X_1469,"fouti: invalid file handle"));
+        if (rfil == NULL) die(Str(X_1469,"fouti: invalid file handle"));
         if (*p->iascii == 0) { /* ascii format */
           switch ((int) *p->iflag) {
           case 1:       {       /* whith prefix (i-statement, p1, p2 and p3) */
@@ -384,7 +355,7 @@ int ioutfile_r(IOUTFILE_R *p)
             double p3 = (double) (kcounter-p->counter) * onedkr;
             fprintf(rfil, "i %i %f %f ", p1, p2, p3);
           }
-          break;
+            break;
           case 2: /* with prefix (start at 0 time) */
             {
               int p1 = (int) p->h.insdshead->insno;
@@ -403,10 +374,9 @@ int ioutfile_r(IOUTFILE_R *p)
           putc('\n',rfil);
         }
         else { /* binary format */
-          MYFLT vals[VARGMAX];
-          for (j=0; j < p->INOCOUNT - 3;j++) 
-            vals[j] = *args[j];
-          sf_writef_MYFLT(fil, vals,1);
+          for (j=0; j < p->INOCOUNT - 3;j++) {
+            fwrite(args[j], sizeof(MYFLT),1, rfil);
+          }
         }
         p->done = 0;
       }
@@ -573,7 +543,7 @@ int i_infile(I_INFILE *p)
       else strcpy(fname, unquote(p->STRARG));
       for (j=0; j<file_num || file_opened[j].name == NULL; j++) {
         if (!strcmp(file_opened[j].name,fname)) {
-          fp = file_opened[j].file;
+          fp = file_opened[j].raw;
           goto done;
         }
       }
@@ -591,12 +561,13 @@ int i_infile(I_INFILE *p)
         }
         file_opened[file_num].name = (char*)mmalloc(strlen(fname)+1);
         strcpy(file_opened[file_num].name, fname);
-        file_opened[file_num].file=fp;
+        file_opened[file_num].raw=fp;
+        file_opened[file_num].file=NULL;
       }
     }
     else {/* file handle argument */
       int n = (int) *p->fname;
-      if (n<0 || n>file_num || (fp = file_opened[n].file) == NULL)
+      if (n<0 || n>file_num || (fp = file_opened[n].raw) == NULL)
         die(Str(X_1472,"fink: invalid file handle"));
     }
  done:
