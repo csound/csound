@@ -86,7 +86,7 @@ namespace csound
       }
   }
 
-  void ThreadLock::notify()
+  void ThreadLock::endWait()
   {
     if(lock)
       {

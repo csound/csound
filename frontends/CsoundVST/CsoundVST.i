@@ -20,7 +20,11 @@
 * License along with this software; if not, write to the Free Software
 * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+#if defined(SWIGPYTHON)
 %module(directors="1") CsoundVST
+#else
+#module CsoundVST
+#endif
 %{
 	#include "Silence.hpp"
 %}
@@ -28,6 +32,7 @@
 %feature("director") Node;
 %include "Silence.hpp"
 
+#if defined(SWIGPYTHON)
 %pythoncode
 %{
 # Create one global instance of CppSound for CsoundVST to grab.
@@ -38,3 +43,4 @@ sys.modules["__main__"].csound = CppSound()
 sys.modules["__main__"].csound.thisown = 0
 sys.modules["__main__"].csound.setPythonMessageCallback()
 %}
+#endif
