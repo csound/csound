@@ -11,7 +11,7 @@
 \author{Michael Gogins \\ \texttt{gogins@pipeline.com}}
 \maketitle
 
-\abstract{This document explains how to download, build, install, extend, and use Csound and CsoundVST on Windows and Linux.}
+\abstract{This document explains how to download, install, use, build, and extend Csound and CsoundVST on Windows and Linux.}
 
 \section{Introduction}
 
@@ -49,9 +49,9 @@ Once you have either unpacked a binary distribution, or built Csound from source
 
 Consult the Csound language documentation for instructions on how to install and configure Csound.
 
-On Windows, make sure that the \texttt{csound5} directory is in your \texttt{PATH} environment variable, or else copy the files in it to your Windows \texttt{system32} directory. 
+On Windows, make sure the directory or directories (normally the \texttt{csound5} directory) containing the Csound executables directory and all the Csound plugin opcodes are also in your \texttt{PATH} variable, or else copy all the executable files to your Windows \texttt{system32} directory.
 
-On Windows, make sure the directory or directories (normally the \texttt{csound5} directory) containing the Csound executables directory and all the Csound plugin opcodes are also in your \texttt{PATH} variable. On Unix and Linux, either install the Csound program in one of the system bin directories, typically \texttt{/usr/local/bin}, and the Csound and plugin shared libraries in one of the system lib directories, typically \texttt{/usr/local/lib}; or make sure that the directory containing the Csound and plugin shared libraries is in your \texttt{LD\_LIBRARY\_PATH} environment variable. This variable may have a different name in different operating systems.
+On Unix and Linux, either install the Csound program in one of the system bin directories, typically \texttt{/usr/local/bin}, and the Csound and plugin shared libraries in one of the system lib directories, typically \texttt{/usr/local/lib}; or make sure that the directory containing the Csound and plugin shared libraries is in your \texttt{LD\_LIBRARY\_PATH} environment variable. This variable may have a different name in different operating systems.
 
 \subsection{CsoundVST}
 
@@ -361,7 +361,7 @@ The build procedure for Cygwin is identical to Linux. However, Cygwin comes with
 
 \subsubsection{Windows with MinGW and MSys}
 
-For MinGW, you may need to patch SCons as follows. Change line 51 of \texttt{SCons/Tool/mingw.py} from:
+For MinGW, you may need to patch versions of SCons earlier than \texttt{0.96.1} as follows. Change line 51 of \texttt{SCons/Tool/mingw.py} from:
 \begin{verbatim}
 cmd = SCons.Util.CLVar('$SHLINK', '$SHLINKFLAGS')
 \end{verbatim}
@@ -377,14 +377,14 @@ Rebuild and install a version of libsndfile no earlier than:
 http://www.mega-nerd.com/tmp/libsndfile-1.0.10pre4.tar.gz
 \end{verbatim}
 
-For PortAudio, I have found that \texttt{./configure ---with-winapi=wmme} works and other \texttt{configure} options do not. If you can build PortAudio version 19 with MinGW and DirectX, ASIO, or Windows kernel streaming, please let me know how to do it.
+PortAudio works with either the Windows multimedia libaries (\texttt{./configure ---with-winapi=wmme}) or with ASIO (\texttt{./configure ---with-winapi=asio}). At this time, Low-latency on Windows is only feasible with ASIO, but it is not as robust as the multimedia library.
 
 The build procedure for MinGW is similar, but not identical, to the Cygwin procedure. The MSys shell does not allow the user to execute Python commands directly. Therefore, you need to install the \emph{Windows} versions of Python and SCons, make sure that Python is in your Windows executable path, and run the build like this:
 \begin{verbatim}
 $ python c:/tools/python23/scripts/scons
 \end{verbatim}
 
-You will also need to customize the \texttt{custom.py} file to declare to \texttt{scons} the locations of required header files and libraries, since on Windows there is no standard location for these as there is on Unix and Linux.
+You may also need to customize the \texttt{custom.py} file to declare to \texttt{scons} the locations of required header files and libraries, since on Windows there is no standard location for these as there is on Unix and Linux. You will not need to modify \texttt{custom.py} if you install all third-party libraries in the MSys \texttt{/usr/local/include} and \texttt{/usr/local/lib} directories.
 
 \section{Extending}
 Csound uses plugin unit generators. These are dynamic link libraries (DLLs) on Windows, and loadable modules (shared libraries that are \texttt{dlopen}ed) on Linux. It is relatively easy to extend Csound by writing new unit generators in C or C++.
@@ -571,7 +571,6 @@ This is a ``to do'' list, not necessarily complete, and in no particular order o
 
 \begin{enumerate}
 \item See also the \texttt{To-fix-and-do} file in the \texttt{csound5} directory.
-\item Get the ASIO version of PortAudio working on Windows.
 \item Create better examples, especially to demonstrate the use of Python and of VST plugins. One example should be a live performance instrument with a Python GUI that controls instrument parameters or algorithmic composition parameters in real time.
 \item Complete the work of making Csound multi-instantiable.
 \item All Csound documentation in this one PDF.
