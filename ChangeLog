@@ -1,3 +1,7 @@
+2005-03-13  John ffitch  <jpff@codemist.co.uk>
+
+	* SConstruct (opts): make installation optional
+
 2005-03-13	Istvan Varga	<istvan@csounds.com>
 	* Engine/fgens.c:
 	* H/ftgen.h:
