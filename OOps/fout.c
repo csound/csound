@@ -1,4 +1,4 @@
-/*  
+/*
     fout.c:
 
     Copyright (C) 1999 Gabriel Maldonado, John ffitch
@@ -110,7 +110,7 @@ int outfile_set(OUTFILE *p)
     if (*p->fname == SSTRCOD) { /* if char string name given */
       int j;
       char fname[FILENAME_MAX];
-      //extern char *unquote(char *name);
+      /*extern char *unquote(char *name); */
       if (p->STRARG == NULL) strcpy(fname,unquote(currevent->strarg));
       else strcpy(fname, unquote(p->STRARG));
       for (j=0; j<file_num; j++) {
@@ -202,7 +202,7 @@ int koutfile_set(KOUTFILE *p)
     if (*p->fname == SSTRCOD) {/*gab B1*/ /* if char string name given */
       int j;
       char fname[FILENAME_MAX];
-      //extern char *unquote(char *name);
+      /*extern char *unquote(char *name); */
       if (p->STRARG == NULL) strcpy(fname,unquote(currevent->strarg)); /*gab B1*/
       else strcpy(fname, unquote(p->STRARG));
       for (j=0; j<file_num; j++) {
@@ -213,7 +213,7 @@ int koutfile_set(KOUTFILE *p)
         }
       }
                                 /* *** NON ANSI CODE *** */
-      if (( p->fp = fopen(fname,"wb")) == NULL)
+      if ((p->fp = fopen(fname,"wb")) == NULL)
         dies(Str(X_1467,"foutk: cannot open outfile %s"),fname);
       else { /* put the file in the opened stack */
         file_num++;
@@ -264,8 +264,8 @@ int koutfile(KOUTFILE *p)
 /* syntax:
         ihandle fiopen "filename" [, iascii]
 */
-int fiopen(FIOPEN *p)          /* open a file and return its handle */
-{                               /* the handle is simply a stack index */
+int fiopen(FIOPEN *p)          /* open a file and return its handle  */
+{                              /* the handle is simply a stack index */
     char fname[FILENAME_MAX];
     char *omodes[] = {"w", "r", "wb", "rb"};
     FILE *fp;
@@ -472,7 +472,7 @@ int infile_set(INFILE *p)
 {
     if (*p->fname == SSTRCOD) { /* if char string name given */
       int j;
-      //extern char *unquote(char *name);
+      /*extern char *unquote(char *name); */
       char fname[FILENAME_MAX];
       if (p->STRARG == NULL) strcpy(fname,unquote(currevent->strarg));
       else strcpy(fname, unquote(p->STRARG));
@@ -580,7 +580,7 @@ int kinfile_set(KINFILE *p)
 {
     if (*p->fname == SSTRCOD) { /* if char string name given */
       int j;
-      //extern char *unquote(char *name);
+      /*extern char *unquote(char *name); */
       char fname[FILENAME_MAX];
       if (p->STRARG == NULL) strcpy(fname,unquote(currevent->strarg)); /*gab B1*/
       else strcpy(fname, unquote(p->STRARG));
@@ -645,7 +645,7 @@ int i_infile(I_INFILE *p)
       char fname[FILENAME_MAX];
       char *omodes[] = {"r", "r", "rb"};
       int idx;
-      //extern char *unquote(char *name);
+      /*extern char *unquote(char *name); */
 
       if (p->STRARG == NULL) strcpy(fname,unquote(currevent->strarg));
       else strcpy(fname, unquote(p->STRARG));
@@ -779,13 +779,13 @@ int fprintf_set(FPRINTF *p)
     int n;
     char *sarg = p->STRARG2;
     char *sdest = p->txtstring;
-    
-    memset(p->txtstring, 0, 8192);
-    
+
+    memset(p->txtstring, 0, 8192); /* *** Nasty to have exposed constant in code */
+
     if (*p->fname == SSTRCOD) { /* if char string name given */
       int j;
       char fname[FILENAME_MAX];
-      //extern char *unquote(char *name);
+      /*extern char *unquote(char *name); */
       if (p->STRARG == NULL) strcpy(fname,unquote(currevent->strarg));
       else strcpy(fname, unquote(p->STRARG));
       for (j=0; j<= file_num; j++) {
@@ -819,7 +819,7 @@ int fprintf_set(FPRINTF *p)
       if (n>file_num || (p->fp = file_opened[n].file) == NULL)
         die(Str(X_1466,"fout: invalid file handle"));
     }
-    
+
  done:
     /* Copy the string to the storage place in PRINTKS.
      *
@@ -886,7 +886,7 @@ int fprintf_set(FPRINTF *p)
           break;
         }
       }
-      else if (temp == '%') {	/* an extra option to specify tab and return as %t and %r*/ 
+      else if (temp == '%') { /* an extra option to specify tab and return as %t and %r*/
         switch (tempn) {
         case 'r': case 'R':
           *sdest++ = '\r';
@@ -900,7 +900,7 @@ int fprintf_set(FPRINTF *p)
           *sdest++ = '\t';
           sarg++;
           break;
-        case '!':	/* and a ';' */
+        case '!':       /* and a ';' */
           *sdest++ = ';';
           sarg++;
           break;
