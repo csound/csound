@@ -67,7 +67,7 @@ Music and Audio Technologies, University of California, Berkeley.
     typedef double           sdif_float64;
 #elif defined(_WIN32) || defined(_WINDOWS)
     #ifndef _WINDOWS_
-    	#include <windows.h>
+        #include <windows.h>
     #endif 
     typedef unsigned short sdif_unicode;
     typedef int                   sdif_int32;
@@ -308,7 +308,7 @@ SDIFresult SDIF_SkipMatrix(const SDIF_MatrixHeader *head, FILE *f);
    matrix data itself into a block of memory that you've allocated, call
    this procedure to do so.  Handles big/little endian issues.  */
 SDIFresult SDIF_ReadMatrixData(void *putItHere, FILE *f, 
-			       const SDIF_MatrixHeader *head);
+                               const SDIF_MatrixHeader *head);
 
 
 /************* Stream IDs *************/

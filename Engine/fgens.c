@@ -85,7 +85,7 @@ void ftRESET(void)
     e       = NULL;
     if (flist) {
       for (i = 1; i <= maxfnum; i++)
-		  mfree(flist[i]);   /* Check this */
+        mfree(flist[i]);   /* Check this */
       mfree(flist);
       flist   = NULL;
     }

@@ -467,24 +467,24 @@ static int checkVersion(FILE *unf)
       p = buffer;
       while (*p==' '||*p=='\t') p++;
       if (strstr(p, "</CsVersion>")==0) 
-				return result;
+        return result;
       if (strstr(p, "Before")==0) {
         sscanf(p, "Before %d.%d", &major, &minor);
-				if (version > ((major * 100) + minor))
-					result = FALSE;
+        if (version > ((major * 100) + minor))
+          result = FALSE;
       }
       else if (strstr(p, "After")==0) {
         sscanf(p, "After %d.%d", &major, &minor);
-				if (version < ((major * 100) + minor))
-					result = FALSE;
+        if (version < ((major * 100) + minor))
+          result = FALSE;
       }
       else if (sscanf(p, "%d.%d", &major, &minor)==2) {
         sscanf(p, "Before %d.%d", &major, &minor);
-				if (version > ((major * 100) + minor))
-					result = FALSE;
+        if (version > ((major * 100) + minor))
+          result = FALSE;
       }
     }
-    return result;              
+    return result;
 }
 
 static int eat_to_eol(char *buf)

@@ -151,7 +151,7 @@ int    reinit(void*), rigoto(void*), rireturn(void*);
 int    tigoto(void*), tival(void*);
 int    printv(void*), dspset(void*), kdsplay(void*), dsplay(void*);
 int    fftset(void*), kdspfft(void*), dspfft(void*);
-int		 infile_act(INFILE *p);
+int    infile_act(INFILE *p);
 
 int    xyinset(void*), xyin(void*), tempeset(void*), tempest(void*);
 int    tempset(void*), tempo(void*);

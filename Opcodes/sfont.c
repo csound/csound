@@ -107,8 +107,8 @@ void SoundFontLoad(ENVIRON *csound, char *fname)
            "******************************************\n\n");
     if (( fil = fopen(fname,"rb")) == NULL) {
 #if defined(WIN32) && !defined(__CYGWIN__)
-	extern volatile int _errno;
-	#define errno _errno
+      extern volatile int _errno;
+#define errno _errno
 #endif
       char bb[256];
       strcpy(pathnam, fname);  /* in case of error message */

@@ -1,4 +1,4 @@
-/*  
+/*
     main.c:
 
     Copyright (C) 1991-2002 Barry Vercoe, John ffitch
@@ -253,7 +253,7 @@ void psignal(int sig, char *str)
 static void signal_handler(int sig)
 {
 #if defined(USE_FLTK)
-	if (sig == SIGALRM) return;
+        if (sig == SIGALRM) return;
 #endif
     psignal(sig, "Csound tidy up");
     exit(1);
@@ -340,21 +340,21 @@ int csoundCompile(void *csound, int argc, char **argv)
     dbfs_init(e0dbfs);
     /* may get changed by an orch */
     if (sizeof(MYFLT)==sizeof(float))
-		{
+                {
 #ifdef BETA
-			err_printf("Csound version %s beta (float samples) %s\n", PACKAGE_VERSION, __DATE__);
+                        err_printf("Csound version %s beta (float samples) %s\n", PACKAGE_VERSION, __DATE__);
 #else
-			err_printf("Csound version %s (float samples) %s\n", PACKAGE_VERSION, __DATE__);
+                        err_printf("Csound version %s (float samples) %s\n", PACKAGE_VERSION, __DATE__);
 #endif
-		}
+                }
     else
-		{
+                {
 #ifdef BETA
-			err_printf("Csound version %s beta (double samples) %s\n", PACKAGE_VERSION, __DATE__);
+                        err_printf("Csound version %s beta (double samples) %s\n", PACKAGE_VERSION, __DATE__);
 #else
-			err_printf("Csound version %s (double samples) %s\n", PACKAGE_VERSION, __DATE__);
+                        err_printf("Csound version %s (double samples) %s\n", PACKAGE_VERSION, __DATE__);
 #endif
-		}
+                }
 
     {
       char buffer[128];

@@ -2,11 +2,11 @@
 #include "soundio.h"
 
 #ifdef  USE_DOUBLE
-#define sf_write_MYFLT	sf_write_double
-#define sf_read_MYFLT	sf_read_double
+#define sf_write_MYFLT  sf_write_double
+#define sf_read_MYFLT   sf_read_double
 #else
-#define sf_write_MYFLT	sf_write_float
-#define sf_read_MYFLT	sf_read_float
+#define sf_write_MYFLT  sf_write_float
+#define sf_read_MYFLT   sf_read_float
 #endif
 
 SNDFILE *infile;

@@ -173,8 +173,8 @@ int atone(TONE *p)
 int atonex(TONEX *p)     /* Gavriel Maldonado, modified */
 {
     MYFLT       *ar, *asig;
-    MYFLT	c2, *yt1;
-    int 	nsmps, j;
+    MYFLT       c2, *yt1;
+    int         nsmps, j;
 
     if (*p->khp != p->prvhp) {
       double b;

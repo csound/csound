@@ -52,12 +52,12 @@ static void *(*my_malloc)(int numBytes);
 static void (*my_free)(void *memory, int numBytes);
 
 
-SDIFresult SDIFmem_Init(void *(*MemoryAllocator)(int numBytes), 
-			void (*MemoryFreer)(void *memory, int numBytes)) {
-	my_malloc = MemoryAllocator;
-	my_free = MemoryFreer;
+SDIFresult SDIFmem_Init(void *(*MemoryAllocator)(int numBytes),
+                        void (*MemoryFreer)(void *memory, int numBytes)) {
+        my_malloc = MemoryAllocator;
+        my_free = MemoryFreer;
 
-	return ESDIF_SUCCESS;
+        return ESDIF_SUCCESS;
 }
 
 
@@ -68,7 +68,7 @@ SDIFmem_Frame SDIFmem_CreateEmptyFrame(void) {
     f = (*my_malloc)(sizeof(*f));
 
     if (f == NULL) {
-    	return NULL;
+        return NULL;
     }
 
     f->header.frameType[0] = '\0';
@@ -88,45 +88,45 @@ SDIFmem_Frame SDIFmem_CreateEmptyFrame(void) {
 
 
 void SDIFmem_FreeFrame(SDIFmem_Frame f) {
-	SDIFmem_Matrix m, next;
+        SDIFmem_Matrix m, next;
 
-	if (f == 0) return;
-	
-	m = f->matrices;
-	while (m != NULL) {
-		next = m->next;
-		SDIFmem_FreeMatrix(m);
-		m = next;
-	}
-	
-	(*my_free)(f, sizeof(*f));
-}	
+        if (f == 0) return;
+
+        m = f->matrices;
+        while (m != NULL) {
+                next = m->next;
+                SDIFmem_FreeMatrix(m);
+                m = next;
+        }
+
+        (*my_free)(f, sizeof(*f));
+}
 
 
 SDIFmem_Matrix SDIFmem_CreateEmptyMatrix(void) {
 
     SDIFmem_Matrix result;
 
-	result = (*my_malloc)(sizeof(*result));
+        result = (*my_malloc)(sizeof(*result));
 
     if (result == NULL) {
-    	return NULL;
+        return NULL;
     }
-    
+
     SDIF_Copy4Bytes(result->header.matrixType, "\0\0\0\0");
     result->header.matrixDataType = SDIF_NO_TYPE;
     result->header.rowCount = result->header.columnCount = 0;
     result->data = 0;
-    
+
     return result;
 }
 
 
 void SDIFmem_FreeMatrix(SDIFmem_Matrix m) {
-	if (m->data != 0) {
-		(*my_free)(m->data, SDIF_GetMatrixDataSize(&(m->header)));
-	}
-	(*my_free)(m, sizeof(*m));
+        if (m->data != 0) {
+                (*my_free)(m->data, SDIF_GetMatrixDataSize(&(m->header)));
+        }
+        (*my_free)(m, sizeof(*m));
 }
 
 
@@ -141,15 +141,15 @@ void SDIFmem_RepairFrameHeader(SDIFmem_Frame f) {
     numMatrices = 0;
 
     for (m = f->matrices; m != 0; m=m->next) {
-	++numMatrices;
-	numBytes += sizeof(SDIF_MatrixHeader);
-	numBytes += SDIF_GetMatrixDataSize(&(m->header));
+        ++numMatrices;
+        numBytes += sizeof(SDIF_MatrixHeader);
+        numBytes += SDIF_GetMatrixDataSize(&(m->header));
     }
 
     f->header.size = numBytes;
     f->header.matrixCount = numMatrices;
 }
-    
+
 
 SDIFresult SDIFmem_ReadFrameContents(SDIF_FrameHeader *head, FILE *f,
                      SDIFmem_Frame *putithere) {
@@ -164,25 +164,25 @@ SDIFresult SDIFmem_ReadFrameContents(SDIF_FrameHeader *head, FILE *f,
     SDIFmem_Matrix *prevNextPtr;
 
     result = (SDIFmem_Frame) (*my_malloc)(sizeof(*result));
-    
+
     if (result == 0) {
         return ESDIF_OUT_OF_MEMORY;
     }
-    
+
     result->header = *head;
     result->prev = 0;
     result->next = 0;
     result->matrices = 0;
-    
+
     prevNextPtr = &(result->matrices);
-    
+
     for (i = 0; i < head->matrixCount; ++i) {
         matrix = SDIFmem_CreateEmptyMatrix();
         if (matrix == 0) {
-	    SDIFmem_FreeFrame(result);
+            SDIFmem_FreeFrame(result);
             return ESDIF_OUT_OF_MEMORY;
         }
-        
+
         /* Get the linked list pointers right.  Now if we bomb out
            and call SDIFmem_FreeFrame(result) it will free the matrix
            we just allocated */
@@ -194,21 +194,21 @@ SDIFresult SDIFmem_ReadFrameContents(SDIF_FrameHeader *head, FILE *f,
             SDIFmem_FreeFrame(result);
             return r;
         }
-        
+
         sz = SDIF_GetMatrixDataSize(&(matrix->header));
 
-	if (sz == 0) {
-	    matrix->data = 0;
-	} else {
-	    matrix->data = (*my_malloc)(sz);
-	    if (matrix->data == 0) {
-		SDIFmem_FreeFrame(result);
-		return ESDIF_OUT_OF_MEMORY;
-	    }
-	}
-        
+        if (sz == 0) {
+            matrix->data = 0;
+        } else {
+            matrix->data = (*my_malloc)(sz);
+            if (matrix->data == 0) {
+                SDIFmem_FreeFrame(result);
+                return ESDIF_OUT_OF_MEMORY;
+            }
+        }
+
         if ((r = SDIF_ReadMatrixData(matrix->data, f, &(matrix->header)))!=ESDIF_SUCCESS) {
-	    SDIFmem_FreeFrame(result);
+            SDIFmem_FreeFrame(result);
             return r;
         }
     }
@@ -222,7 +222,7 @@ SDIFresult SDIFmem_ReadFrame(FILE *f, SDIFmem_Frame *putithere) {
     SDIF_FrameHeader fh;
 
     if ((r = SDIF_ReadFrameHeader(&fh, f))!=ESDIF_SUCCESS) {
-	return r;
+        return r;
     }
 
     return SDIFmem_ReadFrameContents(&fh, f, putithere);
@@ -232,7 +232,7 @@ SDIFresult SDIFmem_ReadFrame(FILE *f, SDIFmem_Frame *putithere) {
 SDIFresult SDIFmem_AddMatrix(SDIFmem_Frame f, SDIFmem_Matrix m) {
     int sz;
     SDIFmem_Matrix p, last;
-	
+
     assert(f != NULL);
     assert(m != NULL);
 
@@ -243,11 +243,11 @@ SDIFresult SDIFmem_AddMatrix(SDIFmem_Frame f, SDIFmem_Matrix m) {
         f->matrices = m;
     } else {
         while (p != NULL) {
-	    if (SDIF_Char4Eq(p->header.matrixType, m->header.matrixType)) {
-		return ESDIF_DUPLICATE_MATRIX_TYPE_IN_FRAME;
-	    }
-	    last = p;
-	    p = p->next;
+            if (SDIF_Char4Eq(p->header.matrixType, m->header.matrixType)) {
+                return ESDIF_DUPLICATE_MATRIX_TYPE_IN_FRAME;
+            }
+            last = p;
+            p = p->next;
     }
         last->next = m;
     }
@@ -266,36 +266,36 @@ SDIFresult SDIFmem_WriteMatrix(FILE *sdif_handle, SDIFmem_Matrix m) {
     int paddingNeeded;
 
     if ((r = SDIF_WriteMatrixHeader(&(m->header), sdif_handle))!=ESDIF_SUCCESS) {
-	return r;
+        return r;
     }
 
     sz = SDIF_GetMatrixDataTypeSize(m->header.matrixDataType);
     numElements = (m->header.rowCount * m->header.columnCount);
 
     switch (sz) {
-	case 1:
-	    r = SDIF_Write1(m->data, numElements, sdif_handle);
-	    break;
-	case 2:
-	    r = SDIF_Write2(m->data, numElements, sdif_handle);
-	    break;
-	case 4:
-	    r = SDIF_Write4(m->data, numElements, sdif_handle);
-	    break;
-	case 8:
-	    r = SDIF_Write8(m->data, numElements, sdif_handle);
-	    break;
-	    
-	default:
-	    return ESDIF_BAD_MATRIX_DATA_TYPE;
+        case 1:
+            r = SDIF_Write1(m->data, numElements, sdif_handle);
+            break;
+        case 2:
+            r = SDIF_Write2(m->data, numElements, sdif_handle);
+            break;
+        case 4:
+            r = SDIF_Write4(m->data, numElements, sdif_handle);
+            break;
+        case 8:
+            r = SDIF_Write8(m->data, numElements, sdif_handle);
+            break;
+
+        default:
+            return ESDIF_BAD_MATRIX_DATA_TYPE;
     }
 
     if (r !=ESDIF_SUCCESS) return r;
     paddingNeeded = SDIF_PaddingRequired(&(m->header));
     if (paddingNeeded) {
-		char pad[8] = "\0\0\0\0\0\0\0\0";
-		if((r = SDIF_Write1(pad, paddingNeeded, sdif_handle))!=ESDIF_SUCCESS)
-			return r;
+                char pad[8] = "\0\0\0\0\0\0\0\0";
+                if((r = SDIF_Write1(pad, paddingNeeded, sdif_handle))!=ESDIF_SUCCESS)
+                        return r;
     }
     return ESDIF_SUCCESS;
 }
@@ -308,12 +308,12 @@ SDIFresult SDIFmem_WriteFrame(FILE *sdif_handle, SDIFmem_Frame f) {
     assert(sdif_handle != NULL);
 
     if ((r = SDIF_WriteFrameHeader(&f->header, sdif_handle))!=ESDIF_SUCCESS) {
-	return r;
+        return r;
     }
 
     for (p = f->matrices; p != NULL; p = p->next) {
-	if ((r = SDIFmem_WriteMatrix(sdif_handle, p))!=ESDIF_SUCCESS)
-		return r;
+        if ((r = SDIFmem_WriteMatrix(sdif_handle, p))!=ESDIF_SUCCESS)
+                return r;
     }
 
     return ESDIF_SUCCESS;
