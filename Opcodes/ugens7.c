@@ -37,7 +37,7 @@ static int fofset0(ENVIRON *csound, FOFS *p, int flag)
         (p->ftp2 = csound->FTFind(csound, p->ifnb)) != NULL) {
       OVRLAP *ovp, *nxtovp;
       long   olaps;
-      p->durtogo = (long)(*p->itotdur * esr);
+      p->durtogo = (long)(*p->itotdur * csound->esr);
       if (!skip) { /* legato: skip all memory management */
         if (*p->iphs == FL(0.0))                       /* if fundphs zero,  */
           p->fundphs = MAXLEN;                    /*   trigger new FOF */
@@ -89,7 +89,7 @@ int fof(ENVIRON *csound, FOFS *p)
     OVRLAP *ovp;
     FUNC    *ftp1,  *ftp2;
     MYFLT   *ar, *amp, *fund, *form;
-    long   nsmps = ksmps, fund_inc, form_inc;
+    long   nsmps = csound->ksmps, fund_inc, form_inc;
     MYFLT  v1, fract ,*ftab;
 
     if (p->auxch.auxp==NULL) { /* RWD fix */
@@ -123,7 +123,6 @@ int fof(ENVIRON *csound, FOFS *p)
         ovp = ovp->nxtact;                   /*  formant waveform  */
         fract = PFRAC1(ovp->formphs);        /* from JMC Fog*/
         ftab = ftp1->ftable + (ovp->formphs >> ftp1->lobits);/*JMC Fog*/
-/*              printf("\n ovp->formphs = %ld, ", ovp->formphs); */ /* TEMP JMC*/
         v1 = *ftab++;                           /*JMC Fog*/
         result = v1 + (*ftab - v1) * fract;     /*JMC Fog*/
 /*              result = *(ftp1->ftable + (ovp->formphs >> ftp1->lobits) ); */
@@ -179,7 +178,7 @@ static int newpulse(ENVIRON *csound,
     MYFLT   octamp = *amp, oct;
     long   rismps, newexp = 0;
 
-    if ((ovp->timrem = (long)(*p->kdur * esr)) > p->durtogo &&
+    if ((ovp->timrem = (long)(*p->kdur * csound->esr)) > p->durtogo &&
         (*p->iskip==FL(0.0))) /* ringtime */
       return(0);
     if ((oct = *p->koct) > FL(0.0)) {                   /* octaviation */
@@ -220,13 +219,13 @@ static int newpulse(ENVIRON *csound,
     }
     ovp->curamp = octamp * p->preamp;                /* set startamp  */
     ovp->expamp = p->expamp;
-    if ((ovp->dectim = (long)(*p->kdec * esr)) > 0)  /*      fnb dec  */
+    if ((ovp->dectim = (long)(*p->kdec * csound->esr)) > 0) /*  fnb dec  */
       ovp->decinc = (long)(sicvt / *p->kdec);
     ovp->decphs = PHMASK;
     if (!p->foftype) {
       /* Make fof take k-rate phase increment:
          Add current iphs to initial form phase */
-      ovp->formphs += (long)(*p->iphs * FMAXLEN);              /*     krate phs */
+      ovp->formphs += (long)(*p->iphs * FMAXLEN);           /*  krate phs */
       ovp->formphs &= PHMASK;
       /* Set up grain gliss increment: ovp->glissbas will be added to
          ovp->forminc at each pass in fof2. Thus glissbas must be
@@ -250,9 +249,9 @@ int harmset(ENVIRON *csound, HARMON *p)
       return csound->InitError(csound, Str("Minimum frequency too low"));
     }
     if (p->auxch.auxp == NULL || minfrq < p->minfrq) {
-      long nbufs = (long)(ekr * FL(3.0) / minfrq) + 1;
-      long nbufsmps = nbufs * ksmps;
-      long maxprd = (long)(esr / minfrq);
+      long nbufs = (long)(csound->ekr * FL(3.0) / minfrq) + 1;
+      long nbufsmps = nbufs * csound->ksmps;
+      long maxprd = (long)(csound->esr / minfrq);
       long totalsiz = nbufsmps * 5 + maxprd; /* Surely 5! not 4 */
       csound->AuxAlloc(csound, (long)totalsiz * sizeof(MYFLT), &p->auxch);
       p->bufp = (MYFLT *) p->auxch.auxp;
@@ -265,7 +264,7 @@ int harmset(ENVIRON *csound, HARMON *p)
       p->lomaxdist = maxprd;
       p->minfrq = minfrq;
     }
-    if ((p->autoktim = (long)(*p->iptrkprd * ekr + FL(0.5))) < 1)
+    if ((p->autoktim = (long)(*p->iptrkprd * csound->ekr + FL(0.5))) < 1)
       p->autoktim = 1;
     p->autokcnt = 1;              /* init for immediate autocorr attempt */
     p->lsicvt = FL(65536.0) * onedsr;
@@ -302,7 +301,7 @@ int harmon(ENVIRON *csound, HARMON *p)
     qval = p->prvq;
     if (*p->kest != p->prvest &&
         *p->kest != FL(0.0)) {    /* if new pitch estimate */
-      MYFLT estperiod = esr / *p->kest;
+      MYFLT estperiod = csound->esr / *p->kest;
       double b = 2.0 - cos((double)(*p->kest * tpidsr));
       p->c2 = (MYFLT)(b - sqrt(b*b - 1.0)); /*   recalc lopass coefs */
       p->c1 = FL(1.0) - p->c2;
@@ -318,13 +317,12 @@ int harmon(ENVIRON *csound, HARMON *p)
       p->maxdist = (long)(p->estprd*oneplusvar);
       if (p->maxdist > p->lomaxdist)
         p->maxdist = p->lomaxdist;
-/*       printf("New auto min, max = %d, %d\n", p->mindist, p->maxdist); */
       p->max2dist = p->maxdist * 2;
       p->prvar = *p->kvar;
     }
     c1 = p->c1;
     c2 = p->c2;
-    for (src1 = p->asig, nsmps = ksmps; nsmps--; src1++) {
+    for (src1 = p->asig, nsmps = csound->ksmps; nsmps--; src1++) {
       *inp1++ = *inp2++ = *src1;              /* dbl store the wavform */
       if (*src1 > FL(0.0))
         qval = c1 * *src1 + c2 * qval;        /*  & its half-wave rect */
@@ -350,28 +348,25 @@ int harmon(ENVIRON *csound, HARMON *p)
           src1--; src2++; src3--; src4++;
           win -= windec;
         }
-/*         printf("dsum,dinv (%f, %f) -> %f\n", dsum,dinv,dsum * dinv); */
         *autop++ = dsum * dinv;
       }
       maxval = FL(0.0);
       maxp = autop = p->autobuf;
       endp = autop + p->maxdist - p->mindist;
-/*       printf("Done\nautop=%p endp=%p\n", autop, endp); */
       while (autop < endp) {
         if (*autop > maxval) {          /* max autocorr gives new period */
           maxval = *autop;
           maxp = autop;
 #ifdef BETA
-          printf("new maxval %f at %ld\n", maxval, maxp);
+          csound->Message(csound, "new maxval %f at %ld\n", maxval, maxp);
 #endif
         }
         autop++;
       }
       period = p->mindist + maxp - p->autobuf;
-/*       printf("period=%ld, pperiod=%ld\n", period, p->period); */
       if (period != p->period) {
 #ifdef BETA
-        printf("New period\n");
+        csound->Message(csound, "New period\n");
 #endif
         p->period = period;
         if (!p->cpsmode)
@@ -400,13 +395,13 @@ int harmon(ENVIRON *csound, HARMON *p)
     if (period==0) {
       csound->PerfError(csound, "Period zero\n");
       outp = p->ar;
-      nsmps = ksmps;
+      nsmps = csound->ksmps;
       do {
         *outp++ = FL(0.0);
       } while (nsmps--);
       return OK;
     }
-    while (src1 + ksmps > inp2)             /* if not enough smps presnt */
+    while (src1 + csound->ksmps > inp2)     /* if not enough smps presnt */
       src1 -= period;                       /*      back up 1 prd        */
     pulstrt = src1;                         /* curr available pulse beg  */
 
@@ -424,7 +419,7 @@ int harmon(ENVIRON *csound, HARMON *p)
     phsinc1 = (long)(*p->kfrq1 * p->lsicvt);
     phsinc2 = (long)(*p->kfrq2 * p->lsicvt);
     outp = p->ar;
-    nsmps = ksmps;
+    nsmps = csound->ksmps;
     do {
       MYFLT sum;
       if (src1 != NULL) {
@@ -503,7 +498,7 @@ int harmon(ENVIRON *csound, HARMON *p)
           p->pnt33 = p->pnt3;
         }
         else if (++hrngflg > 200) {
-          printf(Str("harmon out of range...\n"));
+          csound->Message(csound, Str("harmon out of range...\n"));
           hrngflg = 0;
         }
       }
@@ -540,7 +535,7 @@ int harmon(ENVIRON *csound, HARMON *p)
           p->pnt33 = p->pnt3;
         }
         else if (++hrngflg > 200) {
-          printf(Str("harmon out of range"));
+          csound->Message(csound, Str("harmon out of range\n"));
           hrngflg = 0;
         }
       }
