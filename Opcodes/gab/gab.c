@@ -31,15 +31,6 @@
 #include "gab.h"
 #include <math.h>
 
-
-#ifdef MAKEDLL
-/*#define PUBLIC __declspec(dllexport) */
-#define DIR_SEP '\\'
-#else
-/*#define PUBLIC */
-#define DIR_SEP '/'
-#endif
-
 int krsnsetx(ENVIRON *csound, KRESONX *p)
   /* Gabriel Maldonado, modifies for arb order  */
 {
@@ -505,13 +496,10 @@ int adsynt2(ENVIRON *csound,ADSYNT2 *p)
     return OK;
 }
 
-
-int exitnow(ENVIRON *csound,EXITNOW *p)
-{ /* gab c3 */
-    /*fcloseall();  */
-#undef exit
-    exit(0);
-    return OK;
+int exitnow(ENVIRON *csound, EXITNOW *p)
+{
+    longjmp(csound->exitjmp_, CSOUND_EXITJMP_SUCCESS);
+    return OK;  /* compiler only */
 }
 
 /* extern MYFLT *zkstart; */
@@ -689,29 +677,6 @@ int isChanged(ENVIRON *csound,ISCHANGED *p)
     return OK;
 }
 
-/* #include "oload.h"*/  /* for strset */
-/*  */
-/* int CSsystem(ENVIRON *csound,CSSYSTEM *p)  */
-/* { */
-/*      long filno; */
-/*      char comLine[512]; */
-/*      int ret; */
-/*  */
-/*      if (*p->commandLine == sstrcod) { */ /* if char string name given */
-/*       extern EVTBLK *currevent; */
-/*       if (p->STRARG == NULL) strcpy(comLine,unquote(currevent->strarg)); */
-/*       else strcpy(comLine,unquote(p->STRARG));  */  /* unquote it,  else use */
-/*     } */
-/*     else if ((filno=(long)*p->commandLine) <= strsmax && strsets != NULL && */
-/*           strsets[filno]) */
-/*       strcpy(comLine, strsets[filno]); */
-/*     else sprintf(comLine,"soundin.%ld",filno); */ /* soundin.filno */
-/*      ret = system(NULL); */
-/*      if (ret) */
-/*              ret = system( comLine ); */
-/*     return OK; */
-/* } */
-
 /* ------------------------- */
 
 int partial_maximum_set(ENVIRON *csound,P_MAXIMUM *p)
@@ -811,13 +776,14 @@ int mandel(ENVIRON *csound,MANDEL *p)
 #define S sizeof
 
 static OENTRY localops[] = {
-  {"resonxk", S(KRESONX),    3,   "k",    "kkkooo", (SUBR)krsnsetx, (SUBR)kresonx, NULL  },
-
-  { "tab_i",S(FASTAB),       1,   "i",    "iio", (SUBR)fastabi               },
-  { "tab",S(FASTAB),         7,   "s",    "xio", (SUBR)fastab_set, (SUBR)fastabk,   (SUBR)fastab },
-  { "tabw_i",S(FASTAB),      1,   "",    "iiio", (SUBR)fastabiw               },
-  { "tabw",S(FASTAB),        7,   "",    "xxio", (SUBR)fastab_set, (SUBR)fastabkw,   (SUBR)fastabw },
-
+  {"resonxk", S(KRESONX),    3,   "k",    "kkkooo",
+                            (SUBR) krsnsetx, (SUBR) kresonx, NULL },
+  { "tab_i",S(FASTAB),       1,   "i",    "iio", (SUBR) fastabi, NULL, NULL },
+  { "tab",S(FASTAB),         7,   "s",    "xio",
+                            (SUBR) fastab_set, (SUBR)fastabk, (SUBR) fastab },
+  { "tabw_i",S(FASTAB),      1,   "",    "iiio", (SUBR) fastabiw, NULL, NULL },
+  { "tabw",S(FASTAB),        7,   "",    "xxio",
+                            (SUBR)fastab_set, (SUBR)fastabkw, (SUBR)fastabw },
   { "tb0_init", S(TB_INIT),  1,   "",      "i",    (SUBR)tab0_init},
   { "tb1_init", S(TB_INIT),  1,   "",      "i",    (SUBR)tab1_init},
   { "tb2_init", S(TB_INIT),  1,   "",      "i",    (SUBR)tab2_init},
@@ -834,81 +800,62 @@ static OENTRY localops[] = {
   { "tb13_init", S(TB_INIT), 1,   "",      "i",    (SUBR)tab13_init},
   { "tb14_init", S(TB_INIT), 1,   "",      "i",    (SUBR)tab14_init},
   { "tb15_init", S(TB_INIT), 1,   "",      "i",    (SUBR)tab15_init},
-
-  { "tb0_k",      S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab0,     NULL},
-  { "tb1_k",      S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab1,     NULL},
-  { "tb2_k",      S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab2,     NULL},
-  { "tb3_k",      S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab3,     NULL},
-  { "tb4_k",      S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab4,     NULL},
-  { "tb5_k",      S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab5,     NULL},
-  { "tb6_k",      S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab6,     NULL},
-  { "tb7_k",      S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab7,     NULL},
-  { "tb8_k",      S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab8,     NULL},
-  { "tb9_k",      S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab9,     NULL},
-  { "tb10_k",     S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab10,    NULL},
-  { "tb11_k",     S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab11,    NULL},
-  { "tb12_k",     S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab12,    NULL},
-  { "tb13_k",     S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab13,    NULL},
-  { "tb14_k",     S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab14,    NULL},
-  { "tb15_k",     S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab15,    NULL},
+  { "tb0.k",      S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab0,  NULL},
+  { "tb1.k",      S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab1,  NULL},
+  { "tb2.k",      S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab2,  NULL},
+  { "tb3.k",      S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab3,  NULL},
+  { "tb4.k",      S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab4,  NULL},
+  { "tb5.k",      S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab5,  NULL},
+  { "tb6.k",      S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab6,  NULL},
+  { "tb7.k",      S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab7,  NULL},
+  { "tb8.k",      S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab8,  NULL},
+  { "tb9.k",      S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab9,  NULL},
+  { "tb10.k",     S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab10, NULL},
+  { "tb11.k",     S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab11, NULL},
+  { "tb12.k",     S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab12, NULL},
+  { "tb13.k",     S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab13, NULL},
+  { "tb14.k",     S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab14, NULL},
+  { "tb15.k",     S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab15, NULL},
   /* tbx_t (t-rate version removed here) */
-  { "tb0_i",      S(FASTB), 1,    "i",     "i",    (SUBR)tab0      },
-  { "tb1_i",      S(FASTB), 1,    "i",     "i",    (SUBR)tab1      },
-  { "tb2_i",      S(FASTB), 1,    "i",     "i",    (SUBR)tab2      },
-  { "tb3_i",      S(FASTB), 1,    "i",     "i",    (SUBR)tab3      },
-  { "tb4_i",      S(FASTB), 1,    "i",     "i",    (SUBR)tab4      },
-  { "tb5_i",      S(FASTB), 1,    "i",     "i",    (SUBR)tab5      },
-  { "tb6_i",      S(FASTB), 1,    "i",     "i",    (SUBR)tab6      },
-  { "tb7_i",      S(FASTB), 1,    "i",     "i",    (SUBR)tab7      },
-  { "tb8_i",      S(FASTB), 1,    "i",     "i",    (SUBR)tab8      },
-  { "tb9_i",      S(FASTB), 1,    "i",     "i",    (SUBR)tab9      },
-  { "tb10_i",     S(FASTB), 1,    "i",     "i",    (SUBR)tab10     },
-  { "tb11_i",     S(FASTB), 1,    "i",     "i",    (SUBR)tab11     },
-  { "tb12_i",     S(FASTB), 1,    "i",     "i",    (SUBR)tab12     },
-  { "tb13_i",     S(FASTB), 1,    "i",     "i",    (SUBR)tab13     },
-  { "tb14_i",     S(FASTB), 1,    "i",     "i",    (SUBR)tab14     },
-  { "tb15_i",     S(FASTB), 1,    "i",     "i",    (SUBR)tab15     },
-
-  { "nlalp", S(NLALP),      5,    "a",    "akkoo", (SUBR)nlalp_set, NULL, (SUBR)nlalp     },
-
-  { "adsynt2",S(ADSYNT2),   5,    "a",  "kkiiiio", (SUBR)adsynt2_set,  NULL,  (SUBR)adsynt2  },
-
-  { "exitnow",S(EXITNOW),   1,    "",  "", (SUBR)exitnow  },
-
-  /*    { "zr_i",  S(ZKR),  1,     "i",     "i",    (SUBR)zread,     NULL,  NULL}, */
-  /*    { "zr_k",  S(ZKR),  2,     "k",     "k",    NULL,   (SUBR)zread,    NULL}, */
-  /*    { "zr_a",  S(ZAR),  5,     "a",     "a",    (SUBR)zaset,   NULL,    (SUBR)zar}, */
-  /*     */
-  /*{ "k_i",       S(ASSIGN), 1,     "k",     "i",    (SUBR)assign}, */
-  /*    { "k_t",   S(ASSIGN),   2,     "k",     "t",    NULL, (SUBR)assign}, */
-  /*    { "a_k",   S(INDIFF),    5,      "a",    "k",    (SUBR)a_k_set,NULL,     (SUBR)interp    }, */
-
-  { "tabrec",   S(TABREC),  3,     "",      "kkkkz",(SUBR)tabrec_set, (SUBR)tabrec_k },
-  { "tabplay",  S(TABPLAY), 3,     "",      "kkkz", (SUBR)tabplay_set, (SUBR)tabplay_k },
-
-  { "changed", S(ISCHANGED), 3,     "k",     "z",            (SUBR)isChanged_set, (SUBR)isChanged },
-
-  /*{ "ftlen_k",S(EVAL),    2,      "k",    "k", NULL,      (SUBR)ftlen     }, */
-  { "max_k",  S(P_MAXIMUM), 5,      "k",    "aki",  (SUBR)partial_maximum_set,(SUBR)NULL,(SUBR)partial_maximum    },
-  { "mandel",S(MANDEL),     3,      "kk",    "kkkk",   (SUBR)mandel_set, (SUBR)mandel },
-
+  { "tb0.i",      S(FASTB), 1,    "i",     "i",    (SUBR)tab0      },
+  { "tb1.i",      S(FASTB), 1,    "i",     "i",    (SUBR)tab1      },
+  { "tb2.i",      S(FASTB), 1,    "i",     "i",    (SUBR)tab2      },
+  { "tb3.i",      S(FASTB), 1,    "i",     "i",    (SUBR)tab3      },
+  { "tb4.i",      S(FASTB), 1,    "i",     "i",    (SUBR)tab4      },
+  { "tb5.i",      S(FASTB), 1,    "i",     "i",    (SUBR)tab5      },
+  { "tb6.i",      S(FASTB), 1,    "i",     "i",    (SUBR)tab6      },
+  { "tb7.i",      S(FASTB), 1,    "i",     "i",    (SUBR)tab7      },
+  { "tb8.i",      S(FASTB), 1,    "i",     "i",    (SUBR)tab8      },
+  { "tb9.i",      S(FASTB), 1,    "i",     "i",    (SUBR)tab9      },
+  { "tb10.i",     S(FASTB), 1,    "i",     "i",    (SUBR)tab10     },
+  { "tb11.i",     S(FASTB), 1,    "i",     "i",    (SUBR)tab11     },
+  { "tb12.i",     S(FASTB), 1,    "i",     "i",    (SUBR)tab12     },
+  { "tb13.i",     S(FASTB), 1,    "i",     "i",    (SUBR)tab13     },
+  { "tb14.i",     S(FASTB), 1,    "i",     "i",    (SUBR)tab14     },
+  { "tb15.i",     S(FASTB), 1,    "i",     "i",    (SUBR)tab15     },
+  { "nlalp", S(NLALP),      5,    "a",    "akkoo",
+                            (SUBR) nlalp_set, NULL, (SUBR) nlalp   },
+  { "adsynt2",S(ADSYNT2),   5,    "a",  "kkiiiio",
+                            (SUBR) adsynt2_set, NULL, (SUBR)adsynt2 },
+  { "exitnow",S(EXITNOW),   1,    "",  "", (SUBR) exitnow, NULL, NULL },
+/* { "zr_i",  S(ZKR),     1,  "i",  "i",  (SUBR)zread, NULL, NULL}, */
+/* { "zr_k",  S(ZKR),     2,  "k",  "k",  NULL, (SUBR)zread, NULL}, */
+/* { "zr_a",  S(ZAR),     5,  "a",  "a",  (SUBR)zaset, NULL, (SUBR)zar}, */
+/* { "k_i",   S(ASSIGN),  1,  "k",  "i",  (SUBR)assign}, */
+/* { "k_t",   S(ASSIGN),  2,  "k",  "t",  NULL, (SUBR)assign}, */
+/* { "a_k",   S(INDIFF),  5,  "a",  "k",  (SUBR)a_k_set,NULL, (SUBR)interp }, */
+  { "tabrec",   S(TABREC),  3,     "",      "kkkkz",
+                            (SUBR) tabrec_set, (SUBR) tabrec_k, NULL },
+  { "tabplay",  S(TABPLAY), 3,     "",      "kkkz",
+                            (SUBR) tabplay_set, (SUBR) tabplay_k, NULL },
+  { "changed", S(ISCHANGED), 3,     "k",     "z",
+                            (SUBR) isChanged_set, (SUBR)isChanged, NULL },
+  /*{ "ftlen_k",S(EVAL),    2,      "k",    "k", NULL,      (SUBR)ftlen   }, */
+  { "max_k",  S(P_MAXIMUM), 5,      "k",    "aki",
+            (SUBR) partial_maximum_set, (SUBR) NULL, (SUBR) partial_maximum },
+  { "mandel",S(MANDEL),     3,      "kk",    "kkkk",
+                            (SUBR) mandel_set, (SUBR) mandel, NULL },
 };
 
 LINKAGE
-/* */
-/*Called by Csound to obtain the size of */
-/* the table of OENTRY structures defined in this shared library. */
-/* */
-/* PUBLIC int opcode_size() */
-/* { */
-/* return sizeof(gabOentry); */
-/* } */
 
-/* * */
-/* * Called by Csound to obtain a pointer to */
-/* * the table of OENTRY structures defined in this shared library. */
-
-/* PUBLIC OENTRY *opcode_init(ENVIRON *csound) */
-/* { */
-/* return gabOentry; */
-/* } */
