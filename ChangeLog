@@ -1,3 +1,12 @@
+2004-07-23  Michael Gogins <gogins@pipeline.com>
+
+	* Loris: added sources (for Csound 5 opcode ONLY) and prebuilt binaries
+    (for MinGW/Windows with USE_DOUBLE ONLY) for _loris.dll, which is both
+    a plugin Csound 5 opcode and a Python extension module.
+    
+    * Modified dl_opcodes.c to print debugging info off the -v option, and
+    made the messages clearer.
+
 2004-07-21  Michael Gogins <gogins@pipeline.com>
 
 	* vst4cs: implemented sample-accurate timing for NOTE ON and NOTE OFF.
