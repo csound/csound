@@ -6,13 +6,12 @@
 
 int main(int argc, char **argv)
 {
-	
     /* set stdout to non buffering if not outputing to console window */
     if(!isatty(fileno(stdout)))
     {
         setvbuf(stdout, (char *)NULL, _IONBF, 0);
-    }    	
-	
+    }
+
     /*	Create Csound. */
     void *csound = csoundCreate(0);
     /*	One complete performance cycle. */
@@ -24,6 +23,10 @@ int main(int argc, char **argv)
           csoundYield(csound);
         }
       }
+    {       /* IV - Jan 28 2005 */
+      extern void print_benchmark_info(void*, const char*);   /* in main.c */
+      print_benchmark_info(csound, Str("end of performance"));
+    }
     csoundDestroy(csound);
     return result;
 }

@@ -1,3 +1,21 @@
+2005-01-28	Istvan Varga	<istvan@csounds.com>
+	* H/csoundCore.h, Engine/oload.c:
+	  added void **namedGlobals, int namedGlobalsCurrLimit, and
+	  int namedGlobalsMaxLimit to ENVIRON
+	* Top/main.c, frontends/csound/csound_main.c:
+	  print compile times (real and CPU) if bit 7 of O.msglevel is set
+	* H/csound.h, Top/csound.c:
+	  implemented functions for creating named global "variables"
+	* OOps/aops.c: rtclock opcode uses new timer functions
+	* Top/main.c:
+	  print_benchmark_info(): new function (activated by O.msglevel & 128)
+	  call csoundDeleteAllGlobalVariables() on RESET
+	  create global timer struct that counts from Csound instance start-up;
+	  use these calls to get the current real/CPU time in seconds (return
+	  value is double):
+	   timers_get_real_time(csoundQueryGlobalVariable(csound, "csRtClock"))
+	   timers_get_CPU_time(csoundQueryGlobalVariable(csound, "csRtClock"))
+
 2005-01-27	Istvan Varga	<istvan@csounds.com>
 	* Engine/express.c, Engine/oload.c, Engine/rdorch.c, H/csoundCore.h:
 	* Top/argdecode.c:

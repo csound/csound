@@ -327,6 +327,22 @@ extern  char  *getstrformat(int);
 extern  short  sfsampsize(int);
 extern int frsturnon;
 
+/* IV - Jan 28 2005 */
+void print_benchmark_info(void *csound, const char *s)
+{
+    double  rt, ct;
+    RTCLOCK *p;
+
+    if ((O.msglevel & 0x80) == 0)
+      return;
+    p = (RTCLOCK*) csoundQueryGlobalVariable(csound, "csRtClock");
+    if (p == NULL)
+      return;
+    rt = timers_get_real_time(p);
+    ct = timers_get_CPU_time(p);
+    err_printf(Str("Elapsed time at %s: real: %.3fs, CPU: %.3fs\n"),
+               (char*) s, rt, ct);
+}
 
 #ifdef MSVC
 _declspec(dllexport) /* VL linkage fix 11-04 */
@@ -354,12 +370,16 @@ int csoundCompile(void *csound, int argc, char **argv)
        */
       return -1;
     }
+    /* IV - Jan 28 2005 */
+    csoundCreateGlobalVariable(csound, "csRtClock", sizeof(RTCLOCK));
     frsturnon = 0;
     init_getstring(argc, argv);
     init_pvsys();
     /* utilities depend on this as well as orchs */
     e0dbfs = DFLT_DBFS;
     dbfs_init(e0dbfs);
+    timers_struct_init((RTCLOCK*)
+                        csoundQueryGlobalVariable(csound, "csRtClock"));
     /* may get changed by an orch */
     if (sizeof(MYFLT)==sizeof(float)) {
 #ifdef BETA
@@ -510,13 +530,13 @@ int csoundCompile(void *csound, int argc, char **argv)
     /* instrument numbers are known at the score read/sort stage */
     create_opcodlst(&cenviron); /* create initial opcode list (if not done yet) */
     otran();                 /* read orcfile, setup desblks & spaces     */
+    /* IV - Jan 28 2005 */
+    print_benchmark_info(csound, Str("end of orchestra compile"));
     if (!csoundYield(&cenviron)) return (-1);
-/*     print_elapsed_time("end of orch compile");  /\* IV - Nov 10 2002 *\/ */
     /* IV - Oct 31 2002: now we can read and sort the score */
     if (scorename == NULL || scorename[0]=='\0') {
       if (O.RTevents) {
-        err_printf(Str(
-                       "realtime performance using dummy "
+        err_printf(Str("realtime performance using dummy "
                        "numeric scorefile\n"));
         goto perf;
       }
@@ -585,6 +605,8 @@ int csoundCompile(void *csound, int argc, char **argv)
     s = playscore;
     O.playscore = filnamp;
     while ((*filnamp++ = *s++));    /* copy sorted score name */
+    /* IV - Jan 28 2005 */
+    print_benchmark_info(csound, Str("end of score sort"));
  perf:
     O.filnamsize = filnamp - O.filnamspace;
     return musmon(csound);
@@ -637,6 +659,7 @@ void mainRESET(ENVIRON *p)
     void orchRESET(void);
     void soundinRESET(void);
     void tranRESET(void);
+    void csoundDeleteAllGlobalVariables(void*);
 
 #ifdef RTAUDIO
     rtclose_();                 /* In case need to reopen */
@@ -669,6 +692,7 @@ void mainRESET(ENVIRON *p)
     oloadRESET();               /* should be called last but changed!! */
     remove_tmpfiles();          /* IV - Oct 31 2002 */
     memRESET();
+    csoundDeleteAllGlobalVariables((void*) p);  /* IV - Jan 28 2005 */
     p->spoutactive_ = 0;
     O.Midiin = 0;
     p->nrecs_ = 0;
