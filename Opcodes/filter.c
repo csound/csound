@@ -184,7 +184,8 @@ int ifilter(ENVIRON *csound, FILTER* p)
     /* First check bounds on initialization arguments */
     if ((p->numb<1) || (p->numb>(MAXZEROS+1)) ||
         (p->numa<0) || (p->numa>MAXPOLES))
-      return initerror(Str(X_278,"Filter order out of bounds: (1<=nb<51, 0<=na<=50)"));
+      return initerror(Str(X_278,
+                           "Filter order out of bounds: (1<=nb<51, 0<=na<=50)"));
 
     /* Calculate the total delay in samples and allocate memory for it */
     p->ndelay = MAX(p->numb-1,p->numa);
@@ -221,7 +222,8 @@ int izfilter(ENVIRON *csound, ZFILTER *p)
     /* First check bounds on initialization arguments */
     if ((p->numb<1) || (p->numb>(MAXZEROS+1)) ||
         (p->numa<0) || (p->numa>MAXPOLES))
-      return initerror(Str(X_278,"Filter order out of bounds: (1<=nb<51, 0<=na<=50)"));
+      return initerror(Str(X_278,
+                           "Filter order out of bounds: (1<=nb<51, 0<=na<=50)"));
 
     /* Calculate the total delay in samples and allocate memory for it */
     p->ndelay = MAX(p->numb-1,p->numa);

@@ -96,12 +96,12 @@ int fog(ENVIRON *csound, FOGS *p)
     form_inc = (long)(*ptch * fogcvt);  /*form_inc = *form * sicvt;*/
 /*      speed_inc = *speed * fogcvt; */   /*JMC for FOG--out for phs version*/
     do {
-      if (p->fundphs & MAXLEN) {                     /* if phs has wrapped */
+      if (p->fundphs & MAXLEN) {                       /* if phs has wrapped */
         p->fundphs &= PHMASK;
         if ((ovp = p->basovrlap.nxtfree) == NULL) {
           return perferror(Str(X_267,"FOF needs more overlaps"));
         }
-        if (newpulse(csound, p, ovp, amp, fund, ptch)) {         /* init new fof */
+        if (newpulse(csound, p, ovp, amp, fund, ptch)) { /* init new fof */
           ovp->nxtact = p->basovrlap.nxtact;           /* & link into  */
           p->basovrlap.nxtact = ovp;                   /*   actlist    */
           p->basovrlap.nxtfree = ovp->nxtfree;
@@ -115,7 +115,7 @@ int fog(ENVIRON *csound, FOGS *p)
         ovp = ovp->nxtact;                     /*  formant waveform  */
         fract = PFRAC1(ovp->formphs);                   /*JMC Fog*/
         ftab = ftp1->ftable + (ovp->formphs >> ftp1->lobits);/*JMC Fog*/
-/*              printf("\n ovp->formphs = %ld, ", ovp->formphs); */ /* TEMP JMC*/
+/*      printf("\n ovp->formphs = %ld, ", ovp->formphs); */ /* TEMP JMC*/
         v1 = *ftab++;                                   /*JMC Fog*/
         result = v1 + (*ftab - v1) * fract;             /*JMC Fog*/
 /*  result = *(ftp1->ftable + (ovp->formphs >> ftp1->lobits) ); FOF version*/

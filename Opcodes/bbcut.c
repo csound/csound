@@ -352,7 +352,8 @@ int BBCutStereo(ENVIRON *csound, BBCUTSTEREO *p)
         p->stutteron   = 0;
       }
 
-      if (p->repeatsdone>=p->repeats) { /* a new subphrase- a cut + some repeats of it */
+      if (p->repeatsdone>=p->repeats) {
+        /* a new subphrase- a cut + some repeats of it */
         p->repeatsdone = 0;
 
         /* STUTTER- only within half a bar of the end */

@@ -148,7 +148,7 @@ int slider64(ENVIRON *csound, SLIDER64 *p)
     unsigned char chan = p->slchan = (unsigned char)((*p->ichan)-1); \
     char sbuf[120];                                               \
     if (chan  > 15)  {                                            \
-      return initerror(Str(X_840,"illegal channel"));                    \
+      return initerror(Str(X_840,"illegal channel"));             \
     }                                                             \
     {                                                             \
       MYFLT value;                                                \
@@ -165,7 +165,7 @@ int slider64(ENVIRON *csound, SLIDER64 *p)
         if (*slnum > 127) {                                       \
           sprintf(sbuf,                                           \
                   Str(X_843,"illegal control number at position n.%d"), j); \
-          return initerror(sbuf);                                        \
+          return initerror(sbuf);                                 \
         }                                                         \
         if ((value=*sld->initvalue) < (*min=*sld->imin) ||        \
             value > (*max=*sld->imax) ) {                         \
@@ -173,7 +173,7 @@ int slider64(ENVIRON *csound, SLIDER64 *p)
                   Str(X_856,"illegal initvalue at position n.%d"), j); \
           return initerror(sbuf);                                 \
         }                                                         \
-        if (*sld->ifn > 0)   *ftp++ = ftfind(csound, sld->ifn);           \
+        if (*sld->ifn > 0)   *ftp++ = ftfind(csound, sld->ifn);   \
         else                 *ftp++ = NULL;                       \
         value =  (*sld->initvalue - *min) / (*max++ - *min);      \
         min++;;                                                   \
@@ -278,7 +278,7 @@ int slider64f(ENVIRON *csound, SLIDER64f *p)
         }                                                         \
         value = chanblock[slnum] * oneTOf7bit;                    \
         if (*sld->ifn > 0)  {                                     \
-          ftp = ftfind(csound, sld->ifn);         \
+          ftp = ftfind(csound, sld->ifn);                         \
           value = *( ftp->ftable + (long)(value * ftp->flen));    \
                                 /* no interpolation */            \
         }                                                         \
@@ -352,7 +352,7 @@ int islider64(ENVIRON *csound, ISLIDER64 *p)
                   Str(X_856,"illegal initvalue at position n.%d"), j); \
           return initerror(sbuf);                                      \
         }                                                              \
-        if (*sld->ifn > 0)   *ftp++ = ftfind(csound, sld->ifn); \
+        if (*sld->ifn > 0)   *ftp++ = ftfind(csound, sld->ifn);        \
         else                 *ftp++ = NULL;                            \
         intvalue = (int) (((*(sld++)->initvalue - *min) / (*max++ - *min)) \
                           * f14bit+FL(0.5));                           \
@@ -386,7 +386,7 @@ int islider64(ENVIRON *csound, ISLIDER64 *p)
       **result++ = value * (*max++ - *min) + *min; /* scales the output */ \
       min++;                                                           \
     }                                                                  \
-    return OK;                                                    \
+    return OK;                                                         \
 }
 
 int slider_i16bit14(ENVIRON *csound, SLIDER16BIT14 *p)
@@ -446,7 +446,7 @@ int slider32bit14(ENVIRON *csound, SLIDER32BIT14 *p)
         value = (MYFLT)((chanblock[slnum_msb]  * 128                   \
                          + chanblock[slnum_lsb]) * oneTOf14bit);       \
         if (*sld->ifn > 0) {    /* linear interpolation routine */     \
-          FUNC *ftp= ftfind(csound, sld->ifn);         \
+          FUNC *ftp= ftfind(csound, sld->ifn);                         \
           MYFLT phase = value * ftp->flen;                             \
           MYFLT *base = ftp->ftable + (long)(phase);                   \
           value = *base + (*(base + 1) - *base) * (phase - (long) phase); \
