@@ -35,6 +35,8 @@
 
 /* Define to the version of this package. */
 #define PACKAGE_VERSION "5.00"
+#define VERSION (5)
+#define SUBVER  (0)
 #endif
 
 # define APIVERSION 1  /* should be increased anytime a new version
@@ -44,3 +46,4 @@
                           the GLOBALS struct */
 # define APISUBVER 0   /* for minor changes that will still allow
                           compatiblity with older hosts */
+
