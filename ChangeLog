@@ -1,3 +1,13 @@
+2005-02-09  Michael Gogins <gogins@pipeline.com>
+
+	* Add long options to set ID tags in output soundfile:
+	--id-title=TITLE        Title tag in output soundfile (no spaces)
+	--id-copyright=COPY     Copyright tag in output soundfile (no spaces)
+	--id-software=SOFTWARE  Software tag in output soundfile (no spaces)
+	--id-artist=ARTIST      Artist tag in output soundfile (no spaces)
+	--id-comment=COMMENT    Comment tag in output soundfile (no spaces)
+	--id-date=DATE          Date tag in output soundfile (no spaces)
+
 2005-02-07	Istvan Varga	<istvan@csounds.com>
 	* Engine/insert.c:
 	  Fixed uses of INSDS.xtratim where it was assumed to be short.
