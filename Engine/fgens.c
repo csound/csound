@@ -85,7 +85,7 @@ void ftRESET(void)
     e       = NULL;
     if (flist) {
       for (i = 1; i <= maxfnum; i++)
-        mfree(flist[i]);   /* Check this */
+		  mfree(flist[i]);   /* Check this */
       mfree(flist);
       flist   = NULL;
     }
@@ -180,7 +180,7 @@ void fgens(EVTBLK *evtblkp)     /* create ftable using evtblk data */
       ftresdisp();                      /* rescale and display */
 }
 
-static void gen02(void)  /* read ftable values directly from p-args */
+static void gen02(void)             /* read ftable values directly from p-args */
 {
     MYFLT   *fp = ftp->ftable, *pp = &e->p[5];
     int     nvals = nargs;
@@ -396,7 +396,7 @@ static void gen08(void)
     f1 = *valp++;
     curx = df0 = FL(0.0);           /* init x to origin; slope at x0 = 0 */
     do {                            /* for each spline segmnt (x0 to x1) */
-      if (nsegs > 1) {                  /* if another seg to follow  */
+      if (nsegs > 1) {                    /* if another seg to follow  */
         MYFLT dx02;
         if ((dx12 = *valp++) <= FL(0.0))  /*    read its distance      */
           FTERR(Str(X_892,"illegal x interval"));
@@ -404,11 +404,11 @@ static void gen08(void)
         dx02 = dx01 + dx12;
         df1 = ( f2*dx01*dx01 + f1*(dx12-dx01)*dx02 - f0*dx12*dx12 )
           / (dx01*dx02*dx12);
-      }                                 /* df1 is slope of parabola at x1 */
+      }                              /* df1 is slope of parabola at x1 */
       else df1 = FL(0.0);
       if ((npts = (int)(dx01 - curx)) > fplim - fp)
         npts = fplim - fp;
-      if (npts > 0) {                   /* for non-trivial segment: */
+      if (npts > 0) {                     /* for non-trivial segment: */
         slope = (f1 - f0) / dx01;       /*   get slope x0 to x1     */
         resd0 = df0 - slope;            /*   then residual slope    */
         resd1 = df1 - slope;            /*     at x0 and x1         */
@@ -434,7 +434,7 @@ static void gen08(void)
       f1 = f2;
       df0 = df1;
     }
-    while (--nsegs && fp<fplim);  /* loop for remaining segments  */
+    while (--nsegs && fp<fplim);    /* loop for remaining segments  */
     while (fp <= fplim)
       *fp++ = f0;                 /* & repeat the last value      */
 }
@@ -464,15 +464,15 @@ static void gen10(void)
     long    phs, hcnt;
     MYFLT   amp, *fp, *finp;
 
-    if ((hcnt = nargs) <= 0)                       /* hcnt is nargs   */
+    if ((hcnt = nargs) <= 0)                        /* hcnt is nargs   */
       return;
     finp = &ftp->ftable[flen];
     do {
       if ((amp = e->p[hcnt+4]) != 0)               /* for non-0 amps,  */
       for (phs=0, fp=ftp->ftable; fp<=finp; fp++) {
-        *fp += (MYFLT)sin(phs*tpdlen) * amp;       /* accum sin pts  */
-        phs += hcnt;                               /* phsinc is hno   */
-        phs %= flen;                               /* phs &= lenmask; */
+        *fp += (MYFLT)sin(phs*tpdlen) * amp;    /* accum sin pts  */
+        phs += hcnt;                    /* phsinc is hno   */
+        phs %= flen;                    /* phs &= lenmask; */
       }
     }
     while (--hcnt);
@@ -627,14 +627,14 @@ static void gen15(void)
     if (nargs & 01)
       FTERR(Str(X_1320,"uneven number of args"));
     nh = (nargs - 2) >>1;
-    fp = &e->p[5];                                /* save p5, p6  */
+    fp = &e->p[5];                                      /* save p5, p6  */
     xint = *fp++;
     xamp = *fp++;
     for (n = nh, cosp = fp, sinp = hsin; n > 0; n--) {
-      h = *fp++;                                  /* rpl h,angle pairs */
+      h = *fp++;                                        /* rpl h,angle pairs */
       angle = (MYFLT)(*fp++ * tpd360);
-      *cosp++ = h * (MYFLT)cos((double)angle);    /*  with h cos angle */
-      *sinp++ = h * (MYFLT)sin((double)angle);    /* and save the sine */
+      *cosp++ = h * (MYFLT)cos((double)angle);          /*  with h cos angle */
+      *sinp++ = h * (MYFLT)sin((double)angle);          /* and save the sine */
     }
     nargs -= nh;
     gen13();                                      /* call gen13   */
@@ -731,13 +731,13 @@ static void gen18(void)  /* by pete moss (petemoss@petemoss.org), jan 2002 */
     }
     while (cnt--) {
       fn=*pp++, amp=*pp++, start=(int)*pp++, finish=(int)*pp++;
-      /* make sure start and finish < flen */
-      if ((start>flen) || (finish>flen)) {
+
+      if ((start>flen) || (finish>flen)) { /* make sure start and finish < flen */
         fterror(Str(X_1683,"a range given exceeds table length"));
         return;
       }
 
-      if ((fnp = ftfind(&fn)) != NULL) {        /* make sure fn exists */
+      if ((fnp = ftfind(&fn)) != NULL) {               /* make sure fn exists */
         fp = fnp->ftable, fnlen = fnp->flen-1;  /* and set it up */
       }
       else {
@@ -835,7 +835,7 @@ static void gen20(void)
         double flenm12 = (double)(flen-1)*(flen-1);
         double besbeta = besseli( beta);
         for (i = -flen2 + 0.1 ; i < flen2 ; i++)
-          *ft++ = (MYFLT)(xarg*besseli((beta*sqrt(1.0-i*i/flenm12)))/besbeta);
+          *ft++ = (MYFLT)(xarg * besseli((beta*sqrt(1.0-i*i/flenm12)))/besbeta);
         return;
       }
     case 8:                     /* Rectangular */
@@ -1186,7 +1186,7 @@ static void gen28(void) /* read X Y values directly from ascii file */
       z2 = z[j+1];
 
       if (z2 < z1) goto gen28err2;
-      seglen = (int)((z2-z1)*resolution); /* printf("seglen= %f\n", seglen); */
+      seglen = (int)((z2-z1) * resolution); /* printf("seglen= %f\n", seglen); */
       incrx = (x2 - x1) / (MYFLT)seglen;
       incry = (y2 - y1) / (MYFLT)seglen;
       while (seglen--) {
@@ -1736,9 +1736,9 @@ static void ftalloc(void)   /* alloc ftable space for fno (or replace one)  */
         mfree((char *)ftp);             /*   release old space   */
         flist[fno] = NULL;
         if (actanchor.nxtact != NULL) {
-          if (O.msglevel & WARNMSG) {   /*   & chk for danger    */
-            printf(Str(X_785,"WARNING: ftable %d relocating due to size "
-                       "change\ncurrently active instruments may find this "
+          if (O.msglevel & WARNMSG) { /*   & chk for danger    */
+            printf(Str(X_785,"WARNING: ftable %d relocating due to size change\n"
+                       "currently active instruments may find this "
                        "disturbing\n"), fno);
           }
         }
@@ -1771,8 +1771,7 @@ ftfind(MYFLT *argp)     /* find the ptr to an existing ftable structure */
       return NULL;
     }
     else if (!ftp->lenmask) {
-      sprintf(errmsg, Str(X_686,"deferred-size ftable %f illegal here"),
-              *argp);
+      sprintf(errmsg, Str(X_686,"deferred-size ftable %f illegal here"), *argp);
       initerror(errmsg);
       return NULL;
     }
@@ -1958,8 +1957,7 @@ static void gen01raw(void)      /* read ftable values from a sound file */
       if (ftp->end1 > flen || ftp->end2 > flen) {
         long maxend;
         if (O.msglevel & WARNMSG)
-          printf(Str(X_288,
-                     "WARNING: GEN1: input file truncated by ftable size\n"));
+          printf(Str(X_288,"WARNING: GEN1: input file truncated by ftable size\n"));
         if ((maxend = ftp->end1) < ftp->end2)
           maxend = ftp->end2;
         printf(Str(X_578,"\tlooping endpoint %ld exceeds ftsize %ld\n"),
@@ -1981,8 +1979,7 @@ static void gen01raw(void)      /* read ftable values from a sound file */
  gn1rtn:
     if (p->audrem > 0 && !truncmsg && p->framesrem > flen) { /* Reduce msg */
       if (O.msglevel & WARNMSG)
-        printf(Str(X_287,
-                   "WARNING: GEN1: aiff file truncated by ftable size\n"));
+        printf(Str(X_287,"WARNING: GEN1: aiff file truncated by ftable size\n"));
       printf(Str(X_573,"\taudio samps %ld exceeds ftsize %ld\n"),
              p->framesrem, flen);
       needsiz(p->framesrem);     /* ????????????  */
@@ -1997,7 +1994,7 @@ static int ftldno = 100;        /* Count table number */
                         die(Str(X_784,"ftable load error"));\
                         return(NULL);}
 
-FUNC *hfgens(EVTBLK *evtblkp)   /* create ftable using evtblk data */
+FUNC *hfgens(EVTBLK *evtblkp)               /* create ftable using evtblk data */
 {
     long    ltest, lobits, lomod, genum;
 
@@ -2239,9 +2236,8 @@ int ftload(FTLOAD *p)
     fclose(file);
     return OK;
  err:
-    return initerror(Str(X_1772,
-                         "ftload: Bad table number. Loading is possible "
-                         "only into existing tables."));
+    return initerror(Str(X_1772,"ftload: Bad table number. Loading is possible "
+              "only into existing tables."));
  err2:
     return initerror(Str(X_1773,"ftload: no table numbers"));
  err3:
@@ -2322,8 +2318,7 @@ int ftsave(FTLOAD *p)
           fprintf(file,"gen01args.iskptim: %f\n",ftp->gen01args.iskptim);
           fprintf(file,"gen01args.iformat: %f\n",ftp->gen01args.iformat);
           fprintf(file,"gen01args.channel: %f\n",ftp->gen01args.channel);
-          fprintf(file,"gen01args.sample_rate: %f\n",
-                  ftp->gen01args.sample_rate);
+          fprintf(file,"gen01args.sample_rate: %f\n",ftp->gen01args.sample_rate);
           /* WARNING! skips ftp->gen01args.strarg from saving/loading in
              text format */
           fprintf(file,"---------END OF HEADER--------------\n");
