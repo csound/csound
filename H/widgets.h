@@ -124,6 +124,9 @@ typedef struct  {
 typedef struct  {
     OPDS    h;
     MYFLT *ktrig, *kvalue, *ihandle;
+    MYFLT log_base, min, max;
+    void *WidgAddress, *opcode;
+    int exp;
 } FL_SET_WIDGET_VALUE;
 
 typedef struct  {

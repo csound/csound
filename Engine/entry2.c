@@ -129,6 +129,7 @@ int    fl_knob(void*), fl_roller(void*), fl_text(void*);
 int    fl_value(void*), StartScroll(void*), EndScroll(void*);
 int    StartPack(void*), EndPack(void*), fl_widget_label(void*);
 int    fl_setWidgetValuei(void*), fl_setWidgetValue(void*);
+int    fl_setWidgetValue_set(void*);
 int    fl_update(void*), StartGroup(void*), EndGroup(void*);
 int    StartTabs(void*), EndTabs(void*);
 int    fl_joystick(void*), fl_button(void*), FLkeyb(void*), fl_counter(void*);
@@ -259,7 +260,7 @@ OENTRY opcodlst_2[] = {
 { "FLcolor2",S(FLWIDGCOL2), 1,  "",     "jjj",     fl_widget_color2, NULL, NULL },
 { "FLlabel",S(FLWIDGLABEL), 1,  "",     "ojojjj",   fl_widget_label, NULL, NULL },
 { "FLsetVal_i",S(FL_SET_WIDGET_VALUE_I), 1, "", "ii", fl_setWidgetValuei, NULL, NULL },
-{ "FLsetVal",S(FL_SET_WIDGET_VALUE_I), 1, "", "ii", fl_setWidgetValue, NULL, NULL },
+{ "FLsetVal",S(FL_SET_WIDGET_VALUE), 3, "", "kki", fl_setWidgetValue_set, fl_setWidgetValue },
 { "FLsetColor",S(FL_SET_COLOR), 1, "",  "iiii",         fl_setColor1, NULL, NULL},
 { "FLsetColor2",S(FL_SET_COLOR), 1, "", "iiii",         fl_setColor2, NULL, NULL},
 { "FLsetTextSize",S(FL_SET_TEXTSIZE), 1, "", "ii",   fl_setTextSize, NULL, NULL },

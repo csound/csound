@@ -1713,7 +1713,7 @@ static void __cdecl fltkRun(void *s)
 #endif
 }
 
-#ifdef WINDOWS
+#ifdef WIN32
 static void __cdecl fltkKeybRun(void *s)
 {
     oKeyb->show();
@@ -1729,7 +1729,7 @@ static void __cdecl fltkKeybRun(void *s)
       }
       Fl::unlock();
     }
-     if (O.msglevel & WARNMSG) printf("WARNING: end of keyboard thread\n");
+    if (O.msglevel & WARNMSG) printf("WARNING: end of keyboard thread\n");
 }
 #endif
 
@@ -2375,9 +2375,60 @@ else if (!(strcmp(((OPDS *) v.opcode)->optext->t.opcod, "FLjoy"))) {
     return OK;
 }
 
+extern "C" int fl_setWidgetValue_set(FL_SET_WIDGET_VALUE *p)
+{
+    ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
+    MYFLT  /* val = *p->ivalue, */ range, base;
+    p->max = v.max;
+    p->min = v.min;
+    p->WidgAddress = v.WidgAddress;
+    p->opcode = v.opcode;
+    switch (v.exponential) {
+    case LIN_: //linear
+      p->exp = LIN_;
+      break; 
+    case EXP_: //exponential
+      p->exp = EXP_;
+      range = v.max-v.min; 
+      base = ::pow(v.max / v.min, 1/range);
+      //val = (log(val/v.min) / log(base)) ;
+      p->log_base = log(base);
+      break; 
+    default: 
+      if (O.msglevel & WARNMSG) printf("WARNING: not implemented yet");
+      return NOTOK;
+    }
+    return OK;
+}
+
+
 extern "C" int fl_setWidgetValue(FL_SET_WIDGET_VALUE *p)
 {
-  return NOTOK;
+    if(*p->ktrig) {
+      MYFLT  val = *p->kvalue;
+
+      switch (p->exp) {
+      case LIN_: //linear
+        if (val > p->max) val = p->max;
+        else if (val < p->min) val = p->min;
+        break;
+      case EXP_: //exponential
+        val = (log(val/p->min) / p->log_base) ;
+        break;
+      default:
+        if (O.msglevel & WARNMSG) printf("WARNING: not implemented yet");
+        return NOTOK;
+      }
+      Fl_Widget *o = (Fl_Widget *) p->WidgAddress;
+      Fl::lock();
+      ((Fl_Valuator *)o)->value(val);
+      o->do_callback(o, p->opcode);
+      Fl::unlock();
+#ifdef WIN32
+      PostMessage(callback_target,0,0,0);
+#endif
+    }
+    return OK;
 }
 
 
