@@ -25,14 +25,11 @@
 #include "ugens2.h"
 #include <math.h>
 
-#define FZERO   (FL(0.0))
-#define FONE    (FL(1.0))
-
 int phsset(PHSOR *p)
 {
     MYFLT       phs;
     long  longphs;
-    if ((phs = *p->iphs) >= FZERO) {
+    if ((phs = *p->iphs) >= FL(0.0)) {
       if ((longphs = (long)phs)) {
         if (O.msglevel & WARNMSG)
           printf(Str(X_911,"WARNING: init phase truncation\n"));
@@ -849,7 +846,7 @@ int ko1set(OSCIL1 *p)
 
     if ((ftp = ftfind(p->ifn)) == NULL)
       return NOTOK;
-    if (*p->idur <= FZERO) {
+    if (*p->idur <= FL(0.0)) {
       if (O.msglevel & WARNMSG)
         printf(Str(X_710,"WARNING: duration < zero\n"));
     }
