@@ -373,6 +373,11 @@ int cleanup(void *csound)
     if (scfp) {
       fclose(scfp); scfp = NULL;
     }
+    for (n = 0; n < nchnls; n++) {
+      if (smaxamp[n] > omaxamp[n]) omaxamp[n] = smaxamp[n];
+      if (maxamp[n] > omaxamp[n]) omaxamp[n] = maxamp[n];
+      orngcnt[n] += (srngcnt[n] + rngcnt[n]);
+    }
     for (maxp=omaxamp, n=nchnls; n--; )
       print_maxamp (*maxp++);                   /* IV - Jul 9 2002 */
     if (O.outformat != AE_FLOAT) {
