@@ -965,21 +965,21 @@ else:
     if commonEnvironment['buildLoris']=='1':
         # For Loris, we build only the loris Python extension module and
         # the Csound opcodes (modified for Csound 5).
-        # It is assumed that you have copied the contents of the Loris distribution
-        # 'src' directory into 'Opcodes/Loris/src'.
-
-        shutil.copy('Opcodes/Loris/lorisgens.h', 'Opcodes/Loris/src/')
-        shutil.copy('Opcodes/Loris/lorisgens.C', 'Opcodes/Loris/src/')
-        shutil.copy('Opcodes/Loris/loris.i', 'Opcodes/Loris/src/')
-        shutil.copy('Opcodes/Loris/lorisPartialList.i', 'Opcodes/Loris/src/')
+        # It is assumed that you have copied all contents of the Loris distribution
+        # into the csound5/Opcodes/Loris directory, e.g.
+	# csound5/Opcodes/Loris/src.
         lorisEnvironment = vstEnvironment.Copy();
-        lorisEnvironment.Append(SWIGFLAGS = ['-python'])
         lorisEnvironment.Append(CCFLAGS = '-DHAVE_FFTW3_H')
+        lorisEnvironment.Append(CPPPATH = Split('Opcodes/Loris Opcodes/Loris/src ./'))
         lorisEnvironment.Append(LIBS = ['fftw3'])
         lorisSources = glob.glob('Opcodes/Loris/src/*.C')
-        lorisSources.append('Opcodes/Loris/src/loris.i')
+	# The following file has been patched for Csound 5 and you should update it from Csound 5 CVS.
+        lorisSources.append('Opcodes/Loris/loris.i')
+	# The following file has been patched for Csound 5 and you should update it from Csound 5 CVS.
+	# Need help from Fitz to patch this?
+        # lorisSources.append('Opcodes/Loris/lorisgens5.C')
         lorisEnvironment.Append(SWIGPATH = ['./'])
-        lorisEnvironment.Prepend(SWIGFLAGS = ['-DHAVE_FFTW3_H', '-I./Opcodes/Loris/src', '-I.'])
+        lorisEnvironment.Prepend(SWIGFLAGS = Split('-module loris -c++ -python -DHAVE_FFTW3_H -I./Opcodes/Loris/src -I.'))
         loris = lorisEnvironment.SharedLibrary('loris', lorisSources, SHLIBPREFIX = '_')
         Depends(loris, csoundvst)
         pluginLibraries.append(loris)
