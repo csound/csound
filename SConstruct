@@ -104,10 +104,8 @@ opts.Add('generateZip',
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
 # should take priority over default options.
-if sys.platform[:3] == 'win' and sys.platform != 'cygwin':
-    commonEnvironment = Environment(options = opts, tools = ['mingw'])
-else:
-    commonEnvironment = Environment(options = opts)
+
+commonEnvironment = Environment(options = opts)
 
 customCPPPATH = commonEnvironment['customCPPPATH']
 commonEnvironment.Prepend(CPPPATH = customCPPPATH)
