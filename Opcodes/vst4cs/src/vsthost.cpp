@@ -297,7 +297,7 @@ void VSTPlugin::SendMidi()
 
 bool VSTPlugin::DescribeValue(int parameter,char* value)
 {
-    Log("VSTPlugin::DescribeValue.\n");
+    Debug("VSTPlugin::DescribeValue.\n");
 	if(aeffect)
 	{
 		if(parameter < aeffect->numParams)
@@ -315,14 +315,14 @@ bool VSTPlugin::DescribeValue(int parameter,char* value)
 
 int VSTPlugin::Instantiate(const char *libraryName_)
 {
-    Log("VSTPlugin::Instance.\n");
+    Debug("VSTPlugin::Instance.\n");
  	libraryHandle = csound->OpenLibrary(libraryName_);
 	if(!libraryHandle)	
 	{
 		Log("WARNING! '%s' was not found or is invalid.\n", libraryName_);
 		return VSTINSTANCE_ERR_NO_VALID_FILE;
 	}
-	Log("Loaded plugin library '%s'.\n" , libraryName_);
+	Debug("Loaded plugin library '%s'.\n" , libraryName_);
 	PVSTMAIN main = (PVSTMAIN)csound->GetLibrarySymbol(libraryHandle,"main");
 	if(!main)
 	{	
@@ -331,7 +331,7 @@ int VSTPlugin::Instantiate(const char *libraryName_)
 		aeffect=NULL;
 		return VSTINSTANCE_ERR_NO_VST_PLUGIN;
 	}
-	Log("Found 'main' function at 0x%x.\n" , main);
+	Debug("Found 'main' function at 0x%x.\n" , main);
 	aeffect = main((audioMasterCallback) VSTPlugin::Master);
 	aeffect->user = this;
 	if(!aeffect)
@@ -340,7 +340,7 @@ int VSTPlugin::Instantiate(const char *libraryName_)
 		csound->CloseLibrary(libraryHandle);
 		return VSTINSTANCE_ERR_REJECTED;
 	}
-	Log("Created effect '%x'.\n" , aeffect);	
+	Debug("Created effect '%x'.\n" , aeffect);	
 	if(  aeffect->magic!=kEffectMagic)
 	{
 		Log("VST plugin: Instance query rejected by 0x%x\n", aeffect);
@@ -354,30 +354,31 @@ int VSTPlugin::Instantiate(const char *libraryName_)
 void VSTPlugin::Info()
 {
 	int i =0;
-	csound->Message(csound,"====================================================\n");
+	Log("====================================================\n");
 	if(!Dispatch( effGetProductString, 0, 0, &productName, 0.0f)) {
 		strcpy(productName, libraryName);
 	}
-	csound->Message(csound,"Loaded plugin: %s\n", productName);
-	if(!aeffect->dispatcher(aeffect, effGetVendorString, 0, 0, &vendorName, 0.0f)) {
+	Log("Loaded plugin: %s\n", productName);
+	if(!aeffect->dispatcher(aeffect, 
+        effGetVendorString, 0, 0, &vendorName, 0.0f)) {
 		strcpy(vendorName, "Unknown vendor");
 	}
-	csound->Message(csound,"Vendor name: %s \n", vendorName);
+	Log("Vendor name: %s \n", vendorName);
 	pluginVersion = aeffect->version;
-	csound->Message(csound,"Version: %d \n", pluginVersion);
+	Log("Version: %d \n", pluginVersion);
 	pluginIsSynth = (aeffect->flags & effFlagsIsSynth)?true:false;
-	csound->Message(csound,"Is synthesizer? %s\n",(pluginIsSynth==true?"Yes":"No"));
+	Log("Is synthesizer? %s\n",(pluginIsSynth==true?"Yes":"No"));
 	overwrite = (aeffect->flags & effFlagsCanReplacing)?true:false;
 	hasEditor = (aeffect->flags & effFlagsHasEditor)?true:false;
-	csound->Message(csound,"Number of inputs: %i\n", getNumInputs());
-	csound->Message(csound,"Number of outputs: %i\n", getNumOutputs());
+	Log("Number of inputs: %i\n", getNumInputs());
+	Log("Number of outputs: %i\n", getNumOutputs());
 	long nparams=NumParameters();
-	csound->Message(csound,"Number of parameters: %d\n",nparams);
+	Log("Number of parameters: %d\n",nparams);
     char buffer[256];
 	for(i=0; i<nparams;i++) {
 	    strcpy(buffer, "No parameter");
 		GetParamName(i, buffer);
-		csound->Message(csound,"  Parameter%5i: %s\n",i, buffer);		
+		Log("  Parameter%5i: %s\n",i, buffer);		
 	}
 	csound->Message(csound,"Number of programs: %d\n",aeffect->numPrograms);
 	for(i = 0; i < aeffect->numPrograms; i++) {
@@ -390,19 +391,19 @@ void VSTPlugin::Info()
 
 int VSTPlugin::getNumInputs( void )
 {
-    Log("VSTPlugin::getNumInputs.\n");
+    Debug("VSTPlugin::getNumInputs.\n");
 	return aeffect->numInputs;
 }
 
 int VSTPlugin::getNumOutputs( void )
 {
-    Log("VSTPlugin::getNumOutputs.\n");
+    Debug("VSTPlugin::getNumOutputs.\n");
 	return aeffect->numOutputs;
 }
 
 void VSTPlugin::Free() // Called also in destruction
 {
-    Log("VSTPlugin::Free.\n");
+    Debug("VSTPlugin::Free.\n");
 	if(aeffect) {
 		Dispatch(effMainsChanged, 0, 0, NULL, 0.0f);
 		Dispatch(effClose,        0, 0, NULL, 0.0f);
@@ -415,7 +416,7 @@ void VSTPlugin::Free() // Called also in destruction
 
 void VSTPlugin::Init()
 {
-    Log("VSTPlugin::Init.\n");
+    Debug("VSTPlugin::Init.\n");
 	framesPerSecond = csound->GetSr(csound);
 	framesPerBlock = csound->GetKsmps(csound);
 	channels = csound->GetNchnls(csound);
@@ -436,7 +437,7 @@ void VSTPlugin::Init()
 
 bool VSTPlugin::SetParameter(int parameter, float value)
 {
-    Log("VSTPlugin::SetParameter(%d, %f).\n", parameter, value);
+    Debug("VSTPlugin::SetParameter(%d, %f).\n", parameter, value);
 	if(aeffect) {
 		if(( parameter >= 0 ) && (parameter<=aeffect->numParams)) {
 			aeffect->setParameter(aeffect,parameter,value);
@@ -449,13 +450,13 @@ bool VSTPlugin::SetParameter(int parameter, float value)
 
 bool VSTPlugin::SetParameter(int parameter, int value)
 {
-    Log("VSTPlugin::SetParameter(%d, %d).\n", parameter, value);
+    Debug("VSTPlugin::SetParameter(%d, %d).\n", parameter, value);
 	return SetParameter(parameter,value/65535.0f);
 }
 
 int VSTPlugin::GetCurrentProgram()
 {
-    Log("VSTPlugin::GetCurrentProgram.\n");
+    Debug("VSTPlugin::GetCurrentProgram.\n");
 	if(aeffect)
 		return Dispatch(effGetProgram,0,0,NULL,0.0f);
 	else
@@ -464,7 +465,7 @@ int VSTPlugin::GetCurrentProgram()
 
 void VSTPlugin::SetCurrentProgram(int prg)
 {
-    Log("VSTPlugin::SetCurrentProgram((%d).\n", prg);
+    Debug("VSTPlugin::SetCurrentProgram((%d).\n", prg);
 	if(aeffect)
 		Dispatch(effSetProgram,0,prg,NULL,0.0f);
 }
@@ -677,6 +678,19 @@ int VSTPlugin::NumPrograms()
     return aeffect->numPrograms; 
 }
 
+VstTimeInfo *VSTPlugin::GetTime()
+{
+    Debug("VSGPlugin::GetTime().\n");
+    if(csound)
+        vstTimeInfo.samplePos = csound->kcounter_ * csound->ksmps_;
+    else
+        vstTimeInfo.samplePos = 0;
+    vstTimeInfo.sampleRate = framesPerSecond;
+    Debug("&vstTimeInfo 0x%x sampleRate %f samplePos %f.\n", 
+        &vstTimeInfo, vstTimeInfo.sampleRate, vstTimeInfo.samplePos);
+    return &vstTimeInfo;
+}
+
 bool VSTPlugin::IsSynth() 
 { 
     return pluginIsSynth; 
@@ -704,14 +718,6 @@ bool VSTPlugin::OnOutputConnected(AEffect *effect, long output)
 long VSTPlugin::Master(AEffect *effect, long opcode, long index, 
     long value, void *ptr, float opt)
 {
-    std::string opcodeName;
-    if(masterOpcodes.find(opcode) != masterOpcodes.end()) {
-        opcodeName = masterOpcodes[opcode];
-    }
-    // These messages are to tell Csound what the plugin wants it to do.
-    fprintf(stdout, "VSTPlugin::Master(AEffect 0x%x, opcode %d %s, index %d, "
-        "value %d, ptr 0x%x, opt %f)\n",
-        effect, opcode, opcodeName.c_str(), index, value, ptr, opt);
     VSTPlugin *plugin = 0;
     ENVIRON *csound = 0;
     if(effect) {
@@ -719,6 +725,20 @@ long VSTPlugin::Master(AEffect *effect, long opcode, long index,
         if(plugin) {
             csound = plugin->csound;
         }
+    }
+    std::string opcodeName;
+    if(masterOpcodes.find(opcode) != masterOpcodes.end()) {
+        opcodeName = masterOpcodes[opcode];
+    }
+    // These messages are to tell Csound what the plugin wants it to do.
+    if(plugin) {
+        plugin->Debug("VSTPlugin::Master(AEffect 0x%x, opcode %d %s, index %d, "
+        "value %d, ptr 0x%x, opt %f)\n",
+        effect, opcode, opcodeName.c_str(), index, value, ptr, opt);
+    } else {
+        fprintf(stdout, "VSTPlugin::Master(AEffect 0x%x, opcode %d %s, index %d, "
+        "value %d, ptr 0x%x, opt %f)\n",
+        effect, opcode, opcodeName.c_str(), index, value, ptr, opt);
     }
 	switch(opcode)
 	{
@@ -740,13 +760,14 @@ long VSTPlugin::Master(AEffect *effect, long opcode, long index,
 	case audioMasterProcessEvents:		
 		return false; 	
 	case audioMasterGetTime:
-	    if(plugin) {
-            plugin->vstTimeInfo.samplePos = csound->kcounter_ * csound->ksmps_;
-	        plugin->vstTimeInfo.sampleRate = plugin->framesPerSecond;
-	        return (long)&plugin->vstTimeInfo;
-        }
-        else
-            return 0;
+//	    if(plugin)
+//	        return (long) plugin->GetTime();
+//        else {
+//            static VstTimeInfo vstTimeInfo;
+//            memset(&vstTimeInfo, 0, sizeof(VstTimeInfo));
+//            return (long) &vstTimeInfo;
+//        }
+        return 0;
 	case audioMasterTempoAt:			
 		return 0;
 	case audioMasterNeedIdle:	
@@ -763,7 +784,7 @@ long VSTPlugin::Master(AEffect *effect, long opcode, long index,
 	case audioMasterGetVendorVersion:	
 		return 5000;	
 	case audioMasterGetProductString:	// Just fooling product string
-		strcpy((char*)ptr,"Cubase 5.0");
+		strcpy((char*)ptr,"vst4cs");
 		return 0;
 	case audioMasterGetLanguage:		
 		return kVstLangEnglish;

@@ -108,7 +108,7 @@ extern "C"
 		VSTPLUG_ *p = (VSTPLUG_ *)data;
   		//ENVIRON *csound = p->h.insdshead->csound;
 		VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
-		//plugin->Log("vstplug: plugin %x.\n", plugin);
+		//plugin->Debug("vstplug: plugin %x.\n", plugin);
         if(!p->h.insdshead->nxtact) {
             for(size_t i = 0; i < p->framesPerBlock; i++) {
                 plugin->inputs_[0][i] = p->ain1[i] / SCALING_FACTOR;
