@@ -296,7 +296,8 @@ AC_OUTPUT(Makefile Opcodes/Makefile anal/Makefile util1/Makefile util2/Makefile 
           anal/pvoc/Makefile util1/cscore/Makefile util1/scot/Makefile \
           util1/sortex/Makefile util2/dnoise.dir/Makefile util2/envext/Makefile \
           util2/exports/Makefile util2/mixer/Makefile util2/pvlook.dir/Makefile \
-          util2/scale.dir/Makefile util2/sndinfo/Makefile)
+          util2/scale.dir/Makefile util2/sndinfo/Makefile,
+	  csound.spec)
 
 echo
 echo "Configuration Summary"

@@ -1,0 +1,3 @@
+2003-10-29  John D. Ramsdell  <ramsdell@mitre.org>
+
+	* csound.spec.in: Added an RPM spec for Csound.
