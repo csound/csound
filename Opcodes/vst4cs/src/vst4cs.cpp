@@ -33,12 +33,12 @@ extern "C"
 		csound->Message(csound, "vstinit: Plugin handle %d.\n", (size_t) *p->iVSThandle);
 		if (vstPlugin->Instance(csound, vstplugname)) {
 			csound->Message(csound, "vstinit: VST plugin could not be loaded.\n");
-			return !OK; 
+			return NOTOK; 
 		}
 		vstPlugin->Init(csound);
+		csound->Message(csound, "vstinit: VSTPlugin 0x%x.\n", vstPlugin);
 		if (*p->iverbose) 
 		    vstPlugin->Info(csound);
-		csound->Message(csound, "vstinit: Plugin  %x.\n", vstPlugin);
 		return OK;
 	}
 
@@ -80,11 +80,11 @@ extern "C"
         {
             return OK;
         }
-  		ENVIRON *csound = p->h.insdshead->csound;
 		size_t iVSThandle = (size_t) *p->iVSThandle;
 		VSTPlugin *plugin = pluginInstances[iVSThandle];
-		//csound->Message(csound, "vstplug: Plugin handle %d.\n", iVSThandle);
-		//csound->Message(csound, "vstplug: Plugin %x.\n", plugin);
+  		ENVIRON *csound = p->h.insdshead->csound;
+		csound->Message(csound, "vstplug: Plugin handle %d.\n", iVSThandle);
+		csound->Message(csound, "vstplug: Plugin %x.\n", plugin);
 		MYFLT *ain1 = p->ain1;
 		MYFLT *ain2 = p->ain2;
 		MYFLT *aout1 = p->aout1;
@@ -96,8 +96,8 @@ extern "C"
         plugin->outputs[1] = aout2;
         int i;
   		for (i = 0; i < nsamps; i++) {
-  		    ain1[i] = ain1[i] / SCALING_FACTOR;
-  		    ain2[i] = ain2[i] / SCALING_FACTOR;
+  		    //ain1[i] = ain1[i] / SCALING_FACTOR;
+  		    //ain2[i] = ain2[i] / SCALING_FACTOR;
   		    aout1[i] = 0;
   		    aout2[i] = 0;
         }
@@ -105,8 +105,8 @@ extern "C"
 		               ejecutar de acuerdo a eso */
 		plugin->process(plugin->inputs, plugin->outputs, nsamps);
         for (i = 0; i < nsamps; i++) {
-            aout1[i] = aout1[i] * SCALING_FACTOR;
-            aout2[i] = aout2[i] * SCALING_FACTOR;
+            //aout1[i] = aout1[i] * SCALING_FACTOR;
+            //aout2[i] = aout2[i] * SCALING_FACTOR;
         }    
 		return OK;
 	}
@@ -121,8 +121,11 @@ extern "C"
 	int vstnote_init (void * data)
 	{
 		VSTNOTE *p = (VSTNOTE *)data;
-		p->ktrigger = 1;
-		p->kremaining = 0;
+        ENVIRON *csound = p->h.insdshead->csound;
+		size_t iVSThandle = *p->iVSThandle;
+		p->frames_left = *p->kdur * csound->GetSr(csound);
+        csound->Message(csound, "vstnote: AddNoteOn(%f %f %f).\n", *p->knote, *p->kveloc, *p->kchan);
+		pluginInstances[iVSThandle]->AddNoteOn(*p->knote, *p->kveloc, *p->kchan);
 		return OK;
 	}
 	
@@ -130,26 +133,15 @@ extern "C"
 	{
 		VSTNOTE *p = (VSTNOTE *)data;
         ENVIRON *csound = p->h.insdshead->csound;
-		size_t iVSThandle = *p->iVSThandle;
-		MYFLT kchan = *p->kchan;
-		MYFLT knote = *p->knote;
-		MYFLT kveloc = *p->kveloc;
-		MYFLT kdur = *p->kdur;
-		if (p->ktrigger) {
-		    csound->Message(csound, "vstnote: AddNoteOn(%f %f %f).\n", knote, kveloc, kchan);
-			pluginInstances[iVSThandle]->AddNoteOn(knote, kveloc, kchan);
-			p->ktrigger = 0;
-			p->kremaining = kdur * csound->GetSr(csound);
-		}
-		if (p->kremaining) {
-		    csound->Message(csound, "vstnote: AddNoteOff(%f %f).\n", knote, kchan);
-            pluginInstances[iVSThandle]->AddNoteOff(knote, kchan);
-            p->kremaining -= csound->GetKsmps(csound); 	
-            if(p->kremaining < 0) {
-                p->kremaining = 0;
+        if(p->frames_left >= 0) {
+            p->frames_left -= csound->GetKsmps(csound);
+            if(p->frames_left <= 0) {
+                size_t iVSThandle = *p->iVSThandle;        
+                csound->Message(csound, "vstnote: AddNoteOn(%f %f).\n", *p->knote, *p->kchan);
+                pluginInstances[iVSThandle]->AddNoteOff(*p->knote, *p->kchan);
             }
-		}
-		return OK;		
+        }
+ 		return OK;		
 	}
 	
 	int outvst_init(void *data)
@@ -290,7 +282,7 @@ extern "C"
     OENTRY vstOentry[] = { 
         {   "vstinit", sizeof (VSTINIT), 1, "i", "So", &vstinit, 0, 0, &vstinit_free },
 		{	"vstinfo", sizeof (VSTINFO), 1, "", "i", &vstinfo, 0, 0, 0},
-		{	"vstplug", sizeof (VST_PLUGIN), 5, "mm", "iaa", &vstplug_init, 0, &vstplug, 0},
+		{	"vstplug", sizeof (VST_PLUGIN), 5, "aa", "iaa", &vstplug_init, 0, &vstplug, 0},
 		/* TODO (#1#): Cambiar por parametros opcionales */
 		{	"vstnote", sizeof (VSTNOTE), 3, "", "ikkkk", &vstnote_init, &vstnote, 0, 0},
 		{	"vstout", sizeof (OUTVST), 3, "", "ikkkk", &outvst_init, &outvst, 0, 0},

@@ -41,8 +41,7 @@ typedef struct VSTNOTE_ {
 	MYFLT *knote;
 	MYFLT *kveloc;
 	MYFLT *kdur;
-	int ktrigger;
-	int kremaining;
+	int frames_left;
 } VSTNOTE ;
 
 typedef struct OUTVST_ {

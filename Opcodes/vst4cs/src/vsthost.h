@@ -59,7 +59,6 @@ public:
 	void Free(ENVIRON *csound);
 	int Instance(ENVIRON *csound, const char *sharedLibraryPath);
 	void Info(ENVIRON *csound);
-	void Create(VSTPlugin *plug);
 	void Init(ENVIRON *csound);
 	virtual int GetNumParams(void) { return pEffect->numParams; }
 	virtual void GetParamName(int numparam,char* name)
