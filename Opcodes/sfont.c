@@ -66,7 +66,7 @@ static SHORT *sampleBase[MAX_SFPRESET];
 static MYFLT pitches[128];
 
 
-void SfReset(void)
+int SfReset(void *p)
 {
     int j,k,l;
     for (j=0; j<currSFndx; j++) {
@@ -84,6 +84,7 @@ void SfReset(void)
       free(sfArray[j].chunk.main_chunk.ckDATA);
     }
     currSFndx = 0;
+    return 0;
 }
 
 void fill_pitches(void)
@@ -1979,7 +1980,7 @@ void fill_SfPointers(ENVIRON *csound)
 #define S       sizeof
 
 static OENTRY localops[] = {
-{ "sfload",S(SFLOAD),     1,    "i",    "S",    (SUBR)SfLoad                  },
+{ "sfload",S(SFLOAD),     1,    "i",    "S",    (SUBR)SfLoad, 0, 0, (SUBR)SfReset              },
 { "sfpreset",S(SFPRESET), 1,    "i",    "iiii", (SUBR)SfPreset                },
 { "sfplay", S(SFPLAY), 5, "aa", "iixxioo",(SUBR)SfPlay_set, NULL, (SUBR)SfPlay },
 { "sfplaym", S(SFPLAYMONO), 5, "a", "iixxioo",(SUBR)SfPlayMono_set, NULL, (SUBR)SfPlayMono   },
