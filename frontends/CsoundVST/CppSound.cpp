@@ -56,10 +56,20 @@ CppSound::~CppSound()
 
 int CppSound::perform()
 {
+    int returnValue = 0;
 	int argc = 0;
 	char **argv = 0;
-	scatterArgs(getCommand(), &argc, &argv);
-	int returnValue = perform(argc, argv);
+	std::string command = getCommand();
+	if(command.find("-") == 0)
+	{
+	    const char *args[] = {"csound", getFilename().c_str(), 0};
+	    returnValue = perform(2, (char **)args);
+	}
+	else
+	{
+	    scatterArgs(getCommand(), &argc, &argv);
+		returnValue = perform(argc, argv);
+	}
 	deleteArgs(argc, argv);
 	return returnValue;
 }
