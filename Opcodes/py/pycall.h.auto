@@ -1,0 +1,306 @@
+typedef struct {
+  OPDS h;
+  MYFLT *function;
+  MYFLT *args[VARGMAX-3];
+} PYCALL0;
+
+extern int pycall0_krate(PYCALL0 *p);
+extern int pylcall0_irate(PYCALL0 *p);
+extern int pylcall0_krate(PYCALL0 *p);
+extern int pylcall0i_irate(PYCALL0 *p);
+
+typedef struct {
+  OPDS h;
+  MYFLT *trigger;
+  MYFLT *function;
+  MYFLT *args[VARGMAX-3];
+} PYCALL0T;
+
+extern int pycall0t_krate(PYCALL0T *p);
+extern int pylcall0t_irate(PYCALL0T *p);
+extern int pylcall0t_krate(PYCALL0T *p);
+
+typedef struct {
+  OPDS h;
+  MYFLT *result;
+  MYFLT *function;
+  MYFLT *args[VARGMAX-3];
+} PYCALL1;
+
+extern int pycall1_krate(PYCALL1 *p);
+extern int pylcall1_irate(PYCALL1 *p);
+extern int pylcall1_krate(PYCALL1 *p);
+extern int pylcall1i_irate(PYCALL1 *p);
+
+typedef struct {
+  OPDS h;
+  MYFLT *result;
+  MYFLT *trigger;
+  MYFLT *function;
+  MYFLT *args[VARGMAX-3];
+  MYFLT oresult;
+} PYCALL1T;
+
+extern int pycall1t_krate(PYCALL1T *p);
+extern int pylcall1t_irate(PYCALL1T *p);
+extern int pylcall1t_krate(PYCALL1T *p);
+
+typedef struct {
+  OPDS h;
+  MYFLT *result1;
+  MYFLT *result2;
+  MYFLT *function;
+  MYFLT *args[VARGMAX-3];
+} PYCALL2;
+
+extern int pycall2_krate(PYCALL2 *p);
+extern int pylcall2_irate(PYCALL2 *p);
+extern int pylcall2_krate(PYCALL2 *p);
+extern int pylcall2i_irate(PYCALL2 *p);
+
+typedef struct {
+  OPDS h;
+  MYFLT *result1;
+  MYFLT *result2;
+  MYFLT *trigger;
+  MYFLT *function;
+  MYFLT *args[VARGMAX-3];
+  MYFLT oresult1;
+  MYFLT oresult2;
+} PYCALL2T;
+
+extern int pycall2t_krate(PYCALL2T *p);
+extern int pylcall2t_irate(PYCALL2T *p);
+extern int pylcall2t_krate(PYCALL2T *p);
+
+typedef struct {
+  OPDS h;
+  MYFLT *result1;
+  MYFLT *result2;
+  MYFLT *result3;
+  MYFLT *function;
+  MYFLT *args[VARGMAX-3];
+} PYCALL3;
+
+extern int pycall3_krate(PYCALL3 *p);
+extern int pylcall3_irate(PYCALL3 *p);
+extern int pylcall3_krate(PYCALL3 *p);
+extern int pylcall3i_irate(PYCALL3 *p);
+
+typedef struct {
+  OPDS h;
+  MYFLT *result1;
+  MYFLT *result2;
+  MYFLT *result3;
+  MYFLT *trigger;
+  MYFLT *function;
+  MYFLT *args[VARGMAX-3];
+  MYFLT oresult1;
+  MYFLT oresult2;
+  MYFLT oresult3;
+} PYCALL3T;
+
+extern int pycall3t_krate(PYCALL3T *p);
+extern int pylcall3t_irate(PYCALL3T *p);
+extern int pylcall3t_krate(PYCALL3T *p);
+
+typedef struct {
+  OPDS h;
+  MYFLT *result1;
+  MYFLT *result2;
+  MYFLT *result3;
+  MYFLT *result4;
+  MYFLT *function;
+  MYFLT *args[VARGMAX-3];
+} PYCALL4;
+
+extern int pycall4_krate(PYCALL4 *p);
+extern int pylcall4_irate(PYCALL4 *p);
+extern int pylcall4_krate(PYCALL4 *p);
+extern int pylcall4i_irate(PYCALL4 *p);
+
+typedef struct {
+  OPDS h;
+  MYFLT *result1;
+  MYFLT *result2;
+  MYFLT *result3;
+  MYFLT *result4;
+  MYFLT *trigger;
+  MYFLT *function;
+  MYFLT *args[VARGMAX-3];
+  MYFLT oresult1;
+  MYFLT oresult2;
+  MYFLT oresult3;
+  MYFLT oresult4;
+} PYCALL4T;
+
+extern int pycall4t_krate(PYCALL4T *p);
+extern int pylcall4t_irate(PYCALL4T *p);
+extern int pylcall4t_krate(PYCALL4T *p);
+
+typedef struct {
+  OPDS h;
+  MYFLT *result1;
+  MYFLT *result2;
+  MYFLT *result3;
+  MYFLT *result4;
+  MYFLT *result5;
+  MYFLT *function;
+  MYFLT *args[VARGMAX-3];
+} PYCALL5;
+
+extern int pycall5_krate(PYCALL5 *p);
+extern int pylcall5_irate(PYCALL5 *p);
+extern int pylcall5_krate(PYCALL5 *p);
+extern int pylcall5i_irate(PYCALL5 *p);
+
+typedef struct {
+  OPDS h;
+  MYFLT *result1;
+  MYFLT *result2;
+  MYFLT *result3;
+  MYFLT *result4;
+  MYFLT *result5;
+  MYFLT *trigger;
+  MYFLT *function;
+  MYFLT *args[VARGMAX-3];
+  MYFLT oresult1;
+  MYFLT oresult2;
+  MYFLT oresult3;
+  MYFLT oresult4;
+  MYFLT oresult5;
+} PYCALL5T;
+
+extern int pycall5t_krate(PYCALL5T *p);
+extern int pylcall5t_irate(PYCALL5T *p);
+extern int pylcall5t_krate(PYCALL5T *p);
+
+typedef struct {
+  OPDS h;
+  MYFLT *result1;
+  MYFLT *result2;
+  MYFLT *result3;
+  MYFLT *result4;
+  MYFLT *result5;
+  MYFLT *result6;
+  MYFLT *function;
+  MYFLT *args[VARGMAX-3];
+} PYCALL6;
+
+extern int pycall6_krate(PYCALL6 *p);
+extern int pylcall6_irate(PYCALL6 *p);
+extern int pylcall6_krate(PYCALL6 *p);
+extern int pylcall6i_irate(PYCALL6 *p);
+
+typedef struct {
+  OPDS h;
+  MYFLT *result1;
+  MYFLT *result2;
+  MYFLT *result3;
+  MYFLT *result4;
+  MYFLT *result5;
+  MYFLT *result6;
+  MYFLT *trigger;
+  MYFLT *function;
+  MYFLT *args[VARGMAX-3];
+  MYFLT oresult1;
+  MYFLT oresult2;
+  MYFLT oresult3;
+  MYFLT oresult4;
+  MYFLT oresult5;
+  MYFLT oresult6;
+} PYCALL6T;
+
+extern int pycall6t_krate(PYCALL6T *p);
+extern int pylcall6t_irate(PYCALL6T *p);
+extern int pylcall6t_krate(PYCALL6T *p);
+
+typedef struct {
+  OPDS h;
+  MYFLT *result1;
+  MYFLT *result2;
+  MYFLT *result3;
+  MYFLT *result4;
+  MYFLT *result5;
+  MYFLT *result6;
+  MYFLT *result7;
+  MYFLT *function;
+  MYFLT *args[VARGMAX-3];
+} PYCALL7;
+
+extern int pycall7_krate(PYCALL7 *p);
+extern int pylcall7_irate(PYCALL7 *p);
+extern int pylcall7_krate(PYCALL7 *p);
+extern int pylcall7i_irate(PYCALL7 *p);
+
+typedef struct {
+  OPDS h;
+  MYFLT *result1;
+  MYFLT *result2;
+  MYFLT *result3;
+  MYFLT *result4;
+  MYFLT *result5;
+  MYFLT *result6;
+  MYFLT *result7;
+  MYFLT *trigger;
+  MYFLT *function;
+  MYFLT *args[VARGMAX-3];
+  MYFLT oresult1;
+  MYFLT oresult2;
+  MYFLT oresult3;
+  MYFLT oresult4;
+  MYFLT oresult5;
+  MYFLT oresult6;
+  MYFLT oresult7;
+} PYCALL7T;
+
+extern int pycall7t_krate(PYCALL7T *p);
+extern int pylcall7t_irate(PYCALL7T *p);
+extern int pylcall7t_krate(PYCALL7T *p);
+
+typedef struct {
+  OPDS h;
+  MYFLT *result1;
+  MYFLT *result2;
+  MYFLT *result3;
+  MYFLT *result4;
+  MYFLT *result5;
+  MYFLT *result6;
+  MYFLT *result7;
+  MYFLT *result8;
+  MYFLT *function;
+  MYFLT *args[VARGMAX-3];
+} PYCALL8;
+
+extern int pycall8_krate(PYCALL8 *p);
+extern int pylcall8_irate(PYCALL8 *p);
+extern int pylcall8_krate(PYCALL8 *p);
+extern int pylcall8i_irate(PYCALL8 *p);
+
+typedef struct {
+  OPDS h;
+  MYFLT *result1;
+  MYFLT *result2;
+  MYFLT *result3;
+  MYFLT *result4;
+  MYFLT *result5;
+  MYFLT *result6;
+  MYFLT *result7;
+  MYFLT *result8;
+  MYFLT *trigger;
+  MYFLT *function;
+  MYFLT *args[VARGMAX-3];
+  MYFLT oresult1;
+  MYFLT oresult2;
+  MYFLT oresult3;
+  MYFLT oresult4;
+  MYFLT oresult5;
+  MYFLT oresult6;
+  MYFLT oresult7;
+  MYFLT oresult8;
+} PYCALL8T;
+
+extern int pycall8t_krate(PYCALL8T *p);
+extern int pylcall8t_irate(PYCALL8T *p);
+extern int pylcall8t_krate(PYCALL8T *p);
+
