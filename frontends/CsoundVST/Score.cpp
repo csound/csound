@@ -264,7 +264,7 @@ namespace csound
 			    double duration = noteOffEvent.time - noteOnEvent.time;
 			    double key = noteOnEvent.getKey();
 			    double velocity = noteOnEvent.getVelocity();
-			    push_back(Event(time, duration, status, instrument, key, velocity, 0, 0, 0, 0, 4095));
+			    append(time, duration, status, instrument, key, velocity);
 			    offEvents.insert(&noteOffEvent);
 			    break;
 			  }
