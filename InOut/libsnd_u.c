@@ -42,6 +42,11 @@ char* type2string(int x)
     case TYP_PVF: return "PVF";
     case TYP_XI: return "XI";
     case TYP_HTK: return "HTK";
+#ifdef SF_FORMAT_SDS
+    case TYP_SDS: return "SDS";
+#endif
+    default:
+      return "(unknown)";
     }
 }
 
