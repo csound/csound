@@ -42,9 +42,6 @@
 static void takeFFT(SOUNDIN *inputSound, CVSTRUCT *outputCVH,
                      long Hlenpadded, int indfd, int ofd);
 static int quit(char *msg);
-#ifdef DEBUGGING
-static void PrintBuf(MYFLT *buf, long size, char *msg);
-#endif
 static int CVAlloc(CVSTRUCT**, long, int, MYFLT, int, int, long, int, int);
 int csoundYield(void *csound);
 
@@ -183,23 +180,15 @@ static void takeFFT(
 
     nchanls = cvh->channel != ALLCHNLS ? 1 : cvh->src_chnls;
     inbuf   = fp1 = (MYFLT *)mmalloc(&cenviron, Hlen * nchanls * sizeof(MYFLT));
-    if ( (read_in = getsndin(infd, inbuf, (long)(Hlen*nchanls),p)) <
-         (Hlen*nchanls) )
+    if ( (read_in = getsndin(infd, inbuf, (long) (Hlen * nchanls), p))
+         < (long) (Hlen * nchanls))
       die(Str("less sound than expected!"));
 
-    /* normalize the samples read in. (Only if short data. Should really do
-       other formats too, with the appropriate scale factor) */
-    /*RWD 5:2001: the data is already converted to quasi-16bit, so we must do this always */
-    /*if (p->format == AE_SHORT) { */
-    /*floating point raw and IRCAM files are not normalised (IV Oct 2001) */
-    if ((p->format != AE_FLOAT) || (p->filetyp == TYP_WAV) ||
-        (p->filetyp == TYP_AIFF)) {
-      for (i = read_in; i--; ) {
-        *fp1++ *= dbfs_to_float;
-/*         *fp1++ *= DV32768;              /\* IV - Jul 11 2002 *\/ */
-      }
+    /* normalize the samples read in. */
+    for (i = read_in; i--; ) {
+      *fp1++ *= dbfs_to_float;
     }
-    /* } */
+
     fp1 = inbuf;
     outbuf = fp2 = (MYFLT *)MakeBuf(Hlenpadded + 2);
 
@@ -209,12 +198,8 @@ static void takeFFT(
         fp1 += nchanls;
       }
       fp1 = inbuf + i + 1;
-      /*printf("about to FFT\n");*/
-      /* PrintBuf(outbuf, Hlenpadded, "normalised & padded"); */
       FFT2realpacked((complex *)outbuf, Hlenpadded,basis);
       if (!csoundYield(&cenviron)) exit(1);
-      /*printf("finished FFTing\n");*/
-      /* PrintBuf(Buf, 2*Hlenpadded, X_761,"FFT'd"); */
       /* write straight out, just the indep vals */
       write(ofd, (char *)outbuf, cvh->dataBsize/nchanls);
       for (j = Hlenpadded - Hlen; j > 0; j--)
@@ -257,16 +242,3 @@ static int CVAlloc(
     return(CVE_OK);
 }
 
-#ifdef DEBUGGING
-#define DBGPTS 8
-static void PrintBuf(MYFLT *buf, long size, char *msg)
-{
-    int   i;
-/*      if (!debug) return;   */
-/*      size = DBGPTS;      */
-    printf("%s:\n",msg);
-    for (i=0; i<size; ++i)
-      printf("buf[%d] = %7.2f\n",i,buf[i]);
-/*      printf("\n"); */
-}
-#endif

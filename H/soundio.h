@@ -27,13 +27,13 @@
 #define SOUNDIO_H
 
 #ifdef WIN32
-#define IOBUFSAMPS   16384      /* default sampframes in audio iobuf, -b settable */
-#define IODACSAMPS   16384      /* default samps in hardware buffer,  -B settable */
+#define IOBUFSAMPS   4096   /* default sampframes in audio iobuf, -b settable */
+#define IODACSAMPS   16384  /* default samps in hardware buffer,  -B settable */
 #elif defined(NeXT)
-#define IOBUFSAMPS   2048   /* default sampframes in audio iobuf, -b settable */
+#define IOBUFSAMPS   1024   /* default sampframes in audio iobuf, -b settable */
 #define IODACSAMPS   4096   /* default samps in hardware buffer,  -B settable */
 #else
-#define IOBUFSAMPS   1024   /* default sampframes in audio iobuf, -b settable */
+#define IOBUFSAMPS   256    /* default sampframes in audio iobuf, -b settable */
 #define IODACSAMPS   1024   /* default samps in hardware buffer,  -B settable */
 #endif
 #define SNDINBUFSIZ  4096   /* soundin bufsize;   must be > sizeof(SFHEADER), */
@@ -84,14 +84,13 @@
 #define format2sf(x) (x)
 #define sf2format(x) (x&0xffff)
 
-/*RWD 3:2000*/
-#define PEAKCHUNK_VERSION (1L)
-#define MIN_SHORTAMP (FL(1.0) / FL(32767.0))
-#define MIN_LONGAMP  (FL(1.0) / FL(2147483647.0))
-/*RWD 6:2001 */
-#define MIN_24AMP       (FL(1.0) / FL(8338607.0))
-
-
+#ifdef  USE_DOUBLE
+#define sf_write_MYFLT  sf_write_double
+#define sf_read_MYFLT   sf_read_double
+#else
+#define sf_write_MYFLT  sf_write_float
+#define sf_read_MYFLT   sf_read_float
+#endif
 
 #ifndef __cplusplus
 
@@ -100,14 +99,6 @@ typedef struct {
     float value;                  /* signed value of peak */
     unsigned long position;       /* the sample frame for the peak */
 } PositionPeak;
-
-typedef struct {
-    long        ckID;             /* 'PEAK' */
-    unsigned long chunkDataSize;  /* the size of the chunk */
-    unsigned long version;        /* version of the PEAK chunk */
-    unsigned long timeStamp;      /* secs since 1/1/1970 */
-    PositionPeak peak[1];         /* the peak info */
-} PeakChunk;
 
 typedef struct {         /* struct for passing data to/from sfheader routines */
         long    sr;
@@ -142,8 +133,6 @@ typedef struct {
         long    do_floatscaling;
         long    datpos;
 } SOUNDIN;
-
-
 
 typedef struct {
         MYFLT   *ifilcod, *iformat;
@@ -211,20 +200,6 @@ typedef struct {                  /* this code not possible yet */
 
 #endif
 #endif
-
-/*RWD 3:2000*/
-#define INLONGFAC (1.0 / 65536.0)    /* convert 32bit long into quasi 16 bit range */
-#define INMYFLTFAC (FL(32767.0))
-
-/*RWD 5:2001: 24bit files support*/
-#define OUT24LONGFAC (FL(65536.0))       /* convert 16bit into quasi 32bit long */
-/* good for 4/6/8 framesize; but we probably need to calculate it per file...*/
-#define SNDIN24BUFSIZ (4104)            /* mult of 216 */
-
-typedef union samp_24 {
-        long lsamp;
-        unsigned char bytes[4];
-} SAMP24;
 
 #endif
 

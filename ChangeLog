@@ -1,3 +1,35 @@
+2005-02-24	Istvan Varga	<istvan@csounds.com>
+	* Engine/oload.c:
+	* H/csdl.h:
+	* H/cs.h:
+	* H/csoundCore.h:
+	  removed unused or redundant variables (dbfs_to_short,
+	  short_to_dbfs, float_to_dbfs, dbfs_to_long, long_to_dbfs)
+	* H/soundio.h:
+	  removed some unused macros and typedefs
+	  moved #defines of sf_read_MYFLT and sf_write_MYFLT here
+	  set buffer size defaults more usable for real time audio
+	* InOut/libsnd.c:
+	  moved #defines of sf_read_MYFLT and sf_write_MYFLT to soundio.h
+	  replaced uses of redundant variable float_to_dbfs with e0dbfs
+	* InOut/libsnd_u.c:
+	* OOps/diskin.c:
+	  moved #defines of sf_read_MYFLT and sf_write_MYFLT to soundio.h
+	  bug fixes (hopefully) in opening and reading sound files
+	  removed unused or redundant variables (dbfs_to_short etc.)
+	  soundout opcode fixes (clip non-float formats, do not scale)
+	  minor cosmetic changes (line length etc.)
+	* OOps/fout.c:
+	  moved #defines of sf_read_MYFLT and sf_write_MYFLT to soundio.h
+	* OOps/ugens2.c:
+	* OOps/ugrw1.c:
+	  minor tweaks in tabli()
+	  made use of FLOOR() macro with negative integer argument safer 
+	* Top/cvanal.c:
+	  always scale input (actually to revert dbfs scaling done in
+	  getsndin(); FFT always expects data in the range 0 to 1)
+	  minor cosmetic changes (line length etc.)
+
 2005-02-24  John ffitch  <jpff@codemist.co.uk>
 
 	* OOps/ugens2.c: Added FLOOR macro to speed up floor throughout

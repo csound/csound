@@ -21,12 +21,22 @@
     02111-1307 USA
 */
 
-#include "cs.h"                 /*                              UGENS2.C        */
+#include "cs.h"         /*                              UGENS2.C        */
 #include "ugens2.h"
 #include <math.h>
 
 /* Macro form of Istvan's speedup ; constant should be 3fefffffffffffff */
+/*
 #define FLOOR(x) (x >= FL(0.0) ? (long)x : (long)((double)x - 0.999999999999999))
+*/
+/* 1.0-1e-8 is safe for a maximum table length of 16777216 */
+/* 1.0-1e-15 could incorrectly round down large negative integers, */
+/* because doubles do not have sufficient resolution for numbers like */
+/* -1000.999999999999999 (FLOOR(-1000) might possibly be -1001 which is wrong)*/
+/* it should be noted, though, that the above incorrect result would not be */
+/* a problem in the case of interpolating table opcodes, as the fractional */
+/* part would then be exactly 1.0, still giving a correct output value */
+#define FLOOR(x) (x >= FL(0.0) ? (long) x : (long) ((double) x - 0.99999999))
 
 int phsset(ENVIRON *csound, PHSOR *p)
 {
@@ -634,23 +644,21 @@ int tabli(ENVIRON *csound, TABLE  *p)
          * for the next cycle.
          * Then multiply the ndx by the denormalising factor and add in
          * the offset.  */
-
         ndx = (*pxndx++ * xbmul) + offset;
+        indx = (long) ndx;
         if (ndx <= FL(0.0)) {
           *rslt++ = *tab;
           continue;
         }
-
-        /* We need to generate a fraction - How much above indx is ndx?
-         * It will be between 0 and just below 1.0.  */
-        indx = (long) ndx;
-        if (ndx > length) {
+        if (indx >= length) {
           *rslt++ = *(tab + length);
           continue;
         }
+        /* We need to generate a fraction - How much above indx is ndx?
+         * It will be between 0 and just below 1.0.  */
+        fract = ndx - indx;
         /* As for ktabli(), read two values and interpolate between
          * them.  */
-        fract = ndx - indx;
         v1 = *(tab + indx);
         v2 = *(tab + indx + 1);
         *rslt++ = v1 + (v2 - v1)*fract;
@@ -662,11 +670,8 @@ int tabli(ENVIRON *csound, TABLE  *p)
          * for the next cycle.
          * Then multiply the ndx by the denormalising factor and add in
          * the offset.  */
-
         ndx = (*pxndx++ * xbmul) + offset;
-        indx = (ndx >= FL(0.0) ? (long) ndx : (long) ((double) ndx - 0.999999));
-
-
+        indx = (long) FLOOR(ndx);
         /* We need to generate a fraction - How much above indx is ndx?
          * It will be between 0 and just below 1.0.  */
         fract = ndx - indx;
@@ -681,7 +686,7 @@ int tabli(ENVIRON *csound, TABLE  *p)
     return OK;
 }
 
-int tabl3(ENVIRON *csound, TABLE  *p)           /* Like tabli but cubic interpolation */
+int tabl3(ENVIRON *csound, TABLE  *p)   /* Like tabli but cubic interpolation */
 {
     FUNC        *ftp;
     long        indx, mask, length;

@@ -76,13 +76,6 @@ extern int type2sf(int);
 extern short sf2type(int);
 extern char* type2string(int);
 extern short sfsampsize(int);
-#ifdef  USE_DOUBLE
-#define sf_write_MYFLT  sf_write_double
-#define sf_read_MYFLT   sf_read_double
-#else
-#define sf_write_MYFLT  sf_write_float
-#define sf_read_MYFLT   sf_read_float
-#endif
 
 /* return sample size (in bytes) of format 'fmt' */
 
@@ -775,7 +768,7 @@ static void sndfilein(void *csound)
     audrecv(csound, spin, sizeof(MYFLT) * samples);
     for(i = 0; i < samples; i++)
     {
-        spin[i] *= float_to_dbfs;
+        spin[i] *= e0dbfs;
     }
 }
 
@@ -814,7 +807,7 @@ static void sndfilein(void)
     spinrem -= n;
     inbufrem -= n;
     do {
-      *r++ = *bufp++ * float_to_dbfs;
+      *r++ = *bufp++ * e0dbfs;
     } while (--n);
     if (!inbufrem) {
     echk:
