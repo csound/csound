@@ -1,5 +1,7 @@
 2004-11-14  John ffitch  <jpff@codemist.co.uk>
 
+	* util2/exports/het_import.c (main): Open output as binary stream
+
 	* Top/main.c (mainRESET): ftRESET takes environment argument
 
 	* Engine/fgens.c: Move many statics into a single static.  Adjust
