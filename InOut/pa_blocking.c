@@ -92,6 +92,7 @@ int paBlockingWriteOpen(ENVIRON *csound,
       * csound->GetNchnls(csound);
     pabs->actualBuffer = (float *)
       mcalloc(pabs->actualBufferSampleCount * sizeof(float));
+    pabs->bp = 0;
     pabs->paLock = csoundCreateThreadLock(csound);
     pabs->clientLock = csoundCreateThreadLock(csound);
     maxLag = O.oMaxLag <= 0 ? IODACSAMPS : O.oMaxLag;
@@ -147,21 +148,20 @@ int paBlockingWriteStreamCallback(const void *input,
     return paContinue;
 }
 
-static int bp = 0;
 void paBlockingWrite(PA_BLOCKING_STREAM *pabs, int bytes, MYFLT *buffer)
 {
     size_t i;
     for (i = 0; i < bytes; i++) {
-      pabs->actualBuffer[i+bp] = (float)buffer[i];
+      pabs->actualBuffer[i+pabs->bp] = (float) buffer[i];
     }
-    bp += bytes;
-    if (bp >= pabs->actualBufferSampleCount) {
+    pabs->bp += bytes;
+    if (pabs->bp >= pabs->actualBufferSampleCount) {
       csoundNotifyThreadLock(pabs->csound, pabs->paLock);
       csoundWaitThreadLock(pabs->csound, pabs->clientLock, 100);
       memcpy(pabs->actualBuffer,
              &pabs->actualBuffer[pabs->actualBufferSampleCount],
-             (bp-pabs->actualBufferSampleCount)*sizeof(float));
-      bp -= pabs->actualBufferSampleCount;
+             (pabs->bp-pabs->actualBufferSampleCount)*sizeof(float));
+      pabs->bp -= pabs->actualBufferSampleCount;
    }
 }
 
