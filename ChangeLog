@@ -1,3 +1,14 @@
+2004-02-29	Steven Yi	<stevenyi@csounds.com>
+
+	* InOut/rtpa.c: modifed code to use PortAudio device 1 by default if 
+	none given.  Messages are now given to user if defaulting to device 1 
+	or what device user has selected.
+	
+	* Top/main.c: changed strcmp to strncmp when looking for dac or 
+	devaudio to allow use of --sched when using on linux and selecting
+	PortAudio devices (i.e. dac1, devaudio3)
+
+
 2004-02-28	Steven Yi	<stevenyi@csounds.com>
 
 	* Engine/entry2.c: Added reverbx_set and reverbx back in as well as 
