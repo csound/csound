@@ -274,7 +274,7 @@ void otran(void)
     while ((tp = getoptxt(&init)) != NULL) {    /*   then for each opcode: */
         unsigned int threads=0;
         int opnum = tp->opnum;
-        switch(opnum) {
+        switch (opnum) {
         case INSTR:
         case OPCODE:            /* IV - Sep 8 2002 */
             ip = (INSTRTXT *) mcalloc((long)sizeof(INSTRTXT));
@@ -963,7 +963,7 @@ static NAME *lclnamset(char *s)
     ++(lll->nxtslot);
     np->namep = s;                              /* else record newname  */
     if (*s == '#')      s++;
-    switch(*s) {                                /*   and its type-count */
+    switch (*s) {                               /*   and its type-count */
     case 'd': np->type = DTYPE; np->count = lclnxtdcnt++; break;
     case 'w': np->type = WTYPE; np->count = lclnxtwcnt++; break;
     case 'a': np->type = ATYPE; np->count = lclnxtacnt++; break;
@@ -1002,7 +1002,7 @@ static int lcloffndx(char *s)   /* get named offset index into instr lcl */
     NAME        *np = lclnamset(s);             /* rebuild the table    */
     int indx = 0;
     int Pfloatsize = Pfloats;
-    switch(np->type) {                          /* use cnts to calc ndx */
+    switch (np->type) {                         /* use cnts to calc ndx */
     case KTYPE:  indx = np->count;  break;
     case DTYPE:  indx = lclkcnt + np->count * Dfloats;  break;
     case WTYPE:  indx = lclkcnt + lcldcnt * Dfloats

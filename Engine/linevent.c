@@ -238,7 +238,7 @@ int sensLine(void)
           while ((c = *cp++) == ' ' || c == '\t')/* skip initial white space */
             ;
           if (c == LF) goto Timchk;     /* if null line, bugout     */
-          switch(c) {                   /* look for legal opcode    */
+          switch (c) {                  /* look for legal opcode    */
           case 'e':                     /* Quit realtime */
           case 'i':
           case 'f':

@@ -498,7 +498,7 @@ void oload(void)
       if (outoffp->count == 1 && inoffp->count == 1) {
         short rindex = (short)outoffp->indx[0] - (short)O.poolcount;
         MYFLT conval = pool[inoffp->indx[0] - 1];
-        switch(rindex) {
+        switch (rindex) {
         case 1:  esr = conval;  break;  /* & use those values */
         case 2:  ekr = conval;  break;  /*  to set params now */
         case 3:  ksmps = (int)(ensmps = conval);  break;
@@ -595,7 +595,7 @@ void oload(void)
         }
         aoffp = ttp->inoffs;            /* inargs:                  */
         if (opnum >= SETEND) goto realops;
-        switch(opnum) {                 /*      do oload SETs NOW  */
+        switch (opnum) {                /*      do oload SETs NOW  */
         case STRSET:
           if (strsets == NULL)
             strsets = (char **)
