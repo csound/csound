@@ -1722,7 +1722,12 @@ static void __cdecl fltkRun(void *s)
 #ifdef WIN32 // to make this thread to update GUI when no events are present
     SetTimer(0,0,200,NULL);
 #endif
-    Fl::run();
+    bool run = true;
+    while(run) {
+      Fl::lock();
+      Fl::wait(.01);
+      Fl::unlock();
+    }
     if (O.msglevel & WARNMSG) printf("WARNING: end of widget thread\n");
 #ifdef LINUX
     // IV - Aug 27 2002: exit if all windows are closed
@@ -1737,27 +1742,29 @@ static void __cdecl fltkRun(void *s)
 #endif
 }
 
-#ifdef _WINDOWS
+#ifdef WINDOWS
 static void __cdecl fltkKeybRun(void *s)
 {
     oKeyb->show();
     //Fl::run();
-
-    while(Fl::wait()) {
+    bool run = true;
+    while(run) {
+      Fl::lock();
+      run = Fl::wait();
       int temp = FLkeyboard_sensing();
       if (temp != 0 && *keybp->args[1] >=1 ) {
         *keybp->kout = temp;
         ButtonSched(keybp->args, keybp->INOCOUNT);
       }
-
+      Fl::unlock();
     }
-    if (O.msglevel & WARNMSG) printf("WARNING: end of keyboard thread\n");
+     if (O.msglevel & WARNMSG) printf("WARNING: end of keyboard thread\n");
 }
 #endif
 
 extern "C" void FL_run(FLRUN *p)
 {
-#ifdef _WINDOWS
+#ifdef WIN32
     threadHandle = _beginthread(fltkRun, 0, NULL);
     if (isActivatedKeyb)
       threadHandle = _beginthread(fltkKeybRun, 0, NULL);

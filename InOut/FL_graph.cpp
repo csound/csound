@@ -281,7 +281,9 @@ extern "C"
 
     int POLL_EVENTS(void)
     {
+        Fl::lock();
         Fl::wait(0.0);
+        Fl::unlock();
     #ifdef FLTK_GUI
         if (fltk_abort) {
           return 0;
@@ -303,8 +305,11 @@ extern "C"
     {
         if (form==NULL) return 1;
         end->show();
-        while (end->value()==0) Fl::wait(0.5);
-
+        while (end->value()==0) {
+            Fl::lock();
+            Fl::wait(0.5);
+            Fl::unlock();
+        }
         return 1;
     }
 
@@ -341,7 +346,9 @@ extern "C"
         short       m_x, m_y;
         Fl_Window *xwin = (Fl_Window *)wdptr->windid;
 
+        Fl::lock();
         Fl::wait(0.1);
+        Fl::unlock();
         m_x = Fl::event_x();
         m_y = Fl::event_y();
 
