@@ -91,7 +91,7 @@ opts.Add('noCygwin',
 opts.Add('generateTags',
     'Set to 1 to generate TAGS',
     0)
-opts.Add('generatePDF',
+opts.Add('generatePdf',
     'Set to 1 to generate PDF documentation',
     0)
 opts.Add('makeDynamic',
@@ -258,13 +258,13 @@ def buildzip(env, target, source):
     os.chdir('..')
     directories = string.split("csound5")
     
-    extensions = ".sln .csproj .vsproj .dev .def .am .sh .ac .in .dll .so .exe"
-    extensions = extensions + ".htm .html .doc .mso .png .xml .mso .gif .jpg .jpeg .hlp .nb .wks .xls .pdf "
-    extensions = extensions + ".c .C .cpp .cxx .h .hpp .H .hxx .py .rc .res .fl .i .java"
+    extensions = ".sln .csproj .vsproj .dev .def .am .sh .ac .in .dll .so .exe "
+    extensions = extensions + ".doc .mso .png .xml .mso .gif .jpg .jpeg .hlp .nb .wks .xls "
+    extensions = extensions + ".c .C .cpp .cxx .h .hpp .H .hxx .py .rc .res .fl .i .java "
     extensions = extensions + ".sf2 .SF2 .csd .aif .aiff .jar .smf .mid"
     extensions = string.split(extensions)
     
-    specificFiles = "SConstruct _CsoundVST.* _loris.* pyrun.* lori.py lorisgens.C lorisgens.h morphdemo.py trymorph.csd CsoundCOM.dll msvcp70.dll libsndfile.dll portaudio.dll msvcr70.dll csound csound.exe CsoundVST CsoundVST.exe CsoundVST.* soundfonts.dll libpython23.a "
+    specificFiles = "SConstruct _CsoundVST.* _loris.* pyrun.* loris.py lorisgens.C lorisgens.h morphdemo.py trymorph.csd CsoundCOM.dll msvcp70.dll libsndfile.dll portaudio.dll msvcr70.dll csound csound.exe CsoundVST CsoundVST.exe CsoundVST.* soundfonts.dll libpython23.a "
     specificFiles = specificFiles + "README Doxyfile ChangeLog COPYING INSTALL MANIFEST COPYRIGHT AUTHORS TODO all_strings french-strings english-strings"
     specificFiles = string.split(specificFiles)
     
@@ -528,14 +528,14 @@ staticLibrary = staticLibraryEnvironment.Library('csound',
     libCsoundSources)
 zipDependencies.append(staticLibrary)
     
-if not commonEnvironment['generatePDF']:
+if not commonEnvironment['generatePdf']:
     print 'CONFIGURATION DECISION: Not generating PDF documentation.'
 else:
     print 'CONFIGURATION DECISION: Generating PDF documentation.'
     refmanTex = commonEnvironment.Command('doc/latex/refman.tex', 'Doxyfile', ['doxygen $SOURCE'])
     Depends(refmanTex, staticLibrary)
     zipDependencies.append(refmanTex)
-    csoundPdf = commonEnvironment.Command('refman.pdf', 'doc/latex/refman.tex', ['pdflatex --include-directory=doc/latex --interaction=nonstopmode --job-name=csound $SOURCE'])
+    csoundPdf = commonEnvironment.Command('refman.pdf', 'doc/latex/refman.tex', ['pdflatex --include-directory=doc/latex --interaction=nonstopmode --job-name=csound' + '-' + str(today()) + ' $SOURCE'])
     Depends(csoundPdf, refmanTex)
     zipDependencies.append(csoundPdf)
     
