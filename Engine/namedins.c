@@ -78,16 +78,16 @@ int check_instr_name (char *s)
 /* find the instrument number for the specified name */
 /* return value is zero if none was found */
 
-long named_instr_find (char *s)
+long named_instr_find (ENVIRON *csound, char *s)
 {
     INSTRNAME   *inm;
     unsigned char h = 0, *c = (unsigned char*) s - 1;
 
-    if (!instrumentNames) return 0L;    /* no named instruments defined */
+    if (!csound->instrumentNames) return 0L;  /* no named instruments defined */
     /* calculate hash value */
     while (*++c) h = name_hash(h, *c);
     /* now find instrument */
-    if (!(inm = ((INSTRNAME**) instrumentNames)[h])) return 0L;
+    if (!(inm = ((INSTRNAME**) csound->instrumentNames)[h])) return 0L;
     if (!inm->prv) return (long) inm->instno;
     /* multiple entries for hash value, need to search */
     while (inm && strcmp(inm->name, s)) inm = inm->prv;
@@ -103,14 +103,15 @@ long named_instr_find (char *s)
 /* returns zero if the named instr entry could not be allocated */
 /* (e.g. because it already exists) */
 
-int named_instr_alloc (char *s, INSTRTXT *ip, long insno)
+int named_instr_alloc (ENVIRON *csound, char *s, INSTRTXT *ip, long insno)
 {
-    INSTRNAME   **inm_base = (INSTRNAME**) instrumentNames, *inm, *inm2;
+    INSTRNAME   **inm_base = (INSTRNAME**) csound->instrumentNames, *inm, *inm2;
     unsigned char h = 0, *c = (unsigned char*) s - 1;
 
     if (!inm_base)
       /* no named instruments defined yet */
-      inm_base = instrumentNames = (void*) mcalloc(&cenviron, sizeof(INSTRNAME*) * 258);
+      inm_base = csound->instrumentNames =
+                 (void*) mcalloc(csound, sizeof(INSTRNAME*) * 258);
     /* calculate hash value */
     while (*++c) h = name_hash(h, *c);
     /* now check if instrument is already defined */
@@ -119,8 +120,8 @@ int named_instr_alloc (char *s, INSTRTXT *ip, long insno)
       if (inm) return 0;        /* error: instr exists */
     }
     /* allocate entry, */
-    inm = (INSTRNAME*) mcalloc(&cenviron, sizeof(INSTRNAME));
-    inm2 = (INSTRNAME*) mcalloc(&cenviron, sizeof(INSTRNAME));
+    inm = (INSTRNAME*) mcalloc(csound, sizeof(INSTRNAME));
+    inm2 = (INSTRNAME*) mcalloc(csound, sizeof(INSTRNAME));
     /* and store parameters */
     inm->name = s; inm->ip = ip;
     inm2->instno = insno;
@@ -134,26 +135,28 @@ int named_instr_alloc (char *s, INSTRTXT *ip, long insno)
     else
       inm_base[257]->prv = inm2;
     inm_base[257] = inm2;
-    if (O.odebug)
-      printf("named instr name = \"%s\", hash = %d, txtp = %p\n", s, (int) h, ip);
+    if (csound->oparms->odebug)
+      csound->Message(csound,
+                      "named instr name = \"%s\", hash = %d, txtp = %p\n",
+                      s, (int) h, ip);
     return 1;
 }
 
 /* assign instrument numbers to all named instruments */
 /* called by otran */
 
-void named_instr_assign_numbers (void)
+void named_instr_assign_numbers (ENVIRON *csound)
 {
     INSTRNAME   *inm, *inm2, **inm_first, **inm_last;
     int     num = 0, insno_priority = 0;
 
-    if (!instrumentNames) return;       /* no named instruments */
-    inm_first = (INSTRNAME**) instrumentNames + 256;
+    if (!csound->instrumentNames) return;       /* no named instruments */
+    inm_first = (INSTRNAME**) csound->instrumentNames + 256;
     inm_last = inm_first + 1;
     while (--insno_priority > -3) {
       if (insno_priority == -2) {
         num = maxinsno;                 /* find last used instr number */
-        while (!instrtxtp[num] && --num);
+        while (!csound->instrtxtp_[num] && --num);
       }
       for (inm = *inm_first; inm; inm = inm->prv) {
         if ((int) inm->instno != insno_priority) continue;
@@ -165,7 +168,8 @@ void named_instr_assign_numbers (void)
           int m = maxinsno;
           maxinsno += MAXINSNO; /* Expand */
           instrtxtp = (INSTRTXT**)
-            mrealloc(&cenviron, instrtxtp, (long) ((1 + maxinsno) * sizeof(INSTRTXT*)));
+            mrealloc(csound, csound->instrtxtp_,
+                             (long) ((1 + maxinsno) * sizeof(INSTRTXT*)));
           /* Array expected to be nulled so.... */
           while (++m <= maxinsno) instrtxtp[m] = NULL;
         }
@@ -173,16 +177,16 @@ void named_instr_assign_numbers (void)
         inm2 = (INSTRNAME*) (inm->name);    /* entry in the table */
         inm2->instno = (long) num;
         instrtxtp[num] = inm2->ip;
-        if (O.msglevel)
-          printf(Str("instr %s uses instrument number %d\n"),
-                 inm2->name, num);
+        if (csound->oparms->msglevel)
+          csound->Message(csound, Str("instr %s uses instrument number %d\n"),
+                                  inm2->name, num);
       }
     }
     /* clear temporary chains */
     inm = *inm_first;
     while (inm) {
       INSTRNAME *nxtinm = inm->prv;
-      mfree(&cenviron, inm);
+      mfree(csound, inm);
       inm = nxtinm;
     }
     *inm_first = *inm_last = NULL;
@@ -191,17 +195,17 @@ void named_instr_assign_numbers (void)
 /* free memory used by named instruments */
 /* called by tranRESET() */
 
-void named_instr_free (void)
+void named_instr_free (ENVIRON *csound)
 {
     INSTRNAME   *inm;
     int     i;
 
-    if (!instrumentNames) return;       /* nothing to free */
+    if (!csound->instrumentNames) return;       /* nothing to free */
     for (i = 0; i < 256; i++) {
-      inm = ((INSTRNAME**) instrumentNames)[i];
+      inm = ((INSTRNAME**) csound->instrumentNames)[i];
       while (inm) {
         INSTRNAME   *prvinm = inm->prv;
-        mfree(&cenviron, inm);
+        mfree(csound, inm);
         inm = prvinm;
       }
     }
@@ -211,21 +215,21 @@ void named_instr_free (void)
 /* return value is -1 if the instrument cannot be found */
 /* (in such cases, csoundInitError() is also called) */
 
-long strarg2insno (MYFLT *p, char *s)
+long strarg2insno (ENVIRON *csound, MYFLT *p, char *s)
 {
     long    insno;
 
     if (*p == SSTRCOD) {
-      if (!(insno = named_instr_find(s))) {
-        sprintf(errmsg, "instr %s not found", s);
-        csoundInitError(&cenviron, errmsg); return -1;
+      if (!(insno = named_instr_find(csound, s))) {
+        csound->InitError(csound, "instr %s not found", s);
+        return -1;
       }
     }
     else {      /* numbered instrument */
       insno = (long) *p;
       if (insno < 1 || insno > maxinsno || !instrtxtp[insno]) {
-        sprintf(errmsg, "Cannot Find Instrument %d", (int) insno);
-        csoundInitError(&cenviron, errmsg); return -1;
+        csound->InitError(csound, "Cannot Find Instrument %d", (int) insno);
+        return -1;
       }
     }
     return insno;
@@ -235,13 +239,13 @@ long strarg2insno (MYFLT *p, char *s)
 /* and does not support numbered instruments */
 /* (used by opcodes like event or schedkwhen) */
 
-long strarg2insno_p (char *s)
+long strarg2insno_p (ENVIRON *csound, char *s)
 {
     long    insno;
 
-    if (!(insno = named_instr_find(s))) {
-      sprintf(errmsg, "instr %s not found", s);
-      csoundPerfError(&cenviron, errmsg); return -1;
+    if (!(insno = named_instr_find(csound, s))) {
+      csound->PerfError(csound, "instr %s not found", s);
+      return -1;
     }
     return insno;
 }
@@ -252,30 +256,30 @@ long strarg2insno_p (char *s)
 /* return value is -1 if the instrument cannot be found */
 /* (in such cases, csoundInitError() is also called) */
 
-long strarg2opcno (MYFLT *p, char *s, int force_opcode)
+long strarg2opcno (ENVIRON *csound, MYFLT *p, char *s, int force_opcode)
 {
     long    insno = 0;
 
     if (!force_opcode) {        /* try instruments first, if enabled */
       if (*p == SSTRCOD) {
-        insno = named_instr_find(s);
+        insno = named_instr_find(csound, s);
       }
       else {      /* numbered instrument */
         insno = (long) *p;
         if (insno < 1 || insno > maxinsno || !instrtxtp[insno]) {
-          sprintf(errmsg, "Cannot Find Instrument %d", (int) insno);
-          csoundInitError(&cenviron, errmsg); return -1;
+          csound->InitError(csound, "Cannot Find Instrument %d", (int) insno);
+          return -1;
         }
       }
     }
-    if (!insno && *p == SSTRCOD) {      /* if no instrument was found, */
-      OPCODINFO *inm = opcodeInfo;      /* search for user opcode */
+    if (!insno && *p == SSTRCOD) {          /* if no instrument was found, */
+      OPCODINFO *inm = csound->opcodeInfo;  /* search for user opcode */
       while (inm && strcmp(inm->name, s)) inm = inm->prv;
       if (inm) insno = (long) inm->instno;
     }
     if (insno < 1) {
-      csoundInitError(&cenviron,
-                      Str("cannot find the specified instrument or opcode"));
+      csound->InitError(csound,
+                        Str("cannot find the specified instrument or opcode"));
       insno = -1;
     }
     return insno;
@@ -286,76 +290,81 @@ long strarg2opcno (MYFLT *p, char *s, int force_opcode)
 
 /* create new opcode list from opcodlst[] */
 
-void opcode_list_create (void)
+void opcode_list_create (ENVIRON *csound)
 {
-    int     n = oplstend - opcodlst;
+    int     n = csound->oplstend_ - csound->opcodlst_;
 
-    if (opcode_list) {
-      csoundDie(&cenviron,
-                Str("internal error: opcode list has already been created"));
+    if (csound->opcode_list) {
+      csound->Die(csound,
+                  Str("internal error: opcode list has already been created"));
       return;
     }
-    opcode_list = (void*) mcalloc(&cenviron, sizeof(int) * 256);
+    csound->opcode_list = (void*) mcalloc(csound, sizeof(int) * 256);
     /* add all entries, except #0 which is unused */
     while (--n)
-      opcode_list_add_entry(n, 0);
+      opcode_list_add_entry(csound, n, 0);
 }
 
 /* add new entry to opcode list, with optional check for redefined opcodes */
 
-void opcode_list_add_entry (int opnum, int check_redefine)
+void opcode_list_add_entry (ENVIRON *csound, int opnum, int check_redefine)
 {
-    unsigned char   h = 0, *c = (unsigned char*) opcodlst[opnum].opname - 1;
+    unsigned char   h = 0;
+    unsigned char   *c = (unsigned char*) csound->opcodlst_[opnum].opname - 1;
 
     /* calculate hash value for opcode name */
     while (*++c) h = name_hash(h, *c);
     /* link entry into chain */
     if (check_redefine) {
-      int   *n = (int*) opcode_list + h;
+      int   *n = (int*) csound->opcode_list + h;
       /* check if an opcode with the same name is already defined */
-      while (*n && strcmp(opcodlst[*n].opname, opcodlst[opnum].opname)) {
-        n = &(opcodlst[*n].prvnum);
+      while (*n && strcmp(csound->opcodlst_[*n].opname,
+                          csound->opcodlst_[opnum].opname)) {
+        n = &(csound->opcodlst_[*n].prvnum);
       }
       if (!*n) goto newopc;
-      opcodlst[opnum].prvnum = opcodlst[*n].prvnum;         /* redefine */
+      /* redefine */
+      csound->opcodlst_[opnum].prvnum = csound->opcodlst_[*n].prvnum;
       *n = opnum;
     }
     else {
 newopc:
-      opcodlst[opnum].prvnum = ((int*) opcode_list)[h];     /* new opcode */
-      ((int*) opcode_list)[h] = opnum;
+      /* new opcode */
+      csound->opcodlst_[opnum].prvnum = ((int*) csound->opcode_list)[h];
+      ((int*) csound->opcode_list)[h] = opnum;
     }
-    if (O.odebug && (O.msglevel & 0x100000))
-      printf("Added opcode opname = %s, hash = %d, opnum = %d\n",
-             opcodlst[opnum].opname, (int) h, opnum);
+    if (csound->oparms->odebug && (csound->oparms->msglevel & 0x100000))
+      csound->Message(csound,
+                      "Added opcode opname = %s, hash = %d, opnum = %d\n",
+                      csound->opcodlst_[opnum].opname, (int) h, opnum);
 }
 
 /* free memory used by opcode list */
 
-extern void useropcdset(void*);
+extern int useropcdset(void*, void*);
 
-void opcode_list_free (void)
+void opcode_list_free (ENVIRON *csound)
 {
-    OENTRY  *ep = oplstend;
+    OENTRY  *ep = csound->oplstend_;
 
-    if (!opcode_list) return;
+    if (!csound->opcode_list) return;
     /* free memory used by temporary list, */
-    mfree(&cenviron, opcode_list);
-    opcode_list = NULL;
+    mfree(csound, csound->opcode_list);
+    csound->opcode_list = NULL;
     /* user defined opcode argument types, */
     while ((--ep)->iopadr == (SUBR) useropcdset) {
-      mfree(&cenviron, ep->intypes);
-      mfree(&cenviron, ep->outypes);
+      mfree(csound, ep->intypes);
+      mfree(csound, ep->outypes);
     }
     /* and opcodlst */
-    mfree(&cenviron, opcodlst);
-    opcodlst = oplstend = NULL;
+    mfree(csound, csound->opcodlst_);
+    csound->opcodlst_ = csound->oplstend_ = NULL;
 }
 
 /* find opcode with the specified name in opcode list */
 /* returns index to opcodlst[], or zero if the opcode cannot be found */
 
-int find_opcode(char *opname)
+int find_opcode(ENVIRON *csound, char *opname)
 {
     unsigned char   h = 0, *c = (unsigned char*) opname - 1;
     int     n;
@@ -363,8 +372,9 @@ int find_opcode(char *opname)
     /* calculate hash value for opcode name */
     while (*++c) h = name_hash(h, *c);
     /* now find entry in opcode chain */
-    n = ((int*) opcode_list)[h];
-    while (n && strcmp(opcodlst[n].opname, opname)) n = opcodlst[n].prvnum;
+    n = ((int*) csound->opcode_list)[h];
+    while (n && strcmp(csound->opcodlst_[n].opname, opname))
+      n = csound->opcodlst_[n].prvnum;
 
     return n;
 }
@@ -385,16 +395,16 @@ typedef struct strsav_space_t {
         struct strsav_space_t   *prv;   /* ptr to previous buffer      */
 } STRSAV_SPACE;
 
-static STRSAV **strsav_str = NULL;
-static STRSAV_SPACE *strsav_space = NULL;
+#define STRSAV_STR_     ((STRSAV**) (csound->strsav_str))
+#define STRSAV_SPACE_   ((STRSAV_SPACE*) (csound->strsav_space))
 
 /* allocate space for strsav (called once from rdorchfile()) */
 
-void strsav_create(void)
+void strsav_create(ENVIRON *csound)
 {
-    if (strsav_space != NULL) return;           /* already allocated */
-    strsav_space = (STRSAV_SPACE*) mcalloc(&cenviron, sizeof(STRSAV_SPACE));
-    strsav_str = (STRSAV**) mcalloc(&cenviron, sizeof(STRSAV*) * 256);
+    if (csound->strsav_space != NULL) return;   /* already allocated */
+    csound->strsav_space = mcalloc(csound, sizeof(STRSAV_SPACE));
+    csound->strsav_str = mcalloc(csound, sizeof(STRSAV*) * 256);
 }
 
 /* Locate string s in database, and return address of stored string (not */
@@ -402,7 +412,7 @@ void strsav_create(void)
 /* copied to the database (in such cases, it is allowed to free s after  */
 /* the call).                                                            */
 
-char *strsav_string(char *s)
+char *strsav_string(ENVIRON *csound, char *s)
 {
     unsigned char   h = 0, *c = (unsigned char*) s - 1;
     STRSAV  *ssp;
@@ -411,7 +421,7 @@ char *strsav_string(char *s)
     /* calculate hash value for the specified string */
     while (*++c) h = name_hash(h, *c);
     /* now find entry in database */
-    ssp = strsav_str[h];
+    ssp = STRSAV_STR_[h];
     while (ssp) {
       if (!strcmp(ssp->s, s)) return (ssp->s);  /* already defined */
       ssp = ssp->nxt;
@@ -419,44 +429,45 @@ char *strsav_string(char *s)
     /* not found, so need to allocate a new entry */
     n = (int) sizeof(STRSAV) + (int) strlen(s); /* number of bytes */
     n = ((n + 15) >> 4) << 4;   /* round up for alignment (16 bytes) */
-    if ((strsav_space->splim + n) > STRSPACE) {
+    if ((STRSAV_SPACE_->splim + n) > STRSPACE) {
       STRSAV_SPACE  *sp;
       /* not enough space, allocate new buffer */
       if (n > STRSPACE) {
         /* this should not happen */
-        err_printf("internal error: strsav: string length > STRSPACE\n");
+        csound->Message(csound,
+                        "internal error: strsav: string length > STRSPACE\n");
         return NULL;
       }
-      sp = (STRSAV_SPACE*) mcalloc(&cenviron, sizeof(STRSAV_SPACE));
-      sp->prv = strsav_space;
-      strsav_space = sp;
+      sp = (STRSAV_SPACE*) mcalloc(csound, sizeof(STRSAV_SPACE));
+      sp->prv = STRSAV_SPACE_;
+      csound->strsav_space = sp;
     }
     /* use space from buffer */
-    ssp = (STRSAV*) ((char*) strsav_space->sp + strsav_space->splim);
-    strsav_space->splim += n;
+    ssp = (STRSAV*) ((char*) STRSAV_SPACE_->sp + STRSAV_SPACE_->splim);
+    STRSAV_SPACE_->splim += n;
     strcpy(ssp->s, s);          /* save string */
     /* link into chain */
-    ssp->nxt = strsav_str[h];
-    strsav_str[h] = ssp;
+    ssp->nxt = STRSAV_STR_[h];
+    STRSAV_STR_[h] = ssp;
     return (ssp->s);
 }
 
 /* Free all memory used by strsav space. Called from orchRESET(). */
 
-void strsav_destroy(void)
+void strsav_destroy(ENVIRON *csound)
 {
-    STRSAV_SPACE  *sp = strsav_space;
+    STRSAV_SPACE  *sp = STRSAV_SPACE_;
 
     if (!sp) return;                    /* nothing to free */
-    strsav_space = NULL;
+    csound->strsav_space = NULL;
     do {
       STRSAV_SPACE  *prvsp = sp->prv;
-      mfree(&cenviron, sp);
+      mfree(csound, sp);
       sp = prvsp;
     } while (sp);
 
-    mfree(&cenviron, strsav_str);
-    strsav_str = NULL;
+    mfree(csound, STRSAV_STR_);
+    csound->strsav_str = NULL;
 }
 
 /* -------- IV - Jan 29 2005 -------- */

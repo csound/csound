@@ -708,8 +708,9 @@ extern "C" {
     void (*FFT2realpacked_)(complex *, long, complex *);
     void (*cxmult_)(complex *,complex *,long);
     int (*getopnum_)(char *s);
-    long (*strarg2insno_)(MYFLT *p, char *s);
-    long (*strarg2opcno_)(MYFLT *p, char *s, int force_opcode);
+    long (*strarg2insno_)(struct ENVIRON_ *csound, MYFLT *p, char *s);
+    long (*strarg2opcno_)(struct ENVIRON_ *csound, MYFLT *p, char *s,
+                                                   int force_opcode);
     INSDS *(*instance_)(int insno);
     void (*rewriteheader_)(SNDFILE *ofd, int verbose);
     void (*writeheader)(int ofd, char *ofname);
@@ -772,18 +773,20 @@ extern "C" {
     void (*InputValueCallback_)(void *csound, char *channelName, MYFLT *value);
     void (*OutputValueCallback_)(void *csound, char *channelName, MYFLT value);
     /* End of internals */
-    int           ksmps_, nchnls_;
-    int           global_ksmps_;
-    MYFLT         global_ensmps_, global_ekr_, global_onedkr_;
-    MYFLT         global_hfkprd_, global_kicvt_;
-    long          global_kcounter_;
-    MYFLT         esr_, ekr_;
+    OPDS          *ids, *pds;       /* used by init and perf loops */
+    int           ksmps, nchnls;
+    MYFLT         esr, ekr;
+    int           global_ksmps;
+    MYFLT         global_ensmps, global_ekr, global_onedkr;
+    MYFLT         global_hfkprd, global_kicvt;
+    MYFLT         cpu_power_busy;
+    long          global_kcounter;
     char          *orchname_, *scorename_, *xfilename_;
-    MYFLT         e0dbfs_;
+    MYFLT         e0dbfs;
     /* oload.h */
     RESETTER      *reset_list_;
-    short         nlabels_;
-    short         ngotos_;
+    short         nlabels;
+    short         ngotos;
     int           strsmax_;
     char          **strsets_;
     int           peakchunks_;
@@ -805,15 +808,15 @@ extern "C" {
     int           keep_tmp_;
     int           dither_output_;
     OENTRY        *opcodlst_;
-    void          *opcode_list_;   /* IV - Oct 31 2002 */
+    void          *opcode_list;     /* IV - Oct 31 2002 */
     OENTRY        *oplstend_;
     long          holdrand_;
     int           maxinsno_;
-    int           maxopcno_;       /* IV - Oct 24 2002 */
+    int           maxopcno_;        /* IV - Oct 24 2002 */
     INSDS         *curip_;
     EVTBLK        *Linevtblk_;
-    long          nrecs_;
-    FILE*         Linepipe_;
+    long          nrecs;
+    FILE*         Linepipe;
     int           Linefd_;
     MYFLT         *ls_table_;
     MYFLT         curr_func_sr_;
@@ -828,55 +831,56 @@ extern "C" {
     MYFLT         omaxamp_[MAXCHNLS];
     MYFLT         *maxampend_;
     unsigned long maxpos_[MAXCHNLS], smaxpos_[MAXCHNLS], omaxpos_[MAXCHNLS];
-    int           tieflag_;
-    char          *tokenstring_;
-    POLISH        *polish_;
+    int           reinitflag;
+    int           tieflag;
     FILE*         scorein_;
     FILE*         scoreout_;
     MYFLT         ensmps_, hfkprd_;
     MYFLT         *pool_;
-    int           *argoffspace_;
-    INSDS         *frstoff_;
-    jmp_buf       exitjmp_;
-    SRTBLK        *frstbp_;
-    int           sectcnt_;
-    MCHNBLK       *m_chnbp_[MAXCHAN];
+    int           *argoffspace;
+    INSDS         *frstoff;
+    jmp_buf       exitjmp;
+    SRTBLK        *frstbp;
+    int           sectcnt;
+    MCHNBLK       *m_chnbp[MAXCHAN];
     MYFLT         *cpsocint_, *cpsocfrc_;
     int           inerrcnt_, synterrcnt_, perferrcnt_;
     char          strmsg_[100];
     INSTRTXT      instxtanchor_;
     INSDS         actanchor_;
-    long          rngcnt_[MAXCHNLS];
-    short         rngflg_, multichan_;
+    long          rngcnt[MAXCHNLS];
+    short         rngflg, multichan;
     EVTNODE       *OrcTrigEvts;             /* List of events to be started */
     EVTNODE       *freeEvtNodes;
-    char          name_full_[256];          /* Remember name used */
-    int           Mforcdecs_, Mxtroffs_, MTrkend_;
+    char          name_full[256];           /* Remember name used */
+    int           Mforcdecs, Mxtroffs, MTrkend;
     MYFLT         tran_sr_,tran_kr_,tran_ksmps_;
     MYFLT         tran_0dbfs_;
     int           tran_nchnls_;
     MYFLT         tpidsr_, pidsr_, mpidsr_, mtpdsr_;
-    OPARMS        *oparms_;
-    void          *hostdata_;
-    OPCODINFO     *opcodeInfo_;    /* IV - Oct 20 2002 */
-    void          *instrumentNames_;
-    MYFLT         dbfs_to_float_;
-    unsigned int  rtin_dev_;
-    char *        rtin_devs_;
-    unsigned int  rtout_dev_;
-    char *        rtout_devs_;
-    int           displop4_;
+    OPARMS        *oparms;
+    void          *hostdata;
+    OPCODINFO     *opcodeInfo;      /* IV - Oct 20 2002 */
+    void          *instrumentNames;
+    void          *strsav_str;
+    void          *strsav_space;
+    MYFLT         dbfs_to_float;
+    unsigned int  rtin_dev;
+    char *        rtin_devs;
+    unsigned int  rtout_dev;
+    char *        rtout_devs;
+    int           displop4;
     void          *file_opened_;
     int           file_max_;
     int           file_num_;
-    int           nchanik_;
-    MYFLT*        chanik_;
-    int           nchania_;
-    MYFLT*        chania_;
-    int           nchanok_;
-    MYFLT*        chanok_;
-    int           nchanoa_;
-    MYFLT*        chanoa_;
+    int           nchanik;
+    MYFLT*        chanik;
+    int           nchania;
+    MYFLT*        chania;
+    int           nchanok;
+    MYFLT*        chanok;
+    int           nchanoa;
+    MYFLT*        chanoa;
     FGDATA        ff;
     FUNC**        flist;
     int           maxfnum;
@@ -907,6 +911,8 @@ extern "C" {
     /* Statics from express.c */
     long          polmax;
     long          toklen;
+    char          *tokenstring;
+    POLISH        *polish;
     TOKEN         *token;
     TOKEN         *tokend;
     TOKEN         *tokens;
@@ -915,6 +921,8 @@ extern "C" {
     int           acount, kcount, icount, Bcount, bcount;
     char          *stringend;
     TOKEN         **revp, **pushp, **argp, **endlist;
+    char          *assign_outarg;
+    int           argcnt_offs, opcode_is_assign, assign_type;
   } ENVIRON;
 
 #include "text.h"

@@ -42,7 +42,6 @@ extern  void    kperf(ENVIRON*);
 long    srngcnt[MAXCHNLS], orngcnt[MAXCHNLS];
 short   srngflg = 0;
 
-extern  OPARMS  O;
 static  short   sectno = 0;
 
 extern  int     MIDIinsert(ENVIRON *, int, MCHNBLK*, MEVENT*);
@@ -53,7 +52,7 @@ extern  void    print_benchmark_info(void*, const char*);     /* main.c */
 extern  void    RTLineset(void), MidiOpen(void *);
 extern  void    m_chn_init_all(ENVIRON *);
 extern  void    scsort(FILE*, FILE*), oload(ENVIRON *), cscorinit(void);
-extern  void    infoff(MYFLT), orcompact(ENVIRON*);
+extern  void    infoff(ENVIRON*, MYFLT), orcompact(ENVIRON*);
 extern  void    beatexpire(ENVIRON *, double), timexpire(ENVIRON *, double);
 extern  void    fgens(ENVIRON *,EVTBLK *);
 extern  void    sfopenin(void*), sfopenout(void*), sfnopenout(void);
@@ -73,7 +72,7 @@ static void settempo(ENVIRON *csound, MYFLT tempo)
     if (tempo > FL(0.0)) {
       csound->sensEvents_state.beatTime = 60.0 / (double) tempo;
       csound->sensEvents_state.curBeat_inc =
-                            (double) tempo / (60.0 * (double) csound->ekr_);
+                        (double) tempo / (60.0 * (double) csound->global_ekr);
     }
 }
 
@@ -117,15 +116,15 @@ void musRESET(void)
       maxamp[i]  = 0.0f;
       smaxamp[i] = 0.0f;
       omaxamp[i] = 0.0f;
-      rngcnt[i]  = 0;
+      cenviron.rngcnt[i] = 0;
       srngcnt[i] = 0;
       orngcnt[i] = 0;
       omaxpos[i] = smaxpos[i] = maxpos[i] = 1;
     }
     maxampend  = NULL;
-    rngflg     = 0;
+    cenviron.rngflg = 0;
     srngflg    = 0;
-    multichan  = 0;
+    cenviron.multichan = 0;
     sectno     = 0;
 
     lplayed    = 0;
@@ -202,7 +201,7 @@ int musmon(ENVIRON *csound)
 
     /* kperf() will not call csoundYield() more than 1000 times per second */
     csound->evt_poll_cnt = 0;
-    csound->evt_poll_maxcnt = (int) ((double) csound->ekr_ / 1000.0);
+    csound->evt_poll_maxcnt = (int) ((double) csound->ekr / 1000.0);
     /* initialise sensevents state */
     {
       sensEvents_t  *p;
@@ -211,7 +210,7 @@ int musmon(ENVIRON *csound)
       p->prvbt = p->curbt = p->nxtbt = 0.0;
       p->curp2 = p->nxtim = p->timeOffs = p->beatOffs = 0.0;
       p->curTime = p->curBeat = 0.0;
-      p->curTime_inc = p->curBeat_inc = 1.0 / (double) csound->ekr_;
+      p->curTime_inc = p->curBeat_inc = 1.0 / (double) csound->ekr;
     }
     if (O.Beatmode)                             /* if performing from beats */
       settempo(csound, (MYFLT) O.cmdTempo);     /*   set the initial tempo  */
@@ -225,14 +224,15 @@ int musmon(ENVIRON *csound)
     }
     printf(Str("orch now loaded\n"));
 
-    multichan = (nchnls > 1) ? 1:0;
-    maxampend = &maxamp[nchnls];
+    csound->multichan = (csound->nchnls > 1) ? 1:0;
+    maxampend = &maxamp[csound->nchnls];
     segamps = O.msglevel & SEGAMPS;
     sormsg = O.msglevel & SORMSG;
 
     if (O.Linein)  RTLineset();     /* if realtime input expected   */
     if (O.outbufsamps < 0) {        /* if k-aligned iobufs requestd */
-      O.inbufsamps = O.outbufsamps *= -ksmps; /*  set from absolute value */
+      /* set from absolute value */
+      O.inbufsamps = O.outbufsamps *= -(csound->ksmps);
       printf(Str("k-period aligned audio buffering\n"));
     }
     /* else keep the user values    */
@@ -259,8 +259,8 @@ int musmon(ENVIRON *csound)
       O.inbufsamps = O.outbufsamps;
     }
     printf(Str("audio buffered in %d sample-frame blocks\n"), O.outbufsamps);
-    O.inbufsamps *= nchnls;         /* now adjusted for n channels  */
-    O.outbufsamps *= nchnls;
+    O.inbufsamps *= csound->nchnls; /* now adjusted for n channels  */
+    O.outbufsamps *= csound->nchnls;
     if (O.sfread)                   /* if audio-in requested,       */
       sfopenin(csound);             /*   open/read? infile or device */
     if (O.sfwrite)                  /* if audio-out requested,      */
@@ -314,8 +314,9 @@ int musmon2(ENVIRON *csound)
     return cleanup(csound);
 }
 
-int cleanup(void *csound)
+int cleanup(void *csound_)
 {
+    ENVIRON *csound = (ENVIRON*) csound_;
     MYFLT   *maxp;
     long    *rngp;
     int     n;
@@ -331,16 +332,16 @@ int cleanup(void *csound)
     if (scfp) {
       fclose(scfp); scfp = NULL;
     }
-    for (n = 0; n < nchnls; n++) {
+    for (n = 0; n < csound->nchnls; n++) {
       if (smaxamp[n] > omaxamp[n]) omaxamp[n] = smaxamp[n];
       if (maxamp[n] > omaxamp[n]) omaxamp[n] = maxamp[n];
-      orngcnt[n] += (srngcnt[n] + rngcnt[n]);
+      orngcnt[n] += (srngcnt[n] + csound->rngcnt[n]);
     }
-    for (maxp=omaxamp, n=nchnls; n--; )
+    for (maxp = omaxamp, n = csound->nchnls; n--; )
       print_maxamp (*maxp++);                   /* IV - Jul 9 2002 */
     if (O.outformat != AE_FLOAT) {
       printf(Str("\n\t   overall samples out of range:"));
-      for (rngp=orngcnt, n=nchnls; n--; )
+      for (rngp = orngcnt, n = csound->nchnls; n--; )
         printf("%9ld", *rngp++);
     }
     printf(Str("\n%d errors in performance\n"),perferrcnt);
@@ -348,13 +349,13 @@ int cleanup(void *csound)
     /* close line input (-L) */
     RTclose(csound);
     /* close MIDI input */
-    MidiClose((ENVIRON*) csound);
+    MidiClose(csound);
     /* IV - Feb 03 2005: do not need to call rtclose from here, as */
     /* sfclosein/sfcloseout will do that. Checking O.sfread and */
     /* O.sfwrite is not needed either. */
     sfclosein(csound);
     sfcloseout(csound);
-    if (! ((ENVIRON*) csound)->oparms_->sfwrite)
+    if (!csound->oparms->sfwrite)
       printf(Str("no sound written to disk\n"));
     if (O.ringbell) beep();
     remove_tmpfiles(csound);
@@ -411,7 +412,7 @@ static void print_amp_values(ENVIRON *csound, int score_evt)
     int           n;
 
     p = &(csound->sensEvents_state);
-    if (segamps || (sormsg && rngflg)) {
+    if (segamps || (sormsg && csound->rngflg)) {
       if (score_evt)
         printf("B%7.3f ..%7.3f T%7.3f TT%7.3f M:",
                p->prvbt - p->beatOffs,  p->curbt - p->beatOffs,
@@ -419,23 +420,23 @@ static void print_amp_values(ENVIRON *csound, int score_evt)
       else
         printf("  rtevent:\t   T%7.3f TT%7.3f M:",
                p->curp2 - p->timeOffs,  p->curp2);
-      for (n = nchnls, maxp = maxamp; n--; )
+      for (n = csound->nchnls, maxp = maxamp; n--; )
         print_maxamp(*maxp++);          /* IV - Jul 9 2002 */
       printf("\n");
-      if (rngflg) {
+      if (csound->rngflg) {
         printf(Str("\t number of samples out of range:"));
-        for (n = nchnls, rngp = rngcnt; n--; )
+        for (n = csound->nchnls, rngp = csound->rngcnt; n--; )
           printf("%9ld", *rngp++);
         printf("\n");
       }
     }
-    if (rngflg) {
-      rngflg = 0;
+    if (csound->rngflg) {
+      csound->rngflg = 0;
       srngflg++;
     }
-    for (n = nchnls, maxp = maxamp - 1, smaxp = smaxamp - 1,
+    for (n = csound->nchnls, maxp = maxamp - 1, smaxp = smaxamp - 1,
          maxps = maxpos - 1, smaxps = smaxpos - 1,
-         rngp = rngcnt, srngp = srngcnt; n--; ) {
+         rngp = csound->rngcnt, srngp = srngcnt; n--; ) {
       ++maxps; ++smaxps;
       if (*++maxp > *++smaxp) {
         *smaxp = *maxp;
@@ -465,18 +466,18 @@ static void section_amps(ENVIRON *csound, int enable_msgs)
         printf(Str("end of section %d\t sect peak amps:"), sectno);
       else if (enable_msgs == 2)
         printf(Str("end of lplay event list\t      peak amps:"));
-      for (n = nchnls, maxp = smaxamp; n--; )
+      for (n = csound->nchnls, maxp = smaxamp; n--; )
         print_maxamp(*maxp++);          /* IV - Jul 9 2002 */
       printf("\n");
       if (srngflg) {
         printf(Str("\t number of samples out of range:"));
-        for (n = nchnls, srngp = srngcnt; n--; )
+        for (n = csound->nchnls, srngp = srngcnt; n--; )
           printf("%9ld", *srngp++);
         printf("\n");
       }
     }
     srngflg = 0;
-    for (n = nchnls,
+    for (n = csound->nchnls,
          smaxp = smaxamp - 1, maxp = omaxamp - 1,
          smaxps = smaxpos - 1, maxps = omaxpos - 1,
          srngp = srngcnt, rngp = orngcnt; n--; ) {
@@ -515,15 +516,15 @@ static int process_score_event(ENVIRON *csound, EVTBLK *evt, int rtEvt)
     case 'e':           /* quit realtime */
     case 'l':
     case 's':
-      while (frstoff != NULL) {
-        xturnoff_now(csound, frstoff);
-        frstoff = frstoff->nxtoff;
+      while (csound->frstoff != NULL) {
+        xturnoff_now(csound, csound->frstoff);
+        csound->frstoff = csound->frstoff->nxtoff;
       }
       currevent = saved_currevent;
       return (evt->opcod == 'l' ? 3 : (evt->opcod == 's' ? 1 : 2));
     case 'q':
       if (evt->p[1] == SSTRCOD && evt->strarg) {    /* IV - Oct 31 2002 */
-        if ((insno = (int) named_instr_find(evt->strarg)) < 1) {
+        if ((insno = (int) named_instr_find(csound, evt->strarg)) < 1) {
           print_score_time(csound, rtEvt);
           printf(Str(" - note deleted. instr %s undefined\n"), evt->strarg);
           perferrcnt++;
@@ -549,7 +550,7 @@ static int process_score_event(ENVIRON *csound, EVTBLK *evt, int rtEvt)
       break;
     case 'i':
       if (evt->p[1] == SSTRCOD && evt->strarg) {    /* IV - Oct 31 2002 */
-        if ((insno = (int) named_instr_find(evt->strarg)) < 1) {
+        if ((insno = (int) named_instr_find(csound, evt->strarg)) < 1) {
           print_score_time(csound, rtEvt);
           printf(Str(" - note deleted. instr %s undefined\n"), evt->strarg);
           perferrcnt++;
@@ -574,7 +575,7 @@ static int process_score_event(ENVIRON *csound, EVTBLK *evt, int rtEvt)
           perferrcnt++;
         }
         else if (evt->p[1] < FL(0.0))           /* if p1 neg,             */
-          infoff(-evt->p[1]);                   /*  turnoff any infin cpy */
+          infoff(csound, -evt->p[1]);           /*  turnoff any infin cpy */
         else {
           if (O.Beatmode && evt->p3orig >= FL(0.0))
             evt->p[3] = evt->p3orig * p->beatTime;
@@ -623,7 +624,7 @@ static int process_rt_event(ENVIRON *csound, int sensType)
       /* pop from the list */
       csound->OrcTrigEvts = e->nxt;
       if (e->nxt == NULL)
-        csound->oparms_->OrcEvts = 0;
+        csound->oparms->OrcEvts = 0;
       retval = process_score_event(csound, evt, 1);
       if (evt->strarg != NULL)
         mfree(csound, evt->strarg);
@@ -648,7 +649,7 @@ static int process_rt_event(ENVIRON *csound, int sensType)
       else {                            /* else midi note OFF:    */
         INSDS *ip = chn->kinsptr[mep->dat1];
         if (ip == NULL) {               /*  if already off, done  */
-          Mxtroffs++;
+          csound->Mxtroffs++;
           return retval;
         }
         if (chn->sustaining) {          /*  if sustain pedal on   */
@@ -659,7 +660,7 @@ static int process_rt_event(ENVIRON *csound, int sensType)
             chn->ksuscnt++;
           }
           else
-            Mxtroffs++;
+            csound->Mxtroffs++;
         }
         else                            /*  else some kind of off */
           xturnoff(csound, ip);
@@ -670,7 +671,7 @@ static int process_rt_event(ENVIRON *csound, int sensType)
 
 #define SENSEORCEVT(x) ((x)->OrcTrigEvts != NULL &&                     \
                         (x)->OrcTrigEvts->start_kcnt                    \
-                          <= (unsigned long) (x)->global_kcounter_ ? 4 : 0)
+                          <= (unsigned long) (x)->global_kcounter ? 4 : 0)
 
 #define RNDINT(x) ((int) ((double) (x) + ((double) (x) < 0.0 ? -0.5 : 0.5)))
 
@@ -690,24 +691,24 @@ int sensevents(ENVIRON *csound)
     int           retval, sensType;
 
     p = &(csound->sensEvents_state);
-    if (MTrkend && O.termifend) {       /* end of MIDI file: */
-      while (frstoff != NULL) {
-        xturnoff_now(csound, frstoff);
-        frstoff = frstoff->nxtoff;
+    if (csound->MTrkend && O.termifend) {       /* end of MIDI file: */
+      while (csound->frstoff != NULL) {
+        xturnoff_now(csound, csound->frstoff);
+        csound->frstoff = csound->frstoff->nxtoff;
       }
       printf(Str("terminating.\n"));
       return 1;                         /* abort with perf incomplete */
     }
     /* if turnoffs pending, remove any expired instrs */
-    if (frstoff != NULL) {
+    if (csound->frstoff != NULL) {
       double  tval;
       if (O.Beatmode) {
         tval = p->curBeat + (0.51 * p->curBeat_inc);
-        if (frstoff->offbet <= tval) beatexpire(csound, tval);
+        if (csound->frstoff->offbet <= tval) beatexpire(csound, tval);
       }
       else {
         tval = p->curTime + (0.51 * p->curTime_inc);
-        if (frstoff->offtim <= tval) timexpire(csound, tval);
+        if (csound->frstoff->offtim <= tval) timexpire(csound, tval);
       }
     }
     e = &(csound->sensEvents_state.evt);
@@ -730,9 +731,9 @@ int sensevents(ENVIRON *csound)
           case 'e':                         /* end of score, */
           case 'l':                         /* lplay list,   */
           case 's':                         /* or section:   */
-            if (frstoff != NULL) {          /*   if still have notes with  */
-              p->nxtim = frstoff->offtim;   /*   finite length, wait until */
-              p->nxtbt = frstoff->offbet;   /*   all are turned off        */
+            if (csound->frstoff != NULL) {  /*   if still have notes with  */
+              p->nxtim = csound->frstoff->offtim; /* finite length, wait   */
+              p->nxtbt = csound->frstoff->offbet; /* until all are turned off */
               break;
             }
             /* end of: 1: section, 2: score, 3: lplay list */
@@ -918,7 +919,7 @@ int insert_score_event(ENVIRON *csound, EVTBLK *evt, double time_ofs,
         /* calculate actual start time in seconds and k-periods */
         start_time = (double) p[2] + time_ofs;
         start_kcnt = (unsigned long)
-                            (start_time * (double) csound->global_ekr_ + 0.5);
+                       (start_time * (double) csound->global_ekr + 0.5);
         /* correct p2 value for section offset */
         p[2] = (MYFLT) (start_time - st->timeOffs);
         if (p[2] < FL(0.0))
@@ -938,7 +939,7 @@ int insert_score_event(ENVIRON *csound, EVTBLK *evt, double time_ofs,
       case 'f':                         /* function table */
         /* if event should be handled now: */
         if (allow_now &&
-            start_kcnt <= (unsigned long) csound->global_kcounter_) {
+            start_kcnt <= (unsigned long) csound->global_kcounter) {
           int initErr = csound->inerrcnt_;
           int perfErr = csound->perferrcnt_;
           process_score_event(csound, evt, 1);
@@ -955,7 +956,7 @@ int insert_score_event(ENVIRON *csound, EVTBLK *evt, double time_ofs,
       case 'q':                         /* mute instrument */
         /* check for a valid instrument number or name */
         if (evt->strarg != NULL && p[1] == SSTRCOD)
-          i = (int) named_instr_find(evt->strarg);
+          i = (int) named_instr_find(csound, evt->strarg);
         else
           i = (int) fabs((double) p[1]);
         if (i < 1 || i > csound->maxinsno_ || csound->instrtxtp_[i] == NULL) {
@@ -974,7 +975,7 @@ int insert_score_event(ENVIRON *csound, EVTBLK *evt, double time_ofs,
         evt->pcnt = 0;      /* no p-fields for these */
         start_kcnt = (time_ofs <= 0.0 ?
                       0UL : (unsigned long)
-                              (time_ofs * (double) csound->global_ekr_ + 0.5));
+                              (time_ofs * (double) csound->global_ekr + 0.5));
         break;
       default:
         csoundMessage(csound, Str("insert_score_event(): unknown opcode: %c\n"),
@@ -996,9 +997,9 @@ int insert_score_event(ENVIRON *csound, EVTBLK *evt, double time_ofs,
       prv->nxt = e;
     }
     /* Make sure sensevents() looks for RT events */
-    csound->oparms_->RTevents = 1;
-    csound->oparms_->ksensing = 1;
-    csound->oparms_->OrcEvts  = 1;      /* - of the appropriate type */
+    csound->oparms->RTevents = 1;
+    csound->oparms->ksensing = 1;
+    csound->oparms->OrcEvts  = 1;       /* - of the appropriate type */
     return 0;
 
  pfld_err:

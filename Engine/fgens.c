@@ -1343,7 +1343,7 @@ static void gen30 (FUNC *ftp, ENVIRON *csound)
       return;
     }
     xsr = FL(1.0);
-    if ((nargs > 3) && (ff->e.p[8] > FL(0.0))) xsr = esr / ff->e.p[8];
+    if ((nargs > 3) && (ff->e.p[8] > FL(0.0))) xsr = csound->esr / ff->e.p[8];
     f = csoundFTFind(csound,&(ff->e.p[5])); if (f == NULL) return;
     l1 = ftp->flen; l2 = f->flen;
     minfrac = ff->e.p[6];          /* lowest harmonic number */
@@ -1593,7 +1593,7 @@ static void gen33 (FUNC *ftp, ENVIRON *csound)
     scl = ff->e.p[7];
     /* frequency mode */
     if (fmode < FL(0.0)) {
-      fmode = (MYFLT) flen / (esr * -fmode);    /* frequency in Hz */
+      fmode = (MYFLT) flen / (csound->esr * -fmode);  /* frequency in Hz */
     }
     else if (fmode > FL(0.0)) {
       fmode = (MYFLT) flen / fmode;             /* ref. sample rate */
@@ -1672,7 +1672,7 @@ static void gen34 (FUNC *ftp, ENVIRON *csound)
     scl = ff->e.p[7];
     /* frequency mode */
     if (fmode < FL(0.0)) {
-      fmode = TWOPI_F / (esr * -fmode); /* frequency in Hz */
+      fmode = TWOPI_F / (csound->esr * -fmode); /* frequency in Hz */
     }
     else if (fmode > FL(0.0)) {
       fmode = TWOPI_F / fmode;          /* ref. sample rate */
@@ -2089,7 +2089,7 @@ static void gen01raw(FUNC *ftp, ENVIRON *csound)
       if ((ff->flen = p->framesrem) <= 0) { /*   get minsize from soundin */
         fterror(ff, Str("deferred size, but filesize unknown")); return;
       }
-      printf("**** defer length %d\n", ff->flen);
+      printf("**** defer length %ld\n", ff->flen);
       if (p->channel == ALLCHNLS)
         ff->flen *= p->nchanls;
       ff->guardreq  = 1;

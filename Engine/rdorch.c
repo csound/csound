@@ -76,8 +76,9 @@ static  int     lgprevdef = 0;
 static  int     opnum;                  /* opcod data carriers          */
 static  char    *opcod;                 /*  (line or subline)           */
 static  ARGLST  *nxtarglist, *nullist;
-#define strsav  strsav_string
-static  void    intyperr(int n, char tfound, char expect), printgroups(int count);
+#define strsav(x)  strsav_string(csound, x)
+static  void    intyperr(int n, char tfound, char expect);
+static  void    printgroups(int count);
 static  int     isopcod(char *s);
 static  void    lblrequest(char *s), lblfound(char *s);
 static  void    lblclear(void), lblchk(void);
@@ -103,9 +104,11 @@ static int linepos = -1;
 
 void orchRESET(void)
 {
-    int i;
-    mfree(&cenviron, linadr); linadr=NULL;
-    mfree(&cenviron, srclin); srclin=NULL;
+    ENVIRON *csound = &cenviron;
+    int     i;
+
+    mfree(csound, linadr); linadr=NULL;
+    mfree(csound, srclin); srclin=NULL;
     curline    = 0;
     group      = NULL;
     grpsav     = NULL;
@@ -122,16 +125,16 @@ void orchRESET(void)
     opnum      = 0;
     opcod      = NULL;
     if (nxtarglist!=NULL) {
-      mfree(&cenviron, nxtarglist); nxtarglist = NULL;
+      mfree(csound, nxtarglist); nxtarglist = NULL;
     }
     if (nullist!=NULL) {
-      mfree(&cenviron, nullist); nullist = NULL;
+      mfree(csound, nullist); nullist = NULL;
     }
-    strsav_destroy();
+    strsav_destroy(csound);
     while (macros) {
-      mfree(&cenviron, macros->body);
-      mfree(&cenviron, macros->name);
-      for (i=0; i<macros->acnt; i++) mfree(&cenviron, macros->arg[i]);
+      mfree(csound, macros->body);
+      mfree(csound, macros->name);
+      for (i = 0; i < macros->acnt; i++) mfree(csound, macros->arg[i]);
       macros = macros->next;
     }
     pop        = 0;
@@ -139,7 +142,9 @@ void orchRESET(void)
     linepos    = -1;
     /* IV - Oct 31 2002 */
     if (typemask_tabl) {
-      mfree(&cenviron, typemask_tabl); mfree(&cenviron, typemask_tabl_in); mfree(&cenviron, typemask_tabl_out);
+      mfree(csound, typemask_tabl);
+      mfree(csound, typemask_tabl_in);
+      mfree(csound, typemask_tabl_out);
       typemask_tabl = typemask_tabl_in = typemask_tabl_out = NULL;
     }
 }
@@ -259,17 +264,17 @@ FILE *fopen_path(char *name, char *basename, char *env, char *mode)
     FILE *ff;
     char *p;
                                 /* First try to open name given */
-    strcpy(name_full, name);
-    if ((ff = fopen(name_full, mode))) return ff;
+    strcpy(cenviron.name_full, name);
+    if ((ff = fopen(cenviron.name_full, mode))) return ff;
                                 /* if that fails try in base directory */
-    strcpy(name_full, basename);
-    p = strrchr(name_full, DIRSEP);
+    strcpy(cenviron.name_full, basename);
+    p = strrchr(cenviron.name_full, DIRSEP);
 #if !defined(mac_classic) && !defined(SYMANTECS)
-    if (p==NULL) p = strrchr(name_full, '\\');
+    if (p==NULL) p = strrchr(cenviron.name_full, '\\');
 #endif
     if (p != NULL) {
       strcpy(p+1, name);
-      if ((ff = fopen(name_full, mode))) return ff;
+      if ((ff = fopen(cenviron.name_full, mode))) return ff;
     }
                                 /* or use env argument */
     ff = NULL;
@@ -283,7 +288,7 @@ FILE *fopen_path(char *name, char *basename, char *env, char *mode)
 
 static  long    ORCHSIZ;
 
-void rdorchfile(void)           /* read entire orch file into txt space */
+void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
 {
     int c, lincnt;
     int srccnt;
@@ -294,9 +299,9 @@ void rdorchfile(void)           /* read entire orch file into txt space */
     /* IV - Oct 31 2002: create tables for easier checking for common types */
     if (!typemask_tabl) {
       long *ptr = typetabl1;
-      typemask_tabl = (long*) mcalloc(&cenviron, sizeof(long) * 256);
-      typemask_tabl_in = (long*) mcalloc(&cenviron, sizeof(long) * 256);
-      typemask_tabl_out = (long*) mcalloc(&cenviron, sizeof(long) * 256);
+      typemask_tabl = (long*) mcalloc(csound, sizeof(long) * 256);
+      typemask_tabl_in = (long*) mcalloc(csound, sizeof(long) * 256);
+      typemask_tabl_out = (long*) mcalloc(csound, sizeof(long) * 256);
       while (*ptr) {            /* basic types (both for input */
         long pos = *ptr++;      /* and output) */
         typemask_tabl[pos] = typemask_tabl_in[pos] = typemask_tabl_out[pos] =
@@ -315,38 +320,38 @@ void rdorchfile(void)           /* read entire orch file into txt space */
     }
     printf(Str("orch compiler:\n"));
     if ((fp = fopen(orchname,"r")) == NULL)
-      csoundDie(&cenviron, Str("cannot open orch file %s"), orchname);
+      csoundDie(csound, Str("cannot open orch file %s"), orchname);
     if (fseek(fp, 0L, SEEK_END) != 0)
-      csoundDie(&cenviron, Str("cannot find end of file %s"), orchname);
+      csoundDie(csound, Str("cannot find end of file %s"), orchname);
     if ((ORCHSIZ = ftell(fp)) <= 0)
-      csoundDie(&cenviron, Str("ftell error on %s"), orchname);
+      csoundDie(csound, Str("ftell error on %s"), orchname);
     rewind(fp);
-    inputs = (struct in_stack*)mmalloc(&cenviron, 20*sizeof(struct in_stack));
+    inputs = (struct in_stack*)mmalloc(csound, 20*sizeof(struct in_stack));
     input_size = 20;
     input_cnt = 0;
     str = inputs;
     str->string = 0;
     str->file = fp;
     str->body = orchname;
-    ortext = mmalloc(&cenviron, ORCHSIZ + 1);              /* alloc mem spaces */
-    linadr = (char **) mmalloc(&cenviron, (long)(LINMAX+1)*sizeof(char **));
-    srclin = (short *) mmalloc(&cenviron, (long)(LINMAX+1)*sizeof(short));
-    strsav_create();
+    ortext = mmalloc(csound, ORCHSIZ + 1);              /* alloc mem spaces */
+    linadr = (char **) mmalloc(csound, (long)(LINMAX+1)*sizeof(char **));
+    srclin = (short *) mmalloc(csound, (long)(LINMAX+1)*sizeof(short));
+    strsav_create(csound);
     srclin[1] = 1;
     lincnt = srccnt = 1;
     cp = linadr[1] = ortext;
     endspace = ortext + ORCHSIZ + 1;
     strsav("sr");
-    group = (char **)mcalloc(&cenviron, (GRPMAX+1)*sizeof(char*));
-    grpsav= (char **)mcalloc(&cenviron, (GRPMAX+1)*sizeof(char*));
-    lblreq = (LBLREQ*)mcalloc(&cenviron, LBLMAX*sizeof(LBLREQ));
+    group = (char **)mcalloc(csound, (GRPMAX+1)*sizeof(char*));
+    grpsav= (char **)mcalloc(csound, (GRPMAX+1)*sizeof(char*));
+    lblreq = (LBLREQ*)mcalloc(csound, LBLMAX*sizeof(LBLREQ));
     lblmax = LBLMAX;
 
     while ((c = getorchar()) != EOF) {  /* read entire orch file  */
       if (cp == endspace-1) {           /* Must extend */
         char * orold = ortext;
         int i;
-        ortext = mrealloc(&cenviron, ortext, ORCHSIZ += 400);
+        ortext = mrealloc(csound, ortext, ORCHSIZ += 400);
         endspace = ortext + ORCHSIZ + 1;
 /*          printf("Orchestra Text extended to %d\n", ORCHSIZ); */
         if (ortext != orold) {
@@ -412,9 +417,9 @@ void rdorchfile(void)           /* read entire orch file into txt space */
 /*                printf("too many lines...increasing\n"); */
           linmax += 100;
           linadr =
-            (char **) mrealloc(&cenviron, linadr, (long)(linmax+1)*sizeof(char *));
+            (char **) mrealloc(csound, linadr, (long)(linmax+1)*sizeof(char *));
           srclin =
-            (short *) mrealloc(&cenviron, srclin, (long)(linmax+1)*sizeof(short));
+            (short *) mrealloc(csound, srclin, (long)(linmax+1)*sizeof(short));
         }
         srclin[lincnt] = srccnt;
         linadr[lincnt] = cp;            /* record the adrs */
@@ -425,7 +430,7 @@ void rdorchfile(void)           /* read entire orch file into txt space */
         int i=0;
         int arg = 0;
         int size = 100;
-        MACRO *mm = (MACRO*)mmalloc(&cenviron, sizeof(MACRO));
+        MACRO *mm = (MACRO*)mmalloc(csound, sizeof(MACRO));
         mm->margs = MARGS;  /* Initial size */
         cp--;
         while (isspace(c = getorchar()));
@@ -439,7 +444,7 @@ void rdorchfile(void)           /* read entire orch file into txt space */
           } while (isalpha(c = getorchar())|| (i!=0 && (isdigit(c)||c=='_')));
           mname[i] = '\0';
           printf(Str("Macro definition for %s\n"), mname);
-          mm->name = mmalloc(&cenviron, i+1);
+          mm->name = mmalloc(csound, i+1);
           strcpy(mm->name, mname);
           if (c == '(') {       /* arguments */
 #ifdef MACDEBUG
@@ -456,10 +461,11 @@ void rdorchfile(void)           /* read entire orch file into txt space */
 #ifdef MACDEBUG
               printf("%s\t", mname);
 #endif
-              mm->arg[arg] = mmalloc(&cenviron, i+1);
+              mm->arg[arg] = mmalloc(csound, i+1);
               strcpy(mm->arg[arg++], mname);
               if (arg>=mm->margs) {
-                mm = (MACRO*)mrealloc(&cenviron, mm, sizeof(MACRO)+mm->margs*sizeof(char*));
+                mm = (MACRO*)mrealloc(csound, mm,
+                                      sizeof(MACRO)+mm->margs*sizeof(char*));
                 mm->margs += MARGS;
 /*                    lexerr(Str("Too many arguments to macro")); */
               }
@@ -470,13 +476,13 @@ void rdorchfile(void)           /* read entire orch file into txt space */
           mm->acnt = arg;
           i = 0;
           while ((c = getorchar())!= '#'); /* Skip to next # */
-          mm->body = (char*)mmalloc(&cenviron, 100);
+          mm->body = (char*)mmalloc(csound, 100);
           while ((c = getorchar())!= '#') {
             mm->body[i++] = c;
-            if (i>= size) mm->body = mrealloc(&cenviron, mm->body, size += 100);
+            if (i>= size) mm->body = mrealloc(csound, mm->body, size += 100);
             if (c=='\\') {      /* allow escaped # */
               mm->body[i++] = c = getorchar();
-              if (i>= size) mm->body = mrealloc(&cenviron, mm->body, size += 100);
+              if (i>= size) mm->body = mrealloc(csound, mm->body, size += 100);
             }
             if (c == '\n') {
               srccnt++;
@@ -511,10 +517,10 @@ void rdorchfile(void)           /* read entire orch file into txt space */
             input_cnt++;
             if (input_cnt>=input_size) {
               input_size += 20;
-              inputs = mrealloc(&cenviron,
+              inputs = mrealloc(csound,
                                 inputs, input_size*sizeof(struct in_stack));
               if (inputs == NULL) {
-                csoundDie(&cenviron, Str("No space for include files"));
+                csoundDie(csound, Str("No space for include files"));
               }
             }
             str++;
@@ -526,8 +532,8 @@ void rdorchfile(void)           /* read entire orch file into txt space */
             str--; input_cnt--;
             }
             else {
-              str->body = (char*)mmalloc(&cenviron, strlen(name_full)+1);
-              strcpy(str->body, name_full);       /* Remember name */
+              str->body = (char*)mmalloc(csound, strlen(csound->name_full)+1);
+              strcpy(str->body, csound->name_full);     /* Remember name */
               str->line = 1;
               linepos = -1;
             }
@@ -566,10 +572,10 @@ void rdorchfile(void)           /* read entire orch file into txt space */
           printf(Str("macro %s undefined\n"), mname);
           if (strcmp(mname, macros->name)==0) {
             MACRO *mm=macros->next;
-            mfree(&cenviron, macros->name); mfree(&cenviron, macros->body);
+            mfree(csound, macros->name); mfree(csound, macros->body);
             for (i=0; i<macros->acnt; i++)
-              mfree(&cenviron, macros->arg[i]);
-            mfree(&cenviron, macros); macros = mm;
+              mfree(csound, macros->arg[i]);
+            mfree(csound, macros); macros = mm;
           }
           else {
             MACRO *mm = macros;
@@ -578,10 +584,10 @@ void rdorchfile(void)           /* read entire orch file into txt space */
               mm = nn; nn = nn->next;
               if (nn==NULL) lexerr(Str("Undefining undefined macro"));
             }
-            mfree(&cenviron, nn->name); mfree(&cenviron, nn->body);
+            mfree(csound, nn->name); mfree(csound, nn->body);
             for (i=0; i<nn->acnt; i++)
-              mfree(&cenviron, nn->arg[i]);
-            mm->next = nn->next; mfree(&cenviron, nn);
+              mfree(csound, nn->arg[i]);
+            mm->next = nn->next; mfree(csound, nn);
           }
           while (c!='\n') c = getorchar(); /* ignore rest of line */
         }
@@ -608,9 +614,8 @@ void rdorchfile(void)           /* read entire orch file into txt space */
         }
         mm = mm_save;
         if (mm == NULL) {
-          err_printf(Str(
-                         "Macro expansion symbol ($) without macro name\n"));
-          longjmp(cenviron.exitjmp_,1);
+          csound->Die(csound,
+                      Str("Macro expansion symbol ($) without macro name"));
         }
         if (strlen (mm->name) != (unsigned)i) {
 /*              fprintf (stderr, "Warning: $%s matches macro name $%s\n", */
@@ -637,22 +642,22 @@ void rdorchfile(void)           /* read entire orch file into txt space */
           for (j=0; j<mm->acnt; j++) {
             char term = (j==mm->acnt-1 ? ')' : '\'');
             char trm1 = (j==mm->acnt-1 ? ')' : '#'); /* Compatability */
-            MACRO* nn = (MACRO*) mmalloc(&cenviron, sizeof(MACRO));
+            MACRO* nn = (MACRO*) mmalloc(csound, sizeof(MACRO));
             int size = 100;
-            nn->name = mmalloc(&cenviron, strlen(mm->arg[j])+1);
+            nn->name = mmalloc(csound, strlen(mm->arg[j])+1);
             strcpy(nn->name, mm->arg[j]);
 #ifdef MACDEBUG
             printf("defining argument %s ", nn->name);
 #endif
             i = 0;
-            nn->body = (char*)mmalloc(&cenviron, 100);
+            nn->body = (char*)mmalloc(csound, 100);
             while ((c = getorchar())!= term && c!=trm1) {
               if (i>98) {
-                printf(Str("Missing argument terminator\n%.98s"), nn->body);
-                longjmp(cenviron.exitjmp_,1);
+                csound->Die(csound, Str("Missing argument terminator\n%.98s"),
+                                    nn->body);
               }
               nn->body[i++] = c;
-              if (i>= size) nn->body = mrealloc(&cenviron, nn->body, size += 100);
+              if (i>= size) nn->body = mrealloc(csound, nn->body, size += 100);
               if (c == '\n') {
                 srccnt++;
               }
@@ -670,10 +675,10 @@ void rdorchfile(void)           /* read entire orch file into txt space */
         input_cnt++;
         if (input_cnt>=input_size) {
           input_size += 20;
-          inputs = mrealloc(&cenviron,
+          inputs = mrealloc(csound,
                             inputs, input_size*sizeof(struct in_stack));
           if (inputs == NULL) {
-            csoundDie(&cenviron, Str("No space for include files"));
+            csoundDie(csound, Str("No space for include files"));
           }
         }
         str++;
@@ -684,7 +689,7 @@ void rdorchfile(void)           /* read entire orch file into txt space */
       }
     }
     if (cp >= endspace) {                               /* Ought to extend */
-      csoundDie(&cenviron, Str("file too large for ortext space"));
+      csoundDie(csound, Str("file too large for ortext space"));
     }
     if (*(cp-1) != '\n')                /* if no final NL,      */
       *cp++ = '\n';                     /*    add one           */
@@ -695,18 +700,20 @@ void rdorchfile(void)           /* read entire orch file into txt space */
     curline = 0;                        /*   & reset to line 1  */
     while (macros) {                    /* Clear all macros */
       int i;
-      mfree(&cenviron, macros->body);
-      mfree(&cenviron, macros->name);
-      for (i=0; i<macros->acnt; i++) mfree(&cenviron, macros->arg[i]);
+      mfree(csound, macros->body);
+      mfree(csound, macros->name);
+      for (i=0; i<macros->acnt; i++) mfree(csound, macros->arg[i]);
       macros = macros->next;
     }
-    nullist = (ARGLST *) mmalloc(&cenviron, sizeof(ARGLST)); /* nullist is a count only  */
+    nullist = (ARGLST *) mmalloc(csound,
+                                 sizeof(ARGLST)); /* nullist is a count only */
     nullist->count = 0;
-    nxtarglist = (ARGLST *) mmalloc(&cenviron, sizeof(ARGLST) + 200*sizeof(char*));
+    nxtarglist = (ARGLST *) mmalloc(csound, sizeof(ARGLST) + 200*sizeof(char*));
 }
 
-static int splitline(void) /* split next orch line into atomic groups */
-{                          /* cnt labels this line, and set opgrpno where found */
+static int splitline(void) /* split next orch line into atomic groups, count */
+{                          /*  labels this line, and set opgrpno where found */
+    ENVIRON *csound = &cenviron;
     int grpcnt, prvif, prvelsif, logical, condassgn, parens;
     int c, collecting;
     char        *cp, *lp, *grpp=NULL;
@@ -717,7 +724,7 @@ static int splitline(void) /* split next orch line into atomic groups */
     } *iflabels = NULL;
 
     if (collectbuf == NULL)
-      collectbuf = mcalloc(&cenviron, (long)lenmax);
+      collectbuf = mcalloc(csound, (long)lenmax);
  nxtlin:
     if ((lp = linadr[++curline]) == NULL)       /* point at next line   */
       return(0);
@@ -728,16 +735,16 @@ static int splitline(void) /* split next orch line into atomic groups */
     while ((c = *lp++) != '\n') {               /* for all chars this line:  */
       if (cp - collectbuf >= lenmax) {
         int i;
-        char *nn = mcalloc(&cenviron, lenmax+LENMAX);
+        char *nn = mcalloc(csound, lenmax+LENMAX);
         memcpy(nn, collectbuf, lenmax); /* Copy data */
-        if (nn==NULL) csoundDie(&cenviron, Str("line LENMAX exceeded"));
+        if (nn==NULL) csoundDie(csound, Str("line LENMAX exceeded"));
         cp = (cp - collectbuf) + nn;    /* Adjust pointer  */
         for (i=0; i<grpcnt; i++) group[i] += (nn-collectbuf);
-        mfree(&cenviron, collectbuf);   /* Need to correct grp vector */
+        mfree(csound, collectbuf);   /* Need to correct grp vector */
         collectbuf = nn;
         lenmax += LENMAX;
 /*              err_printf( "SplitLine buffer extended to %d\n", lenmax); */
-/*              csoundDie(&cenviron, X_966,"line LENMAX exceeded"); */
+/*              csoundDie(csound, X_966,"line LENMAX exceeded"); */
       }
       if (c == '"') {                     /* quoted string:    */
         if (collecting) {
@@ -745,10 +752,9 @@ static int splitline(void) /* split next orch line into atomic groups */
           continue;
         }
         if (grpcnt >= grpmax) {
-          group = (char **)mrealloc(&cenviron, group,((grpmax+=GRPMAX)+1)*sizeof(char*));
-          grpsav=(char **) mrealloc(&cenviron, grpsav,(grpmax+1)*sizeof(char*));
-          if (group==NULL || grpsav==NULL)
-            csoundDie(&cenviron, Str("GRPMAX overflow"));
+          group = (char **)mrealloc(csound, group,
+                                            ((grpmax+=GRPMAX)+1)*sizeof(char*));
+          grpsav = (char **) mrealloc(csound, grpsav, (grpmax+1)*sizeof(char*));
         }
         grpp = group[grpcnt++] = cp;
         *cp++ = c;                      /*  cpy to nxt quote */
@@ -758,16 +764,15 @@ static int splitline(void) /* split next orch line into atomic groups */
         collecting = 1;                 /*   & resume chking */
         continue;
       }
-      if (c == '{' && *lp == '{') {                     /* multiline quoted string:    */
+      if (c == '{' && *lp == '{') {     /* multiline quoted string:    */
         if (collecting) {
           synterrp(lp-1,Str("unexpected quote character"));
           continue;
         }
         if (grpcnt >= grpmax) {
-          group = (char **)mrealloc(&cenviron, group,((grpmax+=GRPMAX)+1)*sizeof(char*));
-          grpsav=(char **) mrealloc(&cenviron, grpsav,(grpmax+1)*sizeof(char*));
-          if (group==NULL || grpsav==NULL)
-            csoundDie(&cenviron, Str("GRPMAX overflow"));
+          group = (char **)mrealloc(csound, group,
+                                            ((grpmax+=GRPMAX)+1)*sizeof(char*));
+          grpsav = (char **) mrealloc(csound, grpsav, (grpmax+1)*sizeof(char*));
         }
         grpp = group[grpcnt++] = cp;
         *cp++ = c;                      /*  cpy to nxt quote */
@@ -812,11 +817,12 @@ static int splitline(void) /* split next orch line into atomic groups */
           else if (strcmp(grpp,"elseif") == 0) { /* of elseif opcod */
             static int repeatingElseifLine = 0;
             if (!iflabels) { /* check to see we had an 'if' before  */
-              synterr(Str(
-                          "invalid 'elseif' statement.  must have a corresponding 'if'\n"));
+              synterr(Str("invalid 'elseif' statement.  "
+                          "must have a corresponding 'if'\n"));
               goto nxtlin;
             }
-            if (!iflabels->els[0]) { /* check to see we did not have an 'else' before */
+            /* check to see we did not have an 'else' before */
+            if (!iflabels->els[0]) {
               synterr(Str("'elseif' statement cannot occur after an 'else'"));
               goto nxtlin;
             }
@@ -845,7 +851,8 @@ static int splitline(void) /* split next orch line into atomic groups */
               cp = grpp + strlen(iflabels->end) + 1;
               curline--; /* roll back one and parse this line again */
               repeatingElseifLine++;
-              goto nxtlin; /* for some reason only goto [and not return] works here ? */
+              /* for some reason only goto [and not return] works here ? */
+              goto nxtlin;
             }
           }
           if (isopcod(grpp))            /*   or maybe others */
@@ -915,7 +922,7 @@ static int splitline(void) /* split next orch line into atomic groups */
           }
           else {
             /* this is a new if, so put a whole new label struct on the stack */
-            iflabels = (struct iflabel *) mmalloc(&cenviron,
+            iflabels = (struct iflabel *) mmalloc(csound,
                                                   sizeof(struct iflabel));
             iflabels->prv = prv;
             sprintf(iflabels->end, "__endif_%ld",tempNum++);
@@ -928,8 +935,8 @@ static int splitline(void) /* split next orch line into atomic groups */
       }
       if (!collecting++) {              /* remainder are     */
         if (grpcnt >= grpmax) {         /* collectable chars */
-          group = (char**)mcalloc(&cenviron, ((grpmax+=GRPMAX)+1)*sizeof(char*));
-          grpsav =(char**)mcalloc(&cenviron, (grpmax+1)*sizeof(char*));
+          group = (char**)mcalloc(csound, ((grpmax+=GRPMAX)+1)*sizeof(char*));
+          grpsav =(char**)mcalloc(csound, (grpmax+1)*sizeof(char*));
         }
         grpp = group[grpcnt++] = cp;
       }
@@ -974,7 +981,8 @@ static int splitline(void) /* split next orch line into atomic groups */
       if (strncmp(grpp,"else", 4) == 0) { /* 'else' */
         static int repeatingElseLine = 0;
         if (!iflabels) { /* check to see we had an 'if' before  */
-          synterr(Str("invalid 'else' statement.  must have a corresponding 'if'"));
+          synterr(Str("invalid 'else' statement.  "
+                      "must have a corresponding 'if'"));
           goto nxtlin;
         }
         if (repeatingElseLine) {        /* add the elselabel */
@@ -1004,7 +1012,8 @@ static int splitline(void) /* split next orch line into atomic groups */
         /* replace 'endif' with the synthesized label */
         struct iflabel *prv;
         if (!iflabels) { /* check to see we had an 'if' before  */
-          synterr(Str("invalid 'endif' statement.  must have a corresponding 'if'"));
+          synterr(Str("invalid 'endif' statement.  "
+                      "must have a corresponding 'if'"));
           goto nxtlin;
         }
         if (iflabels->els[0]) {
@@ -1020,7 +1029,7 @@ static int splitline(void) /* split next orch line into atomic groups */
           linlabels++;
           strcpy(grpp, iflabels->end);
           cp = grpp + strlen(iflabels->end);
-          mfree(&cenviron, iflabels);
+          mfree(csound, iflabels);
           iflabels = prv;
         }
       }
@@ -1059,6 +1068,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
     TEXT        *tp;
     char        c, d, str[20], *s, argtyp(char *);
     int         nn, incnt, outcnt;
+    ENVIRON     *csound = &cenviron;
 
     if (*init) {
       grpcnt   = 0;
@@ -1132,20 +1142,20 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
     }
     while (xprtstno >= 0) {             /* for each arg (last 1st):  */
       if (!polcnt)                      /* if not midst of expressn  */
-        polcnt = express(&cenviron, group[xprtstno--]); /* tst nxtarg */
-      if (polcnt < 0) {                 /* polish but arg only, */
-        group[xprtstno+1] = strsav(tokenstring); /* redo ptr */
-        polcnt = 0;                     /* & contin */
+        polcnt = express(csound, group[xprtstno--]); /* tst nxtarg   */
+      if (polcnt < 0) {                 /* polish but arg only,      */
+        group[xprtstno+1] = strsav(csound->tokenstring); /* redo ptr */
+        polcnt = 0;                     /* & contin                  */
       }
       else if (polcnt) {
-        POLISH  *pol;                   /* for real polish ops, */
+        POLISH  *pol;                       /* for real polish ops, */
         int n;
-        pol = &polish[--polcnt];        /*    grab top one      */
-        if (isopcod(pol->opcod) == 0) { /* and check it out  */
+        pol = &(csound->polish[--polcnt]);  /*    grab top one      */
+        if (isopcod(pol->opcod) == 0) {     /* and check it out     */
           synterr(Str("illegal opcod from expr anal"));
           goto tstnxt;
         }
-        tp->opnum = opnum;              /* ok to send subop */
+        tp->opnum = opnum;                  /* ok to send subop     */
         tp->opcod = strsav(opcod);
         nxtarglist->count = outcnt = 1;
         nxtarglist->arg[0] = strsav(pol->arg[0]);
@@ -1207,9 +1217,10 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         linopcod = opcod;
         if (O.odebug) printf(Str("modified opcod: %s\n"),opcod);
       }
-      else if (opcodlst[linopnum].dsblksiz == 0xfffe) { /* Two tags for OSCIL's */
-          /*    if (strcmp(linopcod,"oscil") == 0  */
-          /*           || strcmp(linopcod,"oscili") == 0) { */
+      else if (opcodlst[linopnum].dsblksiz == 0xfffe) {
+                                                /* Two tags for OSCIL's    */
+  /*    if (strcmp(linopcod,"oscil") == 0  */
+  /*        || strcmp(linopcod,"oscili") == 0) { */
         if ((c = argtyp(group[opgrpno ] )) != 'a') c = 'k';
         if ((d = argtyp(group[opgrpno+1])) != 'a') d = 'k';
         sprintf(str,"%s.%c%c",linopcod,c,d);
@@ -1259,8 +1270,8 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         else if (tran_nchnls == 8)  isopcod("outo");
         else if (tran_nchnls == 16) isopcod("outx");
         else if (tran_nchnls == 32) isopcod("out32");
-        err_printf(Str("%s inconsistent with global nchnls (%d); replaced with %s\n"),
-                   linopcod,tran_nchnls,opcod);
+        err_printf(Str("%s inconsistent with global nchnls (%d); "
+                       "replaced with %s\n"), linopcod, tran_nchnls, opcod);
         tp->opnum = linopnum = opnum;
         tp->opcod = strsav(linopcod = opcod);
       }
@@ -1290,7 +1301,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
       else if (instrblk)
         synterr(Str("opcode not allowed in instr block"));
       else instrblk = opcodblk = 1;
-      resetouts();                              /* reset #out counts */
+      resetouts(csound);                        /* reset #out counts */
       lblclear();                               /* restart labelist  */
     }
     else if (tp->opnum == ENDOP) {      /* IV - Sep 8 2002:     ENDOP:  */
@@ -1307,13 +1318,13 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
       else if (instrblk)
         synterr(Str("instr blocks cannot be nested (missing 'endin'?)"));
       else instrblk = 1;
-      resetouts();                              /* reset #out counts */
+      resetouts(csound);                        /* reset #out counts */
       lblclear();                               /* restart labelist  */
     }
-    else if (tp->opnum == ENDIN) {                      /* ENDIN:       */
-      lblchk();                         /* chk missed labels */
+    else if (tp->opnum == ENDIN) {              /* ENDIN:       */
+      lblchk();                                 /* chk missed labels */
       if (opcodblk)
-        synterr(Str("endin not allowed in opcode blk"));     /* IV - Sep 8 2002 */
+        synterr(Str("endin not allowed in opcode blk"));  /* IV - Sep 8 2002 */
       else if (!instrblk)
         synterr(Str("unmatched endin"));
       else instrblk = 0;
@@ -1337,9 +1348,9 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
           /* defined user opcode (or named instrument) structure; in this */
           /* case, it is the current opcode definition (not very elegant, */
           /* but works) */
-          char *c = opcodeInfo->outtypes;
+          char *c = csound->opcodeInfo->outtypes;
           int i = 0;
-          nreqd = opcodeInfo->outchns;
+          nreqd = csound->opcodeInfo->outchns;
           while (c[i]) {
             switch (c[i]) {
               case 'a':
@@ -1400,7 +1411,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
       if (n>tp->inlist->count) {
         int i;
         size_t m = sizeof(ARGLST)+ (n-1)*sizeof(char*);
-        tp->inlist = (ARGLST*)mrealloc(&cenviron, tp->inlist, m);
+        tp->inlist = (ARGLST*)mrealloc(csound, tp->inlist, m);
 /*      printf("extend_arglist by %d args\n", n-tp->inlist->count); */
         for (i=tp->inlist->count; i<n; i++) {
           tp->inlist->arg[i] = nxtarglist->arg[i];
@@ -1490,9 +1501,9 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
           /* defined user opcode (or named instrument) structure; in this */
           /* case, it is the current opcode definition (not very elegant, */
           /* but works) */
-          char *c = opcodeInfo->intypes;
+          char *c = csound->opcodeInfo->intypes;
           int i = 0;
-          nreqd = opcodeInfo->inchns;
+          nreqd = csound->opcodeInfo->inchns;
           while (c[i]) {
             switch (c[i]) {
               case 'a': xtypes[i] = c[i]; break;
@@ -1526,9 +1537,8 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         if (O.odebug) printf(Str("treqd %c, tfound %c\n"),treqd,tfound);
         if (tfound_m & (ARGTYP_d | ARGTYP_w))
           if (lgprevdef) {
-            sprintf(errmsg,
-                    Str("output name previously used, type '%c' must be uniquely defined"),
-                    tfound);
+            sprintf(errmsg, Str("output name previously used, "
+                                "type '%c' must be uniquely defined"), tfound);
             synterr(errmsg);
           }
         /* IV - Oct 31 2002: simplified code */
@@ -1588,11 +1598,11 @@ static int isopcod(char *s)     /* tst a string against opcodlst  */
 {
     int     n;
 
-    if (!(n = find_opcode(s))) return (0);      /* IV - Oct 31 2002 */
+    if (!(n = find_opcode(&cenviron, s))) return (0);   /* IV - Oct 31 2002 */
     opnum = n;                          /* on corr match,   */
     opcod = opcodlst[n].opname;         /*  set op carriers */
 
-        return(1);                      /*  & report success */
+    return(1);                          /*  & report success */
 }
 
 int getopnum(char *s)           /* tst a string against opcodlst  */
@@ -1600,7 +1610,7 @@ int getopnum(char *s)           /* tst a string against opcodlst  */
 {
     int     n;
 
-    if ((n = find_opcode(s))) return n;         /* IV - Oct 31 2002 */
+    if ((n = find_opcode(&cenviron, s))) return n;  /* IV - Oct 31 2002 */
     printf("opcode=%s\n", s);
     csoundDie(&cenviron, Str("unknown opcode"));
     return(0);  /* compiler only */
@@ -1652,7 +1662,8 @@ static void lblrequest(char *s)
       if (strcmp(lblreq[req].label,s) == 0)
         return;
     if (++lblcnt >= lblmax) {
-      LBLREQ *tmp = mrealloc(&cenviron, lblreq, (lblmax += LBLMAX)*sizeof(LBLREQ));
+      LBLREQ *tmp = mrealloc(&cenviron, lblreq,
+                                        (lblmax += LBLMAX)*sizeof(LBLREQ));
       if (tmp==NULL)
         csoundDie(&cenviron, Str("label list is full"));
       lblreq = tmp;
@@ -1672,7 +1683,8 @@ static void lblfound(char *s)
         goto noprob;
       }
     if (++lblcnt >= lblmax) {
-      LBLREQ *tmp = mrealloc(&cenviron, lblreq, (lblmax += LBLMAX)*sizeof(LBLREQ));
+      LBLREQ *tmp = mrealloc(&cenviron, lblreq,
+                                        (lblmax += LBLMAX)*sizeof(LBLREQ));
       if (tmp==NULL)
         csoundDie(&cenviron, Str("label list is full"));
       lblreq = tmp;
