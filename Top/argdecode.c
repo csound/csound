@@ -896,8 +896,10 @@ static int decode_long(char *s, int argc, char **argv, char *envoutyp)
       O.filetyp = TYP_VOC;      /* VOC output request */
       return 1;
     }
-    else if (!(strcmp (s, "list-opcodes"))) {
+    else if (!(strncmp (s, "list-opcodes", 12))) {
       int full = 0;
+      s += 12;
+      
       if (*s != '\0') {
         if (isdigit(*s)) full = *s++ - '0';
       }
