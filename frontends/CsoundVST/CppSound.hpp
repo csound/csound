@@ -30,6 +30,7 @@
 #include <string>
 #include <vector>
 %}
+%template(MyfltVector) std::vector<MYFLT>;
 #else
 #include "CsoundFile.hpp"
 #include <string>
@@ -277,6 +278,10 @@ public:
     * Sets the value of a slot in a function table.
     */
     virtual void tableSet(int table, int index, MYFLT value);
+    /**
+    * Send a score event to Csound in real time.
+    */
+    virtual void scoreEvent(char opcode, std::vector<MYFLT> &pfields);
 };
 
 #endif
