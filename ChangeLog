@@ -1,3 +1,7 @@
+2005-02-01  John ffitch  <jpff@codemist.co.uk>
+
+	* frontends/csound/csound_main.c (main): Corrected incorrect C
+
 2005-01-29	Istvan Varga	<istvan@csounds.com>
 	* SConstruct:
 	* InOut/rtalsa.c:
@@ -71,8 +75,8 @@
 
 2005-01-25	Steven Yi	<stevenyi@csounds.com>
 
-	* frontends/csound/csound_main.c: set stdout to not buffer if csound output 
-	not going to terminal
+	* frontends/csound/csound_main.c: set stdout to not buffer if
+	csound output not going to terminal
 
 2005-01-25  John ffitch  <jpff@codemist.co.uk>
 

@@ -6,6 +6,8 @@
 
 int main(int argc, char **argv)
 {
+    void *csound;
+    int result;
     /* set stdout to non buffering if not outputing to console window */
     if(!isatty(fileno(stdout)))
     {
@@ -13,9 +15,9 @@ int main(int argc, char **argv)
     }
 
     /*	Create Csound. */
-    void *csound = csoundCreate(0);
+    csound = csoundCreate(0);
     /*	One complete performance cycle. */
-    int result = csoundCompile(csound, argc, argv);
+    result = csoundCompile(csound, argc, argv);
     if (!result)
       {
         while (csoundPerformKsmps(csound) == 0)
