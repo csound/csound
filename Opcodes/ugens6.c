@@ -1033,6 +1033,7 @@ static OENTRY localops[] = {
 { "deltap3",S(DELTAP),  5,  "a", "x",    (SUBR)tapset, NULL,   (SUBR)deltap3 },
 { "deltapx",  S(DELTAPX),5, "a", "ai",   (SUBR)tapxset, NULL, (SUBR)deltapx  },
 { "deltapxw", S(DELTAPX),5, "",  "aai",  (SUBR)tapxset, NULL, (SUBR)deltapxw },
+{ "reverb", S(REVERB),  5, "a",  "ako",  (SUBR)rvbset, NULL,   (SUBR)reverb  },
 };
 
 LINKAGE
