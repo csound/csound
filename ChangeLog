@@ -1,5 +1,6 @@
 2004-10-07 	Steven Yi	<stevenyi@csounds.com>
 	* Top/dl_opcodes.c (csoundOpenLibrary): Fixed to work with cygwin
+	
 	* Top/thread.s : Fixed to work with cygwin
 
 2004-09-17  John ffitch  <jpff@codemist.co.uk>
