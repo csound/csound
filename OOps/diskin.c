@@ -61,7 +61,8 @@ static int sreadinew(           /* special handling of sound input       */
     int     nsamples,           /*                                       */
     SOUNDINEW *p)               /* extra arg passed for filetyp testing  */
 {                               /* on POST-HEADER reads of audio samples */
-    int    n, ntot=0;
+    MYFLT  scalefac;
+    int    n, ntot = 0;
 
     do {
       if ((n = sf_read_MYFLT(infd, inbuf + ntot, nsamples - ntot)) < 0)
@@ -76,19 +77,19 @@ static int sreadinew(           /* special handling of sound input       */
 
     /*RWD 3:2000 expanded format fixups ; more efficient here than in
       soundinew() ?  (well, saves a LOT of typing!) */
-    if (p->format==AE_FLOAT) {
-      int i,cnt;
-      float scalefac = (float) e0dbfs;
-      float *ptr = (float *) inbuf;
-
-      if (p->do_floatscaling)
-        scalefac *= p->fscalefac;
-      cnt = ntot/sizeof(float);
-      for (i=0; i<cnt; i++)
-        *ptr++ *= scalefac;
+    scalefac = e0dbfs;
+    if (p->format == AE_FLOAT) {
+      if (p->filetyp == TYP_WAV || p->filetyp == TYP_AIFF) {
+        if (p->do_floatscaling)
+          scalefac *= p->fscalefac;
+      }
+      else
+        return ntot;
     }
+    for (n = 0; n < ntot; n++)
+      inbuf[n] *= scalefac;
 
-    return(ntot);
+    return ntot;
 }
 
 
@@ -104,11 +105,6 @@ static int sngetset(SOUNDINEW *p, char *sfname)
       goto errtn;
     }
     infile = sf_open_fd(sinfd, SFM_READ, &sfinfo, SF_TRUE);
-#ifdef USE_DOUBLE
-    sf_command(infile, SFC_SET_NORM_DOUBLE, NULL, SF_FALSE);
-#else
-    sf_command(infile, SFC_SET_NORM_FLOAT, NULL, SF_FALSE);
-#endif
     p->fdch.fd = infile;
     p->format = sf2format(sfinfo.format);
     sfname = retfilnam;                        /* & record fullpath filnam */

@@ -219,7 +219,6 @@
 #define SetExitGraphCallback csound->SetExitGraphCallback
 #define NewOpcodeList csound->NewOpcodeList
 #define DisposeOpcodeList csound->DisposeOpcodeList
-#define AppendOpcode csound->AppendOpcode
 #define LoadExternal csound->LoadExternal
 #define LoadExternals csound->LoadExternals
 #define OpenLibrary csound->OpenLibrary
