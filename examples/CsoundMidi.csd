@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
-csound -b100 -B1800 -odac:plughw:0  -M0 
+csound -b100 -B100 -odac2 -M1 temp.orc temp.sco
 </CsOptions>
 <CsInstruments>
 sr = 44100
@@ -1399,33 +1399,6 @@ asig			=			asig * krel * (iamp / inorm)
 			outs			asig * ileftgain, asig * irightgain
 endin
 
-instr 25 ; FluidSynth General MIDI
-; INITIALIZATION
-			print 			p2, p3, p4, p5, p6, p7, p8, p9, p10
-			mididefault 		20, p3
-			midinoteonkey		p4, p5
-; Channel, bank, and program determine the preset, that is, the actual sound.
-iamplitude 		= 			ampdb(p5) * 10000.0 / 200.0 
-iattack         	=           		0.005
-irelease        	=           		5.0
-                	xtratim     		iattack + irelease
-ichannel		=			1
-iprogram		=			1
-ikey	 		= 			p4
-ivelocity 		= 			p5
-ijunk6 			= 			p6
-ijunk7			=			p7
-ijunk8			=			p8
-ijunk9			=			p9
-ijunk10			=			p10
-; AUDIO
-istatus			=			144
-			print			iprogram, istatus, ichannel, ikey, ivelocity
-aleft, aright		fluid			"samples/VintageDreamsWaves-v2.sf2", iprogram, istatus, ichannel, ikey, ivelocity, 1
-aleft           	=           		aleft * iamplitude
-aright          	=           		aright * iamplitude
-			outs 			aleft, aright
-endin
 
 </CsInstruments>
 <CsScore>
