@@ -69,11 +69,19 @@ void readxfil(FILE *xfp)        /* read the extract control file */
           all = 0;
           break;
         case 'f':
+#if defined(USE_DOUBLE)
+          sscanf(s, "%d:%lf", &onsect, &onbeat);
+#else
           sscanf(s, "%d:%f", &onsect, &onbeat);
+#endif
           break;
         case 't':
           offsect = onsect;       /* default offsect */
+#if defined(USE_DOUBLE)
+          sscanf(s, "%d:%lf", &offsect, &offbeat);
+#else
           sscanf(s, "%d:%f", &offsect, &offbeat);
+#endif
         }
       }
     }
