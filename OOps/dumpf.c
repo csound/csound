@@ -239,8 +239,11 @@ extern int openin(char*);
 int krdset(KREAD *p)
 {
     if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
-      if ((p->fdch.fdc = openin(p->STRARG)) < 0) {
-        sprintf(errmsg,Str(X_210,"Cannot open %s"), retfilnam);
+      char soundiname[1024];
+      if (p->STRARG == NULL) strcpy(soundiname,unquote(currevent->strarg));
+      else strcpy(soundiname,unquote(p->STRARG));    /* unquote it, else use */
+      if ((p->fdch.fdc = openin(soundiname)) < 0) {
+        sprintf(errmsg,Str(X_210,"Cannot open %s"), soundiname);
         return initerror(errmsg);
       }
       p->fdch.fd = NULL;        /* Character file not audio */
