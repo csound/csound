@@ -23,7 +23,6 @@
 
 /*  ULAW.C                                                          */
 /*  Conversion tables for ulaw encode/decode of 16-bit linear audio */
-#ifdef ULAW
 
 char exp_lut[128] = {  0,1,2,2,3,3,3,3,4,4,4,4,4,4,4,4,
                         5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,
@@ -67,4 +66,3 @@ short ulaw_decode[256] = {
        244,    228,    212,    196,    180,    164,    148,    132,
        120,    112,    104,     96,     88,     80,     72,     64,
         56,     48,     40,     32,     24,     16,      8,      0 };
-#endif
