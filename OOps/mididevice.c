@@ -214,31 +214,31 @@ void OpenMIDIDevice(void)
     if (nr_devs < 1) {
       die(Str(X_359,"No MIDI device available\n"));
     }
-    err_printf("Available MIDI input devices:");
+    err_printf(Str(X_48,"Available MIDI input devices:"));
     for (dev_num = 0; dev_num < nr_devs; dev_num++) {
         midiInGetDevCapsA((UINT) dev_num, (LPMIDIINCAPSA) &caps,
                               (UINT) sizeof(MIDIINCAPSA));
-        err_printf("MIDI out %d \"%s\"\n", dev_num, caps.szPname);
+        err_printf(Str(X_54,"MIDI out %d \"%s\"\n"), dev_num, caps.szPname);
     }
     dev_num = atoi(O.Midiname);
     if (dev_num >= nr_devs) {
       /* not found, print error message and list of available devices */
-      err_printf("\nMIDI in device \"%s\" not found\n", O.Midiname);
+      err_printf(Str(X_52,"\nMIDI in device \"%s\" not found\n"), O.Midiname);
       longjmp(cenviron.exitjmp_,1);
     }
-    err_printf("Assigned MIDI output to device %d\n", dev_num);
-//    for (dev_num = 0; dev_num < nr_devs; dev_num++) {
-//      midiInGetDevCapsA((UINT) dev_num, (LPMIDIINCAPSA) &caps,
-//                        (UINT) sizeof(MIDIINCAPSA));
-//      if (!strcmp(O.Midiname, caps.szPname)) break;     /* found device */
-//    }
+    err_printf(Str(X_55,"Assigned MIDI output to device %d\n"), dev_num);
+/*     for (dev_num = 0; dev_num < nr_devs; dev_num++) { */
+/*       midiInGetDevCapsA((UINT) dev_num, (LPMIDIINCAPSA) &caps, */
+/*                         (UINT) sizeof(MIDIINCAPSA)); */
+/*       if (!strcmp(O.Midiname, caps.szPname)) break;     /\* found device *\/ */
+/*     } */
     /* reset circular buffer */
     tmpbuf_ndx_r = tmpbuf_ndx_w = 0;
     /* open device */
     if (midiInOpen(&hMidiIn, (UINT) dev_num, (DWORD) win32_midi_in_handler,
                    (DWORD) 0, CALLBACK_FUNCTION) != MMSYSERR_NOERROR
         || midiInStart(hMidiIn) != MMSYSERR_NOERROR) {
-      die("Error opening MIDI in device");
+      die(Str(X_57,"Error opening MIDI in device"));
     }
 #else
     if (strcmp(O.Midiname,"stdin") == 0) {
@@ -256,7 +256,7 @@ void OpenMIDIDevice(void)
     }
     else {                   /* open MIDI device, & set nodelay on reads  */
       if ((rtfd = open(O.Midiname, O_RDONLY | O_NDELAY, 0)) < 0)
-        dies(Str(X_210,"cannot open %s"), O.Midiname);
+        dies(Str(X_210,"Cannot open %s"), O.Midiname);
 #ifndef SYS5
 # if defined (DOSGCC) || defined (__WATCOMC__) || defined (LATTICE) || defined(WIN32) || defined(__EMX__)
       { if (O.msglevel & WARNMSG)
@@ -421,7 +421,7 @@ void OpenMIDIDevice(void)
 
       mdInit();
       if (!(sgiport   = mdOpenInPort(O.Midiname))) {
-        printf("Can not open port: %s", O.Midiname);
+        printf("Cannot open port: %s", O.Midiname);
         longjmp(glob.exitjmp_,1);
       }
       else printf("Opening midi port: %s\n", O.Midiname);
@@ -645,7 +645,7 @@ void CloseMIDIDevice(void)
     if (midiInStop(hMidiIn) != MMSYSERR_NOERROR  ||
         midiInReset(hMidiIn) != MMSYSERR_NOERROR ||
         midiInClose(hMidiIn) != MMSYSERR_NOERROR) {
-      die("Error closing MIDI in device");
+      die(Str(X_57,"Error closing MIDI in device"));
     }
 #else
     extern int close(int);

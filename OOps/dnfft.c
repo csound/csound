@@ -266,7 +266,7 @@ void fast(MYFLT *b, int N)
     for (i=1, Nt=2; i<14; i++,Nt *= 2) if (Nt==N) break;
     M = i;
     if (M==14) {
-      err_printf("fast: N is not an allowable power of two\n");
+      err_printf(Str(X_42,"fast: N is not an allowable power of two\n"));
       exit(1);
     }
 
@@ -340,7 +340,7 @@ void fsst(MYFLT *b, int N)
     for (i=1, Nt=2; i<14; i++,Nt *= 2) if (Nt==N) break;
     M = i;
     if (M==14) {
-      err_printf("fast: N is not an allowable power of two\n");
+      err_printf(Str(X_42,"fast: N is not an allowable power of two\n"));
       exit(1);
     }
 

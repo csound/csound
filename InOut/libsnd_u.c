@@ -330,7 +330,7 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
                  p->nchanls == 2 ? Str(X_619,"both") : Str(X_591,"all"));
         else printf(Str(X_655,"channel %d\n"), p->channel);
       }
-      printf("opening %s infile %s\n",
+      printf(Str(X_25,"opening %s infile %s\n"),
              type2string(p->filetyp), sfname);
       if (p->sampframsiz <= 0)                       /* must know framsiz */
         die(Str(X_882,"illegal sampframsiz"));

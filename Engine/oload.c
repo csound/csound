@@ -494,7 +494,7 @@ void oload(void)
     }
     /* why I want oload() to return an error value.... */
     if (e0dbfs <= 0.0)
-      die(Str(X_1711,"bad value for 0dbfs: must be positive."));
+      die(Str(X_1704,"bad value for 0dbfs: must be positive."));
     if (O.odebug)
       printf("esr = %7.1f, ekr = %7.1f, ksmps = %d, nchnls = %d 0dbfs = %.1f\n",
              esr ,ekr, ksmps, nchnls,e0dbfs);  ;

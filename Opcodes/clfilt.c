@@ -188,10 +188,11 @@ int clfiltset(CLFILT *p)
                                 }
         break;
       case 3: /* Lowpass Elliptical */
-        return initerror("Lowpass Elliptical not implemented yet. Sorry!");
+        return initerror(Str(X_99,
+                             "Lowpass Elliptical not implemented yet. Sorry!"));
         break;
       default: /* Because of earlier conditionals, should never get here. */
-        return initerror("code error, ikind out of range");
+        return initerror(Str(X_137,"code error, ikind out of range"));
       }
       break;
     case 1: /* Highpass filters */
@@ -305,14 +306,15 @@ int clfiltset(CLFILT *p)
         }
         break;
       case 3: /* Highpass Elliptical */
-        return initerror("Highpass Elliptical not implemented yet. Sorry!");
+        return initerror(Str(X_174,
+                             "Highpass Elliptical not implemented yet. Sorry!"));
         break;
       default: /* Because of earlier conditionals, should never get here. */
-        return initerror("code error, ikind out of range");
+        return initerror(Str(X_137,"code error, ikind out of range"));
       }
       break;
     default: /* Because of earlier conditionals, should never get here. */
-      return initerror("code error, ihilo out of range");
+      return initerror(Str(X_175,"code error, ihilo out of range"));
     }
     if (*p->reinit==FL(0.0)) {      /* Only reset in in non-legato mode */
       for (m=0;m<=nsec-1;m++) {
@@ -374,10 +376,11 @@ int clfilt(CLFILT *p)
           }
           break;
         case 3: /* Lowpass Elliptical */
-          return perferror("Lowpass Elliptical not implemented yet. Sorry!");
+          return perferror(Str(X_176,
+                               "Lowpass Elliptical not implemented yet. Sorry!"));
           break;
         default: /* Because of earlier contditionals, should never get here. */
-          return perferror("code error, ikind out of range");
+          return perferror(Str(X_137,"code error, ikind out of range"));
         }
         break;
       case 1: /* Highpass filters */
@@ -409,14 +412,15 @@ int clfilt(CLFILT *p)
           }
           break;
         case 3: /* Highpass Elliptical */
-          return perferror("Highpass Elliptical not implemented yet. Sorry!");
+          return perferror(Str(X_177,
+                               "Highpass Elliptical not implemented yet. Sorry!"));
           break;
         default: /* Because of earlier contditionals, should never get here. */
-          return perferror("code error, ikind out of range");
+          return perferror(Str(X_137,"code error, ikind out of range"));
         }
         break;
       default: /* Because of earlier conditionals, should never get here. */
-        return perferror("code error, ihilo out of range");
+        return perferror(Str(X_175,"code error, ihilo out of range"));
       }
     }
     n    = ksmps;

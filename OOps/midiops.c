@@ -437,7 +437,7 @@ int pgmassign(PGMASSIGN *p)
     else {
       pgm = (int) (*(p->ipgm) + FL(0.5)) - 1;
       if (pgm < 0 || pgm > 127) {
-        initerror("pgmassign: invalid program number");
+        initerror(Str(X_74,"pgmassign: invalid program number"));
         return NOTOK;
       }
       pgm2ins[pgm] = ins;

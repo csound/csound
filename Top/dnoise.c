@@ -263,7 +263,7 @@ int dnoise(int argc, char **argv)
         O.filetyp = TYP_IRCAM;
       else {
         sprintf(errmsg,
-                Str(X_61,"%s not a recognized SFOUTYP env setting"),
+                Str(X_61,"%s not a recognised SFOUTYP env setting"),
                 envoutyp);
         dieu(errmsg);
       }
@@ -300,7 +300,7 @@ int dnoise(int argc, char **argv)
                 }
                 break;
               case 'i':
-                FIND(Str(X_1052,"no noisefilename"))
+                FIND(Str(X_1016,"no noisefilename"))
                   {
                     char *nn = nfile;
                     while ((*nn++ = *s++)); s--;
@@ -610,7 +610,7 @@ int dnoise(int argc, char **argv)
     obuflen = Chans * (L + 3 * I);
     outbufsiz = obuflen * O.sfsampsize;/* calc outbuf size */
     outbuf = mmalloc((long)outbufsiz);                 /*  & alloc bufspace */
-    printf(Str(X_1382,"writing %d-byte blks of %s to %s"),
+    printf(Str(X_1382,"writing %d-byte blks of %s to %s\n"),
            outbufsiz, getstrformat(O.outformat), O.outfilename);
     printf(" %s\n", type2string(O.filetyp));
     switch(O.outformat) {
@@ -1171,7 +1171,7 @@ int dnoise(int argc, char **argv)
     dieu(Str(X_1113,"output soundfile cannot be both AIFF and WAV"));
     exit(1);
  outform:
-    sprintf(errmsg,Str(X_1198,"sound output format cannot be both -%c and -%c"),
+    sprintf(errmsg,Str(X_1199,"sound output format cannot be both -%c and -%c"),
             outformch, c);
     dnoise_usage(1);
     return 0;

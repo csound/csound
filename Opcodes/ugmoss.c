@@ -283,7 +283,7 @@ int vcombset(VCOMB *p)
       auxalloc((long)nbytes, &p->auxch);
       p->pntr = (MYFLT *) p->auxch.auxp;
       if (p->pntr==NULL) {
-        return initerror(Str(X_668,"Failed to allocate enough space\n"));
+        return initerror(Str(X_668,"could not allocate memory"));
       }
     }
     else if (!(*p->istor)) {

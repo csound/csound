@@ -223,7 +223,7 @@ int pvanal(int argc, char **argv)
       /* handle all messages in here, for now */
       if (pvxanal(p,infd,outfilnam,p->sr,p->nchanls,frameSize,frameIncr,
                   frameSize*2,PVOC_HAMMING,verbose))
-        die(Str(X_1781,"error generating pvocex file.\n"));
+        die(Str(X_1771,"error generating pvocex file.\n"));
     }
     else {
       fftfrmBsiz = sizeof(MYFLT) * 2 * (frameSize/2 + 1);

@@ -161,7 +161,7 @@ int pvxanal(SOUNDIN *p, int fd, const char *fname, long srate,
           generate_frame(pvx[k],chanbuf+i,frame,overlap,PVOC_AMP_FREQ);
 
           if (!pvoc_putframes(pvfile,frame,1)) {
-            printf(Str(X_1563,"pvxanal: error writing analysis frames: %s"),
+            printf(Str(X_1563,"pvxanal: error writing analysis frames: %s\n"),
                    pvoc_errorstr());
             rc = 1;
             goto error;

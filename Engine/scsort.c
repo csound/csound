@@ -37,7 +37,6 @@ void scsort(FILE *scin, FILE *scout)
     SCOREOUT = scout;
 
     sectcnt = 0;
-    printf("Calling sread_init\n");
     sread_init();
     do {
       if ((n = sread()) > 0) {

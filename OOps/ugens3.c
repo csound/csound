@@ -265,9 +265,7 @@ int losset(LOSC *p)
       return OK;
     }
     return NOTOK;
-/*   lerr1: */
-/*      initerror(Str(X_1041,"no legal base frequency")); */
-/*      return; */
+
  lerr2:
     return initerror(Str(X_888,"illegal sustain loop data"));
  lerr3:

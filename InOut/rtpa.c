@@ -97,8 +97,9 @@ void listPortAudioDevices(void)
     for (deviceIndex = 0; deviceIndex < deviceCount; ++deviceIndex) {
       paDeviceInfo = Pa_GetDeviceInfo(deviceIndex);
       if (paDeviceInfo) {
-        err_printf("PortAudio device %d\n  %s\n  Maximum channels in:  "
-                   "%5d\n  Maximum channels out: %5d\n  Default sample rate: %10.3f\n",
+        err_printf(Str(X_29,"PortAudio device %d\n  %s\n  Maximum channels in:  "
+                       "%5d\n  Maximum channels out: %5d\n  Default sample "
+                       "rate: %10.3f\n"),
                    deviceIndex,
                    paDeviceInfo->name,
                    paDeviceInfo->maxInputChannels,
@@ -124,11 +125,11 @@ void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
 
     if (rtout_dev == 1024) {
       paStreamParameters_.device = 1;
-      err_printf("No PortAudio device given.  Defaulting to device 1.\n");
+      err_printf(Str(X_30,"No PortAudio device given; defaulting to device 1.\n"));
     }
     else {
       paStreamParameters_.device = rtout_dev;
-      err_printf("Using Portaudio Device %i\n", rtout_dev);
+      err_printf(Str(X_39,"Using Portaudio Device %i\n"), rtout_dev);
     }
 
     paStreamParameters_.channelCount = nchnls_;
@@ -161,7 +162,8 @@ void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
     osfopen = 1;
     return;
  error:
-    err_printf("PortAudio error %d: %s\n", paError, Pa_GetErrorText(paError));
+    err_printf(Str(X_41,"PortAudio error %d: %s\n"),
+               paError, Pa_GetErrorText(paError));
     die(Str(X_1308,"unable to open soundcard for audio output"));
 }
 
@@ -199,7 +201,8 @@ void rtplay_(void *outbuf_, int bytes_) /* put samples to DAC  */
     PaError paError = Pa_WriteStream(pa_out, outbuf_, frames);
 #endif
     if ( paError != paNoError )
-      err_printf("PortAudio error %d: %s\n", paError, Pa_GetErrorText(paError));
+      err_printf(Str(X_41,"PortAudio error %d: %s\n"),
+                 paError, Pa_GetErrorText(paError));
     nrecs++;
 }
 

@@ -562,8 +562,7 @@ static int playevents(void)  /* play all events in a score or an lplay list */
           if (!kdone)                 /* if null duration,    */
             goto mtest;               /*  chk for midi on-off */
           if (segamps || (sormsg && rngflg))
-            printf(Str(X_13,"  rtevent:\t   T%7.3f TT%7.3f M:"),
-                   curp2,timtot+curp2);
+            printf("  rtevent:\t   T%7.3f TT%7.3f M:", curp2,timtot+curp2);
         }
         else {                        /* else a score event:  */
           prvbt = curbt;
@@ -1015,8 +1014,7 @@ int sensevents(void)
           /*  goto mtest; */               /*  chk for midi on-off */
 
           if (segamps || (sormsg && rngflg))
-            printf(Str(X_13,"  rtevent:\t   T%7.3f TT%7.3f M:"),
-                   curp2,timtot+curp2);
+            printf("  rtevent:\t   T%7.3f TT%7.3f M:", curp2,timtot+curp2);
         }
     }
 
