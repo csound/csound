@@ -234,11 +234,13 @@ ENVIRON cenviron_ = {
         csoundGetSizeOfMYFLT,
         csoundGetRtRecordUserData,
         csoundGetRtPlayUserData,
+        csoundGetInverseComplexFFTScale,
+        csoundGetInverseRealFFTScale,
         csoundComplexFFT,
         csoundInverseComplexFFT,
         csoundRealFFT,
         csoundInverseRealFFT,
-        csoundRSpectProd,
+        csoundRealFFTMult,
         /*
         * Data fields.
         */
@@ -370,7 +372,10 @@ ENVIRON cenviron_ = {
         0,              /* evt_poll_cnt */
         0,              /* evt_poll_maxcnt */
         (MEMFIL*) NULL, /* memfiles */
-        (MEMFIL*) NULL  /* rwd_memfiles */
+        (MEMFIL*) NULL, /* rwd_memfiles */
+        0,              /* FFT_max_size */
+        NULL,           /* FFT_table_1 */
+        NULL            /* FFT_table_2 */
 };
 
 OPARMS O;

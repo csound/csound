@@ -1,3 +1,14 @@
+2005-03-18	Istvan Varga	<istvan@csounds.com>
+	* Engine/oload.c:
+	* H/csoundCore.h:
+	* H/fftlib.h:
+	* OOps/fftlib.c:
+	  minor code changes related to FFT functions
+	* Opcodes/ftconv.c:
+	  removed use of direct convolution due to patent issues
+	* H/csdl.h:
+	  removed some unused macros (fewer is better)
+
 2005-03-15  Michael Gogins <gogins@pipeline.com>
 	* The Loris opcodes now work.
 	* Removed pyrun.dll and -lswigpy from SConstruct,
