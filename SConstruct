@@ -130,10 +130,10 @@ print "SCons tools on this platform: ", commonEnvironment['TOOLS']
 print
 
 commonEnvironment.Append(LIBPATH = '#.')
-commonEnvironment.Append(CPPFLAGS = "-DBETA")
-if commonEnvironment['useDouble']==1:
+commonEnvironment.Append(CPPFLAGS = ['-DBETA'])
+if commonEnvironment['useDouble']:
     print 'Using double-precision floating point for audio samples.'
-    commonEnvironment.Append(CPPFLAGS = "-DUSE_DOUBLE")
+    commonEnvironment.Append(CPPFLAGS = ['-DUSE_DOUBLE'])
 else:
     print 'Using single-precision floating point for audio samples.'
 
