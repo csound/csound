@@ -291,7 +291,7 @@ extern "C"
                         fluid_synth_noteoff(Fluidsynth, 
                             midiChannel, 
                             midiData1); 
-                        warn("Note off: s:%d c:%d k:%d\n",
+                        warn("Note off: s:%3d c:%3d k:%3d\n",
                             midiStatus,
                             midiChannel,
                             midiData1);                         
@@ -301,14 +301,14 @@ extern "C"
                             midiChannel, 
                             midiData1, 
                             midiData2); 
-                        warn("Note on: s:%d c:%d k:%d v:%d\n",
+                        warn("Note on:  s:%3d c:%3d k:%3d v:%3d\n",
                             midiStatus,
                             midiChannel,
                             midiData1,
                             midiData2);                         
                         break;
                     case (int) 0xa0:
-                        warn("Key pressure (not handled): s:%d c:%d k:%d v:%d\n",
+                        warn("Key pressure (not handled): s:%3d c:%3d k:%3d v:%3d\n",
                             midiStatus,
                             midiChannel,
                             midiData1,
@@ -319,7 +319,7 @@ extern "C"
                             midiChannel, 
                             midiData1, 
                             midiData2);
-                        warn("Control change: s:%d c:%d c:%d v:%d\n",
+                        warn("Control change: s:%3d c:%3d c:%3d v:%3d\n",
                             midiStatus,
                             midiChannel,
                             midiData1,
@@ -329,13 +329,13 @@ extern "C"
                         fluid_synth_program_change(Fluidsynth, 
                             midiChannel, 
                             midiData1); 
-                        warn("Program change: s:%d c:%d p:%d\n",
+                        warn("Program change: s:%3d c:%3d p:%3d\n",
                             midiStatus,
                             midiChannel,
                             midiData1);                         
                         break;
                     case (int) 0xd0:
-                        warn("After touch (not handled): s:%d c:%d k:%d v:%d\n",
+                        warn("After touch (not handled): s:%3d c:%3d k:%3d v:%3d\n",
                             midiStatus,
                             midiChannel,
                             midiData1,
@@ -351,7 +351,7 @@ extern "C"
                             midiData1);                         
                         break;
                     case (int) 0xf0:
-                        warn("System exclusive (not handled): c:%d k:%d v:%d\n",
+                        warn("System exclusive (not handled): c:%3d k:%3d v:%3d\n",
                             midiStatus,
                             midiChannel,
                             midiData1,
@@ -366,7 +366,7 @@ extern "C"
                 fluid_synth_noteoff(Fluidsynth, 
                     iMidiChannel, 
                     iMidiData1); 
-                warn("Note off: s:%d c:%d k:%d v:%d\n",
+                warn("Note off: s:%3d c:%3d k:%3d v:%3d\n",
                     iMidiStatus,
                     iMidiChannel,
                     iMidiData1,
