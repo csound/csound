@@ -29,8 +29,11 @@
 static char *rcsid = "$Id$";
 /*
  *      $Log$
- *      Revision 1.1  2003-06-19 11:11:53  jpff
- *      Initial revision
+ *      Revision 1.2  2004-05-31 15:53:06  jpff
+ *      Removing warnings mainly
+ *
+ *      Revision 1.1.1.1  2003/06/19 11:11:53  jpff
+ *      Initial upload of sources
  *
  *      Revision 1.2  2003/05/21 11:31:06  jpff
  *      Added Copyrigt notices
@@ -183,17 +186,17 @@ fftmx(MYFLT *a, MYFLT *b, int ntot, int n, int nspan, int isn, int m,
 {
     int i,inc,
       j,jc,jf, jj,
-      k, k1, k2, k3, k4,
+      k, k1, k2, k3=0, k4,
       kk,klim,ks,kspan, kspnn,
       lim,
       maxf,mm,
       nn,nt;
     double  aa, aj, ajm, ajp, ak, akm, akp,
       bb, bj, bjm, bjp, bk, bkm, bkp,
-      c1, c2, c3, c72, cd,
+      c1, c2=0, c3=0, c72, cd,
       dr,
       rad,
-      sd, s1, s2, s3, s72, s120;
+      sd, s1, s2=0, s3=0, s72, s120;
 
     double      xx;     /****** ADDED APRIL 1991 *********/
     inc=abs(isn);

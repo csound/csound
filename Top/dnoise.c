@@ -112,25 +112,13 @@ extern char *getstrformat(int);
 extern void dieu(char*);
 extern char* type2string(int);
 
-static void (*audtran)(char *, int), nullfn(char *, int);
-static void (*spoutran)(MYFLT *, int);
-static void chartran(MYFLT *, int),
-            shortran(MYFLT *, int),
-            longtran(MYFLT *, int), floatran(MYFLT *, int),
-            bytetran(MYFLT *, int);
-int writebuffer(MYFLT *, int);
+static int writebuffer(MYFLT *, int);
 /* Static global variables */
 static unsigned outbufsiz;
 /*static MFLT     *outbuf; */
-static char     *choutbuf;               /* char  pntr to above  */
-static short    *shoutbuf;               /* short pntr           */
-static long     *lloutbuf;               /* long  pntr           */
-static float    *floutbuf;               /* float pntr           */
-static int      outrange = 0;            /* Count samples out of range */
 
 static int outfd;
-static int   block = 0;
-static long  bytes = 0;
+static SNDFILE* outsdf;
 
 int dnoise(int argc, char **argv)
 {
@@ -500,15 +488,6 @@ int dnoise(int argc, char **argv)
     nchnls = Chans = p->nchanls;
     if (O.sfheader)
       writeheader(outfd, O.outfilename);      /* write header as required   */
-    if ((O.filetyp == TYP_AIFF && bytrevhost()) ||
-        (O.filetyp == TYP_WAV && !bytrevhost())) {
-      if (O.outformat == AE_SHORT)        /* if audio out needs byte rev  */
-        audtran = bytrev2;                /*   redirect the audio puts    */
-      else if (O.outformat == AE_LONG)
-        audtran = bytrev4;
-      else audtran = nullfn;
-    }
-    else audtran = nullfn;                /* else use standard audio puts */
 
     /* read header info */
     if (R < FL(0.0))
@@ -612,39 +591,7 @@ int dnoise(int argc, char **argv)
     printf(Str(X_1382,"writing %d-byte blks of %s to %s\n"),
            outbufsiz, getstrformat(O.outformat), O.outfilename);
     printf(" %s\n", type2string(O.filetyp));
-    switch(O.outformat) {
-    case AE_CHAR:
-        spoutran = chartran;
-        choutbuf = outbuf;
-        break;
-/*     case AE_ALAW: */
-/*         spoutran = alawtran; */
-/*         choutbuf = outbuf; */
-/*         break; */
-/*     case AE_ULAW: */
-/*         spoutran = ulawtran; */
-/*         choutbuf = outbuf; */
-/*         break; */
-    case AE_SHORT:
-        spoutran = shortran;
-        shoutbuf = (short *)outbuf;
-        break;
-    case AE_LONG:
-        spoutran = longtran;
-        lloutbuf = (long  *)outbuf;
-        break;
-    case AE_FLOAT:
-        spoutran = floatran;
-        floutbuf = (float *)outbuf;
-        break;
-    case AE_UNCH:
-        spoutran = bytetran;
-        choutbuf = outbuf;
-        break;
-    default:
-        err_printf( "Type is %x\n", O.outformat);
-        die(Str(X_1329,"unknown audio_out format"));
-    }
+/*     spoutran = spoutsf; */
 
     minv = FL(1.0) / (MYFLT)m;
     md = m / 2;
@@ -1203,181 +1150,57 @@ void dnoise_usage(int exitcode)
     exit(exitcode);
 }
 
+#ifdef  USE_DOUBLE
+#define sf_write_MYFLT  sf_write_double
+#else
+#define sf_write_MYFLT  sf_write_float
+#endif
 
-int writebuffer(MYFLT * obuf, int length)
+static void sndwrterr(unsigned nret, unsigned nput) /* report soundfile write(osfd)
+                                                error      */
+  /* called after chk of write() bytecnt  */
 {
-    spoutran(obuf, length);
-    audtran(outbuf, O.sfsampsize*length);
-    write(outfd, outbuf, O.sfsampsize*length);
-    block++;
-    bytes += O.sfsampsize*length;
-    if (O.rewrt_hdr) {
-      rewriteheader(outfd, 0);
-      lseek(outfd, 0L, SEEK_END); /* Place at end again */
-    }
+    void sfcloseout(void);
+    printf(Str(X_1203,"soundfile write returned bytecount of %d, not %d\n"),
+           nret,nput);
+    printf(Str(X_77,"(disk may be full...\n closing the file ...)\n"));
+    sfcloseout();                    /* & try to close the file */
+    die(Str(X_563,"\t... closed\n"));
+}
+
+static int writebuffer(MYFLT *outbuf, int nbytes)
+{
+    int n;
+    if (outfd<0) return 0;
+    n = sf_write_MYFLT(outsdf, outbuf, nbytes/sizeof(MYFLT));
+    if (n < nbytes/sizeof(MYFLT))
+      sndwrterr(n, nbytes);
+    if (O.rewrt_hdr)
+      rewriteheader(outsdf,0);
+    nrecs++;                /* JPff fix */
     if (O.heartbeat) {
       if (O.heartbeat==1) {
 #ifdef SYMANTEC
         nextcurs();
-#elif __BEOS__
-        putc('.', stderr); fflush(stderr);
 #else
-        putc("|/-\\"[block&3], stderr); putc(8,stderr);
+        putc("|/-\\"[nrecs&3], stderr); putc(8,stderr);
 #endif
       }
       else if (O.heartbeat==2) putc('.', stderr);
       else if (O.heartbeat==3) {
         int n;
-        err_printf( "%d%n", block, &n);
-        while (n--) putc(8, stderr);
+        err_printf( "%d(%.3f)%n", nrecs, nrecs/ekr, &n);
+        while (n--) err_printf("\b");
       }
-      else putc(7, stderr);
+      else err_printf("\a");
     }
-    return length;
+    return nbytes/sizeof(MYFLT);
 }
-
-static void nullfn(char *outbuf, int nbytes)
-{
-    return;
-}
-
-
-static void bytetran(MYFLT *buffer, int size) /* after J. Mohr  1995 Oct 17 */
-{             /*   sends HI-ORDER 8 bits of shortsamp, converted to unsigned */
-    long   longsmp;
-    int    n;
-
-    for (n=0; n<size; n++) {
-      if ((longsmp = (long)buffer[n]) >= 0) {/* +ive samp:   */
-        if (longsmp > 32767) {          /* out of range?     */
-          longsmp = 32767;              /*   clip and report */
-          outrange++;
-        }
-        else {                          /* ditto -ive samp */
-          if (longsmp < -32768) {
-            longsmp = -32768;
-            outrange++;
-          }
-        }
-      }
-      choutbuf[n] = (unsigned char)(longsmp >> 8)^0x80;
-    }
-}
-
-static void shortran(MYFLT *buffer, int size)   /* fix spout vals and put in outbuf */
-{                                               /*      write buffer when full      */
-    int n;
-    long longsmp;
-
-    for (n=0; n<size; n++) {
-      if ((longsmp = (long)buffer[n]) >= 0) {               /* +ive samp:   */
-        if (longsmp > 32767) {              /* out of range?     */
-          longsmp = 32767;        /*   clip and report */
-          outrange++;
-        }
-      }
-      else {
-        if (longsmp < -32768) {             /* ditto -ive samp */
-          longsmp = -32768;
-          outrange++;
-        }
-      }
-      shoutbuf[n] = (short)longsmp;
-    }
-}
-
-static void chartran(MYFLT *buffer, int size)   /* same as above, but 8-bit char output */
-                                                /*   sends HI-ORDER 8 bits of shortsamp */
-{
-    int n;
-    long longsmp;
-
-    for (n=0; n<size; n++) {
-      if ((longsmp = (long)buffer[n]) >= 0) {   /* +ive samp:   */
-        if (longsmp > 32767) {                  /* out of range?     */
-          longsmp = 32767;                      /*   clip and report */
-          outrange++;
-        }
-      }
-      else {
-        if (longsmp < -32768) {                 /* ditto -ive samp */
-          longsmp = -32768;
-          outrange++;
-        }
-      }
-      choutbuf[n] = (char)(longsmp >> 8);
-    }
-}
-
-#ifdef never
-static void
-alawtran(MYFLT *buffer, int size)
-{ die(Str(X_590,"alaw not yet implemented")); }
-#endif
 
 #define MUCLIP  32635
 #define BIAS    0x84
 #define MUZERO  0x02
 #define ZEROTRAP
-
-#ifdef ULAW
-static void
-ulawtran(MYFLT *buffer, int size) /* ulaw-encode spout vals & put in outbuf */
-                                 /*     write buffer when full      */
-{
-    int  n;
-    long longsmp;
-    int  sign;
-    extern char    exp_lut[];               /* mulaw encoding table */
-    int sample, exponent, mantissa, ulawbyte;
-
-    for (n=0; n<size; n++) {
-      if ((longsmp = (long)buffer[n]) < 0) {  /* if sample negative   */
-        sign = 0x80;
-        longsmp = - longsmp;                  /*  make abs, save sign */
-      }
-      else sign = 0;
-      if (longsmp > MUCLIP) {                 /* out of range?     */
-        longsmp = MUCLIP;                     /*   clip and report */
-        outrange++;
-      }
-      sample = longsmp + BIAS;
-      exponent = exp_lut[( sample >> 8 ) & 0x7F];
-      mantissa = ( sample >> (exponent+3) ) & 0x0F;
-      ulawbyte = ~ (sign | (exponent << 4) | mantissa );
-#ifdef ZEROTRAP
-      if (ulawbyte == 0) ulawbyte = MUZERO;    /* optional CCITT trap */
-#endif
-      choutbuf[n] = ulawbyte;
-    }
-}
-#endif
-
-static void longtran(MYFLT *buffer, int size) /* send long_int spout vals to outbuf */
-                                              /*    write buffer when full      */
-{
-    int n;
-
-    for (n=0; n<size; n++) {
-      lloutbuf[n] = (long) buffer[n];
-      if (buffer[n] > (MYFLT)(0x7fffffff)) {
-        lloutbuf[n] = 0x7fffffff;
-        outrange++;
-      }
-      else if (buffer[n] < - (MYFLT)(0x7fffffff)) {
-        lloutbuf[n] = - 0x7fffffff;
-        outrange++;
-      }
-      else lloutbuf[n] = (long) buffer[n];
-    }
-}
-
-static void
-floatran(MYFLT *buffer, int size)
-{
-    int n;
-    for (n=0; n<size; n++) floutbuf[n] = (float)buffer[n];
-}
 
 #ifdef mills_macintoshxx
 void die(char *s)

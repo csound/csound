@@ -120,7 +120,6 @@ void fdchclose(INSDS *ip)   /* close all files in instr fd chain     */
                             /*   called by insert on deact & expire  */
 {                           /*   (also musmon on s-code, & fgens for gen01) */
     FDCH        *curchp = &ip->fdch;
-    SNDFILE *fd;
 
     if (O.odebug) fdchprint(ip);
       while ((curchp = curchp->nxtchp) != NULL) { /* for all fd's in chain: */
@@ -129,8 +128,8 @@ void fdchclose(INSDS *ip)   /* close all files in instr fd chain     */
 /*           sprintf(errmsg,Str(X_758,"fdclose: illegal fd %d in chain"),fd); */
 /*           die(errmsg); */
 /*         } */
-        if (fd)
-          sf_close(fd);
+        if (curchp->fd)
+          sf_close(curchp->fd);
         else
           close(curchp->fdc);           /*      close the file  */
         curchp->fd = NULL;

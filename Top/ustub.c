@@ -382,7 +382,7 @@ float MOD(float a, float bb)
 static  SNDFILE *outfile;
 int writebuffer(MYFLT * obuf, int length)
 {
-    int n = sf_write_MYFLT(outfile, outbuf, length);
+    sf_write_MYFLT(outfile, outbuf, length);
     block++;
     bytes += O.sfsampsize*length;
     if (O.rewrt_hdr) 

@@ -85,8 +85,8 @@ void *csoundOpenLibrary(const char *libraryPath)
       (strstr(libraryPath, ".so") 
 #elif defined(__CYGWIN__)
        (strstr(libraryPath, ".dll") || strstr(libraryPath, ".DLL"))
-#elif defined(__MACH__)
-       (strstr(libraryPath, ".dylib"))
+/* #elif defined(__MACH__) */
+/*        (strstr(libraryPath, ".dylib")) */
 #endif
        ) {
       library = dlopen(libraryPath, RTLD_NOW | RTLD_GLOBAL );
@@ -199,9 +199,12 @@ void *csoundOpenLibrary(const char *libraryPath)
     void *module = 0;
     NSObjectFileImage ofi = 0;
     NSObjectFileImageReturnCode ofirc;
-    static int (*make_private_module_public) (NSModule module) = 0;
+    static int (*make_private_module_public) (NSModule module) = NULL;
     unsigned int flags =  NSLINKMODULE_OPTION_RETURN_ON_ERROR |
                           NSLINKMODULE_OPTION_PRIVATE;
+    if(dl_opcodes_debug) {
+      printf("csoundOpenLibrary\n");
+    }
     /* If we got no path, the app wants the global namespace,
        use -1 as the marker in this case */
     if (!libraryPath)
@@ -209,8 +212,14 @@ void *csoundOpenLibrary(const char *libraryPath)
     /* Create the object file image, works for things linked
        with the -bundle arg to ld */
     ofirc = NSCreateObjectFileImageFromFile(libraryPath, &ofi);
+    if(dl_opcodes_debug) {
+      printf("ofirc=%d\n", ofirc);
+    }
     switch (ofirc) {
     case NSObjectFileImageSuccess:
+      if(dl_opcodes_debug) {
+        printf("ofirc=NSObjectFileImageSuccess\n");
+      }
       /* It was okay, so use NSLinkModule to link in the image */
       module = NSLinkModule(ofi, libraryPath,flags);
       /* Don't forget to destroy the object file
@@ -226,6 +235,9 @@ void *csoundOpenLibrary(const char *libraryPath)
       make_private_module_public(module);
       break;
     case NSObjectFileImageInappropriateFile:
+      if(dl_opcodes_debug) {
+        printf("ofirc=NSObjectFileImageInappropriateFile\n");
+      }
       /* It may have been a dynamic library rather
          than a bundle, try to load it */
       module = (void *)NSAddImage(libraryPath,
@@ -305,6 +317,9 @@ void *dlopen(const char *path, int mode)
     ofirc = NSCreateObjectFileImageFromFile(path, &ofi);
     switch (ofirc) {
     case NSObjectFileImageSuccess:
+      if(dl_opcodes_debug) {
+        printf("ofirc=NSObjectFileImageSuccess\n");
+      }
       /* It was okay, so use NSLinkModule to link in the image */
       module = NSLinkModule(ofi, path,flags);
       /* Don't forget to destroy the object file
@@ -320,7 +335,10 @@ void *dlopen(const char *path, int mode)
       make_private_module_public(module);
       break;
     case NSObjectFileImageInappropriateFile:
-      /* It may have been a dynamic library rather
+       if(dl_opcodes_debug) {
+        printf("ofirc=NSObjectFileImageInappropriateFile\n");
+      }
+     /* It may have been a dynamic library rather
          than a bundle, try to load it */
       module = (void *)NSAddImage(path,
                                   NSADDIMAGE_OPTION_RETURN_ON_ERROR);

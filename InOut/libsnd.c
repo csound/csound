@@ -621,7 +621,7 @@ FILE* pin=NULL, *pout=NULL;
 
 void (*spinrecv)(void), (*spoutran)(void), (*nzerotran)(long);
 
-static void sndwrterr(unsigned nret, unsigned nput) /* report soundfile write(osfd)
+void sndwrterr(unsigned nret, unsigned nput) /* report soundfile write(osfd)
                                                 error      */
   /* called after chk of write() bytecnt  */
 {
