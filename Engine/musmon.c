@@ -781,6 +781,7 @@ static int playevents(void)  /* play all events in a score or an lplay list */
     scode:
       if ((opcod = e->opcod) == 's'       /* for s, or e after s   */
           || (opcod == 'e' && sectno > 1)) {
+        printf("**** scode 's' %f %f \n", timtot, curp2);
         timtot += curp2;
         prvbt = curbt = curp2 = FL(0.0);
         printf(Str(X_717,"end of section %d\t sect peak amps:"),sectno);

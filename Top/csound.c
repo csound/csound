@@ -129,8 +129,12 @@ static long csoundNumExits_ = -1;
             turn it off before calling kperf, and back on afterwards.
           */
           int rtEvents = O.RTevents;
+          int kdone;
           O.RTevents = 0;
-          kperf(1);
+          kdone = kperf(1);
+          if (kdone<1) {
+            printf("**** kdone=%d\n", kdone);
+          }
           kcnt -= 1;
           O.RTevents = rtEvents;
         }

@@ -1,3 +1,9 @@
+2004-11-05  John ffitch  <jpff@codemist.co.uk>
+
+	* Opcodes/pvsbasic.c: New file and opcodes
+
+	* Engine/fgens.c: Added gen43
+
 2004-11-02  John Fitch  <jpff@eriboll.local.>
 
 	* Top/threads.c: OSX threads like Linux

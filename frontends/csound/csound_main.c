@@ -10,9 +10,9 @@ int main(int argc, char **argv)
     void *csound = csoundCreate(0);
     /*	One complete performance cycle. */
     int result = csoundCompile(csound, argc, argv);
-    if(!result)
+    if (!result)
       {
-        while(csoundPerformKsmps(csound) == 0)
+        while (csoundPerformKsmps(csound) == 0)
         {
           csoundYield(csound);
         }

@@ -71,8 +71,8 @@ extern int  openout(char *, int);
 extern void writeheader(int, char *);
 extern char *getstrformat(int);
 
-void kaiser(int, MYFLT *, int, int, MYFLT);
-void usage(int);
+static void kaiser(int, MYFLT *, int, int, MYFLT);
+static void usage(int);
 int writebuffer(MYFLT *, int);  /* Not correct in ustub.c */
 extern char *type2string(int);
 
@@ -719,7 +719,7 @@ outform:
     exit(1);
 }
 
-void usage(int exitcode)
+static void usage(int exitcode)
 {
     err_printf("usage: srconv [flags] infile\n\nflags:\n");
 err_printf("-P num\tpitch transposition ratio (srate / r) [don't specify both P and r]\n");
@@ -754,7 +754,7 @@ err_printf(Str(X_90,"-- fnam\tlog output to file\n"));
 
 MYFLT ino(MYFLT);
 
-void kaiser(int nf, MYFLT *w, int n, int ieo, MYFLT beta)
+static void kaiser(int nf, MYFLT *w, int n, int ieo, MYFLT beta)
 {
 
 /*

@@ -32,7 +32,7 @@
 #include "ftgen.h"
 #include "fft.h"
 
-#define GENMAX  42
+#define GENMAX  43
 
 extern OPARMS  O;
 /* New function in FILOPEN.C to look around for (text) files */
@@ -50,7 +50,7 @@ static void  gn1314(void), gen17(void), gen18(void), gen19(void), gen20(void);
 static void   gen21(void), gen23(void), gen24(void), gen16(void);
 static void   gen25(void), gen27(void), gen28(void), gen30(void), gen31(void);
 static void   gen32(void), gen33(void), gen34(void), gen40(void), gen41(void);
-static void   gen42(void);
+static void   gen42(void), gen43(void);
 
 static void   GENUL(void);
 
@@ -65,7 +65,7 @@ static  GEN     gensub[GENMAX+1] = { GENUL,
                                      GENUL, gen27, gen28, GENUL, gen30,
                                      gen31, gen32, gen33, gen34, GENUL,
                                      GENUL, GENUL, GENUL, GENUL, gen40,
-                                     gen41, gen42 };
+                                     gen41, gen42, gen43 };
 static  EVTBLK  *e;
 
 #define tpd360  (0.017453293)
@@ -2415,3 +2415,210 @@ int ftsave_k(FTLOAD_K *p)
     return OK;
 }
 
+/* GEN 43 (c) Victor Lazzarini, 2004 */
+
+#include "pstream.h"
+#include "pvfileio.h"
+
+extern int find_memfile(const char *fname,MEMFIL **pp_mfp);
+extern void add_memfil(MEMFIL *mfp);
+
+typedef struct _pvstabledat {
+        long    fftsize;
+        long    overlap;
+        long    winsize;
+        int     wintype;
+        int     chans;
+        long    format;                 
+	long    blockalign;
+        unsigned long frames;
+} PVSTABLEDAT;
+
+/* lifted almost straight from Richard Dobson's code */
+
+static int pvx_loadfile_mem(const char *fname,PVSTABLEDAT *p, MEMFIL **mfp)
+{
+    PVOCDATA pvdata;
+    WAVEFORMATEX fmt;
+    MEMFIL *mfil = NULL;
+    int i,j,rc = 0,pvx_id = -1;
+    long pvx_fftsize,pvx_winsize;
+    long mem_wanted = 0;
+    long totalframes,framelen;
+    float *pFrame;
+    float *memblock = NULL;
+    pv_wtype wtype;
+
+    pvx_id = pvoc_openfile(fname,&pvdata,&fmt);
+    if (pvx_id < 0) {
+      sprintf(errmsg,Str(X_1608,"unable to open pvocex file %s.\n"),fname);
+      return 0;
+    }
+    /* fft size must be <= PVFRAMSIZE (=8192) for Csound */
+    pvx_fftsize = 2 * (pvdata.nAnalysisBins-1);
+    framelen = 2 * pvdata.nAnalysisBins;
+    /* no need to impose Csound limit on fftsize here */
+    pvx_winsize = pvdata.dwWinlen;
+
+    /* also, accept only 32bit floats for now */
+    if (pvdata.wWordFormat != PVOC_IEEE_FLOAT){
+      sprintf(errmsg,Str(X_1609,"pvoc-ex file %s is not 32bit floats\n"),fname);
+      return 0;
+    }
+
+    /* FOR NOW, accept only PVOC_AMP_FREQ : later, we can convert */
+    /* NB Csound knows no other: frameFormat is not read anywhere! */
+    if (pvdata.wAnalFormat != PVOC_AMP_FREQ){
+      sprintf(errmsg,Str(X_1610,"pvoc-ex file %s not in AMP_FREQ format\n"),fname);
+      return 0;
+    }
+
+    /* ignore the window spec until we can use it! */
+    totalframes = pvoc_framecount(pvx_id);
+    if (totalframes == 0){
+      sprintf(errmsg,Str(X_1611,"pvoc-ex file %s is empty!\n"),fname);
+      return 0;
+    }
+
+    if (!find_memfile(fname,&mfil)){
+      mem_wanted = totalframes * 2 * pvdata.nAnalysisBins * sizeof(float);
+      /* try for the big block first! */
+
+      memblock = (float *) mmalloc(mem_wanted);
+
+      pFrame = memblock;
+      /* despite using pvocex infile, and pvocex-style resynth, we ~still~
+         have to rescale to Csound's internal range! This is because all pvocex
+         calculations assume +-1 floatsam i/o. It seems preferable to do this here,
+         rather than force the user to do so. Csound might change one day...*/
+
+      for (i=0;i < totalframes;i++){
+        rc = pvoc_getframes(pvx_id,pFrame,1);
+        if (rc != 1)
+          break;          /* read error, but may still have something to use */
+        /* scale amps to Csound range, to fit fsig */
+        for (j=0;j < framelen; j+=2) {
+          pFrame[j] *= (float)e0dbfs;
+        }
+        pFrame += framelen;
+      }
+      if (rc <0){
+        sprintf(errmsg,Str(X_1612,"error reading pvoc-ex file %s\n"),fname);
+        mfree(memblock);
+        return 0;
+      }
+      if (i < totalframes){
+        sprintf(errmsg,
+                Str(X_1613,"error reading pvoc-ex file %s after %d frames\n"),
+                fname,i);
+        mfree(memblock);
+        return 0;
+      }
+    }
+    else
+      memblock = (float *) mfil->beginp;
+
+    pvoc_closefile(pvx_id);
+
+    p->fftsize  = pvx_fftsize;
+    p->winsize  = pvx_winsize;
+    p->overlap  = pvdata.dwOverlap;
+    p->chans    = fmt.nChannels;
+    p->frames = (unsigned) totalframes;
+    wtype = (pv_wtype) pvdata.wWindowType;
+    switch (wtype){
+    case PVOC_DEFAULT:
+    case PVOC_HAMMING:
+      p->wintype = PVS_WIN_HAMMING;
+      break;
+    case PVOC_HANN:
+      p->wintype = PVS_WIN_HANN;
+      break;
+    default:
+      /* deal with all other possibilities later! */
+      p->wintype = PVS_WIN_HAMMING;
+      break;
+    }
+
+    /* Need to assign an MEMFIL to mfp */
+    if (mfil==NULL){
+      mfil = (MEMFIL *)  mmalloc(sizeof(MEMFIL));
+      /* just hope the filename is short enough...! */
+      mfil->next = NULL;
+      mfil->filename[0] = '\0';
+      strcpy(mfil->filename,fname);
+      mfil->beginp = (char *) memblock;
+      mfil->endp = mfil->beginp + mem_wanted;
+      mfil->length = mem_wanted;
+      /*from memfiles.c */
+      printf(Str(X_764,"file %s (%ld bytes) loaded into memory\n"),
+             fname,mem_wanted);
+      add_memfil(mfil);
+    }
+
+    *mfp = mfil;
+    return 1;
+}
+
+void gen43(void)
+{
+
+    MYFLT *fp = ftp->ftable;
+    MYFLT *filno;
+    int nvals = nargs;
+    MYFLT *channel;
+    char     filename[MAXNAME];
+    MEMFIL  *mfp;
+    PVSTABLEDAT  p;
+    unsigned long framesize, blockalign, bins; 
+    unsigned long frames, i, j;
+    float* framep,* startp;
+    double accum = 0.0;
+
+    if (nvals != 2) {
+      fterror("wrong number of ftable arguments");
+      return;
+    }
+
+    filno = &e->p[5];
+    if (*filno == SSTRCOD) {
+      strcpy(filename, (char *)(&e->strarg[0])); 
+    }
+    else if ((long)*filno < strsmax && strsets != NULL && strsets[(long)*filno])
+      strcpy(filename, strsets[(long)*filno]);
+    else sprintf(filename,"pvoc.%d", (int)*filno); /* pvoc.filnum   */
+    if (!pvx_loadfile_mem(filename,&p, &mfp)) die(errmsg);
+  
+    channel = &e->p[6];
+
+    if (*channel > p.chans) fterror("illegal channel number");
+ 
+    framesize = p.fftsize+1;
+    bins = framesize/2;
+    frames = p.frames;
+ 
+    if (*channel > 0 ) {
+      startp = (float *) (mfp->beginp + (p.fftsize+2) * ((int)*channel-1));
+      blockalign = (p.fftsize+2) * p.chans; /* only read one channel */
+    }
+    else {
+      startp = (float *) mfp->beginp;
+      blockalign = (p.fftsize+2);  /* read all channels */
+    }
+ 
+    framep = startp;
+
+    if (bins > (unsigned long) (ftp->flen+1)) {
+      fterror("ftable size too small");
+      return;
+    }
+
+    for (i=0; i<framesize; i+=2) {
+      for (j=0; j < frames; j++, framep += blockalign) {
+        accum += framep[i];
+      }
+      fp[i/2] = (MYFLT)accum/frames;
+      framep = startp;
+      accum = 0.0;
+    }
+}
