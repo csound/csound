@@ -1,3 +1,5 @@
+#ifndef FFT_H
+#define FFT_H
 /*  
     fft.h:
 
@@ -85,3 +87,5 @@ void FFT2rawpacked(complex *, long, int, complex *);
 void FFTarb(complex *, complex *, long, complex *);
 void DFT(complex *, complex *, long, complex *);
 void cxmult(complex *,complex *,long);
+
+#endif // FFT_H
