@@ -577,7 +577,7 @@ int ktriginstr(TRIGINSTR *p)
 int trigseq_set(TRIGSEQ *p)     /* by G.Maldonado */
 {
     FUNC *ftp;
-    if ((ftp = ftfind(p->kfn)) == NULL) {
+    if ((ftp = ftfind(p->h.insdshead->csound, p->kfn)) == NULL) {
       return initerror(Str(X_1535,"trigseq: incorrect table number"));
     }
     p->done=0;
@@ -599,7 +599,7 @@ int trigseq(TRIGSEQ *p)
 
       if (p->pfn != (long)*p->kfn) {
         FUNC *ftp;
-        if ((ftp = ftfindp(p->kfn)) == NULL) {
+        if ((ftp = ftfindp(p->h.insdshead->csound, p->kfn)) == NULL) {
           return perferror(Str(X_1535,"trigseq: incorrect table number"));
         }
         p->pfn = (long)*p->kfn;

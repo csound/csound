@@ -108,17 +108,17 @@ int tempo(TEMPO *p)
 
 extern  void    RTLineset(void), MidiOpen(void), FMidiOpen(void);
 extern  void    scsort(FILE*, FILE*), oload(void), cscorinit(void);
-extern  void    cscore(void), schedofftim(INSDS *), infoff(MYFLT);
+extern  void    schedofftim(INSDS *), infoff(MYFLT);
 extern  void    orcompact(void), rlsmemfiles(void), timexpire(MYFLT);
-extern  void    beatexpire(MYFLT), deact(INSDS*), fgens(EVTBLK *);
+extern  void    beatexpire(MYFLT), deact(INSDS*), fgens(ENVIRON *,EVTBLK *);
 extern  void    sfopenin(void), sfopenout(void), sfnopenout(void);
 extern  void    iotranset(void), sfclosein(void), sfcloseout(void);
-extern  int csoundIsExternalMidiEnabled(void *);
-extern  void csoundExternalMidiOpen(void *);
+extern  int     csoundIsExternalMidiEnabled(void *);
+extern  void    csoundExternalMidiOpen(void *);
 
 extern  OPARMS  O;
 
-static  int     playevents(void);
+static  int     playevents(ENVIRON *);
 static  int     lplayed = 0;
 static  int     segamps, sormsg;
 static  EVTBLK  *e = NULL;
@@ -215,9 +215,9 @@ void print_maxamp(MYFLT x)                     /* IV - Jul 9 2002 */
     }
 }
 
-int musmon2(void);
+int musmon2(ENVIRON *csound);
 
-int musmon(void)
+int musmon(ENVIRON *csound)
 {
     if (sizeof(MYFLT)==sizeof(float)) {
 #ifdef BETA
@@ -316,7 +316,7 @@ int musmon(void)
       if (!(oscfp = fopen("cscore.out", "w")))  /* override stdout in   */
         die(Str(X_631,"cannot create cscore.out"));/* rdscor for cscorefns */
       cscorinit();
-      cscore();         /* call cscore, optionally re-enter via lplay() */
+      cscore(csound);      /* call cscore, optionally re-enter via lplay() */
       fclose(oscfp);
       fclose(scfp); scfp = NULL;
       if (lplayed) return 0;
@@ -349,9 +349,9 @@ int musmon(void)
     return 0;                        /* we exit here to playevents later   */
 }
 
-int musmon2(void)
+int musmon2(ENVIRON *csound)
 {
-    playevents();                      /* play all events in the score */
+    playevents(csound);              /* play all events in the score */
 
     return cleanup();
 }
@@ -396,13 +396,13 @@ void beep(void)
 #endif
 }
 
-int lplay(EVLIST *a)           /* cscore re-entry into musmon */
+int lplay(ENVIRON *csound, EVLIST *a)           /* cscore re-entry into musmon */
 {
     lplayed = 1;
     if (!sectno)  printf(Str(X_448,"SECTION %d:\n"),++sectno);
     ep = &a->e[1];            /* from 1st evlist member */
     epend = ep + a->nevents;  /*   to last              */
-    playevents();             /* play list members      */
+    playevents(csound);       /* play list members      */
     return OK;
 }
 
@@ -474,8 +474,8 @@ void kturnon(void)      /* turn on instrs due in turnon list */
     } else frsturnon = NULL;
 }
 
-static int playevents(void)  /* play all events in a score or an lplay list */
-{
+static int playevents(ENVIRON *csound)
+{  /* play all events in a score or an lplay list */
     int     n;
     MYFLT   prvbt, nxtim, nxtbt;
     MYFLT   *smaxp;
@@ -746,7 +746,7 @@ static int playevents(void)  /* play all events in a score or an lplay list */
         }
         break;
       case 'f':
-        fgens(e);
+        fgens(csound, e);
         break;
       case 'a':
         curp2 = e->p[2] + e->p[3];
@@ -828,7 +828,7 @@ static int playevents(void)  /* play all events in a score or an lplay list */
 
 /* a reworking of playevents to process one event at a time
    outside of the audio process loop */
-int sensevents(void)
+int sensevents(ENVIRON *csound)
 {
     static MYFLT   prvbt = FL(0.0), nxtim = FL(0.0), nxtbt = FL(0.0);
     static MYFLT   *smaxp;
@@ -1136,7 +1136,7 @@ int sensevents(void)
       }
       break;
     case 'f':
-      fgens(e);
+      fgens(csound, e);
       break;
     case 'a':
       curp2 = e->p[2] + e->p[3];
@@ -1227,7 +1227,7 @@ int sensevents(void)
 
    on return:  0 = OK, 1 = endOfScore or termination
 */
-int fillbuffer(int sensEventRate)
+int fillbuffer(ENVIRON *csound, int sensEventRate)
 {
     static int sensCount = 0; /* number of k-passes since last event processed */
     static int sampsNeeded = 0; /* number of samps still needed to create
@@ -1245,7 +1245,7 @@ int fillbuffer(int sensEventRate)
 
     while (!done && sampsNeeded > 0) {
       if (++sensCount == sensEventRate) {
-        done = sensevents();
+        done = sensevents(csound);
         sensCount = 0;
       }
 

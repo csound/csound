@@ -51,11 +51,11 @@ int sndwarpgetset(SNDWARP *p)
     }
     p->exp = (WARPSECTION *)auxp;
 
-    if ((ftpSamp = ftfind(p->isampfun)) == NULL) return NOTOK;
+    if ((ftpSamp = ftfind(p->h.insdshead->csound, p->isampfun)) == NULL) return NOTOK;
     p->ftpSamp  = ftpSamp;
     p->sampflen = ftpSamp->flen;
 
-    if ((ftpWind = ftfind(p->ifn)) == NULL) return NOTOK;
+    if ((ftpWind = ftfind(p->h.insdshead->csound, p->ifn)) == NULL) return NOTOK;
     p->ftpWind = ftpWind;
     p->flen=ftpWind->flen;
 
@@ -213,11 +213,13 @@ int sndwarpstgetset(SNDWARPST *p)
     }
     p->exp = (WARPSECTION *)auxp;
 
-    if ((ftpSamp = ftfind(p->isampfun)) == NULL) return NOTOK;
+    if ((ftpSamp = ftfind(p->h.insdshead->csound, p->isampfun)) == NULL)
+      return NOTOK;
     p->ftpSamp = ftpSamp;
     p->sampflen=ftpSamp->flen;
 
-    if ((ftpWind = ftfind(p->ifn)) == NULL) return NOTOK;
+    if ((ftpWind = ftfind(p->h.insdshead->csound, p->ifn)) == NULL)
+      return NOTOK;
     p->ftpWind = ftpWind;
     p->flen=ftpWind->flen;
 

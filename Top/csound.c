@@ -1000,7 +1000,7 @@ static long csoundNumExits_ = -1;
   {
     ENVIRON *csound = (ENVIRON *)csound_;
     MYFLT table_ = table;
-    FUNC *ftp = (FUNC *)csound->ftfind_(&table_);
+    FUNC *ftp = (FUNC *)csound->ftfind_(csound,&table_);
     if(ftp) {
         return ftp->flen;
     } else {
@@ -1012,7 +1012,7 @@ static long csoundNumExits_ = -1;
   {
     ENVIRON *csound = (ENVIRON *)csound_;
     MYFLT table_ = table;
-    FUNC *ftp = (FUNC *)csound->ftfind_(&table_);
+    FUNC *ftp = (FUNC *)csound->ftfind_(csound,&table_);
     return ftp->ftable[index];
   }
   
@@ -1020,7 +1020,7 @@ static long csoundNumExits_ = -1;
   {
     ENVIRON *csound = (ENVIRON *)csound_;
     MYFLT table_ = table;
-    FUNC *ftp = (FUNC *)csound->ftfind_(&table_);
+    FUNC *ftp = (FUNC *)csound->ftfind_(csound,&table_);
     ftp->ftable[index] = value;
   }
 

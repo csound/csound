@@ -889,7 +889,7 @@ int itblchkw(TABLEW *p)
      * It also checks for numbers < 0, and table 0 is never valid, so we
      * do not need to check here for the table number being < 1.  */
 
-    if ((p->ftp = ftfind(p->xfn)) == NULL)
+    if ((p->ftp = ftfind(p->h.insdshead->csound, p->xfn)) == NULL)
       return NOTOK;
     /* Although TABLEW has an integer variable for the table number
      * (p->pfn) we do not need to * write it.  We know that the * k
@@ -1206,7 +1206,7 @@ int ftkrchkw(TABLEW *p)
        * ftfind is in a new version of fgens.c. A prototype for it
        * should be added to prototype.h.  */
 
-      if ((p->ftp = ftfindp(p->xfn)) == NULL) {
+      if ((p->ftp = ftfindp(p->h.insdshead->csound, p->xfn)) == NULL) {
         return NOTOK;
       }
 
@@ -1279,7 +1279,7 @@ int    tableng(TABLENG *p)
      * memory.  Returns zero if not found.  Report and error, which
      * will cause this instrument to be de-activated.  */
 
-    if ((ftp = ftfindp(p->xfn)) == NULL) {
+    if ((ftp = ftfindp(p->h.insdshead->csound, p->xfn)) == NULL) {
         *p->kout = FL(0.0);
         sprintf(errmsg, Str(X_479,"Table %f not found\n"), *(p->xfn));
         return perferror(errmsg);
@@ -1303,7 +1303,7 @@ int    itableng(TABLENG *p)
      * memory.  Returns zero if not found.  Report and error, which
      * will cause this instrument initialisation to fail.  */
 
-    if ((ftp = ftfind(p->xfn)) == NULL) {
+    if ((ftp = ftfind(p->h.insdshead->csound, p->xfn)) == NULL) {
       *p->kout = FL(0.0);
 /*       sprintf(errmsg, Str(X_479,"Table %f not found\n"), *(p->xfn)); */
 /*       return initerror(errmsg); */
@@ -1348,7 +1348,7 @@ int    tablegpw(TABLEGPW *p)
      * and find its location in memory.
      */
 
-    if ((ftp = ftfindp(p->xfn)) == NULL) {
+    if ((ftp = ftfindp(p->h.insdshead->csound, p->xfn)) == NULL) {
 /*       sprintf(errmsg, Str(X_479,"Table %f not found\n"), *(p->xfn)); */
 /*       return perferror(errmsg); */
     }
@@ -1386,7 +1386,7 @@ int itablegpw(TABLEGPW *p)
     long        length;
 
     /* Check to see we can find the table and find its location in memory. */
-    if ((ftp = ftfind(p->xfn)) == NULL) {
+    if ((ftp = ftfind(p->h.insdshead->csound, p->xfn)) == NULL) {
       sprintf(errmsg, Str(X_479,"Table %f not found\n"), *(p->xfn));
       return initerror(errmsg);
     }
@@ -1481,7 +1481,7 @@ int tablemix(TABLEMIX *p)
        * ftfind() for init time.
        */
 
-      if ((p->funcd = ftfindp(p->dft)) == NULL) {
+      if ((p->funcd = ftfindp(p->h.insdshead->csound, p->dft)) == NULL) {
         sprintf(errmsg, Str(X_244,"Destination dft table %.2f not found.\n"),
                 *p->dft);
         return perferror(errmsg);
@@ -1494,7 +1494,7 @@ int tablemix(TABLEMIX *p)
 
     /* Source 1 */
     if (p->ps1ft != (int)*p->s1ft) {
-      if ((p->funcs1 = ftfindp(p->s1ft)) == NULL) {
+      if ((p->funcs1 = ftfindp(p->h.insdshead->csound, p->s1ft)) == NULL) {
         sprintf(errmsg, Str(X_467,"Source 1 s1ft table %.2f not found.\n"),
                 *p->s1ft);
         return perferror(errmsg);
@@ -1504,7 +1504,7 @@ int tablemix(TABLEMIX *p)
 
     /* Source 2 */
     if (p->ps2ft != (int)*p->s2ft) {
-      if ((p->funcs2 = ftfindp(p->s2ft)) == NULL) {
+      if ((p->funcs2 = ftfindp(p->h.insdshead->csound, p->s2ft)) == NULL) {
         sprintf(errmsg, Str(X_468,"Source 2 s2ft table %.2f not found.\n"),
                 *p->s2ft);
         return perferror(errmsg);
@@ -1554,7 +1554,7 @@ int itablemix(TABLEMIX *p)
      * ftfind() for init time.
      */
 
-    if ((p->funcd = ftfind(p->dft)) == NULL) {
+    if ((p->funcd = ftfind(p->h.insdshead->csound, p->dft)) == NULL) {
       sprintf(errmsg, Str(X_244,"Destination dft table %.2f not found.\n"),
               *p->dft);
       return initerror(errmsg);
@@ -1565,7 +1565,7 @@ int itablemix(TABLEMIX *p)
     p->pdft = (int)*p->dft;
 
     /* Source 1 */
-    if ((p->funcs1 = ftfind(p->s1ft)) == NULL) {
+    if ((p->funcs1 = ftfind(p->h.insdshead->csound, p->s1ft)) == NULL) {
       sprintf(errmsg, Str(X_467,"Source 1 s1ft table %.2f not found.\n"),
               *p->s1ft);
       return initerror(errmsg);
@@ -1573,7 +1573,7 @@ int itablemix(TABLEMIX *p)
     p->ps1ft = (int)*p->s1ft;
 
     /* Source 2 */
-    if ((p->funcs2 = ftfind(p->s2ft)) == NULL) {
+    if ((p->funcs2 = ftfind(p->h.insdshead->csound, p->s2ft)) == NULL) {
       sprintf(errmsg, Str(X_468,"Source 2 s2ft table %.2f not found.\n"),
               *p->s2ft);
       return initerror(errmsg);
@@ -1766,7 +1766,7 @@ int tablecopy(TABLECOPY *p)
       /* Get pointer to the function table data structure.
        * ftfindp() for perf time. ftfind() for init time.
        */
-      if ((p->funcd = ftfindp(p->dft)) == NULL) {
+      if ((p->funcd = ftfindp(p->h.insdshead->csound, p->dft)) == NULL) {
         sprintf(errmsg, Str(X_244,"Destination dft table %.2f not found.\n"),
                 *p->dft);
         return perferror(errmsg);
@@ -1777,7 +1777,7 @@ int tablecopy(TABLECOPY *p)
     }
     /* Source  */
     if (p->psft != (int)*p->sft) {
-      if ((p->funcs = ftfindp(p->sft)) == NULL) {
+      if ((p->funcs = ftfindp(p->h.insdshead->csound, p->sft)) == NULL) {
         sprintf(errmsg, Str(X_469,"Source sft table %.2f not found.\n"),
                 *p->sft);
         return perferror(errmsg);
@@ -1807,7 +1807,7 @@ int itablecopy(TABLECOPY *p)
     if (p->pdft != (int)*p->dft) {
       /* Get pointer to the function table data structure.
        * ftfindp() for perf time. ftfind() for init time. */
-      if ((p->funcd = ftfind(p->dft)) == NULL) {
+      if ((p->funcd = ftfind(p->h.insdshead->csound, p->dft)) == NULL) {
         sprintf(errmsg, Str(X_244,"Destination dft table %.2f not found.\n"),
                 *p->dft);
         return initerror(errmsg);
@@ -1818,7 +1818,7 @@ int itablecopy(TABLECOPY *p)
     }
     /* Source  */
     if (p->psft != (int)*p->sft) {
-      if ((p->funcs = ftfind(p->sft)) == NULL) {
+      if ((p->funcs = ftfind(p->h.insdshead->csound, p->sft)) == NULL) {
         sprintf(errmsg, Str(X_469,"Source sft table %.2f not found.\n"),
                 *p->sft);
         return initerror(errmsg);
@@ -1917,7 +1917,7 @@ int tablera(TABLERA *p)
       /* Get pointer to the function table data structure.
        * ftfindp() for perf time.                              */
 
-      if ((p->ftp = ftfindp(p->kfn)) == NULL) {
+      if ((p->ftp = ftfindp(p->h.insdshead->csound, p->kfn)) == NULL) {
         sprintf(errmsg, Str(X_957,"kfn table %.2f not found\n"), *p->kfn);
         return perferror(errmsg);
       }
@@ -2040,7 +2040,7 @@ int tablewa(TABLEWA *p)
         /* Get pointer to the function table data structure.
          * ftfindp() for perf time. */
 
-        if ((p->ftp = ftfindp(p->kfn)) == NULL) {
+        if ((p->ftp = ftfindp(p->h.insdshead->csound, p->kfn)) == NULL) {
             sprintf(errmsg, Str(X_957,"kfn table %.2f not found\n"), *p->kfn);
             return perferror(errmsg);
         }

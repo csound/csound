@@ -41,7 +41,7 @@ int bzzset(BUZZ *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = ftfind(p->ifn)) != NULL) {
+    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) != NULL) {
       p->ftp = ftp;
       if (*p->iphs >= 0)
         p->lphs = (long)(*p->iphs * FL(0.5) * FMAXLEN);
@@ -105,7 +105,7 @@ int gbzset(GBUZZ *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = ftfind(p->ifn)) != NULL) {
+    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) != NULL) {
       p->ftp = ftp;
       if (*p->iphs >= 0) {
         p->lphs = (long)(*p->iphs * FMAXLEN);
@@ -227,7 +227,7 @@ int plukset(PLUCK *p)
     if (*p->ifn == 0.0)
       for (n=npts; n--; )                       /* f0: fill w. rands */
         *ap++ = (MYFLT)rand16() * DV32768;      /* IV - Jul 11 2002 */
-    else if ((ftp = ftfind(p->ifn)) != NULL) {
+    else if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) != NULL) {
       fp = ftp->ftable;                         /* else from ftable  */
       phs = FL(0.0);
       phsinc = (MYFLT)(ftp->flen/npts);

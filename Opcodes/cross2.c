@@ -401,7 +401,7 @@ int Xsynthset(CON *p)
     p->in1 = b;            b += 2 * flen;
     p->in2 = b;            b += 2 * flen;
 
-    if ((ftp = ftfind(p->iwin)) != NULL)
+    if ((ftp = ftfind(p->h.insdshead->csound, p->iwin)) != NULL)
       p->win = ftp;
     else return NOTOK;
 

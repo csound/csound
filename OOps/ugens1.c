@@ -1009,7 +1009,7 @@ int evxset(ENVLPX *p)
     MYFLT       ixmod, iatss, idur, prod, diff, asym, nk, denom, irise;
     long        cnt1;
 
-    if ((ftp = ftfind(p->ifn)) == NULL)
+    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) == NULL)
       return NOTOK;
     p->ftp = ftp;
     if ((idur = *p->idur) > FL(0.0)) {
@@ -1177,7 +1177,7 @@ int evrset(ENVLPR *p)
     FUNC        *ftp;
     MYFLT  ixmod, iatss, prod, diff, asym, denom, irise;
 
-    if ((ftp = ftfind(p->ifn)) == NULL)
+    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) == NULL)
       return NOTOK;
     p->ftp = ftp;
     if ((iatss = (MYFLT)fabs((double)*p->iatss)) == FL(0.0)) {

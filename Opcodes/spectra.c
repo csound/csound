@@ -1082,7 +1082,7 @@ int spsclset(SPECSCAL *p)
       return initerror(Str(X_1226,"specscal: local buffer not initialised"));
     }
     p->fthresh = p->fscale + npts;
-    if ((ftp=ftfind(p->ifscale)) == NULL) {     /* if fscale given,        */
+    if ((ftp=ftfind(p->h.insdshead->csound, p->ifscale)) == NULL) {     /* if fscale given,        */
       return initerror(Str(X_1001,"missing fscale table"));
     }
     else {
@@ -1098,7 +1098,7 @@ int spsclset(SPECSCAL *p)
       } while (--nn);
     }
     if ((p->thresh = (int)*p->ifthresh)
-        && (ftp=ftfind(p->ifthresh)) != NULL) {         /* if fthresh given,       */
+        && (ftp=ftfind(p->h.insdshead->csound, p->ifthresh)) != NULL) {         /* if fthresh given,       */
       long nn = npts;
       long phs = 0;
       long inc = (long)PHMASK / npts;
@@ -1226,7 +1226,7 @@ int spfilset(SPECFILT *p)
     outspecp->nfreqs = inspecp->nfreqs;
     outspecp->dbout = inspecp->dbout;
     outspecp->downsrcp = inspecp->downsrcp;
-    if ((ftp=ftfind(p->ifhtim)) == NULL) {          /* if fhtim table given,    */
+    if ((ftp=ftfind(p->h.insdshead->csound, p->ifhtim)) == NULL) {          /* if fhtim table given,    */
       return initerror(Str(X_1002,"missing htim ftable"));
     }
     {

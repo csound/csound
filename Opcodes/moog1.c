@@ -173,11 +173,14 @@ int Moog1set(MOOG1 *p)
     make_FormSwep(&p->filters[0]);
     make_FormSwep(&p->filters[1]);
 
-    if ((ftp = ftfind(p->iatt)) != NULL) p->attk.wave = ftp; /* mandpluk */
+    if ((ftp = ftfind(p->h.insdshead->csound, p->iatt)) != NULL)
+      p->attk.wave = ftp; /* mandpluk */
     else return NOTOK;
-    if ((ftp = ftfind(p->ifn )) != NULL) p->loop.wave = ftp; /* impuls20 */
+    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn )) != NULL)
+      p->loop.wave = ftp; /* impuls20 */
     else return NOTOK;
-    if ((ftp = ftfind(p->ivfn)) != NULL) p->vibr.wave = ftp; /* sinewave */
+    if ((ftp = ftfind(p->h.insdshead->csound, p->ivfn)) != NULL)
+      p->vibr.wave = ftp; /* sinewave */
     else return NOTOK;
     p->attk.time = p->attk.phase = FL(0.0);
     p->loop.time = p->loop.phase = FL(0.0);

@@ -76,7 +76,7 @@ int mandolinset(MANDOL *p)
     FUNC        *ftp;
     ENVIRON *csound = p->h.insdshead->csound;
 
-    if ((ftp = ftfind(p->ifn)) != NULL) p->soundfile = ftp;
+    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) != NULL) p->soundfile = ftp;
     else {
       return perferror(Str(X_379,"No table for Mandolin")); /* Expect pluck wave */
     }

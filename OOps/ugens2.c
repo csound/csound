@@ -115,7 +115,7 @@ int phsor(PHSOR *p)
 
 int itblchk(TABLE *p)
 {
-    if ((p->ftp = ftfind(p->xfn)) == NULL)
+    if ((p->ftp = ftfind(p->h.insdshead->csound, p->xfn)) == NULL)
       return NOTOK;
 
     /* Although TABLE has an integer variable for the table number
@@ -767,7 +767,7 @@ int ftkrchk(TABLE *p)
          * Return 0 to tell calling function not to proceed with a or
          * k rate operations. */
 
-      if ( (p->ftp = ftfindp(p->xfn) ) == NULL) {
+      if ( (p->ftp = ftfindp(p->h.insdshead->csound, p->xfn) ) == NULL) {
         return NOTOK;
       }
 
@@ -844,7 +844,7 @@ int ko1set(OSCIL1 *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = ftfind(p->ifn)) == NULL)
+    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) == NULL)
       return NOTOK;
     if (*p->idur <= FL(0.0)) {
       if (O.msglevel & WARNMSG)
@@ -917,7 +917,7 @@ int oscnset(OSCILN *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = ftfind(p->ifn)) != NULL) {
+    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) != NULL) {
       p->ftp = ftp;
       p->inc = ftp->flen * *p->ifrq * onedsr;
       p->index = FL(0.0);
@@ -966,7 +966,7 @@ int oscset(OSC *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = ftfind(p->ifn)) != NULL) {
+    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) != NULL) {
       p->ftp = ftp;
       if (*p->iphs >= 0)
         p->lphs = ((long)(*p->iphs * FMAXLEN)) & PHMASK;

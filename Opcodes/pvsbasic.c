@@ -393,7 +393,7 @@ int pvstencilset(PVSTENCIL *p)
         initerror(Str(X_248,
                   "pvstencil: signal format must be amp-phase or amp-freq.\n"));
 
-    p->func = ftfind(p->ifn);
+    p->func = ftfind(p->h.insdshead->csound, p->ifn);
     if (p->func==NULL)
       return OK;
 

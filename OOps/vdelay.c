@@ -1069,7 +1069,8 @@ int reverbx_set(NREV2 *p)
       FUNC *ftCombs;
       p->numCombs = (int)*p->inumCombs;
       /* Get user-defined set of comb constants from table */
-      if ((ftCombs = ftfind(p->ifnCombs)) == NULL) return NOTOK;
+      if ((ftCombs = ftfind(p->h.insdshead->csound, p->ifnCombs)) == NULL)
+        return NOTOK;
       if (ftCombs->flen < p->numCombs * 2) {
         sprintf(errmsg,
                 Str(X_1547,
@@ -1100,7 +1101,8 @@ int reverbx_set(NREV2 *p)
     else {    /* Have user-defined set of alpas constants */
       FUNC *ftAlpas;
       p->numAlpas = (int)*p->inumAlpas;
-      if ((ftAlpas = ftfind(p->ifnAlpas)) == NULL) return NOTOK;
+      if ((ftAlpas = ftfind(p->h.insdshead->csound, p->ifnAlpas)) == NULL)
+        return NOTOK;
       if (ftAlpas->flen < p->numAlpas * 2) {
         sprintf(errmsg,
                 Str(X_1548, "reverbx; Alpas ftable must have"

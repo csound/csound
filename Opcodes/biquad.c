@@ -346,7 +346,7 @@ int vcoset(VCO *p)
        for (i=0; i<16384; i++)
          p->sine[i] = (MYFLT)sin(TWOPI*(double)i/4096.0); */
 
-    if ((ftp = ftfind(p->sine)) != NULL) {
+    if ((ftp = ftfind(p->h.insdshead->csound, p->sine)) != NULL) {
       p->ftp = ftp;
       if (*p->iphs >= FL(0.0))
         p->lphs = (long)(*p->iphs * FL(0.5) * FMAXLEN);
