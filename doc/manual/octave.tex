@@ -1,0 +1,119 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{octave}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{octave}
+octave --  Calculates a factor to raise/lower a frequency by a given amount of octaves. \subsection*{Description}
+
+
+  Calculates a factor to raise/lower a frequency by a given amount of octaves. 
+\subsection*{Syntax}
+
+
+ \textbf{octave}
+(x)
+
+
+  This function works at a-rate, i-rate, and k-rate. 
+\subsection*{Initialization}
+
+
+ \emph{x}
+ -- a value expressed in octaves. 
+\subsection*{Performance}
+
+
+  The value returned by the \emph{octave}
+ function is a factor. You can multiply a frequency by this factor to raise/lower it by the given amount of octaves. 
+\subsection*{Examples}
+
+
+  Here is an example of the octave opcode. It uses the files \emph{octave.orc}
+ and \emph{octave.sco}
+. 
+
+
+ \textbf{Example 1. Example of the octave opcode.}
+
+\begin{lstlisting}
+/* octave.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  ; The root note is A above middle-C (440 Hz)
+  iroot = 440
+
+  ; Raise the root note by two octaves.
+  ioctaves = 2
+
+  ; Calculate the new note.
+  ifactor = octave(ioctaves)
+  inew = iroot * ifactor
+
+  ; Print out of all of the values.
+  print iroot
+  print ifactor
+  print inew
+endin
+/* octave.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* octave.sco */
+; Play Instrument #1 for one second.
+i 1 0 1
+e
+/* octave.sco */
+        
+\end{lstlisting}
+ Its output should include lines like: \begin{lstlisting}
+instr 1:  iroot = 440.000
+instr 1:  ifactor = 4.000
+instr 1:  inew = 1760.149
+      
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{cent}
+, \emph{db}
+, \emph{semitone}
+
+\subsection*{Credits}
+
+
+ Example written by Kevin Conder.
+
+
+ New in version 4.16
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+ntrpol &Up &octcps
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,426 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{oscbnk}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{oscbnk}
+oscbnk --  Mixes the output of any number of oscillators. \subsection*{Description}
+
+
+  This unit generator mixes the output of any number of oscillators. The frequency, phase, and amplitude of each oscillator can be modulated by two LFOs (all oscillators have a separate set of LFOs, with different phase and frequency); additionally, the output of each oscillator can be filtered through an optional parametric equalizer (also controlled by the LFOs). This opcode is most useful for rendering ensemble (strings, choir, etc.) instruments. 
+
+
+  Although the LFOs run at k-rate, amplitude, phase and filter modulation are interpolated internally, so it is possible (and recommended in most cases) to use this unit at low (\&\#732;1000 Hz) control rates without audible quality degradation. 
+
+
+  The start phase and frequency of all oscillators and LFOs can be set by a built-in seedable 31-bit random number generator, or specified manually in a function table (GEN2). 
+\subsection*{Syntax}
+
+
+ ar \textbf{oscbnk}
+ kcps, kamd, kfmd, kpmd, iovrlap, iseed, kl1minf, kl1maxf, kl2minf, kl2maxf, ilfomode, keqminf, keqmaxf, keqminl, keqmaxl, keqminq, keqmaxq, ieqmode, kfn [, il1fn] [, il2fn] [, ieqffn] [, ieqlfn] [, ieqqfn] [, itabl] [, ioutfn]
+\subsection*{Initialization}
+
+
+ \emph{iovrlap}
+ -- Number of oscillator units. 
+
+
+ \emph{iseed}
+ -- Seed value for random number generator (positive integer in the range 1 to 2147483646 (2 \^{} 31 - 2)). \emph{iseed}
+ $<$= seeds 0 from the current time. 
+
+
+ \emph{ieqmode}
+ -- Parametric equalizer mode 
+
+
+ 
+\begin{itemize}
+\item 
+
+ -1: disable EQ (faster)
+
+\item 
+
+ 0: peak
+
+\item 
+
+ 1: low shelf
+
+\item 
+
+ 2: high shelf
+
+\item 
+
+ 3: peak (filter interpolation disabled)
+
+\item 
+
+ 4: low shelf (interpolation disabled)
+
+\item 
+
+ 5: high shelf (interpolation disabled)
+
+
+\end{itemize}
+ The non-interpolated modes are faster, and in some cases (e.g. high shelf filter at low cutoff frequencies) also more stable; however, interpolation is useful for avoiding ``zipper noise'' at low control rates. 
+
+ \emph{ilfomode}
+ -- LFO modulation mode, sum of: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ 128: LFO1 to frequency
+
+\item 
+
+ 64: LFO1 to amplitude
+
+\item 
+
+ 32: LFO1 to phase
+
+\item 
+
+ 16: LFO1 to EQ
+
+\item 
+
+ 8: LFO2 to frequency
+
+\item 
+
+ 4: LFO2 to amplitude
+
+\item 
+
+ 2: LFO2 to phase
+
+\item 
+
+ 1: LFO2 to EQ
+
+
+\end{itemize}
+ If an LFO does not modulate anything, it is not calculated, and the ftable number (il1fn or il2fn) can be omitted. 
+
+ \emph{il1fn}
+ (optional: default=0) -- LFO1 function table number. The waveform in this table has to be normalized (absolute value $<$= 1), and is read with linear interpolation. 
+
+
+ \emph{il2fn}
+ (optional: default=0) -- LFO2 function table number. The waveform in this table has to be normalized, and is read with linear interpolation. 
+
+
+ \emph{ieqffn, ieqlfn, ieqqfn}
+ (optional: default=0) -- Lookup tables for EQ frequency, level, and Q (optional if EQ is disabled). Table read position is 0 if the modulator signal is less than, or equal to -1, (table length / 2) if the modulator signal is zero, and the guard point if the modulator signal is greater than, or equal to 1. These tables have to be normalized to the range 0 - 1, and have an extended guard point (table length = power of two + 1). All tables are read with linear interpolation. 
+
+
+ \emph{itabl}
+ (optional: default=0) -- Function table storing phase and frequency values for all oscillators (optional). The values in this table are in the following order (5 for each oscillator unit): 
+
+
+ 
+
+
+ oscillator phase, lfo1 phase, lfo1 frequency, lfo2 phase, lfo2 frequency, ...\\ 
+         
+
+
+ 
+ All values are in the range 0 to 1; if the specified number is greater than 1, it is wrapped (phase) or limited (frequency) to the allowed range. A negative value (or end of table) will use the output of the random number generator. The random seed is always updated (even if no random number was used), so switching one value between random and fixed will not change others. 
+
+ \emph{ioutfn}
+ (optional: default=0) -- Function table to write phase and frequency values (optional). The format is the same as in the case of itabl. This table is useful when experimenting with random numbers to record the best values. 
+
+
+  The two optional tables (\emph{itabl}
+ and \emph{ioutfn}
+) are accessed only at i-time. This is useful to know, as the tables can be safely overwritten after opcode initialization, which allows precalculating parameters at i-time and storing in a temporary table before oscbnk initialization. 
+\subsection*{Performance}
+
+
+ \emph{ar}
+ -- Output signal. 
+
+
+ \emph{kcps}
+ -- Oscillator frequency in Hz. 
+
+
+ \emph{kamd}
+ -- AM depth (0 - 1). 
+
+
+ (AM output) = (AM input) * ((1 - (AM depth)) + (AM depth) * (modulator))\\ 
+       
+ If \emph{ilfomode}
+ isn't set to modulate the amplitude, then (AM output) = (AM input) regardless of the value of \emph{kamd}
+. That means that \emph{kamd}
+ will have no effect. 
+
+  Note: Amplitude modulation is applied before the parametric equalizer. 
+
+
+ \emph{kfmd}
+ -- FM depth (in Hz). 
+
+
+ \emph{kpmd}
+ -- Phase modulation depth. 
+
+
+ \emph{kl1minf, kl1maxf}
+ -- LFO1 minimum and maximum frequency in Hz. 
+
+
+ \emph{kl2minf, kl2maxf}
+ -- LFO2 minimum and maximum frequency in Hz. (Note: oscillator and LFO frequencies are allowed to be zero or negative.) 
+
+
+ \emph{keqminf, keqmaxf}
+ -- Parametric equalizer minimum and maximum frequency in Hz. 
+
+
+ \emph{keqminl, keqmaxl}
+ -- Parametric equalizer minimum and maximum level. 
+
+
+ \emph{keqminq, keqmaxq}
+ -- Parametric equalizer minimum and maximum Q. 
+
+
+ \emph{kfn}
+ -- Oscillator waveform table. Table number can be changed at k-rate (this is useful to select from a set of band-limited tables generated by GEN30, to avoid aliasing). The table is read with linear interpolation. 
+
+
+ 
+
+
+\begin{tabular}{cc}
+\textbf{Note}
+ \\
+  &
+
+ \emph{oscbnk}
+ uses the same random number generator as \emph{rnd31}
+. So reading \emph{its documentation}
+ is also recommended. 
+
+
+\end{tabular}
+
+\subsection*{Examples}
+
+
+  Here is an example of oscbnk opcode. It uses the files \emph{oscbnk.orc}
+ and \emph{oscbnk.sco}
+. 
+
+
+ \textbf{Example 1. Example of the oscbnk opcode.}
+
+\begin{lstlisting}
+/* oscbnk.orc */
+/* Written by Istvan Varga */
+sr	=  48000
+kr	=  750
+ksmps	=  64
+nchnls	=  2
+
+ga01	init 0
+ga02	init 0
+
+/* sawtooth wave */
+i_	ftgen 1, 0, 16384, 7, 1, 16384, -1
+/* FM waveform */
+i_	ftgen 3, 0, 4096, 7, 0, 512, 0.25, 512, 1, 512, 0.25, 512,	\
+			     0, 512, -0.25, 512, -1, 512, -0.25, 512, 0
+/* AM waveform */
+i_	ftgen 4, 0, 4096, 5, 1, 4096, 0.01
+/* FM to EQ */
+i_	ftgen 5, 0, 1024, 5, 1, 512, 32, 512, 1
+/* sine wave */
+i_	ftgen 6, 0, 1024, 10, 1
+/* room parameters */
+i_	ftgen 7, 0, 64, -2, 4, 50, -1, -1, -1, 11,			\
+			    1, 26.833, 0.05, 0.85, 10000, 0.8, 0.5, 2,	\
+			    1,  1.753, 0.05, 0.85,  5000, 0.8, 0.5, 2,	\
+			    1, 39.451, 0.05, 0.85,  7000, 0.8, 0.5, 2,	\
+			    1, 33.503, 0.05, 0.85,  7000, 0.8, 0.5, 2,	\
+			    1, 36.151, 0.05, 0.85,  7000, 0.8, 0.5, 2,	\
+			    1, 29.633, 0.05, 0.85,  7000, 0.8, 0.5, 2
+
+/* generate bandlimited sawtooth waves */
+
+i0	=  0
+loop1:
+imaxh	=  sr / (2 * 440.0 * exp (log(2.0) * (i0 - 69) / 12))
+i_	ftgen i0 + 256, 0, 4096, -30, 1, 1, imaxh
+i0	=  i0 + 1
+	if (i0 < 127.5) igoto loop1
+
+	instr 1
+
+p3	=  p3 + 0.4
+
+; note frequency
+kcps	=  440.0 * exp (log(2.0) * (p4 - 69) / 12)
+; lowpass max. frequency
+klpmaxf	limit 64 * kcps, 1000.0, 12000.0
+; FM depth in Hz
+kfmd1	=  0.02 * kcps
+; AM frequency
+kamfr	=  kcps * 0.02
+kamfr2	=  kcps * 0.1
+; table number
+kfnum	=  (256 + 69 + 0.5 + 12 * log(kcps / 440.0) / log(2.0))
+; amp. envelope
+aenv	linseg 0, 0.1, 1.0, p3 - 0.5, 1.0, 0.1, 0.5, 0.2, 0, 1.0, 0
+
+/* oscillator / left */
+
+a1	oscbnk kcps, 0.0, kfmd1, 0.0, 40, 200, 0.1, 0.2, 0, 0, 144,	      \
+		0.0, klpmaxf, 0.0, 0.0, 1.5, 1.5, 2,			      \
+		kfnum, 3, 0, 5, 5, 5
+a2	oscbnk kcps, 1.0, kfmd1, 0.0, 40, 201, 0.1, 0.2, kamfr, kamfr2, 148,  \
+		0, 0, 0, 0, 0, 0, -1,					      \
+		kfnum, 3, 4
+a2	pareq a2, kcps * 8, 0.0, 0.7071, 2
+a0	=  a1 + a2 * 0.12
+/* delay */
+adel	=  0.001
+a01	vdelayx a0, adel, 0.01, 16
+a_	oscili 1.0, 0.25, 6, 0.0
+adel	=  adel + 1.0 / (exp(log(2.0) * a_) * 8000)
+a02	vdelayx a0, adel, 0.01, 16
+a0	=  a01 + a02
+
+ga01	=  ga01 + a0 * aenv * 2500
+
+/* oscillator / right */
+
+; lowpass max. frequency
+
+a1	oscbnk kcps, 0.0, kfmd1, 0.0, 40, 202, 0.1, 0.2, 0, 0, 144,	      \
+		0.0, klpmaxf, 0.0, 0.0, 1.0, 1.0, 2,			      \
+		kfnum, 3, 0, 5, 5, 5
+a2	oscbnk kcps, 1.0, kfmd1, 0.0, 40, 203, 0.1, 0.2, kamfr, kamfr2, 148,  \
+		0, 0, 0, 0, 0, 0, -1,					      \
+		kfnum, 3, 4
+a2	pareq a2, kcps * 8, 0.0, 0.7071, 2
+a0	=  a1 + a2 * 0.12
+/* delay */
+adel	=  0.001
+a01	vdelayx a0, adel, 0.01, 16
+a_	oscili 1.0, 0.25, 6, 0.25
+adel	=  adel + 1.0 / (exp(log(2.0) * a_) * 8000)
+a02	vdelayx a0, adel, 0.01, 16
+a0	=  a01 + a02
+
+ga02	=  ga02 + a0 * aenv * 2500
+
+
+	endin
+
+/* output / left */
+
+	instr 81
+
+i1	=  0.000001
+aLl, aLh, aRl, aRh	spat3di ga01 + i1*i1*i1*i1, -8.0, 4.0, 0.0, 0.3, 7, 4
+ga01	=  0
+aLl	butterlp aLl, 800.0
+aRl	butterlp aRl, 800.0
+
+	outs aLl + aLh, aRl + aRh
+
+	endin
+
+/* output / right */
+
+	instr 82
+
+i1	=  0.000001
+aLl, aLh, aRl, aRh	spat3di ga02 + i1*i1*i1*i1, 8.0, 4.0, 0.0, 0.3, 7, 4
+ga02	=  0
+aLl	butterlp aLl, 800.0
+aRl	butterlp aRl, 800.0
+
+	outs aLl + aLh, aRl + aRh
+
+	endin
+/* oscbnk.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* oscbnk.sco */
+/* Written by Istvan Varga */
+t 0 60
+
+i 1 0 4 41
+i 1 0 4 60
+i 1 0 4 65
+i 1 0 4 69
+
+i 81 0 5.5
+i 82 0 5.5
+e
+/* oscbnk.sco */
+        
+\end{lstlisting}
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Author: Istvan Varga &2001
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in version 4.15
+
+
+ Updated April 2002 by Istvan Varga
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+opcode &Up &oscil
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,103 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{||}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{||}
+|| --  Logical OR operator. \subsection*{Description}
+
+
+  Arithmetic operators perform operations of change-sign (negate), don't-change-sign, logical AND logical OR, add, subtract, multiply and divide. Note that a value or an expression may fall between two of these operators, either of which could take it as its left or right argument, as in 
+
+
+ a + b * c.\\ 
+       
+
+
+  In such cases three rules apply: 
+
+
+  1. * and \emph{/}
+ bind to their neighbors more strongly than + and \&\#8722;. Thus the above expression is taken as 
+
+
+   \\ 
+ a + (b * c)\\ 
+       
+ with * taking b and c and then + taking a and b * c. 
+
+  2. \emph{+}
+ and \emph{\&\#8722;}
+ bind more strongly than \&\&, which in turn is stronger than ||: 
+
+
+   \\ 
+ a \&\& b - c || d\\ 
+       
+ is taken as 
+
+   \\ 
+ (a \&\& (b - c)) || d\\ 
+       
+
+
+  3. When both operators bind equally strongly, the operations are done left to right: 
+
+
+   \\ 
+ a - b - c i\\ 
+       
+ is taken as 
+
+   \\ 
+ (a - b) - c\\ 
+       
+
+
+  Parentheses may be used as above to force particular groupings. 
+\subsection*{Syntax}
+
+
+ a \textbf{||}
+ b (logical OR; not audio-rate)
+
+
+  where the arguments \emph{a}
+ and \emph{b}
+ may be further expressions. 
+\subsection*{See Also}
+
+
+ \emph{-}
+, \emph{+}
+, \emph{\&\&}
+, \emph{*}
+, \emph{/}
+, \emph{\^{}}
+, \emph{\%}
+
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+\^{} &Up &0dbfs
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,257 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{phaser2}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{phaser2}
+phaser2 --  Second-order allpass filters arranged in a series. \subsection*{Description}
+
+
+  An implementation of \emph{iord}
+ number of second-order allpass filters in series. 
+\subsection*{Syntax}
+
+
+ ar \textbf{phaser2}
+ asig, kfreq, kq, kord, kmode, ksep, kfeedback
+\subsection*{Initialization}
+
+
+ \emph{iskip}
+ (optional, default=0) -- used to control initial disposition of internal data space. Since filtering incorporates a feedback loop of previous output, the initial status of the storage space used is significant. A zero value will clear the space; a non-zero value will allow previous information to remain. The default value is 0. 
+\subsection*{Performance}
+
+
+ \emph{kfreq}
+ -- frequency (in Hz) of the filter(s). This is the center frequency of the notch of the first allpass filter in the series. This frequency is used as the base frequency from which the frequencies of the other notches are derived. 
+
+
+ \emph{kq}
+ -- Q of each notch. Higher Q values result in narrow notches. A Q between 0.5 and 1 results in the strongest ``phasing'' effect, but higher Q values can be used for special effects. 
+
+
+ \emph{kord}
+ -- the number of allpass stages in series. These are second-order filters, and iord can range from 1 to 2499. With higher orders, the computation time increases. 
+
+
+ \emph{kfeedback}
+ -- amount of the output which is fed back into the input of the allpass chain. With larger amounts of feedback, more prominent notches appear in the spectrum of the output. \emph{kfeedback}
+ must be between -1 and +1. for stability. 
+
+
+ \emph{kmode}
+ -- used in calculation of notch frequencies. 
+
+
+ 
+
+
+\begin{tabular}{cc}
+\textbf{Note}
+ \\
+  &
+
+  Although \emph{kord}
+ and \emph{kmode}
+ are listed as k-rate, they are in fact accessed only at init-time. So if you are using k-rate arguments, they must be assigned with \emph{init}
+. 
+
+
+\end{tabular}
+
+
+
+  ksep -- scaling factor used, in conjunction with \emph{imode}
+, to determine the frequencies of the additional notches in the output spectrum. 
+
+
+ \emph{phaser2}
+ implements \emph{iord}
+ number of second-order allpass sections, connected in series. The use of second-order allpass sections allows for the precise placement of the frequency, width, and depth of notches in the frequency spectrum. \emph{iord}
+ is used to directly determine the number of notches in the spectrum; e.g. for \emph{iord}
+ = 6, there will be 6 notches in the output spectrum. 
+
+
+  There are two possible modes for determining the notch frequencies. When \emph{imode}
+ = 1, the notch frequencies are determined the following function: 
+
+
+ frequency of notch N = kbf + (ksep * kbf * N-1)\\ 
+       
+
+
+  For example, with \emph{imode}
+ = 1 and \emph{ksep}
+ = 1, the notches will be in harmonic relationship with the notch frequency determined by \emph{kfreq}
+ (i.e. if there are 8 notches, with the first at 100 Hz, the next notches will be at 200, 300, 400, 500, 600, 700, and 800 Hz). This is useful for generating a ``comb filtering'' effect, with the number of notches determined by \emph{iord}
+. Different values of \emph{ksep}
+ allow for inharmonic notch frequencies and other special effects. \emph{ksep}
+ can be swept to create an expansion or contraction of the notch frequencies. A useful visual analogy for the effect of sweeping \emph{ksep}
+ would be the bellows of an accordion as it is being played - the notches will be seperated, then compressed together, as \emph{ksep}
+ changes. 
+
+
+  When \emph{imode}
+ = 2, the subsequent notches are powers of the input parameter \emph{ksep}
+ times the initial notch frequency specified by \emph{kfreq}
+. This can be used to set the notch frequencies to octaves and other musical intervals. For example, the following lines will generate 8 notches in the output spectrum, with the notches spaced at octaves of \emph{kfreq}
+: 
+
+
+ aphs    \emph{phaser2}
+    ain, kfreq, 0.5, 8, 2, 2, 0\\ 
+ aout    \emph{=}
+          ain + aphs\\ 
+       
+
+
+  When \emph{imode}
+ = 2, the value of \emph{ksep}
+ must be greater than 0. \emph{ksep}
+ can be swept to create a compression and expansion of notch frequencies (with more dramatic effects than when \emph{imode}
+ = 1). 
+\subsection*{Examples}
+
+
+  Here is an example of the phaser2 opcode. It uses the files \emph{phaser2.orc}
+ and \emph{phaser2.sco}
+. 
+
+
+ \textbf{Example 1. Example of the phaser2 opcode.}
+
+\begin{lstlisting}
+/* phaser2.orc */
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+instr 2              ; demonstration of phase shifting abilities of phaser2. 
+  ; Input mixed with output of phaser2 to generate notches. 
+  ; Demonstrates the interaction of imode and ksep.
+  idur   = p3 
+  iamp   = p4 * .04
+  iorder = p5        ; number of 2nd-order stages in phaser2 network
+  ifreq  = p6        ; not used
+  ifeed  = p7        ; amount of feedback for phaser2
+  imode  = p8        ; mode for frequency scaling
+  isep   = p9        ; used with imode to determine notch frequencies
+  kamp   linseg 0, .2, iamp, idur - .2, iamp, .2, 0
+  iharms = (sr*.4) / 100
+
+  ; "Sawtooth" waveform exponentially decaying function, to control notch frequencies
+  asig   gbuzz 1, 100, iharms, 1, .95, 2  
+  kline  expseg 1, idur, .005
+  aphs   phaser2 asig, kline * 2000, .5, iorder, imode, isep, ifeed
+
+  out (asig + aphs) * iamp
+endin
+/* phaser2.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* phaser2.sco */
+; cosine wave for gbuzz
+f2 0  8192 9 1 1 .25     
+
+; phaser2, imode=1
+i2 00 10 7000 8 .2 .9 1 .33
+i2 11 10 7000 8 .2 .9 1 2 
+
+; phaser2, imode=2
+i2 22 10 7000 8 .2 .9 2 .33
+i2 33 10 7000 8 .2 .9 2 2
+e
+/* phaser2.sco */
+        
+\end{lstlisting}
+\subsection*{Technical History}
+
+
+  A general description of the differences between flanging and phasing can be found in Hartmann [1]. An early implementation of first-order allpass filters connected in series can be found in Beigel [2], where the bilinear z-transform is used for determining the phase shift frequency of each stage. Cronin [3] presents a similar implementation for a four-stage phase shifting network. Chamberlin [4] and Smith [5] both discuss using second-order allpass sections for greater control over notch depth, width, and frequency. 
+\subsection*{References}
+
+
+ 
+
+
+ 
+\begin{enumerate}
+\item 
+
+  Hartmann, W.M. ``Flanging and Phasers.'' Journal of the Audio Engineering Society, Vol. 26, No. 6, pp. 439-443, June 1978. 
+
+\item 
+
+  Beigel, Michael I. ``A Digital 'Phase Shifter' for Musical Applications, Using the Bell Labs (Alles-Fischer) Digital Filter Module.'' Journal of the Audio Engineering Society, Vol. 27, No. 9, pp. 673-676,September 1979. 
+
+\item 
+
+  Cronin, Dennis. ``Examining Audio DSP Algorithms.'' Dr. Dobb's Journal, July 1994, p. 78-83. 
+
+\item 
+
+  Chamberlin, Hal. Musical Applications of Microprocessors. Second edition. Indianapolis, Indiana: Hayden Books, 1985. 
+
+\item 
+
+  Smith, Julius O. ``An Allpass Approach to Digital Phasing and Flanging.'' Proceedings of the 1984 ICMC, p. 103-108. 
+
+
+\end{enumerate}
+\subsection*{See Also}
+
+
+ \emph{phaser1}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Sean Costello &Seattle, Washington &1999
+
+\end{tabular}
+
+
+
+ 
+
+
+ November 2002. Added a note about the \emph{kord}
+ and \emph{kmode}
+ parameters, thanks to Rasmus Ekman.
+
+
+ New in Csound version 4.0
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+phaser1 &Up &phasor
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}
