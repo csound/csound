@@ -40,9 +40,13 @@ rescale.addChild(random)
 
 # Add these nodes to the builtin MusicModel instance.
 model.addChild(rescale)
-csound.load("/home/mkg/csound5/examples/CsoundVST.csd")
-csound.setCommand("csound -RWdfo Lindenmayer.wav ./temp.orc ./temp.sco")
+filename = csound.getFilename();
+print 'Filename:', filename
+csound.load("./CsoundVST.csd")
+csound.setFilename(filename);
+csound.setCommand("csound -RWdfo " + filename + ".wav " + filename + ".orc " + filename + ".sco")
 model.render()
+
 
 
 
