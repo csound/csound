@@ -667,7 +667,7 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('vdelayk',
     ['Opcodes/vdelayk.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('wave-terrain', 
     ['Opcodes/wave-terrain.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('bus', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('bus', 
     ['Opcodes/bus.c']))
 
 # Plugins with External Dependencies
