@@ -33,6 +33,7 @@ extern "C" {
 #include "csound.h"
 #include "csoundCore.h"
 #include "prototyp.h"
+#include "csmodule.h"
 
   int fltk_abort = 0;
 #ifdef INGALLS
@@ -44,8 +45,25 @@ extern "C" {
 
   PUBLIC void *csoundCreate(void *hostdata)
   {
+    /* FIXME: should use malloc() eventually */
     ENVIRON *csound = &cenviron;
+    /* IV - Feb 01 2005: moved this here... */
+    csoundReset(csound);
     csound->hostdata_ = hostdata;
+    /* allow selecting real time audio module */
+    {
+      char  *s;
+      int   max_len = 21;
+      csoundCreateGlobalVariable(csound, "_RTAUDIO", (size_t) max_len);
+      s = csoundQueryGlobalVariable(csound, "_RTAUDIO");
+      strcpy(s, "PortAudio");
+      csoundCreateConfigurationVariable(csound, "rtaudio", s,
+                                        CSOUNDCFG_STRING, 0, NULL, &max_len,
+                                        "Real time audio module name", NULL);
+    }
+    /* now load and pre-initialise external modules for this instance */
+    /* this function returns an error value that may be worth checking */
+    csoundLoadModules(csound);
     return csound;
   }
 
@@ -62,8 +80,13 @@ extern "C" {
 
   PUBLIC void csoundDestroy(void *csound)
   {
+    extern void csoundDeleteAllGlobalVariables(void *csound);
     ((ENVIRON *)csound)->Cleanup(csound);
     ((ENVIRON *)csound)->Reset(csound);
+    /* IV - Feb 01 2005: clean up configuration variables and */
+    /* named dynamic "global" variables of Csound instance */
+    csoundDeleteAllConfigurationVariables(csound);
+    csoundDeleteAllGlobalVariables(csound);
 #ifdef some_fine_day
     free(csound);
 #endif
@@ -95,7 +118,7 @@ extern "C" {
 
   extern int frsturnon;
   extern int sensevents(ENVIRON *);
-  extern int cleanup(void);
+  extern int cleanup(void*);
   extern int orcompact(void);
 
   PUBLIC int csoundPerform(void *csound, int argc, char **argv)
@@ -169,13 +192,17 @@ extern "C" {
 
   /* external host's outbuffer passed in csoundPerformBuffer()
    */
+
+  static long _rtCurOutBufCount = 0;
+
+#if 0
   static char *_rtCurOutBuf = 0;
   static long _rtCurOutBufSize = 0;
-  static long _rtCurOutBufCount = 0;
   static char *_rtOutOverBuf = 0;
   static long _rtOutOverBufSize = 0;
   static long _rtOutOverBufCount = 0;
   static char *_rtInputBuf = 0;
+#endif
 
   PUBLIC int csoundPerformBuffer(void *csound)
   {
@@ -217,7 +244,7 @@ extern "C" {
   PUBLIC void csoundCleanup(void *csound)
   {
     orcompact();
-    cleanup();
+    cleanup(csound);
     /* Call all the funcs registered with atexit(). */
     while (csoundNumExits_ >= 0)
       {
@@ -474,28 +501,7 @@ extern "C" {
    *    REAL-TIME AUDIO
    */
 
-#ifdef RTAUDIO
-  extern void playopen_(int nchanls, int dsize, float sr, int scale);
-
-  void (*playopen)(int nchanls, int dsize, float sr, int scale) = playopen_;
-
-  extern void rtplay_(void *outBuf, int nbytes);
-
-  void (*rtplay)(void *outBuf, int nbytes) = rtplay_;
-
-  extern void recopen_(int nchanls, int dsize, float sr, int scale);
-
-  void (*recopen)(int nchanls, int dsize, float sr, int scale) = recopen_;
-
-  extern int rtrecord_(void *inBuf, int nbytes);
-
-  int (*rtrecord)(void *inBuf, int nbytes) = rtrecord_;
-
-  extern void rtclose_(void);
-
-  void (*rtclose)(void) = rtclose_;
-#endif
-
+#if 0
   void playopen_mi(int nchanls, int dsize, float sr, int scale) /* open for audio output */
   {
     _rtCurOutBufSize = O.outbufsamps*dsize;
@@ -569,41 +575,75 @@ extern "C" {
     if (_rtInputBuf)
       mfree(_rtInputBuf);
   }
-
-  PUBLIC void csoundSetPlayopenCallback(void *csound, void (*playopen__)(int nchanls, int dsize, float sr, int scale))
-  {
-#ifdef RTAUDIO
-    playopen = playopen__;
 #endif
-  }
 
-  PUBLIC void csoundSetRtplayCallback(void *csound, void (*rtplay__)(void *outBuf, int nbytes))
-  {
-#ifdef RTAUDIO
-    rtplay = rtplay__;
-#endif
-  }
+/* dummy functions for the case when no real-time audio module is available */
 
-  PUBLIC void csoundSetRecopenCallback(void *csound, void (*recopen__)(int nchanls, int dsize, float sr, int scale))
-  {
-#ifdef RTAUDIO
-    recopen = recopen__;
-#endif
-  }
+int playopen_dummy(void *csound, csRtAudioParams *parm)
+{
+    csound = csound; parm = parm;
+    return CSOUND_SUCCESS;
+}
 
-  PUBLIC void csoundSetRtrecordCallback(void *csound, int (*rtrecord__)(void *inBuf, int nbytes))
-  {
-#ifdef RTAUDIO
-    rtrecord = rtrecord__;
-#endif
-  }
+void rtplay_dummy(void *csound, void *outBuf, int nbytes)
+{
+    csound = csound; outBuf = outBuf; nbytes = nbytes;
+}
 
-  PUBLIC void csoundSetRtcloseCallback(void *csound, void (*rtclose__)(void))
-  {
-#ifdef RTAUDIO
-    rtclose = rtclose__;
-#endif
-  }
+int recopen_dummy(void *csound, csRtAudioParams *parm)
+{
+    csound = csound; parm = parm;
+    return CSOUND_SUCCESS;
+}
+
+int rtrecord_dummy(void *csound, void *inBuf, int nbytes)
+{
+    int i;
+    csound = csound;
+    for (i = 0; i < (nbytes / (int) sizeof(MYFLT)); i++)
+      ((MYFLT*) inBuf)[i] = FL(0.0);
+    return (nbytes / (int) sizeof(MYFLT));
+}
+
+void rtclose_dummy(void *csound)
+{
+    csound = csound;
+}
+
+PUBLIC void csoundSetPlayopenCallback(void *csound,
+                                      int (*playopen__)(void *csound,
+                                                        csRtAudioParams *parm))
+{
+    ((ENVIRON*) csound)->playopen_callback = playopen__;
+}
+
+PUBLIC void csoundSetRtplayCallback(void *csound,
+                                    void (*rtplay__)(void *csound,
+                                                     void *outBuf, int nbytes))
+{
+    ((ENVIRON*) csound)->rtplay_callback = rtplay__;
+}
+
+PUBLIC void csoundSetRecopenCallback(void *csound,
+                                     int (*recopen__)(void *csound,
+                                                      csRtAudioParams *parm))
+{
+    ((ENVIRON*) csound)->recopen_callback = recopen__;
+}
+
+PUBLIC void csoundSetRtrecordCallback(void *csound,
+                                      int (*rtrecord__)(void *csound,
+                                                        void *inBuf,
+                                                        int nbytes))
+{
+    ((ENVIRON*) csound)->rtrecord_callback = rtrecord__;
+}
+
+PUBLIC void csoundSetRtcloseCallback(void *csound,
+                                     void (*rtclose__)(void *csound))
+{
+    ((ENVIRON*) csound)->rtclose_callback = rtclose__;
+}
 
   int csoundExternalMidiEnabled = 0;
   void (*csoundExternalMidiDeviceOpenCallback)(void *csound) = 0;
@@ -964,7 +1004,7 @@ extern "C" {
     strcpy(csoundEnv_[csoundNumEnvs_].path, path);
   }
 
-  char *csoundGetEnv(const char *environmentVariableName)
+  PUBLIC char *csoundGetEnv(const char *environmentVariableName)
   {
     int i;
     for (i = 0; i < csoundNumEnvs_; i++)
@@ -1264,6 +1304,14 @@ unsigned long timers_random_seed(void)
     l += (h & 0x00000FFFUL) * 1000000UL;
 #endif
     return l;
+}
+
+/**
+ * Return the size of MYFLT in bytes.
+ */
+PUBLIC int csoundGetSizeOfMYFLT(void)
+{
+    return (int) sizeof(MYFLT);
 }
 
 #ifdef __cplusplus

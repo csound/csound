@@ -79,7 +79,7 @@ void newevent(void *, char type, MYFLT *pfields, long count);
 void csoundDefaultMidiOpen(void*);
 void mainRESET(ENVIRON *);
 void create_opcodlst(void *csound);
-int readOptions(FILE*);
+int readOptions(void*, FILE*);
 int csoundMain(void *csound, int argc, char **argv);
 void remove_tmpfiles(void);
 void add_tmpfile(char*);
@@ -96,7 +96,6 @@ extern void (*csoundExternalMidiDeviceOpenCallback)(void *csound);
 extern int (*csoundExternalMidiReadCallback)(void *csound, unsigned char *midiData, int size);
 extern int (*csoundExternalMidiWriteCallback)(void *csound, unsigned char *midiData);
 extern void (*csoundExternalMidiDeviceCloseCallback)(void *csound);
-extern void rtclose_(void);
 
 #ifdef __cplusplus
 }

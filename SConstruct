@@ -79,7 +79,7 @@ opts.Add('usePortAudio',
     '1')
 opts.Add('useALSA',
     'Set to 1 to use ALSA for real-time audio input and output.',
-    '0')
+    '1')
 opts.Add('useJack',
     'Set to 1 if you compiled PortAudio to use Jack',
     '1')
@@ -361,39 +361,9 @@ if (not(commonEnvironment['usePortMIDI']=='0') and portmidiFound):
         vstEnvironment.Append(LIBS = ['porttime'])
 
 if commonEnvironment['useALSA']=='1' and alsaFound:
-    staticLibraryEnvironment.Append(CCFLAGS = '-DRTAUDIO')
-    pluginEnvironment.Append(CCFLAGS = '-DRTAUDIO')
-    csoundProgramEnvironment.Append(CCFLAGS = '-DRTAUDIO')
-    ustubProgramEnvironment.Append(CCFLAGS = '-DRTAUDIO')
-    vstEnvironment.Append(CCFLAGS = '-DRTAUDIO')
-    guiProgramEnvironment.Append(CCFLAGS = '-DRTAUDIO')
     guiProgramEnvironment.Append(LINKFLAGS = '-mwindows')
-    csoundProgramEnvironment.Append(LIBS = ['asound'])
-    vstEnvironment.Append(LIBS = ['asound'])
 elif commonEnvironment['usePortAudio']=='1' and portaudioFound:
-    staticLibraryEnvironment.Append(CCFLAGS = '-DRTAUDIO')
-    pluginEnvironment.Append(CCFLAGS = '-DRTAUDIO')
-    csoundProgramEnvironment.Append(CCFLAGS = '-DRTAUDIO')
-    ustubProgramEnvironment.Append(CCFLAGS = '-DRTAUDIO')
-    vstEnvironment.Append(CCFLAGS = '-DRTAUDIO')
-    guiProgramEnvironment.Append(CCFLAGS = '-DRTAUDIO')
     guiProgramEnvironment.Append(LINKFLAGS = '-mwindows')
-    csoundProgramEnvironment.Append(LIBS = ['portaudio'])
-    vstEnvironment.Append(LIBS = ['portaudio'])
-    if (getPlatform() == 'linux'): 
-        csoundProgramEnvironment.Append(LIBS = ['asound'])
-        vstEnvironment.Append(LIBS = ['asound'])
-        if (commonEnvironment['useJack']=='1'):
-            print commonEnvironment['useJack']
-            print (commonEnvironment['useJack']=='1')
-            print "Adding Jack library for PortAudio"
-            csoundProgramEnvironment.Append(LIBS = ['jack'])
-            vstEnvironment.Append(LIBS = ['jack'])  
-    elif getPlatform() == 'cygwin' or getPlatform() == 'mingw': 
-        csoundProgramEnvironment.Append(LIBS = ['winmm'])
-        vstEnvironment.Append(LIBS = ['winmm'])
-        csoundProgramEnvironment.Append(LIBS = ['dsound'])
-        vstEnvironment.Append(LIBS = ['dsound'])
 
 if (commonEnvironment['useFLTK'] == '1' and fltkFound):
     staticLibraryEnvironment.Append(CCFLAGS = '-DWINDOWS')
@@ -456,6 +426,7 @@ zipDependencies.append(makedb)
 
 libCsoundSources = Split('''
 Engine/auxfd.c
+Engine/cfgvar.c
 Engine/entry1.c
 Engine/entry2.c
 Engine/express.c
@@ -535,6 +506,7 @@ OOps/vpvoc.c
 Top/argdecode.c
 Top/cscore_internal.c
 Top/cscorfns.c
+Top/csmodule.c
 Top/csound.c
 Top/cvanal.c
 Top/dl_opcodes.c
@@ -544,6 +516,7 @@ Top/hetro.c
 Top/lpanal.c
 Top/main.c
 Top/natben.c
+Top/new_opts.c
 Top/one_file.c
 Top/opcode.c
 Top/pvanal.c
@@ -552,16 +525,6 @@ Top/scot.c
 Top/sndinfo.c
 Top/threads.c
 ''')
-
-if commonEnvironment['useALSA']=='1' and alsaFound:
-    print 'CONFIGURATION DECISION: Building with ALSA.'
-    libCsoundSources.append('InOut/rtalsa.c')
-elif commonEnvironment['usePortAudio']=='1' and portaudioFound:
-    print 'CONFIGURATION DECISION: Building with PortAudio.'
-    libCsoundSources.append('InOut/rtpa.c')
-    libCsoundSources.append('InOut/pa_blocking.c')
-else:
-    print 'CONFIGURATION DECISION: Not building with real time audio.'
 
 if (not (commonEnvironment['usePortMIDI']=='0')) and portmidiFound:
     print 'CONFIGURATION DECISION: Building with PortMIDI.'
@@ -640,7 +603,6 @@ ustub = staticLibraryEnvironment.Library('ustub',
 zipDependencies.append(ustub)
 
 # Plugin opcodes.
-
 
 pluginLibraries.append(pluginEnvironment.SharedLibrary('babo', 
     ['Opcodes/babo.c']))
@@ -747,6 +709,37 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('ftest',
     ['Opcodes/ftest.c']))
 
 # Plugins with External Dependencies
+
+# REAL TIME AUDIO
+
+if (not(commonEnvironment['useALSA']=='1' and alsaFound)):
+    print "CONFIGURATION DECISION: Not building ALSA plugin."
+else:
+    print "CONFIGURATION DECISION: Building ALSA plugin."
+    alsaEnvironment = pluginEnvironment.Copy()
+    alsaEnvironment.Append(LIBS = ['asound'])
+    pluginLibraries.append(alsaEnvironment.SharedLibrary('rtalsa',
+                                                         ['InOut/rtalsa.c']))
+
+if (not(commonEnvironment['usePortAudio']=='1' and portaudioFound)):
+    print "CONFIGURATION DECISION: Not building PortAudio module."
+else:
+    print "CONFIGURATION DECISION: Building PortAudio module."
+    portaudioEnvironment = pluginEnvironment.Copy()
+    portaudioEnvironment.Append(LIBS = ['portaudio'])
+    if (getPlatform() == 'linux'): 
+        portaudioEnvironment.Append(LIBS = ['asound'])
+        if (commonEnvironment['useJack']=='1'):
+            print "Adding Jack library for PortAudio"
+            portaudioEnvironment.Append(LIBS = ['jack'])
+    elif getPlatform() == 'cygwin' or getPlatform() == 'mingw': 
+        portaudioEnvironment.Append(LIBS = ['winmm'])
+        portaudioEnvironment.Append(LIBS = ['dsound'])
+    pluginLibraries.append(portaudioEnvironment.SharedLibrary('rtpa',
+                                                          Split('''
+                                                            InOut/rtpa.c
+                                                            InOut/pa_blocking.c
+                                                          ''')))
 
 # FLUIDSYNTH OPCODES
 

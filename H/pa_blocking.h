@@ -2,7 +2,7 @@
 #define PA_BLOCKING_H
 
 #include "portaudio.h"
-#include "cs.h"
+#include "csoundCore.h"
 #include "csound.h"
 #include "soundio.h"
 
@@ -23,7 +23,8 @@ extern "C" {
   
   int paBlockingReadOpen(ENVIRON *csound, 
 			 PA_BLOCKING_STREAM **pabs_, 
-			 PaStreamParameters *paParameters);
+			 PaStreamParameters *paParameters,
+			 csRtAudioParams *parm);
 
   void paBlockingRead(PA_BLOCKING_STREAM *pabs, MYFLT *buffer);
 
@@ -33,7 +34,8 @@ extern "C" {
 
   int paBlockingWriteOpen(ENVIRON *csound, 
 			  PA_BLOCKING_STREAM **pabs_, 
-			  PaStreamParameters *paParameters);
+			  PaStreamParameters *paParameters,
+			  csRtAudioParams *parm);
 
   void paBlockingWrite(PA_BLOCKING_STREAM *pabs, int bytes, MYFLT *buffer);
 
@@ -41,7 +43,7 @@ extern "C" {
 				    unsigned long frameCount, const PaStreamCallbackTimeInfo* timeInfo,
 				    PaStreamCallbackFlags statusFlags, void *userData);
 
-  void paBlockingClose(PA_BLOCKING_STREAM *pabs);
+  void paBlockingClose(void *csound, PA_BLOCKING_STREAM *pabs);
 
 #if defined(__cplusplus)
 };

@@ -34,14 +34,6 @@
 # include "MacTransport.h"
 #endif
 
-#ifdef RTAUDIO
-extern  int     rtrecord_(MYFLT *, int);
-extern  void    rtplay_(MYFLT *, int);
-extern  void    rtclose_(void);
-extern  void    recopen_(int, int, float, int);
-extern  void    playopen_(int, int, float, int);
-#endif
-
 static  SNDFILE *outfile;
 extern  SNDFILE *infile;
 static  char    *sfoutname;                     /* soundout filename    */
@@ -58,9 +50,9 @@ static  int     osfd;
         int     osfopen = 0;                    /* (real set in sfopenout)   */
 static  int     pipdevin = 0, pipdevout = 0;    /* mod by sfopenin,sfopenout */
 unsigned long   nframes = 1;
-#ifdef RTAUDIO
+
 #define DEVAUDIO 0x7fff         /* unique fd for rtaudio  */
-#endif
+
 #ifdef PIPES
 extern FILE* pin, *pout;
 /*sbrandon: added NeXT to line below*/
@@ -69,14 +61,15 @@ extern FILE* pin, *pout;
 #  define _pclose pclose
 # endif
 #endif
-extern  void    (*spinrecv)(void), (*spoutran)(void), (*nzerotran)(long);
-int     (*audrecv)(MYFLT *, int);
-void    (*audtran)(MYFLT *, int);
+extern  void    (*spinrecv)(void*), (*spoutran)(void*);
+extern  void    (*nzerotran)(void*, long);
+int     (*audrecv)(void*, MYFLT*, int);
+void    (*audtran)(void*, MYFLT*, int);
 static  SOUNDIN *p;    /* to be passed via sreadin() */
 SNDFILE *sndgetset(SOUNDIN *);
 
 extern  char    *getstrformat(int format);
-static  void    sndwrterr(unsigned, unsigned);
+static  void    sndwrterr(void*, unsigned, unsigned);
 extern  unsigned long   nframes;
 
 extern int type2sf(int);
@@ -102,7 +95,7 @@ extern short sfsampsize(int);
    audtran to flush when this happens.
 */
 
-void spoutsf(void)
+void spoutsf(void *csound)
 {
     int n, spoutrem = nspout;
     MYFLT *maxampp = maxamp;
@@ -152,7 +145,7 @@ void spoutsf(void)
     } while (--n);
     if (!outbufrem) {
       if (osfopen) {
-        audtran(outbuf,outbufsiz); /* Flush buffer */
+        audtran(csound, outbuf, outbufsiz); /* Flush buffer */
         outbufp = (MYFLT *) outbuf;
       }
       outbufrem = O.outbufsamps;
@@ -160,7 +153,7 @@ void spoutsf(void)
     }
 }
 
-void zerosf(long len)
+void zerosf(void *csound, long len)
 {
     int   n, smpsrem, clearcnt = 0;
 
@@ -179,14 +172,14 @@ void zerosf(long len)
     }
     else outbufp += n;
     if (!outbufrem) {
-      audtran(outbuf,outbufsiz);        /* Flush */
+      audtran(csound, outbuf, outbufsiz);   /* Flush */
       outbufp = (MYFLT*)outbuf;
       outbufrem = O.outbufsamps;
       if (smpsrem) goto nchk;
     }
 }
 
-static void writesf(MYFLT *outbuf, int nbytes)
+static void writesf(void *csound, MYFLT *outbuf, int nbytes)
                                 /* diskfile write option for audtran's */
                                 /*      assigned during sfopenout()    */
 {
@@ -194,7 +187,7 @@ static void writesf(MYFLT *outbuf, int nbytes)
     if (osfd<0) return;
     n = sf_write_MYFLT(outfile, outbuf, nbytes/sizeof(MYFLT));
     if (n < nbytes/sizeof(MYFLT))
-      sndwrterr(n, nbytes);
+      sndwrterr(csound, n, nbytes);
     if (O.rewrt_hdr)
       rewriteheader(outfile,0);
     nrecs++;                /* JPff fix */
@@ -216,8 +209,9 @@ static void writesf(MYFLT *outbuf, int nbytes)
     }
 }
 
-static int readsf(MYFLT *inbuf, int inbufsize)
+static int readsf(void *csound, MYFLT *inbuf, int inbufsize)
 {
+    csound = csound;
     /* FIX, VL 02-11-04: function used to take samples instead of bytes */
     return nchnls*sf_read_MYFLT(infile, inbuf, (inbufsiz/nchnls)/sizeof(MYFLT));
 }
@@ -329,7 +323,7 @@ int soundin(ENVIRON *csound, SOUNDIN *p)
     return OK;
 }
 
-void sfopenin(void)             /* init for continuous soundin */
+void sfopenin(void *csound)             /* init for continuous soundin */
 {
     char    *sfname = NULL;
     long     n;
@@ -349,37 +343,57 @@ void sfopenin(void)             /* init for continuous soundin */
       pipdevin = 1;
     }
 #endif
-#ifdef RTAUDIO
     else if (O.infilename != NULL &&
-             (strcmp(O.infilename,"devaudio") == 0
-#ifdef WIN32
-              || strncmp(O.infilename,"devaudio", 8) == 0
-              || strncmp(O.infilename,"adc", 3) == 0
-#endif
-              || strcmp(O.infilename,"adc") == 0)) {
-#if defined(WIN32) || defined(LINUX) || defined(__MACH__)
-      rtin_dev = 0;
-      if (strncmp(O.infilename,"devaudio", 8) == 0) {
-        if (O.infilename[8]==':')
+             (strncmp(O.infilename, "devaudio", 8) == 0 ||
+              strncmp(O.infilename, "adc", 3) == 0)) {
+      if (strcmp(O.infilename, "devaudio") == 0 ||
+          strcmp(O.infilename, "adc") == 0) {
+        rtin_dev = 0;
+        rtin_devs = NULL;
+      }
+      else if (strncmp(O.infilename, "devaudio", 8) == 0) {
+        if (O.infilename[8]==':') {
+          rtin_dev = 0;
           rtin_devs = &(O.infilename[9]);
-        else
+        }
+        else {
           sscanf(O.infilename+8, "%d", &rtin_dev);
+          rtin_devs = NULL;
+        }
       }
       else if (strncmp(O.infilename,"adc", 3) == 0) {
-        if (O.infilename[3]==':')
+        if (O.infilename[3]==':') {
+          rtin_dev = 0;
           rtin_devs = &(O.infilename[4]);
-        else
+        }
+        else {
           sscanf(O.infilename+3, "%d", &rtin_dev);
+          rtin_devs = NULL;
+        }
       }
-#endif
       sfname = O.infilename;
-      recopen_(nchnls,O.insampsiz,(float)esr,2);  /* open devaudio for input */
-      audrecv = rtrecord_;                /*  & redirect audio gets  */
+      {
+        csRtAudioParams parm;
+        /* set device parameters (should get these from ENVIRON...) */
+        parm.devName = rtin_devs;
+        parm.devNum = rtin_dev;
+        parm.bufSamp_SW = (int) O.inbufsamps / (int) nchnls;
+        parm.bufSamp_HW = O.oMaxLag;
+        parm.nChannels = nchnls;
+        parm.sampleFormat = O.informat;
+        parm.sampleRate = (float) esr;
+        /* open devaudio for input */
+        if (((ENVIRON*) csound)->recopen_callback(csound, &parm) != 0)
+          die(Str("Failed to initialise real time audio input"));
+        /*  & redirect audio gets  */
+        audrecv = (int (*)(void*, MYFLT*, int))
+                    ((ENVIRON*) csound)->rtrecord_callback;
+        inbufrem = parm.bufSamp_SW * parm.nChannels;
+      }
       isfd = DEVAUDIO;                    /* dummy file descriptor   */
       pipdevin   = 1;                     /* no backward seeks !     */
       goto inset;                         /* no header processing    */
     }
-#endif
     else {                      /* else build filename and open that */
       SF_INFO sfinfo;
       if ((isfd = openin(O.infilename)) < 0)
@@ -406,9 +420,8 @@ void sfopenin(void)             /* init for continuous soundin */
       p->audrem = sfinfo.frames;
       audrecv = readsf;  /* will use standard audio gets  */
     }
-#ifdef RTAUDIO
+
  inset:
-#endif
     inbufsiz = (unsigned)(O.inbufsamps * sizeof(MYFLT)); /* calc inbufsize reqd */
     inbuf = (MYFLT *)mcalloc(inbufsiz); /* alloc inbuf space */
     printf(Str("reading %d-byte blks of %s from %s (%s)\n"),
@@ -416,12 +429,12 @@ void sfopenin(void)             /* init for continuous soundin */
            type2string(p->filetyp));
     isfopen = 1;
 
-    n = audrecv(inbuf, inbufsiz);          /*     file or devaudio  */
+    n = audrecv(csound, inbuf, inbufsiz);     /*     file or devaudio  */
 /*     inbufrem = (unsigned int)n;            /\* datasiz in monosamps  *\/ */
 
 }
 
-void sfopenout(void)                            /* init for sound out       */
+void sfopenout(void *csound)                    /* init for sound out       */
 {                                               /* (not called if nosound)  */
     if (O.outfilename == NULL) {
       if (O.filetyp == TYP_WAV) O.outfilename = "test.wav";
@@ -446,31 +459,55 @@ void sfopenout(void)                            /* init for sound out       */
       }
     }
 #endif
-#ifdef RTAUDIO
-    else if (strcmp(O.outfilename,"devaudio") == 0
-             || strncmp(O.outfilename,"devaudio", 8) ==0
-             || strncmp(O.outfilename,"dac", 3) ==0
-# ifdef LINUX
-             || strcmp(O.outfilename,"/dev/dsp") ==0
-# endif
-             || strcmp(O.outfilename,"dac") == 0) {
-#if defined(WIN32) || defined(LINUX) || defined(__MACH__)
-      if (strncmp(O.outfilename,"devaudio", 8) == 0) {
-        if (O.outfilename[8]==':')
+    else if (O.outfilename != NULL &&
+             (strncmp(O.outfilename, "devaudio", 8) == 0 ||
+              strncmp(O.outfilename, "dac", 3) == 0)) {
+      if (strcmp(O.outfilename, "devaudio") == 0 ||
+          strcmp(O.outfilename, "dac") == 0) {
+        rtout_dev = 0;
+        rtout_devs = NULL;
+      }
+      else if (strncmp(O.outfilename,"devaudio", 8) ==0) {
+        if (O.outfilename[8]==':') {
+          rtout_dev = 0;
           rtout_devs = &(O.outfilename[9]);
-        else
+        }
+        else {
           sscanf(O.outfilename+8, "%d", &rtout_dev);
+          rtout_devs = NULL;
+        }
       }
       else if (strncmp(O.outfilename,"dac", 3) == 0) {
-        if (O.outfilename[3]==':')
+        if (O.outfilename[3]==':') {
+          rtout_dev = 0;
           rtout_devs = &(O.outfilename[4]);
-        else
+        }
+        else {
           sscanf(O.outfilename+3, "%d", &rtout_dev);
+          rtout_devs = NULL;
+        }
       }
-#endif
       sfoutname = O.outfilename;
-      playopen_(nchnls, O.sfsampsize, (float)esr, 2);  /* open devaudio for out */
-      audtran = rtplay_;                        /* & redirect audio puts */
+      {
+        csRtAudioParams parm;
+        /* set device parameters (should get these from ENVIRON...) */
+        parm.devName = rtout_devs;
+        parm.devNum = rtout_dev;
+        parm.bufSamp_SW = (int) O.outbufsamps / (int) nchnls;
+        parm.bufSamp_HW = O.oMaxLag;
+        parm.nChannels = nchnls;
+        parm.sampleFormat = O.outformat;
+        parm.sampleRate = (float) esr;
+        spoutran = spoutsf;
+        nzerotran = zerosf;
+        /* open devaudio for output */
+        if (((ENVIRON*) csound)->playopen_callback(csound, &parm) != 0)
+          die(Str("Failed to initialise real time audio output"));
+        /*  & redirect audio puts  */
+        audtran = (void (*)(void*, MYFLT*, int))
+                    ((ENVIRON*) csound)->rtplay_callback;
+        outbufrem = parm.bufSamp_SW * parm.nChannels;
+      }
       osfd = DEVAUDIO;                         /* dummy file descriptor */
       pipdevout = 1;                           /* no backward seeks !   */
 #if defined(mills_macintosh) || defined(SYMANTEC)
@@ -481,7 +518,6 @@ void sfopenout(void)                            /* init for sound out       */
 #endif
       goto outset;                        /* no header needed      */
     }
-#endif
     else if (strcmp(O.outfilename,"null") == 0) {
       osfd = -1;
       sfoutname = mmalloc((long)strlen(retfilnam)+1);
@@ -523,9 +559,8 @@ void sfopenout(void)                            /* init for sound out       */
       transport.eoheader = lseek(osfd,(off_t)0L,SEEK_CUR);
 #endif
     }
-#ifdef RTAUDIO
+
 outset:
-#endif
     outbufsiz = (unsigned)O.outbufsamps * sizeof(MYFLT);/* calc outbuf size */
     outbufp = outbuf = mmalloc((long)outbufsiz); /*  & alloc bufspace */
     printf(Str("writing %d-byte blks of %s to %s\n"),
@@ -540,16 +575,16 @@ outset:
     outbufrem = O.outbufsamps;
 }
 
-void sfclosein(void)
+void sfclosein(void *csound)
 {
     if (!isfopen) return;
-#ifdef RTAUDIO
     if (isfd == DEVAUDIO) {
-      if (!osfopen || osfd != DEVAUDIO)
-        rtclose_();     /* close only if not open for output too */
+      if (!osfopen || osfd != DEVAUDIO) {
+        /* close only if not open for output too */
+        ((ENVIRON*) csound)->rtclose_callback(csound);
+      }
     }
     else
-#endif
 #ifdef PIPES
       if (pin != NULL) {
         int _pclose(FILE*);
@@ -563,19 +598,19 @@ void sfclosein(void)
     return;
 }
 
-void sfcloseout(void)
+void sfcloseout(void *csound)
 {
     int nb;
     if (!osfopen) return;
-    if ((nb = (O.outbufsamps-outbufrem) * O.sfsampsize) > 0)/* flush outbuffer */
-      audtran(outbuf, nb);
-#ifdef RTAUDIO
+    if ((nb = (O.outbufsamps-outbufrem) * O.sfsampsize) > 0)    /* flush     */
+      audtran(csound, outbuf, nb);                              /* outbuffer */
     if (osfd == DEVAUDIO) {
-      if (!isfopen || isfd != DEVAUDIO)
-        rtclose_();     /* close only if not open for input too */
+      if (!isfopen || isfd != DEVAUDIO) {
+        /* close only if not open for input too */
+        ((ENVIRON*) csound)->rtclose_callback(csound);
+      }
       goto report;
     }
-#endif
     sf_command(outfile, SFC_UPDATE_HEADER_NOW, NULL, 0);
     nb = sf_close(outfile);
 #ifdef PIPES
@@ -585,9 +620,8 @@ void sfcloseout(void)
       pout = NULL;
     }
 #endif
-#ifdef RTAUDIO
+
  report:
-#endif
     printf(Str("%ld %d-byte soundblks of %s written to %s"),
            nrecs, outbufsiz, getstrformat(O.outformat), sfoutname);
     if (strcmp(O.outfilename,"devaudio") == 0       /* realtime output has no
@@ -613,9 +647,8 @@ void soundinRESET(void)
 extern  HEADATA *readheader(int, char*, SOUNDIN*);
 extern  OPARMS  O;
 
-#ifdef RTAUDIO
 # define DEVAUDIO 0x7fff         /* unique fd for rtaudio  */
-#endif
+
 #ifdef PIPES
 FILE* pin=NULL, *pout=NULL;
 /*sbrandon: added NeXT to line below*/
@@ -625,22 +658,22 @@ FILE* pin=NULL, *pout=NULL;
 # endif
 #endif
 
-void (*spinrecv)(void), (*spoutran)(void), (*nzerotran)(long);
+void (*spinrecv)(void*), (*spoutran)(void*), (*nzerotran)(void*, long);
 
-static void sndwrterr(unsigned nret, unsigned nput) /* report soundfile write(osfd)
-                                                error      */
+static void sndwrterr(void *csound, unsigned nret, unsigned nput)
+  /* report soundfile write(osfd) error   */
   /* called after chk of write() bytecnt  */
 {
-    void sfcloseout(void);
+    void sfcloseout(void*);
     printf(Str("soundfile write returned bytecount of %d, not %d\n"),
            nret,nput);
     printf(Str("(disk may be full...\n closing the file ...)\n"));
     outbufrem = O.outbufsamps;       /* consider buf is flushed */
-    sfcloseout();                    /* & try to close the file */
+    sfcloseout(csound);              /* & try to close the file */
     die(Str("\t... closed\n"));
 }
 
-static void sndfilein(void);
+static void sndfilein(void*);
 void iotranset(void)
     /* direct recv & tran calls to the right audio formatter  */
 {   /*                            & init its audio_io bufptr  */
@@ -657,11 +690,11 @@ void sfnopenout(void)
     outbufrem = O.outbufsamps;          /* init counter, though not writing */
 }
 
-static void sndfilein(void)
+static void sndfilein(void *csound)
 {
     int samples = nchnls * ksmps;
     int i;
-    audrecv(spin, sizeof(MYFLT) * samples);
+    audrecv(csound, spin, sizeof(MYFLT) * samples);
     for(i = 0; i < samples; i++)
     {
         spin[i] *= float_to_dbfs;

@@ -142,9 +142,9 @@ void add_tmpfile (char *name)           /* IV - Oct 31 2002 */
 }
 
 static char files[1000];
-extern int argdecode(int, char**, char**, char*);
+extern int argdecode(void*, int, char**, char**, char*);
 
-int readOptions(FILE *unf)
+int readOptions(void *csound, FILE *unf)
 {
     char *p;
     int argc = 0;
@@ -211,7 +211,8 @@ int readOptions(FILE *unf)
       printf("argc=%d argv[%d]=%s\n", argc, argc, argv[argc]);
 #endif
       /*      argc++; */                  /* according to Nicola but wrong */
-      argdecode(argc, argv, &filnamp, getenv("SFOUTYP")); /* Read an argv thing */
+      /* Read an argv thing */
+      argdecode(csound, argc, argv, &filnamp, getenv("SFOUTYP"));
     }
     return FALSE;
 }
@@ -506,7 +507,7 @@ int blank_buffer(void)
     return TRUE;
 }
 
-int read_unified_file(char **pname, char **score)
+int read_unified_file(void *csound, char **pname, char **score)
 {
     char *name = *pname;
     FILE *unf  = fopen(name, "rb"); /* Need to open in binary to deal with
@@ -547,7 +548,7 @@ int read_unified_file(char **pname, char **score)
       }
       else if (strstr(p,"<CsOptions>") == buffer) {
         printf(Str("Creating options\n"));
-        r = readOptions(unf);
+        r = readOptions(csound, unf);
         result = r && result;
       }
 /*        else if (strstr(p,"<CsFunctions>") == buffer) { */

@@ -63,8 +63,9 @@ void    putop(TEXT*);
 extern  void    rdorchfile(void);
 extern  int     getopnum(char *);
 
-extern  void    (*spinrecv)(void), (*spoutran)(void), (*nzerotran)(long);
-extern  void    spoutsf(void);
+extern  void    (*spinrecv)(void*), (*spoutran)(void*);
+extern  void    (*nzerotran)(void*, long);
+extern  void    spoutsf(void*);
 
 #define KTYPE   1
 #define DTYPE   2
@@ -75,16 +76,19 @@ extern  void    spoutsf(void);
 #define PTYPE   5
 #define Pfloats (sizeof(PVSDAT) / sizeof(MYFLT))
 
-void csoundDefaultZeroTran(long count)
+void csoundDefaultZeroTran(void *csound, long count)
 {
+    csound = csound; count = count;
 }
 
-void csoundDefaultSpinRecv(void)
+void csoundDefaultSpinRecv(void *csound)
 {
+    csound = csound;
 }
 
-void csoundDefaultSpouTran(void)
+void csoundDefaultSpouTran(void *csound)
 {
+    csound = csound;
 }
 
 void tranRESET(void)

@@ -51,6 +51,11 @@ long strarg2insno (MYFLT *p, char *s);
 long strarg2opcno (MYFLT *p, char *s, int);
 void rewriteheader(SNDFILE* ofd, int verbose);
 void writeheader(int ofd, char *ofname);
+int playopen_dummy(void *csound, csRtAudioParams *parm);
+void rtplay_dummy(void *csound, void *outBuf, int nbytes);
+int recopen_dummy(void *csound, csRtAudioParams *parm);
+int rtrecord_dummy(void *csound, void *inBuf, int nbytes);
+void rtclose_dummy(void *csound);
 
 static  MYFLT   *gbloffbas;
 
@@ -135,6 +140,7 @@ ENVIRON cenviron_ = {
         csoundGetLibrarySymbol,
         csoundSetYieldCallback,
         csoundSetEnv,
+        csoundGetEnv,
         csoundSetPlayopenCallback,
         csoundSetRtplayCallback,
         csoundSetRecopenCallback,
@@ -196,6 +202,12 @@ ENVIRON cenviron_ = {
         csoundTableLength,
         csoundTableGet,
         csoundTableSet,
+        csoundCreateThread,
+        csoundJoinThread,
+        csoundCreateThreadLock,
+        csoundWaitThreadLock,
+        csoundNotifyThreadLock,
+        csoundDestroyThreadLock,
         csoundSetFLTKThreadLocking,
         csoundGetFLTKThreadLocking,
         /* IV - Jan 27 2005: new functions */
@@ -208,6 +220,19 @@ ENVIRON cenviron_ = {
         csoundQueryGlobalVariable,
         csoundQueryGlobalVariableNoCheck,
         csoundDestroyGlobalVariable,
+        csoundCreateConfigurationVariable,
+        csoundSetConfigurationVariable,
+        csoundParseConfigurationVariable,
+        csoundQueryConfigurationVariable,
+        csoundListConfigurationVariables,
+        csoundDeleteConfigurationVariable,
+        csoundCfgErrorCodeToString,
+        playopen_dummy,
+        rtplay_dummy,
+        recopen_dummy,
+        rtrecord_dummy,
+        rtclose_dummy,
+        csoundGetSizeOfMYFLT,
         /*
         * Data fields.
         */
@@ -340,7 +365,8 @@ ENVIRON cenviron_ = {
         1,                      /* doFLTKThreadLocking */
         NULL,                   /* namedGlobals -- IV - Jan 28 2005 */
         0,                      /* namedGlobalsCurrLimit */
-        0                       /* namedGlobalsMaxLimit */
+        0,                      /* namedGlobalsMaxLimit */
+        NULL                    /* cfgVariableDB */
 };
 
 OPARMS O;
