@@ -27,6 +27,13 @@
 #include "midiops.h"
 #include "oload.h"
 
+#ifdef MSVC  /* VL MSVC fix */
+#      define  u_char  unsigned char
+#      define  u_short unsigned short
+#      define  u_int   unsigned int
+#      define  u_long  unsigned long
+#endif
+
 #define MBUFSIZ   1024
 #define ON        1
 #define OFF       0
