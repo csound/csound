@@ -84,6 +84,19 @@ extern short sfsampsize(int);
 #define sf_read_MYFLT   sf_read_float
 #endif
 
+/* return sample size (in bytes) of format 'fmt' */
+
+static int format_nbytes(int fmt)
+{
+    switch (fmt) {
+      case AE_SHORT:    return 2;
+      case AE_24INT:    return 3;
+      case AE_LONG:
+      case AE_FLOAT:    return 4;
+      case AE_DOUBLE:   return 8;
+    }
+    return 1;
+}
 
 /* The interface requires 3 functions:
    spoutran to transfer nspout items to buffer
@@ -214,7 +227,8 @@ static int readsf(void *csound, MYFLT *inbuf, int inbufsize)
 {
     csound = csound;
     /* FIX, VL 02-11-04: function used to take samples instead of bytes */
-    return nchnls*sf_read_MYFLT(infile, inbuf, (inbufsiz/nchnls)/sizeof(MYFLT));
+    return ((int) sizeof(MYFLT)
+            * sf_read_MYFLT(infile, inbuf, inbufsize / (int) sizeof(MYFLT)));
 }
 
 HEADATA *readheader(            /* read soundfile hdr, fill HEADATA struct */
@@ -425,7 +439,8 @@ void sfopenin(void *csound)             /* init for continuous soundin */
     inbufsiz = (unsigned)(O.inbufsamps * sizeof(MYFLT)); /* calc inbufsize reqd */
     inbuf = (MYFLT *)mcalloc(inbufsiz); /* alloc inbuf space */
     printf(Str("reading %d-byte blks of %s from %s (%s)\n"),
-           inbufsiz, getstrformat(O.informat), sfname,
+           O.inbufsamps * format_nbytes(O.informat),
+           getstrformat(O.informat), sfname,
            type2string(p->filetyp));
     isfopen = 1;
 
@@ -526,8 +541,8 @@ void sfopenout(void *csound)                    /* init for sound out       */
     else {  /* else open sfdir or cwd */
       SF_INFO sfinfo;
       sfinfo.frames = -1;
-      sfinfo.samplerate = (int)esr;
-      sfinfo.channels = nchnls ;
+      sfinfo.samplerate = (int) (esr + FL(0.5));
+      sfinfo.channels = nchnls;
       sfinfo.format = type2sf(O.filetyp)|format2sf(O.outformat);
       sfinfo.sections = 0;
       sfinfo.seekable = 0;
@@ -588,7 +603,8 @@ outset:
     outbufsiz = (unsigned)O.outbufsamps * sizeof(MYFLT);/* calc outbuf size */
     outbufp = outbuf = mmalloc((long)outbufsiz); /*  & alloc bufspace */
     printf(Str("writing %d-byte blks of %s to %s\n"),
-           outbufsiz, getstrformat(O.outformat), sfoutname);
+           O.outbufsamps * format_nbytes(O.outformat),
+           getstrformat(O.outformat), sfoutname);
     if (strcmp(O.outfilename,"devaudio") == 0   /* realtime output has no
                                                    header */
         || strcmp(O.outfilename,"dac") == 0)  printf("\n");
@@ -677,7 +693,8 @@ void sfcloseout(void *csound)
 
  report:
     printf(Str("%ld %d-byte soundblks of %s written to %s"),
-           nrecs, outbufsiz, getstrformat(O.outformat), sfoutname);
+           nrecs, O.outbufsamps * format_nbytes(O.outformat),
+           getstrformat(O.outformat), sfoutname);
     if (strcmp(O.outfilename,"devaudio") == 0       /* realtime output has no
                                                        header */
         || strcmp(O.outfilename,"dac") == 0) printf("\n");
