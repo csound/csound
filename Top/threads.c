@@ -1,7 +1,7 @@
 #include "csound.h"
 #include "cs.h"
 #include "prototyp.h"
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(WIN32) && !defined(__CYGWIN)
 #include <windows.h>
 #include <portaudio.h>
 
@@ -41,7 +41,7 @@ PUBLIC void csoundDestroyThreadLock(void *csound, void *lock)
 	CloseHandle((HANDLE) lock);
 }
 
-#elif defined(LINUX) || defined(__CYGWIN__)
+#elif defined(LINUX) || defined(__CYGWIN__) || defined(__MACH__)
 
 #include <pthread.h>
 
