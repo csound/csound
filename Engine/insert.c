@@ -653,10 +653,6 @@ long kperf(long kcnt)   /* perform currently active instrs for kcnt kperiods */
     extern  void    (*spinrecv)(void), (*spoutran)(void), (*nzerotran)(long);
     INSDS  *ip;
     long    kreq = kcnt;
-#ifdef never
-    clock_t clockStart = clock();
-    clock_t clockEnd;
-#endif
 
     if (O.odebug) printf("perfing %ld kprds\n",kcnt);
     if (!csoundYield(&cenviron)) longjmp(cenviron.exitjmp_,1); /* PC GUI needs attention */
@@ -705,49 +701,9 @@ long kperf(long kcnt)   /* perform currently active instrs for kcnt kperiods */
       }
       if (spoutactive)        /*   results now in spout? */
         (*spoutran)();        /*      send to audio_out  */
-      else (*nzerotran)(1L);  /*   else send zerospout   */
+      else 
+        (*nzerotran)(1L);  /*   else send zerospout   */
     } while (--kcnt);         /* on Mac/Win, allow system events */
-#ifdef never
-    clockEnd = clock();
-    clocksPerFrame[cpfIndex] = (clockEnd - clockStart)/(double)(kreq*ksmps);
-    if (++cpfIndex == numClockPoints)
-      cpfIndex = 0;
-    /* average this into our tally */
-    clocks = clocks*.9 + (clockEnd - clockStart)*.1/(double)(kreq*ksmps);
-    /* test printouts */
-    /*  temp += kreq;
-<<<<<<< insert.c
-        if (temp > ekr*.05) {
-        int i;
-        double total = 0;
-
-        for (i = 0; i < numClockPoints; i++)
-        total += clocksPerFrame[i];
-
-        printf("cpu load is: %f\n", esr*total/(double)(numClockPoints*CLOCKS_PER_SEC));
-        printf("cpu load[filt]: %f\n", esr*clocks/(double)(CLOCKS_PER_SEC));
-        printf("rendering rate is: %f\n", (double)(CLOCKS_PER_SEC*temp)/(ekr*(clockEnd - lastClock)));
-        lastClock = clockEnd;
-        temp = 0;
-        }
-        */
-=======
-        if (temp > ekr*.05) {
-        int i;
-        double total = 0;
-
-        for (i = 0; i < numClockPoints; i++)
-        total += clocksPerFrame[i];
-
-        printf("cpu load is: %f\n", esr*total/(double)(numClockPoints*CLOCKS_PER_SEC));
-        printf("cpu load[filt]: %f\n", esr*clocks/(double)(CLOCKS_PER_SEC));
-        printf("rendering rate is: %f\n", (double)(CLOCKS_PER_SEC*temp)/(ekr*(clockEnd - lastClock)));
-        lastClock = clockEnd;
-        temp = 0;
-        }
-        */
->>>>>>> 1.11
-#endif
     return(kreq);
 }
 
