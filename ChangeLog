@@ -1,6 +1,8 @@
 2005-03-10	Istvan Varga	<istvan@csounds.com>
 	* Engine/entry2.c:
 	  run miditempo opcode both at init and performance time
+	* Opcodes/freeverb.c:
+	  attempts to correct high frequency attenuation for sample rate
 
 2005-03-09	Istvan Varga	<istvan@csounds.com>
 	* Engine/insert.c:
