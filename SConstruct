@@ -697,6 +697,8 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('pitch',
     Opcodes/spectra.c''')))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('pluck', 
     ['Opcodes/pluck.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('pvsdemix', 
+    ['Opcodes/pvsdemix.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('repluck', 
     ['Opcodes/repluck.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('scansyn',  
