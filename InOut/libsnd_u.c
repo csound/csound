@@ -92,7 +92,7 @@ SNDFILE *SAsndgetset(
     static  MYFLT sstrcod = (MYFLT)SSTRCOD;
 
     sssfinit();                    /* stand-alone init of SFDIR etc. */
-    esr = FL(0.0);                 /* set esr 0. with no orchestra   */
+    cenviron.esr = FL(0.0);        /* set esr 0. with no orchestra   */
     optxt.t.outoffs = &argoffs;    /* point to dummy OUTOCOUNT       */
     *ap = p = (SOUNDIN *) mcalloc(&cenviron, (long)sizeof(SOUNDIN));
     p->h.optext = &optxt;
@@ -144,7 +144,7 @@ long getsndin(SNDFILE *fd, MYFLT *fp, long nlocs, SOUNDIN *p)
 {
     long  n, nread;
     MYFLT *fbeg = fp, *fend = fp + nlocs, gain;
-    MYFLT scalefac = e0dbfs;
+    MYFLT scalefac = cenviron.e0dbfs;
 
     if (p->aiffdata != NULL && p->aiffdata->gainfac > 0)
       gain = p->aiffdata->gainfac;
@@ -262,7 +262,7 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
       if (p->analonly)                      /* and sample rate */
         sfinfo.samplerate = (int) p->sr;
       else
-        sfinfo.samplerate = (int) (esr + FL(0.5));
+        sfinfo.samplerate = (int) (cenviron.esr + FL(0.5));
       if (sfinfo.samplerate < 1)
         sfinfo.samplerate = 44100;
       /* try again */
@@ -295,11 +295,10 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
           /*           sfinfo.samplerate = p->sr; */
         }
       }
-      else if (sfinfo.samplerate != esr &&
-               (O.msglevel & WARNMSG)) {            /* non-anal:  cmp w. esr */
-        if (O.msglevel & WARNMSG)
-          printf(Str("WARNING: %s sr = %ld, orch sr = %7.1f\n"),
-                 sfname, sfinfo.samplerate, esr);
+      else if (sfinfo.samplerate != (int) (cenviron.esr + FL(0.5))) {
+        csoundWarning(&cenviron,                    /* non-anal:  cmp w. esr */
+                      "%s sr = %d, orch sr = %7.1f",
+                      sfname, sfinfo.samplerate, cenviron.esr);
       }
       if (p->OUTOCOUNT) {                            /* for orch SOUNDIN: */
         if (sfinfo.channels != p->OUTOCOUNT) {       /*        chk nchanls */
@@ -439,8 +438,8 @@ int sreadin(                    /* special handling of sound input       */
 
 void dbfs_init(MYFLT dbfs)
 {
-    dbfs_to_float = FL(1.0) / dbfs;
-    e0dbfs = dbfs;
+    cenviron.dbfs_to_float = FL(1.0) / dbfs;
+    cenviron.e0dbfs = dbfs;
     /* probably want this message written just before note messages start... */
     err_printf(Str("0dBFS level = %.1f\n"), dbfs);
 }

@@ -39,7 +39,7 @@ int xyinset(ENVIRON *csound, XYIN *p)
     MYFLT       iyinit = *p->iyinit;
     MYFLT       ixinit = *p->ixinit;
 
-    if ((p->timcount = (int)(ekr * *p->iprd)) <= 0) {
+    if ((p->timcount = (int) (csound->ekr * *p->iprd)) <= 0) {
       return csound->InitError(csound, Str("illegal iprd"));
     }
     if (iymin > iymax) {                /* swap if wrong order */
@@ -49,7 +49,7 @@ int xyinset(ENVIRON *csound, XYIN *p)
       iymax = iymin + FL(1.0);          /* say.. */
       iymin -= FL(1.0);
     }
-    if (iyinit < iymin)                 iyinit = iymin;
+    if (iyinit < iymin)         iyinit = iymin;
     else if (iyinit > iymax)    iyinit = iymax;
 
     if (ixmin > ixmax) {        /* swap if wrong order */
@@ -92,7 +92,7 @@ int xyin(ENVIRON *csound, XYIN *p)
       (*rdxyFn)(&p->w);                       /*   read cursor postn */
 /*      *(p->kxrslt) = *p->ixmin + p->w.x * (*p->ixmax - *p->ixmin); */
 /*      *(p->kyrslt) = *p->iymin + (1.0 - p->w.y) * (*p->iymax - *p->iymin); */
-      if (p->w.x >= *p->ixmin && p->w.x <= *p->ixmax)   inside++;
+      if (p->w.x >= *p->ixmin && p->w.x <= *p->ixmax) inside++;
       if (p->w.y >= *p->iymin && p->w.y <= *p->iymax) inside++;
       if (inside == 2) {
         *(p->kxrslt) = p->w.x;               /* Mike 11/2/96 for Mac */
@@ -107,3 +107,4 @@ int xyin(ENVIRON *csound, XYIN *p)
     return OK;
 }
 #endif
+

@@ -112,7 +112,7 @@
 #define MGLOB(x) (((ENVIRON*) csound)->midiGlobals->x)
 
 extern  void    beep(void);
-        void    midNotesOff(void);
+        void    midNotesOff(ENVIRON *);
 
 static const MYFLT dsctl_map[12] = {
     FL(1.0), FL(0.0), FL(1.0), FL(0.0), FL(1.0), FL(0.0),
@@ -120,9 +120,6 @@ static const MYFLT dsctl_map[12] = {
 };
 
 static const short datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0 };
-/* static short m_clktim = 0; */
-
-static void AllNotesOff(MCHNBLK *);
 
 void MidiOpen(ENVIRON *csound)
                       /* open a Midi event stream for reading, alloc bufs */
@@ -135,24 +132,25 @@ void MidiOpen(ENVIRON *csound)
     if (O.Midiin) {
       i = csoundExternalMidiInOpen(csound, &MGLOB(midiInUserData), O.Midiname);
       if (i != 0) {
-        csoundMessage(csound,
-                      Str(" *** error opening MIDI in device: %d (%s)\n"),
-                      i, csoundExternalMidiErrorString(csound, i));
-        longjmp(csound->exitjmp_, 1);
+        csound->Die(csound,
+                    Str(" *** error opening MIDI in device: %d (%s)"),
+                    i, csoundExternalMidiErrorString(csound, i));
       }
     }
     /* and file. */
     if (O.FMidiin && O.FMidiname != NULL) {
       i = csoundMIDIFileOpen(csound, O.FMidiname);
       if (i != 0) {
-        csoundMessage(csound, Str("Failed to load MIDI file.\n"));
-        longjmp(csound->exitjmp_, 1);
+        csound->Die(csound, Str("Failed to load MIDI file."));
       }
     }
 }
 
-static void sustsoff(MCHNBLK *chn)  /* turnoff all notes in chnl sust array */
-{                        /* called by SUSTAIN_SW_off only if count non-zero */
+/* turn off all notes in chnl sust array */
+/* called by SUSTAIN_SW_off only if count non-zero */
+
+static void sustsoff(ENVIRON *csound, MCHNBLK *chn)
+{
     INSDS *ip;
     int   nn;
 
@@ -164,12 +162,12 @@ static void sustsoff(MCHNBLK *chn)  /* turnoff all notes in chnl sust array */
       ip = chn->kinsptr[nn];
       while (ip != NULL) {
         if (ip->m_sust)
-          xturnoff(&cenviron, ip);
+          xturnoff(csound, ip);
         ip = ip->nxtolap;
       }
     }
     if (chn->ksuscnt)
-      printf(Str("sustain count still %d\n"), chn->ksuscnt);
+      csound->Message(csound, Str("sustain count still %d\n"), chn->ksuscnt);
     chn->ksuscnt = 0;
 }
 
@@ -196,7 +194,7 @@ static void ctlreset(ENVIRON *csound, short chan)
       chn->polyaft[i] = FL(127.0);
     /* controller 64 has just been set to zero: terminate any held notes */
     if (chn->ksuscnt && !MGLOB(rawControllerMode))
-      sustsoff(chn);
+      sustsoff(csound, chn);
     chn->sustaining = 0;
     /* reset pitch bend */
     chn->pchbend = FL(0.0);
@@ -219,8 +217,8 @@ void m_chanmsg(ENVIRON *csound, MEVENT *mep)
       if (n > 0 && n <= maxinsno                /* if corresp instr exists  */
           && instrtxtp[n] != NULL) {            /*     assign as insno      */
         chn->insno = n;                         /* else ignore prog. change */
-        printf(Str("midi channel %d now using instr %d\n"),
-               mep->chan + 1, chn->insno);
+        csound->Message(csound, Str("midi channel %d now using instr %d\n"),
+                                mep->chan + 1, chn->insno);
       }
       break;
     case POLYAFT_TYPE:
@@ -262,7 +260,7 @@ void m_chanmsg(ENVIRON *csound, MEVENT *mep)
           case 99: ctl = TVA_RIS;         break;
           case 100:ctl = TVA_DEC;         break;
           case 102:ctl = TVA_RLS;         break;
-          default:printf(Str("unknown NPRN lsb %d\n"), lsb);
+          default: csound->Message(csound, Str("unknown NPRN lsb %d\n"), lsb);
             goto err;
           }
           fval = (MYFLT) (mep->dat2 - 64);
@@ -271,8 +269,9 @@ void m_chanmsg(ENVIRON *csound, MEVENT *mep)
         else {
           if (msb < 24 || msb == 25 || msb == 27 ||
               msb > 31 || lsb < 25  || lsb > 87)
-            printf(Str("unknown drum param nos, msb %ld lsb %ld\n"),
-                   (long)msb, (long)lsb);
+            csound->Message(csound,
+                            Str("unknown drum param nos, msb %d lsb %d\n"),
+                            (int) msb, (int) lsb);
           else {
             static const int drtab[8] = {0,0,1,1,2,3,4,5};
             int parnum = drtab[msb - 24];
@@ -286,9 +285,9 @@ void m_chanmsg(ENVIRON *csound, MEVENT *mep)
                 fval = xx + *fp;    /* optionally map */
               }
             }
-            printf(Str("CHAN %ld DRUMKEY %ld not in keylst,"
-                   " PARAM %ld NOT UPDATED\n"),
-                   (long)mep->chan+1, (long)lsb, (long)msb);
+            csound->Message(csound, Str("CHAN %d DRUMKEY %d not in keylst, "
+                                        "PARAM %d NOT UPDATED\n"),
+                                    (int) mep->chan + 1, (int) lsb, (int) msb);
           }
         }
       }
@@ -300,15 +299,15 @@ void m_chanmsg(ENVIRON *csound, MEVENT *mep)
           chn->sustaining = 1;
         else if (chn->sustaining) {               /*  & going off         */
           chn->sustaining = 0;
-          sustsoff(chn);                          /*      reles any notes */
+          sustsoff(csound, chn);                  /*      reles any notes */
         }
       }
       break;
 
     special:
       if (n < 121) {          /* for ctrlr 111, 112, ... chk inexclus lists */
-        if ((csound->oparms_->msglevel & 7) == 7)
-          printf(Str("ctrl %d has no exclus list\n"), (int) n);
+        if ((csound->oparms->msglevel & 7) == 7)
+          csound->Message(csound, Str("ctrl %d has no exclus list\n"), (int) n);
         break;
       }
       /* 121 == RESET ALL CONTROLLERS */
@@ -318,7 +317,7 @@ void m_chanmsg(ENVIRON *csound, MEVENT *mep)
       else if (n == 122) {                      /* absorb lcl ctrl data */
 /*      int lcl_ctrl = mep->dat2;  ?? */        /* 0:off, 127:on */
       }
-      else if (n == 123) midNotesOff();         /* allchnl AllNotesOff */
+      else if (n == 123) midNotesOff(csound);   /* allchnl AllNotesOff */
       else if (n == 126) {                      /* MONO mode */
         if (chn->monobas == NULL) {
           MONPCH *mnew, *mend;
@@ -337,7 +336,8 @@ void m_chanmsg(ENVIRON *csound, MEVENT *mep)
         }
         chn->mono = 0;
       }
-      else printf(Str("chnl mode msg %d not implemented\n"), n);
+      else
+        csound->Message(csound, Str("chnl mode msg %d not implemented\n"), n);
       break;
     case AFTOUCH_TYPE:
       chn->aftouch = mep->dat1;                 /* chanl (all-key) Press */
@@ -352,13 +352,11 @@ void m_chanmsg(ENVIRON *csound, MEVENT *mep)
       case 3:
         break;
       default:
-        sprintf(errmsg,Str("unrecognised sys_common type %d"), mep->chan);
-        csoundDie(csound, errmsg);
+        csound->Die(csound, Str("unrecognised sys_common type %d"), mep->chan);
       }
       break;
     default:
-      sprintf(errmsg,Str("unrecognised message type %d"), mep->type);
-      csoundDie(csound, errmsg);
+      csound->Die(csound, Str("unrecognised message type %d"), mep->type);
     }
 }
 
@@ -391,11 +389,12 @@ void m_chn_init_all(ENVIRON *csound)
       ctlreset(csound, chan);
       for (n = 0; n < 128; n++)
         chn->pgm2ins[n] = (short) (n + 1);
-      if (csound->oparms_->Midiin || csound->oparms_->FMidiin) {
+      if (csound->oparms->Midiin || csound->oparms->FMidiin) {
         if (chn->insno > 0)
-          printf(Str("midi channel %d using instr %d\n"), chan + 1, chn->insno);
+          csound->Message(csound, Str("midi channel %d using instr %d\n"),
+                                  chan + 1, chn->insno);
         else
-          printf(Str("midi channel %d is muted\n"), chan + 1);
+          csound->Message(csound, Str("midi channel %d is muted\n"), chan + 1);
       }
     }
 }
@@ -410,15 +409,16 @@ int m_chinsno(ENVIRON *csound, short chan, short insno)
     chn = M_CHNBP[chan];
     if (insno <= 0) {
       chn->insno = -1;
-      printf(Str("MIDI channel %d muted\n"), (int) chan + 1);
+      csound->Message(csound, Str("MIDI channel %d muted\n"), (int) chan + 1);
     }
     else {
       if (insno > maxinsno || instrtxtp[insno] == NULL) {
-        printf(Str("Insno = %d\n"), insno);
+        csound->Message(csound, Str("Insno = %d\n"), insno);
         return csound->InitError(csound, Str("unknown instr"));
       }
       chn->insno = insno;
-      printf(Str("chnl %d using instr %d\n"), chan+1, chn->insno);
+      csound->Message(csound, Str("chnl %d using instr %d\n"),
+                              chan + 1, chn->insno);
       /* check for program change: will override massign if enabled */
       if (chn->pgmno >= 0) {
         mev.type = PROGRAM_TYPE;
@@ -432,7 +432,7 @@ int m_chinsno(ENVIRON *csound, short chan, short insno)
     return OK;
 }
 
-static void AllNotesOff(MCHNBLK *chn)
+static void AllNotesOff(ENVIRON *csound, MCHNBLK *chn)
 {
     INSDS   *ip;
     int     nn;
@@ -440,17 +440,18 @@ static void AllNotesOff(MCHNBLK *chn)
     for (nn = 0; nn < 128; nn++) {
       ip = chn->kinsptr[nn];
       while (ip != NULL) {
-        xturnoff_now(&cenviron, ip);
+/*      xturnoff_now(csound, ip);   */
+        xturnoff(csound, ip);   /* allow release - is this correct ? */
         ip = ip->nxtolap;
       }
     }
 }
 
-void midNotesOff(void)          /* turnoff ALL curr midi notes, ALL chnls */
-{                               /* called by musmon, ctrl 123 & sensMidi  */
+void midNotesOff(ENVIRON *csound) /* turn off ALL curr midi notes, ALL chnls */
+{                                 /*  called by musmon, ctrl 123 & sensMidi  */
     int chan = 0;
     do {
-      AllNotesOff(M_CHNBP[chan]);
+      AllNotesOff(csound, csound->m_chnbp[chan]);
     } while (++chan < MAXCHAN);
 }
 
@@ -497,7 +498,8 @@ int sensMidi(ENVIRON *csound)
           case 6:                        /* active sensing    */
           case 7:                        /* system reset      */
             goto nxtchr;
-          default: printf(Str("undefined sys-realtime msg %x\n"),c);
+          default:
+            csound->Message(csound, Str("undefined sys-realtime msg %x\n"), c);
             goto nxtchr;
           }
         else {                           /* sys_non-realtime status:   */
@@ -514,7 +516,8 @@ int sensMidi(ENVIRON *csound)
             break;
           case 6:                        /* tune request      */
             goto nxtchr;
-          default: printf(Str("undefined sys_common msg %x\n"), c);
+          default:
+            csound->Message(csound, Str("undefined sys_common msg %x\n"), c);
             MGLOB(datreq) = 32767;       /* waste any data following */
             MGLOB(datcnt) = 0;
             goto nxtchr;
