@@ -4,33 +4,33 @@
 #include <windows.h>
 #include <portaudio.h>
 
-__declspec(dllexport) void *csoundCreateThread(void *csound, int (*threadRoutine)(void *userdata), void *userdata)
+PUBLIC void *csoundCreateThread(void *csound, int (*threadRoutine)(void *userdata), void *userdata)
 {
     return (void *) _beginthread((void (*)(void *)) threadRoutine, 
         (unsigned int)0, userdata);
 }
         
-__declspec(dllexport)  int csoundJoinThread(void *csound, void *thread)
+PUBLIC int csoundJoinThread(void *csound, void *thread)
 {
     WaitForSingleObject(thread, INFINITE);
 }
 
-__declspec(dllexport) void *csoundCreateThreadLock(void *csound)
+PUBLIC void *csoundCreateThreadLock(void *csound)
 {
 	return (void *)CreateEvent(0, 0, 0, 0);
 }
 
-__declspec(dllexport) void csoundWaitThreadLock(void *csound, void *lock, size_t milliseconds)
+PUBLIC void csoundWaitThreadLock(void *csound, void *lock, size_t milliseconds)
 {
 	WaitForSingleObject((HANDLE) lock, milliseconds);
 }
 
-__declspec(dllexport) void csoundNotifyThreadLock(void *csound, void *lock)
+PUBLIC void csoundNotifyThreadLock(void *csound, void *lock)
 {
 	SetEvent((HANDLE) lock);
 }
 
-__declspec(dllexport) void csoundDestroyThreadLock(void *csound, void *lock)
+PUBLIC void csoundDestroyThreadLock(void *csound, void *lock)
 {
 	CloseHandle((HANDLE) lock);
 }
