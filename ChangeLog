@@ -1,3 +1,9 @@
+2004-05-04  Michael Gogins <gogins@pipeline.com>
+
+    * Added more Fl::lock and ::unlock calls to CsoundVstFltk.cpp, to protect
+      against Xlib: unexpected async operation errors. CsoundVST now actually
+      works on Linux.
+
 2004-05-03  Michael Gogins <gogins@pipeline.com>
 
     * Fixed midiinterop opcodes that were broken when moved to csound5.
