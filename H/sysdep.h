@@ -106,6 +106,8 @@ extern  off_t lseek(int, off_t, int);
 #      include <io.h>
 #     else
 #     ifdef WIN32
+#      undef  DIRSEP
+#      define DIRSEP '\\'
 #      ifndef MSVC
 #       define  u_char  unsigned char
 #       define  u_short unsigned short
