@@ -972,7 +972,7 @@ PUBLIC void csoundSetRtcloseCallback(void *csound,
     if(!((ENVIRON *)csound)->opcodlst_) {
       ((ENVIRON *)csound)->opcodlst_ = oldOpcodlst;
       err_printf("Failed to allocate new opcode entry.");
-      return 0;
+      return -1;
     }
     else {
       OENTRY *oentry = ((ENVIRON *)csound)->opcodlst_ + oldCount;
@@ -986,13 +986,15 @@ PUBLIC void csoundSetRtcloseCallback(void *csound,
       oentry->kopadr = (SUBR) kopadr;
       oentry->aopadr = (SUBR) aopadr;
       oentry->dopadr = (SUBR) dopadr;
+#if 0
       printf("Appended opcodlst[%d]: opcode = %-20s "
              "intypes = %-20s outypes = %-20s\n",
              oldCount,
              oentry->opname,
              oentry->intypes,
              oentry->outypes);
-      return 1;
+#endif
+      return 0;
     }
   }
 
