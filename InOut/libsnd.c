@@ -359,7 +359,7 @@ void sfopenin(void)             /* init for continuous soundin */
 #endif
               || strcmp(O.infilename,"adc") == 0)) {
 #if defined(WIN32) || defined(LINUX) || defined(__MACH__)
-      rtin_dev = 0;
+      /*       rtin_dev = 0; */ /* Victor Lazzarini suggestion */
       if (strncmp(O.infilename,"devaudio", 8) == 0) {
         if (O.infilename[8]==':')
           rtin_devs = &(O.infilename[9]);
