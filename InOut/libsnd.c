@@ -153,12 +153,6 @@ void spoutsf(void)
     }
 }
 
-void spoutsf_d(void)
-{
-    /* Not written yet */
-    spoutsf();
-}
-
 void zerosf(long len)
 {
     int   n, smpsrem, clearcnt = 0;
@@ -488,10 +482,9 @@ void sfopenout(void)                            /* init for sound out       */
         /*      ioctl(   );   */
         pipdevout = 1;
       }
-      if (dither_output)
-        spoutran = spoutsf_d;
-      else 
-        spoutran = spoutsf;     /* accumulate output */
+      if (dither_output)        /* This may not be written yet!! */
+        sf_command(outfile, SFC_SET_DITHER_ON_WRITE, NULL, SF_TRUE);
+      spoutran = spoutsf;       /* accumulate output */
       nzerotran = zerosf;       /* quick zeros */
       audtran = writesf;        /* flush buffer */
       osfopen = 1;
