@@ -71,7 +71,7 @@ void cscoreRESET(void)
       SPACE *p = &spaceanchor;
       SPACE *n;
       while ((n = p->nxtspace)!=NULL) {
-        if (p != &spaceanchor) mfree(n);
+        if (p != &spaceanchor) mfree(&cenviron, n);
         p = n;
       }
     }
@@ -86,7 +86,7 @@ static SPACE *morespace(void)   /* alloc large amount of memory, keep in a */
         prvspace = &spaceanchor;
         while ((space = prvspace->nxtspace) != NULL)
             prvspace = space;
-        space = (SPACE *) mmalloc((long) MAXALLOC);
+        space = (SPACE *) mmalloc(&cenviron, (long) MAXALLOC);
         prvspace->nxtspace = space;
         space->nxtspace = NULL;
         space->h.prvblk = NULL;
@@ -679,7 +679,7 @@ static void savinfdata(         /* store input file data */
         int    n;
 
         if ((infp = infiles) == NULL) {
-            infp = infiles = (INFILE *) mcalloc((long)MAXOPEN * sizeof(INFILE));
+            infp = infiles = (INFILE *) mcalloc(&cenviron, (long)MAXOPEN * sizeof(INFILE));
             goto save;
         }
         for (n = MAXOPEN; n--; infp++)
@@ -764,7 +764,7 @@ void filclose(FILE *fp)
             for (n = MAXOPEN; n--; infp++)
                 if (infp->iscfp == fp) {
                     infp->iscfp = NULL;
-                    mfree((char *)infp->next);
+                    mfree(&cenviron, (char *)infp->next);
                     fclose(fp);
                     if (scfp == fp) scfp = NULL;
                     return;

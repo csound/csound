@@ -50,7 +50,7 @@ static  char    strminus1[] = "-1", strmult[] = "*";
 static  void    putokens(void), putoklist(void);
 static  int     nontermin(int);
 extern  char    argtyp(char *);
-extern  void    *mrealloc(void*,long);
+extern  void    *mrealloc(void*, void*, size_t);
         void    resetouts(void);
 /* IV - Jan 08 2003: this variable is used in rdorch.c, so cannot be static */
         int     argcnt_offs = 0, opcode_is_assign = 0, assign_type = 0;
@@ -58,7 +58,7 @@ extern  void    *mrealloc(void*,long);
 
 void expRESET(void)
 {
-    mfree(polish); polish=NULL;
+    mfree(&cenviron, polish); polish=NULL;
     polmax      = 0;
     tokenstring = NULL;
     toklen      = 0;
@@ -90,12 +90,12 @@ int express(char *s)
     if (*s == '"')                 /* if quoted string, not an exprssion */
       return (0);
     if (tokens == NULL) {
-      tokens = (TOKEN*) mmalloc((long)TOKMAX*sizeof(TOKEN));
+      tokens = (TOKEN*) mmalloc(&cenviron, (long)TOKMAX*sizeof(TOKEN));
       tokend = tokens+TOKMAX;
-      tokenlist = (TOKEN**) mmalloc((long)TOKMAX*sizeof(TOKEN*));
-      polish = (POLISH*) mmalloc((long)POLMAX*sizeof(POLISH));
+      tokenlist = (TOKEN**) mmalloc(&cenviron, (long)TOKMAX*sizeof(TOKEN*));
+      polish = (POLISH*) mmalloc(&cenviron, (long)POLMAX*sizeof(POLISH));
       polmax = POLMAX;
-      tokenstring = mmalloc(LENTOT);
+      tokenstring = mmalloc(&cenviron, LENTOT);
       stringend = tokenstring+LENTOT;
       toklen = LENTOT;
     }
@@ -104,7 +104,7 @@ int express(char *s)
       char *tt;
       TOKEN *ttt;
       long n = toklen + LENTOT+strlen(s);
-      tt = (char *)mrealloc(tokenstring, n);
+      tt = (char *)mrealloc(&cenviron, tokenstring, n);
       for (ttt=tokens; ttt<=token; ttt++) /* Adjust all previous tokens */
         ttt->str += (tt-tokenstring);
       tokenstring = tt;               /* Reset string and length */
@@ -158,9 +158,9 @@ int express(char *s)
       if ((tokend - token)<= 4) {     /* Extend token array and friends */
         int n = token - tokens;
         tokens =
-          (TOKEN*)mrealloc(tokens, (toklength+TOKMAX)*sizeof(TOKEN));
+          (TOKEN*)mrealloc(&cenviron, tokens, (toklength+TOKMAX)*sizeof(TOKEN));
         tokenlist =
-          (TOKEN**) mrealloc(tokenlist, (toklength+TOKMAX)*sizeof(TOKEN*));
+          (TOKEN**) mrealloc(&cenviron, tokenlist, (toklength+TOKMAX)*sizeof(TOKEN*));
         toklength += TOKMAX;
 /*         printf(Str("Tokens length extended to %d\n"), toklength); */
         token  = tokens + n;
@@ -264,7 +264,7 @@ int express(char *s)
     }
     if (polcnt >= polmax) {
       polmax = polcnt+POLMAX;
-      polish = (POLISH*) mrealloc(polish,polmax*sizeof(POLISH));
+      polish = (POLISH*) mrealloc(&cenviron, polish,polmax*sizeof(POLISH));
 /*       printf(Str("Extending Polish array length %ld\n"), polmax); */
 /*      XERROR("polish storage POLMAX exceeded"); */
     }

@@ -127,7 +127,7 @@ int cvset(ENVIRON *csound, CONVOLVE *p)
 
     if (p->auxch.auxp == NULL) {              /* if no buffers yet, alloc now */
       MYFLT *fltp;
-      auxalloc((long)(((Hlenpadded+2) + p->nchanls*((Hlen - 1) + obufsiz)
+      auxalloc(csound, (long)(((Hlenpadded+2) + p->nchanls*((Hlen - 1) + obufsiz)
                        + (p->nchanls > 1 ? (Hlenpadded+2) : 0))*sizeof(MYFLT)),
                &p->auxch);
       fltp = (MYFLT *) p->auxch.auxp;

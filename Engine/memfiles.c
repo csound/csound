@@ -56,7 +56,7 @@ static int LoadFile(            /* simulate the THINK_C LoadFile  */
       return (1);                               /*    return 1            */
     fstat(fd, &statbuf);                        /* else get its length */
     *len = statbuf.st_size;
-    *allocp = mmalloc((long)(*len));            /*   alloc as reqd     */
+    *allocp = mmalloc(&cenviron, (long)(*len)); /*   alloc as reqd     */
     if (read(fd, *allocp, (int)(*len)) != *len) /*   read file in      */
       dies(Str("read error on %s"),filnam);
     close(fd);                                  /*   and close it      */
@@ -85,7 +85,7 @@ MEMFIL *ldmemfile(char *filnam) /* read an entire file into memory and log it */
       mfp = mfp->next;
     }
     /*    printf("Extending memfiles\n"); */
-    mfp = (MEMFIL*)mcalloc(sizeof(MEMFIL)); /* Add new file description */
+    mfp = (MEMFIL*)mcalloc(&cenviron, sizeof(MEMFIL));  /* Add new file description */
     if (mfp == NULL) {
       sprintf(errmsg,                                   /* else overflow */
               Str(
@@ -142,10 +142,10 @@ void rlsmemfiles(void) /* clear the memfile array, & free all allocated space */
       MEMFIL *nxt = mfp->next;
       if (strcmp(mfp->filename,"") != 0) {            /* if slot taken    */
         strcpy(mfp->filename,"");                     /*   clr the name & */
-        mfree(mfp->beginp);                           /*   free the space */
+        mfree(&cenviron, mfp->beginp);                /*   free the space */
         if (last) last->next = nxt;                   /*   Splice it out  */
         else memfiles = nxt;
-        mfree(mfp);                                   /*   and free space */
+        mfree(&cenviron, mfp);                        /*   and free space */
         memcount++;
       }
       else

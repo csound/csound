@@ -109,7 +109,7 @@ int pitchset(ENVIRON *csound, PITCH *p)    /* pitch - uses specta technology */
         windsiz = *(p->winlen);
         auxsiz = (windsiz + 2*sumk) * sizeof(MYFLT);   /* calc lcl space rqd */
 
-        auxalloc((long)auxsiz, &p->auxch1);            /*  & alloc auxspace  */
+        auxalloc(csound, (long)auxsiz, &p->auxch1);            /*  & alloc auxspace  */
 
         fltp = (MYFLT *) p->auxch1.auxp;
         p->linbufp = fltp;      fltp += windsiz; /* linbuf must take nsamps */
@@ -605,7 +605,7 @@ int adsyntset(ENVIRON *csound, ADSYNT *p)
     }
 
     if (p->lphs.auxp==NULL || p->lphs.size < (long)sizeof(long)*count)
-      auxalloc(sizeof(long)*count, &p->lphs);
+      auxalloc(csound, sizeof(long)*count, &p->lphs);
 
     lphs = (long*)p->lphs.auxp;
     if (*p->iphs > 1) {
@@ -841,7 +841,7 @@ int pitchamdfset(ENVIRON *csound, PITCHAMDF *p)
     if (p->medisize) {
       msize = p->medisize * 3;
       if (p->median.auxp==NULL || p->median.size < (long)sizeof(MYFLT)*msize)
-        auxalloc(sizeof(MYFLT)*(msize), &p->median);
+        auxalloc(csound, sizeof(MYFLT)*(msize), &p->median);
       medi = (MYFLT*)p->median.auxp;
       do
         *medi++ = FL(0.0);
@@ -857,7 +857,7 @@ int pitchamdfset(ENVIRON *csound, PITCHAMDF *p)
     if (p->medisize) {
       msize = p->medisize * 3;
       if (p->median.auxp==NULL || p->median.size < (long)sizeof(MYFLT)*msize)
-        auxalloc(sizeof(MYFLT)*(msize), &p->median);
+        auxalloc(csound, sizeof(MYFLT)*(msize), &p->median);
       medi = (MYFLT*)p->median.auxp;
       do
         *medi++ = (MYFLT)p->peri;
@@ -865,7 +865,7 @@ int pitchamdfset(ENVIRON *csound, PITCHAMDF *p)
     }
 
     if (p->buffer.auxp==NULL || p->buffer.size < (long)sizeof(MYFLT)*(bufsize)) {
-      auxalloc(sizeof(MYFLT)*(bufsize), &p->buffer);
+      auxalloc(csound, sizeof(MYFLT)*(bufsize), &p->buffer);
       buf = (MYFLT*)p->buffer.auxp;
       do
         *buf++ = FL(0.0);
@@ -1105,7 +1105,7 @@ int phsbnkset(ENVIRON *csound, PHSORBNK *p)
       count = 2;
 
     if (p->curphs.auxp==NULL || p->curphs.size < (long)sizeof(double)*count)
-      auxalloc(sizeof(double)*count, &p->curphs);
+      auxalloc(csound, sizeof(double)*count, &p->curphs);
 
     curphs = (double*)p->curphs.auxp;
     if (*p->iphs > 1) {
@@ -1832,7 +1832,7 @@ int trnset(ENVIRON *csound, TRANSEG *p)
 /*          printf("nsegs=%d\n", nsegs); */
     if ((segp = (NSEG *) p->auxch.auxp) == NULL ||
         nsegs*sizeof(NSEG) < (unsigned int)p->auxch.size) {
-      auxalloc((long)nsegs*sizeof(NSEG), &p->auxch);
+      auxalloc(csound, (long)nsegs*sizeof(NSEG), &p->auxch);
       p->cursegp = segp = (NSEG *) p->auxch.auxp;
       segp[nsegs-1].cnt = MAXPOS;     /* set endcount for safety */
     }
@@ -2088,7 +2088,7 @@ int wavesetset(ENVIRON *csound, BARRI *p)
       p->length = 1 + (int)*p->len;
     if (p->length <= 1) p->length = (int)esr;
 /*     printf("Allocating %d of buffer\n", p->length); */
-    auxalloc((long)p->length*sizeof(MYFLT), &p->auxch);
+    auxalloc(csound, (long)p->length*sizeof(MYFLT), &p->auxch);
     p->cnt = 1;
     p->start = 0;
     p->current = 0;

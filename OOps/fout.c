@@ -137,9 +137,9 @@ int outfile_set(ENVIRON *csound, OUTFILE *p)
           if (file_max==0) atexit(close_files);
           file_max += 4;        /* Expand by 4 each time */
           file_opened = (struct fileinTag*)
-            mrealloc(file_opened, sizeof(struct fileinTag)*file_max);
+            mrealloc(csound, file_opened, sizeof(struct fileinTag)*file_max);
         }
-        file_opened[file_num].name = (char*) mmalloc(strlen(fname)+1);
+        file_opened[file_num].name = (char*) mmalloc(csound, strlen(fname)+1);
         strcpy(file_opened[file_num].name, fname);
         file_opened[file_num].file = p->fp;
         file_opened[file_num].raw = NULL;
@@ -211,9 +211,9 @@ int koutfile_set(ENVIRON *csound, KOUTFILE *p)
           if (file_max==0) atexit(close_files);
           file_max += 4;
           file_opened = (struct fileinTag*)
-            mrealloc(file_opened, sizeof(struct fileinTag)*file_max);
+            mrealloc(csound, file_opened, sizeof(struct fileinTag)*file_max);
         }
-        file_opened[file_num].name = (char*)mmalloc(strlen(fname)+1);
+        file_opened[file_num].name = (char*)mmalloc(csound, strlen(fname)+1);
         strcpy(file_opened[file_num].name, fname);
         file_opened[file_num].file=p->fp;
         p->idx = n = file_num;
@@ -252,9 +252,9 @@ int fiopen(ENVIRON *csound, FIOPEN *p)          /* open a file and return its ha
       if (file_max==0) atexit(close_files);
       file_max += 4;
       file_opened = (struct fileinTag*)
-        mrealloc(file_opened, sizeof(struct fileinTag)*file_max);
+        mrealloc(csound, file_opened, sizeof(struct fileinTag)*file_max);
     }
-    file_opened[file_num].name = (char*)mmalloc(strlen(fname)+1);
+    file_opened[file_num].name = (char*)mmalloc(csound, strlen(fname)+1);
     strcpy(file_opened[file_num].name, fname);
     file_opened[file_num].file=NULL;
     file_opened[file_num].raw=rfp;
@@ -405,9 +405,9 @@ int infile_set(ENVIRON *csound, INFILE *p)
           if (file_max==0) atexit(close_files);
           file_max += 4;
           file_opened = (struct fileinTag*)
-            mrealloc(file_opened, sizeof(struct fileinTag)*file_max);
+            mrealloc(csound, file_opened, sizeof(struct fileinTag)*file_max);
         }
-        file_opened[file_num].name = (char*)mmalloc(strlen(fname)+1);
+        file_opened[file_num].name = (char*)mmalloc(csound, strlen(fname)+1);
         strcpy(file_opened[file_num].name, fname);
         file_opened[file_num].file=p->fp;
         file_opened[file_num].raw=NULL;
@@ -481,9 +481,9 @@ int kinfile_set(ENVIRON *csound, KINFILE *p)
           if (file_max==0) atexit(close_files);
           file_max += 4;
           file_opened = (struct fileinTag*)
-            mrealloc(file_opened, sizeof(struct fileinTag)*file_max);
+            mrealloc(csound, file_opened, sizeof(struct fileinTag)*file_max);
         }
-        file_opened[file_num].name = (char*)mmalloc(strlen(fname)+1);
+        file_opened[file_num].name = (char*)mmalloc(csound, strlen(fname)+1);
         strcpy(file_opened[file_num].name, fname);
         file_opened[file_num].file=p->fp;
       }
@@ -553,9 +553,9 @@ int i_infile(ENVIRON *csound, I_INFILE *p)
           if (file_max==0) atexit(close_files);
           file_max += 4;
           file_opened = (struct fileinTag*)
-            mrealloc(file_opened, sizeof(struct fileinTag)*file_max);
+            mrealloc(csound, file_opened, sizeof(struct fileinTag)*file_max);
         }
-        file_opened[file_num].name = (char*)mmalloc(strlen(fname)+1);
+        file_opened[file_num].name = (char*)mmalloc(csound, strlen(fname)+1);
         strcpy(file_opened[file_num].name, fname);
         file_opened[file_num].raw=fp;
         file_opened[file_num].file=NULL;
@@ -695,9 +695,9 @@ int fprintf_set(ENVIRON *csound, FPRINTF *p)
           if (file_max==0) atexit(close_files);
           file_max += 4;
           file_opened = (struct fileinTag*)
-            mrealloc(file_opened, sizeof(struct fileinTag)*file_max);
+            mrealloc(csound, file_opened, sizeof(struct fileinTag)*file_max);
         }
-        file_opened[file_num].name = (char*) mmalloc(strlen(fname)+1);
+        file_opened[file_num].name = (char*) mmalloc(csound, strlen(fname)+1);
         strcpy(file_opened[file_num].name, fname);
         file_opened[file_num].raw = p->fp;
         p->idx = n = file_num;

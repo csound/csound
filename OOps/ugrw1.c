@@ -2170,14 +2170,14 @@ int zakinit(ENVIRON *csound, ZAKINIT *p)
      * memory cannot be allocated. */
 
     length = (long)((*p->isizek + 1) * sizeof(MYFLT));
-    zkstart = (MYFLT*) mcalloc(length);
+    zkstart = (MYFLT*) mcalloc(csound, length);
     zklast = (long) *p->isizek;
     /* Likewise, allocate memory for za space, but do it in arrays of
      * length ksmps.
      * This is all set to 0 and there will be an error report if the
      * memory cannot be allocated.       */
     length = (long)((*p->isizea + 1) * sizeof(MYFLT) * ksmps);
-    zastart = (MYFLT*) mcalloc(length);
+    zastart = (MYFLT*) mcalloc(csound, length);
     zalast = (long) *p->isizea;
     return OK;
 }
@@ -3326,11 +3326,11 @@ void RESET(struct ENVIRON_ *csound)        /* gab d7*/
   /* zakRESET originally */
 {
     if (csound->zkstart_ != NULL) {
-      csound->mfree_(csound->zkstart_);
+      csound->mfree_(csound, csound->zkstart_);
       csound->zkstart_ = NULL;
     }
     if (csound->zastart_ != NULL) {
-      csound->mfree_(csound->zastart_);
+      csound->mfree_(csound, csound->zastart_);
       csound->zastart_ = NULL;
     }
 }

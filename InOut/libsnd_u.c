@@ -102,7 +102,7 @@ SNDFILE *SAsndgetset(
     sssfinit();                    /* stand-alone init of SFDIR etc. */
     esr = FL(0.0);                 /* set esr 0. with no orchestra   */
     optxt.t.outoffs = &argoffs;    /* point to dummy OUTOCOUNT       */
-    *ap = p = (SOUNDIN *) mcalloc((long)sizeof(SOUNDIN));
+    *ap = p = (SOUNDIN *) mcalloc(&cenviron, (long)sizeof(SOUNDIN));
     p->h.optext = &optxt;
     p->ifilno = &sstrcod;
     p->iskptim = abeg_time;

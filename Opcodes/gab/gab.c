@@ -48,7 +48,7 @@ int krsnsetx(ENVIRON *csound, KRESONX *p)
     if ((p->loop = (int) (*p->ord + FL(0.5))) < 1) p->loop = 4; /*default value*/
     if (!*p->istor && (p->aux.auxp == NULL ||
                       (int)(p->loop*2*sizeof(MYFLT)) > p->aux.size))
-      auxalloc((long)(p->loop*2*sizeof(MYFLT)), &p->aux);
+      auxalloc(csound, (long)(p->loop*2*sizeof(MYFLT)), &p->aux);
     p->yt1 = (MYFLT*)p->aux.auxp; p->yt2 = (MYFLT*)p->aux.auxp + p->loop;
     if (scale && scale != 1 && scale != 2) {
       sprintf(errmsg,"illegal reson iscl value, %f",*p->iscl);
@@ -426,7 +426,7 @@ int adsynt2_set(ENVIRON *csound,ADSYNT2 *p)
 
     if (p->lphs.auxp==NULL ||
         p->lphs.size < (long)(sizeof(long)+sizeof(MYFLT))*count)
-      auxalloc((sizeof(long)+sizeof(MYFLT))*count, &p->lphs);
+      auxalloc(csound, (sizeof(long)+sizeof(MYFLT))*count, &p->lphs);
 
     lphs = (long*)p->lphs.auxp;
     if (*p->iphs > 1) {

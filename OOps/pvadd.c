@@ -122,7 +122,7 @@ int pvaddset(ENVIRON *csound, PVADD *p)
 
     if (p->auxch.auxp == NULL || memsize != p->mems) {
       MYFLT *fltp;
-      auxalloc((memsize * sizeof(MYFLT)), &p->auxch);
+      auxalloc(csound, (memsize * sizeof(MYFLT)), &p->auxch);
       fltp = (MYFLT *) p->auxch.auxp;
       p->oscphase = fltp;      fltp += MAXBINS;
       p->buf = fltp;

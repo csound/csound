@@ -227,7 +227,7 @@ int scsnu_init(ENVIRON *csound, PSCSNU *p)
         die(Str("scanu: Spring matrix is too small"));
 
       /* Setup an easier addressing scheme */
-      auxalloc(len*len * sizeof(MYFLT), &p->aux_f);
+      auxalloc(csound, len*len * sizeof(MYFLT), &p->aux_f);
       p->f = (MYFLT*)p->aux_f.auxp;
       for (i = 0 ; i != len ; i++) {
         for (j = 0 ; j != len ; j++)
@@ -237,9 +237,9 @@ int scsnu_init(ENVIRON *csound, PSCSNU *p)
 
 /* Make buffers to hold data */
 #if PHASE_INTERP == 3
-    auxalloc(6*len*sizeof(MYFLT), &p->aux_x);
+    auxalloc(csound, 6*len*sizeof(MYFLT), &p->aux_x);
 #else
-    auxalloc(5*len*sizeof(MYFLT), &p->aux_x);
+    auxalloc(csound, 5*len*sizeof(MYFLT), &p->aux_x);
 #endif
     p->x0 = (MYFLT*)p->aux_x.auxp;
     p->x1 = p->x0 + len;
@@ -455,7 +455,7 @@ int scsns_init(ENVIRON *csound, PSCSNS *p)
           die(Str("vermp: Trajectory table includes values out of range"));
       /* Allocate memory and pad to accomodate interpolation */
                                 /* Note that the 3 here is a hack -- jpff */
-      auxalloc((p->tlen+3/*oscil_interp*/-1)*sizeof(long), &p->aux_t);
+      auxalloc(csound, (p->tlen+3/*oscil_interp*/-1)*sizeof(long), &p->aux_t);
       p->t = (long*)p->aux_t.auxp + (int)(oscil_interp-1)/2;
       /* Fill 'er up */
       for (i = 0 ; i != p->tlen ; i++)

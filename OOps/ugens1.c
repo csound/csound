@@ -129,7 +129,7 @@ int lsgset(ENVIRON *csound, LINSEG *p)
 /*     printf("nsegs=%d\n", nsegs); */
     if ((segp = (SEG *) p->auxch.auxp) == NULL ||
         nsegs*sizeof(SEG) < (unsigned int)p->auxch.size) {
-      auxalloc((long)nsegs*sizeof(SEG), &p->auxch);
+      auxalloc(csound, (long)nsegs*sizeof(SEG), &p->auxch);
       p->cursegp = segp = (SEG *) p->auxch.auxp;
       segp[nsegs-1].cnt = MAXPOS; /* set endcount for safety */
     }
@@ -263,7 +263,7 @@ static void adsrset1(LINSEG *p, int midip)
     nsegs = 6;          /* DADSR */
     if ((segp = (SEG *) p->auxch.auxp) == NULL ||
         nsegs*sizeof(SEG) < (unsigned int)p->auxch.size) {
-      auxalloc((long)nsegs*sizeof(SEG), &p->auxch);
+      auxalloc(&cenviron, (long)nsegs*sizeof(SEG), &p->auxch);
       p->cursegp = segp = (SEG *) p->auxch.auxp;
       segp[nsegs-1].cnt = MAXPOS; /* set endcount for safety */
     }
@@ -438,7 +438,7 @@ int xsgset(ENVIRON *csound, EXXPSEG *p)
     nsegs = p->INOCOUNT >> 1;                   /* count segs & alloc if nec */
     if ((segp = (XSEG *) p->auxch.auxp) == NULL ||
         nsegs*sizeof(XSEG) < (unsigned int)p->auxch.size) {
-      auxalloc((long)nsegs*sizeof(XSEG), &p->auxch);
+      auxalloc(csound, (long)nsegs*sizeof(XSEG), &p->auxch);
       p->cursegp = segp = (XSEG *) p->auxch.auxp;
       (segp+nsegs-1)->cnt = MAXPOS;   /* set endcount for safety */
     }
@@ -485,7 +485,7 @@ int xsgset2(ENVIRON *csound, EXPSEG2 *p)  /*gab-A1 (G.Maldonado) */
     nsegs = p->INOCOUNT >> 1;           /* count segs & alloc if nec */
     if ((segp = (XSEG*) p->auxch.auxp) == NULL ||
         (unsigned int)nsegs*sizeof(XSEG) > (unsigned int)p->auxch.size) {
-      auxalloc((long)nsegs*sizeof(XSEG), &p->auxch);
+      auxalloc(csound, (long)nsegs*sizeof(XSEG), &p->auxch);
       p->cursegp = segp = (XSEG *) p->auxch.auxp;
       (segp+nsegs-1)->cnt = MAXPOS;   /* set endcount for safety */
     }
@@ -564,7 +564,7 @@ int xdsrset(ENVIRON *csound, EXXPSEG *p)
     nsegs = 5;          /* DXDSR */
     if ((segp = (XSEG *) p->auxch.auxp) == NULL ||
         nsegs*sizeof(XSEG) < (unsigned int)p->auxch.size) {
-      auxalloc((long)nsegs*sizeof(XSEG), &p->auxch);
+      auxalloc(csound, (long)nsegs*sizeof(XSEG), &p->auxch);
       segp = (XSEG *) p->auxch.auxp;
     }
     segp[nsegs-1].cnt = MAXPOS; /* set endcount for safety */
@@ -665,7 +665,7 @@ int xsgrset(ENVIRON *csound, EXPSEG *p)
     nsegs = p->INOCOUNT >> 1;               /* count segs & alloc if nec */
     if ((segp = (SEG *) p->auxch.auxp) == NULL ||
         (unsigned int)nsegs*sizeof(SEG) > (unsigned int)p->auxch.size) {
-      auxalloc((long)nsegs*sizeof(SEG), &p->auxch);
+      auxalloc(csound, (long)nsegs*sizeof(SEG), &p->auxch);
       p->cursegp = segp = (SEG *) p->auxch.auxp;
     }
     argp = p->argums;
@@ -714,7 +714,7 @@ int mxdsrset(ENVIRON *csound, EXPSEG *p)
     nsegs = 4;          /* DXDSR */
     if ((segp = (SEG *) p->auxch.auxp) == NULL ||
         nsegs*sizeof(SEG) < (unsigned int)p->auxch.size) {
-      auxalloc((long)nsegs*sizeof(SEG), &p->auxch);
+      auxalloc(csound, (long)nsegs*sizeof(SEG), &p->auxch);
       segp = (SEG *) p->auxch.auxp;
     }
     if (**argp <= FL(0.0))  return OK;            /* if idur1 <= 0, skip init  */

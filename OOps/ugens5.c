@@ -40,7 +40,7 @@ static  char    lpfilname[MAXNAME];
 void lpcRESET(void)
 {
     currentLPCSlot = 0;
-    mfree(lprdadr);
+    mfree(&cenviron, lprdadr);
     lprdadr = NULL;
 }
 
@@ -108,7 +108,7 @@ int tonsetx(ENVIRON *csound, TONEX *p) /* From Gabriel Maldonado, modified for a
     if ((p->loop = (int) (*p->ord + FL(0.5))) < 1) p->loop = 4;
     if (!*p->istor && (p->aux.auxp == NULL ||
                        (int)(p->loop*sizeof(MYFLT)) > p->aux.size))
-      auxalloc((long)(p->loop*sizeof(MYFLT)), &p->aux);
+      auxalloc(csound, (long)(p->loop*sizeof(MYFLT)), &p->aux);
     p->yt1 = (MYFLT*)p->aux.auxp;
     if (!(*p->istor)) {
       int j;
@@ -264,7 +264,7 @@ int rsnsetx(ENVIRON *csound, RESONX *p) /* Gabriel Maldonado, modifies for arb o
     if ((p->loop = (int) (*p->ord + FL(0.5))) < 1) p->loop = 4; /*default value*/
     if (!*p->istor && (p->aux.auxp == NULL ||
                        (int)(p->loop*2*sizeof(MYFLT)) > p->aux.size))
-      auxalloc((long)(p->loop*2*sizeof(MYFLT)), &p->aux);
+      auxalloc(csound, (long)(p->loop*2*sizeof(MYFLT)), &p->aux);
     p->yt1 = (MYFLT*)p->aux.auxp; p->yt2 = (MYFLT*)p->aux.auxp + p->loop;
     if (scale && scale != 1 && scale != 2) {
       sprintf(errmsg,Str("illegal reson iscl value, %f"),*p->iscl);
@@ -402,7 +402,7 @@ int lprdset(ENVIRON *csound, LPREAD *p)
  /* Store adress of opcode for other lpXXXX init to point to */
     if (lprdadr==NULL || currentLPCSlot>max_lpc_slot) {
       max_lpc_slot = currentLPCSlot+MAX_LPC_SLOT;
-      lprdadr = (LPREAD**) mrealloc(lprdadr, max_lpc_slot*sizeof(LPREAD*));
+      lprdadr = (LPREAD**) mrealloc(csound, lprdadr, max_lpc_slot*sizeof(LPREAD*));
     }
     lprdadr[currentLPCSlot] = p;
 
@@ -908,7 +908,7 @@ int lpslotset(ENVIRON *csound, LPSLOT *p)
     else {
       if (n>=max_lpc_slot) {
         max_lpc_slot = n + MAX_LPC_SLOT;
-        lprdadr = (LPREAD**)mrealloc(lprdadr, max_lpc_slot*sizeof(LPREAD**));
+        lprdadr = (LPREAD**)mrealloc(csound, lprdadr, max_lpc_slot*sizeof(LPREAD**));
       }
       currentLPCSlot = n;
     }

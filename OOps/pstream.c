@@ -136,19 +136,19 @@ int pvadsynset(ENVIRON *csound, PVADS *p)
     p->one_over_overlap = (float)(FL(1.0) / p->overlap);
     /* alloc for all oscs; in case we can do something with them dynamically, one day */
     if (p->a.auxp==NULL)
-      auxalloc(noscs * sizeof(MYFLT),&p->a);
+      auxalloc(csound, noscs * sizeof(MYFLT),&p->a);
     if (p->x.auxp==NULL)
-      auxalloc(noscs * sizeof(MYFLT),&p->x);
+      auxalloc(csound, noscs * sizeof(MYFLT),&p->x);
     if (p->y.auxp==NULL)
-      auxalloc(noscs * sizeof(MYFLT),&p->y);
+      auxalloc(csound, noscs * sizeof(MYFLT),&p->y);
     if (p->amps.auxp==NULL)
-      auxalloc(noscs * sizeof(MYFLT),&p->amps);
+      auxalloc(csound, noscs * sizeof(MYFLT),&p->amps);
     if (p->lastamps.auxp==NULL)
-      auxalloc(noscs * sizeof(MYFLT),&p->lastamps);
+      auxalloc(csound, noscs * sizeof(MYFLT),&p->lastamps);
     if (p->freqs.auxp==NULL)
-      auxalloc(noscs * sizeof(MYFLT),&p->freqs);
+      auxalloc(csound, noscs * sizeof(MYFLT),&p->freqs);
     if (p->outbuf.auxp==NULL)
-      auxalloc(p->overlap * sizeof(MYFLT),&p->outbuf);
+      auxalloc(csound, p->overlap * sizeof(MYFLT),&p->outbuf);
     /* initialize oscbank */
     p_x = (MYFLT *) p->x.auxp;
     for (i=0;i < noscs;i++)
@@ -267,7 +267,7 @@ int pvscrosset(ENVIRON *csound, PVSCROSS *p)
 
     /* setup output signal */
     if (p->fout->frame.auxp==NULL)
-      auxalloc((N+2)*sizeof(float),&p->fout->frame);     /* RWD MUST be 32bit */
+      auxalloc(csound, (N+2)*sizeof(float),&p->fout->frame);     /* RWD MUST be 32bit */
     p->fout->N =  N;
     p->fout->overlap = p->overlap;
     p->fout->winsize = p->winsize;
@@ -358,7 +358,7 @@ int pvsfreadset(ENVIRON *csound, PVSFREAD *p)
     N = p->fftsize;
     /* setup output signal */
     if (p->fout->frame.auxp==NULL)
-      auxalloc((N+2)*sizeof(float),&p->fout->frame);
+      auxalloc(csound, (N+2)*sizeof(float),&p->fout->frame);
     /* init sig with first frame from file, regardless (always zero amps, but with bin freqs) */
     memptr = (float *) mfp->beginp;                              /* RWD MUST be 32bit */
     frptr = (float *) p->fout->frame.auxp;               /* RWD MUST be 32bit */
@@ -450,7 +450,7 @@ int pvsmaskaset(ENVIRON *csound, PVSMASKA *p)
       die(Str("pvsmaska: signal format must be amp-phase or amp-freq.\n"));
     /* setup output signal */
     if (p->fout->frame.auxp==NULL)
-      auxalloc((N+2)*sizeof(float),&p->fout->frame);    /* RWD MUST be 32bit */
+      auxalloc(csound, (N+2)*sizeof(float),&p->fout->frame);    /* RWD MUST be 32bit */
     p->fout->N =  N;
     p->fout->overlap = p->overlap;
     p->fout->winsize = p->winsize;
@@ -812,7 +812,7 @@ static int pvx_loadfile(const char *fname,PVSFREAD *p,MEMFIL **mfp)
       mem_wanted = totalframes * 2 * pvdata.nAnalysisBins * sizeof(float);
       /* try for the big block first! */
 
-      memblock = (float *) mmalloc(mem_wanted);
+      memblock = (float *) mmalloc(&cenviron, mem_wanted);
 
       pFrame = memblock;
       /* despite using pvocex infile, and pvocex-style resynth, we ~still~
@@ -835,12 +835,12 @@ static int pvx_loadfile(const char *fname,PVSFREAD *p,MEMFIL **mfp)
       }
       if (rc <0) {
         sprintf(errmsg,Str("error reading pvoc-ex file %s\n"),fname);
-        mfree(memblock);
+        mfree(&cenviron, memblock);
         return 0;
       }
       if (i < totalframes) {
         sprintf(errmsg,Str("error reading pvoc-ex file %s after %d frames\n"),fname,i);
-        mfree(memblock);
+        mfree(&cenviron, memblock);
         return 0;
       }
     }
@@ -880,7 +880,7 @@ static int pvx_loadfile(const char *fname,PVSFREAD *p,MEMFIL **mfp)
 
     /* Need to assign an MEMFIL to p->mfp */
     if (mfil==NULL) {
-      mfil = (MEMFIL *)  mmalloc(sizeof(MEMFIL));
+      mfil = (MEMFIL *)  mmalloc(&cenviron, sizeof(MEMFIL));
       /* just hope the filename is short enough...! */
       mfil->next = NULL;
       mfil->filename[0] = '\0';

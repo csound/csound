@@ -144,11 +144,11 @@ void MidiOpen(void)   /* open a Midi event stream for reading, alloc bufs */
 {                     /*     callable once from main.c                    */
     /* First set up buffers. */
     int i;
-    Midevtblk = (MEVENT *) mcalloc((long)sizeof(MEVENT));
-    mbuf = (PmEvent *) mcalloc((long)MBUFSIZ*sizeof(PmEvent));
+    Midevtblk = (MEVENT *) mcalloc(csound, (long)sizeof(MEVENT));
+    mbuf = (PmEvent *) mcalloc(csound, (long)MBUFSIZ*sizeof(PmEvent));
     bufend = mbuf + MBUFSIZ;
     bufp = endatp = mbuf;
-    sexbuf = (PmEvent *) mcalloc((long)MBUFSIZ*sizeof(PmEvent));
+    sexbuf = (PmEvent *) mcalloc(csound, (long)MBUFSIZ*sizeof(PmEvent));
     sexend = sexbuf + MBUFSIZ;
     sexp = NULL;
     for (i=0; i<MAXCHAN; i++) M_CHNBP[i] = NULL; /* Clear array */
@@ -361,7 +361,7 @@ void m_chanmsg(MEVENT *mep) /* exec non-note chnl_voice & chnl_mode cmnds */
       else if (n == 126) {                      /* MONO mode */
         if (chn->monobas == NULL) {
           MONPCH *mnew, *mend;
-          chn->monobas = (MONPCH *)mcalloc((long)sizeof(MONPCH) * 8);
+          chn->monobas = (MONPCH *)mcalloc(csound, (long)sizeof(MONPCH) * 8);
           mnew = chn->monobas;  mend = mnew + 8;
           do {
             mnew->pch = -1;
@@ -372,7 +372,7 @@ void m_chanmsg(MEVENT *mep) /* exec non-note chnl_voice & chnl_mode cmnds */
       /* 127 == POLY ON (MONO OFF) */
       else if (n == 127) {                      /* POLY mode */
         if (chn->monobas != NULL) {
-          mfree((char *)chn->monobas);
+          mfree(csound, (char *)chn->monobas);
           chn->monobas = NULL;
         }
         chn->mono = 0;
@@ -423,7 +423,7 @@ void m_chn_init(MEVENT *mep, short chan)
       }
     }
     if ((chn = M_CHNBP[chan]) == NULL)
-      M_CHNBP[chan] = chn = (MCHNBLK *) mcalloc((long)sizeof(MCHNBLK));
+      M_CHNBP[chan] = chn = (MCHNBLK *) mcalloc(csound, (long)sizeof(MCHNBLK));
     if (instrtxtp[chan+1] != NULL)           /* if corresp instr exists  */
       chn->pgmno = chan+1;                   /*     assign as pgmno      */
     else chn->pgmno = defaultinsno;          /* else assign the default  */
@@ -451,7 +451,7 @@ MCHNBLK *m_getchnl(short chan)          /* get or create a chnlblk ptr */
       die(errmsg);
     }
     if ((chn = M_CHNBP[chan]) == NULL) {
-      M_CHNBP[chan] = chn = (MCHNBLK *) mcalloc((long)sizeof(MCHNBLK));
+      M_CHNBP[chan] = chn = (MCHNBLK *) mcalloc(csound, (long)sizeof(MCHNBLK));
       chn->pgmno = -1;
       chn->insno = -1;
       ctlreset(chan);

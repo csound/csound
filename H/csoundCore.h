@@ -645,14 +645,14 @@ extern "C" {
 						  int nbytes));
     void (*SetRtcloseCallback)(void *csound, void (*rtclose__)(void *csound));
     /* Internal functions that are needed */
-    void (*auxalloc_)(long nbytes, AUXCH *auxchp);
+    void (*auxalloc_)(void *csound, long nbytes, AUXCH *auxchp);
     void (*die_)(char *);
     FUNC *(*ftfind_)(struct ENVIRON_*, MYFLT *);
     int (*initerror_)(char *);
     int (*perferror_)(char *);
-    void *(*mmalloc_)(long);
-    void *(*mcalloc_)(long);
-    void (*mfree_)(void *);
+    void *(*mmalloc_)(void*, size_t);
+    void *(*mcalloc_)(void*, size_t);
+    void (*mfree_)(void*, void*);
     void (*dispset)(WINDAT *, MYFLT *, long, char *, int, char *);
     void (*display)(WINDAT *);
     MYFLT (*intpow_)(MYFLT, long);
@@ -662,7 +662,7 @@ extern "C" {
     MEMFIL *(*ldmemfile)(char *);
     void (*err_printf_)(char *, ...);
     FUNC *(*hfgens_)(struct ENVIRON_*, EVTBLK *);
-    void *(*mrealloc_)(void *old, long nbytes);
+    void *(*mrealloc_)(void*, void*, size_t);
     void (*putcomplexdata_)(complex *, long);
     void (*ShowCpx_)(complex *, long, char *);
     int (*PureReal_)(complex *, long);
@@ -874,6 +874,7 @@ extern "C" {
     sensEvents_t  sensEvents_state;
     void          *rtRecord_userdata;
     void          *rtPlay_userdata;
+    void          *memalloc_db;
   } ENVIRON;
 
   extern ENVIRON cenviron_;

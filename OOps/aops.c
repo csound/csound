@@ -513,8 +513,8 @@ void cpsoctinit(void)           /* init the arrays, called by oload */
     MYFLT *fp;
     long  count;
 
-    cpsocint = (MYFLT *) mmalloc((long)NOCTS * sizeof(MYFLT));
-    cpsocfrc = (MYFLT *) mmalloc((long)OCTRES * sizeof(MYFLT));
+    cpsocint = (MYFLT *) mmalloc(&cenviron, (long)NOCTS * sizeof(MYFLT));
+    cpsocfrc = (MYFLT *) mmalloc(&cenviron, (long)OCTRES * sizeof(MYFLT));
     for (fp = cpsocint, count = 0; count < NOCTS; count++)
       *fp++ = (MYFLT) intpow(FL(2.0), count);
     for (fp = cpsocfrc, count = 0; count < OCTRES; count++)
@@ -721,7 +721,7 @@ static void init_powers(void)
     incr = (OCTAVES +OCTAVES) / (double)STEPS;
     exp = -OCTAVES;
 
-    powerof2 = (MYFLT *) mmalloc((long)(STEPS+1) * sizeof(MYFLT));
+    powerof2 = (MYFLT *) mmalloc(&cenviron, (long)(STEPS+1) * sizeof(MYFLT));
     fp =  powerof2;
     for ( count = 0; count <= STEPS; count++, exp += incr)
       *fp++ = (MYFLT) pow(2.0, exp);
@@ -741,7 +741,7 @@ static void init_logs(void)
     incr = (INTERVAL - 1/INTERVAL) / (double)STEPS;
     first = 1.0/INTERVAL;
     conv = 1.44269504089 /* 1.0/log(2.0) */;
-    logbase2  = (MYFLT *) mmalloc((long)(STEPS+1) * sizeof(MYFLT));
+    logbase2  = (MYFLT *) mmalloc(&cenviron, (long)(STEPS+1) * sizeof(MYFLT));
     fp = logbase2;
     for (count = 0; count <= STEPS; count++, first +=incr)
       *fp++ = (MYFLT) (conv * log(first));
@@ -1519,5 +1519,4 @@ int koutval(ENVIRON *csound, OUTVAL *p)
     OutputValue(p->channelName, *p->value);  /* in csound.c */
     return OK;
 }
-
 

@@ -49,7 +49,7 @@ int fogset(ENVIRON *csound, FOGS *p)
           return initerror(Str("illegal value for iolaps"));
         }
         if (*p->iphs>=FL(0.0))
-          auxalloc((long)olaps * sizeof(OVERLAP), &p->auxch);
+          auxalloc(csound, (long)olaps * sizeof(OVERLAP), &p->auxch);
         ovp = &p->basovrlap;
         nxtovp = (OVERLAP *) p->auxch.auxp;
         do {

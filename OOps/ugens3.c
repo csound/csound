@@ -866,7 +866,7 @@ int adset(ENVIRON *csound, ADSYN *p)
 
     if (isintab == NULL) {          /* if no sin table yet, make one */
       short *ip;
-      isintab = ip = (short *) mmalloc((long)ISINSIZ * sizeof(short));
+      isintab = ip = (short *) mmalloc(csound, (long)ISINSIZ * sizeof(short));
       for (n = 0; n < ISINSIZ; n++)
         *ip++ = (short) (sin(TWOPI * n / ISINSIZ) * 32767.0);
     }
@@ -890,7 +890,7 @@ int adset(ENVIRON *csound, ADSYN *p)
     endata = (short *) mfp->endp;
     size = 1+(*adp == -1 ? MAXPTLS : *adp++); /* Old no header -> MAXPIL */
     if (p->aux.auxp==NULL || p->aux.size < (long)sizeof(PTLPTR)*size)
-      auxalloc(sizeof(PTLPTR)*size, &p->aux);
+      auxalloc(csound, sizeof(PTLPTR)*size, &p->aux);
 
     ptlap = ptlfp = (PTLPTR*)p->aux.auxp;   /* find base ptl blk */
     ptlim = ptlap + size;

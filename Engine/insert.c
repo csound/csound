@@ -517,7 +517,7 @@ void insdealloc(short insno)      /* dealloc all instances of an insno */
         if (ip->actflg)                 /* if active, deact   */
           deact(ip);                    /*    & close files   */
         if (ip->auxch.nxtchp != NULL)
-          auxchfree(ip);                /* free auxil space   */
+          auxchfree(&cenviron, ip);     /* free auxil space   */
         nxtip = ip->nxtinstance;
         free((char *)ip);               /* & free the INSDS   */
       } while ((ip = nxtip) != NULL);
@@ -553,15 +553,15 @@ void orcompact(ENVIRON *csound)         /* free all inactive instr spaces */
             }
 
             if (ip->opcod_iobufs && ip->insno > maxinsno)
-              mfree(ip->opcod_iobufs);                  /* IV - Nov 10 2002 */
+              mfree(csound, ip->opcod_iobufs);                  /* IV - Nov 10 2002 */
             if (ip->fdch.nxtchp != NULL)
               fdchclose(ip);
             if (ip->auxch.nxtchp != NULL)
-              auxchfree(ip);
+              auxchfree(csound, ip);
             if ((nxtip = ip->nxtinstance) != NULL)
               nxtip->prvinstance = prvip;
             *prvnxtloc = nxtip;
-            mfree((char *)ip);
+            mfree(csound, (char *)ip);
           }
           else {
             prvip = ip;
@@ -602,7 +602,7 @@ void infoff(MYFLT p1)           /*  turn off an indef copy of instr p1  */
             EVTNODE *evtlist, *newnode;
             EVTBLK  *newevt;
 
-            newnode         = (EVTNODE *) mmalloc((long)sizeof(EVTNODE));
+            newnode         = (EVTNODE *) mmalloc(&cenviron, (long)sizeof(EVTNODE));
             newevt          = &newnode->evt;
             newevt->opcod   = 'i';
             starttime       = (MYFLT) (kcounter + ip->xtratim) * onedkr;
@@ -896,7 +896,7 @@ int subinstrset(ENVIRON *csound, SUBINST *p)
 
     /* allocate memory for a temporary store of spout buffers */
     if (!init_op && !(reinitflag | tieflag))
-      auxalloc((long)nspout*sizeof(MYFLT), &p->saved_spout);
+      auxalloc(csound, (long)nspout*sizeof(MYFLT), &p->saved_spout);
 
     /* do init pass for this instr */
     curip = p->ip;

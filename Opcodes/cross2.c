@@ -392,7 +392,7 @@ int Xsynthset(ENVIRON *csound, CON *p)
     bufsize = 10 * flen * sizeof(MYFLT);
 
     if (p->mem.auxp == NULL || bufsize > p->mem.size)
-      auxalloc( bufsize, &p->mem);
+      auxalloc(csound, bufsize, &p->mem);
 
     b = (MYFLT*)p->mem.auxp;
     memset(p->mem.auxp, 0, (size_t)bufsize); /* Replaces loop */

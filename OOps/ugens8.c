@@ -118,7 +118,7 @@ int pvset(ENVIRON *csound, PVOC *p)
 
     if (p->auxch.auxp == NULL || memsize != p->mems) {
       register MYFLT *fltp;
-      auxalloc((memsize * sizeof(MYFLT)), &p->auxch);
+      auxalloc(csound, (memsize * sizeof(MYFLT)), &p->auxch);
       fltp = (MYFLT *) p->auxch.auxp;
       p->lastPhase = fltp;   fltp += PVDATASIZE;    /* and insert addresses */
       p->fftBuf = fltp;      fltp += PVFFTSIZE;
@@ -349,7 +349,7 @@ int pvx_loadfile(const char *fname,PVOC *p,MEMFIL **mfp)
       /* get the memory and load */
       mem_wanted = totalframes * 2 * pvdata.nAnalysisBins * sizeof(float);
       /* try for the big block first! */
-      memblock = (float *) mmalloc(mem_wanted);
+      memblock = (float *) mmalloc(&cenviron, mem_wanted);
       /* fill'er-up */
       /* need to loop, as we need to rescale amplitudes for Csound */
       /* still not sure this is right, yet...what about effect of double-window ? */
@@ -369,7 +369,7 @@ int pvx_loadfile(const char *fname,PVOC *p,MEMFIL **mfp)
       /* so far, not been able to provoke entry to these blocks! */
       if (rc <0) {
         sprintf(errmsg,Str("error reading pvoc-ex file %s\n"),fname);
-        mfree(memblock);
+        mfree(&cenviron, memblock);
         return NOTOK;
       }
       if (i < totalframes) {
@@ -378,7 +378,7 @@ int pvx_loadfile(const char *fname,PVOC *p,MEMFIL **mfp)
                 Str("error reading pvoc-ex file %s after %d frames\n"),
                 fname,i);
         /* be strict. */
-        mfree(memblock);
+        mfree(&cenviron, memblock);
         return NOTOK;
       }
     }
@@ -403,7 +403,7 @@ int pvx_loadfile(const char *fname,PVOC *p,MEMFIL **mfp)
 
     /* Need to assign an MEMFIL to p->mfp */
     if (mfil==NULL) {
-      mfil = (MEMFIL *)  mmalloc(sizeof(MEMFIL));
+      mfil = (MEMFIL *)  mmalloc(&cenviron, sizeof(MEMFIL));
       /* just hope the filename is short enough...! */
       mfil->next = NULL;
       mfil->filename[0] = '\0';

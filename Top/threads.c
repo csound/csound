@@ -65,11 +65,10 @@ void *csoundCreateThread(void *csound,
 int csoundJoinThread(void *csound, void *thread)
 {
     pthread_t pthread = (pthread_t)thread;
-    int *threadRoutineReturnValue = 0;
-    int pthreadReturnValue = pthread_join(pthread,
-                                          (void **)&threadRoutineReturnValue);
+    void *threadRoutineReturnValue = NULL;
+    int pthreadReturnValue = pthread_join(pthread, &threadRoutineReturnValue);
     if (pthreadReturnValue) {
-      return *threadRoutineReturnValue;
+      return *((int*) threadRoutineReturnValue);
     } else {
       return pthreadReturnValue;
     }
@@ -78,7 +77,7 @@ int csoundJoinThread(void *csound, void *thread)
 void *csoundCreateThreadLock(void *csound)
 {
     pthread_mutex_t *pthread_mutex =
-      (pthread_mutex_t *)mmalloc(sizeof(pthread_mutex_t));
+      (pthread_mutex_t *)mmalloc(csound, sizeof(pthread_mutex_t));
     if (pthread_mutex_init(pthread_mutex, 0) == 0) {
       return (void *)pthread_mutex;
     } else {
@@ -102,7 +101,7 @@ void csoundDestroyThreadLock(void *csound, void *lock)
 {
     pthread_mutex_t *pthread_mutex = (pthread_mutex_t *)lock;
     /*int returnValue = */pthread_mutex_destroy(pthread_mutex);
-    mfree(lock);
+    mfree(csound, lock);
 }
 
 #else

@@ -285,7 +285,7 @@ void DrawGraph_(WINDAT *wdptr)
     /* THIS ASSIGNMENT ASSUMES LONG INT FOR NPTS > 32767 */
 
     /* alloc point array */
-    /*      xpts = (XPoint *) mmalloc((long)lsegs * sizeof(XPoint));    */
+    /*      xpts = (XPoint *) mmalloc(csound, (long)lsegs * sizeof(XPoint));    */
 
     {       /* take scale factors out of for-loop for faster run-time */
       MYFLT x_scale = gra_w / (MYFLT)(lsegs-1);

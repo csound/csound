@@ -33,13 +33,13 @@
 
 int csoundGetAPIVersion(void);
 
-void auxalloc(long, AUXCH*);
+void auxalloc(void*, long, AUXCH*);
 void die(char *);
 FUNC *ftfind(ENVIRON *,MYFLT *);
 int initerror(char *);
 int perferror(char *);
-void *mmalloc(long);
-void mfree(void *);
+void *mmalloc(void*, size_t);
+void mfree(void*, void*);
 void dispset(WINDAT *, MYFLT *, long, char *, int, char *);
 void display(WINDAT *);
 MYFLT intpow(MYFLT, long);
@@ -371,7 +371,8 @@ ENVIRON cenviron_ = {
         NULL,                   /* cfgVariableDB */
         { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0 },   /* sensEvents_state */
         NULL,                   /* rtRecord_userdata */
-        NULL                    /* rtPlay_userdata */
+        NULL,                   /* rtPlay_userdata */
+        NULL                    /* memalloc_db */
 };
 
 OPARMS O;
@@ -402,19 +403,19 @@ void oloadRESET(void)
       while (ip) {                              /* free all instances, */
         INSDS *nxtip = ip->nxtinstance;
         if (ip->opcod_iobufs && ip->insno > maxinsno)   /* IV - Nov 10 2002 */
-          mfree(ip->opcod_iobufs);
+          mfree(&cenviron, ip->opcod_iobufs);
         if (ip->fdch.nxtchp) fdchclose(ip);
-        if (ip->auxch.nxtchp) auxchfree(ip);
-        mfree(ip); ip = nxtip;
+        if (ip->auxch.nxtchp) auxchfree(&cenviron, ip);
+        mfree(&cenviron, ip); ip = nxtip;
       }
       while (bp) {                              /* and opcode texts */
         OPTXT *nxtbp = bp->nxtop;
-        mfree(bp); bp = nxtbp;
+        mfree(&cenviron, bp); bp = nxtbp;
       }
-      mfree(tp);
+      mfree(&cenviron, tp);
       tp = nxttp;
     }
-    mfree(instrtxtp);           /* Start again */
+    mfree(&cenviron, instrtxtp);        /* Start again */
     maxinsno    = MAXINSNO;
     maxopcno = -1; instrtxtp = NULL;    /* IV - Oct 24 2002 */
     e0dbfs      = DFLT_DBFS;
@@ -497,10 +498,10 @@ void oload(ENVIRON *csound)
     }
     combinedsize = (O.poolcount + O.gblfixed + O.gblacount * ksmps)
       * sizeof(MYFLT);
-    combinedspc = (MYFLT *)mcalloc((long)combinedsize);
+    combinedspc = (MYFLT *)mcalloc(csound, (long)combinedsize);
     for (fp1 = pool, fp2 = combinedspc, nn = O.poolcount; nn--; )
       *fp2++ = *fp1++;              /* copy pool into combined space */
-    mfree((void *)pool);
+    mfree(csound, (void *)pool);
     pool = combinedspc;
     gblspace = pool + O.poolcount;
     gblspace[0] = esr;              /*   & enter        */
@@ -522,7 +523,7 @@ void oload(ENVIRON *csound)
       ip->localen = (ip->localen + 7L) & (~7L);
       for (insno=0, n=0; insno <= maxinsno; insno++)
         if (instrtxtp[insno] == ip)  n++;              /* count insnos  */
-      lp = ip->inslist = (long *) mmalloc((long)(n+1) * sizeof(long));
+      lp = ip->inslist = (long *) mmalloc(csound, (long)(n+1) * sizeof(long));
       for (insno=0; insno <= maxinsno; insno++)
         if (instrtxtp[insno] == ip)  *lp++ = insno;    /* creat inslist */
       *lp = -1;                                        /*   & terminate */
@@ -561,13 +562,13 @@ void oload(ENVIRON *csound)
         case STRSET:
           if (strsets == NULL)
             strsets = (char **)
-              mcalloc((long)((strsmax=STRSMAX)+1) * sizeof(char *));
+              mcalloc(csound, (long)((strsmax=STRSMAX)+1) * sizeof(char *));
           indx = (long)gbloffbas[*aoffp->indx];
           if (indx >= strsmax) {
             long newmax = strsmax + STRSMAX;
             int i;
             while (indx > newmax) newmax += STRSMAX;
-            strsets = (char**)mrealloc(strsets, (newmax+1)*sizeof(char *));
+            strsets = (char**)mrealloc(csound, strsets, (newmax+1)*sizeof(char *));
             /* ??? */
             for (i=strsmax; i<newmax+1; i++) strsets[i] = NULL;
 /*             for (i=0; i<newmax+1; i++)
@@ -595,7 +596,7 @@ void oload(ENVIRON *csound)
               printf(errmsg,Str("WARNING: i%ld pset args != pmax\n"), insno);
             if (n < ip->pmax) n = ip->pmax; /* cf pset, pmax    */
           }                                   /* alloc the larger */
-          ip->psetdata = (MYFLT *) mcalloc((long)n * sizeof(MYFLT));
+          ip->psetdata = (MYFLT *) mcalloc(csound, (long)n * sizeof(MYFLT));
           for (n=aoffp->count,fp1=ip->psetdata,ndxp=aoffp->indx;
                n--; ) {
             *fp1++ = gbloffbas[*ndxp++];
@@ -624,8 +625,8 @@ void oload(ENVIRON *csound)
       }
     }
 /*     if (pgmdim != NULL) free((char *)pgmdim); */
-/*     pctlist = (MYFLT **) mcalloc((long)256 * sizeof(MYFLT *)); */
-/*     insbusy = (int *) mcalloc((long)((maxinsno+1) * sizeof(int))); */
+/*     pctlist = (MYFLT **) mcalloc(csound, (long)256 * sizeof(MYFLT *)); */
+/*     insbusy = (int *) mcalloc(csound, (long)((maxinsno+1) * sizeof(int))); */
 
     sssfinit(); /* must be called before instr 0 initiates */
 
@@ -679,8 +680,8 @@ void oload(ENVIRON *csound)
     reverbinit();
     dbfs_init(e0dbfs);
     nspin = nspout = ksmps * nchnls;                    /* alloc spin & spout */
-    spin =  (MYFLT *) mcalloc((long)nspin*sizeof(MYFLT));
-    spout = (MYFLT *) mcalloc((long)nspout*sizeof(MYFLT));
+    spin =  (MYFLT *) mcalloc(csound, (long)nspin*sizeof(MYFLT));
+    spout = (MYFLT *) mcalloc(csound, (long)nspout*sizeof(MYFLT));
 }
 
 INSDS *
@@ -702,9 +703,9 @@ instance(int insno)             /* create instance of an instr template */
     int     *ndxp;
     MCHNBLK *chp = NULL;
 
-    lopds = (LBLBLK**)mmalloc(sizeof(LBLBLK*)*nlabels);
+    lopds = (LBLBLK**)mmalloc(&cenviron, sizeof(LBLBLK*)*nlabels);
     lopdsp = lopds;
-    larg = (LARGNO*)mmalloc(sizeof(LARGNO)*ngotos);
+    larg = (LARGNO*)mmalloc(&cenviron, sizeof(LARGNO)*ngotos);
     largp = larg;
     lopdsp = lopds;
     tp = instrtxtp[insno];
@@ -725,7 +726,7 @@ instance(int insno)             /* create instance of an instr template */
       }
     }
     pextent = sizeof(INSDS) + tp->pextrab;          /* alloc new space,  */
-    ip = (INSDS *) mcalloc((long)pextent + tp->localen + tp->opdstot);
+    ip = (INSDS *) mcalloc(&cenviron, (long)pextent + tp->localen + tp->opdstot);
     ip->csound = &cenviron;
     if (tp->mdepends & 06)
       ip->m_chnbp = chp;
@@ -744,7 +745,7 @@ instance(int insno)             /* create instance of an instr template */
       pcnt = (int) tp->opcode_info->perf_incnt;
       pcnt += (int) tp->opcode_info->perf_outcnt;
       pcnt = sizeof(OPCOD_IOBUFS) + sizeof(MYFLT*) * (pcnt << 1);
-      ip->opcod_iobufs = (void*) mmalloc(pcnt);
+      ip->opcod_iobufs = (void*) mmalloc(&cenviron, pcnt);
     }
     lcloffbas = &ip->p0;
     lclbas = (MYFLT *)((char *)ip + pextent);       /* split local space */

@@ -102,7 +102,7 @@ main(int argc, char **argv)
 	init_getstring(argc, argv);
 	/*     response_expand(&argc, &argv); /\* Permits "@xxx" response files *\/ */
 	/* Check arguments */
-	O.filnamspace = filnamp = mmalloc((long)1024);
+	O.filnamspace = filnamp = mmalloc(csound, (long)1024);
 	sample = -1; time = -1.0;
 	stop  = -1; endtime = -1.0;
 	numsamps = -1; dur = -1.0;
@@ -306,7 +306,7 @@ EXsndgetset(char *name)
 	sssfinit();                 /* stand-alone init of SFDIR etc. */
 	esr = 0.0;                  /* set esr 0. with no orchestra   */
 	optxt.t.outoffs = &argoffs; /* point to dummy OUTOCOUNT       */
-	p = (SOUNDIN *) mcalloc((long)sizeof(SOUNDIN));
+	p = (SOUNDIN *) mcalloc(csound, (long)sizeof(SOUNDIN));
 	p->channel = ALLCHNLS;
 	p->h.optext = &optxt;
 	p->ifilno = &sstrcod;

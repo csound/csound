@@ -197,7 +197,7 @@ int vbap_EIGHT_init(ENVIRON *csound, VBAP_EIGHT  *p)
     p->ls_am     = (int) ls_table[1];
     p->ls_set_am = (int) ls_table[2];
     ptr = &(ls_table[3]);
-    auxalloc(p->ls_set_am * sizeof (LS_SET), &p->aux);
+    auxalloc(csound, p->ls_set_am * sizeof (LS_SET), &p->aux);
     if (p->aux.auxp==NULL) {
       return initerror(Str("could not allocate memory"));
     }
@@ -473,7 +473,7 @@ int vbap_EIGHT_moving_init(ENVIRON *csound, VBAP_EIGHT_MOVING  *p)
     p->ls_am = (int) ls_table[1];
     p->ls_set_am = (int) ls_table[2];
     ptr = &(ls_table[3]);
-    auxalloc(p->ls_set_am * sizeof (LS_SET), &p->aux);
+    auxalloc(csound, p->ls_set_am * sizeof (LS_SET), &p->aux);
     if (p->aux.auxp == NULL) {
       return initerror(Str("could not allocate memory"));
     }
