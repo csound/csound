@@ -735,6 +735,10 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('pvsbasic',
     ['Opcodes/pvsbasic.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('ftest', 
     ['Opcodes/ftest.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('gab_gab',
+    ['Opcodes/gab/gab.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('gab_vectorial',
+    ['Opcodes/gab/vectorial.c']))
 
 # Plugins with External Dependencies
 

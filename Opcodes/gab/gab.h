@@ -1,28 +1,29 @@
-//  Copyright (C) 2002-2004 Gabriel Maldonado
-//
-//  The gab library is free software; you can redistribute it
-//  and/or modify it under the terms of the GNU Lesser General Public
-//  License as published by the Free Software Foundation; either
-//  version 2.1 of the License, or (at your option) any later version.
-//
-//  The gab library is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU Lesser General Public License for more details.
-//
-//  You should have received a copy of the GNU Lesser General Public
-//  License along with the gab library; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-//  02111-1307 USA
+/*  Copyright (C) 2002-2004 Gabriel Maldonado
 
-// Ported to csound5 by:Andres Cabrera andres@geminiflux.com
+  The gab library is free software; you can redistribute it
+  and/or modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  The gab library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with the gab library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+  02111-1307 USA
+
+  Ported to csound5 by:Andres Cabrera andres@geminiflux.com
+*/
 
 
 #ifndef GAB_H
 #define GAB_H
 
 typedef	struct {
-	OPDS	h;
+      OPDS	h;
 	MYFLT	*ar, *asig, *kcf, *kbw, *ord, *iscl, *istor;
 	int     scale, loop;
 	MYFLT	c1, c2, c3, *yt1, *yt2, cosf, prvcf, prvbw;
@@ -35,7 +36,7 @@ typedef struct {
 	MYFLT   *table;
 	MYFLT  	xbmul;
 	int		xmode;
-	//FUNC	*ftp;
+  /* FUNC	*ftp; */
 } FASTAB;
 
 typedef struct {
@@ -49,17 +50,17 @@ typedef struct {
 } TB_INIT;
 
 
-// ************************************************************ */
-// Opcodes from Peter Neub�ker                                  */
-// ************************************************************ */
-// typedef struct {
-//     OPDS    h;
-//     MYFLT   *ifilcod;
-// } PRINTI; 
+/*  ************************************************************ */
+/*  Opcodes from Peter Neubaeker                                 */
+/*  ************************************************************ */
+/*  typedef struct { */
+/*      OPDS    h; */
+/*      MYFLT   *ifilcod; */
+/*  } PRINTI;  */
 
-//======================
-//opcodes from Jens Groh
-//======================
+/* ====================== */
+/* opcodes from Jens Groh */
+/* ====================== */
 typedef struct { /* for nlalp opcode */
    OPDS h; /* header */
    MYFLT *aresult; /* resulting signal */
@@ -71,7 +72,7 @@ typedef struct { /* for nlalp opcode */
    double m1; /* energy storage */
 } NLALP; 
 
-//end opcodes from Jens Groh
+/* end opcodes from Jens Groh */
 
 typedef struct {
     OPDS    h;
@@ -89,9 +90,9 @@ typedef struct {
     OPDS    h;
 } EXITNOW;
 
-#include "H/ugrw1.h"  //for zread function
+#include "H/ugrw1.h"  /* for zread function */
 
-#include "ugens6.h"  //for a_k_set function
+#include "ugens6.h"  /* for a_k_set function */
 
 typedef struct	{
 	OPDS	h;
@@ -129,7 +130,7 @@ typedef struct	{
 	int		counter;
 } P_MAXIMUM;
 
-//From fractals.h
+/* From fractals.h */
 typedef struct	{
 	OPDS	h;
 	MYFLT	*kr, *koutrig,  *ktrig, *kx, *ky, *kmaxIter;

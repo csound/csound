@@ -87,8 +87,9 @@ int OSCPaddedStrlen(const char *s) {
     return (i + 4) & 0xfffffffc;
 }
 
-char *OSCPaddedStrcpy(char *target, const char *source) {
-    while (*target++ = *source++) {
+char *OSCPaddedStrcpy(char *target, const char *source)
+ {
+    while ((*target++ = *source++)) {
 	/* do nothing */
     }
 
