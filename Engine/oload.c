@@ -233,6 +233,8 @@ ENVIRON cenviron_ = {
         rtrecord_dummy,
         rtclose_dummy,
         csoundGetSizeOfMYFLT,
+        csoundGetRtRecordUserData,
+        csoundGetRtPlayUserData,
         /*
         * Data fields.
         */
@@ -366,7 +368,10 @@ ENVIRON cenviron_ = {
         NULL,                   /* namedGlobals -- IV - Jan 28 2005 */
         0,                      /* namedGlobalsCurrLimit */
         0,                      /* namedGlobalsMaxLimit */
-        NULL                    /* cfgVariableDB */
+        NULL,                   /* cfgVariableDB */
+        { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0 },   /* sensEvents_state */
+        NULL,                   /* rtRecord_userdata */
+        NULL                    /* rtPlay_userdata */
 };
 
 OPARMS O;

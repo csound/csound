@@ -487,17 +487,6 @@ void kturnon(ENVIRON *csound)/* turn on instrs due in turnon list */
 extern  int     sensLine(void);
 extern  int     sensMidi(void), sensFMidi(void);
 
-typedef struct {
-    double  prvbt, curbt, nxtbt;
-    double  curp2, nxtim;
-    double  timtot;
-    int     cyclesRemaining;
-    int     kDone;
-    int     saved_opcod;
-} sensEvents_t;
-
-static  const   char    *sensevents_var = "::sensEvents";
-
 /* sense events for one k-period            */
 /* return value is one of the following:    */
 /*   0: continue performance                */
@@ -513,17 +502,12 @@ int sensevents(ENVIRON *csound)
     long          *srngp;
     char          opcod = '\0';
 
-    /* might just as well have this in ENVIRON... */
-    p = (sensEvents_t*) csoundQueryGlobalVariable(csound, sensevents_var);
-    if (p == NULL) {
-      csoundCreateGlobalVariable(csound, sensevents_var, sizeof(sensEvents_t));
-      p = (sensEvents_t*) csoundQueryGlobalVariable(csound, sensevents_var);
-      p->prvbt = 0.0; p->curbt = 0.0; p->nxtbt = 0.0;
-      p->curp2 = 0.0; p->nxtim = 0.0;
-      p->timtot = 0.0;
-      p->cyclesRemaining = 0;
-      p->kDone = 0;
-      p->saved_opcod = 0;
+    p = &(csound->sensEvents_state);
+    if (!p->init_done) {
+      /* at beginning of performance: */
+      p->prvbt = p->curbt = p->nxtbt = p->curp2 = p->nxtim = p->timtot = 0.0;
+      p->init_done = 1;
+      p->cyclesRemaining = p->kDone = p->saved_opcod = 0;
       sensType = 0;
     }
     else {

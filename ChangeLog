@@ -1,3 +1,22 @@
+2005-02-07	Istvan Varga	<istvan@csounds.com>
+	* Engine/insert.c:
+	  Fixed uses of INSDS.xtratim where it was assumed to be short.
+	* Engine/musmon.c:
+	  Use ENVIRON.sensEvents_state instead of csoundGlobalVariables,
+	  to reduce CPU usage of sensevents().
+	* Engine/oload.c:
+	* H/csoundCore.h:
+	  Added GetRtRecordUserData(), GetRtPlayUserData(),
+	  sensEvents_state, rtRecord_userdata, and rtPlay_userdata to
+	  ENVIRON. In csoundCore.h: new structure type sensEvents_t.
+	* H/csound.h:
+	* Top/csound.c:
+	  New functions void **csoundGetRtRecordUserData(void *csound)
+	  and void **csoundGetRtPlayUserData(void *csound).
+	* InOut/rtalsa.c:
+	  Use user data pointers instead of csoundGlobalVariables to store
+	  device instance data; reduces CPU usage.
+
 2005-02-06	Istvan Varga	<istvan@csounds.com>
 	* Engine/sread.c:
 	  Fixed memory corruption bugs that were caused by mixed use of

@@ -1,29 +1,29 @@
 /*
-insert.c:
+  insert.c:
 
-Copyright (C) 1991, 1997, 1999 2002
-Barry Vercoe, Istvan Varga, John ffitch,
-Gabriel Maldonado, matt ingalls
+  Copyright (C) 1991, 1997, 1999 2002
+  Barry Vercoe, Istvan Varga, John ffitch,
+  Gabriel Maldonado, matt ingalls
 
-This file is part of Csound.
+  This file is part of Csound.
 
-The Csound Library is free software; you can redistribute it
-and/or modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
+  The Csound Library is free software; you can redistribute it
+  and/or modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
 
-Csound is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
+  Csound is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Lesser General Public License for more details.
 
-You should have received a copy of the GNU Lesser General Public
-License along with Csound; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-02111-1307 USA
+  You should have received a copy of the GNU Lesser General Public
+  License along with Csound; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+  02111-1307 USA
 */
 
-#include "cs.h"                 /*                              INSERT.C        */
+#include "cs.h"         /*                              INSERT.C        */
 #include "insert.h"     /* for goto's */
 #include "aops.h"       /* for cond's */
 #include "midiops.h"
@@ -995,8 +995,7 @@ int useropcdset(ENVIRON *csound, UOPCODE *p)
     lcurip->m_chnbp = parent_ip->m_chnbp;       /* MIDI parameters */
     lcurip->m_pitch = parent_ip->m_pitch;
     lcurip->m_veloc = parent_ip->m_veloc;
-    n = (int) parent_ip->xtratim * p->ksmps_scale;
-    lcurip->xtratim = (short) (n > 32767 ? 32767 : n);
+    lcurip->xtratim = parent_ip->xtratim * p->ksmps_scale;
     lcurip->relesing = parent_ip->relesing;
     lcurip->offbet = parent_ip->offbet;
     lcurip->offtim = parent_ip->offtim;
@@ -1029,8 +1028,7 @@ int useropcdset(ENVIRON *csound, UOPCODE *p)
     if (ksmps == g_ksmps)
       saved_curip->xtratim = lcurip->xtratim;
     else
-      saved_curip->xtratim =
-        (lcurip->xtratim < 0 ? 32767 : lcurip->xtratim) / p->ksmps_scale;
+      saved_curip->xtratim = lcurip->xtratim / p->ksmps_scale;
     saved_curip->relesing = lcurip->relesing;
     saved_curip->offbet = lcurip->offbet;
     saved_curip->offtim = lcurip->offtim;
@@ -1157,8 +1155,7 @@ int setksmpsset(ENVIRON *csound, SETKSMPS *p)
     pp = (UOPCODE*) buf->uopcode_struct;
     n = ksmps / l_ksmps;
     pp->ksmps_scale *= n;
-    n *= p->h.insdshead->xtratim;
-    p->h.insdshead->xtratim = (n > 32767 ? 32767 : n);
+    p->h.insdshead->xtratim *= n;
     pp->l_ksmps = ksmps = l_ksmps;
     pp->l_ensmps = ensmps = pool[O.poolcount + 2] = (MYFLT) ksmps;
     pp->l_ekr = ekr = pool[O.poolcount + 1] = esr / ensmps;
@@ -1348,11 +1345,10 @@ void beatexpire(double beat)    /* unlink expired notes from activ chain */
           /* IV - Nov 30 2002: allow extra time for finite length (p3 > 0) */
           /* score notes */
           ip->offtim = global_onedkr
-            * (MYFLT) ((long) global_kcounter
-                       + (long) ((unsigned short) ip->xtratim));
+                       * (MYFLT) ((long) global_kcounter + (long) ip->xtratim);
           ip->relesing++;               /* enter release stage */
-          /* possibly wrong */
-          ip->offbet += global_onedkr * (MYFLT) ((unsigned short) ip->xtratim);
+          /* FIXME: possibly wrong (should be ekrbetsiz) */
+          ip->offbet += global_onedkr * (MYFLT) ip->xtratim;
           frstoff = ip->nxtoff;         /* update turnoff list */
           schedofftim(ip);
           goto strt;                    /* and start again */
@@ -1382,8 +1378,7 @@ void timexpire(double time)     /* unlink expired notes from activ chain */
           /* IV - Nov 30 2002: allow extra time for finite length (p3 > 0) */
           /* score notes */
           ip->offtim = global_onedkr
-            * (MYFLT) ((long) global_kcounter
-                       + (long) ((unsigned short) ip->xtratim));
+                       * (MYFLT) ((long) global_kcounter + (long) ip->xtratim);
           ip->relesing++;               /* enter release stage */
           frstoff = ip->nxtoff;         /* update turnoff list */
           schedofftim(ip);
