@@ -90,7 +90,7 @@ namespace csound
     double z = 0;
     double pcs = 4095.0;
     Score generated;
-    for(size_t voice = 0; voice < voices; voice++)
+    for(size_t voice = 0; voice <= voices; voice++)
       {
 	double time = 0;
 	for(int note = 1; note <= TotalNotes[voice]; note++)
@@ -114,5 +114,6 @@ namespace csound
       }
     // Put the generated counterpoint (back?) into the target score.
     score.insert(score.end(), generated.begin(), generated.end());
+    initialize(1, 1);
   }
 }

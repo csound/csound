@@ -34,6 +34,20 @@ void Counterpoint::initialize(int mostnotes, int mostvoices)
   vbs.resize(MostVoices, 0);
 }
 
+void Counterpoint::clear()
+{
+  Ctrpt.resize(0, 0, 0.0);
+  Onset.resize(0, 0, 0.0);
+  Dur.resize(0, 0, 0.0);
+  TotalNotes.resize(0, 0.0);
+  BestFit.resize(0, 0, 0.0);
+  BestFit1.resize(0, 0, 0.0);
+  BestFit2.resize(0, 0, 0.0);
+  RhyPat.resize(0, 0, 0.0);
+  RhyNotes.resize(0, 0.0);
+  vbs.resize(MostVoices, 0.0);
+}
+
 void Counterpoint::counterpoint(int OurMode, int *StartPitches, int CurV, int cantuslen, int Species, int *cantus)
 {
   initialize(cantuslen * 8, CurV);
