@@ -86,9 +86,10 @@ void OpenMIDIDevice(void)
         printf("\n");
       }
     }
+    printf("**** opening MIDI device %d\n", devnum);
 
     retval = Pm_OpenInput(&midistream,
-                 atoi(O.Midiname),             /* Device number */
+                 devnum,             /* Device number */
                  NULL,
                  MBUFSIZ,
                  ((long (*)(void *)) Pt_Time),
@@ -124,13 +125,13 @@ long GetMIDIData(void)
       if (retval<0) {
         printf(Str(X_1185,"sensMIDI: retval errno %d\n"),errno);
       }
-      else if (retval) {           /* Pm_Poll return TRUE, FALSE of error!! */
-        long n = Pm_Read(midistream, bufp, MBUFSIZ);
+      else if (retval) {           /* Pm_Poll return TRUE, FALSE or error!! */
+        long n = Pm_Read(midistream, mbuf, MBUFSIZ);
         if (n<0) {
           printf("**** read error %d\n", n);
           return 0;
         }
-        printf("**** %ld events read\n", n);
+/*         printf("**** %ld events read\n", n); */
         bufp = mbuf;
         endatp = mbuf + n;
         return n;
@@ -533,7 +534,7 @@ static void m_sysex(PmEvent *sbuf, PmEvent *sp) /* sys_excl msg, sexbuf: ID + da
 
 /* static short datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0 }; */
 static short m_clktim = 0;
-static short m_sensing = 0;
+/* Not used? */ static short m_sensing = 0;
 
 int sensMidi(void)         /* sense a MIDI event, collect the data & dispatch */
 {                          /*  called from kperf(), return(2) if MIDI on/off  */
@@ -549,8 +550,12 @@ int sensMidi(void)         /* sense a MIDI event, collect the data & dispatch */
 
     midiev = bufp->message;
     bufp++;
+/*     printf("**** sensMidi %02x %02x %02x\n", */
+/*            Pm_MessageStatus(midiev), */
+/*            Pm_MessageData1(midiev), */
+/*            Pm_MessageData2(midiev)); */
     if ((c = Pm_MessageStatus(midiev))) { /* STATUS byte:      */
-      type = c & 0xF0;
+      mep->type = type = c & 0xF0;
       if (type == SYSTEM_TYPE) {
         short lo3 = (c & 0x07);
         if (c & 0x08)                    /* sys_realtime:     */
@@ -563,7 +568,7 @@ int sensMidi(void)         /* sense a MIDI event, collect the data & dispatch */
             goto nxtmsg;
           case 4: m_stop();
             goto nxtmsg;
-          case 6: m_sensing = 1;
+          case 6: m_sensing = 1; /* Never read!! */
             goto nxtmsg;
           case 7: m_sysReset();
             goto nxtmsg;
@@ -593,7 +598,6 @@ int sensMidi(void)         /* sense a MIDI event, collect the data & dispatch */
             goto nxtmsg;
           }
         }
-        mep->type = type;               /* begin sys_com event  */
         mep->chan = lo3;                /* holding code in chan */
       }
       else {                            /* other status types:  */
@@ -619,8 +623,7 @@ int sensMidi(void)         /* sense a MIDI event, collect the data & dispatch */
       else printf(Str(X_1262,"system exclusive buffer overflow\n"));
       goto nxtmsg;
     }
-    mep->dat1 = Pm_MessageData1(midiev);   /* else normal data      */
-    mep->dat2 = Pm_MessageData2(midiev);
+
     /*
      *  Enter the input event into a buffer used by 'midiin'.
      *  This is a horrible hack that emulates what DirectCsound does,

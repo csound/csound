@@ -1,3 +1,7 @@
+2004-12-23  John ffitch  <jpff@codemist.co.uk>
+
+	* InOut/pmidi.c (GetMIDIData): Read to wrong place!
+
 2004-12-20  John ffitch  <jpff@codemist.co.uk>
 
 	* OOps/mididevice.c: 
