@@ -904,8 +904,9 @@ int itblchkw(ENVIRON *csound, TABLEW *p)
 
     /* Set denormalisation factor to 1 or table length, depending on
      * the state of ixmode.  1L means a 32 bit 1.  */
+    /* JPff.............................^...not so; could be any length */
     if (*p->ixmode)
-      p->xbmul = p->ftp->flen;
+            p->xbmul = p->ftp->flen;
     else    p->xbmul = 1L;
     /* Multiply the ixoff value by the xbmul denormalisation
      * factor and then check it is between 0 and the table length.  */
@@ -915,7 +916,7 @@ int itblchkw(ENVIRON *csound, TABLEW *p)
               p->offset);
       return initerror(errmsg);
     }
-    p->iwgm   = (long)*p->iwgmode;
+    p->iwgm   = (int)*p->iwgmode;
     return OK;
 }
 
@@ -951,7 +952,7 @@ int ptblchkw(ENVIRON *csound, TABLEW *p)
      */
     p->pfn = 0;         /* the only other thing to do is write the iwgmode
                            value into the immediate copy of it in TABLEW. */
-    p->iwgm = (long)*p->iwgmode;
+    p->iwgm = (int)*p->iwgmode;
     return OK;
 }
 
@@ -1090,7 +1091,7 @@ int tablew(ENVIRON *csound, TABLEW *p)
     /* For instance length = 8, mask = 0000 0111, normal locations in table
      * are 0 to 7.  Location 8 is the guard point.  table() does not read
      * the guard point - tabli() does.*/
-    long        liwgm;          /* Local copy of iwgm for speed */
+    int         liwgm;          /* Local copy of iwgm for speed */
     int         nsmps = ksmps;
     MYFLT       ndx, xbmul, offset;
                                 /*-----------------------------------*/

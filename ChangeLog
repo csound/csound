@@ -1,3 +1,12 @@
+2005-02-24  John ffitch  <jpff@codemist.co.uk>
+
+	* OOps/ugens2.c: Added FLOOR macro to speed up floor throughout
+	and other speedups
+
+	* OOps/ugrw1.c: Added FLOOR macro to speed up floor
+	Changed a couple of longs to ints as there is no need for values
+	beyond 2
+
 2005-02-23  John ffitch  <jpff@codemist.co.uk>
 
 	* OOps/ugens2.c (tabli): Unwrap the two case so tests outside loop

@@ -75,7 +75,7 @@ typedef struct {
                                  * length by tblwset() depending on ixmode.
                                  */
         long    xbmul;          /* Internal variable for iwrap and igmode. */
-        long    iwgm;           /* Internal variable for offset. */
+        int     iwgm;           /* Internal variable for offset. */
         MYFLT   offset;         /* Pointer to data structure used to access
                                  * function table. tblwset() writes this, based
                                  * on the value of xfn.
