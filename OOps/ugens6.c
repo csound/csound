@@ -238,7 +238,7 @@ static   DELAYR   *last_delayr = NULL;   /* fifo anchor */
 int delrset(DELAYR *p)
 {
     long        npts;
-    char        *auxp;
+    MYFLT       *auxp;
 
     /* fifo for delayr pointers by Jens Groh: */
     /* append structadr for delayw to fifo: */
@@ -247,6 +247,7 @@ int delrset(DELAYR *p)
     else    /* fifo empty */
       first_delayr = p;
     last_delayr = p;
+    p->next_delayr = NULL;
 
     if (*p->istor && p->auxch.auxp != NULL)
       return OK;
@@ -256,16 +257,16 @@ int delrset(DELAYR *p)
     if ((auxp = p->auxch.auxp) == NULL ||       /* new space if reqd */
         npts != p->npts) {
       auxalloc((long)npts*sizeof(MYFLT), &p->auxch);
-      auxp = p->auxch.auxp;
+      auxp = (MYFLT*)p->auxch.auxp;
       p->npts = npts;
     }
     else if (!(*p->istor)) {                    /* else if requested */
-      long *lp = (long *)auxp;
+      MYFLT *lp = auxp;
       do {
-        *lp++ = 0;                            /*   clr old to zero */
+        *lp++ = FL(0.0);                        /*   clr old to zero */
       } while (--npts);
     }
-    p->curp = (MYFLT *) auxp;
+    p->curp = auxp;
     return OK;
 }
 
@@ -334,8 +335,9 @@ int delayr(DELAYR *p)
       if (curp >= endp)
         curp = (MYFLT *) p->auxch.auxp;
     } while (--nsmps);
+    p->curp = curp;
     return OK;
-}                                                       /* leave old curp */
+}
 
 int delayw(DELAYW *p)
 {
