@@ -9,6 +9,8 @@
 	
 	* Added SIGINT to Windows signals handled.
 	
+	* Improved order of directives and comments in custom.py.
+	
 	* Updated csound.pdf to reflect the above.
 	
 2004-09-11  Steven Yi  <stevenyi@csounds.com>
