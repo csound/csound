@@ -31,9 +31,9 @@ find . -type f -iname "*.dll"   -exec "$0" remove '{}' \;
 find . -type f -iname "*.obj"   -exec "$0" remove '{}' \;
 find . -type f -iname "*.lib"   -exec "$0" remove '{}' \;
 
-find . -type f -exec file '{}' \; | grep -G -e '\<ELF\>' | cut -d ':' -f 1 | xargs -n 1 "$0" remove
-find . -type f -exec file '{}' \; | grep -G -e '\<80386\>' | cut -d ':' -f 1 | xargs -n 1 "$0" remove
-find . -type f -exec file '{}' \; | grep -G -e '\<PE\>' | cut -d ':' -f 1 | xargs -n 1 "$0" remove
+find . -type f -exec file '{}' \; | grep -G -e ':.*\<ELF\>' | cut -d ':' -f 1 | xargs -n 1 "$0" remove
+find . -type f -exec file '{}' \; | grep -G -e ':.*\<80386\>' | cut -d ':' -f 1 | xargs -n 1 "$0" remove
+find . -type f -exec file '{}' \; | grep -G -e ':.*\<PE\>' | cut -d ':' -f 1 | xargs -n 1 "$0" remove
 
 "$0" remove "./frontends/CsoundVST/CsoundVST_wrap.cc"
 "$0" remove "./frontends/CsoundVST/CsoundVST_wrap.h"
