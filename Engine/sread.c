@@ -43,12 +43,11 @@ static int     getop(void), getpfld(void);
        MYFLT   stof(char *);
 extern FILE    *fopen_path(char *, char *, char *, char *);
 
-#define MEMSIZ  10000L          /* size of memory requests from system  */
-#define MARGIN  600             /* minimum remaining before new request */
+#define MEMSIZ  16384           /* size of memory requests from system  */
+#define MARGIN  4096            /* minimum remaining before new request */
 
-static MEMHDR *basmem = NULL;
-static MEMHDR *curmem;
-static char   *memend;          /* end of cur memblk     */
+static char   *curmem = NULL;
+static char   *memend = NULL;          /* end of cur memblk     */
 
 #define MARGS   (3)
 typedef struct MACRO {          /* To store active macros */
@@ -84,24 +83,51 @@ static int pop = 0;                          /* Number of macros to pop */
 static int ingappop = 1;                     /* Are we in a popable gap? */
 static int linepos = -1;
 
-static void expand_nxp(void)
+static intptr_t expand_nxp(ENVIRON *csound)
 {
-    if (nxp > memend)  goto margerr;
-    if (curmem->nxtmem != NULL)              /*      chain to next  */
-      curmem = curmem->nxtmem;
-    else {                                   /*      or alloc a new */
-      MEMHDR *prvmem = curmem;
-      err_printf(Str("sread: requesting more memory\n"));
-      curmem = (MEMHDR *) mcalloc(&cenviron, (long)MEMSIZ);
-      prvmem->nxtmem = curmem;
-      curmem->nxtmem = NULL;
-      curmem->memend = (char *)curmem + MEMSIZ;
+    char      *oldp;
+    SRTBLK    *p;
+    intptr_t  offs;
+    size_t    nbytes;
+
+    if (nxp >= (memend + MARGIN)) {
+      csound->Die(csound, Str("sread:  text space overrun, increase MARGIN"));
+      return 0;     /* not reached */
     }
-    memend = curmem->memend;
-    nxp = (char *)curmem + sizeof(MEMHDR);
-    return;
- margerr:
-    csoundDie(&cenviron, Str("sread:  text space overrun, increase MARGIN"));
+    /* calculate the number of bytes to allocate */
+    nbytes = (size_t) (memend - curmem);
+    nbytes = nbytes + (nbytes >> 3) + (size_t) (MEMSIZ - 1);
+    nbytes &= ~((size_t) (MEMSIZ - 1));
+    /* extend allocated memory */
+    oldp = curmem;
+    curmem = (char*) csound->ReAlloc(csound, curmem, nbytes + (size_t) MARGIN);
+    memend = (char*) curmem + (long) nbytes;
+    /* did the pointer change ? */
+    if (curmem == oldp)
+      return (intptr_t) 0;      /* no, nothing to do */
+    /* correct all pointers for the change */
+    offs = (intptr_t) ((uintptr_t) curmem - (uintptr_t) oldp);
+    if (bp != NULL)
+      bp = (SRTBLK*) ((uintptr_t) bp + (intptr_t) offs);
+    if (prvibp != NULL)
+      prvibp = (SRTBLK*) ((uintptr_t) prvibp + (intptr_t) offs);
+    if (sp != NULL)
+      sp = (char*) ((uintptr_t) sp + (intptr_t) offs);
+    if (nxp != NULL)
+      nxp = (char*) ((uintptr_t) nxp + (intptr_t) offs);
+    if (csound->frstbp == NULL)
+      return offs;
+    p = csound->frstbp;
+    csound->frstbp = p = (SRTBLK*) ((uintptr_t) p + (intptr_t) offs);
+    do {
+      if (p->prvblk != NULL)
+        p->prvblk = (SRTBLK*) ((uintptr_t) p->prvblk + (intptr_t) offs);
+      if (p->nxtblk != NULL)
+        p->nxtblk = (SRTBLK*) ((uintptr_t) p->nxtblk + (intptr_t) offs);
+      p = p->nxtblk;
+    } while (p != NULL);
+    /* return pointer change in bytes */
+    return offs;
 }
 
 typedef struct scotables {
@@ -567,9 +593,8 @@ static int do_repeat(void)      /* At end of section repeat if necessary */
       sprintf(repeat_mm->body, "%d", i);
       printf(Str("Repeat section (%d)\n"), i);
       *(nxp-2) = 's'; *nxp++ = LF;
-      if (memend - nxp < MARGIN) {            /* if this memblk exhausted */
-        expand_nxp();
-      }
+      if (nxp >= memend)                /* if this memblk exhausted */
+        expand_nxp(&cenviron);
       return 1;
     }
     return 0;
@@ -750,9 +775,8 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
 /*         } */
         /* Then remember this state */
         *(nxp-2) = 's'; *nxp++ = LF;
-        if (memend - nxp < MARGIN) {            /* if this memblk exhausted */
-          expand_nxp();
-        }
+        if (nxp >= memend)              /* if this memblk exhausted */
+          expand_nxp(&cenviron);
         if (str->string) {
           int c;
           err_printf(Str("Repeat not at top level; ignored\n"));
@@ -950,9 +974,8 @@ static void copylin(void)       /* copy source line to srtblk   */
 {
     int c;
     nxp--;
-    if (memend - nxp < MARGIN) {            /* if this memblk exhausted */
-      expand_nxp();
-    }
+    if (nxp >= memend)          /* if this memblk exhausted */
+      expand_nxp(&cenviron);
     do {
       c = getscochar(1);
       *nxp++ = c;
@@ -1150,57 +1173,40 @@ static void pcopy(int pfno, int ncopy, SRTBLK *prvbp)
 
 static void salcinit(void)    /* init the sorter mem space for a new section */
 {                             /*  alloc 1st memblk if nec; init *nxp to this */
-    if ((curmem = basmem) == NULL) {
-      curmem = basmem = (MEMHDR *) mcalloc(&cenviron, (long)MEMSIZ);
-      curmem->nxtmem = NULL;
-      curmem->memend = (char *)curmem + MEMSIZ;
+    if (curmem == NULL) {
+      curmem = (char*) mmalloc(&cenviron, (size_t) (MEMSIZ + MARGIN));
+      memend = (char*) curmem + MEMSIZ;
     }
-    memend = curmem->memend;
-    nxp = (char *)curmem + sizeof(MEMHDR);
+    nxp = (char*) curmem;
 }
 
 static void salcblk(void)       /* alloc a srtblk from current mem space:   */
 {                               /*   align following *nxp, set new bp, nxp  */
-                                /*   set srtblk lnks, put op+blank in text  */
+    SRTBLK  *prvbp;             /*   set srtblk lnks, put op+blank in text  */
 
-    SRTBLK *prvbp;
-
-    if (memend - nxp < MARGIN) {                /* if this memblk exhausted */
-      expand_nxp();
-    }
-                                /* now allocate a srtblk from this space:   */
+    if (nxp >= memend)          /* if this memblk exhausted */
+      expand_nxp(&cenviron);
+    /* now allocate a srtblk from this space: */
     prvbp = bp;
-#ifdef __alpha__
-    /*
-     * On Alpha we need to round up to 8 bytes (64 bits).
-     * heh 981101
-     */
-    bp = (SRTBLK *) ((((long) nxp) + 7) & ~0x7);
-#else
-    bp = (SRTBLK *) ((((long) nxp) + 3) & -4);
-#endif
+    bp = (SRTBLK*) (((uintptr_t) nxp + (uintptr_t) 15) & ~((uintptr_t) 15));
     if (cenviron.frstbp == NULL)
       cenviron.frstbp = bp;
     if (prvbp != NULL)
       prvbp->nxtblk = bp;           /* link with prev srtblk        */
     bp->prvblk = prvbp;
     bp->nxtblk = NULL;
-    nxp = bp->text;
+    nxp = &(bp->text[0]);
     *nxp++ = op;                    /* place op, blank into text    */
     *nxp++ = SP;
-    return;
-
+    *nxp = '\0';
 }
 
 void sfree(void)                 /* free all sorter allocated space */
 {                                /*    called at completion of sort */
-    MEMHDR *curmem, *nxtmem;
-
-    for (curmem = basmem; curmem != NULL; curmem = nxtmem) {
-      nxtmem = curmem->nxtmem;
-      mfree(&cenviron, (char *)curmem);
+    if (curmem != NULL) {
+      mfree(&cenviron, curmem);
+      curmem = NULL;
     }
-    basmem = NULL;
     while (str != &inputs[0]) {
       if (!str->string) {
         fclose(str->file);
@@ -1500,38 +1506,8 @@ static int getpfld(void)             /* get pfield val from SCOREIN file */
         }
         *p++ = c;                       /*   copy to matched quote */
         /* **** CHECK **** */
-        if (memend - p < 20) {     /* if this memblk exhausted lengthen*/
-          MEMHDR *next;
-          int change;
-          long newsize = (long)(memend - (char*)curmem + 200);
-          next = (MEMHDR *) mrealloc(&cenviron, curmem, newsize);
-          if (basmem == curmem) {
-            basmem = next;
-          }
-          else {
-            MEMHDR *prev = basmem;
-            while (prev->nxtmem != curmem) prev = prev->nxtmem;
-            prev->nxtmem = next;
-          }
-          memend = next->memend = ((char *)next) + newsize;
-          change = ((char *)next) - ((char *)curmem);
-          p += change;
-          sp += change;
-          {                       /* reset the chain as well */
-            SRTBLK* pp;
-            pp = cenviron.frstbp = (SRTBLK*)(((char*)cenviron.frstbp)+change);
-            while (pp) {
-              if (pp->prvblk) pp->prvblk = (SRTBLK*)(((char*)pp->prvblk)+change);
-              if (pp->nxtblk) pp->nxtblk = (SRTBLK*)(((char*)pp->nxtblk)+change);
-              pp = pp->nxtblk;
-            }
-            bp = (SRTBLK*)((char*)bp + change);
-          }
-          curmem = next;
-#ifdef BETA
-          err_printf("extending curmem to %ld\n", newsize);
-#endif
-        }
+        if (p >= memend)
+          p = (char*) ((uintptr_t) p + expand_nxp(&cenviron));
         /* **** END CHECK **** */
       }
       *p++ = c;
@@ -1545,38 +1521,8 @@ static int getpfld(void)             /* get pfield val from SCOREIN file */
            || c == '~') { /*   continue to bld string */
       *p++ = c;
       /* **** CHECK **** */
-      if (memend - p < 20) {     /* if this memblk exhausted lengthen*/
-        MEMHDR *next;
-        int change;
-        long newsize = (long)(memend - (char*)curmem + 200);
-        next = (MEMHDR *) mrealloc(&cenviron, curmem, newsize);
-        if (basmem == curmem) {
-          basmem = next;
-        }
-        else {
-          MEMHDR *prev = basmem;
-          while (prev->nxtmem != curmem) prev = prev->nxtmem;
-          prev->nxtmem = next;
-        }
-        memend = next->memend = ((char *)next) + newsize;
-        change = ((char *)next) - ((char *)curmem);
-        p += change;
-        sp += change;
-        {                       /* reset the chain as well */
-          SRTBLK* pp;
-          pp = cenviron.frstbp = (SRTBLK*)(((char*)cenviron.frstbp)+change);
-          while (pp) {
-            if (pp->prvblk) pp->prvblk = (SRTBLK*)(((char*)pp->prvblk)+change);
-            if (pp->nxtblk) pp->nxtblk = (SRTBLK*)(((char*)pp->nxtblk)+change);
-            pp = pp->nxtblk;
-          }
-          bp = (SRTBLK*)((char*)bp + change);
-        }
-        curmem = next;
-#ifdef BETA
-        err_printf("extending curmem to %ld\n", newsize);
-#endif
-      }
+      if (p >= memend)
+        p = (char*) ((uintptr_t) p + expand_nxp(&cenviron));
       /* **** END CHECK **** */
     }
     ungetscochar(c);                        /* any illegal is delimiter */

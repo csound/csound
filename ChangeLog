@@ -1,3 +1,7 @@
+2005-04-05	Istvan Varga	<istvan@csounds.com>
+	* Engine/sread.c:
+	  attempts to fix bugs in reading large score files
+
 2005-04-03	Steven Yi		<stevenyi@gmail.com>
 	* SConstruct: added arch and cpu commandline options to fine tune gcc3opt
 	  flags for -march and -mcpu
