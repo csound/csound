@@ -77,11 +77,12 @@
 
 	* SConstruct: Use -Wl,-Bdynamic as it is  linker option 
 
-	* strings/makedb.c (main): Correct format in prontf twice for
+	* strings/makedb.c (main): Correct format in printf twice for
 	longs
 
-	* Top/main.c (install_signal_handler): Retore signal handling
+	* Top/main.c (install_signal_handler): Restore signal handling
 
+	
 2004-05-17  John ffitch  <jpff@codemist.co.uk>
 
 	* InOut/rtpa.c (playopen_): Allow selection of ALSA device via
@@ -92,7 +93,7 @@
 2004-05-16  Michael Gogins <gogins@pipeline.com>
 
 	* frontends/CsoundVST/CsoundVstFltk.cpp: fixed problem
-    with linefeeds in message lines.
+	with linefeeds in message lines.
 
 2004-05-12  John ffitch  <jpff@codemist.co.uk>
 
