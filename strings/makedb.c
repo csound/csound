@@ -108,11 +108,11 @@ int main(int argc, char **argv)
         n = n*10+ch-'0';
         ch = getc(raw);
       }
-      if (DEBUG) fprintf(stderr, "String# %d\n", n);
+      if (DEBUG) fprintf(stderr, "String# %ld\n", n);
       if (ch==EOF) break;
       if (ch!=',') {
         fprintf(stderr,
-                "item %d/%d: Syntax error -- expecting comma got '%c'%2x\n",
+                "item %ld/%ld: Syntax error -- expecting comma got '%c'%2x\n",
                 item, n, ch, ch);
         exit(1);
       }

@@ -165,7 +165,7 @@ elif getPlatform() == 'mingw' or getPlatform() == 'cygwin':
 if (commonEnvironment['makeDynamic'] == 0) and (getPlatform() != 'linux'):
     commonEnvironment.Append(LINKFLAGS = '-static')
 else:
-    commonEnvironment.Append(LINKFLAGS = Split('-dynamic --no-allow-shlib-undefined'))
+    commonEnvironment.Append(LINKFLAGS = Split('-Wl,-Bdynamic --no-allow-shlib-undefined'))
 
 # Adding libraries and flags if using -mno-cygwin with cygwin
 
