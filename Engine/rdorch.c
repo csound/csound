@@ -1085,8 +1085,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
  tstnxt:
     tp = &optext;
     if (nxtest >= grpcnt) {             /* if done with prevline, */
-      extern int argcnt_offs;       /* IV - Jan 27 2005: from express.c */
-      argcnt_offs = 0;              /*   reset temporary variable index */
+      csound->argcnt_offs = 0;      /* reset temporary variable index */
       if (!(grpcnt = splitline()))      /*    attack next line    */
         return((TEXT *)0);              /*    (else we're done)   */
       for (nn=0; nn<grpcnt; nn++)       /*    save the group pntrs */
@@ -1096,18 +1095,17 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
       tp->linenum = curline;
       /* IV - Jan 27 2005 */
       if (O.expr_opt) {
-        extern int opcode_is_assign, assign_type;       /* from express.c */
-        extern char *assign_outarg;
         int i = (int) linlabels + 1;
         if (((int) grpcnt - i) > 0 && group[i][0] == '=' &&
             group[i][1] == '\0') {
           /* if opcode is '=', save outarg and type for expression optimiser */
-          opcode_is_assign = 1;
-          assign_type = (int) argtyp(group[linlabels]);
-          assign_outarg = strsav(group[linlabels]);
+          csound->opcode_is_assign = 1;
+          csound->assign_type = (int) argtyp(group[linlabels]);
+          csound->assign_outarg = strsav(group[linlabels]);
         }
         else {
-          opcode_is_assign = assign_type = 0; assign_outarg = NULL;
+          csound->opcode_is_assign = csound->assign_type = 0;
+          csound->assign_outarg = NULL;
         }
       }
     }
@@ -1170,8 +1168,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
       }
     }
     if (!strcmp(linopcod,"=")) {    /* IV - Jan 08 2003: '=' opcode */
-      extern int opcode_is_assign;
-      if (O.expr_opt && opcode_is_assign < 0) {
+      if (O.expr_opt && csound->opcode_is_assign < 0) {
         /* if optimised away, skip line */
         nxtest = grpcnt; goto tstnxt;
       }

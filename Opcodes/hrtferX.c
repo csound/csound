@@ -93,7 +93,7 @@ int hrtferxkSet(ENVIRON *csound, HRTFER *p)
     }
 
     if ((mfp = p->mfp) == NULL)
-      mfp = ldmemfile(csound, filename);
+      mfp = csound->ldmemfile_(csound, filename);
     p->mfp = mfp;
     p->fpbegin = (short *) mfp->beginp;
     if (bytrevhost()) {         /* Byte reverse on data set if necessary */

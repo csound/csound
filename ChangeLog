@@ -1,3 +1,11 @@
+2005-04-03	Istvan Varga	<istvan@csounds.com>
+	* removed macro definitions for ksmps, esr, ekr, and some others;
+	  use csound->Message() instead of printf() and err_printf();
+	  (large number of changes in many files)
+	* Engine/namedins.c:
+	* Engine/express.c:
+	  removed static and global variables
+
 2005-03-31	Istvan Varga	<istvan@csounds.com>
 	* Engine/entry1.c:
 	* OOps/aops.c:

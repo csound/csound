@@ -131,7 +131,7 @@ SCsndgetset(char *inputfile)
     static MYFLT sstrcod = SSTRCOD;
 
     sssfinit();                 /* stand-alone init of SFDIR etc. */
-    esr = 0.0;                  /* set esr 0. with no orchestra   */
+    cenviron.esr = FL(0.0);     /* set esr 0. with no orchestra   */
     optxt.t.outoffs = &argoffs; /* point to dummy OUTOCOUNT       */
     p = (SOUNDIN *) mcalloc(&cenviron, (long)sizeof(SOUNDIN));
     p->channel = ALLCHNLS;
@@ -186,3 +186,4 @@ FindEnvelope(SNDFILE *infd)
     sf_close(infd);
     fclose(outfile);
 }
+

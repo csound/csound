@@ -292,14 +292,14 @@ main(int argc, char **argv)
     O.sfheader = 1;
     if (O.outfilename == NULL)  O.outfilename = "test";
     sfinfo.frames = -1;
-    sfinfo.samplerate = (int) (esr + FL(0.5));
-    sfinfo.channels = nchnls;
+    sfinfo.samplerate = (int) (cenviron.esr + FL(0.5));
+    sfinfo.channels = cenviron.nchnls;
     sfinfo.format = type2sf(O.filetyp)|format2sf(O.outformat);
     sfinfo.sections = 0;
     sfinfo.seekable = 0;
     outfd = sf_open_fd(openout(O.outfilename, 1),SFM_WRITE, &sfinfo, 1);
-    esr = (MYFLT)p->sr;
-    nchnls = outputs;
+    cenviron.esr = (MYFLT)p->sr;
+    cenviron.nchnls = outputs;
     ExtractSound(infd, outfd);
     sf_close(outfd);
     if (O.ringbell) putc(7, stderr);
@@ -318,7 +318,7 @@ EXsndgetset(char *name)
     static MYFLT sstrcod = (MYFLT)SSTRCOD;
 
     sssfinit();                 /* stand-alone init of SFDIR etc. */
-    esr = FL(0.0);             /* set esr 0. with no orchestra   */
+    cenviron.esr = FL(0.0);     /* set esr 0. with no orchestra   */
     optxt.t.outoffs = &argoffs; /* point to dummy OUTOCOUNT       */
     p = (SOUNDIN *) mcalloc(&cenviron, (long)sizeof(SOUNDIN));
     p->channel = ALLCHNLS;

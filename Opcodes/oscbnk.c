@@ -1823,7 +1823,7 @@ static int vco2init(ENVIRON *csound, VCO2INIT *p)
           i++;
           tp.w_fftbuf[i >> 1].im = ftp->ftable[i] / (MYFLT) (ftp->flen >> 1);
         }
-        FFT2realpacked(tp.w_fftbuf, ftp->flen, NULL);
+        csound->FFT2realpacked_(tp.w_fftbuf, ftp->flen, NULL);
         /* generate table array */
         ftnum = vco2_tables_create(csound,waveforms, ftnum, &tp);
         /* free memory used by FFT buffer */

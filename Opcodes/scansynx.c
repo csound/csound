@@ -274,9 +274,10 @@ int scsnux_init(ENVIRON *csound, PSCSNUX *p)
     else {                      /* New format matrix */
       char filnam[256];
       MEMFIL *mfp;
-      if (p->STRARG == NULL) strcpy(filnam,unquote(currevent->strarg));
-      else strcpy(filnam, unquote(p->STRARG));
-      if ((mfp = ldmemfile(csound, filnam)) == NULL) {  /*   readfile if reqd */
+      if (p->STRARG == NULL) strcpy(filnam,csound->unquote_(currevent->strarg));
+      else strcpy(filnam, csound->unquote_(p->STRARG));
+      /* readfile if reqd */
+      if ((mfp = csound->ldmemfile_(csound, filnam)) == NULL) {
         return csound->InitError(csound, Str("SCANU cannot load %s"), filnam);
       }
       else {
@@ -383,9 +384,8 @@ int scsnux_init(ENVIRON *csound, PSCSNUX *p)
     /* Setup display window */
     if (*p->i_disp) {
       p->win = calloc(1, sizeof(WINDAT));
-      dispset((WINDAT*)p->win, p->x1, len,
-              Str("Mass displaycement"), 0,
-              Str("Scansynth window"));
+      csound->dispset((WINDAT*)p->win, p->x1, len,
+                      Str("Mass displacement"), 0, Str("Scansynth window"));
     }
 
     /* Make external force window if we haven't so far */
@@ -482,7 +482,7 @@ int scsnux(ENVIRON *csound, PSCSNUX *p)
         /* Reset index and display the state */
         idx = 0;
         if (*p->i_disp)
-          display(p->win);
+          csound->display(p->win);
       }
       if (p->id<0) { /* Write to ftable */
         int i;

@@ -331,7 +331,7 @@ static long takeFFTs(
       csoundDie(&cenviron, Str("insufficient sound for analysis"));
     for (nn = read_in; nn--; )
       /* IV - Jul 11 2002 */
-      *fp1++ *= dbfs_to_float;      /* normalize the samples read in */
+      *fp1++ *= cenviron.dbfs_to_float;     /* normalize the samples read in */
     oframeEst -= 1;
     if (!O.displays && !verbose) printf(Str("frame: "));
     do {
@@ -374,7 +374,7 @@ static long takeFFTs(
       read_in = getsndin(infd, inBuf+frameSize-frameIncr, frameIncr, p);
       for (fp1 = inBuf+frameSize-frameIncr, nn = read_in; nn--; )
         /* IV - Jul 11 2002 */
-        *fp1++ *= dbfs_to_float;       /* normalize samples just read in */
+        *fp1++ *= cenviron.dbfs_to_float;   /* normalize samples just read in */
       /* debug = 0; */
       if (!csoundYield(&cenviron)) break;
     } while (i < oframeEst);
@@ -394,5 +394,4 @@ static void PrintBuf(MYFLT *buf, long size, char *msg)
       fprintf(trfil,"%7.2f ",buf[i]);
     fprintf(trfil, "\n");
 }
-
 

@@ -306,9 +306,8 @@ int scsnu_init(ENVIRON *csound, PSCSNU *p)
     /* Setup display window */
     if (*p->i_disp) {
       p->win = calloc(1, sizeof(WINDAT));
-      dispset((WINDAT*)p->win, p->x1, len,
-              Str("Mass displaycement"), 0,
-              Str("Scansynth window"));
+      csound->dispset((WINDAT*)p->win, p->x1, len,
+                      Str("Mass displacement"), 0, Str("Scansynth window"));
     }
 
     /* Make external force window if we haven't so far */
@@ -395,7 +394,7 @@ int scsnu_play(ENVIRON *csound, PSCSNU *p)
         /* Reset index and display the state */
         p->idx = 0;
         if (*p->i_disp)
-          display(p->win);
+          csound->display(p->win);
       }
       if (p->id<0) { /* Write to ftable */
         int i;
