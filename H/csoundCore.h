@@ -773,14 +773,14 @@ typedef struct ENVIRON_
   void          *file_opened_;
   int           file_max_;
   int           file_num_;
-  int		nbusik_;
-  MYFLT*	busik_;
-  int		nbusia_;
-  MYFLT*	busia_;
-  int		nbusok_;
-  MYFLT*	busok_;
-  int		nbusoa_;
-  MYFLT*	busoa_;
+  int		nchanik_;
+  MYFLT*	chanik_;
+  int		nchania_;
+  MYFLT*	chania_;
+  int		nchanok_;
+  MYFLT*	chanok_;
+  int		nchanoa_;
+  MYFLT*	chanoa_;
 } ENVIRON;
 
 extern ENVIRON cenviron_;
