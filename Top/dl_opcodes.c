@@ -78,15 +78,14 @@ void *csoundGetLibrarySymbol(void *library, const char *procedureName)
 void *csoundOpenLibrary(const char *libraryPath)
 {
     void *library = 0;
-#if defined(LINUX)
-    if
-      (strstr(libraryPath, ".so")
+#if defined(LINUX)    
+    if (strstr(libraryPath, ".so")) {
 #elif defined(__CYGWIN__)
-       (strstr(libraryPath, ".dll") || strstr(libraryPath, ".DLL"))
+	if (strstr(libraryPath, ".dll") || strstr(libraryPath, ".DLL")) {
 /* #elif defined(__MACH__) */
 /*        (strstr(libraryPath, ".dylib")) */
 #endif
-       ) {
+
       library = dlopen(libraryPath, RTLD_NOW | RTLD_GLOBAL );
       if(!library) {
         fprintf(stderr, "Error '%s' in dlopen(%s).\n", dlerror(), libraryPath);
