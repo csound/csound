@@ -11,6 +11,12 @@ Uses PortAudio library without callbacks -- JPff
 #include "pa_blocking.h"
 #include <portaudio.h>
 
+#ifdef MSVC
+#include <windows.h>
+
+#endif
+
+
 extern char    *sfoutname;                     /* soundout filename    */
 extern char    *chinbufp, *choutbufp;          /* char  pntr to above  */
 extern short   *shinbufp, *shoutbufp;          /* short pntr           */
@@ -34,14 +40,13 @@ extern int (*audrecv)(void *, int);
 void rtplay_(void *outbuf, int nbytes);
 int rtrecord_(void *inbuf_, int bytes_);
 
+#if !defined(WIN32)
+static PaStream *pa_in = NULL, *pa_out = NULL;
+#endif
+
 #if defined(WIN32)
 static PA_BLOCKING_STREAM *pabsRead = 0;
 static PA_BLOCKING_STREAM *pabsWrite = 0;
-#elif defined(__MACH__)
-static PA_BLOCKING_STREAM *pabsRead = 0;
-static PA_BLOCKING_STREAM *pabsWrite = 0;
-#else
-static PaStream *pa_in = NULL, *pa_out = NULL;
 #endif
 
 static  int oMaxLag;
@@ -113,9 +118,13 @@ void recopen_(int nchnls_, int dsize_, float sr_, int scale_)
         err_printf(Str(X_30,
                        "No PortAudio input device given; "
 		       "defaulting to device %d\n"), rtin_dev);
+			paStreamParameters_.suggestedLatency =
+	  Pa_GetDeviceInfo(rtin_dev)->defaultLowInputLatency;
       }
       else {
         paStreamParameters_.device = rtin_dev;
+			/* VL: dodgy... only works well with ASIO */
+	paStreamParameters_.suggestedLatency = ((double) oMaxLag) / ((double) sr_);
       }
       paStreamParameters_.hostApiSpecificStreamInfo = NULL;
 #if defined(LINUX)
@@ -123,10 +132,11 @@ void recopen_(int nchnls_, int dsize_, float sr_, int scale_)
 #endif
     paStreamParameters_.channelCount = nchnls_;
     paStreamParameters_.sampleFormat = paFloat32;
-    paStreamParameters_.suggestedLatency = ((double) oMaxLag) / ((double) sr_);
+	/* VL: moved to five lines above */
+    /*paStreamParameters_.suggestedLatency = ((double) oMaxLag) / ((double) sr_);*/
     err_printf("Suggested PortAudio input latency = %f seconds.\n",
                paStreamParameters_.suggestedLatency);
-#if defined(WIN32) || defined(__MACH__)
+#if defined(WIN32)
     paError = paBlockingReadOpen(&cenviron,
         &pabsRead,
         &paStreamParameters_);
@@ -194,6 +204,7 @@ void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
       }
       else {
 	paStreamParameters_.device = rtout_dev;
+	/* VL: dodgy... only works well with ASIO */
 	paStreamParameters_.suggestedLatency = ((double) oMaxLag) / ((double) sr_);
       }
       paStreamParameters_.hostApiSpecificStreamInfo = NULL;
@@ -204,7 +215,7 @@ void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
     paStreamParameters_.sampleFormat = paFloat32;
     err_printf("Suggested PortAudio output latency = %f seconds.\n",
                paStreamParameters_.suggestedLatency);
-#if defined(WIN32) || defined(__MACH__)
+#if defined(WIN32)
     paError = paBlockingWriteOpen(&cenviron,
         &pabsWrite,
         &paStreamParameters_);
@@ -238,7 +249,7 @@ void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
 
 int rtrecord_(void *inbuf_, int bytes_) /* get samples from ADC */
 {
-#if defined(WIN32) || defined(__MACH__)
+#if defined(WIN32)
     paBlockingRead(pabsRead, (MYFLT *)inbuf_);
     return bytes_ / sizeof(MYFLT);
 #else
@@ -279,7 +290,7 @@ void rtplay_(void *outbuf_, int bytes_) /* put samples to DAC  */
 /* eliminate MIDI jitter by requesting that both be made synchronous with */
 /* the above audio I/O blocks, i.e. by setting -b to some 1 or 2 K-prds.  */
 {
-#if defined(WIN32) || defined(__MACH__)
+#if defined(WIN32)
     paBlockingWrite(pabsWrite, (MYFLT *)outbuf_);
 #else
     int samples = bytes_ / sizeof(MYFLT);
@@ -304,7 +315,7 @@ void rtplay_(void *outbuf_, int bytes_) /* put samples to DAC  */
 
 void rtclose_(void)             /* close the I/O device entirely  */
 {                               /* called only when both complete */
-#if defined(WIN32) || defined(__MACH__)
+#if defined(WIN32)
     paBlockingClose(pabsRead);
     paBlockingClose(pabsWrite);
 #else
@@ -314,6 +325,11 @@ void rtclose_(void)             /* close the I/O device entirely  */
       Pa_AbortStream(pa_out);
     pa_in = pa_out = 0;
 #endif
+#ifndef MSVC /* VL MSVC fix */
     sleep(1);
+#else
+	 Sleep(1000);
+#endif
+
 }
 
