@@ -50,7 +50,7 @@ elif sys.platform[:3] == 'win':
     customCPPPATH.append('c:/apcc/tools/Python23/include')
     customCPPPATH.append('c:/apcc/tools/mingw/include')
     customLIBPATH.append('c:/projects/csound5/cygwin_import_libs')    
-    customSWIGFLAGS.append('-Ic:/apcc/tools/mingw/lib/gcc-lib/mingw32/3.3.1/include')
+    customSWIGFLAGS.append('-Derrmsg=err_msg')
     ################################################################
     # If you want to build CsoundVST you need boost.
     # If it is not in a standard lcoation add it here
