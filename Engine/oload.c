@@ -403,7 +403,9 @@ ENVIRON cenviron_ = {
         0, NULL,   /*      nchanoa, chanoa */
         {},
         NULL,                   /* flist */
-        0                       /* maxfnum */
+        0,                      /* maxfnum */
+        NULL,                   /* gensub */
+        GENMAX+1                /* genmax */
 };
 
 OPARMS O;

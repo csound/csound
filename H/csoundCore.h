@@ -508,6 +508,7 @@ MEMFIL *ldmemfile(char *);
 
 #include "sort.h"
 #include "midiops2.h"
+typedef void    (*GEN)(FUNC *, struct ENVIRON_ *);
 
 typedef struct ENVIRON_
 {
@@ -796,6 +797,8 @@ typedef struct ENVIRON_
   FGDATA        ff;
   FUNC**        flist;
   int           maxfnum;
+  GEN           *gensub;
+  int           genmax;
 } ENVIRON;
 
 extern ENVIRON cenviron_;
