@@ -89,19 +89,24 @@ static  FUNC    *ftalloc(ENVIRON *);
 
 void ftRESET(ENVIRON *csound)
 {
-    int i;
-    if (csound->flist) {
-      for (i = 1; i <= csound->maxfnum; i++)
-        mfree(csound->flist[i]);   /* Check this */
-      mfree(csound->flist);
-      csound->flist   = NULL;
-    }
-    csound->maxfnum = 0;
-    if (csound->gensub) {
-      mfree(csound->gensub);
-      csound->gensub = NULL;
-    }
-/*     vco2_tables_destroy(); */
+  int i;
+  if (csound->flist) {
+    for (i = 1; i <= csound->maxfnum; i++)
+      mfree(csound->flist[i]);   /* Check this */
+    mfree(csound->flist);
+    csound->flist   = NULL;
+  }
+  csound->maxfnum = 0;
+  if (csound->gensub) {
+    mfree(csound->gensub);
+    csound->gensub = NULL;
+  }
+  while (namedgen) {
+    NAMEDGEN *next = namedgen->next;
+    mfree(namedgen);
+    namedgen = next;
+  }
+  /*     vco2_tables_destroy(); */
 }
 
 static void GENUL(FUNC *ftp, ENVIRON *csound)
@@ -115,7 +120,7 @@ void fgens(ENVIRON *csound, EVTBLK *evtblkp) /* create ftable using evtblk data 
     long        ltest, lobits, lomod, genum;
     FUNC        *ftp = NULL;
     int         nargs;
-    FGDATA *ff = &(csound->ff);
+    FGDATA *ff = &csound->ff;
 
     if (csound->gensub==NULL) {
       csound->gensub = (GEN*) mmalloc(sizeof(GEN)*(GENMAX+1));
