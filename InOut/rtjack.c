@@ -438,9 +438,8 @@ static void rtclose_(void*);
 
 int csoundModuleInit(void *csound)
 {
-    CsoundJackClient_t  *client;
-    ENVIRON             *p;
-    char                *drv;
+    ENVIRON *p;
+    char    *drv;
 
     p = (ENVIRON*) csound;
     drv = (char*) GETVAR("_RTAUDIO");
@@ -450,14 +449,37 @@ int csoundModuleInit(void *csound)
           strcmp(drv, "JACK") == 0))
       return 0;
     p->Message(csound, "rtaudio: JACK module enabled\n");
-    /* connect to JACK server */
+    /* register Csound interface functions */
+    p->SetPlayopenCallback(csound, playopen_);
+    p->SetRecopenCallback(csound, recopen_);
+    p->SetRtplayCallback(csound, rtplay_);
+    p->SetRtrecordCallback(csound, rtrecord_);
+    p->SetRtcloseCallback(csound, rtclose_);
+
+    return 0;
+}
+
+/* connect to JACK server, if not done so already */
+/* returns client pointer on success, or NULL in case of an error */
+
+static CsoundJackClient_t *jackConnectServer(void *csound)
+{
+    ENVIRON             *p;
+    CsoundJackClient_t  *client;
+
+    p = (ENVIRON*) csound;
+    /* already connected ? */
+    client = (CsoundJackClient_t*) GETVAR("::JACK::client");
+    if (client != NULL)
+      return client;
+    /* no, connect to JACK server now */
     p->CreateGlobalVariable(csound, "::JACK::client",
                             sizeof(CsoundJackClient_t));
     client = (CsoundJackClient_t*) GETVAR("::JACK::client");
     if (client == NULL) {
-      p->Message(csound, " *** JACK: csoundModuleInit(): "
+      p->Message(csound, " *** JACK: jackConnectServer(): "
                          "memory allocation failure\n");
-      return -1;
+      return NULL;
     }
     client->csound = csound;
     client->active = 0;
@@ -467,19 +489,13 @@ int csoundModuleInit(void *csound)
     client->p.jackPorts = NULL;
     client->client = jack_client_new((char*) GETVAR("::JACK::clientName"));
     if (client->client == NULL) {
-      p->Message(csound, " *** JACK: csoundModuleInit(): "
+      p->Message(csound, " *** JACK: jackConnectServer(): "
                          "could not connect to JACK server\n");
       p->DestroyGlobalVariable(csound, "::JACK::client");
-      return -1;
+      return NULL;
     }
-    /* register Csound interface functions */
-    p->SetPlayopenCallback(csound, playopen_);
-    p->SetRecopenCallback(csound, recopen_);
-    p->SetRtplayCallback(csound, rtplay_);
-    p->SetRtrecordCallback(csound, rtrecord_);
-    p->SetRtcloseCallback(csound, rtclose_);
-
-    return 0;
+    /* successfully connected */
+    return client;
 }
 
 /* open for audio input */
@@ -491,7 +507,7 @@ static int recopen_(void *csound, csRtAudioParams *parm)
 
     p = (ENVIRON*) csound;
     /* do we have a connection to the JACK server ? */
-    client = (CsoundJackClient_t*) GETVAR("::JACK::client");
+    client = jackConnectServer(csound);
     if (client == NULL)
       return -1;    /* no */
     /* open stream */
@@ -515,7 +531,7 @@ static int playopen_(void *csound, csRtAudioParams *parm)
 
     p = (ENVIRON*) csound;
     /* do we have a connection to the JACK server ? */
-    client = (CsoundJackClient_t*) GETVAR("::JACK::client");
+    client = jackConnectServer(csound);
     if (client == NULL)
       return -1;    /* no */
     /* open stream */
