@@ -32,13 +32,13 @@ template<typename T>
 class OpcodeBase
 {
 public:
-    int initialize()
+    int init()
     {
         return NOTOK;
     }
-    static int initialize_(void *opcode)
+    static int init_(void *opcode)
     {
-        return reinterpret_cast<T *>(opcode)->initialize();
+        return reinterpret_cast<T *>(opcode)->init();
     }
     int kontrol()
     {
@@ -46,7 +46,7 @@ public:
     }
     static int kontrol_(void *opcode)
     {
-        return reinterpret_cast<T *>(opcode)->onKontrolSample();
+        return reinterpret_cast<T *>(opcode)->kontrol();
     }
     int audio()
     {
@@ -54,15 +54,15 @@ public:
     }
     static int audio_(void *opcode)
     {
-        return reinterpret_cast<T *>(opcode)->onKontrolSample();
+        return reinterpret_cast<T *>(opcode)->audio();
     }
-    int deinitialize()
+    int deinit()
     {
         return NOTOK;
     }
-    static int deinitialize_(void *opcode)
+    static int deinit_(void *opcode)
     {
-        return reinterpret_cast<T *>(opcode)->onKontrolSample();
+        return reinterpret_cast<T *>(opcode)->deinit();
     }
     ENVIRON *cs()
     {
@@ -85,8 +85,8 @@ public:
       va_list args;
       va_start(args, format);
       if(cs()) {
-          if(cs()->GetMessageLevel(cs() & WARNMSG ||
-             cs()->GetDebug(cs()) {
+          if(cs()->GetMessageLevel(cs()) & WARNMSG ||
+             cs()->GetDebug(cs())) {
               cs()->MessageV(cs(), format, args);
           }
       }
