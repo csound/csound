@@ -30,6 +30,7 @@
 #include "ugens3.h"
 #include "ugens4.h"
 #include "ugens5.h"
+#include "ugens6.h"
 #include "dsputil.h"
 #include "ugens8.h"
 #include "cwindow.h"
@@ -138,7 +139,6 @@ int    lpfrsnset(void*), lpfreson(void*);
 int    lpslotset(void*) ;
 int    lpitpset(void*),lpinterpol(void*) ;
 int    rmsset(void*), rms(void*), gainset(void*), gain(void*);
-int    balnset(void*), balance(void*);
 int    sndinset(void*), soundin(void*);
 int    sndo1set(void*), soundout(void*), sndo2set(void*), soundouts(void*);
 int    in(void*),  ins(void*), inq(void*), inh(void*),  ino(void*), in16(void*);
@@ -209,6 +209,7 @@ int    logbasetwo(void*), logbasetwoa(void*);
 int    lp2_set(void*), lp2(void*);
 int    phaser2set(void*), phaser2(void*);
 int    phaser1set(void*), phaser1(void*);
+int    balnset(void*), balance(void*);
 
 /* thread vals, where isub=1, ksub=2, asub=4:
                 0 =     1  OR   2  (B out only)
@@ -503,6 +504,16 @@ OENTRY opcodlst_1[] = {
 { "rms",    S(RMS),     3,      "k",    "aqo",  rmsset, rms             },
 { "gain",   S(GAIN),    5,      "a",    "akqo", gainset,NULL,   gain    },
 { "balance",S(BALANCE), 5,      "a",    "aaqo", balnset,NULL,   balance },
+{ "pan",    S(PAN),   5, "aaaa", "akkioo",(SUBR)panset,NULL,   (SUBR)pan     },
+{ "reverb", S(REVERB),  5, "a",  "ako",  (SUBR)rvbset, NULL,   (SUBR)reverb  },
+{ "delayw", S(DELAYW),  5,  "",  "a",    (SUBR)delwset,NULL,   (SUBR)delayw  },
+{ "delay1", S(DELAY1),  5,  "a", "ao",   (SUBR)del1set,NULL,   (SUBR)delay1  },
+{ "deltap", S(DELTAP),  5,  "a", "k",    (SUBR)tapset, NULL,   (SUBR)deltap  },
+{ "deltapi",S(DELTAP),  5,  "a", "x",    (SUBR)tapset, NULL,   (SUBR)deltapi },
+{ "deltapn",S(DELTAP),  5,  "a", "x",    (SUBR)tapset, NULL,   (SUBR)deltapn },
+{ "deltap3",S(DELTAP),  5,  "a", "x",    (SUBR)tapset, NULL,   (SUBR)deltap3 },
+{ "deltapx", S(DELTAPX),5,  "a", "ai",   (SUBR)tapxset, NULL,  (SUBR)deltapx },
+{ "deltapxw", S(DELTAPX),5, "",  "aai",  (SUBR)tapxset, NULL, (SUBR)deltapxw },
 { "soundin",S(SOUNDIN), 5,"mmmmmmmmmmmmmmmmmmmmmmmm","Soo",sndinset,NULL,soundin },
 { "soundout",S(SNDOUT), 5,      "",     "aSo",  sndo1set,NULL,  soundout},
 /* { "soundouts",S(SNDOUTS),5,     "",     "aaSo", sndo2set,NULL,  soundouts}, */
