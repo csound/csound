@@ -36,6 +36,7 @@
 #define FALSE   0
 #endif
 
+#ifndef _SNDFILE_
 static struct wav_head formhdr;
 static long   framesize;
 /* RWD.2.98 to avoid recalculating  variable  headersizes */
@@ -51,7 +52,7 @@ static int      write_wavpeak(int fd, int verbose);
 static float    lenfloat(float x);
 
 static long     nchans = 0;     /* because not enough info passed to wavReWriteHdr() ! */
-
+#endif
 #ifdef WORDS_BIGENDIAN
 static short lenshort(short sval) /* coerce a natural short into a littlendian short */
 {
