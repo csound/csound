@@ -56,9 +56,9 @@ void rlsmemfiles(void)
 long        sample;         /* Time file starts in samples */
 long	    stop;           /* Time file ends in samples */
 long	    numsamps;       /* Length in samples */
-float       stime;          /* Time file starts in secs */
-float       endtime;        /* Time file ends in secs */
-float	    dur;	    /* Length in secs */
+MYFLT       stime;          /* Time file starts in secs */
+MYFLT       endtime;        /* Time file ends in secs */
+MYFLT	    dur;	    /* Length in secs */
 int	    outputs;	    /* Number of out chanels */
 
 SOUNDIN *   p;              /* Csound structure */
@@ -149,7 +149,7 @@ main(int argc, char **argv)
             break;
           case 'T':
             FIND("no start time");
-            stime = (float) atof(s);
+            stime = (MYFLT) atof(s);
             while (*++s);
             if (sample >= 0) {
               if (O.msglevel & WARNMSG)
@@ -179,7 +179,7 @@ main(int argc, char **argv)
             break;
           case 'E':	/* Last time */
             FIND("no end time");
-            endtime = (float) atof(s);
+            endtime = (MYFLT) atof(s);
             while (*++s);
             if (dur >= 0.0) {
               if (O.msglevel & WARNMSG)
@@ -199,7 +199,7 @@ main(int argc, char **argv)
             break;
           case 'D':
             FIND("no duration");
-            dur = (float) atof(s);
+            dur = (MYFLT) atof(s);
             while (*++s);
             if (endtime >= FL(0.0)) {
               if (O.msglevel & WARNMSG)
@@ -282,7 +282,7 @@ main(int argc, char **argv)
 
     if (sample<0) sample = 0;
     err_printf("Extracting from sample %d for %d samples (%.5f secs)\n",
-               sample, numsamps, (float)numsamps/p->sr);
+               sample, numsamps, (MYFLT)numsamps/p->sr);
 
     outputs = p->nchanls;
     
@@ -292,7 +292,7 @@ main(int argc, char **argv)
     O.sfheader = 1;
     if (O.outfilename == NULL)  O.outfilename = "test";
     outfd = openout(O.outfilename, 1);
-    esr = (float)p->sr;
+    esr = (MYFLT)p->sr;
     nchnls = outputs;
     ExtractSound(infd, outfd);
     close(outfd);
@@ -304,10 +304,10 @@ static int
 EXsndgetset(char *name)
 {
     int          infd;
-    float        dur;
+    MYFLT        dur;
 static  ARGOFFS  argoffs = {0};     /* these for sndgetset */
 static  OPTXT    optxt;
-static  float    fzero = FL(0.0);
+static  MYFLT    fzero = FL(0.0);
     char         quotname[80];
     static MYFLT sstrcod = (MYFLT)SSTRCOD;
 
@@ -325,7 +325,7 @@ static  float    fzero = FL(0.0);
     if ((infd = sndgetset(p)) == 0)            /* open sndfil, do skiptime */
         return(0);
     p->getframes = p->framesrem;
-    dur = (float) p->getframes / p->sr;
+    dur = (MYFLT) p->getframes / p->sr;
     printf("extracting from %ld sample frames (%3.1f secs)\n",
 	   p->getframes, dur);
     return(infd);
@@ -351,7 +351,7 @@ ExtractSound(int infd, int outfd)
       block++;
       bytes += read_in;
       if (O.rewrt_hdr) {
-        rewriteheader(outfd, bytes);
+        rewriteheader((SNDFILE *)outfd, bytes);
         lseek(outfd, 0L, SEEK_END); /* Place at end again */
       }
       if (O.heartbeat) {
@@ -360,7 +360,7 @@ ExtractSound(int infd, int outfd)
       }
       if (read_in < num) break;
     }
-    rewriteheader(outfd, bytes);
+    rewriteheader((SNDFILE *)outfd, bytes);
     return;
 }
 

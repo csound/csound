@@ -535,7 +535,11 @@ InitScaleTable(int i)
     mixin[i].fulltable = mixin[i].table = tt;
     tt->x0 = 0; tt->y0 = FL(0.0); tt->x1 = 0; tt->y1 = FL(0.0);
     tt->yr = FL(0.0); tt->next = NULL;
+#ifdef USE_DOUBLE
+    while (fscanf(f, "%lf %lf\n", &x, &y) == 2) {
+#else
     while (fscanf(f, "%f %f\n", &x, &y) == 2) {
+#endif
       scalepoint *newpoint;
       newpoint = (scalepoint*) malloc(sizeof(scalepoint));
       if (newpoint == NULL) {
