@@ -259,6 +259,7 @@ static void signal_handler(int sig)
     if (sig == SIGALRM) return;
 #endif
     rtclose_();
+    sleep(1);
     exit(1);
 }
 
