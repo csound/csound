@@ -1,3 +1,9 @@
+2004-06-07  Michael Gogins <gogins@pipeline.com>
+
+	* Changed the CsoundVST module to create a global csound instance of 
+    CsoundVST.CppSound that will work both in CsoundVST and in the standalone
+    Python interpreter.
+
 2004-06-02  Michael Gogins <gogins@pipeline.com>
 
 	* CsoundVST now opens the Python or csd file given on the command line.
