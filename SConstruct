@@ -491,12 +491,25 @@ pluginEnvironment.SharedLibrary('wave-terrain',
 # Plugins with External Dependencies
 
 # FLUIDSYNTH OPCODES
-if configure.CheckHeader("fluidsynth.h", language = "C") :
-    fluidEnvironment = pluginEnvironment.Copy()
-    fluidEnvironment.Append(LIBS = ['stdc++', 'pthread','fluidsynth'])
-
-    fluidEnvironment.SharedLibrary('fluidOpcodes',
-        ['Opcodes/fluidOpcodes/fluidOpcodes.cpp'])
+if configure.CheckHeader("fluidsynth.h", language = "C"):    
+    vstEnvironment.Append(CCFLAGS = ['-DFLUIDSYNTH_NOT_A_DLL', '-DMAKEDLL','-DBUILDING_DLL'])    
+    fluidEnvironment = vstEnvironment.Copy()    
+    fluidEnvironment.Append(LIBS = ['fluidsynth', 'stdc++', 'pthread']) 
+       
+    if sys.platform == 'cygwin' or sys.platform == 'mingw' or sys.platform[:3] == 'win':        
+        fluidEnvironment.Append(LINKFLAGS = ['-mno-cygwin'])        
+        fluidEnvironment.Append(LIBS = ['winmm','dsound'])
+        
+        fluidEnvironment.SharedLibrary('fluidOpcodes', 
+            ['Opcodes/fluidOpcodes/fluidOpcodes.cpp'])    
+            
+        fluidEnvironment.SharedLibrary('fluid', Split('''
+            Opcodes/fluid/AudioEffect.cpp        
+            Opcodes/fluid/audioeffectx.cpp        
+            Opcodes/fluid/Soundfonts.cpp        
+            Opcodes/fluid/SoundfontsMain.cpp        
+            Opcodes/fluid/FluidsynthOpcode.cpp        
+            '''))
         
         
 
