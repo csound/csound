@@ -18,7 +18,6 @@ AC_CANONICAL_HOST
 AC_LIBTOOL_DLOPEN
 AC_LIBTOOL_WIN32_DLL
 AC_PROG_LIBTOOL
-AC_PROG_RANLIB
 
 # Checks for programs.
 AC_PROG_CXX
@@ -163,7 +162,7 @@ AC_ARG_WITH(libsndfile,
 
 #	Compiler options used for all compilation.
 
-CPPFLAGS="-DBETA -IH -I/usr/local/include -I/usr/local/boost"
+CPPFLAGS="-DBETA -I$srcdir/H -I/usr/local/include -I/usr/local/boost"
 
 CFLAGS="-O2 -g -Wall"
 
