@@ -26,6 +26,8 @@
 #ifndef SOUNDIO_H
 #define SOUNDIO_H
 
+#include <sndfile.h>
+
 #ifdef WIN32
 #define IOBUFSAMPS   4096   /* default sampframes in audio iobuf, -b settable */
 #define IODACSAMPS   16384  /* default samps in hardware buffer,  -B settable */
@@ -156,9 +158,9 @@ typedef struct {
         SNDCOM  c;
 } SNDOUTS;
 
-#include <sndfile.h>
-int sreadin(SNDFILE*, MYFLT *, int, SOUNDIN *);
-
+extern  int     type2sf(int type);
+extern  short   sf2type(int format);
+extern  int     sreadin(SNDFILE*, MYFLT *, int, SOUNDIN *);
 
 #ifdef SFSUN41
 #include <multimedia/audio_hdr.h>
