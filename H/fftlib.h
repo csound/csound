@@ -1,12 +1,7 @@
 /*
     fftlib.h:
 
-    FFT library
-    based on public domain code by John Green <green_jt@vsdec.npt.nuwc.navy.mil>
-    original version is available at
-      http://hyperarchive.lcs.mit.edu/
-            /HyperArchive/Archive/dev/src/ffts-for-risc-2-c.hqx
-    ported to Csound by Istvan Varga, 2005
+    Copyright (C) 2005 Istvan Varga
 
     This file is part of Csound.
 
@@ -29,77 +24,81 @@
 #ifndef CSOUND_FFTLIB_H
 #define CSOUND_FFTLIB_H
 
-  /**
-   * Compute in-place complex FFT on the rows of the input array
-   * INPUTS
-   *   *buf = input data array
-   *   FFTsize = FFT size, in samples, or log2 of 1 / (FFT size) if negative
-   *   nRows = number of rows in buf array (use 1 for nRows for a single FFT)
-   * OUTPUTS
-   *   *buf = output data array
-   */
-  PUBLIC void csoundComplexFFT(void *csound, MYFLT *buf, int FFTsize,
-                               int nRows);
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 
   /**
-   * Compute in-place inverse complex FFT on the rows of the input array
-   * INPUTS
-   *   *buf = input data array
-   *   FFTsize = FFT size, in samples, or log2 of 1 / (FFT size) if negative
-   *   nRows = number of rows in buf array (use 1 for nRows for a single FFT)
-   * OUTPUTS
-   *   *buf = output data array
+   * Returns the amplitude scale that should be applied to the result of
+   * an inverse complex FFT with a length of 'FFTsize' samples.
    */
-  PUBLIC void csoundInverseComplexFFT(void *csound, MYFLT *buf,
-                                      int FFTsize, int nRows);
+
+  PUBLIC MYFLT csoundGetInverseComplexFFTScale(void *csound, int FFTsize);
 
   /**
-   * Compute in-place real FFT on the rows of the input array
-   * The result is the complex spectra of the positive frequencies
-   * except the location for the first complex number contains the real
-   * values for DC and Nyquist
-   * See csoundRSpectProd for multiplying two of these spectra together
-   * - ex. for fast convolution
-   * INPUTS
-   *   *buf = real input data array
-   *   FFTsize = FFT size, in samples, or log2 of 1 / (FFT size) if negative
-   *   nRows = number of rows in buf array (use 1 for nRows for a single FFT)
-   * OUTPUTS
-   *   *buf = output data array, in the following order:
-   *            Re(x[0]), Re(x[N/2]), Re(x[1]), Im(x[1]), Re(x[2]), Im(x[2]),
-   *            ... Re(x[N/2-1]), Im(x[N/2-1]).
+   * Returns the amplitude scale that should be applied to the result of
+   * an inverse real FFT with a length of 'FFTsize' samples.
    */
-  PUBLIC void csoundRealFFT(void *csound, MYFLT *buf, int FFTsize, int nRows);
+
+  PUBLIC MYFLT csoundGetInverseRealFFTScale(void *csound, int FFTsize);
 
   /**
-   * Compute in-place real iFFT on the rows of the input array
-   * data order as from csoundRealFFT()
-   * INPUTS
-   *   *buf = input data array in the following order:
-   *            Re(x[0]), Re(x[N/2]), Re(x[1]), Im(x[1]), Re(x[2]), Im(x[2]),
-   *            ... Re(x[N/2-1]), Im(x[N/2-1]).
-   *   FFTsize = FFT size, in samples, or log2 of 1 / (FFT size) if negative
-   *   nRows = number of rows in buf array (use 1 for nRows for a single FFT)
-   * OUTPUTS
-   *   *buf = real output data array
+   * Compute in-place complex FFT
+   * FFTsize: FFT length in samples
+   * buf:     array of FFTsize*2 MYFLT values,
+   *          in interleaved real/imaginary format
    */
-  PUBLIC void csoundInverseRealFFT(void *csound, MYFLT *buf,
-                                   int FFTsize, int nRows);
+
+  PUBLIC void csoundComplexFFT(void *csound, MYFLT *buf, int FFTsize);
 
   /**
-   * When multiplying a pair of spectra from csoundRealFFT() care must be
-   * taken to multiply the two real values seperately from the complex ones.
-   * This routine does it correctly.
-   * the result can be stored in-place over one of the inputs
-   * INPUTS
-   *   *buf1 = input data array    first spectra
-   *   *buf2 = input data array    second spectra
-   *   FFTsize = FFT size, in samples, or log2 of 1 / (FFT size) if negative
-   * OUTPUTS
-   *   *outbuf = output data array spectra
+   * Compute in-place inverse complex FFT
+   * FFTsize: FFT length in samples
+   * buf:     array of FFTsize*2 MYFLT values,
+   *          in interleaved real/imaginary format
+   * Output should be scaled by the return value of
+   * csoundGetInverseComplexFFTScale(csound, FFTsize).
    */
-  PUBLIC void csoundRSpectProd(void *csound, MYFLT *buf1, MYFLT *buf2,
-                               MYFLT *outbuf, int FFTsize);
+
+  PUBLIC void csoundInverseComplexFFT(void *csound, MYFLT *buf, int FFTsize);
+
+  /**
+   * Compute in-place real FFT
+   * FFTsize: FFT length in samples
+   * buf:     array of FFTsize MYFLT values; output is in interleaved
+   *          real/imaginary format, except for buf[1] which is the real
+   *          part for the Nyquist frequency
+   */
+
+  PUBLIC void csoundRealFFT(void *csound, MYFLT *buf, int FFTsize);
+
+  /**
+   * Compute in-place inverse real FFT
+   * FFTsize: FFT length in samples
+   * buf:     array of FFTsize MYFLT values; input is expected to be in
+   *          interleaved real/imaginary format, except for buf[1] which
+   *          is the real part for the Nyquist frequency
+   * Output should be scaled by the return value of
+   * csoundGetInverseRealFFTScale(csound, FFTsize).
+   */
+
+  PUBLIC void csoundInverseRealFFT(void *csound, MYFLT *buf, int FFTsize);
+
+  /**
+   * Multiply two arrays (buf1 and buf2) of complex data in the format
+   * returned by csoundRealFFT(), and leave the result in outbuf, which
+   * may be the same as either buf1 or buf2.
+   * An amplitude scale of 'scaleFac' is also applied.
+   * The arrays should contain 'FFTsize' MYFLT values.
+   */
+
+  PUBLIC void csoundRealFFTMult(void *csound,
+                                MYFLT *outbuf, MYFLT *buf1, MYFLT *buf2,
+                                int FFTsize, MYFLT scaleFac);
+
+#ifdef __cplusplus
+};
+#endif /* __cplusplus */
 
 #endif      /* CSOUND_FFTLIB_H */
 
