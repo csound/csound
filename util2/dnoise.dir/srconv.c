@@ -46,6 +46,7 @@
 #include "cs.h"
 #include "sfheader.h"
 #include "soundio.h"
+#include "ustub.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,6 +54,8 @@
 #ifdef LINUX
 #include <unistd.h>
 #endif
+
+ENVIRON cenviron;
 
 #define IBUF 	(4096)
 #define IBUF2 	(IBUF/2)
@@ -64,76 +67,56 @@
 extern  HEADATA *readheader(int, char *, SOUNDIN*);
 extern	int      SAsndgetset(char *, SOUNDIN**, MYFLT*, MYFLT*, MYFLT*, int);
 extern	long     getsndin(int, MYFLT *, long, SOUNDIN *);
-extern void bytrev2(char *, int), bytrev4(char *, int), rewriteheader(int,long);
-extern int  openout(char *, int), bytrevhost(void), sfsampsize(int);
+extern void rewriteheader(int,long);
+extern int  openout(char *, int);
 extern void writeheader(int, char *);
 extern char *getstrformat(int);
 
 static void (*audtran)(char *, int), nullfn(char *, int);
 static void (*spoutran)(float *, int);
-static void chartran(float *, int), shortran(float *, int),
-            longtran(float *, int), floatran(float *, int),
-            bytetran(float *, int);
-#ifdef never
-static void alawtran(float *, int);
-#endif
-#ifdef ULAW
-static void ulawtran(float *, int);
-#endif
-void srconv_kaiser(int, MYFLT *, int, int, MYFLT);
-void srconv_usage(int);
+void kaiser(int, MYFLT *, int, int, MYFLT);
+void usage(int);
 int writebuffer(MYFLT *, int);
+extern char *type2string(int);
 
 /* Static global variables */
 static unsigned    outbufsiz;
 static void        *outbuf;
-static  char       *choutbuf;               /* char  pntr to above  */
-static  short      *shoutbuf;               /* short pntr           */
-static  long       *lloutbuf;               /* long  pntr           */
-static  float      *floutbuf;               /* float pntr           */
-static  int        outrange = 0;            /* Count samples out of range */
 
 static int outfd;
 static int   block = 0;
 static long  bytes = 0;
+OPARMS	O = {0,0, 0,1,1,0, 0,0, 0,0, 0,0, 1,0,0,7, 0,0,0, 0,0,0,0, 0,0 };
 
-void srconv_usage(int exitcode)
+
+/* int POLL_EVENTS(void) */
+/* { */
+/*     return 1; */
+/* } */
+
+void pvsys_release(void) {};
+
+void *memfiles = NULL;
+void rlsmemfiles(void)
 {
-    err_printf("usage: srconv [flags] infile\n\nflags:\n");
-err_printf("-P num\tpitch transposition ratio (srate / r) [don't specify both P and r]\n");
-err_printf("-Q num\tquality factor (1, 2, 3, or 4: default = 2)\n");
-err_printf("-i filnam\tbreak file\n");
-err_printf("-r num\toutput sample rate (must be specified)\n");
-err_printf(Str(X_157,"-o fnam\tsound output filename\n"));
-err_printf("\n");
-err_printf(Str(X_96,"-A\tcreate an AIFF format output soundfile\n"));
-err_printf(Str(X_111,"-J\tcreate an IRCAM format output soundfile\n"));
-err_printf(Str(X_132,"-W\tcreate a WAV format output soundfile\n"));
-err_printf(Str(X_149,"-h\tno header on output soundfile\n"));
-err_printf(Str(X_141,"-c\t8-bit signed_char sound samples\n"));
-#ifdef never
-err_printf(Str(X_136,"-a\talaw sound samples\n"));
-#endif
-err_printf(Str(X_94,"-8\t8-bit unsigned_char sound samples\n"));
-#ifdef ULAW
-err_printf(Str(X_166,"-u\tulaw sound samples\n"));
-#endif
-err_printf(Str(X_164,"-s\tshort_int sound samples\n"));
-err_printf(Str(X_153,"-l\tlong_int sound samples\n"));
-err_printf(Str(X_145,"-f\tfloat sound samples\n"));
-err_printf(Str(X_161,"-r N\torchestra srate override\n"));
-err_printf(Str(X_1552,"-K\tDo not generate PEAK chunks\n"));
-err_printf(Str(X_125,"-R\tcontinually rewrite header while writing soundfile (WAV/AIFF)\n"));
-err_printf(Str(X_108,"-H#\tprint a heartbeat style 1, 2 or 3 at each soundfile write\n"));
-err_printf(Str(X_120,"-N\tnotify (ring the bell) when score or miditrack is done\n"));
-err_printf(Str(X_90,"-- fnam\tlog output to file\n"));
-    exit(exitcode);
 }
 
-void dieu(char *s)
+static void dieu(char *s)
 {
-    fprintf(stderr, "srconv: %s\n", s);
-    srconv_usage(1);
+    fprintf(stderr, "dnoise: %s\n", s);
+    usage(1);
+}
+
+void beep(void)
+{
+#ifdef _macintosh
+	SysBeep(10000);
+#elif CWIN
+	extern void cwin_Beep(void);
+	cwin_Beep();
+#else
+        printf(Str(X_28,"%c\tbeep!\n"),'\007');
+#endif
 }
 
 int main(int argc, char **argv)
@@ -262,21 +245,16 @@ int main(int argc, char **argv)
             if (O.filetyp == TYP_WAV) {
               if (envoutyp == NULL) goto outtyp;
               if (O.msglevel & WARNMSG)
-        printf(Str(X_95,"-A overriding local default WAV out"));
+                printf(Str(X_95,"-A overriding local default WAV out"));
             }
-            if (O.outformat == AE_FLOAT) {
-              if (O.msglevel & WARNMSG)
-        printf(Str(X_401,"Overriding File Type to AIFF float format"));
-              O.filetyp = TYP_AIFF;
-            }
-            else O.filetyp = TYP_AIFF;     /* AIFF output request*/
+            O.filetyp = TYP_AIFF;     /* AIFF output request*/
             break;
           case 'J':
             if (O.filetyp == TYP_AIFF ||
                 O.filetyp == TYP_WAV) {
               if (envoutyp == NULL) goto outtyp;
               if (O.msglevel & WARNMSG)
-        printf(Str(X_110,"-J overriding local default AIFF/WAV out"));
+                printf(Str(X_110,"-J overriding local default AIFF/WAV out"));
             }
             O.filetyp = TYP_IRCAM;      /* IRCAM output request */
             break;
@@ -284,7 +262,7 @@ int main(int argc, char **argv)
             if (O.filetyp == TYP_AIFF) {
               if (envoutyp == NULL) goto outtyp;
               if (O.msglevel & WARNMSG)
-        printf(Str(X_131,"-W overriding local default AIFF out"));
+                printf(Str(X_131,"-W overriding local default AIFF out"));
             }
 /*             if (!POLL_EVENTS()) exit(1); */
             O.filetyp = TYP_WAV;      /* WAV output request */
@@ -368,7 +346,7 @@ int main(int argc, char **argv)
             break;
           default:
             printf("Looking at %c\n", c);
-            srconv_usage(1);    /* this exits with error */
+            usage(1);    /* this exits with error */
           }
         }
       }
@@ -378,13 +356,15 @@ int main(int argc, char **argv)
       }
       else {
         printf("End with %s\n", s);
-        srconv_usage(1);
+        usage(1);
       }
     }
-    dbfs_init(DFLT_DBFS);
+#ifdef RWD_DBFS
+            dbfs_init(DFLT_DBFS);
+#endif
     if (infile==NULL) {
       printf("No input given\n");
-      srconv_usage(1);
+      usage(1);
     }
     if ((inf = SAsndgetset(infile,&p,&beg_time,&input_dur,&sr,channel))<0) {
       fprintf(stderr,Str(X_735,"error while opening %s"), infile);
@@ -494,72 +474,11 @@ int main(int argc, char **argv)
 #endif
     outfd = openout(O.outfilename, 1);
     nchnls = Chans = p->nchanls;
-    if (O.sfheader)
-        writeheader(outfd, O.outfilename);      /* write header as required   */
-    if ((O.filetyp == TYP_AIFF && bytrevhost()) ||
-        (O.filetyp == TYP_WAV && !bytrevhost())) {
-        if (O.outformat == AE_SHORT)        /* if audio out needs byte rev  */
-            audtran = bytrev2;           /*   redirect the audio puts    */
-        else if (O.outformat == AE_LONG)
-            audtran = bytrev4;
-        else audtran = nullfn;
-    }
-    else audtran = nullfn;              /* else use standard audio puts */
     outbufsiz = OBUF * O.sfsampsize;/* calc outbuf size */
     outbuf = mmalloc((long)outbufsiz);                 /*  & alloc bufspace */
     printf(Str(X_1382,"writing %d-byte blks of %s to %s"),
            outbufsiz, getstrformat(O.outformat), O.outfilename);
-    printf(" %s\n",
-           O.filetyp == TYP_AIFF ? "(AIFF)" :
-           O.filetyp == TYP_WAV ? "(WAV)" :
-#ifdef _macintosh
-             "(SDII)"
-#elif defined(SFIRCAM)
-             "(IRCAM)"
-#elif defined(NeXT)
-             "(NeXT)"
-#else
-             "(Raw)"
-#endif
-             );
-    switch(O.outformat) {
-    case AE_CHAR:
-        spoutran = chartran;
-        choutbuf = outbuf;
-        break;
-#ifdef mever
-    case AE_ALAW:
-        spoutran = alawtran;
-        choutbuf = outbuf;
-        break;
-#endif
-#ifdef ULAW
-    case AE_ULAW:
-        spoutran = ulawtran;
-        choutbuf = outbuf;
-        break;
-#endif
-    case AE_SHORT:
-        spoutran = shortran;
-        shoutbuf = (short *)outbuf;
-        break;
-    case AE_LONG:
-        spoutran = longtran;
-        lloutbuf = (long  *)outbuf;
-        break;
-    case AE_FLOAT:
-        spoutran = floatran;
-        floutbuf = (float *)outbuf;
-        break;
-    case AE_UNCH:
-        spoutran = bytetran;
-        choutbuf = outbuf;
-        break;
-    default:
-        err_printf( "Type is %x\n", O.outformat);
-        die(Str(X_1329,"unknown audio_out format"));
-    }
-
+    printf(" %s\n", type2string(O.filetyp));
 
 /* this program performs arbitrary sample-rate conversion
     with high fidelity.  the method is to step through the
@@ -595,7 +514,7 @@ int main(int argc, char **argv)
     window += WinLen;
     wLen = (M/2 - L) / L;
 
-    srconv_kaiser(M,window,WinLen,1,beta);
+    kaiser(M,window,WinLen,1,beta);
     for (i = 1; i <= WinLen; i++)
       *(window - i) = *(window + i);
 
@@ -797,8 +716,85 @@ outtyp:
 outform:
     sprintf(errmsg,Str(X_1198,"sound output format cannot be both -%c and -%c"),
             outformch, c);
-    srconv_usage(1);
+    usage(1);
     exit(1);
+}
+
+void usage(int exitcode)
+{
+    err_printf("usage: srconv [flags] infile\n\nflags:\n");
+err_printf("-P num\tpitch transposition ratio (srate / r) [don't specify both P and r]\n");
+err_printf("-Q num\tquality factor (1, 2, 3, or 4: default = 2)\n");
+err_printf("-i filnam\tbreak file\n");
+err_printf("-r num\toutput sample rate (must be specified)\n");
+err_printf(Str(X_157,"-o fnam\tsound output filename\n"));
+err_printf("\n");
+err_printf(Str(X_96,"-A\tcreate an AIFF format output soundfile\n"));
+err_printf(Str(X_111,"-J\tcreate an IRCAM format output soundfile\n"));
+err_printf(Str(X_132,"-W\tcreate a WAV format output soundfile\n"));
+err_printf(Str(X_149,"-h\tno header on output soundfile\n"));
+err_printf(Str(X_141,"-c\t8-bit signed_char sound samples\n"));
+#ifdef never
+err_printf(Str(X_136,"-a\talaw sound samples\n"));
+#endif
+err_printf(Str(X_94,"-8\t8-bit unsigned_char sound samples\n"));
+#ifdef ULAW
+err_printf(Str(X_166,"-u\tulaw sound samples\n"));
+#endif
+err_printf(Str(X_164,"-s\tshort_int sound samples\n"));
+err_printf(Str(X_153,"-l\tlong_int sound samples\n"));
+err_printf(Str(X_145,"-f\tfloat sound samples\n"));
+err_printf(Str(X_161,"-r N\torchestra srate override\n"));
+err_printf(Str(X_1552,"-K\tDo not generate PEAK chunks\n"));
+err_printf(Str(X_125,"-R\tcontinually rewrite header while writing soundfile (WAV/AIFF)\n"));
+err_printf(Str(X_108,"-H#\tprint a heartbeat style 1, 2 or 3 at each soundfile write\n"));
+err_printf(Str(X_120,"-N\tnotify (ring the bell) when score or miditrack is done\n"));
+err_printf(Str(X_90,"-- fnam\tlog output to file\n"));
+    exit(exitcode);
+}
+
+#ifndef CWIN
+#include <stdarg.h>
+
+void err_printf(char *fmt, ...)
+{
+    va_list a;
+    va_start(a, fmt);
+    vfprintf(stderr, fmt, a);
+    va_end(a);
+}
+#endif
+
+int writebuffer(MYFLT * obuf, int length)
+{
+    spoutran(obuf, length);
+    audtran(outbuf, O.sfsampsize*length);
+    write(outfd, outbuf, O.sfsampsize*length);
+    block++;
+    bytes += O.sfsampsize*length;
+    if (O.rewrt_hdr) {
+      rewriteheader(outfd, bytes);
+      lseek(outfd, 0L, SEEK_END); /* Place at end again */
+    }
+    if (O.heartbeat) {
+      if (O.heartbeat==1) {
+#ifdef SYMANTEC
+        nextcurs();
+#elif __BEOS__
+        putc('.', stderr); fflush(stderr);
+#else
+        putc("|/-\\"[block&3], stderr); putc(8,stderr);
+#endif
+      }
+      else if (O.heartbeat==2) putc('.', stderr);
+      else if (O.heartbeat==3) {
+        int n;
+        err_printf( "%d%n", block, &n);
+        while (n--) putc(8, stderr);
+      }
+      else putc(7, stderr);
+    }
+    return length;
 }
 
 static void
@@ -808,150 +804,7 @@ nullfn(char *outbuf, int nbytes)
 }
 
 
-static void bytetran(float *buffer, int size) /* after J. Mohr  1995 Oct 17 */
-{             /*   sends HI-ORDER 8 bits of shortsamp, converted to unsigned */
-    long   longsmp;
-    int    n;
-
-    for (n=0; n<size; n++) {
-      if ((longsmp = (long)buffer[n]) >= 0) {   /* +ive samp:   */
-        if (longsmp > 32767) {          /* out of range?     */
-          longsmp = 32767;              /*   clip and report */
-          outrange++;
-        }
-        else {                          /* ditto -ive samp */
-          if (longsmp < -32768) {
-            longsmp = -32768;
-            outrange++;
-          }
-        }
-      }
-      choutbuf[n] = (unsigned char)(longsmp >> 8)^0x80;
-    }
-}
-
-static void
-shortran(float *buffer, int size)       /* fix spout vals and put in outbuf */
-{                                       /*      write buffer when full      */
-    int n;
-    long longsmp;
-
-    for (n=0; n<size; n++) {
-        if ((longsmp = (long)buffer[n]) >= 0) {               /* +ive samp:   */
-            if (longsmp > 32767) {              /* out of range?     */
-                longsmp = 32767;        /*   clip and report */
-                outrange++;
-            }
-        }
-        else {
-            if (longsmp < -32768) {             /* ditto -ive samp */
-                longsmp = -32768;
-                outrange++;
-            }
-        }
-        shoutbuf[n] = (short)longsmp;
-    }
-}
-
-static void
-chartran(float *buffer, int size) /* same as above, but 8-bit char output */
-                                  /*   sends HI-ORDER 8 bits of shortsamp */
-{
-    int n;
-    long longsmp;
-
-    for (n=0; n<size; n++) {
-        if ((longsmp = (long)buffer[n]) >= 0) {       /* +ive samp:   */
-            if (longsmp > 32767) {              /* out of range?     */
-                longsmp = 32767;        /*   clip and report */
-                outrange++;
-            }
-        }
-        else {
-            if (longsmp < -32768) {             /* ditto -ive samp */
-                longsmp = -32768;
-                outrange++;
-            }
-        }
-        choutbuf[n] = (char)(longsmp >> 8);
-    }
-}
-
-#ifdef never
-static void
-alawtran(float *buffer, int size)
-{
-    die(Str(X_590,"alaw not yet implemented"));
-}
-#endif
-
-#define MUCLIP  32635
-#define BIAS    0x84
-#define MUZERO  0x02
-#define ZEROTRAP
-
-#ifdef ULAW
-static void
-ulawtran(float *buffer, int size) /* ulaw-encode spout vals & put in outbuf */
-                                 /*     write buffer when full      */
-{
-    int  n;
-    long longsmp;
-    int  sign;
-    extern char    exp_lut[];               /* mulaw encoding table */
-    int sample, exponent, mantissa, ulawbyte;
-
-    for (n=0; n<size; n++) {
-        if ((longsmp = (long)buffer[n]) < 0) {        /* if sample negative   */
-            sign = 0x80;
-            longsmp = - longsmp;                /*  make abs, save sign */
-        }
-        else sign = 0;
-        if (longsmp > MUCLIP) {                 /* out of range?     */
-            longsmp = MUCLIP;                   /*   clip and report */
-            outrange++;
-        }
-        sample = longsmp + BIAS;
-        exponent = exp_lut[( sample >> 8 ) & 0x7F];
-        mantissa = ( sample >> (exponent+3) ) & 0x0F;
-        ulawbyte = ~ (sign | (exponent << 4) | mantissa );
-#ifdef ZEROTRAP
-        if (ulawbyte == 0) ulawbyte = MUZERO;    /* optional CCITT trap */
-#endif
-        choutbuf[n] = ulawbyte;
-    }
-}
-#endif
-
-static void
-longtran(float *buffer, int size) /* send long_int spout vals to outbuf */
-                                  /*    write buffer when full      */
-{
-    int n;
-
-    for (n=0; n<size; n++) {
-        lloutbuf[n] = (long) buffer[n];
-        if (buffer[n] > (float)(0x7fffffff)) {
-            lloutbuf[n] = 0x7fffffff;
-            outrange++;
-        }
-        else if (buffer[n] < - (float)(0x7fffffff)) {
-            lloutbuf[n] = - 0x7fffffff;
-            outrange++;
-        }
-        else lloutbuf[n] = (long) buffer[n];
-    }
-}
-
-static void
-floatran(float *buffer, int size)
-{
-    int n;
-    for (n=0; n<size; n++) floutbuf[n] = buffer[n];
-}
-
-
-MYFLT srconv_ino(MYFLT x)
+MYFLT ino(MYFLT x)
 {
     MYFLT	y, t, e, de, sde, xi;
     int i;
@@ -972,7 +825,7 @@ MYFLT srconv_ino(MYFLT x)
 }
 
 
-void srconv_kaiser(int nf, MYFLT *w, int n, int ieo, MYFLT beta)
+void kaiser(int nf, MYFLT *w, int n, int ieo, MYFLT beta)
 {
 
 /*
@@ -986,7 +839,7 @@ void srconv_kaiser(int nf, MYFLT *w, int n, int ieo, MYFLT beta)
     MYFLT	bes, xind, xi;
     int	i;
 
-    bes = srconv_ino(beta);
+    bes = ino(beta);
     xind = (MYFLT)(nf-1)*(nf-1);
 
     for (i = 0; i < n; i++) {
@@ -995,9 +848,15 @@ void srconv_kaiser(int nf, MYFLT *w, int n, int ieo, MYFLT beta)
         xi += 0.5;
       xi = FL(4.0) * xi * xi;
       xi = (MYFLT)sqrt(1.0 - (double)(xi / xind));
-      w[i] = srconv_ino(beta * xi);
+      w[i] = ino(beta * xi);
       w[i] /= bes;
     }
     return;
 }
-
+void csoundMessage0(const char *format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    vprintf(format, args);
+    va_end(args);
+}

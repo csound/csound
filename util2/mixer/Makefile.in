@@ -9,9 +9,8 @@ CFLAGS  = @CFLAGS@ @XCFLAGS@ $(DEFINES)
 LIBS    = @WINLDFLAGS@ @X_LIBS@ @LIBS@
 
 OBJS =	$T/sndinfo.@OBJEXT@ $T/filopen.@OBJEXT@ $T/sfheader.@OBJEXT@ \
-	$T/soundin.@OBJEXT@ $T/aiff.@OBJEXT@ \
-	$T/wave.@OBJEXT@ $T/ieee80.@OBJEXT@ $T/memalloc.@OBJEXT@ $T/aifc.@OBJEXT@ \
-        $T/getstring.@OBJEXT@
+	$T/libsnd.@OBJEXT@ $T/rtpa.@OBJEXT@ $T/libsnd_u.@OBJEXT@ \
+	$T/memalloc.@OBJEXT@ $T/getstring.@OBJEXT@ $T/natben.@OBJEXT@
 
 T = ../..
 
@@ -23,10 +22,10 @@ mixers:		mixer
 
 
 mixer:		mixer.@OBJEXT@ $(OBJS)
-		@CC@ $(CFLAGS) mixer.@OBJEXT@ $(OBJS) -lm -o mixer
+		@CC@ $(CFLAGS) mixer.@OBJEXT@ $(OBJS) -lportaudio -lsndfile -lm -o mixer
 
 extractor:	xtrct.@OBJEXT@ $(OBJS)
-		@CC@ $(CFLAGS) xtrct.@OBJEXT@ $(OBJS) -lm -o extractor
+		@CC@ $(CFLAGS) xtrct.@OBJEXT@ $(OBJS) -lportaudio -lsndfile -lm -o extractor
 
 mixer.@OBJEXT@:	mixer.c $(INC)/ustub.h $(INC)/cs.h $(INC)/soundio.h
 		@CC@ -c $(CFLAGS) -I$(INC) mixer.c
