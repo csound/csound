@@ -22,9 +22,9 @@
 */
 
 /* The model is that of the e-mail of 6 May 2004 09:31:16 BST */
-/* First version has a limit of NUMBUS buses of each type, but
+/* First version has a limit of NUMCHAN channels of each type, but
    that can be changed with a little more code.
-   Second version has expanding bus size, now coded.
+   Second version has expanding chan size, now coded.
    JPff -- Roquebrun, France
 */
 #include "csdl.h"
@@ -32,106 +32,101 @@
 typedef struct  {
         OPDS    h;
         MYFLT   *ain, *kn;   /* The parameter */
-} BUSO;
+} CHANO;
 
 typedef struct  {
         OPDS    h;
         MYFLT   *ar, *kn;   /* The parameter */
-} BUSI;
+} CHANI;
 
-
-
-
-#define NUMBUS (16)
-
-int busokset(BUSO *p)
+int chanokset(CHANO *p)
 {
     return OK;
-} /* end busokset(p) */
+} /* end chanokset(p) */
 
-int busoaset(BUSO *p)
+int chanoaset(CHANO *p)
 {
     return OK;
-} /* end busset(p) */
+} /* end chanset(p) */
 
-int busokdo(BUSO *p)
+int chanokdo(CHANO *p)
 {
     int kn = (int)(*p->kn + 0.5);
     if (kn<0)
       return NOTOK;
-    if (kn>nbusok) {
-      busok = (MYFLT*)realloc(busok,kn*sizeof(MYFLT));
-      nbusok = kn;
+    if (kn>nchanok) {
+      chanok = (MYFLT*)realloc(chanok,kn*sizeof(MYFLT));
+      nchanok = kn;
     }
-    busok[kn] = *p->ain;
+    chanok[kn] = *p->ain;
     return OK;
 }
 
-int busoado(BUSO *p)
+int chanoado(CHANO *p)
 {
     int i,j;
     int kn = (int)(*p->kn + 0.5);
     if (kn<0)
       return NOTOK;
-    if (kn>nbusoa) {
-      busoa = (MYFLT*)realloc(busoa,kn*sizeof(MYFLT)*ksmps);
-      nbusoa = kn;
+    if (kn>nchanoa) {
+      chanoa = (MYFLT*)realloc(chanoa,kn*sizeof(MYFLT)*ksmps);
+      nchanoa = kn;
     }
     for (i=0, j=kn*ksmps; i<ksmps; i++, j++) {
-      busok[j] = (*p->ain)++;
+      chanok[j] = (*p->ain)++;
     }
     return OK;
-} /* end busoas(p) */
+} /* end chanoas(p) */
 
-int busikset(BUSI *p)
+int chanikset(CHANI *p)
 {
     return OK;
-} /* end busiset(p) */
+} /* end chaniset(p) */
 
-int busiaset(BUSI *p)
+int chaniaset(CHANI *p)
 {
     return OK;
-} /* end busiaset(p) */
+} /* end chaniaset(p) */
 
-int busikdo(BUSI *p)
+int chanikdo(CHANI *p)
 {
     int kn = (int)(*p->kn + 0.5);
     if (kn<0)
       return NOTOK;
-    if (kn>nbusik) {
-      busik = (MYFLT*)realloc(busik, kn*sizeof(MYFLT));
-      nbusik = kn;
+    if (kn>nchanik) {
+      chanik = (MYFLT*)realloc(chanik, kn*sizeof(MYFLT));
+      nchanik = kn;
     }
-    *p->ar = busok[kn];
+    *p->ar = chanok[kn];
     return OK;
 }
 
-int busiado(BUSI *p)
+int chaniado(CHANI *p)
 {
     int i,j;
     int kn = (int)(*p->kn + 0.5);
     if (kn<0)
       return NOTOK;
-    if (kn>nbusia) {
-      busia = (MYFLT*)realloc(busia, kn*sizeof(MYFLT));
-      nbusia = kn;
+    if (kn>nchania) {
+      chania = (MYFLT*)realloc(chania, kn*sizeof(MYFLT));
+      nchania = kn;
     }
     for (i=0, j=kn*ksmps; i<ksmps; i++, j++) {
-      *(p->ar++) = busoa[j];
+      *(p->ar++) = chanoa[j];
     }
     return OK;
-} /* end busias(p) */
+} /* end chanias(p) */
 
 
 #define S       sizeof
 
 static OENTRY localops[] = {
-  { "buso",  0xfffd},
-  { "buso_k", S(BUSO), 2, "",  "kk", NULL,(SUBR)busokdo, NULL},
-  { "buso_a", S(BUSO), 4, "",  "ak", NULL, NULL,         (SUBR)busoado},
-  { "busi",  0xffff},
-  { "busi_k", S(BUSO), 2, "k", "k", NULL, (SUBR)busikdo, NULL},
-  { "busi_k", S(BUSO), 4, "a", "k", NULL, NULL,          (SUBR)busiado}
+  { "chano",  0xfffd},
+  { "chano_k", S(CHANO), 2, "",  "kk", NULL,(SUBR)chanokdo, NULL},
+  { "chano_a", S(CHANO), 4, "",  "ak", NULL, NULL,         (SUBR)chanoado},
+  { "chani",  0xffff},
+  { "chani_k", S(CHANO), 2, "k", "k", NULL, (SUBR)chanikdo, NULL},
+  { "chani_k", S(CHANO), 4, "a", "k", NULL, NULL,          (SUBR)chaniado}
 };
 
 LINKAGE
