@@ -1,7 +1,11 @@
+2004-10-21  John ffitch  <jpff@codemist.co.uk>
+
+	* OOps/ugens6.c (delset, delrset): Round not truncate
+	(deltap): Round not truncate
+
 2004-10-20  John ffitch  <jpff@codemist.co.uk>
 
-	* OOps/ugens6.c (delrset): NULL list of delays for safety
-	(delayr): Need to save curp at end of each k-cycle
+	* OOps/ugens6.c (delrset): NULL list of delays for safety, 
 
 2004-09-12  Michael Gogins <gogins@pipeline.com>
 
