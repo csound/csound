@@ -540,7 +540,7 @@ int rsnsety(ENVIRON *csound, RESONY *p)
     if ((p->loop = (int) (*p->ord + FL(0.5))) < 1) p->loop = 4; /*default value*/
     if (!*p->istor && (p->aux.auxp == NULL ||
                       (int)(p->loop*2*sizeof(MYFLT)) > p->aux.size))
-      auxalloc(csound, (long)(p->loop*2*sizeof(MYFLT)), &p->aux);
+      csound->AuxAlloc(csound, (long)(p->loop*2*sizeof(MYFLT)), &p->aux);
     p->yt1 = (MYFLT*)p->aux.auxp; p->yt2 = (MYFLT*)p->aux.auxp + p->loop;
 /*      else if (p->loop > 50) */
 /*        initerror("illegal order num. (min 1, max 50)"); */
@@ -552,7 +552,7 @@ int rsnsety(ENVIRON *csound, RESONY *p)
       for (j=0; j< p->loop; j++) p->yt1[j] = p->yt2[j] = FL(0.0);
     }
     if (p->buffer.auxp == NULL)
-      auxalloc(csound, (long)(ksmps*sizeof(MYFLT)), &p->buffer);
+      csound->AuxAlloc(csound, (long)(ksmps*sizeof(MYFLT)), &p->buffer);
     return OK;
 }
 
@@ -885,7 +885,7 @@ int vibrato_set(ENVIRON *csound, VIBRATO *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = ftfind(csound, p->ifn)) != NULL) {
+    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) {
       p->ftp = ftp;
       if (*p->iphs >= 0)
         p->lphs = ((long)(*p->iphs * FMAXLEN)) & PHMASK;
@@ -963,7 +963,7 @@ int vibr_set(ENVIRON *csound, VIBR *p)
 #define cpsMaxRate      FL(2.28100)
 #define iphs            FL(0.0)
 
-    if ((ftp = ftfind(csound, p->ifn)) != NULL) {
+    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) {
       p->ftp = ftp;
       p->lphs = ((long)(iphs * FMAXLEN)) & PHMASK;
     }
@@ -1561,3 +1561,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
+

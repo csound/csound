@@ -392,7 +392,7 @@ int Xsynthset(ENVIRON *csound, CON *p)
     bufsize = 10 * flen * sizeof(MYFLT);
 
     if (p->mem.auxp == NULL || bufsize > p->mem.size)
-      auxalloc(csound, bufsize, &p->mem);
+      csound->AuxAlloc(csound, bufsize, &p->mem);
 
     b = (MYFLT*)p->mem.auxp;
     memset(p->mem.auxp, 0, (size_t)bufsize); /* Replaces loop */
@@ -403,7 +403,7 @@ int Xsynthset(ENVIRON *csound, CON *p)
     p->in1 = b;            b += 2 * flen;
     p->in2 = b;            b += 2 * flen;
 
-    if ((ftp = ftfind(csound, p->iwin)) != NULL)
+    if ((ftp = csound->FTFind(csound, p->iwin)) != NULL)
       p->win = ftp;
     else return NOTOK;
 
@@ -500,3 +500,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
+

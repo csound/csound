@@ -190,7 +190,7 @@ int ifilter(ENVIRON *csound, FILTER* p)
     /* Calculate the total delay in samples and allocate memory for it */
     p->ndelay = MAX(p->numb-1,p->numa);
 
-    auxalloc(csound, p->ndelay * sizeof(double), &p->delay);
+    csound->AuxAlloc(csound, p->ndelay * sizeof(double), &p->delay);
 
     /* Initialize the delay line for safety */
     for (i=0;i<p->ndelay;i++)
@@ -228,7 +228,7 @@ int izfilter(ENVIRON *csound, ZFILTER *p)
     /* Calculate the total delay in samples and allocate memory for it */
     p->ndelay = MAX(p->numb-1,p->numa);
 
-    auxalloc(csound, p->ndelay * sizeof(double), &p->delay);
+    csound->AuxAlloc(csound, p->ndelay * sizeof(double), &p->delay);
 
     /* Initialize the delay line for safety */
     for (i=0;i<p->ndelay;i++)
@@ -241,7 +241,7 @@ int izfilter(ENVIRON *csound, ZFILTER *p)
       p->dcoeffs[i] = (double)*p->coeffs[i];
 
     /* Add auxillary root memory */
-    auxalloc(csound, p->numa * sizeof(fcomplex), &p->roots);
+    csound->AuxAlloc(csound, p->numa * sizeof(fcomplex), &p->roots);
     roots = (fcomplex*) p->roots.auxp;
     dim = p->numa;
 
@@ -866,3 +866,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
+

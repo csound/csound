@@ -1,7 +1,8 @@
 /*
     ugens6.c:
 
-    Copyright (C) 1991-2000 Barry Vercoe, John ffitch, Jens Groh, Hans Mikelson, Istvan Varga
+    Copyright (C) 1991-2000 Barry Vercoe, John ffitch, Jens Groh,
+                            Hans Mikelson, Istvan Varga
 
     This file is part of Csound.
 
@@ -215,7 +216,7 @@ int delset(ENVIRON *csound, DELAY *p)
     }
     if ((auxp = p->auxch.auxp) == NULL ||
         npts != p->npts) { /* new space if reqd */
-      auxalloc(csound, (long)npts*sizeof(MYFLT), &p->auxch);
+      csound->AuxAlloc(csound, (long)npts*sizeof(MYFLT), &p->auxch);
       auxp = p->auxch.auxp;
       p->npts = npts;
     }
@@ -255,7 +256,7 @@ int delrset(ENVIRON *csound, DELAYR *p)
 /*     printf("delay %f sr=%f npts = %d\n", *p->idlt, esr, npts); */
     if ((auxp = (MYFLT*)p->auxch.auxp) == NULL ||       /* new space if reqd */
         npts != p->npts) {
-      auxalloc(csound, (long)npts*sizeof(MYFLT), &p->auxch);
+      csound->AuxAlloc(csound, (long)npts*sizeof(MYFLT), &p->auxch);
       auxp = (MYFLT*)p->auxch.auxp;
       p->npts = npts;
     }
@@ -750,7 +751,7 @@ int cmbset(ENVIRON *csound, COMB *p)
     }
     nbytes = lpsiz * sizeof(MYFLT);
     if (p->auxch.auxp == NULL || nbytes != p->auxch.size) {
-      auxalloc(csound, (long)nbytes, &p->auxch);
+      csound->AuxAlloc(csound, (long)nbytes, &p->auxch);
       p->pntr = (MYFLT *) p->auxch.auxp;
       p->prvt = FL(0.0);
       p->coef = FL(0.0);
@@ -860,7 +861,7 @@ int rvbset(ENVIRON *csound, REVERB *p)
 {
     if (p->auxch.auxp == NULL) {                        /* if no space yet, */
       long      *sizp = revlpsiz;
-      auxalloc(csound, revlpsum*sizeof(MYFLT),&p->auxch);       /*    allocate it   */
+      csound->AuxAlloc(csound, revlpsum*sizeof(MYFLT),&p->auxch); /* allocate it */
       p->adr1 = p->p1 = (MYFLT *) p->auxch.auxp;
       p->adr2 = p->p2 = p->adr1 + *sizp++;
       p->adr3 = p->p3 = p->adr2 + *sizp++;              /*    & init ptrs   */
@@ -952,7 +953,7 @@ int panset(ENVIRON *csound, PAN *p)
 {
     FUNC *ftp;
 
-    if ((ftp = ftfind(csound, p->ifn)) == NULL)
+    if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
       return NOTOK;
     p->ftp = ftp;
     if (*p->imode)
@@ -1013,3 +1014,4 @@ int pan(ENVIRON *csound, PAN *p)
     } while (--nsmps);
     return OK;
 }
+

@@ -39,7 +39,7 @@ int krsnsetx(ENVIRON *csound, KRESONX *p)
     if ((p->loop = (int) (*p->ord + FL(0.5))) < 1) p->loop = 4; /*default value*/
     if (!*p->istor && (p->aux.auxp == NULL ||
                       (int)(p->loop*2*sizeof(MYFLT)) > p->aux.size))
-      auxalloc(csound, (long)(p->loop*2*sizeof(MYFLT)), &p->aux);
+      csound->AuxAlloc(csound, (long)(p->loop*2*sizeof(MYFLT)), &p->aux);
     p->yt1 = (MYFLT*)p->aux.auxp; p->yt2 = (MYFLT*)p->aux.auxp + p->loop;
     if (scale && scale != 1 && scale != 2) {
       sprintf(errmsg,"illegal reson iscl value, %f",*p->iscl);
@@ -156,7 +156,7 @@ int fastabkw(ENVIRON *csound, FASTAB *p)
 int fastabi(ENVIRON *csound, FASTAB *p)
 {
     FUNC *ftp;
-    /*ftp = ftfind(p->xfn); */
+    /*ftp = csound->FTFind(p->xfn); */
 
     if ((ftp = ftnp2find(csound, p->xfn)) == NULL) {
       return initerror("tab_i: incorrect table number");
@@ -171,7 +171,7 @@ int fastabi(ENVIRON *csound, FASTAB *p)
 int fastabiw(ENVIRON *csound, FASTAB *p)
 {
     FUNC *ftp;
-    /*ftp = ftfind(p->xfn); */
+    /*ftp = csound->FTFind(p->xfn); */
     if ((ftp = ftnp2find(csound, p->xfn)) == NULL) {
       return initerror("tabw_i: incorrect table number");
     }
@@ -417,7 +417,7 @@ int adsynt2_set(ENVIRON *csound,ADSYNT2 *p)
 
     if (p->lphs.auxp==NULL ||
         p->lphs.size < (long)(sizeof(long)+sizeof(MYFLT))*count)
-      auxalloc(csound, (sizeof(long)+sizeof(MYFLT))*count, &p->lphs);
+      csound->AuxAlloc(csound, (sizeof(long)+sizeof(MYFLT))*count, &p->lphs);
 
     lphs = (long*)p->lphs.auxp;
     if (*p->iphs > 1) {
@@ -520,7 +520,7 @@ int exitnow(ENVIRON *csound, EXITNOW *p)
 int tabrec_set(ENVIRON *csound,TABREC *p)
 {
     /*FUNC *ftp; */
-    /*if ((ftp = ftfind(p->ifn)) == NULL) { */
+    /*if ((ftp = csound->FTFind(p->ifn)) == NULL) { */
     /*  initerror(Str(X_1535,"tabrec: incorrect table number")); */
     /*  return; */
     /*} */
@@ -585,7 +585,7 @@ int tabrec_k(ENVIRON *csound,TABREC *p)
 int tabplay_set(ENVIRON *csound,TABPLAY *p)
 {
     /*   FUNC *ftp; */
-    /* if ((ftp = ftfind(p->ifn)) == NULL) { */
+    /* if ((ftp = csound->FTFind(p->ifn)) == NULL) { */
     /*   initerror(Str(X_1535,"tabplay: incorrect table number")); */
     /*   return; */
     /* } */

@@ -68,12 +68,12 @@ int wgpsetin(ENVIRON *csound, WGPLUCK2 *p)
 
                                 /* Create upper rail */
     if (p->upper.auxp == NULL) {/* get newspace    */
-      auxalloc(csound, sizeof(DelayLine),&p->upper);
+      csound->AuxAlloc(csound, sizeof(DelayLine),&p->upper);
     }
     upper_rail = (DelayLine*)p->upper.auxp;
     upper_rail->length = rail_len;
     if (rail_len > 0) {
-      auxalloc(csound, rail_len*sizeof(MYFLT),&p->up_data);
+      csound->AuxAlloc(csound, rail_len*sizeof(MYFLT),&p->up_data);
       upper_rail->data = (MYFLT*)p->up_data.auxp;
     }
     else upper_rail->data = NULL;
@@ -82,12 +82,12 @@ int wgpsetin(ENVIRON *csound, WGPLUCK2 *p)
 
                                 /* Create lower rail */
     if (p->lower.auxp == NULL) {/* get newspace    */
-      auxalloc(csound, sizeof(DelayLine),&p->lower);
+      csound->AuxAlloc(csound, sizeof(DelayLine),&p->lower);
     }
     lower_rail = (DelayLine*)p->lower.auxp;
     lower_rail->length = rail_len;
     if (rail_len > 0) {
-      auxalloc(csound, rail_len*sizeof(MYFLT),&p->down_data);
+      csound->AuxAlloc(csound, rail_len*sizeof(MYFLT),&p->down_data);
       lower_rail->data = (MYFLT*)p->down_data.auxp;
     }
     else lower_rail->data = NULL;
@@ -96,7 +96,7 @@ int wgpsetin(ENVIRON *csound, WGPLUCK2 *p)
 
                                 /* Set initial shape */
     if (plk != 0.0) {
-      initial_shape = (MYFLT*)mmalloc(csound, rail_len*sizeof(MYFLT));
+      initial_shape = (MYFLT*) csound->Malloc(csound, rail_len*sizeof(MYFLT));
       if (pickpt < 1) pickpt = 1;       /* Place for pluck, in range (0,1.0) */
       upslope = FL(1.0)/(MYFLT)pickpt; /* Slightly faster to precalculate */
       downslope = FL(1.0)/(MYFLT)(rail_len - pickpt - 1);
@@ -108,7 +108,7 @@ int wgpsetin(ENVIRON *csound, WGPLUCK2 *p)
         upper_rail->data[i] = FL(0.5) * initial_shape[i];
       for (i=0; i<rail_len; i++)
         lower_rail->data[i] = FL(0.5) * initial_shape[i];
-      mfree(csound, (char *)initial_shape);
+      csound->Free(csound, initial_shape);
     }
     else {
       for (i = 0; i < rail_len; i++)
@@ -239,7 +239,7 @@ int stresonset(ENVIRON *csound, STRES *p)
 {
     int n;
     p->size = (int) (esr/20);   /* size of delay line */
-    auxalloc(csound, p->size*sizeof(MYFLT), &p->aux);
+    csound->AuxAlloc(csound, p->size*sizeof(MYFLT), &p->aux);
     p->Cdelay = (MYFLT*) p->aux.auxp; /* delay line */
     p->LPdelay = p->APdelay = FL(0.0); /* reset the All-pass and Low-pass delays */
     p->wpointer = p->rpointer = 0; /* reset the read/write pointers */

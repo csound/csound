@@ -78,12 +78,12 @@ int pvaddset(ENVIRON *csound, PVADD *p)
     long     memsize;
 
    if (*p->ifn > 0)
-     if ((ftp = ftfind(csound, p->ifn)) == NULL)
+     if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
        return NOTOK;
    p->ftp = ftp;
 
    if (*p->igatefun > 0)
-     if ((AmpGateFunc = ftfind(csound, p->igatefun)) == NULL)
+     if ((AmpGateFunc = csound->FTFind(csound, p->igatefun)) == NULL)
        return NOTOK;
     p->AmpGateFunc = AmpGateFunc;
 
@@ -122,7 +122,7 @@ int pvaddset(ENVIRON *csound, PVADD *p)
 
     if (p->auxch.auxp == NULL || memsize != p->mems) {
       MYFLT *fltp;
-      auxalloc(csound, (memsize * sizeof(MYFLT)), &p->auxch);
+      csound->AuxAlloc(csound, (memsize * sizeof(MYFLT)), &p->auxch);
       fltp = (MYFLT *) p->auxch.auxp;
       p->oscphase = fltp;      fltp += MAXBINS;
       p->buf = fltp;

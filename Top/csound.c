@@ -37,9 +37,6 @@ extern "C" {
 #include "csmodule.h"
 
   int fltk_abort = 0;
-#ifdef INGALLS
-  static jmp_buf csoundJump_;
-#endif
 #define csoundMaxExits 64
   static void* csoundExitFuncs_[csoundMaxExits];
   static long csoundNumExits_ = -1;
@@ -1222,54 +1219,22 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
   PUBLIC int csoundTableLength(void *csound_, int table)
   {
     ENVIRON *csound = (ENVIRON *)csound_;
-    MYFLT table_ = table;
-    FUNC *ftp = (FUNC *)csound->ftfind_(csound,&table_);
-    if(ftp) {
-      return ftp->flen;
-    } else {
-      return -1;
-    }
+    int     tableLength;
+    csound->GetTable(csound, table, &tableLength);
+    return tableLength;
   }
 
   MYFLT csoundTableGet(void *csound_, int table, int index)
   {
     ENVIRON *csound = (ENVIRON *)csound_;
-    MYFLT table_ = table;
-    FUNC *ftp = (FUNC *)csound->ftfind_(csound,&table_);
-    return ftp->ftable[index];
+    return (csound->GetTable(csound, table, NULL)[index]);
   }
 
   PUBLIC void csoundTableSet(void *csound_, int table, int index, MYFLT value)
   {
     ENVIRON *csound = (ENVIRON *)csound_;
-    MYFLT table_ = table;
-    FUNC *ftp = (FUNC *)csound->ftfind_(csound,&table_);
-    ftp->ftable[index] = value;
+    csound->GetTable(csound, table, NULL)[index] = value;
   }
-
-#ifdef INGALLS
-  /*
-   * Returns a non-zero to the host,
-   * which may call csoundCleanup().
-   */
-  void exit(int status)
-  {
-    longjmp(csoundJump_, status +1);
-  }
-
-  int atexit(void (*func)(void))
-  {
-    if (++csoundNumExits_ < csoundMaxExits)
-      {
-        csoundExitFuncs_[csoundNumExits_] = func;
-        return 0;
-      }
-    else
-      {
-        return -1;
-      }
-  }
-#endif
 
   PUBLIC void csoundSetFLTKThreadLocking(void *csound_, int isLocking)
   {

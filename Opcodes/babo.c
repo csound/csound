@@ -176,7 +176,7 @@ BaboMemory_create(ENVIRON *csound, BaboMemory *this, size_t size_in_floats)
 {
     size_t size_in_bytes = size_in_floats * sizeof(MYFLT);
 
-    auxalloc(csound, (long) size_in_bytes, &this->memptr);
+    csound->AuxAlloc(csound, (long) size_in_bytes, &this->memptr);
 
     memset(this->memptr.auxp, 0, size_in_bytes);
 
@@ -751,7 +751,7 @@ set_expert_values(ENVIRON *csound, BABO *p)
     int      n      = 0;
 
     if (p->expert_values > 0)
-        ftp = ftfind(csound, &(p->expert_values));
+        ftp = csound->FTFind(csound, &(p->expert_values));
 
     p->decay        = load_value_or_default(ftp, n++, BABO_DEFAULT_DECAY);
     p->hidecay      = load_value_or_default(ftp, n++, BABO_DEFAULT_HIDECAY);

@@ -31,7 +31,7 @@
 
 int syncgrain_init(ENVIRON *csound, syncgrain *p)
 {
-    p->efunc = ftfind(p->h.insdshead->csound,p->ifn2);
+    p->efunc = csound->FTFind(p->h.insdshead->csound,p->ifn2);
     if (p->efunc==NULL) {
       initerror("function table not found\n");
       return NOTOK;
@@ -48,11 +48,11 @@ int syncgrain_init(ENVIRON *csound, syncgrain *p)
    if (p->olaps < 1) p->olaps = 1;
 
    if (p->index.auxp==NULL)
-     auxalloc(csound, p->olaps*sizeof(float),&p->index);
+     csound->AuxAlloc(csound, p->olaps*sizeof(float),&p->index);
    if (p->envindex.auxp==NULL)
-     auxalloc(csound, p->olaps*sizeof(float),&p->envindex);
+     csound->AuxAlloc(csound, p->olaps*sizeof(float),&p->envindex);
    if (p->streamon.auxp==NULL)
-     auxalloc(csound, p->olaps*sizeof(int),&p->streamon);
+     csound->AuxAlloc(csound, p->olaps*sizeof(int),&p->streamon);
 
    p->count = 0xFFFFFFFF;    /* sampling period counter */
    p->numstreams = 0;  /* curr num of streams */

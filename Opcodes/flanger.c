@@ -30,7 +30,7 @@ int flanger_set (ENVIRON *csound, FLANGER *p)
 {
         /*---------------- delay  -----------------------*/
     p->maxdelay = (unsigned long)(*p->maxd  * esr);
-    auxalloc(csound, p->maxdelay * sizeof(MYFLT), &p->aux);
+    csound->AuxAlloc(csound, p->maxdelay * sizeof(MYFLT), &p->aux);
     p->left = 0;
     p->yt1 = FL(0.0);
     p->fmaxd = (MYFLT) p->maxdelay;
@@ -77,7 +77,7 @@ static unsigned long maxdM1; /* max delay samples - 1 */
 int wguide1set (ENVIRON *csound, WGUIDE1 *p)
 {
         /*---------------- delay -----------------------*/
-    auxalloc(csound, (maxd=(unsigned long)(MAXDELAY * esr)) * sizeof(MYFLT), &p->aux);
+    csound->AuxAlloc(csound, (maxd=(unsigned long)(MAXDELAY * esr)) * sizeof(MYFLT), &p->aux);
     maxdM1 = maxd-1;
     p->left = 0;
         /*---------------- filter -----------------------*/
@@ -160,11 +160,11 @@ int wguide1(ENVIRON *csound, WGUIDE1 *p)
 int wguide2set (ENVIRON *csound, WGUIDE2 *p)
 {
         /*---------------- delay1 -----------------------*/
-    auxalloc(csound, (maxd = (unsigned long)(MAXDELAY * esr)) * sizeof(MYFLT), &p->aux1);
+    csound->AuxAlloc(csound, (maxd = (unsigned long)(MAXDELAY * esr)) * sizeof(MYFLT), &p->aux1);
     maxdM1 = maxd-1;
     p->left1 = 0;
         /*---------------- delay2 -----------------------*/
-    auxalloc(csound, maxd * sizeof(MYFLT), &p->aux2);
+    csound->AuxAlloc(csound, maxd * sizeof(MYFLT), &p->aux2);
     p->left2 = 0;
         /*---------------- filter1 -----------------------*/
     p->c1_1 = p->prvhp1 = FL(0.0);
@@ -303,5 +303,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
-
 

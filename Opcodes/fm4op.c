@@ -146,7 +146,7 @@ int make_FM4Op(ENVIRON *csound, FM4OP *p)
     make_ADSR(&p->adsr[2]);
     make_ADSR(&p->adsr[3]);
     make_TwoZero(&p->twozero);
-    if ((ftp = ftfind(csound, p->vifn)) != NULL)
+    if ((ftp = csound->FTFind(csound, p->vifn)) != NULL)
       p->vibWave = ftp;
     else { /* Expect sine wave */
       return perferror(Str("No table for VibWaveato"));
@@ -169,22 +169,22 @@ static int FM4Op_loadWaves(ENVIRON *csound, FM4OP *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = ftfind(csound, p->ifn0)) != NULL)
+    if ((ftp = csound->FTFind(csound, p->ifn0)) != NULL)
       p->waves[0] = ftp;
     else {
       return perferror(Str("No table for FM4Op")); /* Expect sine wave */
     }
-    if ((ftp = ftfind(csound, p->ifn1)) != NULL)
+    if ((ftp = csound->FTFind(csound, p->ifn1)) != NULL)
       p->waves[1] = ftp;
     else {
       return perferror(Str("No table for  FM4Op")); /* Expect sine wave */
     }
-    if ((ftp = ftfind(csound, p->ifn2)) != NULL)
+    if ((ftp = csound->FTFind(csound, p->ifn2)) != NULL)
       p->waves[2] = ftp;
     else {
       return perferror(Str("No table for  FM4Op")); /* Expect sine wave */
     }
-    if ((ftp = ftfind(csound, p->ifn3)) != NULL)
+    if ((ftp = csound->FTFind(csound, p->ifn3)) != NULL)
       p->waves[3] = ftp;
     else {
       return perferror(Str("No table for  FM4Op")); /* Expect sine wave */
@@ -1108,7 +1108,6 @@ int percfluteset(ENVIRON *csound, FM4OP *p)
     return OK;
 }
 
-
 int percflute(ENVIRON *csound, FM4OP *p)
 {
     MYFLT       *ar = p->ar;
@@ -1128,3 +1127,4 @@ int percflute(ENVIRON *csound, FM4OP *p)
     }
     return OK;
 }
+
