@@ -1,0 +1,1814 @@
+\documentclass[10pt,letterpaper,onecolumn]{book}
+\usepackage{comment}
+\usepackage{vmargin}
+\usepackage{t1enc}
+\usepackage{fancyvrb}
+\usepackage{url}
+\usepackage{calc}
+\usepackage{array}
+\usepackage{fancyhdr}
+\usepackage[pdftex]{graphicx}
+\usepackage{color}
+\usepackage{listings}
+\usepackage[latin1]{inputenc}
+\usepackage[english]{babel}
+\usepackage[pdftex,
+            pagebackref=true,
+            colorlinks=true,
+            linkcolor=blue
+           ]{hyperref}
+\usepackage{doxygen}
+\pagestyle{headings}
+\makeindex
+\begin{document}
+\definecolor{LstColor}{cmyk}{0.1,0.1,0,0.05} 
+\lstset{language=c++,basicstyle=\ttfamily\scriptsize,commentstyle=\ttfamily\scriptsize,tabsize=2,breaklines,backgroundcolor=\color{LstColor},fontadjust=true,fancyvrb=true,moredelim=[is][\textbf]{\\emph\{}{\}}}.
+\setcounter{tocdepth}{1}
+
+\frontmatter
+
+\pagenumbering{roman}
+\title{Csound and CsoundVST \\ Reference Manual}
+\author{By: \\ \\Barry Vercoe \\ \\ Contributors \\ \\ \\ Edited by: \\ \\ John ffitch \\ \\ Jean Piche \\ \\ Peter Nix \\ \\ Richard Boulanger \\ \\ Rasmus Ekman \\ \\ David Boothe \\ \\ Kevin Conder \\ \\ Michael Gogins \\ \texttt{gogins@pipeline.com}}
+\maketitle
+
+\tableofcontents[2]
+\listoffigures
+
+\setcounter{secnumdepth}{-1}    
+\chapter{Preface, \emph{by Barry Vercoe}}
+
+Realizing music by digital computer involves synthesizing audio signals with discrete points or samples
+representative of continuous waveforms. There are many ways to do this, each affording a different manner
+of control. Direct synthesis generates waveforms by sampling a stored function representing a single cycle;
+additive synthesis generates the many partials of a complex tone, each with its own loudness envelope;
+subtractive synthesis begins with a complex tone and filters it. Non-linear synthesis uses frequency
+modulation and waveshaping to give simple signals complex characteristics, while sampling and storage of a
+natural sound allows it to be used at will.
+
+Since comprehensive moment-by-moment specification of sound can be tedious, control is gained in two
+ways: 1) from the instruments in an orchestra, and 2) from the events within a score. An orchestra is really a
+computer program that can produce sound, while a score is a body of data which that program can react to.
+Whether a rise-time characteristic is a fixed constant in an instrument, or a variable of each note in the score,
+depends on how the user wants to control it.
+
+The instruments in a Csound orchestra (see ) are defined in a simple syntax that invokes complex audio
+processing routines. A score (see ) passed to this orchestra contains numerically coded pitch and control
+information, in standard numeric score format. Although many users are content with this format, higher
+level score processing languages are often convenient.
+
+The programs making up the Csound system have a long history of development, beginning with theMusic 4
+program written at Bell Telephone Laboratories in the early 1960s byMaxMathews. That initiated the stored
+table concept and much of the terminology that has since enabled computer music researchers to
+communicate. Valuable additions were made at Princeton by the late GodfreyWinham inMusic 4B; my own
+Music 360 (1968) was very indebted to his work.WithMusic 11 (1973) I took a different tack: the two distinct
+networks of control and audio signal processing stemmed from my intensive involvement in the preceding
+years in hardware synthesizer concepts and design. This division has been retained in Csound.
+Because it is written entirely in C, Csound is easily installed on any machine running Unix or C. At MIT it runs
+on VAX/DECstations under Ultrix 4.2, on SUNs under OS 4.1, SGIs under 5.0, on IBM PCs under DOS 6.2 and
+Windows 3.1, and on the AppleMacintosh under ThinkC 5.0.With this single language for defining the audio
+signal processing, and portable audio formats like AIFF andWAV, users can move easily from machine to
+machine.
+
+The 1991 version added phase vocoder, FOF, and spectral data types. 1992 saw MIDI converter and control
+units, enabling Csound to be run from MIDI score-files and external keyboards. In 1994 the sound analysis
+programs (lpc, pvoc) were integrated into the main load module, enabling all Csound processing to be run
+from a single executable, and Cscore could pass scores directly to the orchestra for iterative performance. The
+1995 release introduced an expanded MIDI set with MIDI-based linseg, butterworth filters, granular
+synthesis, and an improved spectral-based pitch tracker. Of special importance was the addition of run-time
+event generating tools (Cscore and MIDI) allowing run-time sensing and response setups that enable
+interactive composition and experiment. It appeared that real-time software synthesis was now showing
+some real promise.
+
+\setcounter{secnumdepth}{2}    
+
+\mainmatter
+
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+\chapter{Introduction}
+
+Csound is a unit-generator based, user-programmable computer music system. It was originally written by Barry Vercoe at the Massachusetts Institute of Technology in 1984 as the first C language version of this type of software. Since then Csound has received numerous contributions from researchers, programmers, and musicians around the world. 
+
+Around 1991, John ffitch ported Csound to Microsoft DOS. Csound currently runs on many varieties of UNIX and Linux, Microsoft DOS and Windows, all versions of the Macintosh operating system including Mac OS X, and others.
+
+There are newer computer music systems that have graphical patch editors (e.g. Max/MSP, PD, jMax, or Open Sound World), or that use more advanced techniques of software engineering (e.g. Nyquist or SuperCollider). But Csound still has the largest and most varied set of unit generators, is the best documented, runs on the most platforms, and is the easiest to extend. It is possible to compile Csound using double-precision arithmetic throughout for superior sound quality. In short, Csound must be considered one of the most powerful musical instruments ever created.
+
+To create music with Csound:
+
+\begin{enumerate}
+\item Write an orchestra (\texttt{.orc} file) that creates instruments and signal processors by connecting unit generators (also called opcodes, in Csound-speak) using Csound's simple programming language.
+\item Write a score (\url{.sco} file) that specifies a list of notes and other events to be rendered by the orchestra.
+\item Run Csound to compile the orchestra and score, run the sorted and preprocessed score through the orchestra, and write digital audio out to a soundfile or sound card.
+\end{enumerate}
+
+CsoundVST is an extended version of Csound that adds a graphical user interface, C++ and Python APIs, Python scripting, a library of Python extension modules for algorithmic composition, a VST plugin interface, and a \emph{Mathematica} interface.
+
+In addition to this ``canonical'' version of Csound and CsoundVST, there are other versions of Csound and other front ends for Csound, many of which can be found at \url{http://csounds.com}.
+
+\section{Recent Developments, \emph{by Michael Gogins}}
+
+In the time since Barry Vercoe wrote the original preface to this manual, printed above, many further contributions have been made to Csound. The current stable version of Csound is 4.23. Csound 5 is the next version, currently in late alpha or early beta status. CsoundVST is an extended version of both Csound 4 and Csound 5.
+
+\chapter{New Features in Csound 5}
+
+Csound 5 begins a major new version of Csound that includes:
+
+\begin{itemize}
+
+\item Now licensed under the GNU Lesser General Public License, an open source license.
+
+\item A new, easier to manage build system using \texttt{scons}.
+
+\item The use of widely--accepted open source libraries:
+
+\begin{itemize}
+
+\item libsndfile for soundfile input and output.
+
+\item PortAudio with ASIO drivers for low-latency, real-time audio input and output.
+
+\item FLTK for graphical widgets that can be programmed in orchestra code.
+
+\item \emph{Will} use PortMidi for real-time MIDI input and output.
+
+\end{itemize}
+
+\item Simplified audio buffering system.
+
+\item Status returns on all internal functions, including opcode functions.
+
+\item MIDI interop opcodes, that enable the same instrument definitions to be used interchangeably for either live MIDI performance or off-line, score-driven performance.
+
+\item Plugin opcodes are working and becoming more widely accepted. Many opcodes have been moved to plugins. Most new opcodes are plugins, including:
+
+\begin{itemize}
+
+\item SoundFont opcodes.
+
+\item Python opcodes allowing Python code to execute in the orchestra header or in instrument code, at \texttt{i}-rate or \texttt{k}-rate.
+
+\item Loris opcodes for time/frequency analysis and resynthesis.
+
+\item Bus opcodes.
+
+\item \texttt{vst4cs} VST plugin adapter opcodes.
+
+\end{itemize}
+
+\item The \texttt{OpcodeBase.hpp} header file for writing plugin opcodes in C++. This is based on the technique of static polymorphism via template inheritance.
+
+\item The Csound API is becoming more widely used.
+
+\end{itemize}
+
+John ffitch plans to replace the handwritten parser with one written using a parser generator, which should make it more bug-free and perhaps more efficient.
+
+John ffitch and I have plans for creating multiple instances of Csound in the same process, though we are only about halfway there.
+
+\section{Features of CsoundVST}
+
+CsoundVST is both a shared library and a standalone program that starts with the Csound API and adds some further extended facilities. Its main purposes are (a) to make it easier to extend Csound (e.g. the Loris plugin opcodes), and (b) to streamline the actual use of Csound in composing, particularly for algorithmic composition, where it integrates more tightly with other languages and other software.
+
+\begin{itemize}
+
+\item Variant version of the Csound ``C'' API with score management facilities.
+
+\item Extended C++ version of the Csound API with score management facilities and function table access.
+
+\item C++ library for algorithmic composition, based on my concept of music graphs.
+
+\item Python wrappers for the Csound API and for music graphs.
+
+\item Built-in Python interpreter. This enables one to embed orchestras and scores into Python code, and to write Csound pieces in Python, including both composition and synthesis.
+
+\item Runs as a VST effect or VST plugin.
+
+\begin{itemize}
+
+\item Loads and saves \texttt{.csd} and \texttt{.py} files in presets and banks.
+
+\item Starts, stops, and restarts.
+
+\item Allows one to write Csound pieces in music notation and hear the results immediately.
+
+\item Synchronizes with other tracks in the same host, including looping.
+
+\end{itemize}
+
+\item Runs as a standalone application.
+
+\item Runs as a Python extension module. This enables one to write Csound pieces in any Python interpreter.
+
+\item The Csound API is being extended to handle function tables and other internals of Csound.
+
+\end{itemize}
+
+\chapter{To Do}
+
+This is a ``to do'' list, not necessarily complete, and in no particular order of priority or time, for Csound and CsoundVST:
+
+\begin{enumerate}
+\item See also the \texttt{To-fix-and-do} file in the \texttt{csound5} directory.
+\item Create better examples, especially to demonstrate the use of Python and of VST plugins. One example should be a live performance instrument with a Python GUI that controls instrument parameters or algorithmic composition parameters in real time.
+\item Complete the work of making Csound multi-instantiable.
+\end{enumerate}
+
+\chapter{Csound Links}
+
+Csound is maintained by John ffitch at \url{http://www.sourceforge.net/projects/csound}. Csound's ``home page'' is maintained by Richard Boulanger at \url{http://csounds.com}. 
+
+A Csound mailing list exists to discuss Csound. It is run by John ffitch of Bath University, UK. To have your name put on the mailing list send an empty message to \url{csound-subscribe@lists.bath.ac.uk}. Posts sent to \url{csound@lists.bath.ac.uk} go to all subscribed members of the list. 
+
+Similarly, the CSOUND-DEV mailing list exists to discuss Csound development. For more information on this list, go to \url{http://eartha.mills.edu:8000/guest/listutil/CSOUND-DEV}. Posts sent to \url{csound-dev@eartha.mills.edu} go to all subscribed members of the list.
+
+\chapter{Installing}
+
+\section{Downloading}
+
+Csound is hosted at \url{http://www.sourceforge.net/projects/csound}. \linebreak Source and binary packages are available from the \texttt{files} link off that page.
+
+\input{../manual/introinstall.tex}
+
+\section{Configuration}
+
+Once you have either unpacked a binary distribution, or built Csound from sources, you will need to configure Csound so that it will run properly on your system. 
+
+\subsection{Csound}
+
+On Windows, make sure the directory or directories (normally the \texttt{csound5} directory) containing the Csound executables directory and all the Csound plugin opcodes are also in your \texttt{PATH} variable, or else copy all the executable files to your Windows \texttt{system32} directory.
+
+On Unix and Linux, either install the Csound program in one of the system bin directories, typically \texttt{/usr/local/bin}, and the Csound and plugin shared libraries in one of the system lib directories, typically \url{/usr/local/lib}; or make sure that the directory containing the Csound and plugin shared libraries is in your \texttt{LD\_LIBRARY\_PATH} environment variable. This variable may have a different name in different operating systems.
+
+\subsection{CsoundVST}
+
+CsoundVST requires some additional configuration. On all platforms, CsoundVST requires that you have Python installed on your computer. The directory containing the \texttt{\_CsoundVST} shared library and the \texttt{CsoundVST.py} file must be in your \texttt{PYTHONPATH} environment variable, so that the Python runtime knows how to load these files.
+
+\chapter{Using}
+
+Assuming that you have installed and configured the software, Csound and CsoundVST can be operated in a variety of modes and configurations. The \texttt{.csd} and \texttt{.py} files in the \texttt{examples} demonstrate a few of these modes of operation. Some of these scores are simple, others are moderately complex. 
+
+You may need to edit the \texttt{----opcode-lib} option in the Csound command in some of the  \texttt{.csd} and \texttt{.py} files to match your environment. Similarly, you may need to edit the SoundFont file paths in instrument definitions that use the \texttt{fluid} SoundFont 2 player opcode to match your environment.
+
+\section{Real-Time Audio}
+
+For real-time audio output, with or without MIDI control, you will probably want to tune the \texttt{kr} and \texttt{ksmps} orchestra statements, and the \texttt{-b} and \texttt{-B} command-line options, to give you the shortest possible latency that does not cause clicks or stutters in Csound's audio output. 
+
+\subsection{Windows with ASIO}
+
+On Windows, Csound is configured with the ASIO build of the PortAudio library. At this time, it is necessary to set both the \texttt{-B} and the \texttt{-b} command-line options to have the same value as the \texttt{ksmps} variable set in the orchestra file. For example, \texttt{sr = 44100}, \texttt{kr = 100}, \texttt{ksmps = 441}, \texttt{-b441} and \texttt{-B441} give a CD-equivalent audio sampling rate of 44,100 frames per second, a control sampling rate of 100 control samples per second with 441 audio sample frames per control sample, an audio output software buffer size of 441 sample frames, and an audio output device hardware buffer size of 441 sample frames, which yields an audio output latency of 10 milliseconds --- quite fast enough for reasonably expressive keyboard playing or other real-time instrumental performance. Even lower latencies are possible with smaller values of \texttt{-B}, \texttt{-b}, and \texttt{ksmps}, down to less than a millisecond on Windows XP.
+
+If your sound card does not have an ASIO driver, you can still use Csound with ASIO by downloading and installing the \texttt{asio4all} adapter from \url{http://michael.tippach.bei.t-online.de/asio4all}.
+
+\subsection{Linux with ALSA}
+
+On Linux with ALSA, the audio output device should be selected using a special form of the \texttt{-odac} option, for example \texttt{-odac:plughw:0} for device 0. The \texttt{plughw} option translates Csound's audio output to the format expected by the sound card. With ALSA, latencies of a few milliseconds are possible, and expressive real-time instrumental performance should be quite feasible.
+
+\section{Csound}
+
+\subsection{The \texttt{csound} Command}
+
+The original method for running Csound was as a console program. This, of course, still works. Running \texttt{csound} without any arguments prints out a list of command-line options, which are more fully explained in the Csound language documentation. Normally, the user executes something like \texttt{csound -W -omysoundfile myorchestra.orc myscore.sco} or, to use the single-file Csound structured data (\texttt{.csd}) format, \texttt{csound myscore.csd}.
+
+Csound can read and write soundfiles (off-line rendering), read and write digital audio using a sound card (real-time rendering), read and write MIDI files, and read and write MIDI using a MIDI interface and controller (real-time control). See the Csound language documentation for more details. 
+
+\subsection{The Csound API}
+
+The Csound API consists of the Csound library (\texttt{libcsound.a}) and the Csound header file (\texttt{csound.h}). You can build Csound into your own software very easily using this API. For example, the Csound command itself is made this way:
+
+\begin{lstlisting}
+#include "csound.h"
+
+int main(int argc, char **argv)
+{
+    // Create Csound.
+    void *csound = csoundCreate(0);
+    // One complete performance cycle.
+    int result = csoundCompile(csound, argc, argv);
+    if(!result)
+    {
+        while(csoundPerformKsmps(csound) == 0){}
+        csoundCleanup(csound);
+    }
+    // Destroy Csound.
+    csoundDestroy(csound);
+    return result;
+}
+\end{lstlisting}
+
+%\include{doc/latex/classCppSound}
+%\include{doc/latex/classCsoundFile}
+
+\section{CsoundVST}
+
+CsoundVST is a multi-function front end for Csound, based on the Csound API. CsoundVST runs as a stand-alone graphical user interface to Csound, or as a VST plugin in hosts such as the Cubase audio sequencer. CsoundVST provides both a C++ and a Python API to Csound, and to a set of classes for algorithmic composition. 
+
+CsoundVST contains a built-in Python interpreter. With Python, the user can generate a score, import a MIDI file, process notes, load and run a Csound orchestra, and in general do anything that can be done either with Csound or in Python.
+
+\subsection{Standalone}
+
+To run CsoundVST as a stand-alone front end to Csound, execute \texttt{CsoundVST}. When the program has loaded, you will see a graphical user interface with a row of buttons along the top. Click on the \emph{Open...} button to load a \texttt{.csd} file. You can also click on the \emph{Open...} button and load a \texttt{.orc} file, then click on the \emph{Import...} button to add a \texttt{.sco} file. You can edit the Csound command, the orchestra file, or the score file in the respective tabs of the user interface. When all is satisfactory, click on the \emph{Perform} button to run Csound. You can stop a performance at any time by clicking on the \emph{Stop} button.
+
+\subsection{The CsoundVST API}
+
+CsoundVST extends the Csound API with C++. There is a C++ class for the Csound API proper, another C++ class for manipulating Csound files in code, and additional classes for algorithmic composition based on music space. All these C++ classes also have a Python interface in the \texttt{CsoundVST} Python extension module. For more information, consult the Doxygen-generated files in the \url{csound5/doc} directory.
+
+You can build CsoundVST into your own software using the \texttt{\_CsoundVST} shared library and \texttt{CsoundVST.hpp} header file. For example, the CsoundVST stand-alone graphical user interface program is made this way:
+
+\begin{lstlisting}
+#include <CsoundVST.hpp>
+#include <CsoundVstFltk.hpp>
+
+int main(int argc, char **argv)
+{
+    CsoundVST *csoundVST = CreateCsoundVST();
+    AEffEditor *editor = csoundVST->getEditor();
+    editor ->open(0);
+    return 0;
+}
+\end{lstlisting}
+
+There is also a high-level C API for CsoundVST, declared in \url{frontends/CsoundVST/csoundvst\_api.h}. Any program able to interface with C calling convention functions can use this API. For example, a \textbf{\emph{Mathematica}} 5.0 notebook can use the .NET/Link package's \texttt{DefineDLLFunction} to access the CsoundVST API to create an instance of CsoundVST, load an orchestra, generate a score using the power of \textbf{\emph{Mathematica}}, and render that score.
+
+\subsection{Python scripting}
+
+You can use CsoundVST as a Python extension module. In fact, you can do this either in a standard Python interpreter, such as Python command line or the Idle Python GUI, or in CsoundVST itself in Python mode.
+
+To use CsoundVST in a standard Python interpreter, import CsoundVST.
+
+\begin{lstlisting}
+import CsoundVST
+\end{lstlisting}
+
+The CsoundVST module automatically creates an instance of CppSound named \texttt{csound}, which provides an object-oriented interface to the Csound API. In a standard Python interpreter, you can load a Csound \texttt{.csd} file and perform it like this: 
+
+\begin{lstlisting}
+C:\Documents and Settings\mkg>python
+Python 2.3.3 (#51, Dec 18 2003, 20:22:39) [MSC v.1200 32 bit (Intel)] on win32
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import CsoundVST
+>>> csound.load("c:/projects/csound5/examples/trapped.csd")
+1
+>>> csound.exportForPerformance()
+1
+>>> csound.perform()
+BEGAN CppSound::perform(5, 988ee0)...
+BEGAN CppSound::compile(5, 988ee0)...
+Using default language
+0dBFS level = 32767.0
+Csound version 5.00 beta (float samples) Jun  7 2004
+libsndfile-1.0.10pre6
+orchname:  temp.orc
+scorename: temp.sco
+orch compiler:
+398 lines read
+        instr   1
+        instr   2
+        instr   3
+        instr   4
+        instr   5
+        instr   6
+        instr   7
+        instr   8
+        instr   9
+        instr   10
+        instr   11
+        instr   12
+        instr   13
+        instr   98
+        instr   99
+sorting score ...
+        ... done
+Csound version 5.00 beta (float samples) Jun  6 2004
+displays suppressed
+0dBFS level = 32767.0
+orch now loaded
+audio buffered in 16384 sample-frame blocks
+SFDIR undefined.  using current directory
+writing 131072-byte blks of shorts to test.wav
+ WAV
+SECTION 1:
+ENDED CppSound::compile.
+ftable 1:
+ftable 2:
+ftable 3:
+ftable 4:
+ftable 5:
+ftable 6:
+ftable 7:
+ftable 8:
+ftable 9:
+ftable 10:
+ftable 11:
+ftable 12:
+ftable 13:
+ftable 14:
+ftable 15:
+ftable 16:
+ftable 17:
+ftable 18:
+ftable 19:
+ftable 20:
+ftable 21:
+ftable 22:
+new alloc for instr 1:
+B  0.000 ..  1.000 T  1.000 TT  1.000 M:     32.7      0.0
+new alloc for instr 1:
+B  1.000 ..  3.600 T  3.600 TT  3.600 M:    207.6      0.1
+
+...
+
+B 93.940 .. 94.418 T 98.799 TT281.799 M:    477.6     85.0
+B 94.418 ..100.000 T107.172 TT290.172 M:    118.9     11.5
+end of section 4         sect peak amps:  25950.8  26877.4
+inactive allocs returned to freespace
+end of score.              overall amps:  32204.8  31469.6
+           overall samples out of range:        0        0
+0 errors in performance
+782 131072-byte soundblks of shorts written to test.wav WAV
+Elapsed time = 13.469000 seconds.
+ENDED CppSound::perform.
+1
+>>>
+\end{lstlisting}
+
+To use CsoundVST itself as your Python interpreter, click on the CsoundVST Settings tab, and select the Python check box in the Csound performance mode box. Do not create a new CppSound object; you must use the builtin \texttt{csound} object in the CsoundVST module. 
+
+The \texttt{koch.py} script shows how to use Python to do algorithmic composition for Csound. You can use Python triple-quoted string literals to hold your Csound files right in your script, and assign them to Csound: 
+
+\begin{lstlisting}
+csound.setOrchestra('''sr = 44100
+kr = 441
+ksmps = 100   
+nchnls = 2
+0dbfs = .1
+instr 1,2,3,4,5 ; FluidSynth General MID
+I; INITIALIZATION
+; Channel, bank, and program determine the preset, that is, the actual sound.
+ichannel		=			p1
+iprogram		=			p6
+ikey	 		= 			p4
+ivelocity 		= 			p5 + 12
+ijunk6 			= 			p6
+ijunk7			=			p7
+; AUDIO
+istatus			=			144;			
+print			iprogram, istatus, ichannel, ikey, ivelocityaleft, aright		
+fluid			"c:/projects/csound5/samples/VintageDreamsWaves-v2.sf2", \\
+    iprogram, istatus, ichannel, ikey, ivelocity, 1			
+outs 			aleft, arightendin''')
+csound.setCommand("csound --opcode-lib=c:/projects/csound5/fluid.dll \\
+    -RWdfo ./koch.wav ./temp.orc ./temp.sco")
+csound.exportForPerformance()
+csound.perform()
+\end{lstlisting}
+
+To run your script in Csound VST, click on the Perform button. 
+
+\subsection{VST Plugin}
+The following instructions are for Cubase SX. You would follow roughly similar procedures in other hosts.
+
+Use the \emph{Devices} menu, \emph{Plug-In Information} dialog, \emph{VST Plug-Ins} tab, \emph{Shared VST Plug-ins Folder} text field to add your \texttt{csound5} directory to Cubase's plugin path. You can have multiple directories separated by semicolons. 
+
+Quit Cubase, and start it again. 
+
+Use the \emph{File} menu, \emph{New Project} dialog to create a new song. 
+
+Use the \emph{Project} menu, \emph{Add Track} submenu, to add a new MIDI track. 
+
+Use the pencil tool to draw a \emph{Part} on the track a few measures long. Write some music in the \emph{Part} using the \emph{Event} editor or the \emph{Score} editor. 
+
+Use the \emph{Devices} menu (or the F11 key) to open the \emph{VST Instruments} dialog. 
+
+Click on one of the \emph{No VST Instrument} labels, and select \emph{\_CsoundVST} from the list that pops up. 
+
+Click on the \emph{e} (for edit) button to open the \emph{\_CsoundVST} dialog. 
+
+Click on the \emph{Open} button to bring up the file selector dialog. Navigate to a directory containing a Csound csd file suitable for MIDI performance, such as csound/CsoundVST/examples/CsoundVST.csd. Click on the OK button to load the file. You can also open and import a suitable \texttt{.orc} and \texttt{.sco} file as described above. 
+
+Click on the \emph{VST Instruments} dialog's on/off button to turn it on. This should compile the Csound orchestra. \emph{Note: If you don't compile the orchestra, you won't be able to assign the plugin to a track.} 
+
+In the \emph{Cubase Track Inspector}, click on the \emph{out: Not Assigned} label and select \emph{\_CsoundVST} from the list that pops up. 
+
+On the ruler at the top of the \emph{Arrangement} window, select the loop end point and drag it to the end of your part, then click on the loop button to enable looping. 
+
+Click on the \emph{play} button on the \emph{Transport} bar. You should hear your music played by CsoundVST. 
+
+Try assigning your track to different channels; a different Csound instrument will perform each channel. 
+
+When you save your song, your Csound orchestra will be saved as part of the song and re-loaded when you re-load the song. 
+
+You can click on the \emph{Orchestra} tab and edit your Csound instruments while CsoundVST is playing. To hear your changes, just click on the CsoundVST \emph{Perform} button to recompile the orchestra. 
+
+You can assign up to 16 channels to a single CsoundVST plugin. However, you can't have more than one CsoundVST plugin in the same song! 
+
+\chapter{Building}
+
+The latest Csound source code is available through the Concurrent Versions System (CVS)(\url{http://www.cvshome.org}). To download Csound sources using CVS, run the following commands:
+
+\begin{lstlisting}
+cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/csound login 
+ 
+cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/csound co csound5 
+\end{lstlisting}
+
+Information about accessing the CVS repository may be found in the SourceForge document ``Basic Introduction to CVS and SourceForge.net (SF.net) Project CVS Services''. 
+
+If you wish to become a Csound developer, obtain a SourceForge login, and then apply to John ffitch at the \url{http://www.sourceforge.net/projects/csound} site.
+
+Csound and CsoundVST are built using the Python package \texttt{scons}, not with makefiles or GNU autotools. Experience shows that \texttt{scons} build systems are easier to write, easier to use, and run faster than autotools build systems. The only file used to build the entire Csound system is the \texttt{SConstruct} file, which is a Python script run by the \texttt{scons} shell script.
+
+To build Csound 5:
+\begin{enumerate}
+\item Obtain the Csound source code from a SourceForge Csound 5 package file, or from SourceForge CVS.
+\item Install and configure the following software packages:
+\begin{enumerate}
+\item Python (required) for running the build (also used for CsoundVST scripting), from \texttt{http://www.python.org}.
+\item SCons (required) for running the build, from \url{http://www.scons.org}.
+\item \texttt{libsndfile} (required) for reading and writing soundfiles, from \url{http://www.mega\-nerd.com/libsndfile/}.
+\item PortAudio for reading and writing real-time audio, from \url{http://www.portaudio.com/}.
+\item FLTK version 1.1.x for displaying graphs of function tables, and for widget opcodes, from \url{http://www.fltk.org}.
+\end{enumerate}
+\end{enumerate}
+
+If you also want to build CsoundVST, you must configure the FLTK libraries to enable threads (\texttt{./configure ---enable-threads}). And you will need to install these additional packages:
+
+\begin{enumerate}
+\item The Software Interface and Wrapper Generator (SWIG) for generating Python interfaces to CsoundVST (required for CsoundVST), from \url{http://www.swig.org}.
+\item The boost C++ template libraries for random numbers and linear algebra (required for CsoundVST), from \url{http://www.boost.org}. The CsoundVST \texttt{Random} class requires that boost must be later than version 1.32.1. I used the current CVS version.
+\end{enumerate}
+
+\section{Platforms}
+
+Currently, Csound 5 builds and runs on Windows using either the Cygwin environment (\url{http://www.cygwin.com}), or the MinGW  (\url{http://www.mingw.org}) environment with the MSys shell (\url{http://www.mingw.org/msys.shtml}). Both of these environments are free, open source, and emulate the standard Unix/Linux environment and tools. On Linux, Csound 5 builds using the standard tools. Unix should work the same way as Linux.
+
+On Windows, the Cygwin build procedure is more like the Linux one. However, the MinGW build is preferred, since the resulting executables do not require the Cygwin DLLs and run faster.
+
+\subsection{Linux}
+
+If you have properly installed all the dependencies mentioned above, you can build Csound 5 and CsoundVST simply by opening a console, changing to the \texttt{csound5} directory, and executing the \texttt{scons} command. To see the various configuration options, execute \texttt{scons -h}.
+
+\subsection{Windows with Cygwin}
+
+The build procedure for Cygwin is identical to Linux. However, Cygwin comes with its own customized version of Python, while CsoundVST uses the regular version of Python from \url{http://www.python.org}, which is built with Microsoft Visual C++. Make sure to install SCons in the Cygwin version of Python, and use that version for the build, even though CsoundVST will use the Windows version of Python.
+
+\subsection{Windows with MinGW and MSys}
+
+For MinGW, you may need to patch versions of SCons earlier than \texttt{0.96.1} as follows. Change line 51 of \texttt{SCons/Tool/mingw.py} from:
+
+\begin{lstlisting}
+cmd = SCons.Util.CLVar('$SHLINK', '$SHLINKFLAGS')
+\end{lstlisting}
+to:
+\begin{lstlisting}
+cmd = SCons.Util.CLVar(['$SHLINK', '$SHLINKFLAGS']) 
+\end{lstlisting}
+
+It is highly recommend that you update your MinGW installation from the SourceForge site to the ``current'' level for core gcc, g++, binutils,  utils, and the Windows API headers and libraries (w32api).
+
+Rebuild and install a version of libsndfile no earlier than \url{http://www.mega-nerd.com/tmp/libsndfile-1.0.10pre4.tar.gz}
+
+PortAudio works with either the Windows multimedia libaries (\texttt{./configure ---with-winapi=wmme}) or with ASIO (\texttt{./configure ---with-winapi=asio}). At this time, Low-latency on Windows is only feasible with ASIO, but it is not as robust as the multimedia library.
+
+The build procedure for MinGW is similar, but not identical, to the Cygwin procedure. The MSys shell does not allow the user to execute Python commands directly. Therefore, you need to install the \emph{Windows} versions of Python and SCons, make sure that Python is in your Windows executable path, and run the build like this:
+
+\begin{lstlisting}
+$$ python c:/tools/python23/scripts/scons
+\end{lstlisting}
+
+You may also need to customize the \texttt{custom.py} file to declare to \texttt{scons} the locations of required header files and libraries, since on Windows there is no standard location for these as there is on Unix and Linux. You will not need to modify \texttt{custom.py} if you install all third-party libraries in the MSys \texttt{/usr/local/include} and \texttt{/usr/local/lib} directories.
+
+
+\chapter{Licenses}
+
+\section{Csound and CsoundVST}
+
+Csound is \copyright 1991-2003 by Barry Vercoe and John ffitch.
+
+CsoundVST is \copyright 2001-2004 by Michael Gogins.
+
+Csound and CsoundVST are free software; you can redistribute them and/or modify them under the terms of the GNU Lesser General Public License as published by the Free Software Foundation; either version 2.1 of the License, or (at your option) any later version.
+
+Csound and CsoundVST are distributed in the hope that they will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License along with Csound and CsoundVST; if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+
+\section{Virtual Synthesis Technology}
+Virtual Synthesis Technology (VST) PlugIn interface technology by Steinberg Soft- und Hardware GmbH. 
+
+CsoundVST source code contains modified versions of source code files from the VST SDK distributed by Steinberg. \emph{These files are to be used only for building CsoundVST.} You are \emph{not} licensed to use these files for any other purpose. If you make a derived product based on CsoundVST or the modified VST source files herein, you \emph{must} apply to Steinberg for your own license to use the VST SDK.
+
+\chapter{Contributors}
+Csound contains contributions from musicians, scientists, and programmers from around the world. They include (but are not limited to): 
+\begin{itemize}
+\item Allan Lee 
+\item Andres Cabrera
+\item Barry Vercoe
+\item Bill Gardner 
+\item Bill Verplank 
+\item Dan Ellis 
+\item David Macintyre 
+\item Eli Breder 
+\item Gabriel Maldonado  
+\item Greg Sullivan 
+\item Hans Mikelson 
+\item Istvan Varga 
+\item Jean Piche 
+\item John ffitch 
+\item John Ramsdell 
+\item Marc Resibois 
+\item Mark Dolson 
+\item Matt Ingalls 
+\item Max Mathews 
+\item Michael Casey 
+\item Michael Clark 
+\item Michael Gogins 
+\item Mike Berry 
+\item Paris Smaragdis 
+\item Perry Cook 
+\item Peter Neubacker 
+\item Peter Nix 
+\item Rasmus Ekman 
+\item Richard Dobson 
+\item Richard Karpen 
+\item Rob Shaw 
+\item Robin Whittle 
+\item Sean Costello 
+\item Steven Yi 
+\item Tom Erbe 
+\item Victor Lazzarini  
+\item Ville Pulkki 
+\end{itemize}
+
+\chapter{The Csound Command}
+
+\input{../manual/commandtop.tex}
+\input{../manual/commandflags.tex}
+\input{../manual/commandunifile.tex}
+\input{../manual/commandpreproc.tex}
+
+\chapter{Syntax of the Orchestra}
+
+Under construction.
+
+\chapter{Instrument Control}
+
+Under construction.
+
+\chapter{Function Table Control}
+
+\input{../manual/tabletop.tex}
+\input{../manual/tablereadwrit.tex}
+\input{../manual/tableselect.tex}
+
+\chapter{Mathematical Operations}
+
+%\input{../manual/mathtop.tex}
+\input{../manual/mathartlogic.tex}
+\input{../manual/mathmatfunc.tex}
+\input{../manual/mathopeqfunc.tex}
+\input{../manual/mathrndfunc.tex}
+\input{../manual/mathtrig.tex}
+
+\chapter{MIDI Support}
+
+Under construction.
+
+\chapter{Pitch Converters}
+
+Under construction.
+
+\chapter{Signal Generators}
+
+Under construction.
+
+\chapter{Signal Input and Output}
+
+Under construction.
+
+\chapter{Signal Modifiers}
+
+Under construction.
+
+\chapter{Spectral Processing}
+
+Under construction.
+
+\chapter{The Zak Patch System}
+
+Under construction.
+
+\chapter{The Standard Numeric Score}
+
+Under construction.
+
+\chapter{Orchestra Operators and Opcodes}
+
+\input{../manual/a.tex}
+\input{../manual/abetarand.tex}
+\input{../manual/abexprnd.tex}
+\input{../manual/abs.tex}
+\input{../manual/acauchy.tex}
+\input{../manual/active.tex}
+\input{../manual/addmodaddspace.tex}
+\input{../manual/addmodfsharing.tex}
+\input{../manual/addmodstringargs.tex}
+\input{../manual/addmodtop.tex}
+\input{../manual/adds.tex}
+\input{../manual/adsr.tex}
+\input{../manual/adsyn.tex}
+\input{../manual/adsynt.tex}
+\input{../manual/aexprand.tex}
+\input{../manual/aftouch.tex}
+\input{../manual/agauss.tex}
+\input{../manual/agogobel.tex}
+\input{../manual/alinrand.tex}
+\input{../manual/alpass.tex}
+\input{../manual/ampdb.tex}
+\input{../manual/ampdbfs.tex}
+\input{../manual/ampmidi.tex}
+\input{../manual/apcauchy.tex}
+\input{../manual/apoisson.tex}
+\input{../manual/apow.tex}
+\input{../manual/areson.tex}
+\input{../manual/aresonk.tex}
+\input{../manual/assign.tex}
+\input{../manual/atone.tex}
+\input{../manual/atonek.tex}
+\input{../manual/atonex.tex}
+\input{../manual/atrirand.tex}
+\input{../manual/aunirand.tex}
+\input{../manual/aweibull.tex}
+\input{../manual/b.tex}
+\input{../manual/babo.tex}
+\input{../manual/balance.tex}
+\input{../manual/bamboo.tex}
+\input{../manual/bbcutm.tex}
+\input{../manual/bbcuts.tex}
+\input{../manual/betarand.tex}
+\input{../manual/bexprnd.tex}
+\input{../manual/biquad.tex}
+\input{../manual/biquada.tex}
+\input{../manual/birnd.tex}
+\input{../manual/bqrez.tex}
+\input{../manual/butbp.tex}
+\input{../manual/butbr.tex}
+\input{../manual/buthp.tex}
+\input{../manual/butlp.tex}
+\input{../manual/butterbp.tex}
+\input{../manual/butterbr.tex}
+\input{../manual/butterhp.tex}
+\input{../manual/butterlp.tex}
+\input{../manual/button.tex}
+\input{../manual/buzz.tex}
+\input{../manual/cabasa.tex}
+\input{../manual/cauchy.tex}
+\input{../manual/cent.tex}
+\input{../manual/cggoto.tex}
+\input{../manual/chanctrl.tex}
+\input{../manual/checkbox.tex}
+\input{../manual/cigoto.tex}
+\input{../manual/ckgoto.tex}
+\input{../manual/clear.tex}
+\input{../manual/clfilt.tex}
+\input{../manual/clip.tex}
+\input{../manual/clock.tex}
+\input{../manual/clockoff.tex}
+\input{../manual/clockon.tex}
+\input{../manual/cngoto.tex}
+\input{../manual/comb.tex}
+\input{../manual/commanddesc.tex}
+\input{../manual/commandflags.tex}
+\input{../manual/commandpreproc.tex}
+\input{../manual/commandtop.tex}
+\input{../manual/commandunifile.tex}
+\input{../manual/control.tex}
+\input{../manual/controlconditional.tex}
+\input{../manual/controldurctl.tex}
+\input{../manual/controlfltkintro.tex}
+\input{../manual/controlinvocat.tex}
+\input{../manual/controlmacros.tex}
+\input{../manual/controlpgmctl.tex}
+\input{../manual/controlrealtime.tex}
+\input{../manual/controlreinitn.tex}
+\input{../manual/controlsensing.tex}
+\input{../manual/controlsubinstrument.tex}
+\input{../manual/controltimeread.tex}
+\input{../manual/controltop.tex}
+\input{../manual/convle.tex}
+\input{../manual/convolve.tex}
+\input{../manual/cos.tex}
+\input{../manual/cosh.tex}
+\input{../manual/cosinv.tex}
+\input{../manual/cps2pch.tex}
+\input{../manual/cpsmidi.tex}
+\input{../manual/cpsmidib.tex}
+\input{../manual/cpsoct.tex}
+\input{../manual/cpspch.tex}
+\input{../manual/cpstmid.tex}
+\input{../manual/cpstun.tex}
+\input{../manual/cpstuni.tex}
+%\input{../manual/cpsxpch.tex}
+\input{../manual/cpuprc.tex}
+\input{../manual/cross2.tex}
+\input{../manual/crunch.tex}
+\input{../manual/cscoreadvancd.tex}
+\input{../manual/cscorecompile.tex}
+\input{../manual/cscoremain.tex}
+\input{../manual/cscoretop.tex}
+\input{../manual/ctrl14.tex}
+\input{../manual/ctrl21.tex}
+\input{../manual/ctrl7.tex}
+\input{../manual/ctrlinit.tex}
+\input{../manual/cuserrnd.tex}
+\input{../manual/cvanal.tex}
+\input{../manual/dam.tex}
+\input{../manual/db.tex}
+\input{../manual/dbamp.tex}
+\input{../manual/dbfsamp.tex}
+\input{../manual/dcblock.tex}
+\input{../manual/dconv.tex}
+\input{../manual/define.tex}
+\input{../manual/delay.tex}
+\input{../manual/delay1.tex}
+\input{../manual/delayr.tex}
+\input{../manual/delayw.tex}
+\input{../manual/deltap.tex}
+\input{../manual/deltap3.tex}
+\input{../manual/deltapi.tex}
+\input{../manual/deltapn.tex}
+\input{../manual/deltapx.tex}
+\input{../manual/deltapxw.tex}
+\input{../manual/diff.tex}
+\input{../manual/diskin.tex}
+\input{../manual/dispfft.tex}
+\input{../manual/display.tex}
+\input{../manual/distort1.tex}
+\input{../manual/divides.tex}
+\input{../manual/divz.tex}
+\input{../manual/dnoise.tex}
+\input{../manual/dollar.tex}
+\input{../manual/downsamp.tex}
+\input{../manual/dripwater.tex}
+\input{../manual/dumpk.tex}
+\input{../manual/dumpk2.tex}
+\input{../manual/dumpk3.tex}
+\input{../manual/dumpk4.tex}
+\input{../manual/duserrnd.tex}
+\input{../manual/e.tex}
+\input{../manual/else.tex}
+\input{../manual/elseif.tex}
+\input{../manual/endif.tex}
+\input{../manual/endin.tex}
+%\input{../manual/endop.tex}
+\input{../manual/envlpx.tex}
+\input{../manual/envlpxr.tex}
+\input{../manual/equals.tex}
+\input{../manual/event.tex}
+\input{../manual/exp.tex}
+\input{../manual/expon.tex}
+\input{../manual/exprand.tex}
+\input{../manual/expseg.tex}
+\input{../manual/expsega.tex}
+\input{../manual/expsegr.tex}
+\input{../manual/f.tex}
+\input{../manual/filelen.tex}
+\input{../manual/filenchnls.tex}
+\input{../manual/filepeak.tex}
+\input{../manual/filesr.tex}
+\input{../manual/filter2.tex}
+\input{../manual/fin.tex}
+\input{../manual/fini.tex}
+\input{../manual/fink.tex}
+\input{../manual/fiopen.tex}
+\input{../manual/flanger.tex}
+\input{../manual/flashtxt.tex}
+%\input{../manual/flbox.tex}
+%\input{../manual/flbutbank.tex}
+%\input{../manual/flbutton.tex}
+%\input{../manual/flcolor.tex}
+\input{../manual/flcolor2.tex}
+%\input{../manual/flcount.tex}
+\input{../manual/flgetsnap.tex}
+\input{../manual/flgroup.tex}
+\input{../manual/flgroupend.tex}
+\input{../manual/flhide.tex}
+\input{../manual/fljoy.tex}
+\input{../manual/flkeyb.tex}
+%\input{../manual/flknob.tex}
+\input{../manual/fllabel.tex}
+\input{../manual/flloadsnap.tex}
+%\input{../manual/flpack.tex}
+\input{../manual/flpackend.tex}
+%\input{../manual/flpanel.tex}
+\input{../manual/flpanelend.tex}
+\input{../manual/flprintk.tex}
+\input{../manual/flprintk2.tex}
+%\input{../manual/flroller.tex}
+\input{../manual/flrun.tex}
+\input{../manual/flsavesnap.tex}
+%\input{../manual/flscroll.tex}
+\input{../manual/flscrollend.tex}
+\input{../manual/flsetalign.tex}
+\input{../manual/flsetbox.tex}
+\input{../manual/flsetcolor.tex}
+\input{../manual/flsetcolor2.tex}
+\input{../manual/flsetfont.tex}
+\input{../manual/flsetposition.tex}
+\input{../manual/flsetsize.tex}
+\input{../manual/flsetsnap.tex}
+\input{../manual/flsettext.tex}
+\input{../manual/flsettextcolor.tex}
+\input{../manual/flsettextsize.tex}
+%\input{../manual/flsettexttype.tex}
+\input{../manual/flsetval.tex}
+\input{../manual/flsetvali.tex}
+\input{../manual/flshow.tex}
+\input{../manual/flslidbnk.tex}
+%\input{../manual/flslider.tex}
+%\input{../manual/fltabs.tex}
+\input{../manual/fltabsend.tex}
+%\input{../manual/fltext.tex}
+\input{../manual/flupdate.tex}
+\input{../manual/flvalue.tex}
+\input{../manual/fmb3.tex}
+\input{../manual/fmbell.tex}
+\input{../manual/fmmetal.tex}
+\input{../manual/fmpercfl.tex}
+\input{../manual/fmrhode.tex}
+\input{../manual/fmvoice.tex}
+\input{../manual/fmwurlie.tex}
+\input{../manual/fof.tex}
+\input{../manual/fof2.tex}
+\input{../manual/fog.tex}
+\input{../manual/fold.tex}
+\input{../manual/follow.tex}
+\input{../manual/follow2.tex}
+\input{../manual/foscil.tex}
+\input{../manual/foscili.tex}
+\input{../manual/fout.tex}
+\input{../manual/fouti.tex}
+\input{../manual/foutir.tex}
+\input{../manual/foutk.tex}
+\input{../manual/fprintks.tex}
+\input{../manual/fprints.tex}
+\input{../manual/frac.tex}
+\input{../manual/ftchnls.tex}
+\input{../manual/ftgen.tex}
+\input{../manual/ftlen.tex}
+\input{../manual/ftload.tex}
+\input{../manual/ftloadk.tex}
+\input{../manual/ftlptim.tex}
+\input{../manual/ftmorf.tex}
+\input{../manual/ftsave.tex}
+\input{../manual/ftsavek.tex}
+\input{../manual/ftsr.tex}
+\input{../manual/gain.tex}
+\input{../manual/gauss.tex}
+\input{../manual/gbuzz.tex}
+%\input{../manual/gen01.tex}
+%\input{../manual/gen02.tex}
+%\input{../manual/gen03.tex}
+%\input{../manual/gen04.tex}
+%\input{../manual/gen05.tex}
+%\input{../manual/gen06.tex}
+%\input{../manual/gen07.tex}
+%\input{../manual/gen08.tex}
+%\input{../manual/gen09.tex}
+%\input{../manual/gen10.tex}
+%\input{../manual/gen11.tex}
+%\input{../manual/gen12.tex}
+%\input{../manual/gen13.tex}
+%\input{../manual/gen14.tex}
+%\input{../manual/gen15.tex}
+%\input{../manual/gen16.tex}
+%\input{../manual/gen17.tex}
+\input{../manual/gen18.tex}
+%\input{../manual/gen19.tex}
+%\input{../manual/gen20.tex}
+%\input{../manual/gen21.tex}
+%\input{../manual/gen22.tex}
+%\input{../manual/gen23.tex}
+%\input{../manual/gen24.tex}
+%\input{../manual/gen25.tex}
+%\input{../manual/gen27.tex}
+%\input{../manual/gen28.tex}
+%\input{../manual/gen30.tex}
+%\input{../manual/gen31.tex}
+%\input{../manual/gen32.tex}
+%\input{../manual/gen33.tex}
+%\input{../manual/gen34.tex}
+%\input{../manual/gen40.tex}
+%\input{../manual/gen41.tex}
+%\input{../manual/gen42.tex}
+\input{../manual/genindex.tex}
+\input{../manual/gogobel.tex}
+\input{../manual/goto.tex}
+\input{../manual/grain.tex}
+\input{../manual/grain2.tex}
+\input{../manual/grain3.tex}
+\input{../manual/granule.tex}
+\input{../manual/greaterequal.tex}
+\input{../manual/greaterthan.tex}
+\input{../manual/guiro.tex}
+\input{../manual/harmon.tex}
+\input{../manual/hetro.tex}
+\input{../manual/hilbert.tex}
+\input{../manual/hrtfer.tex}
+\input{../manual/hsboscil.tex}
+\input{../manual/i.tex}
+\input{../manual/ibetarand.tex}
+\input{../manual/ibexprnd.tex}
+\input{../manual/icauchy.tex}
+\input{../manual/ictrl14.tex}
+\input{../manual/ictrl21.tex}
+\input{../manual/ictrl7.tex}
+\input{../manual/iexprand.tex}
+\input{../manual/if.tex}
+\input{../manual/igauss.tex}
+\input{../manual/igoto.tex}
+\input{../manual/ihold.tex}
+\input{../manual/ilinrand.tex}
+\input{../manual/imidic14.tex}
+\input{../manual/imidic21.tex}
+\input{../manual/imidic7.tex}
+\input{../manual/in.tex}
+\input{../manual/in32.tex}
+\input{../manual/inch.tex}
+\input{../manual/include.tex}
+\input{../manual/index.tex}
+\input{../manual/inh.tex}
+\input{../manual/init.tex}
+\input{../manual/initc14.tex}
+\input{../manual/initc21.tex}
+\input{../manual/initc7.tex}
+\input{../manual/ink.tex}
+\input{../manual/ino.tex}
+\input{../manual/inq.tex}
+\input{../manual/ins.tex}
+\input{../manual/instimek.tex}
+\input{../manual/instimes.tex}
+\input{../manual/instr.tex}
+\input{../manual/int.tex}
+\input{../manual/integ.tex}
+\input{../manual/interp.tex}
+\input{../manual/introinstall.tex}
+\input{../manual/introlist.tex}
+\input{../manual/invalue.tex}
+\input{../manual/inx.tex}
+\input{../manual/inz.tex}
+\input{../manual/ioff.tex}
+\input{../manual/ion.tex}
+\input{../manual/iondur.tex}
+\input{../manual/iondur2.tex}
+\input{../manual/ioutat.tex}
+\input{../manual/ioutc.tex}
+\input{../manual/ioutc14.tex}
+\input{../manual/ioutpat.tex}
+\input{../manual/ioutpb.tex}
+\input{../manual/ioutpc.tex}
+\input{../manual/ipcauchy.tex}
+\input{../manual/ipoisson.tex}
+\input{../manual/ipow.tex}
+\input{../manual/is16b14.tex}
+\input{../manual/is32b14.tex}
+\input{../manual/islider16.tex}
+\input{../manual/islider32.tex}
+\input{../manual/islider64.tex}
+\input{../manual/islider8.tex}
+\input{../manual/itablecopy.tex}
+\input{../manual/itablegpw.tex}
+\input{../manual/itablemix.tex}
+\input{../manual/itablew.tex}
+\input{../manual/itrirand.tex}
+\input{../manual/iunirand.tex}
+\input{../manual/iweibull.tex}
+\input{../manual/jitter.tex}
+\input{../manual/jitter2.tex}
+\input{../manual/jspline.tex}
+\input{../manual/kbetarand.tex}
+\input{../manual/kbexprnd.tex}
+\input{../manual/kcauchy.tex}
+\input{../manual/kdump.tex}
+\input{../manual/kdump2.tex}
+\input{../manual/kdump3.tex}
+\input{../manual/kdump4.tex}
+\input{../manual/kexprand.tex}
+\input{../manual/kfilter2.tex}
+\input{../manual/kgauss.tex}
+\input{../manual/kgoto.tex}
+\input{../manual/klinrand.tex}
+\input{../manual/kon.tex}
+\input{../manual/koutat.tex}
+\input{../manual/koutc.tex}
+\input{../manual/koutc14.tex}
+\input{../manual/koutpat.tex}
+\input{../manual/koutpb.tex}
+\input{../manual/koutpc.tex}
+\input{../manual/kpcauchy.tex}
+\input{../manual/kpoisson.tex}
+\input{../manual/kpow.tex}
+\input{../manual/kr.tex}
+\input{../manual/kread.tex}
+\input{../manual/kread2.tex}
+\input{../manual/kread3.tex}
+\input{../manual/kread4.tex}
+\input{../manual/ksmps.tex}
+\input{../manual/ktableseg.tex}
+\input{../manual/ktrirand.tex}
+\input{../manual/kunirand.tex}
+\input{../manual/kweibull.tex}
+\input{../manual/lessequal.tex}
+\input{../manual/lessthan.tex}
+\input{../manual/lfo.tex}
+\input{../manual/limit.tex}
+\input{../manual/line.tex}
+\input{../manual/linen.tex}
+\input{../manual/linenr.tex}
+\input{../manual/lineto.tex}
+\input{../manual/linrand.tex}
+\input{../manual/linseg.tex}
+\input{../manual/linsegr.tex}
+\input{../manual/locsend.tex}
+\input{../manual/locsig.tex}
+\input{../manual/log.tex}
+\input{../manual/log10.tex}
+\input{../manual/logbtwo.tex}
+\input{../manual/loopseg.tex}
+\input{../manual/lorenz.tex}
+\input{../manual/loscil.tex}
+\input{../manual/loscil3.tex}
+\input{../manual/lowpass2.tex}
+\input{../manual/lowres.tex}
+\input{../manual/lowresx.tex}
+\input{../manual/lpanal.tex}
+\input{../manual/lpf18.tex}
+\input{../manual/lpfreson.tex}
+\input{../manual/lphasor.tex}
+\input{../manual/lpinterp.tex}
+\input{../manual/lposcil.tex}
+\input{../manual/lposcil3.tex}
+\input{../manual/lpread.tex}
+\input{../manual/lpreson.tex}
+\input{../manual/lpshold.tex}
+\input{../manual/lpslot.tex}
+\input{../manual/m.tex}
+\input{../manual/mac.tex}
+\input{../manual/maca.tex}
+\input{../manual/madsr.tex}
+\input{../manual/mandol.tex}
+\input{../manual/marimba.tex}
+\input{../manual/massign.tex}
+\input{../manual/mathartlogic.tex}
+\input{../manual/mathmatfunc.tex}
+\input{../manual/mathopeqfunc.tex}
+\input{../manual/mathrndfunc.tex}
+\input{../manual/mathtop.tex}
+\input{../manual/mathtrig.tex}
+\input{../manual/maxalloc.tex}
+\input{../manual/mclock.tex}
+\input{../manual/mdelay.tex}
+\input{../manual/midic14.tex}
+\input{../manual/midic21.tex}
+\input{../manual/midic7.tex}
+\input{../manual/midichannelaftertouch.tex}
+\input{../manual/midichn.tex}
+\input{../manual/midicontrolchange.tex}
+\input{../manual/midiconvert.tex}
+\input{../manual/midictrl.tex}
+\input{../manual/mididefault.tex}
+\input{../manual/midiextender.tex}
+\input{../manual/midigeneric.tex}
+\input{../manual/midiin.tex}
+\input{../manual/midinoteoff.tex}
+\input{../manual/midinoteoncps.tex}
+\input{../manual/midinoteonkey.tex}
+\input{../manual/midinoteonoct.tex}
+\input{../manual/midinoteonpch.tex}
+\input{../manual/midion.tex}
+\input{../manual/midion2.tex}
+\input{../manual/midionoff.tex}
+\input{../manual/midiout.tex}
+\input{../manual/midioutput.tex}
+\input{../manual/midipitchbend.tex}
+\input{../manual/midipolyaftertouch.tex}
+\input{../manual/midiprogramchange.tex}
+\input{../manual/midirealtime.tex}
+\input{../manual/midislidrbk.tex}
+\input{../manual/miditop.tex}
+\input{../manual/mirror.tex}
+\input{../manual/miscamp.tex}
+\input{../manual/misccsound64.tex}
+\input{../manual/miscformants.tex}
+\input{../manual/miscpitch.tex}
+\input{../manual/miscquickref.tex}
+\input{../manual/miscsf2.tex}
+\input{../manual/miscwindows.tex}
+\input{../manual/modulus.tex}
+\input{../manual/moog.tex}
+\input{../manual/moogvcf.tex}
+\input{../manual/moscil.tex}
+\input{../manual/mpulse.tex}
+\input{../manual/mrtmsg.tex}
+\input{../manual/mult.tex}
+\input{../manual/multiplies.tex}
+\input{../manual/multitap.tex}
+\input{../manual/mute.tex}
+\input{../manual/mxadsr.tex}
+\input{../manual/n.tex}
+\input{../manual/nchnls.tex}
+\input{../manual/nestedap.tex}
+\input{../manual/nlfilt.tex}
+\input{../manual/noise.tex}
+\input{../manual/noteoff.tex}
+\input{../manual/noteon.tex}
+\input{../manual/noteondur.tex}
+\input{../manual/noteondur2.tex}
+\input{../manual/notequal.tex}
+\input{../manual/notnum.tex}
+\input{../manual/nreverb.tex}
+\input{../manual/nrpn.tex}
+\input{../manual/nsamp.tex}
+\input{../manual/nstrnum.tex}
+\input{../manual/ntrpol.tex}
+\input{../manual/octave.tex}
+\input{../manual/octcps.tex}
+\input{../manual/octmidi.tex}
+\input{../manual/octmidib.tex}
+\input{../manual/octpch.tex}
+\input{../manual/opa.tex}
+\input{../manual/opand.tex}
+\input{../manual/opcode.tex}
+\input{../manual/opcodestop.tex}
+\input{../manual/opi.tex}
+\input{../manual/opor.tex}
+\input{../manual/orchexpress.tex}
+\input{../manual/orchheader.tex}
+\input{../manual/orchiblock.tex}
+\input{../manual/orchkvar.tex}
+\input{../manual/orchnomen.tex}
+\input{../manual/orchstatemnt.tex}
+\input{../manual/orchtop.tex}
+\input{../manual/orchvarinit.tex}
+\input{../manual/oscbnk.tex}
+\input{../manual/oscil.tex}
+\input{../manual/oscil1.tex}
+\input{../manual/oscil1i.tex}
+\input{../manual/oscil3.tex}
+\input{../manual/oscili.tex}
+\input{../manual/oscilikt.tex}
+\input{../manual/osciliktp.tex}
+\input{../manual/oscilikts.tex}
+\input{../manual/osciln.tex}
+\input{../manual/oscils.tex}
+\input{../manual/oscilx.tex}
+\input{../manual/out.tex}
+\input{../manual/out32.tex}
+\input{../manual/outc.tex}
+\input{../manual/outch.tex}
+\input{../manual/outh.tex}
+\input{../manual/outiat.tex}
+\input{../manual/outic.tex}
+\input{../manual/outic14.tex}
+\input{../manual/outipat.tex}
+\input{../manual/outipb.tex}
+\input{../manual/outipc.tex}
+\input{../manual/outk.tex}
+\input{../manual/outkat.tex}
+\input{../manual/outkc.tex}
+\input{../manual/outkc14.tex}
+\input{../manual/outkpat.tex}
+\input{../manual/outkpb.tex}
+\input{../manual/outkpc.tex}
+\input{../manual/outo.tex}
+\input{../manual/outq.tex}
+\input{../manual/outq1.tex}
+\input{../manual/outq2.tex}
+\input{../manual/outq3.tex}
+\input{../manual/outq4.tex}
+\input{../manual/outs.tex}
+\input{../manual/outs1.tex}
+\input{../manual/outs2.tex}
+\input{../manual/outvalue.tex}
+\input{../manual/outx.tex}
+\input{../manual/outz.tex}
+\input{../manual/p.tex}
+\input{../manual/pan.tex}
+\input{../manual/pareq.tex}
+\input{../manual/partoverview.tex}
+\input{../manual/partreference.tex}
+\input{../manual/pcauchy.tex}
+\input{../manual/pchbend.tex}
+\input{../manual/pchmidi.tex}
+\input{../manual/pchmidib.tex}
+\input{../manual/pchoct.tex}
+\input{../manual/peak.tex}
+\input{../manual/peakk.tex}
+\input{../manual/pgmassign.tex}
+\input{../manual/phaser1.tex}
+\input{../manual/phaser2.tex}
+\input{../manual/phasor.tex}
+\input{../manual/phasorbnk.tex}
+\input{../manual/pinkish.tex}
+\input{../manual/pitch.tex}
+\input{../manual/pitchamdf.tex}
+\input{../manual/pitchtop.tex}
+\input{../manual/pitchtuning.tex}
+\input{../manual/planet.tex}
+\input{../manual/pluck.tex}
+\input{../manual/poisson.tex}
+\input{../manual/polyaft.tex}
+\input{../manual/port.tex}
+\input{../manual/portk.tex}
+\input{../manual/poscil.tex}
+\input{../manual/poscil3.tex}
+\input{../manual/pow.tex}
+\input{../manual/powoftwo.tex}
+\input{../manual/prealloc.tex}
+\input{../manual/prefaceacknowledgements.tex}
+\input{../manual/prefacecopy.tex}
+\input{../manual/prefacecsoundav.tex}
+\input{../manual/prefacename.tex}
+\input{../manual/prefacescope.tex}
+\input{../manual/prefacetop.tex}
+\input{../manual/print.tex}
+\input{../manual/printk.tex}
+\input{../manual/printk2.tex}
+\input{../manual/printks.tex}
+\input{../manual/prints.tex}
+\input{../manual/product.tex}
+\input{../manual/pset.tex}
+\input{../manual/pvadd.tex}
+\input{../manual/pvanal.tex}
+\input{../manual/pvbufread.tex}
+\input{../manual/pvcross.tex}
+\input{../manual/pvinterp.tex}
+\input{../manual/pvlook.tex}
+\input{../manual/pvoc.tex}
+\input{../manual/pvread.tex}
+\input{../manual/pvsadsyn.tex}
+\input{../manual/pvsanal.tex}
+\input{../manual/pvscross.tex}
+\input{../manual/pvsfread.tex}
+\input{../manual/pvsftr.tex}
+\input{../manual/pvsftw.tex}
+\input{../manual/pvsinfo.tex}
+\input{../manual/pvsmaska.tex}
+\input{../manual/pvsynth.tex}
+\input{../manual/q.tex}
+\input{../manual/r.tex}
+\input{../manual/raises.tex}
+\input{../manual/rand.tex}
+\input{../manual/randh.tex}
+\input{../manual/randi.tex}
+\input{../manual/random.tex}
+\input{../manual/randomh.tex}
+\input{../manual/randomi.tex}
+\input{../manual/readclock.tex}
+\input{../manual/readk.tex}
+\input{../manual/readk2.tex}
+\input{../manual/readk3.tex}
+\input{../manual/readk4.tex}
+\input{../manual/reinit.tex}
+\input{../manual/release.tex}
+\input{../manual/repluck.tex}
+\input{../manual/reson.tex}
+\input{../manual/resonk.tex}
+\input{../manual/resonr.tex}
+\input{../manual/resonx.tex}
+\input{../manual/resony.tex}
+\input{../manual/resonz.tex}
+\input{../manual/reverb.tex}
+\input{../manual/reverb2.tex}
+\input{../manual/rezzy.tex}
+\input{../manual/rigoto.tex}
+\input{../manual/rireturn.tex}
+\input{../manual/rms.tex}
+\input{../manual/rnd.tex}
+\input{../manual/rnd31.tex}
+\input{../manual/rspline.tex}
+\input{../manual/rtclock.tex}
+\input{../manual/s.tex}
+\input{../manual/s16b14.tex}
+\input{../manual/s32b14.tex}
+\input{../manual/samphold.tex}
+\input{../manual/sandpaper.tex}
+\input{../manual/scanhammer.tex}
+\input{../manual/scans.tex}
+\input{../manual/scantable.tex}
+\input{../manual/scanu.tex}
+\input{../manual/schedkwhen.tex}
+\input{../manual/schedkwhennamed.tex}
+\input{../manual/schedule.tex}
+\input{../manual/schedwhen.tex}
+\input{../manual/scoreampgen.tex}
+\input{../manual/scoreeval.tex}
+\input{../manual/scorefilegen.tex}
+\input{../manual/scoregenref.tex}
+\input{../manual/scoregenstop.tex}
+\input{../manual/scoremacros.tex}
+\input{../manual/scoremixgen.tex}
+\input{../manual/scorenextp.tex}
+\input{../manual/scorenumgen.tex}
+\input{../manual/scoreramping.tex}
+\input{../manual/scorerandgen.tex}
+\input{../manual/scoreseggen.tex}
+\input{../manual/scoresinegen.tex}
+\input{../manual/scorestatements.tex}
+\input{../manual/scoretop.tex}
+\input{../manual/scorewavegen.tex}
+\input{../manual/scorewingen.tex}
+\input{../manual/sdif2ad.tex}
+\input{../manual/seed.tex}
+\input{../manual/sekere.tex}
+\input{../manual/semitone.tex}
+\input{../manual/sense.tex}
+\input{../manual/sensekey.tex}
+\input{../manual/seqtime.tex}
+\input{../manual/setctrl.tex}
+\input{../manual/setksmps.tex}
+\input{../manual/sfilist.tex}
+\input{../manual/sfinstr.tex}
+\input{../manual/sfinstr3.tex}
+\input{../manual/sfinstr3m.tex}
+\input{../manual/sfinstrm.tex}
+\input{../manual/sfload.tex}
+\input{../manual/sfpassign.tex}
+\input{../manual/sfplay.tex}
+\input{../manual/sfplay3.tex}
+\input{../manual/sfplay3m.tex}
+\input{../manual/sfplaym.tex}
+\input{../manual/sfplist.tex}
+\input{../manual/sfpreset.tex}
+\input{../manual/shaker.tex}
+\input{../manual/siggenbasic.tex}
+\input{../manual/siggendynamic.tex}
+\input{../manual/siggenfmsynth.tex}
+\input{../manual/siggengranular.tex}
+\input{../manual/siggenlineexp.tex}
+\input{../manual/siggenlpcresyn.tex}
+\input{../manual/siggenmodels.tex}
+\input{../manual/siggennoise.tex}
+\input{../manual/siggenphasors.tex}
+\input{../manual/siggensample.tex}
+\input{../manual/siggenscantop.tex}
+\input{../manual/siggenstft.tex}
+\input{../manual/siggentableacc.tex}
+\input{../manual/siggentop.tex}
+\input{../manual/siggenwaveterr.tex}
+\input{../manual/siggenwavguide.tex}
+\input{../manual/sigioinput.tex}
+\input{../manual/sigiooutput.tex}
+\input{../manual/sigiopdisplay.tex}
+\input{../manual/sigioqueries.tex}
+\input{../manual/sigiotop.tex}
+\input{../manual/sigmodconmorph.tex}
+\input{../manual/sigmoddelay.tex}
+\input{../manual/sigmodenvelope.tex}
+\input{../manual/sigmodpanspatl.tex}
+\input{../manual/sigmodreverbtn.tex}
+\input{../manual/sigmodsample.tex}
+\input{../manual/sigmodsiglimit.tex}
+\input{../manual/sigmodspeciale.tex}
+\input{../manual/sigmodspeciali.tex}
+\input{../manual/sigmodstandard.tex}
+\input{../manual/sigmodtop.tex}
+\input{../manual/sigmodwavguide.tex}
+\input{../manual/sin.tex}
+\input{../manual/sinh.tex}
+\input{../manual/sininv.tex}
+\input{../manual/sleighbells.tex}
+\input{../manual/slider16.tex}
+\input{../manual/slider16f.tex}
+\input{../manual/slider32.tex}
+\input{../manual/slider32f.tex}
+\input{../manual/slider64.tex}
+\input{../manual/slider64f.tex}
+\input{../manual/slider8.tex}
+\input{../manual/slider8f.tex}
+\input{../manual/sndinfo.tex}
+\input{../manual/sndwarp.tex}
+\input{../manual/sndwarpst.tex}
+\input{../manual/soundin.tex}
+\input{../manual/soundout.tex}
+\input{../manual/space.tex}
+\input{../manual/spat3d.tex}
+\input{../manual/spat3di.tex}
+\input{../manual/spat3dt.tex}
+\input{../manual/spdist.tex}
+\input{../manual/specaddm.tex}
+\input{../manual/specdiff.tex}
+\input{../manual/specdisp.tex}
+\input{../manual/specfilt.tex}
+\input{../manual/spechist.tex}
+\input{../manual/specptrk.tex}
+\input{../manual/specscal.tex}
+\input{../manual/specsum.tex}
+\input{../manual/spectralrealtime.tex}
+\input{../manual/spectraltop.tex}
+\input{../manual/spectrum.tex}
+\input{../manual/spsend.tex}
+\input{../manual/sqrt.tex}
+\input{../manual/sr.tex}
+\input{../manual/srconv.tex}
+\input{../manual/stix.tex}
+\input{../manual/streson.tex}
+\input{../manual/strset.tex}
+\input{../manual/subinstr.tex}
+\input{../manual/subinstrinit.tex}
+\input{../manual/subtracts.tex}
+\input{../manual/sum.tex}
+\input{../manual/svfilter.tex}
+\input{../manual/t.tex}
+\input{../manual/table.tex}
+\input{../manual/table3.tex}
+\input{../manual/tablecopy.tex}
+\input{../manual/tablegpw.tex}
+\input{../manual/tablei.tex}
+\input{../manual/tableicopy.tex}
+\input{../manual/tableigpw.tex}
+\input{../manual/tableikt.tex}
+\input{../manual/tableimix.tex}
+\input{../manual/tableiw.tex}
+\input{../manual/tablekt.tex}
+\input{../manual/tablemix.tex}
+\input{../manual/tableng.tex}
+\input{../manual/tablera.tex}
+\input{../manual/tablereadwrit.tex}
+\input{../manual/tableseg.tex}
+\input{../manual/tableselect.tex}
+\input{../manual/tabletop.tex}
+\input{../manual/tablew.tex}
+\input{../manual/tablewa.tex}
+\input{../manual/tablewkt.tex}
+\input{../manual/tablexkt.tex}
+\input{../manual/tablexseg.tex}
+\input{../manual/tambourine.tex}
+\input{../manual/tan.tex}
+\input{../manual/tanh.tex}
+\input{../manual/taninv.tex}
+\input{../manual/taninv2.tex}
+\input{../manual/tbvcf.tex}
+\input{../manual/tempest.tex}
+\input{../manual/tempo.tex}
+\input{../manual/tempoval.tex}
+\input{../manual/tigoto.tex}
+\input{../manual/timeinstk.tex}
+\input{../manual/timeinsts.tex}
+\input{../manual/timek.tex}
+\input{../manual/times.tex}
+\input{../manual/timout.tex}
+\input{../manual/tival.tex}
+\input{../manual/tlineto.tex}
+\input{../manual/tone.tex}
+\input{../manual/tonek.tex}
+\input{../manual/tonex.tex}
+\input{../manual/transeg.tex}
+\input{../manual/trigger.tex}
+\input{../manual/trigseq.tex}
+\input{../manual/trirand.tex}
+\input{../manual/turnoff.tex}
+\input{../manual/turnon.tex}
+\input{../manual/undef.tex}
+\input{../manual/unirand.tex}
+\input{../manual/upsamp.tex}
+\input{../manual/urd.tex}
+\input{../manual/utilityanalysis.tex}
+\input{../manual/utilityconversion.tex}
+\input{../manual/utilitycredits.tex}
+\input{../manual/utilityqueries.tex}
+\input{../manual/utilitysoundfile.tex}
+\input{../manual/utilitytop.tex}
+\input{../manual/v.tex}
+\input{../manual/valpass.tex}
+\input{../manual/vbap16.tex}
+\input{../manual/vbap16move.tex}
+\input{../manual/vbap4.tex}
+\input{../manual/vbap4move.tex}
+\input{../manual/vbap8.tex}
+\input{../manual/vbap8move.tex}
+\input{../manual/vbaplsinit.tex}
+\input{../manual/vbapz.tex}
+\input{../manual/vbapzmove.tex}
+\input{../manual/vco.tex}
+\input{../manual/vco2.tex}
+\input{../manual/vco2ft.tex}
+\input{../manual/vco2ift.tex}
+\input{../manual/vco2init.tex}
+\input{../manual/vcomb.tex}
+\input{../manual/vdelay.tex}
+\input{../manual/vdelay3.tex}
+\input{../manual/vdelayx.tex}
+\input{../manual/vdelayxq.tex}
+\input{../manual/vdelayxs.tex}
+\input{../manual/vdelayxw.tex}
+\input{../manual/vdelayxwq.tex}
+\input{../manual/vdelayxws.tex}
+\input{../manual/veloc.tex}
+\input{../manual/vibes.tex}
+\input{../manual/vibr.tex}
+\input{../manual/vibrato.tex}
+\input{../manual/vincr.tex}
+\input{../manual/vlowres.tex}
+\input{../manual/voice.tex}
+\input{../manual/vpvoc.tex}
+\input{../manual/waveset.tex}
+\input{../manual/weibull.tex}
+\input{../manual/wgbow.tex}
+\input{../manual/wgbowedbar.tex}
+\input{../manual/wgbrass.tex}
+\input{../manual/wgclar.tex}
+\input{../manual/wgflute.tex}
+\input{../manual/wgpluck.tex}
+\input{../manual/wgpluck2.tex}
+\input{../manual/wguide1.tex}
+\input{../manual/wguide2.tex}
+\input{../manual/wrap.tex}
+\input{../manual/wterrain.tex}
+\input{../manual/x.tex}
+\input{../manual/xadsr.tex}
+\input{../manual/xin.tex}
+\input{../manual/xout.tex}
+\input{../manual/xscanmap.tex}
+\input{../manual/xscans.tex}
+\input{../manual/xscansmap.tex}
+\input{../manual/xscanu.tex}
+\input{../manual/xtratim.tex}
+\input{../manual/xyin.tex}
+\input{../manual/zacl.tex}
+\input{../manual/zakinit.tex}
+\input{../manual/zaktop.tex}
+\input{../manual/zamod.tex}
+\input{../manual/zar.tex}
+\input{../manual/zarg.tex}
+\input{../manual/zaw.tex}
+\input{../manual/zawm.tex}
+\input{../manual/zerodbfs.tex}
+\input{../manual/zfilter2.tex}
+\input{../manual/zir.tex}
+\input{../manual/ziw.tex}
+\input{../manual/ziwm.tex}
+\input{../manual/zkcl.tex}
+\input{../manual/zkmod.tex}
+\input{../manual/zkr.tex}
+\input{../manual/zkw.tex}
+\input{../manual/zkwm.tex}
+
+\section{Score Statements and GEN Routines}
+
+Under construction.
+
+\section{Utility Programs}
+
+Under construction.
+
+\chapter{CScore}
+
+\input{../manual/cscoretop.tex}
+\input{../manual/cscoremain.tex}
+\input{../manual/cscoreadvancd.tex}
+\input{../manual/cscorecompile.tex}
+
+\chapter{Extending Csound}
+
+Csound uses plugin unit generators. These are dynamic link libraries (DLLs) on Windows, and loadable modules (shared libraries that are \texttt{dlopen}ed) on Linux. It is relatively easy to extend Csound by writing new unit generators in C or C++.
+
+\input{../manual/addmodtop.tex}
+\input{../manual/addmodfsharing.tex}
+\input{../manual/addmodstringargs.tex}
+
+\section{Registering Plugins}
+
+Supposing that your unit generator is named \texttt{xxx}, perform the following steps:
+\begin{enumerate}
+\item Write your \texttt{xxx.c} and \texttt{xxx.h} file as you would for a regular Csound unit generator. Put these files in the \texttt{csound5/Opcodes} directory.
+\item \texttt{\#include "csdl.h"} in your unit generator sources. This causes the plugin development environment to emulate the regular Csound unit generator development environment.
+\item Add your \texttt{OENTRY} records and unit generator registration functions at the bottom of your C file. Example (but you can have as many unit generators in one plugin as you like):
+\begin{lstlisting}
+\#define S sizeof
+
+static OENTRY localops[] = {
+{ "xxx", S(XXX), 5, "a", "ao", (SUBR)xxxset, NULL, (SUBR)xxx}
+};
+
+/*
+ * The following macro from csdl.h defines 
+ * the "opcode_size()" and "opcode_init()" 
+ * opcode registration functions for the localops table.
+ */
+LINKAGE
+\end{lstlisting}
+\item Add your plugin as a new target in the plugin opcodes section of the \texttt{SConstruct} build file:
+\begin{lstlisting}
+pluginEnvironment.SharedLibrary('xxx', 
+    Split('''Opcodes/xxx.c 
+    Opcodes/another_file_used_by_xxx.c 
+    Opcodes/yet_another_file_used_by_xxx.c'''))
+\end{lstlisting}
+\item Run the Csound 5 build in the regular way.
+\end{enumerate}		
+
+\section{About \texttt{OENTRY}}
+
+The \texttt{OENTRY} structure (see \texttt{H/csoundCore.h}, \texttt{Engine/entry1.c}, and \texttt{Engine/rdorch.c}) contains the following fields:
+
+\begin{lstlisting}
+name, dspace, thread, outarg, inargs, isub, ksub, asub, dsub
+\end{lstlisting}
+
+\begin{description}  
+	\item[\texttt{dspace}] There are two types of opcodes, polymorphic and non-polymorphic. For non-polymorphic opcodes, the \texttt{dspace} flag specifies the size of the opcode structure in bytes, and arguments are always passed to the opcode at the same rate. Polymorphic opcodes can accept arguments at different rates, and those arguments are actually dispatched to other opcodes as determined by the \texttt{dspace} flag and the following naming convention:
+
+	\begin{description}
+		\item[\texttt{0xffff}] The type of the first argument determines which unit generator function is actually called: \texttt{XXX} $\Longrightarrow$ \texttt{XXX\_a}, \texttt{XXX\_i}, or \texttt{XXX\_k}.
+		\item[\texttt{0xfffe}] The types of the first two arguments determine which unit generator function is actually called:  \texttt{XXX} $\Longrightarrow$ \texttt{XXX\_aa}, \texttt{XXX\_ak}, \texttt{XXX\_ka}, or \texttt{XXX\_kk}, as in the \texttt{oscil} unit generator.
+		\item[\texttt{0xfffd}] Refers to one argument, but does not allow \texttt{i} type, as in the \texttt{peak} unit generator.
+		\item[\texttt{0xfffc}] Similar to \texttt{0xfffe}, but deals with division by zero --- thus, allows \texttt{a}, \texttt{k} and \texttt{i} type arguments.
+	\end{description}
+
+	\item[\texttt{thread}] Specifies the rate(s) at which the unit generator's functions are called, as follows:
+	
+			\begin{center}
+			\begin{tabular*}{280pt}[t]{cl}
+			\texttt{thread} & Description \\
+			\hline
+			\texttt{0} & i-rate \emph{or} k-rate (\texttt{B} out only) \\
+			\texttt{1} & i-rate \\
+			\texttt{2} & k-rate \\
+			\texttt{3} & i-rate \emph{and} k-rate\\
+			\texttt{4} & a-rate \\
+			\texttt{5} & i-rate \emph{and} a-rate \\
+			\texttt{7} & i-rate \emph{and} (k-rate \emph{or} a-rate) \\
+			\end{tabular*}
+			\end{center}
+	
+	\item[\texttt{outargs}] Lists the return values of the unit generator functions, if any.  The types allowed are:
+
+			\begin{center}
+			\begin{tabular*}{280pt}[t]{cl}
+			Type & Description \\
+			\hline
+			\texttt{i} & i-rate scalar \\
+			\texttt{k} & k-rate scalar \\
+			\texttt{a} & a-rate vector \\
+			\texttt{x} & k-rate scalar or a-rate vector \\
+			\texttt{w} & w-rate spectral data type \\
+			\texttt{f} & f-rate streaming pvoc fsig type \\
+			\texttt{m} & multiple outargs (1 to 4 allowed) \\
+			\end{tabular*}
+			\end{center}
+					
+	\item[\texttt{inargs}] Lists the arguments the unit generator functions take, if any.  The types allowed are: 
+
+			\begin{center}
+			\begin{tabular*}{280pt}[t]{cl}
+			Type & Description \\
+			\hline
+			\texttt{i} & i-rate scalar \\
+			\texttt{k} & k-rate scalar \\
+			\texttt{a} & a-rate scalar \\
+			\texttt{x} & k-rate scalar or a-rate vector \\
+			\texttt{w} & w-rate spectral data type \\
+			\texttt{f} & f-rate streaming pvoc fsig type \\
+			\texttt{S} & string \\
+			\texttt{B} & \\
+			\texttt{l} & \\
+			\texttt{m} & begins an indefinite list of iargs (any count) \\
+			\texttt{M} & begins an indefinite list of args (any count and rate) \\
+			\texttt{n} & begins an indefinite list of iargs (must be an odd count) \\
+			\texttt{o} & optional, defaulting to 0 \\
+			\texttt{p} & optional, defaulting to 1 \\
+			\texttt{q} & optional, defaulting to 10 \\
+			\texttt{v} & optional, defaulting to .5 \\ 
+			\texttt{j} & optional, defaulting to -1 \\
+			\texttt{h} & optional, defaulting to 127 \\
+			\texttt{y} & begins an indefinite list of aargs (any count) \\ 
+			\texttt{z} & begins indefinite list of kargs (any count) \\
+			\texttt{Z} & begins alternating \texttt{kakaka...} list (any count) \\
+			\end{tabular*}
+			\end{center}
+
+	\item[\texttt{isub}] The address of the unit generator function (of type \texttt{int (*SUBR)(void *)}) that is called at i-time, or null for no function.
+	\item[\texttt{ksub}] The address of the unit generator function (of type \texttt{int (*SUBR)(void *)}) that is called at k-rate, or null for no function.
+	\item[\texttt{asub}] The address of the unit generator function (of type \texttt{int (*SUBR)(void *)}) that is called at a-rate, or null for no function.
+	\item[\texttt{dsub}] The address of the unit generator function (of type \texttt{int (*SUBR)(void *)}) that is called after performance, or null for no function.
+
+\end{description}
+
+\chapter{API Reference}
+
+The Csound API reference is contained in the chapters following this one. The Csound Application Programming Interface (API) actually comprises several APIs:
+
+\begin{itemize}
+
+\item \emph{The Csound C API.} Include \texttt{csound.h} (page \pageref{csound_8h}) and link with \texttt{libcsound.a}.
+
+\item \emph{The Csound C++ API.} Include \texttt{CsoundVST.hpp} (page \pageref{CsoundVST_8hpp}) and link with \verb|lib_CsoundVST.a|. The \texttt{CsoundVST} class (\ref{classCsoundVST}) contains an instance of the \texttt{CppSound} class (\ref{classCppSound}), which provides a C++ wrapper for the C API as well as the CsoundFile class (\ref{classCsoundFile}) for loading, saving, and editing Csound orchestra and score files, and a basic graphical user interface for editing Csound files and running Csound. 
+
+The C++ API also provides a class hierarchy for doing algorithmic composition using Michael Gogins' concept of music graphs.
+
+\item \emph{The Csound Python API.} Import the \texttt{CsoundVST} Python extension module. The Python API provides a complete Python wrapper for the entire C++ API; therefore, the C++ API documentation can also be used as a reference to the Python API.
+
+\end{itemize}
+
