@@ -43,7 +43,7 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *signal, *iprd, *inpts, *ihann, *idbout, *iwtflg;
-        MYFLT   sampbuf[WINDMAX], *bufp, *endp, *fftlut, overN;
+        MYFLT   sampbuf[WINDMAX], *bufp, *endp, overN;
         long    windsize, overlap, ncoefs;
         int     hanning, dbout;
         WINDAT  dwindow;

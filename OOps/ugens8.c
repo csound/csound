@@ -202,7 +202,6 @@ int pvset(ENVIRON *csound, PVOC *p)
     for (i=0; i< pvfrsiz(p); ++i)
       p->outBuf[i] = FL(0.0);
     MakeSinc( /* p->sncTab */ );        /* sinctab is same for all instances */
-    p->plut = (MYFLT *)AssignBasis(NULL, pvfrsiz(p));    /* SET UP NONET FFT */
     return OK;
 
  pverr:
@@ -215,7 +214,6 @@ int pvoc(ENVIRON *csound, PVOC *p)
     MYFLT  frIndx;
     MYFLT  *buf = p->fftBuf;
     MYFLT  *buf2 = p->dsBuf;
-    MYFLT  *plut = p->plut;
     int    asize = pvdasiz(p);  /* new */
     int    size = pvfrsiz(p);
     int    buf2Size, outlen;
@@ -265,9 +263,7 @@ int pvoc(ENVIRON *csound, PVOC *p)
     Polar2Rect(buf, asize);
     /* kill spurious imag at dc & fs/2 */
     buf[1] = FL(0.0); buf[size+1] = FL(0.0);
-    FFT2torl((complex *) buf, size, 1, p->scale, (complex *) plut);
-    /* CALL TO NONET FFT */
-    PackReals(buf, size);
+    FFT2torlpacked((complex *) buf, size, p->scale, (complex *) NULL);
     if (pex != FL(1.0))
       UDSample(buf,(FL(0.5)*((MYFLT)size - pex*(MYFLT)buf2Size))/*a*/,
                buf2, size, buf2Size, pex);

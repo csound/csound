@@ -621,7 +621,7 @@ static void gen12(FUNC *ftp, ENVIRON *csound)
     FGDATA  *ff = &(csound->ff);
     static const double coefs[] = { 3.5156229, 3.0899424, 1.2067492,
                                      0.2659732, 0.0360768, 0.0045813 };
-    double *coefp, sum, tsquare, evenpowr, *cplim = coefs + 6;
+    double *coefp, sum, tsquare, evenpowr, *cplim = (double*) coefs + 6;
     int    n;
     MYFLT   *fp;
     double xscale;
@@ -633,7 +633,7 @@ static void gen12(FUNC *ftp, ENVIRON *csound)
     for (n=0,fp=ftp->ftable; n<=ff->flen; n++) {
       tsquare  = (double) n * xscale;
       tsquare *= tsquare;
-      for (sum=evenpowr=1.0, coefp=coefs; coefp<cplim; coefp++) {
+      for (sum=evenpowr=1.0, coefp = (double*) coefs; coefp<cplim; coefp++) {
         evenpowr *= tsquare;
         sum += *coefp * evenpowr;
       }
@@ -1332,7 +1332,7 @@ static void gen28(FUNC *ftp, ENVIRON *csound)
 static void gen30 (FUNC *ftp, ENVIRON *csound)
 {
     FGDATA  *ff = &(csound->ff);
-    complex *ex, *x;
+    complex *x;
     long    l1, l2, minh = 0, maxh = 0, i;
     MYFLT   xsr, minfrac, maxfrac;
     FUNC    *f;
@@ -1376,14 +1376,12 @@ static void gen30 (FUNC *ftp, ENVIRON *csound)
       x[i >> 1].im = f->ftable[i];
     }
     /* filter */
-    ex = AssignBasis (NULL, l2);
-    FFT2realpacked (x, l2, ex);
+    FFT2realpacked (x, l2, NULL);
     i = -1; while (++i < minh) x[i].re = x[i].im = FL(0.0);
     i = maxh; while (++i <= (l1 >> 1)) x[i].re = x[i].im = FL(0.0);
     x[minh].re *= minfrac; x[minh].im *= minfrac;
     x[maxh].re *= maxfrac; x[maxh].im *= maxfrac;
-    ex = AssignBasis (NULL, l1);
-    FFT2torlpacked (x, l1, FL(1.0) / (MYFLT)l2, ex);
+    FFT2torlpacked (x, l1, FL(1.0) / (MYFLT)l2, NULL);
     /* write dest. table */
     for (i = 0; i < l1; i++) {
       ftp->ftable[i] = x[i >> 1].re; i++;
@@ -1398,7 +1396,7 @@ static void gen30 (FUNC *ftp, ENVIRON *csound)
 static void gen31 (FUNC *ftp, ENVIRON *csound)
 {
     FGDATA  *ff = &(csound->ff);
-    complex *ex, *x, *y;
+    complex *x, *y;
     MYFLT   a, p;
     double  d_re, d_im, p_re, p_im, ptmp;
     long    i, j, k, n, l1, l2;
@@ -1419,11 +1417,10 @@ static void gen31 (FUNC *ftp, ENVIRON *csound)
       x[i >> 1].re = f->ftable[i]; i++;
       x[i >> 1].im = f->ftable[i];
     }
-    ex = AssignBasis (NULL, l2);
-    FFT2realpacked (x, l2, ex);
+    FFT2realpacked (x, l2, NULL);
 
     j = 6; while (j < (nargs + 3)) {
-      n = (long) (FL(0.5) + ff->e.p[j++]); if (n < 1) n = 1;       /* frequency */
+      n = (long) (FL(0.5) + ff->e.p[j++]); if (n < 1) n = 1;    /* frequency */
       a = ff->e.p[j++];                                    /* amplitude */
       p = ff->e.p[j++];                                    /* phase */
       p -= (MYFLT) ((long) p); if (p < FL(0.0)) p += FL(1.0); p *= TWOPI_F;
@@ -1442,8 +1439,7 @@ static void gen31 (FUNC *ftp, ENVIRON *csound)
     }
 
     /* write dest. table */
-    ex = AssignBasis (NULL, l1);
-    FFT2torlpacked (y, l1, FL(1.0) / (MYFLT) l2, ex);
+    FFT2torlpacked (y, l1, FL(1.0) / (MYFLT) l2, NULL);
     for (i = 0; i < l1; i++) {
       ftp->ftable[i] = y[i >> 1].re; i++;
       ftp->ftable[i] = y[i >> 1].im;
@@ -1459,7 +1455,7 @@ static void gen31 (FUNC *ftp, ENVIRON *csound)
 static void gen32 (FUNC *ftp, ENVIRON *csound)
 {
     FGDATA  *ff = &(csound->ff);
-    complex *ex, *x, *y;
+    complex *x, *y;
     MYFLT   a, p;
     double  d_re, d_im, p_re, p_im, ptmp;
     long    i, j, k, n, l1, l2, ntabl, *pnum, ft;
@@ -1529,8 +1525,7 @@ static void gen32 (FUNC *ftp, ENVIRON *csound)
             x[i >> 1].re = f->ftable[i]; i++;
             x[i >> 1].im = f->ftable[i];
           }
-          ex = AssignBasis (NULL, l2);
-          FFT2realpacked (x, l2, ex);
+          FFT2realpacked (x, l2, NULL);
         }
         n = (long) (FL(0.5) + ff->e.p[pnum[j] + 1]);       /* frequency */
         if (n < 1) n = 1;
@@ -1553,8 +1548,7 @@ static void gen32 (FUNC *ftp, ENVIRON *csound)
     }
     /* write dest. table */
     if (y != NULL) {
-      ex = AssignBasis (NULL, l1);
-      FFT2torlpacked (y, l1, FL(1.0), ex);
+      FFT2torlpacked (y, l1, FL(1.0), NULL);
       for (i = 0; i < l1; i++) {
         ftp->ftable[i] += y[i >> 1].re; i++;
         ftp->ftable[i] += y[i >> 1].im;
@@ -1573,7 +1567,7 @@ static void gen33 (FUNC *ftp, ENVIRON *csound)
 {
     FGDATA  *ff = &(csound->ff);
     MYFLT   fmode, *ft, *srcft, scl, amp, phs;
-    complex *ex, *x;
+    complex *x;
     long    nh, flen, srclen, i, pnum, maxp;
     FUNC    *src;
     int nargs = ff->e.pcnt -4;
@@ -1610,7 +1604,6 @@ static void gen33 (FUNC *ftp, ENVIRON *csound)
 
     /* allocate memory for tmp data */
     x = (complex*) mcalloc(csound, sizeof (complex) * ((flen >> 1) + 1L));
-    ex = AssignBasis(NULL, flen);
 
     maxp = flen >> 1;           /* max. partial number */
     i = nh;
@@ -1633,7 +1626,7 @@ static void gen33 (FUNC *ftp, ENVIRON *csound)
       x[pnum].im -= amp * (MYFLT) cos((double) phs);
     }
 
-    FFT2torlpacked(x, flen, FL(0.5), ex);      /* iFFT */
+    FFT2torlpacked(x, flen, FL(0.5), NULL);    /* iFFT */
 
     i = flen >> 1;              /* copy to output table */
     pnum = 0L;
@@ -2844,3 +2837,4 @@ int allocgen(ENVIRON *csound, char *s, GEN fn)
     printf("**** allocated %d\n", csound->genmax-1);
     return csound->genmax-1;
 }
+

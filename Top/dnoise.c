@@ -81,9 +81,6 @@
 #include "cs.h"
 #include "sfheader.h"
 #include "soundio.h"
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 
 extern ENVIRON cenviron;
 
@@ -93,9 +90,7 @@ extern ENVIRON cenviron;
                             dieu(MSG)
 
 void dnoise_usage(int);
-void fast(MYFLT*, int);
 void hamming(MYFLT *, int, int);
-void fsst(MYFLT *, int);
 #ifdef mills_macintoshxx
 extern void do_mac_dialogs(void);
 extern char *gargv[];
@@ -117,12 +112,48 @@ static int writebuffer(MYFLT *, int);
 static unsigned outbufsiz;
 /*static MFLT     *outbuf; */
 
-static int outfd;
-static SNDFILE* outsdf;
+static SNDFILE* outfd;
+
+static void fast(MYFLT *b, int N)
+{
+  /* The DC term is returned in location b[0] with b[1] set to 0.
+     Thereafter, the i'th harmonic is returned as a complex
+     number stored as b[2*i] + j b[2*i+1].  The N/2 harmonic
+     is returned in b[N] with b[N+1] set to 0.  Hence, b must
+     be dimensioned to size N+2.  The subroutine is called as
+     fast(b,N) where N=2**M and b is the real array described
+     above.
+  */
+
+    csoundRealFFT(&cenviron, b, N);
+    b[N] = b[1];
+    b[1] = b[N + 1] = FL(0.0);
+}
+
+static void fsst(MYFLT *b, int N)
+{
+  /* This subroutine synthesizes the real vector b[k] for k=0, 1,
+     ..., N-1 from the fourier coefficients stored in the b
+     array of size N+2.  The DC term is in location b[0] with
+     b[1] equal to 0.  The i'th harmonic is a complex number
+     stored as b[2*i] + j b[2*i+1].  The N/2 harmonic is in
+     b[N] with b[N+1] equal to 0. The subroutine is called as
+     fsst(b,N) where N=2**M and b is the real array described
+     above.
+  */
+    MYFLT scaleVal;
+    int   i;
+
+    scaleVal = csoundGetInverseRealFFTScale(&cenviron, N);
+    b[1] = b[N];
+    b[N] = b[N + 1] = FL(0.0);
+    for (i = 0; i < N; i++)
+      b[i] *= scaleVal;
+    csoundInverseRealFFT(&cenviron, b, N);
+}
 
 int dnoise(int argc, char **argv)
 {
-
     MYFLT   beg = -FL(1.0), end = -FL(1.0);
     long    Beg = 0, End = 99999999;
 
@@ -235,6 +266,7 @@ int dnoise(int argc, char **argv)
     char        outformch = 's';
 
     init_getstring(argc, argv);
+    cenviron.e0dbfs_ = cenviron.dbfs_to_float_ = FL(1.0);
 
     O.filnamspace = outfile = (char*)mmalloc(&cenviron, (long)1024);
     nfile = (char*)mmalloc(&cenviron, (long)1024);
@@ -485,13 +517,30 @@ int dnoise(int argc, char **argv)
     }
     if (O.rewrt_hdr && !O.sfheader)
       die(Str("cannot rewrite header if no header requested"));
-    if (O.outfilename == NULL)  O.outfilename = "test";
-/*     ofd = fopen(outfile, "wb"); */
-    outfd = openout(O.outfilename, 1);
+    if (O.outfilename == NULL)
+      O.outfilename = "test";
+    {
+      SF_INFO sfinfo;
+      char    *name;
+      memset(&sfinfo, 0, sizeof(SF_INFO));
+      sfinfo.samplerate = (int) p->sr;
+      sfinfo.channels = (int) p->nchanls;
+      sfinfo.format = type2sf(O.filetyp) | format2sf(O.outformat);
+      if (strcmp(O.outfilename, "stdout") != 0) {
+        name = csoundFindOutputFile(&cenviron, O.outfilename, "SFDIR");
+        if (name == NULL)
+          dies(Str("cannot open %s."), O.outfilename);
+        outfd = sf_open(name, SFM_WRITE, &sfinfo);
+        mfree(&cenviron, name);
+      }
+      else
+        outfd = sf_open_fd(O.stdoutfd, SFM_WRITE, &sfinfo, 1);
+      if (outfd == NULL)
+        dies(Str("cannot open %s."), O.outfilename);
+      sf_command(outfd, SFC_SET_CLIPPING, NULL, SF_TRUE);
+    }
     esr = (MYFLT)p->sr;
     nchnls = Chans = p->nchanls;
-    if (O.sfheader)
-      writeheader(outfd, O.outfilename);      /* write header as required   */
 
     /* read header info */
     if (R < FL(0.0))
@@ -590,11 +639,11 @@ int dnoise(int argc, char **argv)
 
     ibuflen = Chans * (M + 3 * D);
     obuflen = Chans * (L + 3 * I);
-    outbufsiz = obuflen * O.sfsampsize;/* calc outbuf size */
-    outbuf = mmalloc(&cenviron, (long)outbufsiz);                 /*  & alloc bufspace */
-    printf(Str("writing %d-byte blks of %s to %s\n"),
+    outbufsiz = obuflen * sizeof(MYFLT);                /* calc outbuf size */
+    outbuf = mmalloc(&cenviron, (size_t) outbufsiz);    /*  & alloc bufspace */
+    printf(Str("writing %d-byte blks of %s to %s"),
            outbufsiz, getstrformat(O.outformat), O.outfilename);
-    printf(" %s\n", type2string(O.filetyp));
+    printf(" (%s)\n", type2string(O.filetyp));
 /*     spoutran = spoutsf; */
 
     minv = FL(1.0) / (MYFLT)m;
@@ -1106,7 +1155,7 @@ int dnoise(int argc, char **argv)
 
 /*     rewriteheader(outfd, 0); */
     printf("\n\n");
-    close(outfd);
+    sf_close(outfd);
     if (Verbose) {
       err_printf("processing complete\n");
       err_printf("N = %d\n",N);
@@ -1154,33 +1203,27 @@ void dnoise_usage(int exitcode)
     exit(exitcode);
 }
 
-#ifdef  USE_DOUBLE
-#define sf_write_MYFLT  sf_write_double
-#else
-#define sf_write_MYFLT  sf_write_float
-#endif
-
 static void sndwrterr(unsigned nret, unsigned nput) /* report soundfile write(osfd)
                                                 error      */
   /* called after chk of write() bytecnt  */
 {
     void sfcloseout(void);
-    printf(Str("soundfile write returned bytecount of %d, not %d\n"),
+    printf(Str("soundfile write returned sample count of %d, not %d\n"),
            nret,nput);
     printf(Str("(disk may be full...\n closing the file ...)\n"));
     sfcloseout();                    /* & try to close the file */
     die(Str("\t... closed\n"));
 }
 
-static int writebuffer(MYFLT *outbuf, int nbytes)
+static int writebuffer(MYFLT *outbuf, int nsmps)
 {
     int n;
-    if (outfd<0) return 0;
-    n = sf_write_MYFLT(outsdf, outbuf, nbytes/sizeof(MYFLT));
-    if (n < nbytes/sizeof(MYFLT))
-      sndwrterr(n, nbytes);
+    if (outfd == NULL) return 0;
+    n = sf_write_MYFLT(outfd, outbuf, nsmps);
+    if (n < nsmps)
+      sndwrterr(n, nsmps);
     if (O.rewrt_hdr)
-      rewriteheader(outsdf,0);
+      rewriteheader(outfd,0);
     nrecs++;                /* JPff fix */
     if (O.heartbeat) {
       if (O.heartbeat==1) {
@@ -1198,11 +1241,6 @@ static int writebuffer(MYFLT *outbuf, int nbytes)
       }
       else err_printf("\a");
     }
-    return nbytes/sizeof(MYFLT);
+    return nsmps;
 }
-
-/* #define MUCLIP  32635 */
-/* #define BIAS    0x84 */
-/* #define MUZERO  0x02 */
-/* #define ZEROTRAP */
 

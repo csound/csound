@@ -132,8 +132,8 @@ int express(char *s)
             if (st.token > tokens
                 && *(st.token-1)->str == '/')
               XERROR(Str("divide by unary minus"))
-            st.token->str = strminus1; st.token++;
-            st.token->str = strmult; st.token++;
+            st.token->str = (char*) strminus1; st.token++;
+            st.token->str = (char*) strmult; st.token++;
             st.token->str = t;     /* else -1 * symbol */
           }
           c = *s++;                /* beg rem of token */
@@ -544,3 +544,4 @@ static void putoklist(void)     /*      ditto           */
       printf("%s\t", (*tpp++)->str);
     printf("\n");
 }
+

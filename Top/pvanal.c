@@ -66,7 +66,6 @@ char        *programName = "PVANAL";  /* TEMP FOR pvoc.c ******/
 static  long frameSize  = 0;        /* size of FFT frames */
 static  long frameIncr  = 0;        /* step between successive frames */
 static  long fftfrmBsiz = 0;        /* bytes of fft output frame      */
-static  complex *basis;             /* LUTable for FFT */
 static  WINDAT   dwindow;
 /* static  MYFLT    max = 0.0; */
 static  int      cnt = 0;
@@ -264,7 +263,6 @@ int pvanal(int argc, char **argv)
                 pvh->frameSize, pvh->frameIncr, pvh->minFreq, pvh->maxFreq);
         fprintf(trfil, "LogLin=%ld\n\n", pvh->freqFormat);
       }
-      basis = AssignBasis(NULL,frameSize);      /* set up FFT tables */
       oframeAct = takeFFTs(p, pvh, infd, ofd, oframeEst);
       dispexit();
       printf(Str("%ld output frames written\n"), oframeAct);
@@ -318,7 +316,7 @@ static long takeFFTs(
     IGN(outputPVH);
 
     inBuf   = (MYFLT *)MakeBuf(frameSize * 2L);
-    tmpBuf  = MakeBuf(frameSize * 2L);
+    tmpBuf  = MakeBuf(frameSize + 2L);
     v       = MakeBuf(frameSize);
     oldInPh = MakeBuf(frameSize);
     winBuf  = MakeHalfWin(frameSize,FL(1.0),WindowType);
@@ -346,9 +344,7 @@ static long takeFFTs(
       /*    PrintBuf(tmpBuf, frameSize, "floated");  */
       ApplyHalfWin(tmpBuf,winBuf,frameSize);
       /*    PrintBuf(tmpBuf, frameSize, "windo'd"); */
-      UnpackReals(tmpBuf, frameSize);
-      /*    PrintBuf(tmpBuf, frameSize, "unpacked"); */
-      FFT2real((complex *)tmpBuf, frameSize, 1, basis);
+      FFT2realpacked((complex *)tmpBuf, frameSize, NULL);
       /*    PrintBuf(tmpBuf, frameSize, X_761,"fft'd"); */
       Rect2Polar(tmpBuf, fsIndepVals);
       /*    PrintBuf(tmpBuf, frameSize, "toPolar"); */

@@ -111,10 +111,7 @@ int cvset(ENVIRON *csound, CONVOLVE *p)
       goto cverr;
     }
 
-   /* Initialise FFT lookup table */
-    p->cvlut = (MYFLT *)AssignBasis(NULL, Hlenpadded);
-
-/* Determine size of circular output buffer */
+    /* Determine size of circular output buffer */
     if (Hlen >= ksmps)
       obufsiz = (long)ceil( (double)Hlen / (double)ksmps ) * ksmps;
     else
@@ -202,7 +199,7 @@ int convolve(ENVIRON *csound, CONVOLVE *p)
         /* FFT the input (to create X) */
         /*printf("CONVOLVE: ABOUT TO FFT\n"); */
         FFT2realpacked((complex *)p->fftbuf,Hlenpadded,
-                       (complex *)(p->cvlut));
+                       (complex *) NULL);
         /* save the result if multi-channel */
         if (nchm1) {
           fftbufind = p->fftbuf;
@@ -231,7 +228,7 @@ int convolve(ENVIRON *csound, CONVOLVE *p)
           /* Perform inverse FFT on X */
 
           FFT2torlpacked((complex*)(p->fftbuf),Hlenpadded,
-                         FL(1.0)/Hlenpadded,(complex*)(p->cvlut));
+                         FL(1.0)/Hlenpadded,(complex*) NULL);
 
           /* Take the first Hlen output samples and output them to
              either the real audio output buffer or the local circular
@@ -322,7 +319,6 @@ int pconvset(ENVIRON *csound, PCONVOLVE *p)
     int      channel = (*(p->channel) <= 0 ? ALLCHNLS : *(p->channel));
     SNDFILE *infd;
     SOUNDIN IRfile;
-    complex *basis;
     MYFLT   *inbuf, *fp1,*fp2;
     long    i, j, read_in, part;
     MYFLT   *IRblock;
@@ -389,7 +385,6 @@ int pconvset(ENVIRON *csound, PCONVOLVE *p)
     p->numPartitions = ceil((MYFLT)(IRfile.getframes) / (MYFLT)p->Hlen);
 
     /* set up FFT tables */
-    basis = AssignBasis(NULL, p->Hlenpadded);
     inbuf = (MYFLT *)mmalloc(csound, p->Hlen * p->nchanls * sizeof(MYFLT));
     auxalloc(csound, p->numPartitions * (p->Hlenpadded + 2) *
              sizeof(MYFLT) * p->nchanls, &p->H);
@@ -410,16 +405,13 @@ int pconvset(ENVIRON *csound, PCONVOLVE *p)
           *fp2++ = *fp1 * dbfs_to_float;
           fp1 += p->nchanls;
         }
-        FFT2realpacked((complex *)IRblock, p->Hlenpadded , basis);
+        FFT2realpacked((complex *)IRblock, p->Hlenpadded, NULL);
         IRblock += (p->Hlenpadded + 2);
       }
     }
 
     mfree(csound, inbuf);
     sf_close(infd);
-
-    /* Initialise input FFT lookup table */
-    p->cvlut = (complex *)AssignBasis(NULL, p->Hlenpadded);
 
     /* allocate the buffer saving recent input samples */
     auxalloc(csound, p->Hlen * sizeof(MYFLT), &p->savedInput);
@@ -479,7 +471,7 @@ int pconvolve(ENVIRON *csound, PCONVOLVE *p)
         /* FFT the input (to create X) */
         *workWrite = FL(0.0); /* zero out nyquist bin from last fft result - maybe
                                  is ignored for input(?) but just in case.. */
-        FFT2realpacked(workBuf, p->Hlenpadded, p->cvlut);
+        FFT2realpacked(workBuf, p->Hlenpadded, NULL);
 
         /* for every IR partition convolve and add to previous convolves */
         for (i = 0; i < p->numPartitions*p->nchanls; i++) {
@@ -502,7 +494,7 @@ int pconvolve(ENVIRON *csound, PCONVOLVE *p)
                          p->Hlenpadded,
                          FL(1.0)/((MYFLT)p->Hlenpadded),
                          /* *p->numPartitions --needed??? above */
-                         p->cvlut);
+                         NULL);
         /* We only take only the last Hlen output samples so we first zero out
            the first half for next time, then we copy the rest to output buffer */
         for (j = 0; j < p->nchanls; j++) {

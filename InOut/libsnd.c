@@ -683,7 +683,7 @@ void sfcloseout(void *csound)
         || strcmp(O.outfilename,"dac") == 0) printf("\n");
     else if (O.sfheader == 0) printf(Str(" (raw)\n"));
     else
-      printf(" %s\n", type2string(O.filetyp));
+      printf(" (%s)\n", type2string(O.filetyp));
     osfopen = 0;
 }
 

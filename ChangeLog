@@ -1,3 +1,25 @@
+2005-03-25	Istvan Varga	<istvan@csounds.com>
+	* InOut/midirecv.c:
+	* Engine/express.c:
+	* Engine/fgens.c:
+	  fixed compiler warnings
+	* OOps/diskin.c:
+	* Engine/entry1.c:
+	  use diskin2 functions to emulate diskin
+	* Opcodes/hrtferX.c, Top/dnoise.c, Top/cvanal.c, Opcodes/oscbnk.c:
+	* Engine/fgens.c, OOps/ugens9.c, H/ugens8.h, H/pvinterp.h:
+	* H/vpvoc.h, H/disprep.h, Top/pvanal.c, OOps/ugens8.c:
+	* OOps/vpvoc.c, OOps/pvinterp.c, OOps/disprep.c, Engine/oload.c:
+	* H/csdl.h, H/fft.h, OOps/fft.c, H/csoundCore.h:
+	  removed redundant (and often slow) FFT code
+	* Top/dnoise.c:
+	  fixed sound file output
+	* InOut/libsnd.c:
+	  print message correctly when closing output file
+	* H/diskin.h:
+	* OOps/dnfft.c:
+	  removed files
+
 2005-03-23	Istvan Varga	<istvan@csounds.com>
 	* OOps/ugens2.c:
 	* Opcodes/biquad.c:

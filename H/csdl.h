@@ -138,27 +138,9 @@
 #undef mmalloc
 #undef mfree
 #undef hfgens
-#undef putcomplexdata
-#undef ShowCpx
-#undef PureReal
 #undef IsPowerOfTwo
-#undef FindTable
-#undef AssignBasis
-#undef reverseDig
-#undef reverseDigpacked
-#undef FFT2dimensional
-#undef FFT2torl
 #undef FFT2torlpacked
-#undef ConjScale
-#undef FFT2real
 #undef FFT2realpacked
-#undef Reals
-#undef Realspacked
-#undef FFT2
-#undef FFT2raw
-#undef FFT2rawpacked
-#undef FFTarb
-#undef DFT
 #undef cxmul
 #undef getopnum
 #undef strarg2insno
@@ -357,28 +339,9 @@
 #define mmalloc csound->mmalloc_
 #define mfree csound->mfree_
 #define hfgens csound->hfgens_
-#define AssignBasis csound->AssignBasis_
-#define putcomplexdata csound->putcomplexdata_
-#define ShowCpx csound->ShowCpx_
-#define PureReal csound->PureReal_
 #define IsPowerOfTwo csound->IsPowerOfTwo_
-#define FindTable csound->FindTable_
-#define AssignBasis csound->AssignBasis_
-#define reverseDig csound->reverseDig_
-#define reverseDigpacked csound->reverseDigpacked_
-#define FFT2dimensional csound->FFT2dimensional_
-#define FFT2torl csound->FFT2torl_
 #define FFT2torlpacked csound->FFT2torlpacked_
-#define ConjScale csound->ConjScale_
-#define FFT2real csound->FFT2real_
 #define FFT2realpacked csound->FFT2realpacked_
-#define Reals csound->Reals_
-#define Realspacked csound->Realspacked_
-#define FFT2 csound->FFT2_
-#define FFT2raw csound->FFT2raw_
-#define FFT2rawpacked csound->FFT2rawpacked_
-#define FFTarb csound->FFTarb_
-#define DFT csound->DFT_
 #define cxmul csound->cxmul_
 #define getopnum csound->getopnum_
 #define strarg2insno csound->strarg2insno_

@@ -48,7 +48,7 @@ typedef struct {
     long    kcnt;
     long    baseFr, maxFr, frSiz, prFlg, opBpos;
      /* base Frame (in frameData0) and maximum frame on file, ptr to fr, size */
-    MYFLT   frPktim, frPrtim, scale, asr, *frPtr, lastPex, *plut;
+    MYFLT   frPktim, frPrtim, scale, asr, *frPtr, lastPex;
      /* asr is analysis sample rate */
      /* fft frames per k-time (equals phase change expansion factor) */
     AUXCH   auxch;      /* manage AUXDS for the following 5 buffer spaces */
@@ -70,7 +70,7 @@ typedef struct {
     long    kcnt;
     long    baseFr, maxFr, frSiz, prFlg, opBpos;
      /* base Frame (in frameData0) and maximum frame on file, ptr to fr, size */
-    MYFLT   frPktim, frPrtim, scale, asr, *frPtr, lastPex, *plut;
+    MYFLT   frPktim, frPrtim, scale, asr, *frPtr, lastPex;
      /* asr is analysis sample rate */
      /* fft frames per k-time (equals phase change expansion factor) */
     AUXCH   auxch;      /* manage AUXDS for the following 5 buffer spaces */
