@@ -3,6 +3,7 @@ CC = @CC@
 DEFINES = -DBETA
 CFLAGS = @CFLAGS@ @XCFLAGS@ $(RPM_OPT_FLAGS) $(DEFINES)
 INCLUDE	= @includedir@
+LIBS = @LIBS@
 P = ../Plugins
 
 LIBRARIES = \
@@ -106,17 +107,17 @@ PHYSOBJ = physmod.$(o) physutil.$(o) mandolin.$(o) singwave.$(o) \
 	fm4op.$(o) moog1.$(o) shaker.$(o)
 
 physmod.so:	$(PHYSOBJ)
-	ld -E --shared $(PHYSOBJ) -o physmod.so
+	ld -E --shared $(PHYSOBJ) -o physmod.so $(LIBS)
 	-rm $P/physmod.so
 	ln physmod.so $P
 
 ugrw1.so:	ugrw1.$(o) fprint.$(o)
-	ld -E --shared ugrw1.$(o) fprint.$(o) -o ugrw1.so
+	ld -E --shared ugrw1.$(o) fprint.$(o) -o ugrw1.so $(LIBS)
 	-rm $P/ugrw1.so
 	ln ugrw1.so $P
 
 %.so: %.$(o)
-	ld -E --shared $*.$(o) -o $*.so
+	ld -E --shared $*.$(o) -o $*.so $(LIBS)
 	-rm $P/$*.so
 	ln $*.so $P
 
