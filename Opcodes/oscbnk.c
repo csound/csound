@@ -66,7 +66,7 @@ static void oscbnk_seedrand(ENVIRON *csound, long *seed, MYFLT seedval)
       if (*oscbnk_seed > 0UL)
         *oscbnk_seed += 23UL;
       else
-        *oscbnk_seed = (unsigned long) timers_random_seed();
+        *oscbnk_seed = (unsigned long) csound->timers_random_seed();
       *oscbnk_seed = ((*oscbnk_seed - 1UL) % 0x7FFFFFFEUL) + 1UL;
       *seed = (long) *oscbnk_seed;
     }
