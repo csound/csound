@@ -17,7 +17,7 @@ For Cygwin, run SCons.bat in the Python directory
 '''
 import os
 import sys
-import string
+import strings
 
 #############################################################################
 #
@@ -55,7 +55,7 @@ opts.Add('useMingw',
 # Define the common part of the build environment.
 
 commonEnvironment = Environment(options = opts)
-if commonEnvironment['useMingw'] and (sys.platform == 'win32' or sys.platform == 'cygwin'):
+if commonEnvironment['useMingw'] and (sys.platform[:3] == 'win' or sys.platform == 'cygwin'):
     print 'Using mingw.'
     commonEnvironment.Append(tools = ['mingw'])
     
@@ -65,7 +65,7 @@ commonEnvironment.Append(CPPPATH  = ['.', './H'])
 commonEnvironment.Append(CCFLAGS = '-DCSOUND_WITH_API')
 # Define options for different platforms.
 
-if (sys.platform == 'linux1' or sys.platform == 'linux2'):
+if (sys.platform[:5] == 'linux'):
 	commonEnvironment.Append(CCFLAGS = "-DLINUX")
 	commonEnvironment.Append(CPPPATH = '/usr/local/include')
 	commonEnvironment.Append(CPPPATH = '/usr/include')
@@ -85,7 +85,7 @@ if sys.platform == 'cygwin' or sys.platform == 'mingw':
 	commonEnvironment.Append(CCFLAGS = "-DHAVE_STRING_H")
 	commonEnvironment.Append(CCFLAGS = "-DPIPES")
 	commonEnvironment.Append(LIBPATH = ['.', '#.', '/usr/include/lib', '/usr/local/lib'])
-if sys.platform == 'win32':
+if sys.platform[:3] == 'win':
 	commonEnvironment.Append(CCFLAGS = "-DDEBUG")
 	commonEnvironment.Append(CCFLAGS = "-D_WIN32")
 	commonEnvironment.Append(CCFLAGS = "-DWIN32")
@@ -96,7 +96,7 @@ if sys.platform == 'win32':
 # Pick up some things from the local shell's environment.
 # This is used for Microsoft Visual Studio.
 
-if sys.platform == 'win32':
+if sys.platform[:3] == 'win':
     try:
         commonEnvironment['ENV']['TMP'] = os.environ['TMP']
         commonEnvironment['ENV']['PATH'] = os.environ['PATH']
@@ -183,7 +183,7 @@ if commonEnvironment['usePortAudio'] and portaudioFound:
     guiProgramEnvironment.Append(CCFLAGS = '-DRTAUDIO')
     csoundProgramEnvironment.Append(LIBS = ['portaudio'])
     vstEnvironment.Append(LIBS = ['portaudio'])
-    if (sys.platform == 'linux1' or sys.platform == 'linux2'): 
+    if (sys.platform[:5] == 'linux'): 
         csoundProgramEnvironment.Append(LIBS = ['asound'])
         vstEnvironment.Append(LIBS = ['asound'])
         if commonEnvironment['useJack']:
@@ -191,7 +191,7 @@ if commonEnvironment['usePortAudio'] and portaudioFound:
             csoundProgramEnvironment.Append(LIBS = ['jack'])
             vstEnvironment.Append(LIBS = ['jack'])
 			
-    if sys.platform == 'cygwin' or sys.platform == 'mingw' or sys.platform == 'win32': 
+    if sys.platform == 'cygwin' or sys.platform == 'mingw' or sys.platform[:3] == 'win': 
         csoundProgramEnvironment.Append(LIBS = ['winmm'])
         vstEnvironment.Append(LIBS = ['winmm'])
         csoundProgramEnvironment.Append(LIBS = ['dsound'])
@@ -212,7 +212,7 @@ if commonEnvironment['usePortAudio'] and portaudioFound:
         guiProgramEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
         csoundProgramEnvironment.Append(LIBS = ['fltk'])
         vstEnvironment.Append(LIBS = ['fltk'])
-        if (sys.platform == 'linux1' or sys.platform == 'linux2') or sys.platform == 'cygwin' or sys.platform == 'mingw':
+        if sys.platform[:5] == 'linux' or sys.platform == 'cygwin' or sys.platform == 'mingw':
             csoundProgramEnvironment.Append(LIBS = ['stdc++', 'pthread'])
             ustubProgramEnvironment.Append(LIBS = ['stdc++', 'pthread'])
             vstEnvironment.Append(LIBS = ['stdc++', 'pthread'])
@@ -534,7 +534,7 @@ if commonEnvironment['buildCsoundVST'] == 1 and boostFound and fltkFound:
     guiProgramEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
     vstEnvironment.Prepend(LIBS = ['csound', 'sndfile'])
     guiProgramEnvironment.Prepend(LIBS = ['_CsoundVST'])
-    if (sys.platform == 'linux1' or sys.platform == 'linux2'):
+    if sys.platform[:3] == 'linux':
     	vstEnvironment.Append(LIBS = ['python2.3'])
     if sys.platform == 'cygwin':
         # vstEnvironment.Append(CPPPATH = ['/usr/include/python2.3'])
@@ -560,7 +560,7 @@ if commonEnvironment['buildCsoundVST'] == 1 and boostFound and fltkFound:
     	     if string.find(option, '-D') == 0:
                  vstEnvironment.Append(SWIGFLAGS = [option])
     	vstEnvironment.Append(LIBS = ['pyrun'])
-    if sys.platform == 'mingw' or sys.platform == 'win32':
+    if sys.platform == 'mingw' or sys.platform[:3] == 'win':
         vstEnvironment.Prepend(CPPPATH = ['c:/Python23/include'])
     	vstEnvironment.Append(CCFLAGS = '-D_MSC_VER')
     	vstEnvironment.Append(LIBS = ['python23'])
