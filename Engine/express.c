@@ -31,22 +31,28 @@
 #define LENTOT  200L            /* This one is OK */
 #define TOKMAX  50L             /* Should be 50 but bust */
 #define POLMAX  30L             /* This one is OK */
-#define XERROR(CAUSE)   { strncpy(xprmsg,CAUSE,80);  goto error; }
+#define XERROR(CAUSE)   { strncpy(st.xprmsg,CAUSE,80);  goto error; }
 
 typedef struct token {
         char    *str;
         short   prec;
 } TOKEN;
 
-static  long    polmax;
-static  long    toklen;
+static struct local_express {
+  long    polmax;
+  long    toklen;
+  TOKEN   *token;
+  TOKEN   *tokend;
+  int     acount, kcount, icount, Bcount, bcount;
+  char    xprmsg[80], *stringend;
+  TOKEN   **revp, **pushp, **argp, **endlist;
+} st;
 
-static  TOKEN   *tokens = NULL, *token, *tokend;
-static  TOKEN   **tokenlist = NULL, **revp, **pushp, **argp, **endlist;
+static  TOKEN   *tokens = NULL;
+static  TOKEN   **tokenlist = NULL;
 static  int     toklength = TOKMAX;
-static  int     acount, kcount, icount, Bcount, bcount;
-static  char    xprmsg[80], *stringend;
-static  char    strminus1[] = "-1", strmult[] = "*";
+static  const char    strminus1[] = "-1";
+static  const char    strmult[] = "*";
 static  void    putokens(void), putoklist(void);
 static  int     nontermin(int);
 extern  char    argtyp(char *);
@@ -59,15 +65,15 @@ extern  void    *mrealloc(void*, void*, size_t);
 void expRESET(void)
 {
     mfree(&cenviron, polish); polish=NULL;
-    polmax      = 0;
+    st.polmax   = 0;
     tokenstring = NULL;
-    toklen      = 0;
-    tokens      = token = tokend = NULL;
-    tokenlist   = revp = pushp = argp = endlist = NULL;
+    st.toklen   = 0;
+    tokens      = st.token = st.tokend = NULL;
+    tokenlist   = st.revp = st.pushp = st.argp = st.endlist = NULL;
     toklength   = TOKMAX;
     resetouts();
-    memset(xprmsg,0,80*sizeof(char));
-    stringend   = 0;
+    memset(st.xprmsg,0,80*sizeof(char));
+    st.stringend = 0;
     argcnt_offs = 0;
     opcode_is_assign = assign_type = 0;
     assign_outarg = NULL;
@@ -75,7 +81,7 @@ void expRESET(void)
 
 void resetouts(void)
 {
-    acount = kcount = icount = Bcount = bcount = 0;
+    st.acount = st.kcount = st.icount = st.Bcount = st.bcount = 0;
 }
 
 #define copystring(s) strsav_string(s)
@@ -90,53 +96,53 @@ int express(char *s)
     if (*s == '"')                 /* if quoted string, not an exprssion */
       return (0);
     if (tokens == NULL) {
-      tokens = (TOKEN*) mmalloc(&cenviron, (long)TOKMAX*sizeof(TOKEN));
-      tokend = tokens+TOKMAX;
-      tokenlist = (TOKEN**) mmalloc(&cenviron, (long)TOKMAX*sizeof(TOKEN*));
-      polish = (POLISH*) mmalloc(&cenviron, (long)POLMAX*sizeof(POLISH));
-      polmax = POLMAX;
-      tokenstring = mmalloc(&cenviron, LENTOT);
-      stringend = tokenstring+LENTOT;
-      toklen = LENTOT;
+      tokens       = (TOKEN*) mmalloc(&cenviron, (long)TOKMAX*sizeof(TOKEN));
+      st.tokend    = tokens+TOKMAX;
+      tokenlist    = (TOKEN**) mmalloc(&cenviron, (long)TOKMAX*sizeof(TOKEN*));
+      polish       = (POLISH*) mmalloc(&cenviron, (long)POLMAX*sizeof(POLISH));
+      st.polmax    = POLMAX;
+      tokenstring  = mmalloc(&cenviron, LENTOT);
+      st.stringend = tokenstring+LENTOT;
+      st.toklen    = LENTOT;
     }
     sorig = s;
-    if (tokenstring+strlen(s) >= stringend) {
+    if (tokenstring+strlen(s) >= st.stringend) {
       char *tt;
       TOKEN *ttt;
-      long n = toklen + LENTOT+strlen(s);
+      long n = st.toklen + LENTOT+strlen(s);
       tt = (char *)mrealloc(&cenviron, tokenstring, n);
-      for (ttt=tokens; ttt<=token; ttt++) /* Adjust all previous tokens */
+      for (ttt=tokens; ttt<=st.token; ttt++) /* Adjust all previous tokens */
         ttt->str += (tt-tokenstring);
       tokenstring = tt;               /* Reset string and length */
-      stringend = tokenstring + (toklen = n);
-      printf(Str("Token length extended to %ld\n"), toklen);
+      st.stringend = tokenstring + (st.toklen = n);
+      printf(Str("Token length extended to %ld\n"), st.toklen);
     }
 
-    token = tokens;
-    token->str = t = tokenstring;
+    st.token = tokens;
+    st.token->str = t = tokenstring;
     open = 1;
     while ((c = *s++)) {
-      if (open) {                     /* if unary possible here,   */
+      if (open) {                   /* if unary possible here,   */
         if (c == '+')               /*   look for signs:         */
           continue;
         if (c == '-') {             /* neg const:  get past sign */
           if (*s == '.' || (*s >= '0' && *s <= '9'))
             *t++ = c;
-          else {                  /* neg symbol: prv / illegal */
-            if (token > tokens
-                && *(token-1)->str == '/')
+          else {                    /* neg symbol: prv / illegal */
+            if (st.token > tokens
+                && *(st.token-1)->str == '/')
               XERROR(Str("divide by unary minus"))
-                token++->str = strminus1;
-            token++->str = strmult;
-            token->str = t;     /* else -1 * symbol */
+            st.token->str = strminus1; st.token++;
+            st.token->str = strmult; st.token++;
+            st.token->str = t;     /* else -1 * symbol */
           }
-          c = *s++;               /* beg rem of token */
+          c = *s++;                /* beg rem of token */
         }
         else if (c == '*' || c == '/' || c == '%')  /* unary mlt, div */
-          XERROR(Str("unary mult or divide"))      /*   illegal */
+          XERROR(Str("unary mult or divide"))       /*   illegal */
             open = 0;
       }
-      *t++ = c;                       /* copy this character or    */
+      *t++ = c;                    /* copy this character or    */
       if (((nextc = *s) == c && (c == '&' || c == '|')) /* double op */
           || (nextc == '=' && (c=='<' || c=='>' || c=='=' || c=='!')))
         *t++ = c = *s++, open = 1;
@@ -146,39 +152,41 @@ int express(char *s)
         if (c == '&') *(t-1) = BITCLR;
         else if (c == '|') *(t-1) = BITSET;
         else if (c == '#') *(t-1) = BITFLP;
-        open = 1;           /* decl if unary can follow */
+        open = 1;                     /* decl if unary can follow */
       }
       else if (nontermin(c))
         while (nontermin(*s))         /* if not just a termin char */
           *t++ = *s++;                /*      copy entire token    */
       *t++ = '\0';                    /* terminate this token      */
-      if (t >= stringend) {           /* Extend token length as required */
+      if (t >= st.stringend) {        /* Extend token length as required */
         XERROR(Str("token storage LENTOT exceeded"));
       }
-      if ((tokend - token)<= 4) {     /* Extend token array and friends */
-        int n = token - tokens;
+      if ((st.tokend - st.token)<= 4) { /* Extend token array and friends */
+        int n = st.token - tokens;
         tokens =
-          (TOKEN*)mrealloc(&cenviron, tokens, (toklength+TOKMAX)*sizeof(TOKEN));
+          (TOKEN*)mrealloc(&cenviron, tokens,
+                           (toklength+TOKMAX)*sizeof(TOKEN));
         tokenlist =
-          (TOKEN**) mrealloc(&cenviron, tokenlist, (toklength+TOKMAX)*sizeof(TOKEN*));
+          (TOKEN**) mrealloc(&cenviron, tokenlist,
+                             (toklength+TOKMAX)*sizeof(TOKEN*));
         toklength += TOKMAX;
 /*         printf(Str("Tokens length extended to %d\n"), toklength); */
-        token  = tokens + n;
-        tokend = tokens + toklength;
+        st.token  = tokens + n;
+        st.tokend = tokens + toklength;
       }
       /* IV - Jan 08 2003: check if the output arg of an '=' opcode is */
       /* used in the expression (only if optimisation is enabled) */
       if (opcode_is_assign == 1)
-        if (!strcmp(token->str, assign_outarg))         /* if yes, mark as */
+        if (!strcmp(st.token->str, assign_outarg))      /* if yes, mark as */
           opcode_is_assign = 2;                         /* dangerous case  */
-      (++token)->str = t;             /* & record begin of nxt one */
+      (++st.token)->str = t;                  /* & record begin of nxt one */
     }
-    token->str = NULL;          /* expr end:  terminate tokens array */
-    if (token - tokens <= 1)    /*              & return if no expr  */
+    st.token->str = NULL;             /* expr end:  terminate tokens array */
+    if (st.token - tokens <= 1)       /*              & return if no expr  */
       return(0);
 
-    token = tokens;
-    while ((s = token->str) != NULL) {  /* now for all tokens found, */
+    st.token = tokens;
+    while ((s = st.token->str) != NULL) {  /* now for all tokens found, */
       c = *s;
       switch ((int) c) {        /* IV - Jan 15 2003 */
                                 /* assign precedence values */
@@ -204,8 +212,8 @@ int express(char *s)
       case '¬':         prec = 11;      break;
       case '(':         prec = 13;      break;
       default:
-        if (((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
-            && (t = (token+1)->str) != NULL && *t == '(') {
+        if (((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) &&
+            (t = (st.token+1)->str) != NULL && *t == '(') {
           prec = 12;            /* function call */
         }
         else {
@@ -217,7 +225,7 @@ int express(char *s)
         }
         break;
       }
-      (token++)->prec = prec;
+      (st.token++)->prec = prec;
     }
     if (O.odebug) putokens();
 
@@ -229,81 +237,83 @@ int express(char *s)
 #define FCALL   12
 #define TERMS   14
 
-    token = tokens;
-    revp = tokenlist;
-    pushp = endlist = tokenlist+toklength;      /* using precedence vals, */
-    while (token->str != NULL) {                /*  put tokens rev pol order */
-      if (*token->str == '(') {
-        token->prec = -1;
-        *--pushp = token++;
+    st.token = tokens;
+    st.revp = tokenlist;
+    st.pushp = st.endlist = tokenlist+toklength;      /* using precedence vals, */
+    while (st.token->str != NULL) {             /*  put tokens rev pol order */
+      if (*st.token->str == '(') {
+        st.token->prec = -1;
+        *--st.pushp = st.token++;
       }
-      else if (pushp < endlist && (*pushp)->prec >= token->prec) {
-        if (*token->str == ':' && *(*pushp)->str == '?')
-          *pushp = token++;               /* replace ? with : */
-        else *revp++ = *pushp++;
+      else if (st.pushp < st.endlist && (*st.pushp)->prec >= st.token->prec) {
+        if (*st.token->str == ':' && *(*st.pushp)->str == '?')
+          *st.pushp = st.token++;               /* replace ? with : */
+        else *st.revp++ = *st.pushp++;
       }
-      else if (*token->str == ')') {
-        if (token++ && *(*pushp++)->str != '(')
+      else if (*st.token->str == ')') {
+        if (st.token++ && *(*st.pushp++)->str != '(')
           XERROR(Str("within parens"))
       }
-      else if ((token+1)->str!=NULL && token->prec < (token+1)->prec)
-        *--pushp = token++;
-      else *revp++ = token++;
+      else if ((st.token+1)->str!=NULL && st.token->prec < (st.token+1)->prec)
+        *--st.pushp = st.token++;
+      else *st.revp++ = st.token++;
     }
-    while (pushp < endlist)
-      *revp++ = *pushp++;
+    while (st.pushp < st.endlist)
+      *st.revp++ = *st.pushp++;
 
-    endlist = revp;                             /* count of pol operators */
+    st.endlist = st.revp;                       /* count of pol operators */
     if (O.odebug) putoklist();
-    for (revp=tokenlist, polcnt=0;  revp<endlist; )
-      if ((*revp++)->prec < TERMS)              /*  is no w. prec < TERMS */
+    for (st.revp=tokenlist, polcnt=0;  st.revp<st.endlist; )
+      if ((*st.revp++)->prec < TERMS)           /*  is no w. prec < TERMS */
         polcnt++;
     if (!polcnt) {                              /* if no real operators,  */
       strcpy(tokenstring,tokenlist[0]->str);    /* cpy arg to beg str     */
       return(-1);                               /*  and return this info  */
     }
-    if (polcnt >= polmax) {
-      polmax = polcnt+POLMAX;
-      polish = (POLISH*) mrealloc(&cenviron, polish,polmax*sizeof(POLISH));
-/*       printf(Str("Extending Polish array length %ld\n"), polmax); */
+    if (polcnt >= st.polmax) {
+      st.polmax = polcnt+POLMAX;
+      polish = (POLISH*) mrealloc(&cenviron, polish,st.polmax*sizeof(POLISH));
+/*       printf(Str("Extending Polish array length %ld\n"), st.polmax); */
 /*      XERROR("polish storage POLMAX exceeded"); */
     }
     pp = &polish[polcnt-1];
     op = pp->opcod;
-    for (revp=argp=tokenlist; revp<endlist; ) {       /* for all tokens:  */
+    for (st.revp=st.argp=tokenlist; st.revp<st.endlist; ) { /* for all tokens:  */
       char buffer[1024];
-      if ((prec = (*revp)->prec) >= TERMS) {
-        *argp++ = *revp++;                           /* arg: push back    */
+      if ((prec = (*st.revp)->prec) >= TERMS) {
+        *st.argp++ = *st.revp++;                     /* arg: push back    */
         continue;                                    /*      till later   */
       }
-      argcnt = argp - tokenlist;
+      argcnt = st.argp - tokenlist;
       if (prec == FCALL && argcnt >= 1) {            /*   function call:  */
         pp->incount = 1;                             /*     takes one arg */
-        pp->arg[1] = copystring((*--argp)->str);
+        pp->arg[1] = copystring((*--st.argp)->str);
         c = argtyp(pp->arg[1]);                      /* whose aki type */
         if (c == 'B' || c == 'b')
           XERROR(Str("misplaced relational op"))
         if (c != 'a' && c != 'k')
           c = 'i';                                   /*   (simplified)  */
-        sprintf(op, "%s.%c", (*revp)->str, c); /* Type at end now */
+        sprintf(op, "%s.%c", (*st.revp)->str, c);    /* Type at end now */
         if (strcmp(op,"i.k") == 0) {
-          outype = 'i';                   /* i(karg) is irreg. */
+          outype = 'i';                              /* i(karg) is irreg. */
           if (pp->arg[1][0] == '#' && pp->arg[1][1] == 'k') {
             /* IV - Jan 15 2003: input arg should not be a k-rate expression */
             if (O.expr_opt) {
-              XERROR(Str("i() with expression argument not allowed with --expression-opt"));
+              XERROR(Str("i() with expression argument not "
+                         "allowed with --expression-opt"));
             }
             else {
-              printf(Str("WARNING: i() should not be used with expression argument\n"));
+              printf(Str("WARNING: i() should not be used with "
+                         "expression argument\n"));
             }
           }
         }
         else if (strcmp(op,"a.k") == 0)
-          outype = 'a';                   /* a(karg) is irreg. */
+          outype = 'a';                     /* a(karg) is irreg. */
         else outype = c;                    /* else outype=intype */
       }
       else if (prec >= BITOPS && argcnt >= 2) { /* bit op:    */
-        if ((c = *(*revp)->str) == BITSET)
+        if ((c = *(*st.revp)->str) == BITSET)
           strcpy(op,"or");
         else if (c == BITFLP)
           strcpy(op,"xor");
@@ -313,11 +323,11 @@ int express(char *s)
         goto common_ops;
       }
       else if (prec >= BITOPS && argcnt == 1) { /* bit op:    */
-        if ((c = *(*revp)->str) == '¬')
+        if ((c = *(*st.revp)->str) == '¬')
           strcpy(op,"not");
         else printf(Str("Expression got lost\n"));
         pp->incount = 1;                    /*   copy 1 arg txts */
-        pp->arg[1] = copystring((*--argp)->str);
+        pp->arg[1] = copystring((*--st.argp)->str);
         e = argtyp(pp->arg[1]);
         if (e == 'B' || e == 'b')
           XERROR(Str("misplaced relational op"))
@@ -337,7 +347,7 @@ int express(char *s)
         }
       }
       else if (prec >= AOPS && argcnt >= 2) { /* arith op:    */
-        if ((c = *(*revp)->str) == '+')
+        if ((c = *(*st.revp)->str) == '+')
           strcpy(op,"add");
         else if (c == '-')
           strcpy(op,"sub");               /*   create op text */
@@ -352,8 +362,8 @@ int express(char *s)
         else printf(Str("Expression got lost\n"));
       common_ops:
         pp->incount = 2;                    /*   copy 2 arg txts */
-        pp->arg[2] = copystring((*--argp)->str);
-        pp->arg[1] = copystring((*--argp)->str);
+        pp->arg[2] = copystring((*--st.argp)->str);
+        pp->arg[1] = copystring((*--st.argp)->str);
         e = argtyp(pp->arg[1]);
         d = argtyp(pp->arg[2]);             /*   now use argtyps */
         if (e == 'B' || e == 'b' || d == 'B' || d == 'b' )
@@ -382,12 +392,12 @@ int express(char *s)
         }
       }
       else if (prec >= RELOPS && argcnt >= 2) { /* relationals:   */
-        strcpy(op,(*revp)->str);            /*   copy rel op    */
+        strcpy(op,(*st.revp)->str);            /*   copy rel op    */
         if (strcmp(op,"=") == 0)
           strcpy(op,"==");
         pp->incount = 2;                    /*   & 2 arg txts   */
-        pp->arg[2] = copystring((*--argp)->str);
-        pp->arg[1] = copystring((*--argp)->str);
+        pp->arg[2] = copystring((*--st.argp)->str);
+        pp->arg[1] = copystring((*--st.argp)->str);
         c = argtyp(pp->arg[1]);
         d = argtyp(pp->arg[2]);             /*   now use argtyps */
         if (c == 'a' || d == 'a')           /*   to determ outs  */
@@ -399,10 +409,10 @@ int express(char *s)
         else outype = 'b';
       }
       else if (prec >= LOGOPS && argcnt >= 2) { /* logicals:    */
-        strcpy(op,(*revp)->str);            /*   copy rel op  */
+        strcpy(op,(*st.revp)->str);            /*   copy rel op  */
         pp->incount = 2;                    /*   & 2 arg txts */
-        pp->arg[2] = copystring((*--argp)->str);
-        pp->arg[1] = copystring((*--argp)->str);
+        pp->arg[2] = copystring((*--st.argp)->str);
+        pp->arg[1] = copystring((*--st.argp)->str);
         c = argtyp(pp->arg[1]);
         d = argtyp(pp->arg[2]);             /*   now use argtyps */
         if (c == 'b' && d == 'b')           /*   to determ outs  */
@@ -415,9 +425,9 @@ int express(char *s)
       else if (prec == CONDVAL && argcnt >= 3) { /* cond vals:     */
         strcpy(op,": ");                    /*   init op as ': ' */
         pp->incount = 3;                    /*   & cpy 3 argtxts */
-        pp->arg[3] = copystring((*--argp)->str);
-        pp->arg[2] = copystring((*--argp)->str);
-        pp->arg[1] = copystring((*--argp)->str);
+        pp->arg[3] = copystring((*--st.argp)->str);
+        pp->arg[2] = copystring((*--st.argp)->str);
+        pp->arg[1] = copystring((*--st.argp)->str);
         b = argtyp(pp->arg[1]);
         c = argtyp(pp->arg[2]);
         d = argtyp(pp->arg[3]);
@@ -436,14 +446,14 @@ int express(char *s)
       s = &buffer[0] /* pp->arg[0] */;      /* now create outarg acc. to type */
       if (!O.expr_opt) {
         /* IV - Jan 08 2003: old code: should work ... */
-        if (outype=='a') sprintf(s,"#a%d",acount++);
-        else if (outype=='k') sprintf(s,"#k%d",kcount++);
-        else if (outype=='B') sprintf(s,"#B%d",Bcount++);
-        else if (outype=='b') sprintf(s,"#b%d",bcount++);
-        else sprintf(s,"#i%d",icount++);
+        if (outype=='a') sprintf(s,"#a%d",st.acount++);
+        else if (outype=='k') sprintf(s,"#k%d",st.kcount++);
+        else if (outype=='B') sprintf(s,"#B%d",st.Bcount++);
+        else if (outype=='b') sprintf(s,"#b%d",st.bcount++);
+        else sprintf(s,"#i%d",st.icount++);
       }
       else {
-        int ndx = (int) (argp - tokenlist);     /* argstack index */
+        int ndx = (int) (st.argp - tokenlist);     /* argstack index */
         if (opcode_is_assign == 1       &&
             (int) ndx == 0              &&
             (int) outype == assign_type &&
@@ -467,9 +477,9 @@ int express(char *s)
             cnt += argcnt_offs;         /* IV - Jan 15 2003 */
           if (outype == 'a')        sprintf(s, "#a%d", cnt);
           else if (outype == 'k')   sprintf(s, "#k%d", cnt);
-          else if (outype == 'B')   sprintf(s, "#B%d", Bcount++);
-          else if (outype == 'b')   sprintf(s, "#b%d", bcount++);
-          else                      sprintf(s, "#i%d", icount++);
+          else if (outype == 'B')   sprintf(s, "#B%d", st.Bcount++);
+          else if (outype == 'b')   sprintf(s, "#b%d", st.bcount++);
+          else                      sprintf(s, "#i%d", st.icount++);
           /* IV - Jan 08 2003: count max. stack depth in order to allow */
           /* generating different indexes for temporary variables of */
           /* separate expressions on the same line (see also below). */
@@ -477,11 +487,11 @@ int express(char *s)
           if (ndx > argcnt_max) argcnt_max = ndx;
         }
       }
-      (*argp++)->str = pp->arg[0] = copystring(s);/* & point argstack there */
-      revp++;
+      (*st.argp++)->str = pp->arg[0] = copystring(s);/* & point argstack there */
+      st.revp++;
       pp--;   op = pp->opcod;                     /* prep for nxt pol */
     }
-    if (argp - tokenlist == 1) {
+    if (st.argp - tokenlist == 1) {
       /* IV - Jan 08 2003: do not re-use temporary variables between */
       /* expressions of the same line */
       argcnt_offs += (argcnt_max + 1);
@@ -504,7 +514,7 @@ int express(char *s)
 
  error:
     synterr(Str("expression syntax"));    /* or gracefully report error*/
-    printf(" %s: %s\n",xprmsg,sorig);
+    printf(" %s: %s\n",st.xprmsg,sorig);
     strcpy(tokenstring,"1");
     return(-1);
 }
@@ -530,7 +540,7 @@ static void putokens(void)      /* for debugging check only */
 static void putoklist(void)     /*      ditto           */
 {
     TOKEN       **tpp = tokenlist;
-    while (tpp < endlist)
+    while (tpp < st.endlist)
       printf("%s\t", (*tpp++)->str);
     printf("\n");
 }

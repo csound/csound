@@ -114,7 +114,7 @@
 extern  void    beep(void);
         void    midNotesOff(void);
 
-static MYFLT dsctl_map[12] = {
+static const MYFLT dsctl_map[12] = {
     FL(1.0), FL(0.0), FL(1.0), FL(0.0), FL(1.0), FL(0.0),
     FL(1.0), FL(0.0), FL(1.0), FL(0.0), FL(1.0), FL(0.0)
 };
@@ -274,7 +274,7 @@ void m_chanmsg(ENVIRON *csound, MEVENT *mep)
             printf(Str("unknown drum param nos, msb %ld lsb %ld\n"),
                    (long)msb, (long)lsb);
           else {
-            static int drtab[8] = {0,0,1,1,2,3,4,5};
+            static const int drtab[8] = {0,0,1,1,2,3,4,5};
             int parnum = drtab[msb - 24];
             if (parnum == 0)
               fval = (MYFLT) (mep->dat2 - 64);

@@ -619,8 +619,8 @@ static void gen11(FUNC *ftp, ENVIRON *csound)
 static void gen12(FUNC *ftp, ENVIRON *csound)
 {
     FGDATA  *ff = &(csound->ff);
-    static double coefs[] = { 3.5156229, 3.0899424, 1.2067492,
-                              0.2659732, 0.0360768, 0.0045813 };
+    static const double coefs[] = { 3.5156229, 3.0899424, 1.2067492,
+                                     0.2659732, 0.0360768, 0.0045813 };
     double *coefp, sum, tsquare, evenpowr, *cplim = coefs + 6;
     int    n;
     MYFLT   *fp;

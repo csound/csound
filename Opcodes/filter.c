@@ -643,7 +643,7 @@ void laguer(ENVIRON *csound, fcomplex a[], int m, fcomplex *x, int *its)
     int iter,j;
     double abx,abp,abm,err;
     fcomplex dx,x1,b,d,f,g,h,sq,gp,gm,g2;
-    static double frac[MR+1] = {0.0,0.5,0.25,0.75,0.13,0.38,0.62,0.88,1.0};
+    static const double frac[MR+1] = {0.0,0.5,0.25,0.75,0.13,0.38,0.62,0.88,1.0};
 
     for (iter=1; iter<=MAXIT; iter++) {
       *its = iter;
