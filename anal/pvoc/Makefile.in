@@ -14,12 +14,11 @@ INC = ../../H
 OBJS =  pvc_main.@OBJEXT@ $T/pvanal.@OBJEXT@ $T/pvxanal.@OBJEXT@ \
 	$T/pvfileio.@OBJEXT@ $T/filopen.@OBJEXT@ \
         $T/sfheader.@OBJEXT@ $T/mxfft.@OBJEXT@ \
-	$T/soundin.@OBJEXT@ $T/aiff.@OBJEXT@ \
-	$T/wave.@OBJEXT@ $T/ieee80.@OBJEXT@ $T/memalloc.@OBJEXT@ \
+	$T/libsnd_u.@OBJEXT@ $T/memalloc.@OBJEXT@ $T/memfiles.@OBJEXT@ \
 	$T/pvoc.@OBJEXT@ $T/fft.@OBJEXT@ $T/dsputil.@OBJEXT@ \
 	$T/window.@OBJEXT@ $T/winFLTK.@OBJEXT@ $T/winascii.@OBJEXT@ \
-	$T/winEPS.@OBJEXT@ $T/aifc.@OBJEXT@ $T/getstring.@OBJEXT@ \
-	$T/FL_graph.@OBJEXT@
+	$T/winEPS.@OBJEXT@ $T/getstring.@OBJEXT@ \
+	$T/FL_graph.@OBJEXT@ $T/natben.@OBJEXT@
 
 pvocs:	pvanal
 

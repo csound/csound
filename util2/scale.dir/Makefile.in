@@ -9,16 +9,15 @@ CFLAGS  = @CFLAGS@ @XCFLAGS@ $(DEFINES)
 LIBS    = @WINLDFLAGS@ @X_LIBS@ @LIBS@
 
 OBJS =	$T/sndinfo.@OBJEXT@ $T/filopen.@OBJEXT@ $T/sfheader.@OBJEXT@ \
-	$T/soundin.@OBJEXT@ $T/aiff.@OBJEXT@ \
-	$T/aifc.@OBJEXT@ $T/wave.@OBJEXT@ $T/ieee80.@OBJEXT@ \
-        $T/memalloc.@OBJEXT@ $T/getstring.@OBJEXT@
+	$T/libsnd_u.@OBJEXT@ $T/libsnd.@OBJEXT@ $T/memalloc.@OBJEXT@ \
+	$T/getstring.@OBJEXT@ $T/rtpa.@OBJEXT@ $T/natben.@OBJEXT@
 
 T = ../..
 
 INC = ../../H
 
 scale:	scale.@OBJEXT@ $(OBJS) 
-	@CC@ $(CFLAGS) scale.@OBJEXT@ $(OBJS) -lm -o scale
+	@CC@ $(CFLAGS) scale.@OBJEXT@ $(OBJS) -lportaudio -lsndfile -lm -o scale
 
 scale.@OBJEXT@:	scale.c $(INC)/ustub.h
 	@CC@ $(CFLAGS) -c -I$(INC) scale.c

@@ -17,17 +17,15 @@ INC = ../..
 
 DSRC =	dnoise.c fft.c
 
-DOBJS =	$T/filopen.@OBJEXT@ $T/sfheader.@OBJEXT@ \
-	$T/soundin.@OBJEXT@ $T/getstring.@OBJEXT@ \
-	$T/wave.@OBJEXT@ $T/aiff.@OBJEXT@ $T/ieee80.@OBJEXT@ \
-	$T/memalloc.@OBJEXT@ $T/aifc.@OBJEXT@ fft.@OBJEXT@ dnoise.@OBJEXT@ 
+DOBJS =	$T/filopen.@OBJEXT@ $T/sfheader.@OBJEXT@ $T/rtpa.@OBJEXT@ \
+	$T/libsnd_u.@OBJEXT@ $T/libsnd.@OBJEXT@ $T/getstring.@OBJEXT@ \
+	$T/memalloc.@OBJEXT@ $T/natben.@OBJEXT@ fft.@OBJEXT@ dnoise.@OBJEXT@ 
 
 SSRC =	srconv.c
 
-SOBJS =	$T/filopen.@OBJEXT@ $T/sfheader.@OBJEXT@ \
-	$T/soundin.@OBJEXT@ $T/getstring.@OBJEXT@ \
-	$T/wave.@OBJEXT@ $T/aiff.@OBJEXT@ $T/ieee80.@OBJEXT@ \
-	$T/memalloc.@OBJEXT@ $T/aifc.@OBJEXT@ srconv.@OBJEXT@
+SOBJS =	$T/filopen.@OBJEXT@ $T/sfheader.@OBJEXT@ $T/rtpa.@OBJEXT@ \
+	$T/libsnd_u.@OBJEXT@ $T/libsnd.@OBJEXT@ $T/getstring.@OBJEXT@ \
+	$T/memalloc.@OBJEXT@ $T/natben.@OBJEXT@ srconv.@OBJEXT@
 
 PROGS   = dnoise srconv
 
