@@ -62,12 +62,30 @@ static int not_started = 1;
 
 void OpenMIDIDevice(void)
 {
+    int i;
+    int devnum = atoi(O.Midiname);
+    int cntdev = Pm_CountDevices();
     PmEvent buffer;
+
     if (not_started) {
       Pm_Initialize();
       Pt_Start(1, NULL, NULL);
     }
     not_started = 0;
+    /* list device information */
+    printf("**** Pm_CountDevices()=%d\n", cntdev);
+    if (cntdev<=devnum) {
+      die("Not sufficient MIDI devices\n");
+    }
+    for (i = 0; i < Pm_CountDevices(); i++) {
+      const PmDeviceInfo *info = Pm_GetDeviceInfo(i);
+      if ((info->input) | (info->output)) {
+        printf("%d: %s, %s", i, info->interf, info->name);
+        if (info->input) printf(" (input)");
+        if (info->output) printf(" (output)");
+        printf("\n");
+      }
+    }
     Pm_OpenInput(&midistream, 
                  atoi(O.Midiname),             /* Device number */
                  NULL, 
@@ -83,16 +101,14 @@ void OpenMIDIDevice(void)
 long GetMIDIData(void)
 {
     int n;
-    extern int csoundIsExternalMidiEnabled(void*);
+    extern int  csoundIsExternalMidiEnabled(void*);
     extern long csoundExternalMidiRead(void*, u_char *, int);
-    /**
+    /*
      * Reads from user-defined MIDI input.
      */
     if (csoundIsExternalMidiEnabled(&cenviron)) {
       n = csoundExternalMidiRead(&cenviron, mbuf, MBUFSIZ);
-      if (n == 0) {
-        return 0;
-      }
+      if (n == 0) return 0;
       bufp = mbuf;
       endatp = mbuf + n;
       return n;
@@ -100,7 +116,7 @@ long GetMIDIData(void)
     else {
       int retval;
       if ((retval=Pm_Poll(midistream))) {
-        if (retval<0) printf(Str(X_1185,"sensMIDI: retval errno %d"),errno);
+        if (retval<0) printf(Str(X_1185,"sensMIDI: retval errno %d"), errno);
         if (retval == 0) {
           long n = Pm_Read(midistream, bufp, MBUFSIZ);
           bufp = mbuf;
@@ -129,11 +145,11 @@ void MidiOpen(void)   /* open a Midi event stream for reading, alloc bufs */
     for (i=0; i<MAXCHAN; i++) M_CHNBP[i] = NULL; /* Clear array */
     m_chn_init(Midevtblk,(short)0);
     /* Then open device. */
-    if(csoundIsExternalMidiEnabled(&cenviron)) {
-        csoundExternalMidiDeviceOpen(&cenviron);
+    if (csoundIsExternalMidiEnabled(&cenviron)) {
+      csoundExternalMidiDeviceOpen(&cenviron);
     }
     else {
-        OpenMIDIDevice();
+      OpenMIDIDevice();
     }
 }
 
