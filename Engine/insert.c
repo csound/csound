@@ -637,60 +637,29 @@ void infoff(MYFLT p1)           /*  turn off an indef copy of instr p1  */
     printf(Str("could not find indefinitely playing instr %d\n"),insno);
 }
 
-#ifdef never
-#define numClockPoints 32
-static double clocksPerFrame[numClockPoints];
-static double clocks     = 0;
-static int cpfIndex      = 0;
-static int temp          = 0;
-static clock_t lastClock = 0;
-#endif
-
-long kperf(ENVIRON *csound, long kcnt)
+/* IV - Feb 05 2005: removed kcnt arg, as it is now always 1 */
+/* also no return value, kperf always performs exactly one k-period */
+void kperf(ENVIRON *csound)
          /* perform currently active instrs for kcnt kperiods */
          /*      & send audio result to output buffer    */
 {
-    extern  int     sensLine(void);
-    extern  int     sensMidi(void), sensFMidi(void);
     extern  void    (*spinrecv)(void*), (*spoutran)(void*);
     extern  void    (*nzerotran)(void*, long);
     INSDS  *ip;
-    long    kreq = kcnt;
 
-    if (O.odebug) printf("perfing %ld kprds\n",kcnt);
-    if (!csoundYield(&cenviron)) longjmp(cenviron.exitjmp_,1); /* PC GUI needs attention */
+    if (O.odebug)
+      printf("perfing one kprd\n");
+    if (((int) kcounter & 3) == 0)
+      if (!csoundYield(csound))
+        longjmp(csound->exitjmp_,1);    /* PC GUI needs attention */
     if (!O.ksensing &&
-        actanchor.nxtact == NULL) {  /* if !kreads & !instrs_activ, */
-      kcounter += kcnt;
-      global_kcounter = kcounter;       /* IV - Sep 8 2002 */
-#if defined(mills_macintosh) || defined(SYMANTEC)
-      /* silence here, so we can afford to check events more often */
-      {
-        long pcnt = kcnt;
-        while (pcnt!=0) {
-          long pp = (pcnt>128 ? 128 : pcnt);
-          (*nzerotran)(csound, pp);   /*   send chunk up to kcnt zerospouts  */
-          if (!csoundYield(&cenviron)) longjmp(cenviron.exitjmp_,1);
-          pcnt -= pp;
-        }
-      }
-#else
-      (*nzerotran)(csound, kcnt);     /*   send kcnt zerospouts  */
-#endif
+        actanchor.nxtact == NULL) {     /* if !kreads & !instrs_activ, */
+      kcounter++;
+      global_kcounter = kcounter;       /* IV - Feb 05 2005 */
+      (*nzerotran)(csound, 1L);         /*   send one zerospout */
     }
-    else do {                 /* else for each kcnt:     */
-      if (O.RTevents) {
-        if ((O.Midiin && (sensType = sensMidi())) /*   if MIDI note message  */
-            || (O.FMidiin && kcounter >= FMidiNxtk && (sensType = sensFMidi()))
-            || (O.Linein && (sensType = sensLine())) /* or Linein event */
-            || (O.OrcEvts && (sensType = sensOrcEvent()))) /* or triginstr event (re Aug 1999) */
-          return(kreq - kcnt); /*      do early return    */
-      }
-      /* #if defined(mills_macintosh) || defined(SYMANTEC) */
-      /*       else if (O.Midiin && actanchor.nxtact == NULL) /\* no midi or notes on; check events *\/ */
-      /* #endif */
-      if (!csoundYield(&cenviron)) longjmp(cenviron.exitjmp_,1);
-      kcounter += 1;
+    else {                      /* else for one kcnt:     */
+      kcounter++;
       global_kcounter = kcounter;       /* IV - Sep 8 2002 */
       if (O.sfread)           /*   if audio_infile open  */
         (*spinrecv)(csound);  /*      fill the spin buf  */
@@ -706,8 +675,7 @@ long kperf(ENVIRON *csound, long kcnt)
         (*spoutran)(csound);  /*      send to audio_out  */
       else
         (*nzerotran)(csound, 1L);   /*   else send zerospout   */
-    } while (--kcnt);               /* on Mac/Win, allow system events */
-    return(kreq);
+    }
 }
 
 int initerror(char *s)
@@ -1368,11 +1336,13 @@ INSDS *insert_event(ENVIRON *csound,
     return ip;
 }
 
-void beatexpire(MYFLT beat)     /* unlink expired notes from activ chain */
+/* IV - Feb 05 2005: changed to double */
+
+void beatexpire(double beat)    /* unlink expired notes from activ chain */
 {                               /*      and mark them inactive          */
     INSDS  *ip;                 /*    close any files in each fdchain   */
  strt:
-    if ((ip = frstoff) != NULL && ip->offbet <= beat) {
+    if ((ip = frstoff) != NULL && (double) ip->offbet <= beat) {
       do {
         if (!ip->relesing && ip->xtratim) {
           /* IV - Nov 30 2002: allow extra time for finite length (p3 > 0) */
@@ -1390,7 +1360,7 @@ void beatexpire(MYFLT beat)     /* unlink expired notes from activ chain */
         else
           deact(ip);    /* IV - Sep 5 2002: use deact() as it also */
       }                 /* deactivates subinstrument instances */
-      while ((ip = ip->nxtoff) != NULL && ip->offbet <= beat);
+      while ((ip = ip->nxtoff) != NULL && (double) ip->offbet <= beat);
       frstoff = ip;
       if (O.odebug) {
         printf("deactivated all notes to beat %7.3f\n",beat);
@@ -1399,12 +1369,14 @@ void beatexpire(MYFLT beat)     /* unlink expired notes from activ chain */
     }
 }
 
-void timexpire(MYFLT time)      /* unlink expired notes from activ chain */
+/* IV - Feb 05 2005: changed to double */
+
+void timexpire(double time)     /* unlink expired notes from activ chain */
 {                               /*      and mark them inactive           */
     INSDS  *ip;                 /*    close any files in each fdchain    */
 
  strt:
-    if ((ip = frstoff) != NULL && ip->offtim <= time) {
+    if ((ip = frstoff) != NULL && (double) ip->offtim <= time) {
       do {
         if (!ip->relesing && ip->xtratim) {
           /* IV - Nov 30 2002: allow extra time for finite length (p3 > 0) */
@@ -1419,7 +1391,7 @@ void timexpire(MYFLT time)      /* unlink expired notes from activ chain */
         } else
           deact(ip);    /* IV - Sep 5 2002: use deact() as it also */
       }                 /* deactivates subinstrument instances */
-      while ((ip = ip->nxtoff) != NULL && ip->offtim <= time);
+      while ((ip = ip->nxtoff) != NULL && (double) ip->offtim <= time);
       frstoff = ip;
       if (O.odebug) {
         printf("deactivated all notes to time %7.3f\n",time);

@@ -122,23 +122,17 @@ extern "C" {
     volatile int returnValue;
     /* setup jmp for return after an exit()
      */
-    if ((returnValue = setjmp(cenviron.exitjmp_)))
+    if ((returnValue = setjmp(((ENVIRON*) csound)->exitjmp_)))
       {
         csoundMessage(csound, "Early return from csoundPerformKsmps().");
         return returnValue;
       }
     done = sensevents(csound);
-    if (!done && kcnt)
+    if (!done)
       {
-        /*
-          Rather than overriding real-time event handling in kperf,
-          turn it off before calling kperf, and back on afterwards.
-        */
-        int rtEvents = O.RTevents;
-        O.RTevents = 0;
-        kperf(csound,1);
-        kcnt -= 1;
-        O.RTevents = rtEvents;
+        /* IV - Feb 05 2005 */
+        if (!((ENVIRON*) csound)->oparms_->initonly)
+          kperf(csound);
       }
     if(done)
       {
@@ -150,25 +144,19 @@ extern "C" {
   PUBLIC int csoundPerformKsmpsAbsolute(void *csound)
   {
     int done = 0;
-    int rtEvents = O.RTevents;
     volatile int returnValue;
     /* setup jmp for return after an exit()
      */
-    if ((returnValue = setjmp(cenviron.exitjmp_)))
+    if ((returnValue = setjmp(((ENVIRON*) csound)->exitjmp_)))
       {
         csoundMessage(csound, "Early return from csoundPerformKsmps().");
         return returnValue;
       }
     done = sensevents(csound);
 
-    /*
-      Rather than overriding real-time event handling in kperf,
-      turn it off before calling kperf, and back on afterwards.
-    */
-    O.RTevents = 0;
-    kperf(csound,1);
-    kcnt -= 1;
-    O.RTevents = rtEvents;
+    /* IV - Feb 05 2005 */
+    if (!((ENVIRON*) csound)->oparms_->initonly)
+      kperf(csound);
     return done;
   }
 
@@ -197,7 +185,7 @@ extern "C" {
     int done = 0;
     /* Setup jmp for return after an exit().
      */
-    if ((returnValue = setjmp(cenviron.exitjmp_)))
+    if ((returnValue = setjmp(((ENVIRON*) csound)->exitjmp_)))
       {
         csoundMessage(csound, "Early return from csoundPerformBuffer().");
         return returnValue;
@@ -211,15 +199,9 @@ extern "C" {
           {
             return done;
           }
-        if (kcnt)
-          {
-            int rtEvents = O.RTevents;
-            O.RTevents = 0;
-            kperf(csound,1);
-            kcnt -= 1;
-            sampsNeeded -= sampsPerKperf;
-            O.RTevents = rtEvents;
-          }
+        if (!((ENVIRON*) csound)->oparms_->initonly)
+            kperf(csound);
+        sampsNeeded -= sampsPerKperf;
       }
     return done;
   }
