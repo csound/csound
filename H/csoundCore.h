@@ -649,7 +649,7 @@ typedef struct ENVIRON_
   int (*getopnum_)(char *s);
   long (*strarg2insno_)(MYFLT *p, char *s);
   long (*strarg2opcno_)(MYFLT *p, char *s, int force_opcode);
-  INSDS (*instance_)(int insno);
+  INSDS *(*instance_)(int insno);
   int (*isfullpath_)(char *name);
   void (*dies)(char *s, char *t);
   char *(*catpath_)(char *path, char *name);
@@ -758,7 +758,9 @@ typedef struct ENVIRON_
   MYFLT         dbfs_to_long_;
   MYFLT         long_to_dbfs_;
   unsigned int  rtin_dev_;
+  char *        rtin_devs_;
   unsigned int  rtout_dev_;
+  char *        rtout_devs_;
   int           MIDIINbufIndex_;
   MIDIMESSAGE   MIDIINbuffer2_[MIDIINBUFMAX];
   int           displop4_;
