@@ -808,28 +808,6 @@ else:
         pluginLibraries.append(fluidEnvironment.SharedLibrary('fluidOpcodes',
             ['Opcodes/fluidOpcodes/fluidOpcodes.cpp']))
 
-        if fltkFound:
-            vstEnvironment.Append(CCFLAGS = ['-DFLUIDSYNTH_NOT_A_DLL', '-DMAKEDLL','-DBUILDING_DLL'])
-            fluidEnvironment = vstEnvironment.Copy()
-            fluidEnvironment.Append(LIBS = ['fluidsynth', 'stdc++', 'fltk'])
-            fluidEnvironment.Append(LINKFLAGS = ['-mno-cygwin'])
-            fluidEnvironment.Append(LIBS = ['winmm','dsound'])
-
-            if getPlatform() == 'mingw':
-                fluidEnvironment.Append(LIBS = ['kernel32'])
-                fluidEnvironment.Append(LIBS = ['gdi32'])
-                fluidEnvironment.Append(LIBS = ['wsock32'])
-                fluidEnvironment.Append(LIBS = ['ole32'])
-                fluidEnvironment.Append(LIBS = ['uuid'])
-
-            pluginLibraries.append(fluidEnvironment.SharedLibrary('fluid', Split('''
-                Opcodes/fluid/AudioEffect.cpp
-                Opcodes/fluid/audioeffectx.cpp
-                Opcodes/fluid/Soundfonts.cpp
-                Opcodes/fluid/SoundfontsMain.cpp
-                Opcodes/fluid/FluidsynthOpcode.cpp
-                ''')))
-
 # VST HOST OPCODES
 
 if getPlatform() == 'mingw' and fltkFound:
