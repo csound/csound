@@ -1,6 +1,11 @@
+2005-01-25	Steven Yi	<stevenyi@csounds.com>
+
+	* frontends/csound/csound_main.c: set stdout to not buffer if csound output 
+	not going to terminal
+
 2005-01-25  John ffitch  <jpff@codemist.co.uk>
 
-	* InOut/widgets.cpp (FL_run): Ne3ed to pass argument to threas in
+	* InOut/widgets.cpp (FL_run): Need to pass argument to threads in
 	Linux/Mach cases
 
 2005-01-22  Michael Gogins <gogins@pipeline.com>
