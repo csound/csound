@@ -47,8 +47,6 @@ int csoundYield(void *csound);
 
 #define SF_UNK_LEN      -1      /* code for sndfile len unkown  */
 
-static  complex *basis;             /* LUTable for FFT */
-
 extern  int      SAsndgetset(char *, SOUNDIN**, MYFLT*, MYFLT*, MYFLT*, int);
 extern  long     getsndin(int, MYFLT *, long, SOUNDIN *);
 
@@ -145,7 +143,6 @@ int cvanal(int argc, char **argv)
     if ((nb = write(ofd,(char *)cvh,(int)cvh->headBsize)) < cvh->headBsize)
       return quit(Str("cannot write header"));
 
-    basis = AssignBasis(NULL,Hlenpadded);      /* set up FFT tables */
     takeFFT(p, cvh, Hlenpadded,infd, ofd);
 
 /*      outputPVH->dataBsize = oframeAct * fftfrmBsiz; */
@@ -198,7 +195,7 @@ static void takeFFT(
         fp1 += nchanls;
       }
       fp1 = inbuf + i + 1;
-      FFT2realpacked((complex *)outbuf, Hlenpadded,basis);
+      FFT2realpacked((complex *)outbuf, Hlenpadded, NULL);
       if (!csoundYield(&cenviron)) exit(1);
       /* write straight out, just the indep vals */
       write(ofd, (char *)outbuf, cvh->dataBsize/nchanls);

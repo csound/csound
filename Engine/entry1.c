@@ -44,7 +44,6 @@
 #include "pvinterp.h"
 #include "vpvoc.h"
 #include "fhtfun.h"
-#include "diskin.h"
 #include "diskin2.h"
 #include "ftgen.h"
 #include "oload.h"
@@ -176,7 +175,7 @@ int    pvreadset(void*,void*), pvread(void*,void*), pvcrossset(void*,void*), pvc
 int    pvbufreadset(void*,void*), pvbufread(void*,void*);
 int    pvinterpset(void*,void*), pvinterp(void*,void*);
 int    auniform(void*,void*), ikuniform(void*,void*);
-int    newsndinset(void*,void*), soundinew(void*,void*);
+int    newsndinset(void*,void*);
 int    iout_on(void*,void*), iout_off(void*,void*), out_controller(void*,void*);
 int    iout_on_dur_set(void*,void*), iout_on_dur(void*,void*),iout_on_dur2(void*,void*);
 int    moscil_set(void*,void*), moscil(void*,void*);
@@ -618,7 +617,8 @@ OENTRY opcodlst_1[] = {
 { "unirand.i",S(PRAND), 1,     "i",     "k",    ikuniform, NULL,  NULL  },
 { "unirand.k",S(PRAND), 2,     "k",     "k",    NULL,    ikuniform, NULL},
 { "unirand.a",S(PRAND), 4,     "a",     "k",    NULL,    NULL, auniform },
-{ "diskin",S(SOUNDINEW),5,  "mmmm",     "Skoooo", newsndinset,NULL, soundinew},
+{ "diskin", S(DISKIN2), 5,  "mmmmmmmmmmmmmmmmmmmmmmmm", "Skoooo",
+                            newsndinset, NULL, (SUBR) diskin2_perf      },
 { "diskin2",S(DISKIN2), 5,  "mmmmmmmmmmmmmmmmmmmmmmmm", "Skoooooo",
                             (SUBR) diskin2_init, (SUBR) NULL,
                             (SUBR) diskin2_perf                         },

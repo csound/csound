@@ -1511,11 +1511,10 @@ static void vco2_tables_destroy(ENVIRON *csound)
 static void vco2_calculate_table(ENVIRON *csound,
                                  VCO2_TABLE *table, VCO2_TABLE_PARAMS *tp)
 {
-    complex *fftbuf, *ex;
+    complex *fftbuf;
     int     i, minh;
 
     /* allocate memory for FFT */
-    ex = csound->AssignBasis_(NULL, (long) table->size);
     fftbuf = (complex*) csound->mmalloc_(csound, sizeof(complex)
                                                  * ((table->size >> 1) + 1));
     if (tp->waveform >= 0) {                    /* no DC offset for built-in */
@@ -1552,7 +1551,7 @@ static void vco2_calculate_table(ENVIRON *csound,
       }
     }
     /* inverse FFT */
-    csound->FFT2torlpacked_(fftbuf, (long) table->size, FL(0.5), ex);
+    csound->FFT2torlpacked_(fftbuf, (long) table->size, FL(0.5), NULL);
     /* copy to table */
     i = 0;
     do {
@@ -1747,7 +1746,6 @@ static int vco2init(ENVIRON *csound, VCO2INIT *p)
     int     waveforms, base_ftable, ftnum, i, w;
     VCO2_TABLE_PARAMS   tp;
     FUNC    *ftp;
-    complex *ex;
 
     /* check waveform number */
     waveforms = (int) (*(p->iwaveforms)
@@ -1812,14 +1810,13 @@ static int vco2init(ENVIRON *csound, VCO2INIT *p)
       /* analyze source table, and store results in table params structure */
       i = ftp->flen;
       tp.w_npart = i >> 1;
-      ex = AssignBasis(NULL, (long) i);
       tp.w_fftbuf = (complex*) mmalloc(csound, sizeof(complex) * ((i >> 1) + 1));
       for (i = 0; i < ftp->flen; i++) {
         tp.w_fftbuf[i >> 1].re = ftp->ftable[i] / (MYFLT) (ftp->flen >> 1);
         i++;
         tp.w_fftbuf[i >> 1].im = ftp->ftable[i] / (MYFLT) (ftp->flen >> 1);
       }
-      FFT2realpacked(tp.w_fftbuf, ftp->flen, ex);
+      FFT2realpacked(tp.w_fftbuf, ftp->flen, NULL);
       /* generate table array */
       ftnum = vco2_tables_create(csound,waveforms, ftnum, &tp);
         /* free memory used by FFT buffer */

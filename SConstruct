@@ -468,7 +468,6 @@ OOps/control.c
 OOps/diskin.c
 OOps/diskin2.c
 OOps/disprep.c
-OOps/dnfft.c
 OOps/dsputil.c
 OOps/dumpf.c
 OOps/fft.c

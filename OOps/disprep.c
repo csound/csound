@@ -196,12 +196,11 @@ int fftset(ENVIRON *csound, DSPFFT *p)          /* fftset, dspfft -- calc Fast F
       p->overN    = FL(1.0)/(*p->inpts);
       p->ncoefs  = window_size >>1;
       auxsiz = (window_size/2 + 1) * sizeof(MYFLT);  /* size for half window */
-      auxalloc(csound, (long)auxsiz, &p->auxch);             /*  alloc or realloc */
+      auxalloc(csound, (long)auxsiz, &p->auxch);     /*  alloc or realloc */
       hWin = (MYFLT *) p->auxch.auxp;
       FillHalfWin(hWin, window_size,
-                  FL(1.0), hanning);                 /* fill with proper values */
-      p->fftlut = (MYFLT *)AssignBasis((complex *)NULL,window_size); /*lookup tbl*/
-      if (fftcoefs == NULL)            /* room for WINDMAX*2 floats (fft size) */
+                  FL(1.0), hanning);  /* fill with proper values */
+      if (fftcoefs == NULL)           /* room for WINDMAX*2 floats (fft size) */
         fftcoefs = (MYFLT *) mmalloc(csound, (long)WINDMAX * 2 * sizeof(MYFLT));
       sprintf(strmsg,Str("instr %d, signal %s, fft (%s):"),
               p->h.insdshead->insno,
@@ -216,18 +215,16 @@ static void d_fft(      /* perform an FFT as reqd below */
   MYFLT *sce,   /* input array - pure packed real */
   MYFLT *dst,   /* output array - packed magnitude, only half-length */
   long  size,   /* number of points in input */
-  MYFLT *lut,   /* look up table for FFT - already set up */
   MYFLT *hWin,  /* hanning window lookup table */
   int   dbq)    /* flag: 1-> convert output into db */
 {
     CopySamps(sce,dst,size);        /* copy into scratch buffer */
     ApplyHalfWin(dst,hWin,size);
-    UnpackReals(dst,size);          /* expand out size to re,0,re,0 etc */
-    FFT2real((complex *)dst,size,1,(complex *)lut); /* perform the FFT */
-    Rect2Polar(dst, size);
-    PackReals(dst, size);
+    FFT2realpacked((complex *)dst,size,(complex *)NULL); /* perform the FFT */
+    Rect2Polar(dst, (size >> 1) + 1);
+    PackReals(dst, (size >> 1) + 1);
     if (dbq)
-      Lin2DB(dst, size);
+      Lin2DB(dst, (size >> 1) + 1);
 }
 
 int kdspfft(ENVIRON *csound, DSPFFT *p)
@@ -244,7 +241,7 @@ int kdspfft(ENVIRON *csound, DSPFFT *p)
       if (bufp >= endp) {           /* when full, do fft:     */
         MYFLT *tp, *tplim;
         MYFLT *hWin = (MYFLT *) p->auxch.auxp;
-        d_fft(p->sampbuf,fftcoefs,p->windsize,p->fftlut,hWin,p->dbout);
+        d_fft(p->sampbuf,fftcoefs,p->windsize,hWin,p->dbout);
         tp = fftcoefs;
         tplim = tp + p->ncoefs;
         do {
@@ -283,7 +280,7 @@ int dspfft(ENVIRON *csound, DSPFFT *p)
         if (bufp >= endp) {               /* when full, do fft:     */
           MYFLT *tp, *tplim;
           MYFLT *hWin = (MYFLT *) p->auxch.auxp;
-          d_fft(p->sampbuf,fftcoefs,p->windsize,p->fftlut,hWin,p->dbout);
+          d_fft(p->sampbuf,fftcoefs,p->windsize,hWin,p->dbout);
           tp = fftcoefs;
           tplim = tp + p->ncoefs;
           do {

@@ -270,7 +270,6 @@ int pvinterpset(ENVIRON *csound, PVINTERP *p)
     for (i=0; i< pvfrsiz(p); ++i)
       p->outBuf[i] = FL(0.0);
     MakeSinc( /* p->sncTab */ );        /* sinctab is same for all instances */
-    p->plut = (MYFLT *)AssignBasis(NULL, pvfrsiz(p));    /* SET UP NONET FFT */
 
     return OK;
 
@@ -286,7 +285,6 @@ int pvinterp(ENVIRON *csound, PVINTERP *p)
     MYFLT  *buf = p->fftBuf;
     MYFLT  *buf2 = p->dsBuf;
     int    asize = pvdasiz(p); /* fix */
-    MYFLT  *plut = p->plut;
     int    size = pvfrsiz(p);
     int    buf2Size, outlen;
     int    circBufSize = PVFFTSIZE;
@@ -340,9 +338,7 @@ int pvinterp(ENVIRON *csound, PVINTERP *p)
     Polar2Rect(buf,size);
     buf[1] = FL(0.0);
     buf[size+1] = FL(0.0);      /* kill spurious imag at dc & fs/2 */
-    FFT2torl((complex *)buf,size,1,/*a pex*/ p->scale, (complex *)plut);
-    /* CALL TO NONET FFT */
-    PackReals(buf, size);
+    FFT2torlpacked((complex *)buf, size, p->scale, (complex *)NULL);
     if (pex != 1.0)
       UDSample(buf,(FL(0.5)*((MYFLT)size - pex*(MYFLT)buf2Size))/*a*/,buf2,
                size, buf2Size, pex);
@@ -463,7 +459,6 @@ int pvcrossset(ENVIRON *csound, PVCROSS *p)
     for (i=0; i< pvfrsiz(p); ++i)
         p->outBuf[i] = FL(0.0);
     MakeSinc( /* p->sncTab */ );        /* sinctab is same for all instances */
-    p->plut = (MYFLT *)AssignBasis(NULL, pvfrsiz(p));    /* SET UP NONET FFT */
 
     return OK;
 
@@ -480,7 +475,6 @@ int pvcross(ENVIRON *csound, PVCROSS *p)
     MYFLT  *buf = p->fftBuf;
     MYFLT  *buf2 = p->dsBuf;
     int    asize = pvdasiz(p); /* fix */
-    MYFLT  *plut = p->plut;
     int    size = pvfrsiz(p);
     int    buf2Size, outlen;
     int    circBufSize = PVFFTSIZE;
@@ -537,9 +531,7 @@ int pvcross(ENVIRON *csound, PVCROSS *p)
     Polar2Rect(buf,size);
 
     buf[1] = FL(0.0); buf[size+1] = FL(0.0);    /* kill spurious imag at dc & fs/2 */
-    FFT2torl((complex *)buf,size,1,/*a pex*/ p->scale, (complex *)plut);
-    /* CALL TO NONET FFT */
-    PackReals(buf, size);
+    FFT2torlpacked((complex *)buf, size, p->scale, (complex *)NULL);
     if (pex != 1.0)
         UDSample(buf,(FL(0.5)*((MYFLT)size - pex*(MYFLT)buf2Size))/*a*/,buf2,
                  size, buf2Size, pex);
