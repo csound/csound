@@ -695,7 +695,7 @@ void CsoundVST::setText(const std::string text)
 void CsoundVST::openFile(std::string filename_)
 {
 	WaitCursor wait;
-	if(filename_.rfind(".py") != std::string::npos)
+	if(filename_.find(".py", filename_.length() - 3) != std::string::npos)
 	{
 	   setIsPython(true);
 	}
@@ -715,7 +715,9 @@ void CsoundVST::openFile(std::string filename_)
 	bank[getProgram()].text = getText();
 	editor->update();
 	getCppSound()->setFilename(filename_);        
-	csound::System::message("Opened file: '%s'.\n", getCppSound()->getFilename().c_str());
+	csound::System::message("Opened file: '%s' in %s mode.\n", 
+        getCppSound()->getFilename().c_str(),
+        getIsPython() ? "Python" : "classic");
 }
 
 int CsoundVST::run()
