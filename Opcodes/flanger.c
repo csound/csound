@@ -29,7 +29,7 @@
 int flanger_set (ENVIRON *csound, FLANGER *p)
 {
         /*---------------- delay  -----------------------*/
-    p->maxdelay = (unsigned long)(*p->maxd  * esr);
+    p->maxdelay = (unsigned long)(*p->maxd  * csound->esr);
     csound->AuxAlloc(csound, p->maxdelay * sizeof(MYFLT), &p->aux);
     p->left = 0;
     p->yt1 = FL(0.0);
@@ -52,12 +52,12 @@ int flanger(ENVIRON *csound, FLANGER *p)
     long  v1;
     MYFLT *yt1= &(p->yt1);
 
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
 
     do {
                 /*---------------- delay -----------------------*/
       buf[indx] = *in++ + (*yt1 * feedback);
-      fv1 = indx - (*freq_del++ * esr); /* Make sure inside the buffer     */
+      fv1 = indx - (*freq_del++ * csound->esr); /* Make sure inside the buffer*/
       while (fv1 < 0)
         fv1 += maxdelay;
       v1 = (long)fv1;
@@ -75,9 +75,8 @@ int flanger(ENVIRON *csound, FLANGER *p)
 int wguide1set (ENVIRON *csound, WGUIDE1 *p)
 {
         /*---------------- delay -----------------------*/
-    csound->AuxAlloc(csound,
-                     (p->maxd=(unsigned long)(MAXDELAY * esr)) * sizeof(MYFLT),
-                     &p->aux);
+    p->maxd = (unsigned long) (MAXDELAY * csound->esr);
+    csound->AuxAlloc(csound, p->maxd * sizeof(MYFLT), &p->aux);
     p->maxdM1 = p->maxd-1;
     p->left = 0;
         /*---------------- filter -----------------------*/
@@ -95,13 +94,13 @@ int wguide1(ENVIRON *csound, WGUIDE1 *p)
     MYFLT *out = p->ar;  /* assign object data to local variables   */
     MYFLT *in = p->asig;
     MYFLT *buf = (MYFLT *)p->aux.auxp;
-    MYFLT *freq_del =  p->xdel; /*(1 / *p->xdel)  * esr; */
+    MYFLT *freq_del =  p->xdel; /*(1 / *p->xdel)  * csound->esr; */
     MYFLT feedback =  *p->kfeedback;
     MYFLT  fv1, fv2, out_delay,bufv1 ;
     long   v1;
     /*---------------- filter -----------------------*/
     MYFLT c1, c2, *yt1;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
 
     /*---------------- delay -----------------------*/
     indx = p->left;
@@ -123,7 +122,7 @@ int wguide1(ENVIRON *csound, WGUIDE1 *p)
         buf[indx] = *in++ + (*yt1 * feedback);
         if (fd<FL(1.0)/MAXDELAY) /* Avoid silly values jpff */
           fd = FL(1.0)/MAXDELAY;
-        fv1 = indx - (esr / fd); /* Make sure inside the buffer */
+        fv1 = indx - (csound->esr / fd); /* Make sure inside the buffer */
         while (fv1 < 0) {
           fv1 = fv1 + (MYFLT)p->maxd;
         }
@@ -142,7 +141,7 @@ int wguide1(ENVIRON *csound, WGUIDE1 *p)
         buf[indx] = *in++ + (*yt1 * feedback);
         if (fd<FL(1.0)/MAXDELAY) /* Avoid silly values jpff */
           fd = FL(1.0)/MAXDELAY;
-        fv1 = indx - (esr / fd); /* Make sure inside the buffer */
+        fv1 = indx - (csound->esr / fd); /* Make sure inside the buffer */
         while (fv1 < 0) {
           fv1 = fv1 + (MYFLT)p->maxd;
         }
@@ -162,9 +161,8 @@ int wguide1(ENVIRON *csound, WGUIDE1 *p)
 int wguide2set (ENVIRON *csound, WGUIDE2 *p)
 {
         /*---------------- delay1 -----------------------*/
-    csound->AuxAlloc(csound,
-                     (p->maxd = (unsigned long)(MAXDELAY * esr)) * sizeof(MYFLT),
-                     &p->aux1);
+    p->maxd = (unsigned long) (MAXDELAY * csound->esr);
+    csound->AuxAlloc(csound, p->maxd * sizeof(MYFLT), &p->aux1);
     p->maxdM1 = p->maxd-1;
     p->left1 = 0;
         /*---------------- delay2 -----------------------*/
@@ -193,13 +191,13 @@ int wguide2(ENVIRON *csound, WGUIDE2 *p)
 {
     MYFLT *out = p->ar;
     MYFLT *in = p->asig;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
     MYFLT out1,out2, *old_out = &(p->old_out);
 
     /*---------------- delay1 -----------------------*/
     unsigned long  indx1;
     MYFLT *buf1 = (MYFLT *)p->aux1.auxp;
-    MYFLT *freq_del1 = p->xdel1; /*(1 / *p->xdel1)  * esr; */
+    MYFLT *freq_del1 = p->xdel1; /*(1 / *p->xdel1)  * csound->esr; */
     MYFLT feedback1 =  *p->kfeedback1;
     MYFLT  fv1_1, fv2_1, out_delay1 ;
     long   v1_1;
@@ -208,7 +206,7 @@ int wguide2(ENVIRON *csound, WGUIDE2 *p)
         /*---------------- delay2 -----------------------*/
     unsigned long  indx2;
     MYFLT *buf2 = (MYFLT *)p->aux2.auxp;
-    MYFLT *freq_del2 = p->xdel2; /*(1 / *p->xdel2)  * esr;*/
+    MYFLT *freq_del2 = p->xdel2; /*(1 / *p->xdel2)  * csound->esr;*/
     MYFLT feedback2 =  *p->kfeedback2;
     MYFLT  fv1_2, fv2_2, out_delay2 ;
     long   v1_2;
@@ -249,8 +247,8 @@ int wguide2(ENVIRON *csound, WGUIDE2 *p)
           fd1 = FL(1.0)/MAXDELAY;
         if (fd2<FL(1.0)/MAXDELAY) /* Avoid silly values jpff */
           fd2 = FL(1.0)/MAXDELAY;
-        fv1_1 = indx1 - (esr / fd1); /*Make sure inside the buffer */
-        fv1_2 = indx2 - (esr / fd2); /* Make sure inside the buffer  */
+        fv1_1 = indx1 - (csound->esr / fd1); /*Make sure inside the buffer */
+        fv1_2 = indx2 - (csound->esr / fd2); /* Make sure inside the buffer  */
         while (fv1_1 < 0)    fv1_1 += p->maxd;
         while (fv1_2 < 0)    fv1_2 += p->maxd;
         fv2_1 = (fv1_1<p->maxdM1)?
@@ -278,8 +276,8 @@ int wguide2(ENVIRON *csound, WGUIDE2 *p)
           fd1 = FL(1.0)/MAXDELAY;
         if (fd2<FL(1.0)/MAXDELAY) /* Avoid silly values jpff */
           fd2 = FL(1.0)/MAXDELAY;
-        fv1_1 = indx1 - (esr / fd1); /*Make sure inside the buffer     */
-        fv1_2 = indx2 - (esr / fd2); /*Make sure inside the buffer     */
+        fv1_1 = indx1 - (csound->esr / fd1); /* Make sure inside the buffer */
+        fv1_2 = indx2 - (csound->esr / fd2); /* Make sure inside the buffer */
         while (fv1_1 < 0)    fv1_1 += p->maxd;
         while (fv1_2 < 0)    fv1_2 += p->maxd;
         fv2_1 = (fv1_1<p->maxdM1)?
