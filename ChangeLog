@@ -1,4 +1,14 @@
+2004-03-11  John ffitch  <jpff@codemist.co.uk>
+
+	* InOut/libsnd.c (sfopenout): Added test.au as a default name
+
+2004-03-03  John ffitch  <jpff@codemist.co.uk>
+
+	* Engine/scxtract.c (scxtract): Added call to sread_init() as suggested
+	by Anthony Kozar
+
 2004-02-29	Steven Yi	<stevenyi@csounds.com>
+	
 
 	* InOut/rtpa.c: modifed code to use PortAudio device 1 by default if 
 	none given.  Messages are now given to user if defaulting to device 1 
@@ -56,6 +66,10 @@
 
 	Renamed libanal.a to libustub.a and moved as much code as possible
 	from analysis and utility program "main" files to ustub.c.
+
+2004-02-20  John ffitch  <jpff@codemist.co.uk>
+
+	* Opcodes/grain.c (ags): Use memcpy rather than a loop to copy back
 
 2004-01-29  John ffitch  <jpff@codemist.co.uk>
 

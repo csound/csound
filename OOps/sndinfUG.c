@@ -116,14 +116,10 @@ int filelen(SNDINFO *p)
       switch(O.outformat) {
       case AE_UNCH:
       case AE_CHAR:
-#ifdef never
       case AE_ALAW:
-#endif
-#ifdef ULAW
       case AE_ULAW:
         bytes = 1;
         break;
-#endif
       case AE_SHORT:
         bytes = 2;
         break;

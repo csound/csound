@@ -147,10 +147,7 @@ int ags(PGRA *p)               /*      Granular U.G. a-rate main routine       *
       temp++;
     } while (--n);
 
-    n = ksmps;
-    do {
-      *out++ = *rem++;
-    } while (--n);
+    memcpy(out, rem, ksmps*sizeof(MYFLT));
     p->gcount = gcount;
     return OK;
 }
