@@ -49,7 +49,7 @@ bool parseInstrument(const std::string &definition, std::string &preNumber, std:
 	name.erase();
 	postName.erase();
 	id.erase();
-	size_t beginId = definition.find("instr");
+	int beginId = definition.find("instr");
 	if(beginId == -1)
 	{
 		return false;

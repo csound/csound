@@ -81,7 +81,7 @@ namespace csound
 		LSUM = 0.;
 		N = 1;
 		getCoefficients ();
-		P = 0.;
+		P = 0;
 		LSUM = 0.;
 		NL = 0.;
 		N1 = 0;
@@ -352,7 +352,7 @@ namespace csound
 				}
 			}
 		}
-		if (code.length() != M + 1)
+		if (code.length() != size_t(M + 1))
 		{
 			while (code.length() < (size_t) (M + 1))
 			{

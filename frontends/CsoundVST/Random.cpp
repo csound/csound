@@ -35,10 +35,6 @@ namespace csound
 	}
 
 	Random::Random() : 
-	    row(0), 
-		column(Event::HOMOGENEITY), 
-		eventCount(0), 
-		incrementTime(true),
 		uniform_smallint(0),
 		uniform_int(0),
 		uniform_01(0),
@@ -49,6 +45,10 @@ namespace csound
 		exponential_distribution(0),
 		normal_distribution(0),
 		lognormal_distribution(0),
+	    row(0), 
+		column(Event::HOMOGENEITY), 
+		eventCount(0), 
+		incrementTime(true),
 		minimum(0),
 		maximum(1),
 		q(1),
