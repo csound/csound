@@ -60,6 +60,7 @@ extern int format2sf(int);
 extern  char    *getstrformat(int format);
 extern short sf2type(int);
 extern short sfsampsize(int);
+extern int sf2format(int);
 
 static int sreadinew(           /* special handling of sound input       */
     SNDFILE *infd,              /* to accomodate reads thru pipes & net  */
@@ -68,60 +69,39 @@ static int sreadinew(           /* special handling of sound input       */
     SOUNDINEW *p)               /* extra arg passed for filetyp testing  */
 {                               /* on POST-HEADER reads of audio samples */
     int    n, ntot=0;
-
+    int    nsamples = nbytes/sizeof(MYFLT);
     do {
-      if ((n = sf_read_MYFLT(infd, inbuf+ntot, nbytes-ntot)) < 0)
+      if ((n = sf_read_MYFLT(infd, inbuf+ntot, (nsamples-ntot)/nchnls)) < 0)
         die(Str(X_1201,"soundfile read error"));
-    } while (n > 0 && (ntot += n) < nbytes);
-    if (p->filetyp
-#ifdef NeXT
-        || 1
-#endif
-        ) {             /* for AIFF and WAV samples */
-      if (p->filetyp == TYP_AIFF ||
-          p->filetyp == TYP_AIFC ||
-          p->filetyp == TYP_WAV) {     /*RWD 3:2000*/
-        if (p->audrem > 0) {      /* AIFF:                  */
-          if (ntot > p->audrem)   /*   chk haven't exceeded */
-            ntot = p->audrem;     /*   limit of audio data  */
-          p->audrem -= ntot;
-        }
-        else ntot = 0;
-      }
+    } while (n > 0 && (ntot += n*nchnls) < nsamples);
+    if (p->audrem > 0) {      /* AIFF:                  */
+      if (ntot > p->audrem)   /*   chk haven't exceeded */
+        ntot = p->audrem;     /*   limit of audio data  */
+      p->audrem -= ntot*sizeof(MYFLT);
     }
+    else ntot = 0;
+
+    
     /*RWD 3:2000 expanded format fixups ; more efficient here than in
       soundinew() ?  (well, saves a LOT of typing!) */
-    if (p->filetyp==TYP_WAV  ||
-        p->filetyp==TYP_AIFF ||
-        p->filetyp==TYP_AIFC) {
-      if (p->format==AE_FLOAT) {
-        int i,cnt;
-        float scalefac = (float)INMYFLTFAC;
-        float *ptr = (float *) inbuf;
-
-        if (p->do_floatscaling)
-          scalefac *= p->fscalefac;
-        cnt = ntot/sizeof(float);
-        for (i=0; i<cnt; i++)
-          *ptr++ *= scalefac;
-      }
-      else if (p->format==AE_LONG) {
-        int i;
-        int cnt = ntot/sizeof(long);
-        long *ptr = (long*) inbuf;
-        for (i=0; i<cnt; i++) {
-          *ptr = (long) ((double) *ptr *  INLONGFAC);
-          ptr++;
-        }
-      }
+    if (p->format==AE_FLOAT) {
+      int i,cnt;
+      float scalefac = (float)INMYFLTFAC;
+      float *ptr = (float *) inbuf;
+      
+      if (p->do_floatscaling)
+        scalefac *= p->fscalefac;
+      cnt = ntot/sizeof(float);
+      for (i=0; i<cnt; i++)
+        *ptr++ *= scalefac;
     }
+
     return(ntot);
 }
 
 
 static int sngetset(SOUNDINEW *p, char *sfname)
 {
-    HEADATA *hdr = NULL;
     int     sinfd;
     SNDFILE *infile;
     SF_INFO sfinfo;
@@ -143,10 +123,10 @@ static int sngetset(SOUNDINEW *p, char *sfname)
     sf_command(infile, SFC_SET_NORM_FLOAT, NULL, SF_FALSE);
 #endif
     p->fdch.fd = infile;
+    p->format = sf2format(sfinfo.format);
     sfname = retfilnam;                        /* & record fullpath filnam */
-    if ((p->format = (short)*p->iformat) > 0)  /* convert spec'd format code */
-      p->format |= 0x100;
-
+    if (*p->iformat > 0)  /* convert spec'd format code */
+       p->format = ((short)*p->iformat) | 0x100;
     p->endfile = 0;
     p->begfile = 0;
     p->filetyp = 0;             /* initially non-typed for readheader */
@@ -174,7 +154,7 @@ static int sngetset(SOUNDINEW *p, char *sfname)
     p->do_floatscaling = forReadHeader.do_floatscaling;
     p->fscalefac = forReadHeader.fscalefac;
     
-    switch ((p->format = (short)hdr->format)) {
+    switch ((p->format = (short)sf2format(sfinfo.format))) {
     case AE_CHAR:
     case AE_UNCH:
 #ifdef ULAW
@@ -193,7 +173,6 @@ static int sngetset(SOUNDINEW *p, char *sfname)
     }
     p->sampframsiz = (short)sfsampsize(sfinfo.format) * sfinfo.channels;
     p->filetyp     = sf2type(sfinfo.format);
-    /*       p->aiffdata    = hdr->aiffdata; */
     p->sr          = sfinfo.samplerate;
     p->nchanls     = (short)sfinfo.channels;
     p->audrem = p->audsize = sfinfo.frames;
@@ -314,8 +293,9 @@ int newsndinset(SOUNDINEW *p)       /* init routine for diskin   */
       strcpy(soundiname, strsets[filno]);
     else sprintf(soundiname,"soundin.%ld",filno);  /* soundin.filno */
     sfname = soundiname;
+    printf("**** sfname=%s\n", sfname);
     if (!sngetset(p, sfname))
-      return OK;
+      return FALSE;
     sinfd  = p->fdch.fd;
 
     /*******  display messages ####possibly this be verbose mode only??? */
@@ -340,10 +320,10 @@ int newsndinset(SOUNDINEW *p)       /* init routine for diskin   */
     else
 #endif
     printf("opening %s infile %s\n",
-      p->filetyp == TYP_AIFF ? "AIFF" : TYP_AIFC ? "AIFF-C" : "WAV",
-                                                              sfname);
+      p->filetyp == TYP_AIFF ? "AIFF" :
+           p->filetyp == TYP_AIFC ? "AIFF-C" : "WAV", sfname);
 
-if (p->sampframsiz <= 0)    /* must know framsiz */
+    if (p->sampframsiz <= 0)    /* must know framsiz */
       die(Str(X_882,"illegal sampframsiz"));
 
     /*****  set file pointers, buffers, and diskin-specific stuff  ******/
@@ -552,49 +532,44 @@ void soundinew(SOUNDINEW *p)    /*  a-rate routine for soundinew */
         phs = 0; /* have just switched directions, forget (+ve) old phase */
       
       if (p->endfile) {   /* firewall-flag signaling when we are at either
-                                   end of the file */
+                             end of the file */
         if (p->begfile)
           goto filend; /* make sure we are at beginning, not end */
-        else
-          /* RWD 5:2001: read in the first block (= last block of infile) */
-          {
-            bytesLeft = (int)(inbufp - p->inbuf);
-            if ((p->filepos = (long)sf_seek(p->fdch.fd,
-                                            (off_t)(bytesLeft-snewbufsize),
-                                            SEEK_CUR)) <= p->firstsampinfile) {
-              p->filepos = (long)sf_seek(p->fdch.fd,
-                                         (off_t)p->firstsampinfile,SEEK_SET);
-              p->begfile = 1;
-            }
-            
-            /* RWD 5:2001 but don't know if this is required here... */
-            p->audrem = p->audsize; /* a hack to prevent errors (returning
-                                       'ntot')in the sread for AIFF */
-            if ((n = sreadinew(p->fdch.fd,p->inbuf,snewbufsize,p)) !=
-                snewbufsize) {
-              /* we should never get here. if we do,
-                 we're fucked because didn't get a full buffer and our
-                 present sample is the last sample of the buffer!!!  */
-              die(Str(X_697,"diskin read error - during backwards playback"));
-              return;
-            }
-#ifdef _DEBUG
-            sbufp1 = (short *) p->inbuf;
-#endif
-            /* now get the correct remaining size */
-            p->audrem = p->audsize - p->firstsampinfile - p->filepos;
-            p->bufend = p->inbuf + n;
-            /* point to the last sample in buffer */
-            inbufp = p->inbufp = p->guardpt = p->bufend - p->sampframsiz;
-            
-            /*RWD 5:2001 this cures the symptom (bad data in output sometimes,
-             * when a transp sweep hits eof), but not, I suspect, the
-             * underlying cause */
-            if (n < snewbufsize)
-              memset(p->bufend,0,snewbufsize-n);
-            phs = modf(phs,&phsTrunc);
-            p->endfile = FALSE;
+        else {         /* RWD 5:2001: read in the first block (= last block of infile) */
+          bytesLeft = (int)(inbufp - p->inbuf);
+          if ((p->filepos = (long)sf_seek(p->fdch.fd,
+                                          (off_t)(bytesLeft-snewbufsize),
+                                          SEEK_CUR)) <= p->firstsampinfile) {
+            p->filepos = (long)sf_seek(p->fdch.fd,
+                                       (off_t)p->firstsampinfile,SEEK_SET);
+            p->begfile = 1;
           }
+          
+          /* RWD 5:2001 but don't know if this is required here... */
+          p->audrem = p->audsize; /* a hack to prevent errors (returning
+                                     'ntot')in the sread for AIFF */
+          if ((n = sreadinew(p->fdch.fd,p->inbuf,snewbufsize,p)) !=
+              snewbufsize) {
+            /* we should never get here. if we do,
+               we're fucked because didn't get a full buffer and our
+               present sample is the last sample of the buffer!!!  */
+            die(Str(X_697,"diskin read error - during backwards playback"));
+            return;
+          }
+          /* now get the correct remaining size */
+          p->audrem = p->audsize - p->firstsampinfile - p->filepos;
+          p->bufend = p->inbuf + n;
+          /* point to the last sample in buffer */
+          inbufp = p->inbufp = p->guardpt = p->bufend - p->sampframsiz;
+          
+          /*RWD 5:2001 this cures the symptom (bad data in output sometimes,
+           * when a transp sweep hits eof), but not, I suspect, the
+           * underlying cause */
+          if (n < snewbufsize)
+            memset(p->bufend,0,snewbufsize-n);
+          phs = modf(phs,&phsTrunc);
+          p->endfile = FALSE;
+        }
       }
 
       while (ntogo) {
@@ -634,91 +609,79 @@ void soundinew(SOUNDINEW *p)    /*  a-rate routine for soundinew */
               --ntogo;
           } while ((inbufp > p->inbuf) && (ntogo));
           break;
-      }
-
-      if (inbufp <= p->inbuf) { /* we need to get some more samples!! */
-        if (p->begfile) {
-          if (looping) {      /* hopes this works -- set 1 buffer lenght
-                                 at end of sound file */
-            p->filepos =
-              (long)sf_seek(p->fdch.fd,
-                            (off_t)(p->firstsampinfile+p->audsize-snewbufsize),
-                            SEEK_SET);   /*RWD 5:2001*/
-            phs = -0.0;
-            p->begfile = 0;
-          }
-          else {
-            p->endfile = 1;
-            goto filend;
-          }
-        }
-        else {
-          bytesLeft = (int)(inbufp - p->inbuf + p->sampframsiz);
-          /* we're going backwards, so bytesLeft should be
-           * non-positive because inbufp should be pointing
-           * to the first sample in the buffer or "in front"
-           * the buffer.  But we must add a sample frame
-           * (p->sampframsiz) to make sure the sample we are
-           * pointing at right now becomes the last sample
-           * in the next buffer*/
-          /*RWD remember this for when lseek returns -1 */
-          oldfilepos = p->filepos;
-#ifdef _DEBUG
-          tellpos = sf_seek(p->fdch.fd,(off_t)0L,SEEK_CUR);
-          sbufp1 = (short *) p->inbuf;
-#endif
-          
-          if ((p->filepos =
-               (long)sf_seek(p->fdch.fd,
-                             (off_t)(bytesLeft-snewbufsize - snewbufsize),
-                             /*RWD 5:2001 was SNDINEWBUFSIZ*/
-                             SEEK_CUR)) <= p->firstsampinfile) {
-            p->filepos = (long)sf_seek(p->fdch.fd,
-                                       (off_t)p->firstsampinfile,SEEK_SET);
-            p->begfile = 1;
-          }
         }
         
-        p->audrem = p->audsize; /* a hack to prevent errors (returning
-                                   'ntot') in the sread for AIFF */
-
-        if ((n = sreadinew(p->fdch.fd,p->inbuf,snewbufsize,p)) !=
-            snewbufsize) {       /* RWD 4:2001 was SNDINEWBUFSIZ*/
-          /* we should never get here. if we do,
-             we're fucked because didn't get a full buffer and our
-             present sample is the last sample of the buffer!!!  */
-          die(Str(X_697,"diskin read error - during backwards playback"));
-          return;
+        if (inbufp <= p->inbuf) { /* we need to get some more samples!! */
+          if (p->begfile) {
+            if (looping) {      /* hopes this works -- set 1 buffer lenght
+                                   at end of sound file */
+              p->filepos =
+                (long)sf_seek(p->fdch.fd,
+                              (off_t)(p->firstsampinfile+p->audsize-snewbufsize),
+                              SEEK_SET);   /*RWD 5:2001*/
+              phs = -0.0;
+              p->begfile = 0;
+            }
+            else {
+              p->endfile = 1;
+              goto filend;
+            }
+          }
+          else {
+            bytesLeft = (int)(inbufp - p->inbuf + p->sampframsiz);
+            /* we're going backwards, so bytesLeft should be
+             * non-positive because inbufp should be pointing
+             * to the first sample in the buffer or "in front"
+             * the buffer.  But we must add a sample frame
+             * (p->sampframsiz) to make sure the sample we are
+             * pointing at right now becomes the last sample
+             * in the next buffer*/
+            /*RWD remember this for when lseek returns -1 */
+            oldfilepos = p->filepos;
+            
+            if ((p->filepos =
+                 (long)sf_seek(p->fdch.fd,
+                               (off_t)(bytesLeft-snewbufsize - snewbufsize),
+                               /*RWD 5:2001 was SNDINEWBUFSIZ*/
+                               SEEK_CUR)) <= p->firstsampinfile) {
+              p->filepos = (long)sf_seek(p->fdch.fd,
+                                         (off_t)p->firstsampinfile,SEEK_SET);
+              p->begfile = 1;
+            }
+          }
+          
+          p->audrem = p->audsize; /* a hack to prevent errors (returning
+                                     'ntot') in the sread for AIFF */
+          
+          if ((n = sreadinew(p->fdch.fd,p->inbuf,snewbufsize,p)) !=
+              snewbufsize) {       /* RWD 4:2001 was SNDINEWBUFSIZ*/
+            /* we should never get here. if we do,
+               we're fucked because didn't get a full buffer and our
+               present sample is the last sample of the buffer!!!  */
+            die(Str(X_697,"diskin read error - during backwards playback"));
+            return;
+          }
+          /* now get the correct remaining size */
+          p->audrem = p->audsize - p->firstsampinfile - p->filepos;
+          /* RWD 5:2001  this clears a glitch doing
+           * plain reverse looping (pitch  = -1) over file
+           */
+          if (p->begfile)
+            n = oldfilepos - p->firstsampinfile;
+          p->bufend = p->inbuf + n;
+          /* point to the last sample in buffer */
+          inbufp = p->inbufp = p->guardpt = p->bufend - p->sampframsiz;
+          /*RWD 5:2001 this cures the symptom (bad data in output sometimes,
+           * when a transp sweep hits eof), but not, I suspect, the
+           * underlying cause */
+          if (n < snewbufsize)
+            memset(p->bufend,0,snewbufsize-n);
+          phs = modf(phs,&phsTrunc);
         }
-#ifdef _DEBUG
-        sbufp1 = (short *) p->inbuf;
-#endif
-        /* now get the correct remaining size */
-        p->audrem = p->audsize - p->firstsampinfile - p->filepos;
-        /* RWD 5:2001  this clears a glitch doing
-         * plain reverse looping (pitch  = -1) over file
-         */
-        if (p->begfile )
-          n = oldfilepos - p->firstsampinfile;
-        p->bufend = p->inbuf + n;
-        /* point to the last sample in buffer */
-        inbufp = p->inbufp = p->guardpt = p->bufend - p->sampframsiz;
-        /*RWD 5:2001 this cures the symptom (bad data in output sometimes,
-         * when a transp sweep hits eof), but not, I suspect, the
-         * underlying cause */
-        if (n < snewbufsize)
-          memset(p->bufend,0,snewbufsize-n);
-        phs = modf(phs,&phsTrunc);
-      }
-#ifdef _DEBUG
-      if (inbufp != p->bufend)
-        assert(((p->bufend - inbufp) % p->sampframsiz)==0);
-#endif
       }
     }
     p->inbufp = inbufp;
     p->phs = modf(phs,&phsTrunc);
-
     return;
 
  filend:
@@ -1232,11 +1195,6 @@ void soundinew(SOUNDINEW *p)    /*  a-rate routine for soundinew */
     long snewbufsize = SNDINEWBUFSIZ;            /*RWD 5:2001 */
     long oldfilepos = 0;
 
-#ifdef _DEBUG
-    static long samplecount = 0;
-    long tellpos;
-    short *sbufp1,*sbufp2;
-#endif
     if (p->format == AE_24INT)
       snewbufsize = SNDINEWBUFSIZ_24;
 
@@ -1301,10 +1259,6 @@ void soundinew(SOUNDINEW *p)    /*  a-rate routine for soundinew */
             } while ((inbufp < p->guardpt) && (ntogo));
             break;
           case AE_SHORT:
-#ifdef _DEBUG
-            sbufp1 = (short *) p->inbuf;
-            sbufp2 = (short *) inbufp;
-#endif
             do {
               *r1++ = short_to_dbfs *
                 (MYFLT) ((*(short *)inbufp +
