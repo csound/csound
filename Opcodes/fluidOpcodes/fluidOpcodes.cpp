@@ -96,7 +96,6 @@
 #undef ssdirpath
 
 
-
 #ifdef MAKEDLL
 #define PUBLIC __declspec(dllexport)
 #define DIR_SEP '\\'
@@ -274,19 +273,21 @@ extern "C"
         MYFLT scoreTime = CENVIRON(fluid)->GetScoreTime(CENVIRON(fluid));
         MYFLT offTime = fluid->h.insdshead->offtim;
         
-        int kSmps = CENVIRON(fluid)->GetKsmps(CENVIRON(fluid));      
-        int sRate = (int)CENVIRON(fluid)->GetSr(CENVIRON(fluid));
+        //int kSmps = CENVIRON(fluid)->GetKsmps(CENVIRON(fluid));      
+        //int sRate = (int)CENVIRON(fluid)->GetSr(CENVIRON(fluid));
         
+        //CENVIRON(fluid)->Message(CENVIRON(fluid), "Times score:%f off:%f\n", scoreTime, offTime);       
         
         if(!fluid->released &&        
-             ((int)(scoreTime * sRate) + (20 * kSmps) >= (int)(offTime * sRate) ||
-                fluid->h.insdshead->relesing)) {
+	        ( offTime <= scoreTime + .025 || fluid->h.insdshead->relesing)) {
                 
                 fluid->released = true;
             
                 fluid_synth_noteoff(fluid_engines[engineNum], 
                     channelNum, 
-                    key); 
+                    key);
+		  //CENVIRON(fluid)->Message(CENVIRON(fluid), "Release c:%i k:%i\n", channelNum, key);
+         
         }
         return OK;
     }
