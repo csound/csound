@@ -89,11 +89,11 @@ void OpenMIDIDevice(ENVIRON *csound)
   printf("**** opening MIDI device %d\n", devnum);
 
   retval = Pm_OpenInput(&midistream,
-			devnum,             /* Device number */
-			NULL,
-			MBUFSIZ,
-			((long (*)(void *)) Pt_Time),
-			NULL);
+                        devnum,             /* Device number */
+                        NULL,
+                        MBUFSIZ,
+                        ((long (*)(void *)) Pt_Time),
+                        NULL);
 
   if (retval != 0) {
     printf("PortMIDI Error: %s\n", Pm_GetErrorText(retval));
@@ -128,8 +128,8 @@ long GetMIDIData(ENVIRON *csound)
     else if (retval) {           /* Pm_Poll return TRUE, FALSE or error!! */
       long n = Pm_Read(midistream, mbuf, MBUFSIZ);
       if (n<0) {
-	printf("**** read error %d\n", n);
-	return 0;
+        printf("**** read error %d\n", n);
+        return 0;
       }
       /*         printf("**** %ld events read\n", n); */
       bufp = mbuf;
@@ -140,7 +140,8 @@ long GetMIDIData(ENVIRON *csound)
   return 0;
 }
 
-void MidiOpen(ENVIRON *csound)   /* open a Midi event stream for reading, alloc bufs */
+void MidiOpen(ENVIRON *csound)
+                      /* open a Midi event stream for reading, alloc bufs */
 {                     /*     callable once from main.c                    */
   /* First set up buffers. */
   int i;
@@ -176,24 +177,24 @@ static void sustsoff(MCHNBLK *chn)  /* turnoff all notes in chnl sust array */
     if ((ip = *ipp1) != NULL) {
       *ipp1 = NULL;
       do {
-	if (ip->xtratim) {
-	  ip->relesing = 1;
-	  ip->offtim = (kcounter + ip->xtratim) * onedkr;
-	  schedofftim(ip);
-	}
-	else deact(ip);
+        if (ip->xtratim) {
+          ip->relesing = 1;
+          ip->offtim = (kcounter + ip->xtratim) * onedkr;
+          schedofftim(ip);
+        }
+        else deact(ip);
       } while ((ip = ip->nxtolap) != NULL);
       if (--suscnt == 0)  break;
     }
     if ((ip = *ipp2) != NULL) {
       *ipp2 = NULL;
       do {
-	if (ip->xtratim) {
-	  ip->relesing = 1;
-	  ip->offtim = (kcounter + ip->xtratim) * onedkr;
-	  schedofftim(ip);
-	}
-	else deact(ip);
+        if (ip->xtratim) {
+          ip->relesing = 1;
+          ip->offtim = (kcounter + ip->xtratim) * onedkr;
+          schedofftim(ip);
+        }
+        else deact(ip);
       } while ((ip = ip->nxtolap) != NULL);
       if (--suscnt == 0)  break;
     }
@@ -209,8 +210,8 @@ static void m_song_sel(long a) { IGN(a);}
 static MYFLT dsctl_map[12] = {FL(1.0),FL(0.0),FL(1.0),FL(0.0),FL(1.0),FL(0.0),
                               FL(1.0),FL(0.0),FL(1.0),FL(0.0),FL(1.0),FL(0.0)};
 
-void m_chanmsg(ENVIRON *csound, MEVENT *mep) /* exec non-note chnl_voice & chnl_mode cmnds */
-{
+void m_chanmsg(ENVIRON *csound, MEVENT *mep)
+{ /* exec non-note chnl_voice & chnl_mode cmnds */
   MCHNBLK *chn = M_CHNBP[mep->chan];
   short n;
   MYFLT *fp;
@@ -219,10 +220,10 @@ void m_chanmsg(ENVIRON *csound, MEVENT *mep) /* exec non-note chnl_voice & chnl_
   case PROGRAM_TYPE:
     n = (short) pgm2ins[mep->dat1];       /* program change -> INSTR  */
     if (n > 0 && n <= maxinsno            /* if corresp instr exists  */
-	&& instrtxtp[n] != NULL) {        /*     assign as pgmno      */
+        && instrtxtp[n] != NULL) {        /*     assign as pgmno      */
       chn->pgmno = n;                     /* else ignore prog. change */
       printf(Str("midi channel %d now using instr %d\n"),
-	     mep->chan+1,chn->pgmno);
+             mep->chan+1,chn->pgmno);
     }
     break;
   case POLYAFT_TYPE:
@@ -244,47 +245,47 @@ void m_chanmsg(ENVIRON *csound, MEVENT *mep) /* exec non-note chnl_voice & chnl_
       int   lsb = chn->dplsb;
       MYFLT fval;
       if (msb == 0 && lsb == 0) {
-	chn->ctl_val[BENDSENS] = mep->dat2;
+        chn->ctl_val[BENDSENS] = mep->dat2;
       }
       else if (msb == 1) {            /* GS system PART PARAMS */
-	int ctl;
-	switch(lsb) {
-	case 8:  ctl = VIB_RATE;        break;
-	case 9:  ctl = VIB_DEPTH;       break;
-	case 10: ctl = VIB_DELAY;       break;
-	case 32: ctl = TVF_CUTOFF;      break;
-	case 33: ctl = TVF_RESON;       break;
-	case 99: ctl = TVA_RIS;         break;
-	case 100:ctl = TVA_DEC;         break;
-	case 102:ctl = TVA_RLS;         break;
-	default:printf(Str("unknown NPRN lsb %d\n"), lsb);
-	  goto err;
-	}
-	fval = (MYFLT) (mep->dat2 - 64);
-	chn->ctl_val[ctl] = fval;           /* then store     */
+        int ctl;
+        switch(lsb) {
+        case 8:  ctl = VIB_RATE;        break;
+        case 9:  ctl = VIB_DEPTH;       break;
+        case 10: ctl = VIB_DELAY;       break;
+        case 32: ctl = TVF_CUTOFF;      break;
+        case 33: ctl = TVF_RESON;       break;
+        case 99: ctl = TVA_RIS;         break;
+        case 100:ctl = TVA_DEC;         break;
+        case 102:ctl = TVA_RLS;         break;
+        default:printf(Str("unknown NPRN lsb %d\n"), lsb);
+          goto err;
+        }
+        fval = (MYFLT) (mep->dat2 - 64);
+        chn->ctl_val[ctl] = fval;           /* then store     */
       }
       else {
-	if (msb < 24 || msb == 25 || msb == 27 ||
-	    msb > 31 || lsb < 25  || lsb > 87)
-	  printf(Str("unknown drum param nos, msb %ld lsb %ld\n"),
-		 (long)msb, (long)lsb);
-	else {
-	  static int drtab[8] = {0,0,1,1,2,3,4,5};
-	  int parnum = drtab[msb - 24];
-	  if (parnum == 0)
-	    fval = (MYFLT) (mep->dat2 - 64);
-	  else fval = mep->dat2;
-	  if (dsctl_map != NULL) {
-	    fp = &dsctl_map[parnum*2];
-	    if (*fp != FL(0.0)) {
-	      MYFLT xx = (fval * *fp++);
-	      fval = xx + *fp;    /* optionally map */
-	    }
-	  }
-	  printf(Str("CHAN %ld DRUMKEY %ld not in keylst,"
-		     " PARAM %ld NOT UPDATED\n"),
-		 (long)mep->chan+1, (long)lsb, (long)msb);
-	}
+        if (msb < 24 || msb == 25 || msb == 27 ||
+            msb > 31 || lsb < 25  || lsb > 87)
+          printf(Str("unknown drum param nos, msb %ld lsb %ld\n"),
+                 (long)msb, (long)lsb);
+        else {
+          static int drtab[8] = {0,0,1,1,2,3,4,5};
+          int parnum = drtab[msb - 24];
+          if (parnum == 0)
+            fval = (MYFLT) (mep->dat2 - 64);
+          else fval = mep->dat2;
+          if (dsctl_map != NULL) {
+            fp = &dsctl_map[parnum*2];
+            if (*fp != FL(0.0)) {
+              MYFLT xx = (fval * *fp++);
+              fval = xx + *fp;    /* optionally map */
+            }
+          }
+          printf(Str("CHAN %ld DRUMKEY %ld not in keylst,"
+                     " PARAM %ld NOT UPDATED\n"),
+                 (long)mep->chan+1, (long)lsb, (long)msb);
+        }
       }
     }
     else chn->ctl_val[n] = (MYFLT) mep->dat2;   /* record data as MYFLT */
@@ -294,9 +295,9 @@ void m_chanmsg(ENVIRON *csound, MEVENT *mep) /* exec non-note chnl_voice & chnl_
     else if (n == SUSTAIN_SW) {
       short temp = (mep->dat2 > 0);
       if (chn->sustaining != temp) {            /* if sustainP changed  */
-	if (chn->sustaining && chn->ksuscnt)    /*  & going off         */
-	  sustsoff(chn);                        /*      reles any notes */
-	chn->sustaining = temp;
+        if (chn->sustaining && chn->ksuscnt)    /*  & going off         */
+          sustsoff(chn);                        /*      reles any notes */
+        chn->sustaining = temp;
       }
     }
     break;
@@ -306,33 +307,33 @@ void m_chanmsg(ENVIRON *csound, MEVENT *mep) /* exec non-note chnl_voice & chnl_
 #ifdef INEXCLUSIVE
       int index = mep->dat2;                    /*    for the index given */
       INX *inxp = &inxbas;    /* ***THIS CODE IS WRONG AS inxbas HAS NO VALUE
-			     ***Requires inexclus opcode which is ADI */
+                             ***Requires inexclus opcode which is ADI */
       while ((inxp = inxp->nxtinx) != NULL)
-	if (inxp->ctrlno == n) {                /* if found ctrlno xclist */
-	  int *insp, cnt = inxp->inscnt;
-	  if (index <= cnt) {                   /*   & the index in-range */
-	    INSDS *ip;
-	    long xtratim = 0;                   /*     turnoff all instrs */
-	    for (insp = inxp->inslst; cnt--; insp++)
-	      if ((ip = instrtxtp[*insp]->instance) != NULL) {
-		do {
-		  if (ip->actflg) {
-		    if (ip->xtratim > xtratim)
-		      xtratim = ip->xtratim;
-		    xturnoff(ip);
-		  }
-		} while ((ip = ip->nxtinstance) != NULL);
-	      }
-	    if (index) {
-	      int insno = inxp->inslst[index-1];
-	      xturnon(insno, xtratim);          /*     & schedstart this */
-	      printf(Str("instr %ld now on\n"), (long)insno);
-	    }
-	  }
-	  else printf(Str("index %ld exceeds ctrl %ld exclus list\n"),
-		      (long)index, (long)n);
-	  return;
-	}
+        if (inxp->ctrlno == n) {                /* if found ctrlno xclist */
+          int *insp, cnt = inxp->inscnt;
+          if (index <= cnt) {                   /*   & the index in-range */
+            INSDS *ip;
+            long xtratim = 0;                   /*     turnoff all instrs */
+            for (insp = inxp->inslst; cnt--; insp++)
+              if ((ip = instrtxtp[*insp]->instance) != NULL) {
+                do {
+                  if (ip->actflg) {
+                    if (ip->xtratim > xtratim)
+                      xtratim = ip->xtratim;
+                    xturnoff(ip);
+                  }
+                } while ((ip = ip->nxtinstance) != NULL);
+              }
+            if (index) {
+              int insno = inxp->inslst[index-1];
+              xturnon(insno, xtratim);          /*     & schedstart this */
+              printf(Str("instr %ld now on\n"), (long)insno);
+            }
+          }
+          else printf(Str("index %ld exceeds ctrl %ld exclus list\n"),
+                      (long)index, (long)n);
+          return;
+        }
 #endif
       printf(Str("ctrl %ld has no exclus list\n"), (long)n);
       break;
@@ -343,7 +344,7 @@ void m_chanmsg(ENVIRON *csound, MEVENT *mep) /* exec non-note chnl_voice & chnl_
       MYFLT *fp = chn->ctl_val + 1;           /* from ctlr 1 */
       short nn = 101;                         /* to ctlr 101 */
       do {
-	*fp++ = FL(0.0);                      /*   reset all ctlrs to 0 */
+        *fp++ = FL(0.0);                      /*   reset all ctlrs to 0 */
       } while (--nn);
       /* reset aftertouch to max value - added by Istvan Varga, May 2002 */
       chn->aftouch = FL(127.0);
@@ -360,20 +361,20 @@ void m_chanmsg(ENVIRON *csound, MEVENT *mep) /* exec non-note chnl_voice & chnl_
     /* 126 == MONO ON (POLY OFF) */
     else if (n == 126) {                      /* MONO mode */
       if (chn->monobas == NULL) {
-	MONPCH *mnew, *mend;
-	chn->monobas = (MONPCH *)mcalloc(csound, (long)sizeof(MONPCH) * 8);
-	mnew = chn->monobas;  mend = mnew + 8;
-	do {
-	  mnew->pch = -1;
-	} while (++mnew < mend);
+        MONPCH *mnew, *mend;
+        chn->monobas = (MONPCH *)mcalloc(csound, (long)sizeof(MONPCH) * 8);
+        mnew = chn->monobas;  mend = mnew + 8;
+        do {
+          mnew->pch = -1;
+        } while (++mnew < mend);
       }
       chn->mono = 1;
     }
     /* 127 == POLY ON (MONO OFF) */
     else if (n == 127) {                      /* POLY mode */
       if (chn->monobas != NULL) {
-	mfree(csound, (char *)chn->monobas);
-	chn->monobas = NULL;
+        mfree(csound, (char *)chn->monobas);
+        chn->monobas = NULL;
       }
       chn->mono = 0;
     }
@@ -384,7 +385,7 @@ void m_chanmsg(ENVIRON *csound, MEVENT *mep) /* exec non-note chnl_voice & chnl_
     break;
   case PCHBEND_TYPE:
     chn->pchbend = (MYFLT)(((mep->dat2 - 64) << 7) + mep->dat1)/FL(8192.0);
-    /*        chn->posbend = (MYFLT)((mep->dat2 << 7) + mep->dat1) / FL(16384.0); */
+    /* chn->posbend = (MYFLT)((mep->dat2 << 7) + mep->dat1) / FL(16384.0); */
     break;
   case SYSTEM_TYPE:              /* sys_common 1-3 only:  chan contains which */
     switch(mep->chan) {
@@ -418,7 +419,7 @@ void m_chn_init(ENVIRON *csound, MEVENT *mep, short chan)
     while (instrtxtp[defaultinsno]==NULL) {
       defaultinsno++;
       if (defaultinsno>maxinsno)
-	die(Str("midi init cannot find any instrs"));
+        die(Str("midi init cannot find any instrs"));
     }
   }
   if ((chn = M_CHNBP[chan]) == NULL)
@@ -433,7 +434,8 @@ void m_chn_init(ENVIRON *csound, MEVENT *mep, short chan)
   printf(Str("midi channel %d using instr %d\n"), chan + 1, chn->pgmno);
 }
 
-static void ctlreset(ENVIRON *csound, short chan)    /* reset all controllers for this channel */
+static void ctlreset(ENVIRON *csound, short chan)
+    /* reset all controllers for this channel */
 {
   MEVENT  mev;
   mev.type = CONTROL_TYPE;
@@ -442,7 +444,8 @@ static void ctlreset(ENVIRON *csound, short chan)    /* reset all controllers fo
   m_chanmsg(csound, &mev);
 }
 
-MCHNBLK *m_getchnl(ENVIRON *csound, short chan)          /* get or create a chnlblk ptr */
+MCHNBLK *m_getchnl(ENVIRON *csound, short chan)
+  /* get or create a chnlblk ptr */
 {
   MCHNBLK *chn;
   if (chan < 0 || chan >= MAXCHAN) {
@@ -458,7 +461,8 @@ MCHNBLK *m_getchnl(ENVIRON *csound, short chan)          /* get or create a chnl
   return(chn);
 }
 
-void m_chinsno(ENVIRON *csound, short chan, short insno)   /* assign an insno to a chnl */
+void m_chinsno(ENVIRON *csound, short chan, short insno)
+  /* assign an insno to a chnl */
 {                                         /* =massign: called from i0  */
   MCHNBLK  *chn = NULL;
 
@@ -521,12 +525,13 @@ static void m_sysReset(void) {}
 static void m_tuneReq(void) {}
 
 static int sexcnt = 0;
-static void m_sysex(PmEvent *sbuf, PmEvent *sp) /* sys_excl msg, sexbuf: ID + data */
+static void m_sysex(PmEvent *sbuf, PmEvent *sp)
+  /* sys_excl msg, sexbuf: ID + data */
 {
   int nbytes = sp - sbuf;
   if (++sexcnt >= 100) {
     printf(Str("100th system exclusive $%x, length %d\n"),
-	   *sbuf, nbytes);
+           *sbuf, nbytes);
     sexcnt = 0;
   }
 }
@@ -535,7 +540,8 @@ static void m_sysex(PmEvent *sbuf, PmEvent *sp) /* sys_excl msg, sexbuf: ID + da
 static short m_clktim = 0;
 /* Not used? */ static short m_sensing = 0;
 
-int sensMidi(ENVIRON *csound)         /* sense a MIDI event, collect the data & dispatch */
+int sensMidi(ENVIRON *csound)
+                           /* sense a MIDI event, collect the data & dispatch */
 {                          /*  called from kperf(), return(2) if MIDI on/off  */
   long midiev;
   short  c, type;
@@ -558,56 +564,56 @@ int sensMidi(ENVIRON *csound)         /* sense a MIDI event, collect the data & 
     if (type == SYSTEM_TYPE) {
       short lo3 = (c & 0x07);
       if (c & 0x08)                    /* sys_realtime:     */
-	switch (lo3) {                 /*   dispatch now    */
-	case 0: m_clktim++;
-	  goto nxtmsg;
-	case 2: m_start();
-	  goto nxtmsg;
-	case 3: m_contin();
-	  goto nxtmsg;
-	case 4: m_stop();
-	  goto nxtmsg;
-	case 6: m_sensing = 1; /* Never read!! */
-	  goto nxtmsg;
-	case 7: m_sysReset();
-	  goto nxtmsg;
-	default: printf(Str("undefined sys-realtime msg %x\n"),c);
-	  goto nxtmsg;
-	}
+        switch (lo3) {                 /*   dispatch now    */
+        case 0: m_clktim++;
+          goto nxtmsg;
+        case 2: m_start();
+          goto nxtmsg;
+        case 3: m_contin();
+          goto nxtmsg;
+        case 4: m_stop();
+          goto nxtmsg;
+        case 6: m_sensing = 1; /* Never read!! */
+          goto nxtmsg;
+        case 7: m_sysReset();
+          goto nxtmsg;
+        default: printf(Str("undefined sys-realtime msg %x\n"),c);
+          goto nxtmsg;
+        }
       else {                           /* sys_non-realtime status:   */
-	if (sexp != NULL) {            /* implies           */
-	  m_sysex(sexbuf,sexp);        /*   sys_exclus end  */
-	  sexp = NULL;
-	}
-	switch (lo3) {                 /* dispatch on lo3:  */
-	case 7: goto nxtmsg;           /* EOX: already done */
-	case 0: sexp = sexbuf;         /* sys_ex begin:     */
-	  goto nxtmsg;                 /*   goto copy data  */
-	case 1:                        /* sys_common:       */
-	case 3: 
-	  mep->dat1 =  Pm_MessageData1(midiev); /* need 1 byte  */
-	  break;
-	case 2:
-	  mep->dat1 =  Pm_MessageData1(midiev);
-	  mep->dat2 =  Pm_MessageData2(midiev);
-	  break;
-	case 6: m_tuneReq();           /*   this do immed   */
-	  goto nxtmsg;
-	default: printf(Str("undefined sys_common msg %x\n"), c);
-	  goto nxtmsg;
-	}
+        if (sexp != NULL) {            /* implies           */
+          m_sysex(sexbuf,sexp);        /*   sys_exclus end  */
+          sexp = NULL;
+        }
+        switch (lo3) {                 /* dispatch on lo3:  */
+        case 7: goto nxtmsg;           /* EOX: already done */
+        case 0: sexp = sexbuf;         /* sys_ex begin:     */
+          goto nxtmsg;                 /*   goto copy data  */
+        case 1:                        /* sys_common:       */
+        case 3: 
+          mep->dat1 =  Pm_MessageData1(midiev); /* need 1 byte  */
+          break;
+        case 2:
+          mep->dat1 =  Pm_MessageData1(midiev);
+          mep->dat2 =  Pm_MessageData2(midiev);
+          break;
+        case 6: m_tuneReq();           /*   this do immed   */
+          goto nxtmsg;
+        default: printf(Str("undefined sys_common msg %x\n"), c);
+          goto nxtmsg;
+        }
       }
       mep->chan = lo3;                /* holding code in chan */
     }
     else {                            /* other status types:  */
       short chan;
       if (sexp != NULL) {             /* also implies      */
-	m_sysex(sexbuf,sexp);         /*   sys_exclus end  */
-	sexp = NULL;
+        m_sysex(sexbuf,sexp);         /*   sys_exclus end  */
+        sexp = NULL;
       }
       chan = c & 0xF;
       if (M_CHNBP[chan] == NULL)      /* chk chnl exists   */
-	m_chn_init(csound, mep, chan);
+        m_chn_init(csound, mep, chan);
       mep->type = type;               /* & begin new event */
       mep->chan = chan;
       mep->dat1 =  Pm_MessageData1(midiev);
