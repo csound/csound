@@ -47,23 +47,6 @@ extern "C" {
   {
     /* FIXME: should use malloc() eventually */
     ENVIRON *csound = &cenviron;
-    /* IV - Feb 01 2005: moved this here... */
-    csoundReset(csound);
-    csound->hostdata_ = hostdata;
-    /* allow selecting real time audio module */
-    {
-      char  *s;
-      int   max_len = 21;
-      csoundCreateGlobalVariable(csound, "_RTAUDIO", (size_t) max_len);
-      s = csoundQueryGlobalVariable(csound, "_RTAUDIO");
-      strcpy(s, "PortAudio");
-      csoundCreateConfigurationVariable(csound, "rtaudio", s,
-                                        CSOUNDCFG_STRING, 0, NULL, &max_len,
-                                        "Real time audio module name", NULL);
-    }
-    /* now load and pre-initialise external modules for this instance */
-    /* this function returns an error value that may be worth checking */
-    csoundLoadModules(csound);
     return csound;
   }
 
@@ -244,6 +227,7 @@ extern "C" {
   PUBLIC void csoundCleanup(void *csound)
   {
     orcompact();
+    csoundDestroyModules(csound);
     cleanup(csound);
     /* Call all the funcs registered with atexit(). */
     while (csoundNumExits_ >= 0)
