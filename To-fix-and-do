@@ -17,6 +17,9 @@ K7.     Installer for MacOSX
 
 K8.     ASIO not working in PortAudio (Windows)
 
+K9.     Scaling of floating files not clear
+
+K10.    Dnoise not changed to libsndfile
 
 BUGS NOT FIXED
 --------------
