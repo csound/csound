@@ -16,11 +16,13 @@
 
 noinst_PROGRAMS=makedb
 
-# headers (incomplete for now).
+#	Headers (incomplete for now).
 
-pkginclude_HEADERS=H/csound.h
+pkginclude_HEADERS=H/csound.h \
+H\cs.h \
+H\csoundCore.h
 
-# data
+#	Data
 
 pkgdata_DATA=csound.xmg
 
@@ -73,11 +75,20 @@ pkglib_LTLIBRARIES+=libwave_terrain.la
 
 bin_PROGRAMS=csound
 
-# bin_PROGRAMS+=csoundgui
-# Note that _csoundvst is a "module" to dlopen, not a "shared library" to link...
-# lib_LTLIBRARIES+=_csoundvst.la
-# ...and the standalone csoundvst always uses dlopen to run _csoundvst.
-# bin_PROGRAMS+=csoundvst
+if CONDITIONAL_ENABLE_CSOUNDVST
+if CONDITIONAL_USE_FLTK
+if CONDITIONAL_USE_PYTHON
+if CONDITIONAL_USE_SWIG
+
+# Note that _CsoundVST is a "module" to dlopen, not a "shared library" to link...
+lib_LTLIBRARIES+=_CsoundVST.la
+# ...and the standalone CsoundVST always uses dlopen to run _CsoundVST.
+bin_PROGRAMS+=CsoundVST
+
+endif
+endif
+endif
+endif
 
 #	Convenience library for utility programs:
 
@@ -109,10 +120,15 @@ bin_PROGRAMS+=sdif2ad
 bin_PROGRAMS+=sndinfo
 bin_PROGRAMS+=srconv
 
-
 #	Extra files and scripts:
 
-EXTRA_DIST=csound.spec Doxyfile
+EXTRA_DIST=\
+csound.spec \
+trapped.csd \
+trappedrt.csd \
+xanadu.csd \
+Doxyfile \
+frontends/CsoundVST/index.htm 
 
 ############################
 # 
@@ -140,10 +156,14 @@ csound.xmg:	strings/all_strings English.xmg
 
 #	The Csound engine and API library
 
-EXTRA_libcsound_la_SOURCES=\
-InOut/rtpa.c
+#	Note that since some sources are compiled conditionally,
+#	ALL sources should go into this list, which is used to compile the tar file.
 
-libcsound_la_SOURCES=\
+EXTRA_libcsound_la_SOURCES=\
+anal/adsyn/het_main.c \
+anal/convol/cvl_main.c \
+anal/lpc/lpc_main.c \
+anal/pvoc/pvc_main.c \
 Engine/auxfd.c \
 Engine/entry1.c \
 Engine/entry2.c \
@@ -158,7 +178,7 @@ Engine/memfiles.c \
 Engine/musmon.c \
 Engine/namedins.c \
 Engine/oload.c \
-Engine/otran.c	\
+Engine/otran.c \
 Engine/rdorch.c \
 Engine/rdscor.c \
 Engine/scsort.c \
@@ -167,13 +187,81 @@ Engine/sort.c \
 Engine/sread.c \
 Engine/swrite.c \
 Engine/twarp.c \
+frontends/csound/csound_main.c \
+frontends/CsoundVST/AEffect.h \
+frontends/CsoundVST/aeffectx.h \
+frontends/CsoundVST/AEffEditor.hpp \
+frontends/CsoundVST/aeffguieditor.cpp \
+frontends/CsoundVST/aeffguieditor.h \
+frontends/CsoundVST/AudioEffect.cpp \
+frontends/CsoundVST/AudioEffect.hpp \
+frontends/CsoundVST/audioeffectx.cpp \
+frontends/CsoundVST/audioeffectx.h \
+frontends/CsoundVST/Cell.cpp \
+frontends/CsoundVST/Cell.hpp \
+frontends/CsoundVST/Composition.cpp \
+frontends/CsoundVST/Composition.hpp \
+frontends/CsoundVST/Conversions.cpp \
+frontends/CsoundVST/Conversions.hpp \
+frontends/CsoundVST/CppSound.cpp \
+frontends/CsoundVST/CppSound.hpp \
+frontends/CsoundVST/CsoundFile.cpp \
+frontends/CsoundVST/CsoundFile.hpp \
+frontends/CsoundVST/CsoundVST.cpp \
+frontends/CsoundVST/CsoundVST.hpp \
+frontends/CsoundVST/CsoundVST.i \
+frontends/CsoundVST/csoundvst_main.cpp \
+frontends/CsoundVST/CsoundVstFltk.cpp \
+frontends/CsoundVST/CsoundVstFltk.hpp \
+frontends/CsoundVST/CsoundVSTMain.cpp \
+frontends/CsoundVST/CsoundVstUi.cpp \
+frontends/CsoundVST/CsoundVstUi.h \
+frontends/CsoundVST/Event.cpp \
+frontends/CsoundVST/Event.hpp \
+frontends/CsoundVST/Exception.hpp \
+frontends/CsoundVST/Hocket.cpp \
+frontends/CsoundVST/Hocket.hpp \
+frontends/CsoundVST/ImageToScore.cpp \
+frontends/CsoundVST/ImageToScore.hpp \
+frontends/CsoundVST/Lindenmayer.cpp \
+frontends/CsoundVST/Lindenmayer.hpp \
+frontends/CsoundVST/MCRM.cpp \
+frontends/CsoundVST/MCRM.hpp \
+frontends/CsoundVST/Midifile.cpp \
+frontends/CsoundVST/Midifile.hpp \
+frontends/CsoundVST/MusicModel.cpp \
+frontends/CsoundVST/MusicModel.hpp \
+frontends/CsoundVST/Node.cpp \
+frontends/CsoundVST/Node.hpp \
+frontends/CsoundVST/Random.cpp \
+frontends/CsoundVST/Random.hpp \
+frontends/CsoundVST/Rescale.cpp \
+frontends/CsoundVST/Rescale.hpp \
+frontends/CsoundVST/Score.cpp \
+frontends/CsoundVST/Score.hpp \
+frontends/CsoundVST/ScoreNode.cpp \
+frontends/CsoundVST/ScoreNode.hpp \
+frontends/CsoundVST/Shell.cpp \
+frontends/CsoundVST/Shell.hpp \
+frontends/CsoundVST/Silence.hpp \
+frontends/CsoundVST/StrangeAttractor.cpp \
+frontends/CsoundVST/StrangeAttractor.hpp \
+frontends/CsoundVST/System.cpp \
+frontends/CsoundVST/System.hpp \
+frontends/CsoundVST/vstcontrols.cpp \
+frontends/CsoundVST/vstcontrols.h \
+frontends/CsoundVST/vstfxstore.h \
+frontends/CsoundVST/vstgui.cpp \
+frontends/CsoundVST/vstgui.h \
+frontends/CsoundVST/vstplugscarbon.h \
+frontends/CsoundVST/vstplugsmac.h \
+frontends/CsoundVST/vstplugsmacho.h \
 H/3Dug.h \
 H/aiff.h \
 H/aops.h \
 H/BeAudio.h \
 H/cmath.h \
 H/complex.h \
-H/config.h \
 H/control.h \
 H/convolve.h \
 H/cs.h \
@@ -221,7 +309,6 @@ H/OpcLoad.h \
 H/opcode.h \
 H/oscils.h \
 H/OSC-sock.h \
-H/pitch.h \
 H/prototyp.h \
 H/pstream.h \
 H/pvadd.h \
@@ -260,8 +347,9 @@ H/ugens6.h \
 H/ugens7.h \
 H/ugens8.h \
 H/ugens9.h \
-H/uggab.h \
 H/ugmoss.h \
+H/ugrw1.h \
+H/ugrw2.h \
 H/ugsc.h \
 H/ustub.h \
 H/vbap.h \
@@ -273,6 +361,249 @@ H/wguide.h \
 H/widgets.h \
 H/windin.h \
 H/winEPS.h \
+InOut/aifc.c \
+InOut/aiff.c \
+InOut/FL_graph.cpp \
+InOut/ieee80.c \
+InOut/libsnd.c \
+InOut/rtpa.c \
+InOut/sfheader.c \
+InOut/soundin.c \
+InOut/soundio.c \
+InOut/ulaw.c \
+InOut/wave.c \
+InOut/widgets.cpp \
+InOut/win98.c \
+InOut/winascii.c \
+InOut/windin.c \
+InOut/window.c \
+InOut/winEPS.c \
+InOut/winFLTK.c \
+OOps/aops.c \
+OOps/cmath.c \
+OOps/control.c \
+OOps/diskin.c \
+OOps/disprep.c \
+OOps/dnfft.c \
+OOps/dsputil.c \
+OOps/dumpf.c \
+OOps/fft.c \
+OOps/fout.c \
+OOps/fprint.c \
+OOps/lptrkfns.c \
+OOps/mididevice.c \
+OOps/midiinterop.c \
+OOps/midiops.c \
+OOps/midiout.c \
+OOps/midirecv.c \
+OOps/midisend.c \
+OOps/mxfft.c \
+OOps/oscils.c \
+OOps/pstream.c \
+OOps/pvadd.c \
+OOps/pvfileio.c \
+OOps/pvinterp.c \
+OOps/pvoc.c \
+OOps/pvocext.c \
+OOps/pvread.c \
+OOps/pvsanal.c \
+OOps/pvxanal.c \
+OOps/schedule.c \
+OOps/sdif.c \
+OOps/sdif-mem.c \
+OOps/sndinfUG.c \
+OOps/ugens1.c \
+OOps/ugens2.c \
+OOps/ugens3.c \
+OOps/ugens4.c \
+OOps/ugens5.c \
+OOps/ugens6.c \
+OOps/ugens7.c \
+OOps/ugens8.c \
+OOps/ugens9.c \
+OOps/ugrw1.c \
+OOps/ugrw2.c \
+OOps/vbap.c \
+OOps/vbap_eight.c \
+OOps/vbap_four.c \
+OOps/vbap_sixteen.c \
+OOps/vbap_zak.c \
+OOps/vdelay.c \
+OOps/vpvoc.c \
+Opcodes/babo.c \
+Opcodes/babo.h \
+Opcodes/bbcut.c \
+Opcodes/bbcut.h \
+Opcodes/biquad.c \
+Opcodes/biquad.h \
+Opcodes/bowed.h \
+Opcodes/bowedbar.c \
+Opcodes/bowedbar.h \
+Opcodes/brass.h \
+Opcodes/butter.c \
+Opcodes/butter.h \
+Opcodes/clarinet.h \
+Opcodes/clfilt.c \
+Opcodes/clfilt.h \
+Opcodes/cross2.c \
+Opcodes/dam.c \
+Opcodes/dam.h \
+Opcodes/dcblockr.c \
+Opcodes/dcblockr.h \
+Opcodes/filter.c \
+Opcodes/filter.h \
+Opcodes/flanger.c \
+Opcodes/flanger.h \
+Opcodes/flute.h \
+Opcodes/fm4op.c \
+Opcodes/fm4op.h \
+Opcodes/follow.c \
+Opcodes/follow.h \
+Opcodes/grain.c \
+Opcodes/grain.h \
+Opcodes/grain4.c \
+Opcodes/grain4.h \
+Opcodes/hrtferX.c \
+Opcodes/hrtferx.h \
+Opcodes/locsig.c \
+Opcodes/locsig.h \
+Opcodes/lowpassr.c \
+Opcodes/lowpassr.h \
+Opcodes/mandolin.c \
+Opcodes/mandolin.h \
+Opcodes/marimba.h \
+Opcodes/midiops2.c \
+Opcodes/midiops3.c \
+Opcodes/midiops3.h \
+Opcodes/modal4.c \
+Opcodes/modal4.h \
+Opcodes/moog1.c \
+Opcodes/moog1.h \
+Opcodes/nlfilt.c \
+Opcodes/nlfilt.h \
+Opcodes/oscbnk.c \
+Opcodes/oscbnk.h \
+Opcodes/phisem.c \
+Opcodes/phisem.h \
+Opcodes/physmod.c \
+Opcodes/physutil.c \
+Opcodes/physutil.h \
+Opcodes/pitch.c \
+Opcodes/pitch.h \
+Opcodes/pitch0.c \
+Opcodes/pluck.c \
+Opcodes/pluck.h \
+Opcodes/ptrigtbl.h \
+Opcodes/repluck.c \
+Opcodes/repluck.h \
+Opcodes/scansyn.c \
+Opcodes/scansyn.h \
+Opcodes/scansynx.c \
+Opcodes/scansynx.h \
+Opcodes/sfenum.h \
+Opcodes/sfont.c \
+Opcodes/sfont.h \
+Opcodes/shaker.c \
+Opcodes/shaker.h \
+Opcodes/singwave.c \
+Opcodes/singwave.h \
+Opcodes/sndwarp.c \
+Opcodes/sndwarp.h \
+Opcodes/space.c \
+Opcodes/space.h \
+Opcodes/spat3d.c \
+Opcodes/spat3d.h \
+Opcodes/spectra.c \
+Opcodes/ugens6.c \
+Opcodes/ugens7.c \
+Opcodes/ugens9.c \
+Opcodes/ugensa.c \
+Opcodes/ugensa.h \
+Opcodes/uggab.c \
+Opcodes/uggab.h \
+Opcodes/ugmoss.c \
+Opcodes/ugsc.c \
+Opcodes/vibraphn.h \
+Opcodes/wavegde.h \
+Opcodes/wave-terrain.c \
+Opcodes/wave-terrain.h \
+SDIF/sdif.c \
+SDIF/sdif.h \
+SDIF/sdif2adsyn.c \
+SDIF/sdif-mem.c \
+SDIF/sdif-mem.h \
+strings/makedb.c \
+Top/argdecode.c \
+Top/cscore.c \
+Top/cscore_internal.c \
+Top/cscorfns.c \
+Top/cscormai.c \
+Top/csound.c \
+Top/csound_main.c \
+Top/cvanal.c \
+Top/dl_opcodes.c \
+Top/dnoise.c \
+Top/dnoise_int.c \
+Top/getstring.c \
+Top/hetro.c \
+Top/lpanal.c \
+Top/main.c \
+Top/natben.c \
+Top/one_file.c \
+Top/opcode.c \
+Top/pvanal.c \
+Top/pvl_main.c \
+Top/pvlook.c \
+Top/scot.c \
+Top/sndinfo.c \
+Top/ustub.c \
+util1/cscore/cscore.c \
+util1/cscore/cscore_main.c \
+util1/scot/scot_main.c \
+util1/sortex/MOD.c \
+util1/sortex/smain.c \
+util1/sortex/xmain.c \
+util2/dnoise.dir/dnoise_main.c \
+util2/dnoise.dir/srconv.c \
+util2/envext/envext.c \
+util2/exports/het_export.c \
+util2/exports/het_import.c \
+util2/exports/lpc_export.c \
+util2/exports/lpc_import.c \
+util2/exports/pv_export.c \
+util2/exports/pv_import.c \
+util2/mixer/extract.c \
+util2/mixer/mixer.c \
+util2/mixer/xtrct.c \
+util2/pvlook.dir/pvl_main.c \
+util2/pvlook.dir/pvlook.c \
+util2/scale.dir/scale.c \
+util2/sndinfo/sndinfo_main.c
+
+libcsound_la_SOURCES=\
+Engine/auxfd.c \
+Engine/entry1.c \
+Engine/entry2.c \
+Engine/express.c \
+Engine/extract.c \
+Engine/fgens.c \
+Engine/filopen.c \
+Engine/insert.c \
+Engine/linevent.c \
+Engine/memalloc.c \
+Engine/memfiles.c \
+Engine/musmon.c \
+Engine/namedins.c \
+Engine/oload.c \
+Engine/otran.c	\
+Engine/rdorch.c \
+Engine/rdscor.c \
+Engine/scsort.c \
+Engine/scxtract.c \
+Engine/sort.c \
+Engine/sread.c \
+Engine/swrite.c \
+Engine/twarp.c \
 InOut/aifc.c \
 InOut/aiff.c \
 InOut/ieee80.c \
@@ -353,15 +684,8 @@ Top/pvanal.c \
 Top/pvlook.c \
 Top/scot.c \
 Top/sndinfo.c \
-$(SGI_RTAUDIO) \
-$(SUN_RTAUDIO) \
-$(DEC_RTAUDIO)	\
-$(HP_RTAUDIO) \
-$(WIN32_RTAUDIO) \
-$(LINUX_RTAUDIO) \
-$(WIN_FLTK) \
-$(WIN_FLTK_WIDGETS) \
-$(WIN_X11)
+$(RTAUDIO_SOURCES) \
+$(FLTK_SOURCES)
 
 libcsound_la_CPPFLAGS=@LIBCSOUND_CPPFLAGS@
 libcsound_la_CFLAGS=@LIBCSOUND_CFLAGS@
@@ -369,52 +693,12 @@ libcsound_la_CXXFLAGS=@LIBCSOUND_CXXFLAGS@
 libcsound_la_LIBADD=@LIBCSOUND_LIBADD@
 libcsound_la_LDFLAGS=@LIBCSOUND_LDFLAGS@
 
-if CONDITIONAL_SGI
 if CONDITIONAL_USE_RTAUDIO
-SGI_RTAUDIO=InOut/rtSGI.c InOut/SGIplay.c
-endif
+RTAUDIO_SOURCES=InOut/rtpa.c
 endif
 
-if CONDITIONAL_sun
-if CONDITIONAL_USE_RTAUDIO
-SUN_RTAUDIO=InOut/rtSUN.c
-endif
-endif
-
-if CONDITIONAL_DEC
-if CONDITIONAL_USE_RTAUDIO
-DEC_RTAUDIO=InOut/rtDEC.c InOut/DECaudio.c InOut/DECplay.c H/DECplay.h
-endif
-endif
-
-if CONDITIONAL_HP
-if CONDITIONAL_USE_RTAUDIO
-HP_RTAUDIO=InOut/rtDEC.c InOut/DECaudio.c InOut/DECplay.c H/DECplay.h
-endif
-endif
-
-if CONDITIONAL_WIN32
-if CONDITIONAL_USE_RTAUDIO
-WIN32_RTAUDIO=InOut/rtpa.c
-endif
-endif
-
-if CONDITIONAL_LINUX
-if CONDITIONAL_USE_RTAUDIO
-LINUX_RTAUDIO=InOut/rtpa.c
-endif
-endif
-
-if CONDITIONAL_WINDOWS
 if CONDITIONAL_USE_FLTK
-WIN_FLTK=InOut/winFLTK.c InOut/FL_graph.cpp 
-if CONDITIONAL_USE_FLTK_WIDGETS
-WIN_FLTK_WIDGETS=InOut/widgets.cpp
-endif
-endif
-if CONDITIONAL_USE_X11
-WIN_X11=InOut/winX11.c
-endif
+FLTK_SOURCES=InOut/winFLTK.c InOut/FL_graph.cpp InOut/widgets.cpp
 endif
 
 #	User interfaces for Csound:
@@ -856,8 +1140,94 @@ sdif2ad_SOURCES=SDIF/sdif2adsyn.c \
 SDIF/sdif.c \
 SDIF/sdif.h \
 SDIF/sdif-mem.c \
-SDIF/sdif-mem.h
+SDIF/sdif-mem.h \
 sdif2ad_CPPFLAGS=@UTILITY_CPPFLAGS@
 sdif2ad_CFLAGS=@UTILITY_CFLAGS@
 sdif2ad_LDADD=.libs/libustub.a @UTILITY_LDADD@
 sdif2ad_LDFLAGS=@UTILITY_LDFLAGS@
+
+if CONDITIONAL_ENABLE_CSOUNDVST
+if CONDITIONAL_USE_FLTK
+if CONDITIONAL_USE_PYTHON
+if CONDITIONAL_USE_SWIG
+
+frontends/CsoundVST/CsoundVST_wrap.cpp: frontends/CsoundVST/CsoundVST.i
+	swig @PLUGIN_CPPFLAGS@ -Ifrontends/CsoundVST -python -c++ -c -includeall -verbose -o frontends/CsoundVST/CsoundVST_wrap.cpp frontends/CsoundVST/CsoundVST.i 
+
+_CsoundVST_la_SOURCES=\
+frontends/CsoundVST/AudioEffect.cpp \
+frontends/CsoundVST/audioeffectx.cpp \
+frontends/CsoundVST/Composition.cpp \
+frontends/CsoundVST/Conversions.cpp \
+frontends/CsoundVST/CppSound.cpp \
+frontends/CsoundVST/CsoundFile.cpp \
+frontends/CsoundVST/Cell.cpp \
+frontends/CsoundVST/CsoundVST.cpp \
+frontends/CsoundVST/CsoundVST_wrap.cpp \
+frontends/CsoundVST/CsoundVstFltk.cpp \
+frontends/CsoundVST/CsoundVSTMain.cpp \
+frontends/CsoundVST/CsoundVstUi.cpp \
+frontends/CsoundVST/Event.cpp \
+frontends/CsoundVST/Hocket.cpp \
+frontends/CsoundVST/ImageToScore.cpp \
+frontends/CsoundVST/Lindenmayer.cpp \
+frontends/CsoundVST/MCRM.cpp \
+frontends/CsoundVST/Midifile.cpp \
+frontends/CsoundVST/MusicModel.cpp \
+frontends/CsoundVST/Node.cpp \
+frontends/CsoundVST/Random.cpp \
+frontends/CsoundVST/Rescale.cpp \
+frontends/CsoundVST/Score.cpp \
+frontends/CsoundVST/ScoreNode.cpp \
+frontends/CsoundVST/Shell.cpp \
+frontends/CsoundVST/StrangeAttractor.cpp \
+frontends/CsoundVST/System.cpp
+
+if CONDITIONAL_IS_WIN32
+
+_CsoundVST_la_DEPENDENCIES=xmg libcsound.la
+_CsoundVST_la_CPPFLAGS=@LIBCSOUND_CPPFLAGS@ -I/usr/include/python2.3 -Ifrontends/CsoundVST
+_CsoundVST_la_CFLAGS=@LIBCSOUND_CFLAGS@
+_CsoundVST_la_CXXFLAGS=@LIBCSOUND_CXXFLAGS@
+_CsoundVST_la_LIBADD=@LIBCSOUND_LIBADD@
+_CsoundVST_la_LDFLAGS=@LIBCSOUND_LDFLAGS@
+
+_CsoundVST.dll:	libcsound.la	
+	g++ -g -O2 -Wall -L/usr/local/lib -L.libs -L/usr/lib/python2.3/config -o _CsoundVST.dll -Wl,--out-implib,_CsoundVST.dll.a -L/usr/local/lib -shared -module --no-undefined -mconsole -L/usr/local/lib _csoundvst_la-AudioEffect.o _csoundvst_la-audioeffectx.o _csoundvst_la-Composition.o _csoundvst_la-Conversions.o _csoundvst_la-CppSound.o _csoundvst_la-CsoundFile.o _csoundvst_la-Cell.o _csoundvst_la-CsoundVST.o _csoundvst_la-CsoundVST_wrap.o _csoundvst_la-CsoundVstFltk.o _csoundvst_la-CsoundVstMain.o _csoundvst_la-CsoundVstUi.o _csoundvst_la-Event.o _csoundvst_la-Hocket.o _csoundvst_la-ImageToScore.o _csoundvst_la-Lindenmayer.o _csoundvst_la-MCRM.o _csoundvst_la-Midifile.o _csoundvst_la-MusicModel.o _csoundvst_la-Node.o _csoundvst_la-Random.o _csoundvst_la-Rescale.o _csoundvst_la-Score.o _csoundvst_la-ScoreNode.o _csoundvst_la-Shell.o _csoundvst_la-StrangeAttractor.o _csoundvst_la-System.o -mwindows -lfltk -lole32 -luuid -lcomctl32 -lwsock32 -lsupc++ -lpthread -lstdc++ -lcsound -lportaudio -lwinmm -lm -lpthread -lfltk -lpthread -lfltk -lfltk_images -lsndfile -lpthread -lswigpy -lpython2.3 
+
+CsoundVST_SOURCES=frontends/csoundvst/csoundvst_main.cpp
+CsoundVST_DEPENDENCIES=_CsoundVST.dll
+CsoundVST_CPPFLAGS=@CSOUND_CPPFLAGS@ -I/usr/include/python2.3 -Ifrontends/CsoundVST
+CsoundVST_CFLAGS=@CSOUND_CFLAGS@
+CsoundVST_CXXFLAGS=-mwindows @CSOUND_CXXFLAGS@
+CsoundVST_LDFLAGS=-mwindows @CSOUND_LDFLAGS@ -mwindows _CsoundVST.la -L/usr/lib/python2.3/config -lpython2.3
+CsoundVST_LDADD=-mwindows @CSOUND_LDADD@
+
+CsoundVST.exe:	_CsoundVST.dll
+	g++ -g -O2 -Wall -D_WIN32 CsoundVST-csoundvst_main.o -mwindows -o CsoundVST.exe _CsoundVST.dll.a -L/GCC/gcc-3.3.1-3/.build/i686-pc-cygwin/libstdc++-v3/src -L/GCC/gcc-3.3.1-3/.build/i686-pc-cygwin/libstdc++-v3/src/.libs -L/GCC/gcc-3.3.1-3/.build/gcc -L/usr/i686-pc-cygwin/bin -L/usr/lib/gcc-lib/i686-pc-cygwin/3.3.1 -L/usr/lib/gcc-lib/i686-pc-cygwin/3.3.1/../../.. -lcygwin -luser32 -lkernel32 -ladvapi32 -lshell32 -lgcc -lstdc++
+    
+else
+
+_CsoundVST_la_DEPENDENCIES=xmg libcsound.la
+_CsoundVST_la_CPPFLAGS=@LIBCSOUND_CPPFLAGS@ -I/usr/include/python2.3 -Ifrontends/CsoundVST
+_CsoundVST_la_CFLAGS=@LIBCSOUND_CFLAGS@
+_CsoundVST_la_CXXFLAGS=@LIBCSOUND_CXXFLAGS@
+_CsoundVST_la_LIBADD=@LIBCSOUND_LIBADD@
+_CsoundVST_la_LDFLAGS=@LIBCSOUND_LDFLAGS@
+
+CsoundVST_SOURCES=frontends/csoundvst/csoundvst_main.cpp
+CsoundVST_DEPENDENCIES=_CsoundVST.la
+CsoundVST_CPPFLAGS=@CSOUND_CPPFLAGS@ -I/usr/include/python2.3 -Ifrontends/CsoundVST
+CsoundVST_CFLAGS=@CSOUND_CFLAGS@
+CsoundVST_CXXFLAGS=@CSOUND_CXXFLAGS@
+CsoundVST_LDFLAGS=@CSOUND_LDFLAGS@ -mwindows _CsoundVST.la -L/usr/lib/python2.3/config -lpython2.3
+CsoundVST_LDADD=@CSOUND_LDADD@
+
+endif
+
+
+endif
+endif
+endif
+endif
+
