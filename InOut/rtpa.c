@@ -291,7 +291,8 @@ void rtplay_(void *outbuf_, int bytes_) /* put samples to DAC  */
 /* the above audio I/O blocks, i.e. by setting -b to some 1 or 2 K-prds.  */
 {
 #if defined(WIN32) || defined(__MACH__)
-    paBlockingWrite(pabsWrite, bytes_, (MYFLT *)outbuf_);
+    int samples = bytes_ / sizeof(MYFLT);
+    paBlockingWrite(pabsWrite, samples, (MYFLT *)outbuf_);
 #else
     int samples = bytes_ / sizeof(MYFLT);
     int frames = samples / nchnls;
