@@ -1,3 +1,8 @@
+2005-02-22  John ff  <jpff@codemist.co.uk>
+
+	* SConstruct: Added Word64 as an option.  This could be done
+	aitomatically but one needs to select 84 or 32 bit on a 64 bit
+	machine. 
 
 2005-02-20	Istvan Varga	<istvan@csounds.com>
 	* Top/argdecode.c:

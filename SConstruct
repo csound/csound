@@ -79,10 +79,10 @@ opts.Add('usePortAudio',
     '1')
 opts.Add('useALSA',
     'Set to 1 to use ALSA for real-time audio input and output.',
-    '1')
+    '0')
 opts.Add('useJack',
     'Set to 1 if you compiled PortAudio to use Jack',
-    '1')
+    '0')
 opts.Add('useFLTK', 
     'Set to 1 to use FLTK for graphs and widget opcodes.', 
     '1')
@@ -124,6 +124,9 @@ opts.Add('gcc3opt',
     '0')
 opts.Add('useGprof',
     'Build with profiling information (-pg).',
+    '0')
+opts.Add('Word64',
+    'Build for 64bit computer',
     '0')
 
 # Define the common part of the build environment.
@@ -168,7 +171,10 @@ if (commonEnvironment['useGprof']=='1'):
 commonEnvironment.Prepend(CXXFLAGS = Split('-DCSOUND_WITH_API -fexceptions'))
 commonEnvironment.Prepend(LIBPATH = ['.', '#.'])
 commonEnvironment.Prepend(CPPFLAGS = ['-DBETA'])
-commonEnvironment.Prepend(LIBPATH = ['.', '#.', '/usr/local/lib'])
+if (commonEnvironment['Word64']=='1'):
+   commonEnvironment.Prepend(LIBPATH = ['.', '#.', '/usr/local/lib64'])
+else:
+   commonEnvironment.Prepend(LIBPATH = ['.', '#.', '/usr/local/lib'])
 
 if (commonEnvironment['useDouble']=='0'):
     print 'CONFIGURATION DECISION: Using single-precision floating point for audio samples.'
