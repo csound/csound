@@ -711,12 +711,15 @@ void CsoundVST::openFile(std::string filename_)
 	{
 		getCppSound()->load(filename_);
 	}
-	bank[getProgram()].text = getText();
+ 	bank[getProgram()].text = getText();
 	editor->update();
 	getCppSound()->setFilename(filename_);        
 	csound::System::message("Opened file: '%s' in %s mode.\n", 
         getCppSound()->getFilename().c_str(),
         getIsPython() ? "Python" : "classic");
+    std::string drive, base, file, extension;
+    csound::System::parsePathname(filename_, drive, base, file, extension);
+    chdir(base.c_str());
 }
 
 int CsoundVST::run()
