@@ -786,7 +786,7 @@ if (commonEnvironment['buildCsoundVST'] == 1) and boostFound and fltkFound:
 
     csoundvstGui = guiProgramEnvironment.Program('CsoundVST', ['frontends/CsoundVST/csoundvst_main.cpp']) 
     Depends(csoundvstGui, csoundvst)
-	
+    	
     zip = commonEnvironment.Command(zipfilename, csoundvstGui, buildzip)
     Depends(zip, [csoundvstGui, srconv])
 	
