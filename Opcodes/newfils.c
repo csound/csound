@@ -110,7 +110,7 @@ int statevar_process(ENVIRON *csound,statevar *p)
 
     f = 2.0*sin(PI*freq/(ostimes*esr));
     q = 1.0/res;
-    lim = ((2.0-f)/2.0)*0.33;
+    lim = (2.0 - f) / (ostimes * 0.4);
 
     if (q < lim) q = lim;
 
