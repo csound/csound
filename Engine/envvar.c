@@ -93,7 +93,7 @@ static int is_valid_envvar_name(const char *name)
     return 1;
 }
 
-/* Is 's' already found in 'base' (s >= base) ? Non-zero: yes. */
+/* Is 's' also found later in 'base' (s >= base) ? Non-zero: yes. */
 
 static int check_for_duplicate(const char *base, const char *s)
 {
@@ -101,20 +101,22 @@ static int check_for_duplicate(const char *base, const char *s)
 
     if (*s == '\0' || *s == ';')
       return 1;
-    i = 0;
-    while (i < (int) (s - base)) {
+    i = (int) (s - base);
+    while (base[i] != ';' && base[i] != '\0')
+      i++;
+    while (base[i] != '\0') {
       j = 0;
       d = 1;
-      while (base[i] != ';' && i < (int) (s - base)) {
+      i++;
+      while (base[i] != ';' && base[i] != '\0') {
         if (s[j] != base[i])
           d = 0;
         i++;
-        if (s[j] != '\0' && s[j] != ';')
+        if (s[j] != ';' && s[j] != '\0')
           j++;
       }
-      if (d && (s[j] == '\0' || s[j] == ';'))
+      if (d && (s[j] == ';' || s[j] == '\0'))
         return 1;
-      i++;
     }
     return 0;
 }
