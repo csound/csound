@@ -1,3 +1,9 @@
+2004-10-24  Michael Gogins <gogins@pipeline.com>
+
+	* Fixes to rtpa.c and pa_callback.c from Victor Lazzarini for duplex audio.
+	
+    * CsoundVST changes directory to that of loaded files.
+    
 2004-11-07  John ffitch  <jpff@codemist.co.uk>
 
 	* H/ftgen.h (GENMAX): set to 43 (really part is fgens below)
@@ -23,13 +29,12 @@
 
 	* Renamed libsndfile.dll.0.0.19.
     
-        * Updated documentation to provide improved directions for extending
+    * Updated documentation to provide improved directions for extending
 	Csound with builtin or plugin opcodes.   
     
-        * Fixed badly formatted tables in documentation.
+    * Fixed badly formatted tables in documentation.
     
-        * Improved API documentation with simple examples.
-
+    * Improved API documentation with simple examples.
 
 2004-10-26  John ffitch  <jpff@codemist.co.uk>
 
