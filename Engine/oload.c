@@ -103,6 +103,9 @@ void csoundSetRecopenCallback(void *, void (*)(int, int, float, int));
 void csoundSetRtrecordCallback(void *, int (*)(char *, int));
 void csoundSetRtcloseCallback(void *, void (*)(void));
 
+void auxalloc(long, AUXCH*);
+char *getstring(int, char*);
+
 static  MYFLT   *gbloffbas;
 
 OPARMS  O_ = {0,0, 0,1,1,0, 0,0, 0,0, 0,0, 1,0,0,7, 0,0,0, 0,0,0,0, 0,0 };
@@ -180,6 +183,11 @@ GLOBALS cglob_ = {
         csoundSetRecopenCallback,
         csoundSetRtrecordCallback,
         csoundSetRtcloseCallback,
+        /*
+         * Intrnal functions
+         */
+        auxalloc,
+        getstring,
         /*
         * Data fields.
         */

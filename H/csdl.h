@@ -220,6 +220,9 @@ GLOBALS *pcglob;
 #define SetRtrecordCallback pcglob->SetRtrecordCallback
 #define SetRtcloseCallback pcglob->SetRtcloseCallback
 
+#define auxalloc pcglob->auxalloc
+#define getstring pcglob->getstring
+
 #define ksmps_  pcglob->ksmps
 #define esr_    pcglob->esr
 #define ekr_    pcglob->ekr

@@ -586,6 +586,10 @@ typedef struct GLOBALS_
                                                float sr, int scale));
   void (*SetRtrecordCallback)(void *csound, int (*rtrecord__)(char *inBuf, int nbytes));
   void (*SetRtcloseCallback)(void *csound, void (*rtclose__)(void));
+  /* Internal functions that are needed */
+  void (*auxalloc)(long nbytes, AUXCH *auxchp);
+  char *(*getstring)(int, char*);
+  /* End of internals */
   int           ksmps, nchnls;
   int           global_ksmps;
   MYFLT         global_ensmps, global_ekr, global_onedkr;
@@ -598,7 +602,7 @@ typedef struct GLOBALS_
   short         nlabels;
   short         ngotos;
   int           strsmax;
-  char          ** strsets;
+  char          **strsets;
   int           peakchunks;
   MYFLT         *zkstart;
   MYFLT         *zastart;
