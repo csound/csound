@@ -97,6 +97,9 @@ opts.Add('makeDynamic',
 opts.Add('generateXmg',
     'Set to 1 to generate string database',
     1)
+opts.Add('generateZip',
+    'Set to 1 to generate zip archive',
+    1)
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -152,6 +155,8 @@ elif getPlatform() == 'darwin':
     commonEnvironment.Append(CPPPATH = '/usr/include')
     commonEnvironment.Append(CCFLAGS = "-Wall")
     commonEnvironment.Append(CCFLAGS = "-DPIPES")
+    commonEnvironment.Append(SHLINKFLAGS = '-framework')
+    commonEnvironment.Append(SHLINKFLAGS = 'Carbon')
     commonEnvironment.Append(LIBPATH = ['.', '#.', '/usr/lib', '/usr/local/lib'])
 elif getPlatform() == 'mingw' or getPlatform() == 'cygwin':
     commonEnvironment.Append(CPPPATH = '/usr/local/include')
@@ -367,7 +372,6 @@ if (commonEnvironment['useFLTK'] and fltkFound):
             ustubProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
             vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
             guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
-            commonEnvironment.Append(LINKFLAGS = ['-framework', 'Carbon'])
 
 ##### -framework ApplicationServices'))
 
@@ -863,8 +867,9 @@ if commonEnvironment['generateXmg'] == 1:
     zipDependencies.append(xmgs1)
     Depends(xmgs2, makedb)
     zipDependencies.append(xmgs2)
-    
-zip = commonEnvironment.Command(zipfilename, staticLibrary, buildzip)
-for node in zipDependencies:
-    Depends(zip, node)
+
+if commonEnvironment['generateZip'] == 1:    
+    zip = commonEnvironment.Command(zipfilename, staticLibrary, buildzip)
+    for node in zipDependencies:
+        Depends(zip, node)
 

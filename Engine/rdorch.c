@@ -491,40 +491,64 @@ void rdorchfile(void)           /* read entire orch file into txt space */
         }
         else if (c=='i') {
           int delim;
-          if ((c = getorchar())!='n' || (c = getorchar())!='c' ||
-              (c = getorchar())!='l' || (c = getorchar())!='u' ||
-              (c = getorchar())!='d' || (c = getorchar())!='e')
-            lexerr(Str(X_391,"Not #include"));
-          while (isspace(c = getorchar()));
-          delim = c;
-          i = 0;
-          while ((c=getorchar())!=delim) mname[i++] = c;
-          mname[i]='\0';
-          while ((c=getorchar())!='\n');
+          c = getorchar();
+          if (c=='n') {         /* #include */
+            if ((c = getorchar())!='c' || (c = getorchar())!='l' ||
+                (c = getorchar())!='u' || (c = getorchar())!='d' ||
+                (c = getorchar())!='e')
+              lexerr(Str(X_391,"Not #include"));
+            while (isspace(c = getorchar()));
+            delim = c;
+            i = 0;
+            while ((c=getorchar())!=delim) mname[i++] = c;
+            mname[i]='\0';
+            while ((c=getorchar())!='\n');
 #ifdef MACDEBUG
-          printf("#include \"%s\"\n", mname);
+            printf("#include \"%s\"\n", mname);
 #endif
-          input_cnt++;
-          if (input_cnt>=input_size) {
-            input_size += 20;
-            inputs = mrealloc(inputs, input_size*sizeof(struct in_stack));
-            if (inputs == NULL) {
-              die(Str(X_1692, "No space for include files"));
+            input_cnt++;
+            if (input_cnt>=input_size) {
+              input_size += 20;
+              inputs = mrealloc(inputs, input_size*sizeof(struct in_stack));
+              if (inputs == NULL) {
+                die(Str(X_1692, "No space for include files"));
+              }
+            }
+            str++;
+            str->string = 0;
+            str->file = fopen_path(mname, orchname, "INCDIR", "r");
+            if (str->file==0) {
+              printf(Str(X_209,"Cannot open #include'd file %s\n"), mname);
+              /* Should this stop things?? */
+            str--; input_cnt--;
+            }
+            else {
+              str->body = (char*)mmalloc(strlen(name_full)+1);
+              strcpy(str->body, name_full);       /* Remember name */
+              str->line = 1;
+              linepos = -1;
             }
           }
-          str++;
-          str->string = 0;
-          str->file = fopen_path(mname, orchname, "INCDIR", "r");
-          if (str->file==0) {
-            printf(Str(X_209,"Cannot open #include'd file %s\n"), mname);
-            /* Should this stop things?? */
-            str--; input_cnt--;
-          }
           else {
-            str->body = (char*)mmalloc(strlen(name_full)+1);
-            strcpy(str->body, name_full);       /* Remember name */
-            str->line = 1;
-            linepos = -1;
+            if (c !='f' || (c = getorchar())!='d' ||
+                (c = getorchar())!='e' || (c = getorchar())!='f')
+              lexerr("Not #ifdef");
+            /* #ifdef XXX */
+            while (isspace(c = getorchar()));
+            do {
+              mname[i++] = c;
+            } while (isalpha(c = getorchar())|| (i!=0 && (isdigit(c)||c=='_')));
+            mname[i] = '\0';
+            printf("found: #ifdef %s\n", mname);
+            mm = macros;
+            while (mm != NULL) {  /* Find the definition */
+              if (!(strcmp (mname, mm->name))) break;
+              mm = mm->next;
+            }
+            if (mm==NULL) printf("...not defined\n");
+            else printf("...defined\n");
+            /* Problem is what to do about it!! */
+            lexerr("#ifdef not complete");
           }
         }
         else if (c=='u') {
