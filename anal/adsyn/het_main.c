@@ -20,8 +20,8 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 #include <stdio.h>
-#include "../../cs.h"
-#include "../../ustub.h"
+#include "cs.h"
+#include "ustub.h"
 
 MYFLT e0dbfs = DFLT_DBFS;
 #ifdef HAVE_FLTK

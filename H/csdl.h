@@ -42,7 +42,9 @@ GLOBALS *pcglob;
 #undef strsets
 #undef strsmax
 #undef peakchunks
+#undef zkstart
 #undef zastart
+#undef zklast
 #undef zalast
 #undef kcounter
 #undef currevent
@@ -235,7 +237,9 @@ GLOBALS *pcglob;
 #define strsets pcglob->strsets
 #define strsmax pcglob->strsmax
 #define peakchunks pcglob->peakchunks
+#define zkstart pcglob->zkstart
 #define zastart pcglob->zastart
+#define zklast  pcglob->zklast
 #define zalast  pcglob->zalast
 #define kcounter pcglob->kcounter
 #define currevent pcglob->currevent

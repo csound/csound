@@ -600,7 +600,9 @@ typedef struct GLOBALS_
   int           strsmax;
   char          ** strsets;
   int           peakchunks;
+  MYFLT         *zkstart;
   MYFLT         *zastart;
+  long          zklast;
   long          zalast;
   long          kcounter;
   EVTBLK        *currevent;
@@ -705,7 +707,9 @@ typedef struct GLOBALS_
 #define strsets cglob.strsets
 #define strsmax cglob.strsmax
 #define peakchunks cglob.peakchunks
+#define zkstart cglob.zastart
 #define zastart cglob.zastart
+#define zklast  cglob.zalast
 #define zalast  cglob.zalast
 #define kcounter cglob.kcounter
 #define currevent cglob.currevent

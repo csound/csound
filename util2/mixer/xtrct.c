@@ -38,9 +38,9 @@
 #ifdef LINUX
 #include <unistd.h>
 #endif
-#include "../../cs.h"
-#include "../../ustub.h"
-#include "../../soundio.h"
+#include "cs.h"
+#include "ustub.h"
+#include "soundio.h"
 
 /* Constants */
 #define NUMBER_OF_SAMPLES	(4096)

@@ -201,7 +201,9 @@ GLOBALS cglob_ = {
         0,    /*      strsmax */
         NULL,
         1,    /* peakchunks */
+        NULL, /* zkstart */
         NULL, /* zastart */
+        0,    /* zklast */
         0,    /* zalast */
         0,    /*  kcounter */
         NULL, /*  currevent */

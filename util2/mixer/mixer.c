@@ -36,9 +36,9 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <unistd.h>
-#include "../../cs.h"
-#include "../../ustub.h"
-#include "../../soundio.h"
+#include "cs.h"
+#include "ustub.h"
+#include "soundio.h"
 
 /* Constants */
 
