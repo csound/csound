@@ -49,19 +49,7 @@ extern "C"
 	{		
   		VSTINIT *p = (VSTINIT *)data;
   		ENVIRON *csound = p->h.insdshead->csound;
-		MYFLT *verbose;
 		char vstplugname[0x100];
-		float sr = csound->GetSr(csound);
-		float kr = csound->GetKr(csound);	
-		if (vstPlugins.size() == 0) {
-           csound->Message(csound, "===========================================================\n");
-           csound->Message(csound, "vst4cs version %s by Andres Cabrera and Michael Gogins\n", version.c_str());
-           csound->Message(csound, "Using code from Hermann Seib and the vst~ object in PD\n");
-           csound->Message(csound, "VST is a trademark of Steinberg Media Technologies GmbH\n");
-           csound->Message(csound, "VST Plug-In Technology by Steinberg\n");
-           csound->Message(csound, "===========================================================\n");
-		}
-		verbose = p->iverbose;
 		if (*p->iplugin == SSTRCOD) {
 			strcpy(vstplugname, p->STRARG);          
 		}
@@ -69,15 +57,23 @@ extern "C"
            csound->Message(csound,"Invalid plugin name.\n");
 		path_convert (vstplugname);
 		VSTPlugin *plugin = new VSTPlugin(csound);
+        *p->iVSThandle = vstPlugins.size();
+        vstPlugins.push_back(plugin);
+		if (vstPlugins.size() == 1) {
+           csound->Message(csound, "===========================================================\n");
+           csound->Message(csound, "vst4cs version %s by Andres Cabrera and Michael Gogins\n", version.c_str());
+           csound->Message(csound, "Using code from Hermann Seib and the vst~ object in PD\n");
+           csound->Message(csound, "VST is a trademark of Steinberg Media Technologies GmbH\n");
+           csound->Message(csound, "VST Plug-In Technology by Steinberg\n");
+           csound->Message(csound, "===========================================================\n");
+		}
 		if (plugin->Instantiate(vstplugname)) {
 			csound->Message(csound, "Error loading effect.\n");
 			return NOTOK;
 		}
 		plugin->Init();
-		if (*verbose) 
+		if (*p->iverbose) 
             plugin->Info();
-        *p->iVSThandle = vstPlugins.size();
-        vstPlugins.push_back(plugin);
 		return OK;
 	}
 	

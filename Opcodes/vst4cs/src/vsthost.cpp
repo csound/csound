@@ -134,8 +134,7 @@ void VSTPlugin::SendMidi()
 	    vstEvents->reserved = 0;
 		for(size_t i = 0, n = vstEvents->numEvents; i < n; i++) {
             vstEvents->events[i] = (VstEvent *)&vstMidiEvents[i];	
-            csound->Message(csound, 
-                "VSTPlugin::SendMidi(queue size %d status %d data1 %d "
+            Debug("VSTPlugin::SendMidi(queue size %d status %d data1 %d "
                 "data2 %d detune %d delta %d\n",
                 vstEvents->numEvents,
                 ((VstMidiEvent *)vstEvents->events[i])->midiData[0],
@@ -156,27 +155,20 @@ bool VSTPlugin::DescribeValue(int parameter,char* value)
 	{
 		if(parameter<aeffect->numParams)
 		{
-//			char par_name[64];
 			char par_display[64];
 			char par_label[64];
-//			Dispatch(effGetParamName,parameter,0,par_name,0.0f);
 			Dispatch(effGetParamDisplay,parameter,0,par_display,0.0f);
 			Dispatch(effGetParamLabel,parameter,0,par_label,0.0f);
-//			sprintf(psTxt,"%s:%s%s",par_name,par_display,par_label);
-			//csound->Message(csound,"%s:%s",par_display,par_label);
-			*value = *par_display;
+			strcpy(value, par_display);
 			return true;
 		}
-		//else	sprintf(psTxt,"NumParams Exeeded");
 	}
-	//else		sprintf(psTxt,"Not loaded");
 	return false;
 }
 
 int VSTPlugin::Instantiate(const char *libraryName_)
 {
     csound->Message(csound, "VSTPlugin::Instance.\n");
-	//csound->Message(csound,"Instance \n");
  	libraryHandle = csound->OpenLibrary(libraryName_);
 	if(!libraryHandle)	
 	{
@@ -215,7 +207,7 @@ int VSTPlugin::Instantiate(const char *libraryName_)
 void VSTPlugin::Info()
 {
 	int i =0;
-	csound->Message(csound,"=============================================\n");
+	csound->Message(csound,"====================================================\n");
 	if(!Dispatch( effGetProductString, 0, 0, &productName, 0.0f)) {
 		strcpy(productName, libraryName);
 	}
@@ -246,7 +238,7 @@ void VSTPlugin::Info()
 	    GetProgramName(0, i, buffer);
 	    csound->Message(csound, "  Program%7i: %s\n", i, buffer);
     }	
-	csound->Message(csound,"--------------------------------------------\n");
+	csound->Message(csound,"----------------------------------------------------\n");
 }
 
 int VSTPlugin::getNumInputs( void )
@@ -432,6 +424,35 @@ int VSTPlugin::GetNumCategories()
 void VSTPlugin::StopEditing()
 {
 	edited = false;
+}
+
+void VSTPlugin::Log(const char *format,...)
+{
+      va_list args;
+      va_start(args, format);
+      if(csound) {
+            csound->MessageV(csound, format, args);
+      }
+      else {
+            vfprintf(stderr, format, args);
+      }
+      va_end(args);
+}
+
+void VSTPlugin::Debug(const char *format,...)
+{
+      va_list args;
+      va_start(args, format);
+      if(csound) {
+          if(csound->GetMessageLevel(csound) & WARNMSG ||
+             csound->GetDebug(csound)) {
+              csound->MessageV(csound, format, args);
+          }
+      }
+      else {
+            vfprintf(stderr, format, args);
+      }
+      va_end(args);
 }
 
 long VSTPlugin::OnGetVersion(AEffect *effect)
