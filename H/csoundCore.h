@@ -512,6 +512,19 @@ MEMFIL *ldmemfile(char *);
 #include "midiops2.h"
 typedef void    (*GEN)(FUNC *, struct ENVIRON_ *);
 
+/* sensevents() state */
+typedef struct {
+    double  prvbt, curbt, nxtbt;  /* previous, current, and next score beat */
+    double  curp2, nxtim;         /* current and next score time (seconds)  */
+    double  timtot;               /* start time of current section          */
+    int     init_done;            /* zero at beginning of performance       */
+    int     cyclesRemaining;      /* number of k-periods to kperf() before  */
+                                  /*   next score event                     */
+    int     kDone;                /* number of k-periods performed since    */
+                                  /*   last score event                     */
+    int     saved_opcod;          /* tmp variable: most recent score opcode */
+} sensEvents_t;
+
 typedef struct ENVIRON_
 {
   int (*GetVersion)(void);
@@ -730,6 +743,8 @@ typedef struct ENVIRON_
   int (*rtrecord_callback)(void *csound, void *inBuf, int nbytes);
   void (*rtclose_callback)(void *csound);
   int (*GetSizeOfMYFLT)(void);
+  void **(*GetRtRecordUserData)(void *csound);
+  void **(*GetRtPlayUserData)(void *csound);
   /* End of internals */
   int           ksmps_, nchnls_;
   int           global_ksmps_;
@@ -859,6 +874,9 @@ typedef struct ENVIRON_
   int           namedGlobalsCurrLimit;
   int           namedGlobalsMaxLimit;
   void          **cfgVariableDB;
+  sensEvents_t  sensEvents_state;
+  void          *rtRecord_userdata;
+  void          *rtPlay_userdata;
 } ENVIRON;
 
 extern ENVIRON cenviron_;

@@ -51,9 +51,6 @@ typedef struct devparams_ {
     int             seed;           /* random seed for dithering        */
 } DEVPARAMS;
 
-static  const   char    *indev_var = "::ALSA_IN";
-static  const   char    *outdev_var = "::ALSAOUT";
-
 /* sample conversion routines for playback */
 
 static void float_to_short(int nSmps, float *inBuf, int16_t *outBuf,
@@ -329,16 +326,17 @@ static int recopen_(void *csound, csRtAudioParams *parm)
 
     p = (ENVIRON*) csound;
     /* check if the device is already opened */
-    if (p->QueryGlobalVariable(csound, indev_var) != NULL)
+    if (*(p->GetRtRecordUserData(csound)) != NULL)
       return 0;
     /* allocate structure */
-    if (p->CreateGlobalVariable(csound, indev_var, sizeof(DEVPARAMS))
-        != CSOUND_SUCCESS) {
-      p->Message(csound, " *** Internal error creating ALSA input device\n");
+    dev = (DEVPARAMS*) malloc(sizeof(DEVPARAMS));
+    if (dev == NULL) {
+      p->Message(csound, " *** ALSA: recopen: memory allocation failure\n");
       return -1;
     }
-    /* get pointer and set up parameters */
-    dev = (DEVPARAMS*) (p->QueryGlobalVariable(csound, indev_var));
+    *(p->GetRtRecordUserData(csound)) = (void*) dev;
+    memset(dev, 0, sizeof(DEVPARAMS));
+    /* set up parameters */
     dev->handle = (snd_pcm_t*) NULL;
     dev->buf = NULL;
     dev->device = parm->devName;
@@ -352,9 +350,11 @@ static int recopen_(void *csound, csRtAudioParams *parm)
     dev->rec_conv = (void (*)(int, void*, void*)) NULL;
     dev->seed = 1;
     /* open device */
-    retval = (set_device_params(csound, dev, 0));
-    if (retval != 0)
-      p->DestroyGlobalVariable(csound, indev_var);
+    retval = set_device_params(csound, dev, 0);
+    if (retval != 0) {
+      free(dev);
+      *(p->GetRtRecordUserData(csound)) = NULL;
+    }
     return retval;
 }
 
@@ -368,16 +368,17 @@ static int playopen_(void *csound, csRtAudioParams *parm)
 
     p = (ENVIRON*) csound;
     /* check if the device is already opened */
-    if (p->QueryGlobalVariable(csound, outdev_var) != NULL)
+    if (*(p->GetRtPlayUserData(csound)) != NULL)
       return 0;
     /* allocate structure */
-    if (p->CreateGlobalVariable(csound, outdev_var, sizeof(DEVPARAMS))
-        != CSOUND_SUCCESS) {
-      p->Message(csound, " *** Internal error creating ALSA output device\n");
+    dev = (DEVPARAMS*) malloc(sizeof(DEVPARAMS));
+    if (dev == NULL) {
+      p->Message(csound, " *** ALSA: playopen: memory allocation failure\n");
       return -1;
     }
-    /* get pointer and set up parameters */
-    dev = (DEVPARAMS*) (p->QueryGlobalVariable(csound, outdev_var));
+    *(p->GetRtPlayUserData(csound)) = (void*) dev;
+    memset(dev, 0, sizeof(DEVPARAMS));
+    /* set up parameters */
     dev->handle = (snd_pcm_t*) NULL;
     dev->buf = NULL;
     dev->device = parm->devName;
@@ -391,9 +392,11 @@ static int playopen_(void *csound, csRtAudioParams *parm)
     dev->rec_conv = (void (*)(int, void*, void*)) NULL;
     dev->seed = 1;
     /* open device */
-    retval = (set_device_params(csound, dev, 1));
-    if (retval != 0)
-      p->DestroyGlobalVariable(csound, outdev_var);
+    retval = set_device_params(csound, dev, 1);
+    if (retval != 0) {
+      free(dev);
+      *(p->GetRtPlayUserData(csound)) = NULL;
+    }
     return retval;
 }
 
@@ -414,7 +417,7 @@ static int rtrecord_(void *csound, void *inbuf_, int bytes_)
     int       n, m, err;
 
     p = (ENVIRON*) csound;
-    dev = (DEVPARAMS*) (p->QueryGlobalVariableNoCheck(csound, indev_var));
+    dev = (DEVPARAMS*) (*(p->GetRtRecordUserData(csound)));
     if (dev->handle == NULL) {
       /* no device, return zero samples */
       memset(inbuf_, 0, (size_t) bytes_);
@@ -461,7 +464,7 @@ static void rtplay_(void *csound, void *outbuf_, int bytes_)
     int     n, err;
 
     p = (ENVIRON*) csound;
-    dev = (DEVPARAMS*) (p->QueryGlobalVariableNoCheck(csound, outdev_var));
+    dev = (DEVPARAMS*) (*(p->GetRtPlayUserData(csound)));
     if (dev->handle == NULL)
       return;
     /* calculate the number of samples to play */
@@ -504,21 +507,23 @@ static void rtclose_(void *csound)
     ENVIRON   *p;
 
     p = (ENVIRON*) csound;
-    dev = (DEVPARAMS*) (p->QueryGlobalVariable(csound, indev_var));
+    dev = (DEVPARAMS*) (*(p->GetRtRecordUserData(csound)));
     if (dev != NULL) {
+      *(p->GetRtRecordUserData(csound)) = NULL;
       if (dev->handle != NULL)
         snd_pcm_close(dev->handle);
       if (dev->buf != NULL)
         free(dev->buf);
-      p->DestroyGlobalVariable(csound, indev_var);
+      free(dev);
     }
-    dev = (DEVPARAMS*) (p->QueryGlobalVariable(csound, outdev_var));
+    dev = (DEVPARAMS*) (*(p->GetRtPlayUserData(csound)));
     if (dev != NULL) {
+      *(p->GetRtPlayUserData(csound)) = NULL;
       if (dev->handle != NULL)
         snd_pcm_close(dev->handle);
       if (dev->buf != NULL)
         free(dev->buf);
-      p->DestroyGlobalVariable(csound, outdev_var);
+      free(dev);
     }
 }
 

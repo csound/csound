@@ -1361,6 +1361,22 @@ PUBLIC int csoundGetSizeOfMYFLT(void)
     return (int) sizeof(MYFLT);
 }
 
+/**
+ * Return pointer to user data pointer for real time audio input.
+ */
+PUBLIC void **csoundGetRtRecordUserData(void *csound)
+{
+    return &(((ENVIRON*) csound)->rtRecord_userdata);
+}
+
+/**
+ * Return pointer to user data pointer for real time audio output.
+ */
+PUBLIC void **csoundGetRtPlayUserData(void *csound)
+{
+    return &(((ENVIRON*) csound)->rtPlay_userdata);
+}
+
 #ifdef __cplusplus
 };
 #endif

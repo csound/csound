@@ -910,6 +910,16 @@ typedef struct RTCLOCK_S {
    */
   PUBLIC int csoundGetSizeOfMYFLT(void);
 
+  /**
+   * Return pointer to user data pointer for real time audio input.
+   */
+  PUBLIC void **csoundGetRtRecordUserData(void *csound);
+
+  /**
+   * Return pointer to user data pointer for real time audio output.
+   */
+  PUBLIC void **csoundGetRtPlayUserData(void *csound);
+
 #include "cfgvar.h"     /* IV - Jan 30 2005 */
 
 #ifdef __cplusplus
