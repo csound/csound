@@ -231,9 +231,9 @@ bool VSTPlugin::AddNoteOn(MYFLT time, int midichannel, MYFLT note, MYFLT speed)
 		VstMidiEvent &vstMidiEvent = vstMidiEvents.back();
 		vstMidiEvent.type = kVstMidiType;
 		vstMidiEvent.byteSize = 24;
-		size_t currentFrame = time * framesPerSecond;
-		size_t currentBlockStart = floor(currentFrame / framesPerBlock) * framesPerBlock;
-		vstMidiEvent.deltaFrames = floor(currentFrame - currentBlockStart);
+		size_t currentFrame = size_t(time * framesPerSecond);
+		size_t currentBlockStart = size_t(floor(currentFrame / framesPerBlock) * framesPerBlock);
+		vstMidiEvent.deltaFrames = long(floor(currentFrame - currentBlockStart));
             Debug("VSTPlugin::AddNoteOn(time %f currentFrame %d "
             "currentBlockStart %d deltaFrames %d.\n",
             time, currentFrame, currentBlockStart, vstMidiEvent.deltaFrames);            
@@ -264,7 +264,7 @@ bool VSTPlugin::AddNoteOff(MYFLT time, int midichannel, MYFLT note)
 		vstMidiEvent.byteSize = 24;
 		MYFLT currentFrame = (MYFLT) time * framesPerSecond;
 		MYFLT currentBlockStart = (MYFLT) floor(currentFrame / framesPerBlock) * framesPerBlock;
-		vstMidiEvent.deltaFrames = floor(currentFrame - currentBlockStart);
+		vstMidiEvent.deltaFrames = long(floor(currentFrame - currentBlockStart));
 		vstMidiEvent.flags = 0;
 		vstMidiEvent.detune = 0;
 		vstMidiEvent.noteLength = 0;
@@ -430,7 +430,7 @@ void VSTPlugin::Free() // Called also in destruction
 void VSTPlugin::Init()
 {
     Debug("VSTPlugin::Init.\n");
-	framesPerSecond = csound->GetSr(csound);
+	framesPerSecond = size_t(csound->GetSr(csound));
 	framesPerBlock = csound->GetKsmps(csound);
 	channels = csound->GetNchnls(csound);
 	Log("VSTPlugin::Init framesPerSecond %d framesPerBlock %d channels %d.\n",

@@ -37,7 +37,7 @@ typedef struct {
 	// INPUTS
 	MYFLT	*iEngineNumber, *iChannelNumber, *iControllerNumber, *kVal;
 	
-	unsigned int 	priorMidiValue;
+	int 	priorMidiValue;
 	
 } FLUID_CC;
 

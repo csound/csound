@@ -261,7 +261,7 @@ static void signal_handler(int sig)
 #ifdef RTAUDIO
     rtclose_();
 #endif
-    sleep(1);
+    sleep((unsigned int)1);
     exit(1);
 }
 
