@@ -30,10 +30,11 @@
 
                                 /* Experiment with doubles or floats */
 #ifndef __FL_DEF
-#ifndef MYFLT
+#ifndef USE_DOUBLE
 # define MYFLT float
 # define FL(x) x##f
 #else
+# define MYFLT double
 # define FL(x) x
 #endif
 #define __FL_DEF

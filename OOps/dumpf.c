@@ -383,10 +383,11 @@ static void nkread(int ifd, int format, int nk)
           read(ifd, bp++, 1);
         } while (isdigit(*(bp-1)));
         lseek(ifd, (off_t)(-1), SEEK_CUR);
-        if (sizeof(MYFLT)==4)
-          sscanf(inbuf,"%f", kp);
-        else
-          sscanf(inbuf,"%lf", kp);
+#ifndef USE_DOUBLE
+        sscanf(inbuf,"%f", kp);
+#else
+        sscanf(inbuf,"%lf", kp);
+#endif
         kp++;
       }
       break;
@@ -400,10 +401,11 @@ static void nkread(int ifd, int format, int nk)
         do {                  /* Absorb digits and such*/
           read(ifd, bp++, 1);
         } while (!isspace(*(bp-1)));
-        if (sizeof(MYFLT)==4)
-          sscanf(inbuf,"%f", kp);
-        else
-          sscanf(inbuf,"%lf", kp);
+#ifndef USE_DOUBLE
+        sscanf(inbuf,"%f", kp);
+#else
+        sscanf(inbuf,"%lf", kp);
+#endif
         kp++;
       }
       break;

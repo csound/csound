@@ -65,10 +65,11 @@ static int scanflt(MYFLT *pfld)
         return(0);
     }
     ungetc(c,scfp);
-    if (sizeof(MYFLT)==4)
-      fscanf(scfp, "%f", pfld);
-    else
-      fscanf(scfp, "%lf", pfld);
+#ifdef USE_DOUBLE
+    fscanf(scfp, "%lf", pfld);
+#else
+    fscanf(scfp, "%f", pfld);
+#endif
     return(1);
 }
 

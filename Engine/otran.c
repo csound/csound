@@ -841,12 +841,11 @@ static int constndx(char *s)    /* get storage ndx of float const value */
       poolcount = 1;
       nconsts = NCONSTS;
     }
-    if (sizeof(MYFLT)==4) {
-      if (sscanf(s,"%f",&newval) != 1) goto flerror;
-    }
-    else {
+#ifdef USE_DOUBLE
       if (sscanf(s,"%lf",&newval) != 1) goto flerror;
-    }
+#else
+      if (sscanf(s,"%f",&newval) != 1) goto flerror;
+#endif
     /* It is tempting to assume that if this loop is removed then we
      * would not share constants.  However this breaks something else
      * as this function is used to retrieve constants as well....
