@@ -17,7 +17,7 @@ extern "C" {
     void *paLock;
     void *clientLock;
     size_t actualBufferSampleCount;
-    size_t bp;
+    size_t currentIndex;
     float *actualBuffer;
   } PA_BLOCKING_STREAM;
   
