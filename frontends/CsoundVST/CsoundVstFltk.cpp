@@ -169,12 +169,15 @@ void CsoundVstFltk::updateCaption()
 	{
         caption.append(csoundVST->getCppSound()->CsoundFile::getFilename());
 	}
+	Fl::lock();
 	csoundVstUi->label(caption.c_str());
+	Fl::unlock();
 }
 
 void CsoundVstFltk::updateModel()
 {
 	csound::System::message("BEGAN CsoundVstFltk::updateModel...\n");
+	Fl::lock();
 	if(csoundVstUi)
 	{
 		csoundVST->getCppSound()->setCommand(commandInput->value());
@@ -182,6 +185,7 @@ void CsoundVstFltk::updateModel()
 		csoundVST->getCppSound()->setScore(scoreTextBuffer->text());
 		csoundVST->setScript(scriptTextBuffer->text());
 	}
+	Fl::unlock();
 	csound::System::message("ENDED CsoundVstFltk::updateModel.\n");
 }
 
@@ -275,7 +279,9 @@ void CsoundVstFltk::close()
 void CsoundVstFltk::idle() 
 { 
 	// Process events for the FLTK GUI.
+	Fl::lock();
 	Fl::wait(0);
+	Fl::unlock();
 	// If the VST host has indicated
 	// it needs the GUI updated, do it.
 	if(updateFlag) 
@@ -308,6 +314,7 @@ void CsoundVstFltk::update()
 	if(csoundVstUi)
 	{
 		updateCaption();
+		Fl::lock();
 		static std::string buffer;
 		this->settingsVstPluginModeEffect->value(!csoundVST->getIsSynth());
 		this->settingsVstPluginModeInstrument->value(csoundVST->getIsSynth());
@@ -329,6 +336,7 @@ void CsoundVstFltk::update()
 		this->scoreTextBuffer->text(removeCarriageReturns(buffer));
 		buffer = csoundVST->getScript();
 		this->scriptTextBuffer->text(removeCarriageReturns(buffer));
+		Fl::unlock();
 	}
 	csound::System::message("ENDED CsoundVstFltk::update.\n");
 }
@@ -374,15 +382,11 @@ void CsoundVstFltk::messageCallback(const char *format, va_list valist)
 			}
 			else
 			{
-#ifndef LINUX
 				Fl::lock();
-#endif
 				csoundVstFltk->runtimeMessagesBrowser->add(buffer);
 				csoundVstFltk->runtimeMessagesBrowser->bottomline(csoundVstFltk->runtimeMessagesBrowser->size());
 				Fl::flush();
-#ifndef LINUX
 				Fl::unlock();
-#endif
 			}
 		}
 	}
