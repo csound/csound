@@ -64,6 +64,7 @@
 #include "Score.hpp"
 #include "Composition.hpp"
 #include "Node.hpp"
+#include "Counterpoint.hpp"
 #include "CounterpointNode.hpp"
 #include "ScoreNode.hpp"
 #include "Cell.hpp"

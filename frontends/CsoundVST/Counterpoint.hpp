@@ -50,12 +50,24 @@
  * See the "main" function for examples, or fux.lisp (which ties fux.c into CMN/CM).
  */
 
+#ifdef SWIG
+%module CsoundVST
+%{
+#include <string>
+#include <cstdarg>
+#include <stdio.h>
+#include <malloc.h>
+%}
+#else
+#include <string>
+#include <cstdarg>
 #include <stdio.h>
 #include <malloc.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
-#include <string>
-#include <cstdarg>
+using namespace boost::numeric;
+#endif
+
 
 class Counterpoint 
 {
@@ -103,6 +115,86 @@ public:
 
   Counterpoint() : messageCallback(0), LowestSemitone(24), HighestSemitone(72)
   {
+    UnisonPenalty		          = Counterpoint::Bad;
+    DirectToFifthPenalty		  = Counterpoint::RealBad;
+    DirectToOctavePenalty		  = Counterpoint::RealBad;
+    ParallelFifthPenalty		  = Counterpoint::infinity;
+    ParallelUnisonPenalty		  = Counterpoint::infinity;
+    EndOnPerfectPenalty		          = Counterpoint::infinity;
+    NoLeadingTonePenalty		  = Counterpoint::infinity;
+    DissonancePenalty		          = Counterpoint::infinity;
+    OutOfRangePenalty		          = Counterpoint::RealBad;
+    OutOfModePenalty		          = Counterpoint::infinity;
+    TwoSkipsPenalty			  = 1;
+    DirectMotionPenalty		          = 1;
+    PerfectConsonancePenalty	          = 2;
+    CompoundPenalty			  = 1;
+    TenthToOctavePenalty		  = 8;
+    SkipTo8vePenalty		          = 8;
+    SkipFromUnisonPenalty		  = 4;
+    SkipPrecededBySameDirectionPenalty	  = 1;
+    FifthPrecededBySameDirectionPenalty	  = 3;
+    SixthPrecededBySameDirectionPenalty	  = 8;
+    SkipFollowedBySameDirectionPenalty	  = 3;
+    FifthFollowedBySameDirectionPenalty	  = 8;
+    SixthFollowedBySameDirectionPenalty	  = 34;
+    TwoSkipsNotInTriadPenalty	          = 3;
+    BadMelodyPenalty		          = Counterpoint::infinity;
+    ExtremeRangePenalty		          = 5;
+    LydianCadentialTritonePenalty	  = 13;
+    UpperNeighborPenalty		  = 1;
+    LowerNeighborPenalty		  = 1;
+    OverTwelfthPenalty		          = Counterpoint::infinity;
+    OverOctavePenalty		          = Counterpoint::Bad;
+    SixthLeapPenalty		          = 2;
+    OctaveLeapPenalty		          = 5;
+    BadCadencePenalty		          = Counterpoint::infinity;
+    DirectPerfectOnDownbeatPenalty	  = Counterpoint::infinity;
+    RepetitionOnUpbeatPenalty	          = Counterpoint::Bad;
+    DissonanceNotFillingThirdPenalty	  = Counterpoint::infinity;
+    UnisonDownbeatPenalty		  = 3;
+    TwoRepeatedNotesPenalty		  = 2;
+    ThreeRepeatedNotesPenalty	          = 4;
+    FourRepeatedNotesPenalty	          = 7;
+    LeapAtCadencePenalty		  = 13;
+    NotaCambiataPenalty		          = Counterpoint::infinity;
+    NotBestCadencePenalty		  = 8;
+    UnisonOnBeat4Penalty		  = 3;
+    NotaLigaturePenalty		          = 21;
+    LesserLigaturePenalty                 = 8;
+    UnresolvedLigaturePenalty	          = Counterpoint::infinity;
+    NoTimeForaLigaturePenalty	          = Counterpoint::infinity;
+    EighthJumpPenalty		          = Counterpoint::Bad;
+    HalfUntiedPenalty		          = 13;
+    UnisonUpbeatPenalty		          = 21;
+    MelodicBoredomPenalty		  = 1;
+    SkipToDownBeatPenalty		  = 1;
+    ThreeSkipsPenalty		          = 3;
+    DownBeatUnisonPenalty		  = Counterpoint::Bad;
+    VerticalTritonePenalty		  = 2;
+    MelodicTritonePenalty		  = 8;
+    AscendingSixthPenalty		  = 1;
+    RepeatedPitchPenalty		  = 1;
+    NotContraryToOthersPenalty	          = 1;
+    NotTriadPenalty			  = 34;
+    InnerVoicesInDirectToPerfectPenalty	  = 21;
+    InnerVoicesInDirectToTritonePenalty	  = 13;
+    SixFiveChordPenalty		          = Counterpoint::infinity;
+    UnpreparedSixFivePenalty	          = Counterpoint::Bad;
+    UnresolvedSixFivePenalty	          = Counterpoint::Bad;
+    AugmentedIntervalPenalty	          = Counterpoint::infinity;
+    ThirdDoubledPenalty		          = 5;
+    DoubledLeadingTonePenalty	          = Counterpoint::infinity;
+    DoubledSixthPenalty		          = 5;
+    DoubledFifthPenalty		          = 3;
+    TripledBassPenalty		          = 3;
+    UpperVoicesTooFarApartPenalty	  = 1;
+    UnresolvedLeadingTonePenalty	  = Counterpoint::infinity;
+    AllVoicesSkipPenalty		  = 8;
+    DirectToTritonePenalty		  = Counterpoint::Bad;
+    CrossBelowBassPenalty		  = Counterpoint::infinity;
+    CrossAboveCantusPenalty		  = Counterpoint::infinity;
+    NoMotionAgainstOctavePenalty          = 34; 
     initialize(MostNotes_, MostVoices_);
   }
 
@@ -408,88 +500,88 @@ public:
       RealBad = 200,
     };
 
-  static int UnisonPenalty;
-  static int DirectToFifthPenalty;
-  static int DirectToOctavePenalty;
-  static int ParallelFifthPenalty;
-  static int ParallelUnisonPenalty;
-  static int EndOnPerfectPenalty;
-  static int NoLeadingTonePenalty;
-  static int DissonancePenalty;
-  static int OutOfRangePenalty;
-  static int OutOfModePenalty;
-  static int TwoSkipsPenalty;
-  static int DirectMotionPenalty;
-  static int PerfectConsonancePenalty;
-  static int CompoundPenalty;
-  static int TenthToOctavePenalty;
-  static int SkipTo8vePenalty;
-  static int SkipFromUnisonPenalty;
-  static int SkipPrecededBySameDirectionPenalty;
-  static int FifthPrecededBySameDirectionPenalty;
-  static int SixthPrecededBySameDirectionPenalty;
-  static int SkipFollowedBySameDirectionPenalty;
-  static int FifthFollowedBySameDirectionPenalty;
-  static int SixthFollowedBySameDirectionPenalty;
-  static int TwoSkipsNotInTriadPenalty;
-  static int BadMelodyPenalty;
-  static int ExtremeRangePenalty;
-  static int LydianCadentialTritonePenalty;
-  static int LowerNeighborPenalty;
-  static int UpperNeighborPenalty;
-  static int OverTwelfthPenalty;
-  static int OverOctavePenalty;
-  static int SixthLeapPenalty;
-  static int OctaveLeapPenalty;
-  static int BadCadencePenalty;
-  static int DirectPerfectOnDownbeatPenalty;
-  static int RepetitionOnUpbeatPenalty;
-  static int DissonanceNotFillingThirdPenalty;
-  static int UnisonDownbeatPenalty;
-  static int TwoRepeatedNotesPenalty;
-  static int ThreeRepeatedNotesPenalty;
-  static int FourRepeatedNotesPenalty;
-  static int LeapAtCadencePenalty;		
-  static int NotaCambiataPenalty;		
-  static int NotBestCadencePenalty;		
-  static int UnisonOnBeat4Penalty;		
-  static int NotaLigaturePenalty;		
-  static int LesserLigaturePenalty;         
-  static int UnresolvedLigaturePenalty;	
-  static int NoTimeForaLigaturePenalty;	
-  static int EighthJumpPenalty;		
-  static int HalfUntiedPenalty;		
-  static int UnisonUpbeatPenalty;		
-  static int MelodicBoredomPenalty;		
-  static int SkipToDownBeatPenalty;		
-  static int ThreeSkipsPenalty;		
-  static int DownBeatUnisonPenalty;		
-  static int VerticalTritonePenalty;	
-  static int MelodicTritonePenalty;		
-  static int AscendingSixthPenalty;		
-  static int RepeatedPitchPenalty;		
-  static int NotContraryToOthersPenalty;	
-  static int NotTriadPenalty;			
-  static int InnerVoicesInDirectToPerfectPenalty;	
-  static int InnerVoicesInDirectToTritonePenalty;	
-  static int SixFiveChordPenalty;		
-  static int UnpreparedSixFivePenalty;	
-  static int UnresolvedSixFivePenalty;	
-  static int AugmentedIntervalPenalty;	
-  static int ThirdDoubledPenalty;		
-  static int DoubledLeadingTonePenalty;    
-  static int DoubledSixthPenalty;	       
-  static int DoubledFifthPenalty;	       
-  static int TripledBassPenalty;	       
-  static int UpperVoicesTooFarApartPenalty;	
-  static int UnresolvedLeadingTonePenalty;	
-  static int AllVoicesSkipPenalty;		
-  static int DirectToTritonePenalty;	       
-  static int CrossBelowBassPenalty;	       
+  int UnisonPenalty;
+  int DirectToFifthPenalty;
+  int DirectToOctavePenalty;
+  int ParallelFifthPenalty;
+  int ParallelUnisonPenalty;
+  int EndOnPerfectPenalty;
+  int NoLeadingTonePenalty;
+  int DissonancePenalty;
+  int OutOfRangePenalty;
+  int OutOfModePenalty;
+  int TwoSkipsPenalty;
+  int DirectMotionPenalty;
+  int PerfectConsonancePenalty;
+  int CompoundPenalty;
+  int TenthToOctavePenalty;
+  int SkipTo8vePenalty;
+  int SkipFromUnisonPenalty;
+  int SkipPrecededBySameDirectionPenalty;
+  int FifthPrecededBySameDirectionPenalty;
+  int SixthPrecededBySameDirectionPenalty;
+  int SkipFollowedBySameDirectionPenalty;
+  int FifthFollowedBySameDirectionPenalty;
+  int SixthFollowedBySameDirectionPenalty;
+  int TwoSkipsNotInTriadPenalty;
+  int BadMelodyPenalty;
+  int ExtremeRangePenalty;
+  int LydianCadentialTritonePenalty;
+  int LowerNeighborPenalty;
+  int UpperNeighborPenalty;
+  int OverTwelfthPenalty;
+  int OverOctavePenalty;
+  int SixthLeapPenalty;
+  int OctaveLeapPenalty;
+  int BadCadencePenalty;
+  int DirectPerfectOnDownbeatPenalty;
+  int RepetitionOnUpbeatPenalty;
+  int DissonanceNotFillingThirdPenalty;
+  int UnisonDownbeatPenalty;
+  int TwoRepeatedNotesPenalty;
+  int ThreeRepeatedNotesPenalty;
+  int FourRepeatedNotesPenalty;
+  int LeapAtCadencePenalty;		
+  int NotaCambiataPenalty;		
+  int NotBestCadencePenalty;		
+  int UnisonOnBeat4Penalty;		
+  int NotaLigaturePenalty;		
+  int LesserLigaturePenalty;         
+  int UnresolvedLigaturePenalty;	
+  int NoTimeForaLigaturePenalty;	
+  int EighthJumpPenalty;		
+  int HalfUntiedPenalty;		
+  int UnisonUpbeatPenalty;		
+  int MelodicBoredomPenalty;		
+  int SkipToDownBeatPenalty;		
+  int ThreeSkipsPenalty;		
+  int DownBeatUnisonPenalty;		
+  int VerticalTritonePenalty;	
+  int MelodicTritonePenalty;		
+  int AscendingSixthPenalty;		
+  int RepeatedPitchPenalty;		
+  int NotContraryToOthersPenalty;	
+  int NotTriadPenalty;			
+  int InnerVoicesInDirectToPerfectPenalty;	
+  int InnerVoicesInDirectToTritonePenalty;	
+  int SixFiveChordPenalty;		
+  int UnpreparedSixFivePenalty;	
+  int UnresolvedSixFivePenalty;	
+  int AugmentedIntervalPenalty;	
+  int ThirdDoubledPenalty;		
+  int DoubledLeadingTonePenalty;    
+  int DoubledSixthPenalty;	       
+  int DoubledFifthPenalty;	       
+  int TripledBassPenalty;	       
+  int UpperVoicesTooFarApartPenalty;	
+  int UnresolvedLeadingTonePenalty;	
+  int AllVoicesSkipPenalty;		
+  int DirectToTritonePenalty;	       
+  int CrossBelowBassPenalty;	       
 
   /* I added the following during the translation to C */
-  static int CrossAboveCantusPenalty;
-  static int NoMotionAgainstOctavePenalty;
+  int CrossAboveCantusPenalty;
+  int NoMotionAgainstOctavePenalty;
 
   int SpecialSpeciesCheck(int Cn, int Cp, int v, int Other0, int Other1, int Other2, int NumParts,
 			  int Species, int MelInt, int Interval, int ActInt, int LastIntClass, int Pitch, int LastMelInt, int CurLim)
@@ -1188,7 +1280,8 @@ public:
 	    BestFit[i][v]=Ctrpt[i][v]+BasePitch;
 	  }
       }
-    message("Best fit: %d\n", BestFitPenalty);
+    message("Best fit: %d", BestFitPenalty);
+    message("\n");
     for (v=1;v<=v1;v++)
       {
 	message("Voice %d: ", v);
