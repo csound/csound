@@ -400,7 +400,7 @@ ENVIRON cenviron_ = {
         0, NULL,   /*      nchanik, chanik */
         0, NULL,   /*      nchania, chania */
         0, NULL,   /*      nchanok, chanok */
-        0, NULL    /*      nchanoa, chanoa */
+        0, NULL,   /*      nchanoa, chanoa */
 };
 
 OPARMS O;
