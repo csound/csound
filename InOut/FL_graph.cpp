@@ -305,7 +305,7 @@ extern "C"
   {
       if (form==NULL) return 1;
       end->show();
-      while (end->value()==0 && kcnt) {
+      while (end->value()==0 /* && kcnt */) {
         Fl::lock();
         Fl::wait(0.5);
         Fl::unlock();
