@@ -1,3 +1,11 @@
+2004-02-28  John D. Ramsdell  <ramsdell@mitre.org>
+
+	* Makefile.am: Removed _SOURCES vars from conditionals and made
+	plugins libs begin with "lib" so that this automake file works
+	with older version of automake.
+
+	* configure.ac: Removed AC_PROG_RANLIB and added $srcdir to
+	include so that VPATH works.
 
 2004-02-25  Michael Gogins <gogins@pipeline.com>
 
