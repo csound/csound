@@ -46,7 +46,7 @@ typedef struct {
         FTLOAD  p;
 } FTLOAD_K; /* gab 30 jul 2002 */
 
-#define GENMAX  43
+#define GENMAX  60
 #define FTPMAX  (150)
 
 #endif /* FTGEN_H */
