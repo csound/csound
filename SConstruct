@@ -288,11 +288,11 @@ def buildzip(env, target, source):
     print
     pathnames.sort()
     for filename in pathnames:
-	basename, extension = os.path.splitext(filename)
-	if extension in ['.exe', '.dll', '.so']:
-		os.system('strip %s' % filename)
-		print "Stripped",filename
-    print
+        basename, extension = os.path.splitext(filename)
+        if extension in ['.exe', '.dll', '.so']:
+            os.system('strip %s' % filename)
+            print "Stripped",filename
+        print
     print "Creating archive..."
     archive = zipfile.ZipFile("csound5/" + zipfilename, "w", zipfile.ZIP_DEFLATED)
     pathnames.sort()
@@ -404,15 +404,6 @@ if getPlatform() == 'mingw':
 #
 #############################################################################
 
-if not commonEnvironment['generatePDF']:
-    print 'CONFIGURATION DECISION: Not generating PDF documentation.'
-else:
-    print 'CONFIGURATION DECISION: Generating PDF documentation.'
-    refmanPdf = commonEnvironment.Command('doc/latex/refman.tex', 'Doxyfile', ['doxygen $SOURCE'])
-    zipDependencies.append(refmanPdf)
-    csoundPdf = commonEnvironment.Command('refman.pdf', 'doc/latex/refman.tex', ['pdflatex --include-directory=doc/latex --interaction=batchmode --job-name=csound $SOURCE'])
-    zipDependencies.append(csoundPdf)
-    
 makedb = ustubProgramEnvironment.Program('makedb', 
     ['strings/makedb.c'])
 zipDependencies.append(makedb)
@@ -536,6 +527,17 @@ else:
 staticLibrary = staticLibraryEnvironment.Library('csound', 
     libCsoundSources)
 zipDependencies.append(staticLibrary)
+    
+if not commonEnvironment['generatePDF']:
+    print 'CONFIGURATION DECISION: Not generating PDF documentation.'
+else:
+    print 'CONFIGURATION DECISION: Generating PDF documentation.'
+    refmanTex = commonEnvironment.Command('doc/latex/refman.tex', 'Doxyfile', ['doxygen $SOURCE'])
+    Depends(refmanTex, staticLibrary)
+    zipDependencies.append(refmanTex)
+    csoundPdf = commonEnvironment.Command('refman.pdf', 'doc/latex/refman.tex', ['pdflatex --include-directory=doc/latex --interaction=nonstopmode --job-name=csound $SOURCE'])
+    Depends(csoundPdf, refmanTex)
+    zipDependencies.append(csoundPdf)
     
 libUstubSources = Split('''
 Engine/extract.c 

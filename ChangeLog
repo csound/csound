@@ -1,9 +1,19 @@
+2004-09-12  Michael Gogins <gogins@pipeline.com>
+
+	* Added csound::Score::getCsoundScore method in CsoundVST for easier use of 
+    algorithmic composition classes in other Csound-based systems.
+    
+    * Updated csound.pdf with API documentation.
+    
+    * Restored real-time audio code to more functional version.
+
 2004-10-16  John ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/sfont.c (Sfplist, filter_string): Removed static array
 	to local in caller
 
 2004-10-07 	Steven Yi	<stevenyi@csounds.com>
+
 	* Top/dl_opcodes.c (csoundOpenLibrary): Fixed to work with cygwin
 
 	* Top/thread.s : Fixed to work with cygwin
