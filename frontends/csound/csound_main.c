@@ -27,17 +27,26 @@ static int set_rt_priority(int argc, char **argv)
     rtmode = 0;
     if (argc > 2) {
       for (i = 1; i <= (argc - 2); i++) {
-        if (!(strcmp(argv[i], "-o")) &&                     /* check if     */
-            (!(strncmp(argv[i + 1], "dac", 3)) ||           /* output is    */
-             !(strncmp(argv[i + 1], "devaudio", 8))))       /* audio device */
+        if (!(strcmp(argv[i], "-o")) &&                 /* check if input   */
+            (!(strncmp(argv[i + 1], "dac", 3)) ||       /* or output is     */
+             !(strncmp(argv[i + 1], "devaudio", 8))))   /* audio device     */
+          rtmode |= 2;
+        if (!(strcmp(argv[i], "-i")) &&
+            (!(strncmp(argv[i + 1], "adc", 3)) ||
+             !(strncmp(argv[i + 1], "devaudio", 8))))
           rtmode |= 2;
       }
     }
     if (argc > 1) {
-      for (i = 1; i <= (argc - 1); i++) {                   /* also check  */
-        if (!(strcmp(argv[i], "--sched"))) rtmode |= 1;     /* for --sched */
-        if (!(strcmp(argv[i], "-d"))) rtmode |= 4;          /* option, and */
-      }                                                     /* -d          */
+      for (i = 1; i <= (argc - 1); i++) {
+        if (!(strncmp(argv[i], "-iadc", 5))) rtmode |= 2;
+	if (!(strncmp(argv[i], "-odac", 5))) rtmode |= 2;
+	if (!(strncmp(argv[i], "-idevaudio", 10))) rtmode |= 2;
+	if (!(strncmp(argv[i], "-odevaudio", 10))) rtmode |= 2;
+        /* also check for --sched option, and -d */
+        if (!(strcmp(argv[i], "--sched"))) rtmode |= 1;
+        if (!(strcmp(argv[i], "-d"))) rtmode |= 4;
+      }
     }
 
     if (rtmode != 7) {          /* all the above are required to enable */

@@ -1,3 +1,14 @@
+2005-02-06	Istvan Varga	<istvan@csounds.com>
+	* Engine/sread.c:
+	  Fixed memory corruption bugs that were caused by mixed use of
+	  mmalloc and realloc.
+	* Top/main.c:
+	  Fixed bug in setting cenviron.exitjmp_.
+	* frontends/csound/csound_main.c:
+	  Better checking for real time audio in set_rt_priority().
+	* Engine/memalloc.c:
+	  Rewritten functions mmalloc, mrealloc, etc.
+
 2005-02-05	Istvan Varga	<istvan@csounds.com>
 	* Engine/insert.c:
 	  Reworked kperf() so that it always performs one k-period, and

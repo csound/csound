@@ -1,7 +1,8 @@
 /*
     memalloc.c:
 
-    Copyright (C) 1991 Barry Vercoe, John ffitch, Richard Dobson
+    Copyright (C) 1991 Barry Vercoe, John ffitch, Richard Dobson,
+              (C) 2005 Istvan Varga
 
     This file is part of Csound.
 
@@ -27,51 +28,172 @@
 /* global here so reachable by all standalones */
 extern void rlsmemfiles(void);
 
-#define MEMDEBUG
+#define MEMALLOC_MAGIC  0x6D426C6B
 
-#ifdef _MSC_VER                           /*RWD want this for console version too */
-#include <crtdbg.h>
-extern void DisplayMsg(char *, ...);
+typedef struct memAllocBlock_s {
+    int                     magic;      /* 0x6D426C6B ("mBlk")          */
+    void                    *ptr;       /* pointer to allocated area    */
+    struct memAllocBlock_s  *prv;       /* previous structure in chain  */
+    struct memAllocBlock_s  *nxt;       /* next structure in chain      */
+} memAllocBlock_t;
+
+#define HDR_SIZE    (((int) sizeof(memAllocBlock_t) + 15) & (~15))
+#define ALLOC_BYTES(n)  ((size_t) HDR_SIZE + (size_t) (n))
+#define DATA_PTR(p) ((void*) ((unsigned char*) (p) + (int) HDR_SIZE))
+#define HDR_PTR(p)  ((memAllocBlock_t*) ((unsigned char*) (p) - (int) HDR_SIZE))
+
+#define NO_ZERO_ALLOCS  1
+
+static void *mmalloc__(memAllocBlock_t **base, size_t size)
+{
+    void  *p;
+
+#ifdef NO_ZERO_ALLOCS
+    if (size == (size_t) 0) {
+      fprintf(stderr,
+              " *** internal error: mmalloc__() called with zero nbytes\n");
+      return NULL;
+    }
 #endif
-typedef struct {
-    void *p;
-    long  n;
-} MEMREC;
-static int apsize = 0;
+    /* allocate memory */
+    if ((p = malloc(ALLOC_BYTES(size))) == NULL)
+      return NULL;
+    /* link into chain */
+    ((memAllocBlock_t*) p)->magic = MEMALLOC_MAGIC;
+    ((memAllocBlock_t*) p)->ptr = DATA_PTR(p);
+    ((memAllocBlock_t*) p)->prv = (memAllocBlock_t*) NULL;
+    ((memAllocBlock_t*) p)->nxt = (*base);
+    if ((*base) != NULL)
+      (*base)->prv = (memAllocBlock_t*) p;
+    (*base) = (memAllocBlock_t*) p;
+    /* return with data pointer */
+    return DATA_PTR(p);
+}
 
-#ifdef MEMDEBUG
-extern void *memfiles;
-static MEMREC* all = NULL;
-static int ap=0;
+static void *mcalloc__(memAllocBlock_t **base, size_t size)
+{
+    void  *p;
+
+#ifdef NO_ZERO_ALLOCS
+    if (size == (size_t) 0) {
+      fprintf(stderr,
+              " *** internal error: mcalloc__() called with zero nbytes\n");
+      return NULL;
+    }
+#endif
+    /* allocate memory */
+    if ((p = calloc(ALLOC_BYTES(size), (size_t) 1)) == NULL)
+      return NULL;
+    /* link into chain */
+    ((memAllocBlock_t*) p)->magic = MEMALLOC_MAGIC;
+    ((memAllocBlock_t*) p)->ptr = DATA_PTR(p);
+    ((memAllocBlock_t*) p)->prv = (memAllocBlock_t*) NULL;
+    ((memAllocBlock_t*) p)->nxt = (*base);
+    if ((*base) != NULL)
+      (*base)->prv = (memAllocBlock_t*) p;
+    (*base) = (memAllocBlock_t*) p;
+    /* return with data pointer */
+    return DATA_PTR(p);
+}
+
+static void mfree__(memAllocBlock_t **base, void *p)
+{
+    memAllocBlock_t *pp;
+
+    if (p == NULL)
+      return;
+    pp = HDR_PTR(p);
+    if (pp->magic != MEMALLOC_MAGIC || pp->ptr != p) {
+      fprintf(stderr, " *** internal error: mfree__() called with invalid "
+                      "pointer (0x%p)\n", p);
+      /* exit() is ugly, but this is a fatal error that can only occur */
+      /* as a result of a bug */
+      exit(-1);
+    }
+    /* unlink from chain */
+    if (pp->nxt != NULL)
+      pp->nxt->prv = pp->prv;
+    if (pp->prv != NULL)
+      pp->prv->nxt = pp->nxt;
+    else
+      (*base) = pp->nxt;
+    /* free memory */
+    free((void*) pp);
+}
+
+static void *mrealloc__(memAllocBlock_t **base, void *oldp, size_t size)
+{
+    memAllocBlock_t *pp;
+    void            *p;
+
+    if (oldp == NULL)
+      return mmalloc__(base, size);
+    if (size == (size_t) 0) {
+      mfree__(base, oldp);
+      return NULL;
+    }
+    pp = HDR_PTR(oldp);
+    if (pp->magic != MEMALLOC_MAGIC || pp->ptr != oldp) {
+      fprintf(stderr, " *** internal error: mrealloc__() called with invalid "
+                      "pointer (0x%p)\n", oldp);
+      /* exit() is ugly, but this is a fatal error that can only occur */
+      /* as a result of a bug */
+      exit(-1);
+    }
+    /* mark old header as invalid */
+    pp->magic = 0;
+    pp->ptr = NULL;
+    /* allocate memory */
+    p = realloc((void*) pp, ALLOC_BYTES(size));
+    if (p == NULL) {
+      /* alloc failed, restore original header */
+      pp->magic = MEMALLOC_MAGIC;
+      pp->ptr = oldp;
+      return NULL;
+    }
+    /* create new header and update chain pointers */
+    pp = (memAllocBlock_t*) p;
+    pp->magic = MEMALLOC_MAGIC;
+    pp->ptr = DATA_PTR(pp);
+    if (pp->nxt != NULL)
+      pp->nxt->prv = pp;
+    if (pp->prv != NULL)
+      pp->prv->nxt = pp;
+    else
+      (*base) = pp;
+    /* return with data pointer */
+    return DATA_PTR(pp);
+}
+
+/* the following functions will eventually take a Csound instance pointer, */
+/* but until then a static variable is needed */
+
+static  memAllocBlock_t *memalloc_db = (memAllocBlock_t*) NULL;
+
 void all_free(void)
 {
-    if (!all) return;
+    memAllocBlock_t *pp, *nxtp;
+
+    if (memalloc_db == NULL)
+      return;           /* no allocs to free */
     rlsmemfiles();
-    while (--ap>=0) {
-      if (all[ap].p != NULL) free(all[ap].p);
-      all[ap].p = NULL;
-    }
-    free(all);
-    all = NULL;                 /* For safety */
-    apsize = ap = 0;
-    memfiles = NULL;
-    return;
+    pp = memalloc_db;
+    memalloc_db = NULL;
+    do {
+      nxtp = pp->nxt;
+      free((void*) pp);
+      pp = nxtp;
+    } while (pp != NULL);
 }
-#endif
 
 void memRESET(void)
 {
-#ifdef MEMDEBUG
     all_free();
-    ap = 0;
-    all = NULL;
-#endif
-    apsize = 0;
     /*RWD 9:2000 not terribly vital, but good to do this somewhere... */
     pvsys_release();
 }
 
-static void memdie(long nbytes)
+static void memdie(int nbytes)
 {
     err_printf(Str("memory allocate failure for %d\n"), nbytes);
 #ifdef mills_macintosh
@@ -81,116 +203,40 @@ static void memdie(long nbytes)
     longjmp(cenviron.exitjmp_,1);
 }
 
-void *mcalloc(long nbytes) /* allocate new memory space, cleared to 0 */
+void *mcalloc(long nbytes)      /* allocate new memory space, cleared to 0 */
 {
-    void *p;
-#ifdef _DEBUG
-    if (!_CrtCheckMemory()) {
-      printf("Memory error\n");
+    void  *p;
+
+    p = mcalloc__(&memalloc_db, (size_t) nbytes);
+    if (p == NULL && nbytes != 0L) {
+      memdie((int) nbytes);
     }
-#endif
-    if ((p = calloc((size_t)nbytes, (size_t)1)) == NULL) {
-      if (nbytes==0) return NULL;
-      else memdie(nbytes);
-    }
-#ifdef MEMDEBUG
-    if (ap >= apsize) {
-      MEMREC *new_all = (MEMREC*)realloc(all, sizeof(MEMREC)*(apsize += 1020));
-      if (new_all == NULL)
-        err_printf( "Too many allocs\n"), longjmp(cenviron.exitjmp_,1);
-      all = new_all;
-    }
-    all[ap].n   = nbytes;
-    all[ap++].p = p;
-#endif
-    return(p);
+    return p;
 }
 
-void *mmalloc(long nbytes) /* allocate new memory space, NOT cleared to 0 */
+void *mmalloc(long nbytes)  /* allocate new memory space, not cleared to 0 */
 {
-    void *p;
+    void  *p;
 
-#ifdef _DEBUG
-    if (!_CrtCheckMemory()) {
-      printf("Memory error\n");
+    p = mmalloc__(&memalloc_db, (size_t) nbytes);
+    if (p == NULL && nbytes != 0L) {
+      memdie((int) nbytes);
     }
-#endif
-    if ((p = malloc((size_t)nbytes)) == NULL)
-      memdie(nbytes);
-#ifdef MEMDEBUG
-    if (ap >= apsize) {
-      MEMREC *new_all = (MEMREC *)realloc(all, sizeof(MEMREC)*(apsize += 1020));
-      if (new_all == NULL) {
-        err_printf("Too many allocs\n");
-        longjmp(cenviron.exitjmp_,1);
-      }
-      all = new_all;
-    }
-    all[ap].n   = nbytes;
-    all[ap++].p = p;
-#endif
-    return(p);
+    return p;
 }
 
-void *mrealloc(void *old, long nbytes) /* Packaged realloc */
+void *mrealloc(void *old, long nbytes)  /* Packaged realloc */
 {
-    void *p;
-
-#ifdef _DEBUG
-    if (!_CrtCheckMemory()) {
-      printf("Memory error\n");
-    }
-#endif
-    if ((p = realloc(old, (size_t)nbytes)) == NULL)
+    void  *p;
+    p = mrealloc__(&memalloc_db, old, (size_t) nbytes);
+    if (p == NULL && nbytes != 0L) {
       memdie(nbytes);
-#ifdef MEMDEBUG
-    if (old != NULL) {
-      int oldall = 0;
-      while (all[oldall].p != old) {
-        oldall++;
-        if (oldall > ap) memdie(-nbytes);
-      }
-      /*        err_printf("Changing %p(%d) to %p(%d)\n",
-                old, all[oldall].n, p, nbytes); */
-      all[oldall].n = nbytes;
-      all[oldall].p = p;
     }
-    else {
-      if (ap >= apsize) {
-        MEMREC *new_all = (MEMREC*)realloc(all, sizeof(MEMREC)*(apsize += 1020));
-        if (new_all == NULL) {
-          err_printf( "Too many allocs\n");
-          longjmp(cenviron.exitjmp_,1);
-        }
-        all = new_all;
-      }
-      all[ap].n   = nbytes;
-      all[ap++].p = p;
-    }
-#endif
-    return(p);
+    return p;
 }
 
 void mfree(void *ptr)
 {
-#ifdef MEMDEBUG
-    int i = 0;
-    if (!ptr) return;
-    if (all == NULL) {
-      return;
-    }
-    while (all[i].p != ptr) {
-      i++;
-      if (i>ap) memdie(0);
-    }
-    /*      err_printf("Freeing %d bytes\n", all[i].n); */
-    all[i].p = NULL;
-#endif
-#ifdef _DEBUG
-    if (!_CrtCheckMemory()) {
-      printf("Memory error\n");
-    }
-#endif
-    free(ptr);
+    mfree__(&memalloc_db, ptr);
 }
 
