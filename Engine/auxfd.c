@@ -25,6 +25,9 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#ifdef _SNDFILE_
+#include <sndfile.h>
+#endif
 
 /* INSDS   *curip; current insds, maintained by insert.c */
 
@@ -80,7 +83,11 @@ void fdclose(FDCH *fdchp)       /* close a file and remove from fd chain */
     prvchp = &curip->fdch;                      /* from current insds,  */
     while ((nxtchp = prvchp->nxtchp) != NULL) {     /* chain through fdlocs */
       if (nxtchp == fdchp) {            /*   till find this one */
+#ifdef _SNDFILE_
+        sf_close(fdchp->fd);            /* then close the file  */
+#else
         close(fdchp->fd);               /* then close the file  */
+#endif
         fdchp->fd = 0;                  /*   delete the fd &    */
         prvchp->nxtchp = fdchp->nxtchp; /* unlnk from fdchain */
         if (O.odebug) fdchprint(curip);
@@ -120,6 +127,7 @@ void fdchclose(INSDS *ip)   /* close all files in instr fd chain     */
 
     if (O.odebug) fdchprint(ip);
       while ((curchp = curchp->nxtchp) != NULL) { /* for all fd's in chain: */
+#ifndef _SNDFILE_
         if ((fd = curchp->fd) <= 2) {
           fdchprint(ip);
           sprintf(errmsg,Str(X_758,"fdclose: illegal fd %d in chain"),fd);
@@ -127,6 +135,10 @@ void fdchclose(INSDS *ip)   /* close all files in instr fd chain     */
         }
         close(fd);                      /*      close the file  */
         curchp->fd = 0;                 /*      & delete the fd */
+#else
+        sf_close(curchp->fd);
+        curchp->fd = NULL;
+#endif
       }
       ip->fdch.nxtchp = NULL;           /* finally, delete the chain */
       if (O.odebug) fdchprint(ip);

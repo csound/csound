@@ -221,10 +221,17 @@ typedef struct op {
         TEXT    t;
 } OPTXT;
 
+#ifdef _SNDFILE_
+typedef struct fdch {
+        struct fdch * nxtchp;
+        void   *fd;             /* Should be SNDFILE * */
+} FDCH;
+#else
 typedef struct fdch {
         struct fdch * nxtchp;
         int    fd;
 } FDCH;
+#endif
 
 typedef struct auxch {
         struct auxch * nxtchp;
