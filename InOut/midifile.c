@@ -682,17 +682,17 @@ int csoundMIDIFileRead(void *csound_, unsigned char *buf, int nBytes)
     j = mf->tempoListIndex;
     if (i >= mf->nEvents && j >= mf->nTempo) {
       /* there are no more events, */
-      if ((unsigned long) csound->global_kcounter_ >= mf->totalKcnt &&
-          !(csound->MTrkend_)) {
+      if ((unsigned long) csound->global_kcounter >= mf->totalKcnt &&
+          !(csound->MTrkend)) {
         /* and end of file is reached: */
         csound->Message(csound, Str("end of midi track in '%s'\n"),
-                                csound->oparms_->FMidiname);
+                                csound->oparms->FMidiname);
         csound->Message(csound, Str("%d forced decays, %d extra noteoffs\n"),
-                                csound->Mforcdecs_, csound->Mxtroffs_);
-        csound->MTrkend_ = 1;
+                                csound->Mforcdecs, csound->Mxtroffs);
+        csound->MTrkend = 1;
         csoundMIDIFileClose(csound);
-        csound->oparms_->FMidiin = 0;
-        if (csound->oparms_->ringbell && !(csound->oparms_->termifend))
+        csound->oparms->FMidiin = 0;
+        if (csound->oparms->ringbell && !(csound->oparms->termifend))
           csound->Message(csound, "\a");
       }
       return 0;
@@ -700,14 +700,14 @@ int csoundMIDIFileRead(void *csound_, unsigned char *buf, int nBytes)
     /* otherwise read any events with time less than or equal to */
     /* current orchestra time */
     while (j < mf->nTempo &&
-           (unsigned long) csound->global_kcounter_ >= mf->tempoList[j].kcnt) {
+           (unsigned long) csound->global_kcounter >= mf->tempoList[j].kcnt) {
       /* tempo change */
       mf->currentTempo = mf->tempoList[j++].tempoVal;
     }
     mf->tempoListIndex = j;
     nRead = 0;
     while (i < mf->nEvents &&
-           (unsigned long) csound->global_kcounter_ >= mf->eventList[i].kcnt) {
+           (unsigned long) csound->global_kcounter >= mf->eventList[i].kcnt) {
       n = msgDataBytes((int) mf->eventList[i].st) + 1;
       if (n < 1) {
         i++; continue;        /* unknown or system event: skip */
