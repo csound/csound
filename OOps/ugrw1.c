@@ -2123,7 +2123,7 @@ int tablewa(TABLEWA *p)
     /* Transfer the data, whilst updating pointers and masking to get
      * final write address.
      */
-    do  {
+    do {
       writeloc = p->ftp->ftable + ((kstart++ + kioff) & mask);
       *writeloc = *readloc++;
     } while (--loopcount);
@@ -2443,8 +2443,9 @@ int zkcl(ZKCL *p)
           /* Now clear the appropriate locations in zk space. */
           loopcount = last - first + 1;
           writeloc = zkstart + first;
-          do *writeloc++ = FL(0.0);
-          while (--loopcount);
+          do {
+            *writeloc++ = FL(0.0);
+          } while (--loopcount);
     }
     return OK;
 }
@@ -2499,8 +2500,9 @@ int zar(ZAR *p)
       /* Now read from the array in za space and write to the destination.
        * See notes in zkr() on pointer arithmetic.     */
       readloc = zastart + (indx * ksmps);
-      do  *writeloc++ = *readloc++;
-      while(--nsmps);
+      do {
+        *writeloc++ = *readloc++;
+      } while(--nsmps);
     }
     return OK;
 }
@@ -2645,8 +2647,9 @@ int zamod(ZAMOD *p)
     writeloc = p->rslt;
     /* If zkmod = 0, then just copy input to output.    */
     if ((indx = (long) *p->zamod) == 0) {
-      do *writeloc++ = *readsig++;
-      while (--nsmps);
+      do {
+        *writeloc++ = *readsig++;
+      } while (--nsmps);
       return OK;
     }
     /* Decide whether index is positive or negative.  Make it postive.    */
@@ -2853,8 +2856,9 @@ int printk(PRINTK *p)
         printf(Str(X_1279,"time %11.5f:"), (MYFLT) kcounter * onedkr);
         /* Print spaces and then the value we want to read.      */
         spcount = p->pspace + 1;
-        do printf(" ");
-        while (--spcount);
+        do {
+          printf(" ");
+        } while (--spcount);
         printf("%11.5f\n", *p->val);
       }
     return OK;

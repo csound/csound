@@ -89,7 +89,7 @@ int tone(TONE *p)
     }
     ar = p->ar;
     asig = p->asig;
-    do  {
+    do {
       *ar++ = yt1 = c1 * *asig++ + c2 * yt1;
     } while (--nsmps);
     p->yt1 = yt1;
@@ -565,13 +565,14 @@ int lpread(LPREAD *p)
       while (--nn);
     }
 /*  if (O.odebug) {
-    printf("phase:%lx fract:%6.2f rmsr:%6.2f rmso:%6.2f kerr:%6.2f kcps:%6.2f\n",
-           framphase,fract,*p->krmr,*p->krmo,*p->kerr,*p->kcps);
-    cp = p->kcoefs;
-    nn = p->npoles;
-    do    printf(" %6.2f",*cp++);
-    while (--nn);
-    printf("\n");
+      printf("phase:%lx fract:%6.2f rmsr:%6.2f rmso:%6.2f kerr:%6.2f kcps:%6.2f\n",
+             framphase,fract,*p->krmr,*p->krmo,*p->kerr,*p->kcps);
+      cp = p->kcoefs;
+      nn = p->npoles;
+      do {
+        printf(" %6.2f",*cp++);
+      } while (--nn);
+      printf("\n");
     }  */
     return OK;
 }

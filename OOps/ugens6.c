@@ -760,8 +760,9 @@ int cmbset(COMB *p)
     else if (!(*p->istor)) {
       long *fp = (long *) p->auxch.auxp;
       p->pntr = (MYFLT *) fp;
-      do  *fp++ = 0;
-      while (--lpsiz);
+      do {
+        *fp++ = 0;
+      } while (--lpsiz);
       p->prvt = FL(0.0);
       p->coef = FL(0.0);
     }
@@ -877,8 +878,9 @@ int rvbset(REVERB *p)
     else if (!(*p->istor)) {                    /* else if istor = 0 */
       MYFLT     *fp = p->adr1;
       long      nn = revlpsum;
-      do  *fp++ = FL(0.0);                      /*  clr existing spc */
-      while (--nn);
+      do {
+        *fp++ = FL(0.0);                        /*  clr existing spc */
+      } while (--nn);
       p->p1 = p->adr1;                          /*  and reset   */
       p->p2 = p->adr2;
       p->p3 = p->adr3;

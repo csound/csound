@@ -1970,8 +1970,9 @@ int trnseg(TRANSEG *p)
       p->curval = val;
       return OK;
 putk:
-      do *rs++ = val;
-      while (--nsmps);
+      do {
+        *rs++ = val;
+      } while (--nsmps);
     }
     return OK;
 }

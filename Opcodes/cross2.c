@@ -87,8 +87,9 @@ void getmag(MYFLT *x, long size)
     } while (--n);
 
     n = size/2 + 1;
-    do  *x++ /= max;
-    while ( --n);
+    do {
+      *x++ /= max;
+    } while ( --n);
 }
 
 /* void scalemag(MYFLT *x, long size) */
@@ -222,8 +223,9 @@ void pfht(MYFLT *fz, long n)
 
     k = 0;
     i = 1;
-    do  k++;
-    while ( (i << k) < n);
+    do {
+      k++;
+    } while ( (i << k) < n);
 
     k  &= 1;
     if (k == 0) {

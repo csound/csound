@@ -632,8 +632,9 @@ void otran(void)
     if (O.odebug) {
       short *p = ARGOFFSPACE;
       printf("argoff array:\n");
-      do printf("\t%d", *p++);
-      while (p < argofflim);
+      do {
+        printf("\t%d", *p++);
+      } while (p < argofflim);
       printf("\n");
     }
     if (nxtargoffp != argofflim)
@@ -740,15 +741,17 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
           optxt->t.strargs[0] = strargptr;
           for (n=0; n < inlist->count; n++ ) {
             char *s = inlist->arg[n];
-            do *strargptr++ = *s;       /*   copy all args  */
-            while (*s++);
+            do {
+              *strargptr++ = *s;       /*   copy all args  */
+            } while (*s++);
           }
         }
         else if (opnum==displop2 || opnum==displop3 || opnum==displop4) {
           char *s = inlist->arg[0];
           optxt->t.strargs[0] = strargptr;
-          do *strargptr++ = *s;         /*   or just the 1st */
-          while (*s++);
+          do {
+            *strargptr++ = *s;         /*   or just the 1st */
+          } while (*s++);
         }
         inreqd = strlen(ep->intypes);
         argp = inlist->arg;                     /* get inarg indices */
