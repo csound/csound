@@ -77,19 +77,19 @@ int hrtferxkSet(ENVIRON *csound, HRTFER *p)
 
         /* first check if orchestra's sampling rate is compatible with HRTF
            measurement's */
-    if (esr != SAMP_RATE) {
-      printf (Str("Orchestra sampling rate is not compatible with HRTF.\n"));
-      printf (Str("Should be %d...exiting.\n"), SAMP_RATE);
-      longjmp(csound->exitjmp_,1);
+    if (csound->esr != SAMP_RATE) {
+      csound->Die(csound,
+                  Str("Orchestra sampling rate is not compatible with HRTF.\n"
+                      "Should be %d...exiting."), SAMP_RATE);
+      return NOTOK; /* not reached */
     }
 
     if (*p->ifilno == SSTRCOD)
       strcpy(filename, p->STRARG);
     else {
-      printf(Str("\nLast argument must be the string 'HRTFcompact' "
-             "...correcting.\n"));
+      csound->Message(csound, Str("\nLast argument must be the string "
+                                  "'HRTFcompact' ...correcting.\n"));
       strcpy(filename, "HRTFcompact");
-/*       longjmp(pcglob->exitjmp,1); */
     }
 
     if ((mfp = p->mfp) == NULL)
@@ -238,7 +238,7 @@ int hrtferxk(ENVIRON *csound, HRTFER *p)
         /* fpindex should now point to first azimuth at requested el_index */
         /* now get to first value of requested azimuth */
     if (az_index == 0) {
-                                /*printf("in az_index == 0\n")*/
+   /* csound->Message(csound, "in az_index == 0\n"); */
       numskip = 0;
     }
     else {
@@ -321,8 +321,8 @@ int hrtferxk(ENVIRON *csound, HRTFER *p)
     aLeft  = p->aLeft;
     aRight = p->aRight;
 
-    nsmpsi = ksmps;
-    nsmpso = ksmps;
+    nsmpsi = csound->ksmps;
+    nsmpso = csound->ksmps;
 
         /* main loop for a-rate code.  Audio read in, processed,
            and output in this loop.  Loop exits when control period
@@ -501,3 +501,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
+

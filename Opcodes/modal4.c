@@ -106,14 +106,13 @@ void Modal4_setRatioAndReson(ENVIRON *csound,
                              Modal4 *m, int whichOne, MYFLT ratio,MYFLT reson)
 {
     MYFLT temp;
-    if (ratio* m->baseFreq < csound->esr_ * FL(0.5)) {
+    if (ratio* m->baseFreq < csound->esr * FL(0.5)) {
       m->ratios[whichOne] = ratio;
     }
     else {
       temp = ratio;
-      while (temp* m->baseFreq > FL(0.5)*csound->esr_) temp *= FL(0.5);
+      while (temp* m->baseFreq > FL(0.5)*csound->esr) temp *= FL(0.5);
       m->ratios[whichOne] = temp;
-/*     printf("Modal4 : Aliasing would occur here, correcting.\n"); */
     }
     m->resons[whichOne] = reson;
     if (ratio<0)
@@ -166,7 +165,6 @@ MYFLT Modal4_tick(Modal4 *m)
     int length = (int)m->wave->flen;
 
     m->w_time += m->w_rate;                  /*  Update current time          */
-/* printf("Modal4 tick: time=%f rate=%f\n", m->w_time, m->w_rate);   */
     if (m->w_time >= length)  {              /*  Check for end of sound       */
       m->w_time = (MYFLT)(length-1);         /*  stick at end                 */
       m->w_allDone = 1;                      /*  Information for one-shot use */
@@ -187,33 +185,23 @@ MYFLT Modal4_tick(Modal4 *m)
 #endif
 
     itemp = (long) temp_time;                /* Integer part of time address  */
-/* printf("temp_time=%f\t", temp_time); */
     alpha = temp_time - (MYFLT)itemp;     /*  fractional part of time address */
     m->w_lastOutput = m->wave->ftable[itemp]; /*  Do linear interpolation     */
-/* printf("w_last1=%f\t", m->w_lastOutput); */
     m->w_lastOutput = m->w_lastOutput +      /*  same as alpha*data[temp+1]   */
         (alpha * (m->wave->ftable[itemp+1] -
                 m->w_lastOutput));            /*  + (1-alpha)data[temp]       */
-/* printf("w_last2=%f\n", m->w_lastOutput); */
 
     temp   = m->masterGain *
       OnePole_tick(&m->onepole, m->w_lastOutput * Envelope_tick(&m->envelope));
-/* printf("onepole->%f\n", temp); */
     temp2  = BiQuad_tick(&m->filters[0], temp);
-/* printf("BiQ_tick0: %f\n", temp2); */
     temp2 += BiQuad_tick(&m->filters[1], temp);
-/* printf("BiQ_tick1: %f\n", temp2); */
     temp2 += BiQuad_tick(&m->filters[2], temp);
-/* printf("BiQ_tick2: %f\n", temp2); */
     temp2 += BiQuad_tick(&m->filters[3], temp);
-/* printf("BiQ_tick3: %f\n", temp2); */
     temp2  = temp2 - (temp2 * m->directGain);
     temp2 += m->directGain * temp;
-/* printf("Temp2: %f\n", temp2); */
 
     if (m->vibrGain != 0.0) {
-/* printf("Vibrato gain=%f\n", m->vibrGain); */
-                                /* Tick on vibrato table */
+                                           /*  Tick on vibrato table  */
       m->v_time += m->v_rate;              /*  Update current time    */
       while (m->v_time >= m->vibr->flen)   /*  Check for end of sound */
         m->v_time -= m->vibr->flen;        /*  loop back to beginning */
@@ -271,9 +259,6 @@ int marimbaset(ENVIRON *csound, MARIMBA *p)
       return NOTOK;
     }
 
-/*     { int i; */
-/*      for (i=0; i<256; i++) printf("%d:%f\t", i, p->m4.wave->ftable[i]); */
-/*     } */
     if (make_Modal4(csound,
                     m, p->ivfn, *p->vibAmt, *p->vibFreq)==NOTOK) return NOTOK;
     p->m4.w_phaseOffset = FL(0.0);
@@ -291,12 +276,8 @@ int marimbaset(ENVIRON *csound, MARIMBA *p)
     p->strikePosition = *p->spos;
                                 /* Set Stick hardness stuff */
     p->stickHardness = *p->hardness;
-/*     printf("Stickhardness=%f\n", p->stickHardness); */
     p->m4.w_rate = (FL(0.25) * (MYFLT)pow(4.0,(double)p->stickHardness));
     p->m4.masterGain = (FL(0.1) + (FL(1.8) * p->stickHardness));
-/* printf("Hardness=%f, w_rate=%f masterGain=%f [%f]\n", */
-/*        *p->hardness, p->m4.w_rate, p->m4.masterGain, */
-/*        pow(4.0,(double)p->stickHardness)); */
                                 /* Set Strike position */
     temp2 = p->strikePosition * PI_F;
     temp = (MYFLT)sin((double)temp2);
@@ -312,13 +293,13 @@ int marimbaset(ENVIRON *csound, MARIMBA *p)
       itemp = rand() % 100;
       if (itemp < triples) {
         p->multiStrike = 2;
-        if (csound->oparms_->msglevel & 02)
-          printf(Str("striking three times here!!!\n"));
+        if (csound->oparms->msglevel & 02)
+          csound->Message(csound, Str("striking three times here!!!\n"));
       }
       else if (itemp < doubles) {
         p->multiStrike = 1;
-        if (csound->oparms_->msglevel & 02)
-          printf(Str("striking twice here!!\n"));
+        if (csound->oparms->msglevel & 02)
+          csound->Message(csound, Str("striking twice here!!\n"));
       }
       else p->multiStrike = 0;
     }
@@ -326,11 +307,13 @@ int marimbaset(ENVIRON *csound, MARIMBA *p)
     Modal4_setFreq(csound, m, *p->frequency);
     p->first = 1;
     {
-      int relestim = (int)(ekr * *p->dettack); /* 0.1 second decay extention */
+      int relestim = (int) (csound->global_ekr * *p->dettack);
+      /* 0.1 second decay extention */
       if (relestim > p->h.insdshead->xtratim)
         p->h.insdshead->xtratim = relestim;
     }
-    p->kloop = (int)((p->h.insdshead->offtim * ekr) - (int)(ekr* *p->dettack));
+    p->kloop = (int) ((p->h.insdshead->offtim * csound->global_ekr)
+               - (int) (csound->global_ekr * *p->dettack));
     return OK;
 }
 
@@ -339,12 +322,11 @@ int marimba(ENVIRON *csound, MARIMBA *p)
 {
     Modal4      *m = &(p->m4);
     MYFLT       *ar = p->ar;
-    int         n,nsmps = ksmps;
+    int         n,nsmps = csound->ksmps;
     MYFLT       amp = (*p->amplitude) * AMP_RSCALE; /* Normalise */
 
     if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
     if ((--p->kloop) == 0) {
-/*       printf("Start damp\n"); */
       Modal4_damp(csound, m, FL(1.0) - (amp * FL(0.03)));
     }
     p->m4.v_rate = *p->vibFreq; /* 6.0; */
@@ -364,7 +346,6 @@ int marimba(ENVIRON *csound, MARIMBA *p)
           p->multiStrike -= 1;
         }
       lastOutput = Modal4_tick(m);
-/*       printf("Sample=%f\n", lastOutput); */
       ar[n] = lastOutput*AMP_SCALE*FL(0.5);
     }
     return OK;
@@ -410,8 +391,6 @@ int vibraphnset(ENVIRON *csound, VIBRAPHN *p)
 /*     vibrGain = 0.2; */
     p->m4.w_rate = FL(2.0) + (FL(22.66) * *p->hardness);
     p->m4.masterGain = FL(0.2) + (*p->hardness * FL(1.6));
-/* printf("Hardness=%f, w_rate=%f masterGain=%f\n", */
-/*        *p->hardness, p->m4.w_rate, p->m4.masterGain); */
                                 /* Set Strike position */
     temp = (p->strikePosition = *p->spos) * PI_F;
     BiQuad_setGain(p->m4.filters[0], FL(0.025) * (MYFLT)sin((double)temp));
@@ -429,12 +408,11 @@ int vibraphn(ENVIRON *csound, VIBRAPHN *p)
 {
     Modal4      *m = &(p->m4);
     MYFLT       *ar = p->ar;
-    int         n,nsmps = ksmps;
+    int         n,nsmps = csound->ksmps;
     MYFLT       amp = (*p->amplitude)*AMP_RSCALE; /* Normalise */
 
     if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
     if ((--p->kloop) == 0) {
-/*       printf("Start damp\n"); */
       Modal4_damp(csound, m, FL(1.0) - (amp * FL(0.03)));
     }
     if (p->first) {
@@ -446,7 +424,6 @@ int vibraphn(ENVIRON *csound, VIBRAPHN *p)
     p->m4.vibrGain =*p->vibAmt;
     for (n=0;n<nsmps;n++) {
       MYFLT     lastOutput = Modal4_tick(m);
-/*       printf("Sample=%f\n", lastOutput); */
       ar[n] = lastOutput*FL(8.0)*AMP_SCALE;/* Times 8 as seems too quiet */
     }
     return OK;
@@ -500,11 +477,8 @@ int agogobelset(ENVIRON *csound, VIBRAPHN *p)
     p->m4.masterGain = FL(1.0);
                                 /* Set Strike position */
     temp = (p->strikePosition = *p->spos) * PI_F;
-/*     printf("gain0=%f\n", 0.08 * sin(0.7 * temp)); */
     BiQuad_setGain(p->m4.filters[0], FL(0.08) * (MYFLT)sin(0.7 * temp));
-/*     printf("gain1=%f\n" ,0.07 * sin(0.1 + (5.0 * temp))); */
     BiQuad_setGain(p->m4.filters[1], FL(0.07) * (MYFLT)sin(0.1 + (5.0 * temp)));
-/*     printf("gain2=%f\n", 0.04 * sin(0.2 + (7.0 * temp))); */
     BiQuad_setGain(p->m4.filters[2], FL(0.04) * (MYFLT)sin(0.2 + (7.0 * temp)));
                                 /* Strike */
     Modal4_strike(csound, m, *p->amplitude*AMP_RSCALE);
@@ -516,7 +490,7 @@ int agogobel(ENVIRON *csound, VIBRAPHN *p)
 {
     Modal4      *m = &(p->m4);
     MYFLT       *ar = p->ar;
-    int         n,nsmps = ksmps;
+    int         n,nsmps = csound->ksmps;
 
     p->m4.v_rate = *p->vibFreq;
     p->m4.vibrGain =*p->vibAmt;
@@ -527,7 +501,6 @@ int agogobel(ENVIRON *csound, VIBRAPHN *p)
     }
     for (n=0;n<nsmps;n++) {
       MYFLT     lastOutput = Modal4_tick(m);
-/*       printf("Sample=%f\n", lastOutput); */
       ar[n] = lastOutput*AMP_SCALE;
     }
     return OK;

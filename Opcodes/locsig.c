@@ -39,21 +39,19 @@ int locsigset(ENVIRON *csound, LOCSIG *p)
 {
     int outcount=p->OUTOCOUNT;
 
-    if (outcount != 2)
-      if (outcount != 4) {
-        sprintf(errmsg,
-                Str("Wrong number of outputs in locsig; must be 2 or 4"));
-        goto locerr;
-      }
+    if (outcount != 2 && outcount != 4)
+      return csound->InitError(csound, Str("Wrong number of outputs in locsig; "
+                                           "must be 2 or 4"));
 
     if (p->auxch.auxp == NULL) {
       MYFLT *fltp;
-      csound->AuxAlloc(csound, (long)(ksmps * 4)  * sizeof(MYFLT), &p->auxch);
+      csound->AuxAlloc(csound, (long) (csound->ksmps * 4)
+                               * sizeof(MYFLT), &p->auxch);
       fltp = (MYFLT *) p->auxch.auxp;
-      p->rrev1 = fltp;   fltp += ksmps;
-      p->rrev2 = fltp;   fltp += ksmps;
-      p->rrev3 = fltp;   fltp += ksmps;
-      p->rrev4 = fltp;   fltp += ksmps;
+      p->rrev1 = fltp;   fltp += csound->ksmps;
+      p->rrev2 = fltp;   fltp += csound->ksmps;
+      p->rrev3 = fltp;   fltp += csound->ksmps;
+      p->rrev4 = fltp;   fltp += csound->ksmps;
     }
 
     p->prev_degree = -FL(918273645.192837465);
@@ -62,8 +60,6 @@ int locsigset(ENVIRON *csound, LOCSIG *p)
     locsigaddr=p;
 
     return OK;
-locerr:
-    return csound->InitError(csound, errmsg);
 }
 
 int locsig(ENVIRON *csound, LOCSIG *p)
@@ -71,7 +67,7 @@ int locsig(ENVIRON *csound, LOCSIG *p)
     MYFLT *r1, *r2, *r3=NULL, *r4=NULL, degree, *asig;
     MYFLT direct, *rrev1, *rrev2, *rrev3=NULL, *rrev4=NULL;
     MYFLT torev, localrev, globalrev;
-    int n, nsmps = ksmps;
+    int n, nsmps = csound->ksmps;
 
     if (*p->distance != p->prev_distance) {
       p->distr=(FL(1.0) / *p->distance);
@@ -143,14 +139,10 @@ int locsendset(ENVIRON *csound, LOCSEND *p)
     q = p->locsig;
 
     if (p->OUTOCOUNT != q->OUTOCOUNT) {
-      sprintf(errmsg,
-              Str(
-                  "Number of outputs must be the same as the previous locsig;"));
-      goto locerr;
+      return csound->InitError(csound, Str("Number of outputs must be the "
+                                           "same as the previous locsig"));
     }
     return OK;
-  locerr:
-    return csound->InitError(csound, errmsg);
 }
 
 int locsend(ENVIRON *csound, LOCSEND *p)
@@ -158,7 +150,7 @@ int locsend(ENVIRON *csound, LOCSEND *p)
     MYFLT       *r1, *r2, *r3=NULL, *r4=NULL;
     MYFLT       *rrev1, *rrev2, *rrev3=NULL, *rrev4=NULL;
     LOCSIG *q = p->locsig;
-    int n, nsmps = ksmps;
+    int n, nsmps = csound->ksmps;
 
     r1 = p->r1;
     r2 = p->r2;
