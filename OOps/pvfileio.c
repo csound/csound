@@ -1070,7 +1070,6 @@ static int pvoc_updateheader(int ofd)
       return 0;
     }
 
-
     riffsize = files[ofd]->curpos - 2* sizeof(DWORD);
     if (files[ofd]->do_byte_reverse)
       riffsize = REVDWBYTES(riffsize);
