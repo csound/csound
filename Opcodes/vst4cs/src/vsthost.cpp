@@ -220,7 +220,7 @@ bool VSTPlugin::AddMIDI(int data0, int data1, int data2)
         return false;
 }
 
-bool VSTPlugin::AddNoteOn(int midichannel, MYFLT note, MYFLT speed)
+bool VSTPlugin::AddNoteOn(MYFLT time, int midichannel, MYFLT note, MYFLT speed)
 {
 	if(aeffect) {
 	    MYFLT rounded = round(note);
@@ -229,7 +229,12 @@ bool VSTPlugin::AddNoteOn(int midichannel, MYFLT note, MYFLT speed)
 		VstMidiEvent &vstMidiEvent = vstMidiEvents.back();
 		vstMidiEvent.type = kVstMidiType;
 		vstMidiEvent.byteSize = 24;
-		vstMidiEvent.deltaFrames = 0;
+		size_t currentFrame = time * framesPerSecond;
+		size_t currentBlockStart = floor(currentFrame / framesPerBlock) * framesPerBlock;
+		vstMidiEvent.deltaFrames = floor(currentFrame - currentBlockStart);
+            Debug("VSTPlugin::AddNoteOn(time %f currentFrame %d "
+            "currentBlockStart %d deltaFrames %d.\n",
+            time, currentFrame, currentBlockStart, vstMidiEvent.deltaFrames);            
 		vstMidiEvent.flags = 0;
 		vstMidiEvent.detune = cents;
 		vstMidiEvent.noteLength = 0;
@@ -247,7 +252,7 @@ bool VSTPlugin::AddNoteOn(int midichannel, MYFLT note, MYFLT speed)
         return false;
 }
 
-bool VSTPlugin::AddNoteOff(int midichannel, MYFLT note)
+bool VSTPlugin::AddNoteOff(MYFLT time, int midichannel, MYFLT note)
 {
 	if(aeffect) {
 	    MYFLT rounded = round(note);
@@ -255,7 +260,9 @@ bool VSTPlugin::AddNoteOff(int midichannel, MYFLT note)
 		VstMidiEvent &vstMidiEvent = vstMidiEvents.back();
 		vstMidiEvent.type = kVstMidiType;
 		vstMidiEvent.byteSize = 24;
-		vstMidiEvent.deltaFrames = 0;
+		MYFLT currentFrame = (MYFLT) time * framesPerSecond;
+		MYFLT currentBlockStart = (MYFLT) floor(currentFrame / framesPerBlock) * framesPerBlock;
+		vstMidiEvent.deltaFrames = floor(currentFrame - currentBlockStart);
 		vstMidiEvent.flags = 0;
 		vstMidiEvent.detune = 0;
 		vstMidiEvent.noteLength = 0;
@@ -424,6 +431,8 @@ void VSTPlugin::Init()
 	framesPerSecond = csound->GetSr(csound);
 	framesPerBlock = csound->GetKsmps(csound);
 	channels = csound->GetNchnls(csound);
+	Log("VSTPlugin::Init framesPerSecond %d framesPerBlock %d channels %d.\n",
+	   framesPerSecond, framesPerBlock, channels);
 	inputs_.resize(channels);
 	outputs_.resize(channels);
 	for(size_t i = 0; i < channels; i++) {
