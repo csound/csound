@@ -347,7 +347,7 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
       else {                                          /* for greater skiptime: */
         if (sf_seek(infile, (off_t)skipframes, SEEK_SET) < 0)  /* else seek to bndry */
           die(Str(X_1208,"soundin seek error"));
-        if ((n = sreadin(NULL,p->inbuf,SNDINBUFSIZ,p)) == 0) /* now rd fulbuf */
+        if ((n = sreadin(infile,p->inbuf,SNDINBUFSIZ,p)) == 0) /* now rd fulbuf */
           p->endfile = 1;
         p->inbufp = p->inbuf;
         p->bufend = p->inbuf + n;
