@@ -5,6 +5,8 @@
 	* Engine/cfgvar.h:
 	* Engine/cfgvar.c:
 	  added documentation for interface functions
+	* Top/main.c:
+	  fixed opening .csoundrc
 
 2005-02-16	Istvan Varga	<istvan@csounds.com>
 	* InOut/libsnd.c:
