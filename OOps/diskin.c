@@ -78,7 +78,7 @@ static int sreadinew(           /* special handling of sound input       */
     if (p->audrem > 0) {      /* AIFF:                  */
       if (ntot > p->audrem)   /*   chk haven't exceeded */
         ntot = p->audrem;     /*   limit of audio data  */
-      p->audrem -= ntot*sizeof(MYFLT);
+      p->audrem -= ntot; /* FIXED VL, 02-11-04, was p->audrem -= ntot*sizeof(MYFLT) */
     }
     else ntot = 0;
 

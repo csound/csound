@@ -127,8 +127,7 @@ SNDFILE *SAsndgetset(
     if (p->framesrem < 0 ) {
       if (O.msglevel & WARNMSG)
         printf(Str(X_1318,
-                   "WARNING: undetermined file length, will attempt "
-                   "requested duration\n"));
+                   "WARNING: undetermined file length, will attempt requested duration\n"));
     }
     else {
       if (*ainput_dur == FL(0.0)) {         /* 0 durtim, use to EOF */
@@ -171,12 +170,15 @@ long getsndin(SNDFILE *fd, MYFLT *fp, long nlocs, SOUNDIN *p)
       bufend = p->bufend;
       while (nlocs--) {
         if (inbufp >= bufend) {
-          if ((n = sreadin(fd,p->inbuf,SNDINBUFSIZ,p)) == 0)
+			if ((n = sreadin(fd,p->inbuf,SNDINBUFSIZ,p)) == 0){
             break;
+			}
+
           inbufp = p->inbuf;
           bufend = p->inbuf + n;
         }
         *fp++ = *inbufp++ * scalefac * gain;
+		
       }
     }
     else {                                /* MULTI-CHANNEL, SELECT ONE */
@@ -198,6 +200,7 @@ long getsndin(SNDFILE *fd, MYFLT *fp, long nlocs, SOUNDIN *p)
         if (chcnt == nchanls) chcnt = 0;
       }
     }
+
     nread = fp - fbeg;
     while (fp < fend)    /* if incomplete */
       *fp++ = FL(0.0);   /*  pad with 0's */
@@ -239,11 +242,13 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
       goto errtn;
     }
     infile = sf_open_fd(sinfd, SFM_READ, &sfinfo, SF_TRUE);
+/*
 #ifdef USE_DOUBLE
     sf_command(infile, SFC_SET_NORM_DOUBLE, NULL, SF_FALSE);
 #else
     sf_command(infile, SFC_SET_NORM_FLOAT, NULL, SF_FALSE);
 #endif
+*/
     p->fdch.fd = infile;
     p->nchanls = sfinfo.channels;
 /*     printf("*** sfinfo: frames=%lld\tsamplerate=%d\tchannels=%d\n" */
@@ -346,8 +351,7 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
         p->inbufp = p->inbuf + skipframes * p->sampframsiz;
       }
       else {                                          /* for greater skiptime: */
-        /* else seek to bndry */
-        if (sf_seek(infile, (off_t)skipframes, SEEK_SET) < 0)
+        if (sf_seek(infile, (off_t)skipframes, SEEK_SET) < 0)  /* else seek to bndry */
           die(Str(X_1208,"soundin seek error"));
         if ((n = sreadin(infile,p->inbuf,SNDINBUFSIZ,p)) == 0) /* now rd fulbuf */
           p->endfile = 1;
@@ -406,7 +410,7 @@ int sreadin(                    /* special handling of sound input       */
     if (p->audrem > 0) {        /* AIFF:                  */
       if (ntot > p->audrem)     /*   chk haven't exceeded */
         ntot = p->audrem;       /*   limit of audio data  */
-      p->audrem -= ntot*sizeof(MYFLT);
+      p->audrem -= ntot;  /* VL: 11-01-05 p->audrem is in samples ! */
     }
     else ntot = 0;
     return ntot;
