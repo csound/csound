@@ -528,7 +528,6 @@ typedef struct ENVIRON_
   void (*RewindScore)(void *csound);
   void (*Message)(void *csound, const char *format, ...);
   void (*MessageV)(void *csound, const char *format, va_list args);
-  void (*Printf)(const char *format, ...);
   void (*ThrowMessage)(void *csound, const char *format, ...);
   void (*ThrowMessageV)(void *csound, const char *format, va_list args);
   void (*SetMessageCallback)(void *csound,
@@ -647,6 +646,7 @@ typedef struct ENVIRON_
   char *(*catpath_)(char *path, char *name);
   void (*rewriteheader_)(SNDFILE *ofd, int verbose);
   void (*writeheader)(int ofd, char *ofname);
+  void (*Printf)(const char *format, ...);
   /* End of internals */
   int           ksmps_, nchnls_;
   int           global_ksmps_;
@@ -760,15 +760,13 @@ typedef struct ENVIRON_
 # define __cdecl
 #endif
 
-#if (!defined(__BEOS__) || defined(__MWERKS__)) && !defined(__CYGWIN__)
+#if (!defined(__BEOS__) || defined(__MWERKS__)) && !defined(__GNUC__)
 #  define __cdecl
 #endif
 
 #include "prototyp.h"
 extern void err_printf(char *, ...);
-#ifdef USE_FLTK
 extern void csoundPrintf(const char *, ...);
-#endif /* POLL_EVENTS */
 
 #ifdef WIN32
 #define tmpnam mytmpnam
