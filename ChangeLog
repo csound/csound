@@ -1,3 +1,8 @@
+2004-08-05  Michael Gogins <gogins@pipeline.com>
+
+	* Rewrote fluid opcode to break it up into fluidload, fluidcontrol, and 
+	fluidout. Added documentation html file.
+
 2004-07-31  Michael Gogins <gogins@pipeline.com>
 
 	* Removed many warnings, especially by using %lf in sscanf for USE_DOUBLE
