@@ -48,7 +48,7 @@ int kdel_set(ENVIRON *csound, KDEL *p)
 
     if (!*p->istod) {
       if (p->aux.auxp == NULL || (int)(n*sizeof(MYFLT)) > p->aux.size)
-        auxalloc(n * sizeof(MYFLT), &p->aux);
+        auxalloc(csound, n * sizeof(MYFLT), &p->aux);
       else {
         buf = (MYFLT *)p->aux.auxp;
         do {

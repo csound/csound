@@ -558,7 +558,7 @@ extern "C" {
   {
     _rtCurOutBufSize = O.outbufsamps*dsize;
     _rtCurOutBufCount = 0;
-    _rtCurOutBuf = mmalloc(_rtCurOutBufSize);
+    _rtCurOutBuf = mmalloc(csound, _rtCurOutBufSize);
 
     /* a special case we need to handle 'overlaps'
      */
@@ -569,7 +569,7 @@ extern "C" {
       {
         _rtOutOverBufSize = (csoundGetKsmps(&cenviron_) * nchanls -
                              O.outbufsamps)*dsize;
-        _rtOutOverBuf = mmalloc(_rtOutOverBufSize);
+        _rtOutOverBuf = mmalloc(csound, _rtOutOverBufSize);
         _rtOutOverBufCount = 0;
       }
     else
@@ -610,7 +610,7 @@ extern "C" {
   {
     if (O.inbufsamps*O.sfsampsize != O.outbufsamps*O.insampsiz)
       die("Input buffer must be the same size as Output buffer\n");
-    _rtInputBuf = mmalloc(O.inbufsamps*O.insampsiz);
+    _rtInputBuf = mmalloc(csound, O.inbufsamps*O.insampsiz);
   }
 
   int rtrecord_mi(char *inBuf, int nbytes)
@@ -622,11 +622,11 @@ extern "C" {
   void rtclose_mi(void)
   {
     if (_rtCurOutBuf)
-      mfree(_rtCurOutBuf);
+      mfree(csound, _rtCurOutBuf);
     if (_rtOutOverBuf)
-      mfree(_rtOutOverBuf);
+      mfree(csound, _rtOutOverBuf);
     if (_rtInputBuf)
-      mfree(_rtInputBuf);
+      mfree(csound, _rtInputBuf);
   }
 #endif
 
@@ -981,7 +981,7 @@ PUBLIC void csoundSetRtcloseCallback(void *csound,
     int newCount = oldCount + 1;
     OENTRY *oldOpcodlst = ((ENVIRON *)csound)->opcodlst_;
     ((ENVIRON *)csound)->opcodlst_ =
-      (OENTRY *) mrealloc(((ENVIRON *)csound)->opcodlst_, newSize);
+      (OENTRY *) mrealloc(csound, ((ENVIRON *)csound)->opcodlst_, newSize);
     if(!((ENVIRON *)csound)->opcodlst_) {
       ((ENVIRON *)csound)->opcodlst_ = oldOpcodlst;
       err_printf("Failed to allocate new opcode entry.");
@@ -1096,7 +1096,7 @@ PUBLIC void csoundSetRtcloseCallback(void *csound,
 
     if (csoundEnv_ == NULL)
       {
-        csoundEnv_ = (Environs *) mcalloc(MAX_ENVIRONS * sizeof(Environs));
+        csoundEnv_ = (Environs *) mcalloc(csound, MAX_ENVIRONS * sizeof(Environs));
         if (!csoundEnv_)
           {
             return;
@@ -1106,7 +1106,7 @@ PUBLIC void csoundSetRtcloseCallback(void *csound,
       if (strcmp(csoundEnv_[i].environmentVariableName,
                  environmentVariableName) == 0)
         {
-          mrealloc(csoundEnv_[i].path, strlen(path)+1);
+          mrealloc(csound, csoundEnv_[i].path, strlen(path)+1);
           strcpy(csoundEnv_[i].path, path);
           return;
         }
@@ -1120,10 +1120,10 @@ PUBLIC void csoundSetRtcloseCallback(void *csound,
 
     csoundNumEnvs_++;
     csoundEnv_[csoundNumEnvs_].environmentVariableName =
-      mmalloc(strlen(environmentVariableName)+1);
+      mmalloc(csound, strlen(environmentVariableName)+1);
     strcpy(csoundEnv_[csoundNumEnvs_].environmentVariableName,
            environmentVariableName);
-    csoundEnv_[csoundNumEnvs_].path = mmalloc(strlen(path) + 1);
+    csoundEnv_[csoundNumEnvs_].path = mmalloc(csound, strlen(path) + 1);
     strcpy(csoundEnv_[csoundNumEnvs_].path, path);
   }
 

@@ -74,7 +74,7 @@ void queue_event(MYFLT instr,
       return;
     }
     /* Create the new event */
-    newnode = (EVTNODE *) mmalloc((long)sizeof(EVTNODE));
+    newnode = (EVTNODE *) mmalloc(&cenviron, (long)sizeof(EVTNODE));
     newevt = &newnode->evt;
     newevt->opcod = 'i';
     /* Set start time from kwhen */
@@ -290,7 +290,7 @@ int lfoset(ENVIRON *csound, LFO *p)
     if (type == 0) {            /* Sine wave so need to create */
       int i;
       if (p->auxd.auxp==NULL) {
-        auxalloc(sizeof(MYFLT)*4097L, &p->auxd);
+        auxalloc(csound, sizeof(MYFLT)*4097L, &p->auxd);
         p->sine = (MYFLT*)p->auxd.auxp;
       }
       for (i=0; i<4096; i++)
@@ -522,7 +522,7 @@ int ktriginstr(ENVIRON *csound, TRIGINSTR *p)
     } /* end test for non-turnoff events (pos insno) */
 
     /* Create the new event */
-    newnode = (EVTNODE *) mmalloc((long)sizeof(EVTNODE));
+    newnode = (EVTNODE *) mmalloc(csound, (long)sizeof(EVTNODE));
     newevt = &newnode->evt;
     newevt->opcod = 'i';
     /* Set start time from kwhen */

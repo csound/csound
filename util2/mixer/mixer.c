@@ -237,7 +237,7 @@ main(int argc, char **argv)
         }
       }
     }
-    O.filnamspace = filnamp = mmalloc((long)1024);
+    O.filnamspace = filnamp = mmalloc(&cenviron, (long)1024);
     mixin[n].start = -1; mixin[n].time = -FL(1.0);
     mixin[n].factor = FL(1.0); mixin[n].non_clear = 0;
     mixin[n].fulltable = NULL; mixin[n].use_table = 0;
@@ -505,7 +505,7 @@ main(int argc, char **argv)
     outfd = sf_open_fd(openout(O.outfilename, 1), SFM_WRITE, &sfinfo, 1);
     if (O.rewrt_hdr) sf_command(outfd, SFC_SET_UPDATE_HEADER_AUTO, NULL, 0);
     outbufsiz = NUMBER_OF_SAMPLES * outputs * O.sfsampsize;/* calc outbuf size */
-    outbuf = mmalloc((long)outbufsiz);                 /*  & alloc bufspace */
+    outbuf = mmalloc(&cenviron, (long)outbufsiz);       /*  & alloc bufspace */
     printf(Str("writing %d-byte blks of %s to %s %s\n"),
            outbufsiz, getstrformat(O.outformat), O.outfilename,
            O.filetyp == TYP_AIFF ? "(AIFF)" :
@@ -625,7 +625,7 @@ MXsndgetset(inputs *ddd)
     sssfinit();                 /* stand-alone init of SFDIR etc. */
     esr = FL(0.0);              /* set esr 0. with no orchestra   */
     optxt.t.outoffs = &argoffs; /* point to dummy OUTOCOUNT       */
-    ddd->p = p = (SOUNDIN *) mcalloc((long)sizeof(SOUNDIN));
+    ddd->p = p = (SOUNDIN *) mcalloc(&cenviron, (long)sizeof(SOUNDIN));
     p->channel = ALLCHNLS;
     p->h.optext = &optxt;
     p->ifilno = &sstrcod;
@@ -751,5 +751,4 @@ MixSound(int n, SNDFILE *outfd)
              (MYFLT)SHORTMAX/(MYFLT)((max>-min)?max:-min) );
     return;
 }
-
 

@@ -92,18 +92,18 @@ void ftRESET(ENVIRON *csound)
   int i;
   if (csound->flist) {
     for (i = 1; i <= csound->maxfnum; i++)
-      mfree(csound->flist[i]);   /* Check this */
-    mfree(csound->flist);
+      mfree(csound, csound->flist[i]);   /* Check this */
+    mfree(csound, csound->flist);
     csound->flist   = NULL;
   }
   csound->maxfnum = 0;
   if (csound->gensub) {
-    mfree(csound->gensub);
+    mfree(csound, csound->gensub);
     csound->gensub = NULL;
   }
   while (namedgen) {
     NAMEDGEN *next = namedgen->next;
-    mfree(namedgen);
+    mfree(csound, namedgen);
     namedgen = next;
   }
   /*     vco2_tables_destroy(); */
@@ -123,7 +123,7 @@ void fgens(ENVIRON *csound, EVTBLK *evtblkp) /* create ftable using evtblk data 
     FGDATA *ff = &csound->ff;
 
     if (csound->gensub==NULL) {
-      csound->gensub = (GEN*) mmalloc(sizeof(GEN)*(GENMAX+1));
+      csound->gensub = (GEN*) mmalloc(csound, sizeof(GEN)*(GENMAX+1));
       memcpy(csound->gensub, or_sub, sizeof(GEN)*(GENMAX+1));
       csound->genmax = GENMAX+1;
     }
@@ -138,7 +138,7 @@ void fgens(ENVIRON *csound, EVTBLK *evtblkp) /* create ftable using evtblk data 
         return;
       }
       csound->flist[ff->fno] = NULL;
-      mfree((char *)ftp);
+      mfree(csound, (char *)ftp);
       printf(Str("ftable %d now deleted\n"),ff->fno);
       return;
     }
@@ -151,7 +151,7 @@ void fgens(ENVIRON *csound, EVTBLK *evtblkp) /* create ftable using evtblk data 
       while (ff->fno >= size)
         size += MAXFNUM;
       size++;
-      nn = (FUNC**)mrealloc(csound->flist, size*sizeof(FUNC*));
+      nn = (FUNC**)mrealloc(csound, csound->flist, size*sizeof(FUNC*));
       csound->flist = nn;
       for (i=csound->maxfnum+1; i<size; i++)
         csound->flist[i] = NULL;             /* Clear new section */
@@ -674,7 +674,7 @@ static void gn1314(FUNC *ftp, ENVIRON *csound, MYFLT mxval, MYFLT mxscal)
     ff->e.p[5] = -xintvl;
     ff->e.p[6] = xintvl;
     nn = nh * sizeof(MYFLT) / 2;                /* alloc spc for terms 3,5,7,..*/
-    mp = mspace = (MYFLT *)mcalloc(nn);         /* of 1st row of matrix, and */
+    mp = mspace = (MYFLT *)mcalloc(csound, nn);         /* of 1st row of matrix, and */
     for (nn = (nh + 1) >>1; --nn; )             /* form array of non-0 terms */
       *mp++ = mxval = -mxval;                   /*  -val, val, -val, val ... */
     scalfac = 2 / xamp;
@@ -694,7 +694,7 @@ static void gn1314(FUNC *ftp, ENVIRON *csound, MYFLT mxval, MYFLT mxscal)
         *mp = prvm = *mp - prvm;
       mxscal *= scalfac;
     } while (--nh);                             /* loop til all h's replaced */
-    mfree((char *)mspace);
+    mfree(csound, (char *)mspace);
     gen03(ftp, csound);                         /* then call gen03 to write */
 }
 
@@ -1076,7 +1076,7 @@ static void gen23(FUNC *ftp, ENVIRON *csound)
       ff->flen    = ff->flen+2;
       ff->lenmask = ff->flen;
       ff->flenp1  = ff->flen+2;
-      ftp = (FUNC *) mcalloc((long)sizeof(FUNC) + ff->flen*sizeof(MYFLT));
+      ftp = (FUNC *) mcalloc(csound, (long)sizeof(FUNC) + ff->flen*sizeof(MYFLT));
       csound->flist[ff->fno]   = ftp;
       ftp->flen    = ff->flen;
       ftp->lenmask = ff->flen;
@@ -1261,9 +1261,9 @@ static void gen28(FUNC *ftp, ENVIRON *csound)
     strcpy(filename,ff->e.strarg);
     if ((filp = fopenin(filename)) == NULL) goto gen28err1;
 
-    x = (MYFLT*)mmalloc(arraysize*sizeof(MYFLT));
-    y = (MYFLT*)mmalloc(arraysize*sizeof(MYFLT));
-    z = (MYFLT*)mmalloc(arraysize*sizeof(MYFLT));
+    x = (MYFLT*)mmalloc(csound, arraysize*sizeof(MYFLT));
+    y = (MYFLT*)mmalloc(csound, arraysize*sizeof(MYFLT));
+    z = (MYFLT*)mmalloc(csound, arraysize*sizeof(MYFLT));
 #if defined(USE_DOUBLE)
     while (fscanf( filp, "%lf%lf%lf", &z[i], &x[i], &y[i])!= EOF) {
 #else
@@ -1272,9 +1272,9 @@ static void gen28(FUNC *ftp, ENVIRON *csound)
       i++;
       if (i>=arraysize) {
         arraysize += 1000;
-        x = (MYFLT*)mrealloc(x, arraysize*sizeof(MYFLT));
-        y = (MYFLT*)mrealloc(y, arraysize*sizeof(MYFLT));
-        z = (MYFLT*)mrealloc(z, arraysize*sizeof(MYFLT));
+        x = (MYFLT*)mrealloc(csound, x, arraysize*sizeof(MYFLT));
+        y = (MYFLT*)mrealloc(csound, y, arraysize*sizeof(MYFLT));
+        z = (MYFLT*)mrealloc(csound, z, arraysize*sizeof(MYFLT));
       }
     }
     --i;
@@ -1284,8 +1284,8 @@ static void gen28(FUNC *ftp, ENVIRON *csound)
     ff->lenmask=ff->flen;
     ff->flenp1=ff->flen+2;
     ftp=NULL;
-    mfree((char *)ftp);         /*   release old space   */
-    ftp = (FUNC *) mcalloc((long)sizeof(FUNC) + ff->flen*sizeof(MYFLT));
+    mfree(csound, (char *)ftp);         /*   release old space   */
+    ftp = (FUNC *) mcalloc(csound, (long)sizeof(FUNC) + ff->flen*sizeof(MYFLT));
     csound->flist[ff->fno] = ftp;
     ftp->flen = ff->flen;
     ftp->lenmask=ff->flen;
@@ -1318,7 +1318,7 @@ static void gen28(FUNC *ftp, ENVIRON *csound)
       *fp++ = y[j+1];
     } while (fp < finp);
 
-    mfree(x); mfree(y); mfree(z);
+    mfree(csound, x); mfree(csound, y); mfree(csound, z);
     fclose(filp);
 
     return;
@@ -1373,7 +1373,7 @@ static void gen30 (FUNC *ftp, ENVIRON *csound)
     }
     if (minh > maxh) return;
     i = ((l1 > l2 ? l1 : l2) >> 1) + 1L;
-    x = (complex*) mmalloc (sizeof (complex) * i);
+    x = (complex*) mmalloc(csound, sizeof (complex) * i);
     /* read src table */
     for (i = 0; i < l2; i++) {
       x[i >> 1].re = f->ftable[i]; i++;
@@ -1394,7 +1394,7 @@ static void gen30 (FUNC *ftp, ENVIRON *csound)
       ftp->ftable[i] = x[i >> 1].im;
     }
     ftp->ftable[l1] = ftp->ftable[0];   /* write guard point */
-    mfree (x);
+    mfree(csound, x);
 }
 
 /* gen31: transpose, phase shift, and mix source table */
@@ -1416,8 +1416,8 @@ static void gen31 (FUNC *ftp, ENVIRON *csound)
     f = ftfind(csound,&(ff->e.p[5])); if (f == NULL) return;
     l1 = ftp->flen; l2 = f->flen;
 
-    x = (complex*) mcalloc (sizeof (complex) * ((l2 >> 1) + 1));
-    y = (complex*) mcalloc (sizeof (complex) * ((l1 >> 1) + 1));
+    x = (complex*) mcalloc(csound, sizeof (complex) * ((l2 >> 1) + 1));
+    y = (complex*) mcalloc(csound, sizeof (complex) * ((l1 >> 1) + 1));
     /* read and analyze src table */
     for (i = 0; i < l2; i++) {
       x[i >> 1].re = f->ftable[i]; i++;
@@ -1454,7 +1454,7 @@ static void gen31 (FUNC *ftp, ENVIRON *csound)
     }
     ftp->ftable[l1] = ftp->ftable[0];   /* write guard point */
 
-    mfree (x); mfree (y);
+    mfree(csound, x); mfree(csound, y);
 }
 
 
@@ -1476,7 +1476,7 @@ static void gen32 (FUNC *ftp, ENVIRON *csound)
     }
 
     ntabl = nargs >> 2;         /* number of waves to mix */
-    pnum  = (long*) mmalloc (sizeof (long) * ntabl);
+    pnum  = (long*) mmalloc(csound, sizeof (long) * ntabl);
     for (i = 0; i < ntabl; i++)
       pnum[i] = (i << 2) + 5;   /* p-field numbers */
     do {
@@ -1525,9 +1525,9 @@ static void gen32 (FUNC *ftp, ENVIRON *csound)
         if (i != ft) {
           ft = i;               /* new table */
           if (y == NULL)
-            y = (complex*) mcalloc (sizeof (complex) * ((l1 >> 1) + 1));
-          if (x != NULL) mfree (x);
-          x = (complex*) mcalloc (sizeof (complex) * ((l2 >> 1) + 1));
+            y = (complex*) mcalloc(csound, sizeof (complex) * ((l1 >> 1) + 1));
+          if (x != NULL) mfree(csound, x);
+          x = (complex*) mcalloc(csound, sizeof (complex) * ((l2 >> 1) + 1));
           /* read and analyze src table */
           for (i = 0; i < l2; i++) {
             x[i >> 1].re = f->ftable[i]; i++;
@@ -1564,10 +1564,10 @@ static void gen32 (FUNC *ftp, ENVIRON *csound)
         ftp->ftable[i] += y[i >> 1].im;
       }
       ftp->ftable[l1] += y[0].re;               /* write guard point */
-      mfree (x);                                /* free tmp memory */
-      mfree (y);
+      mfree(csound, x);                                /* free tmp memory */
+      mfree(csound, y);
     }
-    mfree (pnum);
+    mfree(csound, pnum);
 }
 
 
@@ -1613,7 +1613,7 @@ static void gen33 (FUNC *ftp, ENVIRON *csound)
     }
 
     /* allocate memory for tmp data */
-    x = (complex*) mcalloc(sizeof (complex) * ((flen >> 1) + 1L));
+    x = (complex*) mcalloc(csound, sizeof (complex) * ((flen >> 1) + 1L));
     ex = AssignBasis(NULL, flen);
 
     maxp = flen >> 1;           /* max. partial number */
@@ -1648,7 +1648,7 @@ static void gen33 (FUNC *ftp, ENVIRON *csound)
     *ft = x[0].re;              /* write guard point */
 
     /* free tmp memory */
-    mfree(x);
+    mfree(csound, x);
 }
 
 /* GEN34 by Istvan Varga */
@@ -1695,10 +1695,10 @@ static void gen34 (FUNC *ftp, ENVIRON *csound)
     /* use blocks of 256 samples (2048 bytes) for speed */
     bs = 256L;
     /* allocate memory for tmp data */
-    tmp = (double*) mmalloc(sizeof (double) * bs);
-    xn  = (double*) mmalloc(sizeof (double) * (nh + 1L));
-    cn  = (double*) mmalloc(sizeof (double) * (nh + 1L));
-    vn  = (double*) mmalloc(sizeof (double) * (nh + 1L));
+    tmp = (double*) mmalloc(csound, sizeof (double) * bs);
+    xn  = (double*) mmalloc(csound, sizeof (double) * (nh + 1L));
+    cn  = (double*) mmalloc(csound, sizeof (double) * (nh + 1L));
+    vn  = (double*) mmalloc(csound, sizeof (double) * (nh + 1L));
     /* initialise oscillators */
     i = -1L;
     while (++i < nh) {
@@ -1744,7 +1744,7 @@ static void gen34 (FUNC *ftp, ENVIRON *csound)
     } while (j);
 
     /* free tmp buffers */
-    mfree(tmp); mfree(xn); mfree(cn); mfree(vn);
+    mfree(csound, tmp); mfree(csound, xn); mfree(csound, cn); mfree(csound, vn);
 }
 
 
@@ -1871,7 +1871,7 @@ static FUNC *ftalloc(ENVIRON *csound)
     if ((ftp = csound->flist[ff->fno]) != NULL) {
       printf(Str("replacing previous ftable %d\n"),ff->fno);
       if (ff->flen != ftp->flen) {          /* if redraw & diff len, */
-        mfree((char *)ftp);             /*   release old space   */
+        mfree(csound, (char *)ftp);             /*   release old space   */
         csound->flist[ff->fno] = NULL;
         if (actanchor.nxtact != NULL) {
           if (O.msglevel & WARNMSG) { /*   & chk for danger    */
@@ -1891,7 +1891,7 @@ static FUNC *ftalloc(ENVIRON *csound)
     if ((ftp = csound->flist[ff->fno]) == NULL) {   /*   alloc space as reqd */
       printf("Allocating %ld bytes\n",
              (long)sizeof(FUNC) + ff->flen*sizeof(MYFLT));
-      ftp = (FUNC *) mcalloc((long)sizeof(FUNC) + ff->flen*sizeof(MYFLT));
+      ftp = (FUNC *) mcalloc(csound, (long)sizeof(FUNC) + ff->flen*sizeof(MYFLT));
       csound->flist[ff->fno] = ftp;
     }
     return ftp;
@@ -2165,7 +2165,7 @@ FUNC *hfgens(ENVIRON *csound, EVTBLK *evtblkp)/* create ftable using evtblk data
         FUNC **nn;
         int i;
         while (ff->fno >= size) size += MAXFNUM;
-        nn = (FUNC**)mrealloc(csound->flist, size*sizeof(FUNC*));
+        nn = (FUNC**)mrealloc(csound, csound->flist, size*sizeof(FUNC*));
         csound->flist = nn;
         for (i=csound->maxfnum+1; i<size; i++)
           csound->flist[i] = NULL; /* Clear new section */
@@ -2174,7 +2174,7 @@ FUNC *hfgens(ENVIRON *csound, EVTBLK *evtblkp)/* create ftable using evtblk data
       if ((ftp = csound->flist[ff->fno]) == NULL)
         FTPLERR(Str("ftable does not exist"))
       csound->flist[ff->fno] = NULL;
-      mfree((char *)ftp);
+      mfree(csound, (char *)ftp);
       printf(Str("ftable %d now deleted\n"),ff->fno);
       return(NULL);                       /**************/
     }
@@ -2187,7 +2187,7 @@ FUNC *hfgens(ENVIRON *csound, EVTBLK *evtblkp)/* create ftable using evtblk data
         FUNC **nn;
         int i;
         size += MAXFNUM;
-        nn = (FUNC**)mrealloc(csound->flist, size*sizeof(FUNC*));
+        nn = (FUNC**)mrealloc(csound, csound->flist, size*sizeof(FUNC*));
         csound->flist = nn;
         for (i=csound->maxfnum+1; i<size; i++)
           csound->flist[i] = NULL; /* Clear new section */
@@ -2200,7 +2200,7 @@ FUNC *hfgens(ENVIRON *csound, EVTBLK *evtblkp)/* create ftable using evtblk data
         FUNC **nn;
         int i;
         while (ff->fno >= size) size += MAXFNUM;
-        nn = (FUNC**)mrealloc(csound->flist, size*sizeof(FUNC*));
+        nn = (FUNC**)mrealloc(csound, csound->flist, size*sizeof(FUNC*));
         csound->flist = nn;
         for (i=csound->maxfnum+1; i<size; i++)
           csound->flist[i] = NULL; /* Clear new section */
@@ -2239,7 +2239,7 @@ FUNC *hfgens(ENVIRON *csound, EVTBLK *evtblkp)/* create ftable using evtblk data
       FTPLERR(Str("deferred size for GEN1 only"))
     printf(Str("ftable %d:\n"), ff->fno);
     if (csound->gensub==NULL) {
-      csound->gensub = (GEN*)mmalloc(csound->genmax*sizeof(GEN));
+      csound->gensub = (GEN*)mmalloc(csound, csound->genmax*sizeof(GEN));
       memcpy(csound->gensub, or_sub, sizeof(or_sub));
     }
     (*csound->gensub[genum])(ftp, csound);     /* call gen subroutine  */
@@ -2256,7 +2256,7 @@ int ftgen(ENVIRON *csound, FTGEN *p) /* set up and call any GEN routine */
     FUNC *ftp;
     EVTBLK *ftevt;
 
-    ftevt = (EVTBLK *)mcalloc((long)sizeof(EVTBLK) + FTPMAX * sizeof(MYFLT));
+    ftevt = (EVTBLK *)mcalloc(csound, (long)sizeof(EVTBLK) + FTPMAX * sizeof(MYFLT));
     ftevt->opcod = 'f';
     fp = &ftevt->p[1];
     *fp++ = *p->p1;                               /* copy p1 - p5 */
@@ -2278,7 +2278,7 @@ int ftgen(ENVIRON *csound, FTGEN *p) /* set up and call any GEN routine */
         ftevt->strarg = p->STRARG;
       }
       else {
-        mfree(ftevt);
+        mfree(csound, ftevt);
         return initerror(Str("ftgen string arg not allowed"));
       }
     }
@@ -2287,10 +2287,10 @@ int ftgen(ENVIRON *csound, FTGEN *p) /* set up and call any GEN routine */
     if ((ftp = hfgens(csound, ftevt)) != NULL) /* call the fgen */
       *p->ifno = (MYFLT)ftp->fno;                 /* record the fno */
     else if (ftevt->p[1] >=0) {
-      mfree(ftevt);
+      mfree(csound, ftevt);
       return initerror(Str("ftgen error"));
     }
-    mfree(ftevt);
+    mfree(csound, ftevt);
     return OK;
 }
 
@@ -2608,7 +2608,7 @@ static int pvx_loadfile_mem(const char *fname,PVSTABLEDAT *p, MEMFIL **mfp)
       mem_wanted = totalframes * 2 * pvdata.nAnalysisBins * sizeof(float);
       /* try for the big block first! */
 
-      memblock = (float *) mmalloc(mem_wanted);
+      memblock = (float *) mmalloc(&cenviron, mem_wanted);
 
       pFrame = memblock;
       /* despite using pvocex infile, and pvocex-style resynth, we ~still~
@@ -2628,14 +2628,14 @@ static int pvx_loadfile_mem(const char *fname,PVSTABLEDAT *p, MEMFIL **mfp)
       }
       if (rc <0){
         sprintf(errmsg,Str("error reading pvoc-ex file %s\n"),fname);
-        mfree(memblock);
+        mfree(&cenviron, memblock);
         return 0;
       }
       if (i < totalframes){
         sprintf(errmsg,
                 Str("error reading pvoc-ex file %s after %d frames\n"),
                 fname,i);
-        mfree(memblock);
+        mfree(&cenviron, memblock);
         return 0;
       }
     }
@@ -2666,7 +2666,7 @@ static int pvx_loadfile_mem(const char *fname,PVSTABLEDAT *p, MEMFIL **mfp)
 
     /* Need to assign an MEMFIL to mfp */
     if (mfil==NULL){
-      mfil = (MEMFIL *)  mmalloc(sizeof(MEMFIL));
+      mfil = (MEMFIL *)  mmalloc(&cenviron, sizeof(MEMFIL));
       /* just hope the filename is short enough...! */
       mfil->next = NULL;
       mfil->filename[0] = '\0';
@@ -2757,17 +2757,17 @@ int allocgen(ENVIRON *csound, char *s, GEN fn)
       n = n->next;
     }
     /* Need to allocate */
-    n = (NAMEDGEN*) mmalloc(sizeof(NAMEDGEN));
+    n = (NAMEDGEN*) mmalloc(csound, sizeof(NAMEDGEN));
     n->genum = csound->genmax++;
     n->next = namedgen;
-    n->name = mmalloc(strlen(s)+1);
+    n->name = mmalloc(csound, strlen(s)+1);
     strcpy(n->name, s);
     namedgen = n;
     if (csound->gensub==NULL) {
-      csound->gensub = (GEN*)mmalloc(csound->genmax*sizeof(GEN));
+      csound->gensub = (GEN*)mmalloc(csound, csound->genmax*sizeof(GEN));
       memcpy(csound->gensub, or_sub, sizeof(or_sub));
     }
-    else csound->gensub = (GEN*)mrealloc(csound->gensub,
+    else csound->gensub = (GEN*)mrealloc(csound, csound->gensub,
                                          csound->genmax*sizeof(GEN));
     csound->gensub[csound->genmax-1] = fn;
     printf("**** allocated %d\n", csound->genmax-1);

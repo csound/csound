@@ -94,7 +94,7 @@ static void expand_nxp(void)
     else {                                   /*      or alloc a new */
       MEMHDR *prvmem = curmem;
       err_printf(Str("sread: requesting more memory\n"));
-      curmem = (MEMHDR *) mcalloc((long)MEMSIZ);
+      curmem = (MEMHDR *) mcalloc(&cenviron, (long)MEMSIZ);
       prvmem->nxtmem = curmem;
       curmem->nxtmem = NULL;
       curmem->memend = (char *)curmem + MEMSIZ;
@@ -178,7 +178,7 @@ top:
       if (c == EOF) {
         if (str == &inputs[0]) return EOF;
         fclose(str->file);
-        mfree(str->body);
+        mfree(&cenviron, str->body);
         str--; input_cnt--; goto top;
       }
     }
@@ -194,11 +194,11 @@ top:
 #ifdef MACDEBUG
         printf("popping %s\n", macros->name);
 #endif
-        mfree(macros->name); mfree(macros->body);
+        mfree(&cenviron, macros->name); mfree(&cenviron, macros->body);
         for (i=0; i<macros->acnt; i++) {
-          mfree(macros->arg[i]);
+          mfree(&cenviron, macros->arg[i]);
         }
-        mfree(macros);
+        mfree(&cenviron, macros);
         macros = nn;
         pop--;
       } while (pop);
@@ -246,18 +246,18 @@ top:
         for (j=0; j<mm->acnt; j++) {
           char term = (j==mm->acnt-1 ? ')' : '\'');
           char trm1 = (j==mm->acnt-1 ? ')' : '#');
-          MACRO* nn = (MACRO*) mmalloc(sizeof(MACRO));
+          MACRO* nn = (MACRO*) mmalloc(&cenviron, sizeof(MACRO));
           unsigned int size = 100;
-          nn->name = mmalloc(strlen(mm->arg[j])+1);
+          nn->name = mmalloc(&cenviron, strlen(mm->arg[j])+1);
           strcpy(nn->name, mm->arg[j]);
 #ifdef MACDEBUG
           printf("defining argument %s ", nn->name);
 #endif
           i = 0;
-          nn->body = (char*)mmalloc(100);
+          nn->body = (char*)mmalloc(&cenviron, 100);
           while ((c = getscochar(1))!= term && c != trm1) {
             nn->body[i++] = c;
-            if (i>= size) nn->body = mrealloc(nn->body, size += 100);
+            if (i>= size) nn->body = mrealloc(&cenviron, nn->body, size += 100);
           }
           nn->body[i]='\0';
 #ifdef MACDEBUG
@@ -273,7 +273,7 @@ top:
         int old = str-inputs;
         input_size += 20;
 /*         printf("Expanding includes to %d\n", input_size); */
-        inputs = mrealloc(inputs, input_size*sizeof(struct in_stack));
+        inputs = mrealloc(&cenviron, inputs, input_size*sizeof(struct in_stack));
         if (inputs == NULL) {
           printf(Str("No space for include files"));
           longjmp(cenviron.exitjmp_,1);
@@ -436,10 +436,10 @@ top:
       sprintf(buffer, "%f", *pv);
 /*       printf("Buffer:>>>%s<<<\n", buffer); */
       {
-        MACRO* nn = (MACRO*) mmalloc(sizeof(MACRO));
-        nn->name = mmalloc(2);
+        MACRO* nn = (MACRO*) mmalloc(&cenviron, sizeof(MACRO));
+        nn->name = mmalloc(&cenviron, 2);
         strcpy(nn->name, "[");
-        nn->body = (char*)mmalloc(strlen(buffer)+1);
+        nn->body = (char*)mmalloc(&cenviron, strlen(buffer)+1);
         strcpy(nn->body, buffer);
         nn->acnt = 0;   /* No arguments for arguments */
         nn->next = macros;
@@ -449,7 +449,7 @@ top:
           int old = str-inputs;
 /*           printf("Expanding includes to %d\n", input_size+20); */
           input_size += 20;
-          inputs = mrealloc(inputs, input_size*sizeof(struct in_stack));
+          inputs = mrealloc(&cenviron, inputs, input_size*sizeof(struct in_stack));
           if (inputs == NULL) {
             printf(Str("No space for include files"));
             longjmp(cenviron.exitjmp_,1);
@@ -497,8 +497,8 @@ static int nested_repeat(void)  /* gab A9*/
                repeat_index);
       if (strcmp(repeat_name_n[repeat_index], macros->name)==0) {
         MACRO *mm=macros->next;
-        mfree(macros->name); mfree(macros->body);
-        mfree(macros); macros = mm;
+        mfree(&cenviron, macros->name); mfree(&cenviron, macros->body);
+        mfree(&cenviron, macros); macros = mm;
       }
       else {
         MACRO *mm = macros;
@@ -508,8 +508,8 @@ static int nested_repeat(void)  /* gab A9*/
           if (nn==NULL)
             scorerr(Str("Undefining undefined macro"));
         }
-        mfree(nn->name); mfree(nn->body);
-        mm->next = nn->next; mfree(nn);
+        mfree(&cenviron, nn->name); mfree(&cenviron, nn->body);
+        mm->next = nn->next; mfree(&cenviron, nn);
       }
       repeat_index--;
     }
@@ -553,8 +553,8 @@ static int do_repeat(void)      /* At end of section repeat if necessary */
       printf(Str("Loop terminated\n"));
       if (strcmp(repeat_name, macros->name)==0) {
         MACRO *mm=macros->next;
-        mfree(macros->name); mfree(macros->body);
-        mfree(macros); macros = mm;
+        mfree(&cenviron, macros->name); mfree(&cenviron, macros->body);
+        mfree(&cenviron, macros); macros = mm;
       }
       else {
         MACRO *mm = macros;
@@ -564,8 +564,8 @@ static int do_repeat(void)      /* At end of section repeat if necessary */
           if (nn==NULL)
             scorerr(Str("Undefining undefined macro"));
         }
-        mfree(nn->name); mfree(nn->body);
-        mm->next = nn->next; mfree(nn);
+        mfree(&cenviron, nn->name); mfree(&cenviron, nn->body);
+        mm->next = nn->next; mfree(&cenviron, nn);
       }
     }
     else {
@@ -586,7 +586,7 @@ static int do_repeat(void)      /* At end of section repeat if necessary */
 
 void sread_init(void)
 {
-    inputs = (struct in_stack*)mmalloc(20*sizeof(struct in_stack));
+    inputs = (struct in_stack*)mmalloc(&cenviron, 20*sizeof(struct in_stack));
     input_size = 20;
     input_cnt = 0;
     str = inputs;
@@ -646,7 +646,7 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
         }
 /*         if (current_name) { */
 /*           fclose(str->file); */
-/*           mfree(str->body); */
+/*           mfree(csound, str->body); */
 /*           str--; input_cnt--; */
 /*           current_name = NULL; */
 /*         } */
@@ -673,7 +673,7 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
           repeat_index++;
 /*           if (current_name) { */
 /*             fclose(str->file); */
-/*             mfree(str->body); */
+/*             mfree(csound, str->body); */
 /*             str--; input_cnt--; */
 /*             current_name = NULL; */
 /*           } */
@@ -688,7 +688,7 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
             char *nn = repeat_name_n[repeat_index];
             int c;
             repeat_mm_n[repeat_index] =
-              (MACRO*)mmalloc(sizeof(MACRO));
+              (MACRO*)mmalloc(&cenviron, sizeof(MACRO));
             repeat_cnt_n[repeat_index] = 0;
             do {
               c = getscochar(1);
@@ -724,11 +724,11 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
             /* printf("Found macro definition for %s\n", */
             /*                           repeat_name); */
             repeat_mm_n[repeat_index]->name =
-              mmalloc(strlen(repeat_name_n[repeat_index])+1);
+              mmalloc(&cenviron, strlen(repeat_name_n[repeat_index])+1);
             strcpy(repeat_mm_n[repeat_index]->name,
                    repeat_name_n[repeat_index]);
             repeat_mm_n[repeat_index]->acnt = 0;
-            repeat_mm_n[repeat_index]->body = (char*)mmalloc(8);
+            repeat_mm_n[repeat_index]->body = (char*)mmalloc(&cenviron, 8);
             sprintf(repeat_mm_n[repeat_index]->body, "%d", 0);
             repeat_mm_n[repeat_index]->next = macros;
             macros = repeat_mm_n[repeat_index];
@@ -753,7 +753,7 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
         }
 /*         if (current_name) { */
 /*           fclose(str->file); */
-/*           mfree(str->body); */
+/*           mfree(csound, str->body); */
 /*           str--; */
 /*           current_name = NULL; */
 /*         } */
@@ -772,7 +772,7 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
         else {
           char *nn = repeat_name;
           int c;
-          repeat_mm = (MACRO*)mmalloc(sizeof(MACRO));
+          repeat_mm = (MACRO*)mmalloc(&cenviron, sizeof(MACRO));
           repeat_cnt = 0;
           do {
             c = getscochar(1);
@@ -793,10 +793,10 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
           /* Define macro for counter */
           /*             printf("Found macro definition for %s\n", */
           /*                     repeat_name); */
-          repeat_mm->name = mmalloc(strlen(repeat_name)+1);
+          repeat_mm->name = mmalloc(&cenviron, strlen(repeat_name)+1);
           strcpy(repeat_mm->name, repeat_name);
           repeat_mm->acnt = 0;
-          repeat_mm->body = (char*)mmalloc(8);
+          repeat_mm->body = (char*)mmalloc(&cenviron, 8);
           sprintf(repeat_mm->body, "%d", 1); /* Set value */
           repeat_mm->next = macros;
           macros = repeat_mm;
@@ -815,7 +815,7 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
         }
 /*         if (current_name) { */
 /*           fclose(str->file); */
-/*           mfree(str->body); */
+/*           mfree(csound, str->body); */
 /*           str--; input_cnt--; */
 /*           current_name = NULL; */
 /*         } */
@@ -837,14 +837,14 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
             if (strcmp(buff, names[i].name)==0) break;
           if (i>next_name) {
             i = ++next_name;
-            names[i].name = (char*)mmalloc(i+1);
+            names[i].name = (char*)mmalloc(&cenviron, i+1);
             strcpy(names[i].name, buff);
           }
-          else mfree(names[i].file);
+          else mfree(&cenviron, names[i].file);
           flushlin();
           if (!str->string) {
             names[next_name].posit = ftell(str->file);
-            names[next_name].file = mmalloc(strlen(str->body)+1);
+            names[next_name].file = mmalloc(&cenviron, strlen(str->body)+1);
             strcpy(names[next_name].file, str->body);
             printf(Str("%d: File %s position %ld\n"),
                    next_name, names[next_name].file,
@@ -883,7 +883,7 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
               int old = str-inputs;
               input_size += 20;
 /*               printf("Expanding includes to %d\n", input_size); */
-              inputs = mrealloc(inputs, input_size*sizeof(struct in_stack));
+              inputs = mrealloc(&cenviron, inputs, input_size*sizeof(struct in_stack));
               if (inputs == NULL) {
                 printf(Str("No space for include files"));
                 longjmp(cenviron.exitjmp_,1);
@@ -898,7 +898,7 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
               printf(Str("cannot open input file %s\n"),names[i].file);
               longjmp(cenviron.exitjmp_,1);
             }
-            str->body = mmalloc(strlen(names[i].file)+1);
+            str->body = mmalloc(&cenviron, strlen(names[i].file)+1);
             fseek(str->file, names[i].posit, SEEK_SET);
             strcpy(str->body, names[i].file);
           }
@@ -948,9 +948,9 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
     if (rtncod<0)               /* Ending so clear macros */
       while (macros!=NULL) {
         int i;
-        mfree(macros->body);
-        mfree(macros->name);
-        for (i=0; i<macros->acnt; i++) mfree(macros->arg[i]);
+        mfree(&cenviron, macros->body);
+        mfree(&cenviron, macros->name);
+        for (i=0; i<macros->acnt; i++) mfree(&cenviron, macros->arg[i]);
         macros = macros->next;
       }
     return(--rtncod);
@@ -1162,7 +1162,7 @@ static void pcopy(int pfno, int ncopy, SRTBLK *prvbp)
 static void salcinit(void)    /* init the sorter mem space for a new section */
 {                             /*  alloc 1st memblk if nec; init *nxp to this */
     if ((curmem = basmem) == NULL) {
-      curmem = basmem = (MEMHDR *) mcalloc((long)MEMSIZ);
+      curmem = basmem = (MEMHDR *) mcalloc(&cenviron, (long)MEMSIZ);
       curmem->nxtmem = NULL;
       curmem->memend = (char *)curmem + MEMSIZ;
     }
@@ -1209,13 +1209,13 @@ void sfree(void)                 /* free all sorter allocated space */
 
     for (curmem = basmem; curmem != NULL; curmem = nxtmem) {
       nxtmem = curmem->nxtmem;
-      mfree((char *)curmem);
+      mfree(&cenviron, (char *)curmem);
     }
     basmem = NULL;
     while (str != &inputs[0]) {
       if (!str->string) {
         fclose(str->file);
-        mfree(str->body);
+        mfree(&cenviron, str->body);
       }
       str--;
     }
@@ -1281,7 +1281,7 @@ static int sget1(void)          /* get first non-white, non-comment char */
       int i=0;
       int arg = 0;
       int size = 100;
-      MACRO *mm = (MACRO*)mmalloc(sizeof(MACRO));
+      MACRO *mm = (MACRO*)mmalloc(&cenviron, sizeof(MACRO));
       mm->margs = MARGS;
       while (isspace(c = getscochar(1)));
       if (c=='d') {
@@ -1298,7 +1298,7 @@ static int sget1(void)          /* get first non-white, non-comment char */
         } while (isalpha(c = getscochar(1)) || (i!=0 && (isdigit(c)||c=='_')));
         mname[i] = '\0';
         printf(Str("Macro definition for %s\n"), mname);
-        mm->name = mmalloc(i+1);
+        mm->name = mmalloc(&cenviron, i+1);
         strcpy(mm->name, mname);
         if (c == '(') { /* arguments */
           /*          printf("M-arguments: "); */
@@ -1311,10 +1311,10 @@ static int sget1(void)          /* get first non-white, non-comment char */
             }
             mname[i] = '\0';
             /*          printf("%s\t", mname); */
-            mm->arg[arg] = mmalloc(i+1);
+            mm->arg[arg] = mmalloc(&cenviron, i+1);
             strcpy(mm->arg[arg++], mname);
             if (arg>=mm->margs) {
-              mm = (MACRO*)mrealloc(mm, sizeof(MACRO)+mm->margs*sizeof(char*));
+              mm = (MACRO*)mrealloc(&cenviron, mm, sizeof(MACRO)+mm->margs*sizeof(char*));
               mm->margs += MARGS;
             }
             while (isspace(c)) c = getscochar(1);
@@ -1328,15 +1328,15 @@ static int sget1(void)          /* get first non-white, non-comment char */
         mm->acnt = arg;
         i = 0;
         while ((c = getscochar(1))!= '#'); /* Skip to next # */
-        mm->body = (char*)mmalloc(100);
+        mm->body = (char*)mmalloc(&cenviron, 100);
         while ((c = getscochar(0))!= '#') {     /* Do not expand here!! */
           mm->body[i++] = c;
           if (i>= size)
-            mm->body = mrealloc(mm->body, size += 100);
+            mm->body = mrealloc(&cenviron, mm->body, size += 100);
           if (c=='\\') {
             mm->body[i++] = getscochar(0); /* Allow escaped # */
             if (i>= size)
-              mm->body = mrealloc(mm->body, size += 100);
+              mm->body = mrealloc(&cenviron, mm->body, size += 100);
           }
           if (c=='\n') lincnt++;
         }
@@ -1369,7 +1369,7 @@ static int sget1(void)          /* get first non-white, non-comment char */
           int old = str-inputs;
           input_size += 20;
 /*           printf("Expanding includes to %d\n", input_size); */
-          inputs = mrealloc(inputs, input_size*sizeof(struct in_stack));
+          inputs = mrealloc(&cenviron, inputs, input_size*sizeof(struct in_stack));
           if (inputs == NULL) {
             printf(Str("No space for include files"));
             longjmp(cenviron.exitjmp_,1);
@@ -1386,7 +1386,7 @@ static int sget1(void)          /* get first non-white, non-comment char */
 /*           str--; input_cnt--; */
         }
         else {
-          str->body = mmalloc(strlen(name_full)+1);
+          str->body = mmalloc(&cenviron, strlen(name_full)+1);
           strcpy(str->body, name_full);
           goto srch;
         }
@@ -1406,10 +1406,10 @@ static int sget1(void)          /* get first non-white, non-comment char */
         printf(Str("macro %s undefined\n"), mname);
         if (strcmp(mname, macros->name)==0) {
           MACRO *mm=macros->next;
-          mfree(macros->name); mfree(macros->body);
+          mfree(&cenviron, macros->name); mfree(&cenviron, macros->body);
           for (i=0; i<macros->acnt; i++)
-            mfree(macros->arg[i]);
-          mfree(macros); macros = mm;
+            mfree(&cenviron, macros->arg[i]);
+          mfree(&cenviron, macros); macros = mm;
         }
         else {
           MACRO *mm = macros;
@@ -1418,10 +1418,10 @@ static int sget1(void)          /* get first non-white, non-comment char */
             mm = nn; nn = nn->next;
             if (nn==NULL) scorerr(Str("Undefining undefined macro"));
           }
-          mfree(nn->name); mfree(nn->body);
+          mfree(&cenviron, nn->name); mfree(&cenviron, nn->body);
           for (i=0; i<nn->acnt; i++)
-            mfree(nn->arg[i]);
-          mm->next = nn->next; mfree(nn);
+            mfree(&cenviron, nn->arg[i]);
+          mm->next = nn->next; mfree(&cenviron, nn);
         }
         while (c!='\n') c = getscochar(1); /* ignore rest of line */
         lincnt++;
@@ -1516,7 +1516,7 @@ static int getpfld(void)             /* get pfield val from SCOREIN file */
           MEMHDR *next;
           int change;
           long newsize = (long)(memend - (char*)curmem + 200);
-          next = (MEMHDR *) mrealloc(curmem, newsize);
+          next = (MEMHDR *) mrealloc(&cenviron, curmem, newsize);
           if (basmem == curmem) {
             basmem = next;
           }
@@ -1561,7 +1561,7 @@ static int getpfld(void)             /* get pfield val from SCOREIN file */
         MEMHDR *next;
         int change;
         long newsize = (long)(memend - (char*)curmem + 200);
-        next = (MEMHDR *) mrealloc(curmem, newsize);
+        next = (MEMHDR *) mrealloc(&cenviron, curmem, newsize);
         if (basmem == curmem) {
           basmem = next;
         }

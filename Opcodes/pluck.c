@@ -72,7 +72,7 @@ int pluckExcite(ENVIRON *csound, WGPLUCK* p)
 /*        p->wg.upperRail.data[i] = shape[i]; */
 
     /* free the space used by the pluck shape */
-    mfree((char*)shape);
+    mfree(csound, (char*)shape);
 
     /* Reset the tuning and bridge filters */
     /*filterReset(&p->wg.tnFIR);*/
@@ -94,10 +94,10 @@ int pluckPluck(ENVIRON *csound, WGPLUCK* p)
 #endif
 
     /* Allocate auxillary memory or reallocate if size has changed */
-    auxalloc((len_t)(ndelay/2)*sizeof(MYFLT), &p->upperData);
-    auxalloc((len_t)(ndelay/2)*sizeof(MYFLT), &p->lowerData);
-/*     auxalloc(3L*sizeof(MYFLT), &p->bridgeCoeffs); */
-/*     auxalloc(3L*sizeof(MYFLT), &p->bridgeData); */
+    auxalloc(csound, (len_t)(ndelay/2)*sizeof(MYFLT), &p->upperData);
+    auxalloc(csound, (len_t)(ndelay/2)*sizeof(MYFLT), &p->lowerData);
+/*     auxalloc(csound, 3L*sizeof(MYFLT), &p->bridgeCoeffs); */
+/*     auxalloc(csound, 3L*sizeof(MYFLT), &p->bridgeData); */
 
 #ifdef WG_VERBOSE
     printf("done.\n");
@@ -172,7 +172,7 @@ static MYFLT *pluckShape(ENVIRON *csound, WGPLUCK* p)
     MYFLT M;
 
     /* This memory must be freed after use */
-    shape = (MYFLT *) mmalloc(len*sizeof(MYFLT));
+    shape = (MYFLT *) mmalloc(csound, len*sizeof(MYFLT));
     if (!shape)
       error(csound,
             Str("Couldn't allocate for initial shape"),"<pluckShape>");

@@ -45,7 +45,7 @@ int sndwarpgetset(ENVIRON *csound, SNDWARP *p)
     if ((auxp = p->auxch.auxp) == NULL || nsections != p->nsections) {
       if (nsections != p->nsections)
         auxp = p->auxch.auxp=NULL;
-      auxalloc((long)nsections*sizeof(WARPSECTION), &p->auxch);
+      auxalloc(csound, (long)nsections*sizeof(WARPSECTION), &p->auxch);
       auxp = p->auxch.auxp;
       p->nsections = nsections;
     }
@@ -207,7 +207,7 @@ int sndwarpstgetset(ENVIRON *csound, SNDWARPST *p)
     if ((auxp = p->auxch.auxp) == NULL || nsections != p->nsections) {
       if (nsections != p->nsections)
         auxp=p->auxch.auxp=NULL;
-      auxalloc((long)nsections*sizeof(WARPSECTION), &p->auxch);
+      auxalloc(csound, (long)nsections*sizeof(WARPSECTION), &p->auxch);
       auxp = p->auxch.auxp;
       p->nsections = nsections;
     }

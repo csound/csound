@@ -220,7 +220,7 @@ int main(int argc, char **argv)
     e0dbfs = DFLT_DBFS;
     init_getstring(argc, argv);
 
-    O.filnamspace = outfile = (char*)mmalloc((long)1024);
+    O.filnamspace = outfile = (char*)mmalloc(&cenviron, (long)1024);
     if ((envoutyp = getenv("SFOUTYP")) != NULL) {
       if (strcmp(envoutyp,"AIFF") == 0)
         O.filetyp = TYP_AIFF;
@@ -478,8 +478,8 @@ int main(int argc, char **argv)
     sfinfo.seekable = 0;
     outfd = sf_open_fd(openout(O.outfilename, 1), SFM_WRITE, &sfinfo, 1);
     if (O.rewrt_hdr) sf_command(outfd, SFC_SET_UPDATE_HEADER_AUTO, NULL, 0);
-    outbufsiz = OBUF * O.sfsampsize;/* calc outbuf size */
-    outbuf = mmalloc((long)outbufsiz);                 /*  & alloc bufspace */
+    outbufsiz = OBUF * O.sfsampsize;                    /* calc outbuf size */
+    outbuf = mmalloc(&cenviron, (long)outbufsiz);       /*  & alloc bufspace */
     printf(Str("writing %d-byte blks of %s to %s"),
            outbufsiz, getstrformat(O.outformat), O.outfilename);
     printf(" %s\n", type2string(O.filetyp));

@@ -42,9 +42,21 @@ typedef struct memAllocBlock_s {
 #define DATA_PTR(p) ((void*) ((unsigned char*) (p) + (int) HDR_SIZE))
 #define HDR_PTR(p)  ((memAllocBlock_t*) ((unsigned char*) (p) - (int) HDR_SIZE))
 
+#define MEMALLOC_DB (((ENVIRON*) csound)->memalloc_db)
+
 #define NO_ZERO_ALLOCS  1
 
-static void *mmalloc__(memAllocBlock_t **base, size_t size)
+static void memdie(void *csound, int nbytes)
+{
+    err_printf(Str("memory allocate failure for %d\n"), nbytes);
+#ifdef mills_macintosh
+    err_printf(Str("try increasing preferred size setting for "
+                   "the Perf Application\n"));
+#endif
+    longjmp(((ENVIRON*) csound)->exitjmp_,1);
+}
+
+void *mmalloc(void *csound, size_t size)
 {
     void  *p;
 
@@ -56,21 +68,23 @@ static void *mmalloc__(memAllocBlock_t **base, size_t size)
     }
 #endif
     /* allocate memory */
-    if ((p = malloc(ALLOC_BYTES(size))) == NULL)
+    if ((p = malloc(ALLOC_BYTES(size))) == NULL) {
+      memdie(csound, (int) size);
       return NULL;
+    }
     /* link into chain */
     ((memAllocBlock_t*) p)->magic = MEMALLOC_MAGIC;
     ((memAllocBlock_t*) p)->ptr = DATA_PTR(p);
     ((memAllocBlock_t*) p)->prv = (memAllocBlock_t*) NULL;
-    ((memAllocBlock_t*) p)->nxt = (*base);
-    if ((*base) != NULL)
-      (*base)->prv = (memAllocBlock_t*) p;
-    (*base) = (memAllocBlock_t*) p;
+    ((memAllocBlock_t*) p)->nxt = (memAllocBlock_t*) MEMALLOC_DB;
+    if (MEMALLOC_DB != NULL)
+      ((memAllocBlock_t*) MEMALLOC_DB)->prv = (memAllocBlock_t*) p;
+    MEMALLOC_DB = (void*) p;
     /* return with data pointer */
     return DATA_PTR(p);
 }
 
-static void *mcalloc__(memAllocBlock_t **base, size_t size)
+void *mcalloc(void *csound, size_t size)
 {
     void  *p;
 
@@ -82,21 +96,23 @@ static void *mcalloc__(memAllocBlock_t **base, size_t size)
     }
 #endif
     /* allocate memory */
-    if ((p = calloc(ALLOC_BYTES(size), (size_t) 1)) == NULL)
+    if ((p = calloc(ALLOC_BYTES(size), (size_t) 1)) == NULL) {
+      memdie(csound, (int) size);
       return NULL;
+    }
     /* link into chain */
     ((memAllocBlock_t*) p)->magic = MEMALLOC_MAGIC;
     ((memAllocBlock_t*) p)->ptr = DATA_PTR(p);
     ((memAllocBlock_t*) p)->prv = (memAllocBlock_t*) NULL;
-    ((memAllocBlock_t*) p)->nxt = (*base);
-    if ((*base) != NULL)
-      (*base)->prv = (memAllocBlock_t*) p;
-    (*base) = (memAllocBlock_t*) p;
+    ((memAllocBlock_t*) p)->nxt = (memAllocBlock_t*) MEMALLOC_DB;
+    if (MEMALLOC_DB != NULL)
+      ((memAllocBlock_t*) MEMALLOC_DB)->prv = (memAllocBlock_t*) p;
+    MEMALLOC_DB = (void*) p;
     /* return with data pointer */
     return DATA_PTR(p);
 }
 
-static void mfree__(memAllocBlock_t **base, void *p)
+void mfree(void *csound, void *p)
 {
     memAllocBlock_t *pp;
 
@@ -116,20 +132,20 @@ static void mfree__(memAllocBlock_t **base, void *p)
     if (pp->prv != NULL)
       pp->prv->nxt = pp->nxt;
     else
-      (*base) = pp->nxt;
+      MEMALLOC_DB = (void*) pp->nxt;
     /* free memory */
     free((void*) pp);
 }
 
-static void *mrealloc__(memAllocBlock_t **base, void *oldp, size_t size)
+void *mrealloc(void *csound, void *oldp, size_t size)
 {
     memAllocBlock_t *pp;
     void            *p;
 
     if (oldp == NULL)
-      return mmalloc__(base, size);
+      return mmalloc(csound, size);
     if (size == (size_t) 0) {
-      mfree__(base, oldp);
+      mfree(csound, oldp);
       return NULL;
     }
     pp = HDR_PTR(oldp);
@@ -149,6 +165,7 @@ static void *mrealloc__(memAllocBlock_t **base, void *oldp, size_t size)
       /* alloc failed, restore original header */
       pp->magic = MEMALLOC_MAGIC;
       pp->ptr = oldp;
+      memdie(csound, (int) size);
       return NULL;
     }
     /* create new header and update chain pointers */
@@ -160,25 +177,20 @@ static void *mrealloc__(memAllocBlock_t **base, void *oldp, size_t size)
     if (pp->prv != NULL)
       pp->prv->nxt = pp;
     else
-      (*base) = pp;
+      MEMALLOC_DB = (void*) pp;
     /* return with data pointer */
     return DATA_PTR(pp);
 }
 
-/* the following functions will eventually take a Csound instance pointer, */
-/* but until then a static variable is needed */
-
-static  memAllocBlock_t *memalloc_db = (memAllocBlock_t*) NULL;
-
-void all_free(void)
+void all_free(void *csound)
 {
     memAllocBlock_t *pp, *nxtp;
 
-    if (memalloc_db == NULL)
+    if (MEMALLOC_DB == NULL)
       return;           /* no allocs to free */
     rlsmemfiles();
-    pp = memalloc_db;
-    memalloc_db = NULL;
+    pp = (memAllocBlock_t*) MEMALLOC_DB;
+    MEMALLOC_DB = NULL;
     do {
       nxtp = pp->nxt;
       free((void*) pp);
@@ -186,57 +198,10 @@ void all_free(void)
     } while (pp != NULL);
 }
 
-void memRESET(void)
+void memRESET(void *csound)
 {
-    all_free();
+    all_free(csound);
     /*RWD 9:2000 not terribly vital, but good to do this somewhere... */
     pvsys_release();
-}
-
-static void memdie(int nbytes)
-{
-    err_printf(Str("memory allocate failure for %d\n"), nbytes);
-#ifdef mills_macintosh
-    err_printf(Str("try increasing preferred size setting for "
-                   "the Perf Application\n"));
-#endif
-    longjmp(cenviron.exitjmp_,1);
-}
-
-void *mcalloc(long nbytes)      /* allocate new memory space, cleared to 0 */
-{
-    void  *p;
-
-    p = mcalloc__(&memalloc_db, (size_t) nbytes);
-    if (p == NULL && nbytes != 0L) {
-      memdie((int) nbytes);
-    }
-    return p;
-}
-
-void *mmalloc(long nbytes)  /* allocate new memory space, not cleared to 0 */
-{
-    void  *p;
-
-    p = mmalloc__(&memalloc_db, (size_t) nbytes);
-    if (p == NULL && nbytes != 0L) {
-      memdie((int) nbytes);
-    }
-    return p;
-}
-
-void *mrealloc(void *old, long nbytes)  /* Packaged realloc */
-{
-    void  *p;
-    p = mrealloc__(&memalloc_db, old, (size_t) nbytes);
-    if (p == NULL && nbytes != 0L) {
-      memdie(nbytes);
-    }
-    return p;
-}
-
-void mfree(void *ptr)
-{
-    mfree__(&memalloc_db, ptr);
 }
 

@@ -113,7 +113,7 @@ static  void    average(long,double *,double *,long);
 static  void    output(long, int, int);
 static  void    output_ph(long), filedump(void), quit(char *);
 extern  int     close(int);
-extern int csoundYield(void *);
+extern  int     csoundYield(void *);
 
 #define sgn(x)  (x<0.0 ? -1 : 1)
 #define u(x)    (x>0.0 ? 1 : 0)
@@ -225,7 +225,7 @@ extern  long     getsndin(int, MYFLT*, long, SOUNDIN*);
             quit (errmsg);
         }
         nsamps = p->getframes;
-        auxp = (MYFLT*)mmalloc(nsamps * sizeof(MYFLT));   /* alloc for MYFLTs */
+        auxp = (MYFLT*)mmalloc(&cenviron, nsamps * sizeof(MYFLT));   /* alloc for MYFLTs */
         if ((smpsin = getsndin(infd,auxp,nsamps,p)) <= 0) { /* & read them in */
           printf("smpsin = %d\n", smpsin);
             sprintf(errmsg,Str("Read error on %s\n"), retfilnam);
@@ -254,7 +254,7 @@ extern  long     getsndin(int, MYFLT*, long, SOUNDIN*);
         smpspc = smpsin * sizeof(double);
         bufspc = bufsiz * sizeof(double);
 
-        dsp = dspace = mmalloc(smpspc * 2 + bufspc * 13);
+        dsp = dspace = mmalloc(&cenviron, smpspc * 2 + bufspc * 13);
         c_p = (double *) dsp;           dsp += smpspc;  /* space for the    */
         s_p = (double *) dsp;           dsp += smpspc;  /* quadrature terms */
         begbufs = (double *) dsp;
@@ -274,9 +274,9 @@ extern  long     getsndin(int, MYFLT*, long, SOUNDIN*);
         endbufs = (double *) dsp;
 
         mgfrspc = num_pts * sizeof(MYFLT);
-        dsp = mspace = mmalloc(mgfrspc * hmax * 2);
-        MAGS = (MYFLT **) mmalloc(hmax * sizeof(MYFLT*));
-        FREQS = (MYFLT **) mmalloc(hmax * sizeof(MYFLT*));
+        dsp = mspace = mmalloc(&cenviron, mgfrspc * hmax * 2);
+        MAGS = (MYFLT **) mmalloc(&cenviron, hmax * sizeof(MYFLT*));
+        FREQS = (MYFLT **) mmalloc(&cenviron, hmax * sizeof(MYFLT*));
         for (i = 0; i < hmax; i++) {
             MAGS[i] = (MYFLT *) dsp;    dsp += mgfrspc;
             FREQS[i] = (MYFLT *) dsp;   dsp += mgfrspc;
@@ -297,10 +297,10 @@ extern  long     getsndin(int, MYFLT*, long, SOUNDIN*);
             err_printf(Str("analyzing harmonic #%d\n"),hno);
             err_printf(Str("freq est %6.1f,"), cur_est);
             hetdyn(hno);                /* perform actual computation */
-            if (!csoundYield(NULL)) exit(1);
+            if (!csoundYield(&cenviron)) exit(1);
             err_printf(Str(" max found %6.1f, rel amp %6.1f\n"), max_frq, max_amp);
         }
-        mfree(dspace);
+        mfree(&cenviron, dspace);
 #ifdef mills_macintosh
         if (!(transport.state & kGenKilled))
 #endif
@@ -309,14 +309,14 @@ extern  long     getsndin(int, MYFLT*, long, SOUNDIN*);
             if (is_sdiffile(outfilnam)) {
               if (!writesdif()) {
                 err_printf(Str("Unable to write to SDIF file\n"));
-                mfree(mspace);
+                mfree(&cenviron, mspace);
                 exit(1);
               }
             }
             else
               filedump();                       /* write output to adsyn file */
           }
-        mfree(mspace);
+        mfree(&cenviron, mspace);
 #if !defined(mills_macintosh)
         exit(0);
 #endif
@@ -529,14 +529,14 @@ static void filedump(void)     /* WRITE OUTPUT FILE in DATA-REDUCED format */
     MYFLT   timesiz;
     extern  int     openout(char *, int);
 
-    mags = (short **) mmalloc(hmax * sizeof(short*));
-    freqs = (short **) mmalloc(hmax * sizeof(short*));
+    mags = (short **) mmalloc(&cenviron, hmax * sizeof(short*));
+    freqs = (short **) mmalloc(&cenviron, hmax * sizeof(short*));
     for (h = 0; h < hmax; h++) {
-      mags[h] = (short *)mmalloc((long)num_pts * sizeof(short));
-      freqs[h] = (short *)mmalloc((long)num_pts * sizeof(short));
+      mags[h] = (short *)mmalloc(&cenviron, (long)num_pts * sizeof(short));
+      freqs[h] = (short *)mmalloc(&cenviron, (long)num_pts * sizeof(short));
     }
  
-    TIME = (short *)mmalloc((long)num_pts * sizeof(short));
+    TIME = (short *)mmalloc(&cenviron, (long)num_pts * sizeof(short));
     timesiz = FL(1000.0) * input_dur / num_pts;
     for (pnt = 0; pnt < num_pts; pnt++)
       TIME[pnt] = (short)(pnt * timesiz);
@@ -565,8 +565,8 @@ static void filedump(void)     /* WRITE OUTPUT FILE in DATA-REDUCED format */
       }
     }
 
-    magout = (short *)mmalloc((long)(num_pts + 1) * 2 * sizeof(short));
-    frqout = (short *)mmalloc((long)(num_pts + 1) * 2 * sizeof(short));
+    magout = (short *)mmalloc(&cenviron, (long)(num_pts + 1) * 2 * sizeof(short));
+    frqout = (short *)mmalloc(&cenviron, (long)(num_pts + 1) * 2 * sizeof(short));
     for (h = 0; h < hmax; h++) {
       short *mp = magout, *fp = frqout;
       short *lastmag, *lastfrq, pkamp = 0;
@@ -651,15 +651,15 @@ static void filedump(void)     /* WRITE OUTPUT FILE in DATA-REDUCED format */
     }
     err_printf(Str("wrote %ld bytes to %s\n"), lenfil, outfilnam);
     close(ofd);
-    mfree(magout);
-    mfree(frqout);
-    mfree(TIME);
+    mfree(&cenviron, magout);
+    mfree(&cenviron, frqout);
+    mfree(&cenviron, TIME);
     for (h = 0; h < hmax; h++) {
-      mfree(mags[h]);
-      mfree(freqs[h]);
+      mfree(&cenviron, mags[h]);
+      mfree(&cenviron, freqs[h]);
     }
-    mfree(mags);
-    mfree(freqs);
+    mfree(&cenviron, mags);
+    mfree(&cenviron, freqs);
 }
 
 /* simply writes the number of frames generated - no data reduction, no interpolation */

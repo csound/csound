@@ -46,7 +46,7 @@ static int fofset0(ENVIRON *csound, FOFS *p, int flag)
           return initerror(Str("illegal value for iolaps"));
         }
         if (*p->iphs >= FL(0.0))
-          auxalloc((long)olaps * sizeof(OVRLAP), &p->auxch);
+          auxalloc(csound, (long)olaps * sizeof(OVRLAP), &p->auxch);
         ovp = &p->basovrlap;
         nxtovp = (OVRLAP *) p->auxch.auxp;
         do {
@@ -254,7 +254,7 @@ int harmset(ENVIRON *csound, HARMON *p)
       long nbufsmps = nbufs * ksmps;
       long maxprd = (long)(esr / minfrq);
       long totalsiz = nbufsmps * 5 + maxprd; /* Surely 5! not 4 */
-      auxalloc((long)totalsiz * sizeof(MYFLT), &p->auxch);
+      auxalloc(csound, (long)totalsiz * sizeof(MYFLT), &p->auxch);
       p->bufp = (MYFLT *) p->auxch.auxp;
       p->midp = p->bufp + nbufsmps;        /* each >= maxprd * 3 */
       p->bufq = p->midp + nbufsmps;

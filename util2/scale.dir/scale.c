@@ -210,7 +210,7 @@ main(int argc, char **argv)
         }
       }
     }
-    O.filnamspace = filnamp = mmalloc((long)1024);
+    O.filnamspace = filnamp = mmalloc(&cenviron, (long)1024);
     if (!(--argc))
       usage(Str("Insufficient arguments"));
     do {
@@ -359,8 +359,8 @@ main(int argc, char **argv)
       sfinfo.seekable = 0;
       outfd = openout(O.outfilename, 1);
       outfile = sf_open_fd(outfd, SFM_WRITE, &sfinfo, 1);
-      outbufsiz = 1024 * O.sfsampsize;/* calc outbuf size  */
-      outbuf = mmalloc((long)outbufsiz);                 /*  & alloc bufspace */
+      outbufsiz = 1024 * O.sfsampsize;                  /* calc outbuf size  */
+      outbuf = mmalloc(&cenviron, (long)outbufsiz);     /*  & alloc bufspace */
       printf(Str("writing %d-byte blks of %s to %s %s\n"),
              outbufsiz, getstrformat(O.outformat), O.outfilename,
              type2string(O.filetyp));
@@ -477,16 +477,16 @@ SCsndgetset(char *inputfile)
 {
     SNDFILE      *infile;
     double       dur;
-static  ARGOFFS  argoffs = {0};     /* these for sndgetset */
-static	OPTXT    optxt;
-static  MYFLT    fzero = 0.0;
+    static ARGOFFS argoffs = {0};     /* these for sndgetset */
+    static OPTXT optxt;
+    static MYFLT fzero = 0.0;
     char         quotname[80];
     static MYFLT sstrcod = SSTRCOD;
 
     sssfinit();                 /* stand-alone init of SFDIR etc. */
     esr = 0.0;                  /* set esr 0. with no orchestra   */
     optxt.t.outoffs = &argoffs; /* point to dummy OUTOCOUNT       */
-    p = (SOUNDIN *) mcalloc((long)sizeof(SOUNDIN));
+    p = (SOUNDIN *) mcalloc(&cenviron, (long)sizeof(SOUNDIN));
     p->channel = ALLCHNLS;
     p->h.optext = &optxt;
     p->ifilno = &sstrcod;

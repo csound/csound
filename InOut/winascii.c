@@ -35,7 +35,7 @@ void MakeAscii(WINDAT *wdptr, char *n)
 {
     wdptr->windid = -1;                         /* just so it's not null */
     if (points == NULL)
-      points = mmalloc((long)((VER+1) * HOR));  /* alloc the 2-Dim array */
+      points = mmalloc(&cenviron, (long)((VER+1) * HOR));  /* alloc the 2-Dim array */
 }
 
 void KillAscii(WINDAT *wdptr)

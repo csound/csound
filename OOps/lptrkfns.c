@@ -61,10 +61,10 @@ void ptable(MYFLT fmin, MYFLT fmax, MYFLT sr, int windsiz)
     tpidsrd10 = TWOPI_F / (sr/FL(10.0));
     fstep = (fmax - fmin) / FREQS;    /* alloc & init each MYFLT array  */
     for (i=0;  i<FREQS; ++i) {        /*   as if MAX dimension of Hwind */
-      tphi[i] = (MYFLT *) mcalloc((long)NN * HWIN * sizeof(MYFLT));
-      tpsi[i] = (MYFLT *) mcalloc((long)NP * HWIN * sizeof(MYFLT));
-      tgamph[i] = (MYFLT *) mcalloc((long)NN * sizeof(MYFLT));
-      tgamps[i] = (MYFLT *) mcalloc((long)NP * sizeof(MYFLT));
+      tphi[i] = (MYFLT *) mcalloc(&cenviron, (long)NN * HWIN * sizeof(MYFLT));
+      tpsi[i] = (MYFLT *) mcalloc(&cenviron, (long)NP * HWIN * sizeof(MYFLT));
+      tgamph[i] = (MYFLT *) mcalloc(&cenviron, (long)NN * sizeof(MYFLT));
+      tgamps[i] = (MYFLT *) mcalloc(&cenviron, (long)NP * sizeof(MYFLT));
       freq[i] = fmin + (MYFLT)i * fstep;
       n = (int)(NYQ10 / freq[i]);
       if (n > NN)  n = NN;
@@ -164,7 +164,7 @@ static  MYFLT *dbp1, *dbp2;
         int   n;
 
         if (firstcall) {                   /* on first call, alloc dbl dbuf  */
-          Dwind_dbuf = (MYFLT *) mcalloc((long)Dwind * 2 * sizeof(MYFLT));
+          Dwind_dbuf = (MYFLT *) mcalloc(&cenviron, (long)Dwind * 2 * sizeof(MYFLT));
           Dwind_end1 = Dwind_dbuf + Dwind;
           dbp1 = Dwind_dbuf;             /*   init the local Dsamp pntrs */
           dbp2 = Dwind_end1;             /*   & process the whole inbuf  */

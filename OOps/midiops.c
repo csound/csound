@@ -75,7 +75,7 @@ int massign(ENVIRON *csound, MASSIGN *p)
     m_chinsno(chnl, (short) instno);
                                 /* Changes from gab */
     if ((chn = M_CHNBP[chnl]) == NULL)
-      M_CHNBP[chnl] = chn = (MCHNBLK *) mcalloc((long)sizeof(MCHNBLK));
+      M_CHNBP[chnl] = chn = (MCHNBLK *) mcalloc(csound, (long)sizeof(MCHNBLK));
     /* if corresp instr exists, assign as pgmno */
     chn->pgmno = (short) instno;
     return OK;

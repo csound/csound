@@ -682,7 +682,7 @@ int vport_set(ENVIRON *csound,VPORT *p)
       else return initerror("vport: invalid init table");
     }
     if (p->auxch.auxp == NULL)
-      auxalloc(elements * sizeof(MYFLT), &p->auxch);
+      auxalloc(csound, elements * sizeof(MYFLT), &p->auxch);
     yt1 = (p->yt1 = (MYFLT *) p->auxch.auxp);
     if (vecInit) {
       do {
@@ -786,7 +786,7 @@ int vrandh_set(ENVIRON *csound,VRANDH *p)
 
     p->phs = 0;
     if (p->auxch.auxp == NULL)
-      auxalloc(p->elements * sizeof(MYFLT), &p->auxch);
+      auxalloc(csound, p->elements * sizeof(MYFLT), &p->auxch);
     num1 = (p->num1 = (MYFLT *) p->auxch.auxp);
     do {
       *num1++ = BiRandGab;
@@ -833,7 +833,7 @@ int vrandi_set(ENVIRON *csound,VRANDI *p)
 
     p->phs = 0;
     if (p->auxch.auxp == NULL)
-      auxalloc(elements * sizeof(MYFLT) * 3, &p->auxch);
+      auxalloc(csound, elements * sizeof(MYFLT) * 3, &p->auxch);
     num1 = (p->num1 = (MYFLT *) p->auxch.auxp);
     num2 = (p->num2 = &num1[elements]);
     dfdmax = (p->dfdmax = &num1[elements * 2]);
@@ -910,7 +910,7 @@ int vecdly_set(ENVIRON *csound,VECDEL *p)
           (int)(elements * sizeof(MYFLT *)
                 + n * elements * sizeof(MYFLT)
                 + elements * sizeof(long)) > p->aux.size) {
-        auxalloc(elements * sizeof(MYFLT *)
+        auxalloc(csound, elements * sizeof(MYFLT *)
                  + n * elements * sizeof(MYFLT)
                  + elements * sizeof(long),
                  &p->aux);
@@ -976,7 +976,7 @@ int vseg_set(ENVIRON *csound,VSEG *p)
     nsegs = ((p->INCOUNT-2) >> 1);      /* count segs & alloc if nec */
 
     if ((segp = (TSEG *) p->auxch.auxp) == NULL) {
-      auxalloc((long)(nsegs+1)*sizeof(TSEG), &p->auxch);
+      auxalloc(csound, (long)(nsegs+1)*sizeof(TSEG), &p->auxch);
       p->cursegp = segp = (TSEG *) p->auxch.auxp;
       (segp+nsegs)->cnt = MAXPOS;
     }
@@ -1091,7 +1091,7 @@ int vphaseseg_set(ENVIRON *csound,VPSEG *p)
     nsegs = p->nsegs =((p->INCOUNT-3) >> 1);    /* count segs & alloc if nec */
 
     if ((segp = (TSEG2 *) p->auxch.auxp) == NULL) {
-      auxalloc((long)(nsegs+1)*sizeof(TSEG), &p->auxch);
+      auxalloc(csound, (long)(nsegs+1)*sizeof(TSEG), &p->auxch);
       p->cursegp = segp = (TSEG2 *) p->auxch.auxp;
       /* (segp+nsegs)->cnt = MAXPOS;  */
     }
@@ -1193,7 +1193,7 @@ int kdel_set(ENVIRON *csound,KDEL *p)
 
     if (!*p->istod) {
       if (p->aux.auxp == NULL || (int)(n*sizeof(MYFLT)) > p->aux.size)
-        auxalloc(n * sizeof(MYFLT), &p->aux);
+        auxalloc(csound, n * sizeof(MYFLT), &p->aux);
       else {
         buf = (MYFLT *)p->aux.auxp;
         do {
@@ -1259,7 +1259,7 @@ int ca_set(ENVIRON *csound,CELLA *p)
     else return initerror("cella: invalid rule table");
 
     if (p->auxch.auxp == NULL)
-      auxalloc(elements * sizeof(MYFLT) * 2, &p->auxch);
+      auxalloc(csound, elements * sizeof(MYFLT) * 2, &p->auxch);
     currLine = (p->currLine = (MYFLT *) p->auxch.auxp);
     p->NewOld = 0;
     p->ruleLen = (int) *p->irulelen;

@@ -79,9 +79,9 @@ int stdmode;
 
 void RTLineset(void)   /* set up Linebuf & ready the input files */
 {                      /*     callable once from musmon.c        */
-    Firstblk = (LEVTBLK *) mcalloc((long)sizeof(LEVTBLK));
+    Firstblk = (LEVTBLK *) mcalloc(&cenviron, (long)sizeof(LEVTBLK));
     Firstact = NULL;
-    Linebuf = mcalloc((long)LBUFSIZ);
+    Linebuf = mcalloc(&cenviron, (long)LBUFSIZ);
     Linebufend = Linebuf + LBUFSIZ;
     Linep = Linebuf;
     if (strcmp(O.Linename,"stdin") == 0) {
@@ -143,7 +143,7 @@ void RTclose(void)
 #endif
     }
 #endif
-    mfree(Linebuf);
+    mfree(&cenviron, Linebuf);
 }
 
 static int containsLF(char *cp, char *endp)/* does string segment contain LF? */
@@ -160,7 +160,7 @@ static LEVTBLK *getblk(void)/* get blk from the LEVTBLK pool, or alloc a new one
 
     while (curp->inuse) {
       if ((nxtp = curp->nxtblk) == NULL) {
-        nxtp = (LEVTBLK *) mcalloc((long)sizeof(LEVTBLK));
+        nxtp = (LEVTBLK *) mcalloc(&cenviron, (long)sizeof(LEVTBLK));
         curp->nxtblk = nxtp;
       }
       curp = nxtp;
@@ -261,7 +261,7 @@ int sensLine(void)
                 goto Lerr;
               }
               if ((sstrp = e->strarg) == NULL)
-                e->strarg = sstrp = mcalloc((long)SSTRSIZ);
+                e->strarg = sstrp = mcalloc(&cenviron, (long)SSTRSIZ);
               while ((c = *cp++) != '"') {
                 if (c == LF) {
                   err_printf(Str("unmatched quotes\n"));
@@ -375,7 +375,7 @@ int event_set(LINEVENT* p/*unused*/)
       /* IV - Nov 30 2002: hack to fix crash with RT audio */
       O.Linename = "stdin";
       Linefd = -1;
-      Firstblk = (LEVTBLK *) mcalloc((long)sizeof(LEVTBLK));
+      Firstblk = (LEVTBLK *) mcalloc(&cenviron, (long)sizeof(LEVTBLK));
     }
     return OK;
 }
@@ -465,7 +465,7 @@ void newevent(void*csound, char type, MYFLT *pfields, long count)
       O.RTevents = 1;
       O.ksensing = 1;
       O.Linein  = 1;
-      Firstblk = (LEVTBLK *) mcalloc((long)sizeof(LEVTBLK));
+      Firstblk = (LEVTBLK *) mcalloc(csound, (long)sizeof(LEVTBLK));
     }
 
     Curblk = getblk();          /* get a blk from the levtblk pool */

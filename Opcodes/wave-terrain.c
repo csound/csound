@@ -47,8 +47,8 @@ int wtinit(ENVIRON *csound, WAVETER *p)
 /* printf("WAVE TERRAIN INIT v1.0 - terrain(%d,%d)\n", tabxlen, tabylen);  */
 
     /* ALLOCATE FOR COPIES OF FTABLES */
-    auxalloc (ftpx->flen * sizeof(MYFLT), &p->aux_x);
-    auxalloc (ftpy->flen * sizeof(MYFLT), &p->aux_y);
+    auxalloc(csound, ftpx->flen * sizeof(MYFLT), &p->aux_x);
+    auxalloc(csound, ftpy->flen * sizeof(MYFLT), &p->aux_y);
 
     /* POINT xarr AND yarr AT THE TABLES */
     p->xarr = (MYFLT*)p->aux_x.auxp;
@@ -185,8 +185,8 @@ int scantinit(ENVIRON *csound, SCANTABLE *p)
     p->size = (MYFLT)fpoint->flen;
 
     /* ALLOCATE SPACE FOR NEW POINTS AND VELOCITIES */
-    auxalloc (fpoint->flen * sizeof(MYFLT), &p->newloca);
-    auxalloc (fvel->flen * sizeof(MYFLT), &p->newvela);
+    auxalloc(csound, fpoint->flen * sizeof(MYFLT), &p->newloca);
+    auxalloc(csound, fvel->flen * sizeof(MYFLT), &p->newvela);
 
     /* POINT newloc AND newvel AT THE ALLOCATED SPACE */
     p->newloc = (MYFLT*)p->newloca.auxp;

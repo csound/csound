@@ -256,11 +256,11 @@ void create_opcodlst(void *csound)
 
     /* Basic Entry1 stuff */
     if (opcodlst!=NULL) return;
-    opcodlst = (OENTRY*) mmalloc(length = oplength_1);
+    opcodlst = (OENTRY*) mmalloc(csound, length = oplength_1);
     memcpy(opcodlst, opcodlst_1, oplength_1);
     oplstend = opcodlst +  length/sizeof(OENTRY);
     /* Add entry2 */
-    opcodlst = (OENTRY*) mrealloc(opcodlst, length + oplength_2);
+    opcodlst = (OENTRY*) mrealloc(csound, opcodlst, length + oplength_2);
     memcpy(opcodlst+length/sizeof(OENTRY), opcodlst_2, oplength_2);
     length += oplength_2;
     oplstend = opcodlst +  length/sizeof(OENTRY);
@@ -377,7 +377,7 @@ int csoundCompile(void *csound, int argc, char **argv)
     }
 #endif
     install_signal_handler();
-    O.filnamspace = filnamp = mmalloc((long)1024);
+    O.filnamspace = filnamp = mmalloc(csound, (long)1024);
     peakchunks = 1;
     {
       char *csrcname;
@@ -636,7 +636,7 @@ void mainRESET(ENVIRON *p)
     void fftRESET(void);
     void insertRESET(void);
     void lpcRESET(void);
-    void memRESET(void);
+    void memRESET(void*);
     void musRESET(void);
     void oloadRESET(void);
     void orchRESET(void);
@@ -666,13 +666,13 @@ void mainRESET(ENVIRON *p)
     while (reset_list) {
       RESETTER *x = reset_list->next;
       (*reset_list->fn)(p);
-      mfree(reset_list);
+      mfree(p, reset_list);
       reset_list = x;
     }
     scoreRESET(p);
     oloadRESET();               /* should be called last but changed!! */
 /*  remove_tmpfiles((void*) p);    IV - Feb 03 2005 */
-    memRESET();
+    memRESET(p);
     p->spoutactive_ = 0;
     O.Midiin = 0;
     p->nrecs_ = 0;

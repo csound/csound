@@ -48,11 +48,11 @@ int syncgrain_init(ENVIRON *csound, syncgrain *p)
    if (p->olaps < 1) p->olaps = 1;
 
    if (p->index.auxp==NULL)
-     auxalloc(p->olaps*sizeof(float),&p->index);
+     auxalloc(csound, p->olaps*sizeof(float),&p->index);
    if (p->envindex.auxp==NULL)
-     auxalloc(p->olaps*sizeof(float),&p->envindex);
+     auxalloc(csound, p->olaps*sizeof(float),&p->envindex);
    if (p->streamon.auxp==NULL)
-     auxalloc(p->olaps*sizeof(int),&p->streamon);
+     auxalloc(csound, p->olaps*sizeof(int),&p->streamon);
 
    p->count = 0xFFFFFFFF;    /* sampling period counter */
    p->numstreams = 0;  /* curr num of streams */

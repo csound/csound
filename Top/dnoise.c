@@ -236,8 +236,8 @@ int dnoise(int argc, char **argv)
 
     init_getstring(argc, argv);
 
-    O.filnamspace = outfile = (char*)mmalloc((long)1024);
-    nfile = (char*)mmalloc((long)1024);
+    O.filnamspace = outfile = (char*)mmalloc(&cenviron, (long)1024);
+    nfile = (char*)mmalloc(&cenviron, (long)1024);
     if ((envoutyp = getenv("SFOUTYP")) != NULL) {
       if (strcmp(envoutyp,"AIFF") == 0)
         O.filetyp = TYP_AIFF;
@@ -591,7 +591,7 @@ int dnoise(int argc, char **argv)
     ibuflen = Chans * (M + 3 * D);
     obuflen = Chans * (L + 3 * I);
     outbufsiz = obuflen * O.sfsampsize;/* calc outbuf size */
-    outbuf = mmalloc((long)outbufsiz);                 /*  & alloc bufspace */
+    outbuf = mmalloc(&cenviron, (long)outbufsiz);                 /*  & alloc bufspace */
     printf(Str("writing %d-byte blks of %s to %s\n"),
            outbufsiz, getstrformat(O.outformat), O.outfilename);
     printf(" %s\n", type2string(O.filetyp));

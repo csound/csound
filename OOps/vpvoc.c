@@ -50,7 +50,7 @@ int tblesegset(ENVIRON *csound, TABLESEG *p)
     nsegs = (p->INCOUNT >> 1);  /* count segs & alloc if nec */
 
     if ((segp = (TSEG *) p->auxch.auxp) == NULL) {
-        auxalloc((long)(nsegs+1)*sizeof(TSEG), &p->auxch);
+        auxalloc(csound, (long)(nsegs+1)*sizeof(TSEG), &p->auxch);
         p->cursegp = segp = (TSEG *) p->auxch.auxp;
         (segp+nsegs)->cnt = MAXPOS;
     }
@@ -58,7 +58,7 @@ int tblesegset(ENVIRON *csound, TABLESEG *p)
     if ((nxtfunc = ftfind(csound, *argp++)) == NULL)
         return NOTOK;
     flength = nxtfunc->flen;
-    p->outfunc = (FUNC *) mcalloc((long)sizeof(FUNC) + flength*sizeof(MYFLT));
+    p->outfunc = (FUNC *) mcalloc(csound, (long)sizeof(FUNC) + flength*sizeof(MYFLT));
     p->outfunc->flen = nxtfunc->flen;
     p->outfunc->lenmask = nxtfunc->lenmask;
     p->outfunc->lobits = nxtfunc->lobits;
@@ -216,7 +216,7 @@ int vpvset(ENVIRON *csound, VPVOC *p)
                                 /* If optional table given, fake it up -- JPff */
     if (*p->isegtab==FL(0.0)) p->tableseg = tbladr;
     else {
-      auxalloc(sizeof(TABLESEG), &p->auxtab);
+      auxalloc(csound, sizeof(TABLESEG), &p->auxtab);
       p->tableseg = (TABLESEG*) p->auxtab.auxp;
       if ((p->tableseg->outfunc = ftfind(csound, p->isegtab)) == NULL) {
         sprintf(errmsg,
@@ -228,7 +228,7 @@ int vpvset(ENVIRON *csound, VPVOC *p)
 
     if (p->auxch.auxp == NULL) {              /* if no buffers yet, alloc now */
         MYFLT *fltp;
-        auxalloc((long)(PVDATASIZE + PVFFTSIZE*3 + PVWINLEN) * sizeof(MYFLT),
+        auxalloc(csound, (long)(PVDATASIZE + PVFFTSIZE*3 + PVWINLEN) * sizeof(MYFLT),
                  &p->auxch);
         fltp = (MYFLT *) p->auxch.auxp;
         p->lastPhase = fltp;   fltp += PVDATASIZE;    /* and insert addresses */

@@ -71,7 +71,7 @@ void fftRESET(void)
     LNODE *x;
     while (lroot!=NULL) {
       x = lroot->next;
-      mfree(lroot);
+      mfree(&cenviron, lroot);
       lroot = x;
     }
 }
@@ -141,7 +141,7 @@ complex *AssignBasis(complex ex[], long n)
       return(expn);
     if (ex != NULL) expn = ex;
     else {
-      expn = (complex *) mmalloc((long)n*sizeof(complex));
+      expn = (complex *) mmalloc(&cenviron, (long)n*sizeof(complex));
       if (expn==NULL) return(NULL);
     }
     for (j=0;j<n;j++) {
@@ -150,7 +150,7 @@ complex *AssignBasis(complex ex[], long n)
       expn[j].im = -(MYFLT)sin((double)a);
     }
     plnode = lroot;
-    lroot = (LNODE *) mmalloc((long)sizeof(LNODE));
+    lroot = (LNODE *) mmalloc(&cenviron, (long)sizeof(LNODE));
     lroot->next = plnode;
     lroot->size = n;
     lroot->table = expn;
