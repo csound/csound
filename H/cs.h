@@ -37,7 +37,6 @@ extern "C" {
 #define esr_                cenviron.esr
 #define ekr_                cenviron.ekr
 #define nchnls_             cenviron.nchnls
-#define e0dbfs_             cenviron.e0dbfs
 #define reset_list          cenviron.reset_list_
 #define strsets             cenviron.strsets_
 #define strsmax             cenviron.strsmax_

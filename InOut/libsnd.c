@@ -30,10 +30,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#ifdef mills_macintosh
-# include "MacTransport.h"
-#endif
-
 static  SNDFILE *outfile;
 extern  SNDFILE *infile;
 static  char    *sfoutname;                     /* soundout filename    */
@@ -104,14 +100,15 @@ static int format_nbytes(int fmt)
    audtran to flush when this happens.
 */
 
-void spoutsf(void *csound)
+void spoutsf(void *csound_)
 {
-    int n, spoutrem = nspout;
-    MYFLT *maxampp = maxamp;
-    unsigned long       *maxps = maxpos;
-    long   *rngp;                        /*RWD Nov 2001 */
-    MYFLT *sp = spout;
-    MYFLT       absamp;
+    ENVIRON       *csound = (ENVIRON*) csound_;
+    int           n, spoutrem = nspout;
+    MYFLT         *maxampp = maxamp;
+    unsigned long *maxps = maxpos;
+    long          *rngp;                /* RWD Nov 2001 */
+    MYFLT         *sp = spout;
+    MYFLT         absamp;
 
  nchk:
     if ((n = spoutrem) > (int)outbufrem) /* if nspout remaining > buf rem, */
@@ -127,24 +124,24 @@ void spoutsf(void *csound)
       }
       absamp = *sp;
       if (absamp >= 0) {                 /* +ive samp:   */
-        if (absamp > e0dbfs) {           /* out of range?     */
+        if (absamp > csound->e0dbfs) {   /* out of range?     */
           /*   report it*/
-          rngp = rngcnt + (maxampp - maxamp);
+          rngp = csound->rngcnt + (maxampp - maxamp);
           (*rngp)++;
-          rngflg = 1;
+          csound->rngflg = 1;
         }
       }
       else {                             /* ditto -ive samp */
-        if (absamp < -e0dbfs) {
-          rngp = rngcnt + (maxampp - maxamp);
+        if (absamp < -(csound->e0dbfs)) {
+          rngp = csound->rngcnt + (maxampp - maxamp);
           (*rngp)++;
-          rngflg = 1;
+          csound->rngflg = 1;
         }
       }
-      absamp *= dbfs_to_float;
+      absamp *= csound->dbfs_to_float;
       if (osfopen)
         *outbufp++ = absamp;
-      if (multichan) {
+      if (csound->multichan) {
         maxps++;
         if (++maxampp >= maxampend)
           maxampp = maxamp, maxps = maxpos, nframes++;
@@ -154,7 +151,7 @@ void spoutsf(void *csound)
     } while (--n);
     if (!outbufrem) {
       if (osfopen) {
-        ((ENVIRON*) csound)->nrecs_++;
+        csound->nrecs++;
         audtran(csound, outbuf, outbufsiz); /* Flush buffer */
         outbufp = (MYFLT *) outbuf;
       }
@@ -182,7 +179,7 @@ void zerosf(void *csound, long len)
     }
     else outbufp += n;
     if (!outbufrem) {
-      ((ENVIRON*) csound)->nrecs_++;
+      ((ENVIRON*) csound)->nrecs++;
       audtran(csound, outbuf, outbufsiz);   /* Flush */
       outbufp = (MYFLT*)outbuf;
       outbufrem = O.outbufsamps;
@@ -190,11 +187,12 @@ void zerosf(void *csound, long len)
     }
 }
 
-static void writesf(void *csound, MYFLT *outbuf, int nbytes)
+static void writesf(void *csound_, MYFLT *outbuf, int nbytes)
                                 /* diskfile write option for audtran's */
                                 /*      assigned during sfopenout()    */
 {
-    int n;
+    ENVIRON *csound = (ENVIRON*) csound_;
+    int     n;
     if (osfd<0) return;
     n = sf_write_MYFLT(outfile, outbuf, nbytes/sizeof(MYFLT));
     if (n < nbytes/sizeof(MYFLT))
@@ -206,13 +204,13 @@ static void writesf(void *csound, MYFLT *outbuf, int nbytes)
 #ifdef SYMANTEC
         nextcurs();
 #else
-        putc("|/-\\"[nrecs&3], stderr); putc(8,stderr);
+        putc("|/-\\"[csound->nrecs & 3], stderr); putc(8,stderr);
 #endif
       }
       else if (O.heartbeat==2) putc('.', stderr);
       else if (O.heartbeat==3) {
         int n;
-        err_printf( "%d(%.3f)%n", nrecs, nrecs/ekr, &n);
+        err_printf("%d(%.3f)%n", csound->nrecs, csound->nrecs/csound->ekr, &n);
         while (n--) err_printf("\b");
       }
       else err_printf("\a");
@@ -270,7 +268,7 @@ int soundin(ENVIRON *csound, SOUNDIN *p)
 
     if (p->format == AE_FLOAT) {
       if (p->filetyp == TYP_WAV || p->filetyp == TYP_AIFF) {
-        scalefac = e0dbfs;
+        scalefac = csound->e0dbfs;
         if (p->do_floatscaling)
           scalefac *= p->fscalefac;
       }
@@ -278,12 +276,12 @@ int soundin(ENVIRON *csound, SOUNDIN *p)
         scalefac = FL(1.0);
     }
     else
-      scalefac = e0dbfs;
+      scalefac = csound->e0dbfs;
     if (!p->inbufp) {
       return csound->PerfError(csound, Str("soundin: not initialised"));
     }
     chnsout = p->OUTOCOUNT;
-    blksiz = chnsout * ksmps;
+    blksiz = chnsout * csound->ksmps;
     memcpy(r, p->r, chnsout * sizeof(MYFLT*));
     ntogo = blksiz;
     if (p->endfile)
@@ -328,8 +326,9 @@ int soundin(ENVIRON *csound, SOUNDIN *p)
     return OK;
 }
 
-void sfopenin(void *csound)             /* init for continuous soundin */
+void sfopenin(void *csound_)        /* init for continuous soundin */
 {
+    ENVIRON *csound = (ENVIRON*) csound_;
     char    *sfname = NULL;
     int     fileType = (int) TYP_RAW;
 
@@ -353,46 +352,45 @@ void sfopenin(void *csound)             /* init for continuous soundin */
               strncmp(O.infilename, "adc", 3) == 0)) {
       if (strcmp(O.infilename, "devaudio") == 0 ||
           strcmp(O.infilename, "adc") == 0) {
-        rtin_dev = 0;
-        rtin_devs = NULL;
+        csound->rtin_dev = 1024;
+        csound->rtin_devs = NULL;
       }
       else if (strncmp(O.infilename, "devaudio", 8) == 0) {
         if (O.infilename[8]==':') {
-          rtin_dev = 0;
-          rtin_devs = &(O.infilename[9]);
+          csound->rtin_dev = 1024;
+          csound->rtin_devs = &(O.infilename[9]);
         }
         else {
-          sscanf(O.infilename+8, "%d", &rtin_dev);
-          rtin_devs = NULL;
+          sscanf(O.infilename+8, "%d", &(csound->rtin_dev));
+          csound->rtin_devs = NULL;
         }
       }
       else if (strncmp(O.infilename,"adc", 3) == 0) {
         if (O.infilename[3]==':') {
-          rtin_dev = 0;
-          rtin_devs = &(O.infilename[4]);
+          csound->rtin_dev = 1024;
+          csound->rtin_devs = &(O.infilename[4]);
         }
         else {
-          sscanf(O.infilename+3, "%d", &rtin_dev);
-          rtin_devs = NULL;
+          sscanf(O.infilename+3, "%d", &(csound->rtin_dev));
+          csound->rtin_devs = NULL;
         }
       }
       sfname = O.infilename;
       {
         csRtAudioParams parm;
         /* set device parameters (should get these from ENVIRON...) */
-        parm.devName = rtin_devs;
-        parm.devNum = rtin_dev;
-        parm.bufSamp_SW = (int) O.inbufsamps / (int) nchnls;
+        parm.devName = csound->rtin_devs;
+        parm.devNum = csound->rtin_dev;
+        parm.bufSamp_SW = (int) O.inbufsamps / (int) csound->nchnls;
         parm.bufSamp_HW = O.oMaxLag;
-        parm.nChannels = nchnls;
+        parm.nChannels = csound->nchnls;
         parm.sampleFormat = O.informat;
-        parm.sampleRate = (float) esr;
+        parm.sampleRate = (float) csound->esr;
         /* open devaudio for input */
-        if (((ENVIRON*) csound)->recopen_callback(csound, &parm) != 0)
+        if (csound->recopen_callback(csound, &parm) != 0)
           csoundDie(csound, Str("Failed to initialise real time audio input"));
         /*  & redirect audio gets  */
-        audrecv = (int (*)(void*, MYFLT*, int))
-                    ((ENVIRON*) csound)->rtrecord_callback;
+        audrecv = (int (*)(void*, MYFLT*, int)) csound->rtrecord_callback;
       }
       isfd = DEVAUDIO;                    /* dummy file descriptor   */
       pipdevin   = 1;                     /* no backward seeks !     */
@@ -407,14 +405,14 @@ void sfopenin(void *csound)             /* init for continuous soundin */
       infile = sf_open_fd(isfd, SFM_READ, &sfinfo, SF_TRUE);
       if (infile == NULL)
         csoundDie(csound, Str("isfinit: cannot open %s"), retfilnam);
-      if (sfinfo.samplerate != (long)esr &&
+      if (sfinfo.samplerate != (long) (csound->esr + FL(0.5)) &&
           (O.msglevel & WARNMSG)) {              /*    chk the hdr codes  */
         printf(Str("WARNING: audio_in %s has sr = %ld, orch sr = %ld\n"),
-               sfname, sfinfo.samplerate, (long)esr);
+               sfname, sfinfo.samplerate, (long) (csound->esr + FL(0.5)));
       }
-      if (sfinfo.channels != nchnls) {
+      if (sfinfo.channels != csound->nchnls) {
         csoundDie(csound, Str("audio_in %s has %ld chnls, orch %d chnls"),
-                          sfname, sfinfo.channels, nchnls);
+                          sfname, sfinfo.channels, csound->nchnls);
       }
       /* Do we care about the format?  Can assume float?? */
       O.insampsiz = sizeof(MYFLT);        /*    & cpy header vals  */
@@ -434,8 +432,10 @@ void sfopenin(void *csound)             /* init for continuous soundin */
     isfopen = 1;
 }
 
-void sfopenout(void *csound)                    /* init for sound out       */
+void sfopenout(void *csound_)                   /* init for sound out       */
 {                                               /* (not called if nosound)  */
+    ENVIRON *csound = (ENVIRON*) csound_;
+
     if (O.outfilename == NULL) {
       if (O.filetyp == TYP_WAV) O.outfilename = "test.wav";
       else if (O.filetyp == TYP_AIFF) O.outfilename = "test.aif";
@@ -464,59 +464,52 @@ void sfopenout(void *csound)                    /* init for sound out       */
               strncmp(O.outfilename, "dac", 3) == 0)) {
       if (strcmp(O.outfilename, "devaudio") == 0 ||
           strcmp(O.outfilename, "dac") == 0) {
-        rtout_dev = 0;
-        rtout_devs = NULL;
+        csound->rtout_dev = 1024;
+        csound->rtout_devs = NULL;
       }
       else if (strncmp(O.outfilename,"devaudio", 8) ==0) {
         if (O.outfilename[8]==':') {
-          rtout_dev = 0;
-          rtout_devs = &(O.outfilename[9]);
+          csound->rtout_dev = 1024;
+          csound->rtout_devs = &(O.outfilename[9]);
         }
         else {
-          sscanf(O.outfilename+8, "%d", &rtout_dev);
-          rtout_devs = NULL;
+          sscanf(O.outfilename+8, "%d", &(csound->rtout_dev));
+          csound->rtout_devs = NULL;
         }
       }
       else if (strncmp(O.outfilename,"dac", 3) == 0) {
         if (O.outfilename[3]==':') {
-          rtout_dev = 0;
-          rtout_devs = &(O.outfilename[4]);
+          csound->rtout_dev = 1024;
+          csound->rtout_devs = &(O.outfilename[4]);
         }
         else {
-          sscanf(O.outfilename+3, "%d", &rtout_dev);
-          rtout_devs = NULL;
+          sscanf(O.outfilename+3, "%d", &(csound->rtout_dev));
+          csound->rtout_devs = NULL;
         }
       }
       sfoutname = O.outfilename;
       {
         csRtAudioParams parm;
         /* set device parameters (should get these from ENVIRON...) */
-        parm.devName = rtout_devs;
-        parm.devNum = rtout_dev;
-        parm.bufSamp_SW = (int) O.outbufsamps / (int) nchnls;
+        parm.devName = csound->rtout_devs;
+        parm.devNum = csound->rtout_dev;
+        parm.bufSamp_SW = (int) O.outbufsamps / (int) csound->nchnls;
         parm.bufSamp_HW = O.oMaxLag;
-        parm.nChannels = nchnls;
+        parm.nChannels = csound->nchnls;
         parm.sampleFormat = O.outformat;
-        parm.sampleRate = (float) esr;
+        parm.sampleRate = (float) csound->esr;
         spoutran = spoutsf;
         nzerotran = zerosf;
         /* open devaudio for output */
-        if (((ENVIRON*) csound)->playopen_callback(csound, &parm) != 0)
+        if (csound->playopen_callback(csound, &parm) != 0)
           csoundDie(csound, Str("Failed to initialise real time audio output"));
         /*  & redirect audio puts  */
-        audtran = (void (*)(void*, MYFLT*, int))
-                    ((ENVIRON*) csound)->rtplay_callback;
+        audtran = (void (*)(void*, MYFLT*, int)) csound->rtplay_callback;
         outbufrem = parm.bufSamp_SW * parm.nChannels;
       }
       osfd = DEVAUDIO;                         /* dummy file descriptor */
       pipdevout = 1;                           /* no backward seeks !   */
-#if defined(mills_macintosh) || defined(SYMANTEC)
-      O.outformat = AE_SHORT;
-#endif
-#ifdef mills_macintosh
-      transport.state |= kGenRealtime;
-#endif
-      goto outset;                        /* no header needed      */
+      goto outset;                             /* no header needed      */
     }
     else if (strcmp(O.outfilename,"null") == 0) {
       osfd = -1;
@@ -526,8 +519,8 @@ void sfopenout(void *csound)                    /* init for sound out       */
     else {  /* else open sfdir or cwd */
       SF_INFO sfinfo;
       sfinfo.frames = -1;
-      sfinfo.samplerate = (int) (esr + FL(0.5));
-      sfinfo.channels = nchnls;
+      sfinfo.samplerate = (int) (csound->esr + FL(0.5));
+      sfinfo.channels = csound->nchnls;
       sfinfo.format = type2sf(O.filetyp)|format2sf(O.outformat);
       sfinfo.sections = 0;
       sfinfo.seekable = 0;
@@ -578,16 +571,6 @@ void sfopenout(void *csound)                    /* init for sound out       */
       }
       osfopen = 1;
     }
-#if defined(SYMANTEC)
-    AddMacHeader(sfoutname,nchnls,esr,O.sfsampsize);  /* set Mac resource */
-    SetMacCreator(sfoutname);               /*   set creator & file type */
-#endif
-    if (O.sfheader) {
-#ifdef mills_macintosh
-      transport.osfd = osfd;
-      transport.eoheader = lseek(osfd,(off_t)0L,SEEK_CUR);
-#endif
-    }
 
 outset:
     outbufsiz = (unsigned)O.outbufsamps * sizeof(MYFLT);/* calc outbuf size */
@@ -632,12 +615,14 @@ void sfclosein(void *csound)
     return;
 }
 
-void sfcloseout(void *csound)
+void sfcloseout(void *csound_)
 {
-    int nb;
+    ENVIRON *csound = (ENVIRON*) csound_;
+    int     nb;
+
     if (!osfopen) return;
     if ((nb = (O.outbufsamps-outbufrem) * sizeof(MYFLT)) > 0) { /* flush     */
-      ((ENVIRON*) csound)->nrecs_++;                            /* outbuffer */
+      csound->nrecs++;                                          /* outbuffer */
       audtran(csound, outbuf, nb);
     }
     if (osfd == DEVAUDIO) {
@@ -647,7 +632,7 @@ void sfcloseout(void *csound)
         /* make sure that rtplay does not get called after */
         /* closing the device, by replacing it with the dummy function */
         audtran = (void (*)(void*, MYFLT*, int)) rtplay_dummy;
-        ((ENVIRON*) csound)->rtclose_callback(csound);
+        csound->rtclose_callback(csound);
       }
       goto report;
     }
@@ -663,7 +648,7 @@ void sfcloseout(void *csound)
 
  report:
     printf(Str("%ld %d-byte soundblks of %s written to %s"),
-           nrecs, O.outbufsamps * format_nbytes(O.outformat),
+           csound->nrecs, O.outbufsamps * format_nbytes(O.outformat),
            getstrformat(O.outformat), sfoutname);
     if (strcmp(O.outfilename,"devaudio") == 0       /* realtime output has no
                                                        header */
@@ -707,11 +692,12 @@ void sfnopenout(void)
     outbufrem = O.outbufsamps;          /* init counter, though not writing */
 }
 
-static void sndfilein(void *csound)
+static void sndfilein(void *csound_)
 {
-    int i, nsmps, bufpos;
+    ENVIRON *csound = (ENVIRON*) csound_;
+    int     i, nsmps, bufpos;
 
-    nsmps = ksmps * nchnls;
+    nsmps = csound->ksmps * csound->nchnls;
     bufpos = (int) O.inbufsamps - (int) inbufrem;
     for (i = 0; i < nsmps; i++) {
       if ((int) inbufrem < 1) {
@@ -724,7 +710,7 @@ static void sndfilein(void *csound)
         } while ((int) inbufrem < (int) O.inbufsamps);
         bufpos = 0;
       }
-      spin[i] = inbuf[bufpos++] * e0dbfs;
+      spin[i] = inbuf[bufpos++] * csound->e0dbfs;
       inbufrem--;
     }
 }

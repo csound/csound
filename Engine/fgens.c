@@ -2631,7 +2631,7 @@ static int pvx_loadfile_mem(const char *fname,PVSTABLEDAT *p, MEMFIL **mfp)
           break;          /* read error, but may still have something to use */
         /* scale amps to Csound range, to fit fsig */
         for (j=0;j < framelen; j+=2) {
-          pFrame[j] *= (float)e0dbfs;
+          pFrame[j] *= (float) cenviron.e0dbfs;
         }
         pFrame += framelen;
       }
