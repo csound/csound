@@ -1,3 +1,11 @@
+2005-03-11	Istvan Varga	<istvan@csounds.com>
+	* InOut/widgets.cpp:
+	* Top/csound.c:
+	* Top/pvanal.c:
+	  fixed calls of csoundYield() with NULL pointer
+	* Engine/entry1.c:
+	  fixed rtclock opcode (should be 0xffff, not 0xfffd)
+
 2005-03-10	Istvan Varga	<istvan@csounds.com>
 	* Engine/entry2.c:
 	  run miditempo opcode both at init and performance time
