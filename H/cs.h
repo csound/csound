@@ -103,6 +103,11 @@ extern "C" {
 #define mpidsr              cenviron.mpidsr_
 #define mtpdsr              cenviron.mtpdsr_
 
+#ifdef printf
+#undef printf
+#endif
+#define printf cenviron.Printf
+
 /*
  * Move the C++ guards to enclose the entire file,
  * in order to enable C++ to #include this file.

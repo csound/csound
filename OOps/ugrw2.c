@@ -245,7 +245,7 @@ int ktone(ENVIRON *csound, KTONE *p)
        * so tpidsr * ksmps = 2 * pi / k rate.
        * We need this since we are filtering at k rate, not a rate. */
 
-      b = FL(2.0) - (MYFLT)cos((double)(*p->khp * tpidsr * ksmps));
+      b = FL(2.0) - (MYFLT)cos((double)(*p->khp * tpidsr * csound->ksmps));
       p->c2 = b - (MYFLT)sqrt((double)(b * b - 1.0));
       p->c1 = FL(1.0) - p->c2;
     }
@@ -264,7 +264,7 @@ int katone(ENVIRON *csound, KTONE *p)
     if (*p->khp != p->prvhp) {
       MYFLT b;
       p->prvhp = *p->khp;
-      b = FL(2.0) - (MYFLT)cos((double)(*p->khp * tpidsr * ksmps));
+      b = FL(2.0) - (MYFLT)cos((double)(*p->khp * tpidsr * csound->ksmps));
       p->c2 = b - (MYFLT)sqrt((double)(b * b - 1.));
       p->c1 = FL(1.0) - p->c2;
     }
@@ -311,7 +311,7 @@ int kreson(ENVIRON *csound, KRESON *p)
      * cosf = cos (2pi * freq / krate)                   */
     if (*p->kcf != p->prvcf) {
       p->prvcf = *p->kcf;
-      p->cosf = (MYFLT)cos((double)(*p->kcf * tpidsr * ksmps));
+      p->cosf = (MYFLT)cos((double)(*p->kcf * tpidsr * csound->ksmps));
       flag = 1;
     }
 
@@ -319,7 +319,7 @@ int kreson(ENVIRON *csound, KRESON *p)
      * c3 = exp (-2pi * bwidth / krate)                  */
     if (*p->kbw != p->prvbw) {
       p->prvbw = *p->kbw;
-      p->c3 = (MYFLT)exp((double)(*p->kbw * mtpdsr * ksmps));
+      p->c3 = (MYFLT)exp((double)(*p->kbw * mtpdsr * csound->ksmps));
       flag = 1;
     }
     /* Final calculations for the factors
@@ -382,12 +382,12 @@ int kareson(ENVIRON *csound, KRESON *p)
     /*      or 1/.5  (sine) */
     if (*p->kcf != p->prvcf) {
       p->prvcf = *p->kcf;
-      p->cosf = (MYFLT)cos((double)(*p->kcf * tpidsr * ksmps));
+      p->cosf = (MYFLT)cos((double)(*p->kcf * tpidsr * csound->ksmps));
       flag = 1;
     }
     if (*p->kbw != p->prvbw) {
       p->prvbw = *p->kbw;
-      p->c3 = (MYFLT)exp((double)(*p->kbw * mtpdsr * ksmps));
+      p->c3 = (MYFLT)exp((double)(*p->kbw * mtpdsr * csound->ksmps));
       flag = 1;
     }
     if (flag) {
@@ -477,7 +477,7 @@ int limit(ENVIRON *csound, LIMIT *p)
 {
     MYFLT       *adest, *asig;
     MYFLT       xlow, xhigh, xaverage, xsig;
-    int loopcount = ksmps;
+    int loopcount = csound->ksmps;
     /*-----------------------------------*/
 
     /* Optimise for speed when xsig is within the limits.     */
