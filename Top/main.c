@@ -312,6 +312,7 @@ void create_opcodlst(void *csound)
     memcpy(opcodlst+length/sizeof(OENTRY), opcodlst_2, oplength_2);
     length += oplength_2;
     oplstend = opcodlst +  length/sizeof(OENTRY);
+    printf("**** calling LoadExternals\n");
     csoundLoadExternals(csound);
 }
 
