@@ -209,6 +209,7 @@ void CsoundVST::performanceThreadRoutine()
       if(getIsVst())
 	{
 	  csound::System::inform("Classic VST performance.\n");
+	  getCppSound()->preCompile();
 	  getCppSound()->setExternalMidiInOpenCallback(&CsoundVST::midiDeviceOpen);
 	  getCppSound()->setExternalMidiReadCallback(&CsoundVST::midiRead);
 	  if(getCppSound()->compile())

@@ -118,6 +118,11 @@ void CppSound::reset()
   csoundReset(csound);
 }
 
+int CppSound::preCompile()
+{
+  return csoundPreCompile(csound);
+}
+
 int CppSound::compile(int argc, char **argv)
 {
   message("BEGAN CppSound::compile(%d, %x)...\n", argc, argv);
