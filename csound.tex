@@ -15,9 +15,9 @@
 
 \section{Introduction}
 
-Csound is a unit-generator based, user-programmable computer music system. It was originally written by Barry Vercoe at the Massachusetts Institute of Technology in 1984 as the first C language version of this type of software. 
+Csound is a unit-generator based, user-programmable computer music system. It was originally written by Barry Vercoe at the Massachusetts Institute of Technology in 1984 as the first C language version of this type of software. Since then Csound has received numerous contributions from researchers, programmers, and musicians around the world. 
 
-John ffitch soon ported Csound to Microsoft DOS. Since then Csound has received numerous contributions from researchers, programmers, and musicians around the world. Csound currently runs on many varieties of UNIX and Linux, Microsoft DOS and Windows, all versions of the Macintosh operating system including Mac OS X, and others.
+Around 1991, John ffitch ported Csound to Microsoft DOS. Csound currently runs on many varieties of UNIX and Linux, Microsoft DOS and Windows, all versions of the Macintosh operating system including Mac OS X, and others.
 
 Csound is maintained by John ffitch at \linebreak[4] \texttt{http://www.sourceforge.net/projects/csound}. Documentation for the Csound language is maintained by Kevin Conder at \linebreak[4] \texttt{http://kevindumpscore.com/}. Csound's ``home page'' is maintained by Richard Boulanger at \linebreak[3] \texttt{http://csounds.com}. 
 
@@ -201,7 +201,7 @@ CsoundVST is a multi-function front end for the Csound API. CsoundVST runs as a 
 
 CsoundVST contains a built-in Python interpreter. With Python, the user can generate a score, import a MIDI file, process notes, load and run a Csound orchestra, and in general do anything that can be done either with Csound or in Python.
 
-You must define the \texttt{PYTHONPATH} environment variable to include the directory containing the \texttt{\_CsoundVST} shared library and \texttt{CsounVST.py} script.
+You must define the \texttt{PYTHONPATH} environment variable to include the directory containing the \texttt{\_CsoundVST} shared library and \texttt{CsoundVST.py} script.
 
 \subsubsection{Standalone}
 
@@ -242,7 +242,7 @@ In a standard Python interpreter, run your script in the normal way. You can loa
 
 To use CsoundVST itself as your Python interpreter, click on the CsoundVST Settings tab, and select the Python check box in the Csound performance mode box. Do not create a new CppSound object; CsoundVST contains a built-in CppSound object that you must use. 
 
-The \texttt{koch.py} script provides an examples of how to use Python to do algorithmic composition for Csound. You can use Python triple-quoted string literals to hold your Csound files right in your script, and assign them to Csound: 
+The \texttt{koch.py} script shows how to use Python to do algorithmic composition for Csound. You can use Python triple-quoted string literals to hold your Csound files right in your script, and assign them to Csound: 
 
 \begin{verbatim}
 csound.setOrchestra('''sr = 44100
@@ -367,19 +367,17 @@ Csound contains contributions from musicians, scientists, and programmers from a
 
 \section{To Do}
 
-This is the ``to do'' list, not necessarily complete, for Csound and CsoundVST:
+This is a ``to do'' list, not necessarily complete, for Csound and CsoundVST:
 
 \begin{enumerate}
 \item In preparation for a beta file release package:
 \begin{enumerate}
-\item Fix bug in -z option.
-\item Get CsoundVST working in Cubase.
-\item Complete this document sufficiently to get users started building running Csound and CsoundVST with MinGW and Linux.
 \item Get all the example scores working out of the box, and add one for real-time Python performance with a Python GUI.
-\item Automate making gcc import libraries for Python etc. on Windows.
+\item Complete this document sufficiently to get users started building and running Csound and CsoundVST with MinGW and Linux.
+\item Automate making the gcc import library for Python Windows.
 \item Get MIDI input and output working on Windows.
-\item Singleton class for CsoundVST or CppSound so that VST scripts can be identical to Python interpreter scripts.
 \item A \emph{Mathematica} interface - but what kind?
+\item Singleton class for CsoundVST or CppSound so that VST scripts can be identical to Python interpreter scripts.
 \end{enumerate}
 \item Longer term:
 \begin{enumerate}
