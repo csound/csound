@@ -231,7 +231,7 @@ int kschedule(WSCHED *p)
                                 /* Insert event */
       if (*p->when==0) {
         p->kicked = insert_event((MYFLT)which, p->abs_when, dur,
-                                 p->INOCOUNT, p->argums-1, p->midi);
+                                 p->INOCOUNT-4, p->argums, p->midi);
         if (p->midi) {
           rr = (RSCHED*) malloc(sizeof(RSCHED));
           rr->parent = p; rr->kicked = p->kicked; rr->next = kicked;
@@ -239,7 +239,7 @@ int kschedule(WSCHED *p)
         }
       }
       else queue_event((MYFLT)which, *p->when+p->abs_when, dur,
-                       p->INOCOUNT, p->argums-1);
+                       p->INOCOUNT-4, p->argums);
     }
     else if (p->midi && p->h.insdshead->relesing) {
                                 /* If MIDI case watch for release */
