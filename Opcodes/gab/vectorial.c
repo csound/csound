@@ -68,8 +68,7 @@ int mtable_set(ENVIRON *csound,MTABLE *p)        /*  mtab by G.Maldonado */
 {
     FUNC *ftp;
     if ((ftp = ftnp2find(csound, p->xfn)) == NULL) {
-      initerror("mtable: incorrect table number");
-      return NOTOK;
+      return initerror("mtable: incorrect table number");
     }
     p->ftable = ftp->ftable;
     p->nargs = p->INOCOUNT-4;
@@ -195,8 +194,7 @@ int mtab_i(ENVIRON *csound,MTABI *p)
     long indx;
     MYFLT *table, **out = p->outargs;
     if ((ftp = ftnp2find(csound, p->xfn)) == NULL) {
-      initerror("mtabi: incorrect table number");
-      return NOTOK;
+      return initerror("mtabi: incorrect table number");
     }
     table = ftp->ftable;
     nargs = p->INOCOUNT-2;
