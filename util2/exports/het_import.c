@@ -75,7 +75,7 @@ int main(int argc, char **argv)
         fprintf(stderr, Str(X_213,"Cannot open input comma file%s\n"), argv[1]);
         exit(1);
     }
-    outf = fopen(argv[2], "w");
+    outf = fopen(argv[2], "wb");
     if (outf == NULL) {
         fprintf(stderr, Str(X_216,"Cannot open output hetro file %s\n"), argv[2]);
         exit(1);
