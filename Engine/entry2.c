@@ -80,7 +80,6 @@ int    vbap_FOUR_moving_init(void*), vbap_FOUR_moving(void*);
 int    vbap_EIGHT_moving_init(void*), vbap_EIGHT_moving(void*);
 int    vbap_SIXTEEN_moving_init(void*), vbap_SIXTEEN_moving(void*);
 int    vbap_zak_moving_init(void*), vbap_zak_moving(void*);
-int    reverbx_set(void*), reverbx(void*);
 #ifdef BETA
 int    Foscset(void*), Fosckk(void*), Foscka(void*);
 int    Foscak(void*), Foscaa(void*);
@@ -242,8 +241,8 @@ OENTRY opcodlst_2[] = {
 { "oscils",   S(OSCILS), 5,     "a", "iiio",     oscils_set, NULL, oscils       },
 { "lphasor",  S(LPHASOR),5,     "a", "xooooooo" ,lphasor_set, NULL, lphasor     },
 { "tablexkt", S(TABLEXKT),5,    "a", "xkkiooo",  tablexkt_set, NULL, tablexkt   },
-{ "reverb2",  S(NREV2),  5,     "a",    "akkoojoj", reverbx_set,NULL,reverbx    },
-{ "nreverb",  S(NREV2),  5,     "a",    "akkoojoj", reverbx_set,NULL,reverbx    },
+{ "reverb2",  S(NREV2),  5,     "a",    "akkoojoj", (SUBR)reverbx_set,NULL,(SUBR)reverbx    },
+{ "nreverb",  S(NREV2),  5,     "a",    "akkoojoj", (SUBR)reverbx_set,NULL,(SUBR) reverbx    },
 /* IV - Aug 23 2002 */
 #if defined(USE_FLTK)
 { "FLslider",S(FLSLIDER), 1,    "ki",   "Siijjjjjjj",   fl_slider, NULL, NULL   },
@@ -376,6 +375,19 @@ OENTRY opcodlst_2[] = {
 { "deltapx", S(DELTAPX),5,  "a", "ai",   (SUBR)tapxset, NULL,  (SUBR)deltapx },
 { "deltapxw", S(DELTAPX),5, "",  "aai",  (SUBR)tapxset, NULL, (SUBR)deltapxw },
 { "reverb", S(REVERB),  5, "a",  "ako",  (SUBR)rvbset, NULL,   (SUBR)reverb  },
+{ "vdelay",   S(VDEL),  5,      "a",    "axio", (SUBR)vdelset, NULL,  (SUBR)vdelay  },
+{ "vdelay3",  S(VDEL),  5,      "a",    "axio", (SUBR)vdelset, NULL,  (SUBR)vdelay3 },
+{ "vdelayxwq",S(VDELXQ),5,      "aaaa", "aaaaaiio", (SUBR)vdelxqset, NULL, (SUBR)vdelayxwq},
+{ "vdelayxws",S(VDELXS),5,      "aa",   "aaaiio", (SUBR)vdelxsset, NULL, (SUBR)vdelayxws},
+{ "vdelayxw", S(VDELX), 5,      "a",    "aaiio", (SUBR)vdelxset, NULL, (SUBR)vdelayxw},
+{ "vdelayxq", S(VDELXQ),5,      "aaaa", "aaaaaiio", (SUBR)vdelxqset, NULL, (SUBR)vdelayxq},
+{ "vdelayxs", S(VDELXS),5,      "aa",   "aaaiio", (SUBR)vdelxsset, NULL, (SUBR)vdelayxs},
+{ "vdelayx",  S(VDELX), 5,      "a",    "aaiio", (SUBR)vdelxset, NULL, (SUBR)vdelayx},
+{ "deltapx",  S(DELTAPX),5,     "a",    "ai", (SUBR)tapxset, NULL, (SUBR)deltapx    },
+{ "deltapxw", S(DELTAPX),5,     "",     "aai", (SUBR)tapxset, NULL, (SUBR)deltapxw  },
+{ "multitap", S(MDEL),  5,      "a",    "am",   (SUBR)multitap_set,NULL,(SUBR)multitap_play},
+{ "comb",   S(COMB),    5,      "a",    "akioo", (SUBR)cmbset,NULL,   (SUBR)comb    },
+{ "alpass", S(COMB),    5,      "a",    "akioo", (SUBR)cmbset,NULL,   (SUBR)alpass  },
 };
 
 long oplength_2 = sizeof(opcodlst_2);
