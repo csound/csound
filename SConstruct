@@ -15,13 +15,22 @@ For Microsoft Visual C++, run 'scons' in the Visual Studio .NET command prompt
 For Cygwin, run SCons.bat in the Python directory 
     and use Cygwin Python.
 '''
-import datetime
+import time
 import glob
 import os
 import os.path
 import sys
 import string
 import zipfile
+
+#############################################################################
+#
+#   UTILITY FUNCTIONS
+#
+#############################################################################
+
+def today():
+    return time.strftime("%Y_%m_%d",time.localtime())
 
 #############################################################################
 #
@@ -175,7 +184,7 @@ if configure.CheckHeader("dirent.h", language = "c"):
 
 # Package contents.
 
-zipfilename = "csoundvst-" + sys.platform + "-" + str(datetime.date.today()) + ".zip"
+zipfilename = "csoundvst-" + sys.platform + "-" + str(today()) + ".zip"
 
 def buildzip(env, target, source):
 
@@ -625,7 +634,7 @@ ustubProgramEnvironment.Program('srconv',
 csoundProgramEnvironment.Program('csound', 
     ['frontends/csound/csound_main.c'])
     
-if commonEnvironment['buildCsoundVST'] == 1 and boostFound and fltkFound:
+if commonEnvironment['buildCsoundVST'] == 1 and boostFound and fltkFound and sys.platform[:5] != 'linux':    
     print 'Building CsoundVST plugin and standalone.'
     vstEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
     guiProgramEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
