@@ -175,7 +175,6 @@ ENVIRON cenviron_ = {
         csoundRewindScore,
         csoundMessage,
         csoundMessageV,
-        csoundPrintf,
         csoundThrowMessage,
         csoundThrowMessageV,
         csoundSetMessageCallback,
@@ -266,6 +265,7 @@ ENVIRON cenviron_ = {
         catpath,
         rewriteheader,
         writeheader,
+        csoundPrintf,
         /*
         * Data fields.
         */
