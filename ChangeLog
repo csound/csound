@@ -1,3 +1,7 @@
+2004-06-02  Michael Gogins <gogins@pipeline.com>
+
+	* CsoundVST now opens the Python or csd file given on the command line.
+
 2004-05-31  John ffitch  <jpff@codemist.co.uk>
 
 	* OOps/midirecv.c: declare csoundIsExternalMidiEnabled,
