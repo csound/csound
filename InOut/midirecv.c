@@ -462,29 +462,26 @@ void setmastvol(short mvdat)    /* set MastVol & adjust all chan modvols */
 
 int sensMidi(ENVIRON *csound)
 {                          /* sense a MIDI event, collect the data & dispatch */
-    short  c, type;        /*  called from kperf(), return(2) if MIDI on/off  */
-    MEVENT          *mep = MGLOB(Midevtblk);
-    static    short datreq, datcnt;
-    unsigned  char  mbuf[MBUFSIZ], *bufp, *endatp;
-    int             n;
-
-    bufp = &(mbuf[0]);
-    endatp = bufp;
+    short   c, type;       /*  called from kperf(), return(2) if MIDI on/off  */
+    MEVENT  *mep = MGLOB(Midevtblk);
+    int     n;
 
  nxtchr:
-    if (bufp >= endatp) {
-      bufp = &(mbuf[0]);
-      n = csoundExternalMidiRead(csound, MGLOB(midiInUserData), bufp, MBUFSIZ);
+    if (MGLOB(bufp) >= MGLOB(endatp)) {
+      MGLOB(bufp) = &(MGLOB(mbuf)[0]);
+      MGLOB(endatp) = MGLOB(bufp);
+      n = csoundExternalMidiRead(csound, MGLOB(midiInUserData),
+                                 MGLOB(bufp), MBUFSIZ);
       if (n < 1) {
         if (n < 0)
           csoundMessage(csound, " *** error reading MIDI input: %d (%s)\n",
                                 n, csoundExternalMidiErrorString(csound, n));
         return 0;
       }
-      endatp = (char*) bufp + (int) n;
+      MGLOB(endatp) = (char*) MGLOB(bufp) + (int) n;
     }
 
-    if ((c = *bufp++) & 0x80) {              /* STATUS byte:      */
+    if ((c = *(MGLOB(bufp)++)) & 0x80) { /* STATUS byte:      */
       type = c & 0xF0;
       if (type == SYSTEM_TYPE) {
         short lo3 = (c & 0x07);
@@ -507,21 +504,21 @@ int sensMidi(ENVIRON *csound)
           case 0: MGLOB(sexp) = 1;       /* sys_ex begin:     */
             goto nxtchr;                 /*   goto copy data  */
           case 1:                        /* sys_common:       */
-          case 3: datreq = 1;            /*   need some data  */
+          case 3: MGLOB(datreq) = 1;     /*   need some data  */
             break;
-          case 2: datreq = 2;            /*   (so build evt)  */
+          case 2: MGLOB(datreq) = 2;     /*   (so build evt)  */
             break;
           case 6:
             goto nxtchr;
           default: printf(Str("undefined sys_common msg %x\n"), c);
-            datreq = 32767; /* waste any data following */
-            datcnt = 0;
+            MGLOB(datreq) = 32767;       /* waste any data following */
+            MGLOB(datcnt) = 0;
             goto nxtchr;
           }
         }
         mep->type = type;               /* begin sys_com event  */
         mep->chan = lo3;                /* holding code in chan */
-        datcnt = 0;
+        MGLOB(datcnt) = 0;
         goto nxtchr;
       }
       else {                            /* other status types:  */
@@ -532,19 +529,19 @@ int sensMidi(ENVIRON *csound)
           m_chn_init(csound, mep, chan);
         mep->type = type;               /* & begin new event */
         mep->chan = chan;
-        datreq = datbyts[(type>>4) & 0x7];
-        datcnt = 0;
+        MGLOB(datreq) = datbyts[(type>>4) & 0x7];
+        MGLOB(datcnt) = 0;
         goto nxtchr;
       }
     }
     if (MGLOB(sexp) != 0) {             /* NON-STATUS byte:      */
       goto nxtchr;
     }
-    if (datcnt == 0)
+    if (MGLOB(datcnt) == 0)
       mep->dat1 = c;                    /* else normal data      */
     else mep->dat2 = c;
-    if (++datcnt < datreq)              /* if msg incomplete     */
-      goto nxtchr;                      /*   get next char       */
+    if (++MGLOB(datcnt) < MGLOB(datreq))  /* if msg incomplete     */
+      goto nxtchr;                        /*   get next char       */
     /* Enter the input event into a buffer used by 'midiin'. */
     if (mep->type != SYSTEM_TYPE) {
       unsigned char *pMessage =
@@ -552,9 +549,9 @@ int sensMidi(ENVIRON *csound)
       MGLOB(MIDIINbufIndex) &= MIDIINBUFMSK;
       *pMessage++ = mep->type | mep->chan;
       *pMessage++ = (unsigned char)mep->dat1;
-      *pMessage = (datreq < 2 ? (unsigned char) 0 : mep->dat2);
+      *pMessage = (MGLOB(datreq) < 2 ? (unsigned char) 0 : mep->dat2);
     }
-    datcnt = 0;                         /* else allow a repeat   */
+    MGLOB(datcnt) = 0;                  /* else allow a repeat   */
     /* NB:  this allows repeat in syscom 1,2,3 too */
     if (mep->type > NOTEON_TYPE) {      /* if control or syscom  */
       m_chanmsg(csound, mep);           /*   handle from here    */
@@ -742,7 +739,6 @@ int sensFMidi(ENVIRON *csound)  /* read a MidiFile event, collect the data  */
     short  c, type;             /* return(SENSMFIL) if MIDI on/off          */
     MEVENT *mep = MGLOB(FMidevtblk);
     long len;
-    static short datreq;
 
  nxtevt:
     if (--MTrkrem < 0 || (c = getc(MGLOB(mfp))) == EOF)
@@ -835,9 +831,9 @@ int sensFMidi(ENVIRON *csound)  /* read a MidiFile event, collect the data  */
         mep->chan = lo3;          /* holding code in chan */
         switch (lo3) {            /* now need some data   */
         case 1:
-        case 3: datreq = 1;
+        case 3: MGLOB(fdatreq) = 1;
           break;
-        case 2: datreq = 2;
+        case 2: MGLOB(fdatreq) = 2;
           break;
         default: sprintf(errmsg,Str("undefined sys_common msg %x\n"), c);
           die(errmsg);
@@ -850,14 +846,14 @@ int sensFMidi(ENVIRON *csound)  /* read a MidiFile event, collect the data  */
         m_chn_init(csound, mep, chan);
       mep->type = type;                 /*   & begin new event  */
       mep->chan = chan;
-      datreq = datbyts[(type>>4) & 0x7];
+      MGLOB(fdatreq) = datbyts[(type>>4) & 0x7];
     }
     c = getc(MGLOB(mfp));
     MTrkrem--;
 
  datcpy:
     mep->dat1 = c;                        /* sav the required data */
-    if (datreq == 2) {
+    if (MGLOB(fdatreq) == 2) {
       mep->dat2 = getc(MGLOB(mfp));
       MTrkrem--;
     }
@@ -868,7 +864,7 @@ int sensFMidi(ENVIRON *csound)  /* read a MidiFile event, collect the data  */
       MGLOB(MIDIINbufIndex) &= MIDIINBUFMSK;
       *pMessage++ = mep->type | mep->chan;
       *pMessage++ = (unsigned char)mep->dat1;
-      *pMessage = (datreq < 2 ? (unsigned char) 0 : mep->dat2);
+      *pMessage = (MGLOB(fdatreq) < 2 ? (unsigned char) 0 : mep->dat2);
     }
     if (mep->type > NOTEON_TYPE) {        /* if control or syscom  */
       m_chanmsg(csound, mep);             /*   handle from here    */
