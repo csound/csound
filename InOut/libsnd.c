@@ -21,7 +21,6 @@
     02111-1307 USA
 */
 
-
 #include "cs.h"                         /*             SNDLIB.C       */
 #include "soundio.h"
 #include <sndfile.h>
@@ -32,7 +31,7 @@
 #ifdef RTAUDIO
 extern  int     *rtrecord_(MYFLT *, int);
 extern  void    *rtplay_(MYFLT *, int);
-extern  void    rtclose_(void);
+extern  void    *rtclose_(void);
 extern  void    *recopen_(int, int, float, int);
 extern  void    *playopen_(int, int, float, int);
 #endif
@@ -371,8 +370,8 @@ void sfopenin(void)             /* init for continuous soundin */
         sscanf(O.infilename+3, "%d", &rtin_dev);
 #endif
       sfname = O.infilename;
-      recopen_(nchnls,O.insampsiz,(float)esr,2); /* open devaudio for input */
-      audrecv = rtrecord_;                 /*  & redirect audio gets  */
+      recopen_(nchnls,O.insampsiz,(float)esr,2);  /* open devaudio for input */
+      audrecv = rtrecord_;                /*  & redirect audio gets  */
       isfd = DEVAUDIO;                    /* dummy file descriptor   */
       pipdevin   = 1;                     /* no backward seeks !     */
       goto inset;                         /* no header processing    */
@@ -459,7 +458,7 @@ void sfopenout(void)                            /* init for sound out       */
 #endif
       sfoutname = O.outfilename;
       playopen_(nchnls, O.sfsampsize, (float)esr, 2);  /* open devaudio for out */
-      audtran = rtplay_;                       /* & redirect audio puts */
+      audtran = rtplay_;                        /* & redirect audio puts */
       osfd = DEVAUDIO;                         /* dummy file descriptor */
       pipdevout = 1;                           /* no backward seeks !   */
 #if defined(mills_macintosh) || defined(SYMANTEC)
