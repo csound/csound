@@ -47,6 +47,9 @@
 #include <math.h>
 #include <ctype.h>
 
+/* Macro form of Istvan's speedup ; constant should be 3fefffffffffffff */
+#define FLOOR(x) (x >= FL(0.0) ? (long)x : (long)((double)x - 0.999999999999999))
+
 /* Do List:
  *
  * Clean up code in zak - use arrays rather than messy pointer stuff.
@@ -1036,7 +1039,7 @@ int ktablew(ENVIRON *csound, TABLEW  *p)
        *
        * Limit the final index to 0 and the last location in the table.
        */
-      indx = (long) floor(ndx); /* Limit to (table length - 1) */
+      indx = (long) FLOOR(ndx); /* Limit to (table length - 1) */
       if (indx > length - 1)
         indx = length - 1;      /* Limit the high values. */
       else if (indx < 0L) indx = 0L; /* limit negative values to zero. */
@@ -1045,7 +1048,7 @@ int ktablew(ENVIRON *csound, TABLEW  *p)
      * In guard point mode only, add 0.5 to the index. */
     else {
       if (p->iwgm == 2) ndx += FL(0.5);
-      indx = (long) floor(ndx);
+      indx = (long) FLOOR(ndx);
 
       /* Both wrap and guard point mode.
        * The following code uses an AND with an integer like 0000 0111 to wrap
@@ -1110,13 +1113,13 @@ int tablew(ENVIRON *csound, TABLEW *p)
          add in the offset.  */
       ndx = (*pxndx++ * xbmul) + offset;
       if (liwgm == 0) {         /* Limit mode - when igmode = 0. */
-        indx = (long) floor(ndx);
+        indx = (long) FLOOR(ndx);
         if (indx > length - 1) indx = length - 1;
         else if (indx < 0L) indx = 0L;
       }
       else {
         if (liwgm == 2) ndx += FL(0.5);
-        indx = (long) floor(ndx);
+        indx = (long) FLOOR(ndx);
         /* Both wrap and guard point mode.
          *
          * AND with an integer like 0000 0111 to wrap the index within the
@@ -1635,7 +1638,7 @@ static void domix(ENVIRON *csound, TABLEMIX *p)
     /* Get the length and generate the loop count.
      * Return with no action if it is 0.    */
 
-    if ((length = (long)floor(*p->len)) == 0L) return;
+    if ((length = (long)FLOOR(*p->len)) == 0L) return;
 
     if (length < 0L) loopcount = 0L - length;
     else             loopcount = length;
@@ -1644,9 +1647,9 @@ static void domix(ENVIRON *csound, TABLEMIX *p)
      * to the next most negative integer. This ensures that a sweeping
      * offset will wrap correctly into the table's address space.    */
 
-    offd  = (long)floor(*p->doff);
-    offs1 = (long)floor(*p->s1off);
-    offs2 = (long)floor(*p->s2off);
+    offd  = (long)FLOOR(*p->doff);
+    offs1 = (long)FLOOR(*p->s1off);
+    offs2 = (long)FLOOR(*p->s2off);
 
     /* Now get the base addresses and length masks of the three tables.  */
     based  = p->funcd->ftable;
@@ -1947,7 +1950,7 @@ int tablera(ENVIRON *csound, TABLERA *p)
     /* Set up the offset integer rounding float input argument to the next
      * more negative integer. Also read the mask from the FUNC data structure.
      */
-    kioff = (long)floor(*p->koff);
+    kioff = (long)FLOOR(*p->koff);
     mask = p->ftp->lenmask;
 
     /* We are almost ready to go, but first check to see whether
@@ -2071,7 +2074,7 @@ int tablewa(ENVIRON *csound, TABLEWA *p)
     /* Set up the offset integer rounding float input argument to the next
      * more negative integer.  Also read the mask from the FUNC data structure.
      */
-    kioff = (long)floor(*p->koff);
+    kioff = (long)FLOOR(*p->koff);
     mask = p->ftp->lenmask;
     /* !! end of code identical to tablera.  */
 
@@ -3147,7 +3150,7 @@ int printks(ENVIRON *csound, PRINTKS *p)
         if (*txtptr == '#') {
           /* print the 0 to 255 value of the float - this gives wrap-around
            * for out of range values.      */
-          printf("%c", 255 & (int)floor(*p->kval1));
+          printf("%c", 255 & (int)FLOOR(*p->kval1));
           /* printf the rest of the string, if any.   */
           printf(++txtptr, *p->kval2, *p->kval3, *p->kval4, 0, 0, 0);
                                 /* What on earth are these zeros for!!! */
