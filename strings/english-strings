@@ -36,7 +36,7 @@
 36,"%d memfile%s deleted\n"
 37,"%d opcodes\n"
 38,"%d syntax errors in orchestra.  compilation invalid\n"
-39,"Using Portaudio Device %i\n"
+39,"Using Portaudio device %i\n"
 40,"%d: File %s position %ld\n"
 41,"PortAudio error %d: %s\n"
 42,"fast: N is not an allowable power of two\n"
