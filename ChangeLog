@@ -1,3 +1,35 @@
+2005-03-06	Istvan Varga	<istvan@csounds.com>
+	* Engine/insert.c:
+	* Engine/musmon.c:
+	* InOut/midirecv.c:
+	  started to rework event processing code (sensevents() and other
+	  functions); still a long way to go, and bugs may heve been
+	  introduced
+	* Engine/oload.c:
+	  cenviron_: removed sensType, added evt_poll_cnt and evt_poll_maxcnt
+	* csound/csound_main.c:
+	  do not call csoundYield() in main loop, kperf() will call it
+	  frequently enough; improves performance
+	* H/cs.h:
+	* H/csdl.h:
+	  removed macro definitions for sensType
+	* H/csoundCore.h:
+	  changes in INSDS, sensEvents_t, and ENVIRON for new event
+	  processing code
+	  removed MCHNBLK.ksusptr[] and ENVIRON.sensType_
+	* H/prototyp.h:
+	  added prototypes for xturnoff() and xturnoff_now()
+	* InOut/midifile.c:
+	  changed miditempo opcode to print score tempo when MIDI file
+	  is not available
+	* OOps/schedule.c:
+	  minor cosmetic changes (removed old commented out code etc.)
+	* Top/csound.c:
+	* Top/main.c:
+	  removed frsturnon
+	* Top/opcode.c:
+	  minor fix: print opcodes like oscil.kk correctly
+
 2005-03-03	Istvan Varga	<istvan@csounds.com>
 	* Engine/envvar.c:
 	* H/envvar.h:

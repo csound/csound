@@ -305,7 +305,6 @@ ENVIRON cenviron_ = {
         NULL,   /*      pool */
         NULL,   /*      argoffspace */
         NULL,   /*      frstoff */
-        0,      /*      sensType */
 #if defined(__WATCOMC__) || defined(__POWERPC__) || defined(mills_macintosh)
         {0},
 #else
@@ -362,7 +361,9 @@ ENVIRON cenviron_ = {
         NULL,           /* rtPlay_userdata */
         NULL,           /* memalloc_db */
         (MGLOBAL*) NULL, /* midiGlobals */
-        NULL            /* envVarDB */
+        NULL,           /* envVarDB */
+        0,              /* evt_poll_cnt */
+        0               /* evt_poll_maxcnt */
 };
 
 OPARMS O;

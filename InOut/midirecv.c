@@ -114,8 +114,6 @@
 extern  void    schedofftim(INSDS *), deact(INSDS *), beep(void);
         void    midNotesOff(void);
 
-extern  void    insxtroff(short);
-
 static MYFLT dsctl_map[12] = {
     FL(1.0), FL(0.0), FL(1.0), FL(0.0), FL(1.0), FL(0.0),
     FL(1.0), FL(0.0), FL(1.0), FL(0.0), FL(1.0), FL(0.0)
@@ -155,39 +153,23 @@ void MidiOpen(ENVIRON *csound)
 
 static void sustsoff(MCHNBLK *chn)  /* turnoff all notes in chnl sust array */
 {                        /* called by SUSTAIN_SW_off only if count non-zero */
-    INSDS *ip, **ipp1, **ipp2;
-    short nn, suscnt;
+    INSDS *ip;
+    int   nn;
 
-    suscnt = chn->ksuscnt;
-    ipp1 = ipp2 = chn->ksusptr + 64;    /* find midpoint of sustain array */
-    ipp1--;
-    for (nn = 64; nn--; ipp1--, ipp2++ ) {
-      if ((ip = *ipp1) != NULL) {
-        *ipp1 = NULL;
-        do {
-          if (ip->xtratim) {
-            ip->relesing = 1;
-            ip->offtim = (kcounter + ip->xtratim) * onedkr;
-            schedofftim(ip);
-          }
-          else deact(ip);
-        } while ((ip = ip->nxtolap) != NULL);
-        if (--suscnt == 0)  break;
-      }
-      if ((ip = *ipp2) != NULL) {
-        *ipp2 = NULL;
-        do {
-          if (ip->xtratim) {
-            ip->relesing = 1;
-            ip->offtim = (kcounter + ip->xtratim) * onedkr;
-            schedofftim(ip);
-          }
-          else deact(ip);
-        } while ((ip = ip->nxtolap) != NULL);
-        if (--suscnt == 0)  break;
+    if (chn->ksuscnt <= 0) {
+      chn->ksuscnt = 0;
+      return;
+    }
+    for (nn = 0; nn < 128; nn++) {
+      ip = chn->kinsptr[nn];
+      while (ip != NULL) {
+        if (ip->m_sust)
+          xturnoff(&cenviron, ip);
+        ip = ip->nxtolap;
       }
     }
-    if (suscnt) printf(Str("sustain count still %d\n"), suscnt);
+    if (chn->ksuscnt)
+      printf(Str("sustain count still %d\n"), chn->ksuscnt);
     chn->ksuscnt = 0;
 }
 
@@ -313,12 +295,12 @@ void m_chanmsg(ENVIRON *csound, MEVENT *mep)
       else
         chn->ctl_val[n] = (MYFLT) mep->dat2;      /* record data as MYFLT */
     err:
-      if (n == SUSTAIN_SW) {
-        short temp = (mep->dat2 > 0);
-        if (chn->sustaining != temp) {            /* if sustainP changed  */
-          if (chn->sustaining && chn->ksuscnt)    /*  & going off         */
-            sustsoff(chn);                        /*      reles any notes */
-          chn->sustaining = temp;
+      if (n == SUSTAIN_SW) {                      /* if sustainP changed  */
+        if (mep->dat2 > 0)
+          chn->sustaining = 1;
+        else if (chn->sustaining) {               /*  & going off         */
+          chn->sustaining = 0;
+          sustsoff(chn);                          /*      reles any notes */
         }
       }
       break;
@@ -452,28 +434,23 @@ int m_chinsno(ENVIRON *csound, short chan, short insno)
 
 static void AllNotesOff(MCHNBLK *chn)
 {
-    INSDS *ip, **ipp = chn->kinsptr;
-    int nn = 128;
+    INSDS   *ip;
+    int     nn;
 
-    do {
-      if ((ip = *ipp) != NULL) {        /* if find a note in kinsptr slot */
-        deact(ip);                      /*    deactivate, clear the slot  */
-        *ipp = NULL;
+    for (nn = 0; nn < 128; nn++) {
+      ip = chn->kinsptr[nn];
+      while (ip != NULL) {
+        xturnoff_now(&cenviron, ip);
+        ip = ip->nxtolap;
       }
-      ipp++;
-    } while (--nn);
-    if (chn->sustaining)                /* same for notes in sustain list */
-      sustsoff(chn);
-    insxtroff(chn->insno);              /* finally rm all xtratim hanging */
+    }
 }
 
 void midNotesOff(void)          /* turnoff ALL curr midi notes, ALL chnls */
-{                               /* called by musmon, ctrl 123 & sensFMidi */
+{                               /* called by musmon, ctrl 123 & sensMidi  */
     int chan = 0;
-    MCHNBLK *chn;
     do {
-      if ((chn = M_CHNBP[chan]) != NULL)
-        AllNotesOff(chn);
+      AllNotesOff(M_CHNBP[chan]);
     } while (++chan < MAXCHAN);
 }
 

@@ -81,6 +81,8 @@ int readOptions(void*, FILE*);
 int csoundMain(void *csound, int argc, char **argv);
 void remove_tmpfiles(void*);
 void add_tmpfile(void*, char*);
+void xturnoff(ENVIRON*, INSDS*);
+void xturnoff_now(ENVIRON*, INSDS*);
 
 extern OPARMS O;
 extern ENVIRON cenviron;

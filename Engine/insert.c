@@ -33,17 +33,15 @@
 #include "MacTransport.h"
 #endif
 
-static MYFLT cpu_power_busy=FL(0.0);  /* accumulates the supposed percent of cpu usage */
-/* extern  INSDS *insalloc[]; */
+/* accumulates the supposed percent of cpu usage */
+static MYFLT cpu_power_busy=FL(0.0);
 extern  OPARMS  O;
 
 INSDS   *instance(int);
 
-/* glob int     tieflag = 0;               toggled by insert for tigoto */
 static  int     reinitflag = 0;         /* toggled by reinit for others */
 static  OPDS    *ids, *pds;             /* used by init and perf loops  */
                                         /*  & modified by igoto, kgoto  */
-static  OPDS    opdstmp;
 void    showallocs(void);
 extern  void    putop(TEXT*);
 void    deact(INSDS *), schedofftim(INSDS *);
@@ -78,8 +76,18 @@ int init0(ENVIRON *csound)
     return(inerrcnt);                       /*   return errcnt      */
 }
 
-int
-insert(ENVIRON *csound, int insno, EVTBLK *newevtp)
+void set_xtratim(ENVIRON *csound, INSDS *ip)
+{
+    sensEvents_t  *p;
+    if (ip->relesing)
+      return;
+    p = &(csound->sensEvents_state);
+    ip->offtim = p->curTime + (p->curTime_inc * (double) ip->xtratim);
+    ip->offbet = p->curBeat + (p->curBeat_inc * (double) ip->xtratim);
+    ip->relesing = 1;
+}
+
+int insert(ENVIRON *csound, int insno, EVTBLK *newevtp)
                                     /* insert an instr copy into active list */
 {                                   /*      then run an init pass            */
     INSTRTXT *tp;
@@ -95,25 +103,24 @@ insert(ENVIRON *csound, int insno, EVTBLK *newevtp)
       return 0;
     }
     if (tp->mdepends & 04) {
-      printf(Str(
-                 "instr %d expects midi event data, cannot run from score\n"),
+      printf(Str("instr %d expects midi event data, cannot run from score\n"),
              insno);
       return(1);
     }
-    if ((ip = tp->instance) != NULL) {      /* if allocs of text exist: */
+    if ((ip = tp->instance) != NULL) { /* if allocs of text exist: */
       do {
         if (ip->insno == insno &&      /*   if find this insno,  */
             ip->actflg         &&      /*      active            */
-            ip->offtim < 0     &&      /*      with indef (tie)  */
-            ip->p1 == newevtp->p[1]) { /*  & matching p1  */
+            ip->offtim < 0.0   &&      /*      with indef (tie)  */
+            ip->p1 == newevtp->p[1]) { /*      & matching p1     */
           tieflag++;
-          goto init;      /*     continue that event */
+          goto init;                   /*     continue that event */
         }
       } while ((ip = ip->nxtinstance) != NULL);
       ip = tp->instance;              /*   else get alloc of text */
       do {
-        if (!ip->actflg)        /*      that is free        */
-          goto actlnk;    /*      and use its space   */
+        if (!ip->actflg)              /*      that is free        */
+          goto actlnk;                /*      and use its space   */
       } while ((ip = ip->nxtinstance) != NULL);
     }
     /* RWD: screen writes badly slow down RT playback */
@@ -122,21 +129,21 @@ insert(ENVIRON *csound, int insno, EVTBLK *newevtp)
 
  actlnk:
     cpu_power_busy += instrtxtp[insno]->cpuload;
-    if (cpu_power_busy > FL(100.0)) { /* if there is no more cpu processing time*/
+    /* if there is no more cpu processing time*/
+    if (cpu_power_busy > FL(100.0)) {
       cpu_power_busy -= instrtxtp[insno]->cpuload;
       if (O.msglevel & WARNMSG)
-        printf(Str(
-                   "WARNING: cannot allocate last note because it exceeds "
-                   "100%% of cpu time"));
+        printf(Str("WARNING: cannot allocate last note because it exceeds "
+                   "100%% of cpu time\n"));
       return(0);
     }
     /* Add an active instrument */
-    if (instrtxtp[insno]->active++ > instrtxtp[insno]->maxalloc &&
+    if (++instrtxtp[insno]->active > instrtxtp[insno]->maxalloc &&
         instrtxtp[insno]->maxalloc>0) {
       instrtxtp[insno]->active--;
       if (O.msglevel & WARNMSG)
-        printf(Str(
-                   "WARNING: cannot allocate last note because it exceeds instr maxalloc"));
+        printf(Str("WARNING: cannot allocate last note "
+                   "because it exceeds instr maxalloc\n"));
       return(0);
     }
 
@@ -176,8 +183,10 @@ insert(ENVIRON *csound, int insno, EVTBLK *newevtp)
         printf(Str("WARNING: %s\n"), errmsg);
       }
       if (newevtp->p3orig >= FL(0.0))
-        ip->offbet = newevtp->p2orig + newevtp->p3orig;
-      else ip->offbet = FL(-1.0);
+        ip->offbet = csound->sensEvents_state.beatOffs
+                     + (double) newevtp->p2orig + (double) newevtp->p3orig;
+      else
+        ip->offbet = -1.0;
       flp = &ip->p1;
       fep = &newevtp->p[1];
       if (O.odebug) printf("psave beg at %p\n",flp);
@@ -186,27 +195,30 @@ insert(ENVIRON *csound, int insno, EVTBLK *newevtp)
       if (n < tp->pmax) memset(flp, 0, (tp->pmax - n) * sizeof(MYFLT));
       if (O.odebug) printf("   ending at %p\n",flp);
     }
-    ip->offtim       = ip->p3;                    /* & duplicate p3 for now */
+    ip->offtim       = (double) ip->p3;         /* & duplicate p3 for now */
+    ip->m_chnbp      = (MCHNBLK*) NULL;
     ip->xtratim      = 0;
     ip->relesing     = 0;
-    ip->m_chnbp      = (MCHNBLK*) NULL;  /* IV May 2002 */
-    ip->opcod_iobufs = NULL;        /* IV - Sep 8 2002 */
+    ip->m_sust       = 0;
+    ip->nxtolap      = NULL;
+    ip->opcod_iobufs = NULL;
     curip            = ip;
     ids              = (OPDS *)ip;
     while ((ids = ids->nxti) != NULL) {   /* do init pass for this instr */
       if (O.odebug) printf("init %s:\n", opcodlst[ids->optext->t.opnum].opname);
-      err |= (*ids->iopadr)(csound,ids);      /* $$$$ CHECK RETURN CODE $$$$ */
+      err |= (*ids->iopadr)(csound,ids);  /* $$$$ CHECK RETURN CODE $$$$ */
     }
     tieflag = 0;
-    if (err || !ip->p3) {
+    if (err || ip->p3 == FL(0.0)) {
       deact(ip);
       return(inerrcnt);
     }
-    if (ip->p3 > FL(0.0) && ip->offtim > FL(0.0)) {   /* if still finite time, */
-      ip->offtim = ip->p2 + ip->p3;
-      schedofftim(ip);                    /*   put in turnoff list */
+    if (ip->p3 > FL(0.0) && ip->offtim > 0.0) { /* if still finite time, */
+      ip->offtim = csound->sensEvents_state.timeOffs
+                   + (double) ip->p2 + (double) ip->p3;
+      schedofftim(ip);                          /*   put in turnoff list */
     }
-    else ip->offtim = -FL(1.0);                      /* else mark indef */
+    else ip->offtim = -1.0;                     /*   else mark indef     */
     if (O.odebug) {
       printf("instr %d now active:\n",insno); showallocs();
     }
@@ -218,8 +230,8 @@ int MIDIinsert(ENVIRON *csound, int insno, MCHNBLK *chn, MEVENT *mep)
 /*  then run an init pass           */
 {
     INSTRTXT *tp;
-    INSDS    *ip, **ipp;
-    int err = 0;
+    INSDS    *ip, **ipp, *prvp, *nxtp;
+    int      err = 0;
 
     if (insno <= 0)
       return 0;     /* muted */
@@ -228,9 +240,16 @@ int MIDIinsert(ENVIRON *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     if (cpu_power_busy > FL(100.0)) {   /* if there is no more cpu time*/
       cpu_power_busy -= instrtxtp[insno]->cpuload;
       if (O.msglevel & WARNMSG)
-        printf(Str(
-                   "WARNING: cannot allocate last note because "
+        printf(Str("WARNING: cannot allocate last note because "
                    "it exceeds 100%% of cpu time"));
+      return(0);
+    }
+    if (++instrtxtp[insno]->active > instrtxtp[insno]->maxalloc &&
+        instrtxtp[insno]->maxalloc > 0) {
+      instrtxtp[insno]->active--;
+      if (O.msglevel & WARNMSG)
+        printf(Str("WARNING: cannot allocate last note because "
+                   "it exceeds instr maxalloc\n"));
       return(0);
     }
     if (O.odebug) printf("activating instr %d\n",insno);
@@ -238,28 +257,6 @@ int MIDIinsert(ENVIRON *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     ipp = &chn->kinsptr[mep->dat1];       /* key insptr ptr           */
     tp = instrtxtp[insno];
     if (tp->instance != NULL) {           /* if allocs of text exist  */
-      INSDS **spp;
-      if ((ip = *ipp) != NULL) {          /*   if key currently activ */
-        if (ip->xtratim == 0)             /*     if decay not needed  */
-          goto m_dat2;                    /*        usurp curr space  */
-        else goto forcdec;                /*     else force a decay   */
-      }
-      spp = ipp + 128;                    /*   (struct dependent ! )  */
-      if ((ip = *spp) != NULL) {          /*   else if pch sustaining */
-        *spp = NULL;                      /*     remov from sus array */
-        chn->ksuscnt--;
-        if (ip->xtratim == 0) {
-          *ipp = ip;
-          goto m_dat2;
-        }
-        else {
-        forcdec:
-          ip->relesing = 1;               /*     else force a decay   */
-          ip->offtim = (kcounter + ip->xtratim) * onedkr;
-          schedofftim(ip);
-          Mforcdecs++;
-        }
-      }                                   /*         & get new space  */
       ip = tp->instance;                  /*    srch existing allocs  */
       do {
         if (!ip->actflg)                  /*      if one is free      */
@@ -268,51 +265,52 @@ int MIDIinsert(ENVIRON *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     }
     printf(Str("new alloc for instr %d:\n"),insno);
     ip = instance(insno);                 /* else alloc new dspace  */
-
  actlnk:
     ip->insno = insno;
-    if (instrtxtp[insno]->active++ > instrtxtp[insno]->maxalloc &&
-        instrtxtp[insno]->maxalloc>0) {
-      instrtxtp[insno]->active--;
-      if (O.msglevel & WARNMSG)
-        printf(Str(
-                   "WARNING: cannot allocate last note because "
-                   "it exceeds instr maxalloc"));
-      return(0);
-    }
     if (O.odebug)
       printf("Now %d active instr %d\n", instrtxtp[insno]->active, insno);
-    {
-      INSDS  *prvp, *nxtp;       /* now splice into activ lst */
-      nxtp = &actanchor;
-      while ((prvp = nxtp) && (nxtp = prvp->nxtact) != NULL) {
-        if (nxtp->insno > insno) {
-          nxtp->prvact = ip;
-          break;
-        }
+
+    if ((prvp = *ipp) != NULL) {          /*   if key currently activ */
+      if (O.msglevel & WARNMSG) {
+        printf(Str("WARNING: MIDI note overlaps with key %d on same channel\n"),
+               (int) mep->dat1);
       }
-      ip->nxtact = nxtp;
-      ip->prvact = prvp;
-      prvp->nxtact = ip;
+      while (prvp->nxtolap != NULL)       /*   append to overlap list */
+        prvp = prvp->nxtolap;
+      prvp->nxtolap = ip;
     }
-    ip->actflg++;            /*    and mark the instr active */
-    if (tp->pmax > 3 && tp->psetdata==NULL &&
-        (O.msglevel & WARNMSG)) {
-      sprintf(errmsg,Str("instr %d p%d illegal for MIDI"),
-              insno, tp->pmax);
+    else
+      *ipp = ip;
+    /* of overlapping notes, the one that was turned on first will be */
+    /* turned off first as well */
+    ip->nxtolap = NULL;
+
+    nxtp = &actanchor;                    /* now splice into activ lst */
+    while ((prvp = nxtp) && (nxtp = prvp->nxtact) != NULL) {
+      if (nxtp->insno > insno) {
+        nxtp->prvact = ip;
+        break;
+      }
+    }
+    ip->nxtact = nxtp;
+    ip->prvact = prvp;
+    prvp->nxtact = ip;
+    ip->actflg++;                         /* and mark the instr active */
+    if (tp->pmax > 3 && tp->psetdata == NULL && (O.msglevel & WARNMSG)) {
+      sprintf(errmsg, Str("instr %d p%d illegal for MIDI"), insno, tp->pmax);
       printf(Str("WARNING: %s\n"), errmsg);
     }
-    ip->m_chnbp = chn;       /* rec address of chnl ctrl blk */
-    *ipp = ip;               /* insds ptr for quick midi-off */
-    ip->m_pitch = mep->dat1; /* rec MIDI data                */
- m_dat2:
-    ip->m_veloc = mep->dat2;
+    ip->m_chnbp = chn;                    /* rec address of chnl ctrl blk */
+    ip->m_pitch = (unsigned char) mep->dat1;    /* rec MIDI data   */
+    ip->m_veloc = (unsigned char) mep->dat2;
     ip->xtratim = 0;
+    ip->m_sust = 0;
     ip->relesing = 0;
-    ip->offtim = -FL(1.0);    /* set indef duration */
+    ip->offbet = -1.0;
+    ip->offtim = -1.0;              /* set indef duration */
     ip->opcod_iobufs = NULL;        /* IV - Sep 8 2002:            */
     ip->p1 = (MYFLT) ip->insno;     /* set these required p-fields */
-    ip->p2 = (MYFLT) kcounter * onedkr;
+    ip->p2 = (MYFLT) csound->sensEvents_state.curTime;
     ip->p3 = FL(-1.0);
     if (tp->psetdata != NULL) {
       MYFLT *pfld = &ip->p3;              /* if pset data present */
@@ -330,13 +328,13 @@ int MIDIinsert(ENVIRON *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     }
     tieflag = 0;
     if (err) {
-      deact(ip);
-      return(inerrcnt);
+      xturnoff_now(csound, ip);
+      return inerrcnt;
     }
     if (O.odebug) {
       printf("instr %d now active:\n",insno); showallocs();
     }
-    return(0);
+    return 0;
 }
 
 void showallocs(void)    /* debugging aid        */
@@ -380,31 +378,14 @@ void schedofftim(INSDS *ip)     /* put an active instr into offtime list  */
     ip->nxtoff = nxtp;
 }
 
-
-void insxtroff(short insno)     /* deactivate all schedofftim copies    */
-{                               /*  (such as xtratims still playing)    */
-    INSDS *ip, *prvp = NULL;
-
-    for (ip = frstoff; ip != NULL; ip = ip->nxtoff) {
-      if (ip->insno == insno && ip->actflg) {
-        deact(ip);
-        if (frstoff == ip)
-          frstoff = ip->nxtoff;
-        else prvp->nxtoff = ip->nxtoff;
-      }
-      else prvp = ip;
-    }
-}
-
 int useropcd(ENVIRON *, UOPCODE*);        /* IV - Oct 26 2002 */
 
 void deact(INSDS *ip)           /* unlink single instr from activ chain */
                                 /*      and mark it inactive            */
 {                               /*   close any files in fd chain        */
     INSDS  *nxtp;
-    /*  OPDS   *p;          IV - Oct 24 2002 */
 
-    /*     printf("active(%d) = %d\n", ip->insno, instrtxtp[ip->insno]->active); */
+    /* printf("active(%d) = %d\n", ip->insno, instrtxtp[ip->insno]->active); */
     instrtxtp[ip->insno]->active--;     /* remove an active instrument */
     cpu_power_busy -= instrtxtp[ip->insno]->cpuload;
     /* IV - Sep 8 2002: free subinstr instances */
@@ -434,100 +415,90 @@ void deact(INSDS *ip)           /* unlink single instr from activ chain */
       fdchclose(ip);
 }
 
-int ihold(ENVIRON *csound, LINK *p)                      /* make this note indefinit duration */
-{                                       /* called by ihold statmnt at Itime */
-    if (!reinitflag) {                  /* no-op at reinit                  */
-      curip->offbet = -FL(1.0);
-      curip->offtim = -FL(1.0);
+int ihold(ENVIRON *csound, LINK *p)     /* make this note indefinit duration */
+{                                       /* called by ihold statmnt at Itime  */
+    if (!reinitflag) {                  /* no-op at reinit                   */
+      curip->offbet = -1.0;
+      curip->offtim = -1.0;
     }
     return OK;
 }
 
-int turnoff(ENVIRON *csound, LINK *p)                    /* terminate the current instrument  */
+/* Turn off a particular insalloc, also remove from list of active */
+/* MIDI notes. Allows for releasing if ip->xtratim > 0. */
+
+void xturnoff(ENVIRON *csound, INSDS *ip) /* turnoff a particular insalloc */
+{                                         /* called by inexclus on ctrl 111 */
+    MCHNBLK *chn;
+
+    if (ip->relesing)
+      return;                   /* already releasing: nothing to do */
+
+    chn = ip->m_chnbp;
+    if (chn != NULL) {                          /* if this was a MIDI note */
+      INSDS *prvip;
+      prvip = chn->kinsptr[ip->m_pitch];        /*    remov from activ lst */
+      if (ip->m_sust && chn->ksuscnt)
+        chn->ksuscnt--;
+      ip->m_sust = 0;                   /* force turnoff even if sustaining */
+      if (prvip != NULL) {
+        if (prvip == ip)
+          chn->kinsptr[ip->m_pitch] = ip->nxtolap;
+        else {
+          while (prvip != NULL && prvip->nxtolap != ip)
+            prvip = prvip->nxtolap;
+          if (prvip != NULL)
+            prvip->nxtolap = ip->nxtolap;
+        }
+      }
+    }
+    /* if extra time needed: schedoff at new time */
+    if (ip->xtratim > 0) {
+      /* remove from chain first, if already finite duration */
+      if (frstoff != NULL && ip->offtim >= 0.0) {
+        INSDS *prvip;
+        prvip = frstoff;
+        if (prvip == ip)
+          frstoff = ip->nxtoff;
+        else {
+          while (prvip != NULL && prvip->nxtoff != ip)
+            prvip = prvip->nxtoff;
+          if (prvip != NULL)
+            prvip->nxtoff = ip->nxtoff;
+        }
+      }
+      set_xtratim(csound, ip);
+      schedofftim(ip);
+    }
+    else {
+      /* no extra time needed: deactivate immediately */
+      deact(ip);
+    }
+}
+
+/* Turn off instrument instance immediately, without releasing. */
+/* Removes alloc from list of active MIDI notes. */
+
+void xturnoff_now(ENVIRON *csound, INSDS *ip)
+{
+    ip->xtratim = 0;
+    ip->relesing = 0;
+    xturnoff(csound, ip);
+}
+
+int turnoff(ENVIRON *csound, LINK *p)   /* terminate the current instrument  */
 {                                       /* called by turnoff statmt at Ptime */
     INSDS  *lcurip = pds->insdshead;
     /* IV - Oct 16 2002: check for subinstr and user opcode */
     /* find top level instrument instance */
     while (lcurip->opcod_iobufs)
       lcurip = ((OPCOD_IOBUFS*) lcurip->opcod_iobufs)->parent_ip;
-    if (lcurip->xtratim) {               /* if extra time needed:  */
-      INSDS *nxt;
-      MYFLT oldtim = lcurip->offtim;
-      MYFLT newtim = (kcounter + lcurip->xtratim) * onedkr;
-      /* printf("Turnoff called %d offtime %f->%f\n", lcurip->xtratim,oldtim,newtim); */
-      lcurip->relesing = 1;
-      lcurip->offtim = newtim;
-      if (oldtim < FL(0.0))             /* if indef duratn instr   */
-        schedofftim(lcurip);             /*    schedoff at new time */
-      else if ((nxt = lcurip->nxtoff) != NULL
-               && newtim > nxt->offtim) {
-        INSDS *prv, *newip = nxt;       /* else relink if reqd  */
-        while ((prv = nxt)
-               && (nxt = nxt->nxtoff) != NULL
-               && newtim > nxt->offtim);
-        prv->nxtoff = lcurip;
-        lcurip->nxtoff = nxt;
-        if (lcurip == frstoff)
-          frstoff = newip;
-      }
-      lcurip->xtratim--;         /* Decay the delay */
-    }
-    else {                                /* no extra time needed:  */
-      INSDS   *ip, *prvip;
-      MCHNBLK *chn;
-      short   pch;
-      deact(lcurip);                       /* deactivate immediately */
-      if ((chn = lcurip->m_chnbp) != NULL
-          && (pch = lcurip->m_pitch)) {    /* if this was a MIDI note */
-        INSDS **ipp = &chn->kinsptr[pch];
-        if (*ipp == lcurip) *ipp = NULL;   /*    remov from activ lst */
-        else if (chn->ksuscnt) {
-          ipp += 128;                     /* STRUCT DEPEND */
-          if (*ipp == lcurip) {
-            *ipp = NULL;                  /*    or from sustain list */
-            chn->ksuscnt--;
-          }
-        }
-      }
-      if (lcurip->offtim >= FL(0.0)      /* skip indefinite durs    */
-          && (ip = frstoff) != NULL) {
-        if (ip == lcurip)                /* else rm from nxtoff chn */
-          frstoff = ip->nxtoff;
-        else while ((prvip = ip) && (ip = ip->nxtoff) != NULL)
-          if (ip == lcurip) {
-            prvip->nxtoff = ip->nxtoff;
-            break;
-          }
-      }
-    }
+    xturnoff(csound, lcurip);
+    if (lcurip->xtratim <= 0)
+      while (pds->nxtp != NULL)
+        pds = pds->nxtp;                /* loop to last opds */
     return OK;
 }
-
-void xturnoff(ENVIRON *csound, INSDS *ip) /* turnoff a particular insalloc */
-{                                         /* called by inexclus on ctrl 111 */
-    pds = &opdstmp;
-    pds->insdshead = ip;
-    turnoff(csound, NULL);
-}
-
-#ifdef never
-void insdealloc(short insno)      /* dealloc all instances of an insno */
-{                                 /*   called by midirecv on pgm_chng  */
-    INSDS   *ip, *nxtip;
-
-    if ((ip = instrtxtp[insno]->instance) != NULL) {
-      do {                              /* for all instances: */
-        if (ip->actflg)                 /* if active, deact   */
-          deact(ip);                    /*    & close files   */
-        if (ip->auxch.nxtchp != NULL)
-          auxchfree(&cenviron, ip);     /* free auxil space   */
-        nxtip = ip->nxtinstance;
-        free((char *)ip);               /* & free the INSDS   */
-      } while ((ip = nxtip) != NULL);
-      instrtxtp[insno]->instance = NULL;/* now there are none */
-    }
-}
-#endif
 
 void orcompact(ENVIRON *csound)         /* free all inactive instr spaces */
 {
@@ -556,7 +527,7 @@ void orcompact(ENVIRON *csound)         /* free all inactive instr spaces */
             }
 
             if (ip->opcod_iobufs && ip->insno > maxinsno)
-              mfree(csound, ip->opcod_iobufs);                  /* IV - Nov 10 2002 */
+              mfree(csound, ip->opcod_iobufs);          /* IV - Nov 10 2002 */
             if (ip->fdch.nxtchp != NULL)
               fdchclose(ip);
             if (ip->auxch.nxtchp != NULL)
@@ -595,45 +566,12 @@ void infoff(MYFLT p1)           /*  turn off an indef copy of instr p1  */
     if ((ip = (instrtxtp[insno])->instance) != NULL) {
       do {
         if (ip->insno == insno          /* if find the insno */
-            && ip->actflg                 /*      active       */
-            && ip->offtim < 0             /*      but indef,   */
+            && ip->actflg               /*      active       */
+            && ip->offtim < 0.0         /*      but indef,   */
             && ip->p1 == p1) {
-          if (ip->xtratim && ip->offbet < 0) {
-            /* Gab: delays the off event is xtratim > 0 */
-#include "schedule.h"
-            MYFLT starttime;
-            EVTNODE *evtlist, *newnode;
-            EVTBLK  *newevt;
-
-            newnode         = (EVTNODE *) mmalloc(&cenviron, (long)sizeof(EVTNODE));
-            newevt          = &newnode->evt;
-            newevt->opcod   = 'i';
-            starttime       = (MYFLT) (kcounter + ip->xtratim) * onedkr;
-            newnode->kstart = kcounter + ip->xtratim;
-            newevt->p2orig  = starttime;
-            newevt->p3orig  = FL(0.0);
-            newevt->p[1]    = (MYFLT) -insno; /* negative p1 */
-            newevt->p[2]    = starttime;    /* Set actual start time in p2 */
-            newevt->p[3]    = FL(0.0);
-            newevt->pcnt    = 2;
-            newnode->insno  = insno;
-            evtlist         = &OrcTrigEvts;
-            while (evtlist->nxtevt) {
-              if (newnode->kstart < evtlist->nxtevt->kstart) break;
-              evtlist = evtlist->nxtevt;
-            }
-            newnode->nxtevt = evtlist->nxtevt;
-            evtlist->nxtevt = newnode;
-            O.RTevents      = 1;     /* Make sure kperf() looks for RT events */
-            O.ksensing      = 1;
-            O.OrcEvts       = 1;
-            ip->offbet      = 0; /* to avoid another check */
-            ip->relesing    = 1;
-            return;
-          }
           if (O.odebug) printf("turning off inf copy of instr %d\n",insno);
-          deact(ip);
-          return;                     /*  turn it off */
+          xturnoff(&cenviron, ip);
+          return;                       /*      turn it off  */
         }
       } while ((ip = ip->nxtinstance) != NULL);
     }
@@ -643,41 +581,49 @@ void infoff(MYFLT p1)           /*  turn off an indef copy of instr p1  */
 /* IV - Feb 05 2005: removed kcnt arg, as it is now always 1 */
 /* also no return value, kperf always performs exactly one k-period */
 void kperf(ENVIRON *csound)
-         /* perform currently active instrs for kcnt kperiods */
+         /* perform currently active instrs for one kperiod */
          /*      & send audio result to output buffer    */
 {
     extern  void    (*spinrecv)(void*), (*spoutran)(void*);
     extern  void    (*nzerotran)(void*, long);
     INSDS  *ip;
 
-    if (O.odebug)
-      printf("perfing one kprd\n");
-    if (((int) kcounter & 3) == 0)
+/*  if (O.odebug)
+      printf("perfing one kprd\n"); */
+
+    /* PC GUI needs attention, but avoid excessively frequent */
+    /* calls of csoundYield() */
+    if (--(csound->evt_poll_cnt) < 0) {
+      csound->evt_poll_cnt = csound->evt_poll_maxcnt;
       if (!csoundYield(csound))
-        longjmp(csound->exitjmp_,1);    /* PC GUI needs attention */
+        longjmp(csound->exitjmp_, CSOUND_EXITJMP_SUCCESS);
+    }
+
+    /* update orchestra time */
+    kcounter++;
+    global_kcounter = kcounter;
+    csound->sensEvents_state.curTime += csound->sensEvents_state.curTime_inc;
+    csound->sensEvents_state.curBeat += csound->sensEvents_state.curBeat_inc;
+
     if (!O.ksensing &&
         actanchor.nxtact == NULL) {     /* if !kreads & !instrs_activ, */
-      kcounter++;
-      global_kcounter = kcounter;       /* IV - Feb 05 2005 */
       (*nzerotran)(csound, 1L);         /*   send one zerospout */
     }
-    else {                      /* else for one kcnt:     */
-      kcounter++;
-      global_kcounter = kcounter;       /* IV - Sep 8 2002 */
-      if (O.sfread)           /*   if audio_infile open  */
-        (*spinrecv)(csound);  /*      fill the spin buf  */
-      spoutactive = 0;        /*   make spout inactive   */
+    else {                              /* else for one kcnt:      */
+      if (O.sfread)                     /*   if audio_infile open  */
+        (*spinrecv)(csound);            /*      fill the spin buf  */
+      spoutactive = 0;                  /*   make spout inactive   */
       ip = &actanchor;
-      while ((ip = ip->nxtact) != NULL) { /*   for each instr active */
+      while ((ip = ip->nxtact) != NULL) { /* for each instr active */
         pds = (OPDS *)ip;
         while ((pds = pds->nxtp) != NULL) {
-          (*pds->opadr)(csound,pds); /*      run each opcode    */
+          (*pds->opadr)(csound,pds);    /*      run each opcode    */
         }
       }
-      if (spoutactive)        /*   results now in spout? */
-        (*spoutran)(csound);  /*      send to audio_out  */
+      if (spoutactive)                  /*   results now in spout? */
+        (*spoutran)(csound);            /*      send to audio_out  */
       else
-        (*nzerotran)(csound, 1L);   /*   else send zerospout   */
+        (*nzerotran)(csound, 1L);       /*   else send zerospout   */
     }
 }
 
@@ -826,14 +772,14 @@ int rigoto(ENVIRON *csound, GOTO *p)
     return OK;
 }
 
-int tigoto(ENVIRON *csound, GOTO *p)                    /* I-time only, NOP at reinit */
+int tigoto(ENVIRON *csound, GOTO *p)    /* I-time only, NOP at reinit */
 {
     if (tieflag && !reinitflag)
       ids = p->lblblk->prvi;
     return OK;
 }
 
-int tival(ENVIRON *csound, EVAL *p)                     /* I-time only, NOP at reinit */
+int tival(ENVIRON *csound, EVAL *p)     /* I-time only, NOP at reinit */
 {
     if (!reinitflag)
       *p->r = (tieflag ? FL(1.0) : FL(0.0));
@@ -856,7 +802,8 @@ int subinstrset(ENVIRON *csound, SUBINST *p)
     if ((instno = strarg2insno(p->ar[inarg_ofs], p->STRARG)) < 0) return OK;
     /* IV - Oct 9 2002: need this check */
     if (!init_op && p->OUTOCOUNT > nchnls) {
-      return initerror(Str("subinstr: number of output args grester than nchnls"));
+      return
+        initerror(Str("subinstr: number of output args greater than nchnls"));
     }
     /* IV - Oct 9 2002: copied this code from useropcdset() to fix some bugs */
     if (!(reinitflag | tieflag)) {
@@ -877,9 +824,11 @@ int subinstrset(ENVIRON *csound, SUBINST *p)
     }
     /* copy parameters from this instrument into our subinstrument */
     p->ip->xtratim = saved_curip->xtratim;
+    p->ip->m_sust = 0;
     p->ip->relesing = saved_curip->relesing;
     p->ip->offbet = saved_curip->offbet;
     p->ip->offtim = saved_curip->offtim;
+    p->ip->nxtolap = NULL;
     p->ip->p2 = saved_curip->p2;
     p->ip->p3 = saved_curip->p3;
 
@@ -924,7 +873,7 @@ int subinstrset(ENVIRON *csound, SUBINST *p)
 /* IV - Sep 8 2002: new functions for user defined opcodes (based */
 /* on Matt J. Ingalls' subinstruments, but mostly rewritten) */
 
-int useropcd1(ENVIRON *, UOPCODE*), useropcd2(ENVIRON *, UOPCODE*);  /* IV - Sep 17 2002 */
+int useropcd1(ENVIRON *, UOPCODE*), useropcd2(ENVIRON *, UOPCODE*);
 
 int useropcdset(ENVIRON *csound, UOPCODE *p)
 {
@@ -999,9 +948,11 @@ int useropcdset(ENVIRON *csound, UOPCODE *p)
     lcurip->m_pitch = parent_ip->m_pitch;
     lcurip->m_veloc = parent_ip->m_veloc;
     lcurip->xtratim = parent_ip->xtratim * p->ksmps_scale;
+    lcurip->m_sust = 0;
     lcurip->relesing = parent_ip->relesing;
     lcurip->offbet = parent_ip->offbet;
     lcurip->offtim = parent_ip->offtim;
+    lcurip->nxtolap = NULL;
     /* copy all p-fields, including p1 (will this work ?) */
     if (instrtxtp[instno]->pmax > 3) {      /* requested number of p-fields */
       n = instrtxtp[instno]->pmax; pcnt = 0;
@@ -1220,7 +1171,7 @@ INSDS *insert_event(ENVIRON *csound,
       do {
         if (ip->insno == insno        /*       if find this insno,  */
             && ip->actflg             /*        active              */
-            && ip->offtim < 0         /*        with indef (tie)    */
+            && ip->offtim < 0.0       /*        with indef (tie)    */
             && ip->p1 == instr) {     /*  & matching p1             */
           tieflag++;
           goto init;                  /*        continue that event */
@@ -1241,8 +1192,7 @@ INSDS *insert_event(ENVIRON *csound,
     if (cpu_power_busy > 100.0) { /* if there is no more cpu processing time*/
       cpu_power_busy -= tp->cpuload;
       if (O.msglevel & WARNMSG)
-        printf(Str(
-                   "WARNING: cannot allocate last note because it exceeds"
+        printf(Str("WARNING: cannot allocate last note because it exceeds"
                    " 100%% of cpu time"));
       ip = NULL; goto endsched;
     }
@@ -1250,8 +1200,7 @@ INSDS *insert_event(ENVIRON *csound,
     if (tp->active++ > tp->maxalloc && tp->maxalloc > 0) {
       tp->active--;
       if (O.msglevel & WARNMSG)
-        printf(Str(
-                   "WARNING: cannot allocate last note because it exceeds"
+        printf(Str("WARNING: cannot allocate last note because it exceeds"
                    " instr maxalloc"));
       ip = NULL; goto endsched;
     }
@@ -1278,7 +1227,7 @@ INSDS *insert_event(ENVIRON *csound,
                 insno, (int) tp->pmax, pcnt);
         printf(Str("WARNING: %s\n"), errmsg);
       }
-      ip->offbet = (dur >= FL(0.0) ? when + dur : FL(-1.0));
+      ip->offbet = (dur >= FL(0.0) ? (double) when + (double) dur : -1.0);
       ip->p1 = instr;
       ip->p2 = when;
       ip->p3 = dur;
@@ -1292,9 +1241,11 @@ INSDS *insert_event(ENVIRON *csound,
       }
       if (O.odebug) printf(Str("   ending at %p\n"),flp);
     }
-    ip->offtim = ip->p3;      /* & duplicate p3 for now */
+    ip->offtim = (double) ip->p3;       /* & duplicate p3 for now */
     ip->xtratim = 0;
     ip->relesing = 0;
+    ip->m_sust = 0;
+    ip->nxtolap = NULL;
     /* IV - Nov 16 2002 */
     ip->opcod_iobufs = NULL;
     if (midi) {
@@ -1319,10 +1270,10 @@ INSDS *insert_event(ENVIRON *csound,
     }
     if (!midi  &&               /* if not MIDI activated, */
         ip->p3 > FL(0.0)) {     /* and still finite time, */
-      ip->offtim = ip->p2 + ip->p3;
+      ip->offtim = (double) ip->p2 + (double) ip->p3;
       schedofftim(ip);          /*       put in turnoff list */
     }
-    else ip->offtim = -FL(1.0); /* else mark indef */
+    else ip->offtim = -1.0;     /* else mark indef */
     if (O.odebug) {
       printf("instr %d now active:\n",insno); showallocs();
     }
@@ -1338,20 +1289,17 @@ INSDS *insert_event(ENVIRON *csound,
 
 /* IV - Feb 05 2005: changed to double */
 
-void beatexpire(double beat)    /* unlink expired notes from activ chain */
+void beatexpire(ENVIRON *csound, double beat)
+                                /* unlink expired notes from activ chain */
 {                               /*      and mark them inactive          */
     INSDS  *ip;                 /*    close any files in each fdchain   */
  strt:
-    if ((ip = frstoff) != NULL && (double) ip->offbet <= beat) {
+    if ((ip = frstoff) != NULL && ip->offbet <= beat) {
       do {
         if (!ip->relesing && ip->xtratim) {
           /* IV - Nov 30 2002: allow extra time for finite length (p3 > 0) */
           /* score notes */
-          ip->offtim = global_onedkr
-                       * (MYFLT) ((long) global_kcounter + (long) ip->xtratim);
-          ip->relesing++;               /* enter release stage */
-          /* FIXME: possibly wrong (should be ekrbetsiz) */
-          ip->offbet += global_onedkr * (MYFLT) ip->xtratim;
+          set_xtratim(csound, ip);      /* enter release stage */
           frstoff = ip->nxtoff;         /* update turnoff list */
           schedofftim(ip);
           goto strt;                    /* and start again */
@@ -1359,7 +1307,7 @@ void beatexpire(double beat)    /* unlink expired notes from activ chain */
         else
           deact(ip);    /* IV - Sep 5 2002: use deact() as it also */
       }                 /* deactivates subinstrument instances */
-      while ((ip = ip->nxtoff) != NULL && (double) ip->offbet <= beat);
+      while ((ip = ip->nxtoff) != NULL && ip->offbet <= beat);
       frstoff = ip;
       if (O.odebug) {
         printf("deactivated all notes to beat %7.3f\n",beat);
@@ -1370,26 +1318,26 @@ void beatexpire(double beat)    /* unlink expired notes from activ chain */
 
 /* IV - Feb 05 2005: changed to double */
 
-void timexpire(double time)     /* unlink expired notes from activ chain */
+void timexpire(ENVIRON *csound, double time)
+                                /* unlink expired notes from activ chain */
 {                               /*      and mark them inactive           */
     INSDS  *ip;                 /*    close any files in each fdchain    */
 
  strt:
-    if ((ip = frstoff) != NULL && (double) ip->offtim <= time) {
+    if ((ip = frstoff) != NULL && ip->offtim <= time) {
       do {
         if (!ip->relesing && ip->xtratim) {
           /* IV - Nov 30 2002: allow extra time for finite length (p3 > 0) */
           /* score notes */
-          ip->offtim = global_onedkr
-                       * (MYFLT) ((long) global_kcounter + (long) ip->xtratim);
-          ip->relesing++;               /* enter release stage */
+          set_xtratim(csound, ip);      /* enter release stage */
           frstoff = ip->nxtoff;         /* update turnoff list */
           schedofftim(ip);
           goto strt;                    /* and start again */
-        } else
+        }
+        else
           deact(ip);    /* IV - Sep 5 2002: use deact() as it also */
       }                 /* deactivates subinstrument instances */
-      while ((ip = ip->nxtoff) != NULL && (double) ip->offtim <= time);
+      while ((ip = ip->nxtoff) != NULL && ip->offtim <= time);
       frstoff = ip;
       if (O.odebug) {
         printf("deactivated all notes to time %7.3f\n",time);
@@ -1595,3 +1543,4 @@ int useropcd2(ENVIRON *csound, UOPCODE *p)
       while (pds->nxtp) pds = pds->nxtp;    /* loop to last opds */
     return OK;
 }
+
