@@ -26,7 +26,7 @@ int paBlockingReadOpen(ENVIRON *csound,
         (double) csound->GetSr(csound),
         maxLag_,
         paNoFlag,
-        paBlockingWriteStreamCallback,
+        paBlockingReadStreamCallback,  /* VL fixed: was paBlockingWriteStreamCallback */
         pabs);
     if(paError == paNoError) {
         paError = Pa_StartStream(pabs->paStream);
@@ -41,7 +41,8 @@ int paBlockingReadOpen(ENVIRON *csound,
     return paError;
 }
 
-int PaBlockingReadStreamCallback(const void *input, void *output, 
+/* VL fixed was:PaBlockingReadStreamCallback */
+int paBlockingReadStreamCallback(const void *input, void *output, 								 
     unsigned long frameCount, const PaStreamCallbackTimeInfo* timeInfo,
     PaStreamCallbackFlags statusFlags, void *userData)
 {
