@@ -24,6 +24,8 @@
 
 #include "vst4cs.h"
 #include "vsthost.h"
+#include "fxbank.h"
+
 #include <cstdlib>
 #include <cmath>
 #include <vector>
@@ -171,10 +173,6 @@ extern "C"
 		OUTVST_ *p = (OUTVST_ *)data;
   		ENVIRON *csound = p->h.insdshead->csound;
         VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
-		p->kstatus;
-		p->kchan;
-		p->kdata1;
-		p->kdata2;
 		if(round(p->oldkstatus) == round(*p->kstatus) &&
 		   round(p->oldkchan) == round(*p->kchan) &&
 		   round(p->oldkvalue) == round(*p->kdata1))
@@ -277,6 +275,91 @@ extern "C"
 		return OK;	
 	}
 	
+	int vstbload(void *data)
+	{
+  		VSTBLOAD *p = (VSTBLOAD *)data;
+		ENVIRON *csound = p->h.insdshead->csound;
+		VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
+		void *dummyPointer = 0;          
+		char bankname[64];
+		if (*p->ibank == SSTRCOD) {
+			strcpy(bankname, p->STRARG);          /*   use that         */
+		}
+		CFxBank fxBank(bankname);            /* load the bank                     */
+		plugin->Dispatch(effBeginLoadBank, 
+            0, 0, (VstPatchChunkInfo*) fxBank.GetChunk(), 0);
+		if (plugin->Dispatch(effBeginLoadBank, 
+            0, 0, (VstPatchChunkInfo*) fxBank.GetChunk(), 0)) {
+			csound->Message(csound,"Error: BeginLoadBank.\n");
+  			return NOTOK;
+		}
+		//csound->Message(csound,"EffBeginLoadBank\n");
+		if (fxBank.IsLoaded()) {
+			if (plugin->aeffect->uniqueID != fxBank.GetFxID()) {
+			    csound->Message(csound,"Error: Loaded bank ID doesn't match plug-in ID.\n");
+			    return NOTOK;
+            }
+            if (fxBank.IsChunk()) {
+    		    if (!(plugin->aeffect->flags & effFlagsProgramChunks)) {
+                    csound->Message(csound,"Error: Loaded bank contains a chunk format that the effect can't handle.\n");
+                    return NOTOK;
+                }
+    		    plugin->Dispatch( effSetChunk, 0, fxBank.GetChunkSize(), fxBank.GetChunk(), 0);  //isPreset=0
+    		    csound->Message(csound,"Chunks loaded OK.\n");
+            } else {
+    		    //int cProg = plugin->EffGetProgram();
+    		    int cProg = plugin->Dispatch(effGetProgram, 0,0,dummyPointer,0);
+    		    //csound->Message(csound,"Current Program= %i\n",cProg);
+    		    int i, j;
+    		    int nParms = fxBank.GetNumParams();
+    		    //csound->Message(csound,"nParms= %i\n",nParms);
+    		    for (i = 0; i < fxBank.GetNumPrograms(); i++) {
+                    plugin->Dispatch(effSetProgram,0,i,dummyPointer,0);
+                    plugin->Dispatch(effSetProgramName,0,0,fxBank.GetProgramName(i),0);
+                    for (j = 0; j < nParms; j++)
+    					plugin->SetParameter(j, fxBank.GetProgParm(i, j));
+    		    }
+    		    //pEffect->EffSetProgram(cProg);
+    		    plugin->Dispatch(effSetProgram,0,cProg,dummyPointer,0);
+    		    //csound->Message(csound,"Programs OK\n");
+    	    }
+      	    //pEffect->SetChunkFile(dlg.GetPathName());
+      	    //ShowDetails();
+      	    //OnSetProgram();
+    	} else {
+    	    csound->Message(csound,"Problem loading bank.\n");
+       		return NOTOK;        /* check if error loading */
+    	}
+    	csound->Message(csound,"Bank loaded OK.\n");
+    	//if (fxBank.SetChunk()) {
+    	//}
+    	return OK;
+    }
+	
+	int vstprogset(void *data)
+	{
+  		VSTPROGSET *p = (VSTPROGSET *)data;
+		ENVIRON *csound = p->h.insdshead->csound;
+		VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
+		plugin->SetCurrentProgram(*p->iprogram);
+    }
+
+	int vsteditdlg(void *data)
+	{
+  		VSTPROGSET *p = (VSTPROGSET *)data;
+		ENVIRON *csound = p->h.insdshead->csound;
+		VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
+		plugin->OpenEditor();
+    }
+	
+    int vsteditdlg_deinit(void *data)
+	{
+  		VSTPROGSET *p = (VSTPROGSET *)data;
+		ENVIRON *csound = p->h.insdshead->csound;
+		VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
+		plugin->CloseEditor();
+    }
+
 	void path_convert(char* in)
 	{
 		char inpath[strlen(in)];
@@ -300,14 +383,16 @@ extern "C"
 	}
 
     OENTRY vstOentry[] = { 
-        {"vstinit",  sizeof(VSTINIT),  1, "i",  "So",    &vstinit,       0, 0, &vstinit_free },
-		{"vstinfo",  sizeof(VSTINFO),  1, "",   "i",     &vstinfo,       0, 0, 0},
-		{"vstplug",  sizeof(VSTPLUG_), 5, "mm", "iaa",   &vstplug_init,  0, &vstplug, 0},
-		{"vstnote",  sizeof(VSTNOTE),  3, "",   "ikkkk", &vstnote_init,  &vstnote, 0, 0},
-		{"vstout",   sizeof(OUTVST_),  3, "",   "ikkkk", &outvst_init,   &outvst, 0, 0},
-  		{"vstpret",  sizeof(VSTPRET),  3, "k",  "ik",    &vstpret_init,  &vstpret, 0, 0 },
-  		{"vstpsend", sizeof(VSTPSEND), 3, "","  ikk",    &vstpsend_init, &vstpsend, 0, 0 }
-
+        {"vstinit",    sizeof(VSTINIT),    1, "i",  "So",    &vstinit,       0,         0,        &vstinit_free     },
+		{"vstinfo",    sizeof(VSTINFO),    1, "",   "i",     &vstinfo,       0,         0,        0                 },
+		{"vstplug",    sizeof(VSTPLUG_),   5, "mm", "iaa",   &vstplug_init,  0,         &vstplug, 0                 },
+		{"vstnote",    sizeof(VSTNOTE),    3, "",   "ikkkk", &vstnote_init,  &vstnote,  0,        0                 },
+		{"vstout",     sizeof(OUTVST_),    3, "",   "ikkkk", &outvst_init,   &outvst,   0,        0                 },
+  		{"vstpret",    sizeof(VSTPRET),    3, "k",  "ik",    &vstpret_init,  &vstpret,  0,        0                 },
+  		{"vstpsend",   sizeof(VSTPSEND),   3, "",   "ikk",   &vstpsend_init, &vstpsend, 0,        0                 },
+    	{"vstbload",   sizeof(VSTBLOAD),   1, "" ,  "iS",    &vstbload,      0,         0,        0                 },
+    	{"vstprogset", sizeof(VSTPROGSET), 1, "" ,  "iS",    &vstprogset,    0,         0,        0                 },
+    	{"vsteditdlg", sizeof(VSTEDITDLG), 1, "" ,  "i",     &vsteditdlg,    0,         0,        &vsteditdlg_deinit}
     };
    
     /**
@@ -316,7 +401,7 @@ extern "C"
     */
     PUBLIC int opcode_size()
     {
-        return sizeof(OENTRY)*7;
+        return sizeof(vstOentry);
     }
 
     /**

@@ -26,8 +26,12 @@
 #include "aeffectx.h"
 #include "vsthost.h"
 #include <cmath>
+#include <FL/Fl.H>
+#include <FL/Fl_Window.H>
+#include <FL/x.H>
 
 VSTPlugin::VSTPlugin(ENVIRON *csound_) : 
+    window(0),
     windowHandle(0), 
     csound(csound_), 
     aeffect(0), 
@@ -345,17 +349,31 @@ void VSTPlugin::EditorIdle()
 	Dispatch(effEditIdle,0,0, windowHandle,0.0f);			
 }
 
-/*RECT VSTPlugin::GetEditorRect()
+ERect VSTPlugin::GetEditorRect()
 {
-	RECT ret;
-	ERect *r;
-	Dispatch(effEditGetRect,0,0, &r,0.0f);				
-	ret.top = r->top;
-	ret.bottom = r->bottom;
-	ret.left = r->left;
-	ret.right = r->right;
-	return ret;
-}*/
+	ERect rect;
+	Dispatch(effEditGetRect,0,0, &rect,0.0f);				
+	return rect;
+}
+
+void VSTPlugin::OpenEditor()
+{
+    ERect rect = GetEditorRect();
+    window = new Fl_Window(rect.right, rect.bottom, GetName());
+    window->end();
+	windowHandle = fl_xid(window);
+	SetEditWindow(windowHandle);
+    window->show();						
+}
+
+void VSTPlugin::CloseEditor()
+{
+    OnEditorClose();
+	window->hide();
+	delete window;
+	window = 0;
+	windowHandle = 0;
+}
 
 void VSTPlugin::SetEditWindow(void *h)
 {

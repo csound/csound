@@ -26,7 +26,7 @@
 #define VST4CS_H
 #include "cs.h"
 
-typedef struct VSTINIT {
+typedef struct VSTINIT_ {
 	OPDS h;
 	// Inputs.
 	MYFLT *iVSThandle;
@@ -34,7 +34,7 @@ typedef struct VSTINIT {
 	MYFLT *iverbose;
 } VSTINIT ;
 
-typedef struct VSTINFO {
+typedef struct VSTINFO_ {
 	OPDS h;
 	// Inputs.
 	MYFLT *iVSThandle;
@@ -52,9 +52,9 @@ typedef struct VSTPLUG_ {
 	// State.
 	size_t framesPerBlock;
 	size_t channels;
-} VSTPLUG_ ;
+} VSTPLUG ;
 
-typedef struct VSTNOTE {
+typedef struct VSTNOTE_ {
 	OPDS h;	
 	// Inputs.
 	MYFLT *iVSThandle;
@@ -80,7 +80,7 @@ typedef struct OUTVST_ {
 	MYFLT oldkvalue;
 } OUTVST ;
 
-typedef struct VSTPRET {
+typedef struct VSTPRET_ {
 	OPDS h;
 	// Outputs.
 	MYFLT *kvalue;
@@ -89,7 +89,7 @@ typedef struct VSTPRET {
 	MYFLT *kparam;
 } VSTPRET ;
 
-typedef struct VSTPSEND {
+typedef struct VSTPSEND_ {
 	OPDS h;
 	// Inputs.
 	MYFLT *iVSThandle;
@@ -99,6 +99,26 @@ typedef struct VSTPSEND {
 	MYFLT oldkparam;
 	MYFLT oldkvalue;
 } VSTPSEND ;
+
+typedef struct VSTBLOAD_ {
+	OPDS h;
+	// Inputs.
+	MYFLT *iVSThandle;
+	MYFLT *ibank;
+} VSTBLOAD;
+
+typedef struct VSTPROGSET_ {
+	OPDS h;
+	// Inputs.
+	MYFLT *iVSThandle;
+	MYFLT *iprogram;
+} VSTPROGSET;
+
+typedef struct VSTEDITDLG_ {
+	OPDS h;
+	// Inputs.
+	MYFLT *iVSThandle;
+} VSTEDITDLG;
 
 #endif
 
