@@ -416,7 +416,7 @@ void sfopenin(void)             /* init for continuous soundin */
            type2string(p->filetyp));
     isfopen = 1;
     n = audrecv(inbuf, inbufsiz);          /*     file or devaudio  */
-    //inbufrem = (unsigned int)n;            /* datasiz in monosamps  */
+/*     inbufrem = (unsigned int)n;            /\* datasiz in monosamps  *\/ */
 }
 
 void sfopenout(void)                            /* init for sound out       */
@@ -655,6 +655,19 @@ void sfnopenout(void)
     outbufrem = O.outbufsamps;          /* init counter, though not writing */
 }
 
+static void sndfilein(void)
+{
+    int samples = nchnls * ksmps;
+    int i;
+    audrecv(spin, sizeof(MYFLT) * samples);
+    for(i = 0; i < samples; i++)
+    {
+        spin[i] *= float_to_dbfs;
+    }
+}
+
+#ifdef OLD_CODE_DID_NOT_WORK
+
 static void clrspin1(MYFLT *r, int spinrem) /* clear remainder of spinbuf
                                                to zeros */
 {                                           /* called only once, at EOF   */
@@ -672,19 +685,6 @@ static void clrspin2(void)              /* clear spinbuf to zeros   */
     while (--n);
     printf(Str(X_713,"end of audio_in file\n"));
 }
-
-static void sndfilein(void)
-{
-    int samples = nchnls * ksmps;
-    int i;
-    audrecv(spin, sizeof(MYFLT) * samples);
-    for(i = 0; i < samples; i++)
-    {
-        spin[i] *= float_to_dbfs;
-    }
-}
-
-#ifdef OLD_CODE_DID_NOT_WORK
 
 static void sndfilein(void)
 {
