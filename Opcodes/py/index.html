@@ -1,0 +1,1180 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<HTML
+><HEAD
+><TITLE
+>PyCsound Manual [DRAFT]</TITLE
+><META
+NAME="GENERATOR"
+CONTENT="Modular DocBook HTML Stylesheet Version 1.59"><LINK
+REL="NEXT"
+TITLE="Changes to the orchestra syntax"
+HREF="orchestra-language.html"></HEAD
+><BODY
+CLASS="ARTICLE"
+BGCOLOR="#FFFFFF"
+TEXT="#000000"
+LINK="#0000FF"
+VLINK="#840084"
+ALINK="#0000FF"
+><DIV
+CLASS="ARTICLE"
+><DIV
+CLASS="TITLEPAGE"
+><H1
+CLASS="TITLE"
+><A
+NAME="AEN2"
+>PyCsound Manual [DRAFT]</A
+></H1
+><P
+CLASS="COPYRIGHT"
+>Copyright &copy; 2002 by Maurizio Umberto Puxeddu</P
+><HR
+WIDTH="75%"
+ALIGN="CENTER"
+COLOR="#000000"
+SIZE="1"></DIV
+><DIV
+CLASS="TOC"
+><DL
+><DT
+><B
+>Table of Contents</B
+></DT
+><DT
+><A
+HREF="t1.html#OPCODES"
+>Opcodes</A
+></DT
+><DT
+><A
+HREF="orchestra-language.html"
+>Changes to the orchestra syntax</A
+></DT
+><DT
+><A
+HREF="interaction.html"
+>Csound/Python interaction</A
+></DT
+><DT
+><A
+HREF="libcsound.html"
+>The <TT
+CLASS="VARNAME"
+>libcsound</TT
+> package</A
+></DT
+><DT
+><A
+HREF="music-module.html"
+>The <TT
+CLASS="VARNAME"
+>music</TT
+> package</A
+></DT
+><DT
+><A
+HREF="csound-internals.html"
+>Csound internals</A
+></DT
+><DT
+><A
+HREF="t1.html#AEN633"
+>Bibliography</A
+></DT
+></DL
+></DIV
+><P
+>    This document has been updated Sat Mar 26 2002.
+  </P
+><P
+>    Copyright (C) 2002 Maurizio Umberto Puxeddu &#60;umbpux@tin.it&#62;
+    ALL RIGHT RESERVED
+  </P
+><DIV
+CLASS="SECTION"
+><H1
+CLASS="SECTION"
+><A
+NAME="OPCODES"
+>Opcodes</A
+></H1
+><P
+>      This section contains the description of the new Csound
+      opcodes related to Python.
+    </P
+><P
+>      Basically using the Python opcode family you can interact with the
+      embedded interpreter in 5 ways: running a statement (run), executing a script (exec),
+      executing a callable and passing arguments (call), evaluating an expression (eval),
+      changing the value of a Python object, possibly creating a new Python object (assign).
+    </P
+><P
+>      Since you can do it a i-time or k-time, in private context or global
+      context and can retrieve result from callables returning from 0 to 8 and N
+      values, this means great number of opcodes.
+    </P
+><P
+>      All the opcodes share the same prefix <TT
+CLASS="LITERAL"
+>py</TT
+> and have a
+      regular naming scheme:
+    </P
+><TABLE
+BORDER="0"
+BGCOLOR="#E0E0E0"
+WIDTH="100%"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>"py" + [optional context prefix] + [action name] + [optional x-time prefix]
+    </PRE
+></TD
+></TR
+></TABLE
+><DIV
+CLASS="SECTION"
+><H2
+CLASS="SECTION"
+><A
+NAME="AEN22"
+>Bugs and things to do</A
+></H2
+><P
+>        I'm working on the following areas:
+      </P
+><DIV
+CLASS="SECTION"
+><H3
+CLASS="SECTION"
+><A
+NAME="AEN25"
+>To do list</A
+></H3
+><P
+></P
+><UL
+><LI
+><P
+>memory leakage debugging</P
+></LI
+><LI
+><P
+>opcodes for arbitrary namespace handling</P
+></LI
+><LI
+><P
+>several kind of speed optimization</P
+></LI
+></UL
+></DIV
+><DIV
+CLASS="SECTION"
+><H3
+CLASS="SECTION"
+><A
+NAME="AEN34"
+>Bugs</A
+></H3
+><P
+></P
+><UL
+><LI
+><P
+>lseek(fd, 0) in WAV header code returning 0</P
+></LI
+></UL
+></DIV
+></DIV
+><DIV
+CLASS="SECTION"
+><H2
+CLASS="SECTION"
+><A
+NAME="AEN39"
+>Run</A
+></H2
+><TABLE
+BORDER="0"
+BGCOLOR="#E0E0E0"
+WIDTH="100%"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>pyrun	"statement"
+pyruni	"statement"
+
+pylrun	"statememt"
+pylruni	"statement"
+      </PRE
+></TD
+></TR
+></TABLE
+><P
+>        Execute the specified Python <I
+CLASS="EMPHASIS"
+>statement</I
+> at k-time
+        (<TT
+CLASS="LITERAL"
+>pyrun</TT
+> and <TT
+CLASS="LITERAL"
+>pylrun</TT
+>) or i-time (<TT
+CLASS="LITERAL"
+>pyruni</TT
+> and
+        <TT
+CLASS="LITERAL"
+>pylruni</TT
+>).
+      </P
+><P
+>        The statement is executed in the global environment for <TT
+CLASS="LITERAL"
+>pyrun</TT
+> and <TT
+CLASS="LITERAL"
+>pyruni</TT
+>
+        or the local environment for <TT
+CLASS="LITERAL"
+>pylrun</TT
+> and <TT
+CLASS="LITERAL"
+>pylruni</TT
+>..
+      </P
+><P
+>        These opcodes perform no message passing.
+        However, since the statement have access to the main namespace and the private namespace,
+        it can interact with objects previously created in that environment.
+      </P
+><P
+>        The "local" version of the "run" opcodes are useful when the code
+        ran by different instances of an instrument should not interact.
+      </P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="AEN55"
+></A
+><P
+><B
+>Example 1. Example of the RUN opcode group</B
+></P
+><P
+>          Orchestra:
+        </P
+><TABLE
+BORDER="0"
+BGCOLOR="#E0E0E0"
+WIDTH="100%"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>sr=44100
+kr=4410
+ksmps=10
+nchnls=1
+
+pyruni "import random"
+
+instr 1
+	; This message is stored in the main namespace
+	; and is the same for every instance
+	pyruni	"message = 'a global random number: %f' % random.random()"
+	pyrun	"print message"
+
+	; This message is stored in the private namespace
+	; and is different for different instances
+	pylruni	"message = 'a private random number: %f' % random.random()"
+	pylrun	"print message"
+
+endin&#13;</PRE
+></TD
+></TR
+></TABLE
+><P
+>          Score:
+        </P
+><TABLE
+BORDER="0"
+BGCOLOR="#E0E0E0"
+WIDTH="100%"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>i1 0 0.1&#13;</PRE
+></TD
+></TR
+></TABLE
+></DIV
+><P
+>        Running this score you should get intermixed pairs of messages
+        from the two instances of instrument 1.
+      </P
+><P
+>        The first message of each pair is
+        stored into the main namespace and so the second instance overwrites
+        the message of the first instance. The result is that first message
+        will be the same for both instances.
+      </P
+><P
+>        The second message is different for the two instances, being stored
+        in the private namespace.
+      </P
+></DIV
+><DIV
+CLASS="SECTION"
+><H2
+CLASS="SECTION"
+><A
+NAME="AEN64"
+>Exec</A
+></H2
+><TABLE
+BORDER="0"
+BGCOLOR="#E0E0E0"
+WIDTH="100%"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>pyexec	  "filename"
+pyexeci   "filename"
+pylexec	  "filename"
+pylexeci  "filename"
+pyexect	  ktrigger, "filename"
+pylexec	  ktrigger, "filename"
+      </PRE
+></TD
+></TR
+></TABLE
+><P
+>        Execute a script from a file at k-time or i-time (i suffix). 
+      </P
+><P
+>        This is not the same as calling the script with the <TT
+CLASS="FUNCTION"
+>system()</TT
+>
+        call, since the code is executed by the embedded interpreter.
+      </P
+><P
+>        The code contained in the specified file is executed in the global environment for
+        opcodes <TT
+CLASS="LITERAL"
+>pyexec</TT
+> and <TT
+CLASS="LITERAL"
+>pyexeci</TT
+> and in the
+        private environment for the opcodes <TT
+CLASS="LITERAL"
+>pylexec</TT
+> and <TT
+CLASS="LITERAL"
+>pylexeci</TT
+>.
+      </P
+><P
+>        These opcodes perform no message passing.
+        However, since the statement have access to the main namespace and the private namespace,
+        it can interact with objects previously created in that environment.
+      </P
+><P
+>        The "local" version of the "exec" opcodes are useful when the code
+        ran by different instances of an instrument should not interact.
+      </P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="AEN77"
+></A
+><P
+><B
+>Example 2. Example of the EXEC opcode group</B
+></P
+><P
+>          Orchestra (<TT
+CLASS="FILENAME"
+>pyexec.orc</TT
+>):
+        </P
+><TABLE
+BORDER="0"
+BGCOLOR="#E0E0E0"
+WIDTH="100%"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>sr=44100
+kr=4410
+ksmps=10
+nchnls=1
+
+	pyruni "import random"
+
+	pyexeci	"pyexec1.py"
+
+instr 1
+
+	pyexec		"pyexec2.py"
+
+	pylexeci	"pyexec3.py"
+	pylexec		"pyexec4.py"
+
+endin&#13;</PRE
+></TD
+></TR
+></TABLE
+><P
+>          Score (<TT
+CLASS="FILENAME"
+>pyexec.sco</TT
+>):
+        </P
+><TABLE
+BORDER="0"
+BGCOLOR="#E0E0E0"
+WIDTH="100%"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>i1 0 0.01
+i1 0 0.01&#13;</PRE
+></TD
+></TR
+></TABLE
+><P
+>          The <TT
+CLASS="FILENAME"
+>pyexec1.py</TT
+> script:
+        </P
+><TABLE
+BORDER="0"
+BGCOLOR="#E0E0E0"
+WIDTH="100%"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>import time, os
+
+print
+print "Welcome to Csound!"
+
+try:
+    s = ', %s?' % os.getenv('USER')
+except:
+    s = '?'
+
+print 'What sound do you want to hear today%s' % s
+answer = raw_input()&#13;</PRE
+></TD
+></TR
+></TABLE
+><P
+>          The <TT
+CLASS="FILENAME"
+>pyexec2.py</TT
+> script:
+        </P
+><TABLE
+BORDER="0"
+BGCOLOR="#E0E0E0"
+WIDTH="100%"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>print 'your answer is "%s"' % answer&#13;</PRE
+></TD
+></TR
+></TABLE
+><P
+>          The <TT
+CLASS="FILENAME"
+>pyexec3.py</TT
+> script:
+        </P
+><TABLE
+BORDER="0"
+BGCOLOR="#E0E0E0"
+WIDTH="100%"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>message = 'a private random number: %f' % random.random()&#13;</PRE
+></TD
+></TR
+></TABLE
+><P
+>          The <TT
+CLASS="FILENAME"
+>pyexec4.py</TT
+> script:
+        </P
+><TABLE
+BORDER="0"
+BGCOLOR="#E0E0E0"
+WIDTH="100%"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>print message&#13;</PRE
+></TD
+></TR
+></TABLE
+><P
+>        If I run this example on my machine I get something like:
+      </P
+><TABLE
+BORDER="0"
+BGCOLOR="#E0E0E0"
+WIDTH="100%"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>Using ../../csound.xmg
+Csound Version 4.19 (Mar 23 2002)
+Embedded Python interpreter version 2.2
+orchname:  pyexec.orc
+scorename: pyexec.sco
+sorting score ...
+	... done
+orch compiler:
+11 lines read
+	instr	1	
+Csound Version 4.19 (Mar 23 2002)
+displays suppressed
+
+Welcome to Csound!
+What sound do you want to hear today, maurizio?</PRE
+></TD
+></TR
+></TABLE
+><P
+>        then I answer
+      </P
+><TABLE
+BORDER="0"
+BGCOLOR="#E0E0E0"
+WIDTH="100%"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>fuck you</PRE
+></TD
+></TR
+></TABLE
+><P
+>        then Csound continues with the normal performance
+      </P
+><TABLE
+BORDER="0"
+BGCOLOR="#E0E0E0"
+WIDTH="100%"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>your answer is "fuck you"
+a private random number: 0.884006
+new alloc for instr 1:
+your answer is "fuck you"
+a private random number: 0.884006
+your answer is "fuck you"
+a private random number: 0.889868
+your answer is "fuck you"
+a private random number: 0.884006
+your answer is "fuck you"
+a private random number: 0.889868
+your answer is "fuck you"
+a private random number: 0.884006
+your answer is "fuck you"
+...</PRE
+></TD
+></TR
+></TABLE
+><P
+>	  Embarassing.
+	</P
+><P
+>        In the same instrument a message is created in the private namespace
+        and printed, appearing different for each instance.
+      </P
+></DIV
+></DIV
+><DIV
+CLASS="SECTION"
+><H2
+CLASS="SECTION"
+><A
+NAME="AEN105"
+>Call</A
+></H2
+><TABLE
+BORDER="0"
+BGCOLOR="#E0E0E0"
+WIDTH="100%"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>                                        pycall   "callable", karg1, ...
+kresult                                 pycall1  "callable", karg1, ...
+kresult1, kresult2                      pycall2  "callable", karg1, ...
+kr1, kr2, kr3                           pycall3  "callable", karg1, ...
+kr1, kr2, kr3, kr4                      pycall4  "callable", karg1, ...
+kr1, kr2, kr3, kr4, kr5                 pycall5  "callable", karg1, ...
+kr1, kr2, kr3, kr4, kr5, kr6            pycall6  "callable", karg1, ...
+kr1, kr2, kr3, kr4, kr5, kr6, kr7       pycall7  "callable", karg1, ...
+kr1, kr2, kr3, kr4, kr5, kr6, kr7, kr8  pycall8  "callable", karg1, ...
+
+                                        pycallt   ktrigger, "callable", karg1, ...
+kresult                                 pycall1t  ktrigger, "callable", karg1, ...
+kresult1, kresult2                      pycall2t  ktrigger, "callable", karg1, ...
+kr1, kr2, kr3                           pycall3t  ktrigger, "callable", karg1, ...
+kr1, kr2, kr3, kr4                      pycall4t  ktrigger, "callable", karg1, ...
+kr1, kr2, kr3, kr4, kr5                 pycall5t  ktrigger, "callable", karg1, ...
+kr1, kr2, kr3, kr4, kr5, kr6            pycall6t  ktrigger, "callable", karg1, ...
+kr1, kr2, kr3, kr4, kr5, kr6, kr7       pycall7t  ktrigger, "callable", karg1, ...
+kr1, kr2, kr3, kr4, kr5, kr6, kr7, kr8  pycall8t  ktrigger, "callable", karg1, ...
+
+                                        pycalli   "callable", karg1, ...
+iresult                                 pycall1i  "callable", iarg1, ...
+iresult1, iresult2                      pycall2i  "callable", iarg1, ...
+ir1, ir2, ir3                           pycall3i  "callable", iarg1, ...
+ir1, ir2, ir3, ir4                      pycall4i  "callable", iarg1, ...
+ir1, ir2, ir3, ir4, ir5                 pycall5i  "callable", iarg1, ...
+ir1, ir2, ir3, ir4, ir5, ir6            pycall6i  "callable", iarg1, ...
+ir1, ir2, ir3, ir4, ir5, ir6, ir7       pycall7i  "callable", iarg1, ...
+ir1, ir2, ir3, ir4, ir5, ir6, ir7, ir8  pycall8i  "callable", iarg1, ...
+
+pycalln   "callable", nresults, kresult1, ..., kresultn, karg1, ...
+pycallni  "callable", nresults, iresult1, ..., iresultn, iarg1,  ...
+
+                                        pylcall   "callable", karg1, ...
+kresult                                 pylcall1  "callable", karg1, ...
+kresult1, kresult2                      pylcall2  "callable", karg1, ...
+kr1, kr2, kr3                           pylcall3  "callable", karg1, ...
+kr1, kr2, kr3, kr4                      pylcall4  "callable", karg1, ...
+kr1, kr2, kr3, kr4, kr5                 pylcall5  "callable", karg1, ...
+kr1, kr2, kr3, kr4, kr5, kr6            pylcall6  "callable", karg1, ...
+kr1, kr2, kr3, kr4, kr5, kr6, kr7       pylcall7  "callable", karg1, ...
+kr1, kr2, kr3, kr4, kr5, kr6, kr7, kr8  pylcall8   "callable", karg1, ...
+
+                                        pylcallt   ktrigger, "callable", karg1, ...
+kresult                                 pylcall1t  ktrigger, "callable", karg1, ...
+kresult1, kresult2                      pylcall2t  ktrigger, "callable", karg1, ...
+kr1, kr2, kr3                           pylcall3t  ktrigger, "callable", karg1, ...
+kr1, kr2, kr3, kr4                      pylcall4t  ktrigger, "callable", karg1, ...
+kr1, kr2, kr3, kr4, kr5                 pylcall5t  ktrigger, "callable", karg1, ...
+kr1, kr2, kr3, kr4, kr5, kr6            pylcall6t  ktrigger, "callable", karg1, ...
+kr1, kr2, kr3, kr4, kr5, kr6, kr7       pylcall7t  ktrigger, "callable", karg1, ...
+kr1, kr2, kr3, kr4, kr5, kr6, kr7, kr8  pylcall8t  ktrigger, "callable", karg1, ...
+
+                                        pylcalli   "callable", karg1, ...
+iresult                                 pylcall1i  "callable", iarg1, ...
+iresult1, iresult2                      pylcall2i  "callable", iarg1, ...
+ir1, ir2, ir3                           pylcall3i  "callable", iarg1, ...
+ir1, ir2, ir3, ir4                      pylcall4i  "callable", iarg1, ...
+ir1, ir2, ir3, ir4, ir5                 pylcall5i  "callable", iarg1, ...
+ir1, ir2, ir3, ir4, ir5, ir6            pylcall6i  "callable", iarg1, ...
+ir1, ir2, ir3, ir4, ir5, ir6, ir7       pylcall7i  "callable", iarg1, ...
+ir1, ir2, ir3, ir4, ir5, ir6, ir7, ir8  pylcall8i  "callable", iarg1, ...
+
+pylcalln   "callable", nresults, kresult1, ..., kresultn, karg1, ...
+pylcallni  "callable", nresults, iresult1, ..., iresultn, iarg1, ...
+      </PRE
+></TD
+></TR
+></TABLE
+><P
+>        This family of opcodes call the specified Python <I
+CLASS="EMPHASIS"
+>callable</I
+>
+        at k-time and i-time (i suffix),
+        passing the given arguments. The call is perfomed in the global environment and the result
+        (the returning value) is copied into the Csound output variables specified.
+      </P
+><P
+>        They pass any number of parameters which are cast to float inside the Python interpreter.
+      </P
+><P
+>        The <TT
+CLASS="LITERAL"
+>pycall</TT
+>/<TT
+CLASS="LITERAL"
+>pycalli</TT
+>, <TT
+CLASS="LITERAL"
+>pycall1</TT
+>/<TT
+CLASS="LITERAL"
+>pycall1i</TT
+>
+        ... <TT
+CLASS="LITERAL"
+>pycall8</TT
+>/<TT
+CLASS="LITERAL"
+>pycall8i</TT
+> opcodes
+        can accomodate for a number of results ranging from 0 to 8 according to their
+        numerical prefix (0 is omitted).
+      </P
+><P
+>        The <TT
+CLASS="LITERAL"
+>pycalln</TT
+>/<TT
+CLASS="LITERAL"
+>pycallni</TT
+> opcodes can accomodate for any number
+        of results: the callable name is followed by the number of output arguments, then come the list of
+        Csound output variable and the list of parameters to be passed.
+      </P
+><P
+>        The returning value of the callable must be <TT
+CLASS="LITERAL"
+>None</TT
+>
+        for <TT
+CLASS="LITERAL"
+>pycall</TT
+> or <TT
+CLASS="LITERAL"
+>pycalli</TT
+>,
+        a float for <TT
+CLASS="LITERAL"
+>pycall1i</TT
+> or <TT
+CLASS="LITERAL"
+>pycall1i</TT
+> and
+        a tuple (with proper size) of floats for the <TT
+CLASS="LITERAL"
+>pycall2</TT
+>/<TT
+CLASS="LITERAL"
+>pycall2i</TT
+>
+        ... <TT
+CLASS="LITERAL"
+>pycall8</TT
+>/<TT
+CLASS="LITERAL"
+>pycall8i</TT
+> and <TT
+CLASS="LITERAL"
+>pycalln</TT
+>/<TT
+CLASS="LITERAL"
+>pycallni</TT
+>
+        opcodes.
+      </P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="AEN133"
+></A
+><P
+><B
+>Example 3. Calling a C or Python function</B
+></P
+><P
+>          Supposing we have previously defined or imported a function
+          named <TT
+CLASS="FUNCTION"
+>effe</TT
+> as
+        </P
+><TABLE
+BORDER="0"
+BGCOLOR="#E0E0E0"
+WIDTH="100%"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>from random import random, choice
+
+# a pool of 100 numbers
+pool = [i ** 1.3 for i in range(100)]
+
+def get_number_from_pool(n, p):
+    # substitute an old number with the new number?
+    if random() &#60; p:
+        i = choice(range(len(pool)))
+        pool[i] = n
+
+    # return a random number from the pool
+    return choice(pool)
+        </PRE
+></TD
+></TR
+></TABLE
+><P
+>          then the following orchestra code
+        </P
+><TABLE
+BORDER="0"
+BGCOLOR="#E0E0E0"
+WIDTH="100%"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>k2   pycall1 "get_number_from_pool", k1, p6
+        </PRE
+></TD
+></TR
+></TABLE
+><P
+>          would set <TT
+CLASS="VARNAME"
+>k2</TT
+> randomly from a pool of
+          numbers changing in time. You can pass new pools elements and
+          control the change rate from the orchestra.
+        </P
+></DIV
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="AEN142"
+></A
+><P
+><B
+>Example 4. Calling a function-object</B
+></P
+><P
+>          A more generic implementation of the previous example makes
+          use of a simple function object.
+        </P
+><TABLE
+BORDER="0"
+BGCOLOR="#E0E0E0"
+WIDTH="100%"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>from random import random, choice
+
+class GetNumberFromPool:
+    def __init__(self, e, begin=0, end=100, step=1):
+        self.pool = [i ** e for i in range(begin, end, step)]
+
+    def __call__(self, n, p):
+        # substitute an old number with the new number?
+        if random() &#60; p:
+            i = choice(range(len(pool)))
+            pool[i] = n
+
+        # return a random number from the pool
+        return choice(pool)
+
+get_number_from_pool1 = GetNumberFromPool(1.3)
+get_number_from_pool2 = GetNumberFromPool(1.5, 50, 250, 2)
+        </PRE
+></TD
+></TR
+></TABLE
+><P
+>          then the following orchestra code
+        </P
+><TABLE
+BORDER="0"
+BGCOLOR="#E0E0E0"
+WIDTH="100%"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>k2   pycall1 "get_number_from_pool1", k1, p6
+k4   pycall1 "get_number_from_pool2", k3, p7
+        </PRE
+></TD
+></TR
+></TABLE
+><P
+>          would set <TT
+CLASS="VARNAME"
+>k2</TT
+> and <TT
+CLASS="VARNAME"
+>k3</TT
+> randomly from a pool of
+          numbers changing in time. You can pass new pools elements
+          (here <TT
+CLASS="VARNAME"
+>k1</TT
+> and <TT
+CLASS="VARNAME"
+>k3</TT
+>) and control the change rate
+          (here <TT
+CLASS="VARNAME"
+>p6</TT
+> and <TT
+CLASS="VARNAME"
+>p7</TT
+>) from the orchestra.
+        </P
+><P
+>          As you can see in the first snippet, you can customize
+          the initialization of the pool as well as create several pool.
+        </P
+></DIV
+></DIV
+><DIV
+CLASS="SECTION"
+><H2
+CLASS="SECTION"
+><A
+NAME="AEN156"
+>Eval</A
+></H2
+><TABLE
+BORDER="0"
+BGCOLOR="#E0E0E0"
+WIDTH="100%"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>kresult  pyeval    "expression"
+iresult	 pyevali   "expression"
+kresult	 pyleval   "expression"
+iresult	 pylevali  "expression"
+kresult  pyevalt   ktrigger, "expression"
+kresult	 pylevalt  ktrigger, "expression"
+      </PRE
+></TD
+></TR
+></TABLE
+><P
+>        These opcode evaluate a generic Python <I
+CLASS="EMPHASIS"
+>expression</I
+> and store the result in a
+        Csound variable at k-time or i-time (i suffix).
+      </P
+><P
+>        The expression must evaluate in a float or an object that can be cast to a float.
+      </P
+><P
+>        They can be used effectively to trasfer data from a Python object into a Csound variable.
+      </P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="AEN163"
+></A
+><P
+><B
+>Example 5. Retrieving a Python variable value</B
+></P
+><P
+>          The code
+        </P
+><TABLE
+BORDER="0"
+BGCOLOR="#E0E0E0"
+WIDTH="100%"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>k1	     pyeval	 "v1"
+        </PRE
+></TD
+></TR
+></TABLE
+><P
+>          will copy the content of the Python variable v1 into the Csound variable k1 at each
+          k-time.
+        </P
+></DIV
+></DIV
+><DIV
+CLASS="SECTION"
+><H2
+CLASS="SECTION"
+><A
+NAME="AEN168"
+>Assign</A
+></H2
+><TABLE
+BORDER="0"
+BGCOLOR="#E0E0E0"
+WIDTH="100%"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>pyassign    "variable", kvalue
+pyassigni   "variable", ivalue
+pylassign   "variable", kvalue
+pylassigni  "variable", ivalue
+pyassignt   ktrigger, "variable", kvalue
+pylassignt  ktrigger, "variable", kvalue
+      </PRE
+></TD
+></TR
+></TABLE
+><P
+>        Assign the value of the given Csound variable to a Python variable
+        possibly destroying its previous content.
+      </P
+><P
+>        The resulting Python object will be a float.
+      </P
+></DIV
+></DIV
+><H3
+><A
+NAME="AEN633"
+>Bibliography</A
+></H3
+><DIV
+CLASS="BIBLIOENTRY"
+><A
+NAME="AEN634"
+></A
+><P
+><SPAN
+CLASS="AUTHOR"
+>Guido van Rossum</SPAN
+>, <I
+>Python Tutorial</I
+>.</P
+><DIV
+CLASS="BIBLIOENTRYBLOCK"
+STYLE="margin-left=0.5in"
+></DIV
+></DIV
+><DIV
+CLASS="BIBLIOENTRY"
+><A
+NAME="AEN639"
+></A
+><P
+><SPAN
+CLASS="AUTHOR"
+>Guido van Rossum</SPAN
+>, <I
+>Python Library Reference</I
+>.</P
+><DIV
+CLASS="BIBLIOENTRYBLOCK"
+STYLE="margin-left=0.5in"
+></DIV
+></DIV
+><DIV
+CLASS="BIBLIOENTRY"
+><A
+NAME="AEN644"
+></A
+><P
+><SPAN
+CLASS="AUTHOR"
+>Guido van Rossum</SPAN
+>, <I
+>Extending and Embedding the Python Interpreter</I
+>.</P
+><DIV
+CLASS="BIBLIOENTRYBLOCK"
+STYLE="margin-left=0.5in"
+></DIV
+></DIV
+><DIV
+CLASS="BIBLIOENTRY"
+><A
+NAME="AEN649"
+></A
+><P
+><SPAN
+CLASS="AUTHOR"
+>Guido van Rossum</SPAN
+>, <I
+>Python/C API Reference Manual</I
+>.</P
+><DIV
+CLASS="BIBLIOENTRYBLOCK"
+STYLE="margin-left=0.5in"
+></DIV
+></DIV
+></DIV
+><DIV
+CLASS="NAVFOOTER"
+><HR
+ALIGN="LEFT"
+WIDTH="100%"><TABLE
+WIDTH="100%"
+BORDER="0"
+CELLPADDING="0"
+CELLSPACING="0"
+><TR
+><TD
+WIDTH="33%"
+ALIGN="left"
+VALIGN="top"
+>&nbsp;</TD
+><TD
+WIDTH="34%"
+ALIGN="center"
+VALIGN="top"
+>&nbsp;</TD
+><TD
+WIDTH="33%"
+ALIGN="right"
+VALIGN="top"
+><A
+HREF="orchestra-language.html"
+>Next &#62;&#62;&#62;</A
+></TD
+></TR
+><TR
+><TD
+WIDTH="33%"
+ALIGN="left"
+VALIGN="top"
+>&nbsp;</TD
+><TD
+WIDTH="34%"
+ALIGN="center"
+VALIGN="top"
+>&nbsp;</TD
+><TD
+WIDTH="33%"
+ALIGN="right"
+VALIGN="top"
+>Changes to the orchestra syntax</TD
+></TR
+></TABLE
+></DIV
+></BODY
+></HTML
+>
