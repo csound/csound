@@ -41,7 +41,7 @@ def getPlatform():
         return 'linux'
     elif sys.platform == 'cygwin':
         return 'cygwin'
-    elif sys.platform[:3] == 'win' and commonEnvironment['TOOLS'][1] == 'mingw':
+    elif sys.platform[:3] == 'win' and sys.platform != 'cygwin':
         return 'mingw'
     elif sys.platform[:6] == 'darwin':
         return 'darwin'
@@ -104,8 +104,10 @@ opts.Add('generateZip',
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
 # should take priority over default options.
-
-commonEnvironment = Environment(options = opts)
+if sys.platform[:3] == 'win' and sys.platform != 'cygwin':
+    commonEnvironment = Environment(options = opts, tools = ['mingw'])
+else:
+    commonEnvironment = Environment(options = opts)
 
 customCPPPATH = commonEnvironment['customCPPPATH']
 commonEnvironment.Prepend(CPPPATH = customCPPPATH)
@@ -381,6 +383,7 @@ if getPlatform() == 'mingw':
     csoundProgramEnvironment.Append(LIBS = ['wsock32'])
     csoundProgramEnvironment.Append(LIBS = ['ole32'])
     csoundProgramEnvironment.Append(LIBS = ['uuid'])
+    csoundProgramEnvironment.Append(LIBS = ['winmm'])
 
 #############################################################################
 #
