@@ -530,7 +530,7 @@ static int nested_repeat(void)  /* gab A9*/
                c, i, repeat_index);
       }
       else
-        printf(Str(X_1078," External LOOP section (%d) Level:%d\n"),
+        printf(Str(X_1077," External LOOP section (%d) Level:%d\n"),
                i, repeat_index);
       *(nxp-2) = 's'; *nxp++ =  LF;
       return 1;
