@@ -292,14 +292,11 @@ MYFLT circularBufferRead(circularBuffer* cb)
 
 
 /* ***** class guideRail -- waveguide rail derived class ***** */
-void guideRailGuideRail(ENVIRON *csound, guideRail* gr, len_t d)
-{
-    circularBufferCircularBuffer(csound, gr,d); /* Guide rail is a circular buffer */
-}
+#define guideRailGuideRail(csound,gr,d) circularBufferCircularBuffer(csound, gr,d) /* Guide rail is a circular buffer */
 
 
 /* ::update -- waveguide rail insert and update routine */
-void guideRailUpdate(guideRail *gr,MYFLT samp)
+inline void guideRailUpdate(guideRail *gr,MYFLT samp)
 {
     *gr->pointer++ = samp;
     if (gr->pointer > gr->endPoint)
