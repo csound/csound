@@ -62,7 +62,7 @@ namespace csound
     virtual void createCsoundScore();
     /**
      * Convenience function that erases the existing score, 
-     * invokes generate(), and invokes perform().
+     * invokes generate(), invokes createCsoundScore(), and invokes perform().
      */
     virtual void render();
     /**
