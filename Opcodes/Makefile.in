@@ -113,7 +113,7 @@ physmod.so:	$(PHYSOBJ)
 	ln physmod.so $P
 
 ugrw1.so:	ugrw1.$(o) fprint.$(o)
-	ld -E --shared ugrw1.$(o) fprint.$(o) -o physmod.so
+	ld -E --shared ugrw1.$(o) fprint.$(o) -o ugrw1.so
 	-rm $P/ugrw1.so
 	ln ugrw1.so $P
 
