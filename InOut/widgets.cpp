@@ -1713,7 +1713,7 @@ static void __cdecl fltkRun(void *s)
 #endif
 }
 
-#ifdef WIN32
+#ifdef WINDOWS
 static void __cdecl fltkKeybRun(void *s)
 {
     oKeyb->show();
@@ -1729,7 +1729,7 @@ static void __cdecl fltkKeybRun(void *s)
       }
       Fl::unlock();
     }
-    if (O.msglevel & WARNMSG) printf("WARNING: end of keyboard thread\n");
+     if (O.msglevel & WARNMSG) printf("WARNING: end of keyboard thread\n");
 }
 #endif
 
