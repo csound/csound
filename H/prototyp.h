@@ -1,4 +1,4 @@
-/*  
+/*
     prototyp.h:
 
     Copyright (C) 1991 Barry Vercoe, John ffitch
@@ -81,7 +81,7 @@ void mainRESET(ENVIRON *);
 void create_opcodlst(void *csound);
 int readOptions(FILE*);
 int csoundMain(void *csound, int argc, char **argv);
-void remove_tmpfiles(void);  
+void remove_tmpfiles(void);
 void add_tmpfile(char*);
 
 

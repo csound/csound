@@ -1,4 +1,4 @@
-/*  
+/*
     text.h:
 
     Copyright (C) 1999 John ffitch

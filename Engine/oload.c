@@ -277,7 +277,7 @@ ENVIRON cenviron_ = {
         csoundSetDebug,
         csoundTableLength,
         csoundTableGet,
-        csoundTableSet, 
+        csoundTableSet,
         /*
         * Data fields.
         */
@@ -406,7 +406,7 @@ ENVIRON cenviron_ = {
         0,                      /* maxfnum */
         NULL,                   /* gensub */
         GENMAX+1,               /* genmax */
-        100			/* ftldno */
+        100                     /* ftldno */
 };
 
 OPARMS O;

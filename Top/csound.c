@@ -989,7 +989,7 @@ static long csoundNumExits_ = -1;
     ENVIRON *csound = (ENVIRON *)csound;
     return csound->oparms_->odebug;
   }
-  
+
   PUBLIC void csoundSetDebug(void *csound_, int debug)
   {
     ENVIRON *csound = (ENVIRON *)csound_;
@@ -1005,9 +1005,9 @@ static long csoundNumExits_ = -1;
         return ftp->flen;
     } else {
         return -1;
-    }   
+    }
   }
-        
+
   MYFLT csoundTableGet(void *csound_, int table, int index)
   {
     ENVIRON *csound = (ENVIRON *)csound_;
@@ -1015,7 +1015,7 @@ static long csoundNumExits_ = -1;
     FUNC *ftp = (FUNC *)csound->ftfind_(csound,&table_);
     return ftp->ftable[index];
   }
-  
+
   PUBLIC void csoundTableSet(void *csound_, int table, int index, MYFLT value)
   {
     ENVIRON *csound = (ENVIRON *)csound_;

@@ -1,4 +1,4 @@
-/*  
+/*
     scot.h:
 
     Copyright (C) 1991 Alan deLespinasse

@@ -1,6 +1,6 @@
 #ifndef FOUT_H
 #define FOUT_H
-/*  
+/*
     fout.h:
 
     Copyright (C) 1999 Gabriel Maldonado, John ffitch
@@ -137,5 +137,5 @@ int infile(INFILE *p);
 int kinfile_set(KINFILE *p);
 int kinfile(KINFILE *p);
 int i_infile(I_INFILE *p);
- 
+
 #endif /* FOUT_H */

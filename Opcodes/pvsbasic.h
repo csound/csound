@@ -2,7 +2,7 @@
    basic opcodes for transformation of streaming PV signals
 
    (c) Victor Lazzarini, 2004
-  
+
     This file is part of Csound.
 
     The Csound Library is free software; you can redistribute it
@@ -71,11 +71,11 @@
    fsig pvsblur  fsigin, kblurtime, imaxdel
 
    Average the amp/freq time functions of each analysis channel for
-   a specified time (truncated to number of frames). 
+   a specified time (truncated to number of frames).
    The input signal will be delayed by that amount.
 
    fsigin: input signal
-   kblurtime: time in secs during which windows will be averaged. 
+   kblurtime: time in secs during which windows will be averaged.
    imaxdel: max delay time, used for allocating memory for the averaging
    operation.
 
@@ -125,11 +125,10 @@ typedef struct _pvsfilter {
         PVSDAT  *fout;
         PVSDAT  *fin;
         PVSDAT  *fil;
-		MYFLT   *kdepth;
-		MYFLT   *gain;
+        MYFLT   *kdepth;
+        MYFLT   *gain;
         unsigned long   lastframe;
-}
-PVSFILTER;
+} PVSFILTER;
 
 int pvsfilterset(PVSFILTER *p);
 int pvsfilter(PVSFILTER *p);
@@ -139,11 +138,10 @@ typedef struct _pvscale {
         PVSDAT  *fout;
         PVSDAT  *fin;
         MYFLT   *kscal;
-		MYFLT   *keepform;
-		MYFLT   *gain;
+        MYFLT   *keepform;
+        MYFLT   *gain;
         unsigned long   lastframe;
-}
-PVSSCALE;
+} PVSSCALE;
 
 int pvsscaleset(PVSSCALE *p);
 int pvsscale(PVSSCALE *p);
@@ -153,12 +151,11 @@ typedef struct _pvshift {
         PVSDAT  *fout;
         PVSDAT  *fin;
         MYFLT   *kshift;
-		MYFLT   *lowest;
-		MYFLT   *keepform;
-		MYFLT   *gain;
+        MYFLT   *lowest;
+        MYFLT   *keepform;
+        MYFLT   *gain;
         unsigned long   lastframe;
-}
-PVSSHIFT;
+} PVSSHIFT;
 
 int pvsshiftset(PVSSHIFT *p);
 int pvsshift(PVSSHIFT *p);
@@ -167,14 +164,13 @@ typedef struct _pvsblur {
         OPDS h;
         PVSDAT  *fout;
         PVSDAT  *fin;
-		MYFLT   *kdel;
-		MYFLT   *maxdel;
-		AUXCH   delframes;
-		MYFLT   frpsec;
-	    long count;
+        MYFLT   *kdel;
+        MYFLT   *maxdel;
+        AUXCH   delframes;
+        MYFLT   frpsec;
+        long    count;
         unsigned long   lastframe;
-}
-PVSBLUR;
+} PVSBLUR;
 
 int pvsblurset(PVSBLUR *p);
 int pvsblur(PVSBLUR *p);
@@ -183,12 +179,12 @@ typedef struct _pvstencil {
         OPDS    h;
         PVSDAT  *fout;
         PVSDAT  *fin;
-		MYFLT   *kgain;
-		MYFLT   *klevel;
-		MYFLT   *ifn;
-		FUNC    *func;
+        MYFLT   *kgain;
+        MYFLT   *klevel;
+        MYFLT   *ifn;
+        FUNC    *func;
         unsigned long   lastframe;
-}PVSTENCIL;
+} PVSTENCIL;
 
 int pvstencilset(PVSTENCIL *p);
 int pvstencil(PVSTENCIL *p);

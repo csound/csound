@@ -1,4 +1,4 @@
-/*  
+/*
     convolve.h:
 
     Copyright (C) 1996 Greg Sullivan

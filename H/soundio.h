@@ -1,4 +1,4 @@
-/*  
+/*
     soundio.h:
 
     Copyright (C) 1991, 2000 Barry Vercoe, Richard Dobson
@@ -66,12 +66,12 @@
 
 #define TYP_WAV   (SF_FORMAT_WAV>>16)
 #define TYP_AIFF  (SF_FORMAT_AIFF>>16)
-#define TYP_AU    (SF_FORMAT_AU>>16)    
-#define TYP_RAW   (SF_FORMAT_RAW>>16)   
-#define TYP_PAF   (SF_FORMAT_PAF>>16)   
-#define TYP_SVX   (SF_FORMAT_SVX>>16)   
-#define TYP_NIST  (SF_FORMAT_NIST>>16)  
-#define TYP_VOC   (SF_FORMAT_VOC>>16)   
+#define TYP_AU    (SF_FORMAT_AU>>16)
+#define TYP_RAW   (SF_FORMAT_RAW>>16)
+#define TYP_PAF   (SF_FORMAT_PAF>>16)
+#define TYP_SVX   (SF_FORMAT_SVX>>16)
+#define TYP_NIST  (SF_FORMAT_NIST>>16)
+#define TYP_VOC   (SF_FORMAT_VOC>>16)
 #define TYP_IRCAM (SF_FORMAT_IRCAM>>16)
 #define TYP_W64   (SF_FORMAT_W64>>16)
 #define TYP_MAT4  (SF_FORMAT_MAT4>>16)

@@ -1,4 +1,4 @@
-/*  
+/*
     pvxanal.h:
 
     Copyright (C) 1992 Richard Dobson

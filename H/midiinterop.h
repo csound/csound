@@ -1,4 +1,4 @@
-/*  
+/*
     midiinterop.h:
 
     Copyright (C) 2002 Michael Gogins

@@ -1,9 +1,9 @@
-typedef struct _DelayLine { 
+typedef struct _DelayLine {
         float   *data;
-        int     length; 
+        int     length;
         float   *pointer;
-        float   *end; 
-} DelayLine; 
+        float   *end;
+} DelayLine;
 
 typedef struct  {
         OPDS    h;

@@ -87,18 +87,18 @@ void OpenMIDIDevice(void)
         printf("\n");
       }
     }
-    
-    retval = Pm_OpenInput(&midistream, 
+
+    retval = Pm_OpenInput(&midistream,
                  atoi(O.Midiname),             /* Device number */
-                 NULL, 
-                 MBUFSIZ, 
-                 ((long (*)(void *)) Pt_Time), 
+                 NULL,
+                 MBUFSIZ,
+                 ((long (*)(void *)) Pt_Time),
                  NULL);
-    
+
     if (retval != 0) {
-    	printf("PortMIDI Error: %s\n", Pm_GetErrorText(retval));
+        printf("PortMIDI Error: %s\n", Pm_GetErrorText(retval));
     }
-    
+
     Pm_SetFilter(midistream, PM_FILT_ACTIVE | PM_FILT_CLOCK);
     while (Pm_Poll(midistream)) { /* empty the buffer after setting filter */
       Pm_Read(midistream, &buffer, 1);
@@ -355,9 +355,9 @@ void m_chanmsg(MEVENT *mep) /* exec non-note chnl_voice & chnl_mode cmnds */
       }
       /* 123 == ALL NOTES OFF */
       else if (n == 123) midNotesOff();         /* allchnl AllNotesOff */
-      /* 124 ==	OMNI OFF
-         125 ==	OMNI ON */
-      /* 126 ==	MONO ON (POLY OFF) */
+      /* 124 == OMNI OFF
+         125 == OMNI ON */
+      /* 126 == MONO ON (POLY OFF) */
       else if (n == 126) {                      /* MONO mode */
         if (chn->monobas == NULL) {
           MONPCH *mnew, *mend;
@@ -369,7 +369,7 @@ void m_chanmsg(MEVENT *mep) /* exec non-note chnl_voice & chnl_mode cmnds */
         }
         chn->mono = 1;
       }
-      /* 127 ==	POLY ON (MONO OFF) */
+      /* 127 == POLY ON (MONO OFF) */
       else if (n == 127) {                      /* POLY mode */
         if (chn->monobas != NULL) {
           mfree((char *)chn->monobas);

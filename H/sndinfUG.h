@@ -1,4 +1,4 @@
-/*  
+/*
     sndinfUG.h:
 
     Copyright (C) 1999 matt ingalls

@@ -1,7 +1,7 @@
-/*  
+/*
     schedule.h:
 
-    Copyright (C) 1999, 2002 rasmus ekman, Istvan Varga, John ffitch, Gabriel Maldonado, matt ingalls 
+    Copyright (C) 1999, 2002 rasmus ekman, Istvan Varga, John ffitch, Gabriel Maldonado, matt ingalls
 
     This file is part of Csound.
 

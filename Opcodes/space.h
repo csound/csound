@@ -1,4 +1,4 @@
-/*  
+/*
     space.h:
 
     Copyright (C) 1998 Richard Karpen

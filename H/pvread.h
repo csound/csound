@@ -1,4 +1,4 @@
-/*  
+/*
     pvread.h:
 
     Copyright (C) 1992 Richard Karpen

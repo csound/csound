@@ -1,4 +1,4 @@
-/*  
+/*
     flanger.h:
 
     Copyright (C) 1998 Gabriel Maldonado, John ffitch

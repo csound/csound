@@ -1,6 +1,6 @@
 #ifndef FFT_H
 #define FFT_H
-/*  
+/*
     fft.h:
 
     Copyright (C) 1990, 1995 Dan Ellis, Greg Sullivan

@@ -1,4 +1,4 @@
-/*  
+/*
     filter.h:
 
     Copyright (C) 1997 Michael A. Casey, John ffitch

@@ -1,6 +1,6 @@
 #ifndef UGGAB_H
 #define UGGAB_H
-/*  
+/*
     uggab.h:
 
     Copyright (C) 1998 Gabriel Maldonado, John ffitch

@@ -1,4 +1,4 @@
-/*  
+/*
     lpc.h:
 
     Copyright (C) 1992 Barry Vercoe

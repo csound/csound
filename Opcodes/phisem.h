@@ -1,4 +1,4 @@
-/*  
+/*
     phisem.h:
 
     Copyright (C) 1997, 2000 Perry Cook, John ffitch

@@ -225,8 +225,8 @@ int    pconvset(void*), pconvolve(void*);
 
 /* inarg types include the following:
 
-                i	irate scalar
-                k	krate scalar
+                i       irate scalar
+                k       krate scalar
                 a       arate vector
                 f       fregency variable
                 w       spectral variable

@@ -1,4 +1,4 @@
-/*  
+/*
     midiout.h:
 
     Copyright (C) 1997 Gabriel Maldonado, John ffitch

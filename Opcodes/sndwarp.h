@@ -1,4 +1,4 @@
-/*  
+/*
     sndwarp.h:
 
     Copyright (C) 1997 Richard Karpen
