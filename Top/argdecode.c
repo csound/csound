@@ -411,7 +411,7 @@ UTILS utilities[] = {
   { "sndinfo", sndinfo, X_1367, "util SNDINFO:\n" },
   { "cvanal", cvanal, X_1363, "util CVANAL:\n" },
   { "pvlook", pvlook, X_23, "util PVLOOK:\n" },
-  { "dnoise", dnoise, X_1704, "util DNOISE:\n" },
+/*  { "dnoise", dnoise, X_1704, "util DNOISE:\n" },  /* FIX ME: removed until we can compile - akozar */
   { NULL, NULL, 0}
 };
 
@@ -936,11 +936,11 @@ int argdecode(int argc, char **argv, char **pfilnamp, char *envoutyp)
     int n;
     char *filnamp = *pfilnamp;
 
-#ifdef mills_macintosh
+/*#ifdef mills_macintosh
          keep_tmp = 1;
- #else
+#else */
     keep_tmp = 0;
-#endif
+/*#endif */
 
     do {
 
