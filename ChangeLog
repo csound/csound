@@ -1,3 +1,8 @@
+2005-01-20  Michael Gogins <gogins@pipeline.com>
+
+	* Created a working NSIS installer for Windows -- does not
+	install source code.
+
 2005-01-18  John ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/newfils.c: New code
