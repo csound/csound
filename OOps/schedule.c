@@ -311,7 +311,7 @@ int lfok(ENVIRON *csound, LFO *p)
 
 int lfoa(ENVIRON *csound, LFO *p)
 {
-    int         nsmps = ksmps;
+    int         n;
     long        phs;
     MYFLT       fract;
     MYFLT       res;
@@ -322,7 +322,7 @@ int lfoa(ENVIRON *csound, LFO *p)
     inc = (long)((*p->xcps * (MYFLT)MAXPHASE)*onedsr);
     amp = *p->kamp;
     ar = p->res;
-    do {
+    for (n=0; n<ksmps; n++) {
       switch (p->lasttype) {
       default:
         sprintf(errmsg, Str("LFO: unknown oscilator type %d"), p->lasttype);
@@ -360,8 +360,8 @@ int lfoa(ENVIRON *csound, LFO *p)
       }
       phs += inc;
       phs &= MAXMASK;
-      *ar++ = res * amp;
-    } while (--nsmps);
+      ar[n] = res * amp;
+    }
     p->phs = phs;
     return OK;
 }
