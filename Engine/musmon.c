@@ -140,14 +140,14 @@ void print_maxamp(MYFLT x)                     /* IV - Jul 9 2002 */
     MYFLT   y;
 
     if (!(O.msglevel & 0x60)) {                 /* 0x00: raw amplitudes */
-      if (e0dbfs > FL(3000.0)) printf("%9.1f", x);
-      else if (e0dbfs < FL(3.0)) printf("%9.5f", x);
-      else if (e0dbfs > FL(300.0)) printf("%9.2f", x);
-      else if (e0dbfs > FL(30.0)) printf("%9.3f", x);
+      if (cenviron.e0dbfs > FL(3000.0)) printf("%9.1f", x);
+      else if (cenviron.e0dbfs < FL(3.0)) printf("%9.5f", x);
+      else if (cenviron.e0dbfs > FL(300.0)) printf("%9.2f", x);
+      else if (cenviron.e0dbfs > FL(30.0)) printf("%9.3f", x);
       else printf("%9.4f", x);
     }
     else {                      /* dB values */
-      y = x / e0dbfs;           /* relative level */
+      y = x / cenviron.e0dbfs;  /* relative level */
       if (y < FL(1.0e-10)) {
         printf ("      0  ");   /* less than -200 dB: print zero */
         return;

@@ -133,7 +133,7 @@ extern "C" {
 #define MAXNAME 128
 
 #define DFLT_DBFS (FL(32767.0))
-  extern MYFLT e0dbfs;
+
   void dbfs_init(MYFLT dbfs);
 
   typedef struct {
