@@ -1,3 +1,16 @@
+2004-09-12  Michael Gogins <gogins@pipeline.com>
+
+	* Restored PortAudio to ASIO only, re-ordered 'notify' and 'wait' for
+	better logic and performance.
+	
+	* Improved PortAudio stop/restart by returning PaAbort from callbacks.
+
+	* Moved Windows DLLs to csound5 root directory.
+	
+	* Added SIGINT to Windows signals handled.
+	
+	* Updated csound.pdf to reflect the above.
+	
 2004-09-11  Steven Yi  <stevenyi@csounds.com>
 
 	* SConstruct: Changed to use prefix directory from command line 
