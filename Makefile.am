@@ -361,8 +361,6 @@ H/wguide.h \
 H/widgets.h \
 H/windin.h \
 H/winEPS.h \
-InOut/aifc.c \
-InOut/aiff.c \
 InOut/FL_graph.cpp \
 InOut/ieee80.c \
 InOut/libsnd.c \
@@ -371,7 +369,6 @@ InOut/sfheader.c \
 InOut/soundin.c \
 InOut/soundio.c \
 InOut/ulaw.c \
-InOut/wave.c \
 InOut/widgets.cpp \
 InOut/win98.c \
 InOut/winascii.c \
@@ -604,14 +601,11 @@ Engine/sort.c \
 Engine/sread.c \
 Engine/swrite.c \
 Engine/twarp.c \
-InOut/aifc.c \
-InOut/aiff.c \
 InOut/ieee80.c \
 InOut/libsnd.c \
 InOut/sfheader.c \
 InOut/soundin.c \
 InOut/soundio.c \
-InOut/wave.c \
 InOut/winascii.c \
 InOut/windin.c \
 InOut/window.c \
@@ -678,6 +672,7 @@ Top/getstring.c \
 Top/hetro.c \
 Top/lpanal.c \
 Top/main.c \
+Top/natben.c \
 Top/one_file.c \
 Top/opcode.c \
 Top/pvanal.c \
@@ -793,7 +788,6 @@ libgrain4_la_LDFLAGS=@PLUGIN_LDFLAGS@
 libgrain4_la_LIBADD=@PLUGIN_LIBADD@
 
 libhrtferX_la_SOURCES=Opcodes/hrtferX.c \
-Top/natben.c
 libhrtferX_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
 libhrtferX_la_CFLAGS=@PLUGIN_CFLAGS@
 libhrtferX_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
@@ -960,8 +954,6 @@ Engine/sort.c \
 Engine/sread.c \
 Engine/swrite.c \
 Engine/twarp.c \
-InOut/aifc.c \
-InOut/aiff.c \
 InOut/FL_graph.cpp \
 InOut/ieee80.c \
 InOut/libsnd.c \
@@ -969,7 +961,6 @@ InOut/sfheader.c \
 InOut/soundin.c \
 InOut/soundio.c \
 InOut/ulaw.c \
-InOut/wave.c \
 InOut/winascii.c \
 InOut/window.c \
 InOut/winEPS.c \
@@ -989,6 +980,7 @@ Top/cvanal.c \
 Top/getstring.c \
 Top/hetro.c \
 Top/lpanal.c \
+Top/natben.c \
 Top/pvanal.c \
 Top/pvlook.c \
 Top/scot.c \
