@@ -995,10 +995,19 @@ static void ifa(void)
         continue;
       }
       if (*sp == '^' && op == 'i' && bp->pcnt == 2) {
-        if (*(sp+1)=='+') sp++;
+        int foundplus = 0;
+        if (*(sp+1)=='+') { sp++; foundplus = 1; }
         if (prvp2<0) {
           err_printf(Str(X_369,"No previous event in ^\n"));
           prvp2 = bp->p2val = warp_factor*stof(sp+1);
+        }
+        else if (isspace(*(sp+1))) {
+          /* stof() assumes no leading whitespace -- 070204, akozar */
+          err_printf(Str(X_226,
+                         "sread: illegal space following %s, sect %d line %d:  "),
+                     (foundplus?"^+":"^"),sectcnt,lincnt);
+          err_printf(Str(X_8,"   zero substituted.\n"));
+          prvp2 = bp->p2val = prvp2;
         }
         else prvp2 = bp->p2val = prvp2 + warp_factor*stof(sp+1);
       }
