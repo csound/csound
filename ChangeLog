@@ -1,3 +1,10 @@
+2004-12-19  Michael Gogins <gogins@pipeline.com>
+
+	* Added Java wrapper for the Csound API via CppSound. 
+	CsoundVST and Python support do not currently work, but it is now
+	possible to run Csound natively from Java. This is designed
+	mostly for using Csound in Mathematica through J/Link.
+
 2004-12-19  John ff  <jpff@codemist.co.uk>
 
 	* InOut/pmidi.c (sensMidi): major rehack for PortMIDI structure.
