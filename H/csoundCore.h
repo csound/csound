@@ -892,11 +892,10 @@ extern "C" {
     int           FFT_max_size;
     void          *FFT_table_1;
     void          *FFT_table_2;
-    /* statics from twap.c should be TSEG* */
+    /* statics from twarp.c should be TSEG* */
     void          *tseg, *tpsave, *tplim;
+    long          fout_kreset;
   } ENVIRON;
-
-  extern ENVIRON cenviron_;
 
 #include "text.h"
 

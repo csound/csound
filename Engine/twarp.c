@@ -36,9 +36,9 @@ int realtset(SRTBLK *);
 
 void scoreRESET(ENVIRON *p)
 {
-     if (cenviron_.tseg!=NULL){
-       mfree(&cenviron, cenviron_.tseg);
-       cenviron_.tseg = NULL;
+     if (p->tseg != NULL) {
+       mfree(p, p->tseg);
+       p->tseg = NULL;
      }
 }
 
@@ -96,16 +96,17 @@ void twarp(void)        /* time-warp a score section acc to T-statement */
 
 int realtset(SRTBLK *bp)
 {
+    ENVIRON *csound = &cenviron;    /* function should take this as argument */
     char *p;
     char c;
     MYFLT tempo, betspan, durbas, avgdur, stof(char*);
     TSEG *tp, *prvtp;
 
-    if (cenviron_.tseg == NULL) {                       /* if no space yet, alloc */
-      cenviron_.tseg = mmalloc(&cenviron, (long)TSEGMAX * sizeof(TSEG));
-      cenviron_.tplim = (TSEG*)cenviron_.tseg + TSEGMAX-1;
+    if (csound->tseg == NULL) {               /* if no space yet, alloc */
+      csound->tseg = mmalloc(csound, (long)TSEGMAX * sizeof(TSEG));
+      csound->tplim = (TSEG*) csound->tseg + TSEGMAX-1;
     }
-    tp = (TSEG*)cenviron_.tpsave = (TSEG*)cenviron_.tseg;
+    tp = (TSEG*) (csound->tpsave = csound->tseg);
     if (bp->pcnt < 2)
       goto error1;
     p = bp->text;                             /* first go to p1        */
@@ -124,7 +125,7 @@ int realtset(SRTBLK *bp)
       ;
     while (c != LF) {                         /* for each time-tempo pair: */
       prvtp = tp;
-      if (++tp > (TSEG*)cenviron_.tplim)
+      if (++tp > (TSEG*) csound->tplim)
         goto error3;
       tp->betbas = stof(p);                   /* betbas = time         */
       while ((c = *p++) != SP && c != LF)
@@ -149,7 +150,7 @@ int realtset(SRTBLK *bp)
         ;
     }
     tp->durslp = FL(0.0);                     /* clear last durslp */
-    if (++tp > (TSEG*)cenviron_.tplim)
+    if (++tp > (TSEG*) csound->tplim)
       goto error3;
     tp->betbas = FL(999999.9);                /* and cap with large betval */
     return(1);
@@ -165,17 +166,18 @@ int realtset(SRTBLK *bp)
     return(0);
 }
 
-
 MYFLT realt(MYFLT srctim)
 {
+    ENVIRON *csound = &cenviron;    /* function should take this as argument */
     TSEG *tp;
     MYFLT diff;
 
-    tp = (TSEG*)cenviron_.tpsave;
+    tp = (TSEG*) csound->tpsave;
     while (srctim >= (tp+1)->betbas)
       tp++;
     while ((diff = srctim - tp->betbas) < FL(0.0))
       tp--;
-    cenviron_.tpsave = tp;
+    csound->tpsave = tp;
     return ((tp->durslp * diff + tp->durbas) * diff + tp->timbas);
 }
+
