@@ -32,15 +32,14 @@ typedef struct {
         MYFLT timbas;
 } TSEG;
 
-static TSEG  *tseg, *tpsave, *tplim;
 int realtset(SRTBLK *);
 
 void scoreRESET(ENVIRON *p)
 {
-     if(tseg){
-            mfree(&cenviron, tseg);
-            tseg = 0;
-      }
+     if (cenviron_.tseg!=NULL){
+       mfree(&cenviron, cenviron_.tseg);
+       cenviron_.tseg = NULL;
+     }
 }
 
 
@@ -102,11 +101,11 @@ int realtset(SRTBLK *bp)
     MYFLT tempo, betspan, durbas, avgdur, stof(char*);
     TSEG *tp, *prvtp;
 
-    if (tseg == NULL) {                       /* if no space yet, alloc */
-      tseg = (TSEG *) mmalloc(&cenviron, (long)TSEGMAX * sizeof(TSEG));
-      tplim = tseg + TSEGMAX-1;
+    if (cenviron_.tseg == NULL) {                       /* if no space yet, alloc */
+      cenviron_.tseg = mmalloc(&cenviron, (long)TSEGMAX * sizeof(TSEG));
+      cenviron_.tplim = (TSEG*)cenviron_.tseg + TSEGMAX-1;
     }
-    tp = tpsave = tseg;
+    tp = (TSEG*)cenviron_.tpsave = (TSEG*)cenviron_.tseg;
     if (bp->pcnt < 2)
       goto error1;
     p = bp->text;                             /* first go to p1        */
@@ -125,7 +124,7 @@ int realtset(SRTBLK *bp)
       ;
     while (c != LF) {                         /* for each time-tempo pair: */
       prvtp = tp;
-      if (++tp > tplim)
+      if (++tp > (TSEG*)cenviron_.tplim)
         goto error3;
       tp->betbas = stof(p);                   /* betbas = time         */
       while ((c = *p++) != SP && c != LF)
@@ -150,7 +149,7 @@ int realtset(SRTBLK *bp)
         ;
     }
     tp->durslp = FL(0.0);                     /* clear last durslp */
-    if (++tp > tplim)
+    if (++tp > (TSEG*)cenviron_.tplim)
       goto error3;
     tp->betbas = FL(999999.9);                /* and cap with large betval */
     return(1);
@@ -172,11 +171,11 @@ MYFLT realt(MYFLT srctim)
     TSEG *tp;
     MYFLT diff;
 
-    tp = tpsave;
+    tp = (TSEG*)cenviron_.tpsave;
     while (srctim >= (tp+1)->betbas)
       tp++;
     while ((diff = srctim - tp->betbas) < FL(0.0))
       tp--;
-    tpsave = tp;
+    cenviron_.tpsave = tp;
     return ((tp->durslp * diff + tp->durbas) * diff + tp->timbas);
 }
