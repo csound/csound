@@ -25,14 +25,14 @@ def generate_pycall_common_init_code(f, n, pre, post, rate, triggered=0):
         t, T = '', ''
     name = 'py%scall%d%s%s_%srate' % (pre, n, post, t, rate)
     print >> f, 'int'
-    print >> f, '%s(PYCALL%d%s *p)' % (name, n, T)
+    print >> f, '%s(void *csound_, PYCALL%d%s *p)' % (name, n, T)
     print >> f, '{'
     print >> f, '  char command[1024];'
     print >> f, '  PyObject *result;'
     print >> f
     print >> f, '  if (*p->function != SSTRCOD)'
     print >> f, '    {'
-    print >> f, '      err_printf("%s: callable must be a string");' % (name)
+    print >> f, '      ((ENVIRON *)csound_)->err_printf_("%s: callable must be a string");' % (name)
     print >> f, '      return NOTOK;'
     print >> f, '    }'
     print >> f
@@ -56,7 +56,7 @@ def generate_pycall_common_call_code(f, context, withinit, triggered):
         skip = 2
     else:
         skip = 1
-    print >> f, '  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, %d);' % skip
+    print >> f, '  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, %d);' % skip
     print >> f
     if context == 'private':
         print >> f, '  result = eval_string_in_given_context(command, 0);'
@@ -75,7 +75,7 @@ def generate_pycall_exception_handling_code(f, n, pre, post, rate, triggered=0):
     name = 'py%scall%d%s%s_%srate' % (pre, n, post, t, rate)
     print >> f, '  if (result == NULL)'
     print >> f, '    {'
-    print >> f, '      err_printf("%s: python exception\\n");' % (name)
+    print >> f, '      ((ENVIRON *)csound_)->err_printf_("%s: python exception\\n");' % (name)
     print >> f, '      PyErr_Print();'
     print >> f, '      return NOTOK;'
     print >> f, '    }'
@@ -88,13 +88,13 @@ def generate_pycall_result_conversion_code(f, n, pre, post, rate, triggered=0):
         t, T = '', ''
     if n == 0:     
         print >> f, '  if (result != Py_None) {'
-        print >> f, '      err_printf("py%scall0%s%s_%srate: callable must return None\\n");' % (pre, post, t, rate)
+        print >> f, '      ((ENVIRON *)csound_)->err_printf_("py%scall0%s%s_%srate: callable must return None\\n");' % (pre, post, t, rate)
         print >> f, '      return NOTOK; }'
 
     elif n == 1:
         print >> f, '  if (!PyFloat_Check(result))'
         print >> f, '    {'
-        print >> f, '      err_printf("py%scall1%s%s_%srate: callable must return a float\\n");' % (pre, post, t, rate)
+        print >> f, '      ((ENVIRON *)csound_)->err_printf_("py%scall1%s%s_%srate: callable must return a float\\n");' % (pre, post, t, rate)
         print >> f, '      return NOTOK;'
         print >> f, '    }'
         print >> f, '  else'
@@ -109,7 +109,7 @@ def generate_pycall_result_conversion_code(f, n, pre, post, rate, triggered=0):
         name = 'py%scall%d%s%s_%srate' % (pre, n, post, t, rate)
         print >> f, '  if (!PyTuple_Check(result) || PyTuple_Size(result) != %d)' % n
         print >> f, '    {'
-        print >> f, '      err_printf("%s: callable must return %d values\\n");'  % (name, n)
+        print >> f, '      ((ENVIRON *)csound_)->err_printf_("%s: callable must return %d values\\n");'  % (name, n)
         print >> f, '      return NOTOK;'
         print >> f, '    }'
         print >> f, '  else'
@@ -139,11 +139,11 @@ def generate_pylcall_irate_method(f, n, triggered=0):
         
     name = 'pylcall%d%s_irate' % (n, t)
     print >> f, 'int'
-    print >> f, '%s(PYCALL%d%s *p)' % (name, n, T)
+    print >> f, '%s(void *csound_, PYCALL%d%s *p)' % (name, n, T)
     print >> f, '{'
     print >> f, '  if (*p->function != SSTRCOD)'
     print >> f, '    {'
-    print >> f, '      err_printf("%s: callable must be a string");' % (name)
+    print >> f, '      ((ENVIRON *)csound_)->err_printf_("%s: callable must be a string");' % (name)
     print >> f, '      return NOTOK;'
     print >> f, '    }'
     print >> f
@@ -192,16 +192,16 @@ def generate_pycall_opcode_struct(f, n, triggered=0):
     print >> f
 
 def generate_pycall_method_declaration(f, n):
-    print >> f, 'extern int pycall%d_krate(PYCALL%d *p);' % (n, n)
-    print >> f, 'extern int pylcall%d_irate(PYCALL%d *p);' % (n, n)
-    print >> f, 'extern int pylcall%d_krate(PYCALL%d *p);' % (n, n)
-    print >> f, 'extern int pylcall%di_irate(PYCALL%d *p);' % (n, n)
+    print >> f, 'extern int pycall%d_krate(void *csound_, PYCALL%d *p);' % (n, n)
+    print >> f, 'extern int pylcall%d_irate(void *csound_, PYCALL%d *p);' % (n, n)
+    print >> f, 'extern int pylcall%d_krate(void *csound_, PYCALL%d *p);' % (n, n)
+    print >> f, 'extern int pylcall%di_irate(void *csound_, PYCALL%d *p);' % (n, n)
     print >> f
 
 def generate_triggered_pycall_method_declaration(f, n):
-    print >> f, 'extern int pycall%dt_krate(PYCALL%dT *p);' % (n, n)
-    print >> f, 'extern int pylcall%dt_irate(PYCALL%dT *p);' % (n, n)
-    print >> f, 'extern int pylcall%dt_krate(PYCALL%dT *p);' % (n, n)
+    print >> f, 'extern int pycall%dt_krate(void *csound_, PYCALL%dT *p);' % (n, n)
+    print >> f, 'extern int pylcall%dt_irate(void *csound_, PYCALL%dT *p);' % (n, n)
+    print >> f, 'extern int pylcall%dt_krate(void *csound_, PYCALL%dT *p);' % (n, n)
     print >> f
 
 # --------

@@ -130,7 +130,7 @@ int pyinit(PYINIT *p)
 #include "pyx.c.auto"
 #include "pycall.c.auto"
 
-int pycalln_krate(PYCALLN *p)
+int pycalln_krate(void *csound_, PYCALLN *p)
 {
   int i;
   char command[1024];
@@ -139,7 +139,7 @@ int pycalln_krate(PYCALLN *p)
   if (*p->function != SSTRCOD)
     return NOTOK;
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, (int)*p->nresult + 1);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, (int)*p->nresult + 1);
 
   result = eval_string_in_given_context(command, 0);
   if (result != NULL && PyTuple_Check(result) && PyTuple_Size(result) == (int)*p->nresult)
@@ -150,14 +150,14 @@ int pycalln_krate(PYCALLN *p)
     }
   else
     {
-      err_printf("pycalln_krate: ERROR\n");
+      ((ENVIRON*)csound_)->err_printf_("pycalln_krate: ERROR\n");
       PyErr_Print();
       return NOTOK;
     }
   return OK;
 }
 
-int pylcalln_irate(PYCALLN *p)
+int pylcalln_irate(void *csound_, PYCALLN *p)
 {
   if (*p->function != SSTRCOD)
     return NOTOK;
@@ -166,7 +166,7 @@ int pylcalln_irate(PYCALLN *p)
   return OK;
 }
 
-int pylcalln_krate(PYCALLN *p)
+int pylcalln_krate(void *csound_, PYCALLN *p)
 {
   int i;
   char command[1024];
@@ -175,7 +175,7 @@ int pylcalln_krate(PYCALLN *p)
   if (*p->function != SSTRCOD)
     return NOTOK;
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, (int)*p->nresult + 1);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, (int)*p->nresult + 1);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
   if (result != NULL && PyTuple_Check(result) && PyTuple_Size(result) == (int)*p->nresult)
@@ -186,14 +186,14 @@ int pylcalln_krate(PYCALLN *p)
     }
   else
     {
-      err_printf("pycalln: ERROR\n");
+      ((ENVIRON*)csound_)->err_printf_("pycalln: ERROR\n");
       PyErr_Print();
       return NOTOK;
     }
   return OK;
 }
 
-int pylcallni_irate(PYCALLN *p)
+int pylcallni_irate(void *csound_, PYCALLN *p)
 {
   int i;
   char command[1024];
@@ -204,7 +204,7 @@ int pylcallni_irate(PYCALLN *p)
 
   create_private_namespace_if_needed(&p->h);
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, (int)*p->nresult + 1);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, (int)*p->nresult + 1);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
   if (result != NULL && PyTuple_Check(result) && PyTuple_Size(result) == (int)*p->nresult)
@@ -215,7 +215,7 @@ int pylcallni_irate(PYCALLN *p)
     }
   else
     {
-      err_printf("pycalln: ERROR\n");
+      ((ENVIRON*)csound_)->err_printf_("pycalln: ERROR\n");
       PyErr_Print();
       return NOTOK;
     }

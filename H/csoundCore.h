@@ -643,7 +643,7 @@ typedef struct ENVIRON_
   MYFLT (*intpow_)(MYFLT, long);
   FUNC *(*ftfindp)(struct ENVIRON_*, MYFLT *argp);
   FUNC *(*ftnp2find)(struct ENVIRON_*, MYFLT *);
-  char *(*unquote)(char *);
+  char *(*unquote_)(char *);
   MEMFIL *(*ldmemfile)(char *);
   void (*err_printf_)(char *, ...);
   FUNC *(*hfgens_)(struct ENVIRON_*, EVTBLK *);
