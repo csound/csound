@@ -295,7 +295,7 @@ csoundProgramEnvironment.Append(LIBS = ['csound', 'sndfile'])
 csoundProgramEnvironment.ParseConfig('fltk-config --cflags --cxxflags --ldflags') 
 
 ustubProgramEnvironment = commonEnvironment.Copy()
-ustubProgramEnvironment.Append(LIBS = ['ustub', 'sndfile'])
+ustubProgramEnvironment.Append(LIBS = ['ustub', 'sndfile', 'dl', 'm'])
 
 vstEnvironment = commonEnvironment.Copy()
 if vstEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags'):
@@ -343,15 +343,20 @@ if commonEnvironment['usePortAudio'] and portaudioFound:
         vstEnvironment.Append(LINKFLAGS = "--subsystem:windows")
         guiProgramEnvironment.Append(LINKFLAGS = "--subsystem:windows")
         if getPlatform() == 'linux' or getPlatform() == 'cygwin':
-            csoundProgramEnvironment.Append(LIBS = ['stdc++', 'pthread'])
-            ustubProgramEnvironment.Append(LIBS = ['stdc++', 'pthread'])
-            vstEnvironment.Append(LIBS = ['stdc++', 'pthread'])
-            guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread'])
+            csoundProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+            ustubProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+            vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+            guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
         elif getPlatform() == 'mingw':
             csoundProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
             ustubProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
             vstEnvironment.Append(LIBS = ['stdc++', 'supc++'])
             guiProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+        if getPlatform() == 'linux':
+            csoundProgramEnvironment.Append(LIBS = ['dl'])
+            ustubProgramEnvironment.Append(LIBS = ['dl'])
+            vstEnvironment.Append(LIBS = ['dl'])
+            guiProgramEnvironment.Append(LIBS = ['dl'])
     
 if getPlatform() == 'mingw':
     # These are the Windows system call libraries.
@@ -719,7 +724,7 @@ if (commonEnvironment['buildCsoundVST'] == 1) and boostFound and fltkFound:
     vstEnvironment.Prepend(LIBS = ['csound', 'sndfile'])
     vstEnvironment.Append(SWIGFLAGS = Split('-python -c++ -includeall -verbose'))
     if getPlatform() == 'linux':
-        vstEnvironment.Append(LIBS = ['swigpy', 'python2.3', 'util'])
+        vstEnvironment.Append(LIBS = ['swigpy', 'python2.3', 'util', 'dl', 'm'])
         vstEnvironment.Append(CPPPATH = ['/usr/local/include/python2.3'])
         vstEnvironment.Append(LIBPATH = ['/usr/local/lib/python2.3/config'])
         vstEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
