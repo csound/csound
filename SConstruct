@@ -945,10 +945,11 @@ else:
     csoundVstSources.append(csoundVstPythonWrapper)
     if configure.CheckHeader('jni.h', language = 'C++'):
 	print 'CONFIGURATION DECISION: Building Java wrappers for CsoundVST.'
-        csoundVstJavaWrapper = vstEnvironment.SharedObject('frontends/CsoundVST/JCsoundVST.i', SWIGFLAGS = [swigflags,'-java'])
+        csoundVstJavaWrapper = vstEnvironment.SharedObject('frontends/CsoundVST/JCsoundVST.i', SWIGFLAGS = [swigflags,'-java', '-package', 'CsoundVST'])
         csoundVstSources.append(csoundVstJavaWrapper)
-    	jcsound = vstEnvironment.Java(target = 'classes', source = '.')
+    	jcsound = vstEnvironment.Java(target = 'frontends/CsoundVST/classes', source = '.')
     	zipDependencies.append(jcsound)
+	jcsoundJar = vstEnvironment.Jar('CsoundVST.jar', 'frontends/CsoundVST/classes', JARCHDIR = 'frontends/CsoundVST/classes')
     csoundvst = vstEnvironment.SharedLibrary('CsoundVST', csoundVstSources, SHLIBPREFIX = '_')
     Depends(csoundvst, 'frontends/CsoundVST/CsoundVST_wrap.cc')
     zipDependencies.append(csoundvst)
