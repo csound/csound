@@ -68,27 +68,26 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\*.exe
   File ..\..\*.dll
   File ..\..\*.xmg
-  File ..\..\csound-*.pdf
+  File ..\..\csound*.pdf
   File ..\..\*.htm*
   File ..\..\*.txt
   File ..\..\ChangeLog
   File ..\..\loris.py
   File ..\..\CsoundVST.py
-  File ..\..\*.class
+  File ..\..\classes\*.class
   SetOutPath $INSTDIR\lib
   File ..\..\libcsound.a
   File ..\..\libCsoundVST.a
   SetOutPath $INSTDIR\include
-  File ..\..\H\csound.h
-  File ..\..\H\sysdep.h
-  File ..\..\H\cwindow.h
-  File ..\..\H\opcode.h
-  File ..\..\frontends\CsoundVST\*.hpp
+  File ..\..\H\*.h
+  File ..\..\frontends\CsoundVST\*.h*
   SetOutPath $INSTDIR\examples
   File ..\..\examples\*.csd
   File ..\..\examples\*.py
   SetOutPath $INSTDIR\samples
   File ..\..\samples\*
+  SetOutPath $INSTDIR\doc
+  File ..\..\..\manual\html\*
 
   ;Store installation folder
   WriteRegStr HKCU "Software\${PRODUCT}" "" $INSTDIR
