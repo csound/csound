@@ -129,28 +129,30 @@ void CsoundVST::setIsPython(bool isPython)
 	this->isPython = isPython;
 }
 
-//-----------------------------------------------------------------------------------------
 void CsoundVST::setProgramName(char *name)
 {
 	bank[curProgram].name = name;
 }
 
-//-----------------------------------------------------------------------------------------
 void CsoundVST::getProgramName(char *name)
 {
 	strcpy(name, bank[curProgram].name.c_str());
 }
-
 
 AEffEditor* CsoundVST::getEditor()
 {
 	return editor;
 }
 
+void CsoundVST::midiDeviceOpen(void *csound)
+{
+}
+
 void CsoundVST::performanceThreadRoutine()
 {
 	getCppSound()->stop();
 	getCppSound()->setExternalMidiEnabled(false);
+	getCppSound()->setExternalMidiDeviceOpenCallback(0);
 	getCppSound()->setExternalMidiReadCallback(0);
 	csoundSetMessageCallback(getCppSound()->getCsound(), &csound::System::message);
 	if(getIsPython())
@@ -162,6 +164,7 @@ void CsoundVST::performanceThreadRoutine()
 		{
 		    csound::System::inform("Python VST performance.\n");
 			getCppSound()->setExternalMidiEnabled(true);
+			getCppSound()->setExternalMidiDeviceOpenCallback(&CsoundVST::midiDeviceOpen);
 			getCppSound()->setExternalMidiReadCallback(&CsoundVST::midiRead);
 		}
 		Shell::run();
@@ -175,6 +178,7 @@ void CsoundVST::performanceThreadRoutine()
 		{
 		    csound::System::inform("Classic VST performance.\n");
 			getCppSound()->setExternalMidiEnabled(true);
+			getCppSound()->setExternalMidiDeviceOpenCallback(&CsoundVST::midiDeviceOpen);
 			getCppSound()->setExternalMidiReadCallback(&CsoundVST::midiRead);
 			if(getCppSound()->compile())
 			{
@@ -209,9 +213,9 @@ static int threadYieldCallback(void *)
 
 static int nonThreadYieldCallback(void *)
 {
-#ifndef LINUX
-    Fl::unlock();
-#endif
+//#ifndef LINUX
+//    Fl::wait(0.0);
+//#endif
     return 1;
 }
 
@@ -380,7 +384,7 @@ void CsoundVST::process(float **hostInput, float **hostOutput, long hostFrameN)
 			}
 			if(csoundFrameI == 0)
 			{
-				cppSound->performKsmps();
+				cppSound->performKsmps(true);
 			}
 			for(channelI = 0; channelI < channelN; channelI++)
 			{
@@ -414,7 +418,7 @@ void CsoundVST::processReplacing(float **hostInput, float **hostOutput, long hos
 			}
 			if(csoundFrameI == 0)
 			{
-				cppSound->performKsmps();
+				cppSound->performKsmps(true);
 			}
 			for(channelI = 0; channelI < channelN; channelI++)
 			{
