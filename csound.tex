@@ -1,11 +1,14 @@
 \documentclass[10pt,letterpaper,onecolumn]{ltxguide}
 \usepackage{t1enc}
-\usepackage{verbatim}
+\usepackage{fancyvrb}
+\usepackage{url}
 \usepackage[latin1]{inputenc}
 \usepackage[english]{babel}
 %% \usepackage{doc/latex/doxygen}
 \pagestyle{headings}
+\usepackage{listings}
 \begin{document}
+\lstset{language=c++,basicstyle=\ttfamily\scriptsize, tabsize=4, breaklines, fontadjust=true,fancyvrb=true,showstringspaces=false}
 
 \title{Csound and CsoundVST}
 \author{Michael Gogins \\ \texttt{gogins@pipeline.com}}
@@ -19,27 +22,27 @@ Csound is a unit-generator based, user-programmable computer music system. It wa
 
 Around 1991, John ffitch ported Csound to Microsoft DOS. Csound currently runs on many varieties of UNIX and Linux, Microsoft DOS and Windows, all versions of the Macintosh operating system including Mac OS X, and others.
 
-Csound is maintained by John ffitch at \linebreak[4] \texttt{http://www.sourceforge.net/projects/csound}. Documentation for the Csound language is maintained by Kevin Conder at \linebreak[4] \texttt{http://kevindumpscore.com/}. Csound's ``home page'' is maintained by Richard Boulanger at \linebreak[3] \texttt{http://csounds.com}. 
+Csound is maintained by John ffitch at \url{http://www.sourceforge.net/projects/csound}. Documentation for the Csound language is maintained by Kevin Conder at \url{http://kevindumpscore.com/}. Csound's ``home page'' is maintained by Richard Boulanger at \url{http://csounds.com}. 
 
 There are newer computer music systems that have graphical patch editors (e.g. Max/MSP, PD, jMax, or Open Sound World), or that use more advanced techniques of software engineering (e.g. Nyquist or SuperCollider). But Csound still has the largest and most varied set of unit generators, is the best documented, runs on the most platforms, and is the easiest to extend. It is possible to compile Csound using double-precision arithmetic throughout for superior sound quality. In short, Csound must be considered one of the most powerful musical instruments ever created.
 
-Csound development is ongoing, and currently stands at version 5 beta. New features in Csound 5 include the GNU Lesser General Public License, plugin unit generators, an application programming interface (API) for embedding Csound in other software, and the use of widely accepted third-party libraries for cross-platform development: libsndfile for reading and writing soundfiles, PortAudio for reading and writing digital audio from sound cards, and the Fast Light Tool Kit (FLTK) for graphics.
+Csound development is ongoing, and currently stands at version 5 beta. New features in Csound 5 include the GNU Lesser General Public License, plugin unit generators, an application programming interface (API) for embedding Csound in other software, and the use of widely accepted third-party libraries for cross-platform development: \texttt{libsndfile} for reading and writing soundfiles, PortAudio for reading and writing digital audio from sound cards, and the Fast Light Tool Kit (FLTK) for graphics.
 
 To create music with Csound:
 
 \begin{enumerate}
 \item Write an orchestra (\texttt{.orc} file) that creates instruments and signal processors by connecting unit generators (also called opcodes, in Csound-speak) using Csound's simple programming language.
-\item Write a score (\texttt{.sco} file) that specifies a list of notes and other events to be rendered by the orchestra.
+\item Write a score (\url{.sco} file) that specifies a list of notes and other events to be rendered by the orchestra.
 \item Run Csound to compile the orchestra and score, run the sorted and preprocessed score through the orchestra, and write digital audio out to a soundfile or sound card.
 \end{enumerate}
 
 CsoundVST is an extended version of Csound that adds a graphical user interface, C++ and Python APIs, Python scripting, a library of Python extension modules for algorithmic composition, a VST plugin interface, and a \emph{Mathematica} interface.
 
-In addition to this ``canonical'' version of Csound and CsoundVST, there are other versions of Csound and other front ends for Csound, many of which can be found at \texttt{http://csounds.com}.
+In addition to this ``canonical'' version of Csound and CsoundVST, there are other versions of Csound and other front ends for Csound, many of which can be found at \url{http://csounds.com}.
 
 \section{Downloading}
 
-Csound is hosted at \texttt{http:\-//www.sourceforge.net/projects/\-csound}. \linebreak Source and binary packages are available from the \texttt{files} link off that page.
+Csound is hosted at \url{http://www.sourceforge.net/projects/csound}. \linebreak Source and binary packages are available from the \texttt{files} link off that page.
 
 \section{Installing}
 
@@ -51,7 +54,7 @@ Consult the Csound language documentation for instructions on how to install and
 
 On Windows, make sure the directory or directories (normally the \texttt{csound5} directory) containing the Csound executables directory and all the Csound plugin opcodes are also in your \texttt{PATH} variable, or else copy all the executable files to your Windows \texttt{system32} directory.
 
-On Unix and Linux, either install the Csound program in one of the system bin directories, typically \texttt{/usr/local/bin}, and the Csound and plugin shared libraries in one of the system lib directories, typically \texttt{/usr/local/lib}; or make sure that the directory containing the Csound and plugin shared libraries is in your \texttt{LD\_LIBRARY\_PATH} environment variable. This variable may have a different name in different operating systems.
+On Unix and Linux, either install the Csound program in one of the system bin directories, typically \texttt{/usr/local/bin}, and the Csound and plugin shared libraries in one of the system lib directories, typically \url{/usr/local/lib}; or make sure that the directory containing the Csound and plugin shared libraries is in your \texttt{LD\_LIBRARY\_PATH} environment variable. This variable may have a different name in different operating systems.
 
 \subsection{CsoundVST}
 
@@ -87,7 +90,7 @@ Csound can read and write soundfiles (off-line rendering), read and write digita
 
 The Csound API consists of the Csound library (\texttt{libcsound.a}) and the Csound header file (\texttt{csound.h}). You can build Csound into your own software very easily using this API. For example, the Csound command itself is made this way:
 
-\begin{verbatim}
+\begin{lstlisting}
 #include "csound.h"
 
 int main(int argc, char **argv)
@@ -105,7 +108,7 @@ int main(int argc, char **argv)
     csoundDestroy(csound);
     return result;
 }
-\end{verbatim}
+\end{lstlisting}
 
 \subsection{CsoundVST}
 
@@ -119,11 +122,11 @@ To run CsoundVST as a stand-alone front end to Csound, execute \texttt{CsoundVST
 
 \subsubsection{The CsoundVST API}
 
-CsoundVST extends the Csound API with C++. There is a C++ class for the Csound API proper, another C++ class for manipulating Csound files in code, and additional classes for algorithmic composition based on music space. All these C++ classes also have a Python interface in the \texttt{CsoundVST} Python extension module. For more information, consult the Doxygen-generated files in the \texttt{csound5/doc} directory.
+CsoundVST extends the Csound API with C++. There is a C++ class for the Csound API proper, another C++ class for manipulating Csound files in code, and additional classes for algorithmic composition based on music space. All these C++ classes also have a Python interface in the \texttt{CsoundVST} Python extension module. For more information, consult the Doxygen-generated files in the \url{csound5/doc} directory.
 
 You can build CsoundVST into your own software using the \texttt{\_CsoundVST} shared library and \texttt{CsoundVST.hpp} header file. For example, the CsoundVST stand-alone graphical user interface program is made this way:
 
-\begin{verbatim}
+\begin{lstlisting}
 #include <CsoundVST.hpp>
 #include <CsoundVstFltk.hpp>
 
@@ -134,22 +137,23 @@ int main(int argc, char **argv)
     editor ->open(0);
     return 0;
 }
-\end{verbatim}
+\end{lstlisting}
 
-There is also a high-level C API for CsoundVST, declared in \linebreak[4] \texttt{frontends/CsoundVST/csoundvst\_api.h}. Any program able to interface with C calling convention functions can use this API. For example, a \textbf{\emph{Mathematica}} 5.0 notebook can use the .NET/Link package's \texttt{DefineDLLFunction} to access the CsoundVST API to create an instance of CsoundVST, load an orchestra, generate a score using the power of \textbf{\emph{Mathematica}}, and render that score.
+There is also a high-level C API for CsoundVST, declared in \url{frontends/CsoundVST/csoundvst\_api.h}. Any program able to interface with C calling convention functions can use this API. For example, a \textbf{\emph{Mathematica}} 5.0 notebook can use the .NET/Link package's \texttt{DefineDLLFunction} to access the CsoundVST API to create an instance of CsoundVST, load an orchestra, generate a score using the power of \textbf{\emph{Mathematica}}, and render that score.
 
 \subsubsection{Python scripting}
 
 You can use CsoundVST as a Python extension module. In fact, you can do this either in a standard Python interpreter, such as Python command line or the Idle Python GUI, or in CsoundVST itself in Python mode.
 
 To use CsoundVST in a standard Python interpreter, import CsoundVST.
-\begin{verbatim}
+
+\begin{lstlisting}
 import CsoundVST
-\end{verbatim}
+\end{lstlisting}
 
 The CsoundVST module automatically creates an instance of CppSound named \texttt{csound}, which provides an object-oriented interface to the Csound API. In a standard Python interpreter, you can load a Csound \texttt{.csd} file and perform it like this: 
 
-\begin{verbatim}
+\begin{lstlisting}
 C:\Documents and Settings\mkg>python
 Python 2.3.3 (#51, Dec 18 2003, 20:22:39) [MSC v.1200 32 bit (Intel)] on win32
 Type "help", "copyright", "credits" or "license" for more information.
@@ -237,13 +241,13 @@ Elapsed time = 13.469000 seconds.
 ENDED CppSound::perform.
 1
 >>>
-\end{verbatim}
+\end{lstlisting}
 
 To use CsoundVST itself as your Python interpreter, click on the CsoundVST Settings tab, and select the Python check box in the Csound performance mode box. Do not create a new CppSound object; you must use the builtin \texttt{csound} object in the CsoundVST module. 
 
 The \texttt{koch.py} script shows how to use Python to do algorithmic composition for Csound. You can use Python triple-quoted string literals to hold your Csound files right in your script, and assign them to Csound: 
 
-\begin{verbatim}
+\begin{lstlisting}
 csound.setOrchestra('''sr = 44100
 kr = 441
 ksmps = 100   
@@ -268,7 +272,7 @@ csound.setCommand("csound --opcode-lib=c:/projects/csound5/fluid.dll \\
     -RWdfo ./koch.wav ./temp.orc ./temp.sco")
 csound.exportForPerformance()
 csound.perform()
-\end{verbatim}
+\end{lstlisting}
 
 To run your script in Csound VST, click on the Perform button. 
 
@@ -311,17 +315,17 @@ You can assign up to 16 channels to a single CsoundVST plugin. However, you can'
 
 \section{Building}
 
-The latest Csound source code is available through the Concurrent Versions System (CVS)(\texttt{http:\-//www.cvshome.org}). To download Csound sources using CVS, run the following commands:
+The latest Csound source code is available through the Concurrent Versions System (CVS)(\url{http://www.cvshome.org}). To download Csound sources using CVS, run the following commands:
 
-\begin{verbatim}
+\begin{lstlisting}
 cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/csound login 
  
 cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/csound co csound5 
-\end{verbatim}
+\end{lstlisting}
 
 Information about accessing the CVS repository may be found in the SourceForge document ``Basic Introduction to CVS and SourceForge.net (SF.net) Project CVS Services''. 
 
-If you wish to become a Csound developer, obtain a SourceForge login, and then apply to John ffitch at the \linebreak[3] \texttt{http:\-//www.sourceforge.net/projects/\-csound} site.
+If you wish to become a Csound developer, obtain a SourceForge login, and then apply to John ffitch at the \url{http://www.sourceforge.net/projects/csound} site.
 
 Csound and CsoundVST are built using the Python package \texttt{scons}, not with makefiles or GNU autotools. Experience shows that \texttt{scons} build systems are easier to write, easier to use, and run faster than autotools build systems. The only file used to build the entire Csound system is the \texttt{SConstruct} file, which is a Python script run by the \texttt{scons} shell script.
 
@@ -330,24 +334,24 @@ To build Csound 5:
 \item Obtain the Csound source code from a SourceForge Csound 5 package file, or from SourceForge CVS.
 \item Install and configure the following software packages:
 \begin{enumerate}
-\item Python (required) for running the build (also used for CsoundVST scripting), from \linebreak[3] \texttt{http:\-//www.python.org}.
-\item SCons (required) for running the build, from \linebreak[4] \texttt{http:\-//www.scons.org}.
-\item libsndfile (required) for reading and writing soundfiles, from \linebreak[4] \texttt{http://www.mega-nerd.com/libsndfile/}.
-\item PortAudio for reading and writing real-time audio, from \linebreak[4] \texttt{http://www.portaudio.com/}.
-\item FLTK version 1.1.x for displaying graphs of function tables, and for widget opcodes, from \linebreak[3] \texttt{http://www.fltk.org}.
+\item Python (required) for running the build (also used for CsoundVST scripting), from \texttt{http://www.python.org}.
+\item SCons (required) for running the build, from \url{http://www.scons.org}.
+\item \texttt{libsndfile} (required) for reading and writing soundfiles, from \url{http://www.mega\-nerd.com/libsndfile/}.
+\item PortAudio for reading and writing real-time audio, from \url{http://www.portaudio.com/}.
+\item FLTK version 1.1.x for displaying graphs of function tables, and for widget opcodes, from \url{http://www.fltk.org}.
 \end{enumerate}
 \end{enumerate}
 
 If you also want to build CsoundVST, you must configure the FLTK libraries to enable threads (\texttt{./configure ---enable-threads}). And you will need to install these additional packages:
 
 \begin{enumerate}
-\item The Software Interface and Wrapper Generator (SWIG) for generating Python interfaces to CsoundVST (required for CsoundVST), from \linebreak[3] \texttt{http://www.swig.org}.
-\item The boost C++ template libraries for random numbers and linear algebra (required for CsoundVST), from \linebreak[4] \texttt{http://www.boost.org}.
+\item The Software Interface and Wrapper Generator (SWIG) for generating Python interfaces to CsoundVST (required for CsoundVST), from \url{http://www.swig.org}.
+\item The boost C++ template libraries for random numbers and linear algebra (required for CsoundVST), from \url{http://www.boost.org}. The CsoundVST \texttt{Random} class requires that boost must be later than version 1.32.1. I used the current CVS version.
 \end{enumerate}
 
 \subsection{Platforms}
 
-Currently, Csound 5 builds and runs on Windows using either the Cygwin environment (\texttt{http://www.cygwin.com}), or the MinGW \linebreak[4] (\texttt{http://www.mingw.org}) environment with the MSys shell \linebreak[4] (\texttt{http://www.mingw.org/msys.shtml}). Both of these environments are free, open source, and emulate the standard Unix/Linux environment and tools. On Linux, Csound 5 builds using the standard tools. Unix should work the same way as Linux.
+Currently, Csound 5 builds and runs on Windows using either the Cygwin environment (\url{http://www.cygwin.com}), or the MinGW  (\url{http://www.mingw.org}) environment with the MSys shell (\url{http://www.mingw.org/msys.shtml}). Both of these environments are free, open source, and emulate the standard Unix/Linux environment and tools. On Linux, Csound 5 builds using the standard tools. Unix should work the same way as Linux.
 
 On Windows, the Cygwin build procedure is more like the Linux one. However, the MinGW build is preferred, since the resulting executables do not require the Cygwin DLLs and run faster.
 
@@ -357,32 +361,31 @@ If you have properly installed all the dependencies mentioned above, you can bui
 
 \subsubsection{Windows with Cygwin}
 
-The build procedure for Cygwin is identical to Linux. However, Cygwin comes with its own customized version of Python, while CsoundVST uses the regular version of Python from \texttt{http://www.python.org}, which is built with Microsoft Visual C++. Make sure to install SCons in the Cygwin version of Python, and use that version for the build, even though CsoundVST will use the Windows version of Python.
+The build procedure for Cygwin is identical to Linux. However, Cygwin comes with its own customized version of Python, while CsoundVST uses the regular version of Python from \url{http://www.python.org}, which is built with Microsoft Visual C++. Make sure to install SCons in the Cygwin version of Python, and use that version for the build, even though CsoundVST will use the Windows version of Python.
 
 \subsubsection{Windows with MinGW and MSys}
 
 For MinGW, you may need to patch versions of SCons earlier than \texttt{0.96.1} as follows. Change line 51 of \texttt{SCons/Tool/mingw.py} from:
-\begin{verbatim}
+
+\begin{lstlisting}
 cmd = SCons.Util.CLVar('$SHLINK', '$SHLINKFLAGS')
-\end{verbatim}
+\end{lstlisting}
 to:
-\begin{verbatim}
+\begin{lstlisting}
 cmd = SCons.Util.CLVar(['$SHLINK', '$SHLINKFLAGS']) 
-\end{verbatim}
+\end{lstlisting}
 
 It is highly recommend that you update your MinGW installation from the SourceForge site to the ``current'' level for core gcc, g++, binutils,  utils, and the Windows API headers and libraries (w32api).
 
-Rebuild and install a version of libsndfile no earlier than:
-\begin{verbatim}
-http://www.mega-nerd.com/tmp/libsndfile-1.0.10pre4.tar.gz
-\end{verbatim}
+Rebuild and install a version of libsndfile no earlier than \url{http://www.mega-nerd.com/tmp/libsndfile-1.0.10pre4.tar.gz}
 
 PortAudio works with either the Windows multimedia libaries (\texttt{./configure ---with-winapi=wmme}) or with ASIO (\texttt{./configure ---with-winapi=asio}). At this time, Low-latency on Windows is only feasible with ASIO, but it is not as robust as the multimedia library.
 
 The build procedure for MinGW is similar, but not identical, to the Cygwin procedure. The MSys shell does not allow the user to execute Python commands directly. Therefore, you need to install the \emph{Windows} versions of Python and SCons, make sure that Python is in your Windows executable path, and run the build like this:
-\begin{verbatim}
-$ python c:/tools/python23/scripts/scons
-\end{verbatim}
+
+\begin{lstlisting}
+$$ python c:/tools/python23/scripts/scons
+\end{lstlisting}
 
 You may also need to customize the \texttt{custom.py} file to declare to \texttt{scons} the locations of required header files and libraries, since on Windows there is no standard location for these as there is on Unix and Linux. You will not need to modify \texttt{custom.py} if you install all third-party libraries in the MSys \texttt{/usr/local/include} and \texttt{/usr/local/lib} directories.
 
@@ -395,7 +398,7 @@ Supposing that your unit generator is named \texttt{xxx}, perform the following 
 \item Write your \texttt{xxx.c} and \texttt{xxx.h} file as you would for a regular Csound unit generator. Put these files in the \texttt{csound5/Opcodes} directory.
 \item \texttt{\#include "csdl.h"} in your unit generator sources. This causes the plugin development environment to emulate the regular Csound unit generator development environment.
 \item Add your \texttt{OENTRY} records and unit generator registration functions at the bottom of your C file. Example (but you can have as many unit generators in one plugin as you like):
-\begin{verbatim}
+\begin{lstlisting}
 \#define S sizeof
 
 static OENTRY localops[] = {
@@ -408,14 +411,14 @@ static OENTRY localops[] = {
  * opcode registration functions for the localops table.
  */
 LINKAGE
-\end{verbatim}
+\end{lstlisting}
 \item Add your plugin as a new target in the plugin opcodes section of the \texttt{SConstruct} build file:
-\begin{verbatim}
+\begin{lstlisting}
 pluginEnvironment.SharedLibrary('xxx', 
     Split('''Opcodes/xxx.c 
     Opcodes/another_file_used_by_xxx.c 
     Opcodes/yet_another_file_used_by_xxx.c'''))
-\end{verbatim}
+\end{lstlisting}
 \item Run the Csound 5 build in the regular way.
 \end{enumerate}		
 
@@ -423,9 +426,9 @@ pluginEnvironment.SharedLibrary('xxx',
 
 The \texttt{OENTRY} structure (see \texttt{H/csoundCore.h}, \texttt{Engine/entry1.c}, and \texttt{Engine/rdorch.c}) contains the following fields:
 
-\begin{verbatim}
+\begin{lstlisting}
 name, dspace, thread, outarg, inargs, isub, ksub, asub, dsub
-\end{verbatim}
+\end{lstlisting}
 
 \begin{description}  
 	\item[\texttt{dspace}] There are two types of opcodes, polymorphic and non-polymorphic. For non-polymorphic opcodes, the \texttt{dspace} flag specifies the size of the opcode structure in bytes, and arguments are always passed to the opcode at the same rate. Polymorphic opcodes can accept arguments at different rates, and those arguments are actually dispatched to other opcodes as determined by the \texttt{dspace} flag and the following naming convention:
@@ -572,8 +575,8 @@ This is a ``to do'' list, not necessarily complete, and in no particular order o
 \begin{enumerate}
 \item See also the \texttt{To-fix-and-do} file in the \texttt{csound5} directory.
 \item Create better examples, especially to demonstrate the use of Python and of VST plugins. One example should be a live performance instrument with a Python GUI that controls instrument parameters or algorithmic composition parameters in real time.
-\item Complete the work of making Csound multi-instantiable.
 \item All Csound documentation in this one PDF.
+\item Complete the work of making Csound multi-instantiable.
 \end{enumerate}
 
 \end{document}
