@@ -33,8 +33,12 @@ extern int  openout(char *, int);
 int kdmpset(KDUMP *p)
 {
     if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
-      if ((p->fdch.fdc = openout(p->STRARG, 1)) < 0) {
-        sprintf(errmsg,Str(X_210,"Cannot open %s"), retfilnam);
+      char soundoname[1024];
+      if (p->STRARG == NULL) strcpy(soundoname,unquote(currevent->strarg));
+      else strcpy(soundoname,unquote(p->STRARG));    /* unquote it, else use */
+
+      if ((p->fdch.fdc = openout(soundoname,1)) < 0) {
+        sprintf(errmsg,Str(X_210,"Cannot open %s"), soundoname);
         return initerror(errmsg);
       }
       p->fdch.fd = NULL;        /* Character file not audio */
@@ -56,8 +60,12 @@ int kdmpset(KDUMP *p)
 int kdmp2set(KDUMP2 *p)
 {
     if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
-      if ((p->fdch.fdc = openout(p->STRARG, 1)) < 0) {
-        sprintf(errmsg,Str(X_210,"Cannot open %s"), retfilnam);
+      char soundoname[1024];
+      if (p->STRARG == NULL) strcpy(soundoname,unquote(currevent->strarg));
+      else strcpy(soundoname,unquote(p->STRARG));    /* unquote it, else use */
+
+      if ((p->fdch.fdc = openout(soundoname,1)) < 0) {
+        sprintf(errmsg,Str(X_210,"Cannot open %s"), soundoname);
         return initerror(errmsg);
       }
       p->fdch.fd = NULL;        /* Character file not audio */
@@ -79,8 +87,12 @@ int kdmp2set(KDUMP2 *p)
 int kdmp3set(KDUMP3 *p)
 {
     if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
-      if ((p->fdch.fdc = openout(p->STRARG, 1)) < 0) {
-        sprintf(errmsg,Str(X_210,"Cannot open %s"), retfilnam);
+      char soundoname[1024];
+      if (p->STRARG == NULL) strcpy(soundoname,unquote(currevent->strarg));
+      else strcpy(soundoname,unquote(p->STRARG));    /* unquote it, else use */
+
+      if ((p->fdch.fdc = openout(soundoname,1)) < 0) {
+        sprintf(errmsg,Str(X_210,"Cannot open %s"), soundoname);
         return initerror(errmsg);
       }
       p->fdch.fd = NULL;        /* Character file not audio */
@@ -102,8 +114,12 @@ int kdmp3set(KDUMP3 *p)
 int kdmp4set(KDUMP4 *p)
 {
     if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
-      if ((p->fdch.fdc = openout(p->STRARG, 1)) < 0) {
-        sprintf(errmsg,Str(X_210,"Cannot open %s"), retfilnam);
+      char soundoname[1024];
+      if (p->STRARG == NULL) strcpy(soundoname,unquote(currevent->strarg));
+      else strcpy(soundoname,unquote(p->STRARG));    /* unquote it, else use */
+
+      if ((p->fdch.fdc = openout(soundoname,1)) < 0) {
+        sprintf(errmsg,Str(X_210,"Cannot open %s"), soundoname);
         return initerror(errmsg);
       }
       p->fdch.fd = NULL;        /* Character file not audio */
@@ -242,6 +258,7 @@ int krdset(KREAD *p)
       char soundiname[1024];
       if (p->STRARG == NULL) strcpy(soundiname,unquote(currevent->strarg));
       else strcpy(soundiname,unquote(p->STRARG));    /* unquote it, else use */
+
       if ((p->fdch.fdc = openin(soundiname)) < 0) {
         sprintf(errmsg,Str(X_210,"Cannot open %s"), soundiname);
         return initerror(errmsg);
@@ -268,8 +285,11 @@ int krdset(KREAD *p)
 int krd2set(KREAD2 *p)
 {
     if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
-      if ((p->fdch.fdc = openin(p->STRARG)) < 0) {
-        sprintf(errmsg,Str(X_210,"Cannot open %s"), retfilnam);
+      char soundiname[1024];
+      if (p->STRARG == NULL) strcpy(soundiname,unquote(currevent->strarg));
+      else strcpy(soundiname,unquote(p->STRARG));    /* unquote it, else use */
+      if ((p->fdch.fdc = openin(soundiname)) < 0) {
+        sprintf(errmsg,Str(X_210,"Cannot open %s"), soundiname);
         return initerror(errmsg);
       }
       p->fdch.fd = NULL;        /* Character file not audio */
@@ -294,8 +314,11 @@ int krd2set(KREAD2 *p)
 int krd3set(KREAD3 *p)
 {
     if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
-      if ((p->fdch.fdc = openin(p->STRARG)) < 0) {
-        sprintf(errmsg,Str(X_210,"Cannot open %s"), retfilnam);
+      char soundiname[1024];
+      if (p->STRARG == NULL) strcpy(soundiname,unquote(currevent->strarg));
+      else strcpy(soundiname,unquote(p->STRARG));    /* unquote it, else use */
+      if ((p->fdch.fdc = openin(soundiname)) < 0) {
+        sprintf(errmsg,Str(X_210,"Cannot open %s"), soundiname);
         return initerror(errmsg);
       }
       p->fdch.fd = NULL;        /* Character file not audio */
@@ -320,8 +343,11 @@ int krd3set(KREAD3 *p)
 int krd4set(KREAD4 *p)
 {
     if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
-      if ((p->fdch.fdc = openin(p->STRARG)) < 0) {
-        sprintf(errmsg,Str(X_210,"Cannot open %s"), retfilnam);
+      char soundiname[1024];
+      if (p->STRARG == NULL) strcpy(soundiname,unquote(currevent->strarg));
+      else strcpy(soundiname,unquote(p->STRARG));    /* unquote it, else use */
+      if ((p->fdch.fdc = openin(soundiname)) < 0) {
+        sprintf(errmsg,Str(X_210,"Cannot open %s"), soundiname);
         return initerror(errmsg);
       }
       p->fdch.fd = NULL;        /* Character file not audio */
