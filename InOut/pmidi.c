@@ -55,7 +55,6 @@ extern int pgm2ins[];   /* IV May 2002 */
 extern void xturnon(int, long);
 extern void xturnoff(INSDS*);
 extern void insxtroff(short);
-extern void OpenMIDIDevice(void);
 
 PortMidiStream* midistream;
 static int not_started = 1;
@@ -109,7 +108,7 @@ long GetMIDIData(void)
 {
     int n;
     extern int  csoundIsExternalMidiEnabled(void*);
-    extern long csoundExternalMidiRead(void*, u_char *, int);
+    extern long csoundExternalMidiRead(void*, void *, int);
     /*
      * Reads from user-defined MIDI input.
      */
