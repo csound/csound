@@ -73,9 +73,19 @@ short sfsampsize(int);
 void rewriteheader(SNDFILE* ofd, int verbose);
 char *unquote(char *);
 void scoreRESET(ENVIRON *p);
+long kperf(long kcnt);
+void writeLine(const char *text, long size);
+void newevent(void *, char type, MYFLT *pfields, long count);
+void csoundDefaultMidiOpen(void*);
+void mainRESET(ENVIRON *);
 
 extern OPARMS O;
 extern ENVIRON cenviron;
+extern int fltk_abort;
+extern int csoundMain(void *csound, int argc, char **argv);
+extern long kcnt;
+extern MYFLT *inbuf;
+extern MYFLT *outbuf;
 
 #ifdef __cplusplus
 }
