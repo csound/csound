@@ -1,6 +1,7 @@
 2004-10-24  Michael Gogins <gogins@pipeline.com>
 
-	* Fixes to rtpa.c and pa_callback.c from Victor Lazzarini for duplex audio.
+	* Fixes to rtpa.c and pa_callback.c for duplex audio, and libsnd_u.c forsoundfile input,
+    by Victor Lazzarini.
 	
     * CsoundVST changes directory to that of loaded files.
     
