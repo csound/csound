@@ -11,7 +11,7 @@
 \title{Csound and CsoundVST}
 \author{Michael Gogins \\ \texttt{gogins@pipeline.com}}
 \maketitle
-\abstract{This document explains how to download, build, install, extend, and use Csound and CsoundVST on Windows and Linux. This document also contains a reference manual for the Csound and CsoundVST application programming interfaces (APIs).}
+\abstract{This document explains how to download, build, install, extend, and use Csound and CsoundVST on Windows and Linux.}
 \section{Introduction}
 Csound is a unit-generator based, user-programmable computer music system. It was originally written by Barry Vercoe at the Massachusetts Institute of Technology in 1984 as the first C language version of this type of software. 
 
@@ -19,7 +19,7 @@ John ffitch soon ported Csound to Microsoft DOS. Since then Csound has received 
 
 Csound is maintained by John ffitch at \linebreak[4] \texttt{http://www.sourceforge.net/projects/csound}. Documentation for the Csound language is maintained by Kevin Conder at \linebreak[4] \texttt{http://kevindumpscore.com/}. Csound's ``home page'' is maintained by Richard Boulanger at \linebreak[3] \texttt{http://csounds.com}. 
 
-There are newer computer music systems that have graphical patch editors (e.g. Max/MSP, PD, jMax, or Open Sound World), or that use more advanced techniques of software engineering (e.g. Nyquist or SuperCollider). However, Csound still has the largest and most varied set of unit generators, is the best documented, runs on the most platforms, and is the easiest to extend. It is possible to compile Csound using double-precision arithmetic throughout for superior sound quality. In short, Csound must be considered one of the most powerful musical instruments ever created.
+There are newer computer music systems that have graphical patch editors (e.g. Max/MSP, PD, jMax, or Open Sound World), or that use more advanced techniques of software engineering (e.g. Nyquist or SuperCollider). But Csound still has the largest and most varied set of unit generators, is the best documented, runs on the most platforms, and is the easiest to extend. It is possible to compile Csound using double-precision arithmetic throughout for superior sound quality. In short, Csound must be considered one of the most powerful musical instruments ever created.
 
 Csound development is ongoing, and currently stands at version 5 beta. New features in Csound 5 include the GNU Lesser General Public License, plugin unit generators, an application programming interface (API) for embedding Csound in other software, and the use of widely accepted third-party libraries for cross-platform development: libsndfile for reading and writing soundfiles, PortAudio for reading and writing digital audio from sound cards, and the Fast Light Tool Kit (FLTK) for graphics.
 
@@ -77,6 +77,11 @@ If you have properly installed all the dependencies mentioned above, you can bui
 \subsubsection{Windows with Cygwin}
 The build procedure for Cygwin is identical to Linux. However, Cygwin comes with its own customized version of Python, while CsoundVST uses the regular version of Python from \texttt{http://www.python.org}, which is built with Microsoft Visual C++. Make sure to install SCons in the Cygwin version of Python, and use that version for the build, even though CsoundVST will use the Windows version of Python.
 \subsubsection{Windows with MinGW and MSys}
+You must install a version of libsndfile no earlier than:
+\begin{verbatim}
+http://www.mega-nerd.com/tmp/libsndfile-1.0.10pre4.tar.gz
+\end{verbatim}
+
 For MinGW, you may need to patch SCons as follows. Change line 51 of \texttt{SCons/Tool/mingw.py} from:
 \begin{verbatim}
 cmd = SCons.Util.CLVar('$SHLINK', '$SHLINKFLAGS')
@@ -90,7 +95,7 @@ The build procedure for MinGW is similar, but not identical, to the Cygwin proce
 $ python c:/tools/python23/scripts/scons
 \end{verbatim}
 
-You may also need to customize the \texttt{custom.py} file to declare to \texttt{scons} the locations of required header files and libraries, since on Windows there is no standard location for these as there is on Unix and Linux.
+You will also need to customize the \texttt{custom.py} file to declare to \texttt{scons} the locations of required header files and libraries, since on Windows there is no standard location for these as there is on Unix and Linux.
 
 \section{Installing}
 Once you have either unpacked a binary distribution, or built Csound from sources, you will need to install and configure Csound so that it will run properly on your system. 
@@ -211,50 +216,54 @@ To run your script in Csound VST, click on the Perform button.
 \subsubsection{VST Plugin}
 The following instructions are for Cubase SX. You would follow roughly similar procedures in other hosts.
 
-Use the Devices menu, Plug-In Information dialog, VST Plug-Ins tab, Shared VST Plug-ins Folder text field to add your \texttt{csound5} directory to Cubase's plugin path. You can have multiple directories separated by semicolons. 
+Use the \emph{Devices} menu, \emph{Plug-In Information} dialog, \emph{VST Plug-Ins} tab, \emph{Shared VST Plug-ins Folder} text field to add your \texttt{csound5} directory to Cubase's plugin path. You can have multiple directories separated by semicolons. 
 
 Quit Cubase, and start it again. 
 
-Use the File menu, New Project dialog to create a new song. 
+Use the \emph{File} menu, \emph{New Project} dialog to create a new song. 
 
-Use the Project menu, Add Track submenu, to add a new MIDI track. 
+Use the \emph{Project} menu, \emph{Add Track} submenu, to add a new MIDI track. 
 
-Use the pencil tool to draw a Part on the track a few measures long. Write some music in the Part using the Event editor or the Score editor. 
+Use the pencil tool to draw a \emph{Part} on the track a few measures long. Write some music in the \emph{Part} using the \emph{Event} editor or the \emph{Score} editor. 
 
-Use the Devices menu (or the F11 key) to open the VST Instruments dialog. 
+Use the \emph{Devices} menu (or the F11 key) to open the \emph{VST Instruments} dialog. 
 
-Click on one of the No VST Instrument labels, and select CsoundVST from the list that pops up. 
+Click on one of the \emph{No VST Instrument} labels, and select \emph{\_CsoundVST} from the list that pops up. 
 
-Click on the e (for edit) button to open the CsoundVST dialog. 
+Click on the \emph{e} (for edit) button to open the \emph{\_CsoundVST} dialog. 
 
-Click on the Open button to bring up the file selector dialog. Navigate to a directory containing a Csound csd file suitable for MIDI performance, such as csound/CsoundVST/examples/CsoundVST.csd. Click on the OK button to load the file. You can also open and import a suitable orc and sco file as described above. 
+Click on the \emph{Open} button to bring up the file selector dialog. Navigate to a directory containing a Csound csd file suitable for MIDI performance, such as csound/CsoundVST/examples/CsoundVST.csd. Click on the OK button to load the file. You can also open and import a suitable \texttt{.orc} and \texttt{.sco} file as described above. 
 
-Click on the VST Instruments dialog's on/off button to turn it on. This should compile the Csound orchestra. Note: If you don't compile the orchestra, you won't be able to assign the plugin to a track. 
+Click on the \emph{VST Instruments} dialog's on/off button to turn it on. This should compile the Csound orchestra. \emph{Note: If you don't compile the orchestra, you won't be able to assign the plugin to a track.} 
 
-In the Cubase Track Inspector, click on the out: Not Assigned label and select CsoundVST from the list that pops up. 
+In the \emph{Cubase Track Inspector}, click on the \emph{out: Not Assigned} label and select \emph{\_CsoundVST} from the list that pops up. 
 
-On the ruler at the top of the Arrangement window, select the loop end point and drag it to the end of your part, then click on the loop button to enable looping. 
+On the ruler at the top of the \emph{Arrangement} window, select the loop end point and drag it to the end of your part, then click on the loop button to enable looping. 
 
-Click on the play button on the Transport bar. You should hear your music played by CsoundVST. 
+Click on the \emph{play} button on the \emph{Transport} bar. You should hear your music played by CsoundVST. 
 
 Try assigning your track to different channels; a different Csound instrument will perform each channel. 
 
 When you save your song, your Csound orchestra will be saved as part of the song and re-loaded when you re-load the song. 
 
-You can click on the Orchestra tab and edit your Csound instruments while CsoundVST is playing. To hear your changes, just click on the CsoundVST Perform button to recompile the orchestra. 
+You can click on the \emph{Orchestra} tab and edit your Csound instruments while CsoundVST is playing. To hear your changes, just click on the CsoundVST \emph{Perform} button to recompile the orchestra. 
 
 You can assign up to 16 channels to a single CsoundVST plugin. However, you can't have more than one CsoundVST plugin in the same song! 
-\section{Csound API Reference}
-%% \input{doc/latex/annotated.tex}
-
 \section{License}
+\subsection{Csound and CsoundVST}
 Csound is \copyright 1991-2003 by Barry Vercoe and John ffitch.
 
-Csound is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation; either version 2.1 of the License, or (at your option) any later version.
+CsoundVST is \copyright 2001-2004 by Michael Gogins.
 
-Csound is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
+Csound and CsoundVST are free software; you can redistribute them and/or modify them under the terms of the GNU Lesser General Public License as published by the Free Software Foundation; either version 2.1 of the License, or (at your option) any later version.
 
-You should have received a copy of the GNU Lesser General Public License along with Csound; if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+Csound and CsoundVST are distributed in the hope that they will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License along with Csound and CsoundVST; if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+\subsection{Virtual Synthesis Technology}
+Virtual Synthesis Technology (VST) PlugIn interface technology by Steinberg Soft- und Hardware GmbH. 
+
+CsoundVST source code contains with modified versions of source code files from the VST SDK distributed by Steinberg. \emph{These files are to be used only for building CsoundVST.} You are \emph{not} licensed to use these files for any other purpose. If you make a derived product based on CsoundVST or the modified VST source files herein, you must apply to Steinberg for your own license to use the VST SDK.
 \section{Contributors}
 Csound contains contributions from musicians, scientists, and programmers from around the world. They include (but are not limited to): 
 \begin{itemize}
@@ -301,7 +310,6 @@ This is the ``to do'' list, not necessarily complete, for Csound and CsoundVST:
 \item Complete this document sufficiently to get users started running Csound and CsoundVST with MinGW and Linux.
 \item Automate rebuilding the documentation as part of the regular build.
 \item Automate making gcc import libraries for Python etc. on Windows.
-\item Get the MinGW build running.
 \item Get MIDI input and output working on Windows.
 \item Get the Loris plugin opcode into this build.
 \item A Mathematica interface - but what kind?
