@@ -139,8 +139,6 @@ void Counterpoint::counterpoint(int OurMode, int *StartPitches, int CurV, int ca
 
 void Counterpoint::toCsoundScore(std::string filename, double secondsPerPulse)
 {
-  double voice = 0;
-  double time = 0;
   double duration = 0;
   double key = 0;
   double velocity = 70;
@@ -153,10 +151,10 @@ void Counterpoint::toCsoundScore(std::string filename, double secondsPerPulse)
   std::fstream stream(filename.c_str(), std::ios::in | std::ios::out | std::ios::trunc);
   int totalnotes = 0;
   fprintf(stderr, "\n; %s\n", filename.c_str());
-  for(int voice = 0; voice < Ctrpt.size2(); voice++)
+  for(size_t voice = 0; voice < Ctrpt.size2(); voice++)
     {
       double time = 0;
-      for(int note = 1; note <= TotalNotes[voice]; note++)
+      for(size_t note = 1; note <= size_t(TotalNotes[voice]); note++)
 	{
 	  time = Onset[note][voice] * secondsPerPulse;
 	  duration = Dur[note][voice] * secondsPerPulse;
@@ -172,7 +170,7 @@ void Counterpoint::toCsoundScore(std::string filename, double secondsPerPulse)
   stream << buffer;
 }
 
-main(int argc, char **argv)
+int main(int argc, char **argv)
 {
   Counterpoint counterpoint;
   counterpoint.FillRhyPat();
@@ -262,4 +260,5 @@ main(int argc, char **argv)
   fprintf(stderr,"\n\nTrial %d\n", trial++);
   counterpoint.counterpoint(Counterpoint::Dorian,voicebegs,4,longcantus.size(),3, &longcantus[0]);            /* 57 62 -- 38,45,57,62,69,53,50 */
   counterpoint.toCsoundScore("test4.sco", secondsPerPulse);
+  return 0;
 }
