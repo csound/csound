@@ -187,6 +187,7 @@ void CsoundVST::performanceThreadRoutine()
 {
   getCppSound()->stop();
   getCppSound()->reset();
+  getCppSound()->setFLTKThreadLocking(false);
   csoundSetMessageCallback(getCppSound()->getCsound(), &csound::System::message);
   if(getIsPython())
     {
