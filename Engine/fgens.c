@@ -2122,7 +2122,6 @@ int ftgen(FTGEN *p)                    /* set up and call any GEN routine */
       *p->ifno = (MYFLT)ftp->fno;                 /* record the fno */
     else if (ftevt->p[1] >=0)
       return initerror(Str(X_787,"ftgen error"));
-    }
     return OK;
 }
 
