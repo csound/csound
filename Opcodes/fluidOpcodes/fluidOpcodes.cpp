@@ -119,29 +119,24 @@ extern "C"
    * Creates a fluidEngine and returns a MYFLT to user as identifier for 
    * engine
    */
-  int fluidEngineIopadr(ENVIRON *csound, void *data) {
+  int fluidEngineIopadr(ENVIRON *csound, void *data) 
+  {
     FLUIDENGINE *fluid = (FLUIDENGINE *)data;
-    fluid_synth_t *fluidSynth = 0;
-        
+    fluid_synth_t *fluidSynth = 0;        
     fluid_settings_t *fluidSettings = new_fluid_settings();
     fluidSynth = new_fluid_synth(fluidSettings);
     float samplingRate_ = (float) csound->GetSr(csound);
     fluid_settings_setnum(fluidSettings, "synth.sample-rate", samplingRate_);
     fluid_settings_setint(fluidSettings, "synth.polyphony", 4096);
     fluid_settings_setint(fluidSettings, "synth.midi-channels", 256);
-            
     csound->Message(csound, 
 		    "Allocated fluidsynth with sampling rate = %f.\n",
 		    samplingRate_);            
-        
     fluid_engines.push_back(fluidSynth);
-                 
     csound->Message(csound, 
 		    "Created Fluid Engine - Number : %d.\n",
 		    fluid_engines.size() - 1);
-            
     *fluid->iEngineNum = (MYFLT)(fluid_engines.size() - 1);
-        
     return OK;
   }
 
@@ -149,13 +144,12 @@ extern "C"
    * Called by Csound to de-initialize the opcode 
    * just before destroying it.
    */
-  int fluidEngineDopadr(ENVIRON *csound, void *) {
-       
+  int fluidEngineDopadr(ENVIRON *csound, void *) 
+  {
     if(!fluid_engines.empty()) {
       csound->Message(csound, 
 		      "Cleaning up Fluid Engines - Found: %d\n", 
-		      fluid_engines.size());
-            
+		      fluid_engines.size());            
       for(size_t i = 0; i < fluid_engines.size(); i++) {               
 	delete_fluid_synth(fluid_engines[i]);  
 	fluid_engines[i] = 0;
@@ -165,116 +159,111 @@ extern "C"
     return OK;
   } 
     
-    
   /* FLUID_LOAD */
     
   /**
    * Loads a Soundfont into a Fluid Engine
    */
-  int fluidLoadIopadr(ENVIRON *csound, void *data) {
-    FLUIDLOAD *fluid = (FLUIDLOAD *)data;
-        
+  int fluidLoadIopadr(ENVIRON *csound, void *data) 
+  {
+    FLUIDLOAD *fluid = (FLUIDLOAD *)data;      
     std::string filename = fluid->STRARG;        
-                      
     int engineNum = (int)(*fluid->iEngineNum);
-        
-        
     if(engineNum > int(fluid_engines.size()) || engineNum < 0) {
-      csound->Message(csound, 
+      csound->Message(csound,
 		      "Illegal Engine Number: %i.\n", engineNum);
-               
       return NOTOK;
-    }
-        
-        
-        
+    }   
     char ssdirPath[256];
-    sprintf(ssdirPath,"%s%c%s",getenv("SSDIR"),DIR_SEP,fluid->STRARG);       
-        
+    sprintf(ssdirPath,"%s%c%s",getenv("SSDIR"),DIR_SEP,fluid->STRARG);          
     char sfdirPath[256];
     sprintf(sfdirPath,"%s%c%s",getenv("SFDIR"),DIR_SEP,fluid->STRARG);          
-
     /*      printf("SADIRPATH: %s\n", ssdirPath);       
 	    printf("SFDIRPATH: %s\n", sfdirPath);    
 	    printf("SEPARATOR: %c\n", DIR_SEP); */
-        
+    int sfontId = 0;
     if(fluid_is_soundfont(fluid->STRARG)) {
-      int sfontId = fluid_synth_sfload(fluid_engines[engineNum], 
-				       filename.c_str(), false);  
-                                             
-      csound->Message(csound, 
+      sfontId = fluid_synth_sfload(fluid_engines[engineNum], 
+				   filename.c_str(), false);  
+      csound->Message(csound,
 		      "Loading SoundFont : %s.\n", filename.c_str());         
-                    
       *fluid->iInstrumentNumber = (MYFLT)(sfontId);
     } else if(fluid_is_soundfont(ssdirPath)) {
-      int sfontId = fluid_synth_sfload(fluid_engines[engineNum], ssdirPath, false);                           
-            
+      sfontId = fluid_synth_sfload(fluid_engines[engineNum], ssdirPath, false);                           
       csound->Message(csound, 
 		      "Loading SoundFont : %s.\n", ssdirPath);    
-                     
       *fluid->iInstrumentNumber = (MYFLT)(sfontId);           
     } else if(fluid_is_soundfont(sfdirPath)) {
-      int sfontId = fluid_synth_sfload(fluid_engines[engineNum], sfdirPath, false);                                       
-
+      sfontId = fluid_synth_sfload(fluid_engines[engineNum], sfdirPath, false);                                       
       csound->Message(csound, 
 		      "Loading SoundFont : %s.\n", sfdirPath);
-                
       *fluid->iInstrumentNumber = (MYFLT)(sfontId);                       
     } else {
-
       csound->Message(csound, 
 		      "[ERROR] - Unable to load soundfont");
+      return OK;
     }
-        
+    if(*fluid->iListPresets) {
+      fluid_sfont_t *fluidSoundfont = fluid_synth_get_sfont_by_id(fluid_engines[engineNum], sfontId);
+      fluid_preset_t fluidPreset;
+      fluidSoundfont->iteration_start(fluidSoundfont);
+      char buffer[0xff];
+      while(fluidSoundfont->iteration_next(fluidSoundfont, &fluidPreset)) {
+	sprintf(buffer, 
+		"SoundFont:%3d  Bank:%3d  Preset:%3d  %s\n",
+		sfontId,
+		fluidPreset.get_banknum(&fluidPreset),
+		fluidPreset.get_num(&fluidPreset),
+		fluidPreset.get_name(&fluidPreset));
+	csound->Message(csound, 
+			buffer);
+      }
+    }
     return OK;
   }
     
   /* FLUID_PROGRAM_SELECT */
 
-  int fluidProgramSelectIopadr(ENVIRON *csound, void *data) {
-    FLUID_PROGRAM_SELECT *fluid = (FLUID_PROGRAM_SELECT *)data;
-        
+  int fluidProgramSelectIopadr(ENVIRON *csound, void *data) 
+  {
+    FLUID_PROGRAM_SELECT *fluid = (FLUID_PROGRAM_SELECT *)data;      
     int engineNum               = (int)(*fluid->iEngineNumber);
     int channelNum              = (int)(*fluid->iChannelNumber);
     unsigned int instrumentNum  = (unsigned int)(*fluid->iInstrumentNumber);
     unsigned int bankNum        = (unsigned int)(*fluid->iBankNumber);
     unsigned int presetNum      = (unsigned int)(*fluid->iPresetNumber);
-               
     fluid_synth_program_select(fluid_engines[engineNum], 
 			       channelNum, instrumentNum, 
 			       bankNum, presetNum);     
-        
     return OK;  
   }    
     
   /* FLUID_CC */
 
-  int fluidCC_I_Iopadr(ENVIRON *csound, void *data) {
-    FLUID_CC *fluid  = (FLUID_CC *)data;
-		
+  int fluidCC_I_Iopadr(ENVIRON *csound, void *data) 
+  {
+    FLUID_CC *fluid  = (FLUID_CC *)data;	
     int engineNum               = (int)(*fluid->iEngineNumber);
     int channelNum              = (int)(*fluid->iChannelNumber);
     unsigned int controllerNum  = (unsigned int)(*fluid->iControllerNumber);
     int value        	        = (int)(*fluid->kVal);
-		
     fluid_synth_cc(fluid_engines[engineNum],
 		   channelNum,
 		   controllerNum,
 		   value);
-
-		
     return OK;	
   } 
 
-  int fluidCC_K_Iopadr(ENVIRON *csound, void *data) {
+  int fluidCC_K_Iopadr(ENVIRON *csound, void *data) 
+  {
     FLUID_CC *fluid  = (FLUID_CC *)data;
     fluid->priorMidiValue = -1;	
     return OK;	
   }    
 	
-  int fluidCC_K_Kopadr(ENVIRON *csound, void *data) {
-    FLUID_CC *fluid  = (FLUID_CC *)data;
-		
+  int fluidCC_K_Kopadr(ENVIRON *csound, void *data) 
+  {
+    FLUID_CC *fluid  = (FLUID_CC *)data;	
     int engineNum               = (int)(*fluid->iEngineNumber);
     int channelNum              = (int)(*fluid->iChannelNumber);
     unsigned int controllerNum  = (unsigned int)(*fluid->iControllerNumber);
@@ -292,80 +281,67 @@ extern "C"
     
   /* FLUID_NOTE */
     
-  int fluidNoteIopadr(ENVIRON *csound, void *data) {
+  int fluidNoteIopadr(ENVIRON *csound, void *data) 
+  {
     FLUID_NOTE *fluid = (FLUID_NOTE *)data;    
     int engineNum   = (int)(*fluid->iEngineNumber);
     int channelNum  = (int)(*fluid->iChannelNumber);
     int key         = (int)(*fluid->iMidiKeyNumber);
-    int velocity    = (int)(*fluid->iVelocity);
-       
+    int velocity    = (int)(*fluid->iVelocity);     
     fluid->released = false;
-        
     // fluid->h.insdshead->csound->Message(fluid->h.insdshead->csound, "%i : %i : %i : %i\n", engineNum, instrNum, key, velocity);
     fluid_synth_noteon(fluid_engines[engineNum], channelNum, key, velocity);
-        
     //MYFLT offTime = fluid->h.insdshead->p3;
     //unsigned int dur = (int)(offTime * 
-        
     //fluid->evt		= new_fluid_event();
     //fluid_event_note(fluid->evt, channelNum, key, vel, 
-        
     return OK;
   }
     
-  int fluidNoteKopadr(ENVIRON *csound, void *data) {
+  int fluidNoteKopadr(ENVIRON *csound, void *data) 
+  {
     FLUID_NOTE *fluid = (FLUID_NOTE *)data;
     int engineNum   = (int)(*fluid->iEngineNumber);
     int channelNum  = (int)(*fluid->iChannelNumber);
     int key         = (int)(*fluid->iMidiKeyNumber);
     MYFLT scoreTime = csound->GetScoreTime(csound);
     MYFLT offTime = fluid->h.insdshead->offtim;
-        
     //int kSmps = csound->GetKsmps(csound);      
     //int sRate = (int)csound->GetSr(csound);
-        
     //csound->Message(csound, "Times score:%f off:%f\n", scoreTime, offTime);       
-        
     if(!fluid->released &&        
        ( offTime <= scoreTime + .025 || fluid->h.insdshead->relesing)) {
-                
       fluid->released = true;
-            
       fluid_synth_noteoff(fluid_engines[engineNum], 
 			  channelNum, 
 			  key);
-      //csound->Message(csound, "Release c:%i k:%i\n", channelNum, key);
-         
+      //csound->Message(csound, "Release c:%i k:%i\n", channelNum, key);  
     }
     return OK;
   }
     
   /* FLUID_OUT */
     
-  int fluidOutIopadr(ENVIRON *csound, void *data) {
-    FLUIDOUT *fluid = (FLUIDOUT *)data;
-        
+  int fluidOutIopadr(ENVIRON *csound, void *data) 
+  {
+    FLUIDOUT *fluid = (FLUIDOUT *)data;      
     fluid->blockSize = csound->GetKsmps(csound);
     return OK;
   }
 
-  int fluidOutAopadr(ENVIRON *csound, void *data) {
-    FLUIDOUT *fluid = (FLUIDOUT *)data;
-        
+  int fluidOutAopadr(ENVIRON *csound, void *data) 
+  {
+    FLUIDOUT *fluid = (FLUIDOUT *)data;      
     float leftSample[1];
     float rightSample[1];
     MYFLT *leftOut    = fluid->aLeftOut;
     MYFLT *rightOut   = fluid->aRightOut;
-        
     int engineNum = (int)(*fluid->iEngineNum);
-        
     if(engineNum > int(fluid_engines.size()) || engineNum < 0) {
       csound->Message(csound, 
 		      "Illegal Engine Number: %i.\n", engineNum);
       return NOTOK;
     }
-        
-        
     for(int i = 0; i < fluid->blockSize; ++i)
       {
 	leftSample[0] = 0;
@@ -381,7 +357,41 @@ extern "C"
 	*leftOut++  = leftSample[0];
 	*rightOut++ = rightSample[0];
       }
+    return OK;
+  }    
+    
+  int fluidAllOutIopadr(ENVIRON *csound, void *data) 
+  {
+    FLUIDALLOUT *fluid = (FLUIDALLOUT *)data;      
+    fluid->blockSize = csound->GetKsmps(csound);
+    return OK;
+  }
 
+  int fluidAllOutAopadr(ENVIRON *csound, void *data) 
+  {
+    FLUIDALLOUT *fluid = (FLUIDALLOUT *)data;      
+    float leftSample[1];
+    float rightSample[1];
+    MYFLT *leftOut    = fluid->aLeftOut;
+    MYFLT *rightOut   = fluid->aRightOut;
+    for(int i = 0; i < fluid->blockSize; ++i)
+      {
+	for(int j = 0; j < fluid_engines.size(); j++)
+	  {
+	    leftSample[0] = 0;
+	    rightSample[0] = 0;
+	    fluid_synth_write_float(fluid_engines[j], 
+				    1, 
+				    leftSample, 
+				    0, 
+				    1, 
+				    rightSample, 
+				    0, 
+				    1);    
+	    *leftOut++  = leftSample[0];
+	    *rightOut++ = rightSample[0];
+	  }
+      }
     return OK;
   }    
     
@@ -405,7 +415,7 @@ extern "C"
       sizeof(FLUIDLOAD),             
       1,  
       "i",   
-      "Si",    
+      "Sio",    
       (SUBR)&fluidLoadIopadr,          
       0,                  
       0,                
@@ -465,6 +475,17 @@ extern "C"
       0,                  
       (SUBR)&fluidOutAopadr,  
       0 
+    },
+    {   
+      "fluidAllOut",            
+      sizeof(FLUIDALLOUT),              
+      5,  
+      "aa",  
+      "i",     
+      (SUBR)&fluidAllOutIopadr,           
+      0,                  
+      (SUBR)&fluidAllOutAopadr,  
+      0 
     }
   };
     
@@ -474,7 +495,7 @@ extern "C"
    */
   PUBLIC int opcode_size()
   {
-    return sizeof(OENTRY) * 7;
+    return sizeof(OENTRY) * 8;
   }
 
   /**
