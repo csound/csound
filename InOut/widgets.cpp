@@ -1763,7 +1763,7 @@ extern "C" void FL_run(ENVIRON *csound, FLRUN *p)
   pthread_attr_setschedpolicy(&a, SCHED_OTHER);
   pthread_attr_setinheritsched(&a, PTHREAD_EXPLICIT_SCHED);
   threadHandle = pthread_create(&thread1, &a, (void *(*)(void *)) fltkRun,
-				NULL);
+				csound);
 #else
 #  error Nor run facility in FL_run
 #endif
