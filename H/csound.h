@@ -179,6 +179,13 @@ extern "C" {
   PUBLIC void *csoundCreate(void *hostData);
 
   /**
+   * Reset and prepare an instance of Csound for compilation.
+   * Returns CSOUND_SUCCESS on success, and CSOUND_ERROR or
+   * CSOUND_MEMORY if an error occured.
+   */
+  PUBLIC int csoundPreCompile(void *csound);
+
+  /**
    * Returns a pointer to the requested interface, if available, in the interface
    * argument, and its version number, in the version argument.
    * Returns 0 for success and 1 for failure.
