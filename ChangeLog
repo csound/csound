@@ -1,6 +1,7 @@
 2004-07-17  John ffitch  <jpff@codemist.co.uk>
 
 	* OOps/dumpf.c (krdset): Allow strings from score
+	and in kdmpset (4 cases each)
 
 	* OOps/ugens9.c (pconvset): New code
 	(pconvolve): New code
