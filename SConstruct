@@ -97,10 +97,13 @@ if sys.platform == 'win32':
 # This is used for Microsoft Visual Studio.
 
 if sys.platform == 'win32':
-    commonEnvironment['ENV']['TMP'] = os.environ['TMP']
-    commonEnvironment['ENV']['PATH'] = os.environ['PATH']
-    commonEnvironment['ENV']['INCLUDE'] = os.environ['INCLUDE']
-    commonEnvironment['ENV']['LIB'] = os.environ['LIB']
+    try:
+        commonEnvironment['ENV']['TMP'] = os.environ['TMP']
+        commonEnvironment['ENV']['PATH'] = os.environ['PATH']
+        commonEnvironment['ENV']['INCLUDE'] = os.environ['INCLUDE']
+        commonEnvironment['ENV']['LIB'] = os.environ['LIB']
+    except KeyError:
+        pass
 
 commonEnvironment.Append(LIBPATH = '#.')
 commonEnvironment.Append(CPPFLAGS = "-DBETA")
