@@ -46,24 +46,24 @@ int ipow(ENVIRON *csound, POW *p)               /*      Power for i-rate */
 
 int apow(ENVIRON *csound, POW *p)               /*      Power routine for a-rate  */
 {
-    long n = ksmps;
+    int n;
     MYFLT *in = p->in, *out = p->sr;
     MYFLT powerOf = *p->powerOf;
 
     if (powerOf == FL(0.0)) {
-      do {
-        MYFLT xx = *in++;
+      MYFLT yy = FL(1.0) / *p->norm;
+      for (n=0; n<ksmps; n++) {
+        MYFLT xx = in[n];
         if (xx == FL(0.0)) {
           return perferror(Str("NaN in pow\n"));
         }
         else
-          *out++ = FL(1.0) / *p->norm;
-      } while (--n);
+          out[n] = yy;
+      }
     }
     else {
-      do {
-        *out++ = (MYFLT)pow(*in++, powerOf) / *p->norm;
-      } while (--n);
+      for (n=0; n<ksmps; n++)
+        out[n] = (MYFLT)pow(in[n], powerOf) / *p->norm;
     }
     return OK;
 }
@@ -86,13 +86,12 @@ int seedrand(ENVIRON *csound, PRAND *p)
 
 int auniform(ENVIRON *csound, PRAND *p)         /* Uniform distribution */
 {
-    long n = ksmps;
+    int n;
     MYFLT *out = p->out;
     MYFLT arg1 = *p->arg1;
 
-    do {
-      *out++ = unifrand(arg1);
-    } while (--n);
+    for (n=0; n<ksmps; n++)
+      out[n] = unifrand(arg1);
     return OK;
 }
 
@@ -104,12 +103,12 @@ int ikuniform(ENVIRON *csound, PRAND *p)
 
 int alinear(ENVIRON *csound, PRAND *p)          /* Linear random functions      */
 {
-    long n = ksmps;
+    int n;
     MYFLT *out = p->out;
+    MYFLT arg1 = *p->arg1;
 
-    do {
-      *out++ = linrand(*p->arg1);
-    } while (--n);
+    for (n=0; n<ksmps; n++)
+      out[n] = linrand(arg1);
     return OK;
 }
 
@@ -119,14 +118,14 @@ int iklinear(ENVIRON *csound, PRAND *p)
     return OK;
 }
 
-int atrian(ENVIRON *csound, PRAND *p)           /*      Triangle random functions       */
+int atrian(ENVIRON *csound, PRAND *p)           /* Triangle random functions  */
 {
-    long n = ksmps;
+    int n;
     MYFLT *out = p->out;
+    MYFLT arg1 = *p->arg1;
 
-    do {
-      *out++ = trirand(*p->arg1);
-    } while (--n);
+    for (n=0; n<ksmps; n++)
+      out[n] = trirand(arg1);
     return OK;
 }
 
@@ -136,14 +135,14 @@ int iktrian(ENVIRON *csound, PRAND *p)
     return OK;
 }
 
-int aexp(ENVIRON *csound, PRAND *p)             /*      Exponential random functions    */
+int aexp(ENVIRON *csound, PRAND *p)             /* Exponential random functions */
 {
-    long n = ksmps;
+    int n;
     MYFLT *out = p->out;
+    MYFLT arg1 = *p->arg1;
 
-    do {
-      *out++ = exprand(*p->arg1);
-    } while (--n);
+    for (n=0; n<ksmps; n++)
+      out[n] = exprand(arg1);
     return OK;
 }
 
@@ -153,14 +152,14 @@ int ikexp(ENVIRON *csound, PRAND *p)
     return OK;
 }
 
-int abiexp(ENVIRON *csound, PRAND *p)           /*      Bilateral exponential rand. functions */
-{
-    long n = ksmps;
+int abiexp(ENVIRON *csound, PRAND *p)           /* Bilateral exponential rand */
+{                                               /* functions */
+    int n;
     MYFLT *out = p->out;
+    MYFLT arg1 = *p->arg1;
 
-    do {
-      *out++ = biexprand(*p->arg1);
-    } while (--n);
+    for (n=0; n<ksmps; n++)
+      out[n] = biexprand(arg1);
     return OK;
 }
 
@@ -170,14 +169,14 @@ int ikbiexp(ENVIRON *csound, PRAND *p)
     return OK;
 }
 
-int agaus(ENVIRON *csound, PRAND *p)            /*      Gaussian random functions       */
+int agaus(ENVIRON *csound, PRAND *p)            /* Gaussian random functions */
 {
-    long n = ksmps;
+    int n;
     MYFLT *out = p->out;
+    MYFLT arg1 = *p->arg1;
 
-    do {
-      *out++ = gaussrand(*p->arg1);
-    } while (--n);
+    for (n=0; n<ksmps; n++)
+      out[n] = gaussrand(arg1);
     return OK;
 }
 
@@ -187,14 +186,14 @@ int ikgaus(ENVIRON *csound, PRAND *p)
     return OK;
 }
 
-int acauchy(ENVIRON *csound, PRAND *p)          /*      Cauchy random functions */
+int acauchy(ENVIRON *csound, PRAND *p)          /* Cauchy random functions */
 {
-    long n = ksmps;
+    int n;
     MYFLT *out = p->out;
+    MYFLT arg1 = *p->arg1;
 
-    do {
-      *out++ = cauchrand(*p->arg1);
-    } while (--n);
+    for (n=0; n<ksmps; n++)
+      out[n] = cauchrand(arg1);
     return OK;
 }
 
@@ -204,14 +203,14 @@ int ikcauchy(ENVIRON *csound, PRAND *p)
     return OK;
 }
 
-int apcauchy(ENVIRON *csound, PRAND *p)         /*      Positive Cauchy random functions */
+int apcauchy(ENVIRON *csound, PRAND *p)         /* +ve Cauchy random functions */
 {
-    long n = ksmps;
+    int n;
     MYFLT *out = p->out;
+    MYFLT arg1 = *p->arg1;
 
-    do {
-      *out++ = pcauchrand(*p->arg1);
-    } while (--n);
+    for (n=0; n<ksmps; n++)
+      out[n] = pcauchrand(arg1);
     return OK;
 }
 
@@ -221,14 +220,16 @@ int ikpcauchy(ENVIRON *csound, PRAND *p)
     return OK;
 }
 
-int abeta(ENVIRON *csound, PRAND *p)            /*      Beta random functions   */
+int abeta(ENVIRON *csound, PRAND *p)            /* Beta random functions   */
 {
-    long n = ksmps;
+    int n;
     MYFLT *out = p->out;
+    MYFLT arg1 = *p->arg1;
+    MYFLT arg2 = *p->arg2;
+    MYFLT arg3 = *p->arg3;
 
-    do {
-      *out++ = betarand(*p->arg1, *p->arg2, *p->arg3);
-    } while (--n);
+    for (n=0; n<ksmps; n++)
+      out[n] = betarand(arg1, arg2, arg3);
     return OK;
 }
 
@@ -238,14 +239,15 @@ int ikbeta(ENVIRON *csound, PRAND *p)
     return OK;
 }
 
-int aweib(ENVIRON *csound, PRAND *p)            /*      Weibull randon functions        */
+int aweib(ENVIRON *csound, PRAND *p)            /* Weibull randon functions */
 {
-    long n = ksmps;
+    int n;
     MYFLT *out = p->out;
+    MYFLT arg1 = *p->arg1;
+    MYFLT arg2 = *p->arg2;
 
-    do {
-      *out++ = weibrand(*p->arg1, *p->arg2);
-    } while (--n);
+    for (n=0; n<ksmps; n++)
+      out[n] = weibrand(arg1, arg2);
     return OK;
 }
 
@@ -257,12 +259,12 @@ int ikweib(ENVIRON *csound, PRAND *p)
 
 int apoiss(ENVIRON *csound, PRAND *p)           /*      Poisson random funcions */
 {
-    long n = ksmps;
+    int n;
     MYFLT *out = p->out;
+    MYFLT arg1 = *p->arg1;
 
-    do {
-      *out++ = poissrand(*p->arg1);
-    } while (--n);
+    for (n=0; n<ksmps; n++)
+      out[n] = poissrand(arg1);
     return OK;
 }
 

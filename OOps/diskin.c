@@ -742,9 +742,11 @@ int soundout(ENVIRON *csound, SNDOUT *p)
       nn = ospace;
     nsamps -= nn;
     ospace -= nn;
-    do {
-      *outbufp++ = *asig++;
-    } while (--nn);
+    memmove(outbufp, asig, nn*sizeof(MYFLT));
+    outbufp += nn; asig += nn;
+/*     do { */
+/*       *outbufp++ = *asig++; */
+/*     } while (--nn); */
     if (!ospace) {              /* when buf is full  */
       sf_write_MYFLT(p->c.fdch.fd, p->c.outbuf, p->c.bufend - p->c.outbuf);
       outbufp = p->c.outbuf;
