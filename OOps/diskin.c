@@ -727,7 +727,7 @@ int sndo1set(ENVIRON *csound, SNDOUT *p)            /* init routine for instr so
       case 6: p->c.format = AE_FLOAT; break;
       default:
         sprintf(errmsg, Str("soundout: invalid sample format: %d"),
-                        (int) p->c.format);
+                        (int) (*(p->c.iformat) + FL(0.5)));
         goto errtn;
     }
     sfinfo.format = type2sf(p->c.filetyp)|format2sf(p->c.format);
