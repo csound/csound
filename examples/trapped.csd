@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
-csound -m7 -RWd  temp.orc temp.sco
+csound -m7 -RW  temp.orc temp.sco
 </CsOptions>
 <CsInstruments>
 ;============================================================================; 
