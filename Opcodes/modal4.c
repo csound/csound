@@ -42,7 +42,8 @@ static int make_Modal4(ENVIRON *csound,
     if ((ftp = csound->ftfind_(csound,ifn)) != NULL)
       m->vibr = ftp;
     else {
-      csound->perferror_(csound->getstring_(X_381,"No table for Modal4 case")); /* Expect sine wave */
+      csound->perferror_(csound->getstring_(X_381, /* Expect sine wave */
+                                            "No table for Modal4 case"));
       return NOTOK;
     }
     make_Envelope(&m->envelope);
@@ -186,9 +187,9 @@ MYFLT Modal4_tick(Modal4 *m)
     }
 #endif
 
-    itemp = (long) temp_time;             /*  Integer part of time address    */
+    itemp = (long) temp_time;                /* Integer part of time address  */
 /* printf("temp_time=%f\t", temp_time); */
-    alpha = temp_time - (MYFLT)itemp; /*  fractional part of time address */
+    alpha = temp_time - (MYFLT)itemp;     /*  fractional part of time address */
     m->w_lastOutput = m->wave->ftable[itemp]; /*  Do linear interpolation     */
 /* printf("w_last1=%f\t", m->w_lastOutput); */
     m->w_lastOutput = m->w_lastOutput +      /*  same as alpha*data[temp+1]   */
@@ -217,7 +218,7 @@ MYFLT Modal4_tick(Modal4 *m)
       m->v_time += m->v_rate;              /*  Update current time    */
       while (m->v_time >= m->vibr->flen)   /*  Check for end of sound */
         m->v_time -= m->vibr->flen;        /*  loop back to beginning */
-      while (m->v_time < FL(0.0))              /*  Check for end of sound */
+      while (m->v_time < FL(0.0))          /*  Check for end of sound */
         m->v_time += m->vibr->flen;        /*  loop back to beginning */
 
       temp_time = m->v_time;
@@ -281,10 +282,10 @@ int marimbaset(MARIMBA *p)
                     m, p->ivfn, *p->vibAmt, *p->vibFreq)==NOTOK) return NOTOK;
     p->m4.w_phaseOffset = FL(0.0);
 /*     p->m4.w_rate = 0.5; */
-    Modal4_setRatioAndReson(csound,m, 0, FL(1.00), FL(0.9996)); /*  Set all    132.0  */
-    Modal4_setRatioAndReson(csound,m, 1, FL(3.99), FL(0.9994)); /*  of our     523.0  */
-    Modal4_setRatioAndReson(csound,m, 2,FL(10.65), FL(0.9994)); /*  default    1405.0 */
-    Modal4_setRatioAndReson(csound,m, 3,-FL(18.50), FL(0.999)); /*  resonances 2443.0 */
+    Modal4_setRatioAndReson(csound,m, 0, FL(1.00), FL(0.9996)); /* Set all 132.0 */
+    Modal4_setRatioAndReson(csound,m, 1, FL(3.99), FL(0.9994)); /* of our  523.0 */
+    Modal4_setRatioAndReson(csound,m, 2,FL(10.65), FL(0.9994)); /* default 1405.0 */
+    Modal4_setRatioAndReson(csound,m, 3,-FL(18.50), FL(0.999)); /* resonances 2443.0 */
     Modal4_setFiltGain(m, 0, FL(0.04));               /*  and        */
     Modal4_setFiltGain(m, 1, FL(0.01));               /*  gains      */
     Modal4_setFiltGain(m, 2, FL(0.01));               /*  for each   */
@@ -315,7 +316,8 @@ int marimbaset(MARIMBA *p)
       itemp = rand() % 100;
       if (itemp < triples) {
         p->multiStrike = 2;
-        if (oparms_->msglevel & 02) printf(Str(X_1247,"striking three times here!!!\n"));
+        if (oparms_->msglevel & 02)
+          printf(Str(X_1247,"striking three times here!!!\n"));
       }
       else if (itemp < doubles) {
         p->multiStrike = 1;
@@ -494,10 +496,10 @@ int agogobelset(VIBRAPHN *p)
     p->m4.w_phaseOffset = FL(0.0);
 /*     p->m4.w_rate = 7.0; */
     OnePole_setPole(&p->m4.onepole, FL(0.2));
-    Modal4_setRatioAndReson(csound, m, 0, FL(1.00), FL(0.999));    /*  Set         */
-    Modal4_setRatioAndReson(csound, m, 1, FL(4.08), FL(0.999));    /*  our         */
-    Modal4_setRatioAndReson(csound, m, 2, FL(6.669),FL(0.999));    /*  resonance   */
-    Modal4_setRatioAndReson(csound, m, 3,-FL(3725.0), FL(0.999));  /*  values here */
+    Modal4_setRatioAndReson(csound, m, 0, FL(1.00), FL(0.999));   /* Set         */
+    Modal4_setRatioAndReson(csound, m, 1, FL(4.08), FL(0.999));   /* our         */
+    Modal4_setRatioAndReson(csound, m, 2, FL(6.669),FL(0.999));   /* resonance   */
+    Modal4_setRatioAndReson(csound, m, 3,-FL(3725.0), FL(0.999)); /* values here */
     Modal4_setFiltGain(m, 0, FL(0.06));
     Modal4_setFiltGain(m, 1, FL(0.05));
     Modal4_setFiltGain(m, 2, FL(0.03));

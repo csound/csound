@@ -799,6 +799,7 @@ typedef struct ENVIRON_
   int           maxfnum;
   GEN           *gensub;
   int           genmax;
+  int		ftldno;
 } ENVIRON;
 
 extern ENVIRON cenviron_;
