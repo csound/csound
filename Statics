@@ -1,9 +1,5 @@
 Engine/cfgvar.c:static  void    **global_cfg_db = NULL;
 
-Engine/express.c:static  TOKEN   *tokens = NULL;
-Engine/express.c:static  TOKEN   **tokenlist = NULL;
-Engine/express.c:static  int     toklength = TOKMAX;
-
 Engine/extract.c:static char    inslst[INSMAX];         /*   values set by readxfil     */
 Engine/extract.c:static int     onsect, offsect;        /*      "       "       "       */
 Engine/extract.c:static MYFLT   onbeat, offbeat;        /*      "       "       "       */
