@@ -193,7 +193,7 @@ int filepeak(SNDINFOPEAK *p)
     info.r1 = p->r1;
     info.ifilno = p->ifilno;
     info.audsize = p->audsize;
-    if ((hdr = getsndinfo(&info) != NULL
+    if ((hdr = getsndinfo(&info)) != NULL
         && !(readlong = hdr->readlong)) {         /* & hadn't readin audio */
       if (channel > hdr->nchanls)
         die(Str(X_1458,
