@@ -1,7 +1,9 @@
 2005-03-07  Michael Gogins <gogins@pipeline.com>
 	* Added CsoundVST, Loris, and the Csound API headers and libraries
 	to the install target in SConstruct.
-	* Updated Loris with sources from Loris CVS. Note: lorismorph doesn't
+	* Added the Csound manual and the API documentation to the Windows
+	installer.
+	* Updated Loris with v1.2 sources from Loris CVS. Note: lorismorph doesn't
 	work and is awaiting fixes from Kelly Fitz. Other loris opcodes may 
 	be broken as well. However, the Loris Python extension module built
 	here does seem to work.
