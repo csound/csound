@@ -23,6 +23,7 @@
 
 
 #include "cs.h"                 /*                              ARG_DECODE.C */
+#include "prototyp.h"
 #include "soundio.h"
 #include <ctype.h>
 
@@ -60,11 +61,7 @@ extern void openMIDIout(void);
 #endif
 
 static char outformch;
-extern  OPARMS  O;
-extern  ENVIRON cenviron;
 static int     stdinassgn = 0;
-extern void create_opcodlst(void);
-extern void readOptions(FILE*);
 
 #define FIND(MSG)   if (*s == '\0')  \
                       if (!(--argc) || (((s = *++argv) != NULL) && *s == '-')) \
@@ -877,7 +874,7 @@ static int decode_long(char *s, int argc, char **argv, char *envoutyp)
       if (*s != '\0') {
         if (isdigit(*s)) full = *s++ - '0';
       }
-      create_opcodlst();
+      create_opcodlst(&cenviron);
       list_opcodes(full);
 #ifndef mills_macintosh
       return (0);
@@ -1244,7 +1241,7 @@ int argdecode(int argc, char **argv, char **pfilnamp, char *envoutyp)
               if (*s != '\0') {
                 if (isdigit(*s)) full = *s++ - '0';
               }
-              create_opcodlst();
+              create_opcodlst(&cenviron);
               list_opcodes(full);
             }
 #ifndef mills_macintosh
