@@ -330,7 +330,7 @@ if vstEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ld
 
 guiProgramEnvironment = commonEnvironment.Copy()
 
-if commonEnvironment['usePortAudio']==1 and portaudioFound:
+if commonEnvironment['usePortAudio'] and portaudioFound:
     staticLibraryEnvironment.Append(CCFLAGS = '-DRTAUDIO')
     pluginEnvironment.Append(CCFLAGS = '-DRTAUDIO')
     csoundProgramEnvironment.Append(CCFLAGS = '-DRTAUDIO')
@@ -939,7 +939,7 @@ else:
     # Build the Loris and Python opcodes here because they depend 
     # on the same things as CsoundVST.
     
-    if commonEnvironment['buildLoris']==1:
+    if commonEnvironment['buildLoris']:
         # For Loris, we build only the loris Python extension module and
         # the Csound opcodes (modified for Csound 5).
         # It is assumed that you have copied the contents of the Loris distribution
@@ -955,7 +955,7 @@ else:
         lorisSources = glob.glob('Opcodes/Loris/src/*.C')
         lorisSources.append('Opcodes/Loris/src/loris.i')
         lorisEnvironment.Append(SWIGPATH = ['./'])
-        lorisEnvironment.Append(SWIGFLAGS = ['-DHAVE_FFTW3_H'])
+        lorisEnvironment.Prepend(SWIGFLAGS = ['-DHAVE_FFTW3_H', '-I./Opcodes/Loris/src', '-I.'])
         loris = lorisEnvironment.SharedLibrary('loris', lorisSources, SHLIBPREFIX = '_')
         Depends(loris, csoundvst)
         pluginLibraries.append(loris)
@@ -1014,7 +1014,7 @@ else:
 zipDependencies += executables
 zipDependencies += pluginLibraries
   
-if not (commonEnvironment['generateZip']==1):    
+if not (commonEnvironment['generateZip']):    
     print 'CONFIGURATION DECISION: Not compiling zip file for release.'
 else:
     print 'CONFIGURATION DECISION: Compiling zip file for release.'

@@ -30,6 +30,74 @@ except AttributeError:
 del types
 
 
+class DoubleVector(_object):
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr(self, DoubleVector, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, DoubleVector, name)
+    def __repr__(self):
+        return "<C std::vector<(double)> instance at %s>" % (self.this,)
+    def __init__(self, *args):
+        _swig_setattr(self, DoubleVector, 'this', _loris.new_DoubleVector(*args))
+        _swig_setattr(self, DoubleVector, 'thisown', 1)
+    def __len__(*args): return _loris.DoubleVector___len__(*args)
+    def __nonzero__(*args): return _loris.DoubleVector___nonzero__(*args)
+    def clear(*args): return _loris.DoubleVector_clear(*args)
+    def append(*args): return _loris.DoubleVector_append(*args)
+    def pop(*args): return _loris.DoubleVector_pop(*args)
+    def __getitem__(*args): return _loris.DoubleVector___getitem__(*args)
+    def __getslice__(*args): return _loris.DoubleVector___getslice__(*args)
+    def __setitem__(*args): return _loris.DoubleVector___setitem__(*args)
+    def __setslice__(*args): return _loris.DoubleVector___setslice__(*args)
+    def __delitem__(*args): return _loris.DoubleVector___delitem__(*args)
+    def __delslice__(*args): return _loris.DoubleVector___delslice__(*args)
+    def __del__(self, destroy=_loris.delete_DoubleVector):
+        try:
+            if self.thisown: destroy(self)
+        except: pass
+
+class DoubleVectorPtr(DoubleVector):
+    def __init__(self, this):
+        _swig_setattr(self, DoubleVector, 'this', this)
+        if not hasattr(self,"thisown"): _swig_setattr(self, DoubleVector, 'thisown', 0)
+        _swig_setattr(self, DoubleVector,self.__class__,DoubleVector)
+_loris.DoubleVector_swigregister(DoubleVectorPtr)
+
+class MarkerVector(_object):
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr(self, MarkerVector, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, MarkerVector, name)
+    def __repr__(self):
+        return "<C std::vector<(Marker)> instance at %s>" % (self.this,)
+    def __init__(self, *args):
+        _swig_setattr(self, MarkerVector, 'this', _loris.new_MarkerVector(*args))
+        _swig_setattr(self, MarkerVector, 'thisown', 1)
+    def __len__(*args): return _loris.MarkerVector___len__(*args)
+    def clear(*args): return _loris.MarkerVector_clear(*args)
+    def append(*args): return _loris.MarkerVector_append(*args)
+    def __nonzero__(*args): return _loris.MarkerVector___nonzero__(*args)
+    def pop(*args): return _loris.MarkerVector_pop(*args)
+    def __getitem__(*args): return _loris.MarkerVector___getitem__(*args)
+    def __getslice__(*args): return _loris.MarkerVector___getslice__(*args)
+    def __setitem__(*args): return _loris.MarkerVector___setitem__(*args)
+    def __setslice__(*args): return _loris.MarkerVector___setslice__(*args)
+    def __delitem__(*args): return _loris.MarkerVector___delitem__(*args)
+    def __delslice__(*args): return _loris.MarkerVector___delslice__(*args)
+    def __del__(self, destroy=_loris.delete_MarkerVector):
+        try:
+            if self.thisown: destroy(self)
+        except: pass
+
+class MarkerVectorPtr(MarkerVector):
+    def __init__(self, this):
+        _swig_setattr(self, MarkerVector, 'this', this)
+        if not hasattr(self,"thisown"): _swig_setattr(self, MarkerVector, 'thisown', 0)
+        _swig_setattr(self, MarkerVector,self.__class__,MarkerVector)
+_loris.MarkerVector_swigregister(MarkerVectorPtr)
+
+SampleVector = DoubleVector
+
 
 channelize = _loris.channelize
 
@@ -133,6 +201,9 @@ class AiffFile(_object):
     def getMarker(*args): return _loris.AiffFile_getMarker(*args)
     def removeMarker(*args): return _loris.AiffFile_removeMarker(*args)
     def addMarker(*args): return _loris.AiffFile_addMarker(*args)
+    def clearMarkers(*args): return _loris.AiffFile_clearMarkers(*args)
+    def markers(*args): return _loris.AiffFile_markers(*args)
+    def addMarkers(*args): return _loris.AiffFile_addMarkers(*args)
 
 class AiffFilePtr(AiffFile):
     def __init__(self, this):
@@ -210,34 +281,6 @@ _loris.BreakpointEnvelope_swigregister(BreakpointEnvelopePtr)
 
 
 BreakpointEnvelopeWithValue = _loris.BreakpointEnvelopeWithValue
-class SampleVector(_object):
-    __swig_setmethods__ = {}
-    __setattr__ = lambda self, name, value: _swig_setattr(self, SampleVector, name, value)
-    __swig_getmethods__ = {}
-    __getattr__ = lambda self, name: _swig_getattr(self, SampleVector, name)
-    def __repr__(self):
-        return "<C SampleVector instance at %s>" % (self.this,)
-    def __init__(self, *args):
-        _swig_setattr(self, SampleVector, 'this', _loris.new_SampleVector(*args))
-        _swig_setattr(self, SampleVector, 'thisown', 1)
-    def __del__(self, destroy=_loris.delete_SampleVector):
-        try:
-            if self.thisown: destroy(self)
-        except: pass
-    def clear(*args): return _loris.SampleVector_clear(*args)
-    def resize(*args): return _loris.SampleVector_resize(*args)
-    def size(*args): return _loris.SampleVector_size(*args)
-    def copy(*args): return _loris.SampleVector_copy(*args)
-    def getAt(*args): return _loris.SampleVector_getAt(*args)
-    def setAt(*args): return _loris.SampleVector_setAt(*args)
-
-class SampleVectorPtr(SampleVector):
-    def __init__(self, this):
-        _swig_setattr(self, SampleVector, 'this', this)
-        if not hasattr(self,"thisown"): _swig_setattr(self, SampleVector, 'thisown', 0)
-        _swig_setattr(self, SampleVector,self.__class__,SampleVector)
-_loris.SampleVector_swigregister(SampleVectorPtr)
-
 class SdifFile(_object):
     __swig_setmethods__ = {}
     __setattr__ = lambda self, name, value: _swig_setattr(self, SdifFile, name, value)
@@ -260,6 +303,9 @@ class SdifFile(_object):
     def getMarker(*args): return _loris.SdifFile_getMarker(*args)
     def removeMarker(*args): return _loris.SdifFile_removeMarker(*args)
     def addMarker(*args): return _loris.SdifFile_addMarker(*args)
+    def clearMarkers(*args): return _loris.SdifFile_clearMarkers(*args)
+    def markers(*args): return _loris.SdifFile_markers(*args)
+    def addMarkers(*args): return _loris.SdifFile_addMarkers(*args)
 
 class SdifFilePtr(SdifFile):
     def __init__(self, this):
@@ -294,6 +340,9 @@ class SpcFile(_object):
     def getMarker(*args): return _loris.SpcFile_getMarker(*args)
     def removeMarker(*args): return _loris.SpcFile_removeMarker(*args)
     def addMarker(*args): return _loris.SpcFile_addMarker(*args)
+    def clearMarkers(*args): return _loris.SpcFile_clearMarkers(*args)
+    def markers(*args): return _loris.SpcFile_markers(*args)
+    def addMarkers(*args): return _loris.SpcFile_addMarkers(*args)
 
 class SpcFilePtr(SpcFile):
     def __init__(self, this):
@@ -360,6 +409,8 @@ class PartialList(_object):
     def iterator(*args): return _loris.PartialList_iterator(*args)
     def __iter__(*args): return _loris.PartialList___iter__(*args)
     def append(*args): return _loris.PartialList_append(*args)
+    def first(*args): return _loris.PartialList_first(*args)
+    def last(*args): return _loris.PartialList_last(*args)
     def begin(*args): return _loris.PartialList_begin(*args)
     def end(*args): return _loris.PartialList_end(*args)
     def erase(*args): return _loris.PartialList_erase(*args)
@@ -401,6 +452,8 @@ class Partial(_object):
     def phaseAt(*args): return _loris.Partial_phaseAt(*args)
     def iterator(*args): return _loris.Partial_iterator(*args)
     def __iter__(*args): return _loris.Partial___iter__(*args)
+    def first(*args): return _loris.Partial_first(*args)
+    def last(*args): return _loris.Partial_last(*args)
     def begin(*args): return _loris.Partial_begin(*args)
     def end(*args): return _loris.Partial_end(*args)
     def erase(*args): return _loris.Partial_erase(*args)
