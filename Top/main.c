@@ -251,10 +251,8 @@ void psignal(int sig, char *str)
 
 static void signal_handler(int sig)
 {
-#if defined(USE_FLTK) && (defined(LINUX) || defined(SGI) || defined(sol))
-    if (sig == SIGALRM) return;
-#elif defined(FLTK_GUI)
-    if (sig == SIGALRM) return;
+#if defined(USE_FLTK)
+	if (sig == SIGALRM) return;
 #endif
     psignal(sig, "Csound tidy up");
     exit(1);
@@ -446,9 +444,9 @@ int csoundCompile(void *csound, int argc, char **argv)
     }
     if (!O.outformat)                       /* if no audioformat yet  */
       O.outformat = AE_SHORT;             /*  default to short_ints */
-    O.outsampsiz = sfsampsize(O.outformat);
+    O.sfsampsize = sfsampsize(O.outformat);
     O.informat = O.outformat; /* informat defaults; resettable by readinheader */
-    O.insampsiz = O.outsampsiz;
+    O.insampsiz = O.sfsampsize;
     if (O.filetyp == TYP_AIFF ||
         O.filetyp == TYP_WAV) {
       if (!O.sfheader)
@@ -634,7 +632,7 @@ void mainRESET(ENVIRON *p)
 #ifdef RTAUDIO
     rtclose();                  /* In case need to reopen */
 #endif
-#if defined(USE_FLTK_WIDGETS) && defined(never)        /* IV - Nov 30 2002 */
+#if defined(USE_FLTK) && defined(never)        /* IV - Nov 30 2002 */
     void widgetRESET(void);     /* N.B. this is not used yet, */
                                 /* because it was not fully tested, */
     widgetRESET();              /* and may crash on some systems */

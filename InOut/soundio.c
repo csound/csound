@@ -91,7 +91,7 @@ static void audwrtrev3(char *,int);
 extern  void    bytrev2(char *, int), bytrev4(char *, int);
 extern  void    rewriteheader(int, long, int);
 extern  int     openin(char *), openout(char *, int);
-extern  int     bytrevhost(void), getsizformat(int);
+extern  int     bytrevhost(void), sfsampsize(int);
 extern  char    *getstrformat(int);
 
 /*RWD 5:2001 24bit support */

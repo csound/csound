@@ -98,18 +98,8 @@ char *unquote(char *name)       /* remove any quotes from a filename   */
 }
 
 #if defined MSVC
-#ifdef SSOUND
-/**
-* Changed file permissions so that re-entrant versions of Csound
-* can overwrite files without need for manual deletion.
-* Still doesn't seem to work...
-*/
-#define RD_OPTS  _O_RDONLY | _O_BINARY
-#define WR_OPTS  _O_TRUNC | _O_CREAT | _O_RDWR | _O_BINARY, _S_IREAD | _S_IWRITE
-#else
 #define RD_OPTS  O_RDONLY | O_BINARY
 #define WR_OPTS  O_TRUNC | O_CREAT | O_WRONLY | O_BINARY,_S_IWRITE
-#endif
 #elif defined(mac_classic) || defined(SYMANTEC) || defined(WIN32)
 #define RD_OPTS  O_RDONLY | O_BINARY
 #define WR_OPTS  O_TRUNC | O_CREAT | O_WRONLY | O_BINARY, 0644

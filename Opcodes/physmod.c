@@ -107,7 +107,7 @@ void OneZero_setCoeff(OneZero* z, MYFLT aValue)
 
 void OneZero_print(OneZero *p)
 {
-    printf("OneZero: gain=%f inputs=%f zeroCoeff=%f sgain=%f\n",
+    fprintf(stdout, "OneZero: gain=%f inputs=%f zeroCoeff=%f sgain=%f\n",
            p->gain, p->inputs, p->zeroCoeff, p->sgain);
 }
 

@@ -21,7 +21,10 @@
     02111-1307 USA
 */
 
+#if defined(HAVE_CONFIG_H)
 #include "config.h"
+#endif
+
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
 #include <FL/fl_draw.H>
@@ -278,13 +281,10 @@ int POLL_EVENTS(void)
 {
     extern int fltk_abort;
     if (form) Fl::check();
-#ifdef FLTK_GUI
     Fl::wait(0.0);
     if (fltk_abort) {
-//       fprintf(stderr, "Abort noticed\n");
       return 0;
     }
-#endif
     return 1;
 }
 

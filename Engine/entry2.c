@@ -42,7 +42,7 @@
 #include "oscils.h"
 #include "midiinterop.h"
 #include "ftgen.h"
-#if defined(USE_FLTK_WIDGETS)
+#if defined(USE_FLTK)
 #include "widgets.h"                    /* IV - Aug 23 2002 */
 #endif
 
@@ -122,7 +122,7 @@ int    midinoteoff(void*), midinoteonkey(void*), midinoteoncps(void*);
 int    midinoteonoct(void*), midinoteonpch(void*), midipolyaftertouch(void*);
 int    midicontrolchange(void*), midiprogramchange(void*);
 int    midichannelaftertouch(void*), midipitchbend(void*), mididefault(void*);
-#if defined(USE_FLTK_WIDGETS)                  /* IV - Aug 23 2002 */
+#if defined(USE_FLTK)                  /* IV - Aug 23 2002 */
 int    fl_slider(void*), fl_slider_bank(void*);
 int    StartPanel(void*), EndPanel(void*), FL_run(void*);
 int    fl_widget_color(void*), fl_widget_color2(void*);
@@ -245,7 +245,7 @@ OENTRY opcodlst_2[] = {
 { "reverb2",  S(NREV2),  5,     "a",    "akkoojoj", reverbx_set,NULL,reverbx    },
 { "nreverb",  S(NREV2),  5,     "a",    "akkoojoj", reverbx_set,NULL,reverbx    },
 /* IV - Aug 23 2002 */
-#if defined(USE_FLTK_WIDGETS)
+#if defined(USE_FLTK)
 { "FLslider",S(FLSLIDER), 1,    "ki",   "Siijjjjjjj",   fl_slider, NULL, NULL   },
 { "FLslidBnk",S(FLSLIDERBANK), 1, "", "Siooooooooo", fl_slider_bank, NULL, NULL },
 { "FLknob",S(FLKNOB),     1,    "ki",   "Siijjjjjj",    fl_knob, NULL, NULL     },

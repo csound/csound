@@ -102,7 +102,7 @@ MYFLT Modulatr_tick(Modulatr *p)
 
 static void Modulatr_print(Modulatr *p)
 {
-    printf("Modulatr: v_rate=%f v_time=%f vibAmt=%f\n",
+    fprintf(stdout, "Modulatr: v_rate=%f v_time=%f vibAmt=%f\n",
            p->v_rate, p->v_time, p->vibAmt);
 }
 
@@ -188,7 +188,7 @@ MYFLT SingWave_tick(SingWave *p)
 
 void SingWave_print(ENVIRON *csound, SingWave *p)
 {
-    printf(csound->getstring_(X_463,"SingWave: rate=%f sweepRate=%f mytime=%f\n"),
+    csound->Printf(csound->getstring_(X_463,"SingWave: rate=%f sweepRate=%f mytime=%f\n"),
            p->rate, p->sweepRate, p->mytime);
     Modulatr_print(&p->modulator);
     Envelope_print(csound, &p->envelope);

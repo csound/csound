@@ -50,11 +50,11 @@ namespace csound
 			root.append(cname);
 			double fcpcs = pcs * cpcs;
 			double mcpcs = std::fmod(fcpcs, 4095.0);
-#ifdef WIN32
-			char buffer[0xff];
-			sprintf(buffer, "%s: pcs = %f cpcs = %f fcpcs = %f mcpcs = %f\n", root.c_str(), pcs, cpcs, fcpcs, mcpcs);
-			OutputDebugStringA(buffer);
-#endif
+//#ifdef WIN32
+//			char buffer[0xff];
+//			sprintf(buffer, "%s: pcs = %f cpcs = %f fcpcs = %f mcpcs = %f\n", root.c_str(), pcs, cpcs, fcpcs, mcpcs);
+//			OutputDebugStringA(buffer);
+//#endif
 			pitchClassSetsForNames[root] = mcpcs;
 	}
 
@@ -555,13 +555,13 @@ namespace csound
 		for(std::map<std::string, double>::const_iterator it = pitchClassSetsForNames.begin(); it != pitchClassSetsForNames.end(); ++it)
 		{
 			stream << it->first << " = " << it->second << "\r\n";
-#ifdef WIN32
-			{
-				char buffer[0xff];
-				sprintf(buffer, "%s = %f\n", it->first.c_str(), it->second);
-				OutputDebugStringA(buffer);
-			}
-#endif
+//#ifdef WIN32
+//			{
+//				char buffer[0xff];
+//				sprintf(buffer, "%s = %f\n", it->first.c_str(), it->second);
+//				OutputDebugStringA(buffer);
+//			}
+//#endif
 		}
 		return stream.str();
 	}

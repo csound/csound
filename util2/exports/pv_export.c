@@ -128,7 +128,7 @@ void usage(int argc)
     exit(1);
 }
 
-int err_printf(char *fmt, ...)
+void err_printf(char *fmt, ...)
 {
     va_list a;
     va_start(a, fmt);

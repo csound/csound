@@ -21445,8 +21445,6 @@ am_cv_prog_cc_stdc=$ac_cv_prog_cc_stdc
 
 # Checks for libraries.
 
-LDFLAGS="$LDFLAGS -L/usr/local/lib"
-
 
 echo "$as_me:$LINENO: checking for dlsym in -ldl" >&5
 echo $ECHO_N "checking for dlsym in -ldl... $ECHO_C" >&6
@@ -23869,7 +23867,7 @@ fi;
 
 #	Compiler options used for all compilation.
 
-CPPFLAGS="$CPPFLAGS -DBETA -I$srcdir/H -I/usr/local/include -I/usr/local/boost -I/usr/include/Python2.3"
+CPPFLAGS="$CPPFLAGS -DBETA -I$srcdir/H"
 
 if test "x$GCC" = xyes; then
   case `$CC -dumpversion 2>/dev/null` in
@@ -23880,7 +23878,6 @@ if test "x$GCC" = xyes; then
   esac
 fi
 
-SOUNDFILE_LDFLAGS="-L/usr/local/lib"
 SOUNDFILE_LIBS="-lsndfile"
 
 #	Now we adapt compiler options to the platform.
@@ -23913,7 +23910,7 @@ _ACEOF
 
 	    CFLAGS="$CFLAGS -D_WIN32"
 	    CXXFLAGS="$CXXFLAGS -D_WIN32"
-        AUDIO_LDFLAGS="-mconsole -L/usr/local/lib"
+        AUDIO_LDFLAGS="-mconsole"
         AUDIO_LIBS="-lportaudio"
 	    ;;
     *linux*)

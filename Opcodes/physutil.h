@@ -20,6 +20,8 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
+#if !defined(__PhysUtil_h)
+#define __PhysUtil_h
 
 
 /* Various filters etc for Physical models */
@@ -38,8 +40,6 @@
 /*  Recoded by John ffitch 1997            */
 /*******************************************/
 
-#if !defined(__PhysUtil_h)
-#define __PhysUtil_h
 
 typedef MYFLT Noise;
 

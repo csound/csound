@@ -455,7 +455,7 @@ void sfopenout(void)                            /* init for sound out       */
         sscanf(O.outfilename+3, "%d", &rtout_dev);
 #endif
       sfoutname = O.outfilename;
-      playopen(nchnls, O.outsampsiz, (float)esr, 2);  /* open devaudio for out */
+      playopen(nchnls, O.sfsampsize, (float)esr, 2);  /* open devaudio for out */
       audtran = rtplay;                        /* & redirect audio puts */
       osfd = DEVAUDIO;                         /* dummy file descriptor */
       pipdevout = 1;                           /* no backward seeks !   */
@@ -501,7 +501,7 @@ void sfopenout(void)                            /* init for sound out       */
       osfopen = 1;
     }
 #if defined(SYMANTEC)
-    AddMacHeader(sfoutname,nchnls,esr,O.outsampsiz);  /* set Mac resource */
+    AddMacHeader(sfoutname,nchnls,esr,O.sfsampsize);  /* set Mac resource */
     SetMacCreator(sfoutname);               /*   set creator & file type */
 #endif
     if (O.sfheader) {
@@ -554,7 +554,7 @@ void sfcloseout(void)
 {
     int nb;
     if (!osfopen) return;
-    if ((nb = (O.outbufsamps-outbufrem) * O.outsampsiz) > 0)/* flush outbuffer */
+    if ((nb = (O.outbufsamps-outbufrem) * O.sfsampsize) > 0)/* flush outbuffer */
       audtran(outbuf, nb);
 #ifdef RTAUDIO
     if (osfd == DEVAUDIO) {
@@ -592,10 +592,10 @@ extern  HEADATA *readheader(int, char *, SOUNDIN*);
 extern  int     openin(char*);
 extern  OPARMS  O;
 
-void soundinRESET(void)
-{
-    datpos = 0;
-}
+//void soundinRESET(void)
+//{
+//    datpos = 0;
+//}
 
 
 extern  HEADATA *readheader(int, char*, SOUNDIN*);
@@ -725,3 +725,6 @@ void bytrev2(char *buf, int nbytes)      /* reverse bytes in buf of shorts */
             *p++ = c1;
         } while (--n);
 }
+
+
+

@@ -317,10 +317,10 @@ void dumpRail(guideRail* gr, len_t M)
 {
     MYFLT *s = gr->pointer;
     while (M-- >= 0) {
-      printf("%.2f ", *s);
+      fprintf(stdout, "%.2f ", *s);
       if (++s > gr->endPoint) s -= gr->size;
     }
-    printf("\n\n");
+    fprintf(stdout, "\n\n");
 }
 
 /* ***** class filter3 -- JPff ****** */
@@ -424,7 +424,7 @@ void waveguideSetTuning(ENVIRON *csound, waveguide* wg, MYFLT df)
 /* error -- report errors */
 static void error(ENVIRON *csound, const char* a, const char* b)
 {
-    printf(csound->getstring_(X_259,"Error:%s,%s\n"),a,b);
+    csound->Printf(csound->getstring_(X_259,"Error:%s,%s\n"),a,b);
     longjmp(csound->exitjmp_,1);
 }
 

@@ -157,6 +157,7 @@ extern "C" {
 #define MIDIINbufIndex cenviron.MIDIINbufIndex_
 #define MIDIINbuffer2 cenviron.MIDIINbuffer2_
 #define displop4 cenviron.displop4_
+#define printf cenviron.Printf
 
 /*
 * Move the C++ guards to enclose the entire file,

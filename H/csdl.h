@@ -429,6 +429,10 @@
 #define catpath p->h.insdshead->csound->catpath_
 #define rewriteheader p->h.insdshead->csound->rewriteheader_
 #define writeheader p->h.insdshead->csound->writeheader_
+#if defined(printf)
+#undef printf
+#endif
+#define printf p->h.insdshead->csound->Printf
 
 #define LINKAGE long opcode_size(void)          \
                 {                               \
