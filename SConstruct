@@ -389,8 +389,6 @@ if (commonEnvironment['useFLTK'] == '1' and fltkFound):
     vstEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
     guiProgramEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
     csoundProgramEnvironment.Append(LIBS = ['fltk'])
-    vstEnvironment.Append(LINKFLAGS = "--subsystem:windows")
-    guiProgramEnvironment.Append(LINKFLAGS = "--subsystem:windows")
     if getPlatform() == 'linux':
 	    csoundProgramEnvironment.Append(LIBS = ['dl'])
 	    ustubProgramEnvironment.Append(LIBS = ['dl'])
@@ -402,6 +400,8 @@ if (commonEnvironment['useFLTK'] == '1' and fltkFound):
             vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
             guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     elif getPlatform() == 'mingw':
+    	    vstEnvironment.Append(LINKFLAGS = "--subsystem:windows")
+    	    guiProgramEnvironment.Append(LINKFLAGS = "--subsystem:windows")
             csoundProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
             ustubProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
             vstEnvironment.Append(LIBS = ['stdc++', 'supc++'])
@@ -941,9 +941,9 @@ else:
     Depends(csoundvst, staticLibrary)
     if getPlatform() == 'mingw' or getPlatform() == 'cygwin':
         Depends(csoundvst, pyrun)
+    	guiProgramEnvironment.Append(LIBS = ['CsoundVST'])
 
     csoundvstGui = guiProgramEnvironment.Program('CsoundVST', ['frontends/CsoundVST/csoundvst_main.cpp']) 
-    guiProgramEnvironment.Append(LIBS = ['CsoundVST'])
     zipDependencies.append(csoundvstGui)
     Depends(csoundvstGui, csoundvst)
 
