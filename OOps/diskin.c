@@ -100,12 +100,7 @@ static int sngetset(SOUNDINEW *p, char *sfname)
     SOUNDIN forReadHeader;
 
     if ((sinfd = openin(sfname)) < 0) {     /* open with full dir paths */
-      if (isfullpath(sfname))
-        sprintf(errmsg,Str("diskin cannot open %s"), sfname);
-      else
-        sprintf(errmsg,Str(
-                           "diskin cannot find \"%s\" in its search paths"),
-                sfname);
+      sprintf(errmsg,Str("diskin cannot open %s"), sfname);
       goto errtn;
     }
     infile = sf_open_fd(sinfd, SFM_READ, &sfinfo, SF_TRUE);
@@ -696,11 +691,7 @@ int sndo1set(ENVIRON *csound, SNDOUT *p) /* init routine for instr soundout   */
       sprintf(sndoutname,"soundout.%d", filno);
     sfname = sndoutname;
     if ((soutfd = openout(sfname, 1)) < 0) {   /* if openout successful */
-      if (isfullpath(sfname))
-        sprintf(errmsg,Str("soundout cannot open %s"), sfname);
-      else
-        sprintf(errmsg,Str("soundout cannot find %s in search paths"),
-                sfname);
+      sprintf(errmsg,Str("soundout cannot open %s"), sfname);
       goto errtn;
     }
     sfinfo.frames = -1;

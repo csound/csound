@@ -1,3 +1,39 @@
+2005-03-03	Istvan Varga	<istvan@csounds.com>
+	* Engine/envvar.c:
+	* H/envvar.h:
+	  added SNAPDIR to environment variable list (used by widget opcodes)
+	  new API functions: csoundFindInputFile() and csoundFindOutputFile()
+	* Engine/filopen.c:
+	  sssfinit(), openin(), openout(), fopenin(): rewritten to use new
+	  file search interface
+	  isfullpath(), catpath(): removed functions
+	* Engine/memfiles.c:
+	* Engine/rdorch.c:
+	* InOut/widgets.cpp:
+	* InOut/winEPS.c:
+	* OOps/diskin.c:
+	* OOps/pvfileio.c:
+	* OOps/sndinfUG.c:
+	* Opcodes/sfont.c:
+	  use new file search functions defined in Engine/envvar.c
+	* Engine/oload.c:
+	* H/csdl.h:
+	* H/cs.h:
+	* H/csoundCore.h:
+	* H/prototyp.h:
+	* Opcodes/fluidOpcodes/fluidOpcodes.cpp:
+	  new API functions: csoundFindInputFile() and csoundFindOutputFile()
+	  removed isfullpath(), catpath(), sadirpath, sfdirpath, and ssdirpath
+	* OOps/pvfileio.c:
+	  use mmalloc() instead of malloc()
+	* Top/argdecode.c:
+	* Top/main.c:
+	* Top/one_file.c:
+	  removed unused 'envoutyp' argument from argdecode() and decode_long()
+	* Top/main.c:
+	  check SFOUTYP after reading all options, but only if no file type
+	  option was specified
+
 2005-03-02  Michael Gogins <gogins@pipeline.com>
 	* Added rule for SConstruct to build Java wrappers for CsoundVST
 	if jni.h is present.

@@ -64,7 +64,7 @@ static  FILE    *scorin, *scorout, *xfile;
 extern  void    dieu(char *);
 extern  OPARMS  O;
 extern  ENVIRON cenviron;
-extern int argdecode(void*, int, char**, char*);
+extern int argdecode(void*, int, char**);
 extern void init_pvsys(void);
 extern int csoundYield(void *);
 
@@ -354,27 +354,12 @@ int csoundCompile(void *csound, int argc, char **argv)
       sf_command (NULL, SFC_GET_LIB_VERSION, buffer, 128);
       err_printf("%s\n", buffer);
     }
-    if ((envoutyp = getenv("SFOUTYP")) != NULL) {
-      if (strcmp(envoutyp,"AIFF") == 0) {
-        O.filetyp = TYP_AIFF; O.sfheader = 1;
-      }
-      else if (strcmp(envoutyp,"WAV") == 0) {
-        O.filetyp = TYP_WAV; O.sfheader = 1;
-      }
-      else if (strcmp(envoutyp,"IRCAM") == 0) {
-        O.filetyp = TYP_IRCAM; O.sfheader = 1;
-      }
-      else if (strcmp(envoutyp, "RAW") == 0) {
-        O.filetyp = TYP_RAW; O.sfheader = 0;
-      }
-      else {
-        sprintf(errmsg, Str("%s not a recognised SFOUTYP env setting"),
-                        envoutyp);
-        dieu(errmsg);
-      }
-    }
+
+    /* do not know file type yet */
+    O.filetyp = -1;
+    O.sfheader = 0;
     install_signal_handler();
-    O.filnamspace = filnamp = mmalloc(csound, (long)1024);
+    O.filnamspace = filnamp = mmalloc(csound, (size_t) 1024);
     peakchunks = 1;
     if (csoundCreateGlobalVariable(csound, "::argdecode::orcNameMode", 8) != 0)
       return -1;
@@ -385,7 +370,7 @@ int csoundCompile(void *csound, int argc, char **argv)
     }
     /* command line: allow orc/sco/csd name */
     strcpy(orcNameMode, "normal");
-    if (argdecode(csound, argc, argv, envoutyp) == 0)
+    if (argdecode(csound, argc, argv) == 0)
       longjmp(((ENVIRON*) csound)->exitjmp_, 1);
     /* do not allow orc/sco/csd name in .csoundrc */
     strcpy(orcNameMode, "fail");
@@ -446,7 +431,7 @@ int csoundCompile(void *csound, int argc, char **argv)
     /* command line options override CSD options */
     /* this assumes that argdecode is safe to run multiple times */
     strcpy(orcNameMode, "ignore");
-    argdecode(csound, argc, argv, envoutyp);    /* should not fail this time */
+    argdecode(csound, argc, argv);      /* should not fail this time */
     /* some error checking */
     {
       int *nn;
@@ -462,6 +447,31 @@ int csoundCompile(void *csound, int argc, char **argv)
         longjmp(((ENVIRON*) csound)->exitjmp_,1);
       }
     }
+    /* done parsing csoundrc, CSD, and command line options */
+    /* if sound file type is still not known, check SFOUTYP */
+    if (O.filetyp < 0) {
+      envoutyp = csoundGetEnv(csound, "SFOUTYP");
+      if (envoutyp != NULL && envoutyp[0] != '\0') {
+        if (strcmp(envoutyp,"AIFF") == 0)
+          O.filetyp = TYP_AIFF;
+        else if (strcmp(envoutyp,"WAV") == 0 || strcmp(envoutyp,"WAVE") == 0)
+          O.filetyp = TYP_WAV;
+        else if (strcmp(envoutyp,"IRCAM") == 0)
+          O.filetyp = TYP_IRCAM;
+        else if (strcmp(envoutyp, "RAW") == 0)
+          O.filetyp = TYP_RAW;
+        else {
+          sprintf(errmsg, Str("%s not a recognised SFOUTYP env setting"),
+                          envoutyp);
+          dieu(errmsg);
+        }
+      }
+      else
+        O.filetyp = TYP_WAV;    /* default to WAV if even SFOUTYP is unset */
+    }
+    /* everything other than a raw sound file has a header */
+    O.sfheader = (O.filetyp == TYP_RAW ? 0 : 1);
+
     if (scorename==NULL || strlen(scorename)==0) { /* No scorename yet */
       char *p;
       FILE *scof;

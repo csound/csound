@@ -58,6 +58,7 @@ static const char *envVar_list[] = {
     "SADIR",
     "SFDIR",
     "SFOUTYP",
+    "SNAPDIR",
     "SSDIR",
     NULL
 };
@@ -384,5 +385,463 @@ int csoundParseEnv(void *csound, const char *s)
     if (name != NULL)
       mfree(csound, name);
     return retval;
+}
+
+/* Does 'filename' exist and is it a readable file ? Non-zero: yes. */
+/* Also attempts to detect directories. */
+
+static int try_file_open(const char *filename)
+{
+    FILE *tmp;
+    char *buf;
+    int  n;
+
+    if (filename == NULL || filename[0] == '\0')    /* trivial case */
+      return 0;
+    n = (int) strlen(filename) - 1;
+    if (filename[n] == DIRSEP)                      /* directory */
+      return 0;
+#ifdef WIN32
+    if (filename[n] == ':')                         /* drive letter ? */
+      return 0;
+#endif
+    tmp = fopen(filename, "rb");
+    if (tmp == NULL)
+      return 0;                                     /* not found */
+    /* found file, but may still be a directory */
+    fclose(tmp);
+    buf = (char*) malloc((size_t) n + (size_t) 3);
+    if (buf == NULL)
+      return 0;     /* not really the best solution */
+    strcpy(buf, filename);
+    buf[n + 1] = DIRSEP;
+    buf[n + 2] = '\0';
+    /* if open still does not fail then it is a directory */
+    tmp = fopen(buf, "rb");
+    free(buf);
+    if (tmp == NULL)
+      return 1;     /* OK, really a file */
+    fclose(tmp);
+    /* found something, but it is apparently a directory, not a file */
+    return 0;
+}
+
+/* Does file name have full path ? 0: no, 1: yes and file is found, */
+/* -1: name is invalid or it has full path but file cannot be found */
+
+static int is_name_full_path(const char *filename)
+{
+    if (filename == NULL || filename[0] == '\0')
+      return -1;
+#ifdef WIN32
+    if (!(filename[0] == '.' || filename[0] == DIRSEP ||
+          ((int) strlen(filename) >= 2 && isalpha(filename[0]) &&
+           filename[1] == ':')))
+      return 0;
+#else
+    if (!(filename[0] == '.' || filename[0] == DIRSEP))
+      return 0;
+#endif
+    if (!try_file_open(filename))
+      return -1;    /* full path but does not exist */
+    return 1;
+}
+
+static char *csoundFindInputFile_(void *csound,
+                                  const char *filename, const char *envList)
+{
+    char  *s, *s2, *buf, *name;
+    int   retval, i, len, len2;
+
+    /* copy and convert name */
+    name = (char*) mmalloc(csound, (size_t) strlen(filename) + (size_t) 1);
+    strcpy(name, filename);
+    i = -1;
+    while (name[++i] != '\0') {
+      if (name[i] == '/' || name[i] == '\\')
+        name[i] = DIRSEP;
+    }
+    /* check for name with path */
+    retval = is_name_full_path(name);
+    if (retval < 0) {
+      mfree(csound, name);
+      return NULL;              /* invalid name, or full path and not found */
+    }
+    if (retval > 0)
+      return name;              /* full path, found file */
+    /* not full path, need to search; try current directory first */
+    s = (char*) mmalloc(csound, (size_t) strlen(name) + (size_t) 3);
+    s[0] = '.';
+    s[1] = DIRSEP;
+    s[2] = '\0';
+    strcat(s, name);
+    if (try_file_open(name)) {
+      mfree(csound, name);
+      return s;                 /* found file in current directory */
+    }
+    mfree(csound, s);
+    /* not in current directory, create list of directories to search */
+    if (envList == NULL || envList[0] == '\0') {
+      mfree(csound, name);
+      return NULL;              /* no environment variables specified */
+    }
+    s = (char*) mmalloc(csound, (size_t) strlen(envList) + (size_t) 1);
+    strcpy(s, envList);
+    /* split environment variable list to tokens */
+    i = (int) strlen(envList);
+    while (--i >= 0) {
+      if (s[i] == ';')
+        s[i] = '\0';
+    }
+    /* calculate total length of pathname list */
+    i = len = 0;
+    while (i < (int) strlen(envList)) {
+      if (s[i] == '\0') {
+        i++; continue;
+      }
+      s2 = csoundGetEnv(csound, (char*) s + (int) i);
+      i += ((int) strlen((char*) s + (int) i));
+      if (s2 != NULL && s2[0] != '\0') {
+        len += (int) strlen(s2) + 1;
+      }
+    }
+    if (len <= 0) {
+      /* empty list */
+      mfree(csound, s);
+      mfree(csound, name);
+      return NULL;
+    }
+    /* create pathname list */
+    buf = (char*) mmalloc(csound, (size_t) len + (size_t) 1);
+    buf[0] = '\0';
+    i = len = 0;
+    while (i < (int) strlen(envList)) {
+      if (s[i] == '\0') {
+        i++; continue;
+      }
+      s2 = csoundGetEnv(csound, (char*) s + (int) i);
+      i += ((int) strlen((char*) s + (int) i));
+      if (s2 != NULL && s2[0] != '\0') {
+        strcat(buf, s2);
+        len += (int) strlen(s2);
+        buf[len++] = ';';
+        buf[len] = '\0';
+      }
+    }
+    mfree(csound, s);   /* environment variable list is no longer needed */
+    /* convert pathname delimiters */
+    i = -1;
+    while (++i < len) {
+      if (buf[i] == '/' || buf[i] == '\\')
+        buf[i] = DIRSEP;
+    }
+    /* split pathname list to tokens */
+    i = len;
+    while (--i >= 0) {
+      if (buf[i] == ';') {
+        buf[i] = '\0';
+        while (i > 0 && buf[i - 1] == DIRSEP)   /* strip any trailing  */
+          buf[--i] = '\0';                      /* pathname delimiters */
+      }
+    }
+    /* search file in pathname list */
+    i = len;
+    while (--i >= 0) {
+      if (buf[i] == '\0')
+        continue;
+      while (i > 0 && buf[i - 1] != '\0')
+        i--;
+      /* construct file name */
+      len2 = (int) strlen((char*) buf + (int) i);
+      s2 = (char*) mmalloc(csound, (size_t) len2 + (size_t) strlen(name)
+                                   + (size_t) 2);
+      strcpy(s2, (char*) buf + (int) i);
+      s2[len2] = DIRSEP;
+      s2[len2 + 1] = '\0';
+      strcat(s2, name);
+      if (((ENVIRON*) csound)->oparms_->odebug)
+        csoundMessage(csound, Str("  Trying file '%s'...\n"), s2);
+      if (try_file_open(s2)) {
+        /* found file, clean up and return with full name */
+        mfree(csound, buf);
+        mfree(csound, name);
+        return s2;
+      }
+      mfree(csound, s2);    /* not found in this directory */
+    }
+    /* could not find file, clean up and report error */
+    mfree(csound, buf);
+    mfree(csound, name);
+    return NULL;
+}
+
+/**
+ * Search for input file 'filename'.
+ * If the file name specifies full path (it begins with '.', the pathname
+ * delimiter character, or a drive letter and ':' on Windows), that exact
+ * file name is tried without searching.
+ * Otherwise, the file is searched relative to the current directory first,
+ * and if it is still not found, a pathname list that is created the
+ * following way is searched:
+ *   1. if envList is NULL or empty, no directories are searched
+ *   2. envList is parsed as a ';' separated list of environment variable
+ *      names, and all environment variables are expanded and expected to
+ *      contain a ';' separated list of directory names
+ *   2. all directories in the resulting pathname list are searched, starting
+ *      from the last and towards the first one, and the directory where the
+ *      file is found first will be used
+ * The function returns a pointer to the full name of the file if it is
+ * found, and NULL if the file could not be found in any of the search paths,
+ * or an error has occured. The caller is responsible for freeing the memory
+ * pointed to by the return value, by calling mfree().
+ */
+PUBLIC char *csoundFindInputFile(void *csound,
+                                 const char *filename, const char *envList)
+{
+    char *name_found;
+
+    if (csound == NULL || filename == NULL || filename[0] == '\0')
+      return NULL;
+    if (((ENVIRON*) csound)->oparms_->odebug) {
+      csoundMessage(csound, Str("Searching for input file '%s'"), filename);
+      if (envList != NULL && envList[0] != '\0')
+        csoundMessage(csound, Str(" in %s"), envList);
+      csoundMessage(csound, "\n");
+    }
+    name_found = csoundFindInputFile_(csound, filename, envList);
+    if (((ENVIRON*) csound)->oparms_->odebug) {
+      if (name_found != NULL)
+        csoundMessage(csound, Str("Found '%s'\n"), name_found);
+      else
+        csoundMessage(csound, Str("Could not find '%s' in any of the "
+                                  "search paths\n"), filename);
+    }
+    return name_found;
+}
+
+/* Is it possible to write to 'filename' ? Non-zero: yes. */
+/* Also attempts to detect directories. */
+
+static int try_outfile_open(const char *filename)
+{
+    FILE *tmp;
+    int  n;
+
+    if (filename == NULL || filename[0] == '\0')    /* trivial case */
+      return 0;
+    n = (int) strlen(filename) - 1;
+    if (filename[n] == DIRSEP)                      /* directory */
+      return 0;
+#ifdef WIN32
+    if (filename[n] == ':')                         /* drive letter ? */
+      return 0;
+#endif
+    /* try opening read/write */
+    tmp = fopen(filename, "r+b");
+    if (tmp == NULL) {
+      /* not found, try creating new file */
+      tmp = fopen(filename, "wb");
+      if (tmp == NULL)
+        return 0;           /* failed */
+      fclose(tmp);
+      remove(filename);     /* OK, remove temporarily created file */
+      return 1;
+    }
+    /* found file; it is expected that opening with "r+b" would fail */
+    /* on a directory (FIXME: is this true on all platforms ?) */
+    fclose(tmp);
+    return 1;
+}
+
+/* Does file name have full path ? 0: no, 1: yes and file can be written to, */
+/* -1: name is invalid or it has full path but cannot write to file */
+
+static int is_outname_full_path(const char *filename)
+{
+    if (filename == NULL || filename[0] == '\0')
+      return -1;
+#ifdef WIN32
+    if (!(filename[0] == '.' || filename[0] == DIRSEP ||
+          ((int) strlen(filename) >= 2 && isalpha(filename[0]) &&
+           filename[1] == ':')))
+      return 0;
+#else
+    if (!(filename[0] == '.' || filename[0] == DIRSEP))
+      return 0;
+#endif
+    if (!try_outfile_open(filename))
+      return -1;    /* full path but cannot write */
+    return 1;
+}
+
+static char *csoundFindOutputFile_(void *csound,
+                                   const char *filename, const char *envList)
+{
+    char  *s, *s2, *buf, *name;
+    int   retval, i, len, len2;
+
+    /* copy and convert name */
+    name = (char*) mmalloc(csound, (size_t) strlen(filename) + (size_t) 1);
+    strcpy(name, filename);
+    i = -1;
+    while (name[++i] != '\0') {
+      if (name[i] == '/' || name[i] == '\\')
+        name[i] = DIRSEP;
+    }
+    /* check for name with path */
+    retval = is_outname_full_path(filename);
+    if (retval < 0) {
+      mfree(csound, name);
+      return NULL;          /* invalid name, or full path but cannot write */
+    }
+    if (retval > 0)
+      return name;          /* full path, found file */
+    /* not full path, need to search; create list of directories */
+    if (envList == NULL || envList[0] == '\0')
+      goto try_current_dir;     /* no environment variables specified */
+    s = (char*) mmalloc(csound, (size_t) strlen(envList) + (size_t) 1);
+    strcpy(s, envList);
+    /* split environment variable list to tokens */
+    i = (int) strlen(envList);
+    while (--i >= 0) {
+      if (s[i] == ';')
+        s[i] = '\0';
+    }
+    /* calculate total length of pathname list */
+    i = len = 0;
+    while (i < (int) strlen(envList)) {
+      if (s[i] == '\0') {
+        i++; continue;
+      }
+      s2 = csoundGetEnv(csound, (char*) s + (int) i);
+      i += ((int) strlen((char*) s + (int) i));
+      if (s2 != NULL && s2[0] != '\0') {
+        len += (int) strlen(s2) + 1;
+      }
+    }
+    if (len <= 0) {
+      /* empty list */
+      mfree(csound, s);
+      goto try_current_dir;
+    }
+    /* create pathname list */
+    buf = (char*) mmalloc(csound, (size_t) len + (size_t) 1);
+    buf[0] = '\0';
+    i = len = 0;
+    while (i < (int) strlen(envList)) {
+      if (s[i] == '\0') {
+        i++; continue;
+      }
+      s2 = csoundGetEnv(csound, (char*) s + (int) i);
+      i += ((int) strlen((char*) s + (int) i));
+      if (s2 != NULL && s2[0] != '\0') {
+        strcat(buf, s2);
+        len += (int) strlen(s2);
+        buf[len++] = ';';
+        buf[len] = '\0';
+      }
+    }
+    mfree(csound, s);   /* environment variable list is no longer needed */
+    /* convert pathname delimiters */
+    i = -1;
+    while (++i < len) {
+      if (buf[i] == '/' || buf[i] == '\\')
+        buf[i] = DIRSEP;
+    }
+    /* split pathname list to tokens */
+    i = len;
+    while (--i >= 0) {
+      if (buf[i] == ';') {
+        buf[i] = '\0';
+        while (i > 0 && buf[i - 1] == DIRSEP)   /* strip any trailing  */
+          buf[--i] = '\0';                      /* pathname delimiters */
+      }
+    }
+    /* search file in pathname list */
+    i = len;
+    while (--i >= 0) {
+      if (buf[i] == '\0')
+        continue;
+      while (i > 0 && buf[i - 1] != '\0')
+        i--;
+      /* construct file name */
+      len2 = (int) strlen((char*) buf + (int) i);
+      s2 = (char*) mmalloc(csound, (size_t) len2 + (size_t) strlen(name)
+                                   + (size_t) 2);
+      strcpy(s2, (char*) buf + (int) i);
+      s2[len2] = DIRSEP;
+      s2[len2 + 1] = '\0';
+      strcat(s2, name);
+      if (((ENVIRON*) csound)->oparms_->odebug)
+        csoundMessage(csound, Str("  Trying file '%s'...\n"), s2);
+      if (try_outfile_open(s2)) {
+        /* found file, clean up and return with full name */
+        mfree(csound, buf);
+        mfree(csound, name);
+        return s2;
+      }
+      mfree(csound, s2);    /* cannot write to this directory */
+    }
+    /* cannot write to any of the directories in the search paths */
+    mfree(csound, buf);
+
+ try_current_dir:
+    /* try current directory if cannot write anywhere else */
+    s = (char*) mmalloc(csound, (size_t) strlen(name) + (size_t) 3);
+    s[0] = '.';
+    s[1] = DIRSEP;
+    s[2] = '\0';
+    strcat(s, name);
+    mfree(csound, name);
+    if (try_outfile_open(s))
+      return s;                 /* can write to current directory */
+    /* cannot write file to any of the search paths */
+    mfree(csound, s);
+    return NULL;
+}
+
+/**
+ * Search for a location to write file 'filename'.
+ * If the file name specifies full path (it begins with '.', the pathname
+ * delimiter character, or a drive letter and ':' on Windows), that exact
+ * file name is tried without searching.
+ * Otherwise, a pathname list that is created the following way is searched:
+ *   1. if envList is NULL or empty, no directories are searched
+ *   2. envList is parsed as a ';' separated list of environment variable
+ *      names, and all environment variables are expanded and expected to
+ *      contain a ';' separated list of directory names
+ *   2. all directories in the resulting pathname list are searched, starting
+ *      from the last and towards the first one, and the directory that is
+ *      found first where the file can be written to will be used
+ * Finally, if the file cannot be written to any of the directories in the
+ * search paths, writing relative to the current directory is tried.
+ * The function returns a pointer to the full name of the file if a location
+ * suitable for writing the file is found, and NULL if the file cannot not be
+ * written anywhere in the search paths, or an error has occured.
+ * The caller is responsible for freeing the memory pointed to by the return
+ * value, by calling mfree().
+ */
+PUBLIC char *csoundFindOutputFile(void *csound,
+                                  const char *filename, const char *envList)
+{
+    char *name_found;
+
+    if (csound == NULL || filename == NULL || filename[0] == '\0')
+      return NULL;
+    if (((ENVIRON*) csound)->oparms_->odebug) {
+      csoundMessage(csound, Str("Searching for output file '%s'"), filename);
+      if (envList != NULL && envList[0] != '\0')
+        csoundMessage(csound, Str(" in %s"), envList);
+      csoundMessage(csound, "\n");
+    }
+    name_found = csoundFindOutputFile_(csound, filename, envList);
+    if (((ENVIRON*) csound)->oparms_->odebug) {
+      if (name_found != NULL)
+        csoundMessage(csound, Str("Found '%s'\n"), name_found);
+      else
+        csoundMessage(csound, Str("Cannot write '%s' to any of the "
+                                  "search paths\n"), filename);
+    }
+    return name_found;
 }
 

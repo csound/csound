@@ -55,8 +55,6 @@ void dispinit(void);
 void sssfinit(void);
 int  init0(ENVIRON*);
 INSDS *instance(int);
-int  isfullpath(char *), dispexit(void);
-char *catpath(char *, char *);
 int  openin(char *), openout(char *, int);
 void scsort(FILE *, FILE *);
 int  scxtract(FILE *, FILE *, FILE *);

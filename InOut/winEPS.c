@@ -84,7 +84,6 @@
 #define MyPS_FONT      "/Times-Roman"
 #define MyPS_FONTSIZE  (FL(20.0))
 
-extern int    isfullpath(char *);        /* def in filopen.c                 */
 extern OPARMS O;                         /* Get sound output file name       */
 
 static int   winPSinitialized = 0;
@@ -96,7 +95,8 @@ static int   currentPage = 0;            /* Current page number              */
 void PS_MakeGraph(WINDAT *wdptr, char *name)
 {
     char      *filenam;
-    char      pathnam[MAXNAME];
+    char      *pathnam_;
+    char      pathnam[1024];
     char      *date, *t;
     struct tm *date_ptr;
     time_t    lt;
@@ -107,48 +107,43 @@ void PS_MakeGraph(WINDAT *wdptr, char *name)
       if (filenam == NULL)
         filenam = "test"; /* O.outfilename not set yet */
 
-            /*  If sound output is being piped directly to the DAC, then */
-            /*  there is no PS output, (psFileOK remains 0),             */
-            /*  otherwise open an encapsulated PostScript output file    */
-            /*  with a name related to the sound file's name.            */
-            /*                                                           */
-            /*  The PS file is located in the same directory as the      */
-            /*  sound file, and has the name of the sound file with the  */
-            /*  extension ``.eps'' appended.                             */
-            /*                                                           */
+      /*  If sound output is being piped directly to the DAC, then */
+      /*  there is no PS output, (psFileOK remains 0),             */
+      /*  otherwise open an encapsulated PostScript output file    */
+      /*  with a name related to the sound file's name.            */
+      /*                                                           */
+      /*  The PS file is located in the same directory as the      */
+      /*  sound file, and has the name of the sound file with the  */
+      /*  extension ``.eps'' appended.                             */
+      /*                                                           */
 
-      if ((sfdirpath = csoundGetEnv(&cenviron, "SFDIR"))!=NULL) {
-        if (strlen(sfdirpath)==0)
-          sfdirpath = NULL;
-      }
-
-      if (!isfullpath(filenam) && sfdirpath != NULL)
-        sprintf(pathnam,"%s%c%s",sfdirpath,DIRSEP,filenam);
-      else
-        sprintf(pathnam,"%s",filenam);
-
-          /*
-           *  Remove extension from sound-file and add ".eps"
-           */
-
+      /*
+       *  Remove extension from sound-file and add ".eps"
+       */
+      strcpy(pathnam, filenam);
       t = strrchr(pathnam, '.');
-      if (t!=NULL) *t='\0';
+      if (t != NULL) *t = '\0';
       strcat(pathnam, ".eps");
-      if ( (psFile = fopen(pathnam, "w"))==NULL )
+      pathnam_ = csoundFindOutputFile(&cenviron, pathnam, "SFDIR");
+      psFile = NULL;
+      if (pathnam_ != NULL) {
+        psFile = fopen(pathnam_, "w");
+        mfree(&cenviron, pathnam_);
+      }
+      if (psFile == NULL)
         printf(Str("** Warning **  PostScript file %s cannot be opened \n"),
                pathnam);
       else {
 #ifdef __MACH__
-                                /* No idea why these are not declared */
+        /* No idea why these are not declared */
         extern struct tm* localtime(const time_t*);
         extern char* asctime(const struct tm*);
 #endif
         printf(Str("\n PostScript graphs written to file %s \n \n"), pathnam);
         psFileOk = 1;
-
-            /*
-             *  Get the current time and date
-             */
+        /*
+         *  Get the current time and date
+         */
         lt = time('\0');
         date_ptr = localtime(&lt);
         date = asctime(date_ptr);
@@ -156,11 +151,10 @@ void PS_MakeGraph(WINDAT *wdptr, char *name)
         while (*date != '\n')
           *t++ = *date++;
         *t = '\0';
-
-            /*
-             *  Print PostScript file Header
-             *  Place every plot on a new page.
-             */
+        /*
+         *  Print PostScript file Header
+         *  Place every plot on a new page.
+         */
         fprintf(psFile,"%s \n","%!PS-Adobe-2.0");
         fprintf(psFile,"%s \n","%%Creator: Csound");
         fprintf(psFile,"%s %s \n","%%CreationDate:",ps_date);
