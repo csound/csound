@@ -1,4 +1,12 @@
-2004-08-22  Steven Yi  <stevenyi@csounds.com>
+2004-09-11  Steven Yi  <stevenyi@csounds.com>
+
+	* SConstruct: Changed to use prefix directory from command line 
+	argument, defaults to /usr/local
+	
+	* SConstruct: Changed install-opcodes to install to 
+	"prefix + /lib/csound/opcodes"
+
+2004-09-11  Steven Yi  <stevenyi@csounds.com>
 
 	* SConstruct: Added install, install-executables, and install-opcodes
 	targets
