@@ -62,7 +62,7 @@ int aline(ENVIRON *csound, LINE *p)
     p->val += inc;              /* nxtval = val + inc */
     inc /= ensmps;
     ar = p->xr;
-    for (n=0; n<ksmps; n++) {
+    for (n=0; n<csound->ksmps; n++) {
       ar[n] = val;
       val += inc;       /* interp val for ksmps */
     }
@@ -107,7 +107,7 @@ int expon(ENVIRON *csound, EXPON *p)
     inc = nxtval - val;
     inc /= ensmps;              /* increment per sample */
     ar = p->xr;
-    for (n=0; n<ksmps; n++) {
+    for (n=0; n<csound->ksmps; n++) {
       ar[n] = val;
       val += inc;       /* interp val for ksmps */
     }
@@ -142,7 +142,7 @@ int lsgset(ENVIRON *csound, LINSEG *p)
     do {                                /* init each seg ..  */
       MYFLT dur = **argp++;
       segp->nxtpt = **argp++;
-      if ((segp->cnt = (long)(dur * ekr + FL(0.5))) < 0)
+      if ((segp->cnt = (long)(dur * csound->ekr + FL(0.5))) < 0)
         segp->cnt = 0;
 /*       printf("%f: cnt=%ld nxt=%f\n", dur, segp->cnt, segp->nxtpt);  */
       segp++;
@@ -190,7 +190,7 @@ int klnseg(ENVIRON *csound, LINSEG *p)
         p->curinc = (p->cursegp->nxtpt - p->curval) / p->curcnt; /* recalc */
       p->curval += p->curinc;           /* advance the cur val  */
 /*       printf("Counter = %d(%d) (%d/%f); Curval = %f ; inc = %f\n", */
-/*          counter, p->curcnt, counter*ksmps, (double)(counter*ksmps_)/ekr, */
+/*          counter, p->curcnt, counter*csound->ksmps, (double)(counter*ksmps_)/csound->ekr, */
 /*              p->curval, p->curinc); */
     }
 /*     counter++; */
@@ -226,14 +226,14 @@ int linseg(ENVIRON *csound, LINSEG *p)
       p->curval = val + p->curinc;        /* advance the cur val  */
       if ((ainc = p->curainc) == FL(0.0))
         goto putk;
-      for (n=0; n<ksmps; n++) {
+      for (n=0; n<csound->ksmps; n++) {
         rs[n] = val;
         val += ainc;
       }
     }
     else {
     putk:
-      for (n=0; n<ksmps; n++) {
+      for (n=0; n<csound->ksmps; n++) {
         rs[n] = val;
       }
     }
@@ -244,6 +244,7 @@ int linseg(ENVIRON *csound, LINSEG *p)
 
 static void adsrset1(LINSEG *p, int midip)
 {
+    ENVIRON     *csound = &cenviron;
     SEG         *segp;
     int         nsegs;
     MYFLT       **argp = p->argums;
@@ -277,7 +278,7 @@ static void adsrset1(LINSEG *p, int midip)
     len -= dur;
 /*      printf("    len=%f : delay=%f\n",len, dur); */
     segp->nxtpt = FL(0.0);
-    if ((segp->cnt = (long)(dur * ekr + FL(0.5))) == 0)
+    if ((segp->cnt = (long)(dur * csound->ekr + FL(0.5))) == 0)
       segp->cnt = 0;
     segp++;
                                 /* Attack */
@@ -286,7 +287,7 @@ static void adsrset1(LINSEG *p, int midip)
     len -= dur;
 /*      printf("    len=%f : attack=%f\n",len, dur); */
     segp->nxtpt = FL(1.0);
-    if ((segp->cnt = (long)(dur * ekr + FL(0.5))) == 0)
+    if ((segp->cnt = (long)(dur * csound->ekr + FL(0.5))) == 0)
       segp->cnt = 0;
     segp++;
                                 /* Decay */
@@ -295,7 +296,7 @@ static void adsrset1(LINSEG *p, int midip)
     len -= dur;
 /*      printf("    len=%f : decay=%f\n",len, dur); */
     segp->nxtpt = *argp[2];
-    if ((segp->cnt = (long)(dur * ekr + FL(0.5))) == 0)
+    if ((segp->cnt = (long)(dur * csound->ekr + FL(0.5))) == 0)
       segp->cnt = 0;
     segp++;
                                 /* Sustain */
@@ -304,15 +305,15 @@ static void adsrset1(LINSEG *p, int midip)
 /*      printf("    len=%f : sustain=%f\n",len, dur); */
 /*  dur = curip->p3 - *argp[4] - *argp[0] - *argp[1] - *argp[3]; */
     segp->nxtpt = *argp[2];
-    if ((segp->cnt = (long)(dur * ekr + FL(0.5))) == 0)
+    if ((segp->cnt = (long)(dur * csound->ekr + FL(0.5))) == 0)
       segp->cnt = 0;
     segp++;
                                 /* Release */
     segp->nxtpt = FL(0.0);
-    if ((segp->cnt = (long)(release * ekr + FL(0.5))) == 0)
+    if ((segp->cnt = (long)(release * csound->ekr + FL(0.5))) == 0)
       segp->cnt = 0;
     if (midip) {
-      p->xtra = (long)(*argp[5] * ekr + FL(0.5));      /* Release time?? */
+      p->xtra = (long)(*argp[5] * csound->ekr + FL(0.5));      /* Release time?? */
       relestim = (p->cursegp + p->segsrem - 1)->cnt;
 /*       printf("MIDI case xtra=%ld release=%ld\n", p->xtra, relestim); */
       if (relestim > p->h.insdshead->xtratim)
@@ -412,14 +413,14 @@ int linsegr(ENVIRON *csound, LINSEG *p)
       p->curval = val + p->curinc;          /* advance the cur val  */
       if ((ainc = p->curainc) == FL(0.0))
         goto putk;
-      for (n=0; n<ksmps; n++) {
+      for (n=0; n<csound->ksmps; n++) {
         rs[n] = val;
         val += ainc;
       }
     }
     else {
     putk:
-      for (n=0;n<ksmps; n++) rs[n] = val;
+      for (n=0;n<csound->ksmps; n++) rs[n] = val;
     }
     return OK;
 }
@@ -451,7 +452,7 @@ int xsgset(ENVIRON *csound, EXXPSEG *p)
       if (dur > FL(0.0)) {
         if (val * nxtval <= FL(0.0))
           goto experr;
-        d = dur * ekr;
+        d = dur * csound->ekr;
         segp->val = val;
         segp->mlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
         segp->cnt = (long) (d + FL(0.5));
@@ -498,7 +499,7 @@ int xsgset2(ENVIRON *csound, EXPSEG2 *p)  /*gab-A1 (G.Maldonado) */
       if (dur > FL(0.0)) {
         if (val * nxtval <= FL(0.0))
           goto experr;
-        d = dur * esr;
+        d = dur * csound->esr;
         segp->val = val;
         segp->mlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
         segp->cnt = (long) (d + FL(0.5));
@@ -528,7 +529,7 @@ int expseg2(ENVIRON *csound, EXPSEG2 *p)                  /*gab-A1 (G.Maldonado)
     segp = p->cursegp;
     val = segp->val;
     rs = p->rslt;
-    for (n=0; n<ksmps; n++) {
+    for (n=0; n<csound->ksmps; n++) {
       while (--segp->cnt < 0)   {
         p->cursegp = ++segp;
         val = segp->val;
@@ -579,16 +580,16 @@ int xdsrset(ENVIRON *csound, EXXPSEG *p)
 /*      printf("    len=%f : sustain=%f\n",len, sus); */
     segp[0].val = FL(0.001);   /* Like zero start, but exponential */
     segp[0].mlt = FL(1.0);
-    segp[0].cnt = (long) (delay*ekr + FL(0.5));
+    segp[0].cnt = (long) (delay*csound->ekr + FL(0.5));
 /*          printf("xseg[0] = %f, %f, %ld\n", */
 /*                 segp[0].val, segp[0].mlt, segp[0].cnt); */
-    dur = attack*ekr;
+    dur = attack*csound->ekr;
     segp[1].val = FL(0.001);
     segp[1].mlt = (MYFLT) pow(1000.0, 1.0/(double)dur);
     segp[1].cnt = (long) (dur + FL(0.5));
 /*          printf("xseg[1] = %f, %f, %ld\n", */
 /*                 segp[1].val, segp[1].mlt, segp[1].cnt); */
-    dur = decay*ekr;
+    dur = decay*csound->ekr;
     segp[2].val = FL(1.0);
     segp[2].mlt = (MYFLT) pow((double)*argp[2], 1.0/(double)dur);
     segp[2].cnt = (long) (dur + FL(0.5));
@@ -596,10 +597,10 @@ int xdsrset(ENVIRON *csound, EXXPSEG *p)
 /*                 segp[2].val, segp[2].mlt, segp[2].cnt); */
     segp[3].val = *argp[2];
     segp[3].mlt = FL(1.0);
-    segp[3].cnt = (long) (sus*ekr + FL(0.5));
+    segp[3].cnt = (long) (sus*csound->ekr + FL(0.5));
 /*          printf("xseg[3] = %f, %f, %ld\n", */
 /*                 segp[3].val, segp[3].mlt, segp[3].cnt); */
-    dur = release*ekr;
+    dur = release*csound->ekr;
     segp[4].val = *argp[2];
     segp[4].mlt = (MYFLT) pow(0.001/(double)*argp[2], 1.0/(double)dur);
     segp[4].cnt = MAXPOS; /*(long) (dur + FL(0.5)); */
@@ -642,7 +643,7 @@ int expseg(ENVIRON *csound, EXXPSEG *p)
     nxtval = val * segp->mlt;
     li = (nxtval - val) / ensmps;
     rs = p->rslt;
-    for (n=0; n<ksmps; n++) {
+    for (n=0; n<csound->ksmps; n++) {
       rs[n] = val;
       val += li;
     }
@@ -674,7 +675,7 @@ int xsgrset(ENVIRON *csound, EXPSEG *p)
     do {                            /* init & chk each real seg ..  */
       MYFLT dur = **argp++;
       segp->nxtpt = **argp++;
-      if ((segp->cnt = (long)(dur * ekr + FL(0.5))) <= 0)
+      if ((segp->cnt = (long)(dur * csound->ekr + FL(0.5))) <= 0)
         segp->cnt = 0;
       else if (segp->nxtpt * prvpt <= FL(0.0))
         goto experr;
@@ -721,15 +722,15 @@ int mxdsrset(ENVIRON *csound, EXPSEG *p)
     delay += FL(0.001);
     attack -= FL(0.001);
     segp[0].nxtpt = FL(0.001);
-    segp[0].cnt = (long) (delay*ekr + FL(0.5));
+    segp[0].cnt = (long) (delay*csound->ekr + FL(0.5));
     segp[1].nxtpt = FL(1.0);
-    segp[1].cnt = (long) (attack*ekr + FL(0.5));
+    segp[1].cnt = (long) (attack*csound->ekr + FL(0.5));
     segp[2].nxtpt = *argp[2];
-    segp[2].cnt = (long) (decay*ekr + FL(0.5));
+    segp[2].cnt = (long) (decay*csound->ekr + FL(0.5));
     segp[3].nxtpt = FL(0.001);
-    segp[3].cnt = (long) (rel*ekr + FL(0.5));
+    segp[3].cnt = (long) (rel*csound->ekr + FL(0.5));
     relestim = (u_short)(p->cursegp + p->segsrem - 1)->cnt;
-    p->xtra = (long)(*argp[5] * ekr + FL(0.5));      /* Release time?? */
+    p->xtra = (long)(*argp[5] * csound->ekr + FL(0.5));      /* Release time?? */
     if (relestim > p->h.insdshead->xtratim)
       p->h.insdshead->xtratim = relestim;
     return OK;
@@ -809,13 +810,13 @@ int expsegr(ENVIRON *csound, EXPSEG *p)
       p->curval = val * p->curmlt;        /* advance the cur val  */
       if ((amlt = p->curamlt) == FL(1.0))
         goto putk;
-      for (n=0; n<ksmps; n++) {
+      for (n=0; n<csound->ksmps; n++) {
         rs[n] = val;
         val *= amlt;
       }
     } else {
     putk:
-      for (n=0; n<ksmps; n++) rs[n] = val;
+      for (n=0; n<csound->ksmps; n++) rs[n] = val;
     }
     return OK;
 }
@@ -825,14 +826,14 @@ int lnnset(ENVIRON *csound, LINEN *p)
     MYFLT a,b,dur;
 
     if ((dur = *p->idur) > FL(0.0)) {
-      p->cnt1 = (long)(*p->iris * ekr + FL(0.5));
+      p->cnt1 = (long)(*p->iris * csound->ekr + FL(0.5));
       if (p->cnt1 > 0L) {
         p->inc1 = FL(1.0) / (MYFLT) p->cnt1;
         p->val = FL(0.0);
       }
       else p->inc1 = p->val = FL(1.0);
-      a = dur * ekr + FL(0.5);
-      b = *p->idec * ekr + FL(0.5);
+      a = dur * csound->ekr + FL(0.5);
+      b = *p->idec * csound->ekr + FL(0.5);
       if ((long) b > 0L) {
         p->cnt2 = (long) (a - b);
         p->inc2 = FL(1.0) /  b;
@@ -890,13 +891,13 @@ int linen(ENVIRON *csound, LINEN *p)
     if (flag) {
       li = (nxtval - val)/ensmps;
       if (p->XINCODE) {
-        for (n=0; n<ksmps; n++) {
+        for (n=0; n<csound->ksmps; n++) {
           rs[n] = *sg++ * val;
           val += li;
         }
       }
       else {
-        for (n=0; n<ksmps; n++) {
+        for (n=0; n<csound->ksmps; n++) {
           rs[n] = *sg * val;
           val += li;
         }
@@ -904,11 +905,11 @@ int linen(ENVIRON *csound, LINEN *p)
     }
     else {
       if (p->XINCODE) {
-        for (n=0; n<ksmps; n++) rs[n] = sg[n];
+        for (n=0; n<csound->ksmps; n++) rs[n] = sg[n];
       }
       else {
         MYFLT ss = *sg;
-        for (n=0; n<ksmps; n++) rs[n] = ss;
+        for (n=0; n<csound->ksmps; n++) rs[n] = ss;
       }
     }
     return OK;
@@ -916,14 +917,14 @@ int linen(ENVIRON *csound, LINEN *p)
 
 int lnrset(ENVIRON *csound, LINENR *p)
 {
-    p->cnt1 = (long)(*p->iris * ekr + FL(0.5));
+    p->cnt1 = (long)(*p->iris * csound->ekr + FL(0.5));
     if (p->cnt1 > 0L) {
       p->inc1 = FL(1.0) / (MYFLT) p->cnt1;
       p->val = FL(0.0);
     }
     else p->inc1 = p->val = FL(1.0);
     if (*p->idec > FL(0.0)) {
-      u_short relestim = (u_short)(*p->idec * ekr + FL(0.5));
+      u_short relestim = (u_short)(*p->idec * csound->ekr + FL(0.5));
       if (relestim > p->h.insdshead->xtratim)
         p->h.insdshead->xtratim = relestim;
       if (*p->iatdec <= FL(0.0)) {
@@ -977,14 +978,14 @@ int linenr(ENVIRON *csound, LINENR *p)
     if (flag) {
       li = (nxtval - val)/ensmps;
       if (p->XINCODE) {
-        for (n=0; n<ksmps; n++) {
+        for (n=0; n<csound->ksmps; n++) {
           rs[n] = sg[n] * val;
           val += li;
         }
       }
       else {
         MYFLT ss = *sg;
-        for (n=0; n<ksmps; n++) {
+        for (n=0; n<csound->ksmps; n++) {
           rs[n] =  ss * val;
           val += li;
         }
@@ -992,13 +993,13 @@ int linenr(ENVIRON *csound, LINENR *p)
     }
     else {
       if (p->XINCODE) {
-        for (n=0; n<ksmps; n++) {
+        for (n=0; n<csound->ksmps; n++) {
           rs[n] = sg[n];
         }
       }
       else {
         MYFLT ss = *sg;
-        for (n=0; n<ksmps; n++) {
+        for (n=0; n<csound->ksmps; n++) {
           rs[n] = ss;
         }
       }
@@ -1051,14 +1052,14 @@ int evxset(ENVIRON *csound, ENVLPX *p)
       if (!(*(ftp->ftable + ftp->flen))) {
         return csound->InitError(csound, Str("rise func ends with zero"));
       }
-      cnt1 = (long) ((idur - irise - *p->idec) * ekr + FL(0.5));
+      cnt1 = (long) ((idur - irise - *p->idec) * csound->ekr + FL(0.5));
       if (cnt1 < 0L) {
         cnt1 = 0L;
-        nk = ekr;
+        nk = csound->ekr;
       }
       else {
         if (*p->iatss < FL(0.0) || cnt1 <= 4L)
-          nk = ekr;
+          nk = csound->ekr;
         else nk = (MYFLT) cnt1;
       }
       p->mlt1 = (MYFLT) pow((double)iatss, (1.0/nk));
@@ -1159,14 +1160,14 @@ int envlpx(ENVIRON *csound, ENVLPX *p)
     p->val = nxtval;
     li = (nxtval - val)/ensmps; /* linear interpolation factor */
     if (p->XINCODE) {           /* for audio rate amplitude: */
-      for (n=0; n<ksmps;n++) {
+      for (n=0; n<csound->ksmps;n++) {
         rslt[n] = xamp[n] * val;
         val += li;
       }
     }
     else {
       MYFLT sxamp = *xamp;
-      for (n=0; n<ksmps;n++) {
+      for (n=0; n<csound->ksmps;n++) {
         rslt[n] = sxamp * val;
         val += li;
       }
@@ -1219,7 +1220,7 @@ int evrset(ENVIRON *csound, ENVLPR *p)
     }
     p->mlt1 = (MYFLT)pow((double)iatss, (double)onedkr);
     if (*p->idec > FL(0.0)) {
-      long rlscnt = (long)(*p->idec * ekr + FL(0.5));
+      long rlscnt = (long)(*p->idec * csound->ekr + FL(0.5));
       if ((p->rindep = (long)*p->irind))
         p->rlscnt = rlscnt;
       else if (rlscnt > p->h.insdshead->xtratim)
@@ -1325,14 +1326,14 @@ int envlpxr(ENVIRON *csound, ENVLPR *p)
     else p->val = nxtval = val * p->mlt2;   /* else do seg 3 decay  */
     li = (nxtval - val) / ensmps;           /* all segs use interp  */
     if (p->XINCODE) {
-      for (n=0; n<ksmps; n++) {
+      for (n=0; n<csound->ksmps; n++) {
         rslt[n] = xamp[n] * val;
         val += li;
       }
     }
     else {
       MYFLT sxamp = *xamp;
-      for (n=0; n<ksmps; n++) {
+      for (n=0; n<csound->ksmps; n++) {
         rslt[n] = sxamp * val;
         val += li;
       }

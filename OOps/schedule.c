@@ -85,8 +85,10 @@ int schedule(ENVIRON *csound, SCHED *p)
       }
     }
     if (*p->which == SSTRCOD) {
-      if (p->STRARG!=NULL) which = (int)named_instr_find(p->STRARG);
-      else                 which = (int)named_instr_find(currevent->strarg);
+      if (p->STRARG != NULL)
+        which = (int) named_instr_find(csound, p->STRARG);
+      else
+        which = (int) named_instr_find(csound, currevent->strarg);
     }
     else
       which = (int) (FL(0.5) + *p->which);
@@ -171,8 +173,8 @@ int kschedule(ENVIRON *csound, WSCHED *p)
       MYFLT dur = *p->dur;
       int which =
         (*p->which == SSTRCOD) ?
-         (p->STRARG != NULL ? named_instr_find(p->STRARG)
-                              : named_instr_find(currevent->strarg))
+         (p->STRARG != NULL ? named_instr_find(csound, p->STRARG)
+                              : named_instr_find(csound, currevent->strarg))
          : (int) (FL(0.5) + *p->which);
       if (which < 1 || which > csound->maxinsno_ ||
           csound->instrtxtp_[which] == NULL) {
@@ -302,7 +304,7 @@ int lfok(ENVIRON *csound, LFO *p)
       res = FL(1.0) - (MYFLT)phs/(MYFLT)MAXPHASE;
       break;
     }
-    phs += (long)(*p->xcps * MAXPHASE / ekr);
+    phs += (long)(*p->xcps * MAXPHASE / csound->ekr);
     phs &= MAXMASK;
     p->phs = phs;
     *p->res = *p->kamp * res;
@@ -322,7 +324,7 @@ int lfoa(ENVIRON *csound, LFO *p)
     inc = (long)((*p->xcps * (MYFLT)MAXPHASE)*onedsr);
     amp = *p->kamp;
     ar = p->res;
-    for (n=0; n<ksmps; n++) {
+    for (n=0; n<csound->ksmps; n++) {
       switch (p->lasttype) {
       default:
         return csound->PerfError(csound, Str("LFO: unknown oscilator type %d"),
@@ -384,14 +386,16 @@ int triginset(ENVIRON *csound, TRIGINSTR *p)
        performance, we must thus do it now, lest it be one k-cycle late.
        But in ktriginstr() we'll need to use kcounter-1 to set the start time
        of new events. So add a separate variable for the kcounter offset (-1). */
-    if (global_kcounter == 0 && *p->trigger != FZERO /*&& *p->args[1] <= FZERO*/) {
+    if (csound->global_kcounter == 0 &&
+        *p->trigger != FZERO /*&& *p->args[1] <= FZERO*/) {
       p->kadjust = 0;   /* No kcounter offset at this time */
-      ktriginstr(csound,p);
+      ktriginstr(csound, p);
     }
     p->kadjust = -1;      /* Set kcounter offset for perf-time */
     /* Catch p3==0 (i-time only) event triggerings. */
-    if (global_kcounter > 0 && *p->trigger != FZERO && p->h.insdshead->p3 == 0)
-      ktriginstr(csound,p);
+    if (csound->global_kcounter > 0 &&
+        *p->trigger != FZERO && p->h.insdshead->p3 == 0)
+      ktriginstr(csound, p);
     return OK;
 }
 
@@ -404,9 +408,9 @@ static int get_absinsno(ENVIRON *csound, TRIGINSTR *p)
     /* Instrument cannot be S and k so this does not work yet */
     if (*p->args[0] == SSTRCOD) {
       if (p->STRARG != NULL)
-        insno = (int) strarg2insno_p(p->STRARG);
+        insno = (int) strarg2insno_p(csound, p->STRARG);
       else
-        insno = (int) strarg2insno_p(currevent->strarg);
+        insno = (int) strarg2insno_p(csound, currevent->strarg);
     }
     else
       insno = (int) fabs((double) *p->args[0]);
@@ -432,7 +436,7 @@ int ktriginstr(ENVIRON *csound, TRIGINSTR *p)
 
     /* Check if mintime has changed */
     if (p->prvmintim != *p->mintime) {
-      long timrem = (int) (*p->mintime * global_ekr + FL(0.5));
+      long timrem = (int) (*p->mintime * csound->global_ekr + FL(0.5));
       if (timrem > 0) {
         /* Adjust countdown for new mintime */
         p->timrem += timrem - p->prvktim;
@@ -471,7 +475,8 @@ int ktriginstr(ENVIRON *csound, TRIGINSTR *p)
     evt.opcod = 'i';
     evt.pcnt = argnum = p->INOCOUNT - 3;
     /* Add current time (see note about kadjust in triginset() above) */
-    starttime = (double) (global_kcounter+p->kadjust) * (double) global_onedkr;
+    starttime = (double) (csound->global_kcounter + p->kadjust)
+                * (double) csound->global_onedkr;
     /* Copy all arguments to the new event */
     for (i = 0; i < argnum; i++)
       evt.p[i + 1] = *p->args[i];
@@ -484,7 +489,7 @@ int ktriginstr(ENVIRON *csound, TRIGINSTR *p)
     }
     /* Reset min pause counter */
     if (*p->mintime > FZERO)
-      p->timrem = (long) (*p->mintime * global_ekr + FL(0.5));
+      p->timrem = (long) (*p->mintime * csound->global_ekr + FL(0.5));
     else
       p->timrem = 0;
     return (insert_score_event(csound, &evt, starttime, 0) == 0 ? OK : NOTOK);
