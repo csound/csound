@@ -30,6 +30,16 @@ AC_PROG_RANLIB
 AC_PATH_X
 AC_PATH_XTRA
 
+AC_ARG_ENABLE([double],
+        AC_HELP_STRING([--enable-double],
+                [enable the use of double precision floating point internally, default=no]),
+        [USE_DOUBLE="$enableval"],
+        [USE_DOUBLE=no])
+
+if type "x$USE_DOUBLE" = xyes; then
+  AC_DEFINE([USE_DOUBLE], 1, [Define when using double precision floating point])
+fi
+
 # Checks for libraries.
 AC_CHECK_LIB([c], [fopen])
 AC_CHECK_LIB([dl], [dlsym])
