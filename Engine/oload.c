@@ -138,9 +138,7 @@ OPARMS  O_ = {0,0,          /* odebug, initonly */
               0,            /* OrcEvts */
               0,0           /* RTevents, ksensing */
 };
-/*
- * It is imperative to fix up oloadRESET if functions are added to the ENVIRON struct.
- */
+
 ENVIRON cenviron_ = {
         /*
         * Interface functions.
@@ -684,7 +682,7 @@ void oload(void)
     spout = (MYFLT *) mcalloc((long)nspout*sizeof(MYFLT));
 }
 
- INSDS *
+INSDS *
 instance(int insno)             /* create instance of an instr template */
                                 /*   allocates and sets up all pntrs    */
 {
