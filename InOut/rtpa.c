@@ -109,11 +109,25 @@ void listPortAudioDevices(void)
     }
 }
 
+typedef struct PaAlsaStreamInfo
+{
+    unsigned long size;
+    int/*PaHostApiTypeId*/ hostApiType;
+    unsigned long version;
+
+    const char *deviceString;
+}
+PaAlsaStreamInfo;
+
 void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
                                                   /* open for audio output */
 {
     struct PaStreamParameters paStreamParameters_;
     PaError paError = Pa_Initialize();
+#if defined(LINUX)
+    PaAlsaStreamInfo info;
+    char *extdev = getenv("CSDEV");
+#endif
     if ( paError != paNoError )
       goto error;
 
@@ -123,22 +137,38 @@ void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
     if (oMaxLag <= 0)           /* if DAC sampframes ndef in command line */
       oMaxLag = IODACSAMPS;     /*    use the default value               */
 
-    if (rtout_dev == 1024) {
-      paStreamParameters_.device = 1;
-      err_printf(Str(X_30,
-                     "No PortAudio device given; defaulting to device 1.\n"));
+#if defined(LINUX)
+    printf("extenv=%p\n");
+    if (extdev!=NULL && strlen(extdev)!=0) {
+      info.deviceString = extdev;
+      err_printf("Using Portaudio Device %s\n", extdev);
+      info.hostApiType = paALSA;
+      info.version = 1;
+      info.size = sizeof(info);
+      paStreamParameters_.device = paUseHostApiSpecificDeviceSpecification;
+      paStreamParameters_.hostApiSpecificStreamInfo = &info;
     }
     else {
-      paStreamParameters_.device = rtout_dev;
-      err_printf(Str(X_39,"Using Portaudio Device %i\n"), rtout_dev);
+#endif
+      if (rtout_dev == 1024) {
+        paStreamParameters_.device = 1;
+        err_printf(Str(X_30,
+                       "No PortAudio device given; defaulting to device 1.\n"));
+      }
+      else {
+        paStreamParameters_.device = rtout_dev;
+        err_printf(Str(X_39,"Using Portaudio Device %i\n"), rtout_dev);
+      }
+      paStreamParameters_.hostApiSpecificStreamInfo = NULL;
+#if defined(LINUX)
     }
-
+#endif
     paStreamParameters_.channelCount = nchnls_;
     paStreamParameters_.sampleFormat = paFloat32;
     paStreamParameters_.suggestedLatency = ((double) oMaxLag) / ((double) sr_);
     err_printf("Suggested PortAudio latency = %f seconds.\n",
                paStreamParameters_.suggestedLatency);
-    paStreamParameters_.hostApiSpecificStreamInfo = NULL;
+
     paError = Pa_OpenStream(&pa_out,
                             NULL,
                             &paStreamParameters_,
