@@ -1,3 +1,8 @@
+2004-05-27  John ffitch  <jpff@codemist.co.uk>
+
+	* InOut/widgets.cpp: SNAPSHOT::get returns error state
+	(get_snap): and used
+
 2004-05-16  Michael Gogins <gogins@pipeline.com>
 
 	* Amended SConstruct to keep a list of all dependencies to make

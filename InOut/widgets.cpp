@@ -1105,7 +1105,7 @@ struct SNAPSHOT {
     vector<VALUATOR_FIELD> fields;
     SNAPSHOT(vector<ADDR_SET_VALUE>& valuators);
     SNAPSHOT() { is_empty = 1; }
-    void get(vector<ADDR_SET_VALUE>& valuators);
+    int get(vector<ADDR_SET_VALUE>& valuators);
 };
 
 
@@ -1250,11 +1250,10 @@ else if (opcode_name == "FLslidBnk") {
     }
 }
 
-void SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
+int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
 {
     if (is_empty) {
-      initerror("empty snapshot");
-      return;
+      return initerror("empty snapshot");
     }
     for (int j =0; j< (int) valuators.size(); j++) {
       Fl_Widget* o = (Fl_Widget*) (valuators[j].WidgAddress);
@@ -1367,6 +1366,7 @@ void SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
       }
     }
     csoundYield(0);
+    return OK;
 }
 
 
@@ -1438,7 +1438,7 @@ extern "C" int get_snap(FLGETSNAP *p)
     if (!snapshots.empty()) {
       if (index > (int) snapshots.size()) index = snapshots.size();
       else if (index < 0 ) index=0;
-      snapshots[index].get(AddrSetValue);
+      if (snapshots[index].get(AddrSetValue)!=OK) return NOTOK;
     }
     *p->inum_el = snapshots.size();
     return OK;
@@ -1713,7 +1713,7 @@ static void __cdecl fltkRun(void *s)
 #endif
 }
 
-#ifdef WINDOWS
+#ifdef WIN32
 static void __cdecl fltkKeybRun(void *s)
 {
     oKeyb->show();
@@ -1729,7 +1729,7 @@ static void __cdecl fltkKeybRun(void *s)
       }
       Fl::unlock();
     }
-     if (O.msglevel & WARNMSG) printf("WARNING: end of keyboard thread\n");
+    if (O.msglevel & WARNMSG) printf("WARNING: end of keyboard thread\n");
 }
 #endif
 
@@ -2039,7 +2039,6 @@ void widget_attributes(Fl_Widget *o)
     if (FLtext_align > 0) {
       Fl_Align type;
       switch (FLtext_align) {
-        case -1: break;         // What type is this?
         case 1: type  = FL_ALIGN_CENTER; break;
         case 2: type  = FL_ALIGN_TOP; break;
         case 3: type  = FL_ALIGN_BOTTOM; break;
@@ -2049,6 +2048,7 @@ void widget_attributes(Fl_Widget *o)
         case 7: type  = FL_ALIGN_TOP_RIGHT; break;
         case 8: type  = FL_ALIGN_BOTTOM_LEFT; break;
         case 9: type  = FL_ALIGN_BOTTOM_RIGHT; break;
+        case -1:          // What type is this?
         default: type = FL_ALIGN_BOTTOM; break;
       }
       o->align(type);
@@ -3180,6 +3180,8 @@ extern "C" int fl_text(FLTEXT *p)
         ((Fl_Value_Output *) o)->range(*p->imin,*p->imax);
       }
       break;
+    default:
+      return NOTOK;
     }
     o->align(FL_ALIGN_BOTTOM | FL_ALIGN_WRAP);
     widget_attributes(o);
@@ -3394,7 +3396,7 @@ extern "C" int fl_roller(FLROLLER *p)
           p->table = ftp->ftable;
           p->tablen = ftp->flen;
         }
-        else return OK;
+        else return NOTOK;
         o->range(0,0.99999999);
         if (iexp > 0) //interpolated
           o->callback((Fl_Callback*)fl_callbackInterpTableRoller,(void *) p);
