@@ -114,7 +114,7 @@ typedef struct {
 #else
         void    (*bytrev)(char*,int);
         void    *inbufp, *bufend;
-        void    inbuf[SNDINBUFSIZ+8];
+        MYFLT   inbuf[SNDINBUFSIZ+8];
 #endif
                 /*RWD 3:2000*/
         float   fscalefac;
