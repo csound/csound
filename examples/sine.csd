@@ -1,8 +1,8 @@
 <CsoundSynthesizer>
 
 <CsInstruments>
-	sr = 96000
-	kr = 960
+	sr = 44100
+	kr = 441
 	ksmps = 100
 	nchnls = 2
 
