@@ -11,8 +11,6 @@ Uses PortAudio library without callbacks -- JPff
 #include <portaudio.h>
 
 extern char    *sfoutname;                     /* soundout filename    */
-/* extern char    *inbuf; */
-/* extern char    *outbuf;                        /\* contin sndio buffers *\/ */
 extern char    *chinbufp, *choutbufp;          /* char  pntr to above  */
 extern short   *shinbufp, *shoutbufp;          /* short pntr           */
 extern long    *llinbufp, *lloutbufp;          /* long  pntr           */
@@ -169,10 +167,20 @@ void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
     }
     else {
 #endif
+#if defined(__MACH__)
+    printf("extdev=%p\n", rtout_devs);
+    if (rtout_devs!=NULL && strlen(rtout_devs)!=0) {
+      err_printf("Using Portaudio output device %s.\n", rtout_devs);
+      paStreamParameters_.device = Pa_GetDefaultOutputDevice();
+      paStreamParameters_.hostApiSpecificStreamInfo = NULL;
+    }
+    else {
+#endif
       if (rtout_dev == 1024) {
-        paStreamParameters_.device = 1;
+        paStreamParameters_.device = Pa_GetDefaultOutputDevice();
         err_printf(Str(X_30,
-                       "No PortAudio output device given; defaulting to device 1.\n"));
+                       "No PortAudio output device given; defaulting to device %d.\n"),
+                   paStreamParameters_.device);
       }
       else {
         paStreamParameters_.device = rtout_dev;
