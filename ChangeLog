@@ -1,3 +1,9 @@
+2005-02-11  John ffitch  <jpff@codemist.co.uk>
+
+	* Opcodes/pvsdemix.[ch]: New files from Victor Lazzarini
+
+	* SConstruct: Added pvsdemic
+
 2005-02-10	Istvan Varga	<istvan@csounds.com>
 	* frontends/csound/csound_main.c
 	* Top/argdecode.c:
