@@ -24,7 +24,7 @@ University of California, Berkeley.
      REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
      ENHANCEMENTS, OR MODIFICATIONS.
 
-The OpenSound Control WWW page is 
+The OpenSound Control WWW page is
     http://www.cnmat.berkeley.edu/OpenSoundControl
 */
 
@@ -37,6 +37,7 @@ The OpenSound Control WWW page is
 
 */
 
+#include <string.h>
 #include "OSC-common.h"
 #include "OSC-timetag.h"
 #include "OSC-address-space.h"
@@ -46,6 +47,7 @@ The OpenSound Control WWW page is
 #include "OSC-string-help.h"
 #include "OSC-drop.h"
 #include "OSC-dispatch.h"
+#include "OSC-callbacklist.h"
 
 #if defined(DEBUG_INTERNAL) || defined(DEBUG) || defined(DEBUG_PACKET_MEM) || defined(DEBUG_QD_MEM) || defined(DEBUG_8BYTE_ALIGN) || defined(SUSPECT_QD_PROB)
 #include <stdio.h>
@@ -153,7 +155,7 @@ OSCBoolean OSCInitReceive(struct OSCReceiveMemoryTuner *t) {
     if (InitQueuedData(t->numQueuedObjects) == FALSE) return FALSE;
     if (InitCallbackListNodes(t->numCallbackListNodes, t->InitTimeMemoryAllocator)
 	 == FALSE) return FALSE;
-    
+
     return TRUE;
 }
 
@@ -230,7 +232,7 @@ void PrintPacket(OSCPacketBuffer p) {
 }
 #endif
 
-    
+
 
 OSCPacketBuffer OSCAllocPacketBuffer(void) {
     OSCPacketBuffer result;
@@ -320,7 +322,7 @@ static queuedData *AllocQD(void) {
     freeQDList = freeQDList->nextFree;
     return result;
 }
-    
+
 static void FreeQD(queuedData *qd) {
     qd->nextFree = freeQDList;
     freeQDList = qd;
@@ -335,7 +337,7 @@ void OSCAcceptPacket(OSCPacketBuffer packet) {
     }
 
 #ifdef DEBUG
-    printf("OSCAcceptPacket(OSCPacketBuffer %p, buf %p, size %d)\n", 
+    printf("OSCAcceptPacket(OSCPacketBuffer %p, buf %p, size %d)\n",
 	   packet, packet->buf, packet->n);
 #endif
 
@@ -356,7 +358,7 @@ void OSCAcceptPacket(OSCPacketBuffer packet) {
 }
 
 OSCBoolean OSCBeProductiveWhileWaiting(void) {
-    /* Here's where we could be clever if an allocation fails. 
+    /* Here's where we could be clever if an allocation fails.
        (I.e., if we're out of QD objects, we should avoid
        parsing bundles.) The code isn't that smart yet. */
 
@@ -392,7 +394,7 @@ OSCBoolean OSCBeProductiveWhileWaiting(void) {
 	}
     }
 }
-    
+
 OSCBoolean OSCInvokeMessagesThatAreReady(OSCTimeTag now) {
     queuedData *x;
     OSCTimeTag thisTimeTag;
@@ -446,7 +448,7 @@ OSCBoolean OSCInvokeMessagesThatAreReady(OSCTimeTag now) {
 
 	    CallWholeCallbackList(x->data.message.callbacks,
 				  x->data.message.argLength,
-				  x->data.message.args, 
+				  x->data.message.args,
 				  thisTimeTag,
 				  x->myPacket->returnAddrOK ? x->myPacket->returnAddr : 0);
 
@@ -584,9 +586,9 @@ static void ParseBundle(queuedData *qd) {
 	    OSCProblem("Bad size count %d in bundle (only %d bytes left in entire bundle).",
 		     size, qd->data.bundle.length-i-4);
 	    DropBundle(qd->data.bundle.bytes, qd->data.bundle.length, qd->myPacket);
-	    goto bag;	
+	    goto bag;
 	}
-	
+
 	/* Recursively handle element of bundle */
 	InsertBundleOrMessage(qd->data.bundle.bytes+i+4, size, qd->myPacket, qd->timetag);
 	i += 4 + size;
@@ -627,7 +629,7 @@ static OSCBoolean ParseMessage(queuedData *qd) {
         fatal_error("This can't happen: message isn't a message!");
     }
 
-    args = OSCDataAfterAlignedString(qd->data.message.messageName, 
+    args = OSCDataAfterAlignedString(qd->data.message.messageName,
 				     qd->data.message.messageName+qd->data.message.length,
 				     &DAAS_errormsg);
 
@@ -666,7 +668,7 @@ static void PacketRemoveRef(OSCPacketBuffer packet) {
 
 
 /**************************************************
- Implementation of procedures declared in 
+ Implementation of procedures declared in
  OSC-internal-messages.h
  **************************************************/
 
@@ -688,14 +690,12 @@ OSCBoolean OSCSendInternalMessageWithRSVP(char *address, int arglen, void *args,
 
 
 
-OSCBoolean OSCScheduleInternalMessages(OSCTimeTag when, int numMessages, 
+OSCBoolean OSCScheduleInternalMessages(OSCTimeTag when, int numMessages,
 				    char **addresses, int *arglens, void **args) {
-    int i, bufSizeNeeded, paddedStrLen;
+    int i, bufSizeNeeded;
     OSCPacketBuffer p;
-    queuedData *qd, *scan;
+    queuedData *qd;
     char *bufPtr;
-    char *oldBufPtr;
-    
 
     /* Figure out how big of a buffer we'll need to hold this huge bundle.
        We don't store the "#bundle" string or the time tag, just the 4-byte
@@ -710,7 +710,7 @@ OSCBoolean OSCScheduleInternalMessages(OSCTimeTag when, int numMessages,
     if (bufSizeNeeded > OSCGetReceiveBufferSize()) {
 	return FALSE;
     }
-	
+
 
     /* Now try to allocate the data objects to hold these messages */
     qd = AllocQD();
