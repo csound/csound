@@ -1151,7 +1151,10 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators)
           int numsliders = (int) *p->inumsliders;
           fld.sldbnk = p->slider_data;
           fld.sldbnkValues = new MYFLT[numsliders];
-          extern vector<char*> allocatedStrings;
+#ifndef MSVC
+          extern
+#endif
+            vector<char*> allocatedStrings;
           allocatedStrings.push_back((char *) fld.sldbnkValues);
           fld.exp = numsliders; // EXCEPTIONAL CASE! fld.exp contains the number
                                 // of sliders and not the exponential flag

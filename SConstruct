@@ -244,8 +244,11 @@ if configure.CheckHeader("string.h", language = "C"):
 else :
      if configure.CheckHeader("strings.h", language = "C"):
      	commonEnvironment.Append(CCFLAGS = '-DHAVE_STRINGS_H')
-if configure.CheckHeader("dirent.h", language = "C"):
+if getPlatform() == 'darwin':
     commonEnvironment.Append(CCFLAGS = '-DHAVE_DIRENT_H')
+else:
+    if configure.CheckHeader("dirent.h", language = "C"):
+        commonEnvironment.Append(CCFLAGS = '-DHAVE_DIRENT_H')
 if configure.CheckFunc("itoa") or getPlatform() == 'mingw':
     commonEnvironment.Append(CCFLAGS = '-DHAVE_ITOA')
 if not (configure.CheckHeader("Opcodes/Loris/src/loris.h") and configure.CheckHeader("fftw3.h")):
