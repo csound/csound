@@ -76,6 +76,9 @@ opts.Add('generateTags',
 opts.Add('generatePDF',
     'Set to 1 to generate PDF documentation',
     0)
+opts.Add('makeDynamic',
+    'Set to 1 to generate dynamically linked programs',
+    0)
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -101,7 +104,8 @@ Help(opts.GenerateHelpText(commonEnvironment))
 commonEnvironment.Append(CPPPATH  = ['.', './H', './SDIF'])
 commonEnvironment.Append(CCFLAGS = Split('-DCSOUND_WITH_API -g -O2'))
 commonEnvironment.Append(CXXFLAGS = Split('-DCSOUND_WITH_API -fexceptions'))
-commonEnvironment.Append(LINKFLAGS = '-static')
+if commonEnvironment['makeDynamic']==0:
+        commonEnvironment.Append(LINKFLAGS = '-static')
 
 # Define options for different platforms.
 
