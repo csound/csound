@@ -740,12 +740,12 @@ int csoundMIDIFileClose(void *csound)
 
  /* ------------------------------------------------------------------------ */
 
-/* miditempo opcode: returns the current tempo of MIDI file */
+/* miditempo opcode: returns the current tempo of MIDI file or score */
 
 int midiTempoOpcode(ENVIRON *csound, MIDITEMPO *p)
 {
     if (MIDIFILE == NULL)
-      *(p->kResult) = (MYFLT) default_tempo;
+      *(p->kResult) = (MYFLT) (60.0 / csound->sensEvents_state.beatTime);
     else
       *(p->kResult) = (MYFLT) MF(currentTempo);
     return OK;

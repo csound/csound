@@ -99,7 +99,6 @@
 #undef pool
 #undef ARGOFFSPACE
 #undef frstoff
-#undef sensType
 #undef frstbp
 #undef sectcnt
 #undef M_CHNBP
@@ -329,7 +328,6 @@
 #define pool    csound->pool_
 #define ARGOFFSPACE csound->argoffspace_
 #define frstoff csound->frstoff_
-#define sensType csound->sensType_
 #define frstbp  csound->frstbp_
 #define sectcnt csound->sectcnt_
 #define M_CHNBP csound->m_chnbp_

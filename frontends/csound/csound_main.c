@@ -150,9 +150,8 @@ int main(int argc, char **argv)
     /*  One complete performance cycle. */
     result = csoundCompile(csound, argc, argv);
     if (!result) {
-      while (csoundPerformKsmps(csound) == 0) {
-        csoundYield(csound);
-      }
+      /* do not need csoundYield(), kperf() will call it */
+      while (csoundPerformKsmps(csound) == 0);
     }
     /* delete Csound instance */
     csoundDestroy(csound);

@@ -206,7 +206,6 @@ extern "C" {
    * PERFORMANCE
    */
 
-  extern int frsturnon;
   extern int sensevents(ENVIRON *);
   extern int cleanup(void*);
 

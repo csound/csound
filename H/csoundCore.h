@@ -273,7 +273,6 @@ extern "C" {
     MONPCH *monobas;
     MONPCH *monocur;
     struct insds *kinsptr[128]; /* list of active notes (NULL: not active) */
-    struct insds *ksusptr[128]; /* list of held notes (NULL: not sustaining) */
     MYFLT  polyaft[128];    /* polyphonic pressure indexed by note number */
     MYFLT  ctl_val[136];    /* ... with GS vib_rate, stored in c128-c135 */
     short  pgm2ins[128];    /* program change to instr number (<=0: ignore) */
@@ -308,20 +307,20 @@ extern "C" {
     AUXCH   auxch;          /* Extra memory used by opcodes in this instr */
     MCHNBLK *m_chnbp;       /* MIDI note info block if event started
                                from MIDI */
-    short   m_pitch;        /* MIDI pitch, for simple access */
-    short   m_veloc;        /* ...ditto velocity */
     int     xtratim;        /* Extra release time requested with
                                xtratim opcode */
+    short   insno;          /* Instrument number */
+    short   m_sust;         /* non-zero for sustaining MIDI note */
+    unsigned char m_pitch;  /* MIDI pitch, for simple access */
+    unsigned char m_veloc;  /* ...ditto velocity */
     char    relesing;       /* Flag to indicate we are releasing,
                                test with release opcode */
     char    actflg;         /* Set if instr instance is active (perfing) */
-    short   insno;          /* Instrument number */
-    MYFLT   offbet;         /* Time to turn off event, in score beats */
-    MYFLT   offtim;         /* Time to turn off event, in seconds (negative on
+    double  offbet;         /* Time to turn off event, in score beats */
+    double  offtim;         /* Time to turn off event, in seconds (negative on
                                indef/tie) */
-    struct insds * nxtolap; /* ptr to next overlapping voice */
-    /* end of overlap */
-    void *pylocal;          /* Python namespace for just this instance. */
+    struct insds * nxtolap; /* ptr to next overlapping MIDI voice */
+    void   *pylocal;        /* Python namespace for just this instance. */
     struct ENVIRON_ *csound;/* ptr to Csound engine and API for externals */
     void    *opcod_iobufs;  /* IV - Sep 8 2002: user opcode I/O buffers */
     void    *opcod_deact, *subins_deact;    /* IV - Oct 24 2002 */
@@ -506,13 +505,13 @@ extern "C" {
   typedef struct {
     double  prvbt, curbt, nxtbt;  /* previous, current, and next score beat */
     double  curp2, nxtim;         /* current and next score time (seconds)  */
-    double  timtot;               /* start time of current section          */
-    int     init_done;            /* zero at beginning of performance       */
+    double  timeOffs, beatOffs;   /* start time of current section          */
+    double  curTime, curTime_inc; /* cur. time in seconds, inc. per kperiod */
+    double  curBeat, curBeat_inc; /* current time in beats, inc per kperiod */
+    double  beatTime;             /* beat time = 60 / tempo                 */
     int     cyclesRemaining;      /* number of k-periods to kperf() before  */
                                   /*   next score event                     */
-    int     kDone;                /* number of k-periods performed since    */
-                                  /*   last score event                     */
-    int     saved_opcod;          /* tmp variable: most recent score opcode */
+    EVTBLK  evt;                  /* current score event                    */
   } sensEvents_t;
 
   /* MIDI globals */
@@ -840,7 +839,6 @@ extern "C" {
     MYFLT         *pool_;
     int           *argoffspace_;
     INSDS         *frstoff_;
-    int           sensType_;
     jmp_buf       exitjmp_;
     SRTBLK        *frstbp_;
     int           sectcnt_;
@@ -897,6 +895,8 @@ extern "C" {
     void          *memalloc_db;
     MGLOBAL       *midiGlobals;
     void          *envVarDB;
+    int           evt_poll_cnt;
+    int           evt_poll_maxcnt;
   } ENVIRON;
 
   extern ENVIRON cenviron_;

@@ -108,7 +108,6 @@ extern "C" {
 #define pool    cenviron.pool_
 #define ARGOFFSPACE cenviron.argoffspace_
 #define frstoff cenviron.frstoff_
-#define sensType cenviron.sensType_
 #define frstbp  cenviron.frstbp_
 #define sectcnt cenviron.sectcnt_
 #define M_CHNBP cenviron.m_chnbp_

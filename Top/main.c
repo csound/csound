@@ -270,7 +270,6 @@ void create_opcodlst(void *csound)
 extern  int    musmon(ENVIRON*), musmon2(ENVIRON*);
 extern  char  *getstrformat(int);
 extern  short  sfsampsize(int);
-extern int frsturnon;
 
 /* IV - Jan 28 2005 */
 void print_benchmark_info(void *csound, const char *s)
@@ -322,7 +321,6 @@ int csoundCompile(void *csound, int argc, char **argv)
 
     /* IV - Jan 28 2005 */
     csoundCreateGlobalVariable(csound, "csRtClock", sizeof(RTCLOCK));
-    frsturnon = 0;
     init_pvsys();
     /* utilities depend on this as well as orchs */
     e0dbfs = DFLT_DBFS; /* may get changed by an orch */
