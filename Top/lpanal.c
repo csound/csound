@@ -487,13 +487,25 @@ int lpanal(int argc, char **argv)
                                 while (*s++); s--;
                                 break;
                 case 's':       FIND(Str(X_1057,"no sampling rate"))
+#if defined(USE_DOUBLE)
+                    sscanf(s,"%lf",&sr); break;
+#else
                     sscanf(s,"%f",&sr); break;
+#endif
                 case 'c':       FIND(Str(X_1026,"no channel"))
                     sscanf(s,"%d",&channel); break;
                 case 'b':       FIND(Str(X_1025,"no begin time"))
+#if defined(USE_DOUBLE)
+                    sscanf(s,"%lf",&beg_time); break;
+#else
                     sscanf(s,"%f",&beg_time); break;
+#endif
                 case 'd':       FIND(Str(X_1030,"no duration time"))
+#if defined(USE_DOUBLE)
+                    sscanf(s,"%lf",&input_dur); break;
+#else
                     sscanf(s,"%f",&input_dur); break;
+#endif
                 case 'p':       FIND(Str(X_1054,"no poles"))
                     sscanf(s,"%d",&poleCount); break;
                 case 'h':       FIND(Str(X_1037,"no hopsize"))
@@ -503,11 +515,19 @@ int lpanal(int argc, char **argv)
                     tp += strlen(tp);
                     break;
                 case 'P':       FIND(Str(X_1045,"no low frequency"))
+#if defined(USE_DOUBLE)
+                    sscanf(s,"%lf",&pchlow);
+#else
                     sscanf(s,"%f",&pchlow);
+#endif
                     if (pchlow == 0.) doPitch = 0;     /* -P0 inhibits ptrack */
                     break;
                 case 'Q':       FIND(Str(X_1036,"no high frequency"))
+#if defined(USE_DOUBLE)
+                    sscanf(s,"%lf",&pchhigh); break;
+#else
                     sscanf(s,"%f",&pchhigh); break;
+#endif
                 case 'v':       FIND(Str(X_1065,"no verbose level"))
                     sscanf(s,"%d",&verbose);
                     if (verbose > 1)  debug = 1;

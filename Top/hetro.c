@@ -144,19 +144,35 @@ extern  long     getsndin(int, MYFLT*, long, SOUNDIN*);
           if (*s++ == '-')
             switch (*s++) {
             case 's':   FIND(Str(X_1057,"no sampling rate"))
+#if defined(USE_DOUBLE)
+                          sscanf(s,"%lf",&sr);
+#else
                           sscanf(s,"%f",&sr);
+#endif
               break;
             case 'c':   FIND(Str(X_1026,"no channel"))
                           sscanf(s,"%d",&channel);
               break;
             case 'b':   FIND(Str(X_1025,"no begin time"))
+#if defined(USE_DOUBLE)
+                          sscanf(s,"%lf",&beg_time);
+#else
                           sscanf(s,"%f",&beg_time);
+#endif
               break;
             case 'd':   FIND(Str(X_1030,"no duration time"))
+#if defined(USE_DOUBLE)
+                          sscanf(s,"%lf",&input_dur);
+#else
                           sscanf(s,"%f",&input_dur);
+#endif
               break;
             case 'f':   FIND(Str(X_1033,"no fundamental estimate"))
+#if defined(USE_DOUBLE)
+                          sscanf(s,"%lf",&fund_est);
+#else
                           sscanf(s,"%f",&fund_est);
+#endif
               break;
             case 'h':   FIND(Str(X_1035,"no harmonic count"))
                           sscanf(s,"%hd",&hmax);
@@ -179,7 +195,11 @@ extern  long     getsndin(int, MYFLT*, long, SOUNDIN*);
                           sscanf(s,"%d",&num_pts);
               break;
             case 'l':   FIND(Str(X_1031,"no filter cutoff"))
+#if defined(USE_DOUBLE)
+                          sscanf(s,"%lf",&freq_c);
+#else
                           sscanf(s,"%f",&freq_c);
+#endif
               break;
             case '-':   FIND(Str(X_1044,"no log file"));
               while (*s++); s--;
