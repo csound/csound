@@ -336,7 +336,10 @@ ENVIRON cenviron_ = {
         NULL,                   /* gensub */
         GENMAX+1,               /* genmax */
         100,                    /* ftldno */
-        1                       /* doFLTKThreadLocking */
+        1,                      /* doFLTKThreadLocking */
+        NULL,                   /* namedGlobals -- IV - Jan 28 2005 */
+        0,                      /* namedGlobalsCurrLimit */
+        0                       /* namedGlobalsMaxLimit */
 };
 
 OPARMS O;
