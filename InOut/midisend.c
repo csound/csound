@@ -1,0 +1,102 @@
+/*
+    midisend.c:
+
+    Copyright (C) 1997 Dave Philips
+              (C) 2005 Istvan Varga
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
+*/
+
+#include "cs.h"                                       /*    MIDISEND.C    */
+#include "midioops.h"
+
+void send_midi_message(int status, int data1, int data2)
+{
+    unsigned char buf[4];
+
+    buf[0] = (unsigned char) status;
+    buf[1] = (unsigned char) data1;
+    buf[2] = (unsigned char) data2;
+    csoundExternalMidiWrite(&cenviron, cenviron.midiGlobals->midiOutUserData,
+                            &(buf[0]), 3);
+}
+
+void note_on(int chan, int num, int vel)
+{
+    send_midi_message((chan & 0x0F) | MD_NOTEON, num, vel);
+}
+
+void note_off(int chan, int num, int vel)
+{
+    send_midi_message((chan & 0x0F) | MD_NOTEOFF, num, vel);
+}
+
+void control_change(int chan, int num, int value)
+{
+    send_midi_message((chan & 0x0F) | MD_CNTRLCHG, num, value);
+}
+
+void after_touch(int chan, int value)
+{
+    unsigned char buf[4];
+
+    buf[0] = (unsigned char) ((chan & 0x0F) | MD_CHANPRESS);
+    buf[1] = (unsigned char) value;
+    csoundExternalMidiWrite(&cenviron, cenviron.midiGlobals->midiOutUserData,
+                            &(buf[0]), 2);
+}
+
+void program_change(int chan, int num)
+{
+    unsigned char buf[4];
+
+    buf[0] = (unsigned char) ((chan & 0x0F) | MD_PGMCHG);
+    buf[1] = (unsigned char) num;
+    csoundExternalMidiWrite(&cenviron, cenviron.midiGlobals->midiOutUserData,
+                            &(buf[0]), 2);
+}
+
+void pitch_bend(int chan, int lsb, int msb)
+{
+    send_midi_message((chan & 0x0F) | MD_PTCHBENDCHG, lsb, msb);
+}
+
+void poly_after_touch(int chan, int note_num, int value)
+{
+    send_midi_message((chan & 0x0F) | MD_POLYAFTER, note_num, value);
+}
+
+void openMIDIout(void)
+{
+    int retval;
+
+    if (cenviron.midiGlobals->MIDIoutDONE)
+      return;
+    cenviron.midiGlobals->MIDIoutDONE = 1;
+
+    retval = csoundExternalMidiOutOpen(&cenviron,
+                                       &(cenviron.midiGlobals->midiOutUserData),
+                                       O.Midioutname);
+    if (retval != 0) {
+      csoundMessage(&cenviron,
+                    Str(" *** error opening MIDI out device: %d (%s)\n"),
+                    retval, csoundExternalMidiErrorString(&cenviron, retval));
+      longjmp(cenviron.exitjmp_, 1);
+    }
+}
+

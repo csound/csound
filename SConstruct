@@ -363,25 +363,6 @@ if vstEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ld
 
 guiProgramEnvironment = commonEnvironment.Copy()
 
-if (not(commonEnvironment['usePortMIDI']=='0') and portmidiFound):
-    staticLibraryEnvironment.Append(CCFLAGS = '-DPORTMIDI')
-    pluginEnvironment.Append(CCFLAGS = '-DPORTMIDI')
-    csoundProgramEnvironment.Append(CCFLAGS = '-DPORTMIDI')
-    ustubProgramEnvironment.Append(CCFLAGS = '-DPORTMIDI')
-    vstEnvironment.Append(CCFLAGS = '-DPORTMIDI')
-    guiProgramEnvironment.Append(CCFLAGS = '-DPORTMIDI')
-    csoundProgramEnvironment.Append(LIBS = ['portmidi'])
-    vstEnvironment.Append(LIBS = ['portmidi'])
-    if getPlatform() != 'darwin':
-        csoundProgramEnvironment.Append(LIBS = ['porttime'])
-        vstEnvironment.Append(LIBS = ['porttime'])
-    if getPlatform() == 'mingw':
-        csoundProgramEnvironment.Append(LIBS = ['winmm'])
-        vstEnvironment.Append(LIBS = ['winmm'])	
-    if getPlatform() == 'linux' and alsaFound:
-        csoundProgramEnvironment.Append(LIBS = ['asound'])
-        vstEnvironment.Append(LIBS = ['asound'])
-
 if commonEnvironment['useALSA']=='1' and alsaFound:
     guiProgramEnvironment.Append(LINKFLAGS = '-mwindows')
 elif commonEnvironment['usePortAudio']=='1' and portaudioFound:
@@ -481,6 +462,7 @@ Engine/twarp.c
 InOut/libsnd.c
 InOut/libsnd_u.c
 InOut/midirecv.c
+InOut/midisend.c
 InOut/winascii.c
 InOut/windin.c
 InOut/window.c
@@ -500,7 +482,6 @@ OOps/lptrkfns.c
 OOps/midiinterop.c
 OOps/midiops.c
 OOps/midiout.c
-OOps/midisend.c
 OOps/mxfft.c
 OOps/oscils.c
 OOps/pstream.c
@@ -558,10 +539,18 @@ Top/threads.c
 
 if (commonEnvironment['usePortMIDI']=='1' and portmidiFound):
     print 'CONFIGURATION DECISION: Building with PortMIDI.'
-    libCsoundSources.append('InOut/pmidi.c')
+    portMidiEnvironment = pluginEnvironment.Copy()
+    portMidiEnvironment.Append(LIBS = ['portmidi'])
+    if getPlatform() != 'darwin':
+        portMidiEnvironment.Append(LIBS = ['porttime'])
+    if getPlatform() == 'mingw':
+        portMidiEnvironment.Append(LIBS = ['winmm'])
+    if getPlatform() == 'linux' and alsaFound:
+        portMidiEnvironment.Append(LIBS = ['asound'])
+    pluginLibraries.append(portMidiEnvironment.SharedLibrary('pmidi',
+                                                             ['InOut/pmidi.c']))
 else:
     print 'CONFIGURATION DECISION: Building without real time MIDI support.'
-    libCsoundSources.append('InOut/mididevice.c')
 
 if not ((commonEnvironment['useFLTK'] == '1' and fltkFound)):
     print 'CONFIGURATION DECISION: Not building with FLTK for graphs and widgets.'

@@ -40,6 +40,8 @@
 #define oneTOf14bit      ((MYFLT)1./16383.)
 #define oneTOf21bit      ((MYFLT)1./2097151.)
 
+#define MGLOB(x) (((ENVIRON*) csound)->midiGlobals->x)
+
 /*------------------------------------------------------------------------*/
 /* 7 bit midi control UGs */
 
@@ -566,15 +568,15 @@ int initc21(ENVIRON *csound, INITC21 *p)
 
 int midiin_set(ENVIRON *csound, MIDIIN *p)
 {
-    p->local_buf_index = MIDIINbufIndex & MIDIINBUFMSK;
+    p->local_buf_index = MGLOB(MIDIINbufIndex) & MIDIINBUFMSK;
     return OK;
 }
 
 int midiin(ENVIRON *csound, MIDIIN *p)
 {
     unsigned char *temp;                        /* IV - Nov 30 2002 */
-    if  (p->local_buf_index != MIDIINbufIndex) {
-      temp = &(MIDIINbuffer2[p->local_buf_index++].bData[0]);
+    if  (p->local_buf_index != MGLOB(MIDIINbufIndex)) {
+      temp = &(MGLOB(MIDIINbuffer2)[p->local_buf_index++].bData[0]);
       p->local_buf_index &= MIDIINBUFMSK;
       *p->status = (MYFLT) (*temp & (unsigned char) 0xf0);
       *p->chan   = (MYFLT) ((*temp & 0x0f) + 1);

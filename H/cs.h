@@ -119,7 +119,6 @@ extern "C" {
 #define inerrcnt cenviron.inerrcnt_
 #define synterrcnt cenviron.synterrcnt_
 #define perferrcnt cenviron.perferrcnt_
-#define MIDIoutDONE cenviron.MIDIoutDONE_
 #define strmsg  cenviron.strmsg_
 #define instxtanchor cenviron.instxtanchor_
 #define actanchor cenviron.actanchor_
@@ -155,8 +154,6 @@ extern "C" {
 #define rtin_devs cenviron.rtin_devs_
 #define rtout_dev cenviron.rtout_dev_
 #define rtout_devs cenviron.rtout_devs_
-#define MIDIINbufIndex cenviron.MIDIINbufIndex_
-#define MIDIINbuffer2 cenviron.MIDIINbuffer2_
 #define displop4 cenviron.displop4_
 #define printf cenviron.Printf
 

@@ -119,12 +119,13 @@ ENVIRON cenviron_ = {
         csoundSetInputValueCallback,
         csoundSetOutputValueCallback,
         csoundScoreEvent,
-        csoundSetExternalMidiDeviceOpenCallback,
+        csoundSetExternalMidiInOpenCallback,
         csoundSetExternalMidiReadCallback,
+        csoundSetExternalMidiInCloseCallback,
+        csoundSetExternalMidiOutOpenCallback,
         csoundSetExternalMidiWriteCallback,
-        csoundSetExternalMidiDeviceCloseCallback,
-        csoundIsExternalMidiEnabled,
-        csoundSetExternalMidiEnabled,
+        csoundSetExternalMidiOutCloseCallback,
+        csoundSetExternalMidiErrorStringCallback,
         csoundSetIsGraphable,
         csoundSetMakeGraphCallback,
         csoundSetDrawGraphCallback,
@@ -317,7 +318,6 @@ ENVIRON cenviron_ = {
         {0},    /*      m_chnbp */
         NULL, NULL,   /*  cpsocint, cpsocfrc */
         0, 0, 0,      /* inerrcnt, synterrcnt, perferrcnt */
-        0,      /*      MIDIoutDONE */
         "",     /*      strmsg */
         {NULL}, /*      instxtanchor */
         {NULL}, /*      actanchor */
@@ -346,8 +346,6 @@ ENVIRON cenviron_ = {
         NULL,   /*      rtin_devs */
         1024,   /*      rtout_dev */
         NULL,   /*      rtout_devs */
-        0,      /*      MIDIINbufIndex */
-        {{0}},  /*      MIDIINbuffer2 */
         -1,     /*      displop4 */
         NULL,   /*      file_opened  */
         0,      /*      file_max */
@@ -370,7 +368,8 @@ ENVIRON cenviron_ = {
         { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0 },   /* sensEvents_state */
         NULL,                   /* rtRecord_userdata */
         NULL,                   /* rtPlay_userdata */
-        NULL                    /* memalloc_db */
+        NULL,                   /* memalloc_db */
+        (MGLOBAL*) NULL         /* midiGlobals */
 };
 
 OPARMS O;

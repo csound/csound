@@ -504,45 +504,89 @@ extern "C" {
    */
 
   /**
-   * Called by external software to set a function for Csound to
-   * call to open MIDI input.
+   * Open MIDI input device 'devName', and store stream specific
+   * data pointer in *userData. Return value is zero on success,
+   * and a non-zero error code if an error occured.
    */
-  PUBLIC void csoundSetExternalMidiDeviceOpenCallback(void *csound,
-                        void (*externalMidiDeviceOpenCallback)(void *csound));
+  int csoundExternalMidiInOpen(void *csound, void **userData,
+                               const char *devName);
 
   /**
-   * Called by external software to set a function for Csound to
-   * call to read MIDI messages.
+   * Read at most 'nbytes' bytes of MIDI data from input stream
+   * 'userData', and store in 'buf'. Returns the actual number of
+   * bytes read, which may be zero if there were no events, and
+   * negative in case of an error. Note: incomplete messages (such
+   * as a note on status without the data bytes) should not be
+   * returned.
    */
+  int csoundExternalMidiRead(void *csound, void *userData,
+                             unsigned char *buf, int nbytes);
+
+  /**
+   * Close MIDI input device associated with 'userData'.
+   * Return value is zero on success, and a non-zero error
+   * code on failure.
+   */
+  int csoundExternalMidiInClose(void *csound, void *userData);
+
+  /**
+   * Open MIDI output device 'devName', and store stream specific
+   * data pointer in *userData. Return value is zero on success,
+   * and a non-zero error code if an error occured.
+   */
+  int csoundExternalMidiOutOpen(void *csound, void **userData,
+                                const char *devName);
+
+  /**
+   * Write 'nbytes' bytes of MIDI data to output stream 'userData'
+   * from 'buf' (the buffer will not contain incomplete messages).
+   * Returns the actual number of bytes written, or a negative
+   * error code.
+   */
+  int csoundExternalMidiWrite(void *csound, void *userData,
+                              unsigned char *buf, int nbytes);
+
+  /**
+   * Close MIDI output device associated with '*userData'.
+   * Return value is zero on success, and a non-zero error
+   * code on failure.
+   */
+  int csoundExternalMidiOutClose(void *csound, void *userData);
+
+  /**
+   * Returns pointer to a string constant storing an error massage
+   * for error code 'errcode'.
+   */
+  char *csoundExternalMidiErrorString(void *csound, int errcode);
+
+  /* Set real time MIDI function pointers. */
+
+  PUBLIC void csoundSetExternalMidiInOpenCallback(void *csound,
+                                                  int (*func)(void*, void**,
+                                                              const char*));
+
   PUBLIC void csoundSetExternalMidiReadCallback(void *csound,
-                        int (*externalMidiReadCallback)(void *csound,
-                                                        unsigned char *midiData,
-                                                        int size));
+                                                int (*func)(void*, void*,
+                                                            unsigned char*,
+                                                            int));
 
-  /**
-   * Called by external software to set a function for Csound to
-   * call to write a 4-byte MIDI message.
-   */
+  PUBLIC void csoundSetExternalMidiInCloseCallback(void *csound,
+                                                   int (*func)(void*, void*));
+
+  PUBLIC void csoundSetExternalMidiOutOpenCallback(void *csound,
+                                                   int (*func)(void*, void**,
+                                                               const char*));
+
   PUBLIC void csoundSetExternalMidiWriteCallback(void *csound,
-                    int (*externalMidiWriteCallback)(void *csound,
-                                                     unsigned char *midiData));
+                                                 int (*func)(void*, void*,
+                                                             unsigned char*,
+                                                             int));
 
-  /**
-   * Called by external software to set a function for Csound to
-   * call to close MIDI input.
-   */
-  PUBLIC void csoundSetExternalMidiDeviceCloseCallback(void *csound,
-                    void (*externalMidiDeviceCloseCallback)(void *csound));
+  PUBLIC void csoundSetExternalMidiOutCloseCallback(void *csound,
+                                                    int (*func)(void*, void*));
 
-  /**
-   * Returns true if external MIDI is enabled, and false otherwise.
-   */
-  PUBLIC int csoundIsExternalMidiEnabled(void *csound);
-
-  /**
-   * Sets whether external MIDI is enabled.
-   */
-  PUBLIC void csoundSetExternalMidiEnabled(void *csound, int enabled);
+  PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
+                                                       char *(*func)(int));
 
   /*
    * FUNCTION TABLE DISPLAY

@@ -21,6 +21,9 @@
     02111-1307 USA
 */
 
+#ifndef CSOUND_SYSDEP_H
+#define CSOUND_SYSDEP_H
+
 #ifdef __STDC__                                              /* SYSDEP.H */
 #  include <stdlib.h>
 #  include <stdio.h>
@@ -143,3 +146,21 @@ extern  off_t lseek(int, off_t, int);
 #  error "Please use Makefile.be to build the BeOS version of Csound."
 # endif
 #endif
+
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#else
+typedef signed char         int8_t;
+typedef unsigned char       uint8_t;
+typedef short               int16_t;
+typedef unsigned short      uint16_t;
+typedef int                 int32_t;
+typedef unsigned int        uint32_t;
+typedef long long           int64_t;
+typedef unsigned long long  uint64_t;
+typedef long                intptr_t;
+typedef unsigned long       uintptr_t;
+#endif
+
+#endif  /* CSOUND_SYSDEP_H */
+

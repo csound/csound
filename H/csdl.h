@@ -109,7 +109,6 @@
 #undef inerrcnt
 #undef synterrcnt
 #undef perferrcnt
-#undef MIDIoutDONE
 #undef strmsg
 #undef instxtanchor
 #undef actanchor
@@ -145,8 +144,6 @@
 #undef rtin_devs
 #undef rtout_dev
 #undef rtout_devs
-#undef MIDIINbufIndex
-#undef MIDIINbuffer2
 #undef displop4
 #undef mmalloc
 #undef mfree
@@ -227,12 +224,6 @@
 #define SetOutputValueCallback csound->SetOutputValueCallback
 #define outputValueCalback csound->outputValueCalback
 #define ScoreEvent csound->ScoreEvent
-#define SetExternalMidiOpenCallback csound->SetExternalMidiOpenCallback
-#define SetExternalMidiReadCallback csound->SetExternalMidiReadCallback
-#define SetExternalMidiWriteCallback csound->SetExternalMidiWriteCallback
-#define SetExternalMidiCloseCallback csound->SetExternalMidiCloseCallback
-#define IsExternalMidiEnabled csound->IsExternalMidiEnabled
-#define SetExternalMidiEnabled csound->SetExternalMidiEnabled
 #define SetIsGraphable csound->SetIsGraphable
 #define SetMakeGraphCallback csound->SetMakeGraphCallback
 #define SetDrawGraphCallback csound->SetDrawGraphCallback
@@ -358,7 +349,6 @@
 #define inerrcnt csound->inerrcnt_
 #define synterrcnt csound->synterrcnt_
 #define perferrcnt csound->perferrcnt_
-#define MIDIoutDONE csound->MIDIoutDONE_
 #define strmsg  csound->strmsg_
 #define instxtanchor csound->instxtanchor_
 #define actanchor csound->actanchor_
@@ -394,8 +384,6 @@
 #define rtin_devs csound->rtin_devsa_
 #define rtout_dev csound->rtout_dev_
 #define rtout_devs csound->rtout_devs_
-#define MIDIINbufIndex csound->MIDIINbufIndex_
-#define MIDIINbuffer2 csound->MIDIINbuffer2_
 #define mmalloc csound->mmalloc_
 #define mfree csound->mfree_
 #define hfgens csound->hfgens_
@@ -474,6 +462,4 @@
                 {                                                \
                     return localfgens;                           \
                 }
-
-
 
