@@ -467,11 +467,11 @@ int csoundLoadExternal(void *csound, const char* libraryPath)
       length = length&0x7fffffff; /* Assumes 32 bit */
       nfgens = csoundGetLibrarySymbol(handle, "fgen_init");
       if (nfgens) {
-        int allocgen(char *, void(*)(void));
+        int allocgen(ENVIRON *, char *, void(*)(void));
         NGFENS *names = (*nfgens)(&cenviron);
         int i=0;
         while (names[i].word!=NULL) {
-          allocgen(names[i].word, names[i].fn);
+          allocgen(csound, names[i].word, names[i].fn);
           i++;
         }
       }

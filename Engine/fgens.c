@@ -40,7 +40,7 @@ extern double besseli(double);
 
 /* Start of moving static data into a single structure */
 
-typedef void    (*GEN)(FUNC *, ENVIRON *);
+/* typedef void    (*GEN)(FUNC *, ENVIRON *); */
 
 static void   gen01raw(FUNC*,ENVIRON*);
 static void   gen01(FUNC*,ENVIRON*), gen02(FUNC*,ENVIRON*), gen03(FUNC*,ENVIRON*);
@@ -68,8 +68,8 @@ static  GEN     or_sub[GENMAX+1] = { GENUL,
                                      gen31, gen32, gen33, gen34, GENUL,
                                      GENUL, GENUL, GENUL, GENUL, gen40,
                                      gen41, gen42, gen43 };
-static  GEN    *gensub = NULL;
-static  int    genmax = GENMAX+1;
+/* static  GEN    *gensub = NULL; */
+/* static  int    genmax = GENMAX+1; */
 typedef struct namedgen {
         char            *name;
         int              genum;
@@ -95,9 +95,9 @@ void ftRESET(ENVIRON *csound)
       csound->flist   = NULL;
     }
     csound->maxfnum = 0;
-    if (gensub) {
-      mfree(gensub);
-      gensub = NULL;
+    if (csound->gensub) {
+      mfree(csound->gensub);
+      csound->gensub = NULL;
     }
 /*     vco2_tables_destroy(); */
 }
@@ -115,10 +115,10 @@ void fgens(ENVIRON *csound, EVTBLK *evtblkp) /* create ftable using evtblk data 
     int         nargs;
     FGDATA *ff = &(csound->ff);
 
-    if (gensub==NULL) {
-      gensub = (GEN*) mmalloc(sizeof(GEN)*(GENMAX+1));
-      memcpy(gensub, or_sub, sizeof(GEN)*(GENMAX+1));
-      genmax = GENMAX+1;
+    if (csound->gensub==NULL) {
+      csound->gensub = (GEN*) mmalloc(sizeof(GEN)*(GENMAX+1));
+      memcpy(csound->gensub, or_sub, sizeof(GEN)*(GENMAX+1));
+      csound->genmax = GENMAX+1;
     }
     ff->e = *evtblkp;
     ff->fterrcnt = 0;
@@ -217,10 +217,9 @@ void fgens(ENVIRON *csound, EVTBLK *evtblkp) /* create ftable using evtblk data 
       fterror(ff,Str(X_684,"deferred size for GEN1 only"));
       return;
     }
-    else ftp = NULL;           /* Ensure a null pointer */
     printf(Str(X_782,"ftable %d:\n"), ff->fno);
-    (*gensub[genum])(ftp, csound);
-    if (!ff->fterrcnt)
+    (*csound->gensub[genum])(ftp, csound);
+    if (!ff->fterrcnt && ftp)
       ftresdisp(ff,ftp);                      /* rescale and display */
 }
 
@@ -2018,7 +2017,6 @@ static void needsiz(FGDATA *ff, long maxend)
 static void gen01raw(FUNC *ftp, ENVIRON *csound)      /* read ftable values from a sound file */
 {                               /* stops reading when table is full     */
     FGDATA  *ff = &(csound->ff);
-    extern  int     close(int);
     static  ARGOFFS argoffs = {0};  /* OUTOCOUNT-not applicable yet */
     static  OPTXT   optxt;          /* create dummy optext  */
     SOUNDIN *p;                     /*   for sndgetset      */
@@ -2059,6 +2057,7 @@ static void gen01raw(FUNC *ftp, ENVIRON *csound)      /* read ftable values from
       if ((ff->flen = p->framesrem) <= 0) {     /*   get minsize from soundin */
         fterror(ff, Str(X_685,"deferred size, but filesize unknown")); return;
       }
+      printf("**** defer length %d\n", ff->flen);
       if (p->channel == ALLCHNLS)
         ff->flen *= p->nchanls;
       ff->guardreq = 1;
@@ -2218,7 +2217,7 @@ FUNC *hfgens(ENVIRON *csound, EVTBLK *evtblkp)/* create ftable using evtblk data
       /* else defer alloc to gen01|gen23|gen28 */
       FTPLERR(Str(X_684,"deferred size for GEN1 only"))
     printf(Str(X_782,"ftable %d:\n"), ff->fno);
-    (*gensub[genum])(ftp, csound);             /* call gen subroutine  */
+    (*csound->gensub[genum])(ftp, csound);     /* call gen subroutine  */
     if (!ff->fterrcnt)
       ftresdisp(ff,ftp);                       /* rescale and display */
     return(ftp);
@@ -2723,7 +2722,7 @@ void gen43(FUNC *ftp, ENVIRON *csound)
     }
 }
 
-int allocgen(char *s, GEN fn)
+int allocgen(ENVIRON *csound, char *s, GEN fn)
 {
     NAMEDGEN *n = namedgen;
     printf("**** allocgen %s to %p\n", s, fn);
@@ -2733,17 +2732,17 @@ int allocgen(char *s, GEN fn)
     }
     /* Need to allocate */
     n = (NAMEDGEN*) mmalloc(sizeof(NAMEDGEN));
-    n->genum = genmax++;
+    n->genum = csound->genmax++;
     n->next = namedgen;
     n->name = mmalloc(strlen(s)+1);
     strcpy(n->name, s);
     namedgen = n;
-    if (gensub==NULL) {
-      gensub = (GEN*)mmalloc(genmax*sizeof(GEN));
-      memcpy(gensub, or_sub, sizeof(or_sub));
+    if (csound->gensub==NULL) {
+      csound->gensub = (GEN*)mmalloc(csound->genmax*sizeof(GEN));
+      memcpy(csound->gensub, or_sub, sizeof(or_sub));
     }
-    else gensub = (GEN*)mrealloc(gensub, genmax*sizeof(GEN));
-    gensub[genmax-1] = fn;
-    printf("**** allocated %d\n", genmax-1);
-    return genmax-1;
+    else csound->gensub = (GEN*)mrealloc(csound->gensub, csound->genmax*sizeof(GEN));
+    csound->gensub[csound->genmax-1] = fn;
+    printf("**** allocated %d\n", csound->genmax-1);
+    return csound->genmax-1;
 }
