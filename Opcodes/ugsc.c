@@ -52,7 +52,7 @@ int svf(SVF *p)
     MYFLT *low, *high, *band, *in, ynm1, ynm2;
     MYFLT low2, high2, band2;
     MYFLT kfco = *p->kfco, kq = *p->kq;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
 
     /* calculate frequency and Q coefficients */
     f1 = FL(2.0) * (MYFLT)sin((double)(kfco * pidsr));
@@ -111,13 +111,13 @@ int hilbertset(HILBERT *p)
     double polefreq[12], rc[12], alpha[12], beta[12];
     /* calculate coefficients for allpass filters, based on sampling rate */
     for (j=0; j<12; j++) {
-      /*      p->coef[j] = (1 - (15 * PI * pole[j]) / esr_) /
-              (1 + (15 * PI * pole[j]) / esr_); */
+      /*      p->coef[j] = (1 - (15 * PI * pole[j]) / esr) /
+              (1 + (15 * PI * pole[j]) / esr); */
       polefreq[j] = poles[j] * 15.0;
       rc[j] = 1.0 / (2.0 * PI * polefreq[j]);
       alpha[j] = 1.0 / rc[j];
-      beta[j] = (1.0 - (alpha[j] / (2.0 * (double)esr_))) /
-                (1.0 + (alpha[j] / (2.0 * (double)esr_)));
+      beta[j] = (1.0 - (alpha[j] / (2.0 * (double)esr))) /
+                (1.0 + (alpha[j] / (2.0 * (double)esr)));
       p->xnm1[j] = p->ynm1[j] = FL(0.0);
       p->coef[j] = -(MYFLT)beta[j];
     }
@@ -129,7 +129,7 @@ int hilbert(HILBERT *p)
     MYFLT xn1 = FL(0.0), yn1 = FL(0.0), xn2 = FL(0.0), yn2 = FL(0.0);
     MYFLT *out1, *out2, *in;
     MYFLT *xnm1, *ynm1, *coef;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     int j;
 
     xnm1 = p->xnm1;
@@ -216,7 +216,7 @@ int resonr(RESONZ *p)
     MYFLT c1, c2;   /* filter coefficients */
     MYFLT *out, *in, xn, yn, xnm1, xnm2, ynm1, ynm2;
     MYFLT kcf = *p->kcf, kbw = *p->kbw;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
 
     r = (MYFLT)exp((double)(kbw * mpidsr));
     c1 = FL(2.0) * r * (MYFLT)cos((double)(kcf * tpidsr));
@@ -268,7 +268,7 @@ int resonz(RESONZ *p)
     MYFLT c1, c2;   /* filter coefficients */
     MYFLT *out, *in, xn, yn, xnm1, xnm2, ynm1, ynm2;
     MYFLT kcf = *p->kcf, kbw = *p->kbw;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
 
     r = (MYFLT)exp(-(double)(kbw * pidsr));
     c1 = FL(2.0) * r * (MYFLT)cos((double)(tpidsr*kcf));
@@ -347,7 +347,7 @@ int phaser1(PHASER1 *p)
     MYFLT *xnm1, *ynm1, feedback;
     MYFLT coef = *p->kcoef, fbgain = *p->fbgain;
     MYFLT beta, wp;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     int j;
 
     xnm1 = p->xnm1;
@@ -414,7 +414,7 @@ int phaser2(PHASER2 *p)
     MYFLT b, a, r, freq;
     MYFLT temp;
     MYFLT *nm1, *nm2, feedback;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     int j;
 
     nm1 = p->nm1;
@@ -489,9 +489,9 @@ int lp2(LP2 *p)
     MYFLT a, b, c, temp;
     MYFLT *out, *in, yn, ynm1, ynm2;
     MYFLT kfco = *p->kfco, kres = *p->kres;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
 
-    temp = mpidsr * kfco / kres; /* (-PI_F * kfco / (kres * esr_)); */
+    temp = mpidsr * kfco / kres; /* (-PI_F * kfco / (kres * esr)); */
     a = FL(2.0) * (MYFLT)(cos((double)(kfco * tpidsr)) * exp((double)temp));
     b = (MYFLT)exp((double)(temp+temp));
     c = FL(1.0) - a + b;

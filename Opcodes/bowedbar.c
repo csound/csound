@@ -91,24 +91,24 @@ static void print_state(BOWEDBAR *p)
 
 /* Number of banded waveguide modes */
 
-static void make_DLineN(DLINEN *p, long length)
+static void make_DLineN(ENVIRON *csound, DLINEN *p, long length)
 {
     int i;
     /* Writing before reading allows delays from 0 to length-1.
        Thus, if we want to allow a delay of max_length, we need
        a delay-line of length = max_length+1. */
     p->length = length = length+1;
-    auxalloc(length * sizeof(MYFLT), &p->inputs);
+    csound->auxalloc_(length * sizeof(MYFLT), &p->inputs);
     for (i=0; i<length; i++) ((MYFLT*)p->inputs.auxp)[i] = FL(0.0);
     p->inPoint = 0;
     p->outPoint = length >> 1;
     p->lastOutput = FL(0.0);
 }
 
-static void DLineN_setDelay(DLINEN *p, int lag)
+static void DLineN_setDelay(ENVIRON *csound, DLINEN *p, int lag)
 {
     if (lag > p->length-1) {                   /* if delay is too big, */
-      printf(Str(X_1769,
+      printf(csound->getstring_(X_1769,
                  "DLineN: Delay length too big ... setting to "
                  "maximum length of %ld.\n"),
              p->length-1);
@@ -150,21 +150,22 @@ int bowedbarset(BOWEDBAR *p)
 
     if (*p->lowestFreq>=FL(0.0)) {      /* If no init skip */
       if (*p->lowestFreq!=FL(0.0))
-        p->length = (long) (esr_ / *p->lowestFreq + FL(1.0));
+        p->length = (long) (esr / *p->lowestFreq + FL(1.0));
       else if (*p->frequency!=FL(0.0))
-        p->length = (long) (esr_ / *p->frequency + FL(1.0));
+        p->length = (long) (esr / *p->frequency + FL(1.0));
       else {
         err_printf(Str(X_512,
                        "unknown lowest frequency for bowed string -- "
                        "assuming 50Hz\n"));
-        p->length = (long) (esr_ / FL(50.0) + FL(1.0));
+        p->length = (long) (esr / FL(50.0) + FL(1.0));
       }
     }
 
     p->nr_modes = NR_MODES;
     for (i = 0; i<p->nr_modes; i++) {
-      make_DLineN(&p->delay[i], p->length);
-      DLineN_setDelay(&p->delay[i], (int)(p->length/p->modes[i]));
+      make_DLineN(p->h.insdshead->csound, &p->delay[i], p->length);
+      DLineN_setDelay(p->h.insdshead->csound,
+                      &p->delay[i], (int)(p->length/p->modes[i]));
       BiQuad_clear(&p->bandpass[i]);
     }
 /*     p->gains[0] = FL(0.0); */
@@ -188,7 +189,7 @@ int bowedbarset(BOWEDBAR *p)
 int bowedbar(BOWEDBAR *p)
 {
     MYFLT       *ar = p->ar;
-    long        nsmps = ksmps_;
+    long        nsmps = ksmps;
     MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     long k;
     int i;
@@ -201,11 +202,12 @@ int bowedbar(BOWEDBAR *p)
       p->freq = *p->frequency;
       if (p->freq > FL(1568.0)) p->freq = FL(1568.0);
 
-      p->length = (int)(esr_/p->freq);
+      p->length = (int)(esr/p->freq);
       p->nr_modes = NR_MODES;   /* reset for frequency shift */
       for (i = 0; i<p->nr_modes; i++) {
         if((int)(p->length/p->modes[i]) > 4)
-          DLineN_setDelay(&p->delay[i], (int)(p->length/p->modes[i]));
+          DLineN_setDelay(p->h.insdshead->csound,
+                          &p->delay[i], (int)(p->length/p->modes[i]));
         else    {
           p->nr_modes = i;
           break;

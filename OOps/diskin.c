@@ -152,10 +152,10 @@ static int sngetset(SOUNDINEW *p, char *sfname)
     /****** if headerblk returned ******/
     if ((hdr=readheader(sinfd,sfname,&forReadHeader)) != NULL
         && !(readlong = hdr->readlong)) {         /* & hadn't readin audio */
-      if (hdr->sr != esr_) {                       /* non-anal:  cmp w. esr */
+      if (hdr->sr != esr) {                       /* non-anal:  cmp w. esr */
         if (O.msglevel & WARNMSG)
           printf(Str(X_62,"WARNING: %s sr = %ld, orch sr = %7.1f\n"),
-                 sfname, hdr->sr, esr_);
+                 sfname, hdr->sr, esr);
       }
 
       if (hdr->nchanls != p->OUTOCOUNT) {         /*        chk nchanls */
@@ -206,7 +206,7 @@ static int sngetset(SOUNDINEW *p, char *sfname)
     /******* no hdr:  find info elsewhere *********/
     else {
       printf(Str(X_1062,"WARNING: no soundin header, presuming orchestra sr\n"));
-      p->sr = (long) esr_;
+      p->sr = (long) esr;
       p->channel = p->OUTOCOUNT;
 
       if (!p->format) {         /* no format:                     */
@@ -495,7 +495,7 @@ void soundinew(SOUNDINEW *p)    /*  a-rate routine for soundinew */
     looping = *p->ilooping;
     chnsout = p->OUTOCOUNT;
     phs     = p->phs;
-    ntogo   = ksmps_;
+    ntogo   = ksmps;
     /*RWD 5:2001 need this when instr dur > filelen*/
     n = 0;
     /* RWD 5:2001 interesting issue - if ktransp starts at zero, we have
@@ -1852,7 +1852,7 @@ int sndo1set(SNDOUT *p)            /* init routine for instr soundout   */
     int psf_ok = 1;
     int do_clip = 1;
     p->c.is_portsf = 0;
-    props.srate  =esr_;
+    props.srate  =esr;
     props.chans = 1;
     props.chformat = STDWAVE;
     if (x(p->c.format = (short)*p->c.iformat) > 0)
@@ -1946,7 +1946,7 @@ int soundout(SNDOUT *p)
 
     asig = p->asig;
     outbufp = p->c.outbufp;
-    nsamps = ksmps_;
+    nsamps = ksmps;
     ospace = (p->c.bufend - outbufp);
  nchk:
     if ((nn = nsamps) > ospace)

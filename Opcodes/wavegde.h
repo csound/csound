@@ -63,7 +63,7 @@ typedef struct {
 
 
 /* circular buffer member functions */
-void circularBufferCircularBuffer(circularBuffer*,len_t);/* constructor */
+void circularBufferCircularBuffer(ENVIRON *,circularBuffer*,len_t);/* constructor */
 void circularBufferWrite(circularBuffer*, MYFLT);  /* write a sample */
 MYFLT circularBufferRead(circularBuffer*);         /* read next sample */
 
@@ -95,7 +95,7 @@ MYFLT filter3FIR(filter3*,MYFLT);   /* convolution filter routine */
 typedef circularBuffer guideRail; /* It's just a circular buffer really */
 
 /* guideRail member functions */
-void guideRailGuideRail(guideRail*,len_t);/* constructor */
+void guideRailGuideRail(ENVIRON *,guideRail*,len_t);/* constructor */
 MYFLT guideRailAccess(guideRail*,len_t);  /* delay line access routine */
 void guideRailUpdate(guideRail*,MYFLT);   /* delay line update routine */
 
@@ -114,11 +114,12 @@ typedef struct{
 MYFLT filterAllpass(waveguide*,MYFLT);/* 1st-order allpass filtering*/
 
 /* waveguide member functions */
-void waveguideWaveguide(waveguide*,
+void waveguideWaveguide(ENVIRON *,
+                        waveguide*,
                         MYFLT,
                         MYFLT*,
                         MYFLT*);
 MYFLT waveguideGetFreq(waveguide*);   /* return f0 frequency */
-void waveguideSetTuning(waveguide*, MYFLT); /* Set tuning filters */
+void waveguideSetTuning(ENVIRON *,waveguide*, MYFLT); /* Set tuning filters */
 #endif
 

@@ -83,7 +83,7 @@ MYFLT DLineL_tick(DLineL *, MYFLT);
 /*  the target value (the state bit).      */
 /*******************************************/
 
-#define RATE_NORM       (FL(22050.0)/esr_)
+#define RATE_NORM       (FL(22050.0)/esr)
 
 typedef struct Envelope {
     MYFLT       value;
@@ -228,7 +228,8 @@ void BiQuad_setZeroCoeffs(BiQuad*, MYFLT *);
         { (b).zeroCoeffs[1] = -FL(1.0); (b).zeroCoeffs[0] = FL(0.0); }
 #define BiQuad_setFreqAndReson(b,freq,reson)    \
         { (b).poleCoeffs[1]= -((reson)*(reson)); \
-          (b).poleCoeffs[0]= FL(2.0)*(reson)*(MYFLT)cos(TWOPI*(double)(freq)/(double)esr_); }
+          (b).poleCoeffs[0]= FL(2.0)*(reson)*\
+          (MYFLT)cos(TWOPI*(double)(freq)/(double)csound->esr_); }
 MYFLT BiQuad_tick(BiQuad*, MYFLT);
 #define BiQuad_lastOut(x)       (x)->lastOutput
 

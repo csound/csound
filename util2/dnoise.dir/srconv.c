@@ -55,7 +55,7 @@
 #include <unistd.h>
 #endif
 
-GLOBALS cglob;
+ENVIRON cenviron;
 
 #define IBUF 	(4096)
 #define IBUF2 	(IBUF/2)

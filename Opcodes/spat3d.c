@@ -209,8 +209,8 @@ spat3d_init_wall(
       /* extend delay buffer */
       if ((MYFLT) d0 > p->mdel) p->mdel = (MYFLT) d0;
       if ((MYFLT) d1 > p->mdel) p->mdel = (MYFLT) d1;
-      ws->D0 = d0 * (double) esr_ + 0.5;
-      ws->D1 = d1 * (double) esr_ + 0.5;
+      ws->D0 = d0 * (double) esr + 0.5;
+      ws->D1 = d1 * (double) esr + 0.5;
       ws->W0 = w; ws->X0 = x; ws->Y0 = y; ws->Z0 = z;
     }
 
@@ -235,7 +235,7 @@ int spat3d_init_delay (SPAT3D *p)
 {
     long    i, j;
 
-    i = ((long) (p->mdel * esr_) + (long) ksmps_ + 34L) * (long) p->oversamp;
+    i = ((long) (p->mdel * esr) + (long) ksmps + 34L) * (long) p->oversamp;
     p->mdel_s = i;
     if (p->o_num == 1) i += 4;      /* extra samples for spat3d */
     j = i * (long) sizeof (MYFLT) * (long) (p->zout > 3 ? 4 : p->zout + 1);
@@ -294,7 +294,7 @@ int spat3d_set_opcode_params (SPAT3D *p)
     p->ftable = p->outft = NULL;    /* no ftables */
     p->zout = p->rseed = p->mindep = p->maxdep = p->outftlnth = wmask = 0;
     p->oversamp = 1;                /* oversample */
-    p->bs = (int) ksmps_;           /* block size */
+    p->bs = (int) ksmps;           /* block size */
     p->irlen = 2;                   /* IR length  */
     p->mdist = p->mdel = FL(0.001); /* unit circle dist., max. delay */
     p->mdel_s = p->del_p = 0L;
@@ -337,7 +337,7 @@ int spat3d_set_opcode_params (SPAT3D *p)
     if (xiovr >= 0)                                 /* oversample */
       p->oversamp = (int) SPAT3D_ROUND (*(p->args[xiovr]));
     if (xirlen >= 0)                                /* IR length */
-      p->irlen = (int) SPAT3D_ROUND (*(p->args[xirlen]) * esr_);
+      p->irlen = (int) SPAT3D_ROUND (*(p->args[xirlen]) * esr);
     if (xioutft >= 0) {                             /* output table */
       if ((int) *(p->args[xioutft]) <= 0) {
         p->outft = NULL; p->outftlnth = 0;
@@ -366,7 +366,7 @@ int spat3d_set_opcode_params (SPAT3D *p)
       if (p->ftable[2] >= FL(0.0))            /* max. delay        */
         p->mdel = p->ftable[2];
       if (p->ftable[3] >= FL(0.0))            /* IR length         */
-        p->irlen = (int) SPAT3D_ROUND (p->ftable[3] * esr_);
+        p->irlen = (int) SPAT3D_ROUND (p->ftable[3] * esr);
       if (p->ftable[4] >= FL(0.0))            /* unit circle dist. */
         p->mdist = p->ftable[4];
       p->rseed = (long) SPAT3D_ROUND (p->ftable[5]);  /* seed      */
@@ -499,9 +499,9 @@ void    spat3d_wall_perf (
       a = SPAT3D_DIST2AMP (d);                  /* amp.      */
       x = (MYFLT) sqrt (1.0 - (double) (x / (d + FL(0.0001))));
       x *= a; w = a - x;                        /* Lh, Ll    */
-      d1 *= (double) p->oversamp * (double) esr_;/* convert  */
+      d1 *= (double) p->oversamp * (double) esr;/* convert  */
     }                                           /* delay to */
-    d0 *= (double) p->oversamp * (double) esr_;  /* samples  */
+    d0 *= (double) p->oversamp * (double) esr;  /* samples  */
 
     /* interpolate W, X, Y, Z, and delay */
 

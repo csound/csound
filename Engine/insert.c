@@ -659,7 +659,7 @@ long kperf(long kcnt)   /* perform currently active instrs for kcnt kperiods */
         while (pcnt!=0) {
           long pp = (pcnt>128 ? 128 : pcnt);
           (*nzerotran)(pp);     /*   send chunk up to kcnt zerospouts  */
-          if (!POLL_EVENTS()) longjmp(cglob.exitjmp,1);
+          if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
           pcnt -= pp;
         }
       }
@@ -678,7 +678,7 @@ long kperf(long kcnt)   /* perform currently active instrs for kcnt kperiods */
 #if defined(mills_macintosh) || defined(CWIN) || defined(SYMANTEC)
       else if (O.Midiin && actanchor.nxtact == NULL) /* no midi or notes on; check events */
 #endif
-        if (!POLL_EVENTS()) longjmp(cglob.exitjmp,1);
+        if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
       kcounter += 1;
       global_kcounter = kcounter;       /* IV - Sep 8 2002 */
       if (O.sfread)           /*   if audio_infile open  */
@@ -686,7 +686,7 @@ long kperf(long kcnt)   /* perform currently active instrs for kcnt kperiods */
       spoutactive = 0;        /*   make spout inactive   */
       ip = &actanchor;
       while ((ip = ip->nxtact) != NULL) { /*   for each instr active */
-        if (!POLL_EVENTS()) longjmp(cglob.exitjmp,1); /* PC GUI needs attention */
+        if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); /* PC GUI needs attention */
         pds = (OPDS *)ip;
         while ((pds = pds->nxtp) != NULL) {
           (*pds->opadr)(pds); /*      run each opcode    */
@@ -698,23 +698,23 @@ long kperf(long kcnt)   /* perform currently active instrs for kcnt kperiods */
     } while (--kcnt);         /* on Mac/Win, allow system events */
 #ifdef never
     clockEnd = clock();
-    clocksPerFrame[cpfIndex] = (clockEnd - clockStart)/(double)(kreq*ksmps_);
+    clocksPerFrame[cpfIndex] = (clockEnd - clockStart)/(double)(kreq*ksmps);
     if (++cpfIndex == numClockPoints)
       cpfIndex = 0;
     /* average this into our tally */
-    clocks = clocks*.9 + (clockEnd - clockStart)*.1/(double)(kreq*ksmps_);
+    clocks = clocks*.9 + (clockEnd - clockStart)*.1/(double)(kreq*ksmps);
     /* test printouts */
     /*  temp += kreq;
-    if (temp > ekr_*.05) {
+    if (temp > ekr*.05) {
       int i;
       double total = 0;
 
       for (i = 0; i < numClockPoints; i++)
         total += clocksPerFrame[i];
 
-      printf("cpu load is: %f\n", esr_*total/(double)(numClockPoints*CLOCKS_PER_SEC));
-      printf("cpu load[filt]: %f\n", esr_*clocks/(double)(CLOCKS_PER_SEC));
-      printf("rendering rate is: %f\n", (double)(CLOCKS_PER_SEC*temp)/(ekr_*(clockEnd - lastClock)));
+      printf("cpu load is: %f\n", esr*total/(double)(numClockPoints*CLOCKS_PER_SEC));
+      printf("cpu load[filt]: %f\n", esr*clocks/(double)(CLOCKS_PER_SEC));
+      printf("rendering rate is: %f\n", (double)(CLOCKS_PER_SEC*temp)/(ekr*(clockEnd - lastClock)));
       lastClock = clockEnd;
       temp = 0;
     }
@@ -828,8 +828,8 @@ int kngoto(CGOTO *p)
 
 int timset(TIMOUT *p)
 {
-    if ((p->cnt1 = (long)(*p->idel * ekr_ + FL(0.5))) < 0L
-        || (p->cnt2 = (long)(*p->idur * ekr_ + FL(0.5))) < 0L)
+    if ((p->cnt1 = (long)(*p->idel * ekr + FL(0.5))) < 0L
+        || (p->cnt2 = (long)(*p->idur * ekr + FL(0.5))) < 0L)
       return initerror(Str(X_1012,"negative time period"));
     return OK;
 }
@@ -977,7 +977,7 @@ int useropcdset(UOPCODE *p)
     int     g_ksmps;
     MYFLT   g_ensmps, g_ekr, g_onedkr, g_hfkprd, g_kicvt;
 
-    g_ksmps = p->l_ksmps = ksmps_;       /* default ksmps */
+    g_ksmps = p->l_ksmps = ksmps;       /* default ksmps */
     p->ksmps_scale = 1;
     /* look up the 'fake' instr number, and opcode name */
     inm = (OPCODINFO*) opcodlst[p->h.optext->t.opnum].useropinfo;
@@ -986,7 +986,7 @@ int useropcdset(UOPCODE *p)
     n = p->OUTOCOUNT + p->INOCOUNT - 1;
     if (*(p->ar[n]) != FL(0.0)) {
       i = (int) *(p->ar[n]);
-      if (i < 1 || i > ksmps_ || ((ksmps_ / i) * i) != ksmps_) {
+      if (i < 1 || i > ksmps || ((ksmps / i) * i) != ksmps) {
         sprintf(errmsg, Str(X_1729, "%s: invalid local ksmps value: %d"),
                         inm->name, i);
         return initerror(errmsg);
@@ -995,13 +995,13 @@ int useropcdset(UOPCODE *p)
     }
     /* save old globals */
     g_ensmps = ensmps;
-    g_ekr = ekr_; g_onedkr = onedkr; g_hfkprd = hfkprd; g_kicvt = kicvt;
+    g_ekr = ekr; g_onedkr = onedkr; g_hfkprd = hfkprd; g_kicvt = kicvt;
     /* set up local variables depending on ksmps, also change globals */
     if (p->l_ksmps != g_ksmps) {
-      ksmps_ = p->l_ksmps;
-      p->ksmps_scale = g_ksmps / (int) ksmps_;
+      ksmps = p->l_ksmps;
+      p->ksmps_scale = g_ksmps / (int) ksmps;
       p->l_ensmps = ensmps = pool[O.poolcount + 2] = (MYFLT) p->l_ksmps;
-      p->l_ekr = ekr_ = pool[O.poolcount + 1] = esr_ / p->l_ensmps;
+      p->l_ekr = ekr = pool[O.poolcount + 1] = esr / p->l_ensmps;
       p->l_onedkr = onedkr = FL(1.0) / p->l_ekr;
       p->l_hfkprd = hfkprd = FL(0.5) / p->l_ekr;
       p->l_kicvt = kicvt = (MYFLT) FMAXLEN / p->l_ekr;
@@ -1070,7 +1070,7 @@ int useropcdset(UOPCODE *p)
       ids = ids->nxti;
     }
     /* copy length related parameters back to caller instr */
-    if (ksmps_ == g_ksmps)
+    if (ksmps == g_ksmps)
       saved_curip->xtratim = lcurip->xtratim;
     else
       saved_curip->xtratim =
@@ -1083,9 +1083,9 @@ int useropcdset(UOPCODE *p)
     /* restore globals */
     ids = saved_ids;
     curip = saved_curip;
-    if (ksmps_ != g_ksmps) {
-      ksmps_ = g_ksmps; ensmps = pool[O.poolcount + 2] = g_ensmps;
-      ekr_ = pool[O.poolcount + 1] = g_ekr;
+    if (ksmps != g_ksmps) {
+      ksmps = g_ksmps; ensmps = pool[O.poolcount + 2] = g_ensmps;
+      ekr = pool[O.poolcount + 1] = g_ekr;
       onedkr = g_onedkr; hfkprd = g_hfkprd; kicvt = g_kicvt;
       kcounter = kcounter / p->ksmps_scale;
       /* IV - Sep 17 2002: also select perf routine */
@@ -1192,23 +1192,23 @@ int setksmpsset(SETKSMPS *p)
     buf = (OPCOD_IOBUFS*) p->h.insdshead->opcod_iobufs;
     l_ksmps = (int) *(p->i_ksmps);
     if (!l_ksmps) return OK;       /* zero: do not change */
-    if (l_ksmps < 1 || l_ksmps > ksmps_
-        || ((ksmps_ / l_ksmps) * l_ksmps != ksmps_)) {
+    if (l_ksmps < 1 || l_ksmps > ksmps
+        || ((ksmps / l_ksmps) * l_ksmps != ksmps)) {
       sprintf(errmsg, Str(X_1750,"setksmps: invalid ksmps value: %d"), l_ksmps);
       return initerror(errmsg);
     }
     /* set up global variables according to the new ksmps value */
     pp = (UOPCODE*) buf->uopcode_struct;
-    n = ksmps_ / l_ksmps;
+    n = ksmps / l_ksmps;
     pp->ksmps_scale *= n;
     n *= p->h.insdshead->xtratim;
     p->h.insdshead->xtratim = (n > 32767 ? 32767 : n);
-    pp->l_ksmps = ksmps_ = l_ksmps;
-    pp->l_ensmps = ensmps = pool[O.poolcount + 2] = (MYFLT) ksmps_;
-    pp->l_ekr = ekr_ = pool[O.poolcount + 1] = esr_ / ensmps;
-    pp->l_onedkr = onedkr = FL(1.0) / ekr_;
-    pp->l_hfkprd = hfkprd = FL(0.5) / ekr_;
-    pp->l_kicvt = kicvt = (MYFLT) FMAXLEN / ekr_;
+    pp->l_ksmps = ksmps = l_ksmps;
+    pp->l_ensmps = ensmps = pool[O.poolcount + 2] = (MYFLT) ksmps;
+    pp->l_ekr = ekr = pool[O.poolcount + 1] = esr / ensmps;
+    pp->l_onedkr = onedkr = FL(1.0) / ekr;
+    pp->l_hfkprd = hfkprd = FL(0.5) / ekr;
+    pp->l_kicvt = kicvt = (MYFLT) FMAXLEN / ekr;
     kcounter *= pp->ksmps_scale;
     return OK;
 }
@@ -1466,7 +1466,7 @@ int subinstr(SUBINST *p)
 
     /* copy outputs */
     for (chan = 0; chan < p->OUTOCOUNT; chan++) {
-      for (pbuf = spout + chan, frame = 0; frame < ksmps_; frame++) {
+      for (pbuf = spout + chan, frame = 0; frame < ksmps; frame++) {
         p->ar[chan][frame] = *pbuf;
         pbuf += nchnls;
       }
@@ -1494,16 +1494,16 @@ int useropcd1(UOPCODE *p)
     /* update release flag */
     p->ip->relesing = p->parent_ip->relesing;   /* IV - Nov 16 2002 */
     /* save old globals */
-    g_ksmps = ksmps_; g_ensmps = ensmps;
-    g_ekr = ekr_; g_onedkr = onedkr; g_hfkprd = hfkprd; g_kicvt = kicvt;
+    g_ksmps = ksmps; g_ensmps = ensmps;
+    g_ekr = ekr; g_onedkr = onedkr; g_hfkprd = hfkprd; g_kicvt = kicvt;
     g_kcounter = kcounter;
     /* set local ksmps and related values */
-    ksmps_ = p->l_ksmps; ensmps = pool[O.poolcount + 2] = p->l_ensmps;
-    ekr_ = pool[O.poolcount + 1] = p->l_ekr;
+    ksmps = p->l_ksmps; ensmps = pool[O.poolcount + 2] = p->l_ensmps;
+    ekr = pool[O.poolcount + 1] = p->l_ekr;
     onedkr = p->l_onedkr; hfkprd = p->l_hfkprd; kicvt = p->l_kicvt;
     kcounter = kcounter * p->ksmps_scale;
 
-    if (ksmps_ == 1) {                   /* special case for local kr == sr */
+    if (ksmps == 1) {                   /* special case for local kr == sr */
       do {
         /* copy inputs */
         tmp = p->buf->iobufp_ptrs;
@@ -1531,7 +1531,7 @@ int useropcd1(UOPCODE *p)
         tmp = p->buf->iobufp_ptrs;
         while (*tmp) {                  /* a-rate */
           ptr1 = *(tmp++) + ofs; ptr2 = *(tmp++);
-          n = ksmps_;
+          n = ksmps;
           do {
             *(ptr2++) = *(ptr1++);
           } while (--n);
@@ -1547,13 +1547,13 @@ int useropcd1(UOPCODE *p)
         /* copy outputs */
         while (*(++tmp)) {              /* a-rate */
           ptr1 = *tmp; ptr2 = *(++tmp) + ofs;
-          n = ksmps_;
+          n = ksmps;
           do {
             *(ptr2++) = *(ptr1++);
           } while (--n);
         }
         ++kcounter;
-      } while ((ofs += ksmps_) < g_ksmps);
+      } while ((ofs += ksmps) < g_ksmps);
     }
     /* k-rate outputs are copied only in the last sub-kperiod, */
     /* so we do it now */
@@ -1562,8 +1562,8 @@ int useropcd1(UOPCODE *p)
     }
 
     /* restore globals */
-    ksmps_ = g_ksmps; ensmps = pool[O.poolcount + 2] = g_ensmps;
-    ekr_ = pool[O.poolcount + 1] = g_ekr;
+    ksmps = g_ksmps; ensmps = pool[O.poolcount + 2] = g_ensmps;
+    ekr = pool[O.poolcount + 1] = g_ekr;
     onedkr = g_onedkr; hfkprd = g_hfkprd; kicvt = g_kicvt;
     kcounter = g_kcounter;
     pds = saved_pds;
@@ -1586,11 +1586,11 @@ int useropcd2(UOPCODE *p)
     p->ip->relesing = p->parent_ip->relesing;
 
     tmp = p->buf->iobufp_ptrs;
-    if (ksmps_ != 1) {                   /* generic case for kr != sr */
+    if (ksmps != 1) {                   /* generic case for kr != sr */
       /* copy inputs */
       while (*tmp) {                    /* a-rate */
         ptr1 = *(tmp++); ptr2 = *(tmp++);
-        n = ksmps_;
+        n = ksmps;
         do {
           *(ptr2++) = *(ptr1++);
         } while (--n);
@@ -1605,7 +1605,7 @@ int useropcd2(UOPCODE *p)
       /* copy outputs */
       while (*(++tmp)) {                /* a-rate */
         ptr1 = *tmp; ptr2 = *(++tmp);
-        n = ksmps_;
+        n = ksmps;
         do {
           *(ptr2++) = *(ptr1++);
         } while (--n);

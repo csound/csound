@@ -37,7 +37,7 @@
 #endif
 
 /* Constants */
-GLOBALS cglob;
+ENVIRON cenviron;
 
 #define SHORTMAX 32767
 #define FIND(MSG)   if (*s == '\0')  \

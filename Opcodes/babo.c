@@ -172,7 +172,7 @@ bround(MYFLT x)
  */
 
 static BaboMemory *
-BaboMemory_create(BaboMemory *this, size_t size_in_floats)
+BaboMemory_create(BABO *p, BaboMemory *this, size_t size_in_floats)
 {
     size_t size_in_bytes = size_in_floats * sizeof(MYFLT);
 
@@ -216,9 +216,9 @@ BaboMemory_size(const BaboMemory *this)
  */
 
 static void
-_Babo_common_delay_create(BaboDelay *this, MYFLT max_time)
+_Babo_common_delay_create(BABO *p, BaboDelay *this, MYFLT max_time)
 {
-    size_t num_floats = (size_t) bround((MYFLT)ceil((double)(max_time * esr_)));
+    size_t num_floats = (size_t) bround((MYFLT)ceil((double)(max_time * esr)));
 
     BaboMemory_create(&this->core, num_floats);
 }
@@ -282,7 +282,7 @@ BaboTapline_create(BaboTapline *this, MYFLT x, MYFLT y, MYFLT z)
 }
 
 INLINE static MYFLT
-BaboTapline_maxtime(BaboDelay *this)
+BaboTapline_maxtime(BABO *p, BaboDelay *this)
 {
     return (((MYFLT) BaboMemory_samples(&this->core)) * onedsr);
 }
@@ -314,7 +314,7 @@ typedef struct
  */
 /* a-rate function */
 static MYFLT
-BaboTapline_single_output(const BaboTapline *this, const BaboTapParameter *p)
+BaboTapline_single_output(BABO *p, const BaboTapline *this, const BaboTapParameter *pp)
 {
         /*
          * the assignement right below should be really a floor(p->delay_size),
@@ -324,9 +324,9 @@ BaboTapline_single_output(const BaboTapline *this, const BaboTapParameter *p)
          * other architectures than mine (k6), so it potentially is a source
          * of problems. [nicb@axnet.it]
          */
-    size_t delay_floor  = (size_t) p->delay_size;
+    size_t delay_floor  = (size_t) pp->delay_size;
     size_t delay_ceil   = delay_floor + 1;
-    MYFLT fractional    = p->delay_size - (MYFLT) delay_floor;
+    MYFLT fractional    = pp->delay_size - (MYFLT) delay_floor;
     MYFLT *output_floor = this->input - delay_floor;
     MYFLT *output_ceil  = this->input - delay_ceil;
     MYFLT output = FL(0.0);
@@ -339,7 +339,7 @@ BaboTapline_single_output(const BaboTapline *this, const BaboTapParameter *p)
 
     output = (*output_floor*(1-fractional)) + (*output_ceil*fractional);
 
-    return output * p->attenuation;
+    return output * pp->attenuation;
 }
 
 /* k-rate function */
@@ -352,7 +352,7 @@ BaboTapline_preload_parameter(BaboTapParameter *this, MYFLT distance)
      *          direct_att=(1/2) when distance is 1 m
      *          direct_att=1     when distance is 0 m.
      */
-    this->delay_size    = (distance / sound_speed) * esr_;
+    this->delay_size    = (distance / sound_speed) * esr;
     this->attenuation   = 1 / (1 + distance);
 }
 
@@ -795,7 +795,7 @@ int
 babo(void *entry)
 {
     register BABO   *p          = (BABO *) entry;
-    register int     nsmps      = ksmps_;
+    register int     nsmps      = ksmps;
     register MYFLT  *outleft    = p->outleft,
                     *outright   = p->outright,
                     *input      = p->input;

@@ -85,7 +85,7 @@
 #include <unistd.h>
 #endif
 
-extern GLOBALS cglob;
+extern ENVIRON cenviron;
 
 #define ERR(x)          perror(x); exit(1)
 #define FIND(MSG)   if (*s == '\0')  \
@@ -535,7 +535,7 @@ int dnoise(int argc, char **argv)
     if (O.outfilename == NULL)  O.outfilename = "test";
 /*     ofd = fopen(outfile, "wb"); */
     outfd = openout(O.outfilename, 1);
-    esr_ = (MYFLT)p->sr;
+    esr = (MYFLT)p->sr;
     nchnls = Chans = p->nchanls;
     if (O.sfheader)
         writeheader(outfd, O.outfilename);      /* write header as required   */

@@ -124,7 +124,7 @@ int Fosckk(XOSC *p)
     FUNC        *ftp;
     MYFLT       amp, *ar, *ftbl;
     MYFLT       inc, phs;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     int flen;
 
     ftp = p->ftp;
@@ -151,7 +151,7 @@ int Foscak(XOSC *p)
     FUNC        *ftp;
     MYFLT       *ampp, *ar, *ftbl;
     MYFLT       inc, phs;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     int flen;
 
     ftp = p->ftp;
@@ -178,7 +178,7 @@ int Foscka(XOSC *p)
     FUNC        *ftp;
     MYFLT       amp, *ar, *cpsp, *ftbl;
     MYFLT       inc, phs;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     int flen;
 
     ftp = p->ftp;
@@ -207,7 +207,7 @@ int Foscaa(XOSC *p)
     FUNC        *ftp;
     MYFLT       *ampp, *ar, *ftbl;
     MYFLT       phs;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     int flen;
 
     ftp = p->ftp;

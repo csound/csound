@@ -54,7 +54,7 @@ int vbap_zak(VBAP_ZAK *p) /* during note performance:   */
 
     /* write audio to result audio streams weighted
        with gain factors*/
-    invfloatn =  FL(1.0) / (MYFLT) ksmps_;
+    invfloatn =  FL(1.0) / (MYFLT) ksmps;
     outptr = p->out_array;
     for (j=0; j<n; j++) {
       inptr = p->audio;
@@ -63,7 +63,7 @@ int vbap_zak(VBAP_ZAK *p) /* during note performance:   */
       gainsubstr = ngain - ogain;
       if (ngain != FL(0.0) || ogain != FL(0.0))
         if (ngain != ogain) {
-          for (i = 0; i < ksmps_; i++) {
+          for (i = 0; i < ksmps; i++) {
             *outptr++ = *inptr++ *
               (ogain + (MYFLT) (i+1) * invfloatn * gainsubstr);
           }
@@ -71,10 +71,10 @@ int vbap_zak(VBAP_ZAK *p) /* during note performance:   */
             (MYFLT) (i) * invfloatn * gainsubstr;
         }
         else
-          for (i=0; i<ksmps_; ++i)
+          for (i=0; i<ksmps; ++i)
             *outptr++ = *inptr++ * ogain;
       else
-        for (i=0; i<ksmps_; ++i)
+        for (i=0; i<ksmps; ++i)
           *outptr++ = FL(0.0);
     }
     return OK;
@@ -203,7 +203,7 @@ int vbap_zak_init(VBAP_ZAK  *p)
       return perferror(Str(X_1532,"outz index < 0. No output."));
     }
     /* Now read from the array in za space and write to the output. */
-    p->out_array     = zastart + (indx * ksmps_);/* outputs */
+    p->out_array     = p->h.insdshead->csound->zastart_ + (indx * ksmps);/* outputs */
     auxalloc(p->n*sizeof(MYFLT)*4, &p->auxch);
     p->curr_gains    = (MYFLT*)p->auxch.auxp;
     p->beg_gains     = p->curr_gains + p->n;
@@ -267,7 +267,7 @@ int vbap_zak_moving(VBAP_ZAK_MOVING *p) /* during note performance:   */
 
     /* write audio to resulting audio streams wEIGHTed
        with gain factors*/
-    invfloatn =  FL(1.0) / (MYFLT) ksmps_;
+    invfloatn =  FL(1.0) / (MYFLT) ksmps;
     outptr = p->out_array;
     for (j=0; j<p->n ;j++) {
       inptr = p->audio;
@@ -276,7 +276,7 @@ int vbap_zak_moving(VBAP_ZAK_MOVING *p) /* during note performance:   */
       gainsubstr = ngain - ogain;
       if (ngain != FL(0.0) || ogain != FL(0.0))
         if (ngain != ogain) {
-          for (i = 0; i < ksmps_; i++) {
+          for (i = 0; i < ksmps; i++) {
             *outptr++ = *inptr++ *
               (ogain + (MYFLT) (i+1) * invfloatn * gainsubstr);
           }
@@ -284,10 +284,10 @@ int vbap_zak_moving(VBAP_ZAK_MOVING *p) /* during note performance:   */
             (MYFLT) (i) * invfloatn * gainsubstr;
         }
         else
-          for (i=0; i<ksmps_; ++i)
+          for (i=0; i<ksmps; ++i)
             *outptr++ = *inptr++ * ogain;
       else
-        for (i=0; i<ksmps_; ++i)
+        for (i=0; i<ksmps; ++i)
           *outptr++ = FL(0.0);
     }
     return OK;
@@ -378,13 +378,13 @@ int vbap_zak_moving_control(VBAP_ZAK_MOVING  *p)
     }
     else { /* angular velocities */
       if (p->dim == 2) {
-        p->ang_dir.azi =  p->ang_dir.azi + (*p->fld[p->next_fld] / ekr_);
+        p->ang_dir.azi =  p->ang_dir.azi + (*p->fld[p->next_fld] / ekr);
         scale_angles(&(p->ang_dir));
       }
       else { /* 3D angular*/
-        p->ang_dir.azi =  p->ang_dir.azi + (*p->fld[p->next_fld] / ekr_);
+        p->ang_dir.azi =  p->ang_dir.azi + (*p->fld[p->next_fld] / ekr);
         p->ang_dir.ele =  p->ang_dir.ele +
-          p->ele_vel * (*p->fld[p->next_fld+1] / ekr_);
+          p->ele_vel * (*p->fld[p->next_fld+1] / ekr);
         if (p->ang_dir.ele > FL(90.0)) {
           p->ang_dir.ele = FL(90.0);
           p->ele_vel = -p->ele_vel;
@@ -497,7 +497,7 @@ int vbap_zak_moving_init(VBAP_ZAK_MOVING  *p)
       return perferror(Str(X_1532,"outz index < 0. No output."));
     }
     /* Now read from the array in za space and write to the output. */
-    p->out_array     = zastart + (indx * ksmps_);/* outputs */
+    p->out_array     = p->h.insdshead->csound->zastart_ + (indx * ksmps);/* outputs */
     auxalloc(p->n*sizeof(MYFLT)*4, &p->auxch);
     p->curr_gains    = (MYFLT*)p->auxch.auxp;
     p->beg_gains     = p->curr_gains + p->n;
@@ -530,12 +530,12 @@ int vbap_zak_moving_init(VBAP_ZAK_MOVING  *p)
     p->ele_vel = FL(1.0);    /* functions specific to movement */
     if (fabs(*p->field_am) < (2+ (p->dim - 2)*2)) {
       printf(Str(X_1703,"Have to have at least %d directions in vbapzmove\n"),2+ (p->dim - 2)*2);
-      longjmp(cglob.exitjmp,-1);
+      longjmp(cenviron.exitjmp_,-1);
     }
     if (p->dim == 2)
-      p->point_change_interval = (int) (ekr_ * *p->dur / (fabs(*p->field_am) - 1));
+      p->point_change_interval = (int) (ekr * *p->dur / (fabs(*p->field_am) - 1));
     else if (p->dim == 3)
-      p->point_change_interval = (int) (ekr_ * *p->dur / ((fabs(*p->field_am) / 2.0) - 1.0 ));
+      p->point_change_interval = (int) (ekr * *p->dur / ((fabs(*p->field_am) / 2.0) - 1.0 ));
     else
       die(Str(X_1696,"Wrong dimension\n"));
     p->point_change_counter = 0;

@@ -1230,7 +1230,7 @@ static void gen30 (void)
       return;
     }
     xsr = FL(1.0);
-    if ((nargs > 3) && (e->p[8] > FL(0.0))) xsr = esr_ / e->p[8];
+    if ((nargs > 3) && (e->p[8] > FL(0.0))) xsr = esr / e->p[8];
     f = ftfind (&(e->p[5])); if (f == NULL) return;
     l1 = ftp->flen; l2 = f->flen;
     minfrac = e->p[6];          /* lowest harmonic number */
@@ -1480,7 +1480,7 @@ static void gen33 (void)
     scl = e->p[7];
     /* frequency mode */
     if (fmode < FL(0.0)) {
-      fmode = (MYFLT) flen / (esr_ * -fmode);    /* frequency in Hz */
+      fmode = (MYFLT) flen / (esr * -fmode);    /* frequency in Hz */
     }
     else if (fmode > FL(0.0)) {
       fmode = (MYFLT) flen / fmode;             /* ref. sample rate */
@@ -1558,7 +1558,7 @@ static void gen34 (void)
     scl = e->p[7];
     /* frequency mode */
     if (fmode < FL(0.0)) {
-      fmode = TWOPI_F / (esr_ * -fmode); /* frequency in Hz */
+      fmode = TWOPI_F / (esr * -fmode); /* frequency in Hz */
     }
     else if (fmode > FL(0.0)) {
       fmode = TWOPI_F / fmode;          /* ref. sample rate */

@@ -191,7 +191,7 @@ int Moog1(MOOG1 *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       *ar = p->ar;
-    long        nsmps = ksmps_;
+    long        nsmps = ksmps;
     MYFLT       temp;
     MYFLT       vib = *p->vibAmt;
 

@@ -30,7 +30,7 @@
 #include <math.h>
 #define ROOT2 (FL(1.4142135623730950488))
 
-static void butter_filter(MYFLT *, MYFLT *, MYFLT *);
+static void butter_filter(long, MYFLT *, MYFLT *, MYFLT *);
 
 int butset(BFIL *p)                    /*      Hi/Lo pass set-up       */
 {
@@ -59,7 +59,7 @@ int hibut(BFIL *p)                     /*      Hipass filter   */
     out = p->sr;
 
     if (*p->kfc <= FL(0.0))     {
-      long      n = ksmps_;
+      long      n = ksmps;
       do {
         *out++ = *in++;
       } while (--n);
@@ -79,7 +79,7 @@ int hibut(BFIL *p)                     /*      Hipass filter   */
       a[4] = FL(2.0) * ( c*c - FL(1.0)) * a[1];
       a[5] = ( FL(1.0) - ROOT2 * c + c * c) * a[1];
     }
-    butter_filter( in, out, p->a);
+    butter_filter(ksmps, in, out, p->a);
     return OK;
 }
 
@@ -91,7 +91,7 @@ int lobut(BFIL *p)                             /*      Lopass filter   */
     out = p->sr;
 
     if (*p->kfc <= FL(0.0))     {
-      long      n = ksmps_;
+      long      n = ksmps;
 
       do {
         *out++ = FL(0.0);
@@ -113,7 +113,7 @@ int lobut(BFIL *p)                             /*      Lopass filter   */
       a[5] = ( FL(1.0) - ROOT2 * c + c * c) * a[1];
     }
 
-    butter_filter( in, out, p->a);
+    butter_filter(ksmps, in, out, p->a);
     return OK;
 }
 
@@ -124,7 +124,7 @@ int bpbut(BBFIL *p)                            /*      Bandpass filter */
     in = p->ain;
     out = p->sr;
     if (*p->kbw <= FL(0.0))     {
-      long      n = ksmps_;
+      long      n = ksmps;
       do {
         *out++ = FL(0.0);
       } while (--n);
@@ -143,7 +143,7 @@ int bpbut(BBFIL *p)                            /*      Bandpass filter */
       a[4] = - c * d * a[1];
       a[5] = ( c - FL(1.0)) * a[1];
     }
-    butter_filter( in, out, p->a);
+    butter_filter(ksmps, in, out, p->a);
     return OK;
 }
 
@@ -155,7 +155,7 @@ int bcbut(BBFIL *p)                    /*      Band reject filter      */
     out = p->sr;
 
     if (*p->kbw <= FL(0.0))     {
-      long      n = ksmps_;
+      long      n = ksmps;
 
       do {
         *out++ = *in++;
@@ -178,7 +178,7 @@ int bcbut(BBFIL *p)                    /*      Band reject filter      */
       a[5] = ( FL(1.0) - c) * a[1];
     }
 
-    butter_filter( in, out, p->a);
+    butter_filter(ksmps, in, out, p->a);
     return OK;
 }
 
@@ -188,10 +188,9 @@ int bcbut(BBFIL *p)                    /*      Band reject filter      */
 #define IS_DENORMAL(f) (0)
 #endif
 
-static void butter_filter(MYFLT *in, MYFLT *out, MYFLT *a)  /*      Filter loop */
+static void butter_filter(long n, MYFLT *in, MYFLT *out, MYFLT *a)  /*      Filter loop */
 {
     MYFLT t, y;
-    long n = ksmps_;
 
     do {
       t = *in++ - a[4] * a[6] - a[5] * a[7];

@@ -37,67 +37,67 @@
 #include "pluck.h"
 
 /* external prototypes */
-static void error(const char*, const char*);
+static void error(ENVIRON*, const char*, const char*);
 static void pluckSetFilters(WGPLUCK*, MYFLT, MYFLT);
 static MYFLT *pluckShape(WGPLUCK*);    /* pluck shape function */
 
 /* ***** plucked string class member function definitions ***** */
 static /* pluck::excite -- excitation function for plucked string */
-int pluckExcite(WGPLUCK* plk)
+int pluckExcite(WGPLUCK* p)
 {
     MYFLT *shape;
     int i;
-    int size = plk->wg.upperRail.size;
+    int size = p->wg.upperRail.size;
 
     /* set the delay element to pick at */
-    plk->pickSamp=(len_t)(size * *plk->pickPos);
-    if (plk->pickSamp<1)
-      plk->pickSamp = 1;
+    p->pickSamp=(len_t)(size * *p->pickPos);
+    if (p->pickSamp<1)
+      p->pickSamp = 1;
 
     /* set the bridge filter coefficients for the correct magnitude response */
-    pluckSetFilters(plk,*plk->Aw0,*plk->AwPI);/*attenuation in dB at w0 and PI*/
+    pluckSetFilters(p,*p->Aw0,*p->AwPI);/*attenuation in dB at w0 and PI*/
 
     /* add the pick shape to the waveguide rails */
-    shape = pluckShape(plk);    /* Efficiency loss here */
+    shape = pluckShape(p);    /* Efficiency loss here */
 
     /* add shape to lower rail */
     for (i=0;i<size;i++) {
-      plk->wg.lowerRail.data[i] = shape[i]; /* Why add? Starts at zero anyway */
-      plk->wg.upperRail.data[size-i-1] = shape[i];
+      p->wg.lowerRail.data[i] = shape[i]; /* Why add? Starts at zero anyway */
+      p->wg.upperRail.data[size-i-1] = shape[i];
     }
 
     /* flip shape and add to upper rail */
-/*      pluckFlip(plk,shape); */
+/*      pluckFlip(p,shape); */
 /*      for (i=0;i<size;i++) */
-/*        plk->wg.upperRail.data[i] = shape[i]; */
+/*        p->wg.upperRail.data[i] = shape[i]; */
 
     /* free the space used by the pluck shape */
     mfree((char*)shape);
 
     /* Reset the tuning and bridge filters */
-    /*filterReset(&plk->wg.tnFIR);*/
-    /*filterReset(&plk->bridge);*/
+    /*filterReset(&p->wg.tnFIR);*/
+    /*filterReset(&p->bridge);*/
 
     /* set excitation flag */
-    plk->wg.excited = 1;
+    p->wg.excited = 1;
     return OK;
 }
 
 /* ::pluck -- create the plucked-string instrument */
-int pluckPluck(WGPLUCK* plk)
+int pluckPluck(WGPLUCK* p)
 {
     /* ndelay = total required delay - 1.0 */
-    len_t ndelay = (len_t) (esr_ / *plk->freq - FL(1.0));
+    len_t ndelay = (len_t) (esr / *p->freq - FL(1.0));
 
 #ifdef WG_VERBOSE
     printf("pluckPluck -- allocating memory...");
 #endif
 
     /* Allocate auxillary memory or reallocate if size has changed */
-    auxalloc((len_t)(ndelay/2)*sizeof(MYFLT), &plk->upperData);
-    auxalloc((len_t)(ndelay/2)*sizeof(MYFLT), &plk->lowerData);
-/*     auxalloc(3L*sizeof(MYFLT), &plk->bridgeCoeffs); */
-/*     auxalloc(3L*sizeof(MYFLT), &plk->bridgeData); */
+    auxalloc((len_t)(ndelay/2)*sizeof(MYFLT), &p->upperData);
+    auxalloc((len_t)(ndelay/2)*sizeof(MYFLT), &p->lowerData);
+/*     auxalloc(3L*sizeof(MYFLT), &p->bridgeCoeffs); */
+/*     auxalloc(3L*sizeof(MYFLT), &p->bridgeData); */
 
 #ifdef WG_VERBOSE
     printf("done.\n");
@@ -108,10 +108,11 @@ int pluckPluck(WGPLUCK* plk)
     printf("Constructing waveguide...");
 #endif
 
-    waveguideWaveguide((waveguide*)&plk->wg,             /* waveguide       */
-                       (MYFLT)*plk->freq,                /* f0 frequency    */
-                       (MYFLT*)plk->upperData.auxp,      /* upper rail data */
-                       (MYFLT*)plk->lowerData.auxp);     /* lower rail data */
+    waveguideWaveguide(p->h.insdshead->csound,
+                       (waveguide*)&p->wg,             /* waveguide       */
+                       (MYFLT)*p->freq,                /* f0 frequency    */
+                       (MYFLT*)p->upperData.auxp,      /* upper rail data */
+                       (MYFLT*)p->lowerData.auxp);     /* lower rail data */
 #ifdef WG_VERBOSE
     printf("done.\n");
 #endif
@@ -119,9 +120,9 @@ int pluckPluck(WGPLUCK* plk)
 #ifdef WG_VERBOSE
     printf("Initializing bridge filters...");
 #endif
-/*     plk->bridge.coeffs=(MYFLT*)plk->bridgeCoeffs.auxp;  /\* bridge coeffs *\/ */
-/*     plk->bridge.buffer.data=(MYFLT*)plk->bridgeData.auxp;/\* bridge data *\/ */
-/*     filterFilter(&plk->bridge,3); /\* construct bridge filter object *\/ */
+/*     p->bridge.coeffs=(MYFLT*)p->bridgeCoeffs.auxp;  /\* bridge coeffs *\/ */
+/*     p->bridge.buffer.data=(MYFLT*)p->bridgeData.auxp;/\* bridge data *\/ */
+/*     filterFilter(&p->bridge,3); /\* construct bridge filter object *\/ */
 #ifdef WG_VERBOSE
     printf("done\n");
 #endif
@@ -129,7 +130,7 @@ int pluckPluck(WGPLUCK* plk)
 #ifdef WG_VERBOSE
     printf("Exciting the string...");
 #endif
-    pluckExcite(plk);
+    pluckExcite(p);
 #ifdef WG_VERBOSE
     printf("done\n");
 #endif
@@ -138,18 +139,18 @@ int pluckPluck(WGPLUCK* plk)
 
 
 /* pluck::setFilters -- frequency dependent filter calculations */
-static void pluckSetFilters(WGPLUCK* plk, MYFLT A_w0, MYFLT A_PI)
+static void pluckSetFilters(WGPLUCK* p, MYFLT A_w0, MYFLT A_PI)
 {
     /* Define the required magnitude response of H1 at w0 and PI */
 
     /* Constrain attenuation specification to dB per second */
-    double NRecip = plk->wg.f0*onedsr; /*  N=t*esr/f0  */
+    double NRecip = p->wg.f0*onedsr; /*  N=t*esr/f0  */
     MYFLT H1_w0 = (MYFLT) pow(10.0,-(double)A_w0*0.05*NRecip);
     MYFLT H1_PI = (MYFLT) pow(10.0,-(double)A_PI*0.05*NRecip);
     {
       /* The tuning filter is allpass, so no dependency for H1 */
       /* therefore solve for the coefficients of the bridge filter directly */
-      MYFLT cosw0 = (MYFLT)cos((double)plk->wg.w0);
+      MYFLT cosw0 = (MYFLT)cos((double)p->wg.w0);
       MYFLT a1=(H1_w0+cosw0*H1_PI)/(1+cosw0);
       MYFLT a0 = (a1 - H1_PI)*FL(0.5);
       /* apply constraints on coefficients (see Sullivan)*/
@@ -157,68 +158,68 @@ static void pluckSetFilters(WGPLUCK* plk, MYFLT A_w0, MYFLT A_PI)
         a0=FL(0.0);
         a1=H1_w0;
       }
-      filter3Set(&plk->bridge,a0, a1);   /* set the new bridge coefficients */
+      filter3Set(&p->bridge,a0, a1);   /* set the new bridge coefficients */
     }
 }
 
 /* ::pluckShape -- the pluck function for a string */
-static MYFLT *pluckShape(WGPLUCK* plk)
+static MYFLT *pluckShape(WGPLUCK* p)
 {
-    MYFLT scale = *plk->amp;
+    MYFLT scale = *p->amp;
     MYFLT  *shape;
-    len_t len=plk->wg.lowerRail.size;
+    len_t len=p->wg.lowerRail.size;
     len_t i;
     MYFLT M;
 
     /* This memory must be freed after use */
     shape = (MYFLT *) mmalloc(len*sizeof(MYFLT));
     if (!shape)
-      error(Str(X_231,"Couldn't allocate for initial shape"),"<pluckShape>");
+      error(p->h.insdshead->csound, Str(X_231,"Couldn't allocate for initial shape"),"<pluckShape>");
 
     scale = FL(0.5) * scale;      /* Scale was squared!! */
-    for (i=0;i<plk->pickSamp;i++)
-      shape[i] = scale*i / plk->pickSamp;
+    for (i=0;i<p->pickSamp;i++)
+      shape[i] = scale*i / p->pickSamp;
 
-    M = (MYFLT)len - plk->pickSamp;
+    M = (MYFLT)len - p->pickSamp;
     for (i=0;i<M;i++)
-      shape[plk->pickSamp+i] = scale - (i*scale/M);
+      shape[p->pickSamp+i] = scale - (i*scale/M);
 
     return shape;
 }
 
 
 /* ::getSamps -- the sample generating routine */
-int pluckGetSamps(WGPLUCK* plk)
+int pluckGetSamps(WGPLUCK* p)
 {
     MYFLT       yr0,yl0,yrM,ylM;        /* Key positions on the waveguide */
-    MYFLT *ar = plk->out;    /* The sample output buffer */
-    len_t M=plk->wg.upperRail.size; /* Length of the guide rail */
-    len_t N=ksmps_;
+    MYFLT *ar = p->out;    /* The sample output buffer */
+    len_t M=p->wg.upperRail.size; /* Length of the guide rail */
+    len_t N=ksmps;
 /*    int i = 0; */
-    MYFLT *fdbk = plk->afdbk;
+    MYFLT *fdbk = p->afdbk;
     /* set the delay element to pickup at */
-    len_t pickupSamp=(len_t)(M * *plk->pickupPos);
+    len_t pickupSamp=(len_t)(M * *p->pickupPos);
     if (pickupSamp<1) pickupSamp = 1;
 
     /* calculate N samples of the plucked string algorithm */
-/*      if (plk->wg.excited) */
+/*      if (p->wg.excited) */
       do {
 /*          void dumpRail(guideRail*, len_t); */
-/*          dumpRail(&plk->wg.upperRail, M-1); */
-/*          dumpRail(&plk->wg.lowerRail, M-1); */
-        *ar++ = guideRailAccess(&plk->wg.upperRail,pickupSamp)
-               +guideRailAccess(&plk->wg.lowerRail,M-pickupSamp);
+/*          dumpRail(&p->wg.upperRail, M-1); */
+/*          dumpRail(&p->wg.lowerRail, M-1); */
+        *ar++ = guideRailAccess(&p->wg.upperRail,pickupSamp)
+               +guideRailAccess(&p->wg.lowerRail,M-pickupSamp);
         /*        sampBuf[i++] += *fdbk++; */
-        yrM = guideRailAccess(&plk->wg.upperRail,M-1);/* wave into the nut */
+        yrM = guideRailAccess(&p->wg.upperRail,M-1);/* wave into the nut */
         ylM = -yrM;                 /* reflect the incoming sample at the nut */
 
-        yl0 = guideRailAccess(&plk->wg.lowerRail,0);  /* wave into bridge */
+        yl0 = guideRailAccess(&p->wg.lowerRail,0);  /* wave into bridge */
 /*          printf("Removing %.2f (upper) and %.2f (lower)\n", yrM, yl0); */
-        yr0 = -filter3FIR(&plk->bridge,yl0);   /* bridge reflection filter */
-        yr0 = filterAllpass(&plk->wg,yr0);     /* allpass tuning filter */
+        yr0 = -filter3FIR(&p->bridge,yl0);   /* bridge reflection filter */
+        yr0 = filterAllpass(&p->wg,yr0);     /* allpass tuning filter */
         yr0 += *fdbk++;           /* Surely better to inject here */
-        guideRailUpdate(&plk->wg.upperRail,yr0);    /* update the upper rail*/
-        guideRailUpdate(&plk->wg.lowerRail,ylM);    /* update the lower rail*/
+        guideRailUpdate(&p->wg.upperRail,yr0);    /* update the upper rail*/
+        guideRailUpdate(&p->wg.lowerRail,ylM);    /* update the lower rail*/
 /*          printf("inserting %.2f (upper) and %.2f (lower)\n", yr0, ylM); */
       } while(--N);
       return OK;
@@ -241,11 +242,11 @@ int pluckGetSamps(WGPLUCK* plk)
  * This routine assumes that the DATA pointer has already been
  * allocated by the calling routine.
  */
-void circularBufferCircularBuffer(circularBuffer* cb, len_t N)
+void circularBufferCircularBuffer(ENVIRON *csound, circularBuffer* cb, len_t N)
 {
     MYFLT *data = cb->data;
     if (!data)
-      error(Str(X_194,"Buffer memory not allocated!"),
+      error(csound, csound->getstring_(X_194,"Buffer memory not allocated!"),
             "<circularBuffer::circularBuffer>");
 
   /* Initialize pointers and variables */
@@ -291,9 +292,9 @@ MYFLT circularBufferRead(circularBuffer* cb)
 
 
 /* ***** class guideRail -- waveguide rail derived class ***** */
-void guideRailGuideRail(guideRail* gr, len_t d)
+void guideRailGuideRail(ENVIRON *csound, guideRail* gr, len_t d)
 {
-    circularBufferCircularBuffer(gr,d); /* Guide rail is a circular buffer */
+    circularBufferCircularBuffer(csound, gr,d); /* Guide rail is a circular buffer */
 }
 
 
@@ -325,52 +326,6 @@ void dumpRail(guideRail* gr, len_t M)
     }
     printf("\n\n");
 }
-
-#ifdef ORIGINAL
-/* ***** class filter -- digital filter routines ****** */
-/* ::filter -- constructor, assumes preallocated data and coeffs*/
-void filterFilter(filter* filt, len_t n)
-{
-    if (!filt->coeffs)
-      error(Str(X_223,"Coeffs not allocated!"),"<filter::filter>");
-
-    /* Initialize circular buffer */
-    circularBufferCircularBuffer(&filt->buffer,n);
-}
-
-/* ::set -- set the coefficients */
-void filterSet(filter* filt, MYFLT *c)
-{
-    int i;
-
-    if (!filt->buffer.inited)
-      error(Str(X_277,"Filter not inited, cannot set"),"<filter::set>");
-
-    for (i=0;i<filt->buffer.size;i++)
-      filt->coeffs[i]=c[i];
-#ifdef WG_VERBOSE
-    for (i=0; i<filt->buffer.size; i++) printf("c[%d]=%f\n", i, c[i]);
-    printf("Zeros at %f, %f\n",
-           (-c[1]-sqrt(c[1]*c[1]-4.0*c[0]*c[0]))/(2.0*c[0]),
-           (-c[1]+sqrt(c[1]*c[1]-4.0*c[0]*c[0]))/(2.0*c[0]));
-#endif
-}
-
-/* ::FIR -- direct convolution filter routine */
- MYFLT filterFIR(filter* filt, MYFLT s)
-{
-    MYFLT *c = filt->coeffs;
-    int i;
-
-    /* y[n] = c1*x[n] + c2*x[n-1] + ... + cM*x[n-M+1] */
-    circularBufferWrite(&filt->buffer,s);
-    s = FL(0.0);
-    for (i=0;i<filt->buffer.size;i++) {
-      s += *c++ * circularBufferRead(&filt->buffer);
-    }
-    return s;
-}
-#endif
 
 /* ***** class filter3 -- JPff ****** */
 
@@ -417,7 +372,8 @@ MYFLT filterAllpass(waveguide* wg,MYFLT s)
  * total delay length = (SR/f0)
  * also sets tuning filter for fractional delay for exact tuning
  */
-void waveguideWaveguide(waveguide* wg,
+void waveguideWaveguide(ENVIRON *csound,
+                        waveguide* wg,
                         MYFLT  freq,
                         MYFLT* upperData,
                         MYFLT* lowerData)
@@ -427,7 +383,7 @@ void waveguideWaveguide(waveguide* wg,
     wg->excited = 0;
     wg->p       = FL(0.0); /* tuning filter state variable */
     wg->f0      = freq;
-    wg->w0      = tpidsr*freq;
+    wg->w0      = csound->tpidsr_*freq;
 
 #ifdef WG_VERBOSE
     printf("f0=%f, w0=%f\n",wg->f0,wg->w0);
@@ -435,7 +391,7 @@ void waveguideWaveguide(waveguide* wg,
 
     /* Calculate the size of the delay lines and set them */
     /* Set pointers to appropriate positions in instrument memory */
-    size = esr_ / freq - FL(1.0);
+    size = csound->esr_ / freq - FL(1.0);
 
     /* construct the fractional part of the delay */
     df = (size - (len_t)size); /* fractional delay amount */
@@ -449,15 +405,15 @@ void waveguideWaveguide(waveguide* wg,
     printf("size=%d+1, df=%f\n",(len_t)size,df);
 #endif
     size = size*FL(0.5);
-    guideRailGuideRail(&wg->upperRail,(len_t)size);
-    guideRailGuideRail(&wg->lowerRail,(len_t)size);
-    waveguideSetTuning(wg,df);
+    guideRailGuideRail(csound, &wg->upperRail,(len_t)size);
+    guideRailGuideRail(csound, &wg->lowerRail,(len_t)size);
+    waveguideSetTuning(csound, wg,df);
 }
 
 /* Set the allpass tuning filter coefficient */
-void waveguideSetTuning(waveguide* wg, MYFLT df)
+void waveguideSetTuning(ENVIRON *csound, waveguide* wg, MYFLT df)
 {
-    MYFLT k=onedsr*wg->w0;
+    MYFLT k=csound->onedsr_*wg->w0;
 
   /*c = (1.0-df)/(1.0+df);*/ /* Solve for coefficient from df */
     wg->c = -sinf((k-k*df)/FL(2.0))/sinf((k+k*df)/FL(2.0));
@@ -469,10 +425,10 @@ void waveguideSetTuning(waveguide* wg, MYFLT df)
 }
 
 /* error -- report errors */
-static void error(const char* a, const char* b)
+static void error(ENVIRON *csound, const char* a, const char* b)
 {
-    printf(Str(X_259,"Error:%s,%s\n"),a,b);
-    longjmp(pcglob->exitjmp,1);
+    printf(csound->getstring_(X_259,"Error:%s,%s\n"),a,b);
+    longjmp(csound->exitjmp_,1);
 }
 
 #define S       sizeof

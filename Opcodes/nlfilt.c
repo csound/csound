@@ -68,7 +68,7 @@ int nlfilt(NLFILT *p)
       return perferror(Str(X_1015,"nlfilt: not initialised"));
     }
     ar   = p->ar;
-    nsmps = ksmps_;             /* Number of points to calculate */
+    nsmps = ksmps;             /* Number of points to calculate */
                                 /* L is k-rate so need to check */
     if (L < FL(1.0)) L = FL(1.0);
     else if (L >= MAX_DELAY) {

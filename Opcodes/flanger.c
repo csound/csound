@@ -29,7 +29,7 @@
 int flanger_set (FLANGER *p)
 {
         /*---------------- delay  -----------------------*/
-    p->maxdelay = (unsigned long)(*p->maxd  * esr_);
+    p->maxdelay = (unsigned long)(*p->maxd  * esr);
     auxalloc(p->maxdelay * sizeof(MYFLT), &p->aux);
     p->left = 0;
     p->yt1 = FL(0.0);
@@ -52,12 +52,12 @@ int flanger(FLANGER *p)
     long  v1;
     MYFLT *yt1= &(p->yt1);
 
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
 
     do {
                 /*---------------- delay -----------------------*/
       buf[indx] = *in++ + (*yt1 * feedback);
-      fv1 = indx - (*freq_del++ * esr_); /* Make sure inside the buffer     */
+      fv1 = indx - (*freq_del++ * esr); /* Make sure inside the buffer     */
       while (fv1 < 0)
         fv1 += maxdelay;
       v1 = (long)fv1;
@@ -77,7 +77,7 @@ static unsigned long maxdM1; /* max delay samples - 1 */
 int wguide1set (WGUIDE1 *p)
 {
         /*---------------- delay -----------------------*/
-    auxalloc((maxd=(unsigned long)(MAXDELAY * esr_)) * sizeof(MYFLT), &p->aux);
+    auxalloc((maxd=(unsigned long)(MAXDELAY * esr)) * sizeof(MYFLT), &p->aux);
     maxdM1 = maxd-1;
     p->left = 0;
         /*---------------- filter -----------------------*/
@@ -95,13 +95,13 @@ int wguide1(WGUIDE1 *p)
     MYFLT *out = p->ar;  /* assign object data to local variables   */
     MYFLT *in = p->asig;
     MYFLT *buf = (MYFLT *)p->aux.auxp;
-    MYFLT *freq_del =  p->xdel; /*(1 / *p->xdel)  * esr_; */
+    MYFLT *freq_del =  p->xdel; /*(1 / *p->xdel)  * esr; */
     MYFLT feedback =  *p->kfeedback;
     MYFLT  fv1, fv2, out_delay,bufv1 ;
     long   v1;
     /*---------------- filter -----------------------*/
     MYFLT c1, c2, *yt1;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
 
     /*---------------- delay -----------------------*/
     indx = p->left;
@@ -120,7 +120,7 @@ int wguide1(WGUIDE1 *p)
       do {
         /*---------------- delay -----------------------*/
         buf[indx] = *in++ + (*yt1 * feedback);
-        fv1 = indx - (esr_ / *freq_del++); /* Make sure inside the buffer */
+        fv1 = indx - (esr / *freq_del++); /* Make sure inside the buffer */
         while (fv1 < 0) {
           fv1 = fv1 + (MYFLT)maxd;
         }
@@ -135,7 +135,7 @@ int wguide1(WGUIDE1 *p)
       do {
         /*---------------- delay -----------------------*/
         buf[indx] = *in++ + (*yt1 * feedback);
-        fv1 = indx - (esr_ / *freq_del); /* Make sure inside the buffer */
+        fv1 = indx - (esr / *freq_del); /* Make sure inside the buffer */
         while (fv1 < 0) {
           fv1 = fv1 + (MYFLT)maxd;
         }
@@ -154,7 +154,7 @@ int wguide1(WGUIDE1 *p)
 int wguide2set (WGUIDE2 *p)
 {
         /*---------------- delay1 -----------------------*/
-    auxalloc((maxd = (unsigned long)(MAXDELAY * esr_)) * sizeof(MYFLT), &p->aux1);
+    auxalloc((maxd = (unsigned long)(MAXDELAY * esr)) * sizeof(MYFLT), &p->aux1);
     maxdM1 = maxd-1;
     p->left1 = 0;
         /*---------------- delay2 -----------------------*/
@@ -183,13 +183,13 @@ int wguide2(WGUIDE2 *p)
 {
     MYFLT *out = p->ar;
     MYFLT *in = p->asig;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     MYFLT out1,out2, *old_out = &(p->old_out);
 
     /*---------------- delay1 -----------------------*/
     unsigned long  indx1;
     MYFLT *buf1 = (MYFLT *)p->aux1.auxp;
-    MYFLT *freq_del1 = p->xdel1; /*(1 / *p->xdel1)  * esr_; */
+    MYFLT *freq_del1 = p->xdel1; /*(1 / *p->xdel1)  * esr; */
     MYFLT feedback1 =  *p->kfeedback1;
     MYFLT  fv1_1, fv2_1, out_delay1 ;
     long   v1_1;
@@ -198,7 +198,7 @@ int wguide2(WGUIDE2 *p)
         /*---------------- delay2 -----------------------*/
     unsigned long  indx2;
     MYFLT *buf2 = (MYFLT *)p->aux2.auxp;
-    MYFLT *freq_del2 = p->xdel2; /*(1 / *p->xdel2)  * esr_;*/
+    MYFLT *freq_del2 = p->xdel2; /*(1 / *p->xdel2)  * esr;*/
     MYFLT feedback2 =  *p->kfeedback2;
     MYFLT  fv1_2, fv2_2, out_delay2 ;
     long   v1_2;
@@ -233,8 +233,8 @@ int wguide2(WGUIDE2 *p)
       do {
         buf1[indx1] = buf2[indx2] =
           *in++ + (*old_out * feedback1) + (*old_out * feedback2);
-        fv1_1 = indx1 - (esr_ / *freq_del1++); /*Make sure inside the buffer */
-        fv1_2 = indx2 - (esr_ / *freq_del2++); /* Make sure inside the buffer  */
+        fv1_1 = indx1 - (esr / *freq_del1++); /*Make sure inside the buffer */
+        fv1_2 = indx2 - (esr / *freq_del2++); /* Make sure inside the buffer  */
         while (fv1_1 < 0)    fv1_1 += maxd;
         while (fv1_2 < 0)    fv1_2 += maxd;
         fv2_1 = (fv1_1<maxdM1)?fv1_1+1:0; /*Find next sample for interpolation */
@@ -254,8 +254,8 @@ int wguide2(WGUIDE2 *p)
       do {
         buf1[indx1] = buf2[indx2] =
           *in++ + (*old_out * feedback1) + (*old_out * feedback2);
-        fv1_1 = indx1 - (esr_ / *freq_del1); /*Make sure inside the buffer     */
-        fv1_2 = indx2 - (esr_ / *freq_del2); /*Make sure inside the buffer     */
+        fv1_1 = indx1 - (esr / *freq_del1); /*Make sure inside the buffer     */
+        fv1_2 = indx2 - (esr / *freq_del2); /*Make sure inside the buffer     */
         while (fv1_1 < 0)    fv1_1 += maxd;
         while (fv1_2 < 0)    fv1_2 += maxd;
         fv2_1 = (fv1_1<maxdM1)?fv1_1+1:0; /*Find next sample for interpolation */

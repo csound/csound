@@ -57,8 +57,8 @@ int dspset(DSPLAY *p)
     char   *auxp;
 
     if (p->h.optext->t.intype == 'k')
-      npts = (long)(*p->iprd * ekr_);
-    else npts = (long)(*p->iprd * esr_);
+      npts = (long)(*p->iprd * ekr);
+    else npts = (long)(*p->iprd * esr);
     if (npts <= 0) {
       return initerror(Str(X_863,"illegal iprd"));
 
@@ -126,7 +126,7 @@ int kdsplay(DSPLAY *p)
 int dsplay(DSPLAY *p)
 {
     MYFLT  *fp = p->nxtp, *sp = p->signal, *endp = p->endp;
-    int    nsmps = ksmps_;
+    int    nsmps = ksmps;
 
     if (!p->nprds) {
       do {
@@ -175,8 +175,8 @@ int fftset(DSPFFT *p)          /* fftset, dspfft -- calc Fast Fourier */
       return initerror(Str(X_1379,"window size must be power of two"));
     }
     if (p->h.optext->t.intype == 'k')
-      step_size = (long)(*p->iprd * ekr_);
-    else step_size = (long)(*p->iprd * esr_);
+      step_size = (long)(*p->iprd * ekr);
+    else step_size = (long)(*p->iprd * esr);
     if (step_size <= 0) {
       return initerror(Str(X_863,"illegal iprd"));
     }
@@ -267,7 +267,7 @@ int kdspfft(DSPFFT *p)
 int dspfft(DSPFFT *p)
 {
     MYFLT *sigp = p->signal, *bufp = p->bufp, *endp = p->endp;
-    int   nsmps = ksmps_;
+    int   nsmps = ksmps;
 
     if (p->auxch.auxp==NULL) {
       perferror(Str(X_702,"dispfft: not initialised"));
@@ -314,9 +314,9 @@ int tempeset(TEMPEST *p)
     FUNC *ftp;
     MYFLT b, iperiod = *p->iprd;
 
-    if ((p->timcount = (int)(ekr_ * iperiod)) <= 0)
+    if ((p->timcount = (int)(ekr * iperiod)) <= 0)
       return initerror(Str(X_862,"illegal iperiod"));
-    if ((p->dtimcnt = (int)(ekr_ * *p->idisprd)) < 0)
+    if ((p->dtimcnt = (int)(ekr * *p->idisprd)) < 0)
       return initerror(Str(X_851,"illegal idisprd"));
     if ((p->tweek = *p->itweek) <= 0)
       return initerror(Str(X_865,"illegal itweek"));
@@ -400,17 +400,17 @@ int tempeset(TEMPEST *p)
       }
     }
     /* calc input lo-pass filter coefs */
-    b = FL(2.0) - (MYFLT)cos((*p->ihp * 6.28318 / ekr_));
+    b = FL(2.0) - (MYFLT)cos((*p->ihp * 6.28318 / ekr));
     p->coef1 = b - (MYFLT)sqrt(b * b - 1.0);
     p->coef0 = FL(1.0) - p->coef1;
     p->yt1 = FL(0.0);
-    p->fwdcoef = (MYFLT)pow(0.5, p->timcount/ekr_/(*p->ihtim));
+    p->fwdcoef = (MYFLT)pow(0.5, p->timcount/ekr/(*p->ihtim));
     p->fwdmask = FL(0.0);
     printf(Str(X_958,"kin lopass coef1 %6.4f, fwd mask coef1 %6.4f\n"),
            p->coef1,p->fwdcoef);
     p->thresh = *p->ithresh;            /* record incoming loudness threshold */
     p->xfdbak = *p->ixfdbak;            /*    & expectation feedback fraction */
-    p->tempscal = FL(60.0) * ekr_ / p->timcount;
+    p->tempscal = FL(60.0) * ekr / p->timcount;
     p->avglam = p->tempscal / *p->istartempo;       /* init the tempo factors */
     p->tempo = FL(0.0);
     p->hcur = p->hbeg;                              /* init the circular ptrs */

@@ -95,7 +95,7 @@ int dam(DAM *p)
 
  /* Process ksmps samples */
 
-    for (i=0;i<ksmps_;i++) {
+    for (i=0;i<ksmps;i++) {
 
         /* Estimates the current power level */
 

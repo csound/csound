@@ -35,7 +35,7 @@ int csoundMain(void*, int, char**);
 
 #if !defined(CWIN) && !defined(MACOSX)
 extern OPARMS  O_;
-extern GLOBALS cglob_;
+extern ENVIRON cenviron_;
 void csoundMessage(void *, const char *, ...);
 
 extern void remove_tmpfiles(void);      /* IV - Oct 31 2002 */
@@ -47,7 +47,7 @@ int main(int argc, char **argv)
     extern int csoundMain(void*, int, char**);
     run_status = 0;
     O = O_;
-    cglob = cglob_;
+    cenviron = cenviron_;
     atexit(remove_tmpfiles);            /* IV - Oct 31 2002 */
     return csoundMain(NULL, argc, argv);
 }
@@ -151,17 +151,17 @@ void csoundCleanup(void *csound)
 
 MYFLT csoundGetSr(void *csound)
 {
-    return esr_;
+    return esr;
 }
 
 MYFLT csoundGetKr(void *csound)
 {
-    return ekr_;
+    return ekr;
 }
 
 int csoundGetKsmps(void *csound)
 {
-    return ksmps_;
+    return ksmps;
 }
 
 int csoundGetNchnls(void *csound)
@@ -322,7 +322,8 @@ void csoundThrowMessage(void *csound, const char *format, ...)
 
 int csoundGetMessageLevel(void *csound)
 {
-    return cglob.oparms->msglevel;
+    ENVIRON *cenviron = (ENVIRON*)csound;
+    return cenviron->oparms_->msglevel;
 }
 
 void csoundSetMessageLevel(void *csound, int messageLevel)
@@ -618,8 +619,8 @@ char *csoundGetEnv(const char *environmentVariableName)
 
 void csoundReset(void *csound)
 {
-    extern void mainRESET(void);
-    mainRESET();
+    extern void mainRESET(void *csound);
+    mainRESET(csound);
 }
 
 void *csoundOpenLibrary(const char *libraryPath)

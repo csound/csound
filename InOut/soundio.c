@@ -288,18 +288,18 @@ static void audwrite(char *outbuf, int nbytes)
 #ifdef CWIN
         char report[40];
         extern void cwin_report_right(char *);
-        sprintf(report, "%d(%.3f)", nrecs, nrecs/ekr_);
+        sprintf(report, "%d(%.3f)", nrecs, nrecs/ekr);
         cwin_report_right(report);
 #else
         int n;
-        err_printf( "%d(%.3f)%n", nrecs, nrecs/ekr_, &n);
+        err_printf( "%d(%.3f)%n", nrecs, nrecs/ekr, &n);
         while (n--) err_printf("\b");
 #endif
       }
       else err_printf("\a");
 
     }
-    if (!POLL_EVENTS()) longjmp(cglob.exitjmp,1);
+    if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
 }
 #ifdef NeXT /*sbrandon: for RT playback */
 static void swaprtplay(char *outbuf, int nbytes)
@@ -387,7 +387,7 @@ void sfopenin(void)             /* init for continuous soundin */
         sscanf(O.infilename+3, "%d", &rtin_dev);
 #endif
       sfname = O.infilename;
-      recopen(nchnls,O.insampsiz,(float)esr_,2);  /* open devaudio for input */
+      recopen(nchnls,O.insampsiz,(float)esr,2);  /* open devaudio for input */
       audrecv = rtrecord;                 /*  & redirect audio gets  */
       isfd = DEVAUDIO;                    /* dummy file descriptor   */
       pipdevin   = 1;                     /* no backward seeks !     */
@@ -403,10 +403,10 @@ void sfopenin(void)             /* init for continuous soundin */
     hdr = readheader(isfd,sfname,p);
     if (hdr != NULL             /* if headerblk returned */
         && !(readlong = hdr->readlong)) {      /* & hadn't readin audio */
-      if (hdr->sr != (long)esr_ &&
+      if (hdr->sr != (long)esr &&
           (O.msglevel & WARNMSG)) {              /*    chk the hdr codes  */
         printf(Str(X_607,"WARNING: audio_in %s has sr = %ld, orch sr = %ld\n"),
-                sfname, hdr->sr, (long)esr_);
+                sfname, hdr->sr, (long)esr);
       }
       if (hdr->nchanls != nchnls) {
         sprintf(errmsg,Str(X_606,"audio_in %s has %ld chnls, orch %d chnls"),
@@ -512,7 +512,7 @@ void sfopenout(void)                            /* init for sound out       */
         sscanf(O.outfilename+3, "%d", &rtout_dev);
 #endif
       sfoutname = O.outfilename;
-      playopen(nchnls, O.outsampsiz, (float)esr_, 2);  /* open devaudio for out */
+      playopen(nchnls, O.outsampsiz, (float)esr, 2);  /* open devaudio for out */
       audtran = rtplay;                        /* & redirect audio puts */
 #ifdef NeXT /*sbrandon: even RT playback has to be swapped*/
 # ifdef __LITTLE_ENDIAN__
@@ -550,7 +550,7 @@ void sfopenout(void)                            /* init for sound out       */
       }
     }
 #if defined(SYMANTEC)
-    AddMacHeader(sfoutname,nchnls,esr_,O.outsampsiz);  /* set Mac resource */
+    AddMacHeader(sfoutname,nchnls,esr,O.outsampsiz);  /* set Mac resource */
     SetMacCreator(sfoutname);               /*   set creator & file type */
 #endif
     if (O.sfheader) {

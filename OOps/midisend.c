@@ -631,55 +631,55 @@ void openMIDIout(void)
 void send_midi_message(int status, int data1, int data2)
 {
     err_printf("No MIDI: send_midi_message(%d,%d,%d)\n", status, data1, data2);
-    longjmp(cglob.exitjmp,1);
+    longjmp(cenviron.exitjmp_,1);
 }
 
 void note_on(int chan, int num, int vel)
 {
     err_printf("No MIDI: note_on(%d,%d,%d)\n", chan, num, vel);
-    longjmp(cglob.exitjmp,1);
+    longjmp(cenviron.exitjmp_,1);
 }
 
 void note_off(int chan, int num, int vel)
 {
     err_printf("No MIDI: note_off(%d,%d,%d)\n", chan, num, vel);
-    longjmp(cglob.exitjmp,1);
+    longjmp(cenviron.exitjmp_,1);
 }
 
 void control_change(int chan, int num, int value)
 {
     err_printf("No MIDI: control_change(%d,%d,%d)\n", chan, num, value);
-    longjmp(cglob.exitjmp,1);
+    longjmp(cenviron.exitjmp_,1);
 }
 
 void after_touch(int chan, int value)
 {
     err_printf("No MIDI: after_touch(%d,%d)\n", chan, value);
-    longjmp(cglob.exitjmp,1);
+    longjmp(cenviron.exitjmp_,1);
 }
 
 void program_change(int chan, int num)
 {
     err_printf("No MIDI: program_change(%d,%d)\n", chan, num);
-    longjmp(cglob.exitjmp,1);
+    longjmp(cenviron.exitjmp_,1);
 }
 
 void pitch_bend(int chan, int lsb, int msb)
 {
     err_printf("No MIDI: pitch_bend(%d,%d,%d)\n", chan, lsb, msb);
-    longjmp(cglob.exitjmp,1);
+    longjmp(cenviron.exitjmp_,1);
 }
 
 void poly_after_touch(int chan, int note_num, int value)
 {
     err_printf("No MIDI: poly_after_touch(%d,%d,%d)\n", chan, note_num, value);
-    longjmp(cglob.exitjmp,1);
+    longjmp(cenviron.exitjmp_,1);
 }
 
 void openMIDIout(void)
 {
     err_printf("No MIDI: openMIDIout()\n");
-    longjmp(cglob.exitjmp,1);
+    longjmp(cenviron.exitjmp_,1);
 }
 
 #endif

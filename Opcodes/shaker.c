@@ -78,7 +78,7 @@ int shakerset(SHAKER *p)
     p->gain_norm = FL(0.0005);
     p->shake_num = (int)*p->times;
     ADSR_keyOn(&p->envelope);
-    p->kloop = (int)(p->h.insdshead->offtim * ekr_) - (int)(ekr_* *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * ekr) - (int)(ekr* *p->dettack);
     p->freq = -FL(1.0);        /* So will get changed */
 /*     printf("Shaker_set: num_beans=%ld\twait_time=%ld\tshake_num=%ld\n" */
 /*            "\tshake_speed=%f\tres_freq=%f\n" */
@@ -106,7 +106,7 @@ int shakerset(SHAKER *p)
 int shaker(SHAKER *p)
 {
     MYFLT *ar = p->ar;
-    long nsmps = ksmps_;
+    long nsmps = ksmps;
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT shake = amp + amp;
     MYFLT damp = *p->shake_damp;

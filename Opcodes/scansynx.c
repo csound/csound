@@ -166,18 +166,18 @@ static void listadd(PSCSNUX *p)
 }
 
 /* Return from list according to id */
-static PSCSNUX *listget(int id)
+static PSCSNUX *listget(GLOBALS *p, int id)
 {
     struct scsnx_elem *i = scsnx_list;
     if (i == NULL) {
-      initerror(Str(X_1527,"scans: No scan synthesis net specified"));
-      longjmp(pcglob->exitjmp,1);
+      p->initerror_(Str(X_1527,"scans: No scan synthesis net specified"));
+      longjmp(p->exitjmp,1);
     }
     while (i->id != id) {
       i = i->next;
       if (i == NULL) {
-        initerror(Str(X_1485,"Eek ... scan synthesis id was not found"));
-        longjmp(pcglob->exitjmp,1);
+        p->initerror_(Str(X_1485,"Eek ... scan synthesis id was not found"));
+        longjmp(p->exitjmp,1);
       }
     }
     return i->p;
@@ -370,7 +370,7 @@ int scsnux_init(PSCSNUX *p)
         p->v[i] = f->ftable[i];
     }
     /* Cache update rate over to local structure */
-    p->rate = *p->i_rate * esr_;
+    p->rate = *p->i_rate * esr;
 
       /* Initialize index */
     p->idx  = 0;
@@ -433,7 +433,7 @@ int scsnux(PSCSNUX *p)
     long idx   = p->idx;
     MYFLT rate = p->rate;
 
-    for (n = 0 ; n != ksmps_ ; n++) {
+    for (n = 0 ; n != ksmps ; n++) {
 
       /* Put audio input in external force */
       p->ext[exti] = p->a_ext[n];
@@ -533,7 +533,7 @@ int scsnux(PSCSNUX *p)
 int scsnsx_init(PSCSNSX *p)
 {
     /* Get corresponding update */
-    p->p = listget((int)*p->i_id);
+    p->p = listget(p->h.insdshead->csound, (int)*p->i_id);
 
     /* Get trajectory matrix */
     {
@@ -587,7 +587,7 @@ int scsnsx(PSCSNSX *p)
 
     switch (p->oscil_interp) {
     case 1:
-      for (i = 0 ; i != ksmps_ ; i++) {
+      for (i = 0 ; i != ksmps ; i++) {
       /* Do various interpolations to get output sample ... */
 /*      MYFLT x     = phs - (int)phs; */
         int ph = (int)phs;
@@ -598,7 +598,7 @@ int scsnsx(PSCSNSX *p)
       }
       break;
     case 2:
-      for (i = 0 ; i != ksmps_ ; i++) {
+      for (i = 0 ; i != ksmps ; i++) {
       /* Do various interpolations to get output sample ... */
         int ph = (int)phs;
         MYFLT x     = phs - ph;
@@ -611,7 +611,7 @@ int scsnsx(PSCSNSX *p)
       }
       break;
     case 3:
-      for (i = 0 ; i != ksmps_ ; i++) {
+      for (i = 0 ; i != ksmps ; i++) {
       /* Do various interpolations to get output sample ... */
         int ph = (int)phs;
         MYFLT x     = phs - ph;
@@ -626,7 +626,7 @@ int scsnsx(PSCSNSX *p)
       }
       break;
     case 4:
-      for (i = 0 ; i != ksmps_ ; i++) {
+      for (i = 0 ; i != ksmps ; i++) {
       /* Do various interpolations to get output sample ... */
         int ph = (int)phs;
         MYFLT x     = phs - ph;
@@ -652,7 +652,7 @@ int scsnsx(PSCSNSX *p)
 int scsnmapx_init(PSCSNMAPX *p)
 {
     /* Get corresponding update */
-    p->p = listget((int)*p->i_id);
+    p->p = listget(p->h.insdshead->csound, (int)*p->i_id);
     return OK;
 }
 

@@ -180,11 +180,11 @@ kern_return_t getMidiData
 
 midi_reply_t midi_reply = { getMidiData,0,0,0,0,0 };
 #define midiError(msg,no) \
-     { if (no != KERN_SUCCESS) { midi_error(msg,no) ; longjmp(glob.exitjmp,1) ;}}
+     { if (no != KERN_SUCCESS) { midi_error(msg,no) ; longjmp(glob.exitjmp_,1) ;}}
 #define midiTimerError(msg,no) \
-     { if (no != KERN_SUCCESS) { midi_timer_error(msg,no) ; longjmp(glob.exitjmp,1) ;}}
+     { if (no != KERN_SUCCESS) { midi_timer_error(msg,no) ; longjmp(glob.exitjmp_,1) ;}}
 #define machError(msg,no) \
-     { if (no != KERN_SUCCESS) { mach_error(msg,no) ; longjmp(glob.exitjmp,1) ;}}
+     { if (no != KERN_SUCCESS) { mach_error(msg,no) ; longjmp(glob.exitjmp_,1) ;}}
 
 #endif /* NeXTi */
 
@@ -217,7 +217,7 @@ void OpenMIDIDevice(void)
         err_printf(" \"%s\"", caps.szPname);
       }
       err_printf("\nMIDI in device \"%s\" not found\n", O.Midiname);
-      longjmp(cglob.exitjmp,1);
+      longjmp(cenviron.exitjmp_,1);
     }
     /* reset circular buffer */
     tmpbuf_ndx_r = tmpbuf_ndx_w = 0;
@@ -409,7 +409,7 @@ void OpenMIDIDevice(void)
       mdInit();
       if (!(sgiport   = mdOpenInPort(O.Midiname))) {
         printf("Can not open port: %s", O.Midiname);
-        longjmp(glob.exitjmp,1);
+        longjmp(glob.exitjmp_,1);
       }
       else printf("Opening midi port: %s\n", O.Midiname);
       close(rtfd);                  /* close port as in the NeXT implementation */
@@ -589,8 +589,8 @@ long GetMIDIData(void)
       /**
        * Reads from user-defined MIDI input.
        */
-      if (csoundIsExternalMidiEnabled(&cglob)) {
-        int n = csoundExternalMidiRead(&cglob, mbuf, MBUFSIZ);
+      if (csoundIsExternalMidiEnabled(&cenviron)) {
+        int n = csoundExternalMidiRead(&cenviron, mbuf, MBUFSIZ);
         if (n == 0) {
           return 0;
         }

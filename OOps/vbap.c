@@ -250,7 +250,7 @@ void choose_ls_triplets(ls lss[CHANNELS],
 
     if (ls_amount == 0) {
       err_printf("Number of loudspeakers is zero\nExiting\n");
-      longjmp(cglob.exitjmp,-1);
+      longjmp(cenviron.exitjmp_,-1);
   }
 
 /*      i_ptr = (int *) connections; */
@@ -612,7 +612,7 @@ void  calculate_3x3_matrixes(struct ls_triplet_chain *ls_triplets,
 
     if (tr_ptr == NULL) {
       err_printf("Not valid 3-D configuration\n");
-      longjmp(cglob.exitjmp,-1);
+      longjmp(cenviron.exitjmp_,-1);
     }
 
     /* counting triplet amount */

@@ -177,7 +177,7 @@ static void adsyn_frame(PVADS *p)
     MYFLT *a,*x,*y;
     MYFLT *amps,*freqs,*lastamps;
     MYFLT ffac = *p->kfmod;
-    MYFLT nyquist = esr_ * FL(0.5);
+    MYFLT nyquist = esr * FL(0.5);
     /* we add to outbuf, so clear it first*/
     memset(p->outbuf.auxp,0,p->overlap * sizeof(MYFLT));
 
@@ -243,7 +243,7 @@ int pvadsyn(PVADS *p)
     if (p->outbuf.auxp==NULL) {
       die(Str(X_1578,"pvsynth: Not initialised.\n"));
     }
-    for (i=0;i < ksmps_;i++)
+    for (i=0;i < ksmps;i++)
       aout[i] = adsyn_tick(p);
     return OK;
 }
@@ -343,7 +343,7 @@ int pvsfreadset(PVSFREAD *p)
     /* special case if only one frame - it is an impulse response */
     if (p->nframes == 1)
       die(Str(X_1584,"pvsfread: file has only one frame (= impulse response).\n"));
-    if (p->overlap < ksmps_)
+    if (p->overlap < ksmps)
       die(Str(X_1585,"pvsfread: analysis frame overlap must be >= ksmps\n"));
     p->blockalign = (p->fftsize+2) * p->chans;
     if ((*p->ichan) >= p->chans)
@@ -423,7 +423,7 @@ int pvsfread(PVSFREAD *p)
       p->fout->framecount++;
       p->lastframe = p->fout->framecount;
     }
-    p->ptr += ksmps_;
+    p->ptr += ksmps;
 
 
     return OK;
@@ -846,10 +846,10 @@ static int pvx_loadfile(const char *fname,PVSFREAD *p,MEMFIL **mfp)
     pvoc_closefile(pvx_id);
 
 
-    if ((p->arate = (MYFLT) fmt.nSamplesPerSec) != esr_ &&
+    if ((p->arate = (MYFLT) fmt.nSamplesPerSec) != esr &&
         (O.msglevel & WARNMSG)) { /* & chk the data */
       printf(Str(X_63,"WARNING: %s''s srate = %8.0f, orch's srate = %8.0f"),
-              fname, p->arate, esr_);
+              fname, p->arate, esr);
     }
     p->fftsize  = pvx_fftsize;
     p->winsize  = pvx_winsize;
@@ -857,7 +857,7 @@ static int pvx_loadfile(const char *fname,PVSFREAD *p,MEMFIL **mfp)
     p->overlap  = pvdata.dwOverlap;
     p->chans    = fmt.nChannels;
     p->nframes = (unsigned) totalframes;
-    p->arate    = esr_ / (MYFLT) p->overlap;
+    p->arate    = esr / (MYFLT) p->overlap;
     wtype = (pv_wtype) pvdata.wWindowType;
     switch (wtype) {
     case PVOC_DEFAULT:

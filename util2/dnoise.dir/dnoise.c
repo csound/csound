@@ -84,7 +84,7 @@
 #include <unistd.h>
 #endif
 
-GLOBALS cglob;
+ENVIRON cenviron;
 
 #define FIND(MSG)   if (*s == '\0')  \
                       if (!(--argc) || (((s = *argv++) != NULL) && *s == '-')) \
@@ -535,7 +535,7 @@ int main(int argc, char **argv)
     if (O.outfilename == NULL)  O.outfilename = "test";
 /*     ofd = fopen(outfile, "wb"); */
     outfd = openout(O.outfilename, 1);
-    esr_ = (MYFLT)p->sr;
+    esr = (MYFLT)p->sr;
     nchnls = Chans = p->nchanls;
     if (O.sfheader)
         writeheader(outfd, O.outfilename);      /* write header as required   */

@@ -1,3 +1,22 @@
+2003-11-25  John ffitch  <jpff@codemist.co.uk>
+
+	* OOps/vbap_zak.c (vbap_zak_moving_init): Fix zastart/zkstart
+
+	* Opcodes/bowedbar.c (make_DLineN): Envionment as argument
+
+	* Opcodes/scansynx.c (listget): Added environment as argument and
+	in calls
+
+	* H/csdl.h (perferror): Point via p->h.insdshead->csound-> and
+	name changes
+
+	* H/cs.h (GLOBALS_): Added _ to names in many places
+
+	* Top/dl_opcodes.c (csoundLoadExternals): resetter function needs
+	environment as argument
+
+	* Top/jpff_glue.c (csoundReset): Added argument of environment
+
 2003-11-22  John ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/grain.c (ags): Check gcount against 1 rather than 0.1

@@ -347,7 +347,7 @@ int lfok(LFO *p)
       res = FL(1.0) - (MYFLT)phs/(MYFLT)MAXPHASE;
       break;
     }
-    phs += (long)(*p->xcps * MAXPHASE / ekr_);
+    phs += (long)(*p->xcps * MAXPHASE / ekr);
     phs &= MAXMASK;
     p->phs = phs;
     *p->res = *p->kamp * res;
@@ -356,7 +356,7 @@ int lfok(LFO *p)
 
 int lfoa(LFO *p)
 {
-    int         nsmps = ksmps_;
+    int         nsmps = ksmps;
     long        phs;
     MYFLT       fract;
     MYFLT       res;

@@ -48,7 +48,7 @@ extern void bytrev4(char *buf, int nbytes);
 
 #define WLN   1                 /* time window is WLN*2*ksmps long  */
 
-#define OPWLEN (2*WLN*ksmps_)    /* manifest used for final time wdw */
+#define OPWLEN (2*WLN*ksmps)    /* manifest used for final time wdw */
 
 int pvset(PVOC *p)
 {
@@ -128,10 +128,10 @@ int pvset(PVOC *p)
     }
     p->mems=memsize;
     if (old_format) {
-      if ((p->asr = pvh->samplingRate) != esr_ &&
+      if ((p->asr = pvh->samplingRate) != esr &&
           (O.msglevel & WARNMSG)) { /* & chk the data */
         printf(Str(X_63,"WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
-                pvfilnam, p->asr, esr_);
+                pvfilnam, p->asr, esr);
       }
       if (pvh->dataFormat != PVMYFLT) {
         sprintf(errmsg,Str(X_1359,"unsupported PVOC data format %ld in %s"),
@@ -156,12 +156,12 @@ int pvset(PVOC *p)
       p->frInc    = pvh->frameIncr;
     }
 
-    p->frPktim = ((MYFLT)ksmps_)/((MYFLT) p->frInc);
+    p->frPktim = ((MYFLT)ksmps)/((MYFLT) p->frInc);
     /* factor by which to mult expand phase diffs (ratio of samp spacings) */
-    p->frPrtim = esr_/((MYFLT) p->frInc);
+    p->frPrtim = esr/((MYFLT) p->frInc);
     /* factor by which to mulitply 'real' time index to get frame index */
     size = pvfrsiz(p);          /* size used in def of OPWLEN ? */
-    p->scale = e0dbfs * FL(2.0)*((MYFLT)ksmps_)/((MYFLT)OPWLEN*(MYFLT)pvfrsiz(p));
+    p->scale = e0dbfs * FL(2.0)*((MYFLT)ksmps)/((MYFLT)OPWLEN*(MYFLT)pvfrsiz(p));
     /* 2*incr/OPWLEN scales down for win ovlp, windo'd 1ce (but 2ce?) */
     /* 1/frSiz is the required scale down before (i)FFT */
     p->prFlg = 1;    /* true */
@@ -175,7 +175,7 @@ int pvset(PVOC *p)
     if ((OPWLEN/2 + 1)>PVWINLEN ) {
       sprintf(errmsg,
               Str(X_960,"ksmps of %d needs wdw of %d, max is %d for pv %s\n"),
-              ksmps_, (OPWLEN/2 + 1), PVWINLEN, pvfilnam);
+              ksmps, (OPWLEN/2 + 1), PVWINLEN, pvfilnam);
       goto pverr;
     }
 
@@ -231,7 +231,7 @@ int pvoc(PVOC *p)
                              /* ..so we won't run into buf2Size problems */
       return perferror(Str(X_418,"PVOC transpose too low"));
     }
-    if (outlen<2*ksmps_) {    /* minimum post-squeeze windowlength */
+    if (outlen<2*ksmps) {    /* minimum post-squeeze windowlength */
       return perferror(Str(X_417,"PVOC transpose too high"));
     }
     buf2Size = OPWLEN;       /* always window to same length after DS */
@@ -251,7 +251,7 @@ int pvoc(PVOC *p)
     if (*p->igatefun > 0)
       PvAmpGate(buf,size, p->AmpGateFunc, p->PvMaxAmp);
 
-    FrqToPhase(buf, asize, pex*(MYFLT)ksmps_, p->asr,
+    FrqToPhase(buf, asize, pex*(MYFLT)ksmps, p->asr,
            /*a0.0*/FL(0.5) * ( (pex / p->lastPex) - FL(1.0)) );
     /* Offset the phase to align centres of stretched windows, not starts */
     RewrapPhase(buf, asize, p->lastPhase);
@@ -272,11 +272,11 @@ int pvoc(PVOC *p)
       CopySamps(buf+(int)(FL(0.5)*((MYFLT)size - pex*(MYFLT)buf2Size))/*a*/,
                 buf2,buf2Size);
     ApplyHalfWin(buf2, p->window, buf2Size);
-    addToCircBuf(buf2, p->outBuf, p->opBpos, ksmps_, circBufSize);
-    writeClrFromCircBuf(p->outBuf, ar, p->opBpos, ksmps_, circBufSize);
-    p->opBpos += ksmps_;
+    addToCircBuf(buf2, p->outBuf, p->opBpos, ksmps, circBufSize);
+    writeClrFromCircBuf(p->outBuf, ar, p->opBpos, ksmps, circBufSize);
+    p->opBpos += ksmps;
     if (p->opBpos > circBufSize)     p->opBpos -= circBufSize;
-    addToCircBuf(buf2+ksmps_,p->outBuf,p->opBpos,buf2Size-ksmps_,circBufSize);
+    addToCircBuf(buf2+ksmps,p->outBuf,p->opBpos,buf2Size-ksmps,circBufSize);
     p->lastPex = pex;        /* needs to know last pitchexp to update phase */
     return OK;
 }
@@ -381,10 +381,10 @@ int pvx_loadfile(const char *fname,PVOC *p,MEMFIL **mfp)
     else
       memblock = (float *) mfil->beginp;
     pvoc_closefile(pvx_id);
-    if ((p->asr = (MYFLT) fmt.nSamplesPerSec) != esr_ &&
+    if ((p->asr = (MYFLT) fmt.nSamplesPerSec) != esr &&
         (O.msglevel & WARNMSG)) { /* & chk the data */
       printf(Str(X_63,"WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
-              fname, p->asr, esr_);
+              fname, p->asr, esr);
     }
     p->frSiz    = pvx_fftsize;
     p->frPtr    = (MYFLT *) memblock;
@@ -395,7 +395,7 @@ int pvx_loadfile(const char *fname,PVOC *p,MEMFIL **mfp)
 
     /* highest possible frame index */
     /* factor by which to mult expand phase diffs (ratio of samp spacings) */
-    p->frPrtim = esr_/((MYFLT) pvdata.dwOverlap);
+    p->frPrtim = esr/((MYFLT) pvdata.dwOverlap);
 
     /* Need to assign an MEMFIL to p->mfp */
     if (mfil==NULL) {

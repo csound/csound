@@ -57,7 +57,7 @@ int foscil(FOSC *p)
     MYFLT  *ar, *ampp, *modp, cps, amp;
     MYFLT  xcar, xmod, *carp, car, fmod, cfreq, mod, ndx, *ftab;
     long   mphs, cphs, minc, cinc, lobits;
-    int    nsmps = ksmps_;
+    int    nsmps = ksmps;
 
     ar = p->rslt;
     ftp = p->ftp;
@@ -124,7 +124,7 @@ int foscili(FOSC *p)
     MYFLT  *ar, *ampp, amp, cps, fract, v1, car, fmod, cfreq, mod;
     MYFLT  *carp, *modp, xcar, xmod, ndx, *ftab;
     long   mphs, cphs, minc, cinc, lobits;
-    int    nsmps = ksmps_;
+    int    nsmps = ksmps;
 
     ar = p->rslt;
     ftp = p->ftp;
@@ -279,7 +279,7 @@ int loscil(LOSC *p)
     FUNC   *ftp;
     MYFLT  *ar1, *ftbl, *ftab, *xamp;
     long   phs, inc, beg, end;
-    int    nsmps = ksmps_, aamp;
+    int    nsmps = ksmps, aamp;
     MYFLT  fract, v1, v2, *ar2;
 
     ftp = p->ftp;
@@ -495,7 +495,7 @@ int loscil3(LOSC *p)
     FUNC   *ftp;
     MYFLT  *ar1, *ftbl, *xamp;
     long   phs, inc, beg, end;
-    int    nsmps = ksmps_, aamp;
+    int    nsmps = ksmps, aamp;
     MYFLT  fract, *ar2;
     int     x0;
     MYFLT   y0, y1, ym1, y2;
@@ -953,7 +953,7 @@ int adsyn(ADSYN *p)
     frqscale = *p->kfmod * ISINSIZ * onedsr;
     timkincr = (long)(*p->ksmod*FL(1024000.0)*onedkr); /* 1024 * msecs of analysis */
     sp = (long *) p->rslt;                     /* use out array for sums */
-    nsmps = ksmps_;
+    nsmps = ksmps;
     do {
       *sp++ = 0L;                               /* cleared first to zero */
     } while (--nsmps);
@@ -970,7 +970,7 @@ int adsyn(ADSYN *p)
         sinc = (long)(curp->frq * frqscale);
         phs = curp->phs;
         sp = (long *) p->rslt;
-        nsmps = ksmps_;                  /*   addin a sinusoid */
+        nsmps = ksmps;                  /*   addin a sinusoid */
         do {
           *sp++ += *(isintab + phs) * amp;
           phs += sinc;
@@ -997,7 +997,7 @@ int adsyn(ADSYN *p)
     p->mksecs += timkincr;                  /* advance the time */
     ar = p->rslt;
     sp = (long *) ar;
-    nsmps = ksmps_;
+    nsmps = ksmps;
     do {
       /* a quick-hack fix: should change adsyn to use floats table and
          buffers and should replace hetro format anyway.... */

@@ -23,7 +23,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-GLOBALS cglob;
+ENVIRON cenviron;
 
 #ifndef POLL_EVENTS
 int POLL_EVENTS(void)

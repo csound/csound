@@ -473,7 +473,7 @@ main(int argc, char **argv)
     }
 #endif
     outfd = openout(O.outfilename, 1);
-    esr_ = (MYFLT)mixin[0].p->sr;
+    esr = (MYFLT)mixin[0].p->sr;
     nchnls = outputs;
     if (O.sfheader)     
       writeheader(outfd, O.outfilename);      /* write header as required   */
@@ -643,7 +643,7 @@ MXsndgetset(inputs *ddd)
     static MYFLT sstrcod = (MYFLT)SSTRCOD;
 
     sssfinit();                 /* stand-alone init of SFDIR etc. */
-    esr_ = FL(0.0);              /* set esr 0. with no orchestra   */
+    esr = FL(0.0);              /* set esr 0. with no orchestra   */
     optxt.t.outoffs = &argoffs; /* point to dummy OUTOCOUNT       */
     ddd->p = p = (SOUNDIN *) mcalloc((long)sizeof(SOUNDIN));
     p->channel = ALLCHNLS;

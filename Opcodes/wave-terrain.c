@@ -78,7 +78,7 @@ int wtPerf(WAVETER *p)
     MYFLT amp = *p->kamp;
     MYFLT pch = *p->kpch;
 
-    for (i=0; i<ksmps_; i++) {
+    for (i=0; i<ksmps; i++) {
 
       /* COMPUTE LOCATION OF SCANNING POINT */
       xc = *(p->kcx) + *(p->krx) * (MYFLT)sin((double)p->theta);
@@ -247,16 +247,16 @@ int scantPerf(SCANTABLE *p)
         fc1 = (fpoint->ftable[i] - fpoint->ftable[last]) * fstiff->ftable[last];
         fc2 = (fpoint->ftable[i] - fpoint->ftable[next]) * fstiff->ftable[i];
         force = fc1 + fc2;
-        p->newvel[i] = (fvel->ftable[i] - force / (fmass->ftable[i] * ekr_)) *
+        p->newvel[i] = (fvel->ftable[i] - force / (fmass->ftable[i] * ekr)) *
                        fdamp->ftable[i];
-        p->newloc[i] = fpoint->ftable[i] + p->newvel[i] / ekr_;
+        p->newloc[i] = fpoint->ftable[i] + p->newvel[i] / ekr;
 
       }
     }
 
 /*  printf ("p->size:\t%f\n",p->size); */
 
-    for (i=0; i<ksmps_; i++) {
+    for (i=0; i<ksmps; i++) {
 
       /* NO INTERPOLATION */
       p->aout[i] = fpoint->ftable[(int)(p->pos)] * *(p->kamp);

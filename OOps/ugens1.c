@@ -50,7 +50,7 @@ int kline(LINE *p)
 int aline(LINE *p)
 {
     MYFLT       val, inc, *ar;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
 
     val = p->val;
     inc = p->incr;
@@ -95,7 +95,7 @@ int kexpon(EXPON *p)
 int expon(EXPON *p)
 {
     MYFLT       val, mlt, inc, *ar,nxtval;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
 
     val = p->val;
     mlt = p->mlt;
@@ -139,7 +139,7 @@ int lsgset(LINSEG *p)
     do {                                /* init each seg ..  */
       MYFLT dur = **argp++;
       segp->nxtpt = **argp++;
-      if ((segp->cnt = (long)(dur * ekr_ + FL(0.5))) < 0)
+      if ((segp->cnt = (long)(dur * ekr + FL(0.5))) < 0)
         segp->cnt = 0;
 /*       printf("%f: cnt=%ld nxt=%f\n", dur, segp->cnt, segp->nxtpt);  */
       segp++;
@@ -187,7 +187,7 @@ int klnseg(LINSEG *p)
         p->curinc = (p->cursegp->nxtpt - p->curval) / p->curcnt; /* recalc */
       p->curval += p->curinc;           /* advance the cur val  */
 /*       printf("Counter = %d(%d) (%d/%f); Curval = %f ; inc = %f\n", */
-/*          counter, p->curcnt, counter*ksmps_, (double)(counter*ksmps_)/ekr_, */
+/*          counter, p->curcnt, counter*ksmps, (double)(counter*ksmps_)/ekr, */
 /*              p->curval, p->curinc); */
     }
 /*     counter++; */
@@ -197,7 +197,7 @@ int klnseg(LINSEG *p)
 int linseg(LINSEG *p)
 {
     MYFLT  val, ainc, *rs = p->rslt;
-    int         nsmps = ksmps_;
+    int         nsmps = ksmps;
 
     if (p->auxch.auxp==NULL) {  /* RWD fix */
       return perferror(Str(X_967,"linseg: not initialised (arate)\n"));
@@ -273,7 +273,7 @@ static void adsrset1(LINSEG *p, int midip)
     len -= dur;
 /*      printf("    len=%f : delay=%f\n",len, dur); */
     segp->nxtpt = FZERO;
-    if ((segp->cnt = (long)(dur * ekr_ + FL(0.5))) == 0)
+    if ((segp->cnt = (long)(dur * ekr + FL(0.5))) == 0)
       segp->cnt = 0;
     segp++;
                                 /* Attack */
@@ -282,7 +282,7 @@ static void adsrset1(LINSEG *p, int midip)
     len -= dur;
 /*      printf("    len=%f : attack=%f\n",len, dur); */
     segp->nxtpt = FL(1.0);
-    if ((segp->cnt = (long)(dur * ekr_ + FL(0.5))) == 0)
+    if ((segp->cnt = (long)(dur * ekr + FL(0.5))) == 0)
       segp->cnt = 0;
     segp++;
                                 /* Decay */
@@ -291,7 +291,7 @@ static void adsrset1(LINSEG *p, int midip)
     len -= dur;
 /*      printf("    len=%f : decay=%f\n",len, dur); */
     segp->nxtpt = *argp[2];
-    if ((segp->cnt = (long)(dur * ekr_ + FL(0.5))) == 0)
+    if ((segp->cnt = (long)(dur * ekr + FL(0.5))) == 0)
       segp->cnt = 0;
     segp++;
                                 /* Sustain */
@@ -300,15 +300,15 @@ static void adsrset1(LINSEG *p, int midip)
 /*      printf("    len=%f : sustain=%f\n",len, dur); */
 /*  dur = curip->p3 - *argp[4] - *argp[0] - *argp[1] - *argp[3]; */
     segp->nxtpt = *argp[2];
-    if ((segp->cnt = (long)(dur * ekr_ + FL(0.5))) == 0)
+    if ((segp->cnt = (long)(dur * ekr + FL(0.5))) == 0)
       segp->cnt = 0;
     segp++;
                                 /* Release */
     segp->nxtpt = FZERO;
-    if ((segp->cnt = (long)(release * ekr_ + FL(0.5))) == 0)
+    if ((segp->cnt = (long)(release * ekr + FL(0.5))) == 0)
       segp->cnt = 0;
     if (midip) {
-      p->xtra = (long)(*argp[5] * ekr_ + FL(0.5));      /* Release time?? */
+      p->xtra = (long)(*argp[5] * ekr + FL(0.5));      /* Release time?? */
       relestim = (p->cursegp + p->segsrem - 1)->cnt;
 /*       printf("MIDI case xtra=%ld release=%ld\n", p->xtra, relestim); */
       if (relestim > p->h.insdshead->xtratim)
@@ -379,7 +379,7 @@ int klnsegr(LINSEG *p)
 int linsegr(LINSEG *p)
 {
     MYFLT  val, ainc, *rs = p->rslt;
-    int    nsmps = ksmps_;
+    int    nsmps = ksmps;
 
     val = p->curval;                        /* sav the cur value    */
     if (p->segsrem) {                       /* if no more segs putk */
@@ -448,7 +448,7 @@ int xsgset(EXXPSEG *p)
       if (dur > FZERO) {
         if (val * nxtval <= FZERO)
           goto experr;
-        d = dur * ekr_;
+        d = dur * ekr;
         segp->val = val;
         segp->mlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
         segp->cnt = (long) (d + FL(0.5));
@@ -495,7 +495,7 @@ int xsgset2(EXPSEG2 *p)  /*gab-A1 (G.Maldonado) */
       if (dur > FZERO) {
         if (val * nxtval <= FZERO)
           goto experr;
-        d = dur * esr_;
+        d = dur * esr;
         segp->val = val;
         segp->mlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
         segp->cnt = (long) (d + FL(0.5));
@@ -520,7 +520,7 @@ int xsgset2(EXPSEG2 *p)  /*gab-A1 (G.Maldonado) */
 int expseg2(EXPSEG2 *p)                  /*gab-A1 (G.Maldonado) */
 {
     XSEG        *segp;
-    int         nsmps = ksmps_;
+    int         nsmps = ksmps;
     MYFLT       val, *rs;
     segp = p->cursegp;
     val = segp->val;
@@ -576,16 +576,16 @@ int xdsrset(EXXPSEG *p)
 /*      printf("    len=%f : sustain=%f\n",len, sus); */
     segp[0].val = FL(0.001);   /* Like zero start, but exponential */
     segp[0].mlt = FL(1.0);
-    segp[0].cnt = (long) (delay*ekr_ + FL(0.5));
+    segp[0].cnt = (long) (delay*ekr + FL(0.5));
 /*          printf("xseg[0] = %f, %f, %ld\n", */
 /*                 segp[0].val, segp[0].mlt, segp[0].cnt); */
-    dur = attack*ekr_;
+    dur = attack*ekr;
     segp[1].val = FL(0.001);
     segp[1].mlt = (MYFLT) pow(1000.0, 1.0/(double)dur);
     segp[1].cnt = (long) (dur + FL(0.5));
 /*          printf("xseg[1] = %f, %f, %ld\n", */
 /*                 segp[1].val, segp[1].mlt, segp[1].cnt); */
-    dur = decay*ekr_;
+    dur = decay*ekr;
     segp[2].val = FL(1.0);
     segp[2].mlt = (MYFLT) pow((double)*argp[2], 1.0/(double)dur);
     segp[2].cnt = (long) (dur + FL(0.5));
@@ -593,10 +593,10 @@ int xdsrset(EXXPSEG *p)
 /*                 segp[2].val, segp[2].mlt, segp[2].cnt); */
     segp[3].val = *argp[2];
     segp[3].mlt = FL(1.0);
-    segp[3].cnt = (long) (sus*ekr_ + FL(0.5));
+    segp[3].cnt = (long) (sus*ekr + FL(0.5));
 /*          printf("xseg[3] = %f, %f, %ld\n", */
 /*                 segp[3].val, segp[3].mlt, segp[3].cnt); */
-    dur = release*ekr_;
+    dur = release*ekr;
     segp[4].val = *argp[2];
     segp[4].mlt = (MYFLT) pow(0.001/(double)*argp[2], 1.0/(double)dur);
     segp[4].cnt = MAXPOS; /*(long) (dur + FL(0.5)); */
@@ -625,7 +625,7 @@ int kxpseg(EXXPSEG *p)
 int expseg(EXXPSEG *p)
 {
     XSEG        *segp;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     MYFLT       li, val, *rs;
     MYFLT       nxtval;
 
@@ -671,7 +671,7 @@ int xsgrset(EXPSEG *p)
     do {                            /* init & chk each real seg ..  */
       MYFLT dur = **argp++;
       segp->nxtpt = **argp++;
-      if ((segp->cnt = (long)(dur * ekr_ + FL(0.5))) <= 0)
+      if ((segp->cnt = (long)(dur * ekr + FL(0.5))) <= 0)
         segp->cnt = 0;
       else if (segp->nxtpt * prvpt <= FZERO)
         goto experr;
@@ -718,15 +718,15 @@ int mxdsrset(EXPSEG *p)
     delay += FL(0.001);
     attack -= FL(0.001);
     segp[0].nxtpt = FL(0.001);
-    segp[0].cnt = (long) (delay*ekr_ + FL(0.5));
+    segp[0].cnt = (long) (delay*ekr + FL(0.5));
     segp[1].nxtpt = FL(1.0);
-    segp[1].cnt = (long) (attack*ekr_ + FL(0.5));
+    segp[1].cnt = (long) (attack*ekr + FL(0.5));
     segp[2].nxtpt = *argp[2];
-    segp[2].cnt = (long) (decay*ekr_ + FL(0.5));
+    segp[2].cnt = (long) (decay*ekr + FL(0.5));
     segp[3].nxtpt = FL(0.001);
-    segp[3].cnt = (long) (rel*ekr_ + FL(0.5));
+    segp[3].cnt = (long) (rel*ekr + FL(0.5));
     relestim = (u_short)(p->cursegp + p->segsrem - 1)->cnt;
-    p->xtra = (long)(*argp[5] * ekr_ + FL(0.5));      /* Release time?? */
+    p->xtra = (long)(*argp[5] * ekr + FL(0.5));      /* Release time?? */
     if (relestim > p->h.insdshead->xtratim)
       p->h.insdshead->xtratim = relestim;
     return OK;
@@ -769,7 +769,7 @@ int kxpsegr(EXPSEG *p)
 int expsegr(EXPSEG *p)
 {
     MYFLT  val, amlt, *rs = p->rslt;
-    int    nsmps = ksmps_;
+    int    nsmps = ksmps;
 
     val = p->curval;                    /* sav the cur value    */
     if (p->segsrem) {                   /* if no more segs putk */
@@ -823,14 +823,14 @@ int lnnset(LINEN *p)
     MYFLT a,b,dur;
 
     if ((dur = *p->idur) > FZERO) {
-      p->cnt1 = (long)(*p->iris * ekr_ + FL(0.5));
+      p->cnt1 = (long)(*p->iris * ekr + FL(0.5));
       if (p->cnt1 > 0L) {
         p->inc1 = FONE / (MYFLT) p->cnt1;
         p->val = FZERO;
       }
       else p->inc1 = p->val = FONE;
-      a = dur * ekr_ + FL(0.5);
-      b = *p->idec * ekr_ + FL(0.5);
+      a = dur * ekr + FL(0.5);
+      b = *p->idec * ekr + FL(0.5);
       if ((long) b > 0L) {
         p->cnt2 = (long) (a - b);
         p->inc2 = FONE /  b;
@@ -866,7 +866,7 @@ int klinen(LINEN *p)
 
 int linen(LINEN *p)
 {
-    int flag=0, nsmps=ksmps_;
+    int flag=0, nsmps=ksmps;
     MYFLT *rs,*sg,li,val,nxtval=FL(1.0);
 
     val = p->val;
@@ -917,14 +917,14 @@ int linen(LINEN *p)
 
 int lnrset(LINENR *p)
 {
-    p->cnt1 = (long)(*p->iris * ekr_ + FL(0.5));
+    p->cnt1 = (long)(*p->iris * ekr + FL(0.5));
     if (p->cnt1 > 0L) {
       p->inc1 = FONE / (MYFLT) p->cnt1;
       p->val = FZERO;
     }
     else p->inc1 = p->val = FONE;
     if (*p->idec > FZERO) {
-      u_short relestim = (u_short)(*p->idec * ekr_ + FL(0.5));
+      u_short relestim = (u_short)(*p->idec * ekr + FL(0.5));
       if (relestim > p->h.insdshead->xtratim)
         p->h.insdshead->xtratim = relestim;
       if (*p->iatdec <= FZERO) {
@@ -957,7 +957,7 @@ int klinenr(LINENR *p)
 
 int linenr(LINENR *p)
 {
-    int flag=0, nsmps=ksmps_;
+    int flag=0, nsmps=ksmps;
     MYFLT *rs,*sg,li,val,nxtval=FONE;
 
     val = p->val;
@@ -1050,14 +1050,14 @@ int evxset(ENVLPX *p)
       if (!(*(ftp->ftable + ftp->flen))) {
         return initerror(Str(X_1168,"rise func ends with zero"));
       }
-      cnt1 = (long) ((idur - irise - *p->idec) * ekr_ + FL(0.5));
+      cnt1 = (long) ((idur - irise - *p->idec) * ekr + FL(0.5));
       if (cnt1 < 0L) {
         cnt1 = 0L;
-        nk = ekr_;
+        nk = ekr;
       }
       else {
         if (*p->iatss < FZERO || cnt1 <= 4L)
-          nk = ekr_;
+          nk = ekr;
         else nk = (MYFLT) cnt1;
       }
       p->mlt1 = (MYFLT) pow((double)iatss, (1.0/nk));
@@ -1120,7 +1120,7 @@ int envlpx(ENVLPX *p)
 {
     FUNC        *ftp;
     long        phs;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     MYFLT       *xamp, *rslt, val, nxtval, li, v1, fract, *ftab;
 
     xamp = p->xamp;
@@ -1219,7 +1219,7 @@ int evrset(ENVLPR *p)
     }
     p->mlt1 = (MYFLT)pow((double)iatss, (double)onedkr);
     if (*p->idec > FZERO) {
-      long rlscnt = (long)(*p->idec * ekr_ + .5);
+      long rlscnt = (long)(*p->idec * ekr + .5);
       if ((p->rindep = (long)*p->irind))
         p->rlscnt = rlscnt;
       else if (rlscnt > p->h.insdshead->xtratim)
@@ -1279,7 +1279,7 @@ int envlpxr(ENVLPR *p)
 #if defined(SYMANTEC) && !defined(THINK_C)
 #pragma options(!global_optimizer)
 #endif
-        int    nsmps = ksmps_;
+        int    nsmps = ksmps;
         long   rlscnt;
         MYFLT  *xamp, *rslt, val, nxtval, li;
 

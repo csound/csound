@@ -76,7 +76,7 @@ int tonset(TONE *p)
 int tone(TONE *p)
 {
     MYFLT       *ar, *asig;
-    int         nsmps = ksmps_;
+    int         nsmps = ksmps;
     MYFLT       c1 = p->c1, c2 = p->c2;
     MYFLT       yt1 = p->yt1;
 
@@ -134,7 +134,7 @@ int tonex(TONEX *p)     /* From Gabriel Maldonado, modified */
     yt1= p->yt1;
     asig = p->asig;
     for (j=0; j< p->loop; j++) {
-      nsmps = ksmps_;
+      nsmps = ksmps;
       ar = p->ar;
       do {
         *ar++ = *yt1 = c1 * *asig++ + c2 * *yt1;
@@ -148,7 +148,7 @@ int tonex(TONEX *p)     /* From Gabriel Maldonado, modified */
 int atone(TONE *p)
 {
     MYFLT       *ar, *asig;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     /*    MYFLT       c1 = p->c1; */  /* Not used */
     MYFLT       c2 = p->c2, yt1 = p->yt1;
 
@@ -188,7 +188,7 @@ int atonex(TONEX *p)     /* Gavriel Maldonado, modified */
     yt1=p->yt1;
     asig = p->asig;
     for (j=0; j< p->loop; j++) {
-      nsmps = ksmps_;
+      nsmps = ksmps;
       ar = p->ar;
       do {
         MYFLT sig = *asig++;
@@ -217,7 +217,7 @@ int rsnset(RESON *p)
 
 int reson(RESON *p)
 {
-    int flag = 0, nsmps = ksmps_;
+    int flag = 0, nsmps = ksmps;
     MYFLT       *ar, *asig;
     MYFLT       c3p1, c3t4, omc3, c2sqr;
     MYFLT       yt1, yt2, c1 = p->c1, c2 = p->c2, c3 = p->c3;
@@ -317,7 +317,7 @@ int resonx(RESONX *p) /* Gabriel Maldonado, modified  */
     yt2  = p->yt2;
     asig = p->asig;
     for (j=0; j< p->loop; j++) {
-      nsmps = ksmps_;
+      nsmps = ksmps;
       ar = p->ar;
       do {
         *ar = c1 * *asig++ + c2 * *yt1 - c3 * *yt2;
@@ -333,7 +333,7 @@ int resonx(RESONX *p) /* Gabriel Maldonado, modified  */
 
 int areson(RESON *p)
 {
-    int flag = 0, nsmps = ksmps_;
+    int flag = 0, nsmps = ksmps;
     MYFLT       *ar, *asig;
     MYFLT       c3p1, c3t4, omc3, c2sqr, D = FL(2.0); /* 1/RMS = root2 (rand) */
                                                    /*      or 1/.5  (sine) */
@@ -445,7 +445,7 @@ int lprdset(LPREAD *p)
           printf(Str(X_973,"WARNING: lpheader overriding inputs\n"));
       }
       /* Check orc/analysis sample rate compatibility */
-      if (lph->srate != esr_) {
+      if (lph->srate != esr) {
         if (O.msglevel & WARNMSG)
           printf(Str(X_971,"WARNING: lpfile srate != orch sr\n"));
       }
@@ -608,7 +608,7 @@ void synthetize(int, double *, double *, double *, double *);
 int lpreson(LPRESON *p)
 {
     LPREAD *q = p->lpread;
-    int     nn, nsmps = ksmps_;
+    int     nn, nsmps = ksmps;
     MYFLT   *coefp, *pastp, *jp, *jp2, *rslt = p->ar, *asig = p->asig;
     MYFLT   x;
     double  poleReal[MAXPOLES], poleImag[MAXPOLES];
@@ -708,7 +708,7 @@ int lpfrsnset(LPFRESON *p)
 int lpfreson(LPFRESON *p)
 {
     LPREAD  *q = p->lpread;
-    int     nn, nsmps = ksmps_;
+    int     nn, nsmps = ksmps;
     MYFLT   *coefp, *pastp, *pastp1, *rslt = p->ar, *asig = p->asig;
     MYFLT   x, temp1, temp2, ampscale, cq;
 
@@ -800,7 +800,7 @@ int balnset(BALANCE *p)
 
 int rms(RMS *p)
 {
-    int     nsmps = ksmps_;
+    int     nsmps = ksmps;
     MYFLT   *asig;
     MYFLT   q;
     MYFLT   c1 = p->c1, c2 = p->c2;
@@ -818,7 +818,7 @@ int rms(RMS *p)
 
 int gain(GAIN *p)
 {
-    int     nsmps = ksmps_;
+    int     nsmps = ksmps;
     MYFLT   *ar, *asig;
     MYFLT   q, a, m, diff, inc;
     MYFLT   c1 = p->c1, c2 = p->c2;
@@ -835,10 +835,10 @@ int gain(GAIN *p)
     else    a = *p->krms;
     asig = p->asig;
     ar = p->ar;
-    nsmps = ksmps_;
+    nsmps = ksmps;
     if ((diff = a - p->prva) != 0) {
       m = p->prva;
-      inc = diff/ksmps_;
+      inc = diff/ksmps;
       do {
         *ar++ = *asig++ * m;
         m += inc;
@@ -855,7 +855,7 @@ int gain(GAIN *p)
 
 int balance(BALANCE *p)
 {
-    int     nsmps = ksmps_;
+    int     nsmps = ksmps;
     MYFLT   *ar, *asig, *csig;
     MYFLT   q, r, a, m, diff, inc;
     MYFLT   c1 = p->c1, c2 = p->c2;
@@ -876,10 +876,10 @@ int balance(BALANCE *p)
     else   a = (MYFLT)sqrt(r);
     asig = p->asig;
     ar = p->ar;
-    nsmps = ksmps_;
+    nsmps = ksmps;
     if ((diff = a - p->prva) != 0) {
       m = p->prva;
-      inc = diff/ksmps_;
+      inc = diff/ksmps;
       do {
         *ar++ = *asig++ * m;
         m += inc;

@@ -32,7 +32,7 @@
 #include "vdelay.h"
 #include "revsets.h"
 
-#define ESR     (esr_/FL(1000.0))
+#define ESR     (esr/FL(1000.0))
 
 int vdelset(VDEL *p)           /*  vdelay set-up   */
 {
@@ -66,7 +66,7 @@ int vdelay(VDEL *p)              /*      vdelay  routine */
       return perferror(Str(X_1372,"vdelay: not initialised"));
     }
     maxd = (unsigned long) (1+*p->imaxd * ESR);
-    nn = ksmps_;
+    nn = ksmps;
     indx = p->left;
 
     if (XINARG2)    {    /*      if delay is a-rate      */
@@ -149,7 +149,7 @@ int vdelay3(VDEL *p)           /*      vdelay routine with cubic interp */
     }
     maxd = (unsigned long) (*p->imaxd * ESR);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
-    nn = ksmps_;
+    nn = ksmps;
     indx = p->left;
 
     if (XINARG2)    {    /*      if delay is a-rate      */
@@ -241,7 +241,7 @@ int vdelay3(VDEL *p)           /*      vdelay routine with cubic interp */
 
 int vdelxset(VDELX *p)           /*  vdelayx set-up (1 channel) */
 {
-    unsigned long n = (long)(*p->imaxd * esr_);
+    unsigned long n = (long)(*p->imaxd * esr);
     MYFLT *buf1;
 
     if (n == 0) n = 1;          /* fix due to Troxler */
@@ -265,7 +265,7 @@ int vdelxset(VDELX *p)           /*  vdelayx set-up (1 channel) */
 
 int vdelxsset(VDELXS *p)           /*  vdelayxs set-up (stereo) */
 {
-    unsigned long n = (long)(*p->imaxd * esr_);
+    unsigned long n = (long)(*p->imaxd * esr);
     MYFLT *buf1, *buf2;
 
     if (n == 0) n = 1;          /* fix due to Troxler */
@@ -294,7 +294,7 @@ int vdelxsset(VDELXS *p)           /*  vdelayxs set-up (stereo) */
 
 int vdelxqset(VDELXQ *p)           /*  vdelayxq set-up (quad channels) */
 {
-    unsigned long n = (long)(*p->imaxd * esr_);
+    unsigned long n = (long)(*p->imaxd * esr);
     MYFLT *buf1, *buf2, *buf3, *buf4;
 
     if (n == 0) n = 1;          /* fix due to Troxler */
@@ -345,9 +345,9 @@ int vdelayx(VDELX *p)              /*      vdelayx routine  */
     if (buf1 == NULL) {
       return initerror(Str(X_1372,"vdelay: not initialised"));         /* RWD fix */
     }
-    maxd = (long) (*p->imaxd * esr_);
+    maxd = (long) (*p->imaxd * esr);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
-    nn = ksmps_;
+    nn = ksmps;
     indx = p->left;
     i2 = (wsize >> 1);
     d2x = (1.0 - pow ((double) wsize * 0.85172, -0.89624)) / (double) (i2 * i2);
@@ -360,7 +360,7 @@ int vdelayx(VDELX *p)              /*      vdelayx routine  */
       /* x2: sine of x1 (for interpolation) */
       /* xpos: integer part of delay time (buffer position to read from) */
 
-      x1 = (double) indx - ((double) *del++ * (double) esr_);
+      x1 = (double) indx - ((double) *del++ * (double) esr);
       while (x1 < 0.0) x1 += (double) maxd;
       xpos = (long) x1;
       x1 -= (double) xpos;
@@ -409,9 +409,9 @@ int vdelayxw(VDELX *p)              /*      vdelayxw routine  */
     if (buf1 == NULL) {
       return perferror(Str(X_1372,"vdelay: not initialised"));         /* RWD fix */
     }
-    maxd = (long) (*p->imaxd * esr_);
+    maxd = (long) (*p->imaxd * esr);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
-    nn = ksmps_;
+    nn = ksmps;
     indx = p->left;
     i2 = (wsize >> 1);
     d2x = (1.0 - pow ((double) wsize * 0.85172, -0.89624)) / (double) (i2 * i2);
@@ -421,7 +421,7 @@ int vdelayxw(VDELX *p)              /*      vdelayxw routine  */
       /* x2: sine of x1 (for interpolation) */
       /* xpos: integer part of delay time (buffer position to read from) */
 
-      x1 = (double) indx + ((double) *del++ * (double) esr_);
+      x1 = (double) indx + ((double) *del++ * (double) esr);
       while (x1 < 0.0) x1 += (double) maxd;
       xpos = (long) x1;
       x1 -= (double) xpos;
@@ -474,9 +474,9 @@ int vdelayxs(VDELXS *p)              /*      vdelayxs routine  */
     if ((buf1 == NULL) || (buf2 == NULL)) {
       return perferror(Str(X_1372,"vdelay: not initialised"));         /* RWD fix */
     }
-    maxd = (long) (*p->imaxd * esr_);
+    maxd = (long) (*p->imaxd * esr);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
-    nn = ksmps_;
+    nn = ksmps;
     indx = p->left;
     i2 = (wsize >> 1);
     d2x = (1.0 - pow ((double) wsize * 0.85172, -0.89624)) / (double) (i2 * i2);
@@ -489,7 +489,7 @@ int vdelayxs(VDELXS *p)              /*      vdelayxs routine  */
       /* x2: sine of x1 (for interpolation) */
       /* xpos: integer part of delay time (buffer position to read from) */
 
-      x1 = (double) indx - ((double) *del++ * (double) esr_);
+      x1 = (double) indx - ((double) *del++ * (double) esr);
       while (x1 < 0.0) x1 += (double) maxd;
       xpos = (long) x1;
       x1 -= (double) xpos;
@@ -541,9 +541,9 @@ int vdelayxws(VDELXS *p)              /*      vdelayxws routine  */
     if ((buf1 == NULL) || (buf2 == NULL)) {
       return perferror(Str(X_1372,"vdelay: not initialised"));         /* RWD fix */
     }
-    maxd = (long) (*p->imaxd * esr_);
+    maxd = (long) (*p->imaxd * esr);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
-    nn = ksmps_;
+    nn = ksmps;
     indx = p->left;
     i2 = (wsize >> 1);
     d2x = (1.0 - pow ((double) wsize * 0.85172, -0.89624)) / (double) (i2 * i2);
@@ -553,7 +553,7 @@ int vdelayxws(VDELXS *p)              /*      vdelayxws routine  */
       /* x2: sine of x1 (for interpolation) */
       /* xpos: integer part of delay time (buffer position to read from) */
 
-      x1 = (double) indx + ((double) *del++ * (double) esr_);
+      x1 = (double) indx + ((double) *del++ * (double) esr);
       while (x1 < 0.0) x1 += (double) maxd;
       xpos = (long) x1;
       x1 -= (double) xpos;
@@ -613,9 +613,9 @@ int vdelayxq(VDELXQ *p)              /*      vdelayxq routine  */
     if ((buf1 == NULL) || (buf2 == NULL) || (buf3 == NULL) || (buf4 == NULL)) {
       return perferror(Str(X_1372,"vdelay: not initialised"));         /* RWD fix */
     }
-    maxd = (long) (*p->imaxd * esr_);
+    maxd = (long) (*p->imaxd * esr);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
-    nn = ksmps_;
+    nn = ksmps;
     indx = p->left;
     i2 = (wsize >> 1);
     d2x = (1.0 - pow ((double) wsize * 0.85172, -0.89624)) / (double) (i2 * i2);
@@ -629,7 +629,7 @@ int vdelayxq(VDELXQ *p)              /*      vdelayxq routine  */
       /* x2: sine of x1 (for interpolation) */
       /* xpos: integer part of delay time (buffer position to read from) */
 
-      x1 = (double) indx - ((double) *del++ * (double) esr_);
+      x1 = (double) indx - ((double) *del++ * (double) esr);
       while (x1 < 0.0) x1 += (double) maxd;
       xpos = (long) x1;
       x1 -= (double) xpos;
@@ -691,9 +691,9 @@ int vdelayxwq(VDELXQ *p)              /*      vdelayxwq routine  */
     if ((buf1 == NULL) || (buf2 == NULL) || (buf3 == NULL) || (buf4 == NULL)) {
       return perferror(Str(X_1372,"vdelay: not initialised"));         /* RWD fix */
     }
-    maxd = (long) (*p->imaxd * esr_);
+    maxd = (long) (*p->imaxd * esr);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
-    nn = ksmps_;
+    nn = ksmps;
     indx = p->left;
     i2 = (wsize >> 1);
     d2x = (1.0 - pow ((double) wsize * 0.85172, -0.89624)) / (double) (i2 * i2);
@@ -703,7 +703,7 @@ int vdelayxwq(VDELXQ *p)              /*      vdelayxwq routine  */
       /* x2: sine of x1 (for interpolation) */
       /* xpos: integer part of delay time (buffer position to read from) */
 
-      x1 = (double) indx + ((double) *del++ * (double) esr_);
+      x1 = (double) indx + ((double) *del++ * (double) esr);
       while (x1 < 0.0) x1 += (double) maxd;
       xpos = (long) x1;
       x1 -= (double) xpos;
@@ -758,7 +758,7 @@ int multitap_set(MDEL *p)
       if (max < *p->ndel[n]) max = *p->ndel[n];
     }
 
-    n = (long)(esr_ * max * sizeof(MYFLT));
+    n = (long)(esr * max * sizeof(MYFLT));
     if (p->aux.auxp == NULL ||    /* allocate space for delay buffer */
         n > p->aux.size)
       auxalloc(n, &p->aux);
@@ -771,13 +771,13 @@ int multitap_set(MDEL *p)
     }
 
     p->left = 0;
-    p->max = (long)(esr_ * max);
+    p->max = (long)(esr * max);
     return OK;
 }
 
 int multitap_play(MDEL *p)
 {                               /* assign object data to local variables   */
-    long  n, nn = ksmps_, indx = p->left, delay;
+    long  n, nn = ksmps, indx = p->left, delay;
     MYFLT *out = p->sr, *in = p->ain;
     MYFLT *buf = (MYFLT *)p->aux.auxp;
     MYFLT max = (MYFLT)p->max;
@@ -791,7 +791,7 @@ int multitap_play(MDEL *p)
 
       if (++indx == max) indx = 0;         /*      Advance input pointer   */
       for (n = 0; n < p->INOCOUNT - 1; n += 2) {
-        delay = indx - (long)(esr_ * *p->ndel[n]);
+        delay = indx - (long)(esr * *p->ndel[n]);
         if (delay < 0)
           delay += (long)max;
         *out += buf[delay] * *p->ndel[n+1]; /*      Write output    */
@@ -882,16 +882,16 @@ int nreverb_set(NREV *p)   /* 6-comb/lowpass, 5-allpass reverberator */
     long i, n;
     MYFLT *temp;
 
-    MYFLT srscale=esr_/FL(25641.0); /* denominator is probably CCRMA "samson box" sampling-rate! */
+    MYFLT srscale=esr/FL(25641.0); /* denominator is probably CCRMA "samson box" sampling-rate! */
     int c_time, a_time;
 
     if (*p->hdif > FL(1.0) || *p->hdif < FL(0.0))
       die(Str(X_294,"High frequency diffusion not in (0, 1)\n"));
 
     if (*p->istor == FL(0.0) || p->temp.auxp == NULL) {
-      auxalloc(ksmps_ * sizeof(MYFLT), &p->temp);
+      auxalloc(ksmps * sizeof(MYFLT), &p->temp);
       temp = (MYFLT *)p->temp.auxp;
-      for (n = 0; n < ksmps_; n++)
+      for (n = 0; n < ksmps; n++)
         *temp++ = FL(0.0);
 
       for (i = 0; i < Combs; i++) {
@@ -931,7 +931,7 @@ int nreverb_set(NREV *p)   /* 6-comb/lowpass, 5-allpass reverberator */
 
 int nreverb(NREV *p)
 {
-    long       i, n = ksmps_;
+    long       i, n = ksmps;
     MYFLT      *in, *out = p->out, *buf, *end;
     MYFLT      gain, z;
     MYFLT      hdif = *p->hdif;
@@ -978,7 +978,7 @@ int nreverb(NREV *p)
       gain = p->c_gain[i];
       in = p->in;
       out = p->out;
-      n = ksmps_;
+      n = ksmps;
       do {
         *out++ += *buf;
         *buf += p->z[i] * p->g[i];
@@ -994,7 +994,7 @@ int nreverb(NREV *p)
     for (i = 0; i < Alpas; i++)       {
       in = (MYFLT *)p->temp.auxp;
       out = p->out;
-      n = ksmps_;
+      n = ksmps;
       do {
         *in++ = *out++;
       } while (--n);
@@ -1003,7 +1003,7 @@ int nreverb(NREV *p)
       gain = p->a_gain[i];
       in = (MYFLT *)p->temp.auxp;
       out = p->out;
-      n = ksmps_;
+      n = ksmps;
       do {
         z = *buf;
         *buf = gain * z + *in++;
@@ -1123,9 +1123,9 @@ int reverbx_set(NREV2 *p)
 
     /* Init variables */
     if (*p->istor == 0.0f || p->temp.auxp == NULL) {
-      auxalloc(ksmps_ * sizeof(MYFLT), &p->temp);
+      auxalloc(ksmps * sizeof(MYFLT), &p->temp);
       temp = (MYFLT *)p->temp.auxp;
-      for (n = 0; n < ksmps_; n++)
+      for (n = 0; n < ksmps; n++)
         *temp++ = 0.0f;
 
       n = 0;
@@ -1136,7 +1136,7 @@ int reverbx_set(NREV2 *p)
           c_time = (int)-ftime;
         else {
                 /* convert from to seconds to samples, and make prime */
-          c_time = (int)(ftime * esr_);
+          c_time = (int)(ftime * esr);
                 /* Mangle sample number to primes. */
           if (c_time % 2 == 0)  c_time += 1;
           while (!prime(c_time))  c_time += 2;
@@ -1170,7 +1170,7 @@ int reverbx_set(NREV2 *p)
           a_time = (int)-ftime;
         else {
           /* convert seconds to samples and make prime */
-          a_time = (int)(ftime * esr_);
+          a_time = (int)(ftime * esr);
           if (a_time % 2 == 0)  a_time += 1;
           while(!prime( a_time))  a_time += 2;
         }
@@ -1198,7 +1198,7 @@ int reverbx_set(NREV2 *p)
 
 int reverbx(NREV2 *p)
 {
-    long       i, n = ksmps_;
+    long       i, n = ksmps;
     MYFLT      *in, *out = p->out, *buf, *end;
     MYFLT      gain, z;
     MYFLT      hdif = *p->hdif;
@@ -1250,7 +1250,7 @@ int reverbx(NREV2 *p)
       gain = p->c_gain[i];
       in = (MYFLT*)(p->temp.auxp);
       out = p->out;
-      n = ksmps_;
+      n = ksmps;
       do {
         *out++ += *buf;
         *buf += p->z[i] * p->g[i];
@@ -1266,7 +1266,7 @@ int reverbx(NREV2 *p)
     for (i = 0; i < numAlpas; i++) {
       in = (MYFLT *)p->temp.auxp;
       out = p->out;
-      n = ksmps_;
+      n = ksmps;
       do {
         *in++ = *out++;
       } while (--n);
@@ -1275,7 +1275,7 @@ int reverbx(NREV2 *p)
       gain = p->a_gain[i];
       in = (MYFLT *)p->temp.auxp;
       out = p->out;
-      n = ksmps_;
+      n = ksmps;
       do {
         z = *buf;
         *buf = gain * z + *in++;

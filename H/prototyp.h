@@ -77,7 +77,7 @@ extern char *unquote(char *);
 
 extern OPARMS O;
 
-extern GLOBALS cglob;
+extern ENVIRON cenviron;
 
 #ifdef __cplusplus
 }

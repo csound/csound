@@ -105,10 +105,10 @@ int cvset(CONVOLVE *p)
     if ((p->nchanls == 1) && (*p->channel > 0))
       p->H += (Hlenpadded + 2) * (int)(*p->channel - 1);
 
-    if ((cvh->samplingRate) != esr_ &&
+    if ((cvh->samplingRate) != esr &&
         (O.msglevel & WARNMSG)) { /* & chk the data */
       printf(Str(X_63,"WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
-              cvfilnam, cvh->samplingRate, esr_);
+              cvfilnam, cvh->samplingRate, esr);
     }
     if (cvh->dataFormat != CVMYFLT) {
       sprintf(errmsg,Str(X_1357,"unsupported CONVOLVE data format %ld in %s"),
@@ -120,10 +120,10 @@ int cvset(CONVOLVE *p)
     p->cvlut = (MYFLT *)AssignBasis(NULL, Hlenpadded);
 
 /* Determine size of circular output buffer */
-    if (Hlen >= ksmps_)
-      obufsiz = (long)ceil( (double)Hlen / (double)ksmps_ ) * ksmps_;
+    if (Hlen >= ksmps)
+      obufsiz = (long)ceil( (double)Hlen / (double)ksmps ) * ksmps;
     else
-      obufsiz = (long)ceil( (double)ksmps_ / (double)Hlen ) * Hlen;
+      obufsiz = (long)ceil( (double)ksmps / (double)Hlen ) * Hlen;
 
     if (p->auxch.auxp == NULL) {              /* if no buffers yet, alloc now */
       MYFLT *fltp;
@@ -150,7 +150,7 @@ extern void writeFromCircBuf(MYFLT **, MYFLT **, MYFLT *, MYFLT *, long);
 
 int convolve(CONVOLVE *p)
 {
-    int    nsmpso=ksmps_,nsmpsi=ksmps_,nsmpso_sav,outcnt_sav;
+    int    nsmpso=ksmps,nsmpsi=ksmps,nsmpso_sav,outcnt_sav;
     int    nchm1 = p->nchanls - 1,chn;
     long   i,j;
     MYFLT  *ar[4];
@@ -177,10 +177,10 @@ int convolve(CONVOLVE *p)
     }
   /* First dump as much pre-existing audio in output buffer as possible */
     if (outcnt > 0) {
-      if (outcnt <= ksmps_)
+      if (outcnt <= ksmps)
         i = outcnt;
       else
-        i = ksmps_;
+        i = ksmps;
       nsmpso -= i; outcnt -= i;
       for (chn = nchm1;chn >= 0;chn--) {
         outhead = p->outhead + chn*obufsiz;

@@ -290,7 +290,7 @@ int scsnu_init(PSCSNU *p)
     }
 
     /* Cache update rate over to local structure */
-    p->rate = *p->i_rate * esr_;
+    p->rate = *p->i_rate * esr;
 
       /* Initialize index */
     p->idx = 0;
@@ -347,7 +347,7 @@ int scsnu_play(PSCSNU *p)
     int n;
     int len = p->len;
 
-    for (n = 0 ; n != ksmps_ ; n++) {
+    for (n = 0 ; n != ksmps ; n++) {
 
       /* Put audio input in external force */
       p->ext[p->exti] = p->a_ext[n];
@@ -486,7 +486,7 @@ int scsns_play(PSCSNS *p)
 
     switch (p->oscil_interp) {
     case 1:
-      for (i = 0 ; i != ksmps_ ; i++) {
+      for (i = 0 ; i != ksmps ; i++) {
       /* Do various interpolations to get output sample ... */
         PSCSNU *pp = p->p;
 /*        MYFLT x = phs - (int)phs; */
@@ -498,7 +498,7 @@ int scsns_play(PSCSNS *p)
       }
       break;
     case 2:
-      for (i = 0 ; i != ksmps_ ; i++) {
+      for (i = 0 ; i != ksmps ; i++) {
       /* Do various interpolations to get output sample ... */
         PSCSNU *pp = p->p;
         MYFLT x = phs - (int)phs;
@@ -513,7 +513,7 @@ int scsns_play(PSCSNS *p)
       }
       break;
     case 3:
-      for (i = 0 ; i != ksmps_ ; i++) {
+      for (i = 0 ; i != ksmps ; i++) {
       /* Do various interpolations to get output sample ... */
         PSCSNU *pp = p->p;
         MYFLT x = phs - (int)phs;
@@ -530,7 +530,7 @@ int scsns_play(PSCSNS *p)
       }
       break;
     case 4:
-      for (i = 0 ; i != ksmps_ ; i++) {
+      for (i = 0 ; i != ksmps ; i++) {
       /* Do various interpolations to get output sample ... */
         PSCSNU *pp = p->p;
         MYFLT x = phs - (int)phs;

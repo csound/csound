@@ -47,7 +47,7 @@ int dcblockrset(DCBlocker* p)
 int dcblockr(DCBlocker* p)
 {
     MYFLT       *ar = p->ar;
-    int         nsmps = ksmps_;
+    int         nsmps = ksmps;
     MYFLT       gain = p->gain;
     MYFLT       outputs = p->outputs;
     MYFLT       inputs = p->inputs;

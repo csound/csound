@@ -34,14 +34,15 @@
 #include "vibraphn.h"
 #include <math.h>
 
-static int make_Modal4(Modal4 *m, MYFLT *ifn, MYFLT vgain, MYFLT vrate)
+static int make_Modal4(ENVIRON *csound,
+                       Modal4 *m, MYFLT *ifn, MYFLT vgain, MYFLT vrate)
 {
     FUNC        *ftp;
 
-    if ((ftp = ftfind(ifn)) != NULL)
+    if ((ftp = csound->ftfind_(ifn)) != NULL)
       m->vibr = ftp;
     else {
-      perferror(Str(X_381,"No table for Modal4 case")); /* Expect sine wave */
+      csound->perferror_(csound->getstring_(X_381,"No table for Modal4 case")); /* Expect sine wave */
       return NOTOK;
     }
     make_Envelope(&m->envelope);
@@ -90,26 +91,27 @@ static int make_Modal4(Modal4 *m, MYFLT *ifn, MYFLT vgain, MYFLT vrate)
 /*     BiQuad_clear(&m->filters[3]); */
 /* } */
 
-void Modal4_setFreq(Modal4 *m, MYFLT frequency)
+void Modal4_setFreq(ENVIRON *csound, Modal4 *m, MYFLT frequency)
 {
     m->baseFreq = frequency;
-    Modal4_setRatioAndReson(m, 0,m->ratios[0],m->resons[0]);
-    Modal4_setRatioAndReson(m, 1,m->ratios[1],m->resons[1]);
-    Modal4_setRatioAndReson(m, 2,m->ratios[2],m->resons[2]);
-    Modal4_setRatioAndReson(m, 3,m->ratios[3],m->resons[3]);
+    Modal4_setRatioAndReson(csound, m, 0,m->ratios[0],m->resons[0]);
+    Modal4_setRatioAndReson(csound, m, 1,m->ratios[1],m->resons[1]);
+    Modal4_setRatioAndReson(csound, m, 2,m->ratios[2],m->resons[2]);
+    Modal4_setRatioAndReson(csound, m, 3,m->ratios[3],m->resons[3]);
 }
 
 #include <stdio.h>
 
-void Modal4_setRatioAndReson(Modal4 *m, int whichOne, MYFLT ratio,MYFLT reson)
+void Modal4_setRatioAndReson(ENVIRON *csound,
+                             Modal4 *m, int whichOne, MYFLT ratio,MYFLT reson)
 {
     MYFLT temp;
-    if (ratio* m->baseFreq < esr_ * FL(0.5)) {
+    if (ratio* m->baseFreq < csound->esr_ * FL(0.5)) {
       m->ratios[whichOne] = ratio;
     }
     else {
       temp = ratio;
-      while (temp* m->baseFreq > esr_/FL(2.0)) temp *= FL(0.5);
+      while (temp* m->baseFreq > FL(0.5)*csound->esr_) temp *= FL(0.5);
       m->ratios[whichOne] = temp;
 /*     printf("Modal4 : Aliasing would occur here, correcting.\n"); */
     }
@@ -121,7 +123,7 @@ void Modal4_setRatioAndReson(Modal4 *m, int whichOne, MYFLT ratio,MYFLT reson)
     BiQuad_setFreqAndReson(m->filters[whichOne], temp,reson);
 }
 
-void Modal4_strike(Modal4 *m, MYFLT amplitude)
+void Modal4_strike(ENVIRON *csound, Modal4 *m, MYFLT amplitude)
 {
     int i;
     MYFLT temp;
@@ -143,7 +145,7 @@ void Modal4_strike(Modal4 *m, MYFLT amplitude)
 }
 
 
-void Modal4_damp(Modal4 *m, MYFLT amplitude)
+void Modal4_damp(ENVIRON *csound, Modal4 *m, MYFLT amplitude)
 {
     int i;
     MYFLT temp;
@@ -261,6 +263,7 @@ int marimbaset(MARIMBA *p)
     MYFLT       temp,temp2;
     int         itemp;
     FUNC        *ftp;
+    ENVIRON     *csound = p->h.insdshead->csound;
 
     if ((ftp = ftfind(p->ifn)) != NULL)
       p->m4.wave = ftp;
@@ -274,13 +277,14 @@ int marimbaset(MARIMBA *p)
 /*     { int i; */
 /*      for (i=0; i<256; i++) printf("%d:%f\t", i, p->m4.wave->ftable[i]); */
 /*     } */
-    if (make_Modal4(m, p->ivfn, *p->vibAmt, *p->vibFreq)==NOTOK) return NOTOK;
+    if (make_Modal4(csound,
+                    m, p->ivfn, *p->vibAmt, *p->vibFreq)==NOTOK) return NOTOK;
     p->m4.w_phaseOffset = FL(0.0);
 /*     p->m4.w_rate = 0.5; */
-    Modal4_setRatioAndReson(m, 0, FL(1.00), FL(0.9996)); /*  Set all    132.0  */
-    Modal4_setRatioAndReson(m, 1, FL(3.99), FL(0.9994)); /*  of our     523.0  */
-    Modal4_setRatioAndReson(m, 2,FL(10.65), FL(0.9994)); /*  default    1405.0 */
-    Modal4_setRatioAndReson(m, 3,-FL(18.50), FL(0.999)); /*  resonances 2443.0 */
+    Modal4_setRatioAndReson(csound,m, 0, FL(1.00), FL(0.9996)); /*  Set all    132.0  */
+    Modal4_setRatioAndReson(csound,m, 1, FL(3.99), FL(0.9994)); /*  of our     523.0  */
+    Modal4_setRatioAndReson(csound,m, 2,FL(10.65), FL(0.9994)); /*  default    1405.0 */
+    Modal4_setRatioAndReson(csound,m, 3,-FL(18.50), FL(0.999)); /*  resonances 2443.0 */
     Modal4_setFiltGain(m, 0, FL(0.04));               /*  and        */
     Modal4_setFiltGain(m, 1, FL(0.01));               /*  gains      */
     Modal4_setFiltGain(m, 2, FL(0.01));               /*  for each   */
@@ -319,15 +323,15 @@ int marimbaset(MARIMBA *p)
       }
       else p->multiStrike = 0;
     }
-    Modal4_strike(m, *p->amplitude * AMP_RSCALE);
-    Modal4_setFreq(m, *p->frequency);
+    Modal4_strike(csound, m, *p->amplitude * AMP_RSCALE);
+    Modal4_setFreq(csound, m, *p->frequency);
     p->first = 1;
     {
-      int relestim = (int)(ekr_ * *p->dettack); /* 0.1 second decay extention */
+      int relestim = (int)(ekr * *p->dettack); /* 0.1 second decay extention */
       if (relestim > p->h.insdshead->xtratim)
         p->h.insdshead->xtratim = relestim;
     }
-    p->kloop = (int)((p->h.insdshead->offtim * ekr_) - (int)(ekr_* *p->dettack));
+    p->kloop = (int)((p->h.insdshead->offtim * ekr) - (int)(ekr* *p->dettack));
     return OK;
 }
 
@@ -336,19 +340,20 @@ int marimba(MARIMBA *p)
 {
     Modal4      *m = &(p->m4);
     MYFLT       *ar = p->ar;
-    long        nsmps = ksmps_;
+    long        nsmps = ksmps;
     MYFLT       amp = (*p->amplitude) * AMP_RSCALE; /* Normalise */
+    ENVIRON     *csound = p->h.insdshead->csound;
 
     if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
     if ((--p->kloop) == 0) {
 /*       printf("Start damp\n"); */
-      Modal4_damp(m, FL(1.0) - (amp * FL(0.03)));
+      Modal4_damp(csound, m, FL(1.0) - (amp * FL(0.03)));
     }
     p->m4.v_rate = *p->vibFreq; /* 6.0; */
     p->m4.vibrGain = *p->vibAmt; /* 0.05; */
     if (p->first) {
-      Modal4_strike(m, *p->amplitude * AMP_RSCALE);
-      Modal4_setFreq(m, *p->frequency);
+      Modal4_strike(csound, m, *p->amplitude * AMP_RSCALE);
+      Modal4_setFreq(csound, m, *p->frequency);
       p->first = 0;
     }
     do {
@@ -382,6 +387,7 @@ int vibraphnset(VIBRAPHN *p)
     Modal4      *m = &(p->m4);
     MYFLT       temp;
     FUNC        *ftp;
+    ENVIRON     *csound = p->h.insdshead->csound;
 
     if ((ftp = ftfind(p->ifn)) != NULL)
       p->m4.wave = ftp;         /* Expect an impulslything */
@@ -390,15 +396,16 @@ int vibraphnset(VIBRAPHN *p)
                     "No table for Vibraphone strike"));
     }
 
-    if (make_Modal4(m, p->ivfn, *p->vibAmt, *p->vibFreq)==NOTOK) return NOTOK;
+    if (make_Modal4(p->h.insdshead->csound,
+                    m, p->ivfn, *p->vibAmt, *p->vibFreq)==NOTOK) return NOTOK;
 
     p->m4.w_phaseOffset = FL(0.0);
 /*     p->m4.w_rate = 13.33; */
     OnePole_setPole(&p->m4.onepole, FL(0.2));
-    Modal4_setRatioAndReson(m, 0, FL(1.0), FL(0.99995));    /*  Set         */
-    Modal4_setRatioAndReson(m, 1, FL(2.01),FL(0.99991));    /*  our         */
-    Modal4_setRatioAndReson(m, 2, FL(3.9), FL(0.99992));    /*  resonance   */
-    Modal4_setRatioAndReson(m, 3,FL(14.37),FL(0.99990));    /*  values here */
+    Modal4_setRatioAndReson(csound, m, 0, FL(1.0), FL(0.99995)); /*  Set         */
+    Modal4_setRatioAndReson(csound, m, 1, FL(2.01),FL(0.99991)); /*  our         */
+    Modal4_setRatioAndReson(csound, m, 2, FL(3.9), FL(0.99992)); /*  resonance   */
+    Modal4_setRatioAndReson(csound, m, 3,FL(14.37),FL(0.99990)); /*  values here */
     Modal4_setFiltGain(m, 0, FL(0.025));
     Modal4_setFiltGain(m, 1, FL(0.015));
     Modal4_setFiltGain(m, 2, FL(0.015));
@@ -416,8 +423,8 @@ int vibraphnset(VIBRAPHN *p)
                    (MYFLT)sin(0.1 + (2.01 *(double) temp)));
     BiQuad_setGain(p->m4.filters[2], FL(0.015) * (MYFLT)sin(3.95 * (double)temp));
                                 /* Strike */
-    Modal4_strike(m, *p->amplitude * AMP_RSCALE);
-    Modal4_setFreq(m, *p->frequency);
+    Modal4_strike(csound, m, *p->amplitude * AMP_RSCALE);
+    Modal4_setFreq(csound, m, *p->frequency);
     p->first = 1;
     return OK; 
 }
@@ -426,17 +433,18 @@ int vibraphn(VIBRAPHN *p)
 {
     Modal4      *m = &(p->m4);
     MYFLT       *ar = p->ar;
-    long        nsmps = ksmps_;
+    long        nsmps = ksmps;
     MYFLT       amp = (*p->amplitude)*AMP_RSCALE; /* Normalise */
+    ENVIRON     *csound = p->h.insdshead->csound;
 
     if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
     if ((--p->kloop) == 0) {
 /*       printf("Start damp\n"); */
-      Modal4_damp(m, FL(1.0) - (amp * FL(0.03)));
+      Modal4_damp(csound, m, FL(1.0) - (amp * FL(0.03)));
     }
     if (p->first) {
-      Modal4_strike(m, *p->amplitude * AMP_RSCALE);
-      Modal4_setFreq(m, *p->frequency);
+      Modal4_strike(csound, m, *p->amplitude * AMP_RSCALE);
+      Modal4_setFreq(csound, m, *p->frequency);
       p->first = 0;
     }
     p->m4.v_rate = *p->vibFreq;
@@ -471,6 +479,7 @@ int agogobelset(VIBRAPHN *p)
     Modal4      *m = &(p->m4);
     FUNC        *ftp;
     MYFLT       temp;
+    ENVIRON     *csound = p->h.insdshead->csound;
 
     /* Expect an impulslything */
     if ((ftp = ftfind(p->ifn)) != NULL) p->m4.wave = ftp;
@@ -479,15 +488,16 @@ int agogobelset(VIBRAPHN *p)
                     "No table for Agogobell strike"));
     }
 
-    if (make_Modal4(m, p->ivfn, *p->vibAmt, *p->vibFreq)==NOTOK) return NOTOK;
+    if (make_Modal4(p->h.insdshead->csound,
+                    m, p->ivfn, *p->vibAmt, *p->vibFreq)==NOTOK) return NOTOK;
 
     p->m4.w_phaseOffset = FL(0.0);
 /*     p->m4.w_rate = 7.0; */
     OnePole_setPole(&p->m4.onepole, FL(0.2));
-    Modal4_setRatioAndReson(m, 0, FL(1.00), FL(0.999));    /*  Set         */
-    Modal4_setRatioAndReson(m, 1, FL(4.08), FL(0.999));    /*  our         */
-    Modal4_setRatioAndReson(m, 2, FL(6.669),FL(0.999));    /*  resonance   */
-    Modal4_setRatioAndReson(m, 3,-FL(3725.0), FL(0.999));  /*  values here */
+    Modal4_setRatioAndReson(csound, m, 0, FL(1.00), FL(0.999));    /*  Set         */
+    Modal4_setRatioAndReson(csound, m, 1, FL(4.08), FL(0.999));    /*  our         */
+    Modal4_setRatioAndReson(csound, m, 2, FL(6.669),FL(0.999));    /*  resonance   */
+    Modal4_setRatioAndReson(csound, m, 3,-FL(3725.0), FL(0.999));  /*  values here */
     Modal4_setFiltGain(m, 0, FL(0.06));
     Modal4_setFiltGain(m, 1, FL(0.05));
     Modal4_setFiltGain(m, 2, FL(0.03));
@@ -505,8 +515,8 @@ int agogobelset(VIBRAPHN *p)
 /*     printf("gain2=%f\n", 0.04 * sin(0.2 + (7.0 * temp))); */
     BiQuad_setGain(p->m4.filters[2], FL(0.04) * (MYFLT)sin(0.2 + (7.0 * temp)));
                                 /* Strike */
-    Modal4_strike(m, *p->amplitude*AMP_RSCALE);
-    Modal4_setFreq(m, *p->frequency);
+    Modal4_strike(csound, m, *p->amplitude*AMP_RSCALE);
+    Modal4_setFreq(csound, m, *p->frequency);
     return OK;
 }
 
@@ -514,13 +524,14 @@ int agogobel(VIBRAPHN *p)
 {
     Modal4      *m = &(p->m4);
     MYFLT       *ar = p->ar;
-    long        nsmps = ksmps_;
+    long        nsmps = ksmps;
+    ENVIRON     *csound = p->h.insdshead->csound;
 
     p->m4.v_rate = *p->vibFreq;
     p->m4.vibrGain =*p->vibAmt;
     if (p->first) {
-      Modal4_strike(m, *p->amplitude * AMP_RSCALE);
-      Modal4_setFreq(m, *p->frequency);
+      Modal4_strike(csound, m, *p->amplitude * AMP_RSCALE);
+      Modal4_setFreq(csound, m, *p->frequency);
       p->first = 0;
     }
     do {

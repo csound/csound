@@ -81,14 +81,14 @@ int mandolinset(MANDOL *p)
     }
     if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation */
       if (*p->lowestFreq!=FL(0.0)) {
-        p->length = (long) (esr_ / (*p->lowestFreq * FL(0.9)) + FL(1.0));
+        p->length = (long) (esr / (*p->lowestFreq * FL(0.9)) + FL(1.0));
       }
       else if (*p->frequency!=FL(0.0)) {
-        p->length = (long) (esr_ / *p->frequency + FL(1.0));
+        p->length = (long) (esr / *p->frequency + FL(1.0));
       }
       else {
         err_printf(Str(X_364,"No base frequency for mandolin"));
-        p->length = (long) (esr_ / FL(50.0) + FL(1.0));
+        p->length = (long) (esr / FL(50.0) + FL(1.0));
       }
       p->lastFreq = FL(50.0);
 /*     p->baseLoopGain = 0.995; */
@@ -100,7 +100,7 @@ int mandolinset(MANDOL *p)
       make_OneZero(&p->filter2);
       p->lastLength = p->length * FL(0.5);
 /*     soundfile->normalize(0.05);    Empirical hack here transferred to use  */
-      p->lastLength = ( esr_ / p->lastFreq);        /* length - delays */
+      p->lastLength = ( esr / p->lastFreq);        /* length - delays */
 /*        DLineA_setDelay(&p->delayLine1, (p->lastLength / *p->detuning) - 0.5f); */
 /*        DLineA_setDelay(&p->delayLine2, (p->lastLength * *p->detuning) - 0.5f); */
 
@@ -115,11 +115,11 @@ int mandolinset(MANDOL *p)
       p->dampTime = (long) p->lastLength;/* See tick method below         */
       p->waveDone = 0;
       {
-        int relestim = (int)(ekr_ * FL(0.1)); /* 1/10th second decay extention */
+        int relestim = (int)(ekr * FL(0.1)); /* 1/10th second decay extention */
         if (relestim > p->h.insdshead->xtratim)
           p->h.insdshead->xtratim = relestim;
       }
-      p->kloop = (int)(p->h.insdshead->offtim * ekr_);
+      p->kloop = (int)(p->h.insdshead->offtim * ekr);
     }
     return OK;
 }
@@ -127,7 +127,7 @@ int mandolinset(MANDOL *p)
 int mandolin(MANDOL *p)
 {
     MYFLT *ar = p->ar;
-    long  nsmps = ksmps_;
+    long  nsmps = ksmps;
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT lastOutput;
     MYFLT loopGain;
@@ -139,7 +139,7 @@ int mandolin(MANDOL *p)
 
     if (p->lastFreq != *p->frequency) {
       p->lastFreq = *p->frequency;
-      p->lastLength = ( esr_ / p->lastFreq);        /* length - delays */
+      p->lastLength = ( esr / p->lastFreq);        /* length - delays */
       DLineA_setDelay(&p->delayLine1, (p->lastLength / *p->detuning) - FL(0.5));
       DLineA_setDelay(&p->delayLine2, (p->lastLength * *p->detuning) - FL(0.5));
     }

@@ -61,7 +61,7 @@ extern void openMIDIout(void);
 
 static char outformch;
 extern  OPARMS  O;
-extern  GLOBALS cglob;
+extern  ENVIRON cenviron;
 static int     stdinassgn = 0;
 extern void create_opcodlst(void);
 extern void readOptions(FILE*);
@@ -217,7 +217,7 @@ err_printf(Str(X_582,"__________________________________________________________
 #endif
 err_printf(Str(X_768,"flag defaults: csound -s -otest -b%d -B%d -m7 -P128\n"),
         IOBUFSAMPS, IODACSAMPS);
-        longjmp(cglob.exitjmp,1);
+        longjmp(cenviron.exitjmp_,1);
 }
 
 void longusage(void)
@@ -372,7 +372,7 @@ err_printf(Str(X_582,"__________________________________________________________
 #endif
 err_printf(Str(X_768,"flag defaults: csound -s -otest -b%d -B%d -m7 -P128\n"),
         IOBUFSAMPS, IODACSAMPS);
- longjmp(cglob.exitjmp,0);
+ longjmp(cenviron.exitjmp_,0);
 }
 
 void dieu(char *s)
@@ -382,7 +382,7 @@ void dieu(char *s)
 #ifdef mills_macintosh
     die("");
 #else
-    if (!POLL_EVENTS()) longjmp(cglob.exitjmp,1);
+    if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
 #endif
 }
 
@@ -640,7 +640,7 @@ static int decode_long(char *s, int argc, char **argv, char *envoutyp)
       s += 6;
       if (*s == '\0') dieu(Str(X_1038,"no infilename"));
       O.infilename = s;   /* soundin name */
-      if (!POLL_EVENTS()) longjmp(cglob.exitjmp,1);
+      if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
       if (strcmp(O.infilename,"stdout") == 0)
         dieu("input cannot be stdout");
       if (strcmp(O.infilename,"stdin") == 0)
@@ -876,7 +876,7 @@ static int decode_long(char *s, int argc, char **argv, char *envoutyp)
         if (O.msglevel & WARNMSG)
           printf(Str(X_131,"WARNING: -W overriding local default AIFF out\n"));
       }
-      if (!POLL_EVENTS()) longjmp(cglob.exitjmp,1);
+      if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
       O.filetyp = TYP_WAV;      /* WAV output request */
       return 1;
     }
@@ -900,7 +900,7 @@ static int decode_long(char *s, int argc, char **argv, char *envoutyp)
     }
     else if (!(strncmp(s, "opcode-lib=", 11))) {
       s += 11;
-      cglob.oplibs = s;
+      cenviron.oplibs_ = s;
       return 1;
     }
     else if (!(strcmp(s ,"help"))) {
@@ -1028,7 +1028,7 @@ int argdecode(int argc, char **argv, char **pfilnamp, char *envoutyp)
             FIND(Str(X_1038,"no infilename"));
             O.infilename = filnamp;   /* soundin name */
             while ((*filnamp++ = *s++));  s--;
-            if (!POLL_EVENTS()) longjmp(cglob.exitjmp,1);
+            if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
             if (strcmp(O.infilename,"stdout") == 0)
               dieu("-i cannot be stdout");
             if (strcmp(O.infilename,"stdin") == 0)
@@ -1102,7 +1102,7 @@ int argdecode(int argc, char **argv, char **pfilnamp, char *envoutyp)
               if (O.msglevel & WARNMSG)
                 printf(Str(X_131,"WARNING: -W overriding local default AIFF out\n"));
             }
-            if (!POLL_EVENTS()) longjmp(cglob.exitjmp,1);
+            if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
             O.filetyp = TYP_WAV;      /* WAV output request */
             break;
           case 'h':
@@ -1307,7 +1307,7 @@ int argdecode(int argc, char **argv, char **pfilnamp, char *envoutyp)
             sprintf(errmsg,Str(X_1334,"unknown flag -%c"), c);
             dieu(errmsg);
           }
-          if (!POLL_EVENTS()) longjmp(cglob.exitjmp,1);
+          if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
         }
       }
       else {
@@ -1320,7 +1320,7 @@ int argdecode(int argc, char **argv, char **pfilnamp, char *envoutyp)
           dieu(Str(X_1286,"too many arguments"));
         }
       }
-      if (!POLL_EVENTS()) longjmp(cglob.exitjmp,1);
+      if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
     } while (--argc);
     *pfilnamp = filnamp;
     return 1;

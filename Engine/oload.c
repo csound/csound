@@ -122,7 +122,7 @@ MEMFIL *ldmemfile(char *);
 static  MYFLT   *gbloffbas;
 
 OPARMS  O_ = {0,0, 0,1,1,0, 0,0, 0,0, 0,0, 1,0,0,7, 0,0,0, 0,0,0,0, 0,0 };
-GLOBALS cglob_ = {
+ENVIRON cenviron_ = {
         /*
         * Interface functions.
         */
@@ -206,6 +206,7 @@ GLOBALS cglob_ = {
         initerror,
         perferror,
         mmalloc,
+        mcalloc,
         mfree,
         dispset,
         display,
@@ -290,7 +291,7 @@ GLOBALS cglob_ = {
 #if defined(__WATCOMC__) || defined(__POWERPC__) || defined(mills_macintosh)
         {0},
 #else
-        {{{0}}}, /*      exitjmp of type jmp_buf */
+        {{{0}}}, /*      exitjmp_ of type jmp_buf */
 #endif
         NULL,   /*      frstbp */
         0,      /*      sectcnt */
@@ -333,7 +334,7 @@ GLOBALS cglob_ = {
 
 OPARMS O;
 
-GLOBALS cglob;
+ENVIRON cenviron;
 
 int     pnum(char*);
 
@@ -376,11 +377,11 @@ void oloadRESET(void)
     maxopcno = -1; instrtxtp = NULL;    /* IV - Oct 24 2002 */
     e0dbfs      = DFLT_DBFS;
     /**
-     * The first time around, assign cglob_ to glob_ wholesale.
+     * The first time around, assign cenviron_ to glob_ wholesale.
      */
-    if (!cglob.GetVersion) {
-      memcpy(&cglob, &cglob_, sizeof(GLOBALS));
-      cglob.GetVersion = csoundGetVersion;
+    if (!cenviron.GetVersion) {
+      memcpy(&cenviron, &cenviron_, sizeof(ENVIRON));
+      cenviron.GetVersion = csoundGetVersion;
     }
     /**
      * The next time, copy everything EXCEPT the function pointers.
@@ -388,18 +389,18 @@ void oloadRESET(void)
      * We do it by saving them and copying them back again...
      */
     else {
-      GLOBALS tempGlobals = cglob;
+      ENVIRON tempGlobals = cenviron;
       size_t front = (size_t)&tempGlobals;
       size_t back = (size_t)&tempGlobals.SetRtcloseCallback;
       size_t length = back - front;
       back += sizeof(tempGlobals.SetRtcloseCallback);
-      cglob = cglob_;
-      memcpy(&cglob, &tempGlobals, length);
+      cenviron = cenviron_;
+      memcpy(&cenviron, &tempGlobals, length);
     }
     O = O_;
-    cglob.oparms = &O;
+    cenviron.oparms_ = &O;
     /* IV - Sep 8 2002: also reset saved globals */
-    global_ksmps = ksmps_; global_ensmps = ensmps; global_ekr = ekr_;
+    global_ksmps = ksmps; global_ensmps = ensmps; global_ekr = ekr;
     global_onedkr = onedkr; global_hfkprd = hfkprd; global_kicvt = kicvt;
     global_kcounter = kcounter;
     rtin_dev = 1024;
@@ -413,7 +414,7 @@ void oload(void)
 /*     short  *pgmdim = NULL; */
     INSTRTXT *ip;
     OPTXT *optxt;
-    esr_ = tran_sr; ekr_ = tran_kr; ksmps_ = (int) (ensmps = tran_ksmps);
+    esr = tran_sr; ekr = tran_kr; ksmps = (int) (ensmps = tran_ksmps);
     ip = instxtanchor.nxtinstxt;                /* for instr 0 optxts:  */
     optxt = (OPTXT *) ip;
     while ((optxt = optxt->nxtop) !=  NULL) {
@@ -428,9 +429,9 @@ void oload(void)
         short rindex = (short)outoffp->indx[0] - (short)O.poolcount;
         MYFLT conval = pool[inoffp->indx[0] - 1];
         switch(rindex) {
-        case 1:  esr_ = conval;  break;  /* & use those values */
-        case 2:  ekr_ = conval;  break;  /*  to set params now */
-        case 3:  ksmps_ = (int)(ensmps = conval);  break;
+        case 1:  esr = conval;  break;  /* & use those values */
+        case 2:  ekr = conval;  break;  /*  to set params now */
+        case 3:  ksmps = (int)(ensmps = conval);  break;
         case 4:  nchnls = (int)conval;  break;
         case 5:  e0dbfs = conval; break;
         default: break;
@@ -442,15 +443,15 @@ void oload(void)
       die(Str(X_1711,"bad value for 0dbfs: must be positive."));
     if (O.odebug)
       printf("esr = %7.1f, ekr = %7.1f, ksmps = %d, nchnls = %d 0dbfs = %.1f\n",
-             esr_ ,ekr_, ksmps_, nchnls,e0dbfs);  ;
+             esr ,ekr, ksmps, nchnls,e0dbfs);  ;
     if (O.sr_override) {        /* if command-line overrides, apply now */
-      esr_ = (MYFLT)O.sr_override;
-      ekr_ = (MYFLT)O.kr_override;
-      ksmps_ = (int)(ensmps = (MYFLT)(O.sr_override / O.kr_override));
+      esr = (MYFLT)O.sr_override;
+      ekr = (MYFLT)O.kr_override;
+      ksmps = (int)(ensmps = (MYFLT)(O.sr_override / O.kr_override));
       printf(Str(X_1173,"sample rate overrides: esr = %7.1f, ekr = %7.1f, ksmps = %d\n"),
-             esr_, ekr_, ksmps_);
+             esr, ekr, ksmps);
     }
-    combinedsize = (O.poolcount + O.gblfixed + O.gblacount * ksmps_)
+    combinedsize = (O.poolcount + O.gblfixed + O.gblacount * ksmps)
       * sizeof(MYFLT);
     combinedspc = (MYFLT *)mcalloc((long)combinedsize);
     for (fp1 = pool, fp2 = combinedspc, nn = O.poolcount; nn--; )
@@ -458,8 +459,8 @@ void oload(void)
     mfree((void *)pool);
     pool = combinedspc;
     gblspace = pool + O.poolcount;
-    gblspace[0] = esr_;              /*   & enter        */
-    gblspace[1] = ekr_;              /*   rsvd word      */
+    gblspace[0] = esr;              /*   & enter        */
+    gblspace[1] = ekr;              /*   rsvd word      */
     gblspace[2] = ensmps;           /*   curr vals  */
     gblspace[3] = (MYFLT)nchnls;
     gblspace[4] = e0dbfs;
@@ -476,10 +477,10 @@ void oload(void)
        * On Alpha, we need to align on 2*sizeof(MYFLT) (i.e. 64 bits).  So
        * we round up to that size.  heh 981101
        */
-      ip->localen = ((ip->lclfixed + ip->lclacnt*ksmps_ + 1) & ~0x1) *
+      ip->localen = ((ip->lclfixed + ip->lclacnt*ksmps + 1) & ~0x1) *
         sizeof(MYFLT);
 #else
-     ip->localen = (ip->lclfixed + ip->lclacnt*ksmps_) * sizeof(MYFLT);
+     ip->localen = (ip->lclfixed + ip->lclacnt*ksmps) * sizeof(MYFLT);
 #endif
       for (insno=0, n=0; insno <= maxinsno; insno++)
         if (instrtxtp[insno] == ip)  n++;              /* count insnos  */
@@ -502,11 +503,11 @@ void oload(void)
         for (ndxp=aoffp->indx; n--; ndxp++) {
 /*           printf("**** indx = %d (%x); gblabeg=%d lclabeg=%d\n", *ndxp, *ndxp,gblabeg,lclabeg ); */
           if ((indx = *ndxp) > gblabeg) {
-            indx = gblabeg + (indx - gblabeg) * ksmps_;
+            indx = gblabeg + (indx - gblabeg) * ksmps;
           }
           else if (indx <= 0 && (posndx = -indx) > lclabeg
                    && indx >= LABELIM) {
-            indx = -(lclabeg + (posndx - lclabeg) * ksmps_);
+            indx = -(lclabeg + (posndx - lclabeg) * ksmps);
           }
           else if (indx > 0 && indx <= 3 && O.sr_override
                    && ip == instxtanchor.nxtinstxt) { /* for instr 0 */
@@ -541,7 +542,7 @@ void oload(void)
           if (strsets == NULL || indx < 0) { /* No space left or -ve index */
             if (O.msglevel & WARNMSG)
               printf(Str(X_887,"WARNING: illegal strset index\n"));
-            longjmp(cglob.exitjmp,1);
+            longjmp(cenviron.exitjmp_,1);
           }
           if (strsets[indx] != NULL) {
             if (O.msglevel & WARNMSG)
@@ -576,11 +577,11 @@ void oload(void)
         for (ndxp=aoffp->indx; n--; ndxp++) {
 /*           printf("**** indx = %d (%x)\n", *ndxp, *ndxp); */
           if ((indx = (long)*ndxp) > gblabeg) {
-            indx = gblabeg + (indx - gblabeg) * ksmps_;
+            indx = gblabeg + (indx - gblabeg) * ksmps;
           }
           else if (indx <= 0 && (posndx = -indx) > lclabeg
                    && indx >= LABELIM) {
-            indx = -(lclabeg + (posndx - lclabeg) * ksmps_);
+            indx = -(lclabeg + (posndx - lclabeg) * ksmps);
           }
           else continue;
           if ((short)indx != indx) {
@@ -591,7 +592,7 @@ void oload(void)
           *ndxp = (short)indx;
         }
       }
-      if (!POLL_EVENTS()) longjmp(cglob.exitjmp,1); /* on Mac/Win, allow system events */
+      if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); /* on Mac/Win, allow system events */
     }
 /*     if (pgmdim != NULL) free((char *)pgmdim); */
 /*     pctlist = (MYFLT **) mcalloc((long)256 * sizeof(MYFLT *)); */
@@ -599,23 +600,23 @@ void oload(void)
 
     if ((nn = init0()) > 0)                             /* run instr 0 inits */
       die(Str(X_828,"header init errors"));
-    if ((ensmps != (MYFLT) ksmps_) ||
+    if ((ensmps != (MYFLT) ksmps) ||
         (gblspace[0]/gblspace[1] != gblspace[2])) {     /* & chk consistency */
       printf("sr = %f, kr = %f, ksmps = %f\n",
              gblspace[0], gblspace[1], gblspace[2]);
       die(Str(X_903,"inconsistent sr, kr, ksmps"));             /*   one more time   */
     }
-    tpidsr = TWOPI_F / esr_;                             /* now set internal  */
+    tpidsr = TWOPI_F / esr;                             /* now set internal  */
     mtpdsr = -tpidsr;                                   /*    consts         */
-    pidsr = PI_F / esr_;
+    pidsr = PI_F / esr;
     mpidsr = -pidsr;
-    sicvt = FMAXLEN / esr_;
-    kicvt = FMAXLEN / ekr_;
-    hfkprd = FL(0.5) / ekr_;
-    onedsr = FL(1.0) / esr_;
-    onedkr = FL(1.0) / ekr_;
+    sicvt = FMAXLEN / esr;
+    kicvt = FMAXLEN / ekr;
+    hfkprd = FL(0.5) / ekr;
+    onedsr = FL(1.0) / esr;
+    onedkr = FL(1.0) / ekr;
     /* IV - Sep 8 2002: save global variables that depend on ksmps */
-    global_ksmps = ksmps_; global_ensmps = ensmps; global_ekr = ekr_;
+    global_ksmps = ksmps; global_ensmps = ensmps; global_ekr = ekr;
     global_onedkr = onedkr; global_hfkprd = hfkprd; global_kicvt = kicvt;
     global_kcounter = kcounter;
 /*  dv32768 = FL(1.0) / FL(32768.0);            IV - Jul 11 2002 */
@@ -624,7 +625,7 @@ void oload(void)
     sssfinit();
     dbfs_init(e0dbfs);
 /*  dv32768 = dbfs_to_float;                    IV - Jul 11 2002 */
-    nspin = nspout = ksmps_ * nchnls;                    /* alloc spin & spout */
+    nspin = nspout = ksmps * nchnls;                    /* alloc spin & spout */
     spin =  (MYFLT *) mcalloc((long)nspin*sizeof(MYFLT));
     spout = (MYFLT *) mcalloc((long)nspout*sizeof(MYFLT));
 }
@@ -672,7 +673,7 @@ instance(int insno)             /* create instance of an instr template */
         }
         pextent = sizeof(INSDS) + tp->pextrab;          /* alloc new space,  */
         ip = (INSDS *) mcalloc((long)pextent + tp->localen + tp->opdstot);
-                ip->csound = &cglob;
+                ip->csound = &cenviron;
         if (tp->mdepends & 06)
             ip->m_chnbp = chp;
         /* IV - Oct 26 2002: replaced with faster version (no search) */

@@ -57,7 +57,7 @@ int kphsor(PHSOR *p)
 int phsor(PHSOR *p)
 {
     double      phase;
-    int         nsmps = ksmps_;
+    int         nsmps = ksmps;
     MYFLT       *rs;
     double      incr;
 
@@ -379,7 +379,7 @@ int tablefn(TABLE  *p)
     FUNC        *ftp;
     MYFLT       *rslt, *pxndx, *tab;
     long        indx, mask, length;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     MYFLT       ndx, xbmul, offset;
 
     ftp = p->ftp;
@@ -612,7 +612,7 @@ int tabli(TABLE  *p)
 {
     FUNC        *ftp;
     long        indx, mask, length;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     MYFLT       *rslt, *pxndx, *tab;
     MYFLT       fract, v1, v2, ndx, xbmul, offset;
 
@@ -664,7 +664,7 @@ int tabl3(TABLE  *p)           /* Like tabli but cubic interpolation */
 {
     FUNC        *ftp;
     long        indx, mask, length;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     MYFLT       *rslt, *pxndx, *tab;
     MYFLT       fract, v1, v2, ndx, xbmul, offset;
 
@@ -855,7 +855,7 @@ int ko1set(OSCIL1 *p)
     }
     p->ftp = ftp;
     p->phs = 0;
-    p->dcnt = (long)(*p->idel * ekr_);
+    p->dcnt = (long)(*p->idel * ekr);
     p->kinc = (long) (kicvt / *p->idur);
     return OK;
 }
@@ -934,7 +934,7 @@ int oscnset(OSCILN *p)
 int osciln(OSCILN *p)
 {
     MYFLT *rs = p->rslt;
-    long  nsmps = ksmps_;
+    long  nsmps = ksmps;
 
     if (p->ftp==NULL) {
       return perferror(Str(X_1109,"osciln: not initialised"));
@@ -1001,7 +1001,7 @@ int osckk(OSC *p)
     FUNC    *ftp;
     MYFLT   amp, *ar, *ftbl;
     long    phs, inc, lobits;
-    int     nsmps = ksmps_;
+    int     nsmps = ksmps;
 
     ftp = p->ftp;
     if (ftp==NULL) {
@@ -1027,7 +1027,7 @@ int oscka(OSC *p)
     FUNC    *ftp;
     MYFLT   *ar, amp, *cpsp, *ftbl;
     long    phs, lobits;
-    int     nsmps = ksmps_;
+    int     nsmps = ksmps;
 
     ftp = p->ftp;
     if (ftp==NULL) {
@@ -1055,7 +1055,7 @@ int oscak(OSC *p)
     FUNC    *ftp;
     MYFLT   *ar, *ampp, *ftbl;
     long    phs, inc, lobits;
-    int             nsmps = ksmps_;
+    int             nsmps = ksmps;
 
     ftp = p->ftp;
     if (ftp==NULL) {
@@ -1081,7 +1081,7 @@ int oscaa(OSC *p)
     FUNC    *ftp;
     MYFLT   *ar, *ampp, *cpsp, *ftbl;
     long    phs, lobits;
-    int             nsmps = ksmps_;
+    int             nsmps = ksmps;
 
     ftp = p->ftp;
     if (ftp==NULL) {
@@ -1131,7 +1131,7 @@ int osckki(OSC  *p)
     FUNC    *ftp;
     MYFLT   fract, v1, amp, *ar, *ftab;
     long    phs, inc, lobits;
-    int     nsmps = ksmps_;
+    int     nsmps = ksmps;
 
     ftp = p->ftp;
     if (ftp==NULL) {
@@ -1159,7 +1159,7 @@ int osckai(OSC  *p)
     FUNC    *ftp;
     MYFLT   *ar, amp, *cpsp, fract, v1, *ftab;
     long    phs, lobits;
-    int     nsmps = ksmps_;
+    int     nsmps = ksmps;
 
     ftp = p->ftp;
     if (ftp==NULL) {
@@ -1189,7 +1189,7 @@ int oscaki(OSC  *p)
     FUNC    *ftp;
     MYFLT   v1, fract, *ar, *ampp, *ftab;
     long    phs, inc, lobits;
-    int     nsmps = ksmps_;
+    int     nsmps = ksmps;
 
     ftp = p->ftp;
     if (ftp==NULL) {
@@ -1218,7 +1218,7 @@ int oscaai(OSC  *p)
     FUNC    *ftp;
     MYFLT   v1, fract, *ar, *ampp, *cpsp, *ftab;
     long    phs, lobits;
-    int     nsmps = ksmps_;
+    int     nsmps = ksmps;
 
     ftp = p->ftp;
     if (ftp==NULL) {
@@ -1288,7 +1288,7 @@ int osckk3(OSC  *p)
     FUNC    *ftp;
     MYFLT   fract, amp, *ar, *ftab;
     long    phs, inc, lobits;
-    int     nsmps = ksmps_;
+    int     nsmps = ksmps;
     int     x0;
     MYFLT   y0, y1, ym1, y2;
 
@@ -1339,7 +1339,7 @@ int oscka3(OSC  *p)
     FUNC    *ftp;
     MYFLT   *ar, amp, *cpsp, fract, *ftab;
     long    phs, lobits;
-    int     nsmps = ksmps_;
+    int     nsmps = ksmps;
     int     x0;
     MYFLT   y0, y1, ym1, y2;
 
@@ -1387,7 +1387,7 @@ int oscak3(OSC  *p)
     FUNC    *ftp;
     MYFLT   fract, *ar, *ampp, *ftab;
     long    phs, inc, lobits;
-    int     nsmps = ksmps_;
+    int     nsmps = ksmps;
     int     x0;
     MYFLT   y0, y1, ym1, y2;
 
@@ -1433,7 +1433,7 @@ int oscaa3(OSC  *p)
     FUNC    *ftp;
     MYFLT   fract, *ar, *ampp, *cpsp, *ftab;
     long    phs, lobits;
-    int     nsmps = ksmps_;
+    int     nsmps = ksmps;
     int     x0;
     MYFLT   y0, y1, ym1, y2;
 

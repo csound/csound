@@ -224,7 +224,7 @@ static int createOrchestra(FILE *unf)
     printf(Str(X_232,"Creating %s (%p)\n"), orcname, orcf);
     if (orcf==NULL) {
       perror(Str(X_269,"Failed to create\n"));
-      longjmp(cglob.exitjmp,1);
+      longjmp(cenviron.exitjmp_,1);
     }
     while (my_fgets(buffer, 200, unf)!= NULL) {
       p = buffer;
@@ -275,7 +275,7 @@ static int createMIDI(FILE *unf)
 
     if (tmpnam(midname)==NULL) { /* Generate MIDI file name */
       printf(Str(X_206,"Cannot create temporary file for MIDI subfile\n"));
-      longjmp(cglob.exitjmp,1);
+      longjmp(cenviron.exitjmp_,1);
     }
     if ((p=strchr(midname, '.')) != NULL) *p='\0'; /* with extention */
     strcat(midname, ".mid");
@@ -283,12 +283,12 @@ static int createMIDI(FILE *unf)
     if (midf==NULL) {
       printf(Str(X_217,"Cannot open temporary file (%s) for MIDI subfile\n"),
              midname);
-      longjmp(cglob.exitjmp,1);
+      longjmp(cenviron.exitjmp_,1);
     }
     my_fgets(buffer, 200, unf);
     if (sscanf(buffer, Str(X_464,"Size = %d"), &size)==0) {
       printf(Str(X_255,"Error in reading MIDI subfile -- no size read\n"));
-      longjmp(cglob.exitjmp,1);
+      longjmp(cenviron.exitjmp_,1);
     }
     for (; size > 0; size--) {
       c = getc(unf);
@@ -329,7 +329,7 @@ static void read_base64(FILE *in, FILE *out)
       else if (c == '/')    n[cycl] = 63;
       else {
         err_printf( "Non 64base character %c(%2x)\n", c, c);
-        longjmp(cglob.exitjmp,1);
+        longjmp(cenviron.exitjmp_,1);
       }
       cycl++;
       if (cycl == 4) {
@@ -359,7 +359,7 @@ static int createMIDI2(FILE *unf)
 
     if (tmpnam(midname)==NULL) { /* Generate MIDI file name */
       printf(Str(X_206,"Cannot create temporary file for MIDI subfile\n"));
-      longjmp(cglob.exitjmp,1);
+      longjmp(cenviron.exitjmp_,1);
     }
     if ((p=strchr(midname, '.')) != NULL) *p='\0'; /* with extention */
     strcat(midname, ".mid");
@@ -367,7 +367,7 @@ static int createMIDI2(FILE *unf)
     if (midf==NULL) {
       printf(Str(X_217,"Cannot open temporary file (%s) for MIDI subfile\n"),
              midname);
-      longjmp(cglob.exitjmp,1);
+      longjmp(cenviron.exitjmp_,1);
     }
     read_base64(unf, midf);
     fclose(midf);
@@ -395,13 +395,13 @@ static int createSample(FILE *unf)
     sprintf(sampname, "soundin.%d", num);
     if ((smpf=fopen(sampname, "r")) !=NULL) {
       printf(Str(X_1815,"File %s already exists\n"), sampname);
-      longjmp(cglob.exitjmp,1);
+      longjmp(cenviron.exitjmp_,1);
     }
     fclose(smpf);
     smpf = fopen(sampname, "wb");
     if (smpf==NULL) {
       printf(Str(X_1816,"Cannot open sample file (%s) subfile\n"), sampname);
-      longjmp(cglob.exitjmp,1);
+      longjmp(cenviron.exitjmp_,1);
     }
     read_base64(unf, smpf);
     fclose(smpf);
@@ -428,13 +428,13 @@ static int createFile(FILE *unf)
     sscanf(buffer, "<CsFileB filename=%s>", filename);
     if ((smpf=fopen(filename, "r")) !=NULL) {
       printf(Str(X_1815,"File %s already exists\n"), filename);
-      longjmp(cglob.exitjmp,1);
+      longjmp(cenviron.exitjmp_,1);
     }
     fclose(smpf);
     smpf = fopen(filename, "wb");
     if (smpf==NULL) {
       printf(Str(X_1817,"Cannot open file (%s) subfile\n"), filename);
-      longjmp(cglob.exitjmp,1);
+      longjmp(cenviron.exitjmp_,1);
     }
     read_base64(unf, smpf);
     fclose(smpf);

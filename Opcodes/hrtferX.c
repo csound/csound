@@ -81,10 +81,10 @@ int hrtferxkSet(HRTFER *p)
 
         /* first check if orchestra's sampling rate is compatible with HRTF
            measurement's */
-    if (esr_ != SAMP_RATE) {
+    if (esr != SAMP_RATE) {
       printf (Str(X_399,"Orchestra sampling rate is not compatible with HRTF.\n"));
       printf (Str(X_462,"Should be %d...exiting.\n"), SAMP_RATE);
-      longjmp(pcglob->exitjmp,1);
+      longjmp(p->h.insdshead->csound->exitjmp_,1);
     }
 
     if (*p->ifilno == SSTRCOD)
@@ -320,8 +320,8 @@ int hrtferxk(HRTFER *p)
     aLeft  = p->aLeft;
     aRight = p->aRight;
 
-    nsmpsi = ksmps_;
-    nsmpso = ksmps_;
+    nsmpsi = ksmps;
+    nsmpso = ksmps;
 
         /* main loop for a-rate code.  Audio read in, processed,
            and output in this loop.  Loop exits when control period

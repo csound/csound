@@ -46,7 +46,6 @@
 #include "ftgen.h"
 #include "oload.h"
 #include "midiout.h"
-#include "wavegde.h"
 #include "pitch.h"
 
 #include "pvadd.h"

@@ -571,7 +571,7 @@ void rdorchfile(void)           /* read entire orch file into txt space */
         if (mm == NULL) {
           err_printf(Str(X_1711,
                          "Macro expansion symbol ($) without macro name\n"));
-          longjmp(cglob.exitjmp,1);
+          longjmp(cenviron.exitjmp_,1);
         }
         if (strlen (mm->name) != (unsigned)i) {
 /*              fprintf (stderr, "Warning: $%s matches macro name $%s\n", */
@@ -610,7 +610,7 @@ void rdorchfile(void)           /* read entire orch file into txt space */
             while ((c = getorchar())!= term && c!=trm1) {
               if (i>98) {
                 printf(Str(X_347,"Missing argument terminator\n%.98s"), nn->body);
-                longjmp(cglob.exitjmp,1);
+                longjmp(cenviron.exitjmp_,1);
               }
               nn->body[i++] = c;
               if (i>= size) nn->body = mrealloc(nn->body, size += 100);
@@ -996,7 +996,7 @@ int splitline(void)     /* split next orch line into atomic groups */
     linopnum = opnum;                   /* else save full line ops */
     linopcod = opcod;
     if (O.odebug) printgroups(grpcnt); 
-    if (!POLL_EVENTS()) longjmp(cglob.exitjmp,1); /* on Mac/win, allow system events */
+    if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); /* on Mac/win, allow system events */
     return(grpcnt);
 }
 

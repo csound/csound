@@ -27,7 +27,7 @@
 /* standalone versions of hetro, lpanal, pvanal, sndinfo  */
 
 OPARMS O, O_;                              /* dummy global resolving */
-GLOBALS cglob, cglob_;                     /*  for references unused */
+ENVIRON cenviron, cenviron_;                     /*  for references unused */
 
 void fdrecord(FDCH *fdchp) {}
 int initerror(char *s) { return NOTOK;}

@@ -42,7 +42,7 @@ extern "C" {
 #endif
 
 /* HACK to turn off nchnls being defined
- * as cglob.nchnls
+ * as cenviron.nchnls
  */
 #define nchnls nchnls
 
@@ -56,7 +56,7 @@ extern "C" {
   static long csoundNumExits_ = -1;
   static jmp_buf csoundJump_;
   extern OPARMS O;
-  extern GLOBALS cglob;
+  extern ENVIRON cenviron;
   extern int csoundMain(void *csound, int argc, char **argv);
   extern void csoundMainCleanup(void);
   extern void mainRESET(void);
@@ -86,9 +86,9 @@ extern "C" {
     //  Currently, there is only one instance of Csound per process.
     //  In the future, this will be dynamically allocated,
     //  and will need to be passed to all internals Csound functions that reference it.
-    cglob.hostdata = hostData;
-		csoundReset(&cglob);
-    return &cglob;
+    cenviron.hostdata = hostData;
+		csoundReset(&cenviron);
+    return &cenviron;
   }
 
   int csoundQueryInterface(const char *name, void **interface, int *version)
@@ -390,19 +390,19 @@ extern "C" {
 
   void csoundMessageV(void *csound, const char *format, va_list args)
   {
-    csoundMessageCallback_(&cglob, format, args);
+    csoundMessageCallback_(&cenviron, format, args);
   }
 
 	void csoundMessageS(void *csound, const char *format, va_list args)
 	{
-		csoundMessageCallback_(&cglob, format, args);
+		csoundMessageCallback_(&cenviron, format, args);
 	}
 
   void csoundMessage(void *csound, const char *format, ...)
   {
     va_list args;
     va_start(args, format);
-    csoundMessageCallback_(&cglob, format, args);
+    csoundMessageCallback_(&cenviron, format, args);
     va_end(args);
   }
 
@@ -415,25 +415,25 @@ extern "C" {
 
   void csoundThrowMessageV(void *csound, const char *format, va_list args)
   {
-    csoundThrowMessageCallback_(&cglob, format, args);
+    csoundThrowMessageCallback_(&cenviron, format, args);
   }
 
   void csoundThrowMessage(void *csound, const char *format, ...)
   {
     va_list args;
     va_start(args, format);
-    csoundThrowMessageCallback_(&cglob, format, args);
+    csoundThrowMessageCallback_(&cenviron, format, args);
     va_end(args);
   }
 
   int csoundGetMessageLevel(void *csound)
   {
-    return cglob.oparms->msglevel;
+    return cenviron.oparms->msglevel;
   }
 
   void csoundSetMessageLevel(void *csound, int messageLevel)
   {
-    cglob.oparms->msglevel = messageLevel;
+    cenviron.oparms->msglevel = messageLevel;
   }
 
   void csoundInputMessage(void *csound, const char *message)
@@ -468,7 +468,7 @@ extern "C" {
   {
     if (csoundInputValueCallback_)
       {
-        csoundInputValueCallback_(&cglob, channelName, value);
+        csoundInputValueCallback_(&cenviron, channelName, value);
       }
     else
       {
@@ -487,7 +487,7 @@ extern "C" {
   {
     if (csoundOutputValueCallback_)
       {
-        csoundOutputValueCallback_(&cglob, channelName, value);
+        csoundOutputValueCallback_(&cenviron, channelName, value);
       }
   }
 
@@ -515,9 +515,9 @@ extern "C" {
     /* FIXME - SYY - 11.15. 2003
      * GLOBAL * should be passed in so that ksmps can be grabbed by that
      */
-    if (csoundGetKsmps(&cglob) * nchanls > O.outbufsamps) 
+    if (csoundGetKsmps(&cenviron) * nchanls > O.outbufsamps) 
       {
-        _rtOutOverBufSize = (csoundGetKsmps(&cglob) * nchanls - O.outbufsamps)*dsize;
+        _rtOutOverBufSize = (csoundGetKsmps(&cenviron) * nchanls - O.outbufsamps)*dsize;
         _rtOutOverBuf = mmalloc(_rtOutOverBufSize);
         _rtOutOverBufCount = 0;
       }
@@ -701,7 +701,7 @@ extern "C" {
 
   int csoundExternalMidiWrite(unsigned char *midiData)
   {
-    return csoundExternalMidiWriteCallback_(&cglob, midiData);
+    return csoundExternalMidiWriteCallback_(&cenviron, midiData);
   }
 
   void csoundDefaultMidiCloseCallback(void *csound)
@@ -750,7 +750,7 @@ extern "C" {
 
   void MakeGraph(WINDAT *windat, char *name)
   {
-    csoundMakeGraphCallback_(&cglob, windat, name);
+    csoundMakeGraphCallback_(&cenviron, windat, name);
   }
 
   static void defaultCsoundDrawGraph(void *csound, WINDAT *windat)
@@ -767,7 +767,7 @@ extern "C" {
 
   void DrawGraph(WINDAT *windat)
   {
-    csoundDrawGraphCallback_(&cglob, windat);
+    csoundDrawGraphCallback_(&cenviron, windat);
   }
 
   static void defaultCsoundKillGraph(void *csound, WINDAT *windat)
@@ -784,7 +784,7 @@ extern "C" {
 
   void KillGraph(WINDAT *windat)
   {
-    csoundKillGraphCallback_(&cglob, windat);
+    csoundKillGraphCallback_(&cenviron, windat);
   }
 
   static int defaultCsoundExitGraph(void *csound)
@@ -801,7 +801,7 @@ extern "C" {
 
   int ExitGraph()
   {
-    return csoundExitGraphCallback_(&cglob);
+    return csoundExitGraphCallback_(&cenviron);
   }
 
 	void MakeXYin(XYINDAT *xyindat, MYFLT x, MYFLT y) 
@@ -930,7 +930,7 @@ extern "C" {
 
   int csoundYield(void *csound)
   {
-    return csoundYieldCallback_(&cglob);
+    return csoundYieldCallback_(&cenviron);
   }
 
   const static int MAX_ENVIRONS = 10;

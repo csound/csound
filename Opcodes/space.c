@@ -48,12 +48,12 @@ int spaceset(SPACE *p)
 
    if (p->auxch.auxp == NULL) {
      MYFLT *fltp;
-     auxalloc((long)(ksmps_ * 4)  * sizeof(MYFLT), &p->auxch);
+     auxalloc((long)(ksmps * 4)  * sizeof(MYFLT), &p->auxch);
      fltp = (MYFLT *) p->auxch.auxp;
-     p->rrev1 = fltp;   fltp += ksmps_;
-     p->rrev2 = fltp;   fltp += ksmps_;
-     p->rrev3 = fltp;   fltp += ksmps_;
-     p->rrev4 = fltp;   fltp += ksmps_;
+     p->rrev1 = fltp;   fltp += ksmps;
+     p->rrev2 = fltp;   fltp += ksmps;
+     p->rrev3 = fltp;   fltp += ksmps;
+     p->rrev4 = fltp;   fltp += ksmps;
    }
 
    spaceaddr = p;
@@ -70,7 +70,7 @@ int space(SPACE *p)
     MYFLT half_pi = FL(0.5)*PI_F;
     MYFLT sqrt2 = (MYFLT)sqrt(2.0);
     MYFLT fabxndx, fabyndx;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     FUNC        *ftp;
     long        indx, length, halflen;
     MYFLT       v1, v2, fract, ndx;
@@ -176,7 +176,7 @@ int spsend(SPSEND *p)
 {
     MYFLT       *r1, *r2, *r3, *r4, *rrev1, *rrev2, *rrev3, *rrev4;
     SPACE *q = p->space;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
 
     r1 = p->r1;
     r2 = p->r2;

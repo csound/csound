@@ -23,11 +23,10 @@
 
 #include "cs.h"
 #undef printf
-GLOBALS *pcglob;
 
-#undef ksmps_
-#undef esr_
-#undef ekr_
+#undef ksmps
+#undef esr
+#undef ekr
 #undef global_ksmps
 #undef global_ensmps
 #undef global_ekr
@@ -135,8 +134,8 @@ GLOBALS *pcglob;
 #undef mpidsr
 #undef mtpdsr
 #undef sadirpath
-#undef hostdata_
-#undef oparms_
+#undef hostdata
+#undef oparms
 #undef opcodeInfo
 #undef instrumentNames
 #undef dbfs_to_short
@@ -151,218 +150,219 @@ GLOBALS *pcglob;
 #undef MIDIINbuffer2
 #undef displop4
 
-#define GetVersion pcglob->GetVersion
-#define GetHostData pcglob->GetHostData
-#define SetHostData pcglob->SetHostData
-#define Perform pcglob->Perform
-#define Compile pcglob->Compile
-#define PerformKsmps pcglob->PerformKsmps
-#define PerformBuffer pcglob->PerformBuffer
-#define Cleanup pcglob->Cleanup
-#define Reset pcglob->Reset
-#define GetSr pcglob->GetSr
+#define GetVersion p->h.insdshead->csound->GetVersion
+#define GetHostData p->h.insdshead->csound->GetHostData
+#define SetHostData p->h.insdshead->csound->SetHostData
+#define Perform p->h.insdshead->csound->Perform
+#define Compile p->h.insdshead->csound->Compile
+#define PerformKsmps p->h.insdshead->csound->PerformKsmps
+#define PerformBuffer p->h.insdshead->csound->PerformBuffer
+#define Cleanup p->h.insdshead->csound->Cleanup
+#define Reset p->h.insdshead->csound->Reset
+#define GetSr p->h.insdshead->csound->GetSr
 #define GetKr pcgblo->GetKr
-#define GetKsmps pcglob->GetKsmps
-#define GetNchnls pcglob->GetNchnls
-#define GetSampleFormat pcglob->GetSampleFormat
-#define GetSampleSize pcglob->GetSampleSize
-#define GetInputBufferSize pcglob->GetInputBufferSize
-#define GetOutputBufferSize pcglob->GetOutputBufferSize
-#define GetInputBuffer pcglob->GetInputBuffer
-#define GetOutputBuffer pcglob->GetOutputBuffer
-#define GetSpin pcglob->GetSpin
-#define GetSpout pcglob->GetSpout
-#define GetScoreTime pcglob->GetScoreTime
-#define GetProgress pcglob->GetProgress
-#define GetProfile pcglob->GetProfile
-#define GetCpuUsage pcglob->GetCpuUsage
-#define IsScorePending pcglob->IsScorePending
-#define SetScorePending pcglob->SetScorePending
-#define GetScoreOffsetSeconds pcglob->GetScoreOffsetSeconds
-#define SetScoreOffsetSeconds pcglob->SetScoreOffsetSeconds
-#define RewindScore pcglob->RewindScore
-#define Message pcglob->Message
-#define MessageV pcglob->MessageV
-#define ThrowMessage pcglob->ThrowMessage
-#define ThrowMessageV pcglob->ThrowMessageV
-#define SetMessageCallback pcglob->SetMessageCallback
-#define SetThrowMessageCallback pcglob->SetThrowMessageCallback
-#define GetMessageLevel pcglob->GetMessageLevel
-#define SetMessageLevel pcglob->SetMessageLevel
-#define InputMessage pcglob->InputMessage
-#define KeyPress pcglob->KeyPress
-#define SetInputValueCallback pcglob->SetInputValueCallback
-#define SetOutputValueCallback pcglob->SetOutputValueCallback
-#define outputValueCalback pcglob->outputValueCalback
-#define ScoreEvent pcglob->ScoreEvent
-#define SetExternalMidiOpenCallback pcglob->SetExternalMidiOpenCallback
-#define SetExternalMidiReadCallback pcglob->SetExternalMidiReadCallback
-#define SetExternalMidiWriteCallback pcglob->SetExternalMidiWriteCallback
-#define SetExternalMidiCloseCallback pcglob->SetExternalMidiCloseCallback
-#define IsExternalMidiEnabled pcglob->IsExternalMidiEnabled
-#define SetExternalMidiEnabled pcglob->SetExternalMidiEnabled
-#define SetIsGraphable pcglob->SetIsGraphable
-#define SetMakeGraphCallback pcglob->SetMakeGraphCallback
-#define SetDrawGraphCallback pcglob->SetDrawGraphCallback
-#define SetKillGraphCallback pcglob->SetKillGraphCallback
-#define SetExitGraphCallback pcglob->SetExitGraphCallback
-#define NewOpcodeList pcglob->NewOpcodeList
-#define DisposeOpcodeList pcglob->DisposeOpcodeList
-#define AppendOpcode pcglob->AppendOpcode
-#define LoadExternal pcglob->LoadExternal
-#define LoadExternals pcglob->LoadExternals
-#define OpenLibrary pcglob->OpenLibrary
-#define CloseLibrary pcglob->CloseLibrary
-#define GetLibrarySymbol pcglob->GetLibrarySymbol
-#define SetYieldCallback pcglob->SetYieldCallback
-#define SetEnv pcglob->SetEnv
-#define SetPlayopenCallback pcglob->SetPlayopenCallback
-#define SetRtplayCallback pcglob->SetRtplayCallback
-#define SetRecopenCallback pcglob->SetRecopenCallback
-#define SetRtrecordCallback pcglob->SetRtrecordCallback
-#define SetRtcloseCallback pcglob->SetRtcloseCallback
+#define GetKsmps p->h.insdshead->csound->GetKsmps
+#define GetNchnls p->h.insdshead->csound->GetNchnls
+#define GetSampleFormat p->h.insdshead->csound->GetSampleFormat
+#define GetSampleSize p->h.insdshead->csound->GetSampleSize
+#define GetInputBufferSize p->h.insdshead->csound->GetInputBufferSize
+#define GetOutputBufferSize p->h.insdshead->csound->GetOutputBufferSize
+#define GetInputBuffer p->h.insdshead->csound->GetInputBuffer
+#define GetOutputBuffer p->h.insdshead->csound->GetOutputBuffer
+#define GetSpin p->h.insdshead->csound->GetSpin
+#define GetSpout p->h.insdshead->csound->GetSpout
+#define GetScoreTime p->h.insdshead->csound->GetScoreTime
+#define GetProgress p->h.insdshead->csound->GetProgress
+#define GetProfile p->h.insdshead->csound->GetProfile
+#define GetCpuUsage p->h.insdshead->csound->GetCpuUsage
+#define IsScorePending p->h.insdshead->csound->IsScorePending
+#define SetScorePending p->h.insdshead->csound->SetScorePending
+#define GetScoreOffsetSeconds p->h.insdshead->csound->GetScoreOffsetSeconds
+#define SetScoreOffsetSeconds p->h.insdshead->csound->SetScoreOffsetSeconds
+#define RewindScore p->h.insdshead->csound->RewindScore
+#define Message p->h.insdshead->csound->Message
+#define MessageV p->h.insdshead->csound->MessageV
+#define ThrowMessage p->h.insdshead->csound->ThrowMessage
+#define ThrowMessageV p->h.insdshead->csound->ThrowMessageV
+#define SetMessageCallback p->h.insdshead->csound->SetMessageCallback
+#define SetThrowMessageCallback p->h.insdshead->csound->SetThrowMessageCallback
+#define GetMessageLevel p->h.insdshead->csound->GetMessageLevel
+#define SetMessageLevel p->h.insdshead->csound->SetMessageLevel
+#define InputMessage p->h.insdshead->csound->InputMessage
+#define KeyPress p->h.insdshead->csound->KeyPress
+#define SetInputValueCallback p->h.insdshead->csound->SetInputValueCallback
+#define SetOutputValueCallback p->h.insdshead->csound->SetOutputValueCallback
+#define outputValueCalback p->h.insdshead->csound->outputValueCalback
+#define ScoreEvent p->h.insdshead->csound->ScoreEvent
+#define SetExternalMidiOpenCallback p->h.insdshead->csound->SetExternalMidiOpenCallback
+#define SetExternalMidiReadCallback p->h.insdshead->csound->SetExternalMidiReadCallback
+#define SetExternalMidiWriteCallback p->h.insdshead->csound->SetExternalMidiWriteCallback
+#define SetExternalMidiCloseCallback p->h.insdshead->csound->SetExternalMidiCloseCallback
+#define IsExternalMidiEnabled p->h.insdshead->csound->IsExternalMidiEnabled
+#define SetExternalMidiEnabled p->h.insdshead->csound->SetExternalMidiEnabled
+#define SetIsGraphable p->h.insdshead->csound->SetIsGraphable
+#define SetMakeGraphCallback p->h.insdshead->csound->SetMakeGraphCallback
+#define SetDrawGraphCallback p->h.insdshead->csound->SetDrawGraphCallback
+#define SetKillGraphCallback p->h.insdshead->csound->SetKillGraphCallback
+#define SetExitGraphCallback p->h.insdshead->csound->SetExitGraphCallback
+#define NewOpcodeList p->h.insdshead->csound->NewOpcodeList
+#define DisposeOpcodeList p->h.insdshead->csound->DisposeOpcodeList
+#define AppendOpcode p->h.insdshead->csound->AppendOpcode
+#define LoadExternal p->h.insdshead->csound->LoadExternal
+#define LoadExternals p->h.insdshead->csound->LoadExternals
+#define OpenLibrary p->h.insdshead->csound->OpenLibrary
+#define CloseLibrary p->h.insdshead->csound->CloseLibrary
+#define GetLibrarySymbol p->h.insdshead->csound->GetLibrarySymbol
+#define SetYieldCallback p->h.insdshead->csound->SetYieldCallback
+#define SetEnv p->h.insdshead->csound->SetEnv
+#define SetPlayopenCallback p->h.insdshead->csound->SetPlayopenCallback
+#define SetRtplayCallback p->h.insdshead->csound->SetRtplayCallback
+#define SetRecopenCallback p->h.insdshead->csound->SetRecopenCallback
+#define SetRtrecordCallback p->h.insdshead->csound->SetRtrecordCallback
+#define SetRtcloseCallback p->h.insdshead->csound->SetRtcloseCallback
 
-#define auxalloc pcglob->auxalloc
-#define getstring pcglob->getstring
-#define die pcglob->die
-#define ftfind pcglob->ftfind
-#define initerror pcglob->initerror
-#define perferror pcglob->perferror
-#define mmalloc pcglob->mmalloc
-#define mfree pcglob->mfree
-#define dispset pcglob->dispset
-#define display pcglob->display
-#define intpow pcglob->intpow
-#define ftfindp pcglob->ftfindp
-#define ftnp2find pcglob->ftnp2find
-#define unquote pcglob->unquote
-#define ldmemfile pcglob->ldmemfile
+#define auxalloc p->h.insdshead->csound->auxalloc_
+#define getstring p->h.insdshead->csound->getstring_
+#define die p->h.insdshead->csound->die_
+#define ftfind p->h.insdshead->csound->ftfind_
+#define initerror p->h.insdshead->csound->initerror_
+#define perferror p->h.insdshead->csound->perferror_
+#define mmalloc p->h.insdshead->csound->mmalloc_
+#define mcalloc p->h.insdshead->csound->mcalloc_
+#define mfree p->h.insdshead->csound->mfree_
+#define dispset p->h.insdshead->csound->dispset
+#define display p->h.insdshead->csound->display
+#define intpow p->h.insdshead->csound->intpow
+#define ftfindp p->h.insdshead->csound->ftfindp
+#define ftnp2find p->h.insdshead->csound->ftnp2find
+#define unquote p->h.insdshead->csound->unquote
+#define ldmemfile p->h.insdshead->csound->ldmemfile
 
-#define ksmps_  pcglob->ksmps
-#define esr_    pcglob->esr
-#define ekr_    pcglob->ekr
-#define global_ksmps    pcglob->global_ksmps
-#define global_ensmps   pcglob->global_ensmps
-#define global_ekr      pcglob->global_ekr
-#define global_onedkr   pcglob->global_onedkr
-#define global_hfkprd   pcglob->global_hfkprd
-#define global_kicvt    pcglob->global_kicvt
-#define global_kcounter pcglob->global_kcounter
-#define reset_list  pcglob->reset_list
-#define nchnls  pcglob->nchnls
-#define nlabels pcglob->nlabels
-#define ngotos  pcglob->ngotos
-#define strsets pcglob->strsets
-#define strsmax pcglob->strsmax
-#define peakchunks pcglob->peakchunks
-#define zkstart pcglob->zkstart
-#define zastart pcglob->zastart
-#define zklast  pcglob->zklast
-#define zalast  pcglob->zalast
-#define kcounter pcglob->kcounter
-#define currevent pcglob->currevent
-#define onedkr  pcglob->onedkr
-#define onedsr  pcglob->onedsr
-#define kicvt   pcglob->kicvt
-#define sicvt   pcglob->sicvt
-#define spin    pcglob->spin
-#define spout   pcglob->spout
-#define nspin    pcglob->nspin
-#define nspout   pcglob->nspout
-#define spoutactive pcglob->spoutactive
-#define keep_tmp pcglob->keep_tmp
-#define dither_output pcglob->dither_output
-#define opcodlst pcglob->opcodlst
-#define opcode_list pcglob->opcode_list   /* IV - Oct 31 2002 */
-#define oplstend pcglob->oplstend
-#define dribble  pcglob->dribble
-#define holdrand pcglob->holdrand
-#define maxinsno pcglob->maxinsno
-#define maxopcno pcglob->maxopcno         /* IV - Oct 24 2002 */
-#define curip   pcglob->curip
-#define Linevtblk pcglob->Linevtblk
-#define nrecs   pcglob->nrecs
+#define ksmps  p->h.insdshead->csound->ksmps_
+#define esr    p->h.insdshead->csound->esr_
+#define ekr    p->h.insdshead->csound->ekr_
+#define global_ksmps    p->h.insdshead->csound->global_ksmps_
+#define global_ensmps   p->h.insdshead->csound->global_ensmps_
+#define global_ekr      p->h.insdshead->csound->global_ekr_
+#define global_onedkr   p->h.insdshead->csound->global_onedkr_
+#define global_hfkprd   p->h.insdshead->csound->global_hfkprd_
+#define global_kicvt    p->h.insdshead->csound->global_kicvt_
+#define global_kcounter p->h.insdshead->csound->global_kcounter_
+#define reset_list  p->h.insdshead->csound->reset_list_
+#define nchnls  p->h.insdshead->csound->nchnls_
+#define nlabels p->h.insdshead->csound->nlabels_
+#define ngotos  p->h.insdshead->csound->ngotos_
+#define strsets p->h.insdshead->csound->strsets_
+#define strsmax p->h.insdshead->csound->strsmax_
+#define peakchunks p->h.insdshead->csound->peakchunks_
+#define zkstart p->h.insdshead->csound->zkstart_
+#define zastart p->h.insdshead->csound->zastart_
+#define zklast  p->h.insdshead->csound->zklast_
+#define zalast  p->h.insdshead->csound->zalast_
+#define kcounter p->h.insdshead->csound->kcounter_
+#define currevent p->h.insdshead->csound->currevent_
+#define onedkr  p->h.insdshead->csound->onedkr_
+#define onedsr  p->h.insdshead->csound->onedsr_
+#define kicvt   p->h.insdshead->csound->kicvt_
+#define sicvt   p->h.insdshead->csound->sicvt_
+#define spin    p->h.insdshead->csound->spin_
+#define spout   p->h.insdshead->csound->spout_
+#define nspin    p->h.insdshead->csound->nspin_
+#define nspout   p->h.insdshead->csound->nspout_
+#define spoutactive p->h.insdshead->csound->spoutactive_
+#define keep_tmp p->h.insdshead->csound->keep_tmp_
+#define dither_output p->h.insdshead->csound->dither_output_
+#define opcodlst p->h.insdshead->csound->opcodlst_
+#define opcode_list p->h.insdshead->csound->opcode_list_   /* IV - Oct 31 2002 */
+#define oplstend p->h.insdshead->csound->oplstend_
+#define dribble  p->h.insdshead->csound->dribble_
+#define holdrand p->h.insdshead->csound->holdrand_
+#define maxinsno p->h.insdshead->csound->maxinsno_
+#define maxopcno p->h.insdshead->csound->maxopcno_         /* IV - Oct 24 2002 */
+#define curip   p->h.insdshead->csound->curip_
+#define Linevtblk p->h.insdshead->csound->Linevtblk_
+#define nrecs   p->h.insdshead->csound->nrecs_
 #ifdef PIPES
-#define Linepipe pcglob->Linepipe
+#define Linepipe p->h.insdshead->csound->Linepipe_
 #endif
-#define Linefd  pcglob->Linefd
-#define ls_table pcglob->ls_table
-#define curr_func_sr pcglob->curr_func_sr
-#define retfilnam pcglob->retfilnam
-#define orchname pcglob->orchname
-#define scorename pcglob->scorename
-#define xfilename pcglob->xfilename
-#define e0dbfs pcglob->e0dbfs
-#define instrtxtp pcglob->instrtxtp
-#define errmsg  pcglob->errmsg
-#define scfp    pcglob->scfp
-#define oscfp   pcglob->oscfp
-#define maxamp  pcglob->maxamp
-#define smaxamp pcglob->smaxamp
-#define omaxamp pcglob->omaxamp
-#define maxampend pcglob->maxampend
-#define maxpos  pcglob->maxpos
-#define smaxpos pcglob->smaxpos
-#define omaxpos pcglob->omaxpos
-#define tieflag pcglob->tieflag
-#define ssdirpath pcglob->ssdirpath
-#define sfdirpath pcglob->sfdirpath
-#define tokenstring pcglob->tokenstring
-#define polish pcglob->polish
-#define SCOREIN pcglob->scorein
-#define SCOREOUT pcglob->scoreout
-#define ensmps  pcglob->ensmps
-#define hfkprd  pcglob->hfkprd
-#define pool    pcglob->pool
-#define ARGOFFSPACE pcglob->argoffspace
-#define frstoff pcglob->frstoff
-#define sensType pcglob->sensType
-#define frstbp  pcglob->frstbp
-#define sectcnt pcglob->sectcnt
-#define M_CHNBP pcglob->m_chnbp
-#define cpsocint pcglob->cpsocint
-#define cpsocfrc pcglob->cpsocfrc
-#define inerrcnt pcglob->inerrcnt
-#define synterrcnt pcglob->synterrcnt
-#define perferrcnt pcglob->perferrcnt
-#define MIDIoutDONE pcglob->MIDIoutDONE
-#define midi_out pcglob->midi_out
-#define strmsg  pcglob->strmsg
-#define instxtanchor pcglob->instxtanchor
-#define actanchor pcglob->actanchor
-#define rngcnt  pcglob->rngcnt
-#define rngflg  pcglob->rngflg
-#define multichan pcglob->multichan
-#define OrcTrigEvts pcglob->OrcTrigEvts
-#define name_full pcglob->name_full
-#define Mforcdecs pcglob->Mforcdecs
-#define Mxtroffs pcglob->Mxtroffs
-#define MTrkend pcglob->MTrkend
-#define tran_sr pcglob->tran_sr
-#define tran_kr pcglob->tran_kr
-#define tran_ksmps pcglob->tran_ksmps
-#define tran_0dbfs pcglob->tran_0dbfs
-#define tran_nchnls pcglob->tran_nchnls
-#define tpidsr pcglob->tpidsr
-#define pidsr pcglob->pidsr
-#define mpidsr pcglob->mpidsr
-#define mtpdsr pcglob->mtpdsr
-#define sadirpath pcglob->sadirpath
-#define hostdata_ pcglob->hostdata
-#define oparms_ pcglob->oparms
-#define opcodeInfo pcglob->opcodeInfo     /* IV - Oct 20 2002 */
-#define instrumentNames pcglob->instrumentNames
-#define dbfs_to_short pcglob->dbfs_to_short
-#define short_to_dbfs pcglob->short_to_dbfs
-#define dbfs_to_float pcglob->dbfs_to_float
-#define float_to_dbfs pcglob->float_to_dbfs
-#define dbfs_to_long pcglob->dbfs_to_long
-#define long_to_dbfs pcglob->long_to_dbfs
-#define rtin_dev pcglob->rtin_dev
-#define rtout_dev pcglob->rtout_dev
-#define MIDIINbufIndex pcglob->MIDIINbufIndex
-#define MIDIINbuffer2 pcglob->MIDIINbuffer2
-#define displop4 pcglob->displop4
+#define Linefd  p->h.insdshead->csound->Linefd_
+#define ls_table p->h.insdshead->csound->ls_table_
+#define curr_func_sr p->h.insdshead->csound->curr_func_sr_
+#define retfilnam p->h.insdshead->csound->retfilnam_
+#define orchname p->h.insdshead->csound->orchname_
+#define scorename p->h.insdshead->csound->scorename_
+#define xfilename p->h.insdshead->csound->xfilename_
+#define e0dbfs p->h.insdshead->csound->e0dbfs_
+#define instrtxtp p->h.insdshead->csound->instrtxtp_
+#define errmsg  p->h.insdshead->csound->errmsg_
+#define scfp    p->h.insdshead->csound->scfp_
+#define oscfp   p->h.insdshead->csound->oscfp_
+#define maxamp  p->h.insdshead->csound->maxamp_
+#define smaxamp p->h.insdshead->csound->smaxamp_
+#define omaxamp p->h.insdshead->csound->omaxamp_
+#define maxampend p->h.insdshead->csound->maxampend_
+#define maxpos  p->h.insdshead->csound->maxpos_
+#define smaxpos p->h.insdshead->csound->smaxpos_
+#define omaxpos p->h.insdshead->csound->omaxpos_
+#define tieflag p->h.insdshead->csound->tieflag_
+#define ssdirpath p->h.insdshead->csound->ssdirpath_
+#define sfdirpath p->h.insdshead->csound->sfdirpath_
+#define tokenstring p->h.insdshead->csound->tokenstring_
+#define polish p->h.insdshead->csound->polish_
+#define SCOREIN p->h.insdshead->csound->scorein_
+#define SCOREOUT p->h.insdshead->csound->scoreout_
+#define ensmps  p->h.insdshead->csound->ensmps_
+#define hfkprd  p->h.insdshead->csound->hfkprd_
+#define pool    p->h.insdshead->csound->pool_
+#define ARGOFFSPACE p->h.insdshead->csound->argoffspace_
+#define frstoff p->h.insdshead->csound->frstoff_
+#define sensType p->h.insdshead->csound->sensType_
+#define frstbp  p->h.insdshead->csound->frstbp_
+#define sectcnt p->h.insdshead->csound->sectcnt_
+#define M_CHNBP p->h.insdshead->csound->m_chnbp_
+#define cpsocint p->h.insdshead->csound->cpsocint_
+#define cpsocfrc p->h.insdshead->csound->cpsocfrc_
+#define inerrcnt p->h.insdshead->csound->inerrcnt_
+#define synterrcnt p->h.insdshead->csound->synterrcnt_
+#define perferrcnt p->h.insdshead->csound->perferrcnt_
+#define MIDIoutDONE p->h.insdshead->csound->MIDIoutDONE_
+#define midi_out p->h.insdshead->csound->midi_out_
+#define strmsg  p->h.insdshead->csound->strmsg_
+#define instxtanchor p->h.insdshead->csound->instxtanchor_
+#define actanchor p->h.insdshead->csound->actanchor_
+#define rngcnt  p->h.insdshead->csound->rngcnt_
+#define rngflg  p->h.insdshead->csound->rngflg_
+#define multichan p->h.insdshead->csound->multichan_
+#define OrcTrigEvts p->h.insdshead->csound->OrcTrigEvts_
+#define name_full p->h.insdshead->csound->name_full_
+#define Mforcdecs p->h.insdshead->csound->Mforcdecs_
+#define Mxtroffs p->h.insdshead->csound->Mxtroffs_
+#define MTrkend p->h.insdshead->csound->MTrkend_
+#define tran_sr p->h.insdshead->csound->tran_sr_
+#define tran_kr p->h.insdshead->csound->tran_kr_
+#define tran_ksmps p->h.insdshead->csound->tran_ksmps_
+#define tran_0dbfs p->h.insdshead->csound->tran_0dbfs_
+#define tran_nchnls p->h.insdshead->csound->tran_nchnls_
+#define tpidsr p->h.insdshead->csound->tpidsr_
+#define pidsr p->h.insdshead->csound->pidsr_
+#define mpidsr p->h.insdshead->csound->mpidsr_
+#define mtpdsr p->h.insdshead->csound->mtpdsr_
+#define sadirpath p->h.insdshead->csound->sadirpath_
+#define hostdata_ p->h.insdshead->csound->hostdata_
+#define oparms_ p->h.insdshead->csound->oparms_
+#define opcodeInfo p->h.insdshead->csound->opcodeInfo_     /* IV - Oct 20 2002 */
+#define instrumentNames p->h.insdshead->csound->instrumentNames_
+#define dbfs_to_short p->h.insdshead->csound->dbfs_to_short_
+#define short_to_dbfs p->h.insdshead->csound->short_to_dbfs_
+#define dbfs_to_float p->h.insdshead->csound->dbfs_to_float_
+#define float_to_dbfs p->h.insdshead->csound->float_to_dbfs_
+#define dbfs_to_long p->h.insdshead->csound->dbfs_to_long_
+#define long_to_dbfs p->h.insdshead->csound->long_to_dbfs_
+#define rtin_dev p->h.insdshead->csound->rtin_dev_
+#define rtout_dev p->h.insdshead->csound->rtout_dev_
+#define MIDIINbufIndex p->h.insdshead->csound->MIDIINbufIndex_
+#define MIDIINbuffer2 p->h.insdshead->csound->MIDIINbuffer2_
+#define displop4 p->h.insdshead->csound->displop4_
 
 #undef printf
 
@@ -371,8 +371,7 @@ GLOBALS *pcglob;
     		    return sizeof(localops);	\
 		}				\
 						\
-		OENTRY *opcode_init(GLOBALS *xx)\
+		OENTRY *opcode_init(ENVIRON *xx)\
 		{				\
-		    pcglob = xx;		\
 		    return localops;		\
 		}

@@ -68,7 +68,7 @@ static void settempo(MYFLT tempo)
 {
     if (tempo > FL(0.0)) {
       betsiz = FL(60.0) / tempo;
-      ekrbetsiz = ekr_ * betsiz;
+      ekrbetsiz = ekr * betsiz;
     }
 }
 
@@ -232,15 +232,15 @@ int musmon(void)
 #endif
                  VERSION, SUBVER, __DATE__);
 
-    if (!POLL_EVENTS()) longjmp(cglob.exitjmp,1);
+    if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
     if (O.Midiin) {
       MidiOpen();                     /*   alloc bufs & open files    */
     }
     /**
      * Opens external MIDI if it is enabled.
      */
-    if (csoundIsExternalMidiEnabled(&cglob)) {
-      csoundExternalMidiOpen(&cglob);
+    if (csoundIsExternalMidiEnabled(&cenviron)) {
+      csoundExternalMidiOpen(&cenviron);
     }
     dispinit();                 /* initialise graphics or character display */
     oload();                    /* set globals and run inits */
@@ -249,7 +249,7 @@ int musmon(void)
 #ifdef mills_macintosh
     fflush(stdout);
 #endif
-    if (!POLL_EVENTS()) longjmp(cglob.exitjmp,1);
+    if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
 
     multichan = (nchnls > 1) ? 1:0;
     maxampend = &maxamp[nchnls];
@@ -258,7 +258,7 @@ int musmon(void)
 
     if (O.Linein)  RTLineset();     /* if realtime input expected   */
     if (O.outbufsamps < 0) {        /* if k-aligned iobufs requestd */
-      O.inbufsamps = O.outbufsamps *= -ksmps_; /*  set from absolute value */
+      O.inbufsamps = O.outbufsamps *= -ksmps; /*  set from absolute value */
       printf(Str(X_956,"k-period aligned audio buffering\n"));
 #ifdef mills_macintosh
       if (O.msglevel & WARNMSG)
@@ -286,13 +286,13 @@ int musmon(void)
            O.outbufsamps);
     O.inbufsamps *= nchnls;         /* now adjusted for n channels  */
     O.outbufsamps *= nchnls;
-    if (!POLL_EVENTS()) longjmp(cglob.exitjmp,1);
+    if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
     if (O.sfread)                   /* if audio-in requested,       */
       sfopenin();                   /*   open/read? infile or device */
     if (O.sfwrite)                  /* if audio-out requested,      */
       sfopenout();                  /*   open the outfile or device */
     else sfnopenout();
-    if (!POLL_EVENTS()) longjmp(cglob.exitjmp,1);
+    if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
     iotranset();                    /* point recv & tran to audio formatter */
 
     curp2 = curbt = FL(0.0);
@@ -323,7 +323,7 @@ int musmon(void)
       if (!(oscfp = fopen("cscore.srt", "w")))  /*   writ to cscore.srt */
         die(Str(X_651,"cannot reopen cscore.srt"));
       printf(Str(X_1196,"sorting cscore.out ..\n"));
-      if (!POLL_EVENTS()) longjmp(cglob.exitjmp,1);
+      if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
       scsort(scfp, oscfp);                      /* call the sorter again */
       fclose(scfp); scfp = NULL;
       fclose(oscfp);
@@ -331,13 +331,13 @@ int musmon(void)
       if (!(scfp = fopen("cscore.srt", "r")))   /*   rd from cscore.srt */
         die(Str(X_651,"cannot reopen cscore.srt"));
       printf(Str(X_1127,"playing from cscore.srt\n"));
-      if (!POLL_EVENTS()) longjmp(cglob.exitjmp,1);
+      if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
       O.usingcscore = 0;
     }
     if (e == NULL)
       e = scorevtblk = (EVTBLK *) mmalloc((long)sizeof(EVTBLK));
     printf(Str(X_448,"SECTION %d:\n"),++sectno);
-    if (!POLL_EVENTS()) longjmp(cglob.exitjmp,1);
+    if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
 #ifdef mills_macintosh
     fflush(stdout);
 #endif
@@ -413,7 +413,7 @@ int lplay(EVLIST *a)           /* cscore re-entry into musmon */
 int turnon(TURNON *p)          /* make list to turn on instrs for indef perf */
 {                               /* called from i0 for execution in playevents */
     int insno = (int)*p->insno;
-    long xtratim = (long)(*p->itime * ekr_);
+    long xtratim = (long)(*p->itime * ekr);
     xturnon(insno, xtratim);
     return OK;
 }
@@ -553,7 +553,7 @@ static int playevents(void)  /* play all events in a score or an lplay list */
       }
       if (O.Beatmode)
         kcnt = (long)((nxtbt - curbt) * ekrbetsiz + FL(0.5));
-      else kcnt = (long)((nxtim - curp2) * ekr_ + FL(0.5));
+      else kcnt = (long)((nxtim - curp2) * ekr + FL(0.5));
       if (kcnt > 0) {                 /* perf for kcnt kprds  */
         long kdone, kperf(long);
         if (!O.initonly
@@ -659,7 +659,7 @@ static int playevents(void)  /* play all events in a score or an lplay list */
             }
             else {                     /*  else some kind of off */
               do {
-                /* if (!POLL_EVENTS()) longjmp(cglob.exitjmp,1); */
+                /* if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); */
                 if (ip->xtratim) {     /*    if offtime delayed  */
                   ip->relesing = 1;    /*     enter reles phase  */
                   ip->offtim = (kcounter + ip->xtratim) * onedkr;
@@ -841,7 +841,7 @@ int sensevents(void)
     char    opcod;
 
     if (!POLL_EVENTS())
-      longjmp(cglob.exitjmp,1);
+      longjmp(cenviron.exitjmp_,1);
 
     /* read each score event:       */
     if (kcnt <= 0) {
@@ -964,7 +964,7 @@ int sensevents(void)
       if (O.Beatmode)
         kcnt = (long)((nxtbt - curbt) * ekrbetsiz + FL(0.5));
       else
-        kcnt = (long)((nxtim - curp2) * ekr_ + FL(0.5));
+        kcnt = (long)((nxtim - curp2) * ekr + FL(0.5));
 
       needsCleanup = kcnt;
     }
@@ -1074,7 +1074,7 @@ int sensevents(void)
           }
           else {                     /*  else some kind of off */
             do {
-              /* if (!POLL_EVENTS()) longjmp(cglob.exitjmp,1); */
+              /* if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); */
               if (ip->xtratim) {     /*    if offtime delayed  */
                 ip->relesing = 1;    /*     enter reles phase  */
                 ip->offtim = (kcounter + ip->xtratim) * onedkr;
@@ -1231,7 +1231,7 @@ int fillbuffer(int sensEventRate)
                                    before returning */
 
     int done = 0;
-    int sampsPerKperf = ksmps_*nchnls;
+    int sampsPerKperf = ksmps*nchnls;
 
     /* if we are handling events outside of this function and we have no
        kcnts to process, then we get out of here now as nothing for us to do */

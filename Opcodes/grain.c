@@ -57,13 +57,13 @@ int agsset(PGRA *p)                    /*      Granular U.G. set-up */
     else
       p->pr = FL(0.0);
 
-    bufsize = sizeof(MYFLT)*(2L * (long)(esr_ * *p->imkglen) +  (3L * ksmps_));
+    bufsize = sizeof(MYFLT)*(2L * (long)(esr * *p->imkglen) +  (3L * ksmps));
 
     if (p->aux.auxp == NULL || bufsize > p->aux.size)
       auxalloc(bufsize, &p->aux);
     else memset(p->aux.auxp, '\0', bufsize); /* Clear any old data */
     d  = p->x = (MYFLT *)p->aux.auxp;
-    d +=  (int)(esr_ * *p->imkglen) + ksmps_;
+    d +=  (int)(esr * *p->imkglen) + ksmps;
     p->y = d;
 
     p->ampadv = (XINARG1) ? 1 : 0;
@@ -102,9 +102,9 @@ int ags(PGRA *p)               /*      Granular U.G. a-rate main routine       *
 
     if (kglen > *p->imkglen) kglen = *p->imkglen;
 
-    ekglen  = (long)(esr_ * kglen);   /* Useful constant */
+    ekglen  = (long)(esr * kglen);   /* Useful constant */
     inc2    = (long)(sicvt / kglen); /* Constant for each cycle */
-    bufsize = ksmps_ + ekglen;
+    bufsize = ksmps + ekglen;
     xdns    = p->xdns;
     xamp    = p->xamp;
     xlfr    = p->xlfr;
@@ -115,7 +115,7 @@ int ags(PGRA *p)               /*      Granular U.G. a-rate main routine       *
       *temp++ = FL(0.0);
     } while (--i);
 
-    for (i = 0 ; i < ksmps_ ; i++) {
+    for (i = 0 ; i < ksmps ; i++) {
       if (gcount >= FL(1.0)) { /* I wonder..... */
         gcount = FL(0.0);
         amp = *xamp + Unirand(*p->kabnd);
@@ -143,11 +143,11 @@ int ags(PGRA *p)               /*      Granular U.G. a-rate main routine       *
     n = bufsize;
     temp = rem;
     do {
-      *temp = *buf++ + *(temp + ksmps_);
+      *temp = *buf++ + *(temp + ksmps);
       temp++;
     } while (--n);
 
-    n = ksmps_;
+    n = ksmps;
     do {
       *out++ = *rem++;
     } while (--n);

@@ -84,7 +84,7 @@ static void memdie(long nbytes)
 #ifdef mills_macintosh
     err_printf(Str(X_1297,"try increasing preferred size setting for the Perf Application\n"));
 #endif
-    longjmp(cglob.exitjmp,1);
+    longjmp(cenviron.exitjmp_,1);
 }
 
  void *
@@ -103,7 +103,7 @@ mcalloc(long nbytes)            /* allocate new memory space, cleared to 0 */
 #ifdef MEMDEBUG
     if (ap >= apsize) {
       MEMREC *new_all = (MEMREC*)realloc(all, sizeof(MEMREC)*(apsize += 1020));
-      if (new_all == NULL) err_printf( "Too many allocs\n"), longjmp(cglob.exitjmp,1);
+      if (new_all == NULL) err_printf( "Too many allocs\n"), longjmp(cenviron.exitjmp_,1);
       all = new_all;
     }
     all[ap].n = nbytes;
@@ -127,7 +127,7 @@ mmalloc(long nbytes)         /* allocate new memory space, NOT cleared to 0 */
 #ifdef MEMDEBUG
     if (ap >= apsize) {
       MEMREC *new_all = (MEMREC *)realloc(all, sizeof(MEMREC)*(apsize += 1020));
-      if (new_all == NULL) err_printf( "Too many allocs\n"), longjmp(cglob.exitjmp,1);
+      if (new_all == NULL) err_printf( "Too many allocs\n"), longjmp(cenviron.exitjmp_,1);
       all = new_all;
     }
     all[ap].n = nbytes;
@@ -162,7 +162,7 @@ mrealloc(void *old, long nbytes)                /* Packaged realloc */
     else {
       if (ap >= apsize) {
         MEMREC *new_all = (MEMREC*)realloc(all, sizeof(MEMREC)*(apsize += 1020));
-        if (new_all == NULL) err_printf( "Too many allocs\n"), longjmp(cglob.exitjmp,1);
+        if (new_all == NULL) err_printf( "Too many allocs\n"), longjmp(cenviron.exitjmp_,1);
         all = new_all;
       }
       all[ap].n = nbytes;

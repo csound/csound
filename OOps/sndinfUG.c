@@ -173,7 +173,7 @@ int filesr(SNDINFO *p)
     else {
       if (O.msglevel & WARNMSG)
         printf(Str(X_1457,"WARNING: No valid header.  Returning orch's sr\n"));
-      *(p->r1) = esr_;
+      *(p->r1) = esr;
     }
     return OK;
 }

@@ -304,7 +304,7 @@ main(int argc, char **argv)
     O.sfheader = 1;
     if (O.outfilename == NULL)  O.outfilename = "test";
     outfd = openout(O.outfilename, 1);
-    esr_ = (float)p->sr;
+    esr = (float)p->sr;
     nchnls = outputs;
     if (O.sfheader)     
       writeheader(outfd, O.outfilename);      /* write header as required   */
@@ -327,7 +327,7 @@ static  float    fzero = FL(0.0);
     static MYFLT sstrcod = (MYFLT)SSTRCOD;
 
     sssfinit();                 /* stand-alone init of SFDIR etc. */
-    esr_ = FL(0.0);             /* set esr 0. with no orchestra   */
+    esr = FL(0.0);             /* set esr 0. with no orchestra   */
     optxt.t.outoffs = &argoffs; /* point to dummy OUTOCOUNT       */
     p = (SOUNDIN *) mcalloc((long)sizeof(SOUNDIN));
     p->channel = ALLCHNLS;

@@ -410,7 +410,7 @@ int    oscbnk(OSCBNK *p)
 
     /* clear output signal */
 
-    for (nn = 0; nn < ksmps_; nn++) p->args[0][nn] = FL(0.0);
+    for (nn = 0; nn < ksmps; nn++) p->args[0][nn] = FL(0.0);
 
     if (p->nr_osc == -1) {
       return OK;         /* nothing to render */
@@ -427,14 +427,14 @@ int    oscbnk(OSCBNK *p)
     oscbnk_flen_setup(ftp->flen, &(mask), &(lobits), &(pfrac));
 
     /* some constants */
-    onedksmps = FL(1.0) / (MYFLT) ksmps_;
+    onedksmps = FL(1.0) / (MYFLT) ksmps;
     pm_enabled = (p->ilfomode & 0x22 ? 1 : 0);
     am_enabled = (p->ilfomode & 0x44 ? 1 : 0);
     p->frq_scl = onedsr;                              /* osc. freq.   */
-    p->lf1_scl = (*(p->args[8]) - *(p->args[7])) / ekr_;
-    p->lf1_ofs = *(p->args[7]) / ekr_;                 /* LFO1 freq.   */
-    p->lf2_scl = (*(p->args[10]) - *(p->args[9])) / ekr_;
-    p->lf2_ofs = *(p->args[9]) / ekr_;                 /* LFO2 freq.   */
+    p->lf1_scl = (*(p->args[8]) - *(p->args[7])) / ekr;
+    p->lf1_ofs = *(p->args[7]) / ekr;                 /* LFO1 freq.   */
+    p->lf2_scl = (*(p->args[10]) - *(p->args[9])) / ekr;
+    p->lf2_ofs = *(p->args[9]) / ekr;                 /* LFO2 freq.   */
     if (p->ieqmode >= 0) {
       p->eqo_scl = (*(p->args[13]) - *(p->args[12])) * tpidsr;
       p->eqo_ofs = *(p->args[12]) * tpidsr;           /* EQ omega */
@@ -463,7 +463,7 @@ int    oscbnk(OSCBNK *p)
         f_i = OSCBNK_PHS2INT(f);
         if (am_enabled) a_d = (o->osc_amp - a) * onedksmps;
         /* oscillator */
-        for (nn = 0; nn < ksmps_; nn++) {
+        for (nn = 0; nn < ksmps; nn++) {
           /* read from table */
           n = ph >> lobits; k = ft[n++];
           k += (ft[n] - k) * (MYFLT) ((long) (ph & mask)) * pfrac;
@@ -497,7 +497,7 @@ int    oscbnk(OSCBNK *p)
           b1_d = (o->b1 - b1) * onedksmps;
           b2_d = (o->b2 - b2) * onedksmps;
           /* oscillator */
-          for (nn = 0; nn < ksmps_; nn++) {
+          for (nn = 0; nn < ksmps; nn++) {
             /* update ramps */
             a1 += a1_d; a2 += a2_d;
             b0 += b0_d; b1 += b1_d; b2 += b2_d;
@@ -520,7 +520,7 @@ int    oscbnk(OSCBNK *p)
         }
         else {                /* EQ w/o interpolation */
           /* oscillator */
-          for (nn = 0; nn < ksmps_; nn++) {
+          for (nn = 0; nn < ksmps; nn++) {
             /* read from table */
             n = ph >> lobits; k = ft[n++];
             k += (ft[n] - k) * (MYFLT) ((long) (ph & mask)) * pfrac;
@@ -669,7 +669,7 @@ int grain2(GRAIN2 *p)
 
     /* clear output signal */
 
-    for (nn = 0; nn < ksmps_; nn++) aout[nn] = FL(0.0);
+    for (nn = 0; nn < ksmps; nn++) aout[nn] = FL(0.0);
 
     if (p->nr_osc == -1) {
       return OK;                   /* nothing to render */
@@ -708,7 +708,7 @@ int grain2(GRAIN2 *p)
       }
     }
     aout = p->ar;                       /* audio output         */
-    nn = ksmps_;
+    nn = ksmps;
     do {
       i = p->nr_osc;
       do {
@@ -771,12 +771,12 @@ int grain3set(GRAIN3 *p)
 
     /* allocate space */
 
-    n = ((long) ksmps_ + 1L) * (long) sizeof(unsigned long);
+    n = ((long) ksmps + 1L) * (long) sizeof(unsigned long);
     n += (long) p->ovrlap * (long) sizeof(GRAIN2_OSC);
     if ((p->auxdata.auxp == NULL) || (p->auxdata.size < n))
       auxalloc(n, &(p->auxdata));
     p->phase = (unsigned long *) p->auxdata.auxp;
-    p->osc = (GRAIN2_OSC *) ((unsigned long *) p->phase + ksmps_ + 1);
+    p->osc = (GRAIN2_OSC *) ((unsigned long *) p->phase + ksmps + 1);
     p->osc_start = p->osc;
     p->osc_end = p->osc;
     p->osc_max = p->osc + (p->ovrlap - 1);
@@ -826,7 +826,7 @@ int grain3(GRAIN3 *p)
 
     /* clear output */
 
-    for (nn = 0; nn < ksmps_; nn++) p->ar[nn] = FL(0.0);
+    for (nn = 0; nn < ksmps; nn++) p->ar[nn] = FL(0.0);
 
     if ((p->seed == 0L) || (p->osc == NULL)) {
       return perferror(Str(X_1669,"grain3: not initialised"));
@@ -875,17 +875,17 @@ int grain3(GRAIN3 *p)
       f = *(p->kphs); g_ph = OSCBNK_PHS2INT(f);
     }
     else {
-      f = p->phs0; g_ph = phs[ksmps_];
+      f = p->phs0; g_ph = phs[ksmps];
     }
     p->phs0 = *(p->kphs);
     /* convert phase modulation to frequency modulation */
-    f = (MYFLT) ((double) p->phs0 - (double) f) / (MYFLT) ksmps_;
+    f = (MYFLT) ((double) p->phs0 - (double) f) / (MYFLT) ksmps;
     f -= (MYFLT) ((long) f); g_frq = OSCBNK_PHS2INT(f);
     f = *(p->kcps) * onedsr;            /* grain frequency      */
     frq = (g_frq + OSCBNK_PHS2INT(f)) & OSCBNK_PHSMSK;
     if (p->mode & 0x40) g_frq = frq;    /* phase sync   */
     /* calculate phase offset values for this k-cycle */
-    for (nn = 0; nn <= ksmps_; nn++) {
+    for (nn = 0; nn <= ksmps; nn++) {
       phs[nn] = g_ph; g_ph = (g_ph + g_frq) & OSCBNK_PHSMSK;
     }
 
@@ -929,7 +929,7 @@ int grain3(GRAIN3 *p)
     }
     p->init_k = 0;
 
-    nn = ksmps_; o = p->osc_start;
+    nn = ksmps; o = p->osc_start;
     while (nn) {
       if (x_ph >= OSCBNK_PHSMAX) {      /* check for new grain  */
         x_ph &= OSCBNK_PHSMSK;
@@ -1086,7 +1086,7 @@ int rnd31a(RND31 *p)
     }
 
     scl = *(p->scl); out = p->out;
-    nn = ksmps_;
+    nn = ksmps;
     while (nn--) {
       *(out++) = scl * oscbnk_rnd_bipolar(&(p->seed), rpow, rmode);
     }
@@ -1156,7 +1156,7 @@ int osckkikt(OSCKT *p)
     lobits = p->lobits; mask = p->mask; pfrac = p->pfrac;
     /* read from table with interpolation */
     v = *(p->xcps) * onedsr; frq = OSCBNK_PHS2INT(v);
-    nn = ksmps_;
+    nn = ksmps;
     do {
       n = phs >> lobits;
       v = ft[n++]; v += (ft[n] - v) * (MYFLT) ((long) (phs & mask)) * pfrac;
@@ -1187,7 +1187,7 @@ int osckaikt(OSCKT *p)
     ft = p->ft; phs = p->phs; a = *(p->xamp); ar = p->sr; xcps = p->xcps;
     lobits = p->lobits; mask = p->mask; pfrac = p->pfrac;
     /* read from table with interpolation */
-    nn = ksmps_;
+    nn = ksmps;
     do {
       n = phs >> lobits;
       v = ft[n++]; v += (ft[n] - v) * (MYFLT) ((long) (phs & mask)) * pfrac;
@@ -1234,7 +1234,7 @@ int oscakikt(OSCKT *p)
     lobits = p->lobits; mask = p->mask; pfrac = p->pfrac;
     /* read from table with interpolation */
     v = *(p->xcps) * onedsr; frq = OSCBNK_PHS2INT(v);
-    nn = ksmps_;
+    nn = ksmps;
     do {
       n = phs >> lobits;
       v = ft[n++]; v += (ft[n] - v) * (MYFLT) ((long) (phs & mask)) * pfrac;
@@ -1265,7 +1265,7 @@ int oscaaikt(OSCKT *p)
     ft = p->ft; phs = p->phs; ar = p->sr; xcps = p->xcps; xamp = p->xamp;
     lobits = p->lobits; mask = p->mask; pfrac = p->pfrac;
     /* read from table with interpolation */
-    nn = ksmps_;
+    nn = ksmps;
     do {
       n = phs >> lobits;
       v = ft[n++]; v += (ft[n] - v) * (MYFLT) ((long) (phs & mask)) * pfrac;
@@ -1289,7 +1289,7 @@ int oscktpset(OSCKTP *p)
     /* initial phase */
     p->phs = 0UL; p->old_phs = FL(0.0);
     p->init_k = 1;
-    p->dv_ksmps = FL(1.0) / (MYFLT) ksmps_;
+    p->dv_ksmps = FL(1.0) / (MYFLT) ksmps;
     return OK;
 }
 
@@ -1327,7 +1327,7 @@ int oscktp(OSCKTP *p)
     p->old_phs = *(p->kphs);
     frq = (frq + OSCBNK_PHS2INT(v)) & OSCBNK_PHSMSK;
     /* read from table with interpolation */
-    nn = ksmps_;
+    nn = ksmps;
     do {
       n = phs >> lobits;
       v = ft[n++]; v += (ft[n] - v) * (MYFLT) ((long) (phs & mask)) * pfrac;
@@ -1386,7 +1386,7 @@ int osckts(OSCKTS *p)
       phs = OSCBNK_PHS2INT(v);
     }
     /* read from table with interpolation */
-    nn = ksmps_;
+    nn = ksmps;
     do {
       if (*(async++) > FL(0.0)) {               /* re-initialise phase */
         v = *(p->kphs) - (MYFLT) ((long) *(p->kphs));
@@ -1432,7 +1432,7 @@ typedef struct {
 
 /* remove table array for the specified waveform */
 
-static void vco2_delete_table_array(int w)
+static void vco2_delete_table_array(ENVIRON *csound,int w)
 {
     int j;
     /* table array does not exist: nothing to do */
@@ -1441,46 +1441,46 @@ static void vco2_delete_table_array(int w)
       return;
 #ifdef VCO2FT_USE_TABLE
     /* free number of partials -> table list, */
-    mfree(vco2_tables[w]->nparts_tabl);
+    csound->mfree_(vco2_tables[w]->nparts_tabl);
 #else
     /* free number of partials list, */
-    mfree(vco2_tables[w]->nparts);
+    csound->mfree_(vco2_tables[w]->nparts);
 #endif
     /* table data (only if not shared as standard Csound ftables), */
     for (j = 0; j < vco2_tables[w]->ntabl; j++) {
       if (vco2_tables[w]->base_ftnum < 1)
-        mfree(vco2_tables[w]->tables[j].ftable);
+        csound->mfree_(vco2_tables[w]->tables[j].ftable);
     }
     /* table list, */
-    mfree(vco2_tables[w]->tables);
+    csound->mfree_(vco2_tables[w]->tables);
     /* and table array structure */
-    mfree(vco2_tables[w]);
+    csound->mfree_(vco2_tables[w]);
     vco2_tables[w] = NULL;
 }
 
 /* free memory used by all vco2 table arrays (called by RESET routines) */
 
-void vco2_tables_destroy(void)
+void vco2_tables_destroy(ENVIRON *csound)
 {
     int i;
 
     if (vco2_tables == NULL) return;    /* no tables */
-    for (i = 0; i < vco2_nr_table_arrays; i++) vco2_delete_table_array(i);
-    mfree(vco2_tables);
+    for (i = 0; i < vco2_nr_table_arrays; i++) vco2_delete_table_array(csound, i);
+    csound->mfree_(vco2_tables);
     vco2_tables = NULL;
     vco2_nr_table_arrays = 0;
 }
 
 /* generate a table using the waveform specified in tp */
 
-static void vco2_calculate_table(VCO2_TABLE *table, VCO2_TABLE_PARAMS *tp)
+static void vco2_calculate_table(ENVIRON *csound, VCO2_TABLE *table, VCO2_TABLE_PARAMS *tp)
 {
     complex *fftbuf, *ex;
     int     i, minh;
 
     /* allocate memory for FFT */
     ex = AssignBasis(NULL, (long) table->size);
-    fftbuf = (complex*) mmalloc(sizeof(complex) * ((table->size >> 1) + 1));
+    fftbuf = (complex*) csound->mmalloc_(sizeof(complex) * ((table->size >> 1) + 1));
     if (tp->waveform >= 0) {                    /* no DC offset for built-in */
       minh = 1; fftbuf[0].re = fftbuf[0].im = FL(0.0);  /* waveforms */
     }
@@ -1525,7 +1525,7 @@ static void vco2_calculate_table(VCO2_TABLE *table, VCO2_TABLE_PARAMS *tp)
     /* write guard point */
     table->ftable[table->size] = fftbuf[0].re;
     /* free memory used by temporary buffers */
-    mfree(fftbuf);
+    csound->mfree_(fftbuf);
 }
 
 /* set default table parameters depending on waveform */
@@ -1588,7 +1588,7 @@ static int vco2_table_size(int npart, VCO2_TABLE_PARAMS *tp)
 
 extern FUNC* hfgens(EVTBLK*);
 
-static int vco2_tables_create(int waveform, int base_ftable,
+static int vco2_tables_create(ENVIRON *csound, int waveform, int base_ftable,
                               VCO2_TABLE_PARAMS *tp)
 {
     int     i, npart, ntables;
@@ -1613,9 +1613,9 @@ static int vco2_tables_create(int waveform, int base_ftable,
     }
     /* clear table array if already initialised */
     if (vco2_tables[waveform] != NULL) {
-      vco2_delete_table_array(waveform);
+      vco2_delete_table_array(csound, waveform);
       if (O.msglevel & WARNMSG)
-        printf(errmsg, "WARNING: redefined table array for waveform %d\n",
+        printf(csound->errmsg_, "WARNING: redefined table array for waveform %d\n",
                       (waveform > 4 ? 4 - waveform : waveform));
     }
       /* calculate number of tables */
@@ -1628,19 +1628,19 @@ static int vco2_tables_create(int waveform, int base_ftable,
     } while (npart_f <= (double) i);
       /* allocate memory for the table array ... */
     tables = vco2_tables[waveform] =
-      (VCO2_TABLE_ARRAY*) mcalloc(sizeof(VCO2_TABLE_ARRAY));
+      (VCO2_TABLE_ARRAY*) csound->mcalloc_(sizeof(VCO2_TABLE_ARRAY));
       /* ... and all tables */
 #ifdef VCO2FT_USE_TABLE
     tables->nparts_tabl =
-      (VCO2_TABLE**) mmalloc(sizeof(VCO2_TABLE*) * (VCO2_MAX_NPART + 1));
+      (VCO2_TABLE**) csound->mmalloc_(sizeof(VCO2_TABLE*) * (VCO2_MAX_NPART + 1));
 #else
-    tables->nparts = (MYFLT*) mmalloc(sizeof(MYFLT) * (ntables * 3));
+    tables->nparts = (MYFLT*) csound->mmalloc_(sizeof(MYFLT) * (ntables * 3));
     for (i = 0; i < ntables; i++) {
       tables->nparts[i] = FL(-1.0);     /* padding for number of partials */
       tables->nparts[(ntables << 1) + i] = FL(1.0e24);  /* list */
     }
 #endif
-    tables->tables = (VCO2_TABLE*) mcalloc(sizeof(VCO2_TABLE) * ntables);
+    tables->tables = (VCO2_TABLE*) csound->mcalloc_(sizeof(VCO2_TABLE) * ntables);
       /* generate tables */
     tables->ntabl = ntables;            /* store number of tables */
     tables->base_ftnum = base_ftable;   /* and base ftable number */
@@ -1677,9 +1677,9 @@ static int vco2_tables_create(int waveform, int base_ftable,
         }
         else    /* ... else allocate memory (cannot be accessed as a       */
         tables->tables[i].ftable =      /* standard Csound ftable) */
-          (MYFLT*) mmalloc(sizeof(MYFLT) * (tables->tables[i].size + 1));
+          (MYFLT*) csound->mmalloc_(sizeof(MYFLT) * (tables->tables[i].size + 1));
         /* now calculate the table */
-      vco2_calculate_table(&(tables->tables[i]), tp);
+      vco2_calculate_table(csound, &(tables->tables[i]), tp);
         /* next table */
       vco2_next_npart(&npart_f, tp);
       } while (++i < ntables);
@@ -1753,7 +1753,7 @@ int vco2init(VCO2INIT *p)
 
       if (w >= 0) {             /* built-in waveforms */
         if (waveforms & (1 << w)) {
-          ftnum = vco2_tables_create(w, ftnum, &tp);
+          ftnum = vco2_tables_create(p->h.insdshead->csound, w, ftnum, &tp);
           if (base_ftable > 0 && ftnum <= 0) {
             return initerror(Str(X_787,"ftgen error"));
           }
@@ -1775,7 +1775,7 @@ int vco2init(VCO2INIT *p)
       }
       FFT2realpacked(tp.w_fftbuf, ftp->flen, ex);
       /* generate table array */
-      ftnum = vco2_tables_create(waveforms, ftnum, &tp);
+      ftnum = vco2_tables_create(p->h.insdshead->csound,waveforms, ftnum, &tp);
         /* free memory used by FFT buffer */
         mfree(tp.w_fftbuf);
       if (base_ftable > 0 && ftnum <= 0) {
@@ -1813,11 +1813,11 @@ int vco2ftset(VCO2FT *p)
 #endif
     p->base_ftnum = vco2_tables[w]->base_ftnum;
     if (*(p->inyx) > FL(0.5))
-      p->p_scl = FL(0.5) * esr_;
+      p->p_scl = FL(0.5) * esr;
     else if (*(p->inyx) < FL(0.001))
-      p->p_scl = FL(0.001) * esr_;
+      p->p_scl = FL(0.001) * esr;
     else
-      p->p_scl = *(p->inyx) * esr_;
+      p->p_scl = *(p->inyx) * esr;
     p->p_min = p->p_scl / (MYFLT) VCO2_MAX_NPART;
     /* in case of vco2ift opcode, find table number now */
     if (!strcmp(p->h.optext->t.opcod, "vco2ift"))
@@ -1904,7 +1904,7 @@ int vco2set(VCO2 *p)
     /* initialise tables if not done yet */
     if (tnum >= vco2_nr_table_arrays || vco2_tables[tnum] == NULL) {
       if (tnum < 5)
-        vco2_tables_create(tnum, -1, NULL);
+        vco2_tables_create(p->h.insdshead->csound, tnum, -1, NULL);
       else {
         return initerror(Str(X_1768, "vco2: table array not found for user defined waveform"));
       }
@@ -2007,7 +2007,7 @@ int vco2(VCO2 *p)
     lobits = tabl->lobits; mask = tabl->mask; pfrac = tabl->pfrac;
     ftable = tabl->ftable;
 
-    nn = ksmps_;
+    nn = ksmps;
     if (!p->mode) {                     /* - mode 0: simple table playback - */
       do {
         n = phs >> lobits;
@@ -2094,7 +2094,7 @@ static OENTRY localops[] = {
 
 LINKAGE
 
-void RESET(void)
+void RESET(ENVIRON *csound)
 {
-    vco2_tables_destroy();
+    vco2_tables_destroy(csound);
 }

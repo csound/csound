@@ -65,7 +65,7 @@ int release(REL *p)
 int xtratim(XTRADUR *p)
 {
     int *xtra = &(p->h.insdshead->xtratim);
-    int tim = (int) (*p->extradur * ekr_);
+    int tim = (int) (*p->extradur * ekr);
     if (*xtra < tim)  /* gab-a5 revised */
       *xtra = tim;
     return OK;
@@ -74,7 +74,7 @@ int xtratim(XTRADUR *p)
 int mclock_set(MCLOCK *p)
 {
     if (MIDIoutDONE==0) openMIDIout();
-    p->period= ekr_ / *p->freq;
+    p->period= ekr / *p->freq;
     p->clock_tics = p->period;
     p->beginning_flag=TRUE;
     return OK;

@@ -192,7 +192,7 @@ static MYFLT noise_tick(void) /*  Return random MYFLT float between -1.0 and 1.0
 int cabasaset(CABASA *p)
 {
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * ekr_) - (int)(ekr_* *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * ekr) - (int)(ekr* *p->dettack);
     p->outputs0 = FL(0.0);
     p->outputs1 = FL(0.0);
     p->shake_maxSave = FL(0.0);
@@ -215,7 +215,7 @@ int cabasaset(CABASA *p)
 int cabasa(CABASA *p)
 {
     MYFLT *ar = p->ar;
-    long nsmps = ksmps_;
+    long nsmps = ksmps;
     MYFLT data;
                                 /* Use locals for speed */
     MYFLT shakeEnergy = p->shakeEnergy;
@@ -248,7 +248,7 @@ int cabasa(CABASA *p)
 
     if (*p->shake_max != FL(0.0)) {
       shakeEnergy = p->shakeEnergy +=
-        ksmps_ * *p->shake_max * MAX_SHAKE * FL(0.1);
+        ksmps * *p->shake_max * MAX_SHAKE * FL(0.1);
       if (shakeEnergy > MAX_SHAKE) shakeEnergy = MAX_SHAKE;
 /*        printf("shakeEnergy reset to %f\n", p->shakeEnergy); */
     }
@@ -289,7 +289,7 @@ int cabasa(CABASA *p)
 int sekereset(SEKERE *p)
 {
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * ekr_) - (int)(ekr_* *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * ekr) - (int)(ekr* *p->dettack);
     p->outputs0 = FL(0.0);
     p->outputs1 = FL(0.0);
     p->finalZ2 = FL(0.0);
@@ -315,7 +315,7 @@ int sekereset(SEKERE *p)
 int sekere(SEKERE *p)
 {
     MYFLT *ar = p->ar;
-    long nsmps = ksmps_;
+    long nsmps = ksmps;
     MYFLT data;
                                 /* Use locals for speed */
     MYFLT shakeEnergy = p->shakeEnergy;
@@ -347,7 +347,7 @@ int sekere(SEKERE *p)
 
     if (*p->shake_max != FL(0.0)) {
       shakeEnergy = p->shakeEnergy +=
-        ksmps_ * *p->shake_max * MAX_SHAKE * FL(0.1);
+        ksmps * *p->shake_max * MAX_SHAKE * FL(0.1);
       if (shakeEnergy > MAX_SHAKE) shakeEnergy = MAX_SHAKE;
     }
 
@@ -390,7 +390,7 @@ int sekere(SEKERE *p)
 int sandset(SEKERE *p)
 {
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * ekr_) - (int)(ekr_* *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * ekr) - (int)(ekr* *p->dettack);
     p->outputs0 = FL(0.0);
     p->outputs1 = FL(0.0);
     p->finalZ2 = FL(0.0);
@@ -417,7 +417,7 @@ int sandset(SEKERE *p)
 int stixset(SEKERE *p)
 {
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * ekr_) - (int)(ekr_* *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * ekr) - (int)(ekr* *p->dettack);
     p->outputs0 = FL(0.0);
     p->outputs1 = FL(0.0);
     p->finalZ2 = FL(0.0);
@@ -445,7 +445,7 @@ int stixset(SEKERE *p)
 int crunchset(CABASA *p)
 {
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * ekr_) - (int)(ekr_* *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * ekr) - (int)(ekr* *p->dettack);
     p->outputs0 = FL(0.0);
     p->outputs1 = FL(0.0);
     p->shake_maxSave = FL(0.0);
@@ -472,7 +472,7 @@ int guiroset(GUIRO *p)
     MYFLT temp;
 
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * ekr_) - (int)(ekr_* *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * ekr) - (int)(ekr* *p->dettack);
 
     p->outputs00 = FL(0.0);
     p->outputs01 = FL(0.0);
@@ -514,7 +514,7 @@ int guiroset(GUIRO *p)
 int guiro(GUIRO *p)
 {
     MYFLT *ar = p->ar;
-    long nsmps = ksmps_;
+    long nsmps = ksmps;
     MYFLT lastOutput;
 
     if (*p->num_teeth != FL(0.0) &&
@@ -630,7 +630,7 @@ int tambourset(TAMBOURINE *p)
     MYFLT temp;
 
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * ekr_) - (int)(ekr_* *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * ekr) - (int)(ekr* *p->dettack);
 
     p->outputs00 = FL(0.0);
     p->outputs01 = FL(0.0);
@@ -674,7 +674,7 @@ int tambourset(TAMBOURINE *p)
 int tambourine(TAMBOURINE *p)
 {
     MYFLT *ar = p->ar;
-    long nsmps = ksmps_;
+    long nsmps = ksmps;
     MYFLT data;
     MYFLT temp_rand;
     MYFLT lastOutput;
@@ -767,7 +767,7 @@ int bambooset(BAMBOO *p)
     MYFLT temp;
 
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * ekr_) - (int)(ekr_* *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * ekr) - (int)(ekr* *p->dettack);
 
     p->outputs00 = FL(0.0);
     p->outputs01 = FL(0.0);
@@ -806,7 +806,7 @@ int bambooset(BAMBOO *p)
 int bamboo(BAMBOO *p)
 {
     MYFLT *ar = p->ar;
-    long nsmps = ksmps_;
+    long nsmps = ksmps;
     MYFLT data;
     MYFLT temp_rand;
     MYFLT lastOutput;
@@ -901,7 +901,7 @@ int wuterset(WUTER *p)
     MYFLT temp;
 
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * ekr_) - (int)(ekr_* *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * ekr) - (int)(ekr* *p->dettack);
 
     p->outputs00 = FL(0.0);
     p->outputs01 = FL(0.0);
@@ -940,7 +940,7 @@ int wuterset(WUTER *p)
 int wuter(WUTER *p)
 {
     MYFLT *ar = p->ar;
-    long nsmps = ksmps_;
+    long nsmps = ksmps;
     MYFLT data;
     MYFLT lastOutput;
 
@@ -1070,7 +1070,7 @@ int sleighset(SLEIGHBELLS *p)
     MYFLT temp;
 
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * ekr_) - (int)(ekr_* *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * ekr) - (int)(ekr* *p->dettack);
 
     p->outputs00 = FL(0.0);
     p->outputs01 = FL(0.0);
@@ -1119,7 +1119,7 @@ int sleighset(SLEIGHBELLS *p)
 int sleighbells(SLEIGHBELLS *p)
 {
     MYFLT *ar = p->ar;
-    long nsmps = ksmps_;
+    long nsmps = ksmps;
     MYFLT data;
     MYFLT temp_rand;
     MYFLT lastOutput;

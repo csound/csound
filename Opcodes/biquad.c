@@ -58,7 +58,7 @@ int biquad(BIQUAD *p)
     MYFLT a0 = *p->a0, a1 = *p->a1, a2 = *p->a2;
     MYFLT b0 = *p->b0, b1 = *p->b1, b2 = *p->b2;
     MYFLT xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
-    n    = ksmps_;
+    n    = ksmps;
     in   = p->in;
     out  = p->out;
     do {
@@ -84,7 +84,7 @@ int biquada(BIQUAD *p)
     MYFLT *a0 = p->a0, *a1 = p->a1, *a2 = p->a2;
     MYFLT *b0 = p->b0, *b1 = p->b1, *b2 = p->b2;
     MYFLT xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
-    n    = ksmps_;
+    n    = ksmps;
     in   = p->in;
     out  = p->out;
     do {
@@ -127,7 +127,7 @@ int moogvcf(MOOGVCF *p)
     MYFLT xnm1 = p->xnm1, y1nm1 = p->y1nm1, y2nm1 = p->y2nm1, y3nm1 = p->y3nm1;
     MYFLT y1n  = p->y1n, y2n = p->y2n, y3n = p->y3n, y4n = p->y4n;
 
-    n       = ksmps_;
+    n       = ksmps;
     in      = p->in;
     out     = p->out;
     fcoptr  = p->fco;
@@ -202,7 +202,7 @@ int rezzy(REZZY *p)
           csq, b, tval; /* Temporary varibles for the filter */
     MYFLT xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
 
-    n      = ksmps_;
+    n      = ksmps;
     in     = p->in;
     out    = p->out;
     fcoptr = p->fco;
@@ -210,7 +210,7 @@ int rezzy(REZZY *p)
     fco    = *fcoptr;
     rez    = *rezptr;
 
-    fqcadj = FL(0.149659863)*esr_; /* Freq. is adjusted based on sample rate */
+    fqcadj = FL(0.149659863)*esr; /* Freq. is adjusted based on sample rate */
     c      = fqcadj/fco;          /* Filter constant c=1/Fco * adjustment   */
     /* Try to keep the resonance under control     */
     if (rez < FL(1.0)) rez = FL(1.0);
@@ -299,7 +299,7 @@ int distort(DISTORT *p)
     MYFLT shape1 = *p->shape1, shape2 = *p->shape2;
     MYFLT sig, x1, x2, x3;
 
-    n        = ksmps_;
+    n        = ksmps;
     in       = p->in;
     out      = p->out;
     pregain  = pregain*FL(0.0002);
@@ -330,7 +330,7 @@ int distort(DISTORT *p)
 
 int vcoset(VCO *p)
 {
-    unsigned long ndel = (long)(*p->maxd * esr_);  /* Number of bytes in the
+    unsigned long ndel = (long)(*p->maxd * esr);  /* Number of bytes in the
                                                      delay*/
     MYFLT *buf;    /* Delay buffer */
     FUNC  *ftp;    /* Pointer to a sine function */
@@ -402,9 +402,9 @@ int vco(VCO *p)
     if (buf==NULL) {            /* RWD fix */
       return perferror(Str(X_1370,"vco: not initialised"));
     }
-    maxd = (unsigned long) (*p->maxd * esr_);
+    maxd = (unsigned long) (*p->maxd * esr);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
-    nn = ksmps_;
+    nn = ksmps;
     indx = p->left;
     /* End of VDelay insert */
 
@@ -420,7 +420,7 @@ int vco(VCO *p)
     cpsp = p->xcps;
     fqc = *cpsp;
     rtfqc = (MYFLT)sqrt(fqc);
-    knh = (int)(esr_*p->nyq/fqc);
+    knh = (int)(esr*p->nyq/fqc);
     if ((n = (int)knh) <= 0) {
                                 /* Line apparently missing here */
       printf(Str(X_1369,"vco knh (%d) <= 0; taken as 1\n"), n);
@@ -434,7 +434,7 @@ int vco(VCO *p)
     inc = (long)(fqc * sicvt2);
     ar = p->ar;
     phs = p->lphs;
-    nn = ksmps_;
+    nn = ksmps;
 
 /*-----------------------------------------------------*/
 /* PWM Wave                                            */
@@ -465,7 +465,7 @@ int vco(VCO *p)
 
         /* VDelay inserted here */
         buf[indx] = pulse;
-        fv1 = indx - (FL(1.0)/fqc/* *FL(0.5)*/) * esr_ * pw;
+        fv1 = indx - (FL(1.0)/fqc/* *FL(0.5)*/) * esr * pw;
         /* Make sure Inside the buffer      */
         while (fv1 > maxd)
           fv1 -= maxd;
@@ -519,7 +519,7 @@ int vco(VCO *p)
 
         /* VDelay inserted here */
         buf[indx] = pulse;
-        fv1 = indx - (FL(1.0)/fqc/* *FL(0.5)*/) *esr_*pw;  /* Make sure Inside the
+        fv1 = indx - (FL(1.0)/fqc/* *FL(0.5)*/) *esr*pw;  /* Make sure Inside the
                                                            buffer      */
         while (fv1 > maxd)
           fv1 -= maxd;
@@ -622,7 +622,7 @@ int planet(PLANET *p)
     mass1 = *p->mass1;
     mass2 = *p->mass2;
 
-    nn = ksmps_;
+    nn = ksmps;
     do {
       xxpyy = p->x * p->x + p->y * p->y;
       dz1 = p->s1z - p->z;
@@ -688,7 +688,7 @@ int pareq(PAREQ *p)
     MYFLT fc = *p->fc, v = *p->v, q = *p->q;
     MYFLT omega, k, kk, vkk, vk, vkdq;
     MYFLT xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
-    n    = ksmps_;
+    n    = ksmps;
     in   = p->in;
     out  = p->out;
 
@@ -761,12 +761,12 @@ int nestedapset(NESTEDAP *p)
     if (*p->istor && p->auxch.auxp != NULL)
       return OK;
 
-    npts2 = (long)(*p->del2 * esr_);
-    npts3 = (long)(*p->del3 * esr_);
-    npts1 = (long)(*p->del1 * esr_) - npts2 -npts3;
+    npts2 = (long)(*p->del2 * esr);
+    npts3 = (long)(*p->del3 * esr);
+    npts1 = (long)(*p->del1 * esr) - npts2 -npts3;
 
-    if (((long)(*p->del1 * esr_)) <=
-        ((long)(*p->del2 * esr_) + (long)(*p->del3 * esr_))) {
+    if (((long)(*p->del1 * esr)) <=
+        ((long)(*p->del2 * esr) + (long)(*p->del3 * esr))) {
       return initerror(Str(X_846,"illegal delay time"));
     }
     npts = npts1 + npts2 + npts3;
@@ -828,7 +828,7 @@ int nestedap(NESTEDAP *p)
     MYFLT   *beg1p, *beg2p, *beg3p, *end1p, *end2p, *end3p;
     MYFLT   *del1p, *del2p, *del3p;
     MYFLT   in1, g1, g2, g3;
-    int     nsmps = ksmps_;
+    int     nsmps = ksmps;
 
     if (p->auxch.auxp==NULL) { /* RWD fix */
       return perferror(Str(X_687,"delay: not initialised"));
@@ -977,7 +977,7 @@ int lorenz(LORENZ *p)
     y     = p->valy;
     z     = p->valz;
 
-    nn = ksmps_;
+    nn = ksmps;
     do {
       do {
         xx   =      x+hstep*s*(y-x);
@@ -1030,7 +1030,7 @@ int tbvcf(TBVCF *p)
     ih  = FL(0.001); /* ih is the incremental factor */
 
  /* Set up the pointers */
-    n       = ksmps_;
+    n       = ksmps;
     in      = p->in;
     out     = p->out;
     fcoptr  = p->fco;
@@ -1048,7 +1048,7 @@ int tbvcf(TBVCF *p)
     q1  = res/(FL(1.0) + (MYFLT)sqrt((double)dist));
     fco1 = (MYFLT)pow((double)fco*260.0/(1.0+(double)q1*0.5),0.58);
     q  = q1*fco1*fco1*FL(0.0005);
-    fc  = fco1/FL(8.0)/esr_*FL(44100.0);
+    fc  = fco1/FL(8.0)/esr*FL(44100.0);
     do {
       x  = *in++;
       fdbk = q*y/(FL(1.0) + (MYFLT)exp(-3.0*(double)y)*asym);
@@ -1070,7 +1070,7 @@ int tbvcf(TBVCF *p)
         q1  = res/(FL(1.0) + (MYFLT)sqrt((double)dist));
         fco1 = (MYFLT)pow((double)(fco*260.0/(1.0+q1*0.5)),0.58);
         q  = q1*fco1*fco1*FL(0.0005);
-        fc  = fco1/FL(8.0)/esr_*FL(44100.0);
+        fc  = fco1/FL(8.0)/esr*FL(44100.0);
       }
     } while (--n);
     p->y = y; p->y1 = y1; p->y2 = y2;
@@ -1096,7 +1096,7 @@ int bqrez(REZZY *p)
     double theta;
     MYFLT xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
 
-    n      = ksmps_;
+    n      = ksmps;
     in     = p->in;
     out    = p->out;
     fcoptr = p->fco;

@@ -91,7 +91,7 @@ void DrawAscii(WINDAT *wdptr)   /* display an n-pnt float array using */
             }
             printf("\n");
             if (!POLL_EVENTS())
-              longjmp(cglob.exitjmp,1);/* on Mac/Win, allow system events */
+              longjmp(cenviron.exitjmp_,1);/* on Mac/Win, allow system events */
         }
     }
 }

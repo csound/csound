@@ -57,7 +57,7 @@ int dconvset(DCONV *p)
 int dconv(DCONV *p)
 {
     long i = 0;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     long len = p->len;
     MYFLT *ar, *ain, *ftp, *startp, *endp, *curp;
     MYFLT sum;
@@ -99,7 +99,7 @@ int and_aa(AOP *p)
     MYFLT *r           = p->r;
     MYFLT *in1         = p->a;
     MYFLT *in2         = p->b;
-    unsigned int nsmps = ksmps_;
+    unsigned int nsmps = ksmps;
     long input1, input2;
 
     do {
@@ -114,7 +114,7 @@ int and_ak(AOP *p)
 {
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
-    unsigned int nsmps = ksmps_;
+    unsigned int nsmps = ksmps;
     long input2 = (long)(*p->b + FL(0.5)), input1;
 
     do {
@@ -128,7 +128,7 @@ int and_ka(AOP *p)
 {
     MYFLT *r = p->r;
     MYFLT *in2 = p->b;
-    unsigned int nsmps = ksmps_;
+    unsigned int nsmps = ksmps;
     long input2, input1 = (long)(*p->a + FL(0.5));
 
     do {
@@ -151,7 +151,7 @@ int or_aa(AOP *p)
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
     MYFLT *in2 = p->b;
-    unsigned int nsmps = ksmps_;
+    unsigned int nsmps = ksmps;
     long input2, input1;
 
     do {
@@ -166,7 +166,7 @@ int or_ak(AOP *p)
 {
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
-    unsigned int nsmps = ksmps_;
+    unsigned int nsmps = ksmps;
     long input2 = (long)(*p->b + FL(0.5)), input1;
 
     do {
@@ -180,7 +180,7 @@ int or_ka(AOP *p)
 {
     MYFLT *r = p->r;
     MYFLT *in2 = p->b;
-    unsigned int nsmps = ksmps_;
+    unsigned int nsmps = ksmps;
     long input2, input1 = (long)(*p->a + FL(0.5));
 
     do {
@@ -203,7 +203,7 @@ int xor_aa(AOP *p)
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
     MYFLT *in2 = p->b;
-    unsigned int nsmps = ksmps_;
+    unsigned int nsmps = ksmps;
     long input2, input1;
 
     do {
@@ -218,7 +218,7 @@ int xor_ak(AOP *p)
 {
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
-    unsigned int nsmps = ksmps_;
+    unsigned int nsmps = ksmps;
     long input2 = (long)(*p->b + FL(0.5)), input1;
 
     do {
@@ -232,7 +232,7 @@ int xor_ka(AOP *p)
 {
     MYFLT *r = p->r;
     MYFLT *in2 = p->b;
-    unsigned int nsmps = ksmps_;
+    unsigned int nsmps = ksmps;
     long input2, input1 = (long)(*p->a + FL(0.5));
 
     do {
@@ -253,7 +253,7 @@ int not_a(AOP *p)
 {
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
-    unsigned int nsmps = ksmps_;
+    unsigned int nsmps = ksmps;
     long input1;
 
     do {
@@ -275,7 +275,7 @@ int vcombset(VCOMB *p)
         return initerror(Str(X_867,"illegal loop time"));
       }
     }
-    else if ((lpsiz = (long)(*p->imaxlpt * esr_)) <= 0) {
+    else if ((lpsiz = (long)(*p->imaxlpt * esr)) <= 0) {
       return initerror(Str(X_867,"illegal loop time"));
     }
     nbytes = lpsiz * sizeof(MYFLT);
@@ -297,13 +297,13 @@ int vcombset(VCOMB *p)
     p->lpt = FL(0.0);
     p->g   = FL(0.0);
     p->lpta = (XINARG3) ? 1 : 0;
-    if (*p->insmps == 0) *p->imaxlpt *= esr_;
+    if (*p->insmps == 0) *p->imaxlpt *= esr;
     return OK;
 }
 
 int vcomb(VCOMB *p)
 {
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     unsigned long xlpt, maxlpt = (unsigned long)*p->imaxlpt;
     MYFLT       *ar, *asig, *rp, *endp, *startp, *wp, *lpt;
     MYFLT       g = p->g;
@@ -319,7 +319,7 @@ int vcomb(VCOMB *p)
     if (p->lpta) {                               /* if xlpt is a-rate */
       lpt = p->xlpt;
       do {
-        xlpt = (unsigned long)((*p->insmps != 0) ? *lpt : *lpt * esr_);
+        xlpt = (unsigned long)((*p->insmps != 0) ? *lpt : *lpt * esr);
         if (xlpt > maxlpt) xlpt = maxlpt;
         if ((rp = wp - xlpt) < startp) rp += maxlpt;
         if ((p->rvt != *p->krvt) || (p->lpt != *lpt)) {
@@ -334,7 +334,7 @@ int vcomb(VCOMB *p)
       } while (--nsmps);
     }
     else {                                       /* if xlpt is k-rate */
-      xlpt = (unsigned long)((*p->insmps != 0) ? *p->xlpt : *p->xlpt * esr_);
+      xlpt = (unsigned long)((*p->insmps != 0) ? *p->xlpt : *p->xlpt * esr);
       if (xlpt > maxlpt) xlpt = maxlpt;
       if ((rp = wp - xlpt) < startp) rp += maxlpt;
       if ((p->rvt != *p->krvt) || (p->lpt != *p->xlpt)) {
@@ -354,7 +354,7 @@ int vcomb(VCOMB *p)
 
 int valpass(VCOMB *p)
 {
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     unsigned long xlpt, maxlpt = (unsigned long)*p->imaxlpt;
     MYFLT       *ar, *asig, *rp, *startp, *endp, *wp, *lpt;
     MYFLT       y, z, g = p->g;
@@ -370,7 +370,7 @@ int valpass(VCOMB *p)
     if (p->lpta) {                                      /* if xlpt is a-rate */
       lpt = p->xlpt;
       do {
-        xlpt = (unsigned long)((*p->insmps != 0) ? *lpt : *lpt * esr_);
+        xlpt = (unsigned long)((*p->insmps != 0) ? *lpt : *lpt * esr);
         if (xlpt > maxlpt) xlpt = maxlpt;
         if ((rp = wp - xlpt) < startp) rp += maxlpt;
         if ((p->rvt != *p->krvt) || (p->lpt != *lpt)) {
@@ -386,7 +386,7 @@ int valpass(VCOMB *p)
       } while (--nsmps);
     }
     else {                                              /* if xlpt is k-rate */
-      xlpt = (unsigned long)((*p->insmps != 0) ? *p->xlpt : *p->xlpt * esr_);
+      xlpt = (unsigned long)((*p->insmps != 0) ? *p->xlpt : *p->xlpt * esr);
       if (xlpt > maxlpt) xlpt = maxlpt;
       if ((rp = wp - xlpt) < startp) rp += maxlpt;
       if ((p->rvt != *p->krvt) || (p->lpt != *p->xlpt)) {

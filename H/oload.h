@@ -30,7 +30,7 @@
 #ifndef MIN_SHORT
 #define MIN_SHORT (-32768)
 #endif
-extern  GLOBALS cglob;
+extern  ENVIRON cenviron;
 #define LABELIM  (MIN_SHORT + nlabels)
 #define CHKING   0
 #define CBAS    32250

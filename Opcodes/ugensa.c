@@ -39,7 +39,7 @@ int fogset(FOGS *p)
       OVERLAP *ovp, *nxtovp;
       long   olaps;
       p->fogcvt = FMAXLEN/(p->ftp1)->flen; /*JMC for FOG*/
-      p->durtogo = (long)(*p->itotdur * esr_);
+      p->durtogo = (long)(*p->itotdur * esr);
       if (!skip) { /* legato: skip all memory management */
         p->spdphs = 0L; /*JMC for FOG*/
         if (*p->iphs == FL(0.0))                  /* if fundphs zero,  */
@@ -82,7 +82,7 @@ int fog(FOGS *p)
     FUNC        *ftp1,  *ftp2;
     MYFLT       *ar, *amp, *fund, *ptch, *speed;
     MYFLT  v1, fract ,*ftab, fogcvt = p->fogcvt; /*JMC added for FOG*/
-    long   nsmps = ksmps_, fund_inc, form_inc;
+    long   nsmps = ksmps, fund_inc, form_inc;
     /* long speed_inc; */ /*JMC added last--out for phs version*/
 
     ar = p->ar;
@@ -165,7 +165,7 @@ static int newpulse(FOGS *p, OVERLAP *ovp, MYFLT  *amp,
     MYFLT       octamp = *amp, oct;
     MYFLT       form = *ptch /sicvt, fogcvt = p->fogcvt;  /*added JMC for Fog*/
     long   rismps, newexp = 0;
-    if ((ovp->timrem = (long)(*p->kdur * esr_)) > p->durtogo &&
+    if ((ovp->timrem = (long)(*p->kdur * esr)) > p->durtogo &&
         (*p->iskip==FL(0.0)))  /* ringtime    */
       return(0);
     if ((oct = *p->koct) > 0.0) {                   /* octaviation */
@@ -208,7 +208,7 @@ static int newpulse(FOGS *p, OVERLAP *ovp, MYFLT  *amp,
     }
     ovp->curamp = octamp * p->preamp;                /* set startamp  */
     ovp->expamp = p->expamp;
-    if ((ovp->dectim = (long)(*p->kdec * esr_)) > 0)          /*      fnb dec  */
+    if ((ovp->dectim = (long)(*p->kdec * esr)) > 0)          /*      fnb dec  */
       ovp->decinc = (long)(sicvt / *p->kdec);
     ovp->decphs = PHMASK;
     return(1);
@@ -218,7 +218,7 @@ static int newpulse(FOGS *p, OVERLAP *ovp, MYFLT  *amp,
 #define S       sizeof
 
 static OENTRY localops[] = {
-{ "fog",    S(FOGS),    5,      "a","xxxakkkkkiiiiooo",fogset,NULL,fog  },
+{ "fog",  S(FOGS), 5, "a","xxxakkkkkiiiiooo",(SUBR)fogset,NULL,(SUBR)fog},
 };
 
 LINKAGE

@@ -25,7 +25,7 @@
 #include "aops.h"
 #include <math.h>
 #include <time.h>
-extern GLOBALS cglob;
+extern ENVIRON cenviron;
 
 static  double  eipt3=8.3333333, oct;
 #define logtwo  (0.69314718056)
@@ -45,7 +45,7 @@ int assign(ASSIGN *p)
 int aassign(ASSIGN *p)
 {
     MYFLT       *r, *a;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
 
     r = p->r;
     a = p->a;
@@ -71,7 +71,7 @@ int init(ASSIGN *p)
 int ainit(ASSIGN *p)
 {
     MYFLT       *r, *a;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
 
     r = p->r;
     a = p->a;
@@ -139,7 +139,7 @@ int modkk(AOP *p)
 }
 
 #define KA(OPNAME,OP) int OPNAME(AOP *p) {      \
-        int     nsmps = ksmps_;                  \
+        int     nsmps = ksmps;                  \
         MYFLT   *r, a, *b;                      \
         r = p->r;                               \
         a = *p->a;                              \
@@ -157,7 +157,7 @@ KA(divka,/)
 
 int modka(AOP *p)
 {
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     MYFLT       *r, a, *b;
     r = p->r;
     a = *p->a;
@@ -169,7 +169,7 @@ int modka(AOP *p)
 }
 
 #define AK(OPNAME,OP) int OPNAME(AOP *p) {      \
-        int     nsmps = ksmps_;                  \
+        int     nsmps = ksmps;                  \
         MYFLT   *r, *a, b;                      \
         r = p->r;                               \
         a = p->a;                               \
@@ -187,7 +187,7 @@ AK(divak,/)
 
 int modak(AOP *p)
 {
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     MYFLT       *r, *a, b;
     r = p->r;
     a = p->a;
@@ -200,7 +200,7 @@ int modak(AOP *p)
 
 
 #define AA(OPNAME,OP) int OPNAME(AOP *p) {      \
-        int     nsmps = ksmps_;                  \
+        int     nsmps = ksmps;                  \
         MYFLT   *r, *a, *b;                     \
         r = p->r;                               \
         a = p->a;                               \
@@ -218,7 +218,7 @@ AA(divaa,/)
 
 int modaa(AOP *p)
 {
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     MYFLT       *r, *a, *b;
     r = p->r;
     a = p->a;
@@ -237,7 +237,7 @@ int divzkk(DIVZ *p)
 
 int divzka(DIVZ *p)
 {
-    int         nsmps = ksmps_;
+    int         nsmps = ksmps;
     MYFLT       *r, a, *b, def;
     r = p->r;
     a = *p->a;
@@ -252,7 +252,7 @@ int divzka(DIVZ *p)
 
 int divzak(DIVZ *p)
 {
-    int         nsmps = ksmps_;
+    int         nsmps = ksmps;
     MYFLT       *r, *a, b, def;
     r = p->r;
     a = p->a;
@@ -273,7 +273,7 @@ int divzak(DIVZ *p)
 
 int divzaa(DIVZ *p)
 {
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     MYFLT       *r, *a, *b, def;
     r = p->r;
     a = p->a;
@@ -298,7 +298,7 @@ int conval(CONVAL *p)
 int aconval(CONVAL *p)
 {
     MYFLT       *r, *s;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
 
     r = p->r;
     if (*p->cond)
@@ -368,7 +368,7 @@ int atan21(AOP *p)
 }
 
 #define LIBA(OPNAME,LIBNAME) int OPNAME(EVAL *p) {                     \
-                                int     nsmps = ksmps_;                 \
+                                int     nsmps = ksmps;                 \
                                 MYFLT   *r, *a;                        \
                                 r = p->r;                              \
                                 a = p->a;                              \
@@ -394,7 +394,7 @@ LIBA(log10a,log10)
 
 int atan2aa(AOP *p)
 {
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     MYFLT       *r, *a, *b;
     r = p->r;
     a = p->a;
@@ -419,7 +419,7 @@ int ampdb(EVAL *p)
 
 int aampdb(EVAL *p)
 {
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     MYFLT       *r, *a;
     r = p->r;
     a = p->a;
@@ -443,7 +443,7 @@ int ampdbfs(EVAL *p)
 
 int aampdbfs(EVAL *p)
 {
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     MYFLT       *r, *a;
     r = p->r;
     a = p->a;
@@ -590,7 +590,7 @@ int cpsoct(EVAL *p)
 int acpsoct(EVAL *p)
 {
     MYFLT       *r, *a;
-    long        loct, nsmps = ksmps_;
+    long        loct, nsmps = ksmps;
     a = p->a;
     r = p->r;
     do {
@@ -813,7 +813,7 @@ int powoftwo(EVAL *p)
 int powoftwoa(EVAL *p)           /* by G.Maldonado, liberalised by JPff */
 {
     MYFLT *r, *a;
-    long nsmps=ksmps_;
+    long nsmps=ksmps;
     a = p->a;
     r = p->r;
     do {
@@ -848,7 +848,7 @@ int semitone(EVAL *p)
 int asemitone(EVAL *p)           /* JPff */
 {
     MYFLT *r, *a;
-    long nsmps = ksmps_;
+    long nsmps = ksmps;
     a = p->a;
     r = p->r;
     do  {
@@ -868,7 +868,7 @@ int cent(EVAL *p)
 int acent(EVAL *p)       /* JPff */
 {
     MYFLT *r, *a;
-    long nsmps = ksmps_;
+    long nsmps = ksmps;
     a = p->a;
     r = p->r;
     do {
@@ -909,7 +909,7 @@ int dbi(EVAL *p)
 int dba(EVAL *p)         /* JPff */
 {
     MYFLT *r, *a;
-    long nsmps = ksmps_;
+    long nsmps = ksmps;
     a = p->a;
     r = p->r;
     do  {
@@ -934,7 +934,7 @@ int logbasetwo(EVAL *p)
 int logbasetwoa(EVAL *p)       /* by G.Maldonado liberalised by JPff */
 {
     MYFLT *r, *a;
-    long nsmps=ksmps_;
+    long nsmps=ksmps;
     a = p->a;
     r = p->r;
     do {
@@ -964,7 +964,7 @@ int ilogbasetwo(EVAL *p)
 int in(INM *p)
 {
     MYFLT       *sp, *ar;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
 
     sp = spin;
     ar = p->ar;
@@ -977,7 +977,7 @@ int in(INM *p)
 int ins(INS *p)
 {
     MYFLT       *sp, *ar1, *ar2;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
 
     sp = spin;
     ar1 = p->ar1;
@@ -993,7 +993,7 @@ int ins(INS *p)
 int inq(INQ *p)
 {
     MYFLT       *sp, *ar1, *ar2, *ar3, *ar4;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
 
     sp = spin;
     ar1 = p->ar1;
@@ -1013,7 +1013,7 @@ int inq(INQ *p)
 int inh(INH *p)
 {
     MYFLT       *sp, *ar1, *ar2, *ar3, *ar4, *ar5, *ar6;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
 
     sp = spin;
     ar1 = p->ar1;
@@ -1037,7 +1037,7 @@ int inh(INH *p)
 int ino(INO *p)
 {
     MYFLT       *sp, *ar1, *ar2, *ar3, *ar4, *ar5, *ar6, *ar7, *ar8;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
 
     sp = spin;
     ar1 = p->ar1;
@@ -1065,7 +1065,7 @@ int ino(INO *p)
 int inn(INALL *p, int n)
 {
     MYFLT       *sp, **ara;
-    int         nsmps = ksmps_;
+    int         nsmps = ksmps;
     int         i;
 
     sp = spin;
@@ -1095,7 +1095,7 @@ int inall(INCH *p)
 /*      int nch = (int) p->INOCOUNT; */
 /*      inn(p, (nch>nchnls ? nchnls : nch)); */
     int ch = (int)(*p->ch+FL(0.5));
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     MYFLT *sp = spin+ch-1;
     MYFLT *ain = p->ar;
     if (ch>nchnls) return NOTOK;
@@ -1114,12 +1114,12 @@ int out(OUTM *p)
     ap = p->asig;
     sp = spout;
     if (!spoutactive) {
-      for (n=0; n<ksmps_; n++)
+      for (n=0; n<ksmps; n++)
         sp[n] = ap[n];
       spoutactive = 1;
     }
     else {
-      for (n=0; n<ksmps_; n++)
+      for (n=0; n<ksmps; n++)
         sp[n] += ap[n];
     }
     return OK;
@@ -1134,7 +1134,7 @@ int outs(OUTS *p)
     sp = spout;
     if (!spoutactive) {
       int n,m;                    /* Amazingly this compiles better!!! */
-      for (n=0, m=0; n<ksmps_; n++, m+=2) {
+      for (n=0, m=0; n<ksmps; n++, m+=2) {
         sp[m]   = ap1[n];
         sp[m+1] = ap2[n];
       }
@@ -1142,7 +1142,7 @@ int outs(OUTS *p)
     }
     else {
       int n,m;                    /* Amazingly this compiles better!!! */
-      for (n=0, m=0; n<ksmps_; n++, m+=2) {
+      for (n=0, m=0; n<ksmps; n++, m+=2) {
         sp[m]   += ap1[n];
         sp[m+1] += ap2[n];
       }
@@ -1161,7 +1161,7 @@ int outq(OUTQ *p)
     sp = spout;
     if (!spoutactive) {
       int n,m;                    /* Amazingly this compiles better!!! */
-      for (n=0, m=0; n<ksmps_; n++, m+=4) {
+      for (n=0, m=0; n<ksmps; n++, m+=4) {
         sp[m]   = ap1[n];
         sp[m+1] = ap2[n];
         sp[m+2] = ap3[n];
@@ -1171,7 +1171,7 @@ int outq(OUTQ *p)
     }
     else {
       int n,m;                    /* Amazingly this compiles better!!! */
-      for (n=0, m=0; n<ksmps_; n++, m+=4) {
+      for (n=0, m=0; n<ksmps; n++, m+=4) {
         sp[m]   += ap1[n];
         sp[m+1] += ap2[n];
         sp[m+2] += ap3[n];
@@ -1189,7 +1189,7 @@ int outs1(OUTM *p)
     sp = spout;
     if (!spoutactive) {
       int n,m;                    /* Amazingly this compiles better!!! */
-      for (n=0, m=0; n<ksmps_; n++, m+=2) {
+      for (n=0, m=0; n<ksmps; n++, m+=2) {
         sp[m]   = ap1[n];
         sp[m+1] = FL(0.0);
       }
@@ -1197,7 +1197,7 @@ int outs1(OUTM *p)
     }
     else {
       int n,m;                    /* Amazingly this compiles better!!! */
-      for (n=0, m=0; n<ksmps_; n++, m+=2) {
+      for (n=0, m=0; n<ksmps; n++, m+=2) {
         sp[m]   += ap1[n];
       }
     }
@@ -1212,7 +1212,7 @@ int outs2(OUTM *p)
     sp = spout;
     if (!spoutactive) {
       int n,m;                    /* Amazingly this compiles better!!! */
-      for (n=0, m=0; n<ksmps_; n++, m+=2) {
+      for (n=0, m=0; n<ksmps; n++, m+=2) {
         sp[m]   = FL(0.0);
         sp[m+1] = ap2[n];
       }
@@ -1220,7 +1220,7 @@ int outs2(OUTM *p)
     }
     else {
       int n,m;                    /* Amazingly this compiles better!!! */
-      for (n=0, m=1; n<ksmps_; n++, m+=2) {
+      for (n=0, m=1; n<ksmps; n++, m+=2) {
         sp[m] += ap2[n];
       }
     }
@@ -1235,14 +1235,14 @@ int outs12(OUTM *p)
     sp = spout;
     if (!spoutactive) {
       int n,m;                    /* Amazingly this compiles better!!! */
-      for (n=0, m=0; n<ksmps_; n++, m+=2) {
+      for (n=0, m=0; n<ksmps; n++, m+=2) {
         sp[m] = sp[m+1] = ap[n];
       }
       spoutactive = 1;
     }
     else {
       int n,m;                    /* Amazingly this compiles better!!! */
-      for (n=0, m=0; n<ksmps_; n++, m+=2) {
+      for (n=0, m=0; n<ksmps; n++, m+=2) {
         sp[m]   += ap[n];
         sp[m+1] += ap[n];
       }
@@ -1258,7 +1258,7 @@ int outq1(OUTM *p)
     sp = spout;
     if (!spoutactive) {
       int n,m;                    /* Amazingly this compiles better!!! */
-      for (n=0, m=0; n<ksmps_; n++, m+=4) {
+      for (n=0, m=0; n<ksmps; n++, m+=4) {
         sp[m]   = ap1[n];
         sp[m+1] = FL(0.0);
         sp[m+2] = FL(0.0);
@@ -1268,7 +1268,7 @@ int outq1(OUTM *p)
     }
     else {
       int n,m;                    /* Amazingly this compiles better!!! */
-      for (n=0, m=0; n<ksmps_; n++, m+=4) {
+      for (n=0, m=0; n<ksmps; n++, m+=4) {
         sp[m]   += ap1[n];
       }
     }
@@ -1283,7 +1283,7 @@ int outq2(OUTM *p)
     sp = spout;
     if (!spoutactive) {
       int n,m;                    /* Amazingly this compiles better!!! */
-      for (n=0, m=0; n<ksmps_; n++, m+=4) {
+      for (n=0, m=0; n<ksmps; n++, m+=4) {
         sp[m]   = FL(0.0);
         sp[m+1] = ap2[n];
         sp[m+2] = FL(0.0);
@@ -1293,7 +1293,7 @@ int outq2(OUTM *p)
     }
     else {
       int n,m;                    /* Amazingly this compiles better!!! */
-      for (n=0, m=1; n<ksmps_; n++, m+=4) {
+      for (n=0, m=1; n<ksmps; n++, m+=4) {
         sp[m]   += ap2[n];
       }
     }
@@ -1308,7 +1308,7 @@ int outq3(OUTM *p)
     sp = spout;
    if (!spoutactive) {
        int n,m;                    /* Amazingly this compiles better!!! */
-      for (n=0, m=0; n<ksmps_; n++, m+=4) {
+      for (n=0, m=0; n<ksmps; n++, m+=4) {
         sp[m]   = FL(0.0);
         sp[m+1] = FL(0.0);
         sp[m+2] = ap3[n];
@@ -1318,7 +1318,7 @@ int outq3(OUTM *p)
     }
     else {
       int n,m;                    /* Amazingly this compiles better!!! */
-      for (n=0, m=2; n<ksmps_; n++, m+=4) {
+      for (n=0, m=2; n<ksmps; n++, m+=4) {
         sp[m]   += ap3[n];
       }
     }
@@ -1333,7 +1333,7 @@ int outq4(OUTM *p)
     sp = spout;
     if (!spoutactive) {
        int n,m;                    /* Amazingly this compiles better!!! */
-      for (n=0, m=0; n<ksmps_; n++, m+=4) {
+      for (n=0, m=0; n<ksmps; n++, m+=4) {
         sp[m]   = FL(0.0);
         sp[m+1] = FL(0.0);
         sp[m+2] = FL(0.0);
@@ -1343,7 +1343,7 @@ int outq4(OUTM *p)
     }
     else {
       int n,m;                    /* Amazingly this compiles better!!! */
-      for (n=0, m=3; n<ksmps_; n++, m+=4) {
+      for (n=0, m=3; n<ksmps; n++, m+=4) {
         sp[m]   += ap4[n];
       }
     }
@@ -1363,7 +1363,7 @@ int outh(OUTH *p)
     sp = spout;
     if (!spoutactive) {
       int n,m;                    /* Amazingly this compiles better!!! */
-      for (n=0, m=0; n<ksmps_; n++, m+=6) {
+      for (n=0, m=0; n<ksmps; n++, m+=6) {
         sp[m]   = ap1[n];
         sp[m+1] = ap2[n];
         sp[m+2] = ap3[n];
@@ -1375,7 +1375,7 @@ int outh(OUTH *p)
     }
     else {
       int n,m;                    /* Amazingly this compiles better!!! */
-      for (n=0, m=0; n<ksmps_; n++, m+=6) {
+      for (n=0, m=0; n<ksmps; n++, m+=6) {
         sp[m]   += ap1[n];
         sp[m+1] += ap2[n];
         sp[m+2] += ap3[n];
@@ -1402,7 +1402,7 @@ int outo(OUTO *p)
     sp = spout;
     if (!spoutactive) {
       int n,m;                    /* Amazingly this compiles better!!! */
-      for (n=0, m=0; n<ksmps_; n++, m+=8) {
+      for (n=0, m=0; n<ksmps; n++, m+=8) {
         sp[m]   = ap1[n];
         sp[m+1] = ap2[n];
         sp[m+2] = ap3[n];
@@ -1416,7 +1416,7 @@ int outo(OUTO *p)
     }
     else {
       int n,m;                    /* Amazingly this compiles better!!! */
-      for (n=0, m=0; n<ksmps_; n++, m+=8) {
+      for (n=0, m=0; n<ksmps; n++, m+=8) {
         sp[m]   += ap1[n];
         sp[m+1] += ap2[n];
         sp[m+2] += ap3[n];
@@ -1433,7 +1433,7 @@ int outo(OUTO *p)
 static void outn(int n, OUTX *p)
 {
     MYFLT       *sp, *ap[64];
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     int i;
 
     for (i=0; i<n; i++) ap[i] = p->asig[i];
@@ -1487,12 +1487,12 @@ int outch(OUTCH *p)
     int         ch;
     int         i, j;
     MYFLT       *sp, *apn;
-    int         nsmps = ksmps_;
+    int         nsmps = ksmps;
     int         count = (int) p->INOCOUNT;
     MYFLT       **args = p->args;
 
     for (j=0; j<count; j +=2) {
-      nsmps = ksmps_;
+      nsmps = ksmps;
       ch = (int)(*args[j]+FL(0.5));
       apn = args[j+1];
       if (ch>nchnls) continue;

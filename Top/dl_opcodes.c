@@ -248,13 +248,13 @@ int csoundLoadExternals(void)
 #endif
     char *error;
     char buffer[256];
-    OENTRY *(*init)(GLOBALS*);
+    OENTRY *(*init)(ENVIRON*);
     long (*size)(void);
-    void (*resetter)(void);
+    void (*resetter)(ENVIRON*);
 
-    if (cglob.oplibs==NULL) return 1;
-    printf("Loading libraries %s\n", cglob.oplibs);
-    strcpy(buffer, cglob.oplibs);
+    if (cenviron.oplibs_==NULL) return 1;
+    printf("Loading libraries %s\n", cenviron.oplibs_);
+    strcpy(buffer, cenviron.oplibs_);
     libname = strtok(buffer, ",");
 #ifdef BETA
     printf("libname %s\n", libname);
@@ -308,7 +308,7 @@ int csoundLoadExternals(void)
 #ifdef BETA
         printf("Calling init\n");
 #endif
-        opcodlst_n = (*init)(&cglob);
+        opcodlst_n = (*init)(&cenviron);
         olength = oplstend-opcodlst;
         resetter = dlsym(handle, "RESET");
         dle = dlerror();
@@ -331,7 +331,7 @@ int csoundLoadExternals(void)
 #ifdef BETA
         printf("Length=%d\n", length);
 #endif
-        init = (OENTRY *(*)(GLOBALS*))GetProcAddress((HINSTANCE)handle,
+        init = (OENTRY *(*)(ENVIRON*))GetProcAddress((HINSTANCE)handle,
                                                      "opcode_init");
 #ifdef BETA
         printf("Found init\n");
@@ -343,7 +343,7 @@ int csoundLoadExternals(void)
 #ifdef BETA
         printf("Calling init\n");
 #endif
-        opcodlst_n = (*init)(&cglob);
+        opcodlst_n = (*init)(&cenviron);
         olength = oplstend-opcodlst;
         resetter = (void(*)(void))GetProcAddress((HINSTANCE)handle, "RESET");
         if (resetter==NULL) {

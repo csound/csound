@@ -24,13 +24,12 @@
 /* Deal with localisation of mesages */
 
 #ifdef mills_macintosh
-#define Str(n,x)                getmacstring(n)
-extern char* getmacstring(int);
+#define Str(n,x)                getstring(n,"")
 #else
 #define Str(n,x)                getstring(n,x)
+#endif
 
 extern char* getstring(int, char*);
-#endif
 extern void init_getstring(int, char**);
 
 #define X_HEADER        "CSOUND_STRINGS\n"

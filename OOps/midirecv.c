@@ -197,10 +197,10 @@ void FMidiOpen(void) /* open a MidiFile for reading, sense MPU401 or standard */
       short Qticks = natshort(*(short *)(inbytes+4));
       printf(Str(X_344,"Metrical timing, Qtempo = 120.0, Qticks = %d\n"),
              Qticks);
-      ekrdQmil = (double)ekr_ / Qticks / 1000000.0;
+      ekrdQmil = (double)ekr / Qticks / 1000000.0;
       tickspersec = Qticks * 2;
     }
-    kprdspertick = (double)ekr_ / tickspersec;
+    kprdspertick = (double)ekr / tickspersec;
     printf(Str(X_959,"kperiods/tick = %7.3f\n"), kprdspertick);
 
  chknxt:
@@ -225,7 +225,7 @@ void FMidiOpen(void) /* open a MidiFile for reading, sense MPU401 or standard */
     printf(Str(X_69,
                "%s: assuming MPU401 midifile format, ticksize = 5 msecs\n"),
            O.FMidiname);
-    kprdspertick = (double)ekr_ / 200.0;
+    kprdspertick = (double)ekr / 200.0;
     ekrdQmil = 1.0;                             /* temp ctrl (not needed) */
     MTrkrem = MAXLONG;                         /* no tracksize limit     */
     FltMidiNxtk = 0.0;

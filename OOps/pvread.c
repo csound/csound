@@ -41,7 +41,7 @@ extern int find_memfile(const char *fname,MEMFIL **pp_mfp);
 extern void add_memfil(MEMFIL *mfp);
 
 #define WLN   1         /* time window is WLN*2*ksmps long */
-#define OPWLEN (2*WLN*ksmps_)    /* manifest used for final time wdw */
+#define OPWLEN (2*WLN*ksmps)    /* manifest used for final time wdw */
 
 void FetchInOne(
     MYFLT   *inp,       /* pointer to input data */
@@ -119,10 +119,10 @@ int pvreadset(PVREAD *p)
     p->frSiz = pvh->frameSize;
     frInc    = pvh->frameIncr;
     chans    = pvh->channels;
-    if ((p->asr = pvh->samplingRate) != esr_ &&
+    if ((p->asr = pvh->samplingRate) != esr &&
         (O.msglevel & WARNMSG)) { /* & chk the data */
       printf(Str(X_63,"WARNING: %s''s srate = %8.0f, orch's srate = %8.0f"),
-              pvfilnam, p->asr, esr_);
+              pvfilnam, p->asr, esr);
     }
     if (pvh->dataFormat != PVMYFLT) {
       sprintf(errmsg,Str(X_1359,"unsupported PVOC data format %ld in %s"),
@@ -150,7 +150,7 @@ int pvreadset(PVREAD *p)
     p->maxFr = -1 + (pvh->dataBsize / (chans * (p->frSiz+2) * sizeof(MYFLT)));
     /* highest possible frame index */
     /* factor by which to mult expand phase diffs (ratio of samp spacings) */
-    p->frPrtim = esr_/((MYFLT)frInc);
+    p->frPrtim = esr/((MYFLT)frInc);
     size = pvfrsiz(p);          /* size used in def of OPWLEN ? */
     p->prFlg = 1;    /* true */
     p->mybin = (long)(*p->ibin-FL(1.0));
@@ -288,10 +288,10 @@ int pvocex_loadfile(const char *fname,PVREAD *p,MEMFIL **mfp)
     else
       memblock = (float *) mfil->beginp;
 
-    if ((p->asr = (MYFLT) fmt.nSamplesPerSec) != esr_ &&
+    if ((p->asr = (MYFLT) fmt.nSamplesPerSec) != esr &&
         (O.msglevel & WARNMSG)) { /* & chk the data */
       printf(Str(X_63,"WARNING: %s''s srate = %8.0f, orch's srate = %8.0f"),
-              fname, p->asr, esr_);
+              fname, p->asr, esr);
     }
     p->frSiz = pvx_fftsize;
     p->frPtr = (MYFLT *) memblock;
@@ -301,7 +301,7 @@ int pvocex_loadfile(const char *fname,PVREAD *p,MEMFIL **mfp)
     /* highest possible frame index */
     /* factor by which to mult expand phase diffs (ratio of samp spacings) */
 
-    p->frPrtim = esr_/((MYFLT) pvdata.dwOverlap);
+    p->frPrtim = esr/((MYFLT) pvdata.dwOverlap);
     /*size = pvfrsiz(p);*/              /* size used in def of OPWLEN ? */
     p->prFlg = 1;    /* true */
     p->mybin = (long)(*p->ibin-1.0f);

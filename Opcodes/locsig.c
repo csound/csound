@@ -48,12 +48,12 @@ int locsigset(LOCSIG *p)
 
     if (p->auxch.auxp == NULL) {
       MYFLT *fltp;
-      auxalloc((long)(ksmps_ * 4)  * sizeof(MYFLT), &p->auxch);
+      auxalloc((long)(ksmps * 4)  * sizeof(MYFLT), &p->auxch);
       fltp = (MYFLT *) p->auxch.auxp;
-      p->rrev1 = fltp;   fltp += ksmps_;
-      p->rrev2 = fltp;   fltp += ksmps_;
-      p->rrev3 = fltp;   fltp += ksmps_;
-      p->rrev4 = fltp;   fltp += ksmps_;
+      p->rrev1 = fltp;   fltp += ksmps;
+      p->rrev2 = fltp;   fltp += ksmps;
+      p->rrev3 = fltp;   fltp += ksmps;
+      p->rrev4 = fltp;   fltp += ksmps;
     }
 
     p->prev_degree = -FL(918273645.192837465);
@@ -71,7 +71,7 @@ int locsig(LOCSIG *p)
     MYFLT *r1, *r2, *r3=NULL, *r4=NULL, degree, *asig;
     MYFLT direct, *rrev1, *rrev2, *rrev3=NULL, *rrev4=NULL;
     MYFLT torev, localrev, globalrev;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
 
     if (*p->distance != p->prev_distance) {
       p->distr=(FL(1.0) / *p->distance);
@@ -160,7 +160,7 @@ int locsend(LOCSEND *p)
     MYFLT       *r1, *r2, *r3=NULL, *r4=NULL;
     MYFLT       *rrev1, *rrev2, *rrev3=NULL, *rrev4=NULL;
     LOCSIG *q = p->locsig;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
 
     r1 = p->r1;
     r2 = p->r2;

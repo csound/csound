@@ -42,7 +42,7 @@ extern char *getDB(void);
 #ifdef mills_macintosh
 Handle GETS128;
 
-char *getmacstring(int n)
+char *getstring(int n, char *st)
 {
     long loc;
     int len;

@@ -68,13 +68,13 @@ int pvsanalset(PVSANAL *p)
       die(Str(X_1566,"pvsanal: window size too small for fftsize\n"));
     if (overlap > N / 2)
       die(Str(X_1567,"pvsanal: overlap too big for fft size\n"));
-    if (overlap < ksmps_)
+    if (overlap < ksmps)
       die(Str(X_1568,"pvsanal: overlap must be >= ksmps\n"));
 
     halfwinsize = M/2;
     buflen = M*4;
-    p->arate = (float)(esr_ / (MYFLT) overlap);
-    p->fund = (float)(esr_ / (MYFLT) N);
+    p->arate = (float)(esr / (MYFLT) overlap);
+    p->fund = (float)(esr / (MYFLT) N);
 
     nBins = N/2 + 1;
     /* we can exclude/simplify all sorts of stuff in CARL
@@ -141,10 +141,10 @@ int pvsanalset(PVSANAL *p)
       *(analwinhalf + i) *= sum;
 
 
-  /*    p->invR = (float)(FL(1.0) / esr_); */
+  /*    p->invR = (float)(FL(1.0) / esr); */
     p->RoverTwoPi = (float)(p->arate / TWOPI_F);
     p->TwoPioverR = (float)(TWOPI_F / p->arate);
-    p->Fexact =  (float)(esr_ / (MYFLT)N);
+    p->Fexact =  (float)(esr / (MYFLT)N);
     p->nI = -(halfwinsize / overlap) * overlap; /* input time (in samples) */
     /*Dd = halfwinsize + p->nI + 1;                     */
     /* in streaming mode, Dd = ovelap all the time */
@@ -341,7 +341,7 @@ int pvsanal(PVSANAL *p)
       die(Str(X_1570,"pvsanal: Not Initialised.\n"));
     }
 
-    for (i=0; i < ksmps_; i++)
+    for (i=0; i < ksmps; i++)
       anal_tick(p,ain[i]);
     return OK;
 }
@@ -373,8 +373,8 @@ int pvsynthset(PVSYNTH *p)
     IO = (double) overlap;         /* always, no time-scaling possible */
 
 
-    p->arate = esr_ / (MYFLT) overlap;
-    p->fund = esr_ / (MYFLT) N;
+    p->arate = esr / (MYFLT) overlap;
+    p->fund = esr / (MYFLT) N;
     nBins = N/2 + 1;
     Lf = Mf = 1 - M%2;
     /* deal with iinit later on! */
@@ -502,10 +502,10 @@ int pvsynthset(PVSYNTH *p)
       for (i = -halfwinsize; i <= halfwinsize; i++)
         *(synwinhalf + i) *= sum;
     }
-/*     p->invR = FL(1.0) / esr_; */
+/*     p->invR = FL(1.0) / esr; */
     p->RoverTwoPi = p->arate / TWOPI_F;
     p->TwoPioverR = TWOPI_F / p->arate;
-    p->Fexact =  esr_ / (MYFLT)N;
+    p->Fexact =  esr / (MYFLT)N;
     p->nO = -(halfwinsize / overlap) * overlap; /* input time (in samples) */
     p->Ii = 0;                          /* number of new outputs to write */
     p->IOi = 0;
@@ -682,7 +682,7 @@ int pvsynth(PVSYNTH *p)
     if (p->output.auxp==NULL) {
       die(Str(X_1572,"pvsynth: Not Initialised.\n"));
     }
-    for (i=0;i < ksmps_;i++)
+    for (i=0;i < ksmps;i++)
       aout[i] = synth_tick(p);
     return OK;
 }

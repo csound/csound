@@ -392,16 +392,16 @@ void writeheader(int ofd, char *ofname)  /* write an sfheader struct into output
                 /*RWD 3:2000 AIFF cannot contain floats: use AIFF-C */
           if (O.outformat== AE_FLOAT) {
             O.filetyp= TYP_AIFC;
-            aifcWriteHdr(ofd,O.outsampsiz,nchnls,esr_);
+            aifcWriteHdr(ofd,O.outsampsiz,nchnls,esr);
           }
           else
-            aiffWriteHdr(ofd,O.outsampsiz,nchnls,esr_);
+            aiffWriteHdr(ofd,O.outsampsiz,nchnls,esr);
         }
         else if (O.filetyp == TYP_AIFC) {
-          aifcWriteHdr(ofd,O.outsampsiz,nchnls,esr_);
+          aifcWriteHdr(ofd,O.outsampsiz,nchnls,esr);
         }
         else if (O.filetyp == TYP_WAV)
-            wavWriteHdr(ofd,O.outsampsiz,nchnls,esr_);
+            wavWriteHdr(ofd,O.outsampsiz,nchnls,esr);
     }
     else {
 #ifdef SFIRCAM
@@ -411,7 +411,7 @@ void writeheader(int ofd, char *ofname)  /* write an sfheader struct into output
         outhdrblk = mcalloc((long)sizeof(SFHEADER));    /* allocate hdr blk */
         sfh = (SFHEADER *)outhdrblk;
         sfmagic(sfh) = SF_MAGIC;
-        sfsrate(sfh) = (float)esr_;                      /*  assgn headrvals */
+        sfsrate(sfh) = (float)esr;                      /*  assgn headrvals */
         sfchans(sfh) = nchnls;
         sfclass(sfh) = O.outsampsiz;
         outcodbeg = &sfcodes(sfh);                      /* set sfcode limits */
@@ -429,7 +429,7 @@ void writeheader(int ofd, char *ofname)  /* write an sfheader struct into output
         outhdrblk = mcalloc((long)sizeof(SNDSoundStruct)); /* alloc hdr blk */
         sfh = (SNDSoundStruct *)outhdrblk;
         sfh->magic = SND_MAGIC;
-        sfh->samplingRate = esr_;                        /*  assgn headrvals */
+        sfh->samplingRate = esr;                        /*  assgn headrvals */
         sfh->channelCount = nchnls;
         sfh->dataLocation = sizeof(SNDSoundStruct);
         sfh->dataSize = -1;
@@ -469,7 +469,7 @@ void writeheader(int ofd, char *ofname)  /* write an sfheader struct into output
                 die(Str(X_847,"illegal encode for SFSUN41"));
         outhdrblk = mcalloc((long)sizeof(Audio_hdr));   /* allocate hdr blk */
         hp = (Audio_hdr *)outhdrblk;
-        hp->sample_rate = (unsigned) esr_;           /*  & fill in its values */
+        hp->sample_rate = (unsigned) esr;           /*  & fill in its values */
         hp->samples_per_unit = 1;
         hp->bytes_per_unit = (unsigned)O.outsampsiz;
         hp->channels = (unsigned) nchnls;
@@ -490,7 +490,7 @@ void writeheader(int ofd, char *ofname)  /* write an sfheader struct into output
                 die(Str(X_674,"could not write the outfile header"));
 # endif
 #elif defined(mac_classic)
-        AddMacHeader(ofname,nchnls,esr_,O.outsampsiz);
+        AddMacHeader(ofname,nchnls,esr,O.outsampsiz);
 #endif
     }
 }

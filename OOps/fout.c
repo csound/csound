@@ -60,7 +60,7 @@ static void close_files(void)
 
 static int outfile_float(OUTFILE *p)
 {
-    int nsmps = ksmps_, j, nargs = p->nargs, k=0;
+    int nsmps = ksmps, j, nargs = p->nargs, k=0;
     MYFLT **args = p->argums;
     do {
       for (j = 0;j< nargs;j++)
@@ -73,7 +73,7 @@ static int outfile_float(OUTFILE *p)
 
 static int outfile_int(OUTFILE *p)
 {
-    int nsmps = ksmps_, j, nargs = p->nargs, k=0;
+    int nsmps = ksmps, j, nargs = p->nargs, k=0;
     MYFLT **args = p->argums;
     short tmp;
     do {
@@ -89,7 +89,7 @@ static int outfile_int(OUTFILE *p)
 
 static int outfile_int_head(OUTFILE *p)
 {
-    int nsmps= ksmps_, j, nargs = p->nargs, k=0;
+    int nsmps= ksmps, j, nargs = p->nargs, k=0;
     MYFLT **args = p->argums;
     do {
       for (j = 0;j< nargs;j++) {
@@ -99,10 +99,10 @@ static int outfile_int_head(OUTFILE *p)
       k++;
     } while (--nsmps);
     p->cnt++;                   /* Count cycle */
-    file_opened[p->idx].cnt += ksmps_ * sizeof(short)*nargs;
+    file_opened[p->idx].cnt += ksmps * sizeof(short)*nargs;
     if ((kcounter& 0x3f)==0) {         /* Every 64 cycles */
       fflush(p->fp);
-      rewriteheader(fileno(p->fp), p->cnt * ksmps_ * sizeof(short)*nargs, 0);
+      rewriteheader(fileno(p->fp), p->cnt * ksmps * sizeof(short)*nargs, 0);
     }
     return OK;
 }
@@ -415,7 +415,7 @@ int ioutfile_r(IOUTFILE_R *p)
 
 static int infile_float(INFILE *p)
 {
-    int nsmps= ksmps_, j, nargs = p->nargs,k=0;
+    int nsmps= ksmps, j, nargs = p->nargs,k=0;
     MYFLT **args = p->argums;
     if (p->flag) {
       fseek(p->fp, p->currpos*sizeof(MYFLT)*nargs ,SEEK_SET);
@@ -444,7 +444,7 @@ static int infile_float(INFILE *p)
 
 int infile_int(INFILE *p)
 {
-    int nsmps= ksmps_, j,nargs = p->nargs,k=0;
+    int nsmps= ksmps, j,nargs = p->nargs,k=0;
     MYFLT **args = p->argums;
     short tmp;
     if (p->flag) {
@@ -753,7 +753,7 @@ int i_infile(I_INFILE *p)
 int incr(INCR *p)
 {
     MYFLT *avar = p->avar, *aincr = p->aincr;
-    int nsmps= ksmps_;
+    int nsmps= ksmps;
     do  *(avar++) += *(aincr++);
     while (--nsmps);
     return OK;
@@ -762,11 +762,11 @@ int incr(INCR *p)
 
 int clear(CLEARS *p)
 {
-    int nsmps= ksmps_,j;
+    int nsmps= ksmps,j;
     MYFLT *avar;
     for (j=0;j< p->INOCOUNT;j++) {
       avar = p->argums[j];
-      nsmps= ksmps_;
+      nsmps= ksmps;
       do        *(avar++) = FL(0.0);
       while (--nsmps);
     }

@@ -44,7 +44,7 @@ int ipow(POW *p)               /*      Power for i-rate */
 
 int apow(POW *p)               /*      Power routine for a-rate  */
 {
-    long n = ksmps_;
+    long n = ksmps;
     MYFLT *in = p->in, *out = p->sr;
 
     if (*p->powerOf == FL(0.0)) {
@@ -91,7 +91,7 @@ int seedrand(PRAND *p)
 
 int auniform(PRAND *p)         /* Uniform distribution */
 {
-    long n = ksmps_;
+    long n = ksmps;
     MYFLT *out = p->out;
     MYFLT arg1 = *p->arg1;
 
@@ -109,7 +109,7 @@ int ikuniform(PRAND *p)
 
 int alinear(PRAND *p)          /* Linear random functions      */
 {
-    long n = ksmps_;
+    long n = ksmps;
     MYFLT *out = p->out;
 
     do {
@@ -126,7 +126,7 @@ int iklinear(PRAND *p)
 
 int atrian(PRAND *p)           /*      Triangle random functions       */
 {
-    long n = ksmps_;
+    long n = ksmps;
     MYFLT *out = p->out;
 
     do {
@@ -143,7 +143,7 @@ int iktrian(PRAND *p)
 
 int aexp(PRAND *p)             /*      Exponential random functions    */
 {
-    long n = ksmps_;
+    long n = ksmps;
     MYFLT *out = p->out;
 
     do {
@@ -160,7 +160,7 @@ int ikexp(PRAND *p)
 
 int abiexp(PRAND *p)           /*      Bilateral exponential rand. functions */
 {
-    long n = ksmps_;
+    long n = ksmps;
     MYFLT *out = p->out;
 
     do {
@@ -177,7 +177,7 @@ int ikbiexp(PRAND *p)
 
 int agaus(PRAND *p)            /*      Gaussian random functions       */
 {
-    long n = ksmps_;
+    long n = ksmps;
     MYFLT *out = p->out;
 
     do {
@@ -194,7 +194,7 @@ int ikgaus(PRAND *p)
 
 int acauchy(PRAND *p)          /*      Cauchy random functions */
 {
-    long n = ksmps_;
+    long n = ksmps;
     MYFLT *out = p->out;
 
     do {
@@ -211,7 +211,7 @@ int ikcauchy(PRAND *p)
 
 int apcauchy(PRAND *p)         /*      Positive Cauchy random functions */
 {
-    long n = ksmps_;
+    long n = ksmps;
     MYFLT *out = p->out;
 
     do {
@@ -228,7 +228,7 @@ int ikpcauchy(PRAND *p)
 
 int abeta(PRAND *p)            /*      Beta random functions   */
 {
-    long n = ksmps_;
+    long n = ksmps;
     MYFLT *out = p->out;
 
     do {
@@ -245,7 +245,7 @@ int ikbeta(PRAND *p)
 
 int aweib(PRAND *p)            /*      Weibull randon functions        */
 {
-    long n = ksmps_;
+    long n = ksmps;
     MYFLT *out = p->out;
 
     do {
@@ -262,7 +262,7 @@ int ikweib(PRAND *p)
 
 int apoiss(PRAND *p)           /*      Poisson random funcions */
 {
-    long n = ksmps_;
+    long n = ksmps;
     MYFLT *out = p->out;
 
     do {

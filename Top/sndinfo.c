@@ -118,7 +118,7 @@ int sndinfo(int argc, char **argv)
 #ifdef mills_macintosh
       nchnls = hdr->nchanls;
       O.outsampsiz = hdr->sampsize;
-      esr_ = hdr->sr;
+      esr = hdr->sr;
       transport.osfd = infd;
       O.filetyp = hdr->filetyp;
       O.informat = hdr->format;

@@ -74,7 +74,7 @@ static LEVTBLK  *Firstblk = NULL;
 static LEVTBLK  *Firstact = NULL;
 
 extern OPARMS O;
-extern GLOBALS cglob;
+extern ENVIRON cenviron;
 int stdmode;
 
 void RTLineset(void)   /* set up Linebuf & ready the input files */

@@ -419,7 +419,7 @@ int clfilt(CLFILT *p)
         return perferror("code error, ihilo out of range");
       }
     }
-    n    = ksmps_;
+    n    = ksmps;
     in   = p->in;
     out  = p->out;
     do {

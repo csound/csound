@@ -39,7 +39,7 @@ int xyinset(XYIN *p)
     MYFLT       iyinit = *p->iyinit;
     MYFLT       ixinit = *p->ixinit;
 
-    if ((p->timcount = (int)(ekr_ * *p->iprd)) <= 0) {
+    if ((p->timcount = (int)(ekr * *p->iprd)) <= 0) {
       return initerror(Str(X_863,"illegal iprd"));
     }
     if (iymin > iymax) {                /* swap if wrong order */

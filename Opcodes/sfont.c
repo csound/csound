@@ -404,7 +404,7 @@ int SfPlay_set(SFPLAY *p)
 int SfPlay(SFPLAY *p)
 {
     MYFLT *out1 = p->out1, *out2 = p->out2;
-    int   nsmps = ksmps_, j = p->spltNum, arate;
+    int   nsmps = ksmps, j = p->spltNum, arate;
     SHORT **base = p->base;
     DWORD *end = p->end,  *startloop= p->startloop, *endloop= p->endloop;
     SHORT *mode = p->mode;
@@ -422,7 +422,7 @@ int SfPlay(SFPLAY *p)
       while (j--) {
         double looplength = *endloop - *startloop;
         MYFLT *freq = p->xfreq;
-        nsmps = ksmps_;
+        nsmps = ksmps;
         outemp1 = out1;
         outemp2 = out2;
 
@@ -448,7 +448,7 @@ int SfPlay(SFPLAY *p)
       while (j--) {
         double looplength = *endloop - *startloop;
         double si = *sampinc * freq;
-        nsmps = ksmps_;
+        nsmps = ksmps;
         outemp1 = out1;  outemp2 = out2;
         if (*mode == 1 || *mode ==3) {
           int flag =0;
@@ -466,7 +466,7 @@ int SfPlay(SFPLAY *p)
       }
     }
     outemp1 = out1;  outemp2 = out2;
-    nsmps = ksmps_;
+    nsmps = ksmps;
     if (arate) {
       MYFLT *amp = p->xamp;
       do {
@@ -488,7 +488,7 @@ int SfPlay(SFPLAY *p)
 int SfPlay3(SFPLAY *p)
 {
     MYFLT *out1 = p->out1, *out2 = p->out2;
-    int nsmps = ksmps_, j = p->spltNum, arate;
+    int nsmps = ksmps, j = p->spltNum, arate;
     SHORT **base = p->base;
     DWORD *end = p->end,  *startloop = p->startloop, *endloop = p->endloop;
     SHORT *mode = p->mode;
@@ -506,7 +506,7 @@ int SfPlay3(SFPLAY *p)
       while (j--) {
         double looplength = *endloop - *startloop;
         MYFLT *freq = p->xfreq;
-        nsmps = ksmps_;
+        nsmps = ksmps;
         outemp1 = out1; outemp2 = out2;
         if (*mode == 1 || *mode ==3) {
           int flag =0;
@@ -529,7 +529,7 @@ int SfPlay3(SFPLAY *p)
       MYFLT freq = *p->xfreq;
       while(j--) {
         double looplength = *endloop - *startloop, si = *sampinc * freq;
-        nsmps = ksmps_;
+        nsmps = ksmps;
         outemp1 = out1; outemp2 = out2;
         if (*mode == 1 || *mode ==3) {
           int flag =0;
@@ -549,7 +549,7 @@ int SfPlay3(SFPLAY *p)
 
     outemp1 = out1;
     outemp2 = out2;
-    nsmps = ksmps_;
+    nsmps = ksmps;
     if (arate) {
       MYFLT *amp = p->xamp;
       do {
@@ -635,7 +635,7 @@ int SfPlayMono_set(SFPLAYMONO *p)
 int SfPlayMono(SFPLAYMONO *p)
 {
     MYFLT *out1 = p->out1  ;
-    int nsmps = ksmps_, j = p->spltNum, arate;
+    int nsmps = ksmps, j = p->spltNum, arate;
     SHORT **base = p->base;
     DWORD *end= p->end, *startloop= p->startloop, *endloop= p->endloop;
     SHORT *mode = p->mode;
@@ -654,7 +654,7 @@ int SfPlayMono(SFPLAYMONO *p)
         double looplength = *endloop - *startloop;
         MYFLT *freq = p->xfreq;
 
-        nsmps = ksmps_;
+        nsmps = ksmps;
         outemp1 = out1;
         if (*mode == 1 || *mode ==3) {
           int flag =0;
@@ -678,7 +678,7 @@ int SfPlayMono(SFPLAYMONO *p)
       while (j--) {
         double looplength = *endloop - *startloop;
         double si = *sampinc * freq;
-        nsmps = ksmps_;
+        nsmps = ksmps;
         outemp1 = out1;
         if (*mode == 1 || *mode ==3) {
           int flag =0;
@@ -696,7 +696,7 @@ int SfPlayMono(SFPLAYMONO *p)
       }
     }
     outemp1 = out1;
-    nsmps = ksmps_;
+    nsmps = ksmps;
     if (arate) {
       MYFLT *amp = p->xamp;
       do        *outemp1++ *= *amp++;
@@ -713,7 +713,7 @@ int SfPlayMono(SFPLAYMONO *p)
 int SfPlayMono3(SFPLAYMONO *p)
 {
     MYFLT *out1 = p->out1;
-    int nsmps = ksmps_, j = p->spltNum, arate;
+    int nsmps = ksmps, j = p->spltNum, arate;
     SHORT **base = p->base;
     DWORD *end = p->end,  *startloop = p->startloop, *endloop = p->endloop;
     SHORT *mode = p->mode;
@@ -730,7 +730,7 @@ int SfPlayMono3(SFPLAYMONO *p)
       while (j--) {
         double looplength = *endloop - *startloop;
         MYFLT *freq = p->xfreq;
-        nsmps = ksmps_;
+        nsmps = ksmps;
         outemp1 = out1;
 
         if (*mode == 1 || *mode ==3) {
@@ -755,7 +755,7 @@ int SfPlayMono3(SFPLAYMONO *p)
       while (j--) {
         double looplength = *endloop - *startloop;
         double si = *sampinc * freq;
-        nsmps = ksmps_;
+        nsmps = ksmps;
         outemp1 = out1;
         if (*mode == 1 || *mode ==3) {
           int flag =0;
@@ -773,7 +773,7 @@ int SfPlayMono3(SFPLAYMONO *p)
       }
     }
     outemp1 = out1;
-    nsmps = ksmps_;
+    nsmps = ksmps;
     if (arate) {
       MYFLT *amp = p->xamp;
       do        *outemp1++ *= *amp++;
@@ -850,7 +850,7 @@ int SfInstrPlay_set(SFIPLAY *p)
 int SfInstrPlay(SFIPLAY *p)
 {
     MYFLT *out1= p->out1, *out2= p->out2;
-    int nsmps= ksmps_, j = p->spltNum, arate;
+    int nsmps= ksmps, j = p->spltNum, arate;
     SHORT **base = p->base;
     DWORD *end= p->end,  *startloop= p->startloop, *endloop= p->endloop;
     SHORT *mode = p->mode;
@@ -870,7 +870,7 @@ int SfInstrPlay(SFIPLAY *p)
         double looplength = *endloop - *startloop;
         MYFLT *freq = p->xfreq;
 
-        nsmps = ksmps_;
+        nsmps = ksmps;
         outemp1 = out1;
         outemp2 = out2;
         if (*mode == 1 || *mode ==3) {
@@ -895,7 +895,7 @@ int SfInstrPlay(SFIPLAY *p)
       while (j--) {
         double looplength = *endloop - *startloop;
         double si = *sampinc * freq;
-        nsmps = ksmps_;
+        nsmps = ksmps;
         outemp1 = out1;
         outemp2 = out2;
         if (*mode == 1 || *mode ==3) {
@@ -916,7 +916,7 @@ int SfInstrPlay(SFIPLAY *p)
 
     outemp1 = out1;
     outemp2 = out2;
-    nsmps = ksmps_;
+    nsmps = ksmps;
     if (arate) {
       MYFLT *amp = p->xamp;
       do {
@@ -937,7 +937,7 @@ int SfInstrPlay(SFIPLAY *p)
 int SfInstrPlay3(SFIPLAY *p)
 {
     MYFLT *out1= p->out1, *out2= p->out2;
-    int nsmps= ksmps_, j = p->spltNum, arate;
+    int nsmps= ksmps, j = p->spltNum, arate;
     SHORT **base = p->base;
     DWORD *end= p->end,  *startloop= p->startloop, *endloop= p->endloop;
     SHORT *mode = p->mode;
@@ -957,7 +957,7 @@ int SfInstrPlay3(SFIPLAY *p)
         double looplength = *endloop - *startloop;
         MYFLT *freq = p->xfreq;
 
-        nsmps = ksmps_;
+        nsmps = ksmps;
         outemp1 = out1;
         outemp2 = out2;
         if (*mode == 1 || *mode ==3) {
@@ -982,7 +982,7 @@ int SfInstrPlay3(SFIPLAY *p)
       while (j--) {
         double looplength = *endloop - *startloop;
         double si = *sampinc * freq;
-        nsmps = ksmps_;
+        nsmps = ksmps;
         outemp1 = out1;
         outemp2 = out2;
         if (*mode == 1 || *mode ==3) {
@@ -1003,7 +1003,7 @@ int SfInstrPlay3(SFIPLAY *p)
 
     outemp1 = out1;
     outemp2 = out2;
-    nsmps = ksmps_;
+    nsmps = ksmps;
     if (arate) {
       MYFLT *amp = p->xamp;
       do {
@@ -1079,7 +1079,7 @@ int SfInstrPlayMono_set(SFIPLAYMONO *p)
 int SfInstrPlayMono(SFIPLAYMONO *p)
 {
     MYFLT *out1= p->out1  ;
-    int nsmps= ksmps_, j = p->spltNum, arate;
+    int nsmps= ksmps, j = p->spltNum, arate;
     SHORT **base = p->base;
     DWORD *end= p->end,  *startloop= p->startloop, *endloop= p->endloop;
     SHORT *mode = p->mode;
@@ -1098,7 +1098,7 @@ int SfInstrPlayMono(SFIPLAYMONO *p)
         double looplength = *endloop - *startloop;
         MYFLT *freq = p->xfreq;
 
-        nsmps = ksmps_;
+        nsmps = ksmps;
         outemp1 = out1;
         if (*mode == 1 || *mode ==3) {
           int flag =0;
@@ -1122,7 +1122,7 @@ int SfInstrPlayMono(SFIPLAYMONO *p)
       while (j--) {
         double looplength = *endloop - *startloop;
         double si = *sampinc * freq;
-        nsmps = ksmps_;
+        nsmps = ksmps;
         outemp1 = out1;
         if (*mode == 1 || *mode ==3) {
           int flag =0;
@@ -1140,7 +1140,7 @@ int SfInstrPlayMono(SFIPLAYMONO *p)
       }
     }
     outemp1 = out1;
-    nsmps = ksmps_;
+    nsmps = ksmps;
     if (arate) {
       MYFLT *amp = p->xamp;
       do        *outemp1++ *= *amp;
@@ -1158,7 +1158,7 @@ int SfInstrPlayMono(SFIPLAYMONO *p)
 int SfInstrPlayMono3(SFIPLAYMONO *p)
 {
     MYFLT *out1= p->out1  ;
-    int nsmps= ksmps_, j = p->spltNum, arate;
+    int nsmps= ksmps, j = p->spltNum, arate;
     SHORT **base = p->base;
     DWORD *end= p->end,  *startloop= p->startloop, *endloop= p->endloop;
     SHORT *mode = p->mode;
@@ -1176,7 +1176,7 @@ int SfInstrPlayMono3(SFIPLAYMONO *p)
         double looplength = *endloop - *startloop;
         MYFLT *freq = p->xfreq;
 
-        nsmps = ksmps_;
+        nsmps = ksmps;
         outemp1 = out1;
         if (*mode == 1 || *mode ==3) {
           int flag =0;
@@ -1200,7 +1200,7 @@ int SfInstrPlayMono3(SFIPLAYMONO *p)
       while (j--) {
         double looplength = *endloop - *startloop;
         double si = *sampinc * freq;
-        nsmps = ksmps_;
+        nsmps = ksmps;
         outemp1 = out1;
         if (*mode == 1 || *mode ==3) {
           int flag =0;
@@ -1218,7 +1218,7 @@ int SfInstrPlayMono3(SFIPLAYMONO *p)
       }
     }
     outemp1 = out1;
-    nsmps = ksmps_;
+    nsmps = ksmps;
     if (arate) {
       MYFLT *amp = p->xamp;
       do        *outemp1++ *= *amp++;

@@ -29,7 +29,7 @@
 
 int downset(DOWNSAMP *p)
 {
-    if ((p->len = (int)*p->ilen) > ksmps_)
+    if ((p->len = (int)*p->ilen) > ksmps)
       return initerror(Str(X_836,"ilen > ksmps"));
     return OK;
 }
@@ -56,7 +56,7 @@ int downsamp(DOWNSAMP *p)
 int upsamp(UPSAMP *p)
 {
     MYFLT       *ar, kval;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
 
     ar = p->ar;
     kval = *p->ksig;
@@ -85,7 +85,7 @@ int interpset(INTERP *p)
 int interp(INTERP *p)
 {
     MYFLT       *ar, val, incr;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
 
     ar = p->rslt;
     if (p->init_k) {            /* IV - Sep 5 2002 */
@@ -117,7 +117,7 @@ int kntegrate(INDIFF *p)
 int integrate(INDIFF *p)
 {
     MYFLT       *rslt, *asig, sum;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
 
     rslt = p->rslt;
     asig = p->xsig;
@@ -141,7 +141,7 @@ int kdiff(INDIFF *p)
 int diff(INDIFF *p)
 {
     MYFLT       *ar, *asig, prev, tmp;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
 
     ar = p->rslt;
     asig = p->xsig;
@@ -174,7 +174,7 @@ int ksmphold(SAMPHOLD *p)
 int samphold(SAMPHOLD *p)
 {
     MYFLT       *ar, *asig, *agate, state;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
 
     ar = p->xr;
     asig = p->xsig;
@@ -212,7 +212,7 @@ int delset(DELAY *p)
 
     if (*p->istor && p->auxch.auxp != NULL)
       return OK;
-    if ((npts = (long)(*p->idlt * esr_)) <= 0) {
+    if ((npts = (long)(*p->idlt * esr)) <= 0) {
       return initerror(Str(X_846,"illegal delay time"));
     }
     if ((auxp = p->auxch.auxp) == NULL ||
@@ -250,7 +250,7 @@ int delrset(DELAYR *p)
 
     if (*p->istor && p->auxch.auxp != NULL)
       return OK;
-    if ((npts = (long)(*p->idlt * esr_)) < ksmps_) {      /* ksmps is min dely */
+    if ((npts = (long)(*p->idlt * esr)) < ksmps) {      /* ksmps is min dely */
       return initerror(Str(X_846,"illegal delay time"));
     }
     if ((auxp = p->auxch.auxp) == NULL ||       /* new space if reqd */
@@ -298,7 +298,7 @@ int tapset(DELTAP *p)
 int delay(DELAY *p)
 {
     MYFLT       *ar, *asig, *curp, *endp;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
 
     if (p->auxch.auxp==NULL) {  /* RWD fix */
       return perferror(Str(X_687,"delay: not initialised"));
@@ -321,7 +321,7 @@ int delay(DELAY *p)
 int delayr(DELAYR *p)
 {
     MYFLT       *ar, *curp, *endp;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
 
     if (p->auxch.auxp==NULL) { /* RWD fix */
       return perferror(Str(X_688,"delayr: not initialised"));
@@ -341,7 +341,7 @@ int delayw(DELAYW *p)
 {
     DELAYR      *q = p->delayr;
     MYFLT       *asig, *curp, *endp;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
 
     if (q->auxch.auxp==NULL) { /* RWD fix */
       return perferror(Str(X_689,"delayw: not initialised"));
@@ -362,13 +362,13 @@ int deltap(DELTAP *p)
 {
     DELAYR      *q = p->delayr;
     MYFLT       *ar, *tap, *endp;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
 
     if (q->auxch.auxp==NULL) { /* RWD fix */
       return perferror(Str(X_691,"deltap: not initialised"));
     }
     ar = p->ar;
-    tap = q->curp - (long)(*p->xdlt * esr_);
+    tap = q->curp - (long)(*p->xdlt * esr);
     while (tap < (MYFLT *) q->auxch.auxp)
       tap += q->npts;
     endp = (MYFLT *) q->auxch.endp;
@@ -384,7 +384,7 @@ int deltapi(DELTAP *p)
 {
     DELAYR      *q = p->delayr;
     MYFLT       *ar, *tap, *prv, *begp, *endp;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     long        idelsmps;
     MYFLT       delsmps, delfrac;
 
@@ -395,7 +395,7 @@ int deltapi(DELTAP *p)
     begp = (MYFLT *) q->auxch.auxp;
     endp = (MYFLT *) q->auxch.endp;
     if (!p->XINCODE) {
-      delsmps = *p->xdlt * esr_;
+      delsmps = *p->xdlt * esr;
       idelsmps = (long)delsmps;
       delfrac = delsmps - idelsmps;
       tap = q->curp - idelsmps;
@@ -412,7 +412,7 @@ int deltapi(DELTAP *p)
     else {
       MYFLT *timp = p->xdlt, *curq = q->curp;
       do {
-        delsmps = *timp++ * esr_;
+        delsmps = *timp++ * esr;
         idelsmps = (long)delsmps;
         delfrac = delsmps - idelsmps;
         tap = curq++ - idelsmps;
@@ -433,7 +433,7 @@ int deltapn(DELTAP *p)
 {
     DELAYR *q = p->delayr;
     MYFLT *ar, *tap, *begp, *endp;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     long idelsmps;
     MYFLT delsmps;
 
@@ -477,7 +477,7 @@ int deltap3(DELTAP *p)
 {
     DELAYR      *q = p->delayr;
     MYFLT       *ar, *tap, *prv, *begp, *endp;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     long        idelsmps;
     MYFLT       delsmps, delfrac;
 
@@ -488,7 +488,7 @@ int deltap3(DELTAP *p)
     begp = (MYFLT *) q->auxch.auxp;
     endp = (MYFLT *) q->auxch.endp;
     if (!p->XINCODE) {
-      delsmps = *p->xdlt * esr_;
+      delsmps = *p->xdlt * esr;
       idelsmps = (long)delsmps;
       delfrac = delsmps - idelsmps;
       tap = q->curp - idelsmps;
@@ -518,7 +518,7 @@ int deltap3(DELTAP *p)
       MYFLT *timp = p->xdlt, *curq = q->curp;
       do {
         MYFLT ym1, y0, y1, y2;
-        delsmps = *timp++ * esr_;
+        delsmps = *timp++ * esr;
         idelsmps = (long)delsmps;
         delfrac = delsmps - idelsmps;
         if ((tap = curq++ - idelsmps) < begp)
@@ -564,7 +564,7 @@ int deltapx(DELTAPX *p)                /* deltapx opcode */
 {
     DELAYR      *q = p->delayr;
     MYFLT       *out1, *del, *buf1;
-    int         nn = ksmps_, i2, i;
+    int         nn = ksmps, i2, i;
     double      x1, x2, w, d, d2x, n1;
     long        indx, maxd, xpos;
 
@@ -585,7 +585,7 @@ int deltapx(DELTAPX *p)                /* deltapx opcode */
         /* x2: sine of x1 (for interpolation) */
         /* xpos: integer part of delay time (buffer position to read from) */
 
-        x1 = (double) indx - (double) *(del++) * (double) esr_;
+        x1 = (double) indx - (double) *(del++) * (double) esr;
         while (x1 < 0.0) x1 += (double) maxd;
         xpos = (long) x1; x1 -= (double) xpos;
         x2 = sin (PI * x1) / PI;
@@ -614,7 +614,7 @@ int deltapx(DELTAPX *p)                /* deltapx opcode */
       }
     } else {                    /* window size = 4, cubic interpolation */
       while (nn--) {
-        x1 = (double) indx - (double) *(del++) * (double) esr_;
+        x1 = (double) indx - (double) *(del++) * (double) esr;
         while (x1 < 0.0) x1 += (double) maxd;
         xpos = (long) x1; x1 -= (double) xpos;
         w = x1 * x1; d2x = FL(0.16666667) * (x1 * w - x1);      /* sample +2 */
@@ -639,7 +639,7 @@ int deltapxw(DELTAPX *p)               /* deltapxw opcode */
 {
     DELAYR      *q = p->delayr;
     MYFLT       *in1, *del, *buf1;
-    int         nn = ksmps_, i2, i;
+    int         nn = ksmps, i2, i;
     double      x1, x2, w, d, d2x, n1;
     long        indx, maxd, xpos;
 
@@ -660,7 +660,7 @@ int deltapxw(DELTAPX *p)               /* deltapxw opcode */
         /* x2: sine of x1 (for interpolation) */
         /* xpos: integer part of delay time (buffer position to read from) */
 
-        x1 = (double) indx - (double) *(del++) * (double) esr_;
+        x1 = (double) indx - (double) *(del++) * (double) esr;
         while (x1 < 0.0) x1 += (double) maxd;
         xpos = (long) x1; x1 -= (double) xpos;
         x2 = sin (PI * x1) / PI;
@@ -689,7 +689,7 @@ int deltapxw(DELTAPX *p)               /* deltapxw opcode */
     } 
     else {                    /* window size = 4, cubic interpolation */
       while (nn--) {
-        x1 = (double) indx - (double) *(del++) * (double) esr_;
+        x1 = (double) indx - (double) *(del++) * (double) esr;
         while (x1 < 0.0) x1 += (double) maxd;
         xpos = (long) x1; x1 -= (double) xpos;
         w = x1 * x1; d2x = FL(0.16666667) * (x1 * w - x1);      /* sample +2 */
@@ -721,7 +721,7 @@ int del1set(DELAY1 *p)
 int delay1(DELAY1 *p)
 {
     MYFLT       *ar, *asig;
-    int nsmps = ksmps_ - 1;
+    int nsmps = ksmps - 1;
 
     ar = p->ar;
     asig = p->asig;
@@ -745,7 +745,7 @@ int cmbset(COMB *p)
         return initerror(Str(X_867,"illegal loop time"));
       }
     }
-    else if ((lpsiz = (long)(*p->ilpt * esr_)) <= 0) {
+    else if ((lpsiz = (long)(*p->ilpt * esr)) <= 0) {
       return initerror(Str(X_867,"illegal loop time"));
     }
     nbytes = lpsiz * sizeof(MYFLT);
@@ -768,7 +768,7 @@ int cmbset(COMB *p)
 
 int comb(COMB *p)
 {
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     MYFLT       *ar, *asig, *xp, *endp;
     MYFLT       coef = p->coef;
 
@@ -810,7 +810,7 @@ int comb(COMB *p)
 
 int alpass(COMB *p)
 {
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     MYFLT       *ar, *asig, *xp, *endp;
     MYFLT       y, z;
     MYFLT       coef = p->coef;
@@ -850,7 +850,7 @@ void reverbinit(void)                   /* called once by oload */
 
     revlpsum = 0;
     do {
-      *lpsizp = (long)(*lptimp++ * esr_);
+      *lpsizp = (long)(*lptimp++ * esr);
       revlpsum += *lpsizp++;
     } while (--n);
 }
@@ -891,7 +891,7 @@ int rvbset(REVERB *p)
 int reverb(REVERB *p)
 {
     MYFLT       *asig, *p1, *p2, *p3, *p4, *p5, *p6, *ar, *endp;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
 
     if (p->auxch.auxp==NULL) { /* RWD fix */
       return perferror(Str(X_1166,"reverb: not intialised"));
@@ -966,7 +966,8 @@ int pan(PAN *p)
 {
     MYFLT       *r1, *r2, *r3, *r4, *sigp, ch1, ch2, ch3, ch4;
     long        xndx, yndx, flen;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
+
     FUNC        *ftp;
 
     ftp = p->ftp;

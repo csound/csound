@@ -563,7 +563,7 @@ void otran(void)
     if (synterrcnt) {
       printf(Str(X_38,"%d syntax errors in orchestra.  compilation invalid\n"),
              synterrcnt);
-      longjmp(cglob.exitjmp,1);
+      longjmp(cenviron.exitjmp_,1);
     }
     if (O.odebug) {
       long n; MYFLT *p;
@@ -782,7 +782,7 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
     }
     nxtargoffp = ndxp;
     if (!POLL_EVENTS())
-      longjmp(cglob.exitjmp,1); /* on Mac/Win, allow system events */
+      longjmp(cenviron.exitjmp_,1); /* on Mac/Win, allow system events */
     mfree(labels);
     mfree(larg);
 }

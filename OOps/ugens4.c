@@ -81,7 +81,7 @@ int buzz(BUZZ *p)
     inc = (long)(*cpsp * sicvt2);
     ar = p->ar;
     phs = p->lphs;
-    nn = ksmps_;
+    nn = ksmps;
     do {
       dwnphs = phs >> lobits;
       denom = *(ftbl+dwnphs);
@@ -175,7 +175,7 @@ int gbuzz(GBUZZ *p)
     scal =  *ampp * p->rsumr;
     inc = (long)(*cpsp * sicvt);
     ar = p->ar;
-    nn = ksmps_;
+    nn = ksmps;
     do {
       phs = lphs >>lobits;
       denom = p->rsqp1 - p->twor * *(ftbl + phs);
@@ -215,7 +215,7 @@ int plukset(PLUCK *p)
     MYFLT       *ap, *fp;
     MYFLT       phs, phsinc;
 
-    if ((npts = (long)(esr_ / *p->icps))<PLUKMIN)  /* npts is wavelen in sampls */
+    if ((npts = (long)(esr / *p->icps))<PLUKMIN)  /* npts is wavelen in sampls */
       npts = PLUKMIN;                   /*  (but at least min size)  */
     if ((auxp = p->auxch.auxp) == NULL ||
         npts > p->maxpts) {     /* get newspace    */
@@ -295,7 +295,7 @@ int pluck(PLUCK *p)
     if (phsinc > ltwopi) {
       return perferror(Str(X_1480,"pluck: kcps more than sample rate"));
     }
-    nsmps = ksmps_;
+    nsmps = ksmps;
     do {
       offset = phs256 >> 8;
       fp = (MYFLT *)p->auxch.auxp + offset;     /* lookup position  */
@@ -502,7 +502,7 @@ int krand(RAND *p)
 int arand(RAND *p)
 {
     MYFLT       *ar;
-    short       rndmul = RNDMUL, n = ksmps_;
+    short       rndmul = RNDMUL, n = ksmps;
     MYFLT       ampscl;
     MYFLT       base = *p->base;
 
@@ -624,7 +624,7 @@ int krandh(RANDH *p)
 int randh(RANDH *p)
 {
     long        phs = p->phs, inc;
-    int n = ksmps_;
+    int n = ksmps;
     MYFLT       *ar, *ampp, *cpsp;
     MYFLT       base = *p->base;
 
@@ -754,7 +754,7 @@ int krandi(RANDI *p)
 int randi(RANDI *p)
 {
     long        phs = p->phs, inc;
-    int         n = ksmps_;
+    int         n = ksmps;
     MYFLT       *ar, *ampp, *cpsp;
     MYFLT       base = *p->base;
 

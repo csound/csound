@@ -430,7 +430,7 @@ int Xsynth(CON *p)
 
     n = p->count;
     m = n % div;
-    for (samps = 0; samps < ksmps_; samps++) {
+    for (samps = 0; samps < ksmps; samps++) {
       *(buf1 + n) = *s++;
       *(buf2 + n) = *f++;
 

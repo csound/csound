@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 {
     scorename = "Hetro";
     orchname = "Hetro";
-    O=O_; cglob=cglob_;
+    O=O_; cenviron=cenviron_;
     init_getstring(argc,argv);
     return hetro(argc,argv);
 }

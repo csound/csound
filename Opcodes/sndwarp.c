@@ -61,7 +61,7 @@ int sndwarpgetset(SNDWARP *p)
 
     p->maxFr  = -1 + ftpSamp->flen;
     p->prFlg = 1;    /* true */
-    p->begin = (int)(*p->ibegin * esr_);
+    p->begin = (int)(*p->ibegin * esr);
 
     exp = p->exp;
     exp--;
@@ -91,7 +91,7 @@ int sndwarpgetset(SNDWARP *p)
 
 int sndwarp(SNDWARP *p)
 {
-    int         nsmps = ksmps_;
+    int         nsmps = ksmps;
     MYFLT       frm0,frm1;
     long        base, longphase;
     MYFLT       frac, frIndx;
@@ -119,7 +119,7 @@ int sndwarp(SNDWARP *p)
     exp--;
     for (i=0; i<*p->ioverlap; i++) {
       exp++;
-      nsmps = ksmps_;
+      nsmps = ksmps;
       r1 = p->r1;
       if (p->OUTOCOUNT >1)  r2 = p->r2;
       resample = p->xresample;
@@ -130,7 +130,7 @@ int sndwarp(SNDWARP *p)
         if (exp->cnt < exp->wsize) goto skipover;
 
         if (*p->itimemode!=0)
-          exp->offset=(esr_ * *timewarpby)+p->begin;
+          exp->offset=(esr * *timewarpby)+p->begin;
         else
           exp->offset += (MYFLT)exp->wsize/(*timewarpby);
 /* printf("section=%d  offset=%f\n", exp->section, exp->offset); */
@@ -223,7 +223,7 @@ int sndwarpstgetset(SNDWARPST *p)
 
     p->maxFr  = -1L + (long)(ftpSamp->flen*FL(0.5));
     p->prFlg = 1;    /* true */
-    p->begin = (int)(*p->ibegin * esr_);
+    p->begin = (int)(*p->ibegin * esr);
 
     exp = p->exp;
     exp--;
@@ -260,7 +260,7 @@ int sndwarpstset(SNDWARPST *p)
 
 int sndwarpst(SNDWARPST *p)
 {
-    int         nsmps = ksmps_;
+    int         nsmps = ksmps;
     MYFLT       frm10,frm11, frm20, frm21;
     long        base, longphase;
     MYFLT       frac, frIndx;
@@ -294,7 +294,7 @@ int sndwarpst(SNDWARPST *p)
     exp--;
     for (i=0; i<*p->ioverlap; i++) {
       exp++;
-      nsmps = ksmps_;
+      nsmps = ksmps;
       r1 = p->r1;
       r2 = p->r2;
       if (p->OUTOCOUNT >2)  {
@@ -309,7 +309,7 @@ int sndwarpst(SNDWARPST *p)
         if (exp->cnt < exp->wsize) goto skipover;
 
         if (*p->itimemode!=0)
-          exp->offset=(esr_ * *timewarpby)+p->begin;
+          exp->offset=(esr * *timewarpby)+p->begin;
         else
           exp->offset += (MYFLT)exp->wsize/(*timewarpby);
 /* printf("section=%d  offset=%f\n", exp->section, exp->offset); */

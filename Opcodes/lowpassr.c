@@ -44,7 +44,7 @@ int lowpr(LOWPR *p)
     MYFLT kfco = *p->kfco;
     MYFLT kres = *p->kres;
     MYFLT coef1 = p->coef1, coef2 = p->coef2;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
 
     if (p->okf != kfco || p->okr != kres) { /* Only if changed */
       b = FL(10.0) / (*p->kres * (MYFLT)sqrt((double)kfco)) - FL(1.0);
@@ -101,7 +101,7 @@ int lowprx(LOWPRX *p)
     asig = p->asig;
 
     for (j=0; j< p->loop; j++) {
-      nsmps = ksmps_;
+      nsmps = ksmps;
       ar = p->ar;
 
       do {
@@ -157,7 +157,7 @@ int lowpr_w_sep(LOWPR_SEP *p)
       coef1 = (b+FL(2.0) *k);
       coef2 = FL(1.0)/(FL(1.0) + b + k);
 
-      nsmps = ksmps_;
+      nsmps = ksmps;
       ar = p->ar;
       do {                      /* This can be speeded up avoiding indirection */
         *ar++ = yn = (coef1 * *ynm1 - k * *ynm2 + *asig++) * coef2;

@@ -54,9 +54,9 @@ int wgpsetin(WGPLUCK2 *p)
     DelayLine   *lower_rail;
     MYFLT   plk = *p->plk;
                                 /* Initialize variables....*/
-    npts = (int)(esr_ / *p->icps);/* Length of full delay */
+    npts = (int)(esr / *p->icps);/* Length of full delay */
     while (npts < 512) {        /* Minimum rail length is 256 */
-      npts += (int)(esr_ / *p->icps);
+      npts += (int)(esr / *p->icps);
       scale++;
     }
     rail_len = npts/2 + 1;      /* but only need half length */
@@ -169,7 +169,7 @@ int wgpluck(WGPLUCK2 *p)
     ain   = p->ain;
     scale = p->scale;
     reflect = FL(1.0) - (FL(1.0) - reflect)/(MYFLT)scale; /* For over sapling */
-    nsmps = ksmps_;              /* Number of points to calculate */
+    nsmps = ksmps;              /* Number of points to calculate */
     upper_rail = (DelayLine*)p->upper.auxp;
     lower_rail = (DelayLine*)p->lower.auxp;
     pickup = (int)((MYFLT)OVERCNT * *(p->pickup) * p->rail_len); /* fract delays */
@@ -238,7 +238,7 @@ int wgpluck(WGPLUCK2 *p)
 int stresonset(STRES *p)
 {
     int n;
-    p->size = (int) (esr_/20);   /* size of delay line */
+    p->size = (int) (esr/20);   /* size of delay line */
     auxalloc(p->size*sizeof(MYFLT), &p->aux);
     p->Cdelay = (MYFLT*) p->aux.auxp; /* delay line */
     p->LPdelay = p->APdelay = FL(0.0); /* reset the All-pass and Low-pass delays */
@@ -254,7 +254,7 @@ int streson(STRES *p)
     MYFLT *in = p->ainput;
     MYFLT g = *p->ifdbgain;
     MYFLT freq, a, s, w, sample, tdelay, fracdelay;
-    int delay, nn = ksmps_;
+    int delay, nn = ksmps;
     int rp = p->rpointer, wp = p->wpointer;
     int size = p->size;
     MYFLT       APdelay = p->APdelay;
@@ -263,7 +263,7 @@ int streson(STRES *p)
 
     freq = *p->afr;
     if (freq < 20) freq = FL(20.0);   /* lowest freq is 20 Hz */
-    tdelay = esr_/freq;
+    tdelay = esr/freq;
     delay = (int) (tdelay - FL(0.5)); /* comb delay */
     fracdelay = tdelay - (delay + FL(0.5)); /* fractional delay */
     p->vdtime = size - delay;       /* set the var delay */
@@ -301,8 +301,7 @@ long opcode_size(void)
     return sizeof(localops);
 }
 
-OENTRY *opcode_init(GLOBALS *xx)
+OENTRY *opcode_init(ENVIRON *xx)
 {
-    pcglob = xx;
     return localops;
 }

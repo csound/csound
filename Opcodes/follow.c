@@ -33,11 +33,11 @@
 int flwset(FOL *p)
 {
     p->wgh = p->max = FL(0.0);
-    p->length = (long)(*p->len * esr_);
+    p->length = (long)(*p->len * esr);
     if (p->length<=0L) {           /* RWD's suggestion */
       if (oparms_->msglevel & WARNMSG)
         printf(Str(X_549,"WARNING: follow - zero length!\n"));
-      p->length = (long)esr_;
+      p->length = (long)esr;
     }
     p->count = p->length;
     return OK;
@@ -46,7 +46,7 @@ int flwset(FOL *p)
                                 /* Use absolute value rather than max/min */
 int follow(FOL *p)
 {
-    long        n = ksmps_;
+    long        n = ksmps;
     MYFLT       *in = p->in, *out = p->out;
     MYFLT       max = p->max;
     long        count = p->count;
@@ -77,19 +77,19 @@ int envset(ENV *p)
     if (p->lastatt<=FL(0.0))
       p->ga = (MYFLT) exp(- 69.0775527898*(double)onedsr);
     else
-      p->ga = (MYFLT) exp(- 6.90775527898/(double)(esr_* p->lastatt));
+      p->ga = (MYFLT) exp(- 6.90775527898/(double)(esr* p->lastatt));
     p->lastrel = *p->release;
     if (p->lastrel<=FL(0.0))
       p->gr = (MYFLT) exp(- 69.0775527898*(double)onedsr);
     else
-      p->gr = (MYFLT) exp(- 6.90775527898/(double)(esr_* p->lastrel));
+      p->gr = (MYFLT) exp(- 6.90775527898/(double)(esr* p->lastrel));
     p->envelope = FL(0.0);
     return OK;
 }
 
 int envext(ENV *p)
 {
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     MYFLT       envelope = p->envelope;
     MYFLT       ga, gr;
     MYFLT       *in = p->in, *out = p->out;
@@ -98,7 +98,7 @@ int envext(ENV *p)
       if (p->lastatt<=FL(0.0))
         ga = p->ga = (MYFLT) exp(-10000.0*(double)onedsr);
       else
-        ga = p->ga = (MYFLT) exp(-1.0/(double)(esr_* p->lastatt));
+        ga = p->ga = (MYFLT) exp(-1.0/(double)(esr* p->lastatt));
     }
     else ga = p->ga;
     if (p->lastrel!=*p->release) {
@@ -106,7 +106,7 @@ int envext(ENV *p)
       if (p->lastrel<=FL(0.0))
         gr = p->gr = (MYFLT) exp(-100.0*(double)onedsr);
       else
-        gr = p->gr = (float) exp(-1.0/(double)(esr_* p->lastrel));
+        gr = p->gr = (float) exp(-1.0/(double)(esr* p->lastrel));
     }
     else gr = p->gr;
     do {

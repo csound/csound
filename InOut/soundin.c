@@ -249,11 +249,11 @@ int sndgetset(SOUNDIN *p)       /* core of soundinset                */
           hdr->sr = p->sr;
         }
       }
-      else if (hdr->sr != esr_ &&
+      else if (hdr->sr != esr &&
               (O.msglevel & WARNMSG)) {            /* non-anal:  cmp w. esr */
         if (O.msglevel & WARNMSG)
           printf(Str(X_62,"WARNING: %s sr = %ld, orch sr = %7.1f\n"),
-                sfname, hdr->sr, esr_);
+                sfname, hdr->sr, esr);
       }
       if (p->OUTOCOUNT) {                          /* for orch SOUNDIN: */
         if (hdr->nchanls != p->OUTOCOUNT) {       /*        chk nchanls */
@@ -308,7 +308,7 @@ int sndgetset(SOUNDIN *p)       /* core of soundinset                */
       }
       else {
         printf(Str(X_1062,"WARNING: no soundin header, presuming orchestra sr"));
-        p->sr = (long) esr_;
+        p->sr = (long) esr;
       }
       if (p->OUTOCOUNT)
         p->channel = p->OUTOCOUNT;
@@ -449,7 +449,7 @@ int SAsndgetset(
     static  MYFLT sstrcod = (MYFLT)SSTRCOD;
 
     sssfinit();                    /* stand-alone init of SFDIR etc. */
-    esr_ = FL(0.0);                 /* set esr 0. with no orchestra   */
+    esr = FL(0.0);                 /* set esr 0. with no orchestra   */
     optxt.t.outoffs = &argoffs;    /* point to dummy OUTOCOUNT       */
     *ap = p = (SOUNDIN *) mcalloc((long)sizeof(SOUNDIN));
     p->h.optext = &optxt;
@@ -953,7 +953,7 @@ int soundin(SOUNDIN *p)
       return perferror(Str(X_1210,"soundin: not initialised"));
     }
     chnsout = p->OUTOCOUNT;
-    blksiz = chnsout * ksmps_;
+    blksiz = chnsout * ksmps;
     memcpy(r, p->r, chnsout * sizeof(MYFLT*));
     ntogo = blksiz;
     if (p->endfile)

@@ -60,7 +60,7 @@ static  char    *playscore = NULL;     /* unless we extract */
 static  FILE    *scorin, *scorout, *xfile;
 extern  void    dieu(char *);
 extern  OPARMS  O;
-extern  GLOBALS cglob;
+extern  ENVIRON cenviron;
 extern int argdecode(int, char**, char**, char*);
 extern void init_pvsys(void);
 
@@ -318,7 +318,7 @@ int csoundCompile(void *csound, int argc, char **argv)
 #if defined(LINUX)
     set_rt_priority (argc, argv);
 #endif
-    if ((n=setjmp(cglob.exitjmp))) {
+    if ((n=setjmp(cenviron.exitjmp_))) {
       /*
        * Changed from exit(-1) for re-entrancy.
        */
@@ -365,7 +365,7 @@ int csoundCompile(void *csound, int argc, char **argv)
       }
     }
 #endif
-    if (!POLL_EVENTS()) longjmp(cglob.exitjmp,1);
+    if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
     install_signal_handler();
     O.filnamspace = filnamp = mmalloc((long)1024);
     dribble = NULL;
@@ -383,13 +383,13 @@ int csoundCompile(void *csound, int argc, char **argv)
     }
     if (argdecode(argc, argv, &filnamp, envoutyp)==0) {
 #ifndef mills_macintosh
-      longjmp(cglob.exitjmp,1);
+      longjmp(cenviron.exitjmp_,1);
 #else
       return(0);
 #endif
     }
 
-    if (!POLL_EVENTS()) longjmp(cglob.exitjmp,1);
+    if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
     if (orchname == NULL)
       dieu(Str(X_1051,"no orchestra name"));
     else if ((strcmp(orchname+strlen(orchname)-4, ".csd")==0 ||
@@ -399,7 +399,7 @@ int csoundCompile(void *csound, int argc, char **argv)
       err_printf("UnifiedCSD:  %s\n", orchname);
       if (!read_unified_file(&orchname, &scorename)) {
         err_printf(Str(X_240,"Decode failed....stopping\n"));
-        longjmp(cglob.exitjmp,1);
+        longjmp(cenviron.exitjmp_,1);
       }
     }
     if (scorename==NULL || strlen(scorename)==0) { /* No scorename yet */
@@ -482,7 +482,7 @@ int csoundCompile(void *csound, int argc, char **argv)
 #endif
     /* IV - Oct 31 2002: moved orchestra compilation here, so that named */
     /* instrument numbers are known at the score read/sort stage */
-    create_opcodlst(&cglob); /* create initial opcode list (if not done yet) */
+    create_opcodlst(&cenviron); /* create initial opcode list (if not done yet) */
     if (!(POLL_EVENTS())) return (0);
     otran();                 /* read orcfile, setup desblks & spaces     */
     if (!(POLL_EVENTS())) return (0);
@@ -493,7 +493,7 @@ int csoundCompile(void *csound, int argc, char **argv)
         err_printf(Str(X_1153,
                        "realtime performance using dummy "
                        "numeric scorefile\n"));
-        if (!POLL_EVENTS()) longjmp(cglob.exitjmp,1);
+        if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
         goto perf;
       }
       else {
@@ -506,7 +506,7 @@ int csoundCompile(void *csound, int argc, char **argv)
         }
       }
     }
-    if (!POLL_EVENTS()) longjmp(cglob.exitjmp,1);
+    if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
 #ifdef mills_macintosh
     {
       char *c;
@@ -543,7 +543,7 @@ int csoundCompile(void *csound, int argc, char **argv)
       fclose(scorin);
       fclose(scorout);
     }
-    if (!POLL_EVENTS()) longjmp(cglob.exitjmp,1);
+    if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
     if (xfilename != NULL) {                        /* optionally extract */
       if (!strcmp(scorename,"score.xtr"))
         dies(Str(X_634,"cannot extract %s, name conflict"),scorename);
@@ -564,7 +564,7 @@ int csoundCompile(void *csound, int argc, char **argv)
 /*            printf("playscore = %s\n", playscore); */
 /*          } */
     err_printf(Str(X_564,"\t... done\n"));
-    if (!POLL_EVENTS()) longjmp(cglob.exitjmp,1);
+    if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
 
     s = playscore;
     O.playscore = filnamp;
@@ -631,7 +631,7 @@ void dribble_printf(char *fmt, ...)
       va_end(a);
     }
     va_start(a, fmt);
-    csoundMessageS(cglob.hostdata, fmt, a);
+    csoundMessageS(cenviron.hostdata_, fmt, a);
     va_end(a);
 }
 
@@ -639,7 +639,7 @@ void err_printf(char *fmt, ...)
 {
     va_list a;
     va_start(a, fmt);
-    csoundMessageV(cglob.hostdata, fmt, a);
+    csoundMessageV(cenviron.hostdata_, fmt, a);
     va_end(a);
     if (dribble != NULL) {
       va_start(a, fmt); /* gab */
@@ -649,7 +649,7 @@ void err_printf(char *fmt, ...)
 }
 #endif
 
-void mainRESET(void)
+void mainRESET(ENVIRON *p)
 {
     extern  void    (*rtclose)(void);
     void adsynRESET(void);
@@ -692,7 +692,7 @@ void mainRESET(void)
     argdecodeRESET();
     while (reset_list) {
       RESETTER *x = reset_list->next;
-      (*reset_list->fn)();
+      (*reset_list->fn)(p);
       mfree(reset_list);
       reset_list = x;
     }

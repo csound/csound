@@ -147,7 +147,7 @@ int grainsetv4(GRAINV4 *p)
       }
     }
 
-    if ((*p->igskip < 0) || (*p->igskip * esr_ > ftp->flen) ) {
+    if ((*p->igskip < 0) || (*p->igskip * esr > ftp->flen) ) {
       return initerror(Str(X_819,"granule_set: must be positive and smaller than"
                 "function table length"));
     }
@@ -155,8 +155,8 @@ int grainsetv4(GRAINV4 *p)
       return initerror(Str(X_809,"granule_set: igskip_os must be greater then 0"));
     }
 
-    p->gstart = (long)(*p->igskip * esr_);
-    p->glength = (long)(*p->ilength * esr_);
+    p->gstart = (long)(*p->igskip * esr);
+    p->glength = (long)(*p->ilength * esr);
     p->gend = p->gstart + p->glength;
 
     if (*p->kgap < 0) {
@@ -184,7 +184,7 @@ int grainsetv4(GRAINV4 *p)
     }
 
                                 /* Initialize variables....*/
-    p->gskip_os = (long)(*p->igskip_os * esr_);/* in number of samples */
+    p->gskip_os = (long)(*p->igskip_os * esr);/* in number of samples */
     p->gap_os = *p->igap_os / FL(100.0);
     p->gsize_os = *p->igsize_os / FL(100.0);
 
@@ -192,8 +192,8 @@ int grainsetv4(GRAINV4 *p)
       p->fpnt[nvoice] = 0;
       p->cnt[nvoice]  = 0;
       p->phs[nvoice]  = FL(0.0);
-      p->gskip[nvoice] = (long)(*p->igskip * esr_);
-      p->gap[nvoice] = (long)(*p->kgap * esr_);
+      p->gskip[nvoice] = (long)(*p->igskip * esr);
+      p->gap[nvoice] = (long)(*p->kgap * esr);
     }
 
     if (*p->igap_os != 0) {
@@ -230,7 +230,7 @@ int grainsetv4(GRAINV4 *p)
     }
 
     for (nvoice = 0; nvoice < *p->ivoice; nvoice++)
-      p->gsize[nvoice] = (long)(*p->kgsize * esr_ * p->pshift[nvoice]);
+      p->gsize[nvoice] = (long)(*p->kgsize * esr * p->pshift[nvoice]);
 
     if (*p->igsize_os != 0) {
       for (nvoice = 0; nvoice < *p->ivoice; nvoice++)
@@ -252,7 +252,7 @@ int grainsetv4(GRAINV4 *p)
 
 
 #ifdef BETA
-    printf("granule_set: User define sampling rate esr is %f samp/sec.\n", esr_);
+    printf("granule_set: User define sampling rate esr is %f samp/sec.\n", esr);
     printf("granule_set: Funtion table length in samples is %ld\n", ftp->flen);
     printf("granule_set: Funtion table length in seconds is %f\n",
            (MYFLT)ftp->flen * onedsr);
@@ -303,7 +303,7 @@ int graingenv4(GRAINV4 *p)
 {
     FUNC        *ftp, *ftp_env;
     MYFLT       *ar, *ftbl, *ftbl_env=NULL;
-    int         nsmps = ksmps_;
+    int         nsmps = ksmps;
     int         nvoice;
     long        flen, tmplong1, tmplong2, tmplong3, tmpfpnt, flen_env=0;
     MYFLT       fract, v1, tmpfloat1;
@@ -442,12 +442,12 @@ int graingenv4(GRAINV4 *p)
                (tmpfloat1*FL(0.5))+FL(1.0) : tmpfloat1+FL(1.0);
            }
 
-           *gap = (long)(*p->kgap * esr_);
+           *gap = (long)(*p->kgap * esr);
            if (*p->igap_os != 0) {
              *gap += (long)((*gap * p->gap_os) * grand(p));
            }
 
-           *gsize = (long)(*p->kgsize * esr_ * *pshift);
+           *gsize = (long)(*p->kgsize * esr * *pshift);
            if (*p->igsize_os != 0)
              *gsize += (long)((*gsize * p->gsize_os) * grand(p));
 

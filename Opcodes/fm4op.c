@@ -321,7 +321,7 @@ int tubebell(FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       *ar = p->ar;
-    long        nsmps = ksmps_;
+    long        nsmps = ksmps;
     MYFLT       c1 = *p->control1;
     MYFLT       c2 = *p->control2;
 
@@ -437,7 +437,7 @@ int wurley(FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       *ar = p->ar;
-    long        nsmps = ksmps_;
+    long        nsmps = ksmps;
     MYFLT       c1 = *p->control1;
     MYFLT       c2 = *p->control2;
 
@@ -537,7 +537,7 @@ int heavymetset(FM4OP *p)
 int heavymet(FM4OP *p)
 {
     MYFLT       *ar = p->ar;
-    long        nsmps = ksmps_;
+    long        nsmps = ksmps;
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       c1 = *p->control1;
     MYFLT       c2 = *p->control2;
@@ -645,7 +645,7 @@ int hammondB3(FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       *ar = p->ar;
-    long        nsmps = ksmps_;
+    long        nsmps = ksmps;
     MYFLT       c1 = *p->control1;
     MYFLT       c2 = *p->control2;
     MYFLT       temp;
@@ -996,7 +996,7 @@ int FMVoice(FM4OPV *q)
     FM4OP       *p = (FM4OP *)q;
     MYFLT       amp = *q->amp * AMP_RSCALE;
     MYFLT       *ar = q->ar;
-    long        nsmps = ksmps_;
+    long        nsmps = ksmps;
 
     if (p->baseFreq != *q->frequency || *q->control1 != q->last_control) {
       q->last_control = *q->control1;
@@ -1110,7 +1110,7 @@ int percfluteset(FM4OP *p)
 int percflute(FM4OP *p)
 {
     MYFLT       *ar = p->ar;
-    long        nsmps = ksmps_;
+    long        nsmps = ksmps;
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       c1 = *p->control1;
     MYFLT       c2 = *p->control2;

@@ -85,7 +85,7 @@ int make_Modulatr(Modulatr *p, MYFLT *i)
     return 0;
 }
 
-#define Modulatr_setVibFreq(p,vibFreq)  (p.v_rate = vibFreq * (MYFLT)p.wave->flen/esr_)
+#define Modulatr_setVibFreq(p,vibFreq)  (p.v_rate = vibFreq * (MYFLT)p.wave->flen/esr)
 #define Modulatr_setVibAmt(p,vibAmount) (p.vibAmt = vibAmount)
 
 MYFLT Modulatr_tick(Modulatr *p)
@@ -331,7 +331,7 @@ int voicformset(VOICF *p)
 int voicform(VOICF *p)
 {
     MYFLT *ar = p->ar;
-    long nsmps = ksmps_;
+    long nsmps = ksmps;
     MYFLT temp;
     MYFLT lastOutput;
 

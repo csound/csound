@@ -293,7 +293,7 @@ typedef struct mchnblk {
 /*
 *       Forward declaration.
 */
-struct GLOBALS_;
+struct ENVIRON_;
 
 /* This struct holds the info for a concrete instrument event
    instance in performance. */
@@ -318,7 +318,7 @@ typedef struct insds {
         MYFLT   offtim;         /* Time to turn off event, in seconds (negative on indef/tie) */
         struct insds * nxtolap; /* ptr to next overlapping voice */
          /* end of overlap */
-        struct GLOBALS_ *csound;/* ptr to Csound engine and API for externals */
+        struct ENVIRON_ *csound;/* ptr to Csound engine and API for externals */
         void    *opcod_iobufs;  /* IV - Sep 8 2002: user opcode I/O buffers */
         void    *opcod_deact, *subins_deact;    /* IV - Oct 24 2002 */
         MYFLT   p0;             /* Copy of required p-field values for quick access */
@@ -471,7 +471,7 @@ typedef struct opcodinfo {              /* IV - Oct 24 2002 */
         struct  opcodinfo *prv;
 } OPCODINFO;
 
-typedef void (*RSET)(void);
+typedef void (*RSET)(struct ENVIRON_*);
 typedef struct resetter {
        RSET            fn;
        struct resetter *next;
@@ -484,7 +484,7 @@ MEMFIL *ldmemfile(char *);
 #include "sort.h"
 #include "midiops2.h"
 
-typedef struct GLOBALS_
+typedef struct ENVIRON_
 {
   int (*GetVersion)(void);
   int (*GetAPIVersion)(void);
@@ -587,14 +587,15 @@ typedef struct GLOBALS_
   void (*SetRtrecordCallback)(void *csound, int (*rtrecord__)(char *inBuf, int nbytes));
   void (*SetRtcloseCallback)(void *csound, void (*rtclose__)(void));
   /* Internal functions that are needed */
-  void (*auxalloc)(long nbytes, AUXCH *auxchp);
-  char *(*getstring)(int, char*);
-  void (*die)(char *);
-  FUNC *(*ftfind)(MYFLT *);
-  int (*initerror)(char *);
-  int (*perferror)(char *);
-  void *(*mmalloc)(long);
-  void (*mfree)(void *);
+  void (*auxalloc_)(long nbytes, AUXCH *auxchp);
+  char *(*getstring_)(int, char*);
+  void (*die_)(char *);
+  FUNC *(*ftfind_)(MYFLT *);
+  int (*initerror_)(char *);
+  int (*perferror_)(char *);
+  void *(*mmalloc_)(long);
+  void *(*mcalloc_)(long);
+  void (*mfree_)(void *);
   void (*dispset)(WINDAT *, MYFLT *, long, char *, int, char *);
   void (*display)(WINDAT *);
   MYFLT (*intpow)(MYFLT, long);
@@ -605,236 +606,237 @@ typedef struct GLOBALS_
   
   
   /* End of internals */
-  int           ksmps, nchnls;
-  int           global_ksmps;
-  MYFLT         global_ensmps, global_ekr, global_onedkr;
-  MYFLT         global_hfkprd, global_kicvt;  long          global_kcounter;
-  MYFLT         esr, ekr;
-  char          *orchname, *scorename, *xfilename;
-  MYFLT 	e0dbfs;
+  int           ksmps_, nchnls_;
+  int           global_ksmps_;
+  MYFLT         global_ensmps_, global_ekr_, global_onedkr_;
+  MYFLT         global_hfkprd_, global_kicvt_;
+  long          global_kcounter_;
+  MYFLT         esr_, ekr_;
+  char          *orchname_, *scorename_, *xfilename_;
+  MYFLT 	e0dbfs_;
   /* oload.h */
-  RESETTER      *reset_list;
-  short         nlabels;
-  short         ngotos;
-  int           strsmax;
-  char          **strsets;
-  int           peakchunks;
-  MYFLT         *zkstart;
-  MYFLT         *zastart;
-  long          zklast;
-  long          zalast;
-  long          kcounter;
-  EVTBLK        *currevent;
-  MYFLT         onedkr;
-  MYFLT         onedsr;
-  MYFLT         kicvt;
-  MYFLT         sicvt;
-  MYFLT         *spin;
-  MYFLT         *spout;
-  int           nspin;
-  int           nspout;
-  int           spoutactive;
-  int           keep_tmp;
-  int           dither_output;
-  OENTRY        *opcodlst;
-  void          *opcode_list;   /* IV - Oct 31 2002 */
-  OENTRY        *oplstend;
-  FILE*         dribble;
-  long          holdrand;
-  int           maxinsno;
-  int           maxopcno;       /* IV - Oct 24 2002 */
-  INSDS         *curip;
-  EVTBLK        *Linevtblk;
-  long          nrecs;
-  FILE*         Linepipe;
-  int           Linefd;
-  MYFLT         *ls_table;
-  MYFLT         curr_func_sr;
-  char          *retfilnam;
-  INSTRTXT      **instrtxtp;
+  RESETTER      *reset_list_;
+  short         nlabels_;
+  short         ngotos_;
+  int           strsmax_;
+  char          **strsets_;
+  int           peakchunks_;
+  MYFLT         *zkstart_;
+  MYFLT         *zastart_;
+  long          zklast_;
+  long          zalast_;
+  long          kcounter_;
+  EVTBLK        *currevent_;
+  MYFLT         onedkr_;
+  MYFLT         onedsr_;
+  MYFLT         kicvt_;
+  MYFLT         sicvt_;
+  MYFLT         *spin_;
+  MYFLT         *spout_;
+  int           nspin_;
+  int           nspout_;
+  int           spoutactive_;
+  int           keep_tmp_;
+  int           dither_output_;
+  OENTRY        *opcodlst_;
+  void          *opcode_list_;   /* IV - Oct 31 2002 */
+  OENTRY        *oplstend_;
+  FILE*         dribble_;
+  long          holdrand_;
+  int           maxinsno_;
+  int           maxopcno_;       /* IV - Oct 24 2002 */
+  INSDS         *curip_;
+  EVTBLK        *Linevtblk_;
+  long          nrecs_;
+  FILE*         Linepipe_;
+  int           Linefd_;
+  MYFLT         *ls_table_;
+  MYFLT         curr_func_sr_;
+  char          *retfilnam_;
+  INSTRTXT      **instrtxtp_;
 #define ERRSIZ (200)
-  char          errmsg[ERRSIZ];   /* sprintf space for compiling msgs */
-  FILE*         scfp;
-  FILE*         oscfp;
-  MYFLT         maxamp[MAXCHNLS];
-  MYFLT         smaxamp[MAXCHNLS];
-  MYFLT         omaxamp[MAXCHNLS];
-  MYFLT         *maxampend;
-  unsigned long maxpos[MAXCHNLS], smaxpos[MAXCHNLS], omaxpos[MAXCHNLS];
-  int           tieflag;
-  char          *ssdirpath, *sfdirpath;
-  char          *tokenstring;
-  POLISH        *polish;
-  FILE*         scorein;
-  FILE*         scoreout;
-  MYFLT         ensmps, hfkprd;
-  MYFLT         *pool;
-  short         *argoffspace;
-  INSDS         *frstoff;
-  int           sensType;
-  jmp_buf       exitjmp;
-  SRTBLK        *frstbp;
-  int           sectcnt;
-  MCHNBLK       *m_chnbp[MAXCHAN];
-  MYFLT         *cpsocint, *cpsocfrc;
-  int           inerrcnt, synterrcnt, perferrcnt;
-  int           MIDIoutDONE;
-  int           midi_out;
-  char          strmsg[100];
-  INSTRTXT      instxtanchor;
-  INSDS         actanchor;
-  long          rngcnt[MAXCHNLS];
-  short         rngflg, multichan;
-  EVTNODE       OrcTrigEvts; /* List of started events, used in playevents() */
-  char          name_full[256];            /* Remember name used */
-  int           Mforcdecs, Mxtroffs, MTrkend;
-  MYFLT         tran_sr,tran_kr,tran_ksmps;
-  MYFLT         tran_0dbfs;
-  int           tran_nchnls;
-  MYFLT         tpidsr, pidsr, mpidsr, mtpdsr;
-  char          *sadirpath;
-  char          *oplibs;
-  OPARMS        *oparms;
-  void          *hostdata;
-  OPCODINFO     *opcodeInfo;    /* IV - Oct 20 2002 */
-  void          *instrumentNames;
-  MYFLT         dbfs_to_short;
-  MYFLT         short_to_dbfs;
-  MYFLT         dbfs_to_float;
-  MYFLT         float_to_dbfs;
-  MYFLT         dbfs_to_long;
-  MYFLT         long_to_dbfs;
-  unsigned int  rtin_dev;
-  unsigned int  rtout_dev;
-  int		MIDIINbufIndex;
-  MIDIMESSAGE   MIDIINbuffer2[MIDIINBUFMAX];
-  int		displop4;
-} GLOBALS;
-#define ksmps_  cglob.ksmps
-#define esr_    cglob.esr
-#define ekr_    cglob.ekr
-#define global_ksmps    cglob.global_ksmps
-#define global_ensmps   cglob.global_ensmps
-#define global_ekr      cglob.global_ekr
-#define global_onedkr   cglob.global_onedkr
-#define global_hfkprd   cglob.global_hfkprd
-#define global_kicvt    cglob.global_kicvt
-#define global_kcounter cglob.global_kcounter
-#define reset_list      cglob.reset_list
-#define nchnls  cglob.nchnls
-#define nlabels cglob.nlabels
-#define ngotos  cglob.ngotos
-#define strsets cglob.strsets
-#define strsmax cglob.strsmax
-#define peakchunks cglob.peakchunks
-#define zkstart cglob.zkstart
-#define zastart cglob.zastart
-#define zklast  cglob.zklast
-#define zalast  cglob.zalast
-#define kcounter cglob.kcounter
-#define currevent cglob.currevent
-#define onedkr  cglob.onedkr
-#define onedsr  cglob.onedsr
-#define kicvt   cglob.kicvt
-#define sicvt   cglob.sicvt
-#define spin    cglob.spin
-#define spout   cglob.spout
-#define nspin    cglob.nspin
-#define nspout   cglob.nspout
-#define spoutactive cglob.spoutactive
-#define keep_tmp cglob.keep_tmp
-#define dither_output cglob.dither_output
-#define opcodlst cglob.opcodlst
-#define opcode_list cglob.opcode_list   /* IV - Oct 31 2002 */
-#define oplstend cglob.oplstend
-#define dribble  cglob.dribble
-#define holdrand cglob.holdrand
-#define maxinsno cglob.maxinsno
-#define maxopcno cglob.maxopcno         /* IV - Oct 24 2002 */
-#define curip   cglob.curip
-#define Linevtblk cglob.Linevtblk
-#define nrecs   cglob.nrecs
+  char          errmsg_[ERRSIZ];   /* sprintf space for compiling msgs */
+  FILE*         scfp_;
+  FILE*         oscfp_;
+  MYFLT         maxamp_[MAXCHNLS];
+  MYFLT         smaxamp_[MAXCHNLS];
+  MYFLT         omaxamp_[MAXCHNLS];
+  MYFLT         *maxampend_;
+  unsigned long maxpos_[MAXCHNLS], smaxpos_[MAXCHNLS], omaxpos_[MAXCHNLS];
+  int           tieflag_;
+  char          *ssdirpath_, *sfdirpath_;
+  char          *tokenstring_;
+  POLISH        *polish_;
+  FILE*         scorein_;
+  FILE*         scoreout_;
+  MYFLT         ensmps_, hfkprd_;
+  MYFLT         *pool_;
+  short         *argoffspace_;
+  INSDS         *frstoff_;
+  int           sensType_;
+  jmp_buf       exitjmp_;
+  SRTBLK        *frstbp_;
+  int           sectcnt_;
+  MCHNBLK       *m_chnbp_[MAXCHAN];
+  MYFLT         *cpsocint_, *cpsocfrc_;
+  int           inerrcnt_, synterrcnt_, perferrcnt_;
+  int           MIDIoutDONE_;
+  int           midi_out_;
+  char          strmsg_[100];
+  INSTRTXT      instxtanchor_;
+  INSDS         actanchor_;
+  long          rngcnt_[MAXCHNLS];
+  short         rngflg_, multichan_;
+  EVTNODE       OrcTrigEvts_; /* List of started events, used in playevents() */
+  char          name_full_[256];            /* Remember name used */
+  int           Mforcdecs_, Mxtroffs_, MTrkend_;
+  MYFLT         tran_sr_,tran_kr_,tran_ksmps_;
+  MYFLT         tran_0dbfs_;
+  int           tran_nchnls_;
+  MYFLT         tpidsr_, pidsr_, mpidsr_, mtpdsr_;
+  char          *sadirpath_;
+  char          *oplibs_;
+  OPARMS        *oparms_;
+  void          *hostdata_;
+  OPCODINFO     *opcodeInfo_;    /* IV - Oct 20 2002 */
+  void          *instrumentNames_;
+  MYFLT         dbfs_to_short_;
+  MYFLT         short_to_dbfs_;
+  MYFLT         dbfs_to_float_;
+  MYFLT         float_to_dbfs_;
+  MYFLT         dbfs_to_long_;
+  MYFLT         long_to_dbfs_;
+  unsigned int  rtin_dev_;
+  unsigned int  rtout_dev_;
+  int		MIDIINbufIndex_;
+  MIDIMESSAGE   MIDIINbuffer2_[MIDIINBUFMAX];
+  int		displop4_;
+} ENVIRON;
+#define ksmps  cenviron.ksmps_
+#define esr    cenviron.esr_
+#define ekr    cenviron.ekr_
+#define global_ksmps    cenviron.global_ksmps_
+#define global_ensmps   cenviron.global_ensmps_
+#define global_ekr      cenviron.global_ekr_
+#define global_onedkr   cenviron.global_onedkr_
+#define global_hfkprd   cenviron.global_hfkprd_
+#define global_kicvt    cenviron.global_kicvt_
+#define global_kcounter cenviron.global_kcounter_
+#define reset_list      cenviron.reset_list_
+#define nchnls  cenviron.nchnls_
+#define nlabels cenviron.nlabels_
+#define ngotos  cenviron.ngotos_
+#define strsets cenviron.strsets_
+#define strsmax cenviron.strsmax_
+#define peakchunks cenviron.peakchunks_
+#define zkstart cenviron.zkstart_
+#define zastart cenviron.zastart_
+#define zklast  cenviron.zklast_
+#define zalast  cenviron.zalast_
+#define kcounter cenviron.kcounter_
+#define currevent cenviron.currevent_
+#define onedkr  cenviron.onedkr_
+#define onedsr  cenviron.onedsr_
+#define kicvt   cenviron.kicvt_
+#define sicvt   cenviron.sicvt_
+#define spin    cenviron.spin_
+#define spout   cenviron.spout_
+#define nspin    cenviron.nspin_
+#define nspout   cenviron.nspout_
+#define spoutactive cenviron.spoutactive_
+#define keep_tmp cenviron.keep_tmp_
+#define dither_output cenviron.dither_output_
+#define opcodlst cenviron.opcodlst_
+#define opcode_list cenviron.opcode_list_   /* IV - Oct 31 2002 */
+#define oplstend cenviron.oplstend_
+#define dribble  cenviron.dribble_
+#define holdrand cenviron.holdrand_
+#define maxinsno cenviron.maxinsno_
+#define maxopcno cenviron.maxopcno_         /* IV - Oct 24 2002 */
+#define curip   cenviron.curip_
+#define Linevtblk cenviron.Linevtblk_
+#define nrecs   cenviron.nrecs_
 #ifdef PIPES
-#define Linepipe cglob.Linepipe
+#define Linepipe cenviron.Linepipe_
 #endif
-#define Linefd  cglob.Linefd
-#define ls_table cglob.ls_table
-#define curr_func_sr cglob.curr_func_sr
-#define retfilnam cglob.retfilnam
-#define orchname cglob.orchname
-#define scorename cglob.scorename
-#define xfilename cglob.xfilename
-#define e0dbfs cglob.e0dbfs
-#define instrtxtp cglob.instrtxtp
-#define errmsg  cglob.errmsg
-#define scfp    cglob.scfp
-#define oscfp   cglob.oscfp
-#define maxamp  cglob.maxamp
-#define smaxamp cglob.smaxamp
-#define omaxamp cglob.omaxamp
-#define maxampend cglob.maxampend
-#define maxpos  cglob.maxpos
-#define smaxpos cglob.smaxpos
-#define omaxpos cglob.omaxpos
-#define tieflag cglob.tieflag
-#define ssdirpath cglob.ssdirpath
-#define sfdirpath cglob.sfdirpath
-#define tokenstring cglob.tokenstring
-#define polish cglob.polish
-#define SCOREIN cglob.scorein
-#define SCOREOUT cglob.scoreout
-#define ensmps  cglob.ensmps
-#define hfkprd  cglob.hfkprd
-#define pool    cglob.pool
-#define ARGOFFSPACE cglob.argoffspace
-#define frstoff cglob.frstoff
-#define sensType cglob.sensType
-#define frstbp  cglob.frstbp
-#define sectcnt cglob.sectcnt
-#define M_CHNBP cglob.m_chnbp
-#define cpsocint cglob.cpsocint
-#define cpsocfrc cglob.cpsocfrc
-#define inerrcnt cglob.inerrcnt
-#define synterrcnt cglob.synterrcnt
-#define perferrcnt cglob.perferrcnt
-#define MIDIoutDONE cglob.MIDIoutDONE
-#define midi_out cglob.midi_out
-#define strmsg  cglob.strmsg
-#define instxtanchor cglob.instxtanchor
-#define actanchor cglob.actanchor
-#define rngcnt  cglob.rngcnt
-#define rngflg  cglob.rngflg
-#define multichan cglob.multichan
-#define OrcTrigEvts cglob.OrcTrigEvts
-#define name_full cglob.name_full
-#define Mforcdecs cglob.Mforcdecs
-#define Mxtroffs cglob.Mxtroffs
-#define MTrkend cglob.MTrkend
-#define tran_sr cglob.tran_sr
-#define tran_kr cglob.tran_kr
-#define tran_ksmps cglob.tran_ksmps
-#define tran_0dbfs cglob.tran_0dbfs
-#define tran_nchnls cglob.tran_nchnls
-#define tpidsr cglob.tpidsr
-#define pidsr cglob.pidsr
-#define mpidsr cglob.mpidsr
-#define mtpdsr cglob.mtpdsr
-#define sadirpath cglob.sadirpath
-#define hostdata_ cglob.hostdata
-#define oparms_ cglob.oparms
-#define opcodeInfo cglob.opcodeInfo     /* IV - Oct 20 2002 */
-#define instrumentNames cglob.instrumentNames
-#define dbfs_to_short cglob.dbfs_to_short
-#define short_to_dbfs cglob.short_to_dbfs
-#define dbfs_to_float cglob.dbfs_to_float
-#define float_to_dbfs cglob.float_to_dbfs
-#define dbfs_to_long cglob.dbfs_to_long
-#define long_to_dbfs cglob.long_to_dbfs
-#define rtin_dev cglob.rtin_dev
-#define rtout_dev cglob.rtout_dev
-#define MIDIINbufIndex cglob.MIDIINbufIndex
-#define MIDIINbuffer2 cglob.MIDIINbuffer2
-#define displop4 cglob.displop4
+#define Linefd  cenviron.Linefd_
+#define ls_table cenviron.ls_table_
+#define curr_func_sr cenviron.curr_func_sr_
+#define retfilnam cenviron.retfilnam_
+#define orchname cenviron.orchname_
+#define scorename cenviron.scorename_
+#define xfilename cenviron.xfilename_
+#define e0dbfs cenviron.e0dbfs_
+#define instrtxtp cenviron.instrtxtp_
+#define errmsg  cenviron.errmsg_
+#define scfp    cenviron.scfp_
+#define oscfp   cenviron.oscfp_
+#define maxamp  cenviron.maxamp_
+#define smaxamp cenviron.smaxamp_
+#define omaxamp cenviron.omaxamp_
+#define maxampend cenviron.maxampend_
+#define maxpos  cenviron.maxpos_
+#define smaxpos cenviron.smaxpos_
+#define omaxpos cenviron.omaxpos_
+#define tieflag cenviron.tieflag_
+#define ssdirpath cenviron.ssdirpath_
+#define sfdirpath cenviron.sfdirpath_
+#define tokenstring cenviron.tokenstring_
+#define polish cenviron.polish_
+#define SCOREIN cenviron.scorein_
+#define SCOREOUT cenviron.scoreout_
+#define ensmps  cenviron.ensmps_
+#define hfkprd  cenviron.hfkprd_
+#define pool    cenviron.pool_
+#define ARGOFFSPACE cenviron.argoffspace_
+#define frstoff cenviron.frstoff_
+#define sensType cenviron.sensType_
+#define frstbp  cenviron.frstbp_
+#define sectcnt cenviron.sectcnt_
+#define M_CHNBP cenviron.m_chnbp_
+#define cpsocint cenviron.cpsocint_
+#define cpsocfrc cenviron.cpsocfrc_
+#define inerrcnt cenviron.inerrcnt_
+#define synterrcnt cenviron.synterrcnt_
+#define perferrcnt cenviron.perferrcnt_
+#define MIDIoutDONE cenviron.MIDIoutDONE_
+#define midi_out cenviron.midi_out_
+#define strmsg  cenviron.strmsg_
+#define instxtanchor cenviron.instxtanchor_
+#define actanchor cenviron.actanchor_
+#define rngcnt  cenviron.rngcnt_
+#define rngflg  cenviron.rngflg_
+#define multichan cenviron.multichan_
+#define OrcTrigEvts cenviron.OrcTrigEvts_
+#define name_full cenviron.name_full_
+#define Mforcdecs cenviron.Mforcdecs_
+#define Mxtroffs cenviron.Mxtroffs_
+#define MTrkend cenviron.MTrkend_
+#define tran_sr cenviron.tran_sr_
+#define tran_kr cenviron.tran_kr_
+#define tran_ksmps cenviron.tran_ksmps_
+#define tran_0dbfs cenviron.tran_0dbfs_
+#define tran_nchnls cenviron.tran_nchnls_
+#define tpidsr cenviron.tpidsr_
+#define pidsr cenviron.pidsr_
+#define mpidsr cenviron.mpidsr_
+#define mtpdsr cenviron.mtpdsr_
+#define sadirpath cenviron.sadirpath_
+#define hostdata cenviron.hostdata_
+#define oparms cenviron.oparms_
+#define opcodeInfo cenviron.opcodeInfo_     /* IV - Oct 20 2002 */
+#define instrumentNames cenviron.instrumentNames_
+#define dbfs_to_short cenviron.dbfs_to_short_
+#define short_to_dbfs cenviron.short_to_dbfs_
+#define dbfs_to_float cenviron.dbfs_to_float_
+#define float_to_dbfs cenviron.float_to_dbfs_
+#define dbfs_to_long cenviron.dbfs_to_long_
+#define long_to_dbfs cenviron.long_to_dbfs_
+#define rtin_dev cenviron.rtin_dev_
+#define rtout_dev cenviron.rtout_dev_
+#define MIDIINbufIndex cenviron.MIDIINbufIndex_
+#define MIDIINbuffer2 cenviron.MIDIINbuffer2_
+#define displop4 cenviron.displop4_
 #include "text.h"
 
 #if defined CWIN

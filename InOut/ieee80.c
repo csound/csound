@@ -69,7 +69,7 @@ static unsigned long myDoubleToUlong(double val)
     /* cannot cast negative numbers into unsigned longs */
     if (val < 0) {
       err_printf(Str(X_296,"IEEE80:DoubleToUlong: val < 0\n"));
-      longjmp(cglob.exitjmp,-1);
+      longjmp(cenviron.exitjmp_,-1);
     }
 
     /* in ultrix 4.1's cc, double -> unsigned long loses the top bit,

@@ -104,7 +104,7 @@ static void expand_nxp(void)
     return;
  margerr:
     err_printf(Str(X_1233,"sread:  text space overrun, increase MARGIN\n"));
-    longjmp(cglob.exitjmp,1);
+    longjmp(cenviron.exitjmp_,1);
 }
 
 typedef struct scotables {
@@ -133,7 +133,7 @@ static void scorerr(char *s)
       }
       curr--;
     }
-    longjmp(cglob.exitjmp,1);
+    longjmp(cenviron.exitjmp_,1);
 }
 
 
@@ -154,7 +154,7 @@ MYFLT operate(MYFLT a, MYFLT b, char c)
     case '#': ans = (MYFLT)(((long)a)&((long)b)); break;
     default:
       err_printf(Str(X_312,"Internal error op=%c\n"), c);
-      longjmp(cglob.exitjmp,1);
+      longjmp(cenviron.exitjmp_,1);
     }
     return ans;
 }
@@ -220,7 +220,7 @@ top:
       mm = mm_save;
       if (mm == NULL) {
         err_printf(Str(X_1711,"Macro expansion symbol ($) without macro name\n"));
-        longjmp(cglob.exitjmp,1);
+        longjmp(cenviron.exitjmp_,1);
       }
       if (strlen (mm->name) != i) {
 /*         fprintf (stderr, "Warning: $%s matches macro name $%s\n", */
@@ -276,7 +276,7 @@ top:
         inputs = realloc(inputs, input_size*sizeof(struct in_stack));
         if (inputs == NULL) {
           printf(Str(X_1692, "No space for include files"));
-          longjmp(cglob.exitjmp,1);
+          longjmp(cenviron.exitjmp_,1);
         }
         str = &inputs[old];     /* In case it moves */
       }
@@ -307,7 +307,7 @@ top:
         case '.':
           if (type==1) {
             err_printf(Str(X_393,"Number not allowed in context []\n"));
-            longjmp(cglob.exitjmp,1);
+            longjmp(cenviron.exitjmp_,1);
           }
           i = 0;
           while (isdigit(c) || c=='.' || c=='e' || c=='E') {
@@ -321,7 +321,7 @@ top:
         case '~':
           if (type==1) {
             err_printf(Str(X_438,"Random not in context []\n"));
-            longjmp(cglob.exitjmp,1);
+            longjmp(cenviron.exitjmp_,1);
           }
           *++pv = (MYFLT) rand()/(MYFLT)RAND_MAX;
           type = 1;
@@ -330,7 +330,7 @@ top:
         case '@':
           if (type==1) {
             err_printf(Str(X_1454,"Upper not in context []\n"));
-            longjmp(cglob.exitjmp,1);
+            longjmp(cenviron.exitjmp_,1);
           }
           {
             int n = 0;
@@ -350,7 +350,7 @@ top:
         case '+': case '-':
           if (type==0) {
             err_printf(Str(X_398,"Operator %c not allowed in context []\n"), c);
-            longjmp(cglob.exitjmp,1);
+            longjmp(cenviron.exitjmp_,1);
           }
           if (*op != '[' && *op != '(') {
             MYFLT v = operate(*(pv-1), *pv, *op);
@@ -364,7 +364,7 @@ top:
         case '%':
           if (type==0) {
             err_printf(Str(X_398,"Operator %c not allowed in context []\n"), c);
-            longjmp(cglob.exitjmp,1);
+            longjmp(cenviron.exitjmp_,1);
           }
           if (*op == '*' || *op == '/' || *op == '%') {
             MYFLT v = operate(*(pv-1), *pv, *op);
@@ -378,7 +378,7 @@ top:
         case '#':
           if (type==0) {
             err_printf(Str(X_398,"Operator %c not allowed in context []\n"), c);
-            longjmp(cglob.exitjmp,1);
+            longjmp(cenviron.exitjmp_,1);
           }
           if (*op == '|' || *op == '&' || *op == '#') {
             MYFLT v = operate(*(pv-1), *pv, *op);
@@ -390,14 +390,14 @@ top:
         case '(':
           if (type==1) {
             err_printf(Str(X_397,"Open bracket not allowed in context []\n"));
-            longjmp(cglob.exitjmp,1);
+            longjmp(cenviron.exitjmp_,1);
           }
           type = 0;
           *++op = c; c = getscochar(1); break;
         case ')':
           if (type==0) {
             err_printf(Str(X_222,"Closing bracket not allowed in context []\n"));
-            longjmp(cglob.exitjmp,1);
+            longjmp(cenviron.exitjmp_,1);
           }
           while (*op != '(') {
             MYFLT v = operate(*(pv-1), *pv, *op);
@@ -412,7 +412,7 @@ top:
         case ']':
           if (type==0) {
             err_printf(Str(X_222,"Closing bracket not allowed in context []\n"));
-            longjmp(cglob.exitjmp,1);
+            longjmp(cenviron.exitjmp_,1);
           }
           while (*op != '[') {
             MYFLT v = operate(*(pv-1), *pv, *op);
@@ -429,7 +429,7 @@ top:
         default:
           printf("read %c(%.2x)\n", c);
           printf(Str(X_306,"Incorrect evaluation\n"));
-          longjmp(cglob.exitjmp,1);
+          longjmp(cenviron.exitjmp_,1);
         }
       } while (c!='$');
       /* Make string macro or value */
@@ -452,7 +452,7 @@ top:
           inputs = realloc(inputs, input_size*sizeof(struct in_stack));
           if (inputs == NULL) {
             printf(Str(X_1692, "No space for include files"));
-            longjmp(cglob.exitjmp,1);
+            longjmp(cenviron.exitjmp_,1);
           }
           str = &inputs[old];     /* In case it moves */
         }
@@ -886,7 +886,7 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
               inputs = realloc(inputs, input_size*sizeof(struct in_stack));
               if (inputs == NULL) {
                 printf(Str(X_1692, "No space for include files"));
-                longjmp(cglob.exitjmp,1);
+                longjmp(cenviron.exitjmp_,1);
               }
               str = &inputs[old];     /* In case it moves */
             }
@@ -896,7 +896,7 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
             /*RWD 3:2000*/
             if (str->file==NULL) {
               printf(Str(X_214,"cannot open input file %s\n"),names[i].file);
-              longjmp(cglob.exitjmp,1);
+              longjmp(cenviron.exitjmp_,1);
             }
             str->body = mmalloc(strlen(names[i].file)+1);
             fseek(str->file, names[i].posit, SEEK_SET);
@@ -1362,7 +1362,7 @@ static int sget1(void)          /* get first non-white, non-comment char */
           inputs = realloc(inputs, input_size*sizeof(struct in_stack));
           if (inputs == NULL) {
             printf(Str(X_1692, "No space for include files"));
-            longjmp(cglob.exitjmp,1);
+            longjmp(cenviron.exitjmp_,1);
           }
           str = &inputs[old];     /* In case it moves */
         }

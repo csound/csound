@@ -64,7 +64,7 @@ int pitchset(PITCH *p)    /* pitch - uses specta technology */
     if (!*p->istor) p->prvq = FL(0.0);
                                 /* End of rms */
                                 /* Initialise spectrum */
-      p->timcount = (int)(ekr_ * *p->iprd + FL(0.001)); /* for mac roundoff */
+      p->timcount = (int)(ekr * *p->iprd + FL(0.001)); /* for mac roundoff */
       nocts = (int)*p->iocts; if (nocts<=0) nocts = 6;
       nfreqs = (int)*p->ifrqs; if (nfreqs<=0) nfreqs = 12;
       ncoefs = nocts * nfreqs;
@@ -88,7 +88,7 @@ int pitchset(PITCH *p)    /* pitch - uses specta technology */
         p->nfreqs = nfreqs;
         p->curq = Q;
         p->ncoefs = ncoefs;
-        dwnp->srate = esr_;
+        dwnp->srate = esr;
         hicps = dwnp->srate * 0.375;            /* top freq is 3/4 pi/2 ...   */
         oct = log(hicps / ONEPT) / LOGTWO;      /* octcps()  (see aops.c)     */
         dwnp->looct = (MYFLT)(oct - nocts);     /* true oct val of lowest frq */
@@ -235,7 +235,7 @@ int pitch(PITCH *p)
     MYFLT       c1 = p->c1, c2 = p->c2;
 
     MYFLT   a, b, *dftp, *sigp = p->asig, SIG, yt1, yt2;
-    int     nocts, nsmps = ksmps_, winlen;
+    int     nocts, nsmps = ksmps, winlen;
     DOWNDAT *downp = &p->downsig;
     OCTDAT  *octp;
     SPECDAT *specp;
@@ -454,7 +454,7 @@ int macset(SUM *p)
 
 int maca(SUM *p)
 {
-    int nsmps=ksmps_, count=(int) p->INOCOUNT, j, k=0;
+    int nsmps=ksmps, count=(int) p->INOCOUNT, j, k=0;
     MYFLT *ar = p->ar, **args = p->argums;
     do {
       MYFLT ans = FL(0.0);
@@ -468,7 +468,7 @@ int maca(SUM *p)
 
 int mac(SUM *p)
 {
-    int nsmps=ksmps_, count=(int) p->INOCOUNT, j, k=0;
+    int nsmps=ksmps, count=(int) p->INOCOUNT, j, k=0;
     MYFLT *ar = p->ar, **args = p->argums;
     do {
       MYFLT ans = FL(0.0);
@@ -646,14 +646,14 @@ int adsynt(ADSYNT *p)
 
     ar0 = p->sr;
     ar = ar0;
-    nsmps = ksmps_;
+    nsmps = ksmps;
     do
       *ar++ = FL(0.0);
     while (--nsmps);
 
     do {
       ar = ar0;
-      nsmps = ksmps_;
+      nsmps = ksmps;
       amp = *amptbl++ * amp0;
       cps = *freqtbl++ * cps0;
       inc = (long) (cps * sicvt);
@@ -704,7 +704,7 @@ int hsboscil(HSBOSC  *p)
     int     octcnt = p->octcnt;
     MYFLT   octstart, octoffs, octbase;
     int     octshift, i, mtablen;
-    MYFLT       hesr = esr_ / FL(2.0);
+    MYFLT       hesr = esr / FL(2.0);
 
     ftp = p->ftp;
     mixtp = p->mixtp;
@@ -743,14 +743,14 @@ int hsboscil(HSBOSC  *p)
     lobits = ftp->lobits;
     ar0 = p->sr;
     ar = ar0;
-    nsmps = ksmps_;
+    nsmps = ksmps;
     do {
       *ar++ = FL(0.0);
     } while (--nsmps);
 
     for (i=0; i<octcnt; i++) {
       ar = ar0;
-      nsmps = ksmps_;
+      nsmps = ksmps;
       phs = phases[i];
       amp = mtab[(int)((octoffs / (MYFLT)octcnt) * mtablen)] * amp0;
       if (freq > hesr)
@@ -784,13 +784,13 @@ int pitchamdfset(PITCHAMDF *p)
     if (downs < (-1.9)) {
       upsamp = (int)((downs * (-1.0)) + 0.5);
       downsamp = 0;
-      srate = esr_ * (float)upsamp;
+      srate = esr * (float)upsamp;
     }
     else {
       downsamp = (int)(downs+0.5);
       if (downsamp < 1)
         downsamp = 1;
-      srate = esr_ / (float)downsamp;
+      srate = esr / (float)downsamp;
       upsamp = 0;
     }
 
@@ -805,11 +805,11 @@ int pitchamdfset(PITCHAMDF *p)
         interval = maxperi;
     else
         interval = (long)(srate / *p->iexcps);
-    if (interval < ksmps_) {
+    if (interval < ksmps) {
       if (downsamp)
-        interval = ksmps_ / downsamp;
+        interval = ksmps / downsamp;
       else
-        interval = ksmps_ * upsamp;
+        interval = ksmps * upsamp;
     }
 
     size = maxperi + interval;
@@ -942,7 +942,7 @@ int pitchamdf(PITCHAMDF *p)
     MYFLT newval, delta;
     long  readp = p->readp;
     long  interval = size - maxperi;
-    int   nsmps = ksmps_;
+    int   nsmps = ksmps;
     int   i;
     long  i1, i2;
     MYFLT val, rms;
@@ -1148,7 +1148,7 @@ int kphsorbnk(PHSORBNK *p)
 
 int phsorbnk(PHSORBNK *p)
 {
-    int     nsmps = ksmps_;
+    int     nsmps = ksmps;
     MYFLT   *rs;
     double  phase, incr;
     double  *curphs = (double*)p->curphs.auxp;
@@ -1251,7 +1251,7 @@ int pinkish(PINKISH *p)
 {
     MYFLT       *aout, *ain;
     double      c0, c1, c2, c3, c4, c5, c6, nxtin, nxtout;
-    int    nsmps = ksmps_;
+    int    nsmps = ksmps;
     aout = p->aout;
     ain = p->xin;
 
@@ -1404,7 +1404,7 @@ int GardnerPink_perf(PINKISH *p)
     MYFLT *aout, *amp, scalar;
     long *rows, rowIndex, indexMask, randSeed, newRandom;
     long runningSum, sum, ampinc;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
 
     aout        = p->aout;
     amp         = p->xin;
@@ -1506,7 +1506,7 @@ int clip_set(CLIP *p)
 int clip(CLIP *p)
 {
     MYFLT *aout = p->aout, *ain = p->ain;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     MYFLT a = p->arg, k1 = p->k1, k2 = p->k2;
     MYFLT limit = p->lim;
     MYFLT rlim = FL(1.0)/limit;
@@ -1585,7 +1585,7 @@ int Fosckk(XOSC *p)
     FUNC        *ftp;
     MYFLT       amp, *ar, *ftbl;
     MYFLT       inc, phs;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     int flen;
 
     ftp = p->ftp;
@@ -1612,7 +1612,7 @@ int Foscak(XOSC *p)
     FUNC        *ftp;
     MYFLT       *ampp, *ar, *ftbl;
     MYFLT       inc, phs;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     int flen;
 
     ftp = p->ftp;
@@ -1639,7 +1639,7 @@ int Foscka(XOSC *p)
     FUNC        *ftp;
     MYFLT       amp, *ar, *cpsp, *ftbl;
     MYFLT       inc, phs;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     int flen;
 
     ftp = p->ftp;
@@ -1668,7 +1668,7 @@ int Foscaa(XOSC *p)
     FUNC        *ftp;
     MYFLT       *ampp, *ar, *ftbl;
     MYFLT       phs;
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     int flen;
 
     ftp = p->ftp;
@@ -1775,21 +1775,21 @@ int ksense(KSENSE *p)
 
 int impulse_set(IMPULSE *p)
 {
-    p->next = (int)(FL(0.5) + *p->offset * esr_);
+    p->next = (int)(FL(0.5) + *p->offset * esr);
     return OK;
 }
 
 int impulse(IMPULSE *p)
 {
-    int nsmps = ksmps_;
+    int nsmps = ksmps;
     int next = p->next;
     MYFLT *ar = p->ar;
-    if (next < ksmps_) {         /* Impulse in this frame */
+    if (next < ksmps) {         /* Impulse in this frame */
       MYFLT frq = *p->freq;     /* Freq at k-rate */
       int sfreq;                /* Converted to samples */
       if (frq == FL(0.0)) sfreq = INT_MAX; /* Zero means infinite */
       else if (frq < FL(0.0)) sfreq = -(int)frq; /* Negative cnts in sample */
-      else sfreq = (int)(frq*esr_); /* Normal case */
+      else sfreq = (int)(frq*esr); /* Normal case */
       do {
         if (next-- == 0) {
           *ar = *p->amp;
@@ -1803,7 +1803,7 @@ int impulse(IMPULSE *p)
       do {
         *ar++ = FL(0.0);
       } while (--nsmps);
-      next -= ksmps_;
+      next -= ksmps;
     }
     p->next = next;
     return OK;
@@ -1842,11 +1842,11 @@ int trnset(TRANSEG *p)
       MYFLT dur = **argp++;
       MYFLT alpha = **argp++;
       MYFLT nxtval = **argp++;
-      MYFLT d = dur * esr_;
+      MYFLT d = dur * esr;
       if ((segp->cnt = (long)(d + FL(0.5))) < 0)
         segp->cnt = 0;
       else
-        segp->cnt = (long)(dur * ekr_);
+        segp->cnt = (long)(dur * ekr);
         segp->nxtpt = nxtval;
 /*        printf("%f: cnt=%ld alpha=%f nxt=%f\n", */
 /*               dur, segp->cnt, alpha, segp->nxtpt); */
@@ -1905,11 +1905,11 @@ int ktrnseg(TRANSEG *p)
 /*          printf(" alpha=%f inc=%f\n", p->alpha, p->curinc); */
       }
       if (p->alpha == FL(0.0))
-        p->curval += p->curinc*ksmps_;           /* advance the cur val  */
+        p->curval += p->curinc*ksmps;           /* advance the cur val  */
       else
         p->curval = p->cursegp->val + p->curinc *
           (FL(1.0) - (MYFLT)exp((double)(p->curx)));
-      p->curx += (MYFLT)ksmps_*p->alpha;
+      p->curx += (MYFLT)ksmps*p->alpha;
     }
     return OK;
 }
@@ -1917,7 +1917,7 @@ int ktrnseg(TRANSEG *p)
 int trnseg(TRANSEG *p)
 {
     MYFLT  val, *rs = p->rslt;
-    int         nsmps = ksmps_;
+    int         nsmps = ksmps;
     NSEG        *segp = p->cursegp;
     if (p->auxch.auxp==NULL) {
       return perferror(Str(X_1553, "transeg: not initialised (arate)\n"));
@@ -1983,7 +1983,7 @@ int varicolset(VARI *p)
 
 int varicol(VARI *p)
 {
-    int         nsmps = ksmps_;
+    int         nsmps = ksmps;
     MYFLT       beta = *p->beta;
     MYFLT       sq1mb2 = p->sq1mb2;
     MYFLT       lastx = p->last;
@@ -2028,7 +2028,7 @@ int lpf18set(LPF18 *p)
 
 int lpf18db(LPF18 *p)
 {
-    int         nsmps = ksmps_;
+    int         nsmps = ksmps;
     MYFLT kfcn = FL(2.0) * *p->fco * onedsr;
     MYFLT kp   = ((-FL(2.7528)*kfcn + FL(3.0429))*kfcn +
                   FL(1.718))*kfcn - FL(0.9984);
@@ -2075,10 +2075,10 @@ int lpf18db(LPF18 *p)
 int wavesetset(BARRI *p)
 {
     if (*p->len == FL(0.0))
-      p->length = 1 + (int)(p->h.insdshead->p3 * esr_ * FL(0.5));
+      p->length = 1 + (int)(p->h.insdshead->p3 * esr * FL(0.5));
     else
       p->length = 1 + (int)*p->len;
-    if (p->length <= 1) p->length = (int)esr_;
+    if (p->length <= 1) p->length = (int)esr;
 /*     printf("Allocating %d of buffer\n", p->length); */
     auxalloc((long)p->length*sizeof(MYFLT), &p->auxch);
     p->cnt = 1;
@@ -2097,7 +2097,7 @@ int waveset(BARRI *p)
     MYFLT *out = p->ar;
     int   index = p->end;
     MYFLT *insert = (MYFLT*)(p->auxch.auxp) + index;
-    int   nsmps = ksmps_;
+    int   nsmps = ksmps;
 /*     printf("Inserting at %d\n", index); */
     if (p->noinsert) goto output;
     do {                        /* Deal with inputs */
@@ -2115,7 +2115,7 @@ int waveset(BARRI *p)
     } while (--nsmps);
  output:
     p->end = index;
-    nsmps = ksmps_;
+    nsmps = ksmps;
     index = p->current;
     insert = (MYFLT*)(p->auxch.auxp) + index;
     do {

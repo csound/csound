@@ -352,7 +352,7 @@ int csoundLoadExternal(void *csound, const char* libraryPath) {
     printf("Calling init\n");
 #endif
 
-    opcodlst_n = (*init)(&cglob);
+    opcodlst_n = (*init)(&cenviron);
     olength = oplstend-opcodlst;    
  
 #ifdef BETA
@@ -374,13 +374,13 @@ int csoundLoadExternals(void *csound)
 {
     char *libname;
     char buffer[256];
-    if(cglob.oplibs == NULL)
+    if(cenviron.oplibs == NULL)
     {
         return 1;   
     }
         
-    printf("Loading libraries %s\n", cglob.oplibs);
-    strcpy(buffer, cglob.oplibs);
+    printf("Loading libraries %s\n", cenviron.oplibs);
+    strcpy(buffer, cenviron.oplibs);
     libname = strtok(buffer, ",");    
     
     while(libname != NULL)

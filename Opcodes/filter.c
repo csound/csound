@@ -160,7 +160,7 @@ void nudgeMags(fpolar a[], fcomplex b[], int dim, double fact);
 void nudgePhases(fpolar a[], fcomplex b[], int dim, double fact);
 
 extern void error(const char*, const char*);
-static void zroots(fcomplex [], int, fcomplex []);
+static void zroots(ENVIRON*, fcomplex [], int, fcomplex []);
 fcomplex Cadd(fcomplex, fcomplex);
 fcomplex Csub(fcomplex, fcomplex);
 fcomplex Cmul(fcomplex, fcomplex);
@@ -171,42 +171,42 @@ fcomplex Csqrt(fcomplex);
 fcomplex RCmul(double, fcomplex);
 
 /* Filter initialization routine */
-int ifilter(FILTER* flt)
+int ifilter(FILTER* p)
 {
     int i;
 
     /* since i-time arguments are not guaranteed to propegate to p-time
-     * we must copy the i-vars into the flt structure.
+     * we must copy the i-vars into the p structure.
      */
 
-    flt->numa = (int)*flt->na;
-    flt->numb = (int)*flt->nb;
+    p->numa = (int)*p->na;
+    p->numb = (int)*p->nb;
 
     /* First check bounds on initialization arguments */
-    if ((flt->numb<1) || (flt->numb>(MAXZEROS+1)) ||
-        (flt->numa<0) || (flt->numa>MAXPOLES))
+    if ((p->numb<1) || (p->numb>(MAXZEROS+1)) ||
+        (p->numa<0) || (p->numa>MAXPOLES))
       error(Str(X_278,"Filter order out of bounds: (1<=nb<51, 0<=na<=50)"),
             "<filter>");
 
     /* Calculate the total delay in samples and allocate memory for it */
-    flt->ndelay = MAX(flt->numb-1,flt->numa);
+    p->ndelay = MAX(p->numb-1,p->numa);
 
-    auxalloc(flt->ndelay * sizeof(double), &flt->delay);
+    auxalloc(p->ndelay * sizeof(double), &p->delay);
 
     /* Initialize the delay line for safety */
-    for (i=0;i<flt->ndelay;i++)
-      ((double*)flt->delay.auxp)[i] = 0.0;
+    for (i=0;i<p->ndelay;i++)
+      ((double*)p->delay.auxp)[i] = 0.0;
 
     /* Set current position pointer to beginning of delay */
-    flt->currPos = (double*)flt->delay.auxp;
+    p->currPos = (double*)p->delay.auxp;
 
-    for (i=0; i<flt->numb+flt->numa; i++)
-      flt->dcoeffs[i] = (double)*flt->coeffs[i];
+    for (i=0; i<p->numb+p->numa; i++)
+      p->dcoeffs[i] = (double)*p->coeffs[i];
     return OK;
 }
 
 /* izfilter - initialize z-plane controllable filter */
-int izfilter(ZFILTER *zflt)
+int izfilter(ZFILTER *p)
 {
     fcomplex a[MAXPOLES];
     fcomplex *roots;
@@ -214,39 +214,39 @@ int izfilter(ZFILTER *zflt)
     int i, dim;
 
     /* since i-time arguments are not guaranteed to propegate to p-time
-     * we must copy the i-vars into the zflt structure.
+     * we must copy the i-vars into the p structure.
      */
 
-    zflt->numa = (int)*zflt->na;
-    zflt->numb = (int)*zflt->nb;
+    p->numa = (int)*p->na;
+    p->numb = (int)*p->nb;
 
     /* First check bounds on initialization arguments */
-    if ((zflt->numb<1) || (zflt->numb>(MAXZEROS+1)) ||
-        (zflt->numa<0) || (zflt->numa>MAXPOLES))
+    if ((p->numb<1) || (p->numb>(MAXZEROS+1)) ||
+        (p->numa<0) || (p->numa>MAXPOLES))
       error(Str(X_278,"Filter order out of bounds: (1<=nb<51, 0<=na<=50)"),
             "<filter>");
 
     /* Calculate the total delay in samples and allocate memory for it */
-    zflt->ndelay = MAX(zflt->numb-1,zflt->numa);
+    p->ndelay = MAX(p->numb-1,p->numa);
 
-    auxalloc(zflt->ndelay * sizeof(double), &zflt->delay);
+    auxalloc(p->ndelay * sizeof(double), &p->delay);
 
     /* Initialize the delay line for safety */
-    for (i=0;i<zflt->ndelay;i++)
-      ((double*)zflt->delay.auxp)[i] = 0.0;
+    for (i=0;i<p->ndelay;i++)
+      ((double*)p->delay.auxp)[i] = 0.0;
 
     /* Set current position pointer to beginning of delay */
-    zflt->currPos = (double*)zflt->delay.auxp;
+    p->currPos = (double*)p->delay.auxp;
 
-    for (i=0; i<zflt->numb+zflt->numa+1; i++)
-      zflt->dcoeffs[i] = (double)*zflt->coeffs[i];
+    for (i=0; i<p->numb+p->numa+1; i++)
+      p->dcoeffs[i] = (double)*p->coeffs[i];
 
     /* Add auxillary root memory */
-    auxalloc(zflt->numa * sizeof(fcomplex), &zflt->roots);
-    roots = (fcomplex*) zflt->roots.auxp;
-    dim = zflt->numa;
+    auxalloc(p->numa * sizeof(fcomplex), &p->roots);
+    roots = (fcomplex*) p->roots.auxp;
+    dim = p->numa;
 
-    coeffs = zflt->dcoeffs + zflt->numb;
+    coeffs = p->dcoeffs + p->numb;
 
     /* Reverse coefficient order for root finding */
     a[dim] = Complex(1.0,0.0);
@@ -254,7 +254,7 @@ int izfilter(ZFILTER *zflt)
       a[i] = Complex(coeffs[dim-i-1],0.0);
 
     /* NRIC root finding routine, a[0..M] roots[1..M] */
-    zroots(a, dim,  roots-1/*POLEISH*/);
+    zroots(p->h.insdshead->csound, a, dim,  roots-1/*POLEISH*/);
 
     /* Sort roots into descending order of magnitudes */
     sortRoots(roots, dim);
@@ -270,40 +270,40 @@ int izfilter(ZFILTER *zflt)
  *                      - a(1)*y(n-1) - ... - a(na)*y(n-na)
  *
  */
-int afilter(FILTER* flt)
+int afilter(FILTER* p)
 {
     int n,i;
 
-    double* a = flt->dcoeffs+flt->numb;
-    double* b = flt->dcoeffs+1;
-    double  b0 = flt->dcoeffs[0];
+    double* a = p->dcoeffs+p->numb;
+    double* b = p->dcoeffs+1;
+    double  b0 = p->dcoeffs[0];
 
     double poleSamp, zeroSamp, inSamp;
 
     /* Outer loop */
-    for (n=0; n<ksmps_; n++) {
+    for (n=0; n<ksmps; n++) {
 
-      inSamp = flt->in[n];
+      inSamp = p->in[n];
       poleSamp = inSamp;
       zeroSamp = 0.0;
 
       /* Inner filter loop */
-      for (i=0; i< flt->ndelay; i++) {
+      for (i=0; i< p->ndelay; i++) {
 
         /* Do poles first */
         /* Sum of products of a's and delays */
-        if (i<flt->numa)
-          poleSamp += -(a[i])*readFilter(flt,i+1);
+        if (i<p->numa)
+          poleSamp += -(a[i])*readFilter(p,i+1);
 
         /* Now do the zeros */
-        if (i<(flt->numb-1))
-          zeroSamp += (b[i])*readFilter(flt,i+1);
+        if (i<(p->numb-1))
+          zeroSamp += (b[i])*readFilter(p,i+1);
 
       }
 
-      flt->out[n] = (MYFLT)((b0)*poleSamp + zeroSamp);
+      p->out[n] = (MYFLT)((b0)*poleSamp + zeroSamp);
       /* update filter delay line */
-      insertFilter(flt, poleSamp);
+      insertFilter(p, poleSamp);
     }
     return OK;
 }
@@ -316,37 +316,37 @@ int afilter(FILTER* flt)
  *                      - a(1)*y(k-1) - ... - a(na)*y(k-na)
  *
  */
-int kfilter(FILTER* flt)
+int kfilter(FILTER* p)
 {
     int i;
 
-    double* a = flt->dcoeffs+flt->numb;
-    double* b = flt->dcoeffs+1;
-    double  b0 = flt->dcoeffs[0];
+    double* a = p->dcoeffs+p->numb;
+    double* b = p->dcoeffs+1;
+    double  b0 = p->dcoeffs[0];
 
     double poleSamp, zeroSamp, inSamp;
 
-    inSamp = *flt->in;
+    inSamp = *p->in;
     poleSamp = inSamp;
     zeroSamp = 0.0;
 
     /* Filter loop */
-    for (i=0; i<flt->ndelay; i++) {
+    for (i=0; i<p->ndelay; i++) {
 
       /* Do poles first */
       /* Sum of products of a's and delays */
-      if (i<flt->numa)
-        poleSamp += -(a[i])*readFilter(flt,i+1);
+      if (i<p->numa)
+        poleSamp += -(a[i])*readFilter(p,i+1);
 
       /* Now do the zeros */
-      if (i<(flt->numb-1))
-        zeroSamp += (b[i])*readFilter(flt,i+1);
+      if (i<(p->numb-1))
+        zeroSamp += (b[i])*readFilter(p,i+1);
     }
 
-    *flt->out = (MYFLT)((b0)*poleSamp + zeroSamp);
+    *p->out = (MYFLT)((b0)*poleSamp + zeroSamp);
 
     /* update filter delay line */
-    insertFilter(flt, poleSamp);
+    insertFilter(p, poleSamp);
     return OK;
 }
 
@@ -363,24 +363,24 @@ int kfilter(FILTER* flt)
  * The rest of the filter is the same as filter
  *
  */
-int azfilter(ZFILTER* zflt)
+int azfilter(ZFILTER* p)
 {
     int n,i;
 
-    double* a = zflt->dcoeffs+zflt->numb;
-    double* b = zflt->dcoeffs+1;
-    double  b0 = zflt->dcoeffs[0];
+    double* a = p->dcoeffs+p->numb;
+    double* b = p->dcoeffs+1;
+    double  b0 = p->dcoeffs[0];
 
     double poleSamp, zeroSamp, inSamp;
 
     fpolar B[MAXPOLES];
     fcomplex C[MAXPOLES+1];
 
-    fcomplex *roots = (fcomplex*) zflt->roots.auxp;
-    double kmagf = *zflt->kmagf; /* Mag nudge factor */
-    double kphsf = *zflt->kphsf; /* Phs nudge factor */
+    fcomplex *roots = (fcomplex*) p->roots.auxp;
+    double kmagf = *p->kmagf; /* Mag nudge factor */
+    double kphsf = *p->kphsf; /* Phs nudge factor */
 
-    int dim = zflt->numa;
+    int dim = p->numa;
 
     /* Nudge pole magnitudes */
     complex2polar(roots,B,dim);
@@ -393,28 +393,28 @@ int azfilter(ZFILTER* zflt)
     /* and a contains their associated real coefficients. */
 
     /* Outer loop */
-    for (n=0; n<ksmps_; n++) {
-      inSamp = zflt->in[n];
+    for (n=0; n<ksmps; n++) {
+      inSamp = p->in[n];
       poleSamp = inSamp;
       zeroSamp = 0.0;
 
       /* Inner filter loop */
-      for (i=0; i< zflt->ndelay; i++) {
+      for (i=0; i< p->ndelay; i++) {
 
         /* Do poles first */
         /* Sum of products of a's and delays */
-        if (i<zflt->numa)
-          poleSamp += -(a[i])*readFilter((FILTER*)zflt,i+1);
+        if (i<p->numa)
+          poleSamp += -(a[i])*readFilter((FILTER*)p,i+1);
 
         /* Now do the zeros */
-        if (i<(zflt->numb-1))
-          zeroSamp += (b[i])*readFilter((FILTER*)zflt,i+1);
+        if (i<(p->numb-1))
+          zeroSamp += (b[i])*readFilter((FILTER*)p,i+1);
       }
 
-      zflt->out[n] = (MYFLT)((b0)*poleSamp + zeroSamp);
+      p->out[n] = (MYFLT)((b0)*poleSamp + zeroSamp);
 
       /* update filter delay line */
-      insertFilter((FILTER*)zflt, poleSamp);
+      insertFilter((FILTER*)p, poleSamp);
     }
     return OK;
 }
@@ -428,20 +428,20 @@ int azfilter(ZFILTER* zflt)
  * allows multiple lattice structures to access the same delay line.
  *
  */
-static double readFilter(FILTER* flt, int i)
+static double readFilter(FILTER* p, int i)
 {
     double* readPoint; /* Generic pointer address */
 
     /* Calculate the address of the index for this read */
-    readPoint = flt->currPos - i;
+    readPoint = p->currPos - i;
 
     /* Wrap around for time-delay if necessary */
-    if (readPoint < ((double*)flt->delay.auxp) )
-      readPoint += flt->ndelay;
+    if (readPoint < ((double*)p->delay.auxp) )
+      readPoint += p->ndelay;
     else
       /* Wrap for time-advance if necessary */
-      if (readPoint > ((double*)flt->delay.auxp + (flt->ndelay-1)) )
-        readPoint -= flt->ndelay;
+      if (readPoint > ((double*)p->delay.auxp + (p->ndelay-1)) )
+        readPoint -= p->ndelay;
 
     return *readPoint; /* Dereference read address for delayed value */
 }
@@ -453,15 +453,15 @@ static double readFilter(FILTER* flt, int i)
  * currPos pointer modulo the length of the delay line.
  *
  */
-static void insertFilter(FILTER* flt, double val)
+static void insertFilter(FILTER* p, double val)
 {
     /* Insert the passed value into the delay line */
-    *flt->currPos = val;
+    *p->currPos = val;
 
     /* Update the currPos pointer and wrap modulo the delay length */
-    if (((double*) (++flt->currPos)) >
-        ((double*)flt->delay.auxp + (flt->ndelay-1)) )
-      flt->currPos -= flt->ndelay;
+    if (((double*) (++p->currPos)) >
+        ((double*)p->delay.auxp + (p->ndelay-1)) )
+      p->currPos -= p->ndelay;
 }
 
 /* Compute polynomial coefficients from the roots */
@@ -639,7 +639,7 @@ void nudgePhases(fpolar a[], fcomplex b[], int dim, double fact)
 /* Simple definition is sufficient */
 #define FPMAX(a,b) (a>b ? a : b)
 
-void laguer(fcomplex a[], int m, fcomplex *x, int *its)
+void laguer(ENVIRON *csound, fcomplex a[], int m, fcomplex *x, int *its)
 {
     int iter,j;
     double abx,abp,abm,err;
@@ -678,7 +678,7 @@ void laguer(fcomplex a[], int m, fcomplex *x, int *its)
       if (iter % MT) *x = x1;
       else *x = Csub(*x,RCmul(frac[iter/MT],dx));
     }
-    die(Str(X_1289,"too many iterations in laguer"));
+    csound->die_(csound->getstring_(X_1289,"too many iterations in laguer"));
     return;
 }
 #undef EPSS
@@ -696,16 +696,16 @@ void laguer(fcomplex a[], int m, fcomplex *x, int *its)
 #define EPS (2.0e-6)
 #define MAXM (100)
 
-static void zroots(fcomplex a[], int m, fcomplex roots[])
+static void zroots(ENVIRON *csound,fcomplex a[], int m, fcomplex roots[])
 {
-    void laguer(fcomplex a[], int m, fcomplex *x, int *its);
+    void laguer(ENVIRON*, fcomplex a[], int m, fcomplex *x, int *its);
     int i,its,j,jj;
     fcomplex x,b,c,ad[MAXM];
 
     for (j=0; j<=m; j++) ad[j] = a[j];
     for (j=m; j>=1; j--) {
       x = Complex(0.0,0.0);
-      laguer(ad,j,&x,&its);
+      laguer(csound,ad,j,&x,&its);
       if (fabs(x.i) <= 2.0*EPS*fabs(x.r)) x.i = 0.0;
       roots[j] = x;
       b = ad[j];
@@ -717,7 +717,7 @@ static void zroots(fcomplex a[], int m, fcomplex roots[])
     }
     /*    if (poleish) */
     for (j=1; j<=m; j++)
-      laguer(a,m,&roots[j],&its);
+      laguer(csound,a,m,&roots[j],&its);
     for (j=2; j<=m; j++) {
       x = roots[j];
       for (i=j-1; i>=1; i--) {
