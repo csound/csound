@@ -96,8 +96,10 @@ public:
 	*	Causes Csound to read ksmps of audio sample frames from its input buffer,
 	*	compute the performance, 
 	*	and write the performed sample frames to its output buffer.
+	*   If absolute is true, performs a block of audio whether or not the Csound
+	*   score is finished.
 	*/
-	virtual int performKsmps();
+	virtual int performKsmps(bool absolute = true);
 	/**
 	*	Must be called after the final call to performKsmps.
 	*/
@@ -156,7 +158,7 @@ public:
 	/**
 	*	Called by external software to set a function for Csound to call to open MIDI input.
 	*/
-	virtual void setExternalMidiOpenCallback(void (*midiOpen)(void *csound));
+	virtual void setExternalMidiDeviceOpenCallback(void (*midiDeviceOpen)(void *csound));
 	/**
 	*	Called by external software to set a function for Csound to call to read MIDI messages.
 	*/
@@ -164,11 +166,7 @@ public:
 	/**
 	*	Called by external software to set a function for Csound to call to close MIDI input.
 	*/
-	virtual void setExternalMidiCloseCallback(void (*closeMidi)(void *csound));	
-	/**
-	*	Sets up internal MIDI read for VST plugins, etc.
-	*/
-	virtual void defaultMidiOpen();	
+	virtual void setExternalMidiDeviceCloseCallback(void (*midiDeviceClose)(void *csound));	
 	/**
 	*	Returns the number of audio sample frames per control sample.
 	*/

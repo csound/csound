@@ -36,18 +36,20 @@ namespace csound
 	Shell::~Shell()
 	{
 	}
+	
+	static bool initialized = false;
 
 	void Shell::open()
 	{
-		Py_Initialize();
+	  if(!initialized) {
+        Py_Initialize();
+        initialized = true;
+      }
 	}
 
 	void Shell::close()
 	{
-		//if(Py_IsInitialized())
-		//{
-		//	Py_Finalize();
-		//}
+	    // Should be able to Py_Finalize here, but it doesn't work in VST.
 	}
 
 	void Shell::main(int argc, char **argv)

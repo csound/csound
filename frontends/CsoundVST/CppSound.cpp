@@ -154,9 +154,14 @@ int CppSound::compile()
 	return returnValue;
 }
 
-int CppSound::performKsmps()
+int CppSound::performKsmps(bool absolute)
 {
-	return csoundPerformKsmps(csound);
+    if(absolute){
+        return csoundPerformKsmpsAbsolute(csound);
+    }
+    else {
+	    return csoundPerformKsmps(csound);
+	}
 }
 
 void CppSound::cleanup()
@@ -227,9 +232,9 @@ void CppSound::setExternalMidiEnabled(int enabled)
 	csoundSetExternalMidiEnabled(csound, enabled);
 }
 
-void CppSound::setExternalMidiOpenCallback(void (*midiOpen)(void *csound))
+void CppSound::setExternalMidiDeviceOpenCallback(void (*midiDeviceOpen)(void *csound))
 {
-	csoundSetExternalMidiOpenCallback(csound, midiOpen);
+	csoundSetExternalMidiDeviceOpenCallback(csound, midiDeviceOpen);
 }
 
 void CppSound::setExternalMidiReadCallback(int (*midiReadCallback)(void *ownerData, unsigned char *midiData, int size))
@@ -237,14 +242,9 @@ void CppSound::setExternalMidiReadCallback(int (*midiReadCallback)(void *ownerDa
 	csoundSetExternalMidiReadCallback(csound, midiReadCallback);
 }
 
-void CppSound::setExternalMidiCloseCallback(void (*midiClose)(void *csound))
+void CppSound::setExternalMidiDeviceCloseCallback(void (*midiDeviceClose)(void *csound))
 {
-	csoundSetExternalMidiCloseCallback(csound, midiClose);
-}
-
-void CppSound::defaultMidiOpen()
-{
-  csoundDefaultMidiOpen(csound);
+	csoundSetExternalMidiDeviceCloseCallback(csound, midiDeviceClose);
 }
 
 int CppSound::isScorePending()

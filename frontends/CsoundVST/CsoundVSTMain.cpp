@@ -25,7 +25,7 @@
 
 #include "CsoundVST.hpp"
 
-//static AudioEffect *effect = 0;
+static AudioEffect *effect = 0;
 bool oome = false;
 
 #if MAC
@@ -46,7 +46,7 @@ AEffect *main(audioMasterCallback audioMaster)
 	if (!audioMaster (0, audioMasterVersion, 0, 0, 0, 0))
 	 return 0;  // old version
 
-	CsoundVST *effect = new CsoundVST (audioMaster);
+	effect = new CsoundVST (audioMaster);
 	if (!effect)
 		return 0;
 	if (oome)

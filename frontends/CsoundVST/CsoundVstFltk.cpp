@@ -253,7 +253,7 @@ long CsoundVstFltk::open(void *parentWindow)
 		this->csoundVstUi->show();
 		update();
 	}
-	if(parentWindow)
+	if(csoundVST->getIsVst() || parentWindow)
 	{
 		return true;
 	}
@@ -277,7 +277,7 @@ void CsoundVstFltk::close()
 void CsoundVstFltk::idle() 
 { 
 	// Process events for the FLTK GUI.
-	Fl::check();
+	Fl::wait(0);
 	// If the VST host has indicated
 	// it needs the GUI updated, do it.
 	if(updateFlag) 
