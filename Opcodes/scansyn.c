@@ -159,17 +159,17 @@ void listrm(PSCSNU *p)
 #endif
 
 /* Return from list according to id */
-PSCSNU *listget(int id)
+PSCSNU *listget(ENVIRON *csound, int id)
 {
     struct scsn_elem *i = &scsn_list;
     if (i->p == NULL) {
-        initerror(Str(X_1527,"scans: No scan synthesis net specified"));
-        longjmp(pcglob->exitjmp,1);
+        csound->initerror_(csound->getstring_(X_1527,"scans: No scan synthesis net specified"));
+        longjmp(csound->exitjmp_,1);
     }
     while (i->id != id) {
       i = i->next;
       if (i == NULL)
-        die(Str(X_1485,"Eek ... scan synthesis id was not found"));
+        csound->die_(csound->getstring_(X_1485,"Eek ... scan synthesis id was not found"));
     }
     return i->p;
 }
@@ -436,7 +436,7 @@ int scsnu_play(PSCSNU *p)
 int scsns_init(PSCSNS *p)
 {
     /* Get corresponding update */
-    p->p = listget((int)*p->i_id);
+    p->p = listget(p->h.insdshead->csound, (int)*p->i_id);
 
     /* Get trajectory matrix */
     {

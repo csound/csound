@@ -41,8 +41,8 @@
 #define s2d(x)  *((DWORD *) (x))
 
 int chunk_read(FILE *f, CHUNK *chunk);
-void fill_SfPointers(void);
-void fill_SfStruct(void);
+void fill_SfPointers(ENVIRON *);
+void fill_SfStruct(ENVIRON *);
 void layerDefaults(layerType *layer);
 void splitDefaults(splitType *split);
 
@@ -94,7 +94,7 @@ void fill_pitches(void)
     }
 }
 
-void SoundFontLoad(char *fname)
+void SoundFontLoad(ENVIRON *csound, char *fname)
 {
     FILE *fil;
     char pathnam[255];
@@ -121,20 +121,20 @@ void SoundFontLoad(char *fname)
       char bb[256];
       strcpy(pathnam, fname);  /* in case of error message */
       if (!isfullpath(fname)) {
-        if (ssdirpath != NULL) {
-          strcpy(pathnam, catpath(ssdirpath, fname));
+        if (csound->ssdirpath_ != NULL) {
+          strcpy(pathnam, catpath(csound->ssdirpath_, fname));
           if ((fil = fopen(pathnam,"rb")) != NULL) goto done;
         }
-        if (sfdirpath != NULL) {
-          strcpy(pathnam, catpath(sfdirpath, fname));
+        if (csound->sfdirpath_ != NULL) {
+          strcpy(pathnam, catpath(csound->sfdirpath_, fname));
           if (( fil = fopen(pathnam,"rb")) != NULL) goto done;
         }
       }
       sprintf(bb,
-              Str(X_1491,
+              csound->getstring_(X_1491,
                   "sfload: cannot open SoundFont file \"%s\" (error %s)"),
               fname, strerror(errno));
-      die(bb);
+      csound->die_(bb);
     }
  done:
     soundFont = &sfArray[currSFndx];
@@ -142,8 +142,8 @@ void SoundFontLoad(char *fname)
     chunk_read(fil, &soundFont->chunk.main_chunk);
     fclose(fil);
     fill_pitches();
-    fill_SfPointers();
-    fill_SfStruct();
+    fill_SfPointers(csound);
+    fill_SfStruct(csound);
 }
 
 static int compare(presetType * elem1, presetType *elem2)
@@ -166,7 +166,7 @@ int SfLoad(SFLOAD *p)          /* open a file and return its handle */
     SFBANK *sf;
     strcpy(fname, unquote(p->STRARG));
     Gfname = fname;
-    SoundFontLoad(fname);
+    SoundFontLoad(p->h.insdshead->csound, fname);
     *p->ihandle = (float) currSFndx;
     sf = &sfArray[currSFndx];
     qsort(sf->preset, sf->presets_num, sizeof(presetType),
@@ -1276,7 +1276,7 @@ ChangeByteOrder(char *fmt, char *p, long size)
 #define ChangeByteOrder(fmt, p, size) /* nothing */
 #endif
 
-void fill_SfStruct(void)
+void fill_SfStruct(ENVIRON *csound)
 {
 #if defined(SYMANTEC)
 #pragma options(!global_optimizer)
@@ -1428,7 +1428,7 @@ void fill_SfStruct(void)
                           sprintf(buf,"SoundFont file \"%s\" contains ROM samples!"
                                   "\nAt present time only RAM samples are allowed"
                                   " by sfload. \nSession aborted!",Gfname);
-                          die(buf);
+                          csound->die_(buf);
                         }
                         sglobal_zone = 0;
                         ll++;
@@ -1639,7 +1639,7 @@ void fill_SfStruct(void)
                     sprintf(buf,"SoundFont file \"%s\" contains ROM samples! "
                             "\nAt present time only RAM samples are allowed "
                             "by sfload. \nSession aborted!",Gfname);
-                    die(buf);
+                    csound->die_(buf);
                   }
                   sglobal_zone = 0;
                   ll++;
@@ -1775,7 +1775,7 @@ DWORD dword(char *p)
     return x.i;
 }
 
-void fill_SfPointers(void)
+void fill_SfPointers(ENVIRON *csound)
 {
     char *chkp;
     DWORD chkid, j, size;
@@ -1784,7 +1784,7 @@ void fill_SfPointers(void)
     CHUNK *pgenChunk=NULL, *instChunk=NULL, *ibagChunk=NULL, *imodChunk=NULL;
     CHUNK *igenChunk=NULL, *shdrChunk=NULL;
     if (main_chunk->ckDATA == NULL) {
-      die(Str(X_1555, "Sfont format not compatible"));
+      csound->die_(csound->getstring_(X_1555, "Sfont format not compatible"));
     }
     chkp = (char *) main_chunk->ckDATA+4;
     for  (j=4; j< main_chunk->ckSize;) {

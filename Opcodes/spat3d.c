@@ -72,7 +72,7 @@ int    spat3d_init_window (SPAT3D *p)
 
 /* initialise parameric equalizer (code taken from pareq opcode) */
 
-int spat3d_init_eq (SPAT3D_WALL *wstruct, MYFLT *ftable)
+int spat3d_init_eq (ENVIRON *csound, SPAT3D_WALL *wstruct, MYFLT *ftable)
 {
     int     eqmode;
     double  omega, k, kk, vk, vkk, vkdq, sq, a0, a1, a2, b0, b1, b2;
@@ -80,7 +80,7 @@ int spat3d_init_eq (SPAT3D_WALL *wstruct, MYFLT *ftable)
     /* EQ code taken from biquad.c */
 
     eqmode = (int) ((double) ftable[3] + 0.5);        /* mode      */
-    omega = (double)tpidsr * (double) ftable[0];      /* frequency */
+    omega = (double)csound->tpidsr_ * (double) ftable[0];      /* frequency */
     sq = sqrt (2.0 * (double) ftable[1]);             /* level     */
 
     k = tan ((eqmode > 1 ? (PI - omega) : omega) * 0.5); kk = k * k;
@@ -125,6 +125,7 @@ spat3d_init_wall(
     SPAT3D_WALL     *ws;
     MYFLT           *ft, a, d, w, x, y, z;
     double          d0, d1;
+    ENVIRON         *csound = p->h.insdshead->csound;
 
     /* update random seed */
 
@@ -157,7 +158,7 @@ spat3d_init_wall(
     /* read wall parameters from ftable */
 
     if (ft != NULL) {
-      spat3d_init_eq (ws, ft + 4);            /* EQ                */
+      spat3d_init_eq (csound, ws, ft + 4);            /* EQ                */
       a = -ft[3];                             /* scale             */
       ws->b0 *= a; ws->b1 *= a; ws->b2 *= a;  /* apply scale to EQ */
       ws->cnum = (6 - wallno) >> 1;           /* select wall       */

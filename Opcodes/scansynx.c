@@ -166,18 +166,18 @@ static void listadd(PSCSNUX *p)
 }
 
 /* Return from list according to id */
-static PSCSNUX *listget(GLOBALS *p, int id)
+static PSCSNUX *listget(ENVIRON *p, int id)
 {
     struct scsnx_elem *i = scsnx_list;
     if (i == NULL) {
-      p->initerror_(Str(X_1527,"scans: No scan synthesis net specified"));
-      longjmp(p->exitjmp,1);
+      p->initerror_(p->getstring_(X_1527,"scans: No scan synthesis net specified"));
+      longjmp(p->exitjmp_,1);
     }
     while (i->id != id) {
       i = i->next;
       if (i == NULL) {
-        p->initerror_(Str(X_1485,"Eek ... scan synthesis id was not found"));
-        longjmp(p->exitjmp,1);
+        p->initerror_(p->getstring_(X_1485,"Eek ... scan synthesis id was not found"));
+        longjmp(p->exitjmp_,1);
       }
     }
     return i->p;
