@@ -132,8 +132,6 @@ ctrl_app = wxPySimpleApp()
 frame = wxFrame( None, -1, "Csound Controller" )
 ctrl_panel = ControlPanel( frame )
 frame.Show(True)
-# Just to be safe, start the Csound thread after wxPython is already going.
-#csoundThread.start()
 ctrl_app.MainLoop()
 
 # End of main body
