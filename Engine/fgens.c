@@ -1905,7 +1905,7 @@ static void gen01raw(void)      /* read ftable values from a sound file */
     p->iskptim  = &e->p[6];
     p->iformat  = &e->p[7];
     p->channel  = (short)e->p[8];
-#ifndef _SNDFILE_
+#ifndef HAVE_LIBSNDFILE
     p->bytrev   = 0;
 #endif
     if (p->channel < 0 /* || p->channel > ALLCHNLS-1 */) {
