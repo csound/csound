@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
-csound -b100 -B1800 -odac5 -M0 temp.orc temp.sco
+csound -b100 -B1800 -odac:plughw:0  -M0 
 </CsOptions>
 <CsInstruments>
 sr = 44100
@@ -1421,7 +1421,7 @@ ijunk10			=			p10
 ; AUDIO
 istatus			=			144
 			print			iprogram, istatus, ichannel, ikey, ivelocity
-aleft, aright		fluid			"c:/projects/csound5/samples/VintageDreamsWaves-v2.sf2", iprogram, istatus, ichannel, ikey, ivelocity, 1
+aleft, aright		fluid			"samples/VintageDreamsWaves-v2.sf2", iprogram, istatus, ichannel, ikey, ivelocity, 1
 aleft           	=           		aleft * iamplitude
 aright          	=           		aright * iamplitude
 			outs 			aleft, aright

@@ -347,6 +347,8 @@ if commonEnvironment['usePortAudio']=='1' and portaudioFound:
         csoundProgramEnvironment.Append(LIBS = ['asound'])
         vstEnvironment.Append(LIBS = ['asound'])
         if (commonEnvironment['useJack']=='1'):
+            print commonEnvironment['useJack']
+            print (commonEnvironment['useJack']=='1')
             print "Adding Jack library for PortAudio"
             csoundProgramEnvironment.Append(LIBS = ['jack'])
             vstEnvironment.Append(LIBS = ['jack'])  
@@ -473,7 +475,6 @@ OOps/fft.c
 OOps/fout.c
 OOps/fprint.c
 OOps/lptrkfns.c
-OOps/mididevice.c
 OOps/midiinterop.c
 OOps/midiops.c
 OOps/midiout.c
@@ -545,6 +546,7 @@ if (not (commonEnvironment['usePortMIDI']=='0')) and portmidiFound:
 else:
     print 'CONFIGURATION DECISION: Building with internal MIDI.'
     libCsoundSources.append('OOps/midirecv.c')
+    libCsoundSources.append('OOps/mididevice.c')
 
 if not ((commonEnvironment['useFLTK'] == '1' and fltkFound)):
     print 'CONFIGURATION DECISION: Not building with FLTK for graphs and widgets.'
