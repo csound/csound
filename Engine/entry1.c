@@ -33,6 +33,7 @@
 #include "ugens6.h"
 #include "dsputil.h"
 #include "ugens8.h"
+#include "ugens9.h"
 #include "cwindow.h"
 #include "windin.h"
 #include "disprep.h"
@@ -210,6 +211,7 @@ int    lp2_set(void*), lp2(void*);
 int    phaser2set(void*), phaser2(void*);
 int    phaser1set(void*), phaser1(void*);
 int    balnset(void*), balance(void*);
+int    cvset(void*), convolve(void*);
 
 /* thread vals, where isub=1, ksub=2, asub=4:
                 0 =     1  OR   2  (B out only)
@@ -507,13 +509,6 @@ OENTRY opcodlst_1[] = {
 { "pan",    S(PAN),   5, "aaaa", "akkioo",(SUBR)panset,NULL,   (SUBR)pan     },
 { "reverb", S(REVERB),  5, "a",  "ako",  (SUBR)rvbset, NULL,   (SUBR)reverb  },
 { "delayw", S(DELAYW),  5,  "",  "a",    (SUBR)delwset,NULL,   (SUBR)delayw  },
-{ "delay1", S(DELAY1),  5,  "a", "ao",   (SUBR)del1set,NULL,   (SUBR)delay1  },
-{ "deltap", S(DELTAP),  5,  "a", "k",    (SUBR)tapset, NULL,   (SUBR)deltap  },
-{ "deltapi",S(DELTAP),  5,  "a", "x",    (SUBR)tapset, NULL,   (SUBR)deltapi },
-{ "deltapn",S(DELTAP),  5,  "a", "x",    (SUBR)tapset, NULL,   (SUBR)deltapn },
-{ "deltap3",S(DELTAP),  5,  "a", "x",    (SUBR)tapset, NULL,   (SUBR)deltap3 },
-{ "deltapx", S(DELTAPX),5,  "a", "ai",   (SUBR)tapxset, NULL,  (SUBR)deltapx },
-{ "deltapxw", S(DELTAPX),5, "",  "aai",  (SUBR)tapxset, NULL, (SUBR)deltapxw },
 { "soundin",S(SOUNDIN), 5,"mmmmmmmmmmmmmmmmmmmmmmmm","Soo",sndinset,NULL,soundin },
 { "soundout",S(SNDOUT), 5,      "",     "aSo",  sndo1set,NULL,  soundout},
 /* { "soundouts",S(SNDOUTS),5,     "",     "aaSo", sndo2set,NULL,  soundouts}, */
@@ -594,6 +589,8 @@ OENTRY opcodlst_1[] = {
 { "betarand_k",S(PRAND),2,      "k",    "kkk",  NULL,   ikbeta,NULL     },
 { "betarand_a",S(PRAND),4,      "a",    "kkk",  NULL,   NULL,  abeta    },
 { "seed",     S(PRAND), 1,      "",     "i",    seedrand, NULL, NULL    },
+{ "convolve", S(CONVOLVE), 5,   "mmmm", "aSo",  cvset,   NULL,  convolve},
+{ "convle",   S(CONVOLVE), 5,   "mmmm", "aSo",  cvset,   NULL,  convolve},
 { "tableseg", S(TABLESEG), 3,  "",      "iin",  tblesegset, ktableseg},
 { "ktableseg", S(TABLESEG), 3,  "",     "iin",  tblesegset, ktableseg},
 { "tablexseg", S(TABLESEG), 3, "",      "iin",  tblesegset, ktablexseg},
