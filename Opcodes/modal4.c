@@ -309,8 +309,8 @@ int marimbaset(ENVIRON *csound, MARIMBA *p)
     BiQuad_setGain(p->m4.filters[2], FL(0.11)*temp); /* 3rd mode function of pos.*/
                                 /* Strike */
     {
-      int triples = (*p->triples==0.0 ? 20 : (int)*p->triples);
-      int doubles = (*p->doubles==0.0 ? 40 : triples + (int)*p->doubles);
+      int triples = (*p->triples<=FL(0.0) ? 20 : (int)*p->triples);
+      int doubles = (*p->doubles<=FL(0.0) ? 40 : triples + (int)*p->doubles);
       itemp = rand() % 100;
       if (itemp < triples) {
         p->multiStrike = 2;
@@ -542,7 +542,7 @@ int agogobel(ENVIRON *csound, VIBRAPHN *p)
 #define S       sizeof
 
 static OENTRY localops[] = {
-{ "marimba", S(MARIMBA), 5, "a", "kkiiikkiioo", (SUBR)marimbaset, NULL, (SUBR)marimba},
+{ "marimba", S(MARIMBA), 5, "a", "kkiiikkiijj", (SUBR)marimbaset, NULL, (SUBR)marimba},
 { "vibes", S(VIBRAPHN),  5, "a", "kkiiikkii", (SUBR)vibraphnset,NULL,(SUBR)vibraphn},
 { "gogobel",S(VIBRAPHN), 5, "a", "kkiiikki", (SUBR)agogobelset,NULL, (SUBR)agogobel},
 };
