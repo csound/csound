@@ -1,5 +1,5 @@
 /*
-    screverb.c:
+    reverbsc.c:
 
     8 delay line FDN reverb, with feedback matrix based upon
     physical modeling scattering junction of 8 lossless waveguides
@@ -217,11 +217,11 @@ static int sc_reverb_init(ENVIRON *csound, SC_REVERB *p)
     else if (*(p->iSampleRate) >= MIN_SRATE && *(p->iSampleRate) <= MAX_SRATE)
       p->sampleRate = (double) *(p->iSampleRate);
     else {
-      initerror(Str("sc_reverb: sample rate is out of range"));
+      initerror(Str("reverbsc: sample rate is out of range"));
       return NOTOK;
     }
     if (*(p->iPitchMod) < FL(0.0) || *(p->iPitchMod) > (MYFLT) MAX_PITCHMOD) {
-      initerror(Str("sc_reverb: invalid pitch modulation factor"));
+      initerror(Str("reverbsc: invalid pitch modulation factor"));
       return NOTOK;
     }
     /* calculate the number of bytes to allocate */
@@ -254,7 +254,7 @@ static int sc_reverb_perf(ENVIRON *csound, SC_REVERB *p)
     int     i, j;
 
     if (p->initDone <= 0) {
-      perferror(Str("sc_reverb: not initialised"));
+      perferror(Str("reverbsc: not initialised"));
       return NOTOK;
     }
     /* calculate tone filter coefficient if frequency changed */
@@ -304,7 +304,7 @@ int csoundModuleInit(void *csound_)
 {
     ENVIRON *csound;
     csound = (ENVIRON*) csound_;
-    return (csound->AppendOpcode(csound, "sc_reverb",
+    return (csound->AppendOpcode(csound, "reverbsc",
                                  (int) sizeof(SC_REVERB), 5, "aa", "aakkjpo",
                                  (int (*)(void*, void*)) sc_reverb_init,
                                  (int (*)(void*, void*)) NULL,
