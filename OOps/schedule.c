@@ -50,7 +50,6 @@ extern void  infoff(MYFLT p1); /* Turn off an indef copy of instr p1          */
 /*extern int   sensType;      0=score evt, 1=Linein, 2/3=midi,4=triginstr */
 
 #define FZERO (FL(0.0))    /* (Shouldn't there be global decl's for these?) */
-#define FONE  (FL(1.0))
 
 /* EVTNODE OrcTrigEvts;    List of started events, used in playevents() */
 
@@ -510,7 +509,7 @@ int ktriginstr(TRIGINSTR *p)
         return OK;
 
       /* See if there are too many instances already */
-      if (*p->maxinst >= FONE) {
+      if (*p->maxinst >= FL(1.0)) {
         INSDS *ip;
         int numinst = 0;
         /* Count active instr instances */

@@ -879,7 +879,7 @@ static void gen20(void)
         arg = TWOPI / flen;
         for (i = -PI ; i < 0 ; i += arg)
           *ft++ = (MYFLT)(xarg * sin(i) / i);
-        *ft++ = xarg;
+        *ft++ = (MYFLT)xarg;
         for (i = arg ; i < PI ; i += arg)
           *ft++ = (MYFLT)(xarg * sin(i) / i);
         return;
@@ -1311,7 +1311,7 @@ static void gen30 (void)
     x[minh].re *= minfrac; x[minh].im *= minfrac;
     x[maxh].re *= maxfrac; x[maxh].im *= maxfrac;
     ex = AssignBasis (NULL, l1);
-    FFT2torlpacked (x, l1, FL(1.0) / (float) l2, ex);
+    FFT2torlpacked (x, l1, FL(1.0) / l2, ex);
     /* write dest. table */
     for (i = 0; i < l1; i++) {
       ftp->ftable[i] = x[i >> 1].re; i++;

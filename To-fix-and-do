@@ -21,7 +21,6 @@ K9.     Scaling of floating files not clear
 
 K10.    Dnoise not changed to libsndfile
 
-K11.    Software Bus
 
 BUGS NOT FIXED
 --------------
@@ -30,4 +29,4 @@ B1.     Loading of deferred files in gen1 suspect
 
 B2.     Many differences between FL code on Csound and CsoundAV
 
-B3.     In no output format given does not have a sane default.
+B3.     If no output format given does not have a sane default.

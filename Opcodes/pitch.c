@@ -1094,9 +1094,6 @@ int pitchamdf(PITCHAMDF *p)
 /* phasorbnk                                                        */
 /*==================================================================*/
 
-#define FZERO   (FL(0.0))
-#define FONE    (FL(1.0))
-
 int phsbnkset(PHSORBNK *p)
 {
     double  phs;
@@ -1233,18 +1230,18 @@ int pinkset(PINKISH *p)
     }
     else {
       /* Cannot accept k-rate input with filter method */
-      if (*p->imethod != FZERO) {
+      if (*p->imethod != FL(0.0)) {
         return initerror(Str(X_1534,
                       "pinkish: Filter method requires a-rate (noise) input"));
       }
       p->ampinc = 0;
     }
     /* Unless we're reinitializing a tied note, zero coefs */
-    if (*p->iskip != FONE) {
+    if (*p->iskip != FL(1.0)) {
       if (*p->imethod == GARDNER_PINK)
         GardnerPink_init(p);
       else                                      /* Filter method */
-        p->b0 = p->b1 = p->b2 = p->b3 = p->b4 = p->b5 = p->b6 = FZERO;
+        p->b0 = p->b1 = p->b2 = p->b3 = p->b4 = p->b5 = p->b6 = FL(0.0);
     }
     return OK;
 }
@@ -1360,7 +1357,7 @@ int GardnerPink_init(PINKISH *p)
     else {
       p->grd_NumRows = 20;
       /* Warn if user tried but failed to give sensible number */
-      if (*p->iparam1 != FZERO)
+      if (*p->iparam1 != FL(0.0))
         printf( "pinkish: Gardner method requires 4-%d bands. "
                 "Default %ld substituted for %d.\n",
                 GRD_MAX_RANDOM_ROWS, p->grd_NumRows, (int)*p->iparam1);
@@ -1837,18 +1834,18 @@ int trnset(TRANSEG *p)
         nsegs*sizeof(NSEG) < (unsigned int)p->auxch.size) {
       auxalloc((long)nsegs*sizeof(NSEG), &p->auxch);
       p->cursegp = segp = (NSEG *) p->auxch.auxp;
-      segp[nsegs-1].cnt = MAXPOS; /* set endcount for safety */
+      segp[nsegs-1].cnt = MAXPOS;     /* set endcount for safety */
     }
     argp = p->argums;
     val = **argp++;
-    if (**argp <= FZERO)  return OK;           /* if idur1 <= 0, skip init  */
+    if (**argp <= FL(0.0)) return OK; /* if idur1 <= 0, skip init  */
     p->curval = val;
     p->curcnt = 0;
-    p->cursegp = segp - 1;          /* else setup null seg0 */
+    p->cursegp = segp - 1;            /* else setup null seg0 */
     p->segsrem = nsegs + 1;
     p->curx = FL(0.0);
 /*      printf("Val starts at %f for %f\n", val, **argp); */
-    do {                                /* init each seg ..  */
+    do {                              /* init each seg ..  */
       MYFLT dur = **argp++;
       MYFLT alpha = **argp++;
       MYFLT nxtval = **argp++;
@@ -1944,7 +1941,7 @@ int trnseg(TRANSEG *p)
         }
         p->cursegp = ++segp;              /*   else find the next */
         if (!(p->curcnt = segp->cnt)) {
-          val = p->curval = segp->nxtpt;  /* nonlen = discontin */
+          val = p->curval = segp->nxtpt;  /*   nonlen = discontin */
           goto chk1;
         }                                 /*   poslen = new slope */
         p->curinc = segp->c1;
