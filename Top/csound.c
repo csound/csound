@@ -94,7 +94,7 @@ static long csoundNumExits_ = -1;
    */
 
   extern int frsturnon;
-  extern int sensevents(void);
+  extern int sensevents(ENVIRON *);
   extern int cleanup(void);
   extern int orcompact(void);
 
@@ -121,7 +121,7 @@ static long csoundNumExits_ = -1;
           csoundMessage(csound, "Early return from csoundPerformKsmps().");
           return returnValue;
         }
-      done = sensevents();
+      done = sensevents(csound);
       if (!done && kcnt)
         {
           /*
@@ -153,7 +153,7 @@ static long csoundNumExits_ = -1;
           csoundMessage(csound, "Early return from csoundPerformKsmps().");
           return returnValue;
         }
-      done = sensevents();
+      done = sensevents(csound);
 
       /*
       Rather than overriding real-time event handling in kperf,
@@ -196,7 +196,7 @@ static long csoundNumExits_ = -1;
       sampsNeeded += O.outbufsamps;
       while (!done && sampsNeeded > 0)
         {
-          done = sensevents();
+          done = sensevents(csound);
           if (done)
             {
               return done;
