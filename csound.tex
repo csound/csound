@@ -167,13 +167,15 @@ Assuming that you have installed and configured the software, Csound and CsoundV
 
 You may need to edit the \texttt{----opcode-lib} option in the Csound command in some of the  \texttt{.csd} and \texttt{.py} files to match your environment. Similarly, you may need to edit the SoundFont file paths in instrument definitions that use the \texttt{fluid} SoundFont 2 player opcode to match your environment.
 
+For real-time audio output, with or without MIDI control, you will probably want to tune the \texttt{kr} and \texttt{ksmps} orchestra statements, and the \texttt{-b} and \texttt{-B} command-line options, to give you the shortest possible latency that does not cause clicks or stutters in Csound's audio output. For example, with the Windows multimedia library build of the PortAudio library, \texttt{sr = 44100}, \texttt{kr = 441}, \texttt{ksmps = 100}, \texttt{-b100} and \texttt{-B2000} give a CD-equivalent audio sampling rate of 44,100 frames per second, a control sampling rate of 441 control samples per second with 100 audio sample frames per control sample, an audio output software buffer size of 100 sample frames, and an audio output device hardware buffer size of 2,000 sample frames, which yields an audio output latency of about 45 milliseconds --- not fast enough for precise and expressive keyboard playing, but fast enough for smooth control of effects or algorithmically generated or triggered scores.
+
 \subsection{Csound}
 
 \subsubsection{The \texttt{csound} Command}
 
 The original method for running Csound was as a console program. This, of course, still works. Running \texttt{csound} without any arguments prints out a list of command-line options, which are more fully explained in the Csound language documentation. Normally, the user executes something like \texttt{csound -W -omysoundfile myorchestra.orc myscore.sco} or, to use the single-file Csound structured data (\texttt{.csd}) format, \texttt{csound myscore.csd}.
 
-Csound can read and write soundfiles (off-line rendering), read and write digital audio using a sound card (real-time rendering), read and write MIDI files, and read and write MIDI using a MIDI interface and controller (real-time control). See the Csound language documentation for more details.
+Csound can read and write soundfiles (off-line rendering), read and write digital audio using a sound card (real-time rendering), read and write MIDI files, and read and write MIDI using a MIDI interface and controller (real-time control). See the Csound language documentation for more details. 
 
 \subsubsection{The Csound API}
 
