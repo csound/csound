@@ -79,10 +79,10 @@ opts.Add('usePortAudio',
     '1')
 opts.Add('useALSA',
     'Set to 1 to use ALSA for real-time audio input and output.',
-    '0')
+    '1')
 opts.Add('useJack',
     'Set to 1 if you compiled PortAudio to use Jack',
-    '0')
+    '1')
 opts.Add('useFLTK', 
     'Set to 1 to use FLTK for graphs and widget opcodes.', 
     '1')
