@@ -49,7 +49,7 @@ void SPECset(ENVIRON *p, SPECDAT *specdp, long npts)
     specdp->npts = npts;
 }
 
-static char *outstring[] = {"mag", "db", "mag sqrd", "root mag"};
+static const char *outstring[] = {"mag", "db", "mag sqrd", "root mag"};
 
 int spectset(ENVIRON *csound, SPECTRUM *p) /* spectrum - calcs disc Fourier transform of */
                            /* oct-downsampled data outputs coefs (mag, */
