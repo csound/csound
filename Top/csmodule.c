@@ -71,6 +71,12 @@
 
 #if defined(HAVE_DIRENT_H)
 #include <dirent.h>
+#ifdef __MACH__
+typedef void* DIR;
+DIR opendir(const char *);
+struct dirent *readdir(DIR*);
+int closedir(DIR*);
+#endif
 #endif
 
 /* module interface function names */
