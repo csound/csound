@@ -1,3 +1,51 @@
+2005-03-07	Istvan Varga	<istvan@csounds.com>
+	* Engine/entry2.c:
+	  removed event_set; no longer needed
+	* Engine/insert.c:
+	  made deact and schedofftim static
+	  xturnoff: always remove instance from schedofftim chain
+	  minor fixes
+	* Engine/linevent.c:
+	  removed event_set; no longer needed
+	  eventOpcode: rewritten to use new insert_score_event() function
+	  newevent: removed this function
+	* Engine/musmon.c:
+	  new function: insert_score_event
+	  made it sure that -B is always greater than and is an integer
+	  multiple of -b if real time audio is used
+	  various fixes, removed unused prototypes, etc.
+	* Engine/oload.c:
+	* H/csoundCore.h:
+	  replaced EVTNODE OrcTrigEvts_ with EVTNODE *OrcTrigEvts in ENVIRON
+	  set initial value of dbfs_to_float to 1/DFLT_DBFS
+	* frontends/CsoundVST/CppSound.cpp:
+	  removed unused declarations
+	* H/csdl.h:
+	* H/cs.h:
+	  removed macro definitons for OrcTrigEvts
+	* H/csoundCore.h:
+	* Opcodes/oscbnk.c:
+	  removed EVTBLK.offtim (was not used anywhere)
+	  changed EVTNODE for use with insert_score_event and related code
+	* H/oload.h:
+	  removed TRNON
+	* H/prototyp.h:
+	  removed prototypes for undefined functions newevent and
+	  csoundDefaultMidiOpen
+	  added int insert_score_event(ENVIRON*, EVTBLK*, double, int);
+	* H/schedule.h:
+	* OOps/schedule.c:
+	  added ENVIRON* argument to sensOrcEvent()
+	* InOut/midirecv.c:
+	* OOps/schedule.c:
+	  removed unused function prototypes
+	* InOut/widgets.cpp:
+	  rewritten ButtonSched to use insert_score_event
+	  cleanup() prototype was wrong
+	* OOps/schedule.c:
+	* Top/csound.c:
+	  changes for using insert_score_event() to schedule events
+
 2005-03-06	Istvan Varga	<istvan@csounds.com>
 	* Engine/insert.c:
 	* Engine/musmon.c:

@@ -44,7 +44,8 @@ static  OPDS    *ids, *pds;             /* used by init and perf loops  */
                                         /*  & modified by igoto, kgoto  */
 void    showallocs(void);
 extern  void    putop(TEXT*);
-void    deact(INSDS *), schedofftim(INSDS *);
+static  void    deact(INSDS *);
+static  void    schedofftim(INSDS *);
 int     sensOrcEvent(void);             /* For triginstr (re Aug 1999)  */
 extern  int      csoundYield(void*);
 
@@ -210,7 +211,7 @@ int insert(ENVIRON *csound, int insno, EVTBLK *newevtp)
     }
     tieflag = 0;
     if (err || ip->p3 == FL(0.0)) {
-      deact(ip);
+      xturnoff_now(csound, ip);
       return(inerrcnt);
     }
     if (ip->p3 > FL(0.0) && ip->offtim > 0.0) { /* if still finite time, */
@@ -310,7 +311,10 @@ int MIDIinsert(ENVIRON *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     ip->offtim = -1.0;              /* set indef duration */
     ip->opcod_iobufs = NULL;        /* IV - Sep 8 2002:            */
     ip->p1 = (MYFLT) ip->insno;     /* set these required p-fields */
-    ip->p2 = (MYFLT) csound->sensEvents_state.curTime;
+    ip->p2 = (MYFLT) (csound->sensEvents_state.curTime
+                      - csound->sensEvents_state.timeOffs);
+    if (ip->p2 < FL(0.0))
+      ip->p2 = FL(0.0);
     ip->p3 = FL(-1.0);
     if (tp->psetdata != NULL) {
       MYFLT *pfld = &ip->p3;              /* if pset data present */
@@ -361,9 +365,8 @@ void showallocs(void)    /* debugging aid        */
       }
 }
 
-void schedofftim(INSDS *ip)     /* put an active instr into offtime list  */
-                                /* called by insert() & midioff + xtratim */
-{
+static void schedofftim(INSDS *ip)  /* put an active instr into offtime list  */
+{                                   /* called by insert() & midioff + xtratim */
     INSDS *prvp, *nxtp;
 
     if ((nxtp = frstoff) == NULL ||
@@ -380,7 +383,7 @@ void schedofftim(INSDS *ip)     /* put an active instr into offtime list  */
 
 int useropcd(ENVIRON *, UOPCODE*);        /* IV - Oct 26 2002 */
 
-void deact(INSDS *ip)           /* unlink single instr from activ chain */
+static void deact(INSDS *ip)    /* unlink single instr from activ chain */
                                 /*      and mark it inactive            */
 {                               /*   close any files in fd chain        */
     INSDS  *nxtp;
@@ -452,21 +455,21 @@ void xturnoff(ENVIRON *csound, INSDS *ip) /* turnoff a particular insalloc */
         }
       }
     }
+    /* remove from schedoff chain first if finite duration */
+    if (frstoff != NULL && ip->offtim >= 0.0) {
+      INSDS *prvip;
+      prvip = frstoff;
+      if (prvip == ip)
+        frstoff = ip->nxtoff;
+      else {
+        while (prvip != NULL && prvip->nxtoff != ip)
+          prvip = prvip->nxtoff;
+        if (prvip != NULL)
+          prvip->nxtoff = ip->nxtoff;
+      }
+    }
     /* if extra time needed: schedoff at new time */
     if (ip->xtratim > 0) {
-      /* remove from chain first, if already finite duration */
-      if (frstoff != NULL && ip->offtim >= 0.0) {
-        INSDS *prvip;
-        prvip = frstoff;
-        if (prvip == ip)
-          frstoff = ip->nxtoff;
-        else {
-          while (prvip != NULL && prvip->nxtoff != ip)
-            prvip = prvip->nxtoff;
-          if (prvip != NULL)
-            prvip->nxtoff = ip->nxtoff;
-        }
-      }
       set_xtratim(csound, ip);
       schedofftim(ip);
     }
@@ -683,7 +686,7 @@ int perferror(char *s)
     putop(&pds->optext->t);
     printf(Str("   note aborted\n"));
     perferrcnt++;
-    deact(ip);                                /* rm ins fr actlist */
+    xturnoff_now(&cenviron, ip);              /* rm ins fr actlist */
     while (pds->nxtp != NULL)
       pds = pds->nxtp;                        /* loop to last opds */
     return perferrcnt;

@@ -1,7 +1,8 @@
 /*
     schedule.c:
 
-    Copyright (C) 1999, 2002 rasmus ekman, Istvan Varga, John ffitch, Gabriel Maldonado, matt ingalls
+    Copyright (C) 1999, 2002 rasmus ekman, Istvan Varga,
+                             John ffitch, Gabriel Maldonado, matt ingalls
 
     This file is part of Csound.
 
@@ -28,7 +29,6 @@
 
 extern INSDS   *instance(int);
 extern void    showallocs(void);
-extern void    deact(INSDS *), schedofftim(INSDS *);
 extern INSDS *insert_event(MYFLT, MYFLT, MYFLT, int, MYFLT **, int);
 
 typedef struct rsched {
@@ -49,84 +49,39 @@ extern void  infoff(MYFLT p1); /* Turn off an indef copy of instr p1          */
 
 #define FZERO (FL(0.0))    /* (Shouldn't there be global decl's for these?) */
 
-void queue_event(MYFLT instr,
-                 MYFLT when,
-                 MYFLT dur,
-                 int narg,
-                 MYFLT **args)
+static void queue_event(ENVIRON *csound,
+                        MYFLT instr, double when, MYFLT dur,
+                        int narg, MYFLT **args)
 {
-    int i, insno;
-    MYFLT starttime;
-    EVTNODE *evtlist, *newnode;
-    EVTBLK  *newevt;
+    EVTBLK        evt;
+    int           i;
 
-    printf("queue_event: %.0f %f %f ...\n", instr, when, dur);
-    insno = (int)instr;
-    if (instrtxtp[insno] == NULL) {
-      printf(Str("schedule event ignored. instr %d undefined\n"), insno);
-      perferrcnt++;
-      return;
-    }
-    /* Create the new event */
-    newnode = (EVTNODE *) mmalloc(&cenviron, (long)sizeof(EVTNODE));
-    newevt = &newnode->evt;
-    newevt->opcod = 'i';
-    /* Set start time from kwhen */
-    starttime = when;
-    if (starttime < FZERO) {
-      starttime = FZERO;
-      if (O.msglevel & WARNMSG)
-        printf(Str("WARNING: schedkwhen warning: negative kwhen reset to zero\n"));
-    }
-    /* Add current time (see note about kadjust in triginset() above) */
-    newnode->kstart = (long)(starttime * global_ekr + FL(0.5));
-    newevt->p2orig = starttime;
-    newevt->p3orig = dur;
-    /* Copy all arguments to the new event */
-    newevt->pcnt = narg;
-    for (i = 0; i < narg-3; i++)
-      newevt->p[i+4] = *args[i];
-    newevt->p[3] = dur;
-    newevt->p[2] = starttime;    /* Set actual start time in p2 */
-    newevt->p[1] = (float)(newnode->insno = insno);
-
-/*      printf("newevt: %c %f %f %f %f %f...\n", newevt->opcod, newevt->p2orig, */
-/*             newevt->p3orig, newevt->p[1], newevt->p[2], newevt->p[3]); */
-
-    /* Insert eventnode in list of generated events */
-    evtlist = &OrcTrigEvts;
-    while (evtlist->nxtevt) {
-      if (newnode->kstart < evtlist->nxtevt->kstart) break;
-      evtlist = evtlist->nxtevt;
-    }
-    newnode->nxtevt = evtlist->nxtevt;
-    evtlist->nxtevt = newnode;
-    O.RTevents = 1;     /* Make sure kperf() looks for RT events */
-    O.ksensing = 1;
-    O.OrcEvts  = 1;     /* - of the appropriate type */
-    return;
+    evt.strarg = NULL;
+    evt.opcod = 'i';
+    evt.pcnt = narg;
+    evt.p[1] = instr;
+    evt.p[2] = FL(0.0);
+    evt.p[3] = dur;
+    for (i = 4; i <= narg; i++)
+      evt.p[i] = *(args[i - 4]);
+    insert_score_event(csound, &evt, when, 0);
 }
 
 /* ********** Need to add turnoff stuff *************** */
-int schedule(SCHED *p)
+int schedule(ENVIRON *csound, SCHED *p)
 {
     RSCHED *rr = kicked;        /* First ensure any stragglers die */
     RSCHED *ss = NULL;          /* really incase of reinit */
     int which;
     while (rr!=NULL) {
       if (rr->parent==p) {
-       if (rr->kicked->xtratim) { /*      if offtime delayed  */
-        rr->kicked->relesing = 1;/*     enter reles phase     */
-        rr->kicked->offtim = (global_kcounter + rr->kicked->xtratim) * global_onedkr;
-        schedofftim(rr->kicked);        /*          & put in offqueue */
-       }
-       else deact(rr->kicked);  /*        else off now        */
-       {
-         RSCHED *tt = rr->next;
-         free(rr);
-         rr = tt;
-         if (ss==NULL) kicked = rr;
-       }
+        xturnoff(csound, rr->kicked);
+        {
+          RSCHED *tt = rr->next;
+          free(rr);
+          rr = tt;
+          if (ss==NULL) kicked = rr;
+        }
       }
       else {
         ss = rr; rr = rr->next;
@@ -155,7 +110,8 @@ int schedule(SCHED *p)
           *xtra = 1;
       }
       if (*p->when == 0.0) {
-        p->kicked = insert_event((MYFLT)which, *p->when+global_kcounter*global_onedkr,
+        p->kicked = insert_event((MYFLT)which,
+                                 (MYFLT)global_kcounter*global_onedkr,
                                  dur, p->INOCOUNT, p->argums, p->midi);
         if (p->midi) {
           rr = (RSCHED*) malloc(sizeof(RSCHED));
@@ -163,8 +119,10 @@ int schedule(SCHED *p)
           kicked = rr;
         }
       }
-      else queue_event((MYFLT)which, *p->when+global_kcounter*global_onedkr, dur,
-                       p->INOCOUNT, p->argums);
+      else
+        queue_event(csound, (MYFLT) which,
+                    (double) *p->when + csound->sensEvents_state.curTime, dur,
+                    p->INOCOUNT, p->argums);
     }
     else
       if (O.odebug) printf("Cannot schedule instr %d at inc time %f\n",
@@ -177,12 +135,7 @@ int schedwatch(ENVIRON *csound, SCHED *p)
     if (p->midi && p->h.insdshead->relesing) {
       p->midi = 0;
       if (p->kicked==NULL) return OK;
-      if (p->kicked->xtratim) { /*        if offtime delayed  */
-        p->kicked->relesing = 1; /*     enter reles phase */
-        p->kicked->offtim = (global_kcounter + p->kicked->xtratim) * global_onedkr;
-        schedofftim(p->kicked); /*              & put in offqueue */
-      }
-      else deact(p->kicked);    /*        else off now            */
+      xturnoff(csound, p->kicked);
       {
         RSCHED *rr = kicked;
         RSCHED *ss = NULL;
@@ -206,7 +159,8 @@ int schedwatch(ENVIRON *csound, SCHED *p)
 int ifschedule(ENVIRON *csound, WSCHED *p)
 {                       /* All we need to do is ensure the trigger is set */
     p->todo = 1;
-    p->abs_when = curip->p2;            /* Adjust time */
+    p->abs_when =
+              (MYFLT) ((double) curip->p2 + csound->sensEvents_state.timeOffs);
     p->midi = 0;
     return OK;
 }
@@ -227,26 +181,23 @@ int kschedule(ENVIRON *csound, WSCHED *p)
                                 /* Insert event */
       if (*p->when==0) {
         p->kicked = insert_event((MYFLT)which, p->abs_when, dur,
-                                 p->INOCOUNT-4, p->argums, p->midi);
+                                 p->INOCOUNT-1, p->argums, p->midi);
         if (p->midi) {
           rr = (RSCHED*) malloc(sizeof(RSCHED));
           rr->parent = p; rr->kicked = p->kicked; rr->next = kicked;
           kicked = rr;
         }
       }
-      else queue_event((MYFLT)which, *p->when+p->abs_when, dur,
-                       p->INOCOUNT-4, p->argums);
+      else
+        queue_event(csound, (MYFLT) which,
+                    (double) *p->when + (double) p->abs_when, dur,
+                    p->INOCOUNT-1, p->argums);
     }
     else if (p->midi && p->h.insdshead->relesing) {
                                 /* If MIDI case watch for release */
       p->midi = 0;
       if (p->kicked==NULL) return OK;
-      if (p->kicked->xtratim) { /*        if offtime delayed  */
-        p->kicked->relesing = 1;/*      enter reles phase     */
-        p->kicked->offtim = (global_kcounter + p->kicked->xtratim) * global_onedkr;
-        schedofftim(p->kicked); /*          & put in offqueue */
-      }
-      else deact(p->kicked);    /*        else off now        */
+      xturnoff(csound, p->kicked);
       {
         RSCHED *rr = kicked;
         RSCHED *ss = NULL;
@@ -414,11 +365,13 @@ int lfoa(ENVIRON *csound, LFO *p)
 /******************************************************************************/
 
 /* Called from kperf() to see if any event to turn on */
-int sensOrcEvent(void)
+int sensOrcEvent(ENVIRON *csound)
 {
-    if (OrcTrigEvts.nxtevt && OrcTrigEvts.nxtevt->kstart <= global_kcounter)
-      return(4);    /* sensType value (0=score,1=line,2=midi) */
-    else return(0);
+    if (csound->OrcTrigEvts != NULL &&
+        csound->OrcTrigEvts->start_kcnt <= (unsigned long) global_kcounter)
+      return 4;     /* sensType value (0=score,1=line,2=midi) */
+    else
+      return 0;
 }
 
 int ktriginstr(ENVIRON *csound, TRIGINSTR *p);
@@ -444,126 +397,93 @@ int triginset(ENVIRON *csound, TRIGINSTR *p)
     return OK;
 }
 
-
-int ktriginstr(ENVIRON *csound, TRIGINSTR *p)
-{         /* k-rate event generator */
-    int i, absinsno, argnum;
-    MYFLT insno, starttime;
-    EVTNODE *evtlist, *newnode;
-    EVTBLK  *newevt;
-
-    if (*p->trigger == FZERO) /* Only do something if triggered */
-      return OK;
+static int get_absinsno(ENVIRON *csound, TRIGINSTR *p)
+{
+    int insno;
 
     /* Get absolute instr num */
     /* IV - Oct 31 2002: allow string argument for named instruments */
     /* Instrument cannot be S and k so this does not work yet */
     if (*p->args[0] == SSTRCOD) {
-      if (p->STRARG!=NULL) {
-        if ((absinsno = (int) strarg2insno_p(p->STRARG)) < 1) return NOTOK;
-      }
-      else {
-        if ((absinsno = (int) strarg2insno_p(currevent->strarg)) <1) return NOTOK;
-      }
-      insno = (MYFLT) absinsno;
+      if (p->STRARG != NULL)
+        insno = (int) strarg2insno_p(p->STRARG);
+      else
+        insno = (int) strarg2insno_p(currevent->strarg);
     }
-    else {
-      absinsno = abs((int) (insno = *p->args[0]));
+    else
+      insno = (int) fabs((double) *p->args[0]);
     /* Check that instrument is defined */
-    if (absinsno > maxinsno || instrtxtp[absinsno] == NULL) {
-      printf(Str("schedkwhen ignored. Instrument %d undefined\n"),
-             absinsno);
+    if (insno < 1 || insno > maxinsno || instrtxtp[insno] == NULL) {
+      printf(Str("schedkwhen ignored. Instrument %d undefined\n"), insno);
       perferrcnt++;
-      return NOTOK;
-      }
+      return -1;
     }
+    return insno;
+}
 
-    /* On neg instrnum to turn off a held copy, skip mintime/maxinst tests */
-    if (insno >= FZERO) {
-      /* On neg instrnum, turn off a held copy.
-         (Regardless of mintime/maxinst) */
-      if (insno < FZERO) {
-        infoff(-insno);
+int ktriginstr(ENVIRON *csound, TRIGINSTR *p)
+{         /* k-rate event generator */
+    double  starttime;
+    int     i, argnum;
+    EVTBLK  evt;
+
+    if (*p->trigger == FZERO) /* Only do something if triggered */
+      return OK;
+
+    /* Check if mintime has changed */
+    if (p->prvmintim != *p->mintime) {
+      long timrem = (int)(*p->mintime * global_ekr + FL(0.5));
+      if (timrem > 0) {
+        /* Adjust countdown for new mintime */
+        p->timrem += timrem - p->prvktim;
+        p->prvktim = timrem;
+      } else timrem = 0;
+      p->prvmintim = *p->mintime;
+    }
+    /* Check for rate limit on event generation and count down */
+    if (*p->mintime > FZERO && --p->timrem > 0)
+      return OK;
+    /* See if there are too many instances already */
+    if (*p->maxinst >= FL(1.0) &&
+        (*p->args[0] >= FL(0.0) || *p->args[0] == SSTRCOD)) {
+      INSDS *ip;
+      int absinsno, numinst = 0;
+      /* Count active instr instances */
+      absinsno = get_absinsno(csound, p);
+      if (absinsno < 1)
+        return NOTOK;
+      ip = &actanchor;
+      while ((ip = ip->nxtact) != NULL)
+        if (ip->insno == absinsno) numinst++;
+      if (numinst >= (int)*p->maxinst)
         return OK;
-      }
-
-      /* Check if mintime has changed */
-      if (p->prvmintim != *p->mintime) {
-        long timrem = (int)(*p->mintime * global_ekr + FL(0.5));
-        if (timrem > 0) {
-          /* Adjust countdown for new mintime */
-          p->timrem += timrem - p->prvktim;
-          p->prvktim = timrem;
-        } else timrem = 0;
-        p->prvmintim = *p->mintime;
-      }
-
-      /* Check for rate limit on event generation and count down */
-      if (*p->mintime > FZERO && --p->timrem > 0)
-        return OK;
-
-      /* See if there are too many instances already */
-      if (*p->maxinst >= FL(1.0)) {
-        INSDS *ip;
-        int numinst = 0;
-        /* Count active instr instances */
-        ip = &actanchor;
-        while ((ip = ip->nxtact) != NULL)
-          if (ip->insno == absinsno) numinst++;
-        if (numinst >= (int)*p->maxinst)
-          return OK;
-      }
-    } /* end test for non-turnoff events (pos insno) */
+    }
 
     /* Create the new event */
-    newnode = (EVTNODE *) mmalloc(csound, (long)sizeof(EVTNODE));
-    newevt = &newnode->evt;
-    newevt->opcod = 'i';
-    /* Set start time from kwhen */
-    starttime = *p->args[1];
-    if (starttime < FZERO) {
-      starttime = FZERO;
-      if (O.msglevel & WARNMSG)
-        printf(Str("WARNING: schedkwhen warning: negative kwhen reset to zero\n"));
-    }
+    if (*p->args[0] == SSTRCOD)
+      evt.strarg = (p->STRARG != NULL ? p->STRARG : currevent->strarg);
+    else
+      evt.strarg = NULL;
+    evt.opcod = 'i';
+    evt.pcnt = argnum = p->INOCOUNT - 3;
     /* Add current time (see note about kadjust in triginset() above) */
-    starttime += (MYFLT)(global_kcounter + p->kadjust) * global_onedkr;
-    newnode->kstart = (long)(starttime * global_ekr + FL(0.5));
-    newevt->p2orig = starttime;
-    newevt->p3orig = *p->args[2];
+    starttime = (double) (global_kcounter+p->kadjust) * (double) global_onedkr;
     /* Copy all arguments to the new event */
-    newevt->pcnt = argnum = p->INOCOUNT-3;
     for (i = 0; i < argnum; i++)
-      newevt->p[i+1] = *p->args[i];
-    newevt->p[2] = starttime;    /* Set actual start time in p2 */
-
-    newnode->insno = absinsno;
-    /* Set event activation time in k-cycles */
-    newnode->kstart = (long)(starttime * global_ekr + FL(0.5));
-
-    /* Insert eventnode in list of generated events */
-    evtlist = &OrcTrigEvts;
-    while (evtlist->nxtevt) {
-      EVTNODE *nextlistevt = evtlist->nxtevt;
-      if (newnode->kstart < nextlistevt->kstart) break;
-      /* Sort events starting at same time by instr number (re dec 01) */
-      if (newnode->kstart == nextlistevt->kstart &&
-          newnode->insno == nextlistevt->insno &&
-          newnode->evt.p[1] <= nextlistevt->evt.p[1])
-        break;
-      evtlist = evtlist->nxtevt;
+      evt.p[i + 1] = *p->args[i];
+    /* Set start time from kwhen */
+    if (evt.p[2] < FZERO) {
+      evt.p[2] = FZERO;
+      if (O.msglevel & WARNMSG)
+        printf(Str("WARNING: schedkwhen warning: "
+                   "negative kwhen reset to zero\n"));
     }
-    newnode->nxtevt = evtlist->nxtevt;
-    evtlist->nxtevt = newnode;
-    O.RTevents = 1;     /* Make sure kperf() looks for RT events */
-    O.ksensing = 1;
-    O.OrcEvts  = 1;     /* - of the appropriate type */
-
     /* Reset min pause counter */
     if (*p->mintime > FZERO)
-      p->timrem = (long)(*p->mintime * global_ekr + FL(0.5));
-    else p->timrem = 0;
-    return OK;
+      p->timrem = (long) (*p->mintime * global_ekr + FL(0.5));
+    else
+      p->timrem = 0;
+    return (insert_score_event(csound, &evt, starttime, 0) == 0 ? OK : NOTOK);
 }
 
 /* Maldonado triggering of events */

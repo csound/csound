@@ -77,16 +77,10 @@
 using namespace std ;
 
 extern "C" {
-  //#undef __cplusplus
 #include "cs.h"
 #include "oload.h"
-  //#define __cplusplus
-  //    extern EVTBLK *currevent;    IV - Aug 23 2002
   extern char *unquote(char *name);
-#if defined(LINUX) || defined (NETBSD) || defined(__MACH__)
-  extern int cleanup();
-  extern long srngcnt[], orngcnt[];   // from musmon.c
-#endif
+  extern int cleanup(void *csound);
 }
 #undef exit
 
@@ -124,8 +118,6 @@ static void awake(ENVIRON *csound)
   Fl::awake();
 #endif
 }
-
-extern "C" void deact(ENVIRON *, INSDS*);
 
 static char hack_o_rama1;       // IV - Aug 23 2002
 static char hack_o_rama2;
@@ -172,78 +164,23 @@ FLkeyboard_init(void)
 extern "C" {
 #endif /* defined(__cplusplus) */
 
-  static void infoff(ENVIRON *csound, MYFLT p1) /*  turn off an indef copy of instr p1  */
-  {                               /*      called by musmon                */
-    INSDS *ip;
-    int   insno;
-    //      extern INSTRTXT **instrtxtp;       IV - Aug 23 2002
-    insno = (int)p1;
-    if ((ip = (instrtxtp[insno])->instance) != NULL) {
-      do {
-        if (ip->insno == insno              /* if find the insno */
-            && ip->actflg                   /*      active       */
-            //&& ip->offtim < 0             /*      but indef,   */
-            && ip->p1 == p1) {
-          //VMSG(printf("turning off inf copy of instr %d\n",insno);)
-          printf("turning off inf copy of instr %d\n",insno);
-          deact(csound, ip);
-          return;                           /*  turn it off */
-        }
-      } while ((ip = ip->nxtinstance) != NULL);
-    }
-    //printf(Str("could not find indefinitely playing instr %d\n"),insno);
-  }
-
-  void ButtonSched(ENVIRON *csound, MYFLT  *args[], int numargs)
+  void ButtonSched(ENVIRON *csound, MYFLT *args[], int numargs)
   { /* based on code by rasmus */
-    int i, absinsno, argnum;
-    MYFLT insno, starttime;
-    EVTNODE *evtlist, *newnode;
-    EVTBLK  *newevt;
+    EVTBLK  evt;
+    int     i;
 
-    /* Get absolute instr num */
-    insno = *args[1];
-    if (insno < FL(0.0)) {
-      infoff(csound, -insno);
-      return;
-    }
-    absinsno = abs((int)insno);
     /* Create the new event */
-    newnode = (EVTNODE *) mmalloc(csound, (long)sizeof(EVTNODE));
-    newevt = &newnode->evt;
-    newevt->opcod = (char) *args[0];
-    if (newevt->opcod == 0) newevt->opcod = 'i';
-    /* Set start time from kwhen */
-    starttime = *args[2];
-    if (starttime < FL(0.0)) {
-      starttime = FL(0.0);
-    }
-    /* Add current time (see note about kadjust in triginset() above) */
-    starttime += (MYFLT) (global_kcounter-1L) * global_onedkr;  // IV - Sep 8 2002
-    newnode->kstart = (long)(starttime * global_ekr + FL(0.5)); // IV - Sep 8 2002
-    newevt->p2orig = starttime;
-    newevt->p3orig = *args[3];
-    /* Copy all arguments to the new event */
-    newevt->pcnt = (argnum = numargs) -1;
-    for (i = 1; i < argnum; i++)
-      newevt->p[i] = *args[i];
-    newevt->p[2] = starttime;    /* Set actual start time in p2 */
-
-    newnode->insno = absinsno;
-    /* Set event activation time in k-cycles */
-    newnode->kstart = (long)(starttime * global_ekr + FL(0.5)); // IV - Sep 8 2002
-
-    /* Insert eventnode in list of generated events */
-    evtlist = &OrcTrigEvts;
-    while (evtlist->nxtevt) {
-      if (newnode->kstart < evtlist->nxtevt->kstart) break;
-      evtlist = evtlist->nxtevt;
-    }
-    newnode->nxtevt = evtlist->nxtevt;
-    evtlist->nxtevt = newnode;
-    O.RTevents = 1;     /* Make sure kperf() looks for RT events */
-    O.ksensing = 1;
-    O.OrcEvts  = 1;     /* - of the appropriate type */
+    evt.strarg = NULL;
+    evt.opcod = (char) *args[0];
+    if (evt.opcod == '\0')
+      evt.opcod = 'i';
+    evt.pcnt = numargs - 1;
+    evt.p[1] = evt.p[2] = evt.p[3] = FL(0.0);
+    for (i = 1; i < numargs; i++)
+      evt.p[i] = *args[i];
+    if (evt.p[2] < FL(0.0))
+      evt.p[2] = FL(0.0);
+    insert_score_event(csound, &evt, csound->sensEvents_state.curTime, 0);
   }
 
 #if defined(__cplusplus)
@@ -1728,13 +1665,7 @@ static void __cdecl fltkRun(void *userdata)
   csound->Printf("end of widget thread\n");
 #if defined(LINUX) || defined(NETBSD)
   // IV - Aug 27 2002: exit if all windows are closed
-  for (j = 0; j < nchnls; j++) {              // set overall maxamp
-    orngcnt[j] += (rngcnt[j] + srngcnt[j]);   // based on current section
-    rngcnt[j] = srngcnt[j] = 0;               // and note
-    if (maxamp[j] > omaxamp[j]) omaxamp[j] = maxamp[j];
-    if (smaxamp[j] > omaxamp[j]) omaxamp[j] = smaxamp[j];
-  }
-  cleanup();
+  cleanup(csound);
   exit(0);
 #endif
 }

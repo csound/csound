@@ -320,7 +320,7 @@ ENVIRON cenviron_ = {
         {NULL},         /*      actanchor */
         {0L },          /*      rngcnt */
         0, 0,           /*      rngflg, multichan */
-        {{NULL}},       /*      OrcTrigEvts */
+        NULL,           /*      OrcTrigEvts */
         "",             /*      full_name */
         0, 0, 0,        /*      Mforcdecs, Mxtroffs, MTrkend */
         FL(-1.0), FL(-1.0), /*  tran_sr,tran_kr */
@@ -332,7 +332,7 @@ ENVIRON cenviron_ = {
         NULL,           /*      hostData */
         NULL,           /*      opcodeInfo  */
         NULL,           /*      instrumentNames */
-        FL(0.0),        /* dbfs_to_float ( = 1.0 / e0dbfs) */
+        FL(1.0) / DFLT_DBFS, /* dbfs_to_float ( = 1.0 / e0dbfs) */
         1024,           /*      rtin_dev */
         NULL,           /*      rtin_devs */
         1024,           /*      rtout_dev */
@@ -356,7 +356,7 @@ ENVIRON cenviron_ = {
         0,              /* namedGlobalsCurrLimit */
         0,              /* namedGlobalsMaxLimit */
         NULL,           /* cfgVariableDB */
-        { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0 },   /* sensEvents_state */
+        { 0.0 },        /* sensEvents_state */
         NULL,           /* rtRecord_userdata */
         NULL,           /* rtPlay_userdata */
         NULL,           /* memalloc_db */
