@@ -4,9 +4,7 @@ MICHAEL GOGINS FOR CSOUND 5
 For more information about Loris, please see http://loris.sourceforge.net.
 
 I have created the two lorisgens5.h and lorisgens5.C files to build and run 
-with csound5, and I have placed a prebuilt _loris.dll in the csound5
-directory. This is a MinGW build for Windows with USE_DOUBLE
-defined.
+with csound5.
 
 _loris.dll is a Csound plugin opcode, and it is also a Python extension 
 module (along with loris.py, also committed in csound5 along with the 
