@@ -50,18 +50,18 @@ void twarp(void)        /* time-warp a score section acc to T-statement */
     MYFLT absp3, endtime, realt(MYFLT);
     int negp3;
 
-    if ((bp = frstbp) == NULL)              /* if null file,        */
+    if ((bp = frstbp) == NULL)              /* if null file,         */
       return;
-    while (bp->text[0] != 't')              /*  or cannot find a t, */
+    while (bp->text[0] != 't')              /*  or cannot find a t,  */
       if ((bp = bp->nxtblk) == NULL)
-        return;                             /*      we're done      */
+        return;                             /*      we are done      */
     bp->text[0] = 'w';                      /* else mark the t used  */
     if (!realtset(bp))                      /*  and init the t-array */
       return;                               /* (done if t0 60 or err) */
     bp  = frstbp;
     negp3 = 0;
     do {
-      switch(bp->text[0]) {                 /* else warp all timvals */
+      switch (bp->text[0]) {                /* else warp all timvals */
       case 'i':
         if ((absp3 = bp->newp3) < 0) {
           absp3 = -absp3;
@@ -109,30 +109,30 @@ int realtset(SRTBLK *bp)
     tp = tpsave = tseg;
     if (bp->pcnt < 2)
       goto error1;
-    p = bp->text;                             /* first go to p1       */
+    p = bp->text;                             /* first go to p1        */
     p += 2;
-    if ((tp->betbas = stof(p)) != 0)          /* betbas1 must be zero */
+    if ((tp->betbas = stof(p)) != 0)          /* betbas1 must be zero  */
       goto error1;
     while ((c = *p++) != SP)
       ;
-    if ((tempo = stof(p)) <= 0)               /* durbas = 60/tempo    */
+    if ((tempo = stof(p)) <= 0)               /* durbas = 60/tempo     */
       goto error2;
     if (bp->pcnt == 2 && tempo == FL(60.0))   /* just t0 60 means done */
       return(0);
     tp->durbas = FL(60.0)/tempo;
-    tp->timbas = FL(0.0);                     /* timbas1 = 0          */
+    tp->timbas = FL(0.0);                     /* timbas1 = 0           */
     while ((c = *p++) != SP && c != LF)
       ;
     while (c != LF) {                         /* for each time-tempo pair: */
       prvtp = tp;
       if (++tp > tplim)
         goto error3;
-      tp->betbas = stof(p);                   /* betbas = time    */
+      tp->betbas = stof(p);                   /* betbas = time         */
       while ((c = *p++) != SP && c != LF)
         ;
       if (c == LF)
         goto error1;
-      if ((tempo = stof(p)) <= 0)             /* get tempo         */
+      if ((tempo = stof(p)) <= 0)             /* get tempo             */
         goto error2;
       if ((betspan = tp->betbas - prvtp->betbas) <= 0) {
         if (betspan < 0)                      /* if time = lastime */
@@ -178,5 +178,5 @@ MYFLT realt(MYFLT srctim)
     while ((diff = srctim - tp->betbas) < FL(0.0))
       tp--;
     tpsave = tp;
-    return((tp->durslp * diff + tp->durbas) * diff + tp->timbas);
+    return ((tp->durslp * diff + tp->durbas) * diff + tp->timbas);
 }

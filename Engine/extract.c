@@ -54,7 +54,7 @@ void readxfil(FILE *xfp)        /* read the extract control file */
     while (fscanf(xfp, "%s", s) != EOF) {
       char *c = s;
       int i;
-      switch(*c) {
+      switch (*c) {
       case 'i':
         all = 0;
       case 'f':
@@ -62,7 +62,7 @@ void readxfil(FILE *xfp)        /* read the extract control file */
         flag = *c++;
         break;
       default:
-        switch(flag) {
+        switch (flag) {
         case 'i':
           sscanf(s, "%d", &i);
           inslst[i] = 1;
@@ -111,73 +111,43 @@ void extract(void)      /* extract instr events within the time period */
 
     frstout = prvout = NULL;
     if (sectno < onsect) {                  /* for sects preceding, */
-      do  switch(bp->text[0]) {
-      case 'f':                 /*   include f's at time 0 */
-        bp->p2val = bp->newp2 = FL(1.0);        /* time 1 for now!!*/
-        include(bp);
-        break;
-      case 'w':
-      case 's':
-      case 'e':
-        include(bp);            /*   incl w,s,e verbatim  */
-        break;
-      case 't':
-      case 'i':
-      case 'a':
-        break;                  /*   but skip all t,i,a   */
-      }
-      while ((bp = bp->nxtblk) != NULL);
+      do {
+        switch (bp->text[0]) {
+        case 'f':                           /* include f's at time 0 */
+          bp->p2val = bp->newp2 = FL(1.0);  /* time 1 for now!!     */
+          include(bp);
+          break;
+        case 'w':
+        case 's':
+        case 'e':
+          include(bp);                      /*   incl w,s,e verbatim  */
+          break;
+        case 't':
+        case 'i':
+        case 'a':
+          break;                            /*   but skip all t,i,a   */
+        }
+      } while ((bp = bp->nxtblk) != NULL);
     }
     else {                                  /* for sections in timespan: */
-      do  switch(bp->text[0]) {
-      case 'w':
-        warped = realtset(bp);
-        if (sectno == onsect && warped)
-          ontime = a0.newp3 = realt(onbeat);
-        if (sectno == offsect && warped)
-          offtime = f0.newp2 = realt(offbeat);
-        include(bp);
-        break;
-      case 't':
-        include(bp);
-        break;
-      case 'f':
-      casef: if (sectno == onsect && bp->newp2 < ontime)
-        bp->newp2 = ontime;
-      else if (sectno == offsect && bp->newp2 > offtime)
-        break;
-      if (sectno == onsect && !a0done) {
-        if (onbeat > 0)
-          include(&a0);
-        a0done++;
-      }
-      include(bp);
-      break;
-      case 'i':
-        if (!inslst[bp->insno]) /* skip insnos not required */
+      do {
+        switch(bp->text[0]) {
+        case 'w':
+          warped = realtset(bp);
+          if (sectno == onsect && warped)
+            ontime = a0.newp3 = realt(onbeat);
+          if (sectno == offsect && warped)
+            offtime = f0.newp2 = realt(offbeat);
+          include(bp);
           break;
-        if (bp->newp3 < 0)      /* treat indef dur like f */
-          goto casef;
-      case 'a':turnoff = bp->newp2 + bp->newp3;   /* i and a: */
-        if (sectno == onsect) {
-          if (turnoff < ontime)
-            break;
-          if ((anticip = ontime - bp->newp2) > 0) {
-            if ((bp->newp3 -= anticip) < FL(0.001))
-              break;
-            bp->p3val -= onbeat - bp->p2val;
-            bp->newp2 = ontime;
-            bp->p2val = onbeat;
-          }
-        }
-        if (sectno == offsect) {
-          if (bp->newp2 >= offtime)
-            break;
-          if (turnoff > offtime) {
-            bp->newp3 = offtime - bp->newp2;
-            bp->p3val = offbeat - bp->p2val;
-          }
-        }
+        case 't':
+          include(bp);
+          break;
+        case 'f':
+        casef: if (sectno == onsect && bp->newp2 < ontime)
+          bp->newp2 = ontime;
+        else if (sectno == offsect && bp->newp2 > offtime)
+          break;
         if (sectno == onsect && !a0done) {
           if (onbeat > 0)
             include(&a0);
@@ -185,16 +155,48 @@ void extract(void)      /* extract instr events within the time period */
         }
         include(bp);
         break;
-      case 's':
-      case 'e':
-        if (sectno == offsect) {
-          include(&f0);
-          include(&e);
+        case 'i':
+          if (!inslst[bp->insno]) /* skip insnos not required */
+            break;
+          if (bp->newp3 < 0)      /* treat indef dur like f */
+            goto casef;
+        case 'a':turnoff = bp->newp2 + bp->newp3;   /* i and a: */
+          if (sectno == onsect) {
+            if (turnoff < ontime)
+              break;
+            if ((anticip = ontime - bp->newp2) > 0) {
+              if ((bp->newp3 -= anticip) < FL(0.001))
+                break;
+              bp->p3val -= onbeat - bp->p2val;
+              bp->newp2 = ontime;
+              bp->p2val = onbeat;
+            }
+          }
+          if (sectno == offsect) {
+            if (bp->newp2 >= offtime)
+              break;
+            if (turnoff > offtime) {
+              bp->newp3 = offtime - bp->newp2;
+              bp->p3val = offbeat - bp->p2val;
+            }
+          }
+          if (sectno == onsect && !a0done) {
+            if (onbeat > 0)
+              include(&a0);
+            a0done++;
+          }
+          include(bp);
+          break;
+        case 's':
+        case 'e':
+          if (sectno == offsect) {
+            include(&f0);
+            include(&e);
+          }
+          else include(bp);
+          break;
         }
-        else include(bp);
-        break;
-      }
-      while ((bp = bp->nxtblk) != NULL);
+      } while ((bp = bp->nxtblk) != NULL);
     }
     frstbp = frstout;
     if (prvout != NULL)

@@ -58,7 +58,7 @@ void swrite(void)
     c = *p++;
     putc(c,SCOREOUT);
     isntAfunc = 1;
-    switch(c) {
+    switch (c) {
     case 'f':
       isntAfunc = 0;
     case 'q':
@@ -123,7 +123,7 @@ void swrite(void)
 
 static char *pfout(SRTBLK *bp, char *p)
 {
-    switch(*p) {
+    switch (*p) {
     case 'n':
       p = nextp(bp,p);
       break;

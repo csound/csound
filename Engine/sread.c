@@ -611,9 +611,9 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
 
     while ((op = getop()) != EOF) {  /* read next op from scorefile */
       rtncod = 2;
-      salcblk();       /* build a line structure; init bp,nxp */
+      salcblk();             /* build a line structure; init bp,nxp */
     again:
-      switch(op) {            /*  and dispatch on opcodes     */
+      switch (op) {                 /*  and dispatch on opcodes     */
       case 'i':
       case 'f':
       case 'a':
@@ -1045,7 +1045,7 @@ static void ifa(void)
       break;
       default:break;
       }
-      switch(bp->pcnt) {              /* newp2, newp3:        */
+      switch (bp->pcnt) {             /* newp2, newp3:        */
       case 2: if (warpin) {                   /* for warpin,  */
         getpfld();                         /*   newp2 follows */
         bp->newp2 = warp_factor*stof(sp)+clock_base;
@@ -1141,7 +1141,7 @@ static void pcopy(int pfno, int ncopy, SRTBLK *prvbp)
           ;
         *p++ = *pp++;
       }
-      switch(pfno) {
+      switch (pfno) {
       case 1: bp->p1val = prvbp->p1val;       /*  with p1-p3 vals */
         setprv();
         break;
@@ -1445,7 +1445,7 @@ static int getop(void)          /* get next legal opcode */
  nextc:
     c = sget1();                    /* get first active char */
 
-    switch(c) {                     /*   and check legality  */
+    switch (c) {                    /*   and check legality  */
     case 'a':
     case 'b':           /* Reset base clock */
     case 'e':           /* End of all */

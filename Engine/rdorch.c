@@ -1331,7 +1331,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
       }
       else if (incnt < nreqd) {         /*  or set defaults: */
         do {
-          switch(types[incnt]) {
+          switch (types[incnt]) {
           case 'k':             /* Will this work?  Doubtful code.... */
           case 'o': nxtarglist->arg[incnt++] = strsav("0");
             break;
@@ -1519,7 +1519,7 @@ static void intyperr(int n, char tfound, char expect)
         char *s = grpsav[opgrpno + n];
         char t[10];
 
-        switch(tfound) {
+        switch (tfound) {
         case 'd':
         case 'w':
         case 'f':

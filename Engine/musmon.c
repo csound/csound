@@ -671,7 +671,7 @@ static int playevents(void)  /* play all events in a score or an lplay list */
           }
         }
       }
-      else switch(e->opcod) {          /* scorevt or Linevt:     */
+      else switch (e->opcod) {         /* scorevt or Linevt:     */
       case 'e':
         goto scode;             /* quit realtime */
       case 'q':
@@ -911,7 +911,7 @@ int sensevents(void)
     retest:
       offonly = 0;
       currevent = e;
-      switch(e->opcod) {
+      switch (e->opcod) {
       case 'w':
         if (O.Beatmode)                     /* Beatmode: read 'w'  */
           settempo(e->p2orig);              /*   to init the tempo */
