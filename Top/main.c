@@ -268,9 +268,13 @@ static void signal_handler(int sig)
 static void install_signal_handler(void)
 {
     int *x;
-#if defined(LINUX) || defined(SGI) || defined(sol) || defined(__MACH__)
+#if defined(LINUX) || defined(SGI) || defined(sol)
     int sigs[] = { SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGTRAP, SIGABRT, SIGIOT,
                    SIGBUS, SIGFPE, SIGSEGV, SIGPIPE, SIGALRM, SIGTERM, SIGXCPU,
+                   SIGXFSZ, -1};
+#elif defined(__MACH__)
+    int sigs[] = { SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGTRAP, SIGABRT, SIGIOT,
+                   SIGBUS, SIGFPE, SIGSEGV, SIGPIPE,          SIGTERM, SIGXCPU,
                    SIGXFSZ, -1};
 #elif defined(CSWIN)
     int sigs[] = { SIGHUP, SIGINT, SIGQUIT, -1};
@@ -286,6 +290,9 @@ static void install_signal_handler(void)
 
     for (x = sigs; *x > 0; x++)
       signal(*x, signal_handler);
+#if defined(__MACH__)
+    signal(SIGALRM, SIG_IGN);
+#endif
 }
 
 void create_opcodlst(void *csound)
