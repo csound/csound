@@ -130,9 +130,6 @@ opts.Add('Word64',
 opts.Add('dynamicCsoundLibrary',
     'Build dynamic Csound library instead of libcsound.a',
     '0')
-opts.Add('install',
-    'Install system',
-    '0')
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -1070,18 +1067,16 @@ OPCODE_DIR = PREFIX + "/lib/csound/opcodes"
 INCLUDE_DIR = PREFIX + "/include/csound"
 LIB_DIR = PREFIX + "/lib"
 
-if commonEnvironment['install']=='1':
-    installExecutables = Alias('install-executables',
-        Install(BIN_DIR, executables))
-        
-    installOpcodes = Alias('install-opcodes',
-        Install(OPCODE_DIR, pluginLibraries))
+installExecutables = Alias('install-executables',
+    Install(BIN_DIR, executables))
 
-    installHeaders = Alias('install-headers',
-        Install(INCLUDE_DIR, headers))
+installOpcodes = Alias('install-opcodes',
+    Install(OPCODE_DIR, pluginLibraries))
 
-    installLibs = Alias('install-libs',
-        Install(LIB_DIR, libs))
+installHeaders = Alias('install-headers',
+    Install(INCLUDE_DIR, headers))
 
-    Alias('install', [installExecutables, installOpcodes, installLibs, installHeaders, installLibs])
+installLibs = Alias('install-libs',
+    Install(LIB_DIR, libs))
 
+Alias('install', [installExecutables, installOpcodes, installLibs, installHeaders])
