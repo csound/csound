@@ -90,7 +90,7 @@ opts.Add('generatePDF',
     0)
 opts.Add('makeDynamic',
     'Set to 1 to generate dynamically linked programs',
-    0)
+    1)
 opts.Add('generateXmg',
     'Set to 1 to generate string database',
     1)
@@ -165,7 +165,7 @@ elif getPlatform() == 'mingw' or getPlatform() == 'cygwin':
 if (commonEnvironment['makeDynamic'] == 0) and (getPlatform() != 'linux'):
     commonEnvironment.Append(LINKFLAGS = '-static')
 else:
-    commonEnvironment.Append(LINKFLAGS = Split('-Wl,-Bdynamic --no-allow-shlib-undefined'))
+    commonEnvironment.Append(LINKFLAGS = Split('-Wl,-Bdynamic'))
 
 # Adding libraries and flags if using -mno-cygwin with cygwin
 
