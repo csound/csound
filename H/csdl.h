@@ -24,10 +24,6 @@
 #include "cs.h"
 #include <limits.h>
 
-#undef ksmps_
-#undef esr_
-#undef ekr_
-#undef nchnls_
 #undef reset_list
 #undef strsets
 #undef strsmax
@@ -98,10 +94,6 @@
 #undef mpidsr
 #undef mtpdsr
 
-#define ksmps_              csound->ksmps
-#define esr_                csound->esr
-#define ekr_                csound->ekr
-#define nchnls_             csound->nchnls
 #define reset_list          csound->reset_list_
 #define strsets             csound->strsets_
 #define strsmax             csound->strsmax_

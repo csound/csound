@@ -81,7 +81,7 @@ int buzz(ENVIRON *csound, BUZZ *p)
     inc = (long)(*cpsp * sicvt2);
     ar = p->ar;
     phs = p->lphs;
-    nn = ksmps;
+    nn = csound->ksmps;
     do {
       dwnphs = phs >> lobits;
       denom = *(ftbl+dwnphs);
@@ -175,7 +175,7 @@ int gbuzz(ENVIRON *csound, GBUZZ *p)
     scal =  *ampp * p->rsumr;
     inc = (long)(*cpsp * sicvt);
     ar = p->ar;
-    nn = ksmps;
+    nn = csound->ksmps;
     do {
       phs = lphs >>lobits;
       denom = p->rsqp1 - p->twor * *(ftbl + phs);
@@ -215,7 +215,7 @@ int plukset(ENVIRON *csound, PLUCK *p)
     MYFLT       *ap, *fp;
     MYFLT       phs, phsinc;
 
-    if ((npts = (long)(esr / *p->icps))<PLUKMIN)  /* npts is wavelen in sampls */
+    if ((npts = (long)(csound->esr / *p->icps))<PLUKMIN)  /* npts is wavelen in sampls */
       npts = PLUKMIN;                   /*  (but at least min size)  */
     if ((auxp = p->auxch.auxp) == NULL ||
         npts > p->maxpts) {     /* get newspace    */
@@ -295,7 +295,7 @@ int pluck(ENVIRON *csound, PLUCK *p)
     if (phsinc > ltwopi) {
       return csound->PerfError(csound, Str("pluck: kcps more than sample rate"));
     }
-    nsmps = ksmps;
+    nsmps = csound->ksmps;
     do {
       offset = phs256 >> 8;
       fp = (MYFLT *)p->auxch.auxp + offset;     /* lookup position  */
@@ -502,7 +502,7 @@ int krand(ENVIRON *csound, RAND *p)
 int arand(ENVIRON *csound, RAND *p)
 {
     MYFLT       *ar;
-    short       rndmul = RNDMUL, n = ksmps;
+    short       rndmul = RNDMUL, n = csound->ksmps;
     MYFLT       ampscl;
     MYFLT       base = *p->base;
 
@@ -624,7 +624,7 @@ int krandh(ENVIRON *csound, RANDH *p)
 int randh(ENVIRON *csound, RANDH *p)
 {
     long        phs = p->phs, inc;
-    int n = ksmps;
+    int n = csound->ksmps;
     MYFLT       *ar, *ampp, *cpsp;
     MYFLT       base = *p->base;
 
@@ -754,7 +754,7 @@ int krandi(ENVIRON *csound, RANDI *p)
 int randi(ENVIRON *csound, RANDI *p)
 {
     long        phs = p->phs, inc;
-    int         n = ksmps;
+    int         n = csound->ksmps;
     MYFLT       *ar, *ampp, *cpsp;
     MYFLT       base = *p->base;
 

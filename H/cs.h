@@ -33,10 +33,6 @@ extern "C" {
 
 #include "csoundCore.h"
 
-#define ksmps_              cenviron.ksmps
-#define esr_                cenviron.esr
-#define ekr_                cenviron.ekr
-#define nchnls_             cenviron.nchnls
 #define reset_list          cenviron.reset_list_
 #define strsets             cenviron.strsets_
 #define strsmax             cenviron.strsmax_
