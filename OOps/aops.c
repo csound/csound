@@ -1511,8 +1511,12 @@ int outch(OUTCH *p)
 /* invalue and outvalue are used with the csoundAPI */
 int invalset(INVAL *p)
 {
-    if (*p->valID == SSTRCOD && p->STRARG != NULL)
-      strcpy(p->channelName, unquote(p->STRARG));
+    if (*p->valID == SSTRCOD) {
+      if (p->STRARG != NULL)
+        strcpy(p->channelName, unquote(p->STRARG));
+      else
+        strcpy(p->channelName, unquote(currevent->strarg));
+    }
     else
       sprintf(p->channelName, "%d", (int)(*p->valID+FL(0.5)));
     return OK;
@@ -1528,8 +1532,12 @@ int kinval(INVAL *p)
 
 int outvalset(OUTVAL *p)
 {
-    if (*p->valID == SSTRCOD && p->STRARG != NULL)
-      strcpy(p->channelName, unquote(p->STRARG));
+    if (*p->valID == SSTRCOD) {
+      if (p->STRARG != NULL)
+        strcpy(p->channelName, unquote(p->STRARG));
+      else
+        strcpy(p->channelName, unquote(currevent->strarg));
+    }
     else
       sprintf(p->channelName, "%d", (int)(*p->valID+FL(0.5)));
     return OK;

@@ -82,8 +82,12 @@ int pvreadset(PVREAD *p)
     PVSTRUCT *pvh;
     int     frInc, chans, size; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
 
-    if (*p->ifilno == SSTRCOD)                       /* if strg name given */
-      strcpy(pvfilnam, unquote(p->STRARG));          /*   use that         */
+    if (*p->ifilno == SSTRCOD) {                     /* if strg name given */
+      if (p->STRARG!=NULL)
+        strcpy(pvfilnam, unquote(p->STRARG));        /*   use that         */
+      else
+        strcpy(pvfilnam, unquote(currevent->strarg));
+    }
     else if ((long)*p->ifilno <= strsmax && strsets != NULL &&
              strsets[(long)*p->ifilno])
       strcpy(pvfilnam, strsets[(long)*p->ifilno]);
