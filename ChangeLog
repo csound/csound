@@ -1,6 +1,8 @@
 2005-03-01	Istvan Varga	<istvan@csounds.com>
 	* Opcodes/gab/gab.c:
 	  fixes in Maldonado opcodes
+	* Top/dl_opcodes.c:
+	  fixed -v crash
 
 2005-02-28	Istvan Varga	<istvan@csounds.com>
 	* cleanup.sh:
