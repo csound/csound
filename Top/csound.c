@@ -55,6 +55,22 @@ extern "C" {
     return csound;
   }
 
+  static  const   char    *id_option_table[][3] = {
+      { "::SF::id_title", "id_title",
+        "Title tag in output soundfile (no spaces)" },
+      { "::SF::id_copyright", "id_copyright",
+        "Copyright tag in output soundfile (no spaces)" },
+      { "::SF::id_software", "id_software",
+        "Software tag in output soundfile (no spaces)" },
+      { "::SF::id_artist", "id_artist",
+        "Artist tag in output soundfile (no spaces)" },
+      { "::SF::id_comment", "id_comment",
+        "Comment tag in output soundfile (no spaces)" },
+      { "::SF::id_date", "id_date",
+        "Date tag in output soundfile (no spaces)" },
+      { NULL, NULL, NULL }
+  };
+
   /**
    * Reset and prepare an instance of Csound for compilation.
    * Returns CSOUND_SUCCESS on success, and CSOUND_ERROR or
@@ -62,23 +78,35 @@ extern "C" {
    */
   PUBLIC int csoundPreCompile(void *csound)
   {
-    void  *saved_hostdata;
+    ENVIRON *p;
+    void    *saved_hostdata;
+    char    *s;
+    int     i, max_len;
 
+    p = (ENVIRON*) csound;
     /* reset instance, but keep host data pointer */
-    saved_hostdata = ((ENVIRON*) csound)->hostdata_;
+    saved_hostdata = p->hostdata_;
     csoundReset(csound);
-    ((ENVIRON*) csound)->hostdata_ = saved_hostdata;
-
+    p->hostdata_ = saved_hostdata;
     /* allow selecting real time audio module */
-    {
-      char  *s;
-      int   max_len = 21;
-      csoundCreateGlobalVariable(csound, "_RTAUDIO", (size_t) max_len);
-      s = csoundQueryGlobalVariable(csound, "_RTAUDIO");
-      strcpy(s, "PortAudio");
-      csoundCreateConfigurationVariable(csound, "rtaudio", s,
-                                        CSOUNDCFG_STRING, 0, NULL, &max_len,
-                                        "Real time audio module name", NULL);
+    max_len = 21;
+    csoundCreateGlobalVariable(csound, "_RTAUDIO", (size_t) max_len);
+    s = csoundQueryGlobalVariable(csound, "_RTAUDIO");
+    strcpy(s, "PortAudio");
+    csoundCreateConfigurationVariable(csound, "rtaudio", s,
+                                      CSOUNDCFG_STRING, 0, NULL, &max_len,
+                                      "Real time audio module name", NULL);
+    /* sound file tag options */
+    max_len = 201;
+    i = -1;
+    while (id_option_table[++i][0] != NULL) {
+      csoundCreateGlobalVariable(csound, id_option_table[i][0],
+                                         (size_t) max_len);
+      csoundCreateConfigurationVariable(
+                    csound, id_option_table[i][1],
+                    csoundQueryGlobalVariable(csound, id_option_table[i][0]),
+                    CSOUNDCFG_STRING, 0, NULL, &max_len,
+                    id_option_table[i][2], NULL);
     }
     /* now load and pre-initialise external modules for this instance */
     /* this function returns an error value that may be worth checking */
