@@ -86,10 +86,11 @@ extern "C"
 	
 	int vstdeinit(void*data)
 	{
-  		VSTINIT *p = (VSTINIT *)data;
-		ENVIRON *csound = p->h.insdshead->csound;
-		VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
+  		//VSTINIT *p = (VSTINIT *)data;
+		//ENVIRON *csound = p->h.insdshead->csound;
+		//VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
 		//delete plugin;
+		return OK;
 	}
 	
 	int vstinfo(void *data)
@@ -161,11 +162,10 @@ extern "C"
 	int vstnote_init (void * data)
 	{
 		VSTNOTE *p = (VSTNOTE *)data;
-  		ENVIRON *csound = p->h.insdshead->csound;
 		VSTPlugin *vstPlugin = vstPlugins[(size_t) *p->iVSThandle];
 		vstPlugin->Debug("vstnote_init\n");
 		p->framesRemaining = *p->kdur * vstPlugin->framesPerSecond;
-		vstPlugin->AddNoteOn(p->h.insdshead->p2, *p->kchan, *p->knote, *p->kveloc);
+		vstPlugin->AddNoteOn(p->h.insdshead->p2, int(*p->kchan), *p->knote, *p->kveloc);
 		return OK;
 	}
 		
@@ -178,7 +178,7 @@ extern "C"
             if(p->framesRemaining <= 0) {
                 VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
                 plugin->Debug("vstnote.\n");
-                plugin->AddNoteOff(p->h.insdshead->p2, *p->kchan, *p->knote);
+                plugin->AddNoteOff(p->h.insdshead->p2, int(*p->kchan), *p->knote);
             }
         }
  		return OK;		
@@ -260,7 +260,6 @@ extern "C"
 	int vstparamget(void *data)
 	{
 		VSTPARAMGET *p = (VSTPARAMGET *)data;
-  		ENVIRON *csound = p->h.insdshead->csound;
 		VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
 		plugin->Debug("vstparamset(%d).\n", int(*p->kparam));
 		*p->kvalue = plugin->GetParamValue(int(*p->kparam));
@@ -272,7 +271,6 @@ extern "C"
 	int vstparamset_init (void *data)
 	{
 		VSTPARAMSET *p = (VSTPARAMSET *)data;
-  		ENVIRON *csound = p->h.insdshead->csound;
 		VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
 		plugin->Debug("vstparamset_init.\n");
 		p->oldkparam = 0;
@@ -283,7 +281,6 @@ extern "C"
 	int vstparamset(void *data)
 	{
 		VSTPARAMSET *p = (VSTPARAMSET *)data;
-  		ENVIRON *csound = p->h.insdshead->csound;
 		VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
 		if(*p->kparam == p->oldkparam &&
            *p->kvalue == p->oldkvalue)
@@ -298,7 +295,6 @@ extern "C"
 	int vstbankload(void *data)
 	{
   		VSTBANKLOAD *p = (VSTBANKLOAD *)data;
-		ENVIRON *csound = p->h.insdshead->csound;
 		VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
 		void *dummyPointer = 0;          
 		char bankname[64];
@@ -310,22 +306,22 @@ extern "C"
             0, 0, (VstPatchChunkInfo*) fxBank.GetChunk(), 0);
 		if (plugin->Dispatch(effBeginLoadBank, 
             0, 0, (VstPatchChunkInfo*) fxBank.GetChunk(), 0)) {
-			csound->Message(csound,"Error: BeginLoadBank.\n");
+			plugin->Log("Error: BeginLoadBank.\n");
   			return NOTOK;
 		}
 		//csound->Message(csound,"EffBeginLoadBank\n");
 		if (fxBank.IsLoaded()) {
 			if (plugin->aeffect->uniqueID != fxBank.GetFxID()) {
-			    csound->Message(csound,"Error: Loaded bank ID doesn't match plug-in ID.\n");
+			    plugin->Log("Error: Loaded bank ID doesn't match plug-in ID.\n");
 			    return NOTOK;
             }
             if (fxBank.IsChunk()) {
     		    if (!(plugin->aeffect->flags & effFlagsProgramChunks)) {
-                    csound->Message(csound,"Error: Loaded bank contains a chunk format that the effect can't handle.\n");
+                    plugin->Log("Error: Loaded bank contains a chunk format that the effect can't handle.\n");
                     return NOTOK;
                 }
     		    plugin->Dispatch( effSetChunk, 0, fxBank.GetChunkSize(), fxBank.GetChunk(), 0);  //isPreset=0
-    		    csound->Message(csound,"Chunks loaded OK.\n");
+    		    plugin->Log("Chunks loaded OK.\n");
             } else {
     		    //int cProg = plugin->EffGetProgram();
     		    int cProg = plugin->Dispatch(effGetProgram, 0,0,dummyPointer,0);
@@ -347,10 +343,10 @@ extern "C"
       	    //ShowDetails();
       	    //OnSetProgram();
     	} else {
-    	    csound->Message(csound,"Problem loading bank.\n");
+    	    plugin->Log("Problem loading bank.\n");
        		return NOTOK;        /* check if error loading */
     	}
-    	csound->Message(csound,"Bank loaded OK.\n");
+    	plugin->Log("Bank loaded OK.\n");
     	//if (fxBank.SetChunk()) {
     	//}
     	return OK;
@@ -359,9 +355,8 @@ extern "C"
 	int vstprogset(void *data)
 	{
   		VSTPROGSET *p = (VSTPROGSET *)data;
-		ENVIRON *csound = p->h.insdshead->csound;
 		VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
-		plugin->SetCurrentProgram(*p->iprogram);
+		plugin->SetCurrentProgram(int(*p->iprogram));
 		return OK;
     }
 

@@ -172,19 +172,21 @@ void VSTPlugin::initializeOpcodes()
 }
 
 VSTPlugin::VSTPlugin(ENVIRON *csound_) : 
+    csound(csound_), 
+    libraryHandle(0), 
+    aeffect(0), 
+    hasEditor(false),
+    editor(0),
     window(0),
     windowHandle(0), 
-    csound(csound_), 
-    aeffect(0), 
-    editor(0),
-    hasEditor(false),
-    libraryHandle(0), 
+	pluginIsSynth(true),
     overwrite(false),
-    showParameters(false),
-    midiChannel(0),
     edited(false),
+    showParameters(false),
     framesPerSecond(0),
-    framesPerBlock(0)
+    framesPerBlock(0),
+	channels(2),
+    midiChannel(0)
 {
     memset(&vstTimeInfo, 0, sizeof(VstTimeInfo));
     initializeOpcodes();
