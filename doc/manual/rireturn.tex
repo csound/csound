@@ -1,0 +1,90 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{rireturn}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{rireturn}
+rireturn --  Terminates a reinit pass. \subsection*{Description}
+
+
+  Terminates a \emph{reinit}
+ pass (i.e., no-op at standard i-time). This statement, or an \emph{endin}
+, will cause normal performance to be resumed. 
+\subsection*{Syntax}
+
+
+ \textbf{rireturn}
+
+\subsection*{Examples}
+
+
+  The following statements will generate an exponential control signal whose value moves from 440 to 880 exactly ten times over the duration p3. They use the files \emph{reinit.orc}
+ and \emph{reinit.sco}
+. 
+
+
+ \textbf{Example 1. Example of the rireturn opcode.}
+
+\begin{lstlisting}
+/* reinit.orc */
+sr = 44100
+kr = 44100
+ksmps = 1
+nchnls = 1
+
+instr 1
+
+reset:
+        timout 0, p3/10, contin
+        reinit reset
+
+contin:
+        kLine expon 440, p3/10, 880
+        aSig oscil 10000, kLine, 1
+        out aSig
+        rireturn
+
+endin
+/* reinit.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* reinit.sco */
+f1 0 4096 10 1
+
+i1 0 10
+e
+/* reinit.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{reinit}
+, \emph{rigoto}
+
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+rigoto &Up &rms
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}
