@@ -402,8 +402,13 @@ int csoundCompile(void *csound, int argc, char **argv)
         csrc = fopen(csrcname, "r");
         free(csrcname);
       }
-      if (csrc == NULL)
-        csrc = fopen(".csoundrc", "r");
+      /* read global .csoundrc file (if exists) */
+      if (csrc != NULL) {
+        readOptions(csound, csrc);
+        fclose(csrc);
+      }
+      /* check for .csoundrc in current directory */
+      csrc = fopen(".csoundrc", "r");
       if (csrc != NULL) {
         readOptions(csound, csrc);
         fclose(csrc);
