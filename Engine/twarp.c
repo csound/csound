@@ -35,6 +35,15 @@ typedef struct {
 static TSEG  *tseg, *tpsave, *tplim;
 int realtset(SRTBLK *);
 
+void scoreRESET(ENVIRON *p)
+{
+     if(tseg){
+            mfree(tseg);
+            tseg = 0;
+      }
+}
+
+
 void twarp(void)        /* time-warp a score section acc to T-statement */
 {
     SRTBLK *bp;
