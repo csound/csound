@@ -51,6 +51,9 @@ opts.Add('buildCsoundVST',
 opts.Add('useMingw', 
     'Set to 1 to use mingw on Windows.', 
     0)
+opts.Add('noCygwin',
+    'Set to 1 to build with -mno-cygwin when using Cygwin',
+    0)
 
 # Define the common part of the build environment.
 
@@ -113,6 +116,14 @@ if commonEnvironment['useDouble']:
 else:
     print 'Using single-precision floating point for audio samples.'
 
+# Adding libraries and flags if using -mno-cygwin with cygwin
+
+if commonEnvironment['noCygwin'] and (sys.platform[:3] == 'win' or sys.platform == 'cygwin'):
+    print 'Using -mno-cygwin.'
+    commonEnvironment.Append(CCFLAGS = ['-mno-cygwin'])
+    commonEnvironment.Append(CPPFLAGS = ['-mno-cygwin'])
+    commonEnvironment.Append(LIBS = ['m'])    
+    
 # Check for prerequisites.
 # We check only for headers; 
 # checking for libs may fail even if they are present, 
@@ -127,6 +138,8 @@ if not sndfileFound:
 portaudioFound = configure.CheckHeader("portaudio.h", language = "C")
 fltkFound = configure.CheckHeader("FL/Fl.H", language = "C++")
 boostFound = configure.CheckHeader("boost/any.hpp", language = "C++")
+
+
 
 # Define macros that configure and config.h used to define.
 
