@@ -677,6 +677,8 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('bus',
     ['Opcodes/bus.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('pvsbasic',
     ['Opcodes/pvsbasic.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('pvscent',
+    ['Opcodes/pvscent.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('ftest',
     ['Opcodes/ftest.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('gab_gab',
