@@ -1,6 +1,7 @@
 2004-11-09  John ffitch  <jpff@codemist.co.uk>
 
 	* Engine/fgens.c (fgens): Started named fgens
+	(fterror): Allow named gens in error messages
 
 2004-10-24  Michael Gogins <gogins@pipeline.com>
 
