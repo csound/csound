@@ -212,7 +212,7 @@ int delset(DELAY *p)
 
     if (*p->istor && p->auxch.auxp != NULL)
       return OK;
-    if ((npts = (long)(*p->idlt * esr)) <= 0) {
+    if ((npts = (long)(FL(0.5)+*p->idlt * esr)) <= 0) { /* Round not truncate */
       return initerror(Str(X_846,"illegal delay time"));
     }
     if ((auxp = p->auxch.auxp) == NULL ||
@@ -255,7 +255,7 @@ int delrset(DELAYR *p)
       return initerror(Str(X_846,"illegal delay time"));
     }
 /*     printf("delay %f sr=%f npts = %d\n", *p->idlt, esr, npts); */
-    if ((auxp = p->auxch.auxp) == NULL ||       /* new space if reqd */
+    if ((auxp = (MYFLT*)p->auxch.auxp) == NULL ||       /* new space if reqd */
         npts != p->npts) {
       auxalloc((long)npts*sizeof(MYFLT), &p->auxch);
       auxp = (MYFLT*)p->auxch.auxp;
@@ -336,7 +336,6 @@ int delayr(DELAYR *p)
       if (curp >= endp)
         curp = (MYFLT *) p->auxch.auxp;
     } while (--nsmps);
-    p->curp = curp;
     return OK;
 }
 
@@ -371,7 +370,7 @@ int deltap(DELTAP *p)
       return perferror(Str(X_691,"deltap: not initialised"));
     }
     ar = p->ar;
-    tap = q->curp - (long)(*p->xdlt * esr);
+    tap = q->curp - (long)(FL(0.5)+*p->xdlt * esr);
     while (tap < (MYFLT *) q->auxch.auxp)
       tap += q->npts;
     endp = (MYFLT *) q->auxch.endp;
