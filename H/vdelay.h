@@ -114,3 +114,28 @@ typedef struct  {
         AUXCH   caux2, aaux2;  /* Used to hold space for all dynamized arrays */
         MYFLT   prev_time, prev_hdif;
 } NREV2;
+
+int vdelset(VDEL *p);
+int vdelay(VDEL *p);
+int vdelay3(VDEL *p);
+int vdelxset(VDELX *p);
+int vdelxsset(VDELXS *p);
+int vdelxqset(VDELXQ *p);
+int vdelayx(VDELX *p);
+int vdelayxw(VDELX *p);
+int vdelayxs(VDELXS *p);
+int vdelayxws(VDELXS *p);
+int vdelayxq(VDELXQ *p);
+int vdelayxwq(VDELXQ *p);
+int multitap_set(MDEL *p);
+int multitap_play(MDEL *p);
+int nreverb_set(NREV *p);
+int nreverb(NREV *p);
+int reverbx_set(NREV2 *p);
+int reverbx(NREV2 *p);
+
+
+
+
+
+
