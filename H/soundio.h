@@ -122,7 +122,7 @@ typedef struct {         /* struct for passing data to/from sfheader routines */
 typedef struct {
         OPDS    h;
         MYFLT   *r[24];
-        MYFLT   *ifilno, *iskptim, *iformat, *kfrqratio;
+        MYFLT   *ifilno, *iskptim, *iformat, *kfrqratio, *skipinit;
         short   format, channel, nchanls, sampframsiz, filetyp;
         short   analonly, endfile;
         long    sr, audrem, framesrem, getframes;    /* bytes, frames, frames */
