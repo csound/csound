@@ -36,23 +36,6 @@
 void usage(int);
 MYFLT getnum(FILE*, char *);
 
-long natlong(long lval)         /* coerce a bigendian long into a natural long */
-{
-    unsigned char benchar[4];
-    unsigned char *p = benchar;
-    long natlong;
-
-    *(long *)benchar = lval;
-    natlong = *p++;
-    natlong <<= 8;
-    natlong |= *p++;
-    natlong <<= 8;
-    natlong |= *p++;
-    natlong <<= 8;
-    natlong |= *p;
-    return(natlong);
-}
-
 void err_printf(char *fmt, ...)
 {
     va_list a;

@@ -35,23 +35,6 @@
 
 void usage(int);
 
-long natlong(long lval)             /* coerce a bigendian long into a natural long */
-{
-    unsigned char benchar[4];
-    unsigned char *p = benchar;
-    long natlong;
-
-    *(long *)benchar = lval;
-    natlong = *p++;
-    natlong <<= 8;
-    natlong |= *p++;
-    natlong <<= 8;
-    natlong |= *p++;
-    natlong <<= 8;
-    natlong |= *p;
-    return(natlong);
-}
-
 void mfree(void *x)
 {
     free(x);
