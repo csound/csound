@@ -686,6 +686,8 @@ typedef struct ENVIRON_
   int (*TableLength)(void *csound, int table);
   MYFLT (*TableGet)(void *csound, int table, int index);
   void (*TableSet)(void *csound, int table, int index, MYFLT value);
+  void (*SetFLTKThreadLocking)(void *csound, int isLocking);
+  int (*GetFLTKThreadLocking)(void *csound);
   /* End of internals */
   int           ksmps_, nchnls_;
   int           global_ksmps_;
@@ -810,6 +812,7 @@ typedef struct ENVIRON_
   GEN           *gensub;
   int           genmax;
   int           ftldno;
+  int           doFLTKThreadLocking;
 } ENVIRON;
 
 extern ENVIRON cenviron_;

@@ -286,6 +286,14 @@ public:
    * Return a pointer to the CppSound base (for Java wrappers).
    */
   virtual CsoundFile *getThisCsoundFile();
+  /**
+   * Set whether the FLTK widgets thread calls Fl::lock().
+   */
+  virtual void setFLTKThreadLocking(bool isLocking);
+  /**
+   * Return whether the FLTK widgets thread calls Fl::lock().
+   */
+  virtual bool getFLTKThreadLocking();
 };
 
 #endif
