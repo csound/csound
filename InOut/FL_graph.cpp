@@ -21,6 +21,7 @@
     02111-1307 USA
 */
 
+#include "config.h"
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
 #include <FL/fl_draw.H>
