@@ -76,6 +76,8 @@ For real-time audio output, with or without MIDI control, you will probably want
 
 On Windows, Csound is configured with the ASIO build of the PortAudio library. At this time, it is necessary to set both the \texttt{-B} and the \texttt{-b} command-line options to have the same value as the \texttt{ksmps} variable set in the orchestra file. For example, \texttt{sr = 44100}, \texttt{kr = 100}, \texttt{ksmps = 441}, \texttt{-b441} and \texttt{-B441} give a CD-equivalent audio sampling rate of 44,100 frames per second, a control sampling rate of 100 control samples per second with 441 audio sample frames per control sample, an audio output software buffer size of 441 sample frames, and an audio output device hardware buffer size of 441 sample frames, which yields an audio output latency of 10 milliseconds --- quite fast enough for reasonably expressive keyboard playing or other real-time instrumental performance. Even lower latencies are possible with smaller values of \texttt{-B}, \texttt{-b}, and \texttt{ksmps}, down to less than a millisecond on Windows XP.
 
+If your sound card does not have an ASIO driver, you can still use Csound with ASIO by downloading and installing the \texttt{asio4all} adapter from \url{http://michael.tippach.bei.t-online.de/asio4all}.
+
 \subsubsection{Linux with ALSA}
 
 On Linux with ALSA, the audio output device should be selected using a special form of the \texttt{-odac} option, for example \texttt{-odac:plughw:0} for device 0. The \texttt{plughw} option translates Csound's audio output to the format expected by the sound card. With ALSA, latencies of a few milliseconds are possible, and expressive real-time instrumental performance should be quite feasible.
