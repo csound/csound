@@ -68,13 +68,13 @@ int pvsanalset(ENVIRON *csound, PVSANAL *p)
       csound->Die(csound, Str("pvsanal: window size too small for fftsize\n"));
     if (overlap > N / 2)
       csound->Die(csound, Str("pvsanal: overlap too big for fft size\n"));
-    if (overlap < ksmps)
+    if (overlap < csound->ksmps)
       csound->Die(csound, Str("pvsanal: overlap must be >= ksmps\n"));
 
     halfwinsize = M/2;
     buflen = M*4;
-    p->arate = (float)(esr / (MYFLT) overlap);
-    p->fund = (float)(esr / (MYFLT) N);
+    p->arate = (float)(csound->esr / (MYFLT) overlap);
+    p->fund = (float)(csound->esr / (MYFLT) N);
 
     nBins = N/2 + 1;
     /* we can exclude/simplify all sorts of stuff in CARL
@@ -141,10 +141,10 @@ int pvsanalset(ENVIRON *csound, PVSANAL *p)
       *(analwinhalf + i) *= sum;
 
 
-  /*    p->invR = (float)(FL(1.0) / esr); */
+  /*    p->invR = (float)(FL(1.0) / csound->esr); */
     p->RoverTwoPi = (float)(p->arate / TWOPI_F);
     p->TwoPioverR = (float)(TWOPI_F / p->arate);
-    p->Fexact =  (float)(esr / (MYFLT)N);
+    p->Fexact =  (float)(csound->esr / (MYFLT)N);
     p->nI = -(halfwinsize / overlap) * overlap; /* input time (in samples) */
     /*Dd = halfwinsize + p->nI + 1;                     */
     /* in streaming mode, Dd = ovelap all the time */
@@ -341,7 +341,7 @@ int pvsanal(ENVIRON *csound, PVSANAL *p)
       csound->Die(csound, Str("pvsanal: Not Initialised.\n"));
     }
 
-    for (i=0; i < ksmps; i++)
+    for (i=0; i < csound->ksmps; i++)
       anal_tick(p,ain[i]);
     return OK;
 }
@@ -373,8 +373,8 @@ int pvsynthset(ENVIRON *csound, PVSYNTH *p)
     IO = (double) overlap;         /* always, no time-scaling possible */
 
 
-    p->arate = esr / (MYFLT) overlap;
-    p->fund = esr / (MYFLT) N;
+    p->arate = csound->esr / (MYFLT) overlap;
+    p->fund = csound->esr / (MYFLT) N;
     nBins = N/2 + 1;
     Lf = Mf = 1 - M%2;
     /* deal with iinit later on! */
@@ -502,10 +502,10 @@ int pvsynthset(ENVIRON *csound, PVSYNTH *p)
       for (i = -halfwinsize; i <= halfwinsize; i++)
         *(synwinhalf + i) *= sum;
     }
-/*     p->invR = FL(1.0) / esr; */
+/*     p->invR = FL(1.0) / csound->esr; */
     p->RoverTwoPi = p->arate / TWOPI_F;
     p->TwoPioverR = TWOPI_F / p->arate;
-    p->Fexact =  esr / (MYFLT)N;
+    p->Fexact =  csound->esr / (MYFLT)N;
     p->nO = -(halfwinsize / overlap) * overlap; /* input time (in samples) */
     p->Ii = 0;                          /* number of new outputs to write */
     p->IOi = 0;
@@ -680,7 +680,7 @@ int pvsynth(ENVIRON *csound, PVSYNTH *p)
     if (p->output.auxp==NULL) {
       csound->Die(csound, Str("pvsynth: Not Initialised.\n"));
     }
-    for (i=0;i < ksmps;i++)
+    for (i=0;i < csound->ksmps;i++)
       aout[i] = synth_tick(p);
     return OK;
 }
