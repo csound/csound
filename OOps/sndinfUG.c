@@ -33,18 +33,18 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#include <sndfile.h>
 
-int anal_filelen(SNDINFO *p,MYFLT *p_length);
+static int anal_filelen(SNDINFO *p,MYFLT *p_length);
 
-extern  HEADATA *readheader(int, char *, SOUNDIN*);
-
-HEADATA *getsndinfo(SNDINFO *p)
+static HEADATA *getsndinfo(SNDINFO *p)
 {
     HEADATA *hdr = NULL;
     int     sinfd = 0;
-    SOUNDIN *sp;
     char    *sfname, soundiname[128];
-    long filno;
+    long    filno;
+    SNDFILE *sf;
+    SF_INFO sfinfo;
 
     if (*p->ifilno == SSTRCOD) { /* if char string name given */
       if (p->STRARG == NULL)
@@ -59,8 +59,8 @@ HEADATA *getsndinfo(SNDINFO *p)
       sprintf(soundiname,"soundin.%ld",filno);  /* soundin.filno */
 
     sfname = soundiname;
-    if (strcmp(sfname, "-i") == 0) { /* get info on the -i commandline inputfile */
-      if (!O.infilename)
+    if (strcmp(sfname, "-i") == 0) {    /* get info on the -i    */
+      if (!O.infilename)                /* commandline inputfile */
         die(Str("no infile specified in the commandline"));
       sfname = O.infilename;
     }
@@ -68,109 +68,74 @@ HEADATA *getsndinfo(SNDINFO *p)
       if (isfullpath(sfname))
         sprintf(errmsg,Str("diskinfo cannot open %s"), sfname);
       else
-        sprintf(errmsg,Str(
-                           "diskinfo cannot find \"%s\" in its search paths"),
+        sprintf(errmsg,Str("diskinfo cannot find \"%s\" in its search paths"),
                 sfname);
-     /* RWD 5:2001 better to exit in this situation ! */
+      /* RWD 5:2001 better to exit in this situation ! */
       die(errmsg);
     }
-
     sfname = retfilnam;                        /* & record fullpath filnam */
-
-    /****** if headerblk returned ******/
-    sp = (SOUNDIN *) mcalloc(&cenviron, (long)sizeof(SOUNDIN));
-/*     hdr=readheader(sinfd,sfname, sp); */
-/*     if (hdr == NULL || hdr->audsize <= 0) */
-      p->audsize = (long)lseek(sinfd,(off_t)0L,SEEK_END); /* use file length */
-/*     else */
-/*       p->audsize = hdr->audsize; */
-
-    mfree(&cenviron, (char *)sp);
-    close(sinfd);               /* init error:  close any open file */
-
+    hdr = (HEADATA*) mcalloc(&cenviron, sizeof(HEADATA));
+    memset(&sfinfo, 0, sizeof(SF_INFO));
+    sfinfo.samplerate = (int) (esr + FL(0.5));
+    sfinfo.channels = 1;
+    sfinfo.format = (int) format2sf(O.outformat) | (int) type2sf(TYP_RAW);
+    sf = sf_open_fd(sinfd, SFM_READ, &sfinfo, SF_TRUE);
+    if (sf == NULL) {
+      sprintf(errmsg, Str("diskinfo cannot open %s"), sfname);
+      die(errmsg);
+    }
+    hdr->sr = (long) sfinfo.samplerate;
+    hdr->nchanls = (long) sfinfo.channels;
+    hdr->format = (long) sf2format(sfinfo.format);
+    switch ((int) hdr->format) {
+      case AE_SHORT: hdr->sampsize = 2L; break;
+      case AE_24INT: hdr->sampsize = 3L; break;
+      case AE_LONG:
+      case AE_FLOAT: hdr->sampsize = 4L; break;
+      default:       hdr->sampsize = 1L; break;
+    }
+    hdr->filetyp = (int) sf2type(sfinfo.format);
+    hdr->audsize = (long) sfinfo.frames * hdr->sampsize * hdr->nchanls;
+    sf_close(sf);
     return hdr;
 }
 
 int filelen(ENVIRON *csound, SNDINFO *p)
 {
-    HEADATA *hdr = NULL;
-    long readlong;
+    HEADATA *hdr;
     MYFLT dur = FL(0.0);        /*RWD 8:2001 */
 
-    if (anal_filelen(p,&dur)) {
+    if (anal_filelen(p, &dur)) {
       *(p->r1) = dur;
-      return OK;
     }
     /* RWD 8:2001 now set to quit on failure, else we have bad hdr */
-    else if ((hdr = getsndinfo(p)) != NULL
-             && !(readlong = hdr->readlong)) { /* & hadn't readin audio */
-      *(p->r1) = (MYFLT)hdr->audsize / hdr->sampsize / hdr->nchanls / hdr->sr;
-    }
     else {
-      short bytes = 1;
-      if (O.msglevel & WARNMSG)
-        printf(Str(
-                  "WARNING: No valid header.  Calculating length "
-                  "using output file's format\n"));
-      /*RWD 5:2001 which I think is a very bad idea... */
-      switch(O.outformat) {
-      case AE_UNCH:
-      case AE_CHAR:
-      case AE_ALAW:
-      case AE_ULAW:
-        bytes = 1;
-        break;
-      case AE_SHORT:
-        bytes = 2;
-        break;
-      case AE_LONG:
-        bytes = 4;
-        break;
-      case AE_FLOAT:
-        bytes = 4;
-        break;
-      case AE_24INT:   /*RWD 5:2001*/
-        bytes = 3;
-        break;
-      break;
-      }
-      /* RWD 5:2001: bug lurking if hdr == NULL; rely on getsndinfo to have quit! */
-      *(p->r1) = p->audsize / bytes / nchnls * onedsr;
+      hdr = getsndinfo(p);
+      *(p->r1) = (MYFLT) hdr->audsize
+                 / ((MYFLT) hdr->sampsize * (MYFLT) hdr->nchanls
+                    * (MYFLT) hdr->sr);
+      mfree(csound, hdr);
     }
     return OK;
 }
 
 int filenchnls(ENVIRON *csound, SNDINFO *p)
 {
-    HEADATA *hdr = NULL;
-    long readlong;
+    HEADATA *hdr;
 
-    if ((hdr = getsndinfo(p)) != NULL
-        && !(readlong = hdr->readlong)) {         /* & hadn't readin audio */
-      *(p->r1) = (MYFLT)hdr->nchanls;
-    }
-    else {
-      if (O.msglevel & WARNMSG)
-        printf(Str("WARNING: No valid header.  Returning output nchnls\n"));
-      *(p->r1) = (MYFLT)nchnls;
-    }
+    hdr = getsndinfo(p);
+    *(p->r1) = (MYFLT) hdr->nchanls;
+    mfree(csound, hdr);
     return OK;
 }
 
 int filesr(ENVIRON *csound, SNDINFO *p)
 {
-    HEADATA *hdr = NULL;
-    long readlong;
+    HEADATA *hdr;
 
-    if ((hdr = getsndinfo(p)) != NULL
-        && !(readlong = hdr->readlong)) {         /* & hadn't readin audio */
-      *(p->r1) = (MYFLT)hdr->sr;
-    }
-    else {
-      if (O.msglevel & WARNMSG)
-        printf(Str("WARNING: No valid header.  Returning orch's sr\n"));
-      *(p->r1) = esr;
-    }
+    hdr = getsndinfo(p);
+    *(p->r1) = (MYFLT) hdr->sr;
+    mfree(csound, hdr);
     return OK;
 }
 
@@ -179,6 +144,9 @@ int filesr(ENVIRON *csound, SNDINFO *p)
 
 int filepeak(ENVIRON *csound, SNDINFOPEAK *p)
 {
+    die(Str("filepeak is not implemented"));
+    return NOTOK;
+#if 0
     HEADATA *hdr = NULL;
     long readlong;
     int i;
@@ -192,8 +160,7 @@ int filepeak(ENVIRON *csound, SNDINFOPEAK *p)
     if ((hdr = getsndinfo(&info)) != NULL
         && !(readlong = hdr->readlong)) {         /* & hadn't readin audio */
       if (channel > hdr->nchanls)
-        die(Str(
-                "Input channel for peak exceeds number of channels in file"));
+        die(Str("Input channel for peak exceeds number of channels in file"));
 
       if (
           hdr->filetyp == TYP_AIFF ||
@@ -223,13 +190,12 @@ int filepeak(ENVIRON *csound, SNDINFOPEAK *p)
       die(Str("No valid header.  Cannot calculate peak values"));
     }
     return OK;
+#endif
 }
-
-
 
 /* RWD 8:2001 support analysis files in filelen opcode  */
 
-int anal_filelen(SNDINFO *p,MYFLT *p_dur)
+static int anal_filelen(SNDINFO *p,MYFLT *p_dur)
 {
     char    *sfname, soundiname[256];
     long filno;
@@ -289,3 +255,4 @@ int anal_filelen(SNDINFO *p,MYFLT *p_dur)
     }
     return 0;
 }
+

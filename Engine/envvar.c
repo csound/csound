@@ -49,7 +49,6 @@ typedef struct envVarEntry_s {
 static const char *envVar_list[] = {
     "CSNOSTOP",
     "CSOUNDRC",
-    "CSRTAUDIO",
     "CSSTRNGS",
     "CS_LANG",
     "HOME",
@@ -158,7 +157,9 @@ static char *fix_env_value(void *csound, const char *oldval)
     while (1) {
       if (oldval[i] == ';' || oldval[i] == '\0') {
         if (cnt && !check_for_duplicate(oldval, &(oldval[n]))) {
-          new_len += cnt;
+          do {                  /* copy token */
+            s[new_len++] = oldval[n++];
+          } while (--cnt);
           s[new_len++] = ';';   /* put ';' character at end of token */
         }
         if (oldval[i] == '\0')  /* end of list */
@@ -167,7 +168,7 @@ static char *fix_env_value(void *csound, const char *oldval)
         cnt = 0;
       }
       else
-        s[new_len + (cnt++)] = oldval[i];   /* copy token and count length */
+        cnt++;                  /* count length */
       i++;
     }
     /* terminate list with null character */
