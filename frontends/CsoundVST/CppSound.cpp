@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <time.h>
+#include <boost/tokenizer.hpp>
 
 extern "C" 
 {
@@ -312,7 +313,14 @@ size_t CppSound::getSpoutSize() const
 
 void CppSound::inputMessage(std::string istatement)
 {
-	csound->InputMessage(csound, istatement.c_str());
+	std::vector<MYFLT> pfields;
+	boost::tokenizer<> tokens(istatement);
+	boost::tokenizer<>::iterator it = tokens.begin();
+	std::string opcode = *it;
+	for( ++it; it != tokens.end(); ++it) {
+        pfields.push_back(atof(it->c_str()));
+	}
+    csoundScoreEvent(csound, opcode[0], &pfields.front(), pfields.size());
 }
 
 void *CppSound::getCsound()
@@ -398,6 +406,11 @@ MYFLT CppSound::tableGet(int table, int index)
 void CppSound::tableSet(int table, int index, MYFLT value)
 {
     csoundTableSet(csound, table, index, value);
+}
+
+void CppSound::scoreEvent(char opcode, std::vector<MYFLT> &pfields)
+{
+    csoundScoreEvent(csound, opcode, &pfields.front(), pfields.size());
 }
 
 
