@@ -62,7 +62,7 @@ opcodelist *new_opcode_list(void)
       char *x = mmalloc(&cenviron, strlen(ops->opname)+1);
       strcpy(x, ops->opname);
       list->table[list->size].name = x;
-      if ((x=strchr(x,'_'))) *x = '\0';
+      if ((x=strchr(x,'.'))) *x = '\0';
       list->table[list->size].ans = ops->outypes;
       list->table[list->size].args = ops->intypes;
       if (ops->outypes == NULL && ops->intypes == NULL)
