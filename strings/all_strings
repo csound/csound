@@ -223,7 +223,7 @@
 223,"%s: Not a sound file\n"
 224,"Compression Type is not FL32"
 225,"\t(%ld sample frames)\n"
-226,""
+226,"sread: illegal space following %s, sect %d line %d:  "
 227,""
 228,""
 229,""

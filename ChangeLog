@@ -1,3 +1,12 @@
+2004-07-04  John ffitch  <jpff@codemist.co.uk>
+
+	* strings/all_strings: Added string 226
+
+2004-07-04  Anthony Kozar <anthony.kozar@utoledo.edu>
+
+	* Engine/sread.c (ifa): fixed bugs and improved error reporting in ^+
+	and ^- code.
+
 2004-06-27  Michael Gogins <gogins@pipeline.com>
 
 	* Fixed (and simplified) real-time audio input.
