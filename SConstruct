@@ -67,6 +67,9 @@ opts.Add('useMingw',
 opts.Add('noCygwin',
     'Set to 1 to build with -mno-cygwin when using Cygwin',
     0)
+opts.Add('generateTags',
+    'Set to 1 to generate TAGS',
+    1)
 
 # Define the common part of the build environment.
 
@@ -557,12 +560,18 @@ pluginEnvironment.SharedLibrary('wave-terrain',
 # Plugins with External Dependencies
 
 # FLUIDSYNTH OPCODES
-if configure.CheckHeader("fluidsynth.h", language = "C"):    
-    vstEnvironment.Append(CCFLAGS = ['-DFLUIDSYNTH_NOT_A_DLL', '-DMAKEDLL','-DBUILDING_DLL'])    
-    fluidEnvironment = vstEnvironment.Copy()    
-    fluidEnvironment.Append(LIBS = ['fluidsynth', 'stdc++', 'pthread']) 
+if configure.CheckHeader("fluidsynth.h", language = "C"):        
        
+    if sys.platform[:5] == 'linux':
+        fluidEnvironment = pluginEnvironment.Copy()
+        fluidEnvironment.Append(LIBS = ['fluidsynth'])
+        fluidEnvironment.SharedLibrary('fluidOpcodes', 
+            ['Opcodes/fluidOpcodes/fluidOpcodes.cpp'])
+    
     if sys.platform == 'cygwin' or sys.platform == 'mingw' or sys.platform[:3] == 'win':        
+        vstEnvironment.Append(CCFLAGS = ['-DFLUIDSYNTH_NOT_A_DLL', '-DMAKEDLL','-DBUILDING_DLL'])    
+        fluidEnvironment = vstEnvironment.Copy()    
+        fluidEnvironment.Append(LIBS = ['fluidsynth', 'stdc++', 'pthread'])    
         fluidEnvironment.Append(LINKFLAGS = ['-mno-cygwin'])        
         fluidEnvironment.Append(LIBS = ['winmm','dsound'])
         
@@ -633,7 +642,7 @@ ustubProgramEnvironment.Program('srconv',
 csoundProgramEnvironment.Program('csound', 
     ['frontends/csound/csound_main.c'])
     
-if (commonEnvironment['buildCsoundVST']) and boostFound and fltkFound:    
+if (commonEnvironment['buildCsoundVST'] == 1) and boostFound and fltkFound:    
     print 'Building CsoundVST plugin and standalone.'
     vstEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
     guiProgramEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
@@ -725,11 +734,13 @@ if (commonEnvironment['buildCsoundVST']) and boostFound and fltkFound:
     copyPython = commonEnvironment.Install(['.', '.'], ['frontends/CsoundVST/CsoundVST.py', 'frontends/CsoundVST/Koch.py'])
     Depends(copyPython, csoundvst)
 
-allSources = string.join(glob.glob('*/*.h*'))
-allSources = allSources + ' ' + string.join(glob.glob('*/*.h*'))
-allSources = allSources + ' ' + string.join(glob.glob('*/*/*.c*'))
-allSources = allSources + ' ' + string.join(glob.glob('*/*/*.h'))
-allSources = allSources + ' ' + string.join(glob.glob('*/*/*.hpp'))
-tags = commonEnvironment.Command('TAGS', Split(allSources), 'etags $SOURCES')
-Depends(tags, staticLibrary)
+if commonEnvironment['generateTags'] == 1:
+    print "Calling TAGS"
+    allSources = string.join(glob.glob('*/*.h*'))
+    allSources = allSources + ' ' + string.join(glob.glob('*/*.h*'))
+    allSources = allSources + ' ' + string.join(glob.glob('*/*/*.c*'))
+    allSources = allSources + ' ' + string.join(glob.glob('*/*/*.h'))
+    allSources = allSources + ' ' + string.join(glob.glob('*/*/*.hpp'))
+    tags = commonEnvironment.Command('TAGS', Split(allSources), 'etags $SOURCES')
+    Depends(tags, staticLibrary)
 
