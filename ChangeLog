@@ -1,3 +1,14 @@
+2004-05-01  Michael Gogins <gogins@pipeline.com>
+
+    * Added a new csoundPerformKsmpsAbsolute API function for calling kperf 
+      without a score.
+      
+    * Restored external MIDI interface callbacks to working order. Renamed
+      the Open and Close callbacks to DeviceOpen and DeviceClose to clarify
+      their actual function.
+    
+    * Many fixes in CsoundVST to get it working for Csound 5.
+    
 2004-04-29  Michael Gogins <gogins@pipeline.com>
 
     * Made inbuf and outbuf MYFLT * throughout the sources.
