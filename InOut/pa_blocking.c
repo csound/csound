@@ -90,12 +90,10 @@ int paBlockingWriteOpen(ENVIRON *csound,
   maxLag = O.oMaxLag <= 0 ? IODACSAMPS : O.oMaxLag;
 #ifdef __MACH__
   maxLag =  ((int)ekr)*((maxLag + (int)ekr-1)%krate); /* Round to multiple */
-#elif WIN32
-  maxLag = csound->GetKsmps(csound);
 #endif
-  pabs->actualBufferSampleCount = csound->GetKsmps(csound)
-    * csound->GetNchnls(csound);
-  //pabs->actualBufferSampleCount = maxLag * csound->GetKsmps(csound);
+  //pabs->actualBufferSampleCount = csound->GetKsmps(csound)
+  //  * csound->GetNchnls(csound);
+  pabs->actualBufferSampleCount = maxLag * csound->GetNchnls(csound);
   pabs->actualBuffer = (float *)
     mcalloc(pabs->actualBufferSampleCount * sizeof(float));
   memcpy(&pabs->paParameters, paParameters, sizeof(PaStreamParameters));
@@ -104,7 +102,6 @@ int paBlockingWriteOpen(ENVIRON *csound,
 		  pabs->paParameters.channelCount,
 		  csound->esr_,
 		  maxLag,
-		  pabs->actualBufferSampleCount,
 		  pabs->paParameters.device);
   paError = Pa_OpenStream(&pabs->paStream,
 			  0,
