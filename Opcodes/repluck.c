@@ -54,14 +54,13 @@ int wgpsetin(ENVIRON *csound, WGPLUCK2 *p)
     DelayLine   *lower_rail;
     MYFLT   plk = *p->plk;
                                 /* Initialize variables....*/
-    npts = (int)(esr / *p->icps);/* Length of full delay */
+    npts = (int)(csound->esr / *p->icps);/* Length of full delay */
     while (npts < 512) {        /* Minimum rail length is 256 */
-      npts += (int)(esr / *p->icps);
+      npts += (int)(csound->esr / *p->icps);
       scale++;
     }
     rail_len = npts/2/* + 1*/;      /* but only need half length */
     if (plk >= FL(1.0) || plk <= FL(0.0)) {
-/*       printf("Pluck point %f invalid, using 0.5\n", plk); */
       plk = (p->ain ? FL(0.0) : FL(0.5));
     }
     pickpt = (int)(rail_len * plk);
@@ -151,7 +150,7 @@ static MYFLT getvalue(DelayLine *dl, int position)
 int wgpluck(ENVIRON *csound, WGPLUCK2 *p)
 {
     MYFLT   *ar, *ain;
-    int     n,nsmps=ksmps;
+    int     n,nsmps=csound->ksmps;
     MYFLT   yp0,ym0,ypM,ymM;
     DelayLine   *upper_rail;
     DelayLine   *lower_rail;
@@ -162,7 +161,7 @@ int wgpluck(ENVIRON *csound, WGPLUCK2 *p)
     MYFLT   reflect = *p->reflect;
 
     if (reflect <= FL(0.0) || reflect >= FL(1.0)) {
-      printf(Str("Reflection invalid (%f)\n"), reflect);
+      csound->Message(csound, Str("Reflection invalid (%f)\n"), reflect);
       reflect = FL(0.5);
     }
     ar   = p->ar;
@@ -175,7 +174,7 @@ int wgpluck(ENVIRON *csound, WGPLUCK2 *p)
     pickfrac = pickup & OVERMSK;
     pickup = pickup>>OVERSHT;
     if (pickup<0 || pickup > p->rail_len) {
-      printf(Str("Pickup out of range (%f)\n"), p->pickup);
+      csound->Message(csound, Str("Pickup out of range (%f)\n"), p->pickup);
       pickup =  p->rail_len * (OVERCNT/2);
       pickfrac = pickup & OVERMSK;
       pickup = pickup>>OVERSHT;
@@ -238,7 +237,7 @@ int wgpluck(ENVIRON *csound, WGPLUCK2 *p)
 int stresonset(ENVIRON *csound, STRES *p)
 {
     int n;
-    p->size = (int) (esr/20);   /* size of delay line */
+    p->size = (int) (csound->esr/20);   /* size of delay line */
     csound->AuxAlloc(csound, p->size*sizeof(MYFLT), &p->aux);
     p->Cdelay = (MYFLT*) p->aux.auxp; /* delay line */
     p->LPdelay = p->APdelay = FL(0.0); /* reset the All-pass and Low-pass delays */
@@ -254,7 +253,7 @@ int streson(ENVIRON *csound, STRES *p)
     MYFLT *in = p->ainput;
     MYFLT g = *p->ifdbgain;
     MYFLT freq, a, s, w, sample, tdelay, fracdelay;
-    int delay, n, nsmps = ksmps;
+    int delay, n, nsmps = csound->ksmps;
     int rp = p->rpointer, wp = p->wpointer;
     int size = p->size;
     MYFLT       APdelay = p->APdelay;
@@ -263,7 +262,7 @@ int streson(ENVIRON *csound, STRES *p)
 
     freq = *p->afr;
     if (freq < 20) freq = FL(20.0);   /* lowest freq is 20 Hz */
-    tdelay = esr/freq;
+    tdelay = csound->esr/freq;
     delay = (int) (tdelay - FL(0.5)); /* comb delay */
     fracdelay = tdelay - (delay + FL(0.5)); /* fractional delay */
     p->vdtime = size - delay;       /* set the var delay */
@@ -305,3 +304,4 @@ OENTRY *opcode_init(ENVIRON *xx)
 {
     return localops;
 }
+

@@ -46,7 +46,7 @@ int pvscent(ENVIRON *csound, PVSCENT *p)
     long i,N = p->fin->N;
     MYFLT c = FL(0.0);
     MYFLT d = FL(0.0);
-    MYFLT j, binsize = FL(0.5)*esr/(MYFLT)N;
+    MYFLT j, binsize = FL(0.5)*csound->esr/(MYFLT)N;
     float *fin = (float *) p->fin->frame.auxp;
     if (p->lastframe < p->fin->framecount) {
       for (i=0,j=FL(0.5)*binsize; i<N+2; i+=2, j += binsize) {

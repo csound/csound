@@ -53,7 +53,7 @@ int nlfiltset(ENVIRON *csound, NLFILT *p)
 int nlfilt(ENVIRON *csound, NLFILT *p)
 {
     MYFLT       *ar;
-    int         n,nsmps=ksmps;
+    int         n,nsmps=csound->ksmps;
     int         point = p->point;
     int         nm1 = point;
     int         nm2 = point -1;
@@ -71,7 +71,6 @@ int nlfilt(ENVIRON *csound, NLFILT *p)
                                 /* L is k-rate so need to check */
     if (L < FL(1.0)) L = FL(1.0);
     else if (L >= MAX_DELAY) {
-      /*      fprintf(stderr, "Delay parameter too large at %f\n", L); */
       L = (MYFLT)MAX_DELAY;
     }
     nmL = point - (int)(L)-1;
@@ -81,19 +80,16 @@ int nlfilt(ENVIRON *csound, NLFILT *p)
     ynm1 = fp[nm1];     /* Pick up running values */
     ynm2 = fp[nm2];
     ynmL = fp[nmL];
-/* printf("Y-1=%f Y-2=%f Y-L=%f\t", ynm1, ynm2, ynmL); */
-/* printf("n-1=%d n-2=%d n-L=%d\n", nm1, nm2, nmL); */
     for (n=0;n<nsmps;n++) {
       MYFLT yn;
       MYFLT out;
       yn = a*ynm1 + b*ynm2 + d*ynmL*ynmL - C;
       if (in != NULL) {
-        yn += in[n]/e0dbfs;   /* Must work in (-1,1) amplitudes  */
+        yn += in[n]/csound->e0dbfs;   /* Must work in (-1,1) amplitudes  */
       }
-/* printf("=> yn=%f\n", yn); */
-      out = yn*e0dbfs;          /* Write output */
-      if (out >= e0dbfs)       out =  e0dbfs*FL(0.999);
-      else if (out <= -e0dbfs) out = -e0dbfs*FL(0.999);
+      out = yn*csound->e0dbfs;          /* Write output */
+      if (out >= csound->e0dbfs)       out =  csound->e0dbfs*FL(0.999);
+      else if (out <= -csound->e0dbfs) out = -csound->e0dbfs*FL(0.999);
       ar[n] = out;
       if (++point == MAX_DELAY) {
         point = 0;
@@ -105,7 +101,6 @@ int nlfilt(ENVIRON *csound, NLFILT *p)
       ynm2 = ynm1;              /* Shuffle along */
       ynm1 = yn;
       ynmL = fp[nmL];
-/* printf("Y-1=%f Y-2=%f Y-L(%d)=%f\n", ynm1, ynm2, nmL, ynmL); */
     }
     p->point = point;
     return OK;
