@@ -772,6 +772,12 @@ extern "C" {
     int (*GetSizeOfMYFLT)(void);
     void **(*GetRtRecordUserData)(void *csound);
     void **(*GetRtPlayUserData)(void *csound);
+    void (*ComplexFFT)(void *csound, MYFLT *buf, int FFTsize, int nRows);
+    void (*InverseComplexFFT)(void *csound, MYFLT *buf, int FFTsize, int nRows);
+    void (*RealFFT)(void *csound, MYFLT *buf, int FFTsize, int nRows);
+    void (*InverseRealFFT)(void *csound, MYFLT *buf, int FFTsize, int nRows);
+    void (*RSpectProd)(void *csound, MYFLT *buf1, MYFLT *buf2, MYFLT *outbuf,
+                       int FFTsize);
     /* End of internals */
     int           ksmps_, nchnls_;
     int           global_ksmps_;
