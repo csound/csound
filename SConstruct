@@ -24,6 +24,7 @@ import sys
 import string
 import zipfile
 import shutil
+import copy 
 
 #############################################################################
 #
@@ -927,10 +928,10 @@ else:
         vstEnvironment['ENV']['PATH'] = os.environ['PATH']
         csoundVstSources.append('frontends/CsoundVST/_CsoundVST.def')
     swigflags = vstEnvironment['SWIGFLAGS']
-    csoundVstPythonWrapper = vstEnvironment.SharedObject('frontends/CsoundVST/CsoundVST.i', SWIGFLAGS = swigflags + '-python')
+    csoundVstPythonWrapper = vstEnvironment.SharedObject('frontends/CsoundVST/CsoundVST.i', SWIGFLAGS = [swigflags,'-python'])
     csoundVstSources.append(csoundVstPythonWrapper)
     if configure.CheckHeader('jni.h', language = 'C++'):
-    	csoundVstJavaWrapper = vstEnvironment.SharedObject('frontends/CsoundVST/JCsoundVST.i', SWIGFLAGS = swigflags + '-java')
+    	csoundVstJavaWrapper = vstEnvironment.SharedObject('frontends/CsoundVST/JCsoundVST.i', SWIGFLAGS = [swigflags,'-java'])
     	csoundVstSources.append(csoundVstJavaWrapper)
 	#jcsound = Java(target = '.', classes = '.')
 	#zipDependencies.append(jcsound)
