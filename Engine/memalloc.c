@@ -31,7 +31,7 @@ extern void rlsmemfiles(void);
 
 /*  #define MEMDEBUG */
 
-#ifdef _WIN32                           /*RWD want this for console version too */
+#if defined (_MSC_VER)                           /*RWD want this for console version too */
 #include <crtdbg.h>
 extern void DisplayMsg(char *, ...);
 #endif
