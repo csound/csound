@@ -327,7 +327,6 @@ int soundin(ENVIRON *csound, SOUNDIN *p)
 void sfopenin(void *csound)             /* init for continuous soundin */
 {
     char    *sfname = NULL;
-    long     n;
 
     if (p == NULL)
       p = (SOUNDIN *) mcalloc((long)sizeof(SOUNDIN));
@@ -430,7 +429,7 @@ void sfopenin(void *csound)             /* init for continuous soundin */
            type2string(p->filetyp));
     isfopen = 1;
 
-    n = audrecv(csound, inbuf, inbufsiz);     /*     file or devaudio  */
+/*    n = audrecv(csound, inbuf, inbufsiz);   /\*     file or devaudio  */
 /*     inbufrem = (unsigned int)n;            /\* datasiz in monosamps  *\/ */
 
 }
@@ -549,18 +548,29 @@ void sfopenout(void *csound)                    /* init for sound out       */
       nzerotran = zerosf;       /* quick zeros */
       audtran = writesf;        /* flush buffer */
       /* Write any tags. */
-      if (O.id_title) 
-	sf_set_string (outfile, SF_STR_TITLE, O.id_title);
-      if (O.id_copyright)
-	sf_set_string (outfile, SF_STR_COPYRIGHT, O.id_copyright);
-      if (O.id_software)
-	sf_set_string (outfile, SF_STR_SOFTWARE, O.id_software);
-      if (O.id_artist)
-	sf_set_string (outfile, SF_STR_ARTIST, O.id_artist);
-      if (O.id_comment)
-	sf_set_string (outfile, SF_STR_COMMENT, O.id_comment);
-      if (O.id_date)
-	sf_set_string (outfile, SF_STR_DATE, O.id_date);
+      {
+        ENVIRON *p;
+        char    *s;
+        p = (ENVIRON*) csound;
+        s = (char*) (p->QueryGlobalVariable(p, "::SF::id_title"));
+        if (s != NULL && s[0] != '\0')
+          sf_set_string(outfile, SF_STR_TITLE, s);
+        s = (char*) (p->QueryGlobalVariable(p, "::SF::id_copyright"));
+        if (s != NULL && s[0] != '\0')
+          sf_set_string(outfile, SF_STR_COPYRIGHT, s);
+        s = (char*) (p->QueryGlobalVariable(p, "::SF::id_software"));
+        if (s != NULL && s[0] != '\0')
+          sf_set_string(outfile, SF_STR_SOFTWARE, s);
+        s = (char*) (p->QueryGlobalVariable(p, "::SF::id_artist"));
+        if (s != NULL && s[0] != '\0')
+          sf_set_string(outfile, SF_STR_ARTIST, s);
+        s = (char*) (p->QueryGlobalVariable(p, "::SF::id_comment"));
+        if (s != NULL && s[0] != '\0')
+          sf_set_string(outfile, SF_STR_COMMENT, s);
+        s = (char*) (p->QueryGlobalVariable(p, "::SF::id_date"));
+        if (s != NULL && s[0] != '\0')
+          sf_set_string(outfile, SF_STR_DATE, s);
+      }
       osfopen = 1;
     }
 #if defined(SYMANTEC)
