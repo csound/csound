@@ -25,7 +25,7 @@
 	* H/sdif-mem.h:
 	* SDIF/sdif-mem.h:
 	* OOps/sdif.c:
-	* SDIF/sdif.c: changed #include <H/sdif-mem.h" to #include 
+	* SDIF/sdif.c: changed #include <H/sdif-mem.h> to #include 
 	"H/sdif-mem.h" and <H/sdif.h> to "H/sdif.h".
 
 	* H/sftype.h: #defined PACKED for mac_classic
