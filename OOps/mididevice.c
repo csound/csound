@@ -30,11 +30,10 @@
 /* ********************************************************************** */
 /* ********************************************************************** */
 
+#ifndef PORTMIDI
 extern u_char *mbuf, *bufp, *bufend, *endatp;
 
 #define MBUFSIZ   1024
-
-#ifndef PORTAUDIO
 
 #ifdef WIN32                    /* IV - Nov 10 2002 */
 #undef u_char
@@ -630,12 +629,15 @@ void MidiOutShortMsg(unsigned char *data)
 
 PortMidiStream* midistream;
 static int not_started = 1;
+extern PmEvent *mbuf, *bufp, *bufend, *endatp;
+
+#define MBUFSIZ   512
 
 void OpenMIDIDevice(void)
 {
     if (not_started) {
       Pm_Initialize();
-      Pt_Start(1, 0, 0);
+      Pt_Start(1, NULL, NULL);
     }
     not_started = 0;
     Pm_OpenInput(&midistream, 
@@ -671,18 +673,10 @@ long GetMIDIData(void)
       if ((retval=Pm_Poll(midistream))) {
         if (retval<0) printf(Str(X_1185,"sensMIDI: retval errno %d"),errno);
         if (retval == 0) {
-          PmEvent buffer[MBUFSIZE];
           int i, j;
-          long n = Pm_Read(midistream, buffer, MBUFSIZE/3);
+          long n = Pm_Read(midistream, bufp, MBUFSIZE/3);
           bufp = mbuf;
-          endatp = mbuf + 3*n;
-          /* At present we do not need timestamps, but need to unpack data
-           * and should not store unnecessary bytes.....hum */
-          for (i=0, j=0; j<n; i+=3, j++) {
-            bufp[i+0] = Pm_MessageStatus(buffer[j].message);
-            bufp[i+1] = Pm_MessageData1(buffer[j].message);
-            bufp[i+2] = Pm_MessageData2(buffer[j].message);
-          }
+          endatp = mbuf + n;
           return n;
         }
         else {
