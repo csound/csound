@@ -258,7 +258,9 @@ static void signal_handler(int sig)
 #if defined(USE_FLTK) && defined(SIGALRM)
     if (sig == SIGALRM) return;
 #endif
+#ifdef RTAUDIO
     rtclose_();
+#endif
     sleep(1);
     exit(1);
 }
