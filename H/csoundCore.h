@@ -50,8 +50,8 @@ extern "C" {
 #include "version.h"
 #include <sndfile.h>
 
-#define OK (0)
-#define NOTOK (-1)
+#define OK        (0)
+#define NOTOK     (-1)
 
 #define INSTR     1
 #define ENDIN     2
@@ -70,9 +70,9 @@ extern "C" {
 /* #define PGMINIT   17 */
 /* #define DPGMINIT  18 */
 
-#define MAXINSNO 200
-#define PMAX     1000
-#define VARGMAX  1001
+#define MAXINSNO   (200)
+#define PMAX       (1000)
+#define VARGMAX    (1001)
 /* IV - Oct 24 2002: max number of input/output args for user defined opcodes */
 #define OPCODENUMOUTS   24
 
