@@ -310,13 +310,13 @@ int convolve(ENVIRON *csound, CONVOLVE *p)
 
 
 /* partitioned (low latency) overlap-save convolution.
-	we break up the IR into separate blocks, then perform
-	an FFT on each partition.  For this reason we ONLY accept
-	soundfiles as input, and do all of the traditional 'cvanal'
-	processing at i-time.  it would be nice to eventually
-	have cvanal create a partitioned format, which in turn would
-	allow this opcode to accept .con files.
-	-ma++ april 2004 */
+   we break up the IR into separate blocks, then perform
+   an FFT on each partition.  For this reason we ONLY accept
+   soundfiles as input, and do all of the traditional 'cvanal'
+   processing at i-time.  it would be nice to eventually
+   have cvanal create a partitioned format, which in turn would
+   allow this opcode to accept .con files.
+   -ma++ april 2004 */
 
 extern int sndinset(ENVIRON *csound, SOUNDIN *p);
 extern int soundin(ENVIRON *csound, SOUNDIN *p);
@@ -339,8 +339,8 @@ int pconvset(ENVIRON *csound, PCONVOLVE *p)
     static  ARGOFFS  argofs = {0};
     static  OPTXT    optxt;
 
-	/* open impulse response soundfile [code derived from SAsndgetset()] */
-	optxt.t.outoffs = &argofs;    /* point to dummy OUTOCOUNT       */
+    /* open impulse response soundfile [code derived from SAsndgetset()] */
+    optxt.t.outoffs = &argofs;    /* point to dummy OUTOCOUNT       */
     IRfile.h.optext = &optxt;
     IRfile.ifilno = &sstrcod;
     IRfile.iskptim = &skptm;
@@ -448,7 +448,7 @@ int pconvset(ENVIRON *csound, PCONVOLVE *p)
     p->outRead = (MYFLT *)p->output.auxp;
 
     /* if ksmps < hlen, we have to pad initial output to prevent a possible
-       empty ksmps pass	after a few initial generated buffers.  There is
+       empty ksmps pass after a few initial generated buffers.  There is
        probably an equation to figure this out to reduce the delay, but
        I can't seem to figure it out */
     if (p->Hlen > ksmps) {
@@ -525,11 +525,11 @@ int pconvolve(ENVIRON *csound, PCONVOLVE *p)
           }
           buf += 2;
         }
-	p->outWrite += p->Hlen*p->nchanls;
+        p->outWrite += p->Hlen*p->nchanls;
         if (p->outWrite >= (MYFLT *)p->output.endp)
           p->outWrite -= p->outBufSiz/sizeof(MYFLT);
         p->outCount += p->Hlen;
-	if (++p->curPart == p->numPartitions) /* advance to the next partition */
+        if (++p->curPart == p->numPartitions) /* advance to the next partition */
           p->curPart = 0;
         /* copy the saved input into the work buffer for next time around */
         memcpy(p->workBuf.auxp, input, p->Hlen * sizeof(MYFLT));

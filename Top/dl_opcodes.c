@@ -407,8 +407,8 @@ void *dlsym(void *handle, const char *symbol)
 
 void *csoundOpenLibrary(const char *libraryPath)
 {
-	void *library = NULL;
-	return library;
+        void *library = NULL;
+        return library;
 }
 
 void *csoundCloseLibrary(void *library)
@@ -509,13 +509,13 @@ int csoundLoadExternals(void *csound)
       char buffer[0x500];
       char *opcodedir = getenv("OPCODEDIR");
       if (O.odebug) {
-	printf("OPCODEDIR='%s'.\n", opcodedir?opcodedir:"(null)");
+        printf("OPCODEDIR='%s'.\n", opcodedir?opcodedir:"(null)");
       }
       if (!opcodedir) {
         opcodedir = ".";
       }
       if (O.odebug) {
-	printf("OPCODEDIR='%s'.\n", opcodedir?opcodedir:"(null)");
+        printf("OPCODEDIR='%s'.\n", opcodedir?opcodedir:"(null)");
       }
       directory = opendir(opcodedir);
       while ((file = readdir(directory)) != 0) {
