@@ -169,8 +169,7 @@ int SfLoad(SFLOAD *p)          /* open a file and return its handle */
 }
 
 
-static char temp_string[24];
-char *filter_string(char *s)
+static char *filter_string(char *s, char temp_string[24])
 {
     int i=0, j=0;
     int c;
@@ -191,12 +190,13 @@ char *filter_string(char *s)
 int Sfplist(SFPLIST *p)
 {
     SFBANK *sf = &sfArray[(int) *p->ihandle];
+    char temp_string[24];
     int j;
     printf(Str(X_1492,"\nPreset list of \"%s\"\n"),sf->name);
     for (j =0; j < sf->presets_num; j++) {
       presetType *prs = &sf->preset[j];
       printf(Str(X_1493,"%3d) %-20s\tprog:%-3d bank:%d\n"),
-             j, filter_string(prs->name), prs->prog, prs->bank);
+             j, filter_string(prs->name, temp_string), prs->prog, prs->bank);
     }
     printf("\n");
     return OK;
