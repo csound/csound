@@ -454,7 +454,7 @@ extern "C"
 	      fluid_synth_noteoff(fluid_engines[fluidId], 
 				  midiChannel, 
 				  midiData1); 
-	      warn(csound, "Note off: s:%3d c:%3d k:%3d\n",
+	      warn(csound, "Note off:   s:%3d c:%3d k:%3d\n",
 		   midiStatus,
 		   midiChannel,
 		   midiData1);                         
@@ -464,7 +464,7 @@ extern "C"
 				 midiChannel, 
 				 midiData1, 
 				 midiData2); 
-	      warn(csound, "Note on:  s:%3d c:%3d k:%3d v:%3d\n",
+	      warn(csound, "Note on:    s:%3d c:%3d k:%3d v:%3d\n",
 		   midiStatus,
 		   midiChannel,
 		   midiData1,
