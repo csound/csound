@@ -88,14 +88,24 @@ static int sframe_size = 0;
 static int aifchdrsize = 0;
 
 extern int   bytrevhost(void);
+/*RWD 3:2000*/
+extern int   write_aiffpeak(int fd,int verbose);
+static int sizPeakChunk = sizeof(PeakChunk);            /*but will change if more than mono...*/
+
+#ifdef WORDS_BIGENDIAN
+# define benfloat(x) (x)
+# define benshort(x) (x)
+# define benlong(x)  (x)
+# define natshort(x) (x)
+# define natlong(x)  (x)
+#else
+extern long  natlong(long);
+extern float benfloat(float x);
 extern short benshort(short sval);
 extern long  benlong(long lval);
 extern short natshort(short sval);
 extern long  benlong(long lval);
-/*RWD 3:2000*/
-extern int   write_aiffpeak(int fd,int verbose);
-extern float benfloat(float x);
-static int sizPeakChunk = sizeof(PeakChunk);            /*but will change if more than mono...*/
+#endif
 
 void aifcWriteHdr(              /* Write AIFF header at start of file.   */
     int fd,                     /* Called after open, before data writes */
@@ -225,8 +235,6 @@ typedef struct {
   short markerID;
   long  position;
 } MARKER;
-
-extern long natlong(long);
 
 void aifcReadHeader(            /* Read AIFF header, fill hdr, &  */
   int fd,                       /* postn rd ptr to start of samps */

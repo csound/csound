@@ -717,12 +717,8 @@ typedef struct ENVIRON_
 # define __cdecl
 #endif
 
-#ifdef LINUX
-# ifdef HAVE_FLTK
-   extern int POLL_EVENTS(void);
-# else
+#if defined(LINUX) || defined(MACOSX)
 #  define POLL_EVENTS()     (1)
-# endif
 #endif
 
 #if !defined(__BEOS__) || defined(__MWERKS__)

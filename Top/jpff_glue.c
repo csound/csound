@@ -33,7 +33,6 @@ extern long    kcnt;
 void csoundMessage(void *, const char *, ...);
 int csoundMain(void*, int, char**);
 
-#if !defined(CWIN) && !defined(MACOSX)
 extern OPARMS  O_;
 extern ENVIRON cenviron_;
 void csoundMessage(void *, const char *, ...);
@@ -51,7 +50,6 @@ int main(int argc, char **argv)
     atexit(remove_tmpfiles);            /* IV - Oct 31 2002 */
     return csoundMain(NULL, argc, argv);
 }
-#endif
 #endif
 
 void *csoundCreate(void *hostData)

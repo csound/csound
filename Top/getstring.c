@@ -35,7 +35,11 @@ static int numstrings = 0;
 static long baseloc;
 static FILE *db;
 
+#ifdef WORDS_BIGENDIAN
+# define natlong(x)  (x)
+#else
 extern long natlong(long);
+#endif
 #ifdef WIN32
 extern char *getDB(void);
 #endif

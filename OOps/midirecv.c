@@ -139,8 +139,13 @@ void FMidiOpen(void) /* open a MidiFile for reading, sense MPU401 or standard */
     long lval, tickspersec;
     u_long deltim;
     char inbytes[16];    /* must be long-aligned, 16 >= MThd maxlen */
+#ifdef WORDS_BIGENDIAN
+# define natshort(x) (x)
+# define natlong(x)  (x)
+#else
     extern long natlong(long);
     extern short natshort(short);
+#endif
 
     FMidevtblk = (MEVENT *) mcalloc((long)sizeof(MEVENT));
     fsexbuf = (u_char *) mcalloc((long)MBUFSIZ);
