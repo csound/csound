@@ -264,7 +264,17 @@ int csoundLoadExternals(void)
 #elif WIN32
       handle = (long) LoadLibrary(libname);
 #endif
-      if (!handle) {
+      if(handle == NULL) {
+
+#ifdef HAVE_LIBDL
+        char *errstr;
+
+        errstr = dlerror();
+        if (errstr != NULL) {
+          printf ("A dynamic linking error occurred: (%s)\n", errstr);
+        }
+#endif
+
         printf("Failed to load %s\n", libname);
       }
       else {
