@@ -82,16 +82,16 @@ static int next_name = -1;
 
 static struct in_stack *inputs = NULL, *str; /* Currently allow 20 maximum */
 static int input_size = 0, input_cnt = 0;
-static int pop = 0;             /* Number of macros to pop */
-static int ingappop = 1;        /* Are we in a popable gap? */
+static int pop = 0;                          /* Number of macros to pop */
+static int ingappop = 1;                     /* Are we in a popable gap? */
 static int linepos = -1;
 
 static void expand_nxp(void)
 {
     if (nxp > memend)  goto margerr;
-    if (curmem->nxtmem != NULL)          /*      chain to next  */
+    if (curmem->nxtmem != NULL)              /*      chain to next  */
       curmem = curmem->nxtmem;
-    else {                               /*      or alloc a new */
+    else {                                   /*      or alloc a new */
       MEMHDR *prvmem = curmem;
       err_printf(Str(X_1239,"sread: requesting more memory\n"));
       curmem = (MEMHDR *) mcalloc((long)MEMSIZ);
@@ -1176,7 +1176,7 @@ static void salcblk(void)       /* alloc a srtblk from current mem space:   */
 
     SRTBLK *prvbp;
 
-    if (memend - nxp < MARGIN) {            /* if this memblk exhausted */
+    if (memend - nxp < MARGIN) {                /* if this memblk exhausted */
       expand_nxp();
     }
                                 /* now allocate a srtblk from this space:   */
@@ -1193,7 +1193,7 @@ static void salcblk(void)       /* alloc a srtblk from current mem space:   */
     if (frstbp == NULL)
       frstbp = bp;
     if (prvbp != NULL)
-      prvbp->nxtblk = bp;     /* link with prev srtblk        */
+      prvbp->nxtblk = bp;           /* link with prev srtblk        */
     bp->prvblk = prvbp;
     bp->nxtblk = NULL;
     nxp = bp->text;
@@ -1203,8 +1203,8 @@ static void salcblk(void)       /* alloc a srtblk from current mem space:   */
 
 }
 
-void sfree(void)                /* free all sorter allocated space */
-{                               /*    called at completion of sort */
+void sfree(void)                 /* free all sorter allocated space */
+{                                /*    called at completion of sort */
     MEMHDR *curmem, *nxtmem;
 
     for (curmem = basmem; curmem != NULL; curmem = nxtmem) {
@@ -1343,7 +1343,8 @@ static int sget1(void)          /* get first non-white, non-comment char */
         mm->body[i]='\0';
         mm->next = macros;
         macros = mm;
-        printf(Str(X_340,"Macro %s with %d arguments defined\n"),  mm->name, mm->acnt);
+        printf(Str(X_340,"Macro %s with %d arguments defined\n"),
+               mm->name, mm->acnt);
         c = ' ';
         flushlin();
         goto srch;
