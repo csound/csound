@@ -144,7 +144,7 @@ void fgens(EVTBLK *evtblkp)     /* create ftable using evtblk data */
       FTERR(Str(X_850,"illegal gen number"))
     if ((flen = (long)(e->p[3]+0.5))) {         /* if user flen given       */
       if (flen < 0 ) { /* gab for non-pow-of-two-length */
-        flen = labs(flen);
+        flen = labs(flen-1);
         lenmask = 0xFFFFFFFF;
         lobits = 0;    /* Hope this is not needed! */
       }
