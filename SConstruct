@@ -858,6 +858,15 @@ executables.append(csoundProgramEnvironment.Program('sndinfo',
     ['util2/sndinfo/sndinfo_main.c']))
 executables.append(csoundProgramEnvironment.Program('srconv',
     ['util2/dnoise.dir/srconv.c']))
+executables.append(commonEnvironment.Program('cs', ['util1/csd_util/cs.c']))
+executables.append(commonEnvironment.Program('csb64enc',
+                                             Split('''util1/csd_util/base64.c
+                                                      util1/csd_util/csb64enc.c
+                                                   ''')))
+executables.append(commonEnvironment.Program('makecsd',
+                                             Split('''util1/csd_util/base64.c
+                                                      util1/csd_util/makecsd.c
+                                                   ''')))
 
 # Front ends.
 

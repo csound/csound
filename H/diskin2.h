@@ -27,9 +27,9 @@
 #include <sndfile.h>
 
 #define DISKIN2_MAXCHN  24              /* for consistency with soundin   */
-#define POS_FRAC_SHIFT  24              /* allows pitch accuracy of 2^-24 */
-#define POS_FRAC_SCALE  0x01000000
-#define POS_FRAC_MASK   0x00FFFFFF
+#define POS_FRAC_SHIFT  28              /* allows pitch accuracy of 2^-28 */
+#define POS_FRAC_SCALE  0x10000000
+#define POS_FRAC_MASK   0x0FFFFFFF
 
 typedef struct {
     OPDS    h;
@@ -49,16 +49,15 @@ typedef struct {
     int     wrapMode;
     long    fileLength;         /* in sample frames */
     long    bufStartPos;
+    int64_t pos_frac;           /* type should be defined in sysdep.h */
+    int64_t pos_frac_inc;
     long    prvBufStartPos;
-    long    pos_int;
-    int     pos_frac;
-    int     pos_frac_inc;
-    int     winSize;
-    MYFLT   prv_kTranspose;
-    MYFLT   warpScale;
-    MYFLT   winFact;
+    long    winSize;
     MYFLT   *buf;
     MYFLT   *prvBuf;
+    MYFLT   prv_kTranspose;
+    MYFLT   winFact;
+    double  warpScale;
     SNDFILE *sf;
     FDCH    fdch;
     AUXCH   auxData;            /* for dynamically allocated buffers */
