@@ -357,38 +357,48 @@ void CsoundVstFltk::messageCallback(const char *format, va_list valist)
 {
 	char buffer[0x1000];
 	vsprintf(buffer, format, valist);
-	for(std::vector<CsoundVstFltk *>::iterator it = CsoundVstFltk::instances.begin();
-		it != CsoundVstFltk::instances.end(); 
-		++it)
+	static std::string actualBuffer;
+	static std::string lineBuffer;
+	actualBuffer.append(buffer);
+	size_t position = 0;
+	while((position = actualBuffer.find("\n")) != std::string::npos)
 	{
-		CsoundVstFltk *csoundVstFltk = *it;
-		if(!csoundVstFltk)
-		{
-			break;
+	    lineBuffer = actualBuffer.substr(0, position);
+        actualBuffer.erase(0, position + 1); 
+	    for(std::vector<CsoundVstFltk *>::iterator it = CsoundVstFltk::instances.begin();
+	        it != CsoundVstFltk::instances.end(); 
+            ++it)
+        {
+            CsoundVstFltk *csoundVstFltk = *it;
+            if(!csoundVstFltk)
+            {
+			    return;
+	        }
+	        if(csoundVstFltk->csoundVST->getIsVst())
+	        {
+	            csoundVstFltk->messages.push_back(lineBuffer);
+            }
+		    else
+		    {
+			    if(!csoundVstFltk->csoundVstUi)
+			    {
+			        return;
+                }
+			    if(!csoundVstFltk->runtimeMessagesBrowser)
+			    {
+				    return;
+			    }
+			    else
+			    {
+				    Fl::lock();
+				    csoundVstFltk->runtimeMessagesBrowser->add(lineBuffer.c_str());
+				    csoundVstFltk->runtimeMessagesBrowser->bottomline(csoundVstFltk->runtimeMessagesBrowser->size());
+				    Fl::flush();
+				    Fl::unlock();
+			    }
+		    }
 		}
-		if(csoundVstFltk->csoundVST->getIsVst())
-		{
-			csoundVstFltk->messages.push_back(buffer);
-		}
-		else
-		{
-			if(!csoundVstFltk->csoundVstUi)
-			{
-				break;
-			}
-			if(!csoundVstFltk->runtimeMessagesBrowser)
-			{
-				break;
-			}
-			else
-			{
-				Fl::lock();
-				csoundVstFltk->runtimeMessagesBrowser->add(buffer);
-				csoundVstFltk->runtimeMessagesBrowser->bottomline(csoundVstFltk->runtimeMessagesBrowser->size());
-				Fl::flush();
-				Fl::unlock();
-			}
-		}
+		actualBuffer.clear();
 	}
 }
 
