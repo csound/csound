@@ -386,9 +386,7 @@ void do_mac_dialogs(void)
         case POPUP_SDII:
           // SDII supports chars, shorts, and longs only
           if (
-#ifdef ULAW
               out_fmt.type == POPUP_ULAW || 
-#endif
               out_fmt.type == POPUP_8_US)
             out_fmt.type = POPUP_8;
           else if (out_fmt.type == POPUP_32F)
@@ -397,9 +395,7 @@ void do_mac_dialogs(void)
         case POPUP_WAV:
           // WAV supports u-chars and shorts only
           if (
-#ifdef ULAW
               out_fmt.type == POPUP_ULAW ||
-#endif
               out_fmt.type == POPUP_8)
             out_fmt.type = POPUP_8_US;
           if (out_fmt.type == POPUP_32 || out_fmt.type == POPUP_32F)
@@ -421,13 +417,11 @@ void do_mac_dialogs(void)
           if (out_fmt.header == POPUP_SDII || out_fmt.header == POPUP_AIFF)
             out_fmt.header = POPUP_WAV;
           break;
-#ifdef ULAW
         case POPUP_ULAW:
           // SDII or WAV dont support ulaw
           if (out_fmt.header == POPUP_SDII || out_fmt.header == POPUP_WAV)
             out_fmt.header = POPUP_AIFF;
           break;
-#endif
         case POPUP_32:
           // WAV dont support longs
           if (out_fmt.header == POPUP_WAV)
@@ -632,16 +626,12 @@ void formCmdLine(void)
     case POPUP_8_US:
       fmt_char = '8';
       break;
-#ifdef never
     case POPUP_ALAW:
       fmt_char = 'a';
       break;
-#endif
-#ifdef ULAW
     case POPUP_ULAW:
       fmt_char = 'u';
       break;
-#endif
     default:
     case POPUP_16:
       fmt_char = 's';

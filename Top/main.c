@@ -305,8 +305,9 @@ void create_opcodlst(void *csound)
     csoundLoadExternals(csound);
 }
 
-extern  int   getsizformat(int), musmon(void), musmon2(void);
+extern  int    musmon(void), musmon2(void);
 extern  char  *getstrformat(int);
+extern  short  sfsampsize(int);
 extern int frsturnon;
 
 int csoundCompile(void *csound, int argc, char **argv)
@@ -445,7 +446,7 @@ int csoundCompile(void *csound, int argc, char **argv)
     }
     if (!O.outformat)                       /* if no audioformat yet  */
       O.outformat = AE_SHORT;             /*  default to short_ints */
-    O.outsampsiz = getsizformat(O.outformat);
+    O.outsampsiz = sfsampsize(O.outformat);
     O.informat = O.outformat; /* informat defaults; resettable by readinheader */
     O.insampsiz = O.outsampsiz;
     if (O.filetyp == TYP_AIFF ||

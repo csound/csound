@@ -92,7 +92,7 @@ extern ENVIRON cenviron;
                         if (!(--argc) || (((s = *argv++) != NULL) && *s == '-')) \
                             dieu(MSG);
 
-void dnoise_usage(int);
+static void dnoise_usage(int);
 void fast(MYFLT*, int);
 void hamming(MYFLT *, int, int);
 void fsst(MYFLT *, int);
@@ -105,7 +105,8 @@ extern int gargc;
 extern int  SAsndgetset(char *, SOUNDIN**, MYFLT*, MYFLT*, MYFLT*, int);
 extern long getsndin(int, MYFLT *, long, SOUNDIN *);
 extern void bytrev2(char *, int), bytrev4(char *, int), rewriteheader(int,long);
-extern int  openout(char *, int), bytrevhost(void), getsizformat(int);
+extern int  openout(char *, int), bytrevhost(void);
+extern short sfsampsize(int);
 extern void writeheader(int, char *);
 extern char *getstrformat(int);
 extern void dieu(char*);
@@ -113,12 +114,6 @@ extern void dieu(char*);
 static void (*audtran)(char *, int), nullfn(char *, int);
 static void (*spoutran)(MYFLT *, int);
 static void chartran(MYFLT *, int),
-#ifdef never 
-            alawtran(MYFLT *, int),
-#endif
-#ifdef ULAW
-            ulawtran(MYFLT *, int), 
-#endif
             shortran(MYFLT *, int),
             longtran(MYFLT *, int), floatran(MYFLT *, int),
             bytetran(MYFLT *, int);
@@ -348,20 +343,16 @@ int dnoise(int argc, char **argv)
                 outformch = c;
                 O.outformat = AE_UNCH;     /* 8-bit unsigned char file */
                 break;
-#ifdef never
-              case 'a':
-                if (O.outformat) goto outform;
-                outformch = c;
-                O.outformat = AE_ALAW;     /* a-law soundfile */
-                break;
-#endif
-#ifdef ULAW
-              case 'u':
-                if (O.outformat) goto outform;
-                outformch = c;
-                O.outformat = AE_ULAW;     /* mu-law soundfile */
-                break;
-#endif
+/*               case 'a': */
+/*                 if (O.outformat) goto outform; */
+/*                 outformch = c; */
+/*                 O.outformat = AE_ALAW;     /\* a-law soundfile *\/ */
+/*                 break; */
+/*               case 'u': */
+/*                 if (O.outformat) goto outform; */
+/*                 outformch = c; */
+/*                 O.outformat = AE_ULAW;     /\* mu-law soundfile *\/ */
+/*                 break; */
               case 's':
                 if (O.outformat) goto outform;
                 outformch = c;
@@ -475,17 +466,13 @@ int dnoise(int argc, char **argv)
       exit(1);
     }
     if (O.outformat == 0) O.outformat = p->format;
-    O.outsampsiz = getsizformat(O.outformat);
+    O.outsampsiz = sfsampsize(O.outformat);
     if (O.filetyp == TYP_AIFF) {
         if (!O.sfheader)
             die(Str(X_640,"cannot write AIFF soundfile with no header"));
         if (
-#ifdef never
             O.outformat == AE_ALAW || 
-#endif
-#ifdef ULAW
             O.outformat == AE_ULAW ||
-#endif
             O.outformat == AE_FLOAT) {
             sprintf(errmsg,Str(X_180,"AIFF does not support %s encoding"),
                     getstrformat(O.outformat));
@@ -496,12 +483,8 @@ int dnoise(int argc, char **argv)
         if (!O.sfheader)
             die(Str(X_338,"cannot write WAV soundfile with no header"));
         if (
-#ifdef never
             O.outformat == AE_ALAW || 
-#endif
-#ifdef ULAW
             O.outformat == AE_ULAW ||
-#endif
             O.outformat == AE_FLOAT) {
             sprintf(errmsg,Str(X_181,"WAV does not support %s encoding"),
                     getstrformat(O.outformat));
@@ -634,18 +617,14 @@ int dnoise(int argc, char **argv)
         spoutran = chartran;
         choutbuf = outbuf;
         break;
-#ifdef never
-    case AE_ALAW:
-        spoutran = alawtran;
-        choutbuf = outbuf;
-        break;
-#endif
-#ifdef ULAW
-    case AE_ULAW:
-        spoutran = ulawtran;
-        choutbuf = outbuf;
-        break;
-#endif
+/*     case AE_ALAW: */
+/*         spoutran = alawtran; */
+/*         choutbuf = outbuf; */
+/*         break; */
+/*     case AE_ULAW: */
+/*         spoutran = ulawtran; */
+/*         choutbuf = outbuf; */
+/*         break; */
     case AE_SHORT:
         spoutran = shortran;
         shoutbuf = (short *)outbuf;
@@ -1197,7 +1176,7 @@ int dnoise(int argc, char **argv)
     return 0;
 }
 
-void dnoise_usage(int exitcode)
+static void dnoise_usage(int exitcode)
 {
     err_printf(
             "usage: dnoise [flags] input_file\n"

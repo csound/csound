@@ -25,23 +25,20 @@
 #endif
 
 #include "cs.h"                                       /*  SNDINFO.C  */
-#include "soundio.h"
+#include <sndfile.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#ifdef mills_macintosh
-#include "MacTransport.h"
-#endif
+
+extern char* sf2string(int);
 
 int		sndinfo(int argc, char **argv)
 {
     char    *infilnam;
-    int     infd, openin(char *);
-    SOUNDIN *p;         /* space allocated here */
-    HEADATA *hdr, *readheader(int, char*, SOUNDIN*);
-    extern  char *getstrformat(int);
-
-    sssfinit();
+    char    channame[32];
+    int     infd;
+    SF_INFO sf_info;
+    SNDFILE *hndl;
 
     while (--argc) {
       infilnam = *++argv;
@@ -53,24 +50,13 @@ int		sndinfo(int argc, char **argv)
         printf(Str(X_73,"%s:\n\tcould not find\n"), retfilnam);
         continue;
       }
-      p = (SOUNDIN *) mcalloc((long)sizeof(SOUNDIN));
-      if ((hdr = readheader(infd, infilnam, p)) != NULL && !hdr->readlong) {
-        long sframes = hdr->audsize / hdr->sampsize / hdr->nchanls;
-        char channame[100];
-        if (hdr->filetyp == TYP_AIFF) {
-          AIFFDAT *adp;
-          printf(Str(X_565,"\tAIFF soundfile"));
-          if ((adp = hdr->aiffdata) != NULL
-              && (adp->loopmode1 || adp->loopmode2))
-            printf(Str(X_84,", looping with modes %d, %d"),
-                   adp->loopmode1, adp->loopmode2);
-          else printf(Str(X_85,", no looping"));
-          printf("\n");
-        }
-        else if (hdr->filetyp == TYP_WAV)
-          printf(Str(X_567,"\tWAVE soundfile\n"));
-        else printf("%s:\n", retfilnam);
-        switch (hdr->nchanls) {
+      if ((hndl = sf_open_fd(infd, SFM_READ, &sf_info, 1))==NULL) {
+        printf("%s: Not a sound file\n", retfilnam);
+        close(infd);
+      }
+      else {
+        printf("%s:\n", retfilnam);
+        switch (sf_info.channels) {
         case 1:
           strcpy(channame, Str(X_1005,"monaural"));
           break;
@@ -87,42 +73,19 @@ int		sndinfo(int argc, char **argv)
           strcpy(channame, Str(X_1088,"oct"));
           break;
         default:
-          sprintf(channame, "%ld-channel", hdr->nchanls);
+          sprintf(channame, "%d-channel", sf_info.channels);
           break;
         }
         printf(Str(X_579,"\tsrate %ld, %s, %ld bit %s, %4.2f seconds\n"),
-               hdr->sr, channame,
-               hdr->sampsize * 8, getstrformat(hdr->format),
-               (MYFLT)sframes / hdr->sr);
-        printf(Str(X_576,"\theadersiz %ld, datasiz %ld (%ld sample frames)\n"),
-               hdr->hdrsize, hdr->audsize, sframes);
+               sf_info.samplerate, channame,
+               sfsampsize(sf_info.format) * 8,
+               type2string(sf2type(sf_info.format)),
+               (MYFLT)sf_info.frames / sf_info.samplerate);
+        printf("\t(%ld sample frames)\n",
+               (long)sf_info.frames);
+        sf_close(hndl);
       }
-      else printf(Str(X_74,"%s:\n\tno recognizable soundfile header\n"),
-                  retfilnam);
-#ifdef mills_macintosh
-      nchnls = hdr->nchanls;
-      O.outsampsiz = hdr->sampsize;
-      esr = hdr->sr;
-      transport.osfd = infd;
-      O.filetyp = hdr->filetyp;
-      O.informat = hdr->format;
-      if (hdr->filetyp == 0) transport.eoheader = 0;
-      else transport.eoheader = lseek(transport.osfd,(off_t)0L,SEEK_CUR);
-/*          printf("transport.eoheader = %d\n",transport.eoheader); */
-      fflush(stdout);
-      transport.state &= ~kUtilPerf;
-      transport.state |= kGenerating;
-      transport.state = SetTransportState(transport.d,transport.state,
-                                          kGenFinished,0);
-      transport.state |= kFileReOpened;
-      O.outbufsamps = 8192;
-      O.oMaxLag = 4096;
-      while (csoundYield(NULL));
-#endif
-      mfree((char *)p);
-      close(infd);
     }
-    exit(0);
     return 0;
 }
 

@@ -231,4 +231,3 @@ void free_strings(void)
       strings = NULL;
     }
 }
-
