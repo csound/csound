@@ -42,14 +42,14 @@ MGLOBAL mglob;
 static MYFLT MastVol = FL(1.0);     /* maps ctlr 7 to ctlr 9 */
 static long  MTrkrem;
 static double FltMidiNxtk, kprdspertick, ekrdQmil;
-void  m_chn_init(MEVENT *, short);
+void  m_chn_init(ENVIRON *csound, MEVENT *, short);
 static void  (*nxtdeltim)(void), Fnxtdeltim(void), Rnxtdeltim(void);
 extern void  schedofftim(INSDS *), deact(INSDS *), beep(void);
 void midNotesOff(void);
 int csoundIsExternalMidiEnabled(void*);
 void csoundExternalMidiDeviceOpen(void*);
 void csoundExternalMidiDeviceClose(void*);
-void OpenMIDIDevice(void);
+void OpenMIDIDevice(ENVIRON *);
 
 /* static int   LCtl = ON; */
 /* static int   NVoices = 1; */
@@ -62,10 +62,10 @@ extern int pgm2ins[];   /* IV May 2002 */
 extern void xturnon(int, long);
 extern void xturnoff(INSDS*);
 extern void insxtroff(short);
-extern void OpenMIDIDevice(void);
-extern void CloseMIDIDevice(void);
+extern void OpenMIDIDevice(ENVIRON *);
+extern void CloseMIDIDevice(ENVIRON *);
 
-void MidiOpen(void)   /* open a Midi event stream for reading, alloc bufs */
+void MidiOpen(ENVIRON *csound)   /* open a Midi event stream for reading, alloc bufs */
 {                     /*     callable once from main.c                    */
     /* First set up buffers. */
     int i;
@@ -77,13 +77,13 @@ void MidiOpen(void)   /* open a Midi event stream for reading, alloc bufs */
     sexend = sexbuf + MBUFSIZ;
     sexp = NULL;
     for (i=0; i<MAXCHAN; i++) M_CHNBP[i] = NULL; /* Clear array */
-    m_chn_init(Midevtblk,(short)0);
+    m_chn_init(csound, Midevtblk,(short)0);
     /* Then open device. */
-    if(csoundIsExternalMidiEnabled(&cenviron)) {
-        csoundExternalMidiDeviceOpen(&cenviron);
+    if(csoundIsExternalMidiEnabled(csound)) {
+        csoundExternalMidiDeviceOpen(csound);
     }
     else {
-        OpenMIDIDevice();
+        OpenMIDIDevice(csound);
     }
 }
 
@@ -141,7 +141,7 @@ static void Rnxtdeltim(void)        /* incr FMidiNxtk by next delta-time */
     }
 }
 
-void FMidiOpen(void) /* open a MidiFile for reading, sense MPU401 or standard */
+void FMidiOpen(ENVIRON *csound) /* open a MidiFile for reading, sense MPU401 or standard */
 {                    /*     callable once from main.c      */
     short sval;
     long lval, tickspersec;
@@ -160,7 +160,7 @@ void FMidiOpen(void) /* open a MidiFile for reading, sense MPU401 or standard */
     fsexend = fsexbuf + MBUFSIZ;
     fsexp = NULL;
     if (M_CHNBP[0] == (MCHNBLK*) NULL)      /* IV May 2002: added check */
-      m_chn_init(FMidevtblk,(short)0);
+      m_chn_init(csound, FMidevtblk,(short)0);
 
     if (strcmp(O.FMidiname,"stdin") == 0) {
       mfp = stdin;
@@ -300,7 +300,7 @@ static void m_song_sel(long a) { IGN(a);}
 static MYFLT dsctl_map[12] = {FL(1.0),FL(0.0),FL(1.0),FL(0.0),FL(1.0),FL(0.0),
                               FL(1.0),FL(0.0),FL(1.0),FL(0.0),FL(1.0),FL(0.0)};
 
-void m_chanmsg(MEVENT *mep) /* exec non-note chnl_voice & chnl_mode cmnds */
+void m_chanmsg(ENVIRON *csound, MEVENT *mep) /* exec non-note chnl_voice & chnl_mode cmnds */
 {
     MCHNBLK *chn = M_CHNBP[mep->chan];
     short n;
@@ -497,132 +497,7 @@ void m_chanmsg(MEVENT *mep) /* exec non-note chnl_voice & chnl_mode cmnds */
     }
 }
 
-/* ********* OLD CODE FRAGMENTS ******** */
-/* static void m_chanmsg(MEVENT *mep) exec non-note chnl_voice & chnl_mode cmnds */
-/* { .... */
-/*     short n, nn, tstchan; */
-/*     MCHNBLK *tstchn; */
-
-/*     switch(mep->type) { */
-/*     case CONTROL_TYPE:          /\* CONTROL CHANGE MESSAGES: *\/ */
-/*       if ((n = mep->dat1) >= 121) /\* if mode msg, redirect *\/ */
-/*         goto modemsg; */
-/*       tstchan = (mep->chan + 1) & 0xF; */
-/*       if ((tstchn = M_CHNBP[tstchan]) != NULL */
-/*           && tstchn->Omni == 0 */
-/*           && tstchn->Poly == 0) { /\* if Global Controller update *\/ */
-/*         chn = tstchn;           /\*  looping from chan + 1 *\/ */
-/*         nn = chn->nchnls; */
-/*       } */
-/*       else nn = 1;              /\* else just a single pass *\/ */
-/*       do { */
-/*         if ((n = mep->dat1) < 32) {           /\* MSB -- *\/ */
-/*           chn->ctl_byt[n] = mep->dat2 << 7;  /\* save as shifted byte *\/ */
-/*           chn->ctl_val[n] = (MYFLT) mep->dat2; /\* but record as MYFLT *\/ */
-/*           if (n == 6)           /\* Data Entry: *\/ */
-/*             switch(chn->RegParNo) { */
-/*             case 0:             /\* pitch-bend sensitivity *\/ */
-/*               chn->pbensens = (mep->dat2 * 100 + chn->ctl_byt[38]) */
-/*                 / f12800; */
-/*               chn->pchbendf = chn->pchbend * chn->pbensens; */
-/*               break; */
-/*             case 1:             /\* fine tuning *\/ */
-/*               chn->finetune = (((mep->dat2-64)<<7) + chn->ctl_byt[38]) */
-/*                 / f1048576; */
-/*               chn->tuning = chn->crsetune + chn->finetune; */
-/*               break; */
-/*             case 2:      /\* coarse tuning *\/ */
-/*               chn->crsetune = (((mep->dat2-64)<<7) + chn->ctl_byt[38]) */
-/*                 / f128; */
-/*               chn->tuning = chn->crsetune + chn->finetune; */
-/*               break; */
-/*             default: */
-/*               printf("unrecognised RegParNo %d\n", chn->RegParNo); */
-/*             } */
-/*           else if (n == 7) */
-/*             Volume = chn->ctl_val[7]; */
-/*         } */
-/*         else if (n < 64)        /\* LSB -- combine with MSB *\/ */
-/*           chn->ctl_val[n-32] = (MYFLT)(chn->ctl_byt[n-32] + mep->dat2) */
-/*             / f128; */
-/*         else if (n < 70) { */
-/*           chn->ctl_byt[n] = mep->dat2 & 0x40; /\* switches *\/ */
-/*           chn->ctl_val[n] = (MYFLT) mep->dat2; /\* or controllers *\/ */
-/*           switch(n) { */
-/*             short temp; */
-/*           case SUSTAIN_SW: */
-/*             temp = (mep->dat2 >= O.SusPThresh); */
-/*             if (chn->sustaining != temp) { /\* if sustainP changed *\/ */
-/*               if (chn->sustaining && chn->ksuscnt)  /\* & going off *\/ */
-/*                 sustsoff(chn);             /\* reles any notes *\/ */
-/*               chn->sustaining = temp; */
-/*             } */
-/*             break; */
-/*           } */
-/*         } */
-/*         else if (n < 121) { */
-/*           chn->ctl_byt[n] = mep->dat2 << 7; /\* save as shifted byte *\/ */
-/*           chn->ctl_val[n] = (MYFLT) mep->dat2; /\* controllers *\/ */
-/*         } */
-/*         else { */
-/*           printf("undefined controller #%d\n", n); */
-/*           break; */
-/*         } */
-/*         if (nn > 1 && (chn = M_CHNBP[++tstchan]) == NULL) { */
-/*           printf("Global Controller update cannot find MCHNBLK %d\n", */
-/*                  tstchan); */
-/*           break; */
-/*         } */
-/*       } while (--nn);  /\* loop if Global update *\/ */
-/*       break; */
-/*     modemsg: */
-/*       if (chn->bas_chnl != mep->chan) {   /\* CHANNEL MODE MESSAGES: *\/ */
-/*         printf("mode message %d on non-basic channel %d ignored\n", */
-/*                n, mep->chan + 1); */
-/*         break; */
-/*       } */
-/*       if (n == 121) { */
-/*         short *sp = chn->ctl_byt; */
-/*         MYFLT *fp = chn->ctl_val; */
-/*         short nn = 120; */
-/*         do { */
-/*           *sp++ = 0; /\* reset all controllers to 0 *\/ */
-/*           *fp++ = 0.; */
-/*         } while (--nn);     /\*  exceptions: *\/ */
-/*         chn->ctl_byt[8] = 64;      /\* BALANCE *\/ */
-/*         chn->ctl_val[8] = 64.; */
-/*         chn->ctl_byt[10] = 64;      /\* PAN *\/ */
-/*         chn->ctl_val[10] = 64.; */
-/*       } */
-/*       else if (n == 122) */
-/*         LCtl = (mep->dat2) ? ON : OFF; */
-/*       else { */
-/*         AllNotesOff(chn); */
-/*         switch(n) { */
-/*         case 124: chn->Omni = OFF; */
-/*           break; */
-/*         case 125: chn->Omni = ON; */
-/*           break; */
-/*         case 126: chn->Poly = OFF; */
-/*           NVoices = mep->dat2; */
-/*           break; */
-/*         case 127: chn->Poly = ON; */
-/*           NVoices = 1; */
-/*           break; */
-/*         } */
-/*       } */
-/*       break; */
-/*     case CHNPRES_TYPE: */
-/*       chn->chnpress = mep->dat1; /\* channel (all-key) Press *\/ */
-/*             break; */
-/*     case PCHBEND_TYPE: */
-/*       chn->pchbend = (MYFLT)(((mep->dat2 - 64) << 7) + mep->dat1) / f8192; */
-/*       chn->pbendiff = chn->pchbend * chn->pbensens; */
-/*       break; */
-/*     } */
-
-
-void m_chn_init(MEVENT *mep, short chan)
+void m_chn_init(ENVIRON *csound, MEVENT *mep, short chan)
     /* alloc a midi control blk for a midi chnl */
     /*  & assign corr instr n+1, else a default */
 {
@@ -649,20 +524,20 @@ void m_chn_init(MEVENT *mep, short chan)
     mep->type = CONTROL_TYPE;
     mep->chan = chan;
     mep->dat1 = 121;  /* reset all controllers */
-    m_chanmsg(mep);
+    m_chanmsg(csound, mep);
     printf(Str("midi channel %d using instr %d\n"), chan + 1, chn->pgmno);
 }
 
-static void ctlreset(short chan)    /* reset all controllers for this channel */
+static void ctlreset(ENVIRON *csound, short chan)    /* reset all controllers for this channel */
 {
     MEVENT  mev;
     mev.type = CONTROL_TYPE;
     mev.chan = chan;
     mev.dat1 = 121;
-    m_chanmsg(&mev);
+    m_chanmsg(csound, &mev);
 }
 
-MCHNBLK *m_getchnl(short chan)          /* get or create a chnlblk ptr */
+MCHNBLK *m_getchnl(ENVIRON *csound, short chan)          /* get or create a chnlblk ptr */
 {
     MCHNBLK *chn;
     if (chan < 0 || chan >= MAXCHAN) {
@@ -673,12 +548,12 @@ MCHNBLK *m_getchnl(short chan)          /* get or create a chnlblk ptr */
       M_CHNBP[chan] = chn = (MCHNBLK *) mcalloc(&cenviron, (long)sizeof(MCHNBLK));
       chn->pgmno = -1;
       chn->insno = -1;
-      ctlreset(chan);
+      ctlreset(csound, chan);
     }
     return(chn);
 }
 
-void m_chinsno(short chan, short insno)   /* assign an insno to a chnl */
+void m_chinsno(ENVIRON *csound, short chan, short insno)   /* assign an insno to a chnl */
 {                                         /* =massign: called from i0  */
     MCHNBLK  *chn = NULL;
 
@@ -688,11 +563,11 @@ void m_chinsno(short chan, short insno)   /* assign an insno to a chnl */
     }
     if (M_CHNBP[chan] != NULL)
       printf(Str("massign: chnl %d exists, ctrls now defaults\n"), chan+1);
-    chn = m_getchnl(chan);
+    chn = m_getchnl(csound, chan);
     chn->insno = insno;
     chn->pchbend = FL(0.0);     /* Mid value */
     /*    chn->posbend = FL(0.5); */          /* for pos pchbend (0 - 1.0) */
-    ctlreset(chan);
+    ctlreset(csound, chan);
     printf(Str("chnl %d using instr %d\n"), chan+1, chn->insno);
 }
 
@@ -756,7 +631,7 @@ static short m_clktim = 0;
 static short m_sensing = 0;
 extern long GetMIDIData(void);
 
-int sensMidi(void)         /* sense a MIDI event, collect the data & dispatch */
+int sensMidi(ENVIRON *csound)         /* sense a MIDI event, collect the data & dispatch */
 {                          /*  called from kperf(), return(2) if MIDI on/off  */
     short  c, type;
     MEVENT *mep = Midevtblk;
@@ -824,7 +699,7 @@ int sensMidi(void)         /* sense a MIDI event, collect the data & dispatch */
         }
         chan = c & 0xF;
         if (M_CHNBP[chan] == NULL)      /* chk chnl exists   */
-          m_chn_init(mep, chan);
+          m_chn_init(csound, mep, chan);
         mep->type = type;               /* & begin new event */
         mep->chan = chan;
         datreq = datbyts[(type>>4) & 0x7];
@@ -862,7 +737,7 @@ int sensMidi(void)         /* sense a MIDI event, collect the data & dispatch */
     datcnt = 0;                         /* else allow a repeat   */
     /* NB:  this allows repeat in syscom 1,2,3 too */
     if (mep->type > NOTEON_TYPE) {      /* if control or syscom  */
-      m_chanmsg(mep);                   /*   handle from here    */
+      m_chanmsg(csound, mep);                   /*   handle from here    */
       goto nxtchr;                      /*   & go look for more  */
     }
     return(2);                          /* else it's note_on/off */
@@ -906,7 +781,7 @@ static void fsexdata(int n) /* place midifile data into a sys_excl buffer */
     }
 }
 
-int sensFMidi(void)     /* read a MidiFile event, collect the data & dispatch */
+int sensFMidi(ENVIRON *csound)     /* read a MidiFile event, collect the data & dispatch */
 {                     /* called from kperf(), return(SENSMFIL) if MIDI on/off */
     short  c, type;
     MEVENT *mep = FMidevtblk;
@@ -1017,7 +892,7 @@ int sensFMidi(void)     /* read a MidiFile event, collect the data & dispatch */
     else {                              /* other status types:  */
       short chan = c & 0xF;
       if (M_CHNBP[chan] == NULL)      /*   chk chnl exists    */
-        m_chn_init(mep, chan);
+        m_chn_init(csound, mep, chan);
       mep->type = type;               /*   & begin new event  */
       mep->chan = chan;
       datreq = datbyts[(type>>4) & 0x7];
@@ -1048,7 +923,7 @@ int sensFMidi(void)     /* read a MidiFile event, collect the data & dispatch */
       *pMessage = (datreq < 2 ? (unsigned char) 0 : mep->dat2);
     }
     if (mep->type > NOTEON_TYPE) {        /* if control or syscom  */
-      m_chanmsg(mep);                   /*   handle from here    */
+      m_chanmsg(csound, mep);                   /*   handle from here    */
       goto nxtim;
     }
     nxtdeltim();
@@ -1071,13 +946,13 @@ int sensFMidi(void)     /* read a MidiFile event, collect the data & dispatch */
 }
 
 
-void MidiClose(void)
+void MidiClose(ENVIRON *csound)
 {
-    if(csoundIsExternalMidiEnabled(&cenviron)) {
-        csoundExternalMidiDeviceClose(&cenviron);
+    if(csoundIsExternalMidiEnabled(csound)) {
+        csoundExternalMidiDeviceClose(csound);
     }
     else {
-        CloseMIDIDevice();
+        CloseMIDIDevice(csound);
     }
     if (mfp)
       fclose(mfp);

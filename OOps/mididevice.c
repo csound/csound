@@ -205,7 +205,7 @@ HMIDIIN     hMidiIn;                            /* IV - Nov 10 2002 */
 void CALLBACK win32_midi_in_handler(HMIDIIN, UINT, DWORD, DWORD, DWORD);
 #endif
 
-void OpenMIDIDevice(void)
+void OpenMIDIDevice(ENVIRON *csound)
 {
 #if defined(WIN32)                              /* IV - Nov 10 2002 */
     int     nr_devs, dev_num;

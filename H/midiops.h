@@ -118,8 +118,8 @@ typedef struct {
     MYFLT  *r;
 } MIDIAGE;
 
-void m_chinsno(short, short);
-MCHNBLK *m_getchnl(short);
+/* void m_chinsno(short, short); */
+/* MCHNBLK *m_getchnl(short); */
 
 typedef struct {
     OPDS   h;
