@@ -149,14 +149,14 @@ namespace csound
 		save(getFilename());
 	}
 
-	int Shell::run()
+	int Shell::runScript()
 	{
-		return run(script);
+		return runScript(script);
 	}
 
-	int Shell::run(std::string script_)
+	int Shell::runScript(std::string script_)
 	{
-		csound::System::message("BEGAN Shell::run()...\n");
+		csound::System::message("BEGAN Shell::runScript()...\n");
 		int result = 0;
 		try
 		{
@@ -174,7 +174,7 @@ namespace csound
 		}
 		csound::System::message("==============================================================================================================\n");
 		csound::System::message("PyRun_SimpleString returned %d.\n", result);
-		csound::System::message("ENDED Shell::run().\n");
+		csound::System::message("ENDED Shell::runScript().\n");
 		return result;
 	}
 

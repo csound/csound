@@ -83,6 +83,7 @@ protected:
   bool isSynth;
   bool isVst;
   bool isPython;
+  bool isMultiThreaded;
   size_t csoundFrameI;
   size_t csoundLastFrame;
   size_t channelI;
@@ -141,6 +142,10 @@ public:
   virtual void reset();
   virtual void openFile(std::string filename);
   virtual int run();
+  virtual void openView(bool doRun = true);
+  virtual void closeView();
+  virtual bool getIsMultiThreaded() const;
+  virtual void setIsMultiThreaded(bool isMultiThreaded);
   static void midiDeviceOpen(void *csound);
   static int midiRead(void * csound, unsigned char *mbuf, int size);
 };

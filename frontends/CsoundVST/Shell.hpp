@@ -62,8 +62,8 @@ namespace csound
 		virtual void loadAppend(std::string filename);
 		virtual void save(std::string filename) const;
 		virtual void save() const;
-		virtual int run();
-		virtual int run(std::string script);
+		virtual int runScript();
+		virtual int runScript(std::string script);
 		virtual void stop();
 	};
 }

@@ -29,23 +29,25 @@
 %}
 %apply int { size_t };
 %include "Silence.hpp"
+// Need to rename the CsoundVST class to prevent a name conflict
+// with the CsoundVST module.
+%inline %{
+class CsoundVST;
+%}
+%rename(JCsoundVST) CsoundVST;
+%include "Shell.hpp"
+%include "CsoundVST.hpp"
 
+// Enable the JNI class to load the required native library.
 %pragma(java) jniclasscode=%{
   static {
     try {
-        System.loadLibrary("_CsoundVST");
+   	java.lang.System.loadLibrary("_CsoundVST");
     } catch (UnsatisfiedLinkError e) {
-      System.err.println("_CsoundVST Native code library failed to load.\n" + e);
-      System.exit(1);
+      	java.lang.System.err.println("_CsoundVST native code library failed to load.\n" + e);
+      	java.lang.System.exit(1);
     }
   }
-%}
-
-%inline %{
-
-class JCsound : public CsoundVST {
-};
-
 %}
 
 #endif
