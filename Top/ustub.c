@@ -58,8 +58,8 @@ void (*spinrecv)(void);
 void (*nzerotran)(long);
 
 void nullfn(char *, int);
-void chartran(MYFLT *, int);
 #ifdef never
+void chartran(MYFLT *, int);
 void alawtran(MYFLT *, int);
 #endif
 #ifdef ULAW
@@ -140,6 +140,7 @@ shortran(MYFLT *buffer, int size)       /* fix spout vals and put in outbuf */
     }
 }
 
+#ifdef never
 void
 chartran(MYFLT *buffer, int size) /* same as above, but 8-bit char output */
                                   /*   sends HI-ORDER 8 bits of shortsamp */
@@ -164,7 +165,6 @@ chartran(MYFLT *buffer, int size) /* same as above, but 8-bit char output */
     }
 }
 
-#ifdef never
 static void
 alawtran(MYFLT *buffer, int size)
 {
@@ -177,7 +177,7 @@ alawtran(MYFLT *buffer, int size)
 #define MUZERO  0x02
 #define ZEROTRAP
 
-#ifdef ULAW
+#ifdef never
 void
 ulawtran(MYFLT *buffer, int size) /* ulaw-encode spout vals & put in outbuf */
                                  /*     write buffer when full      */
@@ -208,7 +208,6 @@ ulawtran(MYFLT *buffer, int size) /* ulaw-encode spout vals & put in outbuf */
         choutbuf[n] = ulawbyte;
     }
 }
-#endif
 
 void
 longtran(MYFLT *buffer, int size) /* send long_int spout vals to outbuf */
@@ -236,6 +235,7 @@ floatran(MYFLT *buffer, int size)
     int n;
     for (n=0; n<size; n++) floutbuf[n] = buffer[n];
 }
+#endif
 
 MYFLT ino(MYFLT x)
 {

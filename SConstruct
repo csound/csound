@@ -679,6 +679,8 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('wave-terrain',
     ['Opcodes/wave-terrain.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('bus', 
     ['Opcodes/bus.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('pvsbasic', 
+    ['Opcodes/pvsbasic.c']))
 
 # Plugins with External Dependencies
 

@@ -6,6 +6,7 @@ K1.	There is no looping structures for aiff (or wav) files
 K2.	Parser
 
 K3.     Portaudio.v19 on OSX
+        Kinda patched 
 
 K4.     Use of PortMIDI
 
@@ -30,3 +31,5 @@ B1.     Loading of deferred files in gen1 suspect
 B2.     Many differences between FL code on Csound and CsoundAV
 
 B3.     If no output format given does not have a sane default.
+
+B4.     Sections starting with silence have the silence ignored.
