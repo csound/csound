@@ -22,7 +22,7 @@ static void gentune(FUNC *ftp, FGDATA *ff)             /* Gab 1/3/2005 */
     MYFLT basefreq, factor,interval;
 
     MYFLT	*fp = ftp->ftable, *pp = &(ff->e.p[5]);
-    int	nvals = nargs;
+    int	nvals = ff->e.pcnt - 4;
 
     numgrades = (int) *pp++;
     interval  = *pp++;
