@@ -46,15 +46,14 @@ int pvscent(ENVIRON *csound, PVSCENT *p)
     long i,N = p->fin->N;
     MYFLT c = FL(0.0);
     MYFLT d = FL(0.0);
-    float j;
+    MYFLT j, binsize = FL(0.5)*esr/(MYFLT)N;
     float *fin = (float *) p->fin->frame.auxp;
     if (p->lastframe < p->fin->framecount) {
-      for (i=0,j=FL(1.0); i<N+2; i+=2, j++) {
+      for (i=0,j=FL(0.5)*binsize; i<N+2; i+=2, j += binsize) {
         c += fin[i]*j;         /* This ignores phase */
         d += fin[i];
       }
       *p->ans = (d==FL(0.0) ? FL(0.0) : c/d);
-      *p->ans = c;
       p->lastframe = p->fin->framecount;
     }
     return OK;
