@@ -47,20 +47,3 @@ int main(void)                           /* stdio stub for standalone scsort */
     return 0;
 }         
 
-long natlong(long lval)             /* coerce a bigendian long into a natural long */
-{
-    unsigned char benchar[4];
-    unsigned char *p = benchar;
-    long natlong;
-
-    *(long *)benchar = lval;
-    natlong = *p++;
-    natlong <<= 8;
-    natlong |= *p++;
-    natlong <<= 8;
-    natlong |= *p++;
-    natlong <<= 8;
-    natlong |= *p;
-    return(natlong);
-}
-
