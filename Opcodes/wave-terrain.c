@@ -1,4 +1,4 @@
-/*  
+/*
     wave-terrain.c:
 
     Copyright (C) 2002 Matt Gilliard, John ffitch

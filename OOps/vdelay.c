@@ -1,4 +1,4 @@
-/*  
+/*
     vdelay.c:
 
     Copyright (C) 1994, 1998, 2000, 2001 Paris Smaragdis, Richard Karpen,

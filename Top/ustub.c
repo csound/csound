@@ -1,4 +1,4 @@
-/*  
+/*
     ustub.c:
 
     Copyright (C) 1991 Barry Vercoe, John ffitch
@@ -30,8 +30,8 @@
 #include <math.h>
 #include <stdarg.h>
 
-OPARMS O, O_;                          
-ENVIRON cenviron, cenviron_;           
+OPARMS O, O_;
+ENVIRON cenviron, cenviron_;
 
 unsigned    outbufsiz;
 MYFLT        *outbuf;
@@ -59,14 +59,14 @@ void (*nzerotran)(long);
 
 void nullfn(char *, int);
 void chartran(MYFLT *, int);
-#ifdef never 
+#ifdef never
 void alawtran(MYFLT *, int);
 #endif
 #ifdef ULAW
-void ulawtran(MYFLT *, int); 
+void ulawtran(MYFLT *, int);
 #endif
 void shortran(MYFLT *, int);
-void longtran(MYFLT *, int); 
+void longtran(MYFLT *, int);
 void floatran(MYFLT *, int);
 void bytetran(MYFLT *, int);
 
@@ -343,7 +343,7 @@ FILE *fopen_path(char *name, char *basename, char *env, char *mode)
 #else
       sprintf(name_full, "%s/%s", p, name);
 #endif
-    if ((ff = fopen(name_full, mode))!=NULL) return ff; 
+    if ((ff = fopen(name_full, mode))!=NULL) return ff;
     return NULL;                /* or give up */
 }
 
@@ -385,7 +385,7 @@ int writebuffer(MYFLT * obuf, int length)
     sf_write_MYFLT(outfile, outbuf, length);
     block++;
     bytes += O.sfsampsize*length;
-    if (O.rewrt_hdr) 
+    if (O.rewrt_hdr)
        rewriteheader(outfile,0);
     if (O.heartbeat) {
       if (O.heartbeat==1) {

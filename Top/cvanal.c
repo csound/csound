@@ -1,4 +1,4 @@
-/*  
+/*
     cvanal.c:
 
     Copyright (C) 1996 Greg Sullivan, John ffitch
@@ -115,7 +115,7 @@ int cvanal(int argc, char **argv)
         }
       else break;
     } while (--argc);
-    
+
     if (argc !=  2) quit(Str(X_876,"illegal number of filenames"));
     infilnam = *argv++;
     outfilnam = *argv;

@@ -1,4 +1,4 @@
-/*  
+/*
     argdecode.c:
 
     Copyright (C) 1998 John ffitch
@@ -474,9 +474,9 @@ typedef struct  {
 
 static
 SAMPLE_FORMAT_ENTRY sample_format_map[] = {
-  {"alaw", 'a'}, 
-  {"schar", 'c'}, 
-  {"uchar", '8'}, 
+  {"alaw", 'a'},
+  {"schar", 'c'},
+  {"uchar", '8'},
   {"float", 'f'},
   {"short", 's'}, {"ulaw", 'u'}, {"24bit", '3'},
   {0, 0}
@@ -899,7 +899,7 @@ static int decode_long(char *s, int argc, char **argv, char *envoutyp)
     else if (!(strncmp (s, "list-opcodes", 12))) {
       int full = 0;
       s += 12;
-      
+
       if (*s != '\0') {
         if (isdigit(*s)) full = *s++ - '0';
       }

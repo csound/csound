@@ -1,4 +1,4 @@
-/*  
+/*
     dnfft.c:
 
     Copyright (C) 2000 Mark Dolson, John ffitch

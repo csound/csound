@@ -1,4 +1,4 @@
-/*  
+/*
     widgets.cpp:
 
     Copyright (C) 2002 Gabriel Maldonado
@@ -97,8 +97,8 @@ extern "C" {
 #define CSOUND_WIDGETS_CPP 1
 #include "widgets.h"
 
-#define LIN_ 0
-#define EXP_ -1
+#define LIN_ (0)
+#define EXP_ (-1)
 #undef min
 #undef max
 
@@ -150,7 +150,7 @@ FLkeyboard_init(void)
 #if defined(__cplusplus)
 extern "C" {
 #endif /* defined(__cplusplus) */
- 
+
 static void infoff(MYFLT p1)           /*  turn off an indef copy of instr p1  */
 {                               /*      called by musmon                */
     INSDS *ip;
@@ -678,7 +678,7 @@ void Fl_Value_Input_Spin::draw(void)
     sxx += sww - buttonssize(); sww = buttonssize();
     Fl_Boxtype box1 = (Fl_Boxtype)(box()&-2);
     int border_size=Fl::box_dx(box());
-    
+
     if (damage()&~FL_DAMAGE_CHILD) input.clear_damage(FL_DAMAGE_ALL);
     input.box(box());
     input.color(FL_WHITE, selection_color());
@@ -688,7 +688,7 @@ void Fl_Value_Input_Spin::draw(void)
     syy+=border_size;
     sww-=border_size*2;
     shh-=border_size*2;
-    
+
     if (!box1) box1 = (Fl_Boxtype)(box()&-2);
 
     if ((indrag || mouseobj) && deltadir!=0) {
@@ -1149,7 +1149,7 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators)
           fld.value = val;
           fld.min = *p->imin; fld.max = *p->imax; fld.exp = (int) *p->iexp;
         }
-else if (opcode_name == "FLslidBnk") {
+        else if (opcode_name == "FLslidBnk") {
           FLSLIDERBANK *p = (FLSLIDERBANK *) (v.opcode);
           fld.widg_name = GetString(*p->names, p->STRARG);
           int numsliders = (int) *p->inumsliders;
@@ -1473,7 +1473,7 @@ extern "C" int save_snap(FLSAVESNAPS* p)
     filename = s;
     //  else
     //    filename = catpath(snapdir_path, s);
-    
+
     //char* s[MAXNAME] = GetString(*p->filename,p->STRARG);
 
     fstream file(filename.c_str(), ios::out);
@@ -1489,7 +1489,7 @@ extern "C" int save_snap(FLSAVESNAPS* p)
         else if (f.opcode_name == "FLslidBnk") {
 // EXCEPTIONAL CASE! fld.exp contains the number of sliders and
 // not the exponential flag
-          file << f.opcode_name << " " << f.exp << " "; 
+          file << f.opcode_name << " " << f.exp << " ";
           for (int i=0; i < f.exp; i++) {
             file << f.sldbnkValues[i] << " ";
           }
@@ -1578,7 +1578,7 @@ extern "C" int load_snap(FLLOADSNAPS* p)
           getline(sbuf,s, ' ');
           // EXCEPTIONAL CASE! fld.exp contains the number of sliders
           // and not the exponential flag
-          fld.exp = atoi(s.c_str()); 
+          fld.exp = atoi(s.c_str());
           fld.sldbnkValues = new MYFLT[fld.exp];
           allocatedStrings.push_back((char *) fld.sldbnkValues);
 
@@ -1922,7 +1922,8 @@ static void fl_callbackLinearRoller(Fl_Valuator* w, void *a)
 static void fl_callbackExponentialRoller(Fl_Valuator* w, void *a)
 {
     FLROLLER *p = ((FLROLLER*) a);
-    displ(*p->kout = ((FLROLLER*) a)->min * ::pow (p->base, w->value()), *p->idisp);
+    displ(*p->kout = ((FLROLLER*) a)->min * ::pow (p->base, w->value()),
+          *p->idisp);
 }
 
 
@@ -2386,15 +2387,15 @@ extern "C" int fl_setWidgetValue_set(FL_SET_WIDGET_VALUE *p)
     switch (v.exponential) {
     case LIN_: //linear
       p->exp = LIN_;
-      break; 
+      break;
     case EXP_: //exponential
       p->exp = EXP_;
-      range = v.max-v.min; 
+      range = v.max-v.min;
       base = ::pow(v.max / v.min, 1/range);
       //val = (log(val/v.min) / log(base)) ;
       p->log_base = log(base);
-      break; 
-    default: 
+      break;
+    default:
       if (O.msglevel & WARNMSG) printf("WARNING: not implemented yet");
       return NOTOK;
     }
@@ -2531,7 +2532,7 @@ extern "C" int fl_setTextType(FL_SET_FONT *p)
 extern "C" int fl_box(FL_BOX *p)
 {
     char *text = GetString(*p->itext,p->STRARG);
-    Fl_Box *o =  new Fl_Box((int)*p->ix, (int)*p->iy, 
+    Fl_Box *o =  new Fl_Box((int)*p->ix, (int)*p->iy,
                             (int)*p->iwidth, (int)*p->iheight, text);
     widget_attributes(o);
     Fl_Boxtype type;
@@ -2932,7 +2933,7 @@ extern "C" int fl_slider_bank(FLSLIDERBANK *p)
       case -1: iexp = EXP_; break;
       case 0: iexp = LIN_; break;
       }
-      
+
       MYFLT val = 0;
       p->slider_data[j].exp = iexp;
       switch (iexp) {

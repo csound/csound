@@ -1,4 +1,4 @@
-/*  
+/*
     sndlib.c:
 
     Copyright (C) 2004 John ffitch
@@ -225,7 +225,7 @@ HEADATA *readheader(            /* read soundfile hdr, fill HEADATA struct */
     return NULL;
 }
 
-void writeheader(int ofd, char *ofname) 
+void writeheader(int ofd, char *ofname)
 {
     sf_command(outfile, SFC_UPDATE_HEADER_NOW, NULL, 0);
 }
@@ -381,7 +381,7 @@ void sfopenin(void)             /* init for continuous soundin */
         dies(Str(X_947,"isfinit: cannot open %s"), retfilnam);
       sfname = retfilnam;
       memset(&sfinfo, '\0', sizeof(SF_INFO));
-      infile= sf_open_fd(isfd, SFM_READ, &sfinfo, SF_TRUE); 
+      infile= sf_open_fd(isfd, SFM_READ, &sfinfo, SF_TRUE);
 /*    printf("***sfinfo: samplerate=%d channels=%d format=%.8x sections=%d\n", */
 /*        sfinfo.samplerate, sfinfo.channels, sfinfo.format, sfinfo.sections); */
       p->filetyp = 0;               /* initially non-typed for readheader */
@@ -488,12 +488,12 @@ void sfopenout(void)                            /* init for sound out       */
       sfinfo.format = type2sf(O.filetyp)|format2sf(O.outformat);
       sfinfo.sections = 0;
       sfinfo.seekable = 0;
-      if ((osfd = openout(O.outfilename, 3)) < 0) 
+      if ((osfd = openout(O.outfilename, 3)) < 0)
         dies(Str(X_1187,"sfinit: cannot open %s"), retfilnam);
       sfoutname = mmalloc((long)strlen(retfilnam)+1);
       strcpy(sfoutname, retfilnam);       /*   & preserve the name */
       outfile = sf_open_fd(osfd, SFM_WRITE, &sfinfo, 1);
-      if (peakchunks) 
+      if (peakchunks)
         sf_command(outfile, SFC_SET_ADD_PEAK_CHUNK, NULL, SF_TRUE);
       if (strcmp(sfoutname, "/dev/audio") == 0) {
         /*      ioctl(   );   */

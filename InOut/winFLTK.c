@@ -1,4 +1,4 @@
-/*  
+/*
     winFLTK.c: graphs using FLTK library
 
     Copyright (C) 2002 John ffitch

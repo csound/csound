@@ -1,4 +1,4 @@
-/*  
+/*
     dnoise_int.c:
 
     Copyright (C) 2000 John ffitch, matt ingalls
@@ -387,7 +387,7 @@ void do_mac_dialogs(void)
         case POPUP_SDII:
           /* SDII supports chars, shorts, and longs only */
           if (
-              out_fmt.type == POPUP_ULAW || 
+              out_fmt.type == POPUP_ULAW ||
               out_fmt.type == POPUP_8_US)
             out_fmt.type = POPUP_8;
           else if (out_fmt.type == POPUP_32F)

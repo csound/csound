@@ -1,4 +1,4 @@
-/*  
+/*
     pitch0.c:
 
     Copyright (C) 1999 John ffitch, Istvan Varga

@@ -1,4 +1,4 @@
-/*  
+/*
     midisend.c:
 
     Copyright (C) 1997 Dave Philips
@@ -593,11 +593,11 @@ void openMIDIout(void)
       if (gMidiOutPort >= B_OK) {
         struct ServerMidiPort request;
         status_t status;
-        
+
         /* Send the request to the server. */
         request.mPort = gMidiOutPort;
         request.mClientThread = find_thread(0);
-        
+
         status = write_port(serverPort, kServerNewMidiOutPort,
                             &request, sizeof(request));
         if (status >= B_NO_ERROR) {

@@ -701,7 +701,7 @@ long kperf(long kcnt)   /* perform currently active instrs for kcnt kperiods */
       }
       if (spoutactive)        /*   results now in spout? */
         (*spoutran)();        /*      send to audio_out  */
-      else 
+      else
         (*nzerotran)(1L);  /*   else send zerospout   */
     } while (--kcnt);         /* on Mac/Win, allow system events */
     return(kreq);

@@ -1,7 +1,7 @@
-/*  
+/*
     dsputil.c:
 
-    Copyright (C) 1991 Dan Ellis, Barry Vercoe, John ffitch, 
+    Copyright (C) 1991 Dan Ellis, Barry Vercoe, John ffitch,
     Copyright (C) 1988 Codemist Ltd
 
     This file is part of Csound.

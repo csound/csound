@@ -1,4 +1,4 @@
-/*  
+/*
     dam.c:
 
     Copyright (C) 1997 Marc Resibois

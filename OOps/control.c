@@ -1,4 +1,4 @@
-/*  
+/*
     control.c:
 
     Copyright (C) 2000 John ffitch

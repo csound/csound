@@ -1,4 +1,4 @@
-/*  
+/*
     locsig.c:
 
     Copyright (C) 1998 Richard Karpen
@@ -38,7 +38,7 @@ static  LOCSIG  *locsigaddr;
 int locsigset(LOCSIG *p)
 {
     int outcount=p->OUTOCOUNT;
-    
+
     if (outcount != 2)
       if (outcount != 4) {
         sprintf(errmsg,

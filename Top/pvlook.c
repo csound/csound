@@ -1,4 +1,4 @@
-/*  
+/*
     pvlook.c:
 
     Copyright (C) 1993 Richard Karpen

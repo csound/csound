@@ -1,4 +1,4 @@
-/*  
+/*
     ugens5.c:
 
     Copyright (C) 1991 Barry Vercoe, John ffitch, Gabriel Maldonado
@@ -480,7 +480,7 @@ int lprdset(LPREAD *p)
     if (O.odebug)
       printf(Str(X_1080,
                  "npoles %ld, nvals %ld, totvals %ld, lastfram16 = %lx\n"),
-             p->npoles, p->nvals, totvals, p->lastfram16); 
+             p->npoles, p->nvals, totvals, p->lastfram16);
  lpend:
     p->lastmsg = 0;
     return OK;
@@ -544,7 +544,7 @@ int lpread(LPREAD *p)
         poleMagn2[i] = *np++;
         polePhas2[i] = *np++;
       }
-      
+
       status =
         DoPoleInterpolation(p->npoles,poleMagn1,polePhas1,poleMagn2,
                             polePhas2,fract,interMagn,interPhas);

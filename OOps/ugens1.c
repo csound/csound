@@ -1,4 +1,4 @@
-/*  
+/*
     ugens1.c:
 
     Copyright (C) 1991 Barry Vercoe, John ffitch

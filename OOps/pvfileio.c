@@ -1,4 +1,4 @@
-/*  
+/*
     pvfileio.c:
 
     Copyright (C) 2000 Richard Dobson
@@ -41,7 +41,7 @@
  *  <PVXW><size><data>
  *
  *      where size as usual gives the size of the data in bytes.
- *      the size in samples much match dwWinlen (which may not be the same 
+ *      the size in samples much match dwWinlen (which may not be the same
  *      as N (fft length)
  *      the sample type must be the same as that of the pvoc data itself
  *      (only floatsams supported so far)
@@ -327,7 +327,7 @@ static int byte_order(void)
 /***** loosely modelled on CDP sfsys ******
  *      This is a static array, but could be made dynamic in an OOP sort of way.
  *      The idea is that all low-level operations and data
- *      are completely hidden from the user, so that internal 
+ *      are completely hidden from the user, so that internal
  *      format changes can be made with little or no disruption
  *      to the public functions.
  * But avoiding the full monty of a C++ implementation.
@@ -1127,7 +1127,7 @@ int pvoc_closefile(int ofd)
  * The idea is to offer e.g. a floats version and a longs version ONLY, but
  * independently of the underlying representation, so that the user can write
  * a floats block, even though the underlying format might be longs or doubles.
- * Most importantly, the user does not have to deal with byte-reversal, which 
+ * Most importantly, the user does not have to deal with byte-reversal, which
  * would otherwise always be the case it the user had direct access to the file.
  *
  * So these functions are the most likely to change over time!.

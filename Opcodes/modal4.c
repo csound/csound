@@ -1,4 +1,4 @@
-/*  
+/*
     modal4.c:
 
     Copyright (C) 1996, 1997 Perry Cook, John ffitch
@@ -426,7 +426,7 @@ int vibraphnset(VIBRAPHN *p)
     Modal4_strike(csound, m, *p->amplitude * AMP_RSCALE);
     Modal4_setFreq(csound, m, *p->frequency);
     p->first = 1;
-    return OK; 
+    return OK;
 }
 
 int vibraphn(VIBRAPHN *p)

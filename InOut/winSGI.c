@@ -1,4 +1,4 @@
-/*  
+/*
     winSGI.c: graphing with SGI graphics
 
     Copyright (C) 1991 Douglas M. Cook (Silicon Graphics, Inc.)
@@ -145,32 +145,32 @@ DrawGraph_(WINDAT *wdptr)
     short dummy;
     char string[100];
     int i;
-    
+
     distPer = iskip * 1.0f/((float) wdptr->npts);
     winset(wdptr->windid);
-    
+
     while (qtest()) {
       qread(&dummy);          /* clear the window's event queue */
     }
-    
+
     RGBcolor(0,0,0);
     clear();
     RGBcolor(130,130,130);
     drawAxes();
-    
+
     RGBcolor(180,180,180);
-    
+
     if (wdptr->caption) {
       cmov2(0.05, -1.15);
       sprintf(string,Str(X_50,"%s %d pts, max %f"),
               wdptr->caption, wdptr->npts,wdptr->oabsmax);
       fmprStr(string);
     }
-    
+
     RGBcolor(0,140,140);
-    
+
     v[0] = 0.0f;
-    
+
     bgnline();
     for (i = 0; i < wdptr->npts; i+=iskip) {
       v[1] = wdptr->fdata[i] / wdptr->oabsmax;

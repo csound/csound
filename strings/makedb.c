@@ -1,4 +1,4 @@
-/*  
+/*
     makedb.c:
 
     Copyright (C) 1999 John ffitch

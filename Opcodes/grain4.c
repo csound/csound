@@ -1,4 +1,4 @@
-/*  
+/*
     grain4.c:
 
     Copyright (C) 1994, 1995 Allan S C Lee, John ffitch

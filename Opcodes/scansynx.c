@@ -1,4 +1,4 @@
-/*  
+/*
     scansynx.c:
 
     Copyright (C) 1999, 2000 Interval Research, John ffitch

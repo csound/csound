@@ -1,4 +1,4 @@
-/*  
+/*
     one_file.c:
 
     Copyright (C) 1998 John ffitch
@@ -466,7 +466,7 @@ static int checkVersion(FILE *unf)
     while (my_fgets(buffer, 200, unf)!= NULL) {
       p = buffer;
       while (*p==' '||*p=='\t') p++;
-      if (strstr(p, "</CsVersion>")==0) 
+      if (strstr(p, "</CsVersion>")==0)
         return result;
       if (strstr(p, "Before")==0) {
         sscanf(p, "Before %d.%d", &major, &minor);

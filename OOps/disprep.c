@@ -1,4 +1,4 @@
-/*  
+/*
     disprep.c:
 
     Copyright (C) 1991 Barry Vercoe
@@ -443,7 +443,7 @@ int tempest(TEMPEST *p)
       *xcur++ = FL(0.0);                    /*    & clear the loc it occupied */
       if (xcur >= p->xend) xcur = p->xbeg;  /* xcur now points to cur xarray  */
       p->xcur = xcur;
-      if ((kin = *p->kin - p->yt1) < FL(0.0))  kin = FL(0.0); 
+      if ((kin = *p->kin - p->yt1) < FL(0.0))  kin = FL(0.0);
       { /* ignore input below lopass */
         MYFLT *hcur = p->hcur;
         MYFLT *hend = p->hend;

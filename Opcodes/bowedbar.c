@@ -1,4 +1,4 @@
-/*  
+/*
     bowedbar.c:
 
     Copyright (C) 1999 Perry Cook, Georg Essl, John ffitch

@@ -1,4 +1,4 @@
-/*  
+/*
     pluck.c:
 
     Copyright (C) 1994, 2000 Michael A. Casey, John ffitch

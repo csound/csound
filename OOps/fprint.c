@@ -1,4 +1,4 @@
-/*  
+/*
     fprint.c:
 
     Copyright (C) 1999 Gabriel Maldonado, John ffitch

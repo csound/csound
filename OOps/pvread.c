@@ -1,4 +1,4 @@
-/*  
+/*
     pvread.c:
 
     Copyright (C) 1992, 2000 Richard Karpen, Richard Dobson

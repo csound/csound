@@ -1,4 +1,4 @@
-/*  
+/*
     vbap_eight.c:
 
     Copyright (C) 2000 Ville Pulkki
