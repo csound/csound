@@ -118,8 +118,6 @@ protected:
 	float sampleRate;
 	AEffEditor *editor;
 	audioMasterCallback audioMaster;
-	audioMasterCallback originalAudioMaster;
-	static long VSTCALLBACK audioMasterTrace(AEffect *effect, long opcode, long index, long value, void *ptr, float opt);
 	long numPrograms;
 	long numParams;
 	long curProgram;

@@ -20,177 +20,9 @@
 #include "AEffEditor.hpp"
 #endif
 
-#ifdef WIN32
-extern "C"
-{
-    extern __stdcall void OutputDebugStringA(const char *text);
-};
-#endif
-
-static const char *opcodeDescriptions[] = 
-{
-    //  VST 1.0
-	"effOpen", 
-	"effClose",
-	"effSetProgram",
-	"effGetProgram",
-	"effSetProgramName",
-	"effGetProgramName",
-	"effGetParamLabel",
- 	"effGetParamDisplay",
-	"effGetParamName",
-	"effGetVu",
-	"effSetSampleRate",
-	"effSetBlockSize",
-	"effMainsChanged",
-	"effEditGetRect",
-	"effEditOpen",
-	"effEditClose",
-	"effEditDraw",
-	"effEditMouse",
-	"effEditKey",
-	"effEditIdle",
-	"effEditTop",
-	"effEditSleep",
-	"effIdentify",
-	"effGetChunk",
-	"effSetChunk", 
-	// VST 2.0
-	"effProcessEvents",
-	"effCanBeAutomated",
-	"effString2Parameter",
-	"effGetNumProgramCategories",
-	"effGetProgramNameIndexed",
-	"effCopyProgram",							
- 	"effConnectInput",						
-  	"effConnectOutput",						
-   	"effGetInputProperties",					
-    "effGetOutputProperties",					
-    "effGetPlugCategory",
- 	"effGetCurrentPosition",					
- 	"effGetDestinationBuffer",				
- 	"effOfflineNotify",						
- 	"effOfflinePrepare",						
- 	"effOfflineRun",							
- 	"effProcessVarIo",						
- 	"effSetSpeakerArrangement",				
- 	"effSetBlockSizeAndSampleRate",			
- 	"effSetBypass",							
-	"effGetEffectName",						
-	"effGetErrorText",						
-	"effGetVendorString",					
-	"effGetProductString",					
-	"effGetVendorVersion",					
-	"effVendorSpecific",					
-	"effCanDo",								
-	"effGetTailSize",						
-	"effIdle",								
-	"effGetIcon",								
- 	"effSetViewPosition",						
- 	"effGetParameterProperties",				
-	"effKeysRequired",						
-	"effGetVstVersion",			
-    // VST 2.1			
-	"effEditKeyDown", 
- 	"effEditKeyUp",                           
-  	"effSetEditKnobMode",                     
-	"effGetMidiProgramName",				
- 	"effGetCurrentMidiProgram",				
-  	"effGetMidiProgramCategory",			
-	"effHasMidiProgramsChanged",				
- 	"effGetMidiKeyName",						
-  	"effBeginSetProgram",					
-   	"effEndSetProgram",			
-    // VST 2.3		
-    "effGetSpeakerArrangement",
- 	"effShellGetNextPlugin",					
-  	"effStartProcess",						
-   	"effStopProcess",							
-    "effSetTotalSampleToProcess",			   
-    "effSetPanLaw",							
-    "effBeginLoadBank",						
-    "effBeginLoadProgram",					
-};
-
-static const char *audioMasterDescriptions[] = 
-{
-    // VST 1.0
-	"audioMasterAutomate",
-	"audioMasterVersion",
-	"audioMasterCurrentId",
-	"audioMasterIdle",				
-	"audioMasterPinConnected",
-	"audioMasterPinConnected1",
-	// VST 2.0
-	"audioMasterWantMidi",
-	"audioMasterGetTime",
- 	"audioMasterProcessEvents",
-	"audioMasterSetTime",			
-    "audioMasterTempoAt",				
-	"audioMasterGetNumAutomatableParameters",
-	"audioMasterGetParameterQuantization",	
- 	"audioMasterIOChanged",				
-  	"audioMasterNeedIdle",				
-   	"audioMasterSizeWindow",				
-    "audioMasterGetSampleRate",
-	"audioMasterGetBlockSize",
-	"audioMasterGetInputLatency",
-	"audioMasterGetOutputLatency",
-	"audioMasterGetPreviousPlug",			
- 	"audioMasterGetNextPlug",				
-  	"audioMasterWillReplaceOrAccumulate",	
-   	"audioMasterGetCurrentProcessLevel",
-	"audioMasterGetAutomationState",		
- 	"audioMasterOfflineStart",
-	"audioMasterOfflineRead",				
-	"audioMasterOfflineWrite",			
-	"audioMasterOfflineGetCurrentPass",
-	"audioMasterOfflineGetCurrentMetaPass",
-	"audioMasterSetOutputSampleRate",		
- 	"audioMasterGetSpeakerArrangement",	
-	"audioMasterGetVendorString",		
-	"audioMasterGetProductString",		
-	"audioMasterGetVendorVersion",		
-	"audioMasterVendorSpecific",		
-	"audioMasterSetIcon",				
-	"audioMasterCanDo",					
-	"audioMasterGetLanguage",			
-	"audioMasterOpenWindow",			
-	"audioMasterCloseWindow",			
-	"audioMasterGetDirectory",			
-	"audioMasterUpdateDisplay",			
-	// VST 2.1
-	"audioMasterBeginEdit",             
-	"audioMasterEndEdit",               
-	"audioMasterOpenFileSelector",	
- 	// VST 2.2
-	"audioMasterCloseFileSelector",		
-	"audioMasterEditFile",				
-	"audioMasterGetChunkFile",			
- 	// VST 2.3
-	"audioMasterGetInputSpeakerArrangement",	
- };
-
-#define VST_TRACE 1
-
-long VSTCALLBACK AudioEffect::audioMasterTrace(AEffect *effect, long opcode, long index, long value, void *ptr, float opt)
-{
-#if defined(__WIN32__) && defined(VST_TRACE)
-    static char buffer[0xff];
-    sprintf(buffer, "<< PLUG audioMaster: AEffect 0x%x opcode %d %s index %d value %d ptr 0x%x opt %f\n", effect, opcode, audioMasterDescriptions[opcode], index, value, ptr, opt);
-    OutputDebugStringA(buffer);
-#endif
-	return ((AudioEffect *)effect->object)->originalAudioMaster(effect, opcode, index, value, ptr, opt);
-}
-
 //-------------------------------------------------------------------------------------------------------
 long dispatchEffectClass (AEffect *e, long opCode, long index, long value, void *ptr, float opt)
 {
-#if defined(__WIN32__) && defined(VST_TRACE)
-    static char buffer[0xff];
-    sprintf(buffer, "HOST >> dispatchEffectClass: AEffect 0x%x opCode %d %s index %d value %d ptr 0x%x opt %f\n", e, opCode, opcodeDescriptions[opCode], index, value, ptr, opt);
-    OutputDebugStringA(buffer);
-#endif
 	AudioEffect *ae = (AudioEffect*)(e->object);
 
 	if (opCode == effClose)
@@ -206,11 +38,6 @@ long dispatchEffectClass (AEffect *e, long opCode, long index, long value, void 
 //-------------------------------------------------------------------------------------------------------
 float getParameterClass (AEffect *e, long index)
 {
-#if defined(__WIN32__) && defined(VST_TRACE)
-    static char buffer[0xff];
-    sprintf(buffer, "HOST >> getParameterClass: AEffect 0x%x index %d\n", e, index);
-    OutputDebugStringA(buffer);
-#endif
 	AudioEffect *ae = (AudioEffect*)(e->object);
 	return ae->getParameter (index);
 }
@@ -218,11 +45,6 @@ float getParameterClass (AEffect *e, long index)
 //-------------------------------------------------------------------------------------------------------
 void setParameterClass (AEffect *e, long index, float value)
 {
-#if defined(__WIN32__) && defined(VST_TRACE)
-    static char buffer[0xff];
-    sprintf(buffer, "HOST >> setParameterClass: AEffect 0x%x index %d value %f\n", e, index, value);
-    OutputDebugStringA(buffer);
-#endif
 	AudioEffect *ae = (AudioEffect*)(e->object);
 	ae->setParameter (index, value);
 }
@@ -249,12 +71,7 @@ void processClassReplacing (AEffect *e, float **inputs, float **outputs, long sa
 //-------------------------------------------------------------------------------------------------------
 AudioEffect::AudioEffect (audioMasterCallback audioMaster, long numPrograms, long numParams)
 {
-#if defined(VST_TRACE)
-	this->originalAudioMaster = audioMaster;
-	this->audioMaster = &audioMasterTrace;
-#else
 	this->audioMaster = audioMaster;
-#endif
 	editor = 0;
 	this->numPrograms = numPrograms;
 	this->numParams   = numParams;

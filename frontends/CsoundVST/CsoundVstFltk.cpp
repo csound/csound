@@ -33,7 +33,6 @@
 
 static std::string about = 
 "CSOUND VST \n"
-"Build 2003-11-25\n"
 "\n"
 "A user-programmable and user-extensible sound processing language \n"
 "and software synthesizer. \n" 
