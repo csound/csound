@@ -435,10 +435,17 @@ void oloadRESET(void)
       size_t back = (size_t)&tempGlobals.ksmps_;
       size_t length = back - front;
       void *saved_memalloc_db;
+      /* save memalloc chain pointer for memRESET() */
       saved_memalloc_db = cenviron.memalloc_db;
       cenviron = cenviron_;
       memcpy(&cenviron, &tempGlobals, length);
       cenviron.memalloc_db = saved_memalloc_db;
+      /* reset rtaudio function pointers */
+      cenviron.recopen_callback = recopen_dummy;
+      cenviron.playopen_callback = playopen_dummy;
+      cenviron.rtrecord_callback = rtrecord_dummy;
+      cenviron.rtplay_callback = rtplay_dummy;
+      cenviron.rtclose_callback = rtclose_dummy;
     }
     O = O_;
     O.expr_opt = 0; /* disable --expression-opt by default for safety */
