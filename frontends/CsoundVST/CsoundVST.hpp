@@ -86,7 +86,7 @@ public:
     std::vector<Preset> bank;
     // AudioEffectX overrides.
 	CsoundVST(audioMasterCallback audioMaster);
-	~CsoundVST();
+	virtual ~CsoundVST();
 	virtual AEffEditor *getEditor();
 	virtual bool getEffectName(char* name);
 	virtual bool getVendorString(char* name);
