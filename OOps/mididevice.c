@@ -639,7 +639,7 @@ void OpenMIDIDevice(void)
     }
     not_started = 0;
     Pm_OpenInput(&midistream, 
-                 0,             /* Device number */
+                 atoi(O.Midiname),             /* Device number */
                  NULL, 
                  MBUFSIZE, 
                  ((long (*)(void *)) Pt_Time), 
@@ -671,9 +671,18 @@ long GetMIDIData(void)
       if ((retval=Pm_Poll(midistream))) {
         if (retval<0) printf(Str(X_1185,"sensMIDI: retval errno %d"),errno);
         if (retval == 0) {
-          long n = Pm_Read(midistream, buffer, MBUFSIZE);
+          PmEvent buffer[MBUFSIZE];
+          int i, j;
+          long n = Pm_Read(midistream, buffer, MBUFSIZE/3);
           bufp = mbuf;
-          endatp = mbuf + n;
+          endatp = mbuf + 3*n;
+          /* At present we do not need timestamps, but need to unpack data
+           * and should not store unnecessary bytes.....hum */
+          for (i=0, j=0; j<n; i+=3, j++) {
+            bufp[i+0] = Pm_MessageStatus(buffer[j].message);
+            bufp[i+1] = Pm_MessageData1(buffer[j].message);
+            bufp[i+2] = Pm_MessageData2(buffer[j].message);
+          }
           return n;
         }
         else {
