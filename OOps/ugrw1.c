@@ -1103,7 +1103,7 @@ int tablew(ENVIRON *csound, TABLEW *p)
      * are 0 to 7.  Location 8 is the guard point.  table() does not read
      * the guard point - tabli() does.*/
     int         liwgm;          /* Local copy of iwgm for speed */
-    int         nsmps = ksmps;
+    int         nsmps = csound->ksmps;
     MYFLT       ndx, xbmul, offset;
                                 /*-----------------------------------*/
 /*     printf("atablew: p->xsig, p->xndx = %f, %f\n", *p->xsig, *p->xndx); */
@@ -1942,10 +1942,10 @@ int tablera(ENVIRON *csound, TABLERA *p)
        * Create error message if this is not so.  We must ensure that
        * the ksmps number of reads can fit within the length of the table. */
 
-      if (p->ftp->flen < ksmps) {
+      if (p->ftp->flen < csound->ksmps) {
         return csound->PerfError(csound, Str("Table kfn=%.2f length %ld "
                                              "shorter than ksmps %d"),
-                                         *p->kfn, p->ftp->flen, ksmps);
+                                         *p->kfn, p->ftp->flen, csound->ksmps);
       }
     }
     /* Check that kstart is within the range of the table. */
@@ -1974,10 +1974,10 @@ int tablera(ENVIRON *csound, TABLERA *p)
      * cycles of read/write.
      */
 
-    if ((loopcount = p->ftp->flen - kstart) > ksmps) {
+    if ((loopcount = p->ftp->flen - kstart) > csound->ksmps) {
       /* If we are not going to exceed the length of the table,
        * then loopcount = ksmps. */
-      loopcount = ksmps;
+      loopcount = csound->ksmps;
     }
     /* Otherwise it is the number of locations between kstart and
      * the end of the table - as calculated above.     */
@@ -2063,10 +2063,10 @@ int tablewa(ENVIRON *csound, TABLEWA *p)
          * Create error message if this is not so.  We must ensure that
          * the ksmps number of reads can fit within the length of the table. */
 
-        if (p->ftp->flen < ksmps) {
+        if (p->ftp->flen < csound->ksmps) {
             return csound->PerfError(csound, Str("Table kfn=%.2f length %ld "
                                                  "shorter than ksmps %d"),
-                                             *p->kfn, p->ftp->flen, ksmps);
+                                             *p->kfn, p->ftp->flen, csound->ksmps);
         }
     }
 
@@ -2096,13 +2096,13 @@ int tablewa(ENVIRON *csound, TABLEWA *p)
      * cycles of read/write.
      */
 
-    if ((p->ftp->flen - kstart) > ksmps) {
+    if ((p->ftp->flen - kstart) > csound->ksmps) {
         /* If we are not going to exceed the length of the table, then
          * loopcount = ksmps.    */
-        loopcount = ksmps;
+        loopcount = csound->ksmps;
 
         /* Write the kstart i/o variable to be ksmps higher than before. */
-        *p->kstart += ksmps;
+        *p->kstart += csound->ksmps;
     }
     else {
       loopcount = p->ftp->flen - kstart;
@@ -2186,7 +2186,7 @@ int zakinit(ENVIRON *csound, ZAKINIT *p)
      * length ksmps.
      * This is all set to 0 and there will be an error report if the
      * memory cannot be allocated.       */
-    length = (long)((*p->isizea + 1) * sizeof(MYFLT) * ksmps);
+    length = (long)((*p->isizea + 1) * sizeof(MYFLT) * csound->ksmps);
     zastart = (MYFLT*) mcalloc(csound, length);
     zalast = (long) *p->isizea;
     return OK;
@@ -2495,7 +2495,7 @@ int zar(ENVIRON *csound, ZAR *p)
 {
     MYFLT       *readloc, *writeloc;
     long indx;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
 
     /*-----------------------------------*/
 
@@ -2518,7 +2518,7 @@ int zar(ENVIRON *csound, ZAR *p)
     else {
       /* Now read from the array in za space and write to the destination.
        * See notes in zkr() on pointer arithmetic.     */
-      readloc = zastart + (indx * ksmps);
+      readloc = zastart + (indx * csound->ksmps);
       do {
         *writeloc++ = *readloc++;
       } while(--nsmps);
@@ -2535,7 +2535,7 @@ int zarg(ENVIRON *csound, ZARG *p)
     MYFLT       *readloc, *writeloc;
     MYFLT       kgain;          /* Gain control */
     long        indx;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
 
     /*-----------------------------------*/
 
@@ -2561,7 +2561,7 @@ int zarg(ENVIRON *csound, ZARG *p)
       else {
         /* Now read from the array in za space multiply by kgain and write
          * to the destination.       */
-        readloc = zastart + (indx * ksmps);
+        readloc = zastart + (indx * csound->ksmps);
         do {
           *writeloc++ = *readloc++ * kgain;
         } while(--nsmps);
@@ -2580,7 +2580,7 @@ int zaw(ENVIRON *csound, ZAW *p)
 {
     MYFLT       *readloc, *writeloc;
     long indx;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
 
     /* Set up the pointer for the source of data to write.    */
     readloc = p->sig;
@@ -2595,7 +2595,7 @@ int zaw(ENVIRON *csound, ZAW *p)
     }
     else {
         /* Now write to the array in za space pointed to by indx.    */
-      writeloc = zastart + (indx * ksmps);
+      writeloc = zastart + (indx * csound->ksmps);
       do {
         *writeloc++ = *readloc++;
       } while(--nsmps);
@@ -2614,7 +2614,7 @@ int zawm(ENVIRON *csound, ZAWM *p)
 {
     MYFLT       *readloc, *writeloc;
     long indx;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
     /*-----------------------------------*/
 
     /* Set up the pointer for the source of data to write. */
@@ -2630,7 +2630,7 @@ int zawm(ENVIRON *csound, ZAWM *p)
     }
     else {
       /* Now write to the array in za space pointed to by indx.    */
-      writeloc = zastart + (indx * ksmps);
+      writeloc = zastart + (indx * csound->ksmps);
       if (*p->mix == 0) {
         /* Normal write mode.  */
         do {
@@ -2660,7 +2660,7 @@ int zamod(ENVIRON *csound, ZAMOD *p)
     MYFLT       *readsig;       /* Array of input floats */
     long indx;
     int mflag = 0;             /* non zero if modulation with multiplication  */
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
 
     /* Make a local copy of the pointer to the input signal, so we can auto-
      * increment it. Likewise the location to write the result to.     */
@@ -2684,7 +2684,7 @@ int zamod(ENVIRON *csound, ZAMOD *p)
                                Str("zamod kzamod > isizea. Not writing."));
     }
     else {                      /* Now read the values from za space.    */
-      readloc = zastart + (indx * ksmps);
+      readloc = zastart + (indx * csound->ksmps);
       if (mflag == 0) {
         do {
           *writeloc++ = *readsig++ + *readloc++;
@@ -2726,8 +2726,8 @@ int zacl(ENVIRON *csound, ZACL *p)
                                    Str("zacl first > last. Not clearing."));
         }
         else {  /* Now clear the appropriate locations in za space. */
-          loopcount = (last - first + 1) * ksmps;
-          writeloc = zastart + (first * ksmps);
+          loopcount = (last - first + 1) * csound->ksmps;
+          writeloc = zastart + (first * csound->ksmps);
           do {
             *writeloc++ = FL(0.0);
           } while (--loopcount);
@@ -2826,8 +2826,8 @@ int printkset(ENVIRON *csound, PRINTK *p)
     /* Set up ctime so that if it was 0 or negative, it is set to a low value
      * to ensure that the print cycle happens every k cycle.  This low value is
      * 1 / ekr     */
-    if (*p->ptime < FL(1.0) / ekr)
-      p->ctime = FL(1.0) / ekr;
+    if (*p->ptime < FL(1.0) / csound->ekr)
+      p->ctime = FL(1.0) / csound->ekr;
     else        p->ctime = *p->ptime;
 
     /* Set up the number of spaces.
@@ -2905,8 +2905,8 @@ int printksset(ENVIRON *csound, PRINTKS *p)
     char        *sdest;
     char        temp, tempn;
 
-    if (*p->ptime < FL(1.0) / ekr)
-      p->ctime = FL(1.0) / ekr;
+    if (*p->ptime < FL(1.0) / csound->ekr)
+      p->ctime = FL(1.0) / csound->ekr;
     else        p->ctime = *p->ptime;
 
     /* Set the initime variable - how many seconds in absolute time
@@ -3235,7 +3235,7 @@ int peaka(ENVIRON *csound, PEAK *p)
     MYFLT       peak;
     MYFLT       *asigin;
 
-    loop = ksmps;
+    loop = csound->ksmps;
     asigin = p->xsigin;
     peak = *p->kpeakout;
 
@@ -3291,7 +3291,7 @@ int inz(ENVIRON *csound, IOZ *p)
 {
     MYFLT       *readloc, *writeloc;
     long indx, i;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
 
     readloc = spin;
     /* Check to see this index is within the limits of za space.     */
@@ -3304,10 +3304,10 @@ int inz(ENVIRON *csound, IOZ *p)
     }
     else {
       /* Now write to the array in za space pointed to by indx.    */
-      writeloc = zastart + (indx * ksmps);
-      for (i=0; i<nchnls; i++)
-        for (nsmps=0; nsmps<ksmps; nsmps++)
-          *writeloc++ = spin[i*ksmps+nsmps];
+      writeloc = zastart + (indx * csound->ksmps);
+      for (i=0; i<csound->nchnls; i++)
+        for (nsmps=0; nsmps<csound->ksmps; nsmps++)
+          *writeloc++ = spin[i*csound->ksmps+nsmps];
     }
     return OK;
 }
@@ -3318,7 +3318,7 @@ int outz(ENVIRON *csound, IOZ *p)
     MYFLT       *readloc, *writeloc;
     long indx;
     int i;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
 
     /*-----------------------------------*/
 
@@ -3333,17 +3333,17 @@ int outz(ENVIRON *csound, IOZ *p)
       return csound->PerfError(csound, Str("outz index < 0. No output."));
     }
     /* Now read from the array in za space and write to the output. */
-    readloc = zastart + (indx * ksmps);
+    readloc = zastart + (indx * csound->ksmps);
     if (!spoutactive) {
-      for (i=0; i<nchnls; i++)
-        for (nsmps=0; nsmps<ksmps; nsmps++)
-          spout[i*ksmps+nsmps] = *readloc++;
+      for (i=0; i<csound->nchnls; i++)
+        for (nsmps=0; nsmps<csound->ksmps; nsmps++)
+          spout[i*csound->ksmps+nsmps] = *readloc++;
       spoutactive = 1;
     }
     else {
-      for (i=0; i<nchnls; i++)
-        for (nsmps=0; nsmps<ksmps; nsmps++)
-          spout[i*ksmps+nsmps] += *readloc++;
+      for (i=0; i<csound->nchnls; i++)
+        for (nsmps=0; nsmps<csound->ksmps; nsmps++)
+          spout[i*csound->ksmps+nsmps] += *readloc++;
     }
     return OK;
 }
