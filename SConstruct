@@ -127,6 +127,12 @@ opts.Add('noDebug',
 opts.Add('gcc3opt',
     'Enable gcc 3.3.x or later optimizations for i686.',
     '0')
+opts.Add('arch',
+    'Architecture type to use with gcc optimzation flag (-march=arch). Requires gcc3opt to be enabled',
+    'i686')
+opts.Add('cpu',
+    'CPU type to use with gcc optimization flag (-mcpu=cpu). Requires gcc3opt to be enabled',
+    'pentium3')        
 opts.Add('useGprof',
     'Build with profiling information (-pg).',
     '0')
@@ -171,7 +177,9 @@ print
 
 commonEnvironment.Prepend(CPPPATH  = ['.', './H'])
 if (commonEnvironment['gcc3opt']=='1'):
-  commonEnvironment.Prepend(CCFLAGS = Split('-DCSOUND_WITH_API -O3 -march=i686 -mcpu=pentium3 -fomit-frame-pointer -ffast-math -falign-functions=16'))
+  flags = '-DCSOUND_WITH_API -O3 -march=%s -mcpu=%s -fomit-frame-pointer -ffast-math -falign-functions=16'
+  flags = flags%(commonEnvironment['arch'], commonEnvironment['cpu'])
+  commonEnvironment.Prepend(CCFLAGS = Split(flags))
 elif (commonEnvironment['noDebug']=='0'):
   commonEnvironment.Prepend(CCFLAGS = Split('-DCSOUND_WITH_API -g -gstabs -O2'))
 else:
