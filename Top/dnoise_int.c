@@ -345,8 +345,8 @@ void do_mac_dialogs(void)
         goto ending;
       case OPEN_SEL_NOI:
         /*        StandardGetFile(nil, numTypes, typeList, &reply); */
-                StandardGetFile(nil, -1, nil, &reply);
-        if (reply.sfGood) {     // if 'Open' was selected
+        /*        StandardGetFile(nil, -1, nil, &reply); */
+        /*        if (reply.sfGood) { */    /* if 'Open' was selected */
           so_file.noise_vrn = reply.sfFile.vRefNum ;
           so_file.noise_pid = reply.sfFile.parID ;
           strcpy(so_file.noise,PtoCstr(reply.sfFile.name));
