@@ -132,8 +132,37 @@ static long csoundNumExits_ = -1;
           kcnt -= 1;
           O.RTevents = rtEvents;
         }
+      if(done)
+        {
+          csoundMessage(csound, "Score finished in csoundPerformKsmps()\n");
+        }
       return done;
   }
+  
+  PUBLIC int csoundPerformKsmpsAbsolute(void *csound)
+  {
+      int done = 0;
+      int rtEvents = O.RTevents;
+      volatile int returnValue;
+      /* setup jmp for return after an exit()
+       */
+      if ((returnValue = setjmp(cenviron.exitjmp_)))
+        {
+          csoundMessage(csound, "Early return from csoundPerformKsmps().");
+          return returnValue;
+        }
+      done = sensevents();
+      /*
+      Rather than overriding real-time event handling in kperf,
+      turn it off before calling kperf, and back on afterwards.
+      */
+      O.RTevents = 0;
+      kperf(1);
+      kcnt -= 1;
+      O.RTevents = rtEvents;
+      return done;
+  }
+
 
   /* external host's outbuffer passed in csoundPerformBuffer()
    */
@@ -573,82 +602,68 @@ static long csoundNumExits_ = -1;
 #endif
   }
 
-  /*
-   * MIDI -- this code replaces the MIDIDevice.c file
-   */
-
-  static void (*csoundExternalMidiOpenCallback_)(void *csound) = csoundDefaultMidiOpen;
-
-  PUBLIC void csoundSetExternalMidiOpenCallback(void *csound, void (*csoundMidiOpen)(void *csound))
-  {
-      csoundExternalMidiOpenCallback_ = csoundMidiOpen;
-  }
-
-  void csoundExternalMidiOpen(void *csound)
-  {
-      csoundExternalMidiOpenCallback_(csound);
-  }
-
-  static int defaultCsoundMidiRead(void *csound, unsigned char *midiData, int size)
-  {
-      return 0;
-  }
-
-  static int (*csoundExternalMidiReadCallback_)(void *csound, unsigned char *midiData, int size) = defaultCsoundMidiRead;
-
-  PUBLIC void csoundSetExternalMidiReadCallback(void *csound, int (*midiReadCallback)(void *csound, unsigned char *midiData, int size))
-  {
-      csoundExternalMidiReadCallback_ = midiReadCallback;
-  }
-
-  int csoundExternalMidiRead(void *csound, char *mbuf, int size)
-  {
-      return csoundExternalMidiReadCallback_(csound, mbuf, size);
-  }
-
-  static int csoundExternalMidiEnabled_ = 0;
+  int csoundExternalMidiEnabled = 0;
+  void (*csoundExternalMidiDeviceOpenCallback)(void *csound) = 0;
+  int (*csoundExternalMidiReadCallback)(void *csound, unsigned char *midiData, int size) = 0;
+  int (*csoundExternalMidiWriteCallback)(void *csound, unsigned char *midiData) = 0;
+  void (*csoundExternalMidiDeviceCloseCallback)(void *csound) = 0;
 
   PUBLIC int csoundIsExternalMidiEnabled(void *csound)
   {
-      return csoundExternalMidiEnabled_;
+      return csoundExternalMidiEnabled;
   }
 
   PUBLIC void csoundSetExternalMidiEnabled(void *csound, int enabled)
   {
-      csoundExternalMidiEnabled_ = enabled;
+      csoundExternalMidiEnabled = enabled;
   }
 
-  static int defaultCsoundMidiWrite(void *csound, unsigned char *midiData)
+  PUBLIC void csoundSetExternalMidiDeviceOpenCallback(void *csound, void (*csoundExternalMidiDeviceOpenCallback_)(void *csound))
   {
-      return 0;
+      csoundExternalMidiDeviceOpenCallback = csoundExternalMidiDeviceOpenCallback_;
   }
 
-  static int (*csoundExternalMidiWriteCallback_)(void *csound, unsigned char *midiData) = defaultCsoundMidiWrite;
-
-  PUBLIC void csoundSetExternalMidiWriteCallback(void *csound, int (*midiWriteCallback)(void *csound, unsigned char *midiData))
+  void csoundExternalMidiDeviceOpen(void *csound)
   {
-      csoundExternalMidiWriteCallback_ = midiWriteCallback;
+    if (csoundExternalMidiDeviceOpenCallback){
+      csoundExternalMidiDeviceOpenCallback(csound);
+    }
+  }
+
+  PUBLIC void csoundSetExternalMidiReadCallback(void *csound, int (*csoundExternalMidiReadCallback_)(void *csound, unsigned char *midiData, int size))
+  {
+      csoundExternalMidiReadCallback = csoundExternalMidiReadCallback_;
+  }
+
+  int csoundExternalMidiRead(void *csound, char *mbuf, int size)
+  {
+    if(csoundExternalMidiReadCallback){
+      return csoundExternalMidiReadCallback(csound, mbuf, size);
+    }
+  }
+
+  PUBLIC void csoundSetExternalMidiWriteCallback(void *csound, int (*csoundExternalMidiWriteCallback_)(void *csound, unsigned char *midiData))
+  {
+      csoundExternalMidiWriteCallback = csoundExternalMidiWriteCallback_;
   }
 
   int csoundExternalMidiWrite(unsigned char *midiData)
   {
-      return csoundExternalMidiWriteCallback_(&cenviron_, midiData);
+    if(csoundExternalMidiWriteCallback){
+      return csoundExternalMidiWriteCallback(&cenviron_, midiData);
+    }
   }
 
-  void csoundDefaultMidiCloseCallback(void *csound)
+  PUBLIC void csoundSetExternalMidiDeviceCloseCallback(void *csound, void (*csoundExternalMidiDeviceCloseCallback_)(void *csound))
   {
+      csoundExternalMidiDeviceCloseCallback = csoundExternalMidiDeviceCloseCallback_;
   }
 
-  static void (*csoundExternalMidiCloseCallback_)(void *csound) = csoundDefaultMidiCloseCallback;
-
-  PUBLIC void csoundSetExternalMidiCloseCallback(void *csound, void (*csoundExternalMidiCloseCallback)(void *csound))
+  void csoundExternalMidiDeviceClose(void *csound)
   {
-      csoundExternalMidiCloseCallback_ = csoundExternalMidiCloseCallback;
-  }
-
-  void csoundExternalMidiClose(void *csound)
-  {
-      csoundExternalMidiCloseCallback_(csound);
+    if(csoundExternalMidiDeviceCloseCallback){
+      csoundExternalMidiDeviceCloseCallback(csound);
+    }
   }
 
   /*
