@@ -150,7 +150,9 @@ pluginEnvironment.SharedLibrary('xxx',
 
 \section{Using}
 
-Assuming that you have installed and configured the software, Csound and CsoundVST can be operated in a variety of modes and configurations.
+Assuming that you have installed and configured the software, Csound and CsoundVST can be operated in a variety of modes and configurations. The \texttt{.csd} and \texttt{.py} files in the \texttt{examples} demonstrate a few of these modes of operation. Some of these scores are simple, others are moderately complex. 
+
+You may need to edit the \texttt{----opcode-lib} option in the Csound command in some of the  \texttt{.csd} and \texttt{.py} files to match your environment. Similarly, you may need to edit the SoundFont file paths in instrument definitions that use the \texttt{fluid} SoundFont 2 player opcode to match your environment.
 
 \subsection{Csound}
 
@@ -232,38 +234,9 @@ To use CsoundVST itself as your Python interpreter, click on the CsoundVST Setti
 The \texttt{koch.py} script provides an examples of how to use Python to do algorithmic composition for Csound. You can use Python triple-quoted string literals to hold your Csound files right in your script, and assign them to Csound: 
 
 \begin{verbatim}
-csound.setOrchestra('''
-sr = 44100
-kr = 441
-ksmps = 100   
-nchnls = 2
-0dbfs = .1
-
-instr 1,2,3,4,5 ; FluidSynth General MIDI
-; INITIALIZATION
-; Channel, bank, and program determine the preset, that is, the actual sound.
-ichannel		=			p1
-iprogram		=			p6
-ikey	 		= 			p4
-ivelocity 		= 			p5 + 12
-ijunk6 			= 			p6
-ijunk7			=			p7
-; AUDIO
-istatus			=			144
-;			print			iprogram, istatus, ichannel, ikey, ivelocity
-aleft, aright		fluid			"c:/projects/csound5/samples/VintageDreamsWaves-v2.sf2", \
-    iprogram, istatus, ichannel, ikey, ivelocity, 1
-			outs 			aleft, aright
-endin
-
-''')
-
-csound.setCommand("csound --opcode-lib=c:/projects/csound5/fluid.dll \
-    -RWdfo ./koch.wav ./temp.orc ./temp.sco")
-
-csound.exportForPerformance()
-csound.perform()
-\end{verbatim}
+csound.setOrchestra('''sr = 44100kr = 441ksmps = 100   nchnls = 20dbfs = .1instr 1,2,3,4,5 ; FluidSynth General MIDI; INITIALIZATION; Channel, bank, and program determine the preset, that is, the actual sound.ichannel		=			p1iprogram		=			p6ikey	 		= 			p4ivelocity 		= 			p5 + 12ijunk6 			= 			p6ijunk7			=			p7; AUDIOistatus			=			144;			print			iprogram, istatus, ichannel, ikey, ivelocityaleft, aright		fluid			"c:/projects/csound5/samples/VintageDreamsWaves-v2.sf2", \
+    iprogram, istatus, ichannel, ikey, ivelocity, 1			outs 			aleft, arightendin''')csound.setCommand("csound --opcode-lib=c:/projects/csound5/fluid.dll \
+    -RWdfo ./koch.wav ./temp.orc ./temp.sco")csound.exportForPerformance()csound.perform()\end{verbatim}
 
 To run your script in Csound VST, click on the Perform button. 
 
