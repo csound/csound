@@ -175,7 +175,7 @@ static MYFLT *pluckShape(ENVIRON *csound, WGPLUCK* p)
     shape = (MYFLT *) mmalloc(len*sizeof(MYFLT));
     if (!shape)
       error(csound,
-            Str(X_231,"Couldn't allocate for initial shape"),"<pluckShape>");
+            Str("Couldn't allocate for initial shape"),"<pluckShape>");
 
     scale = FL(0.5) * scale;      /* Scale was squared!! */
     for (i=0;i<p->pickSamp;i++)
@@ -254,8 +254,8 @@ void circularBufferCircularBuffer(ENVIRON *csound, circularBuffer* cb, len_t N)
 {
     MYFLT *data = cb->data;
     if (!data)
-      error(csound, csound->getstring_(X_194,"Buffer memory not allocated!"),
-            "<circularBuffer::circularBuffer>");
+      error(csound, csound->LocalizeString("Buffer memory not allocated!"),
+                    "<circularBuffer::circularBuffer>");
 
   /* Initialize pointers and variables */
     cb->size            = N;
@@ -426,7 +426,7 @@ void waveguideSetTuning(ENVIRON *csound, waveguide* wg, MYFLT df)
 /* error -- report errors */
 static void error(ENVIRON *csound, const char* a, const char* b)
 {
-    csound->Printf(csound->getstring_(X_259,"Error:%s,%s\n"),a,b);
+    csound->Printf(csound->LocalizeString("Error:%s,%s\n"),a,b);
     longjmp(csound->exitjmp_,1);
 }
 

@@ -73,7 +73,7 @@ int make_Modulatr(ENVIRON *csound,Modulatr *p, MYFLT *i)
 
     if ((ftp = csound->ftfind_(csound,i)) != NULL)      p->wave = ftp;
     else { /* Expect sine wave */
-      return initerror(csound->getstring_(X_382,"No table for Modulatr"));
+      return initerror(csound->LocalizeString("No table for Modulatr"));
     }
     p->v_time = FL(0.0);
 /*     p->v_rate = 6.0; */
@@ -114,7 +114,7 @@ static int make_SingWave(ENVIRON *csound, SingWave *p, MYFLT *ifn, MYFLT *ivfn)
 
     if ((ftp = ftfind(csound,ifn)) != NULL) p->wave = ftp;
     else {
-      perferror(getstring(X_383,"No table for Singwave"));
+      perferror(csound->LocalizeString("No table for Singwave"));
       return NOTOK;
     }
     p->mytime = FL(0.0);
@@ -190,7 +190,7 @@ MYFLT SingWave_tick(SingWave *p)
 
 void SingWave_print(ENVIRON *csound, SingWave *p)
 {
-    printf(getstring(X_463,"SingWave: rate=%f sweepRate=%f mytime=%f\n"),
+    printf(csound->LocalizeString("SingWave: rate=%f sweepRate=%f mytime=%f\n"),
            p->rate, p->sweepRate, p->mytime);
     Modulatr_print(&p->modulator);
     Envelope_print(csound, &p->envelope);
@@ -254,7 +254,7 @@ void VoicForm_setPhoneme(ENVIRON *csound, VOICF *p, int i, MYFLT sc)
     VoicForm_setFormantAll(p, 3,sc*phonParams[i][3][0],
                            phonParams[i][3][1], FL(1.0));
     VoicForm_setVoicedUnVoiced(p,phonGains[i][0], phonGains[i][1]);
-    printf(Str(X_282,"Found Formant: %s (number %i)\n"),phonemes[i],i);
+    printf(Str("Found Formant: %s (number %i)\n"),phonemes[i],i);
 }
 
 void VoicForm_setVoicedUnVoiced(VOICF *p, MYFLT vGain, MYFLT nGain)
@@ -372,7 +372,7 @@ int voicform(ENVIRON *csound, VOICF *p)
     if (p->oldform != *p->formant || p->ph != (int)(0.5+*p->phoneme)) {
       p->oldform = *p->formant;
       p->ph = (int)(0.5 + *p->phoneme);
-      printf(Str(X_461,"Setting Phoneme: %f %d\n"), p->ph, p->oldform);
+      printf(Str("Setting Phoneme: %f %d\n"), p->ph, p->oldform);
       VoicForm_setPhoneme(csound, p,(int)*p->phoneme, p->oldform);
     }
 /*     voicprint(csound, p); */

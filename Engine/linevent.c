@@ -103,7 +103,7 @@ void RTLineset(void)   /* set up Linebuf & ready the input files */
 #else
       if (fcntl(Linefd, F_SETFL,
                 (stdmode =fcntl(Linefd, F_GETFL, 0)) | O_NDELAY) < 0)
-        die(Str(X_113,"-L stdin fcntl failed"));
+        die(Str("-L stdin fcntl failed"));
 #endif
 #endif
     }
@@ -114,7 +114,7 @@ void RTLineset(void)   /* set up Linebuf & ready the input files */
         FILE *xxx = Linepipe;
         Linefd = fileno(xxx);
       }
-      else dies(Str(X_210,"Cannot open %s"), O.Linename);
+      else dies(Str("Cannot open %s"), O.Linename);
     }
 #endif
 #if defined(mills_macintosh) || defined(SYMANTEC)
@@ -123,14 +123,14 @@ void RTLineset(void)   /* set up Linebuf & ready the input files */
 #define MODE ,0
 #endif
     else if ((Linefd = open(O.Linename, O_RDONLY | O_NDELAY  MODE)) < 0)
-      dies(Str(X_210,"Cannot open %s"), O.Linename);
-    printf(Str(X_1243,"stdmode = %.8x Linefd = %d\n"), stdmode, Linefd);
+      dies(Str("Cannot open %s"), O.Linename);
+    printf(Str("stdmode = %.8x Linefd = %d\n"), stdmode, Linefd);
     atexit(RTclose);
 }
 
 void RTclose(void)
 {
-    printf(Str(X_1243,"stdmode = %.8x Linefd = %d\n"), stdmode, Linefd);
+    printf(Str("stdmode = %.8x Linefd = %d\n"), stdmode, Linefd);
 #if defined(mills_macintosh) || defined(SYMANTEC)
     if (Linecons != NULL) fclose(Linecons);
 #else
@@ -193,12 +193,12 @@ void writeLine(const char *text, long size)
       }
       else {
         if (O.msglevel & WARNMSG)
-          printf(Str(X_1805,"WARNING: LineBuffer Overflow - Input Data has been Lost\n"));
+          printf(Str("WARNING: LineBuffer Overflow - Input Data has been Lost\n"));
       }
     }
     else {
       if (O.msglevel & WARNMSG)
-        printf(Str(X_1806,
+        printf(Str(
                   "WARNING: Input ignored, RT Line Events (-L) has not been initialised\n"));
     }
 }
@@ -245,7 +245,7 @@ int sensLine(void)
             e->opcod = c;
             break;
           default:
-            err_printf(Str(X_1340,"unknown opcode %c\n"));
+            err_printf(Str("unknown opcode %c\n"));
             goto Lerr;
           }                                  /* for params that follow:  */
           for (fp = &e->p[1], pcnt = 0; c != LF && pcnt<PMAX; pcnt++) {
@@ -257,14 +257,14 @@ int sensLine(void)
             if (c == '"') {                /* if find character string  */
               char *sstrp;      /* IV - Oct 31 2002: allow string instrname */
               if (pcnt != 4 && (pcnt || e->opcod != 'i')) {
-                err_printf(Str(X_1000,"misplaced string\n")); /* (must be p5) */
+                err_printf(Str("misplaced string\n")); /* (must be p5) */
                 goto Lerr;
               }
               if ((sstrp = e->strarg) == NULL)
                 e->strarg = sstrp = mcalloc((long)SSTRSIZ);
               while ((c = *cp++) != '"') {
                 if (c == LF) {
-                  err_printf(Str(X_1349,"unmatched quotes\n"));
+                  err_printf(Str("unmatched quotes\n"));
                   cp--;
                   goto Lerr;
                 }
@@ -279,7 +279,7 @@ int sensLine(void)
             if (c == '.'                        /*  if lone dot,       */
                 && ((n = *cp)==' ' || n=='\t' || n==LF)) {
               if (e->opcod != 'i' || prvop != 'i' || pcnt >= prvpcnt) {
-                err_printf(Str(X_708,"dot carry has no reference\n"));
+                err_printf(Str("dot carry has no reference\n"));
                 goto Lerr;
               }
               if (e != prve) {                /*        pfld carry   */
@@ -304,7 +304,7 @@ int sensLine(void)
                 e->p[2] = prvp2;
             }
           if (pcnt < 3 && e->opcod !='e') {     /* check sufficient pfields */
-            err_printf(Str(X_1284,"too few pfields\n"));
+            err_printf(Str("too few pfields\n"));
             goto Lerr;
           }
           e->pcnt = pcnt;                      /*   &  record pfld count    */
@@ -314,7 +314,7 @@ int sensLine(void)
           prvp1 = e->p[1];
           prvp2 = e->p[2];
           if (pcnt == PMAX && c != LF) {
-            err_printf(Str(X_1291,"too many pfields\n"));
+            err_printf(Str("too many pfields\n"));
             while (*cp++ != LF)              /* flush any excess data     */
               ;
           }
@@ -322,7 +322,7 @@ int sensLine(void)
           while (cp < Linend)                  /* copy remaining data to    */
             *Linep++ = *cp++;                /*     beginning of Linebuf  */
           if (e->p[2] < 0.) {
-            err_printf(Str(X_114,"-L with negative p2 illegal\n"));
+            err_printf(Str("-L with negative p2 illegal\n"));
             goto Lerr;
           }
           e->p2orig = e->p[2];
@@ -348,7 +348,7 @@ int sensLine(void)
     n = cp - Linebuf - 1;                     /* error position */
     while (*cp++ != LF);                      /* go on to LF    */
     *(cp-1) = '\0';                           /*  & insert NULL */
-    err_printf(Str(X_838,"illegal RT scoreline:\n%s\n"), Linebuf);
+    err_printf(Str("illegal RT scoreline:\n%s\n"), Linebuf);
     while (n--)
       err_printf(" ");
     err_printf("^\n");                        /* mark the error */
@@ -398,14 +398,14 @@ int eventOpcode(ENVIRON *csound, LINEVENT *p)
     if ((*p->args[0] != SSTRCOD) ||
         (*p->STRARG != 'i' && *p->STRARG != 'f' && *p->STRARG !='e')) {
       sprintf(errmsg,
-              Str(X_1136,"lineevent param 1 must be \"i\", \"f\", or \"e\"\n"));
+              Str("lineevent param 1 must be \"i\", \"f\", or \"e\"\n"));
       return perferror(errmsg);
     }
     else
       e->opcod = *p->STRARG;
 
     if (p->INOCOUNT < 4 && e->opcod !='e') {
-      err_printf(Str(X_1284,"too few pfields\n"));/* check sufficient pfields */
+      err_printf(Str("too few pfields\n"));/* check sufficient pfields */
       return NOTOK;
     }
     else
@@ -414,7 +414,7 @@ int eventOpcode(ENVIRON *csound, LINEVENT *p)
     /* IV - Oct 31 2002: allow string argument */
     if (*p->args[1] == SSTRCOD) {
       if (e->opcod != 'i') {
-        return perferror(Str(X_1807,
+        return perferror(Str(
                       "event: string name is allowed only for \"i\" events"));
       }
       e->strarg = p->STRARG2;
@@ -473,7 +473,7 @@ void newevent(void*csound, char type, MYFLT *pfields, long count)
     e->opcod = type;
 
     if (count < 4 && e->opcod !='e') {
-      err_printf(Str(X_1284,"too few pfields\n"));/* check sufficient pfields */
+      err_printf(Str("too few pfields\n"));/* check sufficient pfields */
       return;
     }
     else

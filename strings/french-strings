@@ -1804,7 +1804,7 @@
 1804,"subinstr: non initialisé"
 1805,"***AVERTISSEMENT : LineBuffer Overflow - Input Data has been Lost\n"
 1806,"***AVERTISSEMENT : Input ignored, RT Line Events (-L) has not been initialised\n"
-1807,"***event: string name is allowed only for \"i\
+1807,"***event: string name is allowed only for \"i\"\n"
 1808,"*** - note deleted. instr %s undefined\n"
 1809,"***Setting instrument %s %s\n"
 1810,"***on"

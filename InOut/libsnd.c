@@ -274,7 +274,7 @@ int soundin(ENVIRON *csound, SOUNDIN *p)
     else scalefac = FL(1.0);
 
     if (!p->inbufp) {
-      return perferror(Str(X_1210,"soundin: not initialised"));
+      return perferror(Str("soundin: not initialised"));
     }
     chnsout = p->OUTOCOUNT;
     blksiz = chnsout * ksmps;
@@ -383,7 +383,7 @@ void sfopenin(void)             /* init for continuous soundin */
     else {                      /* else build filename and open that */
       SF_INFO sfinfo;
       if ((isfd = openin(O.infilename)) < 0)
-        dies(Str(X_947,"isfinit: cannot open %s"), retfilnam);
+        dies(Str("isfinit: cannot open %s"), retfilnam);
       sfname = retfilnam;
       memset(&sfinfo, '\0', sizeof(SF_INFO));
       infile= sf_open_fd(isfd, SFM_READ, &sfinfo, SF_TRUE);
@@ -392,11 +392,11 @@ void sfopenin(void)             /* init for continuous soundin */
       p->filetyp = 0;               /* initially non-typed for readheader */
       if (sfinfo.samplerate != (long)esr &&
           (O.msglevel & WARNMSG)) {              /*    chk the hdr codes  */
-        printf(Str(X_607,"WARNING: audio_in %s has sr = %ld, orch sr = %ld\n"),
+        printf(Str("WARNING: audio_in %s has sr = %ld, orch sr = %ld\n"),
                sfname, sfinfo.samplerate, (long)esr);
       }
       if (sfinfo.channels != nchnls) {
-        sprintf(errmsg,Str(X_606,"audio_in %s has %ld chnls, orch %d chnls"),
+        sprintf(errmsg,Str("audio_in %s has %ld chnls, orch %d chnls"),
                 sfname, sfinfo.channels, nchnls);
         die(errmsg);
       }
@@ -411,7 +411,7 @@ void sfopenin(void)             /* init for continuous soundin */
 #endif
     inbufsiz = (unsigned)(O.inbufsamps * sizeof(MYFLT)); /* calc inbufsize reqd */
     inbuf = (MYFLT *)mcalloc(inbufsiz); /* alloc inbuf space */
-    printf(Str(X_1151,"reading %d-byte blks of %s from %s (%s)\n"),
+    printf(Str("reading %d-byte blks of %s from %s (%s)\n"),
            inbufsiz, getstrformat(O.informat), sfname,
            type2string(p->filetyp));
     isfopen = 1;
@@ -441,7 +441,7 @@ void sfopenout(void)                            /* init for sound out       */
       osfd = fileno(pout);
       pipdevout = 1;
       if (O.filetyp == TYP_AIFF || O.filetyp == TYP_WAV) {
-        printf(Str(X_400,"Output file type changed to IRCAM for use in pipe\n"));
+        printf(Str("Output file type changed to IRCAM for use in pipe\n"));
         O.filetyp = TYP_IRCAM;
       }
     }
@@ -496,7 +496,7 @@ void sfopenout(void)                            /* init for sound out       */
       sfinfo.sections = 0;
       sfinfo.seekable = 0;
       if ((osfd = openout(O.outfilename, 3)) < 0)
-        dies(Str(X_1187,"sfinit: cannot open %s"), retfilnam);
+        dies(Str("sfinit: cannot open %s"), retfilnam);
       sfoutname = mmalloc((long)strlen(retfilnam)+1);
       strcpy(sfoutname, retfilnam);       /*   & preserve the name */
       outfile = sf_open_fd(osfd, SFM_WRITE, &sfinfo, 1);
@@ -528,12 +528,12 @@ outset:
 #endif
     outbufsiz = (unsigned)O.outbufsamps * sizeof(MYFLT);/* calc outbuf size */
     outbufp = outbuf = mmalloc((long)outbufsiz); /*  & alloc bufspace */
-    printf(Str(X_1382,"writing %d-byte blks of %s to %s\n"),
+    printf(Str("writing %d-byte blks of %s to %s\n"),
            outbufsiz, getstrformat(O.outformat), sfoutname);
     if (strcmp(O.outfilename,"devaudio") == 0   /* realtime output has no
                                                    header */
         || strcmp(O.outfilename,"dac") == 0)  printf("\n");
-    else if (O.sfheader == 0) printf(Str(X_24," (raw)\n"));
+    else if (O.sfheader == 0) printf(Str(" (raw)\n"));
     else
       printf(" %s\n", type2string(O.filetyp));
     osfopen = 1;
@@ -588,12 +588,12 @@ void sfcloseout(void)
 #ifdef RTAUDIO
  report:
 #endif
-    printf(Str(X_44,"%ld %d-byte soundblks of %s written to %s"),
+    printf(Str("%ld %d-byte soundblks of %s written to %s"),
            nrecs, outbufsiz, getstrformat(O.outformat), sfoutname);
     if (strcmp(O.outfilename,"devaudio") == 0       /* realtime output has no
                                                        header */
         || strcmp(O.outfilename,"dac") == 0) printf("\n");
-    else if (O.sfheader == 0) printf(Str(X_24," (raw)\n"));
+    else if (O.sfheader == 0) printf(Str(" (raw)\n"));
     else
       printf(" %s\n", type2string(O.filetyp));
     osfopen = 0;
@@ -632,12 +632,12 @@ static void sndwrterr(unsigned nret, unsigned nput) /* report soundfile write(os
   /* called after chk of write() bytecnt  */
 {
     void sfcloseout(void);
-    printf(Str(X_1203,"soundfile write returned bytecount of %d, not %d\n"),
+    printf(Str("soundfile write returned bytecount of %d, not %d\n"),
            nret,nput);
-    printf(Str(X_77,"(disk may be full...\n closing the file ...)\n"));
+    printf(Str("(disk may be full...\n closing the file ...)\n"));
     outbufrem = O.outbufsamps;       /* consider buf is flushed */
     sfcloseout();                    /* & try to close the file */
-    die(Str(X_563,"\t... closed\n"));
+    die(Str("\t... closed\n"));
 }
 
 static void sndfilein(void);
@@ -653,7 +653,7 @@ extern int write(int, const void*, unsigned int);
 
 void sfnopenout(void)
 {
-    printf(Str(X_1079,"not writing to sound disk\n"));
+    printf(Str("not writing to sound disk\n"));
     outbufrem = O.outbufsamps;          /* init counter, though not writing */
 }
 
@@ -686,7 +686,7 @@ static void clrspin2(void)              /* clear spinbuf to zeros   */
     do {
       *r++ = FL(0.0);                       /*   clr whole spinbuf */
     } while (--n);
-    printf(Str(X_713,"end of audio_in file\n"));
+    printf(Str("end of audio_in file\n"));
 }
 
 static void sndfilein(void)

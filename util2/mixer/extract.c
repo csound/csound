@@ -75,20 +75,20 @@ extern int  sndgetset(SOUNDIN *);
 static void usage(char *mesg)
 {
 	fprintf(stderr, "%s\n", mesg);
-	fprintf(stderr,Str(X_1426,"Usage:\textracter [-flags] soundfile\n"));
-	fprintf(stderr,Str(X_9,"Legal flags are:\n"));
-	fprintf(stderr,Str(X_160,"-o fnam\tsound output filename\n"));
-	fprintf(stderr,Str(X_1427,"-N\t\tnotify (ring the bell) when done\n"));
-	fprintf(stderr,Str(X_1428,"-S integer\tsample number at which to start file\n"));
-	fprintf(stderr,Str(X_1429,"-Z integer\tsample number at which to end file\n"));
-	fprintf(stderr,Str(X_1430,"-Q integer\tnumber of samples to read\n"));
-	fprintf(stderr,Str(X_1431,"-T fpnum\ttime in secs at which to start file\n"));
-	fprintf(stderr,Str(X_1432,"-E fpnum\ttime in secs at which to end file\n"));
-	fprintf(stderr,Str(X_1433,"-D fpnum\tduration in secs of extract\n"));
-	fprintf(stderr,Str(X_125,"-R\tRewrite header\n"));
-	fprintf(stderr,Str(X_108,"-H#\tprint a heartbeat style 1, 2 or 3 at each soundfile write\n"));
-	fprintf(stderr,Str(X_780,"-v\t\tverbose mode for debugging\n"));
-	fprintf(stderr,Str(X_1434,"flag defaults: extracter -otest -S 0\n"));
+	fprintf(stderr,Str("Usage:\textracter [-flags] soundfile\n"));
+	fprintf(stderr,Str("Legal flags are:\n"));
+	fprintf(stderr,Str("-o fnam\tsound output filename\n"));
+	fprintf(stderr,Str("-N\t\tnotify (ring the bell) when done\n"));
+	fprintf(stderr,Str("-S integer\tsample number at which to start file\n"));
+	fprintf(stderr,Str("-Z integer\tsample number at which to end file\n"));
+	fprintf(stderr,Str("-Q integer\tnumber of samples to read\n"));
+	fprintf(stderr,Str("-T fpnum\ttime in secs at which to start file\n"));
+	fprintf(stderr,Str("-E fpnum\ttime in secs at which to end file\n"));
+	fprintf(stderr,Str("-D fpnum\tduration in secs of extract\n"));
+	fprintf(stderr,Str("-R\tRewrite header\n"));
+	fprintf(stderr,Str("-H#\tprint a heartbeat style 1, 2 or 3 at each soundfile write\n"));
+	fprintf(stderr,Str("-v\t\tverbose mode for debugging\n"));
+	fprintf(stderr,Str("flag defaults: extracter -otest -S 0\n"));
 	exit(1);
 }
 
@@ -107,7 +107,7 @@ main(int argc, char **argv)
 	stop  = -1; endtime = -1.0;
 	numsamps = -1; dur = -1.0;
 	if (!(--argc))
-		usage(Str(X_939,"Insufficient arguments"));
+		usage(Str("Insufficient arguments"));
 	do {
 		s = *++argv;
 		if (*s++ == '-')                      /* read all flags:  */
@@ -118,104 +118,104 @@ main(int argc, char **argv)
 										while (*++s);
 									break;
 								case 'o':
-									FIND(Str(X_1052,"no outfilename"))
+									FIND(Str("no outfilename"))
 										O.outfilename = filnamp;            /* soundout name */
 									while ((*filnamp++ = *s++)); s--;
 									if (strcmp(O.outfilename,"stdin") == 0)
-										die(Str(X_156,"-o cannot be stdin"));
+										die(Str("-o cannot be stdin"));
 									if (strcmp(O.outfilename,"stdout") == 0) {
 #ifdef THINK_C
-										die(Str(X_1244,"stdout audio not supported"));
+										die(Str("stdout audio not supported"));
 #else
 										if ((O.stdoutfd = dup(1)) < 0) /* redefine stdout */
-											die(Str(X_1290,"too many open files"));
+											die(Str("too many open files"));
 										dup2(2,1);                /* & send 1's to stderr */
 #endif
 									}
 									break;
 								case 'S':
-									FIND(Str(X_1417,"no start sample"));
+									FIND(Str("no start sample"));
 									sample = atoi(s);
 									while (*++s);
 									if (time >= 0.0) {
-										warning(Str(X_1418,"-S overriding -T"));
+										warning(Str("-S overriding -T"));
 										time = -1.0;
 									}
 									break;
 								case 'T':
-									FIND(Str(X_1419,"no start time"));
+									FIND(Str("no start time"));
 									time = (float) atof(s);
 									while (*++s);
 									if (sample >= 0) {
-										warning(Str(X_1420,"-T overriding -S"));
+										warning(Str("-T overriding -S"));
 										sample = -1;
 									}
 									break;
 								case 'Z':	/* Last sample */
-									FIND(Str(X_25,"no end sample"));
+									FIND(Str("no end sample"));
 									stop = atoi(s);
 									while (*++s);
 									if (endtime >= 0.0) {
-										warning(Str(X_1435,"-Z overriding -E"));
+										warning(Str("-Z overriding -E"));
 										endtime = -1.0;
 									}
 									if (dur >= 0.0) {
-										warning(Str(X_1436,"-Z overriding -D"));
+										warning(Str("-Z overriding -D"));
 										dur = 0.1;
 									}
 									if (numsamps >=0) {
-										warning(Str(X_1437,"-Z overriding -Q"));
+										warning(Str("-Z overriding -Q"));
 										numsamps = -1;
 									}
 									break;
 								case 'E':	/* Last time */
-									FIND(Str(X_1438,"no end time"));
+									FIND(Str("no end time"));
 									endtime = (float) atof(s);
 									while (*++s);
 									if (dur >= 0.0) {
-										warning(Str(X_1439,"-E overriding -D"));
+										warning(Str("-E overriding -D"));
 										dur = 0.1;
 									}
 									if (numsamps >=0) {
-										warning(Str(X_1440,"-E overriding -Q"));
+										warning(Str("-E overriding -Q"));
 										numsamps = -1;
 									}
 									if (stop >= 0) {
-										warning(Str(X_1441,"-E overriding -Z"));
+										warning(Str("-E overriding -Z"));
 										stop = -1;
 									}
 									break;
 								case 'D':
-									FIND(Str(X_1030,"no duration"));
+									FIND(Str("no duration"));
 									dur = (float) atof(s);
 									while (*++s);
 									if (endtime >= 0.0) {
-										warning(Str(X_1442,"-D overriding -E"));
+										warning(Str("-D overriding -E"));
 										endtime = -1.0;
 									}
 									if (numsamps >=0) {
-										warning(Str(X_1443,"-D overriding -Q"));
+										warning(Str("-D overriding -Q"));
 										numsamps = -1;
 									}
 									if (stop >= 0) {
-										warning(Str(X_1444,"-D overriding -Z"));
+										warning(Str("-D overriding -Z"));
 										stop = -1;
 									}
 									break;
 								case 'Q':
-									FIND(Str(X_1445,"no sample count"));
+									FIND(Str("no sample count"));
 									numsamps = atoi(s);
 									while (*++s);
 									if (endtime >= 0.0) {
-										warning(Str(X_1446,"-Q overriding -E"));
+										warning(Str("-Q overriding -E"));
 										endtime = -1.0;
 									}
 									if (dur >= 0.0) {
-										warning(Str(X_1447,"-Q overriding -D"));
+										warning(Str("-Q overriding -D"));
 										dur = 0.1;
 									}
 									if (stop >= 0) {
-										warning(Str(X_1448,"-Q overriding -Z"));
+										warning(Str("-Q overriding -Z"));
 										stop = -1;
 									}
 									break;
@@ -237,26 +237,26 @@ main(int argc, char **argv)
 									debug = 1;
 									break;
 								default:
-									sprintf(errmsg,Str(X_1334,"unknown flag -%c"), c);
+									sprintf(errmsg,Str("unknown flag -%c"), c);
 									usage(errmsg);
 				}
 		else {
-			if (inputfile != NULL) usage(Str(X_1287,"Too many input args"));
+			if (inputfile != NULL) usage(Str("Too many input args"));
 			inputfile = --s;
 		}
 	} while (--argc);
 	dbfs_init(DFLT_DBFS);
 	/* Read sound file */
-	if (inputfile == NULL) usage(Str(X_149,"No input"));
+	if (inputfile == NULL) usage(Str("No input"));
 
 	if (!(infd = EXsndgetset(inputfile))) {
-		fprintf(stderr,Str(X_76,"%s: error while opening %s"),
+		fprintf(stderr,Str("%s: error while opening %s"),
 			argv[0], inputfile);
 		exit(1);
 	}
 
 	if (debug) {
-		fprintf(stderr, Str(X_1450,"Times %f %f %f\nNums %ld %ld %ld\n"),
+		fprintf(stderr, Str("Times %f %f %f\nNums %ld %ld %ld\n"),
 			time, endtime, dur, sample, stop, numsamps);
 	}
 	if (time >= 0.0) sample = time*p->sr;
@@ -267,7 +267,7 @@ main(int argc, char **argv)
 
 	if (sample<0) sample = 0;
 	fprintf(stderr,
-		Str(X_1451,"Extracting from sample %ld for %ld samples (%.5f secs)\n"),
+		Str("Extracting from sample %ld for %ld samples (%.5f secs)\n"),
 		sample, numsamps, (float)numsamps/p->sr);
 
 	outputs = p->nchnls;
@@ -289,7 +289,7 @@ main(int argc, char **argv)
 	return 0;
 
 outtyp:
-	usage(Str(X_1113,"output soundfile cannot be both AIFF and WAV"));
+	usage(Str("output soundfile cannot be both AIFF and WAV"));
 
 }
 
@@ -318,7 +318,7 @@ EXsndgetset(char *name)
 		return(0);
 	p->getframes = p->framesrem;
 	dur = (float) p->getframes / p->sr;
-	printf(Str(X_1452,"extracting from %ld sample frames (%3.1f secs)\n"),
+	printf(Str("extracting from %ld sample frames (%3.1f secs)\n"),
 		p->getframes, dur);
 	return(infd);
 }

@@ -30,7 +30,7 @@
 int downset(ENVIRON *csound, DOWNSAMP *p)
 {
     if ((p->len = (int)*p->ilen) > ksmps)
-      return initerror(Str(X_836,"ilen > ksmps"));
+      return initerror(Str("ilen > ksmps"));
     return OK;
 }
 
@@ -213,7 +213,7 @@ int delset(ENVIRON *csound, DELAY *p)
     if (*p->istor && p->auxch.auxp != NULL)
       return OK;
     if ((npts = (long)(*p->idlt * esr)) <= 0) {
-      return initerror(Str(X_846,"illegal delay time"));
+      return initerror(Str("illegal delay time"));
     }
     if ((auxp = p->auxch.auxp) == NULL ||
         npts != p->npts) { /* new space if reqd */
@@ -251,7 +251,7 @@ int delrset(ENVIRON *csound, DELAYR *p)
     if (*p->istor && p->auxch.auxp != NULL)
       return OK;
     if ((npts = (long)(*p->idlt * esr)) < ksmps) {      /* ksmps is min dely */
-      return initerror(Str(X_846,"illegal delay time"));
+      return initerror(Str("illegal delay time"));
     }
     if ((auxp = p->auxch.auxp) == NULL ||       /* new space if reqd */
         npts != p->npts) {
@@ -273,7 +273,7 @@ int delwset(ENVIRON *csound, DELAYW *p)
 {
    /* fifo for delayr pointers by Jens Groh: */
     if (first_delayr == NULL) {
-      return initerror(Str(X_1461,"delayw: associated delayr not found"));
+      return initerror(Str("delayw: associated delayr not found"));
    }
     p->delayr = first_delayr;     /* adr delayr struct */
     /* remove structadr from fifo */
@@ -289,7 +289,7 @@ int tapset(ENVIRON *csound, DELTAP *p)
 {
     /* fifo for delayr pointers by Jens Groh: */
     if (last_delayr == NULL) {
-      return initerror(Str(X_1462,"deltap: associated delayr not found"));
+      return initerror(Str("deltap: associated delayr not found"));
     }
     p->delayr = last_delayr;      /* adr delayr struct */
     return OK;
@@ -301,7 +301,7 @@ int delay(ENVIRON *csound, DELAY *p)
     int nsmps = ksmps;
 
     if (p->auxch.auxp==NULL) {  /* RWD fix */
-      return perferror(Str(X_687,"delay: not initialised"));
+      return perferror(Str("delay: not initialised"));
     }
     ar = p->ar;
     asig = p->asig;
@@ -324,7 +324,7 @@ int delayr(ENVIRON *csound, DELAYR *p)
     int nsmps = ksmps;
 
     if (p->auxch.auxp==NULL) { /* RWD fix */
-      return perferror(Str(X_688,"delayr: not initialised"));
+      return perferror(Str("delayr: not initialised"));
     }
     ar = p->ar;
     curp = p->curp;
@@ -344,7 +344,7 @@ int delayw(ENVIRON *csound, DELAYW *p)
     int nsmps = ksmps;
 
     if (q->auxch.auxp==NULL) { /* RWD fix */
-      return perferror(Str(X_689,"delayw: not initialised"));
+      return perferror(Str("delayw: not initialised"));
     }
     asig = p->asig;
     curp = q->curp;
@@ -365,7 +365,7 @@ int deltap(ENVIRON *csound, DELTAP *p)
     int nsmps = ksmps;
 
     if (q->auxch.auxp==NULL) { /* RWD fix */
-      return perferror(Str(X_691,"deltap: not initialised"));
+      return perferror(Str("deltap: not initialised"));
     }
     ar = p->ar;
     tap = q->curp - (long)(*p->xdlt * esr);
@@ -389,7 +389,7 @@ int deltapi(ENVIRON *csound, DELTAP *p)
     MYFLT       delsmps, delfrac;
 
     if (q->auxch.auxp==NULL) {
-      return perferror(Str(X_692,"deltapi: not initialised"));
+      return perferror(Str("deltapi: not initialised"));
     }
     ar = p->ar;
     begp = (MYFLT *) q->auxch.auxp;
@@ -438,7 +438,7 @@ int deltapn(ENVIRON *csound, DELTAP *p)
     MYFLT delsmps;
 
     if (q->auxch.auxp==NULL) {
-      return perferror(Str(X_693,"deltapn: not initialised"));
+      return perferror(Str("deltapn: not initialised"));
     }
     ar = p->ar;
     begp = (MYFLT *) q->auxch.auxp;
@@ -482,7 +482,7 @@ int deltap3(ENVIRON *csound, DELTAP *p)
     MYFLT       delsmps, delfrac;
 
     if (q->auxch.auxp==NULL) {
-      return perferror(Str(X_690,"deltap3: not initialised"));
+      return perferror(Str("deltap3: not initialised"));
     }
     ar = p->ar;
     begp = (MYFLT *) q->auxch.auxp;
@@ -550,7 +550,7 @@ int tapxset(ENVIRON *csound, DELTAPX *p)
 {
     /* fifo for delayr pointers by Jens Groh: */
     if (last_delayr == NULL) {
-      return initerror(Str(X_1462,"deltap: associated delayr not found"));
+      return initerror(Str("deltap: associated delayr not found"));
     }
     p->wsize = (int) (*(p->iwsize) + FL(0.5));          /* window size */
     p->wsize = ((p->wsize + 2) >> 2) << 2;
@@ -569,7 +569,7 @@ int deltapx(ENVIRON *csound, DELTAPX *p)                /* deltapx opcode */
     long        indx, maxd, xpos;
 
     if (q->auxch.auxp==NULL) { /* RWD fix */
-      return perferror(Str(X_691,"deltap: not initialised"));
+      return perferror(Str("deltap: not initialised"));
     }
     out1 = p->ar; del = p->adlt;
     buf1 = (MYFLT *) q->auxch.auxp;
@@ -644,7 +644,7 @@ int deltapxw(ENVIRON *csound, DELTAPX *p)               /* deltapxw opcode */
     long        indx, maxd, xpos;
 
     if (q->auxch.auxp==NULL) { /* RWD fix */
-      return perferror(Str(X_691,"deltap: not initialised"));
+      return perferror(Str("deltap: not initialised"));
     }
     in1 = p->ar; del = p->adlt;
     buf1 = (MYFLT *) q->auxch.auxp;
@@ -742,11 +742,11 @@ int cmbset(ENVIRON *csound, COMB *p)
 
     if (*p->insmps != 0) {
       if ((lpsiz = (long)(FL(0.5)+*p->ilpt)) <= 0) {
-        return initerror(Str(X_867,"illegal loop time"));
+        return initerror(Str("illegal loop time"));
       }
     }
     else if ((lpsiz = (long)(*p->ilpt * esr)) <= 0) {
-      return initerror(Str(X_867,"illegal loop time"));
+      return initerror(Str("illegal loop time"));
     }
     nbytes = lpsiz * sizeof(MYFLT);
     if (p->auxch.auxp == NULL || nbytes != p->auxch.size) {
@@ -773,7 +773,7 @@ int comb(ENVIRON *csound, COMB *p)
     MYFLT       coef = p->coef;
 
     if (p->auxch.auxp==NULL) { /* RWD fix */
-      return perferror(Str(X_665,"comb: not initialised"));
+      return perferror(Str("comb: not initialised"));
     }
     if (p->prvt != *p->krvt) {
 #ifdef __alpha__
@@ -816,7 +816,7 @@ int alpass(ENVIRON *csound, COMB *p)
     MYFLT       coef = p->coef;
 
     if (p->auxch.auxp==NULL) { /* RWD fix */
-      return perferror(Str(X_595,"alpass: not initialised"));
+      return perferror(Str("alpass: not initialised"));
     }
     if (p->prvt != *p->krvt) {
       coef = p->coef = (MYFLT)exp((double)(log001 * *p->ilpt / *p->krvt));
@@ -867,7 +867,7 @@ int rvbset(ENVIRON *csound, REVERB *p)
       p->adr5 = p->p5 = p->adr4 + *sizp++;
       p->adr6 = p->p6 = p->adr5 + *sizp++;
       if (p->adr6 + *sizp != (MYFLT *) p->auxch.endp) {
-        printf(Str(X_1167,"revlpsiz inconsistent\n"));
+        printf(Str("revlpsiz inconsistent\n"));
         longjmp(pcglob->exitjmp,1);
       }
       p->prvt = FL(0.0);
@@ -894,7 +894,7 @@ int reverb(ENVIRON *csound, REVERB *p)
     int nsmps = ksmps;
 
     if (p->auxch.auxp==NULL) { /* RWD fix */
-      return perferror(Str(X_1166,"reverb: not intialised"));
+      return perferror(Str("reverb: not intialised"));
     }
     if (p->prvt != *p->krvt) {
       MYFLT     *lptimp = revlptimes;
@@ -972,7 +972,7 @@ int pan(ENVIRON *csound, PAN *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {        /* RWD fix */
-      return perferror(Str(X_1118,"pan: not initialised"));
+      return perferror(Str("pan: not initialised"));
     }
     flen = ftp->flen;
     xndx = (long)(*p->kx * p->xmul) - p->xoff;
@@ -1020,7 +1020,7 @@ static OENTRY localops[] = {
 { "upsamp", S(UPSAMP),  4,  "a", "k",    NULL,   NULL,   (SUBR)upsamp        },
 /* IV - Sep 5 2002 */
 { "interp", S(INTERP),  5,  "a", "koo",  (SUBR)interpset,NULL, (SUBR)interp  },
-{ "a_k",    S(INTERP),  5,  "a", "k",    (SUBR)a_k_set,NULL,   (SUBR)interp  },
+{ "a.k",    S(INTERP),  5,  "a", "k",    (SUBR)a_k_set,NULL,   (SUBR)interp  },
 { "integ", S(INDIFF), 7, "s", "xo", (SUBR)indfset,(SUBR)kntegrate,(SUBR)integrate},
 { "diff",   S(INDIFF),  7,  "s", "xo",   (SUBR)indfset,(SUBR)kdiff, (SUBR)diff },
 { "samphold",S(SAMPHOLD),7, "s", "xxoo", (SUBR)samphset,(SUBR)ksmphold,(SUBR)samphold},

@@ -80,7 +80,7 @@ int PVReadHdr(FILE *fil, PVSTRUCT *phdr)
         return(PVE_RDERR);
     if ((num = fread((void *)phdr, (size_t)1, (size_t)sizeof(PVSTRUCT), fil))
                     < (size_t)sizeof(PVSTRUCT)) {
-      err_printf( Str(X_420,"PVRdH: wanted %d got %d\n"),
+      err_printf( Str("PVRdH: wanted %d got %d\n"),
                   (size_t)sizeof(PVSTRUCT), num);
       return(PVE_RDERR);
     }
@@ -182,7 +182,7 @@ int PVReadFile(char *filename, PVSTRUCT **pphdr)
                               (size_t)1, (size_t)count, fil)) < (size_t)count )
                 {
                     err_printf(
-                            Str(X_421,"PVRead: wanted %d got %ld\n"), num, count);
+                            Str("PVRead: wanted %d got %ld\n"), num, count);
                     err = PVE_RDERR;
                 }
         }
@@ -310,12 +310,12 @@ void PVFree(PVSTRUCT *phdr)     /* release a PVOC block */
 char *PVErrMsg(int err)         /* return string for error code */
 {
     switch (err) {
-    case PVE_OK:        return(Str(X_360,"No PV error"));
-    case PVE_NOPEN:     return(Str(X_212,"Cannot open PV file"));
-    case PVE_NPV:       return(Str(X_395,"Object/file not PVOC"));
-    case PVE_MALLOC:    return(Str(X_368,"No memory for PVOC"));
-    case PVE_RDERR:     return(Str(X_257,"Error reading PVOC file"));
-    case PVE_WRERR:     return(Str(X_258,"Error writing PVOC file"));
+    case PVE_OK:        return(Str("No PV error"));
+    case PVE_NOPEN:     return(Str("Cannot open PV file"));
+    case PVE_NPV:       return(Str("Object/file not PVOC"));
+    case PVE_MALLOC:    return(Str("No memory for PVOC"));
+    case PVE_RDERR:     return(Str("Error reading PVOC file"));
+    case PVE_WRERR:     return(Str("Error writing PVOC file"));
     default:
       sprintf(unspecMsg, "Unspecified error : %d",err);
       return(unspecMsg);
@@ -325,9 +325,9 @@ char *PVErrMsg(int err)         /* return string for error code */
 void PVDie(int err, char *msg)  /* what else to do with your error code */
 {
     if (msg != NULL && *msg)
-      err_printf(Str(X_70,"%s: error: %s (%s)\n"),"pvoc",PVErrMsg(err),msg);
+      err_printf(Str("%s: error: %s (%s)\n"),"pvoc",PVErrMsg(err),msg);
     else
-      err_printf(Str(X_71,"%s: error: %s\n"),"pvoc",PVErrMsg(err));
+      err_printf(Str("%s: error: %s\n"),"pvoc",PVErrMsg(err));
     exit(1);
 }
 

@@ -89,8 +89,8 @@ static void Fnxtdeltim(void) /* incr FMidiNxtk by next delta-time */
       }
     }
     else {
-      printf(Str(X_718,"end of track in midifile '%s'\n"), O.FMidiname);
-      printf(Str(X_33,"%d forced decays, %d extra noteoffs\n"),
+      printf(Str("end of track in midifile '%s'\n"), O.FMidiname);
+      printf(Str("%d forced decays, %d extra noteoffs\n"),
              Mforcdecs, Mxtroffs);
       MTrkend = 1;
       O.FMidiin = 0;
@@ -105,8 +105,8 @@ static void Rnxtdeltim(void)        /* incr FMidiNxtk by next delta-time */
 
     do {
       if ((c = getc(mfp)) == EOF) {
-        printf(Str(X_712,"end of MPU401 midifile '%s'\n"), O.FMidiname);
-        printf(Str(X_33,"%d forced decays, %d extra noteoffs\n"),
+        printf(Str("end of MPU401 midifile '%s'\n"), O.FMidiname);
+        printf(Str("%d forced decays, %d extra noteoffs\n"),
                Mforcdecs, Mxtroffs);
         MTrkend = 1;
         O.FMidiin = 0;
@@ -147,11 +147,11 @@ void FMidiOpen(void) /* open a MidiFile for reading, sense MPU401 or standard */
     if (strcmp(O.FMidiname,"stdin") == 0) {
       mfp = stdin;
 #if defined(mills_macintosh) || defined(SYMANTEC)
-      die(Str(X_345,"MidiFile Console input not implemented"));
+      die(Str("MidiFile Console input not implemented"));
 #endif
     }
     else if (!(mfp = fopen(O.FMidiname, "rb")))
-      dies(Str(X_643,"cannot open '%s'"), O.FMidiname);
+      dies(Str("cannot open '%s'"), O.FMidiname);
     if ((inbytes[0] = getc(mfp)) != 'M')
       goto mpu401;
     if ((inbytes[1] = getc(mfp)) != 'T') {
@@ -159,57 +159,57 @@ void FMidiOpen(void) /* open a MidiFile for reading, sense MPU401 or standard */
       goto mpu401;
     }
     if (fread(inbytes+2, 1, 6, mfp) < 6)
-      dies(Str(X_1323,"unexpected end of '%s'"), O.FMidiname);
+      dies(Str("unexpected end of '%s'"), O.FMidiname);
     if (strncmp(inbytes, "MThd", 4) != 0)
-      dies(Str(X_1377,"we're confused.  file '%s' begins with 'MT',\n"
+      dies(Str("we're confused.  file '%s' begins with 'MT',\n"
                "but not a legal header chunk"), O.FMidiname);
-    printf(Str(X_72,"%s: found standard midifile header\n"), O.FMidiname);
+    printf(Str("%s: found standard midifile header\n"), O.FMidiname);
     if ((lval = natlong(*(long *)(inbytes+4))) < 6 || lval > 16) {
-      sprintf(errmsg,Str(X_614,"bad header length %ld in '%s'"),
+      sprintf(errmsg,Str("bad header length %ld in '%s'"),
               lval, O.FMidiname);
       die(errmsg);
     }
     if (fread(inbytes, 1, (int)lval, mfp) < (unsigned long)lval)
-      dies(Str(X_1323,"unexpected end of '%s'"), O.FMidiname);
+      dies(Str("unexpected end of '%s'"), O.FMidiname);
     sval = natshort(*(short *)inbytes);
     if (sval != 0 && sval != 1) { /* Allow Format 1 with single track */
-      sprintf(errmsg,Str(X_67,"%s: Midifile format %d not supported"),
+      sprintf(errmsg,Str("%s: Midifile format %d not supported"),
               O.FMidiname, sval);
       die(errmsg);
     }
     if ((sval = natshort(*(short *)(inbytes+2))) != 1)
-      dies(Str(X_875,"illegal ntracks in '%s'"), O.FMidiname);
+      dies(Str("illegal ntracks in '%s'"), O.FMidiname);
     if ((inbytes[4] & 0x80)) {
       short SMPTEformat, SMPTEticks;
       SMPTEformat = -(inbytes[4]);
       SMPTEticks = *(u_char *)inbytes+5;
       if (SMPTEformat == 29)  SMPTEformat = 30;  /* for drop frame */
-      printf(Str(X_450,"SMPTE timing, %d frames/sec, %d ticks/frame\n"),
+      printf(Str("SMPTE timing, %d frames/sec, %d ticks/frame\n"),
              SMPTEformat, SMPTEticks);
       tickspersec = SMPTEformat * SMPTEticks;
     }
     else {
       short Qticks = natshort(*(short *)(inbytes+4));
-      printf(Str(X_344,"Metrical timing, Qtempo = 120.0, Qticks = %d\n"),
+      printf(Str("Metrical timing, Qtempo = 120.0, Qticks = %d\n"),
              Qticks);
       ekrdQmil = (double)ekr / Qticks / 1000000.0;
       tickspersec = Qticks * 2;
     }
     kprdspertick = (double)ekr / tickspersec;
-    printf(Str(X_959,"kperiods/tick = %7.3f\n"), kprdspertick);
+    printf(Str("kperiods/tick = %7.3f\n"), kprdspertick);
 
  chknxt:
     if (fread(inbytes, 1, 8, mfp) < 8)         /* read a chunk ID & size */
-      dies(Str(X_1323,"unexpected end of '%s'"), O.FMidiname);
+      dies(Str("unexpected end of '%s'"), O.FMidiname);
     if ((lval = natlong(*(long *)(inbytes+4))) <= 0)
-      dies(Str(X_895,"improper chunksize in '%s'"), O.FMidiname);
+      dies(Str("improper chunksize in '%s'"), O.FMidiname);
     if (strncmp(inbytes, "MTrk", 4) != 0) {    /* if not an MTrk chunk,  */
       do {
         sval = getc(mfp);                      /*    skip over it        */
       } while (--lval);
       goto chknxt;
     }
-    printf(Str(X_1294,"tracksize = %ld\n"), lval);
+    printf(Str("tracksize = %ld\n"), lval);
     MTrkrem = lval;                            /* else we have a track   */
     FltMidiNxtk = 0.0;
     FMidiNxtk = 0;                             /* init the time counters */
@@ -218,7 +218,7 @@ void FMidiOpen(void) /* open a MidiFile for reading, sense MPU401 or standard */
     return;
 
  mpu401:
-    printf(Str(X_69,
+    printf(Str(
                "%s: assuming MPU401 midifile format, ticksize = 5 msecs\n"),
            O.FMidiname);
     kprdspertick = (double)ekr / 200.0;
@@ -240,7 +240,7 @@ static void m_sysex(u_char *sbuf, u_char *sp) /* sys_excl msg, sexbuf: ID + data
 {
     int nbytes = sp - sbuf;
     if (++sexcnt >= 100) {
-      printf(Str(X_178,"100th system exclusive $%x, length %d\n"),
+      printf(Str("100th system exclusive $%x, length %d\n"),
              *sbuf, nbytes);
       sexcnt = 0;
     }
@@ -261,7 +261,7 @@ static void fsexdata(int n) /* place midifile data into a sys_excl buffer */
     }
     else {
       unsigned char c;
-      printf(Str(X_1262,"system exclusive buffer overflow\n"));
+      printf(Str("system exclusive buffer overflow\n"));
       do {
         c = getc(mfp);
       } while (--n);
@@ -287,14 +287,14 @@ int sensFMidi(void)   /* read a MidiFile event, collect the data & dispatch   */
       switch(c) {
       case 0xF0:                                   /* SYS_EX event:  */
         if ((len = vlendatum()) <= 0)
-          die(Str(X_1401,"zero length sys_ex event"));
-        printf(Str(X_1152,"reading sys_ex event, length %ld\n"),len);
+          die(Str("zero length sys_ex event"));
+        printf(Str("reading sys_ex event, length %ld\n"),len);
         fsexdata((int)len);
         goto nxtim;
       case 0xF7:                                   /* ESCAPE event:  */
         if ((len = vlendatum()) <= 0)
-          die(Str(X_1400,"zero length escape event"));
-        printf(Str(X_747,"escape event, length %ld\n"),len);
+          die(Str("zero length escape event"));
+        printf(Str("escape event, length %ld\n"),len);
         if (sexp != NULL)
           fsexdata((int)len);              /* if sysex contin, send  */
         else {
@@ -318,7 +318,7 @@ int sensFMidi(void)   /* read a MidiFile event, collect the data & dispatch   */
           }
           while (--len);
           if (usecs <= 0)
-            printf(Str(X_47,"%ld usecs illegal in Tempo event\n"), usecs);
+            printf(Str("%ld usecs illegal in Tempo event\n"), usecs);
           else {
             kprdspertick = usecs * ekrdQmil;
             /*    printf("Qtempo = %5.1f\n", 60000000. / usecs); */
@@ -339,7 +339,7 @@ int sensFMidi(void)   /* read a MidiFile event, collect the data & dispatch   */
           break;
         case 0x2F: goto Trkend;               /* normal end of track */
         default:
-          printf(Str(X_1192,"skipping meta event type %x\n"),type);
+          printf(Str("skipping meta event type %x\n"),type);
           do {
             c = getc(mfp);
           } while (--len);
@@ -356,7 +356,7 @@ int sensFMidi(void)   /* read a MidiFile event, collect the data & dispatch   */
         case 4: /*m_stop()*/; break;
         case 6: m_sensing = 1; break;
         case 7: /*m_sysReset()*/; break;
-        default: printf(Str(X_1316,"undefined sys-realtime msg %x\n"),c);
+        default: printf(Str("undefined sys-realtime msg %x\n"),c);
         }
         goto nxtim;
       }
@@ -373,7 +373,7 @@ int sensFMidi(void)   /* read a MidiFile event, collect the data & dispatch   */
           break;
         case 2: datreq = 2;
           break;
-        default: sprintf(errmsg,Str(X_1317,"undefined sys_common msg %x\n"), c);
+        default: sprintf(errmsg,Str("undefined sys_common msg %x\n"), c);
           die(errmsg);
         }
       }
@@ -425,8 +425,8 @@ int sensFMidi(void)   /* read a MidiFile event, collect the data & dispatch   */
     return(0);
 
  Trkend:
-    printf(Str(X_715,"end of midi track in '%s'\n"), O.FMidiname);
-    printf(Str(X_33,"%d forced decays, %d extra noteoffs\n"),
+    printf(Str("end of midi track in '%s'\n"), O.FMidiname);
+    printf(Str("%d forced decays, %d extra noteoffs\n"),
            Mforcdecs, Mxtroffs);
     MTrkend = 1;
     O.FMidiin = 0;

@@ -474,7 +474,7 @@ int ftlptim(ENVIRON *csound, EVAL *p)
     else {
       *p->r = FL(0.0);
       if (O.msglevel & WARNMSG)
-        printf(Str(X_1074,"WARNING: non-looping sample\n"));
+        printf(Str("WARNING: non-looping sample\n"));
     }
     return OK;
 }
@@ -623,7 +623,7 @@ int cpsxpch(ENVIRON *csound, XENH *p)
       FUNC* ftp = ftfind(csound, &t);
       long len;
       if (ftp == NULL) {
-        sprintf(errmsg, Str(X_387,"No tuning table %d\n"), (int)(- *p->et));
+        sprintf(errmsg, Str("No tuning table %d\n"), (int)(- *p->et));
         return perferror(errmsg);
       }
       len = ftp->flen;
@@ -652,7 +652,7 @@ int cps2pch(ENVIRON *csound, XENH *p)
       FUNC* ftp = ftfind(csound, &t);
       long len;
       if (ftp == NULL) {
-        sprintf(errmsg,Str(X_387,"No tuning table %d\n"), (int)(- *p->et));
+        sprintf(errmsg,Str("No tuning table %d\n"), (int)(- *p->et));
         return perferror(errmsg);
       }
       len = ftp->flen;
@@ -678,7 +678,7 @@ int cpstun_i(ENVIRON *csound, CPSTUNI *p)
     int basekeymidi;
     MYFLT basefreq, factor,interval;
     if ((ftp = ftfind(csound, p->tablenum)) == NULL) {
-      return perferror(Str(X_1666,"cpstun: invalid table"));
+      return perferror(Str("cpstun: invalid table"));
     }
     func = ftp->ftable;
     numgrades = (int) *func++;
@@ -712,7 +712,7 @@ int cpstun(ENVIRON *csound, CPSTUN *p)
       int basekeymidi;
       MYFLT basefreq, factor,interval;
       if ((ftp = ftfind(csound, p->tablenum)) == NULL) {
-        return perferror(Str(X_1666,"cpstun: invalid table"));
+        return perferror(Str("cpstun: invalid table"));
       }
       func = ftp->ftable;
       numgrades = (int) *func++;

@@ -406,7 +406,7 @@ int vco(ENVIRON *csound, VCO *p)
     leaky = p->leaky;
 
     if (buf==NULL) {            /* RWD fix */
-      return perferror(Str(X_1370,"vco: not initialised"));
+      return perferror(Str("vco: not initialised"));
     }
     maxd = (unsigned long) (*p->maxd * esr);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
@@ -416,7 +416,7 @@ int vco(ENVIRON *csound, VCO *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {            /* RWD fix */
-      return perferror(Str(X_1370,"vco: not initialised"));
+      return perferror(Str("vco: not initialised"));
     }
     ftbl = ftp->ftable;
     sicvt2 = sicvt * FL(0.5);  /* for theta/2 */
@@ -429,7 +429,7 @@ int vco(ENVIRON *csound, VCO *p)
     knh = (int)(esr*p->nyq/fqc);
     if ((n = (int)knh) <= 0) {
                                 /* Line apparently missing here */
-      printf(Str(X_1369,"vco knh (%d) <= 0; taken as 1\n"), n);
+      printf(Str("vco knh (%d) <= 0; taken as 1\n"), n);
       n = 1;
     }
     tnp1 = n + n + 1;         /* calc 2n + 1 */
@@ -776,7 +776,7 @@ int nestedapset(ENVIRON *csound, NESTEDAP *p)
 
     if (((long)(*p->del1 * esr)) <=
         ((long)(*p->del2 * esr) + (long)(*p->del3 * esr))) {
-      return initerror(Str(X_846,"illegal delay time"));
+      return initerror(Str("illegal delay time"));
     }
     npts = npts1 + npts2 + npts3;
     /* new space if reqd */
@@ -787,14 +787,14 @@ int nestedapset(ENVIRON *csound, NESTEDAP *p)
 
       if (*p->mode == FL(1.0)) {
         if (npts1 <= 0) {
-          return initerror(Str(X_846,"illegal delay time"));
+          return initerror(Str("illegal delay time"));
         }
         p->beg1p = (MYFLT *) p->auxch.auxp;
         p->end1p = (MYFLT *) p->auxch.endp;
       }
       else if (*p->mode == FL(2.0)) {
         if (npts1 <= 0 || npts2 <= 0) {
-          return initerror(Str(X_846,"illegal delay time"));
+          return initerror(Str("illegal delay time"));
         }
         p->beg1p = (MYFLT *)  p->auxch.auxp;
         p->beg2p = p->beg1p + npts1;
@@ -803,7 +803,7 @@ int nestedapset(ENVIRON *csound, NESTEDAP *p)
       }
       else if (*p->mode == FL(3.0)) {
         if (npts1 <= 0 || npts2 <= 0 || npts3 <= 0) {
-          return initerror(Str(X_846,"illegal delay time"));
+          return initerror(Str("illegal delay time"));
         }
         p->beg1p = (MYFLT *)  p->auxch.auxp;
         p->beg2p = (MYFLT *) ((char*)p->auxch.auxp + (long)npts1*sizeof(MYFLT));
@@ -841,7 +841,7 @@ int nestedap(ENVIRON *csound, NESTEDAP *p)
     int     nsmps = ksmps;
 
     if (p->auxch.auxp==NULL) { /* RWD fix */
-      return perferror(Str(X_687,"delay: not initialised"));
+      return perferror(Str("delay: not initialised"));
     }
 
     outp = p->out;

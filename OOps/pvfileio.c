@@ -339,7 +339,7 @@ int init_pvsys(void)
     int i;
 
     if (files[0] != NULL) {
-      pv_errstr = Str(X_1614,"\npvsys: already imnitialised");
+      pv_errstr = Str("\npvsys: already imnitialised");
       return 0;
     }
     for (i = 0;i < MAXFILES;i++)
@@ -415,16 +415,16 @@ int  pvoc_createfile(const char *filename,
     D = overlap;
 
     if (N == 0 || chans <=0 || filename==NULL || D > N) {
-      pv_errstr = Str(X_1615,"\npvsys: bad arguments");
+      pv_errstr = Str("\npvsys: bad arguments");
       return -1;
     }
     if (format < PVOC_AMP_FREQ || format > PVOC_COMPLEX) {
-      pv_errstr = Str(X_1616,"\npvsys: bad format parameter");
+      pv_errstr = Str("\npvsys: bad format parameter");
       return -1;
     }
 
     if (!(wtype >= PVOC_DEFAULT && wtype <= PVOC_CUSTOM)) {
-      pv_errstr = Str(X_1617,"\npvsys: bad window type");
+      pv_errstr = Str("\npvsys: bad window type");
       return -1;
     }
 
@@ -445,19 +445,19 @@ int  pvoc_createfile(const char *filename,
       if (files[i]==NULL)
         break;
     if (i==MAXFILES) {
-      pv_errstr = Str(X_1618,"\npvsys: too many files open");
+      pv_errstr = Str("\npvsys: too many files open");
       return -1;
     }
     pfile = (PVOCFILE *) malloc(sizeof(PVOCFILE));
 
     if (pfile==NULL) {
-      pv_errstr = Str(X_1619,"\npvsys: no memory");
+      pv_errstr = Str("\npvsys: no memory");
       return -1;
     }
     pname = (char *) malloc(strlen(filename)+1);
     if (pname == NULL) {
       free(pfile);
-      pv_errstr = Str(X_1619,"\npvsys: no memory");
+      pv_errstr = Str("\npvsys: no memory");
       return -1;
     }
     pfile->customWindow = NULL;
@@ -488,7 +488,7 @@ int  pvoc_createfile(const char *filename,
     if (fWindow!= NULL) {
       pfile->customWindow = malloc(dwWinlen * sizeof(float));
       if (pfile->customWindow==NULL) {
-        pv_errstr = Str(X_1620,"\npvsys: no memory for custom window");
+        pv_errstr = Str("\npvsys: no memory for custom window");
         return -1;
       }
       memcpy((void *)(pfile->customWindow),
@@ -503,7 +503,7 @@ int  pvoc_createfile(const char *filename,
         free(pfile->customWindow);
       free(pfile);
 
-      pv_errstr = Str(X_1621,"\npvsys: unable to create file");
+      pv_errstr = Str("\npvsys: unable to create file");
       return -1;
     }
 
@@ -537,7 +537,7 @@ int pvoc_openfile(const char *filename,PVOCDATA *data,WAVEFORMATEX *fmt)
     PVOCFILE *pfile = NULL;
 
     if (data==NULL || fmt==NULL) {
-      pv_errstr = Str(X_1622,"\npvsys: Internal error: NULL data arrays");
+      pv_errstr = Str("\npvsys: Internal error: NULL data arrays");
       return -1;
     }
 
@@ -545,20 +545,20 @@ int pvoc_openfile(const char *filename,PVOCDATA *data,WAVEFORMATEX *fmt)
       if (files[i]==NULL)
         break;
     if (i==MAXFILES) {
-      pv_errstr = Str(X_1618,"\npvsys: too many files open");
+      pv_errstr = Str("\npvsys: too many files open");
       return -1;
     }
 
     pfile = (PVOCFILE *) malloc(sizeof(PVOCFILE));
     if (pfile==NULL) {
-      pv_errstr = Str(X_1623,"\npvsys: no memory for file data");
+      pv_errstr = Str("\npvsys: no memory for file data");
       return -1;
     }
     pfile->customWindow = NULL;
     pname = (char *) malloc(strlen(filename)+1);
     if (pname == NULL) {
       free(pfile);
-      pv_errstr = Str(X_1619,"\npvsys: no memory");
+      pv_errstr = Str("\npvsys: no memory");
       return -1;
     }
     pfile->fd = open(filename,RD_OPTS);
@@ -569,7 +569,7 @@ int pvoc_openfile(const char *filename,PVOCDATA *data,WAVEFORMATEX *fmt)
         pname = (char *) realloc(pname, strlen(name)+1);
         if (pname == NULL) {
           free(pfile);
-          pv_errstr = Str(X_1619,"\npvsys: no memory");
+          pv_errstr = Str("\npvsys: no memory");
           return -1;
         }
         strcpy(pname,name);
@@ -578,7 +578,7 @@ int pvoc_openfile(const char *filename,PVOCDATA *data,WAVEFORMATEX *fmt)
       if (pfile->fd < 0) {
         free(pname);
         free(pfile);
-        pv_errstr = Str(X_1624,"\npvsys: unable to open file");
+        pv_errstr = Str("\npvsys: unable to open file");
         return -1;
       }
     }
@@ -635,7 +635,7 @@ static int pvoc_readfmt(int fd,int byterev,WAVEFORMATPVOCEX *pWfpx)
                 sizeof(WORD)) != sizeof(WORD)
         || read(fd,(char *) &(pWfpx->wxFormat.Format.cbSize),
                 sizeof(WORD)) != sizeof(WORD)) {
-      pv_errstr = Str(X_1625,"\npvsys: error reading Source format data");
+      pv_errstr = Str("\npvsys: error reading Source format data");
       return 0;
     }
 
@@ -659,12 +659,12 @@ static int pvoc_readfmt(int fd,int byterev,WAVEFORMATPVOCEX *pWfpx)
 
     /* the first clues this is pvx format...*/
     if (pWfpx->wxFormat.Format.wFormatTag != WAVE_FORMAT_EXTENSIBLE) {
-      pv_errstr = Str(X_1626,"\npvsys: not a WAVE_EX file");
+      pv_errstr = Str("\npvsys: not a WAVE_EX file");
       return 0;
     }
 
     if (pWfpx->wxFormat.Format.cbSize != 62) {
-      pv_errstr = Str(X_1627,"\npvsys: bad size for fmt chunk");
+      pv_errstr = Str("\npvsys: bad size for fmt chunk");
       return 0;
     }
 
@@ -674,7 +674,7 @@ static int pvoc_readfmt(int fd,int byterev,WAVEFORMATPVOCEX *pWfpx)
                 sizeof(DWORD)) != sizeof(DWORD)
         || read(fd,(char *)&(pWfpx->wxFormat.SubFormat),
                 sizeof(GUID)) != sizeof(GUID)) {
-      pv_errstr = Str(X_1628,"\npvsys: error reading Extended format data");
+      pv_errstr = Str("\npvsys: error reading Extended format data");
       return 0;
     }
 
@@ -695,14 +695,14 @@ static int pvoc_readfmt(int fd,int byterev,WAVEFORMATPVOCEX *pWfpx)
 
     /* ... but this is the clincher */
     if (!compare_guids(&(pWfpx->wxFormat.SubFormat),&KSDATAFORMAT_SUBTYPE_PVOC)) {
-      pv_errstr = Str(X_1629,"\npvsys: not a PVOC-EX file");
+      pv_errstr = Str("\npvsys: not a PVOC-EX file");
       return 0;
     }
 
     if (read(fd,(char *) &(pWfpx->dwVersion),sizeof(DWORD)) != sizeof(DWORD)
         || read(fd,(char *) &(pWfpx->dwDataSize),sizeof(DWORD)) != sizeof(DWORD)
         || read(fd,(char *) &(pWfpx->data),sizeof(PVOCDATA)) != sizeof(PVOCDATA)) {
-      pv_errstr = Str(X_1630,"\npvsys: error reading Extended pvoc format data");
+      pv_errstr = Str("\npvsys: error reading Extended pvoc format data");
       return 0;
     }
 
@@ -716,7 +716,7 @@ static int pvoc_readfmt(int fd,int byterev,WAVEFORMATPVOCEX *pWfpx)
 
       /* check it now! */
       if (pWfpx->dwVersion != PVX_VERSION) {
-        pv_errstr = Str(X_1631,"\npvsys: unknown pvocex Version");
+        pv_errstr = Str("\npvsys: unknown pvocex Version");
         return 0;
       }
 
@@ -750,7 +750,7 @@ static int pvoc_readfmt(int fd,int byterev,WAVEFORMATPVOCEX *pWfpx)
 
     }
     if (pWfpx->dwVersion != PVX_VERSION) {
-      pv_errstr = Str(X_1631,"\npvsys: unknown pvocex Version");
+      pv_errstr = Str("\npvsys: unknown pvocex Version");
       return 0;
     }
 
@@ -774,7 +774,7 @@ static int pvoc_readheader(int ifd,WAVEFORMATPVOCEX *pWfpx)
 
     if (read(files[ifd]->fd,(char *) &tag,sizeof(DWORD)) != sizeof(DWORD)
         || read(files[ifd]->fd,(char *) &size,sizeof(DWORD)) != sizeof(DWORD)) {
-      pv_errstr = Str(X_1632,"\npvsys: error reading header");
+      pv_errstr = Str("\npvsys: error reading header");
       return 0;
     }
     if (files[ifd]->do_byte_reverse)
@@ -783,16 +783,16 @@ static int pvoc_readheader(int ifd,WAVEFORMATPVOCEX *pWfpx)
       tag = REVDWBYTES(tag);
 
     if (tag != TAG('R','I','F','F')) {
-      pv_errstr = Str(X_1633,"\npvsys: not a RIFF file");
+      pv_errstr = Str("\npvsys: not a RIFF file");
       return 0;
     }
     if (size < 24 * sizeof(DWORD) + SIZEOF_FMTPVOCEX) {
-      pv_errstr = Str(X_1634,"\npvsys: file too small");
+      pv_errstr = Str("\npvsys: file too small");
       return 0;
     }
     riffsize = size;
     if (read(files[ifd]->fd,(char *) &tag,sizeof(DWORD)) != sizeof(DWORD)) {
-      pv_errstr = Str(X_1555,"\npvsys: error reading header");
+      pv_errstr = Str("\npvsys: error reading header");
       return 0;
     }
 
@@ -800,7 +800,7 @@ static int pvoc_readheader(int ifd,WAVEFORMATPVOCEX *pWfpx)
       tag = REVDWBYTES(tag);
 
     if (tag != TAG('W','A','V','E')) {
-      pv_errstr = Str(X_1636,"\npvsys: not a WAVE file");
+      pv_errstr = Str("\npvsys: not a WAVE file");
       return 0;
     }
     riffsize -= sizeof(DWORD);
@@ -808,7 +808,7 @@ static int pvoc_readheader(int ifd,WAVEFORMATPVOCEX *pWfpx)
     while (riffsize > 0) {
       if (read(files[ifd]->fd,(char *) &tag,sizeof(DWORD)) != sizeof(DWORD)
           || read(files[ifd]->fd,(char *) &size,sizeof(DWORD)) != sizeof(DWORD)) {
-        pv_errstr = Str(X_1632,"\npvsys: error reading header");
+        pv_errstr = Str("\npvsys: error reading header");
         return 0;
       }
       if (files[ifd]->do_byte_reverse)
@@ -820,11 +820,11 @@ static int pvoc_readheader(int ifd,WAVEFORMATPVOCEX *pWfpx)
       case TAG('f','m','t',' '):
         /* bail out if not a pvoc file: not trying to read all WAVE formats!*/
         if (size < SIZEOF_FMTPVOCEX) {
-          pv_errstr = Str(X_1629,"\npvsys: not a PVOC-EX file");
+          pv_errstr = Str("\npvsys: not a PVOC-EX file");
           return 0;
         }
         if (!pvoc_readfmt(files[ifd]->fd,files[ifd]->do_byte_reverse,pWfpx)) {
-          pv_errstr = Str(X_1637,"\npvsys: error reading format chunk");
+          pv_errstr = Str("\npvsys: error reading format chunk");
           return 0;
         }
         riffsize -=  SIZEOF_FMTPVOCEX;
@@ -836,12 +836,12 @@ static int pvoc_readheader(int ifd,WAVEFORMATPVOCEX *pWfpx)
         break;
       case TAG('P','V','X','W'):
         if (!fmtseen) {
-          pv_errstr = Str(X_1638,"\npvsys: PVXW chunk found before fmt chunk.");
+          pv_errstr = Str("\npvsys: PVXW chunk found before fmt chunk.");
           return 0;
         }
         if (files[ifd]->pvdata.wWindowType!=PVOC_CUSTOM) {
           /*whaddayado? can you warn the user and continue?*/
-          pv_errstr = Str(X_1639,
+          pv_errstr = Str(
                           "\npvsys: PVXW chunk found but custom "
                           "window not specified");
           return 0;
@@ -849,32 +849,32 @@ static int pvoc_readheader(int ifd,WAVEFORMATPVOCEX *pWfpx)
         files[ifd]->customWindow =
           malloc(files[ifd]->pvdata.dwWinlen*sizeof(float));
         if (files[ifd]->customWindow == NULL) {
-          pv_errstr = Str(X_1640,"\npvsys: no memory for custom window data.");
+          pv_errstr = Str("\npvsys: no memory for custom window data.");
           return 0;
         }
         if (pvoc_readWindow(files[ifd]->fd,files[ifd]->do_byte_reverse,
                             files[ifd]->customWindow,files[ifd]->pvdata.dwWinlen)
             != (int)(files[ifd]->pvdata.dwWinlen * sizeof(float))) {
-          pv_errstr = Str(X_1641,"\npvsys: error reading window data.");
+          pv_errstr = Str("\npvsys: error reading window data.");
           return 0;
         }
         windowseen = 1;
         break;
       case TAG('d','a','t','a'):
         if (riffsize - size  != 0) {
-          pv_errstr = Str(X_1642,"\npvsys: bad RIFF file");
+          pv_errstr = Str("\npvsys: bad RIFF file");
           return 0;
         }
 
         if (!fmtseen) {
-          pv_errstr = Str(X_1643,
+          pv_errstr = Str(
                           "\npvsys: bad format, data chunk before fmt chunk");
           return 0;
         }
 
         if (files[ifd]->pvdata.wWindowType==PVOC_CUSTOM)
           if (!windowseen) {
-            pv_errstr = Str(X_1644,"\npvsys: custom window chunk PVXW not found");
+            pv_errstr = Str("\npvsys: custom window chunk PVXW not found");
             return 0;
           }
 
@@ -888,7 +888,7 @@ static int pvoc_readheader(int ifd,WAVEFORMATPVOCEX *pWfpx)
         /* skip any onknown chunks */
         riffsize -= 2 * sizeof(DWORD);
         if (lseek(files[ifd]->fd,(off_t)size,SEEK_CUR) < 0) {
-          pv_errstr = Str(X_1645,"\npvsys: error skipping unknown WAVE chunk");
+          pv_errstr = Str("\npvsys: error skipping unknown WAVE chunk");
           return 0;
         }
         riffsize -= size;
@@ -897,7 +897,7 @@ static int pvoc_readheader(int ifd,WAVEFORMATPVOCEX *pWfpx)
 
     }
     /* if here, something very wrong!*/
-    pv_errstr = Str(X_1646,"\npvsys: bad format in RIFF file");
+    pv_errstr = Str("\npvsys: bad format in RIFF file");
     return 0;
 
 }
@@ -923,7 +923,7 @@ static int pvoc_writeheader(int ofd)
 
     if (write(files[ofd]->fd,(char*)&tag,sizeof(long)) != sizeof(long)
         || write(files[ofd]->fd,(char*)&size,sizeof(long)) != sizeof(long)) {
-      pv_errstr = Str(X_1647,"\npvsys: error writing header");
+      pv_errstr = Str("\npvsys: error writing header");
       return 0;
     }
 
@@ -931,7 +931,7 @@ static int pvoc_writeheader(int ofd)
     if (!files[ofd]->do_byte_reverse)
       tag = REVDWBYTES(tag);
     if (write(files[ofd]->fd,(char*)&tag,sizeof(long)) != sizeof(long)) {
-      pv_errstr = Str(X_1647,"\npvsys: error writing header");
+      pv_errstr = Str("\npvsys: error writing header");
       return 0;
     }
 
@@ -947,14 +947,14 @@ static int pvoc_writeheader(int ofd)
       tag = REVDWBYTES(tag);
     if (write(files[ofd]->fd,(char *)&tag,sizeof(long)) != sizeof(long)
         || write(files[ofd]->fd,(char *)&size,sizeof(long)) != sizeof(long)) {
-      pv_errstr = Str(X_1647,"\npvsys: error writing header");
+      pv_errstr = Str("\npvsys: error writing header");
       return 0;
     }
 
     if (write_fmt(files[ofd]->fd,
                   files[ofd]->do_byte_reverse,
                   &(files[ofd]->fmtdata)) != SIZEOF_WFMTEX) {
-      pv_errstr = Str(X_1648,"\npvsys: error writing fmt chunk");
+      pv_errstr = Str("\npvsys: error writing fmt chunk");
       return 0;
     }
 
@@ -963,20 +963,20 @@ static int pvoc_writeheader(int ofd)
       validbits = REVWBYTES(validbits);
 
     if (write(files[ofd]->fd,(char *) &validbits,sizeof(WORD)) != sizeof(WORD)) {
-      pv_errstr = Str(X_1648,"\npvsys: error writing fmt chunk");
+      pv_errstr = Str("\npvsys: error writing fmt chunk");
       return 0;
     }
     /* we will take this from a WAVE_EX file, in due course */
     size = 0;   /*dwChannelMask*/
     if (write(files[ofd]->fd,(char *)&size,sizeof(long)) != sizeof(DWORD)) {
-      pv_errstr = Str(X_1648,"\npvsys: error writing fmt chunk");
+      pv_errstr = Str("\npvsys: error writing fmt chunk");
       return 0;
     }
 
     if (write_guid(files[ofd]->fd,
                    files[ofd]->do_byte_reverse,
                    pGuid) != sizeof(GUID)) {
-      pv_errstr = Str(X_1648,"\npvsys: error writing fmt chunk");
+      pv_errstr = Str("\npvsys: error writing fmt chunk");
       return 0;
     }
     version  = 1;
@@ -988,7 +988,7 @@ static int pvoc_writeheader(int ofd)
 
     if (write(files[ofd]->fd,(char*)&version,sizeof(long)) != sizeof(long)
         || write(files[ofd]->fd,(char*)&size,sizeof(long)) != sizeof(long)) {
-      pv_errstr = Str(X_1648,"\npvsys: error writing fmt chunk");
+      pv_errstr = Str("\npvsys: error writing fmt chunk");
       return 0;
     }
 
@@ -996,7 +996,7 @@ static int pvoc_writeheader(int ofd)
     if (write_pvocdata(files[ofd]->fd,
                        files[ofd]->do_byte_reverse,
                        &(files[ofd]->pvdata)) != sizeof(PVOCDATA)) {
-      pv_errstr = Str(X_1648,"\npvsys: error writing fmt chunk");
+      pv_errstr = Str("\npvsys: error writing fmt chunk");
       return 0;
 
     }
@@ -1012,7 +1012,7 @@ static int pvoc_writeheader(int ofd)
         tag = REVDWBYTES(tag);
       if (write(files[ofd]->fd,(char *)&tag,sizeof(long)) != sizeof(long)
           || write(files[ofd]->fd,(char *)&size,sizeof(long)) != sizeof(long)) {
-        pv_errstr = Str(X_1649,"\npvsys: error writing header");
+        pv_errstr = Str("\npvsys: error writing header");
         return 0;
       }
       if (pvoc_writeWindow(files[ofd]->fd,
@@ -1020,7 +1020,7 @@ static int pvoc_writeheader(int ofd)
                            files[ofd]->customWindow,
                            files[ofd]->pvdata.dwWinlen) !=
           (int)(files[ofd]->pvdata.dwWinlen * sizeof(float))) {
-        pv_errstr = Str(X_1650,"\npvsys: error writing window data.");
+        pv_errstr = Str("\npvsys: error writing window data.");
         return 0;
       }
     }
@@ -1030,7 +1030,7 @@ static int pvoc_writeheader(int ofd)
     if (!files[ofd]->do_byte_reverse)
       tag = REVDWBYTES(tag);
     if (write(files[ofd]->fd,(char*)&tag,sizeof(long)) != sizeof(long)) {
-      pv_errstr = Str(X_1649,"\npvsys: error writing header");
+      pv_errstr = Str("\npvsys: error writing header");
       return 0;
     }
 
@@ -1038,7 +1038,7 @@ static int pvoc_writeheader(int ofd)
 
     size = 0;
     if (write(files[ofd]->fd,(char*)&size,sizeof(long)) != sizeof(long)) {
-      pv_errstr = Str(X_1649,"\npvsys: error writing header");
+      pv_errstr = Str("\npvsys: error writing header");
       return 0;
     }
     files[ofd]->datachunkoffset = lseek(files[ofd]->fd,(off_t)0,SEEK_CUR);
@@ -1064,14 +1064,14 @@ static int pvoc_updateheader(int ofd)
                 (off_t)(files[ofd]->datachunkoffset-sizeof(DWORD)),
                 SEEK_SET);
     if (pos != (unsigned long)files[ofd]->datachunkoffset-sizeof(DWORD)) {
-      pv_errstr = Str(X_1651,"\npvsys: error updating data chunk");
+      pv_errstr = Str("\npvsys: error updating data chunk");
       return 0;
     }
 
     if (files[ofd]->do_byte_reverse)
       datasize = REVDWBYTES(datasize);
     if (write(files[ofd]->fd,(char *) &datasize,sizeof(DWORD)) != sizeof(DWORD)) {
-      pv_errstr = Str(X_1651,"\npvsys: error updating data chunk");
+      pv_errstr = Str("\npvsys: error updating data chunk");
       return 0;
     }
 
@@ -1080,17 +1080,17 @@ static int pvoc_updateheader(int ofd)
       riffsize = REVDWBYTES(riffsize);
     pos = lseek(files[ofd]->fd,(off_t)sizeof(DWORD),SEEK_SET);
     if (pos != sizeof(DWORD)) {
-      pv_errstr = Str(X_1651,"\npvsys: error updating data chunk");
+      pv_errstr = Str("\npvsys: error updating data chunk");
       return 0;
     }
     if (write(files[ofd]->fd,(char *) &riffsize,sizeof(DWORD)) != sizeof(DWORD)) {
-      pv_errstr = Str(X_1652,"\npvsys: error updating riff chunk");
+      pv_errstr = Str("\npvsys: error updating riff chunk");
       return 0;
     }
 
     pos = lseek(files[ofd]->fd,(off_t)0,SEEK_END);
     if (pos < 0) {
-      pv_errstr = Str(X_1653,"\npvsys: error seeking to end of file");
+      pv_errstr = Str("\npvsys: error seeking to end of file");
       return 0;
     }
     return 1;
@@ -1099,12 +1099,12 @@ static int pvoc_updateheader(int ofd)
 int pvoc_closefile(int ofd)
 {
     if (files[ofd]==NULL) {
-      pv_errstr = Str(X_1654,"\npvsys: file does not exist");
+      pv_errstr = Str("\npvsys: file does not exist");
       return 0;
     }
 
     if (files[ofd]->fd < 0) {
-      pv_errstr = Str(X_1655,"\npvsys: file not open");
+      pv_errstr = Str("\npvsys: file not open");
       return 0;
     }
     if (!files[ofd]->readonly)
@@ -1148,11 +1148,11 @@ int pvoc_putframes(int ofd,const float *frame,long numframes)
 
 
     if (files[ofd]==NULL) {
-      pv_errstr = Str(X_1656,"\npvsys: bad file descriptor");
+      pv_errstr = Str("\npvsys: bad file descriptor");
       return 0;
     }
     if (files[ofd]->fd < 0) {
-      pv_errstr = Str(X_1527,"\npvsys: file not open");
+      pv_errstr = Str("\npvsys: file not open");
       return 0;
     }
     /* NB doubles not supported yet */
@@ -1166,7 +1166,7 @@ int pvoc_putframes(int ofd,const float *frame,long numframes)
         temp = *lfp++;
         temp = REVDWBYTES(temp);
         if (write(files[ofd]->fd,(char *) &temp,sizeof(long)) != sizeof(long)) {
-          pv_errstr = Str(X_1657,"\npvsys: error writing data");
+          pv_errstr = Str("\npvsys: error writing data");
           return 0;
         }
       }
@@ -1174,7 +1174,7 @@ int pvoc_putframes(int ofd,const float *frame,long numframes)
     else {
       size_t n = towrite * sizeof(float);
       if (write(files[ofd]->fd,(char *) frame, n) != (int)n) {
-        pv_errstr = Str(X_1657,"\npvsys: error writing data");
+        pv_errstr = Str("\npvsys: error writing data");
         return 0;
       }
 
@@ -1197,11 +1197,11 @@ int pvoc_getframes(int ifd, float *frames, unsigned long nframes)
     long got;
     int rc = -1;
     if (files[ifd]==NULL) {
-      pv_errstr = Str(X_1658,"\npvsys: bad file descriptor");
+      pv_errstr = Str("\npvsys: bad file descriptor");
       return rc;
     }
     if (files[ifd]->fd < 0) {
-      pv_errstr = Str(X_1655,"\npvsys: file not open");
+      pv_errstr = Str("\npvsys: file not open");
       return rc;
     }
 
@@ -1211,7 +1211,7 @@ int pvoc_getframes(int ifd, float *frames, unsigned long nframes)
       lfp = (long *) frames;
       for (i=0;i < toread;i++) {
         if ((got=read(files[ifd]->fd,(char *) &temp,sizeof(long))) <0) {
-          pv_errstr = Str(X_1635,"\npvsys: error reading data");
+          pv_errstr = Str("\npvsys: error reading data");
           return rc;
         }
         if (got < (long) sizeof(long)) {
@@ -1227,7 +1227,7 @@ int pvoc_getframes(int ifd, float *frames, unsigned long nframes)
       size_t n = toread * sizeof(float);
       if ((got = read(files[ifd]->fd, (char *)frames, n)) < (int)n) {
         if (got < 0) {
-          pv_errstr = Str(X_1635,"\npvsys: error reading data");
+          pv_errstr = Str("\npvsys: error reading data");
           return rc;
         }
         else if (got < (int)n) {
@@ -1254,11 +1254,11 @@ int pvoc_rewind(int ifd,int skip_first_frame)
     long skipframes = 0;
 
     if (files[ifd]==NULL) {
-      pv_errstr = Str(X_1656,"\npvsys: bad file descriptor");
+      pv_errstr = Str("\npvsys: bad file descriptor");
       return rc;
     }
     if (files[ifd]->fd < 0) {
-      pv_errstr = Str(X_1655,"\npvsys: file not open");
+      pv_errstr = Str("\npvsys: file not open");
       return rc;
     }
     skipsize =  files[ifd]->pvdata.dwFrameAlign * files[ifd]->fmtdata.nChannels;
@@ -1271,7 +1271,7 @@ int pvoc_rewind(int ifd,int skip_first_frame)
       pos += skipsize;
     }
     if (lseek(fd,(off_t)pos,SEEK_SET) != pos ) {
-      pv_errstr = Str(X_1659,"\npvsys: error rewinding file");
+      pv_errstr = Str("\npvsys: error rewinding file");
       return rc;
     }
     files[ifd]->curpos = files[ifd]->datachunkoffset + skipsize;
@@ -1292,7 +1292,7 @@ int pvsys_release(void)
         fprintf(stderr,"\nDEBUG WARNING: files still open!\n");
 #endif
         if (!pvoc_closefile(i)) {
-          pv_errstr = Str(X_1660,"\npvsys: unable to close file on termination");
+          pv_errstr = Str("\npvsys: unable to close file on termination");
           return 0;
         }
       }

@@ -149,7 +149,7 @@ int make_FM4Op(ENVIRON *csound, FM4OP *p)
     if ((ftp = ftfind(csound, p->vifn)) != NULL)
       p->vibWave = ftp;
     else { /* Expect sine wave */
-      return perferror(Str(X_384,"No table for VibWaveato"));
+      return perferror(Str("No table for VibWaveato"));
     }
     p->baseFreq = FL(440.0);
     p->ratios[0] = FL(1.0);
@@ -172,22 +172,22 @@ static int FM4Op_loadWaves(ENVIRON *csound, FM4OP *p)
     if ((ftp = ftfind(csound, p->ifn0)) != NULL)
       p->waves[0] = ftp;
     else {
-      return perferror(Str(X_377,"No table for FM4Op")); /* Expect sine wave */
+      return perferror(Str("No table for FM4Op")); /* Expect sine wave */
     }
     if ((ftp = ftfind(csound, p->ifn1)) != NULL)
       p->waves[1] = ftp;
     else {
-      return perferror(Str(X_373,"No table for  FM4Op")); /* Expect sine wave */
+      return perferror(Str("No table for  FM4Op")); /* Expect sine wave */
     }
     if ((ftp = ftfind(csound, p->ifn2)) != NULL)
       p->waves[2] = ftp;
     else {
-      return perferror(Str(X_373,"No table for  FM4Op")); /* Expect sine wave */
+      return perferror(Str("No table for  FM4Op")); /* Expect sine wave */
     }
     if ((ftp = ftfind(csound, p->ifn3)) != NULL)
       p->waves[3] = ftp;
     else {
-      return perferror(Str(X_373,"No table for  FM4Op")); /* Expect sine wave */
+      return perferror(Str("No table for  FM4Op")); /* Expect sine wave */
     }
     p->w_time[0] = p->w_time[1] = p->w_time[2] = p->w_time[3] = FL(0.0);
     return OK;

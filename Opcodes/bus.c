@@ -122,11 +122,11 @@ int chaniado(ENVIRON *csound, CHANI *p)
 
 static OENTRY localops[] = {
   { "chano",  0xfffd},
-  { "chano_k", S(CHANO), 2, "",  "kk", NULL,(SUBR)chanokdo, NULL},
-  { "chano_a", S(CHANO), 4, "",  "ak", NULL, NULL,         (SUBR)chanoado},
+  { "chano.k", S(CHANO), 2, "",  "kk", NULL,(SUBR)chanokdo, NULL},
+  { "chano.a", S(CHANO), 4, "",  "ak", NULL, NULL,         (SUBR)chanoado},
   { "chani",  0xffff},
-  { "chani_k", S(CHANO), 2, "k", "k", NULL, (SUBR)chanikdo, NULL},
-  { "chani_k", S(CHANO), 4, "a", "k", NULL, NULL,          (SUBR)chaniado}
+  { "chani.k", S(CHANO), 2, "k", "k", NULL, (SUBR)chanikdo, NULL},
+  { "chani.k", S(CHANO), 4, "a", "k", NULL, NULL,          (SUBR)chaniado}
 };
 
 LINKAGE

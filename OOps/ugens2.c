@@ -32,7 +32,7 @@ int phsset(ENVIRON *csound, PHSOR *p)
     if ((phs = *p->iphs) >= FL(0.0)) {
       if ((longphs = (long)phs)) {
         if (O.msglevel & WARNMSG)
-          printf(Str(X_911,"WARNING: init phase truncation\n"));
+          printf(Str("WARNING: init phase truncation\n"));
       }
       p->curphs = phs - (MYFLT)longphs;
     }
@@ -140,7 +140,7 @@ int itblchk(ENVIRON *csound, TABLE *p)
 
     if ((p->offset = p->xbmul * *p->ixoff) < FL(0.0) ||
         p->offset > p->ftp->flen) {
-      sprintf(errmsg, Str(X_396,"Offset %f < 0 or > tablelength"), p->offset);
+      sprintf(errmsg, Str("Offset %f < 0 or > tablelength"), p->offset);
       return initerror(errmsg);
     }
 
@@ -302,7 +302,7 @@ int ktable(ENVIRON *csound, TABLE  *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {            /* RWD fix */
-      return perferror(Str(X_1264,"table(krate): not initialised"));
+      return perferror(Str("table(krate): not initialised"));
     }
     ndx = *p->xndx;
     length = ftp->flen;
@@ -381,7 +381,7 @@ int tablefn(ENVIRON *csound, TABLE  *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {            /* RWD fix */
-      return perferror(Str(X_1267,"table: not initialised"));
+      return perferror(Str("table: not initialised"));
     }
     rslt = p->rslt;
     length = ftp->flen;
@@ -440,7 +440,7 @@ int ktabli(ENVIRON *csound, TABLE  *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str(X_1268,"tablei(krate): not initialised"));
+      return perferror(Str("tablei(krate): not initialised"));
     }
     ndx = *p->xndx;
     length = ftp->flen;
@@ -517,7 +517,7 @@ int ktabl3(ENVIRON *csound, TABLE  *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str(X_1265,"table3(krate): not initialised"));
+      return perferror(Str("table3(krate): not initialised"));
     }
     ndx = *p->xndx;
     length = ftp->flen;
@@ -615,7 +615,7 @@ int tabli(ENVIRON *csound, TABLE  *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str(X_1269,"tablei: not initialised"));
+      return perferror(Str("tablei: not initialised"));
     }
     rslt = p->rslt;
     length = ftp->flen;
@@ -667,7 +667,7 @@ int tabl3(ENVIRON *csound, TABLE  *p)           /* Like tabli but cubic interpol
 
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str(X_1266,"table3: not initialised"));
+      return perferror(Str("table3: not initialised"));
     }
     rslt = p->rslt;
     length = ftp->flen;
@@ -752,7 +752,7 @@ int ftkrchk(ENVIRON *csound, TABLE *p)
      * otherwise proceed without checking the table number - and none
      * of the pointers would have been set up.  */
     if (*p->xfn < 1) {
-      sprintf(errmsg, Str(X_955,"k rate function table no. %f < 1"), *p->xfn);
+      sprintf(errmsg, Str("k rate function table no. %f < 1"), *p->xfn);
       return perferror(errmsg);
     }
     /* Check to see if table number has changed from previous value.
@@ -794,7 +794,7 @@ int ftkrchk(ENVIRON *csound, TABLE *p)
 
       if ((p->offset = p->xbmul * *p->ixoff) < 0.0 ||
           p->offset > p->ftp->flen) {
-        sprintf(errmsg, Str(X_396,"Offset %f < 0 or > tablelength"), p->offset);
+        sprintf(errmsg, Str("Offset %f < 0 or > tablelength"), p->offset);
         return perferror(errmsg);
       }
     }
@@ -848,7 +848,7 @@ int ko1set(ENVIRON *csound, OSCIL1 *p)
       return NOTOK;
     if (*p->idur <= FL(0.0)) {
       if (O.msglevel & WARNMSG)
-        printf(Str(X_710,"WARNING: duration < zero\n"));
+        printf(Str("WARNING: duration < zero\n"));
     }
     p->ftp = ftp;
     p->phs = 0;
@@ -864,7 +864,7 @@ int kosc1(ENVIRON *csound, OSCIL1 *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str(X_1102,"oscil1(krate): not initialised"));
+      return perferror(Str("oscil1(krate): not initialised"));
     }
     phs = p->phs;
     *p->rslt = *(ftp->ftable + (phs >> ftp->lobits)) * *p->kamp;
@@ -890,7 +890,7 @@ int kosc1i(ENVIRON *csound, OSCIL1  *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str(X_1103,"oscil1i(krate): not initialised"));
+      return perferror(Str("oscil1i(krate): not initialised"));
     }
     phs = p->phs;
     fract = PFRAC(phs);
@@ -934,7 +934,7 @@ int osciln(ENVIRON *csound, OSCILN *p)
     long  nsmps = ksmps;
 
     if (p->ftp==NULL) {
-      return perferror(Str(X_1109,"osciln: not initialised"));
+      return perferror(Str("osciln: not initialised"));
     }
     if (p->ntimes) {
       MYFLT *ftbl = p->ftp->ftable;
@@ -982,7 +982,7 @@ int koscil(ENVIRON *csound, OSC *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str(X_1101,"oscil(krate): not initialised"));
+      return perferror(Str("oscil(krate): not initialised"));
     }
     phs = p->lphs;
     inc = (long) (*p->xcps * kicvt);
@@ -1002,7 +1002,7 @@ int osckk(ENVIRON *csound, OSC *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str(X_1106,"oscil: not initialised"));
+      return perferror(Str("oscil: not initialised"));
     }
     ftbl = ftp->ftable;
     phs = p->lphs;
@@ -1028,7 +1028,7 @@ int oscka(ENVIRON *csound, OSC *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str(X_1106,"oscil: not initialised"));
+      return perferror(Str("oscil: not initialised"));
     }
     ftbl = ftp->ftable;
     lobits = ftp->lobits;
@@ -1056,7 +1056,7 @@ int oscak(ENVIRON *csound, OSC *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str(X_1106,"oscil: not initialised"));
+      return perferror(Str("oscil: not initialised"));
     }
     ftbl = ftp->ftable;
     lobits = ftp->lobits;
@@ -1082,7 +1082,7 @@ int oscaa(ENVIRON *csound, OSC *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str(X_1106,"oscil: not initialised"));
+      return perferror(Str("oscil: not initialised"));
     }
     ftbl = ftp->ftable;
     lobits = ftp->lobits;
@@ -1110,7 +1110,7 @@ int koscli(ENVIRON *csound, OSC  *p)
     phs = p->lphs;
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str(X_1107,"oscili(krate): not initialised"));
+      return perferror(Str("oscili(krate): not initialised"));
     }
     fract = PFRAC(phs);
     ftab = ftp->ftable + (phs >> ftp->lobits);
@@ -1132,7 +1132,7 @@ int osckki(ENVIRON *csound, OSC  *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str(X_1108,"oscili: not initialised"));
+      return perferror(Str("oscili: not initialised"));
     }
     lobits = ftp->lobits;
     phs = p->lphs;
@@ -1160,7 +1160,7 @@ int osckai(ENVIRON *csound, OSC  *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str(X_1108,"oscili: not initialised"));
+      return perferror(Str("oscili: not initialised"));
     }
     lobits = ftp->lobits;
     amp = *p->xamp;
@@ -1190,7 +1190,7 @@ int oscaki(ENVIRON *csound, OSC  *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str(X_1108,"oscili: not initialised"));
+      return perferror(Str("oscili: not initialised"));
     }
     ftab = ftp->ftable;
     lobits = ftp->lobits;
@@ -1219,7 +1219,7 @@ int oscaai(ENVIRON *csound, OSC  *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str(X_1108,"oscili: not initialised"));
+      return perferror(Str("oscili: not initialised"));
     }
     ftab = ftp->ftable;
     lobits = ftp->lobits;
@@ -1252,7 +1252,7 @@ int koscl3(ENVIRON *csound, OSC  *p)
     phs = p->lphs;
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str(X_1104,"oscil3(krate): not initialised"));
+      return perferror(Str("oscil3(krate): not initialised"));
     }
     ftab = ftp->ftable;
     fract = PFRAC(phs);
@@ -1291,7 +1291,7 @@ int osckk3(ENVIRON *csound, OSC  *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str(X_1105,"oscil3: not initialised"));
+      return perferror(Str("oscil3: not initialised"));
     }
     ftab = ftp->ftable;
     lobits = ftp->lobits;
@@ -1342,7 +1342,7 @@ int oscka3(ENVIRON *csound, OSC  *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str(X_1105,"oscil3: not initialised"));
+      return perferror(Str("oscil3: not initialised"));
     }
     ftab = ftp->ftable;
     lobits = ftp->lobits;
@@ -1390,7 +1390,7 @@ int oscak3(ENVIRON *csound, OSC  *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str(X_1108,"oscili: not initialised"));
+      return perferror(Str("oscili: not initialised"));
     }
     ftab = ftp->ftable;
     lobits = ftp->lobits;
@@ -1436,7 +1436,7 @@ int oscaa3(ENVIRON *csound, OSC  *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str(X_1108,"oscili: not initialised"));
+      return perferror(Str("oscili: not initialised"));
     }
     ftab = ftp->ftable;
     lobits = ftp->lobits;

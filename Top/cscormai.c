@@ -44,11 +44,11 @@ void scfopen(int argc, char **argv)     /* simple open of command-line score */
                                         /* by other main program */
 {
     if (!(--argc)) {
-        printf(Str(X_940,"insufficient arguments\n"));
+        printf(Str("insufficient arguments\n"));
         exit(0);
     }
     if (!(scfp = fopen(*++argv, "r"))) {
-        printf(Str(X_635,"cannot find %s\n"), *argv);
+        printf(Str("cannot find %s\n"), *argv);
         exit(0);
     }
 }
@@ -59,7 +59,7 @@ int lplay(EVLIST *a)           /* for standalone cscore: no full Csound, so */
     FILE *osave;
 
     err_printf(
-        Str(X_676,
+        Str(
             "cscore lplay:  full Csound would now play the following score\n"));
     osave = oscfp;
     oscfp = stderr;

@@ -24,6 +24,7 @@
 #include "cs.h"                 /*                              OTRAN.C */
 #include "oload.h"
 #include <math.h>
+#include <string.h>
 #include "pstream.h"
 #include "namedins.h"           /* IV - Oct 31 2002 */
 #include <ctype.h>
@@ -37,11 +38,11 @@ static struct namepool {
 static  int     gblsize = GNAMES, lclsize = LNAMES;
 static  ARGLST  *nullist;
 static  ARGOFFS *nulloffs;
-static  short   lclkcnt, lcldcnt, lclwcnt, lclfixed;
-static  short   lclpcnt, lclnxtpcnt;
-static  short   lclnxtkcnt, lclnxtdcnt, lclnxtwcnt, lclnxtacnt;
-static  short   gblnxtkcnt = 0, gblnxtacnt = 0, gblfixed, gblacount;
-static  short   *nxtargoffp, *argofflim, lclpmax;
+static  int     lclkcnt, lcldcnt, lclwcnt, lclfixed;
+static  int     lclpcnt, lclnxtpcnt;
+static  int     lclnxtkcnt, lclnxtdcnt, lclnxtwcnt, lclnxtacnt;
+static  int     gblnxtkcnt = 0, gblnxtacnt = 0, gblfixed, gblacount;
+static  int     *nxtargoffp, *argofflim, lclpmax;
 static  char    *strargspace, *strargptr;
 static  long    poolcount, strargsize = 0, argoffsize;
 static  int     nconsts;
@@ -54,7 +55,7 @@ static  int     constndx(char *);
 static  void    insprep(INSTRTXT *), lgbuild(char *);
 #define txtcpy(a,b) memcpy(a,b,sizeof(TEXT));
 static  void    gblnamset(char *);
-static  short   plgndx(char *);
+static  int     plgndx(char *);
 static  NAME    *lclnamset(char *);
 void    putop(TEXT*);
 
@@ -63,7 +64,7 @@ extern  void    rdorchfile(void);
 extern  int     getopnum(char *);
 
 extern  void    (*spinrecv)(void), (*spoutran)(void), (*nzerotran)(long);
-extern void spoutsf(void);
+extern  void    spoutsf(void);
 
 #define KTYPE   1
 #define DTYPE   2
@@ -286,26 +287,26 @@ void otran(void)
             if (opnum == INSTR) {
               int err = 0, cnt, i;
               if (!alp->count) {  /* IV - Sep 8 2002: check for missing name */
-                synterr(Str(X_1752,"missing instrument number or name"));
+                synterr(Str("missing instrument number or name"));
                 continue;
               }
               /* IV - Oct 16 2002: allow both numbers and names for instr */
               for (cnt = 0; cnt < alp->count; cnt++) {
                 char *c = alp->arg[cnt];
                 if (strlen(c) <= 0) {
-                  synterr(Str(X_1752,"missing instrument number or name"));
+                  synterr(Str("missing instrument number or name"));
                   err++; continue;
                 }
                 if (isdigit(*c)) {      /* numbered instrument */
                   if (!sscanf(c, "%ld", &n) || n < 0) {
-                    synterr(Str(X_860,"illegal instr number"));
+                    synterr(Str("illegal instr number"));
                     err++; continue;
                   }
                   if (n > maxinsno) {
                     int old_maxinsno = maxinsno;
                     /* expand */
                     while (n>maxinsno) maxinsno += MAXINSNO;
-/*                err_printf(Str(X_266,"Extending instr number from %d to %d\n"),
+/*                err_printf(Str("Extending instr number from %d to %d\n"),
                   old_maxinsno, maxinsno); */
                     instrtxtp = (INSTRTXT**)
                       mrealloc(instrtxtp,
@@ -314,11 +315,11 @@ void otran(void)
                     for (i=old_maxinsno+1; i<=maxinsno; i++) instrtxtp[i]=NULL;
                   }
 /*                   else if (n<0) { */
-/*                     synterr(Str(X_860,"illegal instr number")); */
+/*                     synterr(Str("illegal instr number")); */
 /*                     continue; */
 /*                   } */
                   if (instrtxtp[n] != NULL) {
-                    sprintf(errmsg,Str(X_935,"instr %ld redefined"),n);
+                    sprintf(errmsg,Str("instr %ld redefined"),n);
                     synterr(errmsg);
                     err++; continue;
                   }
@@ -331,7 +332,7 @@ void otran(void)
                   }
                   /* IV - Oct 31 2002: some error checking */
                   if (!check_instr_name(c)) {
-                    synterr(Str(X_1818,"invalid name for instrument"));
+                    synterr(Str("invalid name for instrument"));
                     err++; continue;
                   }
                   /* IV - Oct 31 2002: store the name */
@@ -355,17 +356,17 @@ void otran(void)
 
               /* some error checking */
               if (!alp->count || (strlen(name) <= 0)) {
-                  synterr(Str(X_1754,"No opcode name"));
+                  synterr(Str("No opcode name"));
                   continue;
                 }
               /* IV - Oct 31 2002 */
               if (!check_instr_name(name)) {
-                synterr(Str(X_1753,"invalid name for opcode"));
+                synterr(Str("invalid name for opcode"));
                 continue;
               }
                 if (ip->t.inlist->count != 3) {
                   sprintf(errmsg,
-                          Str(X_1755,"opcode declaration error "
+                          Str("opcode declaration error "
                               "(usage: opcode name, outtypes, intypes) -- opcode %s"),
                         name);
                 synterr(errmsg);
@@ -377,10 +378,10 @@ void otran(void)
               if (newopnum) {
                 /* IV - Oct 31 2002: redefine old opcode if possible */
                 if (newopnum < SETEND || !strcmp(name, "subinstr")) {
-                  sprintf(errmsg, Str(X_1758,"cannot redefine %s"), name);
+                  sprintf(errmsg, Str("cannot redefine %s"), name);
                   synterr(errmsg); continue;
                 }
-                err_printf(Str(X_1759,"WARNING: redefined opcode: %s\n"), name);
+                err_printf(Str("WARNING: redefined opcode: %s\n"), name);
               }
               newopnum = opcListNumItems;
               /* IV - Oct 31 2002: reduced number of calls to mrealloc() */
@@ -401,7 +402,7 @@ void otran(void)
               opcodeInfo = inm;
               /* IV - Oct 31 2002: */
               /* create a fake opcode so we can call it as such */
-              opc = opcodlst + find_opcode("userOpcode_#");
+              opc = opcodlst + find_opcode(".userOpcode");
               memcpy(newopc, opc, sizeof(OENTRY));
               newopc->opname = name;
               newopc->useropinfo = (void*) inm; /* ptr to opcode parameters */
@@ -445,16 +446,16 @@ void otran(void)
               printf("pmax %ld, kcnt %d, dcnt %d, wcnt %d, acnt %d pcnt %d\n",
                      pmax,lclnxtkcnt,lclnxtdcnt,lclnxtwcnt,lclnxtacnt,lclnxtpcnt);
             }
-            ip->pmax = (short)pmax;
+            ip->pmax = (int)pmax;
 #ifdef __alpha__
             /*
              * On Alpha we need to align at 2*sizeof(float) (i.e. 64 bits).
              * So we round up.  heh 981101
              */
             ip->pextrab = ((n = pmax-3L) > 0) ?
-              (short)((n + 1) & ~0x1)*sizeof(MYFLT) : 0;
+              (int)((n + 1) & ~0x1)*sizeof(MYFLT) : 0;
 #else
-            ip->pextrab = ((n = pmax-3L) > 0) ? (short)n*sizeof(MYFLT) : 0;
+            ip->pextrab = ((n = pmax-3L) > 0) ? (int)n*sizeof(MYFLT) : 0;
 #endif
             ip->mdepends = threads >> 4;
             ip->lclkcnt = lclnxtkcnt;
@@ -504,8 +505,8 @@ void otran(void)
                 if (n > pmax)  pmax = n;
               }
               else lgbuild(s);
-              if (!nn && bp->t.opcod[1] == '_'        /* rsvd glbal = n ? */
-                  && strcmp(bp->t.opcod,"=_r")==0) {  /*  (assume const)  */
+              if (!nn && bp->t.opcod[1] == '.'        /* rsvd glbal = n ? */
+                  && strcmp(bp->t.opcod,"=.r")==0) {  /*  (assume const)  */
                 MYFLT constval = pool[constndx(bp->t.inlist->arg[0])];
                 if (strcmp(s,"sr") == 0)
                   tran_sr = constval;             /* modify otran defaults*/
@@ -524,7 +525,7 @@ void otran(void)
             break;
         }
     }
-    if (n != -1) synterr(Str(X_348,"Missing endin"));
+    if (n != -1) synterr(Str("Missing endin"));
 
         /* now add the instruments with names, assigning them fake instr numbers */
     named_instr_assign_numbers();               /* IV - Oct 31 2002 */
@@ -567,10 +568,34 @@ void otran(void)
     }
                                 /* That deals with missing values */
                                 /* However we do need ksmps to be integer */
-    if (tran_sr / tran_kr != tran_ksmps) {
-        printf("sr = %f, kr = %f, ksmps = %f\n",
-               tran_sr, tran_kr, tran_ksmps);
-        synterr(Str(X_903,"inconsistent sr, kr, ksmps"));
+    /* IV - Feb 18 2003 */
+    {
+#ifndef USE_DOUBLE
+      double    max_err = 1.0e-6;
+#else
+      double    max_err = 1.0e-12;
+#endif
+      char      sbuf[256];
+      sprintf(sbuf, "sr = %.7g, kr = %.7g, ksmps = %.7g",
+                    tran_sr, tran_kr, tran_ksmps);
+      if (tran_ksmps < FL(0.75) ||
+          fabs(((double) tran_ksmps
+                / (double) ((int) (tran_ksmps + FL(0.5)))) - 1.0) > max_err) {
+        strcat(sbuf, "\n"); strcat(sbuf, Str("error: invalid ksmps value"));
+      }
+      if (tran_sr <= FL(0.0)) {
+        strcat(sbuf, "\n"); strcat(sbuf, Str("error: invalid sample rate"));
+      }
+      if (tran_kr <= FL(0.0)) {
+        strcat(sbuf, "\n"); strcat(sbuf, Str("error: invalid control rate"));
+      }
+      if (fabs(((double) tran_sr
+                / ((double) tran_kr * (double) tran_ksmps)) - 1.0) > max_err) {
+        strcat(sbuf, "\n");
+        strcat(sbuf, Str("error: inconsistent sr, kr, ksmps"));
+      }
+      if (strchr(sbuf, '\n') != NULL)
+        synterr(Str(sbuf));
     }
 
     ip = instxtanchor.nxtinstxt;
@@ -582,10 +607,10 @@ void otran(void)
       if (opnum == LABEL || opnum == STRSET) continue;
       if ((thread = opcodlst[opnum].thread) & 06 ||
           (!thread && bp->t.pftype != 'b'))
-        synterr(Str(X_1124,"perf-pass statements illegal in header blk"));
+        synterr(Str("perf-pass statements illegal in header blk"));
     }
     if (synterrcnt) {
-      printf(Str(X_38,"%d syntax errors in orchestra.  compilation invalid\n"),
+      printf(Str("%d syntax errors in orchestra.  compilation invalid\n"),
              synterrcnt);
       longjmp(cenviron.exitjmp_,1);
     }
@@ -620,8 +645,8 @@ void otran(void)
       }
       ip->optxtcount = optxtcount;            /* optxts in this instxt */
     }
-    argoffsize = (sumcount + 1) * sizeof(short);/* alloc all plus 1 null */
-    ARGOFFSPACE = (short *) mmalloc((long)argoffsize);   /* as argoff shorts */
+    argoffsize = (sumcount + 1) * sizeof(int);/* alloc all plus 1 null */
+    ARGOFFSPACE = (int *) mmalloc((long)argoffsize);   /* as argoff ints */
     nxtargoffp = ARGOFFSPACE;
     nulloffs = (ARGOFFS *) ARGOFFSPACE;         /* setup the null argoff */
     *nxtargoffp++ = 0;
@@ -630,7 +655,7 @@ void otran(void)
     while ((ip = ip->nxtinstxt) != NULL)        /* add all other entries */
         insprep(ip);                            /*   as combined offsets */
     if (O.odebug) {
-      short *p = ARGOFFSPACE;
+      int *p = ARGOFFSPACE;
       printf("argoff array:\n");
       do {
         printf("\t%d", *p++);
@@ -638,9 +663,9 @@ void otran(void)
       printf("\n");
     }
     if (nxtargoffp != argofflim)
-      die(Str(X_901,"inconsistent argoff sumcount"));
+      die(Str("inconsistent argoff sumcount"));
     if (strargsize && strargptr != strargspace + strargsize)
-      die(Str(X_904,"inconsistent strarg sizecount"));
+      die(Str("inconsistent strarg sizecount"));
 
     ip = &instxtanchor;                         /* set the OPARMS values */
     instxtcount = optxtcount = 0;
@@ -671,7 +696,7 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
     LBLARG      *larg, *largp;
     ARGLST      *outlist, *inlist;
     ARGOFFS     *outoffs, *inoffs;
-    short       indx, *ndxp;
+    int         indx, *ndxp;
 
     labels = (char **)mmalloc((nlabels) * sizeof(char *));
     lblsp = labels;
@@ -710,7 +735,7 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
           int oldn = lblsp-labels;
           nlabels += NLABELS;
           if (lblsp - labels >= nlabels) nlabels = lblsp - labels + 2;
-          printf(Str(X_319,"LABELS list is full...extending to %d\n"), nlabels);
+          printf(Str("LABELS list is full...extending to %d\n"), nlabels);
           labels =
             (char**)mrealloc(labels,(long)nlabels*sizeof(char *));
           lblsp = &labels[oldn];
@@ -761,7 +786,7 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
             if (largp - larg >= ngotos) {
               int oldn = ngotos;
               ngotos += NGOTOS;
-              printf(Str(X_289,"GOTOS list is full..extending to %d\n"), ngotos);
+              printf(Str("GOTOS list is full..extending to %d\n"), ngotos);
               if (largp - larg >= ngotos) ngotos = largp - larg + 1;
               larg = (LBLARG *)
                 mrealloc(larg,(long)ngotos*sizeof(LBLARG));
@@ -802,10 +827,10 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
       char **lp;
       for (lp = labels; lp < lblsp; lp++)
         if (strcmp(s, *lp) == 0) {
-          *largp->ndxp = lp - labels + MIN_SHORT;
+          *largp->ndxp = lp - labels + LABELOFS;
           goto nxt;
         }
-      dies(Str(X_1272,"target label '%s' not found"), s);
+      dies(Str("target label '%s' not found"), s);
     }
     nxtargoffp = ndxp;
     mfree(labels);
@@ -827,13 +852,13 @@ static void lgbuild(char *s)    /* build pool of floating const values  */
     }
 }
 
-static short plgndx(char *s)    /* get storage ndx of const, pnum, lcl or gbl */
+static int plgndx(char *s)      /* get storage ndx of const, pnum, lcl or gbl */
                                 /* argument const/gbl indexes are positiv+1, */
                                 /* pnum/lcl negativ-1 called only after      */
                                 /* poolcount & lclpmax are finalised */
 {
     char        c;
-    short       n, indx;
+    int         n, indx;
 
     c = *s;
     if (
@@ -846,7 +871,7 @@ static short plgndx(char *s)    /* get storage ndx of const, pnum, lcl or gbl */
     else if ((n = pnum(s)) >= 0)
       indx = - n;
     else if (c == 'g' || (c == '#' && *(s+1) == 'g') || gexist(s))
-      indx = (short) (poolcount + 1 + gbloffndx(s));
+      indx = (int) (poolcount + 1 + gbloffndx(s));
     else indx = - (lclpmax + 1 + lcloffndx(s));
 /*     printf(" [%s -> %d (%x)]\n", s, indx, indx); */
     return(indx);
@@ -878,7 +903,7 @@ static int constndx(char *s)    /* get storage ndx of float const value */
       /* die("flconst pool is full"); */
       int indx = fp-pool;
       nconsts += NCONSTS;
-      printf(Str(X_751,"extending Floating pool to %d\n"), nconsts);
+      printf(Str("extending Floating pool to %d\n"), nconsts);
       pool = (MYFLT*)mrealloc(pool, nconsts*sizeof(MYFLT));
       fp = pool + indx;
     }
@@ -887,7 +912,7 @@ static int constndx(char *s)    /* get storage ndx of float const value */
     return(fp - pool);                          /*   and return new ndx */
 
  flerror:
-    sprintf(errmsg,Str(X_1086,"numeric syntax '%s'"),str);
+    sprintf(errmsg,Str("numeric syntax '%s'"),str);
     synterr(errmsg);
     return(0);
 }
@@ -905,7 +930,7 @@ static void gblnamset(char *s) /* builds namelist & type counts for gbl names */
       if (ggg->nxtslot+1 >= ggg->namlim) {      /* chk for full table   */
 /*          die("gbl namelist is full"); */
         if (ggg->next == NULL) {
-          err_printf( Str(X_263,"Extending Global pool to %d\n"),
+          err_printf( Str("Extending Global pool to %d\n"),
                       gblsize+=GNAMES);
           ggg->next = (struct namepool*)mmalloc(sizeof(struct namepool));
           ggg = ggg->next;
@@ -948,7 +973,7 @@ static NAME *lclnamset(char *s)
       if (lll->nxtslot+1 >= lll->namlim) {      /* chk for full table   */
         /*          die("lcl namelist is full"); */
         if (lll->next == NULL) {
-          err_printf( Str(X_264,"Extending Local pool to %d\n"),
+          err_printf( Str("Extending Local pool to %d\n"),
                       lclsize+=LNAMES);
           lll->next = (struct namepool*)mmalloc(sizeof(struct namepool));
           lll = lll->next;
@@ -992,9 +1017,9 @@ static int gbloffndx(char *s)   /* get named offset index into gbl dspace */
           return(indx);
         }
       if (ggg->nxtslot+1 < ggg->namlim)
-        die(Str(X_1325,"unexpected global name"));      /* else complain        */
+        die(Str("unexpected global name"));      /* else complain        */
       ggg = ggg->next;
-      if (ggg == NULL) die(Str(X_1055,"no pool for unexpected global name"));
+      if (ggg == NULL) die(Str("no pool for unexpected global name"));
     }
 }
 
@@ -1013,7 +1038,7 @@ static int lcloffndx(char *s)   /* get named offset index into instr lcl */
     case ATYPE:  indx = lclfixed + np->count;  break;
                 /*RWD ???? */
     case PTYPE: indx = lclkcnt + np->count * Pfloatsize; break;
-    default:     die(Str(X_1339,"unknown nametype"));  break;
+    default:     die(Str("unknown nametype"));  break;
     }
     return(indx);                       /*   and rtn this offset */
 }

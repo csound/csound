@@ -487,9 +487,9 @@ extern "C" {
 
   void (*recopen)(int nchanls, int dsize, float sr, int scale) = recopen_;
 
-  extern int rtrecord_(char *inBuf, int nbytes);
+  extern int rtrecord_(void *inBuf, int nbytes);
 
-  int (*rtrecord)(char *inBuf, int nbytes) = rtrecord_;
+  int (*rtrecord)(void *inBuf, int nbytes) = rtrecord_;
 
   extern void rtclose_(void);
 
@@ -591,7 +591,7 @@ extern "C" {
 #endif
   }
 
-  PUBLIC void csoundSetRtrecordCallback(void *csound, int (*rtrecord__)(char *inBuf, int nbytes))
+  PUBLIC void csoundSetRtrecordCallback(void *csound, int (*rtrecord__)(void *inBuf, int nbytes))
   {
 #ifdef RTAUDIO
     rtrecord = rtrecord__;
@@ -1059,6 +1059,245 @@ extern "C" {
     ENVIRON *csound = (ENVIRON *)csound_;
     return csound->doFLTKThreadLocking;
   }
+
+/* -------- IV - Jan 27 2005: timer functions -------- */
+
+#include <time.h>
+#include <ctype.h>
+
+#if defined(WIN32)
+#undef u_char
+#undef u_short
+#undef u_int
+#undef u_long
+#include <windows.h>
+/* do not use UNIX code under Win32 */
+#ifdef __unix
+#undef __unix
+#endif
+#elif defined(__unix) || defined(SGI) || defined(LINUX)
+#include <sys/time.h>
+#endif
+
+/* enable use of high resolution timer (Linux/i586/GCC only) */
+/* could in fact work under any x86/GCC system, but do not   */
+/* know how to query the actual CPU frequency ...            */
+
+#define HAVE_RDTSC  1
+
+/* ------------------------------------ */
+
+#if defined(HAVE_RDTSC)
+#if !(defined(LINUX) && defined(__GNUC__) && defined(__i386__))
+#undef HAVE_RDTSC
+#endif
+#endif
+
+/* hopefully cannot change during performance */
+static double timeResolutionSeconds = -1.0;
+
+#if defined(HAVE_RDTSC)
+
+/* find out CPU frequency based on /proc/cpuinfo */
+
+static void get_CPU_cycle_time(void)
+{
+    FILE    *f;
+    char    buf[256];
+
+    /* if frequency is not known yet */
+    f = fopen("/proc/cpuinfo", "r");
+    if (f == NULL) {
+      die("Cannot open /proc/cpuinfo. Support for RDTSC is not available.");
+      return;
+    }
+    /* find CPU frequency */
+    while (fgets(buf, 256, f) != NULL) {
+      int     i;
+      char    *s = (char*) buf - 1;
+
+      buf[255] = '\0';          /* safety */
+      if (strlen(buf) < 9)
+        continue;                       /* too short, skip */
+      while (*++s != '\0')
+        if (isupper(*s))
+          *s = tolower(*s);             /* convert to lower case */
+      if (strncmp(buf, "cpu mhz", 7) != 0)
+        continue;                       /* check key name */
+      s = strchr(buf, ':');             /* find frequency value */
+      if (s == NULL) continue;              /* invalid entry */
+      do {
+        s++;
+      } while (*s == ' ' || *s == '\t');    /* skip white space */
+      i = sscanf(s, "%lf", &timeResolutionSeconds);
+      if (i < 1 || timeResolutionSeconds < 1.0) {
+        timeResolutionSeconds = -1.0;       /* invalid entry */
+        continue;
+      }
+    }
+    fclose(f);
+    if (timeResolutionSeconds <= 0.0) {
+      die("No valid CPU frequency entry was found in /proc/cpuinfo.");
+      return;
+    }
+    /* MHz -> seconds */
+    timeResolutionSeconds = 0.000001 / timeResolutionSeconds;
+}
+
+#endif          /* HAVE_RDTSC */
+
+/* macro for getting real time */
+
+#if defined(HAVE_RDTSC)
+/* optimised high resolution timer for Linux/i586/GCC only */
+#define get_real_time(h,l)                                              \
+{                                                                       \
+    asm volatile ("rdtsc" : "=a" (l), "=d" (h));                        \
+}
+#elif defined(__unix) || defined(SGI) || defined(LINUX)
+/* UNIX: use gettimeofday() - allows 1 us resolution */
+#define get_real_time(h,l)                                              \
+{                                                                       \
+    struct timeval tv;                                                  \
+    gettimeofday(&tv, NULL);                                            \
+    h = (unsigned long) tv.tv_sec;                                      \
+    l = (unsigned long) tv.tv_usec;                                     \
+}
+#elif defined(WIN32)
+/* Win32: use QueryPerformanceCounter - resolution depends on system, */
+/* but is expected to be better than 1 us. GetSystemTimeAsFileTime    */
+/* seems to have much worse resolution under Win95.                   */
+#define get_real_time(h,l)                                              \
+{                                                                       \
+    LARGE_INTEGER tmp;                                                  \
+    QueryPerformanceCounter(&tmp);                                      \
+    h = (unsigned long) tmp.HighPart;                                   \
+    l = (unsigned long) tmp.LowPart;                                    \
+}
+#else
+/* other systems: use ANSI C time() - allows 1 second resolution */
+#define get_real_time(h,l)                                              \
+{                                                                       \
+    h = 0UL;                                                            \
+    l = (unsigned long) time(NULL);                                     \
+}
+#endif
+
+/* macro for getting CPU time */
+
+#define get_CPU_time(h,l)                                               \
+{                                                                       \
+    h = 0UL;                                                            \
+    l = (unsigned long) clock();                                        \
+}
+
+/* initialise a timer structure */
+
+void timers_struct_init(RTCLOCK *p)
+{
+    if (timeResolutionSeconds < 0.0) {
+      /* set time resolution if not known yet */
+#if defined(HAVE_RDTSC)
+      get_CPU_cycle_time();
+#elif defined(__unix) || defined(SGI) || defined(LINUX)
+      timeResolutionSeconds = 0.000001;
+#elif defined(WIN32)
+      {
+        LARGE_INTEGER tmp;
+        QueryPerformanceFrequency(&tmp);
+        timeResolutionSeconds = (double) ((unsigned long) tmp.LowPart);
+        timeResolutionSeconds += (double) ((long) tmp.HighPart)
+                                 * 4294967296.0;
+        timeResolutionSeconds = 1.0 / timeResolutionSeconds;
+      }
+#else
+      timeResolutionSeconds = 1.0;
+#endif
+      err_printf("time resolution is %.3f ns\n", 1.0e9 * timeResolutionSeconds);
+    }
+    p->real_time_to_seconds_scale = timeResolutionSeconds;
+    p->CPU_time_to_seconds_scale = 1.0 / (double) CLOCKS_PER_SEC;
+    get_real_time(p->starttime_real_high, p->starttime_real_low)
+    get_CPU_time(p->starttime_CPU_high, p->starttime_CPU_low)
+}
+
+/* return the elapsed real time (in seconds) since the specified timer */
+/* structure was initialised */
+
+double timers_get_real_time(RTCLOCK *p)
+{
+    unsigned long h, l;
+    get_real_time(h, l)
+#if defined(HAVE_RDTSC) || defined(WIN32)
+    h -= p->starttime_real_high;
+    if (l < p->starttime_real_low) h--;
+    l -= p->starttime_real_low;
+    return (((double) ((long) h) * 4294967296.0 + (double) l)
+            * p->real_time_to_seconds_scale);
+#elif defined(__unix) || defined(SGI) || defined(LINUX)
+    return ((double) ((long) h - (long) p->starttime_real_high)
+            + ((double) ((long) l - (long) p->starttime_real_low) * 0.000001));
+#else
+    return ((double) ((long) (l - p->starttime_real_low)));
+#endif
+}
+
+/* return the elapsed CPU time (in seconds) since the specified timer */
+/* structure was initialised */
+
+double timers_get_CPU_time(RTCLOCK *p)
+{
+    unsigned long h, l;
+    get_CPU_time(h, l)
+    l -= p->starttime_CPU_low;
+    return ((double) l * p->CPU_time_to_seconds_scale);
+}
+
+/* return a 32-bit unsigned integer to be used as seed from current time */
+
+unsigned long timers_random_seed(void)
+{
+    unsigned long h, l;
+    get_real_time(h, l)
+#if !defined(HAVE_RDTSC) && (defined(__unix) || defined(SGI) || defined(LINUX))
+    /* make use of all bits */
+    l += (h & 0x00000FFFUL) * 1000000UL;
+#endif
+    return l;
+}
+
+/* -------- IV - Jan 27 2005: stub functions -------- */
+
+/**
+ * Allocate nbytes bytes of memory that can be accessed later by calling
+ * csoundQueryGlobalVariable() with the specified name; the space is
+ * cleared to zero.
+ * Returns zero on success, or a non-zero error code if the name is already
+ * in use or there is not enough memory.
+ */
+int csoundCreateGlobalVariable(void *csound, const char *name, size_t nbytes)
+{
+    return -1;
+}
+
+/**
+ * Get pointer to space allocated with the name "name".
+ * Returns NULL if the specified name is not defined.
+ */
+void *csoundQueryGlobalVariable(void *csound, const char *name)
+{
+    return NULL;
+}
+
+/**
+ * Free memory allocated for "name" and remove "name" from the database.
+ * Returns zero on success, or a non-zero error code if the name is
+ * not defined.
+ */
+int csoundDestroyGlobalVariable(void *csound, const char *name)
+{
+    return -1;
+}
 
 #ifdef __cplusplus
 };

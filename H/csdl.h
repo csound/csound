@@ -256,7 +256,7 @@
 #define SetRtcloseCallback csound->SetRtcloseCallback
 
 #define auxalloc csound->auxalloc_
-#define getstring csound->getstring_
+#define csoundLocalizeString csound->LocalizeString
 #define die csound->die_
 #define ftfind csound->ftfind_
 #define initerror csound->initerror_

@@ -42,7 +42,7 @@ int locsigset(ENVIRON *csound, LOCSIG *p)
     if (outcount != 2)
       if (outcount != 4) {
         sprintf(errmsg,
-                Str(X_542,"Wrong number of outputs in locsig; must be 2 or 4"));
+                Str("Wrong number of outputs in locsig; must be 2 or 4"));
         goto locerr;
       }
 
@@ -146,7 +146,7 @@ int locsendset(ENVIRON *csound, LOCSEND *p)
 
     if (p->OUTOCOUNT != q->OUTOCOUNT) {
       sprintf(errmsg,
-              Str(X_394,
+              Str(
                   "Number of outputs must be the same as the previous locsig;"));
       goto locerr;
     }

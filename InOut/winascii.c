@@ -48,7 +48,7 @@ void DrawAscii(WINDAT *wdptr)   /* display an n-pnt float array using */
     long     npts    = wdptr->npts;
     MYFLT    absmax  = wdptr->absmax;
 
-    printf(Str(X_75,"%s\t%ld points, scalemax %5.3f\n"),
+    printf(Str("%s\t%ld points, scalemax %5.3f\n"),
            wdptr->caption, npts, absmax);
     if (absmax) {                                /* for non-triv fn: */
         char    *s, *t;

@@ -104,7 +104,7 @@ int sndwarp(ENVIRON *csound, SNDWARP *p)
     MYFLT       iwsize = *p->iwsize;
 
     if (p->auxch.auxp==NULL) {
-      return perferror(Str(X_1193,"sndwarp: not initialised"));
+      return perferror(Str("sndwarp: not initialised"));
     }
     r1 = p->r1;
     r2 = p->r2;
@@ -150,7 +150,7 @@ int sndwarp(ENVIRON *csound, SNDWARP *p)
           if (p->prFlg) {
             p->prFlg = 0;   /* false */
             if (oparms_->msglevel & WARNMSG)
-              printf(Str(X_451,"WARNING: SNDWARP at last sample frame\n"));
+              printf(Str("WARNING: SNDWARP at last sample frame\n"));
           }
         }
         longphase = (long)exp->ampphs;
@@ -200,7 +200,7 @@ int sndwarpstgetset(ENVIRON *csound, SNDWARPST *p)
 
     if (p->OUTOCOUNT > 2 && p->OUTOCOUNT < 4) {
       sprintf(errmsg,
-              Str(X_543,"Wrong number of outputs in sndwarpst; must be 2 or 4"));
+              Str("Wrong number of outputs in sndwarpst; must be 2 or 4"));
       goto sndwerr;
     }
     nsections = (int)*p->ioverlap;
@@ -275,7 +275,7 @@ int sndwarpst(ENVIRON *csound, SNDWARPST *p)
     MYFLT       iwsize = *p->iwsize;
 
     if (p->auxch.auxp==NULL) {  /* RWD fix */
-      return perferror(Str(X_1194,"sndwarpst: not initialised"));
+      return perferror(Str("sndwarpst: not initialised"));
     }
     r1 = p->r1;
     r2 = p->r2;
@@ -330,7 +330,7 @@ int sndwarpst(ENVIRON *csound, SNDWARPST *p)
           if (p->prFlg) {
             p->prFlg = 0;   /* false */
             if (oparms_->msglevel & WARNMSG)
-              printf(Str(X_451,"WARNING: SNDWARP at last sample frame\n"));
+              printf(Str("WARNING: SNDWARP at last sample frame\n"));
           }
         }
         longphase = (long)exp->ampphs;

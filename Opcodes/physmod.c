@@ -118,7 +118,7 @@ int clarinset(ENVIRON *csound, CLARIN *p)
 
     if ((ftp = ftfind(csound, p->ifn)) != NULL) p->vibr = ftp;
     else {
-      return perferror(Str(X_376,"No table for Clarinet")); /* Expect sine wave */
+      return perferror(Str("No table for Clarinet")); /* Expect sine wave */
     }
     if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation */
       if (*p->lowestFreq)
@@ -126,7 +126,7 @@ int clarinset(ENVIRON *csound, CLARIN *p)
       else if (*p->frequency)
         p->length = (long) (esr / *p->frequency + FL(1.0));
       else {
-        err_printf(Str(X_362,"No base frequency for clarinet -- assuming 50Hz\n"));
+        err_printf(Str("No base frequency for clarinet -- assuming 50Hz\n"));
         p->length = (long) (esr / FL(50.0) + FL(1.0));
       }
       make_DLineL(csound, &p->delayLine, p->length);
@@ -272,7 +272,7 @@ int fluteset(ENVIRON *csound, FLUTE *p)
 
     if ((ftp = ftfind(csound, p->ifn)) != NULL) p->vibr = ftp;
     else {
-      return perferror(Str(X_378,"No table for Flute")); /* Expect sine wave */
+      return perferror(Str("No table for Flute")); /* Expect sine wave */
     }
     if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation?? */
       if (*p->lowestFreq!=FL(0.0))
@@ -280,7 +280,7 @@ int fluteset(ENVIRON *csound, FLUTE *p)
       else if (*p->frequency!=FL(0.0))
         length = (long) (esr / *p->frequency + FL(1.0));
       else {
-        err_printf(Str(X_363,"No base frequency for flute -- assumed to be 50Hz\n"));
+        err_printf(Str("No base frequency for flute -- assumed to be 50Hz\n"));
         length = (long) (esr / FL(50.0) + FL(1.0));
       }
       make_DLineL(csound, &p->boreDelay, length);
@@ -478,7 +478,7 @@ int bowedset(ENVIRON *csound, BOWED *p)
 
     if ((ftp = ftfind(csound, p->ifn)) != NULL) p->vibr = ftp;
     else {
-      return perferror(Str(X_386,"No table for wgbow vibrato")); /* Expect sine wave */
+      return perferror(Str("No table for wgbow vibrato")); /* Expect sine wave */
     }
     if (*p->lowestFreq>=FL(0.0)) {      /* If no init skip */
 /*        printf("Initialising lowest = %f\n", *p->lowestFreq); */
@@ -487,7 +487,7 @@ int bowedset(ENVIRON *csound, BOWED *p)
       else if (*p->frequency!=FL(0.0))
         length = (long) (esr / *p->frequency + FL(1.0));
       else {
-        err_printf(Str(X_512,"unknown lowest frequency for bowed string -- assuming 50Hz\n"));
+        err_printf(Str("unknown lowest frequency for bowed string -- assuming 50Hz\n"));
         length = (long) (esr / FL(50.0) + FL(1.0));
       }
       make_DLineL(csound, &p->neckDelay, length);
@@ -696,7 +696,7 @@ int DLineA_setDelay(ENVIRON *csound, DLineA *p, MYFLT lag)
     outputPointer = (MYFLT)p->inPoint - lag + FL(2.0);  /* outPoint chases inpoint        */
                                                     /*   + 2 for interp and other     */
     if (p->length<=0) {
-      return csound->perferror_(csound->getstring_(X_247,"DlineA not initialised"));
+      return csound->perferror_(csound->LocalizeString("DlineA not initialised"));
     }
     while (outputPointer<0)
         outputPointer += p->length;        /* modulo table length            */
@@ -775,7 +775,7 @@ int brassset(ENVIRON *csound, BRASS *p)
 
     if ((ftp = ftfind(csound, p->ifn)) != NULL) p->vibr = ftp;
     else {
-      return perferror(Str(X_375,"No table for Brass")); /* Expect sine wave */
+      return perferror(Str("No table for Brass")); /* Expect sine wave */
     }
     p->frq = *p->frequency;     /* Remember */
     if (*p->lowestFreq>=FL(0.0)) {
@@ -784,7 +784,7 @@ int brassset(ENVIRON *csound, BRASS *p)
       else if (p->frq!=FL(0.0))
         p->length = (long) (esr / p->frq + FL(1.0));
       else {
-        err_printf(Str(X_361,
+        err_printf(Str(
                        "No base frequency for brass -- assumed to be 50Hz\n"));
         p->length = (long) (esr / FL(50.0) + FL(1.0));
       }

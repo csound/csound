@@ -85,7 +85,7 @@ int ags(ENVIRON *csound, PGRA *p)               /*      Granular U.G. a-rate mai
 
                                 /* Pick up common values to locals for speed */
     if (p->aux.auxp==NULL) {
-      return perferror(Str(X_798,"grain: not initialised"));
+      return perferror(Str("grain: not initialised"));
     }
     gtp  = p->gftp;
     gtbl = gtp->ftable;

@@ -50,18 +50,18 @@ int clfiltset(ENVIRON *csound, CLFILT *p)
     cotfpi2 = cotfpi*cotfpi;
     p->ilohi = (int)*p->lohi;
     if ((p->ilohi < 0) || (p->ilohi > 1)) {
-      return initerror(Str(X_1705,
+      return initerror(Str(
                            "filter type not lowpass or highpass in clfilt"));
     }
     p->ikind = (int)*p->kind;
     if ((p->ikind < 0) || (p->ikind > 3)) {
-      sprintf(errmsg, Str(X_1706,"filter kind, %d, out of range in clfilt"),
+      sprintf(errmsg, Str("filter kind, %d, out of range in clfilt"),
               p->ikind);
       return initerror(errmsg);
     }
     if ((*p->npol < FL(1.0)) || (*p->npol > 2*CL_LIM)) {
       sprintf(errmsg,
-              Str(X_1707,"number of poles, %f, out of range in clfilt"),
+              Str("number of poles, %f, out of range in clfilt"),
               *p->npol);
       return initerror(errmsg);
 /*       p->nsec = nsec = 1; */
@@ -69,7 +69,7 @@ int clfiltset(ENVIRON *csound, CLFILT *p)
     else if (fmod((double)*p->npol,2.0) != 0.0) {
       p->nsec = nsec = (int)((*p->npol+FL(1.0))/FL(2.0));
       if (oparms_->msglevel & WARNMSG) {
-        printf(Str(X_1708,
+        printf(Str(
                    "WARNING: odd number of poles chosen in clfilt,"
                    " rounded to %d\n"),
               2*nsec);
@@ -98,7 +98,7 @@ int clfiltset(ENVIRON *csound, CLFILT *p)
         if ( pbr < FL(0.0) ) {
           pbr = -pbr;
           if (oparms_->msglevel & WARNMSG) {
-            printf(Str(X_1709,
+            printf(Str(
                         "WARNING: passband ripple must be positive "
                        "in clfilt. Set to %f\n"),
                     pbr);
@@ -107,7 +107,7 @@ int clfiltset(ENVIRON *csound, CLFILT *p)
         else if ( pbr == FL(0.0) ) {
           pbr = FL(1.0);
           if (oparms_->msglevel & WARNMSG) {
-            printf(Str(X_1710,
+            printf(Str(
                        "WARNING: passband ripple must be non-zero in "
                        "clfilt. Set to %f\n"),
                    pbr);
@@ -153,7 +153,7 @@ int clfiltset(ENVIRON *csound, CLFILT *p)
         else if ( sbr > FL(0.0) ) {
           sbr = -sbr;
           if (oparms_->msglevel & WARNMSG) {
-            printf(Str(X_1712,
+            printf(Str(
                        "WARNING: stopband attenuation must be negative "
                        "in clfilt. Set to %f\n"),
                     sbr);
@@ -162,7 +162,7 @@ int clfiltset(ENVIRON *csound, CLFILT *p)
         else if ( sbr == FL(0.0) ) {
           sbr = FL(-60.0);
           if (oparms_->msglevel & WARNMSG) {
-            printf(Str(X_1713,
+            printf(Str(
                        "WARNING: stopband attenuation must be non-zero "
                        "in clfilt. Set to %f\n"),
                    sbr);
@@ -188,11 +188,11 @@ int clfiltset(ENVIRON *csound, CLFILT *p)
                                 }
         break;
       case 3: /* Lowpass Elliptical */
-        return initerror(Str(X_99,
+        return initerror(Str(
                              "Lowpass Elliptical not implemented yet. Sorry!"));
         break;
       default: /* Because of earlier conditionals, should never get here. */
-        return initerror(Str(X_137,"code error, ikind out of range"));
+        return initerror(Str("code error, ikind out of range"));
       }
       break;
     case 1: /* Highpass filters */
@@ -216,7 +216,7 @@ int clfiltset(ENVIRON *csound, CLFILT *p)
         if ( pbr < FL(0.0) ) {
           pbr = -pbr;
           if (oparms_->msglevel & WARNMSG) {
-            printf(Str(X_1709,
+            printf(Str(
                        "WARNING: passband ripple must be positive in clfilt. "
                        "Set to %f\n"),
                     pbr);
@@ -225,7 +225,7 @@ int clfiltset(ENVIRON *csound, CLFILT *p)
         else if ( pbr == FL(0.0) ) {
           pbr = FL(1.0);
           if (oparms_->msglevel & WARNMSG) {
-            printf(Str(X_1710,
+            printf(Str(
                         "WARNING: passband ripple must be non-zero "
                        "in clfilt. Set to %f\n"),
                     pbr);
@@ -271,7 +271,7 @@ int clfiltset(ENVIRON *csound, CLFILT *p)
         else if ( sbr > FL(0.0) ) {
           sbr = -sbr;
           if (oparms_->msglevel & WARNMSG) {
-            printf(Str(X_1712,
+            printf(Str(
                        "WARNING: stopband attenuation must be negative "
                        "in clfilt. Set to %f\n"),
                    sbr);
@@ -280,7 +280,7 @@ int clfiltset(ENVIRON *csound, CLFILT *p)
         else if ( sbr == FL(0.0) ) {
           sbr = FL(-60.0);
           if (oparms_->msglevel & WARNMSG) {
-            printf(Str(X_13,
+            printf(Str(
                        "WARNING: stopband attenuation must be non-zero "
                        "in clfilt. Set to %f\n"),
                    sbr);
@@ -306,15 +306,15 @@ int clfiltset(ENVIRON *csound, CLFILT *p)
         }
         break;
       case 3: /* Highpass Elliptical */
-        return initerror(Str(X_174,
+        return initerror(Str(
                              "Highpass Elliptical not implemented yet. Sorry!"));
         break;
       default: /* Because of earlier conditionals, should never get here. */
-        return initerror(Str(X_137,"code error, ikind out of range"));
+        return initerror(Str("code error, ikind out of range"));
       }
       break;
     default: /* Because of earlier conditionals, should never get here. */
-      return initerror(Str(X_175,"code error, ihilo out of range"));
+      return initerror(Str("code error, ihilo out of range"));
     }
     if (*p->reinit==FL(0.0)) {      /* Only reset in in non-legato mode */
       for (m=0;m<=nsec-1;m++) {
@@ -376,11 +376,11 @@ int clfilt(ENVIRON *csound, CLFILT *p)
           }
           break;
         case 3: /* Lowpass Elliptical */
-          return perferror(Str(X_176,
+          return perferror(Str(
                                "Lowpass Elliptical not implemented yet. Sorry!"));
           break;
         default: /* Because of earlier contditionals, should never get here. */
-          return perferror(Str(X_137,"code error, ikind out of range"));
+          return perferror(Str("code error, ikind out of range"));
         }
         break;
       case 1: /* Highpass filters */
@@ -412,15 +412,15 @@ int clfilt(ENVIRON *csound, CLFILT *p)
           }
           break;
         case 3: /* Highpass Elliptical */
-          return perferror(Str(X_177,
+          return perferror(Str(
                                "Highpass Elliptical not implemented yet. Sorry!"));
           break;
         default: /* Because of earlier contditionals, should never get here. */
-          return perferror(Str(X_137,"code error, ikind out of range"));
+          return perferror(Str("code error, ikind out of range"));
         }
         break;
       default: /* Because of earlier conditionals, should never get here. */
-        return perferror(Str(X_175,"code error, ihilo out of range"));
+        return perferror(Str("code error, ihilo out of range"));
       }
     }
     n    = ksmps;

@@ -38,7 +38,7 @@ int ipow(ENVIRON *csound, POW *p)               /*      Power for i-rate */
     MYFLT in = *p->in;
     MYFLT powerOf = *p->powerOf;
     if (in == FL(0.0) && powerOf == FL(0.0))
-      return perferror(Str(X_1796,"NaN in pow\n"));
+      return perferror(Str("NaN in pow\n"));
     else
       *p->sr = (MYFLT)pow((double)in, (double)powerOf) / *p->norm;
     return OK;
@@ -54,7 +54,7 @@ int apow(ENVIRON *csound, POW *p)               /*      Power routine for a-rate
       do {
         MYFLT xx = *in++;
         if (xx == FL(0.0)) {
-          return perferror(Str(X_1796,"NaN in pow\n"));
+          return perferror(Str("NaN in pow\n"));
         }
         else
           *out++ = FL(1.0) / *p->norm;
@@ -74,11 +74,11 @@ int seedrand(ENVIRON *csound, PRAND *p)
 {
     if ((unsigned int)*p->out == 0) {
       holdrand = time(NULL);
-      printf(Str(X_458,"Seeding from current time %d\n"), holdrand);
+      printf(Str("Seeding from current time %d\n"), holdrand);
       srand((unsigned int)holdrand);
     }
     else {
-      printf(Str(X_459,"Seeding with %.3f\n"), *p->out);
+      printf(Str("Seeding with %.3f\n"), *p->out);
       srand((unsigned int)(holdrand = (int)*p->out));
     }
     return OK;

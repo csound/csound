@@ -99,7 +99,7 @@ int ktableseg(ENVIRON *csound, TABLESEG *p)
 
     /* RWD fix */
     if (p->auxch.auxp==NULL) {
-      return perferror(Str(X_1270,"tableseg: not initialised"));
+      return perferror(Str("tableseg: not initialised"));
     }
     segp = p->cursegp;
     curtab = segp->function->ftable;
@@ -130,7 +130,7 @@ int ktablexseg(ENVIRON *csound, TABLESEG *p)
 
     /* RWD fix */
     if (p->auxch.auxp==NULL) {
-      return perferror(Str(X_1271,"tablexseg: not initialised"));
+      return perferror(Str("tablexseg: not initialised"));
     }
     segp = p->cursegp;
     curtab = segp->function->ftable;
@@ -168,7 +168,7 @@ int voscili(ENVIRON *csound, VOSC *p)
 
     /* RWD fix */
     if (q->auxch.auxp==NULL) {
-      return perferror(Str(X_1373,"voscili: not initialised"));
+      return perferror(Str("voscili: not initialised"));
     }
     ftp = q->outfunc;
     ftab = ftp->ftable;
@@ -220,7 +220,7 @@ int vpvset(ENVIRON *csound, VPVOC *p)
       p->tableseg = (TABLESEG*) p->auxtab.auxp;
       if ((p->tableseg->outfunc = ftfind(csound, p->isegtab)) == NULL) {
         sprintf(errmsg,
-                Str(X_1517,"vpvoc: Could not find ifnmagctrl table %f\n"),
+                Str("vpvoc: Could not find ifnmagctrl table %f\n"),
                 *p->isegtab);
         return initerror(errmsg);
       }
@@ -251,12 +251,12 @@ int vpvset(ENVIRON *csound, VPVOC *p)
     if ((mfp = p->mfp) == NULL
       || strcmp(mfp->filename, pvfilnam) != 0) /* if file not already readin */
         if ( (mfp = ldmemfile(pvfilnam)) == NULL) {
-            sprintf(errmsg,Str(X_411,"PVOC cannot load %s"), pvfilnam);
+            sprintf(errmsg,Str("PVOC cannot load %s"), pvfilnam);
             goto pverr;
         }
     pvh = (PVSTRUCT *)mfp->beginp;
     if (pvh->magic != PVMAGIC) {
-        sprintf(errmsg,Str(X_60,"%s not a PVOC file (magic %ld)"),
+        sprintf(errmsg,Str("%s not a PVOC file (magic %ld)"),
                 pvfilnam, pvh->magic );
         goto pverr;
     }
@@ -265,26 +265,26 @@ int vpvset(ENVIRON *csound, VPVOC *p)
     chans    = pvh->channels;
     if ((p->asr = pvh->samplingRate) != esr &&
         (O.msglevel & WARNMSG)) { /* & chk the data */
-      printf(Str(X_63,"WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
+      printf(Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
              pvfilnam, p->asr, esr);
     }
     if (pvh->dataFormat != PVMYFLT) {
-      sprintf(errmsg,Str(X_1359,"unsupported PVOC data format %ld in %s"),
+      sprintf(errmsg,Str("unsupported PVOC data format %ld in %s"),
               pvh->dataFormat, pvfilnam);
       goto pverr;
     }
     if (p->frSiz > PVFRAMSIZE) {
-      sprintf(errmsg,Str(X_413,"PVOC frame %d bigger than %ld in %s"),
+      sprintf(errmsg,Str("PVOC frame %d bigger than %ld in %s"),
               p->frSiz, PVFRAMSIZE, pvfilnam);
       goto pverr;
     }
     if (p->frSiz < PVFRAMSIZE/8) {
-      sprintf(errmsg,Str(X_414,"PVOC frame %ld seems too small in %s"),
+      sprintf(errmsg,Str("PVOC frame %ld seems too small in %s"),
               p->frSiz, pvfilnam);
       goto pverr;
     }
     if (chans != 1) {
-      sprintf(errmsg,Str(X_32,"%d chans (not 1) in PVOC file %s"),
+      sprintf(errmsg,Str("%d chans (not 1) in PVOC file %s"),
               chans, pvfilnam);
       goto pverr;
     }
@@ -312,7 +312,7 @@ int vpvset(ENVIRON *csound, VPVOC *p)
         p->lastPhase[i] = FL(0.0);
     }
     if ( (OPWLEN/2 + 1)>PVWINLEN ) {
-        sprintf(errmsg, Str(X_960,"ksmps of %d needs wdw of %d, max is %d for pv %s\n"),
+        sprintf(errmsg, Str("ksmps of %d needs wdw of %d, max is %d for pv %s\n"),
                 ksmps, (OPWLEN/2 + 1), PVWINLEN, pvfilnam);
         goto pverr;
     }
@@ -351,7 +351,7 @@ int vpvoc(ENVIRON *csound, VPVOC *p)
 
     /* RWD fix */
     if (p->auxch.auxp==NULL) {
-      return perferror(Str(X_1374,"vpvoc: not initialised"));
+      return perferror(Str("vpvoc: not initialised"));
     }
 
 /*     if (pdebug) { printf("<%7.4f>",*p->ktimpnt); fflush(stdout); } */
@@ -360,21 +360,21 @@ int vpvoc(ENVIRON *csound, VPVOC *p)
     /* use outlen to check window/krate/transpose combinations */
     if (outlen>PVFFTSIZE) { /* Maximum transposition down is one octave */
                             /* ..so we won't run into buf2Size problems */
-      return perferror(Str(X_418,"PVOC transpose too low"));
+      return perferror(Str("PVOC transpose too low"));
     }
     if (outlen<2*ksmps) {   /* minimum post-squeeze windowlength */
-      return perferror(Str(X_417,"PVOC transpose too high"));
+      return perferror(Str("PVOC transpose too high"));
     }
     buf2Size = OPWLEN;     /* always window to same length after DS */
     if ((frIndx = *p->ktimpnt * p->frPrtim) < 0) {
-      return perferror(Str(X_416,"PVOC timpnt < 0"));
+      return perferror(Str("PVOC timpnt < 0"));
     }
     if (frIndx > (MYFLT)p->maxFr) { /* not past last one */
       frIndx = (MYFLT)p->maxFr;
       if (p->prFlg) {
         p->prFlg = 0;   /* false */
         if (O.msglevel & WARNMSG)
-          printf(Str(X_415,"WARNING: PVOC ktimpnt truncated to last frame\n"));
+          printf(Str("WARNING: PVOC ktimpnt truncated to last frame\n"));
       }
     }
     FetchIn(p->frPtr,buf,size,frIndx);
@@ -394,7 +394,7 @@ int vpvoc(ENVIRON *csound, VPVOC *p)
     /**/
     if ( specwp == 0 || (p->prFlg)++ == -(int)specwp) { /* ?screws up when prFlg used */
       /* specwp=0 => normal; specwp = -n => just nth frame */
-      if (specwp<0) printf(Str(X_412,"PVOC debug : one frame gets through \n"));
+      if (specwp<0) printf(Str("PVOC debug : one frame gets through \n"));
       if (specwp>0)
         PreWarpSpec(buf, asize, pex);
       Polar2Rect(buf,size);

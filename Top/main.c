@@ -27,6 +27,7 @@
 #include "cs.h"                 /*                               MAIN.C */
 #include "soundio.h"
 #include "prototyp.h"
+#include "csound.h"
 #include <ctype.h>              /* For isdigit */
 
 #ifdef mills_macintosh
@@ -65,7 +66,6 @@ extern  ENVIRON cenviron;
 extern int argdecode(int, char**, char**, char*);
 extern void init_pvsys(void);
 extern int csoundYield(void *);
-extern void csoundReset(ENVIRON*);
 
 #include <signal.h>
 
@@ -307,7 +307,6 @@ void create_opcodlst(void *csound)
 {
     extern OENTRY opcodlst_1[], opcodlst_2[];
     extern long oplength_1, oplength_2;
-    extern void csoundLoadExternals(void*);
     long length = 0;
 
     /* Basic Entry1 stuff */
@@ -398,7 +397,7 @@ int csoundCompile(void *csound, int argc, char **argv)
           O.filetyp = TYP_IRCAM;
         else {
           sprintf(errmsg,
-                  Str(X_61,"%s not a recognised SFOUTYP env setting"),
+                  Str("%s not a recognised SFOUTYP env setting"),
                   envoutyp);
           dieu(errmsg);
         }
@@ -416,7 +415,7 @@ int csoundCompile(void *csound, int argc, char **argv)
       }
     }
     if (--argc == 0) {
-      dieu(Str(X_939,"insufficient arguments"));
+      dieu(Str("insufficient arguments"));
     }
     if (argdecode(argc, argv, &filnamp, envoutyp)==0) {
 #ifndef mills_macintosh
@@ -427,14 +426,14 @@ int csoundCompile(void *csound, int argc, char **argv)
     }
 
     if (orchname == NULL)
-      dieu(Str(X_1051,"no orchestra name"));
+      dieu(Str("no orchestra name"));
     else if ((strcmp(orchname+strlen(orchname)-4, ".csd")==0 ||
               strcmp(orchname+strlen(orchname)-4, ".CSD")==0) &&
              (scorename==NULL || strlen(scorename)==0)) {
       int read_unified_file(char **, char **);
       err_printf("UnifiedCSD:  %s\n", orchname);
       if (!read_unified_file(&orchname, &scorename)) {
-        err_printf(Str(X_240,"Decode failed....stopping\n"));
+        err_printf(Str("Decode failed....stopping\n"));
         longjmp(cenviron.exitjmp_,1);
       }
     }
@@ -457,14 +456,14 @@ int csoundCompile(void *csound, int argc, char **argv)
     if (O.RTevents || O.sfread)
       O.ksensing = 1;
     if (O.rewrt_hdr && !O.sfheader)
-      dieu(Str(X_628,"cannot rewrite header if no header requested"));
+      dieu(Str("cannot rewrite header if no header requested"));
     if (O.sr_override || O.kr_override) {
       long ksmpsover;
       if (!O.sr_override || !O.kr_override)
-        dieu(Str(X_1231,"srate and krate overrides must occur jointly"));
+        dieu(Str("srate and krate overrides must occur jointly"));
       ksmpsover = O.sr_override / O.kr_override;
       if (ksmpsover * O.kr_override != O.sr_override)
-        dieu(Str(X_666,"command-line srate / krate not integral"));
+        dieu(Str("command-line srate / krate not integral"));
     }
     if (!O.outformat)                       /* if no audioformat yet  */
       O.outformat = AE_SHORT;             /*  default to short_ints */
@@ -474,7 +473,7 @@ int csoundCompile(void *csound, int argc, char **argv)
     if (O.filetyp == TYP_AIFF ||
         O.filetyp == TYP_WAV) {
       if (!O.sfheader)
-        dieu(Str(X_629,"cannot write AIFF/WAV soundfile with no header"));
+        dieu(Str("cannot write AIFF/WAV soundfile with no header"));
       /* WAVE format supports only unsigned bytes for 1- to 8-bit
          samples and signed short integers for 9 to 16-bit samples.
          -- Jonathan Mohr  1995 Oct 17  */
@@ -489,15 +488,15 @@ int csoundCompile(void *csound, int argc, char **argv)
            O.outformat == AE_FLOAT
 #endif
            ))
-        printf(Str(X_525,"WARNING: %s encoding information cannot\n"
+        printf(Str("WARNING: %s encoding information cannot\n"
                    "be contained in the header...\n"),
                getstrformat(O.outformat));
     }
-    err_printf(Str(X_1100,"orchname:  %s\n"), orchname);
+    err_printf(Str("orchname:  %s\n"), orchname);
     if (scorename != NULL)
-      err_printf(Str(X_1179,"scorename: %s\n"), scorename);
+      err_printf(Str("scorename: %s\n"), scorename);
     if (xfilename != NULL)
-      err_printf(Str(X_1386,"xfilename: %s\n"), xfilename);
+      err_printf(Str("xfilename: %s\n"), xfilename);
 #if defined(WIN32) || defined(__EMX__)
     {
       if (O.odebug) setvbuf(stdout,0,_IOLBF,0xff);
@@ -516,7 +515,7 @@ int csoundCompile(void *csound, int argc, char **argv)
     /* IV - Oct 31 2002: now we can read and sort the score */
     if (scorename == NULL || scorename[0]=='\0') {
       if (O.RTevents) {
-        err_printf(Str(X_1153,
+        err_printf(Str(
                        "realtime performance using dummy "
                        "numeric scorefile\n"));
         goto perf;
@@ -547,7 +546,7 @@ int csoundCompile(void *csound, int argc, char **argv)
     if ((n = strlen(scorename)) > 4            /* if score ?.srt or ?.xtr */
         && (!strcmp(scorename+n-4,".srt") ||
             !strcmp(scorename+n-4,".xtr"))) {
-      err_printf(Str(X_1362,"using previous %s\n"),scorename);
+      err_printf(Str("using previous %s\n"),scorename);
       playscore = sortedscore = scorename;            /*   use that one */
     }
     else {
@@ -559,30 +558,30 @@ int csoundCompile(void *csound, int argc, char **argv)
         add_tmpfile(playscore);         /* IV - Oct 31 2002 */
       }
       if (!(scorin = fopen(scorename, "r")))          /* else sort it   */
-        dies(Str(X_646,"cannot open scorefile %s"), scorename);
+        dies(Str("cannot open scorefile %s"), scorename);
       if (!(scorout = fopen(sortedscore, "w")))
-        dies(Str(X_639,"cannot open %s for writing"), sortedscore);
-      err_printf(Str(X_1197,"sorting score ...\n"));
+        dies(Str("cannot open %s for writing"), sortedscore);
+      err_printf(Str("sorting score ...\n"));
       scsort(scorin, scorout);
       fclose(scorin);
       fclose(scorout);
     }
     if (xfilename != NULL) {                        /* optionally extract */
       if (!strcmp(scorename,"score.xtr"))
-        dies(Str(X_634,"cannot extract %s, name conflict"),scorename);
+        dies(Str("cannot extract %s, name conflict"),scorename);
       if (!(xfile = fopen(xfilename, "r")))
-        dies(Str(X_644,"cannot open extract file %s"), xfilename);
+        dies(Str("cannot open extract file %s"), xfilename);
       if (!(scorin = fopen(sortedscore, "r")))
-        dies(Str(X_649,"cannot reopen %s"), sortedscore);
+        dies(Str("cannot reopen %s"), sortedscore);
       if (!(scorout = fopen(xtractedscore, "w")))
-        dies(Str(X_639,"cannot open %s for writing"), xtractedscore);
-      err_printf(Str(X_10,"  ... extracting ...\n"));
+        dies(Str("cannot open %s for writing"), xtractedscore);
+      err_printf(Str("  ... extracting ...\n"));
       scxtract(scorin, scorout, xfile);
       fclose(scorin);
       fclose(scorout);
       playscore = xtractedscore;
     }
-    err_printf(Str(X_564,"\t... done\n"));
+    err_printf(Str("\t... done\n"));
     s = playscore;
     O.playscore = filnamp;
     while ((*filnamp++ = *s++));    /* copy sorted score name */

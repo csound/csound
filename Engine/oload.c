@@ -27,103 +27,13 @@
 #include "midiops.h"
 #include "insert.h"
 #include "ftgen.h"
+#include "csound.h"
 
 #define DKEY_DFLT  60
 
-void *csoundCreate(void *);
-int csoundQueryInterface(const char *, void **, int *);
-void csoundDestroy(void *);
-int csoundGetVersion(void);
 int csoundGetAPIVersion(void);
-void *csoundGetHostData(void *);
-void csoundSetHostData(void *, void *);
-int csoundPerform(void *, int, char **);
-int csoundCompile(void *, int, char **);
-int csoundPerformKsmps(void *);
-int csoundPerformKsmpsAbsolute(void *);
-int csoundPerformBuffer(void *);
-void csoundCleanup(void *);
-void csoundReset(void *);
-MYFLT csoundGetSr(void *);
-MYFLT csoundGetKr(void *);
-int csoundGetKsmps(void *);
-int csoundGetNchnls(void *);
-int csoundGetSampleFormat(void *);
-int csoundGetSampleSize(void *);
-long csoundGetInputBufferSize(void *);
-long csoundGetOutputBufferSize(void *);
-void *csoundGetInputBuffer(void *);
-void *csoundGetOutputBuffer(void *);
-MYFLT *csoundGetSpin(void *);
-MYFLT *csoundGetSpout(void *);
-MYFLT csoundGetScoreTime(void *);
-MYFLT csoundGetProgress(void *);
-MYFLT csoundGetProfile(void *);
-MYFLT csoundGetCpuUsage(void *);
-int csoundIsScorePending(void *);
-void csoundSetScorePending(void *, int);
-MYFLT csoundGetScoreOffsetSeconds(void *);
-void csoundSetScoreOffsetSeconds(void *, MYFLT);
-void csoundRewindScore(void *);
-void csoundMessage(void *, const char *, ...);
-void csoundMessageV(void *, const char *, va_list);
-void csoundPrintf(const char *format, ...);
-void csoundThrowMessage(void *, const char *, ...);
-void csoundThrowMessageV(void *, const char *, va_list);
-void csoundSetMessageCallback(void *, void (*)(void *, const char *, va_list));
-void csoundSetThrowMessageCallback(void *,
-                                   void (*)(void *, const char *, va_list));
-int csoundGetMessageLevel(void *);
-void csoundSetMessageLevel(void *, int);
-void csoundInputMessage(void *, const char *);
-void csoundKeyPress(void *, char);
-void csoundSetInputValueCallback(void *, void (*)(void *, char *, MYFLT *));
-void csoundSetOutputValueCallback(void *, void (*)(void *, char *, MYFLT));
-void csoundScoreEvent(void *, char, MYFLT *, long);
-void csoundSetExternalMidiDeviceOpenCallback(void *, void (*)(void *));
-#ifdef PORTMIDI
-void csoundSetExternalMidiReadCallback(void *,
-                                       int (*)(void *, void *, int));
-void csoundSetExternalMidiWriteCallback(void *, int (*)(void *, void *));
-#else
-void csoundSetExternalMidiReadCallback(void *,
-                                       int (*)(void *, unsigned char *, int));
-void csoundSetExternalMidiWriteCallback(void *, int (*)(void *, unsigned char *));
-#endif
-void csoundSetExternalMidiDeviceCloseCallback(void *, void (*)(void *));
-int csoundIsExternalMidiEnabled(void *);
-void csoundSetExternalMidiEnabled(void *, int);
-void csoundSetIsGraphable(void *, int);
-void csoundSetMakeGraphCallback(void *, void (*)(void *, WINDAT *, char *));
-void csoundSetDrawGraphCallback(void *, void (*)(void *, WINDAT *));
-void csoundSetKillGraphCallback(void *, void (*)(void *, WINDAT *windat));
-void csoundSetExitGraphCallback(void *, int (*)(void *));
-opcodelist *csoundNewOpcodeList(void);
-void csoundDisposeOpcodeList(opcodelist *);
-int csoundAppendOpcode(char *, int, int, char *, char *, int (*)(void *),
-                       int (*)(void *), int (*)(void *), int (*)(void *));
-int csoundLoadExternal(void *, const char *);
-int csoundLoadExternals(void *);
-void *csoundOpenLibrary(const char *);
-void *csoundCloseLibrary(void *);
-void *csoundGetLibrarySymbol(void *, const char *);
-void csoundSetYieldCallback(void *, int (*)(void *));
-void csoundSetEnv(void *, const char *, const char *);
-void csoundSetPlayopenCallback(void *, void (*)(int, int, float, int));
-void csoundSetRtplayCallback(void *, void (*)(char *, int));
-void csoundSetRecopenCallback(void *, void (*)(int, int, float, int));
-void csoundSetRtrecordCallback(void *, int (*)(char *, int));
-void csoundSetRtcloseCallback(void *, void (*)(void));
-int csoundGetDebug(void *);
-void csoundSetDebug(void *,int);
-int csoundTableLength(void *csound, int table);
-MYFLT csoundTableGet(void *csound, int table, int index);
-void csoundTableSet(void *csound, int table, int index, MYFLT value);
-void csoundSetFLTKThreadLocking(void *csound, int isLocking);
-int csoundGetFLTKThreadLocking(void *csound);
 
 void auxalloc(long, AUXCH*);
-char *getstring(int, char*);
 void die(char *);
 FUNC *ftfind(ENVIRON *,MYFLT *);
 int initerror(char *);
@@ -231,7 +141,6 @@ ENVIRON cenviron_ = {
         csoundSetRtrecordCallback,
         csoundSetRtcloseCallback,
         auxalloc,
-        getstring,
         die,
         ftfind,
         initerror,
@@ -289,6 +198,15 @@ ENVIRON cenviron_ = {
         csoundTableSet,
         csoundSetFLTKThreadLocking,
         csoundGetFLTKThreadLocking,
+        /* IV - Jan 27 2005: new functions */
+        timers_struct_init,
+        timers_get_real_time,
+        timers_get_CPU_time,
+        timers_random_seed,
+        csoundLocalizeString,
+        csoundCreateGlobalVariable,
+        csoundQueryGlobalVariable,
+        csoundDestroyGlobalVariable,
         /*
         * Data fields.
         */
@@ -679,7 +597,7 @@ void oload(ENVIRON *csound)
       die(Str("header init errors"));
     /* IV - Feb 18 2003 */
     {
-#ifdef MYFLT_IS_FLOAT
+#ifndef USE_DOUBLE
       double    max_err = 1.0e-6;
 #else
       double    max_err = 1.0e-12;

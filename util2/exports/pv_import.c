@@ -55,12 +55,12 @@ int main(int argc, char **argv)
       usage(argc);
     inf = fopen(argv[1], "rb");
     if (inf == NULL) {
-      fprintf(stderr, Str(X_214,"Cannot open input file %s\n"), argv[1]);
+      fprintf(stderr, Str("Cannot open input file %s\n"), argv[1]);
       exit(1);
     }
     outf = fopen(argv[2], "w");
     if (inf == NULL) {
-      fprintf(stderr, Str(X_215,"Cannot open output file %s\n"), argv[2]);
+      fprintf(stderr, Str("Cannot open output file %s\n"), argv[2]);
       exit(1);
     }
     fscanf(inf,
@@ -87,7 +87,7 @@ int main(int argc, char **argv)
         char term;
         MYFLT data = getnum(inf, &term);
         fwrite(&data, (size_t)1, (size_t)sizeof(MYFLT),outf);
-        if (term!=',' && term!='\n') fprintf(stderr, Str(X_473,"Sync error\n"));
+        if (term!=',' && term!='\n') fprintf(stderr, Str("Sync error\n"));
       }
     }
     fclose(inf);
@@ -108,7 +108,7 @@ MYFLT getnum(FILE* inf, char *term)
 
 void usage(int argc)
 {
-    fprintf(stderr, Str(X_1139,"pv_export usage: pvfile commafile\n"));
+    fprintf(stderr, Str("pv_export usage: pvfile commafile\n"));
     fprintf(stderr, "argc=%d\n", argc);
     exit(1);
 }

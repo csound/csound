@@ -113,7 +113,7 @@ void swrite(void)
       putc(LF,SCOREOUT);
       break;
     default:
-      err_printf(Str(X_1261,"swrite: unexpected opcode, section %d line %d\n"),
+      err_printf(Str("swrite: unexpected opcode, section %d line %d\n"),
                  sectcnt,lincnt);
       break;
     }
@@ -136,7 +136,7 @@ static char *pfout(SRTBLK *bp, char *p)
       break;
     case '{':
     case '}':
-      printf(Str(X_242,"Deprecated -- use round brackets instead of curly\n"));
+      printf(Str("Deprecated -- use round brackets instead of curly\n"));
     case '(':
     case ')':
       p = expramp(bp,p);
@@ -202,7 +202,7 @@ static char *nextp(SRTBLK *bp, char *p)
     }
     else {
     error:
-      err_printf(Str(X_1259,
+      err_printf(Str(
                      "swrite: output, sect%d line%d p%d makes"
                      " illegal reference to "),
                  sectcnt,lincnt,pcnt);
@@ -210,7 +210,7 @@ static char *nextp(SRTBLK *bp, char *p)
         err_printf("%c", *q++);
       while (*p != SP && *p != LF)
         err_printf("%c", *p++);
-      err_printf(Str(X_5,"   Zero substituted\n"));
+      err_printf(Str("   Zero substituted\n"));
       putc('0',SCOREOUT);
     }
     return(p);
@@ -243,14 +243,14 @@ static char *prevp(SRTBLK *bp, char *p)
     else {
     error:
       err_printf(
-            Str(X_1259,
+            Str(
                 "swrite: output, sect%d line%d p%d makes illegal reference to "),
             sectcnt,lincnt,pcnt);
       while (q < p)
         err_printf("%c", *q++);
       while (*p != SP && *p != LF)
         err_printf("%c", *p++);
-      err_printf(Str(X_5,"   Zero substituted\n"));
+      err_printf(Str("   Zero substituted\n"));
       putc('0',SCOREOUT);
     }
     return(p);
@@ -307,12 +307,12 @@ extern  MYFLT stof(char*);
     return(psav);
 
  error1:
-    err_printf(Str(X_1257,
+    err_printf(Str(
                    "swrite: output, sect%d line%d p%d has illegal ramp symbol\n"),
                sectcnt,lincnt,pcnt);
     goto put0;
  error2:
-    err_printf(Str(X_1260,
+    err_printf(Str(
       "swrite: output, sect%d line%d p%d ramp has illegal"
                    " forward or backward ref\n"),
                sectcnt,lincnt,pcnt);
@@ -376,13 +376,13 @@ static char *expramp(SRTBLK *bp, char *p) /* NB np's may reference a ramp  */
     return(psav);
 
  error1:
-    err_printf(Str(X_1255,
+    err_printf(Str(
                    "swrite: output, sect%d line%d p%d has illegal"
                    " expramp symbol\n"),
                sectcnt,lincnt,pcnt);
     goto put0;
  error2:
-    err_printf(Str(X_1254,"swrite: output, sect%d line%d p%d expramp has illegal "
+    err_printf(Str("swrite: output, sect%d line%d p%d expramp has illegal "
                "forward or backward ref\n"),
                sectcnt,lincnt,pcnt);
  put0:
@@ -440,13 +440,13 @@ static char *randramp(SRTBLK *bp, char *p) /* NB np's may reference a ramp  */
     return(psav);
 
  error1:
-    err_printf(Str(X_1255,
+    err_printf(Str(
                    "swrite: output, sect%d line%d p%d has illegal"
                    " expramp symbol\n"),
                sectcnt,lincnt,pcnt);
     goto put0;
  error2:
-    err_printf(Str(X_1254,"swrite: output, sect%d line%d p%d expramp has illegal "
+    err_printf(Str("swrite: output, sect%d line%d p%d expramp has illegal "
                "forward or backward ref\n"),
                sectcnt,lincnt,pcnt);
  put0:
@@ -463,7 +463,7 @@ static char *pfStr(char *p)     /*   moves quoted ascii string to SCOREOUT file 
       putc(*p++,SCOREOUT);
     putc(*p++,SCOREOUT);
     if (*p != SP && *p != LF) {
-      err_printf(Str(X_1258,
+      err_printf(Str(
                      "swrite: output, sect%d line%d p%d has illegally"
                      " terminated string   "),
                  sectcnt,lincnt,pcnt);
@@ -511,14 +511,14 @@ static char *fpnum(char *p)     /*   moves ascii string to SCOREOUT file */
       }
     }
     if ((*p != SP && *p != LF) || !dcnt) {
-      err_printf(Str(X_1256,
+      err_printf(Str(
                      "swrite: output, sect%d line%d p%d has illegal number  "),
                  sectcnt,lincnt,pcnt);
       while (q < p)
         err_printf("%c", *q++);
       while (*p != SP && *p != LF)
         err_printf("%c", *p++);
-      err_printf(Str(X_4,"    String truncated\n"));
+      err_printf(Str("    String truncated\n"));
       if (!dcnt)
         putc('0',SCOREOUT);
     }

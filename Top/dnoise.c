@@ -247,7 +247,7 @@ int dnoise(int argc, char **argv)
         O.filetyp = TYP_IRCAM;
       else {
         sprintf(errmsg,
-                Str(X_61,"%s not a recognised SFOUTYP env setting"),
+                Str("%s not a recognised SFOUTYP env setting"),
                 envoutyp);
         dieu(errmsg);
       }
@@ -264,19 +264,19 @@ int dnoise(int argc, char **argv)
               while (*++s);
               break;
             case 'o':
-              FIND(Str(X_1052,"no outfilename"));
+              FIND(Str("no outfilename"));
                 O.outfilename = outfile;            /* soundout name */
               while ((*outfile++ = *s++)); s--;
               if (strcmp(O.outfilename,"stdin") == 0)
-                die(Str(X_156,"-o cannot be stdin"));
+                die(Str("-o cannot be stdin"));
               if (strcmp(O.outfilename,"stdout") == 0) {
                 if ((O.stdoutfd = dup(1)) < 0) /* redefine stdout */
-                  die(Str(X_1290,"too many open files"));
+                  die(Str("too many open files"));
                 dup2(2,1);                /* & send 1's to stderr */
               }
               break;
             case 'i':
-              FIND(Str(X_1016,"no noisefilename"));
+              FIND(Str("no noisefilename"));
               {
                 char *nn = nfile;
                 while ((*nn++ = *s++)); s--;
@@ -286,7 +286,7 @@ int dnoise(int argc, char **argv)
               if (O.filetyp == TYP_WAV) {
                 if (envoutyp == NULL) goto outtyp;
                 if (O.msglevel & WARNMSG)
-                  printf(Str(X_95,
+                  printf(Str(
                              "WARNING: -A overriding local default WAV out\n"));
               }
               O.filetyp = TYP_AIFF;     /* AIFF output request*/
@@ -296,7 +296,7 @@ int dnoise(int argc, char **argv)
                   O.filetyp == TYP_WAV) {
                 if (envoutyp == NULL) goto outtyp;
                 if (O.msglevel & WARNMSG)
-                  printf(Str(X_110,
+                  printf(Str(
                              "WARNING: -J overriding local default "
                              "AIFF/WAV out\n"));
               }
@@ -306,7 +306,7 @@ int dnoise(int argc, char **argv)
               if (O.filetyp == TYP_AIFF) {
                 if (envoutyp == NULL) goto outtyp;
                 if (O.msglevel & WARNMSG)
-                  printf(Str(X_131,
+                  printf(Str(
                              "WARNING: -W overriding local default AIFF out\n"));
               }
               O.filetyp = TYP_WAV;      /* WAV output request */
@@ -456,35 +456,35 @@ int dnoise(int argc, char **argv)
       exit(1);
     }
     if ((inf = SAsndgetset(infile,&p,&beg_time,&input_dur,&sr,channel))<0) {
-      err_printf(Str(X_735,"error while opening %s"), infile);
+      err_printf(Str("error while opening %s"), infile);
       exit(1);
     }
     if (O.outformat == 0) O.outformat = p->format;
     O.sfsampsize = sfsampsize(O.outformat);
     if (O.filetyp == TYP_AIFF) {
       if (!O.sfheader)
-        die(Str(X_640,"cannot write AIFF soundfile with no header"));
+        die(Str("cannot write AIFF soundfile with no header"));
       if (O.outformat == AE_ALAW ||
           O.outformat == AE_ULAW ||
           O.outformat == AE_FLOAT) {
-        sprintf(errmsg,Str(X_180,"AIFF does not support %s encoding"),
+        sprintf(errmsg,Str("AIFF does not support %s encoding"),
                 getstrformat(O.outformat));
         die(errmsg);
       }
     }
     if (O.filetyp == TYP_WAV) {
       if (!O.sfheader)
-        die(Str(X_338,"cannot write WAV soundfile with no header"));
+        die(Str("cannot write WAV soundfile with no header"));
       if (O.outformat == AE_ALAW ||
           O.outformat == AE_ULAW ||
           O.outformat == AE_FLOAT) {
-        sprintf(errmsg,Str(X_181,"WAV does not support %s encoding"),
+        sprintf(errmsg,Str("WAV does not support %s encoding"),
                 getstrformat(O.outformat));
         die(errmsg);
       }
     }
     if (O.rewrt_hdr && !O.sfheader)
-      die(Str(X_628,"cannot rewrite header if no header requested"));
+      die(Str("cannot rewrite header if no header requested"));
     if (O.outfilename == NULL)  O.outfilename = "test";
 /*     ofd = fopen(outfile, "wb"); */
     outfd = openout(O.outfilename, 1);
@@ -592,7 +592,7 @@ int dnoise(int argc, char **argv)
     obuflen = Chans * (L + 3 * I);
     outbufsiz = obuflen * O.sfsampsize;/* calc outbuf size */
     outbuf = mmalloc((long)outbufsiz);                 /*  & alloc bufspace */
-    printf(Str(X_1382,"writing %d-byte blks of %s to %s\n"),
+    printf(Str("writing %d-byte blks of %s to %s\n"),
            outbufsiz, getstrformat(O.outformat), O.outfilename);
     printf(" %s\n", type2string(O.filetyp));
 /*     spoutran = spoutsf; */
@@ -1118,10 +1118,10 @@ int dnoise(int argc, char **argv)
     exit(0);
 
  outtyp:
-    dieu(Str(X_1113,"output soundfile cannot be both AIFF and WAV"));
+    dieu(Str("output soundfile cannot be both AIFF and WAV"));
     exit(1);
  outform:
-    sprintf(errmsg,Str(X_1199,"sound output format cannot be both -%c and -%c"),
+    sprintf(errmsg,Str("sound output format cannot be both -%c and -%c"),
             outformch, c);
     dnoise_usage(1);
     return 0;
@@ -1165,11 +1165,11 @@ static void sndwrterr(unsigned nret, unsigned nput) /* report soundfile write(os
   /* called after chk of write() bytecnt  */
 {
     void sfcloseout(void);
-    printf(Str(X_1203,"soundfile write returned bytecount of %d, not %d\n"),
+    printf(Str("soundfile write returned bytecount of %d, not %d\n"),
            nret,nput);
-    printf(Str(X_77,"(disk may be full...\n closing the file ...)\n"));
+    printf(Str("(disk may be full...\n closing the file ...)\n"));
     sfcloseout();                    /* & try to close the file */
-    die(Str(X_563,"\t... closed\n"));
+    die(Str("\t... closed\n"));
 }
 
 static int writebuffer(MYFLT *outbuf, int nbytes)

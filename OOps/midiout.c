@@ -116,7 +116,7 @@ int mrtmsg(ENVIRON *csound, MRT *p)
       send_midi_message(0xFE, 0, 0); /* active_sensing */
       break;
     default:
-      initerror(Str(X_871,"illegal mrtmsg argument"));
+      initerror(Str("illegal mrtmsg argument"));
     }
     return OK;
 }
@@ -395,7 +395,7 @@ int out_controller14 (ENVIRON *csound, OUT_CONTR14 *p)
       if (value != p->last_value) {
         unsigned int msb = value >> 7;
         unsigned int lsb = value & 0x7F;
-        printf(Str(X_1110,"out contr14 msb:%x lsb:%x\n"), msb, lsb);
+        printf(Str("out contr14 msb:%x lsb:%x\n"), msb, lsb);
 
         control_change((int) *p->chn-1, (int)*p->msb_num, msb);
         control_change((int)*p->chn-1, (int)*p->lsb_num, lsb);

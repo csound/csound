@@ -43,7 +43,7 @@ static int fofset0(ENVIRON *csound, FOFS *p, int flag)
           p->fundphs = MAXLEN;                    /*   trigger new FOF */
         else p->fundphs = (long)(*p->iphs * FMAXLEN) & PHMASK;
         if ((olaps = (long)*p->iolaps) <= 0) {
-          return initerror(Str(X_891,"illegal value for iolaps"));
+          return initerror(Str("illegal value for iolaps"));
         }
         if (*p->iphs >= FL(0.0))
           auxalloc((long)olaps * sizeof(OVRLAP), &p->auxch);
@@ -93,7 +93,7 @@ int fof(ENVIRON *csound, FOFS *p)
     MYFLT  v1, fract ,*ftab;
 
     if (p->auxch.auxp==NULL) { /* RWD fix */
-      return perferror(Str(X_770,"fof: not initialised"));
+      return perferror(Str("fof: not initialised"));
     }
     ar = p->ar;
     amp = p->xamp;
@@ -107,7 +107,7 @@ int fof(ENVIRON *csound, FOFS *p)
       if (p->fundphs & MAXLEN) {               /* if phs has wrapped */
         p->fundphs &= PHMASK;
         if ((ovp = p->basovrlap.nxtfree) == NULL) {
-          return perferror(Str(X_267,"FOF needs more overlaps"));
+          return perferror(Str("FOF needs more overlaps"));
         }
         if (newpulse(csound, p, ovp, amp, fund, form)) {   /* init new fof */
           ovp->nxtact = p->basovrlap.nxtact;     /* & link into  */
@@ -247,7 +247,7 @@ int harmset(ENVIRON *csound, HARMON *p)
 {
     MYFLT minfrq = *p->ilowest;
     if (minfrq < FL(64.0)) {
-      return initerror(Str(X_346,"Minimum frequency too low"));
+      return initerror(Str("Minimum frequency too low"));
     }
     if (p->auxch.auxp == NULL || minfrq < p->minfrq) {
       long nbufs = (long)(ekr * FL(3.0) / minfrq) + 1;
@@ -503,7 +503,7 @@ int harmon(ENVIRON *csound, HARMON *p)
           p->pnt33 = p->pnt3;
         }
         else if (++hrngflg > 200) {
-          printf(Str(X_825,"harmon out of range...\n"));
+          printf(Str("harmon out of range...\n"));
           hrngflg = 0;
         }
       }
@@ -540,7 +540,7 @@ int harmon(ENVIRON *csound, HARMON *p)
           p->pnt33 = p->pnt3;
         }
         else if (++hrngflg > 200) {
-          printf(Str(X_824,"harmon out of range"));
+          printf(Str("harmon out of range"));
           hrngflg = 0;
         }
       }

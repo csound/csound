@@ -1,3 +1,37 @@
+2005-01-27	Istvan Varga	<istvan@csounds.com>
+	* Engine/entry1.c:
+	* Engine/entry2.c:
+	* Engine/express.c:
+	* Engine/otran.c:
+	* Engine/rdorch.c:
+	  use '.' instead of '_' in internal opcode names (e.g. osc.kk
+	  instead of osc_kk); this allows the use of the underscore
+	  character in real opcode names. Many files in Opcodes/ were
+	  also changed.
+	* strings/makedb.c:
+	* strings/all_strings, strings/english-strings, strings/french-strings:
+	* H/text.h:
+	* Top/getstring.c:
+	  new implementation for localized messages. Uses Str("...")
+	  instead of Str(X_nnnn,"..."). This also needed replacement
+	  of Str() in a large number of files.
+	* Engine/oload.c, Engine/otran.c, H/csoundCore.h:
+	  use 'int' type for variable indexes instead of 'short';
+	  needs some testing
+	* Engine/oload.c, Top/main.c, Top/one_file.c:
+	  removed API function prototypes, use csound.h instead
+	* Top/csound.c, H/csound.h, Engine/oload.c, Engine/otran.c:
+	  incorporated some changes from the 'unofficial' 4.24.1 version,
+	  including timer functions, better checking of sr/kr/ksmps, and
+	  some fixes
+	* Engine/memalloc.c: removed references to free_strings()
+	* H/csdl.h: use csoundLocalizeString() instead of getstring()
+	* InOut/widgets.cpp:
+	  include <sstream> instead of <strstream>, and use stringstream
+	  instead of strstream
+	* Opcodes/midiops3.c: fixed undefined order of operations
+	* SConstruct: added /usr/X11R6/include to include paths on Linux
+
 2005-01-25	Steven Yi	<stevenyi@csounds.com>
 
 	* frontends/csound/csound_main.c: set stdout to not buffer if csound output 

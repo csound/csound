@@ -35,10 +35,10 @@ int mute_inst(ENVIRON *csound, MUTE *p)
     int onoff = (*p->onoff == FL(0.0) ? 0 : 1);
     if (n < 1) return NOTOK;
     if (onoff==0) {
-      printf(Str(X_1778,"Muting new instances of instr %d\n"), n);
+      printf(Str("Muting new instances of instr %d\n"), n);
     }
     else {
-      printf(Str(X_1779,"Allowing instrument %d to start\n"), n);
+      printf(Str("Allowing instrument %d to start\n"), n);
     }
     instrtxtp[n]->muted = onoff;
     return OK;
