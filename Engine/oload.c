@@ -353,7 +353,19 @@ const ENVIRON cenviron_ = {
         NULL,           /* FFT_table_1 */
         NULL,           /* FFT_table_2 */
         NULL, NULL, NULL, /* tseg, tpsave, tplim */
-        0L              /* fout_kreset */
+        0L,             /* fout_kreset */
+        /* express.c */
+        0L,             /* polmax */
+        0L,             /* toklen */
+        NULL,           /* token; */
+        NULL,           /* tokend; */
+        NULL,           /* tokens */
+        NULL,           /* tokenlist  */
+        TOKMAX,         /* toklength  */
+        0,0,0,0,0,      /* acount, kcount, icount, Bcount, bcount; */
+        "",             /* xprmsg */
+        NULL,           /* stringend; */
+        NULL, NULL, NULL, NULL /* revp, pushp, argp, endlist */
 };
 
 /* globals to be removed eventually... */

@@ -1,3 +1,7 @@
+2005-03-31  John ffitch  <jpff@codemist.co.uk>
+
+	* Engine/express.c: Removed statics to environment structure
+
 2005-03-30	Istvan Varga	<istvan@csounds.com>
 	* Engine/oload.c:
 	* Engine/twarp.c:
