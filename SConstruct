@@ -155,8 +155,6 @@ elif getPlatform() == 'darwin':
     commonEnvironment.Append(CPPPATH = '/usr/include')
     commonEnvironment.Append(CCFLAGS = "-Wall")
     commonEnvironment.Append(CCFLAGS = "-DPIPES")
-    commonEnvironment.Append(SHLINKFLAGS = '-framework')
-    commonEnvironment.Append(SHLINKFLAGS = 'Carbon')
     commonEnvironment.Append(LIBPATH = ['.', '#.', '/usr/lib', '/usr/local/lib'])
 elif getPlatform() == 'mingw' or getPlatform() == 'cygwin':
     commonEnvironment.Append(CPPPATH = '/usr/local/include')
@@ -372,6 +370,7 @@ if (commonEnvironment['useFLTK'] and fltkFound):
             ustubProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
             vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
             guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+            csoundProgramEnvironment.Append(LINKFLAGS = ['-framework', 'Carbon'])
 
 ##### -framework ApplicationServices'))
 
