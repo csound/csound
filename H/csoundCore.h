@@ -201,7 +201,7 @@ extern "C" {
     struct op * nxtop;              /* Linked list of instr opcodes */
     TEXT    t;                      /* Text of instrument (same in nxtop) */
     int     pmax, vmax, pextrab;    /* Arg count, size of data for all
-				       opcodes in instr */
+                                       opcodes in instr */
     int     mdepends;               /* Opcode type (i/k/a) */
     int     lclkcnt, lcldcnt;       /* Storage reqs for this instr */
     int     lclwcnt, lclacnt;
@@ -213,7 +213,7 @@ extern "C" {
     long    *inslist;               /* Only used in parsing (?) */
     MYFLT   *psetdata;              /* Used for pset opcode */
     struct insds * instance;        /* Chain of allocated instances of
-				       this instrument */
+                                       this instrument */
     struct insds * lst_instance, *act_instance;     /* IV - Oct 26 2002 */
     struct instr * nxtinstxt;       /* Next instrument in orch (num order) */
     int     active;                 /* To count activations for control */
@@ -316,18 +316,18 @@ extern "C" {
     FDCH    fdch;           /* Chain of files used by opcodes in this instr */
     AUXCH   auxch;          /* Extra memory used by opcodes in this instr */
     MCHNBLK *m_chnbp;       /* MIDI note info block if event started
-			       from MIDI */
+                               from MIDI */
     short   m_pitch;        /* MIDI pitch, for simple access */
     short   m_veloc;        /* ...ditto velocity */
     int     xtratim;        /* Extra release time requested with
-			       xtratim opcode */
+                               xtratim opcode */
     char    relesing;       /* Flag to indicate we are releasing,
-			       test with release opcode */
+                               test with release opcode */
     char    actflg;         /* Set if instr instance is active (perfing) */
     short   insno;          /* Instrument number */
     MYFLT   offbet;         /* Time to turn off event, in score beats */
     MYFLT   offtim;         /* Time to turn off event, in seconds (negative on
-			       indef/tie) */
+                               indef/tie) */
     struct insds * nxtolap; /* ptr to next overlapping voice */
     /* end of overlap */
     void *pylocal;          /* Python namespace for just this instance. */
@@ -335,7 +335,7 @@ extern "C" {
     void    *opcod_iobufs;  /* IV - Sep 8 2002: user opcode I/O buffers */
     void    *opcod_deact, *subins_deact;    /* IV - Oct 24 2002 */
     MYFLT   p0;             /* Copy of required p-field values for
-			       quick access */
+                               quick access */
     MYFLT   p1;
     MYFLT   p2;
     MYFLT   p3;
@@ -562,68 +562,68 @@ extern "C" {
     void (*ThrowMessage)(void *csound, const char *format, ...);
     void (*ThrowMessageV)(void *csound, const char *format, va_list args);
     void (*SetMessageCallback)(void *csound,
-			       void (*csoundMessageCallback)(void *hostData,
-							     const char *format,
-							     va_list valist));
+                               void (*csoundMessageCallback)(void *hostData,
+                                                             const char *format,
+                                                             va_list valist));
     void (*SetThrowMessageCallback)(void *csound,
-				    void (*throwMessageCallback)(void *hostData,
-								 const char *format,
-								 va_list valist));
+                     void (*throwMessageCallback)(void *hostData,
+                                                  const char *format,
+                                                  va_list valist));
     int (*GetMessageLevel)(void *csound);
     void (*SetMessageLevel)(void *csound, int messageLevel);
     void (*InputMessage)(void *csound, const char *message__);
     void (*KeyPress)(void *csound, char c__);
     void (*SetInputValueCallback)(void *csound,
-				  void (*inputValueCalback)(void *hostData,
-							    char *channelName,
-							    MYFLT *value));
+                                  void (*inputValueCalback)(void *hostData,
+                                                            char *channelName,
+                                                            MYFLT *value));
     void (*SetOutputValueCallback)(void *csound,
-				   void (*outputValueCalback)(void *hostData,
-							      char *channelName,
-							      MYFLT value));
+                   void (*outputValueCalback)(void *hostData,
+                                                              char *channelName,
+                                                              MYFLT value));
     void (*ScoreEvent)(void *csound, char type, MYFLT *pFields, long numFields);
     void (*SetExternalMidiDeviceOpenCallback)(void *csound,
-					      void (*midiDeviceOpenCallback)(void *hostData));
+                   void (*midiDeviceOpenCallback)(void *hostData));
 #ifdef PORTMIDI
     void (*SetExternalMidiReadCallback)(void *csound,
-					int (*readMidiCallback)(void *hostData,
-								void *midiData,
-								int size));
+                                        int (*readMidiCallback)(void *hostData,
+                                                                void *midiData,
+                                                                int size));
     void (*SetExternalMidiWriteCallback)(void *csound,
-					 int (*writeMidiCallback)(void *hostData,
-								  void *midiData));
+                                         int (*writeMidiCallback)(void *hostData,
+                                                                  void *midiData));
 #else
     void (*SetExternalMidiReadCallback)(void *csound,
-					int (*readMidiCallback)(void *hostData,
-								unsigned char *midiData,
-								int size));
+                   int (*readMidiCallback)(void *hostData,
+                   unsigned char *midiData,
+                   int size));
     void (*SetExternalMidiWriteCallback)(void *csound,
-					 int (*writeMidiCallback)(void *hostData,
-								  unsigned char *midiData));
+                   int (*writeMidiCallback)(void *hostData,
+                   unsigned char *midiData));
 #endif
     void (*SetExternalMidiDeviceoseCallback)(void *csound,
-					     void (*midiDeviceCloseCallback)(void *hostData));
+                   void (*midiDeviceCloseCallback)(void *hostData));
     int (*IsExternalMidiEnabled)(void *csound);
     void (*SetExternalMidiEnabled)(void *csound, int enabled);
     void (*SetIsGraphable)(void *csound, int isGraphable);
     void (*SetMakeGraphCallback)(void *csound,
-				 void (*makeGraphCallback)(void *hostData,
-							   WINDAT *p,
-							   char *name));
+                                 void (*makeGraphCallback)(void *hostData,
+                                                           WINDAT *p,
+                                                           char *name));
     void (*SetDrawGraphCallback)(void *csound,
-				 void (*drawGraphCallback)(void *hostData,
-							   WINDAT *p));
+                                 void (*drawGraphCallback)(void *hostData,
+                                                           WINDAT *p));
     void (*SetKillGraphCallback)(void *csound,
-				 void (*killGraphCallback)(void *hostData,
-							   WINDAT *p));
+                                 void (*killGraphCallback)(void *hostData,
+                                                           WINDAT *p));
     void (*SetExitGraphCallback)(void *csound,
-				 int (*exitGraphCallback)(void *hostData));
+                                 int (*exitGraphCallback)(void *hostData));
     opcodelist *(*NewOpcodeList)(void);
     void (*DisposeOpcodeList)(opcodelist *opcodelist_);
     int (*AppendOpcode)(void *csound, char *opname, int dsblksiz,
-			int thread, char *outypes, char *intypes,
-			int (*iopadr)(void*, void*), int (*kopadr)(void*, void*),
-			int (*aopadr)(void*, void*), int (*dopadr)(void*, void*));
+                        int thread, char *outypes, char *intypes,
+                        int (*iopadr)(void*, void*), int (*kopadr)(void*, void*),
+                        int (*aopadr)(void*, void*), int (*dopadr)(void*, void*));
     int (*LoadExternal)(void *csound, const char *libraryPath);
     int (*LoadExternals)(void *csound);
     void *(*OpenLibrary)(const char *libraryPath);
@@ -631,20 +631,20 @@ extern "C" {
     void *(*GetLibrarySymbol)(void *library, const char *procedureName);
     void (*SetYieldCallback)(void *csound, int (*yieldCallback)(void *hostData));
     void (*SetEnv)(void *csound, const char *environmentVariableName,
-		   const char *path);
+                   const char *path);
     char *(*GetEnv)(const char *environmentVariableName);
     void (*SetPlayopenCallback)(void *csound,
-				int (*playopen__)(void *csound,
-						  csRtAudioParams *parm));
+                                int (*playopen__)(void *csound,
+                                                  csRtAudioParams *parm));
     void (*SetRtplayCallback)(void *csound,
-			      void (*rtplay__)(void *csound, void *outBuf,
-					       int nbytes));
+                              void (*rtplay__)(void *csound, void *outBuf,
+                                               int nbytes));
     void (*SetRecopenCallback)(void *csound,
-			       int (*recopen__)(void *csound,
-						csRtAudioParams *parm));
+                               int (*recopen__)(void *csound,
+                                                csRtAudioParams *parm));
     void (*SetRtrecordCallback)(void *csound,
-				int (*rtrecord__)(void *csound, void *inBuf,
-						  int nbytes));
+                                int (*rtrecord__)(void *csound, void *inBuf,
+                                                  int nbytes));
     void (*SetRtcloseCallback)(void *csound, void (*rtclose__)(void *csound));
     /* Internal functions that are needed */
     void (*auxalloc_)(void *csound, long nbytes, AUXCH *auxchp);
@@ -704,7 +704,7 @@ extern "C" {
     MYFLT (*TableGet)(void *csound, int table, int index);
     void (*TableSet)(void *csound, int table, int index, MYFLT value);
     void *(*CreateThread)(void *csound, int (*threadRoutine)(void *userdata),
-			  void *userdata);
+                          void *userdata);
     int (*JoinThread)(void *csound, void *thread);
     void *(*CreateThreadLock)(void *csound);
     void (*WaitThreadLock)(void *csound, void *lock, size_t milliseconds);
@@ -723,15 +723,15 @@ extern "C" {
     void *(*QueryGlobalVariableNoCheck)(void *csound, const char *name);
     int (*DestroyGlobalVariable)(void *csound, const char *name);
     int (*CreateConfigurationVariable)(void *csound, const char *name,
-				       void *p, int type, int flags,
-				       void *min, void *max,
-				       const char *shortDesc,
-				       const char *longDesc);
+                                       void *p, int type, int flags,
+                                       void *min, void *max,
+                                       const char *shortDesc,
+                                       const char *longDesc);
     int (*SetConfigurationVariable)(void *csound, const char *name, void *value);
     int (*ParseConfigurationVariable)(void *csound, const char *name,
-				      const char *value);
+                                      const char *value);
     csCfgVariable_t *(*QueryConfigurationVariable)(void *csound,
-						   const char *name);
+                                                   const char *name);
     csCfgVariable_t **(*ListConfigurationVariables)(void *csound);
     int (*DeleteConfigurationVariable)(void *csound, const char *name);
     char *(*CfgErrorCodeToString)(int errcode);
