@@ -5,14 +5,16 @@
 \usepackage[english]{babel}
 %% \usepackage{doc/latex/doxygen}
 \pagestyle{headings}
-
 \begin{document}
 
 \title{Csound and CsoundVST}
 \author{Michael Gogins \\ \texttt{gogins@pipeline.com}}
 \maketitle
+
 \abstract{This document explains how to download, build, install, extend, and use Csound and CsoundVST on Windows and Linux.}
+
 \section{Introduction}
+
 Csound is a unit-generator based, user-programmable computer music system. It was originally written by Barry Vercoe at the Massachusetts Institute of Technology in 1984 as the first C language version of this type of software. 
 
 John ffitch soon ported Csound to Microsoft DOS. Since then Csound has received numerous contributions from researchers, programmers, and musicians around the world. Csound currently runs on many varieties of UNIX and Linux, Microsoft DOS and Windows, all versions of the Macintosh operating system including Mac OS X, and others.
@@ -24,6 +26,7 @@ There are newer computer music systems that have graphical patch editors (e.g. M
 Csound development is ongoing, and currently stands at version 5 beta. New features in Csound 5 include the GNU Lesser General Public License, plugin unit generators, an application programming interface (API) for embedding Csound in other software, and the use of widely accepted third-party libraries for cross-platform development: libsndfile for reading and writing soundfiles, PortAudio for reading and writing digital audio from sound cards, and the Fast Light Tool Kit (FLTK) for graphics.
 
 To create music with Csound:
+
 \begin{enumerate}
 \item Write an orchestra (\texttt{.orc} file) that creates instruments and signal processors by connecting unit generators (also called opcodes, in Csound-speak) using Csound's simple programming language.
 \item Write a score (\texttt{.sco} file) that specifies a list of notes and other events to be rendered by the orchestra.
@@ -33,7 +36,9 @@ To create music with Csound:
 CsoundVST is based on Csound, and adds a graphical user interface, C++ and Python APIs, Python scripting, a library of Python extension modules for algorithmic composition, a VST plugin interface, and a \emph{Mathematica} interface.
 
 In addition to this ``canonical'' version of Csound and CsoundVST, there are other versions of Csound and other front ends for Csound, many of which can be found at \texttt{http://csounds.com}.
+
 \section{Downloading}
+
 Csound is hosted at \texttt{http:\-//www.sourceforge.net/projects/\-csound}. \linebreak Source and binary packages are available from the \texttt{files} link off that page.
 
 The latest Csound source code is available through the Concurrent Versions System (CVS)(\texttt{http:\-//www.cvshome.org}). To download Csound sources using CVS, run the following commands:
@@ -49,6 +54,7 @@ Information about accessing the CVS repository may be found in the SourceForge d
 If you wish to become a Csound developer, obtain a SourceForge login, and then apply to John ffitch at the \linebreak[3] \texttt{http:\-//www.sourceforge.net/projects/\-csound} site.
 
 \section{Building}
+
 Csound and CsoundVST are built using the Python package \texttt{scons}, not with makefiles or GNU autotools. Experience shows that \texttt{scons} build systems are easier to write, easier to use, and run faster than autotools build systems. The only file used to build the entire Csound system is the \texttt{SConstruct} file, which is a Python script run by the \texttt{scons} shell script.
 
 To build Csound 5:
@@ -141,17 +147,23 @@ pluginEnvironment.SharedLibrary('xxx',
 \end{verbatim}
 \item Run the Csound 5 build in the regular way.
 \end{enumerate}		
+
 \section{Using}
+
 Assuming that you have installed and configured the software, Csound and CsoundVST can be operated in a variety of modes and configurations.
 
 \subsection{Csound}
+
 \subsubsection{The \texttt{csound} Command}
+
 The original method for running Csound was as a console program. This, of course, still works. Running \texttt{csound} without any arguments prints out a list of command-line options, which are more fully explained in the Csound language documentation. Normally, the user executes something like \texttt{csound -W -omysoundfile myorchestra.orc myscore.sco} or, to use the single-file Csound structured data (\texttt{.csd}) format, \texttt{csound myscore.csd}.
 
 Csound can read and write soundfiles (off-line rendering), read and write digital audio using a sound card (real-time rendering), read and write MIDI files, and read and write MIDI using a MIDI interface and controller (real-time control). See the Csound language documentation for more details.
 
 \subsubsection{The Csound API}
+
 The Csound API consists of the Csound library (\texttt{libcsound.a}) and the Csound header file (\texttt{csound.h}). You can build Csound into your own software very easily using this API. For example, the Csound command itself is made this way:
+
 \begin{verbatim}
 #include "csound.h"
 
@@ -171,11 +183,19 @@ int main(int argc, char **argv)
     return result;
 }
 \end{verbatim}
+
 \subsection{CsoundVST}
-CsoundVST is a multi-function front end for the Csound API. CsoundVST runs as a stand-alone graphical user interface to Csound, or as a VST plugin in hosts such as the Cubase audio sequencer. CsoundVST provides both a C++ and a Python API to Csound, and to a set of classes for algorithmic composition. CsoundVST has a built-in Python interpreter. With Python, the user can generate a score, import a MIDI file, process notes, load and run a Csound orchestra, and in general do anything that can be done either with Csound or in Python.
+
+CsoundVST is a multi-function front end for the Csound API. CsoundVST runs as a stand-alone graphical user interface to Csound, or as a VST plugin in hosts such as the Cubase audio sequencer. CsoundVST provides both a C++ and a Python API to Csound, and to a set of classes for algorithmic composition. 
+
+CsoundVST has a built-in Python interpreter. With Python, the user can generate a score, import a MIDI file, process notes, load and run a Csound orchestra, and in general do anything that can be done either with Csound or in Python.
+
 \subsubsection{Standalone}
+
 To run CsoundVST as a stand-alone front end to Csound, execute \texttt{CsoundVST}. When the program has loaded, you will see a graphical user interface with a row of buttons along the top. Click on the \emph{Open...} button to load a \texttt{.csd} file. You can also click on the \emph{Open...} button and load a \texttt{.orc} file, then click on the \emph{Import...} button to add a \texttt{.sco} file. You can edit the Csound command, the orchestra file, or the score file in the respective tabs of the user interface. When all is satisfactory, click on the \emph{Perform} button to run Csound. You can stop a performance at any time by clicking on the \emph{Stop} button.
+
 \subsubsection{The CsoundVST API}
+
 CsoundVST extends the Csound API with C++. There is a C++ class for the Csound API proper, another C++ class for manipulating Csound files in code, and additional classes for algorithmic composition based on music space. All these C++ classes also have a Python interface in the \texttt{csound} Python extension module. For more information, consult the Doxygen-generated files in the \texttt{csound5/doc} directory.
 
 You can build CsoundVST into your own software using the \texttt{\_CsoundVST} shared library and \texttt{CsoundVST.hpp} header file. For example, the CsoundVST stand-alone graphical user interface program is made this way:
@@ -210,6 +230,40 @@ In a standard Python interpreter, run your script in the normal way. You can loa
 To use CsoundVST itself as your Python interpreter, click on the CsoundVST Settings tab, and select the Python check box in the Csound performance mode box. Do not create a new CppSound object; CsoundVST contains a built-in CppSound object that you must use. 
 
 The \texttt{koch.py} script provides an examples of how to use Python to do algorithmic composition for Csound. You can use Python triple-quoted string literals to hold your Csound files right in your script, and assign them to Csound: 
+
+\begin{verbatim}
+csound.setOrchestra('''
+sr = 44100
+kr = 441
+ksmps = 100   
+nchnls = 2
+0dbfs = .1
+
+instr 1,2,3,4,5 ; FluidSynth General MIDI
+; INITIALIZATION
+; Channel, bank, and program determine the preset, that is, the actual sound.
+ichannel		=			p1
+iprogram		=			p6
+ikey	 		= 			p4
+ivelocity 		= 			p5 + 12
+ijunk6 			= 			p6
+ijunk7			=			p7
+; AUDIO
+istatus			=			144
+;			print			iprogram, istatus, ichannel, ikey, ivelocity
+aleft, aright		fluid			"c:/projects/csound5/samples/VintageDreamsWaves-v2.sf2", \
+    iprogram, istatus, ichannel, ikey, ivelocity, 1
+			outs 			aleft, aright
+endin
+
+''')
+
+csound.setCommand("csound --opcode-lib=c:/projects/csound5/fluid.dll \
+    -RWdfo ./koch.wav ./temp.orc ./temp.sco")
+
+csound.exportForPerformance()
+csound.perform()
+\end{verbatim}
 
 To run your script in Csound VST, click on the Perform button. 
 
@@ -249,7 +303,7 @@ When you save your song, your Csound orchestra will be saved as part of the song
 You can click on the \emph{Orchestra} tab and edit your Csound instruments while CsoundVST is playing. To hear your changes, just click on the CsoundVST \emph{Perform} button to recompile the orchestra. 
 
 You can assign up to 16 channels to a single CsoundVST plugin. However, you can't have more than one CsoundVST plugin in the same song! 
-\section{License}
+\section{Licenses}
 \subsection{Csound and CsoundVST}
 Csound is \copyright 1991-2003 by Barry Vercoe and John ffitch.
 
@@ -263,7 +317,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 \subsection{Virtual Synthesis Technology}
 Virtual Synthesis Technology (VST) PlugIn interface technology by Steinberg Soft- und Hardware GmbH. 
 
-CsoundVST source code contains with modified versions of source code files from the VST SDK distributed by Steinberg. \emph{These files are to be used only for building CsoundVST.} You are \emph{not} licensed to use these files for any other purpose. If you make a derived product based on CsoundVST or the modified VST source files herein, you must apply to Steinberg for your own license to use the VST SDK.
+CsoundVST source code contains modified versions of source code files from the VST SDK distributed by Steinberg. \emph{These files are to be used only for building CsoundVST.} You are \emph{not} licensed to use these files for any other purpose. If you make a derived product based on CsoundVST or the modified VST source files herein, you \emph{must} apply to Steinberg for your own license to use the VST SDK.
 \section{Contributors}
 Csound contains contributions from musicians, scientists, and programmers from around the world. They include (but are not limited to): 
 \begin{itemize}
@@ -304,15 +358,35 @@ Csound contains contributions from musicians, scientists, and programmers from a
 \item Victor Lazzarini  
 \item Ville Pulkki 
 \end{itemize}
+
 \section{To Do}
+
 This is the ``to do'' list, not necessarily complete, for Csound and CsoundVST:
+
 \begin{enumerate}
-\item Complete this document sufficiently to get users started running Csound and CsoundVST with MinGW and Linux.
-\item Automate rebuilding the documentation as part of the regular build.
+\item In preparation for a beta file release package:
+\begin{enumerate}
+\item Complete this document sufficiently to get users started building running Csound and CsoundVST with MinGW and Linux.
+\item Tutorial scores:
+\begin{enumerate}
+\item toot.csd
+\item trapped.csd
+\item trappedrt.csd
+\item midi.csd
+\item vst.csd
+\item koch.py
+\item realtime.py
+\end{enumerate}
 \item Automate making gcc import libraries for Python etc. on Windows.
 \item Get MIDI input and output working on Windows.
+\item Singleton class for CsoundVST or CppSound so that VST scripts can be identical to Python interpreter scripts.
+\item A \emph{Mathematica} interface - but what kind?
+\end{enumerate}
+\item Longer term:
+\begin{enumerate}
 \item Get the Loris plugin opcode into this build.
-\item A Mathematica interface - but what kind?
+\item STK plugin opcodes into this build.
 \item Investigate the Python runtime situation on MinGW.
+\end{enumerate}
 \end{enumerate}
 \end{document}

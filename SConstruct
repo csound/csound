@@ -9,11 +9,10 @@ By Michael Gogins <gogins at pipeline dot com>
 For custom options, run 'scons -h'.
 For default options, run 'scons -H'.
 If headers or libraries are not found, edit 'custom.py'.
-For Linux, run 'scons'.
+For Linux, run in the standard shell
+    with standard Python and just run 'scons'.
 For MinGW, run in the MSys shell
-    and use wwww.python.org WIN32 Python to run 'scons'.
-For Microsoft Visual C++, run 'scons' in the Visual Studio .NET command prompt
-    and use www.python.org WIN32 Python to run 'scons'.
+    and use www.python.org WIN32 Python to run scons.
 For Cygwin, run in the Cygwin shell
     and use Cygwin Python to run 'scons'.
 '''
@@ -99,8 +98,6 @@ commonEnvironment.Prepend(SHLINKFLAGS = customSHLINKFLAGS)
 
 Help(opts.GenerateHelpText(commonEnvironment))
 
-print "Tools: ", commonEnvironment['TOOLS']
-
 commonEnvironment.Append(CPPPATH  = ['.', './H', './SDIF'])
 commonEnvironment.Append(CCFLAGS = '-DCSOUND_WITH_API')
 
@@ -119,6 +116,7 @@ def getPlatform():
         return 'unsupported'
 
 print "Build platform is '" + getPlatform() + "'."
+print "SCons tools on this platform: ", commonEnvironment['TOOLS']
 print
 
 commonEnvironment.Append(LIBPATH = '#.')
@@ -355,7 +353,8 @@ if getPlatform() == 'mingw':
 #############################################################################
 
 
-if commonEnvironment['generatePDF'] == 1:
+if commonEnvironment['generatePDF']:
+    print 'Generating PDF documentation.'
     csoundPdf = commonEnvironment.Command('csound.pdf', 'csound.tex', 'pdflatex $SOURCE')
 
 ustubProgramEnvironment.Program('makedb', 
@@ -785,7 +784,6 @@ if (commonEnvironment['buildCsoundVST'] == 1) and boostFound and fltkFound:
 	
     copyPython = commonEnvironment.Install(['.', '.'], ['frontends/CsoundVST/CsoundVST.py', 'frontends/CsoundVST/Koch.py'])
     Depends(copyPython, csoundvst)
-    
 
 if commonEnvironment['generateTags'] == 1 and (getPlatform() == 'linux' or getPlatform() == 'cygwin'):
     print "Calling TAGS"
