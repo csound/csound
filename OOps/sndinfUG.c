@@ -37,11 +37,10 @@
 
 static int anal_filelen(SNDINFO *p,MYFLT *p_length);
 
-static HEADATA *getsndinfo(SNDINFO *p)
+static HEADATA *getsndinfo(ENVIRON *csound, SNDINFO *p)
 {
     HEADATA *hdr = NULL;
-    int     sinfd = 0;
-    char    *sfname, soundiname[128];
+    char    *sfname, *s, soundiname[512];
     long    filno;
     SNDFILE *sf;
     SF_INFO sfinfo;
@@ -64,22 +63,31 @@ static HEADATA *getsndinfo(SNDINFO *p)
         die(Str("no infile specified in the commandline"));
       sfname = O.infilename;
     }
-    if ((sinfd = openin(sfname)) < 0) {     /* open with full dir paths */
+    s = csoundFindInputFile(csound, sfname, "SFDIR;SSDIR");
+    if (s == NULL) {                        /* open with full dir paths */
       sprintf(errmsg,Str("diskinfo cannot open %s"), sfname);
       /* RWD 5:2001 better to exit in this situation ! */
       die(errmsg);
     }
-    sfname = retfilnam;                        /* & record fullpath filnam */
-    hdr = (HEADATA*) mcalloc(&cenviron, sizeof(HEADATA));
+    sfname = s;                             /* & record fullpath filnam */
+    hdr = (HEADATA*) mcalloc(csound, sizeof(HEADATA));
     memset(&sfinfo, 0, sizeof(SF_INFO));
-    sfinfo.samplerate = (int) (esr + FL(0.5));
-    sfinfo.channels = 1;
-    sfinfo.format = (int) format2sf(O.outformat) | (int) type2sf(TYP_RAW);
-    sf = sf_open_fd(sinfd, SFM_READ, &sfinfo, SF_TRUE);
+    sf = sf_open(sfname, SFM_READ, &sfinfo);
+    if (sf == NULL) {
+      /* open failed: maybe raw file ? */
+      memset(&sfinfo, 0, sizeof(SF_INFO));
+      sfinfo.samplerate = (int) (esr + FL(0.5));
+      sfinfo.channels = 1;
+      sfinfo.format = (int) format2sf(O.outformat) | (int) type2sf(TYP_RAW);
+      /* try again */
+      sf = sf_open(sfname, SFM_READ, &sfinfo);
+    }
     if (sf == NULL) {
       sprintf(errmsg, Str("diskinfo cannot open %s"), sfname);
+      mfree(csound, sfname);
       die(errmsg);
     }
+    mfree(csound, sfname);
     hdr->sr = (long) sfinfo.samplerate;
     hdr->nchanls = (long) sfinfo.channels;
     hdr->format = (long) sf2format(sfinfo.format);
@@ -106,7 +114,7 @@ int filelen(ENVIRON *csound, SNDINFO *p)
     }
     /* RWD 8:2001 now set to quit on failure, else we have bad hdr */
     else {
-      hdr = getsndinfo(p);
+      hdr = getsndinfo(csound, p);
       *(p->r1) = (MYFLT) hdr->audsize
                  / ((MYFLT) hdr->sampsize * (MYFLT) hdr->nchanls
                     * (MYFLT) hdr->sr);
@@ -119,7 +127,7 @@ int filenchnls(ENVIRON *csound, SNDINFO *p)
 {
     HEADATA *hdr;
 
-    hdr = getsndinfo(p);
+    hdr = getsndinfo(csound, p);
     *(p->r1) = (MYFLT) hdr->nchanls;
     mfree(csound, hdr);
     return OK;
@@ -129,7 +137,7 @@ int filesr(ENVIRON *csound, SNDINFO *p)
 {
     HEADATA *hdr;
 
-    hdr = getsndinfo(p);
+    hdr = getsndinfo(csound, p);
     *(p->r1) = (MYFLT) hdr->sr;
     mfree(csound, hdr);
     return OK;
