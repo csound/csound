@@ -50,14 +50,14 @@ void ptable(MYFLT fmin, MYFLT fmax, MYFLT sr, int windsiz)
     MYFLT omega, fstep, tpidsrd10;
 
     if ((n = HWIN * 20) != MAXWINDIN)
-      die(Str("LPTRKFNS: inconsistent MAXWindow defines"));
+      csoundDie(&cenviron, Str("LPTRKFNS: inconsistent MAXWindow defines"));
     NYQ10   = sr/FL(20.0);
     Windsiz = windsiz;              /* current windin size */
     Windsiz2 = windsiz/2;           /* half of that        */
     Dwind   = windsiz/10;           /* downsampled windsiz */
     Hwind   = (Dwind+1)/2;          /* half of that        */
     if (Hwind > HWIN)
-      die(Str("LPTRKFNS: called with excessive Windsiz"));
+      csoundDie(&cenviron, Str("LPTRKFNS: called with excessive Windsiz"));
     tpidsrd10 = TWOPI_F / (sr/FL(10.0));
     fstep = (fmax - fmin) / FREQS;    /* alloc & init each MYFLT array  */
     for (i=0;  i<FREQS; ++i) {        /*   as if MAX dimension of Hwind */

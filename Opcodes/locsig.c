@@ -63,7 +63,7 @@ int locsigset(ENVIRON *csound, LOCSIG *p)
 
     return OK;
 locerr:
-    return initerror(errmsg);
+    return csound->InitError(csound, errmsg);
 }
 
 int locsig(ENVIRON *csound, LOCSIG *p)
@@ -150,7 +150,7 @@ int locsendset(ENVIRON *csound, LOCSEND *p)
     }
     return OK;
   locerr:
-    return initerror(errmsg);
+    return csound->InitError(csound, errmsg);
 }
 
 int locsend(ENVIRON *csound, LOCSEND *p)

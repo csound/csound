@@ -37,7 +37,7 @@
 #define SHORTMAX 32767.0
 #define FIND(MSG)   if (*s == '\0')  \
 	if (!(--argc) || ((s = *++argv) && *s == '-')) \
-	die(MSG);
+	csoundDie(&cenviron, MSG);
 
 /* Static function prototypes */
 

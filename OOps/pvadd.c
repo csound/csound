@@ -188,7 +188,7 @@ int pvaddset(ENVIRON *csound, PVADD *p)
     return OK;
 
  pverr:
-    return initerror(errmsg);
+    return csound->InitError(csound, errmsg);
 }
 
 int pvadd(ENVIRON *csound, PVADD *p)
@@ -205,16 +205,16 @@ int pvadd(ENVIRON *csound, PVADD *p)
 
 
     if (p->auxch.auxp==NULL) {
-      return perferror(Str("pvadd: not initialised"));
+      return csound->PerfError(csound, Str("pvadd: not initialised"));
     }
 
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str("pvadd: not initialised"));
+      return csound->PerfError(csound, Str("pvadd: not initialised"));
     }
 
     if ((frIndx = *p->ktimpnt * p->frPrtim) < 0) {
-      return perferror(Str("PVADD timpnt < 0"));
+      return csound->PerfError(csound, Str("PVADD timpnt < 0"));
     }
     if (frIndx > p->maxFr) { /* not past last one */
       frIndx = (MYFLT)p->maxFr;

@@ -131,7 +131,7 @@ int pvbufreadset(ENVIRON *csound, PVBUFREAD *p)
     return OK;
 
  pverr:
-    return initerror(errmsg);
+    return csound->InitError(csound, errmsg);
 }
 
 
@@ -142,11 +142,11 @@ int pvbufread(ENVIRON *csound, PVBUFREAD *p)
     int    size = pvfrsiz(p);
 
     if (p->auxch.auxp==NULL) {  /* RWD fix */
-      return perferror(Str("pvbufread: not initialised"));
+      return csound->PerfError(csound, Str("pvbufread: not initialised"));
     }
     if (pdebug)  fprintf(stderr, "<%7.4f>",*p->ktimpnt);
     if ((frIndx = *p->ktimpnt * p->frPrtim) < 0) {
-      return perferror(Str("PVOC timpnt < 0"));
+      return csound->PerfError(csound, Str("PVOC timpnt < 0"));
     }
     if (frIndx > (MYFLT)p->maxFr) {  /* not past last one */
       frIndx = (MYFLT)p->maxFr;
@@ -274,7 +274,7 @@ int pvinterpset(ENVIRON *csound, PVINTERP *p)
     return OK;
 
  pverr:
-    return initerror(errmsg);
+    return csound->InitError(csound, errmsg);
 }
 
 
@@ -294,7 +294,7 @@ int pvinterp(ENVIRON *csound, PVINTERP *p)
     long         i,j ;
 
     if (p->auxch.auxp==NULL) {  /* RWD Fix */
-      return perferror(Str("pvinterp: not initialised"));
+      return csound->PerfError(csound, Str("pvinterp: not initialised"));
     }
     if (pdebug) fprintf(stderr, "<%7.4f>",*p->ktimpnt);
     pex = *p->kfmod;
@@ -302,14 +302,14 @@ int pvinterp(ENVIRON *csound, PVINTERP *p)
     /* use outlen to check window/krate/transpose combinations */
     if (outlen>PVFFTSIZE) { /* Maximum transposition down is one octave */
                             /* ..so we won't run into buf2Size problems */
-      return perferror(Str("PVOC transpose too low"));
+      return csound->PerfError(csound, Str("PVOC transpose too low"));
     }
     if (outlen<2*ksmps) {   /* minimum post-squeeze windowlength */
-      return perferror(Str("PVOC transpose too high"));
+      return csound->PerfError(csound, Str("PVOC transpose too high"));
     }
     buf2Size = OPWLEN;     /* always window to same length after DS */
     if ((frIndx = *p->ktimpnt * p->frPrtim) < 0) {
-      return perferror(Str("PVOC timpnt < 0"));
+      return csound->PerfError(csound, Str("PVOC timpnt < 0"));
     }
     if (frIndx > (MYFLT)p->maxFr) { /* not past last one */
       frIndx = (MYFLT)p->maxFr;
@@ -463,7 +463,7 @@ int pvcrossset(ENVIRON *csound, PVCROSS *p)
     return OK;
 
 pverr:
-    return initerror(errmsg);
+    return csound->InitError(csound, errmsg);
 }
 
 
@@ -486,7 +486,7 @@ int pvcross(ENVIRON *csound, PVCROSS *p)
     MYFLT  ampscale2=*p->kampscale2;
 
     if (p->auxch.auxp==NULL) {  /* RWD Fix */
-      return perferror(Str("pvcross: not initialised"));
+      return csound->PerfError(csound, Str("pvcross: not initialised"));
     }
     if (pdebug) fprintf(stderr, "<%7.4f>",*p->ktimpnt);
     pex = *p->kfmod;
@@ -494,14 +494,14 @@ int pvcross(ENVIRON *csound, PVCROSS *p)
     /* use outlen to check window/krate/transpose combinations */
     if (outlen>PVFFTSIZE) { /* Maximum transposition down is one octave */
                             /* ..so we won't run into buf2Size problems */
-      return perferror(Str("PVOC transpose too low"));
+      return csound->PerfError(csound, Str("PVOC transpose too low"));
     }
     if (outlen<2*ksmps) {  /* minimum post-squeeze windowlength */
-      return perferror(Str("PVOC transpose too high"));
+      return csound->PerfError(csound, Str("PVOC transpose too high"));
     }
     buf2Size = OPWLEN;     /* always window to same length after DS */
     if ((frIndx = *p->ktimpnt * p->frPrtim) < 0) {
-      return perferror(Str("PVOC timpnt < 0"));
+      return csound->PerfError(csound, Str("PVOC timpnt < 0"));
     }
     if (frIndx > (MYFLT)p->maxFr) { /* not past last one */
         frIndx = (MYFLT)p->maxFr;

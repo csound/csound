@@ -84,8 +84,9 @@ openin(char *filnam)/* open a file for reading. If not fullpath, will search: */
     if (pathnam != NULL)
       infd = open(pathnam, RD_OPTS);
     if (infd < 0)
-      dies(Str("cannot open %s.  Not in cur dir, SSDIR or SFDIR as defined"),
-           filnam);
+      csoundDie(&cenviron, Str("cannot open %s.  "
+                               "Not in cur dir, SSDIR or SFDIR as defined"),
+                           filnam);
     return infd;
 }
 
@@ -101,10 +102,10 @@ int openout(              /* open a file for writing.  If not fullpath, then  */
     if (dirtyp == 2) {
       pathnam = csoundGetEnv(&cenviron, "SFDIR");
       if (pathnam == NULL || pathnam[0] == '\0')
-        dies(Str("cannot open %s, SFDIR undefined"), filnam);
+        csoundDie(&cenviron, Str("cannot open %s, SFDIR undefined"), filnam);
     }
     else if (dirtyp < 1 || dirtyp > 3)
-      die(Str("openout: illegal dirtyp"));
+      csoundDie(&cenviron, Str("openout: illegal dirtyp"));
     if (dirtyp == 2 || dirtyp == 3)
       pathnam = csoundFindOutputFile(&cenviron, filnam, "SFDIR");
     else
@@ -115,7 +116,7 @@ int openout(              /* open a file for writing.  If not fullpath, then  */
     if (pathnam != NULL)
       outfd = open(pathnam, WR_OPTS);
     if (outfd < 0)
-      dies(Str("cannot open %s."), filnam);
+      csoundDie(&cenviron, Str("cannot open %s."), filnam);
     return outfd;
 }
 
@@ -135,20 +136,8 @@ FILE *fopenin(char *filnam)
     if (pathnam != NULL)
       infil = fopen(pathnam, "r");
     if (infil == NULL)
-      dies(Str("cannot open %s.  Not in cur dir, "
-               "INCDIR SSDIR or SFDIR as defined"), filnam);
+      csoundDie(&cenviron, Str("cannot open %s.  Not in cur dir, "
+                               "INCDIR SSDIR or SFDIR as defined"), filnam);
     return infil;
-}
-
-void dies(char *s, char *t)
-{
-    sprintf(errmsg, s, t);
-    die(errmsg);
-}
-
-void die(char *s)
-{
-    csoundMessage(&cenviron, "%s\n", s);
-    longjmp(cenviron.exitjmp_,1);
 }
 

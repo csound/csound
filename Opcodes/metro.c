@@ -81,7 +81,7 @@ int split_trig_set(ENVIRON *csound,  SPLIT_TRIG *p)
 
     FUNC *ftp;
     if ((ftp = csound->FTFind(csound, p->ifn)) == NULL) {
-      return initerror(Str("splitrig: incorrect table number"));
+      return csound->InitError(csound, Str("splitrig: incorrect table number"));
     }
     p->table = ftp->ftable;
     p->numouts =  p->INOCOUNT-4;

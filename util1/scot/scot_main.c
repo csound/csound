@@ -1,11 +1,9 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#include "text.h"
+#include "cs.h"
 
-void die(char *);
-
-long natlong(long lval)             /* coerce a bigendian long into a natural long */
+long natlong(long lval)     /* coerce a bigendian long into a natural long */
 {
     unsigned char benchar[4];
     unsigned char *p = benchar;
@@ -22,24 +20,17 @@ long natlong(long lval)             /* coerce a bigendian long into a natural lo
     return(natlong);
 }
 
-void err_printf(char *fmt, ...)
-{
-    va_list a;
-    va_start(a, fmt);
-    vfprintf(stderr, fmt, a);
-    va_end(a);
-}
-
 int main(int argc, char **argv)
 {
   FILE *infile = 0,*outfile = 0;
   char *name = 0;
 
   init_getstring(argc, argv);
+  csoundPreCompile(csoundCreate(NULL));
   if (argc==2)
   {
     if (!(infile=fopen(argv[1],"r")))
-     die(Str("Can't open input file"));
+     csoundDie(&cenviron, Str("Can't open input file"));
     name=argv[1];
   }
   else if (argc==1)
@@ -47,18 +38,12 @@ int main(int argc, char **argv)
     infile=stdin;
     name="";
   }
-  else die("Usage:  scot <file>");
+  else csoundDie(&cenviron, "Usage:  scot <file>");
   if (!(outfile=fopen("score","w")))
-   die("Can't open output file \"score\"");
+   csoundDie(&cenviron, "Can't open output file \"score\"");
   scot(infile,outfile,name);
   fclose(infile);
   fclose(outfile);
   return(0);
 }
 
-
-void die(char *s)
-{
-  printf("scot: %s\n",s);
-  exit(1);
-}

@@ -159,7 +159,7 @@ int pvreadset(ENVIRON *csound, PVREAD *p)
 
     return OK;
  pverr:
-    return initerror(errmsg);
+    return csound->InitError(csound, errmsg);
 }
 
 int pvread(ENVIRON *csound, PVREAD *p)
@@ -172,7 +172,7 @@ int pvread(ENVIRON *csound, PVREAD *p)
 /*     if (pdebug) { printf("<%7.4f>",*p->ktimpnt); fflush(stdout); } */
 
     if ((frIndx = *p->ktimpnt * p->frPrtim) < 0) {
-      return perferror(Str("PVOC timpnt < 0"));
+      return csound->PerfError(csound, Str("PVOC timpnt < 0"));
     }
     if (frIndx > p->maxFr) {  /* not past last one */
       frIndx = (MYFLT)p->maxFr;

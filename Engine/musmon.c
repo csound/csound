@@ -91,7 +91,7 @@ int tempset(ENVIRON *csound, TEMPO *p)
     MYFLT tempo;
 
     if ((tempo = *p->istartempo) <= FL(0.0)) {
-      return initerror(Str("illegal istartempo value"));
+      return csound->InitError(csound, Str("illegal istartempo value"));
     }
     else {
       settempo(csound, tempo);
@@ -271,7 +271,7 @@ int musmon(ENVIRON *csound)
     /*        if (!O.Linein) { */   /*  *************** */
     if (!(scfp = fopen(O.playscore, "r"))) {
       if (!O.Linein) {
-        dies(Str("cannot reopen %s"), O.playscore);
+        csoundDie(csound, Str("cannot reopen %s"), O.playscore);
       }
     }
     if (O.usingcscore) {
@@ -281,7 +281,8 @@ int musmon(ENVIRON *csound)
       }
       printf(Str("using Cscore processing\n"));
       if (!(oscfp = fopen("cscore.out", "w")))  /* override stdout in   */
-        die(Str("cannot create cscore.out"));/* rdscor for cscorefns */
+        csoundDie(csound, Str("cannot create cscore.out"));
+      /* rdscor for cscorefns */
       cscorinit();
       cscore(csound);      /* call cscore, optionally re-enter via lplay() */
       fclose(oscfp);
@@ -289,16 +290,16 @@ int musmon(ENVIRON *csound)
       if (lplayed) return 0;
 
       if (!(scfp = fopen("cscore.out", "r")))   /*   rd from cscore.out */
-        die(Str("cannot reopen cscore.out"));
+        csoundDie(csound, Str("cannot reopen cscore.out"));
       if (!(oscfp = fopen("cscore.srt", "w")))  /*   writ to cscore.srt */
-        die(Str("cannot reopen cscore.srt"));
+        csoundDie(csound, Str("cannot reopen cscore.srt"));
       printf(Str("sorting cscore.out ..\n"));
       scsort(scfp, oscfp);                      /* call the sorter again */
       fclose(scfp); scfp = NULL;
       fclose(oscfp);
       printf(Str("\t... done\n"));
       if (!(scfp = fopen("cscore.srt", "r")))   /*   rd from cscore.srt */
-        die(Str("cannot reopen cscore.srt"));
+        csoundDie(csound, Str("cannot reopen cscore.srt"));
       printf(Str("playing from cscore.srt\n"));
       O.usingcscore = 0;
     }

@@ -353,12 +353,12 @@ void m_chanmsg(ENVIRON *csound, MEVENT *mep)
         break;
       default:
         sprintf(errmsg,Str("unrecognised sys_common type %d"), mep->chan);
-        die(errmsg);
+        csoundDie(csound, errmsg);
       }
       break;
     default:
       sprintf(errmsg,Str("unrecognised message type %d"), mep->type);
-      die(errmsg);
+      csoundDie(csound, errmsg);
     }
 }
 
@@ -406,7 +406,7 @@ int m_chinsno(ENVIRON *csound, short chan, short insno)
     MEVENT   mev;
 
     if (chan < 0 || chan > 15)
-      return initerror(Str("illegal channel number"));
+      return csound->InitError(csound, Str("illegal channel number"));
     chn = M_CHNBP[chan];
     if (insno <= 0) {
       chn->insno = -1;
@@ -415,7 +415,7 @@ int m_chinsno(ENVIRON *csound, short chan, short insno)
     else {
       if (insno > maxinsno || instrtxtp[insno] == NULL) {
         printf(Str("Insno = %d\n"), insno);
-        return initerror(Str("unknown instr"));
+        return csound->InitError(csound, Str("unknown instr"));
       }
       chn->insno = insno;
       printf(Str("chnl %d using instr %d\n"), chan+1, chn->insno);

@@ -568,9 +568,9 @@ int csoundCompile(void *csound, int argc, char **argv)
         add_tmpfile(csound, playscore);         /* IV - Feb 03 2005 */
       }
       if (!(scorin = fopen(scorename, "r")))          /* else sort it   */
-        dies(Str("cannot open scorefile %s"), scorename);
+        csoundDie(csound, Str("cannot open scorefile %s"), scorename);
       if (!(scorout = fopen(sortedscore, "w")))
-        dies(Str("cannot open %s for writing"), sortedscore);
+        csoundDie(csound, Str("cannot open %s for writing"), sortedscore);
       err_printf(Str("sorting score ...\n"));
       scsort(scorin, scorout);
       fclose(scorin);
@@ -578,13 +578,13 @@ int csoundCompile(void *csound, int argc, char **argv)
     }
     if (xfilename != NULL) {                        /* optionally extract */
       if (!strcmp(scorename,"score.xtr"))
-        dies(Str("cannot extract %s, name conflict"),scorename);
+        csoundDie(csound, Str("cannot extract %s, name conflict"), scorename);
       if (!(xfile = fopen(xfilename, "r")))
-        dies(Str("cannot open extract file %s"), xfilename);
+        csoundDie(csound, Str("cannot open extract file %s"), xfilename);
       if (!(scorin = fopen(sortedscore, "r")))
-        dies(Str("cannot reopen %s"), sortedscore);
+        csoundDie(csound, Str("cannot reopen %s"), sortedscore);
       if (!(scorout = fopen(xtractedscore, "w")))
-        dies(Str("cannot open %s for writing"), xtractedscore);
+        csoundDie(csound, Str("cannot open %s for writing"), xtractedscore);
       err_printf(Str("  ... extracting ...\n"));
       scxtract(scorin, scorout, xfile);
       fclose(scorin);

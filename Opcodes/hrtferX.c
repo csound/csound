@@ -182,7 +182,7 @@ int hrtferxk(ENVIRON *csound, HRTFER *p)
 
 
     if (p->mfp==NULL) {         /* RWD fix */
-      perferror(Str("hrtfer: not initialised"));
+      csound->PerfError(csound, Str("hrtfer: not initialised"));
       return NOTOK;
     }
         /* update local variables */

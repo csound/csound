@@ -73,7 +73,7 @@ int lowpr_setx(ENVIRON *csound, LOWPRX *p)
     int j;
     if ((p->loop = (int) (*p->ord + FL(0.5))) < 1) p->loop = 4; /*default value*/
     else if (p->loop > 10) {
-      return initerror(Str("illegal order num. (min 1, max 10)"));
+      return csound->InitError(csound, Str("illegal order num. (min 1, max 10)"));
     }
     if (*p->istor == FL(0.0))
       for (j=0; j< p->loop; j++)  p->ynm1[j] = p->ynm2[j] = FL(0.0);
@@ -122,7 +122,7 @@ int lowpr_w_sep_set(ENVIRON *csound, LOWPR_SEP *p)
     if ((p->loop = (int) (*p->ord + FL(0.5))) < 1)
       p->loop = 4; /*default value*/
     else if (p->loop > 10) {
-      return initerror(Str("illegal order num. (min 1, max 10)"));
+      return csound->InitError(csound, Str("illegal order num. (min 1, max 10)"));
     }
     for (j=0; j< p->loop; j++)  p->ynm1[j] = p->ynm2[j] = FL(0.0);
     return OK;

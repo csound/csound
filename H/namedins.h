@@ -63,7 +63,7 @@ void named_instr_free (void);
 
 /* convert opcode string argument to instrument number */
 /* return value is -1 if the instrument cannot be found */
-/* (in such cases, initerror() is also called) */
+/* (in such cases, csoundInitError() is also called) */
 
 long strarg2insno (MYFLT*, char*);
 
@@ -77,7 +77,7 @@ long strarg2insno_p (char*);
 /* (also allows user defined opcode names); if the integer */
 /* argument is non-zero, only opcode names are searched */
 /* return value is -1 if the instrument cannot be found */
-/* (in such cases, initerror() is also called) */
+/* (in such cases, csoundInitError() is also called) */
 
 long strarg2opcno (MYFLT*, char*, int);
 

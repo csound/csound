@@ -85,7 +85,7 @@ int pvsdemix_init(ENVIRON *csound, PVSDEMIX *p)
 
     if (!(p->fout->format==PVS_AMP_FREQ) ||
         (p->fout->format==PVS_AMP_PHASE))
-      die("pvsdemix: signal format must be amp-phase or amp-freq.\n");
+      csound->Die(csound, "pvsdemix: signal format must be amp-phase or amp-freq.\n");
 
     return OK;
 }
@@ -111,10 +111,10 @@ int pvsdemix_process(ENVIRON *csound, PVSDEMIX *p)
     MYFLT range;
 
     if (!fsigs_equal(p->finleft,p->finright))
-      die("pvsdemix : formats are different.\n");
+      csound->Die(csound, "pvsdemix : formats are different.\n");
 
     if (out==NULL)
-      die("pvsdemix : not initialised \n");
+      csound->Die(csound, "pvsdemix : not initialised \n");
 
     if (p->lastframe < p->finleft->framecount) {
 

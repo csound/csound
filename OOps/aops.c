@@ -423,7 +423,7 @@ int ftlen(ENVIRON *csound, EVAL *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = ftnp2find(csound, p->a)) != NULL)
+    if ((ftp = csound->FTnp2Find(csound, p->a)) != NULL)
       *p->r = (MYFLT)ftp->flen;
     else
       *p->r = -FL(1.0);      /* Return something */
@@ -434,7 +434,7 @@ int ftchnls(ENVIRON *csound, EVAL *p)
 {
     FUNC *ftp;
 
-    if ((ftp = ftnp2find(csound,p->a)) != NULL)
+    if ((ftp = csound->FTnp2Find(csound,p->a)) != NULL)
       *p->r = (MYFLT)ftp->nchanls;
     else
       *p->r = -FL(1.0);      /* Return something */
@@ -444,7 +444,7 @@ int ftchnls(ENVIRON *csound, EVAL *p)
 int ftlptim(ENVIRON *csound, EVAL *p)
 {
     FUNC    *ftp;
-    if ((ftp = ftnp2find(csound,p->a)) == NULL) return OK;
+    if ((ftp = csound->FTnp2Find(csound,p->a)) == NULL) return OK;
     if (ftp->loopmode1)
       *p->r = ftp->begin1 * onedsr;
     else {
@@ -569,7 +569,7 @@ int cpsxpch(ENVIRON *csound, XENH *p)
       long len;
       if (ftp == NULL) {
         sprintf(errmsg, Str("No tuning table %d\n"), (int)(- *p->et));
-        return perferror(errmsg);
+        return csound->PerfError(csound, errmsg);
       }
       len = ftp->flen;
       while (fract>len) {
@@ -598,7 +598,7 @@ int cps2pch(ENVIRON *csound, XENH *p)
       long len;
       if (ftp == NULL) {
         sprintf(errmsg,Str("No tuning table %d\n"), (int)(- *p->et));
-        return perferror(errmsg);
+        return csound->PerfError(csound, errmsg);
       }
       len = ftp->flen;
       while (fract>len) {
@@ -623,7 +623,7 @@ int cpstun_i(ENVIRON *csound, CPSTUNI *p)
     int basekeymidi;
     MYFLT basefreq, factor,interval;
     if ((ftp = csound->FTFind(csound, p->tablenum)) == NULL) {
-      return perferror(Str("cpstun: invalid table"));
+      return csound->PerfError(csound, Str("cpstun: invalid table"));
     }
     func = ftp->ftable;
     numgrades = (int) *func++;
@@ -657,7 +657,7 @@ int cpstun(ENVIRON *csound, CPSTUN *p)
       int basekeymidi;
       MYFLT basefreq, factor,interval;
       if ((ftp = csound->FTFind(csound, p->tablenum)) == NULL) {
-        return perferror(Str("cpstun: invalid table"));
+        return csound->PerfError(csound, Str("cpstun: invalid table"));
       }
       func = ftp->ftable;
       numgrades = (int) *func++;

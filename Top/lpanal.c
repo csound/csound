@@ -783,7 +783,7 @@ int lpanal(int argc, char **argv)
 static void quit(char *msg)
 {
         printf("lpanal: %s\n", msg);
-        die(Str("analysis aborted"));
+        csoundDie(&cenviron, Str("analysis aborted"));
 }
 
 static void lpdieu(char *msg)
@@ -887,7 +887,7 @@ static void gauss(double (*a/*old*/)[MAXPOLES], double *bold, double b[])
       }
       if (amax < 1e-20) {
         printf("Row %d or %d have maximum of %g\n", i, poleCount, amax);
-        die(Str("gauss: ill-conditioned"));
+        csoundDie(&cenviron, Str("gauss: ill-conditioned"));
       }
       if (i != istar) {
         for (j=0; j < poleCount;++j)  {    /* switch rows */
@@ -919,7 +919,7 @@ static void gauss(double (*a/*old*/)[MAXPOLES], double *bold, double b[])
     if (fabs(a[poleCount-1][poleCount-1]) < 1e-20) {
       printf("Row %d or %d have maximum of %g\n",
              poleCount-1, poleCount, fabs(a[poleCount-1][poleCount-1]));
-      die(Str("gauss: ill-conditioned"));
+      csoundDie(&cenviron, Str("gauss: ill-conditioned"));
     }
 
     b[poleCount-1] = c[poleCount-1] / a[poleCount-1][poleCount-1];

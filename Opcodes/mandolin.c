@@ -77,7 +77,7 @@ int mandolinset(ENVIRON *csound, MANDOL *p)
 
     if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) p->soundfile = ftp;
     else {
-      return perferror(Str("No table for Mandolin")); /* Expect pluck wave */
+      return csound->PerfError(csound, Str("No table for Mandolin")); /* Expect pluck wave */
     }
     if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation */
       if (*p->lowestFreq!=FL(0.0)) {

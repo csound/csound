@@ -38,7 +38,7 @@ int ipow(ENVIRON *csound, POW *p)               /*      Power for i-rate */
     MYFLT in = *p->in;
     MYFLT powerOf = *p->powerOf;
     if (in == FL(0.0) && powerOf == FL(0.0))
-      return perferror(Str("NaN in pow\n"));
+      return csound->PerfError(csound, Str("NaN in pow\n"));
     else
       *p->sr = (MYFLT)pow((double)in, (double)powerOf) / *p->norm;
     return OK;
@@ -55,7 +55,7 @@ int apow(ENVIRON *csound, POW *p)               /*      Power routine for a-rate
       for (n=0; n<ksmps; n++) {
         MYFLT xx = in[n];
         if (xx == FL(0.0)) {
-          return perferror(Str("NaN in pow\n"));
+          return csound->PerfError(csound, Str("NaN in pow\n"));
         }
         else
           out[n] = yy;

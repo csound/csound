@@ -667,9 +667,9 @@ void otran(void)
       printf("\n");
     }
     if (nxtargoffp != argofflim)
-      die(Str("inconsistent argoff sumcount"));
+      csoundDie(&cenviron, Str("inconsistent argoff sumcount"));
     if (strargsize && strargptr != strargspace + strargsize)
-      die(Str("inconsistent strarg sizecount"));
+      csoundDie(&cenviron, Str("inconsistent strarg sizecount"));
 
     ip = &instxtanchor;                         /* set the OPARMS values */
     instxtcount = optxtcount = 0;
@@ -834,7 +834,7 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
           *largp->ndxp = lp - labels + LABELOFS;
           goto nxt;
         }
-      dies(Str("target label '%s' not found"), s);
+      csoundDie(&cenviron, Str("target label '%s' not found"), s);
     }
     nxtargoffp = ndxp;
     mfree(&cenviron, labels);
@@ -904,7 +904,7 @@ static int constndx(char *s)    /* get storage ndx of float const value */
         return(fp - pool);                      /*    return w. index   */
     }
     if (++poolcount > nconsts) {
-      /* die("flconst pool is full"); */
+      /* csoundDie(&cenviron, "flconst pool is full"); */
       int indx = fp-pool;
       nconsts += NCONSTS;
       printf(Str("extending Floating pool to %d\n"), nconsts);
@@ -932,7 +932,7 @@ static void gblnamset(char *s) /* builds namelist & type counts for gbl names */
           return;                               /*    return            */
 
       if (ggg->nxtslot+1 >= ggg->namlim) {      /* chk for full table   */
-/*          die("gbl namelist is full"); */
+/*          csoundDie(&cenviron, "gbl namelist is full"); */
         if (ggg->next == NULL) {
           err_printf( Str("Extending Global pool to %d\n"),
                       gblsize+=GNAMES);
@@ -975,7 +975,7 @@ static NAME *lclnamset(char *s)
         if (strcmp(s,np->namep) == 0)   /* if name is there     */
           return(np);                   /*    return ptr        */
       if (lll->nxtslot+1 >= lll->namlim) {      /* chk for full table   */
-        /*          die("lcl namelist is full"); */
+        /*          csoundDie(&cenviron, "lcl namelist is full"); */
         if (lll->next == NULL) {
           err_printf( Str("Extending Local pool to %d\n"),
                       lclsize+=LNAMES);
@@ -1021,9 +1021,10 @@ static int gbloffndx(char *s)   /* get named offset index into gbl dspace */
           return(indx);
         }
       if (ggg->nxtslot+1 < ggg->namlim)
-        die(Str("unexpected global name"));      /* else complain        */
+        csoundDie(&cenviron, Str("unexpected global name")); /* else complain */
       ggg = ggg->next;
-      if (ggg == NULL) die(Str("no pool for unexpected global name"));
+      if (ggg == NULL)
+        csoundDie(&cenviron, Str("no pool for unexpected global name"));
     }
 }
 
@@ -1042,7 +1043,7 @@ static int lcloffndx(char *s)   /* get named offset index into instr lcl */
     case ATYPE:  indx = lclfixed + np->count;  break;
                 /*RWD ???? */
     case PTYPE: indx = lclkcnt + np->count * Pfloatsize; break;
-    default:     die(Str("unknown nametype"));  break;
+    default:     csoundDie(&cenviron, Str("unknown nametype"));  break;
     }
     return(indx);                       /*   and rtn this offset */
 }

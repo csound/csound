@@ -509,7 +509,7 @@ static void quit (char *msg)
 #ifdef mills_macintosh
     char temp[256];
     sprintf(temp,Str("hetro:  %s\n\tanalysis aborted\n"),msg);
-    die(temp);
+    csoundDie(&cenviron, temp);
 #else
     err_printf(Str("hetro:  %s\n\tanalysis aborted\n"),msg);
 #endif

@@ -315,11 +315,11 @@ void rdorchfile(void)           /* read entire orch file into txt space */
     }
     printf(Str("orch compiler:\n"));
     if ((fp = fopen(orchname,"r")) == NULL)
-      dies(Str("cannot open orch file %s"),orchname);
+      csoundDie(&cenviron, Str("cannot open orch file %s"), orchname);
     if (fseek(fp, 0L, SEEK_END) != 0)
-      dies(Str("cannot find end of file %s"),orchname);
+      csoundDie(&cenviron, Str("cannot find end of file %s"), orchname);
     if ((ORCHSIZ = ftell(fp)) <= 0)
-      dies(Str("ftell error on %s"),orchname);
+      csoundDie(&cenviron, Str("ftell error on %s"), orchname);
     rewind(fp);
     inputs = (struct in_stack*)mmalloc(&cenviron, 20*sizeof(struct in_stack));
     input_size = 20;
@@ -511,9 +511,10 @@ void rdorchfile(void)           /* read entire orch file into txt space */
             input_cnt++;
             if (input_cnt>=input_size) {
               input_size += 20;
-              inputs = mrealloc(&cenviron, inputs, input_size*sizeof(struct in_stack));
+              inputs = mrealloc(&cenviron,
+                                inputs, input_size*sizeof(struct in_stack));
               if (inputs == NULL) {
-                die(Str("No space for include files"));
+                csoundDie(&cenviron, Str("No space for include files"));
               }
             }
             str++;
@@ -669,11 +670,12 @@ void rdorchfile(void)           /* read entire orch file into txt space */
         input_cnt++;
         if (input_cnt>=input_size) {
           input_size += 20;
-          inputs = mrealloc(&cenviron, inputs, input_size*sizeof(struct in_stack));
+          inputs = mrealloc(&cenviron,
+                            inputs, input_size*sizeof(struct in_stack));
           if (inputs == NULL) {
-            die(Str("No space for include files"));
+            csoundDie(&cenviron, Str("No space for include files"));
           }
-          }
+        }
         str++;
         str->string = 1; str->body = mm->body; str->args = mm->acnt;
         str->mac = mm;
@@ -681,8 +683,8 @@ void rdorchfile(void)           /* read entire orch file into txt space */
         ingappop = 1;
       }
     }
-    if (cp >= endspace) {
-      die(Str("file too large for ortext space")); /* Ought to extend */
+    if (cp >= endspace) {                               /* Ought to extend */
+      csoundDie(&cenviron, Str("file too large for ortext space"));
     }
     if (*(cp-1) != '\n')                /* if no final NL,      */
       *cp++ = '\n';                     /*    add one           */
@@ -728,14 +730,14 @@ static int splitline(void) /* split next orch line into atomic groups */
         int i;
         char *nn = mcalloc(&cenviron, lenmax+LENMAX);
         memcpy(nn, collectbuf, lenmax); /* Copy data */
-        if (nn==NULL) die(Str("line LENMAX exceeded"));
+        if (nn==NULL) csoundDie(&cenviron, Str("line LENMAX exceeded"));
         cp = (cp - collectbuf) + nn;    /* Adjust pointer  */
         for (i=0; i<grpcnt; i++) group[i] += (nn-collectbuf);
-        mfree(&cenviron, collectbuf);              /* Need to correct grp vector */
+        mfree(&cenviron, collectbuf);   /* Need to correct grp vector */
         collectbuf = nn;
         lenmax += LENMAX;
 /*              err_printf( "SplitLine buffer extended to %d\n", lenmax); */
-/*              die(X_966,"line LENMAX exceeded"); */
+/*              csoundDie(&cenviron, X_966,"line LENMAX exceeded"); */
       }
       if (c == '"') {                     /* quoted string:    */
         if (collecting) {
@@ -745,7 +747,8 @@ static int splitline(void) /* split next orch line into atomic groups */
         if (grpcnt >= grpmax) {
           group = (char **)mrealloc(&cenviron, group,((grpmax+=GRPMAX)+1)*sizeof(char*));
           grpsav=(char **) mrealloc(&cenviron, grpsav,(grpmax+1)*sizeof(char*));
-          if (group==NULL || grpsav==NULL) die(Str("GRPMAX overflow"));
+          if (group==NULL || grpsav==NULL)
+            csoundDie(&cenviron, Str("GRPMAX overflow"));
         }
         grpp = group[grpcnt++] = cp;
         *cp++ = c;                      /*  cpy to nxt quote */
@@ -763,7 +766,8 @@ static int splitline(void) /* split next orch line into atomic groups */
         if (grpcnt >= grpmax) {
           group = (char **)mrealloc(&cenviron, group,((grpmax+=GRPMAX)+1)*sizeof(char*));
           grpsav=(char **) mrealloc(&cenviron, grpsav,(grpmax+1)*sizeof(char*));
-          if (group==NULL || grpsav==NULL) die(Str("GRPMAX overflow"));
+          if (group==NULL || grpsav==NULL)
+            csoundDie(&cenviron, Str("GRPMAX overflow"));
         }
         grpp = group[grpcnt++] = cp;
         *cp++ = c;                      /*  cpy to nxt quote */
@@ -925,7 +929,7 @@ static int splitline(void) /* split next orch line into atomic groups */
           group = (char**)mcalloc(&cenviron, ((grpmax+=GRPMAX)+1)*sizeof(char*));
           grpsav =(char**)mcalloc(&cenviron, (grpmax+1)*sizeof(char*));
           if (group==NULL || grpsav==NULL)
-            die(Str("GRPMAX overflow"));
+            csoundDie(&cenviron, Str("GRPMAX overflow"));
         }
         grpp = group[grpcnt++] = cp;
       }
@@ -1593,7 +1597,7 @@ int getopnum(char *s)           /* tst a string against opcodlst  */
 
     if ((n = find_opcode(s))) return n;         /* IV - Oct 31 2002 */
     printf("opcode=%s\n", s);
-    die(Str("unknown opcode"));
+    csoundDie(&cenviron, Str("unknown opcode"));
     return(0);  /* compiler only */
 }
 
@@ -1645,7 +1649,7 @@ static void lblrequest(char *s)
     if (++lblcnt >= lblmax) {
       LBLREQ *tmp = mrealloc(&cenviron, lblreq, (lblmax += LBLMAX)*sizeof(LBLREQ));
       if (tmp==NULL)
-        die(Str("label list is full"));
+        csoundDie(&cenviron, Str("label list is full"));
       lblreq = tmp;
     }
     lblreq[req].reqline = curline;
@@ -1665,7 +1669,7 @@ static void lblfound(char *s)
     if (++lblcnt >= lblmax) {
       LBLREQ *tmp = mrealloc(&cenviron, lblreq, (lblmax += LBLMAX)*sizeof(LBLREQ));
       if (tmp==NULL)
-        die(Str("label list is full"));
+        csoundDie(&cenviron, Str("label list is full"));
       lblreq = tmp;
     }
     lblreq[req].label = s;
@@ -1749,3 +1753,4 @@ static void printgroups(int grpcnt)     /*   debugging aid (onto stdout) */
     }
     printf("\n");
 }
+

@@ -135,7 +135,7 @@ int cvset(ENVIRON *csound, CONVOLVE *p)
     p->outhead = p->outail = p->outbuf;
     return OK;
  cverr:
-    return initerror(errmsg);
+    return csound->InitError(csound, errmsg);
 }
 
 extern void writeFromCircBuf(MYFLT**, MYFLT**, MYFLT*, MYFLT*, long);
@@ -165,7 +165,7 @@ int convolve(ENVIRON *csound, CONVOLVE *p)
     ar[3] = p->ar4;
 
     if (p->auxch.auxp==NULL) {
-      return perferror(Str("convolve: not initialised"));
+      return csound->PerfError(csound, Str("convolve: not initialised"));
     }
   /* First dump as much pre-existing audio in output buffer as possible */
     if (outcnt > 0) {
@@ -339,12 +339,12 @@ int pconvset(ENVIRON *csound, PCONVOLVE *p)
     IRfile.sr = 0;
     if (channel < 1 || ((channel > 4) && (channel != ALLCHNLS))) {
       sprintf(errmsg, "channel request %d illegal\n", channel);
-      return perferror(errmsg);
+      return csound->PerfError(csound, errmsg);
     }
     IRfile.channel = channel;
     IRfile.analonly = 1;
     if ((infd = sndgetset(&IRfile))==NULL) {
-      return perferror("pconvolve: error while impulse file");
+      return csound->PerfError(csound, "pconvolve: error while impulse file");
     }
 
     if ((IRfile.framesrem < 0) && (csound->oparms_->msglevel & WARNMSG)) {
@@ -362,7 +362,7 @@ int pconvset(ENVIRON *csound, PCONVOLVE *p)
 
     p->nchanls = (channel != ALLCHNLS ? 1 : IRfile.nchanls);
     if (p->nchanls != p->OUTOCOUNT) {
-      return perferror("PCONVOLVE: number of output channels not equal "
+      return csound->PerfError(csound, "PCONVOLVE: number of output channels not equal "
                        "to input channels");
     }
 
@@ -395,7 +395,7 @@ int pconvset(ENVIRON *csound, PCONVOLVE *p)
       /* get the block of input samples and normalize -- soundin code
          handles finding the right channel */
       if ((read_in = getsndin(infd, inbuf, p->Hlen*p->nchanls, &IRfile)) <= 0)
-        die("PCONVOLVE: less sound than expected!");
+        csound->Die(csound, "PCONVOLVE: less sound than expected!");
 
       /* take FFT of each channel */
       for (i = 0; i < p->nchanls; i++) {

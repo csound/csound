@@ -28,7 +28,7 @@ int seqtim_set(ENVIRON *csound, SEQTIM *p)   /* by G.Maldonado */
     long *ndx = &p->ndx;
     p->pfn = (long) *p->kfn;
     if ((ftp = csound->FTFind(csound, p->kfn)) == NULL) {
-      return initerror(Str("seqtime: incorrect table number"));
+      return csound->InitError(csound, Str("seqtime: incorrect table number"));
     }
     *ndx = (long) *p->initndx;
     p->done = 0;
@@ -66,8 +66,9 @@ int seqtim(ENVIRON *csound, SEQTIM *p)
       long *ndx = &p->ndx;
       if (p->pfn != (long)*p->kfn) {
         FUNC *ftp;
-        if ((ftp = ftfindp(csound, p->kfn)) == NULL) {
-          return perferror(Str("seqtime: incorrect table number"));
+        if ((ftp = csound->FTFindP(csound, p->kfn)) == NULL) {
+          return csound->PerfError(csound,
+                                   Str("seqtime: incorrect table number"));
         }
         p->pfn = (long)*p->kfn;
         p->table = ftp->ftable;
@@ -133,7 +134,7 @@ int seqtim2_set(ENVIRON *csound, SEQTIM2 *p)
     long *ndx = &p->ndx;
     p->pfn = (long) *p->kfn;
     if ((ftp = csound->FTFind(csound, p->kfn)) == NULL) {
-      return initerror("seqtim: incorrect table number");
+      return csound->InitError(csound, "seqtim: incorrect table number");
     }
     *ndx = (long) *p->kinitndx;
     p->done=0;
@@ -171,11 +172,11 @@ int seqtim2(ENVIRON *csound, SEQTIM2 *p)
     else {
       long start = (long) *p->kstart, loop = (long) *p->kloop;
       long *ndx = &p->ndx;
-      
+
       if (p->pfn != (long)*p->kfn) {
         FUNC *ftp;
-        if ( (ftp = ftfindp(csound, p->kfn) ) == NULL) {
-          return perferror("seqtim: incorrect table number");
+        if ( (ftp = csound->FTFindP(csound, p->kfn) ) == NULL) {
+          return csound->PerfError(csound, "seqtim: incorrect table number");
         }
         p->pfn = (long)*p->kfn;
         p->table = ftp->ftable;

@@ -139,12 +139,10 @@
 #undef IsPowerOfTwo
 #undef FFT2torlpacked
 #undef FFT2realpacked
-#undef cxmul
 #undef getopnum
 #undef strarg2insno
 #undef strarg2opcno
 #undef instance
-#undef dies
 #undef rewriteheader
 #undef writeheader
 
@@ -207,14 +205,9 @@
 #define SetRtcloseCallback csound->SetRtcloseCallback
 
 #define csoundLocalizeString csound->LocalizeString
-#define die csound->die_
-#define initerror csound->initerror_
-#define perferror csound->perferror_
 #define dispset csound->dispset
 #define display csound->display
 #define intpow csound->intpow_
-#define ftfindp csound->ftfindp
-#define ftnp2find csound->ftnp2find
 #define unquote csound->unquote_
 #define ldmemfile csound->ldmemfile_
 #define err_printf csound->err_printf_
@@ -333,12 +326,10 @@
 #define IsPowerOfTwo csound->IsPowerOfTwo_
 #define FFT2torlpacked csound->FFT2torlpacked_
 #define FFT2realpacked csound->FFT2realpacked_
-#define cxmul csound->cxmul_
 #define getopnum csound->getopnum_
 #define strarg2insno csound->strarg2insno_
 #define strarg2opcno csound->strarg2opcno_
 #define instance csound->instance_
-#define dies csound->dies
 #define rewriteheader csound->rewriteheader_
 #define writeheader csound->writeheader_
 #define nchanik csound->nchanik_

@@ -92,7 +92,7 @@ int schedule(ENVIRON *csound, SCHED *p)
       which = (int) (FL(0.5) + *p->which);
     if (which < 1 || which > csound->maxinsno_ ||
         csound->instrtxtp_[which] == NULL) {
-      return initerror(Str("Instrument not defined"));
+      return csound->InitError(csound, Str("Instrument not defined"));
     }
     {
       RSCHED *rr;
@@ -176,7 +176,7 @@ int kschedule(ENVIRON *csound, WSCHED *p)
          : (int) (FL(0.5) + *p->which);
       if (which < 1 || which > csound->maxinsno_ ||
           csound->instrtxtp_[which] == NULL) {
-        return perferror(Str("Instrument not defined"));
+        return csound->PerfError(csound, Str("Instrument not defined"));
       }
       p->midi = (dur <= FL(0.0));
       if (p->midi)
@@ -251,8 +251,8 @@ int lfoset(ENVIRON *csound, LFO *p)
 /*        printf("Table set up (max is %d)\n", MAXPHASE>>10); */
     }
     else if (type>5 || type<0) {
-      sprintf(errmsg, Str("LFO: unknown oscilator type %d"), type);
-      return initerror(errmsg);
+      return csound->InitError(csound, Str("LFO: unknown oscilator type %d"),
+                                       type);
     }
     p->lasttype = type;
     p->phs = 0;
@@ -269,8 +269,8 @@ int lfok(ENVIRON *csound, LFO *p)
     phs = p->phs;
     switch (p->lasttype) {
     default:
-      sprintf(errmsg, Str("LFO: unknown oscilator type %d"), p->lasttype);
-      return perferror(errmsg);
+      return csound->PerfError(csound, Str("LFO: unknown oscilator type %d"),
+                                       p->lasttype);
     case 0:
       iphs = phs >> 12;
       fract = (MYFLT)(phs & 0xfff)/FL(4096.0);
@@ -325,8 +325,8 @@ int lfoa(ENVIRON *csound, LFO *p)
     for (n=0; n<ksmps; n++) {
       switch (p->lasttype) {
       default:
-        sprintf(errmsg, Str("LFO: unknown oscilator type %d"), p->lasttype);
-        return perferror(errmsg);
+        return csound->PerfError(csound, Str("LFO: unknown oscilator type %d"),
+                                         p->lasttype);
       case 0:
         iphs = phs >> 12;
         fract = (MYFLT)(phs & 0xfff)/FL(4096.0);
@@ -496,7 +496,7 @@ int trigseq_set(ENVIRON *csound, TRIGSEQ *p)     /* by G.Maldonado */
 {
     FUNC *ftp;
     if ((ftp = csound->FTFind(csound, p->kfn)) == NULL) {
-      return initerror(Str("trigseq: incorrect table number"));
+      return csound->InitError(csound, Str("trigseq: incorrect table number"));
     }
     p->done=0;
     p->table = ftp->ftable;
@@ -517,8 +517,9 @@ int trigseq(ENVIRON *csound, TRIGSEQ *p)
 
       if (p->pfn != (long)*p->kfn) {
         FUNC *ftp;
-        if ((ftp = ftfindp(csound, p->kfn)) == NULL) {
-          return perferror(Str("trigseq: incorrect table number"));
+        if ((ftp = csound->FTFindP(csound, p->kfn)) == NULL) {
+          return csound->PerfError(csound,
+                                   Str("trigseq: incorrect table number"));
         }
         p->pfn = (long)*p->kfn;
         p->table = ftp->ftable;
