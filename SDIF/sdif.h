@@ -50,8 +50,8 @@ Music and Audio Technologies, University of California, Berkeley.
 */
 
 
-#ifndef __SDIF_H
-#define __SDIF_H
+#ifndef CSOUND_SDIF_H
+#define CSOUND_SDIF_H
 
 
 

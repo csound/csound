@@ -46,6 +46,10 @@ Version 1.0, 9/21/99
 /* Structs defining our data structures.  Note that they contain the
    frame and matrix header structs from sdif.h */
 /*RWD TODO: declare objects, no pounters */
+#ifndef CSOUND_SDIF_MEM_H
+#define CSOUND_SDIF_MEM_H
+#include <H/sdif.h>
+
 typedef struct SDIFmemMatrixStruct {
     SDIF_MatrixHeader header;
     void *data;
@@ -128,4 +132,6 @@ SDIFresult SDIFmem_WriteFrame(FILE *sdif_handle, SDIFmem_Frame f);
    and possible padding bytes, to the given file handle.  Usually you want
    to call SDIFmem_WriteFrame() instead. */
 SDIFresult SDIFmem_WriteMatrix(FILE *sdif_handle, SDIFmem_Matrix m);
+
+#endif
 

@@ -42,9 +42,7 @@ Technologies, University of California, Berkeley.
 #include <string.h> /* for strerror() */
 #include <assert.h>
 #include <errno.h>
-#include "sdif.h"
-#include "sdif-mem.h"
-
+#include <H/sdif-mem.h>
 
 
 /* Global variables local to this file */
