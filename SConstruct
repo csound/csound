@@ -989,6 +989,7 @@ else:
     frontends/CsoundVST/Rescale.cpp 
     frontends/CsoundVST/Score.cpp 
     frontends/CsoundVST/ScoreNode.cpp 
+    frontends/CsoundVST/Sequence.cpp 
     frontends/CsoundVST/Shell.cpp 
     frontends/CsoundVST/StrangeAttractor.cpp 
     frontends/CsoundVST/System.cpp
