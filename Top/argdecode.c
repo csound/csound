@@ -77,7 +77,7 @@ static void set_stdin_assign(void *csound, int type, int state)
   n = (int*) csoundQueryGlobalVariable(csound, "::argdecode::stdinassign");
   if (n == NULL) {
     csoundCreateGlobalVariable(csound,
-			       "::argdecode::stdinassign", sizeof(int));
+                               "::argdecode::stdinassign", sizeof(int));
     n = (int*) csoundQueryGlobalVariable(csound, "::argdecode::stdinassign");
   }
   if (state)
@@ -92,7 +92,7 @@ static void set_stdout_assign(void *csound, int type, int state)
   n = (int*) csoundQueryGlobalVariable(csound, "::argdecode::stdoutassign");
   if (n == NULL) {
     csoundCreateGlobalVariable(csound,
-			       "::argdecode::stdoutassign", sizeof(int));
+                               "::argdecode::stdoutassign", sizeof(int));
     n = (int*) csoundQueryGlobalVariable(csound, "::argdecode::stdoutassign");
   }
   if (state)
@@ -149,9 +149,7 @@ static const char *shortUsageList[] = {
   "-N\tnotify (ring the bell) when score or miditrack is done",
   "-T\tterminate the performance when miditrack is done",
   "-D\tdefer GEN01 soundfile loads until performance time",
-#if defined(LINUX) || defined(__BEOS__)     /* Jonathan Mohr  1995 Oct 17 */
   "-Q dnam\tselect MIDI output device",
-#endif
   "-z\tList opcodes in this version",
   "-Z\tDither output",
 #if defined(LINUX)
@@ -164,7 +162,9 @@ static const char *shortUsageList[] = {
   "_____________Macintosh Command Line Flags_________________",
   "-X fnam\t Sound File Directory",
   "-q fnam\t Sound Sample-In Directory",
+#ifdef never
   "-Q fnam\t Analysis Directory",
+#endif
   "-V N\t Number of chars in screen buffer for output window",
   "-E N\t Number of tables in graphics window",
   "-p\t\t Play after rendering",
@@ -193,13 +193,12 @@ void print_short_usage(void *csound)
     p->Message(csound, Str(buf));
   }
   p->Message(csound, Str("flag defaults: csound -s -otest -b%d -B%d -m7\n"),
-	     IOBUFSAMPS, IODACSAMPS);
+                     IOBUFSAMPS, IODACSAMPS);
 }
 
 void usage(void)
 {
-  csoundMessage(&cenviron,
-		Str("Usage:\tcsound [-flags] orchfile scorefile\n"));
+  csoundMessage(&cenviron, Str("Usage:\tcsound [-flags] orchfile scorefile\n"));
   csoundMessage(&cenviron, Str("Legal flags are:\n"));
   print_short_usage(&cenviron);
   longjmp(cenviron.exitjmp_,1);
@@ -879,11 +878,13 @@ int argdecode(void *csound, int argc, char **argv_, char *envoutyp)
           strcpy(ssdir_path, s);
           s += (int) strlen(s);
           break;
+#ifdef never
         case 'Q':
           FIND(Str("no analysis directory name")) ;
           strcpy(sadir_path, s);
           s += (int) strlen(s);
           break;
+#endif
         case 'X':
           FIND(Str("no sound file directory name"));
           strcpy(sfdir_path, s);
@@ -1096,13 +1097,11 @@ int argdecode(void *csound, int argc, char **argv_, char *envoutyp)
             set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 0);
           O.FMidiin = 1;            /***************/
           break;
-#if defined(LINUX) || defined(__BEOS__)
         case 'Q':
           FIND(Str("no MIDI output device"));
           O.Midioutname = s;
           s += (int) strlen(s);
           break;
-#endif
         case 'R':
           O.rewrt_hdr = 1;
           break;
@@ -1212,3 +1211,4 @@ int argdecode(void *csound, int argc, char **argv_, char *envoutyp)
 void argdecodeRESET(void)
 {
 }
+

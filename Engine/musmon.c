@@ -52,7 +52,6 @@ long    srngcnt[MAXCHNLS], orngcnt[MAXCHNLS];
 short   srngflg = 0;
 
 extern  OPARMS  O;
-/* extern  MEVENT  *Midevtblk, *FMidevtblk; */
 static  EVTBLK  *scorevtblk;
 static  short   offonly = 0;
 static  short   sectno = 0;
@@ -106,8 +105,6 @@ extern  void    orcompact(ENVIRON*), rlsmemfiles(void), timexpire(double);
 extern  void    beatexpire(double), deact(INSDS*), fgens(ENVIRON *,EVTBLK *);
 extern  void    sfopenin(void*), sfopenout(void*), sfnopenout(void);
 extern  void    iotranset(void), sfclosein(void*), sfcloseout(void*);
-extern  int     csoundIsExternalMidiEnabled(void *);
-extern  void    csoundExternalMidiOpen(void *);
 extern  void    MidiClose(ENVIRON*);
 
 extern  OPARMS  O;
@@ -225,15 +222,13 @@ int musmon(ENVIRON *csound)
                  PACKAGE_VERSION, __DATE__);
 #endif
     }
-    if (O.Midiin || csoundIsExternalMidiEnabled(&cenviron)) {
+    if (O.Midiin) {
       /* Enable musmon to handle external MIDI input, if it has been enabled. */
-      if(csoundIsExternalMidiEnabled(&cenviron)) {
-        O.RTevents = 1;
-        O.Midiin = 1;
-        O.ksensing = 1;
-      }
-     MidiOpen(csound);                /*   alloc bufs & open files    */
-     }
+      O.RTevents = 1;
+      O.Midiin = 1;
+      O.ksensing = 1;
+      MidiOpen(csound);         /*   alloc bufs & open files    */
+    }
     dispinit();                 /* initialise graphics or character display */
     oload(csound);              /* set globals and run inits */
     if (O.FMidiin) FMidiOpen(csound);
@@ -526,7 +521,8 @@ int sensevents(ENVIRON *csound)
       n = 1;
       if (p->cyclesRemaining && O.RTevents) {
         if ((O.Midiin && (sensType = sensMidi(csound))) ||  /* if MIDI note message */
-            (O.FMidiin && kcounter >= FMidiNxtk && (sensType = sensFMidi(csound))) ||
+            (O.FMidiin && kcounter >= csound->midiGlobals->FMidiNxtk &&
+             (sensType = sensFMidi(csound))) ||
             (O.Linein && (sensType = sensLine())) ||  /* or Linein event */
             (O.OrcEvts && (sensType = sensOrcEvent()))) /* or triginstr event */
         n = 0;                                          /*   (re Aug 1999) */
@@ -612,7 +608,8 @@ int sensevents(ENVIRON *csound)
         /* sense real-time events */
         if (O.RTevents &&
             ((O.Midiin && (sensType = sensMidi(csound))) || /* if MIDI note message */
-             (O.FMidiin && kcounter >= FMidiNxtk && (sensType = sensFMidi(csound))) ||
+             (O.FMidiin && kcounter >= csound->midiGlobals->FMidiNxtk &&
+              (sensType = sensFMidi(csound))) ||
              (O.Linein && (sensType = sensLine())) || /* or Linein event */
              (O.OrcEvts && (sensType = sensOrcEvent()))))   /* or triginstr */
           goto kperf_cont;                          /*  event (re Aug 1999) */
@@ -696,8 +693,9 @@ int sensevents(ENVIRON *csound)
         MCHNBLK *chn;
 
         if (sensType == 2)                 /* realtime or Midifile  */
-          mep = Midevtblk;
-        else mep = FMidevtblk;
+          mep = csound->midiGlobals->Midevtblk;
+        else
+          mep = csound->midiGlobals->FMidevtblk;
         chn = M_CHNBP[mep->chan];
         insno = chn->pgmno;
         if (mep->type == NOTEON_TYPE && mep->dat2) { /* midi note ON: */
