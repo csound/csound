@@ -1,0 +1,94 @@
+\documentclass[10pt,letterpaper,onecolumn]{article}
+\usepackage{t1enc}
+\usepackage[latin1]{inputenc}
+\usepackage[english]{babel}
+\pagestyle{headings}
+
+\begin{document}
+
+\title{Csound and CsoundVST}
+\author{Michael Gogins}
+\maketitle
+\abstract{This document concisely explains how to download, build, install, extend, and use Csound and CsoundVST on Windows and Linux.}
+\section{Introduction}
+Csound is a unit-generator based, user-programmable computer music system. It was originally written by Barry Vercoe at the Massachusetts Institute of Technology in 1984 as the first C language version of this type of software. Since then Csound has received numerous contributions from researchers, programmers, and musicians around the world. 
+
+Csound is maintained by John Fitch at \texttt{http://www.sourceforge.net/projects/csound}. Documentation for the Csound language is maintained by Kevin Conder at \texttt{http://kevindumpscore.com/}. Csound's ``home page'' is maintained by Richard Boulanger at \texttt{http://csounds.com}. 
+
+There are newer computer music systems that have graphical patch editors (e.g. Max/MSP, PD, jMax, or Open Sound World), or that use more advanced techniques of software engineering (e.g. Nyquist or SuperCollider). However, Csound still has the largest and most varied set of unit generators, is the best documented, runs on the most platforms, and is the easiest to extend. It is possible to compile Csound using double-precision arithmetic throughout for superior sound quality. In short, Csound must be considered one of the most powerful musical instruments ever created.
+
+Csound development is ongoing, and currently stands at version 5 beta. New features in Csound 5 include the GNU Lesser General Public License, plugin unit generators, an application programming interface (API) for embedding Csound in other software, and the use of widely accepted third-party libraries: libsndfile for reading and writing soundfiles, PortAudio for reading and writing digital audio from sound cards, and the Fast Light Tool Kit (FLTK) for graphics.
+
+To create music with Csound:
+\begin{enumerate}
+\item Write an orchestra (\texttt{.orc} file) that creates instruments and signal processors by connecting unit generators using Csound's simple programming language.
+\item Write a score (\texttt{.sco} file) that specifies a list of notes and other events to be rendered by the orchestra.
+\item Run Csound to compile the orchestra and score, run the sorted and preprocessed score through the orchestra, and write digital audio out to a soundfile or sound card.
+\end{enumerate}
+
+CsoundVST is based on Csound, and adds a graphical user interface, C++ and Python APIs, Python scripting, a library of Python extension modules for algorithmic composition, a VST plugin interface, and a Mathematica interface.
+
+In addition to this ``canonical'' version of Csound and CsoundVST, there are other versions of Csound and other front ends for Csound, many of which can be found at \texttt{http://csounds.com}.
+\section{Downloading}
+Csound is hosted at \texttt{http:\-//www.sourceforge.net/projects/\-csound}. Source and binary packages are available from the \texttt{files} link off that page.
+
+The latest Csound source code is available through the Concurrent Versions System (CVS)(\texttt{http:\-//www.cvshome.org}). To download Csound sources using CVS, run the following commands:
+
+\begin{verbatim}
+cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/csound login 
+ 
+cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/csound co csound5 
+\end{verbatim}
+
+Information about accessing the CVS repository may be found in the SourceForge document "Basic Introduction to CVS and SourceForge.net (SF.net) Project CVS Services". If you wish to become a Csound developer, obtain a SourceForge login, and then apply to John Fitch at the \texttt{http:\-//www.sourceforge.net/projects/\-csound} site.
+
+\section{Building}
+Csound and CsoundVST are built using the Python package \texttt{scons}, not with makefiles or GNU autotools. Experience shows that \texttt{scons} build systems are easier to write, easier to use, and run faster than autotools build systems.
+
+To build Csound 5 and CsoundVST:
+\begin{enumerate}
+\item Obtain the sources from a SourceForge Csound 5 package file, or from SourceForge CVS.
+\item Install and configure the following software packages:
+\begin{enumerate}
+\item Python (required) for running the build (also used for CsoundVST scripting), from \texttt{http:\-//www.python.org}.
+\item SCons (required) for running the build, from \texttt{http:\-//www.scons.org}.
+\item libsndfile (required) for reading and writing soundfiles, from \texttt{http://www.mega-nerd.com/libsndfile/}.
+\item PortAudio for reading and writing real-time audio, from \texttt{http://www.portaudio.com/}.
+\item FLTK for displaying graphs of function tables, and for widget opcodes, from \texttt{http://www.fltk.org}.
+\end{enumerate}
+\end{enumerate}
+\item If you want to build CsoundVST, you will also need:
+
+\begin{enumerate}
+\item The Software Interface and Wrapper Generator (SWIG) for generating Python interfaces to CsoundVST, from \texttt{http://www.swig.org}.
+\item The boost C++ template libraries for random numbers and linear algebra, from \texttt{http://www.boost.org}.
+\end{enumerate}
+\subsection{SCons}
+On MinGW, you may need to patch SCons as follows. Change line 51 of \texttt{SCons/Tool/mingw.py} from:
+\begin{verbatim}
+cmd = SCons.Util.CLVar('$SHLINK', '$SHLINKFLAGS')
+\end{verbatim}
+to:
+\begin{verbatim}
+cmd = SCons.Util.CLVar(['$SHLINK', '$SHLINKFLAGS']) 
+\end{verbatim}
+\section{Installing}
+Once you have either unpacked a binary distribution, or built Csound from sources, you will need to install and configure Csound so that it will run properly on your system. Consult for the Csound language documentation for instructions.
+\section{Extending}
+Csound uses plugin unit generators. These are dynamic link libraries (DLLs) on Windows, and loadable modules (share libraries that are dlopened) on Linux. It is relatively easy to extend Csound by writing new unit generators in C or C++.
+
+
+\section{Using}
+\section{Credits}
+\section{License}
+\section{To Do}
+This is the "to do" list, not necessarily complete, for Csound and CsoundVST:
+\begin{enumerate}
+\item Complete this document sufficiently that it can be used to build, install, and run Csound and CsoundVST with MinGW and Linux.
+\item Get the MinGW build running.
+\item Get MIDI input and output working on Windows.
+\item Get the Loris plugin opcode into this build.
+\item A Mathematica interface - but what kind?
+\item Investigate the Python runtime situation on MinGW.
+\end{enumerate}
+\end{document}
