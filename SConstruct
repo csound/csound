@@ -778,12 +778,12 @@ if (commonEnvironment['buildCsoundVST'] == 1) and boostFound and fltkFound:
     frontends/CsoundVST/System.cpp
     ''')
     # These are the Windows system call libraries.
-    vstEnvironment.Append(LIBS = ['kernel32'])
-    vstEnvironment.Append(LIBS = ['gdi32'])
-    vstEnvironment.Append(LIBS = ['wsock32'])
-    vstEnvironment.Append(LIBS = ['ole32'])
-    vstEnvironment.Append(LIBS = ['uuid'])
     if getPlatform() == 'mingw':
+        vstEnvironment.Append(LIBS = ['kernel32'])
+        vstEnvironment.Append(LIBS = ['gdi32'])
+        vstEnvironment.Append(LIBS = ['wsock32'])
+        vstEnvironment.Append(LIBS = ['ole32'])
+        vstEnvironment.Append(LIBS = ['uuid'])
         vstEnvironment['ENV']['PATH'] = os.environ['PATH']
         csoundVstSources.append('frontends/CsoundVST/_CsoundVST.def')
     csoundvst = vstEnvironment.SharedLibrary('CsoundVST', csoundVstSources, SHLIBPREFIX = '_')
