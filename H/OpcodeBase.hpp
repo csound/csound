@@ -36,33 +36,33 @@ public:
     {
         return NOTOK;
     }
-    static int init_(void *opcode)
+    static int init_(void *csound, void *opcode)
     {
-        return reinterpret_cast<T *>(opcode)->init();
+        return reinterpret_cast<T *>(opcode)->init(csound);
     }
     int kontrol()
     {
         return NOTOK;
     }
-    static int kontrol_(void *opcode)
+    static int kontrol_(void *csound, void *opcode)
     {
-        return reinterpret_cast<T *>(opcode)->kontrol();
+        return reinterpret_cast<T *>(opcode)->kontrol(csound);
     }
     int audio()
     {
         return NOTOK;
     }
-    static int audio_(void *opcode)
+    static int audio_(void *csound, void *opcode)
     {
-        return reinterpret_cast<T *>(opcode)->audio();
+        return reinterpret_cast<T *>(opcode)->audio(csound);
     }
-    int deinit()
+    int deinit(void *csound)
     {
         return NOTOK;
     }
-    static int deinit_(void *opcode)
+    static int deinit_(void *csound, void *opcode)
     {
-        return reinterpret_cast<T *>(opcode)->deinit();
+        return reinterpret_cast<T *>(opcode)->deinit(csound);
     }
     ENVIRON *cs()
     {

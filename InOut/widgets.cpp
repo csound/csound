@@ -1683,7 +1683,7 @@ extern "C" void widgetRESET(void)
 //-----------
 
 
-static void __cdecl fltkRun(void *s)
+static void __cdecl fltkRun(void *userdata)
 {
     int j;
 #if defined(LINUX) || defined(__MACH__)
@@ -1720,7 +1720,7 @@ static void __cdecl fltkRun(void *s)
 }
 
 #ifdef WIN32
-static void __cdecl fltkKeybRun(ENVIRON *csound, void *s)
+static void __cdecl fltkKeybRun(void *userdata)
 {
     oKeyb->show();
     //Fl::run();
@@ -1731,7 +1731,7 @@ static void __cdecl fltkKeybRun(ENVIRON *csound, void *s)
       int temp = FLkeyboard_sensing();
       if (temp != 0 && *keybp->args[1] >=1 ) {
         *keybp->kout = temp;
-        ButtonSched(csound, keybp->args, keybp->INOCOUNT);
+        ButtonSched((ENVIRON *)userdata, keybp->args, keybp->INOCOUNT);
       }
       Fl::unlock();
     }
@@ -1742,9 +1742,9 @@ static void __cdecl fltkKeybRun(ENVIRON *csound, void *s)
 extern "C" void FL_run(ENVIRON *csound, FLRUN *p)
 {
 #ifdef WIN32
-    threadHandle = _beginthread(fltkRun, 0, NULL);
+    threadHandle = _beginthread(fltkRun, 0, csound);
     if (isActivatedKeyb)
-      threadHandle = _beginthread(fltkKeybRun, 0, NULL);
+      threadHandle = _beginthread(fltkKeybRun, 0, csound);
 #elif defined(LINUX) || defined(__MACH__)
     pthread_attr_t a;
     pthread_t thread1;

@@ -588,8 +588,8 @@ extern "C" {
         */
         PUBLIC int csoundAppendOpcode(void *csound, char *opname, int dsblksiz,
                                       int thread, char *outypes, char *intypes,
-                                      int (*iopadr)(void *), int (*kopadr)(void *),
-                                      int (*aopadr)(void *), int (*dopadr)(void *));
+                                      int (*iopadr)(void *, void *), int (*kopadr)(void *, void *),
+                                      int (*aopadr)(void *, void *), int (*dopadr)(void *, void *));
 
 #ifndef SWIG
         /*
