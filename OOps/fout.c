@@ -52,10 +52,6 @@ struct fileinTag {
 #define file_max (csound->file_max_)
 #define file_num (csound->file_num_)
 
-/* static struct fileinTag *file_opened = NULL; */
-/* static int file_max = 0;        /\* Size of file_opened structure *\/ */
-/* static int file_num = -1;              /\* Last number used *\/ */
-
 static void close_files(void)
 {
 #ifdef ACCESS_TO_ENVIRON
