@@ -10,8 +10,11 @@ int main(int argc, char **argv)
 	void *csound = csoundCreate(0);
 	//	One complete performance cycle.
 	int result = csoundCompile(csound, argc, argv);
-	while(csoundPerformKsmps(csound) == 0){}
-	csoundCleanup(csound);
+	if(!result)
+	{
+		while(csoundPerformKsmps(csound) == 0){}
+		csoundCleanup(csound);
+	}
 	//	Destroy Csound.
 	csoundDestroy(csound);
 	return result;
