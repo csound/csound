@@ -1,4 +1,4 @@
-/**
+/*
 * C S O U N D   V S T 
 *
 * A VST plugin version of Csound, with Python scripting.
@@ -23,7 +23,6 @@
 #include "CsoundVST.hpp"
 #include "CsoundVstFltk.hpp"
 #include "System.hpp"
-
 
 const MYFLT CsoundVST::inputScale = (float) 32767.0;
 const MYFLT CsoundVST::outputScale = (float) (1.0 / 32767.0);
