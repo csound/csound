@@ -291,14 +291,15 @@ void print_benchmark_info(void *csound, const char *s)
 #ifdef MSVC
 _declspec(dllexport) /* VL linkage fix 11-04 */
 #endif
-int csoundCompile(void *csound, int argc, char **argv)
+int csoundCompile(void *csound_, int argc, char **argv)
 {
+    ENVIRON *csound = (ENVIRON*) csound_;
     char  *s, *orcNameMode;
     char  *filnamp, *envoutyp = NULL;
     int   n;
 
     /* for debugging only */
-    if ((n=setjmp(cenviron.exitjmp_))) {
+    if ((n = setjmp(csound->exitjmp))) {
       fprintf(stderr,
               " *** WARNING: longjmp() called during csoundPreCompile() ***\n");
       return (-(abs(n)));
@@ -312,7 +313,7 @@ int csoundCompile(void *csound, int argc, char **argv)
       if (csoundPreCompile(csound) != CSOUND_SUCCESS)
         return CSOUND_ERROR;
 
-    if ((n=setjmp(cenviron.exitjmp_))) {
+    if ((n = setjmp(csound->exitjmp))) {
       /*
        * Changed from exit(-1) for re-entrancy.
        */
@@ -323,8 +324,8 @@ int csoundCompile(void *csound, int argc, char **argv)
     csoundCreateGlobalVariable(csound, "csRtClock", sizeof(RTCLOCK));
     init_pvsys();
     /* utilities depend on this as well as orchs */
-    e0dbfs = DFLT_DBFS; /* may get changed by an orch */
-    dbfs_init(e0dbfs);
+    csound->e0dbfs = DFLT_DBFS;         /* may get changed by an orch */
+    dbfs_init(csound->e0dbfs);
     timers_struct_init((RTCLOCK*)
                        csoundQueryGlobalVariable(csound, "csRtClock"));
     csoundCreateGlobalVariable(csound, "#CLEANUP", (size_t) 1);
@@ -369,7 +370,7 @@ int csoundCompile(void *csound, int argc, char **argv)
     /* command line: allow orc/sco/csd name */
     strcpy(orcNameMode, "normal");
     if (argdecode(csound, argc, argv) == 0)
-      longjmp(((ENVIRON*) csound)->exitjmp_, 1);
+      longjmp(csound->exitjmp, 1);
     /* do not allow orc/sco/csd name in .csoundrc */
     strcpy(orcNameMode, "fail");
     {
@@ -391,7 +392,7 @@ int csoundCompile(void *csound, int argc, char **argv)
           malloc((size_t) strlen(csoundGetEnv(csound, "HOME")) + (size_t) 11);
         if (csrcname == NULL) {
           err_printf(Str(" *** memory allocation failure\n"));
-          longjmp(((ENVIRON*) csound)->exitjmp_,1);
+          longjmp(csound->exitjmp, 1);
         }
         sprintf(csrcname, "%s%c%s",
                           csoundGetEnv(csound, "HOME"), DIRSEP, ".csoundrc");
@@ -421,8 +422,7 @@ int csoundCompile(void *csound, int argc, char **argv)
       strcpy(orcNameMode, "normal");
       err_printf("UnifiedCSD:  %s\n", orchname);
       if (!read_unified_file(csound, &orchname, &scorename)) {
-        err_printf(Str("Decode failed....stopping\n"));
-        longjmp(((ENVIRON*) csound)->exitjmp_,1);
+        csound->Die(csound, Str("Decode failed....stopping"));
       }
     }
     /* IV - Feb 19 2005: run a second pass of argdecode so that */
@@ -435,14 +435,12 @@ int csoundCompile(void *csound, int argc, char **argv)
       int *nn;
       nn = (int*) csoundQueryGlobalVariable(csound, "::argdecode::stdinassign");
       if (nn != NULL && *nn != 0 && (*nn & (*nn - 1)) != 0) {
-        csoundMessage(csound, "error: multiple uses of stdin\n");
-        longjmp(((ENVIRON*) csound)->exitjmp_,1);
+        csound->Die(csound, Str("error: multiple uses of stdin"));
       }
       nn =
         (int*) csoundQueryGlobalVariable(csound, "::argdecode::stdoutassign");
       if (nn != NULL && *nn != 0 && (*nn & (*nn - 1)) != 0) {
-        csoundMessage(csound, "error: multiple uses of stdout\n");
-        longjmp(((ENVIRON*) csound)->exitjmp_,1);
+        csound->Die(csound, Str("error: multiple uses of stdout"));
       }
     }
     /* done parsing csoundrc, CSD, and command line options */
@@ -518,16 +516,16 @@ int csoundCompile(void *csound, int argc, char **argv)
     create_opcodlst(&cenviron); /* create initial opcode list if not done yet */
     /* IV - Jan 31 2005: initialise external modules */
     if (csoundInitModules(csound) != 0)
-      longjmp(((ENVIRON*) csound)->exitjmp_,1);
-    otran();                 /* read orcfile, setup desblks & spaces     */
+      longjmp(csound->exitjmp, 1);
+    otran(csound);          /*  read orcfile, setup desblks & spaces    */
     /* IV - Jan 28 2005 */
     print_benchmark_info(csound, Str("end of orchestra compile"));
     if (!csoundYield(csound)) return (-1);
     /* IV - Oct 31 2002: now we can read and sort the score */
     if (scorename == NULL || scorename[0]=='\0') {
       if (O.RTevents) {
-        err_printf(Str("realtime performance using dummy "
-                       "numeric scorefile\n"));
+        csound->Message(csound, Str("realtime performance using dummy "
+                                    "numeric scorefile\n"));
         goto perf;
       }
       else {
@@ -626,17 +624,13 @@ int csoundMain(void *csound, int argc, char **argv)
     return musmon2(csound);
 }
 
-/* #ifdef mills_macintosh        /\* comment out - 062404, akozar *\/ */
-/* #else */
-extern void csoundMessageV(void *, const char *, va_list);
 void err_printf(char *fmt, ...)
 {
     va_list a;
     va_start(a, fmt);
-    csoundMessageV(cenviron.hostdata_, fmt, a);
+    cenviron.MessageV(&cenviron, fmt, a);
     va_end(a);
 }
-/* #endif */
 
 void mainRESET(ENVIRON *p)
 {

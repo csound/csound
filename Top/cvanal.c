@@ -183,7 +183,7 @@ static void takeFFT(
 
     /* normalize the samples read in. */
     for (i = read_in; i--; ) {
-      *fp1++ *= dbfs_to_float;
+      *fp1++ *= cenviron.dbfs_to_float;
     }
 
     fp1 = inbuf;
