@@ -244,6 +244,7 @@ if configure.CheckFunc("itoa") or getPlatform() == 'mingw':
     commonEnvironment.Append(CCFLAGS = '-DHAVE_ITOA')
 if not (configure.CheckHeader("Opcodes/Loris/src/loris.h") and configure.CheckHeader("fftw3.h")):
     commonEnvironment["buildLoris"] = 0
+    print "CONFIGURATION DECISION: Not building Loris Python extension and Csound opcodes."
 else:
     print "CONFIGURATION DECISION: Building Loris Python extension and Csound opcodes."
         
@@ -403,12 +404,14 @@ if getPlatform() == 'mingw':
 #
 #############################################################################
 
-if commonEnvironment['generatePDF']==1:
+if not commonEnvironment['generatePDF']:
+    print 'CONFIGURATION DECISION: Not generating PDF documentation.'
+else:
     print 'CONFIGURATION DECISION: Generating PDF documentation.'
-    csoundPdf = commonEnvironment.Command('csound.pdf', 'csound.tex', 'pdflatex $SOURCE')
+    refmanPdf = commonEnvironment.Command('doc/latex/refman.tex', 'Doxyfile', ['doxygen $SOURCE'])
+    zipDependencies.append(refmanPdf)
+    csoundPdf = commonEnvironment.Command('refman.pdf', 'doc/latex/refman.tex', ['pdflatex --include-directory=doc/latex --interaction=batchmode $SOURCE'])
     zipDependencies.append(csoundPdf)
-
-#commonEnvironment.Alias('pdf', commonEnvironment.Command('csound.pdf', 'csound.tex', 'pdflatex $SOURCE'))
     
 makedb = ustubProgramEnvironment.Program('makedb', 
     ['strings/makedb.c'])
@@ -515,12 +518,16 @@ Top/sndinfo.c
 Top/threads.c
 ''')
 
-if (commonEnvironment['usePortAudio']==1) and portaudioFound:
+if not ((commonEnvironment['usePortAudio']==1) and portaudioFound):
+    print 'CONFIGURATION DECISION: Not building with PortAudio.'
+else:
     print 'CONFIGURATION DECISION: Building with PortAudio.'
     libCsoundSources.append('InOut/rtpa.c')
     libCsoundSources.append('InOut/pa_blocking.c')
     
-if (commonEnvironment['useFLTK'] and fltkFound):
+if not ((commonEnvironment['useFLTK'] and fltkFound)):
+    print 'CONFIGURATION DECISION: Not building with FLTK for graphs and widgets.'
+else:
     print 'CONFIGURATION DECISION: Building with FLTK for graphs and widgets.'
     libCsoundSources.append('InOut/FL_graph.cpp')
     libCsoundSources.append('InOut/winFLTK.c')
@@ -677,7 +684,10 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('bus',
 
 # FLUIDSYNTH OPCODES
 
-if configure.CheckHeader("fluidsynth.h", language = "C"):            
+if not configure.CheckHeader("fluidsynth.h", language = "C"):
+    print "CONFIGURATION DECISION: Not building fluid opcodes."
+else:
+    print "CONFIGURATION DECISION: Building fluid opcodes."
     if getPlatform() == 'linux':
         fluidEnvironment = pluginEnvironment.Copy()
         fluidEnvironment.Append(LIBS = ['fluidsynth'])
@@ -799,7 +809,9 @@ executables.append(ustubProgramEnvironment.Program('srconv',
 executables.append(csoundProgramEnvironment.Program('csound', 
     ['frontends/csound/csound_main.c']))
     
-if (commonEnvironment['buildCsoundVST'] == 1) and boostFound and fltkFound:    
+if not ((commonEnvironment['buildCsoundVST'] == 1) and boostFound and fltkFound):
+    print 'CONFIGURATION DECISION: Not building CsoundVST plugin and standalone.'
+else:
     print 'CONFIGURATION DECISION: Building CsoundVST plugin and standalone.'
     vstEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
     guiProgramEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
@@ -927,7 +939,9 @@ if (commonEnvironment['buildCsoundVST'] == 1) and boostFound and fltkFound:
     Depends(py, csoundvst)
     pluginLibraries.append(py)
 
-if (commonEnvironment['generateTags']) and (getPlatform() == 'linux' or getPlatform() == 'cygwin'):
+if not ((commonEnvironment['generateTags']) and (getPlatform() == 'linux' or getPlatform() == 'cygwin')):
+    print "CONFIGURATION DECISION: Not calling TAGS"
+else:
     print "CONFIGURATION DECISION: Calling TAGS"
     allSources = string.join(glob.glob('*/*.h*'))
     allSources = allSources + ' ' + string.join(glob.glob('*/*.hpp'))
@@ -938,7 +952,9 @@ if (commonEnvironment['generateTags']) and (getPlatform() == 'linux' or getPlatf
     zipDependencies.append(tags)
     Depends(tags, staticLibrary)
 
-if commonEnvironment['generateXmg']:
+if not commonEnvironment['generateXmg']:
+    print "CONFIGURATION DECISION: Not calling makedb"
+else:
     print "CONFIGURATION DECISION: Calling makedb"
     if getPlatform() == 'mingw':
         xmgs = commonEnvironment.Command('American.xmg', ['strings/all_strings'], 'makedb strings/all_strings American')
@@ -959,7 +975,9 @@ if commonEnvironment['generateXmg']:
 zipDependencies += executables
 zipDependencies += pluginLibraries
     
-if commonEnvironment['generateZip']:    
+if not commonEnvironment['generateZip']:    
+    print 'CONFIGURATION DECISION: Not compiling zip file for release.'
+else:
     print 'CONFIGURATION DECISION: Compiling zip file for release.'
     zip = commonEnvironment.Command(zipfilename, staticLibrary, buildzip)
     for node in zipDependencies:
