@@ -239,6 +239,16 @@ extern "C" {
         * and to synchronize performance with audio input and output.
         */
         PUBLIC int csoundPerformKsmps(void *csound);
+ 
+        /**
+        * Senses input events, and performs one control sample worth (ksmps) of
+        * audio output.
+        * Note that csoundCompile must be called first.
+        * Performs audio whether or not the Csound score has finished.
+        * Enables external software to control the execution of Csound,
+        * and to synchronize performance with audio input and output.
+        */
+        PUBLIC int csoundPerformKsmpsAbsolute(void *csound);
 
         /**
         * Performs Csound, sensing real-time and score events
@@ -486,15 +496,15 @@ extern "C" {
         * Called by external software to set a function for Csound to
         * call to open MIDI input.
         */
-        PUBLIC void csoundSetExternalMidiOpenCallback(void *csound,
-                          void (*midiOpenCallback)(void *csound));
+        PUBLIC void csoundSetExternalMidiDeviceOpenCallback(void *csound,
+                          void (*externalMidiDeviceOpenCallback)(void *csound));
 
         /**
         * Called by external software to set a function for Csound to
         * call to read MIDI messages.
         */
         PUBLIC void csoundSetExternalMidiReadCallback(void *csound,
-                          int (*readMidiCallback)(void *csound,
+                          int (*externalMidiReadCallback)(void *csound,
                                                   unsigned char *midiData, int size));
 
         /**
@@ -502,22 +512,22 @@ extern "C" {
         * call to write a 4-byte MIDI message.
         */
         PUBLIC void csoundSetExternalMidiWriteCallback(void *csound,
-                          int (*writeMidiCallback)(void *csound, unsigned char *midiData));
+                          int (*externalMidiWriteCallback)(void *csound, unsigned char *midiData));
 
         /**
         * Called by external software to set a function for Csound to
         * call to close MIDI input.
         */
-        PUBLIC void csoundSetExternalMidiCloseCallback(void *csound,
-                          void (*closeMidiCallback)(void *csound));
+        PUBLIC void csoundSetExternalMidiDeviceCloseCallback(void *csound,
+                          void (*externalMidiDeviceCloseCallback)(void *csound));
 
         /**
-        * Returns true if external MIDI is enabled, and false otherwise.
+        * Returns true if external MIDI is enabled, and false otherwise. 
         */
         PUBLIC int csoundIsExternalMidiEnabled(void *csound);
 
         /**
-        * Sets whether external MIDI is enabled.
+        * Sets whether external MIDI is enabled. 
         */
         PUBLIC void csoundSetExternalMidiEnabled(void *csound, int enabled);
 

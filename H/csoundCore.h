@@ -551,8 +551,8 @@ typedef struct ENVIRON_
                                                             char *channelName,
                                                             MYFLT value));
   void (*ScoreEvent)(void *csound, char type, MYFLT *pFields, long numFields);
-  void (*SetExternalMidiOpenCallback)(void *csound,
-                                      void (*midiOpenCallback)(void *hostData));
+  void (*SetExternalMidiDeviceOpenCallback)(void *csound,
+                                      void (*midiDeviceOpenCallback)(void *hostData));
   void (*SetExternalMidiReadCallback)(void *csound,
                                       int (*readMidiCallback)(void *hostData,
                                                               unsigned char *midiData,
@@ -560,8 +560,8 @@ typedef struct ENVIRON_
   void (*SetExternalMidiWriteCallback)(void *csound,
                                        int (*writeMidiCallback)(void *hostData,
                                                                 unsigned char *midiData));
-  void (*SetExternalMidiCloseCallback)(void *csound,
-                                       void (*closeMidiCallback)(void *hostData));
+  void (*SetExternalMidiDeviceoseCallback)(void *csound,
+                                       void (*midiDeviceCloseCallback)(void *hostData));
   int (*IsExternalMidiEnabled)(void *csound);
   void (*SetExternalMidiEnabled)(void *csound, int enabled);
   void (*SetIsGraphable)(void *csound, int isGraphable);
@@ -647,6 +647,7 @@ typedef struct ENVIRON_
   void (*rewriteheader_)(SNDFILE *ofd, int verbose);
   void (*writeheader)(int ofd, char *ofname);
   void (*Printf)(const char *format, ...);
+  int (*PerformKsmpsAbsolute_)(void *csound);
   /* End of internals */
   int           ksmps_, nchnls_;
   int           global_ksmps_;
