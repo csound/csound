@@ -19,6 +19,7 @@
  */
 
 #include <string>
+#include <cstdlib>
 #include <FL/Fl.H>
 #include <FL/Fl_Group.H>
 #include <FL/Fl_Menu_Item.H>
@@ -58,25 +59,26 @@ Plots::Plots(int x, int y, int w, int h, const char *label)
 void Plots::append(Curve *curve)
 {
   int i;
-  std::string caption = curve->get_caption();
+  const char *caption = curve->get_caption().c_str();
+
   for (i = 0; m_menu_items[i].text; i++) {
-    if (caption == m_menu_items[i].text) {
+    if (!strcmp(caption, m_menu_items[i].text)) {
       if (m_selection == i)
 	m_canvas->set_curve(curve);
       delete m_curves[i];
-      m_curves[i] = curve;
+      m_curves[i] = curve;	// Replace it.
       return;
     }
   }
+
   if (i >= menu_size) {		// Just drop it.
     delete curve;
     return;
   }
-  m_curves[i] = curve;
-  size_t n = caption.length() + 1;
-  char *p = new char(n + 1);
-  p[caption.copy(p, n, 0)] = 0;
-  m_menu_items[i].text = p;
+  m_curves[i] = curve;		// Add it.
+  size_t n = strlen(caption);
+  char *p = (char *)malloc(n + 1); // Ensure char pointer is aligned
+  m_menu_items[i].text = strcpy(p, caption); // for Windows XP
   m_choice->menu(m_menu_items);
   if (i == 0)
     m_canvas->set_curve(curve);
