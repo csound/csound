@@ -33,6 +33,7 @@ import shutil
 
 zipDependencies = []
 pluginLibraries = []
+executables = []
 
 def today():
     return time.strftime("%Y-%m-%d",time.localtime())
@@ -736,58 +737,58 @@ if getPlatform() == 'linux':
 
 # Utility programs.
 
-zipDependencies.append(csoundProgramEnvironment.Program('cscore', 
+executables.append(csoundProgramEnvironment.Program('cscore', 
     ['util1/cscore/cscore_main.c']))
-zipDependencies.append(csoundProgramEnvironment.Program('cvanal', 
+executables.append(csoundProgramEnvironment.Program('cvanal', 
     ['anal/convol/cvl_main.c']))
-zipDependencies.append(csoundProgramEnvironment.Program('dnoise', 
+executables.append(csoundProgramEnvironment.Program('dnoise', 
     ['util2/dnoise.dir/dnoise_main.c']))
-zipDependencies.append(ustubProgramEnvironment.Program('envext', 
+executables.append(ustubProgramEnvironment.Program('envext', 
     ['util2/envext/envext.c']))
-zipDependencies.append(ustubProgramEnvironment.Program('extract', 
+executables.append(ustubProgramEnvironment.Program('extract', 
     ['util1/sortex/xmain.c']))
-zipDependencies.append(ustubProgramEnvironment.Program('extractor', 
+executables.append(ustubProgramEnvironment.Program('extractor', 
     ['util2/mixer/xtrct.c']))
-zipDependencies.append(ustubProgramEnvironment.Program('het_export', 
+executables.append(ustubProgramEnvironment.Program('het_export', 
     ['util2/exports/het_export.c']))
-zipDependencies.append(ustubProgramEnvironment.Program('het_import',  
+executables.append(ustubProgramEnvironment.Program('het_import',  
     ['util2/exports/het_import.c']))
-zipDependencies.append(ustubProgramEnvironment.Program('hetro',  
+executables.append(ustubProgramEnvironment.Program('hetro',  
     ['anal/adsyn/het_main.c']))
-zipDependencies.append(ustubProgramEnvironment.Program('lpanal',  
+executables.append(ustubProgramEnvironment.Program('lpanal',  
     ['anal/lpc/lpc_main.c']))
-zipDependencies.append(ustubProgramEnvironment.Program('lpc_export',  
+executables.append(ustubProgramEnvironment.Program('lpc_export',  
     ['util2/exports/lpc_export.c']))
-zipDependencies.append(ustubProgramEnvironment.Program('lpc_import',  
+executables.append(ustubProgramEnvironment.Program('lpc_import',  
     ['util2/exports/lpc_import.c']))
-zipDependencies.append(ustubProgramEnvironment.Program('mixer',  
+executables.append(ustubProgramEnvironment.Program('mixer',  
     ['util2/mixer/mixer.c']))
-zipDependencies.append(ustubProgramEnvironment.Program('pv_export',   
+executables.append(ustubProgramEnvironment.Program('pv_export',   
     ['util2/exports/pv_export.c']))
-zipDependencies.append(ustubProgramEnvironment.Program('pv_import',  
+executables.append(ustubProgramEnvironment.Program('pv_import',  
     ['util2/exports/pv_import.c']))
-zipDependencies.append(csoundProgramEnvironment.Program('pvanal',  
+executables.append(csoundProgramEnvironment.Program('pvanal',  
     ['anal/pvoc/pvc_main.c']))
-zipDependencies.append(ustubProgramEnvironment.Program('pvlook',  
+executables.append(ustubProgramEnvironment.Program('pvlook',  
     ['util2/pvlook.dir/pvl_main.c']))
-zipDependencies.append(ustubProgramEnvironment.Program('scale',  
+executables.append(ustubProgramEnvironment.Program('scale',  
     ['util2/scale.dir/scale.c']))
-zipDependencies.append(ustubProgramEnvironment.Program('scot',  
+executables.append(ustubProgramEnvironment.Program('scot',  
     ['util1/scot/scot_main.c']))
-zipDependencies.append(ustubProgramEnvironment.Program('scsort',  
+executables.append(ustubProgramEnvironment.Program('scsort',  
     ['util1/sortex/smain.c']))
-zipDependencies.append(ustubProgramEnvironment.Program('sdif2ad',  
+executables.append(ustubProgramEnvironment.Program('sdif2ad',  
     Split('''SDIF/sdif2adsyn.c 
     SDIF/sdif.c 
     SDIF/sdif-mem.c''')))
-zipDependencies.append(ustubProgramEnvironment.Program('sndinfo', 
+executables.append(ustubProgramEnvironment.Program('sndinfo', 
     ['util2/sndinfo/sndinfo_main.c']))
-zipDependencies.append(ustubProgramEnvironment.Program('srconv', 
+executables.append(ustubProgramEnvironment.Program('srconv', 
     ['util2/dnoise.dir/srconv.c']))
 
 # Front ends.
 
-zipDependencies.append(csoundProgramEnvironment.Program('csound', 
+executables.append(csoundProgramEnvironment.Program('csound', 
     ['frontends/csound/csound_main.c']))
     
 if (commonEnvironment['buildCsoundVST'] == 1) and boostFound and fltkFound:    
@@ -946,7 +947,8 @@ if commonEnvironment['generateXmg']:
     Depends(xmgs2, makedb)
     zipDependencies.append(xmgs2)
 
-    
+
+zipDependencies += executables
 zipDependencies += pluginLibraries
     
 if commonEnvironment['generateZip']:    
@@ -955,4 +957,15 @@ if commonEnvironment['generateZip']:
     for node in zipDependencies:
         Depends(zip, node)
 
+# INSTALL OPTIONS
+        
+OPCODE_DIR = "/usr/local/share/csound/opcodes"
+BIN_DIR = "/usr/local/bin"
 
+installOpcodes = Alias('install-opcodes', 
+    Install(OPCODE_DIR, pluginLibraries)) 
+                            
+installExecutables = Alias('install-executables',
+    Install(BIN_DIR, executables))
+    
+Alias('install', [installOpcodes, installExecutables])
