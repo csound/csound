@@ -299,7 +299,7 @@ int aconval(ENVIRON *csound, CONVAL *p)
     return OK;
 }
 
-int int1(ENVIRON *csound, EVAL *p)                              /* returns signed whole no. */
+int int1(ENVIRON *csound, EVAL *p)              /* returns signed whole no. */
 {
     double intpart;
     modf((double)*p->a, &intpart);
@@ -307,7 +307,7 @@ int int1(ENVIRON *csound, EVAL *p)                              /* returns signe
     return OK;
 }
 
-int frac1(ENVIRON *csound, EVAL *p)                             /* returns positive frac part */
+int frac1(ENVIRON *csound, EVAL *p)             /* returns positive frac part */
 {
     double intpart, fracpart;
     fracpart = modf((double)*p->a, &intpart);
@@ -357,7 +357,7 @@ int atan21(ENVIRON *csound, AOP *p)
     return OK;
 }
 
-#define LIBA(OPNAME,LIBNAME) int OPNAME(ENVIRON *csound, EVAL *p) {                     \
+#define LIBA(OPNAME,LIBNAME) int OPNAME(ENVIRON *csound, EVAL *p) {    \
                                 int     nsmps = ksmps;                 \
                                 MYFLT   *r, *a;                        \
                                 r = p->r;                              \
@@ -769,7 +769,7 @@ int powoftwo(ENVIRON *csound, EVAL *p)
     return OK;
 }
 
-int powoftwoa(ENVIRON *csound, EVAL *p)           /* by G.Maldonado, liberalised by JPff */
+int powoftwoa(ENVIRON *csound, EVAL *p) /* by G.Maldonado, liberalised by JPff */
 {
     MYFLT *r, *a;
     long nsmps=ksmps;
@@ -890,7 +890,7 @@ int logbasetwo(ENVIRON *csound, EVAL *p)
     return OK;
 }
 
-int logbasetwoa(ENVIRON *csound, EVAL *p)       /* by G.Maldonado liberalised by JPff */
+int logbasetwoa(ENVIRON *csound, EVAL *p) /* by G.Maldonado liberalised by JPff */
 {
     MYFLT *r, *a;
     long nsmps=ksmps;
