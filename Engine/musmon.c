@@ -237,15 +237,15 @@ int musmon(void)
                  PACKAGE_VERSION, __DATE__);
 #endif
     }
-    if (O.Midiin) {
-      MidiOpen();                     /*   alloc bufs & open files    */
-    }
-    /**
-     * Opens external MIDI if it is enabled.
-     */
-    if (csoundIsExternalMidiEnabled(&cenviron)) {
-      csoundExternalMidiOpen(&cenviron);
-    }
+    if (O.Midiin || csoundIsExternalMidiEnabled(&cenviron)) {
+      /* Enable musmon to handle external MIDI input, if it has been enabled. */
+      if(csoundIsExternalMidiEnabled(&cenviron)) {
+        O.RTevents = 1;
+        O.Midiin = 1;
+        O.ksensing = 1;
+      }
+     MidiOpen();                     /*   alloc bufs & open files    */
+     }
     dispinit();                 /* initialise graphics or character display */
     oload();                    /* set globals and run inits */
     if (O.FMidiin) FMidiOpen();
