@@ -315,7 +315,8 @@ int frac1(EVAL *p)                             /* returns positive frac part */
     return OK;
 }
 
-static double rndfrac = 0.5, rndmlt = 105.947;
+static double rndfrac = 0.5;
+#define rndmlt (105.947)
 
 int rnd1(EVAL *p)              /* returns unipolar rand(x) */
 {
