@@ -22,6 +22,7 @@
 */
 
 #include "cs.h"                                 /*       EXPRESS.C       */
+#include "namedins.h"
 
 #define BITSET  0x17
 #define BITCLR  0x16
@@ -30,7 +31,7 @@
 #define LENTOT  200L            /* This one is OK */
 #define TOKMAX  50L             /* Should be 50 but bust */
 #define POLMAX  30L             /* This one is OK */
-#define XERROR(CAUSE)   { strncpy(xprmsg,CAUSE,40);  goto error; }
+#define XERROR(CAUSE)   { strncpy(xprmsg,CAUSE,80);  goto error; }
 
 typedef struct token {
         char    *str;
@@ -44,13 +45,16 @@ static  TOKEN   *tokens = NULL, *token, *tokend;
 static  TOKEN   **tokenlist = NULL, **revp, **pushp, **argp, **endlist;
 static  int     toklength = TOKMAX;
 static  int     acount, kcount, icount, Bcount, bcount;
-static  char    xprmsg[40], *stringend;
+static  char    xprmsg[80], *stringend;
 static  char    strminus1[] = "-1", strmult[] = "*";
 static  void    putokens(void), putoklist(void);
 static  int     nontermin(int);
 extern  char    argtyp(char *);
 extern  void    *mrealloc(void*,long);
         void    resetouts(void);
+/* IV - Jan 08 2003: this variable is used in rdorch.c, so cannot be static */
+        int     argcnt_offs = 0, opcode_is_assign = 0, assign_type = 0;
+        char    *assign_outarg = NULL;
 
 void expRESET(void)
 {
@@ -62,8 +66,11 @@ void expRESET(void)
     tokenlist   = revp = pushp = argp = endlist = NULL;
     toklength   = TOKMAX;
     resetouts();
-    memset(xprmsg,0,40*sizeof(char));
+    memset(xprmsg,0,80*sizeof(char));
     stringend   = 0;
+    argcnt_offs = 0;
+    opcode_is_assign = assign_type = 0;
+    assign_outarg = NULL;
 }
 
 void resetouts(void)
@@ -71,19 +78,14 @@ void resetouts(void)
     acount = kcount = icount = Bcount = bcount = 0;
 }
 
-static char *copystring(char *s)
-{
-    int len = strlen(s);
-    char *r = (char *)mmalloc(len+1);
-    strcpy(r, s);
-    return r;
-}
+#define copystring(s) strsav_string(s)
 
 int express(char *s)
 {
     POLISH      *pp;
-    char        b, c, d, e, nextc, *t, *op, outype, *sorig;
+    char        b, c, d, e, nextc, *t, *op, outype = '\0', *sorig;
     int         open, prec, polcnt, argcnt;
+    int         argcnt_max = 0;
 
     if (*s == '"')                 /* if quoted string, not an exprssion */
       return (0);
@@ -164,6 +166,11 @@ int express(char *s)
         token  = tokens + n;
         tokend = tokens + toklength;
       }
+      /* IV - Jan 08 2003: check if the output arg of an '=' opcode is */
+      /* used in the expression (only if optimisation is enabled) */
+      if (opcode_is_assign == 1)
+        if (!strcmp(token->str, assign_outarg))         /* if yes, mark as */
+          opcode_is_assign = 2;                         /* dangerous case  */
       (++token)->str = t;             /* & record begin of nxt one */
     }
     token->str = NULL;          /* expr end:  terminate tokens array */
@@ -172,40 +179,44 @@ int express(char *s)
 
     token = tokens;
     while ((s = token->str) != NULL) {  /* now for all tokens found, */
-      if ((c = *s) == ')')            /*  assign precedence values */
-        prec = 0;
-      else if (c == ',')
-        prec = 1;
-      else if (c == '?' || c == ':')
-        prec = 2;
-      else if (c == '|')
-        prec = 3;
-      else if (c == '&')
-        prec = 4;
-      else if (c == '>' || c == '<' || c == '=' || c == '!')
-        prec = 5;
-      else if ((c == '+' || c == '-') && *(s+1) == '\0')
-        prec = 6;
-      else if (c == '*' || c == '/' || c == '%')
-        prec = 7;
-      else if (c == '^')
-        prec = 8;
-      else if (c == BITSET && c==BITFLP)
-        prec = 9;
-      else if (c == BITCLR)
-        prec = 10;
-      else if (c == '¬')
-        prec = 11;
-      else if (c >= 'a' && c <= 'z' &&
-               (t = (token+1)->str) != NULL && *t == '(')
-        prec = 12;
-      else if (c == '(')
-        prec = 13;
-      else if ((c = argtyp(s)) == 'a')
-        prec = 14;
-      else if (c == 'k')
-        prec = 15;
-      else    prec = 16;
+      c = *s;
+      switch ((int) c) {        /* IV - Jan 15 2003 */
+                                /* assign precedence values */
+      case ')':         prec = 0;       break;
+      case ',':         prec = 1;       break;
+      case '?':
+      case ':':         prec = 2;       break;
+      case '|':         prec = 3;       break;
+      case '&':         prec = 4;       break;
+      case '<':
+      case '=':
+      case '>':
+      case '!':         prec = 5;       break;
+      case '+':
+      case '-':         prec = (s[1] == '\0' ? 6 : 16); break;
+      case '*':
+      case '/':
+      case '%':         prec = 7;       break;
+      case '^':         prec = 8;       break;
+      case BITSET:
+      case BITFLP:      prec = 9;       break;
+      case BITCLR:      prec = 10;      break;
+      case '¬':         prec = 11;      break;
+      case '(':         prec = 13;      break;
+      default:
+        if (((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
+            && (t = (token+1)->str) != NULL && *t == '(') {
+          prec = 12;            /* function call */
+        }
+        else {
+          c = argtyp(s);
+          /* terms: precedence depends on type (a < k < i) */
+          if      (c == 'a')    prec = 14;
+          else if (c == 'k')    prec = 15;
+          else    prec = 16;
+        }
+        break;
+      }
       (token++)->prec = prec;
     }
     if (O.odebug) putokens();
@@ -275,8 +286,18 @@ int express(char *s)
         if (c != 'a' && c != 'k')
           c = 'i';                                   /*   (simplified)  */
         sprintf(op, "%s.%c", (*revp)->str, c); /* Type at end now */
-        if (strcmp(op,"i.k") == 0)
+        if (strcmp(op,"i.k") == 0) {
           outype = 'i';                   /* i(karg) is irreg. */
+          if (pp->arg[1][0] == '#' && pp->arg[1][1] == 'k') {
+            /* IV - Jan 15 2003: input arg should not be a k-rate expression */
+            if (O.expr_opt) {
+              XERROR(Str("i() with expression argument not allowed with --expression-opt"));
+            }
+            else {
+              printf(Str("WARNING: i() should not be used with expression argument\n"));
+            }
+          }
+        }
         else if (strcmp(op,"a.k") == 0)
           outype = 'a';                   /* a(karg) is irreg. */
         else outype = c;                    /* else outype=intype */
@@ -412,18 +433,73 @@ int express(char *s)
         *(op+1) = outype;                   /*   & complet opcod */
       }
       else XERROR(Str("insufficient terms"))
-      s = &buffer[0] /* pp->arg[0] */;        /* now create outarg */
-      if (outype=='a') sprintf(s,"#a%d",acount++); /* acc. to type */
-      else if (outype=='k') sprintf(s,"#k%d",kcount++);
-      else if (outype=='B') sprintf(s,"#B%d",Bcount++);
-      else if (outype=='b') sprintf(s,"#b%d",bcount++);
-      else sprintf(s,"#i%d",icount++);
+      s = &buffer[0] /* pp->arg[0] */;      /* now create outarg acc. to type */
+      if (!O.expr_opt) {
+        /* IV - Jan 08 2003: old code: should work ... */
+        if (outype=='a') sprintf(s,"#a%d",acount++);
+        else if (outype=='k') sprintf(s,"#k%d",kcount++);
+        else if (outype=='B') sprintf(s,"#B%d",Bcount++);
+        else if (outype=='b') sprintf(s,"#b%d",bcount++);
+        else sprintf(s,"#i%d",icount++);
+      }
+      else {
+        int ndx = (int) (argp - tokenlist);     /* argstack index */
+        if (opcode_is_assign == 1       &&
+            (int) ndx == 0              &&
+            (int) outype == assign_type &&
+            strchr("aki", assign_type) != NULL) {
+          /* IV - Jan 08 2003: if the expression is an input arg to the '=' */
+          /* opcode, the output type is appropriate, and the argument stack */
+          /* is empty, there is no need for a temporary variable, */
+          strcpy(s, assign_outarg); /* instead just use the opcode outarg */
+          /* note: this is not safe if the expression contains the output */
+          /* variable; if that is the case, opcode_is_assign is set to 2 */
+        }
+        else {
+          int cnt = ndx;
+          /* IV - Jan 08 2003: make optimal use of temporary variables by */
+          /* using the argstack pointer as index. This is not reliable with */
+          /* i-rate variables, so we limit the optimisation to a- and k-rate */
+          /* operations only. */
+          /* If there are multiple expressions on the same line, use */
+          /* different indexes for the tmp variables of each expression. */
+/*        if (!cnt) */
+            cnt += argcnt_offs;         /* IV - Jan 15 2003 */
+          if (outype == 'a')        sprintf(s, "#a%d", cnt);
+          else if (outype == 'k')   sprintf(s, "#k%d", cnt);
+          else if (outype == 'B')   sprintf(s, "#B%d", Bcount++);
+          else if (outype == 'b')   sprintf(s, "#b%d", bcount++);
+          else                      sprintf(s, "#i%d", icount++);
+          /* IV - Jan 08 2003: count max. stack depth in order to allow */
+          /* generating different indexes for temporary variables of */
+          /* separate expressions on the same line (see also below). */
+          /* N.B. argcnt_offs is reset in rdorch.c when a new line is read. */
+          if (ndx > argcnt_max) argcnt_max = ndx;
+        }
+      }
       (*argp++)->str = pp->arg[0] = copystring(s);/* & point argstack there */
       revp++;
       pp--;   op = pp->opcod;                     /* prep for nxt pol */
     }
-    if (argp - tokenlist == 1)
+    if (argp - tokenlist == 1) {
+      /* IV - Jan 08 2003: do not re-use temporary variables between */
+      /* expressions of the same line */
+      argcnt_offs += (argcnt_max + 1);
+      /* if wrote to output arg of '=' last time, '=' can be omitted */
+      if (opcode_is_assign != 0         &&      /* only if optimising */
+          (int) outype == assign_type   &&
+          strchr("aki", assign_type) != NULL) {
+        /* replace outarg if necessary */
+        if (strcmp(tokenlist[0]->str, assign_outarg)) {
+          /* now the last op will use the output of '=' directly */
+          /* the pp + 1 is because of the last pp-- */
+          tokenlist[0]->str = (pp + 1)->arg[0] = copystring(assign_outarg);
+        }
+        /* mark as optimised away */
+        opcode_is_assign = -1;
+      }
       return(polcnt);                           /* finally, return w. polcnt */
+    }
     XERROR(Str("term count"))
 
  error:
