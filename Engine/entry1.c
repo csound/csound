@@ -161,7 +161,7 @@ int    kdmpset(void*), kdmp2set(void*), kdmp3set(void*), kdmp4set(void*);
 int    kdump(void*), kdump2(void*), kdump3(void*), kdump4(void*);
 int    krdset(void*), krd2set(void*), krd3set(void*), krd4set(void*);
 int    kread(void*), kread2(void*), kread3(void*), kread4(void*);
-int    ipow(void*), kpow(void*), apow(void*), alinear(void*), iklinear(void*);
+int    ipow(void*), apow(void*), alinear(void*), iklinear(void*);
 int    atrian(void*), iktrian(void*), aexp(void*);
 int    ikexp(void*), abiexp(void*), ikbiexp(void*), agaus(void*), ikgaus(void*);
 int    acauchy(void*), ikcauchy(void*), apcauchy(void*), ikpcauchy(void*);
@@ -558,7 +558,7 @@ OENTRY opcodlst_1[] = {
 { "tempest",  S(TEMPEST), 5,    "k","kiiiiiiiiiop",tempeset,NULL,tempest},
 { "tempo",    S(TEMPO),   3,    "",     "ki",   tempset,tempo           },
 { "pow_i",    S(POW),   1,      "i",    "iip",  ipow,    NULL,  NULL    },
-{ "pow_k",    S(POW),   2,      "k",    "kkp",  NULL,    kpow,  NULL    },
+{ "pow_k",    S(POW),   2,      "k",    "kkp",  NULL,    ipow,  NULL    },
 { "pow_a",    S(POW),   4,      "a",    "akp",  NULL,    NULL,  apow    },
 { "oscilx",   S(OSCILN),5,      "a",    "kiii", oscnset,NULL,   osciln  },
 { "linrand_i",S(PRAND), 1,      "i",    "k",    iklinear, NULL, NULL    },

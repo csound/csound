@@ -35,10 +35,12 @@
 
 int ipow(POW *p)               /*      Power for i-rate */
 {
-    if (*p->in == FL(0.0) && *p->powerOf == FL(0.0))
+    MYFLT in = *p->in;
+    MYFLT powerOf = *p->powerOf;
+    if (in == FL(0.0) && powerOf == FL(0.0))
       return perferror(Str(X_1796,"NaN in pow\n"));
     else
-      *p->sr = (MYFLT)pow(*p->in, *p->powerOf) / *p->norm;
+      *p->sr = (MYFLT)pow((double)in, (double)powerOf) / *p->norm;
     return OK;
 }
 
@@ -46,8 +48,9 @@ int apow(POW *p)               /*      Power routine for a-rate  */
 {
     long n = ksmps;
     MYFLT *in = p->in, *out = p->sr;
+    MYFLT powerOf = *p->powerOf;
 
-    if (*p->powerOf == FL(0.0)) {
+    if (powerOf == FL(0.0)) {
       do {
         MYFLT xx = *in++;
         if (xx == FL(0.0)) {
@@ -59,18 +62,9 @@ int apow(POW *p)               /*      Power routine for a-rate  */
     }
     else {
       do {
-        *out++ = (MYFLT)pow(*in++, *p->powerOf) / *p->norm;
+        *out++ = (MYFLT)pow(*in++, powerOf) / *p->norm;
       } while (--n);
     }
-    return OK;
-}
-
-int kpow(POW *p)               /*      Power routine for k-rate        */
-{
-    if (*p->in == FL(0.0) && *p->powerOf == FL(0.0))
-      return perferror(Str(X_1796,"NaN in pow\n"));
-    else
-      *p->sr = (MYFLT)pow(*p->in, *p->powerOf) / *p->norm;
     return OK;
 }
 
