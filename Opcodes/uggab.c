@@ -544,7 +544,7 @@ int rsnsety(RESONY *p)
 /*      else if (p->loop > 50) */
 /*        initerror("illegal order num. (min 1, max 50)"); */
     if (scale && scale != 1 && scale != 2) {
-      sprintf(errmsg,Str(X_1453, "illegal reson iscl value, %f"),*p->iscl);
+      sprintf(errmsg,Str(X_1452, "illegal reson iscl value, %f"),*p->iscl);
       return initerror(errmsg);
     }
     if (!(*p->istor)) {
@@ -1124,7 +1124,7 @@ int kDiscreteUserRand(DURAND *p)
 { /* gab d5*/
     if (p->pfn != (long)*p->tableNum) {
       if ( (p->ftp = ftfindp(p->tableNum) ) == NULL) {
-        sprintf(errmsg, Str(X_315,"invalid table no. %f"), *p->tableNum);
+        sprintf(errmsg, Str(X_315,"Invalid ftable no. %f"), *p->tableNum);
         return perferror(errmsg);
       }
       p->pfn = (long)*p->tableNum;
@@ -1147,7 +1147,7 @@ int aDiscreteUserRand(DURAND *p)
 
     if (p->pfn != (long)*p->tableNum) {
       if ( (p->ftp = ftfindp(p->tableNum) ) == NULL) {
-        sprintf(errmsg, Str(X_315,"invalid table no. %f"), *p->tableNum);
+        sprintf(errmsg, Str(X_315,"Invalid ftable no. %f"), *p->tableNum);
         return perferror(errmsg);
       }
       p->pfn = (long)*p->tableNum;
@@ -1167,7 +1167,7 @@ int kContinuousUserRand(CURAND *p)
     MYFLT findx, fract, v1, v2;
     if (p->pfn != (long)*p->tableNum) {
       if ( (p->ftp = ftfindp(p->tableNum) ) == NULL) {
-        sprintf(errmsg, Str(X_315,"invalid table no. %f"), *p->tableNum);
+        sprintf(errmsg, Str(X_315,"Invalid ftable no. %f"), *p->tableNum);
         return perferror(errmsg);
       }
       p->pfn = (long)*p->tableNum;
@@ -1203,7 +1203,7 @@ int aContinuousUserRand(CURAND *p)
 
     if (p->pfn != (long)*p->tableNum) {
       if ( (p->ftp = ftfindp(p->tableNum) ) == NULL) {
-        sprintf(errmsg, Str(X_315,"invalid table no. %f"), *p->tableNum);
+        sprintf(errmsg, Str(X_315,"Invalid ftable no. %f"), *p->tableNum);
         return perferror(errmsg);
       }
       p->pfn = (long)*p->tableNum;

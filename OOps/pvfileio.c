@@ -694,7 +694,7 @@ static int pvoc_readfmt(int fd,int byterev,WAVEFORMATPVOCEX *pWfpx)
 
     /* ... but this is the clincher */
     if (!compare_guids(&(pWfpx->wxFormat.SubFormat),&KSDATAFORMAT_SUBTYPE_PVOC)) {
-      pv_errstr = Str(X_1629,"\npvsys: not a PVOCEX file");
+      pv_errstr = Str(X_1629,"\npvsys: not a PVOC-EX file");
       return 0;
     }
 
@@ -787,7 +787,7 @@ static int pvoc_readheader(int ifd,WAVEFORMATPVOCEX *pWfpx)
     }
     riffsize = size;
     if (read(files[ifd]->fd,(char *) &tag,sizeof(DWORD)) != sizeof(DWORD)) {
-      pv_errstr = Str(X_1635,"\npvsys: error reading header");
+      pv_errstr = Str(X_1555,"\npvsys: error reading header");
       return 0;
     }
 
@@ -1148,7 +1148,7 @@ int pvoc_putframes(int ofd,const float *frame,long numframes)
       return 0;
     }
     if (files[ofd]->fd < 0) {
-      pv_errstr = Str(X_1657,"\npvsys: file not open");
+      pv_errstr = Str(X_1527,"\npvsys: file not open");
       return 0;
     }
     /* NB doubles not supported yet */

@@ -848,7 +848,7 @@ static int pvx_loadfile(const char *fname,PVSFREAD *p,MEMFIL **mfp)
 
     if ((p->arate = (MYFLT) fmt.nSamplesPerSec) != esr &&
         (O.msglevel & WARNMSG)) { /* & chk the data */
-      printf(Str(X_63,"WARNING: %s''s srate = %8.0f, orch's srate = %8.0f"),
+      printf(Str(X_63,"WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
               fname, p->arate, esr);
     }
     p->fftsize  = pvx_fftsize;

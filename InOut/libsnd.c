@@ -212,8 +212,8 @@ static void writesf(MYFLT *outbuf, int nbytes)
 
 static int readsf(MYFLT *inbuf, int nsamples)
 {
-    printf("***nsamples = %d (%d frames) to %p\n",
-           nsamples, nsamples/nchnls, inbuf);
+/*     printf("***nsamples = %d (%d frames) to %p\n", */
+/*            nsamples, nsamples/nchnls, inbuf); */
     return nchnls*sf_read_MYFLT(infile, inbuf, nsamples/nchnls);
 }
 
@@ -374,8 +374,8 @@ void sfopenin(void)             /* init for continuous soundin */
       sfname = retfilnam;
       memset(&sfinfo, '\0', sizeof(SF_INFO));
       infile= sf_open_fd(isfd, SFM_READ, &sfinfo, SF_TRUE); 
-      printf("***sfinfo: samplerate=%d channels=%d format=%.8x sections=%d\n",
-             sfinfo.samplerate, sfinfo.channels, sfinfo.format, sfinfo.sections);
+/*    printf("***sfinfo: samplerate=%d channels=%d format=%.8x sections=%d\n", */
+/*        sfinfo.samplerate, sfinfo.channels, sfinfo.format, sfinfo.sections); */
       p->filetyp = 0;               /* initially non-typed for readheader */
       if (sfinfo.samplerate != (long)esr &&
           (O.msglevel & WARNMSG)) {              /*    chk the hdr codes  */
@@ -390,7 +390,6 @@ void sfopenin(void)             /* init for continuous soundin */
       /* Do we care about the format?  Can assume float?? */
       O.insampsiz = sizeof(MYFLT);        /*    & cpy header vals  */
       O.informat = p->filetyp = sf2format(sfinfo.format);
-      printf("***O.informat = %d\n", O.informat);
       p->audrem = sfinfo.frames;
       audrecv = readsf;  /* will use standard audio gets  */
     }
@@ -511,7 +510,7 @@ outset:
     if (strcmp(O.outfilename,"devaudio") == 0   /* realtime output has no
                                                    header */
         || strcmp(O.outfilename,"dac") == 0)  printf("\n");
-    else if (O.sfheader == 0) printf(" (raw)\n");
+    else if (O.sfheader == 0) printf(Str(X_24," (raw)\n"));
     else
       printf(" %s\n", type2string(O.filetyp));
     osfopen = 1;
@@ -571,7 +570,7 @@ void sfcloseout(void)
     if (strcmp(O.outfilename,"devaudio") == 0       /* realtime output has no
                                                        header */
         || strcmp(O.outfilename,"dac") == 0) printf("\n");
-    else if (O.sfheader == 0) printf(" (raw)\n");
+    else if (O.sfheader == 0) printf(Str(X_24," (raw)\n"));
     else
       printf(" %s\n", type2string(O.filetyp));
     osfopen = 0;
@@ -659,8 +658,6 @@ static void sndfilein(void)
     MYFLT *r = spin;
     int   n, spinrem = nspin;
     MYFLT *bufp = &inbuf[inbufsiz-inbufrem];
-
-    printf("***bufp=%p, inbuf=%p, offset=%d\n", bufp, inbuf, bufp-inbuf);
 
     if (infilend == 2) return;
     if (!inbufrem)  goto echk;

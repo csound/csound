@@ -391,7 +391,7 @@ int phaser2set(PHASER2 *p)
 
     p->modetype = modetype = (int)*p->mode;
     if (modetype && modetype != 1 && modetype != 2) {
-      sprintf(errmsg,Str(X_243,"Phaser mode must be either 1 or 2"));
+      sprintf(errmsg,Str(X_245,"Phaser mode must be either 1 or 2"));
       return initerror(errmsg);
     }
 

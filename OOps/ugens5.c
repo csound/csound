@@ -908,7 +908,6 @@ int lpslotset(LPSLOT *p)
       if (n>=max_lpc_slot) {
         max_lpc_slot = n + MAX_LPC_SLOT;
         lprdadr = (LPREAD**)mrealloc(lprdadr, max_lpc_slot*sizeof(LPREAD**));
-        /* initerror(Str(X_979,"lpslot number should be less than 20\n")); */
       }
       currentLPCSlot = n;
     }

@@ -2911,7 +2911,7 @@ int printksset(PRINTKS *p)
 
     if ((*p->ifilcod != SSTRCOD) || (*p->STRARG == 0)) {
         sprintf(errmsg,
-                Str(X_1136,"printks parm 1 was not a \"quoted string\"\n"));
+                Str(X_1135,"printks parm 1 was not a \"quoted string\"\n"));
         return initerror(errmsg);
     }
     else {

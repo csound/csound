@@ -188,8 +188,8 @@ err_printf(Str(X_1549,"-Q dnam\tselect MIDI output device\n"));
 err_printf(Str(X_172,"-z\tList opcodes in this version\n"));
 err_printf(Str(X_1537,"-Z\tDither output\n"));
 #if defined(LINUX)
-err_printf("--sched set real-time priority and lock memory\n");
-err_printf("        (also requires -d and either -o dac or -o devaudio)\n");
+err_printf(Str(X_179,"--sched set real-time priority and lock memory\n"));
+err_printf(Str(X_182,"    (also requires -d and either -o dac or -o devaudio)\n"));
 #endif
 #ifdef mills_macintosh
 err_printf(Str(X_581,"_____________Macintosh Command Line Flags_________________\n"));
@@ -217,148 +217,175 @@ void longusage(void)
 {
     err_printf(Str(X_519,"Usage:\tcsound [-flags] orchfile scorefile\n"));
     err_printf(Str(X_325,"Legal flags are:\n"));
-    err_printf("Long format:\n\n");
-    err_printf("--format={"
-               "alaw,"
-               "ulaw,"
-"schar,uchar,float,short,long,24bit,rescale}\t Set sound type\n"
-"--aiff\t\t\tSet AIFF format\n"
-"--au\t\t\tSet AU format\n"
-"--wave\t\t\tSet WAV format\n"
-"--ircam\t\t\tSet IRCAM format\n"
-"--noheader\t\tRaw format\n"
-"--nopeaks\t\tDo not write peak information\n"
-"\n"
-"--nodisplays\t\tsuppress all displays\n"
-"--asciidisplay\t\tsuppress graphics, use ascii displays\n"
-"--postscriptdisplay\tsuppress graphics, use Postscript displays\n"
-"\n"
-"--defer-gen1\t\tdefer GEN01 soundfile loads until performance time\n"
-"--iobufsamps=N\t\tsample frames (or -kprds) per software sound I/O buffer\n"
-"--hardwarebufsamps=N\tsamples per hardware sound I/O buffer\n"
-"--cscore\t\tuse Cscore processing of scorefile\n"
-"\n"
-"--midifile=FNAME\tread MIDIfile event stream from file\n"
-"--midi-device=FNAME\tread MIDI realtime events from device\n"
-"--terminate-on-midi\tterminate the performance when miditrack is done\n"
-"\n"
-"--heartbeat=N\t\tprint a heartbeat style 1, 2 or 3 at each soundfile write\n"
-"--notify\t\tnotify (ring the bell) when score or miditrack is done\n"
-"--rewrite\t\tcontinually rewrite header while writing soundfile (WAV/AIFF)\n"
-"\n"
-"--input=FNAME\t\tsound input filename\n"
-"--output=FNAME\t\tsound output filename\n"
-"--logfile=FNAME\t\tlog output to file\n"
-"\n"
-"--nosound\t\tno sound onto disk or device\n"
-"--tempo=N\t\tuse uninterpreted beats of the score, initially at tempo N\n"
-"--i-only\t\tI-time only orch run\n"
-"--control-rate=N\torchestra krate overrid\n"
-"--sample-rate=N\t\torchestra srate override\n"
-"--score-in=FNAME\tread Line-oriented realtime score events from device\n"
-"--messagelevel=N\ttty message level. Sum of: 1=note amps, 2=out-of-range msg, 4=warnings\n\n"
-"\n"
-"--extract-score=FNAME\textract from score.srt using extract file\n"
-"--keep-sorted-score\n"
-"--utility=NAME\t\trun utility program\n"
-"--verbose\t\tverbose orch translation\n"
-"--list-opcodes\t\tList opcodes in this version\n"
-"--list-opcodesN\t\tList opcodes in style N in this version\n"
-"--dither\t\tDither output\n"
-"--sched\t\t\tset real-time priority and lock memory\n"
-"--opcode-lib=NAMES\tDynamic libraries to load\n"
-"\n"
-"--help\t\t\tLong help\n"
-"\n"
+    err_printf(Str(X_183,"Long format:\n\n"));
+    err_printf("--format={alaw,ulaw,"
+               "schar,uchar,float,short,long,24bit,rescale}\t Set sound type\n"
+               "--aiff\t\t\tSet AIFF format\n"
+               "--au\t\t\tSet AU format\n"
+               "--wave\t\t\tSet WAV format\n"
+               "--ircam\t\t\tSet IRCAM format\n"
+               "--noheader\t\tRaw format\n"
+               "--nopeaks\t\tDo not write peak information\n"
+               "\n"
+               "--nodisplays\t\tsuppress all displays\n"
+               "--asciidisplay\t\tsuppress graphics, use ascii displays\n"
+               "--postscriptdisplay\tsuppress graphics, use Postscript displays\n"
+               "\n"
+               "--defer-gen1\t\tdefer GEN01 soundfile loads until performance "
+               "time\n"
+               "--iobufsamps=N\t\tsample frames (or -kprds) per software "
+               "sound I/O buffer\n"
+               "--hardwarebufsamps=N\tsamples per hardware sound I/O buffer\n"
+               "--cscore\t\tuse Cscore processing of scorefile\n"
+               "\n"
+               "--midifile=FNAME\tread MIDIfile event stream from file\n"
+               "--midi-device=FNAME\tread MIDI realtime events from device\n"
+               "--terminate-on-midi\tterminate the performance when "
+               "miditrack is done\n"
+               "\n"
+               "--heartbeat=N\t\tprint a heartbeat style 1, 2 or 3 at "
+               "each soundfile write\n"
+               "--notify\t\tnotify (ring the bell) when score or "
+               "miditrack is done\n"
+               "--rewrite\t\tcontinually rewrite header while writing "
+               "soundfile (WAV/AIFF)\n"
+               "\n"
+               "--input=FNAME\t\tsound input filename\n"
+               "--output=FNAME\t\tsound output filename\n"
+               "--logfile=FNAME\t\tlog output to file\n"
+               "\n"
+               "--nosound\t\tno sound onto disk or device\n"
+               "--tempo=N\t\tuse uninterpreted beats of the score, "
+               "initially at tempo N\n"
+               "--i-only\t\tI-time only orch run\n"
+               "--control-rate=N\torchestra krate overrid\n"
+               "--sample-rate=N\t\torchestra srate override\n"
+               "--score-in=FNAME\tread Line-oriented realtime score "
+               "events from device\n"
+               "--messagelevel=N\ttty message level. Sum of: 1=note amps, "
+               "2=out-of-range msg, 4=warnings\n\n"
+               "\n"
+               "--extract-score=FNAME\textract from score.srt using extract file\n"
+               "--keep-sorted-score\n"
+               "--utility=NAME\t\trun utility program\n"
+               "--verbose\t\tverbose orch translation\n"
+               "--list-opcodes\t\tList opcodes in this version\n"
+               "--list-opcodesN\t\tList opcodes in style N in this version\n"
+               "--dither\t\tDither output\n"
+               "--sched\t\t\tset real-time priority and lock memory\n"
+               "--opcode-lib=NAMES\tDynamic libraries to load\n"
+               "\n"
+               "--help\t\t\tLong help\n"
+               "\n"
 #ifdef mills_macintosh
-"--graphs=N\tNumber of tables in graphics window\n"
-"--pollrate=N\n"
-"--play-on-end\t Play after rendering\n"
-"--sample-directory=FNAME\n"
-"--analysis-directory=FNAME\n"
-"--sound_directory=FNAME\n"
-"--screen-buffer=N\tNumber of chars in screen buffer for output window\n"
-"--save-midi\tRecord and Save MIDI input to a file\n"
+               "--graphs=N\tNumber of tables in graphics window\n"
+               "--pollrate=N\n"
+               "--play-on-end\t Play after rendering\n"
+               "--sample-directory=FNAME\n"
+               "--analysis-directory=FNAME\n"
+               "--sound_directory=FNAME\n"
+               "--screen-buffer=N\tNumber of chars in screen buffer for "
+               "output window\n"
+               "--save-midi\tRecord and Save MIDI input to a file\n"
 #endif
-);
-    err_printf("\nShort form:\n");
-err_printf(Str(X_128,"-U unam\trun utility program unam\n"));
-err_printf(Str(X_102,"-C\tuse Cscore processing of scorefile\n"));
-err_printf(Str(X_109,"-I\tI-time only orch run\n"));
-err_printf(Str(X_155,"-n\tno sound onto disk\n"));
-err_printf(Str(X_150,"-i fnam\tsound input filename\n"));
-err_printf(Str(X_157,"-o fnam\tsound output filename\n"));
-err_printf(Str(X_138,"-b N\tsample frames (or -kprds) per software sound I/O buffer\n"));
-err_printf(Str(X_100,"-B N\tsamples per hardware sound I/O buffer\n"));
-err_printf(Str(X_96,"-A\tcreate an AIFF format output soundfile\n"));
-err_printf(Str(X_132,"-W\tcreate a WAV format output soundfile\n"));
-err_printf(Str(X_111,"-J\tcreate an IRCAM format output soundfile\n"));
-err_printf(Str(X_149,"-h\tno header on output soundfile\n"));
-err_printf(Str(X_141,"-c\t8-bit signed_char sound samples\n"));
-err_printf(Str(X_136,"-a\talaw sound samples\n"));
-err_printf(Str(X_94,"-8\t8-bit unsigned_char sound samples\n")); /* J. Mohr 1995 Oct 17 */
-err_printf(Str(X_166,"-u\tulaw sound samples\n"));
-err_printf(Str(X_164,"-s\tshort_int sound samples\n"));
-err_printf(Str(X_153,"-l\tlong_int sound samples\n"));
-err_printf(Str(X_145,"-f\tfloat sound samples\n"));
-err_printf(Str(X_1138,"-3\t24bit sound samples\n"));
-err_printf(Str(X_161,"-r N\torchestra srate override\n"));
-err_printf(Str(X_152,"-k N\torchestra krate override\n"));
-err_printf(Str(X_1552,"-K\tDo not generate PEAK chunks\n"));
-err_printf(Str(X_168,"-v\tverbose orch translation\n"));
-err_printf(Str(X_154,"-m N\ttty message level. Sum of: 1=note amps, 2=out-of-range msg, 4=warnings\n"));
-err_printf(Str(X_143,"-d\tsuppress all displays\n"));
-err_printf(Str(X_147,"-g\tsuppress graphics, use ascii displays\n"));
-err_printf(Str(X_107,"-G\tsuppress graphics, use Postscript displays\n"));
-err_printf(Str(X_170,"-x fnam\textract from score.srt using extract file 'fnam'\n"));
-err_printf(Str(X_165,"-t N\tuse uninterpreted beats of the score, initially at tempo N\n"));
-err_printf(Str(X_425,"-t 0\tuse score,srt for sorted score rather than a temporary\n"));
-err_printf(Str(X_112,"-L dnam\tread Line-oriented realtime score events from device 'dnam'\n"));
-err_printf(Str(X_116,"-M dnam\tread MIDI realtime events from device 'dnam'\n"));
-err_printf(Str(X_105,"-F fnam\tread MIDIfile event stream from file 'fnam'\n"));
-/* err_printf(Str(X_121,"-P N\tMIDI sustain pedal threshold (0 - 128)\n")); */
-err_printf(Str(X_125,"-R\tcontinually rewrite header while writing soundfile (WAV/AIFF)\n"));
-err_printf(Str(X_108,"-H#\tprint a heartbeat style 1, 2 or 3 at each soundfile write\n"));
-err_printf(Str(X_120,"-N\tnotify (ring the bell) when score or miditrack is done\n"));
-err_printf(Str(X_126,"-T\tterminate the performance when miditrack is done\n"));
-err_printf(Str(X_103,"-D\tdefer GEN01 soundfile loads until performance time\n"));
+               );
+    err_printf(Str(X_184,"\nShort form:\n"));
+    err_printf(Str(X_128,"-U unam\trun utility program unam\n"));
+    err_printf(Str(X_102,"-C\tuse Cscore processing of scorefile\n"));
+    err_printf(Str(X_109,"-I\tI-time only orch run\n"));
+    err_printf(Str(X_155,"-n\tno sound onto disk\n"));
+    err_printf(Str(X_150,"-i fnam\tsound input filename\n"));
+    err_printf(Str(X_157,"-o fnam\tsound output filename\n"));
+    err_printf(Str(X_138,"-b N\tsample frames (or -kprds) per software "
+                   "sound I/O buffer\n"));
+    err_printf(Str(X_100,"-B N\tsamples per hardware sound I/O buffer\n"));
+    err_printf(Str(X_96,"-A\tcreate an AIFF format output soundfile\n"));
+    err_printf(Str(X_132,"-W\tcreate a WAV format output soundfile\n"));
+    err_printf(Str(X_111,"-J\tcreate an IRCAM format output soundfile\n"));
+    err_printf(Str(X_149,"-h\tno header on output soundfile\n"));
+    err_printf(Str(X_141,"-c\t8-bit signed_char sound samples\n"));
+    err_printf(Str(X_136,"-a\talaw sound samples\n"));
+    /* J. Mohr 1995 Oct 17 */
+    err_printf(Str(X_94,"-8\t8-bit unsigned_char sound samples\n"));
+    err_printf(Str(X_166,"-u\tulaw sound samples\n"));
+    err_printf(Str(X_164,"-s\tshort_int sound samples\n"));
+    err_printf(Str(X_153,"-l\tlong_int sound samples\n"));
+    err_printf(Str(X_145,"-f\tfloat sound samples\n"));
+    err_printf(Str(X_1138,"-3\t24bit sound samples\n"));
+    err_printf(Str(X_161,"-r N\torchestra srate override\n"));
+    err_printf(Str(X_152,"-k N\torchestra krate override\n"));
+    err_printf(Str(X_1552,"-K\tDo not generate PEAK chunks\n"));
+    err_printf(Str(X_168,"-v\tverbose orch translation\n"));
+    err_printf(Str(X_154,"-m N\ttty message level. Sum of: 1=note amps, "
+                   "2=out-of-range msg, 4=warnings\n"));
+    err_printf(Str(X_143,"-d\tsuppress all displays\n"));
+    err_printf(Str(X_147,"-g\tsuppress graphics, use ascii displays\n"));
+    err_printf(Str(X_107,"-G\tsuppress graphics, use Postscript displays\n"));
+    err_printf(Str(X_170,
+                   "-x fnam\textract from score.srt using extract file 'fnam'\n"));
+    err_printf(Str(X_165,"-t N\tuse uninterpreted beats of the score, "
+                   "initially at tempo N\n"));
+    err_printf(Str(X_425,"-t 0\tuse score.srt for sorted score rather "
+                   "than a temporary\n"));
+    err_printf(Str(X_112,"-L dnam\tread Line-oriented realtime score "
+                   "events from device 'dnam'\n"));
+    err_printf(Str(X_116,
+                   "-M dnam\tread MIDI realtime events from device 'dnam'\n"));
+    err_printf(Str(X_105,"-F fnam\tread MIDIfile event stream from "
+                   "file 'fnam'\n"));
+    /* err_printf(Str(X_121,"-P N\tMIDI sustain pedal threshold (0 - 128)\n")); */
+    err_printf(Str(X_125,"-R\tcontinually rewrite header while writing "
+                   "soundfile (WAV/AIFF)\n"));
+    err_printf(Str(X_108,"-H#\tprint a heartbeat style 1, 2 or 3 at each "
+                   "soundfile write\n"));
+    err_printf(Str(X_120,"-N\tnotify (ring the bell) when score or "
+                   "miditrack is done\n"));
+    err_printf(Str(X_126,
+                   "-T\tterminate the performance when miditrack is done\n"));
+    err_printf(Str(X_103,
+                   "-D\tdefer GEN01 soundfile loads until performance time\n"));
 #ifdef LINUX                    /* Jonathan Mohr  1995 Oct 17 */
-err_printf(Str(X_1549,"-Q dnam\tselect MIDI output device\n"));
+    err_printf(Str(X_1549,"-Q dnam\tselect MIDI output device\n"));
 #ifdef RTAUDIO
-err_printf(Str(X_130,"-V N\tset real-time audio output volume to N (1 to 100)\n"));
+    err_printf(Str(X_130,
+                   "-V N\tset real-time audio output volume to N (1 to 100)\n"));
 #endif
 #endif
 #ifdef __BEOS__                 /* jjk 09252000 */
-err_printf(Str(X_1549,"-Q dnam\tselect MIDI output device\n"));
+    err_printf(Str(X_1549,"-Q dnam\tselect MIDI output device\n"));
 #endif
-err_printf(Str(X_172,"-z\tList opcodes in this version\n"));
-err_printf(Str(X_1537,"-Z\tDither output\n"));
-err_printf(Str(X_90,"-- fnam\tlog output to file\n"));
+    err_printf(Str(X_172,"-z\tList opcodes in this version\n"));
+    err_printf(Str(X_1537,"-Z\tDither output\n"));
+    err_printf(Str(X_90,"-- fnam\tlog output to file\n"));
 #if defined(LINUX)
-err_printf("--sched set real-time priority and lock memory\n");
-err_printf("        (also requires -d and either -o dac or -o devaudio)\n");
+    err_printf("--sched set real-time priority and lock memory\n");
+    err_printf("        (also requires -d and either -o dac or -o devaudio)\n");
 #endif
 #ifdef mills_macintosh
-err_printf(Str(X_581,"_____________Macintosh Command Line Flags_________________\n"));
+    err_printf(Str(X_581,
+                   "_____________Macintosh Command Line Flags_____________\n"));
 /* err_printf(Str(X_89,"-- fnam\t Redirect output to listing file 'fnam'\n")); */
-err_printf(Str(X_133,"-X fnam\t Sound File Directory\n"));
-err_printf(Str(X_160,"-q fnam\t Sound Sample-In Directory\n"));
-err_printf(Str(X_123,"-Q fnam\t Analysis Directory\n"));
-err_printf(Str(X_129,"-V N\t Number of chars in screen buffer for output window\n"));
-err_printf(Str(X_104,"-E N\t Number of tables in graphics window\n"));
-err_printf(Str(X_159,"-p\t\t Play after rendering\n"));
-err_printf(Str(X_144,"-e\t\t Rescaled floats as shorts to max amplitude\n"));
-err_printf(Str(X_169,"-w\t\t Record and Save MIDI input to a file\n"));
-err_printf(Str(X_171,"-y N\t Enables Progress Display at rate N seconds,\n"));
-err_printf(Str(X_572,"\t\t\tor for negative N, at -N kperiods\n"));
-err_printf(Str(X_134,"-Y N\t Enables Profile Display at rate N in seconds,\n"));
-err_printf(Str(X_572,"\t\t\tor for negative N, at -N kperiods\n"));
-err_printf("-P N\t Poll Events Every N Buffer Writes\n");
-err_printf(Str(X_582,"__________________________________________________________\n"));
+    err_printf(Str(X_133,"-X fnam\t Sound File Directory\n"));
+    err_printf(Str(X_160,"-q fnam\t Sound Sample-In Directory\n"));
+    err_printf(Str(X_123,"-Q fnam\t Analysis Directory\n"));
+    err_printf(Str(X_129,
+                   "-V N\t Number of chars in screen buffer for output window\n"));
+    err_printf(Str(X_104,"-E N\t Number of tables in graphics window\n"));
+    err_printf(Str(X_159,"-p\t\t Play after rendering\n"));
+    err_printf(Str(X_144,"-e\t\t Rescaled floats as shorts to max amplitude\n"));
+    err_printf(Str(X_169,"-w\t\t Record and Save MIDI input to a file\n"));
+    err_printf(Str(X_171,"-y N\t Enables Progress Display at rate N seconds,\n"));
+    err_printf(Str(X_572,"\t\t\tor for negative N, at -N kperiods\n"));
+    err_printf(Str(X_134,
+                   "-Y N\t Enables Profile Display at rate N in seconds,\n"));
+    err_printf(Str(X_572,"\t\t\tor for negative N, at -N kperiods\n"));
+    err_printf("-P N\t Poll Events Every N Buffer Writes\n");
+    err_printf(Str(X_582,
+                   "______________________________________________________\n"));
 #endif
-err_printf(Str(X_768,"flag defaults: csound -s -otest -b%d -B%d -m7 -P128\n"),
-        IOBUFSAMPS, IODACSAMPS);
- longjmp(cenviron.exitjmp_,0);
+    err_printf(Str(X_768,"flag defaults: csound -s -otest -b%d -B%d -m7 -P128\n"),
+               IOBUFSAMPS, IODACSAMPS);
+    longjmp(cenviron.exitjmp_,0);
 }
 
 void dieu(char *s)
@@ -497,7 +524,7 @@ static int decode_long(char *s, int argc, char **argv, char *envoutyp)
       if (O.filetyp != TYP_IRCAM) {
         if (envoutyp == NULL) goto outtyp;
         if (O.msglevel & WARNMSG)
-          printf(Str(X_95,"WARNING: --aiff overriding local default out\n"));
+          printf(Str(X_97,"WARNING: --aiff overriding local default out\n"));
       }
       O.filetyp = TYP_AIFF;     /* AIFF output request*/
       return 1;
@@ -506,7 +533,7 @@ static int decode_long(char *s, int argc, char **argv, char *envoutyp)
       if (O.filetyp != TYP_IRCAM) {
         if (envoutyp == NULL) goto outtyp;
         if (O.msglevel & WARNMSG)
-          printf("WARNING: -au overriding local default out\n");
+          printf(Str(X_188,"WARNING: -au overriding local default out\n"));
       }
       O.filetyp = TYP_AU;     /* AIFF output request*/
       return 1;
@@ -606,7 +633,7 @@ static int decode_long(char *s, int argc, char **argv, char *envoutyp)
       {
         s += 6;
         if (python_add_cmdline_definition(s))
-          dieu("invalid python variable definition syntax");
+          dieu(Str(X_189,"invalid python variable definition syntax"));
         return 1;
       }
 #endif
@@ -615,7 +642,7 @@ static int decode_long(char *s, int argc, char **argv, char *envoutyp)
       if (*s == '\0') dieu(Str(X_1038,"no infilename"));
       O.infilename = s;   /* soundin name */
       if (strcmp(O.infilename,"stdout") == 0)
-        dieu("input cannot be stdout");
+        dieu(Str(X_192,"input cannot be stdout"));
       if (strcmp(O.infilename,"stdin") == 0)
 #if defined mills_macintosh || defined SYMANTEC
         dieu(Str(X_1242,"stdin audio not supported"));
@@ -846,7 +873,7 @@ static int decode_long(char *s, int argc, char **argv, char *envoutyp)
       if (O.filetyp != TYP_RAW) {
         if (envoutyp == NULL) goto outtyp;
         if (O.msglevel & WARNMSG)
-          printf("WARNING: --wave overriding local default out\n");
+          printf(Str(X_194,"WARNING: --wave overriding local default out\n"));
       }
       O.filetyp = TYP_WAV;      /* WAV output request */
       return 1;
@@ -855,7 +882,7 @@ static int decode_long(char *s, int argc, char **argv, char *envoutyp)
       if (O.filetyp != TYP_RAW) {
         if (envoutyp == NULL) goto outtyp;
         if (O.msglevel & WARNMSG)
-          printf("WARNING: --wave64 overriding local default out\n");
+          printf(Str(X_207,"WARNING: --wave64 overriding local default out\n"));
       }
       O.filetyp = TYP_W64;      /* WAVE 64 output request */
       return 1;
@@ -864,7 +891,7 @@ static int decode_long(char *s, int argc, char **argv, char *envoutyp)
       if (O.filetyp != TYP_RAW) {
         if (envoutyp == NULL) goto outtyp;
         if (O.msglevel & WARNMSG)
-          printf("WARNING: --voc overriding local default out\n");
+          printf(Str(X_211,"WARNING: --voc overriding local default out\n"));
       }
       O.filetyp = TYP_VOC;      /* VOC output request */
       return 1;
@@ -1018,7 +1045,7 @@ int argdecode(int argc, char **argv, char **pfilnamp, char *envoutyp)
             O.infilename = filnamp;   /* soundin name */
             while ((*filnamp++ = *s++));  s--;
             if (strcmp(O.infilename,"stdout") == 0)
-              dieu("-i cannot be stdout");
+              dieu(Str(X_213,"-i cannot be stdout"));
             if (strcmp(O.infilename,"stdin") == 0)
 #if defined mills_macintosh || defined SYMANTEC
               dieu(Str(X_1242,"stdin audio not supported"));
@@ -1254,11 +1281,12 @@ int argdecode(int argc, char **argv, char **pfilnamp, char *envoutyp)
             dither_output = 1;
             break;
           case '@':
-            FIND("No indirection file");
+            FIND(Str(X_215,"No indirection file"));
             {
               FILE *ind = fopen(s, "r");
               if (ind==0) {
-                sprintf(errmsg, "Can not open indirection file %s\n", s);
+                sprintf(errmsg,
+                        Str(X_216,"Cannot open indirection file %s\n"), s);
                 dieu(errmsg);
               }
               else {

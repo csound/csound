@@ -89,7 +89,7 @@ insert(int insno, EVTBLK *newevtp)  /* insert an instr copy into active list */
     inerrcnt = 0;
     tp = instrtxtp[insno];
     if (tp->muted==0) {
-      printf("Instrument %d muted\n", insno);
+      printf(Str(X_11,"Instrument %d muted\n"), insno);
       /*       if (O.odebug) printf("Instrument %d muted\n", insno); */
       return 0;
     }
@@ -1270,7 +1270,7 @@ INSDS *insert_event(MYFLT instr,
       if (O.msglevel & WARNMSG)
         printf(Str(X_26,
                    "WARNING: cannot allocate last note because it exceeds"
-                   " 100% of cpu time"));
+                   " 100%% of cpu time"));
       ip = NULL; goto endsched;
     }
     /* Add an active instrument */

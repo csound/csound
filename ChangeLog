@@ -1,30 +1,88 @@
+2004-05-05  John ffitch  <jpff@codemist.co.uk>
+
+	* strings/all_strings: 
+	* strings/english-strings: Heavily revised
+
+	* Top/pvanal.c (pvanal): 1781->1771
+
+	* Engine/oload.c (oload): 1711->1704 as overuse
+
+	* OOps/pvfileio.c (pvoc_readfmt): Minor typo in string
+	(pvoc_readheader): 1555 instead of 1635
+	(pvoc_putframes): 1527 instead of 1657
+
+	* OOps/pvxanal.c (pvxanal): Minor typo in string
+
+	* Opcodes/scansynx.c Many string renumering for uniqueness
+
+	* OOps/fout.c (outfile_set): 1463->1451 as overuse
+
+	* Opcodes/uggab.c (rsnsety): 1453->1453 as overuse
+
+	* Top/dnoise.c (dnoise): 1198->1199 as overuse
+	(dnoise): Minor type in string
+
+	* OOps/diskin.c (newsndinset): Minor string correction
+
+	* OOps/ugrw1.c (printksset): 1136->1135 as overuse
+
+	* Top/dnoise.c (dnoise): Changed 1052 to 1016 as overuse
+
+	* Opcodes/ugmoss.c (vcombset): Unified string 668
+
+	* OOps/cmath.c (seedrand): String 458 made same as other uses
+
+	* Top/argdecode.c (longusage): Typo in 425
+
+	* Opcodes/uggab.c (kDiscreteUserRand, aDiscreteUserRand) 
+	(kContinuousUserRand, aContinuousUserRand): Inconsidtent use of
+	Strinh 315
+
+	* Opcodes/ugsc.c (phaser2set): String 243 double used -- changed
+	to 245
+
+	* OOps/mididevice.c (OpenMIDIDevice): Typo in string 210
+
+	* Top/argdecode.c (decode_long): String 95 was repeated; changed
+	to 97 which was free
+
+	* OOps/pvread.c (pvreadset, pvocex_loadfile): 
+	* OOps/pvinterp.c (pvbufreadset, pvinterpset, pvcrossset): 
+	* OOps/pvadd.c (pvaddset): 
+	* OOps/pstream.c (pvx_loadfile): String 63
+	* Top/dnoise.c (dnoise): String 61
+	* OOps/diskin.c (sngetset): Typing error in string 58
+
+	* Engine/insert.c (insert_event): Format string had naked %
+
 2004-05-04  Michael Gogins <gogins@pipeline.com>
 
-    * Added more Fl::lock and ::unlock calls to CsoundVstFltk.cpp, to protect
-      against Xlib: unexpected async operation errors. CsoundVST now actually
-      works on Linux.
+	* Added more Fl::lock and ::unlock calls to CsoundVstFltk.cpp, to
+	protect against Xlib: unexpected async operation errors. CsoundVST
+	now actually works on Linux.
 
 2004-05-03  Michael Gogins <gogins@pipeline.com>
 
-    * Fixed midiinterop opcodes that were broken when moved to csound5.
+      * Fixed midiinterop opcodes that were broken when moved to csound5.
 
 2004-05-01  Michael Gogins <gogins@pipeline.com>
 
-    * Added a new csoundPerformKsmpsAbsolute API function for calling kperf 
-      without a score.
+	* Added a new csoundPerformKsmpsAbsolute API function for calling
+	kperf without a score. 
       
-    * Restored external MIDI interface callbacks to working order. Renamed
-      the Open and Close callbacks to DeviceOpen and DeviceClose to clarify
-      their actual function.
+	* Restored external MIDI interface callbacks to working
+	order. Renamed the Open and Close callbacks to DeviceOpen and
+	DeviceClose to clarify their actual function.
     
-    * Many fixes in CsoundVST to get it working for Csound 5.
+	* Many fixes in CsoundVST to get it working for Csound 5.
     
 2004-04-29  Michael Gogins <gogins@pipeline.com>
 
-    * Made inbuf and outbuf MYFLT * throughout the sources.
+	* Made inbuf and outbuf MYFLT * throughout the sources.
     
-    * Moved "extern" function and data declarations from csound.c to prototyp.h 
-      as much as possible, in order to prevent inconsistencies from spreading.
+	* Moved "extern" function and data declarations from csound.c to
+	prototyp.h  as much as possible, in order to prevent
+	inconsistencies from spreading. 
 
 2004-04-27  John ffitch  <jpff@codemist.co.uk>
 
@@ -34,7 +92,8 @@
 
 2004-04-26  Michael Gogins <gogins@pipeline.com>
 
-    * Added scoreRESET to enable multiple renderings with one Csound API instance.
+	* Added scoreRESET to enable multiple renderings with one Csound
+	API instance. 
 
 2004-04-08  John ffitch  <jpff@codemist.co.uk>
 

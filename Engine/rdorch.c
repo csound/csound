@@ -1504,7 +1504,6 @@ static void intyperr(int n, char tfound, char expect)
         case '?': strcpy(t,"?");
                   break;
         }
-        printf("Expecting %c: ", expect);
         sprintf(
                 errmsg,
                 Str(X_913,

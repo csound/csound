@@ -66,7 +66,7 @@ static void close_files(void)
       else
         sf_close(file_opened[file_num].file);
       file_num--;
-      printf(" closed\n");
+      printf(Str(X_563,"\t... closed\n"));
     }
 #endif
 }
@@ -134,7 +134,7 @@ int outfile_set(OUTFILE *p)
       sfinfo.samplerate = (long)esr;
       sfinfo.channels = p->nargs;
       if ((p->fp = sf_open(fname,SFM_WRITE,&sfinfo)) == NULL)
-        dies(Str(X_1465,"fout: cannot open outfile %s"),fname);
+        dies(Str(X_1451,"fout: cannot open outfile %s"),fname);
       else { /* put the file in the opened stack */
         file_num++;
         if (file_num>=file_max) {

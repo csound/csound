@@ -73,8 +73,9 @@ int apow(POW *p)               /*      Power routine for a-rate  */
 int seedrand(PRAND *p)
 {
     if ((unsigned int)*p->out == 0) {
-      printf(Str(X_458,"Seeding from current time\n"));
-      srand((unsigned int)(holdrand = time(NULL)));
+      holdrand = time(NULL);
+      printf(Str(X_458,"Seeding from current time %d\n"), holdrand);
+      srand((unsigned int)holdrand);
     }
     else {
       printf(Str(X_459,"Seeding with %.3f\n"), *p->out);

@@ -146,7 +146,7 @@ static int sngetset(SOUNDINEW *p, char *sfname)
     if (sfinfo.channels != p->OUTOCOUNT) {         /*        chk nchanls */
       if (O.msglevel & WARNMSG) {
         printf(Str(X_58,
-                   "WARNING: %s nchanls = %d, soundin reading as if nchanls = %d\n"),
+                   "WARNING: %s nchnls = %d, soundin reading as if nchnls = %d\n"),
                sfname, (int) sfinfo.channels, (int) p->OUTOCOUNT);
       }
       sfinfo.channels = p->OUTOCOUNT;
@@ -217,7 +217,7 @@ int newsndinset(SOUNDINEW *p)       /* init routine for diskin   */
       if (nbytes > p->audrem) { /* RWD says p->audsize but that seems unlikely */
         if (O.msglevel & WARNMSG)
           printf(Str(X_1191,
-                     "WARNING: skip time larger than audio data,"
+                     "WARNING: skip time larger than audio data, "
                      "substituting zero.\n"));
         if (*p->ktransp < 0) {
           if (p->audsize > 0)
@@ -297,7 +297,8 @@ int newsndinset(SOUNDINEW *p)       /* init routine for diskin   */
         else printf(Str(X_655,"channel %d\n"), p->channel);
       }
 
-      printf("opening %s infile %s\n", type2string(p->filetyp), sfname);
+      printf(Str(X_1095,"opening %s infile %s\n"),
+             type2string(p->filetyp), sfname);
     }
 
     if (p->sampframsiz <= 0)    /* must know framsiz */
@@ -722,7 +723,7 @@ int sndo1set(SNDOUT *p)            /* init routine for instr soundout   */
     if ((p->c.format = (short)*p->c.iformat) > 0)
       p->c.format |= 0x100;
 
-    printf(/*Str(X_1094,*/"opening %s outfile %s\n"/*)*/,
+    printf(Str(X_1094,"opening %s outfile %s\n"),
            type2string(p->c.filetyp), sfname);
     p->c.outbufp = p->c.outbuf;         /* fix - isro 20-11-96 */
     p->c.bufend = p->c.outbuf + SNDOUTSMPS; /* fix - isro 20-11-96 */

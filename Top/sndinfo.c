@@ -53,7 +53,7 @@ int sndinfo(int argc, char **argv)
         continue;
       }
       if ((hndl = sf_open_fd(infd, SFM_READ, &sf_info, 1))==NULL) {
-        printf("%s: Not a sound file\n", retfilnam);
+        printf(Str(X_223,"%s: Not a sound file\n"), retfilnam);
         close(infd);
       }
       else {
@@ -83,7 +83,7 @@ int sndinfo(int argc, char **argv)
                sfsampsize(sf_info.format) * 8,
                type2string(sf2type(sf_info.format)),
                (MYFLT)sf_info.frames / sf_info.samplerate);
-        printf("\t(%ld sample frames)\n",
+        printf(Str(X_225,"\t(%ld sample frames)\n"),
                (long)sf_info.frames);
         sf_close(hndl);
       }

@@ -91,7 +91,7 @@ int pvbufreadset(PVBUFREAD *p)
     chans    = pvh->channels;
     if ((p->asr = pvh->samplingRate) != esr &&
         (O.msglevel & WARNMSG)) { /* & chk the data */
-      printf(Str(X_63,"WARNING: %s''s srate = %8.0f, orch's srate = %8.0f"),
+      printf(Str(X_63,"WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
              pvfilnam, p->asr, esr);
     }
     if (pvh->dataFormat != PVMYFLT) {
@@ -214,7 +214,7 @@ int pvinterpset(PVINTERP *p)
     chans    = pvh->channels;
     if ((p->asr = pvh->samplingRate) != esr &&
         (O.msglevel & WARNMSG)) { /* & chk the data */
-      printf(Str(X_63,"WARNING: %s''s srate = %8.0f, orch's srate = %8.0f"),
+      printf(Str(X_63,"WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
              pvfilnam, p->asr, esr);
     }
     if (pvh->dataFormat != PVMYFLT) {
@@ -411,7 +411,7 @@ int pvcrossset(PVCROSS *p)
     chans    = pvh->channels;
     if ((p->asr = pvh->samplingRate) != esr &&
         (O.msglevel & WARNMSG)) { /* & chk the data */
-      printf(Str(X_63,"WARNING: %s''s srate = %8.0f, orch's srate = %8.0f"),
+      printf(Str(X_63,"WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
              pvfilnam, p->asr, esr);
     }
     if (pvh->dataFormat != PVMYFLT) {
