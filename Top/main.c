@@ -94,8 +94,8 @@ void set_rt_priority(int argc, char **argv)
     if (argc > 2) {
       for (i = 1; i <= (argc - 2); i++) {
         if (!(strcmp (argv[i], "-o")) &&                    /* check if     */
-            (!(strcmp (argv[i + 1], "dac")) ||              /* output is    */
-             !(strcmp (argv[i + 1], "devaudio"))))          /* audio device */
+            (!(strncmp (argv[i + 1], "dac", 3)) ||              /* output is    */
+             !(strncmp (argv[i + 1], "devaudio", 8))))          /* audio device */
           rtmode |= 2;
       }
     }
