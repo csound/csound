@@ -6,6 +6,7 @@
 #include "AEffEditor.hpp"
 #include "aeffectx.h"
 #include "vsthost.h"
+#include <math.h>
 
 VstTimeInfo VSTPlugin::_timeInfo;
 
@@ -17,7 +18,6 @@ VSTPlugin::VSTPlugin(ENVIRON *csound_) :
     aeffect(0), 
     libraryHandle(0), 
     queue_size(0), 
-    instantiated(false), 
     overwrite(false),
     show_params(false),
     _midichannel(0),
@@ -35,8 +35,8 @@ VSTPlugin::~VSTPlugin()
 
 bool VSTPlugin::AddMIDI(int data0, int data1, int data2)
 {
-	if (instantiated) {
-		VstMidiEvent* pevent=&midievent[queue_size];
+	if(aeffect) {
+		VstMidiEvent *pevent = &midievent[queue_size];
 		pevent->type = kVstMidiType;
 		pevent->byteSize = 24;
 		pevent->deltaFrames = 0;
@@ -51,7 +51,7 @@ bool VSTPlugin::AddMIDI(int data0, int data1, int data2)
 		pevent->midiData[1] = data1;
 		pevent->midiData[2] = data2;
 		pevent->midiData[3] = 0;
-		if ( queue_size < MAX_EVENTS ) 
+		if( queue_size < MAX_EVENTS ) 
             queue_size++;
 		SendMidi();
 		return true;
@@ -60,25 +60,27 @@ bool VSTPlugin::AddMIDI(int data0, int data1, int data2)
         return false;
 }
 
-bool VSTPlugin::AddNoteOn( int note, int speed, int midichannel)
+bool VSTPlugin::AddNoteOn(int midichannel, MYFLT note, MYFLT speed)
 {
-	if (instantiated) {
-		VstMidiEvent* pevent=&midievent[queue_size];
+	if(aeffect) {
+	    MYFLT rounded = round(note);
+	    MYFLT cents = (note - rounded) * FL(100.0);
+		VstMidiEvent *pevent = &midievent[queue_size];
 		pevent->type = kVstMidiType;
 		pevent->byteSize = 24;
 		pevent->deltaFrames = 0;
 		pevent->flags = 0;
-		pevent->detune = 0;
+		pevent->detune = cents;
 		pevent->noteLength = 0;
 		pevent->noteOffset = 0;
 		pevent->reserved1 = 0;
 		pevent->reserved2 = 0;
 		pevent->noteOffVelocity = 0;
 		pevent->midiData[0] = 144 | midichannel;
-		pevent->midiData[1] = note;
+		pevent->midiData[1] = rounded;
 		pevent->midiData[2] = speed;
 		pevent->midiData[3] = 0;
-		if ( queue_size < MAX_EVENTS ) 
+		if( queue_size < MAX_EVENTS ) 
             queue_size++;
 		SendMidi();
 		return true;
@@ -87,10 +89,11 @@ bool VSTPlugin::AddNoteOn( int note, int speed, int midichannel)
         return false;
 }
 
-bool VSTPlugin::AddNoteOff( int note, int midichannel)
+bool VSTPlugin::AddNoteOff(int midichannel, MYFLT note)
 {
-	if (instantiated) {
-		VstMidiEvent* pevent=&midievent[queue_size];
+	if(aeffect) {
+	    MYFLT rounded = round(note);
+		VstMidiEvent* pevent = &midievent[queue_size];
 		pevent->type = kVstMidiType;
 		pevent->byteSize = 24;
 		pevent->deltaFrames = 0;
@@ -102,10 +105,10 @@ bool VSTPlugin::AddNoteOff( int note, int midichannel)
 		pevent->reserved2 = 0;
 		pevent->noteOffVelocity = 0;
 		pevent->midiData[0] = 128 | midichannel;
-		pevent->midiData[1] = note;
+		pevent->midiData[1] = rounded;
 		pevent->midiData[2] = 0;
 		pevent->midiData[3] = 0;
-		if ( queue_size < MAX_EVENTS ) 
+		if( queue_size < MAX_EVENTS ) 
             queue_size++;
 		SendMidi();
 		return true;
@@ -114,10 +117,10 @@ bool VSTPlugin::AddNoteOff( int note, int midichannel)
         return false;
 }
 
-bool VSTPlugin::DescribeValue(int p,char* value)
+bool VSTPlugin::DescribeValue(int parameter,char* value)
 {
-	int parameter = p;
-	if(instantiated)
+    csound->Message(csound, "VSTPlugin::DescribeValue.\n");
+	if(aeffect)
 	{
 		if(parameter<aeffect->numParams)
 		{
@@ -140,62 +143,55 @@ bool VSTPlugin::DescribeValue(int p,char* value)
 
 int VSTPlugin::Instance(const char *libraryName_)
 {
+    csound->Message(csound, "VSTPlugin::Instance.\n");
 	//csound->Message(csound,"Instance \n");
  	libraryHandle = csound->OpenLibrary(libraryName_);
 	if(!libraryHandle)	
 	{
-		csound->Message(csound,"WARNING! '%s' was not found or is invalid.\n", libraryName_);
+		csound->Message(csound, "WARNING! '%s' was not found or is invalid.\n", libraryName_);
 		return VSTINSTANCE_ERR_NO_VALID_FILE;
 	}
-	csound->Message(csound,"Loaded plugin library '%s'.\n" , libraryName_);
+	csound->Message(csound, "Loaded plugin library '%s'.\n" , libraryName_);
 	PVSTMAIN main = (PVSTMAIN)csound->GetLibrarySymbol(libraryHandle,"main");
 	if(!main)
 	{	
-	    csound->Message(csound,"Failed to find 'main' function.\n");
+	    csound->Message(csound, "Failed to find 'main' function.\n");
      	csound->CloseLibrary(libraryHandle);
 		aeffect=NULL;
-		instantiated=false;
 		return VSTINSTANCE_ERR_NO_VST_PLUGIN;
 	}
-	csound->Message(csound,"Found 'main' function at 0x%x.\n" , main);
+	csound->Message(csound, "Found 'main' function at 0x%x.\n" , main);
 	aeffect = main((audioMasterCallback) VSTPlugin::Master);
 	aeffect->user = this;
 	if(!aeffect)
 	{
-		csound->Message(csound,"VST plugin: unable to create effect.\n");
+		csound->Message(csound, "VST plugin: unable to create effect.\n");
 		csound->CloseLibrary(libraryHandle);
-		aeffect=NULL;
-		instantiated=false;
 		return VSTINSTANCE_ERR_REJECTED;
 	}
-	csound->Message(csound,"Created effect '%x'.\n" , aeffect);	
+	csound->Message(csound, "Created effect '%x'.\n" , aeffect);	
 	if(  aeffect->magic!=kEffectMagic)
 	{
-		csound->Message(csound,"VST plugin: Instance query rejected by 0x%x\n",(int)aeffect);
+		csound->Message(csound, "VST plugin: Instance query rejected by 0x%x\n", aeffect);
 		csound->CloseLibrary(libraryHandle);
 		aeffect=NULL;
-		instantiated=false;
 		return VSTINSTANCE_ERR_REJECTED;
 	}
-	instantiated=true;
 	return VSTINSTANCE_NO_ERROR;
 }
 
-void VSTPlugin::Info ()
+void VSTPlugin::Info()
 {
 	int i =0;
-	csound->Message(csound,"--------------------------------------------\n");
-	//csound->Message(csound,"VST plugin : Instanced at (Effect*): %.8X\n",(int)aeffect);
-	if (!Dispatch( effGetProductString, 0, 0, &productName, 0.0f))
-	{
+	csound->Message(csound,"=============================================\n");
+	if(!Dispatch( effGetProductString, 0, 0, &productName, 0.0f)) {
 		strcpy(productName, libraryName);
 	}
 	csound->Message(csound,"Loaded plugin: %s\n", productName);
-	if (!aeffect->dispatcher(aeffect, effGetVendorString, 0, 0, &vendorName, 0.0f))
-	{
+	if(!aeffect->dispatcher(aeffect, effGetVendorString, 0, 0, &vendorName, 0.0f)) {
 		strcpy(vendorName, "Unknown vendor");
 	}
-	csound->Message(csound,"Vendor name:%s \n", vendorName);
+	csound->Message(csound,"Vendor name: %s \n", vendorName);
 	_version = aeffect->version;
 	csound->Message(csound,"Version: %d \n",_version);
 	_isSynth = (aeffect->flags & effFlagsIsSynth)?true:false;
@@ -207,34 +203,37 @@ void VSTPlugin::Info ()
 	long nparams=NumParameters();
 	csound->Message(csound,"Number of parameters: %d\n",nparams);
     char buffer[256];
-	for (i=0; i<nparams;i++) {
+	for(i=0; i<nparams;i++) {
 	    strcpy(buffer, "No parameter");
-		GetParamName (i, buffer);
+		GetParamName(i, buffer);
 		csound->Message(csound,"  Parameter%5i: %s\n",i, buffer);		
 	}
 	csound->Message(csound,"Number of programs: %d\n",aeffect->numPrograms);
-	for (i = 0; i < aeffect->numPrograms; i++) {
+	for(i = 0; i < aeffect->numPrograms; i++) {
         strcpy(buffer, "No program");
 	    GetProgramName(0, i, buffer);
 	    csound->Message(csound, "  Program%7i: %s\n", i, buffer);
     }	
+	csound->Message(csound,"--------------------------------------------\n");
 }
 
 int VSTPlugin::getNumInputs( void )
 {
+    csound->Message(csound, "VSTPlugin::getNumInputs.\n");
 	return aeffect->numInputs;
 }
 
 int VSTPlugin::getNumOutputs( void )
 {
+    csound->Message(csound, "VSTPlugin::getNumOutputs.\n");
 	return aeffect->numOutputs;
 }
 
 void VSTPlugin::Free() // Called also in destruction
 {
-	if(instantiated)
-	{
-		instantiated=false;
+    csound->Message(csound, "VSTPlugin::Free.\n");
+	if(aeffect) {
+		aeffect=false;
 		//wxLogMessage(_T("VST plugin : Free query 0x%.8X\n"),(int)aeffect);
 		aeffect->user = NULL;
 		Dispatch( effMainsChanged, 0, 0, NULL, 0.0f);
@@ -247,6 +246,7 @@ void VSTPlugin::Free() // Called also in destruction
 
 void VSTPlugin::Init( float samplerate , float blocksize )
 {
+    csound->Message(csound, "VSTPlugin::Init.\n");
 	sample_rate = samplerate;
 	blockSize = blocksize;
 	//csound->Message(csound,"init ok\n");
@@ -268,8 +268,9 @@ void VSTPlugin::Init( float samplerate , float blocksize )
 
 bool VSTPlugin::SetParameter(int parameter, float value)
 {
-	if(instantiated) {
-		if (( parameter >= 0 ) && (parameter<=aeffect->numParams)) {
+    csound->Message(csound, "VSTPlugin::SetParameter(%d, %f).\n", parameter, value);
+	if(aeffect) {
+		if(( parameter >= 0 ) && (parameter<=aeffect->numParams)) {
 			aeffect->setParameter(aeffect,parameter,value);
 			return true;
 		}
@@ -280,12 +281,14 @@ bool VSTPlugin::SetParameter(int parameter, float value)
 
 bool VSTPlugin::SetParameter(int parameter, int value)
 {
+    csound->Message(csound, "VSTPlugin::SetParameter(%d, %d).\n", parameter, value);
 	return SetParameter(parameter,value/65535.0f);
 }
 
 int VSTPlugin::GetCurrentProgram()
 {
-	if(instantiated)
+    csound->Message(csound, "VSTPlugin::GetCurrentProgram.\n");
+	if(aeffect)
 		return Dispatch(effGetProgram,0,0,NULL,0.0f);
 	else
 		return 0;
@@ -293,14 +296,15 @@ int VSTPlugin::GetCurrentProgram()
 
 void VSTPlugin::SetCurrentProgram(int prg)
 {
-	if(instantiated)
+    csound->Message(csound, "VSTPlugin::SetCurrentProgram((%d).\n", prg);
+	if(aeffect)
 		Dispatch(effSetProgram,0,prg,NULL,0.0f);
 }
 
 
 void VSTPlugin::SendMidi()
 {
-	if(instantiated && queue_size>0) {
+	if(aeffect && queue_size>0) {
 		vstEvents->numEvents = queue_size;
 		vstEvents->reserved  = 0;
 		for(int q=0;q<queue_size;q++) {
@@ -320,19 +324,21 @@ void VSTPlugin::SendMidi()
 
 void VSTPlugin::processReplacing( float **inputs, float **outputs, long sampleframes )
 {
-	aeffect->processReplacing( aeffect , inputs , outputs , sampleframes );
+    if(aeffect)
+	    aeffect->processReplacing( aeffect , inputs , outputs , sampleframes );
 }
 
 void VSTPlugin::process( float **inputs, float **outputs, long sampleframes )
 {
-	aeffect->process( aeffect , inputs , outputs , sampleframes );
+    if(aeffect)
+	    aeffect->process( aeffect , inputs , outputs , sampleframes );
 }
 
 long VSTPlugin::Master(AEffect *effect, long opcode, long index, long value, void *ptr, float opt)
 {
-    //fprintf(stdout, "VSTPlugin::Master(AEffect 0x%x, opcode %d, index %d, "
-    //    "value %d, ptr 0x%x, opt %f)\n",
-    //    effect, opcode, index, value, ptr, opt);
+    fprintf(stdout, "VSTPlugin::Master(AEffect 0x%x, opcode %d, index %d, "
+        "value %d, ptr 0x%x, opt %f)\n",
+        effect, opcode, index, value, ptr, opt);
     VSTPlugin *plugin = 0;
     ENVIRON *csound = 0;
     if(effect) {
@@ -345,12 +351,10 @@ long VSTPlugin::Master(AEffect *effect, long opcode, long index, long value, voi
 	{
 	case audioMasterAutomate:			
 		return true;		// index, value, returns 0
-		
 	case audioMasterVersion:			
 		return OnGetVersion(effect);		// vst version, currently 7 (0 for older)
-		
 	case audioMasterCurrentId:			
-		return vsthandle;	// returns the unique id of a plug that's currently loading
+		if(effect) return effect->uniqueID; else return -1;	
 	case audioMasterIdle:
 		effect->dispatcher(effect, effEditIdle, 0, 0, NULL, 0.0f);
 		return 0;		// call application idle routine (this will call effEditIdle for all open editors too) 
@@ -368,77 +372,64 @@ long VSTPlugin::Master(AEffect *effect, long opcode, long index, long value, voi
 		_timeInfo.sampleRate = sample_rate;
 		return (long)&_timeInfo;
 		/* TODO (#1#): Sera este el problema? */
-		
 	case audioMasterTempoAt:			
 		return 0;
-
 	case audioMasterNeedIdle:	
-		//effect->dispatcher(effect, effIdle, 0, 0, NULL, 0.0f);  //linea del problema
+		effect->dispatcher(effect, effIdle, 0, 0, NULL, 0.0f);  
 		return false;
-
 	case audioMasterGetSampleRate:		
 		return sample_rate;	
-
 	case audioMasterGetVendorString:	// Just fooling version string
 		//strcpy((char*)ptr,"Steinberg");
 		return 0;
-	
 	case audioMasterGetVendorVersion:	
 		return 5000;	// HOST version 5000
-
 	case audioMasterGetProductString:	// Just fooling product string
 		//strcpy((char*)ptr,"Cubase 5.0");
 		return 0;
-
 	case audioMasterVendorSpecific:		
 		{
 			return 0;
 		}
 	case audioMasterGetLanguage:		
 		return kVstLangEnglish;
-
 	case audioMasterUpdateDisplay:
-		//csound->Message(csound,"audioMasterUpdateDisplay\n");
-		//effect->dispatcher(effect, effEditIdle, 0, 0, NULL, 0.0f);
+		if(csound) csound->Message(csound,"audioMasterUpdateDisplay\n");
+		effect->dispatcher(effect, effEditIdle, 0, 0, NULL, 0.0f);
 		return 0;
-
-	case 	audioMasterSetTime:						csound->Message(csound,"VST master dispatcher: Set Time\n");break;
-	case 	audioMasterGetNumAutomatableParameters:	csound->Message(csound,"VST master dispatcher: GetNumAutPar\n");break;
-	case 	audioMasterGetParameterQuantization:	csound->Message(csound,"VST master dispatcher: ParamQuant\n");break;
-	case 	audioMasterIOChanged:					csound->Message(csound,"VST master dispatcher: IOchanged\n");break;
-	case 	audioMasterSizeWindow:					csound->Message(csound,"VST master dispatcher: Size Window\n");break;
-	case 	audioMasterGetBlockSize:				csound->Message(csound,"VST master dispatcher: GetBlockSize\n");break;
-	case 	audioMasterGetInputLatency:				csound->Message(csound,"VST master dispatcher: GetInLatency\n");break;
-	case 	audioMasterGetOutputLatency:			csound->Message(csound,"VST master dispatcher: GetOutLatency\n");break;
-	case 	audioMasterGetPreviousPlug:				csound->Message(csound,"VST master dispatcher: PrevPlug\n");break;
-	case 	audioMasterGetNextPlug:					csound->Message(csound,"VST master dispatcher: NextPlug\n"); return 1;break;
-	case 	audioMasterWillReplaceOrAccumulate:		csound->Message(csound,"VST master dispatcher: WillReplace\n");return 1; break;
+	case 	audioMasterSetTime:						if(csound) csound->Message(csound,"VST master dispatcher: Set Time\n");break;
+	case 	audioMasterGetNumAutomatableParameters:	if(csound) csound->Message(csound,"VST master dispatcher: GetNumAutPar\n");break;
+	case 	audioMasterGetParameterQuantization:	if(csound) csound->Message(csound,"VST master dispatcher: ParamQuant\n");break;
+	case 	audioMasterIOChanged:					if(csound) csound->Message(csound,"VST master dispatcher: IOchanged\n");break;
+	case 	audioMasterSizeWindow:					if(csound) csound->Message(csound,"VST master dispatcher: Size Window\n");break;
+	case 	audioMasterGetBlockSize:				if(csound) csound->Message(csound,"VST master dispatcher: GetBlockSize\n");break;
+	case 	audioMasterGetInputLatency:				if(csound) csound->Message(csound,"VST master dispatcher: GetInLatency\n");break;
+	case 	audioMasterGetOutputLatency:			if(csound) csound->Message(csound,"VST master dispatcher: GetOutLatency\n");break;
+	case 	audioMasterGetPreviousPlug:				if(csound) csound->Message(csound,"VST master dispatcher: PrevPlug\n");break;
+	case 	audioMasterGetNextPlug:					if(csound) csound->Message(csound,"VST master dispatcher: NextPlug\n"); return 1;break;
+	case 	audioMasterWillReplaceOrAccumulate:		if(csound) csound->Message(csound,"VST master dispatcher: WillReplace\n");return 1; break;
 	case 	audioMasterGetCurrentProcessLevel:		return 0; break;
-	case 	audioMasterGetAutomationState:			csound->Message(csound,"VST master dispatcher: GetAutState\n");
+	case 	audioMasterGetAutomationState:			if(csound) csound->Message(csound,"VST master dispatcher: GetAutState\n");
  			break;
-	case 	audioMasterOfflineStart:				csound->Message(csound,"VST master dispatcher: Offlinestart\n");break;
-	case 	audioMasterOfflineRead:					csound->Message(csound,"VST master dispatcher: Offlineread\n");break;
-	case 	audioMasterOfflineWrite:				csound->Message(csound,"VST master dispatcher: Offlinewrite\n");break;
-	case 	audioMasterOfflineGetCurrentPass:		csound->Message(csound,"VST master dispatcher: OfflineGetcurrentpass\n");break;
-	case 	audioMasterOfflineGetCurrentMetaPass:	csound->Message(csound,"VST master dispatcher: GetGetCurrentMetapass\n");break;
-	case 	audioMasterSetOutputSampleRate:			csound->Message(csound,"VST master dispatcher: Setsamplerate\n");break;
-	case 	audioMasterGetSpeakerArrangement:		csound->Message(csound,"VST master dispatcher: Getspeaker\n");break;
-	case 	audioMasterSetIcon:						csound->Message(csound,"VST master dispatcher: seticon\n");break;
+	case 	audioMasterOfflineStart:				if(csound) csound->Message(csound,"VST master dispatcher: Offlinestart\n");break;
+	case 	audioMasterOfflineRead:					if(csound) csound->Message(csound,"VST master dispatcher: Offlineread\n");break;
+	case 	audioMasterOfflineWrite:				if(csound) csound->Message(csound,"VST master dispatcher: Offlinewrite\n");break;
+	case 	audioMasterOfflineGetCurrentPass:		if(csound) csound->Message(csound,"VST master dispatcher: OfflineGetcurrentpass\n");break;
+	case 	audioMasterOfflineGetCurrentMetaPass:	if(csound) csound->Message(csound,"VST master dispatcher: GetGetCurrentMetapass\n");break;
+	case 	audioMasterSetOutputSampleRate:			if(csound) csound->Message(csound,"VST master dispatcher: Setsamplerate\n");break;
+	case 	audioMasterGetSpeakerArrangement:		if(csound) csound->Message(csound,"VST master dispatcher: Getspeaker\n");break;
+	case 	audioMasterSetIcon:						if(csound) csound->Message(csound,"VST master dispatcher: seticon\n");break;
 	case 	audioMasterCanDo:						//csound->Message(csound,"VST master dispatcher: Can Do\n");
 													OnCanDo((char *)ptr);
-													//(char*)ptr = hostCanDos; /*csound->Message(csound,"%s",(char*)ptr[1])*/; 
-													
+													//(char*)ptr = hostCanDos; /*csound->Message(csound,"%s",(char*)ptr[1])*/; 									
          											break;
-	case 	audioMasterOpenWindow:					csound->Message(csound,"VST master dispatcher: OpenWindow\n");break;
-	case 	audioMasterCloseWindow:					csound->Message(csound,"VST master dispatcher: CloseWindow\n");break;
-	case 	audioMasterGetDirectory:				csound->Message(csound,"VST master dispatcher: GetDirectory\n");break;
-	//case	audioMasterUpdateDisplay:				csound->Message(csound,"VST master dispatcher: audioMasterUpdateDisplay");break;
-
-	default: csound->Message(csound,"VST master dispatcher: undefined opcode: %d , %d\n",opcode , effKeysRequired )	;break;
+	case 	audioMasterOpenWindow:					if(csound) csound->Message(csound,"VST master dispatcher: OpenWindow\n");break;
+	case 	audioMasterCloseWindow:					if(csound) csound->Message(csound,"VST master dispatcher: CloseWindow\n");break;
+	case 	audioMasterGetDirectory:				if(csound) csound->Message(csound,"VST master dispatcher: GetDirectory\n");break;
+	default: if(csound) csound->Message(csound,"VST master dispatcher: undefined opcode: %d , %d\n",opcode , effKeysRequired )	;break;
 	}	
 	return 0;
 }
-
 
 bool VSTPlugin::replace()
 {
@@ -447,10 +438,8 @@ bool VSTPlugin::replace()
 
 void VSTPlugin::edit()
 {	
-	if(instantiated)
-	{ 		
-		if ( ( editor ) && (!edited))
-		{			
+	if(aeffect) { 		
+		if( ( editor ) && (!edited)) {			
 			edited = true;
 			//b = (CEditorThread*) AfxBeginThread(RUNTIME_CLASS( CEditorThread ) );
 			/*b =  new CEditorThread();			
@@ -500,35 +489,32 @@ bool VSTPlugin::ShowParams()
 
 void VSTPlugin::AddAftertouch(int value)
 {
-	if (value < 0) value = 0; else if (value > 127) value = 127;
- 	AddMIDI( (char)MIDI_NOTEOFF | _midichannel , value );
+	if(value < 0) value = 0; else if(value > 127) value = 127;
+ 	AddMIDI((char)MIDI_NOTEOFF | _midichannel , value );
 }
 
 void VSTPlugin::AddPitchBend(int value)
 {
-		AddMIDI( MIDI_PITCHBEND + (_midichannel & 0xf) , ((value>>7) & 127), (value & 127));
+    AddMIDI( MIDI_PITCHBEND + (_midichannel & 0xf) , ((value>>7) & 127), (value & 127));
 }
 
 void VSTPlugin::AddProgramChange(int value)
 {
- if (value < 0) value = 0; else if (value > 127) value = 127;
+    if(value < 0) value = 0; else if(value > 127) value = 127;
     AddMIDI( MIDI_PROGRAMCHANGE + (_midichannel & 0xf), value, 0);
 }
 
 void VSTPlugin::AddControlChange(int control, int value)
 {
-  if (control < 0) control = 0;  else if (control > 127) control = 127;
-    if (value < 0) value = 0;  else if (value > 127) value = 127;
+    if(control < 0) control = 0;  else if(control > 127) control = 127;
+    if(value < 0) value = 0;  else if(value > 127) value = 127;
     AddMIDI( MIDI_CONTROLCHANGE + (_midichannel & 0xf), control, value);
 }
 
-bool VSTPlugin::GetProgramName( int cat , int p, char *buf)
+bool VSTPlugin::GetProgramName( int cat , int parameter, char *buf)
 {
-	int parameter = p;
-	if(instantiated)
-	{
-		if(parameter<NumPrograms())
-		{
+	if(aeffect) {
+		if(parameter<NumPrograms()) {
 			Dispatch(effGetProgramNameIndexed,parameter,cat,buf,0.0f);
 			return true;
 		}
@@ -538,7 +524,7 @@ bool VSTPlugin::GetProgramName( int cat , int p, char *buf)
 
 int VSTPlugin::GetNumCategories()
 {
-	if(instantiated)
+	if(aeffect)
 		return Dispatch(effGetNumProgramCategories,0,0,NULL,0.0f);
 	else
 		return 0;
@@ -549,9 +535,6 @@ void VSTPlugin::StopEditing()
 	edited = false;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
-////Auxiliares
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
 long VSTPlugin::OnGetVersion(AEffect *effect)
 {
 #if defined(VST_2_3_EXTENSIONS)

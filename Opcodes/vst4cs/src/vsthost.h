@@ -21,14 +21,13 @@
 #define MIDI_PITCHBEND 224
 
 typedef AEffect* (*PVSTMAIN)(audioMasterCallback audioMaster);
-static int vsthandle = -1; //iniciar en -1
 
 class VSTPlugin
 {
 public:
     ENVIRON *csound;
 	void *libraryHandle;
-	//void *h_winddll;
+	AEffect *aeffect;
 	char productName[64];
 	char vendorName[64];
 	char libraryName[0x100];
@@ -47,45 +46,44 @@ public:
 	static float sample_rate;
 	float blockSize;
 	char _midichannel;
-	bool instantiated;
 	int _instance;		// Remove when Changing the FileFormat.
 	void *w;
 	VSTPlugin(ENVIRON *csound);
 	virtual ~VSTPlugin();
 	void StopEditing();
 	int GetNumCategories();
-	bool GetProgramName( int cat, int p , char* buf);
-	void AddControlChange( int control , int value );
-	void AddProgramChange( int value );
-	void AddPitchBend( int value );
-	void AddAftertouch( int value );
+	bool GetProgramName(int cat, int p , char* buf);
+	void AddControlChange(int control , int value);
+	void AddProgramChange(int value);
+	void AddPitchBend(int value);
+	void AddAftertouch(int value);
 	bool editor;
 	bool ShowParams();
-	void SetShowParameters( bool s);
+	void SetShowParameters(bool s);
 	void OnEditorCLose();
 	void SetEditWindow(void *h);
 	//CEditorThread* b;
 	//RECT GetEditorRect();
 	void EditorIdle();
 	void edit(void);
-	bool replace(  );
+	bool replace();
 	void Free();
 	int Instance(const char *dllname);
 	void Info();
-	void Init( float samplerate , float blocksize );
+	void Init(float samplerate , float blocksize);
 	virtual int GetNumParams(void) { return aeffect->numParams; }
 	virtual void GetParamName(int numparam,char* name) {
-		if ( numparam < aeffect->numParams ) Dispatch(effGetParamName,numparam,0,name,0.0f);
+		if(numparam < aeffect->numParams) Dispatch(effGetParamName,numparam,0,name,0.0f);
 		else strcpy(name,"Parameter out of range.");
 	}
 	virtual float GetParamValue(int numparam) {
-		if ( numparam < aeffect->numParams ) 
-            return (aeffect->getParameter(aeffect, numparam));
+		if(numparam < aeffect->numParams) 
+            return(aeffect->getParameter(aeffect, numparam));
 		else 
             return -1.0;
 	}
-	int getNumInputs( void );
-	int getNumOutputs( void );
+	int getNumInputs(void);
+	int getNumOutputs(void);
 	virtual char* GetName(void) { return productName; }
 	unsigned long  GetVersion() { return _version; }
 	char* GetVendorName(void) { return vendorName; }
@@ -101,20 +99,18 @@ public:
 	bool IsSynth() { return _isSynth; }
 	bool AddMIDI(int data0,int data1=0,int data2=0);
 	void SendMidi();
-	void processReplacing( float **inputs, float **outputs, long sampleframes );
-	void process( float **inputs, float **outputs, long sampleframes );
-	/* TODO (#6#): Aqui puede haber problema */
-	AEffect *aeffect;
+	void processReplacing(float **inputs, float **outputs, long sampleframes);
+	void process(float **inputs, float **outputs, long sampleframes);
 	long Dispatch(long opCode, long index, long value, void *ptr, float opt) {
 		return aeffect->dispatcher(aeffect, opCode, index, value, ptr, opt);
 	}
 	static long Master(AEffect *effect, long opcode, long index, long value, void *ptr, float opt);
-	bool AddNoteOn( int note,int speed,int midichannel=1);
-	bool AddNoteOff( int note,int midichannel=1);
+	bool AddNoteOn(int channel, MYFLT note, MYFLT speed);
+	bool AddNoteOff(int channel,  MYFLT note);
 	static bool OnCanDo(const char *ptr) {
-	    if ((!strcmp(ptr, "sendVstMidiEvent")) ||
+	    if((!strcmp(ptr, "sendVstMidiEvent")) ||
 	       (!strcmp(ptr, "receiveVstMidiEvent")) /*||
-	       (!strcmp(ptr, "sizeWindow"))*/ )
+	       (!strcmp(ptr, "sizeWindow"))*/)
 	          return true;
 	    return false; 
 	}
