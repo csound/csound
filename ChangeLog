@@ -1,17 +1,20 @@
+2004-01-01  John ffitch  <jpff@codemist.co.uk>
+
+	* Opcodes/flanger.c (wguide2, wguide1): Avoid frequencies below 5Hz
+
 2003-11-30	Steven Yi	<stevenyi@csounds.com>
 	* Engine/insert.c (orcompact): Added calls to deinitialize i-time opcodes
 
 2003-11-29	Steven Yi 	<stevenyi@csounds.com>
 
-	* H/cs.h - all thing except compability macros moved out to csoundCore.h
+	* H/cs.h: all thing except compability macros moved out to csoundCore.h
 	
-	* H/csoundCore.h - contains everything except compability macros
+	* H/csoundCore.h: contains everything except compability macros
 	
-	* Top/csound.c - edited to use ENVIRON, #include csoundCore.h instead of 
+	* Top/csound.c: edited to use ENVIRON, #include csoundCore.h instead of 
 	cs.h (macros were getting in the way of compiling), still needs to be 
 	reconciled with main.c::csoundCompile before being usable
 	
-
 2003-11-25  John ffitch  <jpff@codemist.co.uk>
 
 	* OOps/vbap_zak.c (vbap_zak_moving_init): Fix zastart/zkstart
