@@ -811,10 +811,10 @@ static long csoundNumExits_ = -1;
                                 int thread,
                                 char *outypes,
                                 char *intypes,
-                                int (*iopadr)(void *),
-                                int (*kopadr)(void *),
-                                int (*aopadr)(void *),
-                                int (*dopadr)(void *))
+                                int (*iopadr)(void *, void *),
+                                int (*kopadr)(void *, void *),
+                                int (*aopadr)(void *, void *),
+                                int (*dopadr)(void *, void *))
   {
       int oldSize = (int)((char *)((ENVIRON *)csound)->oplstend_ -
                           (char *)((ENVIRON *)csound)->opcodlst_);

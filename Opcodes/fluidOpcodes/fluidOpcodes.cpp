@@ -121,7 +121,7 @@ extern "C"
    * Creates a fluidEngine and returns a MYFLT to user as identifier for 
    * engine
    */
-  int fluidEngineIopadr(void *data) {
+  int fluidEngineIopadr(void *csound_, void *data) {
     FLUIDENGINE *fluid = (FLUIDENGINE *)data;
     fluid_synth_t *fluidSynth = 0;
         
@@ -151,7 +151,7 @@ extern "C"
    * Called by Csound to de-initialize the opcode 
    * just before destroying it.
    */
-  int fluidEngineDopadr(void *data) {
+  int fluidEngineDopadr(void *csound_, void *data) {
     FLUIDENGINE *fluid = (FLUIDENGINE *)data;
        
     if(!fluid_engines.empty()) {
@@ -174,7 +174,7 @@ extern "C"
   /**
    * Loads a Soundfont into a Fluid Engine
    */
-  int fluidLoadIopadr(void *data) {
+  int fluidLoadIopadr(void *csound_, void *data) {
     FLUIDLOAD *fluid = (FLUIDLOAD *)data;
         
     std::string filename = fluid->STRARG;        
@@ -234,7 +234,7 @@ extern "C"
     
   /* FLUID_PROGRAM_SELECT */
 
-  int fluidProgramSelectIopadr(void *data) {
+  int fluidProgramSelectIopadr(void *csound_, void *data) {
     FLUID_PROGRAM_SELECT *fluid = (FLUID_PROGRAM_SELECT *)data;
         
     int engineNum               = (int)(*fluid->iEngineNumber);
@@ -252,7 +252,7 @@ extern "C"
     
   /* FLUID_CC */
 
-  int fluidCC_I_Iopadr(void *data) {
+  int fluidCC_I_Iopadr(void *csound_, void *data) {
     FLUID_CC *fluid  = (FLUID_CC *)data;
 		
     int engineNum               = (int)(*fluid->iEngineNumber);
@@ -269,13 +269,13 @@ extern "C"
     return OK;	
   } 
 
-  int fluidCC_K_Iopadr(void *data) {
+  int fluidCC_K_Iopadr(void *csound_, void *data) {
     FLUID_CC *fluid  = (FLUID_CC *)data;
     fluid->priorMidiValue = -1;	
     return OK;	
   }    
 	
-  int fluidCC_K_Kopadr(void *data) {
+  int fluidCC_K_Kopadr(void *csound_, void *data) {
     FLUID_CC *fluid  = (FLUID_CC *)data;
 		
     int engineNum               = (int)(*fluid->iEngineNumber);
@@ -295,7 +295,7 @@ extern "C"
     
   /* FLUID_NOTE */
     
-  int fluidNoteIopadr(void *data) {
+  int fluidNoteIopadr(void *csound_, void *data) {
     FLUID_NOTE *fluid = (FLUID_NOTE *)data;    
     int engineNum   = (int)(*fluid->iEngineNumber);
     int channelNum  = (int)(*fluid->iChannelNumber);
@@ -316,7 +316,7 @@ extern "C"
     return OK;
   }
     
-  int fluidNoteKopadr(void *data) {
+  int fluidNoteKopadr(void *csound_, void *data) {
     FLUID_NOTE *fluid = (FLUID_NOTE *)data;
     int engineNum   = (int)(*fluid->iEngineNumber);
     int channelNum  = (int)(*fluid->iChannelNumber);
@@ -345,14 +345,14 @@ extern "C"
     
   /* FLUID_OUT */
     
-  int fluidOutIopadr(void *data) {
+  int fluidOutIopadr(void *csound_, void *data) {
     FLUIDOUT *fluid = (FLUIDOUT *)data;
         
     fluid->blockSize = CENVIRON(fluid)->GetKsmps(CENVIRON(fluid));
     return OK;
   }
 
-  int fluidOutAopadr(void *data) {
+  int fluidOutAopadr(void *csound_, void *data) {
     FLUIDOUT *fluid = (FLUIDOUT *)data;
         
     float leftSample[1];
