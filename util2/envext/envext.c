@@ -50,7 +50,7 @@ static float window = 0.25;
 /* Static global variables */
 static SOUNDIN     *p;  /* space allocated by SAsndgetset() */
 
-//MYFLT e0dbfs = DFLT_DBFS;
+/*MYFLT e0dbfs = DFLT_DBFS;*/
 
 static void envext_usage(char *mesg)
 {

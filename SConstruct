@@ -130,7 +130,7 @@ print
 
 commonEnvironment.Append(LIBPATH = '#.')
 commonEnvironment.Append(CPPFLAGS = "-DBETA")
-if commonEnvironment['useDouble']:
+if commonEnvironment['useDouble']==1:
     print 'Using double-precision floating point for audio samples.'
     commonEnvironment.Append(CPPFLAGS = "-DUSE_DOUBLE")
 else:
@@ -307,7 +307,7 @@ if vstEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ld
 
 guiProgramEnvironment = commonEnvironment.Copy()
 
-if commonEnvironment['usePortAudio'] and portaudioFound:
+if commonEnvironment['usePortAudio']==1 and portaudioFound:
     staticLibraryEnvironment.Append(CCFLAGS = '-DRTAUDIO')
     pluginEnvironment.Append(CCFLAGS = '-DRTAUDIO')
     csoundProgramEnvironment.Append(CCFLAGS = '-DRTAUDIO')
@@ -320,7 +320,7 @@ if commonEnvironment['usePortAudio'] and portaudioFound:
     if (getPlatform() == 'linux'): 
         csoundProgramEnvironment.Append(LIBS = ['asound'])
         vstEnvironment.Append(LIBS = ['asound'])
-        if commonEnvironment['useJack']:
+        if (commonEnvironment['useJack']==1):
             print "Adding Jack library for PortAudio"
             csoundProgramEnvironment.Append(LIBS = ['jack'])
             vstEnvironment.Append(LIBS = ['jack'])  
@@ -330,7 +330,7 @@ if commonEnvironment['usePortAudio'] and portaudioFound:
         csoundProgramEnvironment.Append(LIBS = ['dsound'])
         vstEnvironment.Append(LIBS = ['dsound'])
 
-    if commonEnvironment['useFLTK'] and fltkFound:
+    if (commonEnvironment['useFLTK']==1) and fltkFound:
         staticLibraryEnvironment.Append(CCFLAGS = '-DWINDOWS')
         pluginEnvironment.Append(CCFLAGS = '-DWINDOWS')
         csoundProgramEnvironment.Append(CCFLAGS = '-DWINDOWS')
@@ -376,7 +376,7 @@ if getPlatform() == 'mingw':
 #
 #############################################################################
 
-if commonEnvironment['generatePDF']:
+if commonEnvironment['generatePDF']==1:
     print 'Generating PDF documentation.'
     csoundPdf = commonEnvironment.Command('csound.pdf', 'csound.tex', 'pdflatex $SOURCE')
     zipDependencies.append(csoundPdf)
@@ -486,11 +486,11 @@ Top/scot.c
 Top/sndinfo.c
 ''')
 
-if commonEnvironment['usePortAudio'] and portaudioFound:
+if (commonEnvironment['usePortAudio']==1) and portaudioFound:
     print 'Building with PortAudio.'
     libCsoundSources.append('InOut/rtpa.c')
     
-if commonEnvironment['useFLTK'] and fltkFound:
+if (commonEnvironment['useFLTK']==1) and fltkFound:
     print 'Building with FLTK for graphs and widgets.'
     libCsoundSources.append('InOut/FL_graph.cpp')
     libCsoundSources.append('InOut/winFLTK.c')
@@ -810,7 +810,7 @@ if (commonEnvironment['buildCsoundVST'] == 1) and boostFound and fltkFound:
     zipDependencies.append(copyPython)
     Depends(copyPython, csoundvst)
     
-if commonEnvironment['generateTags'] == 1 and (getPlatform() == 'linux' or getPlatform() == 'cygwin'):
+if (commonEnvironment['generateTags'] == 1) and (getPlatform() == 'linux' or getPlatform() == 'cygwin'):
     print "Calling TAGS"
     allSources = string.join(glob.glob('*/*.h*'))
     allSources = allSources + ' ' + string.join(glob.glob('*/*.hpp'))
