@@ -251,14 +251,99 @@ To use CsoundVST in a standard Python interpreter, import CsoundVST.
 import CsoundVST
 \end{verbatim}
 
-Create an instance of CppSound, which provides an object-oriented interface to the Csound API. 
+The CsoundVST module automatically creates an instance of CppSound named \texttt{csound}, which provides an object-oriented interface to the Csound API. In a standard Python interpreter, you can load a Csound \texttt{.csd} file and perform it like this: 
+
 \begin{verbatim}
-csound = CsoundVST.CppSound()
+C:\Documents and Settings\mkg>python
+Python 2.3.3 (#51, Dec 18 2003, 20:22:39) [MSC v.1200 32 bit (Intel)] on win32
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import CsoundVST
+>>> csound.load("c:/projects/csound5/examples/trapped.csd")
+1
+>>> csound.exportForPerformance()
+1
+>>> csound.perform()
+BEGAN CppSound::perform(5, 988ee0)...
+BEGAN CppSound::compile(5, 988ee0)...
+Using default language
+0dBFS level = 32767.0
+Csound version 5.00 beta (float samples) Jun  7 2004
+libsndfile-1.0.10pre6
+orchname:  temp.orc
+scorename: temp.sco
+orch compiler:
+398 lines read
+        instr   1
+        instr   2
+        instr   3
+        instr   4
+        instr   5
+        instr   6
+        instr   7
+        instr   8
+        instr   9
+        instr   10
+        instr   11
+        instr   12
+        instr   13
+        instr   98
+        instr   99
+sorting score ...
+        ... done
+Csound version 5.00 beta (float samples) Jun  6 2004
+displays suppressed
+0dBFS level = 32767.0
+orch now loaded
+audio buffered in 16384 sample-frame blocks
+SFDIR undefined.  using current directory
+writing 131072-byte blks of shorts to test.wav
+ WAV
+SECTION 1:
+ENDED CppSound::compile.
+ftable 1:
+ftable 2:
+ftable 3:
+ftable 4:
+ftable 5:
+ftable 6:
+ftable 7:
+ftable 8:
+ftable 9:
+ftable 10:
+ftable 11:
+ftable 12:
+ftable 13:
+ftable 14:
+ftable 15:
+ftable 16:
+ftable 17:
+ftable 18:
+ftable 19:
+ftable 20:
+ftable 21:
+ftable 22:
+new alloc for instr 1:
+B  0.000 ..  1.000 T  1.000 TT  1.000 M:     32.7      0.0
+new alloc for instr 1:
+B  1.000 ..  3.600 T  3.600 TT  3.600 M:    207.6      0.1
+
+...
+
+B 93.940 .. 94.418 T 98.799 TT281.799 M:    477.6     85.0
+B 94.418 ..100.000 T107.172 TT290.172 M:    118.9     11.5
+end of section 4         sect peak amps:  25950.8  26877.4
+inactive allocs returned to freespace
+end of score.              overall amps:  32204.8  31469.6
+           overall samples out of range:        0        0
+0 errors in performance
+782 131072-byte soundblks of shorts written to test.wav WAV
+Elapsed time = 13.469000 seconds.
+ENDED CppSound::perform.
+1
+>>>
 \end{verbatim}
 
-In a standard Python interpreter, run your script in the normal way. You can load a Csound \texttt{.csd} file and perform it: 
-
-To use CsoundVST itself as your Python interpreter, click on the CsoundVST Settings tab, and select the Python check box in the Csound performance mode box. Do not create a new CppSound object; CsoundVST contains a built-in CppSound object that you must use. 
+To use CsoundVST itself as your Python interpreter, click on the CsoundVST Settings tab, and select the Python check box in the Csound performance mode box. Do not create a new CppSound object; you must use the builtin \texttt{csound} object in the CsoundVST module. 
 
 The \texttt{koch.py} script shows how to use Python to do algorithmic composition for Csound. You can use Python triple-quoted string literals to hold your Csound files right in your script, and assign them to Csound: 
 
