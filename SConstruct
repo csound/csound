@@ -621,6 +621,8 @@ pluginEnvironment.SharedLibrary('ugmoss',
     ['Opcodes/ugmoss.c'])
 pluginEnvironment.SharedLibrary('ugsc', 
     ['Opcodes/ugsc.c'])
+pluginEnvironment.SharedLibrary('vdelayk', 
+    ['Opcodes/vdelayk.c'])
 pluginEnvironment.SharedLibrary('wave-terrain', 
     ['Opcodes/wave-terrain.c'])
    
