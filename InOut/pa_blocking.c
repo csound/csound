@@ -19,6 +19,8 @@ int paBlockingReadOpen(ENVIRON *csound,
   maxLag = O.oMaxLag <= 0 ? IODACSAMPS : O.oMaxLag;
 #ifdef __MACH__
   maxLag =  ((int)ekr)*((maxLag + (int)ekr-1)%krate); /* Round to multiple */
+#elif WIN32
+  maxLag = csound->GetKsmps(csound);
 #endif
   memcpy(&pabs->paParameters, paParameters, sizeof(PaStreamParameters));
   csound->Message(csound, "paBlockingReadOpen: nchnls %d sr %f maxLag %u\n",
@@ -53,8 +55,6 @@ int paBlockingReadStreamCallback(const void *input,
                                  PaStreamCallbackFlags statusFlags,
                                  void *userData)
 {
-  size_t i;
-  size_t n;
   PA_BLOCKING_STREAM *pabs = (PA_BLOCKING_STREAM *)userData;
   float *paInput = (float *)input;
   csoundNotifyThreadLock(pabs->csound, pabs->clientLock);
@@ -90,6 +90,8 @@ int paBlockingWriteOpen(ENVIRON *csound,
   maxLag = O.oMaxLag <= 0 ? IODACSAMPS : O.oMaxLag;
 #ifdef __MACH__
   maxLag =  ((int)ekr)*((maxLag + (int)ekr-1)%krate); /* Round to multiple */
+#elif WIN32
+  maxLag = csound->GetKsmps(csound);
 #endif
   pabs->actualBufferSampleCount = csound->GetKsmps(csound)
     * csound->GetNchnls(csound);
@@ -98,7 +100,7 @@ int paBlockingWriteOpen(ENVIRON *csound,
     mcalloc(pabs->actualBufferSampleCount * sizeof(float));
   memcpy(&pabs->paParameters, paParameters, sizeof(PaStreamParameters));
   csound->Message(csound,
-		  "paBlockingWriteOpen: nchnls %d sr %f maxLag %u buffer samples %d device %d\n",
+		  "paBlockingWriteOpen: nchnls %d sr %f buffer frames %u device %d\n",
 		  pabs->paParameters.channelCount,
 		  csound->esr_,
 		  maxLag,
