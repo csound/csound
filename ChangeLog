@@ -1,3 +1,7 @@
+2004-06-27  Michael Gogins <gogins@pipeline.com>
+
+	* Fixed (and simplified) real-time audio input.
+
 2004-06-25  Michael Gogins <gogins@pipeline.com>
 
 	* The CsoundVST Python module now prints Csound messages to Python

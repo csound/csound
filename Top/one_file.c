@@ -121,7 +121,7 @@ void remove_tmpfiles (void)             /* IV - Oct 31 2002 */
 {                             /* use one fn to delete all temporary files */
     while (toremove) {
       NAMELST *nxt = toremove->next;
-#if BETA
+#ifdef BETA
       err_printf("Removing temporary file %s ...\n", toremove->name);
 #endif
       if (remove(toremove->name))
