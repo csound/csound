@@ -14,7 +14,15 @@
 
 #	The makedb program for compiling xmg files:
 
-bin_PROGRAMS=makedb
+noinst_PROGRAMS=makedb
+
+# headers (incomplete for now).
+
+pkginclude_HEADERS=H/csound.h
+
+# data
+
+pkgdata_DATA=csound.xmg
 
 #	The Csound engine and API library:
 
@@ -23,47 +31,47 @@ lib_LTLIBRARIES=libcsound.la
 #	Plugin opcodes 
 #	(note that they are "modules" to dlopen, not "shared libraries" to link):
 
-pkglib_LTLIBRARIES=babo.la
-pkglib_LTLIBRARIES+=bbcut.la
-pkglib_LTLIBRARIES+=biquad.la
-pkglib_LTLIBRARIES+=butter.la
-pkglib_LTLIBRARIES+=clfilt.la
-pkglib_LTLIBRARIES+=cross2.la
-pkglib_LTLIBRARIES+=dam.la
-pkglib_LTLIBRARIES+=dcblock.la
-pkglib_LTLIBRARIES+=filter.la
-pkglib_LTLIBRARIES+=flanger.la
-pkglib_LTLIBRARIES+=follow.la
-pkglib_LTLIBRARIES+=grain.la
-pkglib_LTLIBRARIES+=grain4.la
-pkglib_LTLIBRARIES+=hrtferX.la
-pkglib_LTLIBRARIES+=locsig.la
-pkglib_LTLIBRARIES+=lowpassr.la
-pkglib_LTLIBRARIES+=midiops2.la
-pkglib_LTLIBRARIES+=midiops3.la
-pkglib_LTLIBRARIES+=modal4.la
-pkglib_LTLIBRARIES+=nlfilt.la
-pkglib_LTLIBRARIES+=oscbnk.la
-pkglib_LTLIBRARIES+=phisem.la
-pkglib_LTLIBRARIES+=physmod.la
-pkglib_LTLIBRARIES+=pitch.la
-pkglib_LTLIBRARIES+=pluck.la
-pkglib_LTLIBRARIES+=repluck.la
-pkglib_LTLIBRARIES+=scansyn.la
-pkglib_LTLIBRARIES+=scansynx.la
-pkglib_LTLIBRARIES+=sfont.la
-pkglib_LTLIBRARIES+=sndwarp.la
-pkglib_LTLIBRARIES+=space.la
-pkglib_LTLIBRARIES+=spat3d.la
-pkglib_LTLIBRARIES+=ugensa.la
-pkglib_LTLIBRARIES+=uggab.la
-pkglib_LTLIBRARIES+=ugmoss.la
-pkglib_LTLIBRARIES+=ugsc.la
-pkglib_LTLIBRARIES+=wave_terrain.la
+pkglib_LTLIBRARIES=libbabo.la
+pkglib_LTLIBRARIES+=libbbcut.la
+pkglib_LTLIBRARIES+=libbiquad.la
+pkglib_LTLIBRARIES+=libbutter.la
+pkglib_LTLIBRARIES+=libclfilt.la
+pkglib_LTLIBRARIES+=libcross2.la
+pkglib_LTLIBRARIES+=libdam.la
+pkglib_LTLIBRARIES+=libdcblock.la
+pkglib_LTLIBRARIES+=libfilter.la
+pkglib_LTLIBRARIES+=libflanger.la
+pkglib_LTLIBRARIES+=libfollow.la
+pkglib_LTLIBRARIES+=libgrain.la
+pkglib_LTLIBRARIES+=libgrain4.la
+pkglib_LTLIBRARIES+=libhrtferX.la
+pkglib_LTLIBRARIES+=liblocsig.la
+pkglib_LTLIBRARIES+=liblowpassr.la
+pkglib_LTLIBRARIES+=libmidiops2.la
+pkglib_LTLIBRARIES+=libmidiops3.la
+pkglib_LTLIBRARIES+=libmodal4.la
+pkglib_LTLIBRARIES+=libnlfilt.la
+pkglib_LTLIBRARIES+=liboscbnk.la
+pkglib_LTLIBRARIES+=libphisem.la
+pkglib_LTLIBRARIES+=libphysmod.la
+pkglib_LTLIBRARIES+=libpitch.la
+pkglib_LTLIBRARIES+=libpluck.la
+pkglib_LTLIBRARIES+=librepluck.la
+pkglib_LTLIBRARIES+=libscansyn.la
+pkglib_LTLIBRARIES+=libscansynx.la
+pkglib_LTLIBRARIES+=libsfont.la
+pkglib_LTLIBRARIES+=libsndwarp.la
+pkglib_LTLIBRARIES+=libspace.la
+pkglib_LTLIBRARIES+=libspat3d.la
+pkglib_LTLIBRARIES+=libugensa.la
+pkglib_LTLIBRARIES+=libuggab.la
+pkglib_LTLIBRARIES+=libugmoss.la
+pkglib_LTLIBRARIES+=libugsc.la
+pkglib_LTLIBRARIES+=libwave_terrain.la
 
 #	User interfaces for Csound:
 
-bin_PROGRAMS+=csound
+bin_PROGRAMS=csound
 
 # bin_PROGRAMS+=csoundgui
 # Note that _csoundvst is a "module" to dlopen, not a "shared library" to link...
@@ -122,10 +130,10 @@ makedb_SOURCES=strings/makedb.c
 xmg:	American.xmg English.xmg csound.xmg
 
 American.xmg:	strings/all_strings makedb
-	./makedb strings/all_strings American
+	./makedb $(srcdir)/strings/all_strings American
 
 English.xmg:	strings/english-strings makedb
-	./makedb strings/english-strings English
+	./makedb $(srcdir)/strings/english-strings English
 
 csound.xmg:	strings/all_strings English.xmg
 	cp English.xmg csound.xmg
@@ -344,7 +352,16 @@ Top/opcode.c \
 Top/pvanal.c \
 Top/pvlook.c \
 Top/scot.c \
-Top/sndinfo.c	
+Top/sndinfo.c \
+$(SGI_RTAUDIO) \
+$(SUN_RTAUDIO) \
+$(DEC_RTAUDIO)	\
+$(HP_RTAUDIO) \
+$(WIN32_RTAUDIO) \
+$(LINUX_RTAUDIO) \
+$(WIN_FLTK) \
+$(WIN_FLTK_WIDGETS) \
+$(WIN_X11)
 
 libcsound_la_CPPFLAGS=@LIBCSOUND_CPPFLAGS@
 libcsound_la_CFLAGS=@LIBCSOUND_CFLAGS@
@@ -354,49 +371,49 @@ libcsound_la_LDFLAGS=@LIBCSOUND_LDFLAGS@
 
 if CONDITIONAL_SGI
 if CONDITIONAL_USE_RTAUDIO
-libcsound_la_SOURCES+=InOut/rtSGI.c InOut/SGIplay.c
+SGI_RTAUDIO=InOut/rtSGI.c InOut/SGIplay.c
 endif
 endif
 
 if CONDITIONAL_sun
 if CONDITIONAL_USE_RTAUDIO
-libcsound_la_SOURCES+=InOut/rtSUN.c
+SUN_RTAUDIO=InOut/rtSUN.c
 endif
 endif
 
 if CONDITIONAL_DEC
 if CONDITIONAL_USE_RTAUDIO
-libcsound_la_SOURCES+=InOut/rtDEC.c InOut/DECaudio.c InOut/DECplay.c H/DECplay.h
+DEC_RTAUDIO=InOut/rtDEC.c InOut/DECaudio.c InOut/DECplay.c H/DECplay.h
 endif
 endif
 
 if CONDITIONAL_HP
 if CONDITIONAL_USE_RTAUDIO
-libcsound_la_SOURCES+=InOut/rtDEC.c InOut/DECaudio.c InOut/DECplay.c H/DECplay.h
+HP_RTAUDIO=InOut/rtDEC.c InOut/DECaudio.c InOut/DECplay.c H/DECplay.h
 endif
 endif
 
 if CONDITIONAL_WIN32
 if CONDITIONAL_USE_RTAUDIO
-libcsound_la_SOURCES+=InOut/rtpa.c
+WIN32_RTAUDIO=InOut/rtpa.c
 endif
 endif
 
 if CONDITIONAL_LINUX
 if CONDITIONAL_USE_RTAUDIO
-libcsound_la_SOURCES+=InOut/rtpa.c
+LINUX_RTAUDIO=InOut/rtpa.c
 endif
 endif
 
 if CONDITIONAL_WINDOWS
 if CONDITIONAL_USE_FLTK
-libcsound_la_SOURCES+=InOut/winFLTK.c InOut/FL_graph.cpp 
+WIN_FLTK=InOut/winFLTK.c InOut/FL_graph.cpp 
 if CONDITIONAL_USE_FLTK_WIDGETS
-libcsound_la_SOURCES+=InOut/widgets.cpp
+WIN_FLTK_WIDGETS=InOut/widgets.cpp
 endif
 endif
 if CONDITIONAL_USE_X11
-libcsound_la_SOURCES+=InOut/winX11.c
+WIN_X11=InOut/winX11.c
 endif
 endif
 
@@ -413,141 +430,141 @@ csound_LDADD=@CSOUND_LDADD@
 #	Plugin opcodes 
 #	(note that they are "modules" to dlopen, not "shared libraries" to link):
 
-babo_la_SOURCES=Opcodes/babo.c
-babo_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-babo_la_CFLAGS=@PLUGIN_CFLAGS@
-babo_la_LDFLAGS=@PLUGIN_LDFLAGS@
-babo_la_LIBADD=@PLUGIN_LIBADD@
+libbabo_la_SOURCES=Opcodes/babo.c
+libbabo_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libbabo_la_CFLAGS=@PLUGIN_CFLAGS@
+libbabo_la_LDFLAGS=@PLUGIN_LDFLAGS@
+libbabo_la_LIBADD=@PLUGIN_LIBADD@
 
-bbcut_la_SOURCES=Opcodes/bbcut.c
-bbcut_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-bbcut_la_CFLAGS=@PLUGIN_CFLAGS@
-bbcut_la_LDFLAGS=@PLUGIN_LDFLAGS@
-bbcut_la_LIBADD=@PLUGIN_LIBADD@
+libbbcut_la_SOURCES=Opcodes/bbcut.c
+libbbcut_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libbbcut_la_CFLAGS=@PLUGIN_CFLAGS@
+libbbcut_la_LDFLAGS=@PLUGIN_LDFLAGS@
+libbbcut_la_LIBADD=@PLUGIN_LIBADD@
 
-biquad_la_SOURCES=Opcodes/biquad.c
-biquad_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-biquad_la_CFLAGS=@PLUGIN_CFLAGS@
-biquad_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-biquad_la_LIBADD=@PLUGIN_LIBADD@
+libbiquad_la_SOURCES=Opcodes/biquad.c
+libbiquad_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libbiquad_la_CFLAGS=@PLUGIN_CFLAGS@
+libbiquad_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+libbiquad_la_LIBADD=@PLUGIN_LIBADD@
 
-butter_la_SOURCES=Opcodes/butter.c
-butter_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-butter_la_CFLAGS=@PLUGIN_CFLAGS@
-butter_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-butter_la_LIBADD=@PLUGIN_LIBADD@
+libbutter_la_SOURCES=Opcodes/butter.c
+libbutter_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libbutter_la_CFLAGS=@PLUGIN_CFLAGS@
+libbutter_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+libbutter_la_LIBADD=@PLUGIN_LIBADD@
 
-clfilt_la_SOURCES=Opcodes/clfilt.c
-clfilt_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-clfilt_la_CFLAGS=@PLUGIN_CFLAGS@
-clfilt_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-clfilt_la_LIBADD=@PLUGIN_LIBADD@
+libclfilt_la_SOURCES=Opcodes/clfilt.c
+libclfilt_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libclfilt_la_CFLAGS=@PLUGIN_CFLAGS@
+libclfilt_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+libclfilt_la_LIBADD=@PLUGIN_LIBADD@
 
-cross2_la_SOURCES=Opcodes/cross2.c
-cross2_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-cross2_la_CFLAGS=@PLUGIN_CFLAGS@
-cross2_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-cross2_la_LIBADD=@PLUGIN_LIBADD@
+libcross2_la_SOURCES=Opcodes/cross2.c
+libcross2_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libcross2_la_CFLAGS=@PLUGIN_CFLAGS@
+libcross2_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+libcross2_la_LIBADD=@PLUGIN_LIBADD@
 
-dam_la_SOURCES=Opcodes/dam.c
-dam_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-dam_la_CFLAGS=@PLUGIN_CFLAGS@
-dam_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-dam_la_LIBADD=@PLUGIN_LIBADD@
+libdam_la_SOURCES=Opcodes/dam.c
+libdam_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libdam_la_CFLAGS=@PLUGIN_CFLAGS@
+libdam_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+libdam_la_LIBADD=@PLUGIN_LIBADD@
 
-dcblock_la_SOURCES=Opcodes/dcblockr.c
-dcblock_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-dcblock_la_CFLAGS=@PLUGIN_CFLAGS@
-dcblock_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-dcblock_la_LIBADD=@PLUGIN_LIBADD@
+libdcblock_la_SOURCES=Opcodes/dcblockr.c
+libdcblock_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libdcblock_la_CFLAGS=@PLUGIN_CFLAGS@
+libdcblock_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+libdcblock_la_LIBADD=@PLUGIN_LIBADD@
 
-filter_la_SOURCES=Opcodes/filter.c
-filter_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-filter_la_CFLAGS=@PLUGIN_CFLAGS@
-filter_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-filter_la_LIBADD=@PLUGIN_LIBADD@
+libfilter_la_SOURCES=Opcodes/filter.c
+libfilter_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libfilter_la_CFLAGS=@PLUGIN_CFLAGS@
+libfilter_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+libfilter_la_LIBADD=@PLUGIN_LIBADD@
 
-flanger_la_SOURCES=Opcodes/flanger.c
-flanger_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-flanger_la_CFLAGS=@PLUGIN_CFLAGS@
-flanger_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-flanger_la_LIBADD=@PLUGIN_LIBADD@
+libflanger_la_SOURCES=Opcodes/flanger.c
+libflanger_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libflanger_la_CFLAGS=@PLUGIN_CFLAGS@
+libflanger_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+libflanger_la_LIBADD=@PLUGIN_LIBADD@
 
-follow_la_SOURCES=Opcodes/follow.c
-follow_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-follow_la_CFLAGS=@PLUGIN_CFLAGS@
-follow_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-follow_la_LIBADD=@PLUGIN_LIBADD@
+libfollow_la_SOURCES=Opcodes/follow.c
+libfollow_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libfollow_la_CFLAGS=@PLUGIN_CFLAGS@
+libfollow_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+libfollow_la_LIBADD=@PLUGIN_LIBADD@
 
-grain_la_SOURCES=Opcodes/grain.c
-grain_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-grain_la_CFLAGS=@PLUGIN_CFLAGS@
-grain_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-grain_la_LIBADD=@PLUGIN_LIBADD@
+libgrain_la_SOURCES=Opcodes/grain.c
+libgrain_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libgrain_la_CFLAGS=@PLUGIN_CFLAGS@
+libgrain_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+libgrain_la_LIBADD=@PLUGIN_LIBADD@
 
-grain4_la_SOURCES=Opcodes/grain4.c
-grain4_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-grain4_la_CFLAGS=@PLUGIN_CFLAGS@
-grain4_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-grain4_la_LIBADD=@PLUGIN_LIBADD@
+libgrain4_la_SOURCES=Opcodes/grain4.c
+libgrain4_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libgrain4_la_CFLAGS=@PLUGIN_CFLAGS@
+libgrain4_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+libgrain4_la_LIBADD=@PLUGIN_LIBADD@
 
-hrtferX_la_SOURCES=Opcodes/hrtferX.c \
+libhrtferX_la_SOURCES=Opcodes/hrtferX.c \
 Top/natben.c
-hrtferX_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-hrtferX_la_CFLAGS=@PLUGIN_CFLAGS@
-hrtferX_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-hrtferX_la_LIBADD=@PLUGIN_LIBADD@
+libhrtferX_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libhrtferX_la_CFLAGS=@PLUGIN_CFLAGS@
+libhrtferX_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+libhrtferX_la_LIBADD=@PLUGIN_LIBADD@
 
-locsig_la_SOURCES=Opcodes/locsig.c
-locsig_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-locsig_la_CFLAGS=@PLUGIN_CFLAGS@
-locsig_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-locsig_la_LIBADD=@PLUGIN_LIBADD@
+liblocsig_la_SOURCES=Opcodes/locsig.c
+liblocsig_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+liblocsig_la_CFLAGS=@PLUGIN_CFLAGS@
+liblocsig_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+liblocsig_la_LIBADD=@PLUGIN_LIBADD@
 
-lowpassr_la_SOURCES=Opcodes/lowpassr.c
-lowpassr_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-lowpassr_la_CFLAGS=@PLUGIN_CFLAGS@
-lowpassr_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-lowpassr_la_LIBADD=@PLUGIN_LIBADD@
+liblowpassr_la_SOURCES=Opcodes/lowpassr.c
+liblowpassr_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+liblowpassr_la_CFLAGS=@PLUGIN_CFLAGS@
+liblowpassr_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+liblowpassr_la_LIBADD=@PLUGIN_LIBADD@
 
-midiops2_la_SOURCES=Opcodes/midiops2.c
-midiops2_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-midiops2_la_CFLAGS=@PLUGIN_CFLAGS@
-midiops2_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-midiops2_la_LIBADD=@PLUGIN_LIBADD@
+libmidiops2_la_SOURCES=Opcodes/midiops2.c
+libmidiops2_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libmidiops2_la_CFLAGS=@PLUGIN_CFLAGS@
+libmidiops2_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+libmidiops2_la_LIBADD=@PLUGIN_LIBADD@
 
-midiops3_la_SOURCES=Opcodes/midiops3.c
-midiops3_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-midiops3_la_CFLAGS=@PLUGIN_CFLAGS@
-midiops3_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-midiops3_la_LIBADD=@PLUGIN_LIBADD@
+libmidiops3_la_SOURCES=Opcodes/midiops3.c
+libmidiops3_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libmidiops3_la_CFLAGS=@PLUGIN_CFLAGS@
+libmidiops3_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+libmidiops3_la_LIBADD=@PLUGIN_LIBADD@
 
-modal4_la_SOURCES=Opcodes/modal4.c \
+libmodal4_la_SOURCES=Opcodes/modal4.c \
 Opcodes/physutil.c 
-modal4_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-modal4_la_CFLAGS=@PLUGIN_CFLAGS@
-modal4_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-modal4_la_LIBADD=@PLUGIN_LIBADD@
+libmodal4_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libmodal4_la_CFLAGS=@PLUGIN_CFLAGS@
+libmodal4_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+libmodal4_la_LIBADD=@PLUGIN_LIBADD@
 
-nlfilt_la_SOURCES=Opcodes/nlfilt.c
-nlfilt_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-nlfilt_la_CFLAGS=@PLUGIN_CFLAGS@
-nlfilt_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-nlfilt_la_LIBADD=@PLUGIN_LIBADD@
+libnlfilt_la_SOURCES=Opcodes/nlfilt.c
+libnlfilt_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libnlfilt_la_CFLAGS=@PLUGIN_CFLAGS@
+libnlfilt_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+libnlfilt_la_LIBADD=@PLUGIN_LIBADD@
 
-oscbnk_la_SOURCES=Opcodes/oscbnk.c
-oscbnk_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-oscbnk_la_CFLAGS=@PLUGIN_CFLAGS@
-oscbnk_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-oscbnk_la_LIBADD=@PLUGIN_LIBADD@
+liboscbnk_la_SOURCES=Opcodes/oscbnk.c
+liboscbnk_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+liboscbnk_la_CFLAGS=@PLUGIN_CFLAGS@
+liboscbnk_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+liboscbnk_la_LIBADD=@PLUGIN_LIBADD@
 
-phisem_la_SOURCES=Opcodes/phisem.c
-phisem_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-phisem_la_CFLAGS=@PLUGIN_CFLAGS@
-phisem_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-phisem_la_LIBADD=@PLUGIN_LIBADD@
+libphisem_la_SOURCES=Opcodes/phisem.c
+libphisem_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libphisem_la_CFLAGS=@PLUGIN_CFLAGS@
+libphisem_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+libphisem_la_LIBADD=@PLUGIN_LIBADD@
 
-physmod_la_SOURCES=Opcodes/physmod.c \
+libphysmod_la_SOURCES=Opcodes/physmod.c \
 Opcodes/physutil.c \
 Opcodes/mandolin.c \
 Opcodes/singwave.c \
@@ -555,96 +572,96 @@ Opcodes/fm4op.c \
 Opcodes/moog1.c \
 Opcodes/shaker.c \
 Opcodes/bowedbar.c
-physmod_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-physmod_la_CFLAGS=@PLUGIN_CFLAGS@
-physmod_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-physmod_la_LIBADD=@PLUGIN_LIBADD@
+libphysmod_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libphysmod_la_CFLAGS=@PLUGIN_CFLAGS@
+libphysmod_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+libphysmod_la_LIBADD=@PLUGIN_LIBADD@
 
-pitch_la_SOURCES=Opcodes/pitch.c \
+libpitch_la_SOURCES=Opcodes/pitch.c \
 Opcodes/pitch0.c \
 Opcodes/spectra.c
-pitch_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-pitch_la_CFLAGS=@PLUGIN_CFLAGS@
-pitch_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-pitch_la_LIBADD=@PLUGIN_LIBADD@
+libpitch_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libpitch_la_CFLAGS=@PLUGIN_CFLAGS@
+libpitch_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+libpitch_la_LIBADD=@PLUGIN_LIBADD@
 
-pluck_la_SOURCES=Opcodes/pluck.c
-pluck_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-pluck_la_CFLAGS=@PLUGIN_CFLAGS@
-pluck_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-pluck_la_LIBADD=@PLUGIN_LIBADD@
+libpluck_la_SOURCES=Opcodes/pluck.c
+libpluck_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libpluck_la_CFLAGS=@PLUGIN_CFLAGS@
+libpluck_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+libpluck_la_LIBADD=@PLUGIN_LIBADD@
 
-repluck_la_SOURCES=Opcodes/repluck.c
-repluck_CPPFLAGS=@PLUGIN_CPPFLAGS@
-repluck_CFLAGS=@PLUGIN_CFLAGS@
-repluck_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-repluck_la_LIBADD=@PLUGIN_LIBADD@
+librepluck_la_SOURCES=Opcodes/repluck.c
+librepluck_CPPFLAGS=@PLUGIN_CPPFLAGS@
+librepluck_CFLAGS=@PLUGIN_CFLAGS@
+librepluck_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+librepluck_la_LIBADD=@PLUGIN_LIBADD@
 
-scansyn_la_SOURCES=Opcodes/scansyn.c
-scansyn_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-scansyn_la_CFLAGS=@PLUGIN_CFLAGS@
-scansyn_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-scansyn_la_LIBADD=@PLUGIN_LIBADD@
+libscansyn_la_SOURCES=Opcodes/scansyn.c
+libscansyn_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libscansyn_la_CFLAGS=@PLUGIN_CFLAGS@
+libscansyn_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+libscansyn_la_LIBADD=@PLUGIN_LIBADD@
 
-scansynx_la_SOURCES=Opcodes/scansynx.c
-scansynx_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-scansynx_la_CFLAGS=@PLUGIN_CFLAGS@
-scansynx_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-scansynx_la_LIBADD=@PLUGIN_LIBADD@
+libscansynx_la_SOURCES=Opcodes/scansynx.c
+libscansynx_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libscansynx_la_CFLAGS=@PLUGIN_CFLAGS@
+libscansynx_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+libscansynx_la_LIBADD=@PLUGIN_LIBADD@
 
-sfont_la_SOURCES=Opcodes/sfont.c
-sfont_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-sfont_la_CFLAGS=@PLUGIN_CFLAGS@
-sfont_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-sfont_la_LIBADD=@PLUGIN_LIBADD@
+libsfont_la_SOURCES=Opcodes/sfont.c
+libsfont_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libsfont_la_CFLAGS=@PLUGIN_CFLAGS@
+libsfont_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+libsfont_la_LIBADD=@PLUGIN_LIBADD@
 
-sndwarp_la_SOURCES=Opcodes/sndwarp.c
-sndwarp_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-sndwarp_la_CFLAGS=@PLUGIN_CFLAGS@
-sndwarp_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-sndwarp_la_LIBADD=@PLUGIN_LIBADD@
+libsndwarp_la_SOURCES=Opcodes/sndwarp.c
+libsndwarp_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libsndwarp_la_CFLAGS=@PLUGIN_CFLAGS@
+libsndwarp_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+libsndwarp_la_LIBADD=@PLUGIN_LIBADD@
 
-space_la_SOURCES=Opcodes/space.c
-space_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-space_la_CFLAGS=@PLUGIN_CFLAGS@
-space_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-space_la_LIBADD=@PLUGIN_LIBADD@
+libspace_la_SOURCES=Opcodes/space.c
+libspace_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libspace_la_CFLAGS=@PLUGIN_CFLAGS@
+libspace_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+libspace_la_LIBADD=@PLUGIN_LIBADD@
 
-spat3d_la_SOURCES=Opcodes/spat3d.c
-spat3d_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-spat3d_la_CFLAGS=@PLUGIN_CFLAGS@
-spat3d_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-spat3d_la_LIBADD=@PLUGIN_LIBADD@
+libspat3d_la_SOURCES=Opcodes/spat3d.c
+libspat3d_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libspat3d_la_CFLAGS=@PLUGIN_CFLAGS@
+libspat3d_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+libspat3d_la_LIBADD=@PLUGIN_LIBADD@
 
-ugensa_la_SOURCES=Opcodes/ugensa.c
-ugensa_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-ugensa_la_CFLAGS=@PLUGIN_CFLAGS@
-ugensa_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-ugensa_la_LIBADD=@PLUGIN_LIBADD@
+libugensa_la_SOURCES=Opcodes/ugensa.c
+libugensa_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libugensa_la_CFLAGS=@PLUGIN_CFLAGS@
+libugensa_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+libugensa_la_LIBADD=@PLUGIN_LIBADD@
 
-uggab_la_SOURCES=Opcodes/uggab.c
-uggab_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-uggab_la_CFLAGS=@PLUGIN_CFLAGS@
-uggab_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-uggab_la_LIBADD=@PLUGIN_LIBADD@
+libuggab_la_SOURCES=Opcodes/uggab.c
+libuggab_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libuggab_la_CFLAGS=@PLUGIN_CFLAGS@
+libuggab_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+libuggab_la_LIBADD=@PLUGIN_LIBADD@
 
-ugmoss_la_SOURCES=Opcodes/ugmoss.c
-ugmoss_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-ugmoss_la_CFLAGS=@PLUGIN_CFLAGS@
-ugmoss_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-ugmoss_la_LIBADD=@PLUGIN_LIBADD@
+libugmoss_la_SOURCES=Opcodes/ugmoss.c
+libugmoss_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libugmoss_la_CFLAGS=@PLUGIN_CFLAGS@
+libugmoss_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+libugmoss_la_LIBADD=@PLUGIN_LIBADD@
 
-ugsc_la_SOURCES=Opcodes/ugsc.c
-ugsc_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
-ugsc_la_CFLAGS=@PLUGIN_CFLAGS@
-ugsc_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-ugsc_la_LIBADD=@PLUGIN_LIBADD@
+libugsc_la_SOURCES=Opcodes/ugsc.c
+libugsc_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libugsc_la_CFLAGS=@PLUGIN_CFLAGS@
+libugsc_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+libugsc_la_LIBADD=@PLUGIN_LIBADD@
 
-wave_terrain_la_SOURCES=Opcodes/wave-terrain.c
-wave_terrain_CPPFLAGS=@PLUGIN_CPPFLAGS@
-wave_terrain_CFLAGS=@PLUGIN_CFLAGS@
-wave_terrain_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
-wave_terrain_la_LIBADD=@PLUGIN_LIBADD@
+libwave_terrain_la_SOURCES=Opcodes/wave-terrain.c
+libwave_terrain_CPPFLAGS=@PLUGIN_CPPFLAGS@
+libwave_terrain_CFLAGS=@PLUGIN_CFLAGS@
+libwave_terrain_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+libwave_terrain_la_LIBADD=@PLUGIN_LIBADD@
 
 #	Convenience library for utility programs:
 
@@ -844,10 +861,3 @@ sdif2ad_CPPFLAGS=@UTILITY_CPPFLAGS@
 sdif2ad_CFLAGS=@UTILITY_CFLAGS@
 sdif2ad_LDADD=.libs/libustub.a @UTILITY_LDADD@
 sdif2ad_LDFLAGS=@UTILITY_LDFLAGS@
-
-
-	
-
-
-
-
