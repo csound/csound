@@ -59,7 +59,7 @@ int dconvset(ENVIRON *csound, DCONV *p)
 int dconv(ENVIRON *csound, DCONV *p)
 {
     long i = 0;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
     long len = p->len;
     MYFLT *ar, *ain, *ftp, *startp, *endp, *curp;
     MYFLT sum;
@@ -104,7 +104,7 @@ int and_aa(ENVIRON *csound, AOP *p)
     int   n;
     long  input1, input2;
 
-    for (n = 0; n < ksmps; n++) {
+    for (n = 0; n < csound->ksmps; n++) {
       input1 = RNDINT(in1[n]);
       input2 = RNDINT(in2[n]);
       r[n] = (MYFLT) (input1 & input2);
@@ -119,7 +119,7 @@ int and_ak(ENVIRON *csound, AOP *p)
     int   n;
     long  input2 = RNDINT(*p->b), input1;
 
-    for (n = 0; n < ksmps; n++) {
+    for (n = 0; n < csound->ksmps; n++) {
       input1 = RNDINT(in1[n]);
       r[n] = (MYFLT)(input1 & input2);
     }
@@ -133,7 +133,7 @@ int and_ka(ENVIRON *csound, AOP *p)
     int   n;
     long  input2, input1 = RNDINT(*p->a);
 
-    for (n = 0; n < ksmps; n++) {
+    for (n = 0; n < csound->ksmps; n++) {
       input2 = RNDINT(in2[n]);
       r[n] = (MYFLT)(input1 & input2);
     }
@@ -156,7 +156,7 @@ int or_aa(ENVIRON *csound, AOP *p)
     int   n;
     long  input2, input1;
 
-    for (n = 0; n < ksmps; n++) {
+    for (n = 0; n < csound->ksmps; n++) {
       input1 = RNDINT(in1[n]);
       input2 = RNDINT(in2[n]);
       r[n] = (MYFLT)(input1 | input2);
@@ -171,7 +171,7 @@ int or_ak(ENVIRON *csound, AOP *p)
     int   n;
     long  input2 = RNDINT(*p->b), input1;
 
-    for (n = 0; n < ksmps; n++) {
+    for (n = 0; n < csound->ksmps; n++) {
       input1 = RNDINT(in1[n]);
       r[n] = (MYFLT)(input1 | input2);
     }
@@ -185,7 +185,7 @@ int or_ka(ENVIRON *csound, AOP *p)
     int   n;
     long  input2, input1 = RNDINT(*p->a);
 
-    for (n = 0; n < ksmps; n++) {
+    for (n = 0; n < csound->ksmps; n++) {
       input2 = RNDINT(in2[n]);
       r[n] = (MYFLT)(input1 | input2);
     }
@@ -208,7 +208,7 @@ int xor_aa(ENVIRON *csound, AOP *p)
     int   n;
     long  input2, input1;
 
-    for (n = 0; n < ksmps; n++) {
+    for (n = 0; n < csound->ksmps; n++) {
       input1 = RNDINT(in1[n]);
       input2 = RNDINT(in2[n]);
       r[n] = (MYFLT)(input1 ^ input2);
@@ -223,7 +223,7 @@ int xor_ak(ENVIRON *csound, AOP *p)
     int   n;
     long  input2 = RNDINT(*p->b), input1;
 
-    for (n = 0; n < ksmps; n++) {
+    for (n = 0; n < csound->ksmps; n++) {
       input1 = RNDINT(in1[n]);
       r[n] = (MYFLT)(input1 ^ input2);
     }
@@ -237,7 +237,7 @@ int xor_ka(ENVIRON *csound, AOP *p)
     int   n;
     long  input2, input1 = RNDINT(*p->a);
 
-    for (n = 0; n < ksmps; n++) {
+    for (n = 0; n < csound->ksmps; n++) {
       input2 = RNDINT(in2[n]);
       r[n] = (MYFLT)(input1 ^ input2);
     }
@@ -257,7 +257,7 @@ static int shift_left_aa(ENVIRON *csound, AOP *p)
     long  input1;
     int   input2, n;
 
-    for (n = 0; n < ksmps; n++) {
+    for (n = 0; n < csound->ksmps; n++) {
       input1 = RNDINT(p->a[n]);
       input2 = (int) RNDINT(p->b[n]);
       p->r[n] = (MYFLT) (input1 << input2);
@@ -271,7 +271,7 @@ static int shift_left_ak(ENVIRON *csound, AOP *p)
     int   input2 = RNDINT(*p->b);
     int   n;
 
-    for (n = 0; n < ksmps; n++) {
+    for (n = 0; n < csound->ksmps; n++) {
       input1 = RNDINT(p->a[n]);
       p->r[n] = (MYFLT) (input1 << input2);
     }
@@ -283,7 +283,7 @@ static int shift_left_ka(ENVIRON *csound, AOP *p)
     long  input1 = RNDINT(*p->a);
     int   input2, n;
 
-    for (n = 0; n < ksmps; n++) {
+    for (n = 0; n < csound->ksmps; n++) {
       input2 = RNDINT(p->b[n]);
       p->r[n] = (MYFLT) (input1 << input2);
     }
@@ -303,7 +303,7 @@ static int shift_right_aa(ENVIRON *csound, AOP *p)
     long  input1;
     int   input2, n;
 
-    for (n = 0; n < ksmps; n++) {
+    for (n = 0; n < csound->ksmps; n++) {
       input1 = RNDINT(p->a[n]);
       input2 = (int) RNDINT(p->b[n]);
       p->r[n] = (MYFLT) (input1 >> input2);
@@ -317,7 +317,7 @@ static int shift_right_ak(ENVIRON *csound, AOP *p)
     int   input2 = RNDINT(*p->b);
     int   n;
 
-    for (n = 0; n < ksmps; n++) {
+    for (n = 0; n < csound->ksmps; n++) {
       input1 = RNDINT(p->a[n]);
       p->r[n] = (MYFLT) (input1 >> input2);
     }
@@ -329,7 +329,7 @@ static int shift_right_ka(ENVIRON *csound, AOP *p)
     long  input1 = RNDINT(*p->a);
     int   input2, n;
 
-    for (n = 0; n < ksmps; n++) {
+    for (n = 0; n < csound->ksmps; n++) {
       input2 = RNDINT(p->b[n]);
       p->r[n] = (MYFLT) (input1 >> input2);
     }
@@ -350,7 +350,7 @@ int not_a(ENVIRON *csound, AOP *p)
     int   n;
     long  input1;
 
-    for (n = 0; n < ksmps; n++) {
+    for (n = 0; n < csound->ksmps; n++) {
       input1 = RNDINT(in1[n]);
       r[n] = (MYFLT)(~input1);
     }
@@ -369,7 +369,7 @@ int vcombset(ENVIRON *csound, VCOMB *p)
         return csound->InitError(csound, Str("illegal loop time"));
       }
     }
-    else if ((lpsiz = (long)(*p->imaxlpt * esr)) <= 0) {
+    else if ((lpsiz = (long)(*p->imaxlpt * csound->esr)) <= 0) {
       return csound->InitError(csound, Str("illegal loop time"));
     }
     nbytes = lpsiz * sizeof(MYFLT);
@@ -391,13 +391,13 @@ int vcombset(ENVIRON *csound, VCOMB *p)
     p->lpt = FL(0.0);
     p->g   = FL(0.0);
     p->lpta = (XINARG3) ? 1 : 0;
-    if (*p->insmps == 0) *p->imaxlpt *= esr;
+    if (*p->insmps == 0) *p->imaxlpt *= csound->esr;
     return OK;
 }
 
 int vcomb(ENVIRON *csound, VCOMB *p)
 {
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
     unsigned long xlpt, maxlpt = (unsigned long)*p->imaxlpt;
     MYFLT       *ar, *asig, *rp, *endp, *startp, *wp, *lpt;
     MYFLT       g = p->g;
@@ -413,7 +413,7 @@ int vcomb(ENVIRON *csound, VCOMB *p)
     if (p->lpta) {                               /* if xlpt is a-rate */
       lpt = p->xlpt;
       do {
-        xlpt = (unsigned long)((*p->insmps != 0) ? *lpt : *lpt * esr);
+        xlpt = (unsigned long)((*p->insmps != 0) ? *lpt : *lpt * csound->esr);
         if (xlpt > maxlpt) xlpt = maxlpt;
         if ((rp = wp - xlpt) < startp) rp += maxlpt;
         if ((p->rvt != *p->krvt) || (p->lpt != *lpt)) {
@@ -428,7 +428,8 @@ int vcomb(ENVIRON *csound, VCOMB *p)
       } while (--nsmps);
     }
     else {                                       /* if xlpt is k-rate */
-      xlpt = (unsigned long)((*p->insmps != 0) ? *p->xlpt : *p->xlpt * esr);
+      xlpt = (unsigned long) ((*p->insmps != 0) ? *p->xlpt
+                                                  : *p->xlpt * csound->esr);
       if (xlpt > maxlpt) xlpt = maxlpt;
       if ((rp = wp - xlpt) < startp) rp += maxlpt;
       if ((p->rvt != *p->krvt) || (p->lpt != *p->xlpt)) {
@@ -448,7 +449,7 @@ int vcomb(ENVIRON *csound, VCOMB *p)
 
 int valpass(ENVIRON *csound, VCOMB *p)
 {
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
     unsigned long xlpt, maxlpt = (unsigned long)*p->imaxlpt;
     MYFLT       *ar, *asig, *rp, *startp, *endp, *wp, *lpt;
     MYFLT       y, z, g = p->g;
@@ -464,7 +465,7 @@ int valpass(ENVIRON *csound, VCOMB *p)
     if (p->lpta) {                                      /* if xlpt is a-rate */
       lpt = p->xlpt;
       do {
-        xlpt = (unsigned long)((*p->insmps != 0) ? *lpt : *lpt * esr);
+        xlpt = (unsigned long)((*p->insmps != 0) ? *lpt : *lpt * csound->esr);
         if (xlpt > maxlpt) xlpt = maxlpt;
         if ((rp = wp - xlpt) < startp) rp += maxlpt;
         if ((p->rvt != *p->krvt) || (p->lpt != *lpt)) {
@@ -480,7 +481,8 @@ int valpass(ENVIRON *csound, VCOMB *p)
       } while (--nsmps);
     }
     else {                                              /* if xlpt is k-rate */
-      xlpt = (unsigned long)((*p->insmps != 0) ? *p->xlpt : *p->xlpt * esr);
+      xlpt = (unsigned long) ((*p->insmps != 0) ? *p->xlpt
+                                                  : *p->xlpt * csound->esr);
       if (xlpt > maxlpt) xlpt = maxlpt;
       if ((rp = wp - xlpt) < startp) rp += maxlpt;
       if ((p->rvt != *p->krvt) || (p->lpt != *p->xlpt)) {
@@ -504,16 +506,16 @@ int ftmorfset(ENVIRON *csound, FTMORF *p)
     FUNC *ftp;
     int j = 0;
     unsigned int len;
-
-    if ((ftp = csound->FTFind(csound, p->iresfn)) != NULL) { /* make sure resfn exists */
-      p->resfn = ftp, len = p->resfn->flen;     /* and set it up */
+    /* make sure resfn exists and set it up */
+    if ((ftp = csound->FTFind(csound, p->iresfn)) != NULL) {
+      p->resfn = ftp, len = p->resfn->flen;
     }
     else {
       return csound->InitError(csound, Str("iresfn for ftmorf does not exist"));
     }
-
-    if ((ftp = csound->FTFind(csound, p->iftfn)) != NULL) { /* make sure ftfn exists */
-      p->ftfn = ftp;                            /* and set it up */
+    /* make sure ftfn exists and set it up */
+    if ((ftp = csound->FTFind(csound, p->iftfn)) != NULL) {
+      p->ftfn = ftp;
     }
     else {
       return csound->InitError(csound, Str("iftfn for ftmorf doesnt exist"));
@@ -522,11 +524,13 @@ int ftmorfset(ENVIRON *csound, FTMORF *p)
     do {                /* make sure tables in ftfn exist and are right size*/
       if ((ftp = csound->FTFind(csound, p->ftfn->ftable + j)) != NULL) {
         if ((unsigned int)ftp->flen != len) {
-          return csound->InitError(csound, Str("table in iftfn for ftmorf wrong size"));
+          return csound->InitError(csound,
+                                   Str("table in iftfn for ftmorf wrong size"));
         }
       }
       else {
-        return csound->InitError(csound, Str("table in iftfn for ftmorf does not exist"));
+        return csound->InitError(csound, Str("table in iftfn for ftmorf "
+                                             "does not exist"));
       }
     } while (++j < p->ftfn->flen);
 
