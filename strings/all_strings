@@ -619,7 +619,7 @@
 619,"both"
 620,""
 621,""
-622,!!
+622,""
 623,""
 624,"buzz: not initialized"
 625,"called from line %d of macro %s\n"
