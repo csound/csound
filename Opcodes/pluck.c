@@ -334,6 +334,7 @@ void filter3Set(filter3* filt, MYFLT a0, MYFLT a1)
 {
     filt->a0 = a0;
     filt->a1 = a1;
+    filt->x1 = filt->x2 = FL(0.0);
 #ifdef WG_VERBOSE
     printf("c[0]=%f; c[1]=%f; c[2]=\n", a0, a1, a0);
     printf("Zeros at %f, %f\n",
