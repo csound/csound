@@ -1,3 +1,14 @@
+2004-08-10  Michael Gogins <gogins@pipeline.com>
+
+	* Implemented threads and mutexes in the Csound API for Windows and Linux,
+	in Top/threads.c.
+	
+	* Implemented low-latency PortAudio with a blocking wrapper that uses 
+    mutexes for asynchronus ASIO on MinGW/Windows, in InOut/pa_blocking.c and 
+	H/pa_blocking.h.
+	
+	* Fixed Top/threads.c so it compiles on Linux.
+
 2004-08-05  Michael Gogins <gogins@pipeline.com>
 
 	* Rewrote fluid opcode to break it up into fluidload, fluidcontrol, and 
