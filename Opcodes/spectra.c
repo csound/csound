@@ -1310,4 +1310,15 @@ static OENTRY localops[] = {
 { "specdisp", S(SPECDISP),5, "",   "wio",  (SUBR)spdspset,NULL,  (SUBR)specdisp},
 };
 
-LINKAGE
+long opcode_size(void)
+{
+    return sizeof(localops);
+}
+
+OENTRY *opcode_init(GLOBALS *xx)
+{
+    pcglob = xx;
+    displop4 = getopnum("specdisp"); /* This will not work!!! */
+    return localops;
+}
+

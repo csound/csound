@@ -326,8 +326,9 @@ GLOBALS cglob_ = {
         FL(0.0),        /*      long_to_dbfs */
         1024,   /*      rtin_dev */
         1024,   /*      rtout_dev */
-        0,
-        {{0}}
+        0,	/*	MIDIINbufIndex */
+        {{0}},	/*	MIDIINbuffer2 */
+        -1	/*	displop4 */
 };
 
 OPARMS O;

@@ -708,6 +708,7 @@ typedef struct GLOBALS_
   unsigned int  rtout_dev;
   int		MIDIINbufIndex;
   MIDIMESSAGE   MIDIINbuffer2[MIDIINBUFMAX];
+  int		displop4;
 } GLOBALS;
 #define ksmps_  cglob.ksmps
 #define esr_    cglob.esr
@@ -833,7 +834,7 @@ typedef struct GLOBALS_
 #define rtout_dev cglob.rtout_dev
 #define MIDIINbufIndex cglob.MIDIINbufIndex
 #define MIDIINbuffer2 cglob.MIDIINbuffer2
-
+#define displop4 cglob.displop4
 #include "text.h"
 
 #if defined CWIN

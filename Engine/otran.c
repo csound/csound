@@ -45,7 +45,7 @@ static  short   *nxtargoffp, *argofflim, lclpmax;
 static  char    *strargspace, *strargptr;
 static  long    poolcount, strargsize = 0, argoffsize;
 static  int     nconsts;
-static  int     displop1, displop2, displop3, displop4;
+static  int     displop1, displop2, displop3;
 
 extern  OPARMS  O;
 
@@ -244,7 +244,7 @@ void otran(void)
     displop1 = getopnum("print");       /* opnums that need "signal name" */
     displop2 = getopnum("display");
     displop3 = getopnum("dispfft");
-    displop4 = getopnum("specdisp");
+/*     displop4 = getopnum("specdisp"); */
 
     rdorchfile();                               /* go read orch file    */
     while ((tp = getoptxt(&init)) != NULL) {    /*   then for each opcode: */

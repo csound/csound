@@ -149,6 +149,7 @@ GLOBALS *pcglob;
 #undef rtout_dev
 #undef MIDIINbufIndex
 #undef MIDIINbuffer2
+#undef displop4
 
 #define GetVersion pcglob->GetVersion
 #define GetHostData pcglob->GetHostData
@@ -361,6 +362,7 @@ GLOBALS *pcglob;
 #define rtout_dev pcglob->rtout_dev
 #define MIDIINbufIndex pcglob->MIDIINbufIndex
 #define MIDIINbuffer2 pcglob->MIDIINbuffer2
+#define displop4 pcglob->displop4
 
 #undef printf
 
