@@ -20,9 +20,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
   02111-1307 USA
 */
-#if defined(HAVE_CONFIG_H)
-#include "config.h"
-#endif
+
 
 #ifdef _WIN32
 #       pragma warning(disable: 4117 4804)
@@ -35,11 +33,11 @@
 #       include <process.h>
 #               include <windows.h>
 #endif /* defined(WIN32) */
-#if defined(LINUX)
+#if defined(LINUX) || defined(NETBSD)
 #       include <pthread.h>
 #       include <sched.h>
 #       include <sys/time.h>
-#endif /* defined(LINUX) */
+#endif /* defined(LINUX) || defined(NETBSD) */
 
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
@@ -85,11 +83,10 @@ extern "C" {
   //#define __cplusplus
   //    extern EVTBLK *currevent;    IV - Aug 23 2002
   extern char *unquote(char *name);
-#if defined(LINUX) || defined(__MACH__)
+#if defined(LINUX) || defined (NETBSD) || defined(__MACH__)
   extern int cleanup();
   extern long srngcnt[], orngcnt[];   // from musmon.c
 #endif
-  extern int csoundYield(void *);
 }
 #undef exit
 
@@ -100,6 +97,33 @@ extern "C" {
 #define EXP_ (-1)
 #undef min
 #undef max
+
+static void lock(ENVIRON *csound) 
+{
+#if defined USE_FLTK 
+  if (csound->GetFLTKThreadLocking(csound))
+    {
+      Fl::lock();
+    }
+#endif
+}
+
+static void unlock(ENVIRON *csound) 
+{
+#if defined USE_FLTK 
+  if (csound->GetFLTKThreadLocking(csound)) 
+    {
+      Fl::unlock();
+    }
+#endif
+}
+
+static void awake(ENVIRON *csound) 
+{
+#if defined USE_FLTK 
+  Fl::awake();
+#endif
+}
 
 extern "C" void deact(ENVIRON *, INSDS*);
 
@@ -1687,31 +1711,28 @@ static void __cdecl fltkRun(void *userdata)
 {
   ENVIRON *csound = (ENVIRON *)userdata;
   int j;
-#if defined(LINUX) || defined(__MACH__)
+#if defined(LINUX) || defined(NETBSD) || defined(__MACH__)
   struct itimerval t1;
   // IV - Aug 27 2002: set up timer to automatically update display at 25 Hz
   t1.it_value.tv_sec = t1.it_interval.tv_sec = 0;
   t1.it_value.tv_usec = 1; t1.it_interval.tv_usec = 40000;
   setitimer (ITIMER_REAL, &t1, NULL);
 #endif
+  lock(csound);
   for (j=0; j < (int) fl_windows.size(); j++) {
     fl_windows[j].panel->show();
   }
 #ifdef WIN32 // to make this thread to update GUI when no events are present
   SetTimer(0,0,200,NULL);
+#else
+  awake(csound);
+  unlock(csound);
+  if (csound->GetFLTKThreadLocking(csound))
+    return;
 #endif
-  bool run = true;
-  while(run) {
-    if(csound->GetFLTKThreadLocking(csound)) {
-      Fl::lock();
-    }
-    Fl::wait(.01);
-    if(csound->GetFLTKThreadLocking(csound)) { 
-      Fl::unlock();
-    }
-  }
-  if (O.msglevel & WARNMSG) printf("WARNING: end of widget thread\n");
-#if defined(LINUX) || defined(__MACH__)
+  Fl::run();
+  csound->Printf("end of widget thread\n");
+#if defined(LINUX) || defined(NETBSD)
   // IV - Aug 27 2002: exit if all windows are closed
   for (j = 0; j < nchnls; j++) {              // set overall maxamp
     orngcnt[j] += (rngcnt[j] + srngcnt[j]);   // based on current section
@@ -1730,20 +1751,14 @@ static void __cdecl fltkKeybRun(void *userdata)
   ENVIRON *csound = (ENVIRON *)userdata;
   oKeyb->show();
   //Fl::run();
-  bool run = true;
-  while(run) {
-    if(csound->GetFLTKThreadLocking(csound)) {
-      Fl::lock();
-    }
-    run = Fl::wait();
+
+  while(Fl::wait()) {
     int temp = FLkeyboard_sensing();
     if (temp != 0 && *keybp->args[1] >=1 ) {
       *keybp->kout = temp;
       ButtonSched((ENVIRON *)userdata, keybp->args, keybp->INOCOUNT);
     }
-    if(csound->GetFLTKThreadLocking(csound)) {
-      Fl::unlock();
-    }
+
   }
   if (O.msglevel & WARNMSG) printf("WARNING: end of keyboard thread\n");
 }
@@ -1755,13 +1770,15 @@ extern "C" void FL_run(ENVIRON *csound, FLRUN *p)
   threadHandle = _beginthread(fltkRun, 0, csound);
   if (isActivatedKeyb)
     threadHandle = _beginthread(fltkKeybRun, 0, csound);
-#elif defined(LINUX) || defined(__MACH__)
+#elif defined(LINUX) || defined(NETBSD) || defined(HAVE_LIBPTHREAD)
   pthread_attr_t a;
   pthread_t thread1;
   // IV - Aug 27 2002: widget thread is always run with normal priority
   pthread_attr_init(&a);
+#if !defined(NETBSD)
   pthread_attr_setschedpolicy(&a, SCHED_OTHER);
   pthread_attr_setinheritsched(&a, PTHREAD_EXPLICIT_SCHED);
+#endif
   threadHandle = pthread_create(&thread1, &a, (void *(*)(void *)) fltkRun,
 				csound);
 #else
@@ -1771,11 +1788,13 @@ extern "C" void FL_run(ENVIRON *csound, FLRUN *p)
 
 extern "C" void fl_update(ENVIRON *csound, FLRUN *p)
 {
+  lock(csound);
   for (int j=0; j< (int) AddrSetValue.size()-1; j++) {
     ADDR_SET_VALUE v = AddrSetValue[j];
     Fl_Valuator *o = (Fl_Valuator *) v.WidgAddress;
     o->do_callback(o, v.opcode);
   }
+  unlock(csound);
 }
 
 //----------------------------------------------
@@ -2342,6 +2361,7 @@ extern "C" int fl_widget_label(ENVIRON *csound, FLWIDGLABEL *p)
 
 extern "C" int fl_setWidgetValuei(ENVIRON *csound, FL_SET_WIDGET_VALUE_I *p)
 {
+  lock(csound);
   ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
   MYFLT val = *p->ivalue, range, base;
   switch (v.exponential) {
@@ -2392,6 +2412,7 @@ extern "C" int fl_setWidgetValuei(ENVIRON *csound, FL_SET_WIDGET_VALUE_I *p)
       printf("WARNING: System error: value() method called from "
 	     "non-valuator object\n");
   o->do_callback(o, v.opcode);
+  unlock(csound);
   return OK;
 }
 
@@ -2442,14 +2463,10 @@ extern "C" int fl_setWidgetValue(ENVIRON *csound, FL_SET_WIDGET_VALUE *p)
       return NOTOK;
     }
     Fl_Widget *o = (Fl_Widget *) p->WidgAddress;
-    if(csound->GetFLTKThreadLocking(csound)) {
-      Fl::lock();
-    }
+    lock(csound);
     ((Fl_Valuator *)o)->value(val);
     o->do_callback(o, p->opcode);
-    if(csound->GetFLTKThreadLocking(csound)) {
-      Fl::unlock();
-    }
+    unlock(csound);
 #ifdef WIN32
     //      PostMessage(callback_target,0,0,0);
 #endif
@@ -2640,17 +2657,21 @@ extern "C" int fl_setPosition(ENVIRON *csound, FL_SET_POSITION *p)
 
 extern "C" int fl_hide(ENVIRON *csound, FL_WIDHIDE *p)
 {
+  lock(csound);
   ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
   Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
   o->hide();
+  unlock(csound);
   return OK;
 }
 
 extern "C" int fl_show(ENVIRON *csound, FL_WIDSHOW *p)
 {
+  lock(csound);
   ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
   Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
   o->show();
+  unlock(csound);
   return OK;
 }
 
