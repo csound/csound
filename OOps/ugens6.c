@@ -30,7 +30,7 @@
 
 int downset(ENVIRON *csound, DOWNSAMP *p)
 {
-    if ((p->len = (int)*p->ilen) > ksmps)
+    if ((p->len = (int)*p->ilen) > csound->ksmps)
       return csound->InitError(csound, Str("ilen > ksmps"));
     return OK;
 }
@@ -61,7 +61,7 @@ int upsamp(ENVIRON *csound, UPSAMP *p)
 
     ar = p->ar;
     kval = *p->ksig;
-    for (n=0; n<ksmps; n++) {
+    for (n=0; n<csound->ksmps; n++) {
       ar[n] = kval;
     }
     return OK;
@@ -95,7 +95,7 @@ int interp(ENVIRON *csound, INTERP *p)
     }
     val = p->prev;
     incr = (*p->xsig - val) / ensmps;
-    for (n=0; n<ksmps; n++) {
+    for (n=0; n<csound->ksmps; n++) {
       ar[n] = val += incr;
     }
     p->prev = val;
@@ -123,7 +123,7 @@ int integrate(ENVIRON *csound, INDIFF *p)
     rslt = p->rslt;
     asig = p->xsig;
     sum = p->prev;
-    for (n=0; n<ksmps; n++) {
+    for (n=0; n<csound->ksmps; n++) {
       rslt[n] = sum += asig[n];
     }
     p->prev = sum;
@@ -147,7 +147,7 @@ int diff(ENVIRON *csound, INDIFF *p)
     ar = p->rslt;
     asig = p->xsig;
     prev = p->prev;
-    for (n=0; n<ksmps; n++) {
+    for (n=0; n<csound->ksmps; n++) {
       tmp = asig[n];            /* IV - Sep 5 2002: fix to make */
       ar[n] = tmp - prev;       /* diff work when the input and */
       prev = tmp;               /* output argument is the same  */
@@ -182,7 +182,7 @@ int samphold(ENVIRON *csound, SAMPHOLD *p)
     state = p->state;
     if (p->audiogate) {
       agate = p->xgate;
-      for (n=0; n<ksmps; n++) {
+      for (n=0; n<csound->ksmps; n++) {
         if (agate[n] > FL(0.0))
           state = asig[n];
         ar[n] = state;
@@ -190,12 +190,12 @@ int samphold(ENVIRON *csound, SAMPHOLD *p)
     }
     else {
       if (*p->xgate > FL(0.0)) {
-        for (n=0; n<ksmps; n++) {
+        for (n=0; n<csound->ksmps; n++) {
           ar[n] = state = asig[n];
         }
       }
       else {
-        for (n=0; n<ksmps; n++) {
+        for (n=0; n<csound->ksmps; n++) {
           ar[n] = state;
         }
       }
@@ -211,7 +211,8 @@ int delset(ENVIRON *csound, DELAY *p)
 
     if (*p->istor && p->auxch.auxp != NULL)
       return OK;
-    if ((npts = (long)(FL(0.5)+*p->idlt * esr)) <= 0) { /* Round not truncate */
+    /* Round not truncate */
+    if ((npts = (long) (FL(0.5) + *p->idlt * csound->esr)) <= 0) {
       return csound->InitError(csound, Str("illegal delay time"));
     }
     if ((auxp = p->auxch.auxp) == NULL ||
@@ -250,10 +251,11 @@ int delrset(ENVIRON *csound, DELAYR *p)
 
     if (*p->istor && p->auxch.auxp != NULL)
       return OK;
-    if ((npts = (long)(FL(0.5)+*p->idlt * esr)) < ksmps) { /* ksmps is min dely */
+    /* ksmps is min dely */
+    if ((npts = (long) (FL(0.5) + *p->idlt * csound->esr)) < csound->ksmps) {
       return csound->InitError(csound, Str("illegal delay time"));
     }
-/*     printf("delay %f sr=%f npts = %d\n", *p->idlt, esr, npts); */
+/*     printf("delay %f sr=%f npts = %d\n", *p->idlt, csound->esr, npts); */
     if ((auxp = (MYFLT*)p->auxch.auxp) == NULL ||       /* new space if reqd */
         npts != p->npts) {
       csound->AuxAlloc(csound, (long)npts*sizeof(MYFLT), &p->auxch);
@@ -310,7 +312,7 @@ int delay(ENVIRON *csound, DELAY *p)
     asig = p->asig;
     curp = p->curp;
     endp = (MYFLT *) p->auxch.endp;
-    for (n=0; n<ksmps; n++) {
+    for (n=0; n<csound->ksmps; n++) {
       MYFLT in = asig[n];       /* Allow overwriting form */
       ar[n] = *curp;
       *curp = in;
@@ -332,7 +334,7 @@ int delayr(ENVIRON *csound, DELAYR *p)
     ar = p->ar;
     curp = p->curp;
     endp = (MYFLT *) p->auxch.endp;
-    for (n=0; n<ksmps; n++) {
+    for (n=0; n<csound->ksmps; n++) {
       ar[n] = *curp++;
       if (curp >= endp)
         curp = (MYFLT *) p->auxch.auxp;
@@ -352,7 +354,7 @@ int delayw(ENVIRON *csound, DELAYW *p)
     asig = p->asig;
     curp = q->curp;
     endp = (MYFLT *) q->auxch.endp;
-    for (n=0; n<ksmps; n++) {
+    for (n=0; n<csound->ksmps; n++) {
       *curp = asig[n];
       if (++curp >= endp)
         curp = (MYFLT *) q->auxch.auxp;
@@ -371,11 +373,11 @@ int deltap(ENVIRON *csound, DELTAP *p)
       return csound->PerfError(csound, Str("deltap: not initialised"));
     }
     ar = p->ar;
-    tap = q->curp - (long)(FL(0.5)+*p->xdlt * esr);
+    tap = q->curp - (long) (FL(0.5) + *p->xdlt * csound->esr);
     while (tap < (MYFLT *) q->auxch.auxp)
       tap += q->npts;
     endp = (MYFLT *) q->auxch.endp;
-    for (n=0; n<ksmps; n++) {
+    for (n=0; n<csound->ksmps; n++) {
       if (tap >= endp)
         tap -= q->npts;
       ar[n] = *tap++;
@@ -387,7 +389,7 @@ int deltapi(ENVIRON *csound, DELTAP *p)
 {
     DELAYR      *q = p->delayr;
     MYFLT       *ar, *tap, *prv, *begp, *endp;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
     long        idelsmps;
     MYFLT       delsmps, delfrac;
 
@@ -398,7 +400,7 @@ int deltapi(ENVIRON *csound, DELTAP *p)
     begp = (MYFLT *) q->auxch.auxp;
     endp = (MYFLT *) q->auxch.endp;
     if (!p->XINCODE) {
-      delsmps = *p->xdlt * esr;
+      delsmps = *p->xdlt * csound->esr;
       idelsmps = (long)delsmps;
       delfrac = delsmps - idelsmps;
       tap = q->curp - idelsmps;
@@ -415,7 +417,7 @@ int deltapi(ENVIRON *csound, DELTAP *p)
     else {
       MYFLT *timp = p->xdlt, *curq = q->curp;
       do {
-        delsmps = *timp++ * esr;
+        delsmps = *timp++ * csound->esr;
         idelsmps = (long)delsmps;
         delfrac = delsmps - idelsmps;
         tap = curq++ - idelsmps;
@@ -436,7 +438,7 @@ int deltapn(ENVIRON *csound, DELTAP *p)
 {
     DELAYR *q = p->delayr;
     MYFLT *ar, *tap, *begp, *endp;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
     long idelsmps;
     MYFLT delsmps;
 
@@ -480,7 +482,7 @@ int deltap3(ENVIRON *csound, DELTAP *p)
 {
     DELAYR      *q = p->delayr;
     MYFLT       *ar, *tap, *prv, *begp, *endp;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
     long        idelsmps;
     MYFLT       delsmps, delfrac;
 
@@ -491,7 +493,7 @@ int deltap3(ENVIRON *csound, DELTAP *p)
     begp = (MYFLT *) q->auxch.auxp;
     endp = (MYFLT *) q->auxch.endp;
     if (!p->XINCODE) {
-      delsmps = *p->xdlt * esr;
+      delsmps = *p->xdlt * csound->esr;
       idelsmps = (long)delsmps;
       delfrac = delsmps - idelsmps;
       tap = q->curp - idelsmps;
@@ -521,7 +523,7 @@ int deltap3(ENVIRON *csound, DELTAP *p)
       MYFLT *timp = p->xdlt, *curq = q->curp;
       do {
         MYFLT ym1, y0, y1, y2;
-        delsmps = *timp++ * esr;
+        delsmps = *timp++ * csound->esr;
         idelsmps = (long)delsmps;
         delfrac = delsmps - idelsmps;
         if ((tap = curq++ - idelsmps) < begp)
@@ -568,7 +570,7 @@ int deltapx(ENVIRON *csound, DELTAPX *p)                /* deltapx opcode */
 {
     DELAYR      *q = p->delayr;
     MYFLT       *out1, *del, *buf1;
-    int         nn = ksmps, i2, i;
+    int         nn = csound->ksmps, i2, i;
     double      x1, x2, w, d, d2x, n1;
     long        indx, maxd, xpos;
 
@@ -589,7 +591,7 @@ int deltapx(ENVIRON *csound, DELTAPX *p)                /* deltapx opcode */
         /* x2: sine of x1 (for interpolation) */
         /* xpos: integer part of delay time (buffer position to read from) */
 
-        x1 = (double) indx - (double) *(del++) * (double) esr;
+        x1 = (double) indx - (double) *(del++) * (double) csound->esr;
         while (x1 < 0.0) x1 += (double) maxd;
         xpos = (long) x1; x1 -= (double) xpos;
         x2 = sin (PI * x1) / PI;
@@ -618,7 +620,7 @@ int deltapx(ENVIRON *csound, DELTAPX *p)                /* deltapx opcode */
       }
     } else {                    /* window size = 4, cubic interpolation */
       while (nn--) {
-        x1 = (double) indx - (double) *(del++) * (double) esr;
+        x1 = (double) indx - (double) *(del++) * (double) csound->esr;
         while (x1 < 0.0) x1 += (double) maxd;
         xpos = (long) x1; x1 -= (double) xpos;
         w = x1 * x1; d2x = FL(0.16666667) * (x1 * w - x1);      /* sample +2 */
@@ -643,7 +645,7 @@ int deltapxw(ENVIRON *csound, DELTAPX *p)               /* deltapxw opcode */
 {
     DELAYR      *q = p->delayr;
     MYFLT       *in1, *del, *buf1;
-    int         nn = ksmps, i2, i;
+    int         nn = csound->ksmps, i2, i;
     double      x1, x2, w, d, d2x, n1;
     long        indx, maxd, xpos;
 
@@ -664,7 +666,7 @@ int deltapxw(ENVIRON *csound, DELTAPX *p)               /* deltapxw opcode */
         /* x2: sine of x1 (for interpolation) */
         /* xpos: integer part of delay time (buffer position to read from) */
 
-        x1 = (double) indx - (double) *(del++) * (double) esr;
+        x1 = (double) indx - (double) *(del++) * (double) csound->esr;
         while (x1 < 0.0) x1 += (double) maxd;
         xpos = (long) x1; x1 -= (double) xpos;
         x2 = sin (PI * x1) / PI;
@@ -693,7 +695,7 @@ int deltapxw(ENVIRON *csound, DELTAPX *p)               /* deltapxw opcode */
     }
     else {                    /* window size = 4, cubic interpolation */
       while (nn--) {
-        x1 = (double) indx - (double) *(del++) * (double) esr;
+        x1 = (double) indx - (double) *(del++) * (double) csound->esr;
         while (x1 < 0.0) x1 += (double) maxd;
         xpos = (long) x1; x1 -= (double) xpos;
         w = x1 * x1; d2x = FL(0.16666667) * (x1 * w - x1);      /* sample +2 */
@@ -725,7 +727,7 @@ int del1set(ENVIRON *csound, DELAY1 *p)
 int delay1(ENVIRON *csound, DELAY1 *p)
 {
     MYFLT       *ar, *asig;
-    int nsmps = ksmps - 1;
+    int nsmps = csound->ksmps - 1;
 
     ar = p->ar;
     asig = p->asig;
@@ -749,7 +751,7 @@ int cmbset(ENVIRON *csound, COMB *p)
         return csound->InitError(csound, Str("illegal loop time"));
       }
     }
-    else if ((lpsiz = (long)(FL(0.5)+*p->ilpt * esr)) <= 0) {
+    else if ((lpsiz = (long)(FL(0.5) + *p->ilpt * csound->esr)) <= 0) {
       return csound->InitError(csound, Str("illegal loop time"));
     }
     nbytes = lpsiz * sizeof(MYFLT);
@@ -773,7 +775,7 @@ int cmbset(ENVIRON *csound, COMB *p)
 
 int comb(ENVIRON *csound, COMB *p)
 {
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
     MYFLT       *ar, *asig, *xp, *endp;
     MYFLT       coef = p->coef;
 
@@ -815,7 +817,7 @@ int comb(ENVIRON *csound, COMB *p)
 
 int alpass(ENVIRON *csound, COMB *p)
 {
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
     MYFLT       *ar, *asig, *xp, *endp;
     MYFLT       y, z;
     MYFLT       coef = p->coef;
@@ -855,7 +857,7 @@ void reverbinit(void)                   /* called once by oload */
 
     revlpsum = 0;
     do {
-      *lpsizp = (long)(*lptimp++ * esr);
+      *lpsizp = (long)(*lptimp++ * cenviron.esr);
       revlpsum += *lpsizp++;
     } while (--n);
 }
@@ -872,8 +874,7 @@ int rvbset(ENVIRON *csound, REVERB *p)
       p->adr5 = p->p5 = p->adr4 + *sizp++;
       p->adr6 = p->p6 = p->adr5 + *sizp++;
       if (p->adr6 + *sizp != (MYFLT *) p->auxch.endp) {
-        printf(Str("revlpsiz inconsistent\n"));
-        longjmp(cenviron.exitjmp_,1);
+        csound->Die(csound, Str("revlpsiz inconsistent\n"));
       }
       p->prvt = FL(0.0);
     }
@@ -897,7 +898,7 @@ int rvbset(ENVIRON *csound, REVERB *p)
 int reverb(ENVIRON *csound, REVERB *p)
 {
     MYFLT       *asig, *p1, *p2, *p3, *p4, *p5, *p6, *ar, *endp;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
 
     if (p->auxch.auxp==NULL) { /* RWD fix */
       return csound->PerfError(csound, Str("reverb: not intialised"));
@@ -972,7 +973,7 @@ int pan(ENVIRON *csound, PAN *p)
 {
     MYFLT       *r1, *r2, *r3, *r4, *sigp, ch1, ch2, ch3, ch4;
     long        xndx, yndx, flen;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
     FUNC        *ftp;
 
     ftp = p->ftp;

@@ -163,11 +163,6 @@
 #define pidsr               csound->pidsr_
 #define mpidsr              csound->mpidsr_
 #define mtpdsr              csound->mtpdsr_
-#ifdef printf
-#undef printf
-#endif
-#define printf(x)                       \
-  #error "Do not use printf() in plugin sources. Use csound->Message() instead."
 
 #ifdef Str
 #undef Str
