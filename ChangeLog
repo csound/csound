@@ -1,6 +1,11 @@
+2004-10-16  John ffitch  <jpff@codemist.co.uk>
+
+	* Opcodes/sfont.c (Sfplist, filter_string): Removed static array
+	to local in caller
+
 2004-10-07 	Steven Yi	<stevenyi@csounds.com>
 	* Top/dl_opcodes.c (csoundOpenLibrary): Fixed to work with cygwin
-	
+
 	* Top/thread.s : Fixed to work with cygwin
 
 2004-09-17  John ffitch  <jpff@codemist.co.uk>
@@ -11,22 +16,22 @@
 
 	* Restored PortAudio to ASIO only, re-ordered 'notify' and 'wait' for
 	better logic and performance.
-	
+
 	* Improved PortAudio stop/restart by returning PaAbort from callbacks.
 
 	* Moved Windows DLLs to csound5 root directory.
-	
+
 	* Added SIGINT to Windows signals handled.
-	
+
 	* Improved order of directives and comments in custom.py.
-	
+
 	* Updated csound.pdf to reflect the above.
-	
+
 2004-09-11  Steven Yi  <stevenyi@csounds.com>
 
 	* SConstruct: Changed to use prefix directory from command line 
 	argument, defaults to /usr/local
-	
+
 	* SConstruct: Changed install-opcodes to install to 
 	"prefix + /lib/csound/opcodes"
 
@@ -67,18 +72,18 @@
 2004-08-12  Michael Gogins <gogins@pipeline.com>
 
 	* Re-arranged sections in csound.pdf to be more helpful for beginners.
-	
+
 	* Updated csound.pdf to reflect availability of ASIO on Windows.
 
 2004-08-10  Michael Gogins <gogins@pipeline.com>
 
 	* Implemented threads and mutexes in the Csound API for Windows and Linux,
 	in Top/threads.c.
-	
+
 	* Implemented low-latency PortAudio with a blocking wrapper that uses 
     mutexes for asynchronus ASIO on MinGW/Windows, in InOut/pa_blocking.c and 
 	H/pa_blocking.h.
-	
+
 	* Fixed Top/threads.c so it compiles on Linux.
 
 2004-08-05  Michael Gogins <gogins@pipeline.com>
@@ -90,15 +95,15 @@
 
 	* Removed many warnings, especially by using %lf in sscanf for USE_DOUBLE
 	and re-ordering ctor lists.
-	
+
 	* Added section to build Loris from sources if present.
-	
+
 	* SWIG-generated .py files now generated in root directory.
 
 2004-07-25  Michael Gogins <gogins@pipeline.com>
 
 	* Added csoundTableLength, csoundTableGet, csoundTableSet to API.
-	
+
 	* Added pyinit opcode.
 
 2004-07-24  Michael Gogins <gogins@pipeline.com>
@@ -111,12 +116,12 @@
 
 2004-07-23  Michael Gogins <gogins@pipeline.com>
 
-	* Loris: added sources (for Csound 5 opcode ONLY) and prebuilt binaries
-    (for MinGW/Windows with USE_DOUBLE ONLY) for _loris.dll, which is both
-    a plugin Csound 5 opcode and a Python extension module.
-    
-    * Modified dl_opcodes.c to print debugging info off the -v option, and
-    made the messages clearer.
+	* Loris: added sources (for Csound 5 opcode ONLY) and prebuilt
+	binaries (for MinGW/Windows with USE_DOUBLE ONLY) for _loris.dll,
+	which is both a plugin Csound 5 opcode and a Python extension module.
+
+       * Modified dl_opcodes.c to print debugging info off the -v option,
+       and made the messages clearer. 
 
 2004-07-21  Michael Gogins <gogins@pipeline.com>
 
@@ -184,7 +189,7 @@
 2004-07-05  Anthony Kozar <anthony.kozar@utoledo.edu>
 
 	* Top/argdecode.c (argdecode): don't keep tmp files on Mac
-	
+
 	* Engine/sread.c (ifa): Rest of ^+ bug fix from csound module.
 
 2004-07-04  John ffitch  <jpff@codemist.co.uk>
@@ -208,7 +213,7 @@
 2004-06-25  Anthony Kozar <anthony.kozar@utoledo.edu>
 
 	* These are all changes to allow compilation on MacOS 9
-	
+
 	* Top/csound.c:  In declaration of csoundExternalMidiRead(), made mbuf
 	 unsigned char* to match other calls.
 
@@ -319,7 +324,6 @@
 
 	* Top/main.c (install_signal_handler): Restore signal handling
 
-	
 2004-05-17  John ffitch  <jpff@codemist.co.uk>
 
 	* InOut/rtpa.c (playopen_): Allow selection of ALSA device via
@@ -424,17 +428,17 @@
 
 	* Added a new csoundPerformKsmpsAbsolute API function for calling
 	kperf without a score. 
-      
+
 	* Restored external MIDI interface callbacks to working
 	order. Renamed the Open and Close callbacks to DeviceOpen and
 	DeviceClose to clarify their actual function.
-    
+
 	* Many fixes in CsoundVST to get it working for Csound 5.
-    
+
 2004-04-29  Michael Gogins <gogins@pipeline.com>
 
 	* Made inbuf and outbuf MYFLT * throughout the sources.
-    
+
 	* Moved "extern" function and data declarations from csound.c to
 	prototyp.h  as much as possible, in order to prevent
 	inconsistencies from spreading. 
@@ -488,7 +492,7 @@
 	* InOut/rtpa.c: modifed code to use PortAudio device 1 by default if 
 	none given.  Messages are now given to user if defaulting to device 1 
 	or what device user has selected.
-	
+
 	* Top/main.c: changed strcmp to strncmp when looking for dac or 
 	devaudio to allow use of --sched when using on linux and selecting
 	PortAudio devices (i.e. dac1, devaudio3)
@@ -515,9 +519,9 @@
 	not _SNDFILE_.
 
 	Removed jpff_glue.c as its function is now performed by csound.c.
-	
+
 	Deleted load_opcodes.c after merging it with dl_opcodes.c.
-	
+
 
 2004-02-22  Michael Gogins <gogins@pipeline.com>
 
@@ -570,13 +574,13 @@
 2003-11-29	Steven Yi 	<stevenyi@csounds.com>
 
 	* H/cs.h: all thing except compability macros moved out to csoundCore.h
-	
+
 	* H/csoundCore.h: contains everything except compability macros
-	
+
 	* Top/csound.c: edited to use ENVIRON, #include csoundCore.h instead of 
 	cs.h (macros were getting in the way of compiling), still needs to be 
 	reconciled with main.c::csoundCompile before being usable
-	
+
 2003-11-25  John ffitch  <jpff@codemist.co.uk>
 
 	* OOps/vbap_zak.c (vbap_zak_moving_init): Fix zastart/zkstart
@@ -816,8 +820,8 @@
 
 	* insert.c (deact): revised
 	(beatexpire, timexpire): use revised deact
-	(subinstrset, subinstr, xinset, xoutset) rewritten	
-	
+	(subinstrset, subinstr, xinset, xoutset) rewritten
+
 	* insert.h: structure OPCOD_IOBUFS
 
 	* cs.h: New structure INSTRNAME (Istvan)
@@ -1154,7 +1158,7 @@
 2002-08-21  John ffitch  <jpff@codemist.co.uk>
 
 	* VERSION 4.21
-	
+
 	* cmath.c (ipow): Added normalisation and check for NaN
 	(kpow): Check
 	(apow): Check more complex here
@@ -1222,7 +1226,7 @@
 
 	* ugens2.c (tabli): Fixed bug in no-wrap case
 	(tabl3): Ditto
-	
+
 	* ugensa.c (newpulse, fogset): Ditto
 
 	* ugens7.c (newpulse): Newpulse only if not iskip
@@ -1447,7 +1451,7 @@
 2002-06-01  John  <jpff@cage.codemist.co.uk>
 
 	* VERSION 4.20
-	
+
 	* midiops.c (pchmidib): Same for pitchbend_value expansion
 
 	* linevent.c (RTLineset): Local copy of Linepine to avoid OSX
@@ -1517,7 +1521,6 @@
 
 	* cs.h: Declare e0dbfs, dbfs_to_float
 	tran_0dbfs in cglob
-	
 
 2002-05-30  John  <jpff@cage.codemist.co.uk>
 
@@ -1530,7 +1533,7 @@
 	* entry2.c: New opcodes midinoteoff, midinoteonkey, midinoteoncps,
 	midinoteonoct, midinoteonpch, midipolyaftertouch, midicontrolchange,
 	midiprogramchange, midichannelaftertouch, midipitchbend, mididefault
-	
+
 	* midiinterop.c: 
 	* midiinterop.h: New code, from Michael Gogins with some changes
 
@@ -3207,7 +3210,7 @@
 	corrected confusions between float and FLOAT
 
 	***** SPELL-CHECKED TO HERE *****
-	
+
 2000-08-17    <jpff@cage>
 
 	* soundio.c: flinbufp and floutbufp shoudl be float (not FLOAT)
