@@ -27,7 +27,6 @@
 /**************************************************************/
 #include "cs.h"
 #include "dsputil.h"
-#include "fft.h"
 #include "pvoc.h"
 #include "pvread.h"
 #include "soundio.h"

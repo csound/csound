@@ -24,7 +24,6 @@
 #include "cs.h"   /*      UGENS8.C        */
 #include <math.h>
 #include "dsputil.h"
-#include "fft.h"
 #include "pvoc.h"
 #include "pvocext.h"
 #include "ugens8.h"
@@ -163,7 +162,8 @@ int pvset(ENVIRON *csound, PVOC *p)
     p->frPrtim = csound->esr/((MYFLT) p->frInc);
     /* factor by which to mulitply 'real' time index to get frame index */
     size = pvfrsiz(p);          /* size used in def of OPWLEN ? */
-    p->scale = csound->e0dbfs*FL(2.0)*((MYFLT)csound->ksmps)/((MYFLT)OPWLEN*(MYFLT)pvfrsiz(p));
+    p->scale = csound->e0dbfs*FL(2.0)*((MYFLT)csound->ksmps)/((MYFLT)OPWLEN);
+    p->scale *= csound->GetInverseRealFFTScale(csound, (int) size);
     /* 2*incr/OPWLEN scales down for win ovlp, windo'd 1ce (but 2ce?) */
     /* 1/frSiz is the required scale down before (i)FFT */
     p->prFlg = 1;    /* true */
@@ -262,8 +262,8 @@ int pvoc(ENVIRON *csound, PVOC *p)
 
     Polar2Rect(buf, asize);
     /* kill spurious imag at dc & fs/2 */
-    buf[1] = FL(0.0); buf[size+1] = FL(0.0);
-    FFT2torlpacked((complex *) buf, size, p->scale, (complex *) NULL);
+    buf[1] = buf[size]; buf[size] = buf[size + 1] = FL(0.0);
+    csound->InverseRealFFT(csound, buf, (int) size);
     if (pex != FL(1.0))
       UDSample(buf,(FL(0.5)*((MYFLT)size - pex*(MYFLT)buf2Size))/*a*/,
                buf2, size, buf2Size, pex);
@@ -277,6 +277,11 @@ int pvoc(ENVIRON *csound, PVOC *p)
     if (p->opBpos > circBufSize)     p->opBpos -= circBufSize;
     addToCircBuf(buf2+csound->ksmps,p->outBuf,p->opBpos,buf2Size-csound->ksmps,circBufSize);
     p->lastPex = pex;        /* needs to know last pitchexp to update phase */
+    {
+      int i;
+      for (i = 0; i < csound->ksmps; i++)
+        p->rslt[i] *= p->scale;
+    }
     return OK;
 }
 

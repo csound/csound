@@ -46,7 +46,6 @@ extern "C" {
 #include "sysdep.h"
 #include "cwindow.h"
 #include "opcode.h"
-#include "fft.h"
 #include "version.h"
 #include <sndfile.h>
 #include "csound.h"
@@ -698,12 +697,7 @@ extern "C" {
     MYFLT (*intpow_)(MYFLT, long);
     char *(*unquote_)(char *);
     MEMFIL *(*ldmemfile_)(void*, const char*);
-    void (*err_printf_)(char *, ...);
     FUNC *(*hfgens_)(struct ENVIRON_*, EVTBLK *);
-    int (*IsPowerOfTwo_)(long);
-    void (*FFT2torlpacked_)(complex *, long, MYFLT, complex *);
-    void (*FFT2realpacked_)(complex *, long, complex *);
-    void (*cxmult_)(complex *,complex *,long);
     int (*getopnum_)(char *s);
     long (*strarg2insno_)(struct ENVIRON_ *csound, MYFLT *p, char *s);
     long (*strarg2opcno_)(struct ENVIRON_ *csound, MYFLT *p, char *s,
@@ -711,7 +705,6 @@ extern "C" {
     INSDS *(*instance_)(int insno);
     void (*rewriteheader_)(SNDFILE *ofd, int verbose);
     void (*writeheader)(int ofd, char *ofname);
-    void (*Printf)(const char *format, ...);
     int (*PerformKsmpsAbsolute_)(void *csound);
     int (*GetDebug)(void *csound);
     void (*SetDebug)(void *csound, int d);
@@ -933,18 +926,6 @@ extern "C" {
 #endif
 
 #include "prototyp.h"
-  extern void err_printf(char *, ...);
-
-#ifdef MSVC /* VL MSVC fix */
-  __declspec(dllexport) extern void csoundPrintf(const char *, ...);
-#else
-  extern void csoundPrintf(const char *, ...);
-#endif
-
-#ifdef WIN32
-#define tmpnam mytmpnam
-  char *mytmpnam(char *);
-#endif
 
 #ifndef PI
 #define PI      (3.14159265358979323846)

@@ -1661,7 +1661,7 @@ static void __cdecl fltkRun(void *userdata)
     return;
 #endif
   Fl::run();
-  csound->Printf("end of widget thread\n");
+  csound->Message(csound, "end of widget thread\n");
 #if defined(LINUX) || defined(NETBSD)
   // IV - Aug 27 2002: exit if all windows are closed
   cleanup(csound);

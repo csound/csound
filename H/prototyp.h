@@ -96,6 +96,14 @@ void    rlsmemfiles(void*);
 int     delete_memfile(void*, const char*);
 int     find_memfile(void*, const char*, MEMFIL**);
 void    add_memfil(void*, MEMFIL*);
+void    err_printf(char *, ...);
+
+#ifdef WIN32
+#define tmpnam mytmpnam
+char    *mytmpnam(char *);
+#endif
+
+void csoundPrintf(const char *format, ...);
 
 extern  OPARMS  O;
 extern  ENVIRON cenviron;

@@ -104,7 +104,7 @@ extern "C" {
 #ifdef printf
 #undef printf
 #endif
-#define printf cenviron.Printf
+#define printf csoundPrintf
 
 /*
  * Move the C++ guards to enclose the entire file,

@@ -35,7 +35,6 @@
 #include <unistd.h>
 #endif
 #include "soundio.h"
-#include "fft.h"
 #include "dsputil.h"
 #include "convolve.h"
 
@@ -195,7 +194,9 @@ static void takeFFT(
         fp1 += nchanls;
       }
       fp1 = inbuf + i + 1;
-      FFT2realpacked((complex *)outbuf, Hlenpadded, NULL);
+      csoundRealFFT(&cenviron, outbuf, (int) Hlenpadded);
+      outbuf[Hlenpadded] = outbuf[1];
+      outbuf[1] = outbuf[Hlenpadded + 1L] = FL(0.0);
       if (!csoundYield(&cenviron)) exit(1);
       /* write straight out, just the indep vals */
       write(ofd, (char *)outbuf, cvh->dataBsize/nchanls);
