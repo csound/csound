@@ -25,4 +25,12 @@
 	#include "Silence.hpp"
 %}
 %include "Silence.hpp"
-
+%pythoncode
+%{
+# Create one global instance of CppSound for CsoundVST to grab.
+# Create it in the main module, so that scripts for CsoundVST 
+# will also work in a standalone Python interpreter.
+import sys
+sys.modules["__main__"].csound = CppSound()
+sys.modules["__main__"].csound.thisown = 0
+%}

@@ -256,19 +256,20 @@ void CsoundVST::open()
 	{
 		PyErr_Print();
 	}
-	result = Shell::run("csound = CsoundVST.CppSound()\n");
-	if(result)
-	{
-		PyErr_Print();
-	}
+//	result = Shell::run("csound = CsoundVST.CppSound()\n");
+//	if(result)
+//	{
+//		PyErr_Print();
+//	}
+	PyObject *csoundVstModule = PyImport_ImportModule("CsoundVST");
+	PyObject *pyCsound = PyObject_GetAttrString(mainModule, "csound");
+	// No doubt SWIG or the Python API could do this directly,
+	// but damned if I could figure out how, and this works.
 	result = Shell::run("sys.stdout = sys.stderr = csound\n");
 	if(result)
 	{
 		PyErr_Print();
 	}
-	PyObject *pyCsound = PyObject_GetAttrString(mainModule, "csound");
-	// No doubt SWIG or the Python API could do this directly,
-	// but damned if I could figure out how, and this works.
 	PyObject* pyCppSound = PyObject_CallMethod(pyCsound, "getThis", "");
 	cppSound = (CppSound *) PyLong_AsLong(pyCppSound);
 	if(!cppSound)
