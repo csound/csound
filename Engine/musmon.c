@@ -126,7 +126,7 @@ static  MYFLT   *maxp;
 static  long    *rngp;
 static  EVENT   **ep, **epend;  /* pointers for stepping through lplay list */
 static  EVENT   *lsect = NULL;
-static  MYFLT   curbt, curp2;
+static  double  curbt, curp2;
 void    beep(void);
 extern  void    RTclose(void);
 
@@ -174,8 +174,8 @@ void musRESET(void)
     ep         = NULL;
     epend      = NULL;
     lsect      = NULL;
-    curbt      = FL(0.0);
-    curp2      = FL(0.0);
+    curbt      = 0.0;
+    curp2      = 0.0;
 }
 
 void print_maxamp(MYFLT x)                     /* IV - Jul 9 2002 */
@@ -265,14 +265,29 @@ int musmon(ENVIRON *csound)
       printf(Str("k-period aligned audio buffering\n"));
 #ifdef mills_macintosh
       if (O.msglevel & WARNMSG)
-        printf(Str(
-                   "WARNING: Will probably not work with playback routines\n"));
+        printf(Str("WARNING: Will probably not work with playback routines\n"));
 #endif
     }
-    if (!O.inbufsamps) {                  /* else keep the user values    */
-      if (!O.oMaxLag)  O.inbufsamps = IOBUFSAMPS;
-      else             O.inbufsamps = O.oMaxLag;
-      if (!O.outbufsamps) O.outbufsamps = IOBUFSAMPS; /* or get defaults  */
+    /* else keep the user values    */
+    if (!O.oMaxLag)
+      O.oMaxLag = IODACSAMPS;
+    if (!O.inbufsamps)
+      O.inbufsamps = IOBUFSAMPS;
+    if (!O.outbufsamps)
+      O.outbufsamps = IOBUFSAMPS;
+    /* IV - Feb 04 2005: make sure that buffer sizes for real time audio */
+    /* are usable */
+    if (O.infilename != NULL &&
+        (strncmp(O.infilename, "adc", 3) == 0 ||
+         strncmp(O.infilename, "devaudio", 8) == 0)) {
+      if (O.inbufsamps >= (O.oMaxLag >> 1))
+        O.inbufsamps = (O.oMaxLag >> 1);
+    }
+    if (O.outfilename != NULL &&
+        (strncmp(O.outfilename, "dac", 3) == 0 ||
+         strncmp(O.outfilename, "devaudio", 8) == 0)) {
+      if (O.outbufsamps >= (O.oMaxLag >> 1))
+        O.outbufsamps = (O.oMaxLag >> 1);
     }
 #ifdef mills_macintosh
     if (IsNotAPowerOf2(O.outbufsamps) != 0) {
@@ -297,7 +312,7 @@ int musmon(ENVIRON *csound)
     else sfnopenout();
     iotranset();                    /* point recv & tran to audio formatter */
 
-    curp2 = curbt = FL(0.0);
+    curp2 = curbt = 0.0;
     if (O.Beatmode)                 /* if performing from beats */
       settempo((MYFLT)O.cmdTempo);  /*   set the initial tempo  */
 
@@ -479,10 +494,13 @@ void kturnon(ENVIRON *csound)/* turn on instrs due in turnon list */
     } else frsturnon = NULL;
 }
 
+/* IV - Feb 04 2005 */
+#define RNDINT(x) ((int) ((double) (x) + ((double) (x) < 0.0 ? -0.5 : 0.5)))
+
 static int playevents(ENVIRON *csound)
 {  /* play all events in a score or an lplay list */
     int     n;
-    MYFLT   prvbt, nxtim, nxtbt;
+    double  prvbt, nxtim, nxtbt;
     MYFLT   *smaxp;
     unsigned long    *maxps, *smaxps;
     long    *srngp;
@@ -501,7 +519,6 @@ static int playevents(ENVIRON *csound)
     retest:
       offonly = 0;
       currevent = e;
-#define RNDINT(x) ((int)(x + FL(0.5)))
       switch (e->opcod) {
       case 'w':
         if (O.Beatmode)                     /* Beatmode: read 'w'  */
@@ -833,9 +850,10 @@ static int playevents(ENVIRON *csound)
 
 /* a reworking of playevents to process one event at a time
    outside of the audio process loop */
+
 int sensevents(ENVIRON *csound)
 {
-    static MYFLT   prvbt = FL(0.0), nxtim = FL(0.0), nxtbt = FL(0.0);
+    static double  prvbt = 0.0, nxtim = 0.0, nxtbt = 0.0;
     static MYFLT   *smaxp;
     static unsigned long    *maxps, *smaxps;
     static long    *srngp;
@@ -845,7 +863,7 @@ int sensevents(ENVIRON *csound)
     int     n;
     char    opcod = ' ';
 
-    if (!csoundYield(&cenviron)) longjmp(cenviron.exitjmp_,1);
+    if (!csoundYield(csound)) longjmp(csound->exitjmp_,1);
 
     /* read each score event:       */
     if (kcnt <= 0) {
@@ -884,7 +902,7 @@ int sensevents(ENVIRON *csound)
 /*             printf("%ld\n", *smaxps); */
           }
 
-          *maxp = 0.0f;
+          *maxp = FL(0.0);
           *maxps = 0;
           *srngp++ += *rngp;
           *rngp++ = 0;
@@ -921,31 +939,36 @@ int sensevents(ENVIRON *csound)
         if (O.Beatmode)                     /* Beatmode: read 'w'  */
           settempo(e->p2orig);              /*   to init the tempo */
         return(0);                          /*   for this section  */
+      case 'q':
       case 'i':
       case 'f':
       case 'a':
         if (frstoff != NULL) {
           if (O.Beatmode) {
-            if (frstoff->offbet < e->p2orig)
+            if (RNDINT((double) ekrbetsiz * (double) frstoff->offbet)
+                < RNDINT((double) ekrbetsiz * (double) e->p2orig))
               goto setoff;
           }
           else {
-            if (frstoff->offtim < e->p[2])
+            if (RNDINT((double) ekr * (double) frstoff->offtim)
+                < RNDINT((double) ekr * (double) e->p[2]))
               goto setoff;
           }
         }
         nxtim = e->p[2];
         nxtbt = e->p2orig;
-        /* **** This seems to fix a Macintosh problem **** */
-#ifndef __MACH__
-        if (curp2 < nxtim)  /* if we havent gotten to the next starttime then */
-          offonly = 1;      /* need to set this to avoid inserting too early */
-#else
-        if ((int)(ekr*curp2) < (int)(ekr*nxtim))
+        if (O.Beatmode) {
+          if (RNDINT((double) ekrbetsiz * (double) curp2)
+              < RNDINT((double) ekrbetsiz * (double) nxtim))
                             /* if we havent gotten to the next starttime then */
-          offonly = 1;      /* need to set this to avoid inserting too early */
-#endif
-        /* **** End of Mac fix **** */
+            offonly = 1;    /* need to set this to avoid inserting too early */
+        }
+        else {
+          if (RNDINT((double) ekr * (double) curp2)
+              < RNDINT((double) ekr * (double) nxtim))
+                            /* if we havent gotten to the next starttime then */
+            offonly = 1;    /* need to set this to avoid inserting too early */
+        }
         break;
       case 'l':
         if (frstoff != NULL)
@@ -973,23 +996,25 @@ int sensevents(ENVIRON *csound)
       }
 
       if (O.Beatmode)
-        kcnt = (long)((nxtbt - curbt) * ekrbetsiz + FL(0.5));
+        kcnt = (long) RNDINT(((double) nxtbt - (double) curbt)
+                             * (double) ekrbetsiz);
       else
-        kcnt = (long)((nxtim - curp2) * ekr + FL(0.5));
-      needsCleanup = kcnt;
+        kcnt = (long) RNDINT(((double) nxtim - (double) curp2)
+                             * (double) ekr);
+      needsCleanup = (int) kcnt;
     }
 
     /* sense realtime events */
     if (O.RTevents) {
-      if ((O.Midiin && (sensType = sensMidi())) ||      /* if MIDI note message */
+      if ((O.Midiin && (sensType = sensMidi())) ||    /* if MIDI note message */
           (O.FMidiin && kcounter >= FMidiNxtk && (sensType = sensFMidi())) ||
           (O.Linein && (sensType = sensLine())) ||    /* or Linein event */
           (O.OrcEvts && (sensType = sensOrcEvent()))) /* or triginstr event */
                                                     /*(re Aug 1999) */
         {
           /* calc p2 */
-          curp2 = (nxtim - kcnt * onedkr);
-          curbt = (nxtbt - kcnt * onedkr);
+          curp2 = (double) nxtim - (double) kcnt * (double) onedkr;
+          curbt = (double) nxtbt - (double) kcnt * (double) onedkr;
 
           if (sensType == 1) {                 /*    for Linein,       */
             e = Linevtblk;                     /*      get its evtblk  */
@@ -1005,36 +1030,6 @@ int sensevents(ENVIRON *csound)
             }
             if (OrcTrigEvts.nxtevt == NULL) O.OrcEvts = 0;
           }
-/*        else if (sensType == 4) {   /\* Realtime orc event (re Aug 1999) *\/ */
-/*             EVTNODE *evtlist = OrcTrigEvts.nxtevt; */
-/*             while (evtlist && evtlist->kstart <= kcounter) { */
-/*               int insno = evtlist->insno; */
-/*               e = &evtlist->evt; */
-/*               evtlist = OrcTrigEvts.nxtevt = evtlist->nxtevt; */
-/*               /\* If several events pending we must insert all but one *\/ */
-/*               if (evtlist && evtlist->kstart <= kcounter) { */
-/*                 /\* code copied from switch(e->opcod) case 'i' below *\/ */
-/*                 if (e->p[1] < FL(0.0))       /\* if p1 neg,             *\/ */
-/*                   infoff(-e->p[1]);          /\*  turnoff any infin cpy *\/ */
-/*                 else { */
-/*                   if (O.Beatmode && e->p3orig >= FL(0.0)) */
-/*                     e->p[3] = e->p3orig * betsiz; */
-/*                   if (n = insert(insno, e)) {  /\* alloc,init,activate *\/ */
-/*                     printf("\t\t   T%7.3f",curp2); */
-/*                     printf(Str(*/
-/*                                "schedkwhen note deleted." */
-/*                                "  i%d had %d init errors\n"), */
-/*                            insno, n); */
-/*                     perferrcnt++; */
-/*                   } */
-/*                   /\* free event mmalloced in schedule.c *\/ */
-/*                   /\* --- end code copy --- *\/ */
-/*                   mfree(e); /\* free event allocated in schedule.c *\/ */
-/*                 } */
-/*               } */
-/*             } */
-/*             if (OrcTrigEvts.nxtevt == NULL) O.OrcEvts = 0; */
-/*           } */
 
           /* if (!kdone) */                 /* if null duration,    */
           /*  goto mtest; */               /*  chk for midi on-off */
@@ -1082,7 +1077,7 @@ int sensevents(ENVIRON *csound)
           }
           else {                     /*  else some kind of off */
             do {
-              if (!csoundYield(&cenviron)) longjmp(cenviron.exitjmp_,1);
+              if (!csoundYield(csound)) longjmp(csound->exitjmp_,1);
               if (ip->xtratim) {     /*    if offtime delayed  */
                 ip->relesing = 1;    /*     enter reles phase  */
                 ip->offtim = (kcounter + ip->xtratim) * onedkr;
@@ -1097,6 +1092,34 @@ int sensevents(ENVIRON *csound)
     else switch (e->opcod) {          /* scorevt or Linevt:     */
     case 'e':
       goto scode;               /* quit realtime */
+    case 'q':
+      if (e->p[1] == SSTRCOD && e->strarg) {            /* IV - Oct 31 2002 */
+        if ((insno = (int) named_instr_find(e->strarg)) < 1) {
+          if (sensType) printf("\t\t   T%7.3f",curp2);
+          else  printf("\t  B%7.3f",curbt);
+          printf(Str(" - note deleted. instr %s undefined\n"), e->strarg);
+          perferrcnt++; break;
+        }
+        printf(Str("Setting instrument %s %s\n"),
+               e->strarg, (e->p[3]==0 ? Str("off") : Str("on")));
+        instrtxtp[insno]->muted = (short)e->p[3];
+      }
+      else {                                            /* IV - Oct 31 2002 */
+        insno = abs((int)e->p[1]);
+        if (insno > maxinsno || instrtxtp[insno] == NULL) {
+          if (sensType) printf("\t\t   T%7.3f",curp2);
+          else  printf("\t  B%7.3f",curbt);
+          printf(Str(" - note deleted. instr %d(%d) undefined\n"),
+                 insno, maxinsno);
+          perferrcnt++;
+        }
+        else {
+          printf(Str("Setting instrument %d %s\n"),
+                 insno, (e->p[3]==0 ? Str("off") : (Str("on"))));
+          instrtxtp[insno]->muted = (short)e->p[3];
+        }
+      }
+      break;
     case 'i':
       if (e->p[1] == SSTRCOD && e->strarg) {          /* IV - Oct 31 2002 */
         if ((insno = (int) named_instr_find(e->strarg)) < 1) {
@@ -1106,8 +1129,8 @@ int sensevents(ENVIRON *csound)
           perferrcnt++; break;
         }
         e->p[1] = (MYFLT) insno;
-        if (O.Beatmode && e->p3orig >= 0.)
-          e->p[3] = e->p3orig * betsiz;
+        if (O.Beatmode && e->p3orig >= FL(0.0))
+          e->p[3] = ((double) e->p3orig * (double) betsiz);
         if ((n = insert(csound,insno,e))) {  /* else aloc,init,activat */
           if (sensType) printf("\t\t   T%7.3f", curp2);
           else  printf("\t  B%7.3f", curbt);
@@ -1129,7 +1152,7 @@ int sensevents(ENVIRON *csound)
           infoff(-e->p[1]);   /*  turnoff any infin cpy */
         else {
           if (O.Beatmode && e->p3orig >= FL(0.0))
-            e->p[3] = e->p3orig * betsiz;
+            e->p[3] = ((double) e->p3orig * (double) betsiz);
           if ((n = insert(csound,insno,e))) {  /* else aloc,init,activat */
             if (sensType) printf("\t\t   T%7.3f",curp2);
             else  printf("\t  B%7.3f",curbt);
@@ -1144,8 +1167,8 @@ int sensevents(ENVIRON *csound)
       fgens(csound, e);
       break;
     case 'a':
-      curp2 = e->p[2] + e->p[3];
-      curbt = e->p2orig + e->p3orig;
+      curp2 = ((double) e->p[2] + (double) e->p[3]);
+      curbt = ((double) e->p2orig + (double) e->p3orig);
       printf(Str("time advanced %5.3f beats by score request\n"),
              e->p3orig);
       break;
@@ -1178,7 +1201,7 @@ int sensevents(ENVIRON *csound)
     if ((opcod = e->opcod) == 's' ||      /* for s, or e after s   */
         (opcod == 'e' && sectno > 1)) {
       timtot += curp2;
-      nxtim = nxtbt = prvbt = curbt = curp2 = FL(0.0);
+      nxtim = nxtbt = prvbt = curbt = curp2 = 0.0;
       printf(Str("end of section %d\t sect peak amps:"),sectno);
       for (n=nchnls, maxp=smaxamp; n--; )
         print_maxamp (*maxp++);                 /* IV - Jul 9 2002 */
@@ -1211,7 +1234,7 @@ int sensevents(ENVIRON *csound)
       orcompact();                            /*   rtn inactiv spc */
       if (actanchor.nxtact == NULL)           /*   if no indef ins */
         rlsmemfiles();                        /*    purge memfiles */
-      nxtim = nxtbt = curp2 = curbt = FL(0.0);        /*   reset sec times */
+      nxtim = nxtbt = curp2 = curbt = 0.0;    /*   reset sec times */
       printf(Str("SECTION %d:\n"), ++sectno);
 #ifdef mills_macintosh
       fflush(stdout);
