@@ -38,6 +38,7 @@ class CsoundVstFltk;
 #include <FL/Fl_Check_Button.H>
 #include <FL/Fl_Group.H>
 #include <list>
+#undef KeyPress
 #include "CsoundVST.hpp"
 #include "CsoundVstUi.h"
 

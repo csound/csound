@@ -540,8 +540,8 @@ typedef struct ENVIRON_
                                                                va_list valist));
   int (*GetMessageLevel)(void *csound);
   void (*SetMessageLevel)(void *csound, int messageLevel);
-  void (*InputMessage)(void *csound, const char *message_);
-  void (*KeyPress)(void *csound, char c);
+  void (*InputMessage)(void *csound, const char *message__);
+  void (*KeyPress)(void *csound, char c__);
   void (*SetInputValueCallback)(void *csound,
                                 void (*inputValueCalback)(void *hostData,
                                                           char *channelName,

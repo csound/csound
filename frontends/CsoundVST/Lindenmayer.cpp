@@ -22,7 +22,9 @@
 #include "Lindenmayer.hpp"
 #include <iostream>
 #include <sstream>
+#if defined(HAVE_IO_H)
 #include <io.h>
+#endif
 #include <stdio.h>
 
 namespace csound
