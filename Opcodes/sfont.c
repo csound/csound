@@ -98,7 +98,7 @@ void fill_pitches(void)
 void SoundFontLoad(ENVIRON *csound, char *fname)
 {
     FILE *fil;
-    char pathnam[255];
+    char *pathnam;
     csound->Printf("\n"
            "******************************************\n"
            "**  Csound SoundFont2 support ver. 1.2  **\n"
@@ -106,32 +106,21 @@ void SoundFontLoad(ENVIRON *csound, char *fname)
            "**        g.maldonado@agora.stm.it      **\n"
            "** http://web.tiscalinet.it/G-Maldonado **\n"
            "******************************************\n\n");
-    if (( fil = fopen(fname,"rb")) == NULL) {
-#if defined(WIN32) && !defined(__CYGWIN__) && defined(MSVC)
-      extern volatile int _errno;
-#define errno _errno
-#endif
-      char bb[256];
-      strcpy(pathnam, fname);  /* in case of error message */
-      if (!csound->isfullpath_(fname)) {
-        if (csound->ssdirpath_ != NULL) {
-          strcpy(pathnam, csound->catpath_(csound->ssdirpath_, fname));
-          if ((fil = fopen(pathnam,"rb")) != NULL) goto done;
-        }
-        if (csound->sfdirpath_ != NULL) {
-          strcpy(pathnam, csound->catpath_(csound->sfdirpath_, fname));
-          if (( fil = fopen(pathnam,"rb")) != NULL) goto done;
-        }
-      }
-      sprintf(bb,
-              csound->LocalizeString(
-                  "sfload: cannot open SoundFont file \"%s\" (error %s)"),
-              fname, strerror(errno));
+    pathnam = csound->FindInputFile(csound, fname, "SFDIR;SSDIR");
+    fil = NULL;
+    if (pathnam != NULL)
+      fil = fopen(pathnam, "rb");
+    if (fil == NULL) {
+      char bb[512];
+      if (pathnam != NULL)
+        mfree(csound, pathnam);
+      sprintf(bb, Str("sfload: cannot open SoundFont file \"%s\" (error %s)"),
+                  fname, strerror(errno));
       csound->die_(bb);
     }
- done:
     soundFont = &sfArray[currSFndx];
     strcpy(soundFont->name, pathnam);
+    mfree(csound, pathnam);
     chunk_read(fil, &soundFont->chunk.main_chunk);
     fclose(fil);
     fill_pitches();

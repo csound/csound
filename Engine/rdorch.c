@@ -270,13 +270,15 @@ FILE *fopen_path(char *name, char *basename, char *env, char *mode)
     if (p != NULL) {
       strcpy(p+1, name);
       if ((ff = fopen(name_full, mode))) return ff;
-                                /* Of us env argument */
     }
-    if ((p = csoundGetEnv(&cenviron, env))) {
-      sprintf(name_full, "%s%c%s", p, DIRSEP, name);
-      if ((ff = fopen(name_full, mode))) return ff;
+                                /* or use env argument */
+    ff = NULL;
+    p = csoundFindInputFile(&cenviron, name, env);
+    if (p != NULL) {
+      ff = fopen(p, mode);
+      mfree(&cenviron, p);
     }
-    return NULL;                /* or give up */
+    return ff;
 }
 
 static  long    ORCHSIZ;

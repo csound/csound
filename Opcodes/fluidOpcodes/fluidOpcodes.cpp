@@ -98,10 +98,6 @@
 #include <vector>
 #include <stdlib.h>
 
-#undef sfdirpath
-#undef ssdirpath
-
-
 #ifdef MAKEDLL
 #define PUBLIC __declspec(dllexport)
 #define DIR_SEP '\\'

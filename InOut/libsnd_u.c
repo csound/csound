@@ -226,11 +226,7 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
       sprintf(soundiname,"soundin.%ld",filno);  /* soundin.filno */
     sfname = soundiname;
     if ((sinfd = openin(sfname)) < 0) {         /* open with full dir paths */
-      if (isfullpath(sfname))
-        sprintf(errmsg,Str("soundin cannot open %s"), sfname);
-      else sprintf(errmsg,
-                   Str("soundin cannot find \"%s\" in its search paths"),
-                   sfname);
+      sprintf(errmsg,Str("soundin cannot open %s"), sfname);
       goto errtn;
     }
     /* IV - Feb 26 2005: should initialise sfinfo structure */

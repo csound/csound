@@ -65,11 +65,7 @@ static HEADATA *getsndinfo(SNDINFO *p)
       sfname = O.infilename;
     }
     if ((sinfd = openin(sfname)) < 0) {     /* open with full dir paths */
-      if (isfullpath(sfname))
-        sprintf(errmsg,Str("diskinfo cannot open %s"), sfname);
-      else
-        sprintf(errmsg,Str("diskinfo cannot find \"%s\" in its search paths"),
-                sfname);
+      sprintf(errmsg,Str("diskinfo cannot open %s"), sfname);
       /* RWD 5:2001 better to exit in this situation ! */
       die(errmsg);
     }

@@ -90,8 +90,6 @@
 #undef smaxpos
 #undef omaxpos
 #undef tieflag
-#undef ssdirpath
-#undef sfdirpath
 #undef tokenstring
 #undef polish
 #undef SCOREIN
@@ -130,7 +128,6 @@
 #undef pidsr
 #undef mpidsr
 #undef mtpdsr
-#undef sadirpath
 #undef hostdata
 #undef oparms
 #undef opcodeInfo
@@ -170,9 +167,7 @@
 #undef strarg2insno
 #undef strarg2opcno
 #undef instance
-#undef isfullpath
 #undef dies
-#undef catpath
 #undef rewriteheader
 #undef writeheader
 
@@ -325,8 +320,6 @@
 #define smaxpos csound->smaxpos_
 #define omaxpos csound->omaxpos_
 #define tieflag csound->tieflag_
-#define ssdirpath csound->ssdirpath_
-#define sfdirpath csound->sfdirpath_
 #define tokenstring csound->tokenstring_
 #define polish csound->polish_
 #define SCOREIN csound->scorein_
@@ -365,7 +358,6 @@
 #define pidsr csound->pidsr_
 #define mpidsr csound->mpidsr_
 #define mtpdsr csound->mtpdsr_
-#define sadirpath csound->sadirpath_
 #define hostdata_ csound->hostdata_
 #define oparms_ csound->oparms_
 #define opcodeInfo csound->opcodeInfo_     /* IV - Oct 20 2002 */
@@ -405,9 +397,7 @@
 #define strarg2insno csound->strarg2insno_
 #define strarg2opcno csound->strarg2opcno_
 #define instance csound->instance_
-#define isfullpath csound->isfullpath_
 #define dies csound->dies
-#define catpath csound->catpath_
 #define rewriteheader csound->rewriteheader_
 #define writeheader csound->writeheader_
 #define nchanik csound->nchanik_
