@@ -160,6 +160,11 @@ void paBlockingClose(PA_BLOCKING_STREAM *pabs)
   if (pabs) {
     if (pabs->paStream) {
       Pa_AbortStream(pabs->paStream);
+#ifndef MSVC
+      sleep(1);
+#else
+      sleep(1000);
+#endif
       mfree(pabs->actualBuffer);
       mfree(pabs);
       pabs->paStream = 0;
