@@ -49,7 +49,7 @@ typedef struct {
     
     bool released;
     
-} FLUIDPLAY;
+} FLUID_NOTE;
 
 typedef struct {
     OPDS    h;
