@@ -1,3 +1,9 @@
+2004-07-13  John Fitch  <jpff@eriboll.local.>
+
+	* InOut/widgets.cpp: Various changes to make __MACH__ machines be
+	line Linux.
+	(save_snap): Use fl_ask
+
 2004-07-11  Michael Gogins <gogins@pipeline.com>
 
 	* Added vst4cs plugin opcode by Andres Cabrera for hosting VST plugins

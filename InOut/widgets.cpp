@@ -85,7 +85,7 @@ extern "C" {
     //#define __cplusplus
 //    extern EVTBLK *currevent;    IV - Aug 23 2002
     extern char *unquote(char *name);
-#ifdef LINUX
+#if defined(LINUX) || defined(__MACH__)
     extern int cleanup();
     extern long srngcnt[], orngcnt[];   // from musmon.c
 #endif
@@ -120,8 +120,6 @@ static char hack_o_rama2;
  * mostly based on ideas by Dave Phillips (dlphip@bright.net)
  *
  */
-
-// #if defined(LINUX)   IV - Sep 8 2002: use this code on all platforms
 
 int
 FLkeyboard_sensing(void)
@@ -232,8 +230,6 @@ void ButtonSched(MYFLT  *args[], int numargs)
 
 // extern Fl_Window * FLkeyboard_init();
 // extern int FLkeyboard_sensing();
-
-// #endif /* defined(LINUX) */  IV - Sep 8 2002
 
 // ---- IV - Aug 23 2002 ---- included file: Fl_Knob.cxx
 
@@ -1449,6 +1445,7 @@ extern "C" int get_snap(FLGETSNAP *p)
     return OK;
 }
 
+#include <FL/fl_ask.H>
 
 extern "C" int save_snap(FLSAVESNAPS* p)
 {
@@ -1460,8 +1457,10 @@ extern "C" int save_snap(FLSAVESNAPS* p)
                          MB_TASKMODAL|MB_ICONWARNING |MB_OKCANCEL
                          );
     if (id != IDOK ) return OK;
-#elif defined(LINUX)
+#elif defined(LINUX) || defined(__MACH__)
     // put here some warning message!!
+    if (fl_ask("Saving could overwrite the old file\n"
+	       "Are you sure you want to save?")==0) return OK;
 #endif
     char     s[MAXNAME];
     string  filename;
@@ -1685,7 +1684,7 @@ extern "C" void widgetRESET(void)
 static void __cdecl fltkRun(void *s)
 {
     int j;
-#ifdef LINUX
+#if defined(LINUX) || defined(__MACH__)
     struct itimerval t1;
     // IV - Aug 27 2002: set up timer to automatically update display at 25 Hz
     t1.it_value.tv_sec = t1.it_interval.tv_sec = 0;
@@ -1705,7 +1704,7 @@ static void __cdecl fltkRun(void *s)
       Fl::unlock();
     }
     if (O.msglevel & WARNMSG) printf("WARNING: end of widget thread\n");
-#ifdef LINUX
+#if defined(LINUX) || defined(__MACH__)
     // IV - Aug 27 2002: exit if all windows are closed
     for (j = 0; j < nchnls; j++) {              // set overall maxamp
       orngcnt[j] += (rngcnt[j] + srngcnt[j]);   // based on current section
@@ -1744,7 +1743,7 @@ extern "C" void FL_run(FLRUN *p)
     threadHandle = _beginthread(fltkRun, 0, NULL);
     if (isActivatedKeyb)
       threadHandle = _beginthread(fltkKeybRun, 0, NULL);
-#elif defined(LINUX) || defined(someotherUNIXes)
+#elif defined(LINUX) || defined(__MACH__)
     pthread_attr_t a;
     pthread_t thread1;
     // IV - Aug 27 2002: widget thread is always run with normal priority
@@ -1753,6 +1752,8 @@ extern "C" void FL_run(FLRUN *p)
     pthread_attr_setinheritsched(&a, PTHREAD_EXPLICIT_SCHED);
     threadHandle = pthread_create(&thread1, &a, (void *(*)(void *)) fltkRun,
                                   NULL);
+#else
+#  error Nor run facility in FL_run
 #endif
 }
 
