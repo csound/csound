@@ -1,7 +1,7 @@
 print '''
 C S O U N D   5
 
-SCons build file for Csound 5: 
+SCons build file for Csound 5:
 API library, plugin opcodes, utilities, and front ends.
 
 By Michael Gogins <gogins at pipeline dot com>
@@ -24,7 +24,7 @@ import sys
 import string
 import zipfile
 import shutil
-import copy 
+import copy
 
 #############################################################################
 #
@@ -38,7 +38,7 @@ executables = []
 
 def today():
     return time.strftime("%Y-%m-%d",time.localtime())
-    
+
 def getPlatform():
     if sys.platform[:5] == 'linux':
         return 'linux'
@@ -49,7 +49,7 @@ def getPlatform():
     elif sys.platform[:6] == 'darwin':
         return 'darwin'
     else:
-        return 'unsupported'    
+        return 'unsupported'
 
 #############################################################################
 #
@@ -71,11 +71,11 @@ opts.Add('customLIBS')
 opts.Add('customLIBPATH')
 opts.Add('customSHLINKFLAGS')
 opts.Add('customSWIGFLAGS')
-opts.Add('useDouble', 
-    'Set to 1 to use double-precision floating point for audio samples.', 
+opts.Add('useDouble',
+    'Set to 1 to use double-precision floating point for audio samples.',
     '0')
-opts.Add('usePortAudio', 
-    'Set to 1 to use PortAudio for real-time audio input and output.', 
+opts.Add('usePortAudio',
+    'Set to 1 to use PortAudio for real-time audio input and output.',
     '1')
 opts.Add('useALSA',
     'Set to 1 to use ALSA for real-time audio input and output.',
@@ -83,11 +83,11 @@ opts.Add('useALSA',
 opts.Add('useJack',
     'Set to 1 if you compiled PortAudio to use Jack',
     '1')
-opts.Add('useFLTK', 
-    'Set to 1 to use FLTK for graphs and widget opcodes.', 
+opts.Add('useFLTK',
+    'Set to 1 to use FLTK for graphs and widget opcodes.',
     '1')
-opts.Add('buildCsoundVST', 
-    'Set to 1 to build CsoundVST (needs FLTK, boost, Python 2.3, SWIG).', 
+opts.Add('buildCsoundVST',
+    'Set to 1 to build CsoundVST (needs FLTK, boost, Python 2.3, SWIG).',
     '1')
 opts.Add('noCygwin',
     'Set to 1 to build with -mno-cygwin when using Cygwin',
@@ -206,7 +206,7 @@ elif getPlatform() == 'mingw' or getPlatform() == 'cygwin':
     commonEnvironment.Append(CCFLAGS = "-DOS_IS_WIN32")
     commonEnvironment.Append(CCFLAGS = "-mthreads")
     #commonEnvironment.Append(CCFLAGS = "-mtune=pentium4")
-    
+
 if (commonEnvironment['makeDynamic'] == '1') or (getPlatform() == 'linux') or (getPlatform() == 'darwin'):
     if (getPlatform() == 'linux'):
         commonEnvironment.Append(LINKFLAGS = Split('-Wl,-Bdynamic'))
@@ -219,11 +219,11 @@ if (commonEnvironment['noCygwin'] == '1' and getPlatform() == 'cygwin'):
     print 'CONFIGURATION DECISION: Using -mno-cygwin.'
     commonEnvironment.Prepend(CCFLAGS = ['-mno-cygwin'])
     commonEnvironment.Prepend(CPPFLAGS = ['-mno-cygwin'])
-    commonEnvironment.Append(LIBS = ['m'])    
-    
+    commonEnvironment.Append(LIBS = ['m'])
+
 # Check for prerequisites.
-# We check only for headers; 
-# checking for libs may fail even if they are present, 
+# We check only for headers;
+# checking for libs may fail even if they are present,
 # due to secondary dependencies.
 # Python is assumed to be present because scons requires it.
 
@@ -291,7 +291,7 @@ else:
     print "CONFIGURATION DECISION: Building Loris Python extension and Csound opcodes."
 if configure.CheckHeader("jni.h", language = "C++"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_JNI_H')
-        
+
 # Package contents.
 
 zipfilename = "csound5-" + getPlatform() + "-" + str(today()) + ".zip"
@@ -300,23 +300,23 @@ def buildzip(env, target, source):
 
     os.chdir('..')
     directories = string.split("csound5")
-    
+
     extensions = ".sln .csproj .vsproj .dev .def .am .sh .ac .in .dll .so .exe "
     extensions = extensions + ".doc .mso .png .xml .mso .gif .jpg .jpeg .hlp .nb .wks .xls "
     extensions = extensions + ".c .C .cpp .cxx .h .hpp .H .hxx .py .rc .res .fl .i .java .class "
     extensions = extensions + ".sf2 .SF2 .csd .aif .aiff .jar .smf .mid"
     extensions = string.split(extensions)
-    
+
     specificFiles = "SConstruct _CsoundVST.* _loris.* pyrun.* loris.py lorisgens.C lorisgens.h morphdemo.py trymorph.csd CsoundCOM.dll msvcp70.dll libsndfile.dll portaudio.dll.0.0.19 msvcr70.dll csound csound.exe CsoundVST CsoundVST.exe CsoundVST.* soundfonts.dll libpython23.a "
     specificFiles = specificFiles + "README Doxyfile ChangeLog COPYING INSTALL MANIFEST COPYRIGHT AUTHORS TODO all_strings french-strings english-strings"
     specificFiles = string.split(specificFiles)
-    
+
     print "Types of files to be archived..."
     extensions.sort()
     for extension in extensions:
         print extension
     print
-    
+
     print "Compiling list of files to archive..."
     pathnames = []
     for directory in directories:
@@ -345,7 +345,7 @@ def buildzip(env, target, source):
     archive.close()
     os.chdir('csound5')
     print
-    print "Finished packaging '" + zipfilename + "'."    
+    print "Finished packaging '" + zipfilename + "'."
 
 
 staticLibraryEnvironment = commonEnvironment.Copy()
@@ -358,14 +358,14 @@ if getPlatform() == 'darwin':
 
 csoundProgramEnvironment = commonEnvironment.Copy()
 csoundProgramEnvironment.Append(LIBS = ['csound', 'sndfile'])
-csoundProgramEnvironment.ParseConfig('fltk-config --cflags --cxxflags --ldflags') 
+csoundProgramEnvironment.ParseConfig('fltk-config --cflags --cxxflags --ldflags')
 
 ustubProgramEnvironment = commonEnvironment.Copy()
 ustubProgramEnvironment.Append(LIBS = ['ustub', 'sndfile'])
 
 vstEnvironment = commonEnvironment.Copy()
 if vstEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags'):
-    print "Parsed fltk-config." 
+    print "Parsed fltk-config."
 
 guiProgramEnvironment = commonEnvironment.Copy()
 
@@ -436,7 +436,7 @@ if getPlatform() == 'mingw':
 #
 #############################################################################
 
-makedb = ustubProgramEnvironment.Program('makedb', 
+makedb = ustubProgramEnvironment.Program('makedb',
     ['strings/makedb.c'])
 zipDependencies.append(makedb)
 
@@ -456,7 +456,7 @@ Engine/memfiles.c
 Engine/musmon.c
 Engine/namedins.c
 Engine/oload.c
-Engine/otran.c  
+Engine/otran.c
 Engine/rdorch.c
 Engine/rdscor.c
 Engine/scsort.c
@@ -565,11 +565,11 @@ else:
     libCsoundSources.append('InOut/FL_graph.cpp')
     libCsoundSources.append('InOut/winFLTK.c')
     libCsoundSources.append('InOut/widgets.cpp')
-    
-staticLibrary = staticLibraryEnvironment.Library('csound', 
+
+staticLibrary = staticLibraryEnvironment.Library('csound',
     libCsoundSources)
 zipDependencies.append(staticLibrary)
-    
+
 if commonEnvironment['generatePdf']=='0':
     print 'CONFIGURATION DECISION: Not generating PDF documentation.'
 else:
@@ -580,157 +580,157 @@ else:
     csoundPdf = commonEnvironment.Command('refman.pdf', 'doc/latex/refman.tex', ['pdflatex --include-directory=doc/latex --interaction=nonstopmode --job-name=CsoundAPI $SOURCE'])
     Depends(csoundPdf, refmanTex)
     zipDependencies.append(csoundPdf)
-    
+
 libUstubSources = Split('''
-Engine/extract.c 
-Engine/filopen.c 
-Engine/memalloc.c 
-Engine/memfiles.c 
-Engine/scsort.c 
-Engine/scxtract.c 
-Engine/sort.c 
-Engine/sread.c 
-Engine/swrite.c 
-Engine/twarp.c 
-InOut/libsnd.c 
+Engine/extract.c
+Engine/filopen.c
+Engine/memalloc.c
+Engine/memfiles.c
+Engine/scsort.c
+Engine/scxtract.c
+Engine/sort.c
+Engine/sread.c
+Engine/swrite.c
+Engine/twarp.c
+InOut/libsnd.c
 InOut/libsnd_u.c
-InOut/winascii.c 
-InOut/window.c 
-InOut/winEPS.c 
-InOut/winFLTK.c 
-OOps/dsputil.c 
-OOps/fft.c 
-OOps/mxfft.c 
-OOps/lptrkfns.c 
-OOps/pvfileio.c 
-OOps/pvoc.c 
-OOps/pvocext.c 
-OOps/pvread.c 
-OOps/pvsanal.c 
-OOps/pvxanal.c 
-OOps/sdif.c 
-Top/cvanal.c 
-Top/getstring.c 
-Top/hetro.c 
-Top/lpanal.c 
-Top/natben.c 
-Top/pvanal.c 
-Top/pvlook.c 
-Top/scot.c 
-Top/sndinfo.c 
-Top/ustub.c 
+InOut/winascii.c
+InOut/window.c
+InOut/winEPS.c
+InOut/winFLTK.c
+OOps/dsputil.c
+OOps/fft.c
+OOps/mxfft.c
+OOps/lptrkfns.c
+OOps/pvfileio.c
+OOps/pvoc.c
+OOps/pvocext.c
+OOps/pvread.c
+OOps/pvsanal.c
+OOps/pvxanal.c
+OOps/sdif.c
+Top/cvanal.c
+Top/getstring.c
+Top/hetro.c
+Top/lpanal.c
+Top/natben.c
+Top/pvanal.c
+Top/pvlook.c
+Top/scot.c
+Top/sndinfo.c
+Top/ustub.c
 ''')
 
-ustub = staticLibraryEnvironment.Library('ustub', 
+ustub = staticLibraryEnvironment.Library('ustub',
     libUstubSources)
 zipDependencies.append(ustub)
 
 # Plugin opcodes.
 
-pluginLibraries.append(pluginEnvironment.SharedLibrary('babo', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('babo',
     ['Opcodes/babo.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('bbcut', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('bbcut',
     ['Opcodes/bbcut.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('biquad', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('biquad',
     ['Opcodes/biquad.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('butter', 
-    ['Opcodes/butter.c']))    
-pluginLibraries.append(pluginEnvironment.SharedLibrary('clfilt', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('butter',
+    ['Opcodes/butter.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('clfilt',
     ['Opcodes/clfilt.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('cross2', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('cross2',
     ['Opcodes/cross2.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('dam', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('dam',
     ['Opcodes/dam.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('dcblockr', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('dcblockr',
     ['Opcodes/dcblockr.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('filter', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('filter',
     ['Opcodes/filter.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('flanger', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('flanger',
     ['Opcodes/flanger.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('follow', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('follow',
     ['Opcodes/follow.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('grain', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('grain',
     ['Opcodes/grain.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('grain4', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('grain4',
     ['Opcodes/grain4.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('hrtferX', 
-    Split('''Opcodes/hrtferX.c 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('hrtferX',
+    Split('''Opcodes/hrtferX.c
     Opcodes/natben.c''')))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('locsig', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('locsig',
     ['Opcodes/locsig.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('lowpassr', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('lowpassr',
     ['Opcodes/lowpassr.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('metro', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('metro',
     ['Opcodes/metro.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('midiops2', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('midiops2',
     ['Opcodes/midiops2.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('midiops3', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('midiops3',
     ['Opcodes/midiops3.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('modal4', 
-    Split('''Opcodes/modal4.c 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('modal4',
+    Split('''Opcodes/modal4.c
     Opcodes/physutil.c''')))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('newfils', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('newfils',
     ['Opcodes/newfils.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('nlfilt', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('nlfilt',
     ['Opcodes/nlfilt.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('oscbnk', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('oscbnk',
     ['Opcodes/oscbnk.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('phisem', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('phisem',
     ['Opcodes/phisem.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('physmod', 
-    Split('''Opcodes/physmod.c 
-    Opcodes/physutil.c 
-    Opcodes/mandolin.c 
-    Opcodes/singwave.c 
-    Opcodes/fm4op.c 
-    Opcodes/moog1.c 
-    Opcodes/shaker.c 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('physmod',
+    Split('''Opcodes/physmod.c
+    Opcodes/physutil.c
+    Opcodes/mandolin.c
+    Opcodes/singwave.c
+    Opcodes/fm4op.c
+    Opcodes/moog1.c
+    Opcodes/shaker.c
     Opcodes/bowedbar.c''')))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('pitch', 
-    Split('''Opcodes/pitch.c 
-    Opcodes/pitch0.c 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('pitch',
+    Split('''Opcodes/pitch.c
+    Opcodes/pitch0.c
     Opcodes/spectra.c''')))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('pluck', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('pluck',
     ['Opcodes/pluck.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('pvsdemix', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('pvsdemix',
     ['Opcodes/pvsdemix.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('repluck', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('repluck',
     ['Opcodes/repluck.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('scansyn',  
+pluginLibraries.append(pluginEnvironment.SharedLibrary('scansyn',
     ['Opcodes/scansyn.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('scansynx', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('scansynx',
     ['Opcodes/scansynx.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('seqtime', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('seqtime',
     ['Opcodes/seqtime.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('sfont', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('sfont',
     ['Opcodes/sfont.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('sndwarp', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('sndwarp',
     ['Opcodes/sndwarp.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('space', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('space',
     ['Opcodes/space.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('spat3d', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('spat3d',
     ['Opcodes/spat3d.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('syncgrain', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('syncgrain',
     ['Opcodes/syncgrain.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('ugens7', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('ugens7',
     ['Opcodes/ugens7.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('ugensa', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('ugensa',
     ['Opcodes/ugensa.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('uggab', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('uggab',
     ['Opcodes/uggab.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('ugmoss', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('ugmoss',
     ['Opcodes/ugmoss.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('ugsc', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('ugsc',
     ['Opcodes/ugsc.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('vdelayk', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('vdelayk',
     ['Opcodes/vdelayk.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('wave-terrain', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('wave-terrain',
     ['Opcodes/wave-terrain.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('bus', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('bus',
     ['Opcodes/bus.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('pvsbasic', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('pvsbasic',
     ['Opcodes/pvsbasic.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('ftest', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('ftest',
     ['Opcodes/ftest.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('gab_gab',
     ['Opcodes/gab/gab.c']))
@@ -797,13 +797,13 @@ else:
     if getPlatform() == 'linux':
         fluidEnvironment = pluginEnvironment.Copy()
         fluidEnvironment.Append(LIBS = ['fluidsynth'])
-        pluginLibraries.append(fluidEnvironment.SharedLibrary('fluidOpcodes', 
+        pluginLibraries.append(fluidEnvironment.SharedLibrary('fluidOpcodes',
             ['Opcodes/fluidOpcodes/fluidOpcodes.cpp']))
-    if getPlatform() == 'cygwin' or getPlatform() == 'mingw':        
-        vstEnvironment.Append(CCFLAGS = ['-DFLUIDSYNTH_NOT_A_DLL', '-DMAKEDLL','-DBUILDING_DLL'])    
-        fluidEnvironment = vstEnvironment.Copy()    
-        fluidEnvironment.Append(LIBS = ['fluidsynth', 'stdc++', 'fltk'])    
-        fluidEnvironment.Append(LINKFLAGS = ['-mno-cygwin'])        
+    if getPlatform() == 'cygwin' or getPlatform() == 'mingw':
+        vstEnvironment.Append(CCFLAGS = ['-DFLUIDSYNTH_NOT_A_DLL', '-DMAKEDLL','-DBUILDING_DLL'])
+        fluidEnvironment = vstEnvironment.Copy()
+        fluidEnvironment.Append(LIBS = ['fluidsynth', 'stdc++', 'fltk'])
+        fluidEnvironment.Append(LINKFLAGS = ['-mno-cygwin'])
         fluidEnvironment.Append(LIBS = ['winmm','dsound'])
         if getPlatform() == 'mingw':
             fluidEnvironment.Append(LIBS = ['kernel32'])
@@ -811,21 +811,22 @@ else:
             fluidEnvironment.Append(LIBS = ['wsock32'])
             fluidEnvironment.Append(LIBS = ['ole32'])
             fluidEnvironment.Append(LIBS = ['uuid'])
-        pluginLibraries.append(fluidEnvironment.SharedLibrary('fluidOpcodes', 
-            ['Opcodes/fluidOpcodes/fluidOpcodes.cpp']))    
-        pluginLibraries.append(fluidEnvironment.SharedLibrary('fluid', Split('''
-            Opcodes/fluid/AudioEffect.cpp        
-            Opcodes/fluid/audioeffectx.cpp        
-            Opcodes/fluid/Soundfonts.cpp        
-            Opcodes/fluid/SoundfontsMain.cpp        
-            Opcodes/fluid/FluidsynthOpcode.cpp        
-            ''')))
-            
+        pluginLibraries.append(fluidEnvironment.SharedLibrary('fluidOpcodes',
+            ['Opcodes/fluidOpcodes/fluidOpcodes.cpp']))
+        if fltkFound:
+            pluginLibraries.append(fluidEnvironment.SharedLibrary('fluid', Split('''
+                Opcodes/fluid/AudioEffect.cpp
+                Opcodes/fluid/audioeffectx.cpp
+                Opcodes/fluid/Soundfonts.cpp
+                Opcodes/fluid/SoundfontsMain.cpp
+                Opcodes/fluid/FluidsynthOpcode.cpp
+                ''')))
+
 # VST HOST OPCODES
 
 if getPlatform() == 'mingw' and fltkFound:
     vst4Environment = vstEnvironment.Copy()
-    vst4Environment.Append(LIBS = ['stdc++', 'fltk'])    
+    vst4Environment.Append(LIBS = ['stdc++', 'fltk'])
     if getPlatform() == 'mingw':
         vst4Environment.Append(LIBS = ['kernel32'])
         vst4Environment.Append(LIBS = ['gdi32'])
@@ -833,9 +834,9 @@ if getPlatform() == 'mingw' and fltkFound:
         vst4Environment.Append(LIBS = ['ole32'])
         vst4Environment.Append(LIBS = ['uuid'])
     vst4Environment.Append(CPPPATH = ['frontends/CsoundVST'])
-    zipDependencies.append(vst4Environment.SharedLibrary('vst4cs', 
+    zipDependencies.append(vst4Environment.SharedLibrary('vst4cs',
          Split('''
-         Opcodes/vst4cs/src/vst4cs.cpp 
+         Opcodes/vst4cs/src/vst4cs.cpp
          Opcodes/vst4cs/src/fxbank.cpp
          Opcodes/vst4cs/src/vsthost.cpp
          ''')))
@@ -843,7 +844,7 @@ if getPlatform() == 'mingw' and fltkFound:
 # Experimental OSC Opcodes ** THIS DOES NOT WORK **
 if getPlatform() == 'linux':
     oscEnvironment = pluginEnvironment.Copy()
-    pluginLibraries.append(oscEnvironment.SharedLibrary('osc-sock', 
+    pluginLibraries.append(oscEnvironment.SharedLibrary('osc-sock',
         Split('''
         Opcodes/osc-sock.c
         Opcodes/OSC-Kit/NetworkReturnAddress.c
@@ -851,7 +852,7 @@ if getPlatform() == 'linux':
         Opcodes/OSC-Kit/OSC-callbacklist.c
         Opcodes/OSC-Kit/OSC-client.c
         Opcodes/OSC-Kit/OSC-drop.c
-        Opcodes/OSC-Kit/OSC-pattern-match.c 
+        Opcodes/OSC-Kit/OSC-pattern-match.c
         Opcodes/OSC-Kit/OSC-priority-queue.c
         Opcodes/OSC-Kit/OSC-receive.c
         Opcodes/OSC-Kit/OSC-string-help.c
@@ -861,60 +862,60 @@ if getPlatform() == 'linux':
 
 # Utility programs.
 
-executables.append(csoundProgramEnvironment.Program('cscore', 
+executables.append(csoundProgramEnvironment.Program('cscore',
     ['util1/cscore/cscore_main.c']))
-executables.append(csoundProgramEnvironment.Program('cvanal', 
+executables.append(csoundProgramEnvironment.Program('cvanal',
     ['anal/convol/cvl_main.c']))
-executables.append(csoundProgramEnvironment.Program('dnoise', 
+executables.append(csoundProgramEnvironment.Program('dnoise',
     ['util2/dnoise.dir/dnoise_main.c']))
-executables.append(ustubProgramEnvironment.Program('envext', 
+executables.append(ustubProgramEnvironment.Program('envext',
     ['util2/envext/envext.c']))
-executables.append(ustubProgramEnvironment.Program('extract', 
+executables.append(ustubProgramEnvironment.Program('extract',
     ['util1/sortex/xmain.c']))
-executables.append(ustubProgramEnvironment.Program('extractor', 
+executables.append(ustubProgramEnvironment.Program('extractor',
     ['util2/mixer/xtrct.c']))
-executables.append(ustubProgramEnvironment.Program('het_export', 
+executables.append(ustubProgramEnvironment.Program('het_export',
     ['util2/exports/het_export.c']))
-executables.append(ustubProgramEnvironment.Program('het_import',  
+executables.append(ustubProgramEnvironment.Program('het_import',
     ['util2/exports/het_import.c']))
-executables.append(ustubProgramEnvironment.Program('hetro',  
+executables.append(ustubProgramEnvironment.Program('hetro',
     ['anal/adsyn/het_main.c']))
-executables.append(ustubProgramEnvironment.Program('lpanal',  
+executables.append(ustubProgramEnvironment.Program('lpanal',
     ['anal/lpc/lpc_main.c']))
-executables.append(ustubProgramEnvironment.Program('lpc_export',  
+executables.append(ustubProgramEnvironment.Program('lpc_export',
     ['util2/exports/lpc_export.c']))
-executables.append(ustubProgramEnvironment.Program('lpc_import',  
+executables.append(ustubProgramEnvironment.Program('lpc_import',
     ['util2/exports/lpc_import.c']))
-executables.append(ustubProgramEnvironment.Program('mixer',  
+executables.append(ustubProgramEnvironment.Program('mixer',
     ['util2/mixer/mixer.c']))
-executables.append(ustubProgramEnvironment.Program('pv_export',   
+executables.append(ustubProgramEnvironment.Program('pv_export',
     ['util2/exports/pv_export.c']))
-executables.append(ustubProgramEnvironment.Program('pv_import',  
+executables.append(ustubProgramEnvironment.Program('pv_import',
     ['util2/exports/pv_import.c']))
-executables.append(csoundProgramEnvironment.Program('pvanal',  
+executables.append(csoundProgramEnvironment.Program('pvanal',
     ['anal/pvoc/pvc_main.c']))
-executables.append(ustubProgramEnvironment.Program('pvlook',  
+executables.append(ustubProgramEnvironment.Program('pvlook',
     ['util2/pvlook.dir/pvl_main.c']))
-executables.append(ustubProgramEnvironment.Program('scale',  
+executables.append(ustubProgramEnvironment.Program('scale',
     ['util2/scale.dir/scale.c']))
-executables.append(ustubProgramEnvironment.Program('scot',  
+executables.append(ustubProgramEnvironment.Program('scot',
     ['util1/scot/scot_main.c']))
-executables.append(ustubProgramEnvironment.Program('scsort',  
+executables.append(ustubProgramEnvironment.Program('scsort',
     ['util1/sortex/smain.c']))
-executables.append(ustubProgramEnvironment.Program('sdif2ad',  
-    Split('''SDIF/sdif2adsyn.c 
-    SDIF/sdif.c 
+executables.append(ustubProgramEnvironment.Program('sdif2ad',
+    Split('''SDIF/sdif2adsyn.c
+    SDIF/sdif.c
     SDIF/sdif-mem.c''')))
-executables.append(ustubProgramEnvironment.Program('sndinfo', 
+executables.append(ustubProgramEnvironment.Program('sndinfo',
     ['util2/sndinfo/sndinfo_main.c']))
-executables.append(ustubProgramEnvironment.Program('srconv', 
+executables.append(ustubProgramEnvironment.Program('srconv',
     ['util2/dnoise.dir/srconv.c']))
 
 # Front ends.
 
-executables.append(csoundProgramEnvironment.Program('csound', 
+executables.append(csoundProgramEnvironment.Program('csound',
     ['frontends/csound/csound_main.c']))
-    
+
 if not ((commonEnvironment['buildCsoundVST'] == '1') and boostFound and fltkFound):
     print 'CONFIGURATION DECISION: Not building CsoundVST plugin and standalone.'
 else:
@@ -931,8 +932,8 @@ else:
         vstEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
         guiProgramEnvironment.Prepend(LINKFLAGS = ['-mwindows', '_CsoundVST.so'])
     elif getPlatform() == 'cygwin' or getPlatform() == 'mingw':
-    	pythonImportLibrary = vstEnvironment.Command('/usr/local/lib/libpython23.a', 
-		'$SYSTEMROOT/System32/python23.dll', 
+    	pythonImportLibrary = vstEnvironment.Command('/usr/local/lib/libpython23.a',
+		'$SYSTEMROOT/System32/python23.dll',
 		['pexports $SYSTEMROOT/System32/python23.dll > python23.def', 'dlltool --input-def python23.def --dllname python23.dll --output-lib /usr/local/lib/libpython23.a'])
         vstEnvironment['ENV']['PATH'] = os.environ['PATH']
         vstEnvironment.Append(SHLINKFLAGS = '-Wl,--add-stdcall-alias')
@@ -957,35 +958,35 @@ else:
 
     print 'PATH =',commonEnvironment['ENV']['PATH']
     csoundVstSources = Split('''
-    frontends/CsoundVST/AudioEffect.cpp 
-    frontends/CsoundVST/audioeffectx.cpp 
-    frontends/CsoundVST/Composition.cpp 
-    frontends/CsoundVST/Conversions.cpp 
-    frontends/CsoundVST/Counterpoint.cpp 
-    frontends/CsoundVST/CounterpointNode.cpp 
-    frontends/CsoundVST/CppSound.cpp 
-    frontends/CsoundVST/CsoundFile.cpp 
-    frontends/CsoundVST/Cell.cpp 
+    frontends/CsoundVST/AudioEffect.cpp
+    frontends/CsoundVST/audioeffectx.cpp
+    frontends/CsoundVST/Composition.cpp
+    frontends/CsoundVST/Conversions.cpp
+    frontends/CsoundVST/Counterpoint.cpp
+    frontends/CsoundVST/CounterpointNode.cpp
+    frontends/CsoundVST/CppSound.cpp
+    frontends/CsoundVST/CsoundFile.cpp
+    frontends/CsoundVST/Cell.cpp
     frontends/CsoundVST/CsoundVST.cpp
-    frontends/CsoundVST/csoundvst_api.cpp 
-    frontends/CsoundVST/CsoundVstFltk.cpp 
-    frontends/CsoundVST/CsoundVSTMain.cpp 
-    frontends/CsoundVST/CsoundVstUi.cpp 
-    frontends/CsoundVST/Event.cpp 
-    frontends/CsoundVST/Hocket.cpp 
-    frontends/CsoundVST/ImageToScore.cpp 
-    frontends/CsoundVST/Lindenmayer.cpp 
-    frontends/CsoundVST/MCRM.cpp 
-    frontends/CsoundVST/Midifile.cpp 
-    frontends/CsoundVST/MusicModel.cpp 
-    frontends/CsoundVST/Node.cpp 
-    frontends/CsoundVST/Random.cpp 
-    frontends/CsoundVST/Rescale.cpp 
-    frontends/CsoundVST/Score.cpp 
-    frontends/CsoundVST/ScoreNode.cpp 
-    frontends/CsoundVST/Sequence.cpp 
-    frontends/CsoundVST/Shell.cpp 
-    frontends/CsoundVST/StrangeAttractor.cpp 
+    frontends/CsoundVST/csoundvst_api.cpp
+    frontends/CsoundVST/CsoundVstFltk.cpp
+    frontends/CsoundVST/CsoundVSTMain.cpp
+    frontends/CsoundVST/CsoundVstUi.cpp
+    frontends/CsoundVST/Event.cpp
+    frontends/CsoundVST/Hocket.cpp
+    frontends/CsoundVST/ImageToScore.cpp
+    frontends/CsoundVST/Lindenmayer.cpp
+    frontends/CsoundVST/MCRM.cpp
+    frontends/CsoundVST/Midifile.cpp
+    frontends/CsoundVST/MusicModel.cpp
+    frontends/CsoundVST/Node.cpp
+    frontends/CsoundVST/Random.cpp
+    frontends/CsoundVST/Rescale.cpp
+    frontends/CsoundVST/Score.cpp
+    frontends/CsoundVST/ScoreNode.cpp
+    frontends/CsoundVST/Sequence.cpp
+    frontends/CsoundVST/Shell.cpp
+    frontends/CsoundVST/StrangeAttractor.cpp
     frontends/CsoundVST/System.cpp
     ''')
     # These are the Windows system call libraries.
@@ -1014,22 +1015,22 @@ else:
         Depends(csoundvst, pyrun)
     	guiProgramEnvironment.Append(LIBS = ['CsoundVST'])
 
-    csoundvstGui = guiProgramEnvironment.Program('CsoundVST', ['frontends/CsoundVST/csoundvst_main.cpp']) 
+    csoundvstGui = guiProgramEnvironment.Program('CsoundVST', ['frontends/CsoundVST/csoundvst_main.cpp'])
     zipDependencies.append(csoundvstGui)
     Depends(csoundvstGui, csoundvst)
 
     counterpoint = vstEnvironment.Program('counterpoint', ['frontends/CsoundVST/CounterpointMain.cpp' ])
     zipDependencies.append(counterpoint)
-     
-    # Build the Loris and Python opcodes here because they depend 
+
+    # Build the Loris and Python opcodes here because they depend
     # on the same things as CsoundVST.
-    
+
     if commonEnvironment['buildLoris']=='1':
         # For Loris, we build only the loris Python extension module and
         # the Csound opcodes (modified for Csound 5).
         # It is assumed that you have copied the contents of the Loris distribution
         # 'src' directory into 'Opcodes/Loris/src'.
-        
+
         shutil.copy('Opcodes/Loris/lorisgens.h', 'Opcodes/Loris/src/')
         shutil.copy('Opcodes/Loris/lorisgens.C', 'Opcodes/Loris/src/')
         shutil.copy('Opcodes/Loris/loris.i', 'Opcodes/Loris/src/')
@@ -1045,7 +1046,7 @@ else:
         loris = lorisEnvironment.SharedLibrary('loris', lorisSources, SHLIBPREFIX = '_')
         Depends(loris, csoundvst)
         pluginLibraries.append(loris)
-                 
+
     pyEnvironment = pluginEnvironment.Copy();
     if getPlatform() == 'linux':
         pyEnvironment.Append(LIBS = ['swigpy', 'python2.3', 'util', 'dl', 'm'])
@@ -1099,8 +1100,8 @@ else:
 
 zipDependencies += executables
 zipDependencies += pluginLibraries
-  
-if (commonEnvironment['generateZip']=='0'):    
+
+if (commonEnvironment['generateZip']=='0'):
     print 'CONFIGURATION DECISION: Not compiling zip file for release.'
 else:
     print 'CONFIGURATION DECISION: Compiling zip file for release.'
@@ -1109,16 +1110,16 @@ else:
         Depends(zip, node)
 
 # INSTALL OPTIONS
-        
+
 PREFIX = commonEnvironment['prefix']
-        
+
 OPCODE_DIR = PREFIX + "/lib/csound/opcodes"
 BIN_DIR = PREFIX + "/bin"
 
-installOpcodes = Alias('install-opcodes', 
-    Install(OPCODE_DIR, pluginLibraries)) 
-                            
+installOpcodes = Alias('install-opcodes',
+    Install(OPCODE_DIR, pluginLibraries))
+
 installExecutables = Alias('install-executables',
     Install(BIN_DIR, executables))
-    
+
 Alias('install', [installOpcodes, installExecutables])
