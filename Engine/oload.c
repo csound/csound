@@ -39,6 +39,7 @@ void csoundSetHostData(void *, void *);
 int csoundPerform(void *, int, char **);
 int csoundCompile(void *, int, char **);
 int csoundPerformKsmps(void *);
+int csoundPerformKsmpsAbsolute(void *);
 int csoundPerformBuffer(void *);
 void csoundCleanup(void *);
 void csoundReset(void *);
@@ -77,10 +78,10 @@ void csoundKeyPress(void *, char);
 void csoundSetInputValueCallback(void *, void (*)(void *, char *, MYFLT *));
 void csoundSetOutputValueCallback(void *, void (*)(void *, char *, MYFLT));
 void csoundScoreEvent(void *, char, MYFLT *, long);
-void csoundSetExternalMidiOpenCallback(void *, void (*)(void *));
+void csoundSetExternalMidiDeviceOpenCallback(void *, void (*)(void *));
 void csoundSetExternalMidiReadCallback(void *, int (*)(void *, unsigned char *, int));
 void csoundSetExternalMidiWriteCallback(void *, int (*)(void *, unsigned char *));
-void csoundSetExternalMidiCloseCallback(void *, void (*)(void *));
+void csoundSetExternalMidiDeviceCloseCallback(void *, void (*)(void *));
 int csoundIsExternalMidiEnabled(void *);
 void csoundSetExternalMidiEnabled(void *, int);
 void csoundSetIsGraphable(void *, int);
@@ -187,10 +188,10 @@ ENVIRON cenviron_ = {
         csoundSetInputValueCallback,
         csoundSetOutputValueCallback,
         csoundScoreEvent,
-        csoundSetExternalMidiOpenCallback,
+        csoundSetExternalMidiDeviceOpenCallback,
         csoundSetExternalMidiReadCallback,
         csoundSetExternalMidiWriteCallback,
-        csoundSetExternalMidiCloseCallback,
+        csoundSetExternalMidiDeviceCloseCallback,
         csoundIsExternalMidiEnabled,
         csoundSetExternalMidiEnabled,
         csoundSetIsGraphable,
@@ -213,9 +214,6 @@ ENVIRON cenviron_ = {
         csoundSetRecopenCallback,
         csoundSetRtrecordCallback,
         csoundSetRtcloseCallback,
-        /*
-         * Intrnal functions
-         */
         auxalloc,
         getstring,
         die,
@@ -267,6 +265,7 @@ ENVIRON cenviron_ = {
         rewriteheader,
         writeheader,
         csoundPrintf,
+        csoundPerformKsmpsAbsolute,
         /*
         * Data fields.
         */
