@@ -42,11 +42,13 @@ static  char    *sfoutname;                     /* soundout filename    */
 static  MYFLT   *inbuf;
         MYFLT   *outbuf;                        /* contin sndio buffers */
 static  MYFLT   *outbufp;                       /* MYFLT pntr           */
-static  unsigned inbufrem, outbufrem;           /* in monosamps         */
+static  unsigned inbufrem;
+        unsigned outbufrem;                     /* in monosamps         */
                                                 /* (see openin,iotranset)    */
 static  unsigned inbufsiz,  outbufsiz;          /* alloc in sfopenin/out     */
 static  int     isfd, isfopen = 0, infilend = 0;/* (real set in sfopenin)    */
-static  int     osfd, osfopen = 0;              /* (real set in sfopenout)   */
+static  int     osfd;
+        int     osfopen = 0;                    /* (real set in sfopenout)   */
 static  int     pipdevin = 0, pipdevout = 0;    /* mod by sfopenin,sfopenout */
 unsigned long   nframes = 1;
 #ifdef RTAUDIO
@@ -62,7 +64,7 @@ extern FILE* pin, *pout;
 #endif
 extern  void    (*spinrecv)(void), (*spoutran)(void), (*nzerotran)(long);
 static  int     (*audrecv)(MYFLT *, int);
-static  void    (*audtran)(MYFLT *, int);
+void    (*audtran)(MYFLT *, int);
 static  SOUNDIN *p;    /* to be passed via sreadin() */
 SNDFILE *sndgetset(SOUNDIN *);
 
@@ -592,10 +594,10 @@ extern  HEADATA *readheader(int, char *, SOUNDIN*);
 extern  int     openin(char*);
 extern  OPARMS  O;
 
-//void soundinRESET(void)
-//{
-//    datpos = 0;
-//}
+void soundinRESET(void)
+{
+    datpos = 0;
+}
 
 
 extern  HEADATA *readheader(int, char*, SOUNDIN*);
@@ -725,6 +727,3 @@ void bytrev2(char *buf, int nbytes)      /* reverse bytes in buf of shorts */
             *p++ = c1;
         } while (--n);
 }
-
-
-

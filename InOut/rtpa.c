@@ -31,7 +31,6 @@ extern void (*nzerotran)(long);
 extern void spoutsf(void);
 extern void zerosf(long len);
 extern void (*audtran)(void *, int);
-static void szerotran(long kcnt);
 void rtplay_(void *outbuf, int nbytes);
 
 static PaStream *pa_in = NULL, *pa_out = NULL;
