@@ -202,34 +202,26 @@ int pluckGetSamps(ENVIRON *csound, WGPLUCK* p)
     MYFLT       yr0,yl0,yrM,ylM;        /* Key positions on the waveguide */
     MYFLT *ar = p->out;    /* The sample output buffer */
     len_t M=p->wg.upperRail.size; /* Length of the guide rail */
-    len_t N=ksmps;
+    len_t n,nsmps=ksmps;
 /*    int i = 0; */
     MYFLT *fdbk = p->afdbk;
     /* set the delay element to pickup at */
     len_t pickupSamp=(len_t)(M * *p->pickupPos);
     if (pickupSamp<1) pickupSamp = 1;
 
-    /* calculate N samples of the plucked string algorithm */
-/*      if (p->wg.excited) */
-      do {
-/*          void dumpRail(guideRail*, len_t); */
-/*          dumpRail(&p->wg.upperRail, M-1); */
-/*          dumpRail(&p->wg.lowerRail, M-1); */
-        *ar++ = guideRailAccess(&p->wg.upperRail,pickupSamp)
+      for (n=0;n<nsmps;n++) {
+        ar[n] = guideRailAccess(&p->wg.upperRail,pickupSamp)
                +guideRailAccess(&p->wg.lowerRail,M-pickupSamp);
-        /*        sampBuf[i++] += *fdbk++; */
         yrM = guideRailAccess(&p->wg.upperRail,M-1);/* wave into the nut */
         ylM = -yrM;                 /* reflect the incoming sample at the nut */
 
         yl0 = guideRailAccess(&p->wg.lowerRail,0);  /* wave into bridge */
-/*          printf("Removing %.2f (upper) and %.2f (lower)\n", yrM, yl0); */
         yr0 = -filter3FIR(&p->bridge,yl0);   /* bridge reflection filter */
         yr0 = filterAllpass(&p->wg,yr0);     /* allpass tuning filter */
         yr0 += *fdbk++;           /* Surely better to inject here */
         guideRailUpdate(&p->wg.upperRail,yr0);    /* update the upper rail*/
         guideRailUpdate(&p->wg.lowerRail,ylM);    /* update the lower rail*/
-/*          printf("inserting %.2f (upper) and %.2f (lower)\n", yr0, ylM); */
-      } while(--N);
+      }
       return OK;
 }
 

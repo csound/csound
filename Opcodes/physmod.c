@@ -154,7 +154,7 @@ int clarinset(ENVIRON *csound, CLARIN *p)
 int clarin(ENVIRON *csound, CLARIN *p)
 {
     MYFLT *ar = p->ar;
-    long nsmps = ksmps;
+    int   n,nsmps = ksmps;
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT nGain = *p->noiseGain;
     int v_len = (int)p->vibr->flen;
@@ -180,7 +180,7 @@ int clarin(ENVIRON *csound, CLARIN *p)
              (MYFLT)kcounter/ekr, p->envelope.value, p->envelope.rate);
     }
 
-    do {
+    for (n=0;n<nsmps;n++) {
         MYFLT   pressureDiff;
         MYFLT   breathPressure;
         long    temp;
@@ -225,8 +225,8 @@ int clarin(ENVIRON *csound, CLARIN *p)
         lastOutput =
           DLineL_tick(&p->delayLine, nextsamp); /* perform scattering in economical way */
         lastOutput *= p->outputGain;
-        *ar++ = lastOutput*AMP_SCALE;
-    } while (--nsmps);
+        ar[n] = lastOutput*AMP_SCALE;
+    }
     p->v_time = vTime;
 
     return OK;
@@ -330,7 +330,7 @@ int fluteset(ENVIRON *csound, FLUTE *p)
 int flute(ENVIRON *csound, FLUTE *p)
 {
     MYFLT       *ar = p->ar;
-    long        nsmps = ksmps;
+    int         n,nsmps = ksmps;
     MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT       temp;
     int         v_len = (int)p->vibr->flen;
@@ -378,7 +378,7 @@ int flute(ENVIRON *csound, FLUTE *p)
 /*        p->v_rate, p->v_time, p->lastFreq, p->lastJet,  */
 /*        p->maxPress, p->vibrGain, p->kloop, p->lastamp); */
     noisegain = *p->noiseGain; jetRefl = *p->jetRefl; endRefl = *p->endRefl;
-    do {
+    for (n=0;n<nsmps;n++) {
       long      temp;
       MYFLT     temf;
       MYFLT     temp_time, alpha;
@@ -430,8 +430,8 @@ int flute(ENVIRON *csound, FLUTE *p)
 
       lastOutput *= p->outputGain;
 /*       printf("sample=%f\n", lastOutput); */
-      *ar++ = lastOutput*AMP_SCALE*FL(1.4);
-    } while (--nsmps);
+      ar[n] = lastOutput*AMP_SCALE*FL(1.4);
+    }
 
     p->v_time = v_time;
     return OK;
@@ -535,7 +535,7 @@ int bowedset(ENVIRON *csound, BOWED *p)
 int bowed(ENVIRON *csound, BOWED *p)
 {
     MYFLT       *ar = p->ar;
-    long        nsmps = ksmps;
+    int         n,nsmps = ksmps;
     MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT       maxVel;
     int         freq_changed = 0;
@@ -577,7 +577,7 @@ int bowed(ENVIRON *csound, BOWED *p)
       p->adsr.state = RELEASE;
     }
 
-    do {
+    for (n=0;n<nsmps;n++) {
       MYFLT     bowVelocity;
       MYFLT     bridgeRefl=FL(0.0), nutRefl=FL(0.0);
       MYFLT     newVel=FL(0.0), velDiff=FL(0.0), stringVel=FL(0.0);
@@ -640,8 +640,8 @@ int bowed(ENVIRON *csound, BOWED *p)
       lastOutput = BiQuad_tick(&p->bodyFilt, p->bridgeDelay.lastOutput);
 /* printf("lastOutput=%f\n",lastOutput ); */
 
-      *ar++ = lastOutput*AMP_SCALE * amp *FL(1.8);
-    } while (--nsmps);
+      ar[n] = lastOutput*AMP_SCALE * amp *FL(1.8);
+    }
     return OK;
 }
 
@@ -672,7 +672,7 @@ int bowed(ENVIRON *csound, BOWED *p)
 
 void make_DLineA(ENVIRON *csound, DLineA *p, long max_length)
 {
-    long i;
+    int i;
     p->length = max_length;
     csound->auxalloc_(csound, max_length * sizeof(MYFLT), &p->inputs);
     for (i=0;i<max_length;i++) ((MYFLT*)p->inputs.auxp)[i] = FL(0.0);
@@ -703,9 +703,9 @@ int DLineA_setDelay(ENVIRON *csound, DLineA *p, MYFLT lag)
     p->outPoint = (long) outputPointer;    /* Integer part of delay          */
     p->alpha = FL(1.0) + p->outPoint - outputPointer;/* fractional part of delay */
     if (p->alpha<FL(0.1)) {
-        outputPointer += FL(1.0);             /*  Hack to avoid pole/zero       */
-        p->outPoint++;                     /*  cancellation.  Keeps allpass  */
-        p->alpha += FL(1.0);                  /*  delay in range of .1 to 1.1   */
+      outputPointer += FL(1.0);             /*  Hack to avoid pole/zero       */
+      p->outPoint++;                        /*  cancellation.  Keeps allpass  */
+      p->alpha += FL(1.0);                  /*  delay in range of .1 to 1.1   */
     }
     p->coeff = (FL(1.0) - p->alpha)/(FL(1.0) + p->alpha); /* coefficient for all pass*/
     return 0;
@@ -826,7 +826,7 @@ int brassset(ENVIRON *csound, BRASS *p)
 int brass(ENVIRON *csound, BRASS *p)
 {
     MYFLT *ar = p->ar;
-    long nsmps = ksmps;
+    int n, nsmps = ksmps;
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT maxPressure = p->maxPressure = amp;
     int v_len = (int)p->vibr->flen;
@@ -857,7 +857,7 @@ int brass(ENVIRON *csound, BRASS *p)
                       p->lipTarget * (MYFLT)pow(4.0,(2.0* p->lipT) -1.0));
     }
 
-    do {
+    for (n=0;n<nsmps;n++) {
       MYFLT     breathPressure;
       MYFLT     lastOutput;
       int       temp;
@@ -900,8 +900,8 @@ int brass(ENVIRON *csound, BRASS *p)
                                FL(0.3) * breathPressure, /* mouth input */
                                FL(0.85) * p->delayLine.lastOutput))); /* and bore reflection */
       ans = lastOutput*AMP_SCALE*FL(3.5);
-      *ar++ = ans;
-    } while (--nsmps);
+      ar[n] = ans;
+    }
 
     p->v_time = vTime;
     return OK;

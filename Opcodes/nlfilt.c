@@ -53,7 +53,7 @@ int nlfiltset(ENVIRON *csound, NLFILT *p)
 int nlfilt(ENVIRON *csound, NLFILT *p)
 {
     MYFLT       *ar;
-    int         nsmps;
+    int         n,nsmps=ksmps;
     int         point = p->point;
     int         nm1 = point;
     int         nm2 = point -1;
@@ -68,7 +68,6 @@ int nlfilt(ENVIRON *csound, NLFILT *p)
       return perferror(Str("nlfilt: not initialised"));
     }
     ar   = p->ar;
-    nsmps = ksmps;             /* Number of points to calculate */
                                 /* L is k-rate so need to check */
     if (L < FL(1.0)) L = FL(1.0);
     else if (L >= MAX_DELAY) {
@@ -84,18 +83,18 @@ int nlfilt(ENVIRON *csound, NLFILT *p)
     ynmL = fp[nmL];
 /* printf("Y-1=%f Y-2=%f Y-L=%f\t", ynm1, ynm2, ynmL); */
 /* printf("n-1=%d n-2=%d n-L=%d\n", nm1, nm2, nmL); */
-    do {
+    for (n=0;n<nsmps;n++) {
       MYFLT yn;
       MYFLT out;
       yn = a*ynm1 + b*ynm2 + d*ynmL*ynmL - C;
       if (in != NULL) {
-        yn += (*in++)/e0dbfs;   /* Must work in (-1,1) amplitudes  */
+        yn += in[n]/e0dbfs;   /* Must work in (-1,1) amplitudes  */
       }
 /* printf("=> yn=%f\n", yn); */
       out = yn*e0dbfs;          /* Write output */
       if (out >= e0dbfs)       out =  e0dbfs*FL(0.999);
       else if (out <= -e0dbfs) out = -e0dbfs*FL(0.999);
-      *ar++ = out;
+      ar[n] = out;
       if (++point == MAX_DELAY) {
         point = 0;
       }
@@ -107,7 +106,7 @@ int nlfilt(ENVIRON *csound, NLFILT *p)
       ynm1 = yn;
       ynmL = fp[nmL];
 /* printf("Y-1=%f Y-2=%f Y-L(%d)=%f\n", ynm1, ynm2, nmL, ynmL); */
-    } while (--nsmps);
+    }
     p->point = point;
     return OK;
 } /* end nlfilt(p) */

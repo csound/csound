@@ -59,7 +59,7 @@ MYFLT Noise_tick(Noise *n)
 
 void make_DLineL(ENVIRON *csound, DLineL *p, long max_length)
 {
-    long i;
+    int i;
 
     p->length = max_length;
     csound->auxalloc_(csound, max_length * sizeof(MYFLT), &p->inputs);
@@ -141,7 +141,8 @@ void Envelope_keyOff(Envelope *e)
 void Envelope_setRate(ENVIRON *csound, Envelope *e, MYFLT aRate)
 {
     if (aRate < FL(0.0)) {
-        csound->err_printf_(csound->LocalizeString("negative rates not allowed!!, correcting\n"));
+        csound->err_printf_(csound->LocalizeString("negative rates not "
+                                                   "allowed!!, correcting\n"));
         e->rate = -aRate;
     }
     else e->rate = aRate;
@@ -199,7 +200,8 @@ MYFLT Envelope_tick(Envelope *e)
 
 void Envelope_print(ENVIRON *csound, Envelope *p)
 {
-    csound->Printf(csound->LocalizeString("Envelope: value=%f target=%f rate=%f state=%d\n"),
+    csound->Printf(csound->LocalizeString("Envelope: value=%f target=%f"
+                                          " rate=%f state=%d\n"),
            p->value, p->target, p->rate, p->state);
 }
 
@@ -236,20 +238,19 @@ void make_OnePole(OnePole* p)
 void OnePole_setPole(OnePole* p, MYFLT aValue)
 {
     p->poleCoeff = aValue;
-    if (p->poleCoeff > FL(0.0))                   /*  Normalize gain to 1.0 max */
-        p->sgain = p->gain * (FL(1.0) - p->poleCoeff);
+    if (p->poleCoeff > FL(0.0))           /*  Normalize gain to 1.0 max */
+      p->sgain = p->gain * (FL(1.0) - p->poleCoeff);
     else
-        p->sgain = p->gain * (FL(1.0) + p->poleCoeff);
-/*     printf("OnePoleSetPole: %f %f\n", aValue, p->sgain); */
+      p->sgain = p->gain * (FL(1.0) + p->poleCoeff);
 }
 
 void OnePole_setGain(OnePole* p, MYFLT aValue)
 {
     p->gain = aValue;
     if (p->poleCoeff > FL(0.0))
-        p->sgain = p->gain * (FL(1.0) - p->poleCoeff);  /*  Normalize gain to 1.0 max */
+      p->sgain = p->gain * (FL(1.0) - p->poleCoeff);  /* Normalize gain 1.0 max */
     else
-        p->sgain = p->gain * (FL(1.0) + p->poleCoeff);
+      p->sgain = p->gain * (FL(1.0) + p->poleCoeff);
 }
 
 MYFLT OnePole_tick(OnePole* p, MYFLT sample)  /*   Perform Filter Operation */
@@ -280,13 +281,6 @@ void make_DCBlock(DCBlock* p)
     p->outputs = FL(0.0);
     p->inputs = FL(0.0);
 }
-
-/* void DCBlock_clear(DCBlock* d) */
-/* { */
-/*     d->outputs = FL(0.0); */
-/*     d->inputs = FL(0.0); */
-/*     d->lastOutput = FL(0.0); */
-/* } */
 
 MYFLT DCBlock_tick(DCBlock* p, MYFLT sample)
 {
@@ -338,21 +332,21 @@ void ADSR_keyOff(ADSR *a)
 void ADSR_setAttackRate(ENVIRON *csound, ADSR *a, MYFLT aRate)
 {
     if (aRate < FL(0.0)) {
-        csound->Printf(csound->LocalizeString(
-                               "negative rates not allowed!!, correcting\n"));
-        a->attackRate = -aRate;
+      csound->Printf(csound->LocalizeString(
+                                            "negative rates not allowed!!,"
+                                            " correcting\n"));
+      a->attackRate = -aRate;
     }
     else a->attackRate = aRate;
     a->attackRate *= RATE_NORM;
-/*    printf("ADSR:att %f\n", a->attackRate); */
 }
 
 void ADSR_setDecayRate(ENVIRON *csound, ADSR *a, MYFLT aRate)
 {
     if (aRate < FL(0.0)) {
-        csound->Printf(csound->LocalizeString(
+      csound->Printf(csound->LocalizeString(
                                "negative rates not allowed!!, correcting\n"));
-        a->decayRate = -aRate;
+      a->decayRate = -aRate;
     }
     else a->decayRate = aRate;
     a->decayRate *= RATE_NORM;
@@ -361,9 +355,9 @@ void ADSR_setDecayRate(ENVIRON *csound, ADSR *a, MYFLT aRate)
 void ADSR_setSustainLevel(ENVIRON *csound, ADSR *a, MYFLT aLevel)
 {
     if (aLevel < FL(0.0) ) {
-        csound->Printf(csound->LocalizeString(
+      csound->Printf(csound->LocalizeString(
                                "Sustain level out of range!!, correcting\n"));
-        a->sustainLevel = FL(0.0);
+      a->sustainLevel = FL(0.0);
     }
     else a->sustainLevel = aLevel;
 }
@@ -371,9 +365,9 @@ void ADSR_setSustainLevel(ENVIRON *csound, ADSR *a, MYFLT aLevel)
 void ADSR_setReleaseRate(ENVIRON *csound, ADSR *a, MYFLT aRate)
 {
     if (aRate < FL(0.0)) {
-        csound->Printf(csound->LocalizeString(
+      csound->Printf(csound->LocalizeString(
                                "negative rates not allowed!!, correcting\n"));
-        a->releaseRate = -aRate;
+      a->releaseRate = -aRate;
     }
     else a->releaseRate = aRate;
     a->releaseRate *= RATE_NORM;
@@ -404,7 +398,7 @@ void ADSR_setReleaseTime(ENVIRON *csound, ADSR *a, MYFLT aTime)
     if (aTime < FL(0.0)) {
       csound->Printf(csound->LocalizeString(
                              "negative times not allowed!!, correcting\n"));
-     a->releaseRate = FL(1.0) /(-aTime*csound->esr_);
+      a->releaseRate = FL(1.0) /(-aTime*csound->esr_);
     }
     else a->releaseRate = FL(1.0) / (aTime*csound->esr_);
 }
@@ -416,8 +410,6 @@ void ADSR_setAllTimes(ENVIRON *csound, ADSR *a, MYFLT attTime, MYFLT decTime,
     ADSR_setDecayTime(csound, a, decTime);
     ADSR_setSustainLevel(csound, a, susLevel);
     ADSR_setReleaseTime(csound, a, relTime);
-/*  printf("New: attackRate=%f decayRate=%f sustainLevel=%f releaseRate=%f\n", */
-/*         a->attackRate, a->decayRate, a->sustainLevel, a->releaseRate); */
 }
 
 void ADSR_setAll(ENVIRON *csound, ADSR *a, MYFLT attRate, MYFLT decRate,
@@ -427,8 +419,6 @@ void ADSR_setAll(ENVIRON *csound, ADSR *a, MYFLT attRate, MYFLT decRate,
     ADSR_setDecayRate(csound, a, decRate);
     ADSR_setSustainLevel(csound, a, susLevel);
     ADSR_setReleaseRate(csound, a, relRate);
-/*  printf("Old: attackRate=%f decayRate=%f sustainLevel=%f releaseRate=%f\n", */
-/*         a->attackRate, a->decayRate, a->sustainLevel, a->releaseRate); */
 }
 
 void ADSR_setTarget(ENVIRON *csound, ADSR *a, MYFLT aTarget)
@@ -465,7 +455,6 @@ MYFLT ADSR_tick(ADSR *a)
         a->target = a->sustainLevel;
         a->state = DECAY;
       }
-      /*         printf("Attack->%f\n", a->value); */
     }
     else if (a->state==DECAY) {
       a->value -= a->decayRate;
@@ -484,12 +473,6 @@ MYFLT ADSR_tick(ADSR *a)
     }
     return a->value;
 }
-
-/*  int ADSR_informTick(ADSR *a) */
-/*  { */
-/*      ADSR_tick(a); */
-/*      return a->state; */
-/*  } */
 
 /*******************************************/
 /*  BiQuad (2-pole, 2-zero) Filter Class,  */
@@ -535,9 +518,6 @@ MYFLT BiQuad_tick(BiQuad *b, MYFLT sample) /*   Perform Filter Operation   */
 {                               /*  Biquad is two pole, two zero filter  */
     MYFLT temp;                 /*  Look it up in your favorite DSP text */
 
-/* printf("biQuad: insample=%f\t(%f; %f,%f;%f,%f;%f%f)\t", sample, */
-/*   b->gain, b->inputs[0], b->inputs[1], b->poleCoeffs[0], b->poleCoeffs[1], */
-/*   b->zeroCoeffs[0], b->zeroCoeffs[1]); */
     temp = sample * b->gain;                     /* Here's the math for the  */
     temp += b->inputs[0] * b->poleCoeffs[0];     /* version which implements */
     temp += b->inputs[1] * b->poleCoeffs[1];     /* only 2 state variables.  */
@@ -548,7 +528,6 @@ MYFLT BiQuad_tick(BiQuad *b, MYFLT sample) /*   Perform Filter Operation   */
     b->inputs[1] = b->inputs[0];                        /* and 3 moves       */
     b->inputs[0] = temp;                        /* like the 2 state-var form */
 
-/* printf("tick->%f\n", b->lastOutput); */
     return b->lastOutput;
 
 }

@@ -106,7 +106,7 @@ int shakerset(ENVIRON *csound, SHAKER *p)
 int shaker(ENVIRON *csound, SHAKER *p)
 {
     MYFLT *ar = p->ar;
-    long nsmps = ksmps;
+    int n;
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT shake = amp + amp;
     MYFLT damp = *p->shake_damp;
@@ -131,7 +131,7 @@ int shaker(ENVIRON *csound, SHAKER *p)
       p->shake_num = 0;
     }
     gain *= p->num_beans;       /* Save work in loop */
-    do {
+    for (n=0; n<ksmps; n++) {
         MYFLT   lastOutput;
         MYFLT   temp;
 
@@ -162,8 +162,8 @@ int shaker(ENVIRON *csound, SHAKER *p)
         ngain *= p->coll_damp;               /* Each (all) event(s)      */
                                              /* decay(s) exponentially   */
         lastOutput = BiQuad_tick(&p->filter, lastOutput);
-        *ar++ = lastOutput*AMP_SCALE* FL(7.0); /* As too quiet */
-    } while (--nsmps);
+        ar[n] = lastOutput*AMP_SCALE* FL(7.0); /* As too quiet */
+    }
     p->noiseGain = ngain;
     p->shakeEnergy = sEnergy;
     return OK;

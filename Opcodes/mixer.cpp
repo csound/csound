@@ -136,7 +136,7 @@ struct MixerClear : public OpcodeBase<MixerClear>
             {
                 for(std::vector<MYFLT>::iterator framei = channeli->begin(); framei != channeli->end(); ++framei)
                 {
-                    *framei = FL(0);
+                    *framei = FL(0.0);
                 }
             }
         }

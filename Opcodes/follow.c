@@ -89,7 +89,7 @@ int envset(ENVIRON *csound, ENV *p)
 
 int envext(ENVIRON *csound, ENV *p)
 {
-    int nsmps = ksmps;
+    int n, nsmps = ksmps;
     MYFLT       envelope = p->envelope;
     MYFLT       ga, gr;
     MYFLT       *in = p->in, *out = p->out;
@@ -109,8 +109,8 @@ int envext(ENVIRON *csound, ENV *p)
         gr = p->gr = (float) exp(-1.0/(double)(esr* p->lastrel));
     }
     else gr = p->gr;
-    do {
-      MYFLT inp = *in++;
+    for (n=0;n<nsmps;n++) {
+      MYFLT inp = in[n];
       if (inp<FL(0.0)) inp = -inp; /* Absolute value */
       if (envelope < inp) {
         envelope = inp + ga*(envelope-inp);
@@ -118,8 +118,8 @@ int envext(ENVIRON *csound, ENV *p)
       else {
         envelope = inp + gr*(envelope-inp);
       }
-      *out++ = envelope;
-    } while (nsmps--);
+      out[n] = envelope;
+    }
     p->envelope = envelope;
     return OK;
 }

@@ -697,8 +697,8 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('gab_gab',
     ['Opcodes/gab/gab.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('gab_vectorial',
     ['Opcodes/gab/vectorial.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('mixer',
-    ['Opcodes/mixer.cpp']))
+#pluginLibraries.append(pluginEnvironment.SharedLibrary('mixer',
+#    ['Opcodes/mixer.cpp']))
 
 # Plugins with External Dependencies
 
