@@ -4,7 +4,7 @@ pyexec_krate(PYEXEC *p)
   char source[1024];
   PyObject *result;
 
-  if (*p->string != sstrcod)
+  if (*p->string != SSTRCOD)
     {
       err_printf("pyexec_krate: a string is needed");
       return NOTOK;
@@ -29,7 +29,7 @@ pyexeci_irate(PYEXEC *p)
   char source[1024];
   PyObject *result;
 
-  if (*p->string != sstrcod)
+  if (*p->string != SSTRCOD)
     {
       err_printf("pyexeci_irate: a string is needed");
       return NOTOK;
@@ -51,7 +51,7 @@ pyexeci_irate(PYEXEC *p)
 int
 pylexec_irate(PYEXEC *p)
 {
-  if (*p->string != sstrcod)
+  if (*p->string != SSTRCOD)
     return NOTOK;
 
   create_private_namespace_if_needed(&p->h);
@@ -83,7 +83,7 @@ pylexeci_irate(PYEXEC *p)
   char source[1024];
   PyObject *result;
 
-  if (*p->string != sstrcod)
+  if (*p->string != SSTRCOD)
     {
       err_printf("pylexeci_irate: a string is needed");
       return NOTOK;
@@ -110,7 +110,7 @@ pyexect_krate(PYEXECT *p)
   char source[1024];
   PyObject *result;
 
-  if (*p->string != sstrcod)
+  if (*p->string != SSTRCOD)
     {
       err_printf("pyexect_krate: a string is needed");
       return NOTOK;
@@ -134,7 +134,7 @@ pyexect_krate(PYEXECT *p)
 int
 pylexect_irate(PYEXECT *p)
 {
-  if (*p->string != sstrcod)
+  if (*p->string != SSTRCOD)
     return NOTOK;
 
   create_private_namespace_if_needed(&p->h);
@@ -168,7 +168,7 @@ pyrun_krate(PYRUN *p)
   char source[40960];
   PyObject *result;
 
-  if (*p->string != sstrcod)
+  if (*p->string != SSTRCOD)
     {
       err_printf("pyrun_krate: a string is needed");
       return NOTOK;
@@ -193,7 +193,7 @@ pyruni_irate(PYRUN *p)
   char source[40960];
   PyObject *result;
 
-  if (*p->string != sstrcod)
+  if (*p->string != SSTRCOD)
     {
       err_printf("pyruni_irate: a string is needed");
       return NOTOK;
@@ -215,7 +215,7 @@ pyruni_irate(PYRUN *p)
 int
 pylrun_irate(PYRUN *p)
 {
-  if (*p->string != sstrcod)
+  if (*p->string != SSTRCOD)
     return NOTOK;
 
   create_private_namespace_if_needed(&p->h);
@@ -247,7 +247,7 @@ pylruni_irate(PYRUN *p)
   char source[40960];
   PyObject *result;
 
-  if (*p->string != sstrcod)
+  if (*p->string != SSTRCOD)
     {
       err_printf("pylruni_irate: a string is needed");
       return NOTOK;
@@ -274,7 +274,7 @@ pyrunt_krate(PYRUNT *p)
   char source[40960];
   PyObject *result;
 
-  if (*p->string != sstrcod)
+  if (*p->string != SSTRCOD)
     {
       err_printf("pyrunt_krate: a string is needed");
       return NOTOK;
@@ -298,7 +298,7 @@ pyrunt_krate(PYRUNT *p)
 int
 pylrunt_irate(PYRUNT *p)
 {
-  if (*p->string != sstrcod)
+  if (*p->string != SSTRCOD)
     return NOTOK;
 
   create_private_namespace_if_needed(&p->h);
@@ -332,7 +332,7 @@ pyeval_krate(PYEVAL *p)
   char source[1024];
   PyObject *result;
 
-  if (*p->string != sstrcod)
+  if (*p->string != SSTRCOD)
     {
       err_printf("pyeval_krate: a string is needed");
       return NOTOK;
@@ -365,7 +365,7 @@ pyevali_irate(PYEVAL *p)
   char source[1024];
   PyObject *result;
 
-  if (*p->string != sstrcod)
+  if (*p->string != SSTRCOD)
     {
       err_printf("pyevali_irate: a string is needed");
       return NOTOK;
@@ -395,7 +395,7 @@ pyevali_irate(PYEVAL *p)
 int
 pyleval_irate(PYEVAL *p)
 {
-  if (*p->string != sstrcod)
+  if (*p->string != SSTRCOD)
     return NOTOK;
 
   create_private_namespace_if_needed(&p->h);
@@ -435,7 +435,7 @@ pylevali_irate(PYEVAL *p)
   char source[1024];
   PyObject *result;
 
-  if (*p->string != sstrcod)
+  if (*p->string != SSTRCOD)
     {
       err_printf("pylevali_irate: a string is needed");
       return NOTOK;
@@ -470,7 +470,7 @@ pyevalt_krate(PYEVALT *p)
   char source[1024];
   PyObject *result;
 
-  if (*p->string != sstrcod)
+  if (*p->string != SSTRCOD)
     {
       err_printf("pyevalt_krate: a string is needed");
       return NOTOK;
@@ -506,7 +506,7 @@ pyevalt_krate(PYEVALT *p)
 int
 pylevalt_irate(PYEVALT *p)
 {
-  if (*p->string != sstrcod)
+  if (*p->string != SSTRCOD)
     return NOTOK;
 
   create_private_namespace_if_needed(&p->h);
@@ -552,7 +552,7 @@ pyassign_krate(PYASSIGN *p)
   char source[1024];
   PyObject *result;
 
-  if (*p->string != sstrcod)
+  if (*p->string != SSTRCOD)
     {
       err_printf("pyassign_krate: a string is needed");
       return NOTOK;
@@ -577,7 +577,7 @@ pyassigni_irate(PYASSIGN *p)
   char source[1024];
   PyObject *result;
 
-  if (*p->string != sstrcod)
+  if (*p->string != SSTRCOD)
     {
       err_printf("pyassigni_irate: a string is needed");
       return NOTOK;
@@ -599,7 +599,7 @@ pyassigni_irate(PYASSIGN *p)
 int
 pylassign_irate(PYASSIGN *p)
 {
-  if (*p->string != sstrcod)
+  if (*p->string != SSTRCOD)
     return NOTOK;
 
   create_private_namespace_if_needed(&p->h);
@@ -631,7 +631,7 @@ pylassigni_irate(PYASSIGN *p)
   char source[1024];
   PyObject *result;
 
-  if (*p->string != sstrcod)
+  if (*p->string != SSTRCOD)
     {
       err_printf("pylassigni_irate: a string is needed");
       return NOTOK;
@@ -658,7 +658,7 @@ pyassignt_krate(PYASSIGNT *p)
   char source[1024];
   PyObject *result;
 
-  if (*p->string != sstrcod)
+  if (*p->string != SSTRCOD)
     {
       err_printf("pyassignt_krate: a string is needed");
       return NOTOK;
@@ -682,7 +682,7 @@ pyassignt_krate(PYASSIGNT *p)
 int
 pylassignt_irate(PYASSIGNT *p)
 {
-  if (*p->string != sstrcod)
+  if (*p->string != SSTRCOD)
     return NOTOK;
 
   create_private_namespace_if_needed(&p->h);

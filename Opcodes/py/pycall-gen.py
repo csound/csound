@@ -30,7 +30,7 @@ def generate_pycall_common_init_code(f, n, pre, post, rate, triggered=0):
     print >> f, '  char command[1024];'
     print >> f, '  PyObject *result;'
     print >> f
-    print >> f, '  if (*p->function != sstrcod)'
+    print >> f, '  if (*p->function != SSTRCOD)'
     print >> f, '    {'
     print >> f, '      err_printf("%s: callable must be a string");' % (name)
     print >> f, '      return NOTOK;'
@@ -141,7 +141,7 @@ def generate_pylcall_irate_method(f, n, triggered=0):
     print >> f, 'int'
     print >> f, '%s(PYCALL%d%s *p)' % (name, n, T)
     print >> f, '{'
-    print >> f, '  if (*p->function != sstrcod)'
+    print >> f, '  if (*p->function != SSTRCOD)'
     print >> f, '    {'
     print >> f, '      err_printf("%s: callable must be a string");' % (name)
     print >> f, '      return NOTOK;'
