@@ -45,15 +45,9 @@ static RSCHED *kicked = NULL;
 /******************************************************************************/
 
 /* Some global declarations we need */
-/* extern INSDS actanchor; */  /* Chain of active instrument instances        */
 extern void  infoff(MYFLT p1); /* Turn off an indef copy of instr p1          */
-/*extern int   sensType;      0=score evt, 1=Linein, 2/3=midi,4=triginstr */
 
 #define FZERO (FL(0.0))    /* (Shouldn't there be global decl's for these?) */
-
-/* EVTNODE OrcTrigEvts;    List of started events, used in playevents() */
-
-
 
 void queue_event(MYFLT instr,
                  MYFLT when,
@@ -423,7 +417,7 @@ int lfoa(ENVIRON *csound, LFO *p)
 int sensOrcEvent(void)
 {
     if (OrcTrigEvts.nxtevt && OrcTrigEvts.nxtevt->kstart <= global_kcounter)
-      return(4);    /* sensType value (0=score,1=line,2/3=midi) */
+      return(4);    /* sensType value (0=score,1=line,2=midi) */
     else return(0);
 }
 

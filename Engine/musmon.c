@@ -43,7 +43,6 @@ extern void GetVersNumString(Str255 versStr);
 #endif
 int cleanup(void*);
 extern  void    kperf(ENVIRON*);
-extern  int     csoundYield(void*);
 
 #define SEGAMPS 01
 #define SORMSG  02
@@ -52,60 +51,21 @@ long    srngcnt[MAXCHNLS], orngcnt[MAXCHNLS];
 short   srngflg = 0;
 
 extern  OPARMS  O;
-static  EVTBLK  *scorevtblk;
-static  short   offonly = 0;
 static  short   sectno = 0;
 
-static  MYFLT   betsiz, ekrbetsiz;
 extern  int     MIDIinsert(ENVIRON *, int, MCHNBLK*, MEVENT*);
 extern  int     insert(ENVIRON *, int, EVTBLK*);
+extern  void    set_xtratim(ENVIRON *csound, INSDS *ip);
 
 extern  void    print_benchmark_info(void*, const char*);     /* main.c */
-
-static void settempo(MYFLT tempo)
-{
-    if (tempo > FL(0.0)) {
-      betsiz = FL(60.0) / tempo;
-      ekrbetsiz = ekr * betsiz;
-    }
-}
-
-int gettempo(ENVIRON *csound, GTEMPO *p)
-{
-    if (O.Beatmode) *p->ans = FL(60.0) / betsiz;
-    else *p->ans = FL(60.0);
-    return OK;
-}
-
-int tempset(ENVIRON *csound, TEMPO *p)
- {
-    MYFLT tempo;
-
-    if ((tempo = *p->istartempo) <= FL(0.0)) {
-      return initerror(Str("illegal istartempo value"));
-    }
-    else {
-      settempo(tempo);
-      p->prvtempo = tempo;
-    return OK;
-    }
-}
-
-int tempo(ENVIRON *csound, TEMPO *p)
-{
-    if (*p->ktempo != p->prvtempo) {
-      settempo(*p->ktempo);
-      p->prvtempo = *p->ktempo;
-    }
-    return OK;
-}
 
 extern  void    RTLineset(void), MidiOpen(void *);
 extern  void    m_chn_init_all(ENVIRON *);
 extern  void    scsort(FILE*, FILE*), oload(ENVIRON *), cscorinit(void);
 extern  void    schedofftim(INSDS *), infoff(MYFLT);
-extern  void    orcompact(ENVIRON*), rlsmemfiles(void), timexpire(double);
-extern  void    beatexpire(double), deact(INSDS*), fgens(ENVIRON *,EVTBLK *);
+extern  void    orcompact(ENVIRON*), rlsmemfiles(void);
+extern  void    beatexpire(ENVIRON *, double), timexpire(ENVIRON *, double);
+extern  void    deact(INSDS*), fgens(ENVIRON *,EVTBLK *);
 extern  void    sfopenin(void*), sfopenout(void*), sfnopenout(void);
 extern  void    iotranset(void), sfclosein(void*), sfcloseout(void*);
 extern  void    MidiClose(ENVIRON*);
@@ -115,21 +75,52 @@ extern  OPARMS  O;
 static  int     playevents(ENVIRON *);
 static  int     lplayed = 0;
 static  int     segamps, sormsg;
-static  EVTBLK  *e = NULL;
-static  MYFLT   *maxp;
-static  long    *rngp;
 static  EVENT   **ep, **epend;  /* pointers for stepping through lplay list */
 static  EVENT   *lsect = NULL;
-void    beep(void);
+        void    beep(void);
 
-/* #define MAXTIM 3600. */
-#define MAXONS 5
+extern  void    queue_event(MYFLT, MYFLT, MYFLT, int, MYFLT **);
 
-static TRNON turnons[MAXONS];
-static TRNON *tpend = turnons + MAXONS;
-TRNON *frsturnon = NULL;
-void xturnon(int, long);
-void kturnon(ENVIRON*);
+static void settempo(ENVIRON *csound, MYFLT tempo)
+{
+    if (tempo > FL(0.0)) {
+      csound->sensEvents_state.beatTime = 60.0 / (double) tempo;
+      csound->sensEvents_state.curBeat_inc =
+                            (double) tempo / (60.0 * (double) csound->ekr_);
+    }
+}
+
+int gettempo(ENVIRON *csound, GTEMPO *p)
+{
+    if (O.Beatmode)
+      *p->ans = (MYFLT) (60.0 / csound->sensEvents_state.beatTime);
+    else
+      *p->ans = FL(60.0);
+    return OK;
+}
+
+int tempset(ENVIRON *csound, TEMPO *p)
+{
+    MYFLT tempo;
+
+    if ((tempo = *p->istartempo) <= FL(0.0)) {
+      return initerror(Str("illegal istartempo value"));
+    }
+    else {
+      settempo(csound, tempo);
+      p->prvtempo = tempo;
+      return OK;
+    }
+}
+
+int tempo(ENVIRON *csound, TEMPO *p)
+{
+    if (*p->ktempo != p->prvtempo) {
+      settempo(csound, *p->ktempo);
+      p->prvtempo = *p->ktempo;
+    }
+    return OK;
+}
 
 void musRESET(void)
 {
@@ -148,19 +139,11 @@ void musRESET(void)
     rngflg     = 0;
     srngflg    = 0;
     multichan  = 0;
-    sensType   = 0;
-    scorevtblk = NULL;
-    offonly    = 0;
     sectno     = 0;
-    betsiz     = FL(0.0);
-    ekrbetsiz  = FL(0.0);
 
     lplayed    = 0;
     segamps    = 0;
     sormsg     = 0;
-    e          = NULL;
-    maxp       = NULL;
-    rngp       = NULL;
     ep         = NULL;
     epend      = NULL;
     lsect      = NULL;
@@ -225,11 +208,30 @@ int musmon(ENVIRON *csound)
                  PACKAGE_VERSION, __DATE__);
 #endif
     }
-    m_chn_init_all(csound);
+
+    m_chn_init_all(csound);     /* allocate MIDI channels */
     dispinit();                 /* initialise graphics or character display */
     oload(csound);              /* set globals and run inits */
+
+    /* kperf() will not call csoundYield() more than 1000 times per second */
+    csound->evt_poll_cnt = 0;
+    csound->evt_poll_maxcnt = (int) ((double) csound->ekr_ / 1000.0);
+    /* initialise sensevents state */
+    {
+      sensEvents_t  *p;
+      p = &(csound->sensEvents_state);
+      memset(p, 0, sizeof(sensEvents_t));
+      p->prvbt = p->curbt = p->nxtbt = 0.0;
+      p->curp2 = p->nxtim = p->timeOffs = p->beatOffs = 0.0;
+      p->curTime = p->curBeat = 0.0;
+      p->curTime_inc = p->curBeat_inc = 1.0 / (double) csound->ekr_;
+    }
+    if (O.Beatmode)                             /* if performing from beats */
+      settempo(csound, (MYFLT) O.cmdTempo);     /*   set the initial tempo  */
+    else
+      settempo(csound, FL(60.0));
+    /* Enable musmon to handle external MIDI input, if it has been enabled. */
     if (O.Midiin || O.FMidiin) {
-      /* Enable musmon to handle external MIDI input, if it has been enabled. */
       O.RTevents = 1;
       O.ksensing = 1;
       MidiOpen(csound);         /*   alloc bufs & open files    */
@@ -297,9 +299,6 @@ int musmon(ENVIRON *csound)
     else sfnopenout();
     iotranset();                    /* point recv & tran to audio formatter */
 
-    if (O.Beatmode)                 /* if performing from beats */
-      settempo((MYFLT)O.cmdTempo);  /*   set the initial tempo  */
-
     /*        if (!O.Linein) { */   /*  *************** */
     if (!(scfp = fopen(O.playscore, "r"))) {
       if (!O.Linein) {
@@ -334,16 +333,10 @@ int musmon(ENVIRON *csound)
       printf(Str("playing from cscore.srt\n"));
       O.usingcscore = 0;
     }
-    if (e == NULL)
-      e = scorevtblk = (EVTBLK *) mmalloc(csound, (long)sizeof(EVTBLK));
-    printf(Str("SECTION %d:\n"),++sectno);
+    printf(Str("SECTION %d:\n"), ++sectno);
 #ifdef mills_macintosh
     fflush(stdout);
 #endif
-
-    if (frsturnon != NULL)           /* if something in turnon list  */
-      kturnon(csound);               /*   turnon now                 */
-
                                      /* since we are running in components */
     return 0;                        /* we exit here to playevents later   */
 }
@@ -358,6 +351,8 @@ int musmon2(ENVIRON *csound)
 
 int cleanup(void *csound)
 {
+    MYFLT   *maxp;
+    long    *rngp;
     int     n;
 
     /* check if we have already cleaned up */
@@ -419,72 +414,279 @@ int lplay(ENVIRON *csound, EVLIST *a) /* cscore re-entry into musmon */
     return OK;
 }
 
-int turnon(ENVIRON *csound, TURNON *p) /* make list to turn on instrs for indef */
-{                            /* perf called from i0 for execution in playevents */
-    int insno = (int)*p->insno;
-    long xtratim = (long)(*p->itime * ekr);
-    xturnon(insno, xtratim);
+/* make list to turn on instrs for indef */
+/* perf called from i0 for execution in playevents */
+
+int turnon(ENVIRON *csound, TURNON *p)
+{
+    queue_event(*p->insno,
+                (MYFLT) (csound->sensEvents_state.curTime + (double) *p->itime),
+                FL(-1.0), 3, NULL);
     return OK;
 }
 
-void xturnon(int insno, long xtratim) /* schedule a later turnon        */
-{                               /* called by above & ctrlr 111  */
-    TRNON *tp = turnons;
-    long ktime = kcounter + xtratim;
+/* Print current amplitude values, and update section amps. */
 
-    while (tp->insno && ++tp < tpend);  /* quick see if list is full */
-    if (tp >= tpend)
-      printf(Str("too many turnons waiting\n"));
-    else {
-      TRNON *prvtp = tp - 1;
-      while (prvtp >= turnons && prvtp->ktime > ktime) {
-        tp->insno = prvtp->insno;
-        tp->ktime = prvtp->ktime;       /* else move later ones down */
-        tp--; prvtp--;
+static void print_amp_values(ENVIRON *csound, int score_evt)
+{
+    sensEvents_t  *p;
+    MYFLT         *maxp, *smaxp;
+    unsigned long *maxps, *smaxps;
+    long          *rngp, *srngp;
+    int           n;
+
+    p = &(csound->sensEvents_state);
+    if (segamps || (sormsg && rngflg)) {
+      if (score_evt)
+        printf("B%7.3f ..%7.3f T%7.3f TT%7.3f M:",
+               p->prvbt - p->beatOffs,  p->curbt - p->beatOffs,
+               p->curp2 - p->timeOffs,  p->curp2);
+      else
+        printf("  rtevent:\t   T%7.3f TT%7.3f M:",
+               p->curp2 - p->timeOffs,  p->curp2);
+      for (n = nchnls, maxp = maxamp; n--; )
+        print_maxamp(*maxp++);          /* IV - Jul 9 2002 */
+      printf("\n");
+      if (rngflg) {
+        printf(Str("\t number of samples out of range:"));
+        for (n = nchnls, rngp = rngcnt; n--; )
+          printf("%9ld", *rngp++);
+        printf("\n");
       }
-      tp->insno = insno;                        /*   & insert the new one */
-      tp->ktime = ktime;
     }
-    frsturnon = turnons;
+    if (rngflg) {
+      rngflg = 0;
+      srngflg++;
+    }
+    for (n = nchnls, maxp = maxamp - 1, smaxp = smaxamp - 1,
+         maxps = maxpos - 1, smaxps = smaxpos - 1,
+         rngp = rngcnt, srngp = srngcnt; n--; ) {
+      ++maxps; ++smaxps;
+      if (*++maxp > *++smaxp) {
+        *smaxp = *maxp;
+        *smaxps = *maxps;
+      }
+      *maxp = FL(0.0);
+      *maxps = 0;
+      *srngp++ += *rngp;
+      *rngp++ = 0;
+    }
 }
 
-void kturnon(ENVIRON *csound)/* turn on instrs due in turnon list */
-{                            /* called by kperf when frsturnon set & ktime ready */
-    int insno;
-    TRNON *tp = turnons;
-    EVTBLK *e = (EVTBLK *) mmalloc(csound, (long)sizeof(EVTBLK));
-    e->opcod = 'i';
-    e->pcnt = 3;
-    /*    e->strlen = 0; */
-    e->offtim = -FL(1.0);     /* indef perf */
-    e->p[2] = FL(0.0);
-    e->p[3] = -FL(1.0);
-    while (tp < tpend && (insno = tp->insno) && tp->ktime <= kcounter) {
-      int n;
-      e->p[1] = (MYFLT)insno;                   /* for each instr due */
-      if (instrtxtp[insno] == NULL) {           /*     turnon now     */
-        printf(Str("turnon deleted. instr %d undefined\n"), insno);
-        perferrcnt++;
+/* Update overall amplitudes from section values, */
+/* and optionally print message (1: section end, 2: lplay end). */
+
+static void section_amps(ENVIRON *csound, int enable_msgs)
+{
+    sensEvents_t  *p;
+    MYFLT         *maxp, *smaxp;
+    unsigned long *maxps, *smaxps;
+    long          *rngp, *srngp;
+    int           n;
+
+    p = &(csound->sensEvents_state);
+    if (enable_msgs) {
+      if (enable_msgs == 1)
+        printf(Str("end of section %d\t sect peak amps:"), sectno);
+      else if (enable_msgs == 2)
+        printf(Str("end of lplay event list\t      peak amps:"));
+      for (n = nchnls, maxp = smaxamp; n--; )
+        print_maxamp(*maxp++);          /* IV - Jul 9 2002 */
+      printf("\n");
+      if (srngflg) {
+        printf(Str("\t number of samples out of range:"));
+        for (n = nchnls, srngp = srngcnt; n--; )
+          printf("%9ld", *srngp++);
+        printf("\n");
       }
-      else if ((n = insert(csound,insno, e)) != 0) {
-        printf(Str("turnon deleted. instr %d "), insno);
-        if (n < 0) printf(Str("memory fault\n"));
-        else printf(Str("had %d init errors\n"), n);
-        perferrcnt++;
-      }
-      tp->insno = 0;                            /*      & mark it done */
-      tp++;
     }
-    mfree(csound, (char *)e);
-    if (tp < tpend && tp->insno) {              /*   if list non-empty  */
-      TRNON *newtp = turnons;
-      do {
-        newtp->insno = tp->insno;               /*   shuffle to the top */
-        newtp->ktime = tp->ktime;
-        tp->insno = 0;
-      } while (++tp < tpend && tp->insno && newtp++);
-      frsturnon = turnons;                      /*   & set gbl pointer */
-    } else frsturnon = NULL;
+    srngflg = 0;
+    for (n = nchnls,
+         smaxp = smaxamp - 1, maxp = omaxamp - 1,
+         smaxps = smaxpos - 1, maxps = omaxpos - 1,
+         srngp = srngcnt, rngp = orngcnt; n--; ) {
+      ++maxps; ++smaxps;
+      if (*++smaxp > *++maxp) {
+        *maxp = *smaxp;                 /* keep ovrl maxamps */
+        *maxps = *smaxps;               /* And where */
+      }
+      *smaxp = FL(0.0);
+      *smaxps = 0;
+      *rngp++ += *srngp;                /*   and orng counts */
+      *srngp++ = 0;
+    }
+}
+
+static void print_score_time(ENVIRON *csound, int rtEvt)
+{
+    sensEvents_t  *p;
+    p = &(csound->sensEvents_state);
+    if (rtEvt)
+      printf("\t\t   T%7.3f", p->curp2 - p->timeOffs);
+    else
+      printf("\t  B%7.3f", p->curbt - p->beatOffs);
+}
+
+static int process_score_event(ENVIRON *csound, EVTBLK *evt, int rtEvt)
+{
+    sensEvents_t  *p;
+    EVTBLK        *saved_currevent;
+    int           insno, n;
+
+    p = &(csound->sensEvents_state);
+    saved_currevent = currevent;
+    currevent = evt;
+    switch (evt->opcod) {                       /* scorevt or Linevt:     */
+    case 'e':           /* quit realtime */
+    case 'l':
+    case 's':
+      while (frstoff != NULL) {
+        xturnoff_now(csound, frstoff);
+        frstoff = frstoff->nxtoff;
+      }
+      currevent = saved_currevent;
+      return (evt->opcod == 'l' ? 3 : (evt->opcod == 's' ? 1 : 2));
+    case 'q':
+      if (evt->p[1] == SSTRCOD && evt->strarg) {    /* IV - Oct 31 2002 */
+        if ((insno = (int) named_instr_find(evt->strarg)) < 1) {
+          print_score_time(csound, rtEvt);
+          printf(Str(" - note deleted. instr %s undefined\n"), evt->strarg);
+          perferrcnt++;
+          break;
+        }
+        printf(Str("Setting instrument %s %s\n"),
+               evt->strarg, (evt->p[3] == 0 ? Str("off") : Str("on")));
+        instrtxtp[insno]->muted = (short) evt->p[3];
+      }
+      else {                                        /* IV - Oct 31 2002 */
+        insno = abs((int) evt->p[1]);
+        if (insno > maxinsno || instrtxtp[insno] == NULL) {
+          print_score_time(csound, rtEvt);
+          printf(Str(" - note deleted. instr %d(%d) undefined\n"),
+                 insno, maxinsno);
+          perferrcnt++;
+          break;
+        }
+        printf(Str("Setting instrument %d %s\n"),
+               insno, (evt->p[3] == 0 ? Str("off") : (Str("on"))));
+        instrtxtp[insno]->muted = (short) evt->p[3];
+      }
+      break;
+    case 'i':
+      if (evt->p[1] == SSTRCOD && evt->strarg) {    /* IV - Oct 31 2002 */
+        if ((insno = (int) named_instr_find(evt->strarg)) < 1) {
+          print_score_time(csound, rtEvt);
+          printf(Str(" - note deleted. instr %s undefined\n"), evt->strarg);
+          perferrcnt++;
+          break;
+        }
+        evt->p[1] = (MYFLT) insno;
+        if (O.Beatmode && evt->p3orig >= FL(0.0))
+          evt->p[3] = evt->p3orig * p->beatTime;
+        if ((n = insert(csound, insno, evt))) { /* else alloc, init, activate */
+          print_score_time(csound, rtEvt);
+          printf(Str(" - note deleted.  i%d (%s) had %d init errors\n"),
+                 insno, evt->strarg, n);
+          perferrcnt++;
+        }
+      }
+      else {                                        /* IV - Oct 31 2002 */
+        insno = abs((int) evt->p[1]);
+        if (insno > maxinsno || instrtxtp[insno] == NULL) {
+          print_score_time(csound, rtEvt);
+          printf(Str(" - note deleted. instr %d(%d) undefined\n"),
+                 insno, maxinsno);
+          perferrcnt++;
+        }
+        else if (evt->p[1] < FL(0.0))           /* if p1 neg,             */
+          infoff(-evt->p[1]);                   /*  turnoff any infin cpy */
+        else {
+          if (O.Beatmode && evt->p3orig >= FL(0.0))
+            evt->p[3] = evt->p3orig * p->beatTime;
+          if ((n = insert(csound, insno, evt))) { /* else alloc,init,activat */
+            print_score_time(csound, rtEvt);
+            printf(Str(" - note deleted.  i%d had %d init errors\n"), insno, n);
+            perferrcnt++;
+          }
+        }
+      }
+      break;
+    case 'f':
+      fgens(csound, evt);
+      break;
+    case 'a':
+      p->curp2 = p->timeOffs + (double) evt->p[2] + (double) evt->p[3];
+      p->curbt = p->beatOffs + (double) evt->p2orig + (double) evt->p3orig;
+      printf(Str("time advanced %5.3f beats by score request\n"), evt->p3orig);
+      break;
+    }
+    currevent = saved_currevent;
+    return 0;
+}
+
+static int process_rt_event(ENVIRON *csound, int sensType)
+{
+    sensEvents_t  *p;
+    EVTBLK        *evt;
+    int           retval, insno, n;
+
+    p = &(csound->sensEvents_state);
+    retval = 0;
+    if (p->curp2 < p->curTime) {
+      p->curp2 = p->curTime;
+      print_amp_values(csound, 0);
+    }
+    if (sensType == 1) {                  /*    for Linein,       */
+      evt = Linevtblk;                    /*      get its evtblk  */
+      evt->p[2] = p->curp2;               /*      & insert curp2  */
+      retval = process_score_event(csound, evt, 1);
+    }
+    else if (sensType == 4) {   /* Realtime orc event (re Aug 1999) */
+      EVTNODE *evtlist = OrcTrigEvts.nxtevt;
+      /* Events are sorted on insertion, so just check the first */
+      if (evtlist && evtlist->kstart <= kcounter) {
+        evt = &evtlist->evt;
+        /* Pop from the list, as evt is mfree'd below */
+        evtlist = OrcTrigEvts.nxtevt = evtlist->nxtevt;
+        if (OrcTrigEvts.nxtevt == NULL)
+          O.OrcEvts = 0;
+        retval = process_score_event(csound, evt, 1);
+        mfree(csound, evt);
+      }
+    }
+    else if (sensType == 2) {                           /* Midievent:    */
+      MEVENT *mep;
+      MCHNBLK *chn;
+      /* realtime or Midifile  */
+      mep = csound->midiGlobals->Midevtblk;
+      chn = M_CHNBP[mep->chan];
+      insno = chn->insno;
+      if (mep->type == NOTEON_TYPE && mep->dat2) {      /* midi note ON: */
+        if ((n = MIDIinsert(csound,insno,chn,mep))) {   /* alloc,init,activ */
+          printf(Str("\t\t   T%7.3f - note deleted. "), p->curp2);
+          printf(Str("instr %d had %d init errors\n"), insno, n);
+          perferrcnt++;
+        }
+      }
+      else {                            /* else midi note OFF:    */
+        INSDS *ip = chn->kinsptr[mep->dat1];
+        if (ip == NULL) {               /*  if already off, done  */
+          Mxtroffs++;
+          return retval;
+        }
+        if (chn->sustaining) {          /*  if sustain pedal on   */
+          while (ip != NULL && ip->m_sust)
+            ip = ip->nxtolap;
+          if (ip != NULL) {
+            ip->m_sust = 1;             /*    let the note ring   */
+            chn->ksuscnt++;
+          }
+        }
+        else                            /*  else some kind of off */
+          xturnoff(csound, ip);
+      }
+    }
+    return retval;
 }
 
 /* IV - Feb 05 2005 */
@@ -502,387 +704,150 @@ extern  int     sensMidi(ENVIRON *);
 int sensevents(ENVIRON *csound)
 {
     sensEvents_t  *p;
-    int           n, insno;
-    MYFLT         *smaxp;
-    unsigned long *maxps, *smaxps;
-    long          *srngp;
-    char          opcod = '\0';
+    EVTBLK        *e;
+    int           retval, sensType;
 
     p = &(csound->sensEvents_state);
-    if (!p->init_done) {
-      /* at beginning of performance: */
-      p->prvbt = p->curbt = p->nxtbt = p->curp2 = p->nxtim = p->timtot = 0.0;
-      p->init_done = 1;
-      p->cyclesRemaining = p->kDone = p->saved_opcod = 0;
-      sensType = 0;
+    if (MTrkend && O.termifend) {       /* end of MIDI file: */
+      while (frstoff != NULL) {
+        xturnoff_now(csound, frstoff);
+        frstoff = frstoff->nxtoff;
+      }
+      printf(Str("terminating.\n"));
+      return 1;                         /* abort with perf incomplete */
     }
-    else {
-      if (MTrkend && O.termifend) {     /* end of MIDI file: */
-        while (frstoff != NULL) {
-          deact(frstoff);
-          frstoff = frstoff->nxtoff;
-        }
-        printf(Str("terminating.\n"));
-        return 1;                       /* abort with perf incomplete */
+    /* if turnoffs pending, remove any expired instrs */
+    if (frstoff != NULL) {
+      double  tval;
+      if (O.Beatmode) {
+        tval = p->curBeat + (0.51 * p->curBeat_inc);
+        if (frstoff->offbet <= tval) beatexpire(csound, tval);
       }
-      if (--(p->cyclesRemaining) <= 0)
-        p->cyclesRemaining = 0;
-      p->kDone++;
-      /* sense real-time events */
-      n = 1;
-      if (p->cyclesRemaining && O.RTevents) {       /* if MIDI note message */
-        if (((O.Midiin || O.FMidiin) && (sensType = sensMidi(csound))) ||
-            (O.Linein && (sensType = sensLine())) ||    /* or Linein event */
-            (O.OrcEvts && (sensType = sensOrcEvent()))) /* or triginstr event */
-        n = 0;                                          /*   (re Aug 1999) */
+      else {
+        tval = p->curTime + (0.51 * p->curTime_inc);
+        if (frstoff->offtim <= tval) timexpire(csound, tval);
       }
-      if (!p->cyclesRemaining)
-        n = 0;
-      if (n)            /* if there are no real-time events, and still have */
-        return 0;       /* k-periods to perform, continue performance */
-      /* otherwise process events now */
-      smaxp = NULL; maxps = NULL; smaxps = NULL; srngp = NULL;
-      opcod = (char) p->saved_opcod;
-      goto kperf_cont;
+    }
+    e = &(csound->sensEvents_state.evt);
+    if (--(p->cyclesRemaining) <= 0) {  /* if done performing score segment: */
+      if (!p->cyclesRemaining) {
+        p->prvbt = p->curbt;            /* update beats and times */
+        p->curbt = p->nxtbt;
+        p->curp2 = p->nxtim;
+        print_amp_values(csound, 1);    /* print amplitudes for this segment */
+      }
+      else                              /* this should only happen at */
+        p->cyclesRemaining = 0;         /* beginning of performance   */
     }
 
-    if (frsturnon != NULL)         /* if something in turnon list  */
-      kturnon(csound);             /*   turnon now                 */
-    while (1) {                    /* read each score event:       */
-      if (O.usingcscore) {         /*   i.e. get next lplay event  */
-        if (ep < epend)
-          e = (EVTBLK *) &((*ep++)->strarg);         /* nxt event  */
-        else e = (EVTBLK *) &(lsect->strarg);        /* else lcode */
-      }
-      else if (!(rdscor(e)))       /*   or rd nxt evt from scorfil */
-        e->opcod = 'e';
-    retest:
-      offonly = 0;
-      currevent = e;
-      switch (e->opcod) {
-      case 'w':
-        if (O.Beatmode)                     /* Beatmode: read 'w'  */
-          settempo(e->p2orig);              /*   to init the tempo */
-        continue;                           /*   for this section  */
-      case 'q':
-      case 'i':
-      case 'f':
-      case 'a':
-        if (frstoff != NULL) {
-          if (O.Beatmode && frstoff->offbet < e->p2orig)
-            goto setoff;
-          else if (!O.Beatmode && frstoff->offtim < e->p[2])
-            goto setoff;
+ retest:
+    while (p->cyclesRemaining <= 0) {   /* read each score event:       */
+      if (e->opcod != '\0') {
+        /* if there is a pending score event, handle it now */
+        switch (e->opcod) {
+          case 'e':                         /* end of score, */
+          case 'l':                         /* lplay list,   */
+          case 's':                         /* or section:   */
+            if (frstoff != NULL) {          /*   if still have notes with  */
+              p->nxtim = frstoff->offtim;   /*   finite length, wait until */
+              p->nxtbt = frstoff->offbet;   /*   all are turned off        */
+              break;
+            }
+            /* end of: 1: section, 2: score, 3: lplay list */
+            retval = (e->opcod == 'l' ? 3 : (e->opcod == 's' ? 1 : 2));
+            goto scode;
+          default:                              /* q, i, f, a:              */
+            process_score_event(csound, e, 0);  /*   handle event now       */
+            e->opcod = '\0';                    /*   and get next one       */
+            continue;
         }
-        p->nxtim = (double) e->p[2];
-        p->nxtbt = (double) e->p2orig;
-        if (O.Beatmode && ((p->nxtbt - p->curbt) * (double) ekrbetsiz) > 0.51)
-                        /* if we havent gotten to the next starttime then */
-          offonly = 1;  /* need to set this to avoid inserting too early */
-        else if (!O.Beatmode && ((p->nxtim - p->curp2) * (double) ekr) > 0.51)
-                        /* if we havent gotten to the next starttime then */
-          offonly = 1;  /* need to set this to avoid inserting too early */
-        break;
-      case 'l':
-        if (frstoff != NULL)
-          goto setoff;
-        goto lcode;
-      case 's':
-      case 'e':
-        if (frstoff == NULL)
-          goto scode;
-      setoff:
-        p->nxtim = (double) frstoff->offtim;
-        p->nxtbt = (double) frstoff->offbet;
-        offonly = 1;
-        break;
-      default:
-        printf(Str("error in score.  illegal opcode %c (ASCII %d)\n"),
-               e->opcod, e->opcod);
-        perferrcnt++;
-        continue;
       }
+      else {
+        /* else read next score event */
+        if (O.usingcscore) {         /*   get next lplay event       */
+          if (ep < epend)                              /* nxt event  */
+            memcpy(e, (EVTBLK *) &((*ep++)->strarg), sizeof(EVTBLK));
+          else                                         /* else lcode */
+            memcpy(e, (EVTBLK *) &(lsect->strarg), sizeof(EVTBLK));
+        }
+        else if (!(rdscor(e)))       /*   or rd nxt evt from scorfil */
+          e->opcod = 'e';
+        currevent = e;
+        switch (e->opcod) {
+        case 'w':
+          if (O.Beatmode)                     /* Beatmode: read 'w'  */
+            settempo(csound, e->p2orig);      /*   to init the tempo */
+          continue;                           /*   for this section  */
+        case 'q':
+        case 'i':
+        case 'f':
+        case 'a':
+          p->nxtim = (double) e->p[2] + p->timeOffs;
+          p->nxtbt = (double) e->p2orig + p->beatOffs;
+          break;
+        case 'e':
+        case 'l':
+        case 's':
+          continue;
+        default:
+          printf(Str("error in score.  illegal opcode %c (ASCII %d)\n"),
+                 e->opcod, e->opcod);
+          perferrcnt++;
+          continue;
+        }
+      }
+      /* calculate the number of k-periods remaining until next event */
       if (O.Beatmode)
-        p->cyclesRemaining = RNDINT(((double) p->nxtbt - (double) p->curbt)
-                                    * (double) ekrbetsiz);
+        p->cyclesRemaining = RNDINT((p->nxtbt - p->curBeat) / p->curBeat_inc);
       else
-        p->cyclesRemaining = RNDINT(((double) p->nxtim - (double) p->curp2)
-                                    * (double) ekr);
-      if (p->cyclesRemaining > 0) {                 /* perf for kcnt kprds  */
-        p->kDone = 0;
-        /* sense real-time events */
-        if (O.RTevents &&                           /* if MIDI note message */
-            (((O.Midiin || O.FMidiin) && (sensType = sensMidi(csound))) ||
-             (O.Linein && (sensType = sensLine())) ||     /* or Linein event */
-             (O.OrcEvts && (sensType = sensOrcEvent())))) /* or triginstr */
-          goto kperf_cont;                            /*  event (re Aug 1999) */
-        /* no events, return to continue performance */
-        p->saved_opcod = (int) opcod;
-        return 0;
- kperf_cont:
-        /* ======== IV - Feb 05 2005: return from performance ======== */
-        if (p->cyclesRemaining) {               /* early rtn:  RTevent  */
-          p->curp2 += (double) p->kDone
-                      * (double) onedkr;        /*    update only curp2 */
-          if (sensType == 1) {                  /*    for Linein,       */
-            e = Linevtblk;                      /*      get its evtblk  */
-            e->p[2] = p->curp2;                 /*      & insert curp2  */
-          }
-          else if (sensType == 4) {   /* Realtime orc event (re Aug 1999) */
-            EVTNODE *evtlist = OrcTrigEvts.nxtevt;
-            /* Events are sorted on insertion, so just check the first */
-            if (evtlist && evtlist->kstart <= kcounter) {
-              e = &evtlist->evt;
-              /* Pop from the list, as e is mfree'd below */
-              evtlist = OrcTrigEvts.nxtevt = evtlist->nxtevt;
-            }
-            if (OrcTrigEvts.nxtevt == NULL) O.OrcEvts = 0;
-          }
-          if (!p->kDone)                 /* if null duration,    */
-            goto mtest;               /*  chk for midi on-off */
-          if (segamps || (sormsg && rngflg))
-            printf("  rtevent:\t   T%7.3f TT%7.3f M:",
-                   p->curp2, p->timtot + p->curp2);
-        }
-        else {                        /* else a score event:  */
-          p->prvbt = p->curbt;
-          p->curbt = p->nxtbt;              /*    update beats too  */
-          p->curp2 = p->nxtim;
-          if (segamps || (sormsg && rngflg))
-            printf("B%7.3f ..%7.3f T%7.3f TT%7.3f M:",
-                   p->prvbt,  p->curbt,  p->curp2,  p->timtot + p->curp2);
-        }
-        if (segamps || (sormsg && rngflg)) {
-          for (n=nchnls, maxp=maxamp; n--;)
-            print_maxamp (*maxp++);             /* IV - Jul 9 2002 */
-          printf("\n");
-          if (rngflg) {
-            printf(Str("\t number of samples out of range:"));
-            for (n=nchnls, rngp=rngcnt; n--;)
-              printf("%9ld", *rngp++);
-            printf("\n");
-            rngflg = 0;
-            srngflg++;
-          }
-        }
-        for (n=nchnls,maxp=maxamp-1,smaxp=smaxamp-1,
-               maxps=maxpos-1,smaxps=smaxpos-1,
-               rngp=rngcnt,srngp=srngcnt; n--; ) {
-          ++maxps; ++smaxps;
-          if (*++maxp > *++smaxp) {
-            *smaxp = *maxp;
-            *smaxps = *maxps;
-          }
-          *maxp = FL(0.0);
-          *maxps = 0;
-          *srngp++ += *rngp;
-          *rngp++ = 0;
-        }
-      }
-      if (sensType == 0) { /* if this was a score or turnoff time:  */
-        if (frstoff != NULL) {            /* if turnoffs pending,   */
-          if (O.Beatmode)                 /*  rm any expired instrs */
-            beatexpire((double) p->curbt + (0.51 / (double) ekrbetsiz));
-          else
-            timexpire((double) p->curp2 + (0.51 / (double) ekr));
-        }
-        if (offonly)
-          goto retest;                    /*  if offonly, loop back */
-      }
-    mtest:
-      /* New version (re Aug 1999): */
-      if (sensType == 2) {                /* Midievent:    */
-        MEVENT *mep;
-        MCHNBLK *chn;
-        /* realtime or Midifile  */
-        mep = csound->midiGlobals->Midevtblk;
-        chn = M_CHNBP[mep->chan];
-        insno = chn->insno;
-        if (mep->type == NOTEON_TYPE && mep->dat2) { /* midi note ON: */
-          if ((n = MIDIinsert(csound,insno,chn,mep))) {  /* alloc,init,activ */
-            printf(Str("\t\t   T%7.3f - note deleted. "), p->curp2);
-            printf(Str("instr %d had %d init errors\n"), insno, n);
-            perferrcnt++;
-          }
-        }
-        else {                         /* else midi note OFF:    */
-          short pch = mep->dat1;
-          INSDS *ip = chn->kinsptr[pch];
-          if (ip == NULL)              /*  if already off, done  */
-            Mxtroffs++;
-          else {
-            chn->kinsptr[pch] = NULL;  /*  mark this key off     */
-            if (chn->sustaining) {     /*  if sustain pedal on   */
-              chn->ksusptr[pch] = ip;
-              chn->ksuscnt++;          /*    let the note ring   */
-            }
-            else {                     /*  else some kind of off */
-              do {
-                if (!csoundYield(&cenviron)) longjmp(cenviron.exitjmp_,1);
-                if (ip->xtratim) {     /*    if offtime delayed  */
-                  ip->relesing = 1;    /*     enter reles phase  */
-                  ip->offtim = (kcounter + ip->xtratim) * onedkr;
-                  schedofftim(ip);     /*      & put in offqueue */
-                }
-                else deact(ip);        /*    else off now        */
-              } while ((ip = ip->nxtolap) != NULL);
-            }
-          }
-        }
-      }
-      else switch (e->opcod) {         /* scorevt or Linevt:     */
-      case 'e':
-        goto scode;             /* quit realtime */
-      case 'q':
-        if (e->p[1] == SSTRCOD && e->strarg) {          /* IV - Oct 31 2002 */
-          if ((insno = (int) named_instr_find(e->strarg)) < 1) {
-            if (sensType) printf("\t\t   T%7.3f",p->curp2);
-            else  printf("\t  B%7.3f",p->curbt);
-            printf(Str(" - note deleted. instr %s undefined\n"), e->strarg);
-            perferrcnt++; break;
-          }
-          printf(Str("Setting instrument %s %s\n"),
-                 e->strarg, (e->p[3]==0 ? Str("off") : Str("on")));
-          instrtxtp[insno]->muted = (short)e->p[3];
-        }
-        else {                                          /* IV - Oct 31 2002 */
-          insno = abs((int)e->p[1]);
-          if (insno > maxinsno || instrtxtp[insno] == NULL) {
-            if (sensType) printf("\t\t   T%7.3f",p->curp2);
-            else  printf("\t  B%7.3f",p->curbt);
-            printf(Str(" - note deleted. instr %d(%d) undefined\n"),
-                   insno, maxinsno);
-            perferrcnt++;
-          }
-          else {
-            printf(Str("Setting instrument %d %s\n"),
-                   insno, (e->p[3]==0 ? Str("off") : (Str("on"))));
-            instrtxtp[insno]->muted = (short)e->p[3];
-          }
-        }
-        break;
-      case 'i':
-        if (e->p[1] == SSTRCOD && e->strarg) {          /* IV - Oct 31 2002 */
-          if ((insno = (int) named_instr_find(e->strarg)) < 1) {
-            if (sensType) printf("\t\t   T%7.3f",p->curp2);
-            else  printf("\t  B%7.3f",p->curbt);
-            printf(Str(" - note deleted. instr %s undefined\n"), e->strarg);
-            perferrcnt++; break;
-          }
-          e->p[1] = (MYFLT) insno;
-          if (O.Beatmode && e->p3orig >= 0.)
-            e->p[3] = e->p3orig * betsiz;
-          if ((n = insert(csound, insno,e))) {  /* else aloc,init,activat */
-            if (sensType) printf("\t\t   T%7.3f",p->curp2);
-            else  printf("\t  B%7.3f",p->curbt);
-            printf(Str(" - note deleted.  i%d (%s) had %d init errors\n"),
-                   insno, e->strarg, n);
-            perferrcnt++;
-          }
-        }
-        else {                                          /* IV - Oct 31 2002 */
-          insno = abs((int)e->p[1]);
-          if (insno > maxinsno || instrtxtp[insno] == NULL) {
-            if (sensType) printf("\t\t   T%7.3f",p->curp2);
-            else  printf("\t  B%7.3f",p->curbt);
-            printf(Str(" - note deleted. instr %d(%d) undefined\n"),
-                   insno, maxinsno);
-            perferrcnt++;
-          }
-          else if (e->p[1] < FL(0.0))  /* if p1 neg,             */
-            infoff(-e->p[1]);   /*  turnoff any infin cpy */
-          else {
-            if (O.Beatmode && e->p3orig >= FL(0.0))
-              e->p[3] = e->p3orig * betsiz;
-            if ((n = insert(csound,insno,e))) {  /* else aloc,init,activat */
-              if (sensType) printf("\t\t   T%7.3f",p->curp2);
-              else  printf("\t  B%7.3f",p->curbt);
-              printf(Str(" - note deleted.  i%d had %d init errors\n"),
-                     insno, n);
-              perferrcnt++;
-            }
-          }
-        }
-        break;
-      case 'f':
-        fgens(csound, e);
-        break;
-      case 'a':
-        p->curp2 = e->p[2] + e->p[3];
-        p->curbt = e->p2orig + e->p3orig;
-        printf(Str("time advanced %5.3f beats by score request\n"),
-               e->p3orig);
-        break;
-      }
-      if (sensType) {                /* RT event now done:          */
-        if (sensType == 4)           /* Free sched(k)when event     */
-          mfree(csound, e);
-        sensType = 0;
-        e = scorevtblk;              /*    return to score context  */
-        goto retest;                 /*    and resume the kperf     */
-      }
-      continue;                      /* else get next score event   */
-
-    lcode:
-      printf(Str("end of lplay event list\t      peak amps:"));
-      for (n=nchnls, maxp=smaxamp; n--; )
-        print_maxamp (*maxp++);                 /* IV - Jul 9 2002 */
-      printf("\n");
-      if (srngflg) {
-        printf(Str("\t number of samples out of range:"));
-        for (n=nchnls, srngp=srngcnt; n--; )
-          printf("%9ld", *srngp++);
-        printf("\n");
-        srngflg = 0;
-      }
-      return 1;
-
-    scode:
-      if ((opcod = e->opcod) == 's'       /* for s, or e after s   */
-          || (opcod == 'e' && sectno > 1)) {
-        p->timtot += p->curp2;
-        p->curp2 = p->nxtim = 0.0;
-        p->prvbt = p->curbt = p->nxtbt = 0.0;
-        printf(Str("end of section %d\t sect peak amps:"),sectno);
-        for (n=nchnls, maxp=smaxamp; n--; )
-          print_maxamp (*maxp++);               /* IV - Jul 9 2002 */
-        printf("\n");
-        if (srngflg) {
-          printf(Str("\t number of samples out of range:"));
-          for (n=nchnls, srngp=srngcnt; n--; )
-            printf("%9ld", *srngp++);
-          printf("\n");
-          srngflg = 0;
-        }
-      }
-      for (n=nchnls,
-             smaxp=smaxamp-1, maxp=omaxamp-1,
-             smaxps=smaxpos-1,maxps=omaxpos-1,
-             srngp=srngcnt,   rngp=orngcnt; n--; ) {
-        ++maxps; ++smaxps;
-        if (*++smaxp > *++maxp) {
-          *maxp = *smaxp;                       /* keep ovrl maxamps */
-          *maxps = *smaxps;                     /* And where */
-        }
-        *smaxp = FL(0.0);
-        *smaxps = 0;
-        *rngp++ += *srngp;          /*   and orng counts */
-        *srngp++ = 0;
-      }
-      if (opcod == 's') {                       /* if s code,        */
-        orcompact(csound);                      /*   rtn inactiv spc */
-        if (actanchor.nxtact == NULL)           /*   if no indef ins */
-          rlsmemfiles();                        /*    purge memfiles */
-        p->curp2 = p->nxtim = 0.0;              /*   reset sec times */
-        p->prvbt = p->curbt = p->nxtbt = 0.0;
-        printf(Str("SECTION %d:\n"), ++sectno);
-#ifdef mills_macintosh
-        fflush(stdout);
-#endif
-      }                                         /*   & back for more */
-      else break;
+        p->cyclesRemaining = RNDINT((p->nxtim - p->curTime) / p->curTime_inc);
     }
-    return 2;   /* done with entire score */
+
+    /* handle any real time events now */
+    if (O.RTevents) {
+      do {
+        sensType = 0;
+        if (O.Midiin || O.FMidiin)
+          sensType = sensMidi(csound);      /* if MIDI note message */
+        if (!sensType && O.Linein)
+          sensType = sensLine();            /* or Linein event      */
+        if (!sensType && O.OrcEvts)
+          sensType = sensOrcEvent();        /* or triginstr event   */
+        if (sensType) {
+          retval = process_rt_event(csound, sensType);
+          if (retval)
+            goto scode;         /* end of score reqd by line or orc event */
+        }
+      } while (sensType);
+    }
+
+    /* no score event at this time, return to continue performance */
+    return 0;
+
+ scode:
+    /* end of section (retval == 1), score (retval == 2), */
+    /* or lplay list (retval == 3) */
+    e->opcod = '\0';
+    if (retval == 3) {
+      section_amps(csound, 2);
+      return 1;
+    }
+    /* for s, or e after s */
+    if (retval == 1 || (retval == 2 && sectno > 1)) {
+      p->nxtim = p->timeOffs = p->curp2;
+      p->prvbt = p->nxtbt = p->beatOffs = p->curbt;
+      section_amps(csound, 1);
+    }
+    else
+      section_amps(csound, 0);
+    if (retval == 1) {                        /* if s code,        */
+      orcompact(csound);                      /*   rtn inactiv spc */
+      if (actanchor.nxtact == NULL)           /*   if no indef ins */
+        rlsmemfiles();                        /*    purge memfiles */
+      printf(Str("SECTION %d:\n"), ++sectno);
+      goto retest;                            /*   & back for more */
+    }
+    return 2;                   /* done with entire score */
 }
 
 /* play all events in a score or an lplay list */
