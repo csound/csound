@@ -329,6 +329,7 @@ typedef struct insds {
                                    indef/tie) */
         struct insds * nxtolap; /* ptr to next overlapping voice */
          /* end of overlap */
+        void *pylocal;          /* Python namespace for just this instance. */
         struct ENVIRON_ *csound;/* ptr to Csound engine and API for externals */
         void    *opcod_iobufs;  /* IV - Sep 8 2002: user opcode I/O buffers */
         void    *opcod_deact, *subins_deact;    /* IV - Oct 24 2002 */
@@ -659,6 +660,9 @@ typedef struct ENVIRON_
   int (*PerformKsmpsAbsolute_)(void *csound);
   int (*GetDebug)(void *csound);
   void (*SetDebug)(void *csound, int d);
+  int (*TableLength)(void *csound, int table);
+  MYFLT (*TableGet)(void *csound, int table, int index);
+  void (*TableSet)(void *csound, int table, int index, MYFLT value);
   /* End of internals */
   int           ksmps_, nchnls_;
   int           global_ksmps_;

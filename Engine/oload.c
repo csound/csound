@@ -107,6 +107,9 @@ void csoundSetRtplayCallback(void *, void (*)(char *, int));
 void csoundSetRecopenCallback(void *, void (*)(int, int, float, int));
 void csoundSetRtrecordCallback(void *, int (*)(char *, int));
 void csoundSetRtcloseCallback(void *, void (*)(void));
+int csoundTableLength(void *csound, int table);
+MYFLT csoundTableGet(void *csound, int table, int index);
+void csoundTableSet(void *csound, int table, int index, MYFLT value);
 
 void auxalloc(long, AUXCH*);
 char *getstring(int, char*);
@@ -272,6 +275,9 @@ ENVIRON cenviron_ = {
         csoundPerformKsmpsAbsolute,
         csoundGetDebug,
         csoundSetDebug,
+        csoundTableLength,
+        csoundTableGet,
+        csoundTableSet,
         /*
         * Data fields.
         */
