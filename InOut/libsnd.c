@@ -145,6 +145,7 @@ void spoutsf(void *csound)
     } while (--n);
     if (!outbufrem) {
       if (osfopen) {
+        ((ENVIRON*) csound)->nrecs_++;
         audtran(csound, outbuf, outbufsiz); /* Flush buffer */
         outbufp = (MYFLT *) outbuf;
       }
@@ -172,6 +173,7 @@ void zerosf(void *csound, long len)
     }
     else outbufp += n;
     if (!outbufrem) {
+      ((ENVIRON*) csound)->nrecs_++;
       audtran(csound, outbuf, outbufsiz);   /* Flush */
       outbufp = (MYFLT*)outbuf;
       outbufrem = O.outbufsamps;
@@ -190,7 +192,6 @@ static void writesf(void *csound, MYFLT *outbuf, int nbytes)
       sndwrterr(csound, n, nbytes);
     if (O.rewrt_hdr)
       rewriteheader(outfile,0);
-    nrecs++;                /* JPff fix */
     if (O.heartbeat) {
       if (O.heartbeat==1) {
 #ifdef SYMANTEC
@@ -579,9 +580,23 @@ void sfclosein(void *csound)
 {
     if (!isfopen) return;
     if (isfd == DEVAUDIO) {
+      /* close only if not open for output too */
       if (!osfopen || osfd != DEVAUDIO) {
-        /* close only if not open for output too */
+        extern int rtrecord_dummy(void *csound, void *inBuf, int nBytes);
+        /* make sure that rtrecord does not get called after */
+        /* closing the device, by replacing it with the dummy function */
+        audrecv = (int (*)(void*, MYFLT*, int)) rtrecord_dummy;
         ((ENVIRON*) csound)->rtclose_callback(csound);
+        if (((ENVIRON*) csound)->oparms_->Linein) {
+#ifdef PIPES
+          int _pclose(FILE*);
+          if (((ENVIRON*) csound)->oparms_->Linename[0] == '|')
+            _pclose(((ENVIRON*) csound)->Linepipe_);
+          else
+#endif
+            if (strcmp(((ENVIRON*) csound)->oparms_->Linename, "stdin") != 0)
+              close(((ENVIRON*) csound)->Linefd_);
+        }
       }
     }
     else
@@ -602,12 +617,28 @@ void sfcloseout(void *csound)
 {
     int nb;
     if (!osfopen) return;
-    if ((nb = (O.outbufsamps-outbufrem) * O.sfsampsize) > 0)    /* flush     */
-      audtran(csound, outbuf, nb);                              /* outbuffer */
+    if ((nb = (O.outbufsamps-outbufrem) * O.sfsampsize) > 0) {  /* flush     */
+      ((ENVIRON*) csound)->nrecs_++;                            /* outbuffer */
+      audtran(csound, outbuf, nb);
+    }
     if (osfd == DEVAUDIO) {
+      /* close only if not open for input too */
       if (!isfopen || isfd != DEVAUDIO) {
-        /* close only if not open for input too */
+        extern void rtplay_dummy(void *csound, void *outBuf, int nBytes);
+        /* make sure that rtplay does not get called after */
+        /* closing the device, by replacing it with the dummy function */
+        audtran = (void (*)(void*, MYFLT*, int)) rtplay_dummy;
         ((ENVIRON*) csound)->rtclose_callback(csound);
+        if (((ENVIRON*) csound)->oparms_->Linein) {
+#ifdef PIPES
+          int _pclose(FILE*);
+          if (((ENVIRON*) csound)->oparms_->Linename[0] == '|')
+            _pclose(((ENVIRON*) csound)->Linepipe_);
+          else
+#endif
+            if (strcmp(((ENVIRON*) csound)->oparms_->Linename, "stdin") != 0)
+              close(((ENVIRON*) csound)->Linefd_);
+        }
       }
       goto report;
     }
