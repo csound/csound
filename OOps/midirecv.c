@@ -496,127 +496,129 @@ void m_chanmsg(MEVENT *mep) /* exec non-note chnl_voice & chnl_mode cmnds */
 }
 
 /* ********* OLD CODE FRAGMENTS ******** */
-/* static void m_chanmsg(MEVENT *mep) */ /* exec non-note chnl_voice & chnl_mode cmnds */
-/* { ....  */
+/* static void m_chanmsg(MEVENT *mep) exec non-note chnl_voice & chnl_mode cmnds */
+/* { .... */
 /*     short n, nn, tstchan; */
 /*     MCHNBLK *tstchn; */
 
 /*     switch(mep->type) { */
-/*     case CONTROL_TYPE:  */                          /* CONTROL CHANGE MESSAGES: */
-/*             if ((n = mep->dat1) >= 121) */              /* if mode msg, redirect */
-/*                 goto modemsg;           */
-/*             tstchan = (mep->chan + 1) & 0xF; */
-/*             if ((tstchn = M_CHNBP[tstchan]) != NULL */
-/*               && tstchn->Omni == 0 */
-/*               && tstchn->Poly == 0) {  */        /* if Global Controller update */
-/*                 chn = tstchn;  */                /*   looping from chan + 1     */
-/*                 nn = chn->nchnls; */
+/*     case CONTROL_TYPE:          /\* CONTROL CHANGE MESSAGES: *\/ */
+/*       if ((n = mep->dat1) >= 121) /\* if mode msg, redirect *\/ */
+/*         goto modemsg; */
+/*       tstchan = (mep->chan + 1) & 0xF; */
+/*       if ((tstchn = M_CHNBP[tstchan]) != NULL */
+/*           && tstchn->Omni == 0 */
+/*           && tstchn->Poly == 0) { /\* if Global Controller update *\/ */
+/*         chn = tstchn;           /\*  looping from chan + 1 *\/ */
+/*         nn = chn->nchnls; */
+/*       } */
+/*       else nn = 1;              /\* else just a single pass *\/ */
+/*       do { */
+/*         if ((n = mep->dat1) < 32) {           /\* MSB -- *\/ */
+/*           chn->ctl_byt[n] = mep->dat2 << 7;  /\* save as shifted byte *\/ */
+/*           chn->ctl_val[n] = (MYFLT) mep->dat2; /\* but record as MYFLT *\/ */
+/*           if (n == 6)           /\* Data Entry: *\/ */
+/*             switch(chn->RegParNo) { */
+/*             case 0:             /\* pitch-bend sensitivity *\/ */
+/*               chn->pbensens = (mep->dat2 * 100 + chn->ctl_byt[38]) */
+/*                 / f12800; */
+/*               chn->pchbendf = chn->pchbend * chn->pbensens; */
+/*               break; */
+/*             case 1:             /\* fine tuning *\/ */
+/*               chn->finetune = (((mep->dat2-64)<<7) + chn->ctl_byt[38]) */
+/*                 / f1048576; */
+/*               chn->tuning = chn->crsetune + chn->finetune; */
+/*               break; */
+/*             case 2:      /\* coarse tuning *\/ */
+/*               chn->crsetune = (((mep->dat2-64)<<7) + chn->ctl_byt[38]) */
+/*                 / f128; */
+/*               chn->tuning = chn->crsetune + chn->finetune; */
+/*               break; */
+/*             default: */
+/*               printf("unrecognised RegParNo %d\n", chn->RegParNo); */
 /*             } */
-/*             else nn = 1; */                      /* else just a single pass     */
-/*             do {        */
-/*                 if ((n = mep->dat1) < 32) { */           /* MSB --               */
-/*                     chn->ctl_byt[n] = mep->dat2 << 7; */ /* save as shifted byte */
-/*                     chn->ctl_val[n] = (MYFLT) mep->dat2; */ /* but record as MYFLT  */
-/*                     if (n == 6) */     /* Data Entry:   */
-/*                         switch(chn->RegParNo) { */
-/*                         case 0: */        /* pitch-bend sensitivity  */
-/*                           chn->pbensens = (mep->dat2 * 100 + chn->ctl_byt[38]) */
-/*                                           / f12800; */
-/*                           chn->pchbendf = chn->pchbend * chn->pbensens; */
-/*                           break; */
-/*                         case 1: */      /* fine tuning */
-/*                           chn->finetune = (((mep->dat2-64)<<7) + chn->ctl_byt[38]) */
-/*                                             / f1048576; */
-/*                           chn->tuning = chn->crsetune + chn->finetune;                 */
-/*                           break; */
-/*                         case 2: */      /* coarse tuning */
-/*                           chn->crsetune = (((mep->dat2-64)<<7) + chn->ctl_byt[38]) */
-/*                                             / f128; */
-/*                           chn->tuning = chn->crsetune + chn->finetune; */
-/*                           break; */
-/*                         default: */
-/*                           printf("unrecognised RegParNo %d\n", chn->RegParNo); */
-/*                         } */
-/*                     else if (n == 7) */
-/*                         Volume = chn->ctl_val[7]; */
-/*                 } */
-/*                 else if (n < 64) */                 /* LSB -- combine with MSB   */
-/*                     chn->ctl_val[n-32] = (MYFLT)(chn->ctl_byt[n-32] + mep->dat2) */
-/*                                          / f128; */
-/*                 else if (n < 70) { */
-/*                     chn->ctl_byt[n] = mep->dat2 & 0x40;*//* switches             */
-/*                     chn->ctl_val[n] = (MYFLT) mep->dat2; */ /*  or controllers      */
-/*                     switch(n) { */
-/*                         short temp; */
-/*                     case SUSTAIN_SW: */
-/*                         temp = (mep->dat2 >= O.SusPThresh); */
-/*                     if (chn->sustaining != temp) { *//* if sustainP changed  */
-/*                         if (chn->sustaining && chn->ksuscnt)*/ /*  & going off */
-/*                             sustsoff(chn); */        /*      reles any notes */
-/*                         chn->sustaining = temp; */
-/*                     } */
-/*                         break; */
-/*                 } */
-/*                 } */
-/*              else if (n < 121) { */
-/*                chn->ctl_byt[n] = mep->dat2 << 7; */ /* save as shifted byte  */
-/*                chn->ctl_val[n] = (MYFLT) mep->dat2; */ /* controllers  */
-/*              }  */
-/*                 else { */
-/*                     printf("undefined controller #%d\n", n); */
-/*                     break; */
-/*                 } */
-/*                 if (nn > 1 && (chn = M_CHNBP[++tstchan]) == NULL) { */
-/*                     printf("Global Controller update cannot find MCHNBLK %d\n", */
-/*                            tstchan); */
-/*                     break; */
-/*                 } */
-/*             } while (--nn); */  /* loop if Global update */
-/*             break; */
-/* modemsg:    if (chn->bas_chnl != mep->chan) {  */   /* CHANNEL MODE MESSAGES:  */
-/*                 printf("mode message %d on non-basic channel %d ignored\n", */
-/*                        n, mep->chan + 1); */
-/*                 break; */
-/*             } */
-/*             if (n == 121) { */
-/*                 short *sp = chn->ctl_byt; */
-/*                 MYFLT *fp = chn->ctl_val; */
-/*                 short nn = 120; */
-/*                 do { */
-/*                     *sp++ = 0;  */ /* reset all controllers to 0 */
-/*                     *fp++ = 0.; */
-/*                 } while (--nn);  */      /* exceptions:  */
-/*                 chn->ctl_byt[8] = 64; */ /*      BALANCE */
-/*                 chn->ctl_val[8] = 64.; */
-/*                 chn->ctl_byt[10] = 64;*/ /*      PAN     */
-/*                 chn->ctl_val[10] = 64.; */
-/*             } */
-/*             else if (n == 122) */
-/*                 LCtl = (mep->dat2) ? ON : OFF; */
-/*             else { */
-/*                         AllNotesOff(chn); */
-/*                 switch(n) { */
-/*                 case 124: chn->Omni = OFF; */
-/*                           break; */
-/*                 case 125: chn->Omni = ON; */
-/*                           break; */
-/*                 case 126: chn->Poly = OFF; */
-/*                           NVoices = mep->dat2; */
-/*                           break; */
-/*                 case 127: chn->Poly = ON; */
-/*                           NVoices = 1; */
-/*                           break; */
-/*             } */
+/*           else if (n == 7) */
+/*             Volume = chn->ctl_val[7]; */
+/*         } */
+/*         else if (n < 64)        /\* LSB -- combine with MSB *\/ */
+/*           chn->ctl_val[n-32] = (MYFLT)(chn->ctl_byt[n-32] + mep->dat2) */
+/*             / f128; */
+/*         else if (n < 70) { */
+/*           chn->ctl_byt[n] = mep->dat2 & 0x40; /\* switches *\/ */
+/*           chn->ctl_val[n] = (MYFLT) mep->dat2; /\* or controllers *\/ */
+/*           switch(n) { */
+/*             short temp; */
+/*           case SUSTAIN_SW: */
+/*             temp = (mep->dat2 >= O.SusPThresh); */
+/*             if (chn->sustaining != temp) { /\* if sustainP changed *\/ */
+/*               if (chn->sustaining && chn->ksuscnt)  /\* & going off *\/ */
+/*                 sustsoff(chn);             /\* reles any notes *\/ */
+/*               chn->sustaining = temp; */
 /*             } */
 /*             break; */
+/*           } */
+/*         } */
+/*         else if (n < 121) { */
+/*           chn->ctl_byt[n] = mep->dat2 << 7; /\* save as shifted byte *\/ */
+/*           chn->ctl_val[n] = (MYFLT) mep->dat2; /\* controllers *\/ */
+/*         } */
+/*         else { */
+/*           printf("undefined controller #%d\n", n); */
+/*           break; */
+/*         } */
+/*         if (nn > 1 && (chn = M_CHNBP[++tstchan]) == NULL) { */
+/*           printf("Global Controller update cannot find MCHNBLK %d\n", */
+/*                  tstchan); */
+/*           break; */
+/*         } */
+/*       } while (--nn);  /\* loop if Global update *\/ */
+/*       break; */
+/*     modemsg: */
+/*       if (chn->bas_chnl != mep->chan) {   /\* CHANNEL MODE MESSAGES: *\/ */
+/*         printf("mode message %d on non-basic channel %d ignored\n", */
+/*                n, mep->chan + 1); */
+/*         break; */
+/*       } */
+/*       if (n == 121) { */
+/*         short *sp = chn->ctl_byt; */
+/*         MYFLT *fp = chn->ctl_val; */
+/*         short nn = 120; */
+/*         do { */
+/*           *sp++ = 0; /\* reset all controllers to 0 *\/ */
+/*           *fp++ = 0.; */
+/*         } while (--nn);     /\*  exceptions: *\/ */
+/*         chn->ctl_byt[8] = 64;      /\* BALANCE *\/ */
+/*         chn->ctl_val[8] = 64.; */
+/*         chn->ctl_byt[10] = 64;      /\* PAN *\/ */
+/*         chn->ctl_val[10] = 64.; */
+/*       } */
+/*       else if (n == 122) */
+/*         LCtl = (mep->dat2) ? ON : OFF; */
+/*       else { */
+/*         AllNotesOff(chn); */
+/*         switch(n) { */
+/*         case 124: chn->Omni = OFF; */
+/*           break; */
+/*         case 125: chn->Omni = ON; */
+/*           break; */
+/*         case 126: chn->Poly = OFF; */
+/*           NVoices = mep->dat2; */
+/*           break; */
+/*         case 127: chn->Poly = ON; */
+/*           NVoices = 1; */
+/*           break; */
+/*         } */
+/*       } */
+/*       break; */
 /*     case CHNPRES_TYPE: */
-/*             chn->chnpress = mep->dat1; */            /* channel (all-key) Press */
+/*       chn->chnpress = mep->dat1; /\* channel (all-key) Press *\/ */
 /*             break; */
 /*     case PCHBEND_TYPE: */
-/*             chn->pchbend = (MYFLT)(((mep->dat2 - 64) << 7) + mep->dat1) / f8192; */
-/*             chn->pbendiff = chn->pchbend * chn->pbensens; */
-/*             break; */
-/* } */
+/*       chn->pchbend = (MYFLT)(((mep->dat2 - 64) << 7) + mep->dat1) / f8192; */
+/*       chn->pbendiff = chn->pchbend * chn->pbensens; */
+/*       break; */
+/*     } */
+
 
 void m_chn_init(MEVENT *mep, short chan)
     /* alloc a midi control blk for a midi chnl */
@@ -624,8 +626,7 @@ void m_chn_init(MEVENT *mep, short chan)
 {
     MCHNBLK *chn;
 
-    if (!defaultinsno) {
-                                /* find lowest instr as default */
+    if (!defaultinsno) {        /* find lowest instr as default */
       defaultinsno = 1;
       while (instrtxtp[defaultinsno]==NULL) {
         defaultinsno++;

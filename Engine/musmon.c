@@ -917,8 +917,16 @@ int sensevents(void)
         }
         nxtim = e->p[2];
         nxtbt = e->p2orig;
+        /* **** This seems to fix a Macintosh problem **** */
+#ifndef __MACH__
         if (curp2 < nxtim)  /* if we havent gotten to the next starttime then */
           offonly = 1;      /* need to set this to avoid inserting too early */
+#else
+        if ((int)(ekr*curp2) < (int)(ekr*nxtim))
+                            /* if we havent gotten to the next starttime then */
+          offonly = 1;      /* need to set this to avoid inserting too early */
+#endif
+        /* **** End of Mac fix **** */
         break;
       case 'l':
         if (frstoff != NULL)
