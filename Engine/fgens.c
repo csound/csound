@@ -42,8 +42,8 @@ extern double besseli(double);
 
 typedef void    (*GEN)(void);
 
-static void   gen01(void), gen01raw(void), gen02(void), gen03(void), gen04(void),
-              gen05(void);
+static void   gen01raw(void);
+static void   gen01(void), gen02(void), gen03(void), gen04(void), gen05(void);
 static void   gen06(void), gen07(void), gen08(void), gen09(void), gen10(void);
 static void   gen11(void), gen12(void), gen13(void), gen14(void), gen15(void);
 static void  gn1314(void), gen17(void), gen18(void), gen19(void), gen20(void);
@@ -1788,6 +1788,7 @@ static void ftalloc(void)   /* alloc ftable space for fno (or replace one)  */
       }
     }
     if ((ftp = flist[fno]) == NULL) {   /*   alloc space as reqd */
+      printf("Allocating %ld bytes\n", (long)sizeof(FUNC) + flen*sizeof(MYFLT));
       ftp = (FUNC *) mcalloc((long)sizeof(FUNC) + flen*sizeof(MYFLT));
       flist[fno] = ftp;
     }
@@ -1944,6 +1945,7 @@ static void gen01raw(void)      /* read ftable values from a sound file */
     p->iskptim  = &e->p[6];
     p->iformat  = &e->p[7];
     p->channel  = (short)e->p[8];
+    p->do_floatscaling = 0;
     if (p->channel < 0 /* || p->channel > ALLCHNLS-1 */) {
       sprintf(errmsg,Str(X_654,"channel %d illegal"),(int)p->channel);
       fterror(errmsg);
@@ -1965,13 +1967,11 @@ static void gen01raw(void)      /* read ftable values from a sound file */
       if ((flen = p->framesrem) <= 0) {     /*   get minsize from soundin */
         fterror(Str(X_685,"deferred size, but filesize unknown")); return;
       }
-      printf("flen=%d\n", flen);
       if (p->channel == ALLCHNLS)
         flen *= p->nchanls;
       guardreq = 1;
       flenp1 = flen;                      /* presum this includes guard */
       flen -= 1;
-      printf("flen=%d\n", flen);
       ftalloc();                          /*   alloc now, and           */
       ftp->flen     = flen;
       ftp->lenmask  = 0;                  /*   mark hdr partly filled   */
@@ -2017,7 +2017,6 @@ static void gen01raw(void)      /* read ftable values from a sound file */
       ftp->loopmode2 = 0;
       ftp->end1 = ftp->flenfrms;  /* Greg Sullivan */
     }
-    printf("About to populate table\n");
     if ((inlocs = getsndin(fd, ftp->ftable, flenp1, p)) < 0) { /* read sound */
       fterror(Str(X_286,"GEN1 read error"));                /* with opt gain */
       return;

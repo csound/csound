@@ -175,7 +175,7 @@ long getsndin(SNDFILE *fd, MYFLT *fp, long nlocs, SOUNDIN *p)
           inbufp = p->inbuf;
           bufend = p->inbuf + n;
         }
-        *fp++ = (MYFLT)(*inbufp++) * scalefac * gain;
+        *fp++ = *inbufp++ * scalefac * gain;
       }
     }
     else {                                /* MULTI-CHANNEL, SELECT ONE */
@@ -188,11 +188,11 @@ long getsndin(SNDFILE *fd, MYFLT *fp, long nlocs, SOUNDIN *p)
         if (inbufp >= bufend) {
           if ((n = sreadin(fd,p->inbuf,SNDINBUFSIZ,p)) == 0)
             break;
-          inbufp = (float *) p->inbuf;
-          bufend = (float *) (p->inbuf + n);
+          inbufp = p->inbuf;
+          bufend = p->inbuf + n;
         }
         if (++chcnt == chreq)
-          *fp++ = (MYFLT)(*inbufp) * scalefac * gain;
+          *fp++ = *inbufp * scalefac * gain;
         inbufp++;
         if (chcnt == nchanls) chcnt = 0;
       }
@@ -200,7 +200,7 @@ long getsndin(SNDFILE *fd, MYFLT *fp, long nlocs, SOUNDIN *p)
     nread = fp - fbeg;
     while (fp < fend)    /* if incomplete */
       *fp++ = FL(0.0);   /*  pad with 0's */
-    return(nread);
+    return (nread);
 }
 
 SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
@@ -391,13 +391,12 @@ int sreadin(                    /* special handling of sound input       */
 {                               /* on POST-HEADER reads of audio samples */
     /* return the number of samples read */
     int    n, ntot=0;
-    SNDFILE *infile = p->fdch.fd;
     int nsamples = nbytes/sizeof(MYFLT);
     MYFLT *inb = (MYFLT*)inbuf;
     do {
 /*       printf("***        : ntot=%d nbytes=%d nsamples=%d nchnls=%d\n", */
 /*              ntot, nbytes, nsamples, p->nchanls); */
-      n = sf_read_MYFLT(infile, inb+ntot, (nsamples-ntot)/p->nchanls);
+      n = sf_read_MYFLT(infd, inb+ntot, (nsamples-ntot)/p->nchanls);
 /*       printf("***        : n=%d\n", n); */
       if (n<0)
         die(Str(X_1201,"soundfile read error"));
