@@ -45,11 +45,11 @@ int    spat3d_init_window (ENVIRON *csound, SPAT3D *p)
 
     o = p->oversamp << 5;           /* window size = 32 * oversample */
 
-    i = ((o + 1) * (sizeof (int) + sizeof (MYFLT)));        /* allocate */
-    if ((p->fltr.auxp == NULL) || (p->fltr.size < i))       /* space    */
+    i = ((o + 1) * (sizeof (int) + sizeof (MYFLT)));       /* allocate */
+    if ((p->fltr.auxp == NULL) || (p->fltr.size < i))      /* space    */
       auxalloc (i, &(p->fltr));
-    p->sample = (int *) p->fltr.auxp;               /* sample number */
-    p->window = (MYFLT *) (p->sample + o + 1);      /* window value  */
+    p->sample = (int *) p->fltr.auxp;                 /* sample number */
+    p->window = (MYFLT *) (p->sample + o + 1);        /* window value  */
 
     for (i = -(o >> 1), j = 0; i < (o >> 1); i++) {
       if (i == 0) {
@@ -78,13 +78,13 @@ int spat3d_init_eq (ENVIRON *csound, SPAT3D_WALL *wstruct, MYFLT *ftable)
 
     /* EQ code taken from biquad.c */
 
-    eqmode = (int) ((double) ftable[3] + 0.5);        /* mode      */
-    omega = (double)csound->tpidsr_ * (double) ftable[0];      /* frequency */
-    sq = sqrt (2.0 * (double) ftable[1]);             /* level     */
+    eqmode = (int) ((double) ftable[3] + 0.5);            /* mode      */
+    omega = (double)csound->tpidsr_ * (double) ftable[0]; /* frequency */
+    sq = sqrt (2.0 * (double) ftable[1]);                 /* level     */
 
     k = tan ((eqmode > 1 ? (PI - omega) : omega) * 0.5); kk = k * k;
     vk = (double) ftable[1] * k; vkk = (double) ftable[1] * kk;
-    vkdq = vk / (double) ftable[2];                   /* Q         */
+    vkdq = vk / (double) ftable[2];                       /* Q         */
 
     if (eqmode >= 1) {
       b0 = 1.0 + sq * k + vkk;
@@ -418,8 +418,8 @@ int    spat3dset (ENVIRON *csound, SPAT3D *p)
     if (p->maxdep < 0) return OK;             /* nothing to render */
     wmax = 0L;                                /* init. wall structures */
     spat3d_init_wall (p, 0, 0, &wmax, FL(0.0), FL(0.0), FL(0.0));
-    spat3d_init_delay (csound,p);                    /* alloc delay buffers   */
-    spat3d_init_window (csound,p);                   /* init. FIR filter      */
+    spat3d_init_delay (csound,p);             /* alloc delay buffers   */
+    spat3d_init_window (csound,p);            /* init. FIR filter      */
     return OK;
 }
 

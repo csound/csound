@@ -250,10 +250,10 @@ int pitch(ENVIRON *csound, PITCH *p)
     do {
       MYFLT as = *asig++;
       q = c1 * as * as + c2 * q;
-      SIG = *sigp++;                        /* for each source sample:     */
-      octp = downp->octdata;                /*   align onto top octave     */
+      SIG = *sigp++;                        /* for each source sample: */
+      octp = downp->octdata;                /*   align onto top octave */
       nocts = downp->nocts;
-      do {                                  /*   then for each oct:        */
+      do {                                  /*   then for each oct:    */
         MYFLT *coefp,*ytp,*curp;
         int   nfilt;
         curp = octp->curp;
@@ -278,8 +278,8 @@ int pitch(ENVIRON *csound, PITCH *p)
     kvar = (MYFLT) sqrt((double)q); /* End of spectrun part */
 
     specp = &p->wsig;
-    if ((--p->scountdown)) goto nxt;  /* if not yet time for new spec */
-    p->scountdown = p->timcount;     /* else reset counter & proceed:        */
+    if ((--p->scountdown)) goto nxt;      /* if not yet time for new spec  */
+    p->scountdown = p->timcount;          /* else reset counter & proceed: */
     downp = &p->downsig;
     nocts = downp->nocts;
     octp = downp->octdata + nocts;
@@ -294,22 +294,22 @@ int pitch(ENVIRON *csound, PITCH *p)
       begp = octp->begp;
       curp = octp->curp;
       endp = octp->endp;
-      if ((len = endp - curp) >= winlen)     /*   if no wrap               */
-        linbufp = curp;                    /*     use samples in circbuf */
+      if ((len = endp - curp) >= winlen)      /*   if no wrap               */
+        linbufp = curp;                       /*     use samples in circbuf */
       else {
         len2 = winlen - len;
-        linbufp = bufp = p->linbufp;       /*   else cp crcbuf to linbuf */
+        linbufp = bufp = p->linbufp;          /*   else cp crcbuf to linbuf */
         while (len--)
           *bufp++ = *curp++;
         curp = begp;
         while (len2--)
           *bufp++ = *curp++;
       }
-      cosp = p->cosp;                        /*   get start windowed sines */
+      cosp = p->cosp;                         /*   get start windowed sines */
       sinp = p->sinp;
       lenp = p->winlen;
       offp = p->offset;
-      for (nfreqs=p->nfreqs; nfreqs--; ) {   /*   now for ea. frq this oct */
+      for (nfreqs=p->nfreqs; nfreqs--; ) {    /*   now for ea. frq this oct */
         a = FL(0.0);
         b = FL(0.0);
         bufp = linbufp + *offp++;
@@ -319,10 +319,10 @@ int pitch(ENVIRON *csound, PITCH *p)
         }
         c = a*a + b*b;                        /* get magnitude    */
         c = sqrt(c);
-        *dftp++ = (MYFLT)c;                       /* store in out spectrum   */
+        *dftp++ = (MYFLT)c;                   /* store in out spectrum   */
       }
     }
-    specp->ktimstamp = kcounter;                  /* time-stamp the output   */
+    specp->ktimstamp = kcounter;              /* time-stamp the output   */
 
  nxt:
                                 /* specptrk */
@@ -554,7 +554,7 @@ int clockread(ENVIRON *csound, CLKRD *p)
 }
 
 /* ************************************************************ */
-/* Opcodes from Peter Neubäcker                              */
+/* Opcodes from Peter Neubäcker                                 */
 /* ************************************************************ */
 
 int adsyntset(ENVIRON *csound, ADSYNT *p)
