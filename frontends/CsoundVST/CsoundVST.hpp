@@ -51,10 +51,6 @@ class CsoundVST :
     public csound::Shell
 {
 protected:
-    const static MYFLT inputScale;
-    const static MYFLT outputScale;
-    CppSound cppSound_;
-    CppSound *cppSound;
 	enum
 	{
 		kNumInputs = 2,
@@ -67,6 +63,10 @@ protected:
 	{
 		kNumPrograms = 10,
 	};
+    const static MYFLT inputScale;
+    const static MYFLT outputScale;
+    CppSound cppSound_;
+    CppSound *cppSound;
     bool isSynth;
     bool isVst;
     bool isPython;
