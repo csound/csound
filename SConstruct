@@ -275,14 +275,14 @@ def buildzip(env, target, source):
                             pathnames.append(pathname)
     print
     pathnames.sort()
-    for filename in pathnames:
-        print filename
+    #for filename in pathnames:
+    #    print filename
     print
     print "Creating archive..."
     archive = zipfile.ZipFile("csound5/" + zipfilename, "w", zipfile.ZIP_DEFLATED)
     pathnames.sort()
     for filename in pathnames:
-        print filename
+        # print filename
         archive.write(filename)
     archive.close()
     os.chdir('csound5')
@@ -685,7 +685,7 @@ if configure.CheckHeader("fluidsynth.h", language = "C"):
             
 # VST HOST OPCODES
 
-if getPlatform() == 'mingw':
+if getPlatform() == 'mingw' and fltkFound:
     vst4Environment = vstEnvironment.Copy()
     vst4Environment.Append(LIBS = ['stdc++', 'fltk'])    
     if getPlatform() == 'mingw':
@@ -843,7 +843,7 @@ if (commonEnvironment['buildCsoundVST'] == 1) and boostFound and fltkFound:
     zipDependencies.append(csoundvstGui)
     Depends(csoundvstGui, csoundvst)
      
-if (commonEnvironment['generateTags'] == 1) and (getPlatform() == 'linux' or getPlatform() == 'cygwin'):
+if (commonEnvironment['generateTags']) and (getPlatform() == 'linux' or getPlatform() == 'cygwin'):
     print "Calling TAGS"
     allSources = string.join(glob.glob('*/*.h*'))
     allSources = allSources + ' ' + string.join(glob.glob('*/*.hpp'))
@@ -854,7 +854,7 @@ if (commonEnvironment['generateTags'] == 1) and (getPlatform() == 'linux' or get
     zipDependencies.append(tags)
     Depends(tags, staticLibrary)
 
-if commonEnvironment['generateXmg'] == 1:
+if commonEnvironment['generateXmg']:
     print "Calling makedb"
     if getPlatform() == 'mingw':
         xmgs = commonEnvironment.Command('American.xmg', ['strings/all_strings'], 'makedb strings/all_strings American')
@@ -871,7 +871,8 @@ if commonEnvironment['generateXmg'] == 1:
     Depends(xmgs2, makedb)
     zipDependencies.append(xmgs2)
 
-if commonEnvironment['generateZip'] == 1:    
+if commonEnvironment['generateZip']:    
+    print 'Compiling zip file for release.'
     zip = commonEnvironment.Command(zipfilename, staticLibrary, buildzip)
     for node in zipDependencies:
         Depends(zip, node)

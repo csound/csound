@@ -1,4 +1,10 @@
+2004-07-19  Michael Gogins <gogins@pipeline.com>
+
+	* Andres Cabrera suggested a global vst audio output opcode, so I added
+    vstplugg to do that. I changed the documentation to reflect it.
+
 2004-07-18  Steven Yi <stevenyi@csounds.com>
+
 	* Engine/oload.c (oload): Moved call to sssfinit to above init0 as
 	recommended by Matt Ingalls, instr 0 opcodes that use fopenin() now 
 	function correctly
