@@ -101,14 +101,4 @@ typedef struct {
   int    local_buf_index;         /* IV - Nov 30 2002 */
 } MIDIIN;
 
-/* IV - Nov 30 2002: moved these here */
-
-typedef union {
-  unsigned long dwData;
-  unsigned char bData[4];
-} MIDIMESSAGE;
-
-#define MIDIINBUFMAX    (1024)
-#define MIDIINBUFMSK    (MIDIINBUFMAX-1)
-
 #endif
