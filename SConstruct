@@ -255,8 +255,6 @@ if configure.CheckHeader("stdint.h", language = "C"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_STDINT_H')
 if configure.CheckHeader("malloc.h", language = "C"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_MALLOC_H')
-if configure.CheckHeader("sgtty.h", language = "C"):
-    commonEnvironment.Append(CCFLAGS = '-DHAVE_SGTTY_H')
 if configure.CheckHeader("os.h", language = "C"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_OS_H')
 if configure.CheckHeader("sys/ioctl.h", language = "C"):
@@ -267,22 +265,16 @@ if configure.CheckHeader("sys/types.h", language = "C"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_SYS_TYPES_H')
 if configure.CheckHeader("ctype.h", language = "C"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_CTYPE_H')
-if configure.CheckHeader("term/ios.h", language = "C"):
-    commonEnvironment.Append(CCFLAGS = '-DHAVE_TERM_IOS_H')
 if configure.CheckHeader("termios.h", language = "C"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_TERMIOS_H')
 if configure.CheckHeader("string.h", language = "C"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_STRING_H')
-else:
-    if configure.CheckHeader("strings.h", language = "C"):
-         commonEnvironment.Append(CCFLAGS = '-DHAVE_STRINGS_H')
+elif configure.CheckHeader("strings.h", language = "C"):
+    commonEnvironment.Append(CCFLAGS = '-DHAVE_STRINGS_H')
 if getPlatform() == 'darwin':
     commonEnvironment.Append(CCFLAGS = '-DHAVE_DIRENT_H')
-else:
-    if configure.CheckHeader("dirent.h", language = "C"):
-        commonEnvironment.Append(CCFLAGS = '-DHAVE_DIRENT_H')
-if configure.CheckFunc("itoa") or getPlatform() == 'mingw':
-    commonEnvironment.Append(CCFLAGS = '-DHAVE_ITOA')
+elif configure.CheckHeader("dirent.h", language = "C"):
+    commonEnvironment.Append(CCFLAGS = '-DHAVE_DIRENT_H')
 if not (configure.CheckHeader("Opcodes/Loris/src/loris.h") and configure.CheckHeader("fftw3.h")):
     commonEnvironment["buildLoris"] = 0
     print "CONFIGURATION DECISION: Not building Loris Python extension and Csound opcodes."

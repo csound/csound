@@ -412,6 +412,7 @@ static int try_file_open(const char *filename)
       return 0;                                     /* not found */
     /* found file, but may still be a directory */
     fclose(tmp);
+#ifndef WIN32
     buf = (char*) malloc((size_t) n + (size_t) 3);
     if (buf == NULL)
       return 0;     /* not really the best solution */
@@ -426,6 +427,9 @@ static int try_file_open(const char *filename)
     fclose(tmp);
     /* found something, but it is apparently a directory, not a file */
     return 0;
+#else
+    return 1;
+#endif
 }
 
 /* Does file name have full path ? 0: no, 1: yes and file is found, */
