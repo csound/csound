@@ -11,8 +11,8 @@ PrivateResource=
 ResourceIncludes=
 MakeIncludes=
 Compiler=
-CppCompiler=-mthreads_@@_
-Linker=../../../../tools/pd/bin/pd.lib_@@_
+CppCompiler=-mthreads_@@_-mconsole_@@_-DBOOST_HAS_THREADS_@@_
+Linker=../../../../tools/pd/bin/pd.dll_@@_../../../../tools/boost/stage/lib/boost_thread-mgw-mt-d-1_31.dll_@@_
 IsCpp=1
 Icon=
 ExeOutput=
@@ -27,7 +27,7 @@ CustomMakefile=
 IncludeVersionInfo=0
 SupportXPThemes=0
 CompilerSet=0
-CompilerSettings=0000000000000000000000
+CompilerSettings=0000001001010001000000
 
 [Unit1]
 FileName=main.cpp

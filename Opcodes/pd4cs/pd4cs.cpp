@@ -4,7 +4,6 @@
 #include <boost/thread/thread.hpp>
 #include <boost/tokenizer.hpp>
 
-
 extern "C" int sys_main(int argc, char **argv);
 extern "C" int sys_bail(int exitcode);
 extern "C" int sys_lock();
@@ -29,19 +28,17 @@ public:
     MYFLT *ipdcommand;
     // State.
     std::string pdcommand;
-    std::vector<const char *> tokens;
+    std::vector<std::string> tokens;
     float *sys_soundin_;
     float *sys_soundout_;
+    boost::thread *thread_;
     int init()
     {
  		if (*ipdcommand == SSTRCOD) {
 			pdcommand = STRARG;          
 		}
-        boost::tokenizer<> tokenizer_ = pdcommand;
-        for(boost::tokenizer<>::iterator it = tokenizer_.begin(); it != tokenizer_.end(); ++it) {
-            tokens.push_back(it->c_str());
-        }
         ipd = (MYFLT *)this;
+        startThread();
         return OK;
     }
     int deinit()
@@ -51,15 +48,31 @@ public:
     }
     void startThread()
     {
-        boost::thread thread_(*this);
+        thread_ = new boost::thread(*this);
+        std::cout << "Created pd thread." << std::endl;
     }
     void operator()()
     {
-        sys_main(tokens.size(), const_cast<char **>(&tokens.front()));
+        std::cout << "Starting pd thread..." << std::endl;
+        boost::tokenizer<> tokenizer_ = pdcommand;
+        for(boost::tokenizer<>::iterator it = tokenizer_.begin(); it != tokenizer_.end(); ++it) {
+            tokens.push_back(*it);
+        }
+        int argc = tokens.size();
+        char **argv = new char *[argc];
+        for(int i = 0; i < argc; i++) {
+            argv[i] = (char *)tokens[i].c_str();
+        }
+        std::cout << "Args:" << std::endl;
+        for(int i = 0; i < argc; i++) {
+            std::cerr << argv[i] << std::endl;
+        }
+        sys_main(argc, argv);
+        delete[] argv;
     }
 };
 
-class PDMidi : public OpcodeBase<PDMidi>
+class PDMidiin : public OpcodeBase<PDMidiin>
 {
 public:
     // Inputs.
@@ -170,7 +183,7 @@ public:
 
 OENTRY oentries[] = {
     {"pdpatch", sizeof(PDPatch), 1, "i", "S", &PDPatch::init_, 0, 0, &PDPatch::deinit_},
-    {"pdmidi", sizeof(PDMidi), 5, "", "ikkjj", &PDMidi::init_, &PDMidi::kontrol_, 0, 0},
+    {"pdmidiin", sizeof(PDMidiin), 5, "", "ikkjj", &PDMidiin::init_, &PDMidiin::kontrol_, 0, 0},
     {"pdnote", sizeof(PDNote), 5, "", "ikkkk", &PDNote::init_, &PDNote::kontrol_, 0, 0},
     {"pdain", sizeof(PDAin), 5, "", "iaa", &PDAin::init_, 0, &PDAin::audio_, 0},
     {"pdaout", sizeof(PDAout), 5, "aa", "i", &PDAout::init_, 0, &PDAout::audio_, 0},
