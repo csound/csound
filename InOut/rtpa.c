@@ -8,9 +8,7 @@
 
 #include "cs.h"
 #include "soundio.h"
-#if defined(WIN32) || defined(__MACH__)
 #include "pa_blocking.h"
-#endif
 #include <portaudio.h>
 
 #ifdef MSVC
@@ -90,8 +88,8 @@ void recopen_(int nchnls_, int dsize_, float sr_, int scale_)
 #if defined(LINUX)
   PaAlsaStreamInfo info;
 #endif
-  if (paError != paNoError) goto error;
   listPortAudioDevices();
+  if (paError != paNoError) goto error;
   oMaxLag = O.oMaxLag;        /* import DAC setting from command line   */
   if (oMaxLag <= 0)           /* if DAC sampframes ndef in command line */
     oMaxLag = IODACSAMPS;     /*    use the default value               */
@@ -154,8 +152,8 @@ void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
 #if defined(LINUX)
   PaAlsaStreamInfo info;
 #endif
-  if (paError != paNoError) goto error;
   listPortAudioDevices();
+  if (paError != paNoError) goto error;
   oMaxLag = O.oMaxLag;        /* import DAC setting from command line   */
   if (oMaxLag <= 0)           /* if DAC sampframes ndef in command line */
     oMaxLag = IODACSAMPS;     /*    use the default value               */

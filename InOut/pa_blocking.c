@@ -1,7 +1,5 @@
 #include "pa_blocking.h"
 
-#if defined(WIN32) || defined(__MACH__)
-
 int paBlockingReadOpen(ENVIRON *csound,
 		       PA_BLOCKING_STREAM **pabs_, PaStreamParameters *paParameters)
 {
@@ -19,7 +17,7 @@ int paBlockingReadOpen(ENVIRON *csound,
   maxLag = O.oMaxLag <= 0 ? IODACSAMPS : O.oMaxLag;
 #ifdef __MACH__
   maxLag =  ((int)ekr)*((maxLag + (int)ekr-1)%krate); /* Round to multiple */
-#elif WIN32
+#else
   maxLag = csound->GetKsmps(csound);
 #endif
   memcpy(&pabs->paParameters, paParameters, sizeof(PaStreamParameters));
@@ -171,5 +169,3 @@ void paBlockingClose(PA_BLOCKING_STREAM *pabs)
     }
   }
 }
-
-#endif
