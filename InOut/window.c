@@ -53,17 +53,17 @@ extern int ExitGraph(void);
 
 static void DummyFn2(WINDAT *p, char *s) /* somewhere to invoke for no display */
 {
-        IGN(p); IGN(s);
+    IGN(p); IGN(s);
 }
 
 static void DummyFn1(WINDAT *p)          /* somewhere to invoke for no display */
 {
-        IGN(p);
+    IGN(p);
 }
 
 static int DummyRFn(void) /* somewhere to invoke that returns 1 (!) for */
 {                         /* dummy exit fn */
-        return(0);        /* Used to be 1 but seems silly (MR/JPff) */
+    return(0);            /* Used to be 1 but seems silly (MR/JPff) */
 }
 
 static void MkXYDummy(XYINDAT *wdptr, MYFLT x, MYFLT y) /* initial proportions */
@@ -78,7 +78,7 @@ static void MkXYDummy(XYINDAT *wdptr, MYFLT x, MYFLT y) /* initial proportions *
 
 static void RdXYDummy(XYINDAT *wdptr)
 {
-        IGN(wdptr);
+    IGN(wdptr);
 /*      wdptr->m_x = m_x;       wdptr->m_y = m_y;
         wdptr->x = ((MYFLT)m_x-gra_x)/(MYFLT)gra_w;
         wdptr->y = ((MYFLT)m_y-gra_y)/(MYFLT)gra_h;
@@ -88,36 +88,37 @@ static void RdXYDummy(XYINDAT *wdptr)
 void dispinit(void)     /* called once on initialisation of program to  */
 {                       /*   choose between teletype or bitmap graphics */
     if (!O.displays) {
-        printf(Str(X_705,"displays suppressed\n"));
-        makeFn = DummyFn2;
-        drawFn = DummyFn1;
-        killFn = DummyFn1;
-        mkxyFn = MkXYDummy;
-        rdxyFn = RdXYDummy;
-        exitFn = DummyRFn;
+      printf(Str(X_705,"displays suppressed\n"));
+      makeFn = DummyFn2;
+      drawFn = DummyFn1;
+      killFn = DummyFn1;
+      mkxyFn = MkXYDummy;
+      rdxyFn = RdXYDummy;
+      exitFn = DummyRFn;
     }
 #ifdef WINDOWS
     else if (!O.graphsoff && Graphable()) {
                        /* provided by window driver: is this session able? */
-        makeFn = MakeGraph;
-        drawFn = DrawGraph;
-        killFn = KillGraph;
-        mkxyFn = MakeXYin;
-        rdxyFn = ReadXYin;
-        exitFn = ExitGraph;
+      makeFn = MakeGraph;
+      drawFn = DrawGraph;
+      killFn = KillGraph;
+      mkxyFn = MakeXYin;
+      rdxyFn = ReadXYin;
+      exitFn = ExitGraph;
     }
 #endif
     else {
-        printf(Str(X_820,"graphics %s, ascii substituted\n"),
-               (O.graphsoff)? Str(X_1250,"suppressed") : Str(X_1078,"not supported on this terminal"));
-        makeFn = MakeAscii;
-        drawFn = DrawAscii;
-        killFn = KillAscii;
-        mkxyFn = MkXYDummy;
-        rdxyFn = RdXYDummy;
-        exitFn = DummyRFn;
-        }
+      printf(Str(X_820,"graphics %s, ascii substituted\n"),
+             (O.graphsoff)? Str(X_1250,"suppressed") :
+             Str(X_1078,"not supported on this terminal"));
+      makeFn = MakeAscii;
+      drawFn = DrawAscii;
+      killFn = KillAscii;
+      mkxyFn = MkXYDummy;
+      rdxyFn = RdXYDummy;
+      exitFn = DummyRFn;
     }
+}
 
 void dispset(                            /* setup a new window */
      WINDAT *wdptr,                      /*   & init the data struct */
@@ -133,9 +134,9 @@ void dispset(                            /* setup a new window */
 
     if (!O.displays) return;            /* return if displays disabled */
     if (!wdptr->windid) {               /* if no window defined for this str  */
-        (*makeFn)(wdptr,label);         /*    create one  */
-        if (O.postscript)
-          PS_MakeGraph(wdptr,label);    /* open PS file + write header        */
+      (*makeFn)(wdptr,label);           /*    create one  */
+      if (O.postscript)
+        PS_MakeGraph(wdptr,label);      /* open PS file + write header        */
     }
     wdptr->fdata    = fdata;            /* init remainder of data structure   */
     wdptr->npts     = npts;
@@ -181,8 +182,8 @@ void display(WINDAT *wdptr)     /* prepare a MYFLT array, then call the */
     fp = wdptr->fdata;
     fplim = fp + wdptr->npts;
     for (max = *fp++, min = max; fp < fplim; ) { /* find max & min values */
-        if ((fval = *fp++) > max)       max = fval;
-        else if (fval < min)            min = fval;
+      if ((fval = *fp++) > max)       max = fval;
+      else if (fval < min)            min = fval;
     }
     absmax = (-min > max )? (-min):max;
     wdptr->max    = max;                 /* record most pos and most */
@@ -193,12 +194,12 @@ void display(WINDAT *wdptr)     /* prepare a MYFLT array, then call the */
 
     pol = wdptr->polarity;     /* adjust polarity flg for life of win */
     if (pol == (short)NOPOL)  {
-        if (max > 0. && min < 0.)               pol = (short)BIPOL;
-        else if (max <= 0.&& min <0.)           pol = (short)NEGPOL;
-        else                                    pol = (short)POSPOL;
+      if (max > FL(0.0) && min < FL(0.0))      pol = (short)BIPOL;
+      else if (max <= FL(0.0) && min <FL(0.0)) pol = (short)NEGPOL;
+      else                                     pol = (short)POSPOL;
     }
-    else if (pol == (short)POSPOL && min < 0)   pol = (short)BIPOL;
-    else if (pol == (short)NEGPOL && max > 0)   pol = (short)BIPOL;
+    else if (pol == (short)POSPOL && min < FL(0.0)) pol = (short)BIPOL;
+    else if (pol == (short)NEGPOL && max > FL(0.0)) pol = (short)BIPOL;
     wdptr->polarity = pol;
 
     (*drawFn)(wdptr);                    /* now graph the function */

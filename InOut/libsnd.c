@@ -223,13 +223,13 @@ static int readsf(MYFLT *inbuf, int nsamples)
     return nchnls*sf_read_MYFLT(infile, inbuf, nsamples/nchnls);
 }
 
-HEADATA *readheader(            /* read soundfile hdr, fill HEADATA struct */
-    int ifd,                    /*   called by sfopenin() and sndinset()   */
-    char *sfname,               /* NULL => no header, nothing to preserve  */
-    SOUNDIN *p)
-{
-    return NULL;
-}
+/* HEADATA *readheader(            /\* read soundfile hdr, fill HEADATA struct *\/ */
+/*     int ifd,                    /\*   called by sfopenin() and sndinset()   *\/ */
+/*     char *sfname,               /\* NULL => no header, nothing to preserve  *\/ */
+/*     SOUNDIN *p) */
+/* { */
+/*     return NULL; */
+/* } */
 
 void writeheader(int ofd, char *ofname)
 {
@@ -598,19 +598,12 @@ void sfcloseout(void)
     osfopen = 0;
 }
 
-static  long    datpos= 0L;       /* Used in resetting only */
-
-extern  HEADATA *readheader(int, char *, SOUNDIN*);
 extern  int     openin(char*);
 extern  OPARMS  O;
 
 void soundinRESET(void)
 {
-    datpos = 0;
 }
-
-extern  HEADATA *readheader(int, char*, SOUNDIN*);
-extern  OPARMS  O;
 
 #ifdef RTAUDIO
 # define DEVAUDIO 0x7fff         /* unique fd for rtaudio  */

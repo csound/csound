@@ -75,14 +75,14 @@ void listPortAudioDevices(void)
       paDeviceInfo = Pa_GetDeviceInfo(deviceIndex);
       if (paDeviceInfo) {
         err_printf("Device%3d: %s\n",
-                deviceIndex,
-                paDeviceInfo->name);
+                   deviceIndex,
+                   paDeviceInfo->name);
         err_printf("           Maximum channels in: %7d\n",
-                paDeviceInfo->maxInputChannels);
+                   paDeviceInfo->maxInputChannels);
         err_printf("           Maximum channels out:%7d\n",
-                paDeviceInfo->maxOutputChannels);
+                   paDeviceInfo->maxOutputChannels);
         err_printf("           Default sample rate: %11.3f\n",
-                paDeviceInfo->defaultSampleRate);
+                   paDeviceInfo->defaultSampleRate);
       }
     }
 }
@@ -118,7 +118,7 @@ void recopen_(int nchnls_, int dsize_, float sr_, int scale_)
         err_printf(Str(X_30,
                        "No PortAudio input device given; "
 		       "defaulting to device %d\n"), rtin_dev);
-			paStreamParameters_.suggestedLatency =
+        paStreamParameters_.suggestedLatency =
 	  Pa_GetDeviceInfo(rtin_dev)->defaultLowInputLatency;
       }
       else {
@@ -138,9 +138,9 @@ void recopen_(int nchnls_, int dsize_, float sr_, int scale_)
                paStreamParameters_.suggestedLatency);
 #if defined(WIN32)
     paError = paBlockingReadOpen(&cenviron,
-        &pabsRead,
-        &paStreamParameters_);
-     if (paError != paNoError) goto error;
+                                 &pabsRead,
+                                 &paStreamParameters_);
+    if (paError != paNoError) goto error;
 #else
     paError = Pa_OpenStream(&pa_in,
                             &paStreamParameters_,
@@ -217,8 +217,8 @@ void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
                paStreamParameters_.suggestedLatency);
 #if defined(WIN32)
     paError = paBlockingWriteOpen(&cenviron,
-        &pabsWrite,
-        &paStreamParameters_);
+                                  &pabsWrite,
+                                  &paStreamParameters_);
     if (paError != paNoError) goto error;
 #else
     paError = Pa_OpenStream(&pa_out,
@@ -239,7 +239,7 @@ void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
     outbufrem = O.outbufsamps;
     osfopen = 1;
     err_printf(Str(X_39,"Opened PortAudio output device %i.\n"), 
-        paStreamParameters_.device);
+               paStreamParameters_.device);
     return;
  error:
     err_printf(Str(X_41,"PortAudio error %d: %s.\n"),
@@ -272,7 +272,7 @@ int rtrecord_(void *inbuf_, int bytes_) /* get samples from ADC */
       return 0;
     }
     else {
-        return samples;
+      return samples;
     }
 #endif
 }
@@ -328,7 +328,7 @@ void rtclose_(void)             /* close the I/O device entirely  */
 #ifndef MSVC /* VL MSVC fix */
     sleep(1);
 #else
-	 Sleep(1000);
+    Sleep(1000);
 #endif
 
 }

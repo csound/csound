@@ -79,11 +79,11 @@ HEADATA *getsndinfo(SNDINFO *p)
 
     /****** if headerblk returned ******/
     sp = (SOUNDIN *) mcalloc((long)sizeof(SOUNDIN));
-    hdr=readheader(sinfd,sfname, sp);
-    if (hdr == NULL || hdr->audsize <= 0)
+/*     hdr=readheader(sinfd,sfname, sp); */
+/*     if (hdr == NULL || hdr->audsize <= 0) */
       p->audsize = (long)lseek(sinfd,(off_t)0L,SEEK_END); /* use file length */
-    else
-      p->audsize = hdr->audsize;
+/*     else */
+/*       p->audsize = hdr->audsize; */
 
     mfree((char *)sp);
     close(sinfd);               /* init error:  close any open file */
