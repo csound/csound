@@ -389,6 +389,18 @@ if (commonEnvironment['useFLTK'] and fltkFound):
             guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
             csoundProgramEnvironment.Append(LINKFLAGS = ['-framework', 'Carbon'])
 
+if (commonEnvironment['usePortMIDI'] and portmidiFound):
+    staticLibraryEnvironment.Append(CCFLAGS = '-DPORTMIDI')
+    pluginEnvironment.Append(CCFLAGS = '-DPORTMIDI')
+    csoundProgramEnvironment.Append(CCFLAGS = '-DPORTMIDI')
+    ustubProgramEnvironment.Append(CCFLAGS = '-DPORTMIDI')
+    vstEnvironment.Append(CCFLAGS = '-DPORTMIDI')
+    guiProgramEnvironment.Append(CCFLAGS = '-DPORTMIDI')
+    csoundProgramEnvironment.Append(LIBS = ['portmidi'])
+    vstEnvironment.Append(LIBS = ['portmidi'])
+    csoundProgramEnvironment.Append(LIBS = ['porttime'])
+    vstEnvironment.Append(LIBS = ['porttime'])
+
 ##### -framework ApplicationServices'))
 
 if getPlatform() == 'mingw':
@@ -519,16 +531,13 @@ else:
 
 print commonEnvironment['usePortMIDI']
 print portmidiFound
-if not (((commonEnvironment['usePortMIDI'])==1) and portmidiFound):
+if not (((commonEnvironment['usePortMIDI'])) and portmidiFound):
     print 'CONFIGURATION DECISION: Building with internal MIDI.'
     libCsoundSources.append('OOps/midirecv.c')
 else:
     print 'CONFIGURATION DECISION: Building with PortMIDI.'
-    commonEnvironment.Append(CCFLAGS = ['-DPORTMIDI'])
     libCsoundSources.append('InOut/pmidi.c')
     libCsoundSources.append('InOut/fmidi.c')
-    commonEnvironment.Append(LIBS = ['portmidi'])
-    commonEnvironment.Append(LIBS = ['porttime'])
 
 if not ((commonEnvironment['useFLTK'] and fltkFound)):
     print 'CONFIGURATION DECISION: Not building with FLTK for graphs and widgets.'
