@@ -86,6 +86,11 @@ extern int csoundMain(void *csound, int argc, char **argv);
 extern long kcnt;
 extern MYFLT *inbuf;
 extern MYFLT *outbuf;
+extern int csoundExternalMidiEnabled;
+extern void (*csoundExternalMidiDeviceOpenCallback)(void *csound);
+extern int (*csoundExternalMidiReadCallback)(void *csound, unsigned char *midiData, int size);
+extern int (*csoundExternalMidiWriteCallback)(void *csound, unsigned char *midiData);
+extern void (*csoundExternalMidiDeviceCloseCallback)(void *csound);
 
 #ifdef __cplusplus
 }
