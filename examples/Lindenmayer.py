@@ -42,10 +42,31 @@ rescale.addChild(random)
 model.addChild(rescale)
 filename = csound.getFilename();
 print 'Filename:', filename
-csound.load("./CsoundVST.csd")
+csound.load("c:/projects/csound5/examples/CsoundVST.csd")
 csound.setFilename(filename);
 csound.setCommand("csound -RWdfo " + filename + ".wav " + filename + ".orc " + filename + ".sco")
 model.render()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

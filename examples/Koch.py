@@ -54,10 +54,10 @@ def normalizeGeneratorTimes(g):
 g = [  7,  0,  8,  1,
       -4,  0,  8,  .875,
        7,  1,  6,  1,
-       8,  1,  6,  1,
-      -4, -5,  6,  1,
+       9,  1,  6,  1,
+      -4, -5,  8,  1,
       15,  4,  3,  .875,
-      -7,  1,  6,  1
+      -9,  1,  6,  1
 #    -13,  0,  8,  1 
     ]
 
@@ -131,7 +131,7 @@ instr 2,4,6 ; FluidSynth full organ
 ; Use channel assigned in fluidload.
 ichannel		=			4
 ikey	 		= 			p4
-ivelocity 		= 			p5 / 6.0
+ivelocity 		= 			p5 / 4.0
 ijunk6 			= 			p6
 ijunk7			=			p7
 ijunk8			=			p8
@@ -154,6 +154,8 @@ csound.setCommand("csound --opcode-lib=c:/projects/csound5/fluid.dll -RWdfo ./ko
 csound.addScoreLine("i 100 0 -1")
 csound.exportForPerformance()
 csound.perform()
+
+
 
 
 
