@@ -268,7 +268,6 @@ int scsnux_init(PSCSNUX *p)
     }
     else {                      /* New format matrix */
       char filnam[256];
-      //extern char *unquote(char *name);
       MEMFIL *mfp;
       if (p->STRARG == NULL) strcpy(filnam,unquote(currevent->strarg));
       else strcpy(filnam, unquote(p->STRARG));

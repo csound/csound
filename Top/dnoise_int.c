@@ -78,7 +78,6 @@ int N_nfilts = -1;
 int S_sharp = -1;
 int w_ovlp = -1;
 MYFLT e_end = -FL(1.0);
-// output format options.
 OUT_FMT out_fmt;
 
 static int ok_enabled = FALSE;          /* TRUE if allow \r to mean OK button */
@@ -194,7 +193,7 @@ pascal Boolean myFilter(DialogPtr dp, EventRecord *ev, short *itemHit)
 }
 
 
-// Redraw the file open dialog box
+/* Redraw the file open dialog box */
 
 void UpdateFileDlg(SO_FILE tmp)
 {
@@ -247,7 +246,7 @@ void UpdateFileDlg(SO_FILE tmp)
 
     if ((tmp.flags & IN_VALID) && (tmp.flags & NOI_VALID)) {
       HiliteControl((ControlHandle)item, ENABLE_CTL);
-      //        SetDialogDefaultItem(gFileDlg, 1) ;
+      /*         SetDialogDefaultItem(gFileDlg, 1) ; */
       ok_enabled = TRUE;
     }
     else {
@@ -293,7 +292,7 @@ void formOutputFile(DialogPtr dp, SO_FILE *p)
       addFileExt(p->out,".wav");
       break;
     case POPUP_AIFF:
-      if (out_fmt.type == POPUP_32F)    // we only do aifc for floating point
+      if (out_fmt.type == POPUP_32F)    /* we only do aifc for floating point */
         addFileExt(p->out,".aic");
       else
         addFileExt(p->out,".aif");
@@ -305,11 +304,12 @@ void formOutputFile(DialogPtr dp, SO_FILE *p)
 }
 
 
-//#pragma mark -
+/*#pragma mark - */
 
 void do_mac_dialogs(void)
 {
-    static Boolean dispFlag = FALSE;    // to make it possible to type in editable text
+    static Boolean dispFlag = FALSE;    /* to make it possible to type in
+                                           editable text */
     static Boolean forTesting = true;
 
     char        buff[256];
@@ -322,18 +322,19 @@ void do_mac_dialogs(void)
     short       myItem;
     StandardFileReply   reply;
     SFTypeList  typeList;
-    short       numTypes = 1;// -for some reason causing crash...1; -sdb changed nil to 1
+    short       numTypes = 1; /* -for some reason causing crash...1;
+                                 -sdb changed nil to 1 */
     FSSpec      sfSpec;
-    static int  prevFormat =    POPUP_16;        //set to default
+    static int  prevFormat =    POPUP_16;        /*set to default*/
     ModalFilterUPP filterupp = NewModalFilterProc(myFilter);
 
-    typeList[0] = 'TEXT';// -for some reason causing crash...'TEXT'; -sdb changed nil to 'TEXT'
+    typeList[0] = 'TEXT';/* -for some reason causing crash...'TEXT'; -sdb changed nil to 'TEXT' */
 
     gFileDlg = GetNewDialog(OPEN_DLG_ID, NULL, (WindowPtr)-1);
-//    SetWTitle(gFileDlg,(const unsigned char *)so_file.in);
-//    SizeWindow(gFileDlg, 477, 132, true);
-//    shortDisplay = true;
-//    SetPort(gFileDlg);
+/*     SetWTitle(gFileDlg,(const unsigned char *)so_file.in); */
+/*     SizeWindow(gFileDlg, 477, 132, true); */
+/*     shortDisplay = true; */
+/*     SetPort(gFileDlg); */
 
     while (1) {                 /* Dialog interface; get events */
       ModalDialog(filterupp, &myItem);
@@ -343,7 +344,7 @@ void do_mac_dialogs(void)
         formCmdLine();
         goto ending;
       case OPEN_SEL_NOI:
-//        StandardGetFile(nil, numTypes, typeList, &reply);
+        /*        StandardGetFile(nil, numTypes, typeList, &reply); */
                 StandardGetFile(nil, -1, nil, &reply);
         if (reply.sfGood) {     // if 'Open' was selected
           so_file.noise_vrn = reply.sfFile.vRefNum ;
@@ -354,8 +355,8 @@ void do_mac_dialogs(void)
         break;
       case OPEN_SEL_IN:
                 StandardGetFile(nil, -1, nil, &reply);
-//        StandardGetFile(nil, numTypes, typeList, &reply);
-        if (reply.sfGood) {     // if 'Open' was selected
+                /*        StandardGetFile(nil, numTypes, typeList, &reply); */
+                if (reply.sfGood) {     /* if 'Open' was selected */
           so_file.in_vrn = reply.sfFile.vRefNum ;
           so_file.in_pid = reply.sfFile.parID ;
           strcpy(so_file.in,PtoCstr(reply.sfFile.name));
@@ -364,7 +365,7 @@ void do_mac_dialogs(void)
         break;
       case OPEN_SEL_OUT:                /* really Dirs... */
         StandardPutFile("\pOutput File", nil, &reply);
-        if (reply.sfGood) {     // if 'Open' was selected
+        if (reply.sfGood) {     /* if 'Open' was selected */
           strcpy(so_file.out,PtoCstr(reply.sfFile.name));
         }
         break;
@@ -372,7 +373,7 @@ void do_mac_dialogs(void)
         break;
       case OPEN_SEL_LST:
         StandardPutFile("\pListing file:", CtoPstr(so_file.lst), &reply);
-        if (reply.sfGood) {     // if 'Open' was selected
+        if (reply.sfGood) {     /* if 'Open' was selected */
           so_file.lst_vrn = reply.sfFile.vRefNum ;
           so_file.lst_pid = reply.sfFile.parID ;
           strcpy(so_file.lst,PtoCstr(reply.sfFile.name));
@@ -384,7 +385,7 @@ void do_mac_dialogs(void)
         out_fmt.header = val = GetControlValue((ControlHandle)item);
         switch (out_fmt.header) {
         case POPUP_SDII:
-          // SDII supports chars, shorts, and longs only
+          /* SDII supports chars, shorts, and longs only */
           if (
               out_fmt.type == POPUP_ULAW || 
               out_fmt.type == POPUP_8_US)
@@ -393,7 +394,7 @@ void do_mac_dialogs(void)
             out_fmt.type = POPUP_16;
           break;
         case POPUP_WAV:
-          // WAV supports u-chars and shorts only
+          /* WAV supports u-chars and shorts only */
           if (
               out_fmt.type == POPUP_ULAW ||
               out_fmt.type == POPUP_8)
@@ -408,27 +409,27 @@ void do_mac_dialogs(void)
         out_fmt.type = GetControlValue((ControlHandle)item);
         switch (out_fmt.type) {
         case POPUP_8:
-          // WAV chars are unsigned
+          /* WAV chars are unsigned */
           if (out_fmt.header == POPUP_WAV)
             out_fmt.header = POPUP_AIFF;
           break;
         case POPUP_8_US:
-          // WAV chars are unsigned
+          /* WAV chars are unsigned */
           if (out_fmt.header == POPUP_SDII || out_fmt.header == POPUP_AIFF)
             out_fmt.header = POPUP_WAV;
           break;
         case POPUP_ULAW:
-          // SDII or WAV dont support ulaw
+          /* SDII or WAV dont support ulaw */
           if (out_fmt.header == POPUP_SDII || out_fmt.header == POPUP_WAV)
             out_fmt.header = POPUP_AIFF;
           break;
         case POPUP_32:
-          // WAV dont support longs
+          /* WAV dont support longs */
           if (out_fmt.header == POPUP_WAV)
             out_fmt.header = POPUP_AIFF;
           break;
         case POPUP_32F:
-          // SDII or WAV dont support floats
+          /* SDII or WAV dont support floats */
           if (out_fmt.header == POPUP_SDII || out_fmt.header == POPUP_WAV)
             out_fmt.header = POPUP_AIFF;
           break;
@@ -436,7 +437,7 @@ void do_mac_dialogs(void)
         break;
       case OPEN_KILL:
         exit(1);
-      case OPEN_MORE:  // little button to toggle display (should really be a disclosure arrow)
+      case OPEN_MORE:  /* little button to toggle display (should really be a disclosure arrow) */
         GetDialogItem(gFileDlg,42,&itemType,&item,&itemBox);
         if (shortDisplay) {
           SizeWindow(gFileDlg, 477, 400, true);
@@ -465,9 +466,9 @@ void do_mac_dialogs(void)
       UpdateFileDlg(so_file);
     }
  ending:
-    //    GetDialogItem(gFileDlg,OPEN_OUT_TEX,&itemType,&item,&itemBox);
-    //    GetDialogItemText(item, (StringPtr)so_file.out) ;
-    //    PtoCstr((StringPtr)so_file.out);
+    /*    GetDialogItem(gFileDlg,OPEN_OUT_TEX,&itemType,&item,&itemBox); */
+    /*    GetDialogItemText(item, (StringPtr)so_file.out) ; */
+    /*    PtoCstr((StringPtr)so_file.out); */
     DisposeDialog(gFileDlg);
     gFileDlg = 0;
 }
@@ -518,7 +519,7 @@ void appendCmdf(char *fmt, MYFLT a)
 #define ROOT_DIR_ID  (2)
 OSErr getHFSPath(char *path,char *fname,short vrefnum, long parid)
 {
-    //extern int app_ev;
+    /*extern int app_ev; */
     CInfoPBRec pb;
     WDPBRec wd;
     int stat;
@@ -533,7 +534,7 @@ OSErr getHFSPath(char *path,char *fname,short vrefnum, long parid)
       pb.hFileInfo.ioNamePtr = (StringPtr) buf;
       pb.hFileInfo.ioVRefNum = vrefnum;
       pb.hFileInfo.ioFDirIndex = 0;
-      //                if (app_ev) pb.hFileInfo.ioDirID = parid;
+      /*                if (app_ev) pb.hFileInfo.ioDirID = parid; */
       pb.hFileInfo.ioDirID = parid;
     }
     else {
@@ -648,8 +649,8 @@ void formCmdLine(void)
 
 /******** put in listfile name *******  -matt */
     if (so_file.flags & LST_VALID)  {
-      //getHFSPath(path,NULL,so_file.lst_vrn,so_file.lst_pid); //form directory path
-      getDirPath(path,so_file.lst_vrn,so_file.lst_pid); //form directory path
+      /*getHFSPath(path,NULL,so_file.lst_vrn,so_file.lst_pid); //form directory path */
+      getDirPath(path,so_file.lst_vrn,so_file.lst_pid); /*form directory path */
       strcat(path,":"); /* now append listingfile name */
       strcat(path,so_file.lst);
       appendCmds("--%s", path);

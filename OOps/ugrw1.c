@@ -1309,8 +1309,8 @@ int    itableng(TABLENG *p)
 
     if ((ftp = ftfind(p->xfn)) == NULL) {
       *p->kout = FL(0.0);
-    //  sprintf(errmsg, Str(X_479,"Table %f not found\n"), *(p->xfn));
-    //  return initerror(errmsg);
+/*       sprintf(errmsg, Str(X_479,"Table %f not found\n"), *(p->xfn)); */
+/*       return initerror(errmsg); */
     }
     /* Return length as a float if we do find the table. */
     else
@@ -1353,8 +1353,8 @@ int    tablegpw(TABLEGPW *p)
      */
 
     if ((ftp = ftfindp(p->xfn)) == NULL) {
-      //sprintf(errmsg, Str(X_479,"Table %f not found\n"), *(p->xfn));
-      //return perferror(errmsg);
+/*       sprintf(errmsg, Str(X_479,"Table %f not found\n"), *(p->xfn)); */
+/*       return perferror(errmsg); */
     }
     /* Find length of table.
      */

@@ -250,14 +250,13 @@ void *csoundCloseLibrary(void *library)
     if ((((struct mach_header *)library)->magic == MH_MAGIC) ||
         (((struct mach_header *)library)->magic == MH_CIGAM)) {
       error(-1, "Can't remove dynamic libraries on darwin");
-      return 0;
+      return NULL;
     }
     if (!NSUnLinkModule(library, 0)) {
       error(0, "unable to unlink module %s", NSNameOfModule(library));
-      //return 1;
-      return 0;
+      return NULL;
     }
-    return 0;
+    return NULL;
 }
 
 void *csoundGetLibrarySymbol(void *library, const char *procedureName)
