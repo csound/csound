@@ -331,11 +331,7 @@ if commonEnvironment['usePortAudio']==1 and portaudioFound:
         csoundProgramEnvironment.Append(LIBS = ['dsound'])
         vstEnvironment.Append(LIBS = ['dsound'])
 
-print "useFLTK and fltkFound"
-print commonEnvironment['useFLTK']
-print fltkFound
-
-if (commonEnvironment['useFLTK']==1) and fltkFound:
+if (commonEnvironment['useFLTK'] and fltkFound):
     staticLibraryEnvironment.Append(CCFLAGS = '-DWINDOWS')
     pluginEnvironment.Append(CCFLAGS = '-DWINDOWS')
     csoundProgramEnvironment.Append(CCFLAGS = '-DWINDOWS')
@@ -352,7 +348,6 @@ if (commonEnvironment['useFLTK']==1) and fltkFound:
     vstEnvironment.Append(LINKFLAGS = "--subsystem:windows")
     guiProgramEnvironment.Append(LINKFLAGS = "--subsystem:windows")
     if getPlatform() == 'linux' or getPlatform() == 'cygwin':
-            csoundProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
             ustubProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
             vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
             guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
@@ -366,6 +361,16 @@ if (commonEnvironment['useFLTK']==1) and fltkFound:
                     ustubProgramEnvironment.Append(LIBS = ['dl'])
                     vstEnvironment.Append(LIBS = ['dl'])
                     guiProgramEnvironment.Append(LIBS = ['dl'])
+    elif getPlatform() == 'darwin':
+            csoundProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+            ustubProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+            vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+            guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+	    print "setup FLTK"
+            commonEnvironment.Append(LINKFLAGS = ['-framework', 'Carbon'])
+
+##### -framework ApplicationServices'))
+
                     
 if getPlatform() == 'mingw':
     # These are the Windows system call libraries.
@@ -494,7 +499,7 @@ if (commonEnvironment['usePortAudio']==1) and portaudioFound:
     print 'Building with PortAudio.'
     libCsoundSources.append('InOut/rtpa.c')
     
-if (commonEnvironment['useFLTK']==1) and fltkFound:
+if (commonEnvironment['useFLTK'] and fltkFound):
     print 'Building with FLTK for graphs and widgets.'
     libCsoundSources.append('InOut/FL_graph.cpp')
     libCsoundSources.append('InOut/winFLTK.c')
