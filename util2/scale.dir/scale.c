@@ -65,7 +65,7 @@ extern short sfsampsize(int);
 /* Static global variables */
 static SOUNDIN     *p;  /* space allocated by SAsndgetset() */
 static unsigned    outbufsiz;
-static void	   *outbuf;
+static MYFLT	   *outbuf;
 static	char	   *choutbuf;		    /* char  pntr to above  */
 static	short	   *shoutbuf;		    /* short pntr	    */
 static	long	   *lloutbuf;		    /* long  pntr	    */

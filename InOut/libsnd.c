@@ -39,7 +39,7 @@ extern  void    playopen_(int, int, float, int);
 static  SNDFILE *outfile;
 extern  SNDFILE *infile;
 static  char    *sfoutname;                     /* soundout filename    */
-static  MYFLT   *inbuf;
+        MYFLT   *inbuf;
         MYFLT   *outbuf;                        /* contin sndio buffers */
 static  MYFLT   *outbufp;                       /* MYFLT pntr           */
 static  unsigned inbufrem;

@@ -11,8 +11,8 @@ Uses PortAudio library without callbacks -- JPff
 #include <portaudio.h>
 
 extern char    *sfoutname;                     /* soundout filename    */
-extern char    *inbuf;
-extern char    *outbuf;                        /* contin sndio buffers */
+//extern char    *inbuf;
+//extern char    *outbuf;                        /* contin sndio buffers */
 extern char    *chinbufp, *choutbufp;          /* char  pntr to above  */
 extern short   *shinbufp, *shoutbufp;          /* short pntr           */
 extern long    *llinbufp, *lloutbufp;          /* long  pntr           */

@@ -78,7 +78,7 @@ extern char *type2string(int);
 
 /* Static global variables */
 static unsigned    outbufsiz;
-static void        *outbuf;
+static MYFLT       *outbuf;
 
 static int outfd;
 static long  bytes = 0;
