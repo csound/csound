@@ -646,11 +646,11 @@ void mainRESET(ENVIRON *p)
     void expRESET(ENVIRON *);
     void ftRESET(ENVIRON *);
     void fftRESET(void);
-    void insertRESET(void);
+    void insertRESET(ENVIRON *);
     void lpcRESET(void);
     void memRESET(void*);
     void musRESET(void);
-    void oloadRESET(void);
+    void oloadRESET(ENVIRON *);
     void orchRESET(void);
     void soundinRESET(void);
     void tranRESET(void);
@@ -665,7 +665,7 @@ void mainRESET(ENVIRON *p)
     ftRESET(p);
     fftRESET();
     disprepRESET();
-    insertRESET();
+    insertRESET(p);
     musRESET();
     tranRESET();
     orchRESET();
@@ -679,7 +679,7 @@ void mainRESET(ENVIRON *p)
       reset_list = x;
     }
     scoreRESET(p);
-    oloadRESET();               /* should be called last but changed!! */
+    oloadRESET(p);              /* should be called last but changed!! */
     memRESET(p);
 }
 

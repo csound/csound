@@ -40,37 +40,33 @@ static  const char    strmult[] = "*";
 static  void    putokens(ENVIRON*), putoklist(ENVIRON*);
 static  int     nontermin(int);
 extern  char    argtyp(char *);
-extern  void    *mrealloc(void*, void*, size_t);
-        void    resetouts(void);
-/* IV - Jan 08 2003: this variable is used in rdorch.c, so cannot be static */
-        int     argcnt_offs = 0, opcode_is_assign = 0, assign_type = 0;
-        char    *assign_outarg = NULL;
 
 void expRESET(ENVIRON *csound)
 {
-    mfree(csound, polish);
-    polish = NULL;
+    mfree(csound, csound->polish);
+    csound->polish      = NULL;
     csound->polmax      = 0;
-    tokenstring         = NULL;
+    csound->tokenstring = NULL;
     csound->toklen      = 0;
     csound->tokens      = csound->token = csound->tokend = NULL;
     csound->tokenlist   = csound->revp = csound->pushp =
                           csound->argp = csound->endlist = NULL;
     csound->toklength   = TOKMAX;
-    resetouts();
+    resetouts(csound);
     csound->stringend   = 0;
-    argcnt_offs         = 0;
-    opcode_is_assign    = assign_type = 0;
-    assign_outarg       = NULL;
+    csound->argcnt_offs = 0;
+    csound->opcode_is_assign = 0;
+    csound->assign_type = 0;
+    csound->assign_outarg = NULL;
 }
 
-void resetouts(void)
+void resetouts(ENVIRON *csound)
 {
-    cenviron.acount = cenviron.kcount = cenviron.icount =
-                      cenviron.Bcount = cenviron.bcount = 0;
+    csound->acount = csound->kcount = csound->icount =
+                     csound->Bcount = csound->bcount = 0;
 }
 
-#define copystring(s) strsav_string(s)
+#define copystring(s) strsav_string(csound, s)
 
 int express(ENVIRON *csound, char *s)
 {
@@ -86,29 +82,29 @@ int express(ENVIRON *csound, char *s)
       csound->tokens    = (TOKEN*) mmalloc(csound, TOKMAX * sizeof(TOKEN));
       csound->tokend    = csound->tokens + TOKMAX;
       csound->tokenlist = (TOKEN**) mmalloc(csound, TOKMAX * sizeof(TOKEN*));
-      polish            = (POLISH*) mmalloc(csound, POLMAX * sizeof(POLISH));
+      csound->polish    = (POLISH*) mmalloc(csound, POLMAX * sizeof(POLISH));
       csound->polmax    = POLMAX;
-      tokenstring       = mmalloc(csound, LENTOT);
-      csound->stringend = tokenstring + LENTOT;
+      csound->tokenstring = mmalloc(csound, LENTOT);
+      csound->stringend = csound->tokenstring + LENTOT;
       csound->toklen    = LENTOT;
     }
     sorig = s;
-    if (tokenstring+strlen(s) >= csound->stringend) {
+    if (csound->tokenstring + strlen(s) >= csound->stringend) {
       char *tt;
       TOKEN *ttt;
       long n = csound->toklen + LENTOT + strlen(s);
-      tt = (char*) mrealloc(csound, tokenstring, n);
+      tt = (char*) mrealloc(csound, csound->tokenstring, n);
       /* Adjust all previous tokens */
       for (ttt = csound->tokens; ttt <= csound->token; ttt++)
-        ttt->str += (tt-tokenstring);
-      tokenstring = tt;               /* Reset string and length */
-      csound->stringend = tokenstring + (csound->toklen = n);
+        ttt->str += (tt - csound->tokenstring);
+      csound->tokenstring = tt;               /* Reset string and length */
+      csound->stringend = csound->tokenstring + (csound->toklen = n);
       csound->Message(csound,
                       Str("Token length extended to %ld\n"), csound->toklen);
     }
 
     csound->token = csound->tokens;
-    csound->token->str = t = tokenstring;
+    csound->token->str = t = csound->tokenstring;
     open = 1;
     while ((c = *s++)) {
       if (open) {                   /* if unary possible here,   */
@@ -172,9 +168,10 @@ int express(ENVIRON *csound, char *s)
       }
       /* IV - Jan 08 2003: check if the output arg of an '=' opcode is */
       /* used in the expression (only if optimisation is enabled) */
-      if (opcode_is_assign == 1)
-        if (!strcmp(csound->token->str, assign_outarg)) /* if yes, mark as */
-          opcode_is_assign = 2;                         /* dangerous case  */
+      if (csound->opcode_is_assign == 1)
+        if (!strcmp(csound->token->str,
+                    csound->assign_outarg))   /* if yes, mark as */
+          csound->opcode_is_assign = 2;       /* dangerous case  */
       (++csound->token)->str = t;             /* & record begin of nxt one */
     }
     csound->token->str = NULL;        /* expr end:  terminate tokens array */
@@ -271,14 +268,16 @@ int express(ENVIRON *csound, char *s)
       if ((*csound->revp++)->prec < TERMS)      /*  is no w. prec < TERMS */
         polcnt++;
     if (!polcnt) {                              /* if no real operators,  */
-      strcpy(tokenstring,csound->tokenlist[0]->str);  /* cpy arg to beg str */
+      strcpy(csound->tokenstring,
+             csound->tokenlist[0]->str);        /*  cpy arg to beg str    */
       return(-1);                               /*  and return this info  */
     }
     if (polcnt >= csound->polmax) {
       csound->polmax = polcnt + POLMAX;
-      polish = (POLISH*) mrealloc(csound,polish,csound->polmax*sizeof(POLISH));
+      csound->polish = (POLISH*) mrealloc(csound, csound->polish,
+                                          csound->polmax * sizeof(POLISH));
     }
-    pp = &polish[polcnt-1];
+    pp = &(csound->polish[polcnt - 1]);
     op = pp->opcod;
     for (csound->revp = csound->argp = csound->tokenlist;
          csound->revp < csound->endlist; ) {    /* for all tokens: */
@@ -451,14 +450,15 @@ int express(ENVIRON *csound, char *s)
       }
       else {
         int ndx = (int) (csound->argp - csound->tokenlist); /* argstack index */
-        if (opcode_is_assign == 1       &&
-            (int) ndx == 0              &&
-            (int) outype == assign_type &&
-            strchr("aki", assign_type) != NULL) {
+        if (csound->opcode_is_assign == 1       &&
+            (int) ndx == 0                      &&
+            (int) outype == csound->assign_type &&
+            strchr("aki", csound->assign_type) != NULL) {
           /* IV - Jan 08 2003: if the expression is an input arg to the '=' */
           /* opcode, the output type is appropriate, and the argument stack */
           /* is empty, there is no need for a temporary variable, */
-          strcpy(s, assign_outarg); /* instead just use the opcode outarg */
+          /* instead just use the opcode outarg */
+          strcpy(s, csound->assign_outarg);
           /* note: this is not safe if the expression contains the output */
           /* variable; if that is the case, opcode_is_assign is set to 2 */
         }
@@ -471,7 +471,7 @@ int express(ENVIRON *csound, char *s)
           /* If there are multiple expressions on the same line, use */
           /* different indexes for the tmp variables of each expression. */
 /*        if (!cnt) */
-            cnt += argcnt_offs;         /* IV - Jan 15 2003 */
+            cnt += csound->argcnt_offs;     /* IV - Jan 15 2003 */
           if (outype == 'a')        sprintf(s, "#a%d", cnt);
           else if (outype == 'k')   sprintf(s, "#k%d", cnt);
           else if (outype == 'B')   sprintf(s, "#B%d", csound->Bcount++);
@@ -492,20 +492,20 @@ int express(ENVIRON *csound, char *s)
     if (csound->argp - csound->tokenlist == 1) {
       /* IV - Jan 08 2003: do not re-use temporary variables between */
       /* expressions of the same line */
-      argcnt_offs += (argcnt_max + 1);
+      csound->argcnt_offs += (argcnt_max + 1);
       /* if wrote to output arg of '=' last time, '=' can be omitted */
-      if (opcode_is_assign != 0         &&      /* only if optimising */
-          (int) outype == assign_type   &&
-          strchr("aki", assign_type) != NULL) {
+      if (csound->opcode_is_assign != 0       &&    /* only if optimising */
+          (int) outype == csound->assign_type &&
+          strchr("aki", csound->assign_type) != NULL) {
         /* replace outarg if necessary */
-        if (strcmp(csound->tokenlist[0]->str, assign_outarg)) {
+        if (strcmp(csound->tokenlist[0]->str, csound->assign_outarg)) {
           /* now the last op will use the output of '=' directly */
           /* the pp + 1 is because of the last pp-- */
           csound->tokenlist[0]->str =
-                   (pp + 1)->arg[0] = copystring(assign_outarg);
+                   (pp + 1)->arg[0] = copystring(csound->assign_outarg);
         }
         /* mark as optimised away */
-        opcode_is_assign = -1;
+        csound->opcode_is_assign = -1;
       }
       return(polcnt);                           /* finally, return w. polcnt */
     }
@@ -514,7 +514,7 @@ int express(ENVIRON *csound, char *s)
  error:
     synterr(Str("expression syntax"));    /* or gracefully report error*/
     csound->Message(csound, " %s: %s\n", xprmsg, sorig);
-    strcpy(tokenstring, "1");
+    strcpy(csound->tokenstring, "1");
     return -1;
 }
 

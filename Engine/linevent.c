@@ -109,9 +109,9 @@ void RTLineset(void)   /* set up Linebuf & ready the input files */
     }
 #ifdef PIPES
     else if (O.Linename[0]=='|') {
-      Linepipe = _popen(&(O.Linename[1]), "r");
-      if (Linepipe == NULL) {
-        FILE *xxx = Linepipe;
+      cenviron.Linepipe = _popen(&(O.Linename[1]), "r");
+      if (cenviron.Linepipe == NULL) {
+        FILE *xxx = cenviron.Linepipe;
         Linefd = fileno(xxx);
       }
       else csoundDie(&cenviron, Str("Cannot open %s"), O.Linename);
@@ -135,19 +135,19 @@ void RTclose(void *csound_)
 {
     ENVIRON *csound = (ENVIRON*) csound_;
 
-    if (csound->oparms_->Linein == 0)
+    if (csound->oparms->Linein == 0)
       return;
-    csound->oparms_->Linein = 0;
+    csound->oparms->Linein = 0;
     printf(Str("stdmode = %.8x Linefd = %d\n"), stdmode, csound->Linefd_);
 #if defined(mills_macintosh) || defined(SYMANTEC)
     if (Linecons != NULL) fclose(Linecons);
 #else
   #ifdef PIPES
-    if (csound->oparms_->Linename[0] == '|')
-      _pclose(csound->Linepipe_);
+    if (csound->oparms->Linename[0] == '|')
+      _pclose(csound->Linepipe);
   #endif
     else {
-      if (strcmp(csound->oparms_->Linename, "stdin") != 0)
+      if (strcmp(csound->oparms->Linename, "stdin") != 0)
         close(csound->Linefd_);
   #if !defined(DOSGCC) && !defined(__WATCOMC__) && !defined(WIN32) && \
       !defined(mills_macintosh)
@@ -345,21 +345,22 @@ int sensLine(void)
           e->p2orig = e->p[2];
           e->p3orig = e->p[3];
           Curblk->inuse = 1;
-          Curblk->oncounter = global_kcounter + (long)(e->p[2] * global_ekr);
+          Curblk->oncounter = cenviron.global_kcounter
+                              + (long) (e->p[2] * cenviron.global_ekr);
           Linsert(Curblk);
         }
         else Linep += n;           /* else just accum the chars */
       }
 
  Timchk:
-    if (Firstact != NULL &&
-        Firstact->oncounter <= global_kcounter) {    /* if an event is due now,*/
+    if (Firstact != NULL &&                 /* if an event is due now,*/
+        Firstact->oncounter <= cenviron.global_kcounter) {
       Linevtblk = &Firstact->evtblk;
-      Firstact->inuse = 0;                    /*   mark its space available    */
+      Firstact->inuse = 0;                  /*   mark its space available    */
       Firstact = Firstact->nxtact;
-      return(1);                              /*   & report Line-type RTevent  */
+      return(1);                            /*   & report Line-type RTevent  */
     }
-    else return(0);                           /* else nothing due yet          */
+    else return(0);                         /* else nothing due yet          */
 
  Lerr:
     n = cp - Linebuf - 1;                     /* error position */

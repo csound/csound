@@ -49,7 +49,7 @@ void twarp(void)        /* time-warp a score section acc to T-statement */
     MYFLT absp3, endtime, realt(MYFLT);
     int negp3;
 
-    if ((bp = frstbp) == NULL)              /* if null file,         */
+    if ((bp = cenviron.frstbp) == NULL)     /* if null file,         */
       return;
     while (bp->text[0] != 't')              /*  or cannot find a t,  */
       if ((bp = bp->nxtblk) == NULL)
@@ -57,7 +57,7 @@ void twarp(void)        /* time-warp a score section acc to T-statement */
     bp->text[0] = 'w';                      /* else mark the t used  */
     if (!realtset(bp))                      /*  and init the t-array */
       return;                               /* (done if t0 60 or err) */
-    bp  = frstbp;
+    bp  = cenviron.frstbp;
     negp3 = 0;
     do {
       switch (bp->text[0]) {                /* else warp all timvals */

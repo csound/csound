@@ -28,6 +28,7 @@
 #include "insert.h"
 #include "ftgen.h"
 #include "csound.h"
+#include "namedins.h"
 
 #define DKEY_DFLT  60
 
@@ -37,8 +38,6 @@ void dispset(WINDAT *, MYFLT *, long, char *, int, char *);
 void display(WINDAT *);
 MYFLT intpow(MYFLT, long);
 char *unquote(char *);
-long strarg2insno (MYFLT *p, char *s);
-long strarg2opcno (MYFLT *p, char *s, int);
 void rewriteheader(SNDFILE* ofd, int verbose);
 void writeheader(int ofd, char *ofname);
 int playopen_dummy(void *csound, csRtAudioParams *parm);
@@ -222,151 +221,160 @@ const ENVIRON cenviron_ = {
         /*
         * Data fields.
         */
+        (OPDS*) NULL,   /*  ids                 */
+        (OPDS*) NULL,   /*  pds                 */
         DFLT_KSMPS,     /*  ksmps               */
-        DFLT_NCHNLS,    /*      nchnls          */
-        DFLT_KSMPS,     /*      global_ksmps    */
-        FL(0.0),        /*      global_ensmps   */
-        FL(0.0),        /*      global_ekr      */
-        FL(0.0),        /*      global_onedkr   */
-        FL(0.0),        /*      global_hfkprd   */
-        FL(0.0),        /*      global_kicvt    */
-        0L,             /* global_kcounter      */
-        FL(0.0),      /*      esr */
-        FL(0.0),      /*      ekr */
+        DFLT_NCHNLS,    /*  nchnls              */
+        FL(0.0),        /*  esr                 */
+        FL(0.0),        /*  ekr                 */
+        DFLT_KSMPS,     /*  global_ksmps        */
+        FL(0.0),        /*  global_ensmps       */
+        FL(0.0),        /*  global_ekr          */
+        FL(0.0),        /*  global_onedkr       */
+        FL(0.0),        /*  global_hfkprd       */
+        FL(0.0),        /*  global_kicvt        */
+        FL(0.0),        /*  cpu_power_busy      */
+        0L,             /*  global_kcounter     */
         NULL, NULL, NULL,     /* orchname, scorename, xfilename */
-        DFLT_DBFS,    /*        e0dbfs */
-        NULL,         /*      reset_list */
-        NLABELS,      /*      nlabels */
-        NGOTOS,       /*      ngotos */
-        0,    /*      strsmax */
-        NULL,
-        1,    /* peakchunks */
-        NULL, /* zkstart */
-        NULL, /* zastart */
-        0,    /* zklast */
-        0,    /* zalast */
-        0,    /*  kcounter */
-        NULL, /*  currevent */
-        FL(0.0), /*   onedkr */
-        FL(0.0), /*   onedsr */
-        FL(0.0),      /*      kicvt */
-        FL(0.0),      /*      sicvt */
-        NULL, /*      spin */
-        NULL, /*      spout */
-        0,    /*      nspin */
-        0,    /*      nspout */
-        0,    /*      spoutactive */
-        0,    /*      keep_tmp */
-        0,    /*      dither_output */
-        NULL, /*      opcodlst */
-        NULL, /*      opcode_list */
-        NULL, /*      opcodlstend */
-        2345678L,     /* holdrand */
-        MAXINSNO,     /* maxinsno */
-        -1,   /*      maxopcno */
-        NULL, /*      curip */
-        NULL, /*      Livevtblk */
-        0,    /*      nrecs */
-        NULL, /*      Linepipe */
-        0,    /*      Linefd */
-        NULL, /*      ls_table */
-        FL(0.0),      /*     curr_func_sr */
-        NULL, /*      retfilnam */
-        NULL, /*      instrtxtp */
-        "",   /*      errmsg */
-        NULL, /*      scfp */
-        NULL, /*      oscfp */
-        { FL(0.0)},   /*      maxamp */
-        { FL(0.0)},   /*      smaxamp */
-        { FL(0.0)},   /*      omaxamp */
-        NULL, /*      maxampend */
-        {0}, {0}, {0},        /*      maxpos, smaxpos, omaxpos */
-        0,    /*      tieflag */
-        NULL, /*      tokenstring */
-        NULL, /*      polish */
-        NULL, NULL,   /* scorein, scorout */
-        FL(0.0), FL(0.0),     /*      ensmps, hfkprd */
-        NULL,   /*      pool */
-        NULL,   /*      argoffspace */
-        NULL,   /*      frstoff */
+        DFLT_DBFS,      /*  e0dbfs              */
+        NULL,           /*  reset_list          */
+        NLABELS,        /*  nlabels             */
+        NGOTOS,         /*  ngotos              */
+        0,              /*  strsmax             */
+        NULL,           /*  strsets             */
+        1,              /*  peakchunks          */
+        NULL,           /*  zkstart             */
+        NULL,           /*  zastart             */
+        0,              /*  zklast              */
+        0,              /*  zalast              */
+        0,              /*  kcounter            */
+        NULL,           /*  currevent           */
+        FL(0.0),        /*  onedkr              */
+        FL(0.0),        /*  onedsr              */
+        FL(0.0),        /*  kicvt               */
+        FL(0.0),        /*  sicvt               */
+        NULL,           /*  spin                */
+        NULL,           /*  spout               */
+        0,              /*  nspin               */
+        0,              /*  nspout              */
+        0,              /*  spoutactive         */
+        0,              /*  keep_tmp            */
+        0,              /*  dither_output       */
+        NULL,           /*  opcodlst            */
+        NULL,           /*  opcode_list         */
+        NULL,           /*  opcodlstend         */
+        2345678L,       /*  holdrand            */
+        MAXINSNO,       /*  maxinsno            */
+        -1,             /*  maxopcno            */
+        NULL,           /*  curip               */
+        NULL,           /*  Livevtblk           */
+        0,              /*  nrecs               */
+        NULL,           /*  Linepipe            */
+        0,              /*  Linefd              */
+        NULL,           /*  ls_table            */
+        FL(0.0),        /*  curr_func_sr        */
+        NULL,           /*  retfilnam           */
+        NULL,           /*  instrtxtp           */
+        "",             /*  errmsg              */
+        NULL,           /*  scfp                */
+        NULL,           /*  oscfp               */
+        { FL(0.0)},     /*  maxamp              */
+        { FL(0.0)},     /*  smaxamp             */
+        { FL(0.0)},     /*  omaxamp             */
+        NULL,           /*  maxampend           */
+        {0}, {0}, {0},  /*  maxpos, smaxpos, omaxpos */
+        0,              /*  reinitflag          */
+        0,              /*  tieflag             */
+        NULL, NULL,     /*  scorein, scorout    */
+        FL(0.0), FL(0.0), /* ensmps, hfkprd     */
+        NULL,           /*  pool                */
+        NULL,           /*  argoffspace         */
+        NULL,           /*  frstoff             */
 #if defined(__WATCOMC__) || defined(__POWERPC__) || defined(mills_macintosh)
         {0},
 #else
-        {{{0}}}, /*      exitjmp_ of type jmp_buf */
+        {{{0}}},        /*  exitjmp_ of type jmp_buf */
 #endif
-        NULL,   /*      frstbp */
-        0,      /*      sectcnt */
-        {0},    /*      m_chnbp */
-        NULL, NULL,     /*      cpsocint, cpsocfrc */
-        0, 0, 0,        /*      inerrcnt, synterrcnt, perferrcnt */
-        "",             /*      strmsg */
-        {NULL},         /*      instxtanchor */
-        {NULL},         /*      actanchor */
-        {0L },          /*      rngcnt */
-        0, 0,           /*      rngflg, multichan */
-        NULL,           /*      OrcTrigEvts */
-        NULL,           /*      freeEvtNodes */
-        "",             /*      full_name */
-        0, 0, 0,        /*      Mforcdecs, Mxtroffs, MTrkend */
+        NULL,           /*  frstbp              */
+        0,              /*  sectcnt             */
+        {0},            /*  m_chnbp             */
+        NULL, NULL,     /*  cpsocint, cpsocfrc  */
+        0, 0, 0,        /*  inerrcnt, synterrcnt, perferrcnt */
+        "",             /*  strmsg              */
+        {NULL},         /*  instxtanchor        */
+        {NULL},         /*  actanchor           */
+        {0L },          /*  rngcnt              */
+        0, 0,           /*  rngflg, multichan   */
+        NULL,           /*  OrcTrigEvts         */
+        NULL,           /*  freeEvtNodes        */
+        "",             /*  name_full           */
+        0, 0, 0,        /*  Mforcdecs, Mxtroffs, MTrkend */
         FL(-1.0), FL(-1.0), /*  tran_sr,tran_kr */
-        FL(-1.0),       /*      tran_ksmps */
-        DFLT_DBFS,      /*      tran_0dbfs */
-        DFLT_NCHNLS,    /*      tran_nchnls */
+        FL(-1.0),       /*  tran_ksmps          */
+        DFLT_DBFS,      /*  tran_0dbfs          */
+        DFLT_NCHNLS,    /*  tran_nchnls         */
         FL(-1.0), FL(-1.0), FL(-1.0), FL(-1.0), /* tpidsr,pidsr,mpidsr,mtpdsr */
-        &O,             /*      oparms */
-        NULL,           /*      hostData */
-        NULL,           /*      opcodeInfo  */
-        NULL,           /*      instrumentNames */
+        &O,             /*  oparms              */
+        NULL,           /*  hostData            */
+        NULL,           /*  opcodeInfo          */
+        NULL,           /*  instrumentNames     */
+        NULL,           /*  strsav_str          */
+        NULL,           /*  strsav_space        */
         FL(1.0) / DFLT_DBFS, /* dbfs_to_float ( = 1.0 / e0dbfs) */
-        1024,           /*      rtin_dev */
-        NULL,           /*      rtin_devs */
-        1024,           /*      rtout_dev */
-        NULL,           /*      rtout_devs */
-        -1,             /*      displop4 */
-        NULL,           /*      file_opened  */
-        0,              /*      file_max */
-        -1,             /*      file_num */
-        0, NULL,        /*      nchanik, chanik */
-        0, NULL,        /*      nchania, chania */
-        0, NULL,        /*      nchanok, chanok */
-        0, NULL,        /*      nchanoa, chanoa */
-        {{NULL}, 0.0, 0,0,0,0l,0l,0l},      /*       ff */
-        NULL,           /* flist */
-        0,              /* maxfnum */
-        NULL,           /* gensub */
-        GENMAX+1,       /* genmax */
-        100,            /* ftldno */
-        1,              /* doFLTKThreadLocking */
-        NULL,           /* namedGlobals -- IV - Jan 28 2005 */
-        0,              /* namedGlobalsCurrLimit */
-        0,              /* namedGlobalsMaxLimit */
-        NULL,           /* cfgVariableDB */
-        { 0.0 },        /* sensEvents_state */
-        NULL,           /* rtRecord_userdata */
-        NULL,           /* rtPlay_userdata */
-        NULL,           /* memalloc_db */
-        (MGLOBAL*) NULL, /* midiGlobals */
-        NULL,           /* envVarDB */
-        0,              /* evt_poll_cnt */
-        0,              /* evt_poll_maxcnt */
-        (MEMFIL*) NULL, /* memfiles */
-        (MEMFIL*) NULL, /* rwd_memfiles */
-        0,              /* FFT_max_size */
-        NULL,           /* FFT_table_1 */
-        NULL,           /* FFT_table_2 */
+        1024,           /*  rtin_dev            */
+        NULL,           /*  rtin_devs           */
+        1024,           /*  rtout_dev           */
+        NULL,           /*  rtout_devs          */
+        -1,             /*  displop4            */
+        NULL,           /*  file_opened         */
+        0,              /*  file_max            */
+        -1,             /*  file_num            */
+        0, NULL,        /*  nchanik, chanik     */
+        0, NULL,        /*  nchania, chania     */
+        0, NULL,        /*  nchanok, chanok     */
+        0, NULL,        /*  nchanoa, chanoa     */
+        {{NULL}, 0.0, 0,0,0,0l,0l,0l},  /*  ff  */
+        NULL,           /*  flist               */
+        0,              /*  maxfnum             */
+        NULL,           /*  gensub              */
+        GENMAX+1,       /*  genmax              */
+        100,            /*  ftldno              */
+        1,              /*  doFLTKThreadLocking */
+        NULL,           /*  namedGlobals -- IV - Jan 28 2005 */
+        0,              /*  namedGlobalsCurrLimit */
+        0,              /*  namedGlobalsMaxLimit */
+        NULL,           /*  cfgVariableDB       */
+        { 0.0 },        /*  sensEvents_state    */
+        NULL,           /*  rtRecord_userdata   */
+        NULL,           /*  rtPlay_userdata     */
+        NULL,           /*  memalloc_db         */
+        (MGLOBAL*) NULL, /* midiGlobals         */
+        NULL,           /*  envVarDB            */
+        0,              /*  evt_poll_cnt        */
+        0,              /*  evt_poll_maxcnt     */
+        (MEMFIL*) NULL, /*  memfiles            */
+        (MEMFIL*) NULL, /*  rwd_memfiles        */
+        0,              /*  FFT_max_size        */
+        NULL,           /*  FFT_table_1         */
+        NULL,           /*  FFT_table_2         */
         NULL, NULL, NULL, /* tseg, tpsave, tplim */
-        0L,             /* fout_kreset */
+        0L,             /*  fout_kreset         */
         /* express.c */
-        0L,             /* polmax */
-        0L,             /* toklen */
-        NULL,           /* token; */
-        NULL,           /* tokend; */
-        NULL,           /* tokens */
-        NULL,           /* tokenlist  */
-        TOKMAX,         /* toklength  */
-        0,0,0,0,0,      /* acount, kcount, icount, Bcount, bcount; */
-        NULL,           /* stringend; */
-        NULL, NULL, NULL, NULL /* revp, pushp, argp, endlist */
+        0L,             /*  polmax              */
+        0L,             /*  toklen              */
+        NULL,           /*  tokenstring         */
+        NULL,           /*  polish              */
+        NULL,           /*  token               */
+        NULL,           /*  tokend              */
+        NULL,           /*  tokens              */
+        NULL,           /*  tokenlist           */
+        TOKMAX,         /*  toklength           */
+        0, 0, 0, 0, 0,  /*  acount, kcount, icount, Bcount, bcount */
+        (char*) NULL,   /*  stringend           */
+        NULL, NULL,     /*  revp, pushp         */
+        NULL, NULL,     /*  argp, endlist       */
+        (char*) NULL,   /*  assign_outarg       */
+        0, 0, 0         /*  argcnt_offs, opcode_is_assign, assign_type */
 };
 
 /* globals to be removed eventually... */
@@ -378,12 +386,12 @@ int     pnum(char*);
 extern  void    cpsoctinit(void), sssfinit(void);
 
 /* RWD for reentry */
-void oloadRESET(void)
+void oloadRESET(ENVIRON *csound)
 {
     INSTRTXT    *tp = instxtanchor.nxtinstxt;
 
-    memset(&instxtanchor,0,sizeof(INSTRTXT));
-    ARGOFFSPACE = NULL;
+    memset(&instxtanchor, 0, sizeof(INSTRTXT));
+    csound->argoffspace = NULL;
     pool        = NULL;
     gbloffbas   = NULL;
     spin        = NULL;
@@ -397,62 +405,69 @@ void oloadRESET(void)
       while (ip) {                              /* free all instances, */
         INSDS *nxtip = ip->nxtinstance;
         if (ip->opcod_iobufs && ip->insno > maxinsno)   /* IV - Nov 10 2002 */
-          mfree(&cenviron, ip->opcod_iobufs);
-        if (ip->fdch.nxtchp) fdchclose(ip);
-        if (ip->auxch.nxtchp) auxchfree(&cenviron, ip);
-        mfree(&cenviron, ip); ip = nxtip;
+          mfree(csound, ip->opcod_iobufs);
+        if (ip->fdch.nxtchp)
+          fdchclose(ip);
+        if (ip->auxch.nxtchp)
+          auxchfree(csound, ip);
+        mfree(csound, ip);
+        ip = nxtip;
       }
       while (bp) {                              /* and opcode texts */
         OPTXT *nxtbp = bp->nxtop;
-        mfree(&cenviron, bp); bp = nxtbp;
+        mfree(csound, bp); bp = nxtbp;
       }
-      mfree(&cenviron, tp);
+      mfree(csound, tp);
       tp = nxttp;
     }
-    mfree(&cenviron, instrtxtp);        /* Start again */
-    maxinsno    = MAXINSNO;
-    maxopcno = -1; instrtxtp = NULL;    /* IV - Oct 24 2002 */
-    e0dbfs      = DFLT_DBFS;
+    mfree(csound, instrtxtp);           /* Start again */
     /**
-     * The first time around, assign cenviron_ to glob_ wholesale.
-     */
-    if (!cenviron.GetVersion) {
-      memcpy(&cenviron, &cenviron_, sizeof(ENVIRON));
-      cenviron.GetVersion = csoundGetVersion;
-    }
-    /**
-     * The next time, copy everything EXCEPT the function pointers.
+     * Copy everything EXCEPT the function pointers.
      * This is tricky because of those blasted macros!
      * We do it by saving them and copying them back again...
      */
-    else {
-      ENVIRON tempGlobals = cenviron;
-      size_t front = (size_t)&tempGlobals;
-      size_t back = (size_t)&tempGlobals.ksmps_;
-      size_t length = back - front;
-      void *saved_memalloc_db;
+    {
+      void    *tempGlobals, *saved_memalloc_db;
+      size_t  length = (size_t) ((uintptr_t) &(csound->ids)
+                                 - (uintptr_t) csound);
       /* save memalloc chain pointer for memRESET() */
-      saved_memalloc_db = cenviron.memalloc_db;
-      cenviron = cenviron_;
-      memcpy(&cenviron, &tempGlobals, length);
-      cenviron.memalloc_db = saved_memalloc_db;
+      saved_memalloc_db = csound->memalloc_db;
+      tempGlobals = malloc(length);     /* hope that this does not fail... */
+      memcpy(tempGlobals, (void*) csound, length);
+      memcpy(csound, &cenviron_, sizeof(ENVIRON));
+      memcpy((void*) csound, tempGlobals, length);
+      free(tempGlobals);
+      csound->memalloc_db = saved_memalloc_db;
       /* reset rtaudio function pointers */
-      cenviron.recopen_callback = recopen_dummy;
-      cenviron.playopen_callback = playopen_dummy;
-      cenviron.rtrecord_callback = rtrecord_dummy;
-      cenviron.rtplay_callback = rtplay_dummy;
-      cenviron.rtclose_callback = rtclose_dummy;
+      csound->recopen_callback = recopen_dummy;
+      csound->playopen_callback = playopen_dummy;
+      csound->rtrecord_callback = rtrecord_dummy;
+      csound->rtplay_callback = rtplay_dummy;
+      csound->rtclose_callback = rtclose_dummy;
     }
+    memset(&O, 0, sizeof(O));
     O = O_;
-    O.expr_opt = 0; /* disable --expression-opt by default for safety */
-    cenviron.oparms_ = &O;
+    csound->oparms = &O;
     /* IV - Sep 8 2002: also reset saved globals */
-    global_ksmps = ksmps; global_ensmps = ensmps; global_ekr = ekr;
-    global_onedkr = onedkr; global_hfkprd = hfkprd; global_kicvt = kicvt;
-    global_kcounter = kcounter;
-    rtin_dev = 1024;
-    rtout_dev = 1024;
+    csound->global_ksmps     = csound->ksmps;
+    csound->global_ensmps    = csound->ensmps_;
+    csound->global_ekr       = csound->ekr;
+    csound->global_onedkr    = csound->onedkr_;
+    csound->global_hfkprd    = csound->hfkprd_;
+    csound->global_kicvt     = csound->kicvt_;
+    csound->global_kcounter  = csound->kcounter_;
+    csound->rtin_dev         = 1024;
+    csound->rtout_dev        = 1024;
 }
+
+#ifdef FLOAT_COMPARE
+#undef FLOAT_COMPARE
+#endif
+#ifdef USE_DOUBLE
+#define FLOAT_COMPARE(x,y)  (fabs((double) (x) / (double) (y) - 1.0) > 1.0e-12)
+#else
+#define FLOAT_COMPARE(x,y)  (fabs((double) (x) / (double) (y) - 1.0) > 5.0e-7)
+#endif
 
 void oload(ENVIRON *csound)
 {
@@ -461,8 +476,8 @@ void oload(ENVIRON *csound)
 /*     int  *pgmdim = NULL; */
     INSTRTXT *ip;
     OPTXT *optxt;
-    esr = tran_sr; ekr = tran_kr;
-    ksmps = (int) ((ensmps = tran_ksmps) + FL(0.5));
+    csound->esr = tran_sr; csound->ekr = tran_kr;
+    csound->ksmps = (int) ((ensmps = tran_ksmps) + FL(0.5));
     ip = instxtanchor.nxtinstxt;                /* for instr 0 optxts:  */
     optxt = (OPTXT *) ip;
     while ((optxt = optxt->nxtop) !=  NULL) {
@@ -477,42 +492,44 @@ void oload(ENVIRON *csound)
         int rindex = (int) outoffp->indx[0] - (int) O.poolcount;
         MYFLT conval = pool[inoffp->indx[0] - 1];
         switch (rindex) {
-        case 1:  esr = conval;  break;  /* & use those values */
-        case 2:  ekr = conval;  break;  /*  to set params now */
-        case 3:  ksmps = (int) ((ensmps = conval) + FL(0.5));   break;
-        case 4:  nchnls = (int) (conval + FL(0.5));  break;
-        case 5:  e0dbfs = conval; break;
+        case 1:  csound->esr = conval;  break;  /* & use those values */
+        case 2:  csound->ekr = conval;  break;  /*  to set params now */
+        case 3:  csound->ksmps = (int) ((ensmps = conval) + FL(0.5));   break;
+        case 4:  csound->nchnls = (int) (conval + FL(0.5));  break;
+        case 5:  csound->e0dbfs = conval; break;
         default: break;
         }
       }
     }
     /* why I want oload() to return an error value.... */
-    if (e0dbfs <= 0.0)
+    if (csound->e0dbfs <= 0.0)
       csoundDie(csound, Str("bad value for 0dbfs: must be positive."));
     if (O.odebug)
       printf("esr = %7.1f, ekr = %7.1f, ksmps = %d, nchnls = %d 0dbfs = %.1f\n",
-             esr, ekr, ksmps, nchnls, e0dbfs);  ;
+             csound->esr, csound->ekr, csound->ksmps, csound->nchnls,
+             csound->e0dbfs);
     if (O.sr_override) {        /* if command-line overrides, apply now */
-      esr = (MYFLT) O.sr_override;
-      ekr = (MYFLT) O.kr_override;
-      ksmps = (int) ((ensmps = ((MYFLT) O.sr_override / (MYFLT) O.kr_override))
-                     + FL(0.5));
-      printf(Str("sample rate overrides: esr = %7.1f, ekr = %7.1f, ksmps = %d\n"),
-             esr, ekr, ksmps);
+      csound->esr = (MYFLT) O.sr_override;
+      csound->ekr = (MYFLT) O.kr_override;
+      csound->ksmps = (int) ((ensmps = ((MYFLT) O.sr_override
+                                        / (MYFLT) O.kr_override)) + FL(0.5));
+      csound->Message(csound, Str("sample rate overrides: "
+                                  "esr = %7.1f, ekr = %7.1f, ksmps = %d\n"),
+                              csound->esr, csound->ekr, csound->ksmps);
     }
-    combinedsize = (O.poolcount + O.gblfixed + O.gblacount * ksmps)
-      * sizeof(MYFLT);
+    combinedsize = (O.poolcount + O.gblfixed + O.gblacount * csound->ksmps)
+                   * sizeof(MYFLT);
     combinedspc = (MYFLT *)mcalloc(csound, (long)combinedsize);
     for (fp1 = pool, fp2 = combinedspc, nn = O.poolcount; nn--; )
       *fp2++ = *fp1++;              /* copy pool into combined space */
     mfree(csound, (void *)pool);
     pool = combinedspc;
     gblspace = pool + O.poolcount;
-    gblspace[0] = esr;              /*   & enter        */
-    gblspace[1] = ekr;              /*   rsvd word      */
+    gblspace[0] = csound->esr;      /*   & enter        */
+    gblspace[1] = csound->ekr;      /*   rsvd word      */
     gblspace[2] = ensmps;           /*   curr vals  */
-    gblspace[3] = (MYFLT)nchnls;
-    gblspace[4] = e0dbfs;
+    gblspace[3] = (MYFLT) csound->nchnls;
+    gblspace[4] = csound->e0dbfs;
     gbloffbas = pool - 1;
 
     gblabeg = O.poolcount + O.gblfixed + 1;
@@ -521,7 +538,8 @@ void oload(ENVIRON *csound)
       optxt = (OPTXT *) ip;             /*   (and set localen)    */
       lclabeg = (long)(ip->pmax + ip->lclfixed + 1);
       if (O.odebug) printf("lclabeg %ld\n",lclabeg);
-      ip->localen = ((long) ip->lclfixed + (long) ip->lclacnt * (long) ksmps)
+      ip->localen = ((long) ip->lclfixed
+                     + (long) ip->lclacnt * (long) csound->ksmps)
                     * (long) sizeof(MYFLT);
       /* align to 64 bits */
       ip->localen = (ip->localen + 7L) & (~7L);
@@ -547,11 +565,11 @@ void oload(ENVIRON *csound)
 /*       printf("**** indx = %d (%x); gblabeg=%d lclabeg=%d\n",
                 *ndxp, *ndxp,gblabeg,lclabeg ); */
           if ((indx = *ndxp) > gblabeg) {
-            indx = gblabeg + (indx - gblabeg) * ksmps;
+            indx = gblabeg + (indx - gblabeg) * csound->ksmps;
           }
           else if (indx <= 0 && (posndx = -indx) > lclabeg
                    && indx >= LABELIM) {
-            indx = -(lclabeg + (posndx - lclabeg) * ksmps);
+            indx = -(lclabeg + (posndx - lclabeg) * csound->ksmps);
           }
           else if (indx > 0 && indx <= 3 && O.sr_override
                    && ip == instxtanchor.nxtinstxt) { /* for instr 0 */
@@ -580,9 +598,7 @@ void oload(ENVIRON *csound)
             strsmax = newmax;
           }
           if (strsets == NULL || indx < 0) { /* No space left or -ve index */
-            if (O.msglevel & WARNMSG)
-              printf(Str("WARNING: illegal strset index\n"));
-            longjmp(cenviron.exitjmp_,1);
+            csound->Die(csound, Str("illegal strset index"));
           }
           if (strsets[indx] != NULL) {
             if (O.msglevel & WARNMSG)
@@ -617,11 +633,11 @@ void oload(ENVIRON *csound)
         for (ndxp=aoffp->indx; n--; ndxp++) {
 /*           printf("**** indx = %d (%x)\n", *ndxp, *ndxp); */
           if ((indx = (long)*ndxp) > gblabeg) {
-            indx = gblabeg + (indx - gblabeg) * ksmps;
+            indx = gblabeg + (indx - gblabeg) * csound->ksmps;
           }
           else if (indx <= 0 && (posndx = -indx) > lclabeg
                    && indx >= LABELIM) {
-            indx = -(lclabeg + (posndx - lclabeg) * ksmps);
+            indx = -(lclabeg + (posndx - lclabeg) * csound->ksmps);
           }
           else continue;
           *ndxp = (int) indx;
@@ -638,20 +654,14 @@ void oload(ENVIRON *csound)
       csoundDie(csound, Str("header init errors"));
     /* IV - Feb 18 2003 */
     {
-#ifndef USE_DOUBLE
-      double    max_err = 1.0e-6;
-#else
-      double    max_err = 1.0e-12;
-#endif
       char  s[256];
       sprintf(s, "sr = %.7g, kr = %.7g, ksmps = %.7g\n", /* & chk consistency */
               gblspace[0], gblspace[1], gblspace[2]);    /*   one more time   */
-      if (ksmps < 1 ||
-          fabs(((double) gblspace[2] / (double) ksmps) - 1.0) > max_err) {
+      if (csound->ksmps < 1 || FLOAT_COMPARE(gblspace[2], csound->ksmps)) {
         strcat(s, Str("error: invalid ksmps value"));
         csoundDie(csound, s);
       }
-      gblspace[2] = ensmps = (MYFLT) ksmps;
+      gblspace[2] = ensmps = (MYFLT) csound->ksmps;
       if (gblspace[0] <= FL(0.0)) {
         strcat(s, Str("error: invalid sample rate"));
         csoundDie(csound, s);
@@ -660,32 +670,34 @@ void oload(ENVIRON *csound)
         strcat(s, Str("error: invalid control rate"));
         csoundDie(csound, s);
       }
-      if (fabs(((double) gblspace[0]
-                / ((double) gblspace[1] * (double) gblspace[2])) - 1.0)
-          > max_err) {
+      if (FLOAT_COMPARE(gblspace[0], (double) gblspace[1] * gblspace[2])) {
         strcat(s, Str("error: inconsistent sr, kr, ksmps"));
         csoundDie(csound, s);
       }
     }
-    tpidsr = TWOPI_F / esr;                             /* now set internal  */
+    tpidsr = TWOPI_F / csound->esr;                     /* now set internal  */
     mtpdsr = -tpidsr;                                   /*    consts         */
-    pidsr = PI_F / esr;
+    pidsr = PI_F / csound->esr;
     mpidsr = -pidsr;
-    sicvt = FMAXLEN / esr;
-    kicvt = FMAXLEN / ekr;
-    hfkprd = FL(0.5) / ekr;
-    onedsr = FL(1.0) / esr;
-    onedkr = FL(1.0) / ekr;
+    sicvt = FMAXLEN / csound->esr;
+    kicvt = FMAXLEN / csound->ekr;
+    hfkprd = FL(0.5) / csound->ekr;
+    onedsr = FL(1.0) / csound->esr;
+    onedkr = FL(1.0) / csound->ekr;
     /* IV - Sep 8 2002: save global variables that depend on ksmps */
-    global_ksmps = ksmps; global_ensmps = ensmps; global_ekr = ekr;
-    global_onedkr = onedkr; global_hfkprd = hfkprd; global_kicvt = kicvt;
-    global_kcounter = kcounter;
+    csound->global_ksmps    = csound->ksmps;
+    csound->global_ensmps   = csound->ensmps_;
+    csound->global_ekr      = csound->ekr;
+    csound->global_onedkr   = csound->onedkr_;
+    csound->global_hfkprd   = csound->hfkprd_;
+    csound->global_kicvt    = csound->kicvt_;
+    csound->global_kcounter = csound->kcounter_;
     cpsoctinit();
     reverbinit();
-    dbfs_init(e0dbfs);
-    nspin = nspout = ksmps * nchnls;                    /* alloc spin & spout */
-    spin =  (MYFLT *) mcalloc(csound, (long)nspin*sizeof(MYFLT));
-    spout = (MYFLT *) mcalloc(csound, (long)nspout*sizeof(MYFLT));
+    dbfs_init(csound->e0dbfs);
+    nspin = nspout = csound->ksmps * csound->nchnls;  /* alloc spin & spout */
+    spin =  (MYFLT *) mcalloc(csound, nspin * sizeof(MYFLT));
+    spout = (MYFLT *) mcalloc(csound, nspout * sizeof(MYFLT));
 }
 
 INSDS *
@@ -707,9 +719,9 @@ instance(int insno)             /* create instance of an instr template */
     int     *ndxp;
     MCHNBLK *chp = NULL;
 
-    lopds = (LBLBLK**)mmalloc(&cenviron, sizeof(LBLBLK*)*nlabels);
+    lopds = (LBLBLK**)mmalloc(&cenviron, sizeof(LBLBLK*)*cenviron.nlabels);
     lopdsp = lopds;
-    larg = (LARGNO*)mmalloc(&cenviron, sizeof(LARGNO)*ngotos);
+    larg = (LARGNO*)mmalloc(&cenviron, sizeof(LARGNO)*cenviron.ngotos);
     largp = larg;
     lopdsp = lopds;
     tp = instrtxtp[insno];

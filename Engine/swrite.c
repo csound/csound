@@ -43,7 +43,7 @@ void swrite(void)
     char *p, c, isntAfunc;
     int    lincnt, pcnt=0;
 
-    if ((bp = frstbp) == NULL)
+    if ((bp = cenviron.frstbp) == NULL)
       return;
     lincnt = 0;
     if ((c = bp->text[0]) != 'w'
@@ -113,7 +113,7 @@ void swrite(void)
       break;
     default:
       err_printf(Str("swrite: unexpected opcode, section %d line %d\n"),
-                 sectcnt,lincnt);
+                 cenviron.sectcnt,lincnt);
       break;
     }
     if ((bp = bp->nxtblk) != NULL)
@@ -201,10 +201,9 @@ static char *nextp(SRTBLK *bp, char *p, int lincnt, int pcnt)
     }
     else {
     error:
-      err_printf(Str(
-                     "swrite: output, sect%d line%d p%d makes"
+      err_printf(Str("swrite: output, sect%d line%d p%d makes"
                      " illegal reference to "),
-                 sectcnt,lincnt,pcnt);
+                 cenviron.sectcnt,lincnt,pcnt);
       while (q < p)
         err_printf("%c", *q++);
       while (*p != SP && *p != LF)
@@ -242,9 +241,8 @@ static char *prevp(SRTBLK *bp, char *p, int lincnt, int pcnt)
     else {
     error:
       err_printf(
-            Str(
-                "swrite: output, sect%d line%d p%d makes illegal reference to "),
-            sectcnt,lincnt,pcnt);
+          Str("swrite: output, sect%d line%d p%d makes illegal reference to "),
+          cenviron.sectcnt,lincnt,pcnt);
       while (q < p)
         err_printf("%c", *q++);
       while (*p != SP && *p != LF)
@@ -306,15 +304,14 @@ extern  MYFLT stof(char*);
     return(psav);
 
  error1:
-    err_printf(Str(
-                   "swrite: output, sect%d line%d p%d has illegal ramp symbol\n"),
-               sectcnt,lincnt,pcnt);
+    err_printf(
+        Str("swrite: output, sect%d line%d p%d has illegal ramp symbol\n"),
+        cenviron.sectcnt,lincnt,pcnt);
     goto put0;
  error2:
-    err_printf(Str(
-      "swrite: output, sect%d line%d p%d ramp has illegal"
+    err_printf(Str("swrite: output, sect%d line%d p%d ramp has illegal"
                    " forward or backward ref\n"),
-               sectcnt,lincnt,pcnt);
+               cenviron.sectcnt,lincnt,pcnt);
  put0:
     putc('0',SCOREOUT);
     return(psav);
@@ -375,15 +372,14 @@ static char *expramp(SRTBLK *bp, char *p, int lincnt, int pcnt)
     return(psav);
 
  error1:
-    err_printf(Str(
-                   "swrite: output, sect%d line%d p%d has illegal"
+    err_printf(Str("swrite: output, sect%d line%d p%d has illegal"
                    " expramp symbol\n"),
-               sectcnt,lincnt,pcnt);
+               cenviron.sectcnt,lincnt,pcnt);
     goto put0;
  error2:
     err_printf(Str("swrite: output, sect%d line%d p%d expramp has illegal "
-               "forward or backward ref\n"),
-               sectcnt,lincnt,pcnt);
+                   "forward or backward ref\n"),
+               cenviron.sectcnt,lincnt,pcnt);
  put0:
     putc('0',SCOREOUT);
     return(psav);
@@ -439,15 +435,14 @@ static char *randramp(SRTBLK *bp, char *p, int lincnt, int pcnt)
     return(psav);
 
  error1:
-    err_printf(Str(
-                   "swrite: output, sect%d line%d p%d has illegal"
+    err_printf(Str("swrite: output, sect%d line%d p%d has illegal"
                    " expramp symbol\n"),
-               sectcnt,lincnt,pcnt);
+               cenviron.sectcnt,lincnt,pcnt);
     goto put0;
  error2:
     err_printf(Str("swrite: output, sect%d line%d p%d expramp has illegal "
-               "forward or backward ref\n"),
-               sectcnt,lincnt,pcnt);
+                   "forward or backward ref\n"),
+               cenviron.sectcnt,lincnt,pcnt);
  put0:
     putc('0',SCOREOUT);
     return(psav);
@@ -462,10 +457,9 @@ static char *pfStr(char *p, int lincnt, int pcnt) /* moves quoted ascii string *
       putc(*p++,SCOREOUT);
     putc(*p++,SCOREOUT);
     if (*p != SP && *p != LF) {
-      err_printf(Str(
-                     "swrite: output, sect%d line%d p%d has illegally"
+      err_printf(Str("swrite: output, sect%d line%d p%d has illegally"
                      " terminated string   "),
-                 sectcnt,lincnt,pcnt);
+                 cenviron.sectcnt,lincnt,pcnt);
       while (q < p)
         err_printf("%c", *q++);
       while (*p != SP && *p != LF)
@@ -510,9 +504,8 @@ static char *fpnum(char *p, int lincnt, int pcnt) /* moves ascii string */
       }
     }
     if ((*p != SP && *p != LF) || !dcnt) {
-      err_printf(Str(
-                     "swrite: output, sect%d line%d p%d has illegal number  "),
-                 sectcnt,lincnt,pcnt);
+      err_printf(Str("swrite: output, sect%d line%d p%d has illegal number  "),
+                 cenviron.sectcnt,lincnt,pcnt);
       while (q < p)
         err_printf("%c", *q++);
       while (*p != SP && *p != LF)

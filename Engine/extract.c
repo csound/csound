@@ -102,10 +102,10 @@ void extract(void)      /* extract instr events within the time period */
     extern  int   realtset(SRTBLK *);
     extern  MYFLT realt(MYFLT);
 
-    if ((bp = frstbp) == NULL)              /* if null file         */
+    if ((bp = cenviron.frstbp) == NULL)     /* if null file         */
       return;
     if (++sectno > offsect) {               /* or later section,    */
-      frstbp = NULL;
+      cenviron.frstbp = NULL;
       return;                               /*      return          */
     }
 
@@ -198,7 +198,7 @@ void extract(void)      /* extract instr events within the time period */
         }
       } while ((bp = bp->nxtblk) != NULL);
     }
-    frstbp = frstout;
+    cenviron.frstbp = frstout;
     if (prvout != NULL)
       prvout->nxtblk = NULL;
 }
@@ -211,3 +211,4 @@ static void include(SRTBLK *bp) /* wire a srtblk into the outlist */
     bp->prvblk = prvout;                    /* maintain the backptr      */
     prvout = bp;                            /* and get ready for next    */
 }
+

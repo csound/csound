@@ -47,12 +47,7 @@ typedef struct memAllocBlock_s {
 
 static void memdie(void *csound, int nbytes)
 {
-    err_printf(Str("memory allocate failure for %d\n"), nbytes);
-#ifdef mills_macintosh
-    err_printf(Str("try increasing preferred size setting for "
-                   "the Perf Application\n"));
-#endif
-    longjmp(((ENVIRON*) csound)->exitjmp_,1);
+    csoundDie(csound, Str("memory allocate failure for %d\n"), nbytes);
 }
 
 void *mmalloc(void *csound, size_t size)

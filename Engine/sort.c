@@ -31,7 +31,7 @@ static void sorter(void)                       /* the main sorting routine */
     MYFLT diff;
     int prdiff, indiff;
 
-    bp = frstbp;
+    bp = cenviron.frstbp;
     while ((newbp = bp->nxtblk) != NULL
            && (c = newbp->text[0]) != 's' && c != 'e') {
       prvbp = newbp;
@@ -57,8 +57,8 @@ static void sorter(void)                       /* the main sorting routine */
           prvbp->nxtblk = prvbp->nxtblk->prvblk = newbp;
         }
         else {
-          newbp->nxtblk = frstbp;         /* or at top */
-          frstbp = frstbp->prvblk = newbp;
+          newbp->nxtblk = cenviron.frstbp;    /* or at top */
+          cenviron.frstbp = cenviron.frstbp->prvblk = newbp;
         }
       }
       else bp = newbp;                        /*  else loop nxtblk */
@@ -69,7 +69,7 @@ void sort(void)
 {
     SRTBLK *bp;
 
-    if ((bp = frstbp) == NULL)
+    if ((bp = cenviron.frstbp) == NULL)
       return;
     do  {
       switch (bp->text[0]) {
@@ -98,3 +98,4 @@ void sort(void)
     } while ((bp = bp->nxtblk) != NULL);
     sorter();
 }
+

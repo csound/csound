@@ -41,7 +41,7 @@ int check_instr_name (char*);
 /* find the instrument number for the specified name */
 /* return value is zero if none was found */
 
-long named_instr_find (char*);
+long named_instr_find (ENVIRON*, char*);
 
 /* allocate entry for named instrument ip with name s (s must not be freed */
 /* after the call, because only the pointer is stored); instrument number */
@@ -49,29 +49,29 @@ long named_instr_find (char*);
 /* returns zero if the named instr entry could not be allocated */
 /* (e.g. because it already exists) */
 
-int named_instr_alloc (char*, INSTRTXT*, long);
+int named_instr_alloc (ENVIRON*, char*, INSTRTXT*, long);
 
 /* assign instrument numbers to all named instruments */
 /* called by otran */
 
-void named_instr_assign_numbers (void);
+void named_instr_assign_numbers (ENVIRON*);
 
 /* free memory used by named instruments */
 /* called by tranRESET() */
 
-void named_instr_free (void);
+void named_instr_free (ENVIRON*);
 
 /* convert opcode string argument to instrument number */
 /* return value is -1 if the instrument cannot be found */
 /* (in such cases, csoundInitError() is also called) */
 
-long strarg2insno (MYFLT*, char*);
+long strarg2insno (ENVIRON*, MYFLT*, char*);
 
 /* same as strarg2insno, but runs at perf time, */
 /* and does not support numbered instruments */
 /* (used by opcodes like event or schedkwhen) */
 
-long strarg2insno_p (char*);
+long strarg2insno_p (ENVIRON*, char*);
 
 /* convert opcode string argument to instrument number */
 /* (also allows user defined opcode names); if the integer */
@@ -79,45 +79,45 @@ long strarg2insno_p (char*);
 /* return value is -1 if the instrument cannot be found */
 /* (in such cases, csoundInitError() is also called) */
 
-long strarg2opcno (MYFLT*, char*, int);
+long strarg2opcno (ENVIRON*, MYFLT*, char*, int);
 
 /* ----------------------------------------------------------------------- */
 /* the following functions are for efficient management of the opcode list */
 
 /* create new opcode list from opcodlst[] */
 
-void opcode_list_create (void);
+void opcode_list_create (ENVIRON*);
 
 /* add new entry to opcode list, with optional check for redefined opcodes */
 
-void opcode_list_add_entry (int, int);
+void opcode_list_add_entry (ENVIRON*, int, int);
 
 /* free memory used by opcode list */
 
-void opcode_list_free (void);
+void opcode_list_free (ENVIRON*);
 
 /* find opcode with the specified name in opcode list */
 /* returns index to opcodlst[], or zero if the opcode cannot be found */
 
-int find_opcode(char*);
+int find_opcode(ENVIRON*, char*);
 
 /* ----------------------------------------------------------------------- */
 /* These functions replace the functionality of strsav() in rdorch.c.      */
 
 /* allocate space for strsav (called once from rdorchfile()) */
 
-void strsav_create(void);
+void strsav_create(ENVIRON*);
 
 /* Locate string s in database, and return address of stored string (not */
 /* necessarily the same as s). If the string is not defined yet, it is   */
 /* copied to the database (in such cases, it is allowed to free s after  */
 /* the call).                                                            */
 
-char *strsav_string(char*);
+char *strsav_string(ENVIRON*, char*);
 
 /* Free all memory used by strsav space. Called from orchRESET(). */
 
-void strsav_destroy(void);
+void strsav_destroy(ENVIRON*);
 
 #ifdef __cplusplus
 }

@@ -36,7 +36,7 @@ void scsort(FILE *scin, FILE *scout)
     SCOREIN = scin;
     SCOREOUT = scout;
 
-    sectcnt = 0;
+    cenviron.sectcnt = 0;
     sread_init();
     do {
       if ((n = sread()) > 0) {
