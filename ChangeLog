@@ -1,3 +1,8 @@
+2005-01-25  John ffitch  <jpff@codemist.co.uk>
+
+	* InOut/widgets.cpp (FL_run): Ne3ed to pass argument to threas in
+	Linux/Mach cases
+
 2005-01-22  Michael Gogins <gogins@pipeline.com>
 
 	* Added csoundSetFLTKThreadLocking and csoundGetFLTKThreadLocking
