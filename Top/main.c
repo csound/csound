@@ -272,7 +272,7 @@ static void install_signal_handler(void)
 #elif defined(CSWIN)
     int sigs[] = { SIGHUP, SIGINT, SIGQUIT, -1};
 #elif defined(WIN32)
-    int sigs[] = { SIGINT, SIGILL, SIGABRT, SIGFPE, SIGSEGV, SIGTERM, -1};
+    int sigs[] = { SIGINT, SIGINT, SIGILL, SIGABRT, SIGFPE, SIGSEGV, SIGTERM, -1};
 #elif defined(__EMX__)
     int sigs[] = { SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGTRAP, SIGABRT, SIGBUS,
                    SIGFPE, SIGUSR1, SIGSEGV, SIGUSR2, SIGPIPE, SIGALRM, SIGTERM,
