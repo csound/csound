@@ -4,7 +4,9 @@
 	* Top/dl_opcodes.c:
 	  fixed -v crash
 	* Engine/memalloc.c:
-	  print function name correctly
+	  print function names correctly
+	* Engine/entry2.c:
+	  allow opcode names like FLpanel_end, FLgroup_end, etc.
 
 2005-02-28	Istvan Varga	<istvan@csounds.com>
 	* cleanup.sh:
