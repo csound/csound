@@ -950,6 +950,7 @@ typedef struct RTCLOCK_S {
 
 #include "cfgvar.h"
 #include "envvar.h"
+#include "fftlib.h"
 
 #ifdef __cplusplus
 };
