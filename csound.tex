@@ -173,17 +173,77 @@ pluginEnvironment.SharedLibrary('xxx',
 
 OENTRY's follow this format:
 
+\begin{verbatim}
 opcodeName, dspace, thread, outarg, inargs, isub, ksub, asub, dsub
-  
+\end{verbatim}
 
-dspace - the size field is used as a flag in saying what types of polymorphism are allowed (look at Engine/entry1.c and Engine/rdorch.c)
+\begin{description}  
+	\item[dspace] the size field is used as a flag in saying what types of polymorphism are allowed (look at Engine/entry1.c and Engine/rdorch.c)
 
-\begin{description}
-	\item[0xffff] means that the first argument type determines which opcode is actually being used, XXX -> XXX\_a or XXX\_i or XXX\_k
-	\item[0xfffe] means that the first two argument types determine the actual opcode.  So XXX -> XXX\_aa, XXX\_ak, XXX\_ka, and XXX\_kk.  Think oscil
-	\item[0xfffd] looks at one argument but does not allow i type (eg peak)
-	\item[0xfffc] is rather like 0xfffe but deals with divz -- so allows a, k and i arguments
+	\begin{description}
+		\item[0xffff] means that the first argument type determines which opcode is actually being used, XXX -> XXX\_a or XXX\_i or XXX\_k
+		\item[0xfffe] means that the first two argument types determine the actual opcode.  So XXX -> XXX\_aa, XXX\_ak, XXX\_ka, and XXX\_kk.  Think oscil
+		\item[0xfffd] looks at one argument but does not allow i type (eg peak)
+		\item[0xfffc] is rather like 0xfffe but deals with divz -- so allows a, k and i arguments
+	\end{description}
+
+	\item[thread] the rate(s) at which the opcode is able to run at
+	
+	\item[outargs] a listing of the arguments this opcode will emit, if any.  The types allowed are:
+
+			\begin{center}
+			\begin{tabular*}{280pt}[t]{cl}
+			Type & Description \\
+			\hline
+			i & i-rate scalar \\
+			k & k-rate scalar \\
+			a & a-rate vector \\
+			x & k-rate scalar or a-rate vector \\
+			w & w-rate spectral data type \\
+			f & f-rate streaming pvoc fsig type \\
+			m & multiple outargs (1 to 4 allowed) \\
+			\end{tabular*}
+			\end{center}
+
+					
+	\item[inargs] a listing of the arguments this opcode will take, if any.  The types allowed are: 
+
+			\begin{center}
+			\begin{tabular*}{280pt}[t]{cl}
+			Type & Description \\
+			\hline
+			i & i-rate scalar \\
+			k & k-rate scalar \\
+			a & a-rate scalar \\
+			x & k-rate scalar or a-rate vector \\
+			w & w-rate spectral data type \\
+			f & f-rate streaming pvoc fsig type \\
+			S & string \\
+			B & \\
+			l & \\
+			m & begins an indef list of iargs (any count) \\
+			M & begins an indef list of args (any count and rate) \\
+			n & begins an indef list of iargs (nargs odd) \\
+			o & optional, defaulting to 0 \\
+			p & optional defaulting to 1 \\
+			q & optional defaulting to 10 \\
+			v & optional defaulting to .5 \\ 
+			j & optional defaulting to -1 \\
+			h & optional defaulting to 127 \\
+			y & begins indef list of aargs (any count) \\ 
+			z & begins indef list of kargs (any count) \\
+			Z & begins alternating kakaka...list (any count) \\
+			\end{tabular*}
+			\end{center}
+
+	\item[isub] a reference to the function that will run at i-time for this opcode
+	\item[ksub] a reference to the function that will run at k-time for this opcode
+	\item[asub] a reference to the function that will run at a-time for this opcode
+	\item[dsub] a reference to the function that will run at the end of csound run
+
 \end{description}
+
+
 
 \section{Using}
 
