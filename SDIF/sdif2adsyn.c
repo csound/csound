@@ -24,7 +24,7 @@ typedef struct {
 
 int
 SDIF_Read1TRCVals(FILE *f,
-		  sdif_float32 *indexp, sdif_float32 *freqp,
+                  sdif_float32 *indexp, sdif_float32 *freqp,
                   sdif_float32 *ampp, sdif_float32 *phasep) {
     SDIF_RowOf1TRC data;
 
@@ -44,7 +44,7 @@ SDIF_Read1TRCVals(FILE *f,
 }
 
 void usage(void){
-	printf("SDIF2ADS v1.0: convert sdif 1TRC data to Csound hetro data file.\n"
+        printf("SDIF2ADS v1.0: convert sdif 1TRC data to Csound hetro data file.\n"
                "usage: [-sN][-pN] sdif2adsyn infile.sdif outfile.ads\n"
                "        -s   : apply amplitude scale factor N\n"
                "        -p   : keep only the first N partials.\n"
@@ -57,19 +57,19 @@ void usage(void){
 
 
 typedef struct partial_point{
-	float amp;
-	float freq;
-	float pos;
-	struct partial_point *next;
+        float amp;
+        float freq;
+        float pos;
+        struct partial_point *next;
 } P_POINT;
 
 
 typedef struct partial_props {
-	long numpoints;
-	float maxamp;
-	float maxfreq;
-	float minfreq;
-	P_POINT *head;
+        long numpoints;
+        float maxamp;
+        float maxfreq;
+        float minfreq;
+        P_POINT *head;
 } PPROPS;
 
 int write_partial(FILE *fp,const P_POINT *partial,float sfac,int do_scale)
@@ -102,7 +102,7 @@ PPROPS *new_pprops(void)
       prop->maxamp    = 0.0f;
       prop->maxfreq   = 0.0f;
       prop->minfreq   = 0.0f;
-      prop->head      = NULL;	/* will point to head of partial[n]	*/
+      prop->head      = NULL;   /* will point to head of partial[n]     */
     }
     return prop;
 }
@@ -128,7 +128,7 @@ int main(int argc, char **argv)
     float maxfreq = 0.0f, minfreq = 100000.0f, maxamp = 0.0f;
     float scalefac = 1.0;
     int doscale = 0;
-    short stemp;		 /* to write partial count to adsyn file */
+    short stemp;                 /* to write partial count to adsyn file */
 
     if (argc < 2) {
       usage();

@@ -103,7 +103,7 @@ void SDIFmem_RepairFrameHeader(SDIFmem_Frame f);
    matrices from the file and store them in newly allocated SDIFmem_Matrix
    structures, and put the result in the supplied pointer argument. */
 SDIFresult SDIFmem_ReadFrameContents(SDIF_FrameHeader *head, FILE *f,
-				     SDIFmem_Frame *putithere);
+                                     SDIFmem_Frame *putithere);
 
 
 /* SDIFmem_ReadFrame --

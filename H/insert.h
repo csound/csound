@@ -90,6 +90,6 @@ typedef struct {
 
 typedef struct {                /* IV - Oct 20 2002 */
         OPDS        h;
-	MYFLT       *i_insno, *iname;
+        MYFLT       *i_insno, *iname;
 } NSTRNUM;
 

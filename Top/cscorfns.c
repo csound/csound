@@ -1,4 +1,4 @@
-/*  
+/*
     cscorfns.c:
 
     Copyright (C) 1991 Barry Vercoe, John ffitch
@@ -785,11 +785,11 @@ void setcurfp(FILE *fp)         /* save the current infil states */
         makecurrent(fp);
 }
 
-int lcount(EVLIST *a)			/* count entries in event list */
+int lcount(EVLIST *a)                   /* count entries in event list */
 {
     EVENT **p;
     int  n, nrem;
-    
+
     n = 0;
     nrem = a->nslots;
     p = &a->e[1];

@@ -1717,13 +1717,13 @@ struct termios tty;
 int isense(KSENSE *p)
 {
 #if defined(WIN32)
-	setvbuf(stdin, NULL, _IONBF, 0); /* Does not seem to work */
+    setvbuf(stdin, NULL, _IONBF, 0); /* Does not seem to work */
 #else
-	tcgetattr(0, &tty);
-	tty.c_lflag &= (~ICANON);
-	tcsetattr(0, TCSANOW, &tty);
+    tcgetattr(0, &tty);
+    tty.c_lflag &= (~ICANON);
+    tcsetattr(0, TCSANOW, &tty);
 #endif
-	return OK;
+    return OK;
 }
 
 int ksense(KSENSE *p)

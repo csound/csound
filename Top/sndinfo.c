@@ -34,7 +34,7 @@ extern char* sf2string(int);
 extern char* type2string(int);
 extern short sf2type(int);
 
-int		sndinfo(int argc, char **argv)
+int sndinfo(int argc, char **argv)
 {
     char    *infilnam;
     char    channame[32];

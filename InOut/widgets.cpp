@@ -33,7 +33,7 @@
 
 #if defined(WIN32)
 #       include <process.h>
-#		include <windows.h>
+#               include <windows.h>
 #endif /* defined(WIN32) */
 #if defined(LINUX)
 #       include <pthread.h>
@@ -88,8 +88,8 @@ extern "C" {
     extern int cleanup();
     extern long srngcnt[], orngcnt[];   // from musmon.c
 #endif
-	extern ENVIRON cenviron;
-	extern int csoundYield(void *);
+        extern ENVIRON cenviron;
+        extern int csoundYield(void *);
 }
 #undef exit
 
@@ -195,7 +195,7 @@ static void infoff(MYFLT p1)           /*  turn off an indef copy of instr p1  *
           //&& ip->offtim < 0             /*      but indef,   */
           && ip->p1 == p1) {
         //VMSG(printf("turning off inf copy of instr %d\n",insno);)
-	printf("turning off inf copy of instr %d\n",insno);
+        printf("turning off inf copy of instr %d\n",insno);
         deact(ip);
         return;                     /*  turn it off */
       }
@@ -1790,7 +1790,7 @@ inline void displ(MYFLT val, MYFLT index)
       char valString[MAXNAME];
       sprintf(valString, "%.5g", val);
       ((Fl_Output*) (AddrSetValue[(long) index]).WidgAddress)->
-	value(valString);
+        value(valString);
     }
 }
 

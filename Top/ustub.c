@@ -239,7 +239,7 @@ floatran(MYFLT *buffer, int size)
 
 MYFLT ino(MYFLT x)
 {
-    MYFLT	y, t, e, de, sde, xi;
+    MYFLT       y, t, e, de, sde, xi;
     int i;
 
     y = x * FL(0.5);
@@ -321,10 +321,10 @@ FILE *fopen_path(char *name, char *basename, char *env, char *mode)
 {
     FILE *ff;
     char *p;
-				/* First try to open name given */
+                                /* First try to open name given */
     strcpy(name_full, name);
     if ((ff = fopen(name_full, mode))!=NULL) return ff;
-				/* if that fails try in base directory */
+                                /* if that fails try in base directory */
     strcpy(name_full, basename);
 #if defined(__MWERKS) || defined(SYMANTECS)
     p = strrchr(name_full, ':');
@@ -335,7 +335,7 @@ FILE *fopen_path(char *name, char *basename, char *env, char *mode)
     if (p != NULL) {
       strcpy(p+1, name);
       if ((ff = fopen(name_full, mode))!=NULL) return ff;
-				/* Of us env argument */
+                                /* Of us env argument */
     }
     if ((p = getenv(env)))
 #if defined(__MWERKS) || defined(SYMANTECS)
@@ -344,7 +344,7 @@ FILE *fopen_path(char *name, char *basename, char *env, char *mode)
       sprintf(name_full, "%s/%s", p, name);
 #endif
     if ((ff = fopen(name_full, mode))!=NULL) return ff; 
-    return NULL;		/* or give up */
+    return NULL;                /* or give up */
 }
 
 void synterr(char *s)

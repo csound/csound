@@ -30,22 +30,22 @@
 #include <ctype.h>
 
 #ifdef  USE_DOUBLE
-#define sf_write_MYFLT	sf_write_double
-#define sf_read_MYFLT	sf_read_double
-#define sf_writef_MYFLT	sf_writef_double
-#define sf_readf_MYFLT	sf_readf_double
+#define sf_write_MYFLT  sf_write_double
+#define sf_read_MYFLT   sf_read_double
+#define sf_writef_MYFLT sf_writef_double
+#define sf_readf_MYFLT  sf_readf_double
 #else
-#define sf_write_MYFLT	sf_write_float
-#define sf_read_MYFLT	sf_read_float
-#define sf_writef_MYFLT	sf_writef_float
-#define sf_readf_MYFLT	sf_readf_float
+#define sf_write_MYFLT  sf_write_float
+#define sf_read_MYFLT   sf_read_float
+#define sf_writef_MYFLT sf_writef_float
+#define sf_readf_MYFLT  sf_readf_float
 #endif
 
 struct fileinTag {
-    SNDFILE*	file;
-    FILE*	raw;            /* Only used if text file */
-    char	*name;
-    long	cnt;
+    SNDFILE*    file;
+    FILE*       raw;            /* Only used if text file */
+    char        *name;
+    long        cnt;
 };
 
 static struct fileinTag *file_opened = NULL;
