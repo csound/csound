@@ -879,7 +879,7 @@ static void gen20(void)
         arg = TWOPI / flen;
         for (i = -PI ; i < 0 ; i += arg)
           *ft++ = (MYFLT)(xarg * sin(i) / i);
-        *ft++ = FL(1.0);
+        *ft++ = xarg;
         for (i = arg ; i < PI ; i += arg)
           *ft++ = (MYFLT)(xarg * sin(i) / i);
         return;
