@@ -71,6 +71,7 @@
 #include "Hocket.hpp"
 #include "Rescale.hpp"
 #include "MusicModel.hpp"
+#include "Sequence.hpp"
 #include "Random.hpp"
 #include "ImageToScore.hpp"
 #include "StrangeAttractor.hpp"
