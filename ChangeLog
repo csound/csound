@@ -1,5 +1,7 @@
 2004-07-09  John ffitch  <jpff@codemist.co.uk>
 
+	* OOps/ugrw1.c (itablew): Wrong result returned and elsewhere
+
 	* Engine/otran.c (otran): Move initialisation of pool to start of
 	otran so strings work!
 	(constndx): from here

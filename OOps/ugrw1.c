@@ -991,9 +991,9 @@ int tblsetwkt(TABLEW *p)
 int itablew(TABLEW *p)
 {
 /*   printf("tableiw: p->xsig, p->xndx = %f, %f\n", *p->xsig, *p->xndx); */
-    if (itblchkw(p))
-      ktablew(p);
-    return OK;
+    if (itblchkw(p)==OK)
+      return ktablew(p);
+    return NOTOK;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1251,14 +1251,14 @@ int ftkrchkw(TABLEW *p)
 
 int    ktablewkt(TABLEW *p)
 {
-    if (ftkrchkw(p)) ktablew(p);
-    return OK;
+    if (ftkrchkw(p)==OK) return ktablew(p);
+    return NOTOK;
 }
 
 int    tablewkt(TABLEW *p)
 {
-    if (ftkrchkw(p)) tablew(p);
-    return OK;
+    if (ftkrchkw(p)==OK) return tablew(p);
+    return NOTOK;
 }
 
 
@@ -2303,7 +2303,7 @@ int ziw(ZKW *p)
     MYFLT       *writeloc;
     long indx;
 
-    if (zkset((ZKR*)p) == 0) return OK;
+    if (zkset((ZKR*)p) == 0) return NOTOK;
     indx = (long) *p->ndx;
     if (indx > zklast) {
       return perferror(Str(X_1413,"zkw index > isizek. Not writing."));
