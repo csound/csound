@@ -31,6 +31,8 @@
 #include "cs.h"
 #include "midiout.h"
 
+#define MGLOB(x) (((ENVIRON*) csound)->midiGlobals->x)
+
 #define NUMCHN          (16)
 #define EXTRA_TIME      (1)
 
@@ -73,7 +75,7 @@ int xtratim(ENVIRON *csound, XTRADUR *p)
 
 int mclock_set(ENVIRON *csound, MCLOCK *p)
 {
-    if (MIDIoutDONE==0) openMIDIout();
+    if (!MGLOB(MIDIoutDONE)) openMIDIout();
     p->period= ekr / *p->freq;
     p->clock_tics = p->period;
     p->beginning_flag=TRUE;
@@ -97,7 +99,7 @@ int mclock(ENVIRON *csound, MCLOCK *p)
 
 int mrtmsg(ENVIRON *csound, MRT *p)
 {
-    if (MIDIoutDONE==0) openMIDIout();
+    if (!MGLOB(MIDIoutDONE)) openMIDIout();
     switch ((int) *p->message) {
     case 0:
       send_midi_message(0xFC, 0, 0); /* stop */
@@ -124,14 +126,14 @@ int mrtmsg(ENVIRON *csound, MRT *p)
 
 int iout_on(ENVIRON *csound, OUT_ON *p)
 {
-    if (MIDIoutDONE==0) openMIDIout();
+    if (!MGLOB(MIDIoutDONE)) openMIDIout();
     note_on((int)*p->ichn-1,(int)*p->inum,(int)*p->ivel);
     return OK;
 }
 
 int iout_off(ENVIRON *csound, OUT_ON *p)
 {
-    if (MIDIoutDONE==0) openMIDIout();
+    if (!MGLOB(MIDIoutDONE)) openMIDIout();
     note_off((int)*p->ichn-1,(int)*p->inum,(int)*p->ivel);
     return OK;
 }
@@ -139,7 +141,7 @@ int iout_off(ENVIRON *csound, OUT_ON *p)
 int iout_on_dur_set(ENVIRON *csound, OUT_ON_DUR *p)
 {
     int temp;
-    if (MIDIoutDONE==0) openMIDIout();
+    if (!MGLOB(MIDIoutDONE)) openMIDIout();
     if (p->h.insdshead->xtratim < EXTRA_TIME)
       /* if not initialised by another opcode */
       p->h.insdshead->xtratim = EXTRA_TIME;
@@ -201,7 +203,7 @@ int iout_on_dur2(ENVIRON *csound, OUT_ON_DUR *p)
 
 int moscil_set(ENVIRON *csound, MOSCIL *p)
 {
-    if (MIDIoutDONE==0) openMIDIout();
+    if (!MGLOB(MIDIoutDONE)) openMIDIout();
     if (p->h.insdshead->xtratim < EXTRA_TIME)
       /* if not initialised by another opcode */
       p->h.insdshead->xtratim = EXTRA_TIME;
@@ -256,7 +258,7 @@ int moscil(ENVIRON *csound, MOSCIL *p)
 
 int kvar_out_on_set(ENVIRON *csound, KOUT_ON *p)
 {
-    if (MIDIoutDONE==0) openMIDIout();
+    if (!MGLOB(MIDIoutDONE)) openMIDIout();
     if (p->h.insdshead->xtratim < EXTRA_TIME)
       /* if not initialised by another opcode */
       p->h.insdshead->xtratim = EXTRA_TIME;
@@ -309,7 +311,7 @@ int kvar_out_on(ENVIRON *csound, KOUT_ON *p)
 
 int out_controller (ENVIRON *csound, OUT_CONTR *p)
 {
-    if (MIDIoutDONE==0) openMIDIout();
+    if (!MGLOB(MIDIoutDONE)) openMIDIout();
     if (!(p->h.insdshead->prvinstance)) {
       /* if prev instance already allocated in the same MIDI chan */
       int value;
@@ -328,7 +330,7 @@ int out_controller (ENVIRON *csound, OUT_CONTR *p)
 
 int out_aftertouch (ENVIRON *csound, OUT_ATOUCH *p)
 {
-    if (MIDIoutDONE==0) openMIDIout();
+    if (!MGLOB(MIDIoutDONE)) openMIDIout();
     if (!(p->h.insdshead->prvinstance)) {
       /* if prev instance already allocated in the same MIDI chan */
       int value;
@@ -348,7 +350,7 @@ int out_poly_aftertouch (ENVIRON *csound, OUT_POLYATOUCH *p)
 {
     int value;
     MYFLT min = *p->min;
-    if (MIDIoutDONE==0) openMIDIout();
+    if (!MGLOB(MIDIoutDONE)) openMIDIout();
     value =  (int)((*p->value - min) * 127. / (*p->max - min));
     value = value < 128 ?  value : 127;
     value = value > -1  ?  value : 0;
@@ -362,7 +364,7 @@ int out_poly_aftertouch (ENVIRON *csound, OUT_POLYATOUCH *p)
 
 int out_progchange (ENVIRON *csound, OUT_PCHG *p)
 {
-    if (MIDIoutDONE==0) openMIDIout();
+    if (!MGLOB(MIDIoutDONE)) openMIDIout();
     if (!(p->h.insdshead->prvinstance)) {
       /* if prev instance already allocated in the same MIDI chan */
       int prog_num;
@@ -382,7 +384,7 @@ int out_progchange (ENVIRON *csound, OUT_PCHG *p)
 
 int out_controller14 (ENVIRON *csound, OUT_CONTR14 *p)
 {
-    if (MIDIoutDONE==0) openMIDIout();
+    if (!MGLOB(MIDIoutDONE)) openMIDIout();
     if (!(p->h.insdshead->prvinstance)) {
       /* if prev instance already allocated in the same MIDI chan */
       int value;
@@ -407,7 +409,7 @@ int out_controller14 (ENVIRON *csound, OUT_CONTR14 *p)
 
 int out_pitch_bend(ENVIRON *csound, OUT_PB *p)
 {
-    if (MIDIoutDONE==0) openMIDIout();
+    if (!MGLOB(MIDIoutDONE)) openMIDIout();
     if (!(p->h.insdshead->prvinstance)) {
       /* if prev instance already allocated in the same MIDI chan */
       int value;
@@ -430,7 +432,7 @@ int out_pitch_bend(ENVIRON *csound, OUT_PB *p)
 
 int kon2_set(ENVIRON *csound, KON2 *p)
 {
-    if (MIDIoutDONE==0) openMIDIout();
+    if (!MGLOB(MIDIoutDONE)) openMIDIout();
     if (p->h.insdshead->xtratim < EXTRA_TIME)
       p->h.insdshead->xtratim = EXTRA_TIME; /* if not initialised by another opcode */
     /*p->fl_first_note = TRUE;*/
@@ -491,18 +493,18 @@ int kon2(ENVIRON *csound, KON2 *p)
 int midiout(ENVIRON *csound, MIDIOUT *p)        /*gab-A6 fixed*/
 {
     int kstatus ;
-    if (MIDIoutDONE==0) openMIDIout();
+    if (!MGLOB(MIDIoutDONE)) openMIDIout();
     if ((kstatus = (int) *p->in_type))
       send_midi_message( ((int) *p->in_type) | ((int) *p->in_chan-1),
                          (int) *p->in_dat1, (int) *p->in_dat2 );
     return OK;
 }
 
-
 int nrpn(ENVIRON *csound, NRPN *p)
 {
-    int chan = (int) *p->chan-1, parm = (int) *p->parm_num, value = (int) *p->parm_value;
-    if (MIDIoutDONE==0) openMIDIout();
+    int chan = (int) *p->chan-1, parm = (int) *p->parm_num;
+    int value = (int) *p->parm_value;
+    if (!MGLOB(MIDIoutDONE)) openMIDIout();
     if (chan != p->old_chan || parm != p->old_parm || value != p->old_value) {
       int status = 176 | chan;
       int parm_msb =  parm >> 7;
@@ -525,7 +527,7 @@ int nrpn(ENVIRON *csound, NRPN *p)
 
 int mdelay_set(ENVIRON *csound, MDELAY *p)
 {
-    if (MIDIoutDONE==0) openMIDIout();
+    if (!MGLOB(MIDIoutDONE)) openMIDIout();
     p->read_index = 0;
     p->write_index = 0;
     memset(p->status, 0, DELTAB_LENGTH);

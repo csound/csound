@@ -467,14 +467,6 @@ int csoundCompile(void *csound, int argc, char **argv)
         longjmp(((ENVIRON*) csound)->exitjmp_,1);
       }
     }
-    /* open MIDI output (moved here from argdecode) */
-#if defined(LINUX)
-    {
-      extern void openMIDIout(void);
-      if (O.Midioutname != NULL && O.Midioutname[0] != '\0')
-        openMIDIout();
-    }
-#endif
     if (scorename==NULL || strlen(scorename)==0) { /* No scorename yet */
       char *p;
       FILE *scof;
@@ -604,6 +596,12 @@ int csoundCompile(void *csound, int argc, char **argv)
     print_benchmark_info(csound, Str("end of score sort"));
  perf:
     O.filnamsize = filnamp - O.filnamspace;
+    /* open MIDI output (moved here from argdecode) */
+    {
+      extern void openMIDIout(void);
+      if (O.Midioutname != NULL && O.Midioutname[0] != '\0')
+        openMIDIout();
+    }
     return musmon(csound);
 }
 

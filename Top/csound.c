@@ -55,6 +55,19 @@ extern "C" {
     return csound;
   }
 
+  /* dummy real time MIDI functions */
+  static int DummyMidiInOpen(void *csound, void **userData,
+                             const char *devName);
+  static int DummyMidiRead(void *csound, void *userData,
+                           unsigned char *buf, int nbytes);
+  static int DummyMidiInClose(void *csound, void *userData);
+  static int DummyMidiOutOpen(void *csound, void **userData,
+                              const char *devName);
+  static int DummyMidiWrite(void *csound, void *userData,
+                            unsigned char *buf, int nbytes);
+  static int DummyMidiOutClose(void *csound, void *userData);
+  static char *DummyMidiErrorString(int errcode);
+
   static  const   char    *id_option_table[][3] = {
       { "::SF::id_title", "id_title",
         "Title tag in output soundfile (no spaces)" },
@@ -109,6 +122,28 @@ extern "C" {
     csoundCreateConfigurationVariable(csound, "rtaudio", s,
                                       CSOUNDCFG_STRING, 0, NULL, &max_len,
                                       "Real time audio module name", NULL);
+    /* initialise real time MIDI */
+    p->midiGlobals = (MGLOBAL*) mcalloc(csound, sizeof(MGLOBAL));
+    p->midiGlobals->Midevtblk = (MEVENT*) NULL;
+    p->midiGlobals->FMidevtblk = (MEVENT*) NULL;
+    for (i = 0; i < 128; i++)
+      p->midiGlobals->pgm2ins[i] = (i + 1);
+    csoundSetExternalMidiInOpenCallback(csound, DummyMidiInOpen);
+    csoundSetExternalMidiReadCallback(csound, DummyMidiRead);
+    csoundSetExternalMidiInCloseCallback(csound, DummyMidiInClose);
+    csoundSetExternalMidiOutOpenCallback(csound, DummyMidiOutOpen);
+    csoundSetExternalMidiWriteCallback(csound, DummyMidiWrite);
+    csoundSetExternalMidiOutCloseCallback(csound, DummyMidiOutClose);
+    csoundSetExternalMidiErrorStringCallback(csound, DummyMidiErrorString);
+    p->midiGlobals->midiInUserData = NULL;
+    p->midiGlobals->midiOutUserData = NULL;
+    p->midiGlobals->mfp = (FILE*) NULL;
+    csoundCreateGlobalVariable(csound, "_RTMIDI", (size_t) max_len);
+    s = csoundQueryGlobalVariable(csound, "_RTMIDI");
+    strcpy(s, "PortMIDI");
+    csoundCreateConfigurationVariable(csound, "rtmidi", s,
+                                      CSOUNDCFG_STRING, 0, NULL, &max_len,
+                                      "Real time MIDI module name", NULL);
     /* sound file tag options */
     max_len = 201;
     i = -1;
@@ -746,80 +781,231 @@ PUBLIC void csoundSetRtcloseCallback(void *csound,
     ((ENVIRON*) csound)->rtclose_callback = rtclose__;
 }
 
-  int csoundExternalMidiEnabled = 0;
-  void (*csoundExternalMidiDeviceOpenCallback)(void *csound) = 0;
-  int (*csoundExternalMidiReadCallback)(void *csound,
-                                        unsigned char *midiData, int size) = NULL;
-  int (*csoundExternalMidiWriteCallback)(void *csound,
-                                         unsigned char *midiData) = NULL;
-  void (*csoundExternalMidiDeviceCloseCallback)(void *csound) = NULL;
+/* dummy real time MIDI functions */
 
-  PUBLIC int csoundIsExternalMidiEnabled(void *csound)
-  {
-    return csoundExternalMidiEnabled;
-  }
+static int DummyMidiInOpen(void *csound, void **userData, const char *devName)
+{
+    char *s;
 
-  PUBLIC void csoundSetExternalMidiEnabled(void *csound, int enabled)
-  {
-    csoundExternalMidiEnabled = enabled;
-  }
-
-  PUBLIC void csoundSetExternalMidiDeviceOpenCallback(void *csound,
-                    void (*csoundExternalMidiDeviceOpenCallback_)(void *csound))
-  {
-    csoundExternalMidiDeviceOpenCallback = csoundExternalMidiDeviceOpenCallback_;
-  }
-
-  void csoundExternalMidiDeviceOpen(void *csound)
-  {
-    if (csoundExternalMidiDeviceOpenCallback){
-      csoundExternalMidiDeviceOpenCallback(csound);
+    *userData = NULL;
+    s = (char*) csoundQueryGlobalVariable(csound, "_RTMIDI");
+    if (s == NULL ||
+        (strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
+         strcmp(s, "NULL") == 0)) {
+      csoundMessage(csound, "WARNING: real time midi input disabled, "
+                            "using dummy functions\n");
+      return 0;
     }
-  }
-
-  PUBLIC void csoundSetExternalMidiReadCallback(void *csound,
-                    int (*csoundExternalMidiReadCallback_)(void *csound,
-                                                           unsigned char *midiData,
-                                                           int size))
-  {
-    csoundExternalMidiReadCallback = csoundExternalMidiReadCallback_;
-  }
-
-  int csoundExternalMidiRead(void *csound, unsigned char *mbuf, int size)
-  {
-    if (csoundExternalMidiReadCallback) {
-      return csoundExternalMidiReadCallback(csound, mbuf, size);
-    }
-    return 0;
-  }
-
-  PUBLIC void csoundSetExternalMidiWriteCallback(void *csound,
-                    int (*csoundExternalMidiWriteCallback_)(void *csound,
-                                                            unsigned char *midiData))
-  {
-    csoundExternalMidiWriteCallback = csoundExternalMidiWriteCallback_;
-  }
-
-  int csoundExternalMidiWrite(unsigned char *midiData)
-  {
-    if(csoundExternalMidiWriteCallback){
-      return csoundExternalMidiWriteCallback(&cenviron_, midiData);
-    }
+    if (s[0] == '\0')
+      csoundMessage(csound, "error: -+rtmidi set to empty string\n");
+    else
+      csoundMessage(csound, "error: -+rtmidi='%s': unknown module\n", s);
     return -1;
-  }
+}
 
-  PUBLIC void csoundSetExternalMidiDeviceCloseCallback(void *csound,
-                    void (*csoundExternalMidiDeviceCloseCallback_)(void *csound))
-  {
-    csoundExternalMidiDeviceCloseCallback = csoundExternalMidiDeviceCloseCallback_;
-  }
+static int DummyMidiRead(void *csound, void *userData,
+                         unsigned char *buf, int nbytes)
+{
+    return 0;
+}
 
-  void csoundExternalMidiDeviceClose(void *csound)
-  {
-    if(csoundExternalMidiDeviceCloseCallback){
-      csoundExternalMidiDeviceCloseCallback(csound);
+static int DummyMidiInClose(void *csound, void *userData)
+{
+    return 0;
+}
+
+static int DummyMidiOutOpen(void *csound, void **userData, const char *devName)
+{
+    char *s;
+
+    *userData = NULL;
+    s = (char*) csoundQueryGlobalVariable(csound, "_RTMIDI");
+    if (s == NULL ||
+        (strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
+         strcmp(s, "NULL") == 0)) {
+      csoundMessage(csound, "WARNING: real time midi output disabled, "
+                            "using dummy functions\n");
+      return 0;
     }
-  }
+    if (s[0] == '\0')
+      csoundMessage(csound, "error: -+rtmidi set to empty string\n");
+    else
+      csoundMessage(csound, "error: -+rtmidi='%s': unknown module\n", s);
+    return -1;
+}
+
+static int DummyMidiWrite(void *csound, void *userData,
+                          unsigned char *buf, int nbytes)
+{
+    return nbytes;
+}
+
+static int DummyMidiOutClose(void *csound, void *userData)
+{
+    return 0;
+}
+
+static const char *midi_err_msg = "Unknown MIDI error";
+
+static char *DummyMidiErrorString(int errcode)
+{
+    return (char*) midi_err_msg;
+}
+
+/**
+ * Open MIDI input device 'devName', and store stream specific
+ * data pointer in *userData. Return value is zero on success,
+ * and a non-zero error code if an error occured.
+ */
+int csoundExternalMidiInOpen(void *csound, void **userData,
+                             const char *devName)
+{
+    if (((ENVIRON*) csound)->midiGlobals->MidiInOpenCallback == NULL)
+      return -1;
+    return (((ENVIRON*) csound)->midiGlobals->MidiInOpenCallback(csound,
+                                                                 userData,
+                                                                 devName));
+}
+
+/**
+ * Read at most 'nbytes' bytes of MIDI data from input stream
+ * 'userData', and store in 'buf'. Returns the actual number of
+ * bytes read, which may be zero if there were no events, and
+ * negative in case of an error. Note: incomplete messages (such
+ * as a note on status without the data bytes) should not be
+ * returned.
+ */
+int csoundExternalMidiRead(void *csound, void *userData,
+                           unsigned char *buf, int nbytes)
+{
+    if (((ENVIRON*) csound)->midiGlobals->MidiReadCallback == NULL)
+      return -1;
+    return (((ENVIRON*) csound)->midiGlobals->MidiReadCallback(csound,
+                                                               userData,
+                                                               buf, nbytes));
+}
+
+/**
+ * Close MIDI input device associated with 'userData'.
+ * Return value is zero on success, and a non-zero error
+ * code on failure.
+ */
+int csoundExternalMidiInClose(void *csound, void *userData)
+{
+    int retval;
+    if (((ENVIRON*) csound)->midiGlobals->MidiInCloseCallback == NULL)
+      return -1;
+    retval = ((ENVIRON*) csound)->midiGlobals->MidiInCloseCallback(csound,
+                                                                   userData);
+    ((ENVIRON*) csound)->midiGlobals->midiInUserData = NULL;
+    return retval;
+}
+
+/**
+ * Open MIDI output device 'devName', and store stream specific
+ * data pointer in *userData. Return value is zero on success,
+ * and a non-zero error code if an error occured.
+ */
+int csoundExternalMidiOutOpen(void *csound, void **userData,
+                              const char *devName)
+{
+    if (((ENVIRON*) csound)->midiGlobals->MidiOutOpenCallback == NULL)
+      return -1;
+    return (((ENVIRON*) csound)->midiGlobals->MidiOutOpenCallback(csound,
+                                                                  userData,
+                                                                  devName));
+}
+
+/**
+ * Write 'nbytes' bytes of MIDI data to output stream 'userData'
+ * from 'buf' (the buffer will not contain incomplete messages).
+ * Returns the actual number of bytes written, or a negative
+ * error code.
+ */
+int csoundExternalMidiWrite(void *csound, void *userData,
+                            unsigned char *buf, int nbytes)
+{
+    if (((ENVIRON*) csound)->midiGlobals->MidiWriteCallback == NULL)
+      return -1;
+    return (((ENVIRON*) csound)->midiGlobals->MidiWriteCallback(csound,
+                                                                userData,
+                                                                buf, nbytes));
+}
+
+/**
+ * Close MIDI output device associated with '*userData'.
+ * Return value is zero on success, and a non-zero error
+ * code on failure.
+ */
+int csoundExternalMidiOutClose(void *csound, void *userData)
+{
+    int retval;
+    if (((ENVIRON*) csound)->midiGlobals->MidiOutCloseCallback == NULL)
+      return -1;
+    retval = ((ENVIRON*) csound)->midiGlobals->MidiOutCloseCallback(csound,
+                                                                    userData);
+    ((ENVIRON*) csound)->midiGlobals->midiOutUserData = NULL;
+    return retval;
+}
+
+/**
+ * Returns pointer to a string constant storing an error massage
+ * for error code 'errcode'.
+ */
+char *csoundExternalMidiErrorString(void *csound, int errcode)
+{
+    if (((ENVIRON*) csound)->midiGlobals->MidiErrorStringCallback == NULL)
+      return NULL;
+    return (((ENVIRON*) csound)->midiGlobals->MidiErrorStringCallback(errcode));
+}
+
+/* Set real time MIDI function pointers. */
+
+PUBLIC void csoundSetExternalMidiInOpenCallback(void *csound,
+                                                int (*func)(void*, void**,
+                                                            const char*))
+{
+    ((ENVIRON*) csound)->midiGlobals->MidiInOpenCallback = func;
+}
+
+PUBLIC void csoundSetExternalMidiReadCallback(void *csound,
+                                              int (*func)(void*, void*,
+                                                          unsigned char*, int))
+{
+    ((ENVIRON*) csound)->midiGlobals->MidiReadCallback = func;
+}
+
+PUBLIC void csoundSetExternalMidiInCloseCallback(void *csound,
+                                                 int (*func)(void*, void*))
+{
+    ((ENVIRON*) csound)->midiGlobals->MidiInCloseCallback = func;
+}
+
+PUBLIC void csoundSetExternalMidiOutOpenCallback(void *csound,
+                                                 int (*func)(void*, void**,
+                                                             const char*))
+{
+    ((ENVIRON*) csound)->midiGlobals->MidiOutOpenCallback = func;
+}
+
+PUBLIC void csoundSetExternalMidiWriteCallback(void *csound,
+                                               int (*func)(void*, void*,
+                                                           unsigned char*, int))
+{
+    ((ENVIRON*) csound)->midiGlobals->MidiWriteCallback = func;
+}
+
+PUBLIC void csoundSetExternalMidiOutCloseCallback(void *csound,
+                                                  int (*func)(void*, void*))
+{
+    ((ENVIRON*) csound)->midiGlobals->MidiOutCloseCallback = func;
+}
+
+PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
+                                                     char *(*func)(int))
+{
+    ((ENVIRON*) csound)->midiGlobals->MidiErrorStringCallback = func;
+}
 
   /*
    *    FUNCTION TABLE DISPLAY.

@@ -524,6 +524,39 @@ extern "C" {
     int     saved_opcod;          /* tmp variable: most recent score opcode */
   } sensEvents_t;
 
+  /* MIDI globals */
+
+#define MBUFSIZ 1024
+
+  typedef struct {
+    short  type;
+    short  chan;
+    short  dat1;
+    short  dat2;
+  } MEVENT;
+
+  typedef struct midiglobals {
+    MEVENT  *Midevtblk;
+    MEVENT  *FMidevtblk;
+    long    FMidiNxtk;
+    int     sexp;
+    int     fsexp;
+    int     pgm2ins[128];
+    int     MIDIoutDONE;
+    int     MIDIINbufIndex;
+    MIDIMESSAGE MIDIINbuffer2[MIDIINBUFMAX];
+    int     (*MidiInOpenCallback)(void*, void**, const char*);
+    int     (*MidiReadCallback)(void*, void*, unsigned char*, int);
+    int     (*MidiInCloseCallback)(void*, void*);
+    int     (*MidiOutOpenCallback)(void*, void**, const char*);
+    int     (*MidiWriteCallback)(void*, void*, unsigned char*, int);
+    int     (*MidiOutCloseCallback)(void*, void*);
+    char    *(*MidiErrorStringCallback)(int);
+    void    *midiInUserData;
+    void    *midiOutUserData;
+    FILE    *mfp;
+  } MGLOBAL;
+
   typedef struct ENVIRON_
   {
     int (*GetVersion)(void);
@@ -582,19 +615,24 @@ extern "C" {
                                                               char *channelName,
                                                               MYFLT value));
     void (*ScoreEvent)(void *csound, char type, MYFLT *pFields, long numFields);
-    void (*SetExternalMidiDeviceOpenCallback)(void *csound,
-                   void (*midiDeviceOpenCallback)(void *hostData));
+    void (*SetExternalMidiInOpenCallback)(void *csound,
+                                          int (*func)(void*, void**,
+                                                      const char*));
     void (*SetExternalMidiReadCallback)(void *csound,
-                   int (*readMidiCallback)(void *hostData,
-                   unsigned char *midiData,
-                   int size));
+                                        int (*func)(void*, void*,
+                                                    unsigned char*, int));
+    void (*SetExternalMidiInCloseCallback)(void *csound,
+                                           int (*func)(void*, void*));
+    void (*SetExternalMidiOutOpenCallback)(void *csound,
+                                              int (*func)(void*, void**,
+                                                          const char*));
     void (*SetExternalMidiWriteCallback)(void *csound,
-                   int (*writeMidiCallback)(void *hostData,
-                   unsigned char *midiData));
-    void (*SetExternalMidiDeviceCloseCallback)(void *csound,
-                   void (*midiDeviceCloseCallback)(void *hostData));
-    int (*IsExternalMidiEnabled)(void *csound);
-    void (*SetExternalMidiEnabled)(void *csound, int enabled);
+                                         int (*func)(void*, void*,
+                                                     unsigned char*, int));
+    void (*SetExternalMidiOutCloseCallback)(void *csound,
+                                            int (*func)(void*, void*));
+    void (*SetExternalMidiErrorStringCallback)(void *csound,
+                                               char *(*func)(int));
     void (*SetIsGraphable)(void *csound, int isGraphable);
     void (*SetMakeGraphCallback)(void *csound,
                                  void (*makeGraphCallback)(void *hostData,
@@ -612,14 +650,17 @@ extern "C" {
     void (*DisposeOpcodeList)(opcodelist *opcodelist_);
     int (*AppendOpcode)(void *csound, char *opname, int dsblksiz,
                         int thread, char *outypes, char *intypes,
-                        int (*iopadr)(void*, void*), int (*kopadr)(void*, void*),
-                        int (*aopadr)(void*, void*), int (*dopadr)(void*, void*));
+                        int (*iopadr)(void*, void*),
+                        int (*kopadr)(void*, void*),
+                        int (*aopadr)(void*, void*),
+                        int (*dopadr)(void*, void*));
     int (*LoadExternal)(void *csound, const char *libraryPath);
     int (*LoadExternals)(void *csound);
     void *(*OpenLibrary)(const char *libraryPath);
     void *(*CloseLibrary)(void *library);
     void *(*GetLibrarySymbol)(void *library, const char *procedureName);
-    void (*SetYieldCallback)(void *csound, int (*yieldCallback)(void *hostData));
+    void (*SetYieldCallback)(void *csound,
+                             int (*yieldCallback)(void *hostData));
     void (*SetEnv)(void *csound, const char *environmentVariableName,
                    const char *path);
     char *(*GetEnv)(const char *environmentVariableName);
@@ -808,7 +849,6 @@ extern "C" {
     MCHNBLK       *m_chnbp_[MAXCHAN];
     MYFLT         *cpsocint_, *cpsocfrc_;
     int           inerrcnt_, synterrcnt_, perferrcnt_;
-    int           MIDIoutDONE_;
     char          strmsg_[100];
     INSTRTXT      instxtanchor_;
     INSDS         actanchor_;
@@ -836,8 +876,6 @@ extern "C" {
     char *        rtin_devs_;
     unsigned int  rtout_dev_;
     char *        rtout_devs_;
-    int           MIDIINbufIndex_;
-    MIDIMESSAGE   MIDIINbuffer2_[MIDIINBUFMAX];
     int           displop4_;
     void          *file_opened_;
     int           file_max_;
@@ -865,6 +903,7 @@ extern "C" {
     void          *rtRecord_userdata;
     void          *rtPlay_userdata;
     void          *memalloc_db;
+    MGLOBAL       *midiGlobals;
   } ENVIRON;
 
   extern ENVIRON cenviron_;

@@ -1,7 +1,8 @@
 /*
     midiops.h:
 
-    Copyright (C) 1995 Barry Vercoe, Gabriel maldonado, Istvan Varga, John ffitch
+    Copyright (C) 1995 Barry Vercoe, Gabriel maldonado,
+                       Istvan Varga, John ffitch
 
     This file is part of Csound.
 
@@ -24,8 +25,6 @@
 #ifndef MIDIOPS_H
 #define MIDIOPS_H
 /*                                                 MIDIOPS.H   */
-
-#define MBUFSIZ       1024
 
 #define NOTEOFF_TYPE  0x80
 #define NOTEON_TYPE   0x90
@@ -56,13 +55,6 @@
 #define TVA_RLS         109
 
 #define BENDSENS        110     /* unused ctl_val spc */
-
-typedef struct {
-    short  type;
-    short  chan;
-    short  dat1;
-    short  dat2;
-} MEVENT;
 
 typedef struct {
     OPDS   h;
@@ -143,17 +135,6 @@ typedef struct {
     OPDS   h;
     MYFLT  *ipgm, *inst;
 } PGMASSIGN;
-
-typedef struct midiglobals {
-  MEVENT        *Midevtblk;
-  MEVENT        *FMidevtblk;
-  long          FMidiNxtk;
-} MGLOBAL;
-#define Midevtblk mglob.Midevtblk
-#define FMidevtblk mglob.FMidevtblk
-#define FMidiNxtk mglob.FMidiNxtk
-
-extern MGLOBAL mglob;
 
 #endif
 
