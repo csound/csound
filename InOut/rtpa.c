@@ -228,7 +228,7 @@ static int playopen_(void *csound, csRtAudioParams *parm)
 static int rtrecord_(void *csound, void *inbuf_, int bytes_)
 {
     paBlockingRead(pabsRead, (MYFLT *)inbuf_);
-    return bytes_ / sizeof(MYFLT);
+    return bytes_;
 }
 
 /* put samples to DAC  */
