@@ -612,7 +612,6 @@ int tabli(ENVIRON *csound, TABLE  *p)
     int nsmps = ksmps;
     MYFLT       *rslt, *pxndx, *tab;
     MYFLT       fract, v1, v2, ndx, xbmul, offset;
-    int wrap = p->wrap;
 
     ftp = p->ftp;
     if (ftp==NULL) {
@@ -626,7 +625,7 @@ int tabli(ENVIRON *csound, TABLE  *p)
     mask   = ftp->lenmask;
     tab    = ftp->ftable;
     /* As for ktabli() code to handle non wrap mode, and wrap mode.  */
-    if (!wrap) {
+    if (!p->wrap) {
       do {
         /* Read in the next raw index and increment the pointer ready
          * for the next cycle.
@@ -634,18 +633,17 @@ int tabli(ENVIRON *csound, TABLE  *p)
          * the offset.  */
 
         ndx = (*pxndx++ * xbmul) + offset;
-        indx = (long) floor((double)ndx);
+        if (ndx <= FL(0.0)) {
+          *rslt++ = *tab;
+          continue;
+        }
 
         /* We need to generate a fraction - How much above indx is ndx?
          * It will be between 0 and just below 1.0.  */
-        fract = ndx - indx;
+        indx = (long) ndx;
         if (ndx > length) {
-          indx  = length - 1;
-          fract = FL(1.0);
-        }
-        else if (ndx < 0) {
-          indx  = 0L;
-          fract = FL(0.0);
+          *rslt++ = *(tab + length);
+          continue;
         }
         /* As for ktabli(), read two values and interpolate between
          * them.  */
@@ -654,7 +652,7 @@ int tabli(ENVIRON *csound, TABLE  *p)
         *rslt++ = v1 + (v2 - v1)*fract;
       } while(--nsmps);
     }
-    else {
+    else {                      /* wrap mode */
       do {
         /* Read in the next raw index and increment the pointer ready
          * for the next cycle.
@@ -662,7 +660,8 @@ int tabli(ENVIRON *csound, TABLE  *p)
          * the offset.  */
 
         ndx = (*pxndx++ * xbmul) + offset;
-        indx = (long) floor((double)ndx);
+        indx = (ndx >= FL(0.0) ? (long) ndx : (long) ((double) ndx - 0.999999));
+
 
         /* We need to generate a fraction - How much above indx is ndx?
          * It will be between 0 and just below 1.0.  */
