@@ -670,7 +670,9 @@ void mainRESET(void)
     void soundinRESET(void);
     void tranRESET(void);
 
+#ifdef RTAUDIO
     rtclose();                  /* In case need to reopen */
+#endif
     printf("O=%p\n", O);
 #if defined(HAVE_FLTK) && defined(never)        /* IV - Nov 30 2002 */
     void widgetRESET(void);     /* N.B. this is not used yet, */
