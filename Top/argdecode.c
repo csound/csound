@@ -202,7 +202,7 @@ void usage(void)
   csoundMessage(&cenviron, Str("Usage:\tcsound [-flags] orchfile scorefile\n"));
   csoundMessage(&cenviron, Str("Legal flags are:\n"));
   print_short_usage(&cenviron);
-  longjmp(cenviron.exitjmp_,1);
+  longjmp(cenviron.exitjmp,1);
 }
 
 static void longusage(void *csound)
@@ -288,14 +288,14 @@ static void longusage(void *csound)
   dump_cfg_variables(csound);
   err_printf(Str("\nShort form:\n"));
   print_short_usage(csound);
-  longjmp(((ENVIRON*) csound)->exitjmp_, CSOUND_EXITJMP_SUCCESS);
+  longjmp(((ENVIRON*) csound)->exitjmp, CSOUND_EXITJMP_SUCCESS);
 }
 
 void dieu(char *s)
 {
   err_printf(Str("Csound Command ERROR:\t%s\n"), s);
   usage();
-  longjmp(cenviron.exitjmp_,1);
+  longjmp(cenviron.exitjmp,1);
 }
 
 typedef struct {
@@ -704,9 +704,9 @@ static int decode_long(void *csound, char *s, int argc, char **argv)
 #endif
         retval = (utilities[n].fn)(argc,argv);
         if (!retval)
-          longjmp(((ENVIRON*) csound)->exitjmp_, CSOUND_EXITJMP_SUCCESS);
+          longjmp(((ENVIRON*) csound)->exitjmp, CSOUND_EXITJMP_SUCCESS);
         else
-          longjmp(((ENVIRON*) csound)->exitjmp_, abs(retval));
+          longjmp(((ENVIRON*) csound)->exitjmp, abs(retval));
       }
     }
     csoundDie(csound, Str("-U %s not a valid UTIL name"),s);
@@ -773,9 +773,9 @@ static int decode_long(void *csound, char *s, int argc, char **argv)
     }
     create_opcodlst(csound);
     if (csoundInitModules(csound) != 0)
-      longjmp(((ENVIRON*) csound)->exitjmp_, 1);
+      longjmp(((ENVIRON*) csound)->exitjmp, 1);
     list_opcodes(full);
-    longjmp(((ENVIRON*) csound)->exitjmp_, CSOUND_EXITJMP_SUCCESS);
+    longjmp(((ENVIRON*) csound)->exitjmp, CSOUND_EXITJMP_SUCCESS);
   }
   /* -Z */
   else if (!(strcmp (s, "dither"))) {
@@ -819,7 +819,7 @@ static int decode_long(void *csound, char *s, int argc, char **argv)
   }
   else if (!(strcmp(s ,"help"))) {
     longusage(csound);
-    longjmp(((ENVIRON*) csound)->exitjmp_, CSOUND_EXITJMP_SUCCESS);
+    longjmp(((ENVIRON*) csound)->exitjmp, CSOUND_EXITJMP_SUCCESS);
   }
 
   csoundMessage(csound, Str("unknown long option: '--%s'\n"), s);
@@ -873,9 +873,9 @@ int argdecode(void *csound, int argc, char **argv_)
 #endif
               retval = (utilities[n].fn)(argc,argv);
               if (!retval)
-                longjmp(((ENVIRON*) csound)->exitjmp_, CSOUND_EXITJMP_SUCCESS);
+                longjmp(((ENVIRON*) csound)->exitjmp, CSOUND_EXITJMP_SUCCESS);
               else
-                longjmp(((ENVIRON*) csound)->exitjmp_, abs(retval));
+                longjmp(((ENVIRON*) csound)->exitjmp, abs(retval));
             }
           }
           csoundDie(csound, Str("-U %s not a valid UTIL name"),s);
@@ -1143,10 +1143,10 @@ int argdecode(void *csound, int argc, char **argv_)
             }
             create_opcodlst(&cenviron);
             if (csoundInitModules(csound) != 0)
-              longjmp(((ENVIRON*) csound)->exitjmp_, 1);
+              longjmp(((ENVIRON*) csound)->exitjmp, 1);
             list_opcodes(full);
           }
-          longjmp(((ENVIRON*) csound)->exitjmp_, CSOUND_EXITJMP_SUCCESS);
+          longjmp(((ENVIRON*) csound)->exitjmp, CSOUND_EXITJMP_SUCCESS);
           break;
         case 'Z':
           dither_output = 1;
@@ -1182,12 +1182,12 @@ int argdecode(void *csound, int argc, char **argv_)
           }
 #endif
           if (!decode_long(csound, s, argc, argv))
-            longjmp(((ENVIRON*) csound)->exitjmp_, 1);
+            longjmp(((ENVIRON*) csound)->exitjmp, 1);
           while (*(++s));
           break;
         case '+':                                     /* IV - Feb 01 2005 */
           if (parse_option_as_cfgvar(csound, (char*) s - 2) != 0)
-            longjmp(((ENVIRON*) csound)->exitjmp_,1);
+            longjmp(((ENVIRON*) csound)->exitjmp,1);
           while (*(++s));
           break;
         default:
@@ -1203,7 +1203,7 @@ int argdecode(void *csound, int argc, char **argv_)
       if (orcNameMode != NULL && strcmp(orcNameMode, "fail") == 0) {
         csoundMessage(csound, Str("error: orchestra and score name is not "
                                   "allowed in .csoundrc\n"));
-        longjmp(((ENVIRON*) csound)->exitjmp_, 1);
+        longjmp(((ENVIRON*) csound)->exitjmp, 1);
       }
       if (orcNameMode == NULL || strcmp(orcNameMode, "ignore") != 0) {
         if (orchname == NULL)

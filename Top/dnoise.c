@@ -266,7 +266,7 @@ int dnoise(int argc, char **argv)
     char        outformch = 's';
 
     init_getstring(argc, argv);
-    cenviron.e0dbfs_ = cenviron.dbfs_to_float_ = FL(1.0);
+    cenviron.e0dbfs = cenviron.dbfs_to_float = FL(1.0);
 
     O.filnamspace = outfile = (char*)mmalloc(&cenviron, (long)1024);
     nfile = (char*)mmalloc(&cenviron, (long)1024);
@@ -539,8 +539,8 @@ int dnoise(int argc, char **argv)
         csoundDie(&cenviron, Str("cannot open %s."), O.outfilename);
       sf_command(outfd, SFC_SET_CLIPPING, NULL, SF_TRUE);
     }
-    esr = (MYFLT)p->sr;
-    nchnls = Chans = p->nchanls;
+    cenviron.esr = (MYFLT)p->sr;
+    cenviron.nchnls = Chans = p->nchanls;
 
     /* read header info */
     if (R < FL(0.0))
@@ -1224,19 +1224,20 @@ static int writebuffer(MYFLT *outbuf, int nsmps)
       sndwrterr(n, nsmps);
     if (O.rewrt_hdr)
       rewriteheader(outfd,0);
-    nrecs++;                /* JPff fix */
+    cenviron.nrecs++;           /* JPff fix */
     if (O.heartbeat) {
       if (O.heartbeat==1) {
 #ifdef SYMANTEC
         nextcurs();
 #else
-        putc("|/-\\"[nrecs&3], stderr); putc(8,stderr);
+        putc("|/-\\"[cenviron.nrecs & 3], stderr); putc(8, stderr);
 #endif
       }
       else if (O.heartbeat==2) putc('.', stderr);
       else if (O.heartbeat==3) {
         int n;
-        err_printf( "%d(%.3f)%n", nrecs, nrecs/ekr, &n);
+        err_printf("%d(%.3f)%n",
+                   cenviron.nrecs, cenviron.nrecs/cenviron.ekr, &n);
         while (n--) err_printf("\b");
       }
       else err_printf("\a");
