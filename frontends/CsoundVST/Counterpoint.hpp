@@ -55,10 +55,30 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <string>
+#include <cstdarg>
 
 class Counterpoint 
 {
 public:
+  void (*messageCallback)(const char *format, va_list valist);
+  void message(const char *format,...)
+  {
+    va_list marker;
+    va_start(marker, format);
+    message(format, marker);
+    va_end(marker);
+  }  
+  void message(const char *format, va_list valist)
+  {
+    if(messageCallback)
+      {
+	messageCallback(format, valist);
+      }
+    else
+      {
+	vfprintf(stdout, format, valist);
+      }
+  }
   int MostNotes;
   int MostVoices;
   enum
@@ -81,7 +101,7 @@ public:
 
   void initialize(int mostnotes, int mostvoices);
 
-  Counterpoint()
+  Counterpoint() : LowestSemitone(24), HighestSemitone(72), messageCallback(0)
   {
     initialize(MostNotes_, MostVoices_);
   }
@@ -196,11 +216,8 @@ public:
 	    (ASkip(Pitch2-Pitch1) && ASkip(Pitch3-Pitch2)));
   }
 
-  enum
-    {
-      HighestSemitone = 72,
-      LowestSemitone = 24,
-    };
+  int HighestSemitone;
+  int LowestSemitone;
 
   int OutOfRange(int Pitch) {return((Pitch>HighestSemitone) || (Pitch<LowestSemitone));}
   int ExtremeRange(int Pitch) {return(Pitch>(HighestSemitone-3) || Pitch<(LowestSemitone+3));}
@@ -1141,7 +1158,6 @@ public:
     BestFitPenalty=CurrentPenalty+Penalty;
     MaxPenalty=MIN(BestFitPenalty*PenaltyRatio,MaxPenalty);
     /*  AllDone=1; */
-    AllDone=1;
     Fits[2]=Fits[1]; Fits[1]=Fits[0]; Fits[0]=BestFitPenalty;
     for (v=1;v<=v1;v++)
       {
@@ -1152,14 +1168,15 @@ public:
 	    BestFit[i][v]=Ctrpt[i][v]+BasePitch;
 	  }
       }
-    fprintf(stderr, "\nBest fit: %d",BestFitPenalty);
+    message("Best fit: %d\n", BestFitPenalty);
     for (v=1;v<=v1;v++)
       {
-	fprintf(stderr,"\n Voice %d: ", v);
+	message("Voice %d: ", v);
 	for (i=1;i<=TotalNotes[v];i++)
 	  {
-	    fprintf(stderr, "%d ",BestFit[i][v]);
+	    message("%d ",BestFit[i][v]);
 	  }
+	message("\n");
       }
   }
 
@@ -1438,6 +1455,5 @@ public:
     for (v=1;v<=v1;v++) data[2+v]=TotalNotes[v];
   }
 };
-
 
 #endif

@@ -449,7 +449,7 @@ void CsoundVstFltk::onImport(Fl_Button*, CsoundVstFltk* csoundVstFltk)
 		{
 			oldFilename = "Default.py";
 		}
-		filename_ = fl_file_chooser("Open a file...", "*.py", oldFilename.c_str(), false);
+		filename_ = fl_file_chooser("Open a file...", "*.py|*.csd|*.orc|*.sco|*.mid", oldFilename.c_str(), false);
 	}
 	else
 	{
@@ -493,7 +493,7 @@ void CsoundVstFltk::onOpen(Fl_Button*, CsoundVstFltk* csoundVstFltk)
 		{
 			oldFilename = "Default.py";
 		}
-		filename_ = fl_file_chooser("Open a file...", "*.py", oldFilename.c_str(), false);
+		filename_ = fl_file_chooser("Open a file...", "*.py|*.csd|*.orc|*.sco|*.mid", oldFilename.c_str(), false);
 	}
 	else
 	{
@@ -502,7 +502,7 @@ void CsoundVstFltk::onOpen(Fl_Button*, CsoundVstFltk* csoundVstFltk)
 		{
 			oldFilename = "Default.csd";
 		}
-		filename_ = fl_file_chooser("Open a file...", "*.csd|*.orc|*.sco|*.mid", oldFilename.c_str(), false);
+		filename_ = fl_file_chooser("Open a file...", "*.csd|*.orc|*.sco|*.mid|*.py", oldFilename.c_str(), false);
 	}
 	if(filename_)
 	{
