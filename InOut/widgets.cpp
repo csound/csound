@@ -2425,7 +2425,7 @@ extern "C" int fl_setWidgetValue(FL_SET_WIDGET_VALUE *p)
       o->do_callback(o, p->opcode);
       Fl::unlock();
 #ifdef WIN32
-      PostMessage(callback_target,0,0,0);
+//      PostMessage(callback_target,0,0,0);
 #endif
     }
     return OK;
