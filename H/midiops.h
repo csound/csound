@@ -38,7 +38,7 @@
 #define DATENTRY        6
 #define VOLUME          7
 #define MOD_VOLUME      9       /* unused ctl_val spc */
-#define SUSTAIN_SW    64
+#define SUSTAIN_SW      64
 #define NRPNLSB         98
 #define NRPNMSB         99
 #define RPNLSB          100
