@@ -21,6 +21,8 @@
     02111-1307 USA
 */
 
+#ifndef SNDLIBFILE
+
 /***************************************************************\
 *   ieee80.c                                                    *
 *   Convert between "double" and IEEE 80 bit format             *
@@ -164,44 +166,6 @@ void double_to_ieee_80(double val, unsigned char *p)
     *p++ = (u_char)(0xFF & (mant0>> 8));
     *p++ = (u_char)(0xFF & (mant0));
 
-}
-
-#ifdef MAIN
-
-static void print_hex(unsigned char *p, int n)
-{
-    long i;
-    for (i = 0; i < n; i++) printf("%02X",*p++);
-    printf(" ");
-}
-
-double tab[] = { 0, -1.0, 1.0, 2.0 , 4.0, 0.5, 0.25, 0.125,
-                 3.14159265358979323846, 10000.0, 22000.0,
-                 44100.0, 65536.0, 134072.768, 3540001.9, 4294967295.0};
-#define NTAB (sizeof(tab)/sizeof(double))
-
-int main(void)
-{
-    int i;
-    double val;
-    unsigned char eighty[10];
-    double *p80;
-
-    p80 = (double *)eighty;
-
-    /* for each number in the test table, print its actual value,
-       its native hex representation, the 80 bit representation and
-       the back-converted value (should be the same!) */
-    /* I think the hex of PI to all 80 bits is
-       4000 C90F DAA2 2168 C233 */
-    for (i = 0; i < NTAB; i++) {
-      printf("%8f: ", tab[i]);
-      print_hex((unsigned char *)(tab+i),sizeof(double));
-      double_to_ieee_80((double) tab[i], eighty);
-      print_hex(eighty, 10);
-      val = ieee_80_to_double(eighty);
-      printf("%f\n",val);
-    }
 }
 
 #endif

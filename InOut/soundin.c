@@ -68,7 +68,6 @@ void dbfs_init(MYFLT dbfs)
 void soundinRESET(void)
 {
     datpos = 0;
-    fzero  = FL(0.0);             /* do not seem to need anything else... */
 }
 
 char *getstrformat(int format)  /* used here, and in sfheader.c */
