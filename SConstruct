@@ -77,9 +77,15 @@ opts.Add('useDouble',
 opts.Add('usePortAudio', 
     'Set to 1 to use PortAudio for real-time audio input and output.', 
     '1')
+opts.Add('useALSA',
+    'Set to 1 to use ALSA for real-time audio input and output.',
+    '0')
 opts.Add('useJack',
     'Set to 1 if you compiled PortAudio to use Jack',
     '1')
+opts.Add('gcc3opt',
+    'Set to 1 to use gcc 3.3.x or later optimizations for i686.',
+    '0')
 opts.Add('useFLTK', 
     'Set to 1 to use FLTK for graphs and widget opcodes.', 
     '1')
@@ -211,6 +217,7 @@ portaudioFound = configure.CheckHeader("portaudio.h", language = "C")
 portmidiFound = configure.CheckHeader("portmidi.h", language = "C")
 fltkFound = configure.CheckHeader("FL/Fl.H", language = "C++")
 boostFound = configure.CheckHeader("boost/any.hpp", language = "C++")
+alsaFound = configure.CheckHeader("alsa/asoundlib.h", language = "C")
 
 if getPlatform() == 'mingw':
     commonEnvironment['ENV']['PATH'] = os.environ['PATH']
@@ -223,6 +230,8 @@ if configure.CheckHeader("fcntl.h", language = "C"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_FCNTL_H')
 if configure.CheckHeader("unistd.h", language = "C"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_UNISTD_H')
+if configure.CheckHeader("stdint.h", language = "C"):
+    commonEnvironment.Append(CCFLAGS = '-DHAVE_STDINT_H')
 if configure.CheckHeader("malloc.h", language = "C"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_MALLOC_H')
 if configure.CheckHeader("sgtty.h", language = "C"):
@@ -351,7 +360,17 @@ if (not(commonEnvironment['usePortMIDI']=='0') and portmidiFound):
         csoundProgramEnvironment.Append(LIBS = ['porttime'])
         vstEnvironment.Append(LIBS = ['porttime'])
 
-if commonEnvironment['usePortAudio']=='1' and portaudioFound:
+if commonEnvironment['useALSA']=='1' and alsaFound:
+    staticLibraryEnvironment.Append(CCFLAGS = '-DRTAUDIO')
+    pluginEnvironment.Append(CCFLAGS = '-DRTAUDIO')
+    csoundProgramEnvironment.Append(CCFLAGS = '-DRTAUDIO')
+    ustubProgramEnvironment.Append(CCFLAGS = '-DRTAUDIO')
+    vstEnvironment.Append(CCFLAGS = '-DRTAUDIO')
+    guiProgramEnvironment.Append(CCFLAGS = '-DRTAUDIO')
+    guiProgramEnvironment.Append(LINKFLAGS = '-mwindows')
+    csoundProgramEnvironment.Append(LIBS = ['asound'])
+    vstEnvironment.Append(LIBS = ['asound'])
+elif commonEnvironment['usePortAudio']=='1' and portaudioFound:
     staticLibraryEnvironment.Append(CCFLAGS = '-DRTAUDIO')
     pluginEnvironment.Append(CCFLAGS = '-DRTAUDIO')
     csoundProgramEnvironment.Append(CCFLAGS = '-DRTAUDIO')
@@ -534,12 +553,15 @@ Top/sndinfo.c
 Top/threads.c
 ''')
 
-if not ((commonEnvironment['usePortAudio']=='1') and portaudioFound):
-    print 'CONFIGURATION DECISION: Not building with PortAudio.'
-else:
+if commonEnvironment['useALSA']=='1' and alsaFound:
+    print 'CONFIGURATION DECISION: Building with ALSA.'
+    libCsoundSources.append('InOut/rtalsa.c')
+elif commonEnvironment['usePortAudio']=='1' and portaudioFound:
     print 'CONFIGURATION DECISION: Building with PortAudio.'
     libCsoundSources.append('InOut/rtpa.c')
     libCsoundSources.append('InOut/pa_blocking.c')
+else:
+    print 'CONFIGURATION DECISION: Not building with real time audio.'
 
 if (not (commonEnvironment['usePortMIDI']=='0')) and portmidiFound:
     print 'CONFIGURATION DECISION: Building with PortMIDI.'
