@@ -143,11 +143,11 @@ namespace csound
     _idString[4] = 0;
     if(id != _id)
       {
-	std::cerr << "Unexpected chunk id: " << _idString << " (should be " << idString << ")." << std::endl;
+	std::cout << "Unexpected chunk id: " << _idString << " (should be " << idString << ")." << std::endl;
       }
     else
       {
-	std::cerr << "Read chunk: " << _idString << "." << std::endl;
+	std::cout << "Read chunk: " << _idString << "." << std::endl;
       }
     chunkSize = MidiFile::readInt(stream);
   }
@@ -403,7 +403,7 @@ namespace csound
     int peeked = stream.peek();
     if(stream.eof())
       {
-	std::cerr << "MIDI file incorrectly read EOF." << std::endl;
+	std::cout << "MIDI file incorrectly read EOF." << std::endl;
 	return;
       }
     if(peeked < 0x80)
@@ -469,7 +469,7 @@ namespace csound
 		    break;
 		  case MidiFile::META_TIME_SIGNATURE:
 		    {
-		      std::cout << "time signature";
+		      std::cout << "time signature" << std::endl;
 		      double numerator = getMetaData(0);
 		      double denominator = getMetaData(1);
 		      double clocksPerBeat = getMetaData(2);
@@ -482,10 +482,13 @@ namespace csound
 		    }
 		    break;
 		  case MidiFile::META_SEQUENCER_SPECIFIC:
-		    std::cout << "sequencer specific";
+		    std::cout << "sequencer specific" << std::endl;
+		    break;
+		  case MidiFile::META_END_OF_TRACK:
+		    std::cout << "end of track" << std::endl;
 		    break;
 		  default:
-		    std::cout << "not handled";
+		    std::cout << "not handled" << std::endl;
 		    break;
 		  }
 		std::cout << std::endl;
