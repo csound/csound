@@ -54,12 +54,7 @@ int PaBlockingReadStreamCallback(const void *input, void *output,
     for(i = 0, n = pabs->actualBufferSampleCount; i < n; i++) {
         pabs->actualBuffer[i] = paInput[i];
     }
-    if(!fltk_abort) {
 	return paContinue;
-    } else {
-        err_printf("Aborting paBlockingWriteStreamCallback...\n");
-        return paAbort;
-    }
 }
 
 void paBlockingRead(PA_BLOCKING_STREAM *pabs, MYFLT *buffer)
@@ -130,23 +125,18 @@ int paBlockingWriteStreamCallback(const void *input,
     for(i = 0, n = pabs->actualBufferSampleCount; i < n; i++) {
         paOutput[i] = pabs->actualBuffer[i];
     }
-    if(!fltk_abort) {
         return paContinue;
-    } else {
-        err_printf("Aborting paBlockingWriteStreamCallback...\n");
-        return paAbort;
-    }
- }
+}
 
 void paBlockingWrite(PA_BLOCKING_STREAM *pabs, MYFLT *buffer)
 {
     size_t i;
     size_t n;
-    csoundWaitThreadLock(pabs->csound, pabs->clientLock, 100);    
     for(i = 0, n = pabs->actualBufferSampleCount; i < n; i++) {
         pabs->actualBuffer[i] = buffer[i];
     }
     csoundNotifyThreadLock(pabs->csound, pabs->paLock);
+    csoundWaitThreadLock(pabs->csound, pabs->clientLock, 100);    
 }
 
 void paBlockingClose(PA_BLOCKING_STREAM *pabs)
