@@ -18,7 +18,8 @@ vstout gihandle1,144,ichannel, ikey, ivelocity
 ain1 = 0
 ab1, ab2 vstplug gihandle1, ain1, ain1
 outs ab1, ab2
-endin</CsInstruments>
+endin
+</CsInstruments>
 <CsScore>
 i 1 0 10 60 60
 i 1 2 1 72 60
