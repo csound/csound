@@ -81,6 +81,8 @@ On Windows, the Cygwin build procedure is more like the Linux one. However, the 
 
 \subsubsection{Linux}
 
+For CsoundVST, you must configure the FLTK libraries to enable threads (\texttt{./configure ---enable-threads}).
+
 If you have properly installed all the dependencies mentioned above, you can build Csound 5 and CsoundVST simply by opening a console, changing to the \texttt{csound5} directory, and executing the \texttt{scons} command. To see the various configuration options, execute \texttt{scons -h}.
 
 \subsubsection{Windows with Cygwin}
@@ -374,10 +376,8 @@ This is a ``to do'' list, not necessarily complete, for Csound and CsoundVST:
 \begin{enumerate}
 \item Get all the example scores working out of the box, and add one for real-time Python performance with a Python GUI.
 \item Complete this document sufficiently to get users started building and running Csound and CsoundVST with MinGW and Linux.
-\item Automate making the gcc import library for Python Windows.
-\item Get MIDI input and output working on Windows.
-\item A \emph{Mathematica} interface - but what kind?
-\item Singleton class for CsoundVST or CppSound so that VST scripts can be identical to Python interpreter scripts.
+\item Get MIDI input and output working better on Windows.
+\item A \emph{\textbf{Mathematica}} interface - but what kind? C API or MathLink wrappers?
 \end{enumerate}
 \item Longer term:
 \begin{enumerate}
