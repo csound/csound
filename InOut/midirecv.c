@@ -562,7 +562,7 @@ void FMidiOpen(ENVIRON *csound) /* open a MidiFile for reading, sense MPU401 */
     char inbytes[16];    /* must be long-aligned, 16 >= MThd maxlen */
 
     FMidevtblk = (MEVENT *) mcalloc(csound, (long)sizeof(MEVENT));
-    fsexp = 0;    
+    fsexp = 0;
     if (M_CHNBP[0] == (MCHNBLK*) NULL)      /* IV May 2002: added check */
       m_chn_init(csound, FMidevtblk,(short)0);
 
@@ -829,5 +829,6 @@ void MidiClose(ENVIRON *csound)
     }
     if (mfp != NULL)
       fclose(mfp);
+    mfp = NULL;
 }
 
