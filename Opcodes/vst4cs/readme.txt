@@ -23,7 +23,7 @@ Add to Csound 5 CVS and SConstruct.
 
 Use MYFLT for compiling with either single or double precision.
 
-To do: Change many parameters and non-in/out fields from MYFLT* to MYFLT or other type.
+Change many parameters and non-in/out fields from MYFLT* to MYFLT or other type.
 
 Add virtual destructor to VSTHost class.
 
@@ -39,11 +39,11 @@ To do: Use std collections throughout.
 
 Use Csound message printing functions throughout.
 
-To do: Remove all redundant comments.
+Remove all redundant comments.
 
 Simplify turnoff code in vstnote.
 
-To do: Enable fractional pitches.
+Enable fractional pitches.
 
 To do: Cleanup plugin memory allocated on the heap.
 
@@ -51,5 +51,5 @@ Write audio only on last instance of vstplug.
 
 To do: Add the ability to load programs and program banks, and to set programs.
 
-Fix: polyphony.
+
 
