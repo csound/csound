@@ -37,7 +37,7 @@ int csoundModuleCreate(void *csound)
 {
     /* nothing to do, report success */
     ((ENVIRON*) csound)->Message(csound, "PortAudio real-time audio module "
-                                         "for Csound by John ffitch\n");
+                                         "for Csound\n");
     return 0;
 }
 
