@@ -118,6 +118,8 @@ void csoundSetDebug(void *,int);
 int csoundTableLength(void *csound, int table);
 MYFLT csoundTableGet(void *csound, int table, int index);
 void csoundTableSet(void *csound, int table, int index, MYFLT value);
+void csoundSetFLTKThreadLocking(void *csound, int isLocking);
+int csoundGetFLTKThreadLocking(void *csound);
 
 void auxalloc(long, AUXCH*);
 char *getstring(int, char*);
@@ -284,6 +286,8 @@ ENVIRON cenviron_ = {
         csoundTableLength,
         csoundTableGet,
         csoundTableSet,
+	csoundSetFLTKThreadLocking,
+	csoundGetFLTKThreadLocking,
         /*
         * Data fields.
         */
@@ -412,7 +416,8 @@ ENVIRON cenviron_ = {
         0,                      /* maxfnum */
         NULL,                   /* gensub */
         GENMAX+1,               /* genmax */
-        100                     /* ftldno */
+        100,                    /* ftldno */
+	1                       /* doFLTKThreadLocking */
 };
 
 OPARMS O;
