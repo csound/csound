@@ -69,6 +69,10 @@ int cvanal(int argc, char **argv)
     long     Hlenpadded = 1;
     long     nb;
 
+    /* must set this for 'standard' behaviour when analysing
+       (assume re-entrant Csound) */
+    dbfs_init(DFLT_DBFS);
+
     if (!(--argc)) {
         quit(Str(X_939,"insufficient arguments"));
         return 0;
