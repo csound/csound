@@ -339,17 +339,17 @@ int csoundCompile(void *csound, int argc, char **argv)
     if (sizeof(MYFLT)==sizeof(float))
 		{
 #ifdef BETA
-			err_printf("Csound version %5.2d beta (float samples) %s\n", PACKAGE_VERSION, __DATE__);
+			err_printf("Csound version %s beta (float samples) %s\n", PACKAGE_VERSION, __DATE__);
 #else
-			err_printf("Csound version %5.2d (float samples) %s\n", PACKAGE_VERSION, __DATE__);
+			err_printf("Csound version %s (float samples) %s\n", PACKAGE_VERSION, __DATE__);
 #endif
 		}
     else
 		{
 #ifdef BETA
-			err_printf("Csound version %5.2d beta (double samples) %s\n", PACKAGE_VERSION, __DATE__);
+			err_printf("Csound version %s beta (double samples) %s\n", PACKAGE_VERSION, __DATE__);
 #else
-			err_printf("Csound version %5.2d (double samples) %s\n", PACKAGE_VERSION, __DATE__);
+			err_printf("Csound version %s (double samples) %s\n", PACKAGE_VERSION, __DATE__);
 #endif
 		}
 

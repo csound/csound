@@ -21,10 +21,6 @@
     02111-1307 USA
 */
 
-#define VERSION (4)
-#define SUBVER (50)
-#define VERSIONSTRING " v4.50beta"
-#define PVERSION "\p                                                 Csound 4.50beta"
 #if defined(HAVE_CONFIG_H)
 #include "config.h"
 #else
@@ -32,13 +28,13 @@
 #define PACKAGE_NAME "Csound"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "Csound 5.0beta"
+#define PACKAGE_STRING "Csound 5.00"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "csound"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "5.0beta"
+#define PACKAGE_VERSION "5.00"
 #endif
 
 # define APIVERSION 1  /* should be increased anytime a new version

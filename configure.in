@@ -2,10 +2,11 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.57)
-AC_INIT(Csound, 4.24, csound-bug@cs.bath.ac.uk)
+AC_INIT(Csound, 5.00, csound-bug@cs.bath.ac.uk)
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([Top/main.c])
 AC_CONFIG_HEADER([H/config.h])
+AC_DEFINE(HAVE_CONFIG_H)
 AC_CANONICAL_SYSTEM
 LDFLAGS="-L/usr/lib -L/usr/X11R6/lib -L/usr/local/lib"
 
@@ -13,12 +14,12 @@ LDFLAGS="-L/usr/lib -L/usr/X11R6/lib -L/usr/local/lib"
 AC_PROG_CXX
 dnl Add warning when using G++
 if test "X$GXX" = Xyes ; then
-  CXXFLAGS="$CXXFLAGS -Wall"
+  CXXFLAGS="$CXXFLAGS -Wall -DHAVE_CONFIG_H"
 fi
 AC_PROG_CC
 dnl Add warning when using GGG
 if test "X$GCC" = Xyes ; then
-  CFLAGS="$CFLAGS -Wall"
+  CFLAGS="$CFLAGS -Wall -DHAVE_CONFIG_H"
 fi
 AM_PROG_CC_STDC
 #AC_PROG_YACC
