@@ -754,6 +754,8 @@ typedef struct ENVIRON_
   int           displop4_;
 } ENVIRON;
 
+extern ENVIRON cenviron_;
+
 #include "text.h"
 
 #if defined(mac_classic) || defined(SYMANTEC)
