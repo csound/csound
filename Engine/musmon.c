@@ -99,7 +99,7 @@ int tempo(ENVIRON *csound, TEMPO *p)
     return OK;
 }
 
-extern  void    RTLineset(void), MidiOpen(void), FMidiOpen(void);
+extern  void    RTLineset(void), MidiOpen(void *), FMidiOpen(void *);
 extern  void    scsort(FILE*, FILE*), oload(ENVIRON *), cscorinit(void);
 extern  void    schedofftim(INSDS *), infoff(MYFLT);
 extern  void    orcompact(void), rlsmemfiles(void), timexpire(double);
@@ -231,11 +231,11 @@ int musmon(ENVIRON *csound)
         O.Midiin = 1;
         O.ksensing = 1;
       }
-     MidiOpen();                /*   alloc bufs & open files    */
+     MidiOpen(csound);                /*   alloc bufs & open files    */
      }
     dispinit();                 /* initialise graphics or character display */
     oload(csound);              /* set globals and run inits */
-    if (O.FMidiin) FMidiOpen();
+    if (O.FMidiin) FMidiOpen(csound);
     printf(Str("orch now loaded\n"));
 #ifdef mills_macintosh
     fflush(stdout);
@@ -489,8 +489,8 @@ void kturnon(ENVIRON *csound)/* turn on instrs due in turnon list */
 /* IV - Feb 05 2005 */
 #define RNDINT(x) ((int) ((double) (x) + ((double) (x) < 0.0 ? -0.5 : 0.5)))
 
-extern  int     sensLine(void);
-extern  int     sensMidi(void), sensFMidi(void);
+extern  int     sensLine();
+extern  int     sensMidi(ENVIRON *), sensFMidi(ENVIRON *);
 
 /* sense events for one k-period            */
 /* return value is one of the following:    */
@@ -522,8 +522,8 @@ int sensevents(ENVIRON *csound)
       /* sense real-time events */
       n = 1;
       if (p->cyclesRemaining && O.RTevents) {
-        if ((O.Midiin && (sensType = sensMidi())) ||  /* if MIDI note message */
-            (O.FMidiin && kcounter >= FMidiNxtk && (sensType = sensFMidi())) ||
+        if ((O.Midiin && (sensType = sensMidi(csound))) ||  /* if MIDI note message */
+            (O.FMidiin && kcounter >= FMidiNxtk && (sensType = sensFMidi(csound))) ||
             (O.Linein && (sensType = sensLine())) ||  /* or Linein event */
             (O.OrcEvts && (sensType = sensOrcEvent()))) /* or triginstr event */
         n = 0;                                          /*   (re Aug 1999) */
@@ -608,8 +608,8 @@ int sensevents(ENVIRON *csound)
         p->kDone = 0;
         /* sense real-time events */
         if (O.RTevents &&
-            ((O.Midiin && (sensType = sensMidi())) || /* if MIDI note message */
-             (O.FMidiin && kcounter >= FMidiNxtk && (sensType = sensFMidi())) ||
+            ((O.Midiin && (sensType = sensMidi(csound))) || /* if MIDI note message */
+             (O.FMidiin && kcounter >= FMidiNxtk && (sensType = sensFMidi(csound))) ||
              (O.Linein && (sensType = sensLine())) || /* or Linein event */
              (O.OrcEvts && (sensType = sensOrcEvent()))))   /* or triginstr */
           goto kperf_cont;                          /*  event (re Aug 1999) */
