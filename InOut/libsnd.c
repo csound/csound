@@ -29,11 +29,11 @@
 #include <fcntl.h>
 
 #ifdef RTAUDIO
-extern  int     *rtrecord_(MYFLT *, int);
-extern  void    *rtplay_(MYFLT *, int);
-extern  void    *rtclose_(void);
-extern  void    *recopen_(int, int, float, int);
-extern  void    *playopen_(int, int, float, int);
+extern  int     rtrecord_(MYFLT *, int);
+extern  void    rtplay_(MYFLT *, int);
+extern  void    rtclose_(void);
+extern  void    recopen_(int, int, float, int);
+extern  void    playopen_(int, int, float, int);
 #endif
 
 static  SNDFILE *outfile;
