@@ -32,6 +32,7 @@
 
 #if defined(WIN32)
 #       include <process.h>
+#		include <windows.h>
 #endif /* defined(WIN32) */
 #if defined(LINUX)
 #       include <pthread.h>
