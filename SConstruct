@@ -99,7 +99,9 @@ commonEnvironment.Prepend(SHLINKFLAGS = customSHLINKFLAGS)
 Help(opts.GenerateHelpText(commonEnvironment))
 
 commonEnvironment.Append(CPPPATH  = ['.', './H', './SDIF'])
-commonEnvironment.Append(CCFLAGS = '-DCSOUND_WITH_API')
+commonEnvironment.Append(CCFLAGS = Split('-DCSOUND_WITH_API -g -O2'))
+commonEnvironment.Append(CXXFLAGS = Split('-DCSOUND_WITH_API -fexceptions'))
+commonEnvironment.Append(LINKFLAGS = '-static')
 
 # Define options for different platforms.
 
@@ -298,6 +300,7 @@ if commonEnvironment['usePortAudio'] and portaudioFound:
     ustubProgramEnvironment.Append(CCFLAGS = '-DRTAUDIO')
     vstEnvironment.Append(CCFLAGS = '-DRTAUDIO')
     guiProgramEnvironment.Append(CCFLAGS = '-DRTAUDIO')
+    guiProgramEnvironment.Append(LINKFLAGS = '-mwindows')
     csoundProgramEnvironment.Append(LIBS = ['portaudio'])
     vstEnvironment.Append(LIBS = ['portaudio'])
     if (getPlatform() == 'linux'): 
@@ -327,6 +330,8 @@ if commonEnvironment['usePortAudio'] and portaudioFound:
         vstEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
         guiProgramEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
         csoundProgramEnvironment.Append(LIBS = ['fltk'])
+        vstEnvironment.Append(LINKFLAGS = "--subsystem:windows")
+        guiProgramEnvironment.Append(LINKFLAGS = "--subsystem:windows")
         if getPlatform() == 'linux' or getPlatform() == 'cygwin':
             csoundProgramEnvironment.Append(LIBS = ['stdc++', 'pthread'])
             ustubProgramEnvironment.Append(LIBS = ['stdc++', 'pthread'])
@@ -712,14 +717,12 @@ if (commonEnvironment['buildCsoundVST'] == 1) and boostFound and fltkFound:
     	guiProgramEnvironment.Prepend(LINKFLAGS = ['-mwindows', '_CsoundVST.so'])
     elif getPlatform() == 'cygwin' or getPlatform() == 'mingw':
         vstEnvironment['ENV']['PATH'] = os.environ['PATH']
+        vstEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
+        vstEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
         if getPlatform() == 'cygwin':
                 vstEnvironment.Append(CCFLAGS = ['-D_MSC_VER'])
-                vstEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
-                vstEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
-    	# guiProgramEnvironment.Prepend(LIBS = ['_CsoundVST'])
     	guiProgramEnvironment.Prepend(LINKFLAGS = ['-mwindows', '_CsoundVST.dll'])
     	vstEnvironment.Append(LIBS = ['python23'])
-    	# vstEnvironment.Prepend(LIBPATH = '/lib/python2.3/config')
     	pyrunEnvironment = vstEnvironment.Copy()
     	pyrunEnvironment.Append(CCFLAGS = '-DSWIG_GLOBAL')
     	pyrun = pyrunEnvironment.SharedLibrary('pyrun', ['frontends/CsoundVST/pyrun.c'])
@@ -783,7 +786,7 @@ if (commonEnvironment['buildCsoundVST'] == 1) and boostFound and fltkFound:
     zip = commonEnvironment.Command(zipfilename, csoundvstGui, buildzip)
     Depends(zip, [csoundvstGui, srconv])
 	
-    copyPython = commonEnvironment.Install(['.', '.'], ['frontends/CsoundVST/CsoundVST.py', 'frontends/CsoundVST/Koch.py'])
+    copyPython = commonEnvironment.Install(['.'], ['frontends/CsoundVST/CsoundVST.py'])
     Depends(copyPython, csoundvst)
 
 if commonEnvironment['generateTags'] == 1 and (getPlatform() == 'linux' or getPlatform() == 'cygwin'):

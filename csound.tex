@@ -66,7 +66,7 @@ To build Csound 5:
 \item SCons (required) for running the build, from \linebreak[4] \texttt{http:\-//www.scons.org}.
 \item libsndfile (required) for reading and writing soundfiles, from \linebreak[4] \texttt{http://www.mega-nerd.com/libsndfile/}.
 \item PortAudio for reading and writing real-time audio, from \linebreak[4] \texttt{http://www.portaudio.com/}.
-\item FLTK for displaying graphs of function tables, and for widget opcodes, from \linebreak[3] \texttt{http://www.fltk.org}.
+\item FLTK version 1.1.x for displaying graphs of function tables, and for widget opcodes, from \linebreak[3] \texttt{http://www.fltk.org}.
 \end{enumerate}
 \end{enumerate}
 If you also want to build CsoundVST, you will need in addition:
@@ -78,15 +78,16 @@ If you also want to build CsoundVST, you will need in addition:
 Currently, Csound 5 builds and runs on Windows using either the Cygwin environment (\texttt{http://www.cygwin.com}), or the MinGW \linebreak[4] (\texttt{http://www.mingw.org}) environment with the MSys shell \linebreak[4] (\texttt{http://www.mingw.org/msys.shtml}). Both of these environments are free, open source, and emulate the standard Unix/Linux environment and tools. On Linux, Csound 5 builds using the standard tools. Unix should work the same way as Linux.
 
 On Windows, the Cygwin build procedure is more like the Linux one. However, the MinGW build is preferred, since the resulting executables do not require the Cygwin DLLs and run faster.
+
 \subsubsection{Linux}
+
 If you have properly installed all the dependencies mentioned above, you can build Csound 5 and CsoundVST simply by opening a console, changing to the \texttt{csound5} directory, and executing the \texttt{scons} command. To see the various configuration options, execute \texttt{scons -h}.
+
 \subsubsection{Windows with Cygwin}
+
 The build procedure for Cygwin is identical to Linux. However, Cygwin comes with its own customized version of Python, while CsoundVST uses the regular version of Python from \texttt{http://www.python.org}, which is built with Microsoft Visual C++. Make sure to install SCons in the Cygwin version of Python, and use that version for the build, even though CsoundVST will use the Windows version of Python.
+
 \subsubsection{Windows with MinGW and MSys}
-You must install a version of libsndfile no earlier than:
-\begin{verbatim}
-http://www.mega-nerd.com/tmp/libsndfile-1.0.10pre4.tar.gz
-\end{verbatim}
 
 For MinGW, you may need to patch SCons as follows. Change line 51 of \texttt{SCons/Tool/mingw.py} from:
 \begin{verbatim}
@@ -96,6 +97,14 @@ to:
 \begin{verbatim}
 cmd = SCons.Util.CLVar(['$SHLINK', '$SHLINKFLAGS']) 
 \end{verbatim}
+
+It is highly recommend that you update your MinGW installation from the SourceForge site to the ``current'' level for core gcc, g++, binutils, and utils.
+
+Rebuild and install a version of libsndfile no earlier than:
+\begin{verbatim}
+http://www.mega-nerd.com/tmp/libsndfile-1.0.10pre4.tar.gz
+\end{verbatim}
+
 The build procedure for MinGW is similar, but not identical, to the Cygwin procedure. The MSys shell does not allow the user to execute Python commands directly. Therefore, you need to install the \emph{Windows} versions of Python and SCons, make sure that Python is in your Windows executable path, and run the build like this:
 \begin{verbatim}
 $ python c:/tools/python23/scripts/scons
@@ -191,6 +200,8 @@ int main(int argc, char **argv)
 CsoundVST is a multi-function front end for the Csound API. CsoundVST runs as a stand-alone graphical user interface to Csound, or as a VST plugin in hosts such as the Cubase audio sequencer. CsoundVST provides both a C++ and a Python API to Csound, and to a set of classes for algorithmic composition. 
 
 CsoundVST has a built-in Python interpreter. With Python, the user can generate a score, import a MIDI file, process notes, load and run a Csound orchestra, and in general do anything that can be done either with Csound or in Python.
+
+You must define the \texttt{PYTHONPATH} environment variable to include the directory containing the \texttt{\_CsoundVST} shared library and \texttt{CsounVST.py} script.
 
 \subsubsection{Standalone}
 
@@ -339,6 +350,8 @@ This is the ``to do'' list, not necessarily complete, for Csound and CsoundVST:
 \begin{enumerate}
 \item In preparation for a beta file release package:
 \begin{enumerate}
+\item Fix bug in -z option.
+\item Get CsoundVST working in Cubase.
 \item Complete this document sufficiently to get users started building running Csound and CsoundVST with MinGW and Linux.
 \item Tutorial scores:
 \begin{enumerate}
