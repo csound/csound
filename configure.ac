@@ -269,7 +269,7 @@ fi
 
 if test "x$WINDOWS" = xyes; then
 	if test "x$USE_FLTK" = xyes; then
-		AC_DEFINE(USE_FLTK, 1, [Define to build FLTK widget opcodes])
+		AC_DEFINE(USE_FLTK, 1, [Define to use FLTK for graphs])
         AC_HAVE_LIBRARY(fltk)
         AC_HAVE_LIBRARY(pthread)
     fi
