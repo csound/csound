@@ -947,8 +947,8 @@ else:
     zipDependencies.append(csoundvstGui)
     Depends(csoundvstGui, csoundvst)
 
-    counterpoint = vstEnvironment.Program('counterpoint', ['frontends/CsoundVST/CounterpointMain.cpp' ])
-    zipDependencies.append(counterpoint)
+    #counterpoint = vstEnvironment.Program('counterpoint', ['frontends/CsoundVST/CounterpointMain.cpp' ])
+    #zipDependencies.append(counterpoint)
      
     # Build the Loris and Python opcodes here because they depend 
     # on the same things as CsoundVST.
