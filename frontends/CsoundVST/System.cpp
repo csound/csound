@@ -390,13 +390,47 @@ namespace csound
 		Beep(880, 1000);
 	}
 
-#elif defined(LINUX) || defined(__CYGWIN__)
+#elif defined(__CYGWIN__)
+
+#include <process.h>
+#include <windows.h>
+#include <stdlib.h>
+#include <io.h>
+
+	int System::execute(const char *command)
+	{
+		STARTUPINFO startupInfo;
+		memset(&startupInfo, 0, sizeof(startupInfo));
+		startupInfo.cb = sizeof(startupInfo);
+		PROCESS_INFORMATION processInformation;
+		memset(&processInformation, 0, sizeof(processInformation));
+		return CreateProcess(0, 
+			const_cast<char *>(command), 
+			0, 
+			0, 
+			0, 
+			DETACHED_PROCESS, 
+			0, 
+			0, 
+			&startupInfo, 
+			&processInformation);
+	}
+
+	int System::shellOpen(const char *filename, const char *command)
+	{
+		int returnValue = 0;
+		int hInstance = (int) ShellExecute(0,
+			command,
+			filename,
+			0,
+			0,
+			SW_SHOWNORMAL);
+		returnValue = !(hInstance > 32);
+		return returnValue;
+	}
 
 #include <dlfcn.h>
 #include <dirent.h>
-#if !defined(__CYGWIN__)
-#include <libgen.h>
-#else
 
 	size_t strlcpy(char *d, const char *s, size_t bufsize)
 	{
@@ -480,30 +514,6 @@ namespace csound
 		}
 		strlcpy(bname, path, endp - path + 2);
 		return(bname);
-	}
-
-#endif
-
-	int System::shellOpen(const char *filename, const char *command)
-	{
-		int argc;
-		char **argv;
-		int returnValue = fork();
-		if(!returnValue)
-		{
-			std::string buffer = filename;
-			buffer += " ";
-			buffer += command;
-			scatterArgs(buffer, &argc, &argv);
-			execv(filename, argv);
-			deleteArgs(argc, argv);
-		}
-		return returnValue;
-	}
-
-	int System::execute(const char *command)
-	{
-		return ::system(command);
 	}
 
 	void System::parsePathname(const std::string pathname, 
@@ -616,7 +626,271 @@ namespace csound
 
 	std::string System::getSharedLibraryExtension()
 	{
+		return "dll";
+	}
+
+	void System::sleep(double milliseconds)
+	{
+		sleep((int) milliseconds);
+	}
+
+	void System::beep()
+	{
+		beep();
+	}
+
+#elif defined(LINUX)
+
+#include <dlfcn.h>
+#include <dirent.h>
+#include <libgen.h>
+
+	std::string System::getSharedLibraryExtension()
+	{
 		return "so";
+	}
+
+	size_t strlcpy(char *d, const char *s, size_t bufsize)
+	{
+		size_t len = strlen(s);
+		size_t ret = len;
+		if (bufsize <= 0) return 0;
+		if (len >= bufsize) len = bufsize-1;
+		memcpy(d, s, len);
+		d[len] = 0;
+		return ret;
+	}
+
+	char *basename(const char *path)
+	{
+		static char bname[MAXPATHLEN];
+		register const char *endp, *startp;
+
+		/* Empty or NULL string gets treated as "." */
+		if (path == NULL || *path == '\0') {
+			(void)strlcpy(bname, ".", sizeof bname);
+			return(bname);
+		}
+
+		/* Strip trailing slashes */
+		endp = path + strlen(path) - 1;
+		while (endp > path && *endp == '/')
+			endp--;
+
+		/* All slashes become "/" */
+		if (endp == path && *endp == '/') {
+			(void)strlcpy(bname, "/", sizeof bname);
+			return(bname);
+		}
+
+		/* Find the start of the base */
+		startp = endp;
+		while (startp > path && *(startp - 1) != '/')
+			startp--;
+
+		if (endp - startp + 2 > sizeof(bname)) {
+			//errno = ENAMETOOLONG;
+			return(NULL);
+		}
+		strlcpy(bname, startp, endp - startp + 2);
+		return(bname);
+	}
+
+	char *dirname(const char *path)
+	{
+		static char bname[MAXPATHLEN];
+		register const char *endp;
+
+		/* Empty or NULL string gets treated as "." */
+		if (path == NULL || *path == '\0') {
+			(void)strlcpy(bname, ".", sizeof(bname));
+			return(bname);
+		}
+
+		/* Strip trailing slashes */
+		endp = path + strlen(path) - 1;
+		while (endp > path && *endp == '/')
+			endp--;
+
+		/* Find the start of the dir */
+		while (endp > path && *endp != '/')
+			endp--;
+
+		/* Either the dir is "/" or there are no slashes */
+		if (endp == path) {
+			(void)strlcpy(bname, *endp == '/' ? "/" : ".", sizeof bname);
+			return(bname);
+		} else {
+			do {
+				endp--;
+			} while (endp > path && *endp == '/');
+		}
+
+		if (endp - path + 2 > sizeof(bname)) {
+			//errno = ENAMETOOLONG;
+			return(NULL);
+		}
+		strlcpy(bname, path, endp - path + 2);
+		return(bname);
+	}
+
+	int System::shellOpen(const char *filename, const char *command)
+	{
+        std::string buffer = filename;
+        buffer += " ";
+        buffer += command;
+		return System::execute(buffer.c_str());
+	}
+
+	int System::execute(const char *command)
+	{
+		int returnValue = fork();
+		if(!returnValue)
+		{
+            int argc;
+		    char **argv;
+			std::string buffer = command;
+			scatterArgs(buffer, &argc, &argv);
+			execv(argv[0], argv);
+			deleteArgs(argc, argv);
+		}
+		return returnValue;
+	}
+
+	int System::shellOpen(const char *filename, const char *command)
+	{
+        std::string buffer = filename;
+        buffer += " ";
+        buffer += command;
+		return System::execute(buffer.c_str());
+	}
+
+	int System::execute(const char *command)
+	{
+		int returnValue = fork();
+		if(!returnValue)
+		{
+            int argc;
+		    char **argv;
+			std::string buffer = command;
+			scatterArgs(buffer, &argc, &argv);
+			execv(argv[0], argv);
+			deleteArgs(argc, argv);
+		}
+		return returnValue;
+	}
+
+	void System::parsePathname(const std::string pathname, 
+		std::string &drive, 
+		std::string &directory, 
+		std::string &file, 
+		std::string &extension)
+	{
+		drive.erase();
+		directory.erase();
+		file.erase();
+		extension.erase();
+		char *dirTemp = strdup(pathname.c_str());
+		directory = dirname(dirTemp);
+		char *fileTemp = strdup(pathname.c_str());
+		file = basename(fileTemp);
+		int periodPosition = pathname.find_last_of(".");   
+		if(periodPosition != -1)
+		{
+			extension = pathname.substr(periodPosition + 1);
+		}
+		free(dirTemp);
+		free(fileTemp);
+	}
+
+	void *System::openLibrary(std::string filename)
+	{
+		void *library = 0;
+		library = dlopen(filename.c_str(), RTLD_NOW | RTLD_GLOBAL);
+		if(!library)
+		{
+			System::error("Error in dlopen(): '%s'\n", dlerror());
+		}
+		return library;
+	}
+
+	void *System::getSymbol(void *library, std::string name)
+	{
+		void *procedureAddress = 0;
+		procedureAddress = dlsym(library, name.c_str());
+		return procedureAddress;
+	}
+
+	void System::closeLibrary(void *library)
+	{
+		void *returnValue = 0;
+		returnValue = (void *)dlclose(library);
+	}
+
+	std::vector<std::string> System::getFilenames(std::string path)
+	{
+		std::vector<std::string> names;
+		return names;
+	}
+
+	std::vector<std::string> System::getDirectoryNames(std::string path)
+	{
+		std::vector<std::string> names;
+		return names;
+	}
+
+	void *System::createThread(void (*threadRoutine)(void *threadData), void *data, int priority)
+	{
+		pthread_t *pthread = new pthread_t;
+		if(pthread_create(pthread, 
+			0, 
+			(void *(*) (void*)) threadRoutine, 
+			data) == 0)
+		{
+			return pthread;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+
+	void *System::createThreadLock()
+	{
+		pthread_mutex_t *pthread_mutex = new pthread_mutex_t;
+		if(pthread_mutex_init(pthread_mutex, 0) == 0)
+		{
+			return pthread_mutex;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+
+	void System::waitThreadLock(void *lock, size_t milliseconds)
+	{
+		pthread_mutex_t *pthread_mutex = (pthread_mutex_t *)lock;
+		int returnValue = pthread_mutex_lock(pthread_mutex);
+	}
+
+	void System::notifyThreadLock(void *lock)
+	{
+		pthread_mutex_t *pthread_mutex = (pthread_mutex_t *)lock;
+		int returnValue = pthread_mutex_unlock(pthread_mutex);
+	}
+
+	void System::destroyThreadLock(void *lock)
+	{
+		pthread_mutex_t *pthread_mutex = (pthread_mutex_t *)lock;
+		int returnValue = pthread_mutex_destroy(pthread_mutex);
+		delete pthread_mutex;
+		pthread_mutex = 0;
+	}
+
+	std::string System::getSharedLibraryExtension()
+	{
+		return "dll";
 	}
 
 	void System::sleep(double milliseconds)
