@@ -166,7 +166,7 @@ extern "C" {
     /* setup jmp for return after an exit() */
     if ((returnValue = setjmp(cenviron.exitjmp_)))
       {
-        csoundMessage(csound, "Early return from csoundPerform().");
+        csoundMessage(csound, "Early return from csoundPerform().\n");
         return returnValue;
       }
     return csoundMain(csound, argc, argv);
@@ -180,7 +180,7 @@ extern "C" {
      */
     if ((returnValue = setjmp(((ENVIRON*) csound)->exitjmp_)))
       {
-        csoundMessage(csound, "Early return from csoundPerformKsmps().");
+        csoundMessage(csound, "Early return from csoundPerformKsmps().\n");
         return returnValue;
       }
     done = sensevents(csound);
@@ -205,7 +205,7 @@ extern "C" {
      */
     if ((returnValue = setjmp(((ENVIRON*) csound)->exitjmp_)))
       {
-        csoundMessage(csound, "Early return from csoundPerformKsmps().");
+        csoundMessage(csound, "Early return from csoundPerformKsmps().\n");
         return returnValue;
       }
     done = sensevents(csound);
@@ -243,7 +243,7 @@ extern "C" {
      */
     if ((returnValue = setjmp(((ENVIRON*) csound)->exitjmp_)))
       {
-        csoundMessage(csound, "Early return from csoundPerformBuffer().");
+        csoundMessage(csound, "Early return from csoundPerformBuffer().\n");
         return returnValue;
       }
     _rtCurOutBufCount = 0;
