@@ -1,0 +1,127 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1252">
+	<TITLE>fluidOpcodes</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 1.1.1  (Win32)">
+	<META NAME="CREATED" CONTENT="20040805;22245376">
+	<META NAME="CHANGEDBY" CONTENT="Michael Gogins">
+	<META NAME="CHANGED" CONTENT="20040805;23142607">
+	<STYLE>
+	<!--
+		H1 { color: #000000 }
+		P { color: #000000 }
+		H2 { color: #000000 }
+		PRE { color: #000000 }
+		A:link { color: #0000ff }
+		A:visited { color: #840084 }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="en-US" TEXT="#000000" LINK="#0000ff" VLINK="#840084" BGCOLOR="#ffffff" DIR="LTR">
+<H1>fluid</H1>
+<P>fluidload - Loads a SoundFont, assigns a MIDI channel to a
+SoundFont preset.<BR>fluidcontrol - Sends MIDI note on, note off, and
+other messages to a SoundFont preset.<BR>fluidout - Receives sound
+from all loaded SoundFonts.</P>
+<H2>Description</H2>
+<P>These opcodes provide a simple Csound opcode wrapper around Peter
+Hanappe's Fluidsynth SoundFont2 synthesizer. This implementation
+accepts any MIDI note on,  note off, controller, pitch bend, or
+program change message at k-rate. Maximum polyphony is 4096
+simultaneously sounding voices.Any number of SoundFonts may be loaded
+and played simultaneously.</P>
+<H2>Syntax</H2>
+<P><B>fluidload</B> <I>soundfont</I>, <I>iprogram</I>, <I>ichannel</I>
+[, <I>olistprograms</I>]</P>
+<P><B>fluidcontrol</B> <I>kstatus</I>, <I>kchannel</I>, <I>kdata1</I>,
+<I>data2</I></P>
+<P><I>aleft</I>, <I>aright</I> <B>fluidout</B></P>
+<H2>Initialization</H2>
+<P><I>aleft</I> - Left channel audio output.</P>
+<P><I>aright</I> - Right channel audio output.</P>
+<P><I>soundfont</I> - String specifying a SoundFont filename. Note
+that any number of SoundFonts may be loaded (obviously, by different
+invocations of <B>fluidload</B>).</P>
+<P><I>iprogram</I> - Number of the Fluidsynth program to be assigned
+to a MIDI channel.</P>
+<P><I>kstatus</I> - MIDI channel message status byte: 128 for note
+off, 144 for note on, 176 for control change, 192 for program change,
+or 224 for pitch bend. Note off messages need not be specified, as
+one is automatically generated when each Csound note expires or is
+released.</P>
+<P><I>ichannel</I>, <I>kchannel</I> - MIDI channel number to which
+the Fluidsynth program is assigned: from 0 to 255. MIDI channels
+numbered 16 or higher are virtual channels.</P>
+<P><I>kdata1</I> - For note on, MIDI key number: from 0 (lowest) to
+127 (highest), where 60 is middle C. For continuous controller
+messages, controller number.</P>
+<P><I>kdata2</I> - For note on, MIDI key velocity: from 0 (no sound)
+to 127 (loudest). For continous controller messages, controller
+value.</P>
+<P><I>olistprograms</I> - If specified, lists all Fluidsynth programs
+for the just-loaded SoundFont. A Fluidsynth program is a combination
+of SoundFont ID, bank number, and preset number that is assigned to a
+MIDI channel.</P>
+<H2>Performance</H2>
+<P>Invoke <B>fluidload </B>in the orchestra header, any number of
+times. The same SoundFont may be invoked to assign programs to MIDI
+channels any number of times; the SoundFont is only loaded the first
+time.</P>
+<P>Invoke <B>fluidcontrol</B> in instrument definitions that actually
+play notes and send control messages. Each instrument definition must
+consistently use one MIDI channel that was assigned to a Fluidsynth
+program using <B>fluidload</B>.</P>
+<P>Invoke <B>fluidout</B> in an instrument definition numbered higher
+than any <B>fluidcontrol</B> instrument definitions. All SoundFonts
+send their audio output to this one opcode. Send a note with a long
+duration to this instrument to turn the SoundFonts on for as long as
+required.</P>
+<P>In this implementation, SoundFont effects such as chorus or reverb
+are used if and only if they are defaults for the preset. There is no
+means of turning such effects on or off, or of changing their
+parameters, from Csound.</P>
+<H2>Examples</H2>
+<PRE><FONT SIZE=2>sr = 44100</FONT>
+<FONT SIZE=2>kr = 4410</FONT>
+<FONT SIZE=2>ksmps = 10  </FONT>
+<FONT SIZE=2>nchnls = 2</FONT>
+<FONT SIZE=2>0dbfs = 32767</FONT>
+
+<FONT SIZE=2>; LOAD SOUNDFONTS</FONT>
+
+<FONT SIZE=2>fluidload	&quot;Piano Steinway Grand Model C (21,738KB).sf2&quot;, 1, 1, 1 ; Bright Steinway, program 1, channel 1</FONT>
+<FONT SIZE=2>fluidload	&quot;Piano Steinway Grand Model C (21,738KB).sf2&quot;, 2, 3, 1 ; Concert Steinway with reverb, program 2, channel 3</FONT>
+<FONT SIZE=2>fluidload	&quot;63.3mg The Sound Site Album Bank V1.0.SF2&quot;,  50, 2, 1 ; General MIDI, program 50, channel 2</FONT>
+
+<FONT SIZE=2>; SEND NOTES TO STEINWAY SOUNDFONT</FONT>
+
+<FONT SIZE=2>instr 1 ; FluidSynth Steinway Rev</FONT>
+<FONT SIZE=2>; INITIALIZATION</FONT>
+                   <FONT SIZE=2>mididefault                  60, p3 ; Default duration of 60 -- overridden by score.</FONT>
+                   <FONT SIZE=2>midinoteonkey                p4, p5 ; Channels MIDI input to pfields.</FONT>
+<FONT SIZE=2>; Use channel assigned in fluidload.</FONT>
+<FONT SIZE=2>ichannel           =                            3</FONT>
+<FONT SIZE=2>ikey               =                            p4</FONT>
+<FONT SIZE=2>ivelocity          =                            p5</FONT>
+<FONT SIZE=2>istatus            =                            144</FONT>
+                   <FONT SIZE=2>fluidcontrol                 istatus, ichannel, ikey, ivelocity</FONT>
+<FONT SIZE=2><SPAN LANG="en-US">endin</SPAN></FONT>
+
+<FONT SIZE=2>; COLLECT AUDIO FROM ALL SOUNDFONTS</FONT>
+
+<FONT SIZE=2>instr 100 ; Fluidsynth output</FONT>
+<FONT SIZE=2>; INITIALIZATION</FONT>
+<FONT SIZE=2>; Normalize so iamplitude for p5 of 80 == ampdb(80).</FONT>
+<FONT SIZE=2>iamplitude         =                           ampdb(p5) * (10000.0 / 0.1)  </FONT>
+<FONT SIZE=2>; AUDIO</FONT>
+<FONT SIZE=2>aleft, aright      fluidout</FONT>
+                   <FONT SIZE=2>outs                        aleft * iamplitude, aright * iamplitude</FONT>
+<FONT SIZE=2><SPAN LANG="en-US">endin</SPAN></FONT></PRE><H2>
+Credits</H2>
+<P>Opcodes by Michael Gogins (gogins at pipeline dot com). Thanks to
+Peter Hanappe for Fluidsynth, and to Steven Yi for seeing that it is
+necessary to break up the Fluidsynth into several different Csound
+opcodes.</P>
+</BODY>
+</HTML>
