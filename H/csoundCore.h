@@ -78,6 +78,7 @@ extern "C" {
 #define MAXINSNO   (200)
 #define PMAX       (1000)
 #define VARGMAX    (1001)
+#define TOKMAX  50L             /* Should be 50 but bust */
   /* IV - Oct 24 2002: max number of input/output args for user defined opcodes */
 #define OPCODENUMOUTS   24
 
@@ -552,6 +553,12 @@ extern "C" {
     short   datreq, datcnt;
   } MGLOBAL;
 
+  typedef struct token {
+        char    *str;
+        short   prec;
+  } TOKEN;
+
+
   typedef struct ENVIRON_
   {
     int (*GetVersion)(void);
@@ -895,6 +902,17 @@ extern "C" {
     /* statics from twarp.c should be TSEG* */
     void          *tseg, *tpsave, *tplim;
     long          fout_kreset;
+    /* Statics from express.c */
+    long          polmax;
+    long          toklen;
+    TOKEN         *token;
+    TOKEN         *tokend;
+    TOKEN         *tokens;
+    TOKEN         **tokenlist;
+    int           toklength;
+    int           acount, kcount, icount, Bcount, bcount;
+    char          xprmsg[80], *stringend;
+    TOKEN         **revp, **pushp, **argp, **endlist;
   } ENVIRON;
 
 #include "text.h"
