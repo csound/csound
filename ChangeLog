@@ -2,6 +2,7 @@
 
 	* Engine/fgens.c (fgens): Started named fgens
 	(fterror): Allow named gens in error messages
+	(allocgen): New function to allocate new names
 
 2004-10-24  Michael Gogins <gogins@pipeline.com>
 
