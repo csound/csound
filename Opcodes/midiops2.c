@@ -54,7 +54,7 @@ int imidic7(MIDICTL2 *p)
     else {
       value = (MYFLT)(curip->m_chnbp->ctl_val[ctlno] * oneTOf7bit);
       if (*p->ifn > 0) {
-        if ((ftp = ftfind(p->ifn)) == NULL)
+        if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) == NULL)
           return NOTOK; /* if valid ftable, use value as index   */
         value = *(ftp->ftable + (long)(value*ftp->flen)); /* no interpolation */
       }
@@ -72,7 +72,7 @@ int midic7set(MIDICTL2 *p)
     }
     else p->ctlno = ctlno;
     if (*p->ifn > 0) {
-      if (((p->ftp = ftfind(p->ifn)) == NULL))
+      if (((p->ftp = ftfind(p->h.insdshead->csound, p->ifn)) == NULL))
         p->flag = FALSE;  /* invalid ftable */
       else p->flag= TRUE;
     }
@@ -120,7 +120,7 @@ int imidic14(MIDICTL3 *p)
         MYFLT diff;
         long length;
 
-        if ((ftp = ftfind(p->ifn)) == NULL)
+        if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) == NULL)
           return NOTOK; /* if valid ftable,use value as index   */
         phase = value * (length = ftp->flen);
         diff = phase - (long) phase;
@@ -146,7 +146,7 @@ int midic14set(MIDICTL3 *p)
     p->ctlno1 = ctlno1;
     p->ctlno2 = ctlno2;
     if (*p->ifn > 0) {
-      if (((p->ftp = ftfind(p->ifn)) == NULL))
+      if (((p->ftp = ftfind(p->h.insdshead->csound, p->ifn)) == NULL))
         p->flag = FALSE;  /* invalid ftable */
       else p->flag= TRUE;
     }
@@ -212,7 +212,7 @@ int imidic21(MIDICTL4 *p)
                        * oneTOf21bit);
       if (*p->ifn > 0) {
         /* linear interpolation routine */
-        FUNC *ftp = ftfind(p->ifn); /* gab-A1 */
+        FUNC *ftp = ftfind(p->h.insdshead->csound, p->ifn); /* gab-A1 */
         MYFLT phase;
         MYFLT *base;
         if (ftp == NULL) {
@@ -243,7 +243,7 @@ int midic21set(MIDICTL4 *p)
     p->ctlno2 = ctlno2;
     p->ctlno3 = ctlno3;
     if (*p->ifn > 0) {
-      if (((p->ftp = ftfind(p->ifn)) == NULL))
+      if (((p->ftp = ftfind(p->h.insdshead->csound, p->ifn)) == NULL))
         p->flag = FALSE;  /* invalid ftable */
       else
         p->flag= TRUE;
@@ -303,7 +303,7 @@ int ictrl7(CTRL7 *p)
     else {
       value = (MYFLT)(M_CHNBP[(int) *p->ichan-1]->ctl_val[ctlno]* oneTOf7bit);
       if (*p->ifn > 0) {
-        if ((ftp = ftfind(p->ifn)) == NULL)
+        if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) == NULL)
           return NOTOK;               /* if valid ftable,use value as index   */
         value = *(ftp->ftable + (long)(value*ftp->flen)); /* no interpolation */
       }
@@ -326,7 +326,7 @@ int ctrl7set(CTRL7 *p)
     /*else if (midi_in_p_num < 0) midi_in_error("ctrl7");*/
     else p->ctlno = ctlno;
     if (*p->ifn > 0) {
-      if (((p->ftp = ftfind(p->ifn)) == NULL))
+      if (((p->ftp = ftfind(p->h.insdshead->csound, p->ifn)) == NULL))
         p->flag = FALSE;  /* invalid ftable */
       else p->flag= TRUE;
     }
@@ -367,7 +367,7 @@ int ictrl14(CTRL14 *p)
 
       if (*p->ifn > 0) {
         /* linear interpolation routine */
-        FUNC *ftp = ftfind(p->ifn);
+        FUNC *ftp = ftfind(p->h.insdshead->csound, p->ifn);
         MYFLT phase;
         MYFLT *base;
         if (ftp == NULL) {
@@ -399,7 +399,7 @@ int ctrl14set(CTRL14 *p)
     p->ctlno1 = ctlno1;
     p->ctlno2 = ctlno2;
     if (*p->ifn > 0) {
-      if (((p->ftp = ftfind(p->ifn)) == NULL))
+      if (((p->ftp = ftfind(p->h.insdshead->csound, p->ifn)) == NULL))
         p->flag = FALSE;  /* invalid ftable */
       else p->flag= TRUE;
     }
@@ -451,7 +451,7 @@ int ictrl21(CTRL21 *p)
 
       if (*p->ifn > 0) {
         /* linear interpolation routine */
-        FUNC *ftp = ftfind(p->ifn);
+        FUNC *ftp = ftfind(p->h.insdshead->csound, p->ifn);
         MYFLT phase;
         MYFLT *base;
         if (ftp == NULL) {
@@ -486,7 +486,7 @@ int ctrl21set(CTRL21 *p)
     p->ctlno2 = ctlno2;
     p->ctlno3 = ctlno3;
     if (*p->ifn > 0) {
-      if (((p->ftp = ftfind(p->ifn)) == NULL))
+      if (((p->ftp = ftfind(p->h.insdshead->csound, p->ifn)) == NULL))
         p->flag = FALSE;  /* invalid ftable */
       else
         p->flag= TRUE;

@@ -71,7 +71,7 @@ int make_Modulatr(ENVIRON *csound,Modulatr *p, MYFLT *i)
 {
     FUNC        *ftp;
 
-    if ((ftp = csound->ftfind_(i)) != NULL)      p->wave = ftp;
+    if ((ftp = csound->ftfind_(csound,i)) != NULL)      p->wave = ftp;
     else {
       return csound->initerror_(csound->getstring_(X_382,"No table for Modulatr")); /* Expect sine wave */
     }
@@ -111,7 +111,7 @@ static int make_SingWave(ENVIRON *csound, SingWave *p, MYFLT *ifn, MYFLT *ivfn)
 {
     FUNC        *ftp;
 
-    if ((ftp = csound->ftfind_(ifn)) != NULL) p->wave = ftp;
+    if ((ftp = csound->ftfind_(csound,ifn)) != NULL) p->wave = ftp;
     else {
       csound->perferror_(csound->getstring_(X_383,"No table for Singwave"));
       return NOTOK;

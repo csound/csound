@@ -218,7 +218,8 @@ int tablexkt(TABLEXKT *p)
     wsized2 = wsize >> 1;
 
     /* check ftable */
-    if ((ftp = ftfindp(p->kfn)) == NULL) return NOTOK;     /* invalid table */
+    if ((ftp = ftfindp(p->h.insdshead->csound, p->kfn)) == NULL)
+      return NOTOK;     /* invalid table */
     if ((ftable = ftp->ftable) == NULL) return NOTOK;
     flen = ftp->flen;               /* table length */
     flen_d = (double) flen;

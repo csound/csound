@@ -25,7 +25,7 @@
 
                                                 /*      FTGEN.H        */
 void    makevt(void);
-FUNC    *hfgens(EVTBLK *);
+FUNC    *hfgens(ENVIRON *, EVTBLK *);
 
 #define MAXFNUM    100
 

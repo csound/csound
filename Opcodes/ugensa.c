@@ -34,8 +34,8 @@ int fogset(FOGS *p)
 {
     /* legato test, not sure if the last bit (auxch) is correct? */
     int skip = (*p->iskip != FL(0.0) && p->auxch.auxp != 0);
-    if ((p->ftp1 = ftfind(p->ifna)) != NULL &&
-        (p->ftp2 = ftfind(p->ifnb)) != NULL) {
+    if ((p->ftp1 = ftfind(p->h.insdshead->csound, p->ifna)) != NULL &&
+        (p->ftp2 = ftfind(p->h.insdshead->csound, p->ifnb)) != NULL) {
       OVERLAP *ovp, *nxtovp;
       long   olaps;
       p->fogcvt = FMAXLEN/(p->ftp1)->flen; /*JMC for FOG*/

@@ -1,3 +1,9 @@
+2004-11-16  John ffitch  <jpff@codemist.co.uk>
+
+	* Engine/fgens.c: All over removed statics into the environment or
+	into arguments.  Make ftfind etc take extra argument.  Should
+	assist with reentrance.
+
 2004-11-14  John ffitch  <jpff@codemist.co.uk>
 
 	* util2/exports/het_import.c (main): Open output as binary stream

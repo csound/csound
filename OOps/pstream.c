@@ -459,7 +459,7 @@ int pvsmaskaset(PVSMASKA *p)
     p->fout->framecount = 1;
     p->lastframe = 0;
 
-    p->maskfunc = ftfind(p->ifn);
+    p->maskfunc = ftfind(p->h.insdshead->csound, p->ifn);
     if (p->maskfunc==NULL)
       return NOTOK;
 
@@ -564,7 +564,7 @@ int pvsftwset(PVSFTW *p)
       die(Str(X_1595,"pvsftw: bad value for ifna.\n"));
     if (*p->ifnf < 0.0f)                /* 0 = notused */
       die(Str(X_1596,"pvsftw: bad value for ifnf.\n"));
-    p->outfna = ftfind(p->ifna);
+    p->outfna = ftfind(p->h.insdshead->csound, p->ifna);
     if (p->outfna==NULL)
       return NOTOK;
     fsrc = (float *) p->fsrc->frame.auxp;                 /* RWD MUST be 32bit */
@@ -582,7 +582,7 @@ int pvsftwset(PVSFTW *p)
 
     /* freq table? */
     if ((long) *p->ifnf >= 1.0f) {
-      p->outfnf = ftfind(p->ifnf);
+      p->outfnf = ftfind(p->h.insdshead->csound, p->ifnf);
       if (p->outfnf==NULL)
         return NOTOK;
       ftablef = p->outfnf->ftable;
@@ -671,7 +671,7 @@ int pvsftrset(PVSFTR *p)
        otherwise, there is no change!
     */
     if ((long) *p->ifna != 0) {
-      p->infna = ftfind(p->ifna);
+      p->infna = ftfind(p->h.insdshead->csound, p->ifna);
       if (p->infna==NULL)
         return NOTOK;
       p->ftablea = p->infna->ftable;
@@ -688,7 +688,7 @@ int pvsftrset(PVSFTR *p)
 
     /* freq table? */
     if ((long) *p->ifnf >= 1) {
-      p->infnf = ftfind(p->ifnf);
+      p->infnf = ftfind(p->h.insdshead->csound, p->ifnf);
       if (p->infnf==NULL)
         return NOTOK;
       p->ftablef = p->infnf->ftable;

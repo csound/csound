@@ -39,7 +39,7 @@ static int make_Modal4(ENVIRON *csound,
 {
     FUNC        *ftp;
 
-    if ((ftp = csound->ftfind_(ifn)) != NULL)
+    if ((ftp = csound->ftfind_(csound,ifn)) != NULL)
       m->vibr = ftp;
     else {
       csound->perferror_(csound->getstring_(X_381,"No table for Modal4 case")); /* Expect sine wave */
@@ -265,7 +265,7 @@ int marimbaset(MARIMBA *p)
     FUNC        *ftp;
     ENVIRON     *csound = p->h.insdshead->csound;
 
-    if ((ftp = ftfind(p->ifn)) != NULL)
+    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) != NULL)
       p->m4.wave = ftp;
     else {
       perferror
@@ -389,7 +389,7 @@ int vibraphnset(VIBRAPHN *p)
     FUNC        *ftp;
     ENVIRON     *csound = p->h.insdshead->csound;
 
-    if ((ftp = ftfind(p->ifn)) != NULL)
+    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) != NULL)
       p->m4.wave = ftp;         /* Expect an impulslything */
     else {
       return perferror(Str(X_385,
@@ -482,7 +482,7 @@ int agogobelset(VIBRAPHN *p)
     ENVIRON     *csound = p->h.insdshead->csound;
 
     /* Expect an impulslything */
-    if ((ftp = ftfind(p->ifn)) != NULL) p->m4.wave = ftp;
+    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) != NULL) p->m4.wave = ftp;
     else {
       return perferror(Str(X_374,
                     "No table for Agogobell strike"));
