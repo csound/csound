@@ -298,12 +298,13 @@ int csoundCompile(void *csound, int argc, char **argv)
     char  *filnamp, *envoutyp = NULL;
     int   n;
 
+    /* for debugging only */
     if ((n=setjmp(cenviron.exitjmp_))) {
-      /*
-       * Changed from exit(-1) for re-entrancy.
-       */
+      fprintf(stderr,
+              " *** WARNING: longjmp() called during csoundPreCompile() ***\n");
       return -1;
     }
+
     /* IV - Feb 05 2005: find out if csoundPreCompile() needs to be called */
     if (csoundQueryGlobalVariable(csound, "_RTAUDIO") == NULL)
       if (csoundPreCompile(csound) != CSOUND_SUCCESS)
@@ -311,6 +312,14 @@ int csoundCompile(void *csound, int argc, char **argv)
     if (csoundQueryGlobalVariable(csound, "csRtClock") != NULL)
       if (csoundPreCompile(csound) != CSOUND_SUCCESS)
         return CSOUND_ERROR;
+
+    if ((n=setjmp(cenviron.exitjmp_))) {
+      /*
+       * Changed from exit(-1) for re-entrancy.
+       */
+      return -1;
+    }
+
     /* IV - Jan 28 2005 */
     csoundCreateGlobalVariable(csound, "csRtClock", sizeof(RTCLOCK));
     csoundCreateGlobalVariable(csound, "#CLEANUP", (size_t) 1);
