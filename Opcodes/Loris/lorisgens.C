@@ -54,14 +54,14 @@
 #include "lorisgens.h"
 #include "string.h"
 
-#include <Breakpoint.h>
-#include <Envelope.h>
-#include <Exception.h>
-#include <Morpher.h>
-#include <Oscillator.h>
-#include <Partial.h>
-#include <PartialUtils.h>
-#include <SdifFile.h>
+#include "Breakpoint.h"
+#include "Envelope.h"
+#include "Exception.h"
+#include "Morpher.h"
+#include "Oscillator.h"
+#include "Partial.h"
+#include "PartialUtils.h"
+#include "SdifFile.h"
 
 #include <algorithm>
 #include <exception>
@@ -246,7 +246,7 @@ static inline void clear_buffer( double * buf, int nsamps )
 
 static inline void convert_samples( const double * src, MYFLT * tgt, int nn )
 {
-    for(size_t i = 0; i < nn; i++) {
+    for(int i = 0; i < nn; i++) {
         tgt[i] = src[i] * FL(32767.0);
     }
 }
@@ -552,9 +552,9 @@ struct LorisPlayer
 }; 
 
 LorisPlayer::LorisPlayer( LORISPLAY * params ) :
+	csound(params->h.insdshead->csound),
 	reader(EnvelopeReader::Find(params->h.insdshead->csound, params->h.insdshead, (int)*(params->readerIdx) ) ),
-	dblbuffer( params->h.insdshead->csound->GetKsmps(params->h.insdshead->csound), 0. ),
-	csound(params->h.insdshead->csound)
+	dblbuffer( params->h.insdshead->csound->GetKsmps(params->h.insdshead->csound), 0. )
 {
 	if ( reader != NULL )
 		oscils.resize( reader->size() );
@@ -634,6 +634,7 @@ int lorisplay_cleanup(void * p)
 
 class LorisMorpher
 {
+	ENVIRON *csound;
 	Morpher morpher;
 	const EnvelopeReader * src_reader;
 	const EnvelopeReader * tgt_reader;
@@ -642,7 +643,6 @@ class LorisMorpher
 	typedef std::map< long, std::pair< long, long > > LabelMap;
 	LabelMap labelMap;
 	std::vector< long > src_unlabeled, tgt_unlabeled;
-	ENVIRON *csound;
 public:	
 	//	construction:
 	LorisMorpher( LORISMORPH * params );
@@ -719,12 +719,12 @@ public:
 //	like an index map is the most efficient way.
 
 LorisMorpher::LorisMorpher( LORISMORPH * params ) :
+	csound(params->h.insdshead->csound),
 	morpher( GetFreqFunc( params ), GetAmpFunc( params ), GetBwFunc( params ) ),
 	src_reader( EnvelopeReader::Find( params->h.insdshead->csound, params->h.insdshead, (int)*(params->srcidx) ) ),
 	tgt_reader( EnvelopeReader::Find( params->h.insdshead->csound, params->h.insdshead, (int)*(params->tgtidx) ) ),
-	tag( params->h.insdshead, (int)*(params->morphedidx) ) ,
-	csound(params->h.insdshead->csound),
-	morphed_envelopes(params->h.insdshead->csound)
+	morphed_envelopes(params->h.insdshead->csound),
+	tag( params->h.insdshead, (int)*(params->morphedidx) ) 
 {
 	if ( src_reader != NULL ) {
 		//	map source Partial indices:
@@ -810,7 +810,7 @@ long LorisMorpher::updateEnvelopes( void )
 	long envidx = 0;
 	LabelMap::iterator it;
 	for( it = labelMap.begin(); it != labelMap.end(); ++it, ++envidx ) {
-		long label = it->first;
+		//long label = it->first;
 		std::pair<long, long> & indices = it->second;
 		Breakpoint & bp = morphed_envelopes.valueAt(envidx);
 		long isrc = indices.first;
@@ -844,7 +844,7 @@ long LorisMorpher::updateEnvelopes( void )
 	//	render unlabeled source Partials:
 	// std::cerr << "** Crossfading " << src_unlabeled.size();
 	// std::cerr << " unlabeled source Partials" << std::endl;
-	for( long i = 0; i < src_unlabeled.size(); ++i, ++envidx ) {
+	for( size_t i = 0; i < src_unlabeled.size(); ++i, ++envidx ) {
 		//	morph from the source to a dummy:
 		Breakpoint & bp = morphed_envelopes.valueAt(envidx);
 		morpher.morphParameters( src_reader->valueAt( src_unlabeled[i] ), dummy, 0, bp );
@@ -852,7 +852,7 @@ long LorisMorpher::updateEnvelopes( void )
 	//	render unlabeled target Partials:
 	// std::cerr << "** Crossfading " << tgt_unlabeled.size();
 	// std::cerr << " unlabeled target Partials" << std::endl;
-	for( long i = 0; i < tgt_unlabeled.size(); ++i, ++envidx ) {
+	for( size_t i = 0; i < tgt_unlabeled.size(); ++i, ++envidx ) {
 		//	morph from a dummy to the target:
 		Breakpoint & bp = morphed_envelopes.valueAt(envidx);
 		morpher.morphParameters( dummy, tgt_reader->valueAt( tgt_unlabeled[i] ), 0, bp );
