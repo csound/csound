@@ -1,4 +1,4 @@
-/*  
+/*
     babo.c:
 
     Copyright (C) 2000 Davide Rocchesso, Nicola Bernardini

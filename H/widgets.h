@@ -1,4 +1,4 @@
-/*  
+/*
     widgets.h:
 
     Copyright (C) 1002 Gabriel Maldonado

@@ -1313,10 +1313,10 @@ INSDS *insert_event(MYFLT instr,
       flp = &(ip->p1) + 3;
       if (O.odebug) printf(Str(X_1137,"psave beg at %p\n"),flp);
       for (i = 0; i < imax; i++) {
-          if (i < narg ) 
-            *flp++ = *(args[i]);
-          else
-            *flp++ = FL(0.0);
+        if (i < narg )
+          *flp++ = *(args[i]);
+        else
+          *flp++ = FL(0.0);
       }
       if (O.odebug) printf(Str(X_6,"   ending at %p\n"),flp);
     }

@@ -1,4 +1,4 @@
-/*  
+/*
     csgui.h:
 
     Copyright (C) 2002 Barry Vercoe, John ffitch

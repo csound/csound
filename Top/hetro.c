@@ -535,7 +535,7 @@ static void filedump(void)     /* WRITE OUTPUT FILE in DATA-REDUCED format */
       mags[h] = (short *)mmalloc((long)num_pts * sizeof(short));
       freqs[h] = (short *)mmalloc((long)num_pts * sizeof(short));
     }
-    
+ 
     TIME = (short *)mmalloc((long)num_pts * sizeof(short));
     timesiz = FL(1000.0) * input_dur / num_pts;
     for (pnt = 0; pnt < num_pts; pnt++)
@@ -555,7 +555,7 @@ static void filedump(void)     /* WRITE OUTPUT FILE in DATA-REDUCED format */
     }
     scale = m_ampsum / maxampsum;
     err_printf(Str(X_1176,"scale = %f\n"), scale);
-    
+
     for (h = 0; h < hmax; h++) {
       for (pnt = 0; pnt < num_pts; pnt++) {
         x = MAGS[h][pnt] * scale;

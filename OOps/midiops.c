@@ -429,7 +429,7 @@ int pgmassign(PGMASSIGN *p)
 
     /* IV - Oct 31 2002: allow named instruments */
     if (*p->inst == SSTRCOD) {
-      if (p->STRARG != NULL) 
+      if (p->STRARG != NULL)
         ins = (int) strarg2insno(p->inst, p->STRARG);
       else
         ins = (int) strarg2insno(p->inst, unquote(currevent->strarg));

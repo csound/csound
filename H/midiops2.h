@@ -1,4 +1,4 @@
-/*  
+/*
     midiops2.h:
 
     Copyright (C) 1997 Gabriel Maldonado

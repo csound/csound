@@ -1,4 +1,4 @@
-/*  
+/*
     winEPS.h: write Postscript graphs
 
     Copyright (C) 1995 Fabio P. Bertolotti

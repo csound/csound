@@ -1,4 +1,4 @@
-/*  
+/*
     fm4op.h:
 
     Copyright (C) 1998 Perry Cook, John ffitch

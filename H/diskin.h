@@ -1,4 +1,4 @@
-/*  
+/*
     diskin.h:
 
     Copyright (C) 1998, 2001 matt ingalls, Richard Dobson, John ffitch

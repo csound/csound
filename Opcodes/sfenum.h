@@ -1,4 +1,4 @@
-/*  
+/*
     sfenum.h:
 
     Copyright (C) 1995-1998 Creative Technology Ltd. / E-mu Systems, Inc.

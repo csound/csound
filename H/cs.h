@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-/*  
+/*
     cs.h:
 
     Copyright (C) 1991-2003 Barry Vercoe, John ffitch

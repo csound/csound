@@ -1,4 +1,4 @@
-/*  
+/*
     OSC-sock.h:
 
     Copyright (C) 2001, 2003 Nicola Bernadino, Stefan Kersten

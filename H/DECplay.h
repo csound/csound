@@ -1,4 +1,4 @@
-/*  
+/*
     DECplay.h:
 
     Copyright (C) 1991 Dan Ellis

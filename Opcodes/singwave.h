@@ -1,4 +1,4 @@
-/*  
+/*
     singwave.h:
 
     Copyright (C) 1996, 1997 Perry Cook, John ffitch

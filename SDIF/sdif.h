@@ -68,7 +68,7 @@ Music and Audio Technologies, University of California, Berkeley.
 #elif defined(_WIN32) || defined(_WINDOWS)
     #ifndef _WINDOWS_
         #include <windows.h>
-    #endif 
+    #endif
     typedef unsigned short sdif_unicode;
     typedef int                   sdif_int32;
     typedef unsigned int   sdif_uint32;
@@ -108,7 +108,7 @@ extern "C" {
    but the library never prints these error messages (because the best way to
    display an error to a user is platform-specific).  Instead, the function
    SDIF_GetErrorString returns the string corresponding to any given error
-   code. 
+   code.
 */
 
 /* update sdif.c to reflect any changes made to these error values. */
@@ -194,7 +194,7 @@ typedef enum {
 /****************************************************/
 
 
-/* SDIF_Init -- 
+/* SDIF_Init --
    You must call this before any of the other SDIF procedures. */
 SDIFresult SDIF_Init();
 
@@ -205,7 +205,7 @@ char *SDIF_GetErrorString(SDIFresult errorcode);
 
 /************* Opening and closing files *************/
 
-/* SDIF_OpenWrite -- 
+/* SDIF_OpenWrite --
    Opens "filename" for writing and writes the global SDIF header (but does
    not flush).  The resulting FILE* is written into *resultp. */
 SDIFresult SDIF_OpenWrite(const char *filename, FILE **resultp);
@@ -218,7 +218,7 @@ SDIFresult SDIF_BeginWrite(FILE *output);
 /* SDIF_CloseWrite -- */
 SDIFresult SDIF_CloseWrite(FILE *f);
 
-/* SDIF_OpenRead -- 
+/* SDIF_OpenRead --
    Opens "filename" for reading and reads and parses the header.  The return
    value will indicate any problem in the header.  After calling this the file
    pointer will be advanced to the beginning of the first frame. */
@@ -285,7 +285,7 @@ SDIFresult SDIF_WriteMatrixHeader(const SDIF_MatrixHeader *m, FILE *f);
 #define SDIF_GetMatrixDataTypeSize(d) ((d) & 0xff)
 
 /* SDIF_GetMatrixDataSize --
-   Returns the size in bytes of the matrix described by the given 
+   Returns the size in bytes of the matrix described by the given
    SDIF_MatrixHeader, including possible byte padding. */
 int SDIF_GetMatrixDataSize(const SDIF_MatrixHeader *m);
 
@@ -298,7 +298,7 @@ int SDIF_PaddingRequired(const SDIF_MatrixHeader *m);
    Assuming that you just read an SDIF_MatrixHeader and want to ignore the
    contents of this matrix (e.g., because your program doesn't recognize its
    matrixType), call this procedure to skip over the matrix data.  It will leave
-   the file pointer pointing at the next matrix after the one you skipped, 
+   the file pointer pointing at the next matrix after the one you skipped,
    or pointing at the next frame header if the one we skipped was the last one
    in the frame.  */
 SDIFresult SDIF_SkipMatrix(const SDIF_MatrixHeader *head, FILE *f);
@@ -307,7 +307,7 @@ SDIFresult SDIF_SkipMatrix(const SDIF_MatrixHeader *head, FILE *f);
    Assuming that you just read an SDIF_MatrixHeader and want to read the
    matrix data itself into a block of memory that you've allocated, call
    this procedure to do so.  Handles big/little endian issues.  */
-SDIFresult SDIF_ReadMatrixData(void *putItHere, FILE *f, 
+SDIFresult SDIF_ReadMatrixData(void *putItHere, FILE *f,
                                const SDIF_MatrixHeader *head);
 
 
@@ -344,7 +344,7 @@ void SDIF_Copy4Bytes(char *target, const char *string);
 
 #if defined(_WIN32) || defined(_WINDOWS)
 #define LITTLE_ENDIAN  1
-#else 
+#else
     /* Insert other checks for your architecture here if it's little endian. */
 #endif
 

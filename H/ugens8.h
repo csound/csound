@@ -1,4 +1,4 @@
-/*  
+/*
     ugens8.h:
 
     Copyright (C) 1991, 1998, 2000 Dan Ellis, Richard Karpen, Richard Dobson

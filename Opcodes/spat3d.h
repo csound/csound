@@ -1,4 +1,4 @@
-/*  
+/*
     spat3d.h:
 
     Copyright (C) 2001 Istvan Varga

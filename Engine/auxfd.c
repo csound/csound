@@ -51,7 +51,7 @@ static void auxrecord(AUXCH *auxchp)
      /* put auxch into chain of xp's for this instr */
      /* called only from auxalloc       */
 {
-    AUXCH	*prvchp, *nxtchp;
+    AUXCH       *prvchp, *nxtchp;
 
     prvchp = &curip->auxch;                     /* from current insds,  */
     while ((nxtchp = prvchp->nxtchp) != NULL)   /* chain through xplocs */

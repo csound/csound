@@ -1,4 +1,4 @@
-/*  
+/*
     sort.h:
 
     Copyright (C) 1991 Barry Vercoe, John ffitch

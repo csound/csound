@@ -36,7 +36,7 @@
 36,"***%d memfile%s deleted\n"
 37,"***%d opcodes\n"
 38,"%d Erreur de syntaxes dans l'orchestre. invalid de compilation\n"
-39,"défauts d'indicateur : scale -s -otest -F 0.0\n"
+39,"***Opened PortAudio output device %i.\n"
 40,"***%d : File %s position %ld\n"
 41,"Si l'échelle est 0,0 enregistre alors à maximum possible la graduation\n"
 42,"aucun facteur d'échelle"

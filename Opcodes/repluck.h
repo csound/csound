@@ -1,4 +1,4 @@
-/*  
+/*
     repluck.h:
 
     Copyright (C) 1996, 1998 John ffitch, Victor Lazzarini

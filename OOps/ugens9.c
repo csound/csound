@@ -309,11 +309,11 @@ int convolve(CONVOLVE *p)
 }
 
 
-/* partitioned (low latency) overlap-save convolution. 
+/* partitioned (low latency) overlap-save convolution.
 	we break up the IR into separate blocks, then perform
-	an FFT on each partition.  For this reason we ONLY accept 
-	soundfiles as input, and do all of the traditional 'cvanal' 
-	processing at i-time.  it would be nice to eventually 
+	an FFT on each partition.  For this reason we ONLY accept
+	soundfiles as input, and do all of the traditional 'cvanal'
+	processing at i-time.  it would be nice to eventually
 	have cvanal create a partitioned format, which in turn would
 	allow this opcode to accept .con files.
 	-ma++ april 2004 */
@@ -378,7 +378,7 @@ int pconvset(PCONVOLVE *p)
     }
 
     if (IRfile.sr != esr && (O.msglevel & WARNMSG)) {
-      /* ## RWD suggests performing sr conversion here! */  
+      /* ## RWD suggests performing sr conversion here! */
       printf("WARNING: IR srate != orch's srate");
     }
 
@@ -404,13 +404,13 @@ int pconvset(PCONVOLVE *p)
 
     /* form each partition and take its FFT */
     for (part = 0; part < p->numPartitions; part++) {
-      /* get the block of input samples and normalize -- soundin code 
+      /* get the block of input samples and normalize -- soundin code
          handles finding the right channel */
       if ((read_in = getsndin(infd, inbuf, p->Hlen*p->nchanls, &IRfile)) <= 0)
         die("PCONVOLVE: less sound than expected!");
 
       /* take FFT of each channel */
-      for (i = 0; i < p->nchanls; i++) { 
+      for (i = 0; i < p->nchanls; i++) {
         fp1 = inbuf + i;
         fp2 = IRblock;
         for (j = 0; j < read_in/p->nchanls; j++) {
@@ -504,7 +504,7 @@ int pconvolve(PCONVOLVE *p)
 
         /* Perform inverse FFT of the ondeck partion block */
         buf = (MYFLT *)p->convBuf.auxp + p->curPart * p->nchanls * hlenpaddedplus2;
-        for (i = 0; i < p->nchanls; i++) 
+        for (i = 0; i < p->nchanls; i++)
           FFT2torlpacked((complex *)(buf + i*hlenpaddedplus2),
                          p->Hlenpadded,
                          FL(1.0)/((MYFLT)p->Hlenpadded),
@@ -514,7 +514,7 @@ int pconvolve(PCONVOLVE *p)
            the first half for next time, then we copy the rest to output buffer */
         for (j = 0; j < p->nchanls; j++) {
           MYFLT *outp = p->outWrite + j;
-          for (i = 0; i < p->Hlen; i++)		
+          for (i = 0; i < p->Hlen; i++)
             *buf++ = FL(0.0);
           for (i = 0; i < p->Hlen; i++) {
             *outp = *buf;

@@ -7,7 +7,7 @@
 #define NETBSD_PLAY   1
 #define NETBSD_DUPLEX 2
 
-#undef USE_SETSCHEDULER 
+#undef USE_SETSCHEDULER
 
 #define NETBSD_MIXER "/dev/mixer0"
 #define NETBSD_SAMPLER "/dev/sound0"

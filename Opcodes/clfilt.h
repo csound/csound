@@ -1,4 +1,4 @@
-/*  
+/*
     clfilt.h:
 
     Copyright (C) 2002 Erik Spjut

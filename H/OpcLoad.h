@@ -3,7 +3,7 @@
 /*
 *       Plug-in opcodes for Csound.
 *       By Michael Gogins.
-*       23 February 1997 
+*       23 February 1997
 */
 #ifdef __cplusplus
 extern "C" {
@@ -12,7 +12,7 @@ extern "C" {
 *       Platform-dependent definitions and declarations.
 */
 #ifdef WIN32
-#define PUBLIC __declspec(dllexport) 
+#define PUBLIC __declspec(dllexport)
 #define LIBRARY_CALL WINAPI
 #else
 #define PUBLIC
@@ -41,12 +41,12 @@ typedef PUBLIC long (csOpcodeRegisterType)
                                       to be filled in by the opcode library. */
         OENTRY *opcodeEntryOut);
 /*
- *      Platform-independent function 
+ *      Platform-independent function
  *      to load a shared library.
  */
 long csLibraryLoad(const char *libraryPath);
 /*
- *      Platform-independent function 
+ *      Platform-independent function
  *      to get a function address
  *      in a shared library.
  */

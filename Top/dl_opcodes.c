@@ -78,7 +78,7 @@ void *csoundGetLibrarySymbol(void *library, const char *procedureName)
 void *csoundOpenLibrary(const char *libraryPath)
 {
     void *library = 0;
-#if defined(LINUX)    
+#if defined(LINUX)
     if (strstr(libraryPath, ".so")) {
 #elif defined(WIN32)
 	if (strstr(libraryPath, ".dll") || strstr(libraryPath, ".DLL")) {

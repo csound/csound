@@ -1,4 +1,4 @@
-/*  
+/*
     pstream.h:
 
     Copyright (C) 2001 Richard Dobson

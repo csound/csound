@@ -324,9 +324,9 @@ int pvsfreadset(PVSFREAD *p)
     float       *frptr,*memptr;          /* RWD pvocex format: MUST be 32bit */
 
     if (*p->ifilno == SSTRCOD) {                     /* if strg name given */
-      if (p->STRARG!=NULL) 
+      if (p->STRARG!=NULL)
         strcpy(pvfilnam, p->STRARG);                 /*   use that         */
-      else 
+      else
         strcpy(pvfilnam, unquote(currevent->strarg));
     }
     else if ((long)*p->ifilno < strsmax && strsets != NULL &&

@@ -1994,7 +1994,7 @@ ftnp2find(ENVIRON *csound, MYFLT *argp)
     }
 }
 
-static void gen01(FUNC *ftp, ENVIRON *csound) 
+static void gen01(FUNC *ftp, ENVIRON *csound)
                                 /* read ftable values from a sound file */
 {                               /* stops reading when table is full     */
     FGDATA  *ff = &(csound->ff);
@@ -2541,8 +2541,8 @@ typedef struct _pvstabledat {
         long    winsize;
         int     wintype;
         int     chans;
-        long    format;                 
-	long    blockalign;
+        long    format;
+        long    blockalign;
         unsigned long frames;
 } PVSTABLEDAT;
 
@@ -2683,7 +2683,7 @@ void gen43(FUNC *ftp, ENVIRON *csound)
     char     filename[MAXNAME];
     MEMFIL  *mfp;
     PVSTABLEDAT  p;
-    unsigned long framesize, blockalign, bins; 
+    unsigned long framesize, blockalign, bins;
     unsigned long frames, i, j;
     float* framep,* startp;
     double accum = 0.0;
@@ -2695,21 +2695,21 @@ void gen43(FUNC *ftp, ENVIRON *csound)
 
     filno = &ff->e.p[5];
     if (*filno == SSTRCOD) {
-      strcpy(filename, (char *)(&ff->e.strarg[0])); 
+      strcpy(filename, (char *)(&ff->e.strarg[0]));
     }
     else if ((long)*filno < strsmax && strsets != NULL && strsets[(long)*filno])
       strcpy(filename, strsets[(long)*filno]);
     else sprintf(filename,"pvoc.%d", (int)*filno); /* pvoc.filnum   */
     if (!pvx_loadfile_mem(filename,&p, &mfp)) die(errmsg);
-  
+
     channel = &ff->e.p[6];
 
     if (*channel > p.chans) fterror(ff,"illegal channel number");
- 
+
     framesize = p.fftsize+1;
     bins = framesize/2;
     frames = p.frames;
- 
+
     if (*channel > 0 ) {
       startp = (float *) (mfp->beginp + (p.fftsize+2) * ((int)*channel-1));
       blockalign = (p.fftsize+2) * p.chans; /* only read one channel */
@@ -2718,7 +2718,7 @@ void gen43(FUNC *ftp, ENVIRON *csound)
       startp = (float *) mfp->beginp;
       blockalign = (p.fftsize+2);  /* read all channels */
     }
- 
+
     framep = startp;
 
     if (bins > (unsigned long) (ftp->flen+1)) {

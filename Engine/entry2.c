@@ -163,8 +163,8 @@ int    ftsave_k_set(void*), ftload_k(void*);
 
 /* inarg types include the following:
 
-                i	irate scalar
-                k	krate scalar
+                i       irate scalar
+                k       krate scalar
                 a       arate vector
                 f       fregency variable
                 w       spectral variable

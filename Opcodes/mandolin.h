@@ -1,4 +1,4 @@
-/*  
+/*
     mandolin.h: mandolin model
 
     Copyright (C) 1997 John ffitch, Perry Cook

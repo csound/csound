@@ -1,4 +1,4 @@
-/*  
+/*
     sf.h:
 
     Copyright (C) 2000 Gabriel Maldonado, John ffitch

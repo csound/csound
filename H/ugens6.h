@@ -1,4 +1,4 @@
-/*  
+/*
     ugens6.h:
 
     Copyright (C) 1991-2000 Barry Vercoe, John ffitch, Jens Groh, Hans Mikelson, Istvan Varga

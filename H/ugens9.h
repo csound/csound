@@ -1,4 +1,4 @@
-/*  
+/*
     ugens9.h:
 
     Copyright (C) 1996 Greg Sullivan

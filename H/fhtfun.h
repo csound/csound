@@ -1,4 +1,4 @@
-/*  
+/*
     fhtfun.h:
 
     Copyright (C) 1997 Paris Smaragdis, John ffitch
