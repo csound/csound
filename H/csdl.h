@@ -135,12 +135,7 @@
 #undef oparms
 #undef opcodeInfo
 #undef instrumentNames
-#undef dbfs_to_short
-#undef short_to_dbfs
 #undef dbfs_to_float
-#undef float_to_dbfs
-#undef dbfs_to_long
-#undef long_to_dbfs
 #undef rtin_dev
 #undef rtin_devs
 #undef rtout_dev
@@ -375,12 +370,7 @@
 #define oparms_ csound->oparms_
 #define opcodeInfo csound->opcodeInfo_     /* IV - Oct 20 2002 */
 #define instrumentNames csound->instrumentNames_
-#define dbfs_to_short csound->dbfs_to_short_
-#define short_to_dbfs csound->short_to_dbfs_
 #define dbfs_to_float csound->dbfs_to_float_
-#define float_to_dbfs csound->float_to_dbfs_
-#define dbfs_to_long csound->dbfs_to_long_
-#define long_to_dbfs csound->long_to_dbfs_
 #define rtin_dev csound->rtin_dev_
 #define rtin_devs csound->rtin_devsa_
 #define rtout_dev csound->rtout_dev_

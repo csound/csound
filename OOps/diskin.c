@@ -48,13 +48,6 @@
 #include <assert.h>
 #endif
 
-#ifdef  USE_DOUBLE
-#define sf_write_MYFLT  sf_write_double
-#define sf_read_MYFLT   sf_read_double
-#else
-#define sf_write_MYFLT  sf_write_float
-#define sf_read_MYFLT   sf_read_float
-#endif
 extern int type2sf(int);
 extern char* type2string(int);
 #define format2sf(x) (x)
@@ -71,23 +64,21 @@ static int sreadinew(           /* special handling of sound input       */
     int    n, ntot=0;
 
     do {
-/*       printf("*** Filling %d frames at %p\n", (nsamples-ntot)/nchnls, inbuf+ntot); */
-      if ((n = sf_read_MYFLT(infd, inbuf+ntot, (nsamples-ntot)/nchnls)) < 0)
+      if ((n = sf_read_MYFLT(infd, inbuf + ntot, nsamples - ntot)) < 0)
         die(Str("soundfile read error"));
-    } while (n > 0 && (ntot += n*nchnls) < nsamples);
+    } while (n > 0 && (ntot += n) < nsamples);
     if (p->audrem > 0) {      /* AIFF:                  */
       if (ntot > p->audrem)   /*   chk haven't exceeded */
         ntot = p->audrem;     /*   limit of audio data  */
-      p->audrem -= ntot; /* FIXED VL, 02-11-04, was p->audrem -= ntot*sizeof(MYFLT) */
+      p->audrem -= ntot;    /* FIXED VL, 02-11-04 */
     }
     else ntot = 0;
-
 
     /*RWD 3:2000 expanded format fixups ; more efficient here than in
       soundinew() ?  (well, saves a LOT of typing!) */
     if (p->format==AE_FLOAT) {
       int i,cnt;
-      float scalefac = (float)INMYFLTFAC;
+      float scalefac = (float) e0dbfs;
       float *ptr = (float *) inbuf;
 
       if (p->do_floatscaling)
@@ -688,14 +679,14 @@ void soundinew(ENVIRON *csound, SOUNDINEW *p)    /*  a-rate routine for soundine
    what will people want for 0dbfs handling? really need to update
    opcode with more options. */
 
-int sndo1set(ENVIRON *csound, SNDOUT *p)            /* init routine for instr soundout   */
+int sndo1set(ENVIRON *csound, SNDOUT *p) /* init routine for instr soundout   */
 {
     int    soutfd, filno;
     char   *sfname, sndoutname[128];
     SF_INFO sfinfo;
     SNDFILE *outfile;
 
-    if (p->c.fdch.fd != NULL)   return OK;        /* if file already open, rtn  */
+    if (p->c.fdch.fd != NULL)   return OK;  /* if file already open, rtn  */
     if (*p->c.ifilcod == SSTRCOD)
       strcpy(sndoutname, unquote(p->STRARG));
     else if ((filno = (int)*p->c.ifilcod) <= strsmax && strsets != NULL &&
@@ -714,9 +705,6 @@ int sndo1set(ENVIRON *csound, SNDOUT *p)            /* init routine for instr so
     }
     sfinfo.frames = -1;
     sfinfo.samplerate = (int) (esr + FL(0.5));
-#if 0
-    sfinfo.channels = nchnls;        /* WRONG *************************** */
-#endif
     sfinfo.channels = 1;
     p->c.filetyp = TYP_RAW;
     switch ((int) (*(p->c.iformat) + FL(0.5))) {
@@ -734,15 +722,18 @@ int sndo1set(ENVIRON *csound, SNDOUT *p)            /* init routine for instr so
     sfinfo.sections = 0;
     sfinfo.seekable = 0;
     outfile = sf_open_fd(soutfd, SFM_WRITE, &sfinfo, SF_TRUE);
+    if (p->c.format != AE_FLOAT)
+      sf_command(outfile, SFC_SET_CLIPPING, NULL, SF_TRUE);
+#ifdef USE_DOUBLE
+    sf_command(outfile, SFC_SET_NORM_DOUBLE, NULL, SF_FALSE);
+#else
+    sf_command(outfile, SFC_SET_NORM_FLOAT, NULL, SF_FALSE);
+#endif
     sfname = retfilnam;
-    if ((p->c.format = (short)*p->c.iformat) > 0)
-      p->c.format |= 0x100;
-
-    printf(Str("opening %s outfile %s\n"),
-           type2string(p->c.filetyp), sfname);
-    p->c.outbufp = p->c.outbuf;         /* fix - isro 20-11-96 */
+    printf(Str("opening %s outfile %s\n"), type2string(p->c.filetyp), sfname);
+    p->c.outbufp = p->c.outbuf;             /* fix - isro 20-11-96 */
     p->c.bufend = p->c.outbuf + SNDOUTSMPS; /* fix - isro 20-11-96 */
-    p->c.fdch.fd = outfile;                  /*     store & log the fd     */
+    p->c.fdch.fd = outfile; /* WRONG */     /*     store & log the fd     */
     fdrecord(&p->c.fdch);                   /*     instr will close later */
     return OK;
  errtn:

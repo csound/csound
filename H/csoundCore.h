@@ -876,12 +876,7 @@ extern "C" {
     void          *hostdata_;
     OPCODINFO     *opcodeInfo_;    /* IV - Oct 20 2002 */
     void          *instrumentNames_;
-    MYFLT         dbfs_to_short_;
-    MYFLT         short_to_dbfs_;
     MYFLT         dbfs_to_float_;
-    MYFLT         float_to_dbfs_;
-    MYFLT         dbfs_to_long_;
-    MYFLT         long_to_dbfs_;
     unsigned int  rtin_dev_;
     char *        rtin_devs_;
     unsigned int  rtout_dev_;
