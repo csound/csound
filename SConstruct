@@ -168,7 +168,7 @@ if (commonEnvironment['useGprof']=='1'):
 commonEnvironment.Prepend(CXXFLAGS = Split('-DCSOUND_WITH_API -fexceptions'))
 commonEnvironment.Prepend(LIBPATH = ['.', '#.'])
 commonEnvironment.Prepend(CPPFLAGS = ['-DBETA'])
-commonEnvironment.Prepend(LIBPATH = ['.', '#.', '/usr/lib', '/usr/local/lib'])
+commonEnvironment.Prepend(LIBPATH = ['.', '#.', '/usr/local/lib'])
 
 if (commonEnvironment['useDouble']=='0'):
     print 'CONFIGURATION DECISION: Using single-precision floating point for audio samples.'

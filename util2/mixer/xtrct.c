@@ -41,6 +41,7 @@
 #include "cs.h"
 #include "ustub.h"
 #include "soundio.h"
+#include <sndfile.h>
 
 /* Constants */
 #define NUMBER_OF_SAMPLES       (4096)
@@ -48,6 +49,8 @@
 #define FIND(MSG)   if (*s == '\0')  \
                         if (!(--argc) || ((s = *++argv) && *s == '-')) \
                             die(MSG);
+extern int type2sf(int);
+
 void *memfiles = NULL;
 void rlsmemfiles(void)
 {
@@ -67,11 +70,11 @@ int debug   = 0;
 
 /* Static function prototypes */
 
-static int  EXsndgetset(char *);
-static void ExtractSound(int, int);
+static SNDFILE*  EXsndgetset(char *);
+static void ExtractSound(SNDFILE*, SNDFILE*);
 
 /* Externs */
-extern long getsndin(int, float *, long, SOUNDIN *);
+extern long getsndin(SNDFILE*, MYFLT *, long, SOUNDIN *);
 extern int  openout(char *, int);
 extern char *getstrformat(int);
 extern int  sndgetset(SOUNDIN *);
@@ -104,8 +107,10 @@ int
 main(int argc, char **argv)
 {
     char        *inputfile = NULL;
-    int         infd, outfd;
+    SNDFILE*    infd;
+    SNDFILE*    outfd;
     char        c, *s, *filnamp;
+    SF_INFO     sfinfo;
 
     init_getstring(argc, argv);
 /*     response_expand(&argc, &argv); /\* Permits "@xxx" response files *\/ */
@@ -291,19 +296,25 @@ main(int argc, char **argv)
     O.filetyp = p->filetyp; /* Copy from input file */
     O.sfheader = 1;
     if (O.outfilename == NULL)  O.outfilename = "test";
-    outfd = openout(O.outfilename, 1);
+    sfinfo.frames = -1;
+    sfinfo.samplerate = (int) (esr + FL(0.5));
+    sfinfo.channels = nchnls;
+    sfinfo.format = type2sf(O.filetyp)|format2sf(O.outformat);
+    sfinfo.sections = 0;
+    sfinfo.seekable = 0;
+    outfd = sf_open_fd(openout(O.outfilename, 1),SFM_WRITE, &sfinfo, 1);
     esr = (MYFLT)p->sr;
     nchnls = outputs;
     ExtractSound(infd, outfd);
-    close(outfd);
+    sf_close(outfd);
     if (O.ringbell) putc(7, stderr);
     return 0;
 }
 
-static int
+static SNDFILE*
 EXsndgetset(char *name)
 {
-    int          infd;
+    SNDFILE*    infd;
     MYFLT        dur;
     static ARGOFFS argoffs = {0};     /* these for sndgetset */
     static OPTXT optxt;
@@ -331,8 +342,8 @@ EXsndgetset(char *name)
     return(infd);
 }
 
-static void
-ExtractSound(int infd, int outfd)
+static void 
+ExtractSound(SNDFILE* infd, SNDFILE* outfd)
 {
     char  buffer[4*NUMBER_OF_SAMPLES];
     long  read_in;
@@ -340,19 +351,19 @@ ExtractSound(int infd, int outfd)
     int   block = 0;
 
 
-    lseek(infd, outputs*sample*O.sfsampsize, SEEK_CUR);
+    sf_seek(infd, outputs*sample*O.sfsampsize, SEEK_CUR);
     while (numsamps>0) {
       int num = NUMBER_OF_SAMPLES;
       if (numsamps<num) num = numsamps;
       numsamps -= num;
       num *= O.sfsampsize*outputs;
-      read_in = read(infd, buffer, num);
-      write(outfd, buffer, read_in);
+      read_in = sf_read_double(infd, buffer, num);
+      sf_write_double(outfd, buffer, read_in);
       block++;
       bytes += read_in;
       if (O.rewrt_hdr) {
-        rewriteheader((SNDFILE *)outfd, bytes);
-        lseek(outfd, 0L, SEEK_END); /* Place at end again */
+        rewriteheader(outfd, bytes);
+        sf_seek(outfd, 0L, SEEK_END); /* Place at end again */
       }
       if (O.heartbeat) {
         putc("|/-\\"[block&3], stderr);
@@ -360,7 +371,7 @@ ExtractSound(int infd, int outfd)
       }
       if (read_in < num) break;
     }
-    rewriteheader((SNDFILE *)outfd, bytes);
+    rewriteheader(outfd, bytes);
     return;
 }
 
