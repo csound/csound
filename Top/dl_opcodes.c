@@ -515,7 +515,7 @@ int csoundLoadExternals(void *csound)
         opcodedir = ".";
       }
       if (O.odebug) {
-	printf("OPCODEDIR='%s'.\n", opcodedir?opcodedir:"(null)");
+        printf("OPCODEDIR='%s'.\n", opcodedir?opcodedir:"(null)");
       }
       directory = opendir(opcodedir);
       while ((file = readdir(directory)) != 0) {

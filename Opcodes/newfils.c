@@ -104,7 +104,7 @@ int statevar_process(ENVIRON *csound,statevar *p)
     MYFLT  res  = *p->res;
     double  lpd = p->lpd;
     double  bpd = p->bpd;
-    double  lp  = p->lp, hp, bp, br;
+    double  lp  = p->lp, hp = 0.0, bp = 0.0, br = 0.0;
     double f,q,lim;
     int ostimes = p->ostimes,i,j;
 

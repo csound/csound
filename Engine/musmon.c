@@ -130,7 +130,7 @@ static  MYFLT   curbt, curp2;
 void    beep(void);
 extern  void    RTclose(void);
 
-#define MAXTIM 3600.
+/* #define MAXTIM 3600. */
 #define MAXONS 5
 
 static TRNON turnons[MAXONS];
@@ -189,7 +189,7 @@ void print_maxamp(MYFLT x)                     /* IV - Jul 9 2002 */
       else if (e0dbfs > FL(30.0)) printf("%9.3f", x);
       else printf("%9.4f", x);
     }
-    else {                                    /* dB values */
+    else {                      /* dB values */
       y = x / e0dbfs;           /* relative level */
       if (y < FL(1.0e-10)) {
         printf ("      0  ");   /* less than -200 dB: print zero */
@@ -244,7 +244,7 @@ int musmon(ENVIRON *csound)
         O.Midiin = 1;
         O.ksensing = 1;
       }
-     MidiOpen();                     /*   alloc bufs & open files    */
+     MidiOpen();                /*   alloc bufs & open files    */
      }
     dispinit();                 /* initialise graphics or character display */
     oload(csound);              /* set globals and run inits */
@@ -640,7 +640,7 @@ static int playevents(ENVIRON *csound)
         chn = M_CHNBP[mep->chan];
         insno = chn->pgmno;
         if (mep->type == NOTEON_TYPE && mep->dat2) { /* midi note ON: */
-          if ((n = MIDIinsert(csound,insno,chn,mep)))    {  /* alloc,init,activ */
+          if ((n = MIDIinsert(csound,insno,chn,mep))) {  /* alloc,init,activ */
             printf(Str(X_568,"\t\t   T%7.3f - note deleted. "), curp2);
             printf(Str(X_926,"instr %d had %d init errors\n"), insno, n);
             perferrcnt++;
@@ -1000,7 +1000,7 @@ int sensevents(ENVIRON *csound)
             }
             if (OrcTrigEvts.nxtevt == NULL) O.OrcEvts = 0;
           }
-/*           else if (sensType == 4) {   /\* Realtime orc event (re Aug 1999) *\/ */
+/*        else if (sensType == 4) {   /\* Realtime orc event (re Aug 1999) *\/ */
 /*             EVTNODE *evtlist = OrcTrigEvts.nxtevt; */
 /*             while (evtlist && evtlist->kstart <= kcounter) { */
 /*               int insno = evtlist->insno; */
