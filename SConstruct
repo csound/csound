@@ -60,7 +60,7 @@ opts.Add('useFLTK',
     1)
 opts.Add('buildCsoundVST', 
     'Set to 1 to build CsoundVST (needs FLTK, boost, Python 2.3, SWIG).', 
-    0)
+    1)
 opts.Add('useMingw', 
     'Set to 1 to use mingw on Windows.', 
     0)
@@ -645,9 +645,10 @@ if (commonEnvironment['buildCsoundVST']) and boostFound and fltkFound:
     	vstEnvironment.Append(LIBS = ['swigpy', 'python2.3', 'util'])
         vstEnvironment.Append(CPPPATH = ['/usr/local/include/python2.3'])
         vstEnvironment.Append(LIBPATH = ['/usr/local/lib/python2.3/config'])
-    	guiProgramEnvironment.Prepend(LINKFLAGS = ['_CsoundVST.so'])
+    	guiProgramEnvironment.Prepend(LINKFLAGS = ['-mwindows', '_CsoundVST.so'])
     if sys.platform == 'cygwin':
-    	guiProgramEnvironment.Prepend(LIBS = ['_CsoundVST'])
+    	# guiProgramEnvironment.Prepend(LIBS = ['_CsoundVST'])
+    	guiProgramEnvironment.Prepend(LINKFLAGS = ['-mwindows', '_CsoundVST.dll'])
         # vstEnvironment.Append(CPPPATH = ['/usr/include/python2.3'])
         vstEnvironment.Prepend(CPPPATH = ['c:/Python23/include'])
     	vstEnvironment.Append(CCFLAGS = '-D_MSC_VER')
@@ -661,7 +662,7 @@ if (commonEnvironment['buildCsoundVST']) and boostFound and fltkFound:
     	vstEnvironment.Append(SWIGFLAGS = Split('-python -c++ -c -includeall -verbose'))
     	vstEnvironment.Append(LIBS = ['pyrun'])
     if sys.platform == 'mingw' or sys.platform[:3] == 'win':
-    	guiProgramEnvironment.Prepend(LIBS = ['_CsoundVST'])
+    	guiProgramEnvironment.Prepend(LINKFLAGS = ['-mwindows', '_CsoundVST.dll'])
         vstEnvironment.Prepend(CPPPATH = ['c:/Python23/include'])
     	vstEnvironment.Append(CCFLAGS = '-D_MSC_VER')
     	vstEnvironment.Append(LIBS = ['python23'])
