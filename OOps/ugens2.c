@@ -612,32 +612,33 @@ int tabli(ENVIRON *csound, TABLE  *p)
     int nsmps = ksmps;
     MYFLT       *rslt, *pxndx, *tab;
     MYFLT       fract, v1, v2, ndx, xbmul, offset;
+    int wrap = p->wrap;
 
     ftp = p->ftp;
     if (ftp==NULL) {
       return perferror(Str("tablei: not initialised"));
     }
-    rslt = p->rslt;
+    rslt   = p->rslt;
     length = ftp->flen;
-    pxndx = p->xndx;
-    xbmul = (MYFLT)p->xbmul;
+    pxndx  = p->xndx;
+    xbmul  = (MYFLT)p->xbmul;
     offset = p->offset;
-    mask = ftp->lenmask;
-    tab = ftp->ftable;
-    do {
-      /* Read in the next raw index and increment the pointer ready
-       * for the next cycle.
-       * Then multiply the ndx by the denormalising factor and add in
-       * the offset.  */
+    mask   = ftp->lenmask;
+    tab    = ftp->ftable;
+    /* As for ktabli() code to handle non wrap mode, and wrap mode.  */
+    if (!wrap) {
+      do {
+        /* Read in the next raw index and increment the pointer ready
+         * for the next cycle.
+         * Then multiply the ndx by the denormalising factor and add in
+         * the offset.  */
 
-      ndx = (*pxndx++ * xbmul) + offset;
-      indx = (long) floor((double)ndx);
+        ndx = (*pxndx++ * xbmul) + offset;
+        indx = (long) floor((double)ndx);
 
-      /* We need to generate a fraction - How much above indx is ndx?
-       * It will be between 0 and just below 1.0.  */
-      fract = ndx - indx;
-      /* As for ktabli() code to handle non wrap mode, and wrap mode.  */
-      if (!p->wrap) {
+        /* We need to generate a fraction - How much above indx is ndx?
+         * It will be between 0 and just below 1.0.  */
+        fract = ndx - indx;
         if (ndx > length) {
           indx  = length - 1;
           fract = FL(1.0);
@@ -646,14 +647,34 @@ int tabli(ENVIRON *csound, TABLE  *p)
           indx  = 0L;
           fract = FL(0.0);
         }
-      }
-      else      indx &= mask;
-      /* As for ktabli(), read two values and interpolate between
-       * them.  */
-      v1 = *(tab + indx);
-      v2 = *(tab + indx + 1);
-      *rslt++ = v1 + (v2 - v1)*fract;
-    } while(--nsmps);
+        /* As for ktabli(), read two values and interpolate between
+         * them.  */
+        v1 = *(tab + indx);
+        v2 = *(tab + indx + 1);
+        *rslt++ = v1 + (v2 - v1)*fract;
+      } while(--nsmps);
+    }
+    else {
+      do {
+        /* Read in the next raw index and increment the pointer ready
+         * for the next cycle.
+         * Then multiply the ndx by the denormalising factor and add in
+         * the offset.  */
+
+        ndx = (*pxndx++ * xbmul) + offset;
+        indx = (long) floor((double)ndx);
+
+        /* We need to generate a fraction - How much above indx is ndx?
+         * It will be between 0 and just below 1.0.  */
+        fract = ndx - indx;
+        indx &= mask;
+        /* As for ktabli(), read two values and interpolate between
+         * them.  */
+        v1 = *(tab + indx);
+        v2 = *(tab + indx + 1);
+        *rslt++ = v1 + (v2 - v1)*fract;
+      } while(--nsmps);
+    }
     return OK;
 }
 
