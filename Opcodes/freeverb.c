@@ -161,7 +161,7 @@ static int freeverb_init(ENVIRON *csound, FREEVERB *p)
     p->tmpBuf = (MYFLT*) ((unsigned char*) p->auxData.auxp + (int) nbytes);
     p->prvDampFactor = FL(-1.0);
     if (*(p->iSampleRate) >= MIN_SRATE)
-      p->srFact = pow((DEFAULT_SRATE / (double) *(p->iSampleRate)), 0.85);
+      p->srFact = pow((DEFAULT_SRATE / (double) *(p->iSampleRate)), 0.8);
     else
       p->srFact = 1.0;
     return OK;
