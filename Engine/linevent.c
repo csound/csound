@@ -446,7 +446,7 @@ int eventOpcode(LINEVENT *p)
 /* create a new score event [called externally] */
 /*              'type' can only be 'i', 'f', or 'e' */
 /*              'pfields' is an array of 'count' floats representing the pfields */
-void newevent(char type, MYFLT *pfields, long count)
+void newevent(void*csound, char type, MYFLT *pfields, long count)
 {
     LEVTBLK  *Curblk;
     EVTBLK   *e;
