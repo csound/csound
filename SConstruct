@@ -650,6 +650,10 @@ zipDependencies.append(pluginEnvironment.SharedLibrary('vdelayk',
     ['Opcodes/vdelayk.c']))
 zipDependencies.append(pluginEnvironment.SharedLibrary('wave-terrain', 
     ['Opcodes/wave-terrain.c']))
+
+# Experimental
+zipDependencies.append(pluginEnvironment.SharedLibrary('osc-sock', 
+    ['Opcodes/osc-sock.c']))
        
 # Plugins with External Dependencies
 

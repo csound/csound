@@ -858,7 +858,7 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
           nxp = old_nxp;
           *nxp++ = op; /* Undo this line */
           nxp++;
-          goto again;
+          goto again;           /* suggested this loses a line?? */
         }
       case 'n':
         {
