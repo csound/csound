@@ -250,7 +250,8 @@ static int sc_reverb_init(ENVIRON *csound, SC_REVERB *p)
 
 static int sc_reverb_perf(ENVIRON *csound, SC_REVERB *p)
 {
-    int i, j;
+    double  aoutL, aoutR;
+    int     i, j;
 
     if (p->initDone <= 0) {
       perferror(Str("sc_reverb: not initialised"));
@@ -270,23 +271,23 @@ static int sc_reverb_perf(ENVIRON *csound, SC_REVERB *p)
         p->jpState += p->delayLines[j]->filterState;
       p->jpState *= jpScale;
       delay_line_perform(p, p->delayLines[0], p->ainL[i], 0);
-      p->aoutL[i] = (MYFLT) p->delayLines[0]->filterState;
+      aoutL = p->delayLines[0]->filterState;
       delay_line_perform(p, p->delayLines[1], p->ainR[i], 1);
-      p->aoutR[i] = (MYFLT) p->delayLines[1]->filterState;
+      aoutR = p->delayLines[1]->filterState;
       delay_line_perform(p, p->delayLines[2], p->ainL[i], 2);
-      p->aoutL[i] += (MYFLT) p->delayLines[2]->filterState;
+      aoutL += (MYFLT) p->delayLines[2]->filterState;
       delay_line_perform(p, p->delayLines[3], p->ainR[i], 3);
-      p->aoutR[i] += (MYFLT) p->delayLines[3]->filterState;
+      aoutR += (MYFLT) p->delayLines[3]->filterState;
       delay_line_perform(p, p->delayLines[4], p->ainL[i], 4);
-      p->aoutL[i] += (MYFLT) p->delayLines[4]->filterState;
+      aoutL += (MYFLT) p->delayLines[4]->filterState;
       delay_line_perform(p, p->delayLines[5], p->ainR[i], 5);
-      p->aoutR[i] += (MYFLT) p->delayLines[5]->filterState;
+      aoutR += (MYFLT) p->delayLines[5]->filterState;
       delay_line_perform(p, p->delayLines[6], p->ainL[i], 6);
-      p->aoutL[i] += (MYFLT) p->delayLines[6]->filterState;
+      aoutL += (MYFLT) p->delayLines[6]->filterState;
       delay_line_perform(p, p->delayLines[7], p->ainR[i], 7);
-      p->aoutR[i] += (MYFLT) p->delayLines[7]->filterState;
-      p->aoutL[i] *= (MYFLT) outputGain;
-      p->aoutR[i] *= (MYFLT) outputGain;
+      aoutR += (MYFLT) p->delayLines[7]->filterState;
+      p->aoutL[i] = (MYFLT) (aoutL * outputGain);
+      p->aoutR[i] = (MYFLT) (aoutR * outputGain);
     }
 
     return OK;
