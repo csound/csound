@@ -641,7 +641,7 @@ int sensFMidi(void)     /* read a MidiFile event, collect the data & dispatch */
         goto nxtim;
       }
       else if (lo3 == 6) {        /* sys_non-realtime status:   */
-        /* m_tuneReq();              /* do this one immed  */
+        /* m_tuneReq();*/              /* do this one immed  */
         goto nxtim;
       }
       else {

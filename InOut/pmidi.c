@@ -497,7 +497,7 @@ static void m_sysReset(void) {}
 static void m_tuneReq(void) {}
 
 static int sexcnt = 0;
-static void m_sysex(u_char *sbuf, u_char *sp) /* sys_excl msg, sexbuf: ID + data */
+static void m_sysex(PmEvent *sbuf, PmEvent *sp) /* sys_excl msg, sexbuf: ID + data */
 {
     int nbytes = sp - sbuf;
     if (++sexcnt >= 100) {
@@ -592,8 +592,10 @@ int sensMidi(void)         /* sense a MIDI event, collect the data & dispatch */
       }
     }
     if (sexp != NULL) {                 /* NON-STATUS byte:      */
-      if (sexp < sexend)                /* if sys_excl           */
-        *sexp++ = (u_char)c;            /*    special data sav   */
+      if (sexp < sexend) {              /* if sys_excl           */
+        sexp->message = c;              /*    special data sav   */
+        sexp++;
+      }
       else printf(Str(X_1262,"system exclusive buffer overflow\n"));
       goto nxtchr;
     }
