@@ -52,8 +52,8 @@ void all_free(void)
     rlsmemfiles();
     while (--ap>=0) {
 /*        DisplayMsg("freeing %p(%d)", all[ap].p, all[ap].n); */
-        if (all[ap].p != NULL) free(all[ap].p);
-        all[ap].p = NULL;
+      if (all[ap].p != NULL) free(all[ap].p);
+      all[ap].p = NULL;
     }
     free(all);
     all = NULL;                 /* For safety */
@@ -82,13 +82,13 @@ static void memdie(long nbytes)
 {
     err_printf(Str(X_989,"memory allocate failure for %d\n"), nbytes);
 #ifdef mills_macintosh
-    err_printf(Str(X_1297,"try increasing preferred size setting for the Perf Application\n"));
+    err_printf(Str(X_1297,"try increasing preferred size setting for "
+                   "the Perf Application\n"));
 #endif
     longjmp(cenviron.exitjmp_,1);
 }
 
- void *
-mcalloc(long nbytes)            /* allocate new memory space, cleared to 0 */
+void *mcalloc(long nbytes) /* allocate new memory space, cleared to 0 */
 {
     void *p;
 #ifdef _DEBUG
@@ -103,7 +103,8 @@ mcalloc(long nbytes)            /* allocate new memory space, cleared to 0 */
 #ifdef MEMDEBUG
     if (ap >= apsize) {
       MEMREC *new_all = (MEMREC*)realloc(all, sizeof(MEMREC)*(apsize += 1020));
-      if (new_all == NULL) err_printf( "Too many allocs\n"), longjmp(cenviron.exitjmp_,1);
+      if (new_all == NULL)
+        err_printf( "Too many allocs\n"), longjmp(cenviron.exitjmp_,1);
       all = new_all;
     }
     all[ap].n = nbytes;
@@ -112,8 +113,7 @@ mcalloc(long nbytes)            /* allocate new memory space, cleared to 0 */
     return(p);
 }
 
- void *
-mmalloc(long nbytes)         /* allocate new memory space, NOT cleared to 0 */
+void *mmalloc(long nbytes) /* allocate new memory space, NOT cleared to 0 */
 {
     void *p;
 
@@ -127,7 +127,8 @@ mmalloc(long nbytes)         /* allocate new memory space, NOT cleared to 0 */
 #ifdef MEMDEBUG
     if (ap >= apsize) {
       MEMREC *new_all = (MEMREC *)realloc(all, sizeof(MEMREC)*(apsize += 1020));
-      if (new_all == NULL) err_printf( "Too many allocs\n"), longjmp(cenviron.exitjmp_,1);
+      if (new_all == NULL)
+        err_printf( "Too many allocs\n"), longjmp(cenviron.exitjmp_,1);
       all = new_all;
     }
     all[ap].n = nbytes;
@@ -136,8 +137,7 @@ mmalloc(long nbytes)         /* allocate new memory space, NOT cleared to 0 */
     return(p);
 }
 
- void *
-mrealloc(void *old, long nbytes)                /* Packaged realloc */
+void *mrealloc(void *old, long nbytes) /* Packaged realloc */
 {
     void *p;
 
@@ -155,14 +155,16 @@ mrealloc(void *old, long nbytes)                /* Packaged realloc */
         oldall++;
         if (oldall > ap) memdie(-nbytes);
       }
-/*        err_printf("Changing %p(%d) to %p(%d)\n", old, all[oldall].n, p, nbytes); */
+      /*        err_printf("Changing %p(%d) to %p(%d)\n",
+                old, all[oldall].n, p, nbytes); */
       all[oldall].n = nbytes;
       all[oldall].p = p;
     }
     else {
       if (ap >= apsize) {
         MEMREC *new_all = (MEMREC*)realloc(all, sizeof(MEMREC)*(apsize += 1020));
-        if (new_all == NULL) err_printf( "Too many allocs\n"), longjmp(cenviron.exitjmp_,1);
+        if (new_all == NULL)
+          err_printf( "Too many allocs\n"), longjmp(cenviron.exitjmp_,1);
         all = new_all;
       }
       all[ap].n = nbytes;
