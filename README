@@ -5,7 +5,7 @@
 [AUTOTOOLS]-----------------------------------------------------------------
 
 To compile Csound 5, you'll need to install up to date versions of the 
-GNU Autotools: autoconf, automake, libtool, and their dependencies.
+GNU autotools: aclocal, autoconf, autoheader, autogen, automake, and libtool.
 
 [ABOUT THE SOURCES]---------------------------------------------------------
 
@@ -27,12 +27,12 @@ util2	- audio file related utilities
 Csound 5 tries to use the sndfile library to read and write soundfiles,
 the portaudio library to read and write real-time audio,
 the SDIF library to read and write SDIF files,
-and the FLTK library to graph function tables and draw control widgets.
+and the fltk library to graph function tables and draw control widgets.
 
 [Windows dependencies]
 
-Csound5 is designed to be built using Cygwin, 
-so all the dependencies also need to be built with Cygwin or to have Cygwin import libraries.
+Csound5 on Windows is built with Cygwin, 
+so all dependencies also need to be built with Cygwin or to have Cygwin import libraries.
 
 Portaudio needs the Windows multimedia library (libwinmm.a). You can run ./configure --with-winapi=wmme --with-host_os=mingw.
 
@@ -43,7 +43,8 @@ to be converted to Unix text.
 [Linux dependencies]
 
 Portaudio needs the ALSA library (libasound.so). If the portaudio library doesn't build,
-copy the config.sub and config.guess files from Csound 5 to the portaudio directory.
+copy the config.sub and config.guess files from Csound 5 to the portaudio directory and 
+run ./configure.
 
 [COMPILING CSOUND]----------------------------------------------------------
 
