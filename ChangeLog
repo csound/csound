@@ -1,3 +1,8 @@
+2004-07-18  Steven Yi <stevenyi@csounds.com>
+	* Engine/oload.c (oload): Moved call to sssfinit to above init0 as
+	recommended by Matt Ingalls, instr 0 opcodes that use fopenin() now 
+	function correctly
+
 2004-07-18  John ffitch  <jpff@codemist.co.uk>
 
 	* OOps/vpvoc.c (vpvset): Ditto
