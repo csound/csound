@@ -127,7 +127,7 @@ short natshort(short sval)    /* coerce a bigendian short into a natural short *
     natshrt = benchar[0];
     natshrt <<= 8;
     natshrt |= benchar[1];
-    printf("%.4x <- %.4x\n", sval, natshrt);
+/*     printf("%.4x <- %.4x\n", sval, natshrt); */
     return(natshrt);
 }
 
@@ -145,7 +145,7 @@ long natlong(long lval)      /* coerce a bigendian long into a natural long */
     natlng |= *p++;
     natlng <<= 8;
     natlng |= *p;
-    printf("%.8x <- %.8x\n", lval, natlng);
+/*     printf("%.8x <- %.8x\n", lval, natlng); */
     return(natlng);
 }
 #endif

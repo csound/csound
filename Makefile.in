@@ -205,6 +205,7 @@ CSRCT = \
 	$T/cscore.c	\
 	$T/cscorfns.c	\
 	$T/cvanal.c	\
+	$T/dl_opcodes.c \
 	$T/dnoise.c 	\
 	$T/getstring.c	\
 	$T/hetro.c	\
@@ -215,8 +216,8 @@ CSRCT = \
 	$T/opcode.c	\
 	$T/pvanal.c	\
 	$T/pvlook.c	\
-	$T/sndinfo.c	\
-	$T/scot.c
+	$T/scot.c       \
+	$T/sndinfo.c
 
 
 CSRCO = \
@@ -459,6 +460,8 @@ $(COBJO): $(CSRCO)
 .c.$(o):
 	$(CC) $(CFLAGS) -I H -c $*.c -o $*.$(o)
 
+natben.$(o):
+	$(CC) $(CFLAGS) -I H -c $T/natben.c -o natben.$(o)
 
 ADSYNS = hetro 						#targets in anal/adsyn
 LPCS = lpanal						#targets in anal/lpc
@@ -473,7 +476,7 @@ SCOTS = scots						#targets in util1/scot
 CSCORES = cscores					#targets in util1/cscore
 SORTEXS = scsort extract				#targets in util1/sortex
 UTILS1 = $(SCOTS) $(CSCORES) sortexs $(SORTEXS)		#targets in util1
-utils1 $(UTILS1): ####natben.$(o)
+utils1 $(UTILS1): natben.$(o)
 		cd util1; $(MAKE) $@
 
 UTILS2 = sndinfos scale mixers extractor envelope pvlook dnoise srconv #targets in util2
