@@ -902,7 +902,7 @@ int itblchkw(ENVIRON *csound, TABLEW *p)
      * It also checks for numbers < 0, and table 0 is never valid, so we
      * do not need to check here for the table number being < 1.  */
 
-    if ((p->ftp = ftfind(csound, p->xfn)) == NULL)
+    if ((p->ftp = csound->FTFind(csound, p->xfn)) == NULL)
       return NOTOK;
     /* Although TABLEW has an integer variable for the table number
      * (p->pfn) we do not need to * write it.  We know that the * k
@@ -1317,7 +1317,7 @@ int    itableng(ENVIRON *csound, TABLENG *p)
      * memory.  Returns zero if not found.  Report and error, which
      * will cause this instrument initialisation to fail.  */
 
-    if ((ftp = ftfind(csound, p->xfn)) == NULL) {
+    if ((ftp = csound->FTFind(csound, p->xfn)) == NULL) {
       *p->kout = FL(0.0);
 /*       sprintf(errmsg, Str("Table %f not found\n"), *(p->xfn)); */
 /*       return initerror(errmsg); */
@@ -1400,7 +1400,7 @@ int itablegpw(ENVIRON *csound, TABLEGPW *p)
     long        length;
 
     /* Check to see we can find the table and find its location in memory. */
-    if ((ftp = ftfind(csound, p->xfn)) == NULL) {
+    if ((ftp = csound->FTFind(csound, p->xfn)) == NULL) {
       sprintf(errmsg, Str("Table %f not found\n"), *(p->xfn));
       return initerror(errmsg);
     }
@@ -1568,7 +1568,7 @@ int itablemix(ENVIRON *csound, TABLEMIX *p)
      * ftfind() for init time.
      */
 
-    if ((p->funcd = ftfind(csound, p->dft)) == NULL) {
+    if ((p->funcd = csound->FTFind(csound, p->dft)) == NULL) {
       sprintf(errmsg, Str("Destination dft table %.2f not found.\n"),
               *p->dft);
       return initerror(errmsg);
@@ -1579,7 +1579,7 @@ int itablemix(ENVIRON *csound, TABLEMIX *p)
     p->pdft = (int)*p->dft;
 
     /* Source 1 */
-    if ((p->funcs1 = ftfind(csound, p->s1ft)) == NULL) {
+    if ((p->funcs1 = csound->FTFind(csound, p->s1ft)) == NULL) {
       sprintf(errmsg, Str("Source 1 s1ft table %.2f not found.\n"),
               *p->s1ft);
       return initerror(errmsg);
@@ -1587,7 +1587,7 @@ int itablemix(ENVIRON *csound, TABLEMIX *p)
     p->ps1ft = (int)*p->s1ft;
 
     /* Source 2 */
-    if ((p->funcs2 = ftfind(csound, p->s2ft)) == NULL) {
+    if ((p->funcs2 = csound->FTFind(csound, p->s2ft)) == NULL) {
       sprintf(errmsg, Str("Source 2 s2ft table %.2f not found.\n"),
               *p->s2ft);
       return initerror(errmsg);
@@ -1821,7 +1821,7 @@ int itablecopy(ENVIRON *csound, TABLECOPY *p)
     if (p->pdft != (int)*p->dft) {
       /* Get pointer to the function table data structure.
        * ftfindp() for perf time. ftfind() for init time. */
-      if ((p->funcd = ftfind(csound, p->dft)) == NULL) {
+      if ((p->funcd = csound->FTFind(csound, p->dft)) == NULL) {
         sprintf(errmsg, Str("Destination dft table %.2f not found.\n"),
                 *p->dft);
         return initerror(errmsg);
@@ -1832,7 +1832,7 @@ int itablecopy(ENVIRON *csound, TABLECOPY *p)
     }
     /* Source  */
     if (p->psft != (int)*p->sft) {
-      if ((p->funcs = ftfind(csound, p->sft)) == NULL) {
+      if ((p->funcs = csound->FTFind(csound, p->sft)) == NULL) {
         sprintf(errmsg, Str("Source sft table %.2f not found.\n"),
                 *p->sft);
         return initerror(errmsg);
@@ -3335,18 +3335,16 @@ int outz(ENVIRON *csound, IOZ *p)
     return OK;
 }
 
-
 void RESET(struct ENVIRON_ *csound)        /* gab d7*/
   /* zakRESET originally */
 {
     if (csound->zkstart_ != NULL) {
-      csound->mfree_(csound, csound->zkstart_);
+      csound->Free(csound, csound->zkstart_);
       csound->zkstart_ = NULL;
     }
     if (csound->zastart_ != NULL) {
-      csound->mfree_(csound, csound->zastart_);
+      csound->Free(csound, csound->zastart_);
       csound->zastart_ = NULL;
     }
 }
-
 

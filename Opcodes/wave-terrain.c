@@ -36,8 +36,8 @@ int wtinit(ENVIRON *csound, WAVETER *p)
 {
     /* DECLARE */
     int i;
-    FUNC *ftpx = ftfind(csound, p->i_tabx);
-    FUNC *ftpy = ftfind(csound, p->i_taby);
+    FUNC *ftpx = csound->FTFind(csound, p->i_tabx);
+    FUNC *ftpy = csound->FTFind(csound, p->i_taby);
 
     /* CHECK */
     if ((ftpx == NULL)||(ftpy == NULL)) {
@@ -47,8 +47,8 @@ int wtinit(ENVIRON *csound, WAVETER *p)
 /* printf("WAVE TERRAIN INIT v1.0 - terrain(%d,%d)\n", tabxlen, tabylen);  */
 
     /* ALLOCATE FOR COPIES OF FTABLES */
-    auxalloc(csound, ftpx->flen * sizeof(MYFLT), &p->aux_x);
-    auxalloc(csound, ftpy->flen * sizeof(MYFLT), &p->aux_y);
+    csound->AuxAlloc(csound, ftpx->flen * sizeof(MYFLT), &p->aux_x);
+    csound->AuxAlloc(csound, ftpy->flen * sizeof(MYFLT), &p->aux_y);
 
     /* POINT xarr AND yarr AT THE TABLES */
     p->xarr = (MYFLT*)p->aux_x.auxp;
@@ -118,8 +118,8 @@ int scanhinit(ENVIRON *csound, SCANHAMMER *p)
   int srcpos = 0;
   int dstpos = (int)(*p->ipos + FL(0.5));
 
-  FUNC *fsrc = ftfind(csound, p->isrc); /* Source table */
-  FUNC *fdst = ftfind(csound, p->idst); /* Destination table */
+  FUNC *fsrc = csound->FTFind(csound, p->isrc); /* Source table */
+  FUNC *fdst = csound->FTFind(csound, p->idst); /* Destination table */
 
   if (fsrc->flen > fdst->flen) {
     return initerror(Str(
@@ -151,11 +151,11 @@ int scanhinit(ENVIRON *csound, SCANHAMMER *p)
 int scantinit(ENVIRON *csound, SCANTABLE *p)
 {
     /* DECLARE */
-    FUNC *fpoint = ftfind(csound, p->i_point);
-    FUNC *fmass  = ftfind(csound, p->i_mass);
-    FUNC *fstiff = ftfind(csound, p->i_stiff);
-    FUNC *fdamp  = ftfind(csound, p->i_damp);
-    FUNC *fvel   = ftfind(csound, p->i_vel);
+    FUNC *fpoint = csound->FTFind(csound, p->i_point);
+    FUNC *fmass  = csound->FTFind(csound, p->i_mass);
+    FUNC *fstiff = csound->FTFind(csound, p->i_stiff);
+    FUNC *fdamp  = csound->FTFind(csound, p->i_damp);
+    FUNC *fvel   = csound->FTFind(csound, p->i_vel);
 
     /* CHECK */
     if (fpoint == NULL) {
@@ -185,8 +185,8 @@ int scantinit(ENVIRON *csound, SCANTABLE *p)
     p->size = (MYFLT)fpoint->flen;
 
     /* ALLOCATE SPACE FOR NEW POINTS AND VELOCITIES */
-    auxalloc(csound, fpoint->flen * sizeof(MYFLT), &p->newloca);
-    auxalloc(csound, fvel->flen * sizeof(MYFLT), &p->newvela);
+    csound->AuxAlloc(csound, fpoint->flen * sizeof(MYFLT), &p->newloca);
+    csound->AuxAlloc(csound, fvel->flen * sizeof(MYFLT), &p->newvela);
 
     /* POINT newloc AND newvel AT THE ALLOCATED SPACE */
     p->newloc = (MYFLT*)p->newloca.auxp;
@@ -208,11 +208,11 @@ int scantPerf(ENVIRON *csound, SCANTABLE *p)
     int next, last;
 
     /* DECLARE */
-    FUNC *fpoint = ftfind(csound, p->i_point);
-    FUNC *fmass  = ftfind(csound, p->i_mass);
-    FUNC *fstiff = ftfind(csound, p->i_stiff);
-    FUNC *fdamp  = ftfind(csound, p->i_damp);
-    FUNC *fvel   = ftfind(csound, p->i_vel);
+    FUNC *fpoint = csound->FTFind(csound, p->i_point);
+    FUNC *fmass  = csound->FTFind(csound, p->i_mass);
+    FUNC *fstiff = csound->FTFind(csound, p->i_stiff);
+    FUNC *fdamp  = csound->FTFind(csound, p->i_damp);
+    FUNC *fvel   = csound->FTFind(csound, p->i_vel);
 
 
 

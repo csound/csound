@@ -39,7 +39,7 @@ static int make_Modal4(ENVIRON *csound,
 {
     FUNC        *ftp;
 
-    if ((ftp = csound->ftfind_(csound,ifn)) != NULL)
+    if ((ftp = csound->FTFind(csound,ifn)) != NULL)
       m->vibr = ftp;
     else {                                              /* Expect sine wave */
       csound->perferror_(csound->LocalizeString("No table for Modal4 case"));
@@ -264,7 +264,7 @@ int marimbaset(ENVIRON *csound, MARIMBA *p)
     int         itemp;
     FUNC        *ftp;
 
-    if ((ftp = ftfind(csound, p->ifn)) != NULL)
+    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL)
       p->m4.wave = ftp;
     else {
       perferror
@@ -388,7 +388,7 @@ int vibraphnset(ENVIRON *csound, VIBRAPHN *p)
     MYFLT       temp;
     FUNC        *ftp;
 
-    if ((ftp = ftfind(csound, p->ifn)) != NULL)
+    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL)
       p->m4.wave = ftp;         /* Expect an impulslything */
     else {
       return perferror(Str(
@@ -478,7 +478,7 @@ int agogobelset(ENVIRON *csound, VIBRAPHN *p)
     MYFLT       temp;
 
     /* Expect an impulslything */
-    if ((ftp = ftfind(csound, p->ifn)) != NULL) p->m4.wave = ftp;
+    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) p->m4.wave = ftp;
     else {
       return perferror(Str(
                     "No table for Agogobell strike"));
@@ -546,3 +546,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
+

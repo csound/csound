@@ -116,7 +116,7 @@ int clarinset(ENVIRON *csound, CLARIN *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = ftfind(csound, p->ifn)) != NULL) p->vibr = ftp;
+    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) p->vibr = ftp;
     else {
       return perferror(Str("No table for Clarinet")); /* Expect sine wave */
     }
@@ -270,7 +270,7 @@ int fluteset(ENVIRON *csound, FLUTE *p)
     FUNC        *ftp;
     long        length;
 
-    if ((ftp = ftfind(csound, p->ifn)) != NULL) p->vibr = ftp;
+    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) p->vibr = ftp;
     else {
       return perferror(Str("No table for Flute")); /* Expect sine wave */
     }
@@ -476,7 +476,7 @@ int bowedset(ENVIRON *csound, BOWED *p)
     FUNC        *ftp;
     MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
 
-    if ((ftp = ftfind(csound, p->ifn)) != NULL) p->vibr = ftp;
+    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) p->vibr = ftp;
     else {
       return perferror(Str("No table for wgbow vibrato")); /* Expect sine wave */
     }
@@ -674,7 +674,7 @@ void make_DLineA(ENVIRON *csound, DLineA *p, long max_length)
 {
     int i;
     p->length = max_length;
-    csound->auxalloc_(csound, max_length * sizeof(MYFLT), &p->inputs);
+    csound->AuxAlloc(csound, max_length * sizeof(MYFLT), &p->inputs);
     for (i=0;i<max_length;i++) ((MYFLT*)p->inputs.auxp)[i] = FL(0.0);
     p->lastIn = FL(0.0);
     p->lastOutput = FL(0.0);
@@ -773,7 +773,7 @@ int brassset(ENVIRON *csound, BRASS *p)
     FUNC        *ftp;
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
 
-    if ((ftp = ftfind(csound, p->ifn)) != NULL) p->vibr = ftp;
+    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) p->vibr = ftp;
     else {
       return perferror(Str("No table for Brass")); /* Expect sine wave */
     }
@@ -959,3 +959,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
+

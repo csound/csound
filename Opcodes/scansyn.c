@@ -49,7 +49,7 @@ static MYFLT *ewin = NULL;
 static int scsnu_initw(ENVIRON *csound, PSCSNU *p)
 {
     int i;
-    FUNC *fi = ftfind(csound,  p->i_init);
+    FUNC *fi = csound->FTFind(csound,  p->i_init);
     if (fi == NULL) {
       return initerror(Str("scanu: Could not find ifnnit ftable"));
     }
@@ -72,7 +72,7 @@ static int scsnu_hammer(ENVIRON *csound, PSCSNU *p, MYFLT pos, MYFLT sgn)
 
     /* Get table */
     if (tab<FL(0.0)) tab = -tab;   /* JPff fix here */
-    if ((fi = ftfind(csound, &tab)) == NULL) {
+    if ((fi = csound->FTFind(csound, &tab)) == NULL) {
       return initerror(Str("scanu: Could not find ifninit ftable"));
     }
 
@@ -190,14 +190,14 @@ int scsnu_init(ENVIRON *csound, PSCSNU *p)
     int len;
 
     /* Mass */
-    if ((f = ftfind(csound, p->i_m)) == NULL) {
+    if ((f = csound->FTFind(csound, p->i_m)) == NULL) {
       return initerror(Str("scanu: Could not find ifnmass table"));
     }
     len = p->len = f->flen;
     p->m = f->ftable;
 
     /* Centering */
-    if ((f = ftfind(csound, p->i_c)) == NULL) {
+    if ((f = csound->FTFind(csound, p->i_c)) == NULL) {
       return initerror(Str("scanu: Could not find ifncentr table"));
     }
     if (f->flen != len)
@@ -206,7 +206,7 @@ int scsnu_init(ENVIRON *csound, PSCSNU *p)
     p->c = f->ftable;
 
     /* Damping */
-    if ((f = ftfind(csound, p->i_d)) == NULL) {
+    if ((f = csound->FTFind(csound, p->i_d)) == NULL) {
       return initerror(Str("scanu: Could not find ifndamp table"));
     }
     if (f->flen != len)
@@ -218,7 +218,7 @@ int scsnu_init(ENVIRON *csound, PSCSNU *p)
       int i, j;
 
       /* Get the table */
-      if ((f = ftfind(csound, p->i_f)) == NULL) {
+      if ((f = csound->FTFind(csound, p->i_f)) == NULL) {
         return initerror(Str("scanu: Could not find ifnstiff table"));
       }
 
@@ -227,7 +227,7 @@ int scsnu_init(ENVIRON *csound, PSCSNU *p)
         die(Str("scanu: Spring matrix is too small"));
 
       /* Setup an easier addressing scheme */
-      auxalloc(csound, len*len * sizeof(MYFLT), &p->aux_f);
+      csound->AuxAlloc(csound, len*len * sizeof(MYFLT), &p->aux_f);
       p->f = (MYFLT*)p->aux_f.auxp;
       for (i = 0 ; i != len ; i++) {
         for (j = 0 ; j != len ; j++)
@@ -237,9 +237,9 @@ int scsnu_init(ENVIRON *csound, PSCSNU *p)
 
 /* Make buffers to hold data */
 #if PHASE_INTERP == 3
-    auxalloc(csound, 6*len*sizeof(MYFLT), &p->aux_x);
+    csound->AuxAlloc(csound, 6*len*sizeof(MYFLT), &p->aux_x);
 #else
-    auxalloc(csound, 5*len*sizeof(MYFLT), &p->aux_x);
+    csound->AuxAlloc(csound, 5*len*sizeof(MYFLT), &p->aux_x);
 #endif
     p->x0 = (MYFLT*)p->aux_x.auxp;
     p->x1 = p->x0 + len;
@@ -277,7 +277,7 @@ int scsnu_init(ENVIRON *csound, PSCSNU *p)
     /* Velocity gets presidential treatment */
     {
       int i;
-      FUNC *f = ftfind(csound, p->i_v);
+      FUNC *f = csound->FTFind(csound, p->i_v);
       if (f == NULL) {
         return initerror(Str("scanu: Could not find ifnvel table"));
       }
@@ -319,7 +319,7 @@ int scsnu_init(ENVIRON *csound, PSCSNU *p)
     /* Throw data into list or use table */
     if (*p->i_id < FL(0.0)) {
       MYFLT id = - *p->i_id;
-      FUNC *f = ftfind(csound, &id);
+      FUNC *f = csound->FTFind(csound, &id);
       if (f == NULL) {
         return initerror(Str("scanu: Could not find (id) table"));
       }
@@ -442,7 +442,7 @@ int scsns_init(ENVIRON *csound, PSCSNS *p)
     {
       int i;
       int oscil_interp = (int)*p->interp;
-      FUNC *t = ftfind(csound, p->i_trj);
+      FUNC *t = csound->FTFind(csound, p->i_trj);
       if (t == NULL) {
         return initerror(Str("scans: Could not find the ifntraj table"));
       }
@@ -455,7 +455,7 @@ int scsns_init(ENVIRON *csound, PSCSNS *p)
           die(Str("vermp: Trajectory table includes values out of range"));
       /* Allocate memory and pad to accomodate interpolation */
                                 /* Note that the 3 here is a hack -- jpff */
-      auxalloc(csound, (p->tlen+3/*oscil_interp*/-1)*sizeof(long), &p->aux_t);
+      csound->AuxAlloc(csound, (p->tlen + 3 - 1)*sizeof(long), &p->aux_t);
       p->t = (long*)p->aux_t.auxp + (int)(oscil_interp-1)/2;
       /* Fill 'er up */
       for (i = 0 ; i != p->tlen ; i++)
@@ -563,3 +563,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
+

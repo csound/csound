@@ -316,12 +316,12 @@ int diskin2_init(ENVIRON *csound, DISKIN2 *p)
     p->bufSize = diskin2_calc_buffer_size(p, (int) (*(p->iBufSize) + FL(0.5)));
     n = 2 * p->bufSize * p->nChannels * (int) sizeof(MYFLT);
     if (n != (int) p->auxData.size)
-      csound->auxalloc_(csound, (long) n, &(p->auxData));
+      csound->AuxAlloc(csound, (long) n, &(p->auxData));
     p->bufStartPos = p->prvBufStartPos = -((long) p->bufSize);
     n = p->bufSize * p->nChannels;
     p->buf = (MYFLT*) (p->auxData.auxp);
     p->prvBuf = (MYFLT*) p->buf + (int) n;
-    for (i = 0; i < (n << 1); i++)
+    for (i = 0; i < n; i++)
       p->buf[i] = FL(0.0);
     /* done initialisation */
     p->initDone = 1;

@@ -33,13 +33,9 @@
 
 int csoundGetAPIVersion(void);
 
-void auxalloc(void*, long, AUXCH*);
 void die(char *);
-FUNC *ftfind(ENVIRON *,MYFLT *);
 int initerror(char *);
 int perferror(char *);
-void *mmalloc(void*, size_t);
-void mfree(void*, void*);
 void dispset(WINDAT *, MYFLT *, long, char *, int, char *);
 void display(WINDAT *);
 MYFLT intpow(MYFLT, long);
@@ -147,15 +143,16 @@ ENVIRON cenviron_ = {
         csoundSetRecopenCallback,
         csoundSetRtrecordCallback,
         csoundSetRtcloseCallback,
-        auxalloc,
-        die,
-        ftfind,
-        initerror,
-        perferror,
+        csoundAuxAlloc,
+        csoundFTFind,
+        csoundGetTable,
         mmalloc,
         mcalloc,
         mrealloc,
         mfree,
+        die,
+        initerror,
+        perferror,
         dispset,
         display,
         intpow,

@@ -210,8 +210,7 @@ static int set_device_params(void *csound, DEVPARAMS *dev,
     dev->sampleSize = p->GetSizeOfMYFLT() * parm->nChannels;
     dev->nchns = parm->nChannels;
     myflt_is_double = (p->GetSizeOfMYFLT() == (int) sizeof(double) ? 1 : 0);
-    dev->buf = p->mcalloc_(csound,
-                           (size_t) (dev->sampleSize * parm->bufSamp_SW));
+    dev->buf = p->Calloc(csound, (size_t) (dev->sampleSize * parm->bufSamp_SW));
     dev->conv_func = (void (*)(int, void*, void*))
                        set_format(play, myflt_is_double);
     return 0;
@@ -230,12 +229,12 @@ static int recopen_(void *csound, csRtAudioParams *parm)
     if (*(p->GetRtRecordUserData(csound)) != NULL)
       return 0;
     /* allocate structure */
-    dev = (DEVPARAMS*) p->mcalloc_(csound, sizeof(DEVPARAMS));
+    dev = (DEVPARAMS*) p->Calloc(csound, sizeof(DEVPARAMS));
     *(p->GetRtRecordUserData(csound)) = (void*) dev;
     /* set up parameters and open stream */
     retval = set_device_params(csound, dev, parm, 0);
     if (retval != 0) {
-      p->mfree_(csound, dev);
+      p->Free(csound, dev);
       *(p->GetRtRecordUserData(csound)) = NULL;
     }
     else
@@ -256,12 +255,12 @@ static int playopen_(void *csound, csRtAudioParams *parm)
     if (*(p->GetRtPlayUserData(csound)) != NULL)
       return 0;
     /* allocate structure */
-    dev = (DEVPARAMS*) p->mcalloc_(csound, sizeof(DEVPARAMS));
+    dev = (DEVPARAMS*) p->Calloc(csound, sizeof(DEVPARAMS));
     *(p->GetRtPlayUserData(csound)) = (void*) dev;
     /* set up parameters and open stream */
     retval = set_device_params(csound, dev, parm, 1);
     if (retval != 0) {
-      p->mfree_(csound, dev);
+      p->Free(csound, dev);
       *(p->GetRtPlayUserData(csound)) = NULL;
     }
     else
@@ -327,8 +326,8 @@ static void rtclose_(void *csound)
         Pa_CloseStream(dev->handle);
       }
       if (dev->buf != NULL)
-        p->mfree_(csound, dev->buf);
-      p->mfree_(csound, dev);
+        p->Free(csound, dev->buf);
+      p->Free(csound, dev);
     }
     dev = (DEVPARAMS*) (*(p->GetRtPlayUserData(csound)));
     if (dev != NULL) {
@@ -338,8 +337,8 @@ static void rtclose_(void *csound)
         Pa_CloseStream(dev->handle);
       }
       if (dev->buf != NULL)
-        p->mfree_(csound, dev->buf);
-      p->mfree_(csound, dev);
+        p->Free(csound, dev->buf);
+      p->Free(csound, dev);
     }
 }
 

@@ -135,8 +135,6 @@
 #undef rtout_dev
 #undef rtout_devs
 #undef displop4
-#undef mmalloc
-#undef mfree
 #undef hfgens
 #undef IsPowerOfTwo
 #undef FFT2torlpacked
@@ -208,15 +206,10 @@
 #define SetRtrecordCallback csound->SetRtrecordCallback
 #define SetRtcloseCallback csound->SetRtcloseCallback
 
-#define auxalloc csound->auxalloc_
 #define csoundLocalizeString csound->LocalizeString
 #define die csound->die_
-#define ftfind csound->ftfind_
 #define initerror csound->initerror_
 #define perferror csound->perferror_
-#define mmalloc csound->mmalloc_
-#define mcalloc csound->mcalloc_
-#define mfree csound->mfree_
 #define dispset csound->dispset
 #define display csound->display
 #define intpow csound->intpow_
@@ -336,8 +329,6 @@
 #define rtin_devs csound->rtin_devsa_
 #define rtout_dev csound->rtout_dev_
 #define rtout_devs csound->rtout_devs_
-#define mmalloc csound->mmalloc_
-#define mfree csound->mfree_
 #define hfgens csound->hfgens_
 #define IsPowerOfTwo csound->IsPowerOfTwo_
 #define FFT2torlpacked csound->FFT2torlpacked_

@@ -1381,7 +1381,7 @@ extern "C" int set_snap(ENVIRON *csound, FLSETSNAP *p)
 
   if (*p->ifn >= 1) { // if the table number is valid
     FUNC    *ftp;   // store the snapshot into the table
-    if ((ftp = ftfind(p->h.insdshead->csound,p->ifn)) != NULL) {
+    if ((ftp = csound->FTFind(p->h.insdshead->csound,p->ifn)) != NULL) {
       MYFLT * table = ftp->ftable;
       for ( int j=0; j < numfields; j++) {
         table[index*numfields+j] = snap.fields[j].value;
@@ -1432,7 +1432,7 @@ extern "C" int save_snap(ENVIRON *csound, FLSAVESNAPS* p)
   if (s2 == NULL)
     return initerror(Str("FLsavesnap: cannot open file"));
   strcpy(s, s2);
-  mfree(csound, s2);
+  csound->Free(csound, s2);
   filename = s;
 
   fstream file(filename.c_str(), ios::out);
@@ -1483,7 +1483,7 @@ extern "C" int load_snap(ENVIRON *csound, FLLOADSNAPS* p)
   if (s2 == NULL)
     return initerror(Str("FLloadsnap: cannot open file"));
   strcpy(s, s2);
-  mfree(csound, s2);
+  csound->Free(csound, s2);
   filename = s;
 
   fstream file(filename.c_str(), ios::in);
@@ -2762,7 +2762,7 @@ extern "C" int fl_slider(ENVIRON *csound, FLSLIDER *p)
     {
       FUNC *ftp;
       MYFLT fnum = abs(iexp);
-      if ((ftp = ftfind(p->h.insdshead->csound,&fnum)) != NULL) {
+      if ((ftp = csound->FTFind(p->h.insdshead->csound,&fnum)) != NULL) {
         p->table = ftp->ftable;
         p->tablen = ftp->flen;
       }
@@ -2814,23 +2814,23 @@ extern "C" int fl_slider_bank(ENVIRON *csound, FLSLIDERBANK *p)
     }
   }
   else {
-    if ((ftp = ftfind(p->h.insdshead->csound,p->ioutable)) != NULL)
+    if ((ftp = csound->FTFind(p->h.insdshead->csound,p->ioutable)) != NULL)
       outable = ftp->ftable + (long) *p->ioutablestart_ndx;
     else
       return NOTOK;
   }
   if ((int) *p->iminmaxtable > 0) {
-    if ((ftp = ftfind(p->h.insdshead->csound,p->iminmaxtable)) != NULL)
+    if ((ftp = csound->FTFind(p->h.insdshead->csound,p->iminmaxtable)) != NULL)
       minmaxtable = ftp->ftable;
     else return NOTOK;
   }
   if ((int) *p->iexptable > 0) {
-    if ((ftp = ftfind(p->h.insdshead->csound,p->iexptable)) != NULL)
+    if ((ftp = csound->FTFind(p->h.insdshead->csound,p->iexptable)) != NULL)
       exptable = ftp->ftable;
     else return NOTOK;
   }
   if ((int) *p->itypetable >0) {
-    if ((ftp = ftfind(p->h.insdshead->csound,p->itypetable)) != NULL)
+    if ((ftp = csound->FTFind(p->h.insdshead->csound,p->itypetable)) != NULL)
       typetable = ftp->ftable;
     else return NOTOK;
   }
@@ -2941,7 +2941,7 @@ extern "C" int fl_slider_bank(ENVIRON *csound, FLSLIDERBANK *p)
       {
         FUNC *ftp;
         MYFLT fnum = abs(iexp);
-        if ((ftp = ftfind(p->h.insdshead->csound,&fnum)) != NULL)
+        if ((ftp = csound->FTFind(p->h.insdshead->csound,&fnum)) != NULL)
           p->slider_data[j].table = ftp->ftable;
         else return NOTOK;
         p->slider_data[j].tablen = ftp->flen;
@@ -3021,7 +3021,7 @@ extern "C" int fl_joystick(ENVIRON *csound, FLJOYSTICK *p)
     {
       FUNC *ftp;
       MYFLT fnum = abs(iexpx);
-      if ((ftp = ftfind(p->h.insdshead->csound,&fnum)) != NULL) {
+      if ((ftp = csound->FTFind(p->h.insdshead->csound,&fnum)) != NULL) {
         p->tablex = ftp->ftable;
         p->tablenx = ftp->flen;
       }
@@ -3049,7 +3049,7 @@ extern "C" int fl_joystick(ENVIRON *csound, FLJOYSTICK *p)
     {
       FUNC *ftp;
       MYFLT fnum = abs(iexpy);
-      if ((ftp = ftfind(p->h.insdshead->csound,&fnum)) != NULL) {
+      if ((ftp = csound->FTFind(p->h.insdshead->csound,&fnum)) != NULL) {
         p->tabley = ftp->ftable;
         p->tableny = ftp->flen;
       }
@@ -3145,7 +3145,7 @@ extern "C" int fl_knob(ENVIRON *csound, FLKNOB *p)
       FUNC *ftp;
       p->min = *p->imin;
       MYFLT fnum = abs(iexp);
-      if ((ftp = ftfind(p->h.insdshead->csound,&fnum)) != NULL) {
+      if ((ftp = csound->FTFind(p->h.insdshead->csound,&fnum)) != NULL) {
         p->table = ftp->ftable;
         p->tablen = ftp->flen;
       }
@@ -3420,7 +3420,7 @@ extern "C" int fl_roller(ENVIRON *csound, FLROLLER *p)
     {
       FUNC *ftp;
       MYFLT fnum = abs(iexp);
-      if ((ftp = ftfind(p->h.insdshead->csound,&fnum)) != NULL) {
+      if ((ftp = csound->FTFind(p->h.insdshead->csound,&fnum)) != NULL) {
         p->table = ftp->ftable;
         p->tablen = ftp->flen;
       }

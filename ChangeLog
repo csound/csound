@@ -1,3 +1,36 @@
+2005-03-28	Istvan Varga	<istvan@csounds.com>
+	* Engine/auxfd.c, Engine/fgens.c, Engine/insert.c, Engine/oload.c:
+	* H/csdl.h, H/csoundCore.h, H/prototyp.h, InOut/pa_blocking.c:
+	* InOut/rtpa_new.c, InOut/widgets.cpp, OOps/aops.c, OOps/diskin2.c:
+	* OOps/disprep.c, OOps/midiops.c, OOps/pstream.c, OOps/pvadd.c:
+	* OOps/pvinterp.c, OOps/pvread.c, OOps/pvsanal.c, OOps/schedule.c:
+	* OOps/ugens1.c, OOps/ugens2.c, OOps/ugens3.c, OOps/ugens4.c:
+	* OOps/ugens5.c, OOps/ugens6.c, OOps/ugens8.c, OOps/ugens9.c:
+	* OOps/ugrw1.c, OOps/vbap_eight.c, OOps/vbap_four.c:
+	* OOps/vbap_sixteen.c, OOps/vbap_zak.c, OOps/vdelay.c, OOps/vpvoc.c:
+	* Opcodes/babo.c, Opcodes/bbcut.c, Opcodes/biquad.c:
+	* Opcodes/bowedbar.c, Opcodes/cross2.c, Opcodes/filter.c:
+	* Opcodes/flanger.c, Opcodes/fm4op.c, Opcodes/freeverb.c:
+	* Opcodes/ftconv.c, Opcodes/gab/gab.c, Opcodes/gab/vectorial.c:
+	* Opcodes/grain4.c, Opcodes/grain.c, Opcodes/locsig.c:
+	* Opcodes/mandolin.c, Opcodes/metro.c, Opcodes/midiops2.c:
+	* Opcodes/midiops3.c, Opcodes/modal4.c, Opcodes/moog1.c:
+	* Opcodes/nlfilt.c, Opcodes/oscbnk.c, Opcodes/physmod.c:
+	* Opcodes/physutil.c, Opcodes/pitch.c, Opcodes/pluck.c:
+	* Opcodes/pvsbasic.c, Opcodes/pvsdemix.c, Opcodes/repluck.c:
+	* Opcodes/reverbsc.c, Opcodes/scansyn.c, Opcodes/scansynx.c:
+	* Opcodes/seqtime.c, Opcodes/sfont.c, Opcodes/singwave.c:
+	* Opcodes/sndwarp.c, Opcodes/space.c, Opcodes/spat3d.c:
+	* Opcodes/spectra.c, Opcodes/syncgrain.c, Opcodes/ugens7.c:
+	* Opcodes/ugensa.c, Opcodes/uggab.c, Opcodes/ugmoss.c, Opcodes/ugsc.c:
+	* Opcodes/vdelayk.c, Opcodes/wave-terrain.c, Top/csound.c:
+	  API changes
+	* OOps/diskin2.c:
+	  minor optimization in init routine
+	* Opcodes/ugens6.c:
+	* util2/mixer/extract.c:
+	  removed unused files
+
 2005-03-27	Istvan Varga	<istvan@csounds.com>
 	* SConstruct:
 	* InOut/libsnd.c:

@@ -98,7 +98,7 @@ static void make_DLineN(ENVIRON *csound, DLINEN *p, long length)
        Thus, if we want to allow a delay of max_length, we need
        a delay-line of length = max_length+1. */
     p->length = length = length+1;
-    csound->auxalloc_(csound, length * sizeof(MYFLT), &p->inputs);
+    csound->AuxAlloc(csound, length * sizeof(MYFLT), &p->inputs);
     for (i=0; i<length; i++) ((MYFLT*)p->inputs.auxp)[i] = FL(0.0);
     p->inPoint = 0;
     p->outPoint = length >> 1;

@@ -132,19 +132,19 @@ int pvadsynset(ENVIRON *csound, PVADS *p)
     p->one_over_overlap = (float)(FL(1.0) / p->overlap);
     /* alloc for all oscs; in case we can do something with them dynamically, one day */
     if (p->a.auxp==NULL)
-      auxalloc(csound, noscs * sizeof(MYFLT),&p->a);
+      csound->AuxAlloc(csound, noscs * sizeof(MYFLT),&p->a);
     if (p->x.auxp==NULL)
-      auxalloc(csound, noscs * sizeof(MYFLT),&p->x);
+      csound->AuxAlloc(csound, noscs * sizeof(MYFLT),&p->x);
     if (p->y.auxp==NULL)
-      auxalloc(csound, noscs * sizeof(MYFLT),&p->y);
+      csound->AuxAlloc(csound, noscs * sizeof(MYFLT),&p->y);
     if (p->amps.auxp==NULL)
-      auxalloc(csound, noscs * sizeof(MYFLT),&p->amps);
+      csound->AuxAlloc(csound, noscs * sizeof(MYFLT),&p->amps);
     if (p->lastamps.auxp==NULL)
-      auxalloc(csound, noscs * sizeof(MYFLT),&p->lastamps);
+      csound->AuxAlloc(csound, noscs * sizeof(MYFLT),&p->lastamps);
     if (p->freqs.auxp==NULL)
-      auxalloc(csound, noscs * sizeof(MYFLT),&p->freqs);
+      csound->AuxAlloc(csound, noscs * sizeof(MYFLT),&p->freqs);
     if (p->outbuf.auxp==NULL)
-      auxalloc(csound, p->overlap * sizeof(MYFLT),&p->outbuf);
+      csound->AuxAlloc(csound, p->overlap * sizeof(MYFLT),&p->outbuf);
     /* initialize oscbank */
     p_x = (MYFLT *) p->x.auxp;
     for (i=0;i < noscs;i++)
@@ -263,7 +263,7 @@ int pvscrosset(ENVIRON *csound, PVSCROSS *p)
 
     /* setup output signal */
     if (p->fout->frame.auxp==NULL)
-      auxalloc(csound, (N+2)*sizeof(float),&p->fout->frame);     /* RWD MUST be 32bit */
+      csound->AuxAlloc(csound, (N+2)*sizeof(float),&p->fout->frame);     /* RWD MUST be 32bit */
     p->fout->N =  N;
     p->fout->overlap = p->overlap;
     p->fout->winsize = p->winsize;
@@ -354,7 +354,7 @@ int pvsfreadset(ENVIRON *csound, PVSFREAD *p)
     N = p->fftsize;
     /* setup output signal */
     if (p->fout->frame.auxp==NULL)
-      auxalloc(csound, (N+2)*sizeof(float),&p->fout->frame);
+      csound->AuxAlloc(csound, (N+2)*sizeof(float),&p->fout->frame);
     /* init sig with first frame from file, regardless (always zero amps, but with bin freqs) */
     memptr = (float *) mfp->beginp;                              /* RWD MUST be 32bit */
     frptr = (float *) p->fout->frame.auxp;               /* RWD MUST be 32bit */
@@ -446,7 +446,7 @@ int pvsmaskaset(ENVIRON *csound, PVSMASKA *p)
       die(Str("pvsmaska: signal format must be amp-phase or amp-freq.\n"));
     /* setup output signal */
     if (p->fout->frame.auxp==NULL)
-      auxalloc(csound, (N+2)*sizeof(float),&p->fout->frame);    /* RWD MUST be 32bit */
+      csound->AuxAlloc(csound, (N+2)*sizeof(float),&p->fout->frame);    /* RWD MUST be 32bit */
     p->fout->N =  N;
     p->fout->overlap = p->overlap;
     p->fout->winsize = p->winsize;
@@ -455,7 +455,7 @@ int pvsmaskaset(ENVIRON *csound, PVSMASKA *p)
     p->fout->framecount = 1;
     p->lastframe = 0;
 
-    p->maskfunc = ftfind(csound, p->ifn);
+    p->maskfunc = csound->FTFind(csound, p->ifn);
     if (p->maskfunc==NULL)
       return NOTOK;
 
@@ -560,7 +560,7 @@ int pvsftwset(ENVIRON *csound, PVSFTW *p)
       die(Str("pvsftw: bad value for ifna.\n"));
     if (*p->ifnf < 0.0f)                /* 0 = notused */
       die(Str("pvsftw: bad value for ifnf.\n"));
-    p->outfna = ftfind(csound, p->ifna);
+    p->outfna = csound->FTFind(csound, p->ifna);
     if (p->outfna==NULL)
       return NOTOK;
     fsrc = (float *) p->fsrc->frame.auxp;                 /* RWD MUST be 32bit */
@@ -578,7 +578,7 @@ int pvsftwset(ENVIRON *csound, PVSFTW *p)
 
     /* freq table? */
     if ((long) *p->ifnf >= 1.0f) {
-      p->outfnf = ftfind(csound, p->ifnf);
+      p->outfnf = csound->FTFind(csound, p->ifnf);
       if (p->outfnf==NULL)
         return NOTOK;
       ftablef = p->outfnf->ftable;
@@ -667,7 +667,7 @@ int pvsftrset(ENVIRON *csound, PVSFTR *p)
        otherwise, there is no change!
     */
     if ((long) *p->ifna != 0) {
-      p->infna = ftfind(csound, p->ifna);
+      p->infna = csound->FTFind(csound, p->ifna);
       if (p->infna==NULL)
         return NOTOK;
       p->ftablea = p->infna->ftable;
@@ -684,7 +684,7 @@ int pvsftrset(ENVIRON *csound, PVSFTR *p)
 
     /* freq table? */
     if ((long) *p->ifnf >= 1) {
-      p->infnf = ftfind(csound, p->ifnf);
+      p->infnf = csound->FTFind(csound, p->ifnf);
       if (p->infnf==NULL)
         return NOTOK;
       p->ftablef = p->infnf->ftable;

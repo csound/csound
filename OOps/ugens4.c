@@ -41,7 +41,7 @@ int bzzset(ENVIRON *csound, BUZZ *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = ftfind(csound, p->ifn)) != NULL) {
+    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) {
       p->ftp = ftp;
       if (*p->iphs >= 0)
         p->lphs = (long)(*p->iphs * FL(0.5) * FMAXLEN);
@@ -105,7 +105,7 @@ int gbzset(ENVIRON *csound, GBUZZ *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = ftfind(csound, p->ifn)) != NULL) {
+    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) {
       p->ftp = ftp;
       if (*p->iphs >= 0) {
         p->lphs = (long)(*p->iphs * FMAXLEN);
@@ -219,7 +219,7 @@ int plukset(ENVIRON *csound, PLUCK *p)
       npts = PLUKMIN;                   /*  (but at least min size)  */
     if ((auxp = p->auxch.auxp) == NULL ||
         npts > p->maxpts) {     /* get newspace    */
-      auxalloc(csound, (npts+1)*sizeof(MYFLT),&p->auxch);
+      csound->AuxAlloc(csound, (npts+1)*sizeof(MYFLT),&p->auxch);
       auxp = p->auxch.auxp;
       p->maxpts = npts;                         /*      if reqd    */
     }
@@ -227,7 +227,7 @@ int plukset(ENVIRON *csound, PLUCK *p)
     if (*p->ifn == 0.0)
       for (n=npts; n--; )                       /* f0: fill w. rands */
         *ap++ = (MYFLT)rand16() * DV32768;      /* IV - Jul 11 2002 */
-    else if ((ftp = ftfind(csound, p->ifn)) != NULL) {
+    else if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) {
       fp = ftp->ftable;                         /* else from ftable  */
       phs = FL(0.0);
       phsinc = (MYFLT)(ftp->flen/npts);

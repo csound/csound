@@ -45,17 +45,17 @@ int sndwarpgetset(ENVIRON *csound, SNDWARP *p)
     if ((auxp = p->auxch.auxp) == NULL || nsections != p->nsections) {
       if (nsections != p->nsections)
         auxp = p->auxch.auxp=NULL;
-      auxalloc(csound, (long)nsections*sizeof(WARPSECTION), &p->auxch);
+      csound->AuxAlloc(csound, (long)nsections*sizeof(WARPSECTION), &p->auxch);
       auxp = p->auxch.auxp;
       p->nsections = nsections;
     }
     p->exp = (WARPSECTION *)auxp;
 
-    if ((ftpSamp = ftfind(csound, p->isampfun)) == NULL) return NOTOK;
+    if ((ftpSamp = csound->FTFind(csound, p->isampfun)) == NULL) return NOTOK;
     p->ftpSamp  = ftpSamp;
     p->sampflen = ftpSamp->flen;
 
-    if ((ftpWind = ftfind(csound, p->ifn)) == NULL) return NOTOK;
+    if ((ftpWind = csound->FTFind(csound, p->ifn)) == NULL) return NOTOK;
     p->ftpWind = ftpWind;
     p->flen=ftpWind->flen;
 
@@ -207,18 +207,18 @@ int sndwarpstgetset(ENVIRON *csound, SNDWARPST *p)
     if ((auxp = p->auxch.auxp) == NULL || nsections != p->nsections) {
       if (nsections != p->nsections)
         auxp=p->auxch.auxp=NULL;
-      auxalloc(csound, (long)nsections*sizeof(WARPSECTION), &p->auxch);
+      csound->AuxAlloc(csound, (long)nsections*sizeof(WARPSECTION), &p->auxch);
       auxp = p->auxch.auxp;
       p->nsections = nsections;
     }
     p->exp = (WARPSECTION *)auxp;
 
-    if ((ftpSamp = ftfind(csound, p->isampfun)) == NULL)
+    if ((ftpSamp = csound->FTFind(csound, p->isampfun)) == NULL)
       return NOTOK;
     p->ftpSamp = ftpSamp;
     p->sampflen=ftpSamp->flen;
 
-    if ((ftpWind = ftfind(csound, p->ifn)) == NULL)
+    if ((ftpWind = csound->FTFind(csound, p->ifn)) == NULL)
       return NOTOK;
     p->ftpWind = ftpWind;
     p->flen=ftpWind->flen;
@@ -385,3 +385,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
+

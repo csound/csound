@@ -41,14 +41,14 @@ int spaceset(ENVIRON *csound, SPACE *p)
    FUNC *ftp=NULL;
 
    if (*p->ifn > 0) {
-     if ((ftp = ftfind(csound, p->ifn)) == NULL)
+     if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
        return NOTOK;
      p->ftp = ftp;
    }
 
    if (p->auxch.auxp == NULL) {
      MYFLT *fltp;
-     auxalloc(csound, (long)(ksmps * 4)  * sizeof(MYFLT), &p->auxch);
+     csound->AuxAlloc(csound, (long)(ksmps * 4)  * sizeof(MYFLT), &p->auxch);
      fltp = (MYFLT *) p->auxch.auxp;
      p->rrev1 = fltp;   fltp += ksmps;
      p->rrev2 = fltp;   fltp += ksmps;
@@ -203,7 +203,7 @@ int spdistset(ENVIRON *csound, SPDIST *p)
    FUNC *ftp;
 
    if (*p->ifn > 0) {
-     if ((ftp = ftfind(csound, p->ifn)) == NULL)
+     if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
        return NOTOK;
      p->ftp = ftp;
    }
@@ -268,3 +268,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
+

@@ -50,12 +50,12 @@ int tblesegset(ENVIRON *csound, TABLESEG *p)
     nsegs = (p->INCOUNT >> 1);  /* count segs & alloc if nec */
 
     if ((segp = (TSEG *) p->auxch.auxp) == NULL) {
-        auxalloc(csound, (long)(nsegs+1)*sizeof(TSEG), &p->auxch);
+        csound->AuxAlloc(csound, (long)(nsegs+1)*sizeof(TSEG), &p->auxch);
         p->cursegp = segp = (TSEG *) p->auxch.auxp;
         (segp+nsegs)->cnt = MAXPOS;
     }
     argp = p->argums;
-    if ((nxtfunc = ftfind(csound, *argp++)) == NULL)
+    if ((nxtfunc = csound->FTFind(csound, *argp++)) == NULL)
         return NOTOK;
     flength = nxtfunc->flen;
     p->outfunc = (FUNC *) mcalloc(csound, (long)sizeof(FUNC) + flength*sizeof(MYFLT));
@@ -73,7 +73,7 @@ int tblesegset(ENVIRON *csound, TABLESEG *p)
         segp++;                 /* init each seg ..  */
         curfunc = nxtfunc;
         dur = **argp++;
-        if ((nxtfunc = ftfind(csound, *argp++)) == NULL) return OK;
+        if ((nxtfunc = csound->FTFind(csound, *argp++)) == NULL) return OK;
         if (dur > FL(0.0)) {
                 segp->d = dur * ekr;
                 segp->function =  curfunc;
@@ -216,9 +216,9 @@ int vpvset(ENVIRON *csound, VPVOC *p)
                                 /* If optional table given, fake it up -- JPff */
     if (*p->isegtab==FL(0.0)) p->tableseg = tbladr;
     else {
-      auxalloc(csound, sizeof(TABLESEG), &p->auxtab);
+      csound->AuxAlloc(csound, sizeof(TABLESEG), &p->auxtab);
       p->tableseg = (TABLESEG*) p->auxtab.auxp;
-      if ((p->tableseg->outfunc = ftfind(csound, p->isegtab)) == NULL) {
+      if ((p->tableseg->outfunc = csound->FTFind(csound, p->isegtab)) == NULL) {
         sprintf(errmsg,
                 Str("vpvoc: Could not find ifnmagctrl table %f\n"),
                 *p->isegtab);
@@ -228,7 +228,7 @@ int vpvset(ENVIRON *csound, VPVOC *p)
 
     if (p->auxch.auxp == NULL) {              /* if no buffers yet, alloc now */
         MYFLT *fltp;
-        auxalloc(csound, (long)(PVDATASIZE + PVFFTSIZE*3 + PVWINLEN) * sizeof(MYFLT),
+        csound->AuxAlloc(csound, (long)(PVDATASIZE + PVFFTSIZE*3 + PVWINLEN) * sizeof(MYFLT),
                  &p->auxch);
         fltp = (MYFLT *) p->auxch.auxp;
         p->lastPhase = fltp;   fltp += PVDATASIZE;    /* and insert addresses */

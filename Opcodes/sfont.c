@@ -113,14 +113,14 @@ void SoundFontLoad(ENVIRON *csound, char *fname)
     if (fil == NULL) {
       char bb[512];
       if (pathnam != NULL)
-        mfree(csound, pathnam);
+        csound->Free(csound, pathnam);
       sprintf(bb, Str("sfload: cannot open SoundFont file \"%s\" (error %s)"),
                   fname, strerror(errno));
       csound->die_(bb);
     }
     soundFont = &sfArray[currSFndx];
     strcpy(soundFont->name, pathnam);
-    mfree(csound, pathnam);
+    csound->Free(csound, pathnam);
     chunk_read(fil, &soundFont->chunk.main_chunk);
     fclose(fil);
     fill_pitches();
@@ -2009,3 +2009,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
+

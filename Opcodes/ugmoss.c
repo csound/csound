@@ -40,7 +40,7 @@ int dconvset(ENVIRON *csound, DCONV *p)
     FUNC *ftp;
 
     p->len = (int)*p->isize;
-    if ((ftp = ftfind(csound, p->ifn)) != NULL) {         /* find table */
+    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) {         /* find table */
       p->ftp = ftp;
       if ((unsigned)ftp->flen < p->len)
         p->len = ftp->flen; /* correct len if flen shorter */
@@ -49,7 +49,7 @@ int dconvset(ENVIRON *csound, DCONV *p)
       return initerror(Str("No table for dconv"));
     }
     if (p->sigbuf.auxp == NULL || p->sigbuf.size < (int)(p->len*sizeof(MYFLT)))
-      auxalloc(csound, p->len*sizeof(MYFLT), &p->sigbuf);
+      csound->AuxAlloc(csound, p->len*sizeof(MYFLT), &p->sigbuf);
     p->curp = (MYFLT *)p->sigbuf.auxp;
     return OK;
 }
@@ -280,7 +280,7 @@ int vcombset(ENVIRON *csound, VCOMB *p)
     }
     nbytes = lpsiz * sizeof(MYFLT);
     if (p->auxch.auxp == NULL || nbytes != p->auxch.size) {
-      auxalloc(csound, (long)nbytes, &p->auxch);
+      csound->AuxAlloc(csound, (long)nbytes, &p->auxch);
       p->pntr = (MYFLT *) p->auxch.auxp;
       if (p->pntr==NULL) {
         return initerror(Str("could not allocate memory"));
@@ -411,14 +411,14 @@ int ftmorfset(ENVIRON *csound, FTMORF *p)
     int j = 0;
     unsigned int len;
 
-    if ((ftp = ftfind(csound, p->iresfn)) != NULL) {    /* make sure resfn exists */
+    if ((ftp = csound->FTFind(csound, p->iresfn)) != NULL) { /* make sure resfn exists */
       p->resfn = ftp, len = p->resfn->flen;     /* and set it up */
     }
     else {
       return initerror(Str("iresfn for ftmorf does not exist"));
     }
 
-    if ((ftp = ftfind(csound, p->iftfn)) != NULL) {     /* make sure ftfn exists */
+    if ((ftp = csound->FTFind(csound, p->iftfn)) != NULL) { /* make sure ftfn exists */
       p->ftfn = ftp;                            /* and set it up */
     }
     else {
@@ -426,7 +426,7 @@ int ftmorfset(ENVIRON *csound, FTMORF *p)
     }
 
     do {                /* make sure tables in ftfn exist and are right size*/
-      if ((ftp = ftfind(csound, p->ftfn->ftable + j)) != NULL) {
+      if ((ftp = csound->FTFind(csound, p->ftfn->ftable + j)) != NULL) {
         if ((unsigned int)ftp->flen != len) {
           return initerror(Str("table in iftfn for ftmorf wrong size"));
         }
@@ -453,8 +453,8 @@ int ftmorf(ENVIRON *csound, FTMORF *p)
     f = *p->kftndx - i;
     if (p->ftndx != *p->kftndx) {
       p->ftndx = *p->kftndx;
-      ftp1 = ftfind(csound, p->ftfn->ftable + i++);
-      ftp2 = ftfind(csound, p->ftfn->ftable + i--);
+      ftp1 = csound->FTFind(csound, p->ftfn->ftable + i++);
+      ftp2 = csound->FTFind(csound, p->ftfn->ftable + i--);
       do {
         *(p->resfn->ftable + j) = (*(ftp1->ftable + j) * (1-f)) +
           (*(ftp2->ftable + j) * f);
@@ -494,3 +494,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
+

@@ -492,8 +492,6 @@ extern "C" {
     struct resetter *next;
   } RESETTER;
 
-  FUNC   *ftfind(struct ENVIRON_*,MYFLT*);
-
 #define MAXCHAN       96        /* for 6 ports */
 
 #include "sort.h"
@@ -676,16 +674,17 @@ extern "C" {
                                 int (*rtrecord__)(void *csound, void *inBuf,
                                                   int nbytes));
     void (*SetRtcloseCallback)(void *csound, void (*rtclose__)(void *csound));
+    void (*AuxAlloc)(void *csound, long nbytes, AUXCH *auxchp);
+    FUNC *(*FTFind)(void *csound, MYFLT *argp);
+    MYFLT *(*GetTable)(void *csound_, int tableNum, int *tableLength);
+    void *(*Malloc)(void *csound, size_t nbytes);
+    void *(*Calloc)(void *csound, size_t nbytes);
+    void *(*ReAlloc)(void *csound, void *oldp, size_t nbytes);
+    void (*Free)(void *csound, void *ptr);
     /* Internal functions that are needed */
-    void (*auxalloc_)(void *csound, long nbytes, AUXCH *auxchp);
     void (*die_)(char *);
-    FUNC *(*ftfind_)(struct ENVIRON_*, MYFLT *);
     int (*initerror_)(char *);
     int (*perferror_)(char *);
-    void *(*mmalloc_)(void*, size_t);
-    void *(*mcalloc_)(void*, size_t);
-    void *(*mrealloc_)(void*, void*, size_t);
-    void (*mfree_)(void*, void*);
     void (*dispset)(WINDAT *, MYFLT *, long, char *, int, char *);
     void (*display)(WINDAT *);
     MYFLT (*intpow_)(MYFLT, long);

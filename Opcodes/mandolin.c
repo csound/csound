@@ -75,7 +75,7 @@ int mandolinset(ENVIRON *csound, MANDOL *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = ftfind(csound, p->ifn)) != NULL) p->soundfile = ftp;
+    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) p->soundfile = ftp;
     else {
       return perferror(Str("No table for Mandolin")); /* Expect pluck wave */
     }
@@ -205,3 +205,4 @@ int mandolin(ENVIRON *csound, MANDOL *p)
 /*         printf("Mandolin : Undefined Control Number!!\n"); */
 /*     }    */
 /* } */
+

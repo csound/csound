@@ -172,13 +172,13 @@ int Moog1set(ENVIRON *csound, MOOG1 *p)
     make_FormSwep(&p->filters[0]);
     make_FormSwep(&p->filters[1]);
 
-    if ((ftp = ftfind(csound, p->iatt)) != NULL)
+    if ((ftp = csound->FTFind(csound, p->iatt)) != NULL)
       p->attk.wave = ftp; /* mandpluk */
     else return NOTOK;
-    if ((ftp = ftfind(csound, p->ifn )) != NULL)
+    if ((ftp = csound->FTFind(csound, p->ifn )) != NULL)
       p->loop.wave = ftp; /* impuls20 */
     else return NOTOK;
-    if ((ftp = ftfind(csound, p->ivfn)) != NULL)
+    if ((ftp = csound->FTFind(csound, p->ivfn)) != NULL)
       p->vibr.wave = ftp; /* sinewave */
     else return NOTOK;
     p->attk.time = p->attk.phase = FL(0.0);

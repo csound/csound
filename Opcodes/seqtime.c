@@ -27,7 +27,7 @@ int seqtim_set(ENVIRON *csound, SEQTIM *p)   /* by G.Maldonado */
     long start, loop;
     long *ndx = &p->ndx;
     p->pfn = (long) *p->kfn;
-    if ((ftp = ftfind(csound, p->kfn)) == NULL) {
+    if ((ftp = csound->FTFind(csound, p->kfn)) == NULL) {
       return initerror(Str("seqtime: incorrect table number"));
     }
     *ndx = (long) *p->initndx;
@@ -132,7 +132,7 @@ int seqtim2_set(ENVIRON *csound, SEQTIM2 *p)
     long start, loop;
     long *ndx = &p->ndx;
     p->pfn = (long) *p->kfn;
-    if ((ftp = ftfind(csound, p->kfn)) == NULL) {
+    if ((ftp = csound->FTFind(csound, p->kfn)) == NULL) {
       return initerror("seqtim: incorrect table number");
     }
     *ndx = (long) *p->kinitndx;
@@ -237,3 +237,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
+

@@ -73,7 +73,7 @@ int dspset(ENVIRON *csound, DSPLAY *p)
       totpts = bufpts * 2;
     }
     if ((auxp = p->auxch.auxp) == NULL || totpts != p->totpts) {
-      auxalloc(csound, totpts * sizeof(MYFLT), &p->auxch);
+      csound->AuxAlloc(csound, totpts * sizeof(MYFLT), &p->auxch);
       auxp = p->auxch.auxp;
       p->begp = (MYFLT *) auxp;
       p->endp = p->begp + bufpts;
@@ -196,7 +196,7 @@ int fftset(ENVIRON *csound, DSPFFT *p)          /* fftset, dspfft -- calc Fast F
       p->overN    = FL(1.0)/(*p->inpts);
       p->ncoefs  = window_size >>1;
       auxsiz = (window_size/2 + 1) * sizeof(MYFLT);  /* size for half window */
-      auxalloc(csound, (long)auxsiz, &p->auxch);     /*  alloc or realloc */
+      csound->AuxAlloc(csound, (long)auxsiz, &p->auxch); /* alloc or realloc */
       hWin = (MYFLT *) p->auxch.auxp;
       FillHalfWin(hWin, window_size,
                   FL(1.0), hanning);  /* fill with proper values */
@@ -329,7 +329,7 @@ int tempeset(ENVIRON *csound, TEMPEST *p)
       return initerror(Str("illegal ihtim"));
     if (*p->istartempo <= FL(0.0))
       return initerror(Str("illegal startempo"));
-    ftp = ftfind(csound, p->ifn);
+    ftp = csound->FTFind(csound, p->ifn);
     if (ftp != NULL && *ftp->ftable == FL(0.0))
       return initerror(Str("ifn table begins with zero"));
     if (ftp==NULL) return NOTOK;
@@ -341,7 +341,7 @@ int tempeset(ENVIRON *csound, TEMPEST *p)
       p->maxlam = maxlam = nptsm1/(NTERMS-1);
       lamspan = maxlam - minlam + 1;          /* alloc 8 bufs: 2 circ, 6 lin */
       auxsiz = (npts * 5 + lamspan * 3) * sizeof(MYFLT);
-      auxalloc(csound, (long)auxsiz, &p->auxch);
+      csound->AuxAlloc(csound, (long)auxsiz, &p->auxch);
       fltp = (MYFLT *) p->auxch.auxp;
       p->hbeg = fltp;     fltp += npts;
       p->hend = fltp;

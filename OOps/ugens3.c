@@ -39,7 +39,7 @@ int foscset(ENVIRON *csound, FOSC *p)
 {
     FUNC   *ftp;
 
-    if ((ftp = ftfind(csound, p->ifn)) != NULL) {
+    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) {
       p->ftp = ftp;
       if (*p->iphs >= 0)
         p->cphs = p->mphs = (long)(*p->iphs * FMAXLEN);
@@ -890,7 +890,7 @@ int adset(ENVIRON *csound, ADSYN *p)
     endata = (short *) mfp->endp;
     size = 1+(*adp == -1 ? MAXPTLS : *adp++); /* Old no header -> MAXPIL */
     if (p->aux.auxp==NULL || p->aux.size < (long)sizeof(PTLPTR)*size)
-      auxalloc(csound, sizeof(PTLPTR)*size, &p->aux);
+      csound->AuxAlloc(csound, sizeof(PTLPTR)*size, &p->aux);
 
     ptlap = ptlfp = (PTLPTR*)p->aux.auxp;   /* find base ptl blk */
     ptlim = ptlap + size;

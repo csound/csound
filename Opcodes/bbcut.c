@@ -55,7 +55,7 @@ int BBCutMonoInit(ENVIRON *csound, BBCUTMONO *p)
 
     /* allocate space for a 256 point quarter sine/ exponential wavetable  */
 /*     if (p->envbuffer.auxp == NULL) { */
-/*       auxalloc(csound, 256*sizeof(MYFLT),&p->envbuffer); */
+/*       csound->AuxAlloc(csound, 256*sizeof(MYFLT),&p->envbuffer); */
 
 /*       for (i=0;i<256;++i) { */
 /*         t= (PI*0.5*(MYFLT)i)/255.0; */
@@ -75,7 +75,7 @@ int BBCutMonoInit(ENVIRON *csound, BBCUTMONO *p)
     /* allocate space- need no more than a half bar at current
        tempo and barlength */
     if (p->repeatbuffer.auxp == NULL) {
-      auxalloc(csound, ((int)(esr*(*p->barlength)/(*p->bps)))*sizeof(MYFLT),
+      csound->AuxAlloc(csound, ((int)(esr*(*p->barlength)/(*p->bps)))*sizeof(MYFLT),
                &p->repeatbuffer);
     }
 
@@ -280,7 +280,7 @@ int BBCutStereoInit(ENVIRON *csound, BBCUTSTEREO * p)
 
        /* allocate space for a 256 point quarter sine/ exponential wavetable  */
 /*     if (p->envbuffer.auxp == NULL) { */
-/*       auxalloc(csound, ((int)(256*sizeof(MYFLT),&p->envbuffer); */
+/*       csound->AuxAlloc(csound, ((int)(256*sizeof(MYFLT),&p->envbuffer); */
 
 /*                 for (i=0;i<256;++i) */
 /*       { */
@@ -304,7 +304,7 @@ int BBCutStereoInit(ENVIRON *csound, BBCUTSTEREO * p)
        and barlength */
     if (p->repeatbuffer.auxp == NULL) {
       /* multiply by 2 for stereo buffer */
-      auxalloc(csound, 2*((int)(esr*(*p->barlength)/(*p->bps)))*sizeof(MYFLT),
+      csound->AuxAlloc(csound, 2*((int)(esr*(*p->barlength)/(*p->bps)))*sizeof(MYFLT),
                &p->repeatbuffer);
     }
 
@@ -513,3 +513,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
+

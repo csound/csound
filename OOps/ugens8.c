@@ -116,7 +116,7 @@ int pvset(ENVIRON *csound, PVOC *p)
 
     if (p->auxch.auxp == NULL || memsize != p->mems) {
       register MYFLT *fltp;
-      auxalloc(csound, (memsize * sizeof(MYFLT)), &p->auxch);
+      csound->AuxAlloc(csound, (memsize * sizeof(MYFLT)), &p->auxch);
       fltp = (MYFLT *) p->auxch.auxp;
       p->lastPhase = fltp;   fltp += PVDATASIZE;    /* and insert addresses */
       p->fftBuf = fltp;      fltp += PVFFTSIZE;
@@ -182,7 +182,7 @@ int pvset(ENVIRON *csound, PVOC *p)
     }
 
     if (*p->igatefun > 0)
-      if ((AmpGateFunc = ftfind(csound, p->igatefun)) == NULL)
+      if ((AmpGateFunc = csound->FTFind(csound, p->igatefun)) == NULL)
         return NOTOK;
     p->AmpGateFunc = AmpGateFunc;
 

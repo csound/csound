@@ -77,7 +77,7 @@ static int scsnux_initw(ENVIRON *csound, PSCSNUX *p)
 {
     int i;
     long len = p->len;
-    FUNC *fi = ftfind(csound, p->i_init);
+    FUNC *fi = csound->FTFind(csound, p->i_init);
     if (fi == NULL) {
       return initerror(Str("scanux: Could not find ifnnit ftable"));
     }
@@ -101,7 +101,7 @@ static int scsnux_hammer(ENVIRON *csound, PSCSNUX *p, MYFLT pos, MYFLT sgn)
 
     /* Get table */
     if (tab<FL(0.0)) tab = -tab;   /* JPff fix here */
-    if ((fi = ftfind(csound, &tab)) == NULL) {
+    if ((fi = csound->FTFind(csound, &tab)) == NULL) {
       return initerror(Str("scanux: Could not find ifninit ftable"));
     }
 
@@ -204,14 +204,14 @@ int scsnux_init(ENVIRON *csound, PSCSNUX *p)
     int i;
 
     /* Mass */
-    if ((f = ftfind(csound, p->i_m)) == NULL) {
+    if ((f = csound->FTFind(csound, p->i_m)) == NULL) {
       return initerror(Str("scanux: Could not find ifnmass table"));
     }
     len = p->len = f->flen;
     p->m = f->ftable;
 
     /* Centering */
-    if ((f = ftfind(csound, p->i_c)) == NULL) {
+    if ((f = csound->FTFind(csound, p->i_c)) == NULL) {
       return initerror(Str("scanux: Could not find ifncentr table"));
     }
     if (f->flen != len)
@@ -220,7 +220,7 @@ int scsnux_init(ENVIRON *csound, PSCSNUX *p)
     p->c = f->ftable;
 
     /* Damping */
-    if ((f = ftfind(csound, p->i_d)) == NULL) {
+    if ((f = csound->FTFind(csound, p->i_d)) == NULL) {
       return initerror(Str("scanux: Could not find ifndamp table"));
     }
     if (f->flen != len)
@@ -232,7 +232,7 @@ int scsnux_init(ENVIRON *csound, PSCSNUX *p)
       int j, ilen;
 
       /* Get the table */
-      if ((f = ftfind(csound, p->i_f)) == NULL) {
+      if ((f = csound->FTFind(csound, p->i_f)) == NULL) {
         return initerror(Str("scanux: Could not find ifnstiff table"));
       }
 
@@ -244,12 +244,12 @@ int scsnux_init(ENVIRON *csound, PSCSNUX *p)
 #ifdef USING_CHAR
       /* ***** EXPERIMENTAL ****************************************** */
       /* This version uses a binary char matrix to save space and time */
-      auxalloc(csound, len*len * sizeof(char), &p->aux_f);
+      csound->AuxAlloc(csound, len*len * sizeof(char), &p->aux_f);
       p->f = (char*)p->aux_f.auxp;
 #else
       /* ***** EXPERIMENTAL ****************************************** */
       /* This version uses a binary bit matrix to save space and time */
-      auxalloc(csound, 1L+(len*len*sizeof(long))/BITS_PER_UNIT, &p->aux_f);
+      csound->AuxAlloc(csound, 1L+(len*len*sizeof(long))/BITS_PER_UNIT, &p->aux_f);
       p->f = (unsigned long*)p->aux_f.auxp;
 #endif
       for (i = 0, ilen = 0 ; i != len ; i++, ilen += len) {
@@ -288,10 +288,10 @@ int scsnux_init(ENVIRON *csound, PSCSNUX *p)
         }
         else pp += MATLEN;
 #ifdef USING_CHAR
-        auxalloc(csound, len*len * sizeof(char), &p->aux_f);
+        csound->AuxAlloc(csound, len*len * sizeof(char), &p->aux_f);
         p->f = (char*)p->aux_f.auxp;
 #else
-        auxalloc(csound, 1L+(len*len*sizeof(long))/BITS_PER_UNIT, &p->aux_f);
+        csound->AuxAlloc(csound, 1L+(len*len*sizeof(long))/BITS_PER_UNIT, &p->aux_f);
         p->f = (unsigned long*)p->aux_f.auxp;
 #endif
         while (pp < mfp->endp) {
@@ -319,9 +319,9 @@ int scsnux_init(ENVIRON *csound, PSCSNUX *p)
 
 /* Make buffers to hold data */
 #if PHASE_INTERP == 3
-    auxalloc(csound, 6*len*sizeof(MYFLT), &p->aux_x);
+    csound->AuxAlloc(csound, 6*len*sizeof(MYFLT), &p->aux_x);
 #else
-    auxalloc(csound, 5*len*sizeof(MYFLT), &p->aux_x);
+    csound->AuxAlloc(csound, 5*len*sizeof(MYFLT), &p->aux_x);
 #endif
     p->x0  = (MYFLT*)p->aux_x.auxp;
     p->x1  = p->x0 + len;
@@ -357,7 +357,7 @@ int scsnux_init(ENVIRON *csound, PSCSNUX *p)
 
     /* Velocity gets presidential treatment */
     {
-      FUNC *f = ftfind(csound, p->i_v);
+      FUNC *f = csound->FTFind(csound, p->i_v);
       if (f == NULL) {
         return initerror(Str("scanux: Could not find ifnvel table"));
       }
@@ -397,7 +397,7 @@ int scsnux_init(ENVIRON *csound, PSCSNUX *p)
     /* Throw data into list or use table */
     if (*p->i_id < FL(0.0)) {
       MYFLT id = - *p->i_id;
-      FUNC *f  = ftfind(csound, &id);
+      FUNC *f  = csound->FTFind(csound, &id);
       if (f == NULL) {
         return initerror(Str("scanux: Could not find (id) table"));
       }
@@ -536,7 +536,7 @@ int scsnsx_init(ENVIRON *csound, PSCSNSX *p)
     {
       int i;
       int oscil_interp = (int)*p->interp;
-      FUNC *t = ftfind(csound, p->i_trj);
+      FUNC *t = csound->FTFind(csound, p->i_trj);
       if (t == NULL) {
         return initerror(Str("scans: Could not find the ifntraj table"));
       }
@@ -550,7 +550,7 @@ int scsnsx_init(ENVIRON *csound, PSCSNSX *p)
           die(Str("scsn: Trajectory table includes values out of range"));
       /* Allocate mem<ory and pad to accomodate interpolation */
                                 /* Note that the 3 here is a hack -- jpff */
-      auxalloc(csound, (p->tlen+3/*oscil_interp*/-1)*sizeof(long), &p->aux_t);
+      csound->AuxAlloc(csound, (p->tlen + 3 - 1)*sizeof(long), &p->aux_t);
       p->t = (long*)p->aux_t.auxp + (int)(oscil_interp-1)/2;
       /* Fill 'er up */
       for (i = 0 ; i != p->tlen ; i++)
@@ -683,3 +683,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
+
