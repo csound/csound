@@ -1,3 +1,10 @@
+2004-08-21  John ffitch  <jpff@codemist.co.uk>
+
+	* Opcodes/biquad.c (moogvcfset, rezzyset): Added iskip to avoid
+	initialisation 
+
+	* Opcodes/biquad.h: Added iskip options to moogvcf abd rezzy
+
 2004-08-18  John ffitch  <jpff@codemist.co.uk>
 
 	* Engine/fgens.c (gen20): Corrected sinc window
