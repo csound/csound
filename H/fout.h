@@ -27,7 +27,7 @@
 typedef struct {
         OPDS    h;
         MYFLT   *fname,*iflag, *argums[VARGMAX];
-        FILE    *fp;
+        SNDFILE *fp;
         int     idx;
         SUBR    outfilep;
         int     flag;
@@ -38,7 +38,7 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *fname,*iflag, *argums[VARGMAX];
-        FILE *fp;
+        SNDFILE *fp;
         int     idx;
         SUBR    koutfilep;
         int     flag;
@@ -49,7 +49,7 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *fname, *iskpfrms, *iflag, *argums[VARGMAX];
-        FILE *fp;
+        SNDFILE *fp;
         int     idx;
         SUBR    infilep;
         long currpos;
@@ -60,7 +60,7 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *fname, *iskpfrms, *iflag, *argums[VARGMAX];
-        FILE *fp;
+        SNDFILE *fp;
         int     idx;
         SUBR kinfilep;
         long currpos;
