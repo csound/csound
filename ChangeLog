@@ -1,3 +1,8 @@
+2005-03-14  John ffitch  <jpff@codemist.co.uk>
+
+	* Opcodes/modal4.c (marimbaset): Make zero valid probability for
+	multiple strikes
+
 2005-03-14	Istvan Varga	<istvan@csounds.com>
 	* SConstruct:
 	* Engine/oload.c:
