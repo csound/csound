@@ -758,7 +758,8 @@ if (commonEnvironment['buildCsoundVST'] == 1) and boostFound and fltkFound:
     frontends/CsoundVST/CppSound.cpp 
     frontends/CsoundVST/CsoundFile.cpp 
     frontends/CsoundVST/Cell.cpp 
-    frontends/CsoundVST/CsoundVST.cpp 
+    frontends/CsoundVST/CsoundVST.cpp
+    frontends/CsoundVST/csoundvst_api.cpp 
     frontends/CsoundVST/CsoundVST.i
     frontends/CsoundVST/CsoundVstFltk.cpp 
     frontends/CsoundVST/CsoundVSTMain.cpp 
