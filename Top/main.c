@@ -380,8 +380,31 @@ int csoundCompile(void *csound, int argc, char **argv)
     O.filnamspace = filnamp = mmalloc((long)1024);
     peakchunks = 1;
     {
-      FILE *csrc = fopen(".csoundrc", "r");
-      if (csrc!=NULL) {
+      char *csrcname;
+      FILE *csrc;
+      /* IV - Feb 17 2005 */
+      csrcname = getenv("CSOUNDRC");
+      csrc = NULL;
+      if (csrcname != NULL && csrcname[0] != '\0') {
+        csrc = fopen(csrcname, "r");
+        if (csrc == NULL)
+          err_printf(Str("WARNING: cannot open csoundrc file %s\n"), csrcname);
+      }
+      if (csrc == NULL &&
+          (getenv("HOME") != NULL && ((char*) getenv("HOME"))[0] != '\0')) {
+        /* 11 bytes for DIRSEP, ".csoundrc" (9 chars), and null character */
+        csrcname = (char*) malloc((size_t) ((int) strlen(getenv("HOME")) + 11));
+        if (csrcname == NULL) {
+          err_printf(Str(" *** memory allocation failure\n"));
+          longjmp(((ENVIRON*) csound)->exitjmp_,1);
+        }
+        sprintf(csrcname, "%s%c%s", getenv("HOME"), DIRSEP, ".csoundrc");
+        csrc = fopen(csrcname, "r");
+        free(csrcname);
+      }
+      if (csrc == NULL)
+        csrc = fopen(".csoundrc", "r");
+      if (csrc != NULL) {
         readOptions(csound, csrc);
         fclose(csrc);
       }
