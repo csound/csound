@@ -36,7 +36,7 @@ extern MYFLT TwoZero_tick(TwoZero *, MYFLT);
 /*  to a target at speed set by rate.       */
 /********************************************/
 
-static void make_FormSwep(FormSwep *p)
+void make_FormSwep(FormSwep *p)
 {
     p->poleCoeffs[0] = p->poleCoeffs[1] = FL(0.0);
     p->gain          = FL(1.0);
