@@ -27,7 +27,7 @@
 27,"ne peuvent pas assigner la dernière note parce qu'elle excède le maxalloc d'instr"
 28,"%c\tbeep !\n"
 29,"PortAudio device %d\n  %s\n  Maximum channels in: %5d\n  Maximum channels out: %5d\n  Default sample rate: %10.3f\n"
-30,"No PortAudio device given; defaulting to device 1.\n"
+30,"No PortAudio device given; defaulting to device %d\n"
 31,"pistes de %d ampère, pistes de freq de %d"
 32,"chans de %d (non 1) dans fichier %s de PVOC"
 *33,"%d forced decays, %d extra noteoffs\n"

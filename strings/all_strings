@@ -27,7 +27,7 @@
 27,"WARNING: can't allocate last note because it exceeds instr maxalloc"
 28,"%c\tbeep!\n"
 29,"PortAudio device %d\n  %s\n  Maximum channels in: %5d\n  Maximum channels out: %5d\n  Default sample rate: %10.3f\n"
-30,"No PortAudio device given; defaulting to device 1.\n"
+30,"No PortAudio device given; defaulting to device %d\n"
 31,"%d amp tracks, %d freq tracks"
 32,"%d chans (not 1) in PVOC file %s"
 33,"%d forced decays, %d extra noteoffs\n"
