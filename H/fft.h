@@ -41,15 +41,6 @@
     allocated, pass the allocated pointer instead of NULL.
  */
 
-/*** how can it be so hard to get PI *?***/
-#ifndef PI
-#ifdef M_PI
-#define PI M_PI
-#else
-#define PI 3.1415926535
-#endif
-#endif
-
 #ifndef MYFLT
 #include "sysdep.h"
 #endif
@@ -87,4 +78,4 @@ void FFTarb(complex *, complex *, long, complex *);
 void DFT(complex *, complex *, long, complex *);
 void cxmult(complex *,complex *,long);
 
-#endif // FFT_H
+#endif /* FFT_H */

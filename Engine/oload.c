@@ -1,4 +1,4 @@
-/*  
+/*
     oload.c:
 
     Copyright (C) 1991 Barry Vercoe, John ffitch, Michael Gogins
@@ -231,39 +231,39 @@ ENVIRON cenviron_ = {
         unquote,
         ldmemfile,
         err_printf,
-				hfgens,
-				mrealloc,
-				putcomplexdata,
-				ShowCpx,
-				PureReal,
-				IsPowerOfTwo,
-				FindTable,
-				AssignBasis,
-				reverseDig,
-				reverseDigpacked,
-				FFT2dimensional,
-				FFT2torl,
-				FFT2torlpacked,
-				ConjScale,
-				FFT2real,
-				FFT2realpacked,
-				Reals,
-				Realspacked,
-				FFT2,
-				FFT2raw,
-				FFT2rawpacked,
-				FFTarb,
-				DFT,
-				cxmult,
-				getopnum,
-				strarg2insno,
-				strarg2opcno,
-				instance,
-				isfullpath,
-				dies,
-				catpath,
-				rewriteheader,
-				writeheader,
+        hfgens,
+        mrealloc,
+        putcomplexdata,
+        ShowCpx,
+        PureReal,
+        IsPowerOfTwo,
+        FindTable,
+        AssignBasis,
+        reverseDig,
+        reverseDigpacked,
+        FFT2dimensional,
+        FFT2torl,
+        FFT2torlpacked,
+        ConjScale,
+        FFT2real,
+        FFT2realpacked,
+        Reals,
+        Realspacked,
+        FFT2,
+        FFT2raw,
+        FFT2rawpacked,
+        FFTarb,
+        DFT,
+        cxmult,
+        getopnum,
+        strarg2insno,
+        strarg2opcno,
+        instance,
+        isfullpath,
+        dies,
+        catpath,
+        rewriteheader,
+        writeheader,
         /*
         * Data fields.
         */
@@ -279,7 +279,7 @@ ENVIRON cenviron_ = {
         FL(0.0),      /*      esr */
         FL(0.0),      /*      ekr */
         NULL, NULL, NULL,     /* orchname, scorename, xfilename */
-        DFLT_DBFS,    /*	e0dbfs */
+        DFLT_DBFS,    /*        e0dbfs */
         NULL,         /*      reset_list */
         NLABELS,      /*      nlabels */
         NGOTOS,       /*      ngotos */
@@ -375,9 +375,9 @@ ENVIRON cenviron_ = {
         FL(0.0),        /*      long_to_dbfs */
         1024,   /*      rtin_dev */
         1024,   /*      rtout_dev */
-        0,	/*	MIDIINbufIndex */
-        {{0}},	/*	MIDIINbuffer2 */
-        -1	/*	displop4 */
+        0,      /*      MIDIINbufIndex */
+        {{0}},  /*      MIDIINbuffer2 */
+        -1      /*      displop4 */
 };
 
 OPARMS O;
@@ -746,7 +746,7 @@ instance(int insno)             /* create instance of an instr template */
         opdslim = nxtopds + tp->opdstot;
         if (O.odebug)
           printf(Str(X_923,"instr %d allocated at %p\n\tlclbas %p, opds %p\n"),
-                 insno,ip,lclbas,nxtopds); 
+                 insno,ip,lclbas,nxtopds);
         optxt = (OPTXT *)tp;
         prvids = prvpds = (OPDS *)ip;
         while ((optxt = optxt->nxtop) != NULL) {     /* for each op in instr */
@@ -766,7 +766,7 @@ instance(int insno)             /* create instance of an instr template */
             nxtopds += ep->dsblksiz;
             if (O.odebug)
               printf(Str(X_1091,"op %d (%s) allocated at %p\n"),
-                     opnum,ep->opname,opds); 
+                     opnum,ep->opname,opds);
             opds->optext = optxt;                       /* set common headata */
             opds->insdshead = ip;
             if (opnum == LABEL) {                       /* LABEL:       */
@@ -799,14 +799,14 @@ instance(int insno)             /* create instance of an instr template */
                     (ttp->pftype == 'k' && ep->kopadr != NULL))
                     opds->opadr = ep->kopadr;           /*      krate or    */
                 else opds->opadr = ep->aopadr;          /*      arate       */
-                if (O.odebug) printf("opadr = %p\n",opds->opadr); 
+                if (O.odebug) printf("opadr = %p\n",opds->opadr);
                 if (opds->opadr == NULL)
                     die(Str(X_1083,"null opadr"));
             }
             opds->dopadr = ep->dopadr;
         args:
             argpp = (MYFLT **)((char *)opds + sizeof(OPDS));
-            if (O.odebug) printf("argptrs:"); 
+            if (O.odebug) printf("argptrs:");
             aoffp = ttp->outoffs;               /* for outarg codes: */
             reqd = strlen(ep->outypes);
             for (n=aoffp->count, ndxp=aoffp->indx; n--; reqd--) {
@@ -816,17 +816,17 @@ instance(int insno)             /* create instance of an instr template */
                     fltp = lcloffbas + posndx;
                 else
                     fltp = csetoffbas + posndx - CBAS;
-                if (O.odebug) printf("\t%p", fltp); 
+                if (O.odebug) printf("\t%p", fltp);
                 *argpp++ = fltp;
             }
             while (reqd--) {                    /* if more outypes, pad */
-                if (O.odebug) printf("\tPADOUT"); 
+                if (O.odebug) printf("\tPADOUT");
                 *argpp++ = NULL;
             }
             aoffp = ttp->inoffs;                /* for inarg codes: */
             for (n=aoffp->count, ndxp=aoffp->indx; n--; ) {
                 if ((indx = *ndxp++) < LABELIM) {
-                    if (O.odebug) printf("\t***lbl"); 
+                    if (O.odebug) printf("\t***lbl");
                     largp->lblno = indx - MIN_SHORT;  /* if label ref, defer */
                     largp->argpp = argpp++;
                     largp++;
@@ -837,7 +837,7 @@ instance(int insno)             /* create instance of an instr template */
                         fltp = lcloffbas + posndx;
                     else
                         fltp = csetoffbas + posndx - CBAS;
-                    if (O.odebug) printf("\t%p", fltp); 
+                    if (O.odebug) printf("\t%p", fltp);
                     *argpp++ = fltp;
                 }
             }
