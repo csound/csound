@@ -1,3 +1,8 @@
+2003-11-02  John D. Ramsdell  <ramsdell@mitre.org>
+
+	* AUTHORS, INSTALL, NEWS: Added empty files to be filled in when
+	we comply with the GNU Coding Standards.
+
 2003-11-1	Steven Y. Yi	<stevenyi@csounds.com>
 	* rdorch.c: fixed printf statement in synterr() to use %c instead of %f
 
