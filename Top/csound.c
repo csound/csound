@@ -131,7 +131,7 @@ extern "C" {
 	{
 		volatile int returnValue;
 		/* setup jmp for return after an exit() */
-		if ((returnValue = setjmp(csoundJump_)))
+		if ((returnValue = setjmp(cenviron.exitjmp_)))
 		{
 			csoundMessage(csound, "Early return from csoundPerform().");
 			return returnValue;
@@ -145,7 +145,7 @@ extern "C" {
 		volatile int returnValue;
 		/* setup jmp for return after an exit()
 		*/
-		if ((returnValue = setjmp(csoundJump_)))
+		if ((returnValue = setjmp(cenviron.exitjmp_)))
 		{
 			csoundMessage(csound, "Early return from csoundPerformKsmps().");
 			return returnValue;
@@ -186,7 +186,7 @@ extern "C" {
 		int done = 0;
 		/* Setup jmp for return after an exit().
 		*/
-		if ((returnValue = setjmp(csoundJump_)))
+		if ((returnValue = setjmp(cenviron.exitjmp_)))
 		{
 			csoundMessage(csound, "Early return from csoundPerformBuffer().");
 			return returnValue;
@@ -790,10 +790,10 @@ extern "C" {
 		int thread, 
 		char *outypes, 
 		char *intypes, 
-		void (*iopadr)(void *), 
-		void (*kopadr)(void *), 
-		void (*aopadr)(void *), 
-		void (*dopadr)(void *))
+		int (*iopadr)(void *), 
+		int (*kopadr)(void *), 
+		int (*aopadr)(void *), 
+		int (*dopadr)(void *))
 	{
 		int oldSize = (int)((char *)((ENVIRON *)csound)->oplstend_ - 
 			(char *)((ENVIRON *)csound)->opcodlst_);
