@@ -76,8 +76,12 @@
 using namespace Loris;
 using namespace std;
 
-#if !defined(__WIN32__) || !defined(_WINDOWS)
-#define PUBLIC 
+#ifdef WIN32
+#define PUBLIC __declspec(dllexport)
+#define DIR_SEP '\\'
+#else
+#define PUBLIC
+#define DIR_SEP '/'
 #endif
 
 typedef std::vector< Partial > PARTIALS;
@@ -250,7 +254,6 @@ static void accum_samples( Oscillator & oscil, Breakpoint & bp, double * bufbegi
 				bw = 1.;
 			else if ( bw < 0. )
 				bw = 0.;
-
 			/*
 			#ifdef DEBUG_LORISGENS
 			std::cerr << "initializing oscillator " << std::endl;
@@ -590,7 +593,7 @@ LorisReader::updateEnvelopePoints( double time, double fscale, double ascale, do
 
 #pragma mark -- lorisread generator functions --
 
-static void lorisread_cleanup(void * p);
+static void lorisread_cleanup(ENVIRON *, void * p);
 
 // ---------------------------------------------------------------------------
 //	lorisread_setup
@@ -610,7 +613,7 @@ void lorisread_setup( ENVIRON *csound, LORISREAD * params )
 
 	//	determine the name of the SDIF file to use:
 	//	this code adapted from ugens8.c pvset()
-	if ( *params->ifilnam == SSTRCOD )
+	//if ( *params->ifilnam == SSTRCOD )
 	{
 		//	use strg name, if given:
 		//sdiffilname = unquote(params->STRARG);
@@ -620,19 +623,19 @@ void lorisread_setup( ENVIRON *csound, LORISREAD * params )
 	else if ((long)*p->ifilnam <= strsmax && strsets != NULL && strsets[(long)*p->ifilnam])
 	strcpy(sdiffilname, strsets[(long)*p->ifilnam]);
 	*/
-	else 
-	{
-		//	else use loris.filnum
-		char tmp[32];
-		sprintf(tmp,"loris.%d", (int)*params->ifilnam);
-		sdiffilname = tmp;
-	}
+	//else 
+	//{
+	//	//	else use loris.filnum
+	//	char tmp[32];
+	//	sprintf(tmp,"loris.%d", (int)*params->ifilnam);
+	//	sdiffilname = tmp;
+	//}
 	
 	//	construct the implementation object:
 	params->imp = new LorisReader( sdiffilname, *params->fadetime, params->h.insdshead, int(*params->readerIdx) );
 	
 	// set lorisplay_cleanup as cleanup routine:
-	params->h.dopadr = lorisread_cleanup;  
+	params->h.dopadr = (SUBR) lorisread_cleanup;  
 }
 
 // ---------------------------------------------------------------------------
@@ -653,7 +656,7 @@ void lorisread( ENVIRON *csound, LORISREAD * p )
 //	Cleans up after lorisread.
 //
 static
-void lorisread_cleanup(void * p)
+void lorisread_cleanup(ENVIRON *, void * p)
 {
 	LORISREAD * tp = (LORISREAD *)p;
 #ifdef DEBUG_LORISGENS
@@ -696,7 +699,7 @@ LorisPlayer::LorisPlayer( LORISPLAY * params ) :
 
 #pragma mark -- lorisplay generator functions --
 
-static void lorisplay_cleanup(void * p);
+static void lorisplay_cleanup(ENVIRON *, void * p);
 
 // ---------------------------------------------------------------------------
 //	lorisplay_setup
@@ -712,7 +715,7 @@ void lorisplay_setup( ENVIRON *csound, LORISPLAY * p )
 	std::cerr << "** Setting up lorisplay (owner " << p->h.insdshead << ")" << std::endl;
 #endif
 	p->imp = new LorisPlayer( p );
-	p->h.dopadr = lorisplay_cleanup;  // set lorisplay_cleanup as cleanup routine
+	p->h.dopadr = (SUBR) lorisplay_cleanup;  // set lorisplay_cleanup as cleanup routine
 }
 
 // ---------------------------------------------------------------------------
@@ -1073,7 +1076,7 @@ void lorismorph_setup( ENVIRON *csound, LORISMORPH * p )
 	std::cerr << "** Setting up lorismorph (owner " << p->h.insdshead << ")" << std::endl;
 #endif
 	p->imp = new LorisMorpher( p );
-	p->h.dopadr = lorismorph_cleanup;  // set lorismorph_cleanup as cleanup routine
+	p->h.dopadr = (SUBR) lorismorph_cleanup;  // set lorismorph_cleanup as cleanup routine
 }
 
 // ---------------------------------------------------------------------------
