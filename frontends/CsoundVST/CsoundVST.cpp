@@ -244,9 +244,9 @@ void performanceThreadRoutine_(void *data)
 
 static int threadYieldCallback(void *)
 {
-  Fl::lock();
+  //Fl::lock();
   Fl::wait(0.0);
-  Fl::unlock();
+  //Fl::unlock();
   return 1;
 }
 
@@ -271,6 +271,7 @@ int CsoundVST::perform()
       else if(getIsMultiThreaded())
     	{
 	  csoundSetYieldCallback(getCppSound()->getCsound(), threadYieldCallback); 
+	  csoundSetYieldCallback(getCppSound()->getCsound(), nonThreadYieldCallback); 
 	  result = (int) csound::System::createThread(performanceThreadRoutine_, this, 0);
     	}
       else
@@ -323,6 +324,7 @@ void CsoundVST::open()
     {
       cppSound->setFilename(filename_);
     }
+  cppSound->setFLTKThreadLocking(false);
 }
 
 void CsoundVST::reset()

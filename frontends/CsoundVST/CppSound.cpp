@@ -417,6 +417,15 @@ CsoundFile *CppSound::getThisCsoundFile()
   return (CsoundFile *)this;
 }
 
+void CppSound::setFLTKThreadLocking(bool isLocking)
+{
+  csoundSetFLTKThreadLocking(csound, isLocking);
+}
+
+bool CppSound::getFLTKThreadLocking()
+{
+  return csoundGetFLTKThreadLocking(csound);
+}
 
 /**
  * Glue for incomplete Csound API.
