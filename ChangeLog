@@ -2,6 +2,8 @@
 
       * Added high-level "C" API for CsoundVST 
        (frontends/CsoundVST/csoundvst_api.h and .c).
+       
+      * Fixed random number generator bug in CsoundVST::StrangeAttractor.
 
 2004-05-07  Michael Gogins <gogins@pipeline.com>
 
