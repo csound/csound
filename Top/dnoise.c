@@ -243,9 +243,8 @@ int dnoise(int argc, char **argv)
     int             channel = ALLCHNLS;
     MYFLT       beg_time = FL(0.0), input_dur = FL(0.0), sr = FL(0.0);
     MYFLT       beg_ntime = FL(0.0), input_ndur = FL(0.0), srn = FL(0.0);
-    char *envoutyp = NULL;
+    char        *envoutyp = NULL;
     char        outformch = 's';
-    char *getenv(const char*);
 
 #ifdef mills_macintoshxx
     argc = 0; argv = NULL;
@@ -310,7 +309,8 @@ int dnoise(int argc, char **argv)
                 if (O.filetyp == TYP_WAV) {
                   if (envoutyp == NULL) goto outtyp;
                   if (O.msglevel & WARNMSG)
-                    printf(Str(X_95,"WARNING: -A overriding local default WAV out\n"));
+                    printf(Str(X_95,
+                               "WARNING: -A overriding local default WAV out\n"));
                 }
                 O.filetyp = TYP_AIFF;     /* AIFF output request*/
                 break;
@@ -319,7 +319,9 @@ int dnoise(int argc, char **argv)
                     O.filetyp == TYP_WAV) {
                   if (envoutyp == NULL) goto outtyp;
                   if (O.msglevel & WARNMSG)
-                    printf(Str(X_110,"WARNING: -J overriding local default AIFF/WAV out\n"));
+                    printf(Str(X_110,
+                               "WARNING: -J overriding local default "
+                               "AIFF/WAV out\n"));
                 }
                 O.filetyp = TYP_IRCAM;      /* IRCAM output request */
                 break;
@@ -327,7 +329,8 @@ int dnoise(int argc, char **argv)
                 if (O.filetyp == TYP_AIFF) {
                   if (envoutyp == NULL) goto outtyp;
                   if (O.msglevel & WARNMSG)
-                    printf(Str(X_131,"WARNING: -W overriding local default AIFF out\n"));
+                    printf(Str(X_131,
+                               "WARNING: -W overriding local default AIFF out\n"));
                 }
                 O.filetyp = TYP_WAV;      /* WAV output request */
                 break;
@@ -439,8 +442,6 @@ int dnoise(int argc, char **argv)
                 break;
               case 'V':
                 Verbose = 1; break;
-                /*           case 'h': */
-                /*             dnoise_usage(0);    /\* then exits normally *\/ */
               default:
                 printf("Looking at %c\n", c);
                 dnoise_usage(1);    /* this exits with error */
@@ -469,47 +470,45 @@ int dnoise(int argc, char **argv)
     if (O.outformat == 0) O.outformat = p->format;
     O.sfsampsize = sfsampsize(O.outformat);
     if (O.filetyp == TYP_AIFF) {
-        if (!O.sfheader)
-            die(Str(X_640,"cannot write AIFF soundfile with no header"));
-        if (
-            O.outformat == AE_ALAW || 
-            O.outformat == AE_ULAW ||
-            O.outformat == AE_FLOAT) {
-            sprintf(errmsg,Str(X_180,"AIFF does not support %s encoding"),
-                    getstrformat(O.outformat));
-            die(errmsg);
-        }
+      if (!O.sfheader)
+        die(Str(X_640,"cannot write AIFF soundfile with no header"));
+      if (O.outformat == AE_ALAW || 
+          O.outformat == AE_ULAW ||
+          O.outformat == AE_FLOAT) {
+        sprintf(errmsg,Str(X_180,"AIFF does not support %s encoding"),
+                getstrformat(O.outformat));
+        die(errmsg);
+      }
     }
     if (O.filetyp == TYP_WAV) {
-        if (!O.sfheader)
-            die(Str(X_338,"cannot write WAV soundfile with no header"));
-        if (
-            O.outformat == AE_ALAW || 
-            O.outformat == AE_ULAW ||
-            O.outformat == AE_FLOAT) {
-            sprintf(errmsg,Str(X_181,"WAV does not support %s encoding"),
-                    getstrformat(O.outformat));
-            die(errmsg);
-        }
+      if (!O.sfheader)
+        die(Str(X_338,"cannot write WAV soundfile with no header"));
+      if (O.outformat == AE_ALAW || 
+          O.outformat == AE_ULAW ||
+          O.outformat == AE_FLOAT) {
+        sprintf(errmsg,Str(X_181,"WAV does not support %s encoding"),
+                getstrformat(O.outformat));
+        die(errmsg);
+      }
     }
     if (O.rewrt_hdr && !O.sfheader)
-        die(Str(X_628,"cannot rewrite header if no header requested"));
+      die(Str(X_628,"cannot rewrite header if no header requested"));
     if (O.outfilename == NULL)  O.outfilename = "test";
 /*     ofd = fopen(outfile, "wb"); */
     outfd = openout(O.outfilename, 1);
     esr = (MYFLT)p->sr;
     nchnls = Chans = p->nchanls;
     if (O.sfheader)
-        writeheader(outfd, O.outfilename);      /* write header as required   */
+      writeheader(outfd, O.outfilename);      /* write header as required   */
     if ((O.filetyp == TYP_AIFF && bytrevhost()) ||
         (O.filetyp == TYP_WAV && !bytrevhost())) {
-        if (O.outformat == AE_SHORT)        /* if audio out needs byte rev  */
-            audtran = bytrev2;           /*   redirect the audio puts    */
-        else if (O.outformat == AE_LONG)
-            audtran = bytrev4;
-        else audtran = nullfn;
+      if (O.outformat == AE_SHORT)        /* if audio out needs byte rev  */
+        audtran = bytrev2;                /*   redirect the audio puts    */
+      else if (O.outformat == AE_LONG)
+        audtran = bytrev4;
+      else audtran = nullfn;
     }
-    else audtran = nullfn;              /* else use standard audio puts */
+    else audtran = nullfn;                /* else use standard audio puts */
 
     /* read header info */
     if (R < FL(0.0))
@@ -785,20 +784,20 @@ int dnoise(int argc, char **argv)
         establish threshold for noise-gating in each bin. */
 
     if ((nref = (MYFLT *) calloc((N2+1),sizeof(MYFLT))) == NULL) {
-      ERR("denoise: insufficient memory\n");
+      ERR("dnoise: insufficient memory\n");
     }
 
     if ((mbuf =(MYFLT *)calloc(m*Np2,sizeof(MYFLT))) == NULL) {
-      ERR("denoise: insufficient memory\n");
+      ERR("dnoise: insufficient memory\n");
     }
     if ((nbuf =(MYFLT *)calloc(m*Np2,sizeof(MYFLT))) == NULL) {
-      ERR("denoise: insufficient memory\n");
+      ERR("dnoise: insufficient memory\n");
     }
     if ((rsum =(MYFLT *)calloc(N2+1,sizeof(MYFLT))) == NULL) {
-      ERR("denoise: insufficient memory\n");
+      ERR("dnoise: insufficient memory\n");
     }
     if ((ssum =(MYFLT *)calloc(N2+1,sizeof(MYFLT))) == NULL) {
-      ERR("denoise: insufficient memory\n");
+      ERR("dnoise: insufficient memory\n");
     }
 
     /* skip over nMin samples */
@@ -1015,9 +1014,9 @@ int dnoise(int argc, char **argv)
             *f += *f0 * *f0;
             *f += *f1 * *f1;
             avg = minv * *f;        /* avg = minv * rsum[i]; */
-            if (avg < 0.)
+            if (avg < FL(0.0))
               avg = FL(0.0);
-            if (avg == 0.)
+            if (avg == FL(0.0))
               fac = FL(0.0);
             else
               fac = avg / (avg + nref[i]);
