@@ -34,8 +34,18 @@
 #define NOTOK 0
 #endif
 
-extern int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2);
+int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
+{
+    if ((f1->overlap    == f2->overlap)
+        && (f1->winsize == f2->winsize)
+        && (f1->wintype == f2->wintype) /* harsh, maybe... */
+        && (f1->N       == f2->N)
+        && (f1->format  == f2->format)
+        )
+      return 1;
+    return 0;
 
+}
 #define FLOATMAX_ 3.402823466e+38f
 
 int pvsdemix_init(ENVIRON *csound, PVSDEMIX *p)
