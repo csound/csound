@@ -32,29 +32,29 @@ template<typename T>
 class OpcodeBase
 {
 public:
-    int init()
+    int init(ENVIRON *csound)
     {
         return NOTOK;
     }
     static int init_(void *csound, void *opcode)
     {
-        return reinterpret_cast<T *>(opcode)->init(csound);
+        return reinterpret_cast<T *>(opcode)->init(reinterpret_cast<ENVIRON *>(csound));
     }
-    int kontrol()
+    int kontrol(ENVIRON *csound)
     {
         return NOTOK;
     }
     static int kontrol_(void *csound, void *opcode)
     {
-        return reinterpret_cast<T *>(opcode)->kontrol(csound);
+        return reinterpret_cast<T *>(opcode)->kontrol(reinterpret_cast<ENVIRON *>(csound));
     }
-    int audio()
+    int audio(ENVIRON *csound)
     {
         return NOTOK;
     }
     static int audio_(void *csound, void *opcode)
     {
-        return reinterpret_cast<T *>(opcode)->audio(csound);
+        return reinterpret_cast<T *>(opcode)->audio(reinterpret_cast<ENVIRON *>(csound));
     }
     int deinit(void *csound)
     {
@@ -62,32 +62,28 @@ public:
     }
     static int deinit_(void *csound, void *opcode)
     {
-        return reinterpret_cast<T *>(opcode)->deinit(csound);
+        return reinterpret_cast<T *>(opcode)->deinit(reinterpret_cast<ENVIRON *>(csound));
     }
-    ENVIRON *cs()
-    {
-        return h.insdshead->csound;
-    }
-    void log(const char *format,...)
+    void log(ENVIRON *csound, const char *format,...)
     {
       va_list args;
       va_start(args, format);
-      if(cs()) {
-            cs()->MessageV(cs(), format, args);
+      if(csound) {
+            csound->MessageV(csound, format, args);
       }
       else {
             vfprintf(stdout, format, args);
       }
       va_end(args);
     }
-    void warn(const char *format,...)
+    void warn(ENVIRON *csound, const char *format,...)
     {
       va_list args;
       va_start(args, format);
-      if(cs()) {
-          if(cs()->GetMessageLevel(cs()) & WARNMSG ||
-             cs()->GetDebug(cs())) {
-              cs()->MessageV(cs(), format, args);
+      if(csound) {
+          if(csound->GetMessageLevel(csound) & WARNMSG ||
+             csound->GetDebug(csound)) {
+              csound->MessageV(csound, format, args);
           }
       }
       else {
