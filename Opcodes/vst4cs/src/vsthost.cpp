@@ -497,6 +497,8 @@ void VSTPlugin::OpenEditor()
 {
     if(windowHandle)
         return;
+    if (aeffect->flags & effFlagsHasEditor== 1)	
+    {
     GetEditorRect();
     Debug("ERect top %d left %d right %d bottom %d.\n", rect.top, rect.left, 
         rect.right, rect.bottom);
