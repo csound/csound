@@ -33,10 +33,11 @@ extern int  openout(char *, int);
 int kdmpset(KDUMP *p)
 {
     if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
-      if ((p->fdch.fd = openout(p->STRARG, 1)) < 0) {
+      if ((p->fdch.fdc = openout(p->STRARG, 1)) < 0) {
         sprintf(errmsg,Str(X_210,"Cannot open %s"), retfilnam);
         return initerror(errmsg);
       }
+      p->fdch.fd = NULL;        /* Character file not audio */
       fdrecord(&p->fdch);
       if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
         return initerror(Str(X_1335,"unknown format request"));
@@ -55,10 +56,11 @@ int kdmpset(KDUMP *p)
 int kdmp2set(KDUMP2 *p)
 {
     if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
-      if ((p->fdch.fd = openout(p->STRARG, 1)) < 0) {
+      if ((p->fdch.fdc = openout(p->STRARG, 1)) < 0) {
         sprintf(errmsg,Str(X_210,"Cannot open %s"), retfilnam);
         return initerror(errmsg);
       }
+      p->fdch.fd = NULL;        /* Character file not audio */
       fdrecord(&p->fdch);
       if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
         return initerror(Str(X_1335,"unknown format request"));
@@ -77,10 +79,11 @@ int kdmp2set(KDUMP2 *p)
 int kdmp3set(KDUMP3 *p)
 {
     if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
-      if ((p->fdch.fd = openout(p->STRARG, 1)) < 0) {
+      if ((p->fdch.fdc = openout(p->STRARG, 1)) < 0) {
         sprintf(errmsg,Str(X_210,"Cannot open %s"), retfilnam);
         return initerror(errmsg);
       }
+      p->fdch.fd = NULL;        /* Character file not audio */
       fdrecord(&p->fdch);
       if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
         return initerror(Str(X_1335,"unknown format request"));
@@ -99,10 +102,11 @@ int kdmp3set(KDUMP3 *p)
 int kdmp4set(KDUMP4 *p)
 {
     if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
-      if ((p->fdch.fd = openout(p->STRARG, 1)) < 0) {
+      if ((p->fdch.fdc = openout(p->STRARG, 1)) < 0) {
         sprintf(errmsg,Str(X_210,"Cannot open %s"), retfilnam);
         return initerror(errmsg);
       }
+      p->fdch.fd = NULL;        /* Character file not audio */
       fdrecord(&p->fdch);
       if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
         return initerror(Str(X_1335,"unknown format request"));
@@ -185,7 +189,7 @@ int kdump(KDUMP *p)
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
       kval[0] = *p->ksig;
-      nkdump(p->fdch.fd, p->format, 1);
+      nkdump(p->fdch.fdc, p->format, 1);
     }
     return OK;
 }
@@ -196,7 +200,7 @@ int kdump2(KDUMP2 *p)
       p->countdown = p->timcount;
       kval[0] = *p->ksig1;
       kval[1] = *p->ksig2;
-      nkdump(p->fdch.fd, p->format, 2);
+      nkdump(p->fdch.fdc, p->format, 2);
     }
     return OK;
 }
@@ -208,7 +212,7 @@ int kdump3(KDUMP3 *p)
       kval[0] = *p->ksig1;
       kval[1] = *p->ksig2;
       kval[2] = *p->ksig3;
-      nkdump(p->fdch.fd, p->format, 3);
+      nkdump(p->fdch.fdc, p->format, 3);
     }
     return OK;
 }
@@ -221,7 +225,7 @@ int kdump4(KDUMP4 *p)
       kval[1] = *p->ksig2;
       kval[2] = *p->ksig3;
       kval[3] = *p->ksig4;
-      nkdump(p->fdch.fd, p->format, 4);
+      nkdump(p->fdch.fdc, p->format, 4);
     }
     return OK;
 }
@@ -235,10 +239,11 @@ extern int openin(char*);
 int krdset(KREAD *p)
 {
     if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
-      if ((p->fdch.fd = openin(p->STRARG)) < 0) {
+      if ((p->fdch.fdc = openin(p->STRARG)) < 0) {
         sprintf(errmsg,Str(X_210,"Cannot open %s"), retfilnam);
         return initerror(errmsg);
       }
+      p->fdch.fd = NULL;        /* Character file not audio */
       fdrecord(&p->fdch);
       if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
         return initerror(Str(X_1335,"unknown format request"));
@@ -260,10 +265,11 @@ int krdset(KREAD *p)
 int krd2set(KREAD2 *p)
 {
     if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
-      if ((p->fdch.fd = openin(p->STRARG)) < 0) {
+      if ((p->fdch.fdc = openin(p->STRARG)) < 0) {
         sprintf(errmsg,Str(X_210,"Cannot open %s"), retfilnam);
         return initerror(errmsg);
       }
+      p->fdch.fd = NULL;        /* Character file not audio */
       fdrecord(&p->fdch);
       if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
         return initerror(Str(X_1335,"unknown format request"));
@@ -285,10 +291,11 @@ int krd2set(KREAD2 *p)
 int krd3set(KREAD3 *p)
 {
     if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
-      if ((p->fdch.fd = openin(p->STRARG)) < 0) {
+      if ((p->fdch.fdc = openin(p->STRARG)) < 0) {
         sprintf(errmsg,Str(X_210,"Cannot open %s"), retfilnam);
         return initerror(errmsg);
       }
+      p->fdch.fd = NULL;        /* Character file not audio */
       fdrecord(&p->fdch);
       if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
         return initerror(Str(X_1335,"unknown format request"));
@@ -310,10 +317,11 @@ int krd3set(KREAD3 *p)
 int krd4set(KREAD4 *p)
 {
     if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
-      if ((p->fdch.fd = openin(p->STRARG)) < 0) {
+      if ((p->fdch.fdc = openin(p->STRARG)) < 0) {
         sprintf(errmsg,Str(X_210,"Cannot open %s"), retfilnam);
         return initerror(errmsg);
       }
+      p->fdch.fd = NULL;        /* Character file not audio */
       fdrecord(&p->fdch);
       if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
         return initerror(Str(X_1335,"unknown format request"));
@@ -378,11 +386,11 @@ static void nkread(int ifd, int format, int nk)
         do {                  /* Skip whitespace */
           read(ifd, bp, 1);
         } while (isspace(*bp));
-        if (*bp=='+' || *bp=='-') bp++;
         do {                  /* Absorb digits */
-          read(ifd, bp++, 1);
-        } while (isdigit(*(bp-1)));
+          read(ifd, ++bp, 1);
+        } while (isdigit(*bp));
         lseek(ifd, (off_t)(-1), SEEK_CUR);
+        *bp = '\0';
 #ifndef USE_DOUBLE
         sscanf(inbuf,"%f", kp);
 #else
@@ -397,10 +405,11 @@ static void nkread(int ifd, int format, int nk)
         do {                  /* Skip whitespace */
           read(ifd, bp, 1);
         } while (isspace(*bp));
-        if (*bp=='+' || *bp=='-') bp++;
         do {                  /* Absorb digits and such*/
-          read(ifd, bp++, 1);
-        } while (!isspace(*(bp-1)));
+          read(ifd, ++bp, 1);
+        } while (!isspace(*bp));
+        lseek(ifd, (off_t)(-1), SEEK_CUR);
+        *bp = '\0';
 #ifndef USE_DOUBLE
         sscanf(inbuf,"%f", kp);
 #else
@@ -417,7 +426,7 @@ int kread(KREAD *p)
 {
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
-      nkread(p->fdch.fd, p->format, 1);
+      nkread(p->fdch.fdc, p->format, 1);
       *p->k1 = kval[0];
     }
     else *p->k1 = p->k[0];
@@ -428,7 +437,7 @@ int kread2(KREAD2 *p)
 {
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
-      nkread(p->fdch.fd, p->format, 2);
+      nkread(p->fdch.fdc, p->format, 2);
       *p->k1 = kval[0];
       *p->k2 = kval[1];
     }
@@ -443,7 +452,7 @@ int kread3(KREAD3 *p)
 {
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
-      nkread(p->fdch.fd, p->format, 2);
+      nkread(p->fdch.fdc, p->format, 2);
       *p->k1 = kval[0];
       *p->k2 = kval[1];
       *p->k3 = kval[2];
@@ -460,7 +469,7 @@ int kread4(KREAD4 *p)
 {
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
-      nkread(p->fdch.fd, p->format, 2);
+      nkread(p->fdch.fdc, p->format, 2);
       *p->k1 = kval[0];
       *p->k2 = kval[1];
       *p->k3 = kval[2];

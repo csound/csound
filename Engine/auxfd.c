@@ -25,9 +25,7 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#ifdef HAVE_LIBSNDFILE
 #include <sndfile.h>
-#endif
 
 /* INSDS   *curip; current insds, maintained by insert.c */
 
@@ -83,11 +81,10 @@ void fdclose(FDCH *fdchp)       /* close a file and remove from fd chain */
     prvchp = &curip->fdch;                      /* from current insds,  */
     while ((nxtchp = prvchp->nxtchp) != NULL) {     /* chain through fdlocs */
       if (nxtchp == fdchp) {            /*   till find this one */
-#ifdef HAVE_LIBSNDFILE
+        if (fdchp->fd)
         sf_close(fdchp->fd);            /* then close the file  */
-#else
-        close(fdchp->fd);               /* then close the file  */
-#endif
+        else
+          close(fdchp->fdc);              /* then close the file  */
         fdchp->fd = 0;                  /*   delete the fd &    */
         prvchp->nxtchp = fdchp->nxtchp; /* unlnk from fdchain */
         if (O.odebug) fdchprint(curip);
@@ -123,22 +120,21 @@ void fdchclose(INSDS *ip)   /* close all files in instr fd chain     */
                             /*   called by insert on deact & expire  */
 {                           /*   (also musmon on s-code, & fgens for gen01) */
     FDCH        *curchp = &ip->fdch;
-    int fd;
+    SNDFILE *fd;
 
     if (O.odebug) fdchprint(ip);
       while ((curchp = curchp->nxtchp) != NULL) { /* for all fd's in chain: */
-#ifndef HAVE_LIBSNDFILE
         if ((fd = curchp->fd) <= 2) {
           fdchprint(ip);
           sprintf(errmsg,Str(X_758,"fdclose: illegal fd %d in chain"),fd);
           die(errmsg);
         }
-        close(fd);                      /*      close the file  */
-        curchp->fd = 0;                 /*      & delete the fd */
-#else
-        sf_close(curchp->fd);
+        if (fd)
+          sf_close(fd);
+        else
+          close(curchp->fdc);           /*      close the file  */
         curchp->fd = NULL;
-#endif
+        curchp->fd = 0;                 /*      & delete the fd */
       }
       ip->fdch.nxtchp = NULL;           /* finally, delete the chain */
       if (O.odebug) fdchprint(ip);
@@ -160,6 +156,6 @@ static void fdchprint(INSDS *ip)   /* print the fd chain for this insds blk */
 
     printf(Str(X_760,"fdlist for instr %d (%lx):"), ip->insno, ip);
     while ((curchp = curchp->nxtchp) != NULL)    /* chain through fdlocs */
-      printf(Str(X_12,"  fd %d in %lx"), curchp->fd, curchp);
+      printf(Str(X_12,"  fd %p/%d in %lx"), curchp->fd, curchp->fdc, curchp);
     printf("\n");
 }

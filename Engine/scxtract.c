@@ -37,6 +37,7 @@ int scxtract(FILE *scin, FILE * scout, FILE *xfile) /* called from xmain.c
     SCOREOUT = scout;
 
     sectcnt = 0;
+    sread_init();
     do {
       if ((n = sread()) > 0) {
         /*  allout();   */
