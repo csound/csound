@@ -378,7 +378,9 @@ ENVIRON cenviron_ = {
         FL(0.0),        /*      dbfs_to_long */
         FL(0.0),        /*      long_to_dbfs */
         1024,   /*      rtin_dev */
+        NULL,   /*      rtin_devs */
         1024,   /*      rtout_dev */
+        NULL,   /*      rtout_devs */
         0,      /*      MIDIINbufIndex */
         {{0}},  /*      MIDIINbuffer2 */
         -1,     /*      displop4 */

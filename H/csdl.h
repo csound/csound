@@ -143,7 +143,9 @@
 #undef dbfs_to_long
 #undef long_to_dbfs
 #undef rtin_dev
+#undef rtin_devs
 #undef rtout_dev
+#undef rtout_devs
 #undef MIDIINbufIndex
 #undef MIDIINbuffer2
 #undef displop4
@@ -391,7 +393,9 @@
 #define dbfs_to_long p->h.insdshead->csound->dbfs_to_long_
 #define long_to_dbfs p->h.insdshead->csound->long_to_dbfs_
 #define rtin_dev p->h.insdshead->csound->rtin_dev_
+#define rtin_devs p->h.insdshead->csound->rtin_devsa_
 #define rtout_dev p->h.insdshead->csound->rtout_dev_
+#define rtout_devs p->h.insdshead->csound->rtout_devs_
 #define MIDIINbufIndex p->h.insdshead->csound->MIDIINbufIndex_
 #define MIDIINbuffer2 p->h.insdshead->csound->MIDIINbuffer2_
 #define mmalloc p->h.insdshead->csound->mmalloc_

@@ -153,7 +153,9 @@ extern "C" {
 #define dbfs_to_long cenviron.dbfs_to_long_
 #define long_to_dbfs cenviron.long_to_dbfs_
 #define rtin_dev cenviron.rtin_dev_
+#define rtin_devs cenviron.rtin_devs_
 #define rtout_dev cenviron.rtout_dev_
+#define rtout_devs cenviron.rtout_devs_
 #define MIDIINbufIndex cenviron.MIDIINbufIndex_
 #define MIDIINbuffer2 cenviron.MIDIINbuffer2_
 #define displop4 cenviron.displop4_

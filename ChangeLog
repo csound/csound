@@ -1,4 +1,16 @@
+2004-05-20  John ffitch  <jpff@codemist.co.uk>
+
+	* H/csoundCore.h (ENVIRON_): type in instance was wrong (missing *)
+
+	* H/csoundCore.h (ENVIRON_): 
+	* H/cs.h (rtin_devs, rtout_devs): 
+	* H/csdl.h (rtin_devs, rtout_devs): 
+	* Engine/oload.c: Added rtin_devs and rtout_devs for device names
+	rather than just numbers
+
 2004-05-19  John ffitch  <jpff@codemist.co.uk>
+
+	* Engine/entry1.c: Added "tablew" as a 0xfffe opcode
 
 	* SConstruct (customSHLINKFLAGS): Darwin seems to need -dynamic
 

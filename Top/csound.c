@@ -64,7 +64,9 @@ static long csoundNumExits_ = -1;
   {
       ((ENVIRON *)csound)->Cleanup(csound);
       ((ENVIRON *)csound)->Reset(csound);
+#ifdef some_fine_day
       free(csound);
+#endif
   }
 
   PUBLIC int csoundGetVersion()
