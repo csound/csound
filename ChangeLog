@@ -1,4 +1,9 @@
-2004-05-17  John  <jpff@cage.codemist.co.uk>
+2004-05-17  John  <jpff@codemist.co.uk>
+
+	* SConstruct: Use -Wl,-Bdynamic as it is  linker option 
+
+	* strings/makedb.c (main): Correct format in prontf twice for
+	longs
 
 	* Top/main.c (install_signal_handler): Retore signal handling
 
