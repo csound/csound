@@ -1,5 +1,8 @@
 2004-01-01  John ffitch  <jpff@codemist.co.uk>
 
+	* Opcodes/pluck.c (filter3Set): Need to initialise ->x1 and ->x2
+	to zero
+
 	* Opcodes/flanger.c (wguide2, wguide1): Avoid frequencies below 5Hz
 
 2003-11-30	Steven Yi	<stevenyi@csounds.com>
