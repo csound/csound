@@ -32,7 +32,7 @@ import zipfile
 #############################################################################
 
 def today():
-    return time.strftime("%Y_%m_%d",time.localtime())
+    return time.strftime("%Y-%m-%d",time.localtime())
 
 #############################################################################
 #
@@ -147,6 +147,9 @@ portaudioFound = configure.CheckHeader("portaudio.h", language = "C")
 fltkFound = configure.CheckHeader("FL/Fl.H", language = "C++")
 boostFound = configure.CheckHeader("boost/any.hpp", language = "C++")
 
+if getPlatform() == 'mingw':
+    commonEnvironment['ENV']['PATH'] = os.environ['PATH']
+
 # Define macros that configure and config.h used to define.
 
 if configure.CheckHeader("io.h", language = "C"):
@@ -194,7 +197,7 @@ def buildzip(env, target, source):
     extensions = string.split(extensions)
     
     specificFiles = "SConstruct _CsoundVST.* _loris.* pyrun.* CsoundCOM.dll msvcp70.dll msvcr70.dll CsoundVST.exe CsoundVST.* soundfonts.dll "
-    specificFiles = specificFiles + "README Doxyfile ChangeLog COPYING INSTALL MANIFEST Makefile COPYRIGHT AUTHORS TODO"
+    specificFiles = specificFiles + "README Doxyfile ChangeLog COPYING INSTALL MANIFEST COPYRIGHT AUTHORS TODO"
     specificFiles = string.split(specificFiles)
     
     print "Types of files to be archived..."
@@ -326,14 +329,14 @@ if getPlatform() == 'mingw':
 	csoundProgramEnvironment.Append(LIBS = ['wsock32'])
 	csoundProgramEnvironment.Append(LIBS = ['ole32'])
 	csoundProgramEnvironment.Append(LIBS = ['uuid'])
-	if getPlatform() == 'mingw':
-	    csoundProgramEnvironment['ENV']['PATH'] = os.environ['PATH']
 
 #############################################################################
 #
 #   DEFINE TARGETS AND SOURCES
 #
 #############################################################################
+
+csoundPdf = commonEnvironment.Command('csound.pdf', 'csound.tex', 'pdflatex $SOURCE')
 
 ustubProgramEnvironment.Program('makedb', 
     ['strings/makedb.c'])
@@ -667,7 +670,7 @@ ustubProgramEnvironment.Program('sdif2ad',
     SDIF/sdif-mem.c'''))
 ustubProgramEnvironment.Program('sndinfo', 
     ['util2/sndinfo/sndinfo_main.c'])
-ustubProgramEnvironment.Program('srconv', 
+srconv = ustubProgramEnvironment.Program('srconv', 
     ['util2/dnoise.dir/srconv.c'])
 
 # Front ends.
@@ -758,10 +761,11 @@ if (commonEnvironment['buildCsoundVST'] == 1) and boostFound and fltkFound:
     Depends(csoundvstGui, csoundvst)
 	
     zip = commonEnvironment.Command(zipfilename, csoundvstGui, buildzip)
-    Depends(zip, csoundvstGui)
+    Depends(zip, [csoundvstGui, srconv])
 	
     copyPython = commonEnvironment.Install(['.', '.'], ['frontends/CsoundVST/CsoundVST.py', 'frontends/CsoundVST/Koch.py'])
     Depends(copyPython, csoundvst)
+    
 
 if commonEnvironment['generateTags'] == 1 and (getPlatform() == 'linux' or getPlatform() == 'cygwin'):
     print "Calling TAGS"
