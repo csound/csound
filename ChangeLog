@@ -1,3 +1,59 @@
+2005-02-02	Istvan Varga	<istvan@csounds.com>
+
+	* Top/main.c:
+	* frontends/csound/csound_main.c:
+	  Moved set_rt_priority() and calling of init_getstring() from main.c
+	  to csound_main.c.
+	  Various changes to use new interfaces.
+	* H/csmodule.h:
+	* Top/csmodule.c:
+	  New plugin interface to be used by non-opcode libraries (e.g.
+	  real time audio).
+	* H/csoundCore.h:
+	  Added new API functions to ENVIRON.
+	* H/csound.h:
+	* H/csoundCore.h:
+	* Top/csound.c:
+	* H/pa_blocking.h:
+	* InOut/libsnd.c:
+	* InOut/pa_blocking.c:
+	* InOut/rtalsa.c:
+	* InOut/rtpa.c:
+	* SConstruct:
+	  Code related to real time audio has been revised to allow for
+	  loadable modules and multiple instances.
+	* H/cfgvar.h:
+	* Engine/cfgvar.c:
+	  New files that implement an interface that allows dynamic creation
+	  of options.
+	* Engine/oload.c:
+	  Added new function pointers to cenviron_.
+	* Engine/namedins.c:
+	  Made the table non-static so that it can be accessed from other
+	  files (also renamed it to use a less trivial name). Fixed bug in
+	  csoundDestroyGlobalVariable().
+	* Engine/insert.c:
+	* Engine/musmon.c:
+	* Engine/otran.c:
+	  Changes to use new plugin based audio I/O interface. Some functions
+	  now take void *csound as the first argument. These include spinrecv(),
+	  spoutran(), nzerotran(), spoutsf(), and other related functions.
+	* H/new_opts.h:
+	* Top/new_opts.c:
+	  New files for parsing options dynamically created by functions
+	  in cfgvar.c.
+	* H/prototyp.h:
+	* Top/argdecode.c:
+	* Top/one_file.c:
+	  The functions argdecode(), readOptions(), and read_unified_file()
+	  now take 'void *csound' as the first argument.
+	  In argdecode.c: use functions from Top/new_opts.c.
+	* H/ustub.h:
+	* Top/ustub.c:
+	  Removed old unused prototypes.
+	* install.sh:
+	  Install script for Linux.
+
 2005-02-01  John ffitch  <jpff@codemist.co.uk>
 
 	* frontends/csound/csound_main.c (main): Corrected incorrect C
