@@ -180,6 +180,11 @@ void skiporchar(void)
       c = getc(str->file);
       if (c == '\n' || c == '\r' || c == 26) {    /* MS-DOS spare ^Z */
         str->line++; linepos = -1;
+/*         printf("ends with %.2x\n", c); */
+        if (c=='\r') {
+          if ((c = getc(str->file))!='\n') ungetc(c, str->file);
+        }
+/*         printf("...ends with %.2x\n", c); */
         return;
       }
       if (c == EOF) {
@@ -220,7 +225,14 @@ int getorchar(void)
         str--; input_cnt--; goto top;
       }
     }
-    if (c == '\r') c = '\n';
+    if (c == '\r') {
+      int d;
+      if ((d=getc(str->file)!='\n')) {
+/*         printf("next char is %c(%.2x)\n", d, d); */
+        ungetc(d, str->file);
+      }
+      c = '\n';                 /* *** Problem here with line endings *** */
+    }
     if (c == '\n') {
       str->line++; linepos = -1;
     }
@@ -372,13 +384,13 @@ void rdorchfile(void)           /* read entire orch file into txt space */
       }
       if (c == '\\' && !heredoc) {  /* Continuation?? */
         while ((c = getorchar())==' ' || c == '\t'); /* Ignore spaces */
-        if (c==';') {   /* Comments get skipped */
+        if (c==';') {                                /* Comments get skipped */
           skiporchar();
           c = '\n';
         }
-        if (c == '\n') {
-          cp--;         /* Ignore newline */
-          srccnt++;                       /*      record a fakeline */
+        if (c == '\n' || c == '\r') {
+          cp--;                                      /* Ignore newline */
+          srccnt++;                                  /*    record a fakeline */
 /*            srclin[++lincnt] = 0; */
 /*            linadr[lincnt] = cp; */
         }
@@ -386,7 +398,7 @@ void rdorchfile(void)           /* read entire orch file into txt space */
           *(cp-1) = c;
         }
       }
-      else if (c == '\n') {                     /* at each new line */
+      else if (c == '\n' || c == '\r') {             /* at each new line */
         char *lp = linadr[lincnt];
         while ((c = *lp) == ' ' || c == '\t')
           lp++;
