@@ -177,6 +177,7 @@ int newsndinset(ENVIRON *csound, SOUNDINEW *p)       /* init routine for diskin 
     /* should go in SOUNDINEW struct eventually */
     long snewbufsize = SNDINEWBUFSIZ;
 
+    if (*p->skipinit < FL(0.0)) return OK;
     if (skiptime < 0) {
       if (O.msglevel & WARNMSG)
         printf(Str("WARNING: negative skip time, substituting zero.\n"));

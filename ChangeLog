@@ -1,3 +1,11 @@
+<<<<<<< ChangeLog
+2005-03-15  John ffitch  <jpff@cs.bath.ac.uk>
+
+	* H/soundio.h (SOUNDIN): 
+	* InOut/libsnd.c (sndinset): 
+	* OOps/diskin.c (newsndinset): 
+	* H/diskin.h (SOUNDINEW): Added skipinit argument to diskin and soundin
+
 2005-03-14  John ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/modal4.c (marimbaset): Make zero valid probability for
