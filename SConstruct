@@ -91,6 +91,9 @@ opts.Add('useFLTK',
 opts.Add('buildCsoundVST',
     'Set to 1 to build CsoundVST (needs FLTK, boost, Python 2.3, SWIG).',
     '1')
+opts.Add('buildJavaWrapper',
+    'Set to 1 to build Java wrapper for CsoundVST (needs CsoundVST).',
+    '1')
 opts.Add('noCygwin',
     'Set to 1 to build with -mno-cygwin when using Cygwin',
     '0')
@@ -942,7 +945,7 @@ else:
     swigflags = vstEnvironment['SWIGFLAGS']
     csoundVstPythonWrapper = vstEnvironment.SharedObject('frontends/CsoundVST/CsoundVST.i', SWIGFLAGS = [swigflags,'-python'])
     csoundVstSources.append(csoundVstPythonWrapper)
-    if configure.CheckHeader('jni.h', language = 'C++'):
+    if configure.CheckHeader('jni.h', language = 'C++') and commonEnvironment['buildJavaWrapper']=='1':
         print 'CONFIGURATION DECISION: Building Java wrappers for CsoundVST.'
         csoundVstJavaWrapper = vstEnvironment.SharedObject('frontends/CsoundVST/JCsoundVST.i', SWIGFLAGS = [swigflags,'-java', '-package', 'CsoundVST'])
         csoundVstSources.append(csoundVstJavaWrapper)
