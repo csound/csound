@@ -1,3 +1,40 @@
+2005-02-10	Istvan Varga	<istvan@csounds.com>
+	* InOut/rtjack:
+	  Implemented JACK real time audio plugin (experimental).
+	* InOut/libsnd.c:
+	  Do not call audrecv() after opening sound input in sfopenin().
+	* Engine/musmon.c:
+	  Print correct maxamp info in cleanup(), even if performance is
+	  terminated (e.g. by ^C) rather than finished normally.
+	* SConstruct:
+	  Added new options noDebug (do not add -g and -gstabs to CCFLAGS),
+	  gcc3opt (add optimisation flags for gcc 3.3.x and later), and
+	  useGprof (compile and link with -pg). All are disabled by default.
+	  Changes to allow compilng JACK plugin.
+	* Top/main.c:
+	  Terminate (call longjmp()) if initialisation of modules has
+	  failed for some reason.
+	* Top/csound.c:
+	  playopen_dummy() and recopen_dummy() now fail if --sched is used,
+	  to avoid locking up the machine.
+	  Expanded tabs to spaces.
+	* Engine/oload.c:
+	* H/csoundCore.h:
+	* InOut/libsnd.c:
+	* Top/argdecode.c:
+	* Top/csound.c:
+	  Use csoundGlobalVariable and csoundConfigurationVariable system
+	  for new sound file ID tag options added by Michael Gogins, rather
+	  than changing OPARMS, oload.c, argdecode.c, etc.
+	  The options are now:
+	    -+id_title
+	    -+id_copyright
+	    -+id_software
+	    -+id_artist
+	    -+id_comment
+	    -+id_date
+	  argdecode.c: expanded tabs to spaces
+
 2005-02-09  Michael Gogins <gogins@pipeline.com>
 
 	* Add long options to set ID tags in output soundfile:
