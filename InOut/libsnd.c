@@ -302,8 +302,8 @@ int soundin(ENVIRON *csound, SOUNDIN *p)
       p->inbufp = inbufp;
     }
     if (p->inbufp >= p->bufend) {
-/*       printf("***        : need new data p->fdch.fd=%p\n", p->fdch.fd); */
-		if ((n = sreadin(p->fdch.fd, p->inbuf, SNDINBUFSIZ, p)) == 0) {  /* FIX, VL 2-11-04; param 1 was NULL*/
+/*     printf("***        : need new data p->fdch.fd=%p\n", p->fdch.fd); */
+       if ((n = sreadin(p->fdch.fd, p->inbuf, SNDINBUFSIZ, p)) == 0) {  /* FIX, VL 2-11-04; param 1 was NULL*/
         p->endfile = 1;
         if (ntogo) goto filend;
         else return OK;
