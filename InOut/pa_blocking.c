@@ -57,9 +57,11 @@ int paBlockingReadStreamCallback(const void *input,
     float *paInput = (float *)input;
     csoundNotifyThreadLock(pabs->csound, pabs->clientLock);
     csoundWaitThreadLock(pabs->csound, pabs->paLock, 100);
-    for (i = 0, n = pabs->actualBufferSampleCount; i < n; i++) {
-      pabs->actualBuffer[i] = paInput[i];
-    }
+    memcpy(pabs->actualBuffer, paInput,
+	   pabs->actualBufferSampleCount*sizeof(float));
+/*     for (i = 0, n = pabs->actualBufferSampleCount; i < n; i++) { */
+/*       pabs->actualBuffer[i] = paInput[i]; */
+/*     } */
     return paContinue;
 }
 
@@ -69,7 +71,7 @@ void paBlockingRead(PA_BLOCKING_STREAM *pabs, MYFLT *buffer)
     size_t n;
     csoundWaitThreadLock(pabs->csound, pabs->clientLock, 100);
     for (i = 0, n = pabs->actualBufferSampleCount; i < n; i++) {
-      buffer[i] = pabs->actualBuffer[i];
+      buffer[i] = (MYFLT)pabs->actualBuffer[i];
     }
     csoundNotifyThreadLock(pabs->csound, pabs->paLock);
 }
@@ -92,7 +94,7 @@ int paBlockingWriteOpen(ENVIRON *csound,
     maxLag_ = O.oMaxLag <= 0 ? IODACSAMPS : O.oMaxLag;
     memcpy(&pabs->paParameters, paParameters, sizeof(PaStreamParameters));
     csound->Message(csound,
-                    "paBlockingWriteOpen: nchnls %d sr %f maxLag %u device %d\n",
+        "paBlockingWriteOpen: nchnls %d sr %f maxLag %u device %d\n",
                     pabs->paParameters.channelCount,
                     csound->esr_,
                     maxLag_,
@@ -135,7 +137,7 @@ int paBlockingWriteStreamCallback(const void *input,
 /*       paOutput[i] = pabs->actualBuffer[i]; */
 /*     } */
     memcpy(paOutput, pabs->actualBuffer,
-	   pabs->actualBufferSampleCount*sizeof(float));
+ 	   pabs->actualBufferSampleCount*sizeof(float));
     return paContinue;
 }
 
@@ -144,7 +146,7 @@ void paBlockingWrite(PA_BLOCKING_STREAM *pabs, MYFLT *buffer)
     size_t i;
     size_t n;
     for (i = 0, n = pabs->actualBufferSampleCount; i < n; i++) {
-      pabs->actualBuffer[i] = buffer[i];
+      pabs->actualBuffer[i] = (float)buffer[i];
     }
     csoundNotifyThreadLock(pabs->csound, pabs->paLock);
     csoundWaitThreadLock(pabs->csound, pabs->clientLock, 100);
