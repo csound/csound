@@ -548,6 +548,19 @@ void sfopenout(void *csound)                    /* init for sound out       */
       spoutran = spoutsf;       /* accumulate output */
       nzerotran = zerosf;       /* quick zeros */
       audtran = writesf;        /* flush buffer */
+      /* Write any tags. */
+      if (O.id_title) 
+	sf_set_string (outfile, SF_STR_TITLE, O.id_title);
+      if (O.id_copyright)
+	sf_set_string (outfile, SF_STR_COPYRIGHT, O.id_copyright);
+      if (O.id_software)
+	sf_set_string (outfile, SF_STR_SOFTWARE, O.id_software);
+      if (O.id_artist)
+	sf_set_string (outfile, SF_STR_ARTIST, O.id_artist);
+      if (O.id_comment)
+	sf_set_string (outfile, SF_STR_COMMENT, O.id_comment);
+      if (O.id_date)
+	sf_set_string (outfile, SF_STR_DATE, O.id_date);
       osfopen = 1;
     }
 #if defined(SYMANTEC)

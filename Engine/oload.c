@@ -68,7 +68,8 @@ OPARMS  O_ = {0,0,          /* odebug, initonly */
               0,0,0,        /* Beatmode, cmdTempo, oMaxLag */
               0,0,0,0,      /* usingcscore, Linein, Midiin, FMidiin */
               0,            /* OrcEvts */
-              0,0           /* RTevents, ksensing */
+              0,0,          /* RTevents, ksensing */
+	      0,0,0,0,0,0   /* ID tags */
 };
 
 ENVIRON cenviron_ = {
