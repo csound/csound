@@ -408,7 +408,7 @@ extern "C"
 		{   "fluidCCi",   sizeof(FLUID_CC), 1, "",   "iiii",       &fluidCC_I_Iopadr,   0, 0, 0 },
         {   "fluidCCk",   sizeof(FLUID_CC), 3, "",   "iiik",       &fluidCC_K_Iopadr,   &fluidCC_K_Kopadr, 0, 0 },
         //{   "fluidCC",   sizeof(FLUID_CC), 3, "",   "iiik",       &fluidCC_K_Iopadr,   &fluidCC_K_Kopadr, 0, 0 },        
-        {   "FLUID_NOTE",   sizeof(FLUID_NOTE), 3, "",    "iiii",  &fluidNoteIopadr,   &fluidNoteKopadr, 0, 0 },
+        {   "fluidNote",   sizeof(FLUID_NOTE), 3, "",    "iiii",  &fluidNoteIopadr,   &fluidNoteKopadr, 0, 0 },
         {   "fluidOut",    sizeof(FLUIDOUT), 5, "aa",  "i",        &fluidOutIopadr,    0, &fluidOutAopadr, 0}
     };
     
