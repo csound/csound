@@ -19,8 +19,8 @@ noinst_PROGRAMS=makedb
 #	Headers (incomplete for now).
 
 pkginclude_HEADERS=H/csound.h \
-H\cs.h \
-H\csoundCore.h
+H/cs.h \
+H/csoundCore.h
 
 #	Data
 
@@ -142,6 +142,7 @@ frontends/CsoundVST/index.htm
 #	The makedb program for compiling xmg files:
 
 makedb_SOURCES=strings/makedb.c
+makedb__LTLIBRARIES=lc
 
 xmg:	American.xmg English.xmg csound.xmg
 

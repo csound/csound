@@ -30,22 +30,11 @@ extern unsigned long nframes;
 extern FILE* pin;
 extern FILE* pout;
 extern void (*audtran)(char *, int);
-extern void (*spoutran)(MYFLT *, int);
+extern void (*spoutran)(MYFLT *);
 extern void (*spinrecv)(void);
 extern void (*nzerotran)(long);
 
 extern void nullfn(char *, int);
-extern void chartran(MYFLT *, int);
-#ifdef never 
-extern void alawtran(MYFLT *, int);
-#endif
-#ifdef ULAW
-extern void ulawtran(MYFLT *, int); 
-#endif
-extern void shortran(MYFLT *, int);
-extern void longtran(MYFLT *, int); 
-extern void floatran(MYFLT *, int);
-extern void bytetran(MYFLT *, int);
 
 int  Graphable_(void);           /* initialise windows.  Returns 1 if X ok */
 void MakeGraph_(WINDAT *, char *);       /* create wdw for a graph */

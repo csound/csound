@@ -104,7 +104,7 @@ extern int gargc;
 
 extern int  SAsndgetset(char *, SOUNDIN**, MYFLT*, MYFLT*, MYFLT*, int);
 extern long getsndin(int, MYFLT *, long, SOUNDIN *);
-extern void bytrev2(char *, int), bytrev4(char *, int), rewriteheader(int,long);
+extern void bytrev2(char *, int), bytrev4(char *, int), rewriteheader(SNDFILE *,int);
 extern int  openout(char *, int), bytrevhost(void);
 extern short sfsampsize(int);
 extern void writeheader(int, char *);
@@ -1153,7 +1153,7 @@ int dnoise(int argc, char **argv)
     if (i > 0)
       writebuffer(ob1, i);
 
-    rewriteheader(outfd, bytes);
+    rewriteheader(outfd, 0);
     printf("\n\n");
     close(outfd);
     if (Verbose) {
@@ -1212,7 +1212,7 @@ int writebuffer(MYFLT * obuf, int length)
     block++;
     bytes += O.sfsampsize*length;
     if (O.rewrt_hdr) {
-      rewriteheader(outfd, bytes);
+      rewriteheader(outfd, 0);
       lseek(outfd, 0L, SEEK_END); /* Place at end again */
     }
     if (O.heartbeat) {

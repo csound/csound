@@ -48,6 +48,7 @@ extern "C" {
 #include "opcode.h"
 #include "fft.h"
 #include "version.h"
+#include <sndfile.h>
 
 #define OK (0)
 #define NOTOK (-1)
@@ -644,7 +645,7 @@ typedef struct ENVIRON_
   int (*isfullpath_)(char *name);
   void (*dies)(char *s, char *t);
   char *(*catpath_)(char *path, char *name);
-  void (*rewriteheader_)(int ofd, long datasize, int verbose);
+  void (*rewriteheader_)(SNDFILE *ofd, int verbose);
   void (*writeheader)(int ofd, char *ofname);
   /* End of internals */
   int           ksmps_, nchnls_;

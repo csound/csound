@@ -184,12 +184,6 @@ void zerosf(long len)
     }
 }
 
-void rewriteheader(int ofd)
-{
-    if (ofd>=0)
-      sf_command(outfile, SFC_UPDATE_HEADER_NOW, NULL, 0);
-}
-
 static void writesf(MYFLT *outbuf, int nbytes)
                                 /* diskfile write option for audtran's */
                                 /*      assigned during sfopenout()    */
@@ -200,7 +194,7 @@ static void writesf(MYFLT *outbuf, int nbytes)
     if (n < nbytes/sizeof(MYFLT))
       sndwrterr(n, nbytes);
     if (O.rewrt_hdr)
-      rewriteheader(osfd);
+      rewriteheader(outfile,0);
     nrecs++;                /* JPff fix */
     if (O.heartbeat) {
       if (O.heartbeat==1) {

@@ -122,7 +122,7 @@ char *unquote(char *);
 MEMFIL *ldmemfile(char *);
 long strarg2insno (MYFLT *p, char *s);
 long strarg2opcno (MYFLT *p, char *s);
-void rewriteheader(int ofd, long datasize, int verbose);
+void rewriteheader(SNDFILE* ofd, int verbose);
 void writeheader(int ofd, char *ofname);
 
 static  MYFLT   *gbloffbas;

@@ -29,7 +29,7 @@
 #include <ctype.h>
 
 struct fileinTag {
-    FILE* file;
+    SNDFILE* file;
     char  *name;
     long  cnt;
     int   hdr;
@@ -45,8 +45,8 @@ static void close_files(void)
       printf("%d (%s):", file_num, file_opened[file_num].name);
       fflush(file_opened[file_num].file);
       if (file_opened[file_num].hdr) {
-        rewriteheader(fileno(file_opened[file_num].file),
-                      file_opened[file_num].cnt, 1);
+        rewriteheader(file_opened[file_num].file,
+                      /*file_opened[file_num].cnt,*/ 1);
       }
       fclose(file_opened[file_num].file);
       file_num--;
@@ -98,7 +98,7 @@ static int outfile_int_head(OUTFILE *p)
     file_opened[p->idx].cnt += ksmps * sizeof(short)*nargs;
     if ((kcounter& 0x3f)==0) {         /* Every 64 cycles */
       fflush(p->fp);
-      rewriteheader(fileno(p->fp), p->cnt * ksmps * sizeof(short)*nargs, 0);
+      rewriteheader(p->fp, /*p->cnt * ksmps * sizeof(short)*nargs,*/ 0);
     }
     return OK;
 }
