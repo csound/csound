@@ -643,12 +643,12 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('pvsdemix',
     ['Opcodes/pvsdemix.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('repluck',
     ['Opcodes/repluck.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('reverbsc',
+    ['Opcodes/reverbsc.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('scansyn',
     ['Opcodes/scansyn.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('scansynx',
     ['Opcodes/scansynx.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('screverb',
-    ['Opcodes/screverb.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('seqtime',
     ['Opcodes/seqtime.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('sfont',
