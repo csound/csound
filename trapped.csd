@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
-csound -m7 -RWdfo trapped.wav temp.orc temp.sco
+csound -m7 -RWdf  temp.orc temp.sco
 </CsOptions>
 <CsInstruments>
 ;============================================================================; 
