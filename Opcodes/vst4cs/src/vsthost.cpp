@@ -30,6 +30,146 @@
 #include <FL/Fl_Window.H>
 #include <FL/x.H>
 
+std::map<long,std::string> VSTPlugin::masterOpcodes;
+std::map<long,std::string> VSTPlugin::dispatchOpcodes;
+
+void VSTPlugin::initializeOpcodes()
+{
+    static bool initialized = false;
+    if(initialized) {
+        return;
+    }
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effOpen, "effOpen"));	
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effClose, "effClose"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effSetProgram, "effSetProgram"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetProgram, "effGetProgram"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effSetProgramName, "effSetProgramName"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetProgramName, "effGetProgramName"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetParamLabel, "effGetParamLabel"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetParamDisplay, "effGetParamDisplay"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetParamName, "effGetParamName"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetVu, "effGetVu"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effSetSampleRate, "effSetSampleRate"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effSetBlockSize, "effSetBlockSize"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effMainsChanged, "effMainsChanged"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effEditGetRect, "effEditGetRect"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effEditOpen, "effEditOpen"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effEditClose, "effEditClose"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effEditDraw, "effEditDraw"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effEditMouse, "effEditMouse"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effEditKey, "effEditKey"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effEditIdle, "effEditIdle"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effEditTop, "effEditTop"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effEditSleep, "effEditSleep"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effIdentify, "effIdentify"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetChunk, "effGetChunk"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effSetChunk, "effSetChunk"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effProcessEvents, "effProcessEvents"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effCanBeAutomated, "effCanBeAutomated"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effString2Parameter, "effString2Parameter"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetNumProgramCategories, "effGetNumProgramCategories"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetProgramNameIndexed, "effGetProgramNameIndexed"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effCopyProgram, "effCopyProgram"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effConnectInput, "effConnectInput"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effConnectOutput, "effConnectOutput"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetInputProperties, "effGetInputProperties"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetOutputProperties, "effGetOutputProperties"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetPlugCategory, "effGetPlugCategory"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetCurrentPosition, "effGetCurrentPosition"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetDestinationBuffer, "effGetDestinationBuffer"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effOfflineNotify, "effOfflineNotify"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effOfflinePrepare, "effOfflinePrepare"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effOfflineRun, "effOfflineRun"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effProcessVarIo, "effProcessVarIo"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effSetSpeakerArrangement, "effSetSpeakerArrangement"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effSetBlockSizeAndSampleRate, "effSetBlockSizeAndSampleRate"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effSetBypass, "effSetBypass"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetEffectName, "effGetEffectName"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetErrorText, "effGetErrorText"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetVendorString, "effGetVendorString"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetProductString, "effGetProductString"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetVendorVersion, "effGetVendorVersion"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effVendorSpecific, "effVendorSpecific"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effCanDo, "effCanDo"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetTailSize, "effGetTailSize"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effIdle, "effIdle"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetIcon, "effGetIcon"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effSetViewPosition, "effSetViewPosition"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetParameterProperties, "effGetParameterProperties"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effKeysRequired, "effKeysRequired"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetVstVersion, "effGetVstVersion"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effEditKeyDown, "effEditKeyDown"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effEditKeyUp, "effEditKeyUp"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effSetEditKnobMode, "effSetEditKnobMode"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetMidiProgramName, "effGetMidiProgramName"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetCurrentMidiProgram, "effGetCurrentMidiProgram"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetMidiProgramCategory, "effGetMidiProgramCategory"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effHasMidiProgramsChanged, "effHasMidiProgramsChanged"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetMidiKeyName, "effGetMidiKeyName"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effBeginSetProgram, "effBeginSetProgram"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effEndSetProgram, "effEndSetProgram"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetSpeakerArrangement, "effGetSpeakerArrangement"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effShellGetNextPlugin, "effShellGetNextPlugin"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effStartProcess, "effStartProcess"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effStopProcess, "effStopProcess"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effSetTotalSampleToProcess, "effSetTotalSampleToProcess"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effSetPanLaw, "effSetPanLaw"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effBeginLoadBank, "effBeginLoadBank"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effBeginLoadProgram, "effBeginLoadProgram"));
+    
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterAutomate, "audioMasterAutomate"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterVersion, "audioMasterVersion"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterCurrentId, "audioMasterCurrentId"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterIdle, "audioMasterIdle"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterPinConnected, "audioMasterPinConnected"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterWantMidi, "audioMasterWantMidi"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterGetTime, "audioMasterGetTime"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterProcessEvents, "audioMasterProcessEvents"));    
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterSetTime, "audioMasterSetTime"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterTempoAt, "audioMasterTempoAt"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterGetNumAutomatableParameters, "audioMasterGetNumAutomatableParameters"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterGetParameterQuantization, "audioMasterGetParameterQuantization"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterIOChanged, "audioMasterIOChanged"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterNeedIdle, "audioMasterNeedIdle"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterSizeWindow, "audioMasterSizeWindow"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterGetSampleRate, "audioMasterGetSampleRate"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterGetBlockSize, "audioMasterGetBlockSize"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterGetInputLatency, "audioMasterGetInputLatency"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterGetOutputLatency, "audioMasterGetOutputLatency"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterGetPreviousPlug, "audioMasterGetPreviousPlug"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterGetNextPlug, "audioMasterGetNextPlug"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterWillReplaceOrAccumulate, "audioMasterWillReplaceOrAccumulate"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterGetCurrentProcessLevel, "audioMasterGetCurrentProcessLevel"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterGetAutomationState, "audioMasterGetAutomationState"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterOfflineStart, "audioMasterOfflineStart"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterOfflineRead, "audioMasterOfflineRead"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterOfflineWrite, "audioMasterOfflineWrite"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterOfflineGetCurrentPass, "audioMasterOfflineGetCurrentPass"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterOfflineGetCurrentMetaPass, "audioMasterOfflineGetCurrentMetaPass"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterSetOutputSampleRate, "audioMasterSetOutputSampleRate"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterGetSpeakerArrangement, "audioMasterGetSpeakerArrangement"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterGetOutputSpeakerArrangement, "audioMasterGetOutputSpeakerArrangement"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterGetVendorString, "audioMasterGetVendorString"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterGetProductString, "audioMasterGetProductString"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterGetVendorVersion, "audioMasterGetVendorVersion"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterVendorSpecific, "audioMasterVendorSpecific"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterSetIcon, "audioMasterSetIcon"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterCanDo, "audioMasterCanDo"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterGetLanguage, "audioMasterGetLanguage"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterOpenWindow, "audioMasterOpenWindow"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterCloseWindow, "audioMasterCloseWindow"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterGetDirectory, "audioMasterGetDirectory"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterUpdateDisplay, "audioMasterUpdateDisplay"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterBeginEdit, "audioMasterBeginEdit"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterEndEdit, "audioMasterEndEdit"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterOpenFileSelector, "audioMasterOpenFileSelector"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterCloseFileSelector, "audioMasterCloseFileSelector"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterEditFile, "audioMasterEditFile"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterGetChunkFile, "audioMasterGetChunkFile"));
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterGetInputSpeakerArrangement, "audioMasterGetInputSpeakerArrangement"));   
+    initialized = true;
+}
+
 VSTPlugin::VSTPlugin(ENVIRON *csound_) : 
     window(0),
     windowHandle(0), 
@@ -46,6 +186,7 @@ VSTPlugin::VSTPlugin(ENVIRON *csound_) :
     framesPerBlock(0)
 {
     memset(&vstTimeInfo, 0, sizeof(VstTimeInfo));
+    initializeOpcodes();
 }
 
 VSTPlugin::~VSTPlugin()
@@ -159,10 +300,10 @@ bool VSTPlugin::DescribeValue(int parameter,char* value)
     Log("VSTPlugin::DescribeValue.\n");
 	if(aeffect)
 	{
-		if(parameter<aeffect->numParams)
+		if(parameter < aeffect->numParams)
 		{
-			char par_display[64];
-			char par_label[64];
+			char par_display[0x100];
+			char par_label[0x100];
 			Dispatch(effGetParamDisplay,parameter,0,par_display,0.0f);
 			Dispatch(effGetParamLabel,parameter,0,par_label,0.0f);
 			strcpy(value, par_display);
@@ -563,10 +704,14 @@ bool VSTPlugin::OnOutputConnected(AEffect *effect, long output)
 long VSTPlugin::Master(AEffect *effect, long opcode, long index, 
     long value, void *ptr, float opt)
 {
+    std::string opcodeName;
+    if(masterOpcodes.find(opcode) != masterOpcodes.end()) {
+        opcodeName = masterOpcodes[opcode];
+    }
     // These messages are to tell Csound what the plugin wants it to do.
-    fprintf(stdout, "VSTPlugin::Master(AEffect 0x%x, opcode %d, index %d, "
+    fprintf(stdout, "VSTPlugin::Master(AEffect 0x%x, opcode %d %s, index %d, "
         "value %d, ptr 0x%x, opt %f)\n",
-        effect, opcode, index, value, ptr, opt);
+        effect, opcode, opcodeName.c_str(), index, value, ptr, opt);
     VSTPlugin *plugin = 0;
     ENVIRON *csound = 0;
     if(effect) {
@@ -620,91 +765,20 @@ long VSTPlugin::Master(AEffect *effect, long opcode, long index,
 	case audioMasterGetProductString:	// Just fooling product string
 		strcpy((char*)ptr,"Cubase 5.0");
 		return 0;
-	case audioMasterVendorSpecific:		
-		return 0;
 	case audioMasterGetLanguage:		
 		return kVstLangEnglish;
 	case audioMasterUpdateDisplay:
-		if(plugin) plugin->Log("audioMasterUpdateDisplay\n");
 		effect->dispatcher(effect, effEditIdle, 0, 0, NULL, 0.0f);
 		return 0;
-	case audioMasterSetTime:						
-        if(plugin) plugin->Log("VST master dispatcher: Set Time\n");
-        break;
-	case audioMasterGetNumAutomatableParameters:	
-        if(plugin) plugin->Log("VST master dispatcher: GetNumAutPar\n");
-        break;
-	case audioMasterGetParameterQuantization:
-        if(plugin) plugin->Log("VST master dispatcher: ParamQuant\n");
-        break;
-	case audioMasterIOChanged:
-        if(plugin) plugin->Log("VST master dispatcher: IOchanged\n");
-        break;
-	case audioMasterSizeWindow:
-        if(plugin) ptr = &plugin->rect;//plugin->Log("VST master dispatcher: Size Window\n");
-        break;
-	case audioMasterGetBlockSize:				
-        if(plugin) plugin->Log("VST master dispatcher: GetBlockSize\n");
-        break;
-	case audioMasterGetInputLatency:
-        if(plugin) plugin->Log("VST master dispatcher: GetInLatency\n");
-        break;
-	case audioMasterGetOutputLatency:
-	    if(plugin) plugin->Log("VST master dispatcher: GetOutLatency\n");
-	    break;
-	case audioMasterGetPreviousPlug:
-	    if(plugin) plugin->Log("VST master dispatcher: PrevPlug\n");
-	    break;
 	case audioMasterGetNextPlug: 
-        if(plugin) plugin->Log("VST master dispatcher: NextPlug\n");
         return 1;
 	case audioMasterWillReplaceOrAccumulate:		
-        if(plugin) plugin->Log("VST master dispatcher: WillReplace\n");
         return 1;
 	case audioMasterGetCurrentProcessLevel:		
         return 0; 
- 	case audioMasterGetAutomationState:			
-        if(plugin) plugin->Log("VST master dispatcher: GetAutState\n");
-		break;
-	case audioMasterOfflineStart:			
-        if(plugin) plugin->Log("VST master dispatcher: Offlinestart\n");
-        break;
-	case audioMasterOfflineRead:
-        if(plugin) plugin->Log("VST master dispatcher: Offlineread\n");
-        break;
-	case audioMasterOfflineWrite:
-        if(plugin) plugin->Log("VST master dispatcher: Offlinewrite\n");
-        break;
-	case audioMasterOfflineGetCurrentPass:
-        if(plugin) plugin->Log("VST master dispatcher: OfflineGetcurrentpass\n");
-        break;
-	case audioMasterOfflineGetCurrentMetaPass:
-        if(plugin) plugin->Log("VST master dispatcher: GetGetCurrentMetapass\n");
-        break;
-	case audioMasterSetOutputSampleRate:		
-        if(plugin) plugin->Log("VST master dispatcher: Setsamplerate\n");
-        break;
-	case audioMasterGetSpeakerArrangement:
-        if(plugin) plugin->Log("VST master dispatcher: Getspeaker\n");
-        break;
-	case audioMasterSetIcon:
-        if(plugin) plugin->Log("VST master dispatcher: seticon\n");break;
 	case audioMasterCanDo:
         if(plugin) 
             OnCanDo((char *)ptr);
-        break;
-	case audioMasterOpenWindow:
-        if(plugin) plugin->Log("VST master dispatcher: OpenWindow\n");
-        break;
-	case audioMasterCloseWindow:
-	    if(plugin) plugin->Log("VST master dispatcher: CloseWindow\n");
-	    break;
-	case audioMasterGetDirectory:
-        if(plugin) plugin->Log("VST master dispatcher: GetDirectory\n");
-        break;
-	default: 
-        if(plugin) plugin->Log("VST master dispatcher: "
-            "undefined opcode: %d , %d\n",opcode , effKeysRequired);
         break;
 	}	
 	return 0;
