@@ -21,29 +21,26 @@
     02111-1307 USA
 */
 
-#include "cs.h"         /*                                      UGENS9.C        */
+#include "csdl.h"   /*                                      UGENS9.C        */
 #include <math.h>
+#include "fft.h"
 #include "dsputil.h"
 #include "convolve.h"
 #include "ugens9.h"
 #include "soundio.h"
 #include "oload.h"
 
-/* static  int     pdebug = 0; */
-/* static  int     dchan = 6; */      /* which channel to examine on debug */
-
 int cvset(ENVIRON *csound, CONVOLVE *p)
 {
     char     cvfilnam[MAXNAME];
-    MEMFIL   *mfp, *ldmemfile(char *);
+    MEMFIL   *mfp;
     CVSTRUCT *cvh;
     long     Hlenpadded = 1, obufsiz, Hlen;
     int      nchanls;
 
-    if (O.odebug) printf(CONVOLVE_VERSION_STRING);
+    if (csound->oparms_->odebug) printf(CONVOLVE_VERSION_STRING);
 
-    if (*p->ifilno == SSTRCOD) {                         /* if strg name given */
-      extern char *unquote(char *name);
+    if (*p->ifilno == SSTRCOD) {                    /* if strg name given */
       if (p->STRARG == NULL) strcpy(cvfilnam,unquote(currevent->strarg));
       else strcpy(cvfilnam, unquote(p->STRARG));
     }
@@ -54,7 +51,7 @@ int cvset(ENVIRON *csound, CONVOLVE *p)
                  "convolve.%d", (int)*p->ifilno); /* else convolve.filnum   */
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename, cvfilnam) != 0)
                                 /* if file not already readin */
-      if ( (mfp = ldmemfile(cvfilnam)) == NULL) {
+      if ( (mfp = ldmemfile(csound, cvfilnam)) == NULL) {
         sprintf(errmsg,Str("CONVOLVE cannot load %s"), cvfilnam);
         goto cverr;
       }
@@ -72,8 +69,7 @@ int cvset(ENVIRON *csound, CONVOLVE *p)
         p->nchanls = nchanls;
       else {
         sprintf(errmsg,
-                Str(
-                    "CONVOLVE: output channels not equal "
+                Str("CONVOLVE: output channels not equal "
                     "to number of channels in source"));
         goto cverr;
       }
@@ -105,7 +101,7 @@ int cvset(ENVIRON *csound, CONVOLVE *p)
       p->H += (Hlenpadded + 2) * (int)(*p->channel - 1);
 
     if ((cvh->samplingRate) != esr &&
-        (O.msglevel & WARNMSG)) { /* & chk the data */
+        (csound->oparms_->msglevel & WARNMSG)) {  /* & chk the data */
       printf(Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
               cvfilnam, cvh->samplingRate, esr);
     }
@@ -145,7 +141,7 @@ int cvset(ENVIRON *csound, CONVOLVE *p)
     return initerror(errmsg);
 }
 
-extern void writeFromCircBuf(MYFLT **, MYFLT **, MYFLT *, MYFLT *, long);
+extern void writeFromCircBuf(MYFLT**, MYFLT**, MYFLT*, MYFLT*, long);
 
 int convolve(ENVIRON *csound, CONVOLVE *p)
 {
@@ -318,10 +314,8 @@ int convolve(ENVIRON *csound, CONVOLVE *p)
    allow this opcode to accept .con files.
    -ma++ april 2004 */
 
-extern int sndinset(ENVIRON *csound, SOUNDIN *p);
-extern int soundin(ENVIRON *csound, SOUNDIN *p);
-extern SNDFILE *sndgetset(SOUNDIN *);
-extern long getsndin(SNDFILE *, MYFLT *, long, SOUNDIN *);
+extern SNDFILE *sndgetset(SOUNDIN *p);
+extern long getsndin(SNDFILE *fd, MYFLT *fp, long nlocs, SOUNDIN *p);
 
 int pconvset(ENVIRON *csound, PCONVOLVE *p)
 {
@@ -357,9 +351,8 @@ int pconvset(ENVIRON *csound, PCONVOLVE *p)
       return perferror("pconvolve: error while impulse file");
     }
 
-    if ((IRfile.framesrem < 0) && (O.msglevel & WARNMSG)) {
-      printf(Str(
-                 "WARNING: undetermined file length, will attempt "
+    if ((IRfile.framesrem < 0) && (csound->oparms_->msglevel & WARNMSG)) {
+      printf(Str("WARNING: undetermined file length, will attempt "
                  "requested duration"));
       ainput_dur = FL(0.0);     /* This is probably wrong -- JPff */
     }
@@ -374,17 +367,17 @@ int pconvset(ENVIRON *csound, PCONVOLVE *p)
     p->nchanls = (channel != ALLCHNLS ? 1 : IRfile.nchanls);
     if (p->nchanls != p->OUTOCOUNT) {
       return perferror("PCONVOLVE: number of output channels not equal "
-                "to input channels");
+                       "to input channels");
     }
 
-    if (IRfile.sr != esr && (O.msglevel & WARNMSG)) {
+    if (IRfile.sr != esr && (csound->oparms_->msglevel & WARNMSG)) {
       /* ## RWD suggests performing sr conversion here! */
       printf("WARNING: IR srate != orch's srate");
     }
 
     /* make sure the partition size is nonzero and a power of 2  */
     if (*p->partitionSize <= 0)
-      *p->partitionSize = O.outbufsamps;
+      *p->partitionSize = csound->oparms_->outbufsamps;
 
     p->Hlen = 1;
     while (p->Hlen < *p->partitionSize)
@@ -575,3 +568,4 @@ int pconvolve(ENVIRON *csound, PCONVOLVE *p)
     p->workWrite = workWrite;
     return OK;
 }
+

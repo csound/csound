@@ -34,8 +34,6 @@
 /*RWD 10:9:2000 read pvocex file format */
 #include "pvfileio.h"
 static int pvx_loadfile(const char *fname,PVOC *p,MEMFIL **mfp);
-extern int find_memfile(const char *fname,MEMFIL **pp_mfp);
-extern void add_memfil(MEMFIL *mfp);
 static int byterev_pvoc(MEMFIL *mfil);
 extern void bytrev4(char *buf, int nbytes);
 /********************************************/
@@ -55,7 +53,7 @@ int pvset(ENVIRON *csound, PVOC *p)
     int      i;
     long     memsize;
     char     pvfilnam[MAXNAME];
-    MEMFIL   *mfp, *ldmemfile(char*);
+    MEMFIL   *mfp;
     PVSTRUCT *pvh = NULL;
     int      chans = 1, size; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
     FUNC     *AmpGateFunc = NULL;
@@ -80,7 +78,7 @@ int pvset(ENVIRON *csound, PVOC *p)
         p->mfp = mfp;
       }
       else
-        if ((mfp = ldmemfile(pvfilnam)) == NULL) {
+        if ((mfp = ldmemfile(csound, pvfilnam)) == NULL) {
           sprintf(errmsg,Str("PVOC cannot load %s"), pvfilnam);
           goto pverr;
       }
@@ -346,7 +344,7 @@ int pvx_loadfile(const char *fname,PVOC *p,MEMFIL **mfp)
       sprintf(errmsg,Str("pvoc-ex file %s is empty!\n"),fname);
       return NOTOK;
     }
-    if (!find_memfile(fname,&mfil)) {
+    if (!find_memfile(&cenviron, fname, &mfil)) {
       /* get the memory and load */
       mem_wanted = totalframes * 2 * pvdata.nAnalysisBins * sizeof(float);
       /* try for the big block first! */
@@ -416,7 +414,7 @@ int pvx_loadfile(const char *fname,PVOC *p,MEMFIL **mfp)
       /*from memfiles.c */
       printf(Str("file %s (%ld bytes) loaded into memory\n"),
              fname,mem_wanted);
-      add_memfil(mfil);
+      add_memfil(&cenviron, mfil);
     }
     *mfp = mfil;
     return OK;

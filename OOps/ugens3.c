@@ -879,7 +879,7 @@ int adset(ENVIRON *csound, ADSYN *p)
       strcpy(filnam, strsets[filno]);
     else sprintf(filnam,"adsyn.%ld",filno);/* else adsyn.filnum */
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename,filnam) != 0) {
-      if ((mfp = ldmemfile(filnam)) == NULL) {    /*   readfile if reqd */
+      if ((mfp = ldmemfile(csound, filnam)) == NULL) {  /*   readfile if reqd */
         sprintf(errmsg,Str("ADSYN cannot load %s"),filnam);
         goto adserr;
       }

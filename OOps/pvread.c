@@ -37,8 +37,6 @@
 /*RWD 10:9:2000 read pvocex file format */
 #include "pvfileio.h"
 static int pvocex_loadfile(const char *fname,PVREAD *p,MEMFIL **mfp);
-extern int find_memfile(const char *fname,MEMFIL **pp_mfp);
-extern void add_memfil(MEMFIL *mfp);
 
 #define WLN   1         /* time window is WLN*2*ksmps long */
 #define OPWLEN (2*WLN*ksmps)    /* manifest used for final time wdw */
@@ -78,7 +76,7 @@ void FetchInOne(
 int pvreadset(ENVIRON *csound, PVREAD *p)
 {
     char     pvfilnam[64];
-    MEMFIL   *mfp, *ldmemfile(char*);
+    MEMFIL   *mfp;
     PVSTRUCT *pvh;
     int     frInc, chans, size; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
 
@@ -99,7 +97,7 @@ int pvreadset(ENVIRON *csound, PVREAD *p)
         p->mfp = mfp;
         return OK;
       }
-      if ( (mfp = ldmemfile(pvfilnam)) == NULL) {
+      if ( (mfp = ldmemfile(csound, pvfilnam)) == NULL) {
         sprintf(errmsg,Str("PVREAD cannot load %s"), pvfilnam);
         goto pverr;
       }
@@ -251,7 +249,7 @@ int pvocex_loadfile(const char *fname,PVREAD *p,MEMFIL **mfp)
       sprintf(errmsg,"pvoc-ex file %s is empty!\n",fname);
       return 0;
     }
-    if (!find_memfile(fname,&mfil)) {
+    if (!find_memfile(&cenviron, fname, &mfil)) {
       mem_wanted = totalframes * 2 * pvdata.nAnalysisBins * sizeof(float);
       /* try for the big block first! */
       memblock = (float *) mmalloc(&cenviron, mem_wanted);
@@ -324,7 +322,7 @@ int pvocex_loadfile(const char *fname,PVREAD *p,MEMFIL **mfp)
       /*from memfiles.c */
       printf(Str("file %s (%ld bytes) loaded into memory\n"),
              fname,mem_wanted);
-      add_memfil(mfil);
+      add_memfil(&cenviron, mfil);
     }
     *mfp = mfil;
     return 1;

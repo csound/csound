@@ -46,10 +46,11 @@ int main(int argc, char **argv)
 	short *endata;
 	int cc = 0;
 
-	init_getstring(0, NULL);
+	init_getstring(argc, argv);
+	csoundPreCompile(csoundCreate(NULL));
 	if (argc!= 3)
 		het_export_usage();
-	inf = ldmemfile(argv[1]);
+	inf = ldmemfile(&cenviron, argv[1]);
 	if (inf == NULL) {
 		fprintf(stderr, Str("Cannot open input file %s\n"), argv[1]);
 		exit(1);

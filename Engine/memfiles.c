@@ -2,6 +2,7 @@
     memfiles.c:
 
     Copyright (C) 1991, 2001 Barry Vercoe, John ffitch, Richard Dobson
+              (C) 2005 Istvan Varga
 
     This file is part of Csound.
 
@@ -21,137 +22,132 @@
     02111-1307 USA
 */
 
-#include "cs.h"                 /*                              MEMFILES.C      */
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
+#include "csoundCore.h"     /*                              MEMFILES.C      */
+#include "csound.h"
 
-MEMFIL *memfiles = NULL;
-
-#if !defined(mills_macintosh) && !defined(SYMANTEC)
-
-static struct stat statbuf;
-
-#if defined DOSGCC
-#define RD_OPTS  O_RDONLY | O_BINARY, 0
-#else
-#ifndef O_BINARY
-# define O_BINARY (0)
-#endif
-#define RD_OPTS  O_RDONLY | O_BINARY, 0
-#endif
-
-static int LoadFile(            /* simulate the THINK_C LoadFile  */
-     char *filnam,              /* reads the entire file into mem */
-     int  maconly,              /* is vRefNum on mac */
-     char **allocp,
-     long *len)
+static int Load_File_(void *csound,
+                      const char *filnam, char **allocp, long *len)
 {
-    int fd;
+    FILE *f;
 
-    if ((fd = open(filnam, RD_OPTS)) < 0)       /* if cannot open the file */
-      return (1);                               /*    return 1            */
-    fstat(fd, &statbuf);                        /* else get its length */
-    *len = statbuf.st_size;
-    *allocp = mmalloc(&cenviron, (long)(*len)); /*   alloc as reqd     */
-    if (read(fd, *allocp, (int)(*len)) != *len) /*   read file in      */
-      dies(Str("read error on %s"),filnam);
-    close(fd);                                  /*   and close it      */
-    return(0);                                  /*   return 0 for OK   */
+    *allocp = NULL;
+    f = fopen(filnam, "rb");
+    if (f == NULL)                              /* if cannot open the file */
+      return 1;                                 /*    return 1             */
+    fseek(f, 0L, SEEK_END);                     /* else get its length     */
+    *len = (long) ftell(f);
+    fseek(f, 0L, SEEK_SET);
+    if (*len < 1L)
+      goto err_return;
+    *allocp = mmalloc(csound, (size_t) (*len)); /*   alloc as reqd     */
+    if (fread(*allocp, (size_t) 1,              /*   read file in      */
+              (size_t) (*len), f) != (size_t) (*len))
+      goto err_return;
+    fclose(f);                                  /*   and close it      */
+    return 0;                                   /*   return 0 for OK   */
+
+ err_return:
+    if (*allocp != NULL) {
+      mfree(csound, *allocp);
+      *allocp = NULL;
+    }
+    fclose(f);
+    return 1;
 }
 
-#endif
+MEMFIL *ldmemfile(void *csound, const char *filnam)
+{                               /* read an entire file into memory and log it */
+    MEMFIL  *mfp, *last = NULL; /* share the file with all subsequent requests*/
+    char    *allocp;            /* if not fullpath, look in current directory,*/
+    long    len;                /*   then SADIR (if defined).                 */
+    char    *pathnam;           /* Used by adsyn, pvoc, and lpread            */
 
-MEMFIL *ldmemfile(char *filnam) /* read an entire file into memory and log it */
-                                /* share the file with all subsequent requests*/
-{                               /* if not fullpath, look in current directory,*/
-                                /*   then SADIR (if defined).                 */
-                                /* Used by adsyn, pvoc, and lpread            */
-    MEMFIL  *mfp, *mfp2, *last = NULL;
-    char    *allocp;
-    long    len;
-    char    *pathnam;
-
-    mfp = memfiles;
-    while (mfp!=NULL) {                                 /* Checking chain */
-      if (strcmp(mfp->filename,"") == 0)                /* if empty slot  */
-        goto ldopn;                                     /*   go readfile  */
-      else if (strcmp(mfp->filename,filnam) == 0)       /* else if match  */
-        return(mfp);                                    /*   we have it   */
+    mfp = ((ENVIRON*) csound)->memfiles;
+    while (mfp != NULL) {                               /* Checking chain */
+      if (strcmp(mfp->filename, filnam) == 0)           /*   if match     */
+        return mfp;                                     /*   we have it   */
       last = mfp;
       mfp = mfp->next;
     }
     /* Add new file description */
-    mfp = (MEMFIL*)mcalloc(&cenviron, sizeof(MEMFIL));
-    if (mfp == NULL) {
-      sprintf(errmsg,                                   /* else overflow */
-              Str("memfiles: cannot allocate for MEMFIL extention"));
-      goto lderr;
-    }
-    if (last != NULL) last->next = mfp;
-    else              memfiles = mfp;
+    mfp = (MEMFIL*) mcalloc(csound, sizeof(MEMFIL));
+    if (last != NULL)
+      last->next = mfp;
+    else
+      ((ENVIRON*) csound)->memfiles = mfp;
+    mfp->next = NULL;
+    strcpy(mfp->filename, filnam);
 
- ldopn:
-    pathnam = csoundFindInputFile(&cenviron, filnam, "SADIR");
+    pathnam = csoundFindInputFile(csound, filnam, "SADIR");
     if (pathnam == NULL) {
-      sprintf(errmsg, Str("cannot load %s"), filnam);
-      goto lderr;
+      csoundMessage(csound, Str("cannot load %s\n"), filnam);
+      delete_memfile(csound, filnam);
+      return NULL;
     }
-    for (mfp2 = memfiles; mfp2 != mfp; mfp2 = mfp2->next)   /* chk prv slots */
-      if (strcmp(mfp2->filename, pathnam) == 0) {
-        mfree(&cenviron, pathnam);
-        return(mfp2);                                       /* if match, rtn */
-      }
-    if (LoadFile(pathnam, 0, &allocp, &len) != 0) {         /* else loadfile */
-      sprintf(errmsg, Str("cannot load %s, or SADIR undefined"), pathnam);
-      mfree(&cenviron, pathnam);
-      goto lderr;
+    if (Load_File_(csound, pathnam, &allocp, &len) != 0) {  /* loadfile */
+      csoundMessage(csound, Str("cannot load %s, or SADIR undefined\n"),
+                            pathnam);
+      mfree(csound, pathnam);
+      delete_memfile(csound, filnam);
+      return NULL;
     }
-    strcpy(mfp->filename, pathnam);                      /* init the struct */
-    mfree(&cenviron, pathnam);
+    /* init the struct */
     mfp->beginp = allocp;
     mfp->endp = allocp + len;
     mfp->length = len;
-    printf(Str("file %s (%ld bytes) loaded into memory\n"), mfp->filename, len);
-    return(mfp);                                         /* rtn new slotadr */
-
- lderr:
-    initerror(errmsg);
-    return NULL;
+    csoundMessage(csound, Str("file %s (%ld bytes) loaded into memory\n"),
+                          pathnam, len);
+    mfree(csound, pathnam);
+    return mfp;                                          /* rtn new slotadr */
 }
 
-void rlsmemfiles(void) /* clear the memfile array, & free all allocated space */
-{
-    MEMFIL  *mfp = memfiles, *last = NULL;
-    int     memcount = 0;
+/* clear the memfile array, & free all allocated space */
 
-    while (mfp) {
-      MEMFIL *nxt = mfp->next;
-      if (strcmp(mfp->filename,"") != 0) {            /* if slot taken    */
-        strcpy(mfp->filename,"");                     /*   clr the name & */
-        mfree(&cenviron, mfp->beginp);                /*   free the space */
-        if (last) last->next = nxt;                   /*   Splice it out  */
-        else memfiles = nxt;
-        mfree(&cenviron, mfp);                        /*   and free space */
-        memcount++;
-      }
-      else
-        last = mfp;
+void rlsmemfiles(void *csound)
+{
+    MEMFIL  *mfp = ((ENVIRON*) csound)->memfiles, *nxt;
+
+    while (mfp != NULL) {
+      nxt = mfp->next;
+      mfree(csound, mfp->beginp);       /*   free the space */
+      mfree(csound, mfp);
       mfp = nxt;
     }
-    if (memcount)
-      printf(Str("%d memfile%s deleted\n"),
-             memcount, (memcount>1)? Str("s"):"");
-    memfiles = NULL;
+    ((ENVIRON*) csound)->memfiles = NULL;
 }
+
+int delete_memfile(void *csound, const char *filnam)
+{
+    MEMFIL  *mfp, *prv;
+
+    prv = NULL;
+    mfp = ((ENVIRON*) csound)->memfiles;
+    while (mfp != NULL) {
+      if (strcmp(mfp->filename, filnam) == 0)
+        break;
+      prv = mfp;
+      mfp = mfp->next;
+    }
+    if (mfp == NULL)
+      return -1;
+    if (prv == NULL)
+      ((ENVIRON*) csound)->memfiles = mfp->next;
+    else
+      prv->next = mfp->next;
+    mfree(csound, mfp->beginp);
+    mfree(csound, mfp);
+    return 0;
+}
+
+ /* ------------------------------------------------------------------------ */
 
 /* RWD 8:2001 (maybe temporary) external memfile support for pvocex */
 
-int find_memfile(const char *fname,MEMFIL **pp_mfp)
+int find_memfile(void *csound, const char *fname, MEMFIL **pp_mfp)
 {
-    MEMFIL *mfp = memfiles;
-    while (mfp!=NULL) {
-      if (strcmp(mfp->filename,fname) == 0) {
+    MEMFIL *mfp = ((ENVIRON*) csound)->rwd_memfiles;
+    while (mfp != NULL) {
+      if (strcmp(mfp->filename, fname) == 0) {
         *pp_mfp = mfp;
         return 1;
       }
@@ -160,15 +156,15 @@ int find_memfile(const char *fname,MEMFIL **pp_mfp)
     return 0;
 }
 
-void add_memfil(MEMFIL *mfp)
+void add_memfil(void *csound, MEMFIL *mfp)
 {
-    if (memfiles==NULL)
-      memfiles = mfp;
+    if (((ENVIRON*) csound)->rwd_memfiles == NULL)
+      ((ENVIRON*) csound)->rwd_memfiles = mfp;
     else {
       /* cheeky! add it at the top */
       /* umm, I hope this doesn't break anything..... */
-      mfp->next = memfiles;
-      memfiles = mfp;
+      mfp->next = ((ENVIRON*) csound)->rwd_memfiles;
+      ((ENVIRON*) csound)->rwd_memfiles = mfp;
     }
 }
 

@@ -34,7 +34,7 @@
 #include <unistd.h>
 #endif
 
-#include "schedule.h"
+#include "linevent.h"
 
 void RTclose(void);
 extern int close(int);
@@ -363,41 +363,57 @@ int sensLine(void)
 
 int eventOpcode(ENVIRON *csound, LINEVENT *p)
 {
-    EVTBLK        evt;
-    int           i, retval;
+    EVTBLK  evt;
+    int     i;
 
-    if ((*p->args[0] != SSTRCOD) ||
-        (*p->STRARG != 'i' && *p->STRARG != 'f' && *p->STRARG !='e')) {
-      sprintf(errmsg,
-              Str("lineevent param 1 must be \"i\", \"f\", or \"e\"\n"));
-      return perferror(errmsg);
-    }
+    if (*p->args[0] != SSTRCOD || p->STRARG == NULL ||
+        (*p->STRARG != 'i' && *p->STRARG != 'q' && *p->STRARG != 'f' &&
+         *p->STRARG != 'e'))
+      return
+        perferror(Str("event param 1 must be \"i\", \"q\", \"f\", or \"e\""));
     evt.strarg = NULL;
     evt.opcod = *p->STRARG;
     evt.pcnt = p->INOCOUNT - 1;
-    if (evt.pcnt < 4 && evt.opcod != 'e') {
-      if (evt.pcnt < 3 || evt.opcod == 'f') {
-        csound->Message(csound, Str("too few pfields\n"));
-        return NOTOK;
-      }
-    }
     /* IV - Oct 31 2002: allow string argument */
-    if (*p->args[1] == SSTRCOD) {
-      if (evt.opcod != 'i') {
-        return
-          perferror(Str("event: string name is allowed only for \"i\" events"));
-      }
+    if (evt.pcnt > 0 && *p->args[1] == SSTRCOD) {
+      if (evt.opcod != 'i' && evt.opcod != 'q')
+        return perferror(Str("event: string name is allowed only for "
+                             "\"i\" and \"q\" events"));
       evt.strarg = p->STRARG2;
     }
-    evt.p[1] = evt.p[2] = evt.p[3] = FL(0.0);
-    for (i = 1; i <= evt.pcnt; i++)             /* IV - Oct 31 2002 */
+    for (i = 1; i <= evt.pcnt; i++)
       evt.p[i] = *p->args[i];
-    if (evt.opcod != 'f')
-      retval = insert_score_event(csound, &evt,
-                                  csound->sensEvents_state.curTime, 0);
-    else
-      retval = insert_score_event(csound, &evt,
-                                  csound->sensEvents_state.curTime, 1);
-    return (retval == 0 ? OK : NOTOK);
+    return (insert_score_event(csound, &evt,
+                               csound->sensEvents_state.curTime, 0) == 0 ?
+            OK : NOTOK);
+}
+
+/* i-time version of event opcode */
+
+int eventOpcodeI(ENVIRON *csound, LINEVENT *p)
+{
+    EVTBLK  evt;
+    int     i;
+
+    if (*p->args[0] != SSTRCOD || p->STRARG == NULL ||
+        (*p->STRARG != 'i' && *p->STRARG != 'q' && *p->STRARG != 'f' &&
+         *p->STRARG != 'e'))
+      return
+        initerror(Str("event param 1 must be \"i\", \"q\", \"f\", or \"e\""));
+    evt.strarg = NULL;
+    evt.opcod = *p->STRARG;
+    evt.pcnt = p->INOCOUNT - 1;
+    /* IV - Oct 31 2002: allow string argument */
+    if (evt.pcnt > 0 && *p->args[1] == SSTRCOD) {
+      if (evt.opcod != 'i' && evt.opcod != 'q')
+        return initerror(Str("event: string name is allowed only for "
+                             "\"i\" and \"q\" events"));
+      evt.strarg = p->STRARG2;
+    }
+    for (i = 1; i <= evt.pcnt; i++)
+      evt.p[i] = *p->args[i];
+    return (insert_score_event(csound, &evt,
+                               csound->sensEvents_state.curTime, 1) == 0 ?
+            OK : NOTOK);
 }
 
