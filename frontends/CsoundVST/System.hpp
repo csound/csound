@@ -224,7 +224,7 @@ namespace csound
      * Waits until the monitor is notified by another thread.
      * Zero timeout means infinite timeout.
      */
-    virtual void wait(size_t timeoutMilliseconds = 0);
+    virtual void startWait(size_t timeoutMilliseconds = 0);
     /**
      * Releases one thread that is waiting on the monitor.
      */
