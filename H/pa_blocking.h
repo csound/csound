@@ -10,37 +10,38 @@
 extern "C" {
 #endif
 
-typedef struct PA_BLOCKING_STREAM_ {
+  typedef struct PA_BLOCKING_STREAM_ {
     ENVIRON *csound;
     PaStream *paStream;
     PaStreamParameters paParameters;
     void *paLock;
     void *clientLock;
     size_t actualBufferSampleCount;
+    size_t bp;
     float *actualBuffer;
-} PA_BLOCKING_STREAM;
+  } PA_BLOCKING_STREAM;
+  
+  int paBlockingReadOpen(ENVIRON *csound, 
+			 PA_BLOCKING_STREAM **pabs_, 
+			 PaStreamParameters *paParameters);
 
-int paBlockingReadOpen(ENVIRON *csound, 
-    PA_BLOCKING_STREAM **pabs_, 
-    PaStreamParameters *paParameters);
+  void paBlockingRead(PA_BLOCKING_STREAM *pabs, MYFLT *buffer);
 
-void paBlockingRead(PA_BLOCKING_STREAM *pabs, MYFLT *buffer);
+  int paBlockingReadStreamCallback(const void *input, void *output, 
+				   unsigned long frameCount, const PaStreamCallbackTimeInfo* timeInfo,
+				   PaStreamCallbackFlags statusFlags, void *userData);
 
-int paBlockingReadStreamCallback(const void *input, void *output, 
-    unsigned long frameCount, const PaStreamCallbackTimeInfo* timeInfo,
-    PaStreamCallbackFlags statusFlags, void *userData);
+  int paBlockingWriteOpen(ENVIRON *csound, 
+			  PA_BLOCKING_STREAM **pabs_, 
+			  PaStreamParameters *paParameters);
 
-int paBlockingWriteOpen(ENVIRON *csound, 
-    PA_BLOCKING_STREAM **pabs_, 
-    PaStreamParameters *paParameters);
+  void paBlockingWrite(PA_BLOCKING_STREAM *pabs, int bytes, MYFLT *buffer);
 
-void paBlockingWrite(PA_BLOCKING_STREAM *pabs, int bytes, MYFLT *buffer);
+  int paBlockingWriteStreamCallback(const void *input, void *output, 
+				    unsigned long frameCount, const PaStreamCallbackTimeInfo* timeInfo,
+				    PaStreamCallbackFlags statusFlags, void *userData);
 
-int paBlockingWriteStreamCallback(const void *input, void *output, 
-    unsigned long frameCount, const PaStreamCallbackTimeInfo* timeInfo,
-    PaStreamCallbackFlags statusFlags, void *userData);
-
-void paBlockingClose(PA_BLOCKING_STREAM *pabs);
+  void paBlockingClose(PA_BLOCKING_STREAM *pabs);
 
 #if defined(__cplusplus)
 };
