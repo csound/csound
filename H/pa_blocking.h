@@ -34,7 +34,7 @@ int paBlockingWriteOpen(ENVIRON *csound,
     PA_BLOCKING_STREAM **pabs_, 
     PaStreamParameters *paParameters);
 
-void paBlockingWrite(PA_BLOCKING_STREAM *pabs, MYFLT *buffer);
+void paBlockingWrite(PA_BLOCKING_STREAM *pabs, int bytes, MYFLT *buffer);
 
 int paBlockingWriteStreamCallback(const void *input, void *output, 
     unsigned long frameCount, const PaStreamCallbackTimeInfo* timeInfo,

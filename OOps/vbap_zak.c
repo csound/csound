@@ -35,10 +35,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int vbap_zak_moving_control(VBAP_ZAK_MOVING *);
-int vbap_zak_control(VBAP_ZAK *);
+int vbap_zak_moving_control(ENVIRON *, VBAP_ZAK_MOVING *);
+int vbap_zak_control(ENVIRON *,VBAP_ZAK *);
 
-int vbap_zak(VBAP_ZAK *p) /* during note performance:   */
+int vbap_zak(ENVIRON *csound, VBAP_ZAK *p) /* during note performance:   */
 {
     MYFLT *outptr, *inptr;
     MYFLT ogain, ngain, gainsubstr;
@@ -46,7 +46,7 @@ int vbap_zak(VBAP_ZAK *p) /* during note performance:   */
     int i,j;
     int n = p->n;
 
-    vbap_zak_control(p);
+    vbap_zak_control(csound,p);
     for (i=0; i<n; i++) {
       p->beg_gains[i]=p->end_gains[i];
       p->end_gains[i]=p->updated_gains[i];
@@ -81,7 +81,7 @@ int vbap_zak(VBAP_ZAK *p) /* during note performance:   */
 }
 
 
-int vbap_zak_control(VBAP_ZAK *p)
+int vbap_zak_control(ENVIRON *csound, VBAP_ZAK *p)
 {
     CART_VEC spreaddir[16];
     CART_VEC spreadbase[16];
@@ -188,7 +188,7 @@ int vbap_zak_control(VBAP_ZAK *p)
     return OK;
 }
 
-int vbap_zak_init(VBAP_ZAK  *p)
+int vbap_zak_init(ENVIRON *csound, VBAP_ZAK  *p)
 {                               /* Initializations before run time*/
     int i,j, indx;
     MYFLT *ptr; /* , *gains; */
@@ -243,7 +243,7 @@ int vbap_zak_init(VBAP_ZAK  *p)
     p->spread_base.x = p->cart_dir.y;
     p->spread_base.y = p->cart_dir.z;
     p->spread_base.z = -p->cart_dir.x;
-    vbap_zak_control(p);
+    vbap_zak_control(csound,p);
     for (i=0;i<n;i++) {
       p->beg_gains[i] = p->updated_gains[i];
       p->end_gains[i] = p->updated_gains[i];
@@ -252,14 +252,14 @@ int vbap_zak_init(VBAP_ZAK  *p)
 }
 
 
-int vbap_zak_moving(VBAP_ZAK_MOVING *p) /* during note performance:   */
+int vbap_zak_moving(ENVIRON *csound, VBAP_ZAK_MOVING *p) /* during note performance:   */
 {
     MYFLT *outptr, *inptr;
     MYFLT ogain, ngain, gainsubstr;
     MYFLT invfloatn;
     int i,j;
 
-    vbap_zak_moving_control(p);
+    vbap_zak_moving_control(csound,p);
     for (i=0;i< p->n; i++) {
       p->beg_gains[i] = p->end_gains[i];
       p->end_gains[i] = p->updated_gains[i];
@@ -293,7 +293,7 @@ int vbap_zak_moving(VBAP_ZAK_MOVING *p) /* during note performance:   */
     return OK;
 }
 
-int vbap_zak_moving_control(VBAP_ZAK_MOVING  *p)
+int vbap_zak_moving_control(ENVIRON *csound, VBAP_ZAK_MOVING  *p)
 {
     CART_VEC spreaddir[16];
     CART_VEC spreadbase[16];
@@ -481,7 +481,7 @@ int vbap_zak_moving_control(VBAP_ZAK_MOVING  *p)
 }
 
 
-int vbap_zak_moving_init(VBAP_ZAK_MOVING  *p)
+int vbap_zak_moving_init(ENVIRON *csound, VBAP_ZAK_MOVING  *p)
 {
     int i,j, indx;
     MYFLT *ptr;
@@ -555,7 +555,7 @@ int vbap_zak_moving_init(VBAP_ZAK_MOVING  *p)
     p->spread_base.x = p->cart_dir.y;
     p->spread_base.y = p->cart_dir.z;
     p->spread_base.z = -p->cart_dir.x;
-    vbap_zak_moving_control(p);
+    vbap_zak_moving_control(csound,p);
     for (i=0;i<n;i++) {
       p->beg_gains[i] = p->updated_gains[i];
       p->end_gains[i] = p->updated_gains[i];

@@ -9,6 +9,7 @@ K3.     Portaudio.v19 on OSX
         Kinda patched 
 
 K4.     Use of PortMIDI
+        Seems working -- needs checking
 
 K5.     Installer for Windows
 

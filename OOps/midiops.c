@@ -60,11 +60,11 @@ int pgm2ins[128] = {   1,   2,   3,   4,   5,   6,   7,   8,   9,  10,
 #define pitchbend_value(m) MIDI_VALUE(m,pchbend)
 
 /* Now in glob extern INSTRTXT **instrtxtp;  gab-A3 (added) */
-int midibset(MIDIKMB *);
+int midibset(ENVIRON *,MIDIKMB *);
 
 /* IV - Oct 31 2002: modified to allow named instruments */
 
-int massign(MASSIGN *p)
+int massign(ENVIRON *csound, MASSIGN *p)
 {
     MCHNBLK *chn;
     short chnl = (short)(*p->chnl - FL(1.0));
@@ -81,7 +81,7 @@ int massign(MASSIGN *p)
     return OK;
 }
 
-int ctrlinit(CTLINIT *p)
+int ctrlinit(ENVIRON *csound, CTLINIT *p)
 {
     short chnl = (short)(*p->chnl - FL(1.0));
     short nargs = p->INOCOUNT;
@@ -107,7 +107,7 @@ int ctrlinit(CTLINIT *p)
     }
 }
 
-int notnum(MIDIKMB *p)      /* valid only at I-time */
+int notnum(ENVIRON *csound, MIDIKMB *p)      /* valid only at I-time */
 {
     *p->r = curip->m_pitch;
     return OK;
@@ -115,7 +115,7 @@ int notnum(MIDIKMB *p)      /* valid only at I-time */
 
 
 /* cpstmid by G.Maldonado */
-int cpstmid(CPSTABLE *p)
+int cpstmid(ENVIRON *csound, CPSTABLE *p)
 {
     FUNC  *ftp;
     MYFLT *func;
@@ -150,13 +150,13 @@ int cpstmid(CPSTABLE *p)
     return OK;
 }
 
-int veloc(MIDIMAP *p)          /* valid only at I-time */
+int veloc(ENVIRON *csound, MIDIMAP *p)          /* valid only at I-time */
 {
     *p->r = *p->ilo + curip->m_veloc * (*p->ihi - *p->ilo) * dv127;
     return OK;
 }
 
-int pchmidi(MIDIKMB *p)
+int pchmidi(ENVIRON *csound, MIDIKMB *p)
 {
     INSDS *lcurip = p->h.insdshead;
     double fract, oct, ioct;
@@ -167,7 +167,7 @@ int pchmidi(MIDIKMB *p)
     return OK;
 }
 
-int pchmidib(MIDIKMB *p)
+int pchmidib(ENVIRON *csound, MIDIKMB *p)
 {
     INSDS *lcurip = p->h.insdshead;
     double fract, oct, ioct;
@@ -180,21 +180,21 @@ int pchmidib(MIDIKMB *p)
     return OK;
 }
 
-int pchmidib_i(MIDIKMB *p)
+int pchmidib_i(ENVIRON *csound, MIDIKMB *p)
 {
-    midibset(p);
-    pchmidib(p);
+    midibset(csound,p);
+    pchmidib(csound,p);
     return OK;
 }
 
-int octmidi(MIDIKMB *p)
+int octmidi(ENVIRON *csound, MIDIKMB *p)
 {
     INSDS *lcurip = p->h.insdshead;
     *p->r = lcurip->m_pitch / FL(12.0) + FL(3.0);
     return OK;
 }
 
-int octmidib(MIDIKMB *p)
+int octmidib(ENVIRON *csound, MIDIKMB *p)
 {
     INSDS *lcurip = p->h.insdshead;
     *p->r = (lcurip->m_pitch + (pitchbend_value(lcurip->m_chnbp) *
@@ -202,14 +202,14 @@ int octmidib(MIDIKMB *p)
     return OK;
 }
 
-int octmidib_i(MIDIKMB *p)
+int octmidib_i(ENVIRON *csound, MIDIKMB *p)
 {
-  midibset(p);
-  octmidib(p);
+  midibset(csound,p);
+  octmidib(csound,p);
   return OK;
 }
 
-int cpsmidi(MIDIKMB *p)
+int cpsmidi(ENVIRON *csound, MIDIKMB *p)
 {
     INSDS *lcurip = p->h.insdshead;
     long  loct;
@@ -220,7 +220,7 @@ int cpsmidi(MIDIKMB *p)
     return OK;
 }
 
-int icpsmidib(MIDIKMB *p)
+int icpsmidib(ENVIRON *csound, MIDIKMB *p)
 {
     INSDS *lcurip = p->h.insdshead;
     long  loct;
@@ -232,14 +232,14 @@ int icpsmidib(MIDIKMB *p)
     return OK;
 }
 
-int icpsmidib_i(MIDIKMB *p)
+int icpsmidib_i(ENVIRON *csound, MIDIKMB *p)
 {
-    midibset(p);
-    icpsmidib(p);
+    midibset(csound,p);
+    icpsmidib(csound,p);
     return OK;
 }
 
-int kcpsmidib(MIDIKMB *p)
+int kcpsmidib(ENVIRON *csound, MIDIKMB *p)
 {
     INSDS *lcurip = p->h.insdshead;
     MYFLT bend = pitchbend_value(lcurip->m_chnbp);
@@ -255,7 +255,7 @@ int kcpsmidib(MIDIKMB *p)
     return OK;
 }
 
-int ampmidi(MIDIAMP *p)        /* convert midi veloc to amplitude */
+int ampmidi(ENVIRON *csound, MIDIAMP *p)        /* convert midi veloc to amplitude */
                                 /*   valid only at I-time          */
 {
     MYFLT amp;
@@ -275,7 +275,7 @@ int ampmidi(MIDIAMP *p)        /* convert midi veloc to amplitude */
 
 /*      MWB 2/11/97  New optional field to set pitch bend range
         I also changed each of the xxxmidib opcodes, adding * p->scale*/
-int midibset(MIDIKMB *p)
+int midibset(ENVIRON *csound, MIDIKMB *p)
 {
     if (*p->iscal > 0) {
       p->scale = *p->iscal;
@@ -287,14 +287,14 @@ int midibset(MIDIKMB *p)
     return OK;
 }
 
-int aftset(MIDIKMAP *p)
+int aftset(ENVIRON *csound, MIDIKMAP *p)
 {
     p->lo = *p->ilo;
     p->scale = (*p->ihi - p->lo) * dv127;
     return OK;
 }
 
-int aftouch(MIDIKMAP *p)
+int aftouch(ENVIRON *csound, MIDIKMAP *p)
 {
     INSDS *lcurip = p->h.insdshead;
     *p->r = p->lo + MIDI_VALUE(lcurip->m_chnbp, aftouch) * p->scale;
@@ -318,7 +318,7 @@ int aftouch(MIDIKMAP *p)
 /*     *p->r = lcurip->m_chnbp->pchbend * p->scale; */
 /* } */
 
-int imidictl(MIDICTL *p)
+int imidictl(ENVIRON *csound, MIDICTL *p)
 {
     long  ctlno;
     if ((ctlno = (long)*p->ictlno) < 0 || ctlno > 127)
@@ -328,7 +328,7 @@ int imidictl(MIDICTL *p)
     return OK;
 }
 
-int mctlset(MIDICTL *p)
+int mctlset(ENVIRON *csound, MIDICTL *p)
 {
     long  ctlno;
     if ((ctlno = (long)*p->ictlno) < 0 || ctlno > 127)
@@ -353,7 +353,7 @@ int mctlset(MIDICTL *p)
     return OK;
 }
 
-int midictl(MIDICTL *p)
+int midictl(ENVIRON *csound, MIDICTL *p)
 {
     INSDS *lcurip = p->h.insdshead;
     *p->r = MIDI_VALUE(lcurip->m_chnbp,ctl_val[p->ctlno]) * p->scale + p->lo;
@@ -361,7 +361,7 @@ int midictl(MIDICTL *p)
 }
 
 
-int imidiaft(MIDICTL *p)
+int imidiaft(ENVIRON *csound, MIDICTL *p)
 {
     long  ctlno;
     if ((ctlno = (long)*p->ictlno) < 0 || ctlno > 127)
@@ -371,7 +371,7 @@ int imidiaft(MIDICTL *p)
     return OK;
 }
 
-int maftset(MIDICTL *p)
+int maftset(ENVIRON *csound, MIDICTL *p)
 {
     long  ctlno;
     if ((ctlno = (long)*p->ictlno) < 0 || ctlno > 127)
@@ -396,7 +396,7 @@ int maftset(MIDICTL *p)
     return OK;
 }
 
-int midiaft(MIDICTL *p)
+int midiaft(ENVIRON *csound, MIDICTL *p)
 {
     INSDS *lcurip = p->h.insdshead;
     *p->r = MIDI_VALUE(lcurip->m_chnbp,polyaft[p->ctlno]) * p->scale + p->lo;
@@ -407,7 +407,7 @@ int midiaft(MIDICTL *p)
 /* midichn opcode - get MIDI channel number or 0 for score notes */
 /* written by Istvan Varga, May 2002 */
 
-int midichn(MIDICHN *p)
+int midichn(ENVIRON *csound, MIDICHN *p)
 {
     int nn;
 
@@ -423,7 +423,7 @@ int midichn(MIDICHN *p)
 
 /* pgmassign - assign MIDI program to instrument */
 
-int pgmassign(PGMASSIGN *p)
+int pgmassign(ENVIRON *csound, PGMASSIGN *p)
 {
     int pgm, ins;
 
@@ -449,7 +449,7 @@ int pgmassign(PGMASSIGN *p)
     return OK;
 }
 
-int ichanctl(CHANCTL *p)
+int ichanctl(ENVIRON *csound, CHANCTL *p)
 {
     long  ctlno, chan = (long)(*p->ichano - FL(1.0));
     if (chan < 0 || chan > 15 || M_CHNBP[chan] == NULL)
@@ -461,7 +461,7 @@ int ichanctl(CHANCTL *p)
     return OK;
 }
 
-int chctlset(CHANCTL *p)
+int chctlset(ENVIRON *csound, CHANCTL *p)
 {
     long  ctlno, chan = (long)(*p->ichano - FL(1.0));
     if (chan < 0 || chan > 15 || M_CHNBP[chan] == NULL) {
@@ -481,27 +481,27 @@ int chctlset(CHANCTL *p)
     return OK;
 }
 
-int chanctl(CHANCTL *p)
+int chanctl(ENVIRON *csound, CHANCTL *p)
 {
     *p->r = M_CHNBP[p->chano]->ctl_val[p->ctlno] * p->scale + p->lo;
     return OK;
 }
 
-int ipchbend(MIDIMAP *p)
+int ipchbend(ENVIRON *csound, MIDIMAP *p)
 {
     *p->r = *p->ilo + (*p->ihi - *p->ilo) *
             pitchbend_value(p->h.insdshead->m_chnbp);
     return OK;
 }
 
-int kbndset(MIDIKMAP *p)
+int kbndset(ENVIRON *csound, MIDIKMAP *p)
 {
     p->lo = *p->ilo;
     p->scale = *p->ihi - *p->ilo;
     return OK;
 }
 
-int kpchbend(MIDIKMAP *p)
+int kpchbend(ENVIRON *csound, MIDIKMAP *p)
 {
     INSDS *lcurip = p->h.insdshead;
     *p->r = p->lo + pitchbend_value(lcurip->m_chnbp) * p->scale;

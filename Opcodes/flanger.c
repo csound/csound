@@ -26,7 +26,7 @@
 #include <math.h>
 #include "flanger.h"
 
-int flanger_set (FLANGER *p)
+int flanger_set (ENVIRON *csound, FLANGER *p)
 {
         /*---------------- delay  -----------------------*/
     p->maxdelay = (unsigned long)(*p->maxd  * esr);
@@ -37,7 +37,7 @@ int flanger_set (FLANGER *p)
     return OK;
 }
 
-int flanger(FLANGER *p)
+int flanger(ENVIRON *csound, FLANGER *p)
 {
         /*---------------- delay -----------------------*/
     unsigned long  indx = p->left;
@@ -74,7 +74,7 @@ int flanger(FLANGER *p)
 static unsigned long maxd; /* max delay samples */
 static unsigned long maxdM1; /* max delay samples - 1 */
 
-int wguide1set (WGUIDE1 *p)
+int wguide1set (ENVIRON *csound, WGUIDE1 *p)
 {
         /*---------------- delay -----------------------*/
     auxalloc((maxd=(unsigned long)(MAXDELAY * esr)) * sizeof(MYFLT), &p->aux);
@@ -88,7 +88,7 @@ int wguide1set (WGUIDE1 *p)
     return OK;
 }
 
-int wguide1(WGUIDE1 *p)
+int wguide1(ENVIRON *csound, WGUIDE1 *p)
 {
         /*---------------- delay -----------------------*/
     unsigned long  indx;
@@ -157,7 +157,7 @@ int wguide1(WGUIDE1 *p)
     return OK;
 }
 
-int wguide2set (WGUIDE2 *p)
+int wguide2set (ENVIRON *csound, WGUIDE2 *p)
 {
         /*---------------- delay1 -----------------------*/
     auxalloc((maxd = (unsigned long)(MAXDELAY * esr)) * sizeof(MYFLT), &p->aux1);
@@ -185,7 +185,7 @@ int wguide2set (WGUIDE2 *p)
     return OK;
 }
 
-int wguide2(WGUIDE2 *p)
+int wguide2(ENVIRON *csound, WGUIDE2 *p)
 {
     MYFLT *out = p->ar;
     MYFLT *in = p->asig;

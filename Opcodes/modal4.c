@@ -258,15 +258,14 @@ MYFLT Modal4_tick(Modal4 *m)
 /*                vibAmt                   */
 /*******************************************/
 
-int marimbaset(MARIMBA *p)
+int marimbaset(ENVIRON *csound, MARIMBA *p)
 {
     Modal4      *m = &(p->m4);
     MYFLT       temp,temp2;
     int         itemp;
     FUNC        *ftp;
-    ENVIRON     *csound = p->h.insdshead->csound;
 
-    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) != NULL)
+    if ((ftp = ftfind(csound, p->ifn)) != NULL)
       p->m4.wave = ftp;
     else {
       perferror
@@ -338,13 +337,12 @@ int marimbaset(MARIMBA *p)
 }
 
 
-int marimba(MARIMBA *p)
+int marimba(ENVIRON *csound, MARIMBA *p)
 {
     Modal4      *m = &(p->m4);
     MYFLT       *ar = p->ar;
     long        nsmps = ksmps;
     MYFLT       amp = (*p->amplitude) * AMP_RSCALE; /* Normalise */
-    ENVIRON     *csound = p->h.insdshead->csound;
 
     if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
     if ((--p->kloop) == 0) {
@@ -384,21 +382,20 @@ int marimba(MARIMBA *p)
 /*                MOD_WHEEL= vibAmt        */
 /*******************************************/
 
-int vibraphnset(VIBRAPHN *p)
+int vibraphnset(ENVIRON *csound, VIBRAPHN *p)
 {
     Modal4      *m = &(p->m4);
     MYFLT       temp;
     FUNC        *ftp;
-    ENVIRON     *csound = p->h.insdshead->csound;
 
-    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) != NULL)
+    if ((ftp = ftfind(csound, p->ifn)) != NULL)
       p->m4.wave = ftp;         /* Expect an impulslything */
     else {
       return perferror(Str(X_385,
                     "No table for Vibraphone strike"));
     }
 
-    if (make_Modal4(p->h.insdshead->csound,
+    if (make_Modal4(csound,
                     m, p->ivfn, *p->vibAmt, *p->vibFreq)==NOTOK) return NOTOK;
 
     p->m4.w_phaseOffset = FL(0.0);
@@ -431,13 +428,12 @@ int vibraphnset(VIBRAPHN *p)
     return OK;
 }
 
-int vibraphn(VIBRAPHN *p)
+int vibraphn(ENVIRON *csound, VIBRAPHN *p)
 {
     Modal4      *m = &(p->m4);
     MYFLT       *ar = p->ar;
     long        nsmps = ksmps;
     MYFLT       amp = (*p->amplitude)*AMP_RSCALE; /* Normalise */
-    ENVIRON     *csound = p->h.insdshead->csound;
 
     if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
     if ((--p->kloop) == 0) {
@@ -476,21 +472,20 @@ int vibraphn(VIBRAPHN *p)
 /*   360, 1470, 2401, 4600                      */
 
 
-int agogobelset(VIBRAPHN *p)
+int agogobelset(ENVIRON *csound, VIBRAPHN *p)
 {
     Modal4      *m = &(p->m4);
     FUNC        *ftp;
     MYFLT       temp;
-    ENVIRON     *csound = p->h.insdshead->csound;
 
     /* Expect an impulslything */
-    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) != NULL) p->m4.wave = ftp;
+    if ((ftp = ftfind(csound, p->ifn)) != NULL) p->m4.wave = ftp;
     else {
       return perferror(Str(X_374,
                     "No table for Agogobell strike"));
     }
 
-    if (make_Modal4(p->h.insdshead->csound,
+    if (make_Modal4(csound,
                     m, p->ivfn, *p->vibAmt, *p->vibFreq)==NOTOK) return NOTOK;
 
     p->m4.w_phaseOffset = FL(0.0);
@@ -522,12 +517,11 @@ int agogobelset(VIBRAPHN *p)
     return OK;
 }
 
-int agogobel(VIBRAPHN *p)
+int agogobel(ENVIRON *csound, VIBRAPHN *p)
 {
     Modal4      *m = &(p->m4);
     MYFLT       *ar = p->ar;
     long        nsmps = ksmps;
-    ENVIRON     *csound = p->h.insdshead->csound;
 
     p->m4.v_rate = *p->vibFreq;
     p->m4.vibrGain =*p->vibAmt;

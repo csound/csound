@@ -91,7 +91,7 @@ HEADATA *getsndinfo(SNDINFO *p)
     return hdr;
 }
 
-int filelen(SNDINFO *p)
+int filelen(ENVIRON *csound, SNDINFO *p)
 {
     HEADATA *hdr = NULL;
     long readlong;
@@ -140,7 +140,7 @@ int filelen(SNDINFO *p)
     return OK;
 }
 
-int filenchnls(SNDINFO *p)
+int filenchnls(ENVIRON *csound, SNDINFO *p)
 {
     HEADATA *hdr = NULL;
     long readlong;
@@ -157,7 +157,7 @@ int filenchnls(SNDINFO *p)
     return OK;
 }
 
-int filesr(SNDINFO *p)
+int filesr(ENVIRON *csound, SNDINFO *p)
 {
     HEADATA *hdr = NULL;
     long readlong;
@@ -177,7 +177,7 @@ int filesr(SNDINFO *p)
 
 /*RWD 8:2001: now supports all relevant files, and scans overall peak properly */
 
-int filepeak(SNDINFOPEAK *p)
+int filepeak(ENVIRON *csound, SNDINFOPEAK *p)
 {
     HEADATA *hdr = NULL;
     long readlong;

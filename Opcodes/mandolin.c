@@ -71,12 +71,11 @@ static int infoTick(MANDOL *p)
 }
 
 /* Suggested values pluckAmp = 0.3; pluckPos = 0.4; detuning = 0.995; */
-int mandolinset(MANDOL *p)
+int mandolinset(ENVIRON *csound, MANDOL *p)
 {
     FUNC        *ftp;
-    ENVIRON *csound = p->h.insdshead->csound;
 
-    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) != NULL) p->soundfile = ftp;
+    if ((ftp = ftfind(csound, p->ifn)) != NULL) p->soundfile = ftp;
     else {
       return perferror(Str(X_379,"No table for Mandolin")); /* Expect pluck wave */
     }
@@ -125,14 +124,13 @@ int mandolinset(MANDOL *p)
     return OK;
 }
 
-int mandolin(MANDOL *p)
+int mandolin(ENVIRON *csound, MANDOL *p)
 {
     MYFLT *ar = p->ar;
     long  nsmps = ksmps;
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT lastOutput;
     MYFLT loopGain;
-    ENVIRON *csound = p->h.insdshead->csound;
 
     loopGain = *p->baseLoopGain + (p->lastFreq * FL(0.000005));
     if (loopGain>FL(1.0)) loopGain = FL(0.99999);

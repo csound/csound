@@ -29,7 +29,7 @@
 #include "namedins.h"   /* IV - Oct 31 2002 */
 #include "csdl.h"
 
-int mute_inst(MUTE *p)
+int mute_inst(ENVIRON *csound, MUTE *p)
 {
     int n = (int) strarg2insno(p->ins, p->STRARG);      /* IV - Oct 31 2002 */
     int onoff = (*p->onoff == FL(0.0) ? 0 : 1);
@@ -44,7 +44,7 @@ int mute_inst(MUTE *p)
     return OK;
 }
 
-int instcount(INSTCNT *p)
+int instcount(ENVIRON *csound, INSTCNT *p)
 {
     int n = (int)*p->ins;
     if (n<0 || n>maxinsno || instrtxtp[n]==NULL)
@@ -56,7 +56,7 @@ int instcount(INSTCNT *p)
 
 /* After gabriel maldonado */
 
-int cpuperc(CPU_PERC *p)
+int cpuperc(ENVIRON *csound, CPU_PERC *p)
 {
     int n = (int) *p->instrnum;
     if (n>=0 && n<=maxinsno && instrtxtp[n]!=NULL)     /* If instrument exists */
@@ -64,7 +64,7 @@ int cpuperc(CPU_PERC *p)
     return OK;
 }
 
-int maxalloc(CPU_PERC *p)
+int maxalloc(ENVIRON *csound, CPU_PERC *p)
 {
     int n = (int) *p->instrnum;
     if (n>=0 && n<=maxinsno && instrtxtp[n]!=NULL)     /* If instrument exists */
@@ -72,7 +72,7 @@ int maxalloc(CPU_PERC *p)
     return OK;
 }
 
-int prealloc(CPU_PERC *p)
+int prealloc(ENVIRON *csound, CPU_PERC *p)
 {
     int     n, a;
 
@@ -86,7 +86,7 @@ int prealloc(CPU_PERC *p)
     return OK;
 }
 
-int pfun(PFUN *p)
+int pfun(ENVIRON *csound, PFUN *p)
 {
     int n = (int)(*p->pnum + FL(0.5));
     MYFLT ans;

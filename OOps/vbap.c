@@ -545,7 +545,7 @@ int lines_intersect(int i,int j,int k,int l,ls  lss[CHANNELS])
 }
 
 
-void vbap_ls_init (VBAP_LS_INIT *p)
+void vbap_ls_init (ENVIRON *csound, VBAP_LS_INIT *p)
      /* Inits the loudspeaker data. Calls choose_ls_tuplets or _triplets
         according to current dimension. The inversion matrices are
         stored in transposed form to ease calculation at run time.*/

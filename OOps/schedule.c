@@ -178,7 +178,7 @@ int schedule(SCHED *p)
     return OK;
 }
 
-int schedwatch(SCHED *p)
+int schedwatch(ENVIRON *csound, SCHED *p)
 {                               /* If MIDI case watch for release */
     if (p->midi && p->h.insdshead->relesing) {
       p->midi = 0;
@@ -209,7 +209,7 @@ int schedwatch(SCHED *p)
     return OK;
 }
 
-int ifschedule(WSCHED *p)
+int ifschedule(ENVIRON *csound, WSCHED *p)
 {                       /* All we need to do is ensure the trigger is set */
     p->todo = 1;
     p->abs_when = curip->p2;            /* Adjust time */
@@ -217,7 +217,7 @@ int ifschedule(WSCHED *p)
     return OK;
 }
 
-int kschedule(WSCHED *p)
+int kschedule(ENVIRON *csound, WSCHED *p)
 {
     if (p->todo && *p->trigger!=0.0) { /* If not done and trigger */
       RSCHED *rr;
@@ -277,7 +277,7 @@ int kschedule(WSCHED *p)
 
 #define MAXPHASE 0x1000000
 #define MAXMASK  0x0ffffff
-int lfoset(LFO *p)
+int lfoset(ENVIRON *csound, LFO *p)
 {
   /* Types: 0:  sine
             1:  triangles
@@ -306,7 +306,7 @@ int lfoset(LFO *p)
     return OK;
 }
 
-int lfok(LFO *p)
+int lfok(ENVIRON *csound, LFO *p)
 {
     long        phs;
     MYFLT       fract;
@@ -356,7 +356,7 @@ int lfok(LFO *p)
     return OK;
 }
 
-int lfoa(LFO *p)
+int lfoa(ENVIRON *csound, LFO *p)
 {
     int         nsmps = ksmps;
     long        phs;
@@ -427,9 +427,9 @@ int sensOrcEvent(void)
     else return(0);
 }
 
-int ktriginstr(TRIGINSTR *p);
+int ktriginstr(ENVIRON *csound, TRIGINSTR *p);
 
-int triginset(TRIGINSTR *p)
+int triginset(ENVIRON *csound, TRIGINSTR *p)
 {
     p->prvmintim = *p->mintime;
     p->timrem = 0;
@@ -441,17 +441,17 @@ int triginset(TRIGINSTR *p)
        of new events. So add a separate variable for the kcounter offset (-1). */
     if (global_kcounter == 0 && *p->trigger != FZERO /*&& *p->args[1] <= FZERO*/) {
       p->kadjust = 0;   /* No kcounter offset at this time */
-      ktriginstr(p);
+      ktriginstr(csound,p);
     }
     p->kadjust = -1;      /* Set kcounter offset for perf-time */
     /* Catch p3==0 (i-time only) event triggerings. */
     if (global_kcounter > 0 && *p->trigger != FZERO && p->h.insdshead->p3 == 0)
-      ktriginstr(p);
+      ktriginstr(csound,p);
     return OK;
 }
 
 
-int ktriginstr(TRIGINSTR *p)
+int ktriginstr(ENVIRON *csound, TRIGINSTR *p)
 {         /* k-rate event generator */
     int i, absinsno, argnum;
     MYFLT insno, starttime;
@@ -574,7 +574,7 @@ int ktriginstr(TRIGINSTR *p)
 
 /* Maldonado triggering of events */
 
-int trigseq_set(TRIGSEQ *p)     /* by G.Maldonado */
+int trigseq_set(ENVIRON *csound, TRIGSEQ *p)     /* by G.Maldonado */
 {
     FUNC *ftp;
     if ((ftp = ftfind(p->h.insdshead->csound, p->kfn)) == NULL) {
@@ -588,7 +588,7 @@ int trigseq_set(TRIGSEQ *p)     /* by G.Maldonado */
     return OK;
 }
 
-int trigseq(TRIGSEQ *p)
+int trigseq(ENVIRON *csound, TRIGSEQ *p)
 {
     if (p->done) return OK;
     else {

@@ -274,7 +274,7 @@ static void     oscbnk_lfo(OSCBNK *p, OSCBNK_OSC *o)
 
 /* ---------------- oscbnk set-up ---------------- */
 
-int    oscbnkset(OSCBNK *p)
+int    oscbnkset(ENVIRON *csound, OSCBNK *p)
 {
     long    i;
     FUNC    *ftp;
@@ -397,7 +397,7 @@ int    oscbnkset(OSCBNK *p)
 
 /* ---------------- oscbnk performance ---------------- */
 
-int    oscbnk(OSCBNK *p)
+int    oscbnk(ENVIRON *csound, OSCBNK *p)
 {
     int     nn, osc_cnt, pm_enabled, am_enabled;
     FUNC    *ftp;
@@ -548,7 +548,7 @@ int    oscbnk(OSCBNK *p)
 
 /* ---------------- grain2 set-up ---------------- */
 
-int grain2set(GRAIN2 *p)
+int grain2set(ENVIRON *csound, GRAIN2 *p)
 {
     int i;
     FUNC        *ftp;
@@ -648,7 +648,7 @@ void grain2_init_grain(GRAIN2 *p, GRAIN2_OSC *o)
 
 /* ---- grain2 opcode ---- */
 
-int grain2(GRAIN2 *p)
+int grain2(ENVIRON *csound, GRAIN2 *p)
 {
     int i, nn, w_interp, g_interp, f_nolock;
     MYFLT       *aout, *ft, *w_ft, grain_frq, frq_scl, pfrac, w_pfrac, f, a, k;
@@ -745,7 +745,7 @@ int grain2(GRAIN2 *p)
 
 /* ---------------- grain3 set-up ---------------- */
 
-int grain3set(GRAIN3 *p)
+int grain3set(ENVIRON *csound, GRAIN3 *p)
 {
     int i;
     FUNC        *ftp;
@@ -814,7 +814,7 @@ void grain3_init_grain(GRAIN3 *p, GRAIN2_OSC *o,
 
 /* ---- grain3 opcode ---- */
 
-int grain3(GRAIN3 *p)
+int grain3(ENVIRON *csound, GRAIN3 *p)
 {
     int i, nn, w_interp, g_interp, f_nolock;
     MYFLT       *aout0, *aout, *ft, *w_ft, frq_scl, pfrac, w_pfrac, f, a, k;
@@ -996,7 +996,7 @@ int grain3(GRAIN3 *p)
 
 /* ----------------------------- rnd31 opcode ------------------------------ */
 
-int rnd31set(RND31 *p)
+int rnd31set(ENVIRON *csound, RND31 *p)
 {
     /* initialise random seed */
     oscbnk_seedrand(&(p->seed), *(p->iseed));
@@ -1005,7 +1005,7 @@ int rnd31set(RND31 *p)
 
 /* ---- rnd31 / i-rate ---- */
 
-int rnd31i(RND31 *p)
+int rnd31i(ENVIRON *csound, RND31 *p)
 {
     MYFLT       rpow;
     int         rmode;
@@ -1037,7 +1037,7 @@ int rnd31i(RND31 *p)
 
 /* ---- rnd31 / k-rate ---- */
 
-int rnd31k(RND31 *p)
+int rnd31k(ENVIRON *csound, RND31 *p)
 {
     MYFLT       rpow;
     int rmode;
@@ -1064,7 +1064,7 @@ int rnd31k(RND31 *p)
 
 /* ---- rnd31 / a-rate ---- */
 
-int rnd31a(RND31 *p)
+int rnd31a(ENVIRON *csound, RND31 *p)
 {
     MYFLT       scl, *out, rpow;
     int rmode, nn;
@@ -1095,7 +1095,7 @@ int rnd31a(RND31 *p)
 
 /* ---- oscilikt initialisation ---- */
 
-int oscktset(OSCKT *p)
+int oscktset(ENVIRON *csound, OSCKT *p)
 {
     MYFLT   phs;
 
@@ -1111,7 +1111,7 @@ int oscktset(OSCKT *p)
 
 /* ---- oscilikt performance ---- */
 
-int kosclikt(OSCKT *p)
+int kosclikt(ENVIRON *csound, OSCKT *p)
 {
     FUNC    *ftp;
     unsigned long   n, phs;
@@ -1136,7 +1136,7 @@ int kosclikt(OSCKT *p)
     return OK;
 }
 
-int osckkikt(OSCKT *p)
+int osckkikt(ENVIRON *csound, OSCKT *p)
 {
     FUNC    *ftp;
     unsigned long   n, phs, lobits, mask, frq;
@@ -1168,7 +1168,7 @@ int osckkikt(OSCKT *p)
     return OK;
 }
 
-int osckaikt(OSCKT *p)
+int osckaikt(ENVIRON *csound, OSCKT *p)
 {
     FUNC    *ftp;
     unsigned long   n, phs, lobits, mask;
@@ -1214,7 +1214,7 @@ void oscbnk_flen_setup(long flen, unsigned long *mask,
     *pfrac = FL(1.0) / (MYFLT) *mask; (*mask)--;
 }
 
-int oscakikt(OSCKT *p)
+int oscakikt(ENVIRON *csound, OSCKT *p)
 {
     FUNC    *ftp;
     unsigned long   n, phs, lobits, mask, frq;
@@ -1246,7 +1246,7 @@ int oscakikt(OSCKT *p)
     return OK;
 }
 
-int oscaaikt(OSCKT *p)
+int oscaaikt(ENVIRON *csound, OSCKT *p)
 {
     FUNC    *ftp;
     unsigned long   n, phs, lobits, mask;
@@ -1280,7 +1280,7 @@ int oscaaikt(OSCKT *p)
 
 /* ---- osciliktp initialisation ---- */
 
-int oscktpset(OSCKTP *p)
+int oscktpset(ENVIRON *csound, OSCKTP *p)
 {
     if (*(p->istor) != FL(0.0)) return OK;         /* skip initialisation */
     /* initialise table parameters */
@@ -1295,7 +1295,7 @@ int oscktpset(OSCKTP *p)
 
 /* ---- osciliktp performance ---- */
 
-int oscktp(OSCKTP *p)
+int oscktp(ENVIRON *csound, OSCKTP *p)
 {
     FUNC    *ftp;
     unsigned long   n, phs, lobits, mask, frq;
@@ -1341,7 +1341,7 @@ int oscktp(OSCKTP *p)
 
 /* ---- oscilikts initialisation ---- */
 
-int oscktsset(OSCKTS *p)
+int oscktsset(ENVIRON *csound, OSCKTS *p)
 {
     if (*(p->istor) != FL(0.0)) return OK;         /* skip initialisation */
     /* initialise table parameters */
@@ -1355,7 +1355,7 @@ int oscktsset(OSCKTS *p)
 
 /* ---- oscilikts performance ---- */
 
-int osckts(OSCKTS *p)
+int osckts(ENVIRON *csound, OSCKTS *p)
 {
     FUNC    *ftp;
     unsigned long   n, phs, lobits, mask, frq = 0UL;
@@ -1695,7 +1695,7 @@ static int vco2_tables_create(ENVIRON *csound, int waveform, int base_ftable,
 
 /* ---- vco2init opcode ---- */
 
-int vco2init(VCO2INIT *p)
+int vco2init(ENVIRON *csound, VCO2INIT *p)
 {
     int     waveforms, base_ftable, ftnum, i, w;
     VCO2_TABLE_PARAMS   tp;
@@ -1789,9 +1789,9 @@ int vco2init(VCO2INIT *p)
 
 /* ---- vco2ft / vco2ift opcode (initialisation) ---- */
 
-int vco2ftp(VCO2FT*);
+int vco2ftp(ENVIRON *csound,VCO2FT*);
 
-int vco2ftset(VCO2FT *p)
+int vco2ftset(ENVIRON *csound, VCO2FT *p)
 {
     int     w;
 
@@ -1820,7 +1820,7 @@ int vco2ftset(VCO2FT *p)
     p->p_min = p->p_scl / (MYFLT) VCO2_MAX_NPART;
     /* in case of vco2ift opcode, find table number now */
     if (!strcmp(p->h.optext->t.opcod, "vco2ift"))
-      vco2ftp(p);
+      vco2ftp(csound,p);
     else                                /* else set perf routine to avoid */
       p->h.opadr = (SUBR) vco2ftp;      /* "not initialised" error */
     return OK;
@@ -1828,7 +1828,7 @@ int vco2ftset(VCO2FT *p)
 
 /* ---- vco2ft opcode (performance) ---- */
 
-int vco2ftp(VCO2FT *p)
+int vco2ftp(ENVIRON *csound, VCO2FT *p)
 {
 #ifdef VCO2FT_USE_TABLE
     MYFLT   npart;
@@ -1867,14 +1867,14 @@ int vco2ftp(VCO2FT *p)
     return OK;
 }
 
-int vco2ft(VCO2FT *p)
+int vco2ft(ENVIRON *csound, VCO2FT *p)
 {
     return perferror(Str(X_1722,"vco2ft: not initialised"));
 }
 
 /* ---- vco2 opcode (initialisation) ---- */
 
-int vco2set(VCO2 *p)
+int vco2set(ENVIRON *csound, VCO2 *p)
 {
     int     mode, min_args, tnum;
     int     tnums[8] = { 0, 0, 1, 2, 1, 3, 4, 5 };
@@ -1937,7 +1937,7 @@ int vco2set(VCO2 *p)
 
 /* ---- vco2 opcode (performance) ---- */
 
-int vco2(VCO2 *p)
+int vco2(ENVIRON *csound, VCO2 *p)
 {
     int     nn, n;
     VCO2_TABLE      *tabl;

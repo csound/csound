@@ -33,7 +33,7 @@
 /* static  int     pdebug = 0; */
 /* static  int     dchan = 6; */      /* which channel to examine on debug */
 
-int cvset(CONVOLVE *p)
+int cvset(ENVIRON *csound, CONVOLVE *p)
 {
     char     cvfilnam[MAXNAME];
     MEMFIL   *mfp, *ldmemfile(char *);
@@ -148,7 +148,7 @@ int cvset(CONVOLVE *p)
 
 extern void writeFromCircBuf(MYFLT **, MYFLT **, MYFLT *, MYFLT *, long);
 
-int convolve(CONVOLVE *p)
+int convolve(ENVIRON *csound, CONVOLVE *p)
 {
     int    nsmpso=ksmps,nsmpsi=ksmps,nsmpso_sav,outcnt_sav;
     int    nchm1 = p->nchanls - 1,chn;

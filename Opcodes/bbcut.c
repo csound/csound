@@ -46,7 +46,7 @@ MYFLT myfltrandom(MYFLT a, MYFLT b)
 }
 
 
-int BBCutMonoInit(BBCUTMONO *p)
+int BBCutMonoInit(ENVIRON *csound, BBCUTMONO *p)
 {
     /* call seed random at time now? */
     /* later for efficiency- lookup table for grain envelope */
@@ -104,7 +104,7 @@ int BBCutMonoInit(BBCUTMONO *p)
       /* true tempo is determined by samplesperunit (which has been rounded off) */
       /* only make floating point corrections for stutters with stutterspeed>1 */
 
-int BBCutMono(BBCUTMONO *p)
+int BBCutMono(ENVIRON *csound, BBCUTMONO *p)
 {
     int i;
     int oddmax,unitproj;
@@ -333,7 +333,7 @@ int BBCutStereoInit(BBCUTSTEREO * p)
 /* rounding errors will accumulate slowly with respect to bps,  */
 /* true tempo is determined by samplesperunit (which has been rounded off) */
 /* only make floating point corrections for stutters with stutterspeed>1 */
-int BBCutStereo(BBCUTSTEREO *p)
+int BBCutStereo(ENVIRON *csound, BBCUTSTEREO *p)
 {
     int i;
     int oddmax,unitproj;

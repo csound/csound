@@ -43,7 +43,7 @@ extern void GetVersNumString(Str255 versStr);
 int cleanup(void);
 extern int sensMidi(void);
 extern int sensFMidi(void);
-extern long kperf(long);
+extern long kperf(ENVIRON *, long);
 extern  int      csoundYield(void*);
 
 #define SEGAMPS 01
@@ -65,8 +65,8 @@ static  short   sectno = 0;
 long    kcnt = 0L;
 static  MYFLT   timtot = FL(0.0);
 static  MYFLT   betsiz, ekrbetsiz;
-extern  int     MIDIinsert(int, MCHNBLK*, MEVENT*);
-extern  int insert(int, EVTBLK*);
+extern  int     MIDIinsert(ENVIRON *, int, MCHNBLK*, MEVENT*);
+extern  int     insert(ENVIRON *, int, EVTBLK*);
 
 static void settempo(MYFLT tempo)
 {
@@ -76,14 +76,14 @@ static void settempo(MYFLT tempo)
     }
 }
 
-int gettempo(GTEMPO *p)
+int gettempo(ENVIRON *csound, GTEMPO *p)
 {
     if (O.Beatmode) *p->ans = FL(60.0) / betsiz;
     else *p->ans = FL(60.0);
     return OK;
 }
 
-int tempset(TEMPO *p)
+int tempset(ENVIRON *csound, TEMPO *p)
  {
     MYFLT tempo;
 
@@ -97,7 +97,7 @@ int tempset(TEMPO *p)
     }
 }
 
-int tempo(TEMPO *p)
+int tempo(ENVIRON *csound, TEMPO *p)
 {
     if (*p->ktempo != p->prvtempo) {
       settempo(*p->ktempo);
@@ -107,7 +107,7 @@ int tempo(TEMPO *p)
 }
 
 extern  void    RTLineset(void), MidiOpen(void), FMidiOpen(void);
-extern  void    scsort(FILE*, FILE*), oload(void), cscorinit(void);
+extern  void    scsort(FILE*, FILE*), oload(ENVIRON *), cscorinit(void);
 extern  void    schedofftim(INSDS *), infoff(MYFLT);
 extern  void    orcompact(void), rlsmemfiles(void), timexpire(MYFLT);
 extern  void    beatexpire(MYFLT), deact(INSDS*), fgens(ENVIRON *,EVTBLK *);
@@ -137,7 +137,7 @@ static TRNON turnons[MAXONS];
 static TRNON *tpend = turnons + MAXONS;
 TRNON *frsturnon = NULL;
 void xturnon(int, long);
-void kturnon(void);
+void kturnon(ENVIRON*);
 
 void musRESET(void)
 {
@@ -247,7 +247,7 @@ int musmon(ENVIRON *csound)
      MidiOpen();                     /*   alloc bufs & open files    */
      }
     dispinit();                 /* initialise graphics or character display */
-    oload();                    /* set globals and run inits */
+    oload(csound);              /* set globals and run inits */
     if (O.FMidiin) FMidiOpen();
     printf(Str(X_1099,"orch now loaded\n"));
 #ifdef mills_macintosh
@@ -343,7 +343,7 @@ int musmon(ENVIRON *csound)
 #endif
 
     if (frsturnon != NULL)           /* if something in turnon list  */
-      kturnon();                     /*   turnon now                 */
+      kturnon(csound);               /*   turnon now                 */
 
                                      /* since we are running in components */
     return 0;                        /* we exit here to playevents later   */
@@ -396,7 +396,7 @@ void beep(void)
 #endif
 }
 
-int lplay(ENVIRON *csound, EVLIST *a)           /* cscore re-entry into musmon */
+int lplay(ENVIRON *csound, EVLIST *a) /* cscore re-entry into musmon */
 {
     lplayed = 1;
     if (!sectno)  printf(Str(X_448,"SECTION %d:\n"),++sectno);
@@ -406,8 +406,8 @@ int lplay(ENVIRON *csound, EVLIST *a)           /* cscore re-entry into musmon *
     return OK;
 }
 
-int turnon(TURNON *p)          /* make list to turn on instrs for indef perf */
-{                               /* called from i0 for execution in playevents */
+int turnon(ENVIRON *csound, TURNON *p) /* make list to turn on instrs for indef */
+{                            /* perf called from i0 for execution in playevents */
     int insno = (int)*p->insno;
     long xtratim = (long)(*p->itime * ekr);
     xturnon(insno, xtratim);
@@ -435,8 +435,8 @@ void xturnon(int insno, long xtratim) /* schedule a later turnon        */
     frsturnon = turnons;
 }
 
-void kturnon(void)      /* turn on instrs due in turnon list */
-{                       /* called by kperf when frsturnon set & ktime ready */
+void kturnon(ENVIRON *csound)/* turn on instrs due in turnon list */
+{                            /* called by kperf when frsturnon set & ktime ready */
     int insno;
     TRNON *tp = turnons;
     EVTBLK *e = (EVTBLK *) mmalloc((long)sizeof(EVTBLK));
@@ -453,7 +453,7 @@ void kturnon(void)      /* turn on instrs due in turnon list */
         printf(Str(X_1299,"turnon deleted. instr %d undefined\n"), insno);
         perferrcnt++;
       }
-      else if ((n = insert(insno, e)) != 0) {
+      else if ((n = insert(csound,insno, e)) != 0) {
         printf(Str(X_1298,"turnon deleted. instr %d "), insno);
         if (n < 0) printf(Str(X_990,"memory fault\n"));
         else printf(Str(X_822,"had %d init errors\n"), n);
@@ -484,7 +484,7 @@ static int playevents(ENVIRON *csound)
     char    opcod;
 
     if (frsturnon != NULL)         /* if something in turnon list  */
-      kturnon();                   /*   turnon now                 */
+      kturnon(csound);             /*   turnon now                 */
     while (1) {                    /* read each score event:       */
       if (O.usingcscore) {         /*   i.e. get next lplay event  */
         if (ep < epend)
@@ -557,7 +557,7 @@ static int playevents(ENVIRON *csound)
       if (kcnt > 0) {                 /* perf for kcnt kprds  */
         long kdone;
         if (!O.initonly
-            && (kdone = kperf(kcnt)) < kcnt) { /* early rtn:  RTevent  */
+            && (kdone = kperf(csound,kcnt)) < kcnt) { /* early rtn:  RTevent  */
           curp2 += kdone * onedkr;             /*    update only curp2 */
           if (sensType == 1) {                 /*    for Linein,       */
             e = Linevtblk;                     /*      get its evtblk  */
@@ -640,7 +640,7 @@ static int playevents(ENVIRON *csound)
         chn = M_CHNBP[mep->chan];
         insno = chn->pgmno;
         if (mep->type == NOTEON_TYPE && mep->dat2) { /* midi note ON: */
-          if ((n = MIDIinsert(insno,chn,mep)))    {  /* alloc,init,activ */
+          if ((n = MIDIinsert(csound,insno,chn,mep)))    {  /* alloc,init,activ */
             printf(Str(X_568,"\t\t   T%7.3f - note deleted. "), curp2);
             printf(Str(X_926,"instr %d had %d init errors\n"), insno, n);
             perferrcnt++;
@@ -713,7 +713,7 @@ static int playevents(ENVIRON *csound)
           e->p[1] = (MYFLT) insno;
           if (O.Beatmode && e->p3orig >= 0.)
             e->p[3] = e->p3orig * betsiz;
-          if ((n = insert(insno,e))) {  /* else aloc,init,activat */
+          if ((n = insert(csound, insno,e))) {  /* else aloc,init,activat */
             if (sensType) printf("\t\t   T%7.3f",curp2);
             else  printf("\t  B%7.3f",curbt);
             printf(Str(X_1813," - note deleted.  i%d (%s) had %d init errors\n"),
@@ -735,7 +735,7 @@ static int playevents(ENVIRON *csound)
           else {
             if (O.Beatmode && e->p3orig >= FL(0.0))
               e->p[3] = e->p3orig * betsiz;
-            if ((n = insert(insno,e))) {  /* else aloc,init,activat */
+            if ((n = insert(csound,insno,e))) {  /* else aloc,init,activat */
               if (sensType) printf("\t\t   T%7.3f",curp2);
               else  printf("\t  B%7.3f",curbt);
               printf(Str(X_15," - note deleted.  i%d had %d init errors\n"),
@@ -1058,7 +1058,7 @@ int sensevents(ENVIRON *csound)
       chn = M_CHNBP[mep->chan];
       insno = chn->pgmno;
       if (mep->type == NOTEON_TYPE && mep->dat2) { /* midi note ON: */
-        if ((n = MIDIinsert(insno,chn,mep))) {  /* alloc,init,activ */
+        if ((n = MIDIinsert(csound,insno,chn,mep))) {  /* alloc,init,activ */
           printf(Str(X_568,"\t\t   T%7.3f - note deleted. "), curp2);
           printf(Str(X_926,"instr %d had %d init errors\n"), insno, n);
           perferrcnt++;
@@ -1103,7 +1103,7 @@ int sensevents(ENVIRON *csound)
         e->p[1] = (MYFLT) insno;
         if (O.Beatmode && e->p3orig >= 0.)
           e->p[3] = e->p3orig * betsiz;
-        if ((n = insert(insno,e))) {  /* else aloc,init,activat */
+        if ((n = insert(csound,insno,e))) {  /* else aloc,init,activat */
           if (sensType) printf("\t\t   T%7.3f", curp2);
           else  printf("\t  B%7.3f", curbt);
           printf(Str(X_1813," - note deleted.  i%d (%s) had %d init errors\n"),
@@ -1125,7 +1125,7 @@ int sensevents(ENVIRON *csound)
         else {
           if (O.Beatmode && e->p3orig >= FL(0.0))
             e->p[3] = e->p3orig * betsiz;
-          if ((n = insert(insno,e))) {  /* else aloc,init,activat */
+          if ((n = insert(csound,insno,e))) {  /* else aloc,init,activat */
             if (sensType) printf("\t\t   T%7.3f",curp2);
             else  printf("\t  B%7.3f",curbt);
             printf(Str(X_15," - note deleted.  i%d had %d init errors\n"),
@@ -1259,7 +1259,7 @@ int fillbuffer(ENVIRON *csound, int sensEventRate)
             RTevents could change after a sensevents() call */
         int rtEvents = O.RTevents;
         O.RTevents = 0;
-        kperf(1);
+        kperf(csound,1);
         kcnt -= 1;
         sampsNeeded -= sampsPerKperf;
         O.RTevents = rtEvents;

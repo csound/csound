@@ -51,7 +51,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 void *csoundOpenLibrary(const char *libraryPath)
 {
     void *library = 0;
-    if(strstr(libraryPath, ".dll") || strstr(libraryPath, ".DLL")) {
+    if (strstr(libraryPath, ".dll") || strstr(libraryPath, ".DLL")) {
       library = (void *) LoadLibrary(libraryPath);
     }
     return library;
@@ -78,16 +78,17 @@ void *csoundGetLibrarySymbol(void *library, const char *procedureName)
 void *csoundOpenLibrary(const char *libraryPath)
 {
     void *library = 0;
+    if (
 #if defined(LINUX)
-    if (strstr(libraryPath, ".so")) {
+    strstr(libraryPath, ".so")
 #elif defined(WIN32)
-	if (strstr(libraryPath, ".dll") || strstr(libraryPath, ".DLL")) {
-/* #elif defined(__MACH__) */
-/*        (strstr(libraryPath, ".dylib")) */
+    strstr(libraryPath, ".dll") || strstr(libraryPath, ".DLL")
+#elif defined(__MACH__)
+    strstr(libraryPath, ".dylib")
 #endif
-
+    ){
       library = dlopen(libraryPath, RTLD_NOW | RTLD_GLOBAL );
-      if(!library) {
+      if (!library) {
         fprintf(stderr, "Error '%s' in dlopen(%s).\n", dlerror(), libraryPath);
       }
     }
@@ -199,7 +200,7 @@ void *csoundOpenLibrary(const char *libraryPath)
     static int (*make_private_module_public) (NSModule module) = NULL;
     unsigned int flags =  NSLINKMODULE_OPTION_RETURN_ON_ERROR |
                           NSLINKMODULE_OPTION_PRIVATE;
-    if(O.odebug) {
+    if (O.odebug) {
       printf("csoundOpenLibrary\n");
     }
     /* If we got no path, the app wants the global namespace,
@@ -209,12 +210,12 @@ void *csoundOpenLibrary(const char *libraryPath)
     /* Create the object file image, works for things linked
        with the -bundle arg to ld */
     ofirc = NSCreateObjectFileImageFromFile(libraryPath, &ofi);
-    if(O.odebug) {
+    if (O.odebug) {
       printf("ofirc=%d\n", ofirc);
     }
     switch (ofirc) {
     case NSObjectFileImageSuccess:
-      if(O.odebug) {
+      if (O.odebug) {
         printf("ofirc=NSObjectFileImageSuccess\n");
       }
       /* It was okay, so use NSLinkModule to link in the image */
@@ -232,7 +233,7 @@ void *csoundOpenLibrary(const char *libraryPath)
       make_private_module_public(module);
       break;
     case NSObjectFileImageInappropriateFile:
-      if(O.odebug) {
+      if (O.odebug) {
         printf("ofirc=NSObjectFileImageInappropriateFile\n");
       }
       /* It may have been a dynamic library rather
@@ -314,7 +315,7 @@ void *dlopen(const char *path, int mode)
     ofirc = NSCreateObjectFileImageFromFile(path, &ofi);
     switch (ofirc) {
     case NSObjectFileImageSuccess:
-      if(O.odebug) {
+      if (O.odebug) {
         printf("ofirc=NSObjectFileImageSuccess\n");
       }
       /* It was okay, so use NSLinkModule to link in the image */
@@ -332,7 +333,7 @@ void *dlopen(const char *path, int mode)
       make_private_module_public(module);
       break;
     case NSObjectFileImageInappropriateFile:
-       if(O.odebug) {
+       if (O.odebug) {
         printf("ofirc=NSObjectFileImageInappropriateFile\n");
       }
      /* It may have been a dynamic library rather
@@ -432,32 +433,32 @@ int csoundLoadExternal(void *csound, const char* libraryPath)
     long length, olength;
     OENTRY *(*init)(ENVIRON*);
     long (*size)(void);
-    if(O.odebug) {
+    if (O.odebug) {
       printf("Trying to open file '%s' as library.\n", libraryPath);
     }
     handle = csoundOpenLibrary(libraryPath);
-    if(!handle) {
+    if (!handle) {
       return -1;
     }
-    if(O.odebug) {
+    if (O.odebug) {
       printf("Found library handle.\n");
     }
     size = csoundGetLibrarySymbol(handle, "opcode_size");
-    if(!size) {
+    if (!size) {
       return -1;
     }
-    if(O.odebug) {
+    if (O.odebug) {
       printf("Found 'opcode_size' function.\n");
     }
     length = (*size)();
-    if(O.odebug) {
+    if (O.odebug) {
       printf("Length=%d\n", length);
     }
     init = csoundGetLibrarySymbol(handle, "opcode_init");
-    if(!init) {
+    if (!init) {
       return -1;
     }
-    if(O.odebug) {
+    if (O.odebug) {
       printf("Found 'opcode_init' function.\n");
       printf("Calling 'opcode_init'.\n");
     }
@@ -478,7 +479,7 @@ int csoundLoadExternal(void *csound, const char* libraryPath)
     }
     opcodlst_n = (*init)(&cenviron);
     olength = oplstend-opcodlst;
-    if(O.odebug) {
+    if (O.odebug) {
       printf("Got opcodlst 0x%x\noplstend=0x%x, opcodlst=0x%x, length=%d.\n",
              opcodlst_n, oplstend, opcodlst, olength);
       printf("Adding %d bytes (%d opcodes) -- first opcode is '%s'.\n",
@@ -507,30 +508,41 @@ int csoundLoadExternals(void *csound)
       struct dirent *file;
       char buffer[0x500];
       char *opcodedir = getenv("OPCODEDIR");
-      if(O.odebug) {
+      if (O.odebug) {
 	printf("OPCODEDIR='%s'.\n", opcodedir?opcodedir:"(null)");
       }
-      if(!opcodedir) {
+      if (!opcodedir) {
         opcodedir = ".";
       }
-      if(O.odebug) {
+      if (O.odebug) {
 	printf("OPCODEDIR='%s'.\n", opcodedir?opcodedir:"(null)");
       }
       directory = opendir(opcodedir);
-      while((file = readdir(directory)) != 0) {
-        sprintf(buffer, "%s%c%s", opcodedir, DIRSEP, file->d_name);
-        csoundLoadExternal(csound, buffer);
+      while ((file = readdir(directory)) != 0) {
+        if (
+#if defined(LINUX)
+            strstr(file->d_name, ".so")!=NULL
+#elif defined(WIN32)
+            strstr(file->d_name, ".dll")!=NULL ||
+            strstr(file->d_name, ".DLL")!=NULL
+#elif defined(__MACH__)
+            strstr(file->d_name, ".dylib")!=NULL
+#endif
+            ) {
+          sprintf(buffer, "%s%c%s", opcodedir, DIRSEP, file->d_name);
+          csoundLoadExternal(csound, buffer);
+        }
       }
       closedir(directory);
     }
 #endif
-    if(((ENVIRON *)csound)->oplibs_ == NULL) {
+    if (((ENVIRON *)csound)->oplibs_ == NULL) {
       return 1;
     }
     printf("Loading command-line libraries '%s'.\n", ((ENVIRON *)csound)->oplibs_);
     strcpy(buffer, ((ENVIRON *)csound)->oplibs_);
     libname = strtok(buffer, ",");
-    while(libname != NULL) {
+    while (libname != NULL) {
       csoundLoadExternal(csound, libname); /* error code not currently checked!*/
       libname = strtok(NULL, ",");
     }

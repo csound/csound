@@ -33,7 +33,7 @@
 #define RAND_MAX        (32767)
 #endif
 
-int ipow(POW *p)               /*      Power for i-rate */
+int ipow(ENVIRON *csound, POW *p)               /*      Power for i-rate */
 {
     MYFLT in = *p->in;
     MYFLT powerOf = *p->powerOf;
@@ -44,7 +44,7 @@ int ipow(POW *p)               /*      Power for i-rate */
     return OK;
 }
 
-int apow(POW *p)               /*      Power routine for a-rate  */
+int apow(ENVIRON *csound, POW *p)               /*      Power routine for a-rate  */
 {
     long n = ksmps;
     MYFLT *in = p->in, *out = p->sr;
@@ -70,7 +70,7 @@ int apow(POW *p)               /*      Power routine for a-rate  */
 
 /* Now global: long holdrand = 2345678L;  gab d5 */
 
-int seedrand(PRAND *p)
+int seedrand(ENVIRON *csound, PRAND *p)
 {
     if ((unsigned int)*p->out == 0) {
       holdrand = time(NULL);
@@ -84,7 +84,7 @@ int seedrand(PRAND *p)
     return OK;
 }
 
-int auniform(PRAND *p)         /* Uniform distribution */
+int auniform(ENVIRON *csound, PRAND *p)         /* Uniform distribution */
 {
     long n = ksmps;
     MYFLT *out = p->out;
@@ -96,13 +96,13 @@ int auniform(PRAND *p)         /* Uniform distribution */
     return OK;
 }
 
-int ikuniform(PRAND *p)
+int ikuniform(ENVIRON *csound, PRAND *p)
 {
     *p->out = unifrand(*p->arg1);
     return OK;
 }
 
-int alinear(PRAND *p)          /* Linear random functions      */
+int alinear(ENVIRON *csound, PRAND *p)          /* Linear random functions      */
 {
     long n = ksmps;
     MYFLT *out = p->out;
@@ -113,13 +113,13 @@ int alinear(PRAND *p)          /* Linear random functions      */
     return OK;
 }
 
-int iklinear(PRAND *p)
+int iklinear(ENVIRON *csound, PRAND *p)
 {
     *p->out = linrand(*p->arg1);
     return OK;
 }
 
-int atrian(PRAND *p)           /*      Triangle random functions       */
+int atrian(ENVIRON *csound, PRAND *p)           /*      Triangle random functions       */
 {
     long n = ksmps;
     MYFLT *out = p->out;
@@ -130,13 +130,13 @@ int atrian(PRAND *p)           /*      Triangle random functions       */
     return OK;
 }
 
-int iktrian(PRAND *p)
+int iktrian(ENVIRON *csound, PRAND *p)
 {
     *p->out = trirand(*p->arg1);
     return OK;
 }
 
-int aexp(PRAND *p)             /*      Exponential random functions    */
+int aexp(ENVIRON *csound, PRAND *p)             /*      Exponential random functions    */
 {
     long n = ksmps;
     MYFLT *out = p->out;
@@ -147,13 +147,13 @@ int aexp(PRAND *p)             /*      Exponential random functions    */
     return OK;
 }
 
-int ikexp(PRAND *p)
+int ikexp(ENVIRON *csound, PRAND *p)
 {
     *p->out = exprand(*p->arg1);
     return OK;
 }
 
-int abiexp(PRAND *p)           /*      Bilateral exponential rand. functions */
+int abiexp(ENVIRON *csound, PRAND *p)           /*      Bilateral exponential rand. functions */
 {
     long n = ksmps;
     MYFLT *out = p->out;
@@ -164,13 +164,13 @@ int abiexp(PRAND *p)           /*      Bilateral exponential rand. functions */
     return OK;
 }
 
-int ikbiexp(PRAND *p)
+int ikbiexp(ENVIRON *csound, PRAND *p)
 {
     *p->out = biexprand(*p->arg1);
     return OK;
 }
 
-int agaus(PRAND *p)            /*      Gaussian random functions       */
+int agaus(ENVIRON *csound, PRAND *p)            /*      Gaussian random functions       */
 {
     long n = ksmps;
     MYFLT *out = p->out;
@@ -181,13 +181,13 @@ int agaus(PRAND *p)            /*      Gaussian random functions       */
     return OK;
 }
 
-int ikgaus(PRAND *p)
+int ikgaus(ENVIRON *csound, PRAND *p)
 {
     *p->out = gaussrand(*p->arg1);
     return OK;
 }
 
-int acauchy(PRAND *p)          /*      Cauchy random functions */
+int acauchy(ENVIRON *csound, PRAND *p)          /*      Cauchy random functions */
 {
     long n = ksmps;
     MYFLT *out = p->out;
@@ -198,13 +198,13 @@ int acauchy(PRAND *p)          /*      Cauchy random functions */
     return OK;
 }
 
-int ikcauchy(PRAND *p)
+int ikcauchy(ENVIRON *csound, PRAND *p)
 {
     *p->out = cauchrand(*p->arg1);
     return OK;
 }
 
-int apcauchy(PRAND *p)         /*      Positive Cauchy random functions */
+int apcauchy(ENVIRON *csound, PRAND *p)         /*      Positive Cauchy random functions */
 {
     long n = ksmps;
     MYFLT *out = p->out;
@@ -215,13 +215,13 @@ int apcauchy(PRAND *p)         /*      Positive Cauchy random functions */
     return OK;
 }
 
-int ikpcauchy(PRAND *p)
+int ikpcauchy(ENVIRON *csound, PRAND *p)
 {
     *p->out = pcauchrand(*p->arg1);
     return OK;
 }
 
-int abeta(PRAND *p)            /*      Beta random functions   */
+int abeta(ENVIRON *csound, PRAND *p)            /*      Beta random functions   */
 {
     long n = ksmps;
     MYFLT *out = p->out;
@@ -232,13 +232,13 @@ int abeta(PRAND *p)            /*      Beta random functions   */
     return OK;
 }
 
-int ikbeta(PRAND *p)
+int ikbeta(ENVIRON *csound, PRAND *p)
 {
     *p->out = betarand(*p->arg1, *p->arg2, *p->arg3);
     return OK;
 }
 
-int aweib(PRAND *p)            /*      Weibull randon functions        */
+int aweib(ENVIRON *csound, PRAND *p)            /*      Weibull randon functions        */
 {
     long n = ksmps;
     MYFLT *out = p->out;
@@ -249,13 +249,13 @@ int aweib(PRAND *p)            /*      Weibull randon functions        */
     return OK;
 }
 
-int ikweib(PRAND *p)
+int ikweib(ENVIRON *csound, PRAND *p)
 {
     *p->out = weibrand(*p->arg1, *p->arg2);
     return OK;
 }
 
-int apoiss(PRAND *p)           /*      Poisson random funcions */
+int apoiss(ENVIRON *csound, PRAND *p)           /*      Poisson random funcions */
 {
     long n = ksmps;
     MYFLT *out = p->out;
@@ -266,7 +266,7 @@ int apoiss(PRAND *p)           /*      Poisson random funcions */
     return OK;
 }
 
-int ikpoiss(PRAND *p)
+int ikpoiss(ENVIRON *csound, PRAND *p)
 {
     *p->out = poissrand(*p->arg1);
     return OK;

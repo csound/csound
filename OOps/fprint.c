@@ -24,7 +24,7 @@
 #include "fout.h"
 #include "ugrw1.h"
 
-int fprintf_k(FPRINTF *p)
+int fprintf_k(ENVIRON *csound, FPRINTF *p)
 {
     char        string[8192];
     sprints(string, p->txtstring, p->argums, p->INOCOUNT-2);
@@ -33,10 +33,10 @@ int fprintf_k(FPRINTF *p)
 }
 
 /* i-rate fprints */
-int fprintf_i(FPRINTF *p)
+int fprintf_i(ENVIRON *csound, FPRINTF *p)
 {
     char        string[8192];
-    fprintf_set(p);
+    fprintf_set(csound,p);
     sprints(string, p->txtstring, p->argums, p->INOCOUNT-2);
     fprintf(p->fp, string);
     return OK;

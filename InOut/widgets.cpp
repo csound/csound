@@ -89,7 +89,6 @@ extern "C" {
     extern int cleanup();
     extern long srngcnt[], orngcnt[];   // from musmon.c
 #endif
-        extern ENVIRON cenviron;
         extern int csoundYield(void *);
 }
 #undef exit
@@ -102,7 +101,7 @@ extern "C" {
 #undef min
 #undef max
 
-extern "C" void deact(INSDS*);
+extern "C" void deact(ENVIRON *, INSDS*);
 
 static char hack_o_rama1;       // IV - Aug 23 2002
 static char hack_o_rama2;
@@ -149,7 +148,7 @@ FLkeyboard_init(void)
 extern "C" {
 #endif /* defined(__cplusplus) */
 
-static void infoff(MYFLT p1)           /*  turn off an indef copy of instr p1  */
+static void infoff(ENVIRON *csound, MYFLT p1) /*  turn off an indef copy of instr p1  */
 {                               /*      called by musmon                */
     INSDS *ip;
     int   insno;
@@ -162,7 +161,7 @@ static void infoff(MYFLT p1)           /*  turn off an indef copy of instr p1  *
           && ip->p1 == p1) {
         //VMSG(printf("turning off inf copy of instr %d\n",insno);)
         printf("turning off inf copy of instr %d\n",insno);
-        deact(ip);
+        deact(csound, ip);
         return;                     /*  turn it off */
       }
       while ((ip = ip->nxtinstance) != NULL);
@@ -170,7 +169,7 @@ static void infoff(MYFLT p1)           /*  turn off an indef copy of instr p1  *
     //printf(Str(X_669,"could not find indefinitely playing instr %d\n"),insno);
 }
 
-void ButtonSched(MYFLT  *args[], int numargs)
+void ButtonSched(ENVIRON *csound, MYFLT  *args[], int numargs)
 { /* based on code by rasmus */
     int i, absinsno, argnum;
     MYFLT insno, starttime;
@@ -180,7 +179,7 @@ void ButtonSched(MYFLT  *args[], int numargs)
     /* Get absolute instr num */
     insno = *args[1];
     if (insno < FL(0.0)) {
-      infoff(-insno);
+      infoff(csound, -insno);
       return;
     }
     absinsno = abs((int)insno);
@@ -1409,7 +1408,7 @@ static int isActivatedKeyb=0;
 //static int keyb_out=0;
 static FLKEYB* keybp = NULL;
 
-extern "C" int set_snap(FLSETSNAP *p)
+extern "C" int set_snap(ENVIRON *csound, FLSETSNAP *p)
 {
     SNAPSHOT snap(AddrSetValue);
     int numfields = snap.fields.size();
@@ -1436,7 +1435,7 @@ extern "C" int set_snap(FLSETSNAP *p)
 }
 
 
-extern "C" int get_snap(FLGETSNAP *p)
+extern "C" int get_snap(ENVIRON *csound, FLGETSNAP *p)
 {
     int index = (int) *p->index;
     if (!snapshots.empty()) {
@@ -1450,7 +1449,7 @@ extern "C" int get_snap(FLGETSNAP *p)
 
 #include <FL/fl_ask.H>
 
-extern "C" int save_snap(FLSAVESNAPS* p)
+extern "C" int save_snap(ENVIRON *csound, FLSAVESNAPS* p)
 {
 #ifdef WIN32
     int id = MessageBox( NULL,
@@ -1514,7 +1513,7 @@ extern "C" int save_snap(FLSAVESNAPS* p)
     return OK;
 }
 
-extern "C" int load_snap(FLLOADSNAPS* p)
+extern "C" int load_snap(ENVIRON *csound, FLLOADSNAPS* p)
 {
     char     s[MAXNAME];
     string  filename;
@@ -1721,7 +1720,7 @@ static void __cdecl fltkRun(void *s)
 }
 
 #ifdef WIN32
-static void __cdecl fltkKeybRun(void *s)
+static void __cdecl fltkKeybRun(ENVIRON *csound, void *s)
 {
     oKeyb->show();
     //Fl::run();
@@ -1732,7 +1731,7 @@ static void __cdecl fltkKeybRun(void *s)
       int temp = FLkeyboard_sensing();
       if (temp != 0 && *keybp->args[1] >=1 ) {
         *keybp->kout = temp;
-        ButtonSched(keybp->args, keybp->INOCOUNT);
+        ButtonSched(csound, keybp->args, keybp->INOCOUNT);
       }
       Fl::unlock();
     }
@@ -1740,7 +1739,7 @@ static void __cdecl fltkKeybRun(void *s)
 }
 #endif
 
-extern "C" void FL_run(FLRUN *p)
+extern "C" void FL_run(ENVIRON *csound, FLRUN *p)
 {
 #ifdef WIN32
     threadHandle = _beginthread(fltkRun, 0, NULL);
@@ -1760,7 +1759,7 @@ extern "C" void FL_run(FLRUN *p)
 #endif
 }
 
-extern "C" void fl_update(FLRUN *p)
+extern "C" void fl_update(ENVIRON *csound, FLRUN *p)
 {
     for (int j=0; j< (int) AddrSetValue.size()-1; j++) {
       ADDR_SET_VALUE v = AddrSetValue[j];
@@ -1782,26 +1781,26 @@ inline void displ(MYFLT val, MYFLT index)
 }
 
 
-static void fl_callbackButton(Fl_Button* w, void *a)
+static void fl_callbackButton(ENVIRON *csound, Fl_Button* w, void *a)
 {
     FLBUTTON *p = (FLBUTTON *) a;
     *((FLBUTTON*) a)->kout =  (w->value()) ? *p->ion : *p->ioff;
-    if (*p->args[0] >= 0) ButtonSched(p->args, p->INOCOUNT-8);
+    if (*p->args[0] >= 0) ButtonSched(csound, p->args, p->INOCOUNT-8);
 }
 
-static void fl_callbackButtonBank(Fl_Button* w, void *a)
+static void fl_callbackButtonBank(ENVIRON *csound, Fl_Button* w, void *a)
 {
     FLBUTTONBANK *p = (FLBUTTONBANK *) a;
     *((FLBUTTONBANK*) a)->kout = (MYFLT) atoi(w->label());
-    if (*p->args[0] >= 0) ButtonSched(p->args, p->INOCOUNT-7);
+    if (*p->args[0] >= 0) ButtonSched(csound, p->args, p->INOCOUNT-7);
 }
 
 
-static void fl_callbackCounter(Fl_Counter* w, void *a)
+static void fl_callbackCounter(ENVIRON *csound, Fl_Counter* w, void *a)
 {
     FLCOUNTER *p = (FLCOUNTER *) a;
     *((FLCOUNTER*) a)->kout =  w->value();
-    if (*p->args[0] >= 0) ButtonSched(p->args, p->INOCOUNT-10);
+    if (*p->args[0] >= 0) ButtonSched(csound, p->args, p->INOCOUNT-10);
 }
 
 static void fl_callbackLinearSlider(Fl_Valuator* w, void *a)
@@ -2087,7 +2086,7 @@ void widget_attributes(Fl_Widget *o)
 //-----------
 
 
-extern "C" void FLkeyb(FLKEYB *p)
+extern "C" void FLkeyb(ENVIRON *csound, FLKEYB *p)
 {
     isActivatedKeyb = 1;
     oKeyb = FLkeyboard_init();
@@ -2098,7 +2097,7 @@ extern "C" void FLkeyb(FLKEYB *p)
 //-----------
 
 
-extern "C" void StartPanel(FLPANEL *p)
+extern "C" void StartPanel(ENVIRON *csound, FLPANEL *p)
 {
     char* panelName = GetString(*p->name,p->STRARG);
 
@@ -2134,7 +2133,7 @@ extern "C" void StartPanel(FLPANEL *p)
     stack_count++;
 }
 
-extern "C" int EndPanel(FLPANELEND *p)
+extern "C" int EndPanel(ENVIRON *csound, FLPANELEND *p)
 {
     stack_count--;
     ADDR_STACK adrstk = AddrStack.back();
@@ -2149,7 +2148,7 @@ extern "C" int EndPanel(FLPANELEND *p)
 }
 
 //-----------
-extern "C" int StartScroll(FLSCROLL *p)
+extern "C" int StartScroll(ENVIRON *csound, FLSCROLL *p)
 {
     Fl_Scroll *o = new Fl_Scroll ((int) *p->ix, (int) *p->iy,
                                   (int) *p->iwidth, (int) *p->iheight);
@@ -2159,7 +2158,7 @@ extern "C" int StartScroll(FLSCROLL *p)
     return OK;
 }
 
-extern "C" int EndScroll(FLSCROLLEND *p)
+extern "C" int EndScroll(ENVIRON *csound, FLSCROLLEND *p)
 {
     stack_count--;
     ADDR_STACK adrstk = AddrStack.back();
@@ -2176,7 +2175,7 @@ extern "C" int EndScroll(FLSCROLLEND *p)
 }
 
 //-----------
-extern "C" int StartTabs(FLTABS *p)
+extern "C" int StartTabs(ENVIRON *csound, FLTABS *p)
 {
     Fl_Tabs *o = new Fl_Tabs ((int) *p->ix, (int) *p->iy,
                               (int) *p->iwidth, (int) *p->iheight);
@@ -2187,7 +2186,7 @@ extern "C" int StartTabs(FLTABS *p)
     return OK;
 }
 
-extern "C" int EndTabs(FLTABSEND *p)
+extern "C" int EndTabs(ENVIRON *csound, FLTABSEND *p)
 {
     stack_count--;
     ADDR_STACK adrstk = AddrStack.back();
@@ -2204,7 +2203,7 @@ extern "C" int EndTabs(FLTABSEND *p)
 }
 
 //-----------
-extern "C" int StartGroup(FLGROUP *p)
+extern "C" int StartGroup(ENVIRON *csound, FLGROUP *p)
 {
     char *Name = GetString(*p->name,p->STRARG);
     Fl_Group *o = new Fl_Group ((int) *p->ix, (int) *p->iy,
@@ -2230,7 +2229,7 @@ extern "C" int StartGroup(FLGROUP *p)
     return OK;
 }
 
-extern "C" int EndGroup(FLGROUPEND *p)
+extern "C" int EndGroup(ENVIRON *csound, FLGROUPEND *p)
 {
     stack_count--;
     ADDR_STACK adrstk = AddrStack.back();
@@ -2247,7 +2246,7 @@ extern "C" int EndGroup(FLGROUPEND *p)
 
 //-----------
 
-extern "C" int StartPack(FLSCROLL *p)
+extern "C" int StartPack(ENVIRON *csound, FLSCROLL *p)
 {
     Fl_Pack *o = new Fl_Pack ((int) *p->ix, (int) *p->iy,
                               (int) *p->iwidth, (int) *p->iheight);
@@ -2261,7 +2260,7 @@ extern "C" int StartPack(FLSCROLL *p)
     return OK;
 }
 
-extern "C" int EndPack(FLSCROLLEND *p)
+extern "C" int EndPack(ENVIRON *csound, FLSCROLLEND *p)
 {
     stack_count--;
     ADDR_STACK adrstk = AddrStack.back();
@@ -2278,7 +2277,7 @@ extern "C" int EndPack(FLSCROLLEND *p)
 
 //-----------
 
-extern "C" int fl_widget_color(FLWIDGCOL *p)
+extern "C" int fl_widget_color(ENVIRON *csound, FLWIDGCOL *p)
 {
     if (*p->red1 < 0) { // reset colors to default
       FLcolor = (int) *p->red1; //when called without arguments
@@ -2295,7 +2294,7 @@ extern "C" int fl_widget_color(FLWIDGCOL *p)
     return OK;
 }
 
-extern "C" int fl_widget_color2(FLWIDGCOL2 *p)
+extern "C" int fl_widget_color2(ENVIRON *csound, FLWIDGCOL2 *p)
 {
     if (*p->red < 0) { // reset colors to default
       FLcolor2 =(int) *p->red;
@@ -2308,7 +2307,7 @@ extern "C" int fl_widget_color2(FLWIDGCOL2 *p)
     return OK;
 }
 
-extern "C" int fl_widget_label(FLWIDGLABEL *p)
+extern "C" int fl_widget_label(ENVIRON *csound, FLWIDGLABEL *p)
 {
     if (*p->size <= 0) { // reset settings to default
       FLtext_size = 0; //when called without arguments
@@ -2331,7 +2330,7 @@ extern "C" int fl_widget_label(FLWIDGLABEL *p)
 }
 //-----------
 
-extern "C" int fl_setWidgetValuei(FL_SET_WIDGET_VALUE_I *p)
+extern "C" int fl_setWidgetValuei(ENVIRON *csound, FL_SET_WIDGET_VALUE_I *p)
 {
     ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
     MYFLT val = *p->ivalue, range, base;
@@ -2386,7 +2385,7 @@ else if (!(strcmp(((OPDS *) v.opcode)->optext->t.opcod, "FLjoy"))) {
     return OK;
 }
 
-extern "C" int fl_setWidgetValue_set(FL_SET_WIDGET_VALUE *p)
+extern "C" int fl_setWidgetValue_set(ENVIRON *csound, FL_SET_WIDGET_VALUE *p)
 {
     ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
     MYFLT  /* val = *p->ivalue, */ range, base;
@@ -2414,7 +2413,7 @@ extern "C" int fl_setWidgetValue_set(FL_SET_WIDGET_VALUE *p)
 }
 
 
-extern "C" int fl_setWidgetValue(FL_SET_WIDGET_VALUE *p)
+extern "C" int fl_setWidgetValue(ENVIRON *csound, FL_SET_WIDGET_VALUE *p)
 {
     if(*p->ktrig) {
       MYFLT  val = *p->kvalue;
@@ -2448,7 +2447,7 @@ extern "C" int fl_setWidgetValue(FL_SET_WIDGET_VALUE *p)
 //-----------
 //-----------
 
-extern "C" int fl_setColor1(FL_SET_COLOR *p)
+extern "C" int fl_setColor1(ENVIRON *csound, FL_SET_COLOR *p)
 {
     ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
     Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -2459,7 +2458,7 @@ extern "C" int fl_setColor1(FL_SET_COLOR *p)
     return OK;
 }
 
-extern "C" int fl_setColor2(FL_SET_COLOR *p)
+extern "C" int fl_setColor2(ENVIRON *csound, FL_SET_COLOR *p)
 {
     ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
     Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -2470,7 +2469,7 @@ extern "C" int fl_setColor2(FL_SET_COLOR *p)
     return OK;
 }
 
-extern "C" int fl_setTextColor(FL_SET_COLOR *p)
+extern "C" int fl_setTextColor(ENVIRON *csound, FL_SET_COLOR *p)
 {
     ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
     Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -2481,7 +2480,7 @@ extern "C" int fl_setTextColor(FL_SET_COLOR *p)
     return OK;
 }
 
-extern "C" int fl_setTextSize(FL_SET_TEXTSIZE *p)
+extern "C" int fl_setTextSize(ENVIRON *csound, FL_SET_TEXTSIZE *p)
 {
     ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
     Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -2489,7 +2488,7 @@ extern "C" int fl_setTextSize(FL_SET_TEXTSIZE *p)
     return OK;
 }
 
-extern "C" int fl_setFont(FL_SET_FONT *p)
+extern "C" int fl_setFont(ENVIRON *csound, FL_SET_FONT *p)
 {
     ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
     Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -2517,7 +2516,7 @@ extern "C" int fl_setFont(FL_SET_FONT *p)
     return OK;
 }
 
-extern "C" int fl_setTextType(FL_SET_FONT *p)
+extern "C" int fl_setTextType(ENVIRON *csound, FL_SET_FONT *p)
 {
     ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
     Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -2541,7 +2540,7 @@ extern "C" int fl_setTextType(FL_SET_FONT *p)
     return OK;
 }
 
-extern "C" int fl_box(FL_BOX *p)
+extern "C" int fl_box(ENVIRON *csound, FL_BOX *p)
 {
     char *text = GetString(*p->itext,p->STRARG);
     Fl_Box *o =  new Fl_Box((int)*p->ix, (int)*p->iy,
@@ -2600,7 +2599,7 @@ extern "C" int fl_box(FL_BOX *p)
 }
 
 
-extern "C" int fl_setText(FL_SET_TEXT *p)
+extern "C" int fl_setText(ENVIRON *csound, FL_SET_TEXT *p)
 {
     char *text = GetString(*p->itext,p->STRARG);
     ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
@@ -2609,7 +2608,7 @@ extern "C" int fl_setText(FL_SET_TEXT *p)
     return OK;
 }
 
-extern "C" int fl_setSize(FL_SET_SIZE *p)
+extern "C" int fl_setSize(ENVIRON *csound, FL_SET_SIZE *p)
 {
     ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
     Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -2617,7 +2616,7 @@ extern "C" int fl_setSize(FL_SET_SIZE *p)
     return OK;
 }
 
-extern "C" int fl_setPosition(FL_SET_POSITION *p)
+extern "C" int fl_setPosition(ENVIRON *csound, FL_SET_POSITION *p)
 {
     ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
     Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -2625,7 +2624,7 @@ extern "C" int fl_setPosition(FL_SET_POSITION *p)
     return OK;
 }
 
-extern "C" int fl_hide(FL_WIDHIDE *p)
+extern "C" int fl_hide(ENVIRON *csound, FL_WIDHIDE *p)
 {
     ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
     Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -2633,7 +2632,7 @@ extern "C" int fl_hide(FL_WIDHIDE *p)
     return OK;
 }
 
-extern "C" int fl_show(FL_WIDSHOW *p)
+extern "C" int fl_show(ENVIRON *csound, FL_WIDSHOW *p)
 {
     ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
     Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -2641,7 +2640,7 @@ extern "C" int fl_show(FL_WIDSHOW *p)
     return OK;
 }
 
-extern "C" int fl_setBox(FL_SETBOX *p)
+extern "C" int fl_setBox(ENVIRON *csound, FL_SETBOX *p)
 {
     ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
     Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -2672,7 +2671,7 @@ extern "C" int fl_setBox(FL_SETBOX *p)
     return OK;
 }
 
-extern "C" int fl_align(FL_TALIGN *p)
+extern "C" int fl_align(ENVIRON *csound, FL_TALIGN *p)
 {
     ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
     Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -2699,7 +2698,7 @@ extern "C" int fl_align(FL_TALIGN *p)
 
 
 
-extern "C" int fl_value(FLVALUE *p)
+extern "C" int fl_value(ENVIRON *csound, FLVALUE *p)
 {
     char *controlName = GetString(*p->name,p->STRARG);
     int ix, iy, iwidth, iheight;
@@ -2727,7 +2726,7 @@ extern "C" int fl_value(FLVALUE *p)
 
 //-----------
 
-extern "C" int fl_slider(FLSLIDER *p)
+extern "C" int fl_slider(ENVIRON *csound, FLSLIDER *p)
 {
     char *controlName = GetString(*p->name,p->STRARG);
     int ix,iy,iwidth, iheight,itype, iexp;
@@ -2820,7 +2819,7 @@ extern "C" int fl_slider(FLSLIDER *p)
 }
 
 
-extern "C" int fl_slider_bank(FLSLIDERBANK *p)
+extern "C" int fl_slider_bank(ENVIRON *csound, FLSLIDERBANK *p)
 {
     char s[MAXNAME];
     char *t = p->STRARG;
@@ -3009,7 +3008,7 @@ extern "C" int fl_slider_bank(FLSLIDERBANK *p)
 }
 
 
-extern "C" int fl_joystick(FLJOYSTICK *p)
+extern "C" int fl_joystick(ENVIRON *csound, FLJOYSTICK *p)
 {
     char *Name = GetString(*p->name,p->STRARG);
     int ix,iy,iwidth, iheight, iexpx, iexpy;
@@ -3202,7 +3201,7 @@ extern "C" int fl_knob(FLKNOB *p)
 
 
 
-extern "C" int fl_text(FLTEXT *p)
+extern "C" int fl_text(ENVIRON *csound, FLTEXT *p)
 {
     char *controlName = GetString(*p->name,p->STRARG);
     int ix,iy,iwidth,iheight,itype;
@@ -3256,7 +3255,7 @@ extern "C" int fl_text(FLTEXT *p)
     return OK;
 }
 
-extern "C" int fl_button(FLBUTTON *p)
+extern "C" int fl_button(ENVIRON *csound, FLBUTTON *p)
 {
     char *Name = GetString(*p->name,p->STRARG);
     int type = (int) *p->itype;
@@ -3301,7 +3300,7 @@ extern "C" int fl_button(FLBUTTON *p)
     return OK;
 }
 
-extern "C" int fl_button_bank(FLBUTTONBANK *p)
+extern "C" int fl_button_bank(ENVIRON *csound, FLBUTTONBANK *p)
 {
     char *Name = "/0"; //GetString(*p->name,p->STRARG);
     int type = (int) *p->itype;
@@ -3349,7 +3348,7 @@ extern "C" int fl_button_bank(FLBUTTONBANK *p)
     return OK;
 }
 
-extern "C" int fl_counter(FLCOUNTER *p)
+extern "C" int fl_counter(ENVIRON *csound, FLCOUNTER *p)
 {
     char *controlName = GetString(*p->name,p->STRARG);
 //      int ix,iy,iwidth,iheight,itype;
@@ -3389,7 +3388,7 @@ extern "C" int fl_counter(FLCOUNTER *p)
 
 
 
-extern "C" int fl_roller(FLROLLER *p)
+extern "C" int fl_roller(ENVIRON *csound, FLROLLER *p)
 {
     char *controlName = GetString(*p->name,p->STRARG);
     int ix,iy,iwidth, iheight,itype, iexp ;
@@ -3477,7 +3476,7 @@ extern "C" int fl_roller(FLROLLER *p)
 
 // extern "C" long kcounter;       IV - Aug 23 2002
 
-extern "C" int FLprintkset(FLPRINTK *p)
+extern "C" int FLprintkset(ENVIRON *csound, FLPRINTK *p)
 {
     if (*p->ptime < FL(1.0) / global_ekr)
       p->ctime = FL(1.0) / global_ekr;
@@ -3488,7 +3487,7 @@ extern "C" int FLprintkset(FLPRINTK *p)
     return OK;
 }
 
-extern "C" int FLprintk(FLPRINTK *p)
+extern "C" int FLprintk(ENVIRON *csound, FLPRINTK *p)
 {
     MYFLT   timel;
     long    cycles;
@@ -3506,13 +3505,13 @@ extern "C" int FLprintk(FLPRINTK *p)
 }
 
 
-extern "C" int FLprintk2set(FLPRINTK2 *p)              // IV - Aug 27 2002
+extern "C" int FLprintk2set(ENVIRON *csound, FLPRINTK2 *p)              // IV - Aug 27 2002
 {
     p->oldvalue = FL(-1.12123e35);      // hack to force printing first value
     return OK;
 }
 
-extern "C" int FLprintk2(FLPRINTK2 *p)
+extern "C" int FLprintk2(ENVIRON *csound, FLPRINTK2 *p)
 {
     MYFLT   value = *p->val;
     if (p->oldvalue != value) {

@@ -374,7 +374,7 @@ void pfht(MYFLT *fz, long n)
     } while (k4 < n);
 }
 
-int Xsynthset(CON *p)
+int Xsynthset(ENVIRON *csound, CON *p)
 {
     long flen, bufsize;
     MYFLT       *b;
@@ -412,7 +412,7 @@ int Xsynthset(CON *p)
     return OK;
 }
 
-int Xsynth(CON *p)
+int Xsynth(ENVIRON *csound, CON *p)
 {
     MYFLT               *s, *f, *out, *buf1, *buf2, *outbuf, rfn;
     long                n, size, samps, div;

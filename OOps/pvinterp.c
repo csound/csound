@@ -46,7 +46,7 @@ static  PVBUFREAD       *pvbufreadaddr;
 /************************************************************/
 
 
-int pvbufreadset(PVBUFREAD *p)
+int pvbufreadset(ENVIRON *csound, PVBUFREAD *p)
 {
     char     pvfilnam[MAXNAME];
     MEMFIL   *mfp, *ldmemfile(char *);
@@ -135,7 +135,7 @@ int pvbufreadset(PVBUFREAD *p)
 }
 
 
-int pvbufread(PVBUFREAD *p)
+int pvbufread(ENVIRON *csound, PVBUFREAD *p)
 {
     MYFLT  frIndx;
     MYFLT  *buf = p->fftBuf;
@@ -166,7 +166,7 @@ int pvbufread(PVBUFREAD *p)
 /************************************************************/
 /*************PVINTERP**************************************/
 /************************************************************/
-int pvinterpset(PVINTERP *p)
+int pvinterpset(ENVIRON *csound, PVINTERP *p)
 {
     int      i;
     char     pvfilnam[MAXNAME];
@@ -279,7 +279,7 @@ int pvinterpset(PVINTERP *p)
 }
 
 
-int pvinterp(PVINTERP *p)
+int pvinterp(ENVIRON *csound, PVINTERP *p)
 {
     MYFLT  *ar = p->rslt;
     MYFLT  frIndx;
@@ -366,7 +366,7 @@ int pvinterp(PVINTERP *p)
 /************************************************************/
 /*************PVCROSS**************************************/
 /************************************************************/
-int pvcrossset(PVCROSS *p)
+int pvcrossset(ENVIRON *csound, PVCROSS *p)
 {
     int      i;
     char     pvfilnam[MAXNAME];
@@ -472,7 +472,7 @@ pverr:
 }
 
 
-int pvcross(PVCROSS *p)
+int pvcross(ENVIRON *csound, PVCROSS *p)
 {
     int    n;
     MYFLT  *ar = p->rslt;

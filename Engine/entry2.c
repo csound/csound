@@ -49,108 +49,108 @@
 #define S       sizeof
 
 #if defined(TCLTK)
-int    cntrl_set(void*), control(void*), ocontrol(void*);
-int    button_set(void*), button(void*), check_set(void*), check(void*);
-int    textflash(void*);
+int    cntrl_set(void*,void*), control(void*,void*), ocontrol(void*,void*);
+int    button_set(void*,void*), button(void*,void*), check_set(void*,void*), check(void*,void*);
+int    textflash(void*,void*);
 #endif
-int    instcount(void*);
-int    varicolset(void*), varicol(void*);
-int    inh(void*), ino(void*), in16(void*);
-int    in32(void*), inall(void*), inz(void*), outh(void*);
-int    outo(void*), outx(void*), outX(void*), outch(void*), outall(void*);
-int    outz(void*), cpsxpch(void*), cps2pch(void*), cpstmid(void*);
-int    cpstun(void*),cpstun_i(void*);
-int    wgpsetin(void*), wgpluck(void*), wgpset(void*), wgpluck(void*);
-int    clarinset(void*), clarin(void*), fluteset(void*), flute(void*);
-int    bowedset(void*), bowed(void*);
-int    brassset(void*), brass(void*);
-int    adsrset(void*), klnseg(void*), linseg(void*), madsrset(void*);
-int    klnsegr(void*), linsegr(void*), xdsrset(void*), kxpseg(void*);
-int    expseg(void*), mxdsrset(void*), kxpsegr(void*), expsegr(void*);
-int    schedule(void*), schedwatch(void*), ifschedule(void*), kschedule(void*);
-int    triginset(void*), ktriginstr(void*), trigseq_set(void*), trigseq(void*);
-int    event_set(void*), eventOpcode(void*);
-int    lfoset(void*), lfok(void*), lfoa(void*);
-int    mute_inst(void*);
-int    vbap_FOUR_init(void*), vbap_FOUR (void*), vbap_EIGHT_init(void*);
-int    vbap_EIGHT(void*), vbap_SIXTEEN_init(void*), vbap_SIXTEEN(void*);
-int    vbap_zak_init(void*), vbap_zak(void*), vbap_ls_init(void*);
-int    vbap_FOUR_moving_init(void*), vbap_FOUR_moving(void*);
-int    vbap_EIGHT_moving_init(void*), vbap_EIGHT_moving(void*);
-int    vbap_SIXTEEN_moving_init(void*), vbap_SIXTEEN_moving(void*);
-int    vbap_zak_moving_init(void*), vbap_zak_moving(void*);
+int    instcount(void*,void*);
+int    varicolset(void*,void*), varicol(void*,void*);
+int    inh(void*,void*), ino(void*,void*), in16(void*,void*);
+int    in32(void*,void*), inall(void*,void*), inz(void*,void*), outh(void*,void*);
+int    outo(void*,void*), outx(void*,void*), outX(void*,void*), outch(void*,void*), outall(void*,void*);
+int    outz(void*,void*), cpsxpch(void*,void*), cps2pch(void*,void*), cpstmid(void*,void*);
+int    cpstun(void*,void*),cpstun_i(void*,void*);
+int    wgpsetin(void*,void*), wgpluck(void*,void*), wgpset(void*,void*), wgpluck(void*,void*);
+int    clarinset(void*,void*), clarin(void*,void*), fluteset(void*,void*), flute(void*,void*);
+int    bowedset(void*,void*), bowed(void*,void*);
+int    brassset(void*,void*), brass(void*,void*);
+int    adsrset(void*,void*), klnseg(void*,void*), linseg(void*,void*), madsrset(void*,void*);
+int    klnsegr(void*,void*), linsegr(void*,void*), xdsrset(void*,void*), kxpseg(void*,void*);
+int    expseg(void*,void*), mxdsrset(void*,void*), kxpsegr(void*,void*), expsegr(void*,void*);
+int    schedule(void*,void*), schedwatch(void*,void*), ifschedule(void*,void*), kschedule(void*,void*);
+int    triginset(void*,void*), ktriginstr(void*,void*), trigseq_set(void*,void*), trigseq(void*,void*);
+int    event_set(void*,void*), eventOpcode(void*,void*);
+int    lfoset(void*,void*), lfok(void*,void*), lfoa(void*,void*);
+int    mute_inst(void*,void*);
+int    vbap_FOUR_init(void*,void*), vbap_FOUR (void*,void*), vbap_EIGHT_init(void*,void*);
+int    vbap_EIGHT(void*,void*), vbap_SIXTEEN_init(void*,void*), vbap_SIXTEEN(void*,void*);
+int    vbap_zak_init(void*,void*), vbap_zak(void*,void*), vbap_ls_init(void*,void*);
+int    vbap_FOUR_moving_init(void*,void*), vbap_FOUR_moving(void*,void*);
+int    vbap_EIGHT_moving_init(void*,void*), vbap_EIGHT_moving(void*,void*);
+int    vbap_SIXTEEN_moving_init(void*,void*), vbap_SIXTEEN_moving(void*,void*);
+int    vbap_zak_moving_init(void*,void*), vbap_zak_moving(void*,void*);
 #ifdef JPFF
-int    Foscset(void*), Fosckk(void*), Foscka(void*);
-int    Foscak(void*), Foscaa(void*);
+int    Foscset(void*,void*), Fosckk(void*,void*), Foscka(void*,void*);
+int    Foscak(void*,void*), Foscaa(void*,void*);
 #endif
-int    lpf18set(void*), lpf18db(void*);
-int    pfun(void*);
-int    pvsanalset(void*),pvsanal(void*),pvsynthset(void*),pvsynth(void*);
-int    pvadsynset(void*), pvadsyn(void*);
-int    pvscrosset(void*),pvscross(void*);
-int    pvsfreadset(void*), pvsfread(void*);
-int    pvsmaskaset(void*),pvsmaska(void*);
-int    pvsftwset(void*),pvsftw(void*),pvsftrset(void*),pvsftr(void*);
-int    pvsinfo(void*), gettempo(void*);
-int    fassign(void*);
-int    loopseg_set(void*), loopseg(void*), lpshold(void*);
-int    lineto_set(void*), lineto(void*), tlineto_set(void*),tlineto(void*);
-int    vibrato_set(void*), vibrato(void*),vibr_set(void*), vibr(void*);
-int    oscbnkset(void*), oscbnk(void*), userrnd_set(void*);
-int    oscktset(void*), kosclikt(void*), osckkikt(void*), osckaikt(void*);
-int    oscakikt(void*), oscaaikt(void*), oscktpset(void*), oscktp(void*);
-int    oscktsset(void*), osckts(void*);
-int    iDiscreteUserRand(void*), kDiscreteUserRand(void*), Cuserrnd_set(void*);
-int    aDiscreteUserRand(void*), iContinuousUserRand(void*);
-int    kContinuousUserRand(void*), aContinuousUserRand(void*);
-int    ikRangeRand(void*), aRangeRand(void*);
-int    randomi_set(void*), krandomi(void*), randomi(void*);
-int    randomh_set(void*), krandomh(void*), randomh(void*);
-int    random3_set(void*), random3(void*),random3a(void*);
-int    ipowoftwo(void*), ilogbasetwo(void*), db(void*);
-int    powoftwo_set(void*), powoftwoa(void*), dbi(void*), dba(void*);
-int    powoftwo(void*), powoftwoa(void*), semitone(void*), isemitone(void*);
-int    asemitone(void*), cent(void*), icent(void*), acent(void*);
-int    and_kk(void*), and_ka(void*), and_ak(void*), and_aa(void*);
-int    or_kk(void*), or_ka(void*), or_ak(void*), or_aa(void*);
-int    xor_kk(void*), xor_ka(void*), xor_ak(void*), xor_aa(void*);
-int    not_k(void*), not_a(void*);
-int    midichn(void*), pgmassign(void*);
-int    midinoteoff(void*), midinoteonkey(void*), midinoteoncps(void*);
-int    midinoteonoct(void*), midinoteonpch(void*), midipolyaftertouch(void*);
-int    midicontrolchange(void*), midiprogramchange(void*);
-int    midichannelaftertouch(void*), midipitchbend(void*), mididefault(void*);
+int    lpf18set(void*,void*), lpf18db(void*,void*);
+int    pfun(void*,void*);
+int    pvsanalset(void*,void*),pvsanal(void*,void*),pvsynthset(void*,void*),pvsynth(void*,void*);
+int    pvadsynset(void*,void*), pvadsyn(void*,void*);
+int    pvscrosset(void*,void*),pvscross(void*,void*);
+int    pvsfreadset(void*,void*), pvsfread(void*,void*);
+int    pvsmaskaset(void*,void*),pvsmaska(void*,void*);
+int    pvsftwset(void*,void*),pvsftw(void*,void*),pvsftrset(void*,void*),pvsftr(void*,void*);
+int    pvsinfo(void*,void*), gettempo(void*,void*);
+int    fassign(void*,void*);
+int    loopseg_set(void*,void*), loopseg(void*,void*), lpshold(void*,void*);
+int    lineto_set(void*,void*), lineto(void*,void*), tlineto_set(void*,void*),tlineto(void*,void*);
+int    vibrato_set(void*,void*), vibrato(void*,void*),vibr_set(void*,void*), vibr(void*,void*);
+int    oscbnkset(void*,void*), oscbnk(void*,void*), userrnd_set(void*,void*);
+int    oscktset(void*,void*), kosclikt(void*,void*), osckkikt(void*,void*), osckaikt(void*,void*);
+int    oscakikt(void*,void*), oscaaikt(void*,void*), oscktpset(void*,void*), oscktp(void*,void*);
+int    oscktsset(void*,void*), osckts(void*,void*);
+int    iDiscreteUserRand(void*,void*), kDiscreteUserRand(void*,void*), Cuserrnd_set(void*,void*);
+int    aDiscreteUserRand(void*,void*), iContinuousUserRand(void*,void*);
+int    kContinuousUserRand(void*,void*), aContinuousUserRand(void*,void*);
+int    ikRangeRand(void*,void*), aRangeRand(void*,void*);
+int    randomi_set(void*,void*), krandomi(void*,void*), randomi(void*,void*);
+int    randomh_set(void*,void*), krandomh(void*,void*), randomh(void*,void*);
+int    random3_set(void*,void*), random3(void*,void*),random3a(void*,void*);
+int    ipowoftwo(void*,void*), ilogbasetwo(void*,void*), db(void*,void*);
+int    powoftwo_set(void*,void*), powoftwoa(void*,void*), dbi(void*,void*), dba(void*,void*);
+int    powoftwo(void*,void*), powoftwoa(void*,void*), semitone(void*,void*), isemitone(void*,void*);
+int    asemitone(void*,void*), cent(void*,void*), icent(void*,void*), acent(void*,void*);
+int    and_kk(void*,void*), and_ka(void*,void*), and_ak(void*,void*), and_aa(void*,void*);
+int    or_kk(void*,void*), or_ka(void*,void*), or_ak(void*,void*), or_aa(void*,void*);
+int    xor_kk(void*,void*), xor_ka(void*,void*), xor_ak(void*,void*), xor_aa(void*,void*);
+int    not_k(void*,void*), not_a(void*,void*);
+int    midichn(void*,void*), pgmassign(void*,void*);
+int    midinoteoff(void*,void*), midinoteonkey(void*,void*), midinoteoncps(void*,void*);
+int    midinoteonoct(void*,void*), midinoteonpch(void*,void*), midipolyaftertouch(void*,void*);
+int    midicontrolchange(void*,void*), midiprogramchange(void*,void*);
+int    midichannelaftertouch(void*,void*), midipitchbend(void*,void*), mididefault(void*,void*);
 #if defined(USE_FLTK)                  /* IV - Aug 23 2002 */
-int    fl_slider(void*), fl_slider_bank(void*);
-int    StartPanel(void*), EndPanel(void*), FL_run(void*);
-int    fl_widget_color(void*), fl_widget_color2(void*);
-int    fl_knob(void*), fl_roller(void*), fl_text(void*);
-int    fl_value(void*), StartScroll(void*), EndScroll(void*);
-int    StartPack(void*), EndPack(void*), fl_widget_label(void*);
-int    fl_setWidgetValuei(void*), fl_setWidgetValue(void*);
-int    fl_setWidgetValue_set(void*);
-int    fl_update(void*), StartGroup(void*), EndGroup(void*);
-int    StartTabs(void*), EndTabs(void*);
-int    fl_joystick(void*), fl_button(void*), FLkeyb(void*), fl_counter(void*);
-int    set_snap(void*), get_snap(void*);
-int    fl_setColor1(void*), fl_setColor2(void*);
-int    fl_setTextSize(void*), fl_setTextColor(void*);
-int    fl_setFont(void*), fl_setText(void*), fl_setSize(void*);
-int    fl_setTextType(void*), fl_setBox(void*);
-int    fl_setPosition(void*), fl_hide(void*), fl_show(void*), fl_box(void*);
-int    fl_align(void*);
-int    save_snap(void*), load_snap(void*), fl_button_bank(void*);
-int    FLprintkset(void*), FLprintk(void*);
-int    FLprintk2set(void*), FLprintk2(void*);
+int    fl_slider(void*,void*), fl_slider_bank(void*,void*);
+int    StartPanel(void*,void*), EndPanel(void*,void*), FL_run(void*,void*);
+int    fl_widget_color(void*,void*), fl_widget_color2(void*,void*);
+int    fl_knob(void*,void*), fl_roller(void*,void*), fl_text(void*,void*);
+int    fl_value(void*,void*), StartScroll(void*,void*), EndScroll(void*,void*);
+int    StartPack(void*,void*), EndPack(void*,void*), fl_widget_label(void*,void*);
+int    fl_setWidgetValuei(void*,void*), fl_setWidgetValue(void*,void*);
+int    fl_setWidgetValue_set(void*,void*);
+int    fl_update(void*,void*), StartGroup(void*,void*), EndGroup(void*,void*);
+int    StartTabs(void*,void*), EndTabs(void*,void*);
+int    fl_joystick(void*,void*), fl_button(void*,void*), FLkeyb(void*,void*), fl_counter(void*,void*);
+int    set_snap(void*,void*), get_snap(void*,void*);
+int    fl_setColor1(void*,void*), fl_setColor2(void*,void*);
+int    fl_setTextSize(void*,void*), fl_setTextColor(void*,void*);
+int    fl_setFont(void*,void*), fl_setText(void*,void*), fl_setSize(void*,void*);
+int    fl_setTextType(void*,void*), fl_setBox(void*,void*);
+int    fl_setPosition(void*,void*), fl_hide(void*,void*), fl_show(void*,void*), fl_box(void*,void*);
+int    fl_align(void*,void*);
+int    save_snap(void*,void*), load_snap(void*,void*), fl_button_bank(void*,void*);
+int    FLprintkset(void*,void*), FLprintk(void*,void*);
+int    FLprintk2set(void*,void*), FLprintk2(void*,void*);
 #endif
-int    invalset(void*), kinval(void*), outvalset(void*), koutval(void*);
-int    subinstrset(void*), subinstr(void*);    /* IV - Sep 1 2002 */
-int    useropcdset(void*), useropcd(void*), setksmpsset(void*); /* IV - Sep 8 2002 */
-int    xinset(void*), xoutset(void*);          /* IV - Sep 10 2002 */
-int    ingoto(void*), kngoto(void*);
-int    nstrnumset(void*);
-int    ftsave(void*), ftload(void*), ftsave_k_set(void*), ftsave_k(void*);
-int    ftsave_k_set(void*), ftload_k(void*);
+int    invalset(void*,void*), kinval(void*,void*), outvalset(void*,void*), koutval(void*,void*);
+int    subinstrset(void*,void*), subinstr(void*,void*);    /* IV - Sep 1 2002 */
+int    useropcdset(void*,void*), useropcd(void*,void*), setksmpsset(void*,void*); /* IV - Sep 8 2002 */
+int    xinset(void*,void*), xoutset(void*,void*);          /* IV - Sep 10 2002 */
+int    ingoto(void*,void*), kngoto(void*,void*);
+int    nstrnumset(void*,void*);
+int    ftsave(void*,void*), ftload(void*,void*), ftsave_k_set(void*,void*), ftsave_k(void*,void*);
+int    ftsave_k_set(void*,void*), ftload_k(void*,void*);
 
 /* thread vals, where isub=1, ksub=2, asub=4:
                 0 =     1  OR   2  (B out only)
@@ -248,9 +248,9 @@ OENTRY opcodlst_2[] = {
 { "vbap8move",  S(VBAP_EIGHT_MOVING), 5, "aaaaaaaa","aiiim", vbap_EIGHT_moving_init, NULL, vbap_EIGHT_moving },
 { "vbap16move",  S(VBAP_SIXTEEN_MOVING), 5, "aaaaaaaaaaaaaaaa","aiiim", vbap_SIXTEEN_moving_init, NULL, vbap_SIXTEEN_moving },
 { "vbapzmove",  S(VBAP_ZAK_MOVING), 5, "","iiaiiim", vbap_zak_moving_init, NULL, vbap_zak_moving },
-{ "oscils",   S(OSCILS), 5,     "a", "iiio",     oscils_set, NULL, oscils       },
-{ "lphasor",  S(LPHASOR),5,     "a", "xooooooo" ,lphasor_set, NULL, lphasor     },
-{ "tablexkt", S(TABLEXKT),5,    "a", "xkkiooo",  tablexkt_set, NULL, tablexkt   },
+{ "oscils",   S(OSCILS), 5,     "a", "iiio",     (SUBR)oscils_set, NULL, (SUBR)oscils       },
+{ "lphasor",  S(LPHASOR),5,     "a", "xooooooo" ,(SUBR)lphasor_set, NULL, (SUBR)lphasor     },
+{ "tablexkt", S(TABLEXKT),5,    "a", "xkkiooo",  (SUBR)tablexkt_set, NULL, (SUBR)tablexkt   },
 { "reverb2",  S(NREV2),  5,     "a",    "akkoojoj", (SUBR)reverbx_set,NULL,(SUBR)reverbx    },
 { "nreverb",  S(NREV2),  5,     "a",    "akkoojoj", (SUBR)reverbx_set,NULL,(SUBR) reverbx    },
 /* IV - Aug 23 2002 */

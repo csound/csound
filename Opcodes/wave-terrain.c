@@ -32,7 +32,7 @@
  */
 
 
-int wtinit(WAVETER *p)
+int wtinit(ENVIRON *csound, WAVETER *p)
 {
     /* DECLARE */
     int i;
@@ -70,7 +70,7 @@ int wtinit(WAVETER *p)
     return OK;
 }
 
-int wtPerf(WAVETER *p)
+int wtPerf(ENVIRON *csound, WAVETER *p)
 {
     int i;
     int xloc, yloc;
@@ -113,7 +113,7 @@ int wtPerf(WAVETER *p)
  */
 
 
-int scanhinit(SCANHAMMER *p)
+int scanhinit(ENVIRON *csound, SCANHAMMER *p)
 {
   int srcpos = 0;
   int dstpos = (int)(*p->ipos + FL(0.5));
@@ -148,7 +148,7 @@ int scanhinit(SCANHAMMER *p)
  */
 
 
-int scantinit(SCANTABLE *p)
+int scantinit(ENVIRON *csound, SCANTABLE *p)
 {
     /* DECLARE */
     FUNC *fpoint = ftfind(p->h.insdshead->csound, p->i_point);
