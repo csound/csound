@@ -597,6 +597,9 @@ typedef struct GLOBALS_
   void (*mfree)(void *);
   void (*dispset)(WINDAT *, MYFLT *, long, char *, int, char *);
   void (*display)(WINDAT *);
+  MYFLT (*intpow)(MYFLT, long);
+  FUNC *(*ftfindp)(MYFLT *argp);
+  
   /* End of internals */
   int           ksmps, nchnls;
   int           global_ksmps;

@@ -231,6 +231,8 @@ GLOBALS *pcglob;
 #define mfree pcglob->mfree
 #define dispset pcglob->dispset
 #define display pcglob->display
+#define intpow pcglob->intpow
+#define ftfindp pcglob->ftfindp
 
 #define ksmps_  pcglob->ksmps
 #define esr_    pcglob->esr

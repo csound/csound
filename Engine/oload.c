@@ -113,6 +113,8 @@ void *mmalloc(long);
 void mfree(void *);
 void dispset(WINDAT *, MYFLT *, long, char *, int, char *);
 void display(WINDAT *);
+MYFLT intpow(MYFLT, long);
+FUNC *ftfindp(MYFLT *argp);
 
 static  MYFLT   *gbloffbas;
 
@@ -204,6 +206,8 @@ GLOBALS cglob_ = {
         mfree,
         dispset,
         display,
+        intpow,
+        ftfindp,
         /*
         * Data fields.
         */
