@@ -236,14 +236,10 @@ void rtplay_(void *outbuf_, int bytes_) /* put samples to DAC  */
 }
 
 void rtclose_(void)             /* close the I/O device entirely  */
-{                               /* called only when both complete */
+{    
+                           /* called only when both complete */
   paBlockingClose(pabsRead);
   paBlockingClose(pabsWrite);
-#ifndef MSVC /* VL MSVC fix */
-  sleep(1);
-#else
-  Sleep(1000);
-#endif
-
+  Pa_Terminate();
 }
 
