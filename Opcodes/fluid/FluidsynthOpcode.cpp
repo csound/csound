@@ -92,9 +92,6 @@ extern "C"
     struct FluidsynthOpcode
     {
         OPDS h;
-        // Outputs.
-        MYFLT *aLeftOut;
-        MYFLT *aRightOut;
         // Inputs.
         MYFLT *iSoundfontName;
         MYFLT *iFluidProgram;
@@ -120,6 +117,15 @@ extern "C"
         int priorMidiChannel;
         int priorMidiData1;
         int priorMidiData2;
+    };
+    
+    struct FluidoutOpcode
+    {
+        OPDS h;
+        // Outputs.
+        MYFLT *aLeftOut;
+        MYFLT *aRightOut;
+        
     };
 
     /**
@@ -251,11 +257,7 @@ extern "C"
         return 0;
     }
     
-    /**
-    * Called by Csound to process a block of audio samples
-    * that is ksmps frames long.
-    */
-    int fluidAopadr(void *data)
+    int fluidKopadr(void *data)
     {
         FluidsynthOpcode *fluid =  (FluidsynthOpcode *)data;
         fluid->midiStatus       = 0xf0 & (int) (*fluid->kMidiStatus);                      
@@ -357,53 +359,8 @@ extern "C"
                     break;
             }
         }
-        // There is really only 1 fluidsynth no matter how many instances are active,
-        // so we wait for the last active instance to write audio.
-        float leftSample[1];
-        float rightSample[1];
-        MYFLT *leftOut    = fluid->aLeftOut;
-        MYFLT *rightOut   = fluid->aRightOut;
-        if(!fluid->h.insdshead->nxtact)
-        {
-            for(int i = 0; i < fluid->blockSize; ++i)
-            {
-                leftSample[0] = 0;
-                rightSample[0] = 0;
-                fluid_synth_write_float(fluidSynth, 
-                    1, 
-                    leftSample, 
-                    0, 
-                    1, 
-                    rightSample, 
-                    0, 
-                    1);    
-                *leftOut++  = leftSample[0];
-                *rightOut++ = rightSample[0];
-//                fluid->csound->Message(fluid->csound, 
-//                    "%4d L %f R %f AL %f AR %f.\n", 
-//                    i,
-//                    leftSample,
-//                    rightSample,
-//                    fluid->aLeftOut[i], 
-//                    fluid->aRightOut[i]);
-            }
-//            fluid->csound->Message(fluid->csound, 
-//                "insdshead 0x%x insdshead->prvact 0x%x score time %f active %d\n",
-//                fluid->h.insdshead,
-//                fluid->h.insdshead->prvact,
-//                fluid->csound->GetScoreTime(fluid->csound),
-//                fluid->h.insdshead->actflg);
-        }
-        else
-        {
-            for(int i = 0; i < fluid->blockSize; ++i)
-            {
-                *leftOut++  = (MYFLT) 0.0;
-                *rightOut++ = (MYFLT) 0.0;
-            }
-        }
         if((!fluid->released) &&
-           (fluid->h.insdshead->offtim <= fluid->csound->GetScoreTime(fluid->csound) ||
+          (fluid->h.insdshead->offtim <= fluid->csound->GetScoreTime(fluid->csound) ||
             fluid->h.insdshead->relesing))
         {
             fluid->released = true;
@@ -411,7 +368,7 @@ extern "C"
                 fluid->iMidiChannel, 
                 fluid->iMidiData1); 
             fluid->csound->Message(fluid->csound, 
-                "Released s:%d c:%d k:%d v:%d\n",
+                "Note off: s:%d c:%d k:%d v:%d\n",
                 fluid->iMidiStatus,
                 fluid->iMidiChannel,
                 fluid->iMidiData1,
@@ -421,7 +378,33 @@ extern "C"
         fluid->priorMidiChannel = fluid->midiChannel;
         fluid->priorMidiData1   = fluid->midiData1;
         fluid->priorMidiData2   = fluid->midiData2;
-        return 0;
+        return OK;
+    }
+
+    int fluidAopadr(void *data)
+    {
+        FluidoutOpcode *fluid =  (FluidoutOpcode *)data;
+        ENVIRON *csound = fluid->h.insdshead->csound;
+        float leftSample[1];
+        float rightSample[1];
+        MYFLT *leftOut    = fluid->aLeftOut;
+        MYFLT *rightOut   = fluid->aRightOut;
+        for(int i = 0, n = csound->GetKsmps(csound); i < n; ++i)
+        {
+            leftSample[0] = 0;
+            rightSample[0] = 0;
+            fluid_synth_write_float(fluidSynth, 
+                1, 
+                leftSample, 
+                0, 
+                1, 
+                rightSample, 
+                0, 
+                1);    
+            leftOut[i]  = leftSample[0];
+            rightOut[i] = rightSample[0];
+        }
+        return OK;
     }
 
     /**
@@ -456,17 +439,10 @@ extern "C"
         return 0;
     }
 
-    OENTRY fluidOentry = 
+    OENTRY oentries[] = 
     {
-        "fluid",
-        sizeof(FluidsynthOpcode),
-        5,
-        "aa",
-        "Sikkkko",
-        &fluidIopadr,
-        0,
-        &fluidAopadr,
-        &fluidDopadr
+        {"fluid",  sizeof(FluidsynthOpcode), 3,"","Sikkkko",&fluidIopadr,&fluidKopadr,0,&fluidDopadr},
+        {"fluidout", sizeof(FluidoutOpcode), 4, "aa","",0,0,&fluidAopadr, 0},
     };
     
     /**
@@ -475,7 +451,7 @@ extern "C"
     */
     PUBLIC int opcode_size()
     {
-        return sizeof(OENTRY);
+        return sizeof(oentries);
     }
 
     /**
@@ -484,6 +460,6 @@ extern "C"
     */
     PUBLIC OENTRY *opcode_init(ENVIRON *csound)
     {
-        return &fluidOentry;
+        return oentries;
     }
 };
