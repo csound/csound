@@ -2,6 +2,23 @@
    basic opcodes for transformation of streaming PV signals
 
    (c) Victor Lazzarini, 2004
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
 */
 
 
@@ -28,8 +45,9 @@ int pvsmixset(PVSMIX *p){
     p->lastframe = 0;
 
     if (!(p->fout->format==PVS_AMP_FREQ) || (p->fout->format==PVS_AMP_PHASE))
-      return initerror("pvsmix: signal format must be amp-phase or amp-freq.\n");
-
+      return
+        initerror(Str(X_227,
+                      "pvsmix: signal format must be amp-phase or amp-freq.\n"));
     return OK;
 }
 
@@ -41,7 +59,7 @@ int pvsmix(PVSMIX *p)
     float *fout,*fa, *fb;
 
     if (!fsigs_equal(p->fa,p->fb))
-      return perferror("pvsmix : formats are different.\n");
+      return perferror(Str(X_228, "pvsmix : formats are different.\n"));
     fout = (float *) p->fout->frame.auxp;
     fa = (float *) p->fa->frame.auxp;
     fb = (float *) p->fb->frame.auxp;
@@ -86,8 +104,8 @@ int pvsfilterset(PVSFILTER *p)
 
     if (!(p->fout->format==PVS_AMP_FREQ) || (p->fout->format==PVS_AMP_PHASE))
       return
-        initerror("pvsfilter: signal format must be amp-phase or amp-freq.\n");
-
+        initerror(Str(X_229,
+                  "pvsfilter: signal format must be amp-phase or amp-freq.\n"));
     return OK;
 }
 
@@ -101,12 +119,12 @@ int pvsfilter(PVSFILTER *p)
 	float *fil = (float *) p->fil->frame.auxp;
 
     if(fout==NULL)
-      return perferror("pvsfilter: not initialised\n");
+      return perferror(Str(X_230, "pvsfilter: not initialised\n"));
     if (!fsigs_equal(p->fin,p->fil))
-      return perferror("pvsfilter: formats are different.\n");
+      return perferror(Str(X_237,"pvsfilter: formats are different.\n"));
 
     if(p->lastframe < p->fin->framecount) {
-      kdepth = kdepth >= 0 ? (kdepth <= 1 ? kdepth : (MYFLT)1.0): (MYFLT)0.0 ;
+      kdepth = kdepth >= 0 ? (kdepth <= 1 ? kdepth : FL(1.0)): FL(0.0) ;
       dirgain = 1-kdepth;
       for(i=0;i < N+2;i+=2) {
         fout[i] = (float)(fin[i]*(dirgain + fil[i]*kdepth))*g;
@@ -148,7 +166,7 @@ int pvsscale(PVSSCALE *p)
     float *fout = (float *) p->fout->frame.auxp;
 
     if(fout==NULL)
-      return perferror("pvsscale: not initialised\n");
+      return perferror(Str(X_238,"pvscale: not initialised\n"));
 
     if(p->lastframe < p->fin->framecount) {
 
@@ -174,7 +192,7 @@ int pvsscale(PVSSCALE *p)
       }
 
       for(i=2;i<N;i+=2){
-        if(fout[i+1] == -1.f) fout[i] = 0.f;
+        if(fout[i+1] == -1.0f) fout[i] = 0.0f;
         else fout[i] *= g;
       }
 
@@ -207,7 +225,7 @@ int pvsshift(PVSSHIFT *p)
     long i,chan,newchan,N = p->fout->N;
     MYFLT pshift = (MYFLT) *p->kshift;
     int lowest =  abs((int)(*p->lowest*N/esr));
-    float max = 0.f;
+    float max = 0.0f;
     int cshift = (int)(pshift*N/esr);
     int  keepform = (int) *p->keepform;
     float g = (float) *p->gain;
@@ -215,7 +233,7 @@ int pvsshift(PVSSHIFT *p)
     float *fout = (float *) p->fout->frame.auxp;
 
     if(fout==NULL)
-      return perferror("pvsshift: not initialised\n");
+      return perferror(Str(X_239, "pvsshift: not initialised\n"));
 
     if(p->lastframe < p->fin->framecount) {
 
@@ -232,8 +250,8 @@ int pvsshift(PVSSHIFT *p)
           fout[i+1] = fin[i+1];
         }
         else {
-          fout[i] = 0.f;
-          fout[i+1] = -1.f;
+          fout[i] = 0.0f;
+          fout[i+1] = -1.0f;
         }
 
       }
@@ -251,7 +269,7 @@ int pvsshift(PVSSHIFT *p)
       }
 
       for(i=lowest;i<N;i+=2){
-        if(fout[i+1] == -1.f) fout[i] = 0.f;
+        if(fout[i+1] == -1.0f) fout[i] = 0.0f;
         else fout[i] *= g;
       }
 
@@ -266,7 +284,7 @@ int pvsblurset(PVSBLUR *p)
     float* delay;
     long N = p->fin->N, i, j;
     int olap = p->fin->overlap;
-    int delayframes, framesize = N+2 ;
+    int delayframes, framesize = N+2;
     p->frpsec = esr/olap;
 
     delayframes = (int)(*p->maxdel*p->frpsec);
@@ -285,7 +303,7 @@ int pvsblurset(PVSBLUR *p)
         delay[i+j+1] = i*esr/N;
       }
 
-    p->fout->N =  N;
+    p->fout->N = N;
     p->fout->overlap = olap;
     p->fout->winsize = p->fin->winsize;
     p->fout->wintype = p->fin->wintype;
@@ -300,7 +318,7 @@ int pvsblur(PVSBLUR *p)
 {
     long j,i,N = p->fout->N, first, framesize=N+2;
     long countr = p->count;
-    double amp=0., freq=0.;
+    double amp=0.0, freq=0.0;
     int delayframes = (int) (*p->kdel*p->frpsec);
     int kdel = delayframes*framesize;
     int mdel = (int)(*p->maxdel*p->frpsec)*framesize;
@@ -309,7 +327,7 @@ int pvsblur(PVSBLUR *p)
     float *delay = (float *) p->delframes.auxp;
 
     if(fout==NULL || delay==NULL)
-      return perferror("pvsblur: not initialised\n");
+      return perferror(Str(X_247, "pvsblur: not initialised\n"));
 
     if(p->lastframe < p->fin->framecount) {
 
@@ -372,18 +390,20 @@ int pvstencilset(PVSTENCIL *p)
 
     if (!(p->fout->format==PVS_AMP_FREQ) || (p->fout->format==PVS_AMP_PHASE))
       return
-        initerror("pvstencil: signal format must be amp-phase or amp-freq.\n");
+        initerror(Str(X_248,
+                      "pvstencil: signal format must be amp-phase or amp-freq.\n");
 
     p->func = ftfind(p->ifn);
     if (p->func==NULL)
       return OK;
 
     if (p->func->flen + 1 < chans)
-      return initerror("pvstencil: ftable needs to equal the number of bins");
+      return initerror(Str(X_252,
+                           "pvstencil: ftable needs to equal the number of bins"));
 
     ftable = p->func->ftable;
     for (i=0;i < p->func->flen+1;i++)
-      if (ftable[i] < (MYFLT)0.0 ) ftable[i] = (MYFLT)0.0 ;
+      if (ftable[i] < FL(0.0) ) ftable[i] = FL(0.0) ;
 
     return OK;
 }
@@ -404,7 +424,7 @@ int pvstencil(PVSTENCIL *p)
     framesize = p->fin->N + 2;
 
      if(fout==NULL)
-       return perferror("pvstencil: not initialised\n");
+       return perferror(Str(X_253, "pvstencil: not initialised\n"));
 
     if(p->lastframe < p->fin->framecount){
 
