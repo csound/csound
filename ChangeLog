@@ -1,3 +1,8 @@
+2005-02-13  John ffitch  <jpff@codemist.co.uk>
+
+	* Opcodes/uggab.c (lpshold, loopseg, loopseg_set): Changed to
+	agree with csoundAV
+
 2005-02-11  John ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/pvsdemix.[ch]: New files from Victor Lazzarini
