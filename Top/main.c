@@ -292,12 +292,11 @@ void print_benchmark_info(void *csound, const char *s)
 #ifdef MSVC
 _declspec(dllexport) /* VL linkage fix 11-04 */
 #endif
-int csoundCompile(void *csound_, int argc, char **argv)
+int csoundCompile(void *csound, int argc, char **argv)
 {
     char  *s;
     char  *filnamp, *envoutyp = NULL;
     int   n;
-    ENVIRON *csound = (ENVIRON *)csound_;
 
     if ((n=setjmp(cenviron.exitjmp_))) {
       /*
@@ -305,21 +304,13 @@ int csoundCompile(void *csound_, int argc, char **argv)
        */
       return -1;
     }
-    csound->hostdata_ = hostdata;
-    /* allow selecting real time audio module */
-    {
-      char  *s;
-      int   max_len = 21;
-      csoundCreateGlobalVariable(csound, "_RTAUDIO", (size_t) max_len);
-      s = csoundQueryGlobalVariable(csound, "_RTAUDIO");
-      strcpy(s, "PortAudio");
-      csoundCreateConfigurationVariable(csound, "rtaudio", s,
-                                        CSOUNDCFG_STRING, 0, NULL, &max_len,
-                                        "Real time audio module name", NULL);
-    }
-    /* now load and pre-initialise external modules for this instance */
-    /* this function returns an error value that may be worth checking */
-    csoundLoadModules(csound);
+    /* IV - Feb 05 2005: find out if csoundPreCompile() needs to be called */
+    if (csoundQueryGlobalVariable(csound, "_RTAUDIO") == NULL)
+      if (csoundPreCompile(csound) != CSOUND_SUCCESS)
+        return CSOUND_ERROR;
+    if (csoundQueryGlobalVariable(csound, "csRtClock") != NULL)
+      if (csoundPreCompile(csound) != CSOUND_SUCCESS)
+        return CSOUND_ERROR;
     /* IV - Jan 28 2005 */
     csoundCreateGlobalVariable(csound, "csRtClock", sizeof(RTCLOCK));
     csoundCreateGlobalVariable(csound, "#CLEANUP", (size_t) 1);

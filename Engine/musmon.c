@@ -368,6 +368,7 @@ int cleanup(void *csound)
     /* will not clean up more than once */
     csoundDestroyGlobalVariable(csound, "#CLEANUP");
 
+    orcompact();
     printf(Str("end of score.\t\t   overall amps:"));
     if (scfp) {
       fclose(scfp); scfp = NULL;

@@ -43,11 +43,46 @@ extern "C" {
   static void* csoundExitFuncs_[csoundMaxExits];
   static long csoundNumExits_ = -1;
 
+  extern ENVIRON cenviron_;
+
   PUBLIC void *csoundCreate(void *hostdata)
   {
     /* FIXME: should use malloc() eventually */
     ENVIRON *csound = &cenviron;
+    memcpy(csound, &cenviron_, sizeof(ENVIRON));
+    csoundReset(csound);
+    csound->hostdata_ = hostdata;
     return csound;
+  }
+
+  /**
+   * Reset and prepare an instance of Csound for compilation.
+   * Returns CSOUND_SUCCESS on success, and CSOUND_ERROR or
+   * CSOUND_MEMORY if an error occured.
+   */
+  PUBLIC int csoundPreCompile(void *csound)
+  {
+    void  *saved_hostdata;
+
+    /* reset instance, but keep host data pointer */
+    saved_hostdata = ((ENVIRON*) csound)->hostdata_;
+    csoundReset(csound);
+    ((ENVIRON*) csound)->hostdata_ = saved_hostdata;
+
+    /* allow selecting real time audio module */
+    {
+      char  *s;
+      int   max_len = 21;
+      csoundCreateGlobalVariable(csound, "_RTAUDIO", (size_t) max_len);
+      s = csoundQueryGlobalVariable(csound, "_RTAUDIO");
+      strcpy(s, "PortAudio");
+      csoundCreateConfigurationVariable(csound, "rtaudio", s,
+                                        CSOUNDCFG_STRING, 0, NULL, &max_len,
+                                        "Real time audio module name", NULL);
+    }
+    /* now load and pre-initialise external modules for this instance */
+    /* this function returns an error value that may be worth checking */
+    return csoundLoadModules(csound);
   }
 
   PUBLIC int csoundQueryInterface(const char *name, void **interface, int *version)
@@ -63,13 +98,7 @@ extern "C" {
 
   PUBLIC void csoundDestroy(void *csound)
   {
-    extern void csoundDeleteAllGlobalVariables(void *csound);
-    ((ENVIRON *)csound)->Cleanup(csound);
-    ((ENVIRON *)csound)->Reset(csound);
-    /* IV - Feb 01 2005: clean up configuration variables and */
-    /* named dynamic "global" variables of Csound instance */
-    csoundDeleteAllConfigurationVariables(csound);
-    csoundDeleteAllGlobalVariables(csound);
+    csoundReset(csound);
 #ifdef some_fine_day
     free(csound);
 #endif
@@ -102,7 +131,6 @@ extern "C" {
   extern int frsturnon;
   extern int sensevents(ENVIRON *);
   extern int cleanup(void*);
-  extern int orcompact(void);
 
   PUBLIC int csoundPerform(void *csound, int argc, char **argv)
   {
@@ -208,8 +236,6 @@ extern "C" {
 
   PUBLIC void csoundCleanup(void *csound)
   {
-    orcompact();
-    csoundDestroyModules(csound);
     cleanup(csound);
     /* Call all the funcs registered with atexit(). */
     while (csoundNumExits_ >= 0)
@@ -1027,8 +1053,19 @@ PUBLIC void csoundSetRtcloseCallback(void *csound,
     return 0;
   }
 
+  extern void csoundDeleteAllGlobalVariables(void *csound);
+
   PUBLIC void csoundReset(void *csound)
   {
+    csoundCleanup(csound);
+    /* call local destructor routines of external modules */
+    /* should check return value... */
+    csoundDestroyModules(csound);
+    /* IV - Feb 01 2005: clean up configuration variables and */
+    /* named dynamic "global" variables of Csound instance */
+    csoundDeleteAllConfigurationVariables(csound);
+    csoundDeleteAllGlobalVariables(csound);
+
     mainRESET(csound);
     csoundIsScorePending_ = 1;
     csoundScoreOffsetSeconds_ = (MYFLT) 0.0;
