@@ -143,13 +143,13 @@ static MYFLT Samp_tick(Wave *p)
     temp1 = temp + 1;
     if (temp1==p->wave->flen) temp1 = 0; /* Wrap!! */
 #ifdef DEBUG
-    fprintf(stdout, "Samp_tick: in (%d,%d)\n", temp, temp1);
+    csound->Message(csound, "Samp_tick: in (%d,%d)\n", temp, temp1);
 #endif
     /*  fractional part of time address */
     alpha = temp_time - (MYFLT)temp;
     lastOutput = p->wave->ftable[temp];  /* Do linear interpolation */
 #ifdef DEBUG
-    fprintf(stdout, "Part 1=%f\n", lastOutput);
+    csound->Message(csound, "Part 1=%f\n", lastOutput);
 #endif
     /* same as alpha*data[temp+1] + (1-alpha)data[temp] */
     lastOutput += (alpha * (p->wave->ftable[temp+1] - lastOutput));
@@ -195,7 +195,7 @@ int Moog1(ENVIRON *csound, MOOG1 *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       *ar = p->ar;
-    long        nsmps = ksmps;
+    long        nsmps = csound->ksmps;
     MYFLT       temp;
     MYFLT       vib = *p->vibAmt;
 
@@ -223,42 +223,6 @@ int Moog1(ENVIRON *csound, MOOG1 *p)
       p->filters[1].sweepRate = p->oldfilterRate * RATE_NORM;
     }
     p->vibr.rate = *p->vibf * p->vibr.wave->flen * onedsr;
-/*     printf("   (%f): modDepth=%f\tfilterQ=%f\tfilterRate=%f\n", */
-/*             last, vib, *p->filterQ, *p->filterRate); */
-/*     printf("FormSwep: poleCoeffs=%f, %f\tfreq=%.2f\treson=%f\n", */
-/*            p->filters[0].poleCoeffs[0], p->filters[0].poleCoeffs[1], */
-/*            p->filters[0].freq, p->filters[0].reson); */
-/*     printf("        : dirty=%d\ttargetFreq=%f\ttargetReson=%f\n", */
-/*            p->filters[0].dirty, p->filters[0].targetFreq, */
-/*            p->filters[0].targetReson); */
-/*     printf("        : targetGain=%f\tcurrentFreq=%f\tcurrentReson=%f\n", */
-/*            p->filters[0].targetGain, p->filters[0].currentFreq, */
-/*            p->filters[0].currentReson); */
-/*     printf("        : currentGain=%f\tdeltaFreq=%.2f\tdeltaReson=%f\n", */
-/*            p->filters[0].currentGain, p->filters[0].deltaFreq, */
-/*            p->filters[0].deltaReson); */
-/*     printf("        : deltaGain=%f\tsweepState=%f\tsweepRate=%f\n", */
-/*            p->filters[0].deltaGain, p->filters[0].sweepState, */
-/*            p->filters[0].sweepRate); */
-/*     printf("FormSwep: poleCoeffs=%f, %f\tfreq=%.2f\treson=%f\n", */
-/*            p->filters[1].poleCoeffs[0], p->filters[1].poleCoeffs[1], */
-/*            p->filters[1].freq, p->filters[1].reson); */
-/*     printf("        : dirty=%d\ttargetFreq=%f\ttargetReson=%f\n", */
-/*            p->filters[1].dirty, p->filters[1].targetFreq, */
-/*            p->filters[1].targetReson); */
-/*     printf("        : targetGain=%f\tcurrentFreq=%f\tcurrentReson=%f\n", */
-/*            p->filters[1].targetGain, p->filters[1].currentFreq, */
-/*            p->filters[1].currentReson); */
-/*     printf("        : currentGain=%f\tdeltaFreq=%.2f\tdeltaReson=%f\n", */
-/*            p->filters[1].currentGain, p->filters[1].deltaFreq, */
-/*            p->filters[1].deltaReson); */
-/*     printf("        : deltaGain=%f\tsweepState=%f\tsweepRate=%f\n", */
-/*            p->filters[1].deltaGain, p->filters[1].sweepState, */
-/*            p->filters[1].sweepRate); */
-/*     printf("TwoZero: %f %f\n", */
-/*            p->twozeroes[0].zeroCoeffs[0],p->twozeroes[0].zeroCoeffs[1]); */
-/*     printf("TwoZero: %f %f\n", */
-/*            p->twozeroes[1].zeroCoeffs[0],p->twozeroes[1].zeroCoeffs[1]); */
 
     do {
       MYFLT     temp;
@@ -274,7 +238,8 @@ int Moog1(ENVIRON *csound, MOOG1 *p)
 
       p->attk.time += p->attk.rate;           /*  Update current time    */
 #ifdef DEBUG
-      printf("Attack_time=%f\tAttack_rate=%f\n", p->attk.time, p->attk.rate);
+      csound->Message(csound, "Attack_time=%f\tAttack_rate=%f\n",
+                              p->attk.time, p->attk.rate);
 #endif
       temp_time = p->attk.time;
       if (p->attk.time >= (MYFLT)p->attk.wave->flen)
@@ -284,47 +249,48 @@ int Moog1(ENVIRON *csound, MOOG1 *p)
                                      /*  fractional part of time address */
         alpha = temp_time - (MYFLT)itemp;
 #ifdef DEBUG
-        printf("Attack: (%d, %d), alpha=%f\t", itemp, itemp+1, alpha);
+        csound->Message(csound, "Attack: (%d, %d), alpha=%f\t",
+                                itemp, itemp+1, alpha);
 #endif
         output = p->attk.wave->ftable[itemp]; /* Do linear interpolation */
                   /*  same as alpha*data[itemp+1] + (1-alpha)data[itemp] */
 #ifdef DEBUG
-        printf("->%f+\n", output);
+        csound->Message(csound, "->%f+\n", output);
 #endif
         output += (alpha * (p->attk.wave->ftable[itemp+1] - output));
         output *= p->attackGain;
                                                    /* End of attack tick */
       }
 #ifdef DEBUG
-      printf("After Attack: %f\n", output);
+      csound->Message(csound, "After Attack: %f\n", output);
 #endif
       output += p->loopGain * Samp_tick(&p->loop);
 #ifdef DEBUG
-      printf("Before OnePole: %f\n", output);
+      csound->Message(csound, "Before OnePole: %f\n", output);
 #endif
       output = OnePole_tick(&p->filter, output);
 #ifdef DEBUG
-      printf("After OnePole: %f\n", output);
+      csound->Message(csound, "After OnePole: %f\n", output);
 #endif
       output *= ADSR_tick(&p->adsr);
 #ifdef DEBUG
-      printf("Sampler_tick: %f\n", output);
+      csound->Message(csound, "Sampler_tick: %f\n", output);
 #endif
       output = TwoZero_tick(&p->twozeroes[0], output);
 #ifdef DEBUG
-      printf("TwoZero0_tick: %f\n", output);
+      csound->Message(csound, "TwoZero0_tick: %f\n", output);
 #endif
       output = FormSwep_tick(csound, &p->filters[0], output);
 #ifdef DEBUG
-      printf("Filters0_tick: %f\n", output);
+      csound->Message(csound, "Filters0_tick: %f\n", output);
 #endif
       output = TwoZero_tick(&p->twozeroes[1], output);
 #ifdef DEBUG
-      printf("TwoZero1_tick: %f\n", output);
+      csound->Message(csound, "TwoZero1_tick: %f\n", output);
 #endif
       output = FormSwep_tick(csound, &p->filters[1], output);
 #ifdef DEBUG
-      printf("Filter2_tick: %f\n", output);
+      csound->Message(csound, "Filter2_tick: %f\n", output);
 #endif
       *ar++ = output*AMP_SCALE*FL(8.0);
     } while (--nsmps);

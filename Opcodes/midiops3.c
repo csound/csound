@@ -41,7 +41,7 @@
     unsigned char chan = p->slchan = (unsigned char)((*p->ichan)-1); \
     char sbuf[120];                                               \
     if (chan  > 15)  {                                            \
-      return csound->InitError(csound, Str("illegal channel"));             \
+      return csound->InitError(csound, Str("illegal channel"));   \
     }                                                             \
     {                                                             \
       MYFLT value;                                                \
@@ -56,14 +56,14 @@
         if (*slnum > 127) {                                       \
           sprintf(sbuf,                                           \
                   Str("illegal control number at position n.%d"), j); \
-          return csound->InitError(csound, sbuf);                                 \
+          return csound->InitError(csound, sbuf);                 \
         }                                                         \
         if ((value=*sld->initvalue) < (*min=*sld->imin) ||        \
             value > (*max=*sld->imax) ) {                         \
           sprintf(sbuf,                                           \
-                  Str("illegal initvalue at position n.%d"),\
+                  Str("illegal initvalue at position n.%d"),      \
                   j);                                             \
-          return csound->InitError(csound, sbuf);                                 \
+          return csound->InitError(csound, sbuf);                 \
         }                                                         \
         if (*sld->ifn > 0)   *ftp++ = csound->FTFind(csound, sld->ifn); \
         else                 *ftp++ = NULL;                       \
@@ -148,7 +148,7 @@ int slider64(ENVIRON *csound, SLIDER64 *p)
     unsigned char chan = p->slchan = (unsigned char)((*p->ichan)-1); \
     char sbuf[120];                                               \
     if (chan  > 15)  {                                            \
-      return csound->InitError(csound, Str("illegal channel"));             \
+      return csound->InitError(csound, Str("illegal channel"));   \
     }                                                             \
     {                                                             \
       MYFLT value;                                                \
@@ -165,13 +165,13 @@ int slider64(ENVIRON *csound, SLIDER64 *p)
         if (*slnum > 127) {                                       \
           sprintf(sbuf,                                           \
                   Str("illegal control number at position n.%d"), j); \
-          return csound->InitError(csound, sbuf);                                 \
+          return csound->InitError(csound, sbuf);                 \
         }                                                         \
         if ((value=*sld->initvalue) < (*min=*sld->imin) ||        \
             value > (*max=*sld->imax) ) {                         \
           sprintf(sbuf,                                           \
-                  Str("illegal initvalue at position n.%d"), j); \
-          return csound->InitError(csound, sbuf);                                 \
+                  Str("illegal initvalue at position n.%d"), j);  \
+          return csound->InitError(csound, sbuf);                 \
         }                                                         \
         if (*sld->ifn > 0)   *ftp++ = csound->FTFind(csound, sld->ifn); \
         else                 *ftp++ = NULL;                       \
@@ -181,7 +181,7 @@ int slider64(ENVIRON *csound, SLIDER64 *p)
                                                                   \
                 /*----- init filtering coeffs*/                   \
         *yt1++ = FL(0.0);                                         \
-        b = (MYFLT)(2.0 - cos((double)(*(sld++)->ihp * tpidsr * ksmps))); \
+        b = (MYFLT)(2.0 - cos((double)(*(sld++)->ihp * tpidsr * csound->ksmps))); \
         *c2 = (MYFLT)(b - sqrt((double)(b * b - FL(1.0))));       \
         *c1++ = FL(1.0) - *c2++;                                  \
       }                                                           \
@@ -260,7 +260,7 @@ int slider64f(ENVIRON *csound, SLIDER64f *p)
     unsigned char chan= (unsigned char) ((*p->ichan)-1);          \
     char sbuf[120];                                               \
     if (chan  > 15)  {                                            \
-      return csound->InitError(csound, Str("illegal channel"));             \
+      return csound->InitError(csound, Str("illegal channel"));   \
     }                                                             \
     {                                                             \
       MYFLT value;                                                \
@@ -275,7 +275,7 @@ int slider64f(ENVIRON *csound, SLIDER64f *p)
         slnum=(unsigned char) *sld->ictlno;                       \
         if (slnum > 127) {                                        \
           sprintf(sbuf, Str("illegal control number at position n.%d"), j); \
-          return csound->InitError(csound, sbuf);                                 \
+          return csound->InitError(csound, sbuf);                 \
         }                                                         \
         value = chanblock[slnum] * oneTOf7bit;                    \
         if (*sld->ifn > 0)  {                                     \
@@ -320,7 +320,7 @@ int islider64(ENVIRON *csound, ISLIDER64 *p)
     unsigned char chan= p->slchan = (unsigned char)((*p->ichan)-1);    \
     char sbuf[120];                                                    \
     if (chan  > 15)  {                                                 \
-      return csound->InitError(csound, Str("illegal channel"));                  \
+      return csound->InitError(csound, Str("illegal channel"));        \
     }                                                                  \
     {                                                                  \
       MYFLT value;                                                     \
@@ -336,22 +336,22 @@ int islider64(ENVIRON *csound, ISLIDER64 *p)
         *slnum_msb = (unsigned char)*sld->ictlno_msb;                  \
         if (*slnum_msb > 127) {                                        \
           sprintf(sbuf,                                                \
-                  Str("illegal msb control number at position n.%d"), \
+                  Str("illegal msb control number at position n.%d"),  \
                   j);                                                  \
-          return csound->InitError(csound, sbuf);                                      \
+          return csound->InitError(csound, sbuf);                      \
         }                                                              \
         *slnum_lsb = (unsigned char)*sld->ictlno_lsb;                  \
         if (*slnum_lsb > 127) {                                        \
           sprintf(sbuf,                                                \
-                  Str("illegal lsb control number at position n.%d"), \
+                  Str("illegal lsb control number at position n.%d"),  \
                   j);                                                  \
-          return csound->InitError(csound, sbuf);                                      \
+          return csound->InitError(csound, sbuf);                      \
         }                                                              \
         if ((value=*sld->initvalue) < (*min=*sld->imin) ||             \
             value > (*max=*sld->imax) ) {                              \
           sprintf(sbuf,                                                \
-                  Str("illegal initvalue at position n.%d"), j); \
-          return csound->InitError(csound, sbuf);                                      \
+                  Str("illegal initvalue at position n.%d"), j);       \
+          return csound->InitError(csound, sbuf);                      \
         }                                                              \
         if (*sld->ifn > 0)   *ftp++ = csound->FTFind(csound, sld->ifn); \
         else                 *ftp++ = NULL;                            \
@@ -417,7 +417,7 @@ int slider32bit14(ENVIRON *csound, SLIDER32BIT14 *p)
     unsigned char chan = (unsigned char)((*p->ichan)-1);               \
     char sbuf[120];                                                    \
     if (chan  > 15)  {                                                 \
-      return csound->InitError(csound, Str("illegal channel"));                  \
+      return csound->InitError(csound, Str("illegal channel"));        \
     }                                                                  \
     {                                                                  \
       MYFLT value;                                                     \
@@ -432,16 +432,16 @@ int slider32bit14(ENVIRON *csound, SLIDER32BIT14 *p)
         slnum_msb=(unsigned char)*sld->ictlno_msb;                     \
         if (slnum_msb > 127) {                                         \
           sprintf(sbuf,                                                \
-                  Str("illegal msb control number at position n.%d"), \
+                  Str("illegal msb control number at position n.%d"),  \
                   j);                                                  \
-          return csound->InitError(csound, sbuf);                                      \
+          return csound->InitError(csound, sbuf);                      \
         }                                                              \
         slnum_lsb=(unsigned char)*sld->ictlno_lsb;                     \
         if (slnum_lsb > 127) {                                         \
           sprintf(sbuf,                                                \
-                  Str("illegal lsb control number at position n.%d"), \
+                  Str("illegal lsb control number at position n.%d"),  \
                   j);                                                  \
-          return csound->InitError(csound, sbuf);                                      \
+          return csound->InitError(csound, sbuf);                      \
         }                                                              \
                                                                        \
         value = (MYFLT)((chanblock[slnum_msb]  * 128                   \

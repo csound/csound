@@ -44,7 +44,7 @@ int lowpr(ENVIRON *csound, LOWPR *p)
     MYFLT kfco = *p->kfco;
     MYFLT kres = *p->kres;
     MYFLT coef1 = p->coef1, coef2 = p->coef2;
-    int n,nsmps = ksmps;
+    int n,nsmps = csound->ksmps;
 
     if (p->okf != kfco || p->okr != kres) { /* Only if changed */
       b = FL(10.0) / (*p->kres * (MYFLT)sqrt((double)kfco)) - FL(1.0);
@@ -87,7 +87,7 @@ int lowprx(ENVIRON *csound, LOWPRX *p)
     MYFLT *ar, *asig, yn,*ynm1, *ynm2 ;
     MYFLT coef1 = p->coef1, coef2 = p->coef2;
     MYFLT kfco = *p->kfco, kres = *p->kres;
-    int n,nsmps = ksmps, j;
+    int n,nsmps = csound->ksmps, j;
 
     if (p->okf != kfco || p->okr != kres) { /* Only if changed */
       b = FL(10.0) / (*p->kres * (MYFLT)sqrt((double)kfco)) - FL(1.0);
@@ -135,7 +135,7 @@ int lowpr_w_sep(ENVIRON *csound, LOWPR_SEP *p)
     MYFLT coef1, coef2;
     MYFLT kfcobase = *p->kfco;
     MYFLT sep = (*p->sep / p->loop);
-    int n, nsmps=ksmps, j;
+    int n, nsmps=csound->ksmps, j;
 
     MYFLT kres = *p->kres;
     MYFLT kfco;
@@ -178,3 +178,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
+
