@@ -1,4 +1,4 @@
-/*  
+/*
     pvanal.c:
 
     Copyright (C) 1991, 1994  Dan Ellis, Dave Madole, John ffitch

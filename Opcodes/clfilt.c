@@ -1,7 +1,7 @@
-/*  
+/*
     clfilt.c:
 
-    Copyright (C) 2002 Erik Spjut 
+    Copyright (C) 2002 Erik Spjut
 
     This file is part of Csound.
 

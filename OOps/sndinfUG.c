@@ -1,4 +1,4 @@
-/*  
+/*
     sndinfUG.c:
 
     Copyright (C) 1999 matt ingalls, Richard Dobson

@@ -1,4 +1,4 @@
-/*  
+/*
     dnoise.c:
 
     Copyright (C) 2000 Mark Dolson, John ffitch
@@ -460,7 +460,7 @@ int dnoise(int argc, char **argv)
     if (O.filetyp == TYP_AIFF) {
       if (!O.sfheader)
         die(Str(X_640,"cannot write AIFF soundfile with no header"));
-      if (O.outformat == AE_ALAW || 
+      if (O.outformat == AE_ALAW ||
           O.outformat == AE_ULAW ||
           O.outformat == AE_FLOAT) {
         sprintf(errmsg,Str(X_180,"AIFF does not support %s encoding"),
@@ -471,7 +471,7 @@ int dnoise(int argc, char **argv)
     if (O.filetyp == TYP_WAV) {
       if (!O.sfheader)
         die(Str(X_338,"cannot write WAV soundfile with no header"));
-      if (O.outformat == AE_ALAW || 
+      if (O.outformat == AE_ALAW ||
           O.outformat == AE_ULAW ||
           O.outformat == AE_FLOAT) {
         sprintf(errmsg,Str(X_181,"WAV does not support %s encoding"),

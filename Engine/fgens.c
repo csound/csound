@@ -1,7 +1,7 @@
-/*  
+/*
     fgens.c:
 
-    Copyright (C) 1991, 1994, 1995, 1998, 2000 
+    Copyright (C) 1991, 1994, 1995, 1998, 2000
                   Barry Vercoe, John ffitch, Paris Smaragdis, Gabriel Maldonado,
                   Richard Karpen, Greg Sullivan, Pete Moss, Istvan Varga
 

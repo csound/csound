@@ -1,4 +1,4 @@
-/*  
+/*
     lpanal.c:
 
     Copyright (C) 1992, 1997 Paul Lansky, Barry Vercoe, John ffitch, Marc Resibois

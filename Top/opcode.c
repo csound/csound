@@ -1,4 +1,4 @@
-/*  
+/*
     opcode.c:
 
     Copyright (C) 1997 John ffitch

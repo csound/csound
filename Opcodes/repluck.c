@@ -1,4 +1,4 @@
-/*  
+/*
     repluck.c:
 
     Copyright (C) 1996 John ffitch

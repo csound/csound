@@ -1,4 +1,4 @@
-/*  
+/*
     vbap_zak.c:
 
     Copyright (C) 2000 Ville Pulkki

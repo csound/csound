@@ -1,4 +1,4 @@
-/*  
+/*
     nlfilt.c:
 
     Copyright (C) 1996 John ffitch, Richard Dobson
@@ -121,4 +121,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
- 
+

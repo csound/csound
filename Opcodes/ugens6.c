@@ -1,4 +1,4 @@
-/*  
+/*
     ugens6.c:
 
     Copyright (C) 1991-2000 Barry Vercoe, John ffitch, Jens Groh, Hans Mikelson, Istvan Varga
@@ -686,7 +686,7 @@ int deltapxw(DELTAPX *p)               /* deltapxw opcode */
         }
         in1++; indx++;
       }
-    } 
+    }
     else {                    /* window size = 4, cubic interpolation */
       while (nn--) {
         x1 = (double) indx - (double) *(del++) * (double) esr;

@@ -1,4 +1,4 @@
-/*  
+/*
     mxfft.c:
 
     Copyright (C) 2002 Trevor Wishart, Keith Henderson
@@ -29,7 +29,10 @@
 static char *rcsid = "$Id$";
 /*
  *      $Log$
- *      Revision 1.2  2004-05-31 15:53:06  jpff
+ *      Revision 1.3  2004-06-07 11:33:09  jpff
+ *      line endings
+ *
+ *      Revision 1.2  2004/05/31 15:53:06  jpff
  *      Removing warnings mainly
  *
  *      Revision 1.1.1.1  2003/06/19 11:11:53  jpff

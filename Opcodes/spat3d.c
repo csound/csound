@@ -1,4 +1,4 @@
-/*  
+/*
     spat3d.c:
 
     Copyright (C) 2001 Istvan Varga
@@ -868,18 +868,18 @@ int    spat3dt (SPAT3D *p)
                       *(p->args[3]));
     p->outftlnth = ((p->outftlnth) >> 2) << 2;      /* table length  */
     if ((p->outft == NULL) || (p->outftlnth < 4)) return NOTOK; /* no table */
-    
+
     /* initialise IR */
 
     ir = (MYFLT *) mmalloc (sizeof (MYFLT) * (long) p->bs);
     ir[0] = FL(1.0);
     wmax = 0; while (++wmax < (long) p->bs)
       ir[wmax] = (sizeof (MYFLT) < 8 ? FL(1.0e-24) : FL(1.0e-48));
-    
+
     if (*(p->args[8]) == FL(0.0))           /* clear ftable (if enabled) */
       wmax = -1; while (++wmax < p->outftlnth)
         p->outft[wmax] = FL(0.0);
-    
+
     /* render IR */
 
     spat3dt_wall_perf (p, ir, (SPAT3D_WALL *) p->ws.auxp);

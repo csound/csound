@@ -140,7 +140,7 @@ static long csoundNumExits_ = -1;
         }
       return done;
   }
-  
+
   PUBLIC int csoundPerformKsmpsAbsolute(void *csound)
   {
       int done = 0;

@@ -1,4 +1,4 @@
-/*  
+/*
     cmath.c:
 
     Copyright (C) 1994 Paris Smaragdis, John ffitch

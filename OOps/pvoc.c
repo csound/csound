@@ -1,4 +1,4 @@
-/*  
+/*
     pvoc.c:
 
     Copyright (C) 1990 Dan Ellis, John ffitch

@@ -1,7 +1,7 @@
-/*  
+/*
     mididevice.c:
 
-    Copyright (C) 1995, 2001, 2002 Barry Vercoe, John ffitch, Victor Lazzarini, 
+    Copyright (C) 1995, 2001, 2002 Barry Vercoe, John ffitch, Victor Lazzarini,
                   J. Mohr, Istvan Varga
 
     This file is part of Csound.

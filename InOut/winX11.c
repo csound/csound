@@ -1,4 +1,4 @@
-/*  
+/*
     winX11.c: graphs in X11
 
     Copyright (C) 1991 Barry Vercoe, John ffitch

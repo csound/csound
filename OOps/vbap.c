@@ -1,4 +1,4 @@
-/*  
+/*
     vbap.c:
 
     Copyright (C) 2000 Ville Pulkki

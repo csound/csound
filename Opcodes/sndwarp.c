@@ -1,4 +1,4 @@
-/*  
+/*
     sndwarp.c:
 
     Copyright (C) 1997 Richard Karpen, John ffitch

@@ -1,4 +1,4 @@
-/*  
+/*
     winascii.c: graphs in ascii text
 
     Copyright (C) 1991 Barry Vercoe, John ffitch

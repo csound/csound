@@ -1,4 +1,4 @@
-/*  
+/*
     lptrkfns.c:
 
     Copyright (C) 1992 Barry Vercoe, John ffitch

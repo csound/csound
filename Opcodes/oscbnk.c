@@ -2069,9 +2069,9 @@ int vco2(VCO2 *p)
 static OENTRY localops[] = {
 { "oscbnk",   S(OSCBNK), 5, "a", "kkkkiikkkkikkkkkkikooooooo",
                                  (SUBR)oscbnkset, NULL, (SUBR)oscbnk   },
-{ "grain2",   S(GRAIN2), 5, "a", "kkkikiooo", 
+{ "grain2",   S(GRAIN2), 5, "a", "kkkikiooo",
                                  (SUBR)grain2set, NULL, (SUBR)grain2   },
-{ "grain3",   S(GRAIN3), 5, "a", "kkkkkkikikkoo", 
+{ "grain3",   S(GRAIN3), 5, "a", "kkkkkkikikkoo",
                                  (SUBR)grain3set, NULL, (SUBR)grain3   },
 { "rnd31",    0xFFFF                                                          },
 { "rnd31_i",  S(RND31),  1, "i", "iio",  (SUBR)rnd31i, NULL, NULL             },

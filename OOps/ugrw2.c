@@ -1,4 +1,4 @@
-/*  
+/*
     ugrw2.c:
 
     Copyright (C) 1995, 1998 Robin Whittle, John ffitch

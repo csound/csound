@@ -155,7 +155,7 @@ static int sngetset(SOUNDINEW *p, char *sfname)
     /*RWD 3:2000 copy scalefac stuff */
     p->do_floatscaling = forReadHeader.do_floatscaling;
     p->fscalefac = forReadHeader.fscalefac;
-    
+
     p->format = (short)sf2format(sfinfo.format);
     p->sampframsiz = (short)sfsampsize(sfinfo.format) * sfinfo.channels;
     p->filetyp     = sf2type(sfinfo.format);
@@ -190,11 +190,11 @@ int newsndinset(SOUNDINEW *p)       /* init routine for diskin   */
     SNDFILE *sinfd = NULL;
     long    nbytes, filno;
     MYFLT   skiptime = *p->iskptim;
-    
+
     /* RWD 5:2001 need this as var, change size to read 24bit data */
     /* should go in SOUNDINEW struct eventually */
     long snewbufsize = SNDINEWBUFSIZ;
-    
+
     if (skiptime < 0) {
       if (O.msglevel & WARNMSG)
         printf(Str(X_1460,"WARNING: negative skip time, substituting zero.\n"));
@@ -507,7 +507,7 @@ void soundinew(SOUNDINEW *p)    /*  a-rate routine for soundinew */
     else {      /* backwards...                 same thing but different */
       if (phs > 0 && p->endfile)  /*RWD 5:2001 as above */
         phs = 0; /* have just switched directions, forget (+ve) old phase */
-      
+
       if (p->endfile) {   /* firewall-flag signaling when we are at either
                              end of the file */
         if (p->begfile)
@@ -521,7 +521,7 @@ void soundinew(SOUNDINEW *p)    /*  a-rate routine for soundinew */
                                        (off_t)p->firstsampinfile,SEEK_SET);
             p->begfile = 1;
           }
-          
+
           /* RWD 5:2001 but don't know if this is required here... */
           p->audrem = p->audsize; /* a hack to prevent errors (returning
                                      'ntot')in the sread for AIFF */
@@ -538,7 +538,7 @@ void soundinew(SOUNDINEW *p)    /*  a-rate routine for soundinew */
           p->bufend = p->inbuf + n;
           /* point to the last sample in buffer */
           inbufp = p->inbufp = p->guardpt = p->bufend - nchnls;
-          
+
           /*RWD 5:2001 this cures the symptom (bad data in output sometimes,
            * when a transp sweep hits eof), but not, I suspect, the
            * underlying cause */
@@ -548,7 +548,7 @@ void soundinew(SOUNDINEW *p)    /*  a-rate routine for soundinew */
           p->endfile = FALSE;
         }
       }
-      
+
       while (ntogo) {
         switch(chnsout) {
         case 1:

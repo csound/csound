@@ -1,4 +1,4 @@
-/*  
+/*
     sfont.c:
 
     Copyright (C) 2000 Gabriel Maldonado, John ffitch
@@ -1987,7 +1987,7 @@ static OENTRY localops[] = {
 { "sfload",S(SFLOAD),     1,    "i",    "S",      (SUBR)SfLoad,
                                                   NULL, NULL, (SUBR)SfReset    },
 { "sfpreset",S(SFPRESET), 1,    "i",    "iiii",   (SUBR)SfPreset         },
-{ "sfplay", S(SFPLAY), 5, "aa", "iixxioo",        (SUBR)SfPlay_set, 
+{ "sfplay", S(SFPLAY), 5, "aa", "iixxioo",        (SUBR)SfPlay_set,
                                                   NULL, (SUBR)SfPlay     },
 { "sfplaym", S(SFPLAYMONO), 5, "a", "iixxioo",    (SUBR)SfPlayMono_set,
                                                   NULL, (SUBR)SfPlayMono },

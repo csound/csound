@@ -1,4 +1,4 @@
-/*  
+/*
     fft.c:
 
     Copyright (C) 1990, 1995 Dan Ellis, Greg Sullivan

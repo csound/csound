@@ -1,4 +1,4 @@
-/*  
+/*
     midiops3.c:
 
     Copyright (C) 1997 Gabriel Maldonado

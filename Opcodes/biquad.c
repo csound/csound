@@ -1,7 +1,7 @@
-/*  
+/*
     biquad.c:
 
-    Copyright (C) 1998, 1999, 2001 by Hans Mikelson, Matt Gerassimoff, 
+    Copyright (C) 1998, 1999, 2001 by Hans Mikelson, Matt Gerassimoff,
                                       Jens Groh, John ffitch
 
     This file is part of Csound.
@@ -1126,17 +1126,17 @@ int bqrez(REZZY *p)
         sigma = -FL(1.0);
       }
       alpha = (beta + FL(1.0) + chi*gamma) * FL(0.5);
-      
+
       do {                        /* do ksmp times   */
         xn     = *in++;           /* Get the next sample */
         yn     = alpha*(xn + mu*xnm1 + sigma*xnm2) + gamma*ynm1 - beta*ynm2;
-        
+
         xnm2   = xnm1; /* Update Xn-2 */
         xnm1   = xn;   /* Update Xn-1 */
         ynm2   = ynm1; /* Update Yn-2 */
         ynm1   = yn;   /* Update Yn-1 */
         *out++ = yn;   /* Generate the output sample */
-        
+
         /* Handle a-rate modulation of fco and rez */
         if (p->fcocod) {
           fco = *(++fcoptr);

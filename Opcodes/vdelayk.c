@@ -1,4 +1,4 @@
-/*  
+/*
     vdelayk.c: (incorporating max_k)
 
     Copyright (C) 2004 Gabriel Maldonado

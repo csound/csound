@@ -1,4 +1,4 @@
-/*  
+/*
     mandolin.c: code for physical model of mandolin
 
     Copyright (C) 1997 John ffitch, Perry Cook

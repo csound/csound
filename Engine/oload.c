@@ -558,7 +558,7 @@ void oload(void)
         aoffp = ttp->outoffs;
         n=aoffp->count;
         for (ndxp=aoffp->indx; n--; ndxp++) {
-/*       printf("**** indx = %d (%x); gblabeg=%d lclabeg=%d\n", 
+/*       printf("**** indx = %d (%x); gblabeg=%d lclabeg=%d\n",
                 *ndxp, *ndxp,gblabeg,lclabeg ); */
           if ((indx = *ndxp) > gblabeg) {
             indx = gblabeg + (indx - gblabeg) * ksmps;

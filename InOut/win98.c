@@ -20,7 +20,7 @@ MakeGraph(wdptr)              /* called from window.c to open a graphics window 
          int y, yinc, yy, yyinc;
 
          if (!gfd) {                                 /* open the graphics display */
-             gfd = gopen("/dev/graphics",OUTDEV,"hp98710",INIT); 
+             gfd = gopen("/dev/graphics",OUTDEV,"hp98710",INIT);
              buffer_mode(gfd,0);                                /* open graphics */
              mapping_mode (gfd,1);                              /* set params    */
              system("linear 128 255 0 0 0");
@@ -51,7 +51,7 @@ MakeGraph(wdptr)              /* called from window.c to open a graphics window 
 
 DrawGraph(wdptr)                       /* called from window.c to graph an array */
      WINDAT *wdptr;                    /* struct containing data pointers, etc.  */
-{ 
+{
          register float *fp;                    /* ptr to src array */
          register int   *dbp;                   /* ptr to drawbuf */
          register int   xord, xinc, xend, finc;

@@ -1,4 +1,4 @@
-/*  
+/*
     pvadd.c:
 
     Copyright (C) 1998 Richard Karpen
@@ -119,7 +119,7 @@ int pvaddset(PVADD *p)
                        ((p->frSiz+2L) * (p->maxFr+2)));
     else
       memsize = (long)(MAXBINS+PVFFTSIZE+PVFFTSIZE);
-    
+
     if (p->auxch.auxp == NULL || memsize != p->mems) {
       MYFLT *fltp;
       auxalloc((memsize * sizeof(MYFLT)), &p->auxch);
@@ -158,7 +158,7 @@ int pvaddset(PVADD *p)
               chans, pvfilnam);
       goto pverr;
     }
-    
+
     frInc    = pvh->frameIncr;
     p->frPrtim = esr/((MYFLT)frInc);
     /* factor by which to mulitply 'real' time index to get frame index */
@@ -179,14 +179,14 @@ int pvaddset(PVADD *p)
 
     for (i=0; i < MAXBINS; i++)
       *oscphase++ = FL(0.0);
-    
+
     ibins = (*p->ibins==0 ? size/2 : (int)*p->ibins);
     p->maxbin = ibins + (int)*p->ibinoffset;
     p->maxbin = (p->maxbin > size/2 ? size/2 : p->maxbin);
     /*  printf("maxbin=%d\n", p->maxbin); fflush(stdout); */
-    
+
     return OK;
-    
+
  pverr:
     return initerror(errmsg);
 }

@@ -1,4 +1,4 @@
-/*  
+/*
     natben.c:
 
     Copyright (C) 1995 Barry Vercoe, John ffitch

@@ -64,11 +64,11 @@ Music and Audio Technologies, University of California, Berkeley.
     from my 6/99 visit to IRCAM.  Moved memory stuff to sdif-mem.[ch].
 
  10/1/99 version 2.3 by Matt: minor fixes for public release.
- 10/12/99 Version 2.4 by Matt: changed return value convention 
+ 10/12/99 Version 2.4 by Matt: changed return value convention
 
  18:2:2000 RWD:  added old version structs and functions for use with sdif2mp4.
                                 NB struct defs are now as plain struct, pointers declared explicitly
- 4:8:2000 RWD: made all func calls test explicitly against ESDIF_SUCCESS 
+ 4:8:2000 RWD: made all func calls test explicitly against ESDIF_SUCCESS
 */
 
 
@@ -96,7 +96,7 @@ static SDIFresult SkipBytes(FILE *f, int numBytes);
 /* error handling stuff. */
 static char *error_string_array[] = {
     "Everything's cool",
-    "This program should display strerror(errno) instead of this string", 
+    "This program should display strerror(errno) instead of this string",
     "Bad SDIF header",
     "Frame header's size is too low for time tag and stream ID",
     "fseek() failed while skipping over data",
@@ -181,19 +181,19 @@ SDIFresult SDIF_BeginRead(FILE *input) {
     SDIFresult r;
 
     /* make sure the header is OK. */
-    if ((r = SDIF_Read1(sgh.SDIF, 4, input))!=ESDIF_SUCCESS) 
+    if ((r = SDIF_Read1(sgh.SDIF, 4, input))!=ESDIF_SUCCESS)
                 return r;
-    if (!SDIF_Char4Eq(sgh.SDIF, "SDIF")) 
+    if (!SDIF_Char4Eq(sgh.SDIF, "SDIF"))
                 return ESDIF_BAD_SDIF_HEADER;
-    if ((r = SDIF_Read4(&sgh.size, 1, input))!=ESDIF_SUCCESS) 
+    if ((r = SDIF_Read4(&sgh.size, 1, input))!=ESDIF_SUCCESS)
                 return r;
-    if (sgh.size % 8 != 0) 
+    if (sgh.size % 8 != 0)
                 return ESDIF_BAD_SDIF_HEADER;
-    if (sgh.size < 8) 
+    if (sgh.size < 8)
                 return ESDIF_BAD_SDIF_HEADER;
     if ((r = SDIF_Read4(&sgh.SDIFversion, 1, input))!=ESDIF_SUCCESS)
                 return r;
-    if ((r = SDIF_Read4(&sgh.SDIFStandardTypesVersion, 1, input))!=ESDIF_SUCCESS) 
+    if ((r = SDIF_Read4(&sgh.SDIFStandardTypesVersion, 1, input))!=ESDIF_SUCCESS)
                 return r;
 
     if (sgh.SDIFversion != 3) {         /*RWD was < 3 */
@@ -241,13 +241,13 @@ SDIFresult SDIF_WriteGlobalHeader(const SDIF_GlobalHeader *h, FILE *f) {
     assert(h != NULL);
     assert(f != NULL);
 #ifdef LITTLE_ENDIAN
-    if ((r = SDIF_Write1(&(h->SDIF), 4, f))!=ESDIF_SUCCESS) 
+    if ((r = SDIF_Write1(&(h->SDIF), 4, f))!=ESDIF_SUCCESS)
                 return r;
-    if ((r = SDIF_Write4(&(h->size), 1, f))!=ESDIF_SUCCESS) 
+    if ((r = SDIF_Write4(&(h->size), 1, f))!=ESDIF_SUCCESS)
                 return r;
-    if ((r = SDIF_Write4(&(h->SDIFversion), 1, f))!=ESDIF_SUCCESS) 
+    if ((r = SDIF_Write4(&(h->SDIFversion), 1, f))!=ESDIF_SUCCESS)
                 return r;
-    if ((r = SDIF_Write4(&(h->SDIFStandardTypesVersion), 1, f))!=ESDIF_SUCCESS) 
+    if ((r = SDIF_Write4(&(h->SDIFStandardTypesVersion), 1, f))!=ESDIF_SUCCESS)
                 return r;
     return ESDIF_SUCCESS;
 #else
@@ -268,21 +268,21 @@ SDIFresult SDIF_ReadFrameHeader(SDIF_FrameHeader *fh, FILE *f) {
                 }
                 return ESDIF_READ_FAILED;
         }
-    
+
     if ((r = SDIF_Read4(&(fh->size),1,f))!=ESDIF_SUCCESS)
                 return r;
-    if ((r = SDIF_Read8(&(fh->time),1,f))!=ESDIF_SUCCESS) 
+    if ((r = SDIF_Read8(&(fh->time),1,f))!=ESDIF_SUCCESS)
                 return r;
-    if ((r = SDIF_Read4(&(fh->streamID),1,f))!=ESDIF_SUCCESS) 
+    if ((r = SDIF_Read4(&(fh->streamID),1,f))!=ESDIF_SUCCESS)
                 return r;
-    if ((r = SDIF_Read4(&(fh->matrixCount),1,f))!=ESDIF_SUCCESS) 
+    if ((r = SDIF_Read4(&(fh->matrixCount),1,f))!=ESDIF_SUCCESS)
                 return r;
     return ESDIF_SUCCESS;
 #else
     size_t amount_read;
 
     amount_read = fread(fh, sizeof(*fh), 1, f);
-    if (amount_read == 1) 
+    if (amount_read == 1)
                 return ESDIF_SUCCESS;
     if (amount_read == 0) {
         /* Now that fread failed, maybe we're at EOF. */
@@ -300,15 +300,15 @@ SDIFresult SDIF_WriteFrameHeader(const SDIF_FrameHeader *fh, FILE *f) {
 #ifdef LITTLE_ENDIAN
     SDIFresult r;
 
-    if ((r = SDIF_Write1(&(fh->frameType),4,f))!=ESDIF_SUCCESS) 
+    if ((r = SDIF_Write1(&(fh->frameType),4,f))!=ESDIF_SUCCESS)
                 return r;
-    if ((r = SDIF_Write4(&(fh->size),1,f))!=ESDIF_SUCCESS) 
+    if ((r = SDIF_Write4(&(fh->size),1,f))!=ESDIF_SUCCESS)
                 return r;
-    if ((r = SDIF_Write8(&(fh->time),1,f))!=ESDIF_SUCCESS) 
+    if ((r = SDIF_Write8(&(fh->time),1,f))!=ESDIF_SUCCESS)
                 return r;
-    if ((r = SDIF_Write4(&(fh->streamID),1,f))!=ESDIF_SUCCESS) 
+    if ((r = SDIF_Write4(&(fh->streamID),1,f))!=ESDIF_SUCCESS)
                 return r;
-    if ((r = SDIF_Write4(&(fh->matrixCount),1,f))!=ESDIF_SUCCESS) 
+    if ((r = SDIF_Write4(&(fh->matrixCount),1,f))!=ESDIF_SUCCESS)
                 return r;
 #ifdef _WIN32
     fflush(f);
@@ -336,13 +336,13 @@ SDIFresult SDIF_SkipFrame(const SDIF_FrameHeader *head, FILE *f) {
 SDIFresult SDIF_ReadMatrixHeader(SDIF_MatrixHeader *m, FILE *f) {
 #ifdef LITTLE_ENDIAN
     SDIFresult r;
-    if ((r = SDIF_Read1(&(m->matrixType),4,f))!=ESDIF_SUCCESS) 
+    if ((r = SDIF_Read1(&(m->matrixType),4,f))!=ESDIF_SUCCESS)
                 return r;
-    if ((r = SDIF_Read4(&(m->matrixDataType),1,f))!=ESDIF_SUCCESS) 
+    if ((r = SDIF_Read4(&(m->matrixDataType),1,f))!=ESDIF_SUCCESS)
                 return r;
-    if ((r = SDIF_Read4(&(m->rowCount),1,f))!=ESDIF_SUCCESS) 
+    if ((r = SDIF_Read4(&(m->rowCount),1,f))!=ESDIF_SUCCESS)
                 return r;
-    if ((r = SDIF_Read4(&(m->columnCount),1,f))!=ESDIF_SUCCESS) 
+    if ((r = SDIF_Read4(&(m->columnCount),1,f))!=ESDIF_SUCCESS)
                 return r;
     return ESDIF_SUCCESS;
 #else
@@ -358,13 +358,13 @@ SDIFresult SDIF_ReadMatrixHeader(SDIF_MatrixHeader *m, FILE *f) {
 SDIFresult SDIF_WriteMatrixHeader(const SDIF_MatrixHeader *m, FILE *f) {
 #ifdef LITTLE_ENDIAN
     SDIFresult r;
-    if ((r = SDIF_Write1(&(m->matrixType),4,f))!=ESDIF_SUCCESS) 
+    if ((r = SDIF_Write1(&(m->matrixType),4,f))!=ESDIF_SUCCESS)
                 return r;
     if ((r = SDIF_Write4(&(m->matrixDataType),1,f))!=ESDIF_SUCCESS)
                 return r;
-    if ((r = SDIF_Write4(&(m->rowCount),1,f))!=ESDIF_SUCCESS) 
+    if ((r = SDIF_Write4(&(m->rowCount),1,f))!=ESDIF_SUCCESS)
                 return r;
-    if ((r = SDIF_Write4(&(m->columnCount),1,f))!=ESDIF_SUCCESS) 
+    if ((r = SDIF_Write4(&(m->columnCount),1,f))!=ESDIF_SUCCESS)
                 return r;
     return ESDIF_SUCCESS;
 #else
@@ -396,15 +396,15 @@ int SDIF_PaddingRequired(const SDIF_MatrixHeader *m) {
                 return 0;
     }
 }
-                
+
 
 SDIFresult SDIF_SkipMatrix(const SDIF_MatrixHeader *head, FILE *f) {
     int size = SDIF_GetMatrixDataSize(head);
-    
+
     if (size < 0) {
         return ESDIF_BAD_MATRIX_HEADER;
     }
-    
+
     return SkipBytes(f, size);
 }
 
@@ -413,7 +413,7 @@ SDIFresult
 SDIF_ReadMatrixData(void *putItHere, FILE *f, const SDIF_MatrixHeader *head) {
     size_t datumSize = (size_t) SDIF_GetMatrixDataTypeSize(head->matrixDataType);
     size_t numItems = (size_t) (head->rowCount * head->columnCount);
-    
+
 #ifdef LITTLE_ENDIAN
     switch (datumSize) {
         case 1:
@@ -480,7 +480,7 @@ SDIFresult SDIF_Write2(const void *block, size_t n, FILE *f) {
     if ((n << 1) > BUFSIZE) {
         /* Too big for buffer */
         int num = BUFSIZE >> 1;
-        if ((r = SDIF_Write2(block, num, f))!=ESDIF_SUCCESS) 
+        if ((r = SDIF_Write2(block, num, f))!=ESDIF_SUCCESS)
                 return r;
         return SDIF_Write2(((char *) block) + num, n-num, f);
     }
@@ -507,7 +507,7 @@ SDIFresult SDIF_Write4(const void *block, size_t n, FILE *f) {
 
     if ((n << 2) > BUFSIZE) {
         int num = BUFSIZE >> 2;
-        if ((r = SDIF_Write4(block, num, f))!=ESDIF_SUCCESS) 
+        if ((r = SDIF_Write4(block, num, f))!=ESDIF_SUCCESS)
                 return r;
         return SDIF_Write4(((char *) block) + num, n-num, f);
     }
@@ -535,7 +535,7 @@ SDIFresult SDIF_Write8(const void *block, size_t n, FILE *f) {
 
     if ((n << 3) > BUFSIZE) {
         int num = BUFSIZE >> 3;
-        if ((r = SDIF_Write8(block, num, f))!=ESDIF_SUCCESS) 
+        if ((r = SDIF_Write8(block, num, f))!=ESDIF_SUCCESS)
                 return r;
         return SDIF_Write8(((char *) block) + num, n-num, f);
     }
@@ -572,12 +572,12 @@ SDIFresult SDIF_Read2(void *block, size_t n, FILE *f) {
 
     if ((n << 1) > BUFSIZE) {
         int num = BUFSIZE >> 1;
-        if ((r = SDIF_Read2(block, num, f))!=ESDIF_SUCCESS) 
+        if ((r = SDIF_Read2(block, num, f))!=ESDIF_SUCCESS)
                 return r;
         return SDIF_Read2(((char *) block) + num, n-num, f);
     }
 
-    if (fread(p,2,n,f) != n) 
+    if (fread(p,2,n,f) != n)
                 return ESDIF_READ_FAILED;
 
     for (i = 0; i < m; i += 2) {
@@ -601,7 +601,7 @@ SDIFresult SDIF_Read4(void *block, size_t n, FILE *f) {
 
     if ((n << 2) > BUFSIZE) {
         int num = BUFSIZE >> 2;
-        if ((r = SDIF_Read4(block, num, f))!=ESDIF_SUCCESS) 
+        if ((r = SDIF_Read4(block, num, f))!=ESDIF_SUCCESS)
                 return r;
         return SDIF_Read4(((char *) block) + num, n-num, f);
     }
@@ -632,12 +632,12 @@ SDIFresult SDIF_Read8(void *block, size_t n, FILE *f) {
 
     if ((n << 3) > BUFSIZE) {
         int num = BUFSIZE >> 3;
-        if ((r = SDIF_Read8(block, num, f))!=ESDIF_SUCCESS) 
+        if ((r = SDIF_Read8(block, num, f))!=ESDIF_SUCCESS)
                 return r;
         return SDIF_Read8(((char *) block) + num, n-num, f);
     }
 
-    if (fread(p,8,n,f) != n) 
+    if (fread(p,8,n,f) != n)
                 return ESDIF_READ_FAILED;
 
     for (i = 0; i < m; i += 8) {
@@ -703,7 +703,7 @@ static SDIFresult SkipBytes(FILE *f, int bytesToSkip) {
         }
         bytesToSkip -= BLOCK_SIZE;
       }
-      
+
       if (fread (buf, bytesToSkip, 1, f) != 1) {
         return ESDIF_READ_FAILED;
       }

@@ -1,4 +1,4 @@
-/*  
+/*
     bbcut.c:
 
     Copyright (C) 2001 Nick Collins

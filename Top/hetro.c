@@ -1,4 +1,4 @@
-/*  
+/*
     hetro.c:
 
     Copyright (C) 1992 Tom Sullivan, Richard Dobson, John ffitch

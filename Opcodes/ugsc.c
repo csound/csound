@@ -1,4 +1,4 @@
-/*  
+/*
     ugsc.c:
 
     Copyright (C) 1999 Sean Costello

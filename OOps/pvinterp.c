@@ -1,4 +1,4 @@
-/*  
+/*
     pvinterp.c:
 
     Copyright (C) 1996 Richard Karpen

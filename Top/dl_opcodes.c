@@ -82,7 +82,7 @@ void *csoundOpenLibrary(const char *libraryPath)
     void *library = 0;
 #if defined(LINUX)
     if
-      (strstr(libraryPath, ".so") 
+      (strstr(libraryPath, ".so")
 #elif defined(__CYGWIN__)
        (strstr(libraryPath, ".dll") || strstr(libraryPath, ".DLL"))
 /* #elif defined(__MACH__) */
@@ -103,7 +103,7 @@ void *csoundCloseLibrary(void *library)
   returnValue = (void *)dlclose(library);
   return returnValue;
 }
- 
+
 void *csoundGetLibrarySymbol(void *library,
                              const char *procedureName)
 {

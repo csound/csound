@@ -1,4 +1,4 @@
-/*  
+/*
     pvsanal.c:
 
     Copyright (C) 2002 Richard Dobson
@@ -539,7 +539,7 @@ static void process_frame(PVSYNTH *p)
     long overlap = p->fsig->overlap;
     /*long format = p->fsig->format; */
 
-    /* fsigs MUST be corect format, as we offer no mechanism for 
+    /* fsigs MUST be corect format, as we offer no mechanism for
        assignment to a different one*/
 
     NO = N;        /* always the same */

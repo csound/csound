@@ -1,5 +1,5 @@
-/*  
-    XXX code for 
+/*
+    XXX code for
 
     Copyright (C) 1995 Fabio P. Bertolotti
 

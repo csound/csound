@@ -1,4 +1,4 @@
-/*  
+/*
     memfiles.c:
 
     Copyright (C) 1991, 2001 Barry Vercoe, John ffitch, Richard Dobson
