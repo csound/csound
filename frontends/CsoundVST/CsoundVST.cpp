@@ -189,15 +189,31 @@ void performanceThreadRoutine_(void *data)
 	((CsoundVST *)data)->performanceThreadRoutine();
 }
 
+static int threadYieldCallback(void *)
+{
+    Fl::lock();
+    Fl::wait(0.0);
+    Fl::unlock();
+    return 1;
+}
+
+static int nonThreadYieldCallback(void *)
+{
+    Fl::unlock();
+    return 1;
+}
+
 int CsoundVST::perform()
 {
 	int result = 0;
 	if(getIsVst())
 	{
+	    csoundSetYieldCallback(getCppSound()->getCsound(), nonThreadYieldCallback); 
 		performanceThreadRoutine();
 	}
 	else
 	{
+	    csoundSetYieldCallback(getCppSound()->getCsound(), threadYieldCallback); 
 		result = (int) csound::System::createThread(performanceThreadRoutine_, this, 0);
 	}
 	return result;
