@@ -44,7 +44,7 @@ def generate_x_method(f, action, context, rate0, triggered):
     name = 'py%(prefix)s%(action)s%(rate)s%(t)s_%(rate0)srate' % locals()
     
     print >> f, 'int'
-    print >> f, '%(name)s(PY%(ACTION)s%(T)s *p)' % locals()
+    print >> f, '%(name)s(void *csound_, PY%(ACTION)s%(T)s *p)' % locals()
     print >> f, '{'
     print >> f, '  char source[%d];' % size
     print >> f, '  PyObject *result;'
@@ -53,7 +53,7 @@ def generate_x_method(f, action, context, rate0, triggered):
     if (rate0 == 'k' and context != 'private') or rate0 == 'i':
         print >> f, '  if (*p->string != SSTRCOD)'
         print >> f, '    {'
-        print >> f, '      err_printf("%s: a string is needed");' % (name)
+        print >> f, '      ((ENVIRON *)csound_)->err_printf_("%s: a string is needed");' % (name)
         print >> f, '      return NOTOK;'
         print >> f, '    }'
         print >> f
@@ -73,22 +73,22 @@ def generate_x_method(f, action, context, rate0, triggered):
         print >> f
 
     if action == 'assign':
-        print >> f, '  sprintf(source, "%s = %f", unquote(p->STRARG), *p->value);'
+        print >> f, '  sprintf(source, "%s = %f", ((ENVIRON *)csound_)->unquote_(p->STRARG), *p->value);'
     else:
-        print >> f, '  strcpy(source, unquote(p->STRARG));'
+        print >> f, '  strcpy(source, ((ENVIRON *)csound_)->unquote_(p->STRARG));'
     print >> f
     
     print >> f, '  result = %(helper)s_in_given_context(source, %(ns)s);' % locals()
     print >> f, '  if (result == NULL)'
     print >> f, '    {'
-    print >> f, '      err_printf("py%(prefix)s%(action)s%(rate)s_%(rate0)srate: python exception\\n");' % locals()
+    print >> f, '      ((ENVIRON *)csound_)->err_printf_("py%(prefix)s%(action)s%(rate)s_%(rate0)srate: python exception\\n");' % locals()
     print >> f, '      PyErr_Print();'
     print >> f, '      return NOTOK;'
     print >> f, '    }'
     if action == 'eval':
         print >> f, '  else if (!PyFloat_Check(result))'
         print >> f, '    {'
-        print >> f, '      err_printf("py%(prefix)s%(action)s%(rate)s_%(rate0)srate: expression must evaluate in a float\\n");' % locals()
+        print >> f, '      ((ENVIRON *)csound_)->err_printf_("py%(prefix)s%(action)s%(rate)s_%(rate0)srate: expression must evaluate in a float\\n");' % locals()
         print >> f, '    }'
         print >> f, '  else'
         print >> f, '    {'
@@ -111,7 +111,7 @@ def generate_init_method(f, action, triggered):
         t, T = '', ''
     
     print >> f, 'int'
-    print >> f, 'pyl%(action)s%(t)s_irate(PY%(ACTION)s%(T)s *p)' % locals()
+    print >> f, 'pyl%(action)s%(t)s_irate(void *csound_, PY%(ACTION)s%(T)s *p)' % locals()
     print >> f, '{'
     print >> f, '  if (*p->string != SSTRCOD)'
     print >> f, '    return NOTOK;'
@@ -145,16 +145,16 @@ def generate_pycall_opcode_struct(f, action, triggered):
 
 def generate_pycall_method_declaration(f, action):
     ACTION = action.upper()
-    print >> f, 'extern int py%s_krate(PY%s *p);' % (action, ACTION)
-    print >> f, 'extern int py%si_irate(PY%s *p);' % (action, ACTION)
+    print >> f, 'extern int py%s_krate(void *csound_, PY%s *p);' % (action, ACTION)
+    print >> f, 'extern int py%si_irate(void *csound_, PY%s *p);' % (action, ACTION)
     print >> f
-    print >> f, 'extern int pyl%s_irate(PY%s *p);' % (action, ACTION)
-    print >> f, 'extern int pyl%s_krate(PY%s *p);' % (action, ACTION)
-    print >> f, 'extern int pyl%si_irate(PY%s *p);' % (action, ACTION)
+    print >> f, 'extern int pyl%s_irate(void *csound_, PY%s *p);' % (action, ACTION)
+    print >> f, 'extern int pyl%s_krate(void *csound_, PY%s *p);' % (action, ACTION)
+    print >> f, 'extern int pyl%si_irate(void *csound_, PY%s *p);' % (action, ACTION)
     print >> f
-    print >> f, 'extern int py%st_krate(PY%sT *p);' % (action, ACTION)
-    print >> f, 'extern int pyl%st_irate(PY%sT *p);' % (action, ACTION)
-    print >> f, 'extern int pyl%st_krate(PY%sT *p);' % (action, ACTION)
+    print >> f, 'extern int py%st_krate(void *csound_, PY%sT *p);' % (action, ACTION)
+    print >> f, 'extern int pyl%st_irate(void *csound_, PY%sT *p);' % (action, ACTION)
+    print >> f, 'extern int pyl%st_krate(void *csound_, PY%sT *p);' % (action, ACTION)
     print >> f
 
 f = open('pyx.c.auto', 'w')
