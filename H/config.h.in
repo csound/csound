@@ -27,9 +27,6 @@
 /* Define to 1 if you have the <boost/numeric/ublas/blas.hpp> header file. */
 #undef HAVE_BOOST_NUMERIC_UBLAS_BLAS_HPP
 
-/* Define to 1 if you have the <boost/random.hpp> header file. */
-#undef HAVE_BOOST_RANDOM_HPP
-
 /* Define to 1 if you have the <bsd/sgtty.h> header file. */
 #undef HAVE_BSD_SGTTY_H
 
@@ -49,32 +46,14 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* Define to 1 if you have the `Alib' library (-lAlib). */
-#undef HAVE_LIBALIB
-
-/* Define to 1 if you have the `asound' library (-lasound). */
-#undef HAVE_LIBASOUND
-
-/* Define to 1 if you have the `audio' library (-laudio). */
-#undef HAVE_LIBAUDIO
-
 /* Define to 1 if you have the `dl' library (-ldl). */
 #undef HAVE_LIBDL
-
-/* Define to 1 if you have the `fltk' library (-lfltk). */
-#undef HAVE_LIBFLTK
-
-/* Define to 1 if you have the `midi' library (-lmidi). */
-#undef HAVE_LIBMIDI
 
 /* Define to 1 if you have the `pthread' library (-lpthread). */
 #undef HAVE_LIBPTHREAD
 
 /* Define to 1 if you have the `sndfile' library (-lsndfile). */
 #undef HAVE_LIBSNDFILE
-
-/* Define to 1 if you have the `X11' library (-lX11). */
-#undef HAVE_LIBX11
 
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
@@ -177,7 +156,7 @@
 /* Build for HP platform */
 #undef HP
 
-/* Enable IRCAM soundfile format */
+/* enable IRCAM soundfile format */
 #undef IRCAM
 
 /* Build for Linux platform */
@@ -186,7 +165,7 @@
 /* Build for Linux big-endian platform */
 #undef LINUX_BE
 
-/* Enable NeXT soundfile format */
+/* enable NeXT soundfile format */
 #undef NeXT
 
 /* Name of package */
@@ -210,7 +189,7 @@
 /* Enable use of UNIX-style pipes */
 #undef PIPES
 
-/* Define to enable real-time audio */
+/* Define to enable PortAudio for real-time audio */
 #undef RTAUDIO
 
 /* Build for SGI platform */
@@ -227,10 +206,10 @@
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
-/* Enable Sun 4.1 soundfile format */
+/* enable Sun 4.1 soundfile format */
 #undef SUN41
 
-/* Enable Tcl/Tk support */
+/* enable Tcl/Tk support */
 #undef TCLTK
 
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
@@ -242,10 +221,10 @@
 /* Define when using double precision floating point */
 #undef USE_DOUBLE
 
-/* Define to build FLTK widget opcodes */
+/* Define to use FLTK */
 #undef USE_FLTK
 
-/* Use GUI */
+/* Define to use FLTK widget opcodes */
 #undef USE_FLTK_WIDGETS
 
 /* Version number of package */
@@ -254,18 +233,12 @@
 /* Build for Win32 platform */
 #undef WIN32
 
-/* Enable graphing of function tables */
+/* Define to use FLTK to graph function tables */
 #undef WINDOWS
 
 /* Define to 1 if your processor stores words with the most significant byte
    first (like Motorola and SPARC, unlike Intel and VAX). */
 #undef WORDS_BIGENDIAN
-
-/* Define to 1 if the X Window System is missing or not being used. */
-#undef X_DISPLAY_MISSING
-
-/* Use libsndfile for soundfile access */
-#undef _SNDFILE_
 
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
