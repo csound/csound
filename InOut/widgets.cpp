@@ -3072,12 +3072,12 @@ extern "C" int fl_joystick(ENVIRON *csound, FLJOYSTICK *p)
     }
     switch (iexpy) {
     case LIN_: //linear
-      o->ybounds(*p->iminy,*p->imaxy); break;
+      o->ybounds(*p->imaxy,*p->iminy); break;
     case EXP_ : //exponential
       { if (*p->iminy == 0 || *p->imaxy == 0)
         return initerror("FLjoy X axe: zero is illegal in exponential operations");
       MYFLT range = *p->imaxy - *p->iminy;
-      o->ybounds(0,range);
+      o->ybounds(range,0);
       p->basey = ::pow((*p->imaxy / *p->iminy), 1/range);
       } break;
     default:
