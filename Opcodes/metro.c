@@ -33,7 +33,7 @@ int metro_set(METRO *p)
 
     if (phs >= 0.0) {
       if ((longphs = (long)phs))
-        warning("metro:init phase truncation");
+        err_printf("metro:init phase truncation");
       p->curphs = phs - (MYFLT)longphs;
     }
     p->flag=1;
