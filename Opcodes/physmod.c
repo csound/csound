@@ -919,6 +919,7 @@ int brass(BRASS *p)
 #include "singwave.h"
 #include "shaker.h"
 #include "fm4op.h"
+#include "bowedbar.h"
 
 int tubebellset(void*);
 int tubebell(void*);
@@ -941,6 +942,9 @@ int voicformset(void*);
 int voicform(void*);
 int shakerset(void*);
 int shaker(void*);
+int bowedbarset(void*);
+int bowedbar(void*);
+
 static OENTRY localops[] = {
 { "wgclar",  S(CLARIN),5, "a", "kkkiikkkio",(SUBR)clarinset,NULL,   (SUBR)clarin},
 { "wgflute", S(FLUTE), 5, "a", "kkkiikkkiovv",(SUBR)fluteset,NULL,  (SUBR)flute },
@@ -957,6 +961,8 @@ static OENTRY localops[] = {
 { "fmpercfl", S(FM4OP),5, "a", "kkkkkkiiiii",(SUBR)percfluteset, NULL, (SUBR)percflute},
 { "moog", S(MOOG1),    5, "a", "kkkkkkiii", (SUBR)Moog1set, NULL, (SUBR)Moog1  },
 { "shaker", S(SHAKER), 5, "a", "kkkkko",  (SUBR)shakerset, NULL,   (SUBR)shaker},
+{ "wgbowedbar", S(BOWEDBAR), 5, "a","kkkkkoooo",
+                             (SUBR)bowedbarset, NULL,(SUBR) bowedbar },
 };
 
 LINKAGE
