@@ -7,6 +7,8 @@
 	  print function names correctly
 	* Engine/entry2.c:
 	  allow opcode names like FLpanel_end, FLgroup_end, etc.
+	* InOut/midirecv.c:
+	  restored original algorithm for assignment of default instr numbers
 
 2005-02-28	Istvan Varga	<istvan@csounds.com>
 	* cleanup.sh:
