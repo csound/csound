@@ -116,6 +116,17 @@ exec_file_in_given_context(char *filename, PyObject *private)
 
 // ------ OPCODES
 
+static int pythonInitialized = 0;
+
+int pyinit(PYINIT *p)
+{
+    if(!pythonInitialized) {
+        Py_Initialize();
+        pythonInitialized = 1;
+    }
+    return OK;
+}
+
 #include "pyx.c.auto"
 #include "pycall.c.auto"
 
@@ -214,6 +225,10 @@ int pylcallni_irate(PYCALLN *p)
   /* PYTHON OPCODES */
 
 OENTRY oentries[] = {
+  /* INITIALIZATION */
+  
+{ "pyinit",    sizeof(PYINIT),    1,  "",            "",     (SUBR)pyinit,         NULL   },
+
   /* RUN GROUP */
 
 { "pyrun",     sizeof(PYRUN),     2,  "",            "S",     NULL,                 (SUBR)pyrun_krate   },
