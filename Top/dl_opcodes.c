@@ -461,6 +461,21 @@ int csoundLoadExternal(void *csound, const char* libraryPath)
       printf("Found 'opcode_init' function.\n");
       printf("Calling 'opcode_init'.\n");
     }
+    /* deal with fgens if there are any, signalled by setting top bit of length */
+    if (length<0) {
+      NGFENS *(*nfgens)(ENVIRON*);
+      length = length&0x7fffffff; /* Assumes 32 bit */
+      nfgens = csoundGetLibrarySymbol(handle, "fgen_init");
+      if (nfgens) {
+        int allocgen(char *, void(*)(void));
+        NGFENS *names = (*nfgens)(&cenviron);
+        int i=0;
+        while (names[i].word!=NULL) {
+          allocgen(names[i].word, names[i].fn);
+          i++;
+        }
+      }
+    }
     opcodlst_n = (*init)(&cenviron);
     olength = oplstend-opcodlst;
     if(O.odebug) {
