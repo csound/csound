@@ -1,3 +1,10 @@
+2004-01-13  John ffitch  <jpff@cs.bath.ac.uk>
+
+	* Opcodes/sfont.c: casts in many debug statements
+
+	* Opcodes/mandolin.c (mandolin, mandolinset): Use ENVIRON*
+	argument to Delayline functions
+
 2004-01-01  John ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/pluck.c (filter3Set): Need to initialise ->x1 and ->x2
