@@ -21,6 +21,7 @@
     02111-1307 USA
 */
 
+
 #include "cs.h"                         /*             SNDLIB.C       */
 #include "soundio.h"
 #include <sndfile.h>
@@ -29,11 +30,11 @@
 #include <fcntl.h>
 
 #ifdef RTAUDIO
-extern  int     (*rtrecord)(MYFLT *, int);
-extern  void    (*rtplay)(MYFLT *, int);
-extern  void    (*rtclose)(void);
-extern  void    (*recopen)(int, int, float, int);
-extern  void    (*playopen)(int, int, float, int);
+extern  int     *rtrecord_(MYFLT *, int);
+extern  void    *rtplay_(MYFLT *, int);
+extern  void    rtclose_(void);
+extern  void    *recopen_(int, int, float, int);
+extern  void    *playopen_(int, int, float, int);
 #endif
 
 static  SNDFILE *outfile;
@@ -370,8 +371,8 @@ void sfopenin(void)             /* init for continuous soundin */
         sscanf(O.infilename+3, "%d", &rtin_dev);
 #endif
       sfname = O.infilename;
-      recopen(nchnls,O.insampsiz,(float)esr,2);  /* open devaudio for input */
-      audrecv = rtrecord;                 /*  & redirect audio gets  */
+      recopen_(nchnls,O.insampsiz,(float)esr,2); /* open devaudio for input */
+      audrecv = rtrecord_;                 /*  & redirect audio gets  */
       isfd = DEVAUDIO;                    /* dummy file descriptor   */
       pipdevin   = 1;                     /* no backward seeks !     */
       goto inset;                         /* no header processing    */
@@ -457,8 +458,8 @@ void sfopenout(void)                            /* init for sound out       */
         sscanf(O.outfilename+3, "%d", &rtout_dev);
 #endif
       sfoutname = O.outfilename;
-      playopen(nchnls, O.sfsampsize, (float)esr, 2);  /* open devaudio for out */
-      audtran = rtplay;                        /* & redirect audio puts */
+      playopen_(nchnls, O.sfsampsize, (float)esr, 2);  /* open devaudio for out */
+      audtran = rtplay_;                       /* & redirect audio puts */
       osfd = DEVAUDIO;                         /* dummy file descriptor */
       pipdevout = 1;                           /* no backward seeks !   */
 #if defined(mills_macintosh) || defined(SYMANTEC)
@@ -535,7 +536,7 @@ void sfclosein(void)
 #ifdef RTAUDIO
     if (isfd == DEVAUDIO) {
       if (!osfopen || osfd != DEVAUDIO)
-        rtclose();     /* close only if not open for output too */
+        rtclose_();     /* close only if not open for output too */
     }
     else
 #endif
@@ -561,7 +562,7 @@ void sfcloseout(void)
 #ifdef RTAUDIO
     if (osfd == DEVAUDIO) {
       if (!isfopen || isfd != DEVAUDIO)
-        rtclose();     /* close only if not open for input too */
+        rtclose_();     /* close only if not open for input too */
       goto report;
     }
 #endif

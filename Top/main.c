@@ -612,7 +612,7 @@ void err_printf(char *fmt, ...)
 
 void mainRESET(ENVIRON *p)
 {
-    extern  void    (*rtclose)(void);
+    extern  void    *rtclose_(void);
     void adsynRESET(void);
     void argdecodeRESET(void);
     void cscoreRESET(void);
@@ -630,7 +630,7 @@ void mainRESET(ENVIRON *p)
     void tranRESET(void);
 
 #ifdef RTAUDIO
-    rtclose();                  /* In case need to reopen */
+    rtclose_();                 /* In case need to reopen */
 #endif
 #if defined(USE_FLTK) && defined(never)        /* IV - Nov 30 2002 */
     void widgetRESET(void);     /* N.B. this is not used yet, */

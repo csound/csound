@@ -282,9 +282,11 @@ int POLL_EVENTS(void)
     extern int fltk_abort;
     if (form) Fl::check();
     Fl::wait(0.0);
+#ifdef FLTK_GUI
     if (fltk_abort) {
       return 0;
     }
+#endif
     return 1;
 }
 
