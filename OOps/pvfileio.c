@@ -708,8 +708,8 @@ static int pvoc_readfmt(int fd,int byterev,WAVEFORMATPVOCEX *pWfpx)
 
     if (byterev) {
       union CHEAT {
-        long	dw;
-        float	df;
+        long    dw;
+        float   df;
       } cheat;
       dword = pWfpx->dwVersion;
       pWfpx->dwVersion = REVDWBYTES(dword);
