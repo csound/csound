@@ -241,8 +241,9 @@ if configure.CheckHeader("termios.h", language = "C"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_TERMIOS_H')
 if configure.CheckHeader("string.h", language = "C"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_STRING_H')
-if configure.CheckHeader("strings.h", language = "C"):
-    commonEnvironment.Append(CCFLAGS = '-DHAVE_STRINGS_H')
+else :
+     if configure.CheckHeader("strings.h", language = "C"):
+     	commonEnvironment.Append(CCFLAGS = '-DHAVE_STRINGS_H')
 if configure.CheckHeader("dirent.h", language = "C"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_DIRENT_H')
 if configure.CheckFunc("itoa") or getPlatform() == 'mingw':
