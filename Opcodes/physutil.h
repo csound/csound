@@ -1,0 +1,236 @@
+/*  
+    physutil.h:
+
+    Copyright (C) 1996, 1997 Perry Cook, John ffitch
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
+*/
+
+
+/* Various filters etc for Physical models */
+
+#include <math.h>
+
+#define AMP_SCALE (e0dbfs)
+#define AMP_RSCALE (dbfs_to_float)
+/* #define AMP_SCALE       (FL(32768.0)) */
+/* #define AMP_RSCALE      (FL(0.000030517578125)) */
+
+/*******************************************/
+/*  Noise Generator Class,                 */
+/*  by Perry R. Cook, 1995-96              */
+/*  White noise as often as you like.      */
+/*  Recoded by John ffitch 1997            */
+/*******************************************/
+
+#if !defined(__PhysUtil_h)
+#define __PhysUtil_h
+
+typedef MYFLT Noise;
+
+#define make_Noise(n) n = FL(0.0)
+
+MYFLT Noise_tick(Noise*);
+#define Noise_lastOut(n) (n)
+
+/*******************************************/
+/*  Linearly Interpolating Delay Line      */
+/*  Object by Perry R. Cook 1995-96        */
+/*  Recoded by John ffitch 1997            */
+/*******************************************/
+
+typedef struct DLineL{
+    AUXCH       inputs;
+    MYFLT       lastOutput;
+    long        inPoint;
+    long        outPoint;
+    long        length;
+    MYFLT       alpha;
+    MYFLT       omAlpha;
+} DLineL;
+
+#define DLineL_lastOut(d)       ((d)->lastOutput)
+void make_DLineL(DLineL *, long);
+void DLineL_setDelay(DLineL *, MYFLT);
+MYFLT DLineL_tick(DLineL *, MYFLT);
+
+/*******************************************/
+/*  Envelope Class, Perry R. Cook, 1995-96 */
+/*  This is the base class for envelopes.  */
+/*  This one is capable of ramping state   */
+/*  from where it is to a target value by  */
+/*  a rate.  It also responds to simple    */
+/*  KeyOn and KeyOff messages, ramping to  */
+/*  1.0 on keyon and to 0.0 on keyoff.     */
+/*  There are two tick (update value)      */
+/*  methods, one returns the value, and    */
+/*  other returns 0 if the envelope is at  */
+/*  the target value (the state bit).      */
+/*******************************************/
+
+#define RATE_NORM       (FL(22050.0)/esr_)
+
+typedef struct Envelope {
+    MYFLT       value;
+    MYFLT       target;
+    MYFLT       rate;
+    int         state;
+} Envelope;
+
+void make_Envelope(Envelope*);
+void Envelope_keyOn(Envelope*);
+void Envelope_keyOff(Envelope*);
+void Envelope_setRate(Envelope*, MYFLT);
+void Envelope_setTarget(Envelope*, MYFLT);
+void Envelope_setValue(Envelope*,MYFLT);
+MYFLT Envelope_tick(Envelope*);
+void Envelope_print(Envelope*);
+
+/*******************************************/
+/*  One Pole Filter Class,                 */
+/*  by Perry R. Cook, 1995-96              */
+/*  The parameter gain is an additional    */
+/*  gain parameter applied to the filter   */
+/*  on top of the normalization that takes */
+/*  place automatically.  So the net max   */
+/*  gain through the system equals the     */
+/*  value of gain.  sgain is the combina-  */
+/*  tion of gain and the normalization     */
+/*  parameter, so if you set the poleCoeff */
+/*  to alpha, sgain is always set to       */
+/*  gain * (1.0 - fabs(alpha)).            */
+/*******************************************/
+
+typedef struct OnePole {
+    MYFLT gain;                 /* Start Filter subclass */
+    MYFLT outputs;
+    /*    MYFLT *inputs; */
+/*     MYFLT lastOutput;  */          /* End */
+    MYFLT poleCoeff;
+    MYFLT sgain;
+} OnePole;
+
+void make_OnePole(OnePole*);
+/* void OnePole_clear(OnePole*); */
+void OnePole_setPole(OnePole*, MYFLT aValue);
+void OnePole_setGain(OnePole*, MYFLT aValue);
+MYFLT OnePole_tick(OnePole*, MYFLT sample);
+void OnePole_print(OnePole*);
+
+/*******************************************/
+/*  DC Blocking Filter                     */
+/*  by Perry R. Cook, 1995-96              */
+/*  This guy is very helpful in, uh,       */
+/*  blocking DC.  Needed because a simple  */
+/*  low-pass reflection filter allows DC   */
+/*  to build up inside recursive           */
+/*  structures.                            */
+/*******************************************/
+
+typedef struct DCBlock {
+    MYFLT       gain;
+    MYFLT       outputs;
+    MYFLT       inputs;
+/*     MYFLT    lastOutput; */
+} DCBlock;
+
+void make_DCBlock(DCBlock*);
+/* void DCBlock_clear(DCBlock*); */
+MYFLT DCBlock_tick(DCBlock*, MYFLT);
+
+/*******************************************/
+/*  ADSR Subclass of the Envelope Class,   */
+/*  by Perry R. Cook, 1995-96              */
+/*  This is the traditional ADSR (Attack   */
+/*  Decay, Sustain, Release) envelope.     */
+/*  It responds to simple KeyOn and KeyOff */
+/*  messages, keeping track of it's state. */
+/*  There are two tick (update value)      */
+/*  methods, one returns the value, and    */
+/*  other returns the state (0 = A, 1 = D, */
+/*  2 = S, 3 = R)                          */
+/*******************************************/
+
+
+
+#define ATTACK  (0)
+#define DECAY   (1)
+#define SUSTAIN (2)
+#define RELEASE (3)
+#define CLEAR   (4)
+
+typedef struct ADSR {
+    MYFLT       value;                /* Envelope subclass */
+    MYFLT       target;
+    MYFLT       rate;
+    int         state;                  /* end */
+    MYFLT       attackRate;
+    MYFLT       decayRate;
+    MYFLT       sustainLevel;
+    MYFLT       releaseRate;
+} ADSR;
+
+void make_ADSR(ADSR*);
+void dest_ADSR(ADSR*);
+void ADSR_keyOn(ADSR*);
+void ADSR_keyOff(ADSR*);
+void ADSR_setAttackRate(ADSR*, MYFLT);
+void ADSR_setDecayRate(ADSR*, MYFLT);
+void ADSR_setSustainLevel(ADSR*, MYFLT);
+void ADSR_setReleaseRate(ADSR*, MYFLT);
+void ADSR_setAll(ADSR*, MYFLT, MYFLT, MYFLT, MYFLT);
+void ADSR_setAllTimes(ADSR*, MYFLT, MYFLT, MYFLT, MYFLT);
+void ADSR_setTarget(ADSR*, MYFLT);
+void ADSR_setValue(ADSR*, MYFLT);
+MYFLT ADSR_tick(ADSR*);
+int ADSR_informTick(ADSR*);
+MYFLT ADSR_lastOut(ADSR*);
+
+/*******************************************/
+/*  BiQuad (2-pole, 2-zero) Filter Class,  */
+/*  by Perry R. Cook, 1995-96              */
+/*  See books on filters to understand     */
+/*  more about how this works.  Nothing    */
+/*  out of the ordinary in this version.   */
+/*******************************************/
+
+
+typedef struct BiQuad {
+    MYFLT       gain;                 /* Start if filter subclass */
+    MYFLT       inputs[2];
+    MYFLT       lastOutput;           /* End */
+    MYFLT       poleCoeffs[2];
+    MYFLT       zeroCoeffs[2];
+} BiQuad;
+
+void make_BiQuad(BiQuad*);
+void dest_BiQuad(BiQuad*);
+void BiQuad_clear(BiQuad*);
+void BiQuad_setPoleCoeffs(BiQuad*, MYFLT *);
+void BiQuad_setZeroCoeffs(BiQuad*, MYFLT *);
+#define BiQuad_setGain(b,aValue)        ((b).gain = aValue)
+#define BiQuad_setEqualGainZeroes(b)    \
+        { (b).zeroCoeffs[1] = -FL(1.0); (b).zeroCoeffs[0] = FL(0.0); }
+#define BiQuad_setFreqAndReson(b,freq,reson)    \
+        { (b).poleCoeffs[1]= -((reson)*(reson)); \
+          (b).poleCoeffs[0]= FL(2.0)*(reson)*(MYFLT)cos(TWOPI*(double)(freq)/(double)esr_); }
+MYFLT BiQuad_tick(BiQuad*, MYFLT);
+#define BiQuad_lastOut(x)       (x)->lastOutput
+
+#endif
+
