@@ -1,3 +1,9 @@
+2004-06-12  John ffitch  <jpff@codemist.co.uk>
+
+	* OOps/ugens2.c (ftkrchk): 
+	* OOps/ugrw1.c: Results of some opcodes were reporting errors
+	incorrectly 
+
 2004-06-07  Michael Gogins <gogins@pipeline.com>
 
 	* Changed the CsoundVST module to create a global csound instance of 
