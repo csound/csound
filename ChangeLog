@@ -1,3 +1,12 @@
+2004-07-31  Michael Gogins <gogins@pipeline.com>
+
+	* Removed many warnings, especially by using %lf in sscanf for USE_DOUBLE
+	and re-ordering ctor lists.
+	
+	* Added section to build Loris from sources if present.
+	
+	* SWIG-generated .py files now generated in root directory.
+
 2004-07-25  Michael Gogins <gogins@pipeline.com>
 
 	* Added csoundTableLength, csoundTableGet, csoundTableSet to API.
