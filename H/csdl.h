@@ -226,7 +226,7 @@ GLOBALS *pcglob;
 #define die pcglob->die
 #define ftfind pcglob->ftfind
 #define initerror pcglob->initerror
-#define perrerror pcglob->perferror
+#define perferror pcglob->perferror
 #define mmalloc pcglob->mmalloc
 #define mfree pcglob->mfree
 #define dispset pcglob->dispset
