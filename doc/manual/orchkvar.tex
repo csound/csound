@@ -1,0 +1,79 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{Constants and Variables}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous &Syntax of the Orchestra &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{Constants and Variables}
+
+
+ \emph{constants}
+ are floating point numbers, such as 1, 3.14159, or -73.45. They are available continuously and do not change in value. 
+
+
+ \emph{variables}
+ are named cells containing numbers. They are available continuously and may be updated at one of the four update rates (setup only, i-rate, k-rate, or a-rate). i- and k-rate variables are scalars (i.e. they take on only one value at any given time) and are primarily used to store and recall controlling data, that is, data that changes at the note rate (for i-rate variables) or at the control rate (for k-rate variables). i- and k-variables are therefore useful for storing note parameter values, pitches, durations, slow-moving frequencies, vibratos, etc. a-rate variables, on the other hand, are arrays or vectors of information. Though renewed on the same perf-time control pass as k-rate variables, these array cells represent a finer resolution of time by dividing the control period into sample periods (see \emph{ksmps}
+). a-rate variables are used to store and recall data changing at the audio sampling rate (e.g. output signals of oscillators, filters, etc.). 
+
+
+  A further distinction is that between local and global variables. \emph{local}
+ variables are private to a particular instrument, and cannot be read from or written into by any other instrument. Their values are preserved, and they may carry information from pass to pass (e.g. from initialization time to performance time) within a single instrument. Local variable names begin with the letter \emph{p, i, k}
+, or \emph{a}
+. The same local variable name may appear in two or more different instrument blocks without conflict. 
+
+
+ \emph{global}
+ variables are cells that are accessible by all instruments. The names are either like local names preceded by the letter \emph{g}
+, or are special reserved symbols. Global variables are used for broadcasting general values, for communicating between instruments (semaphores), or for sending sound from one instrument to another (e.g. mixing prior to reverberation). 
+
+
+  given these distinctions, there are eight forms of local and global variables: 
+
+
+ 
+
+
+ \textbf{Table 1. Types of Variables}
+
+
+
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
+%\hline 
+TypeWhen RenewableLocalGlobal & & & & & & & \\
+ %\hline 
+reserved symbolspermanent -- r symbol &score pfieldsi-timep number --  &v-set symbolsi-timev numbergv number &init variablesi-timei namegi name  &MIDI controllersany timec number --  &control signalsp-time, k-ratek namegk &audio signalsp-time, k-ratea namega name &spectral data typesk-ratew name --  \\
+ %\hline 
+
+\end{tabular}
+
+
+
+  where \emph{rsymbol}
+ is a special reserved symbol (e.g. \emph{sr, kr}
+), \emph{number}
+ is a positive integer referring to a score pfield or sequence number, and \emph{name}
+ is a string of letters and/or digits with local or global meaning. As might be apparent, score parameters are local i-rate variables whose values are copied from the invoking score statement just prior to the init pass through an instrument, while MIDI controllers are variables which can be updated asynchronously from a MIDI file or MIDI device. 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+Orchestra Statement Types &Up &Expressions
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

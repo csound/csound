@@ -1,0 +1,190 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{nreverb}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{nreverb}
+nreverb --  A reverberator consisting of 6 parallel comb-lowpass filters. \subsection*{Description}
+
+
+  This is a reverberator consisting of 6 parallel comb-lowpass filters being fed into a series of 5 allpass filters. \emph{nreverb}
+ replaces \emph{reverb2}
+ (version 3.48) and so both opcodes are identical. 
+\subsection*{Syntax}
+
+
+ ar \textbf{nreverb}
+ asig, ktime, khdif [, iskip] [,inumCombs] [, ifnCombs] [, inumAlpas] [, ifnAlpas]
+\subsection*{Initialization}
+
+
+ \emph{iskip}
+ (optional, default=0) -- Skip initialization if present and non-zero. 
+
+
+ \emph{inumCombs}
+ (optional) -- number of filter constants in comb filter. If omitted, the values default to the nreverb constants. New in Csound version 4.09. 
+
+
+ \emph{ifnCombs}
+ - function table with \emph{inumCombs}
+ comb filter time values, followed the same number of gain values. The ftable should not be rescaled (use negative fgen number). Positive time values are in seconds. The time values are converted internally into number of samples, then set to the next greater prime number. If the time is negative, it is interpreted directly as time in sample frames, and no processing is done (except negation). New in Csound version 4.09. 
+
+
+ \emph{inumAlpas}
+, \emph{ifnAlpas}
+ (optional) -- same as \emph{inumCombs/ifnCombs}
+, for allpass filter. New in Csound 4.09. 
+\subsection*{Performance}
+
+
+  The input signal asig is reverberated for \emph{ktime}
+ seconds. The parameter \emph{khdif}
+ controls the high frequency diffusion amount. The values of \emph{khdif}
+ should be from 0 to 1. If \emph{khdif}
+ is set to 0 the all the frequencies decay with the same speed. If \emph{khdif}
+ is 1, high frequencies decay faster than lower ones. If \emph{ktime}
+ is inadvertently set to a non-positive number, \emph{ktime}
+ will be reset automatically to 0.01. (New in Csound version 4.07.) 
+
+
+  As of Csound version 4.09, \emph{nreverb}
+ may read any number of comb and allpass filter from an ftable. 
+\subsection*{Examples}
+
+
+  Here is a simple example of the nreverb opcode. It uses the files \emph{nreverb.orc}
+ and \emph{nreverb.sco}
+. 
+
+
+ \textbf{Example 1. Simple example of the nreverb opcode.}
+
+\begin{lstlisting}
+/* nreverb.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+instr 1
+  a1 oscil 10000, 440, 1
+  a2 nreverb a1, 2.5, .3
+  out a1 + a2 * .2
+endin
+/* nreverb.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* nreverb.sco */
+; Table 1: an ordinary sine wave.
+f 1 0 32768 10 1 
+         
+i 1 0.0 0.5
+i 1 1.0 0.5
+i 1 2.0 0.5
+i 1 3.0 0.5
+i 1 4.0 0.5
+e
+/* nreverb.sco */
+        
+\end{lstlisting}
+
+
+  Here is an example of the nreverb opcode using an ftable for filter constants. It uses the files \emph{nreverb\_ftable.orc}
+, \emph{nreverb\_ftable.sco}
+, and \emph{beats.wav}
+. 
+
+
+ \textbf{Example 2. An example of the nreverb opcode using an ftable for filter constants.}
+
+\begin{lstlisting}
+/* nreverb_ftable.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+instr 1
+  a1  soundin "beats.wav"
+  a2  nreverb a1, 1.5, .75, 0, 8, 71, 4, 72
+  out a1 + a2 * .4
+endin
+/* nreverb_ftable.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* nreverb_ftable.sco */
+; freeverb time constants, as direct (negative) sample, with arbitrary gains
+f71 0 16   -2  -1116 -1188 -1277 -1356 -1422 -1491 -1557 -1617  0.8  0.79  0.78  0.77  0.76  0.75  0.74  0.73
+
+f72 0 16   -2  -556 -441 -341 -225  0.7  0.72  0.74  0.76
+
+i1 0 3
+e
+/* nreverb_ftable.sco */
+        
+\end{lstlisting}
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Authors: Paris Smaragdis (\emph{reverb2}
+) &MIT, Cambridge &1995
+
+\end{tabular}
+
+
+
+ 
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Richard Karpen (\emph{nreverb}
+) &Seattle, Wash &1998
+
+\end{tabular}
+
+
+
+ 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+notnum &Up &nrpn
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,496 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{opcode}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{opcode}
+opcode --  Defines the start of user-defined opcode block. \subsection*{Description}
+
+
+  This feature is based on Matt J. Ingalls' subinstruments. However, there are some differences. (Sub-instruments can be used independently with the original syntax.) User defined opcodes have these differences as compared to subinstruments: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ opcodes are declared by \emph{opcode}
+...\emph{endop}
+ pairs (similarly to \emph{instr}
+...\emph{endin}
+)
+
+\item 
+
+ there are more argument types both for input and output - more output arguments are allowed that do not depend on \emph{nchnls}
+
+
+\item 
+
+ all p-fields (including \emph{p1}
+) are copied from the calling instrument, as well as the release flag and MIDI parameters. Changing these from opcodes has no effect on the calling instrument, but does affect opcode or sub-instrument calls inside the opcode definition.
+
+\item 
+
+ p-fields cannot be updated at k-rate from the caller instrument and are also not affected by input arguments
+
+\item 
+
+ recursion is possible and only limited by available memory (this may be possible with subinstruments too, but not tested)
+
+\item 
+
+ a local ksmps value can be set (this must be an even divisor of the ksmps of the calling instrument/opcode) both from the caller and in the user-defined opcode block (using the \emph{setksmps}
+ opcode.)
+
+\item 
+
+ input/output to the caller instrument is done with \emph{xin}
+ and \emph{xout}
+ These are easier to use than \emph{out}
+, \emph{outk}
+, etc. in sub- instruments. But they work only in user-defined opcode blocks and not in normal instruments.
+
+\item 
+
+ better memory management (memory leaks fixed)
+
+\item 
+
+ cannot be used as stand-alone instruments
+
+
+\end{itemize}
+
+
+  The \emph{opcode}
+ and \emph{endop}
+ statements allow defining a new opcode that can be used the same way as any of the built-in Csound opcodes. These opcode blocks are very similar to instruments (and are, in fact, implemented as special instruments). However, in most cases, they cannot be used from the score with \emph{i statements}
+. 
+
+
+  A user-defined opcode block must precede the instrument (or other opcode) from which it is used. But it is possible to call the opcode from itself. This allows recursion of any depth that is limited only by available memory. Additionally, there is an experimental feature that allows running the opcode definition at a higher control rate than the \emph{kr}
+ value specified in the orchestra header. 
+
+
+  Similarly to instruments, the variables and labels of a user-defined opcode block are local and cannot be accessed from the caller instrument (and the opcode cannot access variables of the caller, either). 
+
+
+  Some parameters are automatically copied at initialization, however: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ all p-fields (including \emph{p1}
+)
+
+\item 
+
+ extra time (see also \emph{xtratim}
+, \emph{linsegr}
+, and related opcodes). This may affect the operation of \emph{linsegr}
+/\emph{expsegr}
+/\emph{linenr}
+/\emph{envlpxr}
+ in the user-defined opcode block.
+
+\item 
+
+ MIDI parameters, if there are any.
+
+
+\end{itemize}
+
+
+  Also, the release flag (see the \emph{release}
+ opcode) is copied at performance time. 
+
+
+  It must be noted that none of the above (with the exception of MIDI channel parameters that can be modified by opcodes like \emph{ctrlinit}
+) are copied back to the calling instrument. This is particularly important in the case of \emph{p3}
+ and \emph{xtratim}
+ - note duration cannot be changed from the opcode. However, this may change in future releases. So orchestras should not rely on what happens when an user-defined opcode block modifies \emph{p3}
+ or the extra time. 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Warning &\textbf{Warning}
+ \\
+  &
+
+  The \emph{turnoff}
+ opcode must not be used from user-defined opcodes, as it can have unpredictable results. 
+
+
+\end{tabular}
+
+
+
+  Use the \emph{setksmps}
+ opcode to set the local \emph{ksmps}
+ value. 
+
+
+  The \emph{xin}
+ and \emph{xout}
+ opcodes copy variables to and from the opcode definition, allowing communication with the calling instrument. 
+
+
+  The types of input and output variables are defined by the parameters \emph{intypes}
+ and \emph{outtypes}
+. 
+
+
+ 
+
+
+\begin{tabular}{cc}
+\textbf{Notes}
+ \\
+  &
+
+ 
+
+
+ 
+\begin{itemize}
+\item 
+
+ \emph{xin}
+ and \emph{xout}
+ should be called only once, and \emph{xin}
+ should precede \emph{xout}
+, otherwise an init error and deactivation of the current instrument may occur.
+
+\item 
+
+ These opcodes actually run only at i-time. Performance time copying is done by the user opcode call. This means that skipping \emph{xin}
+ or \emph{xout}
+ with \emph{kgoto}
+ has no effect, while skipping with \emph{igoto}
+ affects both init and performance time operation.
+
+
+\end{itemize}
+
+
+\end{tabular}
+
+\subsection*{Syntax}
+
+
+ \textbf{opcode}
+ name, outtypes, intypes
+\subsection*{Initialization}
+
+
+ \emph{name}
+ -- name of the opcode. It may consist of any combination of letters, digits, and underscore but should not begin with a digit. If an opcode with the specified name already exists, it is redefined (a warning is printed in such cases). Some reserved words (like \emph{instr}
+ and \emph{endin}
+) cannot be redefined. 
+
+
+ \emph{outtypes}
+ -- list of output types. The format is the same as in the case of \emph{intypes}
+. 
+
+
+  Here are the available \emph{outtypes}
+: 
+
+
+ 
+
+
+\begin{tabular}{|c|c|c|c|}
+%\hline 
+TypeDescriptionVariable Types AllowedUpdated At & & & \\
+ %\hline 
+aa-rate variablea-ratea-rate &ii-time variablei-timei-time &kk-rate variablek-ratek-rate &Kk-rate with initializationk-ratei-time and k-rate \\
+ %\hline 
+
+\end{tabular}
+
+
+
+ 
+
+
+  The maximum allowed number of output arguments is 24. However, only the first 15 may be audio rate (``a''). 
+
+
+ \emph{intypes}
+ -- list of input types, any combination of the characters: a, k, K, i, o, p, and j. A single 0 character can be used if there are no input arguments. Double quotes and delimiter characters (e.g. comma) are \emph{not}
+ needed. 
+
+
+  The meaning of the various \emph{intypes}
+ is shown in the following table: 
+
+
+ 
+
+
+\begin{tabular}{|c|c|c|c|c|c|c|}
+%\hline 
+TypeDescriptionVariable Types AllowedUpdated At & & & & & & \\
+ %\hline 
+aa-rate variablea-ratea-rate &ii-time variablei-timei-time &joptional i-time, defaults to -1i-time, constanti-time &kk-rate variablek-ratek-rate &Kk-rate with initializationk-ratei-time and k-rate &ooptional i-time, defaults to 0i-time, constanti-time &poptional i-time, defaults to 1i-time, constanti-time \\
+ %\hline 
+
+\end{tabular}
+
+
+
+ 
+
+
+  The maximum allowed number of input arguments is 24. However, only the first 15 may be audio rate (``a''). 
+
+
+ \emph{iksmps}
+ (optional, default=0) -- sets the local ksmps value. 
+
+
+  If \emph{iksmps}
+ is set to zero, the \emph{ksmps}
+ of the caller instrument or opcode is used (this is the default behavior). 
+
+
+ 
+
+
+\begin{tabular}{cc}
+\textbf{Note}
+ \\
+  &
+
+  The local \emph{ksmps}
+ is implemented by splitting up a control period into smaller sub-kperiods and temporarily modifying internal Csound global variables. This also requires converting the rate of k-rate input and output arguments (input variables receive the same value in all sub-kperiods, while outputs are written only in the last one). 
+
+
+\end{tabular}
+
+
+
+ 
+
+
+\begin{tabular}{cc}
+Warning &\textbf{Warning about local ksmps}
+ \\
+  &
+
+  When the local \emph{ksmps}
+ is not the same as the orchestra level \emph{ksmps}
+ value (as specified in the orchestra header). Global a-rate operations must not be used in the user-defined opcode block. 
+
+
+  These include: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ any access to ``ga'' variables
+
+\item 
+
+ a-rate zak opcodes (\emph{zar}
+, \emph{zaw}
+, etc.)
+
+\item 
+
+ \emph{tablera}
+ and \emph{tablewa}
+ (these two opcodes may in fact work, but caution is needed)
+
+\item 
+
+ The \emph{in}
+ and \emph{out}
+ opcode family (these read from, and write to global a-rate buffers)
+
+
+\end{itemize}
+
+
+  In general, the local \emph{ksmps}
+ should be used with care as it is an experimental feature. Though it works correctly in most cases. 
+
+
+\end{tabular}
+
+
+
+  The \emph{setksmps}
+ statement can be used to set the local \emph{ksmps}
+ value of the user-defined opcode block. It has one i-time parameter specifying the new \emph{ksmps}
+ value (which is left unchanged if zero is used). \emph{setksmps}
+ should be used before any other opcodes (but allowed after \emph{xin}
+), otherwise unpredictable results may occur. 
+
+
+  The input parameters can be read with \emph{xin}
+, and the output is written by \emph{xout}
+ opcode. Only one instance of these units should be used, as \emph{xout}
+ overwrites and does not accumulate the output. The number and type of arguments for \emph{xin}
+ and \emph{xout}
+ must be the same as the declaration of the user-defined opcode block. 
+
+
+  The input and output arguments must agree with the definition both in number (except if the optional i-time input is used) and type. An optional i-time input parameter (\emph{iksmps}
+) is automatically added to the \emph{intypes}
+ list, and (similarly to setksmps) sets the local \emph{ksmps}
+ value. 
+\subsection*{Performance}
+
+
+  The syntax of a user-defined opcode block is as follows: 
+
+
+ opcode  name, outtypes, intypes\\ 
+ xinarg1 [, xinarg2] [, xinarg3] ... [xinargN]  xin\\ 
+ [setksmps  iksmps]\\ 
+ ... the rest of the instrument's code.\\ 
+ xout  xoutarg1 [, xoutarg2] [, xoutarg3] ... [xoutargN]\\ 
+ endop\\ 
+       
+
+
+  The new opcode can then be used with the usual syntax: 
+
+
+ [xinarg1] [, xinarg2] ... [xinargN]  name  [xoutarg1] [, xoutarg2] ... [xoutargN] [, iksmps]\\ 
+       
+\subsection*{Examples}
+
+
+  Here is an example of a user-defined opcode. It uses the files \emph{opcode\_example.orc}
+ and \emph{opcode\_example.sco}
+. 
+
+
+ \textbf{Example 1. Example of a user-defined opcode.}
+
+\begin{lstlisting}
+/* ---- opcode_example.orc ---- */
+sr      =  44100
+ksmps   =  50
+nchnls  =  1
+
+/* example opcode 1: simple oscillator */
+
+        opcode Oscillator, a, kk
+
+kamp, kcps      xin             ; read input parameters
+a1      vco2 kamp, kcps         ; sawtooth oscillator
+        xout a1                 ; write output
+
+        endop
+
+/* example opcode 2: lowpass filter with local ksmps */
+
+        opcode Lowpass, a, akk
+
+        setksmps 1              ; need sr=kr
+ain, ka1, ka2   xin             ; read input parameters
+aout    init 0                  ; initialize output
+aout    =  ain*ka1 + aout*ka2   ; simple tone-like filter
+        xout aout               ; write output
+
+        endop
+
+/* example opcode 3: recursive call */
+
+        opcode RecursiveLowpass, a, akkpp
+
+ain, ka1, ka2, idep, icnt       xin     ; read input parameters
+        if (icnt >= idep) goto skip1    ; check if max depth reached
+ain     RecursiveLowpass ain, ka1, ka2, idep, icnt + 1
+skip1:
+aout    Lowpass ain, ka1, ka2           ; call filter
+        xout aout                       ; write output
+
+        endop
+
+/* example opcode 4: de-click envelope */
+
+        opcode DeClick, a, a
+
+ain     xin
+aenv    linseg 0, 0.02, 1, p3 - 0.05, 1, 0.02, 0, 0.01, 0
+        xout ain * aenv         ; apply envelope and write output
+
+        endop
+
+/* instr 1 uses the example opcodes */
+
+        instr 1
+
+kamp    =  20000                ; amplitude
+kcps    expon 50, p3, 500       ; pitch
+a1      Oscillator kamp, kcps                   ; call oscillator
+kflt    linseg 0.4, 1.5, 0.4, 1, 0.8, 1.5, 0.8  ; filter envelope
+a1      RecursiveLowpass a1, kflt, 1 - kflt, 10 ; 10th order lowpass
+a1      DeClick a1
+        out a1
+
+        endin
+/* ---- opcode_example.orc ---- */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* ---- opcode_example.sco ---- */
+i 1 0 4
+e
+/* ---- opcode_example.sco ---- */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{endop}
+, \emph{setksmps}
+, \emph{xin}
+, \emph{xout}
+
+\subsection*{Credits}
+
+
+ Author: Istvan Varga, 2002; based on code by Matt J. Ingalls
+
+
+ New in version 4.07
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+octpch &Up &oscbnk
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -2008,3 +2008,14 @@ name, dspace, thread, outarg, inargs, isub, ksub, asub, dsub
 
 The Csound API reference is contained in the chapters following this one. The Csound Application Programming Interface (API) actually comprises several APIs:
 
+\begin{itemize}
+
+\item \emph{The Csound C API.} Include \texttt{csound.h} (page \pageref{csound_8h}) and link with \texttt{libcsound.a}.
+
+\item \emph{The Csound C++ API.} Include \texttt{CsoundVST.hpp} (page \pageref{CsoundVST_8hpp}) and link with \verb|lib_CsoundVST.a|. The \texttt{CsoundVST} class (\ref{classCsoundVST}) contains an instance of the \texttt{CppSound} class (\ref{classCppSound}), which provides a C++ wrapper for the C API as well as the CsoundFile class (\ref{classCsoundFile}) for loading, saving, and editing Csound orchestra and score files, and a basic graphical user interface for editing Csound files and running Csound. 
+
+The C++ API also provides a class hierarchy for doing algorithmic composition using Michael Gogins' concept of music graphs.
+
+\item \emph{The Csound Python API.} Import the \texttt{CsoundVST} Python extension module. The Python API provides a complete Python wrapper for the entire C++ API; therefore, the C++ API documentation can also be used as a reference to the Python API.
+
+\end{itemize}

@@ -1,0 +1,219 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{phaser1}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{phaser1}
+phaser1 --  First-order allpass filters arranged in a series. \subsection*{Description}
+
+
+  An implementation of \emph{iord}
+ number of first-order allpass filters in series. 
+\subsection*{Syntax}
+
+
+ ar \textbf{phaser1}
+ asig, kfreq, kord, kfeedback [, iskip]
+\subsection*{Initialization}
+
+
+ \emph{iskip}
+ (optional, default=0) -- used to control initial disposition of internal data space. Since filtering incorporates a feedback loop of previous output, the initial status of the storage space used is significant. A zero value will clear the space; a non-zero value will allow previous information to remain. The default value is 0. 
+\subsection*{Performance}
+
+
+ \emph{kfreq}
+ -- frequency (in Hz) of the filter(s). This is the frequency at which each filter in the series shifts its input by 90 degrees. 
+
+
+ \emph{kord}
+ -- the number of allpass stages in series. These are first-order filters and can range from 1 to 4999. 
+
+
+ 
+
+
+\begin{tabular}{cc}
+\textbf{Note}
+ \\
+  &
+
+  Although \emph{kord}
+ is listed as k-rate, it is in fact accessed only at init-time. So if you are using a k-rate argument, it must be assigned with \emph{init}
+. 
+
+
+\end{tabular}
+
+
+
+ \emph{kfeedback}
+ -- amount of the output which is fed back into the input of the allpass chain. With larger amounts of feedback, more prominent notches appear in the spectrum of the output. \emph{kfeedback}
+ must be between -1 and +1. for stability. 
+
+
+ \emph{phaser1}
+ implements \emph{iord}
+ number of first-order allpass sections, serially connected, all sharing the same coefficient. Each allpass section can be represented by the following difference equation: 
+
+
+ y(n) = C * x(n) + x(n-1) - C * y(n-1)\\ 
+       
+ where x(n) is the input, x(n-1) is the previous input, y(n) is the output, y(n-1) is the previous output, and C is a coefficient which is calculated from the value of \emph{kfreq}
+, using the bilinear z-transform. 
+
+  By slowly varying \emph{kfreq}
+, and mixing the output of the allpass chain with the input, the classic ``phase shifter'' effect is created, with notches moving up and down in frequency. This works best with \emph{iord}
+ between 4 and 16. When the input to the allpass chain is mixed with the output, 1 notch is generated for every 2 allpass stages, so that with \emph{iord}
+ = 6, there will be 3 notches in the output. With higher values for \emph{iord}
+, modulating \emph{kfreq}
+ will result in a form of nonlinear pitch modulation. 
+\subsection*{Examples}
+
+
+  Here is an example of the phaser1 opcode. It uses the files \emph{phaser1.orc}
+ and \emph{phaser1.sco}
+. 
+
+
+ \textbf{Example 1. Example of the phaser1 opcode.}
+
+\begin{lstlisting}
+/* phaser1.orc */
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; demonstration of phase shifting abilities of phaser1.
+instr 1
+  ; Input mixed with output of phaser1 to generate notches.
+  ; Shows the effects of different iorder values on the sound
+  idur   = p3 
+  iamp   = p4 * .05
+  iorder = p5        ; number of 1st-order stages in phaser1 network.
+                     ; Divide iorder by 2 to get the number of notches.
+  ifreq  = p6        ; frequency of modulation of phaser1
+  ifeed  = p7        ; amount of feedback for phaser1
+
+  kamp   linseg 0, .2, iamp, idur - .2, iamp, .2, 0
+
+  iharms = (sr*.4) / 100
+
+  asig   gbuzz 1, 100, iharms, 1, .95, 2  ; "Sawtooth" waveform modulation oscillator for phaser1 ugen.
+  kfreq  oscili 5500, ifreq, 1
+  kmod   = kfreq + 5600
+
+  aphs   phaser1 asig, kmod, iorder, ifeed
+
+  out    (asig + aphs) * iamp
+endin
+/* phaser1.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* phaser1.sco */
+; inverted half-sine, used for modulating phaser1 frequency
+f1 0  16384 9 .5 -1 0
+; cosine wave for gbuzz
+f2 0  8192 9 1 1 .25
+
+; phaser1
+i1 0  5 7000 4  .2 .9
+i1 6  5 7000 6  .2 .9
+i1 12 5 7000 8  .2 .9
+i1 18 5 7000 16 .2 .9
+i1 24 5 7000 32 .2 .9
+i1 30 5 7000 64 .2 .9
+e
+/* phaser1.sco */
+        
+\end{lstlisting}
+\subsection*{Technical History}
+
+
+  A general description of the differences between flanging and phasing can be found in Hartmann [1]. An early implementation of first-order allpass filters connected in series can be found in Beigel [2], where the bilinear z-transform is used for determining the phase shift frequency of each stage. Cronin [3] presents a similar implementation for a four-stage phase shifting network. Chamberlin [4] and Smith [5] both discuss using second-order allpass sections for greater control over notch depth, width, and frequency. 
+\subsection*{References}
+
+
+ 
+
+
+ 
+\begin{enumerate}
+\item 
+
+  Hartmann, W.M. ``Flanging and Phasers.'' Journal of the Audio Engineering Society, Vol. 26, No. 6, pp. 439-443, June 1978. 
+
+\item 
+
+  Beigel, Michael I. ``A Digital 'Phase Shifter' for Musical Applications, Using the Bell Labs (Alles-Fischer) Digital Filter Module.'' Journal of the Audio Engineering Society, Vol. 27, No. 9, pp. 673-676,September 1979. 
+
+\item 
+
+  Cronin, Dennis. ``Examining Audio DSP Algorithms.'' Dr. Dobb's Journal, July 1994, p. 78-83. 
+
+\item 
+
+  Chamberlin, Hal. Musical Applications of Microprocessors. Second edition. Indianapolis, Indiana: Hayden Books, 1985. 
+
+\item 
+
+  Smith, Julius O. ``An Allpass Approach to Digital Phasing and Flanging.'' Proceedings of the 1984 ICMC, p. 103-108. 
+
+
+\end{enumerate}
+\subsection*{See Also}
+
+
+ \emph{phaser2}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Sean Costello &Seattle, Washington &1999
+
+\end{tabular}
+
+
+
+ 
+
+
+ November 2002. Added a note about the \emph{kord}
+ parameter, thanks to Rasmus Ekman.
+
+
+ New in Csound version 4.0
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+pgmassign &Up &phaser2
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

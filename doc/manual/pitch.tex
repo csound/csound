@@ -1,0 +1,194 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{pitch}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{pitch}
+pitch --  Tracks the pitch of a signal. \subsection*{Description}
+
+
+  Using the same techniques as \emph{spectrum}
+ and \emph{specptrk}
+, pitch tracks the pitch of the signal in octave point decimal form, and amplitude in dB. 
+\subsection*{Syntax}
+
+
+ koct, kamp \textbf{pitch}
+ asig, iupdte, ilo, ihi, idbthresh [, ifrqs] [, iconf] [, istrt] [, iocts] [, iq] [, inptls] [, irolloff] [, iskip]
+\subsection*{Initialization}
+
+
+ \emph{iupdte}
+ -- length of period, in seconds, that outputs are updated 
+
+
+ \emph{ilo}
+, \emph{ihi}
+ -- range in which pitch is detected, expressed in octave point decimal 
+
+
+ \emph{idbthresh}
+ -- amplitude, expressed in decibels, necessary for the pitch to be detected. Once started it continues until it is 6 dB down. 
+
+
+ \emph{ifrqs}
+ (optional) -- number of divisons of an octave. Default is 12 and is limited to 120. 
+
+
+ \emph{iconf}
+ (optional) -- the number of conformations needed for an octave jump. Default is 10. 
+
+
+ \emph{istrt}
+ (optional) -- starting pitch for tracker. Default value is (\emph{ilo}
+ + \emph{ihi}
+)/2. 
+
+
+ \emph{iocts}
+ (optional) -- number of octave decimations in spectrum. Default is 6. 
+
+
+ \emph{iq}
+ (optional) -- Q of analysis filters. Default is 10. 
+
+
+ \emph{inptls}
+ (optional) -- number of harmonics, used in matching. Computation time increases with the number of harmonics. Default is 4. 
+
+
+ \emph{irolloff}
+ (optional) -- amplitude rolloff for the set of filters expressed as fraction per octave. Values must be positive. Default is 0.6. 
+
+
+ \emph{iskip}
+ (optional) -- if non-zero, skips initialization. Default is 0. 
+\subsection*{Performance}
+
+
+ \emph{koct}
+ -- The pitch output, given in the octave point decimal format. 
+
+
+ \emph{kamp}
+ -- The amplitude output. 
+
+
+ \emph{pitch}
+ analyzes the input signal, \emph{asig}
+, to give a pitch/amplitude pair of outputs, for the strongest frequency in the signal. The value is updated every \emph{iupdte}
+ seconds. 
+
+
+  The number of partials and rolloff fraction can effect the pitch tracking, so some experimentation may be necessary. Suggested values are 4 or 5 harmonics, with rolloff 0.6, up to 10 or 12 harmonics with rolloff 0.75 for complex timbres, with a weak fundamental. 
+\subsection*{Examples}
+
+
+  Here is an example of the pitch opcode. It uses the files \emph{pitch.orc}
+, \emph{pitch.sco}
+ and \emph{mary.wav}
+. 
+
+
+ \textbf{Example 1. Example of the pitch opcode.}
+
+\begin{lstlisting}
+/* pitch.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 44100
+ksmps = 1
+nchnls = 1
+
+; Instrument #1 - play an audio file without effects.
+instr 1
+  asig soundin "mary.wav"
+  out asig
+endin
+
+; Instrument #2 - track the pitch of an audio file.
+instr 2
+  iupdte = 0.01
+  ilo = 7
+  ihi = 9
+  idbthresh = 10
+  ifrqs = 12
+  iconf = 10
+  istrt = 8
+
+  asig soundin "mary.wav"
+
+  ; Follow the audio file, get its pitch and amplitude.
+  koct, kamp pitch asig, iupdte, ilo, ihi, idbthresh, ifrqs, iconf, istrt
+
+  ; Re-synthesize the audio file with a different sounding waveform.
+  kamp2 = kamp * 10
+  kcps = cpsoct(koct)
+  a1 oscil kamp2, kcps, 1
+
+  out a1
+endin
+/* pitch.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* pitch.sco */
+; Table #1: A different sounding waveform.
+f 1 0 32768 11 7 3 .7
+
+; Play Instrument #1, the audio file, for three seconds.
+i 1 0 3
+; Play Instrument #2, the "re-synthesized" waveform, for three seconds.
+i 2 3 3
+e
+/* pitch.sco */
+        
+\end{lstlisting}
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cccc}
+Author: John ffitch &University of Bath, Codemist Ltd. &Bath, UK &April 1999
+
+\end{tabular}
+
+
+
+ 
+
+
+ Example written by Kevin Conder.
+
+
+ New in Csound version 3.54
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+pinkish &Up &pitchamdf
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}
