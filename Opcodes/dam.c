@@ -95,7 +95,7 @@ int dam(ENVIRON *csound, DAM *p)
 
  /* Process ksmps samples */
 
-    for (i=0;i<ksmps;i++) {
+    for (i=0;i<csound->ksmps;i++) {
 
         /* Estimates the current power level */
 
@@ -148,3 +148,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
+

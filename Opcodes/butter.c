@@ -32,7 +32,7 @@
 
 static void butter_filter(long, MYFLT *, MYFLT *, MYFLT *);
 
-int butset(ENVIRON *csound, BFIL *p)                    /*      Hi/Lo pass set-up       */
+int butset(ENVIRON *csound, BFIL *p)    /*      Hi/Lo pass set-up       */
 {
     if (*p->istor==FL(0.0)) {
       p->a[6] = p->a[7] = FL(0.0);
@@ -41,7 +41,7 @@ int butset(ENVIRON *csound, BFIL *p)                    /*      Hi/Lo pass set-u
     return OK;
 }
 
-int bbutset(ENVIRON *csound, BBFIL *p)                  /*      Band set-up     */
+int bbutset(ENVIRON *csound, BBFIL *p)  /*      Band set-up     */
 {
     if (*p->istor==FL(0.0)) {
       p->a[6] = p->a[7] = FL(0.0);
@@ -51,7 +51,7 @@ int bbutset(ENVIRON *csound, BBFIL *p)                  /*      Band set-up     
     return OK;
 }
 
-int hibut(ENVIRON *csound, BFIL *p)                     /*      Hipass filter   */
+int hibut(ENVIRON *csound, BFIL *p)     /*      Hipass filter   */
 {
     MYFLT       *out, *in;
 
@@ -59,7 +59,7 @@ int hibut(ENVIRON *csound, BFIL *p)                     /*      Hipass filter   
     out = p->sr;
 
     if (*p->kfc <= FL(0.0))     {
-      long      n = ksmps;
+      long      n = csound->ksmps;
       do {
         *out++ = *in++;
       } while (--n);
@@ -79,11 +79,11 @@ int hibut(ENVIRON *csound, BFIL *p)                     /*      Hipass filter   
       a[4] = FL(2.0) * ( c*c - FL(1.0)) * a[1];
       a[5] = ( FL(1.0) - ROOT2 * c + c * c) * a[1];
     }
-    butter_filter(ksmps, in, out, p->a);
+    butter_filter(csound->ksmps, in, out, p->a);
     return OK;
 }
 
-int lobut(ENVIRON *csound, BFIL *p)                             /*      Lopass filter   */
+int lobut(ENVIRON *csound, BFIL *p)     /*      Lopass filter   */
 {
     MYFLT       *out, *in;
 
@@ -91,7 +91,7 @@ int lobut(ENVIRON *csound, BFIL *p)                             /*      Lopass f
     out = p->sr;
 
     if (*p->kfc <= FL(0.0))     {
-      long      n = ksmps;
+      long      n = csound->ksmps;
 
       do {
         *out++ = FL(0.0);
@@ -113,18 +113,18 @@ int lobut(ENVIRON *csound, BFIL *p)                             /*      Lopass f
       a[5] = ( FL(1.0) - ROOT2 * c + c * c) * a[1];
     }
 
-    butter_filter(ksmps, in, out, p->a);
+    butter_filter(csound->ksmps, in, out, p->a);
     return OK;
 }
 
-int bpbut(ENVIRON *csound, BBFIL *p)                            /*      Bandpass filter */
+int bpbut(ENVIRON *csound, BBFIL *p)    /*      Bandpass filter */
 {
     MYFLT       *out, *in;
 
     in = p->ain;
     out = p->sr;
     if (*p->kbw <= FL(0.0))     {
-      long      n = ksmps;
+      long      n = csound->ksmps;
       do {
         *out++ = FL(0.0);
       } while (--n);
@@ -143,11 +143,11 @@ int bpbut(ENVIRON *csound, BBFIL *p)                            /*      Bandpass
       a[4] = - c * d * a[1];
       a[5] = ( c - FL(1.0)) * a[1];
     }
-    butter_filter(ksmps, in, out, p->a);
+    butter_filter(csound->ksmps, in, out, p->a);
     return OK;
 }
 
-int bcbut(ENVIRON *csound, BBFIL *p)                    /*      Band reject filter      */
+int bcbut(ENVIRON *csound, BBFIL *p)    /*      Band reject filter      */
 {
     MYFLT       *out, *in;
 
@@ -155,7 +155,7 @@ int bcbut(ENVIRON *csound, BBFIL *p)                    /*      Band reject filt
     out = p->sr;
 
     if (*p->kbw <= FL(0.0))     {
-      long      n = ksmps;
+      long      n = csound->ksmps;
 
       do {
         *out++ = *in++;
@@ -178,11 +178,11 @@ int bcbut(ENVIRON *csound, BBFIL *p)                    /*      Band reject filt
       a[5] = ( FL(1.0) - c) * a[1];
     }
 
-    butter_filter(ksmps, in, out, p->a);
+    butter_filter(csound->ksmps, in, out, p->a);
     return OK;
 }
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(USE_DOUBLE)
 #define IS_DENORMAL(f) (((*(unsigned int*)&f)&0x7f800000)==0)
 #else
 #define IS_DENORMAL(f) (0)
@@ -216,3 +216,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
+
