@@ -331,6 +331,10 @@ if commonEnvironment['usePortAudio']==1 and portaudioFound:
         csoundProgramEnvironment.Append(LIBS = ['dsound'])
         vstEnvironment.Append(LIBS = ['dsound'])
 
+print "useFLTK and fltkFound"
+print commonEnvironment['useFLTK']
+print fltkFound
+
 if (commonEnvironment['useFLTK']==1) and fltkFound:
     staticLibraryEnvironment.Append(CCFLAGS = '-DWINDOWS')
     pluginEnvironment.Append(CCFLAGS = '-DWINDOWS')

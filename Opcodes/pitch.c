@@ -1770,7 +1770,7 @@ int ksense(KSENSE *p)
       *p->ans = -FL(1.0);
     return OK;
 }
- # else
+# else
 int ksense(KSENSE *p)
 {
         *p->ans = getchar();
