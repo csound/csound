@@ -101,7 +101,7 @@ public:
 
   void initialize(int mostnotes, int mostvoices);
 
-  Counterpoint() : LowestSemitone(24), HighestSemitone(72), messageCallback(0)
+  Counterpoint() : messageCallback(0), LowestSemitone(24), HighestSemitone(72)
   {
     initialize(MostNotes_, MostVoices_);
   }
@@ -216,8 +216,8 @@ public:
 	    (ASkip(Pitch2-Pitch1) && ASkip(Pitch3-Pitch2)));
   }
 
-  int HighestSemitone;
   int LowestSemitone;
+  int HighestSemitone;
 
   int OutOfRange(int Pitch) {return((Pitch>HighestSemitone) || (Pitch<LowestSemitone));}
   int ExtremeRange(int Pitch) {return(Pitch>(HighestSemitone-3) || Pitch<(LowestSemitone+3));}
@@ -298,7 +298,8 @@ public:
 
   int Size(int MelInt)
   {
-    int ActInt,IntTyp;
+    int ActInt = 0;
+    int IntTyp = 0;
     ActInt=ABS(MelInt);
     switch (ActInt)
       {
@@ -661,7 +662,7 @@ public:
 
   void AddInterval(int n)
   {
-    int ActInt;
+    int ActInt = 0;
     switch (n % 12)
       {
       case 0: ActInt = 0; break;
@@ -801,8 +802,26 @@ public:
 
   int Check(int Cn, int Cp, int v, int NumParts, int Species, int CurLim)
   {
-    int Val,k,Interval,IntClass,Pitch,LastIntClass,MelInt,LastMelInt,Other0,Other1,Other2;
-    int Cross,SameDir,WeHaveARealLeadingTone,LastPitch,totalJump,LastCp,LastCp2,LastCp3,LastCp4;
+    int Val = 0;
+    int k = 0;
+    int Interval = 0;
+    int IntClass = 0;
+    int Pitch = 0;
+    int LastIntClass = 0;
+    int MelInt = 0;
+    int LastMelInt = 0;
+    int Other0 = 0;
+    int Other1 = 0;
+    int Other2 = 0;
+    int Cross = 0; 
+    int SameDir = 0;
+    int WeHaveARealLeadingTone = 0;
+    int LastPitch = 0;
+    int totalJump = 0;
+    int LastCp = 0;
+    int LastCp2 = 0;
+    int LastCp3 = 0;
+    int LastCp4 = 0;
     if (v == 1)
       {
 	Other0=Cantus(Cn,v);
@@ -1157,7 +1176,7 @@ public:
 	  }
       }
     BestFitPenalty=CurrentPenalty+Penalty;
-    MaxPenalty=MIN(BestFitPenalty*PenaltyRatio,MaxPenalty);
+    MaxPenalty=MIN(int(BestFitPenalty*PenaltyRatio),MaxPenalty);
     /*  AllDone=1; */
     Fits[2]=Fits[1]; Fits[1]=Fits[0]; Fits[0]=BestFitPenalty;
     for (v=1;v<=v1;v++)
@@ -1239,7 +1258,7 @@ public:
     for (i=0;i<=NumParts;i++) Is[i]=0;
     for (i=0;i<=MostVoices;i++) CurNotes[i]=0;
 
-    if (Branches == BrLim) {MaxPenalty = MaxPenalty*PenaltyRatio; Branches=0;}
+    if (Branches == BrLim) {MaxPenalty = int(MaxPenalty*PenaltyRatio); Branches=0;}
 
     CurMin=infinity;
     Lim=BestFitPenalty-CurrentPenalty;
@@ -1290,7 +1309,7 @@ public:
 	    if (ChoiceIndex <= 0) break;
 	    CurMin=Pens[ChoiceIndex];
 	    if (CurMin == infinity) break;
-	    if (CurTime == 0) MaxPenalty=(BestFitPenalty*PenaltyRatio);
+	    if (CurTime == 0) MaxPenalty=int(BestFitPenalty*PenaltyRatio);
 	  }
       }
 
