@@ -66,10 +66,17 @@ int main(int argc, char **argv)
     fscanf(inf,
            "ByteOffset,DataSize,dFormat,Rate,Channels,FrameSize,"
            "FrameInc,BSize,frameFormat,MinFreq,MaxFreq,LogLin\n");
+#ifdef USE_DOUBLE
+    fscanf(inf, "%ld,%ld,%ld,%lg,%ld,%ld,%ld,%ld,%ld,%lg,%lg,%ld\n",
+            &pv.headBsize, &pv.dataBsize, &pv.dataFormat, &pv.samplingRate,
+            &pv.channels, &pv.frameSize, &pv.frameIncr, &pv.frameBsize,
+            &pv.frameFormat, &pv.minFreq, &pv.maxFreq, &pv.freqFormat);
+#else
     fscanf(inf, "%ld,%ld,%ld,%g,%ld,%ld,%ld,%ld,%ld,%g,%g,%ld\n",
             &pv.headBsize, &pv.dataBsize, &pv.dataFormat, &pv.samplingRate,
             &pv.channels, &pv.frameSize, &pv.frameIncr, &pv.frameBsize,
             &pv.frameFormat, &pv.minFreq, &pv.maxFreq, &pv.freqFormat);
+#endif
     i = pv.dataBsize/pv.frameBsize;
     pv.magic = PVMAGIC;
 
