@@ -29,11 +29,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef HAVE_CTYPE_H
 #include <ctype.h>
+#endif
 #include "cs.h"
 #include "ustub.h"
 #include "soundio.h"
-#ifdef LINUX
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 
@@ -182,7 +184,7 @@ main(int argc, char **argv)
     double	factor = 0.0;
     double	maximum = 0.0;
     char        *factorfile = NULL;
-    SNDFILE     *infile, *outfile;
+    SNDFILE     *infile = 0, *outfile;
     int         outfd;
     char 	outformch = 's', c, *s, *filnamp;
     char	*envoutyp;
@@ -379,8 +381,6 @@ main(int argc, char **argv)
 
  outtyp:
     usage(Str(X_1113,"output soundfile cannot be both AIFF and WAV"));
-
- outform:
     sprintf(errmsg,Str(X_1198,"sound output format cannot be both -%c and -%c"),
 	    outformch, c);
     usage(errmsg);
@@ -508,7 +508,7 @@ static  MYFLT    fzero = 0.0;
 static void
 ScaleSound(SNDFILE *infile, SNDFILE *outfd)
 {
-    float buffer[BUFFER_LEN];
+    MYFLT buffer[BUFFER_LEN];
     long  read_in;
     float tpersample;
     float max, min;
