@@ -51,7 +51,7 @@ def generate_x_method(f, action, context, rate0, triggered):
     print >> f
 
     if (rate0 == 'k' and context != 'private') or rate0 == 'i':
-        print >> f, '  if (*p->string != sstrcod)'
+        print >> f, '  if (*p->string != SSTRCOD)'
         print >> f, '    {'
         print >> f, '      err_printf("%s: a string is needed");' % (name)
         print >> f, '      return NOTOK;'
@@ -113,7 +113,7 @@ def generate_init_method(f, action, triggered):
     print >> f, 'int'
     print >> f, 'pyl%(action)s%(t)s_irate(PY%(ACTION)s%(T)s *p)' % locals()
     print >> f, '{'
-    print >> f, '  if (*p->string != sstrcod)'
+    print >> f, '  if (*p->string != SSTRCOD)'
     print >> f, '    return NOTOK;'
     print >> f
     print >> f, '  create_private_namespace_if_needed(&p->h);'
