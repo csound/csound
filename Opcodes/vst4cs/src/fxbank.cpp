@@ -1,6 +1,7 @@
-///  vst4cs: VST HOST OPCODES FOR CSOUND
+//  vst4cs: VST HOST OPCODES FOR CSOUND
 //
-//  Uses code by Hermann Seib from the vst~ object, 
+//  Uses code by Hermann Seib from his Vst Host program
+//  and from the vst~ object by Thomas Grill, 
 //  which in turn borrows from the Psycle tracker.
 //  VST is a trademark of Steinberg Media Technologies GmbH.
 //  VST Plug-In Technology by Steinberg.
