@@ -60,7 +60,7 @@
 * 					fluidCC		iEngineNumber, iChannelNumber, 
 * 									iControllerNumber, kValue
 * 
-*                   fluidPlay      iEngineNumber, iInstrumentNumber,
+*                   fluidNote      iEngineNumber, iInstrumentNumber,
 *                                   iMidiKeyNumber, iVelocity
 * 
 * aLeft, aRight     fluidOut       iEngineNum
@@ -300,10 +300,10 @@ extern "C"
 		return OK;	
 	}
     
-/* FLUID_PLAY */
+/* FLUID_NOTE */
     
-    int fluidPlayIopadr(void *data) {
-        FLUIDPLAY *fluid = (FLUIDPLAY *)data;
+    int fluidNoteIopadr(void *data) {
+        FLUID_NOTE *fluid = (FLUID_NOTE *)data;
         
         int engineNum   = (int)(*fluid->iEngineNumber);
         int channelNum  = (int)(*fluid->iChannelNumber);
@@ -324,8 +324,8 @@ extern "C"
         return OK;
     }
     
-    int fluidPlayKopadr(void *data) {
-        FLUIDPLAY *fluid = (FLUIDPLAY *)data;
+    int fluidNoteKopadr(void *data) {
+        FLUID_NOTE *fluid = (FLUID_NOTE *)data;
         
         int engineNum   = (int)(*fluid->iEngineNumber);
         int channelNum  = (int)(*fluid->iChannelNumber);
@@ -408,7 +408,7 @@ extern "C"
 		{   "fluidCCi",   sizeof(FLUID_CC), 1, "",   "iiii",       &fluidCC_I_Iopadr,   0, 0, 0 },
         {   "fluidCCk",   sizeof(FLUID_CC), 3, "",   "iiik",       &fluidCC_K_Iopadr,   &fluidCC_K_Kopadr, 0, 0 },
         //{   "fluidCC",   sizeof(FLUID_CC), 3, "",   "iiik",       &fluidCC_K_Iopadr,   &fluidCC_K_Kopadr, 0, 0 },        
-        {   "fluidPlay",   sizeof(FLUIDPLAY), 3, "",    "iiii",  &fluidPlayIopadr,   &fluidPlayKopadr, 0, 0 },
+        {   "FLUID_NOTE",   sizeof(FLUID_NOTE), 3, "",    "iiii",  &fluidNoteIopadr,   &fluidNoteKopadr, 0, 0 },
         {   "fluidOut",    sizeof(FLUIDOUT), 5, "aa",  "i",        &fluidOutIopadr,    0, &fluidOutAopadr, 0}
     };
     
