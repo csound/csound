@@ -1,4 +1,4 @@
-/*  
+/*
     uggab.c:
 
     Copyright (C) 1998 Gabriel Maldonado, John ffitch
@@ -879,7 +879,7 @@ int vibr_set(VIBR *p)
 #define randAmountAmp   FL(1.59055)   /* these default values are far from */
 #define randAmountFreq  FL(0.629921)  /* being the best.  If you think you */
 #define ampMinRate      FL(1.0)       /* found better ones, please tell me */
-#define ampMaxRate      FL(3.0)       /* by posting a message to 
+#define ampMaxRate      FL(3.0)       /* by posting a message to
                                          g.maldonado@agora.stm.it */
 #define cpsMinRate      FL(1.19377)
 #define cpsMaxRate      FL(2.28100)

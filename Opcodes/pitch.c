@@ -1,7 +1,7 @@
-/*  
+/*
     pitch.c:
 
-    Copyright (C) 1999 John ffitch, Istvan Varga, Peter Neubäcker, 
+    Copyright (C) 1999 John ffitch, Istvan Varga, Peter Neubäcker,
                        rasmus ekman, Phil Burk
 
     This file is part of Csound.
@@ -1250,7 +1250,7 @@ int pinkset(PINKISH *p)
 }
 
 
-int pinkish(PINKISH *p) 
+int pinkish(PINKISH *p)
 {
     MYFLT       *aout, *ain;
     double      c0, c1, c2, c3, c4, c5, c6, nxtin, nxtout;
@@ -1298,7 +1298,7 @@ int pinkish(PINKISH *p)
       /* Store back filter coef states */
       p->b0 = c0; p->b1 = c1; p->b2 = c2;
     }
-    return OK;    
+    return OK;
 }
 
 

@@ -170,13 +170,15 @@ static PSCSNUX *listget(ENVIRON *p, int id)
 {
     struct scsnx_elem *i = scsnx_list;
     if (i == NULL) {
-      p->initerror_(p->getstring_(X_1527,"scans: No scan synthesis net specified"));
+      p->initerror_(p->getstring_(X_1527,
+                                  "scans: No scan synthesis net specified"));
       longjmp(p->exitjmp_,1);
     }
     while (i->id != id) {
       i = i->next;
       if (i == NULL) {
-        p->initerror_(p->getstring_(X_1485,"Eek ... scan synthesis id was not found"));
+        p->initerror_(p->getstring_(X_1485,
+                                    "Eek ... scan synthesis id was not found"));
         longjmp(p->exitjmp_,1);
       }
     }
@@ -258,7 +260,7 @@ int scsnux_init(PSCSNUX *p)
           p->f[ilen+j] = (f->ftable[ilen+j] != 0 ? 1 : 0);
           if (p->f[ilen+j]) printf("%.0f: %d %d\n", *p->i_f, i, j);
 #else
-          int wd = (ilen+j)>>LOG_BITS_PER_UNIT; /* dead reckoning would be faster */
+          int wd = (ilen+j)>>LOG_BITS_PER_UNIT; /* dead reckonng would be faster */
           int bt = (ilen+j)&(BITS_PER_UNIT-1);
           printf("%.0f: %d %d -> wd%d/bt%d\n", *p->i_f, i, j, wd, bt);
           p->f[wd] |= (1<<bt);
@@ -457,8 +459,6 @@ int scsnux(PSCSNUX *p)
 #else
             int wd = (cnt)>>LOG_BITS_PER_UNIT;
             int bt = (cnt)&(BITS_PER_UNIT-1);
-/*             printf("(%d,%d): [%d,%d] %.8x %s\n", */
-/*                    i, j, wd, bt, p->f[wd], (p->f[wd]&(1<<bt) ? "yes" : "no")); */
             if (p->f[wd]&(1<<bt))
               a += (p->x1[j] - p->x1[i]) * *p->k_f;
 #endif
@@ -674,10 +674,14 @@ int scsnsmapx(PSCSNMAPX *p)
 #define S       sizeof
 
 static OENTRY localops[] = {
-{ "xscanu", S(PSCSNUX),5, "", "iiiiSiikkkkiikkaii", (SUBR)scsnux_init, NULL,(SUBR)scsnux },
-{ "xscans", S(PSCSNSX),  5,  "a", "kkiio", (SUBR)scsnsx_init, NULL, (SUBR)scsnsx},
-{ "xscanmap", S(PSCSNMAPX),3, "kk", "ikko",   (SUBR)scsnmapx_init,(SUBR)scsnmapx,NULL },
-{ "xscansmap", S(PSCSNMAPX),3,"",   "kkikko", (SUBR)scsnmapx_init,(SUBR)scsnsmapx,NULL },
+{ "xscanu", S(PSCSNUX),5, "", "iiiiSiikkkkiikkaii", (SUBR)scsnux_init,
+                                                    NULL,(SUBR)scsnux },
+{ "xscans", S(PSCSNSX),  5,  "a", "kkiio",         (SUBR)scsnsx_init,
+                                                    NULL, (SUBR)scsnsx},
+{ "xscanmap", S(PSCSNMAPX),3, "kk", "ikko",        (SUBR)scsnmapx_init,
+                                                   (SUBR)scsnmapx,NULL },
+{ "xscansmap", S(PSCSNMAPX),3,"",   "kkikko",      (SUBR)scsnmapx_init,
+                                                   (SUBR)scsnsmapx,NULL },
 };
 
 LINKAGE

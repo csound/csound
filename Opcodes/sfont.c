@@ -1750,7 +1750,8 @@ int chunk_read(FILE *fil, CHUNK *chunk)
     ChangeByteOrder("d", (char *)&chunk->ckSize, 4);
     chunk->ckDATA = (BYTE *) malloc( chunk->ckSize);
 #ifdef BETA
-    fprintf(stdout, "read chunk (%.4s) length %ld\n", (char*)&chunk->ckID, chunk->ckSize);
+    fprintf(stdout, "read chunk (%.4s) length %ld\n",
+            (char*)&chunk->ckID, chunk->ckSize);
 #endif
     return fread(chunk->ckDATA,1,chunk->ckSize,fil);
 }
@@ -1798,7 +1799,8 @@ void fill_SfPointers(ENVIRON *csound)
         j += 4; chkp += 4;
         chkid = /* (DWORD *) chkp */ dword(chkp);
 #ifdef BETA
-        csound->Printf("**chkid %p %p\n", (void*)chkid, (void*)(*((DWORD *) chkp)));
+        csound->Printf("**chkid %p %p\n",
+                       (void*)chkid, (void*)(*((DWORD *) chkp)));
         csound->Printf(":Looking at %.4s (%ld)\n", (char*)&chkid, size);
 #endif
         if (chkid == s2d("INFO")) {
@@ -1816,14 +1818,16 @@ void fill_SfPointers(ENVIRON *csound)
           smplChunk = (CHUNK *) chkp;
           soundFont->sampleData = (SHORT *) &smplChunk->ckDATA;
 #ifdef BETA
-          csound->Printf("Change %d and then %ld times w\n", *(chkp + 4), size - 12);
+          csound->Printf("Change %d and then %ld times w\n",
+                         *(chkp + 4), size - 12);
 #endif
           ChangeByteOrder("d", chkp + 4, 4);
           ChangeByteOrder("w", chkp + 8, size - 12);
 #ifdef BETA
           {
             DWORD i;
-            for (i=size-12; i< size+4; i++) csound->Printf("%c(%.2x)",chkp[i], chkp[i]);
+            for (i=size-12; i< size+4; i++)
+              csound->Printf("%c(%.2x)",chkp[i], chkp[i]);
             csound->Printf("\n");
           }
 #endif
@@ -1980,19 +1984,28 @@ void fill_SfPointers(ENVIRON *csound)
 #define S       sizeof
 
 static OENTRY localops[] = {
-{ "sfload",S(SFLOAD),     1,    "i",    "S",    (SUBR)SfLoad, 0, 0, (SUBR)SfReset              },
-{ "sfpreset",S(SFPRESET), 1,    "i",    "iiii", (SUBR)SfPreset                },
-{ "sfplay", S(SFPLAY), 5, "aa", "iixxioo",(SUBR)SfPlay_set, NULL, (SUBR)SfPlay },
-{ "sfplaym", S(SFPLAYMONO), 5, "a", "iixxioo",(SUBR)SfPlayMono_set, NULL, (SUBR)SfPlayMono   },
-{ "sfplist",S(SFPLIST),   1,    "",     "i",    (SUBR)Sfplist             },
-{ "sfilist",S(SFPLIST),   1,    "",     "i",    (SUBR)Sfilist             },
-{ "sfpassign",S(SFPASSIGN), 1,  "",     "ii",   (SUBR)SfAssignAllPresets  },
-{ "sfinstrm", S(SFIPLAYMONO),5, "a", "iixxiioo", (SUBR)SfInstrPlayMono_set, NULL, (SUBR)SfInstrPlayMono   },
-{ "sfinstr", S(SFIPLAY),  5,    "aa", "iixxiioo",(SUBR)SfInstrPlay_set, NULL,(SUBR)SfInstrPlay },
-{ "sfplay3", S(SFPLAY),   5,    "aa", "iixxioo", (SUBR)SfPlay_set, NULL, (SUBR)SfPlay3  },
-{ "sfplay3m", S(SFPLAYMONO), 5, "a", "iixxioo",  (SUBR)SfPlayMono_set, NULL,(SUBR)SfPlayMono3 },
-{ "sfinstr3", S(SFIPLAY), 5,    "aa", "iixxiioo", (SUBR)SfInstrPlay_set, NULL, (SUBR)SfInstrPlay3 },
-{ "sfinstr3m", S(SFIPLAYMONO), 5, "a", "iixxiioo", (SUBR)SfInstrPlayMono_set, NULL, (SUBR)SfInstrPlayMono3 },
+{ "sfload",S(SFLOAD),     1,    "i",    "S",      (SUBR)SfLoad,
+                                                  NULL, NULL, (SUBR)SfReset    },
+{ "sfpreset",S(SFPRESET), 1,    "i",    "iiii",   (SUBR)SfPreset         },
+{ "sfplay", S(SFPLAY), 5, "aa", "iixxioo",        (SUBR)SfPlay_set, 
+                                                  NULL, (SUBR)SfPlay     },
+{ "sfplaym", S(SFPLAYMONO), 5, "a", "iixxioo",    (SUBR)SfPlayMono_set,
+                                                  NULL, (SUBR)SfPlayMono },
+{ "sfplist",S(SFPLIST),   1,    "",     "i",      (SUBR)Sfplist          },
+{ "sfilist",S(SFPLIST),   1,    "",     "i",      (SUBR)Sfilist          },
+{ "sfpassign",S(SFPASSIGN), 1,  "",     "ii",     (SUBR)SfAssignAllPresets },
+{ "sfinstrm", S(SFIPLAYMONO),5, "a", "iixxiioo",  (SUBR)SfInstrPlayMono_set,
+                                                  NULL, (SUBR)SfInstrPlayMono },
+{ "sfinstr", S(SFIPLAY),  5,    "aa", "iixxiioo", (SUBR)SfInstrPlay_set,
+                                                  NULL,(SUBR)SfInstrPlay },
+{ "sfplay3", S(SFPLAY),   5,    "aa", "iixxioo",  (SUBR)SfPlay_set,
+                                                  NULL, (SUBR)SfPlay3  },
+{ "sfplay3m", S(SFPLAYMONO), 5, "a", "iixxioo",   (SUBR)SfPlayMono_set,
+                                                  NULL,(SUBR)SfPlayMono3 },
+{ "sfinstr3", S(SFIPLAY), 5,    "aa", "iixxiioo", (SUBR)SfInstrPlay_set,
+                                                  NULL, (SUBR)SfInstrPlay3 },
+{ "sfinstr3m", S(SFIPLAYMONO), 5, "a", "iixxiioo",(SUBR)SfInstrPlayMono_set,
+                                                  NULL, (SUBR)SfInstrPlayMono3 },
 };
 
 LINKAGE
