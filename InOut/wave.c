@@ -36,7 +36,7 @@
 #define FALSE   0
 #endif
 
-#ifndef _SNDFILE_
+#ifndef HAVE_LIBSNDFILE
 static struct wav_head formhdr;
 static long   framesize;
 /* RWD.2.98 to avoid recalculating  variable  headersizes */
@@ -111,7 +111,7 @@ static long natllong(long lval)     /* coerce a littlendian long into a natural 
 # define natllong(x)  (x)
 #endif
 
-#ifndef _SNDFILE_
+#ifndef HAVE_LIBSNDFILE
 
 /* RWD.2.98 many changes to set correct variable-header length etc */
 void wavWriteHdr(               /* Write WAV header at start of file.  */

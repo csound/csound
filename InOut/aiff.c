@@ -46,7 +46,7 @@ extern off_t lseek(int, off_t, int);
 #define DEBUG   0
 
 static char     FORM_ID[4] = {'F','O','R','M'};
-#ifndef _SNDFILE_
+#ifndef HAVE_LIBSNDFILE
 static char     COMM_ID[4] = {'C','O','M','M'};
 static char     MARK_ID[4] = {'M','A','R','K'};
 static char     INST_ID[4] = {'I','N','S','T'};
@@ -151,7 +151,7 @@ long natlong(long lval)      /* coerce a bigendian long into a natural long */
 }
 #endif
 
-#ifndef _SNDFILE_
+#ifndef HAVE_LIBSNDFILE
 
 void aiffWriteHdr(              /* Write AIFF header at start of file.   */
     int fd,                     /* Called after open, before data writes */

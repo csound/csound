@@ -153,7 +153,7 @@ void bytrev3 (char *buf,int nbytes)
     } while (--samps);
 }
 
-#ifndef _SNDFILE_
+#ifndef HAVE_LIBSNDFILE
 
 int sreadin(                    /* special handling of sound input       */
     int     infd,               /* to accomodate reads thru pipes & net  */

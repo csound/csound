@@ -50,7 +50,7 @@
 #include <assert.h>
 #endif
 
-#ifdef _SNDFILE_
+#ifdef HAVE_LIBSNDFILE
 #ifdef  USE_DOUBLE
 #define sf_write_MYFLT	sf_write_double
 #define sf_read_MYFLT	sf_read_double
@@ -835,7 +835,7 @@ static int sreadinew(           /* special handling of sound input       */
         }
         else ntot = 0;
       }
-#ifndef _SNDFILE_
+#ifndef HAVE_LIBSNDFILE
       if (ntot && p->bytrev != NULL)        /* for post-header of both */
         p->bytrev(inbuf, ntot);             /*   bytrev 2 or 4 as reqd */
 #endif
@@ -905,7 +905,7 @@ static int sngetset(SOUNDINEW *p, char *sfname)
 
     /******* construct the SOUNDIN struct to use old readheader ***********/
     forReadHeader.filetyp = p->filetyp;
-#ifndef _SNDFILE_
+#ifndef HAVE_LIBSNDFILE
     forReadHeader.bytrev = p->bytrev;
 #endif
     forReadHeader.audrem = p->audrem;
