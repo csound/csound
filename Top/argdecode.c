@@ -474,9 +474,7 @@ typedef struct  {
 
 static
 SAMPLE_FORMAT_ENTRY sample_format_map[] = {
-  {"alaw", 'a'},
-  {"schar", 'c'},
-  {"uchar", '8'},
+  {"alaw", 'a'},  {"schar", 'c'},{"uchar", '8'},
   {"float", 'f'},
   {"short", 's'}, {"ulaw", 'u'}, {"24bit", '3'},
   {0, 0}

@@ -451,13 +451,10 @@ sdif_int32 SDIF_UniqueStreamID(void) {
     return ++id;
 }
 
-
-
 int SDIF_Char4Eq(const char *ths, const char *that) {
     return ths[0] == that[0] && ths[1] == that[1] &&
            ths[2] == that[2] && ths[3] == that[3];
 }
-
 
 void SDIF_Copy4Bytes(char *target, const char *string) {
     target[0] = string[0];
@@ -466,12 +463,10 @@ void SDIF_Copy4Bytes(char *target, const char *string) {
     target[3] = string[3];
 }
 
-
 #ifdef LITTLE_ENDIAN
 #define BUFSIZE 4096
 static  char    p[BUFSIZE];
 #endif
-
 
 SDIFresult SDIF_Write1(const void *block, size_t n, FILE *f) {
     return (fwrite (block,1,n,f) == n) ? ESDIF_SUCCESS : ESDIF_WRITE_FAILED;
