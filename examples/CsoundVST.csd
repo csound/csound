@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
-csound -f -h -n  ./temp.orc ./temp.sco
+csound -f -h -d -n -m7 temp.orc temp.sco
 </CsOptions>
 <CsInstruments>
 sr = 44100
@@ -152,7 +152,6 @@ iafno ftgen 235, 	0,	8193,	13,	0.5, 1, 0, 1, .7, .8, .3, .1, .8, .9, 1, 1 ; DIST
 iafno ftgen 236,	0,	513,	7, 	0, 96, 1, 96, .8, 96, .84, 96,  0.77, 32,  0.6, 96,  0 ; WAVESHAPER FOR SHORT SOUNDS
 iafno ftgen 237, 	0, 	513,   	7,	0, 32, 1, 32, .8, 64, .9,  128, 0.6,  128, 0.4, 100, 0.25, 28, 0 ; WAVESHAPER FOR LONG SOUNDS
 ; End Fischman double waveshaper tables
-
 
 print ampdb(80)
 
@@ -1400,43 +1399,36 @@ asig			=			asig * krel * (iamp / inorm)
 			outs			asig * ileftgain, asig * irightgain
 endin
 
-;instr 25 ; FluidSynth General MIDI
-;; INITIALIZATION
-;			print 			p2, p3, p4, p5, p6, p7, p8, p9, p10
-;			mididefault 		20, p3
-;			midinoteonkey		p4, p5
-;; Channel, bank, and program determine the preset, that is, the actual sound.
-;iamplitude 		= 			ampdb(p5) * 10000.0 / 200.0 
-;iattack         	=           		0.005
-;irelease        	=           		5.0
-;                	xtratim     		iattack + irelease
-;ichannel		=			1
-;iprogram		=			1
-;ikey	 		= 			p4
-;ivelocity 		= 			p5
-;ijunk6 			= 			p6
-;ijunk7			=			p7
-;ijunk8			=			p8
-;ijunk9			=			p9
-;ijunk10			=			p10
-;; AUDIO
-;istatus			=			144
-;			print			iprogram, istatus, ichannel, ikey, ivelocity
-;aleft, aright		fluid			"c:/projects/csound5/samples/VintageDreamsWaves-v2.sf2", iprogram, istatus, ichannel, ikey, ivelocity, 1
-;aleft           	=           		aleft * iamplitude
-;aright          	=           		aright * iamplitude
-;			outs 			aleft, aright
-;endin
+instr 25 ; FluidSynth General MIDI
+; INITIALIZATION
+			print 			p2, p3, p4, p5, p6, p7, p8, p9, p10
+			mididefault 		20, p3
+			midinoteonkey		p4, p5
+; Channel, bank, and program determine the preset, that is, the actual sound.
+iamplitude 		= 			ampdb(p5) * 10000.0 / 200.0 
+iattack         	=           		0.005
+irelease        	=           		5.0
+                	xtratim     		iattack + irelease
+ichannel		=			1
+iprogram		=			1
+ikey	 		= 			p4
+ivelocity 		= 			p5
+ijunk6 			= 			p6
+ijunk7			=			p7
+ijunk8			=			p8
+ijunk9			=			p9
+ijunk10			=			p10
+; AUDIO
+istatus			=			144
+			print			iprogram, istatus, ichannel, ikey, ivelocity
+aleft, aright		fluid			"c:/projects/csound5/samples/VintageDreamsWaves-v2.sf2", iprogram, istatus, ichannel, ikey, ivelocity, 1
+aleft           	=           		aleft * iamplitude
+aright          	=           		aright * iamplitude
+			outs 			aleft, aright
+endin
 
 </CsInstruments>
 <CsScore>
 f 0 1000
-
-
-
-
-
-
-
 </CsScore>
 </CsoundSynthesizer>
