@@ -998,7 +998,8 @@ static long csoundNumExits_ = -1;
   PUBLIC int csoundTableLength(void *csound_, int table)
   {
     ENVIRON *csound = (ENVIRON *)csound_;
-    FUNC *ftp = csound->ftfind_(table);
+    MYFLT table_ = table;
+    FUNC *ftp = (FUNC *)csound->ftfind_(&table_);
     if(ftp) {
         return ftp->flen;
     } else {
@@ -1009,14 +1010,16 @@ static long csoundNumExits_ = -1;
   MYFLT csoundTableGet(void *csound_, int table, int index)
   {
     ENVIRON *csound = (ENVIRON *)csound_;
-    FUNC *ftp = csound->ftfind_(table);
+    MYFLT table_ = table;
+    FUNC *ftp = (FUNC *)csound->ftfind_(&table_);
     return ftp->ftable[index];
   }
   
   PUBLIC void csoundTableSet(void *csound_, int table, int index, MYFLT value)
   {
     ENVIRON *csound = (ENVIRON *)csound_;
-    FUNC *ftp = csound->ftfind_(table);
+    MYFLT table_ = table;
+    FUNC *ftp = (FUNC *)csound->ftfind_(&table_);
     ftp->ftable[index] = value;
   }
 
