@@ -1,3 +1,20 @@
+2005-03-14	Istvan Varga	<istvan@csounds.com>
+	* SConstruct:
+	* Engine/oload.c:
+	* H/csound.h:
+	* H/csoundCore.h:
+	* H/fftlib.h:
+	* OOps/fftlib.c:
+	  added new FFT code (faster than functions in fft.c)
+	  new API functions:
+	    csoundComplexFFT(), csoundInverseComplexFFT(),
+	    csoundRealFFT(), csoundInverseRealFFT(),
+	    csoundRSpectProd()
+	  TODO: make allocation of tables safe with reentrant operation and
+	        multiple instances (currently uses statics which is ugly)
+	* Opcodes/ftconv.c:
+	  use new FFT functions; opcode is faster now
+
 2005-03-13	Istvan Varga	<istvan@csounds.com>
 	* SConstruct:
 	* Opcodes/ftconv.c:
