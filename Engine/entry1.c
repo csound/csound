@@ -45,6 +45,7 @@
 #include "vpvoc.h"
 #include "fhtfun.h"
 #include "diskin.h"
+#include "diskin2.h"
 #include "ftgen.h"
 #include "oload.h"
 #include "midiout.h"
@@ -618,6 +619,10 @@ OENTRY opcodlst_1[] = {
 { "unirand.k",S(PRAND), 2,     "k",     "k",    NULL,    ikuniform, NULL},
 { "unirand.a",S(PRAND), 4,     "a",     "k",    NULL,    NULL, auniform },
 { "diskin",S(SOUNDINEW),5,  "mmmm",     "Skoooo", newsndinset,NULL, soundinew},
+{ "diskin2",S(DISKIN2), 5,  "mmmmmmmmmmmmmmmm",
+                            "Skoooooooooooooooooooo",
+                            (SUBR) diskin2_init, (SUBR) NULL,
+                            (SUBR) diskin2_perf                         },
 { "noteon", S(OUT_ON),  1,      "",     "iii",  iout_on, NULL,   NULL   },
 { "noteoff", S(OUT_ON), 1,      "",     "iii",  iout_off, NULL,    NULL },
 { "noteondur",S(OUT_ON_DUR),3,  "", "iiii", iout_on_dur_set,iout_on_dur,NULL},
