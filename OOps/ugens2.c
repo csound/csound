@@ -614,7 +614,7 @@ int tabli(ENVIRON *csound, TABLE  *p)
     long        indx, mask, length;
     int nsmps = ksmps;
     MYFLT       *rslt, *pxndx, *tab;
-    MYFLT       v1, v2, ndx, xbmul, offset;
+    MYFLT       fract, v1, v2, ndx, xbmul, offset;
 
     ftp = p->ftp;
     if (ftp==NULL) {
