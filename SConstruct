@@ -167,6 +167,8 @@ if configure.CheckHeader("string.h", language = "C"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_STRING_H')
 if configure.CheckHeader("strings.h", language = "C"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_STRINGS_H')
+if configure.CheckHeader("dirent.h", language = "c"):
+    commonEnvironment.Append(CCFLAGS = '-DHAVE_DIRENT_H')
 
 # Define different build environments for different types of targets.
 
@@ -405,6 +407,8 @@ pluginEnvironment.SharedLibrary('bbcut',
     ['Opcodes/bbcut.c'])
 pluginEnvironment.SharedLibrary('biquad', 
     ['Opcodes/biquad.c'])
+pluginEnvironment.SharedLibrary('butter', 
+    ['Opcodes/butter.c'])    
 pluginEnvironment.SharedLibrary('clfilt', 
     ['Opcodes/clfilt.c'])
 pluginEnvironment.SharedLibrary('cross2', 
@@ -482,6 +486,19 @@ pluginEnvironment.SharedLibrary('ugsc',
     ['Opcodes/ugsc.c'])
 pluginEnvironment.SharedLibrary('wave-terrain', 
     ['Opcodes/wave-terrain.c'])
+   
+    
+# Plugins with External Dependencies
+
+# FLUIDSYNTH OPCODES
+if configure.CheckHeader("fluidsynth.h", language = "C") :
+    fluidEnvironment = pluginEnvironment.Copy()
+    fluidEnvironment.Append(LIBS = ['stdc++', 'pthread','fluidsynth'])
+
+    fluidEnvironment.SharedLibrary('fluidOpcodes',
+        ['Opcodes/fluidOpcodes/fluidOpcodes.cpp'])
+        
+        
 
 # Utility programs.
 
