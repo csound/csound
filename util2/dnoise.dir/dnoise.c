@@ -86,8 +86,6 @@
 
 GLOBALS cglob;
 
-MYFLT e0dbfs = DFLT_DBFS;
-
 #define FIND(MSG)   if (*s == '\0')  \
                       if (!(--argc) || (((s = *argv++) != NULL) && *s == '-')) \
                             dieu(MSG);
@@ -263,6 +261,7 @@ int main(int argc, char **argv)
     char        outformch = 's';
     char *getenv(const char*);
 
+    e0dbfs = DFLT_DBFS;
 #ifdef _macintosh
 	argc = 0; argv = NULL;
 #endif

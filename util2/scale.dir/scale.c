@@ -38,7 +38,6 @@
 
 /* Constants */
 GLOBALS cglob;
-MYFLT e0dbfs = DFLT_DBFS;
 
 #define SHORTMAX 32767
 #define FIND(MSG)   if (*s == '\0')  \
@@ -139,6 +138,7 @@ main(int argc, char **argv)
     char	*envoutyp;
     OPARMS	OO;
 
+    e0dbfs = DFLT_DBFS;
     init_getstring(argc, argv);
     memset(&OO, 0, sizeof(OO));
     /* Check arguments */

@@ -23,8 +23,6 @@
 #include "cs.h"
 #include "ustub.h"
 
-MYFLT e0dbfs = DFLT_DBFS;
-
 #ifndef POLL_EVENTS
 int POLL_EVENTS(void)
 {
@@ -36,6 +34,7 @@ void pvsys_release(void) {};
 
 int main(int argc,char **argv)
 {
+    e0dbfs = DFLT_DBFS;
     init_getstring(argc,argv);
     sndinfo(argc,argv);
     return 0;

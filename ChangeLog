@@ -1,3 +1,10 @@
+2003-11-05  John  <jpff@codemist.co.uk>
+
+	* util2/sndinfo/main.c (main): 
+	* util2/dnoise.dir/srconv.c (main): 
+	* util2/dnoise.dir/dnoise.c (main): Initialise e0dbfs in main as
+	it is now in O structure
+
 2003-11-05  John ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/ugens6.c: reverb was not declared in opcode table

@@ -1,4 +1,4 @@
-/*  
+/*
     srconv.c
 
     Copyright (C) 1989, 2000 Mark Dolson, John ffitch
@@ -20,7 +20,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-/* 
+/*
  *    PROGRAM:   srconv - sample rate converter
  *
  *    AUTHOR:    Mark Dolson
@@ -56,8 +56,6 @@
 #endif
 
 GLOBALS cglob;
-
-MYFLT e0dbfs = DFLT_DBFS;
 
 #define IBUF 	(4096)
 #define IBUF2 	(IBUF/2)
@@ -143,7 +141,7 @@ int main(int argc, char **argv)
       *fyval,    /* pointer to start of P-scale-array for time-vary func */
       *i0,       /* pointer */
       *i1;       /* pointer */
-    
+
     int
       M = 2401,   /* length of window impulse response */
       N = 120,    /* length of sinc period */
@@ -191,7 +189,7 @@ int main(int argc, char **argv)
       Chans = 0,                /* number of channels */
       chan,                     /* current channel */
       Q = 0;                    /* quality factor */
-    
+
     FILE    *tvfp;    /* time-vary function file */
 
     SOUNDIN     *p;
@@ -204,6 +202,7 @@ int main(int argc, char **argv)
     char        outformch = 's';
     char *getenv(const char*);
 
+    e0dbfs = DFLT_DBFS;
     init_getstring(argc, argv);
 
     O.filnamspace = outfile = (char*)mmalloc((long)1024);
@@ -342,17 +341,17 @@ int main(int argc, char **argv)
             dribble = fopen(s, "w");
             while (*s++); s--;
             break;
-          case 'Q': 
+          case 'Q':
             FIND("No Q argument")
             sscanf(s,"%d", &Q);
             while (*++s);
             break;
-          case 'P': 
+          case 'P':
             FIND("No P argument")
             sscanf(s,"%f", &P);
             while (*++s);
             break;
-          case 'r': 
+          case 'r':
             FIND("No r argument")
             sscanf(s,"%f", &Rout);
             while (*++s);
@@ -395,12 +394,12 @@ int main(int argc, char **argv)
       Chans = (int) p->nchanls;
     if (Chans == 0)
       Chans = 1;
-    
+
     if ((P != FL(0.0)) && (Rout != FL(0.0)))
       die("srconv: can't specify both -r and -P\n");
     if (P != FL(0.0))
       Rout = Rin / P;
-    
+
     if (tvflg) {
       P = FL(0.0);        /* will be reset to max in time-vary function */
       if ((tvfp = fopen(bfile,"r")) == NULL)
@@ -512,7 +511,7 @@ int main(int argc, char **argv)
            O.filetyp == TYP_AIFF ? "(AIFF)" :
            O.filetyp == TYP_AIFC ? "(AIFF-C)" :
            O.filetyp == TYP_WAV ? "(WAV)" :
-#ifdef _macintosh				
+#ifdef _macintosh
              "(SDII)"
 #elif defined(SFIRCAM)
              "(IRCAM)"
@@ -585,9 +584,9 @@ int main(int argc, char **argv)
       M = Q * N * 10 + 1;
     if (tvflg)
       fdel = tvy0 * L;
-    
+
     invRin  =  FL(1.0) / Rin;
-    
+
 /* make window: the window is the product of a kaiser and a sin(x)/x */
     if ((window = (MYFLT *) calloc((size_t)(M+1),sizeof(MYFLT))) == NULL)
       die("srconv: insufficient memory\n");
@@ -599,7 +598,7 @@ int main(int argc, char **argv)
     for (i = 1; i <= WinLen; i++)
       *(window - i) = *(window + i);
 
-    for (i = 1; i <= WinLen; i++){ 
+    for (i = 1; i <= WinLen; i++){
       *(window - i) *= (MYFLT)N * (MYFLT)(sin((double)(PI*i) / (double)N) / (double)(PI*i));
       *(window + i) = *(window - i);
     }
@@ -608,11 +607,11 @@ int main(int argc, char **argv)
       sum = *window;
       for (i = L-1; i <= WinLen; i += L)
         sum += *(window - i) + *(window + i);
-      
-      sum = FL(1.0) / sum;    
+
+      sum = FL(1.0) / sum;
     }
     else
-      sum = FL(1.0) / *window;    
+      sum = FL(1.0) / *window;
 
     *window *= sum;
     for (i = 1; i <= WinLen; i++){
@@ -621,7 +620,7 @@ int main(int argc, char **argv)
     }
 
     *(window + WinLen + 1) = FL(0.0);
-      
+
 /* set up input buffer:  nextIn always points to the next empty
     word in the input buffer.  If the buffer is full, then
     nextIn jumps back to the beginning, and the old values
@@ -680,7 +679,7 @@ int main(int argc, char **argv)
             writebuffer(output, OBUF);
           }
         }
-        
+
     /* move window (window advances by del samples at L * Rin sample rate) */
 
         o += del;
@@ -705,7 +704,7 @@ int main(int argc, char **argv)
           }
         }
       }
-      
+
     /* case 2: (Rin / Rout) * 120 = non-integer constant */
 
       else {
@@ -781,7 +780,7 @@ int main(int argc, char **argv)
           fdel = (MYFLT) L * P;
         }
       }
-      
+
     }
     nread = nextOut - output;
     writebuffer(output, nread);
