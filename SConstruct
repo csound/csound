@@ -109,6 +109,9 @@ opts.Add('buildLoris',
 opts.Add('prefix',
     'Base directory for installs.  Defaults to /usr/local.',
     '/usr/local')
+opts.Add('usePortMIDI',
+    'Use portmidi library rather than internal MIDI (experimental).',
+    0)
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -203,6 +206,7 @@ if not sndfileFound:
     print "The sndfile library is required to build Csound 5."
     Exit(-1)
 portaudioFound = configure.CheckHeader("portaudio.h", language = "C")
+portmidiFound = configure.CheckHeader("portmidi.h", language = "C")
 fltkFound = configure.CheckHeader("FL/Fl.H", language = "C++")
 boostFound = configure.CheckHeader("boost/any.hpp", language = "C++")
 
@@ -452,7 +456,6 @@ OOps/mididevice.c
 OOps/midiinterop.c
 OOps/midiops.c
 OOps/midiout.c
-OOps/midirecv.c
 OOps/midisend.c
 OOps/mxfft.c
 OOps/oscils.c
@@ -513,7 +516,20 @@ else:
     print 'CONFIGURATION DECISION: Building with PortAudio.'
     libCsoundSources.append('InOut/rtpa.c')
     libCsoundSources.append('InOut/pa_blocking.c')
-    
+
+print commonEnvironment['usePortMIDI']
+print portmidiFound
+if not (((commonEnvironment['usePortMIDI'])==1) and portmidiFound):
+    print 'CONFIGURATION DECISION: Building with internal MIDI.'
+    libCsoundSources.append('OOps/midirecv.c')
+else:
+    print 'CONFIGURATION DECISION: Building with PortMIDI.'
+    commonEnvironment.Append(CCFLAGS = ['-DPORTMIDI'])
+    libCsoundSources.append('InOut/pmidi.c')
+    libCsoundSources.append('InOut/fmidi.c')
+    commonEnvironment.Append(LIBS = ['portmidi'])
+    commonEnvironment.Append(LIBS = ['porttime'])
+
 if not ((commonEnvironment['useFLTK'] and fltkFound)):
     print 'CONFIGURATION DECISION: Not building with FLTK for graphs and widgets.'
 else:
