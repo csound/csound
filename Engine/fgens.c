@@ -68,8 +68,10 @@ static  GEN     or_sub[GENMAX+1] = { GENUL,
                                      gen31, gen32, gen33, gen34, GENUL,
                                      GENUL, GENUL, GENUL, GENUL, gen40,
                                      gen41, gen42, gen43 };
+/* **** Now in ENVIRON **** */
 /* static  GEN    *gensub = NULL; */
 /* static  int    genmax = GENMAX+1; */
+
 typedef struct namedgen {
         char            *name;
         int              genum;
@@ -122,7 +124,7 @@ void fgens(ENVIRON *csound, EVTBLK *evtblkp) /* create ftable using evtblk data 
     }
     ff->e = *evtblkp;
     ff->fterrcnt = 0;
-    if ((ff->fno = (int)ff->e.p[1]) < 0) {       /* fno < 0: remove */
+    if ((ff->fno = (int)ff->e.p[1]) < 0) {   /* fno < 0: remove */
       if ((ff->fno = -ff->fno) > csound->maxfnum) {
         fterror(ff,Str(X_849,"illegal ftable number")); return;
       }
@@ -452,7 +454,8 @@ static void gen08(FUNC *ftp, ENVIRON *csound)
     }
     valp = &ff->e.p[5];
     fp = ftp->ftable;
-    fplim = fp + ff->flen;    f0 = *valp++; /* 1st 3 params give vals at x0, x1  */
+    fplim = fp + ff->flen;    
+    f0 = *valp++;                    /* 1st 3 params give vals at x0, x1 */
     if ((dx01 = *valp++) <= FL(0.0)) {      /*      and dist between     */
      fterror(ff,Str(X_892,"illegal x interval")); return;
     }
@@ -530,15 +533,15 @@ static void gen10(FUNC *ftp, ENVIRON *csound)
     long    phs, hcnt;
     MYFLT   amp, *fp, *finp;
 
-    if ((hcnt = ff->e.pcnt-4) <= 0)                        /* hcnt is nargs   */
+    if ((hcnt = ff->e.pcnt-4) <= 0)                  /* hcnt is nargs   */
       return;
     finp = &ftp->ftable[ff->flen];
     do {
       if ((amp = ff->e.p[hcnt+4]) != 0)               /* for non-0 amps,  */
       for (phs=0, fp=ftp->ftable; fp<=finp; fp++) {
-        *fp += (MYFLT)sin(phs*ff->tpdlen) * amp;    /* accum sin pts  */
-        phs += hcnt;                    /* phsinc is hno   */
-        phs %= ff->flen;                    /* phs &= ff->lenmask; */
+        *fp += (MYFLT)sin(phs*ff->tpdlen) * amp;        /* accum sin pts  */
+        phs += hcnt;                                   /* phsinc is hno   */
+        phs %= ff->flen;                           /* phs &= ff->lenmask; */
       }
     }
     while (--hcnt);
@@ -683,7 +686,7 @@ static void gn1314(FUNC *ftp, ENVIRON *csound, MYFLT mxval, MYFLT mxscal)
       mxscal *= scalfac;
     } while (--nh);                             /* loop til all h's replaced */
     mfree((char *)mspace);
-    gen03(ftp, csound);                              /* then call gen03 to write */
+    gen03(ftp, csound);                         /* then call gen03 to write */
 }
 
 static void gen15(FUNC *ftp, ENVIRON *csound)
@@ -699,7 +702,7 @@ static void gen15(FUNC *ftp, ENVIRON *csound)
       fterror(ff,Str(X_1320,"uneven number of args")); return;
     }
     nh = (nargs - 2) >>1;
-    fp   = &ff->e.p[5];                                         /* save p5, p6  */
+    fp   = &ff->e.p[5];                                /* save p5, p6  */
     xint = *fp++;
     xamp = *fp++;
     for (n = nh, cosp = fp, sinp = hsin; n > 0; n--) {
@@ -786,7 +789,7 @@ static void gen17(FUNC *ftp, ENVIRON *csound)
       } while (++ndx < nxtndx);
     }
     val = *valp;
-    while (fp <= finp)                      /* include 2**n + 1 guardpt */
+    while (fp <= finp)                    /* include 2**n + 1 guardpt */
       *fp++ = val;
     return;
 
@@ -794,8 +797,8 @@ static void gen17(FUNC *ftp, ENVIRON *csound)
     fterror(ff,Str(X_794,"gen call has illegal x-ordinate values:"));
 }
 
-static void gen18(FUNC *ftp, ENVIRON *csound)  /* by pete moss (petemoss@petemoss.org), jan 2002 */
-{
+static void gen18(FUNC *ftp, ENVIRON *csound)
+{  /* by pete moss (petemoss@petemoss.org), jan 2002 */
     FGDATA  *ff = &(csound->ff);
     int cnt, start, finish, fnlen, j;
     MYFLT *pp = &ff->e.p[5], fn, amp, *fp, *fp18 = ftp->ftable, range, f;
@@ -810,13 +813,14 @@ static void gen18(FUNC *ftp, ENVIRON *csound)  /* by pete moss (petemoss@petemos
     while (cnt--) {
       fn=*pp++, amp=*pp++, start=(int)*pp++, finish=(int)*pp++;
 
-      if ((start>ff->flen) || (finish>ff->flen)) { /* make sure start and finish < flen */
+      if ((start>ff->flen) || (finish>ff->flen)) {
+        /* make sure start and finish < flen */
         fterror(ff,Str(X_1683,"a range given exceeds table length"));
         return;
       }
 
-      if ((fnp = ftfind(csound,&fn)) != NULL) {               /* make sure fn exists */
-        fp = fnp->ftable, fnlen = fnp->flen-1;  /* and set it up */
+      if ((fnp = ftfind(csound,&fn)) != NULL) {    /* make sure fn exists */
+        fp = fnp->ftable, fnlen = fnp->flen-1;     /* and set it up */
       }
       else {
         fterror(ff,Str(X_1684,"an input function does not exist"));
@@ -824,7 +828,7 @@ static void gen18(FUNC *ftp, ENVIRON *csound)  /* by pete moss (petemoss@petemos
       }
 
       range = (MYFLT)(finish - start), j = start;
-      while (j++ <= finish) {                           /* write the table */
+      while (j++ <= finish) {                      /* write the table */
         f = (MYFLT)modf((fnlen*(j-start)/range), &i);
         *(fp18 + j) += amp * ((f * (*(fp + (int)(i+1)) -
                                     *(fp + (int)i))) +
@@ -1019,7 +1023,8 @@ static void gen21(FUNC *ftp, ENVIRON *csound)
     }
 }
 
-static void gen23(FUNC *ftp, ENVIRON *csound)         /* ASCII file table read Gab 17-feb-98*/
+static void gen23(FUNC *ftp, ENVIRON *csound)
+                                /* ASCII file table read Gab 17-feb-98*/
                                 /* Modified after Paris Smaragdis by JPff */
 {
     FGDATA  *ff = &(csound->ff);
@@ -1118,7 +1123,8 @@ static void gen24(FUNC *ftp, ENVIRON *csound)
     new_max = ff->e.p[7];
     srcpts = srcftp->flen;
     if (srcpts!= ff->flen) {
-      fterror(ff,Str(X_938,"table size must be the same of source table")); return;
+      fterror(ff,Str(X_938,"table size must be the same of source table"));
+      return;
     }
     max = min = fp_source[0];
     for (j = 0; j < srcpts; j++) {
@@ -1230,8 +1236,8 @@ static void gen27(FUNC *ftp, ENVIRON *csound)
     return;
 }
 
-static void gen28(FUNC *ftp, ENVIRON *csound) /* read X Y values directly from ascii file */
-{
+static void gen28(FUNC *ftp, ENVIRON *csound)
+{                       /* read X Y values directly from ascii file */
     FGDATA  *ff = &(csound->ff);
     MYFLT       *fp = ftp->ftable, *finp;
     int         seglen, resolution = 100;
@@ -1320,7 +1326,7 @@ static void gen28(FUNC *ftp, ENVIRON *csound) /* read X Y values directly from a
 
 static void gen30 (FUNC *ftp, ENVIRON *csound)
 {
-  FGDATA  *ff = &(csound->ff);
+    FGDATA  *ff = &(csound->ff);
     complex *ex, *x;
     long    l1, l2, minh = 0, maxh = 0, i;
     MYFLT   xsr, minfrac, maxfrac;
@@ -1495,7 +1501,7 @@ static void gen32 (FUNC *ftp, ENVIRON *csound)
         p_re *= (double) l2;
         d_re  = (double) ff->e.p[pnum[j] + 1];     /* frequency */
         d_re *= (double) l2 / (double) l1;
-        a     = ff->e.p[pnum[j] + 2];                      /* amplitude */
+        a     = ff->e.p[pnum[j] + 2];              /* amplitude */
         for (i = 0; i <= l1; i++) {
           k = (long) p_re; p = (MYFLT) (p_re - (double) k);
           if (k >= l2) k -= l2;
@@ -1521,7 +1527,7 @@ static void gen32 (FUNC *ftp, ENVIRON *csound)
           ex = AssignBasis (NULL, l2);
           FFT2realpacked (x, l2, ex);
         }
-        n = (long) (FL(0.5) + ff->e.p[pnum[j] + 1]);               /* frequency */
+        n = (long) (FL(0.5) + ff->e.p[pnum[j] + 1]);       /* frequency */
         if (n < 1) n = 1;
         a = ff->e.p[pnum[j] + 2] / (MYFLT) l2;             /* amplitude */
         p = ff->e.p[pnum[j] + 3];                          /* phase */
@@ -1827,7 +1833,7 @@ static void ftresdisp(FGDATA *ff, FUNC *ftp)
 {
     MYFLT       *fp, *finp = &ftp->ftable[ff->flen];
     MYFLT       abs, maxval;
-    static      WINDAT  dwindow;
+    static      WINDAT  dwindow; /* Why is this static? */
 
     if (!ff->guardreq)                              /* if no guardpt yet, do it */
       ftp->ftable[ff->flen] = ftp->ftable[0];
@@ -1847,8 +1853,9 @@ static void ftresdisp(FGDATA *ff, FUNC *ftp)
     display(&dwindow);
 }
 
-static FUNC *ftalloc(ENVIRON *csound) /* alloc ftable space for fno (or replace one) */
-{                                /*  set ftp to point to that structure      */
+static FUNC *ftalloc(ENVIRON *csound)
+                                /* alloc ftable space for fno (or replace one) */
+{                               /*  set ftp to point to that structure      */
     FGDATA  *ff = &(csound->ff);
     FUNC *ftp;
     if ((ftp = csound->flist[ff->fno]) != NULL) {
@@ -1872,7 +1879,8 @@ static FUNC *ftalloc(ENVIRON *csound) /* alloc ftable space for fno (or replace 
       }
     }
     if ((ftp = csound->flist[ff->fno]) == NULL) {   /*   alloc space as reqd */
-      printf("Allocating %ld bytes\n", (long)sizeof(FUNC) + ff->flen*sizeof(MYFLT));
+      printf("Allocating %ld bytes\n",
+             (long)sizeof(FUNC) + ff->flen*sizeof(MYFLT));
       ftp = (FUNC *) mcalloc((long)sizeof(FUNC) + ff->flen*sizeof(MYFLT));
       csound->flist[ff->fno] = ftp;
     }
@@ -1980,7 +1988,8 @@ ftnp2find(ENVIRON *csound, MYFLT *argp)
     }
 }
 
-static void gen01(FUNC *ftp, ENVIRON *csound)         /* read ftable values from a sound file */
+static void gen01(FUNC *ftp, ENVIRON *csound) 
+                                /* read ftable values from a sound file */
 {                               /* stops reading when table is full     */
     FGDATA  *ff = &(csound->ff);
     int nargs = ff->e.pcnt -4;
@@ -2014,7 +2023,8 @@ static void needsiz(FGDATA *ff, long maxend)
            (int)ff->fno, nxtpow);
 }
 
-static void gen01raw(FUNC *ftp, ENVIRON *csound)      /* read ftable values from a sound file */
+static void gen01raw(FUNC *ftp, ENVIRON *csound)
+                                /* read ftable values from a sound file */
 {                               /* stops reading when table is full     */
     FGDATA  *ff = &(csound->ff);
     static  ARGOFFS argoffs = {0};  /* OUTOCOUNT-not applicable yet */
@@ -2046,44 +2056,44 @@ static void gen01raw(FUNC *ftp, ENVIRON *csound)      /* read ftable values from
     p->analonly = 0;
     p->STRARG = ff->e.strarg;
     if (ff->flen==0) printf(Str(X_683,"deferred alloc\n"));
-    if ((fd = sndgetset(p))==NULL) {         /* sndinset to open the file */
+    if ((fd = sndgetset(p))==NULL) {        /* sndinset to open the file */
       fterror(ff, "Failed to open file"); return;
     }
     if (p->endfile) {
       printf(Str(X_285,"GEN1 early end-of-file\n"));
       goto gn1rtn;
     }
-    if (ff->flen==0) {                          /* deferred ftalloc requestd: */
-      if ((ff->flen = p->framesrem) <= 0) {     /*   get minsize from soundin */
+    if (ff->flen==0) {                      /* deferred ftalloc requestd: */
+      if ((ff->flen = p->framesrem) <= 0) { /*   get minsize from soundin */
         fterror(ff, Str(X_685,"deferred size, but filesize unknown")); return;
       }
       printf("**** defer length %d\n", ff->flen);
       if (p->channel == ALLCHNLS)
         ff->flen *= p->nchanls;
       ff->guardreq = 1;
-      ff->flenp1 = ff->flen;                      /* presum this includes guard */
+      ff->flenp1 = ff->flen;                /* presum this includes guard */
       ff->flen -= 1;
-      ftp = ftalloc(csound);                    /*   alloc now, and           */
+      ftp = ftalloc(csound);                /*   alloc now, and           */
       ftp->flen     = ff->flen;
-      ftp->lenmask  = 0;                  /*   mark hdr partly filled   */
+      ftp->lenmask  = 0;                    /*   mark hdr partly filled   */
       ftp->nchanls  = p->nchanls;
       ftp->flenfrms = ff->flen / p->nchanls;  /* ?????????? */
     }
     ftp->gen01args.sample_rate = curr_func_sr;
     ftp->cvtbas = LOFACT * p->sr * onedsr;
-    if ((adp = p->aiffdata) != NULL) {          /* if file was aiff,    */
+    if ((adp = p->aiffdata) != NULL) {       /* if file was aiff,    */
       printf("AIFF case\n");
       /* set up some necessary header stuff if not in aiff file */
-      if (adp->natcps == 0)                     /* from Jeff Fried      */
+      if (adp->natcps == 0)                  /* from Jeff Fried      */
         adp->natcps = ftp->cvtbas;
       if (adp->gainfac == 0)
         adp->gainfac = FL(1.0);
       ftp->cpscvt = ftp->cvtbas / adp->natcps;  /*    copy data to FUNC */
-      ftp->loopmode1 = adp->loopmode1;          /* (getsndin does gain) */
+      ftp->loopmode1 = adp->loopmode1;       /* (getsndin does gain) */
       ftp->loopmode2 = adp->loopmode2;
       ftp->begin1 = adp->begin1;
       ftp->begin2 = adp->begin2;
-      if (ftp->loopmode1)                       /* Greg Sullivan */
+      if (ftp->loopmode1)                    /* Greg Sullivan */
         ftp->end1 = adp->end1;
       else
         ftp->end1 = ftp->flenfrms;
@@ -2124,7 +2134,7 @@ static void gen01raw(FUNC *ftp, ENVIRON *csound)      /* read ftable values from
     sf_close(fd);
 }
 
-static int ftldno = 100;        /* Count table number */
+/* static int ftldno = 100;        /* Count table number */
 
 #define FTPLERR(s)     {fterror(ff,s); \
                         die(Str(X_784,"ftable load error"));\
@@ -2159,7 +2169,7 @@ FUNC *hfgens(ENVIRON *csound, EVTBLK *evtblkp)/* create ftable using evtblk data
     }
     if (!ff->fno) {                               /* fno = 0, automatic number */
       do {
-        ff->fno = ++ftldno;
+        ff->fno = ++csound->ftldno;
       } while (ff->fno<csound->maxfnum && csound->flist[ff->fno]!=NULL);
       if (ff->fno==csound->maxfnum) {
         int size = csound->maxfnum+1;
@@ -2741,7 +2751,8 @@ int allocgen(ENVIRON *csound, char *s, GEN fn)
       csound->gensub = (GEN*)mmalloc(csound->genmax*sizeof(GEN));
       memcpy(csound->gensub, or_sub, sizeof(or_sub));
     }
-    else csound->gensub = (GEN*)mrealloc(csound->gensub, csound->genmax*sizeof(GEN));
+    else csound->gensub = (GEN*)mrealloc(csound->gensub,
+                                         csound->genmax*sizeof(GEN));
     csound->gensub[csound->genmax-1] = fn;
     printf("**** allocated %d\n", csound->genmax-1);
     return csound->genmax-1;
