@@ -19,7 +19,7 @@
     along with Csound; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-#include "ustub.h"
+#include "cs.h"
 #include <stdio.h>
 
 int main(int argc, char **argv)
@@ -27,5 +27,7 @@ int main(int argc, char **argv)
     scorename = "LPC";
     orchname = "LPC";
     init_getstring(argc,argv);
+    csoundPreCompile(csoundCreate(NULL));
     return lpanal(argc,argv);
 }
+

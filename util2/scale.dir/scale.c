@@ -33,14 +33,12 @@
 #include <ctype.h>
 #endif
 #include "cs.h"
-#include "ustub.h"
 #include "soundio.h"
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 
 /* Constants */
-ENVIRON cenviron;
 
 #define SHORTMAX 32767
 #define FIND(MSG)   if (*s == '\0')  \
@@ -74,8 +72,7 @@ static  SOUNDIN    *p;  /* space allocated by SAsndgetset() */
 static  unsigned   outbufsiz;
 static  MYFLT	   *outbuf;
 static  int	   outrange = 0; 	    /* Count samples out of range */
-        void       err_printf(char*, ...);
-        OPARMS	   OO;
+static  OPARMS     OO;
 
 static void usage(char *mesg)
 {
@@ -115,7 +112,7 @@ static void usage(char *mesg)
     exit(1);
 }
 
-char set_output_format(char c, char outformch)
+static char set_output_format(char c, char outformch)
 {
     if (OO.outformat && (O.msglevel & WARNMSG)) {
       printf(Str("WARNING: Sound format -%c has been overruled by -%c\n"),
@@ -166,19 +163,7 @@ char set_output_format(char c, char outformch)
   return c;
 }
 
-#ifndef POLL_EVENTS
-int POLL_EVENTS(void)
-{
-    return (1);
-}
-#endif
-
-void *memfiles = NULL;
-void rlsmemfiles(void) {}
-void pvsys_release(void) {}
-
-int
-main(int argc, char **argv)
+int main(int argc, char **argv)
 {
     char	*inputfile = NULL;
     double	factor = 0.0;
@@ -190,13 +175,12 @@ main(int argc, char **argv)
     char	*envoutyp;
     SF_INFO     sfinfo;
 
-    e0dbfs = DFLT_DBFS;
     init_getstring(argc, argv);
+    csoundPreCompile(csoundCreate(NULL));
     memset(&OO, 0, sizeof(OO));
     /* Check arguments */
     {
-      char *getenv();
-      if ((envoutyp = getenv("SFOUTYP")) != NULL) {
+      if ((envoutyp = csoundGetEnv(&cenviron, "SFOUTYP")) != NULL) {
         if (strcmp(envoutyp,"AIFF") == 0)
           OO.filetyp = TYP_AIFF;
         else if (strcmp(envoutyp,"WAV") == 0)

@@ -542,14 +542,14 @@ int csoundLoadExternals(void *csound)
       opcodedir = NULL;
       warn64bit = 0;
 #ifdef USE_DOUBLE
-      opcodedir = getenv("OPCODEDIR64");
+      opcodedir = csoundGetEnv(csound, "OPCODEDIR64");
       if (opcodedir != NULL && opcodedir[0] == '\0')
         opcodedir = NULL;
       if (opcodedir != NULL)
         warn64bit = -1;
 #endif
       if (opcodedir == NULL) {
-        opcodedir = getenv("OPCODEDIR");
+        opcodedir = csoundGetEnv(csound, "OPCODEDIR");
         if (opcodedir != NULL && opcodedir[0] == '\0')
           opcodedir = NULL;
 #ifdef USE_DOUBLE

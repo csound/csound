@@ -172,17 +172,18 @@ extern "C"
     std::string filename = fluid->STRARG;        
     int engineNum = (int)(*fluid->iEngineNum);
     if(engineNum > int(fluid_engines.size()) || engineNum < 0) {
-      csound->Message(csound,
-		      "Illegal Engine Number: %i.\n", engineNum);
+      csound->Message(csound, "Illegal Engine Number: %i.\n", engineNum);
       return NOTOK;
     }   
     char ssdirPath[256];
-    sprintf(ssdirPath,"%s%c%s",getenv("SSDIR"),DIR_SEP,fluid->STRARG);          
+    sprintf(ssdirPath, "%s%c%s",
+            csound->GetEnv(csound, "SSDIR"), DIR_SEP, fluid->STRARG);
     char sfdirPath[256];
-    sprintf(sfdirPath,"%s%c%s",getenv("SFDIR"),DIR_SEP,fluid->STRARG);          
+    sprintf(sfdirPath, "%s%c%s",
+            csound->GetEnv(csound, "SFDIR"), DIR_SEP, fluid->STRARG);
     /*      printf("SADIRPATH: %s\n", ssdirPath);       
-	    printf("SFDIRPATH: %s\n", sfdirPath);    
-	    printf("SEPARATOR: %c\n", DIR_SEP); */
+            printf("SFDIRPATH: %s\n", sfdirPath);    
+            printf("SEPARATOR: %c\n", DIR_SEP); */
     int sfontId = 0;
     if(fluid_is_soundfont(fluid->STRARG)) {
       sfontId = fluid_synth_sfload(fluid_engines[engineNum], 

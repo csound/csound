@@ -38,7 +38,6 @@
 #include <ctype.h>
 #include <unistd.h>
 #include "cs.h"
-#include "ustub.h"
 #include "soundio.h"
 
 /* Constants */
@@ -74,9 +73,9 @@ typedef struct inputs {
     SOUNDIN *   p;              /* Csound structure */
 } inputs;
 
-inputs mixin[NUMBER_OF_FILES];
-int outputs = 0;
-int debug   = 0;
+static inputs mixin[NUMBER_OF_FILES];
+static int outputs = 0;
+static int debug   = 0;
 
 /* Static function prototypes */
 
@@ -100,15 +99,10 @@ extern int type2sf(int);
 #endif
 
 /* Static global variables */
-static unsigned    outbufsiz;
-static MYFLT        *outbuf; 
-static  int        outrange = 0;            /* Count samples out of range */
-        OPARMS	   OO;
-
-void *memfiles = NULL;
-void rlsmemfiles(void)
-{
-}
+static  unsigned  outbufsiz;
+static  MYFLT     *outbuf; 
+static  int       outrange = 0;             /* Count samples out of range */
+static  OPARMS    OO;
 
 static void usage(char *mesg)
 {
@@ -146,7 +140,7 @@ static void usage(char *mesg)
     exit(1);
 }
 
-char set_output_format(char c, char outformch)
+static char set_output_format(char c, char outformch)
 {
     if (OO.outformat && (O.msglevel & WARNMSG)) {
       printf(Str("WARNING: Sound format -%c has been overruled by -%c\n"),
@@ -197,17 +191,7 @@ char set_output_format(char c, char outformch)
   return c;
 }
 
-#ifndef POLL_EVENTS
-int POLL_EVENTS(void)
-{
-    return (1);
-}
-#endif
-
-void pvsys_release(void) {};
-
-int
-main(int argc, char **argv)
+int main(int argc, char **argv)
 {
     char        *inputfile = NULL;
     SNDFILE     *infd, *outfd;
@@ -218,12 +202,12 @@ main(int argc, char **argv)
     SF_INFO     sfinfo;
 
     init_getstring(argc, argv);
+    csoundPreCompile(csoundCreate(NULL));
 /*     response_expand(&argc, &argv); /\* Permits "@xxx" response files *\/ */
     memset(&OO, 0, sizeof(OO));
     /* Check arguments */
     {
-      char *getenv();
-      if ((envoutyp = getenv("SFOUTYP")) != NULL) {
+      if ((envoutyp = csoundGetEnv(&cenviron, "SFOUTYP")) != NULL) {
         if (strcmp(envoutyp,"AIFF") == 0)
           OO.filetyp = TYP_AIFF;
         else if (strcmp(envoutyp,"WAV") == 0)

@@ -23,13 +23,12 @@
 #include <string.h>
 #include <stdlib.h>
 
-ENVIRON cenviron;
-
 int main(int ac, char **av)         /* stdio stub for standalone extract */
                                     /*     first opens the control xfile */
 {
     FILE *xfp;
     init_getstring(0, NULL);
+    csoundPreCompile(csoundCreate(NULL));
     ac--;  av++;
     if (ac != 1) {
       fprintf(stderr,"usage: extract xfile <in >out\n");

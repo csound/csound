@@ -1,6 +1,5 @@
 #include <csoundCore.h>
 #include <cscore.h>
-#include <ustub.h>
 
 int main(int argc, const char **argv)
 {
@@ -8,6 +7,7 @@ int main(int argc, const char **argv)
     EVLIST *a, *b;
     int  n;
 
+    csoundPreCompile(csoundCreate(NULL));
     e = createv(5);     /* alloc p0-5 and init pcnt */
     e->op = 'f';
     e->p[1] = 1;            /* construct an event */

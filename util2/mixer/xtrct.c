@@ -39,7 +39,6 @@
 #include <unistd.h>
 #endif
 #include "cs.h"
-#include "ustub.h"
 #include "soundio.h"
 #include <sndfile.h>
 
@@ -51,11 +50,6 @@
                             die(MSG);
 extern int type2sf(int);
 
-void *memfiles = NULL;
-void rlsmemfiles(void)
-{
-}
-
 long        sample;         /* Time file starts in samples */
 long        stop;           /* Time file ends in samples */
 long        numsamps;       /* Length in samples */
@@ -66,7 +60,7 @@ int         outputs;        /* Number of out chanels */
 
 SOUNDIN *   p;              /* Csound structure */
 
-int debug   = 0;
+static int debug   = 0;
 
 /* Static function prototypes */
 
@@ -113,6 +107,7 @@ main(int argc, char **argv)
     SF_INFO     sfinfo;
 
     init_getstring(argc, argv);
+    csoundPreCompile(csoundCreate(NULL));
 /*     response_expand(&argc, &argv); /\* Permits "@xxx" response files *\/ */
     /* Check arguments */
     O.filnamspace = filnamp = mmalloc(&cenviron, (long)1024);

@@ -1,3 +1,60 @@
+2005-03-02	Istvan Varga	<istvan@csounds.com>
+	* anal/adsyn/het_main.c:
+	* anal/convol/cvl_main.c:
+	* anal/lpc/lpc_main.c:
+	* anal/pvoc/pvc_main.c:
+	* util1/cscore/cscore_main.c:
+	* util1/sortex/smain.c:
+	* util1/sortex/xmain.c:
+	* util2/dnoise.dir/dnoise_main.c:
+	* util2/dnoise.dir/srconv.c:
+	* util2/envext/envext.c:
+	* util2/exports/lpc_import.c:
+	* util2/exports/pv_export.c:
+	* util2/mixer/mixer.c:
+	* util2/mixer/xtrct.c:
+	* util2/pvlook.dir/pvl_main.c:
+	* util2/scale.dir/scale.c:
+	  removed ustub library, attempts to fix standalone utilities
+	* Engine/envvar.c:
+	* H/envvar.h:
+	  new files for dealing with environment variables
+	* Engine/filopen.c:
+	* Engine/rdorch.c:
+	* InOut/winEPS.c:
+	* InOut/winFLTK.c:
+	* InOut/winX11.c:
+	* Opcodes/fluidOpcodes/fluidOpcodes.cpp:
+	* Top/csmodule.c:
+	* Top/csound.c:
+	* Top/dl_opcodes.c:
+	* Top/dnoise.c:
+	* Top/main.c:
+	* Top/one_file.c:
+	  use new environment variable functions
+	* Engine/musmon.c:
+	* frontends/csound/csound_main.c:
+	  print benchmark information in cleanup() instead of main()
+	* Engine/oload.c:
+	* H/csoundCore.h:
+	  ENVIRON: removed (*SetEnv)(), added envVarDB
+	  added csound instance pointer to (*GetEnv)()
+	* H/csdl.h:
+	  define macro for GetEnv, but not for SetEnv
+	* H/csound.h:
+	* Top/csound.c:
+	  removed csoundGetEnv() and csoundSetEnv() (now in envvar.c)
+	* H/ustub.h:
+	* Top/ustub.c:
+	* util2/mixer/extract.c:
+	  removed files
+	* SConstruct:
+	  allow building dynamic Csound library (static is still the default)
+	  ustub library is no longer built
+	* Top/argdecode.c:
+	  new command line option: --env (sets/appends to environment variable)
+	  removed empty function argdecodeRESET()
+
 2005-03-01  Michael Gogins <gogins@pipeline.com>
 	* Updated CsoundVST code to use Istvan Varga's MIDI driver system,
 	so that CsoundVST works again as a VST plugin, at least in 

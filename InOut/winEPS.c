@@ -117,7 +117,7 @@ void PS_MakeGraph(WINDAT *wdptr, char *name)
             /*  extension ``.eps'' appended.                             */
             /*                                                           */
 
-      if ((sfdirpath = getenv("SFDIR"))!=NULL) {
+      if ((sfdirpath = csoundGetEnv(&cenviron, "SFDIR"))!=NULL) {
         if (strlen(sfdirpath)==0)
           sfdirpath = NULL;
       }

@@ -21,14 +21,13 @@
 */
 #include <stdio.h>
 #include "cs.h"
-#include "ustub.h"
 
 int main(int argc, char **argv)
 {
     scorename = "Hetro";
     orchname = "Hetro";
-/*     O=O_; cenviron=cenviron_; */
     init_getstring(argc,argv);
+    csoundPreCompile(csoundCreate(NULL));
     return hetro(argc,argv);
 }
 
