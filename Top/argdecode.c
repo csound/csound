@@ -127,6 +127,7 @@ or for negative N, at -N kperiods
 -z List opcodes in this version
 -Z Dither output
 --sched real-time scheduling and memory lock (LINUX only)
+--sched=N set specified scheduling priority, and lock memory (LINUX only)
 -3 24bit samples
 -8 8-bit unsigned_char sound samples  J. Mohr 1995 Oct 17
 */
@@ -187,8 +188,13 @@ void usage(void)
   err_printf(Str("-z\tList opcodes in this version\n"));
   err_printf(Str("-Z\tDither output\n"));
 #if defined(LINUX)
-  err_printf(Str("--sched set real-time priority and lock memory\n"));
-  err_printf(Str("    (also requires -d and either -o dac or -o devaudio)\n"));
+  err_printf(Str("--sched     set real-time priority and lock memory\n"));
+  err_printf(Str("            (requires -d and real time audio "
+                 "(-iadc/-odac))\n"));
+  err_printf(Str("--sched=N   set specified scheduling priority, and "
+                 "lock memory\n"));
+  err_printf(Str("            (requires -d and real time audio "
+                 "(-iadc/-odac))\n"));
 #endif
 #ifdef mills_macintosh
   err_printf(Str("_____________Macintosh Command Line Flags_________________\n"));
@@ -272,7 +278,8 @@ static void longusage(void *csound)
              "--list-opcodes\t\tList opcodes in this version\n"
              "--list-opcodesN\t\tList opcodes in style N in this version\n"
              "--dither\t\tDither output\n"
-             "--sched\t\t\tset real-time priority and lock memory\n"
+             "--sched\t\t\tset real-time scheduling priority and lock memory\n"
+             "--sched=N\t\tset priority to N and lock memory\n"
              "--opcode-lib=NAMES\tDynamic libraries to load\n"
              "\n"
              "--help\t\t\tLong help\n"
@@ -356,8 +363,13 @@ static void longusage(void *csound)
   err_printf(Str("-Z\tDither output\n"));
   err_printf(Str("-- fnam\tlog output to file\n"));
 #if defined(LINUX)
-  err_printf("--sched set real-time priority and lock memory\n");
-  err_printf("        (also requires -d and either -o dac or -o devaudio)\n");
+  err_printf(Str("--sched     set real-time priority and lock memory\n"));
+  err_printf(Str("            (requires -d and real time audio "
+                 "(-iadc/-odac))\n"));
+  err_printf(Str("--sched=N   set specified scheduling priority, and "
+                 "lock memory\n"));
+  err_printf(Str("            (requires -d and real time audio "
+                 "(-iadc/-odac))\n"));
 #endif
 #ifdef mills_macintosh
   err_printf(Str(
@@ -1304,6 +1316,10 @@ int argdecode(void *csound,
         case '-':
 #if defined(LINUX)
           if (!(strcmp (s, "sched"))) {           /* ignore --sched */
+            while (*(++s));
+            break;
+          }
+          if (!(strncmp(s, "sched=", 6))) {
             while (*(++s));
             break;
           }

@@ -1,4 +1,14 @@
 2005-02-10	Istvan Varga	<istvan@csounds.com>
+	* frontends/csound/csound_main.c
+	* Top/argdecode.c:
+	  Improved --sched option, now accepts a priority value (--sched=N).
+	  Priority settings in the range 1 to 99 request the use of SCHED_RR,
+	  zero is SCHED_OTHER (not real-time but still locks memory), and
+	  -20 to -1 for setting nice level.
+	* Opcodes/gab/vectorial.c:
+	  Fixed sequence point warnings.
+
+2005-02-10	Istvan Varga	<istvan@csounds.com>
 	* InOut/rtjack:
 	  Implemented JACK real time audio plugin (experimental).
 	* InOut/libsnd.c:
