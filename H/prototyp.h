@@ -27,6 +27,8 @@
 #include <stdlib.h>
 #define IGN(X) X = X
 
+#ifndef CSOUND_CSDL_H
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -54,7 +56,7 @@ TEXT    *getoptxt(int *);
 int     express(ENVIRON *, char *);
 int     getopnum(char *), pnum(char *), lgexist(char *);
 void    oload(ENVIRON*);
-void    cpsoctinit(void), reverbinit(void);
+void    cpsoctinit(ENVIRON*), reverbinit(void);
 void    dispinit(void);
 void    sssfinit(void);
 int     init0(ENVIRON*);
@@ -104,6 +106,8 @@ extern  MYFLT   *outbuf;
 #ifdef __cplusplus
 }
 #endif
+
+#endif      /* CSOUND_CSDL_H */
 
 #endif
 

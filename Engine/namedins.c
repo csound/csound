@@ -21,10 +21,9 @@
     02111-1307 USA
 */
 
-
 /* namedins.c -- written by Istvan Varga, Oct 2002, Jan 2005 */
 
-#include "csound.h"
+#include "cs.h"
 #include "namedins.h"
 #include <ctype.h>
 

@@ -21,78 +21,15 @@
     02111-1307 USA
 */
 
-#include "cs.h"
-#include <limits.h>
+#ifndef CSOUND_CSDL_H
+#define CSOUND_CSDL_H
 
-#undef reset_list
-#undef strsets
-#undef strsmax
-#undef peakchunks
-#undef zkstart
-#undef zastart
-#undef zklast
-#undef zalast
-#undef kcounter
-#undef currevent
-#undef onedkr
-#undef onedsr
-#undef kicvt
-#undef sicvt
-#undef spin
-#undef spout
-#undef nspin
-#undef nspout
-#undef spoutactive
-#undef keep_tmp
-#undef dither_output
-#undef opcodlst
-#undef oplstend
-#undef holdrand
-#undef maxinsno
-#undef maxopcno
-#undef curip
-#undef Linevtblk
-#undef Linefd
-#undef ls_table
-#undef curr_func_sr
-#undef retfilnam
-#undef orchname
-#undef scorename
-#undef xfilename
-#undef instrtxtp
-#undef errmsg
-#undef scfp
-#undef oscfp
-#undef maxamp
-#undef smaxamp
-#undef omaxamp
-#undef maxampend
-#undef maxpos
-#undef smaxpos
-#undef omaxpos
-#undef SCOREIN
-#undef SCOREOUT
-#undef ensmps
-#undef hfkprd
-#undef pool
-#undef M_CHNBP
-#undef cpsocint
-#undef cpsocfrc
-#undef inerrcnt
-#undef synterrcnt
-#undef perferrcnt
-#undef strmsg
-#undef instxtanchor
-#undef actanchor
-#undef tran_sr
-#undef tran_kr
-#undef tran_ksmps
-#undef tran_0dbfs
-#undef tran_nchnls
-#undef tpidsr
-#undef pidsr
-#undef mpidsr
-#undef mtpdsr
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "csoundCore.h"
+#include <limits.h>
 
 #define reset_list          csound->reset_list_
 #define strsets             csound->strsets_
@@ -146,8 +83,6 @@
 #define hfkprd              csound->hfkprd_
 #define pool                csound->pool_
 #define M_CHNBP             csound->m_chnbp
-#define cpsocint            csound->cpsocint_
-#define cpsocfrc            csound->cpsocfrc_
 #define inerrcnt            csound->inerrcnt_
 #define synterrcnt          csound->synterrcnt_
 #define perferrcnt          csound->perferrcnt_
@@ -194,4 +129,10 @@
                 {                                              \
                     return localfgens;                         \
                 }
+
+#ifdef __cplusplus
+};
+#endif
+
+#endif      /* CSOUND_CSDL_H */
 

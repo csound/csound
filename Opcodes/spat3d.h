@@ -27,7 +27,7 @@
 #ifndef CSOUND_SPAT3D_H
 #define CSOUND_SPAT3D_H
 
-#include "cs.h"
+#include "csdl.h"
 
 #ifdef CSOUND_SPAT3D_C  /* define these only when included from spat3d.c */
 
@@ -140,5 +140,4 @@ typedef struct {                /* opcode args */
 } SPAT3D;
 
 #endif          /* CSOUND_SPAT3D_H */
-
 

@@ -38,11 +38,14 @@ int cvset(ENVIRON *csound, CONVOLVE *p)
     long     Hlenpadded = 1, obufsiz, Hlen;
     int      nchanls;
 
-    if (csound->oparms->odebug) csound->Message(csound, CONVOLVE_VERSION_STRING);
+    if (csound->oparms->odebug)
+      csound->Message(csound, CONVOLVE_VERSION_STRING);
 
     if (*p->ifilno == SSTRCOD) {                    /* if strg name given */
-      if (p->STRARG == NULL) strcpy(cvfilnam,unquote(currevent->strarg));
-      else strcpy(cvfilnam, unquote(p->STRARG));
+      if (p->STRARG == NULL)
+        strcpy(cvfilnam, csound->unquote_(currevent->strarg));
+      else
+        strcpy(cvfilnam, csound->unquote_(p->STRARG));
     }
     else if ((long)*p->ifilno <= strsmax && strsets != NULL &&
              strsets[(long)*p->ifilno])
@@ -51,7 +54,7 @@ int cvset(ENVIRON *csound, CONVOLVE *p)
                  "convolve.%d", (int)*p->ifilno); /* else convolve.filnum   */
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename, cvfilnam) != 0)
                                 /* if file not already readin */
-      if ( (mfp = ldmemfile(csound, cvfilnam)) == NULL) {
+      if ( (mfp = csound->ldmemfile_(csound, cvfilnam)) == NULL) {
         sprintf(errmsg,Str("CONVOLVE cannot load %s"), cvfilnam);
         goto cverr;
       }
@@ -198,8 +201,8 @@ int convolve(ENVIRON *csound, CONVOLVE *p)
         incount = 0;
         /* FFT the input (to create X) */
         /*csound->Message(csound, "CONVOLVE: ABOUT TO FFT\n"); */
-        FFT2realpacked((complex *)p->fftbuf,Hlenpadded,
-                       (complex *) NULL);
+        csound->FFT2realpacked_((complex *)p->fftbuf,Hlenpadded,
+                                (complex *) NULL);
         /* save the result if multi-channel */
         if (nchm1) {
           fftbufind = p->fftbuf;
@@ -221,14 +224,14 @@ int convolve(ENVIRON *csound, CONVOLVE *p)
           }
           /*csound->Message(csound, "CONVOLVE: ABOUT TO MULTIPLY\n");  */
           /* Multiply H * X, point for point */
-          cxmult((complex *)(p->H+chn*(Hlenpadded+2)),
+          csound->cxmult_((complex *)(p->H+chn*(Hlenpadded+2)),
                  (complex *)(p->fftbuf),Hlenpadded/2 + 1);
 
           /*csound->Message(csound, "CONVOLVE: ABOUT TO IFFT\n"); */
           /* Perform inverse FFT on X */
 
-          FFT2torlpacked((complex*)(p->fftbuf),Hlenpadded,
-                         FL(1.0)/Hlenpadded,(complex*) NULL);
+          csound->FFT2torlpacked_((complex*)(p->fftbuf),Hlenpadded,
+                                  FL(1.0)/Hlenpadded,(complex*) NULL);
 
           /* Take the first Hlen output samples and output them to
              either the real audio output buffer or the local circular
@@ -385,7 +388,8 @@ int pconvset(ENVIRON *csound, PCONVOLVE *p)
     p->numPartitions = ceil((MYFLT)(IRfile.getframes) / (MYFLT)p->Hlen);
 
     /* set up FFT tables */
-    inbuf = (MYFLT *)mmalloc(csound, p->Hlen * p->nchanls * sizeof(MYFLT));
+    inbuf = (MYFLT *) csound->Malloc(csound,
+                                     p->Hlen * p->nchanls * sizeof(MYFLT));
     csound->AuxAlloc(csound, p->numPartitions * (p->Hlenpadded + 2) *
              sizeof(MYFLT) * p->nchanls, &p->H);
     IRblock = (MYFLT *)p->H.auxp;
@@ -405,12 +409,12 @@ int pconvset(ENVIRON *csound, PCONVOLVE *p)
           *fp2++ = *fp1 * csound->dbfs_to_float;
           fp1 += p->nchanls;
         }
-        FFT2realpacked((complex *)IRblock, p->Hlenpadded, NULL);
+        csound->FFT2realpacked_((complex *)IRblock, p->Hlenpadded, NULL);
         IRblock += (p->Hlenpadded + 2);
       }
     }
 
-    mfree(csound, inbuf);
+    csound->Free(csound, inbuf);
     sf_close(infd);
 
     /* allocate the buffer saving recent input samples */
@@ -471,7 +475,7 @@ int pconvolve(ENVIRON *csound, PCONVOLVE *p)
         /* FFT the input (to create X) */
         *workWrite = FL(0.0); /* zero out nyquist bin from last fft result - maybe
                                  is ignored for input(?) but just in case.. */
-        FFT2realpacked(workBuf, p->Hlenpadded, NULL);
+        csound->FFT2realpacked_(workBuf, p->Hlenpadded, NULL);
 
         /* for every IR partition convolve and add to previous convolves */
         for (i = 0; i < p->numPartitions*p->nchanls; i++) {
@@ -490,11 +494,11 @@ int pconvolve(ENVIRON *csound, PCONVOLVE *p)
         /* Perform inverse FFT of the ondeck partion block */
         buf = (MYFLT *)p->convBuf.auxp + p->curPart * p->nchanls * hlenpaddedplus2;
         for (i = 0; i < p->nchanls; i++)
-          FFT2torlpacked((complex *)(buf + i*hlenpaddedplus2),
-                         p->Hlenpadded,
-                         FL(1.0)/((MYFLT)p->Hlenpadded),
-                         /* *p->numPartitions --needed??? above */
-                         NULL);
+          csound->FFT2torlpacked_((complex *)(buf + i*hlenpaddedplus2),
+                                  p->Hlenpadded,
+                                  FL(1.0)/((MYFLT)p->Hlenpadded),
+                                  /* *p->numPartitions --needed??? above */
+                                  NULL);
         /* We only take only the last Hlen output samples so we first zero out
            the first half for next time, then we copy the rest to output buffer */
         for (j = 0; j < p->nchanls; j++) {

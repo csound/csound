@@ -1,6 +1,20 @@
 2005-04-05	Istvan Varga	<istvan@csounds.com>
 	* Engine/sread.c:
+	* H/sort.h:
 	  attempts to fix bugs in reading large score files
+	* Engine/namedins.c, Engine/oload.c, H/csdl.h, H/cs.h, H/csoundCore.h:
+	* H/namedins.h, H/OpcodeBase.hpp, H/prototyp.h, H/sftype.h, H/ugrw1.h:
+	* OOps/ugens9.c, OOps/ugrw1.c, Opcodes/babo.h, Opcodes/biquad.h:
+	* Opcodes/brass.h, Opcodes/dam.h:
+	* Opcodes/fluidOpcodes/fluidOpcodes.cpp, Opcodes/Loris/lorisgens5.h:
+	* Opcodes/pitch0.c, Opcodes/py/csoundmodule.c, Opcodes/spat3d.h:
+	* Opcodes/vst4cs/src/vst4cs.h, Opcodes/vst4cs/src/vsthost.h:
+	* Opcodes/wave-terrain.h:
+	  minor header changes
+	  removed some macros
+	* H/csoundCore.h:
+	* OOps/aops.c:
+	  fixed crash in cpsoct() and similar functions on out of range arg
 
 2005-04-03	Steven Yi		<stevenyi@gmail.com>
 	* SConstruct: added arch and cpu commandline options to fine tune gcc3opt

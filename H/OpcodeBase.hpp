@@ -1,6 +1,6 @@
 #ifndef OPCODE_BASE_H
 #define OPCODE_BASE_H
-#include "cs.h"
+#include "csoundCore.h"
 #include <cstdarg>
 
 /**

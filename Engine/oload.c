@@ -298,7 +298,7 @@ const ENVIRON cenviron_ = {
         NULL,           /*  frstbp              */
         0,              /*  sectcnt             */
         {0},            /*  m_chnbp             */
-        NULL, NULL,     /*  cpsocint, cpsocfrc  */
+        NULL,           /*  cpsocfrc            */
         0, 0, 0,        /*  inerrcnt, synterrcnt, perferrcnt */
         "",             /*  strmsg              */
         {NULL},         /*  instxtanchor        */
@@ -383,7 +383,7 @@ ENVIRON cenviron;
 
 int     pnum(char*);
 
-extern  void    cpsoctinit(void), sssfinit(void);
+extern  void    cpsoctinit(ENVIRON*), sssfinit(void);
 
 /* RWD for reentry */
 void oloadRESET(ENVIRON *csound)
@@ -692,7 +692,7 @@ void oload(ENVIRON *csound)
     csound->global_hfkprd   = csound->hfkprd_;
     csound->global_kicvt    = csound->kicvt_;
     csound->global_kcounter = csound->kcounter_;
-    cpsoctinit();
+    cpsoctinit(csound);
     reverbinit();
     dbfs_init(csound->e0dbfs);
     nspin = nspout = csound->ksmps * csound->nchnls;  /* alloc spin & spout */
