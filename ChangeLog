@@ -1,3 +1,7 @@
+2004-11-30  John ffitch  <jpff@codemist.co.uk>
+
+	* Top/main.c (signal_handler): Move message to after check for alarm
+
 2004-11-25  Michael Gogins <gogins@pipeline.com>
 
 	* Initial implementation of CounterpointNode -- 
