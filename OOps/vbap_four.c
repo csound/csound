@@ -35,16 +35,16 @@ Ville Pulkki
 #include <stdio.h>
 #include <stdlib.h>
 
-int vbap_FOUR_moving_control(VBAP_FOUR_MOVING *);
+int vbap_FOUR_moving_control(ENVIRON *, VBAP_FOUR_MOVING *);
 
-int vbap_FOUR(VBAP_FOUR  *p)   /* during note performance:   */
+int vbap_FOUR(ENVIRON *csound, VBAP_FOUR  *p)   /* during note performance:   */
 {
     MYFLT *outptr, *inptr;
     MYFLT ogain, ngain, gainsubstr;
     MYFLT invfloatn;
     int i,j;
 
-    vbap_FOUR_control(p);
+    vbap_FOUR_control(csound,p);
     for (i=0; i<(FOUR); i++) {
       p->beg_gains[i] = p->end_gains[i];
       p->end_gains[i] = p->updated_gains[i];
@@ -82,7 +82,7 @@ int vbap_FOUR(VBAP_FOUR  *p)   /* during note performance:   */
 }
 
 
-int vbap_FOUR_control(VBAP_FOUR  *p)
+int vbap_FOUR_control(ENVIRON *csound, VBAP_FOUR  *p)
 {
     CART_VEC spreaddir[16];
     CART_VEC spreadbase[16];
@@ -188,7 +188,7 @@ int vbap_FOUR_control(VBAP_FOUR  *p)
     return OK;
 }
 
-int vbap_FOUR_init(VBAP_FOUR  *p)
+int vbap_FOUR_init(ENVIRON *csound, VBAP_FOUR  *p)
 {                               /* Initializations before run time*/
     int i,j;
     MYFLT *ptr;
@@ -227,7 +227,7 @@ int vbap_FOUR_init(VBAP_FOUR  *p)
     p->spread_base.x  = p->cart_dir.y;
     p->spread_base.y  = p->cart_dir.z;
     p->spread_base.z  = -p->cart_dir.x;
-    vbap_FOUR_control(p);
+    vbap_FOUR_control(csound,p);
     for (i=0;i<FOUR;i++) {
       p->beg_gains[i] = p->updated_gains[i];
       p->end_gains[i] = p->updated_gains[i];
@@ -236,14 +236,14 @@ int vbap_FOUR_init(VBAP_FOUR  *p)
 }
 
 
-int vbap_FOUR_moving(VBAP_FOUR_MOVING  *p) /* during note performance:   */
+int vbap_FOUR_moving(ENVIRON *csound, VBAP_FOUR_MOVING  *p) /* during note performance:   */
 {
     MYFLT *outptr, *inptr;
     MYFLT ogain, ngain, gainsubstr;
     MYFLT invfloatn;
     int i,j;
 
-    vbap_FOUR_moving_control(p);
+    vbap_FOUR_moving_control(csound,p);
     for (i=0;i< (FOUR); i++) {
       p->beg_gains[i] = p->end_gains[i];
       p->end_gains[i] = p->updated_gains[i];
@@ -277,7 +277,7 @@ int vbap_FOUR_moving(VBAP_FOUR_MOVING  *p) /* during note performance:   */
     return OK;
 }
 
-int vbap_FOUR_moving_control(VBAP_FOUR_MOVING *p)
+int vbap_FOUR_moving_control(ENVIRON *csound, VBAP_FOUR_MOVING *p)
 {
     CART_VEC spreaddir[16];
     CART_VEC spreadbase[16];
@@ -463,7 +463,7 @@ int vbap_FOUR_moving_control(VBAP_FOUR_MOVING *p)
 }
 
 
-int vbap_FOUR_moving_init(VBAP_FOUR_MOVING  *p)
+int vbap_FOUR_moving_init(ENVIRON *csound, VBAP_FOUR_MOVING  *p)
 {
     int i,j;
     MYFLT *ptr;
@@ -522,7 +522,7 @@ int vbap_FOUR_moving_init(VBAP_FOUR_MOVING  *p)
     p->spread_base.x  = p->cart_dir.y;
     p->spread_base.y  = p->cart_dir.z;
     p->spread_base.z  = -p->cart_dir.x;
-    vbap_FOUR_moving_control(p);
+    vbap_FOUR_moving_control(csound,p);
     for (i = 0; i<FOUR; i++) {
       p->beg_gains[i] = p->updated_gains[i];
       p->end_gains[i] = p->updated_gains[i];

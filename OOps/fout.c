@@ -71,7 +71,7 @@ static void close_files(void)
 #endif
 }
 
-int outfile(OUTFILE *p)
+int outfile(ENVIRON *csound, OUTFILE *p)
 {
     int nsmps = ksmps, j, nargs = p->nargs, k=0;
     MYFLT **args = p->argums;
@@ -97,7 +97,7 @@ int outfile(OUTFILE *p)
 }
 
 
-int outfile_set(OUTFILE *p)
+int outfile_set(ENVIRON *csound, OUTFILE *p)
 {
     int n=0;
     SF_INFO sfinfo;
@@ -160,7 +160,7 @@ int outfile_set(OUTFILE *p)
     return OK;
 }
 
-int koutfile (KOUTFILE *p)
+int koutfile (ENVIRON *csound, KOUTFILE *p)
 {
     int j, nargs = p->nargs;
     MYFLT **args = p->argums;
@@ -172,7 +172,7 @@ int koutfile (KOUTFILE *p)
     return OK;
 }
 
-int koutfile_set(KOUTFILE *p)
+int koutfile_set(ENVIRON *csound, KOUTFILE *p)
 {
     int n;
     SF_INFO sfinfo;
@@ -240,7 +240,7 @@ int koutfile_set(KOUTFILE *p)
 /* syntax:
         ihandle fiopen "filename" [, iascii]
 */
-int fiopen(FIOPEN *p)          /* open a file and return its handle  */
+int fiopen(ENVIRON *csound, FIOPEN *p)          /* open a file and return its handle  */
 {                              /* the handle is simply a stack index */
     char fname[FILENAME_MAX];
     char *omodes[] = {"w", "r", "wb", "rb"};
@@ -271,7 +271,7 @@ int fiopen(FIOPEN *p)          /* open a file and return its handle  */
 */
 
 static long kreset=0;
-int ioutfile_set(IOUTFILE *p)
+int ioutfile_set(ENVIRON *csound, IOUTFILE *p)
 {
     int j;
     MYFLT **args=p->argums;
@@ -323,7 +323,7 @@ int ioutfile_set(IOUTFILE *p)
 }
 
 
-int ioutfile_set_r(IOUTFILE_R *p)
+int ioutfile_set_r(ENVIRON *csound, IOUTFILE_R *p)
 {
     int *xtra;
     if (*(xtra = &(p->h.insdshead->xtratim)) < 1 )  /* gab-a5 revised */
@@ -336,7 +336,7 @@ int ioutfile_set_r(IOUTFILE_R *p)
 }
 
 
-int ioutfile_r(IOUTFILE_R *p)
+int ioutfile_r(ENVIRON *csound, IOUTFILE_R *p)
 {
     if (p->h.insdshead->relesing) {
       if (p->done) {
@@ -386,7 +386,7 @@ int ioutfile_r(IOUTFILE_R *p)
 
 /*----------------------------------*/
 
-int infile_set(INFILE *p)
+int infile_set(ENVIRON *csound, INFILE *p)
 {
     SF_INFO sfinfo;
     if (*p->fname == SSTRCOD) { /* if char string name given */
@@ -429,7 +429,7 @@ int infile_set(INFILE *p)
     return OK;
 }
 
-int infile_act(INFILE *p)
+int infile_act(ENVIRON *csound, INFILE *p)
 {
     int nsmps= ksmps, j, nargs = p->nargs,k=0;
     MYFLT **args = p->argums;
@@ -462,7 +462,7 @@ int infile_act(INFILE *p)
 /*----------------------------*/
 
 
-int kinfile_set(KINFILE *p)
+int kinfile_set(ENVIRON *csound, KINFILE *p)
 {
     SF_INFO sfinfo;
     if (*p->fname == SSTRCOD) { /* if char string name given */
@@ -505,7 +505,7 @@ int kinfile_set(KINFILE *p)
 }
 
 
-int kinfile(KINFILE *p)
+int kinfile(ENVIRON *csound, KINFILE *p)
 {
     int j, nargs = p->nargs;
     MYFLT **args = p->argums;
@@ -528,7 +528,7 @@ int kinfile(KINFILE *p)
 }
 
 
-int i_infile(I_INFILE *p)
+int i_infile(ENVIRON *csound, I_INFILE *p)
 {
     int j, nargs;
     FILE *fp = NULL;
@@ -639,7 +639,7 @@ int i_infile(I_INFILE *p)
 
 /*---------------------------*/
 
-int incr(INCR *p)
+int incr(ENVIRON *csound, INCR *p)
 {
     MYFLT *avar = p->avar, *aincr = p->aincr;
     int nsmps= ksmps;
@@ -650,7 +650,7 @@ int incr(INCR *p)
 }
 
 
-int clear(CLEARS *p)
+int clear(ENVIRON *csound, CLEARS *p)
 {
     int nsmps= ksmps,j;
     MYFLT *avar;
@@ -669,7 +669,7 @@ int clear(CLEARS *p)
 /*---------------------------*/
 /* formatted output to a text file */
 
-int fprintf_set(FPRINTF *p)
+int fprintf_set(ENVIRON *csound, FPRINTF *p)
 {
     int n;
     char *sarg = p->STRARG2;

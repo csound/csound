@@ -46,7 +46,7 @@ void    hamming(MYFLT *win,int winLen,int even);
 void    vonhann(MYFLT *win,int winLen,int even);
 
 
-int pvsanalset(PVSANAL *p)
+int pvsanalset(ENVIRON *csound, PVSANAL *p)
 {
     MYFLT *analwinhalf,*analwinbase;
     MYFLT sum;
@@ -330,7 +330,7 @@ static void anal_tick(PVSANAL *p,MYFLT samp)
 }
 
 
-int pvsanal(PVSANAL *p)
+int pvsanal(ENVIRON *csound, PVSANAL *p)
 {
     MYFLT *ain;
     int i;
@@ -347,7 +347,7 @@ int pvsanal(PVSANAL *p)
 }
 
 
-int pvsynthset(PVSYNTH *p)
+int pvsynthset(ENVIRON *csound, PVSYNTH *p)
 {
     MYFLT *analwinhalf;
     MYFLT *synwinhalf;
@@ -674,7 +674,7 @@ static void process_frame(PVSYNTH *p)
 
 
 
-int pvsynth(PVSYNTH *p)
+int pvsynth(ENVIRON *csound, PVSYNTH *p)
 {
     int i;
     MYFLT *aout = p->aout;

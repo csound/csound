@@ -66,7 +66,7 @@ void FetchInForAdd(MYFLT *inp, MYFLT *buf, long fsize,
     }
 }
 
-int pvaddset(PVADD *p)
+int pvaddset(ENVIRON *csound, PVADD *p)
 {
     int      i, ibins;
     char     pvfilnam[MAXNAME];
@@ -191,7 +191,7 @@ int pvaddset(PVADD *p)
     return initerror(errmsg);
 }
 
-int pvadd(PVADD *p)
+int pvadd(ENVIRON *csound, PVADD *p)
 {
     MYFLT  *ar, *ftab;
     MYFLT frIndx;

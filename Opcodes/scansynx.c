@@ -198,7 +198,7 @@ static PSCSNUX *listget(ENVIRON *p, int id)
  *      Setup the updater
  */
 
-int scsnux_init(PSCSNUX *p)
+int scsnux_init(ENVIRON *csound, PSCSNUX *p)
 {
     /* Get parameter table pointers and check lengths */
     FUNC *f;
@@ -426,7 +426,7 @@ int scsnux_init(PSCSNUX *p)
 
 #define dt FL(1.0)
 
-int scsnux(PSCSNUX *p)
+int scsnux(ENVIRON *csound, PSCSNUX *p)
 {
     int n;
     int len    = p->len;
@@ -529,7 +529,7 @@ int scsnux(PSCSNUX *p)
 /*
  *      Init scaner
  */
-int scsnsx_init(PSCSNSX *p)
+int scsnsx_init(ENVIRON *csound, PSCSNSX *p)
 {
     /* Get corresponding update */
     p->p = listget(p->h.insdshead->csound, (int)*p->i_id);
@@ -575,7 +575,7 @@ int scsnsx_init(PSCSNSX *p)
 /*
  *      Performance function for scanner
  */
-int scsnsx(PSCSNSX *p)
+int scsnsx(ENVIRON *csound, PSCSNSX *p)
 {
     int i;
     long tlen   = p->tlen;
@@ -648,14 +648,14 @@ int scsnsx(PSCSNSX *p)
     return OK;
 }
 
-int scsnmapx_init(PSCSNMAPX *p)
+int scsnmapx_init(ENVIRON *csound, PSCSNMAPX *p)
 {
     /* Get corresponding update */
     p->p = listget(p->h.insdshead->csound, (int)*p->i_id);
     return OK;
 }
 
-int scsnmapx(PSCSNMAPX *p)
+int scsnmapx(ENVIRON *csound, PSCSNMAPX *p)
 {
     PSCSNUX *pp = p->p;
     *p->k_pos = *p->k_pamp * pp->x0[(int)(*p->k_which)];
@@ -663,7 +663,7 @@ int scsnmapx(PSCSNMAPX *p)
     return OK;
 }
 
-int scsnsmapx(PSCSNMAPX *p)
+int scsnsmapx(ENVIRON *csound, PSCSNMAPX *p)
 {
     PSCSNUX *pp = p->p;
     pp->x0[(int)(*p->k_which)] = *p->k_pos/(*p->k_pamp);

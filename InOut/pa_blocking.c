@@ -6,7 +6,7 @@ int paBlockingReadOpen(ENVIRON *csound,
     PA_BLOCKING_STREAM **pabs_, PaStreamParameters *paParameters)
 {
     PaError paError = -1;
-    unsigned long maxLag_ = 0;
+    unsigned long maxLag = 0;
     PA_BLOCKING_STREAM *pabs = (PA_BLOCKING_STREAM *)
       mcalloc(sizeof(PA_BLOCKING_STREAM));
     pabs->csound = csound;
@@ -16,17 +16,20 @@ int paBlockingReadOpen(ENVIRON *csound,
       mcalloc(pabs->actualBufferSampleCount * sizeof(float));
     pabs->paLock = csoundCreateThreadLock(csound);
     pabs->clientLock = csoundCreateThreadLock(csound);
-    maxLag_ = O.oMaxLag <= 0 ? IODACSAMPS : O.oMaxLag;
+    maxLag = O.oMaxLag <= 0 ? IODACSAMPS : O.oMaxLag;
+#ifdef __MACH__
+    maxLag =  ((int)ekr)*((maxLag + (int)ekr-1)%krate); /* Round to multiple */
+#endif
     memcpy(&pabs->paParameters, paParameters, sizeof(PaStreamParameters));
     csound->Message(csound, "paBlockingReadOpen: nchnls %d sr %f maxLag %u\n",
                     pabs->paParameters.channelCount,
                     csound->GetSr(csound),
-                    maxLag_);
+                    maxLag);
     paError = Pa_OpenStream(&pabs->paStream,
                             &pabs->paParameters,
                             0,
                             (double) csound->GetSr(csound),
-                            maxLag_,
+                            maxLag,
                             paNoFlag,
                             paBlockingReadStreamCallback,  /* VL fixed: was paBlockingWriteStreamCallback */
                             pabs);
@@ -80,8 +83,8 @@ int paBlockingWriteOpen(ENVIRON *csound,
                         PA_BLOCKING_STREAM **pabs_,
                         PaStreamParameters *paParameters)
 {
-    PaError paError = -1;
-    unsigned long maxLag_ = 0;
+    PaError paError = paNoError;
+    unsigned long maxLag = 0;
     PA_BLOCKING_STREAM *pabs =
       (PA_BLOCKING_STREAM *) mcalloc(sizeof(PA_BLOCKING_STREAM));
     pabs->csound = csound;
@@ -91,19 +94,22 @@ int paBlockingWriteOpen(ENVIRON *csound,
       mcalloc(pabs->actualBufferSampleCount * sizeof(float));
     pabs->paLock = csoundCreateThreadLock(csound);
     pabs->clientLock = csoundCreateThreadLock(csound);
-    maxLag_ = O.oMaxLag <= 0 ? IODACSAMPS : O.oMaxLag;
+    maxLag = O.oMaxLag <= 0 ? IODACSAMPS : O.oMaxLag;
+#ifdef __MACH__
+    maxLag =  ((int)ekr)*((maxLag + (int)ekr-1)%krate); /* Round to multiple */
+#endif
     memcpy(&pabs->paParameters, paParameters, sizeof(PaStreamParameters));
     csound->Message(csound,
         "paBlockingWriteOpen: nchnls %d sr %f maxLag %u device %d\n",
                     pabs->paParameters.channelCount,
                     csound->esr_,
-                    maxLag_,
+                    maxLag,
                     pabs->paParameters.device);
     paError = Pa_OpenStream(&pabs->paStream,
                             0,
                             &pabs->paParameters,
                             (double) csound->esr_,
-                            maxLag_,
+                            maxLag,
                             paNoFlag,
                             paBlockingWriteStreamCallback,
                             pabs);
@@ -141,15 +147,22 @@ int paBlockingWriteStreamCallback(const void *input,
     return paContinue;
 }
 
-void paBlockingWrite(PA_BLOCKING_STREAM *pabs, MYFLT *buffer)
+static int bp = 0;
+void paBlockingWrite(PA_BLOCKING_STREAM *pabs, int bytes, MYFLT *buffer)
 {
     size_t i;
-    size_t n;
-    for (i = 0, n = pabs->actualBufferSampleCount; i < n; i++) {
-      pabs->actualBuffer[i] = (float)buffer[i];
+    for (i = 0; i < bytes; i++) {
+      pabs->actualBuffer[i+bp] = (float)buffer[i];
     }
-    csoundNotifyThreadLock(pabs->csound, pabs->paLock);
-    csoundWaitThreadLock(pabs->csound, pabs->clientLock, 100);
+    bp += bytes;
+    if (bp >= pabs->actualBufferSampleCount) {
+      csoundNotifyThreadLock(pabs->csound, pabs->paLock);
+      csoundWaitThreadLock(pabs->csound, pabs->clientLock, 100);
+      memcpy(pabs->actualBuffer,
+             &pabs->actualBuffer[pabs->actualBufferSampleCount],
+             (bp-pabs->actualBufferSampleCount)*sizeof(float));
+      bp -= pabs->actualBufferSampleCount;
+   }
 }
 
 void paBlockingClose(PA_BLOCKING_STREAM *pabs)

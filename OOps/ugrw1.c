@@ -877,7 +877,7 @@
  * 3 -  There is an igwmode parameter.
 */
 
-int itblchkw(TABLEW *p)
+int itblchkw(ENVIRON *csound, TABLEW *p)
 {
     /* Get pointer to the function table data structure of the table
      * number specified in xfn. Return 0 if it cannot be found.
@@ -889,7 +889,7 @@ int itblchkw(TABLEW *p)
      * It also checks for numbers < 0, and table 0 is never valid, so we
      * do not need to check here for the table number being < 1.  */
 
-    if ((p->ftp = ftfind(p->h.insdshead->csound, p->xfn)) == NULL)
+    if ((p->ftp = ftfind(csound, p->xfn)) == NULL)
       return NOTOK;
     /* Although TABLEW has an integer variable for the table number
      * (p->pfn) we do not need to * write it.  We know that the * k
@@ -936,7 +936,7 @@ int itblchkw(TABLEW *p)
  * ktablewkt tablewkt
  *
  */
-int ptblchkw(TABLEW *p)
+int ptblchkw(ENVIRON *csound, TABLEW *p)
 {
     /* TABLEW has an integer variable for the previous table number
      * (p->pfn).
@@ -962,9 +962,9 @@ int ptblchkw(TABLEW *p)
  *
  * Call the itblchkw() function to do the work.
  */
-int tblsetw(TABLEW *p)
+int tblsetw(ENVIRON *csound, TABLEW *p)
 {
-    return itblchkw(p);
+    return itblchkw(csound,p);
 }
 
 /* tblsetwkt()
@@ -974,9 +974,9 @@ int tblsetw(TABLEW *p)
  * rate variable.
  *
  * Call the ptblchkw() function to do the work.  */
-int tblsetwkt(TABLEW *p)
+int tblsetwkt(ENVIRON *csound, TABLEW *p)
 {
-    return ptblchkw(p);
+    return ptblchkw(csound,p);
 }
 
 /* itablew()
@@ -986,11 +986,11 @@ int tblsetwkt(TABLEW *p)
  *
  * It sets up some variables in the TABLEW data structure for this
  * instance and calls ktablew() once to write to the table.  */
-int itablew(TABLEW *p)
+int itablew(ENVIRON *csound, TABLEW *p)
 {
 /*   printf("tableiw: p->xsig, p->xndx = %f, %f\n", *p->xsig, *p->xndx); */
-    if (itblchkw(p)==OK)
-      return ktablew(p);
+    if (itblchkw(csound,p)==OK)
+      return ktablew(csound,p);
     return NOTOK;
 }
 
@@ -999,7 +999,7 @@ int itablew(TABLEW *p)
 /* ktablew is called with p pointing to the TABLEW data structure -
  * which contains the input arguments.  */
 
-int ktablew(TABLEW  *p)
+int ktablew(ENVIRON *csound, TABLEW  *p)
 {
 /* Pointer to data structure for accessing the table we will be
  * writing to.
@@ -1073,7 +1073,7 @@ int ktablew(TABLEW  *p)
 
 /* tablew() is similar to ktablew()  above, except that it processes
  * two arrays of input values and indexes.  These arrays are ksmps long. */
-int tablew(TABLEW *p)
+int tablew(ENVIRON *csound, TABLEW *p)
 {
     FUNC        *ftp;   /* Pointer to function table data structure. */
     MYFLT       *psig;  /* Array of input values to be written to table. */
@@ -1174,7 +1174,7 @@ int tablew(TABLEW *p)
  *
  * ftkrchkw() */
 
-int ftkrchkw(TABLEW *p)
+int ftkrchkw(ENVIRON *csound, TABLEW *p)
 {
 /* Check the table number is >= 1.  Print error and deactivate if it
  * is.  Return 0 to tell calling function not to proceed with a or k
@@ -1206,7 +1206,7 @@ int ftkrchkw(TABLEW *p)
        * ftfind is in a new version of fgens.c. A prototype for it
        * should be added to prototype.h.  */
 
-      if ((p->ftp = ftfindp(p->h.insdshead->csound, p->xfn)) == NULL) {
+      if ((p->ftp = ftfindp(csound, p->xfn)) == NULL) {
         return NOTOK;
       }
 
@@ -1247,15 +1247,15 @@ int ftkrchkw(TABLEW *p)
 /* Now for the two functions, which are called as a result of being
  * listed in opcodlst in entry.c */
 
-int    ktablewkt(TABLEW *p)
+int    ktablewkt(ENVIRON *csound, TABLEW *p)
 {
-    if (ftkrchkw(p)==OK) return ktablew(p);
+    if (ftkrchkw(csound,p)==OK) return ktablew(csound,p);
     return NOTOK;
 }
 
-int    tablewkt(TABLEW *p)
+int    tablewkt(ENVIRON *csound, TABLEW *p)
 {
-    if (ftkrchkw(p)==OK) return tablew(p);
+    if (ftkrchkw(csound,p)==OK) return tablew(csound,p);
     return NOTOK;
 }
 
@@ -1271,7 +1271,7 @@ int    tablewkt(TABLEW *p)
  *
  * The means of finding the table, and of reporting an error differ
  * between these i time and perf time.  */
-int    tableng(TABLENG *p)
+int    tableng(ENVIRON *csound, TABLENG *p)
 {
     /*  Pointer to data structure for accessing table. */
     FUNC        *ftp;
@@ -1294,7 +1294,7 @@ int    tableng(TABLENG *p)
  *
  * At init time.
  */
-int    itableng(TABLENG *p)
+int    itableng(ENVIRON *csound, TABLENG *p)
 {
     /*
      * Pointer to data structure for accessing table.  */
@@ -1327,7 +1327,7 @@ int    itableng(TABLENG *p)
  * between these i time and perf time.
  *
  * Read the value in location 0 and write it to the guard point.  */
-int    tablegpw(TABLEGPW *p)
+int    tablegpw(ENVIRON *csound, TABLEGPW *p)
 {
     /* Local variables
      *
@@ -1373,7 +1373,7 @@ int    tablegpw(TABLEGPW *p)
                                          *
                                          * At init time.
                                          */
-int itablegpw(TABLEGPW *p)
+int itablegpw(ENVIRON *csound, TABLEGPW *p)
 {
     /* Local variables
      *
@@ -1414,7 +1414,7 @@ int itablegpw(TABLEGPW *p)
  *
  * Called at i time prior to the k rate function tablemix(). */
 
-int tablemixset(TABLEMIX *p)
+int tablemixset(ENVIRON *csound, TABLEMIX *p)
 {
     /* There may be no input values now - they are typically k rate and so
      * are not present at i time.
@@ -1455,9 +1455,9 @@ int tablemixset(TABLEMIX *p)
  *
  * Declare it here.
  */
-static void domix(TABLEMIX *p);
+static void domix(ENVIRON *csound, TABLEMIX *p);
 
-int tablemix(TABLEMIX *p)
+int tablemix(ENVIRON *csound, TABLEMIX *p)
 {
     /* Check the state of the three table number variables.
      *
@@ -1517,7 +1517,7 @@ int tablemix(TABLEMIX *p)
      * The other parameters do not need checking - and the remaining
      * proceedures are common to the init time version, so call a
      * function to do the rest.  */
-    domix(p);
+    domix(csound,p);
     return OK;
 }
 
@@ -1528,7 +1528,7 @@ int tablemix(TABLEMIX *p)
  * identical to above, but we know it runs at init time, so we do not
  * check for changes, we look for the table with ftfind() instead of
  * ftfindp() and we use initerror() instead of perferror().      */
-int itablemix(TABLEMIX *p)
+int itablemix(ENVIRON *csound, TABLEMIX *p)
 {
     /* Check the state of the three table number variables.
      *
@@ -1579,7 +1579,7 @@ int itablemix(TABLEMIX *p)
       return initerror(errmsg);
     }
     p->ps2ft = (int)*p->s2ft;
-    domix(p);
+    domix(csound,p);
     return OK;
 }
 
@@ -1612,7 +1612,7 @@ int itablemix(TABLEMIX *p)
  * that if the gain of source 2 is 0, then we do not bother reading
  * it.  This is to save time when all that the user wants is a copy.
  */
-static void domix(TABLEMIX *p)
+static void domix(ENVIRON *csound, TABLEMIX *p)
 {
     MYFLT       gains1, gains2; /* Gains for source tables 1 and 2. */
     long length;                /* from len input parameter */
@@ -1731,7 +1731,7 @@ static void domix(TABLEMIX *p)
  * Similar function to tablemixset().
  */
 
-int tablecopyset(TABLECOPY *p)
+int tablecopyset(ENVIRON *csound, TABLECOPY *p)
 {
     p->pdft = 0;
     p->psft = 0;
@@ -1748,9 +1748,9 @@ int tablecopyset(TABLECOPY *p)
  * tablemix section above.  Read the comments there for a full
  * explanation.
  */
-static int docopy(TABLECOPY *p);
+static int docopy(ENVIRON *csound, TABLECOPY *p);
 
-int tablecopy(TABLECOPY *p)
+int tablecopy(ENVIRON *csound, TABLECOPY *p)
 {
     /* Check the state of the two table number variables.
      * Error message if any are < 1 and no further action.     */
@@ -1786,13 +1786,13 @@ int tablecopy(TABLECOPY *p)
     }
     /* OK both tables present and the funcx pointers are pointing to
      * their data structures.    */
-    docopy(p);
+    docopy(csound,p);
     return OK;
 }
 
 /*-----------------------------------*/
 
-int itablecopy(TABLECOPY *p)
+int itablecopy(ENVIRON *csound, TABLECOPY *p)
 {
     /* Check the state of the two table number variables.
      * Error message if any are < 1 and no further action. */
@@ -1827,7 +1827,7 @@ int itablecopy(TABLECOPY *p)
     }
     /* OK both tables present and the funcx pointers are pointing to
      * their data structures.    */
-    docopy(p);
+    docopy(csound,p);
     return OK;
 }
 
@@ -1839,7 +1839,7 @@ int itablecopy(TABLECOPY *p)
  *
  * See domix for full explanation. make any error messages here.
  */
-static int docopy(TABLECOPY *p)
+static int docopy(ENVIRON *csound, TABLECOPY *p)
 {
     long loopcount;/* Loop counter. Set by the length of the destination table.*/
     long indx = 0;              /* Index to be added to offsets */
@@ -1880,7 +1880,7 @@ static int docopy(TABLECOPY *p)
  * to 0, so that at the first k cycle, a positive table number
  * will be recognised as a new value.
  */
-int tableraset(TABLERA *p)
+int tableraset(ENVIRON *csound, TABLERA *p)
 {
     p->pfn = 0;
     return OK;
@@ -1897,7 +1897,7 @@ int tableraset(TABLERA *p)
  *
  * Table number is k rate, so check for it changing and for it being 0.
  */
-int tablera(TABLERA *p)
+int tablera(ENVIRON *csound, TABLERA *p)
 {
     MYFLT       *writeloc, *readloc;
     long        kstart;
@@ -1999,7 +1999,7 @@ int tablera(TABLERA *p)
  * Called at i time prior to the k rate function tablemix().
  * Same function to tablerset().
  */
-int tablewaset(TABLEWA *p)
+int tablewaset(ENVIRON *csound, TABLEWA *p)
 {
     p->pfn = 0;
     return OK;
@@ -2016,7 +2016,7 @@ int tablewaset(TABLEWA *p)
  * and we rewrite kstart.
  */
 
-int tablewa(TABLEWA *p)
+int tablewa(ENVIRON *csound, TABLEWA *p)
 {
     MYFLT *writeloc, *readloc;
     long        kstart;
@@ -2151,7 +2151,7 @@ int tablewa(TABLEWA *p)
 /* zakinit is an opcode which must be called once to reserve the memory
  * for zk and za spaces.
  */
-int zakinit(ZAKINIT *p)
+int zakinit(ENVIRON *csound, ZAKINIT *p)
 {
     long        length;
 
@@ -2189,7 +2189,7 @@ int zakinit(ZAKINIT *p)
 /* zkset() is called at the init time of the instance of the zir, zkr
  * zir and ziw ugens.  It complains if zk space has not been allocated yet.
  */
-int zkset(ZKR *p)
+int zkset(ENVIRON *csound, ZKR *p)
 {
     if  (zkstart == NULL) {
       return initerror(Str(X_389,"No zk space: zakinit has not been called yet."));
@@ -2203,7 +2203,7 @@ int zkset(ZKR *p)
 /* k rate READ code. */
 
 /* zkr reads from zk space at k rate. */
-int zkr(ZKR *p)
+int zkr(ENVIRON *csound, ZKR *p)
 {
     MYFLT       *readloc;
     long indx;
@@ -2235,13 +2235,13 @@ int zkr(ZKR *p)
  * Call zkset() to check that zk space has been allocated, then do
  * similar code to zkr() above, except with initerror() instead of
  * perferror(). */
-int zir(ZKR *p)
+int zir(ENVIRON *csound, ZKR *p)
 {
     /* See zkr() for more comments.  */
     MYFLT       *readloc;
     long indx;
 
-    if (zkset(p) == 0) return OK;
+    if (zkset(csound,p) == 0) return OK;
     /* Check to see this index is within the limits of zk space. */
 
     indx = (long) *p->ndx;
@@ -2266,7 +2266,7 @@ int zir(ZKR *p)
 /*-----------------------------------*/
 
 /* Now the i and k rate WRITE code.  zkw writes to zk space at k rate. */
-int zkw(ZKW *p)
+int zkw(ENVIRON *csound, ZKW *p)
 {
     MYFLT       *writeloc;
     long indx;
@@ -2293,12 +2293,12 @@ int zkw(ZKW *p)
  *
  * Call zkset() to check that zk space has been allocated, then use
  * same code as zkw() except that errors go to initerror().  */
-int ziw(ZKW *p)
+int ziw(ENVIRON *csound, ZKW *p)
 {
     MYFLT       *writeloc;
     long indx;
 
-    if (zkset((ZKR*)p) == 0) return NOTOK;
+    if (zkset(csound,(ZKR*)p) == 0) return NOTOK;
     indx = (long) *p->ndx;
     if (indx > zklast) {
       return perferror(Str(X_1413,"zkw index > isizek. Not writing."));
@@ -2320,7 +2320,7 @@ int ziw(ZKW *p)
 
 
 /* zkwm writes to zk space at k rate. */
-int zkwm(ZKWM *p)
+int zkwm(ENVIRON *csound, ZKWM *p)
 {
     MYFLT       *writeloc;
     long indx;
@@ -2354,12 +2354,12 @@ int zkwm(ZKWM *p)
  * Call zkset() to check that zk space has been allocated, then run
  * similar code to zkwm() to do the work - but with errors to initerror().
  */
-int ziwm(ZKWM *p)
+int ziwm(ENVIRON *csound, ZKWM *p)
 {
     MYFLT       *writeloc;
     long indx;
 
-    if (zkset((ZKR*)p) == 0) return OK;
+    if (zkset(csound,(ZKR*)p) == 0) return OK;
     indx = (long) *p->ndx;
     if (indx > zklast) {
       return initerror(Str(X_1405,"ziwm index > isizek. Not writing."));
@@ -2380,7 +2380,7 @@ int ziwm(ZKWM *p)
 /*-----------------------------------*/
 
 /* k rate ZKMOD subroutine.      */
-int zkmod(ZKMOD *p)
+int zkmod(ENVIRON *csound, ZKMOD *p)
 {
     MYFLT *readloc;
     long indx;
@@ -2424,7 +2424,7 @@ int zkmod(ZKMOD *p)
 /*-----------------------------------*/
 
 /* zkcl clears a range of variables in zk space at k rate.       */
-int zkcl(ZKCL *p)
+int zkcl(ENVIRON *csound, ZKCL *p)
 {
     MYFLT       *writeloc;
     long first = (long) *p->first, last = (long) *p->last, loopcount;
@@ -2458,7 +2458,7 @@ int zkcl(ZKCL *p)
 /* zaset() is called at the init time of the instance of the zar or zaw ugens.
  * All it has to do is spit the dummy if za space has not been allocated yet.
  */
-int zaset(ZAR *p)
+int zaset(ENVIRON *csound, ZAR *p)
 {
     if  (zastart == NULL) {
       return initerror(Str(X_388,"No za space: zakinit has not been called yet."));
@@ -2472,7 +2472,7 @@ int zaset(ZAR *p)
 /* a rate READ code. */
 
 /* zar reads from za space at a rate. */
-int zar(ZAR *p)
+int zar(ENVIRON *csound, ZAR *p)
 {
     MYFLT       *readloc, *writeloc;
     long indx;
@@ -2511,7 +2511,7 @@ int zar(ZAR *p)
 
 /* zarg() reads from za space at audio rate, with gain controlled by a
  * k rate variable. Code is almost identical to zar() above. */
-int zarg(ZARG *p)
+int zarg(ENVIRON *csound, ZARG *p)
 {
     MYFLT       *readloc, *writeloc;
     MYFLT       kgain;          /* Gain control */
@@ -2556,7 +2556,7 @@ int zarg(ZARG *p)
 /* a rate WRITE code. */
 
 /* zaw writes to za space at a rate. */
-int zaw(ZAW *p)
+int zaw(ENVIRON *csound, ZAW *p)
 {
     MYFLT       *readloc, *writeloc;
     long indx;
@@ -2589,7 +2589,7 @@ int zaw(ZAW *p)
 /* a rate WRITE code with mix facility. */
 
 /* zawm writes to za space at a rate. */
-int zawm(ZAWM *p)
+int zawm(ENVIRON *csound, ZAWM *p)
 {
     MYFLT       *readloc, *writeloc;
     long indx;
@@ -2633,7 +2633,7 @@ int zawm(ZAWM *p)
  *
  * See zkmod() for fuller explanation of code.
  */
-int zamod(ZAMOD *p)
+int zamod(ENVIRON *csound, ZAMOD *p)
 {
     MYFLT       *writeloc, *readloc;
     MYFLT       *readsig;       /* Array of input floats */
@@ -2680,7 +2680,7 @@ int zamod(ZAMOD *p)
 /*-----------------------------------*/
 
 /* zacl clears a range of variables in za space at k rate. */
-int zacl(ZACL *p)
+int zacl(ENVIRON *csound, ZACL *p)
 {
     MYFLT       *writeloc;
     long first, last, loopcount;
@@ -2727,7 +2727,7 @@ int zacl(ZACL *p)
  * Actually moved to the glob structure -- JPff march 2002
  */
 
-int timek(RDTIME *p)
+int timek(ENVIRON *csound, RDTIME *p)
 {
     /* Read the global variable kcounter and turn it into a float.   */
     *p->rslt = (MYFLT) kcounter;
@@ -2735,7 +2735,7 @@ int timek(RDTIME *p)
 }
 
 /* timesr() */
-int timesr(RDTIME *p)
+int timesr(ENVIRON *csound, RDTIME *p)
 {
     /* Read the global variable kcounter divide it by the k rate.    */
 
@@ -2752,7 +2752,7 @@ int timesr(RDTIME *p)
  * in the RDTIME data structure.
  * Returns 0.
  */
-int instimset(RDTIME *p)
+int instimset(ENVIRON *csound, RDTIME *p)
 {
     p->instartk = kcounter;
     *p->rslt = FL(0.0);
@@ -2771,7 +2771,7 @@ int instimset(RDTIME *p)
  * Read difference between the global variable kcounter and the starting
  * time of this instance. Return it as a float.
  */
-int instimek(RDTIME *p)
+int instimek(ENVIRON *csound, RDTIME *p)
 {
     *p->rslt = (MYFLT) (kcounter - p->instartk);
     return OK;
@@ -2782,7 +2782,7 @@ int instimek(RDTIME *p)
  * Read difference between the global variable kcounter and the starting
  * time of this instance.  Return it as a float in seconds.
  */
-int instimes(RDTIME *p)
+int instimes(ENVIRON *csound, RDTIME *p)
 {
     *p->rslt = (MYFLT) (kcounter - p->instartk) * onedkr ;
     return OK;
@@ -2795,7 +2795,7 @@ int instimes(RDTIME *p)
 
 /* printkset is called when the instance of the instrument is initiallised. */
 
-int printkset(PRINTK *p)
+int printkset(ENVIRON *csound, PRINTK *p)
 {
     /* Set up ctime so that if it was 0 or negative, it is set to a low value
      * to ensure that the print cycle happens every k cycle.  This low value is
@@ -2827,7 +2827,7 @@ int printkset(PRINTK *p)
  *
  * Called on every k cycle. It must decide when to do a print operation.
  */
-int printk(PRINTK *p)
+int printk(ENVIRON *csound, PRINTK *p)
 {
     MYFLT       timel;          /* Time in seconds since initialised */
     long        cycles;         /* What print cycle */
@@ -2873,7 +2873,7 @@ int printk(PRINTK *p)
 #define ESC (0x1B)
 
 /* printksset is called when the instance of the instrument is initiallised. */
-int printksset(PRINTKS *p)
+int printksset(ENVIRON *csound, PRINTKS *p)
 {
     char        *sarg;
     char        *sdest;
@@ -3110,7 +3110,7 @@ void sprints(char *outstring, char *fmt, MYFLT **kvals, long numVals)
  * It must decide when to do a
  * print operation.
  */
-int printks(PRINTKS *p)
+int printks(ENVIRON *csound, PRINTKS *p)
 {
     MYFLT       timel;
     long        cycles;
@@ -3168,7 +3168,7 @@ int printks(PRINTKS *p)
 
 
 /* matt ingalls --  i-rate prints */
-int printsset(PRINTS *p)
+int printsset(ENVIRON *csound, PRINTS *p)
 {
     PRINTKS pk;
     char        string[8192];
@@ -3176,7 +3176,7 @@ int printsset(PRINTS *p)
     pk.h = p->h;
     pk.ifilcod = p->ifilcod;
     pk.ptime = &ptime;
-    printksset(&pk);
+    printksset(csound,&pk);
     sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1);
     printf(string);
     return OK;
@@ -3191,7 +3191,7 @@ int printsset(PRINTS *p)
  *
  * Write the absolute value of the input argument to the output if the former
  is higher. */
-int peakk(PEAK *p)
+int peakk(ENVIRON *csound, PEAK *p)
 {
     if (*p->kpeakout < (MYFLT)fabs(*p->xsigin)) {
       *p->kpeakout = (MYFLT)fabs(*p->xsigin);
@@ -3202,7 +3202,7 @@ int peakk(PEAK *p)
 /* peaka()
  *
  * Similar to peakk, but looks at an a rate input variable. */
-int peaka(PEAK *p)
+int peaka(ENVIRON *csound, PEAK *p)
 {
     int         loop;
     int change = 0;
@@ -3232,7 +3232,7 @@ int peaka(PEAK *p)
 /* Gab 21-8-97 */
 /* print a k variable each time it changes (useful for MIDI control sliders) */
 
-int printk2set(PRINTK2 *p)
+int printk2set(ENVIRON *csound, PRINTK2 *p)
 {
     if (*p->space < 0)        p->pspace = 0;
     else if (*p->space > 120) p->pspace = 120;
@@ -3243,7 +3243,7 @@ int printk2set(PRINTK2 *p)
 /* Gab 21-8-97 */
 /* print a k variable each time it changes (useful for MIDI control sliders) */
 
-int printk2(PRINTK2 *p)
+int printk2(ENVIRON *csound, PRINTK2 *p)
 {
     MYFLT   value = *p->val;
     int     spcount;
@@ -3260,7 +3260,7 @@ int printk2(PRINTK2 *p)
 }
 
 /* inz writes to za space at a rate as many channels as can. */
-int inz(IOZ *p)
+int inz(ENVIRON *csound, IOZ *p)
 {
     MYFLT       *readloc, *writeloc;
     long indx, i;
@@ -3286,7 +3286,7 @@ int inz(IOZ *p)
 }
 
 /* outz reads from za space at a rate to output. */
-int outz(IOZ *p)
+int outz(ENVIRON *csound, IOZ *p)
 {
     MYFLT       *readloc, *writeloc;
     long indx;

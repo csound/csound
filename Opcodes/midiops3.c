@@ -65,7 +65,7 @@
                   j);                                             \
           return initerror(sbuf);                                 \
         }                                                         \
-        if (*sld->ifn > 0)   *ftp++ = ftfind(p->h.insdshead->csound, sld->ifn);           \
+        if (*sld->ifn > 0)   *ftp++ = ftfind(csound, sld->ifn);   \
         else                 *ftp++ = NULL;                       \
         value =  (*(sld++)->initvalue - *min) / (*max++ - *min);  \
         min++;                                                    \
@@ -98,45 +98,45 @@
 
 /*--------------------------------------------------------*/
 
-int slider_i8(SLIDER8 *p)
+int slider_i8(ENVIRON *csound, SLIDER8 *p)
 {
     SLIDERI_INIT(p, 8);
 }
 
 
-int slider8(SLIDER8 *p)
+int slider8(ENVIRON *csound, SLIDER8 *p)
 {
     SLIDER_INIT(p, 8);
 }
 
-int slider_i16(SLIDER16 *p)
+int slider_i16(ENVIRON *csound, SLIDER16 *p)
 {
     SLIDERI_INIT(p, 16);
 }
 
 
-int slider16(SLIDER16 *p)
+int slider16(ENVIRON *csound, SLIDER16 *p)
 {
     SLIDER_INIT(p, 16);
 }
 
-int slider_i32(SLIDER32 *p)
+int slider_i32(ENVIRON *csound, SLIDER32 *p)
 {
     SLIDERI_INIT(p, 32);
 }
 
 
-int slider32(SLIDER32 *p)
+int slider32(ENVIRON *csound, SLIDER32 *p)
 {
     SLIDER_INIT(p, 32);
 }
 
-int slider_i64(SLIDER64 *p)
+int slider_i64(ENVIRON *csound, SLIDER64 *p)
 {
     SLIDERI_INIT(p, 64);
 }
 
-int slider64(SLIDER64 *p)
+int slider64(ENVIRON *csound, SLIDER64 *p)
 {
     SLIDER_INIT(p, 64);
 }
@@ -211,43 +211,43 @@ int slider64(SLIDER64 *p)
     return OK;                                                    \
 }
 
-int slider_i8f(SLIDER8f *p)
+int slider_i8f(ENVIRON *csound, SLIDER8f *p)
 {
     SLIDERIF(p, 8);
 }
 
-int slider8f(SLIDER8f *p)
+int slider8f(ENVIRON *csound, SLIDER8f *p)
 {
     SLIDERF(p, 8);
 }
 
-int slider_i16f(SLIDER16f *p)
+int slider_i16f(ENVIRON *csound, SLIDER16f *p)
 {
     SLIDERIF(p, 16);
 }
 
-int slider16f(SLIDER16f *p)
+int slider16f(ENVIRON *csound, SLIDER16f *p)
 {
     SLIDERF(p, 16);
 }
 
-int slider_i32f(SLIDER32f *p)
+int slider_i32f(ENVIRON *csound, SLIDER32f *p)
 {
     SLIDERIF(p, 32);
 }
 
-int slider32f(SLIDER32f *p)
+int slider32f(ENVIRON *csound, SLIDER32f *p)
 {
     SLIDERF(p, 32);
 }
 
 
-int slider_i64f(SLIDER64f *p)
+int slider_i64f(ENVIRON *csound, SLIDER64f *p)
 {
     SLIDERIF(p, 64);
 }
 
-int slider64f(SLIDER64f *p)
+int slider64f(ENVIRON *csound, SLIDER64f *p)
 {
     SLIDERF(p, 64);
 }
@@ -290,22 +290,22 @@ int slider64f(SLIDER64f *p)
 }
 
 
-int islider8(ISLIDER8 *p)
+int islider8(ENVIRON *csound, ISLIDER8 *p)
 {
     ISLIDER(p, 8);
 }
 
-int islider16(ISLIDER16 *p)
+int islider16(ENVIRON *csound, ISLIDER16 *p)
 {
     ISLIDER(p, 16);
 }
 
-int islider32(ISLIDER32 *p)
+int islider32(ENVIRON *csound, ISLIDER32 *p)
 {
     ISLIDER(p, 32);
 }
 
-int islider64(ISLIDER64 *p)
+int islider64(ENVIRON *csound, ISLIDER64 *p)
 {
     ISLIDER(p, 64);
 }
@@ -389,23 +389,23 @@ int islider64(ISLIDER64 *p)
     return OK;                                                    \
 }
 
-int slider_i16bit14(SLIDER16BIT14 *p)
+int slider_i16bit14(ENVIRON *csound, SLIDER16BIT14 *p)
 {
     SLIDERI14(p, 16);
 }
 
-int slider16bit14(SLIDER16BIT14 *p)
+int slider16bit14(ENVIRON *csound, SLIDER16BIT14 *p)
 {
     SLIDER14(p, 16);
 }
 
-int slider_i32bit14(SLIDER32BIT14 *p)
+int slider_i32bit14(ENVIRON *csound, SLIDER32BIT14 *p)
 {
     SLIDERI14(p, 32);
 }
 
 
-int slider32bit14(SLIDER32BIT14 *p)
+int slider32bit14(ENVIRON *csound, SLIDER32BIT14 *p)
 {
     SLIDER14(p, 32);
 }
@@ -459,12 +459,12 @@ int slider32bit14(SLIDER32BIT14 *p)
     return OK;                                                         \
 }
 
-int islider16bit14(ISLIDER16BIT14 *p)
+int islider16bit14(ENVIRON *csound, ISLIDER16BIT14 *p)
 {
     ISLIDER14(p, 16);
 }
 
-int islider32bit14(ISLIDER32BIT14 *p)
+int islider32bit14(ENVIRON *csound, ISLIDER32BIT14 *p)
 {
     ISLIDER14(p, 16);
 }

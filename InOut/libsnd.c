@@ -236,7 +236,7 @@ void writeheader(int ofd, char *ofname)
     sf_command(outfile, SFC_UPDATE_HEADER_NOW, NULL, 0);
 }
 
-int sndinset(SOUNDIN *p)    /* init routine for instr soundin   */
+int sndinset(ENVIRON *csound, SOUNDIN *p)    /* init routine for instr soundin   */
                             /* shares above sndgetset with SAsndgetset, gen01*/
 {
     SNDFILE *sinfd;
@@ -260,7 +260,7 @@ int sndinset(SOUNDIN *p)    /* init routine for instr soundin   */
     return OK;
 }
 
-int soundin(SOUNDIN *p)
+int soundin(ENVIRON *csound, SOUNDIN *p)
 {
     MYFLT       *r[24], scalefac;
     int         nsmps, ntogo, blksiz, chnsout, i = 0, n;

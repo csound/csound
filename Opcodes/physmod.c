@@ -112,12 +112,11 @@ void OneZero_print(OneZero *p)
 }
 
 /* *********************************************************************** */
-int clarinset(CLARIN *p)
+int clarinset(ENVIRON *csound, CLARIN *p)
 {
     FUNC        *ftp;
-    ENVIRON     *csound = p->h.insdshead->csound;
 
-    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) != NULL) p->vibr = ftp;
+    if ((ftp = ftfind(csound, p->ifn)) != NULL) p->vibr = ftp;
     else {
       return perferror(Str(X_376,"No table for Clarinet")); /* Expect sine wave */
     }
@@ -152,7 +151,7 @@ int clarinset(CLARIN *p)
     return OK;
 }
 
-int clarin(CLARIN *p)
+int clarin(ENVIRON *csound, CLARIN *p)
 {
     MYFLT *ar = p->ar;
     long nsmps = ksmps;
@@ -266,13 +265,12 @@ static MYFLT JetTabl_lookup(MYFLT sample) /* Perform "Table Lookup"  */
     return j;
 }
 
-int fluteset(FLUTE *p)
+int fluteset(ENVIRON *csound, FLUTE *p)
 {
     FUNC        *ftp;
     long        length;
-    ENVIRON     *csound = p->h.insdshead->csound;
 
-    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) != NULL) p->vibr = ftp;
+    if ((ftp = ftfind(csound, p->ifn)) != NULL) p->vibr = ftp;
     else {
       return perferror(Str(X_378,"No table for Flute")); /* Expect sine wave */
     }
@@ -329,7 +327,7 @@ int fluteset(FLUTE *p)
     return OK;
 }
 
-int flute(FLUTE *p)
+int flute(ENVIRON *csound, FLUTE *p)
 {
     MYFLT       *ar = p->ar;
     long        nsmps = ksmps;
@@ -340,7 +338,6 @@ int flute(FLUTE *p)
     MYFLT       v_time = p->v_time;
     MYFLT       vibGain = *p->vibAmt;
     MYFLT       jetRefl, endRefl, noisegain;
-    ENVIRON     *csound = p->h.insdshead->csound;
 
     if (amp!=p->lastamp) {      /* If amplitude has changed */
       /*       printf("Amp changed to %f\n", amp); */
@@ -473,14 +470,13 @@ MYFLT BowTabl_lookup(ENVIRON *csound, BowTabl *b, MYFLT sample)
     return lastOutput;
 }
 
-int bowedset(BOWED *p)
+int bowedset(ENVIRON *csound, BOWED *p)
 {
     long        length;
     FUNC        *ftp;
     MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
-    ENVIRON     *csound = p->h.insdshead->csound;
 
-    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) != NULL) p->vibr = ftp;
+    if ((ftp = ftfind(csound, p->ifn)) != NULL) p->vibr = ftp;
     else {
       return perferror(Str(X_386,"No table for wgbow vibrato")); /* Expect sine wave */
     }
@@ -536,14 +532,13 @@ int bowedset(BOWED *p)
 }
 
 
-int bowed(BOWED *p)
+int bowed(ENVIRON *csound, BOWED *p)
 {
     MYFLT       *ar = p->ar;
     long        nsmps = ksmps;
     MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT       maxVel;
     int         freq_changed = 0;
-    ENVIRON     *csound = p->h.insdshead->csound;
 
     if (amp != p->lastamp) {
       p->maxVelocity = FL(0.03) + (FL(0.2) * amp);
@@ -773,13 +768,12 @@ MYFLT LipFilt_tick(LipFilt *p, MYFLT mouthSample, MYFLT boreSample)
 
 /* ====================================================================== */
 
-int brassset(BRASS *p)
+int brassset(ENVIRON *csound, BRASS *p)
 {
     FUNC        *ftp;
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
-    ENVIRON     *csound = p->h.insdshead->csound;
 
-    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) != NULL) p->vibr = ftp;
+    if ((ftp = ftfind(csound, p->ifn)) != NULL) p->vibr = ftp;
     else {
       return perferror(Str(X_375,"No table for Brass")); /* Expect sine wave */
     }
@@ -829,7 +823,7 @@ int brassset(BRASS *p)
     return OK;
 }
 
-int brass(BRASS *p)
+int brass(ENVIRON *csound, BRASS *p)
 {
     MYFLT *ar = p->ar;
     long nsmps = ksmps;
@@ -839,7 +833,6 @@ int brass(BRASS *p)
     MYFLT *v_data = p->vibr->ftable;
     MYFLT vibGain = *p->vibAmt;
     MYFLT vTime = p->v_time;
-    ENVIRON *csound = p->h.insdshead->csound;
 
     p->v_rate = *p->vibFreq * v_len * onedsr;
     /*   vibr->setFreq(6.137); */

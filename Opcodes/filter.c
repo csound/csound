@@ -204,7 +204,7 @@ int ifilter(FILTER* p)
 }
 
 /* izfilter - initialize z-plane controllable filter */
-int izfilter(ZFILTER *p)
+int izfilter(ENVIRON *csound, ZFILTER *p)
 {
     fcomplex a[MAXPOLES];
     fcomplex *roots;

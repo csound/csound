@@ -74,17 +74,17 @@ static int fofset0(FOFS *p, int flag)
     return OK;
 }
 
-int fofset(FOFS        *p)
+int fofset(ENVIRON *csound, FOFS        *p)
 {
     return fofset0(p, 1);
 }
 
-int fofset2(FOFS       *p)
+int fofset2(ENVIRON *csound, FOFS       *p)
 {
     return fofset0(p, 0);
 }
 
-int fof(FOFS *p)
+int fof(ENVIRON *csound, FOFS *p)
 {
     OVRLAP *ovp;
     FUNC    *ftp1,  *ftp2;
@@ -242,7 +242,7 @@ static int newpulse(FOFS *p, OVRLAP *ovp, MYFLT *amp, MYFLT *fund, MYFLT *form)
 
 static int hrngflg=0;
 
-int harmset(HARMON *p)
+int harmset(ENVIRON *csound, HARMON *p)
 {
     MYFLT minfrq = *p->ilowest;
     if (minfrq < FL(64.0)) {
@@ -285,7 +285,7 @@ int harmset(HARMON *p)
     return OK;
 }
 
-int harmon(HARMON *p)
+int harmon(ENVIRON *csound, HARMON *p)
 {
     MYFLT *src1, *src2, *src3, *inp1, *inp2, *outp;
     MYFLT c1, c2, qval, *inq1, *inq2;

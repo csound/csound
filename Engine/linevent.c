@@ -380,7 +380,7 @@ int event_set(LINEVENT* p/*unused*/)
     return OK;
 }
 
-int eventOpcode(LINEVENT *p)
+int eventOpcode(ENVIRON *csound, LINEVENT *p)
 {
     LEVTBLK  *Curblk;
     EVTBLK   *e;

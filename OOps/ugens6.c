@@ -27,14 +27,14 @@
 
 #define log001 (-FL(6.9078))    /* log(.001) */
 
-int downset(DOWNSAMP *p)
+int downset(ENVIRON *csound, DOWNSAMP *p)
 {
     if ((p->len = (int)*p->ilen) > ksmps)
       return initerror(Str(X_836,"ilen > ksmps"));
     return OK;
 }
 
-int downsamp(DOWNSAMP *p)
+int downsamp(ENVIRON *csound, DOWNSAMP *p)
 {
     MYFLT       *asig, sum;
     int len;
@@ -53,7 +53,7 @@ int downsamp(DOWNSAMP *p)
     return OK;
 }
 
-int upsamp(UPSAMP *p)
+int upsamp(ENVIRON *csound, UPSAMP *p)
 {
     MYFLT       *ar, kval;
     int nsmps = ksmps;
@@ -66,14 +66,14 @@ int upsamp(UPSAMP *p)
     return OK;
 }
 
-int a_k_set(INTERP *p)
+int a_k_set(ENVIRON *csound, INTERP *p)
 {
     p->prev = FL(0.0);
     p->init_k = 0;              /* IV - Sep 5 2002 */
     return OK;
 }
 
-int interpset(INTERP *p)
+int interpset(ENVIRON *csound, INTERP *p)
 {
     if (*p->istor == FL(0.0)) {
       p->prev = FL(0.0);
@@ -82,7 +82,7 @@ int interpset(INTERP *p)
     return OK;
 }
 
-int interp(INTERP *p)
+int interp(ENVIRON *csound, INTERP *p)
 {
     MYFLT       *ar, val, incr;
     int nsmps = ksmps;
@@ -101,20 +101,20 @@ int interp(INTERP *p)
     return OK;
 }
 
-int indfset(INDIFF *p)
+int indfset(ENVIRON *csound, INDIFF *p)
 {
     if (*p->istor == FL(0.0))   /* IV - Sep 5 2002 */
       p->prev = FL(0.0);
     return OK;
 }
 
-int kntegrate(INDIFF *p)
+int kntegrate(ENVIRON *csound, INDIFF *p)
 {
     *p->rslt = p->prev += *p->xsig;
     return OK;
 }
 
-int integrate(INDIFF *p)
+int integrate(ENVIRON *csound, INDIFF *p)
 {
     MYFLT       *rslt, *asig, sum;
     int nsmps = ksmps;
@@ -129,7 +129,7 @@ int integrate(INDIFF *p)
     return OK;
 }
 
-int kdiff(INDIFF *p)
+int kdiff(ENVIRON *csound, INDIFF *p)
 {
     MYFLT       tmp;
     tmp = *p->xsig;             /* IV - Sep 5 2002: fix to make */
@@ -138,7 +138,7 @@ int kdiff(INDIFF *p)
     return OK;
 }
 
-int diff(INDIFF *p)
+int diff(ENVIRON *csound, INDIFF *p)
 {
     MYFLT       *ar, *asig, prev, tmp;
     int nsmps = ksmps;
@@ -155,7 +155,7 @@ int diff(INDIFF *p)
     return OK;
 }
 
-int samphset(SAMPHOLD *p)
+int samphset(ENVIRON *csound, SAMPHOLD *p)
 {
     if (!(*p->istor))
       p->state = *p->ival;
@@ -163,7 +163,7 @@ int samphset(SAMPHOLD *p)
     return OK;
 }
 
-int ksmphold(SAMPHOLD *p)
+int ksmphold(ENVIRON *csound, SAMPHOLD *p)
 {
     if (*p->xgate > 0.)
       p->state = *p->xsig;
@@ -171,7 +171,7 @@ int ksmphold(SAMPHOLD *p)
     return OK;
 }
 
-int samphold(SAMPHOLD *p)
+int samphold(ENVIRON *csound, SAMPHOLD *p)
 {
     MYFLT       *ar, *asig, *agate, state;
     int nsmps = ksmps;
@@ -205,7 +205,7 @@ int samphold(SAMPHOLD *p)
     return OK;
 }
 
-int delset(DELAY *p)
+int delset(ENVIRON *csound, DELAY *p)
 {
     long        npts;
     char        *auxp;
@@ -235,7 +235,7 @@ int delset(DELAY *p)
 static   DELAYR   *first_delayr = NULL;   /* fifo anchor */
 static   DELAYR   *last_delayr = NULL;   /* fifo anchor */
 
-int delrset(DELAYR *p)
+int delrset(ENVIRON *csound, DELAYR *p)
 {
     long        npts;
     MYFLT       *auxp;
@@ -271,7 +271,7 @@ int delrset(DELAYR *p)
     return OK;
 }
 
-int delwset(DELAYW *p)
+int delwset(ENVIRON *csound, DELAYW *p)
 {
    /* fifo for delayr pointers by Jens Groh: */
     if (first_delayr == NULL) {
@@ -287,7 +287,7 @@ int delwset(DELAYW *p)
     return OK;
 }
 
-int tapset(DELTAP *p)
+int tapset(ENVIRON *csound, DELTAP *p)
 {
     /* fifo for delayr pointers by Jens Groh: */
     if (last_delayr == NULL) {
@@ -297,7 +297,7 @@ int tapset(DELTAP *p)
     return OK;
 }
 
-int delay(DELAY *p)
+int delay(ENVIRON *csound, DELAY *p)
 {
     MYFLT       *ar, *asig, *curp, *endp;
     int nsmps = ksmps;
@@ -320,7 +320,7 @@ int delay(DELAY *p)
     return OK;
 }
 
-int delayr(DELAYR *p)
+int delayr(ENVIRON *csound, DELAYR *p)
 {
     MYFLT       *ar, *curp, *endp;
     int nsmps = ksmps;
@@ -339,7 +339,7 @@ int delayr(DELAYR *p)
     return OK;
 }
 
-int delayw(DELAYW *p)
+int delayw(ENVIRON *csound, DELAYW *p)
 {
     DELAYR      *q = p->delayr;
     MYFLT       *asig, *curp, *endp;
@@ -360,7 +360,7 @@ int delayw(DELAYW *p)
     return OK;
 }
 
-int deltap(DELTAP *p)
+int deltap(ENVIRON *csound, DELTAP *p)
 {
     DELAYR      *q = p->delayr;
     MYFLT       *ar, *tap, *endp;
@@ -382,7 +382,7 @@ int deltap(DELTAP *p)
     return OK;
 }
 
-int deltapi(DELTAP *p)
+int deltapi(ENVIRON *csound, DELTAP *p)
 {
     DELAYR      *q = p->delayr;
     MYFLT       *ar, *tap, *prv, *begp, *endp;
@@ -431,7 +431,7 @@ int deltapi(DELTAP *p)
 
 /* ***** From Hans Mikelson ************* */
 /* Delay N samples */
-int deltapn(DELTAP *p)
+int deltapn(ENVIRON *csound, DELTAP *p)
 {
     DELAYR *q = p->delayr;
     MYFLT *ar, *tap, *begp, *endp;
@@ -475,7 +475,7 @@ int deltapn(DELTAP *p)
 }
 
 /* **** JPff **** */
-int deltap3(DELTAP *p)
+int deltap3(ENVIRON *csound, DELTAP *p)
 {
     DELAYR      *q = p->delayr;
     MYFLT       *ar, *tap, *prv, *begp, *endp;
@@ -548,7 +548,7 @@ int deltap3(DELTAP *p)
 
 /* deltapx and deltapxw opcodes by Istvan Varga */
 
-int tapxset(DELTAPX *p)
+int tapxset(ENVIRON *csound, DELTAPX *p)
 {
     /* fifo for delayr pointers by Jens Groh: */
     if (last_delayr == NULL) {
@@ -562,7 +562,7 @@ int tapxset(DELTAPX *p)
     return OK;
 }
 
-int deltapx(DELTAPX *p)                /* deltapx opcode */
+int deltapx(ENVIRON *csound, DELTAPX *p)                /* deltapx opcode */
 {
     DELAYR      *q = p->delayr;
     MYFLT       *out1, *del, *buf1;
@@ -637,7 +637,7 @@ int deltapx(DELTAPX *p)                /* deltapx opcode */
     return OK;
 }
 
-int deltapxw(DELTAPX *p)               /* deltapxw opcode */
+int deltapxw(ENVIRON *csound, DELTAPX *p)               /* deltapxw opcode */
 {
     DELAYR      *q = p->delayr;
     MYFLT       *in1, *del, *buf1;
@@ -713,14 +713,14 @@ int deltapxw(DELTAPX *p)               /* deltapxw opcode */
     return OK;
 }
 
-int del1set(DELAY1 *p)
+int del1set(ENVIRON *csound, DELAY1 *p)
 {
     if (!(*p->istor))
       p->sav1 = FL(0.0);
     return OK;
 }
 
-int delay1(DELAY1 *p)
+int delay1(ENVIRON *csound, DELAY1 *p)
 {
     MYFLT       *ar, *asig;
     int nsmps = ksmps - 1;
@@ -738,7 +738,7 @@ int delay1(DELAY1 *p)
 }
 
 
-int cmbset(COMB *p)
+int cmbset(ENVIRON *csound, COMB *p)
 {
     long        lpsiz, nbytes;
 
@@ -769,7 +769,7 @@ int cmbset(COMB *p)
     return OK;
 }
 
-int comb(COMB *p)
+int comb(ENVIRON *csound, COMB *p)
 {
     int nsmps = ksmps;
     MYFLT       *ar, *asig, *xp, *endp;
@@ -811,7 +811,7 @@ int comb(COMB *p)
     return OK;
 }
 
-int alpass(COMB *p)
+int alpass(ENVIRON *csound, COMB *p)
 {
     int nsmps = ksmps;
     MYFLT       *ar, *asig, *xp, *endp;
@@ -858,7 +858,7 @@ void reverbinit(void)                   /* called once by oload */
     } while (--n);
 }
 
-int rvbset(REVERB *p)
+int rvbset(ENVIRON *csound, REVERB *p)
 {
     if (p->auxch.auxp == NULL) {                        /* if no space yet, */
       long      *sizp = revlpsiz;
@@ -892,7 +892,7 @@ int rvbset(REVERB *p)
     return OK;
 }
 
-int reverb(REVERB *p)
+int reverb(ENVIRON *csound, REVERB *p)
 {
     MYFLT       *asig, *p1, *p2, *p3, *p4, *p5, *p6, *ar, *endp;
     int nsmps = ksmps;
@@ -950,7 +950,7 @@ int reverb(REVERB *p)
     return OK;
 }
 
-int panset(PAN *p)
+int panset(ENVIRON *csound, PAN *p)
 {
     FUNC *ftp;
 
@@ -966,7 +966,7 @@ int panset(PAN *p)
     return OK;
 }
 
-int pan(PAN *p)
+int pan(ENVIRON *csound, PAN *p)
 {
     MYFLT       *r1, *r2, *r3, *r4, *sigp, ch1, ch2, ch3, ch4;
     long        xndx, yndx, flen;

@@ -314,9 +314,9 @@ extern void angle_to_cart(ANG_VEC avec, CART_VEC *cvec);
 extern void normalize_wts(OUT_WTS *wts);
 
 
-extern int vbap_FOUR_control(VBAP_FOUR *p);
-extern int vbap_EIGHT_control(VBAP_EIGHT *p);
-extern int vbap_SIXTEEN_control(VBAP_SIXTEEN *p);
+extern int vbap_FOUR_control(ENVIRON*, VBAP_FOUR *p);
+extern int vbap_EIGHT_control(ENVIRON*, VBAP_EIGHT *p);
+extern int vbap_SIXTEEN_control(ENVIRON*, VBAP_SIXTEEN *p);
 
 void calc_vbap_gns(int ls_set_am, int dim, LS_SET *sets,
                    MYFLT *gains, int ls_amount,

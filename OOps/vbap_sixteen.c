@@ -35,16 +35,16 @@ Ville Pulkki
 #include <stdio.h>
 #include <stdlib.h>
 
-int vbap_SIXTEEN_moving_control(VBAP_SIXTEEN_MOVING  *p);
+int vbap_SIXTEEN_moving_control(ENVIRON *csound, VBAP_SIXTEEN_MOVING  *p);
 
-int vbap_SIXTEEN(VBAP_SIXTEEN  *p) /* during note performance:   */
+int vbap_SIXTEEN(ENVIRON *csound, VBAP_SIXTEEN  *p) /* during note performance:   */
 {
     MYFLT *outptr, *inptr;
     MYFLT ogain, ngain, gainsubstr;
     MYFLT invfloatn;
     int i,j;
 
-    vbap_SIXTEEN_control(p);
+    vbap_SIXTEEN_control(csound,p);
     for (i=0; i< (SIXTEEN); i++) {
       p->beg_gains[i] = p->end_gains[i];
       p->end_gains[i] = p->updated_gains[i];
@@ -82,7 +82,7 @@ int vbap_SIXTEEN(VBAP_SIXTEEN  *p) /* during note performance:   */
 }
 
 
-int vbap_SIXTEEN_control(VBAP_SIXTEEN  *p)
+int vbap_SIXTEEN_control(ENVIRON *csound, VBAP_SIXTEEN  *p)
 {
     CART_VEC spreaddir[16];
     CART_VEC spreadbase[16];
@@ -189,7 +189,7 @@ int vbap_SIXTEEN_control(VBAP_SIXTEEN  *p)
     return OK;
 }
 
-int vbap_SIXTEEN_init(VBAP_SIXTEEN  *p)
+int vbap_SIXTEEN_init(ENVIRON *csound, VBAP_SIXTEEN  *p)
 {                               /* Initializations before run time*/
     int i,j;
     MYFLT *ptr;
@@ -228,7 +228,7 @@ int vbap_SIXTEEN_init(VBAP_SIXTEEN  *p)
     p->spread_base.x  = p->cart_dir.y;
     p->spread_base.y  = p->cart_dir.z;
     p->spread_base.z  = -p->cart_dir.x;
-    vbap_SIXTEEN_control(p);
+    vbap_SIXTEEN_control(csound,p);
     for (i = 0; i<SIXTEEN; i++) {
       p->beg_gains[i] = p->updated_gains[i];
       p->end_gains[i] = p->updated_gains[i];
@@ -237,14 +237,14 @@ int vbap_SIXTEEN_init(VBAP_SIXTEEN  *p)
 }
 
 
-int vbap_SIXTEEN_moving(VBAP_SIXTEEN_MOVING  *p) /* during note performance: */
+int vbap_SIXTEEN_moving(ENVIRON *csound, VBAP_SIXTEEN_MOVING  *p) /* during note performance: */
 {
     MYFLT *outptr, *inptr;
     MYFLT ogain, ngain, gainsubstr;
     MYFLT invfloatn;
     int i,j;
 
-    vbap_SIXTEEN_moving_control(p);
+    vbap_SIXTEEN_moving_control(csound,p);
     for (i=0;i< (SIXTEEN); i++) {
       p->beg_gains[i]=p->end_gains[i];
       p->end_gains[i]=p->updated_gains[i];
@@ -278,7 +278,7 @@ int vbap_SIXTEEN_moving(VBAP_SIXTEEN_MOVING  *p) /* during note performance: */
     return OK;
 }
 
-int vbap_SIXTEEN_moving_control(VBAP_SIXTEEN_MOVING  *p)
+int vbap_SIXTEEN_moving_control(ENVIRON *csound, VBAP_SIXTEEN_MOVING  *p)
 {
     CART_VEC spreaddir[16];
     CART_VEC spreadbase[16];
@@ -464,7 +464,7 @@ int vbap_SIXTEEN_moving_control(VBAP_SIXTEEN_MOVING  *p)
 }
 
 
-int vbap_SIXTEEN_moving_init(VBAP_SIXTEEN_MOVING  *p)
+int vbap_SIXTEEN_moving_init(ENVIRON *csound, VBAP_SIXTEEN_MOVING  *p)
 {
     int i,j;
     MYFLT *ptr;
@@ -524,7 +524,7 @@ int vbap_SIXTEEN_moving_init(VBAP_SIXTEEN_MOVING  *p)
     p->spread_base.x  = p->cart_dir.y;
     p->spread_base.y  = p->cart_dir.z;
     p->spread_base.z  = -p->cart_dir.x;
-    vbap_SIXTEEN_moving_control(p);
+    vbap_SIXTEEN_moving_control(csound,p);
     for (i= 0; i<SIXTEEN; i++) {
       p->beg_gains[i] = p->updated_gains[i];
       p->end_gains[i] = p->updated_gains[i];

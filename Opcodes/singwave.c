@@ -279,10 +279,9 @@ void voicprint(ENVIRON *csound, VOICF *p)
 
 static int step = 0;
 
-int voicformset(VOICF *p)
+int voicformset(ENVIRON *csound, VOICF *p)
 {
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
-    ENVIRON *csound = p->h.insdshead->csound;
 
     if (make_SingWave(csound, &p->voiced, p->ifn, p->ivfn)==NOTOK) return NOTOK;
     Envelope_setRate(csound, &(p->voiced.envelope), FL(0.001));
@@ -330,13 +329,12 @@ int voicformset(VOICF *p)
     return OK;
 }
 
-int voicform(VOICF *p)
+int voicform(ENVIRON *csound, VOICF *p)
 {
     MYFLT *ar = p->ar;
     long nsmps = ksmps;
     MYFLT temp;
     MYFLT lastOutput;
-    ENVIRON *csound = p->h.insdshead->csound;
 
     if (p->basef != *p->frequency) {
       p->basef = *p->frequency;

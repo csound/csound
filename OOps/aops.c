@@ -31,19 +31,19 @@ extern ENVIRON cenviron;
 static  double  oct;
 #define LOGTWO  (0.69314718056)
 
-int rassign(ASSIGN *p)
+int rassign(ENVIRON *csound, ASSIGN *p)
 {
     *p->r = *p->a;  /* still not quite right */
     return OK;
 }
 
-int assign(ASSIGN *p)
+int assign(ENVIRON *csound, ASSIGN *p)
 {
     *p->r = *p->a;
     return OK;
 }
 
-int aassign(ASSIGN *p)
+int aassign(ENVIRON *csound, ASSIGN *p)
 {
     MYFLT       *r, *a;
     int nsmps = ksmps;
@@ -63,13 +63,13 @@ int aassign(ASSIGN *p)
     return OK;
 }
 
-int init(ASSIGN *p)
+int init(ENVIRON *csound, ASSIGN *p)
 {
     *p->r = *p->a;
     return OK;
 }
 
-int ainit(ASSIGN *p)
+int ainit(ENVIRON *csound, ASSIGN *p)
 {
     MYFLT       *r, *a;
     int nsmps = ksmps;
@@ -83,7 +83,7 @@ int ainit(ASSIGN *p)
 }
 
 #define RELATN(OPNAME,OP) \
-    int OPNAME(RELAT *p) { *p->rbool = (*p->a OP *p->b) ? 1 : 0; return OK; }
+    int OPNAME(ENVIRON *csound, RELAT *p) { *p->rbool = (*p->a OP *p->b) ? 1 : 0; return OK; }
 
 RELATN(gt,>)
 RELATN(ge,>=)
@@ -93,13 +93,13 @@ RELATN(eq,==)
 RELATN(ne,!=)
 
 #define LOGCLX(OPNAME,OP) \
-  int OPNAME(LOGCL *p) { *p->rbool = (*p->ibool OP *p->jbool) ? 1 : 0; return OK; }
+  int OPNAME(ENVIRON *csound, LOGCL *p) { *p->rbool = (*p->ibool OP *p->jbool) ? 1 : 0; return OK; }
 
 LOGCLX(and,&&)
 LOGCLX(or,||)
 
 #define KK(OPNAME,OP) \
-  int OPNAME(AOP *p) { *p->r = *p->a OP *p->b; return OK; }
+  int OPNAME(ENVIRON *csound, AOP *p) { *p->r = *p->a OP *p->b; return OK; }
 
 KK(addkk,+)
 KK(subkk,-)
@@ -121,13 +121,13 @@ MYFLT MOD(MYFLT a, MYFLT bb)
     }
 }
 
-int modkk(AOP *p)
+int modkk(ENVIRON *csound, AOP *p)
 {
     *p->r = MOD(*p->a, *p->b);
     return OK;
 }
 
-#define KA(OPNAME,OP) int OPNAME(AOP *p) {      \
+#define KA(OPNAME,OP) int OPNAME(ENVIRON *csound, AOP *p) {      \
         int     nsmps = ksmps;                  \
         MYFLT   *r, a, *b;                      \
         r = p->r;                               \
@@ -144,7 +144,7 @@ KA(subka,-)
 KA(mulka,*)
 KA(divka,/)
 
-int modka(AOP *p)
+int modka(ENVIRON *csound, AOP *p)
 {
     int nsmps = ksmps;
     MYFLT       *r, a, *b;
@@ -157,7 +157,7 @@ int modka(AOP *p)
     return OK;
 }
 
-#define AK(OPNAME,OP) int OPNAME(AOP *p) {      \
+#define AK(OPNAME,OP) int OPNAME(ENVIRON *csound, AOP *p) {      \
         int     nsmps = ksmps;                  \
         MYFLT   *r, *a, b;                      \
         r = p->r;                               \
@@ -174,7 +174,7 @@ AK(subak,-)
 AK(mulak,*)
 AK(divak,/)
 
-int modak(AOP *p)
+int modak(ENVIRON *csound, AOP *p)
 {
     int nsmps = ksmps;
     MYFLT       *r, *a, b;
@@ -188,7 +188,7 @@ int modak(AOP *p)
 }
 
 
-#define AA(OPNAME,OP) int OPNAME(AOP *p) {      \
+#define AA(OPNAME,OP) int OPNAME(ENVIRON *csound, AOP *p) {      \
         int     nsmps = ksmps;                  \
         MYFLT   *r, *a, *b;                     \
         r = p->r;                               \
@@ -205,7 +205,7 @@ AA(subaa,-)
 AA(mulaa,*)
 AA(divaa,/)
 
-int modaa(AOP *p)
+int modaa(ENVIRON *csound, AOP *p)
 {
     int nsmps = ksmps;
     MYFLT       *r, *a, *b;
@@ -218,13 +218,13 @@ int modaa(AOP *p)
     return OK;
 }
 
-int divzkk(DIVZ *p)
+int divzkk(ENVIRON *csound, DIVZ *p)
 {
     *p->r = (*p->b != FL(0.0) ? *p->a / *p->b : *p->def);
     return OK;
 }
 
-int divzka(DIVZ *p)
+int divzka(ENVIRON *csound, DIVZ *p)
 {
     int         nsmps = ksmps;
     MYFLT       *r, a, *b, def;
@@ -239,7 +239,7 @@ int divzka(DIVZ *p)
     return OK;
 }
 
-int divzak(DIVZ *p)
+int divzak(ENVIRON *csound, DIVZ *p)
 {
     int         nsmps = ksmps;
     MYFLT       *r, *a, b, def;
@@ -260,7 +260,7 @@ int divzak(DIVZ *p)
     return OK;
 }
 
-int divzaa(DIVZ *p)
+int divzaa(ENVIRON *csound, DIVZ *p)
 {
     int nsmps = ksmps;
     MYFLT       *r, *a, *b, def;
@@ -275,7 +275,7 @@ int divzaa(DIVZ *p)
     return OK;
 }
 
-int conval(CONVAL *p)
+int conval(ENVIRON *csound, CONVAL *p)
 {
     if (*p->cond)
       *p->r = *p->a;
@@ -284,7 +284,7 @@ int conval(CONVAL *p)
     return OK;
 }
 
-int aconval(CONVAL *p)
+int aconval(ENVIRON *csound, CONVAL *p)
 {
     MYFLT       *r, *s;
     int nsmps = ksmps;
@@ -299,7 +299,7 @@ int aconval(CONVAL *p)
     return OK;
 }
 
-int int1(EVAL *p)                              /* returns signed whole no. */
+int int1(ENVIRON *csound, EVAL *p)                              /* returns signed whole no. */
 {
     double intpart;
     modf((double)*p->a, &intpart);
@@ -307,7 +307,7 @@ int int1(EVAL *p)                              /* returns signed whole no. */
     return OK;
 }
 
-int frac1(EVAL *p)                             /* returns positive frac part */
+int frac1(ENVIRON *csound, EVAL *p)                             /* returns positive frac part */
 {
     double intpart, fracpart;
     fracpart = modf((double)*p->a, &intpart);
@@ -318,7 +318,7 @@ int frac1(EVAL *p)                             /* returns positive frac part */
 static double rndfrac = 0.5;
 #define rndmlt (105.947)
 
-int rnd1(EVAL *p)              /* returns unipolar rand(x) */
+int rnd1(ENVIRON *csound, EVAL *p)              /* returns unipolar rand(x) */
 {
     double intpart;
     rndfrac = modf(rndfrac * rndmlt, &intpart);
@@ -326,7 +326,7 @@ int rnd1(EVAL *p)              /* returns unipolar rand(x) */
     return OK;
 }
 
-int birnd1(EVAL *p)            /* returns bipolar rand(x) */
+int birnd1(ENVIRON *csound, EVAL *p)            /* returns bipolar rand(x) */
 {
     double intpart;
     rndfrac = modf(rndfrac * rndmlt, &intpart);
@@ -334,7 +334,7 @@ int birnd1(EVAL *p)            /* returns bipolar rand(x) */
     return OK;
 }
 
-#define LIB1(OPNAME,LIBNAME)  int OPNAME(EVAL *p)       \
+#define LIB1(OPNAME,LIBNAME)  int OPNAME(ENVIRON *csound, EVAL *p)       \
                      { *p->r = (MYFLT)LIBNAME((double)*p->a); return OK; }
 LIB1(abs1,fabs)
 LIB1(exp01,exp)
@@ -351,13 +351,13 @@ LIB1(cosh1,cosh)
 LIB1(tanh1,tanh)
 LIB1(log101,log10)
 
-int atan21(AOP *p)
+int atan21(ENVIRON *csound, AOP *p)
 {
     *p->r = (MYFLT)atan2((double)*p->a, (double)*p->b);
     return OK;
 }
 
-#define LIBA(OPNAME,LIBNAME) int OPNAME(EVAL *p) {                     \
+#define LIBA(OPNAME,LIBNAME) int OPNAME(ENVIRON *csound, EVAL *p) {                     \
                                 int     nsmps = ksmps;                 \
                                 MYFLT   *r, *a;                        \
                                 r = p->r;                              \
@@ -382,7 +382,7 @@ LIBA(cosha,cosh)
 LIBA(tanha,tanh)
 LIBA(log10a,log10)
 
-int atan2aa(AOP *p)
+int atan2aa(ENVIRON *csound, AOP *p)
 {
     int nsmps = ksmps;
     MYFLT       *r, *a, *b;
@@ -395,19 +395,19 @@ int atan2aa(AOP *p)
     return OK;
 }
 
-int dbamp(EVAL *p)
+int dbamp(ENVIRON *csound, EVAL *p)
 {
     *p->r = (MYFLT)(log(fabs((double)*p->a)) / LOG10D20);
     return OK;
 }
 
-int ampdb(EVAL *p)
+int ampdb(ENVIRON *csound, EVAL *p)
 {
     *p->r = (MYFLT) exp((double)*p->a * LOG10D20);
     return OK;
 }
 
-int aampdb(EVAL *p)
+int aampdb(ENVIRON *csound, EVAL *p)
 {
     int nsmps = ksmps;
     MYFLT       *r, *a;
@@ -419,19 +419,19 @@ int aampdb(EVAL *p)
     return OK;
 }
 
-int dbfsamp(EVAL *p)
+int dbfsamp(ENVIRON *csound, EVAL *p)
 {
     *p->r = (MYFLT)(log(fabs((double)*p->a) / e0dbfs) / LOG10D20);
     return OK;
 }
 
-int ampdbfs(EVAL *p)
+int ampdbfs(ENVIRON *csound, EVAL *p)
 {
     *p->r =  e0dbfs * (MYFLT) exp((double)*p->a * LOG10D20);
     return OK;
 }
 
-int aampdbfs(EVAL *p)
+int aampdbfs(ENVIRON *csound, EVAL *p)
 {
     int nsmps = ksmps;
     MYFLT       *r, *a;
@@ -443,7 +443,7 @@ int aampdbfs(EVAL *p)
     return OK;
 }
 
-int ftlen(EVAL *p)
+int ftlen(ENVIRON *csound, EVAL *p)
 {
     FUNC        *ftp;
 
@@ -454,7 +454,7 @@ int ftlen(EVAL *p)
     return OK;
 }
 
-int ftchnls(EVAL *p)
+int ftchnls(ENVIRON *csound, EVAL *p)
 {
     FUNC *ftp;
 
@@ -465,7 +465,7 @@ int ftchnls(EVAL *p)
     return OK;
 }
 
-int ftlptim(EVAL *p)
+int ftlptim(ENVIRON *csound, EVAL *p)
 {
     FUNC    *ftp;
     if ((ftp = ftnp2find(p->h.insdshead->csound,p->a)) == NULL) return OK;
@@ -479,7 +479,7 @@ int ftlptim(EVAL *p)
     return OK;
 }
 
-int numsamp(EVAL *p)           /***** nsamp by G.Maldonado ****/
+int numsamp(ENVIRON *csound, EVAL *p)           /***** nsamp by G.Maldonado ****/
 {
     FUNC        *ftp;
     if ((ftp = ftfind(p->h.insdshead->csound, p->a)) != NULL)
@@ -489,7 +489,7 @@ int numsamp(EVAL *p)           /***** nsamp by G.Maldonado ****/
     return OK;
 }
 
-int ftsr(EVAL *p)              /**** ftsr by G.Maldonado ****/
+int ftsr(ENVIRON *csound, EVAL *p)              /**** ftsr by G.Maldonado ****/
 {
     FUNC        *ftp;
     if ((ftp = ftfind(p->h.insdshead->csound, p->a)) != NULL)
@@ -507,7 +507,7 @@ int ftsr(EVAL *p)              /**** ftsr by G.Maldonado ****/
 #  include <unistd.h>
 # endif
 
-int rtclock(EVAL *p)
+int rtclock(ENVIRON *csound, EVAL *p)
 {
     struct timeval tv;
     gettimeofday(&tv, NULL);
@@ -521,7 +521,7 @@ int rtclock(EVAL *p)
 #undef u_int
 #undef u_long
 #include <windows.h>
-int rtclock(EVAL *p)
+int rtclock(ENVIRON *csound, EVAL *p)
 {
     FILETIME    t;
     GetSystemTimeAsFileTime((LPFILETIME) &t);
@@ -531,7 +531,7 @@ int rtclock(EVAL *p)
     return OK;
 }
 #else
-int rtclock(EVAL *p)
+int rtclock(ENVIRON *csound, EVAL *p)
 {
     time_t realtime = time(NULL);
     *p->r = (MYFLT) realtime;
@@ -552,7 +552,7 @@ void cpsoctinit(void)           /* init the arrays, called by oload */
       *fp++ = (MYFLT)(pow(2.0, (double)count / (double)OCTRES) * ONEPT);
 }
 
-int octpch(EVAL *p)
+int octpch(ENVIRON *csound, EVAL *p)
 {
     double      fract;
     fract = modf((double)*p->a, &oct);
@@ -561,7 +561,7 @@ int octpch(EVAL *p)
     return OK;
 }
 
-int pchoct(EVAL *p)
+int pchoct(ENVIRON *csound, EVAL *p)
 {
     double fract;
     fract = modf((double)*p->a, &oct);
@@ -570,14 +570,14 @@ int pchoct(EVAL *p)
     return OK;
 }
 
-int cpsoct(EVAL *p)
+int cpsoct(ENVIRON *csound, EVAL *p)
 {
     long loct = (long)(*p->a * OCTRES);
     *p->r = (MYFLT)CPSOCTL(loct);
     return OK;
 }
 
-int acpsoct(EVAL *p)
+int acpsoct(ENVIRON *csound, EVAL *p)
 {
     MYFLT       *r, *a;
     long        loct, nsmps = ksmps;
@@ -590,13 +590,13 @@ int acpsoct(EVAL *p)
     return OK;
 }
 
-int octcps(EVAL *p)
+int octcps(ENVIRON *csound, EVAL *p)
 {
     *p->r = (MYFLT)(log((double)*p->a / ONEPT) / LOGTWO);
     return OK;
 }
 
-int cpspch(EVAL *p)
+int cpspch(ENVIRON *csound, EVAL *p)
 {
     double      fract;
     long   loct;
@@ -608,7 +608,7 @@ int cpspch(EVAL *p)
     return OK;
 }
 
-int cpsxpch(XENH *p)
+int cpsxpch(ENVIRON *csound, XENH *p)
 {                               /* This may be too expensive */
     double  fract;
     double  loct;
@@ -637,7 +637,7 @@ int cpsxpch(XENH *p)
     return OK;
 }
 
-int cps2pch(XENH *p)
+int cps2pch(ENVIRON *csound, XENH *p)
 {
     double  fract;
     double  loct;
@@ -668,7 +668,7 @@ int cps2pch(XENH *p)
     return OK;
 }
 
-int cpstun_i(CPSTUNI *p)
+int cpstun_i(ENVIRON *csound, CPSTUNI *p)
 {
     FUNC  *ftp;
     MYFLT *func;
@@ -701,7 +701,7 @@ int cpstun_i(CPSTUNI *p)
     return OK;
 }
 
-int cpstun(CPSTUN *p)
+int cpstun(ENVIRON *csound, CPSTUN *p)
 {
     if (*p->ktrig) {
       FUNC  *ftp;
@@ -778,19 +778,19 @@ static void init_logs(void)
       *fp++ = (MYFLT) (conv * log(first));
 }
 
-int powoftwo_set(EVAL *p)
+int powoftwo_set(ENVIRON *csound, EVAL *p)
 {
     if (powerof2==NULL) init_powers();
     return OK;
 }
 
-int logbasetwo_set(EVAL *p)
+int logbasetwo_set(ENVIRON *csound, EVAL *p)
 {
     if (logbase2==NULL) init_logs();
     return OK;
 }
 
-int powoftwo(EVAL *p)
+int powoftwo(ENVIRON *csound, EVAL *p)
 {
     int n = (int) (*p->a * (STEPS/(OCTAVES + OCTAVES)) + FL(0.5));
     if (n<-STEPS/2 || n>STEPS/2)
@@ -800,7 +800,7 @@ int powoftwo(EVAL *p)
     return OK;
 }
 
-int powoftwoa(EVAL *p)           /* by G.Maldonado, liberalised by JPff */
+int powoftwoa(ENVIRON *csound, EVAL *p)           /* by G.Maldonado, liberalised by JPff */
 {
     MYFLT *r, *a;
     long nsmps=ksmps;
@@ -828,14 +828,14 @@ MYFLT pow2(MYFLT a)
 
 #define ONEd12          (FL(0.08333333333333333333333))
 #define ONEd1200        (FL(0.00083333333333333333333))
-int semitone(EVAL *p)
+int semitone(ENVIRON *csound, EVAL *p)
 {
     MYFLT a = *p->a*ONEd12;
     *p->r = pow2(a);
     return OK;
 }
 
-int asemitone(EVAL *p)           /* JPff */
+int asemitone(ENVIRON *csound, EVAL *p)           /* JPff */
 {
     MYFLT *r, *a;
     long nsmps = ksmps;
@@ -848,14 +848,14 @@ int asemitone(EVAL *p)           /* JPff */
     return OK;
 }
 
-int cent(EVAL *p)
+int cent(ENVIRON *csound, EVAL *p)
 {
     MYFLT a = *p->a*ONEd1200;
     *p->r = pow2(a);
     return OK;
 }
 
-int acent(EVAL *p)       /* JPff */
+int acent(ENVIRON *csound, EVAL *p)       /* JPff */
 {
     MYFLT *r, *a;
     long nsmps = ksmps;
@@ -868,35 +868,35 @@ int acent(EVAL *p)       /* JPff */
     return OK;
 }
 
-int isemitone(EVAL *p)
+int isemitone(ENVIRON *csound, EVAL *p)
 {
-    powoftwo_set(p);
-    semitone(p);
+    powoftwo_set(csound,p);
+    semitone(csound,p);
     return OK;
 }
 
-int icent(EVAL *p)
+int icent(ENVIRON *csound, EVAL *p)
 {
-    powoftwo_set(p);
-    cent(p);
+    powoftwo_set(csound,p);
+    cent(csound,p);
     return OK;
 }
 
 #define LOG2_10D20      (FL(0.166096404744368117393515971474))
-int db(EVAL *p)
+int db(ENVIRON *csound, EVAL *p)
 {
     *p->r = pow2(*p->a*LOG2_10D20);
     return OK;
 }
 
-int dbi(EVAL *p)
+int dbi(ENVIRON *csound, EVAL *p)
 {
-    powoftwo_set(p);
+    powoftwo_set(csound,p);
     *p->r = pow2(*p->a*LOG2_10D20);
     return OK;
 }
 
-int dba(EVAL *p)         /* JPff */
+int dba(ENVIRON *csound, EVAL *p)         /* JPff */
 {
     MYFLT *r, *a;
     long nsmps = ksmps;
@@ -910,7 +910,7 @@ int dba(EVAL *p)         /* JPff */
 }
 
 #define ONEdLOG2        FL(1.4426950408889634074)
-int logbasetwo(EVAL *p)
+int logbasetwo(ENVIRON *csound, EVAL *p)
 {
     int n = (int) ((*p->a -  (FL(1.0)/INTERVAL)) / (INTERVAL - FL(1.0)/INTERVAL)
                    *  STEPS + FL(0.5));
@@ -921,7 +921,7 @@ int logbasetwo(EVAL *p)
     return OK;
 }
 
-int logbasetwoa(EVAL *p)       /* by G.Maldonado liberalised by JPff */
+int logbasetwoa(ENVIRON *csound, EVAL *p)       /* by G.Maldonado liberalised by JPff */
 {
     MYFLT *r, *a;
     long nsmps=ksmps;
@@ -937,21 +937,21 @@ int logbasetwoa(EVAL *p)       /* by G.Maldonado liberalised by JPff */
     return OK;
 }
 
-int ipowoftwo(EVAL *p)
+int ipowoftwo(ENVIRON *csound, EVAL *p)
 {
-    powoftwo_set(p);
-    powoftwo(p);
+    powoftwo_set(csound,p);
+    powoftwo(csound,p);
     return OK;
 }
 
-int ilogbasetwo(EVAL *p)
+int ilogbasetwo(ENVIRON *csound, EVAL *p)
 {
-    logbasetwo_set(p);
-    logbasetwo(p);
+    logbasetwo_set(csound,p);
+    logbasetwo(csound,p);
     return OK;
 }
 
-int in(INM *p)
+int in(ENVIRON *csound, INM *p)
 {
     MYFLT       *sp, *ar;
     int nsmps = ksmps;
@@ -964,7 +964,7 @@ int in(INM *p)
     return OK;
 }
 
-int ins(INS *p)
+int ins(ENVIRON *csound, INS *p)
 {
     MYFLT       *sp, *ar1, *ar2;
     int nsmps = ksmps;
@@ -980,7 +980,7 @@ int ins(INS *p)
     return OK;
 }
 
-int inq(INQ *p)
+int inq(ENVIRON *csound, INQ *p)
 {
     MYFLT       *sp, *ar1, *ar2, *ar3, *ar4;
     int nsmps = ksmps;
@@ -1000,7 +1000,7 @@ int inq(INQ *p)
     return OK;
 }
 
-int inh(INH *p)
+int inh(ENVIRON *csound, INH *p)
 {
     MYFLT       *sp, *ar1, *ar2, *ar3, *ar4, *ar5, *ar6;
     int nsmps = ksmps;
@@ -1024,7 +1024,7 @@ int inh(INH *p)
     return OK;
 }
 
-int ino(INO *p)
+int ino(ENVIRON *csound, INO *p)
 {
     MYFLT       *sp, *ar1, *ar2, *ar3, *ar4, *ar5, *ar6, *ar7, *ar8;
     int nsmps = ksmps;
@@ -1068,19 +1068,19 @@ int inn(INALL *p, int n)
     return OK;
 }
 
-int in16(INALL *p)
+int in16(ENVIRON *csound, INALL *p)
 {
     inn(p, 16);
     return OK;
 }
 
-int in32(INALL *p)
+int in32(ENVIRON *csound, INALL *p)
 {
     inn(p, 32);
     return OK;
 }
 
-int inall(INCH *p)
+int inall(ENVIRON *csound, INCH *p)
 {
 /*      int nch = (int) p->INOCOUNT; */
 /*      inn(p, (nch>nchnls ? nchnls : nch)); */
@@ -1096,7 +1096,7 @@ int inall(INCH *p)
     return OK;
 }
 
-int out(OUTM *p)
+int out(ENVIRON *csound, OUTM *p)
 {
     MYFLT       *sp, *ap;
     int n;
@@ -1115,7 +1115,7 @@ int out(OUTM *p)
     return OK;
 }
 
-int outs(OUTS *p)
+int outs(ENVIRON *csound, OUTS *p)
 {
     MYFLT       *sp, *ap1, *ap2;
 
@@ -1140,7 +1140,7 @@ int outs(OUTS *p)
     return OK;
 }
 
-int outq(OUTQ *p)
+int outq(ENVIRON *csound, OUTQ *p)
 {
     MYFLT       *sp, *ap1, *ap2, *ap3, *ap4;
 
@@ -1171,7 +1171,7 @@ int outq(OUTQ *p)
     return OK;
 }
 
-int outs1(OUTM *p)
+int outs1(ENVIRON *csound, OUTM *p)
 {
     MYFLT       *sp, *ap1;
 
@@ -1194,7 +1194,7 @@ int outs1(OUTM *p)
     return OK;
 }
 
-int outs2(OUTM *p)
+int outs2(ENVIRON *csound, OUTM *p)
 {
     MYFLT       *sp, *ap2;
 
@@ -1217,7 +1217,7 @@ int outs2(OUTM *p)
     return OK;
 }
 
-int outs12(OUTM *p)
+int outs12(ENVIRON *csound, OUTM *p)
 {
     MYFLT       *sp, *ap;
 
@@ -1240,7 +1240,7 @@ int outs12(OUTM *p)
     return OK;
 }
 
-int outq1(OUTM *p)
+int outq1(ENVIRON *csound, OUTM *p)
 {
     MYFLT       *sp, *ap1;
 
@@ -1265,7 +1265,7 @@ int outq1(OUTM *p)
     return OK;
 }
 
-int outq2(OUTM *p)
+int outq2(ENVIRON *csound, OUTM *p)
 {
     MYFLT       *sp, *ap2;
 
@@ -1290,7 +1290,7 @@ int outq2(OUTM *p)
     return OK;
 }
 
-int outq3(OUTM *p)
+int outq3(ENVIRON *csound, OUTM *p)
 {
     MYFLT       *sp, *ap3;
 
@@ -1315,7 +1315,7 @@ int outq3(OUTM *p)
    return OK;
  }
 
-int outq4(OUTM *p)
+int outq4(ENVIRON *csound, OUTM *p)
 {
     MYFLT       *sp, *ap4;
 
@@ -1340,7 +1340,7 @@ int outq4(OUTM *p)
     return OK;
 }
 
-int outh(OUTH *p)
+int outh(ENVIRON *csound, OUTH *p)
 {
     MYFLT       *sp, *ap1, *ap2, *ap3, *ap4, *ap5, *ap6;
 
@@ -1377,7 +1377,7 @@ int outh(OUTH *p)
     return OK;
 }
 
-int outo(OUTO *p)
+int outo(ENVIRON *csound, OUTO *p)
 {
     MYFLT       *sp, *ap1, *ap2, *ap3, *ap4, *ap5, *ap6, *ap7, *ap8;
 
@@ -1453,26 +1453,26 @@ static void outn(int n, OUTX *p)
     }
 }
 
-int outx(OUTX *p)
+int outx(ENVIRON *csound, OUTX *p)
 {
     outn(16, p);
     return OK;
 }
 
-int outX(OUTX *p)
+int outX(ENVIRON *csound, OUTX *p)
 {
     outn(32, p);
     return OK;
 }
 
-int outall(OUTX *p)            /* Output a list of channels */
+int outall(ENVIRON *csound, OUTX *p)            /* Output a list of channels */
 {
     int nch = (int) p->INOCOUNT;
     outn((nch <= nchnls ? nch : nchnls), p);
     return OK;
 }
 
-int outch(OUTCH *p)
+int outch(ENVIRON *csound, OUTCH *p)
 {
     int         ch;
     int         i, j;
@@ -1510,7 +1510,7 @@ int outch(OUTCH *p)
 
 /* k-rate i/o opcodes */
 /* invalue and outvalue are used with the csoundAPI */
-int invalset(INVAL *p)
+int invalset(ENVIRON *csound, INVAL *p)
 {
     if (*p->valID == SSTRCOD) {
       if (p->STRARG != NULL)
@@ -1523,7 +1523,7 @@ int invalset(INVAL *p)
     return OK;
 }
 
-int kinval(INVAL *p)
+int kinval(ENVIRON *csound, INVAL *p)
 {
     extern void InputValue(char *, MYFLT *);
     InputValue(p->channelName, p->value);  /* in csound.c */
@@ -1531,7 +1531,7 @@ int kinval(INVAL *p)
 }
 
 
-int outvalset(OUTVAL *p)
+int outvalset(ENVIRON *csound, OUTVAL *p)
 {
     if (*p->valID == SSTRCOD) {
       if (p->STRARG != NULL)
@@ -1544,7 +1544,7 @@ int outvalset(OUTVAL *p)
     return OK;
 }
 
-int koutval(OUTVAL *p)
+int koutval(ENVIRON *csound, OUTVAL *p)
 {
     extern void OutputValue(char *, MYFLT);
     OutputValue(p->channelName, *p->value);  /* in csound.c */

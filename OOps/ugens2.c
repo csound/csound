@@ -25,7 +25,7 @@
 #include "ugens2.h"
 #include <math.h>
 
-int phsset(PHSOR *p)
+int phsset(ENVIRON *csound, PHSOR *p)
 {
     MYFLT       phs;
     long  longphs;
@@ -39,7 +39,7 @@ int phsset(PHSOR *p)
     return OK;
 }
 
-int kphsor(PHSOR *p)
+int kphsor(ENVIRON *csound, PHSOR *p)
 {
     double      phs;
     *p->sr = (MYFLT)(phs = p->curphs);
@@ -51,7 +51,7 @@ int kphsor(PHSOR *p)
     return OK;
 }
 
-int phsor(PHSOR *p)
+int phsor(ENVIRON *csound, PHSOR *p)
 {
     double      phase;
     int         nsmps = ksmps;
@@ -113,9 +113,9 @@ int phsor(PHSOR *p)
  * input variable - (which we can assume here is also i rate) to set
  * up the TABLE data structure ready for the k and a rate functions.  */
 
-int itblchk(TABLE *p)
+int itblchk(ENVIRON *csound, TABLE *p)
 {
-    if ((p->ftp = ftfind(p->h.insdshead->csound, p->xfn)) == NULL)
+    if ((p->ftp = ftfind(csound, p->xfn)) == NULL)
       return NOTOK;
 
     /* Although TABLE has an integer variable for the table number
@@ -165,7 +165,7 @@ int itblchk(TABLE *p)
  * ktablekt tablekt   Non interpolated
  * ktablikt tablikt   Interpolated
  *  */
-int ptblchk(TABLE *p)
+int ptblchk(ENVIRON *csound, TABLE *p)
 {
     /* TABLE has an integer variable for the previous table number
      * (p->pfn).
@@ -187,17 +187,17 @@ int ptblchk(TABLE *p)
 
 /* tblset() */
 
-int tblset(TABLE *p)
+int tblset(ENVIRON *csound, TABLE *p)
 {
-    return itblchk(p);
+    return itblchk(csound,p);
 }
 
 
 /* tblsetkt() */
 
-int tblsetkt(TABLE *p)
+int tblsetkt(ENVIRON *csound, TABLE *p)
 {
-    return ptblchk(p);
+    return ptblchk(csound,p);
 }
 
 /*************************************/
@@ -211,25 +211,25 @@ int tblsetkt(TABLE *p)
  * rate function just once.
  *
  * If the table was not found, an error will result from ftfind.  */
-int ktable(TABLE*);
-int ktabli(TABLE*);
-int ktabl3(TABLE*);
+int ktable(ENVIRON *,TABLE*);
+int ktabli(ENVIRON *,TABLE*);
+int ktabl3(ENVIRON *,TABLE*);
 
-int itable(TABLE *p)
+int itable(ENVIRON *csound, TABLE *p)
 {
-    if (itblchk(p)==OK) return ktable(p);
+    if (itblchk(csound,p)==OK) return ktable(csound,p);
     return NOTOK;
 }
 
-int itabli(TABLE *p)
+int itabli(ENVIRON *csound, TABLE *p)
 {
-    if (itblchk(p)==OK) return ktabli(p);
+    if (itblchk(csound,p)==OK) return ktabli(csound,p);
     return NOTOK;
 }
 
-int itabl3(TABLE *p)
+int itabl3(ENVIRON *csound, TABLE *p)
 {
-    if (itblchk(p)==OK) ktabl3(p);
+    if (itblchk(csound,p)==OK) ktabl3(csound,p);
     return NOTOK;
 }
 
@@ -294,7 +294,7 @@ int itabl3(TABLE *p)
 
 /* ktable() */
 
-int ktable(TABLE  *p)
+int ktable(ENVIRON *csound, TABLE  *p)
 {
     FUNC        *ftp;
     long        indx, length;
@@ -371,7 +371,7 @@ int ktable(TABLE  *p)
  * array of input indexes, to send results to another array.  These
  * arrays are ksmps long.  */
 /*sbrandon: NeXT m68k does not like 'table' */
-int tablefn(TABLE  *p)
+int tablefn(ENVIRON *csound, TABLE  *p)
 {
     FUNC        *ftp;
     MYFLT       *rslt, *pxndx, *tab;
@@ -432,7 +432,7 @@ int tablefn(TABLE  *p)
  *
  * In non-wrap mode, when the final index is >= length, then the
  * output should be the value in the guard point location.  */
-int ktabli(TABLE  *p)
+int ktabli(ENVIRON *csound, TABLE  *p)
 {
     FUNC        *ftp;
     long        indx, length;
@@ -509,7 +509,7 @@ int ktabli(TABLE  *p)
     return OK;
 }
 
-int ktabl3(TABLE  *p)
+int ktabl3(ENVIRON *csound, TABLE  *p)
 {
     FUNC        *ftp;
     long        indx, length;
@@ -605,7 +605,7 @@ int ktabl3(TABLE  *p)
 /* tabli() is similar to ktabli() above, except that it processes an
  * array of input indexes, to send results to another array. */
 
-int tabli(TABLE  *p)
+int tabli(ENVIRON *csound, TABLE  *p)
 {
     FUNC        *ftp;
     long        indx, mask, length;
@@ -657,7 +657,7 @@ int tabli(TABLE  *p)
     return OK;
 }
 
-int tabl3(TABLE  *p)           /* Like tabli but cubic interpolation */
+int tabl3(ENVIRON *csound, TABLE  *p)           /* Like tabli but cubic interpolation */
 {
     FUNC        *ftp;
     long        indx, mask, length;
@@ -741,7 +741,7 @@ int tabl3(TABLE  *p)           /* Like tabli but cubic interpolation */
  *
  * ftkrchk() */
 
-int ftkrchk(TABLE *p)
+int ftkrchk(ENVIRON *csound, TABLE *p)
 {
     /* Check the table number is >= 1.  Print error and deactivate if
      * it is not.  Return NOTOK to tell calling function not to proceed
@@ -767,7 +767,7 @@ int ftkrchk(TABLE *p)
          * Return 0 to tell calling function not to proceed with a or
          * k rate operations. */
 
-      if ( (p->ftp = ftfindp(p->h.insdshead->csound, p->xfn) ) == NULL) {
+      if ( (p->ftp = ftfindp(csound, p->xfn) ) == NULL) {
         return NOTOK;
       }
 
@@ -804,47 +804,47 @@ int ftkrchk(TABLE *p)
 /* Now for the four functions, which are called as a result of being
  * listed in opcodlst in entry.c */
 
-int    ktablekt(TABLE *p)
+int    ktablekt(ENVIRON *csound, TABLE *p)
 {
-    if (ftkrchk(p)==OK) return ktable(p);
+    if (ftkrchk(csound,p)==OK) return ktable(csound,p);
     return NOTOK;
 }
 
-int    tablekt(TABLE *p)
+int    tablekt(ENVIRON *csound, TABLE *p)
 {
-    if (ftkrchk(p)==OK) return tablefn(p);
+    if (ftkrchk(csound,p)==OK) return tablefn(csound,p);
     return NOTOK;
 }
 
-int    ktablikt(TABLE *p)
+int    ktablikt(ENVIRON *csound, TABLE *p)
 {
-    if (ftkrchk(p)==OK) return ktabli(p);
+    if (ftkrchk(csound,p)==OK) return ktabli(csound,p);
     return NOTOK;
 }
 
-int    tablikt(TABLE *p)
+int    tablikt(ENVIRON *csound, TABLE *p)
 {
-    if (ftkrchk(p)==OK) return tabli(p);
+    if (ftkrchk(csound,p)==OK) return tabli(csound,p);
     return NOTOK;
 }
 
-int    ktabl3kt(TABLE *p)
+int    ktabl3kt(ENVIRON *csound, TABLE *p)
 {
-    if (ftkrchk(p)==OK) return ktabl3(p);
+    if (ftkrchk(csound,p)==OK) return ktabl3(csound,p);
     return NOTOK;
 }
 
-int    tabl3kt(TABLE *p)
+int    tabl3kt(ENVIRON *csound, TABLE *p)
 {
-    if (ftkrchk(p)==OK) return tabl3(p);
+    if (ftkrchk(csound,p)==OK) return tabl3(csound,p);
     return NOTOK;
 }
 
-int ko1set(OSCIL1 *p)
+int ko1set(ENVIRON *csound, OSCIL1 *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) == NULL)
+    if ((ftp = ftfind(csound, p->ifn)) == NULL)
       return NOTOK;
     if (*p->idur <= FL(0.0)) {
       if (O.msglevel & WARNMSG)
@@ -857,7 +857,7 @@ int ko1set(OSCIL1 *p)
     return OK;
 }
 
-int kosc1(OSCIL1 *p)
+int kosc1(ENVIRON *csound, OSCIL1 *p)
 {
     FUNC *ftp;
     long  phs, dcnt;
@@ -882,7 +882,7 @@ int kosc1(OSCIL1 *p)
     return OK;
 }
 
-int kosc1i(OSCIL1  *p)
+int kosc1i(ENVIRON *csound, OSCIL1  *p)
 {
     FUNC        *ftp;
     MYFLT       fract, v1, *ftab;
@@ -913,11 +913,11 @@ int kosc1i(OSCIL1  *p)
     return OK;
 }
 
-int oscnset(OSCILN *p)
+int oscnset(ENVIRON *csound, OSCILN *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) != NULL) {
+    if ((ftp = ftfind(csound, p->ifn)) != NULL) {
       p->ftp = ftp;
       p->inc = ftp->flen * *p->ifrq * onedsr;
       p->index = FL(0.0);
@@ -928,7 +928,7 @@ int oscnset(OSCILN *p)
     else return NOTOK;
 }
 
-int osciln(OSCILN *p)
+int osciln(ENVIRON *csound, OSCILN *p)
 {
     MYFLT *rs = p->rslt;
     long  nsmps = ksmps;
@@ -962,7 +962,7 @@ int osciln(OSCILN *p)
     return OK;
 }
 
-int oscset(OSC *p)
+int oscset(ENVIRON *csound, OSC *p)
 {
     FUNC        *ftp;
 
@@ -975,7 +975,7 @@ int oscset(OSC *p)
     return NOTOK;
 }
 
-int koscil(OSC *p)
+int koscil(ENVIRON *csound, OSC *p)
 {
     FUNC    *ftp;
     long    phs, inc;
@@ -993,7 +993,7 @@ int koscil(OSC *p)
     return OK;
 }
 
-int osckk(OSC *p)
+int osckk(ENVIRON *csound, OSC *p)
 {
     FUNC    *ftp;
     MYFLT   amp, *ar, *ftbl;
@@ -1019,7 +1019,7 @@ int osckk(OSC *p)
     return OK;
 }
 
-int oscka(OSC *p)
+int oscka(ENVIRON *csound, OSC *p)
 {
     FUNC    *ftp;
     MYFLT   *ar, amp, *cpsp, *ftbl;
@@ -1047,7 +1047,7 @@ int oscka(OSC *p)
     return OK;
 }
 
-int oscak(OSC *p)
+int oscak(ENVIRON *csound, OSC *p)
 {
     FUNC    *ftp;
     MYFLT   *ar, *ampp, *ftbl;
@@ -1073,7 +1073,7 @@ int oscak(OSC *p)
     return OK;
 }
 
-int oscaa(OSC *p)
+int oscaa(ENVIRON *csound, OSC *p)
 {
     FUNC    *ftp;
     MYFLT   *ar, *ampp, *cpsp, *ftbl;
@@ -1101,7 +1101,7 @@ int oscaa(OSC *p)
     return OK;
 }
 
-int koscli(OSC  *p)
+int koscli(ENVIRON *csound, OSC  *p)
 {
     FUNC    *ftp;
     long    phs, inc;
@@ -1123,7 +1123,7 @@ int koscli(OSC  *p)
     return OK;
 }
 
-int osckki(OSC  *p)
+int osckki(ENVIRON *csound, OSC  *p)
 {
     FUNC    *ftp;
     MYFLT   fract, v1, amp, *ar, *ftab;
@@ -1151,7 +1151,7 @@ int osckki(OSC  *p)
     return OK;
 }
 
-int osckai(OSC  *p)
+int osckai(ENVIRON *csound, OSC  *p)
 {
     FUNC    *ftp;
     MYFLT   *ar, amp, *cpsp, fract, v1, *ftab;
@@ -1181,7 +1181,7 @@ int osckai(OSC  *p)
     return OK;
 }
 
-int oscaki(OSC  *p)
+int oscaki(ENVIRON *csound, OSC  *p)
 {
     FUNC    *ftp;
     MYFLT   v1, fract, *ar, *ampp, *ftab;
@@ -1210,7 +1210,7 @@ int oscaki(OSC  *p)
     return OK;
 }
 
-int oscaai(OSC  *p)
+int oscaai(ENVIRON *csound, OSC  *p)
 {
     FUNC    *ftp;
     MYFLT   v1, fract, *ar, *ampp, *cpsp, *ftab;
@@ -1241,7 +1241,7 @@ int oscaai(OSC  *p)
     return OK;
 }
 
-int koscl3(OSC  *p)
+int koscl3(ENVIRON *csound, OSC  *p)
 {
     FUNC    *ftp;
     long    phs, inc;
@@ -1280,7 +1280,7 @@ int koscl3(OSC  *p)
     return OK;
 }
 
-int osckk3(OSC  *p)
+int osckk3(ENVIRON *csound, OSC  *p)
 {
     FUNC    *ftp;
     MYFLT   fract, amp, *ar, *ftab;
@@ -1331,7 +1331,7 @@ int osckk3(OSC  *p)
     return OK;
 }
 
-int oscka3(OSC  *p)
+int oscka3(ENVIRON *csound, OSC  *p)
 {
     FUNC    *ftp;
     MYFLT   *ar, amp, *cpsp, fract, *ftab;
@@ -1379,7 +1379,7 @@ int oscka3(OSC  *p)
     return OK;
 }
 
-int oscak3(OSC  *p)
+int oscak3(ENVIRON *csound, OSC  *p)
 {
     FUNC    *ftp;
     MYFLT   fract, *ar, *ampp, *ftab;
@@ -1425,7 +1425,7 @@ int oscak3(OSC  *p)
     return OK;
 }
 
-int oscaa3(OSC  *p)
+int oscaa3(ENVIRON *csound, OSC  *p)
 {
     FUNC    *ftp;
     MYFLT   fract, *ar, *ampp, *cpsp, *ftab;

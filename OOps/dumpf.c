@@ -30,7 +30,7 @@
 
 extern int  openout(char *, int);
 
-int kdmpset(KDUMP *p)
+int kdmpset(ENVIRON *csound, KDUMP *p)
 {
     if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
       char soundoname[1024];
@@ -57,7 +57,7 @@ int kdmpset(KDUMP *p)
     return OK;
 }
 
-int kdmp2set(KDUMP2 *p)
+int kdmp2set(ENVIRON *csound, KDUMP2 *p)
 {
     if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
       char soundoname[1024];
@@ -84,7 +84,7 @@ int kdmp2set(KDUMP2 *p)
     return OK;
 }
 
-int kdmp3set(KDUMP3 *p)
+int kdmp3set(ENVIRON *csound, KDUMP3 *p)
 {
     if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
       char soundoname[1024];
@@ -111,7 +111,7 @@ int kdmp3set(KDUMP3 *p)
     return OK;
 }
 
-int kdmp4set(KDUMP4 *p)
+int kdmp4set(ENVIRON *csound, KDUMP4 *p)
 {
     if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
       char soundoname[1024];
@@ -200,7 +200,7 @@ static void nkdump(int ofd, int format, int nk)
 }
 
 
-int kdump(KDUMP *p)
+int kdump(ENVIRON *csound, KDUMP *p)
 {
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
@@ -210,7 +210,7 @@ int kdump(KDUMP *p)
     return OK;
 }
 
-int kdump2(KDUMP2 *p)
+int kdump2(ENVIRON *csound, KDUMP2 *p)
 {
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
@@ -221,7 +221,7 @@ int kdump2(KDUMP2 *p)
     return OK;
 }
 
-int kdump3(KDUMP3 *p)
+int kdump3(ENVIRON *csound, KDUMP3 *p)
 {
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
@@ -233,7 +233,7 @@ int kdump3(KDUMP3 *p)
     return OK;
 }
 
-int kdump4(KDUMP4 *p)
+int kdump4(ENVIRON *csound, KDUMP4 *p)
 {
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
@@ -252,7 +252,7 @@ int kdump4(KDUMP4 *p)
 /* ******************************************************************** */
 extern int openin(char*);
 
-int krdset(KREAD *p)
+int krdset(ENVIRON *csound, KREAD *p)
 {
     if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
       char soundiname[1024];
@@ -282,7 +282,7 @@ int krdset(KREAD *p)
     return OK;
 }
 
-int krd2set(KREAD2 *p)
+int krd2set(ENVIRON *csound, KREAD2 *p)
 {
     if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
       char soundiname[1024];
@@ -311,7 +311,7 @@ int krd2set(KREAD2 *p)
     return OK;
 }
 
-int krd3set(KREAD3 *p)
+int krd3set(ENVIRON *csound, KREAD3 *p)
 {
     if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
       char soundiname[1024];
@@ -340,7 +340,7 @@ int krd3set(KREAD3 *p)
     return OK;
 }
 
-int krd4set(KREAD4 *p)
+int krd4set(ENVIRON *csound, KREAD4 *p)
 {
     if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
       char soundiname[1024];
@@ -451,7 +451,7 @@ static void nkread(int ifd, int format, int nk)
     }
 }
 
-int kread(KREAD *p)
+int kread(ENVIRON *csound, KREAD *p)
 {
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
@@ -462,7 +462,7 @@ int kread(KREAD *p)
     return OK;
 }
 
-int kread2(KREAD2 *p)
+int kread2(ENVIRON *csound, KREAD2 *p)
 {
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
@@ -477,7 +477,7 @@ int kread2(KREAD2 *p)
     return OK;
 }
 
-int kread3(KREAD3 *p)
+int kread3(ENVIRON *csound, KREAD3 *p)
 {
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
@@ -494,7 +494,7 @@ int kread3(KREAD3 *p)
     return OK;
 }
 
-int kread4(KREAD4 *p)
+int kread4(ENVIRON *csound, KREAD4 *p)
 {
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;

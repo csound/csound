@@ -75,7 +75,7 @@ void FetchInOne(
 }
 
 
-int pvreadset(PVREAD *p)
+int pvreadset(ENVIRON *csound, PVREAD *p)
 {
     char     pvfilnam[64];
     MEMFIL   *mfp, *ldmemfile(char*);
@@ -164,7 +164,7 @@ int pvreadset(PVREAD *p)
     return initerror(errmsg);
 }
 
-int pvread(PVREAD *p)
+int pvread(ENVIRON *csound, PVREAD *p)
 {
     MYFLT  frIndx;
     MYFLT  *buf = (MYFLT*)(p->fftBuf.auxp);

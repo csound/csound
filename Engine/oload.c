@@ -489,7 +489,7 @@ void oloadRESET(void)
     rtout_dev = 1024;
 }
 
-void oload(void)
+void oload(ENVIRON *csound)
 {
     long   n, nn, combinedsize, gblabeg, lclabeg, insno, *lp;
     MYFLT  *combinedspc, *gblspace, *fp1, *fp2;
@@ -684,7 +684,7 @@ void oload(void)
 
     sssfinit(); /* must be called before instr 0 initiates */
 
-    if ((nn = init0()) > 0)                             /* run instr 0 inits */
+    if ((nn = init0(csound)) > 0)                       /* run instr 0 inits */
       die(Str(X_828,"header init errors"));
     if ((ensmps != (MYFLT) ksmps) ||
         (gblspace[0]/gblspace[1] != gblspace[2])) {     /* & chk consistency */

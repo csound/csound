@@ -253,7 +253,7 @@ int oscInitOSC(void);
  * Global OSC initialization; should be called before any use of
  * OSCrecv
  */
-int osc_init(OSCINIT *p)
+int osc_init(ENVIRON *csound, OSCINIT *p)
 {
     int port = *(p->iport);
     int maxIns = MAX_INS;
@@ -293,7 +293,7 @@ int osc_init(OSCINIT *p)
  * Opcode initialization: set up OSC address space and register
  * callbacks
  */
-int osc_recv_set(OSCRECV *p)
+int osc_recv_set(ENVIRON *csound, OSCRECV *p)
 {
     static short __lineNo;
     static oscContext Sc;
@@ -393,7 +393,7 @@ int osc_recv_set(OSCRECV *p)
 /* Check for incoming OSC packets, invoke OSC messages and update
  * output signal
  */
-int osc_recv(OSCRECV *p)
+int osc_recv(ENVIRON *csound, OSCRECV *p)
 {
     fd_set readFDs;
     struct timeval wait;
@@ -917,7 +917,7 @@ static void oscSendWarning(char *what, ...);
  */
 /**************************************************************************/
 
-int osc_send_set(OSCSEND *p)
+int osc_send_set(ENVIRON *csound, OSCSEND *p)
 {
     int i, bufSize;
     int smps = *(p->ismps);
@@ -1018,7 +1018,7 @@ int osc_send_set(OSCSEND *p)
     return OK;
 }
 
-int osc_send_k(OSCSEND *p)
+int osc_send_k(ENVIRON *csound, OSCSEND *p)
 {
     int smps = *(p->ismps);
     OSCbuf *buf;
