@@ -390,7 +390,7 @@ HDRS =  H/3Dug.h H/aiff.h H/aops.h H/bowed.h H/brass.h H/butter.h H/clarinet.h \
 	H/cmath.h H/convolve.h H/cs.h H/cscore.h H/dam.h H/diskin.h \
 	H/disprep.h H/dpwelib.h H/dsputil.h H/dumpf.h H/fft.h H/fhtfun.h \
 	H/filter.h H/flute.h H/fm4op.h H/follow.h H/ftgen.h H/grain.h H/grain4.h \
-	H/hrtferx.h H/ieee80.h H/insert.h H/lpc.h H/marimba.h H/midioops.h \
+	H/hrtferx.h H/insert.h H/lpc.h H/marimba.h H/midioops.h \
 	H/midiops.h H/midiops2.h H/midiout.h H/modal4.h H/moog1.h H/nlfilt.h \
 	H/oload.h H/physutil.h H/pluck.h H/prototyp.h H/ptrigtbl.h H/pvadd.h \
 	H/pvinterp.h H/pvoc.h H/pvread.h H/repluck.h H/revsets.h H/scot.h \
