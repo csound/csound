@@ -479,11 +479,11 @@ long LorisReader::updateEnvelopePoints( double time, double fscale, double ascal
 
 extern "C" 
 {
-int lorisread_cleanup(void * p);
+int lorisread_cleanup(void *csound_, void * p);
 
 //	Runs at initialization time for lorisplay.
 
-int lorisread_setup( void * p_)
+int lorisread_setup( void *csound_, void * p_)
 {
     LORISREAD *p = (LORISREAD *)p_;
     ENVIRON *csound = p->h.insdshead->csound;
@@ -510,7 +510,7 @@ int lorisread_setup( void * p_)
 
 //	Control-rate generator function.
 
-int lorisread( void * p_ )
+int lorisread( void *csound_, void * p_ )
 {   
     LORISREAD *p  = (LORISREAD *)p_;
 	//*(p->result) = 
@@ -520,7 +520,7 @@ int lorisread( void * p_ )
 
 //	Cleans up after lorisread.
 
-int lorisread_cleanup(void * p)
+int lorisread_cleanup(void *csound_, void * p)
 {
 	LORISREAD * tp = (LORISREAD *)p;
 	ENVIRON *csound = tp->h.insdshead->csound;
@@ -567,11 +567,11 @@ LorisPlayer::LorisPlayer( LORISPLAY * params ) :
 
 extern "C"
 {
-int lorisplay_cleanup(void * p);
+int lorisplay_cleanup(void *csound_, void * p);
 
 //	Runs at initialization time for lorisplay.
 
-int lorisplay_setup( void * p_ )
+int lorisplay_setup( void *csound_, void * p_ )
 {
     LORISPLAY *p = (LORISPLAY *)p_;
     ENVIRON *csound = p->h.insdshead->csound;
@@ -588,7 +588,7 @@ int lorisplay_setup( void * p_ )
 
 //	Audio-rate generator function.
 
-int lorisplay( void * p_ )
+int lorisplay( void *csound_, void * p_ )
 {
     LORISPLAY *p = (LORISPLAY *)p_;
 	LorisPlayer & player = *p->imp;
@@ -613,7 +613,7 @@ int lorisplay( void * p_ )
 
 //	Cleans up after lorisplay.
 
-int lorisplay_cleanup(void * p)
+int lorisplay_cleanup(void *csound_, void * p)
 {
 	LORISPLAY * tp = (LORISPLAY *)p;
 	ENVIRON *csound = tp->h.insdshead->csound;
@@ -865,11 +865,11 @@ long LorisMorpher::updateEnvelopes( void )
 #pragma mark -- lorismorph generator functions --
 
 extern "C" {
-int lorismorph_cleanup(void * p);
+int lorismorph_cleanup(void *csound_, void * p);
 
 //	Runs at initialization time for lorismorph.
 
-int lorismorph_setup( void * p_ )
+int lorismorph_setup( void *csound_, void * p_ )
 {
     LORISMORPH *p = (LORISMORPH *)p_;
     ENVIRON *csound = p->h.insdshead->csound;
@@ -886,7 +886,7 @@ int lorismorph_setup( void * p_ )
 
 //	Audio-rate generator function.
 
-int lorismorph( void * p_ )
+int lorismorph( void *csound_, void * p_ )
 {
     LORISMORPH *p = (LORISMORPH *)p_;
 	//*p->result = 
@@ -896,7 +896,7 @@ int lorismorph( void * p_ )
 
 //	Cleans up after lorismorph.
 
-int lorismorph_cleanup(void * p)
+int lorismorph_cleanup(void *csound_, void * p)
 {
 	LORISMORPH *tp = (LORISMORPH *)p;
 	ENVIRON *csound = tp->h.insdshead->csound;
