@@ -310,16 +310,18 @@ typedef struct insds {
         struct insds * nxtinstance;     /* Next allocated instance */
         struct insds * prvinstance;     /* Previous allocated instance */
         struct insds * nxtact;          /* Next in list of active instruments */
-        struct insds * prvact;          /* Previous in list of active instruments */
-        struct insds * nxtoff;          /* Next instrument to terminate */
+        struct insds * prvact;  /* Previous in list of active instruments */
+        struct insds * nxtoff;  /* Next instrument to terminate */
         FDCH    fdch;           /* Chain of files used by opcodes in this instr */
         AUXCH   auxch;          /* Extra memory used by opcodes in this instr */
-        MCHNBLK *m_chnbp;       /* MIDI note info block if event started from MIDI */
+        MCHNBLK *m_chnbp;       /* MIDI note info block if event started
+                                   from MIDI */
         short   m_pitch;        /* MIDI pitch, for simple access */
         short   m_veloc;        /* ...ditto velocity */
-        int     xtratim;        /* Extra release time requested with xtratim opcode */
-        char    relesing;       /* Flag to indicate we are releasing, test with release
-                                   opcode */
+        int     xtratim;        /* Extra release time requested with
+                                   xtratim opcode */
+        char    relesing;       /* Flag to indicate we are releasing,
+                                   test with release opcode */
         char    actflg;         /* Set if instr instance is active (perfing) */
         short   insno;          /* Instrument number */
         MYFLT   offbet;         /* Time to turn off event, in score beats */
@@ -330,7 +332,8 @@ typedef struct insds {
         struct ENVIRON_ *csound;/* ptr to Csound engine and API for externals */
         void    *opcod_iobufs;  /* IV - Sep 8 2002: user opcode I/O buffers */
         void    *opcod_deact, *subins_deact;    /* IV - Oct 24 2002 */
-        MYFLT   p0;             /* Copy of required p-field values for quick access */
+        MYFLT   p0;             /* Copy of required p-field values for
+                                   quick access */
         MYFLT   p1;
         MYFLT   p2;
         MYFLT   p3;
@@ -552,16 +555,16 @@ typedef struct ENVIRON_
                                                             MYFLT value));
   void (*ScoreEvent)(void *csound, char type, MYFLT *pFields, long numFields);
   void (*SetExternalMidiDeviceOpenCallback)(void *csound,
-                                      void (*midiDeviceOpenCallback)(void *hostData));
+                       void (*midiDeviceOpenCallback)(void *hostData));
   void (*SetExternalMidiReadCallback)(void *csound,
-                                      int (*readMidiCallback)(void *hostData,
-                                                              unsigned char *midiData,
+                        int (*readMidiCallback)(void *hostData,
+                                                unsigned char *midiData,
                                                               int size));
   void (*SetExternalMidiWriteCallback)(void *csound,
-                                       int (*writeMidiCallback)(void *hostData,
-                                                                unsigned char *midiData));
+                        int (*writeMidiCallback)(void *hostData,
+                                                 unsigned char *midiData));
   void (*SetExternalMidiDeviceoseCallback)(void *csound,
-                                       void (*midiDeviceCloseCallback)(void *hostData));
+                        void (*midiDeviceCloseCallback)(void *hostData));
   int (*IsExternalMidiEnabled)(void *csound);
   void (*SetExternalMidiEnabled)(void *csound, int enabled);
   void (*SetIsGraphable)(void *csound, int isGraphable);
@@ -570,10 +573,13 @@ typedef struct ENVIRON_
                                                          WINDAT *p,
                                                          char *name));
   void (*SetDrawGraphCallback)(void *csound,
-                               void (*drawGraphCallback)(void *hostData, WINDAT *p));
+                               void (*drawGraphCallback)(void *hostData,
+                                                         WINDAT *p));
   void (*SetKillGraphCallback)(void *csound,
-                               void (*killGraphCallback)(void *hostData, WINDAT *p));
-  void (*SetExitGraphCallback)(void *csound, int (*exitGraphCallback)(void *hostData));
+                               void (*killGraphCallback)(void *hostData,
+                                                         WINDAT *p));
+  void (*SetExitGraphCallback)(void *csound,
+                               int (*exitGraphCallback)(void *hostData));
   opcodelist *(*NewOpcodeList)(void);
   void (*DisposeOpcodeList)(opcodelist *opcodelist_);
   int (*AppendOpcode)(char *opname, int dsblksiz, int thread,
@@ -585,15 +591,18 @@ typedef struct ENVIRON_
   void *(*CloseLibrary)(void *library);
   void *(*GetLibrarySymbol)(void *library, const char *procedureName);
   void (*SetYieldCallback)(void *csound, int (*yieldCallback)(void *hostData));
-  void (*SetEnv)(void *csound, const char *environmentVariableName, const char *path);
+  void (*SetEnv)(void *csound, const char *environmentVariableName,
+                 const char *path);
   void (*SetPlayopenCallback)(void *csound,
                               void (*playopen__)(int nchanls, int dsize,
                                                  float sr, int scale));
-  void (*SetRtplayCallback)(void *csound, void (*rtplay__)(char *outBuf, int nbytes));
+  void (*SetRtplayCallback)(void *csound,
+                            void (*rtplay__)(char *outBuf, int nbytes));
   void (*SetRecopenCallback)(void *csound,
                              void (*recopen__)(int nchanls, int dsize,
                                                float sr, int scale));
-  void (*SetRtrecordCallback)(void *csound, int (*rtrecord__)(char *inBuf, int nbytes));
+  void (*SetRtrecordCallback)(void *csound,
+                              int (*rtrecord__)(char *inBuf, int nbytes));
   void (*SetRtcloseCallback)(void *csound, void (*rtclose__)(void));
   /* Internal functions that are needed */
   void (*auxalloc_)(long nbytes, AUXCH *auxchp);
@@ -754,8 +763,8 @@ typedef struct ENVIRON_
   MIDIMESSAGE   MIDIINbuffer2_[MIDIINBUFMAX];
   int           displop4_;
   void          *file_opened_;
-  int		file_max_;
-  int		file_num_;
+  int           file_max_;
+  int           file_num_;
 } ENVIRON;
 
 extern ENVIRON cenviron_;

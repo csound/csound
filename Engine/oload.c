@@ -70,7 +70,8 @@ void csoundPrintf(const char *format, ...);
 void csoundThrowMessage(void *, const char *, ...);
 void csoundThrowMessageV(void *, const char *, va_list);
 void csoundSetMessageCallback(void *, void (*)(void *, const char *, va_list));
-void csoundSetThrowMessageCallback(void *, void (*)(void *, const char *, va_list));
+void csoundSetThrowMessageCallback(void *,
+                                   void (*)(void *, const char *, va_list));
 int csoundGetMessageLevel(void *);
 void csoundSetMessageLevel(void *, int);
 void csoundInputMessage(void *, const char *);
@@ -79,7 +80,8 @@ void csoundSetInputValueCallback(void *, void (*)(void *, char *, MYFLT *));
 void csoundSetOutputValueCallback(void *, void (*)(void *, char *, MYFLT));
 void csoundScoreEvent(void *, char, MYFLT *, long);
 void csoundSetExternalMidiDeviceOpenCallback(void *, void (*)(void *));
-void csoundSetExternalMidiReadCallback(void *, int (*)(void *, unsigned char *, int));
+void csoundSetExternalMidiReadCallback(void *,
+                                       int (*)(void *, unsigned char *, int));
 void csoundSetExternalMidiWriteCallback(void *, int (*)(void *, unsigned char *));
 void csoundSetExternalMidiDeviceCloseCallback(void *, void (*)(void *));
 int csoundIsExternalMidiEnabled(void *);
@@ -380,9 +382,9 @@ ENVIRON cenviron_ = {
         0,      /*      MIDIINbufIndex */
         {{0}},  /*      MIDIINbuffer2 */
         -1,     /*      displop4 */
-        NULL,	/*	file_opened  */
-        0,	/*	file_max */
-        -1	/*	file_num */
+        NULL,   /*      file_opened  */
+        0,      /*      file_max */
+        -1      /*      file_num */
 };
 
 OPARMS O;
@@ -500,7 +502,8 @@ void oload(void)
       esr = (MYFLT)O.sr_override;
       ekr = (MYFLT)O.kr_override;
       ksmps = (int)(ensmps = (MYFLT)(O.sr_override / O.kr_override));
-      printf(Str(X_1173,"sample rate overrides: esr = %7.1f, ekr = %7.1f, ksmps = %d\n"),
+      printf(Str(X_1173,
+                 "sample rate overrides: esr = %7.1f, ekr = %7.1f, ksmps = %d\n"),
              esr, ekr, ksmps);
     }
     combinedsize = (O.poolcount + O.gblfixed + O.gblacount * ksmps)
@@ -553,7 +556,8 @@ void oload(void)
         aoffp = ttp->outoffs;
         n=aoffp->count;
         for (ndxp=aoffp->indx; n--; ndxp++) {
-/*           printf("**** indx = %d (%x); gblabeg=%d lclabeg=%d\n", *ndxp, *ndxp,gblabeg,lclabeg ); */
+/*       printf("**** indx = %d (%x); gblabeg=%d lclabeg=%d\n", 
+                *ndxp, *ndxp,gblabeg,lclabeg ); */
           if ((indx = *ndxp) > gblabeg) {
             indx = gblabeg + (indx - gblabeg) * ksmps;
           }
@@ -588,7 +592,8 @@ void oload(void)
             strsets = (char**)mrealloc(strsets, (newmax+1)*sizeof(char *));
             /* ??? */
             for (i=strsmax; i<newmax+1; i++) strsets[i] = NULL;
-/*             for (i=0; i<newmax+1; i++) printf("strset[%d]: %p\n", i, strsets[i]); */
+/*             for (i=0; i<newmax+1; i++)
+                   printf("strset[%d]: %p\n", i, strsets[i]); */
             strsmax = newmax;
           }
           if (strsets == NULL || indx < 0) { /* No space left or -ve index */
@@ -655,7 +660,7 @@ void oload(void)
         (gblspace[0]/gblspace[1] != gblspace[2])) {     /* & chk consistency */
       printf("sr = %f, kr = %f, ksmps = %f\n",
              gblspace[0], gblspace[1], gblspace[2]);
-      die(Str(X_903,"inconsistent sr, kr, ksmps"));             /*   one more time   */
+      die(Str(X_903,"inconsistent sr, kr, ksmps"));     /*   one more time   */
     }
     tpidsr = TWOPI_F / esr;                             /* now set internal  */
     mtpdsr = -tpidsr;                                   /*    consts         */
@@ -713,7 +718,8 @@ instance(int insno)             /* create instance of an instr template */
               csetoffbas = chp->ctl_val;
               if (!chp->insno) {
                 chp->insno = insno;
-                printf(Str(X_929,"instr %d seeking midi chnl data, assigned chnl %d\n"),
+                printf(Str(X_929,
+                           "instr %d seeking midi chnl data, assigned chnl %d\n"),
                        insno, chp->insno);
                 break;
               }
@@ -797,7 +803,7 @@ instance(int insno)             /* create instance of an instr template */
                 if (opds->iopadr == NULL)
                     die(Str(X_1082,"null iopadr"));
             }
-            if ((n = ep->thread & 06)!=0) {                     /* thread 2 OR 4:   */
+            if ((n = ep->thread & 06)!=0) {             /* thread 2 OR 4:   */
                 prvpds = prvpds->nxtp = opds;           /* link into pchain */
                 if (!(n & 04) ||
                     (ttp->pftype == 'k' && ep->kopadr != NULL))
