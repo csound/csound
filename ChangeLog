@@ -1,7 +1,12 @@
 2004-05-31  John ffitch  <jpff@codemist.co.uk>
 
-	* Top/dl_opcodes.c (csoundOpenLibrary): On mac the dynamic
-	libraries are called .dylib
+	* OOps/midirecv.c: declare csoundIsExternalMidiEnabled,
+	csoundExternalMidiDeviceOpen, csoundExternalMidiDeviceClose and
+	OpenMIDIDevice external
+
+	* Engine/auxfd.c (fdchclose): fd should have been curchp->fd
+
+	* InOut/libsnd_u.c (SAsndgetset): Return a SNDFILE* rather than an int
 
 2004-05-27  John ffitch  <jpff@codemist.co.uk>
 

@@ -331,38 +331,38 @@ if commonEnvironment['usePortAudio']==1 and portaudioFound:
         csoundProgramEnvironment.Append(LIBS = ['dsound'])
         vstEnvironment.Append(LIBS = ['dsound'])
 
-    if (commonEnvironment['useFLTK']==1) and fltkFound:
-        staticLibraryEnvironment.Append(CCFLAGS = '-DWINDOWS')
-        pluginEnvironment.Append(CCFLAGS = '-DWINDOWS')
-        csoundProgramEnvironment.Append(CCFLAGS = '-DWINDOWS')
-        ustubProgramEnvironment.Append(CCFLAGS = '-DWINDOWS')
-        vstEnvironment.Append(CCFLAGS = '-DWINDOWS')
-        guiProgramEnvironment.Append(CCFLAGS = '-DWINDOWS')
-        staticLibraryEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
-        pluginEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
-        csoundProgramEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
-        ustubProgramEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
-        vstEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
-        guiProgramEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
-        csoundProgramEnvironment.Append(LIBS = ['fltk'])
-        vstEnvironment.Append(LINKFLAGS = "--subsystem:windows")
-        guiProgramEnvironment.Append(LINKFLAGS = "--subsystem:windows")
-        if getPlatform() == 'linux' or getPlatform() == 'cygwin':
+if (commonEnvironment['useFLTK']==1) and fltkFound:
+    staticLibraryEnvironment.Append(CCFLAGS = '-DWINDOWS')
+    pluginEnvironment.Append(CCFLAGS = '-DWINDOWS')
+    csoundProgramEnvironment.Append(CCFLAGS = '-DWINDOWS')
+    ustubProgramEnvironment.Append(CCFLAGS = '-DWINDOWS')
+    vstEnvironment.Append(CCFLAGS = '-DWINDOWS')
+    guiProgramEnvironment.Append(CCFLAGS = '-DWINDOWS')
+    staticLibraryEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
+    pluginEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
+    csoundProgramEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
+    ustubProgramEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
+    vstEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
+    guiProgramEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
+    csoundProgramEnvironment.Append(LIBS = ['fltk'])
+    vstEnvironment.Append(LINKFLAGS = "--subsystem:windows")
+    guiProgramEnvironment.Append(LINKFLAGS = "--subsystem:windows")
+    if getPlatform() == 'linux' or getPlatform() == 'cygwin':
             csoundProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
             ustubProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
             vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
             guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
-        elif getPlatform() == 'mingw':
+    elif getPlatform() == 'mingw':
             csoundProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
             ustubProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
             vstEnvironment.Append(LIBS = ['stdc++', 'supc++'])
             guiProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
-        if getPlatform() == 'linux':
-            csoundProgramEnvironment.Append(LIBS = ['dl'])
-            ustubProgramEnvironment.Append(LIBS = ['dl'])
-            vstEnvironment.Append(LIBS = ['dl'])
-            guiProgramEnvironment.Append(LIBS = ['dl'])
-    
+            if getPlatform() == 'linux':
+                    csoundProgramEnvironment.Append(LIBS = ['dl'])
+                    ustubProgramEnvironment.Append(LIBS = ['dl'])
+                    vstEnvironment.Append(LIBS = ['dl'])
+                    guiProgramEnvironment.Append(LIBS = ['dl'])
+                    
 if getPlatform() == 'mingw':
     # These are the Windows system call libraries.
     csoundProgramEnvironment.Append(LIBS = ['kernel32'])

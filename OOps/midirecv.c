@@ -46,6 +46,10 @@ void  m_chn_init(MEVENT *, short);
 static void  (*nxtdeltim)(void), Fnxtdeltim(void), Rnxtdeltim(void);
 extern void  schedofftim(INSDS *), deact(INSDS *), beep(void);
 void midNotesOff(void);
+int csoundIsExternalMidiEnabled(void*);
+void csoundExternalMidiDeviceOpen(void*);
+void csoundExternalMidiDeviceClose(void*);
+void OpenMIDIDevice(void);
 
 /* static int   LCtl = ON; */
 /* static int   NVoices = 1; */

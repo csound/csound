@@ -666,22 +666,25 @@ static int SizeofSanityCheck(void) {
     static char errorMessage[sizeof("sizeof(sdif_float64) is 999!!!")];
 
     if (sizeof(sdif_int32) != 4) {
-        sprintf(errorMessage, "sizeof(sdif_int32) is %d!", sizeof(sdif_int32));
-                OK = 0;
+      sprintf(errorMessage, "sizeof(sdif_int32) is %ld!",
+              (long)sizeof(sdif_int32));
+      OK = 0;
     }
 
     if (sizeof(sdif_float32) != 4) {
-                sprintf(errorMessage, "sizeof(sdif_float32) is %d!", sizeof(sdif_float32));
-                OK = 0;
+      sprintf(errorMessage, "sizeof(sdif_float32) is %ld!",
+              (long)sizeof(sdif_float32));
+      OK = 0;
     }
 
     if (sizeof(sdif_float64) != 8) {
-                sprintf(errorMessage, "sizeof(sdif_float64) is %d!", sizeof(sdif_float64));
-                OK = 0;
+      sprintf(errorMessage, "sizeof(sdif_float64) is %ld!",
+              (long)sizeof(sdif_float64));
+      OK = 0;
     }
 
     if (!OK) {
-        error_string_array[ESDIF_BAD_SIZEOF] = errorMessage;
+      error_string_array[ESDIF_BAD_SIZEOF] = errorMessage;
     }
     return OK;
 }
@@ -693,24 +696,24 @@ static SDIFresult SkipBytes(FILE *f, int bytesToSkip) {
        some bytes in memory */
     {
 #define BLOCK_SIZE 1024
-        char buf[BLOCK_SIZE];
-        while (bytesToSkip > BLOCK_SIZE) {
-            if (fread (buf, BLOCK_SIZE, 1, f) != 1) {
-                return ESDIF_READ_FAILED;
-            }
-            bytesToSkip -= BLOCK_SIZE;
+      char buf[BLOCK_SIZE];
+      while (bytesToSkip > BLOCK_SIZE) {
+        if (fread (buf, BLOCK_SIZE, 1, f) != 1) {
+          return ESDIF_READ_FAILED;
         }
-
-        if (fread (buf, bytesToSkip, 1, f) != 1) {
-            return ESDIF_READ_FAILED;
-        }
+        bytesToSkip -= BLOCK_SIZE;
+      }
+      
+      if (fread (buf, bytesToSkip, 1, f) != 1) {
+        return ESDIF_READ_FAILED;
+      }
     }
 #else
     /* More efficient implementation */
     if (fseek(f, bytesToSkip, SEEK_CUR) != 0) {
-        return ESDIF_SKIP_FAILED;
+      return ESDIF_SKIP_FAILED;
     }
 #endif
-   return ESDIF_SUCCESS;
+    return ESDIF_SUCCESS;
 }
 

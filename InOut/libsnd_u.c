@@ -9,7 +9,7 @@
 #define sf_read_MYFLT   sf_read_float
 #endif
 
-SNDFILE *infile;
+SNDFILE *infile=NULL;
 SNDFILE *sndgetset(SOUNDIN *);
 char    *getstrformat(int format);
 int sreadin(SNDFILE*, MYFLT *, int, SOUNDIN*);
@@ -84,7 +84,7 @@ void rewriteheader(SNDFILE* ofd, int verbose)
       sf_command(ofd, SFC_UPDATE_HEADER_NOW, NULL, 0);
 }
 
-int SAsndgetset(
+SNDFILE *SAsndgetset(
      char    *infilnam,                          /* Stand-Alone sndgetset() */
      SOUNDIN **ap,                               /* used by SoundAnal progs */
      MYFLT   *abeg_time,
@@ -92,9 +92,9 @@ int SAsndgetset(
      MYFLT   *asr,
      int     channel)
 {                               /* Return -1 on failure */
-    SOUNDIN  *p;
-    char     quotname[80];
-    int      infd;
+    SOUNDIN *p;
+    SNDFILE *infile=NULL;
+    char    quotname[80];
     static  ARGOFFS  argoffs = {0};     /* these for sndgetset */
     static  OPTXT    optxt;
     static  MYFLT sstrcod = (MYFLT)SSTRCOD;
@@ -118,12 +118,12 @@ int SAsndgetset(
     if (channel < 1 || ((channel > 4) && (channel != ALLCHNLS))) {
 /*        if (channel < 1 || channel > 4)  { */   /* SAsnd is chan 1,2,3 or 4 */
       printf(Str(X_658,"channel request %d illegal\n"), channel);
-      return(-1);
+      return(NULL);
     }
     p->channel = channel;
     p->analonly = 1;
-    if ((infile = sndgetset(p)) < 0)            /* open sndfil, do skiptime */
-      return(-1);
+    if ((infile = sndgetset(p)) == NULL)            /* open sndfil, do skiptime */
+      return(NULL);
     if (p->framesrem < 0 ) {
       if (O.msglevel & WARNMSG)
         printf(Str(X_1318,
@@ -146,7 +146,7 @@ int SAsndgetset(
         printf(Str(X_18," from timepoint %3.1f\n"), *abeg_time);
       else printf("\n");
     }
-    return(infd);
+    return infile;
 }
 
 long getsndin(SNDFILE *fd, MYFLT *fp, long nlocs, SOUNDIN *p)

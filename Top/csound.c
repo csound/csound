@@ -642,6 +642,7 @@ static long csoundNumExits_ = -1;
     if(csoundExternalMidiReadCallback){
       return csoundExternalMidiReadCallback(csound, mbuf, size);
     }
+    return -1;
   }
 
   PUBLIC void csoundSetExternalMidiWriteCallback(void *csound, int (*csoundExternalMidiWriteCallback_)(void *csound, unsigned char *midiData))
@@ -654,6 +655,7 @@ static long csoundNumExits_ = -1;
     if(csoundExternalMidiWriteCallback){
       return csoundExternalMidiWriteCallback(&cenviron_, midiData);
     }
+    return -1;
   }
 
   PUBLIC void csoundSetExternalMidiDeviceCloseCallback(void *csound, void (*csoundExternalMidiDeviceCloseCallback_)(void *csound))

@@ -61,7 +61,6 @@ extern char* type2string(int);
 extern  char    *getstrformat(int format);
 extern short sf2type(int);
 extern short sfsampsize(int);
-#define sf2format(x) (x)
 
 static int sreadinew(           /* special handling of sound input       */
     SNDFILE *infd,              /* to accomodate reads thru pipes & net  */

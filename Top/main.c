@@ -578,10 +578,10 @@ int csoundMain(void *csound, int argc, char **argv)
 {
     jmp_buf lj;
     int returnvalue;
-
+    extern void csoundMessage(void *, const char *, ...);
     if ((returnvalue = setjmp(lj))) {
-        csoundMessage(csound, "Error return");
-        return returnvalue;
+      csoundMessage(csound, "Error return");
+      return returnvalue;
     }
 
     returnvalue = csoundCompile(csound, argc, argv);
