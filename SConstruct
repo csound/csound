@@ -295,7 +295,7 @@ csoundProgramEnvironment.Append(LIBS = ['csound', 'sndfile'])
 csoundProgramEnvironment.ParseConfig('fltk-config --cflags --cxxflags --ldflags') 
 
 ustubProgramEnvironment = commonEnvironment.Copy()
-ustubProgramEnvironment.Append(LIBS = ['ustub', 'sndfile', 'dl', 'm'])
+ustubProgramEnvironment.Append(LIBS = ['ustub', 'sndfile'])
 
 vstEnvironment = commonEnvironment.Copy()
 if vstEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags'):
