@@ -224,17 +224,11 @@ typedef struct op {
         TEXT    t;
 } OPTXT;
 
-#ifdef HAVE_LIBSNDFILE
 typedef struct fdch {
         struct fdch * nxtchp;
         void   *fd;             /* Should be SNDFILE * */
+        int    fdc;
 } FDCH;
-#else
-typedef struct fdch {
-        struct fdch * nxtchp;
-        int    fd;
-} FDCH;
-#endif
 
 typedef struct auxch {
         struct auxch * nxtchp;

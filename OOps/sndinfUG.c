@@ -199,7 +199,8 @@ int filepeak(SNDINFOPEAK *p)
         die(Str(X_1458,
                 "Input channel for peak exceeds number of channels in file"));
 
-      if (hdr->filetyp == TYP_AIFC || hdr->filetyp == TYP_AIFF ||
+      if (
+          hdr->filetyp == TYP_AIFF ||
           hdr->filetyp == TYP_WAV) { /* assume maxamps are there, (this is bad) */
         /* channel '0' is the overall maxamps */
         /* *p->r1 = hdr->aiffdata->maxamps[(int)(*(p->channel))];*/

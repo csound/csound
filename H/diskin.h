@@ -21,12 +21,7 @@
     02111-1307 USA
 */
 
-#ifdef HAVE_LIBSNDFILE
 #define SNDINEWBUFSIZ  (4096)
-#else
-#define SNDINEWBUFSIZ  (16384)
-#define SNDINEWBUFSIZ_24 (16416)  /*RWD 4:2001 good for 24bit 4/6/8 ch (mult of 216) */
-#endif
 #ifndef TRUE
 #define TRUE (1)
 #endif
@@ -43,14 +38,8 @@ typedef struct {
   long          sr, audrem, audsize;
   AIFFDAT       *aiffdata;
   FDCH          fdch;
-#ifdef HAVE_LIBSNDFILE
   MYFLT         *inbufp, *bufend, *guardpt;
   MYFLT         inbuf[SNDINEWBUFSIZ];
-#else
-  void          (*bytrev)(char*,int);
-  char          *inbufp, *bufend, *guardpt;
-  char          inbuf[SNDINEWBUFSIZ_24];
-#endif
   double        phs;
   long          filepos, firstsampinfile;
   /*RWD 3:2000*/

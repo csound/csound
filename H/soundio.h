@@ -37,25 +37,46 @@
                             /*                 but small is kind to net rexec */
 #define SNDOUTSMPS   (1024)
                                 /* standard audio encoding types */
-#define AE_CHAR   0x101         /* Signed 8 bit */
-#ifdef never
-#define AE_ALAW   0x102
-#endif
-#ifdef ULAW
-#define AE_ULAW   0x103
-#endif
-#define AE_SHORT  0x104
-#define AE_LONG   0x105
-#define AE_FLOAT  0x106
-#define AE_UNCH   0x107         /* Unsigned 8 bit */
-#define AE_24INT  0x108         /*not fully implemented yet */
-#define AE_DOUBLE 0x109
-#define AE_LAST   AE_DOUBLE     /* current last audio encoding value */
+#define AE_CHAR   SF_FORMAT_PCM_S8
+#define AE_SHORT  SF_FORMAT_PCM_16
+#define AE_24INT  SF_FORMAT_PCM_24
+#define AE_LONG   SF_FORMAT_PCM_32
+#define AE_UNCH   SF_FORMAT_PCM_U8
+#define AE_FLOAT  SF_FORMAT_FLOAT
+#define AE_DOUBLE SF_FORMAT_DOUBLE
+#define AE_ULAW   SF_FORMAT_ULAW
+#define AE_ALAW   SF_FORMAT_ALAW
+#define AE_IMA_ADPCM	SF_FORMAT_IMA_ADPCM
+#define AE_MS_ADPCM	SF_FORMAT_MS_ADPCM
+#define AE_GSM610	SF_FORMAT_GSM610
+#define AE_VOX	        SF_FORMAT_VOX_ADPCM
+#define AE_G721_32	SF_FORMAT_G721_32
+#define AE_G723_24	SF_FORMAT_G723_24
+#define AE_G723_40	SF_FORMAT_G723_40
+#define AE_DWVW_12	SF_FORMAT_DWVW_12
+#define AE_DWVW_16	SF_FORMAT_DWVW_16
+#define AE_DWVW_24	SF_FORMAT_DWVW_24
+#define AE_DWVW_N	SF_FORMAT_DWVW_N
+#define AE_DPCM_8	SF_FORMAT_DPCM_8
+#define AE_DPCM_16	SF_FORMAT_DPCM_16
+#define AE_LAST   SF_FORMAT_DPCM_16     /* current last audio encoding value */
 
-#define TYP_IRCAM 0
-#define TYP_AIFF  1
-#define TYP_WAV   2
-#define TYP_AIFC  3
+#define TYP_WAV   (SF_FORMAT_WAV>>16)
+#define TYP_AIFF  (SF_FORMAT_AIFF>>16)
+#define TYP_AU	  (SF_FORMAT_AU>>16)	
+#define TYP_RAW	  (SF_FORMAT_RAW>>16)	
+#define TYP_PAF	  (SF_FORMAT_PAF>>16)	
+#define TYP_SVX	  (SF_FORMAT_SVX>>16)	
+#define TYP_NIST  (SF_FORMAT_NIST>>16)	
+#define TYP_VOC   (SF_FORMAT_VOC>>16)	
+#define TYP_IRCAM (SF_FORMAT_IRCAM>>16)
+#define TYP_W64   (SF_FORMAT_W64>>16)
+#define TYP_MAT4  (SF_FORMAT_MAT4>>16)
+#define TYP_MAT5  (SF_FORMAT_MAT5>>16)
+#define TYP_PVF   (SF_FORMAT_PVF>>16)
+#define TYP_XI    (SF_FORMAT_XI>>16)
+#define TYP_HTK   (SF_FORMAT_HTK>>16)
+#define TYP_SDS   (SF_FORMAT_SDS>>16)
 
 /*RWD 3:2000*/
 #define PEAKCHUNK_VERSION (1L)
@@ -108,15 +129,8 @@ typedef struct {
         long    sr, audrem, framesrem, getframes;    /* bytes, frames, frames */
         AIFFDAT *aiffdata;
         FDCH    fdch;
-#ifdef HAVE_LIBSNDFILE
-        void    (*bytrev)(char*,int);
         MYFLT   *inbufp, *bufend;
         MYFLT   inbuf[SNDINBUFSIZ];
-#else
-        void    (*bytrev)(char*,int);
-        void    *inbufp, *bufend;
-        MYFLT   inbuf[SNDINBUFSIZ+8];
-#endif
                 /*RWD 3:2000*/
         float   fscalefac;
         long    do_floatscaling;
@@ -147,12 +161,8 @@ typedef struct {
         SNDCOM  c;
 } SNDOUTS;
 
-#ifdef HAVE_LIBSNDFILE
 #include <sndfile.h>
 int sreadin(SNDFILE*, MYFLT *, int, SOUNDIN *);
-#else
-int sreadin(int, char *, int, SOUNDIN *);
-#endif
 
 
 #ifdef SFSUN41
