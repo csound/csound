@@ -193,7 +193,8 @@ int anterpol(INTERPOL *p)
     MYFLT *out = p->r, *val1 = p->val1, *val2 = p->val2;
     int loopcount = ksmps_;
     do  {
-      *out++ = point_value * (*val2++ - *val1) + *val1++;
+      MYFLT fv1 = *val1++;
+      *out++ = point_value * (*val2++ - fv1) + fv1++;
     } while (--loopcount);
     return OK;
 }

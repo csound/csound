@@ -453,7 +453,7 @@ int rndset(RAND *p)
 #elif defined(WIN32)
         FILETIME    t;
         GetSystemTimeAsFileTime((LPFILETIME) &t);
-        seed = 2147483648 * ((unsigned long) t.dwHighDateTime) +
+        seed = 2147483648ul * ((unsigned long) t.dwHighDateTime) +
           ((unsigned long) t.dwLowDateTime >> 1);
 #else
         seed = time(NULL);
@@ -564,7 +564,7 @@ int rhset(RANDH *p)
 #elif defined(WIN32)
         FILETIME    t;
         GetSystemTimeAsFileTime((LPFILETIME) &t);
-        seed = 2147483648 * ((unsigned long) t.dwHighDateTime) +
+        seed = 2147483648ul * ((unsigned long) t.dwHighDateTime) +
           ((unsigned long) t.dwLowDateTime >> 1);
 #else
         seed = time(NULL);
@@ -673,7 +673,7 @@ int riset(RANDI *p)
 #elif defined(WIN32)
         FILETIME    t;
         GetSystemTimeAsFileTime((LPFILETIME) &t);
-        seed = 2147483648 * ((unsigned long) t.dwHighDateTime) +
+        seed = 2147483648ul * ((unsigned long) t.dwHighDateTime) +
           ((unsigned long) t.dwLowDateTime >> 1);
 #else
         seed = time(NULL);

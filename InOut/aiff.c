@@ -184,6 +184,8 @@ void aiffWriteHdr(              /* Write AIFF header at start of file.   */
       die(Str(X_741,"error writing AIFF header"));
 
     /*RWD 3:2000 adjust overall size */
+    aiffhdrsiz = sizeof(FormHdr) + sizeof(CkHdr) + sizeof(short) +
+                 sizeof(CommChunk2) + sizeof(SoundDataHdr);
     if (peakchunks) aiffhdrsiz += sizPeakChunk;
 }
 
