@@ -216,20 +216,20 @@ static void writesf(MYFLT *outbuf, int nbytes)
     }
 }
 
-static int readsf(MYFLT *inbuf, int nsamples)
+static int readsf(MYFLT *inbuf, int inbufsize)
 {
-/*     printf("***nsamples = %d (%d frames) to %p\n", */
-/*            nsamples, nsamples/nchnls, inbuf); */
-    return nchnls*sf_read_MYFLT(infile, inbuf, nsamples/nchnls);
+ 
+	/* FIX, VL 02-11-04: function used to take samples instead of bytes */
+    return nchnls*sf_read_MYFLT(infile, inbuf, (inbufsiz/nchnls)/sizeof(MYFLT));
 }
 
-/* HEADATA *readheader(            /\* read soundfile hdr, fill HEADATA struct *\/ */
-/*     int ifd,                    /\*   called by sfopenin() and sndinset()   *\/ */
-/*     char *sfname,               /\* NULL => no header, nothing to preserve  *\/ */
-/*     SOUNDIN *p) */
-/* { */
-/*     return NULL; */
-/* } */
+HEADATA *readheader(            /* read soundfile hdr, fill HEADATA struct */
+    int ifd,                    /*   called by sfopenin() and sndinset()   */
+    char *sfname,               /* NULL => no header, nothing to preserve  */
+    SOUNDIN *p)
+{
+    return NULL;
+}
 
 void writeheader(int ofd, char *ofname)
 {
@@ -304,7 +304,7 @@ int soundin(ENVIRON *csound, SOUNDIN *p)
     }
     if (p->inbufp >= p->bufend) {
 /*       printf("***        : need new data p->fdch.fd=%p\n", p->fdch.fd); */
-      if ((n = sreadin(NULL, p->inbuf, SNDINBUFSIZ, p)) == 0) {
+		if ((n = sreadin(p->fdch.fd, p->inbuf, SNDINBUFSIZ, p)) == 0) {  /* FIX, VL 2-11-04; param 1 was NULL*/
         p->endfile = 1;
         if (ntogo) goto filend;
         else return OK;
@@ -359,7 +359,7 @@ void sfopenin(void)             /* init for continuous soundin */
 #endif
               || strcmp(O.infilename,"adc") == 0)) {
 #if defined(WIN32) || defined(LINUX) || defined(__MACH__)
-      /*       rtin_dev = 0; */ /* Victor Lazzarini suggestion */
+      rtin_dev = 0;
       if (strncmp(O.infilename,"devaudio", 8) == 0) {
         if (O.infilename[8]==':')
           rtin_devs = &(O.infilename[9]);
@@ -407,17 +407,21 @@ void sfopenin(void)             /* init for continuous soundin */
       p->audrem = sfinfo.frames;
       audrecv = readsf;  /* will use standard audio gets  */
     }
+	
 #ifdef RTAUDIO
  inset:
 #endif
     inbufsiz = (unsigned)(O.inbufsamps * sizeof(MYFLT));     /* calc inbufsize reqd   */
     inbuf = (MYFLT *)mcalloc(inbufsiz); /* alloc inbuf space */
-    printf(Str(X_1151,"reading %d-sample blks of %s from %s (%s)\n"),
+    printf(Str(X_1151,"reading %d-byte blks of %s from %s (%s)\n"),
            inbufsiz, getstrformat(O.informat), sfname,
            type2string(p->filetyp));
     isfopen = 1;
+
     n = audrecv(inbuf, inbufsiz);          /*     file or devaudio  */
 /*     inbufrem = (unsigned int)n;            /\* datasiz in monosamps  *\/ */
+
+	
 }
 
 void sfopenout(void)                            /* init for sound out       */
@@ -598,12 +602,19 @@ void sfcloseout(void)
     osfopen = 0;
 }
 
+static  long    datpos= 0L;       /* Used in resetting only */
+
+extern  HEADATA *readheader(int, char *, SOUNDIN*);
 extern  int     openin(char*);
 extern  OPARMS  O;
 
 void soundinRESET(void)
 {
+    datpos = 0;
 }
+
+extern  HEADATA *readheader(int, char*, SOUNDIN*);
+extern  OPARMS  O;
 
 #ifdef RTAUDIO
 # define DEVAUDIO 0x7fff         /* unique fd for rtaudio  */

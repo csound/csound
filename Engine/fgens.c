@@ -226,8 +226,11 @@ void fgens(ENVIRON *csound, EVTBLK *evtblkp) /* create ftable using evtblk data 
     }
     printf(Str(X_782,"ftable %d:\n"), ff->fno);
     (*csound->gensub[genum])(ftp, csound);
-    if (!ff->fterrcnt && ftp)
+
+    if (!ff->fterrcnt && ftp){
+		/* VL 11.01.05 for deferred GEN01, it's called in gen01raw */
       ftresdisp(ff,ftp);                        /* rescale and display */
+		}
 }
 
 static void gen02(FUNC *ftp, ENVIRON *csound)
@@ -1854,6 +1857,7 @@ static void ftresdisp(FGDATA *ff, FUNC *ftp)
         for (fp=ftp->ftable; fp<=finp; fp++)
           *fp /= maxval;
     }
+	printf("resdisp\n");
     sprintf(strmsg,Str(X_781,"ftable %d:"),ff->fno);
     dispset(&dwindow,ftp->ftable,(long)(ff->flen+ff->guardreq),strmsg,0,"ftable");
     display(&dwindow);
@@ -2043,6 +2047,7 @@ static void gen01raw(FUNC *ftp, ENVIRON *csound)
     SNDFILE *fd;
     int     truncmsg = 0;
     long    inlocs = 0;
+	int def=0;
 
     optxt.t.outoffs = &argoffs;     /* point to dummy OUTOCOUNT */
     p = &tmpspace;
@@ -2084,6 +2089,7 @@ static void gen01raw(FUNC *ftp, ENVIRON *csound)
       ftp->lenmask  = 0;                    /*   mark hdr partly filled   */
       ftp->nchanls  = p->nchanls;
       ftp->flenfrms = ff->flen / p->nchanls;  /* ?????????? */
+	  def=1;
     }
     ftp->gen01args.sample_rate = curr_func_sr;
     ftp->cvtbas = LOFACT * p->sr * onedsr;
@@ -2138,6 +2144,7 @@ static void gen01raw(FUNC *ftp, ENVIRON *csound)
     }
     ftp->soundend = inlocs / ftp->nchanls;   /* record end of sound samps */
     sf_close(fd);
+	if(def) ftresdisp(ff,ftp); /* VL: 11.01.05  for deferred alloc tables */
 }
 
 #define FTPLERR(s)     {fterror(ff,s); \
@@ -2236,6 +2243,7 @@ FUNC *hfgens(ENVIRON *csound, EVTBLK *evtblkp)/* create ftable using evtblk data
       memcpy(csound->gensub, or_sub, sizeof(or_sub));
     }
     (*csound->gensub[genum])(ftp, csound);     /* call gen subroutine  */
+
     if (!ff->fterrcnt)
       ftresdisp(ff,ftp);                       /* rescale and display */
     return(ftp);
