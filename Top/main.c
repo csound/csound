@@ -280,8 +280,8 @@ static void install_signal_handler(void)
 # endif
 #endif
 
-/*     for (x = sigs; *x > 0; x++) */
-/*       signal(*x, signal_handler); */
+    for (x = sigs; *x > 0; x++)
+      signal(*x, signal_handler);
 }
 
 void create_opcodlst(void *csound)
