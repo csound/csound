@@ -71,7 +71,7 @@ void recopen_(int nchanls, int dsize, float sr, int scale)
 #if defined(LINUX)
     PaAlsaStreamInfo info;
 #endif
-    if ( paError != paNoError )
+    if (paError != paNoError)
       goto error;
     oMaxLag = O.oMaxLag;        /* import DAC setting from command line   */
     if (oMaxLag <= 0)           /* if DAC sampframes ndef in command line */
@@ -117,8 +117,7 @@ void recopen_(int nchanls, int dsize, float sr, int scale)
                              paNoFlag,
                              NULL,
                              NULL);
-    if( paError != paNoError )
-      goto error;
+    if (paError != paNoError) goto error;
     ishift = getshift(dsize);
     return;
  error:
@@ -156,8 +155,7 @@ void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
 #if defined(LINUX)
     PaAlsaStreamInfo info;
 #endif
-    if ( paError != paNoError )
-      goto error;
+    if (paError != paNoError) goto error;
 
     listPortAudioDevices();
 
@@ -206,14 +204,12 @@ void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
                             NULL,
                             NULL);
 
-    if ( paError != paNoError )
-      goto error;
+    if (paError != paNoError) goto error;
 
-    paError = Pa_StartStream( pa_out );
+    paError = Pa_StartStream(pa_out);
     audtran = rtplay_;
 
-    if ( paError != paNoError )
-      goto error;
+    if (paError != paNoError) goto error;
 
     spoutran = spoutsf;       /* accumulate output */
     nzerotran = zerosf;       /* quick zeros */
@@ -260,7 +256,7 @@ void rtplay_(void *outbuf_, int bytes_) /* put samples to DAC  */
 #else
     PaError paError = Pa_WriteStream(pa_out, outbuf_, frames);
 #endif
-    if ( paError != paNoError )
+    if (paError != paNoError)
       err_printf(Str(X_41,"PortAudio error %d: %s\n"),
                  paError, Pa_GetErrorText(paError));
     nrecs++;
