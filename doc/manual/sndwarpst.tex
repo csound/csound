@@ -1,0 +1,244 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{sndwarpst}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{sndwarpst}
+sndwarpst --  Reads a stereo sound sample from a table and applies time-stretching and/or pitch modification. \subsection*{Description}
+
+
+ \emph{sndwarpst}
+ reads stereo sound samples from a table and applies time-stretching and/or pitch modification. Time and frequency modification are independent from one another. For example, a sound can be stretched in time while raising the pitch! 
+
+
+  The window size and overlap arguments are important to the result and should be experimented with. In general they should be as small as possible. For example, start with \emph{iwsize}
+=sr/10 and \emph{ioverlap}
+=15. Try \emph{irandw}
+=\emph{iwsize}
+*.2. If you can get away with less overlaps, the program will be faster. But too few may cause an audible flutter in the amplitude. The algorithm reacts differently depending upon the input sound and there are no fixed rules for the best use in all circumstances. But with proper tuning, excellent results can be achieved. 
+\subsection*{Syntax}
+
+
+ ar1, ar2 [,ac1] [, ac2] \textbf{sndwarpst}
+ xamp, xtimewarp, xresample, ifn1, ibeg, iwsize, irandw, ioverlap, ifn2, itimemode
+\subsection*{Initialization}
+
+
+ \emph{ifn1}
+ -- the number of the table holding the sound samples which will be subjected to the \emph{sndwarp}
+ processing. \emph{GEN01}
+ is the appropriate function generator to use to store the sound samples from a pre-existing soundfile. 
+
+
+ \emph{ibeg}
+ -- the time in seconds to begin reading in the table (or soundfile). When \emph{itimemode}
+ is non-zero, the value of \emph{xtimewarp}
+ is offset by \emph{ibeg}
+. 
+
+
+ \emph{iwsize}
+ -- the window size in samples used in the time scaling algorithm. 
+
+
+ \emph{irandw}
+ -- the bandwidth of a random number generator. The random numbers will be added to \emph{iwsize}
+. 
+
+
+ \emph{ioverlap}
+ -- determines the density of overlapping windows. 
+
+
+ \emph{ifn2}
+ -- a function used to shape the window. It is usually used to create a ramp of some kind from zero at the beginning and back down to zero at the end of each window. Try using a half a sine (i.e.: f1 0 16384 9 .5 1 0) which works quite well. Other shapes can also be used. 
+\subsection*{Performance}
+
+
+ \emph{ar1, ar2}
+ -- \emph{ar1}
+ and \emph{ar2}
+ are the stereo (left and right) outputs from \emph{sndwarpst}
+. \emph{sndwarpst}
+ assumes that the function table holding the sampled signal is a stereo one. \emph{sndwarpst}
+ will index the table by a two-sample frame increment. The user must be aware then that if a mono signal is used with \emph{sndwarpst}
+, time and pitch will be altered accordingly. 
+
+
+ \emph{ac1, ac2}
+ -- \emph{ac1}
+ and \emph{ac2}
+ are single-layer (no overlaps), unwindowed versions of the time and/or pitch altered signal. They are supplied in order to be able to balance the amplitude of the signal output, which typically contains many overlapping and windowed versions of the signal, with a clean version of the time-scaled and pitch-shifted signal. The \emph{sndwarpst}
+ process can cause noticeable changes in amplitude, (up and down), due to a time differential between the overlaps when time-shifting is being done. When used with a balance unit, \emph{ac1}
+ and \emph{ac2}
+ can greatly enhance the quality of sound. They are optional, but note that they must both be present in the syntax (use both or neither). An example of how to use this is given below. 
+
+
+ \emph{xamp}
+ -- the value by which to scale the amplitude (see note on the use of this when using \emph{ac1}
+ and \emph{ac2}
+). 
+
+
+ \emph{xtimewarp}
+ -- determines how the input signal will be stretched or shrunk in time. There are two ways to use this argument depending upon the value given for \emph{itimemode}
+. When the value of \emph{itimemode}
+ is 0, xitimewarp will scale the time of the sound. For example, a value of 2 will stretch the sound by 2 times. When \emph{itimemode}
+ is any non-zero value then \emph{xtimewarp}
+ is used as a time pointer in a similar way in which the time pointer works in \emph{lpread}
+ and \emph{pvoc}
+. An example below illustrates this. In both cases, the pitch will \emph{not}
+ be altered by this process. Pitch shifting is done independently using \emph{xresample}
+. 
+
+
+ \emph{xresample}
+ -- the factor by which to change the pitch of the sound. For example, a value of 2 will produce a sound one octave higher than the original. The timing of the sound, however, will \emph{not}
+ be altered. 
+\subsection*{Examples}
+
+
+  The below example shows a slowing down or stretching of the sound stored in the stored table (\emph{ifn1}
+). Over the duration of the note, the stretching will grow from no change from the original to a sound which is ten times ``slower'' than the original. At the same time the overall pitch will move upward over the duration by an octave. 
+
+
+ 
+\begin{lstlisting}
+iwindfun=1
+isampfun=2
+ibeg=0
+iwindsize=2000
+iwindrand=400
+ioverlap=10
+awarp   \emph{line}
+    1, p3, 1
+aresamp \emph{line}
+    1, p3, 2
+kenv    \emph{line}
+    1, p3, .1
+asig    \emph{sndwarp}
+ kenv, awarp, aresamp, isampfun, ibeg, iwindsize, iwindrand, ioverlap,iwindfun,0
+        
+\end{lstlisting}
+
+
+ 
+
+
+  Now, here's an example using \emph{xtimewarp}
+ as a time pointer and using stereo: 
+
+
+ 
+\begin{lstlisting}
+itimemode     \emph{=}
+         1
+atime         \emph{line}
+      0, p3, 10
+ar1, ar2       \emph{sndwarpst}
+ kenv, atime, aresamp, sampfun, ibeg, iwindsize, iwindrand, ioverlap, iwindfun, itimemode
+        
+\end{lstlisting}
+
+
+ 
+
+
+  In the above, atime advances the time pointer used in the \emph{sndwarp}
+ from 0 to 10 over the duration of the note. If p3 is 20 then the sound will be two times slower than the original. Of course you can use a more complex function than just a single straight line to control the time factor. 
+
+
+  Now the same as above but using the balance function with the optional outputs: 
+
+
+ 
+\begin{lstlisting}
+asig,acmp   \emph{sndwarp}
+  1, awarp, aresamp, isampfun, ibeg, iwindsize, iwindrand, ioverlap, iwindfun, itimemode
+abal        \emph{balance}
+ asig, acmp
+  
+asig1,asig2,acmp1,acmp2 \emph{sndwarpst}
+ 1, atime, aresamp, sampfun, ibeg, iwindsize, iwindrand, ioverlap, iwindfun, itimemode
+abal1       \emph{balance}
+ asig1, acmp1
+abal2       \emph{balance}
+ asig2, acmp2
+        
+\end{lstlisting}
+
+
+ 
+
+
+  In the above two examples notice the use of the balance unit. The output of balance can then be scaled, enveloped, sent to an out or outs, and so on. Notice that the amplitude arguments to \emph{sndwarp}
+ and \emph{sndwarpst}
+ are ``1'' in these examples. By scaling the signal after the \emph{sndwarp}
+ process, \emph{abal}
+, \emph{abal1}
+, and \emph{abal2}
+ should contain signals that have nearly the same amplitude as the original input signal to the \emph{sndwarp}
+ process. This makes it much easier to predict the levels and avoid samples out of range or sample values that are too small. 
+
+
+ 
+
+
+\begin{tabular}{cc}
+\textbf{More Advice}
+ \\
+  &
+
+  Only use the stereo version when you really need to be processing a stereo file. It is somewhat slower than the mono version and if you use the balance function it is slower again. There is nothing wrong with using a mono \emph{sndwarp}
+ in a stereo orchestra and sending the result to one or both channels of the stereo output! 
+
+
+\end{tabular}
+
+\subsection*{See Also}
+
+
+ \emph{sndwarp}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Richard Karpen &Seattle, WA USA &1997
+
+\end{tabular}
+
+
+
+ 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+sndwarp &Up &soundin
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,213 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{soundin}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{soundin}
+soundin --  Reads audio data from an external device or stream. \subsection*{Description}
+
+
+  Reads audio data from an external device or stream. 
+\subsection*{Syntax}
+
+
+ ar1 \textbf{soundin}
+ ifilcod [, iskptim] [, iformat]
+
+
+ ar1, ar2 \textbf{soundin}
+ ifilcod [, iskptim] [, iformat]
+
+
+ ar1, ar2, ar3 \textbf{soundin}
+ ifilcod [, iskptim] [, iformat]
+
+
+ ar1, ar2, ar3, ar4 \textbf{soundin}
+ ifilcod [, iskptim] [, iformat]
+\subsection*{Initialization}
+
+
+ \emph{ifilcod}
+ -- integer or character-string denoting the source soundfile name. An integer denotes the file soundin.filcod ; a character-string (in double quotes, spaces permitted) gives the filename itself, optionally a full pathname. If not a full path, the named file is sought first in the current directory, then in that given by the environment variable SSDIR (if defined) then by SFDIR. See also \emph{GEN01}
+. 
+
+
+ \emph{iskptim}
+ (optional, default=0) -- time in seconds of input sound to be skipped. The default value is 0. 
+
+
+ \emph{iformat}
+ (optional, default=0) -- specifies the audio data file format: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ 1 = 8-bit signed char (high-order 8 bits of a 16-bit integer)
+
+\item 
+
+ 2 = 8-bit A-law bytes
+
+\item 
+
+ 3 = 8-bit U-law bytes
+
+\item 
+
+ 4 = 16-bit short integers
+
+\item 
+
+ 5 = 32-bit long integers
+
+\item 
+
+ 6 = 32-bit floats
+
+
+\end{itemize}
+
+
+  If \emph{iformat}
+ = 0 it is taken from the soundfile header, and if no header from the Csound \emph{-o}
+ command-line flag. The default value is 0. 
+\subsection*{Performance}
+
+
+ \emph{soundin}
+ is functionally an audio generator that derives its signal from a pre-existing file. The number of channels read in is controlled by the number of result cells, a1, a2, etc., which must match that of the input file. A \emph{soundin}
+ opcode opens this file whenever the host instrument is initialized, then closes it again each time the instrument is turned off. 
+
+
+  There can be any number of \emph{soundin}
+ opcodes within a single instrument or orchestra. Two or more of them can read simultaneously from the same external file. 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Caution &\textbf{Note to Windows users}
+ \\
+  &
+
+  Windows users typically use back-slashes, ``$\backslash$'', when specifying the paths of their files. As an example, a Windows user might use the path ``c:$\backslash$music$\backslash$samples$\backslash$loop001.wav''. This is problematic because back-slashes are normally used to specify special characters. 
+
+
+  To correctly specify this path in Csound, one may alternately: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ \emph{Use forward slashes}
+: c:/music/samples/loop001.wav
+
+\item 
+
+ \emph{Use back-slash special characters, ``$\backslash$$\backslash$''}
+: c:$\backslash$$\backslash$music$\backslash$$\backslash$samples$\backslash$$\backslash$loop001.wav
+
+
+\end{itemize}
+
+
+\end{tabular}
+
+\subsection*{Examples}
+
+
+  Here is an example of the soundin opcode. It uses the files \emph{soundin.orc}
+, \emph{soundin.sco}
+, \emph{beats.wav}
+. 
+
+
+ \textbf{Example 1. Example of the soundin opcode.}
+
+\begin{lstlisting}
+/* soundin.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 44100
+ksmps = 1
+nchnls = 1
+
+; Instrument #1 - play an audio file.
+instr 1
+  asig soundin "beats.wav"
+  out asig
+endin
+/* soundin.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* soundin.sco */
+; Play Instrument #1, the audio file, for three seconds.
+i 1 0 3
+e
+/* soundin.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{diskin}
+, \emph{in}
+, \emph{inh}
+, \emph{ino}
+, \emph{inq}
+, \emph{ins}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Authors: Barry L. Vercoe, Matt Ingalls/Mike Berry &MIT, Mills College &1993-1997
+
+\end{tabular}
+
+
+
+ 
+
+
+ Example written by Kevin Conder.
+
+
+ Warning to Windows users added by Kevin Conder, April 2002
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+sndwarpst &Up &soundout
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,59 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{turnon}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{turnon}
+turnon --  Activate an instrument for an indefinite time. \subsection*{Description}
+
+
+  Activate an instrument for an indefinite time. 
+\subsection*{Syntax}
+
+
+ \textbf{turnon}
+ insnum [, itime]
+\subsection*{Initialization}
+
+
+ \emph{insnum}
+ -- instrument number to be activated 
+
+
+ \emph{itime}
+ (optional, default=0) -- delay, in seconds, after which instrument \emph{insnum}
+ will be activated. Default is 0. 
+\subsection*{Performance}
+
+
+ \emph{turnon}
+ activates instrument \emph{insnum}
+ after a delay of \emph{itime}
+ seconds, or immediately if \emph{itime}
+ is not specified. Instrument is active until explicitly turned off. (See \emph{turnoff}
+.) 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+turnoff &Up &unirand
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

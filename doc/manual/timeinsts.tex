@@ -1,0 +1,124 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{timeinsts}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{timeinsts}
+timeinsts --  Read absolute time in seconds. \subsection*{Description}
+
+
+  Read absolute time, in seconds, since the start of an instance of an instrument. 
+\subsection*{Syntax}
+
+
+ kr \textbf{timeinsts}
+
+\subsection*{Performance}
+
+
+  Time in seconds is available with \emph{timeinsts}
+. This would return 0.5 after half a second. 
+
+
+ \emph{timeinsts}
+ produces a k-rate variable for output. There are no input parameters. 
+
+
+ \emph{timeinsts}
+ is similar to \emph{times}
+ except it returns the time since the start of this instance of the instrument. 
+\subsection*{Examples}
+
+
+  Here is an example of the timeinsts opcode. It uses the files \emph{timeinsts.orc}
+ and \emph{timeinsts.sco}
+. 
+
+
+ \textbf{Example 1. Example of the timeinsts opcode.}
+
+\begin{lstlisting}
+/* timeinsts.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  ; Print out the value from timeinsts every half-second.
+  k1 timeinsts
+  printks "k1 = %f seconds\\n", 0.5, k1
+endin
+/* timeinsts.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* timeinsts.sco */
+; Play Instrument #1 for two seconds.
+i 1 0 2
+e
+/* timeinsts.sco */
+        
+\end{lstlisting}
+ Its output should include lines like this: \begin{lstlisting}
+k1 = 0.000227 seconds
+k1 = 0.500000 seconds
+k1 = 1.000000 seconds
+k1 = 1.500000 seconds
+k1 = 2.000000 seconds
+      
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{timeinstk}
+, \emph{timek}
+, \emph{times}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Robin Whittle &Australia &May 1997
+
+\end{tabular}
+
+
+
+ 
+
+
+ Example written by Kevin Conder.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+timeinstk &Up &timek
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

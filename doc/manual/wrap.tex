@@ -1,0 +1,111 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{wrap}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{wrap}
+wrap --  Wraps-around the signal that exceeds the low and high thresholds. \subsection*{Description}
+
+
+  Wraps-around the signal that exceeds the low and high thresholds. 
+\subsection*{Syntax}
+
+
+ ar \textbf{wrap}
+ asig, klow, khigh
+
+
+ ir \textbf{wrap}
+ isig, ilow, ihigh
+
+
+ kr \textbf{wrap}
+ ksig, klow, khigh
+\subsection*{Initialization}
+
+
+ \emph{isig}
+ -- input signal 
+
+
+ \emph{ilow}
+ -- low threshold 
+
+
+ \emph{ihigh}
+ -- high threshold 
+\subsection*{Performance}
+
+
+ \emph{xsig}
+ -- input signal 
+
+
+ \emph{klow}
+ -- low threshold 
+
+
+ \emph{khigh}
+ -- high threshold 
+
+
+ \emph{wrap}
+ wraps-around the signal that exceeds the low and high thresholds. 
+
+
+  This opcode is useful in several situations, such as table indexing or for clipping and modeling a-rate, i-rate or k-rate signals. \emph{wrap}
+ is also useful for wrap-around of table data when the maximum index is not a power of two (see \emph{table}
+ and \emph{tablei}
+). Another use of \emph{wrap}
+ is in cyclical event repeating, with arbitrary cycle length. 
+\subsection*{See Also}
+
+
+ \emph{limit}
+, \emph{mirror}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Author: Gabriel Maldonado &Italy
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 3.49
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+wguide2 &Up &wterrain
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

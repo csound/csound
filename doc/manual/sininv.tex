@@ -1,0 +1,98 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{sininv}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{sininv}
+sininv --  Performs an arcsine function. \subsection*{Description}
+
+
+  Returns the arcsine of \emph{x}
+ (\emph{x}
+ in radians). 
+\subsection*{Syntax}
+
+
+ \textbf{sininv}
+(x) (no rate restriction)
+\subsection*{Examples}
+
+
+  Here is an example of the sininv opcode. It uses the files \emph{sininv.orc}
+ and \emph{sininv.sco}
+. 
+
+
+ \textbf{Example 1. Example of the sininv opcode.}
+
+\begin{lstlisting}
+/* sininv.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  irad = 0.5
+  i1 = sininv(irad)
+
+  print i1
+endin
+/* sininv.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* sininv.sco */
+; Play Instrument #1 for one second.
+i 1 0 1
+e
+/* sininv.sco */
+        
+\end{lstlisting}
+ Its output should include a line like this: \begin{lstlisting}
+instr 1:  i1 = 0.524
+      
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{cos}
+, \emph{cosh}
+, \emph{cosinv}
+, \emph{sin}
+, \emph{sinh}
+, \emph{tan}
+, \emph{tanh}
+, \emph{taninv}
+
+\subsection*{Credits}
+
+
+ Example written by Kevin Conder.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+sinh &Up &sleighbells
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

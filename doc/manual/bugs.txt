@@ -1,0 +1,11 @@
+KNOWN BUGS
+==========
+
+1. Incorrect PDF bookmarks. Aug 28, 2001.
+
+	The PDF bookmarks for opcodes that contain mathematical symbols 
+	aren't being rendered properly. The first PDF bookmark is blank.
+
+
+If you find any other bugs, please submit a bug report to 
+kevin@kevindumpscore.com. Thank you.

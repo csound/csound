@@ -1,0 +1,161 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{wgbrass}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{wgbrass}
+wgbrass --  Creates a tone related to a brass instrument. \subsection*{Description}
+
+
+  Audio output is a tone related to a brass instrument, using a physical model developed from Perry Cook, but re-coded for Csound. 
+\subsection*{Syntax}
+
+
+ ar \textbf{wgbrass}
+ kamp, kfreq, ktens, iatt, kvibf, kvamp, ifn [, iminfreq]
+\subsection*{Initialization}
+
+
+ \emph{iatt}
+ -- time taken to reach full pressure 
+
+
+ \emph{ifn}
+ -- table of shape of vibrato, usually a sine table, created by a function 
+
+
+ \emph{iminfreq}
+ -- lowest frequency at which the instrument will play. If it is omitted it is taken to be the same as the initial \emph{kfreq}
+. If \emph{iminfreq}
+ is negative, initialization will be skipped. 
+\subsection*{Performance}
+
+
+  A note is played on a brass-like instrument, with the arguments as below. 
+
+
+ \emph{kamp}
+ -- Amplitude of note. 
+
+
+ \emph{kfreq}
+ -- Frequency of note played. 
+
+
+ \emph{ktens}
+ -- lip tension of the player. Suggested value is about 0.4 
+
+
+ \emph{kvibf}
+ -- frequency of vibrato in Hertz. Suggested range is 0 to 12 
+
+
+ \emph{kvamp}
+ -- amplitude of the vibrato 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Warning &\textbf{NOTE}
+ \\
+  &
+
+  This is rather poor, and at present uncontrolled. Needs revision, and possibly more parameters. 
+
+
+\end{tabular}
+
+\subsection*{Examples}
+
+
+  Here is an example of the wgbrass opcode. It uses the files \emph{wgbrass.orc}
+ and \emph{wgbrass.sco}
+. 
+
+
+ \textbf{Example 1. Example of the wgbrass opcode.}
+
+\begin{lstlisting}
+/* wgbrass.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  kamp = 31129.60
+  kfreq = 440
+  ktens = 0.4
+  iatt = 0.1
+  kvibf = 6.137
+  ifn = 1
+
+  ; Create an amplitude envelope for the vibrato.
+  kvamp line 0, p3, 0.5
+
+  a1 wgbrass kamp, kfreq, ktens, iatt, kvibf, kvamp, ifn
+  out a1
+endin
+/* wgbrass.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* wgbrass.sco */
+; Table #1, a sine wave.
+f 1 0 128 10 1
+
+; Play Instrument #1 for one second.
+i 1 0 1
+e
+/* wgbrass.sco */
+        
+\end{lstlisting}
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: John ffitch (after Perry Cook) &University of Bath, Codemist Ltd. &Bath, UK
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 3.47
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+wgbowedbar &Up &wgclar
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

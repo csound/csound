@@ -1,0 +1,79 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{spechist}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{spechist}
+spechist --  Accumulates the values of successive spectral frames. \subsection*{Description}
+
+
+  Accumulates the values of successive spectral frames. 
+\subsection*{Syntax}
+
+
+ wsig \textbf{spechist}
+ wsigin
+\subsection*{Performance}
+
+
+ \emph{wsigin}
+ -- the input spectra. 
+
+
+  Accumulates the values of successive spectral frames. At each new frame of \emph{wsigin}
+, the accumulations-to-date in each magnitude track are written to the output spectrum. This unit thus provides a running \emph{histogram}
+ of spectral distribution. 
+\subsection*{Examples}
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+  wsig2    \emph{specdiff}
+         wsig1               ; sense onsets 
+  wsig3    \emph{specfilt}
+         wsig2, 2            ; absorb slowly 
+           \emph{specdisp}
+         wsig2, .1           ; & display both spectra 
+           \emph{specdisp}
+         wsig3, .1
+        
+\end{lstlisting}
+
+
+ 
+\subsection*{See Also}
+
+
+ \emph{specaddm}
+, \emph{specdiff}
+, \emph{specfilt}
+, \emph{specscal}
+
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+specfilt &Up &specptrk
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

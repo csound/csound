@@ -1,0 +1,116 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{rnd}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{rnd}
+rnd --  Returns a random number in a unipolar range. \subsection*{Description}
+
+
+  Returns a random number in a unipolar range. 
+\subsection*{Syntax}
+
+
+ \textbf{rnd}
+(x) (init- or control-rate only)
+
+
+  Where the argument within the parentheses may be an expression. These value converters sample a global random sequence, but do not reference \emph{seed}
+. The result can be a term in a further expression. 
+\subsection*{Performance}
+
+
+  Returns a random number in the unipolar range 0 to \emph{x}
+. 
+\subsection*{Examples}
+
+
+  Here is an example of the rnd opcode. It uses the files \emph{rnd.orc}
+ and \emph{rnd.sco}
+. 
+
+
+ \textbf{Example 1. Example of the rnd opcode.}
+
+\begin{lstlisting}
+/* rnd.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  ; Generate a random number from 0 to 1.
+  i1 = rnd(1)
+  print i1
+endin
+/* rnd.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* rnd.sco */
+; Play Instrument #1 for one second.
+i 1 0 1
+; Play Instrument #1 for one second.
+i 1 1 1
+e
+/* rnd.sco */
+        
+\end{lstlisting}
+ Its output should include lines like this: \begin{lstlisting}
+instr 1:  i1 = 0.974
+instr 1:  i1 = 0.139
+      
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{birnd}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cccc}
+Author: Barry L. Vercoe &MIT &Cambridge, Massachussetts &1997
+
+\end{tabular}
+
+
+
+ 
+
+
+ Example written by Kevin Conder.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+rms &Up &rnd31
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

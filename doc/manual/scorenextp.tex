@@ -1,0 +1,94 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{Next-P and Previous-P Symbols}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous &The Standard Numeric Score &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{Next-P and Previous-P Symbols}
+
+
+  At the close of any of the operations \emph{Carry}
+, \emph{Tempo}
+, and \emph{Sort}
+, three additional score features are interpreted during file writeout: next-p, previous-p, and \emph{ramping}
+. 
+
+
+ \emph{i statement}
+ pfields containing the symbols \emph{np}
+\emph{x}
+ or \emph{pp}
+\emph{x}
+ (where \emph{x}
+ is some integer) will be replaced by the appropriate pfield value found on the next i statement (or previous i statement) that has the same p1. For example, the symbol \emph{np}
+7 will be replaced by the value found in p7 of the next note that is to be played by this instrument. \emph{np}
+ and \emph{pp }
+symbols are recursive and can reference other \emph{np}
+ and \emph{pp}
+ symbols which can reference others, etc. References must eventually terminate in a real number or a \emph{ramp symbol}
+. Closed loop references should be avoided. \emph{np}
+ and \emph{pp}
+ symbols are illegal in p1, p2 and p3 (although they may reference these). \emph{np}
+ and \emph{pp}
+ symbols may be Carried. \emph{np}
+ and \emph{pp}
+ references cannot cross a Section boundary. Any forward or backward reference to a non-existent note-statement will be given the value zero. 
+
+
+  E.g.: the statements 
+
+
+ 
+\begin{lstlisting}
+i1   0    1    10   np4  pp5 
+i1   1    1    20
+i1   1    1    30
+     
+\end{lstlisting}
+
+
+ 
+ will result in 
+
+ 
+\begin{lstlisting}
+  i1   0    1    10   20   0 
+  i1   1    1    20   30   20 
+  i1   2    1    30   0    30
+     
+\end{lstlisting}
+
+
+ 
+
+
+ \emph{np}
+ and \emph{pp}
+ symbols can provide an instrument with contextual knowledge of the score, enabling it to glissando or crescendo, for instance, toward the pitch or dynamic of some future event (which may or may not be immediately adjacent). Note that while the \emph{Carry}
+ feature will propagate \emph{np}
+ and \emph{pp}
+ through unsorted statements, the operation that interprets these symbols is acting on a time-warped and fully sorted version of the score. 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+The Standard Numeric Score &Up &Ramping
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

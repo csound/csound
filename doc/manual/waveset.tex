@@ -1,0 +1,130 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{waveset}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{waveset}
+waveset --  A simple time stretch by repeating cycles. \subsection*{Description}
+
+
+  A simple time stretch by repeating cycles. 
+\subsection*{Syntax}
+
+
+ ar \textbf{waveset}
+ ain, krep [, ilen]
+\subsection*{Initialization}
+
+
+ \emph{ilen}
+ (optional, default=0) -- the length (in samples) of the audio signal. If \emph{ilen}
+ is set to 0, it defaults to half the given note length (p3). 
+\subsection*{Performance}
+
+
+ \emph{ain}
+ -- the input audio signal. 
+
+
+ \emph{krep}
+ -- the number of times the cycle is repeated. 
+
+
+  The input is read and each complete cycle (two zero-crossings) is repeated krep times. 
+
+
+  There is an internal buffer as the output is clearly slower that the input. Some care is taken if the buffer is too short, but there may be strange effects. 
+\subsection*{Examples}
+
+
+  Here is an example of the waveset opcode. It uses the files \emph{waveset.orc}
+, \emph{waveset.sco}
+, and \emph{beats.wav}
+. 
+
+
+ \textbf{Example 1. Example of the waveset opcode.}
+
+\begin{lstlisting}
+/* waveset.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1 - play an audio file.
+instr 1
+  asig soundin "beats.wav"
+  out asig
+endin
+
+
+; Instrument #2 - stretch the audio file with waveset.
+instr 2
+  asig soundin "beats.wav"
+  a1 waveset asig, 2
+
+  out a1
+endin
+/* waveset.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* waveset.sco */
+; Play Instrument #1 for two seconds.
+i 1 0 2
+; Play Instrument #2 for four seconds.
+i 2 3 4
+e
+/* waveset.sco */
+        
+\end{lstlisting}
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Author: John ffitch &February 2001
+
+\end{tabular}
+
+
+
+ 
+
+
+ Example written by Kevin Conder.
+
+
+ New in version 4.11
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+vpvoc &Up &weibull
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

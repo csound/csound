@@ -1,0 +1,198 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{voice}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{voice}
+voice --  An emulation of a human voice. \subsection*{Description}
+
+
+  An emulation of a human voice. 
+\subsection*{Syntax}
+
+
+ ar \textbf{voice}
+ kamp, kfreq, kphoneme, kform, kvibf, kvamp, ifn, ivfn
+\subsection*{Initialization}
+
+
+ \emph{ifn}
+, \emph{ivfn}
+ -- two table numbers containing the carrier waveform and the vibrato waveform. The files \emph{impuls20.aiff}
+, \emph{ahh.aiff}
+, \emph{eee.aiff}
+, or \emph{ooo.aiff}
+ are suitable for the first of these, and a sine wave for the second. These files are available from \emph{\url{ftp://ftp.cs.bath.ac.uk/pub/dream/documentation/sounds/modelling/}}
+. 
+\subsection*{Performance}
+
+
+ \emph{kamp}
+ -- Amplitude of note. 
+
+
+ \emph{kfreq}
+ -- Frequency of note played. It can be varied in performance. 
+
+
+ \emph{kphoneme}
+ -- an integer in the range 0 to 16, which select the formants for the sounds: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ ``eee'', ``ihh'', ``ehh'', ``aaa'', 
+
+\item 
+
+ ``ahh'', ``aww'', ``ohh'', ``uhh'', 
+
+\item 
+
+ ``uuu'', ``ooo'', ``rrr'', ``lll'', 
+
+\item 
+
+ ``mmm'', ``nnn'', ``nng'', ``ngg''. 
+
+
+\end{itemize}
+
+
+  At present the phonemes 
+
+
+ 
+\begin{itemize}
+\item 
+
+ ``fff'', ``sss'', ``thh'', ``shh'', 
+
+\item 
+
+ ``xxx'', ``hee'', ``hoo'', ``hah'', 
+
+\item 
+
+ ``bbb'', ``ddd'', ``jjj'', ``ggg'', 
+
+\item 
+
+ ``vvv'', ``zzz'', ``thz'', ``zhh''
+
+
+\end{itemize}
+ are not available (!) 
+
+ \emph{kform}
+ -- Gain on the phoneme. values 0.0 to 1.2 recommended. 
+
+
+ \emph{kvibf}
+ -- frequency of vibrato in Hertz. Suggested range is 0 to 12 
+
+
+ \emph{kvamp}
+ -- amplitude of the vibrato 
+\subsection*{Examples}
+
+
+  Here is an example of the voice opcode. It uses the files \emph{voice.orc}
+, \emph{voice.sco}
+, and \emph{impuls20.aiff}
+. 
+
+
+ \textbf{Example 1. Example of the voice opcode.}
+
+\begin{lstlisting}
+/* voice.orc */
+; Initialize the global variables.
+sr = 22050
+kr = 2205
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  kamp = 3
+  kfreq = 0.8
+  kphoneme = 6
+  kform = 0.488
+  kvibf = 0.04
+  kvamp = 1
+  ifn = 1
+  ivfn = 2
+
+  av voice kamp, kfreq, kphoneme, kform, kvibf, kvamp, ifn, ivfn
+
+  ; It tends to get loud, so clip voice's amplitude at 30,000.
+  a1 clip av, 2, 30000
+  out a1
+endin
+/* voice.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* voice.sco */
+; Table #1, an audio file for the carrier waveform.
+f 1 0 256 1 "impuls20.aiff" 0 0 0
+; Table #2, a sine wave for the vibrato waveform.
+f 2 0 256 10 1
+
+; Play Instrument #1 for a half-second.
+i 1 0 0.5
+e
+/* voice.sco */
+        
+\end{lstlisting}
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: John ffitch (after Perry Cook) &University of Bath, Codemist Ltd. &Bath, UK
+
+\end{tabular}
+
+
+
+ 
+
+
+ Example written by Kevin Conder.
+
+
+ New in Csound version 3.47
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+vlowres &Up &vpvoc
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

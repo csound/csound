@@ -1,0 +1,98 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{samphold}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{samphold}
+samphold --  Performs a sample-and-hold operation on its input. \subsection*{Description}
+
+
+  Performs a sample-and-hold operation on its input. 
+\subsection*{Syntax}
+
+
+ ar \textbf{samphold}
+ asig, agate [, ival] [, ivstor]
+
+
+ kr \textbf{samphold}
+ ksig, kgate [, ival] [, ivstor]
+\subsection*{Initialization}
+
+
+ \emph{ival, ivstor}
+ (optional) -- controls initial disposition of internal save space. If \emph{ivstor}
+ is zero the internal ``hold'' value is set to \emph{ival}
+ ; else it retains its previous value. Defaults are 0,0 (i.e. init to zero) 
+\subsection*{Performance}
+
+
+ \emph{kgate, xgate}
+ -- controls whether to hold the signal. 
+
+
+ \emph{samphold}
+ performs a sample-and-hold operation on its input according to the value of \emph{gate}
+. If \emph{gate !- 0}
+, the input samples are passed to the output; If \emph{gate = 0}
+, the last output value is repeated. The controlling \emph{gate}
+ can be a constant, a control signal, or an audio signal. 
+\subsection*{Examples}
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+asrc  \emph{buzz}
+      10000,440,20, 1     ; band-limited pulse train
+adif  \emph{diff}
+      asrc                ; emphasize the highs
+anew  \emph{balance}
+   adif, asrc          ;   but retain the power
+agate \emph{reson}
+     asrc,0,440          ; use a lowpass of the original
+asamp \emph{samphold}
+  anew, agate         ;   to gate the new audiosig
+aout  \emph{tone}
+      asamp,100           ; smooth out the rough edges
+        
+\end{lstlisting}
+
+
+ 
+\subsection*{See Also}
+
+
+ \emph{diff}
+, \emph{downsamp}
+, \emph{integ}
+, \emph{interp}
+, \emph{upsamp}
+
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+s32b14 &Up &sandpaper
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

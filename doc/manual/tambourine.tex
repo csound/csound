@@ -1,0 +1,153 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{tambourine}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{tambourine}
+tambourine --  Semi-physical model of a tambourine sound. \subsection*{Description}
+
+
+ \emph{tambourine}
+ is a semi-physical model of a tambourine sound. It is one of the PhISEM percussion opcodes. PhISEM (Physically Informed Stochastic Event Modeling) is an algorithmic approach for simulating collisions of multiple independent sound producing objects. 
+\subsection*{Syntax}
+
+
+ ar \textbf{tambourine}
+ kamp, idettack [, inum] [, idamp] [, imaxshake] [, ifreq] [, ifreq1] [, ifreq2]
+\subsection*{Initialization}
+
+
+ \emph{idettack}
+ -- period of time over which all sound is stopped 
+
+
+ \emph{inum}
+ (optional) -- The number of beads, teeth, bells, timbrels, etc. If zero, the default value is 32. 
+
+
+ \emph{idamp}
+ (optional) -- the damping factor, as part of this equation: 
+
+
+ damping\_amount = 0.9985 + (idamp * 0.002)
+
+
+  The default \emph{damping\_amount}
+ is 0.9985 which means that the default value of \emph{idamp}
+ is 0. The maximum \emph{damping\_amount}
+ is 1.0 (no damping). This means the maximum value for \emph{idamp}
+ is 0.75. 
+
+
+  The recommended range for \emph{idamp}
+ is usually below 75\% of the maximum value. 
+
+
+ \emph{imaxshake}
+ (optional, default=0) -- amount of energy to add back into the system. The value should be in range 0 to 1. 
+
+
+ \emph{ifreq}
+ (optional) -- the main resonant frequency. The default value is 2300. 
+
+
+ \emph{ifreq1}
+ (optional) -- the first resonant frequency. The default value is 5600. 
+
+
+ \emph{ifreq2}
+ (optional) -- the second resonant frequency. The default value is 8100. 
+\subsection*{Performance}
+
+
+ \emph{kamp}
+ -- Amplitude of output. Note: As these instruments are stochastic, this is only an approximation. 
+\subsection*{Examples}
+
+
+  Here is an example of the tambourine opcode. It uses the files \emph{tambourine.orc}
+ and \emph{tambourine.sco}
+. 
+
+
+ \textbf{Example 1. Example of the tambourine opcode.}
+
+\begin{lstlisting}
+/* tambourine.orc */
+sr = 22050
+kr = 2205
+ksmps = 10
+nchnls = 1
+
+; Instrument #1: An example of a tambourine.
+instr 01
+  a1 tambourine 15000, 0.01
+
+  out a1
+endin
+/* tambourine.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* tambourine.sco */
+i 1 0 1
+e
+/* tambourine.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{bamboo}
+, \emph{dripwater}
+, \emph{guiro}
+, \emph{sleighbells}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cccc}
+Author: Perry Cook, part of the PhISEM (Physically Informed Stochastic Event Modeling) &Adapted by John ffitch &University of Bath, Codemist Ltd. &Bath, UK
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 4.07
+
+
+ Added notes by Rasmus Ekman on May 2002.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+tablexseg &Up &tan
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

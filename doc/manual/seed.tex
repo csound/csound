@@ -1,0 +1,58 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{seed}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{seed}
+seed --  Sets the global seed value. \subsection*{Description}
+
+
+  Sets the global seed value for all \emph{x-class noise generators}
+, as well as other opcodes that use a random call, such as \emph{grain}
+. \emph{rand}
+, \emph{randi}
+, \emph{randh}
+, \emph{rnd}
+(x), and \emph{birnd}
+(x) are not affected by seed. 
+\subsection*{Syntax}
+
+
+ \textbf{seed}
+ ival
+\subsection*{Performance}
+
+
+  Use of \emph{seed}
+ will provide predictable results from an orchestra using with random generators, when required from multiple performances. 
+
+
+  When specifying a seed value, \emph{ival}
+ should be an integer between 0 and 232. If \emph{ival}
+ = 0, the value of \emph{ival}
+ will be derived from the system clock. 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+schedwhen &Up &sekere
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

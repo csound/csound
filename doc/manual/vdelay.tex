@@ -1,0 +1,115 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{vdelay}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{vdelay}
+vdelay --  An interpolating variable time delay. \subsection*{Description}
+
+
+  This is an interpolating variable time delay, it is not very different from the existing implementation (\emph{deltapi}
+), it is only easier to use. 
+\subsection*{Syntax}
+
+
+ ar \textbf{vdelay}
+ asig, adel, imaxdel [, iskip]
+\subsection*{Initialization}
+
+
+ \emph{imaxdel}
+ -- Maximum value of delay in milliseconds. If \emph{adel}
+ gains a value greater than \emph{imaxdel}
+ it is folded around \emph{imaxdel}
+. This should not happen. 
+
+
+ \emph{iskip}
+ -- Skip initialization if present and non$-$zero 
+\subsection*{Performance}
+
+
+  With this unit generator it is possible to do Doppler effects or chorusing and flanging. 
+
+
+ \emph{asig}
+ -- Input signal. 
+
+
+ \emph{adel}
+ -- Current value of delay in milliseconds. Note that linear functions have no pitch change effects. Fast changing values of \emph{adel}
+ will cause discontinuities in the waveform resulting noise. 
+\subsection*{Examples}
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+  f1 0 8192 10 1
+  ims     =          100             ; Maximum delay time in msec
+  a1      \emph{oscil}
+      10000, 1737, 1  ; Make a signal
+  a2      \emph{oscil}
+      ims/2, 1/p3, 1  ; Make an LFO
+  a2      =          a2 + ims/2      ; Offset the LFO so that it is positive
+  a3      \emph{vdelay}
+     a1, a2, ims     ; Use the LFO to control delay time
+          \emph{out}
+        a3
+        
+\end{lstlisting}
+
+
+ 
+
+
+  Two important points here. First, the delay time must be always positive. And second, even though the delay time can be controlled in k-rate, it is not advised to do so, since sudden time changes will create clicks. 
+\subsection*{See Also}
+
+
+ \emph{vdelay3}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Paris Smaragdis &MIT, Cambridge &1995
+
+\end{tabular}
+
+
+
+ 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+vcomb &Up &vdelay3
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

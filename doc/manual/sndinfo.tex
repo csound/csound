@@ -1,0 +1,89 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{sndinfo}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{sndinfo}
+sndinfo --  Displays information about a soundfile. \subsection*{Description}
+
+
+  Get basic information about one or more soundfiles. 
+\subsection*{Syntax}
+
+
+ \textbf{csound -U sndinfo}
+ soundfilenames ...
+
+
+ \textbf{sndinfo}
+ soundfilenames ...
+\subsection*{Initialization}
+
+
+ \emph{sndinfo}
+ will attempt to find each named file, open it for reading, read in the soundfile header, then print a report on the basic information it finds. The order of search across soundfile directories is as described above. If the file is of type AIFF, some further details are listed first. 
+\subsection*{Examples}
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+\emph{csound -U sndinfo}
+ test Bosendorfer/"BOSEN mf A0 st" foo foo2
+        
+\end{lstlisting}
+
+
+ 
+ where the environment variables SFDIR = /u/bv/sound, and SSDIR = /so/bv/Samples, might produce the following: 
+
+ 
+\begin{lstlisting}
+util  SNDINFO:      
+     /u/bv/sound/test:
+           srate 22050, monaural, 16 bit shorts, 1.10 seconds
+           headersiz 1024, datasiz 48500  (24250 sample frames)
+  
+    /so/bv/Samples/Bosendorfer/BOSEN mf A0 st:  AIFF, 197586 stereo samples, base Frq 261.6 (MIDI 60), sustnLp: mode 1, 121642 to 197454, relesLp: mode 0
+     AIFF soundfile, looping with modes 1, 0
+     srate 44100, stereo, 16 bit shorts, 4.48 seconds
+  
+     headersiz  402, datasiz 790344  (197586 sample frames)
+  
+     /u/bv/sound/foo:
+           no recognizable soundfile header
+  
+     /u/bv/sound/foo2:
+            couldn't find
+        
+\end{lstlisting}
+
+
+ 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+File Queries &Up &File Conversion
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,95 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{specaddm}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{specaddm}
+specaddm --  Perform a weighted add of two input spectra. \subsection*{Description}
+
+
+  Perform a weighted add of two input spectra. 
+\subsection*{Syntax}
+
+
+ wsig \textbf{specaddm}
+ wsig1, wsig2 [, imul2]
+\subsection*{Initialization}
+
+
+ \emph{imul2}
+ (optional, default=0) -- if non-zero, scale the \emph{wsig2}
+ magnitudes before adding. The default value is 0. 
+\subsection*{Performance}
+
+
+ \emph{wsig1}
+ -- the first input spectra. 
+
+
+ \emph{wsig2}
+ -- the second input spectra. 
+
+
+  Do a weighted add of two input spectra. For each channel of the two input spectra, the two magnitudes are combined and written to the output according to: 
+
+
+ magout = mag1in + mag2in * imul2\\ 
+       
+
+
+  The operation is performed whenever the input \emph{wsig1}
+ is sensed to be new. This unit will (at Initialization) verify the consistency of the two spectra (equal size, equal period, equal mag types). 
+\subsection*{Examples}
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+  wsig2    \emph{specdiff}
+         wsig1               ; sense onsets 
+  wsig3    \emph{specfilt}
+         wsig2, 2            ; absorb slowly 
+           \emph{specdisp}
+         wsig2, .1           ; & display both spectra 
+           \emph{specdisp}
+         wsig3, .1
+        
+\end{lstlisting}
+
+
+ 
+\subsection*{See Also}
+
+
+ \emph{specdiff}
+, \emph{specfilt}
+, \emph{spechist}
+, \emph{specscal}
+
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+spdist &Up &specdiff
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

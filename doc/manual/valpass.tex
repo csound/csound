@@ -1,0 +1,97 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{valpass}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{valpass}
+valpass --  Variably reverberates an input signal with a flat frequency response. \subsection*{Description}
+
+
+  Variably reverberates an input signal with a flat frequency response. 
+\subsection*{Syntax}
+
+
+ ar \textbf{valpass}
+ asig, krvt, xlpt, imaxlpt [, iskip] [, insmps]
+\subsection*{Initialization}
+
+
+ \emph{imaxlpt}
+ -- maximum loop time for \emph{klpt}
+
+
+
+ \emph{iskip}
+ (optional, default=0) -- initial disposition of delay-loop data space (cf. \emph{reson}
+). The default value is 0. 
+
+
+ \emph{insmps}
+ (optional, default=0) -- delay amount, as a number of samples. 
+\subsection*{Performance}
+
+
+ \emph{krvt}
+ -- the reverberation time (defined as the time in seconds for a signal to decay to 1/1000, or 60dB down from its original amplitude). 
+
+
+ \emph{xlpt}
+ -- variable loop time in seconds, same as \emph{ilpt}
+ in \emph{comb}
+. Loop time can be as large as \emph{imaxlpt}
+. 
+
+
+  This filter reiterates input with an echo density determined by loop time \emph{ilpt}
+. The attenuation rate is independent and is determined by \emph{krvt}
+, the reverberation time (defined as the time in seconds for a signal to decay to 1/1000, or 60dB down from its original amplitude). Its output will begin to appear immediately. 
+\subsection*{See Also}
+
+
+ \emph{alpass}
+, \emph{comb}
+, \emph{reverb}
+, \emph{vcomb}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cccc}
+Author: William ``Pete'' Moss &University of Texas at Austin &Austin, Texas USA &January 2002
+
+\end{tabular}
+
+
+
+ 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+urd &Up &vbap16
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

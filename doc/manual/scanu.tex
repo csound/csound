@@ -1,0 +1,147 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{scanu}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{scanu}
+scanu --  Compute the waveform and the wavetable for use in scanned synthesis. \subsection*{Description}
+
+
+  Compute the waveform and the wavetable for use in scanned synthesis. 
+\subsection*{Syntax}
+
+
+ \textbf{scanu}
+ init, irate, ifnvel, ifnmass, ifnstif, ifncentr, ifndamp, kmass, kstif, kcentr, kdamp, ileft, iright, kpos, kstrngth, ain, idisp, id
+\subsection*{Initialization}
+
+
+ \emph{init}
+ -- the initial position of the masses. If this is a negative number, then the absolute of \emph{init}
+ signifies the table to use as a hammer shape. If \emph{init}
+ $>$ 0, the length of it should be the same as the intended mass number, otherwise it can be anything. 
+
+
+ \emph{ifnvel}
+ -- the ftable that contains the initial velocity for each mass. It should have the same size as the intended mass number. 
+
+
+ \emph{ifnmass}
+ -- ftable that contains the mass of each mass. It should have the same size as the intended mass number. 
+
+
+ \emph{ifnstif}
+ -- ftable that contains the spring stiffness of each connection. It should have the same size as the square of the intended mass number. The data ordering is a row after row dump of the connection matrix of the system. 
+
+
+ \emph{ifncentr}
+ -- ftable that contains the centering force of each mass. It should have the same size as the intended mass number. 
+
+
+ \emph{ifndamp}
+ -- the ftable that contains the damping factor of each mass. It should have the same size as the intended mass number. 
+
+
+ \emph{ileft}
+ -- If \emph{init}
+ $<$ 0, the position of the left hammer (\emph{ileft}
+ = 0 is hit at leftmost, \emph{ileft}
+ = 1 is hit at rightmost). 
+
+
+ \emph{iright}
+ -- If \emph{init}
+ $<$ 0, the position of the right hammer (\emph{iright}
+ = 0 is hit at leftmost, \emph{iright}
+ = 1 is hit at rightmost). 
+
+
+ \emph{idisp}
+ -- If 0, no display of the masses is provided. 
+
+
+ \emph{id}
+ -- If positive, the ID of the opcode. This will be used to point the scanning opcode to the proper waveform maker. If this value is negative, the absolute of this value is the wavetable on which to write the waveshape. That wavetable can be used later from an other opcode to generate sound. The initial contents of this table will be destroyed. 
+\subsection*{Performance}
+
+
+ \emph{kmass}
+ -- scales the masses 
+
+
+ \emph{kstif}
+ -- scales the spring stiffness 
+
+
+ \emph{kcentr}
+ -- scales the centering force 
+
+
+ \emph{kdamp}
+ -- scales the damping 
+
+
+ \emph{kpos}
+ -- position of an active hammer along the string (\emph{kpos}
+ = 0 is leftmost, \emph{kpos}
+ = 1 is rightmost). The shape of the hammer is determined by \emph{init}
+ and the power it pushes with is \emph{kstrngth}
+. 
+
+
+ \emph{kstrngth}
+ -- power that the active hammer uses 
+
+
+ \emph{ain}
+ -- audio input that adds to the velocity of the masses. Amplitude should not be too great. 
+\subsection*{Examples}
+
+
+  For an example, see the documentation on \emph{scans}
+. 
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cccc}
+Author: Paris Smaragdis &MIT Media Lab &Boston, Massachussetts USA &March 2000
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 4.05
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+scantable &Up &schedkwhen
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}
