@@ -1455,8 +1455,7 @@ int tablemixset(TABLEMIX *p)
  *
  * Declare it here.
  */
-void domix(TABLEMIX *p);
-/* Actually unnecessary as it is declared in teh ugrw1.h header file -- JPff */
+static void domix(TABLEMIX *p);
 
 int tablemix(TABLEMIX *p)
 {
@@ -1613,7 +1612,7 @@ int itablemix(TABLEMIX *p)
  * that if the gain of source 2 is 0, then we do not bother reading
  * it.  This is to save time when all that the user wants is a copy.
  */
-void domix(TABLEMIX *p)
+static void domix(TABLEMIX *p)
 {
     MYFLT       gains1, gains2; /* Gains for source tables 1 and 2. */
     long length;                /* from len input parameter */
@@ -1749,7 +1748,7 @@ int tablecopyset(TABLECOPY *p)
  * tablemix section above.  Read the comments there for a full
  * explanation.
  */
-int docopy(TABLECOPY *p);
+static int docopy(TABLECOPY *p);
 
 int tablecopy(TABLECOPY *p)
 {
@@ -1840,7 +1839,7 @@ int itablecopy(TABLECOPY *p)
  *
  * See domix for full explanation. make any error messages here.
  */
-int docopy(TABLECOPY *p)
+static int docopy(TABLECOPY *p)
 {
     long loopcount;/* Loop counter. Set by the length of the destination table.*/
     long indx = 0;              /* Index to be added to offsets */
@@ -1856,11 +1855,11 @@ int docopy(TABLECOPY *p)
     masks = p->funcs->lenmask;
 
     do {
-        /* Create source pointers by ANDing index with mask, and adding to base
-         * address. This causes source  addresses to wrap around if the
-         * destination table is longer.
-         * Destination address is simply the index plus the base address since
-         * we know we will be writing within the table.          */
+      /* Create source pointers by ANDing index with mask, and adding to base
+       * address. This causes source  addresses to wrap around if the
+       * destination table is longer.
+       * Destination address is simply the index plus the base address since
+       * we know we will be writing within the table.          */
 
       pdest = based  + indx;
       ps    = bases  + (masks & indx);
@@ -3082,13 +3081,13 @@ void sprints(char *outstring, char *fmt, MYFLT **kvals, long numVals)
         case 'X':
         case 'u':
         case 'c':
-          sprintf(outstring, strseg, (int)(*kvals[j]+.5));
+          sprintf(outstring, strseg, (int)(*kvals[j]+FL(0.5)));
           break;
         case 'h':
-          sprintf(outstring, strseg, (short)(*kvals[j]+.5));
+          sprintf(outstring, strseg, (short)(*kvals[j]+FL(0.5)));
           break;
         case 'l':
-          sprintf(outstring, strseg, (long)(*kvals[j]+.5));
+          sprintf(outstring, strseg, (long)(*kvals[j]+FL(0.5)));
           break;
 
         default:

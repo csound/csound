@@ -328,8 +328,6 @@ typedef struct {
 } IOZ;
 
 
-int docopy(TABLECOPY *p);
-void domix(TABLEMIX *p);
 int ftkrchkw(TABLEW *p);
 int instimek(RDTIME *p);
 int instimes(RDTIME *p);
