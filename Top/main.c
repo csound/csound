@@ -643,7 +643,7 @@ void mainRESET(ENVIRON *p)
     void adsynRESET(void);
     void cscoreRESET(void);
     void disprepRESET(void);
-    void expRESET(void);
+    void expRESET(ENVIRON *);
     void ftRESET(ENVIRON *);
     void fftRESET(void);
     void insertRESET(void);
@@ -661,7 +661,7 @@ void mainRESET(ENVIRON *p)
     widgetRESET();              /* and may crash on some systems */
 #endif
     cscoreRESET();
-    expRESET();
+    expRESET(p);
     ftRESET(p);
     fftRESET();
     disprepRESET();

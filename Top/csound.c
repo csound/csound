@@ -573,44 +573,37 @@ extern "C" {
    * CONTROL AND EVENTS
    */
 
-  static void (*csoundInputValueCallback_)(void *csound,
-                                           char *channelName, MYFLT *value) = NULL;
-
-  PUBLIC void csoundSetInputValueCallback(void *csound,
-                    void (*inputValueCalback)(void *csound,
-                                              char *channelName, MYFLT *value))
+  PUBLIC void
+    csoundSetInputValueCallback(void *csound,
+                                void (*inputValueCalback)(void *csound,
+                                                          char *channelName,
+                                                          MYFLT *value))
   {
-    csoundInputValueCallback_ = inputValueCalback;
+    ((ENVIRON*) csound)->InputValueCallback_ = inputValueCalback;
   }
 
-  void InputValue(char *channelName, MYFLT *value)
+  PUBLIC void
+    csoundSetOutputValueCallback(void *csound,
+                                 void (*outputValueCalback)(void *csound,
+                                                            char *channelName,
+                                                            MYFLT value))
   {
-    if (csoundInputValueCallback_)
-      {
-        csoundInputValueCallback_(&cenviron, channelName, value);
-      }
+    ((ENVIRON*) csound)->OutputValueCallback_ = outputValueCalback;
+  }
+
+  void InputValue(ENVIRON *csound, char *channelName, MYFLT *value)
+  {
+    if (csound->InputValueCallback_)
+      csound->InputValueCallback_(csound, channelName, value);
     else
-      {
-        *value = 0.0;
-      }
+      *value = FL(0.0);
   }
 
-  static void (*csoundOutputValueCallback_)(void *csound,
-                                            char *channelName, MYFLT value) = NULL;
-
-  PUBLIC void csoundSetOutputValueCallback(void *csound,
-                    void (*outputValueCalback)(void *csound,
-                                               char *channelName, MYFLT value))
+  void OutputValue(ENVIRON *csound, char *channelName, MYFLT value)
   {
-    csoundOutputValueCallback_ = outputValueCalback;
-  }
-
-  void OutputValue(char *channelName, MYFLT value)
-  {
-    if (csoundOutputValueCallback_)
-      {
-        csoundOutputValueCallback_(&cenviron, channelName, value);
-      }
+    if (csound->OutputValueCallback_) {
+      csound->OutputValueCallback_(csound, channelName, value);
+    }
   }
 
   PUBLIC int csoundScoreEvent(void *csound, char type,

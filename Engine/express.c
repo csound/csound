@@ -1,7 +1,7 @@
 /*
     express.c:
 
-    Copyright (C) 1991 Barry Vercoe, John ffitch
+    Copyright (C) 1991 Barry Vercoe, John ffitch, Istvan Varga
 
     This file is part of Csound.
 
@@ -24,17 +24,20 @@
 #include "cs.h"                                 /*       EXPRESS.C       */
 #include "namedins.h"
 
+#define BITSHL  0x19
+#define BITSHR  0x18
 #define BITSET  0x17
 #define BITCLR  0x16
 #define BITFLP  0x15
 
 #define LENTOT  200L            /* This one is OK */
 #define POLMAX  30L             /* This one is OK */
-#define XERROR(CAUSE)   { strncpy(cenviron.xprmsg,CAUSE,80);  goto error; }
+#define XERROR(CAUSE)   { strncpy(xprmsg,CAUSE,128);  goto error; }
 
 static  const char    strminus1[] = "-1";
 static  const char    strmult[] = "*";
-static  void    putokens(void), putoklist(void);
+
+static  void    putokens(ENVIRON*), putoklist(ENVIRON*);
 static  int     nontermin(int);
 extern  char    argtyp(char *);
 extern  void    *mrealloc(void*, void*, size_t);
@@ -43,19 +46,19 @@ extern  void    *mrealloc(void*, void*, size_t);
         int     argcnt_offs = 0, opcode_is_assign = 0, assign_type = 0;
         char    *assign_outarg = NULL;
 
-void expRESET(void)
+void expRESET(ENVIRON *csound)
 {
-    mfree(&cenviron, polish); polish=NULL;
-    cenviron.polmax    = 0;
+    mfree(csound, polish);
+    polish = NULL;
+    csound->polmax      = 0;
     tokenstring         = NULL;
-    cenviron.toklen    = 0;
-    cenviron.tokens    = cenviron.token = cenviron.tokend = NULL;
-    cenviron.tokenlist = cenviron.revp = cenviron.pushp =
-                          cenviron.argp = cenviron.endlist = NULL;
-    cenviron.toklength = TOKMAX;
+    csound->toklen      = 0;
+    csound->tokens      = csound->token = csound->tokend = NULL;
+    csound->tokenlist   = csound->revp = csound->pushp =
+                          csound->argp = csound->endlist = NULL;
+    csound->toklength   = TOKMAX;
     resetouts();
-    memset(cenviron.xprmsg,0,80*sizeof(char));
-    cenviron.stringend = 0;
+    csound->stringend   = 0;
     argcnt_offs         = 0;
     opcode_is_assign    = assign_type = 0;
     assign_outarg       = NULL;
@@ -64,45 +67,48 @@ void expRESET(void)
 void resetouts(void)
 {
     cenviron.acount = cenviron.kcount = cenviron.icount =
-                       cenviron.Bcount = cenviron.bcount = 0;
+                      cenviron.Bcount = cenviron.bcount = 0;
 }
 
 #define copystring(s) strsav_string(s)
 
-int express(char *s)
+int express(ENVIRON *csound, char *s)
 {
     POLISH      *pp;
+    char        xprmsg[128];
     char        b, c, d, e, nextc, *t, *op, outype = '\0', *sorig;
     int         open, prec, polcnt, argcnt;
     int         argcnt_max = 0;
 
     if (*s == '"')                 /* if quoted string, not an exprssion */
       return (0);
-    if (cenviron.tokens == NULL) {
-      cenviron.tokens       = (TOKEN*) mmalloc(&cenviron, (long)TOKMAX*sizeof(TOKEN));
-      cenviron.tokend    = cenviron.tokens+TOKMAX;
-      cenviron.tokenlist    = (TOKEN**) mmalloc(&cenviron, (long)TOKMAX*sizeof(TOKEN*));
-      polish       = (POLISH*) mmalloc(&cenviron, (long)POLMAX*sizeof(POLISH));
-      cenviron.polmax    = POLMAX;
-      tokenstring  = mmalloc(&cenviron, LENTOT);
-      cenviron.stringend = tokenstring+LENTOT;
-      cenviron.toklen    = LENTOT;
+    if (csound->tokens == NULL) {
+      csound->tokens    = (TOKEN*) mmalloc(csound, TOKMAX * sizeof(TOKEN));
+      csound->tokend    = csound->tokens + TOKMAX;
+      csound->tokenlist = (TOKEN**) mmalloc(csound, TOKMAX * sizeof(TOKEN*));
+      polish            = (POLISH*) mmalloc(csound, POLMAX * sizeof(POLISH));
+      csound->polmax    = POLMAX;
+      tokenstring       = mmalloc(csound, LENTOT);
+      csound->stringend = tokenstring + LENTOT;
+      csound->toklen    = LENTOT;
     }
     sorig = s;
-    if (tokenstring+strlen(s) >= cenviron.stringend) {
+    if (tokenstring+strlen(s) >= csound->stringend) {
       char *tt;
       TOKEN *ttt;
-      long n = cenviron.toklen + LENTOT+strlen(s);
-      tt = (char *)mrealloc(&cenviron, tokenstring, n);
-      for (ttt=cenviron.tokens; ttt<=cenviron.token; ttt++) /* Adjust all previous tokens */
+      long n = csound->toklen + LENTOT + strlen(s);
+      tt = (char*) mrealloc(csound, tokenstring, n);
+      /* Adjust all previous tokens */
+      for (ttt = csound->tokens; ttt <= csound->token; ttt++)
         ttt->str += (tt-tokenstring);
       tokenstring = tt;               /* Reset string and length */
-      cenviron.stringend = tokenstring + (cenviron.toklen = n);
-      printf(Str("Token length extended to %ld\n"), cenviron.toklen);
+      csound->stringend = tokenstring + (csound->toklen = n);
+      csound->Message(csound,
+                      Str("Token length extended to %ld\n"), csound->toklen);
     }
 
-    cenviron.token = cenviron.tokens;
-    cenviron.token->str = t = tokenstring;
+    csound->token = csound->tokens;
+    csound->token->str = t = tokenstring;
     open = 1;
     while ((c = *s++)) {
       if (open) {                   /* if unary possible here,   */
@@ -112,12 +118,12 @@ int express(char *s)
           if (*s == '.' || (*s >= '0' && *s <= '9'))
             *t++ = c;
           else {                    /* neg symbol: prv / illegal */
-            if (cenviron.token > cenviron.tokens
-                && *(cenviron.token-1)->str == '/')
+            if (csound->token > csound->tokens &&
+                *(csound->token-1)->str == '/')
               XERROR(Str("divide by unary minus"))
-            cenviron.token->str = (char*) strminus1; cenviron.token++;
-            cenviron.token->str = (char*) strmult; cenviron.token++;
-            cenviron.token->str = t;     /* else -1 * symbol */
+            csound->token->str = (char*) strminus1; csound->token++;
+            csound->token->str = (char*) strmult; csound->token++;
+            csound->token->str = t;     /* else -1 * symbol */
           }
           c = *s++;                /* beg rem of token */
         }
@@ -126,9 +132,15 @@ int express(char *s)
             open = 0;
       }
       *t++ = c;                    /* copy this character or    */
-      if (((nextc = *s) == c && (c == '&' || c == '|')) /* double op */
-          || (nextc == '=' && (c=='<' || c=='>' || c=='=' || c=='!')))
-        *t++ = c = *s++, open = 1;
+      if (((nextc = *s) == c && (c == '&' || c == '|')) || /* double op */
+          (nextc == '=' && (c=='<' || c=='>' || c=='=' || c=='!'))) {
+        *t++ = c = *s++;
+        open = 1;
+      }
+      else if (nextc == c && (c == '<' || c == '>')) {
+        *(t - 1) = (char) (c == '<' ? BITSHL : BITSHR);
+        s++; open = 1;
+      }
       else if ( c == '(' || c == '+' || c == '-' || c == '*' || c == '/' ||
                 c == '%' || c == '>' || c == '<' || c == '=' || c == '&' ||
                 c == '|' || c == '?' || c == ':' || c == '#' || c == '\254' ||
@@ -142,35 +154,35 @@ int express(char *s)
         while (nontermin(*s))         /* if not just a termin char */
           *t++ = *s++;                /*      copy entire token    */
       *t++ = '\0';                    /* terminate this token      */
-      if (t >= cenviron.stringend) {        /* Extend token length as required */
+      if (t >= csound->stringend) {        /* Extend token length as required */
         XERROR(Str("token storage LENTOT exceeded"));
       }
-      if ((cenviron.tokend - cenviron.token)<= 4) { /* Extend token array and friends */
-        int n = cenviron.token - cenviron.tokens;
-        cenviron.tokens =
-          (TOKEN*)mrealloc(&cenviron, cenviron.tokens,
-                           (cenviron.toklength+TOKMAX)*sizeof(TOKEN));
-        cenviron.tokenlist =
-          (TOKEN**) mrealloc(&cenviron, cenviron.tokenlist,
-                             (cenviron.toklength+TOKMAX)*sizeof(TOKEN*));
-        cenviron.toklength += TOKMAX;
-/*         printf(Str("Tokens length extended to %d\n"), cenviron.toklength); */
-        cenviron.token  = cenviron.tokens + n;
-        cenviron.tokend = cenviron.tokens + cenviron.toklength;
+      if ((csound->tokend - csound->token) <= 4) {
+        /* Extend token array and friends */
+        int n = csound->token - csound->tokens;
+        csound->tokens = (TOKEN*) mrealloc(csound, csound->tokens,
+                                                   (csound->toklength + TOKMAX)
+                                                     * sizeof(TOKEN));
+        csound->tokenlist = (TOKEN**) mrealloc(csound, csound->tokenlist,
+                                               (csound->toklength + TOKMAX)
+                                                 * sizeof(TOKEN*));
+        csound->toklength += TOKMAX;
+        csound->token  = csound->tokens + n;
+        csound->tokend = csound->tokens + csound->toklength;
       }
       /* IV - Jan 08 2003: check if the output arg of an '=' opcode is */
       /* used in the expression (only if optimisation is enabled) */
       if (opcode_is_assign == 1)
-        if (!strcmp(cenviron.token->str, assign_outarg))      /* if yes, mark as */
+        if (!strcmp(csound->token->str, assign_outarg)) /* if yes, mark as */
           opcode_is_assign = 2;                         /* dangerous case  */
-      (++cenviron.token)->str = t;                  /* & record begin of nxt one */
+      (++csound->token)->str = t;             /* & record begin of nxt one */
     }
-    cenviron.token->str = NULL;             /* expr end:  terminate tokens array */
-    if (cenviron.token - cenviron.tokens <= 1)       /*              & return if no expr  */
+    csound->token->str = NULL;        /* expr end:  terminate tokens array */
+    if (csound->token - csound->tokens <= 1)    /*    & return if no expr  */
       return(0);
 
-    cenviron.token = cenviron.tokens;
-    while ((s = cenviron.token->str) != NULL) {  /* now for all tokens found, */
+    csound->token = csound->tokens;
+    while ((s = csound->token->str) != NULL) {  /* now for all tokens found, */
       c = *s;
       switch ((int) c) {        /* IV - Jan 15 2003 */
                                 /* assign precedence values */
@@ -184,101 +196,107 @@ int express(char *s)
       case '=':
       case '>':
       case '!':         prec = 5;       break;
+      case BITSET:      prec = 6;       break;
+      case BITFLP:      prec = 7;       break;
+      case BITCLR:      prec = 8;       break;
+      case BITSHL:
+      case BITSHR:      prec = 9;       break;
       case '+':
-      case '-':         prec = (s[1] == '\0' ? 6 : 16); break;
+      case '-':         prec = (s[1] == '\0' ? 10 : 18); break;
       case '*':
       case '/':
-      case '%':         prec = 7;       break;
-      case '^':         prec = 8;       break;
-      case BITSET:
-      case BITFLP:      prec = 9;       break;
-      case BITCLR:      prec = 10;      break;
+      case '%':         prec = 11;      break;
+      case '^':         prec = 12;      break;
       case '~':
-      case '\254':      prec = 11;      break;
-      case '(':         prec = 13;      break;
+      case '\254':      prec = 13;      break;
+      case '(':         prec = 15;      break;
       default:
         if (((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) &&
-            (t = (cenviron.token+1)->str) != NULL && *t == '(') {
-          prec = 12;            /* function call */
+            (t = (csound->token + 1)->str) != NULL && *t == '(') {
+          prec = 14;            /* function call */
         }
         else {
           c = argtyp(s);
           /* terms: precedence depends on type (a < k < i) */
-          if      (c == 'a')    prec = 14;
-          else if (c == 'k')    prec = 15;
-          else    prec = 16;
+          if      (c == 'a')    prec = 16;
+          else if (c == 'k')    prec = 17;
+          else    prec = 18;
         }
         break;
       }
-      (cenviron.token++)->prec = prec;
+      (csound->token++)->prec = prec;
     }
-    if (O.odebug) putokens();
+    if (O.odebug) putokens(csound);
 
 #define CONDVAL 2
 #define LOGOPS  3
 #define RELOPS  5
-#define AOPS    6
-#define BITOPS  9
-#define FCALL   12
-#define TERMS   14
+#define BITOPS  6
+#define AOPS    10
+#define BITNOT  13
+#define FCALL   14
+#define TERMS   16
 
-    cenviron.token = cenviron.tokens;
-    cenviron.revp = cenviron.tokenlist;
-    cenviron.pushp = cenviron.endlist = cenviron.tokenlist+cenviron.toklength;      /* using precedence vals, */
-    while (cenviron.token->str != NULL) {             /*  put tokens rev pol order */
-      if (*cenviron.token->str == '(') {
-        cenviron.token->prec = -1;
-        *--cenviron.pushp = cenviron.token++;
+    csound->token = csound->tokens;
+    csound->revp = csound->tokenlist;
+    csound->pushp = csound->endlist = csound->tokenlist + csound->toklength;
+                                                /* using precedence vals,    */
+    while (csound->token->str != NULL) {        /*  put tokens rev pol order */
+      if (*csound->token->str == '(') {
+        csound->token->prec = -1;
+        *--csound->pushp = csound->token++;
       }
-      else if (cenviron.pushp < cenviron.endlist && (*cenviron.pushp)->prec >= cenviron.token->prec) {
-        if (*cenviron.token->str == ':' && *(*cenviron.pushp)->str == '?')
-          *cenviron.pushp = cenviron.token++;               /* replace ? with : */
-        else *cenviron.revp++ = *cenviron.pushp++;
+      else if (csound->pushp < csound->endlist &&
+               (*csound->pushp)->prec >= csound->token->prec) {
+        if (*csound->token->str == ':' && *(*csound->pushp)->str == '?')
+          *csound->pushp = csound->token++;     /* replace ? with : */
+        else *csound->revp++ = *csound->pushp++;
       }
-      else if (*cenviron.token->str == ')') {
-        if (cenviron.token++ && *(*cenviron.pushp++)->str != '(')
+      else if (*csound->token->str == ')') {
+        if (csound->token++ && *(*csound->pushp++)->str != '(')
           XERROR(Str("within parens"))
       }
-      else if ((cenviron.token+1)->str!=NULL && cenviron.token->prec < (cenviron.token+1)->prec)
-        *--cenviron.pushp = cenviron.token++;
-      else *cenviron.revp++ = cenviron.token++;
+      else if ((csound->token + 1)->str != NULL &&
+               csound->token->prec < (csound->token + 1)->prec)
+        *--csound->pushp = csound->token++;
+      else *csound->revp++ = csound->token++;
     }
-    while (cenviron.pushp < cenviron.endlist)
-      *cenviron.revp++ = *cenviron.pushp++;
+    while (csound->pushp < csound->endlist)
+      *csound->revp++ = *csound->pushp++;
 
-    cenviron.endlist = cenviron.revp;                       /* count of pol operators */
-    if (O.odebug) putoklist();
-    for (cenviron.revp=cenviron.tokenlist, polcnt=0;  cenviron.revp<cenviron.endlist; )
-      if ((*cenviron.revp++)->prec < TERMS)           /*  is no w. prec < TERMS */
+    csound->endlist = csound->revp;             /* count of pol operators */
+    if (O.odebug) putoklist(csound);
+    for (csound->revp = csound->tokenlist, polcnt = 0;
+         csound->revp < csound->endlist; )
+      if ((*csound->revp++)->prec < TERMS)      /*  is no w. prec < TERMS */
         polcnt++;
     if (!polcnt) {                              /* if no real operators,  */
-      strcpy(tokenstring,cenviron.tokenlist[0]->str);    /* cpy arg to beg str     */
+      strcpy(tokenstring,csound->tokenlist[0]->str);  /* cpy arg to beg str */
       return(-1);                               /*  and return this info  */
     }
-    if (polcnt >= cenviron.polmax) {
-      cenviron.polmax = polcnt+POLMAX;
-      polish = (POLISH*) mrealloc(&cenviron, polish,cenviron.polmax*sizeof(POLISH));
-/*       printf(Str("Extending Polish array length %ld\n"), cenviron.polmax); */
-/*      XERROR("polish storage POLMAX exceeded"); */
+    if (polcnt >= csound->polmax) {
+      csound->polmax = polcnt + POLMAX;
+      polish = (POLISH*) mrealloc(csound,polish,csound->polmax*sizeof(POLISH));
     }
     pp = &polish[polcnt-1];
     op = pp->opcod;
-    for (cenviron.revp=cenviron.argp=cenviron.tokenlist; cenviron.revp<cenviron.endlist; ) { /* for all tokens:  */
+    for (csound->revp = csound->argp = csound->tokenlist;
+         csound->revp < csound->endlist; ) {    /* for all tokens: */
       char buffer[1024];
-      if ((prec = (*cenviron.revp)->prec) >= TERMS) {
-        *cenviron.argp++ = *cenviron.revp++;                 /* arg: push back    */
-        continue;                                /*      till later   */
+      if ((prec = (*csound->revp)->prec) >= TERMS) {
+        *csound->argp++ = *csound->revp++;      /* arg: push back    */
+        continue;                               /*      till later   */
       }
-      argcnt = cenviron.argp - cenviron.tokenlist;
-      if (prec == FCALL && argcnt >= 1) {        /*   function call:  */
+      argcnt = csound->argp - csound->tokenlist;
+      if (prec == FCALL && argcnt >= 1) {       /*   function call:  */
         pp->incount = 1;                         /*     takes one arg */
-        pp->arg[1] = copystring((*--cenviron.argp)->str);
+        pp->arg[1] = copystring((*--csound->argp)->str);
         c = argtyp(pp->arg[1]);                  /* whose aki type */
         if (c == 'B' || c == 'b')
           XERROR(Str("misplaced relational op"))
         if (c != 'a' && c != 'k')
           c = 'i';                               /*   (simplified)  */
-        sprintf(op, "%s.%c", (*cenviron.revp)->str, c); /* Type at end now */
+        sprintf(op, "%s.%c", (*csound->revp)->str, c); /* Type at end now */
         if (strcmp(op,"i.k") == 0) {
           outype = 'i';                          /* i(karg) is irreg. */
           if (pp->arg[1][0] == '#' && pp->arg[1][1] == 'k') {
@@ -288,8 +306,9 @@ int express(char *s)
                          "allowed with --expression-opt"));
             }
             else {
-              printf(Str("WARNING: i() should not be used with "
-                         "expression argument\n"));
+              csound->Message(csound,
+                              Str("WARNING: i() should not be used with "
+                                  "expression argument\n"));
             }
           }
         }
@@ -297,63 +316,56 @@ int express(char *s)
           outype = 'a';                     /* a(karg) is irreg. */
         else outype = c;                    /* else outype=intype */
       }
-      else if (prec >= BITOPS && argcnt >= 2) { /* bit op:    */
-        if ((c = *(*cenviron.revp)->str) == BITSET)
-          strcpy(op,"or");
-        else if (c == BITFLP)
-          strcpy(op,"xor");
-        else if (c == BITCLR)
-          strcpy(op,"and");
-        else printf(Str("Expression got lost\n"));
+      else if (prec >= BITOPS && prec < AOPS && argcnt >= 2) {  /* bit op:  */
+        c = *(*csound->revp)->str;
+        switch (c) {
+          case BITSHL:  strcpy(op, "shl");  break;
+          case BITSHR:  strcpy(op, "shr");  break;
+          case BITSET:  strcpy(op, "or");   break;
+          case BITFLP:  strcpy(op, "xor");  break;
+          case BITCLR:  strcpy(op, "and");  break;
+          default:      csound->Message(csound, Str("Expression got lost\n"));
+        }
         goto common_ops;
       }
-      else if (prec >= BITOPS && argcnt == 1) { /* bit op:    */
-        if ((c = *(*cenviron.revp)->str) == '\254' || c == '~')
-          strcpy(op,"not");
-        else printf(Str("Expression got lost\n"));
-        pp->incount = 1;                    /*   copy 1 arg txts */
-        pp->arg[1] = copystring((*--cenviron.argp)->str);
+      else if (prec == BITNOT && argcnt == 1) { /* bit op:    */
+        c = *(*csound->revp)->str;
+        pp->incount = 1;                    /*   copy 1 arg txts    */
+        pp->arg[1] = copystring((*--csound->argp)->str);
         e = argtyp(pp->arg[1]);
         if (e == 'B' || e == 'b')
-          XERROR(Str("misplaced relational op"))
-/*              printf("op=%s e=%c c=%c\n", op, e, c); */
-        if (e == 'a') {                     /*   to complete optxt*/
-          if (c=='\254' || c=='~')
-            strcat(op,".a");
-          outype = 'a';
+          XERROR(Str("misplaced relational op"));
+        if (c == '\254' || c == '~') {
+          strcpy(op, "not");                /*   to complete optxt  */
+          switch (e) {
+            case 'a':   strcat(op, ".a");   outype = 'a';   break;
+            case 'k':   strcat(op, ".k");   outype = 'k';   break;
+            default:    strcat(op, ".i");   outype = 'i';   break;
+          }
         }
-        else if (e == 'k') {
-          if (c == '\254' || c == '~') strcat(op,".k");
-          outype = 'k';
-        }
-        else {
-          if (c == '\254' || c == '~') strcat(op,".i");
-          outype = 'i';
-        }
+        else
+          csound->Message(csound, Str("Expression got lost\n"));
       }
-      else if (prec >= AOPS && argcnt >= 2) { /* arith op:    */
-        if ((c = *(*cenviron.revp)->str) == '+')
-          strcpy(op,"add");
-        else if (c == '-')
-          strcpy(op,"sub");                   /*   create op text */
-        else if (c == '*')
-          strcpy(op,"mul");
-        else if (c == '/')
-          strcpy(op,"div");
-        else if (c == '%')
-          strcpy(op,"mod");
-        else if (c == '^')
-          strcpy(op,"pow");
-        else printf(Str("Expression got lost\n"));
-      common_ops:
+      else if (prec >= AOPS && prec < BITNOT && argcnt >= 2) {  /* arith op: */
+        c = *(*csound->revp)->str;
+        switch (c) {                                    /*   create op text */
+          case '+': strcpy(op, "add");  break;
+          case '-': strcpy(op, "sub");  break;
+          case '*': strcpy(op, "mul");  break;
+          case '/': strcpy(op, "div");  break;
+          case '%': strcpy(op, "mod");  break;
+          case '^': strcpy(op, "pow");  break;
+          default:  csound->Message(csound, Str("Expression got lost\n"));
+        }
+ common_ops:
         pp->incount = 2;                    /*   copy 2 arg txts */
-        pp->arg[2] = copystring((*--cenviron.argp)->str);
-        pp->arg[1] = copystring((*--cenviron.argp)->str);
+        pp->arg[2] = copystring((*--csound->argp)->str);
+        pp->arg[1] = copystring((*--csound->argp)->str);
         e = argtyp(pp->arg[1]);
         d = argtyp(pp->arg[2]);             /*   now use argtyps */
         if (e == 'B' || e == 'b' || d == 'B' || d == 'b' )
           XERROR(Str("misplaced relational op"))
-/*              printf("op=%s e=%c c=%c d=%c\n", op, e, c, d); */
+/*      csound->Message(csound, "op=%s e=%c c=%c d=%c\n", op, e, c, d); */
         if (e == 'a') {                     /*   to complet optxt*/
           if (c=='^' && (d == 'c' || d == 'k'|| d == 'i' || d == 'p'))
             strcat(op,".a");
@@ -376,13 +388,13 @@ int express(char *s)
           outype = 'i';
         }
       }
-      else if (prec >= RELOPS && argcnt >= 2) { /* relationals:   */
-        strcpy(op,(*cenviron.revp)->str);             /*   copy rel op    */
-        if (strcmp(op,"=") == 0)
-          strcpy(op,"==");
-        pp->incount = 2;                    /*   & 2 arg txts   */
-        pp->arg[2] = copystring((*--cenviron.argp)->str);
-        pp->arg[1] = copystring((*--cenviron.argp)->str);
+      else if (prec == RELOPS && argcnt >= 2) { /* relationals:     */
+        strcpy(op, (*csound->revp)->str);       /*   copy rel op    */
+        if (strcmp(op, "=") == 0)
+          strcpy(op, "==");
+        pp->incount = 2;                        /*   & 2 arg txts   */
+        pp->arg[2] = copystring((*--csound->argp)->str);
+        pp->arg[1] = copystring((*--csound->argp)->str);
         c = argtyp(pp->arg[1]);
         d = argtyp(pp->arg[2]);             /*   now use argtyps */
         if (c == 'a' || d == 'a')           /*   to determ outs  */
@@ -393,11 +405,11 @@ int express(char *s)
           outype = 'B';
         else outype = 'b';
       }
-      else if (prec >= LOGOPS && argcnt >= 2) { /* logicals:    */
-        strcpy(op,(*cenviron.revp)->str);             /*   copy rel op  */
-        pp->incount = 2;                        /*   & 2 arg txts */
-        pp->arg[2] = copystring((*--cenviron.argp)->str);
-        pp->arg[1] = copystring((*--cenviron.argp)->str);
+      else if (prec >= LOGOPS && prec < RELOPS && argcnt >= 2) { /* logicals: */
+        strcpy(op, (*csound->revp)->str);   /*   copy rel op  */
+        pp->incount = 2;                    /*   & 2 arg txts */
+        pp->arg[2] = copystring((*--csound->argp)->str);
+        pp->arg[1] = copystring((*--csound->argp)->str);
         c = argtyp(pp->arg[1]);
         d = argtyp(pp->arg[2]);             /*   now use argtyps */
         if (c == 'b' && d == 'b')           /*   to determ outs  */
@@ -406,13 +418,13 @@ int express(char *s)
                  (d == 'B' || d == 'b'))
           outype = 'B';
         else XERROR(Str("incorrect logical argumemts"))
-               }
+      }
       else if (prec == CONDVAL && argcnt >= 3) { /* cond vals:     */
-        strcpy(op,": ");                    /*   init op as ': ' */
+        strcpy(op, ": ");                   /*   init op as ': ' */
         pp->incount = 3;                    /*   & cpy 3 argtxts */
-        pp->arg[3] = copystring((*--cenviron.argp)->str);
-        pp->arg[2] = copystring((*--cenviron.argp)->str);
-        pp->arg[1] = copystring((*--cenviron.argp)->str);
+        pp->arg[3] = copystring((*--csound->argp)->str);
+        pp->arg[2] = copystring((*--csound->argp)->str);
+        pp->arg[1] = copystring((*--csound->argp)->str);
         b = argtyp(pp->arg[1]);
         c = argtyp(pp->arg[2]);
         d = argtyp(pp->arg[3]);
@@ -431,14 +443,14 @@ int express(char *s)
       s = &buffer[0] /* pp->arg[0] */;      /* now create outarg acc. to type */
       if (!O.expr_opt) {
         /* IV - Jan 08 2003: old code: should work ... */
-        if (outype=='a') sprintf(s,"#a%d",cenviron.acount++);
-        else if (outype=='k') sprintf(s,"#k%d",cenviron.kcount++);
-        else if (outype=='B') sprintf(s,"#B%d",cenviron.Bcount++);
-        else if (outype=='b') sprintf(s,"#b%d",cenviron.bcount++);
-        else sprintf(s,"#i%d",cenviron.icount++);
+        if      (outype == 'a') sprintf(s, "#a%d", csound->acount++);
+        else if (outype == 'k') sprintf(s, "#k%d", csound->kcount++);
+        else if (outype == 'B') sprintf(s, "#B%d", csound->Bcount++);
+        else if (outype == 'b') sprintf(s, "#b%d", csound->bcount++);
+        else                    sprintf(s, "#i%d", csound->icount++);
       }
       else {
-        int ndx = (int) (cenviron.argp - cenviron.tokenlist);     /* argstack index */
+        int ndx = (int) (csound->argp - csound->tokenlist); /* argstack index */
         if (opcode_is_assign == 1       &&
             (int) ndx == 0              &&
             (int) outype == assign_type &&
@@ -462,9 +474,9 @@ int express(char *s)
             cnt += argcnt_offs;         /* IV - Jan 15 2003 */
           if (outype == 'a')        sprintf(s, "#a%d", cnt);
           else if (outype == 'k')   sprintf(s, "#k%d", cnt);
-          else if (outype == 'B')   sprintf(s, "#B%d", cenviron.Bcount++);
-          else if (outype == 'b')   sprintf(s, "#b%d", cenviron.bcount++);
-          else                      sprintf(s, "#i%d", cenviron.icount++);
+          else if (outype == 'B')   sprintf(s, "#B%d", csound->Bcount++);
+          else if (outype == 'b')   sprintf(s, "#b%d", csound->bcount++);
+          else                      sprintf(s, "#i%d", csound->icount++);
           /* IV - Jan 08 2003: count max. stack depth in order to allow */
           /* generating different indexes for temporary variables of */
           /* separate expressions on the same line (see also below). */
@@ -472,11 +484,12 @@ int express(char *s)
           if (ndx > argcnt_max) argcnt_max = ndx;
         }
       }
-      (*cenviron.argp++)->str = pp->arg[0] = copystring(s);/* & point argstack there */
-      cenviron.revp++;
+      /* & point argstack there */
+      (*csound->argp++)->str = pp->arg[0] = copystring(s);
+      csound->revp++;
       pp--;   op = pp->opcod;                     /* prep for nxt pol */
     }
-    if (cenviron.argp - cenviron.tokenlist == 1) {
+    if (csound->argp - csound->tokenlist == 1) {
       /* IV - Jan 08 2003: do not re-use temporary variables between */
       /* expressions of the same line */
       argcnt_offs += (argcnt_max + 1);
@@ -485,10 +498,11 @@ int express(char *s)
           (int) outype == assign_type   &&
           strchr("aki", assign_type) != NULL) {
         /* replace outarg if necessary */
-        if (strcmp(cenviron.tokenlist[0]->str, assign_outarg)) {
+        if (strcmp(csound->tokenlist[0]->str, assign_outarg)) {
           /* now the last op will use the output of '=' directly */
           /* the pp + 1 is because of the last pp-- */
-          cenviron.tokenlist[0]->str = (pp + 1)->arg[0] = copystring(assign_outarg);
+          csound->tokenlist[0]->str =
+                   (pp + 1)->arg[0] = copystring(assign_outarg);
         }
         /* mark as optimised away */
         opcode_is_assign = -1;
@@ -499,9 +513,9 @@ int express(char *s)
 
  error:
     synterr(Str("expression syntax"));    /* or gracefully report error*/
-    printf(" %s: %s\n",cenviron.xprmsg,sorig);
-    strcpy(tokenstring,"1");
-    return(-1);
+    csound->Message(csound, " %s: %s\n", xprmsg, sorig);
+    strcpy(tokenstring, "1");
+    return -1;
 }
 
 static int nontermin(int c)
@@ -533,19 +547,47 @@ static int nontermin(int c)
     }
 }
 
-static void putokens(void)      /* for debugging check only */
+static void putokens(ENVIRON *csound)       /* for debugging check only */
 {
-    TOKEN       *tp = cenviron.tokens;
-    while (tp->str != NULL)
-      printf("%s\t", (tp++)->str);
-    printf("\n");
+    TOKEN *tp = csound->tokens;
+
+    while (tp->str != NULL) {
+      if (tp->str[0] != '\0' && tp->str[1] == '\0') {
+        switch (tp->str[0]) {
+          case BITSHL:  csound->Message(csound, "<<\t");  break;
+          case BITSHR:  csound->Message(csound, ">>\t");  break;
+          case BITCLR:  csound->Message(csound, "&\t");   break;
+          case BITFLP:  csound->Message(csound, "#\t");   break;
+          case BITSET:  csound->Message(csound, "|\t");   break;
+          default:      csound->Message(csound, "%s\t", tp->str);
+        }
+      }
+      else
+        csound->Message(csound, "%s\t", tp->str);
+      tp++;
+    }
+    csound->Message(csound, "\n");
 }
 
-static void putoklist(void)     /*      ditto           */
+static void putoklist(ENVIRON *csound)      /*      ditto           */
 {
-    TOKEN       **tpp = cenviron.tokenlist;
-    while (tpp < cenviron.endlist)
-      printf("%s\t", (*tpp++)->str);
-    printf("\n");
+    TOKEN **tpp = csound->tokenlist;
+
+    while (tpp < csound->endlist) {
+      if ((*tpp)->str[0] != '\0' && (*tpp)->str[1] == '\0') {
+        switch ((*tpp)->str[0]) {
+          case BITSHL:  csound->Message(csound, "<<\t");  break;
+          case BITSHR:  csound->Message(csound, ">>\t");  break;
+          case BITCLR:  csound->Message(csound, "&\t");   break;
+          case BITFLP:  csound->Message(csound, "#\t");   break;
+          case BITSET:  csound->Message(csound, "|\t");   break;
+          default:      csound->Message(csound, "%s\t", (*tpp)->str);
+        }
+      }
+      else
+        csound->Message(csound, "%s\t", (*tpp)->str);
+      tpp++;
+    }
+    csound->Message(csound, "\n");
 }
 
