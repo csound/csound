@@ -83,9 +83,6 @@ opts.Add('useALSA',
 opts.Add('useJack',
     'Set to 1 if you compiled PortAudio to use Jack',
     '1')
-opts.Add('gcc3opt',
-    'Set to 1 to use gcc 3.3.x or later optimizations for i686.',
-    '0')
 opts.Add('useFLTK', 
     'Set to 1 to use FLTK for graphs and widget opcodes.', 
     '1')
@@ -119,6 +116,15 @@ opts.Add('prefix',
 opts.Add('usePortMIDI',
     'Use portmidi library rather than internal MIDI (experimental).',
     '0')
+opts.Add('noDebug',
+    'Build without debugging information.',
+    '0')
+opts.Add('gcc3opt',
+    'Enable gcc 3.3.x or later optimizations for i686.',
+    '0')
+opts.Add('useGprof',
+    'Build with profiling information (-pg).',
+    '0')
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -150,7 +156,15 @@ print "SCons tools on this platform: ", commonEnvironment['TOOLS']
 print
 
 commonEnvironment.Prepend(CPPPATH  = ['.', './H'])
-commonEnvironment.Prepend(CCFLAGS = Split('-DCSOUND_WITH_API -g -gstabs -O2'))
+if (commonEnvironment['gcc3opt']=='1'):
+  commonEnvironment.Prepend(CCFLAGS = Split('-march=i686 -mcpu=pentium3 -fomit-frame-pointer -finline-functions -frename-registers -fweb -ffast-math -falign-functions=16'))
+if (commonEnvironment['noDebug']=='0'):
+  commonEnvironment.Prepend(CCFLAGS = Split('-DCSOUND_WITH_API -g -gstabs -O2'))
+else
+  commonEnvironment.Prepend(CCFLAGS = Split('-DCSOUND_WITH_API -O2'))
+if (commonEnvironment['useGprof']=='1'):
+  commonEnvironment.Append(CCFLAGS = ['-pg'])
+  commonEnvironment.Append(LINKFLAGS = ['-pg'])
 commonEnvironment.Prepend(CXXFLAGS = Split('-DCSOUND_WITH_API -fexceptions'))
 commonEnvironment.Prepend(LIBPATH = ['.', '#.'])
 commonEnvironment.Prepend(CPPFLAGS = ['-DBETA'])
@@ -218,6 +232,7 @@ portmidiFound = configure.CheckHeader("portmidi.h", language = "C")
 fltkFound = configure.CheckHeader("FL/Fl.H", language = "C++")
 boostFound = configure.CheckHeader("boost/any.hpp", language = "C++")
 alsaFound = configure.CheckHeader("alsa/asoundlib.h", language = "C")
+jackFound = configure.CheckHeader("jack/jack.h", language = "C")
 
 if getPlatform() == 'mingw':
     commonEnvironment['ENV']['PATH'] = os.environ['PATH']
@@ -742,7 +757,7 @@ else:
     portaudioEnvironment = pluginEnvironment.Copy()
     portaudioEnvironment.Append(LIBS = ['portaudio'])
     if (getPlatform() == 'linux'):
-        if (commonEnvironment['useJack']=='1'):
+        if (commonEnvironment['useJack']=='1' and jackFound):
             print "Adding Jack library for PortAudio"
             portaudioEnvironment.Append(LIBS = ['jack'])
         portaudioEnvironment.Append(LIBS = ['asound'])
@@ -760,6 +775,17 @@ else:
                                                             InOut/rtpa.c
                                                             InOut/pa_blocking.c
                                                           ''')))
+
+if (not(commonEnvironment['useJack']=='1' and jackFound)):
+    print "CONFIGURATION DECISION: Not building JACK plugin."
+else
+    print "CONFIGURATION DECISION: Building JACK plugin."
+    jackEnvironment = pluginEnvironment.Copy()
+    jackEnvironment.Append(LIBS = ['jack'])
+    jackEnvironment.Append(LIBS = ['asound'])
+    jackEnvironment.Append(LIBS = ['pthread'])
+    pluginLibraries.append(jackEnvironment.SharedLibrary('rtjack',
+                                                         ['InOut/rtjack.c']))
 
 # FLUIDSYNTH OPCODES
 
