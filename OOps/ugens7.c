@@ -22,7 +22,7 @@
     02111-1307 USA
 */
 
-#include "csdl.h"               /*                              UGENS7.C        */
+#include "cs.h"               /*                              UGENS7.C        */
 #include "ugens7.h"
 #include <math.h>
 

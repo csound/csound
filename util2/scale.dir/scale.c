@@ -78,6 +78,7 @@ static	short	   *shoutbuf;		    /* short pntr	    */
 static	long	   *lloutbuf;		    /* long  pntr	    */
 static	float	   *floutbuf;		    /* float pntr	    */
 static  int	   outrange = 0; 	    /* Count samples out of range */
+        void       err_printf(char*, ...);
 
 static void usage(char *mesg)
 {
@@ -271,11 +272,6 @@ main(int argc, char **argv)
           case 'N':
             O.ringbell = 1;         	/* notify on completion */
             break;
-          case '-':
-            FIND(Str(X_1044,"no log file"));
-            dribble = fopen(s, "w");
-            while (*s++); s--;
-            break;
           default:
             sprintf(errmsg,Str(X_1334,"unknown flag -%c"), c);
             usage(errmsg);
@@ -344,7 +340,7 @@ main(int argc, char **argv)
         die(Str(X_628,"can't rewrite header if no header requested"));
       if (O.outfilename == NULL)  O.outfilename = "test";
       outfd = openout(O.outfilename, 1);
-      esr_ = p->sr;
+      esr = p->sr;
       nchnls = p->nchanls;
       if (O.sfheader)
         writeheader(outfd, O.outfilename);	/* write header as required     */
@@ -513,7 +509,7 @@ static  float    fzero = 0.0;
     static MYFLT sstrcod = SSTRCOD;
 
     sssfinit();                 /* stand-alone init of SFDIR etc. */
-    esr_ = 0.0;                  /* set esr 0. with no orchestra   */
+    esr = 0.0;                  /* set esr 0. with no orchestra   */
     optxt.t.outoffs = &argoffs; /* point to dummy OUTOCOUNT       */
     p = (SOUNDIN *) mcalloc((long)sizeof(SOUNDIN));
     p->channel = ALLCHNLS;
@@ -760,29 +756,11 @@ floatran(float buffer[BUFFER_LEN])	/* send float spout vals to outbuf */
 #ifndef CWIN
 #include <stdarg.h>
 
-void dribble_printf(char *fmt, ...)
-{
-    va_list a;
-    va_start(a, fmt);
-    vprintf(fmt, a);
-    va_end(a);
-    if (dribble != NULL) {
-      va_start(a, fmt);
-      vfprintf(dribble, fmt, a);
-      va_end(a);
-    }
-}
-
 void err_printf(char *fmt, ...)
 {
     va_list a;
     va_start(a, fmt);
     vfprintf(stderr, fmt, a);
-    if (dribble != NULL) {
-      va_start(a, fmt);
-      vfprintf(dribble, fmt, a);
-      va_end(a);
-    }
 }
 #endif
 void csoundMessage0(const char *format, ...)

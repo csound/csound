@@ -141,7 +141,8 @@ void Envelope_keyOff(Envelope *e)
 void Envelope_setRate(ENVIRON *csound, Envelope *e, MYFLT aRate)
 {
     if (aRate < FL(0.0)) {
-        err_printf(csound->getstring_(X_1010,"negative rates not allowed!!, correcting\n"));
+        csound->err_printf_(csound->getstring_(X_1010,
+                                               "negative rates not allowed!!, correcting\n"));
         e->rate = -aRate;
     }
     else e->rate = aRate;

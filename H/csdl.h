@@ -61,7 +61,6 @@
 #undef opcodlst
 #undef opcode_list
 #undef oplstend
-#undef dribble
 #undef holdrand
 #undef maxinsno
 #undef maxopcno
@@ -237,6 +236,7 @@
 #define ftnp2find p->h.insdshead->csound->ftnp2find
 #define unquote p->h.insdshead->csound->unquote
 #define ldmemfile p->h.insdshead->csound->ldmemfile
+#define err_printf p->h.insdshead->csound->err_printf_
 
 #define ksmps  p->h.insdshead->csound->ksmps_
 #define esr    p->h.insdshead->csound->esr_
@@ -275,7 +275,6 @@
 #define opcodlst p->h.insdshead->csound->opcodlst_
 #define opcode_list p->h.insdshead->csound->opcode_list_   /* IV - Oct 31 2002 */
 #define oplstend p->h.insdshead->csound->oplstend_
-#define dribble  p->h.insdshead->csound->dribble_
 #define holdrand p->h.insdshead->csound->holdrand_
 #define maxinsno p->h.insdshead->csound->maxinsno_
 #define maxopcno p->h.insdshead->csound->maxopcno_         /* IV - Oct 24 2002 */

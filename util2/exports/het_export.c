@@ -81,30 +81,12 @@ void usage(void)
     exit(1);
 }
 
-void dribble_printf(char *fmt, ...)
-{
-    va_list a;
-    va_start(a, fmt);
-    vprintf(fmt, a);
-    va_end(a);
-    if (dribble != NULL) {
-      va_start(a, fmt);
-      vfprintf(dribble, fmt, a);
-      va_end(a);
-    }
-}
-
 void err_printf(char *fmt, ...)
 {
     va_list a;
     va_start(a, fmt);
     vfprintf(stderr, fmt, a);
     va_end(a);
-    if (dribble != NULL) {
-      va_start(a, fmt); /* gab */
-      vfprintf(dribble, fmt, a);
-      va_end(a);
-    }
 }
 
 long natlong(long lval)             /* coerce a bigendian long into a natural long */

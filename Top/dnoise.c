@@ -405,11 +405,6 @@ int dnoise(int argc, char **argv)
                 }
                 else O.heartbeat = 1;
                 break;
-              case '-':
-                FIND(Str(X_1044,"no log file"));
-                dribble = fopen(s, "w");
-                while (*s++); s--;
-                break;
               case 't':
                 FIND("no t arg");
                 sscanf(s,"%f",&th);
@@ -1439,7 +1434,6 @@ floatran(MYFLT *buffer, int size)
 void die(char *s)
 {
     printf("%s\n", s);
-    if (dribble) fflush(dribble);
     while (!Button());
     ExitToShell();
 }

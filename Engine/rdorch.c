@@ -1658,7 +1658,6 @@ void synterrp(char *errp, char *s)
       int ch = *cp++;
       if (ch != '\t') ch = ' ';
       putchar(ch);
-      if (dribble) putc(ch, dribble);
     }
     printf("^\n");
 }

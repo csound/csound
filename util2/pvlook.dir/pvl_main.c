@@ -63,14 +63,6 @@ int main(int argc, char *argv[])
 
 #ifndef CWIN
 #include <stdarg.h>
-void dribble_printf(char *fmt, ...)
-{
-    va_list a;
-    va_start(a, fmt);
-    vprintf(fmt, a);
-    va_end(a);
-}
-
 void err_printf(char *fmt, ...)
 {
     va_list a;

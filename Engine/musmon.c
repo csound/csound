@@ -380,10 +380,6 @@ int cleanup(void)
       sfcloseout();
     else printf(Str(X_1061,"no sound written to disk\n"));
     if (O.ringbell) beep();
-    if (dribble) {
-      fclose(dribble);
-      dribble = NULL;
-    }
     return dispexit();      /* hold or terminate the display output     */
     /* for Mac, dispexit returns 0 to exit immediately */
 }

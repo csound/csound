@@ -215,6 +215,7 @@ ENVIRON cenviron_ = {
         ftnp2find,
         unquote,
         ldmemfile,
+        err_printf,
         /*
         * Data fields.
         */
@@ -257,7 +258,6 @@ ENVIRON cenviron_ = {
         NULL, /*      opcodlst */
         NULL, /*      opcode_list */
         NULL, /*      opcodlstend */
-        NULL,  /*     dribble */
         2345678L,     /* holdrand */
         MAXINSNO,     /* maxinsno */
         -1,   /*      maxopcno */

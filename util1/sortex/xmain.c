@@ -46,7 +46,6 @@ void dies(char *s, char *t)
 {
     sprintf(errmsg,s,t);
     printf("%s\n",errmsg);
-    if (dribble) fflush(dribble); /* Should not be necessary */
     exit(1);
 }
 
@@ -123,30 +122,12 @@ void synterr(char *s)
 #ifndef CWIN
 #include <stdarg.h>
 
-void dribble_printf(char *fmt, ...)
-{
-    va_list a;
-    va_start(a, fmt);
-    vprintf(fmt, a);
-    va_end(a);
-    if (dribble != NULL) {
-      va_start(a, fmt);
-      vfprintf(dribble, fmt, a);
-      va_end(a);
-    }
-}
-
 void err_printf(char *fmt, ...)
 {
     va_list a;
     va_start(a, fmt);
     vfprintf(stderr, fmt, a);
     va_end(a);
-    if (dribble != NULL) {
-      va_start(a, fmt);
-      vfprintf(dribble, fmt, a);
-      va_end(a);
-    }
 }
 #endif
 void csoundMessage0(const char *format, ...)

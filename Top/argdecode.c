@@ -192,14 +192,12 @@ err_printf(Str(X_1549,"-Q dnam\tselect MIDI output device\n"));
 #endif
 err_printf(Str(X_172,"-z\tList opcodes in this version\n"));
 err_printf(Str(X_1537,"-Z\tDither output\n"));
-err_printf(Str(X_90,"-- fnam\tlog output to file\n"));
 #if defined(LINUX)
 err_printf("--sched set real-time priority and lock memory\n");
 err_printf("        (also requires -d and either -o dac or -o devaudio)\n");
 #endif
 #ifdef mills_macintosh
 err_printf(Str(X_581,"_____________Macintosh Command Line Flags_________________\n"));
-/* err_printf(Str(X_89,"-- fnam\t Redirect output to listing file 'fnam'\n")); */
 err_printf(Str(X_133,"-X fnam\t Sound File Directory\n"));
 err_printf(Str(X_160,"-q fnam\t Sound Sample-In Directory\n"));
 err_printf(Str(X_123,"-Q fnam\t Analysis Directory\n"));
@@ -761,7 +759,6 @@ static int decode_long(char *s, int argc, char **argv, char *envoutyp)
     else if (!(strncmp (s, "logfile=", 8))) {
       s += 8;
       if (*s=='\0') dieu(Str(X_1044,"no log file"));
-      dribble = fopen(s, "w");
       return 1;
     }
   /* -r N */
@@ -1289,7 +1286,6 @@ int argdecode(int argc, char **argv, char **pfilnamp, char *envoutyp)
             break;
           case 'O':
             FIND(Str(X_1044,"no log file"));
-            dribble = fopen(s, "w");
             while (*s++); s--;
             break;
           case '-':

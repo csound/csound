@@ -311,7 +311,6 @@ void dies(char *s, char *t)
 void die(char *s)
 {
     printf("%s\n",s);
-    if (dribble) fflush(dribble); /* Should not be necessary */
     longjmp(cenviron.exitjmp_,1);
 }
 #endif

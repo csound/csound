@@ -181,9 +181,6 @@ extern  long     getsndin(int, MYFLT*, long, SOUNDIN*);
                           sscanf(s,"%f",&freq_c);
               break;
             case '-':   FIND(Str(X_1044,"no log file"));
-#ifndef mills_macintosh
-              dribble = fopen(s, "w");
-#endif
               while (*s++); s--;
               break;
             default:   quit(Str(X_317,"Invalid switch option"));

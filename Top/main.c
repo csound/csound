@@ -368,7 +368,6 @@ int csoundCompile(void *csound, int argc, char **argv)
     if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
     install_signal_handler();
     O.filnamspace = filnamp = mmalloc((long)1024);
-    dribble = NULL;
     peakchunks = 1;
     {
       FILE *csrc = fopen(".csoundrc", "r");
@@ -596,56 +595,15 @@ int csoundMain(void *csound, int argc, char **argv)
 }
 
 #ifdef mills_macintosh
-void dribble_printf(char *fmt, ...)
-{
-    va_list a;
-
-    /* '\r' returns to end of line, does not advance to next line */
-    int i;
-    int lastChar = strlen(fmt)-1;
-    if (fmt[0] == '\r')
-       fmt[0] = '\n';
-    if (fmt[lastChar] == '\r')
-       fmt[lastChar] = '\n';
-
-    if (displayText) {
-      va_start(a, fmt);
-      vprintf(fmt, a);
-      va_end(a);
-    }
-    if (dribble != NULL) {
-      va_start(a, fmt);
-      vfprintf(dribble, fmt, a);
-      va_end(a);
-    }
-}
 #else
 extern void csoundMessageV(void *, const char *, va_list);
 extern void csoundMessageS(void *, const char *, va_list);
-void dribble_printf(char *fmt, ...)
-{
-    va_list a;
-    if (dribble!=NULL) {
-      va_start(a, fmt);
-      vfprintf(dribble, fmt, a);
-      va_end(a);
-    }
-    va_start(a, fmt);
-    csoundMessageS(cenviron.hostdata_, fmt, a);
-    va_end(a);
-}
-
 void err_printf(char *fmt, ...)
 {
     va_list a;
     va_start(a, fmt);
     csoundMessageV(cenviron.hostdata_, fmt, a);
     va_end(a);
-    if (dribble != NULL) {
-      va_start(a, fmt); /* gab */
-      vfprintf(dribble, fmt, a);
-      va_end(a);
-    }
 }
 #endif
 

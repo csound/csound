@@ -256,11 +256,6 @@ main(int argc, char **argv)
           case 'v':                       /* Verbose mode */
             debug = 1;
             break;
-          case '-':
-            FIND("no log file");
-            dribble = fopen(s, "w");
-            while (*s++); s--;
-            break;
           default:
             sprintf(errmsg,"unknown flag -%c", c);
             usage(errmsg);
@@ -382,30 +377,12 @@ ExtractSound(int infd, int outfd)
 #ifndef CWIN
 #include <stdarg.h>
 
-void dribble_printf(char *fmt, ...)
-{
-    va_list a;
-    va_start(a, fmt);
-    vprintf(fmt, a);
-    va_end(a);
-    if (dribble != NULL) {
-      va_start(a, fmt);
-      vfprintf(dribble, fmt, a);
-      va_end(a);
-    }
-}
-
 void err_printf(char *fmt, ...)
 {
     va_list a;
     va_start(a, fmt);
     vfprintf(stderr, fmt, a);
     va_end(a);
-    if (dribble != NULL) {
-      va_start(a, fmt);
-      vfprintf(dribble, fmt, a);
-      va_end(a);
-    }
 }
 #endif
 void csoundMessage0(const char *format, ...)

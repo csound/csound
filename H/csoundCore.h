@@ -600,7 +600,7 @@ typedef struct ENVIRON_
   FUNC *(*ftnp2find)(MYFLT *);
   char *(*unquote)(char *);
   MEMFIL *(*ldmemfile)(char *);
-  
+  void (*err_printf_)(char *, ...);
   
   /* End of internals */
   int           ksmps_, nchnls_;
@@ -638,7 +638,6 @@ typedef struct ENVIRON_
   OENTRY        *opcodlst_;
   void          *opcode_list_;   /* IV - Oct 31 2002 */
   OENTRY        *oplstend_;
-  FILE*         dribble_;
   long          holdrand_;
   int           maxinsno_;
   int           maxopcno_;       /* IV - Oct 24 2002 */
@@ -731,15 +730,14 @@ typedef struct ENVIRON_
 #endif
 
 #include "prototyp.h"
+extern void err_printf(char *, ...);
 #ifdef FLTK_GUI
 #define printf csoundMessage0
 extern void csoundMessage0(const char *, ...);
-extern void err_printf(char *, ...);
 #else
 #ifdef CWIN
 #include <stdlib.h>
 #define printf cwin_printf
-extern void err_printf(char *, ...);
 #undef putchar
 #define putchar cwin_putchar
 #define exit(n) cwin_exit(n)
@@ -753,14 +751,6 @@ extern void cwin_exit(int);
 #define POLL_EVENTS() cwin_poll_window_manager()/*cwin_ensure_screen()*/
 typedef void ExitFunction(void);
 extern int cwin_atexit(ExitFunction*);
-#else
-#define printf dribble_printf
-extern void dribble_printf(char *, ...);
-#ifdef mills_macintosh
-#define err_printf dribble_printf
-#else
-extern void err_printf(char *, ...);
-#endif
 #endif
 #endif /* POLL_EVENTS */
 

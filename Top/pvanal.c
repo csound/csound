@@ -163,11 +163,6 @@ int pvanal(int argc, char **argv)
           case 'v':
             verbose = 1;
             break;
-          case '-':  FIND(Str(X_1044,"no log file"));
-            dribble = fopen(s, "w");
-            while (*s++); s--;
-            break;
-
           default:   quit(Str(X_1352,"unrecognised switch option"));
           }
         else break;

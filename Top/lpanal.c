@@ -515,13 +515,6 @@ int lpanal(int argc, char **argv)
                     break;
                 case 'a':       storePoles=TRUE;
                     break;
-                case '-':
-                    FIND(Str(X_1044,"no log file"));
-#ifndef mills_macintosh
-                    dribble = fopen(s, "w");
-#endif
-                    while (*s++); s--;
-                    break;
                 default: sprintf(errmsg,Str(X_1350,"unrecognised flag -%c"), *--s);
                          lpdieu(errmsg);
                 }

@@ -32,7 +32,6 @@ void err_printf(char *, ...);
 
 int main(int argc, char **argv) /* cscore stub to run a user prog standalone   */
 {
-    dribble = NULL;
     init_getstring(argc,argv);
     scfopen(argc,argv);     /* open the command line scorein file */
     cscorinit();
@@ -84,29 +83,11 @@ int lplay(EVLIST *a)           /* for standalone cscore: no full Csound, so */
 #ifndef CWIN
 #include <stdarg.h>
 
-void dribble_printf(char *fmt, ...)
-{
-    va_list a;
-    va_start(a, fmt);
-    vprintf(fmt, a);
-    va_end(a);
-    if (dribble != NULL) {
-      va_start(a, fmt);
-      vfprintf(dribble, fmt, a);
-      va_end(a);
-    }
-}
-
 void err_printf(char *fmt, ...)
 {
     va_list a;
     va_start(a, fmt);
     vfprintf(stderr, fmt, a);
     va_end(a);
-    if (dribble != NULL) {
-      va_start(a, fmt);
-      vfprintf(dribble, fmt, a);
-      va_end(a);
-    }
 }
 #endif

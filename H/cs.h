@@ -67,7 +67,6 @@ extern "C" {
 #define opcodlst cenviron.opcodlst_
 #define opcode_list cenviron.opcode_list_   /* IV - Oct 31 2002 */
 #define oplstend cenviron.oplstend_
-#define dribble  cenviron.dribble_
 #define holdrand cenviron.holdrand_
 #define maxinsno cenviron.maxinsno_
 #define maxopcno cenviron.maxopcno_         /* IV - Oct 24 2002 */

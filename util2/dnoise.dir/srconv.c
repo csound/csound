@@ -336,11 +336,6 @@ int main(int argc, char **argv)
           case 'N':
             O.ringbell = 1;        /* notify on completion */
             break;
-         case '-':
-            FIND(Str(X_1044,"no log file"));
-            dribble = fopen(s, "w");
-            while (*s++); s--;
-            break;
           case 'Q':
             FIND("No Q argument")
             sscanf(s,"%d", &Q);
@@ -439,10 +434,10 @@ int main(int argc, char **argv)
     }
 
     if (P != FL(0.0)) {          /* This is not right *********  */
-      esr_ = Rin;
+      esr = Rin;
     }
     if (P == FL(0.0)) {
-      esr_ = Rout;
+      esr = Rout;
     }
     if (O.outformat == 0) O.outformat = p->format;
     O.outsampsiz = getsizformat(O.outformat);
@@ -836,30 +831,12 @@ err_printf(Str(X_90,"-- fnam\tlog output to file\n"));
 #ifndef CWIN
 #include <stdarg.h>
 
-void dribble_printf(char *fmt, ...)
-{
-    va_list a;
-    va_start(a, fmt);
-    vprintf(fmt, a);
-    va_end(a);
-    if (dribble != NULL) {
-      va_start(a, fmt);
-      vfprintf(dribble, fmt, a);
-      va_end(a);
-    }
-}
-
 void err_printf(char *fmt, ...)
 {
     va_list a;
     va_start(a, fmt);
     vfprintf(stderr, fmt, a);
     va_end(a);
-    if (dribble != NULL) {
-      va_start(a, fmt);
-      vfprintf(dribble, fmt, a);
-      va_end(a);
-    }
 }
 #endif
 

@@ -404,11 +404,6 @@ int main(int argc, char **argv)
             }
             else O.heartbeat = 1;
             break;
-          case '-':
-            FIND(Str(X_1044,"no log file"));
-            dribble = fopen(s, "w");
-            while (*s++); s--;
-            break;
           case 't':
             FIND("no t arg");
             sscanf(s,"%f",&th);
@@ -1278,19 +1273,6 @@ void hamming(MYFLT *win, int winLen, int even)
 #if !defined(CWIN)
 #include <stdarg.h>
 
-void dribble_printf(char *fmt, ...)
-{
-    va_list a;
-    va_start(a, fmt);
-    vprintf(fmt, a);
-    va_end(a);
-    if (dribble != NULL) {
-      va_start(a, fmt);
-      vfprintf(dribble, fmt, a);
-      va_end(a);
-    }
-}
-
 #if !defined(macintosh)
 void err_printf(char *fmt, ...)
 {
@@ -1298,11 +1280,6 @@ void err_printf(char *fmt, ...)
     va_start(a, fmt);
     vfprintf(stderr, fmt, a);
     va_end(a);
-    if (dribble != NULL) {
-      va_start(a, fmt);
-      vfprintf(dribble, fmt, a);
-      va_end(a);
-    }
 }
 #endif
 #endif
