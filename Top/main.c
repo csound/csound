@@ -253,10 +253,10 @@ void psignal(int sig, char *str)
 
 static void signal_handler(int sig)
 {
-#if defined(USE_FLTK) && defined(SIGALRM)
-        if (sig == SIGALRM) return;
-#endif
     psignal(sig, "Csound tidy up");
+#if defined(USE_FLTK) && defined(SIGALRM)
+    if (sig == SIGALRM) return;
+#endif
     rtclose_();
     exit(1);
 }
@@ -268,18 +268,16 @@ static void install_signal_handler(void)
     int sigs[] = { SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGTRAP, SIGABRT, SIGIOT,
                    SIGBUS, SIGFPE, SIGSEGV, SIGPIPE, SIGALRM, SIGTERM, SIGXCPU,
                    SIGXFSZ, -1};
-#else
-# if defined(CSWIN)
+#elif defined(CSWIN)
     int sigs[] = { SIGHUP, SIGINT, SIGQUIT, -1};
-# else
-#  if defined(__EMX__)
+#elif defined(WIN32)
+    int sigs[] = { SIGINT, SIGILL, SIGABRT, SIGFPE, SIGSEGV, SIGTERM, -1};
+#elif defined(__EMX__)
     int sigs[] = { SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGTRAP, SIGABRT, SIGBUS,
                    SIGFPE, SIGUSR1, SIGSEGV, SIGUSR2, SIGPIPE, SIGALRM, SIGTERM,
                    SIGCHLD, -1 };
-#  else
+#else
     int sigs[] = { -1};
-#  endif
-# endif
 #endif
 
     for (x = sigs; *x > 0; x++)
@@ -561,16 +559,10 @@ int csoundCompile(void *csound, int argc, char **argv)
       fclose(scorout);
       playscore = xtractedscore;
     }
-/*          else { */
-/*            playscore = scorename; */
-/*            printf("playscore = %s\n", playscore); */
-/*          } */
     err_printf(Str(X_564,"\t... done\n"));
-
     s = playscore;
     O.playscore = filnamp;
     while ((*filnamp++ = *s++));    /* copy sorted score name */
-
  perf:
     O.filnamsize = filnamp - O.filnamspace;
     return musmon();
@@ -582,7 +574,7 @@ int csoundMain(void *csound, int argc, char **argv)
     int returnvalue;
     extern void csoundMessage(void *, const char *, ...);
     if ((returnvalue = setjmp(lj))) {
-      csoundMessage(csound, "Error return");
+      csoundMessage(csound, "Error return.");
       return returnvalue;
     }
 
