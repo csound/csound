@@ -432,12 +432,51 @@ INPUT                  =
 # *.c *.cc *.cxx *.cpp *.c++ *.java *.ii *.ixx *.ipp *.i++ *.inl *.h *.hh *.hxx *.hpp 
 # *.h++ *.idl *.odl *.cs *.php *.php3 *.inc *.m *.mm
 
-FILE_PATTERNS          = csound.h \
-                         cs.h \
-                         csoundCore.h \
-                         csdl.h \
-                         csoundvst_api.h \
-                         *.hpp
+FILE_PATTERNS          = \
+csound.h \
+cs.h \
+csoundCore.h \
+csdl.h \
+csoundvst_api.h \
+*.hpp \
+AiffData.h \
+AiffFile.h \
+Analyzer.h \
+AssociateBandwidth.h \
+Breakpoint.h \
+BreakpointEnvelope.h \
+BreakpointUtils.h \
+Channelizer.h \
+Dilator.h \
+Distiller.h \
+Endian.h \
+Envelope.h \
+Exception.h \
+Filter.h \
+FourierTransform.h \
+FrequencyReference.h \
+ImportLemur.h \
+KaiserWindow.h \
+Marker.h \
+Morpher.h \
+NoiseGenerator.h \
+Notifier.h \
+Oscillator.h \
+Partial.h \
+PartialBuilder.h \
+PartialList.h \
+PartialPtrs.h \
+PartialUtils.h \
+ReassignedSpectrum.h \
+Resampler.h \
+SdifFile.h \
+Sieve.h \
+SpcFile.h \
+SpectralPeakSelector.h \
+SpectralPeaks.h \
+Synthesizer.h \
+loris.h\
+lorisException_pi.h
 
 # The RECURSIVE tag can be used to turn specify whether or not subdirectories 
 # should be searched for input files as well. Possible values are YES and NO. 
