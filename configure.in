@@ -55,7 +55,8 @@ AC_CHECK_LIB([audio], [audioSetDevInfo])
 AC_CHECK_LIB([Alib], [AOpenAudio])
 #  NeXT midi support
 AC_CHECK_LIB([midi], [midi_set_owner])
-#AC_CHECK_LIB([pthread], [])
+AC_CHECK_LIB([winmm], [midiInOpen@20])
+AC_CHECK_LIB([pthread], [pthread_create])
 AC_CHECK_LIB([portaudio], [Pa_Initialize])
 AC_CHECK_LIB([X11], [XOpenDisplay])
 
@@ -63,7 +64,7 @@ AC_CHECK_LIB([X11], [XOpenDisplay])
 AC_FUNC_ALLOCA
 AC_HEADER_DIRENT
 AC_HEADER_STDC
-AC_CHECK_HEADERS([OS.h arpa/inet.h fcntl.h limits.h malloc.h memory.h netdb.h netinet/in.h sgtty.h bsd/sgtty.h stddef.h stdlib.h string.h strings.h sys/file.h sys/ioctl.h sys/param.h sys/socket.h sys/time.h termios.h unistd.h])
+AC_CHECK_HEADERS([OS.h arpa/inet.h fcntl.h limits.h malloc.h memory.h netdb.h netinet/in.h sgtty.h bsd/sgtty.h stddef.h stdlib.h string.h strings.h sys/file.h sys/ioctl.h sys/param.h sys/socket.h sys/time.h termios.h unistd.h windows.h portaudio.h Fl/Fl.H])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -178,7 +179,10 @@ case $host in
 	     ;;
 
      *-*-msdos* | *-*-go32* | *-*-mingw32* | *-*-cygwin* | *-*-windows*)
-             RTAUDIO_OBJS="rtpa.$ac_objext pablio.$ac_objext ringbuffer.$ac_objext"
+         RTAUDIO_OBJS="rtpa.$ac_objext pablio.$ac_objext ringbuffer.$ac_objext"
+         RTAUDIO_LIBS="-L/usr/local/lib -lportaudio -lwinmm"
+         CYGWINLDFLAGS="-mconsole"
+         CYGWINCFLAGS="-D_CONSOLE"
 	     AC_DEFINE(WIN32)
 	     ;;
 
@@ -187,6 +191,7 @@ case $host in
              RTAUDIO_SRC="InOut/rtpa.c InOut/pablio.c InOut/ringbuffer.c"
              RTAUDIO_OBJS="rtpa.$ac_objext pablio.$ac_objext ringbuffer.$ac_objext"
              RTAUDIO_HDR=
+             RTAUDIO_LIBS="-lportaudio"
 	     if test "$WORDS_BIG_ENDIAN"; then
 		AC_DEFINE(LINUX_BE)
 	     fi
@@ -292,12 +297,14 @@ if test "$USE_GUI" = yes; then
 	WINLDFLAGS=`$FLTK_CONFIG --ldflags` 
 	WINLDFLAGS="$WINLDFLAGS -lpthread -lstdc++"
 	WINCXXFLAGS=`$FLTK_CONFIG --cxxflags`
-     	AC_DEFINE(HAVE_FLTK)
+    AC_DEFINE(HAVE_FLTK)
 
 	AC_CHECK_LIB([pthread], [pthread_mutex_lock])
 fi
 AC_CHECK_LIB([m], [sin])
 
+AC_SUBST(CYGWINCFLAGS)
+AC_SUBST(CYGWINLDFLAGS)
 AC_SUBST(XCFLAGS)
 AC_SUBST(WINSRC)
 AC_SUBST(WINOBJ)
