@@ -20,10 +20,11 @@
 * License along with this software; if not, write to the Free Software
 * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-%module CsoundVST
+%module(directors="1") CsoundVST
 %{
 	#include "Silence.hpp"
 %}
+%feature("director") Node;
 %include "Silence.hpp"
 
 %pythoncode
