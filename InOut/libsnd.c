@@ -243,7 +243,7 @@ int sndinset(ENVIRON *csound, SOUNDIN *p)    /* init routine for instr soundin  
     SNDFILE *sinfd;
     int     reinit = 0;
 
-    if (*p->skipinit<= FL(0.0)) return OK;
+    if (*p->skipinit != FL(0.0)) return OK;
     if (p->fdch.fd!=NULL) {                 /* if file already open, close it */
           /* RWD: it is not safe to assume all compilers init this to 0 */
           /* (IV: but it is allocated with mcalloc...) */
