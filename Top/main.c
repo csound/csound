@@ -325,13 +325,13 @@ int csoundCompile(void *csound, int argc, char **argv)
 #if defined(LINUX)
     set_rt_priority (argc, argv);
 #endif
+    csoundReset(csound);
     if ((n=setjmp(cenviron.exitjmp_))) {
       /*
        * Changed from exit(-1) for re-entrancy.
        */
       return -1;
     }
-    csoundReset(csound);
     frsturnon = 0;
     init_getstring(argc, argv);
     init_pvsys();
@@ -591,7 +591,7 @@ int csoundMain(void *csound, int argc, char **argv)
     jmp_buf lj;
     int returnvalue;
 
-    if ((returnvalue = setjmp(lj))) {
+    if ((returnvalue = setjmp(cenviron.exitjmp_))) {
         csoundMessage(csound, "Error return");
         return returnvalue;
     }
