@@ -84,6 +84,12 @@
 	otran so strings work!
 	(constndx): from here
 
+2004-07-05  Anthony Kozar <anthony.kozar@utoledo.edu>
+
+	* Top/argdecode.c (argdecode): don't keep tmp files on Mac
+	
+	* Engine/sread.c (ifa): Rest of ^+ bug fix from csound module.
+
 2004-07-04  John ffitch  <jpff@codemist.co.uk>
 
 	* strings/all_strings: Added string 226
