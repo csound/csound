@@ -51,10 +51,10 @@ typedef struct
 	OPDS h;  	
 	
 	/* no output 
-	float *result; */
+	MYFLT *result; */
 	
 	/* unit generator parameters/arguments */
-	float *time, *ifilnam, *readerIdx, *freqenv, *ampenv, *bwenv, *fadetime;    
+	MYFLT *time, *ifilnam, *readerIdx, *freqenv, *ampenv, *bwenv, *fadetime;    
 
 	/* private internal data, used by generator */
 	LorisReader *imp;
@@ -67,10 +67,10 @@ typedef struct
 	OPDS h;  	
 	
 	/* output */
-	float *result;
+	MYFLT *result;
 	
 	/* unit generator parameters/arguments */
-	float *readerIdx, *freqenv, *ampenv, *bwenv;    
+	MYFLT *readerIdx, *freqenv, *ampenv, *bwenv;    
 
 	/* private internal data, used by generator */
 	LorisPlayer *imp;
@@ -83,11 +83,11 @@ typedef struct
 	OPDS h;  	
 	
 	/* no output 
-	float *result; */
+	MYFLT *result; */
 
 	
 	/* unit generator parameters/arguments */
-	float *srcidx, *tgtidx, *morphedidx, *freqenv, *ampenv, *bwenv;    
+	MYFLT *srcidx, *tgtidx, *morphedidx, *freqenv, *ampenv, *bwenv;    
 
 	/* private internal data, used by generator */
 	LorisMorpher *imp;
