@@ -199,7 +199,7 @@ int main(int argc, char **argv)
 
 CsoundVST is a multi-function front end for the Csound API. CsoundVST runs as a stand-alone graphical user interface to Csound, or as a VST plugin in hosts such as the Cubase audio sequencer. CsoundVST provides both a C++ and a Python API to Csound, and to a set of classes for algorithmic composition. 
 
-CsoundVST has a built-in Python interpreter. With Python, the user can generate a score, import a MIDI file, process notes, load and run a Csound orchestra, and in general do anything that can be done either with Csound or in Python.
+CsoundVST contains a built-in Python interpreter. With Python, the user can generate a score, import a MIDI file, process notes, load and run a Csound orchestra, and in general do anything that can be done either with Csound or in Python.
 
 You must define the \texttt{PYTHONPATH} environment variable to include the directory containing the \texttt{\_CsoundVST} shared library and \texttt{CsounVST.py} script.
 
@@ -209,7 +209,7 @@ To run CsoundVST as a stand-alone front end to Csound, execute \texttt{CsoundVST
 
 \subsubsection{The CsoundVST API}
 
-CsoundVST extends the Csound API with C++. There is a C++ class for the Csound API proper, another C++ class for manipulating Csound files in code, and additional classes for algorithmic composition based on music space. All these C++ classes also have a Python interface in the \texttt{csound} Python extension module. For more information, consult the Doxygen-generated files in the \texttt{csound5/doc} directory.
+CsoundVST extends the Csound API with C++. There is a C++ class for the Csound API proper, another C++ class for manipulating Csound files in code, and additional classes for algorithmic composition based on music space. All these C++ classes also have a Python interface in the \texttt{CsoundVST} Python extension module. For more information, consult the Doxygen-generated files in the \texttt{csound5/doc} directory.
 
 You can build CsoundVST into your own software using the \texttt{\_CsoundVST} shared library and \texttt{CsoundVST.hpp} header file. For example, the CsoundVST stand-alone graphical user interface program is made this way:
 \begin{verbatim}
@@ -245,9 +245,31 @@ To use CsoundVST itself as your Python interpreter, click on the CsoundVST Setti
 The \texttt{koch.py} script provides an examples of how to use Python to do algorithmic composition for Csound. You can use Python triple-quoted string literals to hold your Csound files right in your script, and assign them to Csound: 
 
 \begin{verbatim}
-csound.setOrchestra('''sr = 44100kr = 441ksmps = 100   nchnls = 20dbfs = .1instr 1,2,3,4,5 ; FluidSynth General MIDI; INITIALIZATION; Channel, bank, and program determine the preset, that is, the actual sound.ichannel		=			p1iprogram		=			p6ikey	 		= 			p4ivelocity 		= 			p5 + 12ijunk6 			= 			p6ijunk7			=			p7; AUDIOistatus			=			144;			print			iprogram, istatus, ichannel, ikey, ivelocityaleft, aright		fluid			"c:/projects/csound5/samples/VintageDreamsWaves-v2.sf2", \
-    iprogram, istatus, ichannel, ikey, ivelocity, 1			outs 			aleft, arightendin''')csound.setCommand("csound --opcode-lib=c:/projects/csound5/fluid.dll \
-    -RWdfo ./koch.wav ./temp.orc ./temp.sco")csound.exportForPerformance()csound.perform()\end{verbatim}
+csound.setOrchestra('''sr = 44100
+kr = 441
+ksmps = 100   
+nchnls = 2
+0dbfs = .1
+instr 1,2,3,4,5 ; FluidSynth General MID
+I; INITIALIZATION
+; Channel, bank, and program determine the preset, that is, the actual sound.
+ichannel		=			p1
+iprogram		=			p6
+ikey	 		= 			p4
+ivelocity 		= 			p5 + 12
+ijunk6 			= 			p6
+ijunk7			=			p7
+; AUDIO
+istatus			=			144;			
+print			iprogram, istatus, ichannel, ikey, ivelocityaleft, aright		
+fluid			"c:/projects/csound5/samples/VintageDreamsWaves-v2.sf2", \\
+    iprogram, istatus, ichannel, ikey, ivelocity, 1			
+outs 			aleft, arightendin''')
+csound.setCommand("csound --opcode-lib=c:/projects/csound5/fluid.dll \\
+    -RWdfo ./koch.wav ./temp.orc ./temp.sco")
+csound.exportForPerformance()
+csound.perform()
+\end{verbatim}
 
 To run your script in Csound VST, click on the Perform button. 
 
