@@ -1,0 +1,136 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{pvsftr}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{pvsftr}
+pvsftr --  Reads amplitude and/or frequency data from function tables. \subsection*{Description}
+
+
+  Reads amplitude and/or frequency data from function tables. 
+\subsection*{Syntax}
+
+
+ \textbf{pvsftr}
+ fsrc, ifna [, ifnf]
+\subsection*{Initialization}
+
+
+ \emph{ifna}
+ -- A table, at least inbins in size, that stores amplitude data. Ignored if ifna = 0 
+
+
+ \emph{ifnf}
+ (optional) -- A table, at least inbins in size, that stores frequency data. Ignored if ifnf = 0 
+\subsection*{Performance}
+
+
+ \emph{fsrc}
+ -- a PVOC-EX formatted source. 
+
+
+  Enables the contents of \emph{fsrc}
+ to be exchanged with function tables for custom processing. Except when the frame overlap equals \emph{ksmps}
+ (which will generally not be the case), the frame data is not updated each control period. The data in \emph{ifna}
+, \emph{ifnf}
+ should only be processed when \emph{kflag}
+ is set to 1. To process only frequency data, set \emph{ifna}
+ to zero. 
+
+
+  As the function tables are required only to store data from \emph{fsrc}
+, there is no advantage in defining then in the score, and they should generally be created in the instrument, using \emph{ftgen}
+. 
+
+
+  By exporting amplitude data, say, from one fsig and importing it into another, basic cross-synthesis (as in \emph{pvscross}
+) can be performed, with the option to modify the data beforehand using the table manipulation opodes. 
+
+
+  Note that the format data in the source fsig is not written to the tables. This therefore offers a means of transferring amplitude and frequency data between non-identical fsigs. Used this way, these opcodes become potentially pathological, and can be relied upon to produce unexpected results. In such cases, resynthesis using \emph{pvsadsyn}
+ would almost certainly be required. 
+
+
+  To perform a straight copy from one fsig to another one of identical format, the conventional assignment syntax can be used: 
+
+
+  \\ 
+ fsig1 = fsig2\\ 
+       
+ It is not necessary to use function tables in this case. \subsection*{Examples}
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+ifn     ftgen      0,0,inbins,10,1        ; make ftable
+kflag   pvsftw     fsrc,ifn          ; export  amps to table,
+kamp    init       0
+if      kflag==0   kgoto contin   ; only proc when frame is ready
+; kill lowest bins, for obvious effect
+        tablew      kamp,1,ifn
+        tablew      kamp,2,ifn
+        tablew      kamp,3,ifn
+        tablew      kamp,4,ifn
+; read modified data back to fsrc
+        pvsftr      fsrc,ifn
+contin:
+; and resynth
+aout    pvsynth    fsrc
+        
+\end{lstlisting}
+
+
+ 
+\subsection*{See Also}
+
+
+ \emph{pvsftw}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Author: Richard Dobson &August 2001 
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in version 4.13
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+pvsfread &Up &pvsftw
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,94 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{reinit}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{reinit}
+reinit --  Suspends a performance while a special initialization pass is executed. \subsection*{Description}
+
+
+  Suspends a performance while a special initialization pass is executed. 
+
+
+  Whenever this statement is encountered during a p-time pass, performance is temporarily suspended while a special Initialization pass, beginning at \emph{label}
+ and continuing to \emph{rireturn}
+ or \emph{endin}
+, is executed. Performance will then be resumed from where it left off. 
+\subsection*{Syntax}
+
+
+ \textbf{reinit}
+ label
+\subsection*{Examples}
+
+
+  The following statements will generate an exponential control signal whose value moves from 440 to 880 exactly ten times over the duration p3. They use the files \emph{reinit.orc}
+ and \emph{reinit.sco}
+. 
+
+
+ \textbf{Example 1. Example of the reinit opcode.}
+
+\begin{lstlisting}
+/* reinit.orc */
+sr = 44100
+kr = 44100
+ksmps = 1
+nchnls = 1
+
+instr 1
+
+reset:
+        timout 0, p3/10, contin
+        reinit reset
+
+contin:
+        kLine expon 440, p3/10, 880
+        aSig oscil 10000, kLine, 1
+        out aSig
+        rireturn
+
+endin
+/* reinit.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* reinit.sco */
+f1 0 4096 10 1
+
+i1 0 10
+e
+/* reinit.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{rigoto}
+, \emph{rireturn}
+
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+readk4 &Up &release
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,117 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{pvread}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{pvread}
+pvread --  Reads from a phase vocoder analysis file and returns the frequency and amplitude from a single analysis channel or bin. \subsection*{Description}
+
+
+ \emph{pvread}
+ reads from a \emph{pvoc}
+ file and returns the frequency and amplitude from a single analysis channel or bin. The returned values can be used anywhere else in the Csound instrument. For example, one can use them as arguments to an oscillator to synthesize a single component from an analyzed signal or a bank of pvreads can be used to resynthesize the analyzed sound using additive synthesis by passing the frequency and magnitude values to a bank of oscillators. 
+\subsection*{Syntax}
+
+
+ kfreq, kamp \textbf{pvread}
+ ktimpnt, ifile, ibin
+\subsection*{Initialization}
+
+
+ \emph{ifile}
+ -- the \emph{pvoc}
+ number (n in pvoc.n) or the name in quotes of the analysis file made using pvanal. (See \emph{pvoc}
+.) 
+
+
+ \emph{ibin}
+ -- the number of the analysis channel from which to return frequency in Hz and magnitude. 
+\subsection*{Performance}
+
+
+ \emph{kfreq, kamp}
+ -- outputs of the \emph{pvread}
+ unit. These values, retrieved from a phase vocoder analysis file, represent the values of frequency and amplitude from a single analysis channel specified in the ibin argument. Interpolation between analysis frames is performed at k-rate resolution and dependent of course upon the rate and direction of ktimpnt. 
+
+
+ \emph{ktimpnt}
+ -- the passage of time, in seconds, through this file. \emph{ktimpnt}
+ must always be positive, but can move forwards or backwards in time, be stationary or discontinuous, as a pointer into the analysis file. 
+\subsection*{Examples}
+
+
+  The example below shows the use \emph{pvread}
+ to synthesize a single component from a phase vocoder analysis file. It should be noted that the \emph{kfreq}
+ and \emph{kamp}
+ outputs can be used for any kind of synthesis, filtering, processing, and so on. 
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+ktime         \emph{line}
+    0, p3, 3 
+kfreq, kamp   \emph{pvread}
+  ktime, "pvoc.file", 7 ; read
+                                      ;data from 7th analysis bin.  
+asig          \emph{oscili}
+  kamp, kfreq, 1  ; function 1
+                                      ;is a stored sine
+        
+\end{lstlisting}
+
+
+ 
+\subsection*{See Also}
+
+
+ \emph{pvbufread}
+, \emph{pvcross}
+, \emph{pvinterp}
+, \emph{tableseg}
+, \emph{tablexseg}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Richard Karpen &Seattle, Wash &1997
+
+\end{tabular}
+
+
+
+ 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+pvoc &Up &pvsadsyn
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

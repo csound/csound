@@ -1,0 +1,132 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{release}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{release}
+release --  Indicates whether a note is in its ``release'' stage. \subsection*{Description}
+
+
+  Indicates whether a note is in its ``release'' stage. 
+\subsection*{Syntax}
+
+
+ kflag \textbf{release}
+
+\subsection*{Performance}
+
+
+ \emph{kflag}
+ -- indicates whether the note is in its ``release'' stage. 
+
+
+ \emph{release}
+ outputs current note state. If current note is in the ``release'' stage (i.e. if its duration has been extended with \emph{xtratim}
+ opcode and if it has only just deactivated), then the \emph{kflag}
+ output argument is set to 1. Otherwise (in sustain stage of current note), \emph{kflag}
+ is set to 0. 
+
+
+  This opcode is useful for implementing complex release-oriented envelopes. 
+\subsection*{Examples}
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+ \emph{instr}
+ 1 ;allows complex ADSR envelope with MIDI events
+  inum \emph{notnum}
+
+  icps \emph{cpsmidi}
+
+  iamp \emph{ampmid}
+i 4000
+ ;
+ ;------- complex envelope block ------
+  \emph{xtratim}
+ 1 ;extra-time, i.e. release dur
+  krel \emph{init}
+ 0
+  krel \emph{release}
+ ;outputs release-stage flag (0 or 1 values)
+  if (krel  .5) \emph{kgoto}
+ rel ;if in release-stage goto release section
+ ;
+ ;************ attack and sustain section ***********
+  kmp1 \emph{linseg}
+ 0, .03, 1, .05, 1, .07, 0, .08, .5, 4, 1, 50, 1
+  kmp = kmp1*iamp
+   \emph{kgoto}
+ done
+ ;
+ ;--------- release section --------
+   rel:
+  kmp2 \emph{linseg}
+ 1, .3, .2, .7, 0
+  kmp = kmp1*kmp2*iamp
+  done:
+ ;------
+  a1 \emph{oscili}
+ kmp, icps, 1
+  \emph{out}
+ a1
+ \emph{endin}
+
+        
+\end{lstlisting}
+
+
+ 
+\subsection*{See Also}
+
+
+ \emph{xtratim}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Author: Gabriel Maldonado &Italy
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 3.47
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+reinit &Up &repluck
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

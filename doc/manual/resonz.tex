@@ -1,0 +1,168 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{resonz}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{resonz}
+resonz --  A bandpass filter with variable frequency response. \subsection*{Description}
+
+
+  Implementations of a second-order, two-pole two-zero bandpass filter with variable frequency response. 
+\subsection*{Syntax}
+
+
+ ar \textbf{resonz}
+ asig, kcf, kbw [, iscl] [, iskip]
+\subsection*{Initialization}
+
+
+  The optional initialization variables for \emph{resonr}
+ and \emph{resonz}
+ are identical to the i-time variables for \emph{reson}
+. 
+
+
+ \emph{iskip}
+ -- initial disposition of internal data space. Since filtering incorporates a feedback loop of previous output, the initial status of the storage space used is significant. A zero value will clear the space; a non-zero value will allow previous information to remain. The default value is 0. 
+
+
+ \emph{iscl}
+ -- coded scaling factor for resonators. A value of 1 signifies a peak response factor of 1, i.e. all frequencies other than \emph{kcf}
+ are attenuated in accordance with the (normalized) response curve. A value of 2 raises the response factor so that its overall RMS value equals 1. This intended equalization of input and output power assumes all frequencies are physically present; hence it is most applicable to white noise. A zero value signifies no scaling of the signal, leaving that to some later adjustment (see \emph{balance}
+). The default value is 0. 
+\subsection*{Performance}
+
+
+ \emph{resonr}
+ and \emph{resonz}
+ are variations of the classic two-pole bandpass resonator (\emph{reson}
+). Both filters have two zeroes in their transfer functions, in addition to the two poles. \emph{resonz}
+ has its zeroes located at z = 1 and z = -1. \emph{resonr}
+ has its zeroes located at +sqrt(\emph{R}
+) and -sqrt(\emph{R}
+), where \emph{R}
+ is the radius of the poles in the complex z-plane. The addition of zeroes to \emph{resonr}
+ and \emph{resonz}
+ results in the improved selectivity of the magnitude response of these filters at cutoff frequencies close to 0, at the expense of less selectivity of frequencies above the cutoff peak. 
+
+
+ \emph{resonr}
+ and \emph{resonz}
+ are very close to constant-gain as the center frequency is swept, resulting in a more efficient control of the magnitude response than with traditional two-pole resonators such as \emph{reson}
+. 
+
+
+ \emph{resonr}
+ and \emph{resonz}
+ produce a sound that is considerably different from \emph{reson}
+, especially for lower center frequencies; trial and error is the best way of determining which resonator is best suited for a particular application. 
+
+
+ \emph{asig}
+ -- input signal to be filtered 
+
+
+ \emph{kcf}
+ -- cutoff or resonant frequency of the filter, measured in Hz 
+
+
+ \emph{kbw}
+ -- bandwidth of the filter (the Hz difference between the upper and lower half-power points) 
+\subsection*{Technical History}
+
+
+ \emph{resonr}
+ and \emph{resonz}
+ were originally described in an article by Julius O. Smith and James B. Angell.1 Smith and Angell recommended the \emph{resonz}
+ form (zeros at +1 and -1) when computational efficiency was the main concern, as it has one less multiply per sample, while \emph{resonr}
+ (zeroes at + and - the square root of the pole radius R) was recommended for situations when a perfectly constant-gain center peak was required. 
+
+
+  Ken Steiglitz, in a later article 2, demonstrated that \emph{resonz}
+ had constant gain at the true peak of the filter, as opposed to \emph{resonr}
+, which displayed constant gain at the pole angle. Steiglitz also recommended \emph{resonz}
+ for its sharper notches in the gain curve at zero and Nyquist frequency. Steiglitz's recent book 3 features a thorough technical discussion of \emph{reson}
+ and \emph{resonz}
+, while Dodge and Jerse's textbook 4 illustrates the differences in the response curves of \emph{reson}
+ and \emph{resonz}
+. 
+\subsection*{References}
+
+
+ 
+
+
+ 
+\begin{enumerate}
+\item 
+
+  Smith, Julius O. and Angell, James B., ``A Constant-Gain Resonator Tuned by a Single Coefficient,'' \emph{Computer Music Journal}
+, vol. 6, no. 4, pp. 36-39, Winter 1982. 
+
+\item 
+
+  Steiglitz, Ken, ``A Note on Constant-Gain Digital Resonators,'' \emph{Computer Music Journal}
+, vol. 18, no. 4, pp. 8-10, Winter 1994. 
+
+\item 
+
+  Ken Steiglitz, \emph{A Digital Signal Processing Primer, with Applications to Digital Audio and Computer Music}
+. Addison-Wesley Publishing Company, Menlo Park, CA, 1996. 
+
+\item 
+
+  Dodge, Charles and Jerse, Thomas A., \emph{Computer Music: Synthesis, Composition, and Performance}
+. New York: Schirmer Books, 1997, 2nd edition, pp. 211-214. 
+
+
+\end{enumerate}
+\subsection*{See Also}
+
+
+ \emph{resonr}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Sean Costello &Seattle, Washington &1999
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 3.55
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+resony &Up &reverb
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

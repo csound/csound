@@ -1,0 +1,285 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{pvadd}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{pvadd}
+pvadd --  Reads from a \emph{pvoc}
+ file and uses the data to perform additive synthesis. \subsection*{Description}
+
+
+ \emph{pvadd}
+ reads from a \emph{pvoc}
+ file and uses the data to perform additive synthesis using an internal array of interpolating oscillators. The user supplies the wave table (usually one period of a sine wave), and can choose which analysis bins will be used in the re-synthesis. 
+\subsection*{Syntax}
+
+
+ ar \textbf{pvadd}
+ ktimpnt, kfmod, ifilcod, ifn, ibins [, ibinoffset] [, ibinincr] [, iextractmode] [, ifreqlim] [, igatefn]
+\subsection*{Initialization}
+
+
+ \emph{ifilcod}
+ -- integer or character-string denoting a control-file derived from \emph{pvanal}
+ analysis of an audio signal. An integer denotes the suffix of a file \emph{pvoc.m}
+; a character-string (in double quotes) gives a filename, optionally a full pathname. If not fullpath, the file is sought first in the current directory, then in the one given by the environment variable \emph{SADIR}
+ (if defined). \emph{pvoc}
+ control files contain data organized for fft resynthesis. Memory usage depends on the size of the files involved, which are read and held entirely in memory during computation but are shared by multiple calls (see also \emph{lpread}
+). 
+
+
+ \emph{ifn}
+ -- table number of a stored function containing a sine wave. 
+
+
+ \emph{ibins}
+ -- number of bins that will be used in the resynthesis (each bin counts as one oscillator in the re-synthesis) 
+
+
+ \emph{ibinoffset}
+ (optional) -- is the first bin used (it is optional and defaults to 0). 
+
+
+ \emph{ibinincr}
+ (optional) -- sets an increment by which \emph{pvadd}
+ counts up from \emph{ibinoffset}
+ for \emph{ibins}
+ components in the re-synthesis (see below for a further explanation). 
+
+
+ \emph{iextractmode}
+ (optional) -- determines if spectral extraction will be carried out and if so whether components that have changes in frequency below \emph{ifreqlim}
+ or above \emph{ifreqlim}
+ will be discarded. A value for \emph{iextractmode}
+ of 1 will cause \emph{pvadd}
+ to synthesize only those components where the frequency difference between analysis frames is greater than \emph{ifreqlim}
+. A value of 2 for \emph{iextractmode}
+ will cause \emph{pvadd}
+ to synthesize only those components where the frequency difference between frames is less than \emph{ifreqlim}
+. The default values for \emph{iextractmode}
+ and \emph{ifreqlim}
+ are 0, in which case a simple resynthesis will be done. See examples below. 
+
+
+ \emph{igatefn}
+ (optional) -- is the number of a stored function which will be applied to the amplitudes of the analysis bins before resynthesis takes place. If \emph{igatefn}
+ is greater than 0 the amplitudes of each bin will be scaled by \emph{igatefn}
+ through a simple mapping process. First, the amplitudes of all of the bins in all of the frames in the entire analysis file are compared to determine the maximum amplitude value. This value is then used create normalized amplitudes as indeces into the stored function \emph{igatefn}
+. The maximum amplitude will map to the last point in the function. An amplitude of 0 will map to the first point in the function. Values between 0 and 1 will map accordingly to points along the function table.This will be made clearer in the examples below. 
+\subsection*{Performance}
+
+
+ \emph{ktimpnt}
+ and \emph{kfmod}
+ are used in the same way as in \emph{pvoc}
+. 
+\subsection*{Examples}
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+ktime \textbf{line}
+  0, p3, p3
+        
+\end{lstlisting}
+
+
+ 
+
+
+ asig \emph{pvadd}
+ ktime, 1, ``oboe.pvoc'', 1, 100, 2 
+
+
+  In the above, \emph{ibins}
+ is 100 and \emph{ibinoffset}
+ is 2. Using these settings the resynthesis will contain 100 components beginning with bin \#2 (bins are counted starting with 0). That is, resynthesis will be done using bins 2-101 inclusive. It is usually a good idea to begin with bin 1 or 2 since the 0th and often 1st bin have data that is neither necessary nor even helpful for creating good clean resynthesis. 
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+ktime line  0, p3, p3
+asig  pvadd ktime, 1, "oboe.pvoc", 1, 100, 2, 2
+        
+\end{lstlisting}
+
+
+ 
+
+
+  The above is the same as the previous example with the addition of the value 2 used for the optional \emph{ibinincr}
+ argument. This result will still result in 100 components in the resynthesis, but \emph{pvadd}
+ will count through the bins by 2 instead of by 1. It will use bins 2, 4, 6, 8, 10, and so on. For \emph{ibins}
+=10, \emph{ibinoffset}
+=10, and \emph{ibinincr}
+=10, \emph{pvadd}
+ would use bins 10, 20, 30, 40, up to and including 100. 
+
+
+  Below is an example using spectral extraction. In this example \emph{iextractmode}
+ is one and \emph{ifreqlim}
+ is 9. This will cause pvadd to synthesize only those bins where the frequency deviation, averaged over 6 frames, is greater than 9. 
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+ktime line  0, p3, p3
+asig  pvadd ktime, 1,  "oboe.pvoc", 1, 100, 2, 2, 1, 9
+        
+\end{lstlisting}
+
+
+ 
+
+
+  If \emph{iextractmode}
+ were 2 in the above, then only those bins with an average frequency deviation of less than 9 would be synthesized. If tuned correctly, this technique can be used to separate the pitched parts of the spectrum from the noisy parts. In practice this depends greatly on the type of sound, the quality of the recording and digitization, and also on the analysis window size and frame increment. 
+
+
+  Next is an example using amplitude gating. The last 2 in the argument list stands for f2 in the score. 
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+asig  pvadd ktime, 1,  "oboe.pvoc", 1, 100, 2, 2, 0, 0, 2
+        
+\end{lstlisting}
+
+
+ 
+
+
+  Suppose the score for the above were to contain: 
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+f2 0 512 7 0 256 1 256 1
+        
+\end{lstlisting}
+
+
+ 
+
+
+  Then those bins with amplitudes of 50\% of the maximum or greater would be left unchanged, while those with amplitudes less than 50\% of the maximum would be scaled down. In this case the lower the amplitude the more severe the scaling down would be. But suppose the score contains: 
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+f2 0 512 5 1 512 .001
+        
+\end{lstlisting}
+
+
+ 
+
+
+  In this case lower amplitudes will be left unchanged and greater ones will be scaled down, turning the sound ``upside-down'' in terms of the amplitude spectrum! Functions can be arbitrarily complex. Just remember that the normalized amplitude values of the analysis are themselves the indeces into the function. 
+
+
+  Finally, both spectral extraction and amplitude gating can be used together. The example below will synthesize only those components that with a frequency deviation of less than 5Hz per frame and it will scale the amplitudes according to F2. 
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+asig  pvadd ktime, 1,  "oboe.pvoc", 1, 100, 1, 1, 2, 5, 2
+        
+\end{lstlisting}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cc}
+\textbf{USEFUL HINTS}
+ \\
+  &
+
+  By using several \emph{pvadd}
+ units together, one can gradually fade in different parts of the resynthesis, creating various ``filtering'' effects. The author uses \emph{pvadd}
+ to synthesis one bin at a time to have control over each separate component of the re-synthesis. 
+
+
+  If any combination of \emph{ibins}
+, \emph{ibinoffset}
+, and \emph{ibinincr}
+, creates a situation where \emph{pvadd}
+ is asked to used a bin number greater than the number of bins in the analysis, it will just use all of the available bins, and give no complaint. So to use every bin just make \emph{ibins}
+ a big number (ie. 2000). 
+
+
+  Expect to have to scale up the amplitudes by factors of 10-100, by the way. 
+
+
+\end{tabular}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Richard Karpen &Seattle, WA USA &1998
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 3.48, additional arguments version 3.56
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+pset &Up &pvbufread
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

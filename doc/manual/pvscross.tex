@@ -1,0 +1,98 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{pvscross}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{pvscross}
+pvscross --  Performs cross-synthesis between two source fsigs. \subsection*{Description}
+
+
+  Performs cross-synthesis between two source fsigs. 
+\subsection*{Syntax}
+
+
+ fsig \textbf{pvscross}
+ fsrc, fdest, kamp1, kamp2
+\subsection*{Performance}
+
+
+  The operation of this opcode is identical to that of \emph{pvcross}
+ (q.v.), except in using \emph{fsig}
+s rather than analysis files, and the absence of spectral envelope preservation. The amplitudes from \emph{fsrc}
+ are applied to \emph{fdest}
+, using scale factors \emph{kamp1}
+ and \emph{kamp2}
+ respectively. \emph{kamp1}
+ and \emph{kamp2}
+ must not exceed the range 0 to 1. 
+
+
+  With this opcode, cross-synthesis can be performed on real-time audio input, by using \emph{pvsanal}
+ to generate \emph{fsrc}
+ and \emph{fdest}
+. These must have the same format. 
+\subsection*{Examples}
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+kcross  linseg    0,p3/3,0,p3/3,1,p3/3,1 ; progressive cross-synthesis
+fcross  pvscross  fsig1,fsig2,1-kcross,kcross
+across  pvsynth   fcross
+        
+\end{lstlisting}
+
+
+ 
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Author: Richard Dobson &August 2001 
+
+\end{tabular}
+
+
+
+ 
+
+
+ November 2003. Thanks to Kanata Motohashi, fixed the link to the \emph{pvcross}
+ opcode.
+
+
+ New in version 4.13
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+pvsanal &Up &pvsfread
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

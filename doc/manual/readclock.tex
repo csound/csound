@@ -1,0 +1,142 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{readclock}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{readclock}
+readclock --  Reads the value of an internal clock. \subsection*{Description}
+
+
+  Reads the value of an internal clock. 
+\subsection*{Syntax}
+
+
+ ir \textbf{readclock}
+ inum
+\subsection*{Initialization}
+
+
+ \emph{inum}
+ -- the number of a clock. There are 32 clocks numbered 0 through 31. All other values are mapped to clock number 32. 
+
+
+ \emph{ir}
+ -- value at i-time, of the clock specified by \emph{inum}
+
+\subsection*{Performance}
+
+
+  Between a \emph{clockon}
+ and a \emph{clockoff}
+ opcode, the CPU time used is accumulated in the clock. The precision is machine dependent but is the millisecond range on UNIX and Windows systems. The \emph{readclock}
+ opcde reads the current value of a clock at initialization time. 
+\subsection*{Examples}
+
+
+  Here is an example of the readclock opcode. It uses the files \emph{readclock.orc}
+ and \emph{readclock.sco}
+. 
+
+
+ \textbf{Example 1. Example of the readclock opcode.}
+
+\begin{lstlisting}
+/* readclock.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 44100
+ksmps = 1
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  ; Start clock #1.
+  clockon 1
+  ; Do something that keeps Csound busy.
+  a1 oscili 10000, 440, 1
+  out a1
+  ; Stop clock #1.
+  clockoff 1
+  ; Print the time accumulated in clock #1.
+  i1 readclock 1
+  print i1
+endin
+/* readclock.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* readclock.sco */
+; Initialize the function tables.
+; Table 1: an ordinary sine wave.
+f 1 0 32768 10 1
+
+; Play Instrument #1 for one second starting at 0:00.
+i 1 0 1
+; Play Instrument #1 for one second starting at 0:01.
+i 1 1 1
+; Play Instrument #1 for one second starting at 0:02.
+i 1 2 1
+e
+/* readclock.sco */
+        
+\end{lstlisting}
+ Its output should include lines like this: \begin{lstlisting}
+instr 1:  i1 = 0.000
+instr 1:  i1 = 90.000
+instr 1:  i1 = 180.000
+      
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{clockoff}
+, \emph{clockon}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cccc}
+Author: John ffitch &University of Bath/Codemist Ltd. &Bath, UK &July, 1999
+
+\end{tabular}
+
+
+
+ 
+
+
+ Example written by Kevin Conder.
+
+
+ New in Csound version 3.56
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+randomi &Up &readk
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}
