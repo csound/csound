@@ -83,8 +83,8 @@ static void InitScaleTable(int);
 static MYFLT gain(int, int);
 static int  MXsndgetset(inputs *);
 static void MixSound(int, int);
-static void (*audtran)(char *, int), nullfn(char *, int);
-static void (*spoutran)(MYFLT *, int);
+static void (*audtran)(char *, int);
+static void (*spoutran)(MYFLT *);
 
 /* Externs */
 extern long getsndin(int, MYFLT *, long, SOUNDIN *);
@@ -672,7 +672,7 @@ MixSound(int n, int outfd)
         if (buffer[j] > max) max = buffer[j], lmaxpos = sample+j, maxtimes=1;
         if (buffer[j] < min) min = buffer[j], lminpos = sample+j, mintimes=1;
       }
-      spoutran(buffer, this_block*outputs);
+      spoutran(buffer);
       audtran(outbuf, O.sfsampsize*this_block*outputs);
       write(outfd, outbuf, O.sfsampsize*this_block*outputs);
       block++;
@@ -718,27 +718,3 @@ MixSound(int n, int outfd)
 }
 
 
-static void
-nullfn(char *outbuf, int nbytes)
-{
-    return;
-}
-
-#ifndef CWIN
-#include <stdarg.h>
-
-void err_printf(char *fmt, ...)
-{
-    va_list a;
-    va_start(a, fmt);
-    vfprintf(stderr, fmt, a);
-    va_end(a);
-}
-#endif
-void csoundMessage0(const char *format, ...)
-{
-    va_list args;
-    va_start(args, format);
-    vprintf(format, args);
-    va_end(args);
-}

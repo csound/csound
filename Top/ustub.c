@@ -381,7 +381,7 @@ int writebuffer(MYFLT * obuf, int length)
     block++;
     bytes += O.sfsampsize*length;
     if (O.rewrt_hdr) {
-      rewriteheader(outfd, bytes);
+      rewriteheader(outfd, 0);
       lseek(outfd, 0L, SEEK_END); /* Place at end again */
     }
     if (O.heartbeat) {

@@ -51,12 +51,12 @@ static int   SCsndgetset(char *);
 static void  ScaleSound(int, int);
 static float FindAndReportMax(int);
 static void  (*audtran)(char *, int), nullfn(char *, int);
-static void  (*spoutran)(float *);
+static void  (*spoutran)(MYFLT *);
 
 /* Externs */
 extern long getsndin(int, float *, long, SOUNDIN *);
-extern void bytrev2(char *, int), bytrev4(char *, int), rewriteheader(int,long);
-extern int  openout(char *, int), bytrevhost(void), getsizformat(int);
+extern void rewriteheader(int,long);
+extern int  openout(char *, int), getsizformat(int);
 extern int  sndgetset(SOUNDIN *);
 extern void writeheader(int, char*);
 extern char *getstrformat(int);
@@ -555,144 +555,8 @@ nullfn(char *outbuf, int nbytes)
 {
 }
 
-static void
-shortran(float buffer[BUFFER_LEN])	/* fix spout vals and put in outbuf */
-{					/*	write buffer when full	    */
-    int n;
-    long longsmp;
-
-    for (n=0; n<BUFFER_LEN; n++) {
-      if ((longsmp = buffer[n]) >= 0) {		/* +ive samp:	*/
-        if (longsmp > 32767) {		/* out of range?     */
-          longsmp = 32767;	/*   clip and report */
-          outrange++;
-        }
-      }
-      else {
-        if (longsmp < -32768) { 		/* ditto -ive samp */
-          longsmp = -32768;
-          outrange++;
-        }
-      }
-      shoutbuf[n] = (short)longsmp;
-    }
-}
-
-static void
-chartran(float buffer[BUFFER_LEN]) /* same as above, but 8-bit char output */
-				   /*   sends HI-ORDER 8 bits of shortsamp */
-{
-    int n;
-    long longsmp;
-    
-    
-    for (n=0; n<BUFFER_LEN; n++) {
-      if ((longsmp = buffer[n]) >= 0)	{	/* +ive samp:	*/
-        if (longsmp > 32767) {		/* out of range?     */
-          longsmp = 32767;	/*   clip and report */
-          outrange++;
-        }
-      }
-      else {
-        if (longsmp < -32768) { 		/* ditto -ive samp */
-          longsmp = -32768;
-          outrange++;
-        }
-      }
-      choutbuf[n] = longsmp >> 8;
-    }
-}
-
-#ifdef never
-static void
-alawtran(float buffer[BUFFER_LEN])
-{ die("alaw not yet implemented"); }
-#endif
-
 #define MUCLIP  32635
 #define BIAS    0x84
 #define MUZERO  0x02
 #define ZEROTRAP
 
-#ifdef ULAW
-static void
-ulawtran(float buffer[BUFFER_LEN]) /* ulaw-encode spout vals & put in outbuf */
-				   /*	write buffer when full	    */
-{
-    int  n;
-    long longsmp;
-    int	 sign;
-    extern char    exp_lut[];               /* mulaw encoding table */
-    int sample, exponent, mantissa, ulawbyte;
-
-    for (n=0; n<BUFFER_LEN; n++) {
-      if ((longsmp = buffer[n]) < 0) {	/* if sample negative	*/
-        sign = 0x80;
-        longsmp = - longsmp;		/*  make abs, save sign	*/
-      }
-      else sign = 0;
-      if (longsmp > MUCLIP) { 		/* out of range?     */
-        longsmp = MUCLIP;       		/*   clip and report */
-        outrange++;
-      }
-      sample = longsmp + BIAS;
-      exponent = exp_lut[( sample >> 8 ) & 0x7F];
-      mantissa = ( sample >> (exponent+3) ) & 0x0F;
-      ulawbyte = ~ (sign | (exponent << 4) | mantissa );
-#ifdef ZEROTRAP
-      if (ulawbyte == 0) ulawbyte = MUZERO;    /* optional CCITT trap */
-#endif
-      choutbuf[n] = ulawbyte;
-    }
-}
-#endif
-
-static void
-longtran(float buffer[BUFFER_LEN])	/* send long_int spout vals to outbuf */
-					/*	write buffer when full	    */
-{
-    int n;
-
-    for (n=0; n<BUFFER_LEN; n++) {
-      lloutbuf[n] = (long) buffer[n];
-      if (buffer[n] > (float)(0x7fffffff)) {
-        lloutbuf[n] = 0x7fffffff;
-        outrange++;
-      }
-      else if (buffer[n] < - (float)(0x7fffffff)) {
-        lloutbuf[n] = - 0x7fffffff;
-        outrange++;
-      }
-      else lloutbuf[n] = (long) buffer[n];
-    }
-}
-
-static void
-floatran(float buffer[BUFFER_LEN])	/* send float spout vals to outbuf */
-  /*	write buffer when full	    */
-{
-    int n;
-    for (n=0; n<BUFFER_LEN; n++) {
-      if (buffer[n]> 32767.0 || buffer[n]<-32768.0) outrange++;
-      floutbuf[n] = buffer[n];
-    }
-}
-
-
-#ifndef CWIN
-#include <stdarg.h>
-
-void err_printf(char *fmt, ...)
-{
-    va_list a;
-    va_start(a, fmt);
-    vfprintf(stderr, fmt, a);
-}
-#endif
-void csoundMessage0(const char *format, ...)
-{
-    va_list args;
-    va_start(args, format);
-    vprintf(format, args);
-    va_end(args);
-}

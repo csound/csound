@@ -34,22 +34,6 @@ int POLL_EVENTS(void)
 
 void pvsys_release(void) {};
 
-long named_instr_find (char *name)
-{
-    err_printf("WARNING: named instruments are not supported ");
-    err_printf("by stand-alone utilities\n");
-    err_printf("assuming insno = -1 for instr %s\n", name);
-    return(-1L);
-}
-
-void dies(char *s, char *t)
-{
-    /*    char errmsg[200]; */
-    sprintf(errmsg,s,t);
-    printf("%s\n",errmsg);
-    exit(1);
-}
-
 void *memfiles = NULL;
 void rlsmemfiles(void)
 {
@@ -80,57 +64,3 @@ long natlong(long lval)             /* coerce a bigendian long into a natural lo
     return(natlong);
 }
 
-/* char name_full[256];		 Remember name used */
-FILE *fopen_path(char *name, char *basename, char *env, char *mode)
-{
-    FILE *ff;
-    char *p;
-				/* First try to open name given */
-    strcpy(name_full, name);
-    if ((ff = fopen(name_full, mode))!=NULL) return ff;
-				/* if that fails try in base directory */
-    strcpy(name_full, basename);
-#if defined(__MWERKS) || defined(SYMANTECS)
-    p = strrchr(name_full, ':');
-#else
-    p = strrchr(name_full, '/');
-    if (p==NULL) p = strrchr(name_full, '\\');
-#endif
-    if (p != NULL) {
-      strcpy(p+1, name);
-      if ((ff = fopen(name_full, mode))!=NULL) return ff;
-				/* Of us env argument */
-    }
-    if ((p = getenv(env))!=NULL)
-#if defined(__MWERKS) || defined(SYMANTECS)
-      sprintf(name_full, "%s:%s", p, name);
-#else
-      sprintf(name_full, "%s/%s", p, name);
-#endif
-    if ((ff = fopen(name_full, mode))!=NULL) return ff; 
-    return NULL;		/* or give up */
-}
-
-void synterr(char *s)
-{
-  printf("error:  %s\n",s);
-}
-
-#ifndef CWIN
-#include <stdarg.h>
-
-void err_printf(char *fmt, ...)
-{
-    va_list a;
-    va_start(a, fmt);
-    vfprintf(stderr, fmt, a);
-    va_end(a);
-}
-#endif
-void csoundMessage0(const char *format, ...)
-{
-    va_list args;
-    va_start(args, format);
-    vprintf(format, args);
-    va_end(args);
-}

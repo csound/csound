@@ -72,8 +72,6 @@ extern int  openout(char *, int);
 extern void writeheader(int, char *);
 extern char *getstrformat(int);
 
-static void (*audtran)(char *, int), nullfn(char *, int);
-static void (*spoutran)(float *, int);
 void kaiser(int, MYFLT *, int, int, MYFLT);
 void usage(int);
 int writebuffer(MYFLT *, int);
@@ -84,39 +82,14 @@ static unsigned    outbufsiz;
 static void        *outbuf;
 
 static int outfd;
-static int   block = 0;
 static long  bytes = 0;
 OPARMS	O = {0,0, 0,1,1,0, 0,0, 0,0, 0,0, 1,0,0,7, 0,0,0, 0,0,0,0, 0,0 };
 
-
-/* int POLL_EVENTS(void) */
-/* { */
-/*     return 1; */
-/* } */
-
-void pvsys_release(void) {};
-
-void *memfiles = NULL;
-void rlsmemfiles(void)
-{
-}
 
 static void dieu(char *s)
 {
     fprintf(stderr, "dnoise: %s\n", s);
     usage(1);
-}
-
-void beep(void)
-{
-#ifdef _macintosh
-	SysBeep(10000);
-#elif CWIN
-	extern void cwin_Beep(void);
-	cwin_Beep();
-#else
-        printf(Str(X_28,"%c\tbeep!\n"),'\007');
-#endif
 }
 
 int main(int argc, char **argv)
@@ -753,77 +726,7 @@ err_printf(Str(X_90,"-- fnam\tlog output to file\n"));
     exit(exitcode);
 }
 
-#ifndef CWIN
-#include <stdarg.h>
-
-void err_printf(char *fmt, ...)
-{
-    va_list a;
-    va_start(a, fmt);
-    vfprintf(stderr, fmt, a);
-    va_end(a);
-}
-#endif
-
-int writebuffer(MYFLT * obuf, int length)
-{
-    spoutran(obuf, length);
-    audtran(outbuf, O.sfsampsize*length);
-    write(outfd, outbuf, O.sfsampsize*length);
-    block++;
-    bytes += O.sfsampsize*length;
-    if (O.rewrt_hdr) {
-      rewriteheader(outfd, bytes);
-      lseek(outfd, 0L, SEEK_END); /* Place at end again */
-    }
-    if (O.heartbeat) {
-      if (O.heartbeat==1) {
-#ifdef SYMANTEC
-        nextcurs();
-#elif __BEOS__
-        putc('.', stderr); fflush(stderr);
-#else
-        putc("|/-\\"[block&3], stderr); putc(8,stderr);
-#endif
-      }
-      else if (O.heartbeat==2) putc('.', stderr);
-      else if (O.heartbeat==3) {
-        int n;
-        err_printf( "%d%n", block, &n);
-        while (n--) putc(8, stderr);
-      }
-      else putc(7, stderr);
-    }
-    return length;
-}
-
-static void
-nullfn(char *outbuf, int nbytes)
-{
-    return;
-}
-
-
-MYFLT ino(MYFLT x)
-{
-    MYFLT	y, t, e, de, sde, xi;
-    int i;
-
-    y = x * FL(0.5);
-    t = FL(1.0e-08);
-    e = FL(1.0);
-    de = FL(1.0);
-    for (i = 1; i <= 25; i++) {
-      xi = (MYFLT)i;
-      de = de * y / xi;
-      sde = de * de;
-      e += sde;
-      if (e * t > sde)
-        break;
-    }
-    return(e);
-}
-
+MYFLT ino(MYFLT);
 
 void kaiser(int nf, MYFLT *w, int n, int ieo, MYFLT beta)
 {
@@ -852,11 +755,4 @@ void kaiser(int nf, MYFLT *w, int n, int ieo, MYFLT beta)
       w[i] /= bes;
     }
     return;
-}
-void csoundMessage0(const char *format, ...)
-{
-    va_list args;
-    va_start(args, format);
-    vprintf(format, args);
-    va_end(args);
 }

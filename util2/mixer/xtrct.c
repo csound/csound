@@ -48,11 +48,6 @@
 #define FIND(MSG)   if (*s == '\0')  \
                         if (!(--argc) || ((s = *++argv) && *s == '-')) \
                             die(MSG);
-void *memfiles = NULL;
-void rlsmemfiles(void)
-{
-}
-
 
 long        sample;         /* Time file starts in samples */
 long	    stop;           /* Time file ends in samples */
@@ -101,15 +96,6 @@ static void usage(char *mesg)
     err_printf("flag defaults: extracter -otest -S 0\n");
     exit(1);
 }
-
-#ifndef POLL_EVENTS
-int POLL_EVENTS(void)
-{
-    return (1);
-}
-#endif
-
-void pvsys_release(void) {};
 
 int
 main(int argc, char **argv)
@@ -375,21 +361,3 @@ ExtractSound(int infd, int outfd)
     return;
 }
 
-#ifndef CWIN
-#include <stdarg.h>
-
-void err_printf(char *fmt, ...)
-{
-    va_list a;
-    va_start(a, fmt);
-    vfprintf(stderr, fmt, a);
-    va_end(a);
-}
-#endif
-void csoundMessage0(const char *format, ...)
-{
-    va_list args;
-    va_start(args, format);
-    vprintf(format, args);
-    va_end(args);
-}

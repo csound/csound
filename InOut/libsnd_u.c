@@ -74,6 +74,12 @@ short sfsampsize(int type)
 
 static MYFLT fzero = FL(0.0);
 
+void rewriteheader(SNDFILE* ofd, int verbose)
+{
+    if (ofd!=NULL)
+      sf_command(ofd, SFC_UPDATE_HEADER_NOW, NULL, 0);
+}
+
 int SAsndgetset(
      char    *infilnam,                          /* Stand-Alone sndgetset() */
      SOUNDIN **ap,                               /* used by SoundAnal progs */
