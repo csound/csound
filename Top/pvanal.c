@@ -380,7 +380,7 @@ static long takeFFTs(
         /* IV - Jul 11 2002 */
         *fp1++ *= dbfs_to_float;       /* normalize samples just read in */
       /* debug = 0; */
-      if (!csoundYield(NULL)) break;
+      if (!csoundYield(&cenviron)) break;
     } while (i < oframeEst);
     if (!O.displays && !verbose) printf("%ld\n",i);
     if (i < oframeEst)

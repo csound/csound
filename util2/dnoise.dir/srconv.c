@@ -311,7 +311,6 @@ int main(int argc, char **argv)
               if (O.msglevel & WARNMSG)
                 printf(Str("-W overriding local default AIFF out"));
             }
-/*             if (!POLL_EVENTS()) exit(1); */
             O.filetyp = TYP_WAV;      /* WAV output request */
             break;
           case 'h':
