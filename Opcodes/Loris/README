@@ -1,7 +1,7 @@
 MICHAEL GOGINS FOR CSOUND 5
 23 July 2004
 
-For more information about Loris, please see http://
+For more information about Loris, please see http://loris.sourceforge.net.
 
 I have modified the two lorisgens.h and lorisgens.C files to build and run 
 with csound5, and I have placed a prebuilt _loris.dll in the csound5
