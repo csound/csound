@@ -344,17 +344,17 @@ extern "C"
 		plugin->SetCurrentProgram(*p->iprogram);
     }
 
-	int vsteditdlg(void *data)
+	int vstedit(void *data)
 	{
-  		VSTPROGSET *p = (VSTPROGSET *)data;
+  		VSTEDIT *p = (VSTEDIT *)data;
 		ENVIRON *csound = p->h.insdshead->csound;
 		VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
 		plugin->OpenEditor();
     }
 	
-    int vsteditdlg_deinit(void *data)
+    int vstedit_deinit(void *data)
 	{
-  		VSTPROGSET *p = (VSTPROGSET *)data;
+  		VSTEDIT *p = (VSTEDIT *)data;
 		ENVIRON *csound = p->h.insdshead->csound;
 		VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
 		plugin->CloseEditor();
@@ -383,16 +383,16 @@ extern "C"
 	}
 
     OENTRY vstOentry[] = { 
-        {"vstinit",    sizeof(VSTINIT),    1, "i",  "So",    &vstinit,       0,         0,        &vstinit_free     },
-		{"vstinfo",    sizeof(VSTINFO),    1, "",   "i",     &vstinfo,       0,         0,        0                 },
-		{"vstplug",    sizeof(VSTPLUG_),   5, "mm", "iaa",   &vstplug_init,  0,         &vstplug, 0                 },
-		{"vstnote",    sizeof(VSTNOTE),    3, "",   "ikkkk", &vstnote_init,  &vstnote,  0,        0                 },
-		{"vstout",     sizeof(OUTVST_),    3, "",   "ikkkk", &outvst_init,   &outvst,   0,        0                 },
-  		{"vstpret",    sizeof(VSTPRET),    3, "k",  "ik",    &vstpret_init,  &vstpret,  0,        0                 },
-  		{"vstpsend",   sizeof(VSTPSEND),   3, "",   "ikk",   &vstpsend_init, &vstpsend, 0,        0                 },
-    	{"vstbload",   sizeof(VSTBLOAD),   1, "" ,  "iS",    &vstbload,      0,         0,        0                 },
-    	{"vstprogset", sizeof(VSTPROGSET), 1, "" ,  "iS",    &vstprogset,    0,         0,        0                 },
-    	{"vsteditdlg", sizeof(VSTEDITDLG), 1, "" ,  "i",     &vsteditdlg,    0,         0,        &vsteditdlg_deinit}
+        {"vstinit",    sizeof(VSTINIT),    1, "i",  "So",    &vstinit,       0,         0,        &vstinit_free  },
+		{"vstinfo",    sizeof(VSTINFO),    1, "",   "i",     &vstinfo,       0,         0,        0              },
+		{"vstplug",    sizeof(VSTPLUG_),   5, "mm", "iaa",   &vstplug_init,  0,         &vstplug, 0              },
+		{"vstnote",    sizeof(VSTNOTE),    3, "",   "ikkkk", &vstnote_init,  &vstnote,  0,        0              },
+		{"vstout",     sizeof(OUTVST_),    3, "",   "ikkkk", &outvst_init,   &outvst,   0,        0              },
+  		{"vstpret",    sizeof(VSTPRET),    3, "k",  "ik",    &vstpret_init,  &vstpret,  0,        0              },
+  		{"vstpsend",   sizeof(VSTPSEND),   3, "",   "ikk",   &vstpsend_init, &vstpsend, 0,        0              },
+    	{"vstbload",   sizeof(VSTBLOAD),   1, "" ,  "iS",    &vstbload,      0,         0,        0              },
+    	{"vstprogset", sizeof(VSTPROGSET), 1, "" ,  "iS",    &vstprogset,    0,         0,        0              },
+    	{"vstedit",    sizeof(VSTEDIT),    1, "" ,  "i",     &vstedit,       0,         0,        &vstedit_deinit}
     };
    
     /**
