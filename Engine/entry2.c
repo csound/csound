@@ -80,6 +80,7 @@ int    vbap_FOUR_moving_init(void*), vbap_FOUR_moving(void*);
 int    vbap_EIGHT_moving_init(void*), vbap_EIGHT_moving(void*);
 int    vbap_SIXTEEN_moving_init(void*), vbap_SIXTEEN_moving(void*);
 int    vbap_zak_moving_init(void*), vbap_zak_moving(void*);
+int    reverbx_set(void*), reverbx(void*);
 #ifdef BETA
 int    Foscset(void*), Fosckk(void*), Foscka(void*);
 int    Foscak(void*), Foscaa(void*);
@@ -241,6 +242,8 @@ OENTRY opcodlst_2[] = {
 { "oscils",   S(OSCILS), 5,     "a", "iiio",     oscils_set, NULL, oscils       },
 { "lphasor",  S(LPHASOR),5,     "a", "xooooooo" ,lphasor_set, NULL, lphasor     },
 { "tablexkt", S(TABLEXKT),5,    "a", "xkkiooo",  tablexkt_set, NULL, tablexkt   },
+{ "reverb2",  S(NREV2),  5,     "a",    "akkoojoj", reverbx_set,NULL,reverbx    },
+{ "nreverb",  S(NREV2),  5,     "a",    "akkoojoj", reverbx_set,NULL,reverbx    },
 /* IV - Aug 23 2002 */
 #if defined(USE_FLTK_WIDGETS)
 { "FLslider",S(FLSLIDER), 1,    "ki",   "Siijjjjjjj",   fl_slider, NULL, NULL   },
