@@ -760,7 +760,7 @@ typedef struct ENVIRON_
 # define __cdecl
 #endif
 
-#if (!defined(__BEOS__) || defined(__MWERKS__)) && !defined(__GNUC__)
+#if (!defined(__BEOS__) || defined(__MWERKS__)) && !defined(__CYGWIN__)
 #  define __cdecl
 #endif
 
