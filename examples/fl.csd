@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
-;;-b100 -B100 -odac3
+-odac
 </CsOptions>
 <CsInstruments>
 sr=44100
