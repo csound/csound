@@ -143,13 +143,13 @@ static MYFLT Samp_tick(Wave *p)
     temp1 = temp + 1;
     if (temp1==p->wave->flen) temp1 = 0; /* Wrap!! */
 #ifdef DEBUG
-    printf("Samp_tick: in (%d,%d)\n", temp, temp1);
+    fprintf(stdout, "Samp_tick: in (%d,%d)\n", temp, temp1);
 #endif
     /*  fractional part of time address */
     alpha = temp_time - (MYFLT)temp;
     lastOutput = p->wave->ftable[temp];  /* Do linear interpolation */
 #ifdef DEBUG
-    printf("Part 1=%f\n", lastOutput);
+    fprintf(stdout, "Part 1=%f\n", lastOutput);
 #endif
     /* same as alpha*data[temp+1] + (1-alpha)data[temp] */
     lastOutput += (alpha * (p->wave->ftable[temp+1] - lastOutput));
