@@ -411,7 +411,7 @@ UTILS utilities[] = {
   { "sndinfo", sndinfo, X_1367, "util SNDINFO:\n" },
   { "cvanal", cvanal, X_1363, "util CVANAL:\n" },
   { "pvlook", pvlook, X_23, "util PVLOOK:\n" },
-/*  { "dnoise", dnoise, X_1704, "util DNOISE:\n" },  /* FIX ME: removed until we can compile - akozar */
+  { "dnoise", dnoise, X_1704, "util DNOISE:\n" },
   { NULL, NULL, 0}
 };
 
