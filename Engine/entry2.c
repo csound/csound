@@ -191,9 +191,9 @@ int    ftsave_k_set(void*), ftload_k(void*);
                 X       multiple args (any rate)        IV - Sep 1 2002
    (these types must agree with rdorch.c)                       */
 
-/* If dsblksize is 0xffff then translate */
+/* If dsblksize is 0xffff then translate on firdt arg*/
 /*                 0xfffe then translate two (oscil) */
-/*                 0xfffd then translate two (peak) */
+/*                 0xfffd then translate on ans (peak) */
 /*                 0xfffc then translate two (divz) */
 
 OENTRY opcodlst_2[] = {
