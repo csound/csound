@@ -41,83 +41,6 @@ In addition to this ``canonical'' version of Csound and CsoundVST, there are oth
 
 Csound is hosted at \texttt{http:\-//www.sourceforge.net/projects/\-csound}. \linebreak Source and binary packages are available from the \texttt{files} link off that page.
 
-The latest Csound source code is available through the Concurrent Versions System (CVS)(\texttt{http:\-//www.cvshome.org}). To download Csound sources using CVS, run the following commands:
-
-\begin{verbatim}
-cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/csound login 
- 
-cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/csound co csound5 
-\end{verbatim}
-
-Information about accessing the CVS repository may be found in the SourceForge document ``Basic Introduction to CVS and SourceForge.net (SF.net) Project CVS Services''. 
-
-If you wish to become a Csound developer, obtain a SourceForge login, and then apply to John ffitch at the \linebreak[3] \texttt{http:\-//www.sourceforge.net/projects/\-csound} site.
-
-\section{Building}
-
-Csound and CsoundVST are built using the Python package \texttt{scons}, not with makefiles or GNU autotools. Experience shows that \texttt{scons} build systems are easier to write, easier to use, and run faster than autotools build systems. The only file used to build the entire Csound system is the \texttt{SConstruct} file, which is a Python script run by the \texttt{scons} shell script.
-
-To build Csound 5:
-\begin{enumerate}
-\item Obtain the Csound source code from a SourceForge Csound 5 package file, or from SourceForge CVS.
-\item Install and configure the following software packages:
-\begin{enumerate}
-\item Python (required) for running the build (also used for CsoundVST scripting), from \linebreak[3] \texttt{http:\-//www.python.org}.
-\item SCons (required) for running the build, from \linebreak[4] \texttt{http:\-//www.scons.org}.
-\item libsndfile (required) for reading and writing soundfiles, from \linebreak[4] \texttt{http://www.mega-nerd.com/libsndfile/}.
-\item PortAudio for reading and writing real-time audio, from \linebreak[4] \texttt{http://www.portaudio.com/}.
-\item FLTK version 1.1.x for displaying graphs of function tables, and for widget opcodes, from \linebreak[3] \texttt{http://www.fltk.org}.
-\end{enumerate}
-\end{enumerate}
-
-If you also want to build CsoundVST, you must configure the FLTK libraries to enable threads (\texttt{./configure ---enable-threads}). And you will need to install these additional packages:
-
-\begin{enumerate}
-\item The Software Interface and Wrapper Generator (SWIG) for generating Python interfaces to CsoundVST (required for CsoundVST), from \linebreak[3] \texttt{http://www.swig.org}.
-\item The boost C++ template libraries for random numbers and linear algebra (required for CsoundVST), from \linebreak[4] \texttt{http://www.boost.org}.
-\end{enumerate}
-
-\subsection{Platforms}
-
-Currently, Csound 5 builds and runs on Windows using either the Cygwin environment (\texttt{http://www.cygwin.com}), or the MinGW \linebreak[4] (\texttt{http://www.mingw.org}) environment with the MSys shell \linebreak[4] (\texttt{http://www.mingw.org/msys.shtml}). Both of these environments are free, open source, and emulate the standard Unix/Linux environment and tools. On Linux, Csound 5 builds using the standard tools. Unix should work the same way as Linux.
-
-On Windows, the Cygwin build procedure is more like the Linux one. However, the MinGW build is preferred, since the resulting executables do not require the Cygwin DLLs and run faster.
-
-\subsubsection{Linux}
-
-If you have properly installed all the dependencies mentioned above, you can build Csound 5 and CsoundVST simply by opening a console, changing to the \texttt{csound5} directory, and executing the \texttt{scons} command. To see the various configuration options, execute \texttt{scons -h}.
-
-\subsubsection{Windows with Cygwin}
-
-The build procedure for Cygwin is identical to Linux. However, Cygwin comes with its own customized version of Python, while CsoundVST uses the regular version of Python from \texttt{http://www.python.org}, which is built with Microsoft Visual C++. Make sure to install SCons in the Cygwin version of Python, and use that version for the build, even though CsoundVST will use the Windows version of Python.
-
-\subsubsection{Windows with MinGW and MSys}
-
-For MinGW, you may need to patch SCons as follows. Change line 51 of \texttt{SCons/Tool/mingw.py} from:
-\begin{verbatim}
-cmd = SCons.Util.CLVar('$SHLINK', '$SHLINKFLAGS')
-\end{verbatim}
-to:
-\begin{verbatim}
-cmd = SCons.Util.CLVar(['$SHLINK', '$SHLINKFLAGS']) 
-\end{verbatim}
-
-It is highly recommend that you update your MinGW installation from the SourceForge site to the ``current'' level for core gcc, g++, binutils,  utils, and the Windows API headers and libraries (w32api).
-
-Rebuild and install a version of libsndfile no earlier than:
-\begin{verbatim}
-http://www.mega-nerd.com/tmp/libsndfile-1.0.10pre4.tar.gz
-\end{verbatim}
-
-For PortAudio, I have found that \texttt{./configure ---with-winapi=wmme} works and other \texttt{configure} options do not. If you can build PortAudio version 19 with MinGW and DirectX, ASIO, or Windows kernel streaming, please let me know how to do it.
-
-The build procedure for MinGW is similar, but not identical, to the Cygwin procedure. The MSys shell does not allow the user to execute Python commands directly. Therefore, you need to install the \emph{Windows} versions of Python and SCons, make sure that Python is in your Windows executable path, and run the build like this:
-\begin{verbatim}
-$ python c:/tools/python23/scripts/scons
-\end{verbatim}
-
-You will also need to customize the \texttt{custom.py} file to declare to \texttt{scons} the locations of required header files and libraries, since on Windows there is no standard location for these as there is on Unix and Linux.
-
 \section{Installing}
 
 Once you have either unpacked a binary distribution, or built Csound from sources, you will need to install and configure Csound so that it will run properly on your system. 
@@ -136,133 +59,22 @@ CsoundVST requires some additional configuration:
 \item On all platforms, CsoundVST requires that you have Python installed on your computer. The directory containing the \texttt{\_CsoundVST} shared library and the \texttt{CsoundVST.py} file must be in your \texttt{PYTHONPATH} environment variable, so that the Python runtime knows how to load these files.
 \end{enumerate}
 
-\section{Extending}
-Csound uses plugin unit generators. These are dynamic link libraries (DLLs) on Windows, and loadable modules (shared libraries that are \texttt{dlopen}ed) on Linux. It is relatively easy to extend Csound by writing new unit generators in C or C++.
-
-The following assumes you already know how to make a regular Csound unit generator. If you don't, consult the Csound language documentation.
-Supposing that your unit generator is named \texttt{xxx}, perform the following steps:
-\begin{enumerate}
-\item Write your \texttt{xxx.c} and \texttt{xxx.h} file as you would for a regular Csound unit generator. Put these files in the \texttt{csound5/Opcodes} directory.
-\item \texttt{\#include "csdl.h"} in your unit generator sources. This causes the plugin development environment to emulate the regular Csound unit generator development environment.
-\item Add your \texttt{OENTRY} records and unit generator registration functions at the bottom of your C file. Example (but you can have as many unit generators in one plugin as you like):
-\begin{verbatim}
-\#define S sizeof
-
-static OENTRY localops[] = {
-{ "xxx", S(XXX), 5, "a", "ao", (SUBR)xxxset, NULL, (SUBR)xxx}
-};
-
-/*
- * The following macro from csdl.h defines 
- * the "opcode_size()" and "opcode_init()" 
- * opcode registration functions for the localops table.
- */
-LINKAGE
-\end{verbatim}
-\item Add your plugin as a new target in the plugin opcodes section of the \texttt{SConstruct} build file:
-\begin{verbatim}
-pluginEnvironment.SharedLibrary('xxx', 
-    Split('''Opcodes/xxx.c 
-    Opcodes/another_file_used_by_xxx.c 
-    Opcodes/yet_another_file_used_by_xxx.c'''))
-\end{verbatim}
-\item Run the Csound 5 build in the regular way.
-\end{enumerate}		
-
-\subsection{About \texttt{OENTRY}}
-
-The \texttt{OENTRY} structure (see \texttt{H/csoundCore.h}, \texttt{Engine/entry1.c}, and \texttt{Engine/rdorch.c}) contains the following fields:
-
-\begin{verbatim}
-name, dspace, thread, outarg, inargs, isub, ksub, asub, dsub
-\end{verbatim}
-
-\begin{description}  
-	\item[\texttt{dspace}] There are two types of opcodes, polymorphic and non-polymorphic. For non-polymorphic opcodes, the \texttt{dspace} flag specifies the size of the opcode structure in bytes, and arguments are always passed to the opcode at the same rate. Polymorphic opcodes can accept arguments at different rates, and those arguments are actually dispatched to other opcodes as determined by the \texttt{dspace} flag and the following naming convention:
-
-	\begin{description}
-		\item[\texttt{0xffff}] The type of the first argument determines which unit generator function is actually called: \texttt{XXX} $\Longrightarrow$ \texttt{XXX\_a}, \texttt{XXX\_i}, or \texttt{XXX\_k}.
-		\item[\texttt{0xfffe}] The types of the first two arguments determine which unit generator function is actually called:  \texttt{XXX} $\Longrightarrow$ \texttt{XXX\_aa}, \texttt{XXX\_ak}, \texttt{XXX\_ka}, or \texttt{XXX\_kk}, as in the \texttt{oscil} unit generator.
-		\item[\texttt{0xfffd}] Refers to one argument, but does not allow \texttt{i} type, as in the \texttt{peak} unit generator.
-		\item[\texttt{0xfffc}] Similar to \texttt{0xfffe}, but deals with division by zero --- thus, allows \texttt{a}, \texttt{k} and \texttt{i} type arguments.
-	\end{description}
-
-	\item[\texttt{thread}] Specifies the rate(s) at which the unit generator's functions are called, as follows:
-	
-			\begin{center}
-			\begin{tabular*}{280pt}[t]{cl}
-			\texttt{thread} & Description \\
-			\hline
-			\texttt{0} & i-rate \emph{or} k-rate (\texttt{B} out only) \\
-			\texttt{1} & i-rate \\
-			\texttt{2} & k-rate \\
-			\texttt{3} & i-rate \emph{and} k-rate\\
-			\texttt{4} & a-rate \\
-			\texttt{5} & i-rate \emph{and} a-rate \\
-			\texttt{7} & i-rate \emph{and} (k-rate \emph{or} a-rate) \\
-			\end{tabular*}
-			\end{center}
-	
-	\item[\texttt{outargs}] Lists the return values of the unit generator functions, if any.  The types allowed are:
-
-			\begin{center}
-			\begin{tabular*}{280pt}[t]{cl}
-			Type & Description \\
-			\hline
-			\texttt{i} & i-rate scalar \\
-			\texttt{k} & k-rate scalar \\
-			\texttt{a} & a-rate vector \\
-			\texttt{x} & k-rate scalar or a-rate vector \\
-			\texttt{w} & w-rate spectral data type \\
-			\texttt{f} & f-rate streaming pvoc fsig type \\
-			\texttt{m} & multiple outargs (1 to 4 allowed) \\
-			\end{tabular*}
-			\end{center}
-					
-	\item[\texttt{inargs}] Lists the arguments the unit generator functions take, if any.  The types allowed are: 
-
-			\begin{center}
-			\begin{tabular*}{280pt}[t]{cl}
-			Type & Description \\
-			\hline
-			\texttt{i} & i-rate scalar \\
-			\texttt{k} & k-rate scalar \\
-			\texttt{a} & a-rate scalar \\
-			\texttt{x} & k-rate scalar or a-rate vector \\
-			\texttt{w} & w-rate spectral data type \\
-			\texttt{f} & f-rate streaming pvoc fsig type \\
-			\texttt{S} & string \\
-			\texttt{B} & \\
-			\texttt{l} & \\
-			\texttt{m} & begins an indefinite list of iargs (any count) \\
-			\texttt{M} & begins an indefinite list of args (any count and rate) \\
-			\texttt{n} & begins an indefinite list of iargs (must be an odd count) \\
-			\texttt{o} & optional, defaulting to 0 \\
-			\texttt{p} & optional, defaulting to 1 \\
-			\texttt{q} & optional, defaulting to 10 \\
-			\texttt{v} & optional, defaulting to .5 \\ 
-			\texttt{j} & optional, defaulting to -1 \\
-			\texttt{h} & optional, defaulting to 127 \\
-			\texttt{y} & begins an indefinite list of aargs (any count) \\ 
-			\texttt{z} & begins indefinite list of kargs (any count) \\
-			\texttt{Z} & begins alternating \texttt{kakaka...} list (any count) \\
-			\end{tabular*}
-			\end{center}
-
-	\item[\texttt{isub}] The address of the unit generator function (of type \texttt{int (*SUBR)(void *)}) that is called at i-time, or null for no function.
-	\item[\texttt{ksub}] The address of the unit generator function (of type \texttt{int (*SUBR)(void *)}) that is called at k-rate, or null for no function.
-	\item[\texttt{asub}] The address of the unit generator function (of type \texttt{int (*SUBR)(void *)}) that is called at a-rate, or null for no function.
-	\item[\texttt{dsub}] The address of the unit generator function (of type \texttt{int (*SUBR)(void *)}) that is called after performance, or null for no function.
-
-\end{description}
-
 \section{Using}
 
 Assuming that you have installed and configured the software, Csound and CsoundVST can be operated in a variety of modes and configurations. The \texttt{.csd} and \texttt{.py} files in the \texttt{examples} demonstrate a few of these modes of operation. Some of these scores are simple, others are moderately complex. 
 
 You may need to edit the \texttt{----opcode-lib} option in the Csound command in some of the  \texttt{.csd} and \texttt{.py} files to match your environment. Similarly, you may need to edit the SoundFont file paths in instrument definitions that use the \texttt{fluid} SoundFont 2 player opcode to match your environment.
 
-For real-time audio output, with or without MIDI control, you will probably want to tune the \texttt{kr} and \texttt{ksmps} orchestra statements, and the \texttt{-b} and \texttt{-B} command-line options, to give you the shortest possible latency that does not cause clicks or stutters in Csound's audio output. For example, with the Windows multimedia library build of the PortAudio library, \texttt{sr = 44100}, \texttt{kr = 441}, \texttt{ksmps = 100}, \texttt{-b100} and \texttt{-B2000} give a CD-equivalent audio sampling rate of 44,100 frames per second, a control sampling rate of 441 control samples per second with 100 audio sample frames per control sample, an audio output software buffer size of 100 sample frames, and an audio output device hardware buffer size of 2,000 sample frames, which yields an audio output latency of about 45 milliseconds --- not fast enough for precise and expressive keyboard playing, but fast enough for smooth control of effects or algorithmically generated or triggered scores.
+\subsection{Real-Time Audio}
+
+For real-time audio output, with or without MIDI control, you will probably want to tune the \texttt{kr} and \texttt{ksmps} orchestra statements, and the \texttt{-b} and \texttt{-B} command-line options, to give you the shortest possible latency that does not cause clicks or stutters in Csound's audio output. 
+
+\subsubsection{Windows with ASIO}
+
+On Windows, Csound is configured with the ASIO build of the PortAudio library. At this time, it is necessary to set the \texttt{-b} command-line option to have the same value as the \texttt{ksmps} variable set in the orchestra file. For example, \texttt{sr = 44100}, \texttt{kr = 100}, \texttt{ksmps = 441}, \texttt{-b441} and \texttt{-B441} give a CD-equivalent audio sampling rate of 44,100 frames per second, a control sampling rate of 100 control samples per second with 441 audio sample frames per control sample, an audio output software buffer size of 441 sample frames, and an audio output device hardware buffer size of 441 sample frames, which yields an audio output latency of 10 milliseconds --- quite fast enough for reasonably expressive keyboard playing or other real-time instrumental performance. Even lower latencies are possible with smaller values of \texttt{-b} and \texttt{ksmps}, down to about 3 milliseconds on Windows XP.
+
+
+\subsubsection{Linux with ALSA}
 
 On Linux with ALSA, the audio output device should be selected using a special form of the \texttt{-odac} option, for example \texttt{-odac:plughw:0} for device 0. The \texttt{plughw} option translates Csound's audio output to the format expected by the sound card. With ALSA, latencies of a few milliseconds are possible, and expressive real-time instrumental performance should be quite feasible.
 
@@ -499,8 +311,208 @@ When you save your song, your Csound orchestra will be saved as part of the song
 You can click on the \emph{Orchestra} tab and edit your Csound instruments while CsoundVST is playing. To hear your changes, just click on the CsoundVST \emph{Perform} button to recompile the orchestra. 
 
 You can assign up to 16 channels to a single CsoundVST plugin. However, you can't have more than one CsoundVST plugin in the same song! 
+
+\section{Building}
+
+The latest Csound source code is available through the Concurrent Versions System (CVS)(\texttt{http:\-//www.cvshome.org}). To download Csound sources using CVS, run the following commands:
+
+\begin{verbatim}
+cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/csound login 
+ 
+cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/csound co csound5 
+\end{verbatim}
+
+Information about accessing the CVS repository may be found in the SourceForge document ``Basic Introduction to CVS and SourceForge.net (SF.net) Project CVS Services''. 
+
+If you wish to become a Csound developer, obtain a SourceForge login, and then apply to John ffitch at the \linebreak[3] \texttt{http:\-//www.sourceforge.net/projects/\-csound} site.
+
+Csound and CsoundVST are built using the Python package \texttt{scons}, not with makefiles or GNU autotools. Experience shows that \texttt{scons} build systems are easier to write, easier to use, and run faster than autotools build systems. The only file used to build the entire Csound system is the \texttt{SConstruct} file, which is a Python script run by the \texttt{scons} shell script.
+
+To build Csound 5:
+\begin{enumerate}
+\item Obtain the Csound source code from a SourceForge Csound 5 package file, or from SourceForge CVS.
+\item Install and configure the following software packages:
+\begin{enumerate}
+\item Python (required) for running the build (also used for CsoundVST scripting), from \linebreak[3] \texttt{http:\-//www.python.org}.
+\item SCons (required) for running the build, from \linebreak[4] \texttt{http:\-//www.scons.org}.
+\item libsndfile (required) for reading and writing soundfiles, from \linebreak[4] \texttt{http://www.mega-nerd.com/libsndfile/}.
+\item PortAudio for reading and writing real-time audio, from \linebreak[4] \texttt{http://www.portaudio.com/}.
+\item FLTK version 1.1.x for displaying graphs of function tables, and for widget opcodes, from \linebreak[3] \texttt{http://www.fltk.org}.
+\end{enumerate}
+\end{enumerate}
+
+If you also want to build CsoundVST, you must configure the FLTK libraries to enable threads (\texttt{./configure ---enable-threads}). And you will need to install these additional packages:
+
+\begin{enumerate}
+\item The Software Interface and Wrapper Generator (SWIG) for generating Python interfaces to CsoundVST (required for CsoundVST), from \linebreak[3] \texttt{http://www.swig.org}.
+\item The boost C++ template libraries for random numbers and linear algebra (required for CsoundVST), from \linebreak[4] \texttt{http://www.boost.org}.
+\end{enumerate}
+
+\subsection{Platforms}
+
+Currently, Csound 5 builds and runs on Windows using either the Cygwin environment (\texttt{http://www.cygwin.com}), or the MinGW \linebreak[4] (\texttt{http://www.mingw.org}) environment with the MSys shell \linebreak[4] (\texttt{http://www.mingw.org/msys.shtml}). Both of these environments are free, open source, and emulate the standard Unix/Linux environment and tools. On Linux, Csound 5 builds using the standard tools. Unix should work the same way as Linux.
+
+On Windows, the Cygwin build procedure is more like the Linux one. However, the MinGW build is preferred, since the resulting executables do not require the Cygwin DLLs and run faster.
+
+\subsubsection{Linux}
+
+If you have properly installed all the dependencies mentioned above, you can build Csound 5 and CsoundVST simply by opening a console, changing to the \texttt{csound5} directory, and executing the \texttt{scons} command. To see the various configuration options, execute \texttt{scons -h}.
+
+\subsubsection{Windows with Cygwin}
+
+The build procedure for Cygwin is identical to Linux. However, Cygwin comes with its own customized version of Python, while CsoundVST uses the regular version of Python from \texttt{http://www.python.org}, which is built with Microsoft Visual C++. Make sure to install SCons in the Cygwin version of Python, and use that version for the build, even though CsoundVST will use the Windows version of Python.
+
+\subsubsection{Windows with MinGW and MSys}
+
+For MinGW, you may need to patch SCons as follows. Change line 51 of \texttt{SCons/Tool/mingw.py} from:
+\begin{verbatim}
+cmd = SCons.Util.CLVar('$SHLINK', '$SHLINKFLAGS')
+\end{verbatim}
+to:
+\begin{verbatim}
+cmd = SCons.Util.CLVar(['$SHLINK', '$SHLINKFLAGS']) 
+\end{verbatim}
+
+It is highly recommend that you update your MinGW installation from the SourceForge site to the ``current'' level for core gcc, g++, binutils,  utils, and the Windows API headers and libraries (w32api).
+
+Rebuild and install a version of libsndfile no earlier than:
+\begin{verbatim}
+http://www.mega-nerd.com/tmp/libsndfile-1.0.10pre4.tar.gz
+\end{verbatim}
+
+For PortAudio, I have found that \texttt{./configure ---with-winapi=wmme} works and other \texttt{configure} options do not. If you can build PortAudio version 19 with MinGW and DirectX, ASIO, or Windows kernel streaming, please let me know how to do it.
+
+The build procedure for MinGW is similar, but not identical, to the Cygwin procedure. The MSys shell does not allow the user to execute Python commands directly. Therefore, you need to install the \emph{Windows} versions of Python and SCons, make sure that Python is in your Windows executable path, and run the build like this:
+\begin{verbatim}
+$ python c:/tools/python23/scripts/scons
+\end{verbatim}
+
+You will also need to customize the \texttt{custom.py} file to declare to \texttt{scons} the locations of required header files and libraries, since on Windows there is no standard location for these as there is on Unix and Linux.
+
+\section{Extending}
+Csound uses plugin unit generators. These are dynamic link libraries (DLLs) on Windows, and loadable modules (shared libraries that are \texttt{dlopen}ed) on Linux. It is relatively easy to extend Csound by writing new unit generators in C or C++.
+
+The following assumes you already know how to make a regular Csound unit generator. If you don't, consult the Csound language documentation.
+Supposing that your unit generator is named \texttt{xxx}, perform the following steps:
+\begin{enumerate}
+\item Write your \texttt{xxx.c} and \texttt{xxx.h} file as you would for a regular Csound unit generator. Put these files in the \texttt{csound5/Opcodes} directory.
+\item \texttt{\#include "csdl.h"} in your unit generator sources. This causes the plugin development environment to emulate the regular Csound unit generator development environment.
+\item Add your \texttt{OENTRY} records and unit generator registration functions at the bottom of your C file. Example (but you can have as many unit generators in one plugin as you like):
+\begin{verbatim}
+\#define S sizeof
+
+static OENTRY localops[] = {
+{ "xxx", S(XXX), 5, "a", "ao", (SUBR)xxxset, NULL, (SUBR)xxx}
+};
+
+/*
+ * The following macro from csdl.h defines 
+ * the "opcode_size()" and "opcode_init()" 
+ * opcode registration functions for the localops table.
+ */
+LINKAGE
+\end{verbatim}
+\item Add your plugin as a new target in the plugin opcodes section of the \texttt{SConstruct} build file:
+\begin{verbatim}
+pluginEnvironment.SharedLibrary('xxx', 
+    Split('''Opcodes/xxx.c 
+    Opcodes/another_file_used_by_xxx.c 
+    Opcodes/yet_another_file_used_by_xxx.c'''))
+\end{verbatim}
+\item Run the Csound 5 build in the regular way.
+\end{enumerate}		
+
+\subsection{About \texttt{OENTRY}}
+
+The \texttt{OENTRY} structure (see \texttt{H/csoundCore.h}, \texttt{Engine/entry1.c}, and \texttt{Engine/rdorch.c}) contains the following fields:
+
+\begin{verbatim}
+name, dspace, thread, outarg, inargs, isub, ksub, asub, dsub
+\end{verbatim}
+
+\begin{description}  
+	\item[\texttt{dspace}] There are two types of opcodes, polymorphic and non-polymorphic. For non-polymorphic opcodes, the \texttt{dspace} flag specifies the size of the opcode structure in bytes, and arguments are always passed to the opcode at the same rate. Polymorphic opcodes can accept arguments at different rates, and those arguments are actually dispatched to other opcodes as determined by the \texttt{dspace} flag and the following naming convention:
+
+	\begin{description}
+		\item[\texttt{0xffff}] The type of the first argument determines which unit generator function is actually called: \texttt{XXX} $\Longrightarrow$ \texttt{XXX\_a}, \texttt{XXX\_i}, or \texttt{XXX\_k}.
+		\item[\texttt{0xfffe}] The types of the first two arguments determine which unit generator function is actually called:  \texttt{XXX} $\Longrightarrow$ \texttt{XXX\_aa}, \texttt{XXX\_ak}, \texttt{XXX\_ka}, or \texttt{XXX\_kk}, as in the \texttt{oscil} unit generator.
+		\item[\texttt{0xfffd}] Refers to one argument, but does not allow \texttt{i} type, as in the \texttt{peak} unit generator.
+		\item[\texttt{0xfffc}] Similar to \texttt{0xfffe}, but deals with division by zero --- thus, allows \texttt{a}, \texttt{k} and \texttt{i} type arguments.
+	\end{description}
+
+	\item[\texttt{thread}] Specifies the rate(s) at which the unit generator's functions are called, as follows:
+	
+			\begin{center}
+			\begin{tabular*}{280pt}[t]{cl}
+			\texttt{thread} & Description \\
+			\hline
+			\texttt{0} & i-rate \emph{or} k-rate (\texttt{B} out only) \\
+			\texttt{1} & i-rate \\
+			\texttt{2} & k-rate \\
+			\texttt{3} & i-rate \emph{and} k-rate\\
+			\texttt{4} & a-rate \\
+			\texttt{5} & i-rate \emph{and} a-rate \\
+			\texttt{7} & i-rate \emph{and} (k-rate \emph{or} a-rate) \\
+			\end{tabular*}
+			\end{center}
+	
+	\item[\texttt{outargs}] Lists the return values of the unit generator functions, if any.  The types allowed are:
+
+			\begin{center}
+			\begin{tabular*}{280pt}[t]{cl}
+			Type & Description \\
+			\hline
+			\texttt{i} & i-rate scalar \\
+			\texttt{k} & k-rate scalar \\
+			\texttt{a} & a-rate vector \\
+			\texttt{x} & k-rate scalar or a-rate vector \\
+			\texttt{w} & w-rate spectral data type \\
+			\texttt{f} & f-rate streaming pvoc fsig type \\
+			\texttt{m} & multiple outargs (1 to 4 allowed) \\
+			\end{tabular*}
+			\end{center}
+					
+	\item[\texttt{inargs}] Lists the arguments the unit generator functions take, if any.  The types allowed are: 
+
+			\begin{center}
+			\begin{tabular*}{280pt}[t]{cl}
+			Type & Description \\
+			\hline
+			\texttt{i} & i-rate scalar \\
+			\texttt{k} & k-rate scalar \\
+			\texttt{a} & a-rate scalar \\
+			\texttt{x} & k-rate scalar or a-rate vector \\
+			\texttt{w} & w-rate spectral data type \\
+			\texttt{f} & f-rate streaming pvoc fsig type \\
+			\texttt{S} & string \\
+			\texttt{B} & \\
+			\texttt{l} & \\
+			\texttt{m} & begins an indefinite list of iargs (any count) \\
+			\texttt{M} & begins an indefinite list of args (any count and rate) \\
+			\texttt{n} & begins an indefinite list of iargs (must be an odd count) \\
+			\texttt{o} & optional, defaulting to 0 \\
+			\texttt{p} & optional, defaulting to 1 \\
+			\texttt{q} & optional, defaulting to 10 \\
+			\texttt{v} & optional, defaulting to .5 \\ 
+			\texttt{j} & optional, defaulting to -1 \\
+			\texttt{h} & optional, defaulting to 127 \\
+			\texttt{y} & begins an indefinite list of aargs (any count) \\ 
+			\texttt{z} & begins indefinite list of kargs (any count) \\
+			\texttt{Z} & begins alternating \texttt{kakaka...} list (any count) \\
+			\end{tabular*}
+			\end{center}
+
+	\item[\texttt{isub}] The address of the unit generator function (of type \texttt{int (*SUBR)(void *)}) that is called at i-time, or null for no function.
+	\item[\texttt{ksub}] The address of the unit generator function (of type \texttt{int (*SUBR)(void *)}) that is called at k-rate, or null for no function.
+	\item[\texttt{asub}] The address of the unit generator function (of type \texttt{int (*SUBR)(void *)}) that is called at a-rate, or null for no function.
+	\item[\texttt{dsub}] The address of the unit generator function (of type \texttt{int (*SUBR)(void *)}) that is called after performance, or null for no function.
+
+\end{description}
+
 \section{Licenses}
+
 \subsection{Csound and CsoundVST}
+
 Csound is \copyright 1991-2003 by Barry Vercoe and John ffitch.
 
 CsoundVST is \copyright 2001-2004 by Michael Gogins.
