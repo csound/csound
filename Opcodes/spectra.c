@@ -1342,7 +1342,7 @@ long opcode_size(void)
 
 OENTRY *opcode_init(ENVIRON *xx)
 {
-    /* xx->displop4_ = xx->getopnum_("specdisp"); /* This will not work!!! */
+/*     xx->displop4_ = xx->getopnum_("specdisp"); /\* This will not work!!! *\/ */
     return localops;
 }
 
