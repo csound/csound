@@ -26,23 +26,22 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-static int    lincnt, pcnt;
-
 static SRTBLK *nxtins(SRTBLK *), *prvins(SRTBLK *);
-static char   *pfout(SRTBLK *, char *), *nextp(SRTBLK *, char *);
-static char   *prevp(SRTBLK *, char *), *ramp(SRTBLK *, char *);
-static char   *expramp(SRTBLK *, char *), *randramp(SRTBLK *, char *);
-static char   *pfStr(char *), *fpnum(char *);
-#ifdef NEVER
-static void   fltout(MYFLT);
-#endif
-/* Reinstate this line for now */
+static char   *pfout(SRTBLK *, char *, int, int);
+static char   *nextp(SRTBLK *, char *, int, int);
+static char   *prevp(SRTBLK *, char *, int, int);
+static char   *ramp(SRTBLK *, char *, int, int);
+static char   *expramp(SRTBLK *, char *, int, int);
+static char   *randramp(SRTBLK *, char *, int, int);
+static char   *pfStr(char *, int, int), *fpnum(char *, int, int);
+
 #define fltout(n) fprintf(SCOREOUT, "%.6f", n)
 
 void swrite(void)
 {
     SRTBLK *bp;
     char *p, c, isntAfunc;
+    int    lincnt, pcnt=0;
 
     if ((bp = frstbp) == NULL)
       return;
@@ -88,10 +87,10 @@ void swrite(void)
       else { /*make sure p3s (table length) are ints */
         char temp[256];
         sprintf(temp,"%ld ",(long)bp->p3val);   /* put p3val  */
-        fpnum(temp);
+        fpnum(temp, lincnt, pcnt);
         putc(SP,SCOREOUT);
         sprintf(temp,"%ld ",(long)bp->newp3);   /* put newp3  */
-        fpnum(temp);
+        fpnum(temp, lincnt, pcnt);
         while ((c = *p++) != SP && c != LF)
           ;
       }
@@ -99,7 +98,7 @@ void swrite(void)
       while (c != LF) {
         pcnt++;
         putc(SP,SCOREOUT);
-        p = pfout(bp,p);              /* now put each pfield  */
+        p = pfout(bp,p,lincnt,pcnt);            /* now put each pfield  */
         c = *p++;
       }
       putc('\n', SCOREOUT);
@@ -121,34 +120,34 @@ void swrite(void)
       goto nxtlin;
 }
 
-static char *pfout(SRTBLK *bp, char *p)
+static char *pfout(SRTBLK *bp, char *p,int lincnt, int pcnt)
 {
     switch (*p) {
     case 'n':
-      p = nextp(bp,p);
+      p = nextp(bp,p, lincnt, pcnt);
       break;
     case 'p':
-      p = prevp(bp,p);
+      p = prevp(bp,p, lincnt, pcnt);
       break;
     case '<':
     case '>':
-      p = ramp(bp,p);
+      p = ramp(bp,p, lincnt, pcnt);
       break;
     case '{':
     case '}':
       printf(Str("Deprecated -- use round brackets instead of curly\n"));
     case '(':
     case ')':
-      p = expramp(bp,p);
+      p = expramp(bp,p, lincnt, pcnt);
       break;
     case '~':
-      p = randramp(bp, p);
+      p = randramp(bp, p, lincnt, pcnt);
       break;
     case '"':
-      p = pfStr(p);
+      p = pfStr(p, lincnt, pcnt);
       break;
     default:
-      p = fpnum(p);
+      p = fpnum(p, lincnt, pcnt);
       break;
     }
     return(p);
@@ -176,7 +175,7 @@ static SRTBLK *prvins(SRTBLK *bp) /* find prv note with same p1 */
     return(bp);
 }
 
-static char *nextp(SRTBLK *bp, char *p)
+static char *nextp(SRTBLK *bp, char *p, int lincnt, int pcnt)
 {
     char *q;
     int n;
@@ -198,7 +197,7 @@ static char *nextp(SRTBLK *bp, char *p)
       while (n--)
         while (*q++ != SP)          /*   go find the pfield */
           ;
-      pfout(bp,q);                  /*   and put it out     */
+      pfout(bp,q,lincnt,pcnt);      /*   and put it out     */
     }
     else {
     error:
@@ -216,7 +215,7 @@ static char *nextp(SRTBLK *bp, char *p)
     return(p);
 }
 
-static char *prevp(SRTBLK *bp, char *p)
+static char *prevp(SRTBLK *bp, char *p, int lincnt, int pcnt)
 {
     char *q;
     int n;
@@ -238,7 +237,7 @@ static char *prevp(SRTBLK *bp, char *p)
       while (n--)
         while (*q++ != SP)          /*   go find the pfield */
           ;
-      pfout(bp,q);                  /*   and put it out     */
+      pfout(bp,q,lincnt,pcnt);      /*   and put it out     */
     }
     else {
     error:
@@ -256,8 +255,8 @@ static char *prevp(SRTBLK *bp, char *p)
     return(p);
 }
 
-static char *ramp(SRTBLK *bp, char *p) /*     NB np's may reference a ramp  */
-                                 /*  but ramps must terminate in valid nums */
+static char *ramp(SRTBLK *bp, char *p, int lincnt, int pcnt) 
+  /* NB np's may reference a ramp but ramps must terminate in valid nums */
 {
     char *q;
     char   *psav;
@@ -321,8 +320,8 @@ extern  MYFLT stof(char*);
     return(psav);
 }
 
-static char *expramp(SRTBLK *bp, char *p) /* NB np's may reference a ramp  */
-                                /*  but ramps must terminate in valid nums */
+static char *expramp(SRTBLK *bp, char *p, int lincnt, int pcnt)
+  /* NB np's may reference a ramp but ramps must terminate in valid nums */
 {
     char *q;
     char   *psav;
@@ -390,8 +389,8 @@ static char *expramp(SRTBLK *bp, char *p) /* NB np's may reference a ramp  */
     return(psav);
 }
 
-static char *randramp(SRTBLK *bp, char *p) /* NB np's may reference a ramp  */
-                                 /*  but ramps must terminate in valid nums */
+static char *randramp(SRTBLK *bp, char *p, int lincnt, int pcnt)
+  /* NB np's may reference a ramp but ramps must terminate in valid nums */
 {
     char *q;
     char   *psav;
@@ -454,8 +453,8 @@ static char *randramp(SRTBLK *bp, char *p) /* NB np's may reference a ramp  */
     return(psav);
 }
 
-static char *pfStr(char *p)     /*   moves quoted ascii string to SCOREOUT file */
-                                /*      with no internal format chk             */
+static char *pfStr(char *p, int lincnt, int pcnt) /* moves quoted ascii string */
+                              /* to SCOREOUT file  with no internal format chk */
 {
     char *q = p;
     putc(*p++,SCOREOUT);
@@ -476,8 +475,8 @@ static char *pfStr(char *p)     /*   moves quoted ascii string to SCOREOUT file 
     return(p);
 }
 
-static char *fpnum(char *p)     /*   moves ascii string to SCOREOUT file */
-                                /*      with fpnum format chk            */
+static char *fpnum(char *p, int lincnt, int pcnt) /* moves ascii string */
+                              /* to SCOREOUT file with fpnum format chk */
 {
     char *q;
     int dcnt;
@@ -525,59 +524,3 @@ static char *fpnum(char *p)     /*   moves ascii string to SCOREOUT file */
     return(p);
 }
 
-#ifdef NEVER
-static void fltout(MYFLT num)   /* MYFLT to ascii on SCOREOUT file  */
-{
-    double incnum, precision /*, precmult*/;
-    int tenpower, printcnt, digit;
-    double dnum = (double) num; /* Work in doubles for large tables */
-    char buff[100];
-    int i = 0;
-/* These are the original values  */
-/*      precision = .000001; */
-/*      precmult = 1.0000005; */ /* is this ok for MYFLT without double? */
-
-/* These are new, changed by Richard Karpen to make large table sizes work */
-/* The variable incnum, precision, and precmult were changed to */
-/* from MYFLTs to doubles above to make this work right  */
-    precision = .0000001;
-/*      precmult = 1.000000;   */
-
-    tenpower = printcnt = 0;
-
-    if (dnum == 0.0)
-      goto done;
-    if (dnum < 0.0) {
-      putc('-',SCOREOUT);
-      printf("-");
-      dnum = -dnum;
-    }
-#ifdef neverLINUX
-    dnum *= 1.0000005;
-#endif
-    while (dnum >= 1.0) {
-      dnum /= 10.0;
-      tenpower++;
-    }
-    incnum = dnum;
-    while (dnum/incnum > precision) {
-      if (!tenpower--) {
-        putc('.',SCOREOUT);
-        printf(".");
-      }
-      incnum *= 10.0;
-      dnum *= 10.0;
-      digit = (int) dnum;
-      dnum -= (MYFLT) digit;
-      putc((char)(digit + '0'),SCOREOUT);
-      printcnt++;
-    }
-    while (tenpower-- > 0) {
-      putc('0',SCOREOUT);
-      printcnt++;
-    }
- done:
-    if (!printcnt)
-      putc('0',SCOREOUT);
-}
-#endif

@@ -1,6 +1,9 @@
 2005-03-30  John ff  <jpff@codemist.co.uk>
 
-	* Engine/twarp.c: Removed statics from file
+	* Engine/swrite.c: Remove statics from swrite.c
+
+	* Engine/oload.c: 
+	* Engine/twarp.c: Removed statics from file twarp.c
 
 2005-03-29	Istvan Varga	<istvan@csounds.com>
 	* more API changes (affecting a large number of files)
