@@ -1,3 +1,8 @@
+2004-07-21  Michael Gogins <gogins@pipeline.com>
+
+	* vst4cs: implemented sample-accurate timing for NOTE ON and NOTE OFF.
+	Renamed opcodes for greater intelligiblity.
+
 2004-07-19  Michael Gogins <gogins@pipeline.com>
 
 	* Andres Cabrera suggested a global vst audio output opcode, so I added
