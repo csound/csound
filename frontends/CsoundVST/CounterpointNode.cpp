@@ -1,5 +1,6 @@
 #include "CounterpointNode.hpp"
 #include "System.hpp"
+#include "Conversions.hpp"
 
 namespace csound
 {
@@ -60,15 +61,22 @@ namespace csound
 	  }
 	cantus.push_back(bestfit);
       }
-    System::message("Cantus firmus notes: %d\n", source.size());
-    // For now, just space out the initial pitches.
-    int range = HighestSemitone - LowestSemitone;
-    int voicerange = range / (voices + 1);
-    System::message("Cantus begins at key %d\n", cantus[0]);
-    for (size_t i = 0; i < voices; i++)
+    System::message("Cantus firmus notes: %d\n", source.size());    
+    if(voiceBeginnings.size() > 0)
       {
-	voicebeginnings[i] = cantus[0] + ((i + 1) * voicerange);
-	System::message("Voice %d begins at key %d\n", (i + 1), voicebeginnings[i]);
+	voicebeginnings = voiceBeginnings;
+      }
+    else
+      {
+	voicebeginnings.resize(voices);
+	int range = HighestSemitone - LowestSemitone;
+	int voicerange = range / (voices + 1);
+	System::message("Cantus begins at key %d\n", cantus[0]);
+	for (size_t i = 0; i < voices; i++)
+	  {
+	    voicebeginnings[i] = cantus[0] + ((i + 1) * voicerange);
+	    System::message("Voice %d begins at key %d\n", (i + 1), voicebeginnings[i]);
+	  }
       }
     // Generate the counterpoint.
     counterpoint(musicMode, &voicebeginnings[0], voices, cantus.size(), species, &cantus[0]);
@@ -91,6 +99,8 @@ namespace csound
 	    duration = Dur[note][voice] * secondsPerPulse;
 	    key = double(Ctrpt[note][voice]);
 	    generated.append(time, duration, double(144), double(voice), key, velocity, phase, x, y, z, pcs);
+	    // Set the exact pitch class so that something of the counterpoint will be preserved if the tessitura is rescaled.
+	    pcs = Conversions::midiToPitchClass(key);
 	    System::message("%f %f %f %f %f %f %f %f %f %f %f\n", time, duration, double(144), double(voice), key, velocity, phase, x, y, z, pcs);
 	  }
       }
