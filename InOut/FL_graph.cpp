@@ -30,7 +30,7 @@
 #include <FL/fl_draw.H>
 #include <FL/Fl_Choice.H>
 #include <FL/Fl_Button.H>
-
+#include "csoundCore.h"
 #include "cwindow.h"
 #include <math.h>
 #ifdef HAVE_STRING_H
@@ -50,6 +50,8 @@
 #define TXHGHT   14      /* baseline offset for text */
 #define MAXLSEGS 4096    /* X can only deal with so many linesegs .. */
 
+extern ENVIRON cenviron;
+extern "C" int csoundYield(void *);
 Fl_Window *form = NULL;
 Fl_Choice *choice;
 Fl_Button *end;
@@ -264,7 +266,7 @@ extern "C" {
 void DrawGraph_(WINDAT *wdptr)
 {
     add_graph(wdptr);
-    Fl::check();
+    csoundYield(&cenviron);
 }
 
 long MakeWindow(char *name)
@@ -279,8 +281,6 @@ long MakeWindow(char *name)
 
 int POLL_EVENTS(void)
 {
-    extern int fltk_abort;
-    if (form) Fl::check();
     Fl::wait(0.0);
 #ifdef FLTK_GUI
     if (fltk_abort) {
@@ -304,6 +304,7 @@ int myFLwait()
     if (form==NULL) return 1;
     end->show();
     while (end->value()==0) Fl::wait(0.5);
+
     return 1;
 }
 
@@ -378,5 +379,4 @@ void KillXYin_(XYINDAT *wdptr)
     Fl_Window *x = (Fl_Window*)wdptr->windid;
     x->~Fl_Window();
 }
-
 
