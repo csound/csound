@@ -492,7 +492,8 @@ static int playevents(void)  /* play all events in a score or an lplay list */
     retest:
       offonly = 0;
       currevent = e;
-      switch(e->opcod) {
+#define RNDINT(x) ((int)(x + FL(0.5)))
+      switch (e->opcod) {
       case 'w':
         if (O.Beatmode)                     /* Beatmode: read 'w'  */
           settempo(e->p2orig);              /*   to init the tempo */
@@ -503,16 +504,25 @@ static int playevents(void)  /* play all events in a score or an lplay list */
       case 'a':
         if (frstoff != NULL) {
           if (O.Beatmode) {
-            if (frstoff->offbet < e->p2orig)
+            if (RNDINT(ekrbetsiz*frstoff->offbet) < RNDINT(ekrbetsiz*e->p2orig))
               goto setoff;
           }
           else {
-            if (frstoff->offtim < e->p[2])
+            if (RNDINT(ekr*frstoff->offtim) < RNDINT(ekr*e->p[2]))
               goto setoff;
           }
         }
         nxtim = e->p[2];
         nxtbt = e->p2orig;
+        if (O.Beatmode) {
+          if (RNDINT(ekrbetsiz*curp2) < RNDINT(ekrbetsiz*nxtim))
+            /* if we havent gotten to the next starttime then */
+            offonly = 1;      /* need to set this to avoid inserting too early */
+        } else {
+          if (RNDINT(ekr*curp2) < RNDINT(ekr*nxtim))
+            /* if we havent gotten to the next starttime then */
+            offonly = 1;      /* need to set this to avoid inserting too early */
+        }
         break;
       case 'l':
         if (frstoff != NULL)
