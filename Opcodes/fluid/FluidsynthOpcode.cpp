@@ -23,19 +23,20 @@
 *
 * C S O U N D   M A N   P A G E
 *
-* fluid -- Csound plugin opcode for SoundFonts.
+* fluidload, fluidcontrol, fluidout -- Csound plugin opcode for SoundFonts.
 *
 * DESCRIPTION
 *
-* fluid is a simple Csound opcode wrapper around Peter Hanappe's 
-* fluidsynth SoundFont2 synthesizer. This implementation accepts any MIDI note on, 
+* These opcodes provide a simple Csound opcode wrapper around Peter Hanappe's 
+* Fluidsynth SoundFont2 synthesizer. This implementation accepts any MIDI note on, 
 * note off, controller, pitch bend, or program change message at k-rate.
 * Maximum polyphony is 4096 simultaneously sounding voices.
 *
 * SYNTAX
-* 
-* aleft, aright fluid sfilename, iprogram, kstatus, kchannel, kkey, kvelocity 
-*               [, olistprograms]
+*
+* fluidload sfilename iprogram, ichannel [, olistprograms]
+* fluidcontrol kstatus, kchannel, kdata1, data2
+* aleft, aright fluidout
 *
 * PERFORMANCE
 *
@@ -44,32 +45,47 @@
 * aright - right channel audio output.
 *
 * sfilename - String specifying a SoundFont filename. Note that any number of
-* SoundFonts may be loaded (obviously, by different invocations of fluid).
+* SoundFonts may be loaded (obviously, by different invocations of fluidload).
 *
-* iprogram - Number of the fluidsynth program to be assigned to a MIDI channel.
+* iprogram - Number of the Fluidsynth program to be assigned to a MIDI channel.
 *
 * kstatus - MIDI channel message status byte: 128 for note off, 144 for note on, 
 * 176 for control change, 192 for program change, or 224 for pitch bend. Note off
 * messages need not be specified, as one is automatically generated when each Csound
 * note expires or is released.
 *
-* kchannel - MIDI channel number to which the fluidsynth program is assigned: 
-* from 0 to 255. MIDI channels numbered 16 or higher are virtual channels.
+* ichannel, kchannel - MIDI channel number to which the Fluidsynth program is
+* assigned: from 0 to 255. MIDI channels numbered 16 or higher are virtual channels.
 *
-* kkey - MIDI key number: from 0 (lowest) to 127 (highest), where 60 is middle C.
+* kdata1 - For note on, MIDI key number: from 0 (lowest) to 127 (highest), 
+* where 60 is middle C. For continuous controller messages, controller number.
+* 
+* kdata2 - For note on, MIDI key velocity: from 0 (no sound) to 127 (loudest).
+* For continous controller messages, controller value.
 *
-* kvelocity - MIDI key velocity: from 0 (no sound) to 127 (loudest).
-*
-* olistprograms - If specified, lists all fluidsynth programs for the SoundFont.
-* A fluidsynth program is a combination of SoundFont ID, bank number, 
-* and preset number that can be assigned to a MIDI channel.
+* olistprograms - If specified, lists all Fluidsynth programs for the SoundFont.
+* A Fluidsynth program is a combination of SoundFont ID, bank number, 
+* and preset number that is assigned to a MIDI channel.
 * 
 * In this implementation, SoundFont effects such as chorus or reverb 
 * are used if and only if they are defaults for the preset. 
 * There is no means of turning such effects on or off, 
 * or of changing their parameters, from Csound.
+*
+* Invoke fluidload in the orchestra header any number of times. 
+* The same SoundFont may be invoked to assign programs to MIDI channels 
+* any number of times; the SoundFont is only loaded the first time.
+*
+* Invoke fluidcontrol in instrument definitions that actually play notes
+* and send control messages. Such a definition must consistently use one 
+* MIDI channel that was assigned to a Fluidsynth program using fluidload.
+*
+* Invoke fluidout in an instrument definition numbered higher than any 
+* fluidcontrol instrument definitions. All SoundFonts send their output to 
+* this single opcode.
 */
 #include "Soundfonts.hpp"
+#include <OpcodeBase.hpp>
 #include <cs.h>
 
 #if defined(WIN32)
@@ -80,31 +96,159 @@
 
 extern "C"
 {
-    // A fluidsynth instance needs to be constructed first (i.e. here),
+    // A Fluidsynth instance needs to be constructed first (i.e. here),
     // or there are problems with static initialization.
+    // Each soundfont has its own effects, so there is no reason for there to 
+    // be more than one Fluidsynth per Csound instance.
     fluid_synth_t *dummy = new_fluid_synth(new_fluid_settings());
-    fluid_synth_t *fluidSynth = 0;
+    fluid_synth_t *Fluidsynth = 0;
     std::map<int, int> programsForChannels;
     std::map<int, int> soundfontIdsForPrograms;
     std::map<std::string, fluid_sfont_t *> soundfontsForNames;
     std::vector<fluid_preset_t> programs;
     
-    struct FluidsynthOpcode
+    class FLUIDLOAD : public OpcodeBase<FLUIDLOAD>
     {
-        OPDS h;
+    public:
         // Inputs.
         MYFLT *iSoundfontName;
         MYFLT *iFluidProgram;
+        MYFLT *iMidiChannel;
+        MYFLT *oListPresets;
+        // No outputs.
+        // State.
+        int fluidProgram;
+        int midiChannel;
+        bool listPresets;
+        int soundfontId;
+        int init()
+        {
+            fluidProgram = (int) (*iFluidProgram);                  
+            midiChannel = (int) (*iMidiChannel);   
+            listPresets = (bool) (*oListPresets); 
+            soundfontId = -1;
+            if(dummy) {
+                delete_fluid_synth(dummy);
+                dummy = 0;
+            }
+            if(!Fluidsynth) {
+                fluid_settings_t *fluidSettings = new_fluid_settings();
+                Fluidsynth = new_fluid_synth(fluidSettings);
+                float samplingRate = (float) cs()->GetSr(cs());
+                fluid_settings_setnum(fluidSettings, "synth.sample-rate", samplingRate);
+                fluid_settings_setint(fluidSettings, "synth.polyphony", 4096);
+                fluid_settings_setint(fluidSettings, "synth.midi-channels", 256);
+                log("Allocated Fluidsynth with sampling rate = %f.\n",
+                    samplingRate);
+            }
+            std::string filename = STRARG;
+            fluid_sfont_t *fluidSoundfont = 0;
+            if(soundfontsForNames.find(filename) == soundfontsForNames.end()) {
+                soundfontId = fluid_synth_sfload(Fluidsynth, filename.c_str(), false);
+                if(soundfontId == -1)
+                {
+                    log("Failed to load SoundFont %s.\n", filename.c_str());
+                }
+                fluidSoundfont = fluid_synth_get_sfont_by_id(Fluidsynth, soundfontId );
+                log("Loaded SoundFont '%s' id %d.\n", 
+                    filename.c_str(),
+                    soundfontId);
+                soundfontsForNames[filename] = fluidSoundfont;
+                fluid_preset_t fluidPreset;
+                fluidSoundfont->iteration_start(fluidSoundfont);
+                char buffer[0xff];
+                int programIndex = soundfontIdsForPrograms.size();
+                while(fluidSoundfont->iteration_next(fluidSoundfont, &fluidPreset)) {
+                    soundfontIdsForPrograms[programIndex] = soundfontId;
+                    programs.push_back(fluidPreset);
+                    if(listPresets) {
+                        sprintf(buffer, 
+                            "Program:%4d  SoundFont:%8d  Bank:%3d  Preset:%3d  %s\n",
+                            programIndex++,
+                            soundfontId,
+                            fluidPreset.get_banknum(&fluidPreset),
+                            fluidPreset.get_num(&fluidPreset),
+                            fluidPreset.get_name(&fluidPreset));
+                            log(buffer);
+                    }
+    #if defined(WIN32) && defined(__DEBUG__)
+                    OutputDebugString(buffer);
+    #endif
+                }
+            }  
+            if(fluidProgram >= 0) {
+                if(programsForChannels.find(midiChannel) == programsForChannels.end())
+                {
+                    fluid_preset_t &fluidPreset = programs[fluidProgram];
+                    fluid_synth_program_select(Fluidsynth, 
+                        midiChannel,
+                        soundfontIdsForPrograms[fluidProgram],
+                        fluidPreset.get_banknum(&fluidPreset),
+                        fluidPreset.get_num(&fluidPreset));
+                    programsForChannels[midiChannel] = fluidProgram;
+                    unsigned int sfontId = 0;
+                    unsigned int bank_num = 0;
+                    unsigned int preset_num = 0;
+                    int status = fluid_synth_get_program(Fluidsynth, 
+                       midiChannel,
+                       &sfontId,
+                       &bank_num,
+                       &preset_num);
+                    if(!status) {
+                        log("Assigned program %d (SoundFont %d bank %d preset %d) to channel %d.\n",             
+                            fluidProgram,
+                            sfontId,
+                            bank_num,
+                            preset_num,
+                            midiChannel);
+                    } else {
+                        log("Failed to assign program %d (SoundFont %d bank %d preset %d) to channel %d.\nStatus: %d error: '%s'\n",             
+                            fluidProgram,
+                            sfontId,
+                            bank_num,
+                            preset_num,
+                            midiChannel,
+                            status,
+                            fluid_synth_error(Fluidsynth));
+                    }
+                }
+            }
+            return OK;
+        }
+        int deinit()
+        {
+            if(Fluidsynth) {
+                delete_fluid_synth(Fluidsynth);
+                Fluidsynth = 0;
+            }
+            if(!soundfontsForNames.empty()) {
+                soundfontsForNames.clear();
+            }
+            if(!programsForChannels.empty()) {
+                programsForChannels.clear();
+            }
+            if(!programs.empty()) {
+                programs.clear();
+            }
+            if(!soundfontIdsForPrograms.empty()) {
+                soundfontIdsForPrograms.clear();
+            }
+            warn("Fluidsynth cleanup.\n");
+            return OK;
+        }
+    };
+
+    class FLUIDCONTROL : public OpcodeBase<FLUIDCONTROL>
+    {
+    public:
+        // Inputs.
         MYFLT *kMidiStatus;
         MYFLT *kMidiChannel;
         MYFLT *kMidiData1;
         MYFLT *kMidiData2;
-        MYFLT *oListPresets;
+        // No outputs.
         // Internal state.
-        ENVIRON *csound;
         bool released;
-        int blockSize;
-        int soundfontId;
         int iMidiStatus;
         int iMidiChannel;
         int iMidiData1;
@@ -117,332 +261,161 @@ extern "C"
         int priorMidiChannel;
         int priorMidiData1;
         int priorMidiData2;
+        int init()
+        {
+            released          = false;
+            iMidiStatus       = 0xf0 & (int) (*kMidiStatus);                      
+            iMidiChannel      = (int) (*kMidiChannel);                      
+            iMidiData1        = (int) (*kMidiData1);                      
+            iMidiData2        = (int) (*kMidiData2);                      
+            priorMidiStatus   = -1;
+            priorMidiChannel  = -1;
+            priorMidiData1    = -1;
+            priorMidiData2    = -1;
+            return OK;
+        }
+        int kontrol()
+        {
+            midiStatus       = 0xf0 & (int) (*kMidiStatus);                      
+            midiChannel      = (int) (*kMidiChannel);                      
+            midiData1        = (int) (*kMidiData1);                      
+            midiData2        = (int) (*kMidiData2);                      
+            if( midiStatus   != priorMidiStatus  ||
+                midiChannel  != priorMidiChannel ||
+                midiData1    != priorMidiData1   ||
+                midiData2    != priorMidiData2)
+            {
+                switch(midiStatus)
+                {
+                    case (int) 0x80:
+                        fluid_synth_noteoff(Fluidsynth, 
+                            midiChannel, 
+                            midiData1); 
+                        warn("Note off: s:%d c:%d k:%d\n",
+                            midiStatus,
+                            midiChannel,
+                            midiData1);                         
+                        break;
+                    case (int) 0x90:
+                        fluid_synth_noteon(Fluidsynth, 
+                            midiChannel, 
+                            midiData1, 
+                            midiData2); 
+                        warn("Note on: s:%d c:%d k:%d v:%d\n",
+                            midiStatus,
+                            midiChannel,
+                            midiData1,
+                            midiData2);                         
+                        break;
+                    case (int) 0xa0:
+                        warn("Key pressure (not handled): s:%d c:%d k:%d v:%d\n",
+                            midiStatus,
+                            midiChannel,
+                            midiData1,
+                            midiData2);                         
+                        break;
+                    case (int) 0xb0:
+                        fluid_synth_cc(Fluidsynth, 
+                            midiChannel, 
+                            midiData1, 
+                            midiData2);
+                        warn("Control change: s:%d c:%d c:%d v:%d\n",
+                            midiStatus,
+                            midiChannel,
+                            midiData1,
+                            midiData2);                         
+                        break;
+                    case (int) 0xc0:
+                        fluid_synth_program_change(Fluidsynth, 
+                            midiChannel, 
+                            midiData1); 
+                        warn("Program change: s:%d c:%d p:%d\n",
+                            midiStatus,
+                            midiChannel,
+                            midiData1);                         
+                        break;
+                    case (int) 0xd0:
+                        warn("After touch (not handled): s:%d c:%d k:%d v:%d\n",
+                            midiStatus,
+                            midiChannel,
+                            midiData1,
+                            midiData2);                         
+                        break;
+                    case (int) 0xe0:
+                        fluid_synth_pitch_bend(Fluidsynth, 
+                            midiChannel, 
+                            midiData1); 
+                        warn("Pitch bend: s:%d c:%d b:%d\n",
+                            midiStatus,
+                            midiChannel,
+                            midiData1);                         
+                        break;
+                    case (int) 0xf0:
+                        warn("System exclusive (not handled): c:%d k:%d v:%d\n",
+                            midiStatus,
+                            midiChannel,
+                            midiData1,
+                            midiData2);                         
+                        break;
+                }
+            }
+            if((!released) &&
+              (h.insdshead->offtim <= cs()->GetScoreTime(cs()) ||
+                h.insdshead->relesing)) {
+                released = true;
+                fluid_synth_noteoff(Fluidsynth, 
+                    iMidiChannel, 
+                    iMidiData1); 
+                warn("Note off: s:%d c:%d k:%d v:%d\n",
+                    iMidiStatus,
+                    iMidiChannel,
+                    iMidiData1,
+                    iMidiData2);                         
+            }
+            priorMidiStatus  = midiStatus;
+            priorMidiChannel = midiChannel;
+            priorMidiData1   = midiData1;
+            priorMidiData2   = midiData2;
+            return OK;
+        }
     };
     
-    struct FluidoutOpcode
+    class FLUIDOUT : public OpcodeBase<FLUIDOUT>
     {
-        OPDS h;
+    public:
+        // No inputs.
         // Outputs.
         MYFLT *aLeftOut;
         MYFLT *aRightOut;
-        
+        int audio()
+        {
+            float leftSample[1];
+            float rightSample[1];
+            MYFLT *leftOut    = aLeftOut;
+            MYFLT *rightOut   = aRightOut;
+            for(int i = 0, n = cs()->GetKsmps(cs()); i < n; ++i) {
+                leftSample[0] = 0;
+                rightSample[0] = 0;
+                fluid_synth_write_float(Fluidsynth, 
+                    1, 
+                    leftSample, 
+                    0, 
+                    1, 
+                    rightSample, 
+                    0, 
+                    1);    
+                leftOut[i]  = leftSample[0];
+                rightOut[i] = rightSample[0];
+            }
+            return OK;
+        }
     };
-
-    /**
-    * Called by Csound to begin processing an "i" statement
-    * or MIDI "note on" event.
-    */
-    int fluidIopadr(void *data)
-    {
-        FluidsynthOpcode *fluid = (FluidsynthOpcode *)data;
-        fluid->csound           = fluid->h.insdshead->csound;
-        fluid->iMidiStatus      = 0xf0 & (int) (*fluid->kMidiStatus);                      
-        fluid->iMidiChannel     = (int) (*fluid->kMidiChannel);                      
-        fluid->iMidiData1       = (int) (*fluid->kMidiData1);                      
-        fluid->iMidiData2       = (int) (*fluid->kMidiData2);                      
-        fluid->priorMidiStatus  = -1;
-        fluid->priorMidiChannel = -1;
-        fluid->priorMidiData1   = -1;
-        fluid->priorMidiData2   = -1;
-        fluid->midiStatus       = fluid->iMidiStatus;                      
-        fluid->midiChannel      = fluid->iMidiChannel;                      
-        fluid->midiData1        = fluid->iMidiData1;                      
-        fluid->midiData2        = fluid->iMidiData2;                      
-        fluid->released         = false;
-        fluid->soundfontId = -1;
-        if(dummy)
-        {
-            delete_fluid_synth(dummy);
-            dummy = 0;
-        }
-        if(!fluidSynth)
-        {
-            fluid_settings_t *fluidSettings = new_fluid_settings();
-            fluidSynth = new_fluid_synth(fluidSettings);
-            float samplingRate = (float) fluid->csound->GetSr(fluid->csound);
-            fluid_settings_setnum(fluidSettings, "synth.sample-rate", samplingRate);
-            fluid_settings_setint(fluidSettings, "synth.polyphony", 4096);
-            fluid_settings_setint(fluidSettings, "synth.midi-channels", 256);
-            fluid->csound->Message(fluid->csound, 
-                "Allocated fluidsynth with sampling rate = %f.\n",
-                samplingRate);
-            // delete_fluid_settings(fluidSettings);
-        }
-        fluid->blockSize = fluid->csound->GetKsmps(fluid->csound);
-        fluid->csound->Message(fluid->csound, 
-            "SoundFont ksmps = %d.\n",
-            fluid->blockSize);
-        std::string filename = fluid->STRARG;
-        fluid_sfont_t *fluidSoundfont = 0;
-        if(soundfontsForNames.find(filename) == soundfontsForNames.end())
-        {
-            fluid->soundfontId = fluid_synth_sfload(fluidSynth, filename.c_str(), false);
-            if(fluid->soundfontId == -1)
-            {
-                fluid->csound->Message(fluid->csound, "Failed to load SoundFont %s.\n", filename.c_str());
-            }
-            fluidSoundfont = fluid_synth_get_sfont_by_id(fluidSynth, fluid->soundfontId );
-            fluid->csound->Message(fluid->csound, 
-                "Loaded SoundFont '%s' id %d.\n", 
-                filename.c_str(),
-                fluid->soundfontId);
-            soundfontsForNames[filename] = fluidSoundfont;
-            fluid_preset_t fluidPreset;
-            fluidSoundfont->iteration_start(fluidSoundfont);
-            char buffer[0xff];
-            int programIndex = soundfontIdsForPrograms.size();
-            while(fluidSoundfont->iteration_next(fluidSoundfont, &fluidPreset))
-            {
-                soundfontIdsForPrograms[programIndex] = fluid->soundfontId;
-                programs.push_back(fluidPreset);
-                if(*fluid->oListPresets)
-                {
-                    sprintf(buffer, 
-                        "Program:%4d  SoundFont:%8d  Bank:%3d  Preset:%3d  %s\n",
-                        programIndex++,
-                        fluid->soundfontId,
-                        fluidPreset.get_banknum(&fluidPreset),
-                        fluidPreset.get_num(&fluidPreset),
-                        fluidPreset.get_name(&fluidPreset));
-                        fluid->csound->Message(fluid->csound, buffer);
-                }
-#if defined(WIN32) && defined(__DEBUG__)
-                OutputDebugString(buffer);
-#endif
-            }
-        }  
-        if(*fluid->iFluidProgram >= 0)
-        {
-            if(programsForChannels.find(fluid->midiChannel) == programsForChannels.end())
-            {
-                fluid_preset_t &fluidPreset = programs[(int) (*fluid->iFluidProgram)];
-                fluid_synth_program_select(fluidSynth, 
-                    fluid->midiChannel,
-                    soundfontIdsForPrograms[(int) (*fluid->iFluidProgram)],
-                    fluidPreset.get_banknum(&fluidPreset),
-                    fluidPreset.get_num(&fluidPreset));
-                programsForChannels[fluid->midiChannel] = (int) (*fluid->iFluidProgram);
-                unsigned int sfontId = 0;
-                unsigned int bank_num = 0;
-                unsigned int preset_num = 0;
-                int status = fluid_synth_get_program(fluidSynth, 
-                   fluid->midiChannel,
-                   &sfontId,
-                   &bank_num,
-                   &preset_num);
-                if(!status)
-                {
-                    fluid->csound->Message(fluid->csound, 
-                        "Assigned program %d (SoundFont %d bank %d preset %d) to channel %d.\n",             
-                        (int) *fluid->iFluidProgram,
-                        sfontId,
-                        bank_num,
-                        preset_num,
-                        fluid->midiChannel);
-                }
-                else
-                {
-                    fluid->csound->Message(fluid->csound, 
-                        "Failed to assign program %d (SoundFont %d bank %d preset %d) to channel %d.\nStatus: %d error: '%s'\n",             
-                        (int) *fluid->iFluidProgram,
-                        sfontId,
-                        bank_num,
-                        preset_num,
-                        fluid->midiChannel,
-                        status,
-                        fluid_synth_error(fluidSynth));
-                }
-            }
-        }
-        return 0;
-    }
-    
-    int fluidKopadr(void *data)
-    {
-        FluidsynthOpcode *fluid =  (FluidsynthOpcode *)data;
-        fluid->midiStatus       = 0xf0 & (int) (*fluid->kMidiStatus);                      
-        fluid->midiChannel      = (int) (*fluid->kMidiChannel);                      
-        fluid->midiData1        = (int) (*fluid->kMidiData1);                      
-        fluid->midiData2        = (int) (*fluid->kMidiData2);                      
-        if( fluid->midiStatus   != fluid->priorMidiStatus  ||
-            fluid->midiChannel  != fluid->priorMidiChannel ||
-            fluid->midiData1    != fluid->priorMidiData1   ||
-            fluid->midiData2    != fluid->priorMidiData2)
-        {
-            switch(fluid->midiStatus)
-            {
-                // Note off.
-                case (int) 0x80:
-                    fluid_synth_noteoff(fluidSynth, 
-                        fluid->midiChannel, 
-                        fluid->midiData1); 
-                    fluid->csound->Message(fluid->csound, 
-                        "Note off: s:%d c:%d k:%d\n",
-                        fluid->midiStatus,
-                        fluid->midiChannel,
-                        fluid->midiData1);                         
-                    break;
-                // Note on.
-                case (int) 0x90:
-                    fluid_synth_noteon(fluidSynth, 
-                        fluid->midiChannel, 
-                        fluid->midiData1, 
-                        fluid->midiData2); 
-                    fluid->csound->Message(fluid->csound, 
-                        "Note on: s:%d c:%d k:%d v:%d\n",
-                        fluid->midiStatus,
-                        fluid->midiChannel,
-                        fluid->midiData1,
-                        fluid->midiData2);                         
-                    break;
-                // Key pressure.
-                case (int) 0xa0:
-                    fluid->csound->Message(fluid->csound, 
-                        "Key pressure (not handled): s:%d c:%d k:%d v:%d\n",
-                        fluid->midiStatus,
-                        fluid->midiChannel,
-                        fluid->midiData1,
-                        fluid->midiData2);                         
-                    break;
-                // Control change.
-                case (int) 0xb0:
-                    fluid_synth_cc(fluidSynth, 
-                        fluid->midiChannel, 
-                        fluid->midiData1, 
-                        fluid->midiData2);
-                    fluid->csound->Message(fluid->csound, 
-                        "Control change: s:%d c:%d c:%d v:%d\n",
-                        fluid->midiStatus,
-                        fluid->midiChannel,
-                        fluid->midiData1,
-                        fluid->midiData2);                         
-                    break;
-                // Program change.
-                case (int) 0xc0:
-                    fluid_synth_program_change(fluidSynth, 
-                        fluid->midiChannel, 
-                        fluid->midiData1); 
-                    fluid->csound->Message(fluid->csound, 
-                        "Program change: s:%d c:%d p:%d\n",
-                        fluid->midiStatus,
-                        fluid->midiChannel,
-                        fluid->midiData1);                         
-                    break;
-                // After touch.
-                case (int) 0xd0:
-                    fluid->csound->Message(fluid->csound, 
-                        "After touch (not handled): s:%d c:%d k:%d v:%d\n",
-                        fluid->midiStatus,
-                        fluid->midiChannel,
-                        fluid->midiData1,
-                        fluid->midiData2);                         
-                    break;
-                // Pitch bend.
-                case (int) 0xe0:
-                    fluid_synth_pitch_bend(fluidSynth, 
-                        fluid->midiChannel, 
-                        fluid->midiData1); 
-                    fluid->csound->Message(fluid->csound, 
-                        "Pitch bend: s:%d c:%d b:%d\n",
-                        fluid->midiStatus,
-                        fluid->midiChannel,
-                        fluid->midiData1);                         
-                    break;
-                // System exclusive.
-                case (int) 0xf0:
-                    fluid->csound->Message(fluid->csound, 
-                        "System exclusive (not handled) c:%d k:%d v:%d\n",
-                        fluid->midiStatus,
-                        fluid->midiChannel,
-                        fluid->midiData1,
-                        fluid->midiData2);                         
-                    break;
-            }
-        }
-        if((!fluid->released) &&
-          (fluid->h.insdshead->offtim <= fluid->csound->GetScoreTime(fluid->csound) ||
-            fluid->h.insdshead->relesing))
-        {
-            fluid->released = true;
-            fluid_synth_noteoff(fluidSynth, 
-                fluid->iMidiChannel, 
-                fluid->iMidiData1); 
-            fluid->csound->Message(fluid->csound, 
-                "Note off: s:%d c:%d k:%d v:%d\n",
-                fluid->iMidiStatus,
-                fluid->iMidiChannel,
-                fluid->iMidiData1,
-                fluid->iMidiData2);                         
-        }
-        fluid->priorMidiStatus  = fluid->midiStatus;
-        fluid->priorMidiChannel = fluid->midiChannel;
-        fluid->priorMidiData1   = fluid->midiData1;
-        fluid->priorMidiData2   = fluid->midiData2;
-        return OK;
-    }
-
-    int fluidAopadr(void *data)
-    {
-        FluidoutOpcode *fluid =  (FluidoutOpcode *)data;
-        ENVIRON *csound = fluid->h.insdshead->csound;
-        float leftSample[1];
-        float rightSample[1];
-        MYFLT *leftOut    = fluid->aLeftOut;
-        MYFLT *rightOut   = fluid->aRightOut;
-        for(int i = 0, n = csound->GetKsmps(csound); i < n; ++i)
-        {
-            leftSample[0] = 0;
-            rightSample[0] = 0;
-            fluid_synth_write_float(fluidSynth, 
-                1, 
-                leftSample, 
-                0, 
-                1, 
-                rightSample, 
-                0, 
-                1);    
-            leftOut[i]  = leftSample[0];
-            rightOut[i] = rightSample[0];
-        }
-        return OK;
-    }
-
-    /**
-    * Called by Csound to de-initialize the opcode 
-    * just before destroying it.
-    */
-    int fluidDopadr(void *data)
-    {
-        FluidsynthOpcode *fluid = (FluidsynthOpcode *)data;
-        if(fluidSynth)
-        {
-            delete_fluid_synth(fluidSynth);
-            fluidSynth = 0;
-        }
-        if(!soundfontsForNames.empty())
-        {
-            soundfontsForNames.clear();
-        }
-        if(!programsForChannels.empty())
-        {
-            programsForChannels.clear();
-        }
-        if(!programs.empty())
-        {
-            programs.clear();
-        }
-        if(!soundfontIdsForPrograms.empty())
-        {
-            soundfontIdsForPrograms.clear();
-        }
-        fluid->csound->Message(fluid->csound, "fluid cleanup.\n");
-        return 0;
-    }
 
     OENTRY oentries[] = 
     {
-        {"fluid",  sizeof(FluidsynthOpcode), 3,"","Sikkkko",&fluidIopadr,&fluidKopadr,0,&fluidDopadr},
-        {"fluidout", sizeof(FluidoutOpcode), 4, "aa","",0,0,&fluidAopadr, 0},
+        {"fluidload",    sizeof(FLUIDLOAD),    1, "",   "Siio", &FLUIDLOAD::init_,    0,                       0,                 &FLUIDLOAD::deinit_},
+        {"fluidcontrol", sizeof(FLUIDCONTROL), 3, "",   "kkkk", &FLUIDCONTROL::init_, &FLUIDCONTROL::kontrol_, 0,                 0                  },
+        {"fluidout",     sizeof(FLUIDOUT),     4, "aa", "",     0,                    0,                       &FLUIDOUT::audio_, 0                  },
     };
     
     /**
