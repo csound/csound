@@ -2,75 +2,78 @@
 #define VST4CS_H
 #include "cs.h"
 
-#if defined(WIN32)
-#define PUBLIC __declspec(dllexport)
-#define DIR_SEP '\\'
-#else
-#define PUBLIC
-#define DIR_SEP '/'
-#endif
-
-extern MYFLT SCALING_FACTOR;
-
-typedef struct VSTINIT_ {
+typedef struct VSTINIT {
 	OPDS h;
+	// Inputs.
 	MYFLT *iVSThandle;
 	MYFLT *iplugin;
 	MYFLT *iverbose;
 } VSTINIT ;
 
-typedef struct VSTINFO_ {
+typedef struct VSTINFO {
 	OPDS h;
+	// Inputs.
 	MYFLT *iVSThandle;
 } VSTINFO ;
 
-typedef struct VST_PLUGIN_ {
+typedef struct VSTPLUG_ {
 	OPDS h;
+	// Outputs.
 	MYFLT *aout1;
 	MYFLT *aout2;
+	// Inputs.
 	MYFLT *iVSThandle;
 	MYFLT *ain1;
 	MYFLT *ain2;
-	long nsamps;
-} VST_PLUGIN ;
+	// State.
+	size_t framesPerBlock;
+	size_t channels;
+} VSTPLUG_ ;
 
-typedef struct VSTNOTE_ {
-	OPDS h;
+typedef struct VSTNOTE {
+	OPDS h;	
+	// Inputs.
 	MYFLT *iVSThandle;
 	MYFLT *kchan;
 	MYFLT *knote;
 	MYFLT *kveloc;
 	MYFLT *kdur;
-	int frames_left;
+	// State.
+	MYFLT framesRemaining;
 } VSTNOTE ;
 
 typedef struct OUTVST_ {
 	OPDS h;
+	// Inputs.
 	MYFLT *iVSThandle;
 	MYFLT *kstatus;
 	MYFLT *kchan;
 	MYFLT *kdata1;
 	MYFLT *kdata2;
-	MYFLT oldKstatus;
-	MYFLT oldKchan;
-	MYFLT oldKdata1;
-	MYFLT oldKdata2;
+	// State.
+	MYFLT oldkstatus;
+	MYFLT oldkchan;
+	MYFLT oldkvalue;
 } OUTVST ;
 
-typedef struct VSTPRET_ {
+typedef struct VSTPRET {
 	OPDS h;
+	// Outputs.
 	MYFLT *kvalue;
+	// Intputs.
 	MYFLT *iVSThandle;
 	MYFLT *kparam;
 } VSTPRET ;
 
-typedef struct VSTPSEND_ {
+typedef struct VSTPSEND {
 	OPDS h;
+	// Inputs.
 	MYFLT *iVSThandle;
 	MYFLT *kparam;
 	MYFLT *kvalue;
-	MYFLT oldparam;
-	MYFLT oldvalue;
+	// State.
+	MYFLT oldkparam;
+	MYFLT oldkvalue;
 } VSTPSEND ;
 
 #endif
