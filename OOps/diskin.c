@@ -156,21 +156,7 @@ static int sngetset(SOUNDINEW *p, char *sfname)
     p->do_floatscaling = forReadHeader.do_floatscaling;
     p->fscalefac = forReadHeader.fscalefac;
     
-    switch ((p->format = (short)sf2format(sfinfo.format))) {
-    case AE_CHAR:
-    case AE_UNCH:
-    case AE_ULAW:
-    case AE_SHORT:
-    case AE_LONG:
-    case AE_FLOAT:
-    case AE_24INT:
-      break;            /*RWD 5:2001 */
-      
-    default:
-      sprintf(errmsg,Str(X_52,"%s format %s not yet supported"),
-              sfname, getstrformat((int)p->format));
-      goto errcls;
-    }
+    p->format = (short)sf2format(sfinfo.format);
     p->sampframsiz = (short)sfsampsize(sfinfo.format) * sfinfo.channels;
     p->filetyp     = sf2type(sfinfo.format);
     p->sr          = sfinfo.samplerate;
