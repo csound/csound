@@ -119,8 +119,6 @@ Help(opts.GenerateHelpText(commonEnvironment))
 commonEnvironment.Append(CPPPATH  = ['.', './H'])
 commonEnvironment.Append(CCFLAGS = Split('-DCSOUND_WITH_API -g -O2'))
 commonEnvironment.Append(CXXFLAGS = Split('-DCSOUND_WITH_API -fexceptions'))
-if commonEnvironment['makeDynamic']==0:
-        commonEnvironment.Append(LINKFLAGS = '-static')
 
 # Define options for different platforms.
 
@@ -139,6 +137,7 @@ else:
 # Define different build environments for different types of targets.
 
 if getPlatform() == 'linux':
+    commonEnvironment.Append(makeDynamic = 1)
     commonEnvironment.Append(CCFLAGS = "-DLINUX")
     commonEnvironment.Append(CPPPATH = '/usr/local/include')
     commonEnvironment.Append(CPPPATH = '/usr/include')
@@ -164,6 +163,8 @@ elif getPlatform() == 'mingw' or getPlatform() == 'cygwin':
     commonEnvironment.Append(CCFLAGS = "-mthreads")
     commonEnvironment.Append(LIBPATH = ['.', '#.', '/usr/include/lib', '/usr/local/lib'])    
     
+if commonEnvironment['makeDynamic']==0:
+        commonEnvironment.Append(LINKFLAGS = '-static')
 
 # Adding libraries and flags if using -mno-cygwin with cygwin
 
