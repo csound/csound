@@ -42,6 +42,7 @@ static  SNDFILE *outfile;
 static  char    *sfoutname;                     /* soundout filename    */
 static  char    *inbuf;
         char    *outbuf;                        /* contin sndio buffers */
+static  float   *inbufp, *outbufp;              /* MYFLT pntr           */
 static  unsigned inbufrem, outbufrem;           /* in monosamps         */
                                                 /* (see openin,iotranset)    */
 static  unsigned inbufsiz,  outbufsiz;          /* alloc in sfopenin/out     */
@@ -67,6 +68,7 @@ static  int     (*audrecv)(void *, int);
 static  void    (*audtran)(void *, int);
 
 extern char *getstrformat(int format);
+extern unsigned long   nframes;
 
 static int type2sf(int type)
 {
@@ -110,21 +112,126 @@ int format2sf(int format)
     return SF_FORMAT_PCM_16;
 }
 
-void writesf(void *b, int len)
+/* The interface requires 3 functions:
+   spoutran to transfer nspout items to buffer
+   nzerotran to transfer nspout zeros to buffer
+   audtran to actually write the data
+
+   spoutran is called with nchnls*ksamps items and this need to be
+   buffered until outbufsiz items have been accumulated.  It will call
+   audtran to flush when this happens.
+*/
+
+void spoutsf(void)
 {
-    int i;
-    printf("***writesf:%p, %d\n", b, len);
-    for (i=0; i<len; i++) {
+    int n, spoutrem = nspout;
+    MYFLT *maxampp = maxamp;
+    unsigned long       *maxps = maxpos;
+    long   *rngp;                       /*RWD Nov 2001 */
+    MYFLT *sp = spout;
+    MYFLT       absamp;
+
+nchk:
+    if ((n = spoutrem) > (int)outbufrem) /* if nspout remaining > buf rem, */
+      n = outbufrem;          /*      prepare to send in parts  */
+    spoutrem -= n;
+    outbufrem -= n;
+    do {
+      if ((absamp = *sp) < FL(0.0))
+        absamp = -absamp;
+      if (absamp > *maxampp) {         /*  maxamp this seg  */
+        *maxampp = absamp;
+        *maxps = nframes;
+      }
+      absamp = *sp;
+      if (absamp >= 0) { /* +ive samp:   */
+        if (absamp > e0dbfs) {          /* out of range?     */
+          /*   report it*/
+          rngp = rngcnt + (maxampp - maxamp);
+          (*rngp)++;
+          rngflg = 1;
+        }
+      }
+      else {                            /* ditto -ive samp */
+        if (absamp < -e0dbfs) {
+          rngp = rngcnt + (maxampp - maxamp);
+          (*rngp)++;
+          rngflg = 1;
+        }
+      }
+      absamp *= dbfs_to_float;
+      if (osfopen)
+        *outbufp++ = absamp;
+      if (multichan) {
+        maxps++;
+        if (++maxampp >= maxampend)
+          maxampp = maxamp, maxps = maxpos, nframes++;
+      }
+      else nframes++;
+      sp++;
+    } while (--n);
+    if (!outbufrem) {
+      if (osfopen) {
+        audtran(outbuf,outbufsiz);
+        outbufp = (MYFLT *) outbuf;
+      }
+      outbufrem = O.outbufsamps;
+      if (spoutrem) goto nchk;
     }
-    sf_writef_float(outfile, (float*)b, len);
 }
 
 void zerosf(int len)
 {
-    int i;
-    MYFLT x = FL(0.0);
-    for (i=0; i<len; i++)
-      sf_writef_float(outfile, &x, 1);
+    int   n, smpsrem, clearcnt = 0;
+
+    if (!osfopen)  return;
+    smpsrem = nspout * (int)len;        /* calculate total smps to go   */
+ nchk:
+    if ((n = smpsrem) > (int)outbufrem)  /* if smps remaining > buf rem, */
+      n = outbufrem;          /*      prepare to send in parts  */
+    smpsrem -= n;
+    outbufrem -= n;
+    if (clearcnt < O.outbufsamps) {
+      clearcnt += n;          /* clear buf only till clean */
+      do *outbufp++ = FL(0.0);
+      while (--n);
+    }
+    else outbufp += n;
+    if (!outbufrem) {
+      audtran(outbuf,outbufsiz);
+      outbufp = (MYFLT*)outbuf;
+      outbufrem = O.outbufsamps;
+      if (smpsrem) goto nchk;
+    }
+}
+
+static void writesf(void *outbuf, int nbytes)
+                                /* diskfile write option for audtran's */
+                                /*      assigned during sfopenout()    */
+{
+    int n;
+    if (osfd<0) return;
+    if ((n = sf_write_float(outfile, outbuf, nbytes/sizeof(MYFLT))) < nbytes/sizeof(MYFLT))
+      sndwrterr(n, nbytes);
+    if (O.rewrt_hdr)
+      rewriteheader(osfd, nbytes +(long)nrecs*outbufsiz, 0);
+    nrecs++;                /* JPff fix */
+    if (O.heartbeat) {
+      if (O.heartbeat==1) {
+#ifdef SYMANTEC
+        nextcurs();
+#else
+        putc("|/-\\"[nrecs&3], stderr); putc(8,stderr);
+#endif
+      }
+      else if (O.heartbeat==2) putc('.', stderr);
+      else if (O.heartbeat==3) {
+        int n;
+        err_printf( "%d(%.3f)%n", nrecs, nrecs/ekr, &n);
+        while (n--) err_printf("\b");
+      }
+      else err_printf("\a");
+    }
 }
 
 int SAsndgetset(
@@ -154,6 +261,7 @@ HEADATA *readheader(            /* read soundfile hdr, fill HEADATA struct */
 
 void rewriteheader(int ofd, long datasize, int verbose)
 {
+    sf_command(outfile, SFC_UPDATE_HEADER_NOW, NULL, 0);
     return;
 }
 
@@ -175,6 +283,7 @@ int sreadin(                    /* special handling of sound input       */
 
 void writeheader(int ofd, char *ofname) 
 {
+    sf_command(outfile, SFC_UPDATE_HEADER_NOW, NULL, 0);
     return;
 }
 
@@ -196,7 +305,6 @@ void sfopenin(void)             /* init for continuous soundin */
 
 void sfopenout(void)                            /* init for sound out       */
 {                                               /* (not called if nosound)  */
-    printf("***sfopenout\n");
 #ifdef NeXT
     if (O.outfilename == NULL && !O.filetyp) O.outfilename = "test.snd";
         else if (O.outfilename == NULL) O.outfilename = "test";
@@ -207,7 +315,6 @@ void sfopenout(void)                            /* init for sound out       */
       else O.outfilename = "test";
     }
 #endif
-    printf("***O.outfilename=%s\n", O.outfilename);
     if (strcmp(O.outfilename,"stdout") == 0) {
       sfoutname = O.outfilename;
       osfd = O.stdoutfd;              /* send sound to stdout if requested */
@@ -281,15 +388,17 @@ void sfopenout(void)                            /* init for sound out       */
         dies(Str(X_1187,"sfinit: cannot open %s"), retfilnam);
       sfoutname = mmalloc((long)strlen(retfilnam)+1);
       strcpy(sfoutname, retfilnam);       /*   & preserve the name */
-      printf("***Opening sndfile %s\n", O.outfilename);
       outfile = sf_open_fd(osfd, SFM_WRITE, &sfinfo, 1);
-      printf("***Done\n");
+      if (peakchunks) 
+        sf_command(outfile, SFC_SET_ADD_PEAK_CHUNK, NULL, SF_TRUE);
       if (strcmp(sfoutname, "/dev/audio") == 0) {
         /*      ioctl(   );   */
         pipdevout = 1;
       }
-      spoutran = writesf;
-      nzerotran = zerosf;
+      spoutran = spoutsf;       /* accumulate output */
+      nzerotran = zerosf;       /* quick zeros */
+      audtran = writesf;        /* flush buffer */
+      osfopen = 1;
     }
 #if defined(SYMANTEC)
     AddMacHeader(sfoutname,nchnls,esr,O.outsampsiz);  /* set Mac resource */
@@ -301,8 +410,34 @@ void sfopenout(void)                            /* init for sound out       */
       transport.eoheader = lseek(osfd,(off_t)0L,SEEK_CUR);
 #endif
     }
- outset:
-    printf("***finished sfopenout\n");
+#ifdef RTAUDIO
+outset:
+#endif
+    outbufsiz = (unsigned)O.outbufsamps * sizeof(MYFLT);/* calc outbuf size */
+    outbufp = outbuf = mmalloc((long)outbufsiz); /*  & alloc bufspace */
+    printf(Str(X_1382,"writing %d-byte blks of %s to %s\n"),
+           outbufsiz, getstrformat(O.outformat), sfoutname);
+    if (strcmp(O.outfilename,"devaudio") == 0   /* realtime output has no
+                                                   header */
+        || strcmp(O.outfilename,"dac") == 0)  printf("\n");
+    else if (O.sfheader == 0) printf(" (raw)\n");
+    else
+      printf(" %s\n",
+             O.filetyp == TYP_AIFF ? "(AIFF)" :
+             O.filetyp == TYP_AIFC ? "(AIFF-C)" :
+             O.filetyp == TYP_WAV ? "(WAV)" :
+#ifdef mac_classic
+             "(SDII)"
+#elif defined(SFIRCAM)
+             "(IRCAM)"
+#elif defined(NeXT)
+             "(NeXT)"
+#else
+             "(Raw)"
+#endif
+             );
+    osfopen = 1;
+    outbufrem = O.outbufsamps;
 }
 
 void iotranset(void)
@@ -322,7 +457,6 @@ void sfcloseout(void)
     if (!osfopen) return;
     if ((nb = (O.outbufsamps-outbufrem) * O.outsampsiz) > 0)/* flush outbuffer */
       audtran(outbuf, nb);
-    sf_close(outfile);
 #ifdef RTAUDIO
     if (osfd == DEVAUDIO) {
       if (!isfopen || isfd != DEVAUDIO)
@@ -330,6 +464,8 @@ void sfcloseout(void)
       goto report;
     }
 #endif
+    sf_command(outfile, SFC_UPDATE_HEADER_NOW, NULL, 0);
+    nb = sf_close(outfile);
 #ifdef PIPES
     if (pout!=NULL) {
       int _pclose(FILE*);
