@@ -661,6 +661,8 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('midiops3',
 pluginLibraries.append(pluginEnvironment.SharedLibrary('modal4', 
     Split('''Opcodes/modal4.c 
     Opcodes/physutil.c''')))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('newfils', 
+    ['Opcodes/newfils.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('nlfilt', 
     ['Opcodes/nlfilt.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('oscbnk', 
@@ -698,6 +700,8 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('space',
     ['Opcodes/space.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('spat3d', 
     ['Opcodes/spat3d.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('syncgrain', 
+    ['Opcodes/syncgrain.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('ugens7', 
     ['Opcodes/ugens7.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('ugensa', 
