@@ -60,7 +60,7 @@ opts.Add('useFLTK',
     1)
 opts.Add('buildCsoundVST', 
     'Set to 1 to build CsoundVST (needs FLTK, boost, Python 2.3, SWIG).', 
-    1)
+    0)
 opts.Add('useMingw', 
     'Set to 1 to use mingw on Windows.', 
     0)
@@ -251,7 +251,7 @@ ustubProgramEnvironment = commonEnvironment.Copy()
 ustubProgramEnvironment.Append(LIBS = ['ustub', 'sndfile'])
 
 vstEnvironment = commonEnvironment.Copy()
-if vstEnvironment.ParseConfig('fltk-config --cflags --cxxflags --ldflags'):
+if vstEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags'):
 	print "Parsed fltk-config." 
 
 guiProgramEnvironment = commonEnvironment.Copy()
@@ -293,7 +293,6 @@ if commonEnvironment['usePortAudio'] and portaudioFound:
         vstEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
         guiProgramEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
         csoundProgramEnvironment.Append(LIBS = ['fltk'])
-        vstEnvironment.Append(LIBS = ['fltk'])
         if sys.platform[:5] == 'linux' or sys.platform == 'cygwin' or sys.platform == 'mingw':
             csoundProgramEnvironment.Append(LIBS = ['stdc++', 'pthread'])
             ustubProgramEnvironment.Append(LIBS = ['stdc++', 'pthread'])
@@ -578,8 +577,6 @@ if configure.CheckHeader("fluidsynth.h", language = "C"):
             Opcodes/fluid/FluidsynthOpcode.cpp        
             '''))
         
-        
-
 # Utility programs.
 
 csoundProgramEnvironment.Program('cscore', 
@@ -636,15 +633,21 @@ ustubProgramEnvironment.Program('srconv',
 csoundProgramEnvironment.Program('csound', 
     ['frontends/csound/csound_main.c'])
     
-if commonEnvironment['buildCsoundVST'] == 1 and boostFound and fltkFound:    
+if (commonEnvironment['buildCsoundVST']) and boostFound and fltkFound:    
     print 'Building CsoundVST plugin and standalone.'
     vstEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
     guiProgramEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
     vstEnvironment.Prepend(LIBS = ['csound', 'sndfile'])
-    guiProgramEnvironment.Prepend(LIBS = ['_CsoundVST'])
-    if sys.platform[:3] == 'linux':
-    	vstEnvironment.Append(LIBS = ['python2.3'])
+    vstEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
+    vstEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
+    vstEnvironment.Append(SWIGFLAGS = Split('-python -c++ -c -includeall -verbose'))
+    if sys.platform[:5] == 'linux':
+    	vstEnvironment.Append(LIBS = ['swigpy', 'python2.3', 'util'])
+        vstEnvironment.Append(CPPPATH = ['/usr/local/include/python2.3'])
+        vstEnvironment.Append(LIBPATH = ['/usr/local/lib/python2.3/config'])
+    	guiProgramEnvironment.Prepend(LINKFLAGS = ['_CsoundVST.so'])
     if sys.platform == 'cygwin':
+    	guiProgramEnvironment.Prepend(LIBS = ['_CsoundVST'])
         # vstEnvironment.Append(CPPPATH = ['/usr/include/python2.3'])
         vstEnvironment.Prepend(CPPPATH = ['c:/Python23/include'])
     	vstEnvironment.Append(CCFLAGS = '-D_MSC_VER')
@@ -656,19 +659,9 @@ if commonEnvironment['buildCsoundVST'] == 1 and boostFound and fltkFound:
     	pyrunEnvironment.Append(CCFLAGS = '-DSWIG_GLOBAL')
     	pyrun = pyrunEnvironment.SharedLibrary('pyrun', ['frontends/CsoundVST/pyrun.c'])
     	vstEnvironment.Append(SWIGFLAGS = Split('-python -c++ -c -includeall -verbose'))
-    	if sys.platform == 'cygwin' or sys.platform == 'mingw':
-    	     vstEnvironment.Append(LIBS = ['fltk_images'])
-    	     vstEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
-    	     vstEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
-    	     guiProgramEnvironment.Append(LINKFLAGS = '-mwindows')
-    	for option in vstEnvironment['CPPPATH']:
-    	     option = '-I' + option
-    	     vstEnvironment.Append(SWIGFLAGS = [option])
-     	for option in vstEnvironment['CCFLAGS']:
-    	     if string.find(option, '-D') == 0:
-                 vstEnvironment.Append(SWIGFLAGS = [option])
     	vstEnvironment.Append(LIBS = ['pyrun'])
     if sys.platform == 'mingw' or sys.platform[:3] == 'win':
+    	guiProgramEnvironment.Prepend(LIBS = ['_CsoundVST'])
         vstEnvironment.Prepend(CPPPATH = ['c:/Python23/include'])
     	vstEnvironment.Append(CCFLAGS = '-D_MSC_VER')
     	vstEnvironment.Append(LIBS = ['python23'])
@@ -676,19 +669,18 @@ if commonEnvironment['buildCsoundVST'] == 1 and boostFound and fltkFound:
     	pyrunEnvironment = vstEnvironment.Copy()
     	pyrunEnvironment.Append(CCFLAGS = '-DSWIG_GLOBAL')
     	pyrun = pyrunEnvironment.SharedLibrary('pyrun', ['frontends/CsoundVST/pyrun.c'])
-    	vstEnvironment.Append(SWIGFLAGS = Split('-python -c++ -c -includeall -verbose'))
     	if sys.platform == 'cygwin' or sys.platform == 'mingw':
     	     vstEnvironment.Append(LIBS = ['fltk_images'])
     	     vstEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
     	     vstEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
     	     guiProgramEnvironment.Append(LINKFLAGS = '-mwindows')
-    	for option in vstEnvironment['CPPPATH']:
-    	     option = '-I' + option
-    	     vstEnvironment.Append(SWIGFLAGS = [option])
-     	for option in vstEnvironment['CCFLAGS']:
-    	     if string.find(option, '-D') == 0:
-                 vstEnvironment.Append(SWIGFLAGS = [option])
-    	vstEnvironment.Append(LIBS = ['pyrun'])
+     	vstEnvironment.Append(LIBS = ['pyrun'])
+    for option in vstEnvironment['CPPPATH']:
+    	option = '-I' + option
+    	vstEnvironment.Append(SWIGFLAGS = [option])
+    for option in vstEnvironment['CCFLAGS']:
+    	if string.find(option, '-D') == 0:
+           vstEnvironment.Append(SWIGFLAGS = [option])
 
     csoundVstSources = Split('''
     frontends/CsoundVST/AudioEffect.cpp 
@@ -724,9 +716,13 @@ if commonEnvironment['buildCsoundVST'] == 1 and boostFound and fltkFound:
         Depends(csoundvst, pyrun)
 
     csoundvstGui = guiProgramEnvironment.Program('CsoundVST', ['frontends/CsoundVST/csoundvst_main.cpp']) 
-
+    Depends(csoundvstGui, csoundvst)
+	
     zip = commonEnvironment.Command(zipfilename, [csoundvst, csoundvstGui], buildzip)
     Depends(zip, [csoundvst, csoundvstGui])
+	
+    copyPython = commonEnvironment.Install(['.', '.'], ['frontends/CsoundVST/CsoundVST.py', 'frontends/CsoundVST/Koch.py'])
+    Depends(copyPython, csoundvst)
 
 allSources = string.join(glob.glob('*/*.h*'))
 allSources = allSources + ' ' + string.join(glob.glob('*/*.h*'))
@@ -735,3 +731,4 @@ allSources = allSources + ' ' + string.join(glob.glob('*/*/*.h'))
 allSources = allSources + ' ' + string.join(glob.glob('*/*/*.hpp'))
 tags = commonEnvironment.Command('TAGS', Split(allSources), 'etags $SOURCES')
 Depends(tags, staticLibrary)
+

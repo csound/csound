@@ -663,7 +663,7 @@ namespace csound
 
 	char *basename(const char *path)
 	{
-		static char bname[MAXPATHLEN];
+		static char bname[NAME_MAX + 1];
 		register const char *endp, *startp;
 
 		/* Empty or NULL string gets treated as "." */
@@ -698,7 +698,7 @@ namespace csound
 
 	char *dirname(const char *path)
 	{
-		static char bname[MAXPATHLEN];
+		static char bname[NAME_MAX +1];
 		register const char *endp;
 
 		/* Empty or NULL string gets treated as "." */
@@ -734,14 +734,6 @@ namespace csound
 		return(bname);
 	}
 
-	int System::shellOpen(const char *filename, const char *command)
-	{
-        std::string buffer = filename;
-        buffer += " ";
-        buffer += command;
-		return System::execute(buffer.c_str());
-	}
-
 	int System::execute(const char *command)
 	{
 		int returnValue = fork();
@@ -763,21 +755,6 @@ namespace csound
         buffer += " ";
         buffer += command;
 		return System::execute(buffer.c_str());
-	}
-
-	int System::execute(const char *command)
-	{
-		int returnValue = fork();
-		if(!returnValue)
-		{
-            int argc;
-		    char **argv;
-			std::string buffer = command;
-			scatterArgs(buffer, &argc, &argv);
-			execv(argv[0], argv);
-			deleteArgs(argc, argv);
-		}
-		return returnValue;
 	}
 
 	void System::parsePathname(const std::string pathname, 
@@ -886,11 +863,6 @@ namespace csound
 		int returnValue = pthread_mutex_destroy(pthread_mutex);
 		delete pthread_mutex;
 		pthread_mutex = 0;
-	}
-
-	std::string System::getSharedLibraryExtension()
-	{
-		return "dll";
 	}
 
 	void System::sleep(double milliseconds)

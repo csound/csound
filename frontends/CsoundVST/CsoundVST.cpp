@@ -191,15 +191,21 @@ void performanceThreadRoutine_(void *data)
 
 static int threadYieldCallback(void *)
 {
+#ifndef LINUX
     Fl::lock();
+#endif
     Fl::wait(0.0);
+#ifndef LINUX
     Fl::unlock();
+#endif
     return 1;
 }
 
 static int nonThreadYieldCallback(void *)
 {
+#ifndef LINUX
     Fl::unlock();
+#endif
     return 1;
 }
 

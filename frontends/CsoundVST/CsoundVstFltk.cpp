@@ -199,7 +199,9 @@ long CsoundVstFltk::open(void *parentWindow)
 	useCount++;
 	if(useCount == 1)
 	{
+#ifndef LINUX
 		Fl::lock();
+#endif
 		this->csoundVstUi = make_window(this);
 		this->mainTabs = ::mainTabs;
 		this->commandInput = ::commandInput;
@@ -290,12 +292,16 @@ void CsoundVstFltk::idle()
 		{
 			while(!messages.empty())
 			{
+#ifndef LINUX
 				Fl::lock();
+#endif
 				this->runtimeMessagesBrowser->add(messages.front().c_str());
 				messages.pop_front();
 				this->runtimeMessagesBrowser->bottomline(this->runtimeMessagesBrowser->size());
 				Fl::flush();
+#ifndef LINUX
 				Fl::unlock();
+#endif
 			}
 		}
 	}
@@ -375,11 +381,15 @@ void CsoundVstFltk::messageCallback(const char *format, va_list valist)
 			}
 			else
 			{
+#ifndef LINUX
 				Fl::lock();
+#endif
 				csoundVstFltk->runtimeMessagesBrowser->add(buffer);
 				csoundVstFltk->runtimeMessagesBrowser->bottomline(csoundVstFltk->runtimeMessagesBrowser->size());
 				Fl::flush();
+#ifndef LINUX
 				Fl::unlock();
+#endif
 			}
 		}
 	}
