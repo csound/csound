@@ -10,16 +10,22 @@
 <big style="font-weight: bold;"><big><big>VST4cs---- VST for Csound5</big></big></big><br>
 The following opcodes are available:<br>
 <br>
-<a href="vstinit.html">vstinit</a><br>
-<a href="file:///H:/C_Progs/Csound5/Opcodes/vst4cs/doc/vstplug.html">vstplug</a><br>
-<a href="vstout.html">vstout</a><br>
-<a href="vstpsend.html">vstpsend and vstpret</a><br>
-<a href="vstnote.html">vstnote<br>
-</a><a href="vstinfo.html">vstinfo</a><br>
-<a href="vstbload.html">vstbload</a><br>
+<a href="vstinit.html">vstinit</a> -Loads a plugin<br>
+<a href="file:///H:/C_Progs/Csound5/Opcodes/vst4cs/doc/vstplug.html">vstplug</a>
+-Returns a plugin's output<br>
+<a href="vstout.html">vstout</a> - Sends MIDI data to a plugin<br>
+<a href="vstpsend.html">vstpsend and vstpret</a> - Send automation data
+to and from the plugin<br>
+<a href="vstnote.html">vstnote</a> - Sends a MIDI note with definite
+duration<br>
+<a href="vstinfo.html">vstinfo</a>- Outputs the Parameter and Program
+names for a plugin<br>
+<a href="vstbload.html">vstbload</a>- Loads an .fxb Bank<br>
+<a href="vstedit.html">vstedit</a>- Opens the GUI editor for the
+plugin, when available.<br>
 <br>
-<br>
-The following are some freeware or shareware plug-ins to try:<br>
+The following are some freeware or shareware plug-ins partially tested
+with vst4cs:<br>
 VST Instruments:<br>
 Synth1 ---- <a
  href="http://www.geocities.co.jp/SiliconValley-SanJose/5005/softsynth/index.html">http://www.geocities.co.jp/SiliconValley-SanJose/5005/softsynth/index.html</a><br>
@@ -50,7 +56,7 @@ Notes:<br>
 Try renaming if having problems.<br>
 <br>
 By: Andr&eacute;s Cabrera and Michael Goggins<br>
-Uses code by Hermann Seib and from the vst~ object in pure data.<br>
+Uses code from Hermann Seib's VSTHost and Thomas Grill's vst~ object.<br>
 VST is a trademark of Steinberg Media Technologies GmbH<br>
 VST Plug-In Technology by Steinberg.<br>
 <br>
