@@ -69,7 +69,9 @@ extern "C"
 		}
 		else 
            plugin->Log("Invalid plugin name.\n");
+#if WIN32
 		path_convert (vstplugname);
+#endif
 		if (plugin->Instantiate(vstplugname)) {
 			plugin->Log("Error loading effect.\n");
 			return NOTOK;
