@@ -1,3 +1,8 @@
+2004-05-31  John ffitch  <jpff@codemist.co.uk>
+
+	* Top/dl_opcodes.c (csoundOpenLibrary): On mac the dynamic
+	libraries are called .dylib
+
 2004-05-27  John ffitch  <jpff@codemist.co.uk>
 
 	* InOut/widgets.cpp (fl_setWidgetValue_set, fl_setWidgetValue):

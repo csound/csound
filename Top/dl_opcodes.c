@@ -81,16 +81,20 @@ void *csoundOpenLibrary(const char *libraryPath)
 {
     void *library = 0;
 #if defined(LINUX)
-    if(strstr(libraryPath, ".so")) {
+    if
+      (strstr(libraryPath, ".so") 
 #elif defined(__CYGWIN__)
-      if(strstr(libraryPath, ".dll") || strstr(libraryPath, ".DLL")) {
+       (strstr(libraryPath, ".dll") || strstr(libraryPath, ".DLL"))
+#elif defined(__MACH__)
+       (strstr(libraryPath, ".dylib"))
 #endif
-        library = dlopen(libraryPath, RTLD_NOW | RTLD_GLOBAL );
-        if(!library) {
-          fprintf(stderr, "Error '%s' in dlopen(%s).\n", dlerror(), libraryPath);
-        }
+       ) {
+      library = dlopen(libraryPath, RTLD_NOW | RTLD_GLOBAL );
+      if(!library) {
+        fprintf(stderr, "Error '%s' in dlopen(%s).\n", dlerror(), libraryPath);
       }
-      return library;
+    }
+    return library;
 }
 
 void *csoundCloseLibrary(void *library)
