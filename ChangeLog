@@ -1,3 +1,13 @@
+2004-07-18  John ffitch  <jpff@codemist.co.uk>
+
+	* OOps/vpvoc.c (vpvset): Ditto
+
+	* OOps/ugens8.c (pvset): Ditto
+
+	* OOps/midiops.c (pgmassign): Ditto
+
+	* OOps/aops.c (invalset,outvalset ): Allow score strings
+
 2004-07-17  Michael Gogins <gogins@pipeline.com>
 
 	* Andres Cabrera added bank loading to vst4cs. I added plugin editor dialogs

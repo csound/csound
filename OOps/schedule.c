@@ -139,7 +139,10 @@ int schedule(SCHED *p)
         ss = rr; rr = rr->next;
       }
     }
-    if (*p->which == SSTRCOD) which = (int)named_instr_find(p->STRARG);
+    if (*p->which == SSTRCOD) {
+      if (p->STRARG!=NULL) which = (int)named_instr_find(p->STRARG);
+      else                 which = (int)named_instr_find(currevent->strarg);
+    }
     else which = (int)(FL(0.5)+*p->which);
     if (which==0) {
       return initerror(Str(X_311,"Instrument not defined"));
@@ -221,8 +224,8 @@ int kschedule(WSCHED *p)
       RSCHED *rr;
       MYFLT dur = *p->dur;
       int which =
-        (*p->which == SSTRCOD) ? named_instr_find(p->STRARG)
-                               : (int)(FL(0.5)+*p->which);
+        (*p->which == SSTRCOD) ? (p->STRARG!=NULL ? named_instr_find(p->STRARG) :
+          named_instr_find(currevent->strarg)) : (int)(FL(0.5)+*p->which);
       if (which==0) {
         return perferror(Str(X_311,"Instrument not defined"));
       }
@@ -461,9 +464,14 @@ int ktriginstr(TRIGINSTR *p)
 
     /* Get absolute instr num */
     /* IV - Oct 31 2002: allow string argument for named instruments */
-    /* Instrument cannot be S and k so thi sdoes not work yet */
+    /* Instrument cannot be S and k so this does not work yet */
     if (*p->args[0] == SSTRCOD) {
-      if ((absinsno = (int) strarg2insno_p(p->STRARG)) < 1) return OK;
+      if (p->STRARG!=NULL) {
+        if ((absinsno = (int) strarg2insno_p(p->STRARG)) < 1) return NOTOK;
+      }
+      else {
+        if ((absinsno = (int) strarg2insno_p(currevent->strarg)) <1) return NOTOK;
+      }
       insno = (MYFLT) absinsno;
     }
     else {
