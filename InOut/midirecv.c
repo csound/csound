@@ -111,7 +111,7 @@
 
 #define MGLOB(x) (((ENVIRON*) csound)->midiGlobals->x)
 
-extern  void    schedofftim(INSDS *), deact(INSDS *), beep(void);
+extern  void    beep(void);
         void    midNotesOff(void);
 
 static MYFLT dsctl_map[12] = {

@@ -582,93 +582,35 @@ extern "C" {
       }
   }
 
-  PUBLIC void csoundScoreEvent(void *csound, char type,
+  PUBLIC void csoundScoreEvent(void *csound_, char type,
                                MYFLT *pfields, long numFields)
   {
-    newevent(csound, type, pfields, numFields);
+    EVTBLK        evt;
+    ENVIRON       *csound;
+    int           i;
+
+    csound = (ENVIRON*) csound_;
+    if (numFields < 4 && (type != 'e' && type != 'l' && type != 's')) {
+      if (numFields < 3 || type == 'f') {
+        csound->Message(csound, Str("too few pfields\n"));
+        return;
+      }
+    }
+    evt.strarg = NULL;
+    evt.opcod = type;
+    evt.pcnt = (short) numFields;
+    evt.p[1] = evt.p[2] = evt.p[3] = FL(0.0);
+    for (i = 0; i < (int) numFields; i++)
+      evt.p[i + 1] = pfields[i];
+    if (type != 'f')
+      insert_score_event(csound, &evt, csound->sensEvents_state.timeOffs, 0);
+    else
+      insert_score_event(csound, &evt, csound->sensEvents_state.timeOffs, 1);
   }
 
   /*
    *    REAL-TIME AUDIO
    */
-
-#if 0
-  void playopen_mi(int nchanls, int dsize,
-                   float sr, int scale) /* open for audio output */
-  {
-    _rtCurOutBufSize = O.outbufsamps*dsize;
-    _rtCurOutBufCount = 0;
-    _rtCurOutBuf = mmalloc(csound, _rtCurOutBufSize);
-
-    /* a special case we need to handle 'overlaps'
-     */
-    /* FIXME - SYY - 11.15. 2003
-     * GLOBAL * should be passed in so that ksmps can be grabbed by that
-     */
-    if (csoundGetKsmps(&cenviron_) * nchanls > O.outbufsamps)
-      {
-        _rtOutOverBufSize = (csoundGetKsmps(&cenviron_) * nchanls -
-                             O.outbufsamps)*dsize;
-        _rtOutOverBuf = mmalloc(csound, _rtOutOverBufSize);
-        _rtOutOverBufCount = 0;
-      }
-    else
-      {
-        _rtOutOverBufSize = 0;
-        _rtOutOverBuf = 0;
-        _rtOutOverBufCount = 0;
-      }
-  }
-
-  void rtplay_mi(char *outBuf, int nbytes)
-  {
-    int bytes2copy = nbytes;
-    /* copy any remaining samps from last buffer
-     */
-    if (_rtOutOverBufCount)
-      {
-        memcpy(_rtCurOutBuf, _rtOutOverBuf, _rtOutOverBufCount);
-        _rtCurOutBufCount = _rtOutOverBufCount;
-        _rtOutOverBufCount = 0;
-      }
-    /* handle any new 'overlaps'
-     */
-    if (bytes2copy + _rtCurOutBufCount > _rtCurOutBufSize)
-      {
-        _rtOutOverBufCount = _rtCurOutBufSize - (bytes2copy + _rtCurOutBufCount);
-        bytes2copy = _rtCurOutBufSize - _rtCurOutBufCount;
-
-        memcpy(_rtOutOverBuf, outBuf+bytes2copy, _rtOutOverBufCount);
-      }
-    /* finally copy the buffer
-     */
-    memcpy(_rtCurOutBuf+_rtOutOverBufCount, outBuf, bytes2copy);
-    _rtCurOutBufCount += bytes2copy;
-  }
-
-  void recopen_mi(int nchanls, int dsize, float sr, int scale)
-  {
-    if (O.inbufsamps*O.sfsampsize != O.outbufsamps*O.insampsiz)
-      die("Input buffer must be the same size as Output buffer\n");
-    _rtInputBuf = mmalloc(csound, O.inbufsamps*O.insampsiz);
-  }
-
-  int rtrecord_mi(char *inBuf, int nbytes)
-  {
-    memcpy(inBuf, _rtInputBuf, nbytes);
-    return nbytes;
-  }
-
-  void rtclose_mi(void)
-  {
-    if (_rtCurOutBuf)
-      mfree(csound, _rtCurOutBuf);
-    if (_rtOutOverBuf)
-      mfree(csound, _rtOutOverBuf);
-    if (_rtInputBuf)
-      mfree(csound, _rtInputBuf);
-  }
-#endif
 
 /* dummy functions for the case when no real-time audio module is available */
 

@@ -122,7 +122,6 @@ extern "C" {
 #define rngcnt  cenviron.rngcnt_
 #define rngflg  cenviron.rngflg_
 #define multichan cenviron.multichan_
-#define OrcTrigEvts cenviron.OrcTrigEvts_
 #define name_full cenviron.name_full_
 #define Mforcdecs cenviron.Mforcdecs_
 #define Mxtroffs cenviron.Mxtroffs_

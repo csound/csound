@@ -28,20 +28,13 @@
 #include "cs.h"                 /*                         MUSMON.C     */
 #include "cscore.h"
 #include "midiops.h"
-#include "oload.h" /* for TRNON */
 #include "soundio.h"
 #include "schedule.h"
+#include "namedins.h"
+#include "oload.h"
 #include <math.h>
-#include "namedins.h"   /* IV - Oct 31 2002 */
 
-#ifdef mills_macintosh
-extern long IsNotAPowerOf2(unsigned long);
-extern unsigned long RoundDownToPowerOF2(unsigned long);
-#include <Types.h>
-Str255 PPCVER;
-extern void GetVersNumString(Str255 versStr);
-#endif
-int cleanup(void*);
+int     cleanup(void*);
 extern  void    kperf(ENVIRON*);
 
 #define SEGAMPS 01
@@ -62,10 +55,9 @@ extern  void    print_benchmark_info(void*, const char*);     /* main.c */
 extern  void    RTLineset(void), MidiOpen(void *);
 extern  void    m_chn_init_all(ENVIRON *);
 extern  void    scsort(FILE*, FILE*), oload(ENVIRON *), cscorinit(void);
-extern  void    schedofftim(INSDS *), infoff(MYFLT);
-extern  void    orcompact(ENVIRON*), rlsmemfiles(void);
+extern  void    infoff(MYFLT), orcompact(ENVIRON*), rlsmemfiles(void);
 extern  void    beatexpire(ENVIRON *, double), timexpire(ENVIRON *, double);
-extern  void    deact(INSDS*), fgens(ENVIRON *,EVTBLK *);
+extern  void    fgens(ENVIRON *,EVTBLK *);
 extern  void    sfopenin(void*), sfopenout(void*), sfnopenout(void);
 extern  void    iotranset(void), sfclosein(void*), sfcloseout(void*);
 extern  void    MidiClose(ENVIRON*);
@@ -78,8 +70,6 @@ static  int     segamps, sormsg;
 static  EVENT   **ep, **epend;  /* pointers for stepping through lplay list */
 static  EVENT   *lsect = NULL;
         void    beep(void);
-
-extern  void    queue_event(MYFLT, MYFLT, MYFLT, int, MYFLT **);
 
 static void settempo(ENVIRON *csound, MYFLT tempo)
 {
@@ -237,9 +227,6 @@ int musmon(ENVIRON *csound)
       MidiOpen(csound);         /*   alloc bufs & open files    */
     }
     printf(Str("orch now loaded\n"));
-#ifdef mills_macintosh
-    fflush(stdout);
-#endif
 
     multichan = (nchnls > 1) ? 1:0;
     maxampend = &maxamp[nchnls];
@@ -250,10 +237,6 @@ int musmon(ENVIRON *csound)
     if (O.outbufsamps < 0) {        /* if k-aligned iobufs requestd */
       O.inbufsamps = O.outbufsamps *= -ksmps; /*  set from absolute value */
       printf(Str("k-period aligned audio buffering\n"));
-#ifdef mills_macintosh
-      if (O.msglevel & WARNMSG)
-        printf(Str("WARNING: Will probably not work with playback routines\n"));
-#endif
     }
     /* else keep the user values    */
     if (!O.oMaxLag)
@@ -267,29 +250,18 @@ int musmon(ENVIRON *csound)
     if (O.infilename != NULL &&
         (strncmp(O.infilename, "adc", 3) == 0 ||
          strncmp(O.infilename, "devaudio", 8) == 0)) {
-      if (O.inbufsamps >= (O.oMaxLag >> 1))
-        O.inbufsamps = (O.oMaxLag >> 1);
+      O.oMaxLag = ((O.oMaxLag+O.inbufsamps-1) / O.inbufsamps) * O.inbufsamps;
+      if (O.oMaxLag <= O.inbufsamps) O.inbufsamps >>= 1;
+      O.outbufsamps = O.inbufsamps;
     }
     if (O.outfilename != NULL &&
         (strncmp(O.outfilename, "dac", 3) == 0 ||
          strncmp(O.outfilename, "devaudio", 8) == 0)) {
-      if (O.outbufsamps >= (O.oMaxLag >> 1))
-        O.outbufsamps = (O.oMaxLag >> 1);
+      O.oMaxLag = ((O.oMaxLag+O.outbufsamps-1) / O.outbufsamps) * O.outbufsamps;
+      if (O.oMaxLag <= O.outbufsamps) O.outbufsamps >>= 1;
+      O.inbufsamps = O.outbufsamps;
     }
-#ifdef mills_macintosh
-    if (IsNotAPowerOf2(O.outbufsamps) != 0) {
-      O.outbufsamps = RoundDownToPowerOf2(O.outbufsamps);
-      printf(Str("reset output buffer blocksize to power of 2 (%ld)\n"),
-             O.outbufsamps);
-    }
-    if (IsNotAPowerOf2(O.inbufsamps) != 0) {
-      O.inbufsamps = RoundDownToPowerOf2(O.inbufsamps);
-      printf(Str("reset input buffers blocksize to power of 2 (%ld)\n"),
-             O.inbufsamps);
-    }
-#endif
-    printf(Str("audio buffered in %d sample-frame blocks\n"),
-           O.outbufsamps);
+    printf(Str("audio buffered in %d sample-frame blocks\n"), O.outbufsamps);
     O.inbufsamps *= nchnls;         /* now adjusted for n channels  */
     O.outbufsamps *= nchnls;
     if (O.sfread)                   /* if audio-in requested,       */
@@ -334,9 +306,6 @@ int musmon(ENVIRON *csound)
       O.usingcscore = 0;
     }
     printf(Str("SECTION %d:\n"), ++sectno);
-#ifdef mills_macintosh
-    fflush(stdout);
-#endif
                                      /* since we are running in components */
     return 0;                        /* we exit here to playevents later   */
 }
@@ -344,10 +313,8 @@ int musmon(ENVIRON *csound)
 int musmon2(ENVIRON *csound)
 {
     playevents(csound);              /* play all events in the score */
-
     return cleanup(csound);
 }
-
 
 int cleanup(void *csound)
 {
@@ -419,10 +386,18 @@ int lplay(ENVIRON *csound, EVLIST *a) /* cscore re-entry into musmon */
 
 int turnon(ENVIRON *csound, TURNON *p)
 {
-    queue_event(*p->insno,
-                (MYFLT) (csound->sensEvents_state.curTime + (double) *p->itime),
-                FL(-1.0), 3, NULL);
-    return OK;
+    EVTBLK  evt;
+
+    evt.strarg = NULL;
+    evt.opcod = 'i';
+    evt.pcnt = 3;
+    evt.p[1] = *p->insno;
+    evt.p[2] = *p->itime;
+    evt.p[3] = FL(-1.0);
+
+    return (insert_score_event(csound, &evt,
+                               csound->sensEvents_state.curTime, 0) == 0 ?
+            OK : NOTOK);
 }
 
 /* Print current amplitude values, and update section amps. */
@@ -638,21 +613,21 @@ static int process_rt_event(ENVIRON *csound, int sensType)
     }
     if (sensType == 1) {                  /*    for Linein,       */
       evt = Linevtblk;                    /*      get its evtblk  */
-      evt->p[2] = p->curp2;               /*      & insert curp2  */
+      evt->p[2] = p->curp2 - p->timeOffs; /*      & insert curp2  */
       retval = process_score_event(csound, evt, 1);
     }
     else if (sensType == 4) {   /* Realtime orc event (re Aug 1999) */
-      EVTNODE *evtlist = OrcTrigEvts.nxtevt;
+      EVTNODE *e = csound->OrcTrigEvts;
       /* Events are sorted on insertion, so just check the first */
-      if (evtlist && evtlist->kstart <= kcounter) {
-        evt = &evtlist->evt;
-        /* Pop from the list, as evt is mfree'd below */
-        evtlist = OrcTrigEvts.nxtevt = evtlist->nxtevt;
-        if (OrcTrigEvts.nxtevt == NULL)
-          O.OrcEvts = 0;
-        retval = process_score_event(csound, evt, 1);
-        mfree(csound, evt);
-      }
+      evt = &(e->evt);
+      /* Pop from the list, as e is mfree'd below */
+      csound->OrcTrigEvts = e->nxt;
+      if (e->nxt == NULL)
+        csound->oparms_->OrcEvts = 0;
+      retval = process_score_event(csound, evt, 1);
+      if (evt->strarg != NULL)
+        mfree(csound, evt->strarg);
+      mfree(csound, e);
     }
     else if (sensType == 2) {                           /* Midievent:    */
       MEVENT *mep;
@@ -689,7 +664,6 @@ static int process_rt_event(ENVIRON *csound, int sensType)
     return retval;
 }
 
-/* IV - Feb 05 2005 */
 #define RNDINT(x) ((int) ((double) (x) + ((double) (x) < 0.0 ? -0.5 : 0.5)))
 
 extern  int     sensLine(void);
@@ -812,7 +786,7 @@ int sensevents(ENVIRON *csound)
         if (!sensType && O.Linein)
           sensType = sensLine();            /* or Linein event      */
         if (!sensType && O.OrcEvts)
-          sensType = sensOrcEvent();        /* or triginstr event   */
+          sensType = sensOrcEvent(csound);  /* or triginstr event   */
         if (sensType) {
           retval = process_rt_event(csound, sensType);
           if (retval)
@@ -861,5 +835,121 @@ static int playevents(ENVIRON *csound)
         kperf(csound);
     }
     return (retval - 1);
+}
+
+/* Schedule new score event to be played. 'time_ofs' is the amount of */
+/* time in seconds to add to evt->p[2] to get the actual start time   */
+/* of the event (measured from the beginning of performance, and not  */
+/* section). If 'allow_now' is non-zero, note or ftable events may be */
+/* initialised immediately depending on start time; otherwise, all    */
+/* events are always just queued to be inserted at a later time.      */
+/* The contents of 'evt', including the string argument, need not be  */
+/* preserved after calling this function, as a copy of the event is   */
+/* made.                                                              */
+/* Return value is zero on success.                                   */
+
+int insert_score_event(ENVIRON *csound, EVTBLK *evt, double time_ofs,
+                       int allow_now)
+{
+    double        start_time;
+    EVTNODE       *e, *prv;
+    sensEvents_t  *p;
+    unsigned long start_kcnt;
+    int           insno, retval;
+
+    start_kcnt = 0UL;
+    retval = -1;
+    p = &(csound->sensEvents_state);
+    /* make a copy of the event */
+    e = (EVTNODE*) mcalloc(csound, sizeof(EVTNODE));
+    memcpy(&(e->evt), evt, sizeof(EVTBLK));
+    if (evt->strarg != NULL) {          /* copy string argument if present */
+      e->evt.strarg =
+            (char*) mmalloc(csound, (size_t) strlen(evt->strarg) + (size_t) 1);
+      strcpy(e->evt.strarg, evt->strarg);
+    }
+    else
+      e->evt.strarg = NULL;
+    evt = &(e->evt);            /* and use the copy from now on */
+
+    if (evt->opcod == 'q' || evt->opcod == 'i' ||
+        evt->opcod == 'f' || evt->opcod == 'a') {
+      evt->p[0] = FL(0.0);      /* FIXME: is this ever used ? */
+      /* calculate actual start time in seconds and k-periods */
+      start_time = (double) evt->p[2] + time_ofs;
+      start_kcnt = (unsigned long) (start_time * (double) csound->global_ekr_
+                                    + 0.5);
+      /* correct p2 value for section offset */
+      evt->p[2] = (MYFLT) (start_time - p->timeOffs);
+      if (evt->p[2] < FL(0.0))
+        evt->p[2] = FL(0.0);
+      /* start beat: this is possibly wrong */
+      evt->p2orig = (MYFLT) (((start_time - p->curTime) / p->beatTime)
+                             + (p->curBeat - p->beatOffs));
+      if (evt->p2orig < FL(0.0))
+        evt->p2orig = FL(0.0);
+      /* calculate the length in beats */
+      evt->p3orig = (evt->opcod == 'f' || evt->p[3] <= FL(0.0) ?
+                     evt->p[3] : (MYFLT) ((double) evt->p[3] / p->beatTime));
+      /* if event should be handled now: */
+      if (start_kcnt <= (unsigned long) csound->global_kcounter_ && allow_now) {
+        int inerrcnt_old, perferrcnt_old;
+        inerrcnt_old = csound->inerrcnt_;
+        perferrcnt_old = csound->perferrcnt_;
+        process_score_event(csound, evt, 1);
+        /* check for errors */
+        if (csound->inerrcnt_ <= inerrcnt_old &&
+            csound->perferrcnt_ <= perferrcnt_old)
+          retval = 0;   /* no errors */
+        goto err_return;
+      }
+    }
+    else if (evt->opcod != 'e' && evt->opcod != 'l' && evt->opcod != 's') {
+      csoundMessage(csound, Str("insert_score_event(): unknown opcode: %c\n"),
+                            evt->opcod);
+      goto err_return;
+    }
+    /* if instrument event, check for a valid number or name */
+    if (evt->opcod == 'q' || evt->opcod == 'i') {
+      if (evt->strarg != NULL && evt->p[1] == SSTRCOD)
+        insno = (int) named_instr_find(evt->strarg);
+      else
+        insno = (int) (fabs((double) evt->p[1]) + 0.5);
+      if (insno < 1 || insno > csound->maxinsno_ ||
+          csound->instrtxtp_[insno] == NULL) {
+        csoundMessage(csound, Str("insert_score_event(): invalid instrument "
+                                  "number or name\n"));
+        goto err_return;
+      }
+    }
+    /* queue new event */
+    e->start_kcnt = start_kcnt;
+    prv = csound->OrcTrigEvts;
+    if (prv == NULL) {                          /* list is empty */
+      csound->OrcTrigEvts = e;
+      e->nxt = NULL;
+    }
+    else if (start_kcnt < prv->start_kcnt) {    /* at beginning of list */
+      e->nxt = csound->OrcTrigEvts;
+      csound->OrcTrigEvts = e;
+    }
+    else {                                      /* otherwise sort by time */
+      while (prv->nxt != NULL && start_kcnt >= prv->nxt->start_kcnt)
+        prv = prv->nxt;
+      e->nxt = prv->nxt;
+      prv->nxt = e;
+    }
+    /* Make sure sensevents() looks for RT events */
+    csound->oparms_->RTevents = 1;
+    csound->oparms_->ksensing = 1;
+    csound->oparms_->OrcEvts  = 1;      /* - of the appropriate type */
+    return 0;
+
+ err_return:
+    /* clean up */
+    if (e->evt.strarg != NULL)
+      mfree(csound, e->evt.strarg);
+    mfree(csound, e);
+    return retval;
 }
 

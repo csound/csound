@@ -31,12 +31,6 @@
 #include <time.h>
 #include <boost/tokenizer.hpp>
 
-extern "C" 
-{
-  extern MYFLT timtot;
-  extern void csoundDefaultMidiOpen(void *csound);
-};
-
 CppSound::CppSound() : 	csound(0),
 			isCompiled(false),
 			isPerforming(false),

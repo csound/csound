@@ -455,14 +455,13 @@ extern "C" {
     short   pcnt;           /* Number of p-fields */
     MYFLT   p2orig;         /* Event start time */
     MYFLT   p3orig;         /* Length */
-    MYFLT   offtim;         /* k-time to turn off this event */
     MYFLT   p[PMAX+1];      /* All p-fields for this event */
   } EVTBLK;
 
   typedef struct eventnode {
-    EVTBLK evt; /* Must be first in struct so it can be typecast & freed */
-    struct eventnode *nxtevt;
-    int    kstart, insno;
+    struct eventnode  *nxt;
+    unsigned long     start_kcnt;
+    EVTBLK            evt;
   } EVTNODE;
 
   typedef struct {
@@ -850,8 +849,8 @@ extern "C" {
     INSDS         actanchor_;
     long          rngcnt_[MAXCHNLS];
     short         rngflg_, multichan_;
-    EVTNODE       OrcTrigEvts_; /* List of started events, used in playevents() */
-    char          name_full_[256];            /* Remember name used */
+    EVTNODE       *OrcTrigEvts;             /* List of events to be started */
+    char          name_full_[256];          /* Remember name used */
     int           Mforcdecs_, Mxtroffs_, MTrkend_;
     MYFLT         tran_sr_,tran_kr_,tran_ksmps_;
     MYFLT         tran_0dbfs_;

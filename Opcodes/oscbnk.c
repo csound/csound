@@ -1711,7 +1711,7 @@ static int vco2_tables_create(ENVIRON *csound, int waveform, int base_ftable,
         e.opcod = 'f';
         e.pcnt = 5;
         e.p[1] = (MYFLT) base_ftable;
-        e.p[2] = e.p2orig = e.offtim = FL(0.0);
+        e.p[2] = e.p2orig = FL(0.0);
         e.p[3] = e.p3orig = (MYFLT) tables->tables[i].size;
         e.p[4] = FL(-2.0);           /* GEN02 */
         e.p[5] = FL(0.0);
