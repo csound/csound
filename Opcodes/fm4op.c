@@ -210,20 +210,6 @@ void FM4Op_keyOff(FM4OP *p)
     ADSR_keyOff(&p->adsr[3]);
 }
 
-/* void FM4Op_controlChange(FM4OP *p, int number, MYFLT value) */
-/* { */
-/* #if defined(_debug_) */
-/*     printf("FM4Op : ControlChange: Number=%i Value=%f\n",number,value); */
-/* #endif */
-/*     else if (number == MIDI_after_touch)        { */
-/*       adsr[0]->setTarget(value * NORM_7); */
-/*       adsr[1]->setTarget(value * NORM_7); */
-/*       adsr[2]->setTarget(value * NORM_7); */
-/*       adsr[3]->setTarget(value * NORM_7); */
-/*     } */
-/* } */
-
-
 /*********************************************************/
 /*  Algorithm 5 (TX81Z) Subclass of 4 Operator FM Synth  */
 /*  by Perry R. Cook, 1995-96; recoded John ffitch 97/98 */
@@ -321,7 +307,7 @@ int tubebell(ENVIRON *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       *ar = p->ar;
-    int         n, nsmps = ksmps;
+    int         n, nsmps = csound->ksmps;
     MYFLT       c1 = *p->control1;
     MYFLT       c2 = *p->control2;
 
@@ -438,7 +424,7 @@ int wurley(ENVIRON *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       *ar = p->ar;
-    int         n, nsmps = ksmps;
+    int         n, nsmps = csound->ksmps;
     MYFLT       c1 = *p->control1;
     MYFLT       c2 = *p->control2;
 
@@ -539,7 +525,7 @@ int heavymetset(ENVIRON *csound, FM4OP *p)
 int heavymet(ENVIRON *csound, FM4OP *p)
 {
     MYFLT       *ar = p->ar;
-    int         n, nsmps = ksmps;
+    int         n, nsmps = csound->ksmps;
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       c1 = *p->control1;
     MYFLT       c2 = *p->control2;
@@ -647,7 +633,7 @@ int hammondB3(ENVIRON *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       *ar = p->ar;
-    int         n, nsmps = ksmps;
+    int         n, nsmps = csound->ksmps;
     MYFLT       c1 = *p->control1;
     MYFLT       c2 = *p->control2;
     MYFLT       temp;
@@ -998,7 +984,7 @@ int FMVoice(ENVIRON *csound, FM4OPV *q)
     FM4OP       *p = (FM4OP *)q;
     MYFLT       amp = *q->amp * AMP_RSCALE;
     MYFLT       *ar = q->ar;
-    int         n, nsmps = ksmps;
+    int         n, nsmps = csound->ksmps;
 
     if (p->baseFreq != *q->frequency || *q->control1 != q->last_control) {
       q->last_control = *q->control1;
@@ -1111,7 +1097,7 @@ int percfluteset(ENVIRON *csound, FM4OP *p)
 int percflute(ENVIRON *csound, FM4OP *p)
 {
     MYFLT       *ar = p->ar;
-    int         n, nsmps = ksmps;
+    int         n, nsmps = csound->ksmps;
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       c1 = *p->control1;
     MYFLT       c2 = *p->control2;
