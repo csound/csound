@@ -151,7 +151,7 @@ void add_tmpfile(void *csound, char *name)      /* IV - Feb 03 2005 */
     (*toremove) = tmp;
 }
 
-extern int argdecode(void*, int, char**, char*);
+extern int argdecode(void*, int, char**);
 
 int readOptions(void *csound, FILE *unf)
 {
@@ -219,7 +219,7 @@ int readOptions(void *csound, FILE *unf)
 #endif
       /*      argc++; */                  /* according to Nicola but wrong */
       /* Read an argv thing */
-      argdecode(csound, argc, argv, csoundGetEnv(csound, "SFOUTYP"));
+      argdecode(csound, argc, argv);
     }
     return FALSE;
 }

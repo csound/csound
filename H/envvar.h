@@ -66,6 +66,53 @@ extern "C" {
    */
   int csoundParseEnv(void *csound, const char *s);
 
+  /**
+   * Search for input file 'filename'.
+   * If the file name specifies full path (it begins with '.', the pathname
+   * delimiter character, or a drive letter and ':' on Windows), that exact
+   * file name is tried without searching.
+   * Otherwise, the file is searched relative to the current directory first,
+   * and if it is still not found, a pathname list that is created the
+   * following way is searched:
+   *   1. if envList is NULL or empty, no directories are searched
+   *   2. envList is parsed as a ';' separated list of environment variable
+   *      names, and all environment variables are expanded and expected to
+   *      contain a ';' separated list of directory names
+   *   2. all directories in the resulting pathname list are searched, starting
+   *      from the last and towards the first one, and the directory where the
+   *      file is found first will be used
+   * The function returns a pointer to the full name of the file if it is
+   * found, and NULL if the file could not be found in any of the search paths,
+   * or an error has occured. The caller is responsible for freeing the memory
+   * pointed to by the return value, by calling mfree().
+   */
+  PUBLIC char *csoundFindInputFile(void *csound,
+                                   const char *filename, const char *envList);
+
+  /**
+   * Search for a location to write file 'filename'.
+   * If the file name specifies full path (it begins with '.', the pathname
+   * delimiter character, or a drive letter and ':' on Windows), that exact
+   * file name is tried without searching.
+   * Otherwise, a pathname list that is created the following way is searched:
+   *   1. if envList is NULL or empty, no directories are searched
+   *   2. envList is parsed as a ';' separated list of environment variable
+   *      names, and all environment variables are expanded and expected to
+   *      contain a ';' separated list of directory names
+   *   2. all directories in the resulting pathname list are searched, starting
+   *      from the last and towards the first one, and the directory that is
+   *      found first where the file can be written to will be used
+   * Finally, if the file cannot be written to any of the directories in the
+   * search paths, writing relative to the current directory is tried.
+   * The function returns a pointer to the full name of the file if a location
+   * suitable for writing the file is found, and NULL if the file cannot not be
+   * written anywhere in the search paths, or an error has occured.
+   * The caller is responsible for freeing the memory pointed to by the return
+   * value, by calling mfree().
+   */
+  PUBLIC char *csoundFindOutputFile(void *csound,
+                                    const char *filename, const char *envList);
+
 #ifdef __cplusplus
 };
 #endif /* __cplusplus */

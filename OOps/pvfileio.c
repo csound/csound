@@ -339,7 +339,7 @@ int init_pvsys(void)
     int i;
 
     if (files[0] != NULL) {
-      pv_errstr = Str("\npvsys: already imnitialised");
+      pv_errstr = Str("\npvsys: already initialised");
       return 0;
     }
     for (i = 0;i < MAXFILES;i++)
@@ -411,7 +411,7 @@ int  pvoc_createfile(const char *filename,
     PVOCFILE *pfile = NULL;
     float winparam = 0.0f;
 
-    N = fftlen;                               /* keep the CARL varnames for now */
+    N = fftlen;                         /* keep the CARL varnames for now */
     D = overlap;
 
     if (N == 0 || chans <=0 || filename==NULL || D > N) {
@@ -448,18 +448,8 @@ int  pvoc_createfile(const char *filename,
       pv_errstr = Str("\npvsys: too many files open");
       return -1;
     }
-    pfile = (PVOCFILE *) malloc(sizeof(PVOCFILE));
-
-    if (pfile==NULL) {
-      pv_errstr = Str("\npvsys: no memory");
-      return -1;
-    }
-    pname = (char *) malloc(strlen(filename)+1);
-    if (pname == NULL) {
-      free(pfile);
-      pv_errstr = Str("\npvsys: no memory");
-      return -1;
-    }
+    pfile = (PVOCFILE *) mmalloc(&cenviron, sizeof(PVOCFILE));
+    pname = (char *) mmalloc(&cenviron, strlen(filename)+1);
     pfile->customWindow = NULL;
     /* setup rendering inforamtion */
     prepare_pvfmt(&pfile->fmtdata,chans,srate,stype);
@@ -486,22 +476,17 @@ int  pvoc_createfile(const char *filename,
     pfile->to_delete = 0;
     pfile->readonly = 0;
     if (fWindow!= NULL) {
-      pfile->customWindow = malloc(dwWinlen * sizeof(float));
-      if (pfile->customWindow==NULL) {
-        pv_errstr = Str("\npvsys: no memory for custom window");
-        return -1;
-      }
+      pfile->customWindow = mmalloc(&cenviron, dwWinlen * sizeof(float));
       memcpy((void *)(pfile->customWindow),
              (void *)fWindow, dwWinlen * sizeof(float));
     }
 
-
     pfile->fd = open(filename,WR_OPTS);
     if (pfile->fd < 0) {
-      free(pname);
+      mfree(&cenviron, pname);
       if (pfile->customWindow)
-        free(pfile->customWindow);
-      free(pfile);
+        mfree(&cenviron, pfile->customWindow);
+      mfree(&cenviron, pfile);
 
       pv_errstr = Str("\npvsys: unable to create file");
       return -1;
@@ -518,10 +503,10 @@ int  pvoc_createfile(const char *filename,
     if (!pvoc_writeheader(i)) {
       close(pfile->fd);
       remove(pfile->name);
-      free(pfile->name);
+      mfree(&cenviron, pfile->name);
       if (pfile->customWindow)
-        free(pfile->customWindow);
-      free(pfile);
+        mfree(&cenviron, pfile->customWindow);
+      mfree(&cenviron, pfile);
       files[i] = NULL;
       return -1;
     }
@@ -549,40 +534,19 @@ int pvoc_openfile(const char *filename,PVOCDATA *data,WAVEFORMATEX *fmt)
       return -1;
     }
 
-    pfile = (PVOCFILE *) malloc(sizeof(PVOCFILE));
-    if (pfile==NULL) {
-      pv_errstr = Str("\npvsys: no memory for file data");
-      return -1;
-    }
+    pfile = (PVOCFILE *) mcalloc(&cenviron, sizeof(PVOCFILE));
     pfile->customWindow = NULL;
-    pname = (char *) malloc(strlen(filename)+1);
-    if (pname == NULL) {
-      free(pfile);
-      pv_errstr = Str("\npvsys: no memory");
+    pname = csoundFindInputFile(&cenviron, filename, "SADIR");
+    pfile->fd = -1;
+    if (pname != NULL)
+      pfile->fd = open(pname, RD_OPTS);
+    if (pfile->fd < 0) {
+      pv_errstr = Str("\npvsys: unable to open file");
+      mfree(&cenviron, pfile);
+      if (pname != NULL)
+        mfree(&cenviron, pname);
       return -1;
     }
-    pfile->fd = open(filename,RD_OPTS);
-    if (pfile->fd < 0) {
-      if (!isfullpath((char*)filename) && sadirpath != NULL) {
-        char *name = catpath(sadirpath, (char*)filename);
-        free(pname);
-        pname = (char *) realloc(pname, strlen(name)+1);
-        if (pname == NULL) {
-          free(pfile);
-          pv_errstr = Str("\npvsys: no memory");
-          return -1;
-        }
-        strcpy(pname,name);
-        pfile->fd = open(name,RD_OPTS);
-      }
-      if (pfile->fd < 0) {
-        free(pname);
-        free(pfile);
-        pv_errstr = Str("\npvsys: unable to open file");
-        return -1;
-      }
-    }
-    strcpy(pname,filename);
     pfile->datachunkoffset = 0;
     pfile->nFrames = 0;
     pfile->curpos = 0;
@@ -594,10 +558,10 @@ int pvoc_openfile(const char *filename,PVOCDATA *data,WAVEFORMATEX *fmt)
 
     if (!pvoc_readheader(i,&wfpx)) {
       close(pfile->fd);
-      free(pfile->name);
+      mfree(&cenviron, pfile->name);
       if (pfile->customWindow)
-        free(pfile->customWindow);
-      free(pfile);
+        mfree(&cenviron, pfile->customWindow);
+      mfree(&cenviron, pfile);
       files[i] = NULL;
       return -1;
     }
@@ -608,8 +572,8 @@ int pvoc_openfile(const char *filename,PVOCDATA *data,WAVEFORMATEX *fmt)
     files[i] = pfile;
 
     return i;
-
 }
+
 /*RWD TODO: add byterev stuff*/
 static int pvoc_readfmt(int fd,int byterev,WAVEFORMATPVOCEX *pWfpx)
 {
@@ -841,17 +805,12 @@ static int pvoc_readheader(int ifd,WAVEFORMATPVOCEX *pWfpx)
         }
         if (files[ifd]->pvdata.wWindowType!=PVOC_CUSTOM) {
           /*whaddayado? can you warn the user and continue?*/
-          pv_errstr = Str(
-                          "\npvsys: PVXW chunk found but custom "
+          pv_errstr = Str("\npvsys: PVXW chunk found but custom "
                           "window not specified");
           return 0;
         }
         files[ifd]->customWindow =
-          malloc(files[ifd]->pvdata.dwWinlen*sizeof(float));
-        if (files[ifd]->customWindow == NULL) {
-          pv_errstr = Str("\npvsys: no memory for custom window data.");
-          return 0;
-        }
+          mmalloc(&cenviron, files[ifd]->pvdata.dwWinlen*sizeof(float));
         if (pvoc_readWindow(files[ifd]->fd,files[ifd]->do_byte_reverse,
                             files[ifd]->customWindow,files[ifd]->pvdata.dwWinlen)
             != (int)(files[ifd]->pvdata.dwWinlen * sizeof(float))) {
@@ -867,8 +826,7 @@ static int pvoc_readheader(int ifd,WAVEFORMATPVOCEX *pWfpx)
         }
 
         if (!fmtseen) {
-          pv_errstr = Str(
-                          "\npvsys: bad format, data chunk before fmt chunk");
+          pv_errstr = Str("\npvsys: bad format, data chunk before fmt chunk");
           return 0;
         }
 
@@ -1115,8 +1073,8 @@ int pvoc_closefile(int ofd)
     if (files[ofd]->to_delete && !(files[ofd]->readonly))
       remove(files[ofd]->name);
 
-    free(files[ofd]->name);
-    free(files[ofd]);
+    mfree(&cenviron, files[ofd]->name);
+    mfree(&cenviron, files[ofd]);
     files[ofd] = NULL;
 
     return 1;

@@ -371,8 +371,7 @@ SAMPLE_FORMAT_ENTRY sample_format_map[] = {
   {0, 0}
 };
 
-static int decode_long(void *csound,
-                       char *s, int argc, char **argv, char *envoutyp)
+static int decode_long(void *csound, char *s, int argc, char **argv)
 {
   /* Add other long options here */
   if (!(strncmp(s, "format=", 7)))
@@ -824,7 +823,7 @@ static int decode_long(void *csound,
   return (0);
 }
 
-int argdecode(void *csound, int argc, char **argv_, char *envoutyp)
+int argdecode(void *csound, int argc, char **argv_)
 {
   char  *s, **argv;
   int   n;
@@ -1177,7 +1176,7 @@ int argdecode(void *csound, int argc, char **argv_, char *envoutyp)
             break;
           }
 #endif
-          if (!decode_long(csound, s, argc, argv, envoutyp))
+          if (!decode_long(csound, s, argc, argv))
             longjmp(((ENVIRON*) csound)->exitjmp_, 1);
           while (*(++s));
           break;

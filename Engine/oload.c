@@ -141,6 +141,8 @@ ENVIRON cenviron_ = {
         csoundGetLibrarySymbol,
         csoundSetYieldCallback,
         csoundGetEnv,
+        csoundFindInputFile,
+        csoundFindOutputFile,
         csoundSetPlayopenCallback,
         csoundSetRtplayCallback,
         csoundSetRecopenCallback,
@@ -190,9 +192,7 @@ ENVIRON cenviron_ = {
         strarg2insno,
         strarg2opcno,
         instance,
-        isfullpath,
         dies,
-        catpath,
         rewriteheader,
         writeheader,
         csoundPrintf,
@@ -298,7 +298,6 @@ ENVIRON cenviron_ = {
         NULL, /*      maxampend */
         {0}, {0}, {0},        /*      maxpos, smaxpos, omaxpos */
         0,    /*      tieflag */
-        NULL, NULL,   /* ssdirpath, sfdirpath */
         NULL, /*      tokenstring */
         NULL, /*      polish */
         NULL, NULL,   /* scorein, scorout */
@@ -330,7 +329,6 @@ ENVIRON cenviron_ = {
         DFLT_DBFS,      /*      tran_0dbfs */
         DFLT_NCHNLS,    /*      tran_nchnls */
         FL(-1.0), FL(-1.0), FL(-1.0), FL(-1.0), /* tpidsr,pidsr,mpidsr,mtpdsr */
-        NULL,           /*      sadirpath */
         &O,             /*      oparms */
         NULL,           /*      hostData */
         NULL,           /*      opcodeInfo  */

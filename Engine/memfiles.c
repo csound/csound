@@ -28,9 +28,6 @@
 
 MEMFIL *memfiles = NULL;
 
-extern int    isfullpath(char *);              /* def in filopen.c */
-extern char   *catpath(char *, char *);        /* def in filopen.c */
-
 #if !defined(mills_macintosh) && !defined(SYMANTEC)
 
 static struct stat statbuf;
@@ -70,10 +67,10 @@ MEMFIL *ldmemfile(char *filnam) /* read an entire file into memory and log it */
 {                               /* if not fullpath, look in current directory,*/
                                 /*   then SADIR (if defined).                 */
                                 /* Used by adsyn, pvoc, and lpread            */
-    MEMFIL      *mfp, *mfp2, *last = NULL;
-    char        *allocp;
-    long        len;
-    char    *pathnam = filnam;
+    MEMFIL  *mfp, *mfp2, *last = NULL;
+    char    *allocp;
+    long    len;
+    char    *pathnam;
 
     mfp = memfiles;
     while (mfp!=NULL) {                                 /* Checking chain */
@@ -84,48 +81,38 @@ MEMFIL *ldmemfile(char *filnam) /* read an entire file into memory and log it */
       last = mfp;
       mfp = mfp->next;
     }
-    /*    printf("Extending memfiles\n"); */
-    mfp = (MEMFIL*)mcalloc(&cenviron, sizeof(MEMFIL));  /* Add new file description */
+    /* Add new file description */
+    mfp = (MEMFIL*)mcalloc(&cenviron, sizeof(MEMFIL));
     if (mfp == NULL) {
       sprintf(errmsg,                                   /* else overflow */
-              Str(
-                  "memfiles: cannot allocate for MEMFIL extention"));
+              Str("memfiles: cannot allocate for MEMFIL extention"));
       goto lderr;
     }
     if (last != NULL) last->next = mfp;
     else              memfiles = mfp;
 
  ldopn:
-    if (isfullpath(filnam)) {
-      if (LoadFile(filnam,0,&allocp,&len)) {          /* look fullpath */
-        sprintf(errmsg,Str("cannot load %s"), filnam);
-        goto lderr;
-      }
+    pathnam = csoundFindInputFile(&cenviron, filnam, "SADIR");
+    if (pathnam == NULL) {
+      sprintf(errmsg, Str("cannot load %s"), filnam);
+      goto lderr;
     }
-    else {
-      if (LoadFile(filnam,0,&allocp,&len) == 0)       /* look in cur dir */
-        goto done;
-      if (sadirpath != NULL) {                        /* if SADIR set,   */
-        pathnam = catpath(sadirpath, filnam);       /*   get fullname  */
-        for (mfp2 = memfiles; mfp2 != mfp; mfp2 = mfp2->next)/*   chk prv slots */
-          if (strcmp(mfp2->filename,pathnam) == 0)
-            return(mfp2);                       /*   if match, rtn */
-        if (LoadFile(pathnam,0,&allocp,&len)) {     /*   else loadfile */
-          sprintf(errmsg,Str("cannot load %s"), pathnam);
-          goto lderr;
-        }
+    for (mfp2 = memfiles; mfp2 != mfp; mfp2 = mfp2->next)   /* chk prv slots */
+      if (strcmp(mfp2->filename, pathnam) == 0) {
+        mfree(&cenviron, pathnam);
+        return(mfp2);                                       /* if match, rtn */
       }
-      else {
-        sprintf(errmsg,Str("cannot load %s, or SADIR undefined"), pathnam);
-        goto lderr;
-      }
+    if (LoadFile(pathnam, 0, &allocp, &len) != 0) {         /* else loadfile */
+      sprintf(errmsg, Str("cannot load %s, or SADIR undefined"), pathnam);
+      mfree(&cenviron, pathnam);
+      goto lderr;
     }
- done:
     strcpy(mfp->filename, pathnam);                      /* init the struct */
+    mfree(&cenviron, pathnam);
     mfp->beginp = allocp;
     mfp->endp = allocp + len;
     mfp->length = len;
-    printf(Str("file %s (%ld bytes) loaded into memory\n"), pathnam,len);
+    printf(Str("file %s (%ld bytes) loaded into memory\n"), mfp->filename, len);
     return(mfp);                                         /* rtn new slotadr */
 
  lderr:
@@ -184,3 +171,4 @@ void add_memfil(MEMFIL *mfp)
       memfiles = mfp;
     }
 }
+

@@ -99,8 +99,6 @@ extern "C" {
 #define smaxpos cenviron.smaxpos_
 #define omaxpos cenviron.omaxpos_
 #define tieflag cenviron.tieflag_
-#define ssdirpath cenviron.ssdirpath_
-#define sfdirpath cenviron.sfdirpath_
 #define tokenstring cenviron.tokenstring_
 #define polish cenviron.polish_
 #define SCOREIN cenviron.scorein_
@@ -139,7 +137,6 @@ extern "C" {
 #define pidsr cenviron.pidsr_
 #define mpidsr cenviron.mpidsr_
 #define mtpdsr cenviron.mtpdsr_
-#define sadirpath cenviron.sadirpath_
 #define hostdata cenviron.hostdata_
 #define oparms cenviron.oparms_
 #define opcodeInfo cenviron.opcodeInfo_     /* IV - Oct 20 2002 */

@@ -1479,21 +1479,12 @@ extern "C" int get_snap(ENVIRON *csound, FLGETSNAP *p)
 
 extern "C" int save_snap(ENVIRON *csound, FLSAVESNAPS* p)
 {
-#ifdef WIN32
-  int id = MessageBox( NULL,
-                       "Saving could overwrite the old file.\n"
-                       "Are you sure to save?",
-                       "Warning",
-                       MB_TASKMODAL|MB_ICONWARNING |MB_OKCANCEL
-                       );
-  if (id != IDOK ) return OK;
-#elif defined(LINUX) || defined(__MACH__)
+  char    s[MAXNAME], *s2;
+  string  filename;
+
   // put here some warning message!!
   if (fl_ask("Saving could overwrite the old file\n"
              "Are you sure you want to save?")==0) return OK;
-#endif
-  char     s[MAXNAME];
-  string  filename;
   if (*p->filename == SSTRCOD) { // if char string name given
     if (p->STRARG == NULL) strcpy(s,unquote(currevent->strarg));
     else strcpy(s, unquote(p->STRARG));
@@ -1502,13 +1493,12 @@ extern "C" int save_snap(ENVIRON *csound, FLSAVESNAPS* p)
            strsets != NULL && strsets[(long)*p->filename])
     strcpy(s, strsets[(long)*p->filename]);
   else sprintf(s,"snap.%d", (int)*p->filename);
-
-  //  if (isfullpath(s) || snapdir_path == NULL)
+  s2 = csound->FindOutputFile(csound, s, "SNAPDIR");
+  if (s2 == NULL)
+    return initerror(Str("FLsavesnap: cannot open file"));
+  strcpy(s, s2);
+  mfree(csound, s2);
   filename = s;
-  //  else
-  //    filename = catpath(snapdir_path, s);
-
-  //char* s[MAXNAME] = GetString(*p->filename,p->STRARG);
 
   fstream file(filename.c_str(), ios::out);
   for (int j =0; j < (int) snapshots.size(); j++) {
@@ -1543,8 +1533,9 @@ extern "C" int save_snap(ENVIRON *csound, FLSAVESNAPS* p)
 
 extern "C" int load_snap(ENVIRON *csound, FLLOADSNAPS* p)
 {
-  char     s[MAXNAME];
-  string  filename;
+  char     s[MAXNAME], *s2;
+  string   filename;
+
   if (*p->filename == SSTRCOD) { // if char string name given
     if (p->STRARG == NULL) strcpy(s,unquote(currevent->strarg));
     else strcpy(s, unquote(p->STRARG));
@@ -1553,13 +1544,12 @@ extern "C" int load_snap(ENVIRON *csound, FLLOADSNAPS* p)
            strsets != NULL && strsets[(long)*p->filename])
     strcpy(s, strsets[(long)*p->filename]);
   else sprintf(s,"snap.%d", (int)*p->filename);
-
-  //  if (isfullpath(s) || snapdir_path == NULL)
+  s2 = csound->FindInputFile(csound, s, "SNAPDIR");
+  if (s2 == NULL)
+    return initerror(Str("FLloadsnap: cannot open file"));
+  strcpy(s, s2);
+  mfree(csound, s2);
   filename = s;
-  //  else
-  //    filename = catpath(snapdir_path, s);
-
-  //char* s[MAXNAME] = GetString(*p->filename,p->STRARG);
 
   fstream file(filename.c_str(), ios::in);
 

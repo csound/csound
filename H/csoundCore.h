@@ -661,6 +661,10 @@ extern "C" {
     void (*SetYieldCallback)(void *csound,
                              int (*yieldCallback)(void *hostData));
     char *(*GetEnv)(void *csound, const char *name);
+    char *(*FindInputFile)(void *csound,
+                           const char *filename, const char *envList);
+    char *(*FindOutputFile)(void *csound,
+                            const char *filename, const char *envList);
     void (*SetPlayopenCallback)(void *csound,
                                 int (*playopen__)(void *csound,
                                                   csRtAudioParams *parm));
@@ -719,9 +723,7 @@ extern "C" {
     long (*strarg2insno_)(MYFLT *p, char *s);
     long (*strarg2opcno_)(MYFLT *p, char *s, int force_opcode);
     INSDS *(*instance_)(int insno);
-    int (*isfullpath_)(char *name);
     void (*dies)(char *s, char *t);
-    char *(*catpath_)(char *path, char *name);
     void (*rewriteheader_)(SNDFILE *ofd, int verbose);
     void (*writeheader)(int ofd, char *ofname);
     void (*Printf)(const char *format, ...);
@@ -830,7 +832,6 @@ extern "C" {
     MYFLT         *maxampend_;
     unsigned long maxpos_[MAXCHNLS], smaxpos_[MAXCHNLS], omaxpos_[MAXCHNLS];
     int           tieflag_;
-    char          *ssdirpath_, *sfdirpath_;
     char          *tokenstring_;
     POLISH        *polish_;
     FILE*         scorein_;
@@ -858,7 +859,6 @@ extern "C" {
     MYFLT         tran_0dbfs_;
     int           tran_nchnls_;
     MYFLT         tpidsr_, pidsr_, mpidsr_, mtpdsr_;
-    char          *sadirpath_;
     OPARMS        *oparms_;
     void          *hostdata_;
     OPCODINFO     *opcodeInfo_;    /* IV - Oct 20 2002 */
