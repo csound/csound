@@ -137,7 +137,6 @@ else:
 # Define different build environments for different types of targets.
 
 if getPlatform() == 'linux':
-    commonEnvironment.Append(makeDynamic = 1)
     commonEnvironment.Append(CCFLAGS = "-DLINUX")
     commonEnvironment.Append(CPPPATH = '/usr/local/include')
     commonEnvironment.Append(CPPPATH = '/usr/include')
@@ -163,8 +162,10 @@ elif getPlatform() == 'mingw' or getPlatform() == 'cygwin':
     commonEnvironment.Append(CCFLAGS = "-mthreads")
     commonEnvironment.Append(LIBPATH = ['.', '#.', '/usr/include/lib', '/usr/local/lib'])    
     
-if commonEnvironment['makeDynamic']==0:
-        commonEnvironment.Append(LINKFLAGS = '-static')
+if (commonEnvironment['makeDynamic'] == 0) and (getPlatform() != 'linux'):
+    commonEnvironment.Append(LINKFLAGS = '-static')
+else:
+    commonEnvironment.Append(LINKFLAGS = Split('-Bdynamic --no-allow-shlib-undefined'))
 
 # Adding libraries and flags if using -mno-cygwin with cygwin
 
