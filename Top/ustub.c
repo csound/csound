@@ -373,17 +373,20 @@ float MOD(float a, float bb)
     }
 }
 
+#ifdef  USE_DOUBLE
+#define sf_write_MYFLT  sf_write_double
+#else
+#define sf_write_MYFLT  sf_write_float
+#endif
+
+static  SNDFILE *outfile;
 int writebuffer(MYFLT * obuf, int length)
 {
-    spoutran(obuf, length);
-    audtran(outbuf, O.sfsampsize*length);
-    write(outfd, outbuf, O.sfsampsize*length);
+    int n = sf_write_MYFLT(outfile, outbuf, length);
     block++;
     bytes += O.sfsampsize*length;
-    if (O.rewrt_hdr) {
-      rewriteheader(outfd, 0);
-      lseek(outfd, 0L, SEEK_END); /* Place at end again */
-    }
+    if (O.rewrt_hdr) 
+       rewriteheader(outfile,0);
     if (O.heartbeat) {
       if (O.heartbeat==1) {
 #ifdef SYMANTEC
