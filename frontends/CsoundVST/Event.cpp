@@ -334,7 +334,7 @@ namespace csound
 		else
 		{
 			double tones = Conversions::round(Conversions::midiToOctave(getKey()) * tonesPerOctave);
-			return Conversions::octaveToMidi(tones / tonesPerOctave, true);
+			return Conversions::octaveToMidi(tones / tonesPerOctave, false);
 		}
 	}
 

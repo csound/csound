@@ -1,4 +1,4 @@
-/**
+/*
 * C S O U N D   V S T 
 *
 * A VST plugin version of Csound, with Python scripting.
@@ -73,7 +73,6 @@ namespace csound
 	* <li>[     = Push the current state of the turtle state onto a stack.</li>
 	* <li>]     = Pop the current state of the turtle from the stack.</li>
 	* </ul>
-	* <p>
 	*/
 	class Lindenmayer : 
 		public ScoreNode

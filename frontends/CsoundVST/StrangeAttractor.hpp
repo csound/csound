@@ -1,4 +1,4 @@
-/**
+/*
 * C S O U N D   V S T 
 *
 * A VST plugin version of Csound, with Python scripting.
@@ -51,7 +51,7 @@ namespace csound
 	* chaotic dynamical system into music, by interpreting each iteration
 	* of the system as a note. The time of the note can be represented either
 	* as the order of iteration, or as a dimension of the attractor.
-	* See Julien C. Sprott's book <I><B>Strange Attractors</I></B>.
+	* See Julien C. Sprott's book "Strange Attractors".
 	*/
 	class StrangeAttractor : 
 		public ScoreNode
