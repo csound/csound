@@ -15,9 +15,14 @@ PUBLIC int csoundJoinThread(void *csound, void *thread)
     WaitForSingleObject(thread, INFINITE);
 }
 
-PUBLIC void *csoundCreateThreadLock(void *csound)
+PUBLIC void *csoundCreateThreadLock(void *csound_)
 {
-	return (void *)CreateEvent(0, 0, 0, 0);
+    ENVIRON *csound = (ENVIRON *)csound_;
+    HANDLE threadLock = CreateEvent(0, 0, 0, 0);
+    if(!threadLock) {
+        csound->Message(csound, "csoundCreateThreadLock: Failed to create thread lock.\n");
+    }
+	return (void *)threadLock;
 }
 
 PUBLIC void csoundWaitThreadLock(void *csound, void *lock, size_t milliseconds)

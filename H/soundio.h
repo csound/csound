@@ -23,6 +23,9 @@
 
                         /*                              SOUNDIO.H       */
 
+#ifndef SOUNDIO_H
+#define SOUNDIO_H
+
 #ifdef WIN32
 #define IOBUFSAMPS   16384      /* default sampframes in audio iobuf, -b settable */
 #define IODACSAMPS   16384      /* default samps in hardware buffer,  -B settable */
@@ -222,3 +225,6 @@ typedef union samp_24 {
         long lsamp;
         unsigned char bytes[4];
 } SAMP24;
+
+#endif
+
