@@ -38,73 +38,15 @@ static void  (*nxtdeltim)(void);
 static double FltMidiNxtk, kprdspertick, ekrdQmil;
 static u_char *sexp;
 static u_char *fsexbuf, *fsexp, *fsexend;
-static int   defaultinsno = 0;
 static short m_sensing = 0;
 static int sexcnt = 0;
 static short datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0 };
-static MYFLT dsctl_map[12] = {FL(1.0),FL(0.0),FL(1.0),FL(0.0),FL(1.0),FL(0.0),
-                              FL(1.0),FL(0.0),FL(1.0),FL(0.0),FL(1.0),FL(0.0)};
-static MYFLT MastVol = FL(1.0);     /* maps ctlr 7 to ctlr 9 */
 
 extern int pgm2ins[];   /* IV May 2002 */
 extern void  schedofftim(INSDS *), deact(INSDS *), beep(void);
 extern void insxtroff(short);
-
-static void sustsoff(MCHNBLK *chn)  /* turnoff all notes in chnl sust array */
-{                        /* called by SUSTAIN_SW_off only if count non-zero */
-    INSDS *ip, **ipp1, **ipp2;
-    short nn, suscnt;
-
-    suscnt = chn->ksuscnt;
-    ipp1 = ipp2 = chn->ksusptr + 64;          /* find midpoint of sustain array */
-    ipp1--;
-    for (nn = 64; nn--; ipp1--, ipp2++ ) {
-      if ((ip = *ipp1) != NULL) {
-        *ipp1 = NULL;
-        do {
-          if (ip->xtratim) {
-            ip->relesing = 1;
-            ip->offtim = (kcounter + ip->xtratim) * onedkr;
-            schedofftim(ip);
-          }
-          else deact(ip);
-        } while ((ip = ip->nxtolap) != NULL);
-        if (--suscnt == 0)  break;
-      }
-      if ((ip = *ipp2) != NULL) {
-        *ipp2 = NULL;
-        do {
-          if (ip->xtratim) {
-            ip->relesing = 1;
-            ip->offtim = (kcounter + ip->xtratim) * onedkr;
-            schedofftim(ip);
-          }
-          else deact(ip);
-        } while ((ip = ip->nxtolap) != NULL);
-        if (--suscnt == 0)  break;
-      }
-    }
-    if (suscnt) printf(Str(X_1251,"sustain count still %d\n"), suscnt);
-    chn->ksuscnt = 0;
-}
-
-static void AllNotesOff(MCHNBLK *chn)
-{
-    INSDS *ip, **ipp = chn->kinsptr;
-    int nn = 128;
-
-    do {
-      if ((ip = *ipp) != NULL) {        /* if find a note in kinsptr slot */
-        deact(ip);                      /*    deactivate, clear the slot  */
-        *ipp = NULL;
-      }
-      ipp++;
-    } while (--nn);
-    if (chn->sustaining)                /* same for notes in sustain list */
-        sustsoff(chn);
-    insxtroff(chn->insno);              /* finally rm all xtratim hanging */
-}
-
+extern void m_chn_init(MEVENT *, short);
+extern void m_chanmsg(MEVENT *);
 
 static long vlendatum(void)  /* rd variable len datum from input stream */
 {
@@ -321,7 +263,7 @@ static void fsexdata(int n) /* place midifile data into a sys_excl buffer */
     }
 }
 
-int sensFMidi(void)     /* read a MidiFile event, collect the data & dispatch */
+int sensFMidi(void)   /* read a MidiFile event, collect the data & dispatch   */
 {                     /* called from kperf(), return(SENSMFIL) if MIDI on/off */
     short  c, type;
     MEVENT *mep = FMidevtblk;
@@ -351,7 +293,7 @@ int sensFMidi(void)     /* read a MidiFile event, collect the data & dispatch */
         else {
           MTrkrem -= len;
           do {
-            c = getc(mfp);         /* else for now, waste it */
+            c = getc(mfp);          /* else for now, waste it */
           } while (--len);
         }
         goto nxtim;
@@ -411,14 +353,14 @@ int sensFMidi(void)     /* read a MidiFile event, collect the data & dispatch */
         }
         goto nxtim;
       }
-      else if (lo3 == 6) {        /* sys_non-realtime status:   */
-        /* m_tuneReq();*/              /* do this one immed  */
+      else if (lo3 == 6) {           /* sys_non-realtime status:   */
+        /* m_tuneReq();*/            /* do this one immed  */
         goto nxtim;
       }
       else {
-        mep->type = type;         /* ident sys_com event  */
-        mep->chan = lo3;          /* holding code in chan */
-        switch (lo3) {            /* now need some data   */
+        mep->type = type;            /* ident sys_com event  */
+        mep->chan = lo3;             /* holding code in chan */
+        switch (lo3) {               /* now need some data   */
         case 1:
         case 3: datreq = 1;
           break;
@@ -441,7 +383,7 @@ int sensFMidi(void)     /* read a MidiFile event, collect the data & dispatch */
     MTrkrem--;
 
  datcpy:
-    mep->dat1 = c;                        /* sav the required data */
+    mep->dat1 = c;                    /* sav the required data */
     if (datreq == 2) {
       mep->dat2 = getc(mfp);
       MTrkrem--;
@@ -462,12 +404,12 @@ int sensFMidi(void)     /* read a MidiFile event, collect the data & dispatch */
       *pMessage++ = (unsigned char)mep->dat1;
       *pMessage = (datreq < 2 ? (unsigned char) 0 : mep->dat2);
     }
-    if (mep->type > NOTEON_TYPE) {        /* if control or syscom  */
-      m_chanmsg(mep);                   /*   handle from here    */
+    if (mep->type > NOTEON_TYPE) {    /* if control or syscom  */
+      m_chanmsg(mep);                 /*   handle from here    */
       goto nxtim;
     }
     nxtdeltim();
-    return(3);                            /* else it's note_on/off */
+    return(3);                        /* else it's note_on/off */
 
  nxtim:
     nxtdeltim();
