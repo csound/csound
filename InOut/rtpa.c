@@ -11,8 +11,8 @@ Uses PortAudio library without callbacks -- JPff
 #include <portaudio.h>
 
 extern char    *sfoutname;                     /* soundout filename    */
-//extern char    *inbuf;
-//extern char    *outbuf;                        /* contin sndio buffers */
+/* extern char    *inbuf; */
+/* extern char    *outbuf;                        /\* contin sndio buffers *\/ */
 extern char    *chinbufp, *choutbufp;          /* char  pntr to above  */
 extern short   *shinbufp, *shoutbufp;          /* short pntr           */
 extern long    *llinbufp, *lloutbufp;          /* long  pntr           */
@@ -86,16 +86,17 @@ void recopen_(int nchanls, int dsize, float sr, int scale)
     die(Str(X_1307,"unable to open soundcard for audio input"));
 }
 
-void listPortAudioDevices() {
+void listPortAudioDevices(void)
+{
     PaDeviceIndex deviceIndex = 0;
     PaDeviceIndex deviceCount = 0;
-    PaDeviceInfo *paDeviceInfo;
+    const PaDeviceInfo *paDeviceInfo;
 
     deviceCount = Pa_GetDeviceCount();
 
-    for(deviceIndex = 0; deviceIndex < deviceCount; ++deviceIndex) {
+    for (deviceIndex = 0; deviceIndex < deviceCount; ++deviceIndex) {
       paDeviceInfo = Pa_GetDeviceInfo(deviceIndex);
-      if(paDeviceInfo) {
+      if (paDeviceInfo) {
         err_printf("PortAudio device %d\n  %s\n  Maximum channels in:  "
                    "%5d\n  Maximum channels out: %5d\n  Default sample rate: %10.3f\n",
                    deviceIndex,
@@ -134,7 +135,7 @@ void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
     paStreamParameters_.sampleFormat = paFloat32;
     paStreamParameters_.suggestedLatency = ((double) sr_) / ((double) oMaxLag);
     paStreamParameters_.hostApiSpecificStreamInfo = 0;
-
+/*     printf("nchnls_ = %d\n", paStreamParameters_.channelCount); */
     paError = Pa_OpenStream (&pa_out,
                              0,
                              &paStreamParameters_,
@@ -168,7 +169,7 @@ void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
 int rtrecord_(char *inbuf, int nbytes) /* get samples from ADC */
 {
     Pa_ReadStream(pa_in, (void*)inbuf, nbytes>>ishift);
-    return(nbytes);
+    return (nbytes);
 }
 
 void rtplay_(void *outbuf_, int bytes_) /* put samples to DAC  */
