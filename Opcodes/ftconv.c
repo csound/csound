@@ -22,7 +22,6 @@
 */
 
 #include "csdl.h"
-#include "fft.h"
 #include <math.h>
 
 #define FTCONV_MAXCHN   8
@@ -32,13 +31,12 @@ typedef struct {
     int     nSamples;   /* IR length (not padded) in samples                */
     int     cnt;        /* buffer position, counts from 0 to nSamples       */
     int     nChannels;  /* number of channels (1 to 8)                      */
-    MYFLT   *ex;        /* pointer returned by AssignBasis(nSamples*2)      */
-    MYFLT   *inBuffer;  /* input/FFT buffer (size = nSamples*2 + 2)         */
-    MYFLT   *tmpBuf;    /* temporary buffer for FFT (size = nSamples*2 + 2) */
+    MYFLT   *inBuffer;  /* input/FFT buffer (size = nSamples*2)             */
+    MYFLT   *tmpBuf;    /* temporary buffer for FFT (size = nSamples*2)     */
     MYFLT   *outBuffers[FTCONV_MAXCHN];
                         /* output buffer (size = nSamples*2)                */
     MYFLT   *IR_Data[FTCONV_MAXCHN];
-                        /* FFT of impulse response (size = nSamples*2 + 2)  */
+                        /* FFT of impulse response (size = nSamples*2)      */
     MYFLT   data[1];
 } CONVOLVE_FFT;
 
@@ -71,10 +69,10 @@ static int fft_convolve_bytes_alloc(int nChannels, int nSamples)
 {
     int nBytes;
 
-    nBytes = (nSamples << 1) + 2;                   /* inBuffer   */
-    nBytes += (nSamples << 1) + 2;                  /* tmpBuf     */
-    nBytes += ((nSamples << 1) * nChannels);        /* outBuffers */
-    nBytes += (((nSamples << 1) + 2) * nChannels);  /* IR_Data    */
+    nBytes = (nSamples << 1);                   /* inBuffer   */
+    nBytes += (nSamples << 1);                  /* tmpBuf     */
+    nBytes += ((nSamples << 1) * nChannels);    /* outBuffers */
+    nBytes += ((nSamples << 1) * nChannels);    /* IR_Data    */
     nBytes *= (int) sizeof(MYFLT);
     nBytes += (int) (sizeof(CONVOLVE_FFT) - sizeof(MYFLT));
     nBytes = (nBytes + 15) & (~15);
@@ -89,14 +87,12 @@ static void fft_convolve_init(ENVIRON *csound, CONVOLVE_FFT *fp, MYFLT *ftData,
     fp->nSamples = nSamples;
     fp->cnt = 0;
     fp->nChannels = nChannels;
-    fp->ex = (MYFLT*) csound->AssignBasis_((complex*) NULL,
-                                           (long) (nSamples << 1));
     nsmps = 0;
-    fp->inBuffer = &(fp->data[nsmps]); nsmps += ((nSamples << 1) + 2);
-    fp->tmpBuf = &(fp->data[nsmps]); nsmps += ((nSamples << 1) + 2);
+    fp->inBuffer = &(fp->data[nsmps]); nsmps += (nSamples << 1);
+    fp->tmpBuf = &(fp->data[nsmps]); nsmps += (nSamples << 1);
     for (n = 0; n < nChannels; n++) {
       fp->outBuffers[n] = &(fp->data[nsmps]); nsmps += (nSamples << 1);
-      fp->IR_Data[n] = &(fp->data[nsmps]); nsmps += ((nSamples << 1) + 2);
+      fp->IR_Data[n] = &(fp->data[nsmps]); nsmps += (nSamples << 1);
       /* clear output buffer */
       for (i = 0; i < (nSamples << 1); i++)
         fp->outBuffers[n][i] = FL(0.0);
@@ -106,10 +102,9 @@ static void fft_convolve_init(ENVIRON *csound, CONVOLVE_FFT *fp, MYFLT *ftData,
         fp->IR_Data[n][i] = ftData[j];
         j += nChannels;
       }
-      for (i = nSamples; i < ((nSamples << 1) + 2); i++)
+      for (i = nSamples; i < (nSamples << 1); i++)
         fp->IR_Data[n][i] = FL(0.0);    /* pad to double length */
-      csound->FFT2realpacked_((complex*) &(fp->IR_Data[n][0]),
-                              (long) (nSamples << 1), (complex*) fp->ex);
+      csound->RealFFT(csound, &(fp->IR_Data[n][0]), (nSamples << 1), 1);
     }
 }
 
@@ -261,22 +256,16 @@ static int ftconv_perf(ENVIRON *csound, FTCONV *p)
           x = &(fp->tmpBuf[0]);
           x1 = &(fp->inBuffer[0]);
           /* yes, calculate FFT */
-          for (i = nSamples; i < ((nSamples << 1) + 2); i++)
+          for (i = nSamples; i < (nSamples << 1); i++)
             x1[i] = FL(0.0);        /* pad to double length */
-          csound->FFT2realpacked_((complex*) x1, (long) (nSamples << 1),
-                                  (complex*) fp->ex);
+          csound->RealFFT(csound, x1, (nSamples << 1), 1);
           /* for each channel: */
           for (n = 0; n < fp->nChannels; n++) {
             /* multiply complex arrays */
             x2 = &(fp->IR_Data[n][0]);
-            for (i = 0; i <= (nSamples << 1); i += 2) {
-              x[i] = x1[i] * x2[i] - x1[i + 1] * x2[i + 1];
-              x[i + 1] = x1[i] * x2[i + 1] + x2[i] * x1[i + 1];
-            }
+            csound->RSpectProd(csound, x1, x2, x, (nSamples << 1));
             /* inverse FFT */
-            csound->FFT2torlpacked_((complex*) x, (long) (nSamples << 1),
-                                    FL(1.0) / (MYFLT) (nSamples << 1),
-                                    (complex*) fp->ex);
+            csound->InverseRealFFT(csound, x, (nSamples << 1), 1);
             /* copy to output buffer, overlap with "tail" of previous block */
             x2 = &(fp->outBuffers[n][0]);
             for (i = 0; i < nSamples; i++) {
