@@ -6,7 +6,11 @@
 #include "csound.h"
 #include "soundio.h"
 
-typedef struct {
+#if defined(___cplusplus)
+extern "C" {
+#endif
+
+typedef struct PA_BLOCKING_STREAM_ {
     ENVIRON *csound;
     PaStream *paStream;
     PaStreamParameters paParameters;
@@ -37,6 +41,10 @@ int paBlockingWriteStreamCallback(const void *input, void *output,
     PaStreamCallbackFlags statusFlags, void *userData);
 
 void paBlockingClose(PA_BLOCKING_STREAM *pabs);
+
+#if defined(__cplusplus)
+};
+#endif
 
 #endif
 
