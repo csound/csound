@@ -1,0 +1,254 @@
+/*  
+    oscbnk.h:
+
+    Copyright (C) 2002 Istvan Varga
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
+*/
+
+
+/* ---- oscbnk, grain2, and grain3 - written by Istvan Varga, 2001 ---- */
+
+#ifndef CSOUND_OSCBNK_H
+#define CSOUND_OSCBNK_H
+
+#define OSCBNK_PHSMAX   0x80000000UL    /* max. phase   */
+#define OSCBNK_PHSMSK   0x7FFFFFFFUL    /* phase mask   */
+#define OSCBNK_RNDPHS   0               /* 31 bit rand -> phase bit shift */
+
+/* convert floating point phase value to integer */
+
+#define OSCBNK_PHS2INT(x)                                                   \
+        (((x) < FL(0.0) ?                                                   \
+          (unsigned long) ((long) ((x) * (MYFLT) OSCBNK_PHSMAX - FL(0.5)))  \
+          : (unsigned long) ((x) * (MYFLT) OSCBNK_PHSMAX + FL(0.5)))        \
+         & OSCBNK_PHSMSK)
+
+/* ---- these typedefs are also used by entry2.c ---- */
+
+typedef struct {
+        unsigned long   LFO1phs;        /* LFO 1 phase                  */
+        MYFLT   LFO1frq;                /* LFO 1 frequency (0-1)        */
+        unsigned long   LFO2phs;        /* LFO 2 phase                  */
+        MYFLT   LFO2frq;                /* LFO 2 frequency (0-1)        */
+        unsigned long   osc_phs;        /* main oscillator phase        */
+        MYFLT   osc_phm;                /* phase mod.                   */
+        MYFLT   osc_frq, osc_amp;       /* osc. freq. / sr, amplitude   */
+        MYFLT   xnm1, xnm2, ynm1, ynm2; /* EQ tmp data                  */
+        MYFLT   a1, a2, b0, b1, b2;     /* EQ coeffs saved for interp.  */
+} OSCBNK_OSC;
+
+typedef struct {
+        OPDS    h;
+        MYFLT   *args[27];              /* opcode args (see manual)     */
+        int     init_k;                 /* 1st k-cycle (0: no, 1: yes)  */
+        int     nr_osc;                 /* number of oscillators        */
+        long    seed;                   /* random seed                  */
+        int     ilfomode, ieqmode;      /* LFO and EQ mode              */
+        int     eq_interp;              /* enable filter coeff. interp. */
+        MYFLT   frq_scl;                /* constants for calculating    */
+        MYFLT   lf1_scl, lf1_ofs;       /* k-rate parameters            */
+        MYFLT   lf2_scl, lf2_ofs;
+        MYFLT   eqo_scl, eqo_ofs;
+        MYFLT   eql_scl, eql_ofs;
+        MYFLT   eqq_scl, eqq_ofs;
+        MYFLT   *l1t, l1t_pfrac;        /* LFO 1 ftable                 */
+        unsigned long   l1t_mask, l1t_lobits;
+        MYFLT   *l2t, l2t_pfrac;        /* LFO 2 ftable                 */
+        unsigned long   l2t_mask, l2t_lobits;
+        MYFLT   *eqft;                  /* EQ frequency table           */
+        long    eqft_len;
+        MYFLT   *eqlt;                  /* EQ level table               */
+        long    eqlt_len;
+        MYFLT   *eqqt;                  /* EQ Q table                   */
+        long    eqqt_len;
+        MYFLT   *tabl;                  /* parameter input table        */
+        long    tabl_len;               /* (optional)                   */
+        MYFLT   *outft;                 /* parameter output table       */
+        long    outft_len;              /* (optional)                   */
+        long    tabl_cnt;               /* current param in table       */
+        AUXCH   auxdata;
+        OSCBNK_OSC      *osc;           /* oscillator array             */
+} OSCBNK;
+
+/* grain2 types */
+
+typedef struct {
+        unsigned long   grain_phs;      /* grain phase                  */
+        unsigned long   grain_frq_int;  /* grain frequency (integer)    */
+        MYFLT           grain_frq_flt;  /* grain frequency (float)      */
+        unsigned long   window_phs;     /* window phase                 */
+} GRAIN2_OSC;
+
+typedef struct {
+        OPDS    h;
+        MYFLT   *ar, *kcps, *kfmd;      /* opcode args                  */
+        MYFLT   *kgdur, *iovrlp;
+        MYFLT   *kfn, *iwfn, *irpow;
+        MYFLT   *iseed, *imode;
+        int     init_k;                 /* 1st k-cycle (0: no, 1: yes)  */
+        int     mode;                   /* imode (see manual)           */
+        int     nr_osc;                 /* number of oscillators        */
+        long    seed;                   /* random seed                  */
+        int     rnd_mode;               /* random distribution params   */
+        MYFLT   rnd_pow;
+        MYFLT   grain_frq, frq_scl;     /* grain frequency              */
+        MYFLT   *wft, wft_pfrac;        /* window table                 */
+        unsigned long   wft_lobits, wft_mask;
+        AUXCH   auxdata;
+        GRAIN2_OSC      *osc;           /* oscillator array             */
+} GRAIN2;
+
+/* -------- grain3 types -------- */
+
+typedef struct {
+        OPDS    h;
+        MYFLT   *ar, *kcps, *kphs;      /* opcode args                  */
+        MYFLT   *kfmd, *kpmd;
+        MYFLT   *kgdur, *kdens;
+        MYFLT   *imaxovr, *kfn, *iwfn;
+        MYFLT   *kfrpow, *kprpow;
+        MYFLT   *iseed, *imode;
+        int     init_k;                 /* 1st k-cycle (0: no, 1: yes)  */
+        int     mode;                   /* imode (see manual)           */
+        int     ovrlap;                 /* max. number of oscillators   */
+        long    seed;                   /* random seed                  */
+        int     f_rnd_mode;             /* random distribution (freq.)  */
+        MYFLT   f_rnd_pow;
+        int     p_rnd_mode, pm_wrap;    /* random distribution (phase)  */
+        MYFLT   p_rnd_pow;
+        unsigned long   grain_frq;      /* grain frequency              */
+        MYFLT   frq_scl;
+        MYFLT   phs0;                   /* prev. kphs value for interp. */
+        unsigned long   x_phs;
+        MYFLT   *wft, wft_pfrac;        /* window table                 */
+        unsigned long   wft_lobits, wft_mask;
+        AUXCH   auxdata;
+        unsigned long   *phase;         /* grain phase offset           */
+        GRAIN2_OSC      *osc;           /* oscillator array             */
+        GRAIN2_OSC      *osc_start;     /* first active grain           */
+        GRAIN2_OSC      *osc_end;       /* last active grain + 1        */
+        GRAIN2_OSC      *osc_max;       /* ptr to last osc in array     */
+} GRAIN3;
+
+/* -------- rnd31 types -------- */
+
+typedef struct {
+        OPDS    h;              /* opcode args          */
+        MYFLT   *out;                   /* output signal                */
+        MYFLT   *scl;                   /* scale                        */
+        MYFLT   *rpow;                  /* distribution                 */
+        MYFLT   *iseed;                 /* seed                         */
+                                /* internal variables   */
+        long    seed;                   /* random seed                  */
+} RND31;
+
+/* -------- oscilikt types -------- */
+
+typedef struct {
+        OPDS    h;
+        MYFLT   *sr, *xamp, *xcps, *kfn, *iphs, *istor;
+        unsigned long    phs, lobits, mask;
+        MYFLT   pfrac, *ft, oldfn;
+} OSCKT;
+
+typedef struct {
+        OPDS    h;
+        MYFLT   *ar, *kcps, *kfn, *kphs, *istor;
+        unsigned long    phs, lobits, mask;
+        MYFLT   pfrac, *ft, oldfn, old_phs, dv_ksmps;
+        int     init_k;
+} OSCKTP;
+
+typedef struct {
+        OPDS    h;
+        MYFLT   *ar, *xamp, *xcps, *kfn, *async, *kphs, *istor;
+        unsigned long    phs, lobits, mask;
+        MYFLT   pfrac, *ft, oldfn;
+        int     init_k;
+} OSCKTS;
+
+/* ---- vco2init, vco2ft, and vco2 opcodes by Istvan Varga, Sep 2002 ---- */
+
+/* Select algorithm to be used for finding table numbers */
+/* Define this macro to use simple table lookup (slower  */
+/* at high control rate, due to float->int cast), or     */
+/* comment it out to use a search algorithm (slower with */
+/* very fast changes in frequency)                       */
+
+#define VCO2FT_USE_TABLE    1
+
+typedef struct {
+    int     npart;              /* number of harmonic partials (may be zero) */
+    int     size;               /* size of the table (not incl. guard point) */
+    unsigned long               /* parameters needed for reading the table,  */
+            lobits, mask;       /*   and interpolation                       */
+    MYFLT   pfrac;
+    MYFLT   *ftable;            /* table data (size + 1 floats)              */
+} VCO2_TABLE;
+
+typedef struct {
+    int     ntabl;              /* number of tables                          */
+    int     base_ftnum;         /* base ftable number (-1: none)             */
+#ifdef VCO2FT_USE_TABLE
+    VCO2_TABLE  **nparts_tabl;  /* table ptrs for all numbers of partials    */
+#else
+    MYFLT   *nparts;            /* number of partials list                   */
+#endif
+    VCO2_TABLE  *tables;        /* array of table structures                 */
+} VCO2_TABLE_ARRAY;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *ift, *iwaveforms, *iftnum, *ipmul, *iminsiz, *imaxsiz, *isrcft;
+} VCO2INIT;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *ar, *kamp, *kcps, *imode, *kpw, *kphs, *inyx;
+    MYFLT   *dummy[9];
+#ifdef VCO2FT_USE_TABLE
+    VCO2_TABLE  **nparts_tabl;  /* table ptrs for all numbers of partials    */
+#endif
+    int     init_k;             /* 1 in first k-cycle, 0 otherwise           */
+    int     mode;               /* algorithm (0, 1, or 2)                    */
+    int     pm_enabled;         /* phase modulation enabled (0: no, 1: yes)  */
+#ifdef VCO2FT_USE_TABLE
+    MYFLT   f_scl, p_min, p_scl, kphs_old, kphs2_old, dv_ksmps;
+#else
+    MYFLT   f_scl, p_min, p_scl, *npart_old, *nparts, kphs_old, kphs2_old;
+    MYFLT   dv_ksmps;
+    VCO2_TABLE  *tables;        /* pointer to array of tables                */
+#endif
+    unsigned long   phs, phs2;  /* oscillator phase                          */
+} VCO2;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *kft, *kcps, *iwave, *inyx;
+    MYFLT   p_min, p_scl;
+#ifdef VCO2FT_USE_TABLE
+    VCO2_TABLE  **nparts_tabl, *tab0;
+#else
+    MYFLT   *npart_old, *nparts;
+#endif
+    int     base_ftnum;
+} VCO2FT;
+
+#endif          /* CSOUND_OSCBNK_H */
+

@@ -1,0 +1,91 @@
+/*  
+    sfont.h:
+
+    Copyright (C) 2000 Gabriel Maldonado
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
+*/
+
+#include "sftype.h"
+#include "sf.h"
+
+typedef struct {
+        OPDS    h;
+        MYFLT   *ihandle, *fname;
+} SFLOAD;
+
+typedef struct {
+        OPDS    h;
+        MYFLT   *ihandle;
+} SFPLIST;
+
+typedef struct {
+        OPDS    h;
+        MYFLT   *startNum,*ihandle;
+} SFPASSIGN;
+
+typedef struct {
+        OPDS    h;
+        MYFLT   *ipresethandle, *iprog, *ibank, *isfhandle, *iPresetHandle;
+} SFPRESET;
+
+#define MAXSPLT 10
+
+typedef struct {
+        OPDS    h;
+        MYFLT   *out1, *out2, *ivel, *inotnum,*xamp, *xfreq;
+        MYFLT   *ipresethandle, *iflag, *ioffset;
+        int     spltNum;
+        SHORT   *base[MAXSPLT], mode[MAXSPLT];
+        DWORD   end[MAXSPLT], startloop[MAXSPLT], endloop[MAXSPLT];
+        double  si[MAXSPLT],phs[MAXSPLT];
+        MYFLT   leftlevel[MAXSPLT], rightlevel[MAXSPLT];
+} SFPLAY;
+
+typedef struct {
+        OPDS    h;
+        MYFLT   *out1, *ivel, *inotnum,*xamp, *xfreq, *ipresethandle, *iflag, *ioffset;
+        int     spltNum;
+        SHORT   *base[MAXSPLT], mode[MAXSPLT];
+        DWORD   end[MAXSPLT], startloop[MAXSPLT], endloop[MAXSPLT];
+        double  si[MAXSPLT],phs[MAXSPLT];
+        MYFLT   attenuation[MAXSPLT] ;
+} SFPLAYMONO;
+
+typedef struct {
+        OPDS    h;
+        MYFLT   *out1, *ivel, *inotnum, *xamp, *xfreq, *instrNum;
+        MYFLT   *sfBank, *iflag, *ioffset;
+        int     spltNum;
+        SHORT   *base[MAXSPLT], mode[MAXSPLT];
+        DWORD   end[MAXSPLT], startloop[MAXSPLT], endloop[MAXSPLT];
+        double  si[MAXSPLT],phs[MAXSPLT];
+        MYFLT   attenuation[MAXSPLT] ;
+} SFIPLAYMONO;
+
+
+typedef struct {
+        OPDS    h;
+        MYFLT   *out1, *out2, *ivel, *inotnum, *xamp, *xfreq;
+        MYFLT   *instrNum, *sfBank, *iflag, *ioffset;
+        int     spltNum;
+        SHORT   *base[MAXSPLT], mode[MAXSPLT];
+        DWORD   end[MAXSPLT], startloop[MAXSPLT], endloop[MAXSPLT];
+        double  si[MAXSPLT],phs[MAXSPLT];
+        MYFLT   leftlevel[MAXSPLT], rightlevel[MAXSPLT];
+} SFIPLAY;
