@@ -270,5 +270,3 @@ static void PrintBuf(MYFLT *buf, long size, char *msg)
 /*      printf("\n"); */
 }
 #endif
-
-

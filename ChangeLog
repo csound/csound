@@ -1,3 +1,4 @@
+
 2005-02-20	Istvan Varga	<istvan@csounds.com>
 	* Top/argdecode.c:
 	* Top/main.c:
@@ -33,8 +34,7 @@
 	the child nodes were added to the Sequence;
 	the duration of each node is the total duration
 	of all notes that it produces.
-	
-	
+
 2005-02-19	Istvan Varga	<istvan@csounds.com>
 	* Engine/musmon.c:
 	  fixed orcompact bug (takes a Csound instance pointer)

@@ -215,7 +215,6 @@ static void oscGroupCB(void *context, int arglen, const void *vargs,
 inline static char *oscIntToString(int i);
 inline static int oscFractToInt(MYFLT fract);
 
-inline static void oscContextMake(oscContext *, int, int, int);
 inline static OSCBoolean oscContextInsNoCheck(const oscContext *c);
 inline static OSCBoolean oscContextServiceNoCheck(const oscContext *c);
 inline static OSCBoolean oscContextGroupNoCheck(const oscContext *c);
@@ -673,6 +672,7 @@ oscIntToString(int i)
     return buf;
 }
 
+#ifdef never
 void oscContextMake(oscContext *c, int insNo, int serviceNo, int groupNo)
 {
     c->insNo = insNo;
@@ -684,7 +684,7 @@ void oscContextMake(oscContext *c, int insNo, int serviceNo, int groupNo)
             c->insNo, c->serviceNo, c->groupNo);
 #endif
 }
-
+#endif
 OSCBoolean oscContextInsNoCheck(const oscContext *c)
 {
     return !(c->insNo < 0 || c->insNo > oscState->maxIns);
