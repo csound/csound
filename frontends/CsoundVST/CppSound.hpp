@@ -261,6 +261,10 @@ public:
 	*  and performance should continue.
 	*/
 	virtual bool getIsGo() const;
+	/**
+	* Set up Python to print Csound messages.
+	*/
+	virtual void setPythonMessageCallback();
 };
 
 #endif
