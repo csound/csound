@@ -228,8 +228,9 @@ int linseg(LINSEG *p)
     }
     else {
 putk:
-      do *rs++ = val;
-      while (--nsmps);
+      do {
+        *rs++ = val;
+      } while (--nsmps);
     }
     return OK;
 }
@@ -413,8 +414,9 @@ int linsegr(LINSEG *p)
     }
     else {
     putk:
-      do *rs++ = val;
-      while (--nsmps);
+      do {
+        *rs++ = val;
+      } while (--nsmps);
     }
     return OK;
 }
@@ -810,8 +812,9 @@ int expsegr(EXPSEG *p)
       } while (--nsmps);
     } else {
     putk:
-      do *rs++ = val;
-      while (--nsmps);
+      do {
+        *rs++ = val;
+      } while (--nsmps);
     }
     return OK;
 }
@@ -902,12 +905,14 @@ int linen(LINEN *p)
     }
     else {
       if (p->XINCODE) {
-        do *rs++ = *sg++;
-        while(--nsmps);
+        do {
+          *rs++ = *sg++;
+        } while(--nsmps);
       }
       else {
-        do *rs++ = *sg;
-        while(--nsmps);
+        do {
+          *rs++ = *sg;
+        } while(--nsmps);
       }
     }
     return OK;
@@ -992,12 +997,14 @@ int linenr(LINENR *p)
     }
     else {
       if (p->XINCODE) {
-        do *rs++ = *sg++;
-        while (--nsmps);
+        do {
+          *rs++ = *sg++;
+        } while (--nsmps);
       }
       else {
-        do *rs++ = *sg;
-        while (--nsmps);
+        do {
+          *rs++ = *sg;
+        } while (--nsmps);
       }
     }
     return OK;

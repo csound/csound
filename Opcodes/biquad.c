@@ -819,8 +819,9 @@ int nestedapset(NESTEDAP *p)
     else if (!(*p->istor)) {
       long *lp = (long *)auxp;
       /*   clr old to zero */
-      do  *lp++ = 0;
-      while (--npts);
+      do {
+        *lp++ = 0L;
+      } while (--npts);
     }
     p->del1p = p->beg1p;
     p->del2p = p->beg2p;

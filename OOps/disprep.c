@@ -247,8 +247,9 @@ int kdspfft(DSPFFT *p)
         d_fft(p->sampbuf,fftcoefs,p->windsize,p->fftlut,hWin,p->dbout);
         tp = fftcoefs;
         tplim = tp + p->ncoefs;
-        do  *tp *= p->overN;            /* scale 1/N */
-        while (++tp < tplim);
+        do {
+          *tp *= p->overN;          /* scale 1/N */
+        } while (++tp < tplim);
         display(&p->dwindow);           /* & display */
         if (p->overlap > 0) {
           bufp = p->sampbuf;
@@ -285,8 +286,9 @@ int dspfft(DSPFFT *p)
           d_fft(p->sampbuf,fftcoefs,p->windsize,p->fftlut,hWin,p->dbout);
           tp = fftcoefs;
           tplim = tp + p->ncoefs;
-          do  *tp *= p->overN;                /* scale 1/N */
-          while (++tp < tplim);
+          do {
+            *tp *= p->overN;                /* scale 1/N */
+          } while (++tp < tplim);
           display(&p->dwindow);               /* & display */
           if (p->overlap > 0) {
             bufp = p->sampbuf;

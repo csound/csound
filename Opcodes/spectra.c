@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "csdl.h"         /*                                      SPECTRA.C       */
+#include "csdl.h"         /*                                    SPECTRA.C       */
 #include <math.h>
 #include "cwindow.h"
 #include "spectra.h"
@@ -72,11 +72,16 @@ int spectset(SPECTRUM *p) /* spectrum - calcs disc Fourier transform of */
     p->dbout = (int)*p->idbout;
     if ((p->disprd = (int)(ekr * *p->idisprd)) < 0)  p->disprd = 0;
 
-    if (p->timcount <= 0)                return initerror(Str(X_863,"illegal iprd"));
-    if (nocts <= 0 || nocts > MAXOCTS)   return initerror(Str(X_861,"illegal iocts"));
-    if (nfreqs <= 0 || nfreqs > MAXFRQS) return initerror(Str(X_852,"illegal ifrqs"));
-    if (Q <= FZERO)                      return initerror(Str(X_837,"illegal Q value"));
-    if (p->dbout < 0 || p->dbout > 3)    return initerror(Str(X_1332,"unknown dbout code"));
+    if (p->timcount <= 0)
+      return initerror(Str(X_863,"illegal iprd"));
+    if (nocts <= 0 || nocts > MAXOCTS)
+      return initerror(Str(X_861,"illegal iocts"));
+    if (nfreqs <= 0 || nfreqs > MAXFRQS)
+      return initerror(Str(X_852,"illegal ifrqs"));
+    if (Q <= FZERO)
+      return initerror(Str(X_837,"illegal Q value"));
+    if (p->dbout < 0 || p->dbout > 3)
+      return initerror(Str(X_1332,"unknown dbout code"));
 
     if (nocts != dwnp->nocts ||
         nfreqs != p->nfreqs  || /* if anything has changed */
@@ -158,7 +163,8 @@ int spectset(SPECTRUM *p) /* spectrum - calcs disc Fourier transform of */
         curfrq *= frqmlt;                        /*   step by log freq  */
       }
       if (*p->idsines != FZERO) {      /* if reqd, dsply windowed sines now! */
-        dispset(&p->sinwindow,p->sinp,(long)sumk,Str(X_1229,"spectrum windowed sines:"),
+        dispset(&p->sinwindow,p->sinp,(long)sumk,
+                Str(X_1229,"spectrum windowed sines:"),
                 0,"spectrum");
         display(&p->sinwindow);
       }
@@ -170,7 +176,8 @@ int spectset(SPECTRUM *p) /* spectrum - calcs disc Fourier transform of */
       minr = windsiz >> 1;                  /* sep odd windsiz into maj, min */
       majr = windsiz - minr;                /*      & calc totsamps reqd     */
       totsamps = (majr*nocts) + (minr<<nocts) - minr;
-      DOWNset(p->h.insdshead->csound, dwnp, totsamps); /* auxalloc in DOWNDAT struct */
+      DOWNset(p->h.insdshead->csound,
+              dwnp, totsamps);              /* auxalloc in DOWNDAT struct */
       fltp = (MYFLT *) dwnp->auxch.auxp;    /*  & distrib to octdata */
       for (n=nocts,octp=dwnp->octdata+(nocts-1); n--; octp--) {
         bufsiz = majr + minr;
@@ -178,7 +185,8 @@ int spectset(SPECTRUM *p) /* spectrum - calcs disc Fourier transform of */
         octp->begp = fltp;  fltp += bufsiz; /*        (lo oct first) */
         octp->endp = fltp;  minr *= 2;
       }
-      printf(Str(X_562,"\t%d oct analysis window delay = %ld samples (%d msecs)\n"),
+      printf(Str(X_562,
+                 "\t%d oct analysis window delay = %ld samples (%d msecs)\n"),
              nocts, bufsiz, (int)(bufsiz*1000/dwnp->srate));
       if (p->disprd) {                      /* if display requested, */
         totsize = totsamps * sizeof(MYFLT); /*  alloc an equiv local */
@@ -186,8 +194,9 @@ int spectset(SPECTRUM *p) /* spectrum - calcs disc Fourier transform of */
         dispset(&p->octwindow, (MYFLT *)p->auxch2.auxp, (long)totsamps,
                 Str(X_1090,"octdown buffers:"), 0, "spectrum");
       }
-      SPECset(p->h.insdshead->csound,specp, (long)ncoefs); /* prep the spec dspace */
-      specp->downsrcp = dwnp;               /*  & record its source */
+      SPECset(p->h.insdshead->csound,
+              specp, (long)ncoefs);          /* prep the spec dspace */
+      specp->downsrcp = dwnp;                /*  & record its source */
     }
     for (octp=dwnp->octdata; nocts--; octp++) { /* reset all oct params, &    */
       octp->curp = octp->begp;
@@ -367,9 +376,12 @@ int nocdfset(NOCTDFT *p)
 
       err_printf(Str(X_1069,"noctdft: %s window, %s out, making tables ...\n"),
                  (hanning) ? "hanning":"hamming", outstring[p->dbout]);
-      if (p->timcount <= 0)                return initerror(Str(X_863,"illegal iprd"));
-      if (nfreqs <= 0 || nfreqs > MAXFRQS) return initerror(Str(X_852,"illegal ifrqs"));
-      if (Q <= FZERO)                      return initerror(Str(X_837,"illegal Q value"));
+      if (p->timcount <= 0)
+        return initerror(Str(X_863,"illegal iprd"));
+      if (nfreqs <= 0 || nfreqs > MAXFRQS)
+        return initerror(Str(X_852,"illegal ifrqs"));
+      if (Q <= FZERO)
+        return initerror(Str(X_837,"illegal Q value"));
       nsamps = downp->nsamps;
       p->nfreqs = nfreqs;
       p->curq = Q;
@@ -415,12 +427,15 @@ int nocdfset(NOCTDFT *p)
         }
         curfrq *= frqmlt;                           /*   step by log freq  */
       }
-      if (*p->idsines != 0.0) {    /* if reqd, display windowed sines immediately */
-        dispset(&p->dwindow,p->sinp,(long)sumk,Str(X_1089,"octdft windowed sines:"),
+      if (*p->idsines != FL(0.0)) {
+        /* if reqd, display windowed sines immediately */
+        dispset(&p->dwindow,p->sinp,(long)sumk,
+                Str(X_1089,"octdft windowed sines:"),
                 0,"octdft");
         display(&p->dwindow);
       }
-      SPECset(p->h.insdshead->csound, specp, (long)ncoefs);                /* prep the spec dspace */
+      SPECset(p->h.insdshead->csound,
+              specp, (long)ncoefs);                /* prep the spec dspace */
       specp->downsrcp = downp;                     /*  & record its source */
     }
     specp->nfreqs = p->nfreqs;                 /* save the spec descriptors */
@@ -441,11 +456,11 @@ int noctdft(NOCTDFT *p)
     MYFLT   a, b;
     double  c;
 
-    if ((--p->countdown))  return;         /* if not yet time for new spec, return */
+    if ((--p->countdown))  return;    /* if not yet time for new spec, return */
     if (p->auxch.auxp==NULL) { /* RWD fix */
       return perferror(Str(X_1071,"noctdft: not initialised"));
     }
-    p->countdown = p->timcount;            /* else reset counter & proceed:        */
+    p->countdown = p->timcount;            /* else reset counter & proceed:   */
     downp = p->dsig;
     specp = p->wsig;
     nocts = downp->nocts;
@@ -478,15 +493,15 @@ int noctdft(NOCTDFT *p)
         }
         c = a*a + b*b;                          /*  get magnitude squared   */
         if (!(p->dbout))                        /*    & optionally convert  */
-          c = sqrt(c);                        /*    to  mag or db         */
+          c = sqrt(c);                          /*    to  mag or db         */
         else if (p->dbout == 1) {
           if (c < .001) c = .001;
           c = 10. * log10(c);
         }
-        *dftp++ = c;                          /* store in out spectrum   */
+        *dftp++ = c;                             /* store in out spectrum   */
       }
     }
-    specp->ktimstamp = kcounter;                  /* time-stamp the output   */
+    specp->ktimstamp = kcounter;                 /* time-stamp the output   */
     return OK;
 }
 #endif
@@ -505,13 +520,15 @@ int spdspset(SPECDISP *p)
       SPECDAT *specp = p->wsig;
       DOWNDAT *downp = specp->downsrcp;
       if (downp->lofrq > 5.) {
-        sprintf(strmsg,Str(X_922,"instr %d %s, dft (%s), %ld octaves (%d - %d Hz):"),
+        sprintf(strmsg,Str(X_922,
+                           "instr %d %s, dft (%s), %ld octaves (%d - %d Hz):"),
                 p->h.insdshead->insno, p->STRARG, outstring[specp->dbout],
                 downp->nocts, (int)downp->lofrq, (int)downp->hifrq);
       }
       else {                      /* more detail if low frequency  */
         sprintf(strmsg,
-                Str(X_921,"instr %d %s, dft (%s), %ld octaves (%3.1f - %3.1f Hz):"),
+                Str(X_921,
+                    "instr %d %s, dft (%s), %ld octaves (%3.1f - %3.1f Hz):"),
                 p->h.insdshead->insno, p->STRARG, outstring[specp->dbout],
                 downp->nocts, downp->lofrq, downp->hifrq);
       }
@@ -544,7 +561,8 @@ int sptrkset(SPECPTRK *p)
     MYFLT   weight, weightsum, dbthresh, ampthresh;
 
     if ((npts = inspecp->npts) != p->winpts) {        /* if size has changed */
-      SPECset(p->h.insdshead->csound, &p->wfund, (long)npts);               /*   realloc for wfund */
+      SPECset(p->h.insdshead->csound,
+              &p->wfund, (long)npts);                 /*   realloc for wfund */
       p->wfund.downsrcp = inspecp->downsrcp;
       p->fundp = (MYFLT *) p->wfund.auxch.auxp;
       p->winpts = npts;
@@ -638,7 +656,8 @@ int sptrkset(SPECPTRK *p)
     }
     p->threshon *= weightsum;
     p->threshoff *= weightsum;
-    printf(Str(X_556,"\n\tdbthresh %4.1f: X-corr %s threshon %4.1f, threshoff %4.1f\n"),
+    printf(Str(X_556,
+               "\n\tdbthresh %4.1f: X-corr %s threshon %4.1f, threshoff %4.1f\n"),
            dbthresh, outstring[inspecp->dbout], p->threshon, p->threshoff);
     p->oct0p = oct0p;                 /* virtual loc of oct 0 */
     p->confact = *p->iconf;
@@ -675,7 +694,7 @@ int specptrk(SPECPTRK *p)
       if ((kvar = *p->kvar) < FZERO)
         kvar = -kvar;
       kval = p->playing == PLAYING ? p->kval : p->kvalsav;
-      lobin = (long)((kval - kvar) * inspecp->nfreqs);  /* set lims of frq interest */
+      lobin = (long)((kval - kvar) * inspecp->nfreqs); /* set lims of frq interest */
       hibin = (long)((kval + kvar) * inspecp->nfreqs);
       if ((flop = p->oct0p + lobin) < p->flop)  /*       as fundp bin pntrs */
         flop = p->flop;
@@ -939,8 +958,9 @@ int specsum(SPECSUM *p)        /* sum all vals of a spectrum and put as ksig */
       MYFLT *valp = (MYFLT *) specp->auxch.auxp;
       MYFLT sum = FL(0.0);
       long npts = specp->npts;                /*   sum all the values */
-      do  sum += *valp++;
-      while (--npts);
+      do {
+        sum += *valp++;
+      } while (--npts);
       if (p->kinterp)                                  /*   new kinc if interp */
         p->kinc = (sum - p->kval) / specp->ktimprd;
       else p->kval = sum;
@@ -969,8 +989,9 @@ int spadmset(SPECADDM *p)
     if (inspec1p->dbout != inspec2p->dbout)
       /*                and db type */
       return initerror(Str(X_917,"inputs have different amptypes"));
-    if (npts != p->waddm->npts) {                 /* if out doesn't match ins */
-      SPECset(p->h.insdshead->csound, p->waddm, (long)npts);              /*     reinit the out spec */
+    if (npts != p->waddm->npts) {                 /* if out does not match ins */
+      SPECset(p->h.insdshead->csound,
+              p->waddm, (long)npts);              /*       reinit the out spec */
       p->waddm->downsrcp = inspec1p->downsrcp;
     }
     p->waddm->ktimprd = inspec1p->ktimprd;        /* pass the other specinfo */
@@ -987,15 +1008,16 @@ int specaddm(SPECADDM *p)
         (p->waddm->auxch.auxp==NULL)) {
       return perferror(Str(X_1215,"specaddm: not initialised"));
     }
-    if (p->wsig1->ktimstamp == kcounter) {             /* if inspec1 is new:     */
+    if (p->wsig1->ktimstamp == kcounter) {           /* if inspec1 is new:     */
       MYFLT *in1p = (MYFLT *) p->wsig1->auxch.auxp;
       MYFLT *in2p = (MYFLT *) p->wsig2->auxch.auxp;
       MYFLT *outp = (MYFLT *) p->waddm->auxch.auxp;
       MYFLT mul2 = p->mul2;
       int   npts = p->wsig1->npts;
 
-      do *outp++ = *in1p++ + *in2p++ * mul2;         /* out = in1 + in2 * mul2 */
-      while (--npts);
+      do {
+        *outp++ = *in1p++ + *in2p++ * mul2;          /* out = in1 + in2 * mul2 */
+      } while (--npts);
       p->waddm->ktimstamp = kcounter;           /* mark the output spec as new */
     }
     return OK;
@@ -1009,8 +1031,10 @@ int spdifset(SPECDIFF *p)
     int   npts;
 
     if ((npts = inspecp->npts) != p->specsave.npts) {  /* if inspec not matched  */
-      SPECset(p->h.insdshead->csound, &p->specsave, (long)npts);             /*   reinit the save spec */
-      SPECset(p->h.insdshead->csound, p->wdiff, (long)npts);                 /*   & the out diff spec  */
+      SPECset(p->h.insdshead->csound,
+              &p->specsave, (long)npts);               /*   reinit the save spec */
+      SPECset(p->h.insdshead->csound,
+              p->wdiff, (long)npts);                   /*   & the out diff spec  */
       p->wdiff->downsrcp = inspecp->downsrcp;
     }
     p->wdiff->ktimprd = inspecp->ktimprd;             /* pass the other specinfo */
@@ -1070,7 +1094,8 @@ int spsclset(SPECSCAL *p)
     long    npts;
 
     if ((npts = inspecp->npts) != outspecp->npts) {  /* if size has changed,   */
-      SPECset(p->h.insdshead->csound, outspecp, (long)npts);               /*    realloc             */
+      SPECset(p->h.insdshead->csound,
+              outspecp, (long)npts);                 /*    realloc             */
       outspecp->downsrcp = inspecp->downsrcp;
       auxalloc((long)npts * 2 * sizeof(MYFLT), &p->auxch);
     }
@@ -1082,7 +1107,8 @@ int spsclset(SPECSCAL *p)
       return initerror(Str(X_1226,"specscal: local buffer not initialised"));
     }
     p->fthresh = p->fscale + npts;
-    if ((ftp=ftfind(p->h.insdshead->csound, p->ifscale)) == NULL) {     /* if fscale given,        */
+    if ((ftp=ftfind(p->h.insdshead->csound, p->ifscale)) == NULL) {
+      /* if fscale given,        */
       return initerror(Str(X_1001,"missing fscale table"));
     }
     else {
@@ -1098,7 +1124,8 @@ int spsclset(SPECSCAL *p)
       } while (--nn);
     }
     if ((p->thresh = (int)*p->ifthresh)
-        && (ftp=ftfind(p->h.insdshead->csound, p->ifthresh)) != NULL) {         /* if fthresh given,       */
+        && (ftp=ftfind(p->h.insdshead->csound, p->ifthresh)) != NULL) {
+      /* if fthresh given,       */
       long nn = npts;
       long phs = 0;
       long inc = (long)PHMASK / npts;
@@ -1137,14 +1164,15 @@ int specscal(SPECSCAL *p)
         MYFLT val;
         do {
           if ((val = *inp++ - *threshp++) > FL(0.0)) /*   for vals above thresh */
-            *outp++ = val * *sclp;    /*     scale & write out   */
-          else *outp++ = FL(0.0);          /*   else output is 0.     */
+            *outp++ = val * *sclp;                   /*     scale & write out   */
+          else *outp++ = FL(0.0);                    /*   else output is 0.     */
           sclp++;
         } while (--npts);
       }
       else {
-        do *outp++ = *inp++ * *sclp++;            /* no thresh: rescale only */
-        while (--npts);
+        do {
+          *outp++ = *inp++ * *sclp++;               /* no thresh: rescale only */
+        } while (--npts);
       }
       outspecp->ktimstamp = kcounter;               /* mark the outspec as new */
     }
@@ -1159,8 +1187,10 @@ int sphstset(SPECHIST *p)
     int   npts;
 
     if ((npts = inspecp->npts) != p->accumer.npts) { /* if inspec not matched   */
-      SPECset(p->h.insdshead->csound, &p->accumer, (long)npts);            /*   reinit the accum spec */
-      SPECset(p->h.insdshead->csound, p->wacout, (long)npts);              /*    & the output spec    */
+      SPECset(p->h.insdshead->csound,
+              &p->accumer, (long)npts);              /*   reinit the accum spec */
+      SPECset(p->h.insdshead->csound,
+              p->wacout, (long)npts);                /*    & the output spec    */
       p->wacout->downsrcp = inspecp->downsrcp;
     }
     p->wacout->ktimprd = inspecp->ktimprd;           /* pass the other specinfo */
@@ -1213,8 +1243,9 @@ int spfilset(SPECFILT *p)
     FUNC    *ftp;
     long    npts;
 
-    if ((npts = inspecp->npts) != outspecp->npts) {    /* if inspec not matched */
-      SPECset(p->h.insdshead->csound, outspecp, (long)npts);                 /*   reinit the out spec */
+    if ((npts = inspecp->npts) != outspecp->npts) {  /* if inspec not matched */
+      SPECset(p->h.insdshead->csound,
+              outspecp, (long)npts);                 /*   reinit the out spec */
       auxalloc((long)npts*2* sizeof(MYFLT), &p->auxch);/*   & local auxspace  */
       p->coefs = (MYFLT *) p->auxch.auxp;            /*   reassign filt tbls  */
       p->states = p->coefs + npts;
@@ -1222,11 +1253,12 @@ int spfilset(SPECFILT *p)
     if (p->coefs==NULL || p->states==NULL) { /* RWD fix */
       return initerror(Str(X_1220,"specfilt: local buffers not initialised"));
     }
-    outspecp->ktimprd = inspecp->ktimprd;              /* pass other spect info */
+    outspecp->ktimprd = inspecp->ktimprd;          /* pass other spect info */
     outspecp->nfreqs = inspecp->nfreqs;
     outspecp->dbout = inspecp->dbout;
     outspecp->downsrcp = inspecp->downsrcp;
-    if ((ftp=ftfind(p->h.insdshead->csound, p->ifhtim)) == NULL) {          /* if fhtim table given,    */
+    if ((ftp=ftfind(p->h.insdshead->csound, p->ifhtim)) == NULL) {
+      /* if fhtim table given,    */
       return initerror(Str(X_1002,"missing htim ftable"));
     }
     {
@@ -1253,11 +1285,13 @@ int spfilset(SPECFILT *p)
         }
       } while (--nn);
     }
-    printf(Str(X_663,"coef range: %6.3f - %6.3f\n"), *p->coefs, *(p->coefs+npts-1));
+    printf(Str(X_663,"coef range: %6.3f - %6.3f\n"),
+           *p->coefs, *(p->coefs+npts-1));
     {
       MYFLT *flp = (MYFLT *) p->states;
-      do  *flp++ = FL(0.0);                       /* clr the persist buf state mem */
-      while (--npts);
+      do {
+        *flp++ = FL(0.0);                      /* clr the persist buf state mem */
+      } while (--npts);
     }
     outspecp->ktimstamp = 0;                 /* mark the output spec as not new */
     return OK;
@@ -1278,8 +1312,8 @@ int specfilt(SPECFILT *p)
         return perferror(Str(X_1221,"specfilt: not initialised"));
       }
       do {                                         /* for npts of inspec:     */
-        *outp++ = curval = *persp;               /*   output current point  */
-        *persp++ = *coefp++ * curval + *newp++;  /*   decay & addin newval  */
+        *outp++ = curval = *persp;                 /*   output current point  */
+        *persp++ = *coefp++ * curval + *newp++;    /*   decay & addin newval  */
       } while (--npts);
       outspecp->ktimstamp = kcounter;              /* mark output spec as new */
     }

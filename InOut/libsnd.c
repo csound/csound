@@ -173,8 +173,9 @@ void zerosf(long len)
     outbufrem -= n;
     if (clearcnt < O.outbufsamps) {
       clearcnt += n;                    /* clear buf only till clean */
-      do *outbufp++ = FL(0.0);
-      while (--n);
+      do {
+        *outbufp++ = FL(0.0);
+      } while (--n);
     }
     else outbufp += n;
     if (!outbufrem) {
@@ -681,8 +682,9 @@ static void clrspin2(void)              /* clear spinbuf to zeros   */
     MYFLT *r = spin;
     int n = nspin;
     infilend = 2;                            /* at 2nd filend pass  */
-    do *r++ = FL(0.0);                       /*   clr whole spinbuf */
-    while (--n);
+    do {
+      *r++ = FL(0.0);                       /*   clr whole spinbuf */
+    } while (--n);
     printf(Str(X_713,"end of audio_in file\n"));
 }
 

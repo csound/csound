@@ -825,35 +825,33 @@ babo(void *entry)
         *(p->ksource_x), *(p->ksource_y), *(p->ksource_z),
         *(p->lx), *(p->ly), *(p->lz));
 
-    do                          /* k-time do-while cycle                */
-    {
-        register MYFLT  left_tapline_out        = FL(0.0),
-                        right_tapline_out       = FL(0.0),
-                        delayed_matrix_input    = FL(0.0);
-                 MYFLT  matrix_outputs[2]       = { FL(0.0) };
+    do {                        /* k-time do-while cycle                */
+      MYFLT  left_tapline_out        = FL(0.0),
+             right_tapline_out       = FL(0.0),
+             delayed_matrix_input    = FL(0.0);
+      MYFLT  matrix_outputs[2]       = { FL(0.0) };
 
-        BaboTapline_input(&p->tapline, *input);
-        BaboDelay_input(&p->matrix_delay, *input);
+      BaboTapline_input(&p->tapline, *input);
+      BaboDelay_input(&p->matrix_delay, *input);
 
-        left_tapline_out  = BaboTapline_output(csound, &p->tapline, &left) *
-            p->early_diffuse;
+      left_tapline_out  = BaboTapline_output(csound, &p->tapline, &left) *
+        p->early_diffuse;
 
-        right_tapline_out  = BaboTapline_output(csound, &p->tapline, &right) *
-            p->early_diffuse;
+      right_tapline_out  = BaboTapline_output(csound, &p->tapline, &right) *
+        p->early_diffuse;
 
-        delayed_matrix_input = BaboDelay_output(&p->matrix_delay);
+      delayed_matrix_input = BaboDelay_output(&p->matrix_delay);
 
-        BaboMatrix_output(&p->matrix, matrix_outputs, delayed_matrix_input,
-               p->diffusion_coeff);
+      BaboMatrix_output(&p->matrix, matrix_outputs, delayed_matrix_input,
+                        p->diffusion_coeff);
 
-        *outleft  = left_tapline_out  + matrix_outputs[0];
-        *outright = right_tapline_out + matrix_outputs[1];
+      *outleft  = left_tapline_out  + matrix_outputs[0];
+      *outright = right_tapline_out + matrix_outputs[1];
 
-        ++input;
-        ++outleft;
-        ++outright;
-    }
-    while (--nsmps);
+      ++input;
+      ++outleft;
+      ++outright;
+    } while (--nsmps);
     return OK;
 }
 

@@ -288,8 +288,9 @@ extern  long     getsndin(int, MYFLT*, long, SOUNDIN*);
             freq_est += fund_est;               /*   do analysis */
             cur_est = freq_est;
             dblp = begbufs;
-            do  *dblp++ = FL(0.0);              /* clear all refilling buffers*/
-            while (dblp < endbufs);
+            do {
+              *dblp++ = FL(0.0);              /* clear all refilling buffers*/
+            } while (dblp < endbufs);
             max_frq = FL(0.0);
             max_amp = FL(0.0);
 
@@ -336,67 +337,67 @@ PUTVAL(double *outb, long smpl, double value)  /* put value in array outb at pos
 
 static void hetdyn(int hno)                           /* HETERODYNE FILTER */
 {
-        long    smplno;
-        double  temp_a, temp_b, tpidelest;
-        double *cos_p, *sin_p, *cos_wp, *sin_wp;
-        long    n;
-        int     outpnt, lastout = -1;
-        MYFLT *ptr;
+    long    smplno;
+    double  temp_a, temp_b, tpidelest;
+    double *cos_p, *sin_p, *cos_wp, *sin_wp;
+    long    n;
+    int     outpnt, lastout = -1;
+    MYFLT *ptr;
 
-        jmp_ph = 0;                     /* set initial phase to 0 */
-        temp_a = temp_b = 0;
-        cos_p = c_p;
-        sin_p = s_p;
-        tpidelest = TWOPI * cur_est * delta_t;
-        for (smplno = 0; smplno < smpsin; smplno++) {
-            double phase = smplno * tpidelest;     /* do all quadrature calcs */
-            ptr = adp + smplno;                    /* at once and point to it */
-            *cos_p++ = (double)(*ptr) * cos(phase);
-            *sin_p++ = (double)(*ptr) * sin(phase);
-        }
+    jmp_ph = 0;                     /* set initial phase to 0 */
+    temp_a = temp_b = 0;
+    cos_p = c_p;
+    sin_p = s_p;
+    tpidelest = TWOPI * cur_est * delta_t;
+    for (smplno = 0; smplno < smpsin; smplno++) {
+      double phase = smplno * tpidelest;     /* do all quadrature calcs */
+      ptr = adp + smplno;                    /* at once and point to it */
+      *cos_p++ = (double)(*ptr) * cos(phase);
+      *sin_p++ = (double)(*ptr) * sin(phase);
+    }
 
-        cos_p = cos_wp = c_p;
-        sin_p = sin_wp = s_p;
-        for (smplno = 0; smplno < smpsin - windsiz; smplno++) {
-            if (smplno == 0 && smpsin >= windsiz) {   /* for first smplno */
-                n = windsiz;
-                do {
-                    temp_a += *cos_wp++;     /* sum over windsiz = nsmps in */
-                    temp_b += *sin_wp++;     /*    1 period of fund. freq.  */
-                } while (--n);
-            }
-            else {      /* if more than 1 fund. per. away from file end */
-                        /* remove front value and add on new rear value */
-                        /* to obtain summation term for new sample! */
-                if (smplno <= smpsin - windsiz) {
-                    temp_a += (*cos_wp++ - *cos_p++);  /* _wp = _p + windsiz */
-                    temp_b += (*sin_wp++ - *sin_p++);
-                }
-                else {
-                    skip = 1;
-                    temp_a = temp_b = 0;
-                }
-            }
-            PUTVAL(cos_mul,smplno,temp_a);     /* store values into buffers*/
-            PUTVAL(sin_mul,smplno,temp_b);
-            if ((freq_c <= 1) || (smplno < 3)) {
-              average(windsiz,cos_mul,a_term,smplno); /* average over previous */
-              average(windsiz,sin_mul,b_term,smplno); /* values 1 fund prd ago */
-            }
-            else {
-              lowpass(a_term,cos_mul,smplno);
-              lowpass(b_term,sin_mul,smplno);
-            }
-            output_ph(smplno);            /* calculate mag. & phase for sample */
-            if ((outpnt = (int)(smplno * outdelta_t)) > lastout) {  /* if next out-time */
-              output(smplno, hno, outpnt);           /*     place in     */
-              lastout = outpnt;                      /*     output array */
-            }
-            if (skip) {
-                skip = 0;       /* quit if no more samples in file */
-                break;
-            }
+    cos_p = cos_wp = c_p;
+    sin_p = sin_wp = s_p;
+    for (smplno = 0; smplno < smpsin - windsiz; smplno++) {
+      if (smplno == 0 && smpsin >= windsiz) {   /* for first smplno */
+        n = windsiz;
+        do {
+          temp_a += *cos_wp++;     /* sum over windsiz = nsmps in */
+          temp_b += *sin_wp++;     /*    1 period of fund. freq.  */
+        } while (--n);
+      }
+      else {      /* if more than 1 fund. per. away from file end */
+                  /* remove front value and add on new rear value */
+                  /* to obtain summation term for new sample! */
+        if (smplno <= smpsin - windsiz) {
+          temp_a += (*cos_wp++ - *cos_p++);  /* _wp = _p + windsiz */
+          temp_b += (*sin_wp++ - *sin_p++);
         }
+        else {
+          skip = 1;
+          temp_a = temp_b = 0;
+        }
+      }
+      PUTVAL(cos_mul,smplno,temp_a);     /* store values into buffers*/
+      PUTVAL(sin_mul,smplno,temp_b);
+      if ((freq_c <= 1) || (smplno < 3)) {
+        average(windsiz,cos_mul,a_term,smplno); /* average over previous */
+        average(windsiz,sin_mul,b_term,smplno); /* values 1 fund prd ago */
+      }
+      else {
+        lowpass(a_term,cos_mul,smplno);
+        lowpass(b_term,sin_mul,smplno);
+      }
+      output_ph(smplno);            /* calculate mag. & phase for sample */
+      if ((outpnt = (int)(smplno * outdelta_t)) > lastout) { /* if next out-time */
+        output(smplno, hno, outpnt);           /*     place in     */
+        lastout = outpnt;                      /*     output array */
+      }
+      if (skip) {
+        skip = 0;       /* quit if no more samples in file */
+        break;
+      }
+    }
 }
 
 static void lpinit(void) /* lowpass coefficient ititializer */
@@ -500,165 +501,165 @@ static void output(long smpl, int hno, int pnt)    /* output one freq_mag pair *
 /* If this function worthwhile?  Need to coinsider recalculation */
 static double sq(double num)     /* RETURNS SQUARE OF ARGUMENT */
 {
-        return(num*num);
+    return(num*num);
 }
 
 static void quit (char *msg)
 {
 #ifdef mills_macintosh
-        char temp[256];
-        sprintf(temp,Str(X_829,"hetro:  %s\n\tanalysis aborted\n"),msg);
-        die(temp);
+    char temp[256];
+    sprintf(temp,Str(X_829,"hetro:  %s\n\tanalysis aborted\n"),msg);
+    die(temp);
 #else
-        err_printf(Str(X_829,"hetro:  %s\n\tanalysis aborted\n"),msg);
+    err_printf(Str(X_829,"hetro:  %s\n\tanalysis aborted\n"),msg);
 #endif
-        exit(1);
+    exit(1);
 }
 
 #define END  32767
 
 static void filedump(void)     /* WRITE OUTPUT FILE in DATA-REDUCED format */
 {
-        int     h, pnt, ofd, nbytes;
-        double  scale,x,y;
-        short   **mags, **freqs, *magout, *frqout;
-        double  ampsum, maxampsum = 0.0;
-        long    lenfil = 0;
-        short   *TIME;
-        MYFLT   timesiz;
-        extern  int     openout(char *, int);
+    int     h, pnt, ofd, nbytes;
+    double  scale,x,y;
+    short   **mags, **freqs, *magout, *frqout;
+    double  ampsum, maxampsum = 0.0;
+    long    lenfil = 0;
+    short   *TIME;
+    MYFLT   timesiz;
+    extern  int     openout(char *, int);
 
-        mags = (short **) mmalloc(hmax * sizeof(short*));
-        freqs = (short **) mmalloc(hmax * sizeof(short*));
-        for (h = 0; h < hmax; h++) {
-            mags[h] = (short *)mmalloc((long)num_pts * sizeof(short));
-            freqs[h] = (short *)mmalloc((long)num_pts * sizeof(short));
+    mags = (short **) mmalloc(hmax * sizeof(short*));
+    freqs = (short **) mmalloc(hmax * sizeof(short*));
+    for (h = 0; h < hmax; h++) {
+      mags[h] = (short *)mmalloc((long)num_pts * sizeof(short));
+      freqs[h] = (short *)mmalloc((long)num_pts * sizeof(short));
+    }
+    
+    TIME = (short *)mmalloc((long)num_pts * sizeof(short));
+    timesiz = FL(1000.0) * input_dur / num_pts;
+    for (pnt = 0; pnt < num_pts; pnt++)
+      TIME[pnt] = (short)(pnt * timesiz);
+
+    if ((ofd = openout(outfilnam, 1)) < 0)     /* fullpath else cur dir */
+      quit(Str(X_633,"cannot create output file\n"));
+
+    write(ofd, (char*)&hmax, sizeof(hmax)); /* Write header */
+
+    for (pnt=0; pnt < num_pts; pnt++) {
+      ampsum = 0.0;
+      for (h = 0; h < hmax; h++)
+        ampsum += MAGS[h][pnt];
+      if (ampsum > maxampsum)
+        maxampsum = ampsum;
+    }
+    scale = m_ampsum / maxampsum;
+    err_printf(Str(X_1176,"scale = %f\n"), scale);
+    
+    for (h = 0; h < hmax; h++) {
+      for (pnt = 0; pnt < num_pts; pnt++) {
+        x = MAGS[h][pnt] * scale;
+        mags[h][pnt] = (short)(x*u(x));
+        y = FREQS[h][pnt];
+        freqs[h][pnt] = (short)(y*u(y));
+      }
+    }
+
+    magout = (short *)mmalloc((long)(num_pts + 1) * 2 * sizeof(short));
+    frqout = (short *)mmalloc((long)(num_pts + 1) * 2 * sizeof(short));
+    for (h = 0; h < hmax; h++) {
+      short *mp = magout, *fp = frqout;
+      short *lastmag, *lastfrq, pkamp = 0;
+      int mpoints, fpoints, contig = 0;
+      *mp++ = -1;                      /* set brkpoint type codes  */
+      *fp++ = -2;
+      lastmag = mp;
+      lastfrq = fp;
+      for (pnt = 0; pnt < num_pts; pnt++) {
+        short tim, mag, frq;
+        tim = TIME[pnt];
+        frq = freqs[h][pnt];
+        if ((mag = mags[h][pnt]) > pkamp)
+          pkamp = mag;
+        if (mag > amp_min) {
+          if (contig > 1) {        /* if third time this value  */
+            if ((mag == *(mp-1) && mag == *(mp-3))
+                /*    or 2nd time this slope */
+                || (MYFLT)(mag - *(mp-1)) / (tim - *(mp-2)) ==
+                (MYFLT)(*(mp-1) - *(mp-3)) / (*(mp-2) - *(mp-4)))
+              mp -= 2;              /* overwrite the previous */
+            if ((frq == *(fp-1) && frq == *(fp-3))
+                || (MYFLT)(frq - *(fp-1)) / (tim - *(fp-2)) ==
+                (MYFLT)(*(fp-1) - *(fp-3)) / (*(fp-2) - *(fp-4)))
+              fp -= 2;
+          }
+          *mp++ = tim;
+          *mp++ = mag;
+          *fp++ = tim;
+          *fp++ = frq;
+          lastmag = mp;         /* record last significant seg  */
+          lastfrq = fp;
+          contig++;
         }
-
-        TIME = (short *)mmalloc((long)num_pts * sizeof(short));
-        timesiz = FL(1000.0) * input_dur / num_pts;
-        for (pnt = 0; pnt < num_pts; pnt++)
-            TIME[pnt] = (short)(pnt * timesiz);
-
-        if ((ofd = openout(outfilnam, 1)) < 0)     /* fullpath else cur dir */
-            quit(Str(X_633,"cannot create output file\n"));
-
-        write(ofd, (char*)&hmax, sizeof(hmax)); /* Write header */
-
-        for (pnt=0; pnt < num_pts; pnt++) {
-            ampsum = 0.0;
-            for (h = 0; h < hmax; h++)
-                ampsum += MAGS[h][pnt];
-            if (ampsum > maxampsum)
-                maxampsum = ampsum;
+        else {
+          if (mp > lastmag) {   /* for non-significant segments */
+            mp = lastmag + 2; /*   only two points necessary  */
+            fp = lastfrq + 2; /*   to peg the ends            */
+          }
+          *mp++ = tim;
+          *mp++ = 0;
+          *fp++ = tim;
+          *fp++ = frq;
+          contig = 0;
         }
-        scale = m_ampsum / maxampsum;
-        err_printf(Str(X_1176,"scale = %f\n"), scale);
-
-        for (h = 0; h < hmax; h++) {
-            for (pnt = 0; pnt < num_pts; pnt++) {
-                x = MAGS[h][pnt] * scale;
-                mags[h][pnt] = (short)(x*u(x));
-                y = FREQS[h][pnt];
-                freqs[h][pnt] = (short)(y*u(y));
-            }
-        }
-
-        magout = (short *)mmalloc((long)(num_pts + 1) * 2 * sizeof(short));
-        frqout = (short *)mmalloc((long)(num_pts + 1) * 2 * sizeof(short));
-        for (h = 0; h < hmax; h++) {
-            short *mp = magout, *fp = frqout;
-            short *lastmag, *lastfrq, pkamp = 0;
-            int mpoints, fpoints, contig = 0;
-            *mp++ = -1;                      /* set brkpoint type codes  */
-            *fp++ = -2;
-            lastmag = mp;
-            lastfrq = fp;
-            for (pnt = 0; pnt < num_pts; pnt++) {
-              short tim, mag, frq;
-              tim = TIME[pnt];
-              frq = freqs[h][pnt];
-              if ((mag = mags[h][pnt]) > pkamp)
-                pkamp = mag;
-              if (mag > amp_min) {
-                if (contig > 1) {        /* if third time this value  */
-                  if ((mag == *(mp-1) && mag == *(mp-3))
-                      /*    or 2nd time this slope */
-                      || (MYFLT)(mag - *(mp-1)) / (tim - *(mp-2)) ==
-                      (MYFLT)(*(mp-1) - *(mp-3)) / (*(mp-2) - *(mp-4)))
-                    mp -= 2;              /* overwrite the previous */
-                  if ((frq == *(fp-1) && frq == *(fp-3))
-                      || (MYFLT)(frq - *(fp-1)) / (tim - *(fp-2)) ==
-                      (MYFLT)(*(fp-1) - *(fp-3)) / (*(fp-2) - *(fp-4)))
-                    fp -= 2;
-                }
-                *mp++ = tim;
-                *mp++ = mag;
-                *fp++ = tim;
-                *fp++ = frq;
-                lastmag = mp;         /* record last significant seg  */
-                lastfrq = fp;
-                contig++;
-              }
-              else {
-                if (mp > lastmag) {   /* for non-significant segments */
-                  mp = lastmag + 2; /*   only two points necessary  */
-                  fp = lastfrq + 2; /*   to peg the ends            */
-                }
-                *mp++ = tim;
-                *mp++ = 0;
-                *fp++ = tim;
-                *fp++ = frq;
-                contig = 0;
-              }
-            }
-            if (lastmag < mp) {          /* if last signif not last point */
-                mp = lastmag + 2;        /*   make it the penultimate mag */
-                fp = lastfrq + 2;
-            }
-            *(mp-1) = 0;                 /* force the last mag to zero    */
-            if (fp - frqout > 3)
-                *(fp-1) = *(fp-3);       /*   & zero the freq change      */
-            *mp++ = END;                 /* add the sequence delimiters   */
-            *fp++ = END;
-            mpoints = ((mp - magout) / 2) - 1;
-            nbytes = (mp - magout) * sizeof(short);
-            write(ofd, (char *)magout, nbytes);
+      }
+      if (lastmag < mp) {          /* if last signif not last point */
+        mp = lastmag + 2;        /*   make it the penultimate mag */
+        fp = lastfrq + 2;
+      }
+      *(mp-1) = 0;                 /* force the last mag to zero    */
+      if (fp - frqout > 3)
+        *(fp-1) = *(fp-3);       /*   & zero the freq change      */
+      *mp++ = END;                 /* add the sequence delimiters   */
+      *fp++ = END;
+      mpoints = ((mp - magout) / 2) - 1;
+      nbytes = (mp - magout) * sizeof(short);
+      write(ofd, (char *)magout, nbytes);
 #ifdef DEBUG
-            {
-                int i;
-                for (i=0; i<(mp-magout); i++)
-                    err_printf( "%hd,", magout[i]);
-                err_printf( "\n");
-            }
+      {
+        int i;
+        for (i=0; i<(mp-magout); i++)
+          err_printf( "%hd,", magout[i]);
+        err_printf( "\n");
+      }
 #endif
-            lenfil += nbytes;
-            fpoints = ((fp - frqout) / 2) - 1;
-            nbytes = (fp - frqout) * sizeof(short);
-            write(ofd, (char *)frqout, nbytes);
+      lenfil += nbytes;
+      fpoints = ((fp - frqout) / 2) - 1;
+      nbytes = (fp - frqout) * sizeof(short);
+      write(ofd, (char *)frqout, nbytes);
 #ifdef DEBUG
-            {
-                int i;
-                for (i=0; i<(fp-frqout); i++)
-                    err_printf( "%hd,", frqout[i]);
-                err_printf( "\n");
-            }
+      {
+        int i;
+        for (i=0; i<(fp-frqout); i++)
+          err_printf( "%hd,", frqout[i]);
+        err_printf( "\n");
+      }
 #endif
-            lenfil += nbytes;
-            printf(Str(X_826,"harmonic #%d:\tamp points %d, \tfrq points %d,\tpeakamp %d\n"),
-                   h,mpoints,fpoints,pkamp);
-        }
-        err_printf(Str(X_1383,"wrote %ld bytes to %s\n"), lenfil, outfilnam);
-        close(ofd);
-        mfree(magout);
-        mfree(frqout);
-        mfree(TIME);
-        for (h = 0; h < hmax; h++) {
-            mfree(mags[h]);
-            mfree(freqs[h]);
-        }
-        mfree(mags);
-        mfree(freqs);
+      lenfil += nbytes;
+      printf(Str(X_826,"harmonic #%d:\tamp points %d, \tfrq points %d,\tpeakamp %d\n"),
+             h,mpoints,fpoints,pkamp);
+    }
+    err_printf(Str(X_1383,"wrote %ld bytes to %s\n"), lenfil, outfilnam);
+    close(ofd);
+    mfree(magout);
+    mfree(frqout);
+    mfree(TIME);
+    for (h = 0; h < hmax; h++) {
+      mfree(mags[h]);
+      mfree(freqs[h]);
+    }
+    mfree(mags);
+    mfree(freqs);
 }
 
 /* simply writes the number of frames generated - no data reduction, no interpolation */
