@@ -34,7 +34,7 @@ typedef struct {
                                 /* Structure for moogvcf filter */
 typedef struct {
     OPDS    h;
-    MYFLT   *out, *in, *fco, *res, *max;
+    MYFLT   *out, *in, *fco, *res, *max, *iskip;
     MYFLT   xnm1, y1nm1, y2nm1, y3nm1, y1n, y2n, y3n, y4n;
     short   fcocod, rezcod;
 } MOOGVCF;
@@ -42,7 +42,7 @@ typedef struct {
                                 /* Structure for rezzy filter */
 typedef struct {
     OPDS    h;
-    MYFLT *out, *in, *fco, *rez, *mode;
+    MYFLT *out, *in, *fco, *rez, *mode, *iskip;
     MYFLT   xnm1, xnm2, ynm1, ynm2;
     short   fcocod, rezcod;
 } REZZY;
