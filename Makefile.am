@@ -337,7 +337,6 @@ Top/dl_opcodes.c \
 Top/dnoise.c \
 Top/getstring.c \
 Top/hetro.c \
-Top/load_opcodes.c \
 Top/lpanal.c \
 Top/main.c \
 Top/one_file.c \

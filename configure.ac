@@ -50,6 +50,8 @@ fi
 
 # Checks for libraries.
 
+LDFLAGS=-L/usr/local/lib
+
 AC_CHECK_LIB([dl], [dlsym])
 AC_CHECK_LIB([asound], [snd_pcm_hw_params_any])
 # FIXME: Replace `main' with a function in `-lbsd':
@@ -71,7 +73,7 @@ AC_CHECK_LIB([sndfile], [sf_open])
 AC_FUNC_ALLOCA
 AC_HEADER_DIRENT
 AC_HEADER_STDC
-AC_CHECK_HEADERS([OS.h arpa/inet.h fcntl.h limits.h malloc.h memory.h netdb.h netinet/in.h sgtty.h bsd/sgtty.h stddef.h stdlib.h string.h strings.h sys/file.h sys/ioctl.h sys/param.h sys/socket.h sys/time.h termios.h unistd.h sdif.h portaudio.h sndfile.h portmidi.h mmsystem.h boost/numeric/ublas/blas.hpp boost/random.hpp python2.3/Python.h FL/Fl.H])
+AC_CHECK_HEADERS([OS.h arpa/inet.h fcntl.h limits.h malloc.h memory.h netdb.h netinet/in.h sgtty.h bsd/sgtty.h stddef.h stdlib.h string.h strings.h sys/file.h sys/ioctl.h sys/param.h sys/socket.h sys/time.h termios.h unistd.h sdif.h portaudio.h sndfile.h portmidi.h mmsystem.h boost/numeric/ublas/blas.hpp boost/random/mersenne_twister.hpp python2.3/Python.h FL/Fl.H])
 
 # Checks for typedefs, structures, and compiler characteristics.
 
@@ -158,12 +160,6 @@ AC_ARG_WITH(libsndfile,
 	    [enables the use of libsndfile for soundfile access (default=yes)]),
 	[USE_LIBSNDFILE=$withval],
 	[USE_LIBSNDFILE=yes])
-
-#AC_ARG_WITH(gcc3,
-#	AC_HELP_STRING([--with-gcc3],
-#		[use gcc3 style CFLAGS (default=yes)]),
-#	[USE_GCC3_FLAGS=$withval],
-#	[USE_GCC3_FLAGS=yes])
 
 #	Compiler options used for all compilation.
 
@@ -257,8 +253,7 @@ if test "$USE_TCLTK" = yes; then
    AC_DEFINE([TCLTK], 1, [Enable Tcl/Tk support])
 fi
 
-if test "$USE_LIBSNDFILE" = yes; then
-   AC_DEFINE([_SNDFILE_], 1, [Use libsndfile for soundfile access])
+if test "$HAVE_LIBSNDFILE" = yes; then
    SOUNDFILE_LDFLAGS="-L/usr/local/lib"
    SOUNDFILE_LIBS="-lsndfile"
 fi
@@ -408,10 +403,10 @@ if test "x$USE_X11" = xyes; then
 fi
 AM_CONDITIONAL([CONDITIONAL_USE_X11], [test "x$USE_X11" = xyes])
 
-if test "x$USE_LIBSNDFILE" = xyes; then
-	echo "lbsndfile is enabled (_SNDFILE_ is defined)."
+if test "x$HAVE_LIBSNDFILE" = xyes; then
+	echo "lbsndfile is enabled (HAVE_LIBSNDFILE is defined)."
 fi
-AM_CONDITIONAL([CONDITIONAL_USE_LIBSNDFILE], [test "x$USE_LIBSNDFILE" = xyes])
+AM_CONDITIONAL([CONDITIONAL_USE_LIBSNDFILE], [test "x$HAVE_LIBSNDFILE" = xyes])
 
 if test "x$USE_RTAUDIO" = xyes; then
 	echo "Real-time audio is available (USE_RTAUDIO is defined)."
