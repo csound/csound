@@ -1,3 +1,13 @@
+2005-03-27	Istvan Varga	<istvan@csounds.com>
+	* SConstruct:
+	* InOut/libsnd.c:
+	* InOut/rtpa_new.c:
+	  new PortAudio plugin (enabled by useOldPortAudioPlugin=0)
+	* Engine/entry2.c:
+	* Engine/insert.c:
+	* H/insert.h:
+	  new opcode: turnoff2 (can turn off other instruments)
+
 2005-03-25	Istvan Varga	<istvan@csounds.com>
 	* InOut/midirecv.c:
 	* Engine/express.c:

@@ -1564,3 +1564,55 @@ int useropcd2(ENVIRON *csound, UOPCODE *p)
       while (pds->nxtp) pds = pds->nxtp;    /* loop to last opds */
     return OK;
 }
+
+/* turnoff2 opcode */
+
+int turnoff2(ENVIRON *csound, TURNOFF2 *p)
+{
+    MYFLT p1;
+    INSDS *ip;
+    int   mode, insno, allow_release;
+
+    if (*(p->kInsNo) <= FL(0.0))
+      return OK;    /* not triggered */
+    p1 = *(p->kInsNo);
+    insno = (int) p1;
+    if (insno < 1 || insno > (int) maxinsno || instrtxtp[insno] == NULL) {
+      perferror(Str("turnoff2: invalid instrument number"));
+      return NOTOK;
+    }
+    mode = (int) (*(p->kFlags) + FL(0.5));
+    allow_release = (*(p->kRelease) == FL(0.0) ? 0 : 1);
+    if (mode < 0 || mode > 15 || (mode & 3) == 3) {
+      perferror(Str("turnoff2: invalid mode parameter"));
+      return NOTOK;
+    }
+    ip = &actanchor;
+    while ((ip = ip->nxtact) != NULL) {
+      if (((!(mode & 4) && (int) ip->insno == insno) ||
+           ((mode & 4) && ip->p1 == p1)) &&
+          (!(mode & 8) || ip->offtim < 0.0)) {
+        if ((mode & 3) == 2) {
+          /* newest only */
+          if (ip->nxtact != NULL &&
+              (((!(mode & 4) && (int) ip->nxtact->insno == insno) ||
+                ((mode & 4) && ip->nxtact->p1 == p1)) &&
+               (!(mode & 8) || ip->nxtact->offtim < 0.0)))
+            continue;
+        }
+        if (allow_release)
+          xturnoff(csound, ip);
+        else
+          xturnoff_now(csound, ip);
+        if ((mode & 3) == 1)
+          break;        /* oldest only */
+      }
+    }
+    if (!p->h.insdshead->actflg) {  /* if current note was deactivated: */
+      while (pds->nxtp != NULL)
+        pds = pds->nxtp;            /* loop to last opds */
+    }
+
+    return OK;
+}
+
