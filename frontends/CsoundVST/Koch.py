@@ -98,24 +98,26 @@ instr 1,2,3,4,5 ; FluidSynth General MIDI
 ; INITIALIZATION
 ; Channel, bank, and program determine the preset, that is, the actual sound.
 ichannel		=			p1
-iprogram		=			p6
+iprogram		=			p6 + 6
 ikey	 		= 			p4
-ivelocity 		= 			p5 + 80
+ivelocity 		= 			p5 + 12
 ijunk6 			= 			p6
 ijunk7			=			p7
 ; AUDIO
 istatus			=			144
 ;			print			iprogram, istatus, ichannel, ikey, ivelocity
-aleft, aright		fluid			"c:/cvs/CVSROOT/csound/soundfonts/003.3mg GS Roland Sound Set 16 bit Bank.SF2", iprogram, istatus, ichannel, ikey, ivelocity, 1
+aleft, aright		fluid			"c:/projects/csound5/samples/VintageDreamsWaves-v2.sf2", iprogram, istatus, ichannel, ikey, ivelocity, 1
 			outs 			aleft, aright
 endin
 
 ''')
 
-csound.setCommand("csound --opcode-lib=c:/cvs/CVSROOT/csound5/fluid.dll -RWdfo ./koch.wav ./temp.orc ./temp.sco")
+csound.setCommand("csound --opcode-lib=c:/projects/csound5/fluid.dll -RWdfo ./koch.wav ./temp.orc ./temp.sco")
 
 csound.exportForPerformance()
 csound.perform()
+
+
 
 
 
