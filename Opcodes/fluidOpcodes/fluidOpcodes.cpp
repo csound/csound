@@ -422,7 +422,7 @@ extern "C"
     int priorMidiChannel;
     int priorMidiData1;
     int priorMidiData2;
-    int init(void *csound_)
+    int init(ENVIRON *csound)
     {
       fluidId           = (int) (*iFluidEngine);
       released          = false;
@@ -436,7 +436,7 @@ extern "C"
       priorMidiData2    = -1;
       return OK;
     }
-    int kontrol(void *csound_)
+    int kontrol(ENVIRON *csound)
     {
       midiStatus       = 0xf0 & (int) (*kMidiStatus);                      
       midiChannel      = (int) (*kMidiChannel);                      
@@ -453,7 +453,7 @@ extern "C"
 	      fluid_synth_noteoff(fluid_engines[fluidId], 
 				  midiChannel, 
 				  midiData1); 
-	      warn("Note off: s:%3d c:%3d k:%3d\n",
+	      warn(csound, "Note off: s:%3d c:%3d k:%3d\n",
 		   midiStatus,
 		   midiChannel,
 		   midiData1);                         
@@ -463,14 +463,14 @@ extern "C"
 				 midiChannel, 
 				 midiData1, 
 				 midiData2); 
-	      warn("Note on:  s:%3d c:%3d k:%3d v:%3d\n",
+	      warn(csound, "Note on:  s:%3d c:%3d k:%3d v:%3d\n",
 		   midiStatus,
 		   midiChannel,
 		   midiData1,
 		   midiData2);                         
 	      break;
 	    case (int) 0xa0:
-	      warn("Key pressure (not handled): s:%3d c:%3d k:%3d v:%3d\n",
+	      warn(csound, "Key pressure (not handled): s:%3d c:%3d k:%3d v:%3d\n",
 		   midiStatus,
 		   midiChannel,
 		   midiData1,
@@ -481,7 +481,7 @@ extern "C"
 			     midiChannel, 
 			     midiData1, 
 			     midiData2);
-	      warn("Control change: s:%3d c:%3d c:%3d v:%3d\n",
+	      warn(csound, "Control change: s:%3d c:%3d c:%3d v:%3d\n",
 		   midiStatus,
 		   midiChannel,
 		   midiData1,
@@ -491,13 +491,13 @@ extern "C"
 	      fluid_synth_program_change(fluid_engines[fluidId], 
 					 midiChannel, 
 					 midiData1); 
-	      warn("Program change: s:%3d c:%3d p:%3d\n",
+	      warn(csound, "Program change: s:%3d c:%3d p:%3d\n",
 		   midiStatus,
 		   midiChannel,
 		   midiData1);                         
 	      break;
 	    case (int) 0xd0:
-	      warn("After touch (not handled): s:%3d c:%3d k:%3d v:%3d\n",
+	      warn(csound, "After touch (not handled): s:%3d c:%3d k:%3d v:%3d\n",
 		   midiStatus,
 		   midiChannel,
 		   midiData1,
@@ -507,13 +507,13 @@ extern "C"
 	      fluid_synth_pitch_bend(fluid_engines[fluidId], 
 				     midiChannel, 
 				     midiData1); 
-	      warn("Pitch bend: s:%d c:%d b:%d\n",
+	      warn(csound, "Pitch bend: s:%d c:%d b:%d\n",
 		   midiStatus,
 		   midiChannel,
 		   midiData1);                         
 	      break;
 	    case (int) 0xf0:
-	      warn("System exclusive (not handled): c:%3d k:%3d v:%3d\n",
+	      warn(csound, "System exclusive (not handled): c:%3d k:%3d v:%3d\n",
 		   midiStatus,
 		   midiChannel,
 		   midiData1,
@@ -522,13 +522,13 @@ extern "C"
 	    }
 	}
       if((!released) &&
-	 (h.insdshead->offtim <= cs()->GetScoreTime(cs()) ||
+	 (h.insdshead->offtim <= csound->GetScoreTime(csound) ||
 	  h.insdshead->relesing)) {
 	released = true;
 	fluid_synth_noteoff(fluid_engines[fluidId], 
 			    iMidiChannel, 
 			    iMidiData1); 
-	warn("Note off: s:%3d c:%3d k:%3d v:%3d\n",
+	warn(csound, "Note off: s:%3d c:%3d k:%3d v:%3d\n",
 	     iMidiStatus,
 	     iMidiChannel,
 	     iMidiData1,
