@@ -609,7 +609,7 @@ int csoundMain(void *csound, int argc, char **argv)
     return musmon2(csound);
 }
 
-/* #ifdef mills_macintosh		/\* comment out - 062404, akozar *\/ */
+/* #ifdef mills_macintosh        /\* comment out - 062404, akozar *\/ */
 /* #else */
 extern void csoundMessageV(void *, const char *, va_list);
 void err_printf(char *fmt, ...)

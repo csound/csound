@@ -51,7 +51,7 @@ PUBLIC void csoundDestroyThreadLock(void *csound, void *lock)
 #include <pthread.h>
 
 void *csoundCreateThread(void *csound,
-			 int (*threadRoutine)(void *userdata), void *userdata)
+                         int (*threadRoutine)(void *userdata), void *userdata)
 {
     pthread_t pthread = 0;
     if (!pthread_create(&pthread, 0,

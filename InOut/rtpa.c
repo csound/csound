@@ -59,53 +59,52 @@ PaAlsaStreamInfo;
 
 void listPortAudioDevices(void)
 {
-  PaDeviceIndex deviceIndex = 0;
-  PaDeviceIndex deviceCount = 0;
-  const PaDeviceInfo *paDeviceInfo;
-  deviceCount = Pa_GetDeviceCount();
-  err_printf("Found %d PortAudio devices:\n", deviceCount);
-  for (deviceIndex = 0; deviceIndex < deviceCount; ++deviceIndex) {
-    paDeviceInfo = Pa_GetDeviceInfo(deviceIndex);
-    if (paDeviceInfo) {
-      err_printf("Device%3d: %s\n",
-		 deviceIndex,
-		 paDeviceInfo->name);
-      err_printf("           Maximum channels in: %7d\n",
-		 paDeviceInfo->maxInputChannels);
-      err_printf("           Maximum channels out:%7d\n",
-		 paDeviceInfo->maxOutputChannels);
-      err_printf("           Default sample rate: %11.3f\n",
-		 paDeviceInfo->defaultSampleRate);
+    PaDeviceIndex deviceIndex = 0;
+    PaDeviceIndex deviceCount = 0;
+    const PaDeviceInfo *paDeviceInfo;
+    deviceCount = Pa_GetDeviceCount();
+    err_printf("Found %d PortAudio devices:\n", deviceCount);
+    for (deviceIndex = 0; deviceIndex < deviceCount; ++deviceIndex) {
+      paDeviceInfo = Pa_GetDeviceInfo(deviceIndex);
+      if (paDeviceInfo) {
+        err_printf("Device%3d: %s\n",
+                   deviceIndex,
+                   paDeviceInfo->name);
+        err_printf("           Maximum channels in: %7d\n",
+                   paDeviceInfo->maxInputChannels);
+        err_printf("           Maximum channels out:%7d\n",
+                   paDeviceInfo->maxOutputChannels);
+        err_printf("           Default sample rate: %11.3f\n",
+                   paDeviceInfo->defaultSampleRate);
+      }
     }
-  }
 }
 
 void recopen_(int nchnls_, int dsize_, float sr_, int scale_)
      /* open for audio input */
 {
-  struct PaStreamParameters paStreamParameters_;
-  PaError paError = Pa_Initialize();
+    struct PaStreamParameters paStreamParameters_;
+    PaError paError = Pa_Initialize();
 #if defined(LINUX)
-  PaAlsaStreamInfo info;
+    PaAlsaStreamInfo info;
 #endif
-  listPortAudioDevices();
-  if (paError != paNoError) goto error;
-  oMaxLag = O.oMaxLag;        /* import DAC setting from command line   */
-  if (oMaxLag <= 0)           /* if DAC sampframes ndef in command line */
-    oMaxLag = IODACSAMPS;     /*    use the default value               */
+    listPortAudioDevices();
+    if (paError != paNoError) goto error;
+    oMaxLag = O.oMaxLag;        /* import DAC setting from command line   */
+    if (oMaxLag <= 0)           /* if DAC sampframes ndef in command line */
+      oMaxLag = IODACSAMPS;     /*    use the default value               */
 #if defined(LINUX)
-  printf("extdev=%p\n", rtin_devs);
-  if (rtin_devs!=NULL && strlen(rtin_devs)!=0) {
-    info.deviceString = rtin_devs;
-    err_printf("Using Portaudio input device %s.\n", rtin_devs);
-    info.hostApiType = paALSA;
-    info.version = 1;
-    info.size = sizeof(info);
-    paStreamParameters_.device = paUseHostApiSpecificDeviceSpecification;
-    paStreamParameters_.hostApiSpecificStreamInfo = &info;
-  }
-  else 
-    {
+    printf("extdev=%p\n", rtin_devs);
+    if (rtin_devs!=NULL && strlen(rtin_devs)!=0) {
+      info.deviceString = rtin_devs;
+      err_printf("Using Portaudio input device %s.\n", rtin_devs);
+      info.hostApiType = paALSA;
+      info.version = 1;
+      info.size = sizeof(info);
+      paStreamParameters_.device = paUseHostApiSpecificDeviceSpecification;
+      paStreamParameters_.hostApiSpecificStreamInfo = &info;
+    }
+    else {
 #endif
       if (rtin_dev == 1024) {
         rtin_dev = paStreamParameters_.device = Pa_GetDefaultInputDevice();
@@ -117,102 +116,102 @@ void recopen_(int nchnls_, int dsize_, float sr_, int scale_)
       }
       else {
         paStreamParameters_.device = rtin_dev;
-	/* VL: dodgy... only works well with ASIO */
+        /* VL: dodgy... only works well with ASIO */
         paStreamParameters_.suggestedLatency = ((double) oMaxLag) / ((double) sr_);
       }
       paStreamParameters_.hostApiSpecificStreamInfo = NULL;
 #if defined(LINUX)
     }
 #endif
-  paStreamParameters_.channelCount = nchnls_;
-  paStreamParameters_.sampleFormat = paFloat32;
-  err_printf("Suggested PortAudio input latency = %f seconds.\n",
-	     paStreamParameters_.suggestedLatency);
-  paError = paBlockingReadOpen(&cenviron,
-			       &pabsRead,
-			       &paStreamParameters_);
-  if (paError != paNoError) goto error;
-  audrecv = rtrecord_;
-  inbufrem = O.inbufsamps;
-  isfopen = 1;
-  err_printf(Str(X_39,"Opened PortAudio input device %i.\n"),
-	     paStreamParameters_.device);
-  return;
+    paStreamParameters_.channelCount = nchnls_;
+    paStreamParameters_.sampleFormat = paFloat32;
+    err_printf("Suggested PortAudio input latency = %f seconds.\n",
+               paStreamParameters_.suggestedLatency);
+    paError = paBlockingReadOpen(&cenviron,
+                                 &pabsRead,
+                                 &paStreamParameters_);
+    if (paError != paNoError) goto error;
+    audrecv = rtrecord_;
+    inbufrem = O.inbufsamps;
+    isfopen = 1;
+    err_printf(Str(X_39,"Opened PortAudio input device %i.\n"),
+               paStreamParameters_.device);
+    return;
  error:
-  err_printf(Str(X_41,"PortAudio error %d: %s.\n"),
-	     paError, Pa_GetErrorText(paError));
-  die(Str(X_1307,"Unable to open PortAudio input device."));
+    err_printf(Str(X_41,"PortAudio error %d: %s.\n"),
+               paError, Pa_GetErrorText(paError));
+    die(Str(X_1307,"Unable to open PortAudio input device."));
 }
 
 void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
      /* open for audio output */
 {
-  struct PaStreamParameters paStreamParameters_;
-  PaError paError = Pa_Initialize();
+    struct PaStreamParameters paStreamParameters_;
+    PaError paError = Pa_Initialize();
 #if defined(LINUX)
-  PaAlsaStreamInfo info;
+    PaAlsaStreamInfo info;
 #endif
-  listPortAudioDevices();
-  if (paError != paNoError) goto error;
-  oMaxLag = O.oMaxLag;        /* import DAC setting from command line   */
-  if (oMaxLag <= 0)           /* if DAC sampframes ndef in command line */
-    oMaxLag = IODACSAMPS;     /*    use the default value               */
+    listPortAudioDevices();
+    if (paError != paNoError) goto error;
+    oMaxLag = O.oMaxLag;        /* import DAC setting from command line   */
+    if (oMaxLag <= 0)           /* if DAC sampframes ndef in command line */
+      oMaxLag = IODACSAMPS;     /*    use the default value               */
 #if defined(LINUX)
-  if (rtout_devs!=NULL && strlen(rtout_devs)!=0) {
-    info.deviceString = rtout_devs;
-    err_printf("Using Portaudio output device %s.\n", rtout_devs);
-    info.hostApiType = paALSA;
-    info.version = 1;
-    info.size = sizeof(info);
-    paStreamParameters_.device = paUseHostApiSpecificDeviceSpecification;
-    paStreamParameters_.hostApiSpecificStreamInfo = &info;
-  }
-  else {
-#endif
-    if (rtout_dev == 1024) {
-      rtout_dev = paStreamParameters_.device = Pa_GetDefaultOutputDevice();
-      paStreamParameters_.suggestedLatency =
-	Pa_GetDeviceInfo(rtout_dev)->defaultLowOutputLatency;
-      err_printf(Str(X_30,
-		     "No PortAudio output device given; "
-		     "defaulting to device %d.\n"),
-		 paStreamParameters_.device);
+    if (rtout_devs!=NULL && strlen(rtout_devs)!=0) {
+      info.deviceString = rtout_devs;
+      err_printf("Using Portaudio output device %s.\n", rtout_devs);
+      info.hostApiType = paALSA;
+      info.version = 1;
+      info.size = sizeof(info);
+      paStreamParameters_.device = paUseHostApiSpecificDeviceSpecification;
+      paStreamParameters_.hostApiSpecificStreamInfo = &info;
     }
     else {
-      paStreamParameters_.device = rtout_dev;
-      /* VL: dodgy... only works well with ASIO */
-      paStreamParameters_.suggestedLatency = ((double) oMaxLag) / ((double) sr_);
-    }
-    paStreamParameters_.hostApiSpecificStreamInfo = NULL;
-#if defined(LINUX)
-  }
 #endif
-  paStreamParameters_.channelCount = nchnls_;
-  paStreamParameters_.sampleFormat = paFloat32;
-  err_printf("Suggested PortAudio output latency = %f seconds.\n",
-	     paStreamParameters_.suggestedLatency);
-  paError = paBlockingWriteOpen(&cenviron,
-				&pabsWrite,
-				&paStreamParameters_);
-  if (paError != paNoError) goto error;
-  audtran = rtplay_;
-  spoutran = spoutsf;       /* accumulate output */
-  nzerotran = zerosf;       /* quick zeros */
-  outbufrem = O.outbufsamps;
-  osfopen = 1;
-  err_printf(Str(X_39,"Opened PortAudio output device %i.\n"),
-	     paStreamParameters_.device);
-  return;
+      if (rtout_dev == 1024) {
+        rtout_dev = paStreamParameters_.device = Pa_GetDefaultOutputDevice();
+        paStreamParameters_.suggestedLatency =
+          Pa_GetDeviceInfo(rtout_dev)->defaultLowOutputLatency;
+        err_printf(Str(X_30,
+                       "No PortAudio output device given; "
+                       "defaulting to device %d.\n"),
+                   paStreamParameters_.device);
+      }
+      else {
+        paStreamParameters_.device = rtout_dev;
+        /* VL: dodgy... only works well with ASIO */
+        paStreamParameters_.suggestedLatency = ((double) oMaxLag) / ((double) sr_);
+      }
+      paStreamParameters_.hostApiSpecificStreamInfo = NULL;
+#if defined(LINUX)
+    }
+#endif
+    paStreamParameters_.channelCount = nchnls_;
+    paStreamParameters_.sampleFormat = paFloat32;
+    err_printf("Suggested PortAudio output latency = %f seconds.\n",
+               paStreamParameters_.suggestedLatency);
+    paError = paBlockingWriteOpen(&cenviron,
+                                  &pabsWrite,
+                                  &paStreamParameters_);
+    if (paError != paNoError) goto error;
+    audtran = rtplay_;
+    spoutran = spoutsf;       /* accumulate output */
+    nzerotran = zerosf;       /* quick zeros */
+    outbufrem = O.outbufsamps;
+    osfopen = 1;
+    err_printf(Str(X_39,"Opened PortAudio output device %i.\n"),
+               paStreamParameters_.device);
+    return;
  error:
-  err_printf(Str(X_41,"PortAudio error %d: %s.\n"),
-	     paError, Pa_GetErrorText(paError));
-  die(Str(X_1308,"Unable to open PortAudio output device."));
+    err_printf(Str(X_41,"PortAudio error %d: %s.\n"),
+               paError, Pa_GetErrorText(paError));
+    die(Str(X_1308,"Unable to open PortAudio output device."));
 }
 
 int rtrecord_(void *inbuf_, int bytes_) /* get samples from ADC */
 {
-  paBlockingRead(pabsRead, (MYFLT *)inbuf_);
-  return bytes_ / sizeof(MYFLT);
+    paBlockingRead(pabsRead, (MYFLT *)inbuf_);
+    return bytes_ / sizeof(MYFLT);
 }
 
 void rtplay_(void *outbuf_, int bytes_) /* put samples to DAC  */
@@ -228,16 +227,16 @@ void rtplay_(void *outbuf_, int bytes_) /* put samples to DAC  */
      /* eliminate MIDI jitter by requesting that both be made synchronous with */
      /* the above audio I/O blocks, i.e. by setting -b to some 1 or 2 K-prds.  */
 {
-  int samples = bytes_ / sizeof(MYFLT);
-  paBlockingWrite(pabsWrite, samples, (MYFLT *)outbuf_);
-  nrecs++;
+    int samples = bytes_ / sizeof(MYFLT);
+    paBlockingWrite(pabsWrite, samples, (MYFLT *)outbuf_);
+    nrecs++;
 }
 
 void rtclose_(void)             /* close the I/O device entirely  */
-{    
-                           /* called only when both complete */
-  paBlockingClose(pabsRead);
-  paBlockingClose(pabsWrite);
-  Pa_Terminate();
+{
+                                /* called only when both complete */
+    paBlockingClose(pabsRead);
+    paBlockingClose(pabsWrite);
+    Pa_Terminate();
 }
 
