@@ -75,7 +75,7 @@ int lowpr_setx(ENVIRON *csound, LOWPRX *p)
     else if (p->loop > 10) {
       return initerror(Str("illegal order num. (min 1, max 10)"));
     }
-    if (*p->istor!= 0)
+    if (*p->istor == FL(0.0))
       for (j=0; j< p->loop; j++)  p->ynm1[j] = p->ynm2[j] = FL(0.0);
     p->k = p->okf = p->okr = -FL(1.0);
     return OK;
@@ -107,7 +107,7 @@ int lowprx(ENVIRON *csound, LOWPRX *p)
         ar[n] = yn = (coef1 * *ynm1 - k * *ynm2 + asig[n]) * coef2;
         *ynm2 = *ynm1;
         *ynm1 = yn;
-      } while (--nsmps);
+      }
       ynm1++;
       ynm2++;
       asig= p->ar;
