@@ -701,9 +701,8 @@ void rdorchfile(void)           /* read entire orch file into txt space */
     nxtarglist = (ARGLST *) mmalloc(sizeof(ARGLST) + 200*sizeof(char*));
 }
 
-static
-int splitline(void)     /* split next orch line into atomic groups */
-{                       /* cnt labels this line, and set opgrpno where found */
+static int splitline(void) /* split next orch line into atomic groups */
+{                          /* cnt labels this line, and set opgrpno where found */
     int grpcnt, prvif, prvelsif, logical, condassgn, parens;
     int c, collecting;
     char        *cp, *lp, *grpp=NULL;
