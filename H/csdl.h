@@ -269,7 +269,7 @@
 #define intpow csound->intpow_
 #define ftfindp csound->ftfindp
 #define ftnp2find csound->ftnp2find
-#define unquote csound->unquote
+#define unquote csound->unquote_
 #define ldmemfile csound->ldmemfile
 #define err_printf csound->err_printf_
 

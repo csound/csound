@@ -1,28 +1,28 @@
 int
-pycall0_krate(PYCALL0 *p)
+pycall0_krate(void *csound_, PYCALL0 *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pycall0_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pycall0_krate: callable must be a string");
       return NOTOK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, 0);
 
   if (result == NULL)
     {
-      err_printf("pycall0_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall0_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (result != Py_None) {
-      err_printf("pycall0_krate: callable must return None\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall0_krate: callable must return None\n");
       return NOTOK; }
 
   Py_DECREF(result);
@@ -30,11 +30,11 @@ pycall0_krate(PYCALL0 *p)
 }
 
 int
-pylcall0_irate(PYCALL0 *p)
+pylcall0_irate(void *csound_, PYCALL0 *p)
 {
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall0_irate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall0_irate: callable must be a string");
       return NOTOK;
     }
 
@@ -43,30 +43,30 @@ pylcall0_irate(PYCALL0 *p)
 }
 
 int
-pylcall0_krate(PYCALL0 *p)
+pylcall0_krate(void *csound_, PYCALL0 *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall0_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall0_krate: callable must be a string");
       return NOTOK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
   if (result == NULL)
     {
-      err_printf("pylcall0_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall0_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (result != Py_None) {
-      err_printf("pylcall0_krate: callable must return None\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall0_krate: callable must return None\n");
       return NOTOK; }
 
   Py_DECREF(result);
@@ -74,18 +74,18 @@ pylcall0_krate(PYCALL0 *p)
 }
 
 int
-pylcall0i_irate(PYCALL0 *p)
+pylcall0i_irate(void *csound_, PYCALL0 *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall0i_irate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall0i_irate: callable must be a string");
       return NOTOK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 1);
 
   create_private_namespace_if_needed(&p->h);
 
@@ -93,13 +93,13 @@ pylcall0i_irate(PYCALL0 *p)
 
   if (result == NULL)
     {
-      err_printf("pylcall0i_irate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall0i_irate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (result != Py_None) {
-      err_printf("pylcall0i_irate: callable must return None\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall0i_irate: callable must return None\n");
       return NOTOK; }
 
   Py_DECREF(result);
@@ -107,14 +107,14 @@ pylcall0i_irate(PYCALL0 *p)
 }
 
 int
-pycall0t_krate(PYCALL0T *p)
+pycall0t_krate(void *csound_, PYCALL0T *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pycall0t_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pycall0t_krate: callable must be a string");
       return NOTOK;
     }
 
@@ -123,19 +123,19 @@ pycall0t_krate(PYCALL0T *p)
        return OK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, 0);
 
   if (result == NULL)
     {
-      err_printf("pycall0t_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall0t_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (result != Py_None) {
-      err_printf("pycall0_krate: callable must return None\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall0_krate: callable must return None\n");
       return NOTOK; }
 
   Py_DECREF(result);
@@ -143,11 +143,11 @@ pycall0t_krate(PYCALL0T *p)
 }
 
 int
-pylcall0t_irate(PYCALL0T *p)
+pylcall0t_irate(void *csound_, PYCALL0T *p)
 {
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall0t_irate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall0t_irate: callable must be a string");
       return NOTOK;
     }
 
@@ -156,14 +156,14 @@ pylcall0t_irate(PYCALL0T *p)
 }
 
 int
-pylcall0t_krate(PYCALL0T *p)
+pylcall0t_krate(void *csound_, PYCALL0T *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall0t_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall0t_krate: callable must be a string");
       return NOTOK;
     }
 
@@ -172,19 +172,19 @@ pylcall0t_krate(PYCALL0T *p)
        return OK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
   if (result == NULL)
     {
-      err_printf("pylcall0t_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall0t_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (result != Py_None) {
-      err_printf("pylcall0_krate: callable must return None\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall0_krate: callable must return None\n");
       return NOTOK; }
 
   Py_DECREF(result);
@@ -192,31 +192,31 @@ pylcall0t_krate(PYCALL0T *p)
 }
 
 int
-pycall1_krate(PYCALL1 *p)
+pycall1_krate(void *csound_, PYCALL1 *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pycall1_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pycall1_krate: callable must be a string");
       return NOTOK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, 0);
 
   if (result == NULL)
     {
-      err_printf("pycall1_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall1_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyFloat_Check(result))
     {
-      err_printf("pycall1_krate: callable must return a float\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall1_krate: callable must return a float\n");
       return NOTOK;
     }
   else
@@ -230,11 +230,11 @@ pycall1_krate(PYCALL1 *p)
 }
 
 int
-pylcall1_irate(PYCALL1 *p)
+pylcall1_irate(void *csound_, PYCALL1 *p)
 {
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall1_irate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall1_irate: callable must be a string");
       return NOTOK;
     }
 
@@ -243,31 +243,31 @@ pylcall1_irate(PYCALL1 *p)
 }
 
 int
-pylcall1_krate(PYCALL1 *p)
+pylcall1_krate(void *csound_, PYCALL1 *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall1_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall1_krate: callable must be a string");
       return NOTOK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
   if (result == NULL)
     {
-      err_printf("pylcall1_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall1_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyFloat_Check(result))
     {
-      err_printf("pylcall1_krate: callable must return a float\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall1_krate: callable must return a float\n");
       return NOTOK;
     }
   else
@@ -281,18 +281,18 @@ pylcall1_krate(PYCALL1 *p)
 }
 
 int
-pylcall1i_irate(PYCALL1 *p)
+pylcall1i_irate(void *csound_, PYCALL1 *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall1i_irate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall1i_irate: callable must be a string");
       return NOTOK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 1);
 
   create_private_namespace_if_needed(&p->h);
 
@@ -300,14 +300,14 @@ pylcall1i_irate(PYCALL1 *p)
 
   if (result == NULL)
     {
-      err_printf("pylcall1i_irate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall1i_irate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyFloat_Check(result))
     {
-      err_printf("pylcall1i_irate: callable must return a float\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall1i_irate: callable must return a float\n");
       return NOTOK;
     }
   else
@@ -321,71 +321,14 @@ pylcall1i_irate(PYCALL1 *p)
 }
 
 int
-pycall1t_krate(PYCALL1T *p)
+pycall1t_krate(void *csound_, PYCALL1T *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pycall1t_krate: callable must be a string");
-      return NOTOK;
-    }
-
-  if (!*p->trigger)
-    {
-      *p->result = p->oresult;
-       return OK;
-    }
-
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
-
-  result = eval_string_in_given_context(command, 0);
-
-  if (result == NULL)
-    {
-      err_printf("pycall1t_krate: python exception\n");
-      PyErr_Print();
-      return NOTOK;
-    }
-
-  if (!PyFloat_Check(result))
-    {
-      err_printf("pycall1_krate: callable must return a float\n");
-      return NOTOK;
-    }
-  else
-    {
-       *p->result = PyFloat_AsDouble(result);
-    }
-   return OK;
-
-  Py_DECREF(result);
-  return OK;
-}
-
-int
-pylcall1t_irate(PYCALL1T *p)
-{
-  if (*p->function != SSTRCOD)
-    {
-      err_printf("pylcall1t_irate: callable must be a string");
-      return NOTOK;
-    }
-
-  create_private_namespace_if_needed(&p->h);
-  return OK;
-}
-
-int
-pylcall1t_krate(PYCALL1T *p)
-{
-  char command[1024];
-  PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      err_printf("pylcall1t_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pycall1t_krate: callable must be a string");
       return NOTOK;
     }
 
@@ -395,20 +338,20 @@ pylcall1t_krate(PYCALL1T *p)
        return OK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 2);
 
-  result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
+  result = eval_string_in_given_context(command, 0);
 
   if (result == NULL)
     {
-      err_printf("pylcall1t_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall1t_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyFloat_Check(result))
     {
-      err_printf("pylcall1_krate: callable must return a float\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall1_krate: callable must return a float\n");
       return NOTOK;
     }
   else
@@ -422,31 +365,88 @@ pylcall1t_krate(PYCALL1T *p)
 }
 
 int
-pycall2_krate(PYCALL2 *p)
+pylcall1t_irate(void *csound_, PYCALL1T *p)
+{
+  if (*p->function != SSTRCOD)
+    {
+      ((ENVIRON *)csound_)->err_printf_("pylcall1t_irate: callable must be a string");
+      return NOTOK;
+    }
+
+  create_private_namespace_if_needed(&p->h);
+  return OK;
+}
+
+int
+pylcall1t_krate(void *csound_, PYCALL1T *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pycall2_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall1t_krate: callable must be a string");
       return NOTOK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  if (!*p->trigger)
+    {
+      *p->result = p->oresult;
+       return OK;
+    }
+
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 2);
+
+  result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
+
+  if (result == NULL)
+    {
+      ((ENVIRON *)csound_)->err_printf_("pylcall1t_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyFloat_Check(result))
+    {
+      ((ENVIRON *)csound_)->err_printf_("pylcall1_krate: callable must return a float\n");
+      return NOTOK;
+    }
+  else
+    {
+       *p->result = PyFloat_AsDouble(result);
+    }
+   return OK;
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pycall2_krate(void *csound_, PYCALL2 *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      ((ENVIRON *)csound_)->err_printf_("pycall2_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, 0);
 
   if (result == NULL)
     {
-      err_printf("pycall2_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall2_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 2)
     {
-      err_printf("pycall2_krate: callable must return 2 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall2_krate: callable must return 2 values\n");
       return NOTOK;
     }
   else
@@ -460,11 +460,11 @@ pycall2_krate(PYCALL2 *p)
 }
 
 int
-pylcall2_irate(PYCALL2 *p)
+pylcall2_irate(void *csound_, PYCALL2 *p)
 {
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall2_irate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall2_irate: callable must be a string");
       return NOTOK;
     }
 
@@ -473,31 +473,31 @@ pylcall2_irate(PYCALL2 *p)
 }
 
 int
-pylcall2_krate(PYCALL2 *p)
+pylcall2_krate(void *csound_, PYCALL2 *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall2_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall2_krate: callable must be a string");
       return NOTOK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
   if (result == NULL)
     {
-      err_printf("pylcall2_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall2_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 2)
     {
-      err_printf("pylcall2_krate: callable must return 2 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall2_krate: callable must return 2 values\n");
       return NOTOK;
     }
   else
@@ -511,18 +511,18 @@ pylcall2_krate(PYCALL2 *p)
 }
 
 int
-pylcall2i_irate(PYCALL2 *p)
+pylcall2i_irate(void *csound_, PYCALL2 *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall2i_irate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall2i_irate: callable must be a string");
       return NOTOK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 1);
 
   create_private_namespace_if_needed(&p->h);
 
@@ -530,14 +530,14 @@ pylcall2i_irate(PYCALL2 *p)
 
   if (result == NULL)
     {
-      err_printf("pylcall2i_irate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall2i_irate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 2)
     {
-      err_printf("pylcall2i_irate: callable must return 2 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall2i_irate: callable must return 2 values\n");
       return NOTOK;
     }
   else
@@ -551,14 +551,14 @@ pylcall2i_irate(PYCALL2 *p)
 }
 
 int
-pycall2t_krate(PYCALL2T *p)
+pycall2t_krate(void *csound_, PYCALL2T *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pycall2t_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pycall2t_krate: callable must be a string");
       return NOTOK;
     }
 
@@ -569,20 +569,20 @@ pycall2t_krate(PYCALL2T *p)
        return OK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, 0);
 
   if (result == NULL)
     {
-      err_printf("pycall2t_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall2t_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 2)
     {
-      err_printf("pycall2_krate: callable must return 2 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall2_krate: callable must return 2 values\n");
       return NOTOK;
     }
   else
@@ -596,11 +596,11 @@ pycall2t_krate(PYCALL2T *p)
 }
 
 int
-pylcall2t_irate(PYCALL2T *p)
+pylcall2t_irate(void *csound_, PYCALL2T *p)
 {
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall2t_irate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall2t_irate: callable must be a string");
       return NOTOK;
     }
 
@@ -609,14 +609,14 @@ pylcall2t_irate(PYCALL2T *p)
 }
 
 int
-pylcall2t_krate(PYCALL2T *p)
+pylcall2t_krate(void *csound_, PYCALL2T *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall2t_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall2t_krate: callable must be a string");
       return NOTOK;
     }
 
@@ -627,20 +627,20 @@ pylcall2t_krate(PYCALL2T *p)
        return OK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
   if (result == NULL)
     {
-      err_printf("pylcall2t_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall2t_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 2)
     {
-      err_printf("pylcall2_krate: callable must return 2 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall2_krate: callable must return 2 values\n");
       return NOTOK;
     }
   else
@@ -654,31 +654,31 @@ pylcall2t_krate(PYCALL2T *p)
 }
 
 int
-pycall3_krate(PYCALL3 *p)
+pycall3_krate(void *csound_, PYCALL3 *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pycall3_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pycall3_krate: callable must be a string");
       return NOTOK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, 0);
 
   if (result == NULL)
     {
-      err_printf("pycall3_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall3_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 3)
     {
-      err_printf("pycall3_krate: callable must return 3 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall3_krate: callable must return 3 values\n");
       return NOTOK;
     }
   else
@@ -693,11 +693,11 @@ pycall3_krate(PYCALL3 *p)
 }
 
 int
-pylcall3_irate(PYCALL3 *p)
+pylcall3_irate(void *csound_, PYCALL3 *p)
 {
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall3_irate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall3_irate: callable must be a string");
       return NOTOK;
     }
 
@@ -706,31 +706,31 @@ pylcall3_irate(PYCALL3 *p)
 }
 
 int
-pylcall3_krate(PYCALL3 *p)
+pylcall3_krate(void *csound_, PYCALL3 *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall3_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall3_krate: callable must be a string");
       return NOTOK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
   if (result == NULL)
     {
-      err_printf("pylcall3_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall3_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 3)
     {
-      err_printf("pylcall3_krate: callable must return 3 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall3_krate: callable must return 3 values\n");
       return NOTOK;
     }
   else
@@ -745,18 +745,18 @@ pylcall3_krate(PYCALL3 *p)
 }
 
 int
-pylcall3i_irate(PYCALL3 *p)
+pylcall3i_irate(void *csound_, PYCALL3 *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall3i_irate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall3i_irate: callable must be a string");
       return NOTOK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 1);
 
   create_private_namespace_if_needed(&p->h);
 
@@ -764,14 +764,14 @@ pylcall3i_irate(PYCALL3 *p)
 
   if (result == NULL)
     {
-      err_printf("pylcall3i_irate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall3i_irate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 3)
     {
-      err_printf("pylcall3i_irate: callable must return 3 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall3i_irate: callable must return 3 values\n");
       return NOTOK;
     }
   else
@@ -786,14 +786,14 @@ pylcall3i_irate(PYCALL3 *p)
 }
 
 int
-pycall3t_krate(PYCALL3T *p)
+pycall3t_krate(void *csound_, PYCALL3T *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pycall3t_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pycall3t_krate: callable must be a string");
       return NOTOK;
     }
 
@@ -805,20 +805,20 @@ pycall3t_krate(PYCALL3T *p)
        return OK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, 0);
 
   if (result == NULL)
     {
-      err_printf("pycall3t_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall3t_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 3)
     {
-      err_printf("pycall3_krate: callable must return 3 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall3_krate: callable must return 3 values\n");
       return NOTOK;
     }
   else
@@ -833,11 +833,11 @@ pycall3t_krate(PYCALL3T *p)
 }
 
 int
-pylcall3t_irate(PYCALL3T *p)
+pylcall3t_irate(void *csound_, PYCALL3T *p)
 {
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall3t_irate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall3t_irate: callable must be a string");
       return NOTOK;
     }
 
@@ -846,14 +846,14 @@ pylcall3t_irate(PYCALL3T *p)
 }
 
 int
-pylcall3t_krate(PYCALL3T *p)
+pylcall3t_krate(void *csound_, PYCALL3T *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall3t_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall3t_krate: callable must be a string");
       return NOTOK;
     }
 
@@ -865,20 +865,20 @@ pylcall3t_krate(PYCALL3T *p)
        return OK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
   if (result == NULL)
     {
-      err_printf("pylcall3t_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall3t_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 3)
     {
-      err_printf("pylcall3_krate: callable must return 3 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall3_krate: callable must return 3 values\n");
       return NOTOK;
     }
   else
@@ -893,31 +893,31 @@ pylcall3t_krate(PYCALL3T *p)
 }
 
 int
-pycall4_krate(PYCALL4 *p)
+pycall4_krate(void *csound_, PYCALL4 *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pycall4_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pycall4_krate: callable must be a string");
       return NOTOK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, 0);
 
   if (result == NULL)
     {
-      err_printf("pycall4_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall4_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 4)
     {
-      err_printf("pycall4_krate: callable must return 4 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall4_krate: callable must return 4 values\n");
       return NOTOK;
     }
   else
@@ -933,11 +933,11 @@ pycall4_krate(PYCALL4 *p)
 }
 
 int
-pylcall4_irate(PYCALL4 *p)
+pylcall4_irate(void *csound_, PYCALL4 *p)
 {
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall4_irate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall4_irate: callable must be a string");
       return NOTOK;
     }
 
@@ -946,31 +946,31 @@ pylcall4_irate(PYCALL4 *p)
 }
 
 int
-pylcall4_krate(PYCALL4 *p)
+pylcall4_krate(void *csound_, PYCALL4 *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall4_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall4_krate: callable must be a string");
       return NOTOK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
   if (result == NULL)
     {
-      err_printf("pylcall4_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall4_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 4)
     {
-      err_printf("pylcall4_krate: callable must return 4 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall4_krate: callable must return 4 values\n");
       return NOTOK;
     }
   else
@@ -986,18 +986,18 @@ pylcall4_krate(PYCALL4 *p)
 }
 
 int
-pylcall4i_irate(PYCALL4 *p)
+pylcall4i_irate(void *csound_, PYCALL4 *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall4i_irate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall4i_irate: callable must be a string");
       return NOTOK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 1);
 
   create_private_namespace_if_needed(&p->h);
 
@@ -1005,14 +1005,14 @@ pylcall4i_irate(PYCALL4 *p)
 
   if (result == NULL)
     {
-      err_printf("pylcall4i_irate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall4i_irate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 4)
     {
-      err_printf("pylcall4i_irate: callable must return 4 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall4i_irate: callable must return 4 values\n");
       return NOTOK;
     }
   else
@@ -1028,14 +1028,14 @@ pylcall4i_irate(PYCALL4 *p)
 }
 
 int
-pycall4t_krate(PYCALL4T *p)
+pycall4t_krate(void *csound_, PYCALL4T *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pycall4t_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pycall4t_krate: callable must be a string");
       return NOTOK;
     }
 
@@ -1048,20 +1048,20 @@ pycall4t_krate(PYCALL4T *p)
        return OK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, 0);
 
   if (result == NULL)
     {
-      err_printf("pycall4t_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall4t_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 4)
     {
-      err_printf("pycall4_krate: callable must return 4 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall4_krate: callable must return 4 values\n");
       return NOTOK;
     }
   else
@@ -1077,11 +1077,11 @@ pycall4t_krate(PYCALL4T *p)
 }
 
 int
-pylcall4t_irate(PYCALL4T *p)
+pylcall4t_irate(void *csound_, PYCALL4T *p)
 {
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall4t_irate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall4t_irate: callable must be a string");
       return NOTOK;
     }
 
@@ -1090,14 +1090,14 @@ pylcall4t_irate(PYCALL4T *p)
 }
 
 int
-pylcall4t_krate(PYCALL4T *p)
+pylcall4t_krate(void *csound_, PYCALL4T *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall4t_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall4t_krate: callable must be a string");
       return NOTOK;
     }
 
@@ -1110,20 +1110,20 @@ pylcall4t_krate(PYCALL4T *p)
        return OK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
   if (result == NULL)
     {
-      err_printf("pylcall4t_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall4t_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 4)
     {
-      err_printf("pylcall4_krate: callable must return 4 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall4_krate: callable must return 4 values\n");
       return NOTOK;
     }
   else
@@ -1139,31 +1139,31 @@ pylcall4t_krate(PYCALL4T *p)
 }
 
 int
-pycall5_krate(PYCALL5 *p)
+pycall5_krate(void *csound_, PYCALL5 *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pycall5_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pycall5_krate: callable must be a string");
       return NOTOK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, 0);
 
   if (result == NULL)
     {
-      err_printf("pycall5_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall5_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 5)
     {
-      err_printf("pycall5_krate: callable must return 5 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall5_krate: callable must return 5 values\n");
       return NOTOK;
     }
   else
@@ -1180,11 +1180,11 @@ pycall5_krate(PYCALL5 *p)
 }
 
 int
-pylcall5_irate(PYCALL5 *p)
+pylcall5_irate(void *csound_, PYCALL5 *p)
 {
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall5_irate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall5_irate: callable must be a string");
       return NOTOK;
     }
 
@@ -1193,31 +1193,31 @@ pylcall5_irate(PYCALL5 *p)
 }
 
 int
-pylcall5_krate(PYCALL5 *p)
+pylcall5_krate(void *csound_, PYCALL5 *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall5_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall5_krate: callable must be a string");
       return NOTOK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
   if (result == NULL)
     {
-      err_printf("pylcall5_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall5_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 5)
     {
-      err_printf("pylcall5_krate: callable must return 5 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall5_krate: callable must return 5 values\n");
       return NOTOK;
     }
   else
@@ -1234,18 +1234,18 @@ pylcall5_krate(PYCALL5 *p)
 }
 
 int
-pylcall5i_irate(PYCALL5 *p)
+pylcall5i_irate(void *csound_, PYCALL5 *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall5i_irate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall5i_irate: callable must be a string");
       return NOTOK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 1);
 
   create_private_namespace_if_needed(&p->h);
 
@@ -1253,14 +1253,14 @@ pylcall5i_irate(PYCALL5 *p)
 
   if (result == NULL)
     {
-      err_printf("pylcall5i_irate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall5i_irate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 5)
     {
-      err_printf("pylcall5i_irate: callable must return 5 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall5i_irate: callable must return 5 values\n");
       return NOTOK;
     }
   else
@@ -1277,14 +1277,14 @@ pylcall5i_irate(PYCALL5 *p)
 }
 
 int
-pycall5t_krate(PYCALL5T *p)
+pycall5t_krate(void *csound_, PYCALL5T *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pycall5t_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pycall5t_krate: callable must be a string");
       return NOTOK;
     }
 
@@ -1298,20 +1298,20 @@ pycall5t_krate(PYCALL5T *p)
        return OK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, 0);
 
   if (result == NULL)
     {
-      err_printf("pycall5t_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall5t_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 5)
     {
-      err_printf("pycall5_krate: callable must return 5 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall5_krate: callable must return 5 values\n");
       return NOTOK;
     }
   else
@@ -1328,11 +1328,11 @@ pycall5t_krate(PYCALL5T *p)
 }
 
 int
-pylcall5t_irate(PYCALL5T *p)
+pylcall5t_irate(void *csound_, PYCALL5T *p)
 {
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall5t_irate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall5t_irate: callable must be a string");
       return NOTOK;
     }
 
@@ -1341,14 +1341,14 @@ pylcall5t_irate(PYCALL5T *p)
 }
 
 int
-pylcall5t_krate(PYCALL5T *p)
+pylcall5t_krate(void *csound_, PYCALL5T *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall5t_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall5t_krate: callable must be a string");
       return NOTOK;
     }
 
@@ -1362,20 +1362,20 @@ pylcall5t_krate(PYCALL5T *p)
        return OK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
   if (result == NULL)
     {
-      err_printf("pylcall5t_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall5t_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 5)
     {
-      err_printf("pylcall5_krate: callable must return 5 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall5_krate: callable must return 5 values\n");
       return NOTOK;
     }
   else
@@ -1392,31 +1392,31 @@ pylcall5t_krate(PYCALL5T *p)
 }
 
 int
-pycall6_krate(PYCALL6 *p)
+pycall6_krate(void *csound_, PYCALL6 *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pycall6_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pycall6_krate: callable must be a string");
       return NOTOK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, 0);
 
   if (result == NULL)
     {
-      err_printf("pycall6_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall6_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 6)
     {
-      err_printf("pycall6_krate: callable must return 6 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall6_krate: callable must return 6 values\n");
       return NOTOK;
     }
   else
@@ -1434,11 +1434,11 @@ pycall6_krate(PYCALL6 *p)
 }
 
 int
-pylcall6_irate(PYCALL6 *p)
+pylcall6_irate(void *csound_, PYCALL6 *p)
 {
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall6_irate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall6_irate: callable must be a string");
       return NOTOK;
     }
 
@@ -1447,31 +1447,31 @@ pylcall6_irate(PYCALL6 *p)
 }
 
 int
-pylcall6_krate(PYCALL6 *p)
+pylcall6_krate(void *csound_, PYCALL6 *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall6_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall6_krate: callable must be a string");
       return NOTOK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
   if (result == NULL)
     {
-      err_printf("pylcall6_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall6_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 6)
     {
-      err_printf("pylcall6_krate: callable must return 6 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall6_krate: callable must return 6 values\n");
       return NOTOK;
     }
   else
@@ -1489,18 +1489,18 @@ pylcall6_krate(PYCALL6 *p)
 }
 
 int
-pylcall6i_irate(PYCALL6 *p)
+pylcall6i_irate(void *csound_, PYCALL6 *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall6i_irate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall6i_irate: callable must be a string");
       return NOTOK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 1);
 
   create_private_namespace_if_needed(&p->h);
 
@@ -1508,14 +1508,14 @@ pylcall6i_irate(PYCALL6 *p)
 
   if (result == NULL)
     {
-      err_printf("pylcall6i_irate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall6i_irate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 6)
     {
-      err_printf("pylcall6i_irate: callable must return 6 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall6i_irate: callable must return 6 values\n");
       return NOTOK;
     }
   else
@@ -1533,14 +1533,14 @@ pylcall6i_irate(PYCALL6 *p)
 }
 
 int
-pycall6t_krate(PYCALL6T *p)
+pycall6t_krate(void *csound_, PYCALL6T *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pycall6t_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pycall6t_krate: callable must be a string");
       return NOTOK;
     }
 
@@ -1555,20 +1555,20 @@ pycall6t_krate(PYCALL6T *p)
        return OK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, 0);
 
   if (result == NULL)
     {
-      err_printf("pycall6t_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall6t_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 6)
     {
-      err_printf("pycall6_krate: callable must return 6 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall6_krate: callable must return 6 values\n");
       return NOTOK;
     }
   else
@@ -1586,11 +1586,11 @@ pycall6t_krate(PYCALL6T *p)
 }
 
 int
-pylcall6t_irate(PYCALL6T *p)
+pylcall6t_irate(void *csound_, PYCALL6T *p)
 {
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall6t_irate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall6t_irate: callable must be a string");
       return NOTOK;
     }
 
@@ -1599,14 +1599,14 @@ pylcall6t_irate(PYCALL6T *p)
 }
 
 int
-pylcall6t_krate(PYCALL6T *p)
+pylcall6t_krate(void *csound_, PYCALL6T *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall6t_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall6t_krate: callable must be a string");
       return NOTOK;
     }
 
@@ -1621,20 +1621,20 @@ pylcall6t_krate(PYCALL6T *p)
        return OK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
   if (result == NULL)
     {
-      err_printf("pylcall6t_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall6t_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 6)
     {
-      err_printf("pylcall6_krate: callable must return 6 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall6_krate: callable must return 6 values\n");
       return NOTOK;
     }
   else
@@ -1652,31 +1652,31 @@ pylcall6t_krate(PYCALL6T *p)
 }
 
 int
-pycall7_krate(PYCALL7 *p)
+pycall7_krate(void *csound_, PYCALL7 *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pycall7_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pycall7_krate: callable must be a string");
       return NOTOK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, 0);
 
   if (result == NULL)
     {
-      err_printf("pycall7_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall7_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 7)
     {
-      err_printf("pycall7_krate: callable must return 7 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall7_krate: callable must return 7 values\n");
       return NOTOK;
     }
   else
@@ -1695,11 +1695,11 @@ pycall7_krate(PYCALL7 *p)
 }
 
 int
-pylcall7_irate(PYCALL7 *p)
+pylcall7_irate(void *csound_, PYCALL7 *p)
 {
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall7_irate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall7_irate: callable must be a string");
       return NOTOK;
     }
 
@@ -1708,31 +1708,31 @@ pylcall7_irate(PYCALL7 *p)
 }
 
 int
-pylcall7_krate(PYCALL7 *p)
+pylcall7_krate(void *csound_, PYCALL7 *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall7_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall7_krate: callable must be a string");
       return NOTOK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
   if (result == NULL)
     {
-      err_printf("pylcall7_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall7_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 7)
     {
-      err_printf("pylcall7_krate: callable must return 7 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall7_krate: callable must return 7 values\n");
       return NOTOK;
     }
   else
@@ -1751,18 +1751,18 @@ pylcall7_krate(PYCALL7 *p)
 }
 
 int
-pylcall7i_irate(PYCALL7 *p)
+pylcall7i_irate(void *csound_, PYCALL7 *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall7i_irate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall7i_irate: callable must be a string");
       return NOTOK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 1);
 
   create_private_namespace_if_needed(&p->h);
 
@@ -1770,14 +1770,14 @@ pylcall7i_irate(PYCALL7 *p)
 
   if (result == NULL)
     {
-      err_printf("pylcall7i_irate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall7i_irate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 7)
     {
-      err_printf("pylcall7i_irate: callable must return 7 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall7i_irate: callable must return 7 values\n");
       return NOTOK;
     }
   else
@@ -1796,14 +1796,14 @@ pylcall7i_irate(PYCALL7 *p)
 }
 
 int
-pycall7t_krate(PYCALL7T *p)
+pycall7t_krate(void *csound_, PYCALL7T *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pycall7t_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pycall7t_krate: callable must be a string");
       return NOTOK;
     }
 
@@ -1819,20 +1819,20 @@ pycall7t_krate(PYCALL7T *p)
        return OK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, 0);
 
   if (result == NULL)
     {
-      err_printf("pycall7t_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall7t_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 7)
     {
-      err_printf("pycall7_krate: callable must return 7 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall7_krate: callable must return 7 values\n");
       return NOTOK;
     }
   else
@@ -1851,11 +1851,11 @@ pycall7t_krate(PYCALL7T *p)
 }
 
 int
-pylcall7t_irate(PYCALL7T *p)
+pylcall7t_irate(void *csound_, PYCALL7T *p)
 {
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall7t_irate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall7t_irate: callable must be a string");
       return NOTOK;
     }
 
@@ -1864,14 +1864,14 @@ pylcall7t_irate(PYCALL7T *p)
 }
 
 int
-pylcall7t_krate(PYCALL7T *p)
+pylcall7t_krate(void *csound_, PYCALL7T *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall7t_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall7t_krate: callable must be a string");
       return NOTOK;
     }
 
@@ -1887,20 +1887,20 @@ pylcall7t_krate(PYCALL7T *p)
        return OK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
   if (result == NULL)
     {
-      err_printf("pylcall7t_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall7t_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 7)
     {
-      err_printf("pylcall7_krate: callable must return 7 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall7_krate: callable must return 7 values\n");
       return NOTOK;
     }
   else
@@ -1919,31 +1919,31 @@ pylcall7t_krate(PYCALL7T *p)
 }
 
 int
-pycall8_krate(PYCALL8 *p)
+pycall8_krate(void *csound_, PYCALL8 *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pycall8_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pycall8_krate: callable must be a string");
       return NOTOK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, 0);
 
   if (result == NULL)
     {
-      err_printf("pycall8_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall8_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 8)
     {
-      err_printf("pycall8_krate: callable must return 8 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall8_krate: callable must return 8 values\n");
       return NOTOK;
     }
   else
@@ -1963,11 +1963,11 @@ pycall8_krate(PYCALL8 *p)
 }
 
 int
-pylcall8_irate(PYCALL8 *p)
+pylcall8_irate(void *csound_, PYCALL8 *p)
 {
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall8_irate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall8_irate: callable must be a string");
       return NOTOK;
     }
 
@@ -1976,31 +1976,31 @@ pylcall8_irate(PYCALL8 *p)
 }
 
 int
-pylcall8_krate(PYCALL8 *p)
+pylcall8_krate(void *csound_, PYCALL8 *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall8_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall8_krate: callable must be a string");
       return NOTOK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
   if (result == NULL)
     {
-      err_printf("pylcall8_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall8_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 8)
     {
-      err_printf("pylcall8_krate: callable must return 8 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall8_krate: callable must return 8 values\n");
       return NOTOK;
     }
   else
@@ -2020,18 +2020,18 @@ pylcall8_krate(PYCALL8 *p)
 }
 
 int
-pylcall8i_irate(PYCALL8 *p)
+pylcall8i_irate(void *csound_, PYCALL8 *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall8i_irate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall8i_irate: callable must be a string");
       return NOTOK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 1);
 
   create_private_namespace_if_needed(&p->h);
 
@@ -2039,14 +2039,14 @@ pylcall8i_irate(PYCALL8 *p)
 
   if (result == NULL)
     {
-      err_printf("pylcall8i_irate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall8i_irate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 8)
     {
-      err_printf("pylcall8i_irate: callable must return 8 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall8i_irate: callable must return 8 values\n");
       return NOTOK;
     }
   else
@@ -2066,14 +2066,14 @@ pylcall8i_irate(PYCALL8 *p)
 }
 
 int
-pycall8t_krate(PYCALL8T *p)
+pycall8t_krate(void *csound_, PYCALL8T *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pycall8t_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pycall8t_krate: callable must be a string");
       return NOTOK;
     }
 
@@ -2090,20 +2090,20 @@ pycall8t_krate(PYCALL8T *p)
        return OK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, 0);
 
   if (result == NULL)
     {
-      err_printf("pycall8t_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall8t_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 8)
     {
-      err_printf("pycall8_krate: callable must return 8 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pycall8_krate: callable must return 8 values\n");
       return NOTOK;
     }
   else
@@ -2123,11 +2123,11 @@ pycall8t_krate(PYCALL8T *p)
 }
 
 int
-pylcall8t_irate(PYCALL8T *p)
+pylcall8t_irate(void *csound_, PYCALL8T *p)
 {
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall8t_irate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall8t_irate: callable must be a string");
       return NOTOK;
     }
 
@@ -2136,14 +2136,14 @@ pylcall8t_irate(PYCALL8T *p)
 }
 
 int
-pylcall8t_krate(PYCALL8T *p)
+pylcall8t_krate(void *csound_, PYCALL8T *p)
 {
   char command[1024];
   PyObject *result;
 
   if (*p->function != SSTRCOD)
     {
-      err_printf("pylcall8t_krate: callable must be a string");
+      ((ENVIRON *)csound_)->err_printf_("pylcall8t_krate: callable must be a string");
       return NOTOK;
     }
 
@@ -2160,20 +2160,20 @@ pylcall8t_krate(PYCALL8T *p)
        return OK;
     }
 
-  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
   if (result == NULL)
     {
-      err_printf("pylcall8t_krate: python exception\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall8t_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
 
   if (!PyTuple_Check(result) || PyTuple_Size(result) != 8)
     {
-      err_printf("pylcall8_krate: callable must return 8 values\n");
+      ((ENVIRON *)csound_)->err_printf_("pylcall8_krate: callable must return 8 values\n");
       return NOTOK;
     }
   else
