@@ -1,3 +1,7 @@
+2005-03-01	Istvan Varga	<istvan@csounds.com>
+	* Opcodes/gab/gab.c:
+	  fixes in Maldonado opcodes
+
 2005-02-28	Istvan Varga	<istvan@csounds.com>
 	* cleanup.sh:
 	  new script to remove files generated during compilation
