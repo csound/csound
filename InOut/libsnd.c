@@ -218,8 +218,7 @@ static void writesf(MYFLT *outbuf, int nbytes)
 
 static int readsf(MYFLT *inbuf, int inbufsize)
 {
- 
-	/* FIX, VL 02-11-04: function used to take samples instead of bytes */
+    /* FIX, VL 02-11-04: function used to take samples instead of bytes */
     return nchnls*sf_read_MYFLT(infile, inbuf, (inbufsiz/nchnls)/sizeof(MYFLT));
 }
 
@@ -407,11 +406,10 @@ void sfopenin(void)             /* init for continuous soundin */
       p->audrem = sfinfo.frames;
       audrecv = readsf;  /* will use standard audio gets  */
     }
-	
 #ifdef RTAUDIO
  inset:
 #endif
-    inbufsiz = (unsigned)(O.inbufsamps * sizeof(MYFLT));     /* calc inbufsize reqd   */
+    inbufsiz = (unsigned)(O.inbufsamps * sizeof(MYFLT)); /* calc inbufsize reqd */
     inbuf = (MYFLT *)mcalloc(inbufsiz); /* alloc inbuf space */
     printf(Str(X_1151,"reading %d-byte blks of %s from %s (%s)\n"),
            inbufsiz, getstrformat(O.informat), sfname,
@@ -421,7 +419,6 @@ void sfopenin(void)             /* init for continuous soundin */
     n = audrecv(inbuf, inbufsiz);          /*     file or devaudio  */
 /*     inbufrem = (unsigned int)n;            /\* datasiz in monosamps  *\/ */
 
-	
 }
 
 void sfopenout(void)                            /* init for sound out       */

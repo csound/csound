@@ -170,15 +170,14 @@ long getsndin(SNDFILE *fd, MYFLT *fp, long nlocs, SOUNDIN *p)
       bufend = p->bufend;
       while (nlocs--) {
         if (inbufp >= bufend) {
-			if ((n = sreadin(fd,p->inbuf,SNDINBUFSIZ,p)) == 0){
+          if ((n = sreadin(fd,p->inbuf,SNDINBUFSIZ,p)) == 0){
             break;
-			}
+          }
 
           inbufp = p->inbuf;
           bufend = p->inbuf + n;
         }
         *fp++ = *inbufp++ * scalefac * gain;
-		
       }
     }
     else {                                /* MULTI-CHANNEL, SELECT ONE */
