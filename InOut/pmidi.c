@@ -84,12 +84,11 @@ static int portMidi_getPackedDeviceID(int dev, int output)
     cnt = (int) Pm_CountDevices();
     i = j = -1;
     while (++i < cnt) {
+      info = (PmDeviceInfo*) Pm_GetDeviceInfo((PmDeviceID) i);
+      if ((output && info->output) || (!output && info->input))
+        j++;
       if (i == dev)
         return j;
-      info = (PmDeviceInfo*) Pm_GetDeviceInfo((PmDeviceID) i);
-      if ((output && !(info->output)) || (!output && !(info->input)))
-        continue;
-      j++;
     }
     return -1;
 }
