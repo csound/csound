@@ -76,6 +76,7 @@ static  int WindowType = 1;
 extern  OPARMS   O;
 extern  int      SAsndgetset(char*,SOUNDIN **,MYFLT*,MYFLT*,MYFLT*,int);
 extern  long     getsndin(int, MYFLT *, long, SOUNDIN *);
+extern  int      csoundYield(void*);
 
 #ifdef mills_macintosh
 #include "MacTransport.h"
@@ -365,7 +366,8 @@ static long takeFFTs(
         /* IV - Jul 11 2002 */
         *fp1++ *= dbfs_to_float;       /* normalize samples just read in */
       /* debug = 0; */
-    } while (/*POLL_EVENTS() &&*/ i < oframeEst);
+      if (!csoundYield(NULL)) break;
+    } while (i < oframeEst);
     if (!O.displays && !verbose) printf("%ld\n",i);
     if (i < oframeEst)
       printf(Str(X_575,"\tearly end of file\n"));

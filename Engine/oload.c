@@ -551,10 +551,10 @@ void oload(void)
           else {
             strsets[indx] = ttp->strargs[0];
           }
-          printf("Strsets[%d]:%s\n", indx, strsets[indx]);
+          printf("Strsets[%ld]:%s\n", indx, strsets[indx]);
           break;
         case PSET:
-          printf("PSET: isno=%d, pmax=%d\n", insno, ip->pmax);
+          printf("PSET: isno=%ld, pmax=%d\n", insno, ip->pmax);
           if ((n = aoffp->count) != ip->pmax) {
             if (O.msglevel & WARNMSG)
               printf(errmsg,Str(X_834,"WARNING: i%ld pset args != pmax\n"), insno);
@@ -592,7 +592,6 @@ void oload(void)
           *ndxp = (short)indx;
         }
       }
-/*       if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); /\* on Mac/Win, allow system events *\/ */
     }
 /*     if (pgmdim != NULL) free((char *)pgmdim); */
 /*     pctlist = (MYFLT **) mcalloc((long)256 * sizeof(MYFLT *)); */

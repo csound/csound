@@ -90,8 +90,6 @@ void DrawAscii(WINDAT *wdptr)   /* display an n-pnt float array using */
               printf("%c", ch);                         /*  putline to there */
             }
             printf("\n");
-/*             if (!POLL_EVENTS()) */
-/*               longjmp(cenviron.exitjmp_,1);/\* on Mac/Win, allow system events *\/ */
         }
     }
 }

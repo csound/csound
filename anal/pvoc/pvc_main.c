@@ -37,6 +37,10 @@ void KillGraph(WINDAT *x){KillGraph_(x);}
 void KillXYin(XYINDAT *x){KillXYin_(x);}
 int  ExitGraph(void){return ExitGraph_();}
 #endif
+int  csoundYield(void* csound)
+{
+    return 1;
+}
 
 int main(int argc, char **argv)
 {

@@ -970,7 +970,7 @@ static void gen23(void)         /* ASCII file table read Gab 17-feb-98*/
           p = buf;
         }
       }
-      printf("%d elements in %s\n", flen, e->strarg);
+      printf("%ld elements in %s\n", flen, e->strarg);
       rewind(infile);
       /* Allocate memory and read them in now */
       flen    = flen+2;

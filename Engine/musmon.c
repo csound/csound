@@ -41,6 +41,7 @@ int cleanup(void);
 extern int sensMidi(void);
 extern int sensFMidi(void);
 extern long kperf(long);
+extern  int      csoundYield(void*);
 
 #define SEGAMPS 01
 #define SORMSG  02
@@ -232,7 +233,6 @@ int musmon(void)
 #endif
                  VERSION, SUBVER, __DATE__);
 
-/*     if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); */
     if (O.Midiin) {
       MidiOpen();                     /*   alloc bufs & open files    */
     }
@@ -249,7 +249,6 @@ int musmon(void)
 #ifdef mills_macintosh
     fflush(stdout);
 #endif
-/*     if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); */
 
     multichan = (nchnls > 1) ? 1:0;
     maxampend = &maxamp[nchnls];
@@ -286,13 +285,11 @@ int musmon(void)
            O.outbufsamps);
     O.inbufsamps *= nchnls;         /* now adjusted for n channels  */
     O.outbufsamps *= nchnls;
-/*     if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); */
     if (O.sfread)                   /* if audio-in requested,       */
       sfopenin();                   /*   open/read? infile or device */
     if (O.sfwrite)                  /* if audio-out requested,      */
       sfopenout();                  /*   open the outfile or device */
     else sfnopenout();
-/*     if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); */
     iotranset();                    /* point recv & tran to audio formatter */
 
     curp2 = curbt = FL(0.0);
@@ -323,7 +320,6 @@ int musmon(void)
       if (!(oscfp = fopen("cscore.srt", "w")))  /*   writ to cscore.srt */
         die(Str(X_651,"cannot reopen cscore.srt"));
       printf(Str(X_1196,"sorting cscore.out ..\n"));
-/*       if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); */
       scsort(scfp, oscfp);                      /* call the sorter again */
       fclose(scfp); scfp = NULL;
       fclose(oscfp);
@@ -331,13 +327,11 @@ int musmon(void)
       if (!(scfp = fopen("cscore.srt", "r")))   /*   rd from cscore.srt */
         die(Str(X_651,"cannot reopen cscore.srt"));
       printf(Str(X_1127,"playing from cscore.srt\n"));
-/*       if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); */
       O.usingcscore = 0;
     }
     if (e == NULL)
       e = scorevtblk = (EVTBLK *) mmalloc((long)sizeof(EVTBLK));
     printf(Str(X_448,"SECTION %d:\n"),++sectno);
-/*     if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); */
 #ifdef mills_macintosh
     fflush(stdout);
 #endif
@@ -646,7 +640,7 @@ static int playevents(void)  /* play all events in a score or an lplay list */
             }
             else {                     /*  else some kind of off */
               do {
-                /* if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); */
+                if (!csoundYield(&cenviron)) longjmp(cenviron.exitjmp_,1);
                 if (ip->xtratim) {     /*    if offtime delayed  */
                   ip->relesing = 1;    /*     enter reles phase  */
                   ip->offtim = (kcounter + ip->xtratim) * onedkr;
@@ -827,8 +821,7 @@ int sensevents(void)
     int     n;
     char    opcod;
 
-/*     if (!POLL_EVENTS()) */
-/*       longjmp(cenviron.exitjmp_,1); */
+    if (!csoundYield(&cenviron)) longjmp(cenviron.exitjmp_,1);
 
     /* read each score event:       */
     if (kcnt <= 0) {
@@ -1061,7 +1054,7 @@ int sensevents(void)
           }
           else {                     /*  else some kind of off */
             do {
-              /* if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); */
+              if (!csoundYield(&cenviron)) longjmp(cenviron.exitjmp_,1);
               if (ip->xtratim) {     /*    if offtime delayed  */
                 ip->relesing = 1;    /*     enter reles phase  */
                 ip->offtim = (kcounter + ip->xtratim) * onedkr;

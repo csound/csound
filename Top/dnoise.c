@@ -338,7 +338,6 @@ int dnoise(int argc, char **argv)
                   if (O.msglevel & WARNMSG)
                     printf(Str(X_131,"WARNING: -W overriding local default AIFF out\n"));
                 }
-/*                 if (!POLL_EVENTS()) exit(1); */
                 O.filetyp = TYP_WAV;      /* WAV output request */
                 break;
               case 'h':
