@@ -1,3 +1,8 @@
+2005-02-17	Istvan Varga	<istvan@csounds.com>
+	* Top/csound.c:
+	  the CSRTAUDIO environment variable can be used to set default
+	  for -+rtaudio
+
 2005-02-16	Istvan Varga	<istvan@csounds.com>
 	* InOut/libsnd.c:
 	  print correct audio block sizes
