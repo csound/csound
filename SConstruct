@@ -336,6 +336,19 @@ if vstEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ld
 
 guiProgramEnvironment = commonEnvironment.Copy()
 
+if (not(commonEnvironment['usePortMIDI']=='0') and portmidiFound):
+    staticLibraryEnvironment.Append(CCFLAGS = '-DPORTMIDI')
+    pluginEnvironment.Append(CCFLAGS = '-DPORTMIDI')
+    csoundProgramEnvironment.Append(CCFLAGS = '-DPORTMIDI')
+    ustubProgramEnvironment.Append(CCFLAGS = '-DPORTMIDI')
+    vstEnvironment.Append(CCFLAGS = '-DPORTMIDI')
+    guiProgramEnvironment.Append(CCFLAGS = '-DPORTMIDI')
+    csoundProgramEnvironment.Append(LIBS = ['portmidi'])
+    vstEnvironment.Append(LIBS = ['portmidi'])
+    if getPlatform() != 'darwin' :
+        csoundProgramEnvironment.Append(LIBS = ['porttime'])
+        vstEnvironment.Append(LIBS = ['porttime'])
+
 if commonEnvironment['usePortAudio']=='1' and portaudioFound:
     staticLibraryEnvironment.Append(CCFLAGS = '-DRTAUDIO')
     pluginEnvironment.Append(CCFLAGS = '-DRTAUDIO')
@@ -400,22 +413,6 @@ if (commonEnvironment['useFLTK'] == '1' and fltkFound):
             csoundProgramEnvironment.Append(LINKFLAGS = ['-framework', 'Carbon'])
 	    csoundProgramEnvironment.Append(LINKFLAGS = ['-framework', 'CoreAudio'])
 	    csoundProgramEnvironment.Append(LINKFLAGS = ['-framework', 'CoreMidi'])
-
-if (not(commonEnvironment['usePortMIDI']=='0') and portmidiFound):
-    print 'Adding PortMIDI flags and libs'
-    staticLibraryEnvironment.Append(CCFLAGS = '-DPORTMIDI')
-    pluginEnvironment.Append(CCFLAGS = '-DPORTMIDI')
-    csoundProgramEnvironment.Append(CCFLAGS = '-DPORTMIDI')
-    ustubProgramEnvironment.Append(CCFLAGS = '-DPORTMIDI')
-    vstEnvironment.Append(CCFLAGS = '-DPORTMIDI')
-    guiProgramEnvironment.Append(CCFLAGS = '-DPORTMIDI')
-    csoundProgramEnvironment.Append(LIBS = ['portmidi'])
-    vstEnvironment.Append(LIBS = ['portmidi'])
-    if getPlatform() != 'darwin' :
-        csoundProgramEnvironment.Append(LIBS = ['porttime'])
-        vstEnvironment.Append(LIBS = ['porttime'])
-
-##### -framework ApplicationServices'))
 
 if getPlatform() == 'mingw':
     # These are the Windows system call libraries.
