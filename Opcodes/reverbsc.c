@@ -39,9 +39,9 @@
 #define MIN_SRATE       (DEFAULT_SRATE * 0.125)
 #define MAX_SRATE       (DEFAULT_SRATE * 8.0)
 #define MAX_PITCHMOD    10.0
-#define DELAYPOS_SHIFT  16
-#define DELAYPOS_MASK   65535
-#define DELAYPOS_SCALE  65536
+#define DELAYPOS_SHIFT  28
+#define DELAYPOS_SCALE  0x10000000
+#define DELAYPOS_MASK   0x0FFFFFFF
 
 /* reverbParams[n][0] = delay time (in seconds)                     */
 /* reverbParams[n][1] = random variation in delay time (in seconds) */
@@ -63,16 +63,16 @@ static const double outputGain  = 0.35;
 static const double jpScale     = 0.25;
 
 typedef struct {
-    unsigned long readPos;
-    unsigned long readPos_inc;
-    unsigned long readPos_max;
-    unsigned long dummy;
-    int           writePos;
-    int           writePos_max;
-    int           seedVal;
-    int           randLine_cnt;
-    double        filterState;
-    MYFLT         buf[1];
+    int         writePos;
+    int         bufferSize;
+    int         readPos;
+    int         readPosFrac;
+    int         readPosFrac_inc;
+    int         dummy;
+    int         seedVal;
+    int         randLine_cnt;
+    double      filterState;
+    MYFLT       buf[1];
 } delayLine;
 
 typedef struct {
@@ -93,7 +93,7 @@ static int delay_line_max_samples(SC_REVERB *p, int n)
     double  maxDel;
 
     maxDel = reverbParams[n][0];
-    maxDel += (reverbParams[n][1] * (double) *(p->iPitchMod) * 1.25);
+    maxDel += (reverbParams[n][1] * (double) *(p->iPitchMod) * 1.125);
     return (int) (maxDel * p->sampleRate + 16.5);
 }
 
@@ -120,9 +120,10 @@ static void next_random_lineseg(SC_REVERB *p, delayLine *lp, int n)
     /* length of next segment in samples */
     lp->randLine_cnt = (int) ((p->sampleRate / reverbParams[n][2]) + 0.5);
     prvDel = (double) lp->writePos;
-    prvDel -= ((double) lp->readPos / (double) DELAYPOS_SCALE);
-    if (prvDel < 0.0)
-      prvDel += (double) lp->writePos_max;
+    prvDel -= ((double) lp->readPos
+               + ((double) lp->readPosFrac / (double) DELAYPOS_SCALE));
+    while (prvDel < 0.0)
+      prvDel += (double) lp->bufferSize;
     prvDel = prvDel / p->sampleRate;    /* previous delay time in seconds */
     nxtDel = (double) lp->seedVal * reverbParams[n][1] / 32768.0;
     /* next delay time in seconds */
@@ -130,7 +131,7 @@ static void next_random_lineseg(SC_REVERB *p, delayLine *lp, int n)
     /* calculate phase increment per sample */
     phs_incVal = (prvDel - nxtDel) / (double) lp->randLine_cnt;
     phs_incVal = phs_incVal * p->sampleRate + 1.0;
-    lp->readPos_inc = (unsigned long) (phs_incVal * DELAYPOS_SCALE + 0.5);
+    lp->readPosFrac_inc = (int) (phs_incVal * DELAYPOS_SCALE + 0.5);
 }
 
 static void init_delay_line(SC_REVERB *p, delayLine *lp, int n)
@@ -139,22 +140,23 @@ static void init_delay_line(SC_REVERB *p, delayLine *lp, int n)
     int     i;
 
     /* calculate length of delay line */
-    lp->writePos_max = delay_line_max_samples(p, n);
-    lp->readPos_max = (unsigned long) lp->writePos_max << DELAYPOS_SHIFT;
-    lp->dummy = 0UL;
+    lp->bufferSize = delay_line_max_samples(p, n);
+    lp->dummy = 0;
     lp->writePos = 0;
     /* set random seed */
     lp->seedVal = (int) (reverbParams[n][3] + 0.5);
     /* set initial delay time */
     readPos = (double) lp->seedVal * reverbParams[n][1] / 32768;
     readPos = reverbParams[n][0] + (readPos * (double) *(p->iPitchMod));
-    readPos = (double) lp->writePos_max - (readPos * p->sampleRate);
-    lp->readPos = (unsigned long) (readPos * DELAYPOS_SCALE + 0.5);
+    readPos = (double) lp->bufferSize - (readPos * p->sampleRate);
+    lp->readPos = (int) readPos;
+    readPos = (readPos - (double) lp->readPos) * (double) DELAYPOS_SCALE;
+    lp->readPosFrac = (int) (readPos + 0.5);
     /* initialise first random line segment */
     next_random_lineseg(p, lp, n);
     /* clear delay line to zero */
     lp->filterState = 0.0;
-    for (i = 0; i < lp->writePos_max; i++)
+    for (i = 0; i < lp->bufferSize; i++)
       lp->buf[i] = FL(0.0);
 }
 
@@ -163,19 +165,21 @@ static void delay_line_perform(SC_REVERB *p, delayLine *lp, MYFLT inSig, int n)
     double  vm1, v0, v1, v2, am1, a0, a1, a2, frac, x;
     int     readPos;
 
-    if (lp->writePos >= lp->writePos_max)
-      lp->writePos -= lp->writePos_max;
     /* send input signal and feedback to delay line */
     lp->buf[lp->writePos] = (MYFLT) ((double) inSig + p->jpState
                                      - lp->filterState);
-    lp->writePos++;
+    if (++lp->writePos >= lp->bufferSize)
+      lp->writePos -= lp->bufferSize;
     /* read from delay line */
-    if (lp->readPos >= lp->readPos_max)
-      lp->readPos -= lp->readPos_max;
-    readPos = (int) (lp->readPos >> DELAYPOS_SHIFT);
-    frac = (double) ((int) (lp->readPos & (unsigned long) DELAYPOS_MASK));
-    frac *= (1.0 / (double) DELAYPOS_SCALE);
-    if (readPos > 0 && readPos < (lp->writePos_max - 2)) {
+    if (lp->readPosFrac >= DELAYPOS_SCALE) {
+      lp->readPos += (lp->readPosFrac >> DELAYPOS_SHIFT);
+      lp->readPosFrac &= DELAYPOS_MASK;
+    }
+    if (lp->readPos >= lp->bufferSize)
+      lp->readPos -= lp->bufferSize;
+    readPos = lp->readPos;
+    frac = (double) lp->readPosFrac * (1.0 / (double) DELAYPOS_SCALE);
+    if (readPos > 0 && readPos < (lp->bufferSize - 2)) {
       vm1 = (double) (lp->buf[readPos - 1]);
       v0 = (double) (lp->buf[readPos]);
       v1 = (double) (lp->buf[readPos + 1]);
@@ -183,16 +187,16 @@ static void delay_line_perform(SC_REVERB *p, delayLine *lp, MYFLT inSig, int n)
     }
     else {
       /* at buffer wrap-around, need to check index */
-      if (--readPos < 0) readPos += lp->writePos_max;
+      if (--readPos < 0) readPos += lp->bufferSize;
       vm1 = (double) lp->buf[readPos];
-      if (++readPos >= lp->writePos_max) readPos -= lp->writePos_max;
+      if (++readPos >= lp->bufferSize) readPos -= lp->bufferSize;
       v0 = (double) lp->buf[readPos];
-      if (++readPos >= lp->writePos_max) readPos -= lp->writePos_max;
+      if (++readPos >= lp->bufferSize) readPos -= lp->bufferSize;
       v1 = (double) lp->buf[readPos];
-      if (++readPos >= lp->writePos_max) readPos -= lp->writePos_max;
+      if (++readPos >= lp->bufferSize) readPos -= lp->bufferSize;
       v2 = (double) lp->buf[readPos];
     }
-    lp->readPos += lp->readPos_inc;
+    lp->readPosFrac += lp->readPosFrac_inc;
     /* with cubic interpolation */
     a2 = frac * frac; a2 -= 1.0; a2 *= (1.0 / 6.0);
     a1 = frac; a1 += 1.0; a1 *= 0.5; am1 = a1 - 1.0;
@@ -260,7 +264,7 @@ static int sc_reverb_perf(ENVIRON *csound, SC_REVERB *p)
     /* calculate tone filter coefficient if frequency changed */
     if (*(p->kLPFreq) != p->prv_LPFreq) {
       p->prv_LPFreq = *(p->kLPFreq);
-      p->dampFact = 2.0 - cos(p->prv_LPFreq * atan(1.0) * 8.0 / p->sampleRate);
+      p->dampFact = 2.0 - cos(p->prv_LPFreq * TWOPI / p->sampleRate);
       p->dampFact = p->dampFact - sqrt(p->dampFact * p->dampFact - 1.0);
     }
     /* update delay lines */
@@ -275,17 +279,17 @@ static int sc_reverb_perf(ENVIRON *csound, SC_REVERB *p)
       delay_line_perform(p, p->delayLines[1], p->ainR[i], 1);
       aoutR = p->delayLines[1]->filterState;
       delay_line_perform(p, p->delayLines[2], p->ainL[i], 2);
-      aoutL += (MYFLT) p->delayLines[2]->filterState;
+      aoutL += p->delayLines[2]->filterState;
       delay_line_perform(p, p->delayLines[3], p->ainR[i], 3);
-      aoutR += (MYFLT) p->delayLines[3]->filterState;
+      aoutR += p->delayLines[3]->filterState;
       delay_line_perform(p, p->delayLines[4], p->ainL[i], 4);
-      aoutL += (MYFLT) p->delayLines[4]->filterState;
+      aoutL += p->delayLines[4]->filterState;
       delay_line_perform(p, p->delayLines[5], p->ainR[i], 5);
-      aoutR += (MYFLT) p->delayLines[5]->filterState;
+      aoutR += p->delayLines[5]->filterState;
       delay_line_perform(p, p->delayLines[6], p->ainL[i], 6);
-      aoutL += (MYFLT) p->delayLines[6]->filterState;
+      aoutL += p->delayLines[6]->filterState;
       delay_line_perform(p, p->delayLines[7], p->ainR[i], 7);
-      aoutR += (MYFLT) p->delayLines[7]->filterState;
+      aoutR += p->delayLines[7]->filterState;
       p->aoutL[i] = (MYFLT) (aoutL * outputGain);
       p->aoutR[i] = (MYFLT) (aoutR * outputGain);
     }
