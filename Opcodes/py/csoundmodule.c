@@ -347,7 +347,7 @@ csound_ievent(PyObject *self, PyObject *args)
   dur = (MYFLT)PyFloat_AsDouble(PyTuple_GET_ITEM(args, 2));
 
   insno = (int)instr;
-  newnode = (EVTNODE *) mmalloc((long)sizeof(EVTNODE));
+  newnode = (EVTNODE *) mmalloc(csound, (long)sizeof(EVTNODE));
   newevt = &newnode->evt;
   newevt->opcod = 'i';
   /* Set start time from kwhen */
@@ -399,7 +399,7 @@ csound_eevent(PyObject *self, PyObject *args)
 
   onset = PyFloat_AsDouble(PyTuple_GET_ITEM(args, 0));
 
-  newnode = (EVTNODE *) mmalloc((long)sizeof(EVTNODE));
+  newnode = (EVTNODE *) mmalloc(csound, (long)sizeof(EVTNODE));
   newevt = &newnode->evt;
   newevt->opcod = 'e';
   /* Set start time from kwhen */

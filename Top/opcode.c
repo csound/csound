@@ -48,7 +48,7 @@ static int mystrcmp(const void *v1, const void *v2)
 opcodelist *new_opcode_list(void)
 {
     OENTRY *ops = opcodlst;
-    opcodelist *list = (opcodelist *)mmalloc(sizeof(opcodelist));
+    opcodelist *list = (opcodelist *)mmalloc(&cenviron, sizeof(opcodelist));
 
                                 /* All this hassle 'cos of MAC */
     long n = (long)((char*)oplstend-(char *)opcodlst);
@@ -56,10 +56,10 @@ opcodelist *new_opcode_list(void)
     n *= sizeof(sortable);
 
     list->size = 0;
-    list->table = (sortable*)mmalloc(n);
+    list->table = (sortable*)mmalloc(&cenviron, n);
                                 /* Skip first entry */
     while (++ops<oplstend) {
-      char *x = mmalloc(strlen(ops->opname)+1);
+      char *x = mmalloc(&cenviron, strlen(ops->opname)+1);
       strcpy(x, ops->opname);
       list->table[list->size].name = x;
       if ((x=strchr(x,'_'))) *x = '\0';
@@ -81,11 +81,11 @@ void dispose_opcode_list(opcodelist *list)
 {
     if (list) {
       while (list->size--) {
-        mfree(list->table[list->size].name);
+        mfree(&cenviron, list->table[list->size].name);
       }
 
-      mfree(list->table);
-      mfree(list);
+      mfree(&cenviron, list->table);
+      mfree(&cenviron, list);
     }
 }
 

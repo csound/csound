@@ -49,7 +49,7 @@ int dconvset(ENVIRON *csound, DCONV *p)
       return initerror(Str("No table for dconv"));
     }
     if (p->sigbuf.auxp == NULL || p->sigbuf.size < (int)(p->len*sizeof(MYFLT)))
-      auxalloc(p->len*sizeof(MYFLT), &p->sigbuf);
+      auxalloc(csound, p->len*sizeof(MYFLT), &p->sigbuf);
     p->curp = (MYFLT *)p->sigbuf.auxp;
     return OK;
 }
@@ -280,7 +280,7 @@ int vcombset(ENVIRON *csound, VCOMB *p)
     }
     nbytes = lpsiz * sizeof(MYFLT);
     if (p->auxch.auxp == NULL || nbytes != p->auxch.size) {
-      auxalloc((long)nbytes, &p->auxch);
+      auxalloc(csound, (long)nbytes, &p->auxch);
       p->pntr = (MYFLT *) p->auxch.auxp;
       if (p->pntr==NULL) {
         return initerror(Str("could not allocate memory"));

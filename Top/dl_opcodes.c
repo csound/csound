@@ -485,7 +485,7 @@ int csoundLoadExternal(void *csound, const char* libraryPath)
       printf("Adding %d bytes (%d opcodes) -- first opcode is '%s'.\n",
              length, length/sizeof(OENTRY), opcodlst_n[0].opname);
     }
-    opcodlst = (OENTRY*) mrealloc(opcodlst, olength*sizeof(OENTRY) + length);
+    opcodlst = (OENTRY*) mrealloc(csound, opcodlst, olength*sizeof(OENTRY) + length);
     memcpy(opcodlst+olength, opcodlst_n, length);
     oplstend = opcodlst + olength + length/sizeof(OENTRY);
     return 0;

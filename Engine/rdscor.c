@@ -50,7 +50,7 @@ static int scanflt(MYFLT *pfld)
     if (c == '"') {                               /* if find a quoted string  */
         char *sstrp;
         if ((sstrp = sstrbuf) == NULL)
-            sstrp = sstrbuf = mmalloc((long)SSTRSIZ);
+            sstrp = sstrbuf = mmalloc(&cenviron, (long)SSTRSIZ);
         while ((c = getc(xx)) != '"')
             *sstrp++ = c;                         /*   copy the characters    */
         *sstrp++ = '\0';
@@ -154,7 +154,7 @@ unwarped:   e->opcod = c;                    /* UNWARPED scorefile:  */
                         }
 setp:       e->pcnt = pp - &e->p[0];                   /* count the pfields */
             if (sstrlen) {                /* if string arg present, save it */
-                e->strarg = mmalloc((long) sstrlen);
+                e->strarg = mmalloc(&cenviron, (long) sstrlen);
                 strcpy(e->strarg, sstrbuf);
                 sstrlen = 0;
             }

@@ -310,7 +310,7 @@ int musmon(ENVIRON *csound)
     }
     if (O.usingcscore) {
       if (lsect == NULL) {
-        lsect = (EVENT *) mmalloc((long)sizeof(EVENT));
+        lsect = (EVENT *) mmalloc(csound, (long)sizeof(EVENT));
         lsect->op = 'l';
       }
       printf(Str("using Cscore processing\n"));
@@ -337,7 +337,7 @@ int musmon(ENVIRON *csound)
       O.usingcscore = 0;
     }
     if (e == NULL)
-      e = scorevtblk = (EVTBLK *) mmalloc((long)sizeof(EVTBLK));
+      e = scorevtblk = (EVTBLK *) mmalloc(csound, (long)sizeof(EVTBLK));
     printf(Str("SECTION %d:\n"),++sectno);
 #ifdef mills_macintosh
     fflush(stdout);
@@ -451,7 +451,7 @@ void kturnon(ENVIRON *csound)/* turn on instrs due in turnon list */
 {                            /* called by kperf when frsturnon set & ktime ready */
     int insno;
     TRNON *tp = turnons;
-    EVTBLK *e = (EVTBLK *) mmalloc((long)sizeof(EVTBLK));
+    EVTBLK *e = (EVTBLK *) mmalloc(csound, (long)sizeof(EVTBLK));
     e->opcod = 'i';
     e->pcnt = 3;
     /*    e->strlen = 0; */
@@ -474,7 +474,7 @@ void kturnon(ENVIRON *csound)/* turn on instrs due in turnon list */
       tp->insno = 0;                            /*      & mark it done */
       tp++;
     }
-    mfree((char *)e);
+    mfree(csound, (char *)e);
     if (tp < tpend && tp->insno) {              /*   if list non-empty  */
       TRNON *newtp = turnons;
       do {
@@ -815,7 +815,7 @@ int sensevents(ENVIRON *csound)
       }
       if (sensType) {                /* RT event now done:          */
         if (sensType == 4)           /* Free sched(k)when event     */
-          mfree(e);
+          mfree(csound, e);
         sensType = 0;
         e = scorevtblk;              /*    return to score context  */
         goto retest;                 /*    and resume the kperf     */

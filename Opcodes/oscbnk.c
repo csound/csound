@@ -375,7 +375,7 @@ static int oscbnkset(ENVIRON *csound, OSCBNK *p)
     if (p->nr_osc < 1) return OK;
     i = (long) p->nr_osc * (long) sizeof (OSCBNK_OSC);
     if ((p->auxdata.auxp == NULL) || (p->auxdata.size < i))
-      auxalloc(i, &(p->auxdata));
+      auxalloc(csound, i, &(p->auxdata));
     p->osc = (OSCBNK_OSC *) p->auxdata.auxp;
 
     i = 0; while (i++ < p->outft_len)       /* clear output ftable */
@@ -594,7 +594,7 @@ static int grain2set(ENVIRON *csound, GRAIN2 *p)
     if (p->nr_osc == -1) return OK;                /* no oscillators */
     n = (long) p->nr_osc * (long) sizeof(GRAIN2_OSC);
     if ((p->auxdata.auxp == NULL) || (p->auxdata.size < n))
-      auxalloc(n, &(p->auxdata));
+      auxalloc(csound, n, &(p->auxdata));
     p->osc = (GRAIN2_OSC *) p->auxdata.auxp;
 
     /* initialise oscillators */
@@ -783,7 +783,7 @@ static int grain3set(ENVIRON *csound, GRAIN3 *p)
     n = ((long) ksmps + 1L) * (long) sizeof(unsigned long);
     n += (long) p->ovrlap * (long) sizeof(GRAIN2_OSC);
     if ((p->auxdata.auxp == NULL) || (p->auxdata.size < n))
-      auxalloc(n, &(p->auxdata));
+      auxalloc(csound, n, &(p->auxdata));
     p->phase = (unsigned long *) p->auxdata.auxp;
     p->osc = (GRAIN2_OSC *) ((unsigned long *) p->phase + ksmps + 1);
     p->osc_start = p->osc;
@@ -1464,20 +1464,20 @@ static void vco2_delete_table_array(ENVIRON *csound, int w)
       return;
 #ifdef VCO2FT_USE_TABLE
     /* free number of partials -> table list, */
-    csound->mfree_((*vco2_tables)[w]->nparts_tabl);
+    csound->mfree_(csound, (*vco2_tables)[w]->nparts_tabl);
 #else
     /* free number of partials list, */
-    csound->mfree_((*vco2_tables)[w]->nparts);
+    csound->mfree_(csound, (*vco2_tables)[w]->nparts);
 #endif
     /* table data (only if not shared as standard Csound ftables), */
     for (j = 0; j < (*vco2_tables)[w]->ntabl; j++) {
       if ((*vco2_tables)[w]->base_ftnum < 1)
-        csound->mfree_((*vco2_tables)[w]->tables[j].ftable);
+        csound->mfree_(csound, (*vco2_tables)[w]->tables[j].ftable);
     }
     /* table list, */
-    csound->mfree_((*vco2_tables)[w]->tables);
+    csound->mfree_(csound, (*vco2_tables)[w]->tables);
     /* and table array structure */
-    csound->mfree_((*vco2_tables)[w]);
+    csound->mfree_(csound, (*vco2_tables)[w]);
     (*vco2_tables)[w] = NULL;
 }
 
@@ -1498,7 +1498,7 @@ static void vco2_tables_destroy(ENVIRON *csound)
     if (*vco2_tables != (VCO2_TABLE_ARRAY**) NULL) {    /* if there are any */
       for (i = 0; i < (*vco2_nr_table_arrays); i++)     /* tables: */
         vco2_delete_table_array(csound, i);
-      csound->mfree_(*vco2_tables);
+      csound->mfree_(csound, *vco2_tables);
       (*vco2_tables) = (VCO2_TABLE_ARRAY**) NULL;
       (*vco2_nr_table_arrays) = 0;
     }
@@ -1516,8 +1516,8 @@ static void vco2_calculate_table(ENVIRON *csound,
 
     /* allocate memory for FFT */
     ex = csound->AssignBasis_(NULL, (long) table->size);
-    fftbuf = (complex*)
-                 csound->mmalloc_(sizeof(complex) * ((table->size >> 1) + 1));
+    fftbuf = (complex*) csound->mmalloc_(csound, sizeof(complex)
+                                                 * ((table->size >> 1) + 1));
     if (tp->waveform >= 0) {                    /* no DC offset for built-in */
       minh = 1; fftbuf[0].re = fftbuf[0].im = FL(0.0);  /* waveforms */
     }
@@ -1562,7 +1562,7 @@ static void vco2_calculate_table(ENVIRON *csound,
     /* write guard point */
     table->ftable[table->size] = fftbuf[0].re;
     /* free memory used by temporary buffers */
-    csound->mfree_(fftbuf);
+    csound->mfree_(csound, fftbuf);
 }
 
 /* set default table parameters depending on waveform */
@@ -1646,7 +1646,8 @@ static int vco2_tables_create(ENVIRON *csound, int waveform, int base_ftable,
       /* extend space for table arrays */
       ntables = ((waveform >> 4) + 1) << 4;
       (*vco2_tables) = (VCO2_TABLE_ARRAY**)
-        csound->mrealloc_((*vco2_tables), sizeof(VCO2_TABLE_ARRAY*) * ntables);
+        csound->mrealloc_(csound, (*vco2_tables), sizeof(VCO2_TABLE_ARRAY*)
+                                                  * ntables);
       for (i = (*vco2_nr_table_arrays); i < ntables; i++)
         (*vco2_tables)[i] = NULL;
       (*vco2_nr_table_arrays) = ntables;
@@ -1655,75 +1656,78 @@ static int vco2_tables_create(ENVIRON *csound, int waveform, int base_ftable,
     if ((*vco2_tables)[waveform] != NULL) {
       vco2_delete_table_array(csound, waveform);
       /*if (csound->oparms_->msglevel & WARNMSG) */
-        csound->err_printf_("WARNING: redefined table array for waveform %d\n",
-                            (waveform > 4 ? 4 - waveform : waveform));
+      csound->err_printf_("WARNING: redefined table array for waveform %d\n",
+                          (waveform > 4 ? 4 - waveform : waveform));
     }
-      /* calculate number of tables */
+    /* calculate number of tables */
     i = tp->max_size >> 1;
     if (i > VCO2_MAX_NPART) i = VCO2_MAX_NPART; /* max number of partials */
     npart_f = 0.0; ntables = 0;
-      do {
-        ntables++;
+    do {
+      ntables++;
       vco2_next_npart(&npart_f, tp);
     } while (npart_f <= (double) i);
-      /* allocate memory for the table array ... */
+    /* allocate memory for the table array ... */
     tables = (*vco2_tables)[waveform] =
-      (VCO2_TABLE_ARRAY*) csound->mcalloc_(sizeof(VCO2_TABLE_ARRAY));
-      /* ... and all tables */
+      (VCO2_TABLE_ARRAY*) csound->mcalloc_(csound, sizeof(VCO2_TABLE_ARRAY));
+    /* ... and all tables */
 #ifdef VCO2FT_USE_TABLE
     tables->nparts_tabl =
-      (VCO2_TABLE**) csound->mmalloc_(sizeof(VCO2_TABLE*)
-                                      * (VCO2_MAX_NPART + 1));
+      (VCO2_TABLE**) csound->mmalloc_(csound, sizeof(VCO2_TABLE*)
+                                              * (VCO2_MAX_NPART + 1));
 #else
-    tables->nparts = (MYFLT*) csound->mmalloc_(sizeof(MYFLT) * (ntables * 3));
+    tables->nparts =
+        (MYFLT*) csound->mmalloc_(csound, sizeof(MYFLT) * (ntables * 3));
     for (i = 0; i < ntables; i++) {
       tables->nparts[i] = FL(-1.0);     /* padding for number of partials */
       tables->nparts[(ntables << 1) + i] = FL(1.0e24);  /* list */
     }
 #endif
-    tables->tables = (VCO2_TABLE*) csound->mcalloc_(sizeof(VCO2_TABLE) * ntables);
-      /* generate tables */
+    tables->tables =
+        (VCO2_TABLE*) csound->mcalloc_(csound, sizeof(VCO2_TABLE) * ntables);
+    /* generate tables */
     tables->ntabl = ntables;            /* store number of tables */
     tables->base_ftnum = base_ftable;   /* and base ftable number */
     npart_f = 0.0; i = 0;
-      do {
-        /* store number of partials, */
+    do {
+      /* store number of partials, */
       npart = tables->tables[i].npart = (int) (npart_f + 0.5);
 #ifndef VCO2FT_USE_TABLE
       tables->nparts[ntables + i] = (MYFLT) npart;
 #endif
-        /* table size, */
+      /* table size, */
       tables->tables[i].size = vco2_table_size(npart, tp);
-        /* and other parameters */
+      /* and other parameters */
       oscbnk_flen_setup((long) tables->tables[i].size,
                         &(tables->tables[i].mask),
                         &(tables->tables[i].lobits),
                         &(tables->tables[i].pfrac));
-        /* if base ftable was specified, generate empty table ... */
-        if (base_ftable > 0) {
-          EVTBLK  e;
-          FUNC    *ftp;
+      /* if base ftable was specified, generate empty table ... */
+      if (base_ftable > 0) {
+        EVTBLK  e;
+        FUNC    *ftp;
 
-          e.strarg = NULL;                      /* create "f" event */
-          e.opcod = 'f';
-          e.pcnt = 5;
-          e.p[1] = (MYFLT) base_ftable;
-          e.p[2] = e.p2orig = e.offtim = FL(0.0);
+        e.strarg = NULL;                      /* create "f" event */
+        e.opcod = 'f';
+        e.pcnt = 5;
+        e.p[1] = (MYFLT) base_ftable;
+        e.p[2] = e.p2orig = e.offtim = FL(0.0);
         e.p[3] = e.p3orig = (MYFLT) tables->tables[i].size;
-          e.p[4] = FL(-2.0);           /* GEN02 */
-          e.p[5] = FL(0.0);
-          if ((ftp = csound->hfgens_(csound, &e)) == NULL) return -1;
+        e.p[4] = FL(-2.0);           /* GEN02 */
+        e.p[5] = FL(0.0);
+        if ((ftp = csound->hfgens_(csound, &e)) == NULL) return -1;
         tables->tables[i].ftable = ftp->ftable;
-          base_ftable++;                /* next table number */
-        }
-        else    /* ... else allocate memory (cannot be accessed as a       */
+        base_ftable++;                /* next table number */
+      }
+      else    /* ... else allocate memory (cannot be accessed as a       */
         tables->tables[i].ftable =      /* standard Csound ftable) */
-          (MYFLT*) csound->mmalloc_(sizeof(MYFLT) * (tables->tables[i].size + 1));
-        /* now calculate the table */
+          (MYFLT*) csound->mmalloc_(csound, sizeof(MYFLT)
+                                            * (tables->tables[i].size + 1));
+      /* now calculate the table */
       vco2_calculate_table(csound, &(tables->tables[i]), tp);
-        /* next table */
+      /* next table */
       vco2_next_npart(&npart_f, tp);
-      } while (++i < ntables);
+    } while (++i < ntables);
 #ifdef VCO2FT_USE_TABLE
     /* build table for number of harmonic partials -> table lookup */
     i = npart = 0;
@@ -1809,7 +1813,7 @@ static int vco2init(ENVIRON *csound, VCO2INIT *p)
       i = ftp->flen;
       tp.w_npart = i >> 1;
       ex = AssignBasis(NULL, (long) i);
-      tp.w_fftbuf = (complex*) mmalloc(sizeof(complex) * ((i >> 1) + 1));
+      tp.w_fftbuf = (complex*) mmalloc(csound, sizeof(complex) * ((i >> 1) + 1));
       for (i = 0; i < ftp->flen; i++) {
         tp.w_fftbuf[i >> 1].re = ftp->ftable[i] / (MYFLT) (ftp->flen >> 1);
         i++;
@@ -1819,7 +1823,7 @@ static int vco2init(ENVIRON *csound, VCO2INIT *p)
       /* generate table array */
       ftnum = vco2_tables_create(csound,waveforms, ftnum, &tp);
         /* free memory used by FFT buffer */
-        mfree(tp.w_fftbuf);
+        mfree(csound, tp.w_fftbuf);
       if (base_ftable > 0 && ftnum <= 0) {
         return initerror(Str("ftgen error"));
       }
@@ -2169,7 +2173,7 @@ static int delaykset(ENVIRON *csound, DELAYK *p)
     /* allocate space for delay buffer */
     if (p->aux.auxp == NULL ||
         (npts * (int) sizeof(MYFLT)) > p->aux.size) {
-      auxalloc((long) (npts * sizeof(MYFLT)), &p->aux);
+      auxalloc(csound, (long) (npts * sizeof(MYFLT)), &p->aux);
     }
     p->init_k = npts - 1;
     return OK;
@@ -2208,7 +2212,7 @@ static int vdelaykset(ENVIRON *csound, VDELAYK *p)
     /* allocate space for delay buffer */
     if (p->aux.auxp == NULL ||
         (npts * (int) sizeof(MYFLT)) > p->aux.size) {
-      auxalloc((long) (npts * sizeof(MYFLT)), &p->aux);
+      auxalloc(csound, (long) (npts * sizeof(MYFLT)), &p->aux);
     }
     p->init_k = npts;           /* not -1 this time ! */
     return OK;

@@ -115,8 +115,8 @@ void tranRESET(void)
     while (opcodeInfo != NULL) {
       OPCODINFO *inm = opcodeInfo->prv;
       /* note: out_ndx_list should not be mfree'd */
-      if (opcodeInfo->in_ndx_list != NULL) mfree(opcodeInfo->in_ndx_list);
-      mfree(opcodeInfo);
+      if (opcodeInfo->in_ndx_list != NULL) mfree(&cenviron, opcodeInfo->in_ndx_list);
+      mfree(&cenviron, opcodeInfo);
       opcodeInfo = inm;
     }
     named_instr_free();         /* IV - Oct 31 2002 */
@@ -198,7 +198,7 @@ static int parse_opcode_args(OENTRY *opc)
     inm->perf_outcnt = a_outcnt + k_outcnt;
     /* now build index lists for the various types of arguments */
     i = i_incnt + inm->perf_incnt + i_outcnt + inm->perf_outcnt;
-    i_inlist = inm->in_ndx_list = (short*) mmalloc(sizeof(short) * (i + 6));
+    i_inlist = inm->in_ndx_list = (short*) mmalloc(&cenviron, sizeof(short) * (i + 6));
     a_inlist = i_inlist + i_incnt + 1;
     k_inlist = a_inlist + a_incnt + 1;
     i = 0; types = inm->intypes;
@@ -244,14 +244,14 @@ void otran(void)
     long        pmax = -1, nn;
     long        n, opdstot=0, count, sumcount, instxtcount, optxtcount;
 
-    gbl.names  = (NAME *)mmalloc((long)(GNAMES*sizeof(NAME)));
+    gbl.names  = (NAME *)mmalloc(&cenviron, (long)(GNAMES*sizeof(NAME)));
     gbl.namlim = gbl.names + GNAMES;
     gbl.nxtslot = gbl.names;
     gbl.next = NULL;
-    lcl.names = (NAME *)mmalloc((long)(LNAMES*sizeof(NAME)));
+    lcl.names = (NAME *)mmalloc(&cenviron, (long)(LNAMES*sizeof(NAME)));
     lcl.namlim = lcl.names + LNAMES;
     lcl.next = NULL;
-    instrtxtp = (INSTRTXT **)mcalloc((long)((1+maxinsno)*sizeof(INSTRTXT*)));
+    instrtxtp = (INSTRTXT **)mcalloc(&cenviron, (long)((1+maxinsno)*sizeof(INSTRTXT*)));
     opcodeInfo = NULL;  /* IV - Oct 20 2002 */
     opcode_list_create();               /* IV - Oct 31 2002 */
 
@@ -271,7 +271,7 @@ void otran(void)
 
     rdorchfile();                               /* go read orch file    */
     if (pool == NULL) {
-      pool = (MYFLT *)mmalloc((long)NCONSTS * sizeof(MYFLT));
+      pool = (MYFLT *)mmalloc(&cenviron, (long)NCONSTS * sizeof(MYFLT));
       *pool = (MYFLT)SSTRCOD;
       poolcount = 1;
       nconsts = NCONSTS;
@@ -282,7 +282,7 @@ void otran(void)
         switch (opnum) {
         case INSTR:
         case OPCODE:            /* IV - Sep 8 2002 */
-            ip = (INSTRTXT *) mcalloc((long)sizeof(INSTRTXT));
+            ip = (INSTRTXT *) mcalloc(&cenviron, (long)sizeof(INSTRTXT));
             prvinstxt = prvinstxt->nxtinstxt = ip;
             txtcpy((char *)&ip->t,(char *)tp);
             prvbp = (OPTXT *) ip;               /* begin an optxt chain */
@@ -313,7 +313,7 @@ void otran(void)
 /*                err_printf(Str("Extending instr number from %d to %d\n"),
                   old_maxinsno, maxinsno); */
                     instrtxtp = (INSTRTXT**)
-                      mrealloc(instrtxtp,
+                      mrealloc(&cenviron, instrtxtp,
                                (long)((1+maxinsno)*sizeof(INSTRTXT*)));
                   /* Array expected to be nulled so.... */
                     for (i=old_maxinsno+1; i<=maxinsno; i++) instrtxtp[i]=NULL;
@@ -391,13 +391,13 @@ void otran(void)
               /* IV - Oct 31 2002: reduced number of calls to mrealloc() */
               if (!(newopnum & 0xFFL) || !opcodeInfo)
                 opcodlst = (OENTRY *)
-                  mrealloc(opcodlst,
+                  mrealloc(&cenviron, opcodlst,
                            sizeof(OENTRY) * ((newopnum | 0xFFL) + 1L));
               oplstend = newopc = opcodlst + newopnum;
               oplstend++;
               /* IV - Oct 31 2002 */
               /* store the name in a linked list (note: must use mcalloc) */
-              inm = (OPCODINFO *) mcalloc(sizeof(OPCODINFO));
+              inm = (OPCODINFO *) mcalloc(&cenviron, sizeof(OPCODINFO));
               inm->name = name;
               inm->intypes = alp->arg[2];
               inm->outtypes = alp->arg[1];
@@ -413,9 +413,9 @@ void otran(void)
               opcode_list_add_entry(newopnum, 1);
               ip->insname = name; ip->opcode_info = inm; /* IV - Nov 10 2002 */
               /* check in/out types and copy to the opcode's */
-              newopc->outypes = mmalloc(strlen(alp->arg[1]) + 1);
+              newopc->outypes = mmalloc(&cenviron, strlen(alp->arg[1]) + 1);
                 /* IV - Sep 8 2002: opcodes have an optional arg for ksmps */
-              newopc->intypes = mmalloc(strlen(alp->arg[2]) + 2);
+              newopc->intypes = mmalloc(&cenviron, strlen(alp->arg[2]) + 2);
               if (parse_opcode_args(newopc)) continue;
               n = -2;
 /* ---- IV - Oct 16 2002: end of new code ----> */
@@ -427,8 +427,8 @@ void otran(void)
                 lcl.next = NULL;
                 while (lll) {
                     struct namepool *n = lll->next;
-                    mfree(lll->names);
-                    mfree(lll);
+                    mfree(&cenviron, lll->names);
+                    mfree(&cenviron, lll);
                     lll = n;
                 }
             }
@@ -441,7 +441,7 @@ void otran(void)
             break;
         case ENDIN:
         case ENDOP:             /* IV - Sep 8 2002 */
-            bp = (OPTXT *) mcalloc((long)sizeof(OPTXT));
+            bp = (OPTXT *) mcalloc(&cenviron, (long)sizeof(OPTXT));
             txtcpy((char *)&bp->t, (char *)tp);
             prvbp->nxtop = bp;
             bp->nxtop = NULL;   /* terminate the optxt chain */
@@ -477,7 +477,7 @@ void otran(void)
             n = -1;             /* No longer in an instrument */
             break;
         default:
-            bp = (OPTXT *) mcalloc((long)sizeof(OPTXT));
+            bp = (OPTXT *) mcalloc(&cenviron, (long)sizeof(OPTXT));
             txtcpy((char *)&bp->t,(char *)tp);
             prvbp = prvbp->nxtop = bp;  /* link into optxt chain */
             threads |= opcodlst[opnum].thread;
@@ -544,7 +544,7 @@ void otran(void)
           i = (maxopcno > 0 ? maxopcno : maxinsno);
           maxopcno = i + MAXINSNO;
           instrtxtp = (INSTRTXT**)
-            mrealloc(instrtxtp, (long) ((1 + maxopcno) * sizeof(INSTRTXT*)));
+            mrealloc(&cenviron, instrtxtp, (long) ((1 + maxopcno) * sizeof(INSTRTXT*)));
           /* Array expected to be nulled so.... */
           while (++i <= maxopcno) instrtxtp[i] = NULL;
         }
@@ -630,7 +630,7 @@ void otran(void)
     gblacount = gblnxtacnt;
 
     if (strargsize) {
-      strargspace = mcalloc((long)strargsize);
+      strargspace = mcalloc(&cenviron, (long)strargsize);
       strargptr = strargspace;
     }
     ip = &instxtanchor;
@@ -650,7 +650,7 @@ void otran(void)
       ip->optxtcount = optxtcount;            /* optxts in this instxt */
     }
     argoffsize = (sumcount + 1) * sizeof(int);/* alloc all plus 1 null */
-    ARGOFFSPACE = (int *) mmalloc((long)argoffsize);   /* as argoff ints */
+    ARGOFFSPACE = (int *) mmalloc(&cenviron, (long)argoffsize);   /* as argoff ints */
     nxtargoffp = ARGOFFSPACE;
     nulloffs = (ARGOFFS *) ARGOFFSPACE;         /* setup the null argoff */
     *nxtargoffp++ = 0;
@@ -702,9 +702,9 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
     ARGOFFS     *outoffs, *inoffs;
     int         indx, *ndxp;
 
-    labels = (char **)mmalloc((nlabels) * sizeof(char *));
+    labels = (char **)mmalloc(&cenviron, (nlabels) * sizeof(char *));
     lblsp = labels;
-    larg = (LBLARG *)mmalloc((ngotos) * sizeof(LBLARG));
+    larg = (LBLARG *)mmalloc(&cenviron, (ngotos) * sizeof(LBLARG));
     largp = larg;
     lclkcnt = tp->lclkcnt;
     lcldcnt = tp->lcldcnt;
@@ -717,8 +717,8 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
       lcl.next = NULL;
       while (lll) {
         struct namepool *n = lll->next;
-        mfree(lll->names);
-        mfree(lll);
+        mfree(&cenviron, lll->names);
+        mfree(&cenviron, lll);
         lll = n;
       }
     }
@@ -741,7 +741,7 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
           if (lblsp - labels >= nlabels) nlabels = lblsp - labels + 2;
           printf(Str("LABELS list is full...extending to %d\n"), nlabels);
           labels =
-            (char**)mrealloc(labels,(long)nlabels*sizeof(char *));
+            (char**)mrealloc(&cenviron, labels,(long)nlabels*sizeof(char *));
           lblsp = &labels[oldn];
         }
         *lblsp++ = ttp->opcod;
@@ -793,7 +793,7 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
               printf(Str("GOTOS list is full..extending to %d\n"), ngotos);
               if (largp - larg >= ngotos) ngotos = largp - larg + 1;
               larg = (LBLARG *)
-                mrealloc(larg,(long)ngotos*sizeof(LBLARG));
+                mrealloc(&cenviron, larg,(long)ngotos*sizeof(LBLARG));
               largp = &larg[oldn];
             }
             if (O.odebug) printf("\t***lbl");  /* if arg is label,  */
@@ -837,8 +837,8 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
       dies(Str("target label '%s' not found"), s);
     }
     nxtargoffp = ndxp;
-    mfree(labels);
-    mfree(larg);
+    mfree(&cenviron, labels);
+    mfree(&cenviron, larg);
 }
 
 static void lgbuild(char *s)    /* build pool of floating const values  */
@@ -908,7 +908,7 @@ static int constndx(char *s)    /* get storage ndx of float const value */
       int indx = fp-pool;
       nconsts += NCONSTS;
       printf(Str("extending Floating pool to %d\n"), nconsts);
-      pool = (MYFLT*)mrealloc(pool, nconsts*sizeof(MYFLT));
+      pool = (MYFLT*)mrealloc(&cenviron, pool, nconsts*sizeof(MYFLT));
       fp = pool + indx;
     }
     *fp = newval;                               /* else enter newval    */
@@ -936,9 +936,9 @@ static void gblnamset(char *s) /* builds namelist & type counts for gbl names */
         if (ggg->next == NULL) {
           err_printf( Str("Extending Global pool to %d\n"),
                       gblsize+=GNAMES);
-          ggg->next = (struct namepool*)mmalloc(sizeof(struct namepool));
+          ggg->next = (struct namepool*)mmalloc(&cenviron, sizeof(struct namepool));
           ggg = ggg->next;
-          ggg->names = (NAME *)mmalloc((long)(GNAMES*sizeof(NAME)));
+          ggg->names = (NAME *)mmalloc(&cenviron, (long)(GNAMES*sizeof(NAME)));
           ggg->namlim = ggg->names + GNAMES;
           ggg->nxtslot = ggg->names;
           ggg->next = NULL;
@@ -979,9 +979,9 @@ static NAME *lclnamset(char *s)
         if (lll->next == NULL) {
           err_printf( Str("Extending Local pool to %d\n"),
                       lclsize+=LNAMES);
-          lll->next = (struct namepool*)mmalloc(sizeof(struct namepool));
+          lll->next = (struct namepool*)mmalloc(&cenviron, sizeof(struct namepool));
           lll = lll->next;
-          lll->names = (NAME *)mmalloc((long)(LNAMES*sizeof(NAME)));
+          lll->names = (NAME *)mmalloc(&cenviron, (long)(LNAMES*sizeof(NAME)));
           lll->namlim = lll->names + LNAMES;
           lll->nxtslot = lll->names;
           lll->next = NULL;

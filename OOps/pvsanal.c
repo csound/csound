@@ -84,23 +84,23 @@ int pvsanalset(ENVIRON *csound, PVSANAL *p)
 
     if (p->overlapbuf.auxp==NULL ||
         overlap * sizeof(MYFLT) > (unsigned int)p->overlapbuf.size)
-      auxalloc(overlap * sizeof(MYFLT),&p->overlapbuf);
+      auxalloc(csound, overlap * sizeof(MYFLT),&p->overlapbuf);
     if (p->analbuf.auxp==NULL ||
         (N+2) * sizeof(MYFLT) > (unsigned int)p->analbuf.size)
-      auxalloc((N+2) * sizeof(MYFLT),&p->analbuf);
+      auxalloc(csound, (N+2) * sizeof(MYFLT),&p->analbuf);
     if (p->analwinbuf.auxp==NULL ||
         (M+Mf) * sizeof(MYFLT) > (unsigned int)p->analwinbuf.size)
-      auxalloc((M+Mf) * sizeof(MYFLT),&p->analwinbuf);
+      auxalloc(csound, (M+Mf) * sizeof(MYFLT),&p->analwinbuf);
     if (p->oldInPhase.auxp==NULL ||
         nBins * sizeof(MYFLT) > (unsigned int)p->oldInPhase.size)
-      auxalloc(nBins * sizeof(MYFLT),&p->oldInPhase);
+      auxalloc(csound, nBins * sizeof(MYFLT),&p->oldInPhase);
     if (p->input.auxp==NULL ||
         buflen*sizeof(MYFLT) > (unsigned int)p->input.size)
-      auxalloc(buflen*sizeof(MYFLT),&p->input);
+      auxalloc(csound, buflen*sizeof(MYFLT),&p->input);
     /* the signal itself */
     if (p->fsig->frame.auxp==NULL ||
         (N+2)*sizeof(MYFLT) > (unsigned int)p->fsig->frame.size)
-      auxalloc((N+2)*sizeof(MYFLT),&p->fsig->frame);
+      auxalloc(csound, (N+2)*sizeof(MYFLT),&p->fsig->frame);
 
     /* make the analysis window*/
     analwinbase = (MYFLT *) (p->analwinbuf.auxp);
@@ -380,22 +380,22 @@ int pvsynthset(ENVIRON *csound, PVSYNTH *p)
     /* deal with iinit later on! */
     if (p->overlapbuf.auxp==NULL ||
         overlap * sizeof(MYFLT) > (unsigned int)p->overlapbuf.size)
-      auxalloc(overlap * sizeof(MYFLT),&p->overlapbuf);
+      auxalloc(csound, overlap * sizeof(MYFLT),&p->overlapbuf);
     if (p->synbuf.auxp==NULL ||
         (N+2) * sizeof(MYFLT) > (unsigned int)p->synbuf.size)
-      auxalloc((N+2) * sizeof(MYFLT),&p->synbuf);
+      auxalloc(csound, (N+2) * sizeof(MYFLT),&p->synbuf);
     if (p->analwinbuf.auxp==NULL ||
         (M+Mf) * sizeof(MYFLT) > (unsigned int)p->analwinbuf.size)
-      auxalloc((M+Mf) * sizeof(MYFLT),&p->analwinbuf);
+      auxalloc(csound, (M+Mf) * sizeof(MYFLT),&p->analwinbuf);
     if (p->synwinbuf.auxp==NULL ||
         (M+Mf) * sizeof(MYFLT) > (unsigned int)p->synwinbuf.size)
-      auxalloc((M+Mf) * sizeof(MYFLT),&p->synwinbuf);
+      auxalloc(csound, (M+Mf) * sizeof(MYFLT),&p->synwinbuf);
     if (p->oldOutPhase.auxp==NULL ||
         nBins * sizeof(MYFLT) > (unsigned int)p->oldOutPhase.size)
-      auxalloc(nBins * sizeof(MYFLT),&p->oldOutPhase);
+      auxalloc(csound, nBins * sizeof(MYFLT),&p->oldOutPhase);
     if (p->output.auxp==NULL ||
         buflen*sizeof(MYFLT) > (unsigned int)p->output.size)
-      auxalloc(buflen*sizeof(MYFLT),&p->output);
+      auxalloc(csound, buflen*sizeof(MYFLT),&p->output);
 
     /* have to make analysis window to get amp scaling */
     /* so this ~could~ be a local alloc and free...*/

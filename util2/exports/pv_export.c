@@ -35,11 +35,6 @@
 
 void usage(int);
 
-void mfree(void *x)
-{
-    free(x);
-}
-
 int main(int argc, char **argv)
 {
     PVSTRUCT pv;
@@ -113,13 +108,5 @@ void usage(int argc)
     fprintf(stderr, Str("pv_export usage: pvfile commafile\n"));
     fprintf(stderr, "argc=%d\n", argc);
     exit(1);
-}
-
-void err_printf(char *fmt, ...)
-{
-    va_list a;
-    va_start(a, fmt);
-    vfprintf(stderr, fmt, a);
-    va_end(a);
 }
 

@@ -132,7 +132,7 @@ SCsndgetset(char *inputfile)
     sssfinit();                 /* stand-alone init of SFDIR etc. */
     esr = 0.0;                  /* set esr 0. with no orchestra   */
     optxt.t.outoffs = &argoffs; /* point to dummy OUTOCOUNT       */
-    p = (SOUNDIN *) mcalloc((long)sizeof(SOUNDIN));
+    p = (SOUNDIN *) mcalloc(&cenviron, (long)sizeof(SOUNDIN));
     p->channel = ALLCHNLS;
     p->h.optext = &optxt;
     p->ifilno = &sstrcod;

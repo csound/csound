@@ -343,7 +343,7 @@ void sfopenin(void *csound)             /* init for continuous soundin */
     char    *sfname = NULL;
 
     if (p == NULL)
-      p = (SOUNDIN *) mcalloc((long)sizeof(SOUNDIN));
+      p = (SOUNDIN *) mcalloc(csound, (long)sizeof(SOUNDIN));
     if (O.infilename != NULL && strcmp(O.infilename,"stdin") == 0) {
       sfname = O.infilename;
       isfd = 0;         /* get sound from stdin if requested */
@@ -437,7 +437,7 @@ void sfopenin(void *csound)             /* init for continuous soundin */
 
  inset:
     inbufsiz = (unsigned)(O.inbufsamps * sizeof(MYFLT)); /* calc inbufsize reqd */
-    inbuf = (MYFLT *)mcalloc(inbufsiz); /* alloc inbuf space */
+    inbuf = (MYFLT *)mcalloc(csound, inbufsiz); /* alloc inbuf space */
     printf(Str("reading %d-byte blks of %s from %s (%s)\n"),
            O.inbufsamps * format_nbytes(O.informat),
            getstrformat(O.informat), sfname,
@@ -535,7 +535,7 @@ void sfopenout(void *csound)                    /* init for sound out       */
     }
     else if (strcmp(O.outfilename,"null") == 0) {
       osfd = -1;
-      sfoutname = mmalloc((long)strlen(retfilnam)+1);
+      sfoutname = mmalloc(csound, (long)strlen(retfilnam)+1);
       strcpy(sfoutname, retfilnam);       /*   & preserve the name */
     }
     else {  /* else open sfdir or cwd */
@@ -548,7 +548,7 @@ void sfopenout(void *csound)                    /* init for sound out       */
       sfinfo.seekable = 0;
       if ((osfd = openout(O.outfilename, 3)) < 0)
         dies(Str("sfinit: cannot open %s"), retfilnam);
-      sfoutname = mmalloc((long)strlen(retfilnam)+1);
+      sfoutname = mmalloc(csound, (long)strlen(retfilnam)+1);
       strcpy(sfoutname, retfilnam);       /*   & preserve the name */
       outfile = sf_open_fd(osfd, SFM_WRITE, &sfinfo, 1);
       if (peakchunks)
@@ -601,7 +601,7 @@ void sfopenout(void *csound)                    /* init for sound out       */
 
 outset:
     outbufsiz = (unsigned)O.outbufsamps * sizeof(MYFLT);/* calc outbuf size */
-    outbufp = outbuf = mmalloc((long)outbufsiz); /*  & alloc bufspace */
+    outbufp = outbuf = mmalloc(csound, (long)outbufsiz); /*  & alloc bufspace */
     printf(Str("writing %d-byte blks of %s to %s\n"),
            O.outbufsamps * format_nbytes(O.outformat),
            getstrformat(O.outformat), sfoutname);

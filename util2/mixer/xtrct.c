@@ -1,4 +1,4 @@
-/*  
+/*
     xtrct.c
 
     Copyright (C) 1995 John ffitch
@@ -43,8 +43,8 @@
 #include "soundio.h"
 
 /* Constants */
-#define NUMBER_OF_SAMPLES	(4096)
-#define SHORTMAX 		(32767)
+#define NUMBER_OF_SAMPLES       (4096)
+#define SHORTMAX                (32767)
 #define FIND(MSG)   if (*s == '\0')  \
                         if (!(--argc) || ((s = *++argv) && *s == '-')) \
                             die(MSG);
@@ -54,12 +54,12 @@ void rlsmemfiles(void)
 }
 
 long        sample;         /* Time file starts in samples */
-long	    stop;           /* Time file ends in samples */
-long	    numsamps;       /* Length in samples */
+long        stop;           /* Time file ends in samples */
+long        numsamps;       /* Length in samples */
 MYFLT       stime;          /* Time file starts in secs */
 MYFLT       endtime;        /* Time file ends in secs */
-MYFLT	    dur;	    /* Length in secs */
-int	    outputs;	    /* Number of out chanels */
+MYFLT       dur;            /* Length in secs */
+int         outputs;        /* Number of out chanels */
 
 SOUNDIN *   p;              /* Csound structure */
 
@@ -110,7 +110,7 @@ main(int argc, char **argv)
     init_getstring(argc, argv);
 /*     response_expand(&argc, &argv); /\* Permits "@xxx" response files *\/ */
     /* Check arguments */
-    O.filnamspace = filnamp = mmalloc((long)1024);
+    O.filnamspace = filnamp = mmalloc(&cenviron, (long)1024);
     sample = -1; stime = -FL(1.0);
     stop  = -1; endtime = -FL(1.0);
     numsamps = -1; dur = -FL(1.0);
@@ -157,7 +157,7 @@ main(int argc, char **argv)
               sample = -1;
             }
             break;
-          case 'Z':	/* Last sample */
+          case 'Z':     /* Last sample */
             FIND("no end sample");
             stop = atoi(s);
             while (*++s);
@@ -177,7 +177,7 @@ main(int argc, char **argv)
               numsamps = -1;
             }
             break;
-          case 'E':	/* Last time */
+          case 'E':     /* Last time */
             FIND("no end time");
             endtime = (MYFLT) atof(s);
             while (*++s);
@@ -269,7 +269,7 @@ main(int argc, char **argv)
       err_printf("%s: error while opening %s", argv[0], inputfile);
       exit(1);
     }
-     
+
     if (debug) {
       err_printf("Times %f %f %f\nNums %ld %ld %ld\n",
                  stime, endtime, dur, sample, stop, numsamps);
@@ -285,7 +285,7 @@ main(int argc, char **argv)
                sample, numsamps, (MYFLT)numsamps/p->sr);
 
     outputs = p->nchanls;
-    
+
     O.outformat = p->format; /* Copy from input file */
     O.sfsampsize = sfsampsize(O.outformat);
     O.filetyp = p->filetyp; /* Copy from input file */
@@ -305,16 +305,16 @@ EXsndgetset(char *name)
 {
     int          infd;
     MYFLT        dur;
-static  ARGOFFS  argoffs = {0};     /* these for sndgetset */
-static  OPTXT    optxt;
-static  MYFLT    fzero = FL(0.0);
+    static ARGOFFS argoffs = {0};     /* these for sndgetset */
+    static OPTXT optxt;
+    static MYFLT fzero = FL(0.0);
     char         quotname[80];
     static MYFLT sstrcod = (MYFLT)SSTRCOD;
 
     sssfinit();                 /* stand-alone init of SFDIR etc. */
     esr = FL(0.0);             /* set esr 0. with no orchestra   */
     optxt.t.outoffs = &argoffs; /* point to dummy OUTOCOUNT       */
-    p = (SOUNDIN *) mcalloc((long)sizeof(SOUNDIN));
+    p = (SOUNDIN *) mcalloc(&cenviron, (long)sizeof(SOUNDIN));
     p->channel = ALLCHNLS;
     p->h.optext = &optxt;
     p->ifilno = &sstrcod;
@@ -327,11 +327,11 @@ static  MYFLT    fzero = FL(0.0);
     p->getframes = p->framesrem;
     dur = (MYFLT) p->getframes / p->sr;
     printf("extracting from %ld sample frames (%3.1f secs)\n",
-	   p->getframes, dur);
+           p->getframes, dur);
     return(infd);
 }
 
-static void 
+static void
 ExtractSound(int infd, int outfd)
 {
     char  buffer[4*NUMBER_OF_SAMPLES];
@@ -355,8 +355,8 @@ ExtractSound(int infd, int outfd)
         lseek(outfd, 0L, SEEK_END); /* Place at end again */
       }
       if (O.heartbeat) {
-	putc("|/-\\"[block&3], stderr);
-	putc('\b',stderr);
+        putc("|/-\\"[block&3], stderr);
+        putc('\b',stderr);
       }
       if (read_in < num) break;
     }

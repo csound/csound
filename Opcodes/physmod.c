@@ -674,7 +674,7 @@ void make_DLineA(ENVIRON *csound, DLineA *p, long max_length)
 {
     long i;
     p->length = max_length;
-    csound->auxalloc_(max_length * sizeof(MYFLT), &p->inputs);
+    csound->auxalloc_(csound, max_length * sizeof(MYFLT), &p->inputs);
     for (i=0;i<max_length;i++) ((MYFLT*)p->inputs.auxp)[i] = FL(0.0);
     p->lastIn = FL(0.0);
     p->lastOutput = FL(0.0);

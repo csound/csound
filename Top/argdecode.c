@@ -946,7 +946,7 @@ int argdecode(void *csound, int argc, char **argv_, char *envoutyp)
       nbytes = (argc + 1) * (int) sizeof(char*);
       for (i = 0; i <= argc; i++)
         nbytes += ((int) strlen(argv_[i]) + 1);
-      p1 = (char*) mmalloc(nbytes);     /* will be freed by all_free() */
+      p1 = (char*) mmalloc(csound, nbytes);     /* will be freed by all_free() */
       p2 = (char*) p1 + ((int) sizeof(char*) * (argc + 1));
       argv = (char**) p1;
       for (i = 0; i <= argc; i++) {

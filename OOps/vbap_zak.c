@@ -204,7 +204,7 @@ int vbap_zak_init(ENVIRON *csound, VBAP_ZAK  *p)
     }
     /* Now read from the array in za space and write to the output. */
     p->out_array     = csound->zastart_ + (indx * ksmps);/* outputs */
-    auxalloc(p->n*sizeof(MYFLT)*4, &p->auxch);
+    auxalloc(csound, p->n*sizeof(MYFLT)*4, &p->auxch);
     p->curr_gains    = (MYFLT*)p->auxch.auxp;
     p->beg_gains     = p->curr_gains + p->n;
     p->end_gains     = p->beg_gains + p->n;
@@ -213,7 +213,7 @@ int vbap_zak_init(ENVIRON *csound, VBAP_ZAK  *p)
     p->ls_am         = (int) ls_table[1];
     p->ls_set_am     = (int) ls_table[2];
     ptr              = &(ls_table[3]);
-    auxalloc(p->ls_set_am * sizeof (LS_SET), &p->aux);
+    auxalloc(csound, p->ls_set_am * sizeof (LS_SET), &p->aux);
     if (p->aux.auxp==NULL) {
       return initerror(Str("could not allocate memory"));
     }
@@ -498,7 +498,7 @@ int vbap_zak_moving_init(ENVIRON *csound, VBAP_ZAK_MOVING  *p)
     }
     /* Now read from the array in za space and write to the output. */
     p->out_array     = csound->zastart_ + (indx * ksmps);/* outputs */
-    auxalloc(p->n*sizeof(MYFLT)*4, &p->auxch);
+    auxalloc(csound, p->n*sizeof(MYFLT)*4, &p->auxch);
     p->curr_gains    = (MYFLT*)p->auxch.auxp;
     p->beg_gains     = p->curr_gains + p->n;
     p->end_gains     = p->beg_gains + p->n;
@@ -508,7 +508,7 @@ int vbap_zak_moving_init(ENVIRON *csound, VBAP_ZAK_MOVING  *p)
     p->ls_am         = (int) ls_table[1];
     p->ls_set_am     = (int) ls_table[2];
     ptr              = &(ls_table[3]);
-    auxalloc(p->ls_set_am * sizeof (LS_SET), &p->aux);
+    auxalloc(csound, p->ls_set_am * sizeof (LS_SET), &p->aux);
     if (p->aux.auxp==NULL) {
       return initerror(Str("could not allocate memory"));
     }

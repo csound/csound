@@ -176,7 +176,7 @@ BaboMemory_create(ENVIRON *csound, BaboMemory *this, size_t size_in_floats)
 {
     size_t size_in_bytes = size_in_floats * sizeof(MYFLT);
 
-    auxalloc((long) size_in_bytes, &this->memptr);
+    auxalloc(csound, (long) size_in_bytes, &this->memptr);
 
     memset(this->memptr.auxp, 0, size_in_bytes);
 

@@ -126,7 +126,7 @@ int cvset(ENVIRON *csound, CONVOLVE *p)
 
     if (p->auxch.auxp == NULL) {              /* if no buffers yet, alloc now */
       MYFLT *fltp;
-      auxalloc((long)(((Hlenpadded+2) + p->nchanls*((Hlen - 1) + obufsiz)
+      auxalloc(csound, (long)(((Hlenpadded+2) + p->nchanls*((Hlen - 1) + obufsiz)
                        + (p->nchanls > 1 ? (Hlenpadded+2) : 0))*sizeof(MYFLT)),
                &p->auxch);
       fltp = (MYFLT *) p->auxch.auxp;
@@ -397,8 +397,8 @@ int pconvset(ENVIRON *csound, PCONVOLVE *p)
 
     /* set up FFT tables */
     basis = AssignBasis(NULL, p->Hlenpadded);
-    inbuf = (MYFLT *)mmalloc(p->Hlen * p->nchanls * sizeof(MYFLT));
-    auxalloc(p->numPartitions * (p->Hlenpadded + 2) *
+    inbuf = (MYFLT *)mmalloc(csound, p->Hlen * p->nchanls * sizeof(MYFLT));
+    auxalloc(csound, p->numPartitions * (p->Hlenpadded + 2) *
              sizeof(MYFLT) * p->nchanls, &p->H);
     IRblock = (MYFLT *)p->H.auxp;
 
@@ -422,29 +422,29 @@ int pconvset(ENVIRON *csound, PCONVOLVE *p)
       }
     }
 
-    mfree(inbuf);
+    mfree(csound, inbuf);
     sf_close(infd);
 
     /* Initialise input FFT lookup table */
     p->cvlut = (complex *)AssignBasis(NULL, p->Hlenpadded);
 
     /* allocate the buffer saving recent input samples */
-    auxalloc(p->Hlen * sizeof(MYFLT), &p->savedInput);
+    auxalloc(csound, p->Hlen * sizeof(MYFLT), &p->savedInput);
     p->inCount = 0;
 
     /* allocate the convolution work buffer */
-    auxalloc((p->Hlenpadded+2) * sizeof(MYFLT), &p->workBuf);
+    auxalloc(csound, (p->Hlenpadded+2) * sizeof(MYFLT), &p->workBuf);
     p->workWrite = (MYFLT *)p->workBuf.auxp + p->Hlen;
 
     /* allocate the buffer holding recent past convolutions */
-    auxalloc((p->Hlenpadded+2) * p->numPartitions
+    auxalloc(csound, (p->Hlenpadded+2) * p->numPartitions
              * p->nchanls * sizeof(MYFLT), &p->convBuf);
     p->curPart = 0;
 
     /* allocate circular output sample buffer */
     p->outBufSiz = sizeof(MYFLT) * p->nchanls *
       (p->Hlen >= ksmps ? p->Hlenpadded : 2*ksmps);
-    auxalloc(p->outBufSiz, &p->output);
+    auxalloc(csound, p->outBufSiz, &p->output);
     p->outRead = (MYFLT *)p->output.auxp;
 
     /* if ksmps < hlen, we have to pad initial output to prevent a possible

@@ -210,7 +210,7 @@ extern "C" {
     }
     absinsno = abs((int)insno);
     /* Create the new event */
-    newnode = (EVTNODE *) mmalloc((long)sizeof(EVTNODE));
+    newnode = (EVTNODE *) mmalloc(csound, (long)sizeof(EVTNODE));
     newevt = &newnode->evt;
     newevt->opcod = (char) *args[0];
     if (newevt->opcod == 0) newevt->opcod = 'i';

@@ -219,7 +219,7 @@ int plukset(ENVIRON *csound, PLUCK *p)
       npts = PLUKMIN;                   /*  (but at least min size)  */
     if ((auxp = p->auxch.auxp) == NULL ||
         npts > p->maxpts) {     /* get newspace    */
-      auxalloc((npts+1)*sizeof(MYFLT),&p->auxch);
+      auxalloc(csound, (npts+1)*sizeof(MYFLT),&p->auxch);
       auxp = p->auxch.auxp;
       p->maxpts = npts;                         /*      if reqd    */
     }

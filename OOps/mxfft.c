@@ -25,11 +25,15 @@
  * Section 1.4 of  "Programs for Digital Signal Processing", IEEE Press, 1979.
  *  Conversion by Trevor Wishart and Keith Henderson, York Univ.
  */
-
+/*
 static char *rcsid = "$Id$";
+ */
 /*
  *      $Log$
- *      Revision 1.5  2005-01-27 19:22:50  istvanv
+ *      Revision 1.6  2005-02-18 16:21:14  istvanv
+ *      added csound pointer to mmalloc, auxalloc, and other functions
+ *
+ *      Revision 1.5  2005/01/27 19:22:50  istvanv
  *      Merged changes from 4.24.1, including new localization system, timers, and allow use of underscore character in opcode names
  *
  *      Revision 1.4  2004/09/27 05:52:31  jpff

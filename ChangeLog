@@ -1,3 +1,45 @@
+2005-02-18	Istvan Varga	<istvan@csounds.com>
+	* Engine/auxfd.c, Engine/express.c, Engine/fgens.c, Engine/insert.c:
+	* Engine/linevent.c, Engine/memalloc.c, Engine/memfiles.c:
+	* Engine/musmon.c, Engine/namedins.c, Engine/oload.c, Engine/otran.c:
+	* Engine/rdorch.c, Engine/rdscor.c, Engine/sread.c, Engine/twarp.c:
+	* H/csoundCore.h, H/prototyp.h:
+	* InOut/fmidi.c, InOut/libsnd.c, InOut/libsnd_u.c, InOut/pa_blocking.c:
+	* InOut/pmidi.c, InOut/widgets.cpp, InOut/winX11.c, InOut/winascii.c:
+	* OOps/aops.c, OOps/disprep.c, OOps/fft.c, OOps/fout.c:
+	* OOps/lptrkfns.c, OOps/midiops.c, OOps/midirecv.c, OOps/mxfft.c:
+	* OOps/pstream.c, OOps/pvadd.c, OOps/pvinterp.c, OOps/pvoc.c:
+	* OOps/pvread.c, OOps/pvsanal.c, OOps/schedule.c, OOps/sndinfUG.c:
+	* OOps/ugens1.c, OOps/ugens3.c, OOps/ugens4.c, OOps/ugens5.c:
+	* OOps/ugens6.c, OOps/ugens8.c, OOps/ugens9.c, OOps/ugrw1.c:
+	* OOps/vbap_eight.c, OOps/vbap_four.c, OOps/vbap_sixteen.c:
+	* OOps/vbap_zak.c, OOps/vdelay.c, OOps/vpvoc.c:
+	* Opcodes/babo.c, Opcodes/bbcut.c, Opcodes/biquad.c:
+	* Opcodes/bowedbar.c, Opcodes/cross2.c, Opcodes/filter.c:
+	* Opcodes/flanger.c, Opcodes/grain.c, Opcodes/locsig.c:
+	* Opcodes/nlfilt.c, Opcodes/oscbnk.c, Opcodes/physmod.c:
+	* Opcodes/physutil.c, Opcodes/pitch.c, Opcodes/pluck.c:
+	* Opcodes/pvsbasic.c, Opcodes/pvsdemix.c, Opcodes/repluck.c:
+	* Opcodes/scansyn.c, Opcodes/scansynx.c, Opcodes/sndwarp.c:
+	* Opcodes/space.c, Opcodes/spat3d.c, Opcodes/spectra.c:
+	* Opcodes/syncgrain.c, Opcodes/ugens6.c, Opcodes/ugens7.c:
+	* Opcodes/ugens9.c, Opcodes/ugensa.c, Opcodes/uggab.c:
+	* Opcodes/ugmoss.c, Opcodes/ugsc.c, Opcodes/vdelayk.c:
+	* Opcodes/wave-terrain.c, Opcodes/gab/gab.c, Opcodes/gab/vectorial.c:
+	* Opcodes/py/csoundmodule.c:
+	* Top/argdecode.c, Top/cscorfns.c, Top/csound.c, Top/cvanal.c:
+	* Top/dl_opcodes.c, Top/dnoise.c, Top/hetro.c, Top/lpanal.c:
+	* Top/main.c, Top/one_file.c, Top/opcode.c, Top/threads.c:
+	* util2/dnoise.dir/srconv.c, util2/envext/envext.c:
+	* util2/exports/pv_export.c, util2/mixer/extract.c:
+	* util2/mixer/mixer.c, util2/mixer/xtrct.c, util2/scale.dir/scale.c:
+	  added Csound instance pointer to mmalloc(), mcalloc(), mrealloc(),
+	  mfree(), memRESET(), auxalloc(), and auxchfree()
+	  nbytes argument of mmalloc(), mcalloc(), and mrealloc() was changed
+	  from long to size_t
+	* Top/main.c:
+	  read .csoundrc both from HOME directory and from current directory
+
 2005-02-17	Istvan Varga	<istvan@csounds.com>
 	* Top/csound.c:
 	  the CSRTAUDIO environment variable can be used to set default

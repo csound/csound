@@ -55,25 +55,25 @@ int pvsdemix_init(ENVIRON *csound, PVSDEMIX *p)
     p->beta = (int)(*p->slices);
 
     if (p->fout->frame.auxp==NULL)
-      auxalloc((N+2)*sizeof(float),&p->fout->frame);
+      auxalloc(csound, (N+2)*sizeof(float),&p->fout->frame);
 
     if (p->left.auxp==NULL)
-      auxalloc((N+2)*sizeof(float)*p->beta, &p->left);
+      auxalloc(csound, (N+2)*sizeof(float)*p->beta, &p->left);
 
     if (p->right.auxp==NULL)
-      auxalloc((N+2)*sizeof(float)*p->beta, &p->right);
+      auxalloc(csound, (N+2)*sizeof(float)*p->beta, &p->right);
 
     if (p->maxl.auxp==NULL)
-      auxalloc((N/2+1)*sizeof(float), &p->maxl);
+      auxalloc(csound, (N/2+1)*sizeof(float), &p->maxl);
 
     if (p->maxr.auxp==NULL)
-      auxalloc((N/2+1)*sizeof(float), &p->maxr);
+      auxalloc(csound, (N/2+1)*sizeof(float), &p->maxr);
 
     if (p->minl.auxp==NULL)
-      auxalloc((N/2+1)*sizeof(float), &p->minl);
+      auxalloc(csound, (N/2+1)*sizeof(float), &p->minl);
 
     if (p->minr.auxp==NULL)
-      auxalloc((N/2+1)*sizeof(float), &p->minr);
+      auxalloc(csound, (N/2+1)*sizeof(float), &p->minr);
 
     p->fout->N =  N;
     p->fout->overlap = olap;

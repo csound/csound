@@ -32,7 +32,7 @@ static  MYFLT   *fftcoefs = NULL;     /* malloc for fourier coefs, mag or db */
 
 void disprepRESET(void)
 {
-    if (fftcoefs) mfree(fftcoefs);
+    if (fftcoefs) mfree(&cenviron, fftcoefs);
     fftcoefs = NULL;
 }
 
@@ -73,7 +73,7 @@ int dspset(ENVIRON *csound, DSPLAY *p)
       totpts = bufpts * 2;
     }
     if ((auxp = p->auxch.auxp) == NULL || totpts != p->totpts) {
-      auxalloc(totpts * sizeof(MYFLT), &p->auxch);
+      auxalloc(csound, totpts * sizeof(MYFLT), &p->auxch);
       auxp = p->auxch.auxp;
       p->begp = (MYFLT *) auxp;
       p->endp = p->begp + bufpts;
@@ -196,13 +196,13 @@ int fftset(ENVIRON *csound, DSPFFT *p)          /* fftset, dspfft -- calc Fast F
       p->overN    = FL(1.0)/(*p->inpts);
       p->ncoefs  = window_size >>1;
       auxsiz = (window_size/2 + 1) * sizeof(MYFLT);  /* size for half window */
-      auxalloc((long)auxsiz, &p->auxch);             /*  alloc or realloc */
+      auxalloc(csound, (long)auxsiz, &p->auxch);             /*  alloc or realloc */
       hWin = (MYFLT *) p->auxch.auxp;
       FillHalfWin(hWin, window_size,
                   FL(1.0), hanning);                 /* fill with proper values */
       p->fftlut = (MYFLT *)AssignBasis((complex *)NULL,window_size); /*lookup tbl*/
       if (fftcoefs == NULL)            /* room for WINDMAX*2 floats (fft size) */
-        fftcoefs = (MYFLT *) mmalloc((long)WINDMAX * 2 * sizeof(MYFLT));
+        fftcoefs = (MYFLT *) mmalloc(csound, (long)WINDMAX * 2 * sizeof(MYFLT));
       sprintf(strmsg,Str("instr %d, signal %s, fft (%s):"),
               p->h.insdshead->insno,
               p->STRARG, p->dbout ? Str("db") : Str("mag"));
@@ -344,7 +344,7 @@ int tempeset(ENVIRON *csound, TEMPEST *p)
       p->maxlam = maxlam = nptsm1/(NTERMS-1);
       lamspan = maxlam - minlam + 1;          /* alloc 8 bufs: 2 circ, 6 lin */
       auxsiz = (npts * 5 + lamspan * 3) * sizeof(MYFLT);
-      auxalloc((long)auxsiz, &p->auxch);
+      auxalloc(csound, (long)auxsiz, &p->auxch);
       fltp = (MYFLT *) p->auxch.auxp;
       p->hbeg = fltp;     fltp += npts;
       p->hend = fltp;

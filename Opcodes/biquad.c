@@ -341,7 +341,7 @@ int vcoset(ENVIRON *csound, VCO *p)
     MYFLT ndsave;
 
     ndsave = (MYFLT) ndel;
-    /* auxalloc(sizeof(MYFLT)*16385L, &p->auxd); Do this later
+    /* auxalloc(csound, sizeof(MYFLT)*16385L, &p->auxd); Do this later
        p->sine = (MYFLT*)p->auxd.auxp;
        for (i=0; i<16384; i++)
          p->sine[i] = (MYFLT)sin(TWOPI*(double)i/4096.0); */
@@ -366,7 +366,7 @@ int vcoset(ENVIRON *csound, VCO *p)
     if (p->aux.auxp == NULL ||
         (int)(ndel*sizeof(MYFLT)) > p->aux.size)  /* allocate space for delay
                                                      buffer */
-      auxalloc(ndel * sizeof(MYFLT), &p->aux);
+      auxalloc(csound, ndel * sizeof(MYFLT), &p->aux);
     else if (*p->iskip==FL(0.0)) {
       buf = (MYFLT *)p->aux.auxp;   /*    make sure buffer is empty       */
       do {
@@ -781,7 +781,7 @@ int nestedapset(ENVIRON *csound, NESTEDAP *p)
     npts = npts1 + npts2 + npts3;
     /* new space if reqd */
     if ((auxp = p->auxch.auxp) == NULL || npts != p->npts) {
-      auxalloc((long)npts*sizeof(MYFLT), &p->auxch);
+      auxalloc(csound, (long)npts*sizeof(MYFLT), &p->auxch);
       auxp = p->auxch.auxp;
       p->npts = npts;
 

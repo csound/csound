@@ -244,12 +244,12 @@ int scsnux_init(ENVIRON *csound, PSCSNUX *p)
 #ifdef USING_CHAR
       /* ***** EXPERIMENTAL ****************************************** */
       /* This version uses a binary char matrix to save space and time */
-      auxalloc(len*len * sizeof(char), &p->aux_f);
+      auxalloc(csound, len*len * sizeof(char), &p->aux_f);
       p->f = (char*)p->aux_f.auxp;
 #else
       /* ***** EXPERIMENTAL ****************************************** */
       /* This version uses a binary bit matrix to save space and time */
-      auxalloc(1L+(len*len*sizeof(long))/BITS_PER_UNIT, &p->aux_f);
+      auxalloc(csound, 1L+(len*len*sizeof(long))/BITS_PER_UNIT, &p->aux_f);
       p->f = (unsigned long*)p->aux_f.auxp;
 #endif
       for (i = 0, ilen = 0 ; i != len ; i++, ilen += len) {
@@ -288,10 +288,10 @@ int scsnux_init(ENVIRON *csound, PSCSNUX *p)
         }
         else pp += MATLEN;
 #ifdef USING_CHAR
-        auxalloc(len*len * sizeof(char), &p->aux_f);
+        auxalloc(csound, len*len * sizeof(char), &p->aux_f);
         p->f = (char*)p->aux_f.auxp;
 #else
-        auxalloc(1L+(len*len*sizeof(long))/BITS_PER_UNIT, &p->aux_f);
+        auxalloc(csound, 1L+(len*len*sizeof(long))/BITS_PER_UNIT, &p->aux_f);
         p->f = (unsigned long*)p->aux_f.auxp;
 #endif
         while (pp < mfp->endp) {
@@ -319,9 +319,9 @@ int scsnux_init(ENVIRON *csound, PSCSNUX *p)
 
 /* Make buffers to hold data */
 #if PHASE_INTERP == 3
-    auxalloc(6*len*sizeof(MYFLT), &p->aux_x);
+    auxalloc(csound, 6*len*sizeof(MYFLT), &p->aux_x);
 #else
-    auxalloc(5*len*sizeof(MYFLT), &p->aux_x);
+    auxalloc(csound, 5*len*sizeof(MYFLT), &p->aux_x);
 #endif
     p->x0  = (MYFLT*)p->aux_x.auxp;
     p->x1  = p->x0 + len;
@@ -550,7 +550,7 @@ int scsnsx_init(ENVIRON *csound, PSCSNSX *p)
           die(Str("scsn: Trajectory table includes values out of range"));
       /* Allocate mem<ory and pad to accomodate interpolation */
                                 /* Note that the 3 here is a hack -- jpff */
-      auxalloc((p->tlen+3/*oscil_interp*/-1)*sizeof(long), &p->aux_t);
+      auxalloc(csound, (p->tlen+3/*oscil_interp*/-1)*sizeof(long), &p->aux_t);
       p->t = (long*)p->aux_t.auxp + (int)(oscil_interp-1)/2;
       /* Fill 'er up */
       for (i = 0 ; i != p->tlen ; i++)

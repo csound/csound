@@ -455,7 +455,7 @@ int lpanal(int argc, char **argv)
 
    /* Allocates for analysis result buffer */
 
-        lpbuf = mcalloc((long)LPBUFSIZ);
+        lpbuf = mcalloc(&cenviron, (long)LPBUFSIZ);
 
    /* Header is defined at buffer startup */
         lph = (LPHEADER *) lpbuf;
@@ -550,7 +550,7 @@ int lpanal(int argc, char **argv)
         if (poleCount > MAXPOLES)
             quit(Str("poles exceeds maximum allowed"));
                                 /* Allocate space now */
-        coef = (MYFLT*) mmalloc((NDATA+poleCount*2)*sizeof(MYFLT));
+        coef = (MYFLT*) mmalloc(&cenviron, (NDATA+poleCount*2)*sizeof(MYFLT));
                                 /* Space allocated */
         if (slice < poleCount * 5)
           if (O.msglevel & WARNMSG)
@@ -617,7 +617,7 @@ int lpanal(int argc, char **argv)
         osiz = (poleCount*(storePoles?2:1) + NDATA) * sizeof(MYFLT);
 
    /* Allocate signal buffer for sound frame */
-        sigbuf = (MYFLT *) mmalloc((long)WINDIN * sizeof(MYFLT));
+        sigbuf = (MYFLT *) mmalloc(&cenviron, (long)WINDIN * sizeof(MYFLT));
         sigbuf2 = sigbuf + slice;
 
    /* Try to read first frame in buffer */
@@ -764,7 +764,7 @@ int lpanal(int argc, char **argv)
         /* Get next sound frame */
             if ((n = getsndin(infd, sigbuf2, (long)slice, p)) == 0)
                 break;          /* refill til EOF */
-            if (!csoundYield(NULL)) break;
+            if (!csoundYield(&cenviron)) break;
         } while (counter < analframes); /* or nsmps done */
 
    /* clean up stuff */
@@ -773,7 +773,7 @@ int lpanal(int argc, char **argv)
         close(infd);
         close(ofd);
         free(a); free(x);
-        mfree(coef);
+        mfree(&cenviron, coef);
 #if !defined(mills_macintosh)
         exit(0);
 #endif

@@ -38,7 +38,7 @@ int realtset(SRTBLK *);
 void scoreRESET(ENVIRON *p)
 {
      if(tseg){
-            mfree(tseg);
+            mfree(&cenviron, tseg);
             tseg = 0;
       }
 }
@@ -103,7 +103,7 @@ int realtset(SRTBLK *bp)
     TSEG *tp, *prvtp;
 
     if (tseg == NULL) {                       /* if no space yet, alloc */
-      tseg = (TSEG *) mmalloc((long)TSEGMAX * sizeof(TSEG));
+      tseg = (TSEG *) mmalloc(&cenviron, (long)TSEGMAX * sizeof(TSEG));
       tplim = tseg + TSEGMAX-1;
     }
     tp = tpsave = tseg;

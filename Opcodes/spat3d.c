@@ -47,7 +47,7 @@ int    spat3d_init_window (ENVIRON *csound, SPAT3D *p)
 
     i = ((o + 1) * (sizeof (int) + sizeof (MYFLT)));       /* allocate */
     if ((p->fltr.auxp == NULL) || (p->fltr.size < i))      /* space    */
-      auxalloc (i, &(p->fltr));
+      auxalloc(csound, i, &(p->fltr));
     p->sample = (int *) p->fltr.auxp;                 /* sample number */
     p->window = (MYFLT *) (p->sample + o + 1);        /* window value  */
 
@@ -240,7 +240,7 @@ int spat3d_init_delay (ENVIRON *csound, SPAT3D *p)
     if (p->o_num == 1) i += 4;      /* extra samples for spat3d */
     j = i * (long) sizeof (MYFLT) * (long) (p->zout > 3 ? 4 : p->zout + 1);
     if ((p->del.auxp == NULL) || (p->del.size < j))         /* allocate */
-      auxalloc (j, &(p->del));                        /* space    */
+      auxalloc(csound, j, &(p->del));                        /* space    */
     p->Wb = (MYFLT *) p->del.auxp;                  /* W */
     if (p->zout > 0) p->Yb = p->Wb + i;             /* Y */
     if (p->zout > 1) p->Xb = p->Yb + i;             /* X */
@@ -395,11 +395,11 @@ int spat3d_set_opcode_params (ENVIRON *csound, SPAT3D *p)
       i = d = 0; spat3d_count_refl (&i, &d, 0, p->maxdep, 0, wmask);
       i *= (long) sizeof (SPAT3D_WALL);
       if ((p->ws.auxp == NULL) || (p->ws.size < i))
-        auxalloc (i, &(p->ws));
+        auxalloc(csound, i, &(p->ws));
       i = (long) p->bs * (long) d;
       i *= (long) sizeof (MYFLT);
       if ((p->y.auxp == NULL) || (p->y.size < i))
-        auxalloc (i, &(p->y));
+        auxalloc(csound, i, &(p->y));
     }
     return OK;
 }
@@ -871,7 +871,7 @@ int    spat3dt (ENVIRON *csound, SPAT3D *p)
 
     /* initialise IR */
 
-    ir = (MYFLT *) mmalloc (sizeof (MYFLT) * (long) p->bs);
+    ir = (MYFLT *) mmalloc(csound, sizeof (MYFLT) * (long) p->bs);
     ir[0] = FL(1.0);
     wmax = 0; while (++wmax < (long) p->bs)
       ir[wmax] = (sizeof (MYFLT) < 8 ? FL(1.0e-24) : FL(1.0e-48));
@@ -884,7 +884,7 @@ int    spat3dt (ENVIRON *csound, SPAT3D *p)
 
     spat3dt_wall_perf (p, ir, (SPAT3D_WALL *) p->ws.auxp);
 
-    mfree (ir);                             /* free tmp memory */
+    mfree(csound, ir);                             /* free tmp memory */
     return OK;
 }
 

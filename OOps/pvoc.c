@@ -304,7 +304,7 @@ int PVAlloc(
 
 void PVFree(PVSTRUCT *phdr)     /* release a PVOC block */
 {
-    mfree(phdr);                /* let operating system sort it out */
+    mfree(&cenviron, phdr);     /* let operating system sort it out */
 }
 
 char *PVErrMsg(int err)         /* return string for error code */

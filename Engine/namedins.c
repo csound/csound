@@ -110,7 +110,7 @@ int named_instr_alloc (char *s, INSTRTXT *ip, long insno)
 
     if (!inm_base)
       /* no named instruments defined yet */
-      inm_base = instrumentNames = (void*) mcalloc (sizeof(INSTRNAME*) * 258);
+      inm_base = instrumentNames = (void*) mcalloc(&cenviron, sizeof(INSTRNAME*) * 258);
     /* calculate hash value */
     while (*++c) h = name_hash(h, *c);
     /* now check if instrument is already defined */
@@ -119,8 +119,8 @@ int named_instr_alloc (char *s, INSTRTXT *ip, long insno)
       if (inm) return 0;        /* error: instr exists */
     }
     /* allocate entry, */
-    inm = (INSTRNAME*) mcalloc (sizeof(INSTRNAME));
-    inm2 = (INSTRNAME*) mcalloc (sizeof(INSTRNAME));
+    inm = (INSTRNAME*) mcalloc(&cenviron, sizeof(INSTRNAME));
+    inm2 = (INSTRNAME*) mcalloc(&cenviron, sizeof(INSTRNAME));
     /* and store parameters */
     inm->name = s; inm->ip = ip;
     inm2->instno = insno;
@@ -165,7 +165,7 @@ void named_instr_assign_numbers (void)
           int m = maxinsno;
           maxinsno += MAXINSNO; /* Expand */
           instrtxtp = (INSTRTXT**)
-            mrealloc(instrtxtp, (long) ((1 + maxinsno) * sizeof(INSTRTXT*)));
+            mrealloc(&cenviron, instrtxtp, (long) ((1 + maxinsno) * sizeof(INSTRTXT*)));
           /* Array expected to be nulled so.... */
           while (++m <= maxinsno) instrtxtp[m] = NULL;
         }
@@ -182,7 +182,7 @@ void named_instr_assign_numbers (void)
     inm = *inm_first;
     while (inm) {
       INSTRNAME *nxtinm = inm->prv;
-      mfree(inm);
+      mfree(&cenviron, inm);
       inm = nxtinm;
     }
     *inm_first = *inm_last = NULL;
@@ -201,7 +201,7 @@ void named_instr_free (void)
       inm = ((INSTRNAME**) instrumentNames)[i];
       while (inm) {
         INSTRNAME   *prvinm = inm->prv;
-        mfree(inm);
+        mfree(&cenviron, inm);
         inm = prvinm;
       }
     }
@@ -293,7 +293,7 @@ void opcode_list_create (void)
       die(Str("internal error: opcode list has already been created"));
       return;
     }
-    opcode_list = (void*) mcalloc(sizeof(int) * 256);
+    opcode_list = (void*) mcalloc(&cenviron, sizeof(int) * 256);
     /* add all entries, except #0 which is unused */
     while (--n)
       opcode_list_add_entry(n, 0);
@@ -338,15 +338,15 @@ void opcode_list_free (void)
 
     if (!opcode_list) return;
     /* free memory used by temporary list, */
-    mfree(opcode_list);
+    mfree(&cenviron, opcode_list);
     opcode_list = NULL;
     /* user defined opcode argument types, */
     while ((--ep)->iopadr == (SUBR) useropcdset) {
-      mfree(ep->intypes);
-      mfree(ep->outypes);
+      mfree(&cenviron, ep->intypes);
+      mfree(&cenviron, ep->outypes);
     }
     /* and opcodlst */
-    mfree(opcodlst);
+    mfree(&cenviron, opcodlst);
     opcodlst = oplstend = NULL;
 }
 
@@ -391,8 +391,8 @@ static STRSAV_SPACE *strsav_space = NULL;
 void strsav_create(void)
 {
     if (strsav_space != NULL) return;           /* already allocated */
-    strsav_space = (STRSAV_SPACE*) mcalloc(sizeof(STRSAV_SPACE));
-    strsav_str = (STRSAV**) mcalloc(sizeof(STRSAV*) * 256);
+    strsav_space = (STRSAV_SPACE*) mcalloc(&cenviron, sizeof(STRSAV_SPACE));
+    strsav_str = (STRSAV**) mcalloc(&cenviron, sizeof(STRSAV*) * 256);
 }
 
 /* Locate string s in database, and return address of stored string (not */
@@ -425,7 +425,7 @@ char *strsav_string(char *s)
         err_printf("internal error: strsav: string length > STRSPACE\n");
         return NULL;
       }
-      sp = (STRSAV_SPACE*) mcalloc(sizeof(STRSAV_SPACE));
+      sp = (STRSAV_SPACE*) mcalloc(&cenviron, sizeof(STRSAV_SPACE));
       sp->prv = strsav_space;
       strsav_space = sp;
     }
@@ -449,11 +449,11 @@ void strsav_destroy(void)
     strsav_space = NULL;
     do {
       STRSAV_SPACE  *prvsp = sp->prv;
-      mfree(sp);
+      mfree(&cenviron, sp);
       sp = prvsp;
     } while (sp);
 
-    mfree(strsav_str);
+    mfree(&cenviron, strsav_str);
     strsav_str = NULL;
 }
 

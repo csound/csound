@@ -60,7 +60,7 @@ int agsset(ENVIRON *csound, PGRA *p)                    /*      Granular U.G. se
     bufsize = sizeof(MYFLT)*(2L * (long)(esr * *p->imkglen) +  (3L * ksmps));
 
     if (p->aux.auxp == NULL || bufsize > p->aux.size)
-      auxalloc(bufsize, &p->aux);
+      auxalloc(csound, bufsize, &p->aux);
     else memset(p->aux.auxp, '\0', bufsize); /* Clear any old data */
     d  = p->x = (MYFLT *)p->aux.auxp;
     d +=  (int)(esr * *p->imkglen) + ksmps;

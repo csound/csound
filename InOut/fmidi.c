@@ -137,8 +137,8 @@ void FMidiOpen(void) /* open a MidiFile for reading, sense MPU401 or standard */
     extern short natshort(short);
 #endif
 
-    FMidevtblk = (MEVENT *) mcalloc((long)sizeof(MEVENT));
-    fsexbuf = (u_char *) mcalloc((long)MBUFSIZ);
+    FMidevtblk = (MEVENT *) mcalloc(csound, (long)sizeof(MEVENT));
+    fsexbuf = (u_char *) mcalloc(csound, (long)MBUFSIZ);
     fsexend = fsexbuf + MBUFSIZ;
     fsexp = NULL;
     if (M_CHNBP[0] == (MCHNBLK*) NULL)      /* IV May 2002: added check */

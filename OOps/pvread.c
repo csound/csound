@@ -113,7 +113,7 @@ int pvreadset(ENVIRON *csound, PVREAD *p)
       }
     /* only old-format stuff from here */
     if (p->fftBuf.auxp  == NULL) /* Allocate space dynamically */
-      auxalloc(sizeof(MYFLT)*PVFFTSIZE, &p->fftBuf);
+      auxalloc(csound, sizeof(MYFLT)*PVFFTSIZE, &p->fftBuf);
     pvh = (PVSTRUCT *)mfp->beginp;
     if (pvh->magic != PVMAGIC) {
       sprintf(errmsg,Str("%s not a PVOC file (magic %ld)"),
@@ -254,9 +254,9 @@ int pvocex_loadfile(const char *fname,PVREAD *p,MEMFIL **mfp)
     if (!find_memfile(fname,&mfil)) {
       mem_wanted = totalframes * 2 * pvdata.nAnalysisBins * sizeof(float);
       /* try for the big block first! */
-      memblock = (float *) mmalloc(mem_wanted);
+      memblock = (float *) mmalloc(&cenviron, mem_wanted);
       if (p->fftBuf.auxp  == NULL) /* Allocate space dynamically */
-        auxalloc(sizeof(MYFLT)*PVFFTSIZE, &p->fftBuf);
+        auxalloc(&cenviron, sizeof(MYFLT)*PVFFTSIZE, &p->fftBuf);
 
       /* fill'er-up */
       /* need to loop, as we need to rescale amplitudes for Csound */
@@ -277,15 +277,15 @@ int pvocex_loadfile(const char *fname,PVREAD *p,MEMFIL **mfp)
       pvoc_closefile(pvx_id);
       if (rc <0) {
         sprintf(errmsg,"error reading pvoc-ex file %s\n",fname);
-        mfree(memblock);
-        mfree(p->fftBuf.auxp);
+        mfree(&cenviron, memblock);
+        mfree(&cenviron, p->fftBuf.auxp);
         return 0;
       }
       if (i < totalframes) {
         sprintf(errmsg,"error reading pvoc-ex file %s after %d frames\n",
                 fname,i);
-        mfree(memblock);
-        mfree(p->fftBuf.auxp);
+        mfree(&cenviron, memblock);
+        mfree(&cenviron, p->fftBuf.auxp);
         return 0;
       }
     }
@@ -313,7 +313,7 @@ int pvocex_loadfile(const char *fname,PVREAD *p,MEMFIL **mfp)
 
     /* Need to assign the MEMFIL to p->mfp in calling func */
     if (mfil==NULL) {
-      mfil = (MEMFIL *)  mmalloc(sizeof(MEMFIL));
+      mfil = (MEMFIL *)  mmalloc(&cenviron, sizeof(MEMFIL));
       /* just hope the filename is short enough...! */
       mfil->next = NULL;
       mfil->filename[0] = '\0';

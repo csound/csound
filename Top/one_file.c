@@ -128,8 +128,8 @@ void remove_tmpfiles(void *csound)              /* IV - Feb 03 2005 */
 #endif
       if (remove((*toremove)->name))
         err_printf(Str("WARNING: could not remove %s\n"), (*toremove)->name);
-      mfree((*toremove)->name);
-      mfree((*toremove));
+      mfree(csound, (*toremove)->name);
+      mfree(csound, (*toremove));
       (*toremove) = nxt;
     }
     csoundDestroyGlobalVariable(csound, "*tmpFileList");
@@ -144,8 +144,8 @@ void add_tmpfile(void *csound, char *name)      /* IV - Feb 03 2005 */
       toremove = (NAMELST**) csoundQueryGlobalVariable(csound, "*tmpFileList");
       (*toremove) = (NAMELST*) NULL;
     }
-    tmp = (NAMELST*) mmalloc(sizeof(NAMELST));
-    tmp->name = (char*) mmalloc(strlen(name) + 1);
+    tmp = (NAMELST*) mmalloc(csound, sizeof(NAMELST));
+    tmp->name = (char*) mmalloc(csound, strlen(name) + 1);
     strcpy(tmp->name, name);
     tmp->next = (*toremove);
     (*toremove) = tmp;

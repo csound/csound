@@ -29,39 +29,39 @@
 
 /* INSDS   *curip; current insds, maintained by insert.c */
 
-static  void auxrecord(AUXCH *),auxchprint(INSDS *),fdchprint(INSDS *);
+static void auxrecord(void*, AUXCH *), auxchprint(INSDS *), fdchprint(INSDS *);
 
-void auxalloc(long nbytes, AUXCH *auxchp)
+void auxalloc(void *csound, long nbytes, AUXCH *auxchp)
      /* allocate an auxds, or expand an old one */
      /*    call only from init (xxxset) modules */
 {
     void *auxp;
 
     if ((auxp = auxchp->auxp) != NULL)  /* if size change only,      */
-      mfree(auxp);                      /*      free the old space   */
-    else auxrecord(auxchp);             /* else linkin new auxch blk */
-    auxp = mcalloc(nbytes);             /* now alloc the space       */
+      mfree(csound, auxp);              /*      free the old space   */
+    else auxrecord(csound, auxchp);     /* else linkin new auxch blk */
+    auxp = mcalloc(csound, nbytes);     /* now alloc the space       */
     auxchp->size = nbytes;              /* update the internal data  */
     auxchp->auxp = auxp;
-    auxchp->endp = (char*)auxp + nbytes;
-    if (O.odebug) auxchprint(curip);
+    auxchp->endp = (char*) auxp + nbytes;
+    if (O.odebug) auxchprint(((ENVIRON*) csound)->curip_);
 }
 
-static void auxrecord(AUXCH *auxchp)
+static void auxrecord(void *csound, AUXCH *auxchp)
      /* put auxch into chain of xp's for this instr */
      /* called only from auxalloc       */
 {
     AUXCH       *prvchp, *nxtchp;
 
-    prvchp = &curip->auxch;                     /* from current insds,  */
+    prvchp = &(((ENVIRON*) csound)->curip_->auxch); /* from current insds,  */
     while ((nxtchp = prvchp->nxtchp) != NULL)   /* chain through xplocs */
       prvchp = nxtchp;
     prvchp->nxtchp = auxchp;                    /* then add this xploc  */
     auxchp->nxtchp = NULL;                      /* & terminate the chain */
 }
 
-void fdrecord(FDCH *fdchp)      /* put fdchp into chain of fd's for this instr */
-                                /*      call only from init (xxxset) modules   */
+void fdrecord(FDCH *fdchp)    /* put fdchp into chain of fd's for this instr */
+                              /*      call only from init (xxxset) modules   */
 {
     FDCH        *prvchp, *nxtchp;
 
@@ -97,8 +97,8 @@ void fdclose(FDCH *fdchp)       /* close a file and remove from fd chain */
     die(errmsg);
 }
 
-void auxchfree(INSDS *ip)       /* release all xds in instr auxp chain  */
-                                /*   called by insert at orcompact      */
+void auxchfree(void *csound, INSDS *ip) /* release all xds in instr auxp chain*/
+                                        /*   called by insert at orcompact    */
 {
     AUXCH       *curchp = &ip->auxch;
     char        *auxp;
@@ -109,7 +109,7 @@ void auxchfree(INSDS *ip)       /* release all xds in instr auxp chain  */
         auxchprint(ip);
         dies(Str("auxchfree: illegal auxp %lx in chain"),auxp);
       }
-      mfree(auxp);                      /*      free the space  */
+      mfree(csound, auxp);                      /*      free the space  */
       curchp->auxp = NULL;              /*      & delete the pntr */
     }
     ip->auxch.nxtchp = NULL;            /* finally, delete the chain */

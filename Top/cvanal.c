@@ -183,7 +183,7 @@ static void takeFFT(
     int     nchanls;
 
     nchanls = cvh->channel != ALLCHNLS ? 1 : cvh->src_chnls;
-    inbuf   = fp1 = (MYFLT *)mmalloc(Hlen * nchanls * sizeof(MYFLT));
+    inbuf   = fp1 = (MYFLT *)mmalloc(&cenviron, Hlen * nchanls * sizeof(MYFLT));
     if ( (read_in = getsndin(infd, inbuf, (long)(Hlen*nchanls),p)) <
          (Hlen*nchanls) )
       die(Str("less sound than expected!"));
@@ -213,7 +213,7 @@ static void takeFFT(
       /*printf("about to FFT\n");*/
       /* PrintBuf(outbuf, Hlenpadded, "normalised & padded"); */
       FFT2realpacked((complex *)outbuf, Hlenpadded,basis);
-      if (!csoundYield(NULL)) exit(1);
+      if (!csoundYield(&cenviron)) exit(1);
       /*printf("finished FFTing\n");*/
       /* PrintBuf(Buf, 2*Hlenpadded, X_761,"FFT'd"); */
       /* write straight out, just the indep vals */

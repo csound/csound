@@ -217,7 +217,7 @@ int delset(ENVIRON *csound, DELAY *p)
     }
     if ((auxp = p->auxch.auxp) == NULL ||
         npts != p->npts) { /* new space if reqd */
-      auxalloc((long)npts*sizeof(MYFLT), &p->auxch);
+      auxalloc(csound, (long)npts*sizeof(MYFLT), &p->auxch);
       auxp = p->auxch.auxp;
       p->npts = npts;
     }
@@ -257,7 +257,7 @@ int delrset(ENVIRON *csound, DELAYR *p)
 /*     printf("delay %f sr=%f npts = %d\n", *p->idlt, esr, npts); */
     if ((auxp = (MYFLT*)p->auxch.auxp) == NULL ||       /* new space if reqd */
         npts != p->npts) {
-      auxalloc((long)npts*sizeof(MYFLT), &p->auxch);
+      auxalloc(csound, (long)npts*sizeof(MYFLT), &p->auxch);
       auxp = (MYFLT*)p->auxch.auxp;
       p->npts = npts;
     }
@@ -752,7 +752,7 @@ int cmbset(ENVIRON *csound, COMB *p)
     }
     nbytes = lpsiz * sizeof(MYFLT);
     if (p->auxch.auxp == NULL || nbytes != p->auxch.size) {
-      auxalloc((long)nbytes, &p->auxch);
+      auxalloc(csound, (long)nbytes, &p->auxch);
       p->pntr = (MYFLT *) p->auxch.auxp;
       p->prvt = FL(0.0);
       p->coef = FL(0.0);
@@ -862,7 +862,7 @@ int rvbset(ENVIRON *csound, REVERB *p)
 {
     if (p->auxch.auxp == NULL) {                        /* if no space yet, */
       long      *sizp = revlpsiz;
-      auxalloc(revlpsum*sizeof(MYFLT),&p->auxch);       /*    allocate it   */
+      auxalloc(csound, revlpsum*sizeof(MYFLT),&p->auxch);       /*    allocate it   */
       p->adr1 = p->p1 = (MYFLT *) p->auxch.auxp;
       p->adr2 = p->p2 = p->adr1 + *sizp++;
       p->adr3 = p->p3 = p->adr2 + *sizp++;              /*    & init ptrs   */

@@ -48,7 +48,7 @@ int locsigset(ENVIRON *csound, LOCSIG *p)
 
     if (p->auxch.auxp == NULL) {
       MYFLT *fltp;
-      auxalloc((long)(ksmps * 4)  * sizeof(MYFLT), &p->auxch);
+      auxalloc(csound, (long)(ksmps * 4)  * sizeof(MYFLT), &p->auxch);
       fltp = (MYFLT *) p->auxch.auxp;
       p->rrev1 = fltp;   fltp += ksmps;
       p->rrev2 = fltp;   fltp += ksmps;

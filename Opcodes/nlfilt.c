@@ -40,7 +40,7 @@ int nlfiltset(ENVIRON *csound, NLFILT *p)
     MYFLT *fp;
 
     if (p->delay.auxp == NULL) { /* get newspace    */
-      auxalloc(MAX_DELAY*sizeof(MYFLT),&p->delay);
+      auxalloc(csound, MAX_DELAY*sizeof(MYFLT),&p->delay);
     }
     fp = (MYFLT*)p->delay.auxp;
     for (i=0; i<MAX_DELAY; i++)
