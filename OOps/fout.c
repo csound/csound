@@ -25,15 +25,20 @@
 /* Code modified by JPff to remove fixed size arrays, allow
    AIFF and WAV, and close files neatly.  Also bugs fixed */
 
+#include <sndfile.h>
 #include "fout.h"
 #include <ctype.h>
 
 #ifdef  USE_DOUBLE
 #define sf_write_MYFLT	sf_write_double
 #define sf_read_MYFLT	sf_read_double
+#define sf_writef_MYFLT	sf_writef_double
+#define sf_readf_MYFLT	sf_readf_double
 #else
 #define sf_write_MYFLT	sf_write_float
 #define sf_read_MYFLT	sf_read_float
+#define sf_writef_MYFLT	sf_writef_float
+#define sf_readf_MYFLT	sf_readf_float
 #endif
 
 struct fileinTag {
@@ -62,52 +67,17 @@ static void close_files(void)
     }
 }
 
-static int outfile_float(OUTFILE *p)
+int outfile(OUTFILE *p)
 {
     int nsmps = ksmps, j, nargs = p->nargs, k=0;
     MYFLT **args = p->argums;
+    MYFLT vals[VARGMAX];
     do {
       for (j = 0;j< nargs;j++)
-        sf_write_MYFLT(p->fp, &(args[j][k]), 1);
+        vals[j] = args[j][k];
+      sf_writef_MYFLT(p->fp, vals, 1);
       k++;
     } while (--nsmps);
-    return OK;
-}
-
-
-static int outfile_int(OUTFILE *p)
-{
-    int nsmps = ksmps, j, nargs = p->nargs, k=0;
-    MYFLT **args = p->argums;
-    short tmp;
-    do {
-      for (j = 0;j< nargs;j++) {
-        tmp = (short)    args[j][k];
-        sf_write_MYFLT(p->fp,&tmp, 1);
-      }
-      k++;
-    } while (--nsmps);
-    return OK;
-}
-
-
-static int outfile_int_head(OUTFILE *p)
-{
-    int nsmps= ksmps, j, nargs = p->nargs, k=0;
-    MYFLT **args = p->argums;
-    do {
-      for (j = 0;j< nargs;j++) {
-        short tmp = (short) args[j][k];
-        sf_write_MYFLT(p->fp, &tmp, 1);
-      }
-      k++;
-    } while (--nsmps);
-    p->cnt++;                   /* Count cycle */
-    file_opened[p->idx].cnt += ksmps * sizeof(short)*nargs;
-    if ((kcounter& 0x3f)==0) {         /* Every 64 cycles */
-      fflush(p->fp);
-      rewriteheader(p->fp, /*p->cnt * ksmps * sizeof(short)*nargs,*/ 0);
-    }
     return OK;
 }
 
@@ -115,6 +85,9 @@ static int outfile_int_head(OUTFILE *p)
 int outfile_set(OUTFILE *p)
 {
     int n=0;
+    SF_INFO sfinfo;
+
+    p->nargs = p->INOCOUNT-2;
     if (*p->fname == SSTRCOD) { /* if char string name given */
       int j;
       char fname[FILENAME_MAX];
@@ -125,10 +98,37 @@ int outfile_set(OUTFILE *p)
         if (!strcmp(file_opened[j].name,fname)) {
           p->fp = file_opened[j].file;
           p->idx = n = j;
-          goto done;
+          switch((int) (*p->iflag+FL(0.5))) {
+          case 0:
+            break;
+          case 1:
+            break;
+          case 2:
+            file_opened[n].hdr = 1;
+            break;
+          default:
+          }
+          return OK;
         }
       }
-      if ((p->fp = fopen(fname,"wb")) == NULL)
+      /* Need to open file */
+      switch((int) (*p->iflag+FL(0.5))) {
+      case 0:
+        sfinfo.format = SF_FORMAT_FLOAT | SF_FORMAT_RAW;
+        break;
+      case 1:
+        sfinfo.format = SF_FORMAT_PCM_16 | SF_FORMAT_RAW;
+        break;
+      case 2:
+        sfinfo.format = SF_FORMAT_PCM_16 | O.filetyp;
+        p->cnt = 0;
+        break;
+      default:
+        sfinfo.format = SF_FORMAT_PCM_16 | SF_FORMAT_RAW;
+      }
+      sfinfo.samplerate = (long)esr;
+      sfinfo.channels = p->nargs;
+      if ((p->fp = sf_open(fname,SFM_WRITE,&sfinfo)) == NULL)
         dies(Str(X_1465,"fout: cannot open outfile %s"),fname);
       else { /* put the file in the opened stack */
         file_num++;
@@ -143,7 +143,10 @@ int outfile_set(OUTFILE *p)
         file_opened[file_num].file = p->fp;
         p->idx = n = file_num;
         file_opened[file_num].cnt = 0;
-        file_opened[file_num].hdr = 0;
+        if (sfinfo.format==(SF_FORMAT_PCM_16 | O.filetyp))
+          file_opened[n].hdr = 1;
+        else
+          file_opened[file_num].hdr = 0;
       }
     }
     else { /* file handle as argument */
@@ -152,60 +155,26 @@ int outfile_set(OUTFILE *p)
         die(Str(X_1466,"fout: invalid file handle"));
     }
  done:
-    p->nargs = p->INOCOUNT-2;
-    switch((int) (*p->iflag+FL(0.5))) {
-    case 0:
-      p->outfilep = (SUBR)outfile_float;
-      break;
-    case 1:
-      p->outfilep = (SUBR)outfile_int;
-      break;
-    case 2:
-      p->outfilep = (SUBR)outfile_int_head;
-      p->cnt = 0;
-      file_opened[n].hdr = 1;
-      writeheader(              /* Write header at start of file.  */
-                   fileno(p->fp), /* Called after open, before data writes*/
-                   file_opened[n].name);
-      break;
-    default:
-      p->outfilep = (SUBR)outfile_int;
-    }
     return OK;
 }
 
-int outfile (OUTFILE *p)
-{
-    p->outfilep(p);
-    return OK;
-}
-
-static int koutfile_float (KOUTFILE *p)
+int koutfile (KOUTFILE *p)
 {
     int j, nargs = p->nargs;
     MYFLT **args = p->argums;
+    MYFLT vals[VARGMAX];
     for (j = 0;j< nargs;j++) {
-      sf_write_MYFLT(p->fp, args[j],1);
+      vals[j] = *args[j];
     }
-    return OK;
-}
-
-
-static int koutfile_int (KOUTFILE *p)
-{
-    int j,nargs = p->nargs;
-    MYFLT **args = p->argums;
-    short tmp;
-    for (j = 0;j< nargs;j++) {
-      tmp = (short) *(args[j]);
-      fwrite(&tmp, sizeof(short), 1, p->fp);
-    }
+    sf_writef_float(p->fp, vals, 1);
     return OK;
 }
 
 int koutfile_set(KOUTFILE *p)
 {
     int n;
+    SF_INFO sfinfo;
+    p->nargs = p->INOCOUNT-2;
     if (*p->fname == SSTRCOD) {/*gab B1*/ /* if char string name given */
       int j;
       char fname[FILENAME_MAX];
@@ -220,7 +189,24 @@ int koutfile_set(KOUTFILE *p)
         }
       }
                                 /* *** NON ANSI CODE *** */
-      if ((p->fp = fopen(fname,"wb")) == NULL)
+      sfinfo.channels = p->nargs;
+      sfinfo.samplerate = (long)esr;
+      switch((int) (*p->iflag+FL(0.5))) {
+      case 0:
+        sfinfo.format = SF_FORMAT_FLOAT | SF_FORMAT_RAW;
+        break;
+      case 1:
+        sfinfo.format = SF_FORMAT_PCM_16 | SF_FORMAT_RAW;
+        break;
+      case 2:
+        sfinfo.format = SF_FORMAT_PCM_16 | O.filetyp;
+        p->cnt = 0;
+        break;
+      default:
+        sfinfo.format = SF_FORMAT_PCM_16 | SF_FORMAT_RAW;
+      }
+      p->nargs = p->INOCOUNT-2;
+      if ((p->fp = sf_open(fname, SFM_WRITE, &sfinfo)) == NULL)
         dies(Str(X_1467,"foutk: cannot open outfile %s"),fname);
       else { /* put the file in the opened stack */
         file_num++;
@@ -234,7 +220,11 @@ int koutfile_set(KOUTFILE *p)
         strcpy(file_opened[file_num].name, fname);
         file_opened[file_num].file=p->fp;
         p->idx = n = file_num;
-        file_opened[file_num].cnt = file_opened[file_num].hdr = 0;
+        file_opened[file_num].cnt = 0;
+        if (sfinfo.format==(SF_FORMAT_PCM_16 | O.filetyp))
+          file_opened[file_num].hdr = 1;
+        else
+          file_opened[file_num].hdr = 0;
       }
     }
     else { /* file handle argument */
@@ -243,27 +233,9 @@ int koutfile_set(KOUTFILE *p)
         die(Str(X_1466,"fout: invalid file handle"));
     }
  done:
-    switch((int) (*p->iflag+FL(0.5))) {
-    case 0:
-      p->koutfilep = (SUBR)koutfile_float;
-      break;
-    case 1:
-      p->koutfilep = (SUBR)koutfile_int;
-      break;
-    default:
-      p->koutfilep = (SUBR)koutfile_int;
-    }
-    p->nargs = p->INOCOUNT-2;
     p->cnt = 0;
     return OK;
 }
-
-int koutfile(KOUTFILE *p)
-{
-    p->koutfilep(p);
-    return OK;
-}
-
 
 /*--------------*/
 
@@ -275,7 +247,7 @@ int fiopen(FIOPEN *p)          /* open a file and return its handle  */
 {                              /* the handle is simply a stack index */
     char fname[FILENAME_MAX];
     char *omodes[] = {"w", "r", "wb", "rb"};
-    FILE *fp;
+    SNDFILE *fp;
     int idx = (int)*p->iascii;
     strcpy(fname, unquote(p->STRARG));
     if (idx<0 || idx>3) idx=0;
