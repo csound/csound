@@ -363,6 +363,11 @@ if (commonEnvironment['useFLTK'] and fltkFound):
     csoundProgramEnvironment.Append(LIBS = ['fltk'])
     vstEnvironment.Append(LINKFLAGS = "--subsystem:windows")
     guiProgramEnvironment.Append(LINKFLAGS = "--subsystem:windows")
+    if getPlatform() == 'linux':
+	    csoundProgramEnvironment.Append(LIBS = ['dl'])
+	    ustubProgramEnvironment.Append(LIBS = ['dl'])
+	    vstEnvironment.Append(LIBS = ['dl'])
+	    guiProgramEnvironment.Append(LIBS = ['dl'])
     if getPlatform() == 'linux' or getPlatform() == 'cygwin':
             csoundProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
             ustubProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
@@ -373,11 +378,6 @@ if (commonEnvironment['useFLTK'] and fltkFound):
             ustubProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
             vstEnvironment.Append(LIBS = ['stdc++', 'supc++'])
             guiProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
-            if getPlatform() == 'linux':
-                    csoundProgramEnvironment.Append(LIBS = ['dl'])
-                    ustubProgramEnvironment.Append(LIBS = ['dl'])
-                    vstEnvironment.Append(LIBS = ['dl'])
-                    guiProgramEnvironment.Append(LIBS = ['dl'])
     elif getPlatform() == 'darwin':
             csoundProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
             ustubProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
@@ -907,8 +907,8 @@ else:
     zipDependencies.append(csoundvstGui)
     Depends(csoundvstGui, csoundvst)
 
-    #counterpoint = vstEnvironment.Program('counterpoint', ['frontends/CsoundVST/Counterpoint.cpp', 'frontends/CsoundVST/CounterpointMain.cpp' ])
-    #zipDependencies.append(counterpoint)
+    counterpoint = vstEnvironment.Program('counterpoint', ['frontends/CsoundVST/CounterpointMain.cpp' ])
+    zipDependencies.append(counterpoint)
      
     # Build the Loris and Python opcodes here because they depend 
     # on the same things as CsoundVST.
