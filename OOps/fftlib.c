@@ -32,19 +32,6 @@
 #include "csound.h"
 #include "fftlib.h"
 
-/* a few routines from a vector/matrix library */
-
-static void cvprod(MYFLT *a, MYFLT *b, MYFLT *out, int N);
-
-/* complex vector product, can be in-place              */
-/* product of complex vector *a times complex vector *b */
-/* INPUTS                                               */
-/*   N vector length                                    */
-/*   *a complex vector length N complex numbers         */
-/*   *b complex vector length N complex numbers         */
-/* OUTPUTS                                              */
-/*   *out complex vector length N                       */
-
 #define MYRECIPLN2  1.442695040888963407359924681001892137426 /* 1.0/log(2) */
 
 /* some useful conversions between a number and its power of 2 */
@@ -73,33 +60,29 @@ static void fftBRInit(int M, short *BRLow);
 /* OUTPUTS                                */
 /*   *BRLow = bit reversed counter table  */
 
-static void ffts1(MYFLT *ioptr, int M, int Rows, MYFLT *Utbl, short *BRLow);
+static void ffts1(MYFLT *ioptr, int M, MYFLT *Utbl, short *BRLow);
 
 /* Compute in-place complex fft on the rows of the input array  */
 /* INPUTS                                                       */
 /*   *ioptr = input data array                                  */
 /*   M = log2 of fft size (ex M=10 for 1024 point fft)          */
-/*   Rows = number of rows in ioptr array                       */
-/*          (use Rows of 1 if ioptr is a 1 dimensional array)   */
 /*   *Utbl = cosine table                                       */
 /*   *BRLow = bit reversed counter table                        */
 /* OUTPUTS                                                      */
 /*   *ioptr = output data array                                 */
 
-static void iffts1(MYFLT *ioptr, int M, int Rows, MYFLT *Utbl, short *BRLow);
+static void iffts1(MYFLT *ioptr, int M, MYFLT *Utbl, short *BRLow);
 
 /* Compute in-place inverse complex fft on the rows of the input array  */
 /* INPUTS                                                               */
 /*   *ioptr = input data array                                          */
 /*   M = log2 of fft size                                               */
-/*   Rows = number of rows in ioptr array                               */
-/*          (use Rows of 1 if ioptr is a 1 dimensional array)           */
 /*   *Utbl = cosine table                                               */
 /*   *BRLow = bit reversed counter table                                */
 /* OUTPUTS                                                              */
 /*   *ioptr = output data array                                         */
 
-static void rffts1(MYFLT *ioptr, int M, int Rows, MYFLT *Utbl, short *BRLow);
+static void rffts1(MYFLT *ioptr, int M, MYFLT *Utbl, short *BRLow);
 
 /* Compute in-place real fft on the rows of the input array             */
 /* The result is the complex spectra of the positive frequencies        */
@@ -108,8 +91,6 @@ static void rffts1(MYFLT *ioptr, int M, int Rows, MYFLT *Utbl, short *BRLow);
 /* INPUTS                                                               */
 /*   *ioptr = real input data array                                     */
 /*   M = log2 of fft size                                               */
-/*   Rows = number of rows in ioptr array                               */
-/*          (use Rows of 1 if ioptr is a 1 dimensional array)           */
 /*   *Utbl = cosine table                                               */
 /*   *BRLow = bit reversed counter table                                */
 /* OUTPUTS                                                              */
@@ -117,7 +98,7 @@ static void rffts1(MYFLT *ioptr, int M, int Rows, MYFLT *Utbl, short *BRLow);
 /*     Re(x[0]), Re(x[N/2]), Re(x[1]), Im(x[1]), Re(x[2]), Im(x[2]),    */
 /*     ... Re(x[N/2-1]), Im(x[N/2-1]).                                  */
 
-static void riffts1(MYFLT *ioptr, int M, int Rows, MYFLT *Utbl, short *BRLow);
+static void riffts1(MYFLT *ioptr, int M, MYFLT *Utbl, short *BRLow);
 
 /* Compute in-place real ifft on the rows of the input array    */
 /* data order as from rffts1                                    */
@@ -126,8 +107,6 @@ static void riffts1(MYFLT *ioptr, int M, int Rows, MYFLT *Utbl, short *BRLow);
 /*   M = log2 of fft size                                       */
 /*   Re(x[0]), Re(x[N/2]), Re(x[1]), Im(x[1]),                  */
 /*   Re(x[2]), Im(x[2]), ... Re(x[N/2-1]), Im(x[N/2-1]).        */
-/*   Rows = number of rows in ioptr array                       */
-/*          (use Rows of 1 if ioptr is a 1 dimensional array)   */
 /*   *Utbl = cosine table                                       */
 /*   *BRLow = bit reversed counter table                        */
 /* OUTPUTS                                                      */
@@ -141,149 +120,6 @@ static void riffts1(MYFLT *ioptr, int M, int Rows, MYFLT *Utbl, short *BRLow);
 #define MYROOT2   1.414213562373095048801688724209698078569   /* sqrt(2)    */
 #define MYCOSPID8 0.9238795325112867561281831893967882868224  /* cos(pi/8)  */
 #define MYSINPID8 0.3826834323650897717284599840303988667613  /* sin(pi/8)  */
-
-/* a few routines from a vector/matrix library */
-
-static void cvprod(MYFLT *a, MYFLT *b, MYFLT *out, int N)
-{
-    /* complex vector product, can be in-place              */
-    /* product of complex vector *a times complex vector *b */
-    /* INPUTS                                               */
-    /*   N vector length                                    */
-    /*   *a complex vector length N complex numbers         */
-    /*   *b complex vector length N complex numbers         */
-    /* OUTPUTS                                              */
-    /*   *out complex vector length N                       */
-
-    int OutCnt;                   /* output counter */
-    MYFLT A0R;                    /* A storage */
-    MYFLT A0I;                    /* A storage */
-    MYFLT A1R;                    /* A storage */
-    MYFLT A1I;                    /* A storage */
-    MYFLT A2R;                    /* A storage */
-    MYFLT A2I;                    /* A storage */
-    MYFLT A3R;                    /* A storage */
-    MYFLT A3I;                    /* A storage */
-    MYFLT B0R;                    /* B storage */
-    MYFLT B0I;                    /* B storage */
-    MYFLT B1R;                    /* B storage */
-    MYFLT B1I;                    /* B storage */
-    MYFLT B2R;                    /* B storage */
-    MYFLT B2I;                    /* B storage */
-    MYFLT B3R;                    /* B storage */
-    MYFLT B3I;                    /* B storage */
-    MYFLT T0R;                    /* TMP storage */
-    MYFLT T0I;                    /* TMP storage */
-    MYFLT T1R;                    /* TMP storage */
-    MYFLT T1I;                    /* TMP storage */
-    MYFLT T2R;                    /* TMP storage */
-    MYFLT T2I;                    /* TMP storage */
-    MYFLT T3R;                    /* TMP storage */
-    MYFLT T3I;                    /* TMP storage */
-
-    if (N >= 4) {
-      A0R = *a;
-      B0R = *b;
-      A0I = *(a + 1);
-      B0I = *(b + 1);
-      A1R = *(a + 2);
-      B1R = *(b + 2);
-      A1I = *(a + 3);
-      B1I = *(b + 3);
-      A2R = *(a + 4);
-      B2R = *(b + 4);
-      A2I = *(a + 5);
-      B2I = *(b + 5);
-      A3R = *(a + 6);
-      B3R = *(b + 6);
-      A3I = *(a + 7);
-      B3I = *(b + 7);
-      T0R = A0R * B0R;
-      T0I = (A0R * B0I);
-      T1R = A1R * B1R;
-      T1I = (A1R * B1I);
-      T2R = A2R * B2R;
-      T2I = (A2R * B2I);
-      T3R = A3R * B3R;
-      T3I = (A3R * B3I);
-      T0R -= (A0I * B0I);
-      T0I = A0I * B0R + T0I;
-      T1R -= (A1I * B1I);
-      T1I = A1I * B1R + T1I;
-      T2R -= (A2I * B2I);
-      T2I = A2I * B2R + T2I;
-      T3R -= (A3I * B3I);
-      T3I = A3I * B3R + T3I;
-      for (OutCnt = N / 4 - 1; OutCnt > 0; OutCnt--) {
-        a += 8;
-        b += 8;
-        A0R = *a;
-        B0R = *b;
-        A0I = *(a + 1);
-        B0I = *(b + 1);
-        A1R = *(a + 2);
-        B1R = *(b + 2);
-        A1I = *(a + 3);
-        B1I = *(b + 3);
-        A2R = *(a + 4);
-        B2R = *(b + 4);
-        A2I = *(a + 5);
-        B2I = *(b + 5);
-        A3R = *(a + 6);
-        B3R = *(b + 6);
-        A3I = *(a + 7);
-        B3I = *(b + 7);
-        *out = T0R;
-        *(out + 1) = T0I;
-        *(out + 2) = T1R;
-        *(out + 3) = T1I;
-        *(out + 4) = T2R;
-        *(out + 5) = T2I;
-        *(out + 6) = T3R;
-        *(out + 7) = T3I;
-        T0R = A0R * B0R;
-        T0I = (A0R * B0I);
-        T1R = A1R * B1R;
-        T1I = (A1R * B1I);
-        T2R = A2R * B2R;
-        T2I = (A2R * B2I);
-        T3R = A3R * B3R;
-        T3I = (A3R * B3I);
-        T0R -= (A0I * B0I);
-        T0I = A0I * B0R + T0I;
-        T1R -= (A1I * B1I);
-        T1I = A1I * B1R + T1I;
-        T2R -= (A2I * B2I);
-        T2I = A2I * B2R + T2I;
-        T3R -= (A3I * B3I);
-        T3I = A3I * B3R + T3I;
-        out += 8;
-      }
-      a += 8;
-      b += 8;
-      *out = T0R;
-      *(out + 1) = T0I;
-      *(out + 2) = T1R;
-      *(out + 3) = T1I;
-      *(out + 4) = T2R;
-      *(out + 5) = T2I;
-      *(out + 6) = T3R;
-      *(out + 7) = T3I;
-      out += 8;
-    }
-    for (OutCnt = N % 4; OutCnt > 0; OutCnt--) {
-      A0R = *a++;
-      B0R = *b++;
-      A0I = *a++;
-      B0I = *b++;
-      T0R = A0R * B0R;
-      T0I = (A0R * B0I);
-      T0R -= (A0I * B0I);
-      T0I = A0I * B0R + T0I;
-      *out++ = T0R;
-      *out++ = T0I;
-    }
-}
 
 /*****************************************************
 * routines to initialize tables used by fft routines *
@@ -1328,14 +1164,12 @@ static void fftrecurs(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride, int NDiffU,
     }
 }
 
-static void ffts1(MYFLT *ioptr, int M, int Rows, MYFLT *Utbl, short *BRLow)
+static void ffts1(MYFLT *ioptr, int M, MYFLT *Utbl, short *BRLow)
 {
     /* Compute in-place complex fft on the rows of the input array  */
     /* INPUTS                                                       */
     /*   *ioptr = input data array                                  */
     /*   M = log2 of fft size (ex M=10 for 1024 point fft)          */
-    /*   Rows = number of rows in ioptr array                       */
-    /*          (use Rows of 1 if ioptr is a 1 dimensional array)   */
     /*   *Utbl = cosine table                                       */
     /*   *BRLow = bit reversed counter table                        */
     /* OUTPUTS                                                      */
@@ -1348,49 +1182,30 @@ static void ffts1(MYFLT *ioptr, int M, int Rows, MYFLT *Utbl, short *BRLow)
     case 0:
       break;
     case 1:
-      for (; Rows > 0; Rows--) {
-        fft2pt(ioptr);            /* a 2 pt fft */
-        ioptr += 2 * POW2(M);
-      }
+      fft2pt(ioptr);            /* a 2 pt fft */
       break;
     case 2:
-      for (; Rows > 0; Rows--) {
-        fft4pt(ioptr);            /* a 4 pt fft */
-        ioptr += 2 * POW2(M);
-      }
+      fft4pt(ioptr);            /* a 4 pt fft */
       break;
     case 3:
-      for (; Rows > 0; Rows--) {
-        fft8pt(ioptr);            /* an 8 pt fft */
-        ioptr += 2 * POW2(M);
-      }
+      fft8pt(ioptr);            /* an 8 pt fft */
       break;
     default:
-      for (; Rows > 0; Rows--) {
-
-        bitrevR2(ioptr, M, BRLow);  /* bit reverse and first radix 2 stage */
-
-        StageCnt = (M - 1) / 3;   /* number of radix 8 stages           */
-        NDiffU = 2;               /* one radix 2 stage already complete */
-
-        if ((M - 1 - (StageCnt * 3)) == 1) {
-          bfR2(ioptr, M, NDiffU); /* 1 radix 2 stage */
-          NDiffU *= 2;
-        }
-
-        if ((M - 1 - (StageCnt * 3)) == 2) {
-          bfR4(ioptr, M, NDiffU); /* 1 radix 4 stage */
-          NDiffU *= 4;
-        }
-
-        if (M <= (int) MCACHE)
-          bfstages(ioptr, M, Utbl, 1, NDiffU, StageCnt);  /* RADIX 8 Stages */
-        else {
-          fftrecurs(ioptr, M, Utbl, 1, NDiffU, StageCnt); /* RADIX 8 Stages */
-        }
-
-        ioptr += 2 * POW2(M);
+      bitrevR2(ioptr, M, BRLow);  /* bit reverse and first radix 2 stage */
+      StageCnt = (M - 1) / 3;     /* number of radix 8 stages           */
+      NDiffU = 2;                 /* one radix 2 stage already complete */
+      if ((M - 1 - (StageCnt * 3)) == 1) {
+        bfR2(ioptr, M, NDiffU); /* 1 radix 2 stage */
+        NDiffU *= 2;
       }
+      if ((M - 1 - (StageCnt * 3)) == 2) {
+        bfR4(ioptr, M, NDiffU); /* 1 radix 4 stage */
+        NDiffU *= 4;
+      }
+      if (M <= (int) MCACHE)
+        bfstages(ioptr, M, Utbl, 1, NDiffU, StageCnt);  /* RADIX 8 Stages */
+      else
+        fftrecurs(ioptr, M, Utbl, 1, NDiffU, StageCnt); /* RADIX 8 Stages */
     }
 }
 
@@ -2395,14 +2210,12 @@ static void ifftrecurs(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride,
     }
 }
 
-static void iffts1(MYFLT *ioptr, int M, int Rows, MYFLT *Utbl, short *BRLow)
+static void iffts1(MYFLT *ioptr, int M, MYFLT *Utbl, short *BRLow)
 {
     /* Compute in-place inverse complex fft on the rows of the input array  */
     /* INPUTS                                                               */
     /*   *ioptr = input data array                                          */
     /*   M = log2 of fft size                                               */
-    /*   Rows = number of rows in ioptr array                               */
-    /*          (use Rows of 1 if ioptr is a 1 dimensional array)           */
     /*   *Utbl = cosine table                                               */
     /*   *BRLow = bit reversed counter table                                */
     /* OUTPUTS                                                              */
@@ -2416,49 +2229,31 @@ static void iffts1(MYFLT *ioptr, int M, int Rows, MYFLT *Utbl, short *BRLow)
     case 0:
       break;
     case 1:
-      for (; Rows > 0; Rows--) {
-        ifft2pt(ioptr, scale);    /* a 2 pt fft */
-        ioptr += 2 * POW2(M);
-      }
+      ifft2pt(ioptr, scale);    /* a 2 pt fft */
       break;
     case 2:
-      for (; Rows > 0; Rows--) {
-        ifft4pt(ioptr, scale);    /* a 4 pt fft */
-        ioptr += 2 * POW2(M);
-      }
+      ifft4pt(ioptr, scale);    /* a 4 pt fft */
       break;
     case 3:
-      for (; Rows > 0; Rows--) {
-        ifft8pt(ioptr, scale);    /* an 8 pt fft */
-        ioptr += 2 * POW2(M);
-      }
+      ifft8pt(ioptr, scale);    /* an 8 pt fft */
       break;
     default:
-      for (; Rows > 0; Rows--) {
-        /* bit reverse and first radix 2 stage */
-        scbitrevR2(ioptr, M, BRLow, scale);
-
-        StageCnt = (M - 1) / 3;   /* number of radix 8 stages */
-        NDiffU = 2;               /* one radix 2 stage already complete */
-
-        if ((M - 1 - (StageCnt * 3)) == 1) {
-          ibfR2(ioptr, M, NDiffU);        /* 1 radix 2 stage */
-          NDiffU *= 2;
-        }
-
-        if ((M - 1 - (StageCnt * 3)) == 2) {
-          ibfR4(ioptr, M, NDiffU);        /* 1 radix 4 stage */
-          NDiffU *= 4;
-        }
-
-        if (M <= (int) MCACHE)
-          ibfstages(ioptr, M, Utbl, 1, NDiffU, StageCnt);  /* RADIX 8 Stages */
-        else {
-          ifftrecurs(ioptr, M, Utbl, 1, NDiffU, StageCnt); /* RADIX 8 Stages */
-        }
-
-        ioptr += 2 * POW2(M);
+      /* bit reverse and first radix 2 stage */
+      scbitrevR2(ioptr, M, BRLow, scale);
+      StageCnt = (M - 1) / 3;   /* number of radix 8 stages */
+      NDiffU = 2;               /* one radix 2 stage already complete */
+      if ((M - 1 - (StageCnt * 3)) == 1) {
+        ibfR2(ioptr, M, NDiffU);        /* 1 radix 2 stage */
+        NDiffU *= 2;
       }
+      if ((M - 1 - (StageCnt * 3)) == 2) {
+        ibfR4(ioptr, M, NDiffU);        /* 1 radix 4 stage */
+        NDiffU *= 4;
+      }
+      if (M <= (int) MCACHE)
+        ibfstages(ioptr, M, Utbl, 1, NDiffU, StageCnt);  /* RADIX 8 Stages */
+      else
+        ifftrecurs(ioptr, M, Utbl, 1, NDiffU, StageCnt); /* RADIX 8 Stages */
     }
 }
 
@@ -2873,7 +2668,7 @@ static void frstage(MYFLT *ioptr, int M, MYFLT *Utbl)
     }
 }
 
-static void rffts1(MYFLT *ioptr, int M, int Rows, MYFLT *Utbl, short *BRLow)
+static void rffts1(MYFLT *ioptr, int M, MYFLT *Utbl, short *BRLow)
 {
     /* Compute in-place real fft on the rows of the input array           */
     /* The result is the complex spectra of the positive frequencies      */
@@ -2882,8 +2677,6 @@ static void rffts1(MYFLT *ioptr, int M, int Rows, MYFLT *Utbl, short *BRLow)
     /* INPUTS                                                             */
     /*   *ioptr = real input data array                                   */
     /*   M = log2 of fft size                                             */
-    /*   Rows = number of rows in ioptr array                             */
-    /*          (use Rows of 1 if ioptr is a 1 dimensional array)         */
     /*   *Utbl = cosine table                                             */
     /*   *BRLow = bit reversed counter table                              */
     /* OUTPUTS                                                            */
@@ -2900,58 +2693,36 @@ static void rffts1(MYFLT *ioptr, int M, int Rows, MYFLT *Utbl, short *BRLow)
     case -1:
       break;
     case 0:
-      for (; Rows > 0; Rows--) {
-        rfft1pt(ioptr);           /* a 2 pt fft */
-        ioptr += 2 * POW2(M);
-      }
+      rfft1pt(ioptr);           /* a 2 pt fft */
+      break;
     case 1:
-      for (; Rows > 0; Rows--) {
-        rfft2pt(ioptr);           /* a 4 pt fft */
-        ioptr += 2 * POW2(M);
-      }
+      rfft2pt(ioptr);           /* a 4 pt fft */
       break;
     case 2:
-      for (; Rows > 0; Rows--) {
-        rfft4pt(ioptr);           /* an 8 pt fft */
-        ioptr += 2 * POW2(M);
-      }
+      rfft4pt(ioptr);           /* an 8 pt fft */
       break;
     case 3:
-      for (; Rows > 0; Rows--) {
-        rfft8pt(ioptr);           /* a 16 pt fft */
-        ioptr += 2 * POW2(M);
-      }
+      rfft8pt(ioptr);           /* a 16 pt fft */
       break;
     default:
       scale = 0.5;
-      for (; Rows > 0; Rows--) {
-        /* bit reverse and first radix 2 stage */
-        scbitrevR2(ioptr, M, BRLow, scale);
-
-        StageCnt = (M - 1) / 3;   /* number of radix 8 stages           */
-        NDiffU = 2;               /* one radix 2 stage already complete */
-
-        if ((M - 1 - (StageCnt * 3)) == 1) {
-          bfR2(ioptr, M, NDiffU); /* 1 radix 2 stage */
-          NDiffU *= 2;
-        }
-
-        if ((M - 1 - (StageCnt * 3)) == 2) {
-          bfR4(ioptr, M, NDiffU); /* 1 radix 4 stage */
-          NDiffU *= 4;
-        }
-
-        if (M <= (int) MCACHE) {
-          bfstages(ioptr, M, Utbl, 2, NDiffU, StageCnt);  /* RADIX 8 Stages */
-          frstage(ioptr, M + 1, Utbl);
-        }
-        else {
-          fftrecurs(ioptr, M, Utbl, 2, NDiffU, StageCnt); /* RADIX 8 Stages */
-          frstage(ioptr, M + 1, Utbl);
-        }
-
-        ioptr += 2 * POW2(M);
+      /* bit reverse and first radix 2 stage */
+      scbitrevR2(ioptr, M, BRLow, scale);
+      StageCnt = (M - 1) / 3;   /* number of radix 8 stages           */
+      NDiffU = 2;               /* one radix 2 stage already complete */
+      if ((M - 1 - (StageCnt * 3)) == 1) {
+        bfR2(ioptr, M, NDiffU); /* 1 radix 2 stage */
+        NDiffU *= 2;
       }
+      if ((M - 1 - (StageCnt * 3)) == 2) {
+        bfR4(ioptr, M, NDiffU); /* 1 radix 4 stage */
+        NDiffU *= 4;
+      }
+      if (M <= (int) MCACHE)
+        bfstages(ioptr, M, Utbl, 2, NDiffU, StageCnt);  /* RADIX 8 Stages */
+      else
+        fftrecurs(ioptr, M, Utbl, 2, NDiffU, StageCnt); /* RADIX 8 Stages */
+      frstage(ioptr, M + 1, Utbl);
     }
 }
 
@@ -3363,7 +3134,7 @@ static void ifrstage(MYFLT *ioptr, int M, MYFLT *Utbl)
     }
 }
 
-static void riffts1(MYFLT *ioptr, int M, int Rows, MYFLT *Utbl, short *BRLow)
+static void riffts1(MYFLT *ioptr, int M, MYFLT *Utbl, short *BRLow)
 {
     /* Compute in-place real ifft on the rows of the input array    */
     /* data order as from rffts1                                    */
@@ -3372,8 +3143,6 @@ static void riffts1(MYFLT *ioptr, int M, int Rows, MYFLT *Utbl, short *BRLow)
     /*   M = log2 of fft size                                       */
     /*   Re(x[0]), Re(x[N/2]), Re(x[1]), Im(x[1]),                  */
     /*   Re(x[2]), Im(x[2]), ... Re(x[N/2-1]), Im(x[N/2-1]).        */
-    /*   Rows = number of rows in ioptr array                       */
-    /*          (use Rows of 1 if ioptr is a 1 dimensional array)   */
     /*   *Utbl = cosine table                                       */
     /*   *BRLow = bit reversed counter table                        */
     /* OUTPUTS                                                      */
@@ -3389,57 +3158,35 @@ static void riffts1(MYFLT *ioptr, int M, int Rows, MYFLT *Utbl, short *BRLow)
     case -1:
       break;
     case 0:
-      for (; Rows > 0; Rows--) {
-        rifft1pt(ioptr, scale);   /* a 2 pt fft */
-        ioptr += 2 * POW2(M);
-      }
+      rifft1pt(ioptr, scale);   /* a 2 pt fft */
+      break;
     case 1:
-      for (; Rows > 0; Rows--) {
-        rifft2pt(ioptr, scale);   /* a 4 pt fft */
-        ioptr += 2 * POW2(M);
-      }
+      rifft2pt(ioptr, scale);   /* a 4 pt fft */
       break;
     case 2:
-      for (; Rows > 0; Rows--) {
-        rifft4pt(ioptr, scale);   /* an 8 pt fft */
-        ioptr += 2 * POW2(M);
-      }
+      rifft4pt(ioptr, scale);   /* an 8 pt fft */
       break;
     case 3:
-      for (; Rows > 0; Rows--) {
-        rifft8pt(ioptr, scale);   /* a 16 pt fft */
-        ioptr += 2 * POW2(M);
-      }
+      rifft8pt(ioptr, scale);   /* a 16 pt fft */
       break;
     default:
-      for (; Rows > 0; Rows--) {
-
-        ifrstage(ioptr, M + 1, Utbl);
-        /* bit reverse and first radix 2 stage */
-        scbitrevR2(ioptr, M, BRLow, scale);
-
-        StageCnt = (M - 1) / 3;   /* number of radix 8 stages           */
-        NDiffU = 2;               /* one radix 2 stage already complete */
-
-        if ((M - 1 - (StageCnt * 3)) == 1) {
-          ibfR2(ioptr, M, NDiffU);        /* 1 radix 2 stage */
-          NDiffU *= 2;
-        }
-
-        if ((M - 1 - (StageCnt * 3)) == 2) {
-          ibfR4(ioptr, M, NDiffU);        /* 1 radix 4 stage */
-          NDiffU *= 4;
-        }
-
-        if (M <= (int) MCACHE) {
-          ibfstages(ioptr, M, Utbl, 2, NDiffU, StageCnt); /*  RADIX 8 Stages */
-        }
-        else {
-          ifftrecurs(ioptr, M, Utbl, 2, NDiffU, StageCnt); /* RADIX 8 Stages */
-        }
-
-        ioptr += 2 * POW2(M);
+      ifrstage(ioptr, M + 1, Utbl);
+      /* bit reverse and first radix 2 stage */
+      scbitrevR2(ioptr, M, BRLow, scale);
+      StageCnt = (M - 1) / 3;   /* number of radix 8 stages           */
+      NDiffU = 2;               /* one radix 2 stage already complete */
+      if ((M - 1 - (StageCnt * 3)) == 1) {
+        ibfR2(ioptr, M, NDiffU);        /* 1 radix 2 stage */
+        NDiffU *= 2;
       }
+      if ((M - 1 - (StageCnt * 3)) == 2) {
+        ibfR4(ioptr, M, NDiffU);        /* 1 radix 4 stage */
+        NDiffU *= 4;
+      }
+      if (M <= (int) MCACHE)
+        ibfstages(ioptr, M, Utbl, 2, NDiffU, StageCnt); /*  RADIX 8 Stages */
+      else
+        ifftrecurs(ioptr, M, Utbl, 2, NDiffU, StageCnt); /* RADIX 8 Stages */
     }
 }
 
@@ -3591,123 +3338,135 @@ static void fftFree(void)
 }
 
 /**
- * Compute in-place complex FFT on the rows of the input array
- * INPUTS
- *   *buf = input data array
- *   FFTsize = FFT size, in samples, or log2 of 1 / (FFT size) if negative
- *   nRows = number of rows in buf array (use 1 for nRows for a single FFT)
- * OUTPUTS
- *   *buf = output data array
+ * Returns the amplitude scale that should be applied to the result of
+ * an inverse complex FFT with a length of 'FFTsize' samples.
  */
 
-PUBLIC void csoundComplexFFT(void *csound, MYFLT *buf, int FFTsize, int nRows)
+PUBLIC MYFLT csoundGetInverseComplexFFTScale(void *csound, int FFTsize)
+{
+    FFTsize = FFTsize;
+    return FL(1.0);
+}
+
+/**
+ * Returns the amplitude scale that should be applied to the result of
+ * an inverse real FFT with a length of 'FFTsize' samples.
+ */
+
+PUBLIC MYFLT csoundGetInverseRealFFTScale(void *csound, int FFTsize)
+{
+    FFTsize = FFTsize;
+    return FL(1.0);
+}
+
+/**
+ * Compute in-place complex FFT
+ * FFTsize: FFT length in samples
+ * buf:     array of FFTsize*2 MYFLT values,
+ *          in interleaved real/imaginary format
+ */
+
+PUBLIC void csoundComplexFFT(void *csound, MYFLT *buf, int FFTsize)
 {
     int log2size;
 
     ConvertFFTSize(log2size, FFTsize);
     fftInit(log2size);
-    ffts1(buf, log2size, nRows, UtblArray[log2size], BRLowArray[log2size / 2]);
+    ffts1(buf, log2size, UtblArray[log2size], BRLowArray[log2size / 2]);
 }
 
 /**
- * Compute in-place inverse complex FFT on the rows of the input array
- * INPUTS
- *   *buf = input data array
- *   FFTsize = FFT size, in samples, or log2 of 1 / (FFT size) if negative
- *   nRows = number of rows in buf array (use 1 for nRows for a single FFT)
- * OUTPUTS
- *   *buf = output data array
+ * Compute in-place inverse complex FFT
+ * FFTsize: FFT length in samples
+ * buf:     array of FFTsize*2 MYFLT values,
+ *          in interleaved real/imaginary format
+ * Output should be scaled by the return value of
+ * csoundGetInverseComplexFFTScale(csound, FFTsize).
  */
 
-PUBLIC void csoundInverseComplexFFT(void *csound, MYFLT *buf,
-                                    int FFTsize, int nRows)
+PUBLIC void csoundInverseComplexFFT(void *csound, MYFLT *buf, int FFTsize)
 {
     int log2size;
 
     ConvertFFTSize(log2size, FFTsize);
     fftInit(log2size);
-    iffts1(buf, log2size, nRows, UtblArray[log2size], BRLowArray[log2size / 2]);
+    iffts1(buf, log2size, UtblArray[log2size], BRLowArray[log2size / 2]);
 }
 
 /**
- * Compute in-place real FFT on the rows of the input array
- * The result is the complex spectra of the positive frequencies
- * except the location for the first complex number contains the real
- * values for DC and Nyquist
- * See csoundRSpectProd for multiplying two of these spectra together
- * - ex. for fast convolution
- * INPUTS
- *   *buf = real input data array
- *   FFTsize = FFT size, in samples, or log2 of 1 / (FFT size) if negative
- *   nRows = number of rows in buf array (use 1 for nRows for a single FFT)
- * OUTPUTS
- *   *buf = output data array, in the following order:
- *            Re(x[0]), Re(x[N/2]), Re(x[1]), Im(x[1]), Re(x[2]), Im(x[2]),
- *            ... Re(x[N/2-1]), Im(x[N/2-1]).
+ * Compute in-place real FFT
+ * FFTsize: FFT length in samples
+ * buf:     array of FFTsize MYFLT values; output is in interleaved
+ *          real/imaginary format, except for buf[1] which is the real
+ *          part for the Nyquist frequency
  */
 
-PUBLIC void csoundRealFFT(void *csound, MYFLT *buf, int FFTsize, int nRows)
+PUBLIC void csoundRealFFT(void *csound, MYFLT *buf, int FFTsize)
 {
     int log2size;
 
     ConvertFFTSize(log2size, FFTsize);
     fftInit(log2size);
-    rffts1(buf, log2size, nRows, UtblArray[log2size],
-           BRLowArray[(log2size - 1) / 2]);
+    rffts1(buf, log2size, UtblArray[log2size], BRLowArray[(log2size - 1) / 2]);
 }
 
 /**
- * Compute in-place real iFFT on the rows of the input array
- * data order as from csoundRealFFT()
- * INPUTS
- *   *buf = input data array in the following order:
- *            Re(x[0]), Re(x[N/2]), Re(x[1]), Im(x[1]), Re(x[2]), Im(x[2]),
- *            ... Re(x[N/2-1]), Im(x[N/2-1]).
- *   FFTsize = FFT size, in samples, or log2 of 1 / (FFT size) if negative
- *   nRows = number of rows in buf array (use 1 for nRows for a single FFT)
- * OUTPUTS
- *   *buf = real output data array
+ * Compute in-place inverse real FFT
+ * FFTsize: FFT length in samples
+ * buf:     array of FFTsize MYFLT values; input is expected to be in
+ *          interleaved real/imaginary format, except for buf[1] which
+ *          is the real part for the Nyquist frequency
+ * Output should be scaled by the return value of
+ * csoundGetInverseRealFFTScale(csound, FFTsize).
  */
 
-PUBLIC void csoundInverseRealFFT(void *csound, MYFLT *buf,
-                                 int FFTsize, int nRows)
+PUBLIC void csoundInverseRealFFT(void *csound, MYFLT *buf, int FFTsize)
 {
     int log2size;
 
     ConvertFFTSize(log2size, FFTsize);
     fftInit(log2size);
-    riffts1(buf, log2size, nRows, UtblArray[log2size],
-            BRLowArray[(log2size - 1) / 2]);
+    riffts1(buf, log2size, UtblArray[log2size], BRLowArray[(log2size - 1) / 2]);
 }
 
 /**
- * When multiplying a pair of spectra from csoundRealFFT() care must be
- * taken to multiply the two real values seperately from the complex ones.
- * This routine does it correctly.
- * the result can be stored in-place over one of the inputs
- * INPUTS
- *   *buf1 = input data array    first spectra
- *   *buf2 = input data array    second spectra
- *   FFTsize = FFT size, in samples, or log2 of 1 / (FFT size) if negative
- * OUTPUTS
- *   *outbuf = output data array spectra
+ * Multiply two arrays (buf1 and buf2) of complex data in the format
+ * returned by csoundRealFFT(), and leave the result in outbuf, which
+ * may be the same as either buf1 or buf2.
+ * An amplitude scale of 'scaleFac' is also applied.
+ * The arrays should contain 'FFTsize' MYFLT values.
  */
 
-PUBLIC void csoundRSpectProd(void *csound, MYFLT *buf1, MYFLT *buf2,
-                             MYFLT *outbuf, int FFTsize)
+PUBLIC void csoundRealFFTMult(void *csound,
+                              MYFLT *outbuf, MYFLT *buf1, MYFLT *buf2,
+                              int FFTsize, MYFLT scaleFac)
 {
-    int log2size, N;
+    MYFLT re, im;
+    int   i;
 
-    ConvertFFTSize(log2size, FFTsize);
-    N = 1 << log2size;
-    if (N > 1) {
-      outbuf[0] = buf1[0] * buf2[0];    /* multiply the zero freq values    */
-      outbuf[1] = buf1[1] * buf2[1];    /* multiply the Nyquist freq values */
-      /* multiply the other positive freq values */
-      cvprod(buf1 + 2, buf2 + 2, outbuf + 2, N / 2 - 1);
+    if (scaleFac != FL(1.0)) {
+      outbuf[0] = buf1[0] * buf2[0] * scaleFac;
+      if (FFTsize < 2)
+        return;
+      outbuf[1] = buf1[1] * buf2[1] * scaleFac;
+      for (i = 2; i < FFTsize; ) {
+        re = ((buf1[i] * buf2[i]) - (buf1[i + 1] * buf2[i + 1])) * scaleFac;
+        im = ((buf1[i] * buf2[i + 1]) + (buf2[i] * buf1[i + 1])) * scaleFac;
+        outbuf[i++] = re;
+        outbuf[i++] = im;
+      }
     }
     else {
       outbuf[0] = buf1[0] * buf2[0];
+      if (FFTsize < 2)
+        return;
+      outbuf[1] = buf1[1] * buf2[1];
+      for (i = 2; i < FFTsize; ) {
+        re = (buf1[i] * buf2[i]) - (buf1[i + 1] * buf2[i + 1]);
+        im = (buf1[i] * buf2[i + 1]) + (buf2[i] * buf1[i + 1]);
+        outbuf[i++] = re;
+        outbuf[i++] = im;
+      }
     }
 }
 

@@ -772,12 +772,14 @@ extern "C" {
     int (*GetSizeOfMYFLT)(void);
     void **(*GetRtRecordUserData)(void *csound);
     void **(*GetRtPlayUserData)(void *csound);
-    void (*ComplexFFT)(void *csound, MYFLT *buf, int FFTsize, int nRows);
-    void (*InverseComplexFFT)(void *csound, MYFLT *buf, int FFTsize, int nRows);
-    void (*RealFFT)(void *csound, MYFLT *buf, int FFTsize, int nRows);
-    void (*InverseRealFFT)(void *csound, MYFLT *buf, int FFTsize, int nRows);
-    void (*RSpectProd)(void *csound, MYFLT *buf1, MYFLT *buf2, MYFLT *outbuf,
-                       int FFTsize);
+    MYFLT (*GetInverseComplexFFTScale)(void *csound, int FFTsize);
+    MYFLT (*GetInverseRealFFTScale)(void *csound, int FFTsize);
+    void (*ComplexFFT)(void *csound, MYFLT *buf, int FFTsize);
+    void (*InverseComplexFFT)(void *csound, MYFLT *buf, int FFTsize);
+    void (*RealFFT)(void *csound, MYFLT *buf, int FFTsize);
+    void (*InverseRealFFT)(void *csound, MYFLT *buf, int FFTsize);
+    void (*RealFFTMult)(void *csound, MYFLT *outbuf, MYFLT *buf1, MYFLT *buf2,
+                        int FFTsize, MYFLT scaleFac);
     /* End of internals */
     int           ksmps_, nchnls_;
     int           global_ksmps_;
@@ -905,6 +907,9 @@ extern "C" {
     int           evt_poll_maxcnt;
     MEMFIL        *memfiles;
     MEMFIL        *rwd_memfiles;
+    int           FFT_max_size;
+    void          *FFT_table_1;
+    void          *FFT_table_2;
   } ENVIRON;
 
   extern ENVIRON cenviron_;

@@ -198,12 +198,6 @@
 #define GetScoreOffsetSeconds csound->GetScoreOffsetSeconds
 #define SetScoreOffsetSeconds csound->SetScoreOffsetSeconds
 #define RewindScore csound->RewindScore
-#define Message csound->Message
-#define MessageV csound->MessageV
-#define ThrowMessage csound->ThrowMessage
-#define ThrowMessageV csound->ThrowMessageV
-#define SetMessageCallback csound->SetMessageCallback
-#define SetThrowMessageCallback csound->SetThrowMessageCallback
 #define GetMessageLevel csound->GetMessageLevel
 #define SetMessageLevel csound->SetMessageLevel
 #define InputMessage csound->InputMessage
