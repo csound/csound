@@ -165,7 +165,7 @@ extern "C"
 		VSTPlugin *vstPlugin = vstPlugins[(size_t) *p->iVSThandle];
 		vstPlugin->Debug("vstnote_init\n");
 		p->framesRemaining = *p->kdur * vstPlugin->framesPerSecond;
-		vstPlugin->AddNoteOn(*p->kchan, *p->knote, *p->kveloc);
+		vstPlugin->AddNoteOn(p->h.insdshead->p2, *p->kchan, *p->knote, *p->kveloc);
 		return OK;
 	}
 		
@@ -178,7 +178,7 @@ extern "C"
             if(p->framesRemaining <= 0) {
                 VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
                 plugin->Debug("vstnote.\n");
-                plugin->AddNoteOff(*p->kchan, *p->knote);
+                plugin->AddNoteOff(p->h.insdshead->p2, *p->kchan, *p->knote);
             }
         }
  		return OK;		
@@ -187,7 +187,6 @@ extern "C"
 	int vstmidiout_init(void *data)
 	{
 		VSTMIDIOUT *p = (VSTMIDIOUT *)data;
-  		ENVIRON *csound = p->h.insdshead->csound;
         VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
   		plugin->Debug("vstmidiout_init.\n");
 		p->oldkstatus = 0;
@@ -199,7 +198,6 @@ extern "C"
 	int vstmidiout (void *data)
 	{
 		VSTMIDIOUT *p = (VSTMIDIOUT *)data;
-  		ENVIRON *csound = p->h.insdshead->csound;
         VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
 		if(round(p->oldkstatus) == round(*p->kstatus) &&
 		   round(p->oldkchan) == round(*p->kchan) &&
@@ -213,15 +211,13 @@ extern "C"
 		{
 		case 144:  //noteon
 			{
-				plugin->AddNoteOn((int)(*p->kchan), *p->kdata1, *p->kdata2);
+				plugin->AddNoteOn(p->h.insdshead->p2, (int)(*p->kchan), *p->kdata1, *p->kdata2);
 			}
 			break;
 		case 128:   //noteoff
 			{
-				plugin->AddNoteOff((int)(*p->kchan), *p->kdata1);
+				plugin->AddNoteOff(p->h.insdshead->p2, (int)(*p->kchan), *p->kdata1);
 			}
-		
-		
 			break;
 		/*case 160: //poly aftertouch
 			{
@@ -234,25 +230,21 @@ extern "C"
 			{
 				plugin->AddControlChange((int)*p->kdata1, (int)*p->kdata2);
 			}
-		
 			break;
 		case 192:   //program change
 			{
 				plugin->AddProgramChange(int(*p->kdata1));
 			}
-		
 			break;
 		case 208: //aftertouch
 			{
 				plugin->AddAftertouch(int(*p->kdata1));
 			}
-		
 			break;
 		case 224:   //pitch bend
 			{
 				plugin->AddPitchBend(int(*p->kdata1));
 			}
-		
 			break;
 		default:
 			break;

@@ -134,8 +134,8 @@ public:
 	virtual void processReplacing(float **inputs, float **outputs, long sampleframes);
 	virtual void process(float **inputs, float **outputs, long sampleframes);
 	virtual long Dispatch(long opCode, long index, long value, void *ptr, float opt);
-	virtual bool AddNoteOn(int channel, MYFLT note, MYFLT speed);
-	virtual bool AddNoteOff(int channel,  MYFLT note);
+	virtual bool AddNoteOn(MYFLT time, int channel, MYFLT note, MYFLT speed);
+	virtual bool AddNoteOff(MYFLT time, int channel,  MYFLT note);
 	virtual void Log(const char *format,...);
 	virtual void Debug(const char *format,...);
 	virtual void OpenEditor();

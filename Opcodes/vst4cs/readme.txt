@@ -79,3 +79,6 @@ Add vstplugg opcode to collect audio from multiple vstnote or vstout instruments
 
 Renamed opcodes -- vstaudio for vstplug, vstmidiout for vstout, vstparamset for vstpsend, vstparamget for vstpret (mkg).
 
+Implemented (supposedly) sample-accurate timing for note on and note off (mkg).
+
+
