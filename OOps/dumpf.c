@@ -49,7 +49,7 @@ int kdmpset(ENVIRON *csound, KDUMP *p)
       if (p->format == 2 || p->format == 3) {
         return csound->InitError(csound, Str("alaw and ulaw not implemented here"));
       }
-      if ((p->timcount = (long)(*p->iprd * ekr)) <= 0)
+      if ((p->timcount = (long)(*p->iprd * csound->ekr)) <= 0)
         p->timcount = 1;
       p->countdown = p->timcount;
     }
@@ -76,7 +76,7 @@ int kdmp2set(ENVIRON *csound, KDUMP2 *p)
       if (p->format == 2 || p->format == 3) {
         return csound->InitError(csound, Str("alaw and ulaw not implemented here"));
       }
-      if ((p->timcount = (long)(*p->iprd * ekr)) <= 0)
+      if ((p->timcount = (long)(*p->iprd * csound->ekr)) <= 0)
         p->timcount = 1;
       p->countdown = p->timcount;
     }
@@ -103,7 +103,7 @@ int kdmp3set(ENVIRON *csound, KDUMP3 *p)
       if (p->format == 2 || p->format == 3) {
         return csound->InitError(csound, Str("alaw and ulaw not implemented here"));
       }
-      if ((p->timcount = (long)(*p->iprd * ekr)) <= 0)
+      if ((p->timcount = (long)(*p->iprd * csound->ekr)) <= 0)
         p->timcount = 1;
       p->countdown = p->timcount;
     }
@@ -130,7 +130,7 @@ int kdmp4set(ENVIRON *csound, KDUMP4 *p)
       if (p->format == 2 || p->format == 3) {
         return csound->InitError(csound, Str("alaw and ulaw not implemented here"));
       }
-      if ((p->timcount = (long)(*p->iprd * ekr)) <= 0)
+      if ((p->timcount = (long)(*p->iprd * csound->ekr)) <= 0)
         p->timcount = 1;
       p->countdown = p->timcount;
     }
@@ -271,7 +271,7 @@ int krdset(ENVIRON *csound, KREAD *p)
       if (p->format == 2 || p->format == 3) {
         return csound->InitError(csound, Str("alaw and ulaw not implemented here"));
       }
-      if ((p->timcount = (long)(*p->iprd * ekr)) <= 0)
+      if ((p->timcount = (long)(*p->iprd * csound->ekr)) <= 0)
         p->timcount = 1;
       p->countdown = p->timcount;
     }
@@ -300,7 +300,7 @@ int krd2set(ENVIRON *csound, KREAD2 *p)
       if (p->format == 2 || p->format == 3) {
         return csound->InitError(csound, Str("alaw and ulaw not implemented here"));
       }
-      if ((p->timcount = (long)(*p->iprd * ekr)) <= 0)
+      if ((p->timcount = (long)(*p->iprd * csound->ekr)) <= 0)
         p->timcount = 1;
       p->countdown = p->timcount;
     }
@@ -329,7 +329,7 @@ int krd3set(ENVIRON *csound, KREAD3 *p)
       if (p->format == 2 || p->format == 3) {
         return csound->InitError(csound, Str("alaw and ulaw not implemented here"));
       }
-      if ((p->timcount = (long)(*p->iprd * ekr)) <= 0)
+      if ((p->timcount = (long)(*p->iprd * csound->ekr)) <= 0)
         p->timcount = 1;
       p->countdown = p->timcount;
     }
@@ -358,7 +358,7 @@ int krd4set(ENVIRON *csound, KREAD4 *p)
       if (p->format == 2 || p->format == 3) {
         return csound->InitError(csound, Str("alaw and ulaw not implemented here"));
       }
-      if ((p->timcount = (long)(*p->iprd * ekr)) <= 0)
+      if ((p->timcount = (long)(*p->iprd * csound->ekr)) <= 0)
         p->timcount = 1;
       p->countdown = p->timcount;
     }

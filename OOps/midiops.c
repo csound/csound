@@ -56,7 +56,7 @@ int massign(ENVIRON *csound, MASSIGN *p)
 
     if (*(p->insno) < FL(0.5))
       return m_chinsno(csound, chnl, (short) 0);
-    if ((instno = strarg2insno(p->insno, p->STRARG)) < 1)
+    if ((instno = strarg2insno(csound, p->insno, p->STRARG)) < 1)
       return NOTOK;
     return m_chinsno(csound, chnl, (short) instno);
 }
@@ -376,9 +376,9 @@ int pgmassign(ENVIRON *csound, PGMASSIGN *p)
     /* IV - Oct 31 2002: allow named instruments */
     if (*p->inst == SSTRCOD) {
       if (p->STRARG != NULL)
-        ins = (int) strarg2insno(p->inst, p->STRARG);
+        ins = (int) strarg2insno(csound, p->inst, p->STRARG);
       else
-        ins = (int) strarg2insno(p->inst, unquote(currevent->strarg));
+        ins = (int) strarg2insno(csound, p->inst, unquote(currevent->strarg));
     } else
       ins = (int) (*(p->inst) + FL(0.5));
     if (*(p->ipgm) < FL(0.5)) {         /* program <= 0: assign all pgms */
