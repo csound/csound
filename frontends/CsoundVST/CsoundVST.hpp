@@ -146,8 +146,11 @@ public:
   virtual void closeView();
   virtual bool getIsMultiThreaded() const;
   virtual void setIsMultiThreaded(bool isMultiThreaded);
-  static void midiDeviceOpen(void *csound);
-  static int midiRead(void * csound, unsigned char *mbuf, int size);
+  static int midiDeviceOpen(void *csound, void **userData,
+                               const char *devName);
+
+  static int midiRead(void *csound, void *userData,
+                             unsigned char *buf, int nbytes);
 };
 
 #if !defined(SWIGJAVA)

@@ -149,25 +149,19 @@ public:
    */
   virtual void setThrowMessageCallback(void (*throwMessageCallback)(void *csound, const char *format, va_list args));
   /**
-   *	Returns 1 if MIDI input from external software is enabled, or 0 if not.
-   */
-  virtual int isExternalMidiEnabled();
-  /**
-   *	Sets whether MIDI input from external software is enabled.
-   */
-  virtual void setExternalMidiEnabled(int enabled);
-  /**
    *	Called by external software to set a function for Csound to call to open MIDI input.
    */
-  virtual void setExternalMidiDeviceOpenCallback(void (*midiDeviceOpen)(void *csound));
+  virtual void setExternalMidiInOpenCallback(int (*ExternalMidiInOpen)(void *csound, void **userData,
+                               const char *devName));
   /**
    *	Called by external software to set a function for Csound to call to read MIDI messages.
    */
-  virtual void setExternalMidiReadCallback(int (*midiReadCallback)(void *ownerData, unsigned char *midiData, int size));
+  virtual void setExternalMidiReadCallback(int (*ExternalMidiRead)(void *csound, void *userData,
+                             unsigned char *buf, int nbytes));
   /**
    *	Called by external software to set a function for Csound to call to close MIDI input.
    */
-  virtual void setExternalMidiDeviceCloseCallback(void (*midiDeviceClose)(void *csound));	
+  virtual void setExternalMidiInCloseCallback(int (*ExternalMidiInClose)(void *csound, void *userData));	
   /**
    *	Returns the number of audio sample frames per control sample.
    */
