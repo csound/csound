@@ -20,6 +20,9 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
+#if defined(HAVE_CONFIG_H)
+#include "config.h"
+#endif
 
 #include "cs.h"                 /*                         MUSMON.C     */
 #include "cscore.h"
@@ -217,22 +220,21 @@ int musmon2(void);
 int musmon(void)
 {
     if (sizeof(MYFLT)==sizeof(float))
-      err_printf(
+		{
 #ifdef BETA
-                 "Csound Version %d.%.02dbeta (%s)\n",
+			err_printf("Csound version %5.2d beta (float samples) %s\n", PACKAGE_VERSION, __DATE__);
 #else
-                 Str(X_237,"Csound Version %d.%.02d (%s)\n"),
+			err_printf("Csound version %5.2d (float samples) %s\n", PACKAGE_VERSION, __DATE__);
 #endif
-                 VERSION, SUBVER, __DATE__);
+		}
     else
-      err_printf(
+		{
 #ifdef BETA
-                 "Csound(d) Version %d.%.02dbeta (%s)\n",
+			err_printf("Csound version %5.2d beta (double samples) %s\n", PACKAGE_VERSION, __DATE__);
 #else
-                 Str(X_1545,"Csound(d) Version %d.%.02d (%s)\n"),
+			err_printf("Csound version %5.2d (double samples) %s\n", PACKAGE_VERSION, __DATE__);
 #endif
-                 VERSION, SUBVER, __DATE__);
-
+		}
     if (O.Midiin) {
       MidiOpen();                     /*   alloc bufs & open files    */
     }
