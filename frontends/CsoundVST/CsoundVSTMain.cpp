@@ -33,20 +33,18 @@ bool oome = false;
 #endif
 
 // prototype of the export function main
-#if __GNUC__ && (WIN32||BEOS)
+#if defined(__GNUC__) && defined(WIN32)
 #define main main_plugin
-extern "C" __declspec(dllexport) AEffect *main_plugin (audioMasterCallback audioMaster);
+extern "C" __declspec(dllexport) AEffect *main_plugin (audioMasterCallback audioMaster)
 #elif defined(LINUX)
-#define main main_plugin
+AEffect *main_plugin (audioMasterCallback audioMaster)
 #else
-AEffect *main (audioMasterCallback audioMaster);
+AEffect *main(audioMasterCallback audioMaster)
 #endif
-
-AEffect *main (audioMasterCallback audioMaster)
 {
 	// get vst version
 	if (!audioMaster (0, audioMasterVersion, 0, 0, 0, 0))
-		return 0;  // old version
+	 return 0;  // old version
 
 	effect = new CsoundVST (audioMaster);
 	if (!effect)

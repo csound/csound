@@ -47,6 +47,7 @@ isPython(false)
 	setEditor(csoundVstFltk);
 	int number = 0;
 	csoundVstFltk->preferences.get("IsSynth", number, 0);
+	if(audioMaster)
 	if(number)
 	{
 		AudioEffectX::isSynth(true);
