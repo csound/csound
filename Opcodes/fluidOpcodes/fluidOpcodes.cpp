@@ -108,8 +108,6 @@
 #define DIR_SEP '/'
 #endif
 
-#define CENVIRON(p) (p->h.insdshead->csound)
-
 extern "C"
 {  
    
@@ -121,26 +119,26 @@ extern "C"
    * Creates a fluidEngine and returns a MYFLT to user as identifier for 
    * engine
    */
-  int fluidEngineIopadr(void *csound_, void *data) {
+  int fluidEngineIopadr(ENVIRON *csound, void *data) {
     FLUIDENGINE *fluid = (FLUIDENGINE *)data;
     fluid_synth_t *fluidSynth = 0;
         
     fluid_settings_t *fluidSettings = new_fluid_settings();
     fluidSynth = new_fluid_synth(fluidSettings);
-    float samplingRate = (float) fluid->h.insdshead->csound->GetSr(fluid->h.insdshead->csound);
-    fluid_settings_setnum(fluidSettings, "synth.sample-rate", samplingRate);
+    float samplingRate_ = (float) csound->GetSr(csound);
+    fluid_settings_setnum(fluidSettings, "synth.sample-rate", samplingRate_);
     fluid_settings_setint(fluidSettings, "synth.polyphony", 4096);
     fluid_settings_setint(fluidSettings, "synth.midi-channels", 256);
             
-    CENVIRON(fluid)->Message(CENVIRON(fluid), 
-			     "Allocated fluidsynth with sampling rate = %f.\n",
-			     samplingRate);            
+    csound->Message(csound, 
+		    "Allocated fluidsynth with sampling rate = %f.\n",
+		    samplingRate_);            
         
     fluid_engines.push_back(fluidSynth);
                  
-    CENVIRON(fluid)->Message(CENVIRON(fluid), 
-			     "Created Fluid Engine - Number : %d.\n",
-			     fluid_engines.size() - 1);
+    csound->Message(csound, 
+		    "Created Fluid Engine - Number : %d.\n",
+		    fluid_engines.size() - 1);
             
     *fluid->iEngineNum = (MYFLT)(fluid_engines.size() - 1);
         
@@ -151,13 +149,12 @@ extern "C"
    * Called by Csound to de-initialize the opcode 
    * just before destroying it.
    */
-  int fluidEngineDopadr(void *csound_, void *data) {
-    FLUIDENGINE *fluid = (FLUIDENGINE *)data;
+  int fluidEngineDopadr(ENVIRON *csound, void *) {
        
     if(!fluid_engines.empty()) {
-      CENVIRON(fluid)->Message(CENVIRON(fluid), 
-			       "Cleaning up Fluid Engines - Found: %d\n", 
-			       fluid_engines.size());
+      csound->Message(csound, 
+		      "Cleaning up Fluid Engines - Found: %d\n", 
+		      fluid_engines.size());
             
       for(size_t i = 0; i < fluid_engines.size(); i++) {               
 	delete_fluid_synth(fluid_engines[i]);  
@@ -174,7 +171,7 @@ extern "C"
   /**
    * Loads a Soundfont into a Fluid Engine
    */
-  int fluidLoadIopadr(void *csound_, void *data) {
+  int fluidLoadIopadr(ENVIRON *csound, void *data) {
     FLUIDLOAD *fluid = (FLUIDLOAD *)data;
         
     std::string filename = fluid->STRARG;        
@@ -183,8 +180,8 @@ extern "C"
         
         
     if(engineNum > int(fluid_engines.size()) || engineNum < 0) {
-      CENVIRON(fluid)->Message(CENVIRON(fluid), 
-			       "Illegal Engine Number: %i.\n", engineNum);
+      csound->Message(csound, 
+		      "Illegal Engine Number: %i.\n", engineNum);
                
       return NOTOK;
     }
@@ -205,28 +202,28 @@ extern "C"
       int sfontId = fluid_synth_sfload(fluid_engines[engineNum], 
 				       filename.c_str(), false);  
                                              
-      CENVIRON(fluid)->Message(CENVIRON(fluid), 
-			       "Loading SoundFont : %s.\n", filename.c_str());         
+      csound->Message(csound, 
+		      "Loading SoundFont : %s.\n", filename.c_str());         
                     
       *fluid->iInstrumentNumber = (MYFLT)(sfontId);
     } else if(fluid_is_soundfont(ssdirPath)) {
       int sfontId = fluid_synth_sfload(fluid_engines[engineNum], ssdirPath, false);                           
             
-      CENVIRON(fluid)->Message(CENVIRON(fluid), 
-			       "Loading SoundFont : %s.\n", ssdirPath);    
+      csound->Message(csound, 
+		      "Loading SoundFont : %s.\n", ssdirPath);    
                      
       *fluid->iInstrumentNumber = (MYFLT)(sfontId);           
     } else if(fluid_is_soundfont(sfdirPath)) {
       int sfontId = fluid_synth_sfload(fluid_engines[engineNum], sfdirPath, false);                                       
 
-      CENVIRON(fluid)->Message(CENVIRON(fluid), 
-			       "Loading SoundFont : %s.\n", sfdirPath);
+      csound->Message(csound, 
+		      "Loading SoundFont : %s.\n", sfdirPath);
                 
       *fluid->iInstrumentNumber = (MYFLT)(sfontId);                       
     } else {
 
-      CENVIRON(fluid)->Message(CENVIRON(fluid), 
-			       "[ERROR] - Unable to load soundfont");
+      csound->Message(csound, 
+		      "[ERROR] - Unable to load soundfont");
     }
         
     return OK;
@@ -234,7 +231,7 @@ extern "C"
     
   /* FLUID_PROGRAM_SELECT */
 
-  int fluidProgramSelectIopadr(void *csound_, void *data) {
+  int fluidProgramSelectIopadr(ENVIRON *csound, void *data) {
     FLUID_PROGRAM_SELECT *fluid = (FLUID_PROGRAM_SELECT *)data;
         
     int engineNum               = (int)(*fluid->iEngineNumber);
@@ -252,7 +249,7 @@ extern "C"
     
   /* FLUID_CC */
 
-  int fluidCC_I_Iopadr(void *csound_, void *data) {
+  int fluidCC_I_Iopadr(ENVIRON *csound, void *data) {
     FLUID_CC *fluid  = (FLUID_CC *)data;
 		
     int engineNum               = (int)(*fluid->iEngineNumber);
@@ -269,13 +266,13 @@ extern "C"
     return OK;	
   } 
 
-  int fluidCC_K_Iopadr(void *csound_, void *data) {
+  int fluidCC_K_Iopadr(ENVIRON *csound, void *data) {
     FLUID_CC *fluid  = (FLUID_CC *)data;
     fluid->priorMidiValue = -1;	
     return OK;	
   }    
 	
-  int fluidCC_K_Kopadr(void *csound_, void *data) {
+  int fluidCC_K_Kopadr(ENVIRON *csound, void *data) {
     FLUID_CC *fluid  = (FLUID_CC *)data;
 		
     int engineNum               = (int)(*fluid->iEngineNumber);
@@ -295,7 +292,7 @@ extern "C"
     
   /* FLUID_NOTE */
     
-  int fluidNoteIopadr(void *csound_, void *data) {
+  int fluidNoteIopadr(ENVIRON *csound, void *data) {
     FLUID_NOTE *fluid = (FLUID_NOTE *)data;    
     int engineNum   = (int)(*fluid->iEngineNumber);
     int channelNum  = (int)(*fluid->iChannelNumber);
@@ -316,18 +313,18 @@ extern "C"
     return OK;
   }
     
-  int fluidNoteKopadr(void *csound_, void *data) {
+  int fluidNoteKopadr(ENVIRON *csound, void *data) {
     FLUID_NOTE *fluid = (FLUID_NOTE *)data;
     int engineNum   = (int)(*fluid->iEngineNumber);
     int channelNum  = (int)(*fluid->iChannelNumber);
     int key         = (int)(*fluid->iMidiKeyNumber);
-    MYFLT scoreTime = CENVIRON(fluid)->GetScoreTime(CENVIRON(fluid));
+    MYFLT scoreTime = csound->GetScoreTime(csound);
     MYFLT offTime = fluid->h.insdshead->offtim;
         
-    //int kSmps = CENVIRON(fluid)->GetKsmps(CENVIRON(fluid));      
-    //int sRate = (int)CENVIRON(fluid)->GetSr(CENVIRON(fluid));
+    //int kSmps = csound->GetKsmps(csound);      
+    //int sRate = (int)csound->GetSr(csound);
         
-    //CENVIRON(fluid)->Message(CENVIRON(fluid), "Times score:%f off:%f\n", scoreTime, offTime);       
+    //csound->Message(csound, "Times score:%f off:%f\n", scoreTime, offTime);       
         
     if(!fluid->released &&        
        ( offTime <= scoreTime + .025 || fluid->h.insdshead->relesing)) {
@@ -337,7 +334,7 @@ extern "C"
       fluid_synth_noteoff(fluid_engines[engineNum], 
 			  channelNum, 
 			  key);
-      //CENVIRON(fluid)->Message(CENVIRON(fluid), "Release c:%i k:%i\n", channelNum, key);
+      //csound->Message(csound, "Release c:%i k:%i\n", channelNum, key);
          
     }
     return OK;
@@ -345,14 +342,14 @@ extern "C"
     
   /* FLUID_OUT */
     
-  int fluidOutIopadr(void *csound_, void *data) {
+  int fluidOutIopadr(ENVIRON *csound, void *data) {
     FLUIDOUT *fluid = (FLUIDOUT *)data;
         
-    fluid->blockSize = CENVIRON(fluid)->GetKsmps(CENVIRON(fluid));
+    fluid->blockSize = csound->GetKsmps(csound);
     return OK;
   }
 
-  int fluidOutAopadr(void *csound_, void *data) {
+  int fluidOutAopadr(ENVIRON *csound, void *data) {
     FLUIDOUT *fluid = (FLUIDOUT *)data;
         
     float leftSample[1];
@@ -363,8 +360,8 @@ extern "C"
     int engineNum = (int)(*fluid->iEngineNum);
         
     if(engineNum > int(fluid_engines.size()) || engineNum < 0) {
-      CENVIRON(fluid)->Message(CENVIRON(fluid), 
-			       "Illegal Engine Number: %i.\n", engineNum);
+      csound->Message(csound, 
+		      "Illegal Engine Number: %i.\n", engineNum);
       return NOTOK;
     }
         
@@ -392,14 +389,83 @@ extern "C"
   /* OPCODE LIBRARY STUFF */
     
   OENTRY fluidOentry[] = { 
-    {   "fluidEngine", sizeof(FLUIDENGINE), 1, "i",   "",         &fluidEngineIopadr, 0, 0, &fluidEngineDopadr },
-    {   "fluidLoad",   sizeof(FLUIDLOAD), 1, "i",   "Si",       &fluidLoadIopadr,   0, 0, 0 },
-    {   "fluidProgramSelect", sizeof(FLUID_PROGRAM_SELECT), 1, "",   "iiiii",       &fluidProgramSelectIopadr,   0, 0, 0 },
-    {   "fluidCCi",   sizeof(FLUID_CC), 1, "",   "iiii",       &fluidCC_I_Iopadr,   0, 0, 0 },
-    {   "fluidCCk",   sizeof(FLUID_CC), 3, "",   "iiik",       &fluidCC_K_Iopadr,   &fluidCC_K_Kopadr, 0, 0 },
-    //{   "fluidCC",   sizeof(FLUID_CC), 3, "",   "iiik",       &fluidCC_K_Iopadr,   &fluidCC_K_Kopadr, 0, 0 },        
-    {   "fluidNote",   sizeof(FLUID_NOTE), 3, "",    "iiii",  &fluidNoteIopadr,   &fluidNoteKopadr, 0, 0 },
-    {   "fluidOut",    sizeof(FLUIDOUT), 5, "aa",  "i",        &fluidOutIopadr,    0, &fluidOutAopadr, 0}
+    {   
+      "fluidEngine",         
+      sizeof(FLUIDENGINE),           
+      1,  
+      "i",   
+      "",      
+      (SUBR)&fluidEngineIopadr,        
+      0,                  
+      0,                
+      (SUBR)&fluidEngineDopadr 
+    },
+    {   
+      "fluidLoad",           
+      sizeof(FLUIDLOAD),             
+      1,  
+      "i",   
+      "Si",    
+      (SUBR)&fluidLoadIopadr,          
+      0,                  
+      0,                
+      0 
+    },
+    {   
+      "fluidProgramSelect",  
+      sizeof(FLUID_PROGRAM_SELECT),  
+      1,  
+      "",    
+      "iiiii", 
+      (SUBR)&fluidProgramSelectIopadr, 
+      0,                  
+      0,                
+      0 
+    },
+    {   
+      "fluidCCi",            
+      sizeof(FLUID_CC),              
+      1,  
+      "",    
+      "iiii",  
+      (SUBR)&fluidCC_I_Iopadr,         
+      0,                  
+      0,                
+      0 
+    }, 
+    {   
+      "fluidCCk",            
+      sizeof(FLUID_CC),              
+      3,  
+      "",    
+      "iiik",  
+      (SUBR)&fluidCC_K_Iopadr,         
+      (SUBR)&fluidCC_K_Kopadr,  
+      0,                
+      0 
+    },
+    {   
+      "fluidNote",           
+      sizeof(FLUID_NOTE),            
+      3,  
+      "",    
+      "iiii",  
+      (SUBR)&fluidNoteIopadr,          
+      (SUBR)&fluidNoteKopadr,   
+      0,                
+      0 
+    },
+    {   
+      "fluidOut",            
+      sizeof(FLUIDOUT),              
+      5,  
+      "aa",  
+      "i",     
+      (SUBR)&fluidOutIopadr,           
+      0,                  
+      (SUBR)&fluidOutAopadr,  
+      0 
+    }
   };
     
   /**
