@@ -221,7 +221,7 @@ int rtrecord_(void *inbuf_, int bytes_) /* get samples from ADC */
     MYFLT *myfltBuffer = (MYFLT *)inbuf_;
     int i;
     for (i = 0; i < samples; ++i) {
-      myfltBuffer[i] = actualBuffer[i];
+      myfltBuffer[i] = (MYFLT)actualBuffer[i];
     }
 #else
     PaError paError = Pa_ReadStream(pa_in, inbuf_, frames);
@@ -256,7 +256,7 @@ void rtplay_(void *outbuf_, int bytes_) /* put samples to DAC  */
     int i;
     float actualBuffer[samples];
     for (i = 0; i < samples; ++i) {
-      actualBuffer[i] = myfltBuffer[i];
+      actualBuffer[i] = (float)myfltBuffer[i];
     }
     PaError paError = Pa_WriteStream(pa_out, actualBuffer, frames);
 #else
