@@ -59,7 +59,7 @@ typedef struct {
     long    frInc, chans;
 
     MYFLT   frPktim, frPrtim, scale, asr, *frPtr, lastPex;
-    MYFLT   *plut, PvMaxAmp;
+    MYFLT   PvMaxAmp;
     FUNC    *AmpGateFunc;
     MEMFIL  *mfp;
     AUXCH   auxch;

@@ -67,10 +67,6 @@ int elevation_data[N_ELEV] = {56, 60, 72, 72, 72, 72, 72,
 #define ROUND(x) ((int)floor((x)+FL(0.5)))
 #define GET_NFAZ(el_index)      ((elevation_data[el_index] / 2) + 1)
 
-static void cfft (MYFLT [], int, int);
-void bitreverse (MYFLT [], int);
-void rfft (MYFLT [], int, int);
-static void cmult(MYFLT [], MYFLT [], MYFLT [], int);
 extern int bytrevhost(void);
 
 int hrtferxkSet(ENVIRON *csound, HRTFER *p)
@@ -262,10 +258,15 @@ int hrtferxk(ENVIRON *csound, HRTFER *p)
       sl[i] = *fpindex++;
       sr[i] = *fpindex++;
     }
-    for (i=0; i<FILT_LEN; i++) {                        /* IV - Jul 11 2002 */
-      xl[i] = (MYFLT)sl[i]/FL(32768.0); /* copy short buffers into
-                                           float buffers */
-      xr[i] = (MYFLT)sr[i]/FL(32768.0);
+    {
+      MYFLT scaleFac;
+      scaleFac = csound->GetInverseRealFFTScale(csound, BUF_LEN) / FL(256.0);
+      scaleFac /= FL(32768.0);
+      /* copy short buffers into float buffers */
+      for (i=0; i<FILT_LEN; i++) {
+        xl[i] = (MYFLT) sl[i] * scaleFac;
+        xr[i] = (MYFLT) sr[i] * scaleFac;
+      }
     }
     for (i=FILT_LEN; i<BUF_LEN; i++) {
       xl[i] = FL(0.0);     /* pad buffers with zeros to BUF_LEN */
@@ -275,8 +276,8 @@ int hrtferxk(ENVIRON *csound, HRTFER *p)
         /**************
         FFT xl and xr here
         ***************/
-    rfft(xl, FILT_LEN, 1);
-    rfft(xr, FILT_LEN, 1);
+    csound->RealFFT(csound, xl, BUF_LEN);
+    csound->RealFFT(csound, xr, BUF_LEN);
 
         /* If azimuth called for right side of head, use left side
            measurements and flip output channels.
@@ -351,29 +352,31 @@ int hrtferxk(ENVIRON *csound, HRTFER *p)
       if (incount == FILT_LEN) {
               /* enough audio for convolution - so do it! */
         incount = 0;
-                        /* pad x to BUF_LEN with zeros for Moore FFT */
+              /* pad x to BUF_LEN with zeros for Moore FFT */
         for (i = FILT_LEN; i <  BUF_LEN; i++)
           x[i] = FL(0.0);
-        rfft(x, FILT_LEN, 1);
+        csound->RealFFT(csound, x, BUF_LEN);
 
               /* complex multiplication, y = hrtf_data * x */
-        cmult(yl, hrtf_data.left, x, BUF_LEN);
-        cmult(yr, hrtf_data.right, x, BUF_LEN);
+        csound->RealFFTMult(csound, yl, hrtf_data.left, x, BUF_LEN, FL(1.0));
+        csound->RealFFTMult(csound, yr, hrtf_data.right, x, BUF_LEN, FL(1.0));
 
               /* convolution is the inverse FFT of above result (yl,yr) */
-        rfft(yl, FILT_LEN, 0);
-        rfft(yr, FILT_LEN, 0);
+        csound->InverseRealFFT(csound, yl, BUF_LEN);
+        csound->InverseRealFFT(csound, yr, BUF_LEN);
 
 #ifdef CLICKS
         if (crossfadeflag) {    /* convolve current input with old HRTFs */
           /* ***** THIS CODE IS SERIOUSLY BROKEN ***** */
                   /* complex multiplication, y2 = oldhrtf_data * x */
-          cmult(yl2, oldhrtf_data.left, x, BUF_LEN);
-          cmult(yr2, oldhrtf_data.right, x, BUF_LEN);
+          csound->RealFFTMult(csound,
+                              yl2, oldhrtf_data.left, x, BUF_LEN, FL(1.0));
+          csound->RealFFTMult(csound,
+                              yr2, oldhrtf_data.right, x, BUF_LEN, FL(1.0));
 
                   /* convolution is the inverse FFT of above result (y) */
-          rfft(yl2, FILT_LEN, 0);
-          rfft(yr2, FILT_LEN, 0);
+          csound->InverseRealFFT(csound, yl2, BUF_LEN);
+          csound->InverseRealFFT(csound, yr2, BUF_LEN);
 
                   /* linear crossfade */
           for (i=0; i<FILT_LEN; i++) {
@@ -487,186 +490,8 @@ int hrtferxk(ENVIRON *csound, HRTFER *p)
       p->oldhrtf_data.right[i] = hrtf_data.right[i];
     }
 #endif
-/*     for (i=0; i<BUF_LEN; i++) { */
-/*       p->outl[i] = outl[i]; */
-/*       p->outr[i] = outr[i]; */
-/*     } */
 
-/*     for (i=0; i<FILT_LENm1; i++) { */
-/*       p->bl[i] = bl[i]; */
-/*       p->br[i] = br[i]; */
-/*     } */
-
-/*     for (i=0; i<BUF_LEN; i++) */
-/*       p->x[i] = x[i]; */
-
-/*     for (i=0; i<BUF_LEN; i++) { */
-/*       p->yl[i] = yl[i]; */
-/*       p->yr[i] = yr[i]; */
-/*     } */
     return OK;
-}
-
-
-/*********************** FFT functions *****************
- * The functions cfft, rfft, and cmult are taken from the
- * code in Elements of Computer Music by F. R. Moore, pp. 81-88
- *******************************************************/
-
-/********************cfft**********************************/
-/*
- * cfft replaces float array x containing NC complex values
- * (2*NC float alternating real, imaginary, and so on)
- * by its Fourier transform if forward id true, or by its
- * inverse Fourier transform if forward is false. NC must be
- * a power of 2.
- */
-
-static void cfft (MYFLT x[], int NC, int forward)
-{
-    MYFLT wr, wi, wpr, wpi, scale;
-    double theta, sth;
-    int mmax, ND, m, i, j, delta;
-
-    ND = NC<<1;
-    bitreverse (x, ND);
-    for (mmax = 2; mmax < ND; mmax = delta) {
-      delta = mmax+mmax;
-      theta = TWOPI/(forward ? mmax : -mmax);
-      sth = sin(0.5*theta);
-      wpr = -FL(2.0)*(MYFLT)(sth * sth);
-      wpi = (MYFLT)sin(theta);
-      wr = FL(1.0);
-      wi = FL(0.0);
-      for (m = 0; m < mmax; m += 2) {
-        MYFLT rtemp, itemp;
-        for (i = m; i < ND; i += delta) {
-          j       = i + mmax;
-          rtemp   = wr*x[j] - wi*x[j+1];
-          itemp   = wr*x[j+1] + wi*x[j];
-          x[j]    = x[i] - rtemp;
-          x[j+1]  = x[i+1] - itemp;
-          x[i]   += rtemp;
-          x[i+1] += itemp;
-        }
-        wr = (rtemp = wr)*wpr - wi*wpi + wr;
-        wi = wi*wpr + rtemp*wpi + wi;
-      }
-    }
-    /* scale the output */
-    scale = forward ? FL(1.0)/ND : FL(2.0);
-    for (i = 0; i < ND; i++)
-      x[i] *= scale;
-}
-
-
-/* bitreverse places float array x containing N/2 complex values into
-   bit-reversed order */
-void bitreverse (MYFLT x[], int N)
-{
-    MYFLT rtemp, itemp;
-    int i, j, m;
-
-    for (i = j = 0; i < N; i += 2, j += m) {
-      if (j>i) {
-        rtemp = x[j]; itemp = x[j+1]; /* complex exchange */
-        x[j] = x[i]; x[j+1] = x[i+1];
-        x[i] = rtemp; x[i+1] = itemp;
-      }
-      for (m = N>>1; m >= 2 && j >= m; m >>= 1)
-        j -= m;
-    }
-}
-
-/********************rfft**********************************/
-/* If forward is true, rfft replaces 2*N real data points
-   with N complex values representing the positive frequency half
-   of their Fourrier spectrum, with x[1] replaced with the real
-   part of the Nyquist frequency values. If forward is false, rfft
-   expects x to contain a * posistive frequency spectrum arranged
-   as before, and replaces it with 2*N real values. N must be a power
-   of 2.
-*/
-
-void rfft (MYFLT x[], int N, int forward)
-{
-    MYFLT c2, h1r, h1i, h2r, h2i, wr, wi, wpr, wpi, temp;
-    MYFLT xr, xi;
-    int i,i1, i2, i3, i4, N2p1;
-    double theta, sth;
-
-    theta = PI/N;
-    wr = FL(1.0);
-    wi = FL(0.0);
-/*     c1 = FL(0.5); */
-    if (forward) {
-      c2    = -FL(0.5);
-      cfft (x,N,forward);
-      xr    = x[0];
-      xi    = x[1];
-    }
-    else {
-      c2    = FL(0.5);
-      theta = -theta;
-      xr    = x[1];
-      xi    = FL(0.0);
-      x[1]  = FL(0.0);
-    }
-    sth = sin(0.5*theta);
-    wpr = -FL(2.0)*(MYFLT)(sth*sth);
-    wpi = (MYFLT)sin(theta);
-    N2p1 = (N<<1) + 1;
-    for (i = 0; i <= N>>1; i++) {
-      i1 = i<<1;
-      i2 = i1 + 1;
-      i3 = N2p1 - i2;
-      i4 = i3 + 1;
-      if (i==0) {
-        h1r   = FL(0.5)*(x[i1] + xr);
-        h1i   = FL(0.5)*(x[i2] - xi);
-        h2r   = -c2*(x[i2] + xi);
-        h2i   = c2*(x[i1] - xr);
-        x[i1] = h1r + wr*h2r - wi*h2i;
-        x[i2] = h1i + wr*h2i + wi*h2r;
-        xr    = h1r - wr*h2r + wi*h2i;
-        xi    = -h1i + wr*h2i + wi*h2r;
-      }
-      else {
-        h1r   = FL(0.5)*(x[i1] + x[i3]);
-        h1i   = FL(0.5)*(x[i2] - x[i4]);
-        h2r   = -c2*(x[i2] + x[i4]);
-        h2i   = c2*(x[i1] - x[i3]);
-        x[i1] = h1r + wr*h2r - wi*h2i;
-        x[i2] = h1i + wr*h2i + wi*h2r;
-        x[i3] = h1r - wr*h2r + wi*h2i;
-        x[i4] = -h1i + wr*h2i + wi*h2r;
-      }
-      wr = (temp = wr)*wpr - wi*wpi + wr;
-      wi = wi*wpr + temp*wpi + wi;
-    }
-    if (forward)
-      x[1] = xr;
-    else
-      cfft (x,N,forward);
-}
-
-
-/* c, a, and b are rfft-format spectra each containing n floats--
- * place complex product of a and b into c
- */
-static void cmult( MYFLT c[], MYFLT a[], MYFLT b[], int n)
-{
-    int i,j;
-    MYFLT re, im;
-
-    c[0] = a[0] * b[0];
-    c[1] = a[1] * b[1];
-    for (i=2, j=3; i<n; i+=2, j+=2) {
-      re = a[i] * b[i]  -  a[j] * b[j];
-      im = a[i] * b[j]  +  a[j] * b[i];
-      c[i] = re;
-      c[j] = im;
-    }
 }
 
 #define S       sizeof

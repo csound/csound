@@ -280,7 +280,7 @@ void m_chanmsg(ENVIRON *csound, MEVENT *mep)
               fval = (MYFLT) (mep->dat2 - 64);
             else fval = mep->dat2;
             if (dsctl_map != NULL) {
-              fp = &dsctl_map[parnum*2];
+              fp = (MYFLT*) &(dsctl_map[parnum*2]);
               if (*fp != FL(0.0)) {
                 MYFLT xx = (fval * *fp++);
                 fval = xx + *fp;    /* optionally map */

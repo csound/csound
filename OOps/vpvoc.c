@@ -322,7 +322,6 @@ int vpvset(ENVIRON *csound, VPVOC *p)
     for (i=0; i< pvfrsiz(p); ++i)
         p->outBuf[i] = FL(0.0);
     MakeSinc( /* p->sncTab */ );        /* sinctab is same for all instances */
-    p->plut = (MYFLT *)AssignBasis(NULL, pvfrsiz(p));    /* SET UP NONET FFT */
 
     return OK;
 
@@ -340,7 +339,6 @@ int vpvoc(ENVIRON *csound, VPVOC *p)
     MYFLT  *buf = p->fftBuf;
     MYFLT  *buf2 = p->dsBuf;
     int  asize = pvdasiz(p); /* fix */
-    MYFLT  *plut = p->plut;
     int    size = pvfrsiz(p);
     int    buf2Size, outlen;
     int    circBufSize = PVFFTSIZE;
@@ -402,9 +400,7 @@ int vpvoc(ENVIRON *csound, VPVOC *p)
             printf("Rected %8.1f %6.1f %8.1f %6.1f %8.1f %6.1f %8.1f %6.1f\n",
             buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7]); */
       buf[1] = FL(0.0); buf[size+1] = FL(0.0);    /* kill spurious imag at dc & fs/2 */
-      FFT2torl((complex *)buf,size,1,/*a pex*/ p->scale, (complex *)plut);
-      /* CALL TO NONET FFT */
-      PackReals(buf, size);
+      FFT2torlpacked((complex *)buf, size, p->scale, (complex *)NULL);
       /*    if (frIndx >= p->maxFr)
             printf("IFFTed %8.1f %6.1f %8.1f %6.1f %8.1f %6.1f %8.1f %6.1f\n",
             buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7]); */
