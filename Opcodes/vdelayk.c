@@ -25,17 +25,17 @@
 #include <math.h>
 
 typedef struct {
-	OPDS	h;
-	MYFLT	*kr, *kin, *kdel, *imaxd, *istod, *interp;
-	AUXCH	aux;
-	long	left, maxd;
+        OPDS    h;
+        MYFLT   *kr, *kin, *kdel, *imaxd, *istod, *interp;
+        AUXCH   aux;
+        long    left, maxd;
 } KDEL;
 
-typedef struct	{
-	OPDS	h;
-	MYFLT	*kout, *asig, *ktrig, *imaxflag;
-	MYFLT	max;
-	int		counter;
+typedef struct  {
+        OPDS    h;
+        MYFLT   *kout, *asig, *ktrig, *imaxflag;
+        MYFLT   max;
+        int             counter;
 } P_MAXIMUM;
 
 
@@ -44,7 +44,7 @@ int kdel_set(KDEL *p)
     unsigned long n;
     MYFLT *buf;
     n = (p->maxd = (long) (*p->imaxd * ekr));
-    if (n == 0)	n = (p->maxd = 1);
+    if (n == 0) n = (p->maxd = 1);
 
     if (!*p->istod) {
       if (p->aux.auxp == NULL || (int)(n*sizeof(MYFLT)) > p->aux.size)
@@ -71,7 +71,7 @@ int kdelay(KDEL *p)
     indx = p->left;
     buf[indx] = *p->kin;
     fv1 = indx - *p->kdel * ekr;
-    while (fv1 < 0.0f)	fv1 += (MYFLT)maxd;
+    while (fv1 < 0.0f)  fv1 += (MYFLT)maxd;
     while (fv1 >= (MYFLT)maxd) fv1 -= (MYFLT)maxd;
     if (*p->interp) {           /* no interpolation */
       *p->kr = buf[(long) fv1];
@@ -96,7 +96,7 @@ int partial_maximum_set(P_MAXIMUM *p)
 
 int partial_maximum(P_MAXIMUM *p)
 {
-    int	n = ksmps, flag = (int) *p->imaxflag;
+    int n = ksmps, flag = (int) *p->imaxflag;
     MYFLT *a = p->asig;
     MYFLT max = p->max;
     switch(flag) {
@@ -147,8 +147,9 @@ int partial_maximum(P_MAXIMUM *p)
 #define S       sizeof
 
 static OENTRY localops[] = {
-{ "vdelayk",S(KDEL),   3,    "k", "kkioo",  (SUBR)kdel_set,  (SUBR)kdelay },
-{ "maxk", S(P_MAXIMUM), 5, "k", "aki", (SUBR)partial_maximum_set,NULL,(SUBR)partial_maximum},
+{ "vdelayk",S(KDEL),   3,  "k", "kkioo",  (SUBR)kdel_set,  (SUBR)kdelay },
+{ "maxk", S(P_MAXIMUM), 5, "k", "aki",    (SUBR)partial_maximum_set,NULL,
+                                          (SUBR)partial_maximum},
 };
 
 LINKAGE

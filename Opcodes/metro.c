@@ -2,33 +2,33 @@
 #include <math.h>
 
 typedef struct {
-	OPDS	h;
-	MYFLT	*sr, *xcps, *iphs;
-	double	curphs;
-	int flag;
+        OPDS    h;
+        MYFLT   *sr, *xcps, *iphs;
+        double  curphs;
+        int flag;
 } METRO;
 
 
-typedef struct	{
-	OPDS	h;
-	MYFLT	*trig, *ndx, *maxtics, *ifn, *outargs[VARGMAX];
-	int		numouts, currtic, old_ndx;
-	MYFLT *table;
+typedef struct  {
+        OPDS    h;
+        MYFLT   *trig, *ndx, *maxtics, *ifn, *outargs[VARGMAX];
+        int             numouts, currtic, old_ndx;
+        MYFLT *table;
 } SPLIT_TRIG;
 
-typedef struct	{
-	OPDS	h;
-	MYFLT	*ktrig, *kphs, *ifn, *args[VARGMAX];
-	MYFLT endSeq, *table, oldPhs;
-	int numParm, endIndex, prevIndex, nextIndex ;
-	MYFLT prevActime, nextActime;
-	int initFlag;
+typedef struct  {
+        OPDS    h;
+        MYFLT   *ktrig, *kphs, *ifn, *args[VARGMAX];
+        MYFLT endSeq, *table, oldPhs;
+        int numParm, endIndex, prevIndex, nextIndex ;
+        MYFLT prevActime, nextActime;
+        int initFlag;
 
 } TIMEDSEQ;
 
 int metro_set(METRO *p)
 {
-    double	phs = *p->iphs;
+    double      phs = *p->iphs;
     long  longphs;
 
     if (phs >= 0.0) {
@@ -43,7 +43,7 @@ int metro_set(METRO *p)
 
 int metro(METRO *p)
 {
-    double	phs= p->curphs;
+    double      phs= p->curphs;
     if(phs == 0.0 && p->flag) {
       *p->sr = FL(1.0);
       p->flag = 0;
@@ -53,7 +53,7 @@ int metro(METRO *p)
       phs -= 1.0;
       p->flag = 0;
     }
-    else 
+    else
       *p->sr = FL(0.0);
     p->curphs = phs;
     return OK;
@@ -63,28 +63,28 @@ int split_trig_set( SPLIT_TRIG *p)
 {
 
     /* syntax of each table element:
-       numtics_elem1, 
-       tic1_out1, tic1_out2, ... , tic1_outN,
-       tic2_out1, tic2_out2, ... , tic2_outN,
-       tic3_out1, tic3_out2, ... , tic3_outN,
-       .....
-       ticN_out1, ticN_out2, ... , ticN_outN,
-       
-       numtics_elem2, 
+       numtics_elem1,
        tic1_out1, tic1_out2, ... , tic1_outN,
        tic2_out1, tic2_out2, ... , tic2_outN,
        tic3_out1, tic3_out2, ... , tic3_outN,
        .....
        ticN_out1, ticN_out2, ... , ticN_outN,
 
-    */	
+       numtics_elem2,
+       tic1_out1, tic1_out2, ... , tic1_outN,
+       tic2_out1, tic2_out2, ... , tic2_outN,
+       tic3_out1, tic3_out2, ... , tic3_outN,
+       .....
+       ticN_out1, ticN_out2, ... , ticN_outN,
+
+    */
 
     FUNC *ftp;
     if ((ftp = ftfind(p->ifn)) == NULL) {
       return initerror(Str(X_1535,"splitrig: incorrect table number"));
     }
     p->table = ftp->ftable;
-    p->numouts =  p->INOCOUNT-4; 
+    p->numouts =  p->INOCOUNT-4;
     p->currtic = 0;
     return OK;
 }
@@ -92,32 +92,32 @@ int split_trig_set( SPLIT_TRIG *p)
 
 int split_trig(SPLIT_TRIG *p)
 {
-    int	j;
+    int j;
     int numouts =  p->numouts;
     MYFLT **outargs = p->outargs;
-    
+
     if (*p->trig) {
       int ndx = (int) *p->ndx * (numouts * (int) *p->maxtics + 1);
-      int	numtics =  (int) p->table[ndx];
+      int       numtics =  (int) p->table[ndx];
       MYFLT *table = &(p->table[ndx+1]);
       int kndx = (int) *p->ndx;
       int currtic;
-      
+
       if (kndx != p->old_ndx) {
         p->currtic = 0;
         p->old_ndx = kndx;
       }
       currtic = p->currtic;
-      
-      for (j = 0; j < numouts; j++) 
-        *outargs[j] = table[j +  currtic * numouts ]; 
-      
+
+      for (j = 0; j < numouts; j++)
+        *outargs[j] = table[j +  currtic * numouts ];
+
       p->currtic = (currtic +1) % numtics;
-      
+
     }
-    
+
     else {
-      for(j =0; j< numouts; j++) 
+      for(j =0; j< numouts; j++)
         *outargs[j] = FL(0.0);
     }
     return OK;
@@ -132,7 +132,7 @@ int timeseq_set(TIMEDSEQ *p)
     table = p->table = ftp->ftable;
     p->numParm = p->INOCOUNT-2; /* ? */
     for (j = 0; j < ftp->flen; j+= p->numParm) {
-      if (table[j] < 0) { 
+      if (table[j] < 0) {
         p->endSeq = table[j+1];
         p->endIndex = j/p->numParm;
         break;
@@ -148,25 +148,25 @@ int timeseq(TIMEDSEQ *p)
     MYFLT *table = p->table, minDist = onedkr;
     MYFLT phs = *p->kphs, endseq = p->endSeq;
     int  j,k, numParm = p->numParm, endIndex = p->endIndex;
-    while (phs > endseq) 
+    while (phs > endseq)
       phs -=endseq;
-    while (phs < 0 ) 
+    while (phs < 0 )
       phs +=endseq;
-    
+
     if (p->initFlag) {
     prev:
       for (j=0,k=endIndex; j < endIndex; j++, k--) {
         if (table[j*numParm + 1] > phs ) {
-          p->nextActime = table[j*numParm + 1]; 
+          p->nextActime = table[j*numParm + 1];
           p->nextIndex = j;
-          p->prevActime = table[(j-1)*numParm + 1]; 
+          p->prevActime = table[(j-1)*numParm + 1];
           p->prevIndex = j-1;
           break;
         }
         if (table[k*numParm + 1] < phs ) {
-          p->nextActime = table[(k+1)*numParm + 1]; 
+          p->nextActime = table[(k+1)*numParm + 1];
           p->nextIndex = k+1;
-          p->prevActime = table[k*numParm + 1]; 
+          p->prevActime = table[k*numParm + 1];
           p->prevIndex = k;
           break;
         }
@@ -199,19 +199,19 @@ int timeseq(TIMEDSEQ *p)
             /* there is a phase jump */
             *p->ktrig = 0;
             goto fine;
-          } 
-          if (fabs(phs-p->nextActime) > minDist) 
+          }
+          if (fabs(phs-p->nextActime) > minDist)
             goto prev;
-          
+
           p->prevActime = table[p->nextIndex*numParm + 1];
           p->prevIndex = p->nextIndex;
           p->nextIndex = (p->nextIndex + 1) % endIndex;
           p->nextActime = table[p->nextIndex*numParm + 1];
         }
         else {
-          if (fabs(phs-p->nextActime) > minDist) 
+          if (fabs(phs-p->nextActime) > minDist)
             goto prev;
-          
+
           p->nextActime = table[p->prevIndex*numParm + 1]; /*p->nextActime+1; */
           p->nextIndex = p->prevIndex;
           p->prevIndex = (p->prevIndex - 1);
@@ -221,7 +221,7 @@ int timeseq(TIMEDSEQ *p)
           p->prevActime = table[p->prevIndex*numParm + 1]; /*p->nextActime+1; */
         }
       }
-      else 
+      else
         *p->ktrig = 0;
     fine:
       p->oldPhs = phs;
@@ -232,8 +232,8 @@ int timeseq(TIMEDSEQ *p)
 #define S       sizeof
 
 static OENTRY localops[] = {
-  { "metro",  S(METRO),	  3,      "k",   "ko",	  (SUBR)metro_set, (SUBR)metro   },
-  { "splitrig",	S(SPLIT_TRIG), 3, "",	 "kkiiz", (SUBR)split_trig_set, (SUBR)split_trig },
+  { "metro",  S(METRO),   3,      "k",   "ko",    (SUBR)metro_set, (SUBR)metro   },
+  { "splitrig", S(SPLIT_TRIG), 3, "",    "kkiiz", (SUBR)split_trig_set, (SUBR)split_trig },
   { "timedseq",S(TIMEDSEQ),    3, "k", "kiz",   (SUBR)timeseq_set, (SUBR)timeseq }
 };
 
