@@ -1,4 +1,14 @@
 
+2004-02-25  Michael Gogins <gogins@pipeline.com>
+
+	Modified sources to #ifdef for HAVE_LIBSNDFILE as defined by configure.ac,
+	not _SNDFILE_.
+
+	Removed jpff_glue.c as its function is now performed by csound.c.
+	
+	Deleted load_opcodes.c after merging it with dl_opcodes.c.
+	
+
 2004-02-22  Michael Gogins <gogins@pipeline.com>
 
 	New configure.ac, which is a modified version of John Ramsdell's
