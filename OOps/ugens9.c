@@ -38,7 +38,7 @@ int cvset(ENVIRON *csound, CONVOLVE *p)
     long     Hlenpadded = 1, obufsiz, Hlen;
     int      nchanls;
 
-    if (csound->oparms_->odebug) printf(CONVOLVE_VERSION_STRING);
+    if (csound->oparms->odebug) csound->Message(csound, CONVOLVE_VERSION_STRING);
 
     if (*p->ifilno == SSTRCOD) {                    /* if strg name given */
       if (p->STRARG == NULL) strcpy(cvfilnam,unquote(currevent->strarg));
@@ -100,10 +100,10 @@ int cvset(ENVIRON *csound, CONVOLVE *p)
     if ((p->nchanls == 1) && (*p->channel > 0))
       p->H += (Hlenpadded + 2) * (int)(*p->channel - 1);
 
-    if ((cvh->samplingRate) != esr &&
-        (csound->oparms_->msglevel & WARNMSG)) {  /* & chk the data */
-      printf(Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
-              cvfilnam, cvh->samplingRate, esr);
+    if ((cvh->samplingRate) != csound->esr &&
+        (csound->oparms->msglevel & WARNMSG)) {  /* & chk the data */
+      csound->Message(csound, Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
+              cvfilnam, cvh->samplingRate, csound->esr);
     }
     if (cvh->dataFormat != CVMYFLT) {
       sprintf(errmsg,Str("unsupported CONVOLVE data format %ld in %s"),
@@ -112,10 +112,10 @@ int cvset(ENVIRON *csound, CONVOLVE *p)
     }
 
     /* Determine size of circular output buffer */
-    if (Hlen >= ksmps)
-      obufsiz = (long)ceil( (double)Hlen / (double)ksmps ) * ksmps;
+    if (Hlen >= csound->ksmps)
+      obufsiz = (long)ceil( (double)Hlen / (double)csound->ksmps ) * csound->ksmps;
     else
-      obufsiz = (long)ceil( (double)ksmps / (double)Hlen ) * Hlen;
+      obufsiz = (long)ceil( (double)csound->ksmps / (double)Hlen ) * Hlen;
 
     if (p->auxch.auxp == NULL) {              /* if no buffers yet, alloc now */
       MYFLT *fltp;
@@ -142,7 +142,7 @@ extern void writeFromCircBuf(MYFLT**, MYFLT**, MYFLT*, MYFLT*, long);
 
 int convolve(ENVIRON *csound, CONVOLVE *p)
 {
-    int    nsmpso=ksmps,nsmpsi=ksmps,nsmpso_sav,outcnt_sav;
+    int    nsmpso=csound->ksmps,nsmpsi=csound->ksmps,nsmpso_sav,outcnt_sav;
     int    nchm1 = p->nchanls - 1,chn;
     long   i,j;
     MYFLT  *ar[4];
@@ -169,10 +169,10 @@ int convolve(ENVIRON *csound, CONVOLVE *p)
     }
   /* First dump as much pre-existing audio in output buffer as possible */
     if (outcnt > 0) {
-      if (outcnt <= ksmps)
+      if (outcnt <= csound->ksmps)
         i = outcnt;
       else
-        i = ksmps;
+        i = csound->ksmps;
       nsmpso -= i; outcnt -= i;
       for (chn = nchm1;chn >= 0;chn--) {
         outhead = p->outhead + chn*obufsiz;
@@ -197,7 +197,7 @@ int convolve(ENVIRON *csound, CONVOLVE *p)
         /* We have enough audio for a convolution. */
         incount = 0;
         /* FFT the input (to create X) */
-        /*printf("CONVOLVE: ABOUT TO FFT\n"); */
+        /*csound->Message(csound, "CONVOLVE: ABOUT TO FFT\n"); */
         FFT2realpacked((complex *)p->fftbuf,Hlenpadded,
                        (complex *) NULL);
         /* save the result if multi-channel */
@@ -219,12 +219,12 @@ int convolve(ENVIRON *csound, CONVOLVE *p)
             for (i = Hlenpadded + 2;i> 0;i--)
               *fftbufind++ = *X++;
           }
-          /*printf("CONVOLVE: ABOUT TO MULTIPLY\n");  */
+          /*csound->Message(csound, "CONVOLVE: ABOUT TO MULTIPLY\n");  */
           /* Multiply H * X, point for point */
           cxmult((complex *)(p->H+chn*(Hlenpadded+2)),
                  (complex *)(p->fftbuf),Hlenpadded/2 + 1);
 
-          /*printf("CONVOLVE: ABOUT TO IFFT\n"); */
+          /*csound->Message(csound, "CONVOLVE: ABOUT TO IFFT\n"); */
           /* Perform inverse FFT on X */
 
           FFT2torlpacked((complex*)(p->fftbuf),Hlenpadded,
@@ -237,7 +237,7 @@ int convolve(ENVIRON *csound, CONVOLVE *p)
           outcnt = outcnt_sav;
           fftbufind = p->fftbuf;
           if ( (nsmpso > 0)&&(outcnt == 0) ) {
-            /*    printf("Outputting to audio buffer proper\n");*/
+            /*    csound->Message(csound, "Outputting to audio buffer proper\n");*/
             /* space left in output buffer, and nothing currently in circular
                buffer, so write as much as possible to output buffer first */
             if (nsmpso >= Hlenm1) {
@@ -255,7 +255,7 @@ int convolve(ENVIRON *csound, CONVOLVE *p)
             }
           }
 /* Any remaining output must go into circular buffer */
-/*printf("Outputting to circ. buffer\n");*/
+/*csound->Message(csound, "Outputting to circ. buffer\n");*/
           i = Hlen - (fftbufind - p->fftbuf);
           outcnt += i;
           i--; /* do first Hlen -1 samples with overlap */
@@ -347,8 +347,8 @@ int pconvset(ENVIRON *csound, PCONVOLVE *p)
       return csound->PerfError(csound, "pconvolve: error while impulse file");
     }
 
-    if ((IRfile.framesrem < 0) && (csound->oparms_->msglevel & WARNMSG)) {
-      printf(Str("WARNING: undetermined file length, will attempt "
+    if ((IRfile.framesrem < 0) && (csound->oparms->msglevel & WARNMSG)) {
+      csound->Message(csound, Str("WARNING: undetermined file length, will attempt "
                  "requested duration"));
       ainput_dur = FL(0.0);     /* This is probably wrong -- JPff */
     }
@@ -357,7 +357,7 @@ int pconvset(ENVIRON *csound, PCONVOLVE *p)
         ainput_dur = (MYFLT) IRfile.getframes / IRfile.sr;
       }
 
-    printf(Str("analyzing %ld sample frames (%3.1f secs)\n"),
+    csound->Message(csound, Str("analyzing %ld sample frames (%3.1f secs)\n"),
            IRfile.getframes, ainput_dur);
 
     p->nchanls = (channel != ALLCHNLS ? 1 : IRfile.nchanls);
@@ -366,14 +366,14 @@ int pconvset(ENVIRON *csound, PCONVOLVE *p)
                        "to input channels");
     }
 
-    if (IRfile.sr != esr && (csound->oparms_->msglevel & WARNMSG)) {
+    if (IRfile.sr != csound->esr && (csound->oparms->msglevel & WARNMSG)) {
       /* ## RWD suggests performing sr conversion here! */
-      printf("WARNING: IR srate != orch's srate");
+      csound->Message(csound, "WARNING: IR srate != orch's srate");
     }
 
     /* make sure the partition size is nonzero and a power of 2  */
     if (*p->partitionSize <= 0)
-      *p->partitionSize = csound->oparms_->outbufsamps;
+      *p->partitionSize = csound->oparms->outbufsamps;
 
     p->Hlen = 1;
     while (p->Hlen < *p->partitionSize)
@@ -402,7 +402,7 @@ int pconvset(ENVIRON *csound, PCONVOLVE *p)
         fp1 = inbuf + i;
         fp2 = IRblock;
         for (j = 0; j < read_in/p->nchanls; j++) {
-          *fp2++ = *fp1 * dbfs_to_float;
+          *fp2++ = *fp1 * csound->dbfs_to_float;
           fp1 += p->nchanls;
         }
         FFT2realpacked((complex *)IRblock, p->Hlenpadded, NULL);
@@ -428,7 +428,7 @@ int pconvset(ENVIRON *csound, PCONVOLVE *p)
 
     /* allocate circular output sample buffer */
     p->outBufSiz = sizeof(MYFLT) * p->nchanls *
-      (p->Hlen >= ksmps ? p->Hlenpadded : 2*ksmps);
+      (p->Hlen >= csound->ksmps ? p->Hlenpadded : 2*csound->ksmps);
     csound->AuxAlloc(csound, p->outBufSiz, &p->output);
     p->outRead = (MYFLT *)p->output.auxp;
 
@@ -436,8 +436,8 @@ int pconvset(ENVIRON *csound, PCONVOLVE *p)
        empty ksmps pass after a few initial generated buffers.  There is
        probably an equation to figure this out to reduce the delay, but
        I can't seem to figure it out */
-    if (p->Hlen > ksmps) {
-      p->outCount = p->Hlen + ksmps;
+    if (p->Hlen > csound->ksmps) {
+      p->outCount = p->Hlen + csound->ksmps;
       p->outWrite = p->outRead + (p->nchanls * p->outCount);
     }
     else {
@@ -449,7 +449,7 @@ int pconvset(ENVIRON *csound, PCONVOLVE *p)
 
 int pconvolve(ENVIRON *csound, PCONVOLVE *p)
 {
-    int    nsmpsi = ksmps;
+    int    nsmpsi = csound->ksmps;
     MYFLT  *ai = p->ain;
     MYFLT *buf, *input = p->savedInput.auxp, *workWrite = p->workWrite;
     MYFLT  *a1 = p->ar1, *a2 = p->ar2, *a3 = p->ar3, *a4 = p->ar4;
@@ -526,10 +526,10 @@ int pconvolve(ENVIRON *csound, PCONVOLVE *p)
 
     /* copy to output if we have enough samples [we always should
        except the first Hlen samples] */
-    if (p->outCount >= ksmps) {
+    if (p->outCount >= csound->ksmps) {
       int n;
-      p->outCount -= ksmps;
-      for (n=0; n < ksmps; n++) {
+      p->outCount -= csound->ksmps;
+      for (n=0; n < csound->ksmps; n++) {
         switch (p->nchanls) {
         case 1:
           *a1++ = *p->outRead++;

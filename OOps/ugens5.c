@@ -76,7 +76,7 @@ int tonset(ENVIRON *csound, TONE *p)
 int tone(ENVIRON *csound, TONE *p)
 {
     MYFLT       *ar, *asig;
-    int         nsmps = ksmps;
+    int         nsmps = csound->ksmps;
     MYFLT       c1 = p->c1, c2 = p->c2;
     MYFLT       yt1 = p->yt1;
 
@@ -134,7 +134,7 @@ int tonex(ENVIRON *csound, TONEX *p)     /* From Gabriel Maldonado, modified */
     yt1= p->yt1;
     asig = p->asig;
     for (j=0; j< p->loop; j++) {
-      nsmps = ksmps;
+      nsmps = csound->ksmps;
       ar = p->ar;
       do {
         *ar++ = *yt1 = c1 * *asig++ + c2 * *yt1;
@@ -148,7 +148,7 @@ int tonex(ENVIRON *csound, TONEX *p)     /* From Gabriel Maldonado, modified */
 int atone(ENVIRON *csound, TONE *p)
 {
     MYFLT       *ar, *asig;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
     /*    MYFLT       c1 = p->c1; */  /* Not used */
     MYFLT       c2 = p->c2, yt1 = p->yt1;
 
@@ -188,7 +188,7 @@ int atonex(ENVIRON *csound, TONEX *p)     /* Gavriel Maldonado, modified */
     yt1=p->yt1;
     asig = p->asig;
     for (j=0; j< p->loop; j++) {
-      nsmps = ksmps;
+      nsmps = csound->ksmps;
       ar = p->ar;
       do {
         MYFLT sig = *asig++;
@@ -217,7 +217,7 @@ int rsnset(ENVIRON *csound, RESON *p)
 
 int reson(ENVIRON *csound, RESON *p)
 {
-    int flag = 0, nsmps = ksmps;
+    int flag = 0, nsmps = csound->ksmps;
     MYFLT       *ar, *asig;
     MYFLT       c3p1, c3t4, omc3, c2sqr;
     MYFLT       yt1, yt2, c1 = p->c1, c2 = p->c2, c3 = p->c3;
@@ -317,7 +317,7 @@ int resonx(ENVIRON *csound, RESONX *p) /* Gabriel Maldonado, modified  */
     yt2  = p->yt2;
     asig = p->asig;
     for (j=0; j< p->loop; j++) {
-      nsmps = ksmps;
+      nsmps = csound->ksmps;
       ar = p->ar;
       do {
         *ar = c1 * *asig++ + c2 * *yt1 - c3 * *yt2;
@@ -333,7 +333,7 @@ int resonx(ENVIRON *csound, RESONX *p) /* Gabriel Maldonado, modified  */
 
 int areson(ENVIRON *csound, RESON *p)
 {
-    int flag = 0, nsmps = ksmps;
+    int flag = 0, nsmps = csound->ksmps;
     MYFLT       *ar, *asig;
     MYFLT       c3p1, c3t4, omc3, c2sqr, D = FL(2.0); /* 1/RMS = root2 (rand) */
                                                    /*      or 1/.5  (sine) */
@@ -445,7 +445,7 @@ int lprdset(ENVIRON *csound, LPREAD *p)
           printf(Str("WARNING: lpheader overriding inputs\n"));
       }
       /* Check orc/analysis sample rate compatibility */
-      if (lph->srate != esr) {
+      if (lph->srate != csound->esr) {
         if (O.msglevel & WARNMSG)
           printf(Str("WARNING: lpfile srate != orch sr\n"));
       }
@@ -609,7 +609,7 @@ void synthetize(int, double *, double *, double *, double *);
 int lpreson(ENVIRON *csound, LPRESON *p)
 {
     LPREAD *q = p->lpread;
-    int     nn, nsmps = ksmps;
+    int     nn, nsmps = csound->ksmps;
     MYFLT   *coefp, *pastp, *jp, *jp2, *rslt = p->ar, *asig = p->asig;
     MYFLT   x;
     double  poleReal[MAXPOLES], poleImag[MAXPOLES];
@@ -709,7 +709,7 @@ int lpfrsnset(ENVIRON *csound, LPFRESON *p)
 int lpfreson(ENVIRON *csound, LPFRESON *p)
 {
     LPREAD  *q = p->lpread;
-    int     nn, nsmps = ksmps;
+    int     nn, nsmps = csound->ksmps;
     MYFLT   *coefp, *pastp, *pastp1, *rslt = p->ar, *asig = p->asig;
     MYFLT   x, temp1, temp2, ampscale, cq;
 
@@ -801,7 +801,7 @@ int balnset(ENVIRON *csound, BALANCE *p)
 
 int rms(ENVIRON *csound, RMS *p)
 {
-    int     nsmps = ksmps;
+    int     nsmps = csound->ksmps;
     MYFLT   *asig;
     MYFLT   q;
     MYFLT   c1 = p->c1, c2 = p->c2;
@@ -819,7 +819,7 @@ int rms(ENVIRON *csound, RMS *p)
 
 int gain(ENVIRON *csound, GAIN *p)
 {
-    int     nsmps = ksmps;
+    int     nsmps = csound->ksmps;
     MYFLT   *ar, *asig;
     MYFLT   q, a, m, diff, inc;
     MYFLT   c1 = p->c1, c2 = p->c2;
@@ -836,10 +836,10 @@ int gain(ENVIRON *csound, GAIN *p)
     else    a = *p->krms;
     asig = p->asig;
     ar = p->ar;
-    nsmps = ksmps;
+    nsmps = csound->ksmps;
     if ((diff = a - p->prva) != 0) {
       m = p->prva;
-      inc = diff/ksmps;
+      inc = diff/csound->ksmps;
       do {
         *ar++ = *asig++ * m;
         m += inc;
@@ -856,7 +856,7 @@ int gain(ENVIRON *csound, GAIN *p)
 
 int balance(ENVIRON *csound, BALANCE *p)
 {
-    int     nsmps = ksmps;
+    int     nsmps = csound->ksmps;
     MYFLT   *ar, *asig, *csig;
     MYFLT   q, r, a, m, diff, inc;
     MYFLT   c1 = p->c1, c2 = p->c2;
@@ -877,10 +877,10 @@ int balance(ENVIRON *csound, BALANCE *p)
     else   a = (MYFLT)sqrt(r);
     asig = p->asig;
     ar = p->ar;
-    nsmps = ksmps;
+    nsmps = csound->ksmps;
     if ((diff = a - p->prva) != 0) {
       m = p->prva;
-      inc = diff/ksmps;
+      inc = diff/csound->ksmps;
       do {
         *ar++ = *asig++ * m;
         m += inc;
