@@ -1,5 +1,10 @@
 2004-05-27  John ffitch  <jpff@codemist.co.uk>
 
+	* InOut/widgets.cpp (fl_setWidgetValue_set, fl_setWidgetValue):
+	New code stolen from CsoundAV and changed to Csound5 format
+
+	* Engine/entry2.c: Change entry for FLsetVal
+
 	* InOut/widgets.cpp: SNAPSHOT::get returns error state
 	(get_snap): and used
 
