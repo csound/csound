@@ -555,7 +555,7 @@ static int playevents(void)  /* play all events in a score or an lplay list */
         kcnt = (long)((nxtbt - curbt) * ekrbetsiz + FL(0.5));
       else kcnt = (long)((nxtim - curp2) * ekr + FL(0.5));
       if (kcnt > 0) {                 /* perf for kcnt kprds  */
-        long kdone, kperf(long);
+        long kdone;
         if (!O.initonly
             && (kdone = kperf(kcnt)) < kcnt) { /* early rtn:  RTevent  */
           curp2 += kdone * onedkr;             /*    update only curp2 */
@@ -781,7 +781,6 @@ static int playevents(void)  /* play all events in a score or an lplay list */
     scode:
       if ((opcod = e->opcod) == 's'       /* for s, or e after s   */
           || (opcod == 'e' && sectno > 1)) {
-        printf("**** scode 's' %f %f \n", timtot, curp2);
         timtot += curp2;
         prvbt = curbt = curp2 = FL(0.0);
         printf(Str(X_717,"end of section %d\t sect peak amps:"),sectno);
@@ -839,7 +838,7 @@ int sensevents(void)
     static int needsCleanup = 0;
 
     int     n;
-    char    opcod;
+    char    opcod = ' ';
 
     if (!csoundYield(&cenviron)) longjmp(cenviron.exitjmp_,1);
 
@@ -972,7 +971,6 @@ int sensevents(void)
         kcnt = (long)((nxtbt - curbt) * ekrbetsiz + FL(0.5));
       else
         kcnt = (long)((nxtim - curp2) * ekr + FL(0.5));
-
       needsCleanup = kcnt;
     }
 
@@ -1046,7 +1044,6 @@ int sensevents(void)
       if (offonly)
         return(0);
     }
-
 /*  mtest: */
     /* Old test: is faster */
     /* if (sensType >= 2) { */        /* Midievent:             */
@@ -1092,7 +1089,7 @@ int sensevents(void)
         }
       }
     }
-    else switch(e->opcod) {          /* scorevt or Linevt:     */
+    else switch (e->opcod) {          /* scorevt or Linevt:     */
     case 'e':
       goto scode;               /* quit realtime */
     case 'i':
@@ -1176,7 +1173,7 @@ int sensevents(void)
     if ((opcod = e->opcod) == 's' ||      /* for s, or e after s   */
         (opcod == 'e' && sectno > 1)) {
       timtot += curp2;
-      prvbt = curbt = curp2 = FL(0.0);
+      nxtim = nxtbt = prvbt = curbt = curp2 = FL(0.0);
       printf(Str(X_717,"end of section %d\t sect peak amps:"),sectno);
       for (n=nchnls, maxp=smaxamp; n--; )
         print_maxamp (*maxp++);                 /* IV - Jul 9 2002 */
@@ -1209,7 +1206,7 @@ int sensevents(void)
       orcompact();                            /*   rtn inactiv spc */
       if (actanchor.nxtact == NULL)           /*   if no indef ins */
         rlsmemfiles();                        /*    purge memfiles */
-      curp2 = curbt = FL(0.0);                /*   reset sec times */
+      nxtim = nxtbt = curp2 = curbt = FL(0.0);        /*   reset sec times */
       printf(Str(X_448,"SECTION %d:\n"), ++sectno);
 #ifdef mills_macintosh
       fflush(stdout);
@@ -1248,11 +1245,7 @@ int fillbuffer(int sensEventRate)
 
     while (!done && sampsNeeded > 0) {
       if (++sensCount == sensEventRate) {
-        printf("****(c) timtot=%f curbt=%f curp2=%f\n",
-               timtot, curbt, curp2);
         done = sensevents();
-        printf("****(d) timtot=%f curbt=%f curp2=%f\n",
-               timtot, curbt, curp2);
         sensCount = 0;
       }
 

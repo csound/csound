@@ -1,3 +1,8 @@
+2004-11-06  John ffitch  <jpff@codemist.co.uk>
+
+	* Engine/musmon.c (sensevents): Need to reset nxtim and nxtbt at
+	end of section (not needed in playevents model)
+
 2004-11-05  John ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/pvsbasic.c: New file and opcodes

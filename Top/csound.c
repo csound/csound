@@ -129,12 +129,8 @@ static long csoundNumExits_ = -1;
             turn it off before calling kperf, and back on afterwards.
           */
           int rtEvents = O.RTevents;
-          int kdone;
           O.RTevents = 0;
-          kdone = kperf(1);
-          if (kdone<1) {
-            printf("**** kdone=%d\n", kdone);
-          }
+          kperf(1);
           kcnt -= 1;
           O.RTevents = rtEvents;
         }
@@ -158,6 +154,7 @@ static long csoundNumExits_ = -1;
           return returnValue;
         }
       done = sensevents();
+
       /*
       Rather than overriding real-time event handling in kperf,
       turn it off before calling kperf, and back on afterwards.
