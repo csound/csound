@@ -113,7 +113,6 @@
 #undef rngcnt
 #undef rngflg
 #undef multichan
-#undef OrcTrigEvts
 #undef name_full
 #undef Mforcdecs
 #undef Mxtroffs
@@ -342,7 +341,6 @@
 #define rngcnt  csound->rngcnt_
 #define rngflg  csound->rngflg_
 #define multichan csound->multichan_
-#define OrcTrigEvts csound->OrcTrigEvts_
 #define name_full csound->name_full_
 #define Mforcdecs csound->Mforcdecs_
 #define Mxtroffs csound->Mxtroffs_

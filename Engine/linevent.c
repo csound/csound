@@ -21,20 +21,20 @@
     02111-1307 USA
 */
 
-#include "cs.h"                 /*                              LINEVENT.C      */
+#include "cs.h"             /*                              LINEVENT.C      */
 #include <stdlib.h>
 #include <ctype.h>
 #if defined(mills_macintosh) || defined(SYMANTEC)
 #include <console.h>
 #endif
-
 #ifdef HAVE_FCNTL_H
 # include <fcntl.h>
 #endif
-
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+
+#include "schedule.h"
 
 void RTclose(void);
 extern int close(int);
@@ -360,40 +360,11 @@ int sensLine(void)
 
 /* send a lineevent from the orchestra */
 /* code derived from sensLine() -matt 2001/12/07 */
-#include "schedule.h"
-
-int event_set(LINEVENT* p/*unused*/)
-{
-    IGN(p);
-    /* Make sure we have RTLineevents turned on if -L was not specified on
-       commandline.  note: this does not open stdin, it just hacks enough to
-       fool sensLine() */
-    if (O.RTevents == 0 || Firstblk == NULL) {
-      O.RTevents = 1;
-      O.ksensing = 1;
-      O.Linein  = 1;
-      /* IV - Nov 30 2002: hack to fix crash with RT audio */
-      O.Linename = "stdin";
-      Linefd = -1;
-      Firstblk = (LEVTBLK *) mcalloc(&cenviron, (long)sizeof(LEVTBLK));
-    }
-    return OK;
-}
 
 int eventOpcode(ENVIRON *csound, LINEVENT *p)
 {
-    LEVTBLK  *Curblk;
-    EVTBLK   *e;
-    int      n;
-
-    static EVTBLK *prve = NULL;
-    static char prvop = ' ';
-    static int prvpcnt = 0;
-    static MYFLT prvp1 = FL(0.0);
-    static MYFLT prvp2 = FL(0.0);
-
-    Curblk = getblk();          /* get a blk from the levtblk pool */
-    e = &Curblk->evtblk;
+    EVTBLK        evt;
+    int           i, retval;
 
     if ((*p->args[0] != SSTRCOD) ||
         (*p->STRARG != 'i' && *p->STRARG != 'f' && *p->STRARG !='e')) {
@@ -401,98 +372,32 @@ int eventOpcode(ENVIRON *csound, LINEVENT *p)
               Str("lineevent param 1 must be \"i\", \"f\", or \"e\"\n"));
       return perferror(errmsg);
     }
-    else
-      e->opcod = *p->STRARG;
-
-    if (p->INOCOUNT < 4 && e->opcod !='e') {
-      err_printf(Str("too few pfields\n"));/* check sufficient pfields */
-      return NOTOK;
+    evt.strarg = NULL;
+    evt.opcod = *p->STRARG;
+    evt.pcnt = p->INOCOUNT - 1;
+    if (evt.pcnt < 4 && evt.opcod != 'e') {
+      if (evt.pcnt < 3 || evt.opcod == 'f') {
+        csound->Message(csound, Str("too few pfields\n"));
+        return NOTOK;
+      }
     }
-    else
-      e->pcnt = p->INOCOUNT-1;
-
     /* IV - Oct 31 2002: allow string argument */
     if (*p->args[1] == SSTRCOD) {
-      if (e->opcod != 'i') {
-        return perferror(Str(
-                      "event: string name is allowed only for \"i\" events"));
+      if (evt.opcod != 'i') {
+        return
+          perferror(Str("event: string name is allowed only for \"i\" events"));
       }
-      e->strarg = p->STRARG2;
+      evt.strarg = p->STRARG2;
     }
+    evt.p[1] = evt.p[2] = evt.p[3] = FL(0.0);
+    for (i = 1; i <= evt.pcnt; i++)             /* IV - Oct 31 2002 */
+      evt.p[i] = *p->args[i];
+    if (evt.opcod != 'f')
+      retval = insert_score_event(csound, &evt,
+                                  csound->sensEvents_state.curTime, 0);
     else
-      e->strarg = NULL;
-    for (n = 1; n < p->INOCOUNT; n++) {         /* IV - Oct 31 2002 */
-      e->p[n] = *p->args[n];
-      /*##? form the string -- perhaps not needed? */
-      /* e->strarg */
-      /*## add a feature for pfield carry? */
-    }
-
-    prve = e;
-    prvop = e->opcod;                    /* preserv the carry sensors */
-    prvpcnt = e->pcnt;
-    prvp1 = e->p[1];
-    prvp2 = e->p[2];
-
-    e->p2orig = e->p[2];
-    e->p3orig = e->p[3];
-
-    Curblk->inuse = 1;
-    Curblk->oncounter = global_kcounter + (long)(e->p[2] * global_ekr);
-    Linsert(Curblk);
-    return OK;
+      retval = insert_score_event(csound, &evt,
+                                  csound->sensEvents_state.curTime, 1);
+    return (retval == 0 ? OK : NOTOK);
 }
 
-/* create a new score event [called externally] */
-/*              'type' can only be 'i', 'f', or 'e' */
-/*              'pfields' is an array of 'count' floats representing the pfields */
-void newevent(void*csound, char type, MYFLT *pfields, long count)
-{
-    LEVTBLK  *Curblk;
-    EVTBLK   *e;
-    int      n;
-
-    static EVTBLK *prve = NULL;
-    static char prvop = ' ';
-    static int prvpcnt = 0;
-    static MYFLT prvp1 = FL(0.0);
-    static MYFLT prvp2 = FL(0.0);
-
-    /* Make sure we have RTLineevents turned on if -L was not specified
-       on commandline */
-    /* note: this does not open stdin, it just hacks enough to fool sensLine() */
-    if (O.RTevents == 0) {
-      O.RTevents = 1;
-      O.ksensing = 1;
-      O.Linein  = 1;
-      Firstblk = (LEVTBLK *) mcalloc(csound, (long)sizeof(LEVTBLK));
-    }
-
-    Curblk = getblk();          /* get a blk from the levtblk pool */
-    e = &Curblk->evtblk;
-    e->opcod = type;
-
-    if (count < 4 && e->opcod !='e') {
-      err_printf(Str("too few pfields\n"));/* check sufficient pfields */
-      return;
-    }
-    else
-      e->pcnt = (short)count;
-
-    for (n = 1; n <= count; n++) {
-      e->p[n] = pfields[n-1];
-    }
-
-    prve = e;
-    prvop = e->opcod;                    /* preserv the carry sensors */
-    prvpcnt = e->pcnt;
-    prvp1 = e->p[1];
-    prvp2 = e->p[2];
-
-    e->p2orig = e->p[2];
-    e->p3orig = e->p[3];
-
-    Curblk->inuse = 1;
-    Curblk->oncounter = global_kcounter + (long)(e->p[2] * global_ekr);
-    Linsert(Curblk);
-}

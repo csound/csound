@@ -66,7 +66,7 @@ typedef struct {
 } TRIGINSTR;
 
 
-extern int sensOrcEvent(void);
+extern int sensOrcEvent(ENVIRON*);
 
 /*****************************************************************/
 /* trigseq, seqtime -                                            */

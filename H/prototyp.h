@@ -73,8 +73,6 @@ char *unquote(char *);
 void scoreRESET(ENVIRON *p);
 void kperf(ENVIRON*);
 void writeLine(const char *text, long size);
-void newevent(void *, char type, MYFLT *pfields, long count);
-void csoundDefaultMidiOpen(void*);
 void mainRESET(ENVIRON *);
 void create_opcodlst(void *csound);
 int readOptions(void*, FILE*);
@@ -83,6 +81,7 @@ void remove_tmpfiles(void*);
 void add_tmpfile(void*, char*);
 void xturnoff(ENVIRON*, INSDS*);
 void xturnoff_now(ENVIRON*, INSDS*);
+int insert_score_event(ENVIRON*, EVTBLK*, double, int);
 
 extern OPARMS O;
 extern ENVIRON cenviron;

@@ -78,11 +78,6 @@ typedef struct inx {
 } INX;
 
 typedef struct {
-        int     insno;
-        long    ktime;
-} TRNON;
-
-typedef struct {
         OPDS   h;
         MYFLT  *insno, *itime;
 } TURNON;
