@@ -193,6 +193,8 @@ void psignal(int sig, char *str)
 }
 #endif
 
+extern int cleanup(void *csound);
+
 static void signal_handler(int sig)
 {
 #if defined(USE_FLTK) && defined(SIGALRM)
@@ -203,11 +205,15 @@ static void signal_handler(int sig)
     /* FIXME: cannot have a csound pointer here, but signal handling */
     /* should be done by the host application anyway, and not by the */
     /* Csound library */
-    cenviron.rtclose_callback(&cenviron);
+    cleanup((void*) &cenviron);
+#ifdef LINUX
+    usleep(250000);
+#else
 #ifndef MSVC /* VL MSVC fix */
     sleep(1);
 #else
     Sleep(1000);
+#endif
 #endif
     exit(1);
 }
@@ -303,6 +309,7 @@ int csoundCompile(void *csound, int argc, char **argv)
     }
     /* IV - Jan 28 2005 */
     csoundCreateGlobalVariable(csound, "csRtClock", sizeof(RTCLOCK));
+    csoundCreateGlobalVariable(csound, "#CLEANUP", (size_t) 1);
     frsturnon = 0;
 /*  init_getstring(argc, argv);     should be done by host application as */
 /*                                string database is global to all instances */
@@ -401,7 +408,7 @@ int csoundCompile(void *csound, int argc, char **argv)
       fprintf(scof, "f0 86400\n");
       fclose(scof);
       scorename = sconame;
-      add_tmpfile(sconame);             /* IV - Oct 31 2002 */
+      add_tmpfile(csound, sconame);     /* IV - Feb 03 2005 */
     }
     if (O.Linein || O.Midiin || O.FMidiin)
       O.RTevents = 1;
@@ -481,7 +488,7 @@ int csoundCompile(void *csound, int argc, char **argv)
         }
         else {
           scorename = tmpnam(scnm);
-          add_tmpfile(scorename);       /* IV - Oct 31 2002 */
+          add_tmpfile(csound, scorename);       /* IV - Feb 03 2005 */
         }
       }
     }
@@ -510,7 +517,7 @@ int csoundCompile(void *csound, int argc, char **argv)
       }
       else {
         playscore = sortedscore = tmpnam(nme);
-        add_tmpfile(playscore);         /* IV - Oct 31 2002 */
+        add_tmpfile(csound, playscore);         /* IV - Feb 03 2005 */
       }
       if (!(scorin = fopen(scorename, "r")))          /* else sort it   */
         dies(Str("cannot open scorefile %s"), scorename);
@@ -595,8 +602,7 @@ void mainRESET(ENVIRON *p)
     void soundinRESET(void);
     void tranRESET(void);
 
-    if (p->rtclose_callback != NULL)
-      p->rtclose_callback((void*) p);   /* In case need to reopen */
+    cleanup((void*) p);                 /* IV - Feb 03 2005 */
     /* call local destructor routines of external modules */
     /* should check return value... */
     csoundDestroyModules((void*) p);
@@ -627,7 +633,7 @@ void mainRESET(ENVIRON *p)
     }
     scoreRESET(p);
     oloadRESET();               /* should be called last but changed!! */
-    remove_tmpfiles();          /* IV - Oct 31 2002 */
+/*  remove_tmpfiles((void*) p);    IV - Feb 03 2005 */
     memRESET();
     p->spoutactive_ = 0;
     O.Midiin = 0;
@@ -640,7 +646,7 @@ void mainRESET(ENVIRON *p)
 * For re-entrancy.
 */
 
-void csoundMainCleanup(void)
+void csoundMainCleanup(void *csound)
 {
-    remove_tmpfiles();          /* IV - Oct 31 2002 */
+    cleanup(csound);            /* IV - Feb 03 2005 */
 }

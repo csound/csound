@@ -47,8 +47,6 @@ typedef struct namelst {
   struct namelst *next;
 } NAMELST;
 
-static NAMELST *toremove = NULL;
-
 #ifdef WIN32
 char *mytmpnam(char *a)
 {
@@ -117,28 +115,40 @@ static char *my_fgets(char *s, int n, FILE *stream)
 int firstsamp = 1;
 int sampused[100];
 
-void remove_tmpfiles (void)             /* IV - Oct 31 2002 */
-{                             /* use one fn to delete all temporary files */
-    while (toremove) {
-      NAMELST *nxt = toremove->next;
+void remove_tmpfiles(void *csound)              /* IV - Feb 03 2005 */
+{                               /* use one fn to delete all temporary files */
+    NAMELST **toremove;
+    toremove = (NAMELST**) csoundQueryGlobalVariable(csound, "*tmpFileList");
+    if (toremove == NULL)
+      return;
+    while ((*toremove) != NULL) {
+      NAMELST *nxt = (*toremove)->next;
 #ifdef BETA
-      err_printf("Removing temporary file %s ...\n", toremove->name);
+      err_printf("Removing temporary file %s ...\n", (*toremove)->name);
 #endif
-      if (remove(toremove->name))
-        err_printf(Str("WARNING: could not remove %s\n"), toremove->name);
-      mfree(toremove->name);
-      mfree(toremove);
-      toremove = nxt;
+      if (remove((*toremove)->name))
+        err_printf(Str("WARNING: could not remove %s\n"), (*toremove)->name);
+      mfree((*toremove)->name);
+      mfree((*toremove));
+      (*toremove) = nxt;
     }
+    csoundDestroyGlobalVariable(csound, "*tmpFileList");
 }
 
-void add_tmpfile (char *name)           /* IV - Oct 31 2002 */
-{                      /* add temporary file to delete list */
-    NAMELST *tmp = (NAMELST*) mmalloc(sizeof(NAMELST));
-    tmp->name = mmalloc(strlen(name) + 1);
+void add_tmpfile(void *csound, char *name)      /* IV - Feb 03 2005 */
+{                               /* add temporary file to delete list */
+    NAMELST *tmp, **toremove;
+    toremove = (NAMELST**) csoundQueryGlobalVariable(csound, "*tmpFileList");
+    if (toremove == NULL) {
+      csoundCreateGlobalVariable(csound, "*tmpFileList", sizeof(NAMELST*));
+      toremove = (NAMELST**) csoundQueryGlobalVariable(csound, "*tmpFileList");
+      (*toremove) = (NAMELST*) NULL;
+    }
+    tmp = (NAMELST*) mmalloc(sizeof(NAMELST));
+    tmp->name = (char*) mmalloc(strlen(name) + 1);
     strcpy(tmp->name, name);
-    tmp->next = toremove;
-    toremove = tmp;
+    tmp->next = (*toremove);
+    (*toremove) = tmp;
 }
 
 static char files[1000];
@@ -217,7 +227,7 @@ int readOptions(void *csound, FILE *unf)
     return FALSE;
 }
 
-static int createOrchestra(FILE *unf)
+static int createOrchestra(void *csound, FILE *unf)
 {
     char *p;
     FILE *orcf;
@@ -236,7 +246,7 @@ static int createOrchestra(FILE *unf)
       while (*p==' '||*p=='\t') p++;
       if (strstr(p,"</CsInstruments>") == buffer) {
         fclose(orcf);
-        add_tmpfile(orcname);           /* IV - Oct 31 2002 */
+        add_tmpfile(csound, orcname);           /* IV - Feb 03 2005 */
         return TRUE;
       }
       else fputs(buffer, orcf);
@@ -245,7 +255,7 @@ static int createOrchestra(FILE *unf)
 }
 
 
-static int createScore(FILE *unf)
+static int createScore(void *csound, FILE *unf)
 {
     char *p;
     FILE *scof;
@@ -263,7 +273,7 @@ static int createScore(FILE *unf)
       while (*p==' '||*p=='\t') p++;
      if (strstr(p,"</CsScore>") == buffer) {
         fclose(scof);
-        add_tmpfile(sconame);           /* IV - Oct 31 2002 */
+        add_tmpfile(csound, sconame);           /* IV - Feb 03 2005 */
         return TRUE;
       }
       else fputs(buffer, scof);
@@ -271,7 +281,7 @@ static int createScore(FILE *unf)
     return FALSE;
 }
 
-static int createMIDI(FILE *unf)
+static int createMIDI(void *csound, FILE *unf)
 {
     int size;
     char *p;
@@ -300,7 +310,7 @@ static int createMIDI(FILE *unf)
       putc(c, midf);
     }
     fclose(midf);
-    add_tmpfile(midname);               /* IV - Oct 31 2002 */
+    add_tmpfile(csound, midname);               /* IV - Feb 03 2005 */
     midiSet = TRUE;
     while (TRUE) {
       if (my_fgets(buffer, 200, unf)!= NULL) {
@@ -357,7 +367,7 @@ static void read_base64(FILE *in, FILE *out)
     }
 }
 
-static int createMIDI2(FILE *unf)
+static int createMIDI2(void *csound, FILE *unf)
 {
     char *p;
     FILE *midf;
@@ -376,7 +386,7 @@ static int createMIDI2(FILE *unf)
     }
     read_base64(unf, midf);
     fclose(midf);
-    add_tmpfile(midname);               /* IV - Oct 31 2002 */
+    add_tmpfile(csound, midname);               /* IV - Feb 03 2005 */
     midiSet = TRUE;
     while (TRUE) {
       if (my_fgets(buffer, 200, unf)!= NULL) {
@@ -390,7 +400,7 @@ static int createMIDI2(FILE *unf)
     return FALSE;
 }
 
-static int createSample(FILE *unf)
+static int createSample(void *csound, FILE *unf)
 {
     int num;
     FILE *smpf;
@@ -412,7 +422,7 @@ static int createSample(FILE *unf)
     fclose(smpf);
     sampused[num] = 1;          /* Remember to delete */
     if (firstsamp) firstsamp = 0;
-    add_tmpfile(sampname);              /* IV - Oct 31 2002 */
+    add_tmpfile(csound, sampname);              /* IV - Feb 03 2005 */
     while (TRUE) {
       if (my_fgets(buffer, 200, unf)!= NULL) {
         char *p = buffer;
@@ -425,7 +435,7 @@ static int createSample(FILE *unf)
     return FALSE;
 }
 
-static int createFile(FILE *unf)
+static int createFile(void *csound, FILE *unf)
 {
     FILE *smpf;
     char filename[256];
@@ -444,7 +454,7 @@ static int createFile(FILE *unf)
     read_base64(unf, smpf);
     fclose(smpf);
     if (firstsamp) firstsamp = 0;
-    add_tmpfile(filename);              /* IV - Oct 31 2002 */
+    add_tmpfile(csound, filename);              /* IV - Feb 03 2005 */
 
     while (TRUE) {
       if (my_fgets(buffer, 200, unf)!= NULL) {
@@ -556,7 +566,7 @@ int read_unified_file(void *csound, char **pname, char **score)
 /*        } */
       else if (strstr(p,"<CsInstruments>") == buffer) {
         printf(Str("Creating orchestra\n"));
-        r = createOrchestra(unf);
+        r = createOrchestra(csound, unf);
         result = r && result;
       }
 /*        else if (strstr(p,"<CsArrangement>") == buffer) { */
@@ -564,26 +574,26 @@ int read_unified_file(void *csound, char **pname, char **score)
 /*        } */
       else if (strstr(p,"<CsScore>") == buffer) {
         printf(Str("Creating score\n"));
-        r = createScore(unf);
+        r = createScore(csound, unf);
         result = r && result;
       }
 /*        else if (strstr(p,"<CsTestScore>") == buffer) { */
 /*          importTestScore(unf); */
 /*        } */
       else if (strstr(p,"<CsMidifile>") == buffer) {
-        r = createMIDI(unf);
+        r = createMIDI(csound, unf);
         result = r && result;
       }
       else if (strstr(p,"<CsMidifileB>") == buffer) {
-        r = createMIDI2(unf);
+        r = createMIDI2(csound, unf);
         result = r && result;
       }
       else if (strstr(p,"<CsSampleB filename=") == buffer) {
-        r = createSample(unf);
+        r = createSample(csound, unf);
         result = r && result;
       }
       else if (strstr(p,"<CsFileB filename=") == buffer) {
-        r = createFile(unf);
+        r = createFile(csound, unf);
         result = r && result;
       }
       else if (strstr(p,"<CsVersion>") == buffer) {

@@ -157,15 +157,10 @@ void paBlockingClose(void *csound, PA_BLOCKING_STREAM *pabs)
 {
     if (pabs) {
       if (pabs->paStream) {
-        Pa_AbortStream(pabs->paStream);
-#ifndef MSVC
-        sleep(1);
-#else
-        sleep(1000);
-#endif
+        Pa_CloseStream(pabs->paStream);
+        Pa_Sleep(500);
         ((ENVIRON*) csound)->mfree_(pabs->actualBuffer);
         ((ENVIRON*) csound)->mfree_(pabs);
-        pabs->paStream = 0;
       }
     }
 }

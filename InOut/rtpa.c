@@ -16,9 +16,6 @@ static PA_BLOCKING_STREAM *pabsRead = 0;
 static PA_BLOCKING_STREAM *pabsWrite = 0;
 
 static  int oMaxLag;
-#ifdef PIPES
-#  define _pclose pclose
-#endif
 
 #ifdef Str
 #undef Str
@@ -250,7 +247,6 @@ static void rtplay_(void *csound, void *outbuf_, int bytes_)
 {
     int samples = bytes_ / sizeof(MYFLT);
     paBlockingWrite(pabsWrite, samples, (MYFLT *)outbuf_);
-    ((ENVIRON*) csound)->nrecs_++;
 }
 
 static void rtclose_(void *csound)      /* close the I/O device entirely  */

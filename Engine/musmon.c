@@ -361,6 +361,12 @@ int cleanup(void *csound)
 {
     int     n;
 
+    /* check if we have already cleaned up */
+    if (csoundQueryGlobalVariable(csound, "#CLEANUP") == NULL)
+      return 0;
+    /* will not clean up more than once */
+    csoundDestroyGlobalVariable(csound, "#CLEANUP");
+
     printf(Str("end of score.\t\t   overall amps:"));
     if (scfp) {
       fclose(scfp); scfp = NULL;
@@ -372,15 +378,16 @@ int cleanup(void *csound)
       for (rngp=orngcnt, n=nchnls; n--; )
         printf("%9ld", *rngp++);
     }
-    /*      if (O.Linein)  RTclose(); */ /* now done via atexit */
     printf(Str("\n%d errors in performance\n"),perferrcnt);
-    ((ENVIRON*) csound)->rtclose_callback(csound);
-    if (O.sfread)
-      sfclosein(csound);
-    if (O.sfwrite)
-      sfcloseout(csound);
-    else printf(Str("no sound written to disk\n"));
+    /* IV - Feb 03 2005: do not need to call rtclose from here, as */
+    /* sfclosein/sfcloseout will do that. Checking O.sfread and */
+    /* O.sfwrite is not needed either. */
+    sfclosein(csound);
+    sfcloseout(csound);
+    if (! ((ENVIRON*) csound)->oparms_->sfwrite)
+      printf(Str("no sound written to disk\n"));
     if (O.ringbell) beep();
+    remove_tmpfiles(csound);
     return dispexit();      /* hold or terminate the display output     */
     /* for Mac, dispexit returns 0 to exit immediately */
 }

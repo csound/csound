@@ -176,7 +176,7 @@ static int set_device_params(void *csound, DEVPARAMS *dev, int play)
     snd_pcm_hw_params_t *hw_params;
     snd_pcm_sw_params_t *sw_params;
     snd_pcm_format_t    alsaFmt;
-    int                 err, n, myflt_is_double;
+    int                 err, n, myflt_is_double, alloc_smps;
     ENVIRON             *p;
     char                *devName, msg[512];
 
@@ -263,10 +263,13 @@ static int set_device_params(void *csound, DEVPARAMS *dev, int play)
       goto err_return_msg;
     }
     /* and period size */
+    alloc_smps = dev->period_smps;
     if (dev->period_smps == 0) dev->period_smps = 256;
     if (dev->period_smps < 16) dev->period_smps = 16;
     if (dev->period_smps > (dev->buffer_smps >> 1))
       dev->period_smps = (dev->buffer_smps >> 1);
+    if (alloc_smps < dev->period_smps)  /* make sure that enough memory */
+      alloc_smps = dev->period_smps;    /* is allocated for the buffer */
     if (snd_pcm_hw_params_set_period_size(dev->handle, hw_params,
                                           (snd_pcm_uframes_t) dev->period_smps,
                                           0) < 0) {
@@ -300,7 +303,7 @@ static int set_device_params(void *csound, DEVPARAMS *dev, int play)
       goto err_return_msg;
     }
     /* allocate memory for sample conversion buffer */
-    n = (dev->format == AE_SHORT ? 2 : 4) * dev->nchns * dev->period_smps;
+    n = (dev->format == AE_SHORT ? 2 : 4) * dev->nchns * alloc_smps;
     dev->buf = (void*) malloc((size_t) n);
     if (dev->buf == NULL) {
       sprintf(msg, " *** Memory allocation failure\n");
@@ -464,8 +467,6 @@ static void rtplay_(void *csound, void *outbuf_, int bytes_)
     /* calculate the number of samples to play */
     n = bytes_ / dev->sampleSize;
 
-    p->nrecs_++;    /* FIXME */
-
     /* convert samples from MYFLT */
     dev->playconv(n * dev->nchns, outbuf_, dev->buf, &(dev->seed));
 
@@ -518,14 +519,6 @@ static void rtclose_(void *csound)
       if (dev->buf != NULL)
         free(dev->buf);
       p->DestroyGlobalVariable(csound, outdev_var);
-    }
-    if (p->oparms_->Linein) {
-#ifdef PIPES
-      if (p->oparms_->Linename[0] == '|') pclose(p->Linepipe_);
-      else
-#endif
-        if (strcmp(p->oparms_->Linename, "stdin") != 0)
-          close(p->Linefd_);
     }
 }
 
