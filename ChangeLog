@@ -1,3 +1,7 @@
+2005-03-02  Michael Gogins <gogins@pipeline.com>
+	* Added rule for SConstruct to build Java wrappers for CsoundVST
+	if jni.h is present.
+
 2005-03-02	Istvan Varga	<istvan@csounds.com>
 	* anal/adsyn/het_main.c:
 	* anal/convol/cvl_main.c:
