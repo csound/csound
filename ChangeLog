@@ -1,3 +1,10 @@
+2004-12-12  Michael Gogins <gogins@pipeline.com>
+
+	* Updated to FLTK 1.1.6, libsndfile 1.1.11, CVS PortAudio,
+	CVS Loris for Windows pre-built binaries.
+
+	* Added Loris API documentation to Csound reference manual.
+
 2004-12-10  John ffitch  <jpff@codemist.co.uk>
 
 	* InOut/libsnd.c: and code
