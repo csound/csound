@@ -234,7 +234,7 @@ if configure.CheckFunc("itoa") or getPlatform() == 'mingw':
 
 # Package contents.
 
-zipfilename = "csoundvst-" + getPlatform() + "-" + str(today()) + ".zip"
+zipfilename = "csound5-" + getPlatform() + "-" + str(today()) + ".zip"
 
 def buildzip(env, target, source):
 
@@ -247,8 +247,8 @@ def buildzip(env, target, source):
     extensions = extensions + ".sf2 .SF2 .csd .aif .aiff .jar .smf .mid"
     extensions = string.split(extensions)
     
-    specificFiles = "SConstruct _CsoundVST.* _loris.* pyrun.* CsoundCOM.dll msvcp70.dll msvcr70.dll CsoundVST.exe CsoundVST.* soundfonts.dll "
-    specificFiles = specificFiles + "README Doxyfile ChangeLog COPYING INSTALL MANIFEST COPYRIGHT AUTHORS TODO"
+    specificFiles = "SConstruct _CsoundVST.* _loris.* pyrun.* CsoundCOM.dll msvcp70.dll msvcr70.dll CsoundVST.exe CsoundVST.* soundfonts.dll libpython23.a "
+    specificFiles = specificFiles + "README Doxyfile ChangeLog COPYING INSTALL MANIFEST COPYRIGHT AUTHORS TODO all_strings french-strings english-strings"
     specificFiles = string.split(specificFiles)
     
     print "Types of files to be archived..."
