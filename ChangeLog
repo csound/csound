@@ -1,5 +1,8 @@
 2004-07-09  John ffitch  <jpff@codemist.co.uk>
 
+	* Engine/musmon.c (playevents): matt's suggestion to avoid missing
+	events due to rounding.
+
 	* OOps/ugrw1.c (itablew): Wrong result returned and elsewhere
 
 	* Engine/otran.c (otran): Move initialisation of pool to start of
