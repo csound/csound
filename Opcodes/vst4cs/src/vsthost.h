@@ -28,7 +28,7 @@ class VSTPlugin
 public:
     ENVIRON *csound;
 	void *libraryHandle;
-	void *h_winddll;
+	//void *h_winddll;
 	char productName[64];
 	char vendorName[64];
 	char libraryName[0x100];
@@ -45,6 +45,7 @@ public:
 	bool edited;
 	bool show_params;
 	static float sample_rate;
+	float blockSize;
 	char _midichannel;
 	bool instantiated;
 	int _instance;		// Remove when Changing the FileFormat.

@@ -131,10 +131,9 @@ extern "C"
 	{
 		VSTNOTE *p = (VSTNOTE *)data;
         ENVIRON *csound = p->h.insdshead->csound;
-		size_t iVSThandle = *p->iVSThandle;
-		p->framesRemaining = size_t(*p->kdur * csound->GetSr(csound));
-        csound->Message(csound, "vstnote: AddNoteOn(%f %f %f) frames %d.\n", *p->knote, *p->kveloc, *p->kchan, p->framesRemaining);
-		pEffect[iVSThandle]->AddNoteOn(*p->knote, *p->kveloc, *p->kchan);
+		VSTPlugin *vstPlugin = pEffect[(size_t) *p->iVSThandle];
+		p->framesRemaining = *p->kdur * vstPlugin->sample_rate;
+		vstPlugin->AddNoteOn(*p->knote, *p->kveloc, *p->kchan);
 		return OK;
 	}
 		
@@ -145,9 +144,8 @@ extern "C"
             ENVIRON *csound = p->h.insdshead->csound;
             p->framesRemaining -= (size_t) csound->GetKsmps(csound);
             if(p->framesRemaining <= 0) {
-                size_t iVSThandle = *p->iVSThandle;        
-                csound->Message(csound, "vstnote: AddNoteOff(%f %f).\n", *p->knote, *p->kchan);
-                pEffect[iVSThandle]->AddNoteOff(*p->knote, *p->kchan);
+                VSTPlugin *vstPlugin = pEffect[(size_t) *p->iVSThandle];
+                vstPlugin->AddNoteOff(*p->knote, *p->kchan);
             }
         }
  		return OK;		
