@@ -150,6 +150,7 @@ void bytrev3 (char *buf,int nbytes)
     } while (--samps);
 }
 
+#ifndef _SNDFILE_
 
 int sreadin(                    /* special handling of sound input       */
     int     infd,               /* to accomodate reads thru pipes & net  */
@@ -1070,3 +1071,4 @@ int soundin(SOUNDIN *p)
     return OK;
 }
 
+#endif

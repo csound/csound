@@ -21,8 +21,6 @@
     02111-1307 USA
 */
 
-#ifndef SNDLIBFILE
-
 #include        "cs.h"                            /*                WAVE.C   */
 #include        "soundio.h"
 #include        "wave.h"
@@ -111,6 +109,8 @@ static long natllong(long lval)     /* coerce a littlendian long into a natural 
 # define natlshort(x) (x)
 # define natllong(x)  (x)
 #endif
+
+#ifndef _SNDFILE_
 
 /* RWD.2.98 many changes to set correct variable-header length etc */
 void wavWriteHdr(               /* Write WAV header at start of file.  */

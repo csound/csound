@@ -20,8 +20,6 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
-#ifndef SNDLIBFILE
-
 #include        "cs.h"                            /*                AIFF.C    */
 #include        "soundio.h"
 #include        "aiff.h"
@@ -150,6 +148,8 @@ long natlong(long lval)      /* coerce a bigendian long into a natural long */
     return(natlng);
 }
 #endif
+
+#ifndef _SNDFILE_
 
 void aiffWriteHdr(              /* Write AIFF header at start of file.   */
     int fd,                     /* Called after open, before data writes */

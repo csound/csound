@@ -188,6 +188,7 @@ CSRCE = \
 	$E/twarp.c
 
 CSRCI = \
+	$I/libsnd.c	\
 	$I/aifc.c       \
 	$I/aiff.c       \
 	$I/ieee80.c     \
@@ -301,7 +302,7 @@ COBJE = \
 	twarp.$(o)
 
 COBJI = winascii.$(o) window.$(o) windin.$(o) winEPS.$(o) aiff.$(o) wave.$(o) \
-	ieee80.$(o) sfheader.$(o) soundin.$(o) soundio.$(o) aifc.$(o)
+	ieee80.$(o) sfheader.$(o) soundin.$(o) soundio.$(o) aifc.$(o) libsnd.$(o)
 
 COBJT = \
 	argdecode.$(o)	\

@@ -20,7 +20,6 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
-#ifndef SNFLIBFILE
 
 #include "cs.h"                 /*                      SOUNDIO.C       */
 #include "soundio.h"
@@ -111,6 +110,21 @@ FILE* pin=NULL, *pout=NULL;
 # endif
 #endif
 void (*spinrecv)(void), (*spoutran)(void), (*nzerotran)(long);
+
+void sndwrterr(unsigned nret, unsigned nput) /* report soundfile write(osfd)
+                                                error      */
+  /* called after chk of write() bytecnt  */
+{
+    void sfcloseout(void);
+    printf(Str(X_1203,"soundfile write returned bytecount of %d, not %d\n"),
+           nret,nput);
+    printf(Str(X_77,"(disk may be full...\n closing the file ...)\n"));
+    outbufrem = O.outbufsamps;       /* consider buf is flushed */
+    sfcloseout();                    /* & try to close the file */
+    die(Str(X_563,"\t... closed\n"));
+}
+
+#ifndef _SNDFILE_
 static void byterecv(void), charrecv(void),
 #ifdef never
             alawrecv(void),
@@ -239,19 +253,6 @@ void iotranset(void)
                        break;
         default: die(Str(X_1329,"unknown audio_out format"));
         }
-}
-
-void sndwrterr(unsigned nret, unsigned nput) /* report soundfile write(osfd)
-                                                error      */
-  /* called after chk of write() bytecnt  */
-{
-    void sfcloseout(void);
-    printf(Str(X_1203,"soundfile write returned bytecount of %d, not %d\n"),
-           nret,nput);
-    printf(Str(X_77,"(disk may be full...\n closing the file ...)\n"));
-    outbufrem = O.outbufsamps;       /* consider buf is flushed */
-    sfcloseout();                    /* & try to close the file */
-    die(Str(X_563,"\t... closed\n"));
 }
 
 static int audread(char *inbuf, int nbytes) /* diskfile read option for
@@ -613,6 +614,7 @@ outset:
     osfopen = 1;
     outbufrem = O.outbufsamps;
 }
+#endif
 
 void sfnopenout(void)
 {
@@ -620,6 +622,7 @@ void sfnopenout(void)
     outbufrem = O.outbufsamps;          /* init counter, though not writing */
 }
 
+#ifndef _SNDFILE_
 extern int close(int);
 
 void sfclosein(void)
@@ -646,60 +649,60 @@ void sfclosein(void)
 
 void sfcloseout(void)
 {
-        int     nb;
+    int     nb;
 
-        if (!osfopen) return;
-        if ((nb = (O.outbufsamps-outbufrem) *
-             O.outsampsiz) > 0)/* flush outbuffer */
-                audtran(outbuf, nb);
+    if (!osfopen) return;
+    if ((nb = (O.outbufsamps-outbufrem) *
+         O.outsampsiz) > 0)/* flush outbuffer */
+      audtran(outbuf, nb);
 #ifdef RTAUDIO
-        if (osfd == DEVAUDIO) {
-            if (!isfopen || isfd != DEVAUDIO)
-                rtclose();     /* close only if not open for input too */
-            goto report;
-        }
+    if (osfd == DEVAUDIO) {
+      if (!isfopen || isfd != DEVAUDIO)
+        rtclose();     /* close only if not open for input too */
+      goto report;
+    }
 #endif
-        if (O.sfheader && !pipdevout) { /* if header, & backward seeks ok */
-            unsigned long datasize =
-              nb ? (nrecs-1)*outbufsiz + nb : nrecs*outbufsiz;
-            rewriteheader(osfd, datasize, 1); /*  rewrite  */
-        }
+    if (O.sfheader && !pipdevout) { /* if header, & backward seeks ok */
+      unsigned long datasize =
+        nb ? (nrecs-1)*outbufsiz + nb : nrecs*outbufsiz;
+      rewriteheader(osfd, datasize, 1); /*  rewrite  */
+    }
 #ifdef PIPES
-        if (pout!=NULL) {
-          int _pclose(FILE*);
-          _pclose(pout);
-          pout = NULL;
-        }
+    if (pout!=NULL) {
+      int _pclose(FILE*);
+      _pclose(pout);
+      pout = NULL;
+    }
 #endif
 #ifndef SFSUN41
-        if (!pipdevout)
+    if (!pipdevout)
 #endif
-          close(osfd);
+      close(osfd);
 #ifdef RTAUDIO
  report:
 #endif
-        printf(Str(X_44,"%ld %d-byte soundblks of %s written to %s"),
-               nrecs, outbufsiz, getstrformat(O.outformat), sfoutname);
-        if (strcmp(O.outfilename,"devaudio") == 0       /* realtime output has no
-                                                           header */
-                 || strcmp(O.outfilename,"dac") == 0) printf("\n");
-        else if (O.sfheader == 0) printf(" (raw)\n");
-        else
-            printf(" %s\n",
-                   O.filetyp == TYP_AIFF ? "(AIFF)" :
-                   O.filetyp == TYP_AIFC ? "(AIFF-C)" :
-                   O.filetyp == TYP_WAV ? "(WAV)" :
+    printf(Str(X_44,"%ld %d-byte soundblks of %s written to %s"),
+           nrecs, outbufsiz, getstrformat(O.outformat), sfoutname);
+    if (strcmp(O.outfilename,"devaudio") == 0       /* realtime output has no
+                                                       header */
+        || strcmp(O.outfilename,"dac") == 0) printf("\n");
+    else if (O.sfheader == 0) printf(" (raw)\n");
+    else
+      printf(" %s\n",
+             O.filetyp == TYP_AIFF ? "(AIFF)" :
+             O.filetyp == TYP_AIFC ? "(AIFF-C)" :
+             O.filetyp == TYP_WAV ? "(WAV)" :
 #ifdef mac_classic
-                                          "(SDII)"
+                                             "(SDII)"
 #elif defined(SFIRCAM)
-                                          "(IRCAM)"
+                                             "(IRCAM)"
 #elif defined(NeXT)
-                                          "(NeXT)"
+                                             "(NeXT)"
 #else
-                                          "(Raw)"
+                                             "(Raw)"
 #endif
-                   );
-        osfopen = 0;
+             );
+    osfopen = 0;
 }
 
 static void bytetran(void)                           /* J. Mohr  1995 Oct 17 */
