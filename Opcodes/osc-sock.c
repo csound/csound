@@ -960,6 +960,7 @@ int osc_send_set(OSCSEND *p)
         strcpy(hostName, strsets[hostNo]);
       }
       else {
+        hostName = LOCALHOST_NAME; /* Is this correct?? */
       }
     }
     else {
