@@ -116,6 +116,7 @@ int main(int argc, char **argv)
         fprintf(outf, "%s%g", (j==0 ? "" : ","), data[j]);
       fprintf(outf, "\n");
     }
+    free(data);
     fclose(inf);
     fclose(outf);
     return 0;
