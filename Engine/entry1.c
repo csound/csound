@@ -304,6 +304,7 @@ OENTRY opcodlst_1[] = {
 { "peak", 0xfffd                                                        },
 { "rtclock", 0xfffd                                                     },
 { "tablew",  0xfffe                                                     },
+{ "tablewkt",  0xfffe                                                   },
 { "ihold",  S(LINK),    1,      "",     "",     ihold                   },
 { "turnoff",S(LINK),    2,      "",     "",     NULL,   turnoff         },
 { "=_r",    S(ASSIGN),  1,      "r",    "i",    rassign                 },
