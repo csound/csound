@@ -24,7 +24,7 @@ typedef struct VSTINFO_ {
 	MYFLT *iVSThandle;
 } VSTINFO ;
 
-typedef struct VSTPLUG_ {
+typedef struct VST_PLUGIN_ {
 	OPDS h;
 	MYFLT *aout1;
 	MYFLT *aout2;
@@ -33,7 +33,7 @@ typedef struct VSTPLUG_ {
 	MYFLT *ain2;
 	MYFLT *nsamps;
 	//MYFLT   yt1;
-} VSTPLUG ;
+} VST_PLUGIN ;
 
 typedef struct VSTNOTE_ {
 	OPDS h;
