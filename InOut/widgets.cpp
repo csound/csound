@@ -3456,11 +3456,11 @@ extern "C" int fl_roller(ENVIRON *csound, FLROLLER *p)
 
 extern "C" int FLprintkset(ENVIRON *csound, FLPRINTK *p)
 {
-  if (*p->ptime < FL(1.0) / global_ekr)
-    p->ctime = FL(1.0) / global_ekr;
+  if (*p->ptime < FL(1.0) / csound->global_ekr)
+    p->ctime = FL(1.0) / csound->global_ekr;
   else        p->ctime = *p->ptime;
 
-  p->initime = (MYFLT) kcounter * onedkr;
+  p->initime = (MYFLT) csound->kcounter_ * csound->onedkr_;
   p->cysofar = -1;
   return OK;
 }
@@ -3470,7 +3470,7 @@ extern "C" int FLprintk(ENVIRON *csound, FLPRINTK *p)
   MYFLT   timel;
   long    cycles;
 
-  timel = ((MYFLT) kcounter * onedkr) - p->initime;
+  timel = ((MYFLT) csound->kcounter_ * csound->onedkr_) - p->initime;
   cycles = (long)(timel / p->ctime);
   if (p->cysofar < cycles) {
     p->cysofar = cycles;

@@ -100,10 +100,9 @@ void openMIDIout(void)
                                        &(cenviron.midiGlobals->midiOutUserData),
                                        O.Midioutname);
     if (retval != 0) {
-      csoundMessage(&cenviron,
-                    Str(" *** error opening MIDI out device: %d (%s)\n"),
-                    retval, csoundExternalMidiErrorString(&cenviron, retval));
-      longjmp(cenviron.exitjmp_, 1);
+      csoundDie(&cenviron,
+                Str(" *** error opening MIDI out device: %d (%s)"),
+                retval, csoundExternalMidiErrorString(&cenviron, retval));
     }
 }
 
