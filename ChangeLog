@@ -1,3 +1,7 @@
+2004-11-09  John ffitch  <jpff@codemist.co.uk>
+
+	* Engine/fgens.c (fgens): Started named fgens
+
 2004-10-24  Michael Gogins <gogins@pipeline.com>
 
 	* Fixes to rtpa.c and pa_callback.c for duplex audio, and
