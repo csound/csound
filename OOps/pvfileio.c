@@ -63,7 +63,9 @@
 # include <fcntl.h>
 #endif
 #ifndef mac_classic
-#include <sys/types.h>
+#ifdef HAVE_SYS_TYPES_H
+# include <sys/types.h>
+#endif
 #include <sys/stat.h>
 #endif
 #ifdef WIN32

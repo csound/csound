@@ -61,8 +61,8 @@
 #define WRITEMODE "wb+"
 
 #else  /* Unix, not mac (SYMANTEC) */
-#ifndef mac_classic
-#include <sys/types.h>
+#if HAVE_SYS_TYPES_H
+# include <sys/types.h>
 #endif
 #define READMODE "rb"
 #define WRITEMODE "wb+"

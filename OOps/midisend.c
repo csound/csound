@@ -268,7 +268,6 @@ void openMIDIout(void)
 #endif
 
 #ifdef SGI
-#include <sys/types.h>
 #include <sys/termio.h>
 #include <sys/z8530.h>
 #include <sys/stropts.h>

@@ -42,7 +42,9 @@
 #  define READMODE "rb"
 #  define WRITEMODE "wb+"
 #else
-#  include <sys/types.h>
+#  ifdef HAVE_SYS_TYPES_H
+#   include <sys/types.h>
+#  endif
 #  define READMODE "r"
 #  define WRITEMODE "w+"
 #endif /* SYMANTEC */
