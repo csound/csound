@@ -66,16 +66,15 @@ int vdelay(ENVIRON *csound, VDEL *p)              /*      vdelay  routine */
       return perferror(Str("vdelay: not initialised"));
     }
     maxd = (unsigned long) (1+*p->imaxd * ESR);
-    nn = ksmps;
     indx = p->left;
 
     if (XINARG2)    {    /*      if delay is a-rate      */
-      do {
+      for (nn=0; nn<ksmps; nn++) {
         MYFLT  fv1, fv2;
         long   v1, v2;
 
-        buf[indx] = *in++;
-        fv1 = indx - (*del++) * ESR;
+        buf[indx] = in[nn];
+        fv1 = indx - (del[nn]) * ESR;
         /* Make sure Inside the buffer      */
         /*
          * The following has been fixed by adding a cast and making a
@@ -97,19 +96,20 @@ int vdelay(ENVIRON *csound, VDEL *p)              /*      vdelay  routine */
 
         v1 = (long)fv1;
         v2 = (long)fv2;
-        *out++ = buf[v1] + (fv1 - v1) * ( buf[v2] - buf[v1]);
+        out[nn] = buf[v1] + (fv1 - v1) * ( buf[v2] - buf[v1]);
 
         if (++indx == maxd) indx = 0;             /* Advance current pointer */
 
-      } while (--nn);
+      }
     }
     else {                      /* and, if delay is k-rate */
-      do {
+      MYFLT fdel=*del;
+      for (nn=0; nn<ksmps; nn++) {
         MYFLT  fv1, fv2;
         long   v1, v2;
 
-        buf[indx] = *in++;
-        fv1 = indx - *del * ESR;
+        buf[indx] = in[nn];
+        fv1 = indx - fdel * ESR;
         /* Make sure inside the buffer      */
         /*
          * See comment above--same fix applied here.  heh 981101
@@ -126,11 +126,11 @@ int vdelay(ENVIRON *csound, VDEL *p)              /*      vdelay  routine */
 
         v1 = (long)fv1;
         v2 = (long)fv2;
-        *out++ = buf[v1] + (fv1 - v1) * ( buf[v2] - buf[v1]);
+        out[nn] = buf[v1] + (fv1 - v1) * ( buf[v2] - buf[v1]);
 
         if (++indx == maxd) indx = 0;   /*      Advance current pointer */
 
-      } while (--nn);
+      }
     }
     p->left = indx;             /*      and keep track of where you are */
     return OK;
@@ -153,12 +153,12 @@ int vdelay3(ENVIRON *csound, VDEL *p)           /*      vdelay routine with cubi
     indx = p->left;
 
     if (XINARG2)    {    /*      if delay is a-rate      */
-      do {
+      for (nn=0; nn<ksmps; nn++) {
         MYFLT  fv1;
         long   v0, v1, v2, v3;
 
-        buf[indx] = *in++;      /* IV Oct 2001 */
-        fv1 = *(del++) * (-ESR);
+        buf[indx] = in[nn];      /* IV Oct 2001 */
+        fv1 = del[nn] * (-ESR);
         v1 = (long) fv1;
         fv1 -= (MYFLT) v1;
         v1 += (long) indx;
@@ -173,7 +173,7 @@ int vdelay3(ENVIRON *csound, VDEL *p)           /*      vdelay routine with cubi
         v2 = (v1 == (long) (maxd - 1UL) ? 0L : v1 + 1L);
 
         if (maxd<4) {
-          *out++ = buf[v1] + fv1 * (buf[v2] - buf[v1]);
+          out[nn] = buf[v1] + fv1 * (buf[v2] - buf[v1]);
         }
         else {
           v0 = (v1==0 ? maxd-1 : v1-1);
@@ -183,13 +183,13 @@ int vdelay3(ENVIRON *csound, VDEL *p)           /*      vdelay routine with cubi
             z = fv1 * fv1; z--; z *= FL(0.1666666667);
             y = fv1; y++; w = (y *= FL(0.5)); w--;
             x = FL(3.0) * z; y -= x; w -= z; x -= fv1;
-            *(out++) = (w*buf[v0] + x*buf[v1] + y*buf[v2] + z*buf[v3])
+            out[nn] = (w*buf[v0] + x*buf[v1] + y*buf[v2] + z*buf[v3])
               * fv1 + buf[v1];
           }
         }
         if (++indx == maxd) indx = 0;             /* Advance current pointer */
 
-      } while (--nn);
+      };
     }
     else {                      /* and, if delay is k-rate */
       MYFLT  fv1, w, x, y, z;
@@ -219,13 +219,13 @@ int vdelay3(ENVIRON *csound, VDEL *p)           /*      vdelay routine with cubi
         z = fv1 * fv1; z--; z *= FL(0.1666666667);      /* IV Oct 2001 */
         y = fv1; y++; w = (y *= FL(0.5)); w--;
         x = FL(3.0) * z; y -= x; w -= z; x -= fv1;
-        while (nn--) {
-          buf[indx] = *(in++);
+        for (nn=0; nn<ksmps; nn++) {
+          buf[indx] = in[nn];
           /* Find next sample for interpolation      */
           v2 = (v1 == (long) (maxd - 1UL) ? 0L : v1 + 1L);
           v0 = (v1 == 0L ? (long) (maxd - 1UL) : v1 - 1L);
           v3 = (v2 == (long) (maxd - 1UL) ? 0L : v2 + 1L);
-          *(out++) = (w*buf[v0] + x*buf[v1] + y*buf[v2] + z*buf[v3])
+          out[nn] = (w*buf[v0] + x*buf[v1] + y*buf[v2] + z*buf[v3])
                      * fv1 + buf[v1];
           if (++v1 >= (long) maxd) v1 -= (long) maxd;
           if (++indx >= maxd) indx -= maxd;     /* Advance current pointer */
@@ -241,7 +241,8 @@ int vdelay3(ENVIRON *csound, VDEL *p)           /*      vdelay routine with cubi
 
 int vdelxset(ENVIRON *csound, VDELX *p)           /*  vdelayx set-up (1 channel) */
 {
-    unsigned long n = (long)(*p->imaxd * esr);
+    unsigned int n = (int)(*p->imaxd * esr);
+    unsigned int i;
     MYFLT *buf1;
 
     if (n == 0) n = 1;          /* fix due to Troxler */
@@ -251,9 +252,7 @@ int vdelxset(ENVIRON *csound, VDELX *p)           /*  vdelayx set-up (1 channel)
           (int)(n*sizeof(MYFLT)) > p->aux1.size) /* allocate space */
         auxalloc(csound, n * sizeof(MYFLT), &p->aux1);   /* for delay buffer */
       buf1 = (MYFLT *)p->aux1.auxp;  /*    make sure buffer is empty       */
-      do {
-        *buf1++ = FL(0.0);
-      } while (--n);
+      for (i=0; i<n; i++) buf1[i] = FL(0.0);
 
       p->left = 0;
       p->interp_size = 4 * (int) (FL(0.5) + FL(0.25) * *(p->iquality));
@@ -265,7 +264,8 @@ int vdelxset(ENVIRON *csound, VDELX *p)           /*  vdelayx set-up (1 channel)
 
 int vdelxsset(ENVIRON *csound, VDELXS *p)           /*  vdelayxs set-up (stereo) */
 {
-    unsigned long n = (long)(*p->imaxd * esr);
+    unsigned int n = (int)(*p->imaxd * esr);
+    unsigned int i;
     MYFLT *buf1, *buf2;
 
     if (n == 0) n = 1;          /* fix due to Troxler */
@@ -279,10 +279,11 @@ int vdelxsset(ENVIRON *csound, VDELXS *p)           /*  vdelayxs set-up (stereo)
         auxalloc(csound, n * sizeof(MYFLT), &p->aux2);
       buf1 = (MYFLT *)p->aux1.auxp;  /*    make sure buffer is empty       */
       buf2 = (MYFLT *)p->aux2.auxp;
-      do {
-        *buf1++ = FL(0.0);
-        *buf2++ = FL(0.0);
-      } while (--n);
+      for (i=0;i<n; i++) {
+        buf1[i] = FL(0.0);
+        buf2[i] = FL(0.0);
+      }
+      /* memset(buf1,0,n*sizeof(MYFLT)); memset(buf2,0,n*sizeof(MYFLT)); */
 
       p->left = 0;
       p->interp_size = 4 * (int) (FL(0.5) + FL(0.25) * *(p->iquality));
@@ -292,9 +293,10 @@ int vdelxsset(ENVIRON *csound, VDELXS *p)           /*  vdelayxs set-up (stereo)
     return OK;
 }
 
-int vdelxqset(ENVIRON *csound, VDELXQ *p)           /*  vdelayxq set-up (quad channels) */
+int vdelxqset(ENVIRON *csound, VDELXQ *p)  /*  vdelayxq set-up (quad channels) */
 {
-    unsigned long n = (long)(*p->imaxd * esr);
+    unsigned int n = (int)(*p->imaxd * esr);
+    unsigned int i;
     MYFLT *buf1, *buf2, *buf3, *buf4;
 
     if (n == 0) n = 1;          /* fix due to Troxler */
@@ -316,12 +318,12 @@ int vdelxqset(ENVIRON *csound, VDELXQ *p)           /*  vdelayxq set-up (quad ch
       buf2 = (MYFLT *)p->aux2.auxp;
       buf3 = (MYFLT *)p->aux3.auxp;
       buf4 = (MYFLT *)p->aux4.auxp;
-      do {
-        *buf1++ = FL(0.0);
-        *buf2++ = FL(0.0);
-        *buf3++ = FL(0.0);
-        *buf4++ = FL(0.0);
-      } while (--n);
+      for (i=0;i<n;i++) {
+        buf1[i] = FL(0.0);
+        buf2[i] = FL(0.0);
+        buf3[i] = FL(0.0);
+        buf4[i] = FL(0.0);
+      } /* or memset?? */
 
       p->left = 0;
       p->interp_size = 4 * (int) (FL(0.5) + FL(0.25) * *(p->iquality));
@@ -347,20 +349,19 @@ int vdelayx(ENVIRON *csound, VDELX *p)              /*      vdelayx routine  */
     }
     maxd = (long) (*p->imaxd * esr);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
-    nn = ksmps;
     indx = p->left;
     i2 = (wsize >> 1);
     d2x = (1.0 - pow ((double) wsize * 0.85172, -0.89624)) / (double) (i2 * i2);
 
-    do {
-      buf1[indx] = *in1++;
+    for (nn=0; nn<ksmps; nn++) {
+      buf1[indx] = in1[nn];
       n1 = 0.0;
 
       /* x1: fractional part of delay time */
       /* x2: sine of x1 (for interpolation) */
       /* xpos: integer part of delay time (buffer position to read from) */
 
-      x1 = (double) indx - ((double) *del++ * (double) esr);
+      x1 = (double) indx - ((double) del[nn] * (double) esr);
       while (x1 < 0.0) x1 += (double) maxd;
       xpos = (long) x1;
       x1 -= (double) xpos;
@@ -379,17 +380,16 @@ int vdelayx(ENVIRON *csound, VDELX *p)              /*      vdelayx routine  */
           n1 -= (double) buf1[xpos] * w;
           if (++xpos >= maxd) xpos -= maxd;
         }
-        *out1 = (MYFLT) (n1 * x2);
+        out1[nn] = (MYFLT) (n1 * x2);
       }
       else {                                            /* integer sample */
         xpos = (long) ((double) xpos + x1 + 0.5);       /* position */
         if (xpos >= maxd) xpos -= maxd;
-        *out1 = buf1[xpos];
+        out1[nn] = buf1[xpos];
       }
 
       if (++indx == maxd) indx = 0;
-      out1++;
-    } while (--nn);
+    }
 
     p->left = indx;
     return OK;
@@ -877,12 +877,14 @@ MYFLT ngc_gain[Combs] = {FL(0.822), FL(0.802), FL(0.773),
 MYFLT nga_time[Alpas] = {FL(347.0), FL(113.0), FL(37.0), FL(59.0), FL(43.0)};
 MYFLT nga_gain = FL(0.7);
 
-int nreverb_set(ENVIRON *csound, NREV *p)   /* 6-comb/lowpass, 5-allpass reverberator */
+int nreverb_set(ENVIRON *csound, NREV *p)   /* 6-comb/lowpass,
+                                               5-allpass reverberator */
 {
     long i, n;
     MYFLT *temp;
 
-    MYFLT srscale=esr/FL(25641.0); /* denominator is probably CCRMA "samson box" sampling-rate! */
+    MYFLT srscale=esr/FL(25641.0); /* denominator is probably CCRMA
+                                      "samson box" sampling-rate! */
     int c_time, a_time;
 
     if (*p->hdif > FL(1.0) || *p->hdif < FL(0.0))
@@ -1083,7 +1085,8 @@ int reverbx_set(ENVIRON *csound, NREV2 *p)
     }
     /* Alloc a single block and get arrays of comb pointers from that */
     cmbAllocSize = p->numCombs * sizeof(MYFLT);
-    auxalloc(csound, 4 * cmbAllocSize + 2 * (p->numCombs+1)*sizeof(MYFLT*), &p->caux2);
+    auxalloc(csound, 4 * cmbAllocSize + 2 * (p->numCombs+1)*sizeof(MYFLT*),
+             &p->caux2);
     p->c_time = (MYFLT*)p->caux2.auxp;
     p->c_gain = (MYFLT*)((char*)p->caux2.auxp + 1 * cmbAllocSize);
     p->z = (MYFLT*)((char*)p->caux2.auxp + 2 * cmbAllocSize);

@@ -57,7 +57,7 @@ int foscil(ENVIRON *csound, FOSC *p)
     MYFLT  *ar, *ampp, *modp, cps, amp;
     MYFLT  xcar, xmod, *carp, car, fmod, cfreq, mod, ndx, *ftab;
     long   mphs, cphs, minc, cinc, lobits;
-    int    nsmps = ksmps;
+    int    n;
 
     ar = p->rslt;
     ftp = p->ftp;
@@ -77,10 +77,10 @@ int foscil(ENVIRON *csound, FOSC *p)
     xmod = *modp;
 
     if (p->XINCODE) {
-      do {
-        if (p->ampcod) amp = *(ampp++);
-        if (p->carcod) xcar = *(carp++);
-        if (p->modcod) xmod = *(modp++);
+      for (n=0;n<ksmps;n++) {
+        if (p->ampcod) amp = ampp[n];
+        if (p->carcod) xcar = carp[n];
+        if (p->modcod) xmod = modp[n];
         car = cps * xcar;
         mod = cps * xmod;
         ndx = *p->kndx * mod;
@@ -91,9 +91,9 @@ int foscil(ENVIRON *csound, FOSC *p)
         cfreq = car + fmod;
         cinc = (long)(cfreq * sicvt);
         cphs &= PHMASK;
-        *ar++ = *(ftab + (cphs >>lobits)) * amp;
+        ar[n] = *(ftab + (cphs >>lobits)) * amp;
         cphs += cinc;
-      } while (--nsmps);
+      }
     }
     else {
       MYFLT amp = *ampp;
@@ -102,16 +102,16 @@ int foscil(ENVIRON *csound, FOSC *p)
       mod = cps * *modp;
       ndx = *p->kndx * mod;
       minc = (long)(mod * sicvt);
-      do {
+      for (n=0;n<ksmps;n++) {
         mphs &= PHMASK;
         fmod = *(ftab + (mphs >>lobits)) * ndx;
         mphs += minc;
         cfreq = car + fmod;
         cinc = (long)(cfreq * sicvt);
         cphs &= PHMASK;
-        *ar++ = *(ftab + (cphs >>lobits)) * amp;
+        ar[n] = *(ftab + (cphs >>lobits)) * amp;
         cphs += cinc;
-      } while (--nsmps);
+      }
     }
     p->mphs = mphs;
     p->cphs = cphs;
@@ -124,7 +124,7 @@ int foscili(ENVIRON *csound, FOSC *p)
     MYFLT  *ar, *ampp, amp, cps, fract, v1, car, fmod, cfreq, mod;
     MYFLT  *carp, *modp, xcar, xmod, ndx, *ftab;
     long   mphs, cphs, minc, cinc, lobits;
-    int    nsmps = ksmps;
+    int    n;
 
     ar = p->rslt;
     ftp = p->ftp;
@@ -142,10 +142,10 @@ int foscili(ENVIRON *csound, FOSC *p)
     xcar = *carp;
     xmod = *modp;
     if (p->XINCODE) {
-      do {
-        if (p->ampcod)  amp = *(ampp++);
-        if (p->carcod)  xcar = *(carp++);
-        if (p->modcod)  xmod = *(modp++);
+      for (n=0;n<ksmps;n++) {
+        if (p->ampcod)  amp = ampp[n];
+        if (p->carcod)  xcar = carp[n];
+        if (p->modcod)  xmod = modp[n];
         car = cps * xcar;
         mod = cps * xmod;
         ndx = *p->kndx * mod;
@@ -162,9 +162,9 @@ int foscili(ENVIRON *csound, FOSC *p)
         fract = PFRAC(cphs);
         ftab = ftp->ftable + (cphs >>lobits);
         v1 = *ftab++;
-        *ar++ = (v1 + (*ftab - v1) * fract) * amp;
+        ar[n] = (v1 + (*ftab - v1) * fract) * amp;
         cphs += cinc;
-      } while (--nsmps);
+      }
     }
     else {
       cps = *p->kcps;
@@ -172,7 +172,7 @@ int foscili(ENVIRON *csound, FOSC *p)
       mod = cps * *modp;
       ndx = *p->kndx * mod;
       minc = (long)(mod * sicvt);
-      do {
+      for (n=0;n<ksmps;n++) {
         mphs &= PHMASK;
         fract = PFRAC(mphs);
         ftab = ftp->ftable + (mphs >>lobits);
@@ -185,9 +185,9 @@ int foscili(ENVIRON *csound, FOSC *p)
         fract = PFRAC(cphs);
         ftab = ftp->ftable + (cphs >>lobits);
         v1 = *ftab++;
-        *ar++ = (v1 + (*ftab - v1) * fract) * amp;
+        ar[n] = (v1 + (*ftab - v1) * fract) * amp;
         cphs += cinc;
-      } while (--nsmps);
+      }
     }
     p->mphs = mphs;
     p->cphs = cphs;

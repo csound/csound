@@ -56,17 +56,17 @@ typedef struct _pvsdemix {
         OPDS h;
         PVSDAT  *fout;
         PVSDAT  *finleft;
-                PVSDAT  *finright;
-                MYFLT   *pos;
-                MYFLT   *width;
-                MYFLT   *slices;
-                AUXCH   left;
-                AUXCH   right;
-                AUXCH   maxl;
-                AUXCH   maxr;
-                AUXCH   minl;
-                AUXCH   minr;
-                int     beta;
+        PVSDAT  *finright;
+        MYFLT   *pos;
+        MYFLT   *width;
+        MYFLT   *slices;
+        AUXCH   left;
+        AUXCH   right;
+        AUXCH   maxl;
+        AUXCH   maxr;
+        AUXCH   minl;
+        AUXCH   minr;
+        int     beta;
         unsigned long   lastframe;
 }
 PVSDEMIX;

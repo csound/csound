@@ -1453,9 +1453,9 @@
 
 2004-07-17  Michael Gogins <gogins@pipeline.com>
 
-	* Andres Cabrera added bank loading to vst4cs. I added plugin editor dialogs
-	and program setting, also refined log message levels and made VST opcode
-	diagnostic messages more informative.
+	* Andres Cabrera added bank loading to vst4cs. I added plugin
+	editor dialogs and program setting, also refined log message
+	levels and made VST opcode diagnostic messages more informative.
 
 2004-07-17  John ffitch  <jpff@codemist.co.uk>
 

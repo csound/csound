@@ -46,19 +46,18 @@ int assign(ENVIRON *csound, ASSIGN *p)
 int aassign(ENVIRON *csound, ASSIGN *p)
 {
     MYFLT       *r, *a;
-    int nsmps = ksmps;
+    int n;
 
     r = p->r;
     a = p->a;
     if (p->XINCODE) {
-      do {
-        *r++ = *a++;
-      } while (--nsmps);
+      memmove(r, a, ksmps * sizeof(MYFLT)); /* Can we use memcpy?? */
+/*       for (n=0; n<ksmps; n++) */
+/*         r[n] = a[n]; */
     }
     else {
-      do {
-        *r++ = *a;
-      } while (--nsmps);
+      MYFLT aa = *a;
+      for (n=0; n<ksmps; n++) r[n] = aa;
     }
     return OK;
 }
@@ -72,13 +71,13 @@ int init(ENVIRON *csound, ASSIGN *p)
 int ainit(ENVIRON *csound, ASSIGN *p)
 {
     MYFLT       *r, *a;
-    int nsmps = ksmps;
+    int n;
+    MYFLT aa;
 
     r = p->r;
     a = p->a;
-    do {
-      *r++ = *a;
-    } while (--nsmps);
+    aa = *a;
+    for (n=0; n<ksmps; n++) r[n] = aa;
     return OK;
 }
 
@@ -128,14 +127,13 @@ int modkk(ENVIRON *csound, AOP *p)
 }
 
 #define KA(OPNAME,OP) int OPNAME(ENVIRON *csound, AOP *p) {      \
-        int     nsmps = ksmps;                  \
+        int     n;                              \
         MYFLT   *r, a, *b;                      \
         r = p->r;                               \
         a = *p->a;                              \
         b = p->b;                               \
-        do {                                    \
-          *r++ = a OP *b++;                     \
-        } while (--nsmps);                      \
+        for (n=0; n<ksmps; n++)                 \
+          r[n] = a OP b[n];                     \
         return OK;                              \
 }
 
@@ -146,26 +144,24 @@ KA(divka,/)
 
 int modka(ENVIRON *csound, AOP *p)
 {
-    int nsmps = ksmps;
+    int n;
     MYFLT       *r, a, *b;
     r = p->r;
     a = *p->a;
     b = p->b;
-    do {
-      *r++ = MOD(a,*b++);
-    } while (--nsmps);
+    for (n=0; n<ksmps; n++)
+      r[n] = MOD(a,b[n]);
     return OK;
 }
 
 #define AK(OPNAME,OP) int OPNAME(ENVIRON *csound, AOP *p) {      \
-        int     nsmps = ksmps;                  \
+        int     n;                              \
         MYFLT   *r, *a, b;                      \
         r = p->r;                               \
         a = p->a;                               \
         b = *p->b;                              \
-        do {                                    \
-          *r++ = *a++ OP b;                     \
-        } while (--nsmps);                      \
+        for (n=0; n<ksmps; n++)                 \
+          r[n] = a[n] OP b;                     \
         return OK;                              \
 }
 
@@ -176,27 +172,25 @@ AK(divak,/)
 
 int modak(ENVIRON *csound, AOP *p)
 {
-    int nsmps = ksmps;
+    int n;
     MYFLT       *r, *a, b;
     r = p->r;
     a = p->a;
     b = *p->b;
-    do {
-      *r++ = MOD(*a++, b);
-    } while (--nsmps);
+    for (n=0; n<ksmps; n++)
+      r[n] = MOD(a[n], b);
     return OK;
 }
 
 
 #define AA(OPNAME,OP) int OPNAME(ENVIRON *csound, AOP *p) {      \
-        int     nsmps = ksmps;                  \
+        int     n;                              \
         MYFLT   *r, *a, *b;                     \
         r = p->r;                               \
         a = p->a;                               \
         b = p->b;                               \
-        do {                                    \
-          *r++ = *a++ OP *b++;                  \
-        } while (--nsmps);                      \
+        for (n=0; n<ksmps; n++)                 \
+          r[n] = a[n] OP b[n];                  \
         return OK;                              \
 }
 
@@ -207,14 +201,13 @@ AA(divaa,/)
 
 int modaa(ENVIRON *csound, AOP *p)
 {
-    int nsmps = ksmps;
+    int n;
     MYFLT       *r, *a, *b;
     r = p->r;
     a = p->a;
     b = p->b;
-    do {
-      *r++ = MOD(*a++, *b++);
-    } while (--nsmps);
+    for (n=0; n<ksmps; n++)
+      r[n] = MOD(a[n], b[n]);
     return OK;
 }
 
@@ -226,52 +219,44 @@ int divzkk(ENVIRON *csound, DIVZ *p)
 
 int divzka(ENVIRON *csound, DIVZ *p)
 {
-    int         nsmps = ksmps;
+    int         n;
     MYFLT       *r, a, *b, def;
     r = p->r;
     a = *p->a;
     b = p->b;
     def = *p->def;
-    do {
-      *r++ = (*b==FL(0.0) ? def : a / *b);
-      b++;
-    } while (--nsmps);
+    for (n=0; n<ksmps; n++)
+      r[n] = (b[n]==FL(0.0) ? def : a / b[n]);
     return OK;
 }
 
 int divzak(ENVIRON *csound, DIVZ *p)
 {
-    int         nsmps = ksmps;
+    int         n;
     MYFLT       *r, *a, b, def;
     r = p->r;
     a = p->a;
     b = *p->b;
     def = *p->def;
     if (b==FL(0.0)) {
-      do {
-        *r++ = def;
-      } while (--nsmps);
+      for (n=0; n<ksmps; n++) r[n] = def;
     }
     else {
-      do {
-        *r++ = *a++ / b;
-      } while (--nsmps);
+      for (n=0; n<ksmps; n++) r[n] = a[n] / b;
     }
     return OK;
 }
 
 int divzaa(ENVIRON *csound, DIVZ *p)
 {
-    int nsmps = ksmps;
+    int n;
     MYFLT       *r, *a, *b, def;
     r = p->r;
     a = p->a;
     b = p->b;
     def = *p->def;
-    do {
-      *r++ = (*b==FL(0.0) ? def : *a / *b);
-      a++; b++;
-    } while (--nsmps);
+    for (n=0; n<ksmps; n++)
+      r[n] = (b[n]==FL(0.0) ? def : a[n] / b[n]);
     return OK;
 }
 
@@ -287,15 +272,12 @@ int conval(ENVIRON *csound, CONVAL *p)
 int aconval(ENVIRON *csound, CONVAL *p)
 {
     MYFLT       *r, *s;
-    int nsmps = ksmps;
 
     r = p->r;
     if (*p->cond)
       s = p->a;
     else s = p->b;
-    do {
-      *r++ = *s++;
-    } while (--nsmps);
+    memmove(r, s, ksmps*sizeof(MYFLT));
     return OK;
 }
 
@@ -358,13 +340,12 @@ int atan21(ENVIRON *csound, AOP *p)
 }
 
 #define LIBA(OPNAME,LIBNAME) int OPNAME(ENVIRON *csound, EVAL *p) {    \
-                                int     nsmps = ksmps;                 \
+                                int     n;                             \
                                 MYFLT   *r, *a;                        \
                                 r = p->r;                              \
                                 a = p->a;                              \
-                                do {                                   \
-                                  *r++ = (MYFLT)LIBNAME((double)*a++); \
-                                } while (--nsmps);                     \
+                                for (n=0;n<ksmps;n++)                  \
+                                  r[n] = (MYFLT)LIBNAME((double)a[n]); \
                                 return OK;                             \
                               }
 LIBA(absa,fabs)
@@ -384,14 +365,13 @@ LIBA(log10a,log10)
 
 int atan2aa(ENVIRON *csound, AOP *p)
 {
-    int nsmps = ksmps;
+    int n;
     MYFLT       *r, *a, *b;
     r = p->r;
     a = p->a;
     b = p->b;
-    do {
-      *r++ = (MYFLT)atan2((double)*a++, (double)*b++);
-    } while (--nsmps);
+    for (n=0;n<ksmps;n++)
+      r[n] = (MYFLT)atan2((double)a[n], (double)b[n]);
     return OK;
 }
 
@@ -409,13 +389,10 @@ int ampdb(ENVIRON *csound, EVAL *p)
 
 int aampdb(ENVIRON *csound, EVAL *p)
 {
-    int nsmps = ksmps;
-    MYFLT       *r, *a;
-    r = p->r;
-    a = p->a;
-    do {
-      *r++ = (MYFLT) exp((double)*a++ * LOG10D20);
-    } while (--nsmps);
+    int   n;
+    MYFLT *r = p->r, *a = p->a;
+    for (n=0;n<ksmps;n++)
+      r[n] = (MYFLT) exp((double)a[n] * LOG10D20);
     return OK;
 }
 
@@ -433,13 +410,12 @@ int ampdbfs(ENVIRON *csound, EVAL *p)
 
 int aampdbfs(ENVIRON *csound, EVAL *p)
 {
-    int nsmps = ksmps;
+    int n;
     MYFLT       *r, *a;
     r = p->r;
     a = p->a;
-    do {
-      *r++ = e0dbfs * (MYFLT) exp((double)*a++ * LOG10D20);
-    } while (--nsmps);
+    for (n=0;n<ksmps;n++)
+      r[n] = e0dbfs * (MYFLT) exp((double)a[n] * LOG10D20);
     return OK;
 }
 
@@ -549,13 +525,13 @@ int cpsoct(ENVIRON *csound, EVAL *p)
 int acpsoct(ENVIRON *csound, EVAL *p)
 {
     MYFLT       *r, *a;
-    long        loct, nsmps = ksmps;
+    long        loct, n;
     a = p->a;
     r = p->r;
-    do {
-      loct = (long)(*a++ * OCTRES);
-      *r++ = CPSOCTL(loct);
-    } while (--nsmps);
+    for (n=0; n<ksmps; n++) {
+      loct = (long)(a[n] * OCTRES);
+      r[n] = CPSOCTL(loct);
+    }
     return OK;
 }
 
@@ -807,13 +783,13 @@ int semitone(ENVIRON *csound, EVAL *p)
 int asemitone(ENVIRON *csound, EVAL *p)           /* JPff */
 {
     MYFLT *r, *a;
-    long nsmps = ksmps;
+    long n;
     a = p->a;
     r = p->r;
-    do  {
-      MYFLT aa = (*a++)*ONEd12;
-      *r++ = pow2(aa);
-    } while (--nsmps);
+    for (n=0; n<ksmps; n++) {
+      MYFLT aa = (a[n])*ONEd12;
+      r[n] = pow2(aa);
+    }
     return OK;
 }
 
@@ -827,13 +803,13 @@ int cent(ENVIRON *csound, EVAL *p)
 int acent(ENVIRON *csound, EVAL *p)       /* JPff */
 {
     MYFLT *r, *a;
-    long nsmps = ksmps;
+    long n;
     a = p->a;
     r = p->r;
-    do {
-      MYFLT aa = (*a++)*ONEd1200;
-      *r++ = pow2(aa);
-    } while (--nsmps);
+    for (n=0; n<ksmps; n++) {
+      MYFLT aa = (a[n])*ONEd1200;
+      r[n] = pow2(aa);
+    }
     return OK;
 }
 
@@ -868,13 +844,13 @@ int dbi(ENVIRON *csound, EVAL *p)
 int dba(ENVIRON *csound, EVAL *p)         /* JPff */
 {
     MYFLT *r, *a;
-    long nsmps = ksmps;
+    int n;
     a = p->a;
     r = p->r;
-    do  {
-      MYFLT aa = *a++;
-      *r++ = pow2(aa*LOG2_10D20);
-    } while (--nsmps);
+    for (n=0; n<ksmps; n++) {
+      MYFLT aa = a[n];
+      r[n] = pow2(aa*LOG2_10D20);
+    }
     return OK;
 }
 
@@ -893,16 +869,16 @@ int logbasetwo(ENVIRON *csound, EVAL *p)
 int logbasetwoa(ENVIRON *csound, EVAL *p) /* by G.Maldonado liberalised by JPff */
 {
     MYFLT *r, *a;
-    long nsmps=ksmps;
+    int n;
     a = p->a;
     r = p->r;
-    do {
-      MYFLT aa = *a++;
+    for (n=0; n<ksmps; n++) {
+      MYFLT aa = a[n];
       int n = (int) ((aa - (FL(1.0)/INTERVAL)) / (INTERVAL - FL(1.0)/INTERVAL)
                      *  STEPS + FL(0.5));
-      if (n<0 || n>STEPS) *r++ = (MYFLT)(log((double)aa)*ONEdLOG2);
-      else                *r++ = logbase2[n] ;
-    } while (--nsmps);
+      if (n<0 || n>STEPS) r[n] = (MYFLT)(log((double)aa)*ONEdLOG2);
+      else                r[n] = logbase2[n] ;
+    }
     return OK;
 }
 
@@ -923,56 +899,54 @@ int ilogbasetwo(ENVIRON *csound, EVAL *p)
 int in(ENVIRON *csound, INM *p)
 {
     MYFLT       *sp, *ar;
-    int nsmps = ksmps;
 
     sp = spin;
     ar = p->ar;
-    do {
-      *ar++ = *sp++;
-    } while (--nsmps);
+    memmove(ar, sp, ksmps*sizeof(MYFLT));
+/*     do { */
+/*       *ar++ = *sp++; */
+/*     } while (--nsmps); */
     return OK;
 }
 
 int ins(ENVIRON *csound, INS *p)
 {
     MYFLT       *sp, *ar1, *ar2;
-    int nsmps = ksmps;
+    int n, k;
 
     sp = spin;
     ar1 = p->ar1;
     ar2 = p->ar2;
-    do {
-      *ar1++ = *sp++;
-      *ar2++ = *sp++;
+    for (n=0, k=0; n<ksmps; n++,k+=2) {
+      ar1[n] = sp[k];
+      ar2[n] = sp[k+1];
     }
-    while (--nsmps);
     return OK;
 }
 
 int inq(ENVIRON *csound, INQ *p)
 {
     MYFLT       *sp, *ar1, *ar2, *ar3, *ar4;
-    int nsmps = ksmps;
+    int n, k;
 
     sp = spin;
     ar1 = p->ar1;
     ar2 = p->ar2;
     ar3 = p->ar3;
     ar4 = p->ar4;
-    do {
-      *ar1++ = *sp++;
-      *ar2++ = *sp++;
-      *ar3++ = *sp++;
-      *ar4++ = *sp++;
+    for (n=0, k=0; n<ksmps; n++,k+=4) {
+      ar1[n] = sp[k];
+      ar2[n] = sp[k+1];
+      ar3[n] = sp[k+2];
+      ar4[n] = sp[k+3];
     }
-    while (--nsmps);
     return OK;
 }
 
 int inh(ENVIRON *csound, INH *p)
 {
     MYFLT       *sp, *ar1, *ar2, *ar3, *ar4, *ar5, *ar6;
-    int nsmps = ksmps;
+    int n, k;
 
     sp = spin;
     ar1 = p->ar1;
@@ -981,22 +955,21 @@ int inh(ENVIRON *csound, INH *p)
     ar4 = p->ar4;
     ar5 = p->ar5;
     ar6 = p->ar6;
-    do {
-      *ar1++ = *sp++;
-      *ar2++ = *sp++;
-      *ar3++ = *sp++;
-      *ar4++ = *sp++;
-      *ar5++ = *sp++;
-      *ar6++ = *sp++;
+    for (n=0, k=0; n<ksmps; n++,k+=6) {
+      ar1[n] = sp[k];
+      ar2[n] = sp[k+1];
+      ar3[n] = sp[k+2];
+      ar4[n] = sp[k+3];
+      ar5[n] = sp[k+4];
+      ar6[n] = sp[k+5];
     }
-    while (--nsmps);
     return OK;
 }
 
 int ino(ENVIRON *csound, INO *p)
 {
     MYFLT       *sp, *ar1, *ar2, *ar3, *ar4, *ar5, *ar6, *ar7, *ar8;
-    int nsmps = ksmps;
+    int n, k;
 
     sp = spin;
     ar1 = p->ar1;
@@ -1007,33 +980,31 @@ int ino(ENVIRON *csound, INO *p)
     ar6 = p->ar6;
     ar7 = p->ar7;
     ar8 = p->ar8;
-    do {
-      *ar1++ = *sp++;
-      *ar2++ = *sp++;
-      *ar3++ = *sp++;
-      *ar4++ = *sp++;
-      *ar5++ = *sp++;
-      *ar6++ = *sp++;
-      *ar7++ = *sp++;
-      *ar8++ = *sp++;
+    for (n=0, k=0; n<ksmps; n++,k+=8) {
+      ar1[n] = sp[k];
+      ar2[n] = sp[k+1];
+      ar3[n] = sp[k+2];
+      ar4[n] = sp[k+3];
+      ar5[n] = sp[k+4];
+      ar6[n] = sp[k+5];
+      ar7[n] = sp[k+6];
+      ar8[n] = sp[k+7];
     }
-    while (--nsmps);
     return OK;
 }
 
 int inn(INALL *p, int n)
 {
     MYFLT       *sp, **ara;
-    int         nsmps = ksmps;
+    int         m;
     int         i;
 
     sp = spin;
     ara = p->ar;
-    do {
+    for (m=0; m<ksmps; m++) {
       for (i=0; i<n; i++)
         *ara[i] = *sp++;
     }
-    while (--nsmps);
     return OK;
 }
 
@@ -1054,14 +1025,14 @@ int inall(ENVIRON *csound, INCH *p)
 /*      int nch = (int) p->INOCOUNT; */
 /*      inn(p, (nch>nchnls ? nchnls : nch)); */
     int ch = (int)(*p->ch+FL(0.5));
-    int nsmps = ksmps;
+    int n;
     MYFLT *sp = spin+ch-1;
     MYFLT *ain = p->ar;
     if (ch>nchnls) return NOTOK;
-    do {
-      *ain++ = *sp;
+    for (n=0; n<ksmps; n++) {
+      ain[n] = *sp;
       sp += nchnls;
-    } while (--nsmps);
+    }
     return OK;
 }
 
@@ -1073,8 +1044,7 @@ int out(ENVIRON *csound, OUTM *p)
     ap = p->asig;
     sp = spout;
     if (!spoutactive) {
-      for (n=0; n<ksmps; n++)
-        sp[n] = ap[n];
+      memmove(sp, ap, ksmps*sizeof(MYFLT));
       spoutactive = 1;
     }
     else {

@@ -5,20 +5,20 @@
 
     This file is part of Csound.
 
-          The Csound Library is free software; you can redistribute it
-          and/or modify it under the terms of the GNU Lesser General Public
-          License as published by the Free Software Foundation; either
-          version 2.1 of the License, or (at your option) any later version.
+      The Csound Library is free software; you can redistribute it
+      and/or modify it under the terms of the GNU Lesser General Public
+      License as published by the Free Software Foundation; either
+      version 2.1 of the License, or (at your option) any later version.
 
       Csound is distributed in the hope that it will be useful,
-          but WITHOUT ANY WARRANTY; without even the implied warranty of
-          MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-          GNU Lesser General Public License for more details.
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+      GNU Lesser General Public License for more details.
 
-          You should have received a copy of the GNU Lesser General Public
-          License along with Csound; if not, write to the Free Software
-          Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-          02111-1307 USA
+      You should have received a copy of the GNU Lesser General Public
+      License along with Csound; if not, write to the Free Software
+      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+      02111-1307 USA
 
 */
 
@@ -125,13 +125,13 @@ int pvsdemix_process(ENVIRON *csound, PVSDEMIX *p)
       else if (azimuth > 1) azimuth = (MYFLT) 1;
 
       imax = beta*framesize;
-      range = width/2;
+      range = width/FL(2.0);
       pos = (int)((azimuth >= 0 ? azimuth : -azimuth)*beta);
 
       /*  create the azimuth amplitude vectors &
           find the max/min values for channels, per bin */
       for (n=0; n < N/2+1; n++){
-        maxl[n] = maxr[n] = 0.f;
+        maxl[n] = maxr[n] = 0.0f;
         minl[n] = minr[n] = FLOATMAX_;
         n2 = n << 1;
 

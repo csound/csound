@@ -422,11 +422,11 @@ int infile_set(ENVIRON *csound, INFILE *p)
 
 int infile_act(ENVIRON *csound, INFILE *p)
 {
-    int nsmps= ksmps, j, nargs = p->nargs,k=0;
+    int j, nargs = p->nargs,k=0;
     MYFLT **args = p->argums;
     if (p->flag) {
       sf_seek(p->fp, p->currpos, SEEK_SET);
-      p->currpos+=nsmps;
+      p->currpos+=ksmps;
       for (k=0; k<ksmps; k++) {
         MYFLT vals[VARGMAX];
         if (sf_readf_MYFLT(p->fp, vals, 1)) {
@@ -631,24 +631,21 @@ int i_infile(ENVIRON *csound, I_INFILE *p)
 int incr(ENVIRON *csound, INCR *p)
 {
     MYFLT *avar = p->avar, *aincr = p->aincr;
-    int nsmps= ksmps;
-    do {
-      *(avar++) += *(aincr++);
-    } while (--nsmps);
+    int n;
+    for (n=0; n<ksmps; n++)
+      avar[n] += aincr[n];
     return OK;
 }
 
 
 int clear(ENVIRON *csound, CLEARS *p)
 {
-    int nsmps= ksmps,j;
+    int n, j;
     MYFLT *avar;
     for (j=0;j< p->INOCOUNT;j++) {
       avar = p->argums[j];
-      nsmps= ksmps;
-      do {
-        *(avar++) = FL(0.0);
-      } while (--nsmps);
+      for (n=0; n<ksmps; n++)
+        avar[n] = FL(0.0);
     }
     return OK;
 }
