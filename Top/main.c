@@ -292,21 +292,34 @@ void print_benchmark_info(void *csound, const char *s)
 #ifdef MSVC
 _declspec(dllexport) /* VL linkage fix 11-04 */
 #endif
-int csoundCompile(void *csound, int argc, char **argv)
+int csoundCompile(void *csound_, int argc, char **argv)
 {
     char  *s;
     char  *filnamp, *envoutyp = NULL;
     int   n;
+    ENVIRON *csound = (ENVIRON *)csound_;
 
-/*  csoundReset(csound);  IV - Feb 01 2005: should do this in csoundCreate() */
-/*                        to allow host application to change settings       */
-/*                        before csoundCompile() is called                   */
     if ((n=setjmp(cenviron.exitjmp_))) {
       /*
        * Changed from exit(-1) for re-entrancy.
        */
       return -1;
     }
+    csound->hostdata_ = hostdata;
+    /* allow selecting real time audio module */
+    {
+      char  *s;
+      int   max_len = 21;
+      csoundCreateGlobalVariable(csound, "_RTAUDIO", (size_t) max_len);
+      s = csoundQueryGlobalVariable(csound, "_RTAUDIO");
+      strcpy(s, "PortAudio");
+      csoundCreateConfigurationVariable(csound, "rtaudio", s,
+                                        CSOUNDCFG_STRING, 0, NULL, &max_len,
+                                        "Real time audio module name", NULL);
+    }
+    /* now load and pre-initialise external modules for this instance */
+    /* this function returns an error value that may be worth checking */
+    csoundLoadModules(csound);
     /* IV - Jan 28 2005 */
     csoundCreateGlobalVariable(csound, "csRtClock", sizeof(RTCLOCK));
     csoundCreateGlobalVariable(csound, "#CLEANUP", (size_t) 1);
@@ -603,9 +616,6 @@ void mainRESET(ENVIRON *p)
     void tranRESET(void);
 
     cleanup((void*) p);                 /* IV - Feb 03 2005 */
-    /* call local destructor routines of external modules */
-    /* should check return value... */
-    csoundDestroyModules((void*) p);
 
 #if defined(USE_FLTK) && defined(never)        /* IV - Nov 30 2002 */
     void widgetRESET(void);     /* N.B. this is not used yet, */
