@@ -80,7 +80,7 @@ int    vbap_FOUR_moving_init(void*), vbap_FOUR_moving(void*);
 int    vbap_EIGHT_moving_init(void*), vbap_EIGHT_moving(void*);
 int    vbap_SIXTEEN_moving_init(void*), vbap_SIXTEEN_moving(void*);
 int    vbap_zak_moving_init(void*), vbap_zak_moving(void*);
-#ifdef BETA
+#ifdef JPFF
 int    Foscset(void*), Fosckk(void*), Foscka(void*);
 int    Foscak(void*), Foscaa(void*);
 #endif

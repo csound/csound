@@ -1,3 +1,10 @@
+2004-05-17  John ffitch  <jpff@codemist.co.uk>
+
+	* InOut/rtpa.c (playopen_): Allow selection of ALSA device via
+	environment variable
+
+	* Engine/entry1.c: Restored tablekt and tableikt
+
 2004-05-16  Michael Gogins <gogins@pipeline.com>
 
 	* frontends/CsoundVST/CsoundVstFltk.cpp: fixed problem
