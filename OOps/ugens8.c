@@ -75,7 +75,7 @@ int pvset(ENVIRON *csound, PVOC *p)
     if ((mfp = p->mfp) == NULL ||
         strcmp(mfp->filename, pvfilnam) != 0) { /* if file not already readin */
       /*RWD: TRY PVOCEX FILE FIRST... */
-      if (pvx_loadfile(pvfilnam,p,&mfp)) {
+      if (pvx_loadfile(pvfilnam,p,&mfp) == OK) {
         old_format = 0;
         p->mfp = mfp;
       }
@@ -87,7 +87,7 @@ int pvset(ENVIRON *csound, PVOC *p)
     }
     else
       /* need to check format again here */
-      if (pvx_loadfile(pvfilnam,p,&mfp)) {
+      if (pvx_loadfile(pvfilnam,p,&mfp) == OK) {
         old_format = 0;
         p->mfp = mfp;
       }
@@ -95,7 +95,7 @@ int pvset(ENVIRON *csound, PVOC *p)
       pvh = (PVSTRUCT *)mfp->beginp;
       if (pvh->magic != PVMAGIC) {
         /* try byte-reversal to read Mac on PC and vv*/
-        if (!byterev_pvoc(mfp)) {
+        if (byterev_pvoc(mfp) != OK) {
           sprintf(errmsg,Str("%s not a PVOC file (magic %ld)"),
                   pvfilnam, pvh->magic );
           goto pverr;
@@ -107,7 +107,7 @@ int pvset(ENVIRON *csound, PVOC *p)
       p->frSiz = pvh->frameSize;
       p->frPtr = (MYFLT *) ((char *)pvh+pvh->headBsize);
       p->baseFr = 0;  /* point to first data frame */
-      p->maxFr = -1 + ( pvh->dataBsize / (chans * (p->frSiz+2) * sizeof(MYFLT)));
+      p->maxFr = (pvh->dataBsize / (chans * (p->frSiz+2) * sizeof(MYFLT))) - 1;
     }
 
     if (*p->imode == 1 || *p->imode == 2)
@@ -165,12 +165,12 @@ int pvset(ENVIRON *csound, PVOC *p)
     p->frPrtim = esr/((MYFLT) p->frInc);
     /* factor by which to mulitply 'real' time index to get frame index */
     size = pvfrsiz(p);          /* size used in def of OPWLEN ? */
-    p->scale = e0dbfs * FL(2.0)*((MYFLT)ksmps)/((MYFLT)OPWLEN*(MYFLT)pvfrsiz(p));
+    p->scale = e0dbfs*FL(2.0)*((MYFLT)ksmps)/((MYFLT)OPWLEN*(MYFLT)pvfrsiz(p));
     /* 2*incr/OPWLEN scales down for win ovlp, windo'd 1ce (but 2ce?) */
     /* 1/frSiz is the required scale down before (i)FFT */
     p->prFlg = 1;    /* true */
     p->opBpos = 0;
-    p->lastPex = FL(1.0);       /* needs to know last pitchexp to update phase */
+    p->lastPex = FL(1.0);     /* needs to know last pitchexp to update phase */
     /* Set up time window */
     for (i=0; i < pvdasiz(p); ++i) {  /* or maybe pvdasiz(p) */
      /* p->window[i] = (0.54-0.46*cos(TWOPI*(MYFLT)i/(MYFLT)(pvfrsiz(p)))); */
@@ -256,17 +256,18 @@ int pvoc(ENVIRON *csound, PVOC *p)
       PvAmpGate(buf,size, p->AmpGateFunc, p->PvMaxAmp);
 
     FrqToPhase(buf, asize, pex*(MYFLT)ksmps, p->asr,
-           /*a0.0*/FL(0.5) * ( (pex / p->lastPex) - FL(1.0)) );
+               FL(0.5) * ( (pex / p->lastPex) - FL(1.0)) );
     /* Offset the phase to align centres of stretched windows, not starts */
     RewrapPhase(buf, asize, p->lastPhase);
 
     if (specwp>0)
-/* RWD 11:8:2001 THIS CAUSED MASSIVE MEMORY ERROR,, BUT DOESN'T WORK ANYWAY */
+      /* RWD: THIS CAUSED MASSIVE MEMORY ERROR, BUT DOESN'T WORK ANYWAY */
       PreWarpSpec(buf, asize, pex);
 
     Polar2Rect(buf, asize);
-    buf[1] = FL(0.0); buf[size+1] = FL(0.0);  /* kill spurious imag at dc & fs/2 */
-    FFT2torl((complex *)buf,size,1,/*a pex*/ p->scale, (complex *)plut);
+    /* kill spurious imag at dc & fs/2 */
+    buf[1] = FL(0.0); buf[size+1] = FL(0.0);
+    FFT2torl((complex *) buf, size, 1, p->scale, (complex *) plut);
     /* CALL TO NONET FFT */
     PackReals(buf, size);
     if (pex != FL(1.0))
@@ -352,7 +353,8 @@ int pvx_loadfile(const char *fname,PVOC *p,MEMFIL **mfp)
       memblock = (float *) mmalloc(&cenviron, mem_wanted);
       /* fill'er-up */
       /* need to loop, as we need to rescale amplitudes for Csound */
-      /* still not sure this is right, yet...what about effect of double-window ? */
+      /* still not sure this is right, yet... */
+      /* what about effect of double-window ? */
       cs_ampfac = (float ) (pvdata.dwOverlap *
                             ((float)(framelen-2) /(float) pvdata.dwWinlen)) ;
 
@@ -417,7 +419,7 @@ int pvx_loadfile(const char *fname,PVOC *p,MEMFIL **mfp)
       add_memfil(mfil);
     }
     *mfp = mfil;
-    return 1;
+    return OK;
 }
 
 static int byterev_pvoc(MEMFIL *mfil)
@@ -444,7 +446,8 @@ static int byterev_pvoc(MEMFIL *mfil)
       lptr++;
     }
 
-/* any extra bytes? we just hope if there is, the data is still lword-aligned! */
+    /* any extra bytes? we just hope if there is, */
+    /* the data is still lword-aligned! */
     extra = sizeof(PVSTRUCT) - pvh->headBsize;
     if (extra > 0) {
       if (extra%sizeof(long) != 0) {
@@ -459,6 +462,6 @@ static int byterev_pvoc(MEMFIL *mfil)
       bytrev4((char *)lptr,4);
       lptr++;
     }
-    return 1;
+    return OK;
 }
 

@@ -9,6 +9,11 @@
 	  allow opcode names like FLpanel_end, FLgroup_end, etc.
 	* InOut/midirecv.c:
 	  restored original algorithm for assignment of default instr numbers
+	* InOut/libsnd_u.c:
+	* OOps/pvxanal.c:
+	* OOps/ugens8.c:
+	* Top/pvanal.c:
+	  bug fixes in sound I/O, pvanal, and pvoc
 
 2005-02-28	Istvan Varga	<istvan@csounds.com>
 	* cleanup.sh:
