@@ -29,6 +29,8 @@
 #include "AEffectx.h"
 #include "AEffEditor.hpp"
 #include <vector>
+#include <map>
+#include <string>
 
 typedef enum {
 
@@ -84,6 +86,9 @@ public:
 	size_t framesPerBlock;
 	size_t channels;
 	char midiChannel;
+    static std::map<long,std::string> masterOpcodes;
+    static std::map<long,std::string> dispatchOpcodes;
+
 	
     VSTPlugin(ENVIRON *csound);
 	virtual ~VSTPlugin();
@@ -140,6 +145,7 @@ public:
 	static bool OnCanDo(const char *ptr);
 	static long Master(AEffect *effect, 
         long opcode, long index, long value, void *ptr, float opt);
+    static void initializeOpcodes();
 };
 
 inline long VSTPlugin::Dispatch(long opCode, 
