@@ -900,7 +900,7 @@ int splitline(void)     /* split next orch line into atomic groups */
            || c == '+' || c == '-'
            || c == '*' || c == '/'
            || c == '%' || c == '^'
-           || c == '¬' || c == '#' /* Bit operations */
+           || c == 'ï¿½' || c == '#' /* Bit operations */
            || c == '.' || c == '_'
            /* allow uppercases and underscore in variables */
            )
@@ -1639,7 +1639,7 @@ void synterr(char *s)
     if ((cp = linadr[curline]) != NULL) {
       printf(Str(X_83,", line %d:\n"),curline);
       do {
-        printf("%f", (c = *cp++));
+        printf("%c", (c = *cp++));
       } while (c != '\n');
     }
     else {
