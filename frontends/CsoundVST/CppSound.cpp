@@ -124,7 +124,7 @@ int CppSound::compile(int argc, char **argv)
 	message("BEGAN CppSound::compile(%d, %x)...\n", argc, argv);
 	go = false;
 	int returnValue = csoundCompile(csound, argc, argv);
-	spoutSize = ksmps * nchnls * sizeof(MYFLT);
+	spoutSize = csoundGetKsmps(csound) * csoundGetNchnls(csound) * sizeof(MYFLT);
 	if(returnValue)
 	{
 	    isCompiled = false;
