@@ -1193,7 +1193,7 @@ CsoundVST_CPPFLAGS=@CSOUND_CPPFLAGS@ -I/usr/include/python2.3 -Ifrontends/Csound
 CsoundVST_CFLAGS=@CSOUND_CFLAGS@
 CsoundVST_CXXFLAGS=-mwindows @CSOUND_CXXFLAGS@
 CsoundVST_LDFLAGS=-mwindows @CSOUND_LDFLAGS@ -mwindows _CsoundVST.la -L/usr/lib/python2.3/config -lpython2.3
-CsoundVST_LDADD=-mwindows @CSOUND_LDADD@
+CsoundVST_LDADD=@CSOUND_LDADD@
 
 CsoundVST.exe:	_CsoundVST.dll
 	g++ -g -O2 -Wall -D_WIN32 CsoundVST-csoundvst_main.o -mwindows -o CsoundVST.exe _CsoundVST.dll.a -L/GCC/gcc-3.3.1-3/.build/i686-pc-cygwin/libstdc++-v3/src -L/GCC/gcc-3.3.1-3/.build/i686-pc-cygwin/libstdc++-v3/src/.libs -L/GCC/gcc-3.3.1-3/.build/gcc -L/usr/i686-pc-cygwin/bin -L/usr/lib/gcc-lib/i686-pc-cygwin/3.3.1 -L/usr/lib/gcc-lib/i686-pc-cygwin/3.3.1/../../.. -lcygwin -luser32 -lkernel32 -ladvapi32 -lshell32 -lgcc -lstdc++
@@ -1205,7 +1205,7 @@ _CsoundVST_la_CPPFLAGS=@LIBCSOUND_CPPFLAGS@ -I/usr/include/python2.3 -Ifrontends
 _CsoundVST_la_CFLAGS=@LIBCSOUND_CFLAGS@
 _CsoundVST_la_CXXFLAGS=@LIBCSOUND_CXXFLAGS@
 _CsoundVST_la_LIBADD=@LIBCSOUND_LIBADD@
-_CsoundVST_la_LDFLAGS=@LIBCSOUND_LDFLAGS@
+_CsoundVST_la_LDFLAGS=-module @LIBCSOUND_LDFLAGS@
 
 CsoundVST_SOURCES=frontends/csoundvst/csoundvst_main.cpp
 CsoundVST_DEPENDENCIES=_CsoundVST.la
