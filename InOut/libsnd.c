@@ -149,7 +149,7 @@ int format2sf(int format)
     return SF_FORMAT_PCM_16;
 }
 
-static int sf2format(int type)
+int sf2format(int type)
 {
 /*     printf("sf2format(%x,%x)\n",type,type&SF_FORMAT_SUBMASK); */
     switch (type&SF_FORMAT_SUBMASK) {
@@ -476,8 +476,8 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
 /*            p->fdch.fd); */
     sfname = retfilnam;                           /* & record fullpath filnam */
     p->format = sf2format(sfinfo.format);
-    if ((p->format = (short)*p->iformat) > 0)   /* convert spec'd format code */
-      p->format |= 0x100;
+    if ((short)*p->iformat > 0)   /* convert spec'd format code */
+      p->format = ((short)*p->iformat) | 0x100;
     p->endfile = 0;
     p->filetyp = 0;         /* initially non-typed for readheader */
     curr_func_sr = (MYFLT)sfinfo.samplerate;
