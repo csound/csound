@@ -644,6 +644,11 @@ void CsoundVST::setText(const std::string text)
 
 extern "C"
 {
+#if __GNUC__ && (WIN32||BEOS)
+extern "C" __declspec(dllexport) CsoundVST *CreateCsoundVST();
+#else
+	CsoundVST *CreateCsoundVST();
+#endif
 	PUBLIC CsoundVST *CreateCsoundVST()
 	{
 		return new CsoundVST;
