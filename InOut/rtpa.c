@@ -8,7 +8,9 @@ Uses PortAudio library without callbacks -- JPff
 
 #include "cs.h"
 #include "soundio.h"
+#if defined(WIN32) || defined(__MACH__)
 #include "pa_blocking.h"
+#endif
 #include <portaudio.h>
 
 #ifdef MSVC
@@ -40,13 +42,11 @@ extern int (*audrecv)(void *, int);
 void rtplay_(void *outbuf, int nbytes);
 int rtrecord_(void *inbuf_, int bytes_);
 
-#if !defined(WIN32) && !defined(__MACH__)
-static PaStream *pa_in = NULL, *pa_out = NULL;
-#endif
-
 #if defined(WIN32) || defined(__MACH__)
 static PA_BLOCKING_STREAM *pabsRead = 0;
 static PA_BLOCKING_STREAM *pabsWrite = 0;
+#else
+static PaStream *pa_in = NULL, *pa_out = NULL;
 #endif
 
 static  int oMaxLag;
