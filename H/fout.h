@@ -99,7 +99,6 @@ typedef struct {
         OPDS    h;
         MYFLT   *ihandle, *iascii, *iflag, *argums[VARGMAX];
         /*void (*ioutfilep) (void *); */
-        int     kreset;
 } IOUTFILE;
 
 
@@ -109,7 +108,6 @@ typedef struct {
         long counter;
         int done;
         /*  void (*ioutfilep) (void *); */
-        int     kreset;
 } IOUTFILE_R;
 
 
@@ -141,3 +139,4 @@ int kinfile(ENVIRON *,KINFILE *p);
 int i_infile(ENVIRON *,I_INFILE *p);
 
 #endif /* FOUT_H */
+

@@ -117,7 +117,7 @@ static const char *error_string_array[] = {
 };
 
 char *SDIF_GetErrorString(SDIFresult error_code) {
-    return error_string_array[error_code];
+    return (char*) (error_string_array[error_code]);
 }
 
 

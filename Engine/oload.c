@@ -49,7 +49,8 @@ void rtclose_dummy(void *csound);
 
 static  MYFLT   *gbloffbas;
 
-OPARMS  O_ = {0,0,          /* odebug, initonly */
+static const OPARMS O_ = {
+              0,0,          /* odebug, initonly */
               0,1,1,0,      /* sfread, sfwrite, sfheader, filetyp */
               0,0,          /* inbufsamps, outbufsamps */
               0,0,          /* informat, outformat */
@@ -61,7 +62,7 @@ OPARMS  O_ = {0,0,          /* odebug, initonly */
               0,0           /* RTevents, ksensing */
 };
 
-ENVIRON cenviron_ = {
+const ENVIRON cenviron_ = {
         /*
         * Interface functions.
         */
@@ -351,11 +352,12 @@ ENVIRON cenviron_ = {
         0,              /* FFT_max_size */
         NULL,           /* FFT_table_1 */
         NULL,           /* FFT_table_2 */
-        NULL, NULL, NULL /* tseg, tpsave, tplim */
+        NULL, NULL, NULL, /* tseg, tpsave, tplim */
+        0L              /* fout_kreset */
 };
 
+/* globals to be removed eventually... */
 OPARMS O;
-
 ENVIRON cenviron;
 
 int     pnum(char*);
