@@ -1,0 +1,2194 @@
+int
+pycall0_krate(PYCALL0 *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pycall0_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+
+  result = eval_string_in_given_context(command, 0);
+
+  if (result == NULL)
+    {
+      err_printf("pycall0_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (result != Py_None) {
+      err_printf("pycall0_krate: callable must return None\n");
+      return NOTOK; }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pylcall0_irate(PYCALL0 *p)
+{
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall0_irate: callable must be a string");
+      return NOTOK;
+    }
+
+  create_private_namespace_if_needed(&p->h);
+  return OK;
+}
+
+int
+pylcall0_krate(PYCALL0 *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall0_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+
+  result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
+
+  if (result == NULL)
+    {
+      err_printf("pylcall0_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (result != Py_None) {
+      err_printf("pylcall0_krate: callable must return None\n");
+      return NOTOK; }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pylcall0i_irate(PYCALL0 *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall0i_irate: callable must be a string");
+      return NOTOK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+
+  create_private_namespace_if_needed(&p->h);
+
+  result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
+
+  if (result == NULL)
+    {
+      err_printf("pylcall0i_irate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (result != Py_None) {
+      err_printf("pylcall0i_irate: callable must return None\n");
+      return NOTOK; }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pycall0t_krate(PYCALL0T *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pycall0t_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  if (!*p->trigger)
+    {
+       return OK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+
+  result = eval_string_in_given_context(command, 0);
+
+  if (result == NULL)
+    {
+      err_printf("pycall0t_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (result != Py_None) {
+      err_printf("pycall0_krate: callable must return None\n");
+      return NOTOK; }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pylcall0t_irate(PYCALL0T *p)
+{
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall0t_irate: callable must be a string");
+      return NOTOK;
+    }
+
+  create_private_namespace_if_needed(&p->h);
+  return OK;
+}
+
+int
+pylcall0t_krate(PYCALL0T *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall0t_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  if (!*p->trigger)
+    {
+       return OK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+
+  result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
+
+  if (result == NULL)
+    {
+      err_printf("pylcall0t_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (result != Py_None) {
+      err_printf("pylcall0_krate: callable must return None\n");
+      return NOTOK; }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pycall1_krate(PYCALL1 *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pycall1_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+
+  result = eval_string_in_given_context(command, 0);
+
+  if (result == NULL)
+    {
+      err_printf("pycall1_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyFloat_Check(result))
+    {
+      err_printf("pycall1_krate: callable must return a float\n");
+      return NOTOK;
+    }
+  else
+    {
+       *p->result = PyFloat_AsDouble(result);
+    }
+   return OK;
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pylcall1_irate(PYCALL1 *p)
+{
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall1_irate: callable must be a string");
+      return NOTOK;
+    }
+
+  create_private_namespace_if_needed(&p->h);
+  return OK;
+}
+
+int
+pylcall1_krate(PYCALL1 *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall1_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+
+  result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
+
+  if (result == NULL)
+    {
+      err_printf("pylcall1_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyFloat_Check(result))
+    {
+      err_printf("pylcall1_krate: callable must return a float\n");
+      return NOTOK;
+    }
+  else
+    {
+       *p->result = PyFloat_AsDouble(result);
+    }
+   return OK;
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pylcall1i_irate(PYCALL1 *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall1i_irate: callable must be a string");
+      return NOTOK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+
+  create_private_namespace_if_needed(&p->h);
+
+  result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
+
+  if (result == NULL)
+    {
+      err_printf("pylcall1i_irate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyFloat_Check(result))
+    {
+      err_printf("pylcall1i_irate: callable must return a float\n");
+      return NOTOK;
+    }
+  else
+    {
+       *p->result = PyFloat_AsDouble(result);
+    }
+   return OK;
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pycall1t_krate(PYCALL1T *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pycall1t_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  if (!*p->trigger)
+    {
+      *p->result = p->oresult;
+       return OK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+
+  result = eval_string_in_given_context(command, 0);
+
+  if (result == NULL)
+    {
+      err_printf("pycall1t_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyFloat_Check(result))
+    {
+      err_printf("pycall1_krate: callable must return a float\n");
+      return NOTOK;
+    }
+  else
+    {
+       *p->result = PyFloat_AsDouble(result);
+    }
+   return OK;
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pylcall1t_irate(PYCALL1T *p)
+{
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall1t_irate: callable must be a string");
+      return NOTOK;
+    }
+
+  create_private_namespace_if_needed(&p->h);
+  return OK;
+}
+
+int
+pylcall1t_krate(PYCALL1T *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall1t_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  if (!*p->trigger)
+    {
+      *p->result = p->oresult;
+       return OK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+
+  result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
+
+  if (result == NULL)
+    {
+      err_printf("pylcall1t_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyFloat_Check(result))
+    {
+      err_printf("pylcall1_krate: callable must return a float\n");
+      return NOTOK;
+    }
+  else
+    {
+       *p->result = PyFloat_AsDouble(result);
+    }
+   return OK;
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pycall2_krate(PYCALL2 *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pycall2_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+
+  result = eval_string_in_given_context(command, 0);
+
+  if (result == NULL)
+    {
+      err_printf("pycall2_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 2)
+    {
+      err_printf("pycall2_krate: callable must return 2 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pylcall2_irate(PYCALL2 *p)
+{
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall2_irate: callable must be a string");
+      return NOTOK;
+    }
+
+  create_private_namespace_if_needed(&p->h);
+  return OK;
+}
+
+int
+pylcall2_krate(PYCALL2 *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall2_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+
+  result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
+
+  if (result == NULL)
+    {
+      err_printf("pylcall2_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 2)
+    {
+      err_printf("pylcall2_krate: callable must return 2 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pylcall2i_irate(PYCALL2 *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall2i_irate: callable must be a string");
+      return NOTOK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+
+  create_private_namespace_if_needed(&p->h);
+
+  result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
+
+  if (result == NULL)
+    {
+      err_printf("pylcall2i_irate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 2)
+    {
+      err_printf("pylcall2i_irate: callable must return 2 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pycall2t_krate(PYCALL2T *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pycall2t_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  if (!*p->trigger)
+    {
+  *p->result1 = p->oresult1;
+  *p->result2 = p->oresult2;
+       return OK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+
+  result = eval_string_in_given_context(command, 0);
+
+  if (result == NULL)
+    {
+      err_printf("pycall2t_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 2)
+    {
+      err_printf("pycall2_krate: callable must return 2 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pylcall2t_irate(PYCALL2T *p)
+{
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall2t_irate: callable must be a string");
+      return NOTOK;
+    }
+
+  create_private_namespace_if_needed(&p->h);
+  return OK;
+}
+
+int
+pylcall2t_krate(PYCALL2T *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall2t_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  if (!*p->trigger)
+    {
+  *p->result1 = p->oresult1;
+  *p->result2 = p->oresult2;
+       return OK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+
+  result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
+
+  if (result == NULL)
+    {
+      err_printf("pylcall2t_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 2)
+    {
+      err_printf("pylcall2_krate: callable must return 2 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pycall3_krate(PYCALL3 *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pycall3_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+
+  result = eval_string_in_given_context(command, 0);
+
+  if (result == NULL)
+    {
+      err_printf("pycall3_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 3)
+    {
+      err_printf("pycall3_krate: callable must return 3 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    *p->result3 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 2));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pylcall3_irate(PYCALL3 *p)
+{
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall3_irate: callable must be a string");
+      return NOTOK;
+    }
+
+  create_private_namespace_if_needed(&p->h);
+  return OK;
+}
+
+int
+pylcall3_krate(PYCALL3 *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall3_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+
+  result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
+
+  if (result == NULL)
+    {
+      err_printf("pylcall3_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 3)
+    {
+      err_printf("pylcall3_krate: callable must return 3 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    *p->result3 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 2));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pylcall3i_irate(PYCALL3 *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall3i_irate: callable must be a string");
+      return NOTOK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+
+  create_private_namespace_if_needed(&p->h);
+
+  result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
+
+  if (result == NULL)
+    {
+      err_printf("pylcall3i_irate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 3)
+    {
+      err_printf("pylcall3i_irate: callable must return 3 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    *p->result3 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 2));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pycall3t_krate(PYCALL3T *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pycall3t_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  if (!*p->trigger)
+    {
+  *p->result1 = p->oresult1;
+  *p->result2 = p->oresult2;
+  *p->result3 = p->oresult3;
+       return OK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+
+  result = eval_string_in_given_context(command, 0);
+
+  if (result == NULL)
+    {
+      err_printf("pycall3t_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 3)
+    {
+      err_printf("pycall3_krate: callable must return 3 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    *p->result3 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 2));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pylcall3t_irate(PYCALL3T *p)
+{
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall3t_irate: callable must be a string");
+      return NOTOK;
+    }
+
+  create_private_namespace_if_needed(&p->h);
+  return OK;
+}
+
+int
+pylcall3t_krate(PYCALL3T *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall3t_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  if (!*p->trigger)
+    {
+  *p->result1 = p->oresult1;
+  *p->result2 = p->oresult2;
+  *p->result3 = p->oresult3;
+       return OK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+
+  result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
+
+  if (result == NULL)
+    {
+      err_printf("pylcall3t_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 3)
+    {
+      err_printf("pylcall3_krate: callable must return 3 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    *p->result3 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 2));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pycall4_krate(PYCALL4 *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pycall4_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+
+  result = eval_string_in_given_context(command, 0);
+
+  if (result == NULL)
+    {
+      err_printf("pycall4_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 4)
+    {
+      err_printf("pycall4_krate: callable must return 4 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    *p->result3 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 2));
+    *p->result4 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 3));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pylcall4_irate(PYCALL4 *p)
+{
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall4_irate: callable must be a string");
+      return NOTOK;
+    }
+
+  create_private_namespace_if_needed(&p->h);
+  return OK;
+}
+
+int
+pylcall4_krate(PYCALL4 *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall4_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+
+  result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
+
+  if (result == NULL)
+    {
+      err_printf("pylcall4_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 4)
+    {
+      err_printf("pylcall4_krate: callable must return 4 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    *p->result3 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 2));
+    *p->result4 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 3));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pylcall4i_irate(PYCALL4 *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall4i_irate: callable must be a string");
+      return NOTOK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+
+  create_private_namespace_if_needed(&p->h);
+
+  result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
+
+  if (result == NULL)
+    {
+      err_printf("pylcall4i_irate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 4)
+    {
+      err_printf("pylcall4i_irate: callable must return 4 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    *p->result3 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 2));
+    *p->result4 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 3));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pycall4t_krate(PYCALL4T *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pycall4t_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  if (!*p->trigger)
+    {
+  *p->result1 = p->oresult1;
+  *p->result2 = p->oresult2;
+  *p->result3 = p->oresult3;
+  *p->result4 = p->oresult4;
+       return OK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+
+  result = eval_string_in_given_context(command, 0);
+
+  if (result == NULL)
+    {
+      err_printf("pycall4t_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 4)
+    {
+      err_printf("pycall4_krate: callable must return 4 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    *p->result3 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 2));
+    *p->result4 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 3));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pylcall4t_irate(PYCALL4T *p)
+{
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall4t_irate: callable must be a string");
+      return NOTOK;
+    }
+
+  create_private_namespace_if_needed(&p->h);
+  return OK;
+}
+
+int
+pylcall4t_krate(PYCALL4T *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall4t_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  if (!*p->trigger)
+    {
+  *p->result1 = p->oresult1;
+  *p->result2 = p->oresult2;
+  *p->result3 = p->oresult3;
+  *p->result4 = p->oresult4;
+       return OK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+
+  result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
+
+  if (result == NULL)
+    {
+      err_printf("pylcall4t_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 4)
+    {
+      err_printf("pylcall4_krate: callable must return 4 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    *p->result3 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 2));
+    *p->result4 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 3));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pycall5_krate(PYCALL5 *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pycall5_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+
+  result = eval_string_in_given_context(command, 0);
+
+  if (result == NULL)
+    {
+      err_printf("pycall5_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 5)
+    {
+      err_printf("pycall5_krate: callable must return 5 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    *p->result3 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 2));
+    *p->result4 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 3));
+    *p->result5 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 4));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pylcall5_irate(PYCALL5 *p)
+{
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall5_irate: callable must be a string");
+      return NOTOK;
+    }
+
+  create_private_namespace_if_needed(&p->h);
+  return OK;
+}
+
+int
+pylcall5_krate(PYCALL5 *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall5_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+
+  result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
+
+  if (result == NULL)
+    {
+      err_printf("pylcall5_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 5)
+    {
+      err_printf("pylcall5_krate: callable must return 5 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    *p->result3 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 2));
+    *p->result4 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 3));
+    *p->result5 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 4));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pylcall5i_irate(PYCALL5 *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall5i_irate: callable must be a string");
+      return NOTOK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+
+  create_private_namespace_if_needed(&p->h);
+
+  result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
+
+  if (result == NULL)
+    {
+      err_printf("pylcall5i_irate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 5)
+    {
+      err_printf("pylcall5i_irate: callable must return 5 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    *p->result3 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 2));
+    *p->result4 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 3));
+    *p->result5 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 4));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pycall5t_krate(PYCALL5T *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pycall5t_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  if (!*p->trigger)
+    {
+  *p->result1 = p->oresult1;
+  *p->result2 = p->oresult2;
+  *p->result3 = p->oresult3;
+  *p->result4 = p->oresult4;
+  *p->result5 = p->oresult5;
+       return OK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+
+  result = eval_string_in_given_context(command, 0);
+
+  if (result == NULL)
+    {
+      err_printf("pycall5t_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 5)
+    {
+      err_printf("pycall5_krate: callable must return 5 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    *p->result3 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 2));
+    *p->result4 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 3));
+    *p->result5 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 4));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pylcall5t_irate(PYCALL5T *p)
+{
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall5t_irate: callable must be a string");
+      return NOTOK;
+    }
+
+  create_private_namespace_if_needed(&p->h);
+  return OK;
+}
+
+int
+pylcall5t_krate(PYCALL5T *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall5t_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  if (!*p->trigger)
+    {
+  *p->result1 = p->oresult1;
+  *p->result2 = p->oresult2;
+  *p->result3 = p->oresult3;
+  *p->result4 = p->oresult4;
+  *p->result5 = p->oresult5;
+       return OK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+
+  result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
+
+  if (result == NULL)
+    {
+      err_printf("pylcall5t_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 5)
+    {
+      err_printf("pylcall5_krate: callable must return 5 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    *p->result3 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 2));
+    *p->result4 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 3));
+    *p->result5 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 4));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pycall6_krate(PYCALL6 *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pycall6_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+
+  result = eval_string_in_given_context(command, 0);
+
+  if (result == NULL)
+    {
+      err_printf("pycall6_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 6)
+    {
+      err_printf("pycall6_krate: callable must return 6 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    *p->result3 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 2));
+    *p->result4 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 3));
+    *p->result5 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 4));
+    *p->result6 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 5));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pylcall6_irate(PYCALL6 *p)
+{
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall6_irate: callable must be a string");
+      return NOTOK;
+    }
+
+  create_private_namespace_if_needed(&p->h);
+  return OK;
+}
+
+int
+pylcall6_krate(PYCALL6 *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall6_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+
+  result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
+
+  if (result == NULL)
+    {
+      err_printf("pylcall6_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 6)
+    {
+      err_printf("pylcall6_krate: callable must return 6 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    *p->result3 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 2));
+    *p->result4 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 3));
+    *p->result5 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 4));
+    *p->result6 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 5));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pylcall6i_irate(PYCALL6 *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall6i_irate: callable must be a string");
+      return NOTOK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+
+  create_private_namespace_if_needed(&p->h);
+
+  result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
+
+  if (result == NULL)
+    {
+      err_printf("pylcall6i_irate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 6)
+    {
+      err_printf("pylcall6i_irate: callable must return 6 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    *p->result3 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 2));
+    *p->result4 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 3));
+    *p->result5 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 4));
+    *p->result6 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 5));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pycall6t_krate(PYCALL6T *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pycall6t_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  if (!*p->trigger)
+    {
+  *p->result1 = p->oresult1;
+  *p->result2 = p->oresult2;
+  *p->result3 = p->oresult3;
+  *p->result4 = p->oresult4;
+  *p->result5 = p->oresult5;
+  *p->result6 = p->oresult6;
+       return OK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+
+  result = eval_string_in_given_context(command, 0);
+
+  if (result == NULL)
+    {
+      err_printf("pycall6t_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 6)
+    {
+      err_printf("pycall6_krate: callable must return 6 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    *p->result3 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 2));
+    *p->result4 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 3));
+    *p->result5 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 4));
+    *p->result6 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 5));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pylcall6t_irate(PYCALL6T *p)
+{
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall6t_irate: callable must be a string");
+      return NOTOK;
+    }
+
+  create_private_namespace_if_needed(&p->h);
+  return OK;
+}
+
+int
+pylcall6t_krate(PYCALL6T *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall6t_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  if (!*p->trigger)
+    {
+  *p->result1 = p->oresult1;
+  *p->result2 = p->oresult2;
+  *p->result3 = p->oresult3;
+  *p->result4 = p->oresult4;
+  *p->result5 = p->oresult5;
+  *p->result6 = p->oresult6;
+       return OK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+
+  result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
+
+  if (result == NULL)
+    {
+      err_printf("pylcall6t_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 6)
+    {
+      err_printf("pylcall6_krate: callable must return 6 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    *p->result3 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 2));
+    *p->result4 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 3));
+    *p->result5 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 4));
+    *p->result6 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 5));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pycall7_krate(PYCALL7 *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pycall7_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+
+  result = eval_string_in_given_context(command, 0);
+
+  if (result == NULL)
+    {
+      err_printf("pycall7_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 7)
+    {
+      err_printf("pycall7_krate: callable must return 7 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    *p->result3 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 2));
+    *p->result4 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 3));
+    *p->result5 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 4));
+    *p->result6 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 5));
+    *p->result7 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 6));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pylcall7_irate(PYCALL7 *p)
+{
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall7_irate: callable must be a string");
+      return NOTOK;
+    }
+
+  create_private_namespace_if_needed(&p->h);
+  return OK;
+}
+
+int
+pylcall7_krate(PYCALL7 *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall7_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+
+  result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
+
+  if (result == NULL)
+    {
+      err_printf("pylcall7_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 7)
+    {
+      err_printf("pylcall7_krate: callable must return 7 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    *p->result3 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 2));
+    *p->result4 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 3));
+    *p->result5 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 4));
+    *p->result6 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 5));
+    *p->result7 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 6));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pylcall7i_irate(PYCALL7 *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall7i_irate: callable must be a string");
+      return NOTOK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+
+  create_private_namespace_if_needed(&p->h);
+
+  result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
+
+  if (result == NULL)
+    {
+      err_printf("pylcall7i_irate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 7)
+    {
+      err_printf("pylcall7i_irate: callable must return 7 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    *p->result3 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 2));
+    *p->result4 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 3));
+    *p->result5 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 4));
+    *p->result6 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 5));
+    *p->result7 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 6));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pycall7t_krate(PYCALL7T *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pycall7t_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  if (!*p->trigger)
+    {
+  *p->result1 = p->oresult1;
+  *p->result2 = p->oresult2;
+  *p->result3 = p->oresult3;
+  *p->result4 = p->oresult4;
+  *p->result5 = p->oresult5;
+  *p->result6 = p->oresult6;
+  *p->result7 = p->oresult7;
+       return OK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+
+  result = eval_string_in_given_context(command, 0);
+
+  if (result == NULL)
+    {
+      err_printf("pycall7t_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 7)
+    {
+      err_printf("pycall7_krate: callable must return 7 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    *p->result3 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 2));
+    *p->result4 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 3));
+    *p->result5 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 4));
+    *p->result6 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 5));
+    *p->result7 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 6));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pylcall7t_irate(PYCALL7T *p)
+{
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall7t_irate: callable must be a string");
+      return NOTOK;
+    }
+
+  create_private_namespace_if_needed(&p->h);
+  return OK;
+}
+
+int
+pylcall7t_krate(PYCALL7T *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall7t_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  if (!*p->trigger)
+    {
+  *p->result1 = p->oresult1;
+  *p->result2 = p->oresult2;
+  *p->result3 = p->oresult3;
+  *p->result4 = p->oresult4;
+  *p->result5 = p->oresult5;
+  *p->result6 = p->oresult6;
+  *p->result7 = p->oresult7;
+       return OK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+
+  result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
+
+  if (result == NULL)
+    {
+      err_printf("pylcall7t_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 7)
+    {
+      err_printf("pylcall7_krate: callable must return 7 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    *p->result3 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 2));
+    *p->result4 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 3));
+    *p->result5 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 4));
+    *p->result6 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 5));
+    *p->result7 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 6));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pycall8_krate(PYCALL8 *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pycall8_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+
+  result = eval_string_in_given_context(command, 0);
+
+  if (result == NULL)
+    {
+      err_printf("pycall8_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 8)
+    {
+      err_printf("pycall8_krate: callable must return 8 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    *p->result3 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 2));
+    *p->result4 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 3));
+    *p->result5 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 4));
+    *p->result6 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 5));
+    *p->result7 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 6));
+    *p->result8 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 7));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pylcall8_irate(PYCALL8 *p)
+{
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall8_irate: callable must be a string");
+      return NOTOK;
+    }
+
+  create_private_namespace_if_needed(&p->h);
+  return OK;
+}
+
+int
+pylcall8_krate(PYCALL8 *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall8_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+
+  result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
+
+  if (result == NULL)
+    {
+      err_printf("pylcall8_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 8)
+    {
+      err_printf("pylcall8_krate: callable must return 8 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    *p->result3 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 2));
+    *p->result4 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 3));
+    *p->result5 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 4));
+    *p->result6 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 5));
+    *p->result7 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 6));
+    *p->result8 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 7));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pylcall8i_irate(PYCALL8 *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall8i_irate: callable must be a string");
+      return NOTOK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+
+  create_private_namespace_if_needed(&p->h);
+
+  result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
+
+  if (result == NULL)
+    {
+      err_printf("pylcall8i_irate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 8)
+    {
+      err_printf("pylcall8i_irate: callable must return 8 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    *p->result3 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 2));
+    *p->result4 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 3));
+    *p->result5 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 4));
+    *p->result6 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 5));
+    *p->result7 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 6));
+    *p->result8 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 7));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pycall8t_krate(PYCALL8T *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pycall8t_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  if (!*p->trigger)
+    {
+  *p->result1 = p->oresult1;
+  *p->result2 = p->oresult2;
+  *p->result3 = p->oresult3;
+  *p->result4 = p->oresult4;
+  *p->result5 = p->oresult5;
+  *p->result6 = p->oresult6;
+  *p->result7 = p->oresult7;
+  *p->result8 = p->oresult8;
+       return OK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+
+  result = eval_string_in_given_context(command, 0);
+
+  if (result == NULL)
+    {
+      err_printf("pycall8t_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 8)
+    {
+      err_printf("pycall8_krate: callable must return 8 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    *p->result3 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 2));
+    *p->result4 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 3));
+    *p->result5 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 4));
+    *p->result6 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 5));
+    *p->result7 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 6));
+    *p->result8 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 7));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
+int
+pylcall8t_irate(PYCALL8T *p)
+{
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall8t_irate: callable must be a string");
+      return NOTOK;
+    }
+
+  create_private_namespace_if_needed(&p->h);
+  return OK;
+}
+
+int
+pylcall8t_krate(PYCALL8T *p)
+{
+  char command[1024];
+  PyObject *result;
+
+  if (*p->function != SSTRCOD)
+    {
+      err_printf("pylcall8t_krate: callable must be a string");
+      return NOTOK;
+    }
+
+  if (!*p->trigger)
+    {
+  *p->result1 = p->oresult1;
+  *p->result2 = p->oresult2;
+  *p->result3 = p->oresult3;
+  *p->result4 = p->oresult4;
+  *p->result5 = p->oresult5;
+  *p->result6 = p->oresult6;
+  *p->result7 = p->oresult7;
+  *p->result8 = p->oresult8;
+       return OK;
+    }
+
+  format_call_statement(command, unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+
+  result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
+
+  if (result == NULL)
+    {
+      err_printf("pylcall8t_krate: python exception\n");
+      PyErr_Print();
+      return NOTOK;
+    }
+
+  if (!PyTuple_Check(result) || PyTuple_Size(result) != 8)
+    {
+      err_printf("pylcall8_krate: callable must return 8 values\n");
+      return NOTOK;
+    }
+  else
+    {
+    *p->result1 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 0));
+    *p->result2 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 1));
+    *p->result3 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 2));
+    *p->result4 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 3));
+    *p->result5 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 4));
+    *p->result6 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 5));
+    *p->result7 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 6));
+    *p->result8 = PyFloat_AsDouble(PyTuple_GET_ITEM(result, 7));
+    }
+
+  Py_DECREF(result);
+  return OK;
+}
+
