@@ -302,7 +302,7 @@ OENTRY opcodlst_1[] = {
 { "oscil3", 0xfffe                                                      },
 { "oscili", 0xfffe                                                      },
 { "peak", 0xfffd                                                        },
-{ "rtclock", 0xfffd                                                     },
+{ "rtclock", 0xffff                                                     },
 { "tablew",  0xfffe                                                     },
 { "tablewkt",  0xfffe                                                   },
 { "ihold",  S(LINK),    1,      "",     "",     ihold                   },
