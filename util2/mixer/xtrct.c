@@ -281,7 +281,7 @@ main(int argc, char **argv)
     else if (numsamps < 0) numsamps = p->getframes - sample;
 
     if (sample<0) sample = 0;
-    err_printf("Extracting from sample %ld for %ld samples (%.5f secs)\n",
+    err_printf("Extracting from sample %d for %d samples (%.5f secs)\n",
                sample, numsamps, (float)numsamps/p->sr);
 
     outputs = p->nchanls;
