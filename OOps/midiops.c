@@ -28,6 +28,9 @@
 
 #define dv127   (FL(1.0)/FL(127.0))
 
+extern  void    m_chinsno(ENVIRON *csound, short chan, short insno);
+extern  MCHNBLK *m_getchnl(ENVIRON *csound, short chan);
+
 /* default MIDI program to instrument assignment - IV May 2002 */
 
 int pgm2ins[128] = {   1,   2,   3,   4,   5,   6,   7,   8,   9,  10,
@@ -72,7 +75,7 @@ int massign(ENVIRON *csound, MASSIGN *p)
 
     if ((instno = strarg2insno(p->insno, p->STRARG)) < 1) return NOTOK;
 
-    m_chinsno(chnl, (short) instno);
+    m_chinsno(csound, chnl, (short) instno);
                                 /* Changes from gab */
     if ((chn = M_CHNBP[chnl]) == NULL)
       M_CHNBP[chnl] = chn = (MCHNBLK *) mcalloc(csound, (long)sizeof(MCHNBLK));
@@ -94,7 +97,7 @@ int ctrlinit(ENVIRON *csound, CTLINIT *p)
         MYFLT **argp = p->ctrls;
         short ctlno, nctls = nargs >> 1;
         if ((chn = M_CHNBP[chnl]) == NULL)
-            chn = m_getchnl(chnl);
+            chn = m_getchnl(csound, chnl);
         do {
             ctlno = (short) **argp++;
             if (ctlno < 0 || ctlno > 127) {

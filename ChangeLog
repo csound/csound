@@ -1,4 +1,29 @@
-2005-02-09  Michael Gogins <gogins@pipeline.com>
+2005-02-20	Istvan Varga	<istvan@csounds.com>
+	* Top/argdecode.c:
+	* Top/main.c:
+	  allow orc/sco names in CSD (may be broken), but not in .csoundrc
+	* InOut/mididevice.c:
+	* InOut/midirecv.c:
+	  moved files here from OOps
+	* InOut/fmidi.c:
+	  removed file, all platform independent MIDI code is in midirecv.c now
+	* InOut/mididevice.c:
+	* InOut/midirecv.c:
+	* InOut/pmidi.c:
+	  started to clean up MIDI code; still a long way to go
+	  file input and PortMIDI work, but mididevice.c is currently a stub
+	* Engine/oload.c:
+	  reset rtaudio function pointers in oloadRESET()
+	* H/csoundCore.h:
+	  removed PortMIDI specific function prototypes
+	* H/midiops.h:
+	  define MBUFSIZ here
+	* OOps/midiops.c:
+	  added function prototypes (should be in midiops.h too ?)
+	* Top/csound.c:
+	  removed PortMIDI specific function definitions
+
+2005-02-20  Michael Gogins <gogins@pipeline.com>
 
 	* Added '--help' to short usage list.
 	* Permit .orc and .sco filenames in .csd files.

@@ -25,6 +25,8 @@
 #define MIDIOPS_H
 /*                                                 MIDIOPS.H   */
 
+#define MBUFSIZ       1024
+
 #define NOTEOFF_TYPE  0x80
 #define NOTEON_TYPE   0x90
 #define POLYAFT_TYPE  0xA0

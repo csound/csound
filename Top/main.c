@@ -439,8 +439,8 @@ int csoundCompile(void *csound, int argc, char **argv)
               strcmp(orchname+strlen(orchname)-4, ".CSD")==0) &&
              (scorename==NULL || strlen(scorename)==0)) {
       int   read_unified_file(void*, char **, char **);
-      /* do not allow orc/sco/csd name in CSD file */
-      strcpy(orcNameMode, "fail");
+      /* FIXME: allow orc/sco/csd name in CSD file: does this work ? */
+      strcpy(orcNameMode, "normal");
       err_printf("UnifiedCSD:  %s\n", orchname);
       if (!read_unified_file(csound, &orchname, &scorename)) {
         err_printf(Str("Decode failed....stopping\n"));

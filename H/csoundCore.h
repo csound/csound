@@ -584,15 +584,6 @@ extern "C" {
     void (*ScoreEvent)(void *csound, char type, MYFLT *pFields, long numFields);
     void (*SetExternalMidiDeviceOpenCallback)(void *csound,
                    void (*midiDeviceOpenCallback)(void *hostData));
-#ifdef PORTMIDI
-    void (*SetExternalMidiReadCallback)(void *csound,
-                                        int (*readMidiCallback)(void *hostData,
-                                                                void *midiData,
-                                                                int size));
-    void (*SetExternalMidiWriteCallback)(void *csound,
-                                         int (*writeMidiCallback)(void *hostData,
-                                                                  void *midiData));
-#else
     void (*SetExternalMidiReadCallback)(void *csound,
                    int (*readMidiCallback)(void *hostData,
                    unsigned char *midiData,
@@ -600,8 +591,7 @@ extern "C" {
     void (*SetExternalMidiWriteCallback)(void *csound,
                    int (*writeMidiCallback)(void *hostData,
                    unsigned char *midiData));
-#endif
-    void (*SetExternalMidiDeviceoseCallback)(void *csound,
+    void (*SetExternalMidiDeviceCloseCallback)(void *csound,
                    void (*midiDeviceCloseCallback)(void *hostData));
     int (*IsExternalMidiEnabled)(void *csound);
     void (*SetExternalMidiEnabled)(void *csound, int enabled);
