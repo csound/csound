@@ -1,0 +1,110 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{vco2ift}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{vco2ift}
+vco2ift --  Returns a table number at i-time for a given oscillator frequency and wavform. \subsection*{Description}
+
+
+ \emph{vco2ift}
+ is the same as \emph{vco2ft}
+, but works at i-time. It is suitable for use with opcodes that expect an i-rate table number (for example, \emph{oscili}
+). 
+\subsection*{Syntax}
+
+
+ ifn \textbf{vco2ift}
+ icps, iwave [, inyx]
+\subsection*{Initialization}
+
+
+ \emph{ifn}
+ -- the ftable number. 
+
+
+ \emph{icps}
+ -- frequency in Hz. Zero and negative values are allowed. However, if the absolute value exceeds \emph{sr}
+/2 (or sr*inyx), the selected table will contain silence. 
+
+
+ \emph{iwave}
+ -- the waveform for which table number is to be selected. Allowed values are: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ 0: sawtooth
+
+\item 
+
+ 1: 4 * x * (1 - x) (integrated sawtooth)
+
+\item 
+
+ 2: pulse (not normalized)
+
+\item 
+
+ 3: square wave
+
+\item 
+
+ 4: triangle
+
+
+\end{itemize}
+
+
+  Additionally, negative \emph{iwave}
+ values select user defined waveforms (see also \emph{vco2init}
+). 
+
+
+ \emph{inyx}
+ (optional, default=0.5) -- bandwidth of the generated waveform, as percentage (0 to 1) of the sample rate. The expected range is 0 to 0.5 (i.e. up to \emph{sr}
+/2), other values are limited to the allowed range. 
+
+
+  Setting inyx to 0.25 (sr/4), or 0.3333 (sr/3) can produce a ``fatter'' sound in some cases, although it is more likely to reduce quality. 
+\subsection*{See Also}
+
+
+ \emph{vco2ft}
+, \emph{vco2init}
+, and \emph{vco2}
+. 
+\subsection*{Credits}
+
+
+ Author: Istvan Varga
+
+
+ New in version 4.22
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+vco2ft &Up &vco2init
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

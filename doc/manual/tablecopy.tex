@@ -1,0 +1,92 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{tablecopy}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{tablecopy}
+tablecopy --  Simple, fast table copy opcode. \subsection*{Description}
+
+
+  Simple, fast table copy opcode. 
+\subsection*{Syntax}
+
+
+ \textbf{tablecopy}
+ kdft, ksft
+\subsection*{Performance}
+
+
+ \emph{kdft}
+ -- Destination function table. 
+
+
+ \emph{ksft}
+ -- Number of source function table. 
+
+
+ \emph{tablecopy}
+ -- Simple, fast table copy opcode. Takes the table length from the destination table, and reads from the start of the source table. For speed reasons, does not check the source length - just copies regardless - in ``wrap'' mode. This may read through the source table several times. A source table with length 1 will cause all values in the destination table to be written to its value. 
+
+
+ \emph{tablecopy}
+ cannot read or write the guardpoint. To read it use \emph{table}
+, with \emph{ndx}
+ = the table length. Likewise use table write to write it. 
+
+
+  To write the guardpoint to the value in location 0, use \emph{tablegpw}
+. 
+
+
+  This is primarily to change function tables quickly in a real-time situation. 
+\subsection*{See Also}
+
+
+ \emph{tablegpw}
+, \emph{tablemix}
+, \emph{tableicopy}
+, \emph{tableigpw}
+, \emph{tableimix}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Robin Whittle &Australia &May 1997
+
+\end{tabular}
+
+
+
+ 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+table3 &Up &tablegpw
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,115 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{schedkwhennamed}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{schedkwhennamed}
+schedkwhennamed --  Similar to schedkwhen but uses a named instrument at init-time. \subsection*{Description}
+
+
+  Similar to \emph{schedkwhen}
+ but uses a named instrument at init-time. 
+\subsection*{Syntax}
+
+
+ \textbf{schedkwhennamed}
+ ktrigger, kmintim, kmaxnum, ``name'', kwhen, kdur [, ip4] [, ip5] [...]
+\subsection*{Initialization}
+
+
+ \emph{ip4, ip5, ...}
+ -- Equivalent to p4, p5, etc., in a score \emph{i statement}
+
+\subsection*{Performance}
+
+
+ \emph{ktrigger}
+ -- triggers a new score event. If \emph{ktrigger}
+ is 0, no new event is triggered. 
+
+
+ \emph{kmintim}
+ -- minimum time between generated events, in seconds. If \emph{kmintim}
+ is less than or equal to 0, no time limit exists. 
+
+
+ \emph{kmaxnum}
+ -- maximum number of simultaneous instances of named instrument allowed. If the number of extant instances of the named instrument is greater than or equal to \emph{kmaxnum}
+, no new event is generated. If \emph{kmaxnum}
+ is less than or equal to 0, it is not used to limit event generation. 
+
+
+ \emph{``name''}
+ -- the named instrument's name. 
+
+
+ \emph{kwhen}
+ -- start time of the new event. Equivalent to p2 in a score \emph{i statement}
+. Measured from the time of the triggering event. \emph{kwhen}
+ must be greater than or equal to 0. If \emph{kwhen}
+ greater than 0, the instrument will not be initialized until the actual time when it should start performing. 
+
+
+ \emph{kdur}
+ -- duration of event. Equivalent to p3 in a score \emph{i statement}
+. If \emph{kdur}
+ is 0, the instrument will only do an initialization pass, with no performance. If \emph{kdur}
+ is negative, a held note is initiated. (See \emph{ihold}
+ and \emph{i statement}
+.) 
+
+
+ \emph{Note}
+: While waiting for events to be triggered by \emph{schedkwhennamed}
+, the performance must be kept going, or Csound may quit if no score events are expected. To guarantee continued performance, an \emph{f0 statement}
+ may be used in the score. 
+\subsection*{See Also}
+
+
+ \emph{schedkwhen}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Author: Rasmus Ekman &EMS, Stockholm, Sweden
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 4.23
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+schedkwhen &Up &schedule
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

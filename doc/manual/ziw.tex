@@ -1,0 +1,137 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{ziw}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{ziw}
+ziw --  Writes to a zk variable at i-rate without mixing. \subsection*{Description}
+
+
+  Writes to a zk variable at i-rate without mixing. 
+\subsection*{Syntax}
+
+
+ \textbf{ziw}
+ isig, indx
+\subsection*{Initialization}
+
+
+ \emph{isig}
+ -- initializes the value of the zk location. 
+
+
+ \emph{indx}
+ -- points to the zk or za location to which to write. 
+\subsection*{Performance}
+
+
+ \emph{ziw}
+ writes \emph{isig}
+ into the zk variable specified by \emph{indx}
+. 
+
+
+  These opcodes are fast, and always check that the index is within the range of zk or za space. If not, an error is reported, 0 is returned, and no writing takes place. 
+\subsection*{Examples}
+
+
+  Here is an example of the ziw opcode. It uses the files \emph{ziw.orc}
+ and \emph{ziw.sco}
+. 
+
+
+ \textbf{Example 1. Example of the ziw opcode.}
+
+\begin{lstlisting}
+/* ziw.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Initialize the ZAK space.
+; Create 1 a-rate variable and 1 k-rate variable.
+zakinit 1, 1
+
+; Instrument #1 -- a simple instrument.
+instr 1
+  ; Set zk variable #1 to 64.182.
+  ziw 64.182, 1
+endin
+
+; Instrument #2 -- prints out zk variable #1.
+instr 2
+  ; Read zk variable #1 at i-rate.
+  i1 zir 1
+
+  ; Print out the value of zk variable #1.
+  print i1
+endin
+/* ziw.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* ziw.sco */
+; Play Instrument #1 for one second.
+i 1 0 1
+; Play Instrument #2 for one second.
+i 2 0 1
+e
+/* ziw.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{zaw}
+, \emph{zawm}
+, \emph{ziwm}
+, \emph{zkw}
+, \emph{zkwm}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Robin Whittle &Australia &May 1997
+
+\end{tabular}
+
+
+
+ 
+
+
+ Example written by Kevin Conder.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+zir &Up &ziwm
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,131 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{xyin}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{xyin}
+xyin --  Sense the cursor position in an output window \subsection*{Description}
+
+
+  Sense the cursor position in an output window. When \emph{xyin}
+ is called the position of the mouse within the output window is used to reply to the request. This simple mechanism does mean that only one \emph{xyin}
+ can be used accurately at once. The position of the mouse is reported in the output window. 
+\subsection*{Syntax}
+
+
+ kx, ky \textbf{xyin}
+ iprd, ixmin, ixmax, iymin, iymax [, ixinit] [, iyinit]
+\subsection*{Initialization}
+
+
+ \emph{iprd}
+ -- period of cursor sensing (in seconds). Typically .1 seconds. 
+
+
+ \emph{xmin, xmax, ymin, ymax}
+ -- edge values for the x-y coordinates of a cursor in the input window. 
+
+
+ \emph{ixinit, iyinit}
+ (optional) -- initial x-y coordinates reported; the default values are 0,0. If these values are not within the given min-max range, they will be coerced into that range. 
+\subsection*{Performance}
+
+
+ \emph{xyin}
+ samples the cursor x-y position in an input window every \emph{iprd}
+ seconds. Output values are repeated (not interpolated) at the k-rate, and remain fixed until a new change is registered in the window. There may be any number of input windows. This unit is useful for real-time control, but continuous motion should be avoided if \emph{iprd}
+ is unusually small. 
+\subsection*{Examples}
+
+
+  Here is an example of the xyin opcode. It uses the files \emph{xyin.orc}
+ and \emph{xyin.sco}
+. 
+
+
+ \textbf{Example 1. Example of the xyin opcode.}
+
+\begin{lstlisting}
+/* xyin.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  ; Print and capture values every 0.1 seconds.
+  iprd = 0.1
+  ; The x values are from 1 to 30.
+  ixmin = 1
+  ixmax = 30
+  ; The y values are from 1 to 30.
+  iymin = 1
+  iymax = 30
+  ; The initial values for X and Y are both 15.
+  ixinit = 15
+  iyinit = 15
+
+  ; Get the values kx and ky using the xyin opcode.
+  kx, ky xyin iprd, ixmin, ixmax, iymin, iymax, ixinit, iyinit
+
+  ; Print out the values of kx and ky.
+  printks "kx=%f, ky=%f\\n", iprd, kx, ky
+
+  ; Play an oscillator, use the x values for amplitude and
+  ; the y values for frequency.
+  kamp = kx * 1000
+  kcps = ky * 220
+  a1 oscil kamp, kcps, 1
+
+  out a1
+endin
+/* xyin.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* xyin.sco */
+; Table #1, a sine wave.
+f 1 0 16384 10 1
+
+; Play Instrument #1 for 30 seconds.
+i 1 0 30
+e
+/* xyin.sco */
+        
+\end{lstlisting}
+ As the values of kx and ky change, they will be printed out like this: \begin{lstlisting}
+kx=8.612036, ky=22.677933
+kx=10.765685, ky=15.644135
+      
+\end{lstlisting}
+\subsection*{Credits}
+
+
+ Example written by Kevin Conder.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+xtratim &Up &zacl
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

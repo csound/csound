@@ -1,0 +1,92 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{turnoff}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{turnoff}
+turnoff --  Enables an instrument to turn itself off. \subsection*{Description}
+
+
+  Enables an instrument to turn itself off. 
+\subsection*{Syntax}
+
+
+ \textbf{turnoff}
+
+\subsection*{Performance}
+
+
+ \emph{turnoff}
+ -- this p-time statement enables an instrument to turn itself off. Whether of finite duration or ``held'', the note currently being performed by this instrument is immediately removed from the active note list. No other notes are affected. 
+\subsection*{Examples}
+
+
+  The following example uses the turnoff opcode. It will cause a note to terminate when a control signal passes a certain threshold (here the Nyquist frequency). It uses the files \emph{turnoff.orc}
+ and \emph{turnoff.sco}
+. 
+
+
+ \textbf{Example 1. Example of the turnoff opcode.}
+
+\begin{lstlisting}
+/* turnoff.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  k1 expon 440, p3/10,880     ; begin gliss and continue
+  if k1 < sr/2  kgoto contin  ; until Nyquist detected
+    turnoff  ; then quit
+
+contin:
+  a1 oscil 10000, k1, 1
+  out a1
+endin
+/* turnoff.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* turnoff.sco */
+; Table #1: an ordinary sine wave.
+f 1 0 32768 10 1
+
+; Play Instrument #1 for 4 seconds.
+i 1 0 4
+e
+/* turnoff.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{ihold}
+
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+trirand &Up &turnon
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

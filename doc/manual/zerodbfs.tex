@@ -1,0 +1,174 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{0dbfs}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{0dbfs}
+0dbfs --  Sets the value of 0 decibels using full scale amplitude. \subsection*{Description}
+
+
+  Sets the value of 0 decibels using full scale amplitude. 
+\subsection*{Syntax}
+
+
+ \textbf{0dbfs}
+ = iarg
+\subsection*{Initialization}
+
+
+ \emph{iarg}
+ -- the value of 0 decibels using full scale amplitude. 
+\subsection*{Performance}
+
+
+  The default is 32767, so all existing orcs \emph{should}
+ work. 
+
+
+  These calls should all work: 
+
+
+ 
+\begin{lstlisting}
+ipeak = 0dbfs
+        
+\end{lstlisting}
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+asig oscil 0dbfs,freq,1
+out  asig * 0.3 * 0dbfs
+        
+\end{lstlisting}
+
+
+ 
+ and so on. 
+
+  As for documentation: the usage should be obvious - the main thing is for people to start to code 0dbfs-relatively (and use the \emph{ampdb()}
+ opcodes a lot more!), rather than use explicit sample values. 
+
+
+  Floats written to a file, when \emph{0dbfs = 1}
+, will in effect go through no range translation at all. So the nunbers in the file are exactly what the orc says they are. 
+
+
+ 
+
+
+\begin{tabular}{cc}
+\textbf{BIG NB}
+ \\
+  &
+
+  All the main sample formats are supported, but I haven't got around to dealing with the char formats. Probably it's straight-forward... 
+
+
+  I have tried to cover the main utils - adsyn,lpanal etc. But there are bound to be things missing, sorry. 
+
+
+  Some of the parsing code is a bit grungy because I have a variable with a leading digit! 
+
+
+\end{tabular}
+
+\subsection*{Examples}
+
+
+  Here is an example of the 0dbfs opcode. It uses the files \emph{0dbfs.orc}
+ and \emph{0dbfs.sco}
+. 
+
+
+ \textbf{Example 1. Example of the 0dbfs opcode.}
+
+\begin{lstlisting}
+/* 0dbfs.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Set the 0dbfs to the 16-bit maximum.
+0dbfs = 32767
+
+; Instrument #1.
+instr 1
+  ; Linearly increase the amplitude value "kamp" from 
+  ; 0 to 1 over the duration defined by p3.
+  kamp line 0, p3, 1
+
+  ; Generate a basic tone using our amplitude value.
+  a1 oscil kamp, 440, 1
+
+  ; Multiply the basic tone (with its amplitude between 
+  ; 0 and 1) by the full-scale 0dbfs value.
+  out a1 * 0dbfs
+endin
+/* 0dbfs.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* 0dbfs.sco */
+; Table #1, a sine wave.
+f 1 0 16384 10 1
+
+; Play Instrument #1 for three seconds.
+i 1 0 3
+e
+/* 0dbfs.sco */
+        
+\end{lstlisting}
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Author: Richard Dobson &May 2002
+
+\end{tabular}
+
+
+
+ 
+
+
+ Example written by Kevin Conder.
+
+
+ New in version 4.20
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+|| &Up &a
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,140 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{vbaplsinit}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{vbaplsinit}
+vbaplsinit --  Configures VBAP output according to loudspeaker parameters. \subsection*{Description}
+
+
+  Configures VBAP output according to loudspeaker parameters. 
+\subsection*{Syntax}
+
+
+ \textbf{vbaplsinit}
+ idim, ilsnum [, idir1] [, idir2] [...] [, idir32]
+\subsection*{Initialization}
+
+
+ \emph{idim}
+ -- dimensionality of loudspeaker array. Either 2 or 3. 
+
+
+ \emph{ilsnum}
+ -- number of loudspeakers. In two dimensions, the number can vary from 2 to 16. In three dimensions, the number can vary from 3 and 16. 
+
+
+ \emph{idir1, idir2, ..., idir32}
+ -- directions of loudspeakers. Number of directions must be less than or equal to 16. In two-dimensional loudspeaker positioning, \emph{idir}
+n is the azimuth angle respective to \emph{n}
+th channel. In three-dimensional loudspeaker positioning, fields are the azimuth and elevation angles of each loudspeaker consequently (\emph{azi1}
+, \emph{ele1}
+, \emph{azi2}
+, \emph{ele2}
+, etc.). 
+\subsection*{Performance}
+
+
+  VBAP distributes the signal using loudspeaker data configured with \emph{vbaplsinit}
+. The signal is applied to, at most, two loudspeakers in 2-D loudspeaker configurations, and three loudspeakers in 3-D loudspeaker configurations. If the virtual source is panned outside the region spanned by loudspeakers, the nearest loudspeakers are used in panning. 
+\subsection*{Examples}
+
+
+ 
+
+
+ \textbf{Example 1. 2-D panning example with stationary virtual sources}
+
+\begin{lstlisting}
+  \emph{sr}
+      =          4100
+  \emph{kr}
+      =           441
+  \emph{ksmps}
+   =           100
+  \emph{nchnls}
+  =             4
+  \emph{vbaplsinit}
+         2, 6,  0, 45, 90, 135, 200, 245, 290, 315 
+
+          \emph{instr}
+ 1	           
+  asig    \emph{oscil}
+      20000, 440, 1                    
+  a1,a2,a3,a4,a5,a6,a7,a8   \emph{vbap8}
+  asig, p4, 0, 20 ;p4 = azimuth
+	
+  ;render twice with alternate \emph{outq}
+ statements
+  ;  to obtain two 4 channel .wav files:
+
+          \emph{outq}
+       a1,a2,a3,a4
+  ;       \emph{outq}
+       a5,a6,a7,a8
+          \emph{endin}
+
+        
+\end{lstlisting}
+\subsection*{Reference}
+
+
+  Ville Pulkki: ``Virtual Sound Source Positioning Using Vector Base Amplitude Panning'' \emph{Journal of the Audio Engineering Society}
+, 1997 June, Vol. 45/6, p. 456. 
+\subsection*{See Also}
+
+
+ \emph{vbap16}
+, \emph{vbap16move}
+, \emph{vbap4}
+, \emph{vbap4move}
+, \emph{vbap8}
+, \emph{vbap8move}
+, \emph{vbapz}
+, \emph{vbapzmove}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cccccc}
+Author: Ville Pulkki &Sibelius Academy Computer Music Studio &Laboratory of Acoustics and Audio Signal Processing &Helsinki University of Technology &Helsinki, Finland &May 2000
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound Version 4.07
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+vbap8move &Up &vbapz
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

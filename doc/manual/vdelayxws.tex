@@ -1,0 +1,130 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{vdelayxws}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{vdelayxws}
+vdelayxws --  Variable delay opcodes with high quality interpolation. \subsection*{Description}
+
+
+  Variable delay opcodes with high quality interpolation. 
+\subsection*{Syntax}
+
+
+ aout1, aout2 \textbf{vdelayxws}
+ ain1, ain2, adl, imd, iws [, ist]
+\subsection*{Initialization}
+
+
+ \emph{ain1, ain2}
+ -- input audio signals 
+
+
+ \emph{aout1, aout2}
+ -- output audio signals 
+
+
+ \emph{adl}
+ -- delay time in seconds 
+
+
+ \emph{imd}
+ -- max. delay time (seconds) 
+
+
+ \emph{iws}
+ -- interpolation window size (see below) 
+
+
+ \emph{ist}
+ -- skip initialization if not zero 
+\subsection*{Performance}
+
+
+  These opcodes use high quality (and slow) interpolation, that is much more accurate than the currently available linear and cubic interpolation. The \emph{iws}
+ parameter sets the number of input samples used for calculating one output sample (allowed values are any integer multiply of 4 in the range 4 - 1024); higher values mean better quality and slower speed. 
+
+
+  The vdelayxw opcodes change the position of the write tap in the delay line (unlike all other delay ugens that move the read tap), and are most useful for implementing Doppler effects where the position of the listener is fixed, and the sound source is moving. 
+
+
+  The multichannel opcodes (eg. \emph{vdelayx}
+) allow delaying 2 or 4 variables at once (stereo or quad signals); this is much more efficient than using separate opcodes for each channel. 
+
+
+ 
+
+
+\begin{tabular}{cc}
+\textbf{Notes}
+ \\
+  &
+
+ 
+
+
+ 
+\begin{itemize}
+\item 
+
+ Delay time is measured in seconds (unlike in vdelay and vdelay3), and must be a-rate.
+
+\item 
+
+ The minimum allowed delay is iws/2 samples.
+
+\item 
+
+ Using the same variables as input and output is allowed in these opcodes.
+
+\item 
+
+ In vdelayxw*, changing the delay time has some effects on output volume: 
+
+
+ a = 1 / (1 + dt)
+ where a is the output gain, and dt is the change of delay time per seconds.
+\item 
+
+ These opcodes are best used in the double-precision version of Csound.
+
+
+\end{itemize}
+
+
+\end{tabular}
+
+\subsection*{See Also}
+
+
+ \emph{vdelayx}
+, \emph{vdelayxq}
+, \emph{vdelayxs}
+, \emph{vdelayxw}
+, \emph{vdelayxwq}
+
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+vdelayxwq &Up &veloc
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

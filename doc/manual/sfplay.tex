@@ -1,0 +1,143 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{sfplay}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{sfplay}
+sfplay --  Plays a SoundFont2 (SF2) sample preset, generating a stereo sound. \subsection*{Description}
+
+
+  Plays a SoundFont2 (SF2) sample preset, generating a stereo sound. These opcodes allow management the sample-structure of SF2 files. In order to understand the usage of these opcodes, the user must have some knowledge of the SF2 format, so a brief description of this format can be found in the \emph{SoundFont2 File Format Appendix}
+. 
+\subsection*{Syntax}
+
+
+ ar1, ar2 \textbf{sfplay}
+ ivel, inotenum, xamp, xfreq, ipreindex [, iflag] [, ioffset]
+\subsection*{Initialization}
+
+
+ \emph{ivel}
+ -- velocity value 
+
+
+ \emph{inotenum}
+ -- MIDI note number value 
+
+
+ \emph{ipreindex}
+ -- preset index 
+
+
+ \emph{iflag}
+ -- flag regarding the behavior of \emph{xfreq}
+ and \emph{inotenum}
+
+
+
+ \emph{ioffset}
+ (optional) -- start playing at offset, in samples. 
+\subsection*{Performance}
+
+
+ \emph{xamp}
+ -- amplitude correction factor 
+
+
+ \emph{xfreq}
+ -- frequency value or frequency multiplier, depending by \emph{iflag}
+. When \emph{iflag}
+ = 0, \emph{xfreq}
+ is a multiplier of a the default frequency, assigned by SF2 preset to the \emph{inotenum}
+ value. When \emph{iflag}
+ = 1, \emph{xfreq}
+ is the absolute frequency of the output sound, in Hz. Default is 0. 
+
+
+  When \emph{iflag}
+ = 0, \emph{inotenum}
+ sets the frequency of the output according to the MIDI note number used, and \emph{xfreq}
+ is used as a multiplier. When \emph{iflag}
+ = 1, the frequency of the output, is set directly by \emph{xfreq}
+. This allows the user to use any kind of micro-tuning based scales. However, this method is designed to work correctly only with presets tuned to the default equal temperament. Attempts to use this method with a preset already having non-standard tunings, or with drum-kit-based presets, could give unexpected results. 
+
+
+  Adjustment of the amplitude can be done by varying the \emph{xamp}
+ argument, which acts as a multiplier. 
+
+
+  Notice that both \emph{xamp}
+ and \emph{xfreq}
+ can use k-rate as well as a-rate signals. Both arguments must use variables of the same rate, or \emph{sfplay}
+ will not work correctly. \emph{ipreindex}
+ must contain the number of a previously assigned preset, or Csound will crash. 
+
+
+  The \emph{ioffset}
+ parameter allows the sound to start from a sample different than the first one. The user should make sure that its value is within the length of the specific sound. Otherwise, Csound will probably crash. 
+
+
+ \emph{sfplay}
+ plays a preset, generating a stereo sound. \emph{ivel}
+ does not directly affect the amplitude of the output, but informs \emph{sfplay}
+ about which sample should be chosen in multi-sample, velocity-split presets. 
+
+
+  These opcodes only support the sample structure of SF2 files. The modulator structure of the SoundFont2 format is not supported in Csound. Any modulation or processing to the sample data is left to the Csound user, bypassing all restrictions forced by the SF2 standard. 
+\subsection*{See Also}
+
+
+ \emph{sfilist}
+, \emph{sfinstr}
+, \emph{sfinstrm}
+, \emph{sfload}
+, \emph{sfpassign}
+, \emph{sfplaym}
+, \emph{sfplist}
+, \emph{sfpreset}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Gabriel Maldonado &Italy &May 2000
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound Version 4.07
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+sfpassign &Up &sfplay3
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

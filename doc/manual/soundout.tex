@@ -1,0 +1,122 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{soundout}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{soundout}
+soundout --  Writes audio output to a disk file. \subsection*{Description}
+
+
+  Writes audio output to a disk file. 
+\subsection*{Syntax}
+
+
+ \textbf{soundout}
+ asig1, ifilcod [, iformat]
+\subsection*{Initialization}
+
+
+ \emph{ifilcod}
+ -- integer or character-string denoting the destination soundfile name. An integer denotes the file soundin.filcod; a character-string (in double quotes, spaces permitted) gives the filename itself, optionally a full pathname. If not a full path, the named file is sought first in the current directory, then in that given by the environment variable SSDIR (if defined) then by SFDIR. See also \emph{GEN01}
+. 
+
+
+ \emph{iformat}
+ (optional, default=0) -- specifies the audio data file format: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ 1 = 8-bit signed char (high-order 8 bits of a 16-bit integer)
+
+\item 
+
+ 2 = 8-bit A-law bytes
+
+\item 
+
+ 3 = 8-bit U-law bytes
+
+\item 
+
+ 4 = 16-bit short integers
+
+\item 
+
+ 5 = 32-bit long integers
+
+\item 
+
+ 6 = 32-bit floats
+
+
+\end{itemize}
+
+
+  If \emph{iformat}
+ = 0 it is taken from the soundfile header, and if no header from the Csound \emph{-o}
+ command-line flag. The default value is 0. 
+\subsection*{Performance}
+
+
+ \emph{soundout}
+ writes audio output to a disk file. 
+\subsection*{See Also}
+
+
+ \emph{out}
+, \emph{outh}
+, \emph{outo}
+, \emph{outq}
+, \emph{outq1}
+, \emph{outq2}
+, \emph{outq3}
+, \emph{outq4}
+, \emph{outs}
+, \emph{outs1}
+, \emph{outs2}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Barry L. Vercoe, Matt Ingalls/Mike Berry &MIT, Mills College &1993-1997
+
+\end{tabular}
+
+
+
+ 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+soundin &Up &space
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,171 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{wgpluck}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{wgpluck}
+wgpluck --  A high fidelity simulation of a plucked string. \subsection*{Description}
+
+
+  A high fidelity simulation of a plucked string, using interpolating delay-lines. 
+\subsection*{Syntax}
+
+
+ ar \textbf{wgpluck}
+ icps, iamp, kpick, iplk, idamp, ifilt, axcite
+\subsection*{Initialization}
+
+
+ \emph{icps}
+ -- frequency of plucked string 
+
+
+ \emph{iamp}
+ -- amplitude of string pluck 
+
+
+ \emph{iplk}
+ -- point along the string, where it is plucked, in the range of 0 to 1. 0 = no pluck 
+
+
+ \emph{idamp}
+ -- damping of the note. This controls the overall decay of the string. The greater the value of idamp1, the faster the decay. Negative values will cause an increase in output over time. 
+
+
+ \emph{ifilt}
+ -- control the attenuation of the filter at the bridge. Higher values cause the higher harmonics to decay faster. 
+\subsection*{Performance}
+
+
+ \emph{kpick}
+ -- proportion of the way along the point to sample the output. 
+
+
+ \emph{axcite}
+ -- a signal which excites the string. 
+
+
+  A string of frequency \emph{icps}
+ is plucked with amplitude \emph{iamp}
+ at point \emph{iplk}
+. The decay of the virtual string is controlled by \emph{idamp}
+ and \emph{ifilt}
+ which simulate the bridge. The oscillation is sampled at the point \emph{kpick}
+, and excited by the signal \emph{axcite}
+. 
+\subsection*{Examples}
+
+
+  The following example produces a moderately long note with rapidly decaying upper partials. It uses the files \emph{wgpluck.orc}
+ and \emph{wgpluck.sco}
+. 
+
+
+ \textbf{Example 1. An example of the wgpluck opcode.}
+
+\begin{lstlisting}
+/* wgpluck.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  icps = 220
+  iamp = 20000
+  kpick = 0.5
+  iplk = 0
+  idamp = 10
+  ifilt = 1000
+
+  axcite oscil 1, 1, 1
+  apluck wgpluck icps, iamp, kpick, iplk, idamp, ifilt, axcite
+
+  out apluck
+endin
+/* wgpluck.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* wgpluck.sco */
+; Table #1, a sine wave.
+f 1 0 16384 10 1
+
+; Play Instrument #1 for two seconds.
+i 1 0 2
+e
+/* wgpluck.sco */
+        
+\end{lstlisting}
+
+
+  The following example produces a shorter, brighter note. It uses the files \emph{wgpluck\_brighter.orc}
+ and \emph{wgpluck\_brighter.sco}
+. 
+
+
+ \textbf{Example 2. An example of the wgpluck opcode with a shorter, brighter note.}
+
+\begin{lstlisting}
+/* wgpluck_brighter.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  icps = 220
+  iamp = 20000
+  kpick = 0.5
+  iplk = 0
+  idamp = 30
+  ifilt = 10
+
+  axcite oscil 1, 1, 1
+  apluck wgpluck icps, iamp, kpick, iplk, idamp, ifilt, axcite
+
+  out apluck
+endin
+/* wgpluck_brighter.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* wgpluck_brighter.sco */
+; Table #1, a sine wave.
+f 1 0 16384 10 1
+
+; Play Instrument #1 for two seconds.
+i 1 0 2
+e
+/* wgpluck_brighter.sco */
+        
+\end{lstlisting}
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+wgflute &Up &wgpluck2
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

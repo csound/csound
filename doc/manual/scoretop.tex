@@ -1,0 +1,106 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{The Standard Numeric Score}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{The Standard Numeric Score}
+\section{Preprocessing of Standard Scores}
+
+
+  A \emph{Score}
+ (a collection of score statements) is divided into time-ordered sections by the \emph{s statement}
+. Before being read by the orchestra, a score is preprocessed one section at a time. Each section is normally processed by 3 routines: \emph{Carry}
+, \emph{Tempo}
+, and \emph{Sort}
+. 
+\subsection*{Carry}
+
+
+  Within a group of consecutive \emph{i statements}
+ whose p1 whole numbers correspond, any pfield left empty will take its value from the same pfield of the preceding statement. An empty pfield can be denoted by a single point (.) delimited by spaces. No point is required after the last nonempty pfield. The output of Carry preprocessing will show the carried values explicitly. The Carry Feature is not affected by intervening comments or blank lines; it is turned off only by a non- \emph{i statement}
+ or by an \emph{i statement}
+ with unlike p1 whole number. 
+
+
+  Three additional features are available for p2 alone: +, \^{} + \emph{x}
+, and \^{} - \emph{x}
+. The symbol + in p2 will be given the value of p2 + p3 from the preceding i statement. This enables note action times to be automatically determined from the sum of preceding durations. The + symbol can itself be carried. It is legal only in p2. E.g.: the statements 
+
+
+ 
+\begin{lstlisting}
+i1   0    .5        100         
+i .  +                   
+i
+        
+\end{lstlisting}
+
+
+ 
+ will result in 
+
+ 
+\begin{lstlisting}
+i1   0         .5        100
+i1   .5        .5        100
+i1   1         .5        100
+        
+\end{lstlisting}
+
+
+ 
+
+
+  The symbols \^{} + \emph{x}
+ and \^{} - \emph{x}
+ determine the current p2 by adding or subtracting, respectively, the value of \emph{x}
+ from the preceding p2. These may be used in p2 only. 
+
+
+  The Carry feature should be used liberally. Its use, especially in large scores, can greatly reduce input typing and will simplify later changes. 
+\subsection*{Tempo}
+
+
+  This operation time warps a score section according to the information in a \emph{t statement}
+. The tempo operation converts p2 (and, for \emph{i statements}
+, p3) from original beats into real seconds, since those are the units required by the orchestra. After time warping, score files will be seen to have orchestra-readable format demonstrated by the following: \emph{i}
+ p1 p2beats p2seconds p3beats p3seconds p4 p5 .... 
+\subsection*{Sort}
+
+
+  This routine sorts all action-time statements into chronological order by p2 value. It also sorts coincident events into precedence order. Whenever an \emph{f statement}
+ and an \emph{i statement}
+ have the same p2 value, the \emph{f statement}
+ will precede. Whenever two or more \emph{i statements}
+ have the same p2 value, they will be sorted into ascending p1 value order. If they also have the same p1 value, they will be sorted into ascending p3 value order. Score sorting is done section by section (see \emph{s statement}
+). Automatic sorting implies that score statements may appear in any order within a section. 
+\subsection*{N.B.}
+
+
+  The operations Carry, Tempo and Sort are combined in a 3-phase single pass over a score file, to produce a new file in orchestra-readable format ( see the Tempo example). Processing can be invoked either explicitly by the \emph{Scsort}
+ command, or implicitly by CSound which processes the score before calling the orchestra. Source-format files and orchestra-readable files are both in ASCII character form, and may be either perused or further modified by standard text editors. User-written routines can be used to modify score files before or after the above processes, provided the final orchestra-readable statement format is not violated. Sections of different formats can be sequentially batched; and sections of like format can be merged for automatic sorting. 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+Zak Patch System &Up &Next-P and Previous-P Symbols
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

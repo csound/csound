@@ -1,0 +1,145 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{zkr}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{zkr}
+zkr --  Reads from a location in zk space at k-rate. \subsection*{Description}
+
+
+  Reads from a location in zk space at k-rate. 
+\subsection*{Syntax}
+
+
+ kr \textbf{zkr}
+ kndx
+\subsection*{Initialization}
+
+
+ \emph{kndx}
+ -- points to the zk location to be read. 
+\subsection*{Performance}
+
+
+ \emph{zkr}
+ reads the array of floats at \emph{kndx}
+ in zk space. 
+\subsection*{Examples}
+
+
+  Here is an example of the zkr opcode. It uses the files \emph{zkr.orc}
+ and \emph{zkr.sco}
+. 
+
+
+ \textbf{Example 1. Example of the zkr opcode.}
+
+\begin{lstlisting}
+/* zkr.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Initialize the ZAK space.
+; Create 1 a-rate variable and 1 k-rate variable.
+zakinit 1, 1
+
+; Instrument #1 -- a simple waveform.
+instr 1
+  ; Linearly vary a k-rate signal from 440 to 880.
+  kline line 440, p3, 880
+
+  ; Add the linear signal to zk variable #1.
+  zkw kline, 1
+endin
+
+; Instrument #2 -- generates audio output.
+instr 2
+  ; Read zk variable #1.
+  kfreq zkr 1
+
+  ; Use the value of zk variable #1 to vary 
+  ; the frequency of a sine waveform.
+  a1 oscil 20000, kfreq, 1
+
+  ; Generate the audio output.
+  out a1
+
+  ; Clear the zk variables, get them ready for 
+  ; another pass.
+  zkcl 0, 1
+endin
+/* zkr.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* zkr.sco */
+; Table #1, a sine wave.
+f 1 0 16384 10 1
+
+; Play Instrument #1 for one second.
+i 1 0 1
+; Play Instrument #2 for one second.
+i 2 0 1
+e
+/* zkr.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{zar}
+, \emph{zarg}
+, \emph{zir}
+, \emph{zkcl}
+, \emph{zkmod}
+, \emph{zkwm}
+, \emph{zkw}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Robin Whittle &Australia &May 1997
+
+\end{tabular}
+
+
+
+ 
+
+
+ Example written by Kevin Conder.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+zkmod &Up &zkw
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

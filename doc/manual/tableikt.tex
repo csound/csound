@@ -1,0 +1,131 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{tableikt}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{tableikt}
+tableikt --  Provides k-rate control over table numbers. \subsection*{Description}
+
+
+  k-rate control over table numbers. 
+
+
+  The standard Csound opcode \emph{tablei}
+, when producing a k- or a-rate result, can only use an init-time variable to select the table number. \emph{tableikt}
+ accepts k-rate control as well as i-time. In all other respects they are similar to the original opcodes. 
+\subsection*{Syntax}
+
+
+ ar \textbf{tableikt}
+ xndx, kfn [, ixmode] [, ixoff] [, iwrap]
+
+
+ kr \textbf{tableikt}
+ kndx, kfn [, ixmode] [, ixoff] [, iwrap]
+\subsection*{Initialization}
+
+
+ \emph{ixmode}
+ -- if 0, \emph{xndx}
+ and \emph{ixoff}
+ ranges match the length of the table. if non-zero \emph{xndx}
+ and \emph{ixoff}
+ have a 0 to 1 range. Default is 0 
+
+
+ \emph{ixoff}
+ -- if 0, total index is controlled directly by \emph{xndx,}
+ ie. the indexing starts from the start of the table. If non-zero, start indexing from somewhere else in the table. Value must be positive and less than the table length (\emph{ixmode}
+ = 0) or less than 1 (\emph{ixmode}
+ not equal to 0). Default is 0. 
+
+
+ \emph{iwrap}
+ -- if \emph{iwrap}
+ = 0, \emph{Limit mode}
+: when total index is below 0, then final index is 0.Total index above table length results in a final index of the table length - high out of range total indexes stick at the upper limit of the table. If \emph{iwrap}
+ not equal to 0, \emph{Wrap mode}
+: total index is wrapped modulo the table length so that all total indexes map into the table. For instance, in a table of length 8, \emph{xndx}
+ = 5 and \emph{ixoff}
+ = 6 gives a total index of 11, which wraps to a final index of 3. Default is 0. 
+\subsection*{Performance}
+
+
+ \emph{kndx}
+ -- Index into table, either a positive number range 
+
+
+ \emph{xndx}
+ -- matching the table length (\emph{ixmode}
+ = 0) or a 0 to 1 range (\emph{ixmode}
+ not equal to 0) 
+
+
+ \emph{kfn}
+ -- Table number. Must be $>$= 1. Floats are rounded down to an integer. If a table number does not point to a valid table, or the table has not yet been loaded (\emph{GEN01}
+) then an error will result and the instrument will be de-activated. 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Caution &\textbf{Caution with k-rate table numbers}
+ \\
+  &
+
+  At k-rate, if a table number of $<$ 1 is given, or the table number points to a non-existent table, or to one which has a length of 0 (it is to be loaded from a file later) then an error will result and the instrument will be deactivated. \emph{kfn}
+ must be initialized at the appropriate rate using \emph{init}
+. Attempting to load an i-rate value into \emph{kfn}
+ will result in an error. 
+
+
+\end{tabular}
+
+\subsection*{See Also}
+
+
+ \emph{tablekt}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Robin Whittle &Australia &May 1997
+
+\end{tabular}
+
+
+
+ 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+tableigpw &Up &tableimix
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

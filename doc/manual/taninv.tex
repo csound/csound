@@ -1,0 +1,99 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{taninv}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{taninv}
+taninv --  Performs an arctangent function. \subsection*{Description}
+
+
+  Returns the arctangent of \emph{x}
+ (\emph{x}
+ in radians). 
+\subsection*{Syntax}
+
+
+ \textbf{taninv}
+(x) (no rate restriction)
+\subsection*{Examples}
+
+
+  Here is an example of the taninv opcode. It uses the files \emph{taninv.orc}
+ and \emph{taninv.sco}
+. 
+
+
+ \textbf{Example 1. Example of the taninv opcode.}
+
+\begin{lstlisting}
+/* taninv.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  irad = 0.5
+  i1 = taninv(irad)
+
+  print i1
+endin
+/* taninv.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* taninv.sco */
+; Play Instrument #1 for one second.
+i 1 0 1
+e
+/* taninv.sco */
+        
+\end{lstlisting}
+ Its output should include a line like this: \begin{lstlisting}
+instr 1:  i1 = 0.464
+      
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{cos}
+, \emph{cosh}
+, \emph{cosinv}
+, \emph{sin}
+, \emph{sinh}
+, \emph{sininv}
+, \emph{tan}
+, \emph{tanh}
+, \emph{taninv2}
+
+\subsection*{Credits}
+
+
+ Example written by Kevin Conder.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+tanh &Up &taninv2
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

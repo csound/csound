@@ -1,0 +1,108 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{xscans}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{xscans}
+xscans --  Fast scanned synthesis waveform and the wavetable generator. \subsection*{Description}
+
+
+  Experimental version of \emph{scans}
+. Allows much larger matrices and is faster and smaller but removes some (unused?) flexibility. If liked, it will replace the older opcode as it is syntax compatible but extended. 
+\subsection*{Syntax}
+
+
+ ar \textbf{xscans}
+ kamp, kfreq, ifntraj, id [, iorder]
+\subsection*{Initialization}
+
+
+ \emph{ifntraj}
+ -- table containing the scanning trajectory. This is a series of numbers that contains addresses of masses. The order of these addresses is used as the scan path. It should not contain values greater than the number of masses, or negative numbers. See the \emph{introduction to the scanned synthesis section}
+. 
+
+
+ \emph{id}
+ -- If positive, the ID of the opcode. This will be used to point the scanning opcode to the proper waveform maker. If this value is negative, the absolute of this value is the wavetable on which to write the waveshape. That wavetable can be used later from an other opcode to generate sound. The initial contents of this table will be destroyed. 
+
+
+ \emph{iorder}
+ (optional, default=0) -- order of interpolation used internally. It can take any value in the range 1 to 4, and defaults to 4, which is quartic interpolation. The setting of 2 is quadratic and 1 is linear. The higher numbers are slower, but not necessarily better. 
+\subsection*{Performance}
+
+
+ \emph{kamp}
+ -- output amplitude. Note that the resulting amplitude is also dependent on instantaneous value in the wavetable. This number is effectively the scaling factor of the wavetable. 
+
+
+ \emph{kfreq}
+ -- frequency of the scan rate 
+\subsection*{Matrix Format}
+
+
+  The new matrix format is a list of connections, one per line linking point x to point y. There is no weight given to the link; it is assumed to be unity. The list is proceeded by the line $<$MATRIX$>$ and ends with a $<$/MATRIX$>$ line 
+
+
+  For example, a circular string of 8 would be coded as 
+
+
+ 
+\begin{lstlisting}
+<MATRIX>
+0 1
+1 0
+1 2
+2 1
+2 3
+3 2
+3 4
+4 3
+4 5
+5 4
+5 6
+6 5
+6 7
+7 6
+0 7
+</MATRIX>
+        
+\end{lstlisting}
+
+
+ 
+\subsection*{Examples}
+
+
+  For an example, see the documentation on \emph{scans}
+. 
+\subsection*{See Also}
+
+
+ \emph{scans}
+, \emph{xscanu}
+
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+xscansmap &Up &xscanu
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,87 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{tablexseg}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{tablexseg}
+tablexseg --  Creates a new function table by making exponential segments between values in stored function tables. \subsection*{Description}
+
+
+ \emph{tablexseg}
+ is like \emph{expseg}
+ but interpolate between values in a stored function tables. The result is a new function table passed internally to any following \emph{vpvoc}
+ which occurs before a subsequent \emph{tablexseg}
+ (much like \emph{lpread}
+/\emph{lpreson}
+ pairs work). The uses of these are described below under \emph{vpvoc}
+. 
+\subsection*{Syntax}
+
+
+ \textbf{tablexseg}
+ ifn1, idur1, ifn2 [, idur2] [, ifn3] [...]
+\subsection*{Initialization}
+
+
+ \emph{ifn1}
+, \emph{ifn2}
+, \emph{ifn3}
+, etc. -- function table numbers. \emph{ifn1}
+, \emph{ifn2}
+, and so on, must be the same size. 
+
+
+ \emph{idur1}
+, \emph{idur2}
+, etc. -- durations during which interpolation from one table to the next will take place. 
+\subsection*{See Also}
+
+
+ \emph{pvbufread}
+, \emph{pvcross}
+, \emph{pvinterp}
+, \emph{pvread}
+, \emph{tableseg}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Richard Karpen &Seattle, WA USA &1997
+
+\end{tabular}
+
+
+
+ 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+tablexkt &Up &tambourine
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}
