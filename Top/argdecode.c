@@ -1170,7 +1170,7 @@ int argdecode(void *csound, int argc, char **argv_, char *envoutyp)
           }
 #endif
           if (!decode_long(csound, s, argc, argv, envoutyp))
-            return 0;
+            longjmp(((ENVIRON*) csound)->exitjmp_, 1);
           while (*(++s));
           break;
         case '+':                                     /* IV - Feb 01 2005 */
@@ -1185,13 +1185,23 @@ int argdecode(void *csound, int argc, char **argv_, char *envoutyp)
       }
     }
     else {
-      if (orchname == NULL)
-        orchname = --s;
-      else if (scorename == NULL)
-        scorename = --s;
-      else {
-        err_printf("argc=%d Additional string \"%s\"\n", argc, --s);
-        dieu(Str("too many arguments"));
+      char *orcNameMode;
+      orcNameMode =
+        (char*) csoundQueryGlobalVariable(csound, "::argdecode::orcNameMode");
+      if (orcNameMode != NULL && strcmp(orcNameMode, "fail") == 0) {
+        csoundMessage(csound, Str("error: orchestra and score name is not "
+                                  "allowed in .csoundrc and CSD files\n"));
+        longjmp(((ENVIRON*) csound)->exitjmp_, 1);
+      }
+      if (orcNameMode == NULL || strcmp(orcNameMode, "ignore") != 0) {
+        if (orchname == NULL)
+          orchname = --s;
+        else if (scorename == NULL)
+          scorename = --s;
+        else {
+          err_printf("argc=%d Additional string \"%s\"\n", argc, --s);
+          dieu(Str("too many arguments"));
+        }
       }
     }
   } while (--argc);

@@ -294,7 +294,7 @@ _declspec(dllexport) /* VL linkage fix 11-04 */
 #endif
 int csoundCompile(void *csound, int argc, char **argv)
 {
-    char  *s;
+    char  *s, *orcNameMode;
     char  *filnamp, *envoutyp = NULL;
     int   n;
 
@@ -379,6 +379,12 @@ int csoundCompile(void *csound, int argc, char **argv)
     install_signal_handler();
     O.filnamspace = filnamp = mmalloc(csound, (long)1024);
     peakchunks = 1;
+    if (csoundCreateGlobalVariable(csound, "::argdecode::orcNameMode", 8) != 0)
+      return -1;
+    orcNameMode = (char*) csoundQueryGlobalVariable(csound,
+                                                    "::argdecode::orcNameMode");
+    /* do not allow orc/sco/csd name in .csoundrc */
+    strcpy(orcNameMode, "fail");
     {
       char *csrcname;
       FILE *csrc;
@@ -417,6 +423,8 @@ int csoundCompile(void *csound, int argc, char **argv)
     if (--argc == 0) {
       dieu(Str("insufficient arguments"));
     }
+    /* command line: allow orc/sco/csd name */
+    strcpy(orcNameMode, "normal");
     if (argdecode(csound, argc, argv, envoutyp) == 0) {
 #ifndef mills_macintosh
       longjmp(((ENVIRON*) csound)->exitjmp_,1);
@@ -431,6 +439,8 @@ int csoundCompile(void *csound, int argc, char **argv)
               strcmp(orchname+strlen(orchname)-4, ".CSD")==0) &&
              (scorename==NULL || strlen(scorename)==0)) {
       int   read_unified_file(void*, char **, char **);
+      /* do not allow orc/sco/csd name in CSD file */
+      strcpy(orcNameMode, "fail");
       err_printf("UnifiedCSD:  %s\n", orchname);
       if (!read_unified_file(csound, &orchname, &scorename)) {
         err_printf(Str("Decode failed....stopping\n"));
@@ -439,7 +449,8 @@ int csoundCompile(void *csound, int argc, char **argv)
       /* IV - Feb 19 2005: run a second pass of argdecode so that */
       /* command line options override CSD options */
       /* this assumes that argdecode is safe to run multiple times */
-      argdecode(csound, argc-1, argv, envoutyp); /* should not fail this time */
+      strcpy(orcNameMode, "ignore");
+      argdecode(csound, argc, argv, envoutyp);  /* should not fail this time */
     }
     /* some error checking */
     {
@@ -670,13 +681,7 @@ void mainRESET(ENVIRON *p)
     }
     scoreRESET(p);
     oloadRESET();               /* should be called last but changed!! */
-/*  remove_tmpfiles((void*) p);    IV - Feb 03 2005 */
     memRESET(p);
-    p->spoutactive_ = 0;
-    O.Midiin = 0;
-    p->nrecs_ = 0;
-    p->orchname_ = NULL;
-    p->scorename_ = NULL;
 }
 
 /**
@@ -687,3 +692,4 @@ void csoundMainCleanup(void *csound)
 {
     cleanup(csound);            /* IV - Feb 03 2005 */
 }
+
