@@ -34,44 +34,17 @@ extern "C" {
 #include "csoundCore.h"
 #include "prototyp.h"
 
-#ifndef MAX_PATH
-  static const int MAX_PATH = 0xff;
-#endif
-
-  /**
-   * Csound symbols referenced in this file.
-   */
-
-#define csoundMaxExits 64
-
-#ifdef USE_FLTK
 int fltk_abort = 0;
-#endif
-
-  extern ENVIRON cenviron_;
-  static void* csoundExitFuncs_[csoundMaxExits];
-  static long csoundNumExits_ = -1;
 #ifdef INGALLS
-  static jmp_buf csoundJump_;
+static jmp_buf csoundJump_;
 #endif
-  extern OPARMS O;
-  extern int kperf(int kcnt);
-  extern int csoundMain(void *csound, int argc, char **argv);
-  extern void newevent(void *, char type, MYFLT *pfields, long count);
-  extern void writeLine(const char *text, long size);
-  extern void csoundDefaultMidiOpen(void*);
-  extern void mainRESET(void*);
-  extern int kcnt;
-  extern char *inbuf;
-  extern void *outbuf;
+#define csoundMaxExits 64
+static void* csoundExitFuncs_[csoundMaxExits];
+static long csoundNumExits_ = -1;
 
   PUBLIC void *csoundCreate(void *hostdata)
   {
-      /* Create a new Csound structure,
-       * and copy the initialized template Csound structure into it.
-       */
-      ENVIRON *csound = (ENVIRON *)malloc(sizeof(ENVIRON));
-      memcpy(csound, &cenviron_, sizeof(ENVIRON));
+      ENVIRON *csound = &cenviron;
       csound->hostdata_ = hostdata;
       return csound;
   }
@@ -268,8 +241,7 @@ int fltk_abort = 0;
 
   PUBLIC void *csoundGetInputBuffer(void *csound)
   {
-      /* return inbuf; */
-      return NULL;
+      return inbuf;
   }
 
   PUBLIC void *csoundGetOutputBuffer(void *csound)
