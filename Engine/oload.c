@@ -138,6 +138,9 @@ OPARMS  O_ = {0,0,          /* odebug, initonly */
               0,            /* OrcEvts */
               0,0           /* RTevents, ksensing */
 };
+/*
+ * It is imperative to fix up oloadRESET if functions are added to the ENVIRON struct.
+ */
 ENVIRON cenviron_ = {
         /*
         * Interface functions.
@@ -441,9 +444,8 @@ void oloadRESET(void)
     else {
       ENVIRON tempGlobals = cenviron;
       size_t front = (size_t)&tempGlobals;
-      size_t back = (size_t)&tempGlobals.SetRtcloseCallback;
+      size_t back = (size_t)&tempGlobals.ksmps_;
       size_t length = back - front;
-      back += sizeof(tempGlobals.SetRtcloseCallback);
       cenviron = cenviron_;
       memcpy(&cenviron, &tempGlobals, length);
     }
