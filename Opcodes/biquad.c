@@ -109,8 +109,10 @@ int biquada(BIQUAD *p)
 
 int moogvcfset(MOOGVCF *p)
 {
-    p->xnm1 = p->y1nm1 = p->y2nm1 = p->y3nm1 = FL(0.0);
-    p->y1n  = p->y2n   = p->y3n   = p->y4n   = FL(0.0);
+    if (*p->iskip==FL(0.0)) {
+      p->xnm1 = p->y1nm1 = p->y2nm1 = p->y3nm1 = FL(0.0);
+      p->y1n  = p->y2n   = p->y3n   = p->y4n   = FL(0.0);
+    }
     p->fcocod = (XINARG2) ? 1 : 0;
     p->rezcod = (XINARG3) ? 1 : 0;
     return OK;
@@ -186,7 +188,9 @@ int moogvcf(MOOGVCF *p)
 
 int rezzyset(REZZY *p)
 {
-    p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = FL(0.0); /* Initialize to zero */
+    if (*p->iskip==FL(0.0)) {
+      p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = FL(0.0); /* Initialize to zero */
+    }
     p->fcocod = (XINARG2) ? 1 : 0;
     p->rezcod = (XINARG3) ? 1 : 0;
 
@@ -1222,8 +1226,8 @@ int bqrez(REZZY *p)
 static OENTRY localops[] = {
 { "biquad", S(BIQUAD),   5, "a", "akkkkkko",(SUBR)biquadset, NULL, (SUBR)biquad },
 { "biquada", S(BIQUAD),  5, "a", "aaaaaaao",(SUBR)biquadset, NULL, (SUBR)biquada },
-{ "moogvcf", S(MOOGVCF), 5, "a", "axxp", (SUBR)moogvcfset, NULL, (SUBR)moogvcf  },
-{ "rezzy", S(REZZY),     5, "a", "axxo", (SUBR)rezzyset, NULL, (SUBR)rezzy      },
+{ "moogvcf", S(MOOGVCF), 5, "a", "axxpo", (SUBR)moogvcfset, NULL, (SUBR)moogvcf },
+{ "rezzy", S(REZZY),     5, "a", "axxoo", (SUBR)rezzyset, NULL, (SUBR)rezzy     },
 { "bqrez", S(REZZY),     5, "a", "axxo", (SUBR)bqrezset, NULL, (SUBR)bqrez      },
 { "distort1", S(DISTORT), 4,"a", "akkkk",NULL,     NULL, (SUBR)distort    },
 { "vco", S(VCO),         5, "a", "xxikppovo",(SUBR)vcoset, NULL, (SUBR)vco      },
