@@ -129,7 +129,7 @@ int mtable_k(ENVIRON *csound,MTABLE *p)
 int mtable_a(ENVIRON *csound,MTABLE *p)
 {
     int j, nargs = p->nargs;
-    int nsmps = ksmps, ixmode = (int) *p->ixmode, k=0;
+    int nsmps = csound->ksmps, ixmode = (int) *p->ixmode, k=0;
     MYFLT **out = p->outargs;
     MYFLT *table;
     MYFLT *xndx = p->xndx, xbmul;
@@ -236,7 +236,7 @@ int mtab_k(ENVIRON *csound,MTAB *p)
 int mtab_a(ENVIRON *csound,MTAB *p)
 {
     int j, nargs = p->nargs;
-    int nsmps = ksmps, k=0;
+    int nsmps = csound->ksmps, k=0;
     MYFLT **out = p->outargs;
     MYFLT *table;
     MYFLT *xndx = p->xndx;
@@ -318,7 +318,7 @@ int mtablew_k(ENVIRON *csound,MTABLEW *p)
 int mtablew_a(ENVIRON *csound,MTABLEW *p)
 {
     int j, nargs = p->nargs;
-    int nsmps = ksmps, ixmode = (int) *p->ixmode, k=0;
+    int nsmps = csound->ksmps, ixmode = (int) *p->ixmode, k=0;
     MYFLT **in = p->inargs;
     MYFLT *table;
     MYFLT *xndx = p->xndx, xbmul;
@@ -407,7 +407,7 @@ int mtabw_k(ENVIRON *csound,MTABW *p)
 int mtabw_a(ENVIRON *csound,MTABW *p)
 {
     int j, nargs = p->nargs;
-    int nsmps = ksmps, k=0;
+    int nsmps = csound->ksmps, k=0;
     MYFLT **in = p->inargs;
     MYFLT *table;
     MYFLT *xndx = p->xndx;
@@ -902,7 +902,7 @@ int vecdly_set(ENVIRON *csound,VECDEL *p)
     }
     else return csound->InitError(csound, "vecdly: invalid delay table");
 
-    n = (p->maxd = (long) (*p->imaxd * ekr));
+    n = (p->maxd = (long) (*p->imaxd * csound->ekr));
     if (n == 0) n = (p->maxd = 1);
 
     if (!*p->istod) {
@@ -949,7 +949,7 @@ int vecdly(ENVIRON *csound,VECDEL *p)
     }
     do {
       (*buf)[*indx] = *inVec++;
-      fv1 = *indx - *dlyVec++ * ekr;
+      fv1 = *indx - *dlyVec++ * csound->ekr;
       while (fv1 < FL(0.0))     fv1 += (MYFLT)maxd;
       while (fv1 >= (MYFLT)maxd) fv1 -= (MYFLT)maxd;
       if (fv1 < maxd - 1) fv2 = fv1 + 1;
@@ -1005,7 +1005,7 @@ int vseg_set(ENVIRON *csound,VSEG *p)
       dur = **argp++;
       if ((nxtfunc = csound->FTnp2Find(csound,*argp++)) == NULL) return NOTOK;
       if (dur > FL(0.0)) {
-        segp->d = dur * ekr;
+        segp->d = dur * csound->ekr;
         segp->function =  curfunc;
         segp->nxtfunction = nxtfunc;
         segp->cnt = (long) (segp->d + .5);
@@ -1122,7 +1122,7 @@ int vphaseseg_set(ENVIRON *csound,VPSEG *p)
       if ((nxtfunc = csound->FTnp2Find(csound,*argp++)) == NULL) return NOTOK;
       if (dur > FL(0.0)) {
         durtot+=dur;
-        segp->d = dur; /* * ekr; */
+        segp->d = dur; /* * csound->ekr; */
         segp->function = curfunc;
         segp->nxtfunction = nxtfunc;
         /* segp->cnt = (long) (segp->d + .5);  */
@@ -1188,7 +1188,7 @@ int kdel_set(ENVIRON *csound,KDEL *p)
 {
     unsigned long n;
     MYFLT *buf;
-    n = (p->maxd = (long) (*p->imaxd * ekr));
+    n = (p->maxd = (long) (*p->imaxd * csound->ekr));
     if (n == 0) n = (p->maxd = 1);
 
     if (!*p->istod) {
@@ -1216,7 +1216,7 @@ int kdelay(ENVIRON *csound,KDEL *p)
 
     indx = p->left;
     buf[indx] = *p->kin;
-    fv1 = indx - *p->kdel * ekr;
+    fv1 = indx - *p->kdel * csound->ekr;
     while (fv1 < FL(0.0))       fv1 += (MYFLT)maxd;
     while (fv1 >= (MYFLT)maxd) fv1 -= (MYFLT)maxd;
     if (*p->interp) { /*  no interpolation */

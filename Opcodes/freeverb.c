@@ -128,7 +128,7 @@ static int freeverb_init(ENVIRON *csound, FREEVERB *p)
       nbytes += allpass_nbytes(p, allpass_delays[i][0]);
       nbytes += allpass_nbytes(p, allpass_delays[i][1]);
     }
-    nbytes += (int) sizeof(MYFLT) * (int) csound->ksmps_;
+    nbytes += (int) sizeof(MYFLT) * (int) csound->ksmps;
     /* allocate space if size has changed */
     if (nbytes != (int) p->auxData.size)
       csound->AuxAlloc(csound, (long) nbytes, &(p->auxData));
@@ -193,11 +193,11 @@ static int freeverb_perf(ENVIRON *csound, FREEVERB *p)
       damp1 = p->dampValue;
     damp2 = 1.0 - damp1;
     /* comb filters (left channel) */
-    for (n = 0; n < csound->ksmps_; n++)
+    for (n = 0; n < csound->ksmps; n++)
       p->tmpBuf[n] = FL(0.0);
     for (i = 0; i < NR_COMB; i++) {
       combp = p->Comb[i][0];
-      for (n = 0; n < csound->ksmps_; n++) {
+      for (n = 0; n < csound->ksmps; n++) {
         p->tmpBuf[n] += combp->buf[combp->bufPos];
         x = (double) combp->buf[combp->bufPos];
         combp->filterState = (combp->filterState * damp1) + (x * damp2);
@@ -210,7 +210,7 @@ static int freeverb_perf(ENVIRON *csound, FREEVERB *p)
     /* allpass filters (left channel) */
     for (i = 0; i < NR_ALLPASS; i++) {
       allpassp = p->AllPass[i][0];
-      for (n = 0; n < csound->ksmps_; n++) {
+      for (n = 0; n < csound->ksmps; n++) {
         x = (double) allpassp->buf[allpassp->bufPos] - (double) p->tmpBuf[n];
         allpassp->buf[allpassp->bufPos] *= (MYFLT) allPassFeedBack;
         allpassp->buf[allpassp->bufPos] += p->tmpBuf[n];
@@ -220,14 +220,14 @@ static int freeverb_perf(ENVIRON *csound, FREEVERB *p)
       }
     }
     /* write left channel output */
-    for (n = 0; n < csound->ksmps_; n++)
+    for (n = 0; n < csound->ksmps; n++)
       p->aOutL[n] = p->tmpBuf[n] * (MYFLT) fixedGain;
     /* comb filters (right channel) */
-    for (n = 0; n < csound->ksmps_; n++)
+    for (n = 0; n < csound->ksmps; n++)
       p->tmpBuf[n] = FL(0.0);
     for (i = 0; i < NR_COMB; i++) {
       combp = p->Comb[i][1];
-      for (n = 0; n < csound->ksmps_; n++) {
+      for (n = 0; n < csound->ksmps; n++) {
         p->tmpBuf[n] += combp->buf[combp->bufPos];
         x = (double) combp->buf[combp->bufPos];
         combp->filterState = (combp->filterState * damp1) + (x * damp2);
@@ -240,7 +240,7 @@ static int freeverb_perf(ENVIRON *csound, FREEVERB *p)
     /* allpass filters (right channel) */
     for (i = 0; i < NR_ALLPASS; i++) {
       allpassp = p->AllPass[i][1];
-      for (n = 0; n < csound->ksmps_; n++) {
+      for (n = 0; n < csound->ksmps; n++) {
         x = (double) allpassp->buf[allpassp->bufPos] - (double) p->tmpBuf[n];
         allpassp->buf[allpassp->bufPos] *= (MYFLT) allPassFeedBack;
         allpassp->buf[allpassp->bufPos] += p->tmpBuf[n];
@@ -250,7 +250,7 @@ static int freeverb_perf(ENVIRON *csound, FREEVERB *p)
       }
     }
     /* write right channel output */
-    for (n = 0; n < csound->ksmps_; n++)
+    for (n = 0; n < csound->ksmps; n++)
       p->aOutR[n] = p->tmpBuf[n] * (MYFLT) fixedGain;
 
     return OK;

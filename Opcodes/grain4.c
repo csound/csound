@@ -72,30 +72,30 @@ int grainsetv4(ENVIRON *csound, GRAINV4 *p)
     /* call ftfind() to get the function table...*/
     if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) {
 #ifdef BETA
-      printf("granule_set: Find ftable OK...\n");
+      csound->Message(csound, "granule_set: Find ftable OK...\n");
 #endif
       p->ftp = ftp;
     }
     else {
-      return csound->InitError(csound, Str("granule_set: Unable to find function table"));
+      return csound->InitError(csound, Str("granule_set: "
+                                           "Unable to find function table"));
     }
 
     /* call ftfind() to get the function table for the envelop...*/
 #ifdef BETA
-    printf ("*p->ifnenv is %f \n", *p->ifnenv);
+    csound->Message(csound, "*p->ifnenv is %f\n", *p->ifnenv);
 #endif
 
     if (*p->ifnenv > 0) {
       if ((ftp_env = csound->FTFind(csound, p->ifnenv)) != NULL) {
 #ifdef BETA
-        printf("granule_set: Find ftable for envelop OK...\n");
+        csound->Message(csound, "granule_set: Find ftable for envelop OK...\n");
 #endif
         p->ftp_env = ftp_env;
       }
       else {
-        return
-          csound->InitError(csound, Str(
-                        "granule_set: Unable to find function table for envelop"));
+        return csound->InitError(csound, Str("granule_set: Unable to find "
+                                             "function table for envelope"));
       }
     }
 
@@ -103,26 +103,26 @@ int grainsetv4(ENVIRON *csound, GRAINV4 *p)
       return csound->InitError(csound, Str("granule_set: Too many voices"));
     }
     if (*p->iratio <= 0) {
-      return csound->InitError(csound, Str("granule_set: iratio must be greater then 0"));
+      return csound->InitError(csound, Str("granule_set: "
+                                           "iratio must be greater then 0"));
     }
     if ((*p->imode != 0) && ((*p->imode != -1) && (*p->imode != 1))) {
-      return csound->InitError(csound, Str("granule_set: imode must be -1, 0 or +1"));
+      return csound->InitError(csound, Str("granule_set: "
+                                           "imode must be -1, 0 or +1"));
     }
     if (*p->ithd < 0) {
-      return csound->InitError(csound, Str(
-                           "granule_set: Illegal ithd, must be greater then 0"));
+      return csound->InitError(csound, Str("granule_set: Illegal ithd, "
+                                           "must be greater than zero"));
     }
     if ((*p->ipshift != 1) && (*p->ipshift!=2) && (*p->ipshift!=3) &&
         (*p->ipshift!=4) && (*p->ipshift!=0) ) {
-      return
-        csound->InitError(csound, Str(
-                      "granule_set: ipshift must be integer between 0 and 4"));
+      return csound->InitError(csound, Str("granule_set: ipshift must be "
+                                           "integer between 0 and 4"));
     }
     if (((*p->ipshift >=1) && (*p->ipshift <=4)) &&
         (*p->ivoice < *p->ipshift)) {
-      return
-        csound->InitError(csound, Str(
-                      "granule_set: Not enough voices for the number of pitches"));
+      return csound->InitError(csound, Str("granule_set: Not enough voices "
+                                           "for the number of pitches"));
     }
     if ( *p->ipshift !=FL(0.0) ) {
       if (*p->ipitch1 < FL(0.0) ) {
@@ -147,29 +147,34 @@ int grainsetv4(ENVIRON *csound, GRAINV4 *p)
       }
     }
 
-    if ((*p->igskip < 0) || (*p->igskip * esr > ftp->flen) ) {
-      return csound->InitError(csound, Str("granule_set: must be positive and smaller than"
-                "function table length"));
+    if ((*p->igskip < 0) || (*p->igskip * csound->esr > ftp->flen) ) {
+      return csound->InitError(csound, Str("granule_set: must be positive and "
+                                           "less than function table length"));
     }
     if (*p->igskip_os < 0) {
-      return csound->InitError(csound, Str("granule_set: igskip_os must be greater then 0"));
+      return csound->InitError(csound, Str("granule_set: "
+                                           "igskip_os must be greater then 0"));
     }
 
-    p->gstart = (long)(*p->igskip * esr);
-    p->glength = (long)(*p->ilength * esr);
+    p->gstart = (long)(*p->igskip * csound->esr);
+    p->glength = (long)(*p->ilength * csound->esr);
     p->gend = p->gstart + p->glength;
 
     if (*p->kgap < 0) {
-      return csound->InitError(csound, Str("granule_set: kgap must be greater then 0"));
+      return csound->InitError(csound, Str("granule_set: "
+                                           "kgap must be greater then 0"));
     }
     if ((*p->igap_os < 0) || (*p->igap_os > 100)) {
-      return csound->InitError(csound, Str("granule_set: igap_os must be 0%% to 100%%"));
+      return csound->InitError(csound, Str("granule_set: "
+                                           "igap_os must be 0%% to 100%%"));
     }
     if (*p->kgsize < 0) {
-      return csound->InitError(csound, Str("granule_set: kgsize must be greater then 0"));
+      return csound->InitError(csound, Str("granule_set: "
+                                           "kgsize must be greater then 0"));
     }
     if ((*p->igsize_os < 0) || (*p->igsize_os >100)) {
-      return csound->InitError(csound, Str("granule_set: igsize_os must be 0%% to 100%%"));
+      return csound->InitError(csound, Str("granule_set: "
+                                           "igsize_os must be 0%% to 100%%"));
     }
     if ((*p->iatt < FL(0.0)) || (*p->idec < 0.0) ||
         ((*p->iatt + *p->idec) > FL(100.0))) {
@@ -184,7 +189,7 @@ int grainsetv4(ENVIRON *csound, GRAINV4 *p)
     }
 
                                 /* Initialize variables....*/
-    p->gskip_os = (long)(*p->igskip_os * esr);/* in number of samples */
+    p->gskip_os = (long)(*p->igskip_os * csound->esr);/* in number of samples */
     p->gap_os = *p->igap_os / FL(100.0);
     p->gsize_os = *p->igsize_os / FL(100.0);
 
@@ -192,8 +197,8 @@ int grainsetv4(ENVIRON *csound, GRAINV4 *p)
       p->fpnt[nvoice] = 0;
       p->cnt[nvoice]  = 0;
       p->phs[nvoice]  = FL(0.0);
-      p->gskip[nvoice] = (long)(*p->igskip * esr);
-      p->gap[nvoice] = (long)(*p->kgap * esr);
+      p->gskip[nvoice] = (long)(*p->igskip * csound->esr);
+      p->gap[nvoice] = (long)(*p->kgap * csound->esr);
     }
 
     if (*p->igap_os != 0) {
@@ -230,7 +235,7 @@ int grainsetv4(ENVIRON *csound, GRAINV4 *p)
     }
 
     for (nvoice = 0; nvoice < *p->ivoice; nvoice++)
-      p->gsize[nvoice] = (long)(*p->kgsize * esr * p->pshift[nvoice]);
+      p->gsize[nvoice] = (long)(*p->kgsize * csound->esr * p->pshift[nvoice]);
 
     if (*p->igsize_os != 0) {
       for (nvoice = 0; nvoice < *p->ivoice; nvoice++)
@@ -250,16 +255,17 @@ int grainsetv4(ENVIRON *csound, GRAINV4 *p)
           p->gskip[nvoice];
       }
 
-
 #ifdef BETA
-    printf("granule_set: User define sampling rate esr is %f samp/sec.\n", esr);
-    printf("granule_set: Funtion table length in samples is %ld\n", ftp->flen);
-    printf("granule_set: Funtion table length in seconds is %f\n",
-           (MYFLT)ftp->flen * onedsr);
+    csound->Message(csound, "granule_set: User define sampling rate esr is "
+                            "%f samp/sec.\n", csound->esr);
+    csound->Message(csound, "granule_set: Funtion table length in samples is "
+                            "%ld\n", ftp->flen);
+    csound->Message(csound, "granule_set: Funtion table length in seconds is "
+                            "%f\n", (MYFLT)ftp->flen * onedsr);
 #endif
     if (*p->ithd != 0) {        /* Do thresholding.... */
 #ifdef BETA
-      printf("granule_set: Doing thresholding %f \n",*p->ithd);
+      csound->Message(csound, "granule_set: Doing thresholding %f\n", *p->ithd);
 #endif
       tmplong2 = 0;
       for (tmplong1=0; tmplong1<ftp->flen; tmplong1++)
@@ -267,31 +273,34 @@ int grainsetv4(ENVIRON *csound, GRAINV4 *p)
           *(ftp->ftable + tmplong2++) = *(ftp->ftable + tmplong1);
       ftp->flen = tmplong2;
 #ifdef BETA
-        printf("granule_set: Function table shrink to %ld samples\n",ftp->flen);
-        printf("granule_set: Function table shrink to %f sec"
-               "after thresholding\n", (MYFLT)ftp->flen * onedsr);
+      csound->Message(csound, "granule_set: Function table shrink to "
+                              "%ld samples\n", ftp->flen);
+      csound->Message(csound, "granule_set: Function table shrink to %f sec "
+                              "after thresholding\n", (MYFLT)ftp->flen*onedsr);
 #endif
     }
 
     if (p->gend > ftp->flen) {
-      return csound->InitError(csound, 
-                   Str(
-                       "granule_set: Illegal combination of igskip and ilength"));
+      return csound->InitError(csound, Str("granule_set: Illegal combination "
+                                           "of igskip and ilength"));
     }
 
     nvoice = (int)*p->ivoice;
 #ifdef BETA
-    printf("granule_set: nvoice is %d\n",nvoice);
+    csound->Message(csound, "granule_set: nvoice is %d\n", nvoice);
 #endif
 
     if (*p->ilength < (20 * *p->kgsize)) {
-      printf(Str("granule_set: WARNING * ilength may be too short * \n"));
-      printf(Str(
-                 "            ilength should be greater than kgsize * max up\n"));
-      printf(Str(
-               "            pitch shift. Also, igsize_os and igskip_os should\n"));
-      printf(Str("            be taken into consideration.\nilength is "));
-      printf(Str("%f Sec, kgsize is %f Sec\n"), *p->ilength, *p->kgsize);
+      csound->Message(csound, Str("granule_set: "
+                                  "WARNING * ilength may be too short * \n"));
+      csound->Message(csound, Str("            ilength should be "
+                                  "greater than kgsize * max up\n"));
+      csound->Message(csound, Str("            pitch shift. Also, igsize_os "
+                                  "and igskip_os should\n"));
+      csound->Message(csound, Str("            be taken into consideration.\n"
+                                  "ilength is "));
+      csound->Message(csound, Str("%f Sec, kgsize is %f Sec\n"),
+                              *p->ilength, *p->kgsize);
     }
 
     p->clock = 0;               /* init clock */
@@ -303,7 +312,7 @@ int graingenv4(ENVIRON *csound, GRAINV4 *p)
 {
     FUNC        *ftp, *ftp_env;
     MYFLT       *ar, *ftbl, *ftbl_env=NULL;
-    int         nsmps = ksmps;
+    int         nsmps = csound->ksmps;
     int         nvoice;
     long        flen, tmplong1, tmplong2, tmplong3, tmpfpnt, flen_env=0;
     MYFLT       fract, v1, tmpfloat1;
@@ -442,12 +451,12 @@ int graingenv4(ENVIRON *csound, GRAINV4 *p)
                (tmpfloat1*FL(0.5))+FL(1.0) : tmpfloat1+FL(1.0);
            }
 
-           *gap = (long)(*p->kgap * esr);
+           *gap = (long)(*p->kgap * csound->esr);
            if (*p->igap_os != 0) {
              *gap += (long)((*gap * p->gap_os) * grand(p));
            }
 
-           *gsize = (long)(*p->kgsize * esr * *pshift);
+           *gsize = (long)(*p->kgsize * csound->esr * *pshift);
            if (*p->igsize_os != 0)
              *gsize += (long)((*gsize * p->gsize_os) * grand(p));
 
@@ -457,8 +466,8 @@ int graingenv4(ENVIRON *csound, GRAINV4 *p)
        fpnt++; cnt++; gskip++; gap++; gsize++;
        stretch++; mode++; pshift++; phs++;
      }
-                                /*   p->clock++; */
-     *ar++ *= *p->xamp;         /* increment audio pointer and multiply the xamp */
+  /* p->clock++; */
+     *ar++ *= *p->xamp;     /* increment audio pointer and multiply the xamp */
    } while (--nsmps);
    return OK;
 } /* end graingenv4(p) */
@@ -485,7 +494,7 @@ MYFLT envv4(int *nvoice, GRAINV4 *p)
     else
       result = ((MYFLT)(dec_len - (p->fpnt[*nvoice]-att_sus)) / (MYFLT)dec_len);
 
-printf("envv4: %f\n", result);
+    csound->Message(csound, "envv4: %f\n", result);
     return (result);
 }
 #endif

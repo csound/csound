@@ -36,7 +36,7 @@
 
 #define Unirand(a)      (((MYFLT)rand() / (MYFLT)RAND_MAX) * (a))
 
-int agsset(ENVIRON *csound, PGRA *p)                    /*      Granular U.G. set-up */
+int agsset(ENVIRON *csound, PGRA *p)        /*      Granular U.G. set-up */
 {
     FUNC        *gftp, *eftp;
     long        bufsize;
@@ -57,13 +57,14 @@ int agsset(ENVIRON *csound, PGRA *p)                    /*      Granular U.G. se
     else
       p->pr = FL(0.0);
 
-    bufsize = sizeof(MYFLT)*(2L * (long)(esr * *p->imkglen) +  (3L * ksmps));
+    bufsize = sizeof(MYFLT) * (2L * (long) (csound->esr * *p->imkglen)
+                               +  (3L * csound->ksmps));
 
     if (p->aux.auxp == NULL || bufsize > p->aux.size)
       csound->AuxAlloc(csound, bufsize, &p->aux);
     else memset(p->aux.auxp, '\0', bufsize); /* Clear any old data */
     d  = p->x = (MYFLT *)p->aux.auxp;
-    d +=  (int)(esr * *p->imkglen) + ksmps;
+    d +=  (int)(csound->esr * *p->imkglen) + csound->ksmps;
     p->y = d;
 
     p->ampadv = (XINARG1) ? 1 : 0;
@@ -72,7 +73,7 @@ int agsset(ENVIRON *csound, PGRA *p)                    /*      Granular U.G. se
     return OK;
 }
 
-int ags(ENVIRON *csound, PGRA *p)               /*      Granular U.G. a-rate main routine       */
+int ags(ENVIRON *csound, PGRA *p)   /*  Granular U.G. a-rate main routine   */
 {
     FUNC        *gtp, *etp;
     MYFLT       *buf, *out, *rem, *gtbl, *etbl;
@@ -102,9 +103,9 @@ int ags(ENVIRON *csound, PGRA *p)               /*      Granular U.G. a-rate mai
 
     if (kglen > *p->imkglen) kglen = *p->imkglen;
 
-    ekglen  = (long)(esr * kglen);   /* Useful constant */
+    ekglen  = (long)(csound->esr * kglen);   /* Useful constant */
     inc2    = (long)(sicvt / kglen); /* Constant for each cycle */
-    bufsize = ksmps + ekglen;
+    bufsize = csound->ksmps + ekglen;
     xdns    = p->xdns;
     xamp    = p->xamp;
     xlfr    = p->xlfr;
@@ -115,7 +116,7 @@ int ags(ENVIRON *csound, PGRA *p)               /*      Granular U.G. a-rate mai
       *temp++ = FL(0.0);
     } while (--i);
 
-    for (i = 0 ; i < ksmps ; i++) {
+    for (i = 0 ; i < csound->ksmps ; i++) {
       if (gcount >= FL(1.0)) { /* I wonder..... */
         gcount = FL(0.0);
         amp = *xamp + Unirand(*p->kabnd);
@@ -135,7 +136,6 @@ int ags(ENVIRON *csound, PGRA *p)               /*      Granular U.G. a-rate mai
 
       xdns += p->dnsadv;
       gcount += *xdns * onedsr;
-/*         printf("gcount = %f\n", gcount); */
       xamp += p->ampadv;
       xlfr += p->lfradv;
     }
@@ -143,11 +143,11 @@ int ags(ENVIRON *csound, PGRA *p)               /*      Granular U.G. a-rate mai
     n = bufsize;
     temp = rem;
     do {
-      *temp = *buf++ + *(temp + ksmps);
+      *temp = *buf++ + *(temp + csound->ksmps);
       temp++;
     } while (--n);
 
-    memcpy(out, rem, ksmps*sizeof(MYFLT));
+    memcpy(out, rem, csound->ksmps*sizeof(MYFLT));
     p->gcount = gcount;
     return OK;
 }
