@@ -1,9 +1,0 @@
-\begin{comment}
-\documentclass[10pt]{article}
-\usepackage{fullpage, graphicx, url}
-\setlength{\parskip}{1ex}
-\setlength{\parindent}{0ex}
-\begin{document}
-The Alternative Csound Reference Manual Previous The Standard Numeric Score Next \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ Evaluation of Expressions In earlier versions of Csound the numbers presented in a score were used as given. There are occasions when some simple evaluation would be easier. This need is increased when there are macros. To assist in this area the syntax of an arithmetic expressions within square brackets [ ] has been introduced. Expressions built from the operations +, -, *, /, \%, and \^{} are allowed, together with grouping with ( ). The expressions can include numbers, and naturally macros whose values are numeric or arithmetic strings. All calculations are made in floating point numbers. Note that unary minus is not yet supported. New in Csound version 3.56 are @ x (next power-of-two greater than or equal to x ) and @@ x (next power-of-two-plus-one greater than or equal to x ). Example r3 CNT i1 0 [0.3*\$CNT.] i1 + [(\$CNT./3)+0.2] e As the three copies of the section have the macro \$CNT. with the different values of 1, 2 and 3, this expands to s i1 0 0.3 i1 0.3 0.533333 s i1 0 0.6 i1 0.6 0.866667 s i1 0 0.9 i1 0.9 1.2 e This is an extreme form, but the evaluation system can be used to ensure that repeated sections are subtly different. Credits Author: John ffitch University of Bath/Codemist Ltd. Bath, UK April, 1998 (New in Csound version 3.48)\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ 1 Previous Home Next Multiple File Score Up Score Statements 2 
-\end{document}
-\end{comment}
