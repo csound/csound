@@ -1,3 +1,8 @@
+2004-08-22  Steven Yi  <stevenyi@csounds.com>
+
+	* SConstruct: Added install, install-executables, and install-opcodes
+	targets
+
 2004-08-22  John ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/biquad.h: 
