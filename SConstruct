@@ -39,6 +39,9 @@ opts.Add('useDouble',
 opts.Add('usePortAudio', 
     'Set to 1 to use PortAudio for real-time audio input and output.', 
     1)
+opts.Add('useJack',
+	'Set to 1 if you compiled PortAudio to use Jack',
+	0)
 opts.Add('useFLTK', 
     'Set to 1 to use FLTK for graphs and widget opcodes.', 
     1)
@@ -180,6 +183,11 @@ if commonEnvironment['usePortAudio'] and portaudioFound:
     if (sys.platform == 'linux1' or sys.platform == 'linux2'): 
         csoundProgramEnvironment.Append(LIBS = ['asound'])
         vstEnvironment.Append(LIBS = ['asound'])
+        if commonEnvironment['useJack']:
+            print "Adding Jack library for PortAudio"
+            csoundProgramEnvironment.Append(LIBS = ['jack'])
+            vstEnvironment.Append(LIBS = ['jack'])
+			
     if sys.platform == 'cygwin' or sys.platform == 'mingw' or sys.platform == 'win32': 
         csoundProgramEnvironment.Append(LIBS = ['winmm'])
         vstEnvironment.Append(LIBS = ['winmm'])
