@@ -80,7 +80,7 @@ typedef struct Modulatr {
     MYFLT    lastOutput;
 } Modulatr;
 
-int make_Modulatr(Modulatr *, MYFLT *);
+int make_Modulatr(ENVIRON *, Modulatr *, MYFLT *);
 void Modulatr_reset(Modulatr *);
 void Modulatr_setRndAmt(Modulatr *, MYFLT rndAmount);
 MYFLT Modulatr_tick(Modulatr *);
@@ -98,9 +98,9 @@ typedef struct SingWave {
 } SingWave;
 
 void SingWave_reset(SingWave *);
-void SingWave_setFreq(SingWave *,MYFLT aFreq);
+void SingWave_setFreq(ENVIRON *csound,SingWave *,MYFLT aFreq);
 MYFLT SingWave_tick(SingWave *);
-void SingWave_print(SingWave *);
+void SingWave_print(ENVIRON *,SingWave *);
 
 /*******************************************/
 /*  4 Formant Synthesis Instrument         */

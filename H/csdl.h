@@ -232,7 +232,7 @@
 #define mfree p->h.insdshead->csound->mfree_
 #define dispset p->h.insdshead->csound->dispset
 #define display p->h.insdshead->csound->display
-#define intpow p->h.insdshead->csound->intpow
+#define intpow p->h.insdshead->csound->intpow_
 #define ftfindp p->h.insdshead->csound->ftfindp
 #define ftnp2find p->h.insdshead->csound->ftnp2find
 #define unquote p->h.insdshead->csound->unquote

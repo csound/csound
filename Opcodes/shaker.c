@@ -57,6 +57,7 @@ But we're smarter than that!!!  See below
 int shakerset(SHAKER *p)
 {
     MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
+    ENVIRON     *csound = p->h.insdshead->csound;
 
     p->shake_speed = FL(0.0008) + (amp * FL(0.0004));
     make_BiQuad(&p->filter);
@@ -70,7 +71,7 @@ int shakerset(SHAKER *p)
     p->coll_damp = FL(0.95);
 /*     p->shake_damp = 0.999f; */
 /*     p->num_beans = 8; */
-    ADSR_setAll(&p->envelope,
+    ADSR_setAll(csound, &p->envelope,
                 p->shake_speed,  p->shake_speed, FL(0.0),  p->shake_speed);
     p->num_beans = (int)*p->beancount;
     if (p->num_beans<1) p->num_beans = 1;
@@ -114,6 +115,7 @@ int shaker(SHAKER *p)
     MYFLT ngain = p->noiseGain;
     MYFLT sEnergy = p->shakeEnergy;
     MYFLT shake_speed = FL(0.0008) + amp * FL(0.0004);
+    ENVIRON *csound = p->h.insdshead->csound;
 
     if (p->freq != *p->kfreq)
       BiQuad_setFreqAndReson(p->filter, p->freq = *p->kfreq, FL(0.96));
@@ -123,7 +125,8 @@ int shaker(SHAKER *p)
     }
     if (shake_speed != p->shake_speed) {
       p->shake_speed = shake_speed;
-      ADSR_setAll(&p->envelope, shake_speed, shake_speed, FL(0.0), shake_speed);
+      ADSR_setAll(csound,
+                  &p->envelope, shake_speed, shake_speed, FL(0.0), shake_speed);
     }
     if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
     if ((--p->kloop) == 0) {

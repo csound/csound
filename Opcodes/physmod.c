@@ -115,6 +115,7 @@ void OneZero_print(OneZero *p)
 int clarinset(CLARIN *p)
 {
     FUNC        *ftp;
+    ENVIRON     *csound = p->h.insdshead->csound;
 
     if ((ftp = ftfind(p->ifn)) != NULL) p->vibr = ftp;
     else {
@@ -129,7 +130,7 @@ int clarinset(CLARIN *p)
         err_printf(Str(X_362,"No base frequency for clarinet -- assuming 50Hz\n"));
         p->length = (long) (esr / FL(50.0) + FL(1.0));
       }
-      make_DLineL(&p->delayLine, p->length);
+      make_DLineL(csound, &p->delayLine, p->length);
       p->reedTable.offSet = FL(0.7);
       p->reedTable.slope = -FL(0.3);
       make_OneZero(&(p->filter));
@@ -265,118 +266,121 @@ static MYFLT JetTabl_lookup(MYFLT sample) /* Perform "Table Lookup"  */
     return j;
 }
 
-int fluteset(FLUTE *f)
+int fluteset(FLUTE *p)
 {
     FUNC        *ftp;
     long        length;
+    ENVIRON     *csound = p->h.insdshead->csound;
 
-    if ((ftp = ftfind(f->ifn)) != NULL) f->vibr = ftp;
+    if ((ftp = ftfind(p->ifn)) != NULL) p->vibr = ftp;
     else {
       return perferror(Str(X_378,"No table for Flute")); /* Expect sine wave */
     }
-    if (*f->lowestFreq>=FL(0.0)) {      /* Skip initialisation?? */
-      if (*f->lowestFreq!=FL(0.0))
-        length = (long) (esr / *f->lowestFreq + FL(1.0));
-      else if (*f->frequency!=FL(0.0))
-        length = (long) (esr / *f->frequency + FL(1.0));
+    if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation?? */
+      if (*p->lowestFreq!=FL(0.0))
+        length = (long) (esr / *p->lowestFreq + FL(1.0));
+      else if (*p->frequency!=FL(0.0))
+        length = (long) (esr / *p->frequency + FL(1.0));
       else {
         err_printf(Str(X_363,"No base frequency for flute -- assumed to be 50Hz\n"));
         length = (long) (esr / FL(50.0) + FL(1.0));
       }
-      make_DLineL(&f->boreDelay, length);
+      make_DLineL(csound, &p->boreDelay, length);
       length = length >> 1;        /* ??? really; yes from later version */
-      make_DLineL(&f->jetDelay, length);
-      make_OnePole(&f->filter);
-      make_DCBlock(&f->dcBlock);
-      make_Noise(f->noise);
-      make_ADSR(&f->adsr);
+      make_DLineL(csound, &p->jetDelay, length);
+      make_OnePole(&p->filter);
+      make_DCBlock(&p->dcBlock);
+      make_Noise(p->noise);
+      make_ADSR(&p->adsr);
                                 /* Clear */
-/*     OnePole_clear(&f->filter); */
-/*     DCBlock_clear(&f->dcBlock); */
+/*     OnePole_clear(&p->filter); */
+/*     DCBlock_clear(&p->dcBlock); */
                                 /* End Clear */
-/*       DLineL_setDelay(&f->boreDelay, 100.0f); */
-/*       DLineL_setDelay(&f->jetDelay, 49.0f); */
+/*       DLineL_setDelay(&p->boreDelay, 100.0f); */
+/*       DLineL_setDelay(&p->jetDelay, 49.0f); */
 
-      OnePole_setPole(&f->filter, FL(0.7) - (FL(0.1) * RATE_NORM));
-      OnePole_setGain(&f->filter, -FL(1.0));
-      ADSR_setAllTimes(&f->adsr, FL(0.005), FL(0.01), FL(0.8), FL(0.010));
-/*        ADSR_setAll(&f->adsr, 0.02f, 0.05f, 0.8f, 0.001f); */
+      OnePole_setPole(&p->filter, FL(0.7) - (FL(0.1) * RATE_NORM));
+      OnePole_setGain(&p->filter, -FL(1.0));
+      ADSR_setAllTimes(csound, &p->adsr, FL(0.005), FL(0.01), FL(0.8), FL(0.010));
+/*        ADSR_setAll(&p->adsr, 0.02f, 0.05f, 0.8f, 0.001f); */
     /* Suggested values */
-    /*    f->endRefl = 0.5; */
-    /*    f->jetRefl = 0.5; */
-    /*    f->noiseGain = 0.15; */ /* Breath pressure random component   */
-    /*    f->vibrGain = 0.05;  */ /* breath periodic vibrato component  */
-    /*    f->jetRatio = 0.32;  */
-      f->lastamp = FL(1.0);             /* Remember */
-      ADSR_setAttackRate(&f->adsr, FL(0.02));/* This should be controlled by attack */
-      f->maxPress = FL(2.3) / FL(0.8);
-      f->outputGain = FL(1.001);
-      ADSR_keyOn(&f->adsr);
-      f->kloop = (MYFLT)((int)(f->h.insdshead->offtim*ekr - ekr*(*f->dettack)));
+    /*    p->endRefl = 0.5; */
+    /*    p->jetRefl = 0.5; */
+    /*    p->noiseGain = 0.15; */ /* Breath pressure random component   */
+    /*    p->vibrGain = 0.05;  */ /* breath periodic vibrato component  */
+    /*    p->jetRatio = 0.32;  */
+      p->lastamp = FL(1.0);             /* Remember */
+      ADSR_setAttackRate(csound, &p->adsr, FL(0.02));/* This should be controlled by attack */
+      p->maxPress = FL(2.3) / FL(0.8);
+      p->outputGain = FL(1.001);
+      ADSR_keyOn(&p->adsr);
+      p->kloop = (MYFLT)((int)(p->h.insdshead->offtim*ekr - ekr*(*p->dettack)));
 
-      f->lastFreq = FL(0.0);
-      f->lastJet = -FL(1.0);
-      /* freq = (2/3)*f->frequency as we're overblowing here */
+      p->lastFreq = FL(0.0);
+      p->lastJet = -FL(1.0);
+      /* freq = (2/3)*p->frequency as we're overblowing here */
       /* but 1/(2/3) is 1.5 so multiply for speed */
     }
-/*     printf("offtim=%f  kloop=%d\n", f->h.insdshead->offtim, f->kloop); */
-/*     printf("Flute : NoteOn: Freq=%f\n",*f->frequency); */
+/*     printf("offtim=%f  kloop=%d\n", p->h.insdshead->offtim, p->kloop); */
+/*     printf("Flute : NoteOn: Freq=%f\n",*p->frequency); */
 /*  printf("%f %f %f %f \n%f %f %f %f \n",  */
-/*        f->v_rate, f->v_time, f->lastFreq, f->lastJet, */
-/*        f->maxPress, f->vibrGain, f->kloop, f->lastamp); */
+/*        p->v_rate, p->v_time, p->lastFreq, p->lastJet, */
+/*        p->maxPress, p->vibrGain, p->kloop, p->lastamp); */
     return OK;
 }
 
-int flute(FLUTE *f)
+int flute(FLUTE *p)
 {
-    MYFLT       *ar = f->ar;
+    MYFLT       *ar = p->ar;
     long        nsmps = ksmps;
-    MYFLT       amp = (*f->amp)*AMP_RSCALE; /* Normalise */
+    MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT       temp;
-    int         v_len = (int)f->vibr->flen;
-    MYFLT       *v_data = f->vibr->ftable;
-    MYFLT       v_time = f->v_time;
-    MYFLT       vibGain = *f->vibAmt;
+    int         v_len = (int)p->vibr->flen;
+    MYFLT       *v_data = p->vibr->ftable;
+    MYFLT       v_time = p->v_time;
+    MYFLT       vibGain = *p->vibAmt;
     MYFLT       jetRefl, endRefl, noisegain;
-    if (amp!=f->lastamp) {      /* If amplitude has changed */
+    ENVIRON     *csound = p->h.insdshead->csound;
+
+    if (amp!=p->lastamp) {      /* If amplitude has changed */
       /*       printf("Amp changed to %f\n", amp); */
-      ADSR_setAttackRate(&f->adsr, amp * FL(0.02));/* This should be controlled by attack */
-      f->maxPress = (FL(1.1) + (amp * FL(0.20))) / FL(0.8);
-      f->outputGain = amp + FL(0.001);
-      f->lastamp = amp;
+      ADSR_setAttackRate(csound, &p->adsr, amp * FL(0.02));/* This should be controlled by attack */
+      p->maxPress = (FL(1.1) + (amp * FL(0.20))) / FL(0.8);
+      p->outputGain = amp + FL(0.001);
+      p->lastamp = amp;
     }
-    f->v_rate = *f->vibFreq * v_len * onedsr;
+    p->v_rate = *p->vibFreq * v_len * onedsr;
                                 /* Start SetFreq */
-    if (f->lastFreq != *f->frequency) { /* It changed */
-      f->lastFreq = *f->frequency;
-      f->lastJet = *f->jetRatio;
-      /* freq = (2/3)*f->frequency as we're overblowing here */
+    if (p->lastFreq != *p->frequency) { /* It changed */
+      p->lastFreq = *p->frequency;
+      p->lastJet = *p->jetRatio;
+      /* freq = (2/3)*p->frequency as we're overblowing here */
       /* but 1/(2/3) is 1.5 so multiply for speed */
-      temp = FL(1.5)* esr / f->lastFreq - FL(2.0);/* Length - approx. filter delay */
-      DLineL_setDelay(&f->boreDelay, temp); /* Length of bore tube */
-      DLineL_setDelay(&f->jetDelay, temp * f->lastJet); /* jet delay shorter */
+      temp = FL(1.5)* esr / p->lastFreq - FL(2.0);/* Length - approx. filter delay */
+      DLineL_setDelay(&p->boreDelay, temp); /* Length of bore tube */
+      DLineL_setDelay(&p->jetDelay, temp * p->lastJet); /* jet delay shorter */
     }
-    else if (*f->jetRatio != f->lastJet) { /* Freq same but jet changed */
-      /*      printf("Jet changed to %f\n", *f->jetRatio); */
-      f->lastJet = *f->jetRatio;
-      temp = FL(1.5)* esr / f->lastFreq - FL(2.0);      /* Length - approx. filter delay */
-      DLineL_setDelay(&f->jetDelay, temp * f->lastJet); /* jet delay shorter */
+    else if (*p->jetRatio != p->lastJet) { /* Freq same but jet changed */
+      /*      printf("Jet changed to %f\n", *p->jetRatio); */
+      p->lastJet = *p->jetRatio;
+      temp = FL(1.5)* esr / p->lastFreq - FL(2.0);      /* Length - approx. filter delay */
+      DLineL_setDelay(&p->jetDelay, temp * p->lastJet); /* jet delay shorter */
     }
                                 /* End SetFreq */
 
-    if (f->kloop>FL(0.0) && f->h.insdshead->relesing) f->kloop=FL(1.0);
-    if ((--f->kloop) == 0) {
-      f->adsr.releaseRate = f->adsr.value / (*f->dettack * esr);
-      f->adsr.target = FL(0.0);
-      f->adsr.rate = f->adsr.releaseRate;
-      f->adsr.state = RELEASE;
+    if (p->kloop>FL(0.0) && p->h.insdshead->relesing) p->kloop=FL(1.0);
+    if ((--p->kloop) == 0) {
+      p->adsr.releaseRate = p->adsr.value / (*p->dettack * esr);
+      p->adsr.target = FL(0.0);
+      p->adsr.rate = p->adsr.releaseRate;
+      p->adsr.state = RELEASE;
 /*       printf("Set off phase time = %f\n", (MYFLT)kcounter/ekr); */
     }
-/*     printf("Flute : NoteOn: Freq=%f Amp=%f\n",*f->frequency,amp); */
+/*     printf("Flute : NoteOn: Freq=%f Amp=%f\n",*p->frequency,amp); */
 /*     printf("%f %f %f %f \n%f %f %f %f \n",  */
-/*        f->v_rate, f->v_time, f->lastFreq, f->lastJet,  */
-/*        f->maxPress, f->vibrGain, f->kloop, f->lastamp); */
-    noisegain = *f->noiseGain; jetRefl = *f->jetRefl; endRefl = *f->endRefl;
+/*        p->v_rate, p->v_time, p->lastFreq, p->lastJet,  */
+/*        p->maxPress, p->vibrGain, p->kloop, p->lastamp); */
+    noisegain = *p->noiseGain; jetRefl = *p->jetRefl; endRefl = *p->endRefl;
     do {
       long      temp;
       MYFLT     temf;
@@ -387,10 +391,10 @@ int flute(FLUTE *f)
       MYFLT     lastOutput;
       MYFLT     v_lastOutput;
 
-      breathPress = f->maxPress * ADSR_tick(&f->adsr); /* Breath Pressure */
-      randPress = noisegain * Noise_tick(&f->noise);   /* Random Deviation */
+      breathPress = p->maxPress * ADSR_tick(&p->adsr); /* Breath Pressure */
+      randPress = noisegain * Noise_tick(&p->noise);   /* Random Deviation */
                                 /* Tick on vibrato table */
-      v_time += f->v_rate;            /*  Update current time    */
+      v_time += p->v_rate;            /*  Update current time    */
       while (v_time >= v_len)         /*  Check for end of sound */
         v_time -= v_len;              /*  loop back to beginning */
       while (v_time < FL(0.0))           /*  Check for end of sound */
@@ -399,8 +403,8 @@ int flute(FLUTE *f)
       temp_time = v_time;
 
 #ifdef phase_offset
-      if (f->v_phaseOffset != FL(0.0)) {
-        temp_time += f->v_phaseOffset;   /*  Add phase offset       */
+      if (p->v_phaseOffset != FL(0.0)) {
+        temp_time += p->v_phaseOffset;   /*  Add phase offset       */
         while (temp_time >= v_len)    /*  Check for end of sound */
           temp_time -= v_len;         /*  loop back to beginning */
         while (temp_time < FL(0.0))      /*  Check for end of sound */
@@ -418,21 +422,21 @@ int flute(FLUTE *f)
                                       /* End of vibrato tick */
       randPress += vibGain * v_lastOutput; /* + breath vibrato       */
       randPress *= breathPress;            /* All scaled by Breath Pressure */
-      temf = OnePole_tick(&f->filter, DLineL_lastOut(&f->boreDelay));
-      temf = DCBlock_tick(&f->dcBlock, temf);        /* Block DC on reflection */
+      temf = OnePole_tick(&p->filter, DLineL_lastOut(&p->boreDelay));
+      temf = DCBlock_tick(&p->dcBlock, temf);        /* Block DC on reflection */
       pressDiff = breathPress + randPress    /* Breath Pressure   */
                      - (jetRefl * temf); /*  - reflected      */
-      pressDiff = DLineL_tick(&f->jetDelay, pressDiff);  /* Jet Delay Line */
+      pressDiff = DLineL_tick(&p->jetDelay, pressDiff);  /* Jet Delay Line */
       pressDiff = JetTabl_lookup(pressDiff)  /* Non-Lin Jet + reflected */
                      + (endRefl * temf);
-      lastOutput = FL(0.3) * DLineL_tick(&f->boreDelay, pressDiff);  /* Bore Delay and "bell" filter  */
+      lastOutput = FL(0.3) * DLineL_tick(&p->boreDelay, pressDiff);  /* Bore Delay and "bell" filter  */
 
-      lastOutput *= f->outputGain;
+      lastOutput *= p->outputGain;
 /*       printf("sample=%f\n", lastOutput); */
       *ar++ = lastOutput*AMP_SCALE*FL(1.4);
     } while (--nsmps);
 
-    f->v_time = v_time;
+    p->v_time = v_time;
     return OK;
 }
 
@@ -455,124 +459,127 @@ int flute(FLUTE *f)
 /*    by Perry R. Cook, 1995-96           */
 /******************************************/
 
-MYFLT BowTabl_lookup(BowTabl *b, MYFLT sample) /*  Perform Table Lookup    */
+ /*  Perform Table Lookup    */
+MYFLT BowTabl_lookup(ENVIRON *csound, BowTabl *b, MYFLT sample)
 {                                              /*  sample is differential  */
     MYFLT lastOutput;                          /*  string vs. bow velocity */
     MYFLT input;
     input = sample /* + b->offSet*/ ;          /*  add bias to sample      */
     input *= b->slope;                         /*  scale it                */
     lastOutput = (MYFLT)fabs(input) + FL(0.75); /*  below min delta, frict = 1 */
-    lastOutput = intpow(lastOutput,-4L);
+    lastOutput = csound->intpow_(lastOutput,-4L);
 /* if (lastOutput < FL(0.0) ) lastOutput = FL(0.0); */ /* minimum frict is 0.0 */
     if (lastOutput > FL(1.0)) lastOutput = FL(1.0); /*  maximum friction is 1.0 */
     return lastOutput;
 }
 
-int bowedset(BOWED *b)
+int bowedset(BOWED *p)
 {
     long        length;
     FUNC        *ftp;
-    MYFLT       amp = (*b->amp)*AMP_RSCALE; /* Normalise */
+    MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
+    ENVIRON     *csound = p->h.insdshead->csound;
 
-    if ((ftp = ftfind(b->ifn)) != NULL) b->vibr = ftp;
+    if ((ftp = ftfind(p->ifn)) != NULL) p->vibr = ftp;
     else {
       return perferror(Str(X_386,"No table for wgbow vibrato")); /* Expect sine wave */
     }
-    if (*b->lowestFreq>=FL(0.0)) {      /* If no init skip */
-/*        printf("Initialising lowest = %f\n", *b->lowestFreq); */
-      if (*b->lowestFreq!=FL(0.0))
-        length = (long) (esr / *b->lowestFreq + FL(1.0));
-      else if (*b->frequency!=FL(0.0))
-        length = (long) (esr / *b->frequency + FL(1.0));
+    if (*p->lowestFreq>=FL(0.0)) {      /* If no init skip */
+/*        printf("Initialising lowest = %f\n", *p->lowestFreq); */
+      if (*p->lowestFreq!=FL(0.0))
+        length = (long) (esr / *p->lowestFreq + FL(1.0));
+      else if (*p->frequency!=FL(0.0))
+        length = (long) (esr / *p->frequency + FL(1.0));
       else {
         err_printf(Str(X_512,"unknown lowest frequency for bowed string -- assuming 50Hz\n"));
         length = (long) (esr / FL(50.0) + FL(1.0));
       }
-      make_DLineL(&b->neckDelay, length);
+      make_DLineL(csound, &p->neckDelay, length);
       length = length >> 1; /* ?Unsure about this; seems correct in later code */
-      make_DLineL(&b->bridgeDelay, length);
+      make_DLineL(csound, &p->bridgeDelay, length);
 
-      /*  b->bowTabl.offSet = FL(0.0);*/
+      /*  p->bowTabl.offSet = FL(0.0);*/
       /* offset is a bias, really not needed unless */
       /* friction is different in each direction    */
 
-      /* b->bowTabl.slope contrls width of friction pulse, related to bowForce */
-      b->bowTabl.slope = FL(3.0);
-      make_OnePole(&b->reflFilt);
-      make_BiQuad(&b->bodyFilt);
-      make_ADSR(&b->adsr);
+      /* p->bowTabl.slope contrls width of friction pulse, related to bowForce */
+      p->bowTabl.slope = FL(3.0);
+      make_OnePole(&p->reflFilt);
+      make_BiQuad(&p->bodyFilt);
+      make_ADSR(&p->adsr);
 
-      DLineL_setDelay(&b->neckDelay, FL(100.0));
-      DLineL_setDelay(&b->bridgeDelay, FL(29.0));
+      DLineL_setDelay(&p->neckDelay, FL(100.0));
+      DLineL_setDelay(&p->bridgeDelay, FL(29.0));
 
-      OnePole_setPole(&b->reflFilt, FL(0.6) - (FL(0.1) * RATE_NORM));
-      OnePole_setGain(&b->reflFilt, FL(0.95));
+      OnePole_setPole(&p->reflFilt, FL(0.6) - (FL(0.1) * RATE_NORM));
+      OnePole_setGain(&p->reflFilt, FL(0.95));
 
-      BiQuad_setFreqAndReson(b->bodyFilt, FL(500.0), FL(0.85));
-      BiQuad_setEqualGainZeroes(b->bodyFilt);
-      BiQuad_setGain(b->bodyFilt, FL(0.2));
+      BiQuad_setFreqAndReson(p->bodyFilt, FL(500.0), FL(0.85));
+      BiQuad_setEqualGainZeroes(p->bodyFilt);
+      BiQuad_setGain(p->bodyFilt, FL(0.2));
 
-      ADSR_setAllTimes(&b->adsr, FL(0.02), FL(0.005), FL(0.9), FL(0.01));
-/*        ADSR_setAll(&b->adsr, 0.002f,0.01f,0.9f,0.01f); */
+      ADSR_setAllTimes(csound, &p->adsr, FL(0.02), FL(0.005), FL(0.9), FL(0.01));
+/*        ADSR_setAll(&p->adsr, 0.002f,0.01f,0.9f,0.01f); */
 
-      b->adsr.target = FL(1.0);
-      b->adsr.rate = b->adsr.attackRate;
-      b->adsr.state = ATTACK;
-      b->maxVelocity = FL(0.03) + (FL(0.2) * amp);
+      p->adsr.target = FL(1.0);
+      p->adsr.rate = p->adsr.attackRate;
+      p->adsr.state = ATTACK;
+      p->maxVelocity = FL(0.03) + (FL(0.2) * amp);
 
-      b->lastpress = FL(0.0);   /* Set unknown state */
-      b->lastfreq = FL(0.0);
-      b->lastbeta = FL(0.0);    /* Remember states */
-      b->lastamp = amp;
-/*        printf("Bowed amp = %f (%f)\n", amp, *b->amp); */
+      p->lastpress = FL(0.0);   /* Set unknown state */
+      p->lastfreq = FL(0.0);
+      p->lastbeta = FL(0.0);    /* Remember states */
+      p->lastamp = amp;
+/*        printf("Bowed amp = %f (%f)\n", amp, *p->amp); */
     }
     return OK;
 }
 
 
-int bowed(BOWED *b)
+int bowed(BOWED *p)
 {
-    MYFLT       *ar = b->ar;
+    MYFLT       *ar = p->ar;
     long        nsmps = ksmps;
-    MYFLT       amp = (*b->amp)*AMP_RSCALE; /* Normalise */
+    MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT       maxVel;
     int         freq_changed = 0;
+    ENVIRON     *csound = p->h.insdshead->csound;
 
-    if (amp != b->lastamp) {
-      b->maxVelocity = FL(0.03) + (FL(0.2) * amp);
-      b->lastamp = amp;
+    if (amp != p->lastamp) {
+      p->maxVelocity = FL(0.03) + (FL(0.2) * amp);
+      p->lastamp = amp;
 /*        printf("Bowed amp = %f\n", amp); */
     }
-    maxVel = b->maxVelocity;
-    if (b->lastpress != *b->bowPress)
-      b->bowTabl.slope = b->lastpress = *b->bowPress;
+    maxVel = p->maxVelocity;
+    if (p->lastpress != *p->bowPress)
+      p->bowTabl.slope = p->lastpress = *p->bowPress;
 
                                 /* Set Frequency if changed */
-    if (b->lastfreq != *b->frequency) {
+    if (p->lastfreq != *p->frequency) {
       /* delay - approx. filter delay */
-/*        printf("Freq chganged %f %f\n", *b->frequency, b->lastfreq); */
-      b->lastfreq = *b->frequency;
-      b->baseDelay = esr / b->lastfreq - FL(4.0);
-/*        printf("Freq set to %f with basedelay %f\n", b->lastfreq, b->baseDelay); */
+/*        printf("Freq chganged %f %f\n", *p->frequency, p->lastfreq); */
+      p->lastfreq = *p->frequency;
+      p->baseDelay = esr / p->lastfreq - FL(4.0);
+/*        printf("Freq set to %f with basedelay %f\n", p->lastfreq, p->baseDelay); */
       freq_changed = 1;
     }
-    if (b->lastbeta != *b->betaRatio ||
+    if (p->lastbeta != *p->betaRatio ||
         freq_changed) {         /* Reset delays if changed */
-/*        printf("setDelay %f !=", b->lastbeta); */
-      b->lastbeta = *b->betaRatio;
-      DLineL_setDelay(&b->bridgeDelay, /* bow to bridge length */
-                      b->baseDelay * b->lastbeta);
-      DLineL_setDelay(&b->neckDelay, /* bow to nut (finger) length */
-                      b->baseDelay *(FL(1.0) - b->lastbeta));
-/*        printf(" %f || %d\n", b->lastbeta, freq_changed); */
+/*        printf("setDelay %f !=", p->lastbeta); */
+      p->lastbeta = *p->betaRatio;
+      DLineL_setDelay(&p->bridgeDelay, /* bow to bridge length */
+                      p->baseDelay * p->lastbeta);
+      DLineL_setDelay(&p->neckDelay, /* bow to nut (finger) length */
+                      p->baseDelay *(FL(1.0) - p->lastbeta));
+/*        printf(" %f || %d\n", p->lastbeta, freq_changed); */
     }
-    b->v_rate = *b->vibFreq * b->vibr->flen * onedsr;
-    if (b->kloop>0 && b->h.insdshead->relesing) b->kloop=1;
-    if ((--b->kloop) == 0) {
-      ADSR_setDecayRate(&b->adsr, (FL(1.0) - b->adsr.value) * FL(0.005));
-      b->adsr.target = FL(0.0);
-      b->adsr.rate = b->adsr.releaseRate;
-      b->adsr.state = RELEASE;
+    p->v_rate = *p->vibFreq * p->vibr->flen * onedsr;
+    if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
+    if ((--p->kloop) == 0) {
+      ADSR_setDecayRate(csound, &p->adsr, (FL(1.0) - p->adsr.value) * FL(0.005));
+      p->adsr.target = FL(0.0);
+      p->adsr.rate = p->adsr.releaseRate;
+      p->adsr.state = RELEASE;
     }
 
     do {
@@ -581,61 +588,61 @@ int bowed(BOWED *b)
       MYFLT     newVel=FL(0.0), velDiff=FL(0.0), stringVel=FL(0.0);
       MYFLT     lastOutput;
 
-      bowVelocity = maxVel * ADSR_tick(&b->adsr);
+      bowVelocity = maxVel * ADSR_tick(&p->adsr);
 /* printf("bowVelocity=%f\n", bowVelocity); */
 
-      bridgeRefl = - OnePole_tick(&b->reflFilt, b->bridgeDelay.lastOutput);  /* Bridge Reflection      */
+      bridgeRefl = - OnePole_tick(&p->reflFilt, p->bridgeDelay.lastOutput);  /* Bridge Reflection      */
 /* printf("bridgeRefl=%f\n", bridgeRefl); */
-      nutRefl = - b->neckDelay.lastOutput; /* Nut Reflection  */
+      nutRefl = - p->neckDelay.lastOutput; /* Nut Reflection  */
 /* printf("nutRefl=%f\n", nutRefl); */
       stringVel = bridgeRefl + nutRefl; /* Sum is String Velocity */
 /* printf("stringVel=%f\n",stringVel ); */
       velDiff = bowVelocity - stringVel; /* Differential Velocity  */
 /* printf("velDiff=%f\n",velDiff ); */
-      newVel = velDiff * BowTabl_lookup(&b->bowTabl, velDiff);  /* Non-Lin Bow Function   */
+      newVel = velDiff * BowTabl_lookup(csound, &p->bowTabl, velDiff);  /* Non-Lin Bow Function   */
 /* printf("newVel=%f\n",newVel ); */
-      DLineL_tick(&b->neckDelay, bridgeRefl + newVel);  /* Do string       */
-      DLineL_tick(&b->bridgeDelay, nutRefl + newVel);   /*   propagations  */
+      DLineL_tick(&p->neckDelay, bridgeRefl + newVel);  /* Do string       */
+      DLineL_tick(&p->bridgeDelay, nutRefl + newVel);   /*   propagations  */
 
-      if (*b->vibAmt > FL(0.0)) {
+      if (*p->vibAmt > FL(0.0)) {
         long    temp;
         MYFLT   temp_time, alpha;
                                 /* Tick on vibrato table */
-        b->v_time += b->v_rate;              /*  Update current time    */
-        while (b->v_time >= b->vibr->flen)   /*  Check for end of sound */
-          b->v_time -= b->vibr->flen;        /*  loop back to beginning */
-        while (b->v_time < FL(0.0))          /*  Check for end of sound */
-          b->v_time += b->vibr->flen;        /*  loop back to beginning */
+        p->v_time += p->v_rate;              /*  Update current time    */
+        while (p->v_time >= p->vibr->flen)   /*  Check for end of sound */
+          p->v_time -= p->vibr->flen;        /*  loop back to beginning */
+        while (p->v_time < FL(0.0))          /*  Check for end of sound */
+          p->v_time += p->vibr->flen;        /*  loop back to beginning */
 
-        temp_time = b->v_time;
+        temp_time = p->v_time;
 
 #ifdef phase_offset
-        if (b->v_phaseOffset != FL(0.0)) {
-          temp_time += b->v_phaseOffset;     /*  Add phase offset       */
-          while (temp_time >= b->vibr->flen) /*  Check for end of sound */
-            temp_time -= b->vibr->flen;      /*  loop back to beginning */
+        if (p->v_phaseOffset != FL(0.0)) {
+          temp_time += p->v_phaseOffset;     /*  Add phase offset       */
+          while (temp_time >= p->vibr->flen) /*  Check for end of sound */
+            temp_time -= p->vibr->flen;      /*  loop back to beginning */
           while (temp_time < FL(0.0))        /*  Check for end of sound */
-            temp_time += b->vibr->flen;      /*  loop back to beginning */
+            temp_time += p->vibr->flen;      /*  loop back to beginning */
         }
 #endif
         temp = (long) temp_time;    /*  Integer part of time address    */
                                 /*  fractional part of time address */
         alpha = temp_time - (MYFLT)temp;
-        b->v_lastOutput = b->vibr->ftable[temp]; /* Do linear interpolation */
+        p->v_lastOutput = p->vibr->ftable[temp]; /* Do linear interpolation */
                         /*  same as alpha*data[temp+1] + (1-alpha)data[temp] */
-        b->v_lastOutput = b->v_lastOutput +
-          (alpha * (b->vibr->ftable[temp+1] - b->v_lastOutput));
+        p->v_lastOutput = p->v_lastOutput +
+          (alpha * (p->vibr->ftable[temp+1] - p->v_lastOutput));
                                 /* End of vibrato tick */
 
-       DLineL_setDelay(&b->neckDelay,
-                       (b->baseDelay * (FL(1.0) - b->lastbeta)) +
-                       (b->baseDelay * *b->vibAmt * b->v_lastOutput));
+       DLineL_setDelay(&p->neckDelay,
+                       (p->baseDelay * (FL(1.0) - p->lastbeta)) +
+                       (p->baseDelay * *p->vibAmt * p->v_lastOutput));
       }
       else
-       DLineL_setDelay(&b->neckDelay,
-                       (b->baseDelay * (FL(1.0) - b->lastbeta)));
+       DLineL_setDelay(&p->neckDelay,
+                       (p->baseDelay * (FL(1.0) - p->lastbeta)));
 
-      lastOutput = BiQuad_tick(&b->bodyFilt, b->bridgeDelay.lastOutput);
+      lastOutput = BiQuad_tick(&p->bodyFilt, p->bridgeDelay.lastOutput);
 /* printf("lastOutput=%f\n",lastOutput ); */
 
       *ar++ = lastOutput*AMP_SCALE * amp *FL(1.8);
@@ -668,11 +675,11 @@ int bowed(BOWED *b)
 /*  often (each sample)).                                                   */
 /****************************************************************************/
 
-void make_DLineA(DLineA *p, long max_length)
+void make_DLineA(ENVIRON *csound, DLineA *p, long max_length)
 {
     long i;
     p->length = max_length;
-    auxalloc(max_length * sizeof(MYFLT), &p->inputs);
+    csound->auxalloc_(max_length * sizeof(MYFLT), &p->inputs);
     for (i=0;i<max_length;i++) ((MYFLT*)p->inputs.auxp)[i] = FL(0.0);
     p->lastIn = FL(0.0);
     p->lastOutput = FL(0.0);
@@ -688,13 +695,13 @@ void make_DLineA(DLineA *p, long max_length)
 /*     p->lastOutput = FL(0.0); */
 /* } */
 
-int DLineA_setDelay(DLineA *p, MYFLT lag)
+int DLineA_setDelay(ENVIRON *csound, DLineA *p, MYFLT lag)
 {
     MYFLT outputPointer;
     outputPointer = (MYFLT)p->inPoint - lag + FL(2.0);  /* outPoint chases inpoint        */
                                                     /*   + 2 for interp and other     */
     if (p->length<=0) {
-      return perferror(Str(X_247,"DlineA not initialised"));
+      return csound->perferror_(csound->getstring_(X_247,"DlineA not initialised"));
     }
     while (outputPointer<0)
         outputPointer += p->length;        /* modulo table length            */
@@ -736,11 +743,11 @@ MYFLT DLineA_tick(DLineA *p, MYFLT sample)   /*   Take sample, yield sample */
 
 #define make_LipFilt(p) make_BiQuad(p)
 
-void LipFilt_setFreq(LipFilt *p, MYFLT frequency)
+void LipFilt_setFreq(ENVIRON *csound, LipFilt *p, MYFLT frequency)
 {
     MYFLT coeffs[2];
     coeffs[0] = FL(2.0) * FL(0.997) *
-      (MYFLT)cos(tpidsr * (double)frequency);        /* damping should  */
+      (MYFLT)cos(csound->tpidsr_ * (double)frequency);        /* damping should  */
     coeffs[1] = -FL(0.997) * FL(0.997);              /* change with lip */
     BiQuad_setPoleCoeffs(p, coeffs);                 /* parameters, but */
     BiQuad_setGain(*p, FL(0.03));                    /* not yet.        */
@@ -770,6 +777,7 @@ int brassset(BRASS *p)
 {
     FUNC        *ftp;
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
+    ENVIRON     *csound = p->h.insdshead->csound;
 
     if ((ftp = ftfind(p->ifn)) != NULL) p->vibr = ftp;
     else {
@@ -786,14 +794,14 @@ int brassset(BRASS *p)
                        "No base frequency for brass -- assumed to be 50Hz\n"));
         p->length = (long) (esr / FL(50.0) + FL(1.0));
       }
-      make_DLineA(&p->delayLine, p->length);
+      make_DLineA(csound, &p->delayLine, p->length);
       make_LipFilt(&p->lipFilter);
       make_DCBlock(&p->dcBlock);
       make_ADSR(&p->adsr);
-      ADSR_setAllTimes(&p->adsr, FL(0.005), FL(0.001), FL(1.0), FL(0.010));
+      ADSR_setAllTimes(csound, &p->adsr, FL(0.005), FL(0.001), FL(1.0), FL(0.010));
 /*        ADSR_setAll(&p->adsr, 0.02f, 0.05f, FL(1.0), 0.001f); */
 
-      ADSR_setAttackRate(&p->adsr, amp * FL(0.001));
+      ADSR_setAttackRate(csound, &p->adsr, amp * FL(0.001));
 
       p->maxPressure = amp;
       ADSR_keyOn(&p->adsr);
@@ -803,11 +811,11 @@ int brassset(BRASS *p)
       /* fudge correction for filter delays */
       /*      DLineA_setDelay(&p->delayLine, p->slideTarget);*/ /* we'll play a harmonic  */
       p->lipTarget = FL(0.0);
-/*        LipFilt_setFreq(&p->lipFilter, p->frq); */
+/*        LipFilt_setFreq(csound, &p->lipFilter, p->frq); */
       /* End of set frequency */
       p->frq = FL(0.0);         /* to say we do not know */
       p->lipT = FL(0.0);
-      /*     LipFilt_setFreq(&p->lipFilter, */
+      /*     LipFilt_setFreq(csound, &p->lipFilter, */
       /*                     p->lipTarget * (MYFLT)pow(4.0,(2.0* p->lipT) -1.0)); */
       {
         int relestim = (int)(ekr * FL(0.1)); /* 1/10th second decay extention */
@@ -831,13 +839,14 @@ int brass(BRASS *p)
     MYFLT *v_data = p->vibr->ftable;
     MYFLT vibGain = *p->vibAmt;
     MYFLT vTime = p->v_time;
+    ENVIRON *csound = p->h.insdshead->csound;
 
     p->v_rate = *p->vibFreq * v_len * onedsr;
     /*   vibr->setFreq(6.137); */
     /* vibrGain = 0.05; */            /* breath periodic vibrato component  */
     if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
     if ((--p->kloop) == 0) {
-      ADSR_setReleaseRate(&p->adsr, amp * FL(0.005));
+      ADSR_setReleaseRate(csound, &p->adsr, amp * FL(0.005));
       ADSR_keyOff(&p->adsr);
     }
     if (p->frq != *p->frequency) {             /* Set frequency if changed */
@@ -845,13 +854,13 @@ int brass(BRASS *p)
       p->slideTarget = (esr / p->frq * FL(2.0)) + FL(3.0);
                         /* fudge correction for filter delays */
        /*  we'll play a harmonic */
-      if (DLineA_setDelay(&p->delayLine, p->slideTarget)) return OK;
+      if (DLineA_setDelay(csound, &p->delayLine, p->slideTarget)) return OK;
       p->lipTarget = p->frq;
       p->lipT = FL(0.0);                /* So other part is set */
     } /* End of set frequency */
     if (*p->liptension != p->lipT) {
       p->lipT = *p->liptension;
-      LipFilt_setFreq(&p->lipFilter,
+      LipFilt_setFreq(csound, &p->lipFilter,
                       p->lipTarget * (MYFLT)pow(4.0,(2.0* p->lipT) -1.0));
     }
 

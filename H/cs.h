@@ -598,7 +598,7 @@ typedef struct ENVIRON_
   void (*mfree_)(void *);
   void (*dispset)(WINDAT *, MYFLT *, long, char *, int, char *);
   void (*display)(WINDAT *);
-  MYFLT (*intpow)(MYFLT, long);
+  MYFLT (*intpow_)(MYFLT, long);
   FUNC *(*ftfindp)(MYFLT *argp);
   FUNC *(*ftnp2find)(MYFLT *);
   char *(*unquote)(char *);

@@ -282,6 +282,7 @@ MYFLT FM4Alg5_tick(FM4OP *p, MYFLT c1, MYFLT c2)
 int tubebellset(FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
+    ENVIRON     *csound = p->h.insdshead->csound;
 
     if (make_FM4Op(p)) return NOTOK;
     if (FM4Op_loadWaves(p)) return NOTOK; /* 4 times  "rawwaves/sinewave.raw" */
@@ -294,14 +295,14 @@ int tubebellset(FM4OP *p)
     p->gains[1] = amp * FM4Op_gains[76];
     p->gains[2] = amp * FM4Op_gains[99];
     p->gains[3] = amp * FM4Op_gains[71];
-    ADSR_setAllTimes(&p->adsr[0], FL(0.005), FL(4.0), FL(0.0), FL(0.04));
-    ADSR_setAllTimes(&p->adsr[1], FL(0.005), FL(4.0), FL(0.0), FL(0.04));
-    ADSR_setAllTimes(&p->adsr[2], FL(0.001), FL(2.0), FL(0.0), FL(0.04));
-    ADSR_setAllTimes(&p->adsr[3], FL(0.004), FL(4.0), FL(0.0), FL(0.04));
-/*      ADSR_setAll(&p->adsr[0], 0.03f,0.00001f,FL(0.0),0.02f); */
-/*      ADSR_setAll(&p->adsr[1], 0.03f,0.00001f,FL(0.0),0.02f); */
-/*      ADSR_setAll(&p->adsr[2], 0.07f,0.00002f,FL(0.0),0.02f); */
-/*      ADSR_setAll(&p->adsr[3], FL(0.04),0.00001f,FL(0.0),0.02f); */
+    ADSR_setAllTimes(csound, &p->adsr[0], FL(0.005), FL(4.0), FL(0.0), FL(0.04));
+    ADSR_setAllTimes(csound, &p->adsr[1], FL(0.005), FL(4.0), FL(0.0), FL(0.04));
+    ADSR_setAllTimes(csound, &p->adsr[2], FL(0.001), FL(2.0), FL(0.0), FL(0.04));
+    ADSR_setAllTimes(csound, &p->adsr[3], FL(0.004), FL(4.0), FL(0.0), FL(0.04));
+/*      ADSR_setAll(csound, &p->adsr[0], 0.03f,0.00001f,FL(0.0),0.02f); */
+/*      ADSR_setAll(csound, &p->adsr[1], 0.03f,0.00001f,FL(0.0),0.02f); */
+/*      ADSR_setAll(csound, &p->adsr[2], 0.07f,0.00002f,FL(0.0),0.02f); */
+/*      ADSR_setAll(csound, &p->adsr[3], FL(0.04),0.00001f,FL(0.0),0.02f); */
     p->twozero.gain = FL(0.5);
     p->v_rate = FL(2.0) * p->vibWave->flen * onedsr; /* Vib rate */
                                 /* Set Freq */
@@ -354,6 +355,7 @@ int tubebell(FM4OP *p)
 int rhodeset(FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
+    ENVIRON     *csound = p->h.insdshead->csound;
 
     if (make_FM4Op(p)) return NOTOK;
     if (FM4Op_loadWaves(p)) return NOTOK; /* 3 times  "sinewave.raw"; 1 x fwavblnk.raw */
@@ -366,10 +368,10 @@ int rhodeset(FM4OP *p)
     p->gains[1] = amp * FM4Op_gains[90];
     p->gains[2] = amp * FM4Op_gains[99];
     p->gains[3] = amp * FM4Op_gains[67];
-    ADSR_setAllTimes(&p->adsr[0], FL(0.001), FL(1.50), FL(0.0), FL(0.04));
-    ADSR_setAllTimes(&p->adsr[1], FL(0.001), FL(1.50), FL(0.0), FL(0.04));
-    ADSR_setAllTimes(&p->adsr[2], FL(0.001), FL(1.00), FL(0.0), FL(0.04));
-    ADSR_setAllTimes(&p->adsr[3], FL(0.001), FL(0.25), FL(0.0), FL(0.04));
+    ADSR_setAllTimes(csound, &p->adsr[0], FL(0.001), FL(1.50), FL(0.0), FL(0.04));
+    ADSR_setAllTimes(csound, &p->adsr[1], FL(0.001), FL(1.50), FL(0.0), FL(0.04));
+    ADSR_setAllTimes(csound, &p->adsr[2], FL(0.001), FL(1.00), FL(0.0), FL(0.04));
+    ADSR_setAllTimes(csound, &p->adsr[3], FL(0.001), FL(0.25), FL(0.0), FL(0.04));
 /*      ADSR_setAll(&p->adsr[0], 0.05f,0.00003f,FL(0.0),0.02f); */
 /*      ADSR_setAll(&p->adsr[1], 0.05f,0.00003f,FL(0.0),0.02f); */
 /*      ADSR_setAll(&p->adsr[2], 0.05f,0.00005f,FL(0.0),0.02f); */
@@ -399,6 +401,7 @@ int rhodeset(FM4OP *p)
 int wurleyset(FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
+    ENVIRON     *csound = p->h.insdshead->csound;
 
     if (make_FM4Op(p)) return NOTOK;
     if (FM4Op_loadWaves(p)) return NOTOK; /* 3 times  "sinewave.raw"; 1 x fwavblnk.raw */
@@ -411,10 +414,10 @@ int wurleyset(FM4OP *p)
     p->gains[1] = amp * FM4Op_gains[82];
     p->gains[2] = amp * FM4Op_gains[82];
     p->gains[3] = amp * FM4Op_gains[68];
-    ADSR_setAllTimes(&p->adsr[0], FL(0.001), FL(1.50), FL(0.0), FL(0.04));
-    ADSR_setAllTimes(&p->adsr[1], FL(0.001), FL(1.50), FL(0.0), FL(0.04));
-    ADSR_setAllTimes(&p->adsr[2], FL(0.001), FL(0.25), FL(0.0), FL(0.04));
-    ADSR_setAllTimes(&p->adsr[3], FL(0.001), FL(0.15), FL(0.0), FL(0.04));
+    ADSR_setAllTimes(csound, &p->adsr[0], FL(0.001), FL(1.50), FL(0.0), FL(0.04));
+    ADSR_setAllTimes(csound, &p->adsr[1], FL(0.001), FL(1.50), FL(0.0), FL(0.04));
+    ADSR_setAllTimes(csound, &p->adsr[2], FL(0.001), FL(0.25), FL(0.0), FL(0.04));
+    ADSR_setAllTimes(csound, &p->adsr[3], FL(0.001), FL(0.15), FL(0.0), FL(0.04));
 /*      ADSR_setAll(&p->adsr[0], 0.05f,0.00003f,FL(0.0),0.02f); */
 /*      ADSR_setAll(&p->adsr[1], 0.05f,0.00003f,FL(0.0),0.02f); */
 /*      ADSR_setAll(&p->adsr[2], 0.05f,0.0002f,FL(0.0),0.02f); */
@@ -511,16 +514,18 @@ MYFLT FM4Alg3_tick(FM4OP *p, MYFLT c1, MYFLT c2)
 
 int heavymetset(FM4OP *p)
 {
+    ENVIRON     *csound = p->h.insdshead->csound;
+
     if (make_FM4Op(p)) return NOTOK;
     if (FM4Op_loadWaves(p)) return NOTOK;         /* Mixed -- 2 x sine; 1 x fwavblnk */
     FM4Op_setRatio(p, 0, FL(1.00)         );
     FM4Op_setRatio(p, 1, FL(4.00) * FL(0.999));
     FM4Op_setRatio(p, 2, FL(3.00) * FL(1.001));
     FM4Op_setRatio(p, 3, FL(0.50) * FL(1.002));
-    ADSR_setAllTimes(&p->adsr[0], FL(0.001), FL(0.001), FL(1.0), FL(0.01));
-    ADSR_setAllTimes(&p->adsr[1], FL(0.001), FL(0.010), FL(1.0), FL(0.50));
-    ADSR_setAllTimes(&p->adsr[2], FL(0.010), FL(0.005), FL(1.0), FL(0.20));
-    ADSR_setAllTimes(&p->adsr[3], FL(0.030), FL(0.010), FL(0.2), FL(0.20));
+    ADSR_setAllTimes(csound, &p->adsr[0], FL(0.001), FL(0.001), FL(1.0), FL(0.01));
+    ADSR_setAllTimes(csound, &p->adsr[1], FL(0.001), FL(0.010), FL(1.0), FL(0.50));
+    ADSR_setAllTimes(csound, &p->adsr[2], FL(0.010), FL(0.005), FL(1.0), FL(0.20));
+    ADSR_setAllTimes(csound, &p->adsr[3], FL(0.030), FL(0.010), FL(0.2), FL(0.20));
 /*      ADSR_setAll(&p->adsr[0], 0.050f, 0.0100f, FL(1.0), FL(0.001));  */
 /*      ADSR_setAll(&p->adsr[1], 0.050f, 0.0010f, FL(1.0), 0.0001f); */
 /*      ADSR_setAll(&p->adsr[2], FL(0.001), 0.0020f, FL(1.0), 0.0002f); */
@@ -613,6 +618,7 @@ MYFLT FM4Alg8_tick(FM4OP *p, MYFLT c1, MYFLT c2)
 int b3set(FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
+    ENVIRON     *csound = p->h.insdshead->csound;
 
     if (make_FM4Op(p)) return NOTOK;
     if (FM4Op_loadWaves(p)) return NOTOK;         /* sines */
@@ -625,10 +631,10 @@ int b3set(FM4OP *p)
     p->gains[1] = amp * FM4Op_gains[95];
     p->gains[2] = amp * FM4Op_gains[99];
     p->gains[3] = amp * FM4Op_gains[95];
-    ADSR_setAllTimes(&p->adsr[0], FL(0.005), FL(0.003), FL(1.0), FL(0.01));
-    ADSR_setAllTimes(&p->adsr[1], FL(0.005), FL(0.003), FL(1.0), FL(0.01));
-    ADSR_setAllTimes(&p->adsr[2], FL(0.005), FL(0.003), FL(1.0), FL(0.01));
-    ADSR_setAllTimes(&p->adsr[3], FL(0.005), FL(0.001), FL(0.4), FL(0.03));
+    ADSR_setAllTimes(csound, &p->adsr[0], FL(0.005), FL(0.003), FL(1.0), FL(0.01));
+    ADSR_setAllTimes(csound, &p->adsr[1], FL(0.005), FL(0.003), FL(1.0), FL(0.01));
+    ADSR_setAllTimes(csound, &p->adsr[2], FL(0.005), FL(0.003), FL(1.0), FL(0.01));
+    ADSR_setAllTimes(csound, &p->adsr[3], FL(0.005), FL(0.001), FL(0.4), FL(0.03));
 /*      ADSR_setAll(&p->adsr[0], 0.05f, 0.03f, FL(1.0), FL(0.04)); */
 /*      ADSR_setAll(&p->adsr[1], 0.05f, 0.03f, FL(1.0), FL(0.04)); */
 /*      ADSR_setAll(&p->adsr[2], 0.05f, 0.03f, FL(1.0), FL(0.04)); */
@@ -947,6 +953,7 @@ int FMVoiceset(FM4OPV *q)
 {
     FM4OP       *p = (FM4OP *)q;
     MYFLT       amp = *q->amp * AMP_RSCALE;
+    ENVIRON     *csound = p->h.insdshead->csound;
 
     if (make_FM4Op(p)) return NOTOK;
     if (FM4Op_loadWaves(p)) return NOTOK;
@@ -955,13 +962,13 @@ int FMVoiceset(FM4OPV *q)
     FM4Op_setRatio(p, 2, FL(12.0));
     FM4Op_setRatio(p, 3, FL(1.00));
     p->gains[3] = FM4Op_gains[80];
-    ADSR_setAllTimes(&p->adsr[0], FL(0.050), FL(0.050),
+    ADSR_setAllTimes(csound, &p->adsr[0], FL(0.050), FL(0.050),
                      FM4Op_susLevels[15], FL(0.050));
-    ADSR_setAllTimes(&p->adsr[1], FL(0.050), FL(0.050),
+    ADSR_setAllTimes(csound, &p->adsr[1], FL(0.050), FL(0.050),
                      FM4Op_susLevels[15], FL(0.050));
-    ADSR_setAllTimes(&p->adsr[2], FL(0.050), FL(0.050),
+    ADSR_setAllTimes(csound, &p->adsr[2], FL(0.050), FL(0.050),
                      FM4Op_susLevels[15], FL(0.050));
-    ADSR_setAllTimes(&p->adsr[3], FL(0.001), FL(0.010),
+    ADSR_setAllTimes(csound, &p->adsr[3], FL(0.001), FL(0.010),
                      FM4Op_susLevels[15], FL(0.500));
 /*      ADSR_setAll(&p->adsr[0], FL(0.001), FL(0.001),
         FM4Op_susLevels[15], FL(0.001)); */
@@ -1072,6 +1079,7 @@ MYFLT FM4Alg4_tick(FM4OP *p, MYFLT c1, MYFLT c2)
 int percfluteset(FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
+    ENVIRON     *csound = p->h.insdshead->csound;
 
     if (make_FM4Op(p)) return NOTOK;
     if (FM4Op_loadWaves(p)) return NOTOK;         /* 3 x sines; 1 x fwavblnk */
@@ -1085,13 +1093,13 @@ int percfluteset(FM4OP *p)
     p->gains[1] = amp * FM4Op_gains[71];
     p->gains[2] = amp * FM4Op_gains[93];
     p->gains[3] = amp * FM4Op_gains[85];
-    ADSR_setAllTimes(&p->adsr[0], FL(0.05), FL(0.05),
+    ADSR_setAllTimes(csound, &p->adsr[0], FL(0.05), FL(0.05),
                      FM4Op_susLevels[14], FL(0.05));
-    ADSR_setAllTimes(&p->adsr[1], FL(0.02), FL(0.50),
+    ADSR_setAllTimes(csound, &p->adsr[1], FL(0.02), FL(0.50),
                      FM4Op_susLevels[13], FL(0.5));
-    ADSR_setAllTimes(&p->adsr[2], FL(0.02), FL(0.30),
+    ADSR_setAllTimes(csound, &p->adsr[2], FL(0.02), FL(0.30),
                      FM4Op_susLevels[11], FL(0.05));
-    ADSR_setAllTimes(&p->adsr[3], FL(0.02), FL(0.05),
+    ADSR_setAllTimes(csound, &p->adsr[3], FL(0.02), FL(0.05),
                      FM4Op_susLevels[13], FL(0.01));
 /*  ADSR_setAll(&p->adsr[0],FL(0.001),FL(0.001),FM4Op_susLevels[14], FL(0.001));*/
 /*  ADSR_setAll(&p->adsr[1], 0.05f,  0.0001f, FM4Op_susLevels[13], 0.0001f); */

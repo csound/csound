@@ -72,9 +72,9 @@ typedef struct DLineA {
     MYFLT       lastIn;
 } DLineA;
 
-void make_DLineA(DLineA *, long max_length);
+void make_DLineA(ENVIRON *,DLineA *, long max_length);
 /* void DLineA_clear(DLineA *); */
-int DLineA_setDelay(DLineA *, MYFLT length);
+int DLineA_setDelay(ENVIRON *,DLineA *, MYFLT length);
 MYFLT DLineA_tick(DLineA *, MYFLT sample);
 
 /***********************************************/
@@ -92,7 +92,7 @@ typedef BiQuad LipFilt;
 
 void make_LipFilt(LipFilt*);
 void LipFilt_clear(LipFilt*);
-void LipFilt_setFreq(LipFilt*, MYFLT frequency);
+void LipFilt_setFreq(ENVIRON*,LipFilt*, MYFLT frequency);
 MYFLT LipFilt_tick(LipFilt*, MYFLT mouthSample,MYFLT boreSample);
 MYFLT LipFilt_lastOut(LipFilt*);
 

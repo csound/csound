@@ -127,7 +127,7 @@ void Modal4_strike(ENVIRON *csound, Modal4 *m, MYFLT amplitude)
 {
     int i;
     MYFLT temp;
-    Envelope_setRate(&m->envelope, FL(1.0));
+    Envelope_setRate(csound, &m->envelope, FL(1.0));
     Envelope_setTarget(&m->envelope, amplitude);
     OnePole_setPole(&m->onepole, FL(1.0) - amplitude);
     Envelope_tick(&m->envelope);

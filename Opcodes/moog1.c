@@ -82,7 +82,8 @@ void FormSwep_setTargets(FormSwep *p, MYFLT aFreq, MYFLT aReson, MYFLT aGain)
     p->sweepState  = FL(0.0);
 }
 
-MYFLT FormSwep_tick(FormSwep *p, MYFLT sample) /* Perform Filter Operation */
+static MYFLT FormSwep_tick(ENVIRON *csound,
+                    FormSwep *p, MYFLT sample) /* Perform Filter Operation */
 {
     MYFLT temp;
 
@@ -105,7 +106,7 @@ MYFLT FormSwep_tick(FormSwep *p, MYFLT sample) /* Perform Filter Operation */
       }
       p->poleCoeffs[1] = - (p->currentReson * p->currentReson);
       p->poleCoeffs[0] = FL(2.0) * p->currentReson *
-        (MYFLT)cos(tpidsr * (double)p->currentFreq);
+        (MYFLT)cos(csound->tpidsr_ * (double)p->currentFreq);
     }
 
     temp = p->currentGain * sample;
@@ -161,6 +162,7 @@ int Moog1set(MOOG1 *p)
 {
     FUNC        *ftp;
     MYFLT       tempCoeffs[2] = {FL(0.0),-FL(1.0)};
+    ENVIRON *csound = p->h.insdshead->csound;
 
     make_ADSR(&p->adsr);
     make_OnePole(&p->filter);
@@ -181,8 +183,8 @@ int Moog1set(MOOG1 *p)
     p->loop.time = p->loop.phase = FL(0.0);
     p->vibr.time = p->vibr.phase = FL(0.0);
     p->oldfilterQ = p->oldfilterRate = FL(0.0);
-    ADSR_setAllTimes(&p->adsr, FL(0.001), FL(1.5), FL(0.6), FL(0.250));
-    ADSR_setAll(&p->adsr, FL(0.05), FL(0.00003), FL(0.6), FL(0.0002));
+    ADSR_setAllTimes(csound, &p->adsr, FL(0.001), FL(1.5), FL(0.6), FL(0.250));
+    ADSR_setAll(csound, &p->adsr, FL(0.05), FL(0.00003), FL(0.6), FL(0.0002));
     ADSR_keyOn(&p->adsr);
     return OK;
 }
@@ -194,6 +196,7 @@ int Moog1(MOOG1 *p)
     long        nsmps = ksmps;
     MYFLT       temp;
     MYFLT       vib = *p->vibAmt;
+    ENVIRON *csound = p->h.insdshead->csound;
 
     p->baseFreq = *p->frequency;
     p->attk.rate = p->baseFreq * FL(0.01) * p->attk.wave->flen * onedsr;
@@ -310,7 +313,7 @@ int Moog1(MOOG1 *p)
 #ifdef DEBUG
       printf("TwoZero0_tick: %f\n", output);
 #endif
-      output = FormSwep_tick(&p->filters[0], output);
+      output = FormSwep_tick(csound, &p->filters[0], output);
 #ifdef DEBUG
       printf("Filters0_tick: %f\n", output);
 #endif
@@ -318,7 +321,7 @@ int Moog1(MOOG1 *p)
 #ifdef DEBUG
       printf("TwoZero1_tick: %f\n", output);
 #endif
-      output = FormSwep_tick(&p->filters[1], output);
+      output = FormSwep_tick(csound, &p->filters[1], output);
 #ifdef DEBUG
       printf("Filter2_tick: %f\n", output);
 #endif

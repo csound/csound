@@ -172,11 +172,11 @@ bround(MYFLT x)
  */
 
 static BaboMemory *
-BaboMemory_create(BABO *p, BaboMemory *this, size_t size_in_floats)
+BaboMemory_create(ENVIRON *csound, BaboMemory *this, size_t size_in_floats)
 {
     size_t size_in_bytes = size_in_floats * sizeof(MYFLT);
 
-    auxalloc((long) size_in_bytes, &this->memptr);
+    csound->auxalloc_((long) size_in_bytes, &this->memptr);
 
     memset(this->memptr.auxp, 0, size_in_bytes);
 
@@ -216,11 +216,11 @@ BaboMemory_size(const BaboMemory *this)
  */
 
 static void
-_Babo_common_delay_create(BABO *p, BaboDelay *this, MYFLT max_time)
+_Babo_common_delay_create(ENVIRON *csound, BaboDelay *this, MYFLT max_time)
 {
-    size_t num_floats = (size_t) bround((MYFLT)ceil((double)(max_time * esr)));
+    size_t num_floats = (size_t) bround((MYFLT)ceil((double)(max_time * csound->esr_)));
 
-    BaboMemory_create(&this->core, num_floats);
+    BaboMemory_create(csound, &this->core, num_floats);
 }
 
 /*
@@ -228,9 +228,9 @@ _Babo_common_delay_create(BABO *p, BaboDelay *this, MYFLT max_time)
  */
 
 static BaboDelay *
-BaboDelay_create(BaboDelay *this, MYFLT max_time)
+BaboDelay_create(ENVIRON *csound, BaboDelay *this, MYFLT max_time)
 {
-    _Babo_common_delay_create(this, max_time);
+    _Babo_common_delay_create(csound, this, max_time);
 
     this->input = BaboMemory_start(&this->core);
 
@@ -270,11 +270,11 @@ BaboDelay_output(const BaboDelay *this)
  */
 
 static BaboTapline *
-BaboTapline_create(BaboTapline *this, MYFLT x, MYFLT y, MYFLT z)
+BaboTapline_create(ENVIRON *csound, BaboTapline *this, MYFLT x, MYFLT y, MYFLT z)
 {
     MYFLT max_time = (MYFLT)(2.0 * sqrt((x*x) + (y*y) + (z*z))) / sound_speed;
 
-    _Babo_common_delay_create((BaboDelay *) this, max_time);
+    _Babo_common_delay_create(csound, (BaboDelay *) this, max_time);
 
     this->input = BaboMemory_start(&this->core);
 
@@ -282,9 +282,9 @@ BaboTapline_create(BaboTapline *this, MYFLT x, MYFLT y, MYFLT z)
 }
 
 INLINE static MYFLT
-BaboTapline_maxtime(BABO *p, BaboDelay *this)
+BaboTapline_maxtime(ENVIRON *csound, BaboDelay *this)
 {
-    return (((MYFLT) BaboMemory_samples(&this->core)) * onedsr);
+    return (((MYFLT) BaboMemory_samples(&this->core)) * csound->onedsr_);
 }
 
 INLINE static MYFLT
@@ -314,7 +314,7 @@ typedef struct
  */
 /* a-rate function */
 static MYFLT
-BaboTapline_single_output(BABO *p, const BaboTapline *this, const BaboTapParameter *pp)
+BaboTapline_single_output(ENVIRON *csound, const BaboTapline *this, const BaboTapParameter *pp)
 {
         /*
          * the assignement right below should be really a floor(p->delay_size),
@@ -344,7 +344,7 @@ BaboTapline_single_output(BABO *p, const BaboTapline *this, const BaboTapParamet
 
 /* k-rate function */
 INLINE static void
-BaboTapline_preload_parameter(BaboTapParameter *this, MYFLT distance)
+BaboTapline_preload_parameter(ENVIRON *csound, BaboTapParameter *this, MYFLT distance)
 {
     /*
      * Direct sound parameters at the input of delay tap_lines.
@@ -352,13 +352,13 @@ BaboTapline_preload_parameter(BaboTapParameter *this, MYFLT distance)
      *          direct_att=(1/2) when distance is 1 m
      *          direct_att=1     when distance is 0 m.
      */
-    this->delay_size    = (distance / sound_speed) * esr;
+    this->delay_size    = (distance / sound_speed) * csound->esr_;
     this->attenuation   = 1 / (1 + distance);
 }
 
 /* k-rate function */
 static BaboTaplineParameters *
-BaboTapline_precalculate_parameters(const BaboTapline *this,
+BaboTapline_precalculate_parameters(ENVIRON *csound, const BaboTapline *this,
     BaboTaplineParameters   *results,
     MYFLT r_x, MYFLT r_y, MYFLT r_z,    /* receiver position (i-rate) */
     MYFLT s_x, MYFLT s_y, MYFLT s_z,    /* source   position (k-rate) */
@@ -377,21 +377,21 @@ BaboTapline_precalculate_parameters(const BaboTapline *this,
     sqr_xz      = sqr_diff_x + sqr_diff_z;
     sqr_xy      = sqr_diff_x + sqr_diff_y;
 
-    BaboTapline_preload_parameter(&results->direct, (MYFLT)sqrt(sqr_diff_x + sqr_yz));
+    BaboTapline_preload_parameter(csound, &results->direct,
+                                  (MYFLT)sqrt(sqr_diff_x + sqr_yz));
 
-    BaboTapline_preload_parameter(&results->tap[0],
-                                        (MYFLT)sqrt(square(l_x + r_x + s_x) + sqr_yz));
-    BaboTapline_preload_parameter(&results->tap[1],
-                                        (MYFLT)sqrt(square(l_x - r_x - s_x) + sqr_yz));
-
-    BaboTapline_preload_parameter(&results->tap[2],
+    BaboTapline_preload_parameter(csound, &results->tap[0],
+                                  (MYFLT)sqrt(square(l_x + r_x + s_x) + sqr_yz));
+    BaboTapline_preload_parameter(csound, &results->tap[1],
+                                  (MYFLT)sqrt(square(l_x - r_x - s_x) + sqr_yz));
+    BaboTapline_preload_parameter(csound, &results->tap[2],
                         (MYFLT)sqrt(sqr_xz + square(l_y - r_y - s_y)));
-    BaboTapline_preload_parameter(&results->tap[3],
+    BaboTapline_preload_parameter(csound, &results->tap[3],
                         (MYFLT)sqrt(sqr_xz + square(l_y + r_y + s_y)));
 
-    BaboTapline_preload_parameter(&results->tap[4],
+    BaboTapline_preload_parameter(csound, &results->tap[4],
                                         (MYFLT)sqrt(sqr_xy + square(l_z - r_z - s_z)));
-    BaboTapline_preload_parameter(&results->tap[5],
+    BaboTapline_preload_parameter(csound, &results->tap[5],
                                         (MYFLT)sqrt(sqr_xy + square(l_z + r_z + s_z)));
 
     return results;
@@ -399,14 +399,14 @@ BaboTapline_precalculate_parameters(const BaboTapline *this,
 
 /* a-rate function */
 static MYFLT
-BaboTapline_output(const BaboTapline *this,
-    const BaboTaplineParameters *pars)
+BaboTapline_output(ENVIRON *csound, const BaboTapline *this,
+                   const BaboTaplineParameters *pars)
 {
     int     i;
-    MYFLT   output = BaboTapline_single_output(this, &pars->direct);
+    MYFLT   output = BaboTapline_single_output(csound, this, &pars->direct);
 
     for (i = 0; i < BABO_TAPS; ++i)
-      output  += BaboTapline_single_output(this, &pars->tap[i]);
+      output  += BaboTapline_single_output(csound, this, &pars->tap[i]);
 
     return output;
 }
@@ -448,10 +448,10 @@ BaboLowPass_output(const BaboLowPass *this)
  */
 
 static BaboNode *
-BaboNode_create(BaboNode *this, MYFLT time, MYFLT min_time, MYFLT decay,
+BaboNode_create(ENVIRON *csound, BaboNode *this, MYFLT time, MYFLT min_time, MYFLT decay,
     MYFLT hidecay)
 {
-    BaboDelay_create(&this->delay, time);
+    BaboDelay_create(csound, &this->delay, time);
     BaboLowPass_create(&this->filter, decay, hidecay, time/min_time);
 
     return this;
@@ -613,8 +613,9 @@ BaboMatrix_calculate_delays(MYFLT delay_time[], MYFLT x, MYFLT y, MYFLT z)
 }
 
 static BaboMatrix *
-BaboMatrix_create(BaboMatrix *this, MYFLT diffusion, MYFLT x, MYFLT y,
-    MYFLT z, MYFLT decay, MYFLT hidecay, MYFLT early_diffusion)
+BaboMatrix_create(ENVIRON *csound,
+                  BaboMatrix *this, MYFLT diffusion, MYFLT x, MYFLT y,
+                  MYFLT z, MYFLT decay, MYFLT hidecay, MYFLT early_diffusion)
 {
     int i = 0;
     MYFLT delays[BABO_NODES];
@@ -625,7 +626,7 @@ BaboMatrix_create(BaboMatrix *this, MYFLT diffusion, MYFLT x, MYFLT y,
     BaboMatrix_create_FDN(this, diffusion);
 
     for (i = 0; i < BABO_NODES; ++i)
-        BaboNode_create(&this->node[i], delays[i], min_delay, decay, hidecay);
+        BaboNode_create(csound, &this->node[i], delays[i], min_delay, decay, hidecay);
 
     return this;
 }
@@ -780,13 +781,14 @@ int
 baboset(void *entry)
 {
     BABO *p = (BABO *) entry;   /* assuming the engine is right... :)   */
+    ENVIRON *csound = p->h.insdshead->csound;
 
     set_defaults(p);
     verify_coherence(p);        /* exits if call is wrong */
 
-    BaboTapline_create(&p->tapline, *(p->lx), *(p->ly), *(p->lz));
-    BaboDelay_create(&p->matrix_delay, BaboTapline_maxtime(&p->tapline));
-    BaboMatrix_create(&p->matrix, p->diffusion_coeff, *(p->lx),
+    BaboTapline_create(csound,&p->tapline, *(p->lx), *(p->ly), *(p->lz));
+    BaboDelay_create(csound, &p->matrix_delay, BaboTapline_maxtime(csound, &p->tapline));
+    BaboMatrix_create(csound, &p->matrix, p->diffusion_coeff, *(p->lx),
         *(p->ly), *(p->lz), p->decay, p->hidecay, p->early_diffuse);
     return OK;
 }
@@ -794,22 +796,23 @@ baboset(void *entry)
 int
 babo(void *entry)
 {
-    register BABO   *p          = (BABO *) entry;
-    register int     nsmps      = ksmps;
-    register MYFLT  *outleft    = p->outleft,
-                    *outright   = p->outright,
-                    *input      = p->input;
+    BABO    *p          = (BABO *) entry;
+    int      nsmps      = ksmps;
+    MYFLT   *outleft    = p->outleft,
+            *outright   = p->outright,
+            *input      = p->input;
+    ENVIRON *csound = p->h.insdshead->csound;
 
     BaboTaplineParameters left = { {FL(0.0)}, {{FL(0.0)}} },
                          right = { {FL(0.0)}, {{FL(0.0)}} };
 
-    BaboTapline_precalculate_parameters(&p->tapline, &left,
+    BaboTapline_precalculate_parameters(csound, &p->tapline, &left,
         p->receiver_x - p->inter_receiver_distance,
         p->receiver_y, p->receiver_z,
         *(p->ksource_x), *(p->ksource_y), *(p->ksource_z),
         *(p->lx), *(p->ly), *(p->lz));
 
-    BaboTapline_precalculate_parameters(&p->tapline, &right,
+    BaboTapline_precalculate_parameters(csound, &p->tapline, &right,
         p->receiver_x + p->inter_receiver_distance,
         p->receiver_y, p->receiver_z,
         *(p->ksource_x), *(p->ksource_y), *(p->ksource_z),
@@ -825,10 +828,10 @@ babo(void *entry)
         BaboTapline_input(&p->tapline, *input);
         BaboDelay_input(&p->matrix_delay, *input);
 
-        left_tapline_out  = BaboTapline_output(&p->tapline, &left) *
+        left_tapline_out  = BaboTapline_output(csound, &p->tapline, &left) *
             p->early_diffuse;
 
-        right_tapline_out  = BaboTapline_output(&p->tapline, &right) *
+        right_tapline_out  = BaboTapline_output(csound, &p->tapline, &right) *
             p->early_diffuse;
 
         delayed_matrix_input = BaboDelay_output(&p->matrix_delay);

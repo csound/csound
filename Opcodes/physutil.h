@@ -65,7 +65,7 @@ typedef struct DLineL{
 } DLineL;
 
 #define DLineL_lastOut(d)       ((d)->lastOutput)
-void make_DLineL(DLineL *, long);
+void make_DLineL(ENVIRON *,DLineL *, long);
 void DLineL_setDelay(DLineL *, MYFLT);
 MYFLT DLineL_tick(DLineL *, MYFLT);
 
@@ -83,7 +83,7 @@ MYFLT DLineL_tick(DLineL *, MYFLT);
 /*  the target value (the state bit).      */
 /*******************************************/
 
-#define RATE_NORM       (FL(22050.0)/esr)
+#define RATE_NORM       (FL(22050.0)/csound->esr_)
 
 typedef struct Envelope {
     MYFLT       value;
@@ -95,11 +95,11 @@ typedef struct Envelope {
 void make_Envelope(Envelope*);
 void Envelope_keyOn(Envelope*);
 void Envelope_keyOff(Envelope*);
-void Envelope_setRate(Envelope*, MYFLT);
+void Envelope_setRate(ENVIRON *,Envelope*, MYFLT);
 void Envelope_setTarget(Envelope*, MYFLT);
 void Envelope_setValue(Envelope*,MYFLT);
 MYFLT Envelope_tick(Envelope*);
-void Envelope_print(Envelope*);
+void Envelope_print(ENVIRON *,Envelope*);
 
 /*******************************************/
 /*  One Pole Filter Class,                 */
@@ -189,14 +189,14 @@ void make_ADSR(ADSR*);
 void dest_ADSR(ADSR*);
 void ADSR_keyOn(ADSR*);
 void ADSR_keyOff(ADSR*);
-void ADSR_setAttackRate(ADSR*, MYFLT);
-void ADSR_setDecayRate(ADSR*, MYFLT);
-void ADSR_setSustainLevel(ADSR*, MYFLT);
-void ADSR_setReleaseRate(ADSR*, MYFLT);
-void ADSR_setAll(ADSR*, MYFLT, MYFLT, MYFLT, MYFLT);
-void ADSR_setAllTimes(ADSR*, MYFLT, MYFLT, MYFLT, MYFLT);
-void ADSR_setTarget(ADSR*, MYFLT);
-void ADSR_setValue(ADSR*, MYFLT);
+void ADSR_setAttackRate(ENVIRON *,ADSR*, MYFLT);
+void ADSR_setDecayRate(ENVIRON *,ADSR*, MYFLT);
+void ADSR_setSustainLevel(ENVIRON *,ADSR*, MYFLT);
+void ADSR_setReleaseRate(ENVIRON *,ADSR*, MYFLT);
+void ADSR_setAll(ENVIRON *,ADSR*, MYFLT, MYFLT, MYFLT, MYFLT);
+void ADSR_setAllTimes(ENVIRON *,ADSR*, MYFLT, MYFLT, MYFLT, MYFLT);
+void ADSR_setTarget(ENVIRON *,ADSR*, MYFLT);
+void ADSR_setValue(ENVIRON *,ADSR*, MYFLT);
 MYFLT ADSR_tick(ADSR*);
 int ADSR_informTick(ADSR*);
 MYFLT ADSR_lastOut(ADSR*);

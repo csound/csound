@@ -135,6 +135,7 @@ int bowedbarset(BOWEDBAR *p)
 {
     long i;
     MYFLT amplitude = *p->amp * AMP_RSCALE;
+    ENVIRON *csound = p->h.insdshead->csound;
 
     p->modes[0] = FL(1.0);
     p->modes[1] = FL(2.756);
@@ -146,7 +147,7 @@ int bowedbarset(BOWEDBAR *p)
     make_BiQuad(&p->bandpass[2]);
     make_BiQuad(&p->bandpass[3]);
 
-    ADSR_setAllTimes(&p->adsr, FL(0.02), FL(0.005), FL(0.9), FL(0.01));
+    ADSR_setAllTimes(csound, &p->adsr, FL(0.02), FL(0.005), FL(0.9), FL(0.01));
 
     if (*p->lowestFreq>=FL(0.0)) {      /* If no init skip */
       if (*p->lowestFreq!=FL(0.0))
@@ -195,6 +196,7 @@ int bowedbar(BOWEDBAR *p)
     int i;
     MYFLT       maxVelocity;
     MYFLT       integration_const = *p->integration_const;
+    ENVIRON    *csound = p->h.insdshead->csound;
 
     if (p->lastpress != *p->bowPress)
       p->bowTabl.slope = p->lastpress = *p->bowPress;
@@ -234,12 +236,12 @@ int bowedbar(BOWEDBAR *p)
     if (*p->bowposition != p->lastBowPos) { /* Not sure what this control is? */
       p->bowTarg += FL(0.02) * (*p->bowposition - p->lastBowPos);
       p->lastBowPos = *p->bowposition;
-      ADSR_setTarget(&p->adsr, p->lastBowPos);
+      ADSR_setTarget(csound, &p->adsr, p->lastBowPos);
       p->lastBowPos = *p->bowposition;
     }
     if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
     if ((--p->kloop) == 0) {
-      ADSR_setReleaseRate(&p->adsr, (FL(1.0) - amp) * FL(0.005));
+      ADSR_setReleaseRate(csound, &p->adsr, (FL(1.0) - amp) * FL(0.005));
       p->adsr.target = FL(0.0);
       p->adsr.rate = p->adsr.releaseRate;
       p->adsr.state = RELEASE;
@@ -267,7 +269,7 @@ int bowedbar(BOWEDBAR *p)
         p->bowvel = ADSR_tick(&p->adsr)*maxVelocity;
 
       input = p->bowvel - p->velinput;
-      input = input * BowTabl_lookup(&p->bowTabl, input);
+      input = input * BowTabl_lookup(csound, &p->bowTabl, input);
       input = input/(MYFLT)p->nr_modes;
 
       for (k=0; k<p->nr_modes; k++) {

@@ -37,7 +37,7 @@ static int fofset0(FOFS *p, int flag)
         (p->ftp2 = ftfind(p->ifnb)) != NULL) {
       OVRLAP *ovp, *nxtovp;
       long   olaps;
-      p->durtogo = (long)(*p->itotdur * esr_);
+      p->durtogo = (long)(*p->itotdur * esr);
       if (!skip) { /* legato: skip all memory management */
         if (*p->iphs == FL(0.0))                       /* if fundphs zero,  */
           p->fundphs = MAXLEN;                    /*   trigger new FOF */
@@ -89,7 +89,7 @@ int fof(FOFS *p)
     OVRLAP *ovp;
     FUNC    *ftp1,  *ftp2;
     MYFLT   *ar, *amp, *fund, *form;
-    long   nsmps = ksmps_, fund_inc, form_inc;
+    long   nsmps = ksmps, fund_inc, form_inc;
     MYFLT  v1, fract ,*ftab;
 
     if (p->auxch.auxp==NULL) { /* RWD fix */
@@ -178,7 +178,7 @@ static int newpulse(FOFS *p, OVRLAP *ovp, MYFLT *amp, MYFLT *fund, MYFLT *form)
     MYFLT   octamp = *amp, oct;
     long   rismps, newexp = 0;
 
-    if ((ovp->timrem = (long)(*p->kdur * esr_)) > p->durtogo &&
+    if ((ovp->timrem = (long)(*p->kdur * esr)) > p->durtogo &&
         (*p->iskip==FL(0.0))) /* ringtime */
       return(0);
     if ((oct = *p->koct) > FL(0.0)) {                   /* octaviation */
@@ -219,7 +219,7 @@ static int newpulse(FOFS *p, OVRLAP *ovp, MYFLT *amp, MYFLT *fund, MYFLT *form)
     }
     ovp->curamp = octamp * p->preamp;                /* set startamp  */
     ovp->expamp = p->expamp;
-    if ((ovp->dectim = (long)(*p->kdec * esr_)) > 0)  /*      fnb dec  */
+    if ((ovp->dectim = (long)(*p->kdec * esr)) > 0)  /*      fnb dec  */
       ovp->decinc = (long)(sicvt / *p->kdec);
     ovp->decphs = PHMASK;
     if (!p->foftype) {
@@ -249,9 +249,9 @@ int harmset(HARMON *p)
       return initerror(Str(X_346,"Minimum frequency too low"));
     }
     if (p->auxch.auxp == NULL || minfrq < p->minfrq) {
-      long nbufs = (long)(ekr_ * FL(3.0) / minfrq) + 1;
-      long nbufsmps = nbufs * ksmps_;
-      long maxprd = (long)(esr_ / minfrq);
+      long nbufs = (long)(ekr * FL(3.0) / minfrq) + 1;
+      long nbufsmps = nbufs * ksmps;
+      long maxprd = (long)(esr / minfrq);
       long totalsiz = nbufsmps * 5 + maxprd; /* Surely 5! not 4 */
       auxalloc((long)totalsiz * sizeof(MYFLT), &p->auxch);
       p->bufp = (MYFLT *) p->auxch.auxp;
@@ -264,7 +264,7 @@ int harmset(HARMON *p)
       p->lomaxdist = maxprd;
       p->minfrq = minfrq;
     }
-    if ((p->autoktim = (long)(*p->iptrkprd * ekr_ + FL(0.5))) < 1)
+    if ((p->autoktim = (long)(*p->iptrkprd * ekr + FL(0.5))) < 1)
       p->autoktim = 1;
     p->autokcnt = 1;              /* init for immediate autocorr attempt */
     p->lsicvt = FL(65536.0) * onedsr;
@@ -301,7 +301,7 @@ int harmon(HARMON *p)
     qval = p->prvq;
     if (*p->kest != p->prvest &&
         *p->kest != FL(0.0)) {    /* if new pitch estimate */
-      MYFLT estperiod = esr_ / *p->kest;
+      MYFLT estperiod = esr / *p->kest;
       double b = 2.0 - cos((double)(*p->kest * tpidsr));
       p->c2 = (MYFLT)(b - sqrt(b*b - 1.0)); /*   recalc lopass coefs */
       p->c1 = FL(1.0) - p->c2;
@@ -323,7 +323,7 @@ int harmon(HARMON *p)
     }
     c1 = p->c1;
     c2 = p->c2;
-    for (src1 = p->asig, nsmps = ksmps_; nsmps--; src1++) {
+    for (src1 = p->asig, nsmps = ksmps; nsmps--; src1++) {
       *inp1++ = *inp2++ = *src1;              /* dbl store the wavform */
       if (*src1 > FL(0.0))
         qval = c1 * *src1 + c2 * qval;        /*  & its half-wave rect */
@@ -399,13 +399,13 @@ int harmon(HARMON *p)
     if (period==0) {
       perferror("Period zero\n");
       outp = p->ar;
-      nsmps = ksmps_;
+      nsmps = ksmps;
       do {
         *outp++ = FL(0.0);
       } while (nsmps--);
       return OK;
     }
-    while (src1 + ksmps_ > inp2)             /* if not enough smps presnt */
+    while (src1 + ksmps > inp2)             /* if not enough smps presnt */
       src1 -= period;                       /*      back up 1 prd        */
     pulstrt = src1;                         /* curr available pulse beg  */
 
@@ -423,7 +423,7 @@ int harmon(HARMON *p)
     phsinc1 = (long)(*p->kfrq1 * p->lsicvt);
     phsinc2 = (long)(*p->kfrq2 * p->lsicvt);
     outp = p->ar;
-    nsmps = ksmps_;
+    nsmps = ksmps;
     do {
       MYFLT sum;
       if (src1 != NULL) {
