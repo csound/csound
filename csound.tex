@@ -133,7 +133,7 @@ CsoundVST requires some additional configuration:
 \begin{enumerate}
 \item Make sure that the Csound executables are in your \texttt{PATH} environment variable. 
 \item On Windows, make sure the directory containing the \texttt{\_CsoundVST.dll} file and all the Csound plugin opcodes is also in your \texttt{PATH} variable. On Unix and Linux, make sure that the directory containing the \texttt{\_CsoundVST.so} file and all the Csound plugin opcodes is in your \texttt{LD\_LIBRARY\_PATH} environment variable. This variable may have a different name in different operating systems.
-\item On all platforms, the directory containing the \texttt{\_CsoundVST} shared library and the \texttt{CsoundVST.py} file must be in your \texttt{PYTHONPATH} environment variable, so that the Python runtime knows how to load these files.
+\item On all platforms, CsoundVST requires that you have Python installed on your computer. The directory containing the \texttt{\_CsoundVST} shared library and the \texttt{CsoundVST.py} file must be in your \texttt{PYTHONPATH} environment variable, so that the Python runtime knows how to load these files.
 \end{enumerate}
 
 \section{Extending}
@@ -213,11 +213,9 @@ int main(int argc, char **argv)
 
 \subsection{CsoundVST}
 
-CsoundVST is a multi-function front end for the Csound API. CsoundVST runs as a stand-alone graphical user interface to Csound, or as a VST plugin in hosts such as the Cubase audio sequencer. CsoundVST provides both a C++ and a Python API to Csound, and to a set of classes for algorithmic composition. 
+CsoundVST is a multi-function front end for Csound, based on the Csound API. CsoundVST runs as a stand-alone graphical user interface to Csound, or as a VST plugin in hosts such as the Cubase audio sequencer. CsoundVST provides both a C++ and a Python API to Csound, and to a set of classes for algorithmic composition. 
 
 CsoundVST contains a built-in Python interpreter. With Python, the user can generate a score, import a MIDI file, process notes, load and run a Csound orchestra, and in general do anything that can be done either with Csound or in Python.
-
-You must define the \texttt{PYTHONPATH} environment variable to include the directory containing the \texttt{\_CsoundVST} shared library and \texttt{CsoundVST.py} script.
 
 \subsubsection{Standalone}
 
