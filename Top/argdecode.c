@@ -154,9 +154,7 @@ err_printf(Str(X_141,"-c\t8-bit signed_char sound samples\n"));
 err_printf(Str(X_136,"-a\talaw sound samples\n"));
 #endif
 err_printf(Str(X_94,"-8\t8-bit unsigned_char sound samples\n")); /* J. Mohr 1995 Oct 17 */
-#ifdef ULAW
 err_printf(Str(X_166,"-u\tulaw sound samples\n"));
-#endif
 err_printf(Str(X_164,"-s\tshort_int sound samples\n"));
 err_printf(Str(X_153,"-l\tlong_int sound samples\n"));
 err_printf(Str(X_145,"-f\tfloat sound samples\n"));
@@ -300,13 +298,9 @@ err_printf(Str(X_132,"-W\tcreate a WAV format output soundfile\n"));
 err_printf(Str(X_111,"-J\tcreate an IRCAM format output soundfile\n"));
 err_printf(Str(X_149,"-h\tno header on output soundfile\n"));
 err_printf(Str(X_141,"-c\t8-bit signed_char sound samples\n"));
-#ifdef never
 err_printf(Str(X_136,"-a\talaw sound samples\n"));
-#endif
 err_printf(Str(X_94,"-8\t8-bit unsigned_char sound samples\n")); /* J. Mohr 1995 Oct 17 */
-#ifdef ULAW
 err_printf(Str(X_166,"-u\tulaw sound samples\n"));
-#endif
 err_printf(Str(X_164,"-s\tshort_int sound samples\n"));
 err_printf(Str(X_153,"-l\tlong_int sound samples\n"));
 err_printf(Str(X_145,"-f\tfloat sound samples\n"));
