@@ -32,6 +32,7 @@
 #include <vector>
 %}
 %template(IntToDoubleMap) std::map<int, double>;
+%template(MidiByteVector) std::vector<unsigned char>;
 #else
 #include <algorithm>
 #include <fstream>
@@ -43,6 +44,7 @@
 
 namespace csound 
 {
+    typedef unsigned char csound_u_char;
 	class MidiFile;
 
 	class Chunk
@@ -78,7 +80,7 @@ namespace csound
 	/**
 	* This class is used to store ALL Midi messages.
 	*/
-	class MidiEvent : public std::vector<unsigned char>
+	class MidiEvent : public std::vector<csound_u_char>
 	{
 	public:
 		int ticks;
