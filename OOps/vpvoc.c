@@ -29,7 +29,6 @@
 #include "cs.h"
 #include <math.h>
 #include "dsputil.h"
-#include "fft.h"
 #include "pvoc.h"
 #include "vpvoc.h"
 #include "soundio.h"
@@ -300,12 +299,13 @@ int vpvset(ENVIRON *csound, VPVOC *p)
     size = pvfrsiz(p);          /* size used in def of OPWLEN ? */
 /*  p->scale = 4.*((MYFLT)csound->ksmps)/((MYFLT)pvfrsiz(p)*(MYFLT)pvfrsiz(p)); */
 /*    p->scale = 2.*((MYFLT)csound->ksmps)/((MYFLT)OPWLEN*(MYFLT)pvfrsiz(p));   */
-    p->scale = csound->e0dbfs * FL(2.0)*((MYFLT)csound->ksmps)/((MYFLT)OPWLEN*(MYFLT)pvfrsiz(p));
+    p->scale = csound->e0dbfs * FL(2.0)*((MYFLT)csound->ksmps)/((MYFLT)OPWLEN);
+    p->scale *= csound->GetInverseRealFFTScale(csound, (int) size);
     /* 2*incr/OPWLEN scales down for win ovlp, windo'd 1ce (but 2ce?) */
     /* 1/frSiz is the required scale down before (i)FFT */
     p->prFlg = 1;    /* true */
     p->opBpos = 0;
-    p->lastPex = FL(1.0);           /* needs to know last pitchexp to update phase */
+    p->lastPex = FL(1.0);   /* needs to know last pitchexp to update phase */
     /* Set up time window */
     for (i=0; i < pvdasiz(p); ++i) {  /* or maybe pvdasiz(p) */
      /* p->window[i] = (0.54-0.46*cos(2.0*pi*(MYFLT)i/(MYFLT)(pvfrsiz(p)))); */
@@ -382,7 +382,7 @@ int vpvoc(ENVIRON *csound, VPVOC *p)
 
 /**** Apply "spectral envelope" to magnitudes ********/
     for (i=0, j=0; i<=size; i+=2, j++)
-      buf[i] *= *(q->outfunc->ftable + j);
+      buf[i] *= *(q->outfunc->ftable + j) * p->scale;
 /***************************************************/
 
     FrqToPhase(buf, asize, pex*(MYFLT)csound->ksmps, p->asr,
@@ -399,8 +399,8 @@ int vpvoc(ENVIRON *csound, VPVOC *p)
       /*    if (frIndx >= p->maxFr)
             printf("Rected %8.1f %6.1f %8.1f %6.1f %8.1f %6.1f %8.1f %6.1f\n",
             buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7]); */
-      buf[1] = FL(0.0); buf[size+1] = FL(0.0);    /* kill spurious imag at dc & fs/2 */
-      FFT2torlpacked((complex *)buf, size, p->scale, (complex *)NULL);
+      buf[1] = buf[size]; buf[size] = buf[size + 1] = FL(0.0);
+      csound->InverseRealFFT(csound, buf, (int) size);
       /*    if (frIndx >= p->maxFr)
             printf("IFFTed %8.1f %6.1f %8.1f %6.1f %8.1f %6.1f %8.1f %6.1f\n",
             buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7]); */

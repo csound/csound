@@ -28,7 +28,6 @@
 #include <math.h>
 #include "cs.h"
 #include "dsputil.h"
-#include "fft.h"
 #include "pvoc.h"
 #include "pvinterp.h"
 #include "soundio.h"
@@ -247,7 +246,8 @@ int pvinterpset(ENVIRON *csound, PVINTERP *p)
     p->frPrtim = csound->esr/((MYFLT)frInc);
     /* factor by which to mulitply 'real' time index to get frame index */
     size = pvfrsiz(p);          /* size used in def of OPWLEN ? */
-    p->scale = csound->e0dbfs * FL(2.0)*((MYFLT)csound->ksmps)/((MYFLT)OPWLEN*(MYFLT)pvfrsiz(p));
+    p->scale = csound->e0dbfs * FL(2.0)*((MYFLT)csound->ksmps)/((MYFLT)OPWLEN);
+    p->scale *= csound->GetInverseRealFFTScale(csound, (int) size);
     /* 2*incr/OPWLEN scales down for win ovlp, windo'd 1ce (but 2ce?) */
     /* 1/frSiz is the required scale down before (i)FFT */
     p->prFlg = 1;    /* true */
@@ -327,7 +327,7 @@ int pvinterp(ENVIRON *csound, PVINTERP *p)
       q->buf[i] = q->buf[i] * *p->kampscale1;
       buf[j] = buf[j] * *p->kfreqscale2;
       q->buf[j] = q->buf[j] * *p->kfreqscale1;
-      buf[i] = (buf[i]  + ((q->buf[i]-buf[i]) * *p->kampinterp));
+      buf[i] = (buf[i]  + ((q->buf[i]-buf[i]) * *p->kampinterp)) * p->scale;
       buf[j] = (buf[j]  + ((q->buf[j]-buf[j]) * *p->kfreqinterp));
     }
 /*******************************************************************/
@@ -336,9 +336,8 @@ int pvinterp(ENVIRON *csound, PVINTERP *p)
     /* Offset the phase to align centres of stretched windows, not starts */
     RewrapPhase(buf,asize,p->lastPhase);
     Polar2Rect(buf,size);
-    buf[1] = FL(0.0);
-    buf[size+1] = FL(0.0);      /* kill spurious imag at dc & fs/2 */
-    FFT2torlpacked((complex *)buf, size, p->scale, (complex *)NULL);
+    buf[1] = buf[size]; buf[size] = buf[size+1] = FL(0.0);
+    csound->InverseRealFFT(csound, buf, (int) size);
     if (pex != 1.0)
       UDSample(buf,(FL(0.5)*((MYFLT)size - pex*(MYFLT)buf2Size))/*a*/,buf2,
                size, buf2Size, pex);
@@ -440,11 +439,11 @@ int pvcrossset(ENVIRON *csound, PVCROSS *p)
     p->frPrtim = csound->esr/((MYFLT)frInc);
     /* factor by which to mulitply 'real' time index to get frame index */
     size = pvfrsiz(p);          /* size used in def of OPWLEN ? */
-    p->scale = FL(2.0) * csound->e0dbfs
-               * ((MYFLT)csound->ksmps)/((MYFLT)OPWLEN*(MYFLT)pvfrsiz(p));
+    p->scale = FL(2.0) * csound->e0dbfs*((MYFLT)csound->ksmps)/((MYFLT)OPWLEN);
+    p->scale *= csound->GetInverseRealFFTScale(csound, (int) size);
     p->prFlg = 1;    /* true */
     p->opBpos = 0;
-    p->lastPex = FL(1.0);           /* needs to know last pitchexp to update phase */
+    p->lastPex = FL(1.0);   /* needs to know last pitchexp to update phase */
     /* Set up time window */
     for (i=0; i < pvdasiz(p); ++i) {  /* or maybe pvdasiz(p) */
         p->lastPhase[i] = FL(0.0);
@@ -517,7 +516,7 @@ int pvcross(ENVIRON *csound, PVCROSS *p)
 
 /**** Apply amplitudes from pvbufread ********/
     for (i=0, j=0; i<=size; i+=2, j++)
-      buf[i] = (buf[i] * ampscale2) + (q->buf[i] * ampscale1);
+      buf[i] = ((buf[i] * ampscale2) + (q->buf[i] * ampscale1)) * p->scale;
 /***************************************************/
 
     FrqToPhase(buf, asize, pex*(MYFLT)csound->ksmps, p->asr,
@@ -526,19 +525,19 @@ int pvcross(ENVIRON *csound, PVCROSS *p)
     RewrapPhase(buf,asize,p->lastPhase);
 /**/if (specwp == 0 || (p->prFlg)++ == -(int)specwp) /* ?screws up when prFlg used */
   { /* specwp=0 => normal; specwp = -n => just nth frame */
-    if (specwp<0) printf(Str("PVOC debug : one frame gets through \n")); /*       */
+    if (specwp<0) printf(Str("PVOC debug : one frame gets through \n"));
     if (specwp>0)
-        PreWarpSpec(buf, asize, pex); /*            */
+        PreWarpSpec(buf, asize, pex);
     Polar2Rect(buf,size);
 
-    buf[1] = FL(0.0); buf[size+1] = FL(0.0);    /* kill spurious imag at dc & fs/2 */
-    FFT2torlpacked((complex *)buf, size, p->scale, (complex *)NULL);
+    buf[1] = buf[size]; buf[size] =  buf[size + 1] = FL(0.0);
+    csound->InverseRealFFT(csound, buf, (int) size);
     if (pex != 1.0)
-        UDSample(buf,(FL(0.5)*((MYFLT)size - pex*(MYFLT)buf2Size))/*a*/,buf2,
-                 size, buf2Size, pex);
+      UDSample(buf,(FL(0.5)*((MYFLT)size - pex*(MYFLT)buf2Size))/*a*/,buf2,
+               size, buf2Size, pex);
     else
-        CopySamps(buf+(int)(FL(0.)*((MYFLT)size - pex*(MYFLT)buf2Size))/*a*/,buf2,
-                  buf2Size);
+      CopySamps(buf+(int)(FL(0.)*((MYFLT)size - pex*(MYFLT)buf2Size))/*a*/,buf2,
+                buf2Size);
 /*a*/    if (specwp>=0) ApplyHalfWin(buf2, p->window, buf2Size);        /* */
 /**/      }
     else

@@ -22,20 +22,8 @@
 */
 
 #include "csdl.h"
-#include "fft.h"
 #include "oscbnk.h"
 #include <math.h>
-
-#ifdef Str
-#undef Str
-#endif
-#define Str(x)  (((ENVIRON*) csound)->LocalizeString(x))
-#ifdef Message
-#undef Message
-#endif
-#ifdef AppendOpcode
-#undef AppendOpcode
-#endif
 
 /* ---- oscbnk, grain2, and grain3 - written by Istvan Varga, 2001 ---- */
 
@@ -1442,7 +1430,7 @@ typedef struct {
     int     w_npart;            /* nr of partials in user specified waveform */
     double  npart_mul;          /* multiplier for number of partials         */
     int     min_size, max_size; /* minimum and maximum table size            */
-    complex *w_fftbuf;          /* FFT of user specified waveform            */
+    MYFLT   *w_fftbuf;          /* FFT of user specified waveform            */
 } VCO2_TABLE_PARAMS;
 
 /* remove table array for the specified waveform */
@@ -1511,55 +1499,63 @@ static void vco2_tables_destroy(ENVIRON *csound)
 static void vco2_calculate_table(ENVIRON *csound,
                                  VCO2_TABLE *table, VCO2_TABLE_PARAMS *tp)
 {
-    complex *fftbuf;
+    MYFLT   scaleFac;
+    MYFLT   *fftbuf;
     int     i, minh;
 
     /* allocate memory for FFT */
-    fftbuf = (complex*) csound->Malloc(csound, sizeof(complex)
-                                               * ((table->size >> 1) + 1));
-    if (tp->waveform >= 0) {                    /* no DC offset for built-in */
-      minh = 1; fftbuf[0].re = fftbuf[0].im = FL(0.0);  /* waveforms */
+    fftbuf = (MYFLT*) csound->Malloc(csound, sizeof(MYFLT) * (table->size + 2));
+    if (tp->waveform >= 0) {                        /* no DC offset for   */
+      minh = 1; fftbuf[0] = fftbuf[1] = FL(0.0);    /* built-in waveforms */
     }
-    else minh = 0;
+    else
+      minh = 0;
+    scaleFac = csound->GetInverseRealFFTScale(csound, (int) table->size);
+    scaleFac *= (FL(0.5) * (MYFLT) table->size);
+    switch (tp->waveform) {
+      case 0: scaleFac *= (FL(-2.0) / PI_F);          break;
+      case 1: scaleFac *= (FL(-4.0) / (PI_F * PI_F)); break;
+      case 3: scaleFac *= (FL(-4.0) / PI_F);          break;
+      case 4: scaleFac *= (FL(8.0) / (PI_F * PI_F));  break;
+    }
     /* calculate FFT of the requested waveform */
     for (i = minh; i <= (table->size >> 1); i++) {
-      fftbuf[i].re = fftbuf[i].im = FL(0.0);
+      fftbuf[i << 1] = fftbuf[(i << 1) + 1] = FL(0.0);
       if (i > table->npart) continue;
       switch (tp->waveform) {
       case 0:                                   /* sawtooth */
-        fftbuf[i].im = FL(-2.0) / (PI_F * (MYFLT) i);
+        fftbuf[(i << 1) + 1] = scaleFac / (MYFLT) i;
         break;
       case 1:                                   /* 4 * x * (1 - x) */
-        fftbuf[i].re = FL(-4.0) / (PI_F * PI_F * (MYFLT) i * (MYFLT) i);
+        fftbuf[i << 1] = scaleFac / ((MYFLT) i * (MYFLT) i);
         break;
       case 2:                                   /* pulse */
-        fftbuf[i].re = FL(1.0);
+        fftbuf[i << 1] = scaleFac;
         break;
       case 3:                                   /* square */
-        fftbuf[i].im = (i & 1 ? (FL(-4.0) / (PI_F * (MYFLT) i)) : FL(0.0));
+        fftbuf[(i << 1) + 1] = (i & 1 ? (scaleFac / (MYFLT) i) : FL(0.0));
         break;
       case 4:                                   /* triangle */
-        fftbuf[i].im = (i & 1 ? ((i & 2 ? FL(8.0) : FL(-8.0))
-                                 / (PI_F * PI_F * (MYFLT) i * (MYFLT) i))
-                                : FL(0.0));
+        fftbuf[(i << 1) + 1] = (i & 1 ? ((i & 2 ? scaleFac : (-scaleFac))
+                                         / ((MYFLT) i * (MYFLT) i))
+                                        : FL(0.0));
         break;
       default:                                  /* user defined */
         if (i <= tp->w_npart) {
-          fftbuf[i].re = tp->w_fftbuf[i].re;
-          fftbuf[i].im = tp->w_fftbuf[i].im;
+          fftbuf[i << 1] = scaleFac * tp->w_fftbuf[i << 1];
+          fftbuf[(i << 1) + 1] = scaleFac * tp->w_fftbuf[(i << 1) + 1];
         }
       }
     }
     /* inverse FFT */
-    csound->FFT2torlpacked_(fftbuf, (long) table->size, FL(0.5), NULL);
+    fftbuf[1] = fftbuf[table->size];
+    fftbuf[table->size] = fftbuf[(int) table->size + 1] = FL(0.0);
+    csound->InverseRealFFT(csound, fftbuf, (int) table->size);
     /* copy to table */
-    i = 0;
-    do {
-      table->ftable[i] = fftbuf[i >> 1].re; i++;
-      table->ftable[i] = fftbuf[i >> 1].im; i++;
-    } while (i < table->size);
+    for (i = 0; i < table->size; i++)
+      table->ftable[i] = fftbuf[i];
     /* write guard point */
-    table->ftable[table->size] = fftbuf[0].re;
+    table->ftable[table->size] = fftbuf[0];
     /* free memory used by temporary buffers */
     csound->Free(csound, fftbuf);
 }
@@ -1816,14 +1812,12 @@ static int vco2init(ENVIRON *csound, VCO2INIT *p)
         /* analyze source table, and store results in table params structure */
         i = ftp->flen;
         tp.w_npart = i >> 1;
-        tp.w_fftbuf = (complex*) csound->Malloc(csound, sizeof(complex)
-                                                        * ((i >> 1) + 1));
-        for (i = 0; i < ftp->flen; i++) {
-          tp.w_fftbuf[i >> 1].re = ftp->ftable[i] / (MYFLT) (ftp->flen >> 1);
-          i++;
-          tp.w_fftbuf[i >> 1].im = ftp->ftable[i] / (MYFLT) (ftp->flen >> 1);
-        }
-        csound->FFT2realpacked_(tp.w_fftbuf, ftp->flen, NULL);
+        tp.w_fftbuf = (MYFLT*) csound->Malloc(csound, sizeof(MYFLT) * (i + 2));
+        for (i = 0; i < ftp->flen; i++)
+          tp.w_fftbuf[i] = ftp->ftable[i] / (MYFLT) (ftp->flen >> 1);
+        csound->RealFFT(csound, tp.w_fftbuf, (int) ftp->flen);
+        tp.w_fftbuf[ftp->flen] = tp.w_fftbuf[1];
+        tp.w_fftbuf[1] = tp.w_fftbuf[(int) ftp->flen + 1] = FL(0.0);
         /* generate table array */
         ftnum = vco2_tables_create(csound,waveforms, ftnum, &tp);
         /* free memory used by FFT buffer */

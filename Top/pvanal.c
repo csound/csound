@@ -36,7 +36,6 @@
 #include "cs.h"
 #include "cwindow.h"
 #include "soundio.h"
-#include "fft.h"
 #include "dsputil.h"
 #include "pvoc.h"
 #include "pvxanal.h"
@@ -154,7 +153,7 @@ int pvanal(int argc, char **argv)
                       MINFRMPTS, MAXFRMPTS);
               quit(errmsg);
             }
-            if (!(IsPowerOfTwo(frameSize)))  {
+            if (frameSize < 1L || (frameSize & (frameSize - 1L)) != 0L) {
               sprintf(errmsg,Str("pvanal: frameSize must be 2^r"));
               quit(errmsg);
             }
@@ -344,7 +343,9 @@ static long takeFFTs(
       /*    PrintBuf(tmpBuf, frameSize, "floated");  */
       ApplyHalfWin(tmpBuf,winBuf,frameSize);
       /*    PrintBuf(tmpBuf, frameSize, "windo'd"); */
-      FFT2realpacked((complex *)tmpBuf, frameSize, NULL);
+      csoundRealFFT(&cenviron, tmpBuf, (int) frameSize);
+      tmpBuf[frameSize] = tmpBuf[1];
+      tmpBuf[1] = tmpBuf[frameSize + 1L] = FL(0.0);
       /*    PrintBuf(tmpBuf, frameSize, X_761,"fft'd"); */
       Rect2Polar(tmpBuf, fsIndepVals);
       /*    PrintBuf(tmpBuf, frameSize, "toPolar"); */

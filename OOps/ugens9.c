@@ -23,7 +23,6 @@
 
 #include "csdl.h"   /*                                      UGENS9.C        */
 #include <math.h>
-#include "fft.h"
 #include "dsputil.h"
 #include "convolve.h"
 #include "ugens9.h"
@@ -161,7 +160,9 @@ int convolve(ENVIRON *csound, CONVOLVE *p)
     MYFLT  *olap;
     MYFLT  *X;
     long   Hlenpadded = p->Hlenpadded;
+    MYFLT  scaleFac;
 
+    scaleFac = csound->GetInverseRealFFTScale(csound, (int) Hlenpadded);
     ar[0] = p->ar1;
     ar[1] = p->ar2;
     ar[2] = p->ar3;
@@ -185,7 +186,7 @@ int convolve(ENVIRON *csound, CONVOLVE *p)
       p->outhead = outhead;
     }
     while (nsmpsi > 0) {
-/* Read input audio and place into work buffer. */
+      /* Read input audio and place into work buffer. */
 
       fftbufind = p->fftbuf + incount;
       if ((incount + nsmpsi) <= Hlen)
@@ -195,14 +196,15 @@ int convolve(ENVIRON *csound, CONVOLVE *p)
       nsmpsi -= i;
       incount += i;
       while (i--)
-        *fftbufind++ = *ai++;
+        *fftbufind++ = scaleFac * *ai++;
       if (incount == Hlen) {
         /* We have enough audio for a convolution. */
         incount = 0;
         /* FFT the input (to create X) */
         /*csound->Message(csound, "CONVOLVE: ABOUT TO FFT\n"); */
-        csound->FFT2realpacked_((complex *)p->fftbuf,Hlenpadded,
-                                (complex *) NULL);
+        csound->RealFFT(csound, p->fftbuf, (int) Hlenpadded);
+        p->fftbuf[Hlenpadded] = p->fftbuf[1];
+        p->fftbuf[1] = p->fftbuf[Hlenpadded + 1L] = FL(0.0);
         /* save the result if multi-channel */
         if (nchm1) {
           fftbufind = p->fftbuf;
@@ -224,14 +226,26 @@ int convolve(ENVIRON *csound, CONVOLVE *p)
           }
           /*csound->Message(csound, "CONVOLVE: ABOUT TO MULTIPLY\n");  */
           /* Multiply H * X, point for point */
-          csound->cxmult_((complex *)(p->H+chn*(Hlenpadded+2)),
-                 (complex *)(p->fftbuf),Hlenpadded/2 + 1);
+
+          {
+            MYFLT *a, *b, re, im;
+            int   i;
+            a = (MYFLT*) p->H + (int) (chn * (Hlenpadded + 2));
+            b = (MYFLT*) p->fftbuf;
+            for (i = 0; i <= (int) Hlenpadded; i += 2) {
+              re = a[i + 0] * b[i + 0] - a[i + 1] * b[i + 1];
+              im = a[i + 0] * b[i + 1] + a[i + 1] * b[i + 0];
+              b[i + 0] = re;
+              b[i + 1] = im;
+            }
+          }
 
           /*csound->Message(csound, "CONVOLVE: ABOUT TO IFFT\n"); */
           /* Perform inverse FFT on X */
 
-          csound->FFT2torlpacked_((complex*)(p->fftbuf),Hlenpadded,
-                                  FL(1.0)/Hlenpadded,(complex*) NULL);
+          p->fftbuf[1] = p->fftbuf[Hlenpadded];
+          p->fftbuf[Hlenpadded] = p->fftbuf[Hlenpadded + 1L] = FL(0.0);
+          csound->InverseRealFFT(csound, p->fftbuf, (int) Hlenpadded);
 
           /* Take the first Hlen output samples and output them to
              either the real audio output buffer or the local circular
@@ -240,7 +254,7 @@ int convolve(ENVIRON *csound, CONVOLVE *p)
           outcnt = outcnt_sav;
           fftbufind = p->fftbuf;
           if ( (nsmpso > 0)&&(outcnt == 0) ) {
-            /*    csound->Message(csound, "Outputting to audio buffer proper\n");*/
+      /*    csound->Message(csound, "Outputting to audio buffer proper\n");*/
             /* space left in output buffer, and nothing currently in circular
                buffer, so write as much as possible to output buffer first */
             if (nsmpso >= Hlenm1) {
@@ -325,13 +339,15 @@ int pconvset(ENVIRON *csound, PCONVOLVE *p)
     MYFLT   *inbuf, *fp1,*fp2;
     long    i, j, read_in, part;
     MYFLT   *IRblock;
-    MYFLT   ainput_dur;
+    MYFLT   ainput_dur, scaleFac;
 
     static  MYFLT    format = FL(0.0), skptm = FL(0.0);
     static  MYFLT    sstrcod = (MYFLT)SSTRCOD;
     static  ARGOFFS  argofs = {0};
     static  OPTXT    optxt;
 
+    /* IV - 2005-04-06: fixed bug: was uninitialised */
+    memset(&IRfile, 0, sizeof(SOUNDIN));
     /* open impulse response soundfile [code derived from SAsndgetset()] */
     optxt.t.outoffs = &argofs;    /* point to dummy OUTOCOUNT       */
     IRfile.h.optext = &optxt;
@@ -402,14 +418,18 @@ int pconvset(ENVIRON *csound, PCONVOLVE *p)
         csound->Die(csound, "PCONVOLVE: less sound than expected!");
 
       /* take FFT of each channel */
+      scaleFac = csound->dbfs_to_float
+                 * csound->GetInverseRealFFTScale(csound, (int) p->Hlenpadded);
       for (i = 0; i < p->nchanls; i++) {
         fp1 = inbuf + i;
         fp2 = IRblock;
         for (j = 0; j < read_in/p->nchanls; j++) {
-          *fp2++ = *fp1 * csound->dbfs_to_float;
+          *fp2++ = *fp1 * scaleFac;
           fp1 += p->nchanls;
         }
-        csound->FFT2realpacked_((complex *)IRblock, p->Hlenpadded, NULL);
+        csound->RealFFT(csound, IRblock, (int) p->Hlenpadded);
+        IRblock[p->Hlenpadded] = IRblock[1];
+        IRblock[1] = IRblock[p->Hlenpadded + 1L] = FL(0.0);
         IRblock += (p->Hlenpadded + 2);
       }
     }
@@ -457,7 +477,6 @@ int pconvolve(ENVIRON *csound, PCONVOLVE *p)
     MYFLT  *ai = p->ain;
     MYFLT *buf, *input = p->savedInput.auxp, *workWrite = p->workWrite;
     MYFLT  *a1 = p->ar1, *a2 = p->ar2, *a3 = p->ar3, *a4 = p->ar4;
-    long hlenp1 = p->Hlen + 1;
     long   i, j, count = p->inCount;
     long   hlenpaddedplus2 = p->Hlenpadded+2;
 
@@ -467,38 +486,40 @@ int pconvolve(ENVIRON *csound, PCONVOLVE *p)
 
       /* We have enough audio for a convolution. */
       if (count == p->Hlen) {
-        complex *dest = (complex *)((MYFLT *)p->convBuf.auxp +
-                                    p->curPart *(p->Hlenpadded+2) *p->nchanls);
-        complex *h = (complex *)p->H.auxp;
-        complex *workBuf = (complex *)p->workBuf.auxp;
+        MYFLT *dest = (MYFLT*) p->convBuf.auxp
+                      + p->curPart * (p->Hlenpadded + 2) * p->nchanls;
+        MYFLT *h = (MYFLT*) p->H.auxp;
+        MYFLT *workBuf = (MYFLT*) p->workBuf.auxp;
 
         /* FFT the input (to create X) */
         *workWrite = FL(0.0); /* zero out nyquist bin from last fft result - maybe
                                  is ignored for input(?) but just in case.. */
-        csound->FFT2realpacked_(workBuf, p->Hlenpadded, NULL);
+        csound->RealFFT(csound, workBuf, (int) p->Hlenpadded);
+        workBuf[p->Hlenpadded] = workBuf[1];
+        workBuf[1] = workBuf[p->Hlenpadded + 1L] = FL(0.0);
 
         /* for every IR partition convolve and add to previous convolves */
         for (i = 0; i < p->numPartitions*p->nchanls; i++) {
-          complex *src = workBuf;
-          long n = hlenp1;
-          while (n--) {
-            dest->re += (h->re * src->re) - (h->im * src->im);
-            dest->im += (h->im * src->re) + (h->re * src->im);
-            dest++; src++; h++;
+          MYFLT *src = workBuf;
+          int n;
+          for (n = 0; n <= (int) p->Hlenpadded; n += 2) {
+            dest[n + 0] += (h[n + 0] * src[n + 0]) - (h[n + 1] * src[n + 1]);
+            dest[n + 1] += (h[n + 1] * src[n + 0]) + (h[n + 0] * src[n + 1]);
           }
-
+          h += n; dest += n;
           if (dest == p->convBuf.endp)
             dest = p->convBuf.auxp;
         }
 
         /* Perform inverse FFT of the ondeck partion block */
         buf = (MYFLT *)p->convBuf.auxp + p->curPart * p->nchanls * hlenpaddedplus2;
-        for (i = 0; i < p->nchanls; i++)
-          csound->FFT2torlpacked_((complex *)(buf + i*hlenpaddedplus2),
-                                  p->Hlenpadded,
-                                  FL(1.0)/((MYFLT)p->Hlenpadded),
-                                  /* *p->numPartitions --needed??? above */
-                                  NULL);
+        for (i = 0; i < p->nchanls; i++) {
+          MYFLT *bufp;
+          bufp = buf + i * hlenpaddedplus2;
+          bufp[1] = bufp[p->Hlenpadded];
+          bufp[p->Hlenpadded] = bufp[p->Hlenpadded + 1L] = FL(0.0);
+          csound->InverseRealFFT(csound, bufp, (int) p->Hlenpadded);
+        }
         /* We only take only the last Hlen output samples so we first zero out
            the first half for next time, then we copy the rest to output buffer */
         for (j = 0; j < p->nchanls; j++) {
