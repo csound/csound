@@ -437,12 +437,15 @@ static int createFile(void *csound, FILE *unf)
     FILE *smpf;
     char filename[256];
 
+    filename[0] = '\0';
     sscanf(buffer, "<CsFileB filename=%s>", filename);
-    if ((smpf=fopen(filename, "r")) !=NULL) {
+    if (filename[0] != '\0' && filename[strlen(filename) - 1] == '>')
+      filename[strlen(filename) - 1] = '\0';
+    if ((smpf=fopen(filename, "r")) != NULL) {
+      fclose(smpf);
       printf(Str("File %s already exists\n"), filename);
       longjmp(cenviron.exitjmp_,1);
     }
-    fclose(smpf);
     smpf = fopen(filename, "wb");
     if (smpf==NULL) {
       printf(Str("Cannot open file (%s) subfile\n"), filename);
