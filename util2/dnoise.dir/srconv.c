@@ -65,8 +65,8 @@ ENVIRON cenviron;
                             dieu(MSG);
 
 extern  HEADATA *readheader(int, char *, SOUNDIN*);
-extern	int      SAsndgetset(char *, SOUNDIN**, MYFLT*, MYFLT*, MYFLT*, int);
-extern	long     getsndin(int, MYFLT *, long, SOUNDIN *);
+extern	SNDFILE *SAsndgetset(char *, SOUNDIN**, MYFLT*, MYFLT*, MYFLT*, int);
+extern	long     getsndin(SNDFILE *, MYFLT *, long, SOUNDIN *);
 extern int  openout(char *, int);
 extern void writeheader(int, char *);
 extern char *getstrformat(int);
@@ -80,9 +80,11 @@ extern char *type2string(int);
 static unsigned    outbufsiz;
 static MYFLT       *outbuf;
 
-static int outfd;
+static SNDFILE *outfd;
 static long  bytes = 0;
 OPARMS	O = {0,0, 0,1,1,0, 0,0, 0,0, 0,0, 1,0,0,7, 0,0,0, 0,0,0,0, 0,0 };
+
+extern int type2sf(int);
 
 
 static void dieu(char *s)
@@ -153,16 +155,16 @@ int main(int argc, char **argv)
       Chans = 0,                /* number of channels */
       chan,                     /* current channel */
       Q = 0;                    /* quality factor */
-
+    SF_INFO     sfinfo;
     FILE    *tvfp;    /* time-vary function file */
 
     SOUNDIN     *p;
     int		channel = ALLCHNLS;
     MYFLT       beg_time = FL(0.0), input_dur = FL(0.0), sr = FL(0.0);
     char        *infile = NULL, *outfile = NULL, *bfile = NULL;
-    int		inf;
+    SNDFILE	*inf;
     char        c, *s;
-    char *envoutyp = NULL;
+    char 	*envoutyp = NULL;
     char        outformch = 's';
     char *getenv(const char*);
 
@@ -444,8 +446,14 @@ int main(int argc, char **argv)
       else O.outfilename = "test";
     }
 #endif
-    outfd = openout(O.outfilename, 1);
-    nchnls = Chans = p->nchanls;
+    sfinfo.frames = -1;
+    sfinfo.samplerate = (int)(esr = p->sr);
+    sfinfo.channels = nchnls = Chans = p->nchanls;
+    sfinfo.format = type2sf(O.filetyp)|format2sf(O.outformat);
+    sfinfo.sections = 0;
+    sfinfo.seekable = 0;
+    outfd = sf_open_fd(openout(O.outfilename, 1), SFM_WRITE, &sfinfo, 1);
+    if (O.rewrt_hdr) sf_command(outfd, SFC_SET_UPDATE_HEADER_AUTO, NULL, 0);
     outbufsiz = OBUF * O.sfsampsize;/* calc outbuf size */
     outbuf = mmalloc((long)outbufsiz);                 /*  & alloc bufspace */
     printf(Str(X_1382,"writing %d-byte blks of %s to %s"),
@@ -676,9 +684,8 @@ int main(int argc, char **argv)
     }
     nread = nextOut - output;
     writebuffer(output, nread);
-    rewriteheader(outfd, bytes);
     printf("\n\n");
-    close(outfd);
+    sf_close(outfd);
     if (O.ringbell) beep();
     exit(0);
 

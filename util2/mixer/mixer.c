@@ -504,7 +504,6 @@ main(int argc, char **argv)
     sfinfo.seekable = 0;
     outfd = sf_open_fd(openout(O.outfilename, 1), SFM_WRITE, &sfinfo, 1);
     if (O.rewrt_hdr) sf_command(outfd, SFC_SET_UPDATE_HEADER_AUTO, NULL, 0);
-    esr = (MYFLT)mixin[0].p->sr;
     outbufsiz = NUMBER_OF_SAMPLES * outputs * O.sfsampsize;/* calc outbuf size */
     outbuf = mmalloc((long)outbufsiz);                 /*  & alloc bufspace */
     printf(Str(X_1382,"writing %d-byte blks of %s to %s %s\n"),
