@@ -481,7 +481,8 @@ int vpow(ENVIRON *csound,VECTOROP *p)
     MYFLT value = *p->kval;
 
     do {
-      *vector++ = (MYFLT) pow (*vector, value);
+      *vector = (MYFLT) pow (*vector, value);
+      vector++;
     } while (--elements);
     return OK;
 }
@@ -493,7 +494,8 @@ int vexp(ENVIRON *csound,VECTOROP *p)
     MYFLT value = *p->kval;
 
     do {
-      *vector++ = (MYFLT) pow (value, *vector);
+      *vector = (MYFLT) pow (value, *vector);
+      vector++;
     } while (--elements);
     return OK;
 }
@@ -601,7 +603,8 @@ int vpowv(ENVIRON *csound,VECTORSOP *p)
     MYFLT *vector1 = p->vector1, *vector2 = p->vector2;
 
     do {
-      *vector1++ = (MYFLT) pow (*vector1, *vector2++);
+      *vector1 = (MYFLT) pow (*vector1, *vector2++);
+      vector1++;
     } while (--elements);
     return OK;
 }
@@ -612,7 +615,8 @@ int vexpv(ENVIRON *csound,VECTORSOP *p)
     MYFLT *vector1 = p->vector1, *vector2 = p->vector2;
 
     do {
-      *vector1++ = (MYFLT) pow (*vector1, *vector2++);
+      *vector1 = (MYFLT) pow (*vector1, *vector2++);
+      vector1++;
     } while (--elements);
     return OK;
 }
@@ -623,7 +627,8 @@ int vmap(ENVIRON *csound,VECTORSOP *p)
     MYFLT *vector1 = p->vector1, *vector2 = p->vector2;
 
     do {
-      *vector1++ = (vector2++)[(int)*vector1];
+      *vector1 = (vector2++)[(int)*vector1];
+      vector1++;
     } while (--elements);
     return OK;
 }
@@ -648,7 +653,8 @@ int vlimit(ENVIRON *csound,VLIMIT *p)
     MYFLT *vector = p->vector;
     MYFLT min = *p->kmin, max = *p->kmax;
     do {
-      *vector++ = (*vector > min) ? ((*vector < max) ? *vector : max) : min;
+      *vector = (*vector > min) ? ((*vector < max) ? *vector : max) : min;
+      vector++;
     } while (--elements);
     return OK;
 }
@@ -703,7 +709,8 @@ int vport(ENVIRON *csound,VPORT *p)
     c1 = p->c1;
     c2 = p->c2;
     do {
-      *vector++ = (*yt1++ = c1 * *vector + c2 * *yt1);
+      *vector = (*yt1 = c1 * *vector + c2 * *yt1);
+      vector++; yt1++;
     } while (--elements);
     return OK;
 }
@@ -723,10 +730,14 @@ int vwrap(ENVIRON *csound,VLIMIT *p)
     }
     else {
       do {
-        if (*vector >= max)
-          *vector++ = min + (MYFLT) fmod(*vector - min, fabs(min-max));
-        else
-          *vector++ = max - (MYFLT) fmod(max - *vector, fabs(min-max));
+        if (*vector >= max) {
+          *vector = min + (MYFLT) fmod(*vector - min, fabs(min-max));
+          vector++;
+        }
+        else {
+          *vector = max - (MYFLT) fmod(max - *vector, fabs(min-max));
+          vector++;
+        }
       } while (--elements);
     }
     return OK;
