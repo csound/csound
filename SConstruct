@@ -972,21 +972,18 @@ else:
     # on the same things as CsoundVST.
 
     if commonEnvironment['buildLoris']=='1':
-	#shutil.copy('Opcodes/Loris/Morpher.C', 'Opcodes/Loris/src/Morpher.C')
-	#shutil.copy('Opcodes/Loris/Morpher.h', 'Opcodes/Loris/src/Morpher.h')
-	#shutil.copy('Opcodes/Loris/loris.i', 'Opcodes/Loris/scripting/loris.i')
         # For Loris, we build only the loris Python extension module and
         # the Csound opcodes (modified for Csound 5).
         # It is assumed that you have copied all contents of the Loris distribution
         # into the csound5/Opcodes/Loris directory, e.g.
 	# csound5/Opcodes/Loris/src.
         lorisEnvironment = vstEnvironment.Copy();
-        lorisEnvironment.Append(CCFLAGS = '-DHAVE_FFTW3_H -DDEBUG_LORISGENS')
+        lorisEnvironment.Append(CCFLAGS = '-DHAVE_FFTW3_H -DDEBUG_LORISGENS -D_MSC_VER')
         lorisEnvironment.Append(CPPPATH = Split('Opcodes/Loris Opcodes/Loris/src ./'))
         lorisEnvironment.Append(LIBS = ['fftw3'])
         lorisSources = glob.glob('Opcodes/Loris/src/*.C')
 	# The following file has been patched for Csound 5 and you should update it from Csound 5 CVS.
-        lorisSources.append('Opcodes/Loris/loris.i')
+        lorisSources.append('Opcodes/Loris/scripting/loris.i')
 	# The following file has been patched for Csound 5 and you should update it from Csound 5 CVS.
 	# Need help from Fitz to patch this? Commented out morphPartials calls for now.
         lorisSources.append('Opcodes/Loris/lorisgens5.C')
