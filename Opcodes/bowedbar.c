@@ -322,11 +322,3 @@ void BowedBar_controlChange(BOWEDBAR *p, int number, MYFLT value)
 }
  */
 
-#define S       sizeof
-
-static OENTRY localops[] = {
-  { "wgbowedbar", S(BOWEDBAR), 5, "a", "kkkkkoooo",
-    (SUBR)bowedbarset, NULL, (SUBR)bowedbar }
-};
-
-LINKAGE

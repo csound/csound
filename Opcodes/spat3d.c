@@ -29,7 +29,6 @@
 #include <math.h>
 #include <time.h>
 #include "csdl.h"
-#include "ftgen.h"
 
 #define CSOUND_SPAT3D_C 1
 

@@ -64,7 +64,6 @@ typedef struct lnode {
     complex      *table;
 } LNODE;
 
-int scancomplexdata(complex *);
 void putcomplexdata(complex *, long);
 void ShowCpx(complex *, long, char *);
 int PureReal(complex *, long);

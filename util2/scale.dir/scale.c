@@ -26,18 +26,14 @@
 *   and a certain amount of lifting from Csound itself  *
 \*******************************************************/
 
+#include "ustub.h"
+#include "soundio.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include "cs.h"
-#include "ustub.h"
-#include "soundio.h"
 #ifdef LINUX
 #include <unistd.h>
 #endif
-
-/* Constants */
-ENVIRON cenviron;
 
 #define SHORTMAX 32767
 #define FIND(MSG)   if (*s == '\0')  \
@@ -50,16 +46,6 @@ static void  InitScaleTable(double, char *);
 static int   SCsndgetset(char *);
 static void  ScaleSound(int, int);
 static float FindAndReportMax(int);
-static void  (*audtran)(char *, int), nullfn(char *, int);
-static void  (*spoutran)(float *);
-static void  chartran(float *), shortran(float *),
-             longtran(float *), floatran(float *);
-#ifdef never
-static void  alawtran(float *);
-#endif
-#ifdef ULAW
-static void  ulawtran(float *);
-#endif
 
 /* Externs */
 extern long getsndin(int, float *, long, SOUNDIN *);
@@ -80,7 +66,7 @@ static	float	   *floutbuf;		    /* float pntr	    */
 static  int	   outrange = 0; 	    /* Count samples out of range */
         void       err_printf(char*, ...);
 
-static void usage(char *mesg)
+static void scale_usage(char *mesg)
 {
     err_printf( "%s\n", mesg);
     err_printf(Str(X_19,"Usage:\tscale [-flags] soundfile\n"));
@@ -118,15 +104,6 @@ static void usage(char *mesg)
     exit(1);
 }
 
-#ifndef POLL_EVENTS
-int POLL_EVENTS(void)
-{
-    return (1);
-}
-#endif
-
-void pvsys_release(void) {};
-
 int
 main(int argc, char **argv)
 {
@@ -159,7 +136,7 @@ main(int argc, char **argv)
     }
     O.filnamspace = filnamp = mmalloc((long)1024);
     if (!(--argc))
-	usage(Str(X_939,"Insufficient arguments"));
+	scale_usage(Str(X_939,"Insufficient arguments"));
     do {
       s = *++argv;
       if (*s++ == '-')    		      /* read all flags:  */
@@ -274,12 +251,12 @@ main(int argc, char **argv)
             break;
           default:
             sprintf(errmsg,Str(X_1334,"unknown flag -%c"), c);
-            usage(errmsg);
+            scale_usage(errmsg);
           }
       else if (inputfile == NULL) {
         inputfile = --s;
       }
-      else usage(Str(X_1286,"too many arguments"));
+      else scale_usage(Str(X_1286,"too many arguments"));
     } while (--argc);
 #ifdef RWD_DBFS
     dbfs_init(DFLT_DBFS);
@@ -403,12 +380,12 @@ main(int argc, char **argv)
     return 0;
 
  outtyp:
-    usage(Str(X_1113,"output soundfile cannot be both AIFF and WAV"));
+    scale_usage(Str(X_1113,"output soundfile cannot be both AIFF and WAV"));
 
  outform:
     sprintf(errmsg,Str(X_1198,"sound output format cannot be both -%c and -%c"),
 	    outformch, c);
-    usage(errmsg);
+    scale_usage(errmsg);
     exit(1);
 }
 
@@ -557,7 +534,7 @@ ScaleSound(int infd, int outfd)
         if (buffer[i] < min)
           min = buffer[i], minpos = i+BUFFER_LEN*block; mintimes = 1;
       }
-      spoutran(buffer);
+      spoutran(buffer, read_in);
       audtran(outbuf, read_in*O.outsampsiz);
       write(outfd, outbuf, read_in*O.outsampsiz);
       block++;
@@ -622,151 +599,4 @@ FindAndReportMax(int infd)
     printf("Max scale factor = %.3f\n",
 	   (float)SHORTMAX/(float)((max>-min)?max:-min) );
     return (max>-min ? max : -min);
-}
-
-static void
-nullfn(char *outbuf, int nbytes)
-{
-}
-
-static void
-shortran(float buffer[BUFFER_LEN])	/* fix spout vals and put in outbuf */
-{					/*	write buffer when full	    */
-    int n;
-    long longsmp;
-
-    for (n=0; n<BUFFER_LEN; n++) {
-      if ((longsmp = buffer[n]) >= 0) {		/* +ive samp:	*/
-        if (longsmp > 32767) {		/* out of range?     */
-          longsmp = 32767;	/*   clip and report */
-          outrange++;
-        }
-      }
-      else {
-        if (longsmp < -32768) { 		/* ditto -ive samp */
-          longsmp = -32768;
-          outrange++;
-        }
-      }
-      shoutbuf[n] = (short)longsmp;
-    }
-}
-
-static void
-chartran(float buffer[BUFFER_LEN]) /* same as above, but 8-bit char output */
-				   /*   sends HI-ORDER 8 bits of shortsamp */
-{
-    int n;
-    long longsmp;
-    
-    
-    for (n=0; n<BUFFER_LEN; n++) {
-      if ((longsmp = buffer[n]) >= 0)	{	/* +ive samp:	*/
-        if (longsmp > 32767) {		/* out of range?     */
-          longsmp = 32767;	/*   clip and report */
-          outrange++;
-        }
-      }
-      else {
-        if (longsmp < -32768) { 		/* ditto -ive samp */
-          longsmp = -32768;
-          outrange++;
-        }
-      }
-      choutbuf[n] = longsmp >> 8;
-    }
-}
-
-#ifdef never
-static void
-alawtran(float buffer[BUFFER_LEN])
-{ die("alaw not yet implemented"); }
-#endif
-
-#define MUCLIP  32635
-#define BIAS    0x84
-#define MUZERO  0x02
-#define ZEROTRAP
-
-#ifdef ULAW
-static void
-ulawtran(float buffer[BUFFER_LEN]) /* ulaw-encode spout vals & put in outbuf */
-				   /*	write buffer when full	    */
-{
-    int  n;
-    long longsmp;
-    int	 sign;
-    extern char    exp_lut[];               /* mulaw encoding table */
-    int sample, exponent, mantissa, ulawbyte;
-
-    for (n=0; n<BUFFER_LEN; n++) {
-      if ((longsmp = buffer[n]) < 0) {	/* if sample negative	*/
-        sign = 0x80;
-        longsmp = - longsmp;		/*  make abs, save sign	*/
-      }
-      else sign = 0;
-      if (longsmp > MUCLIP) { 		/* out of range?     */
-        longsmp = MUCLIP;       		/*   clip and report */
-        outrange++;
-      }
-      sample = longsmp + BIAS;
-      exponent = exp_lut[( sample >> 8 ) & 0x7F];
-      mantissa = ( sample >> (exponent+3) ) & 0x0F;
-      ulawbyte = ~ (sign | (exponent << 4) | mantissa );
-#ifdef ZEROTRAP
-      if (ulawbyte == 0) ulawbyte = MUZERO;    /* optional CCITT trap */
-#endif
-      choutbuf[n] = ulawbyte;
-    }
-}
-#endif
-
-static void
-longtran(float buffer[BUFFER_LEN])	/* send long_int spout vals to outbuf */
-					/*	write buffer when full	    */
-{
-    int n;
-
-    for (n=0; n<BUFFER_LEN; n++) {
-      lloutbuf[n] = (long) buffer[n];
-      if (buffer[n] > (float)(0x7fffffff)) {
-        lloutbuf[n] = 0x7fffffff;
-        outrange++;
-      }
-      else if (buffer[n] < - (float)(0x7fffffff)) {
-        lloutbuf[n] = - 0x7fffffff;
-        outrange++;
-      }
-      else lloutbuf[n] = (long) buffer[n];
-    }
-}
-
-static void
-floatran(float buffer[BUFFER_LEN])	/* send float spout vals to outbuf */
-  /*	write buffer when full	    */
-{
-    int n;
-    for (n=0; n<BUFFER_LEN; n++) {
-      if (buffer[n]> 32767.0 || buffer[n]<-32768.0) outrange++;
-      floutbuf[n] = buffer[n];
-    }
-}
-
-
-#ifndef CWIN
-#include <stdarg.h>
-
-void err_printf(char *fmt, ...)
-{
-    va_list a;
-    va_start(a, fmt);
-    vfprintf(stderr, fmt, a);
-}
-#endif
-void csoundMessage0(const char *format, ...)
-{
-    va_list args;
-    va_start(args, format);
-    vprintf(format, args);
-    va_end(args);
 }

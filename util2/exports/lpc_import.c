@@ -27,43 +27,19 @@
 /* John ffitch 1998 Nov 15                                           */
 /* ***************************************************************** */
 
+#include "ustub.h"
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#include "cs.h"
 #ifndef MYFLT
 #include "sysdep.h"
 #endif
 #include "lpc.h"
 #include "text.h"
 
-GLOBALS cglob;
-
-void usage(void);
-
-long natlong(long lval)         /* coerce a bigendian long into a natural long */
+void lpc_import_usage(void)
 {
-    unsigned char benchar[4];
-    unsigned char *p = benchar;
-    long natlong;
-
-    *(long *)benchar = lval;
-    natlong = *p++;
-    natlong <<= 8;
-    natlong |= *p++;
-    natlong <<= 8;
-    natlong |= *p++;
-    natlong <<= 8;
-    natlong |= *p;
-    return(natlong);
-}
-
-void err_printf(char *fmt, ...)
-{
-    va_list a;
-    va_start(a, fmt);
-    vfprintf(stderr, fmt, a);
-    va_end(a);
+    exit(1);
 }
 
 int main(int argc, char **argv)
@@ -77,7 +53,7 @@ int main(int argc, char **argv)
 
     init_getstring(0, NULL);
     if (argc!= 3)
-      usage();
+      lpc_import_usage();
     inf = fopen(argv[1], "rb");
     if (inf == NULL) {
       fprintf(stderr, Str(X_214,"Cannot open input file %s\n"), argv[1]);
@@ -111,8 +87,4 @@ int main(int argc, char **argv)
     fclose(inf);
 }
 
-void usage(void)
-{
-    exit(1);
-}
 

@@ -216,6 +216,8 @@ void *dlsym(void *handle, const char *symbol)
 
 #endif
 
+#if !defined(CSOUND_WITH_API)
+
 int csoundLoadExternal(void)
 {
     return 0;
@@ -359,3 +361,4 @@ int csoundLoadExternals(void)
     return 1;
 }
 
+#endif

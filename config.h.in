@@ -1,4 +1,4 @@
-/* config.h.in.  Generated from configure.in by autoheader.  */
+/* config.h.in.  Generated from configure.ac by autoheader.  */
 
 /* Define to 1 if the `closedir' function returns void instead of `int'. */
 #undef CLOSEDIR_VOID
@@ -10,6 +10,12 @@
 
 /* Define to 1 if using `alloca.c'. */
 #undef C_ALLOCA
+
+/* Define for the Mac OS X operating system. */
+#undef DARWIN
+
+/* Define for a DEC operating system. */
+#undef DEC
 
 /* Define to 1 if you have `alloca', as a function or macro. */
 #undef HAVE_ALLOCA
@@ -24,12 +30,18 @@
 /* Define to 1 if you have the `atexit' function. */
 #undef HAVE_ATEXIT
 
+/* Define to 1 if you have the <bsd/sgtty.h> header file. */
+#undef HAVE_BSD_SGTTY_H
+
 /* Define to 1 if you have the `bzero' function. */
 #undef HAVE_BZERO
 
 /* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
    */
 #undef HAVE_DIRENT_H
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
 
 /* Define to 1 if you don't have `vprintf' but do have `_doprnt.' */
 #undef HAVE_DOPRNT
@@ -40,14 +52,11 @@
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 
-/* Define to 1 if you have the `floor' function. */
-#undef HAVE_FLOOR
+/* Define when using FLTK for windowing. */
+#undef HAVE_FLTK
 
 /* Define to 1 if you have the `fork' function. */
 #undef HAVE_FORK
-
-/* Define to 1 if you have the `ftruncate' function. */
-#undef HAVE_FTRUNCATE
 
 /* Define to 1 if you have the `getcwd' function. */
 #undef HAVE_GETCWD
@@ -70,17 +79,11 @@
 /* Define to 1 if you have the `audio' library (-laudio). */
 #undef HAVE_LIBAUDIO
 
-/* Define to 1 if you have the `c' library (-lc). */
-#undef HAVE_LIBC
-
-/* Define to 1 if you have the `dl' library (-ldl). */
-#undef HAVE_LIBDL
-
-/* Define to 1 if you have the `m' library (-lm). */
-#undef HAVE_LIBM
-
 /* Define to 1 if you have the `midi' library (-lmidi). */
 #undef HAVE_LIBMIDI
+
+/* Define to 1 if you have the `portaudio' library (-lportaudio). */
+#undef HAVE_LIBPORTAUDIO
 
 /* Define to 1 if you have the `X11' library (-lX11). */
 #undef HAVE_LIBX11
@@ -119,8 +122,8 @@
 /* Define to 1 if you have the <OS.h> header file. */
 #undef HAVE_OS_H
 
-/* Define to 1 if you have the `pow' function. */
-#undef HAVE_POW
+/* Define to 1 if you have the `popen' function. */
+#undef HAVE_POPEN
 
 /* Define to 1 if you have the `putenv' function. */
 #undef HAVE_PUTENV
@@ -140,9 +143,6 @@
 
 /* Define to 1 if you have the `socket' function. */
 #undef HAVE_SOCKET
-
-/* Define to 1 if you have the `sqrt' function. */
-#undef HAVE_SQRT
 
 /* Define to 1 if `stat' has the bug that it succeeds when given the
    zero-length file name argument. */
@@ -243,9 +243,24 @@
 /* Define to 1 if the system has the type `_Bool'. */
 #undef HAVE__BOOL
 
+/* Define for an HP operating system. */
+#undef HP
+
+/* Define when IRCAM audio format is supported. */
+#undef IRCAM
+
+/* Define for the Linux operating system. */
+#undef LINUX
+
 /* Define to 1 if `lstat' dereferences a symlink specified with a trailing
    slash. */
 #undef LSTAT_FOLLOWS_SLASHED_SYMLINK
+
+/* Define when NeXT audio format is supported. */
+#undef NeXT
+
+/* Name of package */
+#undef PACKAGE
 
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT
@@ -268,6 +283,9 @@
 /* Define as the return type of signal handlers (`int' or `void'). */
 #undef RETSIGTYPE
 
+/* Define when real-time audio is available. */
+#undef RTAUDIO
+
 /* Define to the type of arg 1 for `select'. */
 #undef SELECT_TYPE_ARG1
 
@@ -282,22 +300,46 @@
    release 3. */
 #undef SETVBUF_REVERSED
 
+/* Define for the Irix operating system. */
+#undef SGI
+
+/* Define for the Solaris 2.x operating system. */
+#undef SOLARIS
+
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
    automatically deduced at run-time.
-        STACK_DIRECTION > 0 => grows toward higher addresses
-        STACK_DIRECTION < 0 => grows toward lower addresses
-        STACK_DIRECTION = 0 => direction of growth unknown */
+	STACK_DIRECTION > 0 => grows toward higher addresses
+	STACK_DIRECTION < 0 => grows toward lower addresses
+	STACK_DIRECTION = 0 => direction of growth unknown */
 #undef STACK_DIRECTION
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
+
+/* Define when Sun audio format is supported. */
+#undef SUN41
+
+/* Define for the SunOS 4.x operating system. */
+#undef SUNOS4
 
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
 #undef TIME_WITH_SYS_TIME
 
 /* Define to 1 if your <sys/time.h> declares `struct tm'. */
 #undef TM_IN_SYS_TIME
+
+/* Define when using double precision floating point */
+#undef USE_DOUBLE
+
+/* Version number of package */
+#undef VERSION
+
+/* Define for the Windows operating system. */
+#undef WIN32
+
+/* Define when a graphical user interfaces is available. */
+#undef WINDOWS
 
 /* Define to 1 if your processor stores words with the most significant byte
    first (like Motorola and SPARC, unlike Intel and VAX). */
@@ -309,9 +351,11 @@
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
 
-/* Define as `__inline' if that's what the C compiler calls it, or to nothing
-   if it is not supported. */
+/* Define to `__inline__' or `__inline' if that's what the C compiler
+   calls it, or to nothing if 'inline' is not supported under any name.  */
+#ifndef __cplusplus
 #undef inline
+#endif
 
 /* Define to rpl_malloc if the replacement function should be used. */
 #undef malloc
@@ -334,17 +378,3 @@
 /* Define to empty if the keyword `volatile' does not work. Warning: valid
    code using `volatile' can become incorrect without. Disable with care. */
 #undef volatile
-
-#undef HAVE_FLTK
-#undef IRCAM
-#undef LINUX
-#undef LINUX_BE
-#undef NeXT
-#undef PIPES
-#undef RTAUDIO
-#undef SGI
-#undef SUN41
-#undef TCLTK
-#undef WIN32
-#undef WINDOWS
-#undef sun

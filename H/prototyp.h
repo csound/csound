@@ -34,6 +34,7 @@ int hetro(int argc, char **argv), lpanal(int argc, char **argv);
 int pvanal(int argc, char **argv), cvanal(int argc, char **argv);
 int sndinfo(int argc, char **argv), pvlook(int argc, char **argv);
 int dnoise(int argc, char **argv);
+void dnoise_usage(int);
 void cscorinit(void), cscore(void);
 void *mmalloc(long), *mcalloc(long);
 void *mrealloc(void*, long), mfree(void*);
@@ -69,7 +70,7 @@ void beep(void), rlsmemfiles(void);
 double modf(double, double *);  /* not included in math.h */
 MYFLT intpow(MYFLT, long);
 void list_opcodes(int);
-                                           /* common globals */
+
 extern char *unquote(char *);
 
 extern OPARMS O;

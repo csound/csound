@@ -23,12 +23,6 @@
 
 #include "cs.h"                 /*                      ENTRY.C         */
 #include "insert.h"
-/*#include "clarinet.h"
-#include "flute.h"
-#include "bowed.h"
-#include "marimba.h"
-#include "brass.h"
-#include "vibraphn.h"*/
 #include "midiops.h"
 #if defined(TCLTK)
 #include "control.h"
@@ -36,7 +30,6 @@
 #include "schedule.h"
 #include "cwindow.h"
 #include "spectra.h"
-#include "pitch.h"
 #include "vbap.h"
 #include "aops.h"
 #include "ugens1.h"
@@ -49,8 +42,7 @@
 #include "oscils.h"
 #include "midiinterop.h"
 #include "ftgen.h"
-#include "uggab.h"
-#if defined(HAVE_FLTK)
+#if defined(USE_FLTK_WIDGETS)
 #include "widgets.h"                    /* IV - Aug 23 2002 */
 #endif
 
@@ -129,7 +121,7 @@ int    midinoteoff(void*), midinoteonkey(void*), midinoteoncps(void*);
 int    midinoteonoct(void*), midinoteonpch(void*), midipolyaftertouch(void*);
 int    midicontrolchange(void*), midiprogramchange(void*);
 int    midichannelaftertouch(void*), midipitchbend(void*), mididefault(void*);
-#if defined(HAVE_FLTK)                  /* IV - Aug 23 2002 */
+#if defined(USE_FLTK_WIDGETS)                  /* IV - Aug 23 2002 */
 int    fl_slider(void*), fl_slider_bank(void*);
 int    StartPanel(void*), EndPanel(void*), FL_run(void*);
 int    fl_widget_color(void*), fl_widget_color2(void*);
@@ -159,7 +151,6 @@ int    ingoto(void*), kngoto(void*);
 int    nstrnumset(void*);
 int    ftsave(void*), ftload(void*), ftsave_k_set(void*), ftsave_k(void*);
 int    ftsave_k_set(void*), ftload_k(void*);
-int    tapxset(void*), deltapx(void*), deltapxw(void*);
 
 /* thread vals, where isub=1, ksub=2, asub=4:
                 0 =     1  OR   2  (B out only)
@@ -219,8 +210,6 @@ OENTRY opcodlst_2[] = {
 { "cpstuni",S(CPSTUNI), 1,      "i",    "ii",   cpstun_i,               },
 { "cpstmid", S(CPSTABLE), 1, "i", "i",    (SUBR)cpstmid                    },
 { "active", 0xffff                                                         },
-{ "active_i", S(INSTCNT),1,     "i",    "i",    instcount, NULL, NULL      },
-{ "active_k", S(INSTCNT),2,     "k",    "k",    NULL, instcount, NULL      },
 #if defined(TCLTK)
 { "control", S(CNTRL),   3,     "k",    "k",    cntrl_set, control, NULL   },
 { "setctrl", S(SCNTRL),  1,     "",     "iSi",  ocontrol, NULL, NULL   },
@@ -249,20 +238,11 @@ OENTRY opcodlst_2[] = {
 { "vbap8move",  S(VBAP_EIGHT_MOVING), 5, "aaaaaaaa","aiiim", vbap_EIGHT_moving_init, NULL, vbap_EIGHT_moving },
 { "vbap16move",  S(VBAP_SIXTEEN_MOVING), 5, "aaaaaaaaaaaaaaaa","aiiim", vbap_SIXTEEN_moving_init, NULL, vbap_SIXTEEN_moving },
 { "vbapzmove",  S(VBAP_ZAK_MOVING), 5, "","iiaiiim", vbap_zak_moving_init, NULL, vbap_zak_moving },
-#ifdef BETA
-{ "oscilv",  0xfffe                                                       },
-{ "oscilv_kk", S(XOSC),  5,     "a",    "kkio", Foscset, NULL,   Fosckk   },
-{ "oscilv_ka", S(XOSC),  5,     "a",    "kaio", Foscset, NULL,   Foscka   },
-{ "oscilv_ak", S(XOSC),  5,     "a",    "akio", Foscset, NULL,   Foscak   },
-{ "oscilv_aa", S(XOSC),  5,     "a",    "aaio", Foscset, NULL,   Foscaa   },
-#endif
-{ "p_i", S(PFUN),        1,     "i",    "i",     pfun, NULL, NULL               },
-{ "p_k", S(PFUN),        2,     "k",    "k",     NULL, pfun, NULL               },
 { "oscils",   S(OSCILS), 5,     "a", "iiio",     oscils_set, NULL, oscils       },
 { "lphasor",  S(LPHASOR),5,     "a", "xooooooo" ,lphasor_set, NULL, lphasor     },
 { "tablexkt", S(TABLEXKT),5,    "a", "xkkiooo",  tablexkt_set, NULL, tablexkt   },
 /* IV - Aug 23 2002 */
-#if defined(HAVE_FLTK)
+#if defined(USE_FLTK_WIDGETS)
 { "FLslider",S(FLSLIDER), 1,    "ki",   "Siijjjjjjj",   fl_slider, NULL, NULL   },
 { "FLslidBnk",S(FLSLIDERBANK), 1, "", "Siooooooooo", fl_slider_bank, NULL, NULL },
 { "FLknob",S(FLKNOB),     1,    "ki",   "Siijjjjjj",    fl_knob, NULL, NULL     },
@@ -374,7 +354,25 @@ OENTRY opcodlst_2[] = {
 { "ftsavek",S(FTLOAD_K), 3,    "",      "Skim", ftsave_k_set, ftsave_k   },
 { "ftloadk",S(FTLOAD_K), 3,    "",      "Skim", ftsave_k_set, ftload_k   },
 { "tempoval", S(GTEMPO), 2,  "k", "",      NULL, (SUBR)gettempo, NULL    },
-{ "mute", S(MUTE), 1,          "",      "So",   mute_inst                }
+{ "downsamp",S(DOWNSAMP),3, "k", "ao",   (SUBR)downset,(SUBR)downsamp        },
+{ "upsamp", S(UPSAMP),  4,  "a", "k",    NULL,   NULL,   (SUBR)upsamp        },
+/* IV - Sep 5 2002 */
+{ "interp", S(INTERP),  5,  "a", "koo",  (SUBR)interpset,NULL, (SUBR)interp  },
+{ "a_k",    S(INTERP),  5,  "a", "k",    (SUBR)a_k_set,NULL,   (SUBR)interp  },
+{ "integ", S(INDIFF), 7, "s", "xo", (SUBR)indfset,(SUBR)kntegrate,(SUBR)integrate},
+{ "diff",   S(INDIFF),  7,  "s", "xo",   (SUBR)indfset,(SUBR)kdiff, (SUBR)diff },
+{ "samphold",S(SAMPHOLD),7, "s", "xxoo", (SUBR)samphset,(SUBR)ksmphold,(SUBR)samphold},
+{ "delay",  S(DELAY),   5,  "a", "aio",  (SUBR)delset, NULL,   (SUBR)delay   },
+{ "delayr", S(DELAYR),  5,  "a", "io",   (SUBR)delrset,NULL,   (SUBR)delayr  },
+{ "delayw", S(DELAYW),  5,  "",  "a",    (SUBR)delwset,NULL,   (SUBR)delayw  },
+{ "delay1", S(DELAY1),  5,  "a", "ao",   (SUBR)del1set,NULL,   (SUBR)delay1  },
+{ "deltap", S(DELTAP),  5,  "a", "k",    (SUBR)tapset, NULL,   (SUBR)deltap  },
+{ "deltapi",S(DELTAP),  5,  "a", "x",    (SUBR)tapset, NULL,   (SUBR)deltapi },
+{ "deltapn",S(DELTAP),  5,  "a", "x",    (SUBR)tapset, NULL,   (SUBR)deltapn },
+{ "deltap3",S(DELTAP),  5,  "a", "x",    (SUBR)tapset, NULL,   (SUBR)deltap3 },
+{ "deltapx", S(DELTAPX),5,  "a", "ai",   (SUBR)tapxset, NULL,  (SUBR)deltapx },
+{ "deltapxw", S(DELTAPX),5, "",  "aai",  (SUBR)tapxset, NULL, (SUBR)deltapxw },
+{ "reverb", S(REVERB),  5, "a",  "ako",  (SUBR)rvbset, NULL,   (SUBR)reverb  },
 };
 
 long oplength_2 = sizeof(opcodlst_2);

@@ -315,11 +315,11 @@ int marimbaset(MARIMBA *p)
       itemp = rand() % 100;
       if (itemp < triples) {
         p->multiStrike = 2;
-        if (O.msglevel & 02) printf(Str(X_1247,"striking three times here!!!\n"));
+        if (oparms_->msglevel & 02) printf(Str(X_1247,"striking three times here!!!\n"));
       }
       else if (itemp < doubles) {
         p->multiStrike = 1;
-        if (O.msglevel & 02) printf(Str(X_1248,"striking twice here!!\n"));
+        if (oparms_->msglevel & 02) printf(Str(X_1248,"striking twice here!!\n"));
       }
       else p->multiStrike = 0;
     }

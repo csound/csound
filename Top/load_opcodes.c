@@ -20,11 +20,18 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
+#if defined(HAVE_CONFIG_H)
+#include "config.h"
+#endif
+
 #include "cs.h"
 #include "csound.h"
 
+#if defined(HAVE_DIRENT_H)
+#include <dirent.h>
+#endif
 
-#if defined(WIN32)
+#if defined(WIN32) && !defined(__CYGWIN__)
 
 #include <io.h>
 #include <direct.h>
@@ -52,7 +59,7 @@ void *csoundGetLibrarySymbol(void *library,
 	return procedureAddress;
 }
 
-#elif defined(LINUX) 
+#elif defined(LINUX) || defined(__CYGWIN__)
 
 #include <dlfcn.h>
 #include <dirent.h>
@@ -64,7 +71,7 @@ void *csoundOpenLibrary(const char *libraryPath)
   library = dlopen(libraryPath, RTLD_NOW | RTLD_GLOBAL );
   if(!library)
     {
-      fprintf(stderr, "Error in dlopen(): '%s'\n", dlerror());
+      fprintf(stderr, "Error '%s' in dlopen(%s).\n", dlerror(), libraryPath);
     }
   return library;
 }
@@ -315,6 +322,9 @@ int csoundLoadExternal(void *csound, const char* libraryPath) {
     OENTRY *(*init)(ENVIRON*);
     long (*size)(void);    
     
+#ifdef BETA
+    printf("Opening '%s'.\n", libraryPath);
+#endif    
     handle = csoundOpenLibrary(libraryPath);
     
     if(!handle) {
@@ -374,6 +384,25 @@ int csoundLoadExternals(void *csound)
 {
     char *libname;
     char buffer[256];
+#if defined(HAVE_DIRENT_H)
+		{
+			DIR *directory;
+			struct dirent *file;
+			char buffer[0x500];
+			char *opcodedir = getenv("OPCODEDIR");
+			if(!opcodedir)
+			{
+				opcodedir = ".";
+			}
+			directory = opendir(opcodedir);
+			while((file = readdir(directory)) != 0)
+			{
+				sprintf(buffer, "%s%c%s", opcodedir, DIRSEP, file->d_name);
+				csoundLoadExternal(csound, buffer);
+			}
+			closedir(directory);
+		}
+#endif
     if(((ENVIRON *)csound)->oplibs_ == NULL)
     {
         return 1;   

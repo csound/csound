@@ -112,7 +112,7 @@ char *unquote(char *name)       /* remove any quotes from a filename   */
 #endif
 #elif defined(mac_classic) || defined(SYMANTEC) || defined(WIN32)
 #define RD_OPTS  O_RDONLY | O_BINARY
-#define WR_OPTS  O_TRUNC | O_CREAT | O_WRONLY | O_BINARY
+#define WR_OPTS  O_TRUNC | O_CREAT | O_WRONLY | O_BINARY, 0644
 #elif defined DOSGCC
 #define RD_OPTS  O_RDONLY | O_BINARY, 0
 #define WR_OPTS  O_TRUNC | O_CREAT | O_WRONLY | O_BINARY, 0644
@@ -312,5 +312,6 @@ void die(char *s)
 {
     printf("%s\n",s);
     longjmp(cenviron.exitjmp_,1);
+
 }
 #endif

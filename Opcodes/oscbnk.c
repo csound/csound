@@ -1479,7 +1479,7 @@ static void vco2_calculate_table(ENVIRON *csound, VCO2_TABLE *table, VCO2_TABLE_
     int     i, minh;
 
     /* allocate memory for FFT */
-    ex = AssignBasis(NULL, (long) table->size);
+    ex = csound->AssignBasis_(NULL, (long) table->size);
     fftbuf = (complex*) csound->mmalloc_(sizeof(complex) * ((table->size >> 1) + 1));
     if (tp->waveform >= 0) {                    /* no DC offset for built-in */
       minh = 1; fftbuf[0].re = fftbuf[0].im = FL(0.0);  /* waveforms */
@@ -1515,7 +1515,7 @@ static void vco2_calculate_table(ENVIRON *csound, VCO2_TABLE *table, VCO2_TABLE_
       }
     }
     /* inverse FFT */
-    FFT2torlpacked(fftbuf, (long) table->size, FL(0.5), ex);
+    csound->FFT2torlpacked_(fftbuf, (long) table->size, FL(0.5), ex);
     /* copy to table */
     i = 0;
     do {
@@ -1586,7 +1586,7 @@ static int vco2_table_size(int npart, VCO2_TABLE_PARAMS *tp)
 /* from table number "base_ftable" if it is greater than zero.           */
 /* The return value is the first ftable number that is not allocated.    */
 
-extern FUNC* hfgens(EVTBLK*);
+//extern FUNC* hfgens(EVTBLK*);
 
 static int vco2_tables_create(ENVIRON *csound, int waveform, int base_ftable,
                               VCO2_TABLE_PARAMS *tp)
@@ -1607,15 +1607,15 @@ static int vco2_tables_create(ENVIRON *csound, int waveform, int base_ftable,
       /* extend space for table arrays */
       ntables = ((waveform >> 4) + 1) << 4;
       vco2_tables = (VCO2_TABLE_ARRAY**)
-        mrealloc(vco2_tables, sizeof(VCO2_TABLE_ARRAY*) * ntables);
+        csound->mrealloc_(vco2_tables, sizeof(VCO2_TABLE_ARRAY*) * ntables);
       for (i = vco2_nr_table_arrays; i < ntables; i++) vco2_tables[i] = NULL;
       vco2_nr_table_arrays = ntables;
     }
     /* clear table array if already initialised */
     if (vco2_tables[waveform] != NULL) {
       vco2_delete_table_array(csound, waveform);
-      if (O.msglevel & WARNMSG)
-        printf(csound->errmsg_, "WARNING: redefined table array for waveform %d\n",
+      //if (csound->oparms_->msglevel & WARNMSG)
+        csound->err_printf_("WARNING: redefined table array for waveform %d\n",
                       (waveform > 4 ? 4 - waveform : waveform));
     }
       /* calculate number of tables */
@@ -1671,7 +1671,7 @@ static int vco2_tables_create(ENVIRON *csound, int waveform, int base_ftable,
         e.p[3] = e.p3orig = (MYFLT) tables->tables[i].size;
           e.p[4] = FL(-2.0);           /* GEN02 */
           e.p[5] = FL(0.0);
-          if ((ftp = hfgens(&e)) == NULL) return -1;
+          if ((ftp = csound->hfgens_(&e)) == NULL) return -1;
         tables->tables[i].ftable = ftp->ftable;
           base_ftable++;                /* next table number */
         }

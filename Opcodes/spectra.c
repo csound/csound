@@ -25,6 +25,8 @@
 #include <math.h>
 #include "cwindow.h"
 #include "spectra.h"
+#include "pitch.h"
+#include "uggab.h"
 
 #define FZERO   (FL(0.0))
 #define LOGTWO  (0.69314718056)
@@ -1296,6 +1298,41 @@ static OENTRY localops[] = {
 { "specptrk", S(SPECPTRK),5, "kk", "wkiiiiiioqooo",(SUBR)sptrkset,NULL,(SUBR)specptrk},
 { "specsum",  S(SPECSUM), 5, "k",  "wo",   (SUBR)spsumset,NULL,  (SUBR)specsum },
 { "specdisp", S(SPECDISP),5, "",   "wio",  (SUBR)spdspset,NULL,  (SUBR)specdisp},
+{ "pitch", S(PITCH),     5,    "kk", "aiiiiqooooojo", (SUBR)pitchset, NULL, (SUBR)pitch },
+{ "maca", S(SUM),        5,  "a", "y",    (SUBR)macset,      NULL, (SUBR)maca    },
+{ "mac", S(SUM),         5,  "a", "Z",    (SUBR)macset,      NULL, (SUBR)mac     },
+{ "clockon", S(CLOCK),   3,  "",  "i",    (SUBR)clockset, (SUBR)clockon, NULL    },
+{ "clockoff", S(CLOCK),  3,  "",  "i",    (SUBR)clockset, (SUBR)clockoff, NULL   },
+{ "readclock", S(CLKRD), 1,  "i", "i",    (SUBR)clockread, NULL, NULL            },
+{ "pitchamdf",S(PITCHAMDF),5,"kk","aiioppoo", (SUBR)pitchamdfset, NULL, (SUBR)pitchamdf },
+{ "hsboscil",S(HSBOSC),  5,  "a", "kkkiiioo",(SUBR)hsboscset,NULL,(SUBR)hsboscil },
+{ "phasorbnk", S(PHSORBNK),7,"s", "xkio", (SUBR)phsbnkset, (SUBR)kphsorbnk, (SUBR)phsorbnk },
+{ "adsynt",S(HSBOSC),    5,  "a", "kkiiiio", (SUBR)adsyntset, NULL, (SUBR)adsynt },
+{ "mpulse", S(IMPULSE),  5,  "a", "kko",  (SUBR)impulse_set, NULL, (SUBR)impulse },
+{ "sense", S(KSENSE),    3,  "k", "",      (SUBR)isense, (SUBR)ksense, NULL      },
+{ "sensekey", S(KSENSE), 3,  "k", "",      (SUBR)isense, (SUBR)ksense, NULL      },
+{ "lpf18", S(LPF18),     5,  "a", "akkk",  (SUBR)lpf18set, NULL, (SUBR)lpf18db   },
+{ "waveset", S(BARRI),   5,  "a", "ako",   (SUBR)wavesetset,  NULL, (SUBR)waveset},
+{ "pinkish", S(PINKISH),  5, "a", "xoooo", (SUBR)pinkset, NULL, (SUBR)pinkish },
+{ "noise",  S(VARI),   5,    "a", "xk",   (SUBR)varicolset, NULL, (SUBR)varicol },
+{ "transeg", S(TRANSEG), 7,  "s", "iiim", (SUBR)trnset,(SUBR)ktrnseg,(SUBR)trnseg},
+{ "clip", S(CLIP),       5,  "a", "aiiv", (SUBR)clip_set, NULL, (SUBR)clip       },
+{ "cpuprc", S(CPU_PERC), 1,     "",     "ii",   cpuperc, NULL, NULL        },
+/* IV - Oct 20 2002 */
+{ "prealloc", S(CPU_PERC), 1,   "",     "Sio",  prealloc, NULL, NULL       },
+{ "maxalloc", S(CPU_PERC), 1,   "",     "ii",   maxalloc, NULL, NULL       },
+{ "active_i", S(INSTCNT),1,     "i",    "i",    instcount, NULL, NULL      },
+{ "active_k", S(INSTCNT),2,     "k",    "k",    NULL, instcount, NULL      },
+{ "p_i", S(PFUN),        1,     "i",    "i",     pfun, NULL, NULL               },
+{ "p_k", S(PFUN),        2,     "k",    "k",     NULL, pfun, NULL               },
+{ "mute", S(MUTE), 1,          "",      "So",   mute_inst                },
+#ifdef BETA
+{ "oscilv",  0xfffe                                                       },
+{ "oscilv_kk", S(XOSC),  5,     "a",    "kkio", Foscset, NULL,   Fosckk   },
+{ "oscilv_ka", S(XOSC),  5,     "a",    "kaio", Foscset, NULL,   Foscka   },
+{ "oscilv_ak", S(XOSC),  5,     "a",    "akio", Foscset, NULL,   Foscak   },
+{ "oscilv_aa", S(XOSC),  5,     "a",    "aaio", Foscset, NULL,   Foscaa   },
+#endif
 };
 
 long opcode_size(void)
@@ -1305,7 +1342,7 @@ long opcode_size(void)
 
 OENTRY *opcode_init(ENVIRON *xx)
 {
-    xx->displop4_ = getopnum("specdisp"); /* This will not work!!! */
+    // xx->displop4_ = xx->getopnum_("specdisp"); /* This will not work!!! */
     return localops;
 }
 

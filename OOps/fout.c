@@ -25,12 +25,8 @@
 /* Code modified by JPff to remove fixed size arrays, allow
    AIFF and WAV, and close files neatly.  Also bugs fixed */
 
-#include "cs.h"
-#include <ctype.h>
 #include "fout.h"
-
-extern  void    writeheader(int, char*);
-extern  void    rewriteheader(int, long, int);
+#include <ctype.h>
 
 struct fileinTag {
     FILE* file;
@@ -114,7 +110,7 @@ int outfile_set(OUTFILE *p)
     if (*p->fname == SSTRCOD) { /* if char string name given */
       int j;
       char fname[FILENAME_MAX];
-      extern char *unquote(char *name);
+      //extern char *unquote(char *name);
       if (p->STRARG == NULL) strcpy(fname,unquote(currevent->strarg));
       else strcpy(fname, unquote(p->STRARG));
       for (j=0; j<file_num; j++) {
@@ -206,7 +202,7 @@ int koutfile_set(KOUTFILE *p)
     if (*p->fname == SSTRCOD) {/*gab B1*/ /* if char string name given */
       int j;
       char fname[FILENAME_MAX];
-      extern char *unquote(char *name);
+      //extern char *unquote(char *name);
       if (p->STRARG == NULL) strcpy(fname,unquote(currevent->strarg)); /*gab B1*/
       else strcpy(fname, unquote(p->STRARG));
       for (j=0; j<file_num; j++) {
@@ -476,7 +472,7 @@ int infile_set(INFILE *p)
 {
     if (*p->fname == SSTRCOD) { /* if char string name given */
       int j;
-      extern char *unquote(char *name);
+      //extern char *unquote(char *name);
       char fname[FILENAME_MAX];
       if (p->STRARG == NULL) strcpy(fname,unquote(currevent->strarg));
       else strcpy(fname, unquote(p->STRARG));
@@ -584,7 +580,7 @@ int kinfile_set(KINFILE *p)
 {
     if (*p->fname == SSTRCOD) { /* if char string name given */
       int j;
-      extern char *unquote(char *name);
+      //extern char *unquote(char *name);
       char fname[FILENAME_MAX];
       if (p->STRARG == NULL) strcpy(fname,unquote(currevent->strarg)); /*gab B1*/
       else strcpy(fname, unquote(p->STRARG));
@@ -649,7 +645,7 @@ int i_infile(I_INFILE *p)
       char fname[FILENAME_MAX];
       char *omodes[] = {"r", "r", "rb"};
       int idx;
-      extern char *unquote(char *name);
+      //extern char *unquote(char *name);
 
       if (p->STRARG == NULL) strcpy(fname,unquote(currevent->strarg));
       else strcpy(fname, unquote(p->STRARG));
@@ -789,7 +785,7 @@ int fprintf_set(FPRINTF *p)
     if (*p->fname == SSTRCOD) { /* if char string name given */
       int j;
       char fname[FILENAME_MAX];
-      extern char *unquote(char *name);
+      //extern char *unquote(char *name);
       if (p->STRARG == NULL) strcpy(fname,unquote(currevent->strarg));
       else strcpy(fname, unquote(p->STRARG));
       for (j=0; j<= file_num; j++) {

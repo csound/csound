@@ -159,7 +159,6 @@ int sortfun(fpolar *a, fpolar *b);
 void nudgeMags(fpolar a[], fcomplex b[], int dim, double fact);
 void nudgePhases(fpolar a[], fcomplex b[], int dim, double fact);
 
-extern void error(const char*, const char*);
 static void zroots(ENVIRON*, fcomplex [], int, fcomplex []);
 fcomplex Cadd(fcomplex, fcomplex);
 fcomplex Csub(fcomplex, fcomplex);
@@ -185,8 +184,7 @@ int ifilter(FILTER* p)
     /* First check bounds on initialization arguments */
     if ((p->numb<1) || (p->numb>(MAXZEROS+1)) ||
         (p->numa<0) || (p->numa>MAXPOLES))
-      error(Str(X_278,"Filter order out of bounds: (1<=nb<51, 0<=na<=50)"),
-            "<filter>");
+      return initerror(Str(X_278,"Filter order out of bounds: (1<=nb<51, 0<=na<=50)"));
 
     /* Calculate the total delay in samples and allocate memory for it */
     p->ndelay = MAX(p->numb-1,p->numa);
@@ -223,8 +221,7 @@ int izfilter(ZFILTER *p)
     /* First check bounds on initialization arguments */
     if ((p->numb<1) || (p->numb>(MAXZEROS+1)) ||
         (p->numa<0) || (p->numa>MAXPOLES))
-      error(Str(X_278,"Filter order out of bounds: (1<=nb<51, 0<=na<=50)"),
-            "<filter>");
+      return initerror(Str(X_278,"Filter order out of bounds: (1<=nb<51, 0<=na<=50)"));
 
     /* Calculate the total delay in samples and allocate memory for it */
     p->ndelay = MAX(p->numb-1,p->numa);

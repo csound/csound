@@ -25,12 +25,10 @@
 *   jpff 11 Dec 1994					*
 *   mainly lifted from scale and Csound itself		*
 \*******************************************************/
-
+#include "ustub.h"
+#include "soundio.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "../../cs.h"
-#include "../../ustub.h"
-#include "../../soundio.h"
 
 /* Constants */
 
@@ -52,14 +50,9 @@
 /* Static global variables */
 static SOUNDIN     *p;  /* space allocated by SAsndgetset() */
 
-MYFLT e0dbfs = DFLT_DBFS;
+//MYFLT e0dbfs = DFLT_DBFS;
 
-int POLL_EVENTS(void)
-{
-    return 1;
-}
-
-static void usage(char *mesg)
+static void envext_usage(char *mesg)
 {
     fprintf(stderr, "%s\n", mesg);
     fprintf(stderr,"Usage:\tenvext [-flags] soundfile\n");
@@ -89,7 +82,7 @@ main(int argc, char **argv)
 
     /* Check arguments */
     if (!(--argc))
-	usage("Insufficient arguments");
+	envext_usage("Insufficient arguments");
     do {
 	s = *++argv;
 	if (*s++ == '-')    		      /* read all flags:  */
@@ -107,12 +100,12 @@ main(int argc, char **argv)
 		    break;
 		default:
 		    sprintf(errmsg,"unknown flag -%c", c);
-		    usage(errmsg);
+		    envext_usage(errmsg);
 		}
 	else if (inputfile == NULL) {
 	    inputfile = --s;
 	}
-	else usage("too many arguments");
+	else envext_usage("too many arguments");
     } while (--argc);
 
 #ifdef RWD_DBFS
@@ -136,6 +129,7 @@ static  ARGOFFS  argoffs = {0};     /* these for sndgetset */
 static	OPTXT    optxt;
 static  float    fzero = 0.0;
     char         quotname[80];
+    static MYFLT sstrcod = SSTRCOD;
 
     sssfinit();                 /* stand-alone init of SFDIR etc. */
     esr = 0.0;                  /* set esr 0. with no orchestra   */
@@ -193,15 +187,3 @@ FindEnvelope(int infd)
     close(infd);
     fclose(outfile);
 }
-
-
-#ifndef CWIN
-#include <stdarg.h>
-void err_printf(char *fmt, ...)
-{
-    va_list a;
-    va_start(a, fmt);
-    vfprintf(stderr, fmt, a);
-    va_end(a);
-}
-#endif

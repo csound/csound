@@ -22,14 +22,14 @@
     02111-1307 USA
 */
 
-#include "csdl.h"         /*                                    PITCH.C       */
 #include <math.h>
 #include <limits.h>
+#include "namedins.h"   /* IV - Oct 31 2002 */
 #include "cwindow.h"
 #include "spectra.h"
 #include "pitch.h"
 #include "uggab.h"
-#include "namedins.h"   /* IV - Oct 31 2002 */
+#include "csdl.h"         /*                                    PITCH.C       */
 
 extern void DOWNset(DOWNDAT *, long);
 extern void SPECset(SPECDAT *, long);
@@ -2153,28 +2153,3 @@ int waveset(BARRI *p)
 }
 
 
-#define S       sizeof
-
-static OENTRY localops[] = {
-{ "pitch", S(PITCH),     5,    "kk", "aiiiiqooooojo", (SUBR)pitchset, NULL, (SUBR)pitch },
-{ "maca", S(SUM),        5,  "a", "y",    (SUBR)macset,      NULL, (SUBR)maca    },
-{ "mac", S(SUM),         5,  "a", "Z",    (SUBR)macset,      NULL, (SUBR)mac     },
-{ "clockon", S(CLOCK),   3,  "",  "i",    (SUBR)clockset, (SUBR)clockon, NULL    },
-{ "clockoff", S(CLOCK),  3,  "",  "i",    (SUBR)clockset, (SUBR)clockoff, NULL   },
-{ "readclock", S(CLKRD), 1,  "i", "i",    (SUBR)clockread, NULL, NULL            },
-{ "pitchamdf",S(PITCHAMDF),5,"kk","aiioppoo", (SUBR)pitchamdfset, NULL, (SUBR)pitchamdf },
-{ "hsboscil",S(HSBOSC),  5,  "a", "kkkiiioo",(SUBR)hsboscset,NULL,(SUBR)hsboscil },
-{ "phasorbnk", S(PHSORBNK),7,"s", "xkio", (SUBR)phsbnkset, (SUBR)kphsorbnk, (SUBR)phsorbnk },
-{ "adsynt",S(HSBOSC),    5,  "a", "kkiiiio", (SUBR)adsyntset, NULL, (SUBR)adsynt },
-{ "mpulse", S(IMPULSE),  5,  "a", "kko",  (SUBR)impulse_set, NULL, (SUBR)impulse },
-{ "sense", S(KSENSE),    3,  "k", "",      (SUBR)isense, (SUBR)ksense, NULL      },
-{ "sensekey", S(KSENSE), 3,  "k", "",      (SUBR)isense, (SUBR)ksense, NULL      },
-{ "lpf18", S(LPF18),     5,  "a", "akkk",  (SUBR)lpf18set, NULL, (SUBR)lpf18db   },
-{ "waveset", S(BARRI),   5,  "a", "ako",   (SUBR)wavesetset,  NULL, (SUBR)waveset},
-{ "pinkish", S(PINKISH),  5, "a", "xoooo", (SUBR)pinkset, NULL, (SUBR)pinkish },
-{ "noise",  S(VARI),   5,    "a", "xk",   (SUBR)varicolset, NULL, (SUBR)varicol },
-{ "transeg", S(TRANSEG), 7,  "s", "iiim", (SUBR)trnset,(SUBR)ktrnseg,(SUBR)trnseg},
-{ "clip", S(CLIP),       5,  "a", "aiiv", (SUBR)clip_set, NULL, (SUBR)clip       },
-};
-
-LINKAGE

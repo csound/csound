@@ -1,5 +1,5 @@
 #ifndef CS_H            /*                                      CS.H    */
-#define CS_H (1)
+#define CS_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,6 +27,9 @@ extern "C" {
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
+#if defined HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include "csoundCore.h"
 

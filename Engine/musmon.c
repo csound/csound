@@ -292,9 +292,7 @@ int musmon(void)
     if (O.sfwrite)                  /* if audio-out requested,      */
       sfopenout();                  /*   open the outfile or device */
     else sfnopenout();
-#ifndef _SNDFILE_
     iotranset();                    /* point recv & tran to audio formatter */
-#endif
 
     curp2 = curbt = FL(0.0);
     if (O.Beatmode)                 /* if performing from beats */

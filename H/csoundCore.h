@@ -1,3 +1,6 @@
+#ifndef CSOUNDCORE_H
+#define CSOUNDCORE_H
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -39,7 +42,7 @@ extern "C" {
 #include "sysdep.h"
 #include "cwindow.h"
 #include "opcode.h"
-
+#include "fft.h"
 #include "version.h"
 
 #define OK (0)
@@ -608,7 +611,39 @@ typedef struct ENVIRON_
   char *(*unquote)(char *);
   MEMFIL *(*ldmemfile)(char *);
   void (*err_printf_)(char *, ...);
-  
+	FUNC *(*hfgens_)(EVTBLK *);
+	void *(*mrealloc_)(void *old, long nbytes);
+	void (*putcomplexdata_)(complex *, long);
+	void (*ShowCpx_)(complex *, long, char *);
+	int (*PureReal_)(complex *, long);
+	int (*IsPowerOfTwo_)(long);
+	complex *(*FindTable_)(long);       
+	complex *(*AssignBasis_)(complex *, long);
+	void (*reverseDig_)(complex *, long, int);
+	void (*reverseDigpacked_)(complex *, long);
+	void (*FFT2dimensional_)(complex *, long, long, complex *);
+	void (*FFT2torl_)(complex *, long, int, MYFLT, complex *);
+	void (*FFT2torlpacked_)(complex *, long, MYFLT, complex *);
+	void (*ConjScale_)(complex *, long, MYFLT);
+	void (*FFT2real_)(complex *, long, int, complex *);
+	void (*FFT2realpacked_)(complex *, long, complex *);
+	void (*Reals_)(complex *, long, int, int, complex *);
+	void (*Realspacked_)(complex *, long,int, complex *);
+	void (*FFT2_)(complex *, long, int, complex *);
+	void (*FFT2raw_)(complex *, long, int, int, complex *);
+	void (*FFT2rawpacked_)(complex *, long, int, complex *);
+	void (*FFTarb_)(complex *, complex *, long, complex *);
+	void (*DFT_)(complex *, complex *, long, complex *);
+	void (*cxmult_)(complex *,complex *,long);
+	int (*getopnum_)(char *s);
+	long (*strarg2insno_)(MYFLT *p, char *s);
+	long (*strarg2opcno_)(MYFLT *p, char *s, int force_opcode);
+	INSDS (*instance_)(int insno);
+	int (*isfullpath_)(char *name);  
+	void (*dies)(char *s, char *t);
+	char *(*catpath_)(char *path, char *name);
+	void (*rewriteheader_)(int ofd, long datasize, int verbose);
+	void (*writeheader)(int ofd, char *ofname); 
   /* End of internals */
   int           ksmps_, nchnls_;
   int           global_ksmps_;
@@ -760,3 +795,5 @@ char *mytmpnam(char *);
 #ifdef __cplusplus
 };
 #endif
+
+#endif	//	CSOUNDCORE_H

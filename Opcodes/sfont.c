@@ -33,10 +33,10 @@
 #include <stdlib.h>
 #include <math.h>
 #include <ctype.h>
-#include "csdl.h"
+#include <errno.h>
 #include "sfenum.h"
 #include "sfont.h"
-#include <errno.h>
+#include "csdl.h"
 
 #define s2d(x)  *((DWORD *) (x))
 
@@ -98,7 +98,6 @@ void SoundFontLoad(ENVIRON *csound, char *fname)
 {
     FILE *fil;
     char pathnam[255];
-    extern char *catpath(char *, char *);
     printf("\n"
            "******************************************\n"
            "**  Csound SoundFont2 support ver. 1.2  **\n"
@@ -113,20 +112,20 @@ void SoundFontLoad(ENVIRON *csound, char *fname)
 * which is compiled with multi-threaded code generation.
 */
 #else
-#ifdef WIN32
-      extern volatile int _errno;
-#define errno _errno
+#if defined(WIN32) && !defined(__CYGWIN__)
+	extern volatile int _errno;
+	#define errno _errno
 #endif
 #endif
       char bb[256];
       strcpy(pathnam, fname);  /* in case of error message */
-      if (!isfullpath(fname)) {
+      if (!csound->isfullpath_(fname)) {
         if (csound->ssdirpath_ != NULL) {
-          strcpy(pathnam, catpath(csound->ssdirpath_, fname));
+          strcpy(pathnam, csound->catpath_(csound->ssdirpath_, fname));
           if ((fil = fopen(pathnam,"rb")) != NULL) goto done;
         }
         if (csound->sfdirpath_ != NULL) {
-          strcpy(pathnam, catpath(csound->sfdirpath_, fname));
+          strcpy(pathnam, csound->catpath_(csound->sfdirpath_, fname));
           if (( fil = fopen(pathnam,"rb")) != NULL) goto done;
         }
       }

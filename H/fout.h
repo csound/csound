@@ -1,3 +1,5 @@
+#ifndef FOUT_H
+#define FOUT_H
 /*  
     fout.h:
 
@@ -20,6 +22,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
+#include "cs.h"
 
 typedef struct {
         OPDS    h;
@@ -115,3 +118,24 @@ typedef struct {
         int     idx;
         char    txtstring[8192]; /* Place to store the string printed */
 } FPRINTF;
+
+int fprintf_i(FPRINTF *);
+int fprintf_k(FPRINTF *);
+int fprintf_set(FPRINTF *p);
+int incr(INCR *p);
+int clear(CLEARS *p);
+int outfile_set(OUTFILE *p);
+int outfile (OUTFILE *p);
+int koutfile_set(KOUTFILE *p);
+int koutfile(KOUTFILE *p);
+int fiopen(FIOPEN *p);
+int ioutfile_set(IOUTFILE *p);
+int ioutfile_set_r(IOUTFILE_R *p);
+int ioutfile_r(IOUTFILE_R *p);
+int infile_set(INFILE *p);
+int infile(INFILE *p);
+int kinfile_set(KINFILE *p);
+int kinfile(KINFILE *p);
+int i_infile(I_INFILE *p);
+ 
+#endif // FOUT_H

@@ -109,6 +109,7 @@ typedef struct {
         AIFFDAT *aiffdata;
         FDCH    fdch;
 #ifdef _SNDFILE_
+        void    (*bytrev)(char*,int);
         MYFLT   *inbufp, *bufend;
         MYFLT   inbuf[SNDINBUFSIZ];
 #else

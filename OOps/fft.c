@@ -62,6 +62,7 @@
 #include "cs.h"   /* for mmalloc, mcalloc prototypes, DO NOT USE MALLOC */
 #include <math.h>
 #include "fft.h"
+#include "prototyp.h"
 
 static LNODE   *lroot = NULL;  /* root of look up table list */
 

@@ -68,7 +68,7 @@ int clfiltset(CLFILT *p)
     }
     else if (fmod((double)*p->npol,2.0) != 0.0) {
       p->nsec = nsec = (int)((*p->npol+FL(1.0))/FL(2.0));
-      if (O.msglevel & WARNMSG) {
+      if (oparms_->msglevel & WARNMSG) {
         printf(Str(X_1708,
                    "WARNING: odd number of poles chosen in clfilt,"
                    " rounded to %d\n"),
@@ -97,7 +97,7 @@ int clfiltset(CLFILT *p)
       case 1: /* Lowpass Chebyshev type I */
         if ( pbr < FL(0.0) ) {
           pbr = -pbr;
-          if (O.msglevel & WARNMSG) {
+          if (oparms_->msglevel & WARNMSG) {
             printf(Str(X_1709,
                         "WARNING: passband ripple must be positive "
                        "in clfilt. Set to %f\n"),
@@ -106,7 +106,7 @@ int clfiltset(CLFILT *p)
         }
         else if ( pbr == FL(0.0) ) {
           pbr = FL(1.0);
-          if (O.msglevel & WARNMSG) {
+          if (oparms_->msglevel & WARNMSG) {
             printf(Str(X_1710,
                        "WARNING: passband ripple must be non-zero in "
                        "clfilt. Set to %f\n"),
@@ -152,7 +152,7 @@ int clfiltset(CLFILT *p)
         }
         else if ( sbr > FL(0.0) ) {
           sbr = -sbr;
-          if (O.msglevel & WARNMSG) {
+          if (oparms_->msglevel & WARNMSG) {
             printf(Str(X_1712,
                        "WARNING: stopband attenuation must be negative "
                        "in clfilt. Set to %f\n"),
@@ -161,7 +161,7 @@ int clfiltset(CLFILT *p)
         }
         else if ( sbr == FL(0.0) ) {
           sbr = FL(-60.0);
-          if (O.msglevel & WARNMSG) {
+          if (oparms_->msglevel & WARNMSG) {
             printf(Str(X_1713,
                        "WARNING: stopband attenuation must be non-zero "
                        "in clfilt. Set to %f\n"),
@@ -214,7 +214,7 @@ int clfiltset(CLFILT *p)
       case 1: /* Highpass Chebyshev type I */
         if ( pbr < FL(0.0) ) {
           pbr = -pbr;
-          if (O.msglevel & WARNMSG) {
+          if (oparms_->msglevel & WARNMSG) {
             printf(Str(X_1709,
                        "WARNING: passband ripple must be positive in clfilt. "
                        "Set to %f\n"),
@@ -223,7 +223,7 @@ int clfiltset(CLFILT *p)
         }
         else if ( pbr == FL(0.0) ) {
           pbr = FL(1.0);
-          if (O.msglevel & WARNMSG) {
+          if (oparms_->msglevel & WARNMSG) {
             printf(Str(X_1710,
                         "WARNING: passband ripple must be non-zero "
                        "in clfilt. Set to %f\n"),
@@ -269,7 +269,7 @@ int clfiltset(CLFILT *p)
         }
         else if ( sbr > FL(0.0) ) {
           sbr = -sbr;
-          if (O.msglevel & WARNMSG) {
+          if (oparms_->msglevel & WARNMSG) {
             printf(Str(X_1712,
                        "WARNING: stopband attenuation must be negative "
                        "in clfilt. Set to %f\n"),
@@ -278,7 +278,7 @@ int clfiltset(CLFILT *p)
         }
         else if ( sbr == FL(0.0) ) {
           sbr = FL(-60.0);
-          if (O.msglevel & WARNMSG) {
+          if (oparms_->msglevel & WARNMSG) {
             printf(Str(X_13,
                        "WARNING: stopband attenuation must be non-zero "
                        "in clfilt. Set to %f\n"),
