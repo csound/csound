@@ -624,6 +624,12 @@ extern "C" {
 	* in a shared library.
 	*/
 	PUBLIC void *csoundGetLibrarySymbol(void *library, const char *symbolName);
+	
+    /*
+    * Check system events, yielding cpu time for
+	* coopertative multitasking, etc.
+    */     
+    PUBLIC int csoundYield(void *);
 
 	/**
 	* Called by external software to set a function for 
@@ -686,7 +692,6 @@ extern "C" {
 	* audio playback and recording.
 	*/
 	PUBLIC void csoundSetRtcloseCallback(void *csound, void (*rtclose__)(void));
-
 
 #ifdef __cplusplus
 };
