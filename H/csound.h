@@ -714,12 +714,13 @@ extern "C" {
         PUBLIC void csoundSetDebug(void *csound, int debug);
         
         /**
-        * Returns the length of a function table.
+        * Returns the length of a function table, or -1 if the table does 
+        * not exist.
         */
         PUBLIC int csoundTableLength(void *csound, int table);
         
         /**
-        * Returns the value of a slot in a functon table.
+        * Returns the value of a slot in a function table.
         */
         PUBLIC MYFLT csoundTableGet(void *csound, int table, int index);
         
