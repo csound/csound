@@ -1,5 +1,7 @@
 #include "pa_blocking.h"
 
+#if defined(WIN32) || defined(__MACH__)
+
 int paBlockingReadOpen(ENVIRON *csound,
     PA_BLOCKING_STREAM **pabs_, PaStreamParameters *paParameters)
 {
@@ -129,9 +131,10 @@ int paBlockingWriteStreamCallback(const void *input,
     float *paOutput = (float *)output;
     csoundNotifyThreadLock(pabs->csound, pabs->clientLock);
     csoundWaitThreadLock(pabs->csound, pabs->paLock, 100);
-    for (i = 0, n = pabs->actualBufferSampleCount; i < n; i++) {
-      paOutput[i] = pabs->actualBuffer[i];
-    }
+/*     for (i = 0, n = pabs->actualBufferSampleCount; i < n; i++) { */
+/*       paOutput[i] = pabs->actualBuffer[i]; */
+/*     } */
+    memcpy(paOutput, pabs->actualBuffer, n*sizeof(float));
     return paContinue;
 }
 
@@ -158,3 +161,4 @@ void paBlockingClose(PA_BLOCKING_STREAM *pabs)
     }
 }
 
+#endif
