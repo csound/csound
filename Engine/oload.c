@@ -234,6 +234,11 @@ ENVIRON cenviron_ = {
         csoundGetSizeOfMYFLT,
         csoundGetRtRecordUserData,
         csoundGetRtPlayUserData,
+        csoundComplexFFT,
+        csoundInverseComplexFFT,
+        csoundRealFFT,
+        csoundInverseRealFFT,
+        csoundRSpectProd,
         /*
         * Data fields.
         */
