@@ -1,6 +1,7 @@
 #if defined(WIN32)
 #include "csound.h"
 #include "cs.h"
+#include "prototyp.h"
 #include <windows.h>
 #include <portaudio.h>
 
@@ -47,10 +48,10 @@ PUBLIC void csoundDestroyThreadLock(void *csound, void *lock)
 void *csoundCreateThread(void *csound, 
     int (*threadRoutine)(void *userdata), void *userdata)
 {
-	pthread_t *pthread = 0;
-	if(!pthread_create(pthread, 0, 
+	pthread_t pthread = 0;
+	if(!pthread_create(&pthread, 0, 
         (void *(*) (void*)) threadRoutine, userdata)) {
-		return pthread;
+		return (void *)pthread;
 	} else {
 		return 0;
 	}
@@ -58,11 +59,11 @@ void *csoundCreateThread(void *csound,
         
 int csoundJoinThread(void *csound, void *thread)
 {
-    pthread_t *pthread = (pthread_t *)thread;
-    int threadRoutineReturnValue = 0;
-    int pthreadReturnValue = pthread_join(pthread, &threadRoutineReturnValue);
-    if pthreadReturnValue {
-        return returnValue;
+    pthread_t pthread = (pthread_t)thread;
+    int *threadRoutineReturnValue = 0;
+    int pthreadReturnValue = pthread_join(pthread, (void **)&threadRoutineReturnValue);
+    if (pthreadReturnValue) {
+        return *threadRoutineReturnValue;
     } else {
         return pthreadReturnValue;
     }
@@ -70,12 +71,12 @@ int csoundJoinThread(void *csound, void *thread)
 
 void *csoundCreateThreadLock()
 {
-	pthread_mutex_t *pthread_mutex;
-	if(pthread_mutex_init(pthread_mutex, 0) == 0) {
-		return pthread_mutex;
-	} else {
-		return 0;
-	}
+  pthread_mutex_t *pthread_mutex = (pthread_mutex_t *)mmalloc(sizeof(pthread_mutex_t)); 
+  if(pthread_mutex_init(pthread_mutex, 0) == 0) {
+    return (void *)pthread_mutex;
+  } else {
+    return 0;
+  }
 }
 
 void csoundWaitThreadLock(void *lock, size_t milliseconds)
@@ -94,6 +95,7 @@ void csoundDestroyThreadLock(void *lock)
 {
 	pthread_mutex_t *pthread_mutex = (pthread_mutex_t *)lock;
 	int returnValue = pthread_mutex_destroy(pthread_mutex);
+	mfree(lock);
 }
 
 #else
@@ -111,39 +113,6 @@ PUBLIC int csoundJoinThread(void *csound, void *thread)
 }
 
 #endif
-
-int csoundStreamCallback(const void *input, void *output,
-    unsigned long frameCount,
-    const PaStreamCallbackTimeInfo* timeInfo,
-    PaStreamCallbackFlags statusFlags,
-    void *userData)
-{
-    ENVIRON *csound = (ENVIRON *)userData;
-    float *floatInput = (float *)input;
-    float *floatOutput = (float *)output;
-    MYFLT *spin_ = csound->GetSpin(csound);
-    MYFLT *spout_ = csound->GetSpout(csound);
-    int ksmps_ = csound->GetKsmps(csound);
-    int frameIndex;
-    int spinIndex;
-    int spoutIndex;
-    int keepPerforming;
-    for(frameIndex = 0; frameIndex < frameCount; 
-        frameIndex += ksmps_, floatInput += ksmps_, floatOutput += ksmps_) {
-        for(spinIndex = 0; spinIndex < ksmps; spinIndex++) {
-            spin_[spinIndex] = floatInput[spinIndex];
-        }     
-        keepPerforming = csound->PerformKsmps(csound);
-        for(spoutIndex = 0; spoutIndex < ksmps; spoutIndex++) {
-            floatOutput[spoutIndex] = spout_[spoutIndex];
-        }
-        csoundYield(csound);
-        if(!keepPerforming) {
-            return paComplete;
-        }
-    }
-    return paContinue;
-}
 
 
 
