@@ -179,7 +179,7 @@
 
 /* kport = portamento
  * k rate low pass filter  with half time controlled by a k rate value.  */
-int kporset(KPORT *p)
+int kporset(ENVIRON *csound, KPORT *p)
 {
     /* Set internal state to last input variable, but only if it is not
      * negative. (Why?) -- because that is how ugens without re-init is done
@@ -194,7 +194,7 @@ int kporset(KPORT *p)
 
 /* kport function.               */
 
-int kport(KPORT *p)
+int kport(ENVIRON *csound, KPORT *p)
 {
     /* Set up variables local to this instance of the port ugen, if
      * khtim has changed.
@@ -219,7 +219,7 @@ int kport(KPORT *p)
 /*****************************************************************************/
 
 /* ktone = low pass single pole  filter.  ktonset function.      */
-int ktonset(KTONE *p)
+int ktonset(ENVIRON *csound, KTONE *p)
 {
     /* Initialise internal variables to  0 or 1.                 */
     p->c1 = p->prvhp = FL(0.0);
@@ -231,7 +231,7 @@ int ktonset(KTONE *p)
 /*-----------------------------------*/
 
 /* ktone function                                */
-int ktone(KTONE *p)
+int ktone(ENVIRON *csound, KTONE *p)
 {
     /* If the current frequency is different from before, then calculate
      * new values for c1 and c2.                                 */
@@ -259,7 +259,7 @@ int ktone(KTONE *p)
 
 /* katone = high pass single pole filter.   Uses toneset to set up its
  * variables. Identical to tone, except for the output calculation.      */
-int katone(KTONE *p)
+int katone(ENVIRON *csound, KTONE *p)
 {
     if (*p->khp != p->prvhp) {
       MYFLT b;
@@ -281,7 +281,7 @@ int katone(KTONE *p)
 
 /* kreson = resonant filter                      */
 
-int krsnset(KRESON *p)
+int krsnset(ENVIRON *csound, KRESON *p)
 {
     /* Check scale = 0, 1 or 2.  */
     int scale;
@@ -302,7 +302,7 @@ int krsnset(KRESON *p)
 /*-----------------------------------*/
 
 /* kreson                        */
-int kreson(KRESON *p)
+int kreson(ENVIRON *csound, KRESON *p)
 {
     int flag = 0; /* Set to 1 if either centre freq or bandwidth changed */
     MYFLT       c3p1, c3t4, omc3, c2sqr;
@@ -375,7 +375,7 @@ int kreson(KRESON *p)
  * Comments not done yet. Modifications to make it k rate done with great care!
  */
 
-int kareson(KRESON *p)
+int kareson(ENVIRON *csound, KRESON *p)
 {
     int flag = 0;
     MYFLT       c3p1, c3t4, omc3, c2sqr, D = FL(2.0); /* 1/RMS = root2 (rand) */
@@ -427,7 +427,7 @@ int kareson(KRESON *p)
 /* limit and ilimit
  */
 
-int limitset(LIMIT *p)
+int limitset(ENVIRON *csound, LIMIT *p)
      /* Because we are using Csounds facility (thread = 7) for deciding
       * whether this is a or k rate, we must provide an init time setup
       * function. In this case, we have nothing to do.   */
@@ -440,7 +440,7 @@ int limitset(LIMIT *p)
  *
  * Used for k and i rate variables.
  */
-int klimit(LIMIT *p)
+int klimit(ENVIRON *csound, LIMIT *p)
 {
     MYFLT       xsig, xlow, xhigh;
 
@@ -473,7 +473,7 @@ int klimit(LIMIT *p)
 /* alimit()
  *
  * Used for a rate variables, with k rate limits. */
-int limit(LIMIT *p)
+int limit(ENVIRON *csound, LIMIT *p)
 {
     MYFLT       *adest, *asig;
     MYFLT       xlow, xhigh, xaverage, xsig;

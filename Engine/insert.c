@@ -66,20 +66,21 @@ void insertRESET(void)
     /* don't forget local externs in this file... */
 }
 
-int init0(void)
+int init0(ENVIRON *csound)
 {
     INSDS  *ip;
 
     curip = ip = instance(0);               /* allocate instr 0     */
     ids = (OPDS *)ip;
     while ((ids = ids->nxti) != NULL) {
-      (*ids->iopadr)(ids);                  /*   run all i-code     */
+      (*ids->iopadr)(csound,ids);           /*   run all i-code     */
     }
     return(inerrcnt);                       /*   return errcnt      */
 }
 
 int
-insert(int insno, EVTBLK *newevtp)  /* insert an instr copy into active list */
+insert(ENVIRON *csound, int insno, EVTBLK *newevtp)
+                                    /* insert an instr copy into active list */
 {                                   /*      then run an init pass            */
     INSTRTXT *tp;
     INSDS  *ip, *prvp, *nxtp;
@@ -194,7 +195,7 @@ insert(int insno, EVTBLK *newevtp)  /* insert an instr copy into active list */
     ids              = (OPDS *)ip;
     while ((ids = ids->nxti) != NULL) {   /* do init pass for this instr */
       if (O.odebug) printf("init %s:\n", opcodlst[ids->optext->t.opnum].opname);
-      err |= (*ids->iopadr)(ids);      /* $$$$ CHECK RETURN CODE $$$$ */
+      err |= (*ids->iopadr)(csound,ids);      /* $$$$ CHECK RETURN CODE $$$$ */
     }
     tieflag = 0;
     if (err || !ip->p3) {
@@ -212,7 +213,7 @@ insert(int insno, EVTBLK *newevtp)  /* insert an instr copy into active list */
     return(0);
 }
 
-int MIDIinsert(int insno, MCHNBLK *chn, MEVENT *mep)
+int MIDIinsert(ENVIRON *csound, int insno, MCHNBLK *chn, MEVENT *mep)
 /* insert a MIDI instr copy into active list */
 /*  then run an init pass           */
 {
@@ -322,7 +323,7 @@ int MIDIinsert(int insno, MCHNBLK *chn, MEVENT *mep)
     ids = (OPDS *)ip;
     while ((ids = ids->nxti) != NULL) { /* do init pass for this instr  */
       if (O.odebug) printf("init %s:\n", opcodlst[ids->optext->t.opnum].opname);
-      err |= (*ids->iopadr)(ids); /* $$$ CHECK RETURN CODE $$$ */
+      err |= (*ids->iopadr)(csound,ids); /* $$$ CHECK RETURN CODE $$$ */
     }
     tieflag = 0;
     if (err) {
@@ -392,7 +393,7 @@ void insxtroff(short insno)     /* deactivate all schedofftim copies    */
     }
 }
 
-int useropcd(UOPCODE*);        /* IV - Oct 26 2002 */
+int useropcd(ENVIRON *, UOPCODE*);        /* IV - Oct 26 2002 */
 
 void deact(INSDS *ip)           /* unlink single instr from activ chain */
                                 /*      and mark it inactive            */
@@ -430,7 +431,7 @@ void deact(INSDS *ip)           /* unlink single instr from activ chain */
       fdchclose(ip);
 }
 
-int ihold(LINK *p)                      /* make this note indefinit duration */
+int ihold(ENVIRON *csound, LINK *p)                      /* make this note indefinit duration */
 {                                       /* called by ihold statmnt at Itime */
     if (!reinitflag) {                  /* no-op at reinit                  */
       curip->offbet = -FL(1.0);
@@ -439,7 +440,7 @@ int ihold(LINK *p)                      /* make this note indefinit duration */
     return OK;
 }
 
-int turnoff(LINK *p)                    /* terminate the current instrument  */
+int turnoff(ENVIRON *csound, LINK *p)                    /* terminate the current instrument  */
 {                                       /* called by turnoff statmt at Ptime */
     INSDS  *lcurip = pds->insdshead;
     /* IV - Oct 16 2002: check for subinstr and user opcode */
@@ -499,11 +500,11 @@ int turnoff(LINK *p)                    /* terminate the current instrument  */
     return OK;
 }
 
-void xturnoff(INSDS *ip)                 /* turnoff a particular insalloc */
-{                                        /* called by inexclus on ctrl 111 */
+void xturnoff(ENVIRON *csound, INSDS *ip) /* turnoff a particular insalloc */
+{                                         /* called by inexclus on ctrl 111 */
     pds = &opdstmp;
     pds->insdshead = ip;
-    turnoff(NULL);
+    turnoff(csound, NULL);
 }
 
 #ifdef never
@@ -525,7 +526,7 @@ void insdealloc(short insno)      /* dealloc all instances of an insno */
 }
 #endif
 
-void orcompact(void)                    /* free all inactive instr spaces */
+void orcompact(ENVIRON *csound)         /* free all inactive instr spaces */
 {
     INSTRTXT *txtp;
     INSDS   *ip, *nxtip, *prvip, **prvnxtloc;
@@ -538,7 +539,7 @@ void orcompact(void)                    /* free all inactive instr spaces */
           if (ip->actflg == 0) {
             OPDS* off = ip->nxtp;
             while (off!=NULL) {
-              if (off->dopadr) (*off->dopadr)(off);
+              if (off->dopadr) (*off->dopadr)(csound, off);
               off = off->nxtp;
             }
 
@@ -547,7 +548,7 @@ void orcompact(void)                    /* free all inactive instr spaces */
              */
             off = ip->nxti;
             while (off != NULL) {
-              if(off->dopadr) (*off->dopadr)(off);
+              if(off->dopadr) (*off->dopadr)(csound, off);
               off = off->nxti;
             }
 
@@ -645,8 +646,9 @@ static int temp          = 0;
 static clock_t lastClock = 0;
 #endif
 
-long kperf(long kcnt)   /* perform currently active instrs for kcnt kperiods */
-/*      & send audio result to output buffer    */
+long kperf(ENVIRON *csound, long kcnt)
+         /* perform currently active instrs for kcnt kperiods */
+         /*      & send audio result to output buffer    */
 {
     extern  int     sensLine(void);
     extern  int     sensMidi(void), sensFMidi(void);
@@ -696,7 +698,7 @@ long kperf(long kcnt)   /* perform currently active instrs for kcnt kperiods */
       while ((ip = ip->nxtact) != NULL) { /*   for each instr active */
         pds = (OPDS *)ip;
         while ((pds = pds->nxtp) != NULL) {
-          (*pds->opadr)(pds); /*      run each opcode    */
+          (*pds->opadr)(csound,pds); /*      run each opcode    */
         }
       }
       if (spoutactive)        /*   results now in spout? */
@@ -769,26 +771,26 @@ int perferror(char *s)
     return perferrcnt;
 }                                             /* contin from there */
 
-int igoto(GOTO *p)
+int igoto(ENVIRON *csound, GOTO *p)
 {
     ids = p->lblblk->prvi;
     return OK;
 }
 
-int kgoto(GOTO *p)
+int kgoto(ENVIRON *csound, GOTO *p)
 {
     pds = p->lblblk->prvp;
     return OK;
 }
 
-int icgoto(CGOTO *p)
+int icgoto(ENVIRON *csound, CGOTO *p)
 {
     if (*p->cond)
       ids = p->lblblk->prvi;
     return OK;
 }
 
-int kcgoto(CGOTO *p)
+int kcgoto(ENVIRON *csound, CGOTO *p)
 {
     if (*p->cond)
       pds = p->lblblk->prvp;
@@ -796,7 +798,7 @@ int kcgoto(CGOTO *p)
 }
 
 /* an 'if-then' variant of 'if-goto' */
-int ingoto(CGOTO *p)
+int ingoto(ENVIRON *csound, CGOTO *p)
 {
     /* Make sure we have an i-time conditional */
     if (p->h.optext->t.intype == 'b' && !*p->cond)
@@ -804,14 +806,14 @@ int ingoto(CGOTO *p)
     return OK;
 }
 
-int kngoto(CGOTO *p)
+int kngoto(ENVIRON *csound, CGOTO *p)
 {
     if (!*p->cond)
       pds = p->lblblk->prvp;
     return OK;
 }
 
-int timset(TIMOUT *p)
+int timset(ENVIRON *csound, TIMOUT *p)
 {
     if ((p->cnt1 = (long)(*p->idel * ekr + FL(0.5))) < 0L
         || (p->cnt2 = (long)(*p->idur * ekr + FL(0.5))) < 0L)
@@ -819,7 +821,7 @@ int timset(TIMOUT *p)
     return OK;
 }
 
-int timout(TIMOUT *p)
+int timout(ENVIRON *csound, TIMOUT *p)
 {
     if (p->cnt1)                            /* once delay has expired, */
       p->cnt1--;
@@ -828,38 +830,38 @@ int timout(TIMOUT *p)
     return OK;
 }
 
-int rireturn(LINK *p)
+int rireturn(ENVIRON *csound, LINK *p)
 {
     IGN(p);
     return OK;
 }
 
-int reinit(GOTO *p)
+int reinit(ENVIRON *csound, GOTO *p)
 {
     reinitflag = 1;
     curip = p->h.insdshead;
     ids = p->lblblk->prvi;        /* now, despite ANSI C warning:  */
     while ((ids = ids->nxti) != NULL && ids->iopadr != (SUBR)rireturn)
-      (*ids->iopadr)(ids);
+      (*ids->iopadr)(csound,ids);
     reinitflag = 0;
     return OK;
 }
 
-int rigoto(GOTO *p)
+int rigoto(ENVIRON *csound, GOTO *p)
 {
     if (reinitflag)
       ids = p->lblblk->prvi;
     return OK;
 }
 
-int tigoto(GOTO *p)                    /* I-time only, NOP at reinit */
+int tigoto(ENVIRON *csound, GOTO *p)                    /* I-time only, NOP at reinit */
 {
     if (tieflag && !reinitflag)
       ids = p->lblblk->prvi;
     return OK;
 }
 
-int tival(EVAL *p)                     /* I-time only, NOP at reinit */
+int tival(ENVIRON *csound, EVAL *p)                     /* I-time only, NOP at reinit */
 {
     if (!reinitflag)
       *p->r = (tieflag ? FL(1.0) : FL(0.0));
@@ -868,7 +870,7 @@ int tival(EVAL *p)                     /* I-time only, NOP at reinit */
 
 /* IV - Oct 12 2002: new simplified subinstr functions */
 
-int subinstrset(SUBINST *p)
+int subinstrset(ENVIRON *csound, SUBINST *p)
 {
     OPDS    *saved_ids = ids;
     INSDS   *saved_curip = curip;
@@ -932,7 +934,7 @@ int subinstrset(SUBINST *p)
     ids = (OPDS *)p->ip;
 
     while ((ids = ids->nxti) != NULL) {
-      (*ids->iopadr)(ids);
+      (*ids->iopadr)(csound,ids);
     }
     /* copy length related parameters back to caller instr */
     saved_curip->xtratim = curip->xtratim;
@@ -950,9 +952,9 @@ int subinstrset(SUBINST *p)
 /* IV - Sep 8 2002: new functions for user defined opcodes (based */
 /* on Matt J. Ingalls' subinstruments, but mostly rewritten) */
 
-int useropcd1(UOPCODE*), useropcd2(UOPCODE*);  /* IV - Sep 17 2002 */
+int useropcd1(ENVIRON *, UOPCODE*), useropcd2(ENVIRON *, UOPCODE*);  /* IV - Sep 17 2002 */
 
-int useropcdset(UOPCODE *p)
+int useropcdset(ENVIRON *csound, UOPCODE *p)
 {
     OPDS    *saved_ids = ids;
     INSDS   *saved_curip = curip, *parent_ip = curip, *lcurip;
@@ -1051,7 +1053,7 @@ int useropcdset(UOPCODE *p)
     curip = lcurip;
     ids = (OPDS *) (lcurip->nxti);
     while (ids != NULL) {
-      (*ids->iopadr)(ids);
+      (*ids->iopadr)(csound,ids);
       ids = ids->nxti;
     }
     /* copy length related parameters back to caller instr */
@@ -1083,7 +1085,7 @@ int useropcdset(UOPCODE *p)
 
 /* IV - Sep 17 2002: dummy user opcode function for not initialised case */
 
-int useropcd(UOPCODE *p)
+int useropcd(ENVIRON *csound, UOPCODE *p)
 {
     sprintf(errmsg, Str(X_1730, "%s: not initialised"), p->h.optext->t.opcod);
     return perferror(errmsg);
@@ -1091,7 +1093,7 @@ int useropcd(UOPCODE *p)
 
 /* IV - Sep 1 2002: new opcodes: xin, xout */
 
-int xinset(XIN *p)
+int xinset(ENVIRON *csound, XIN *p)
 {
     OPCOD_IOBUFS  *buf;
     OPCODINFO   *inm;
@@ -1128,7 +1130,7 @@ int xinset(XIN *p)
     return OK;
 }
 
-int xoutset(XOUT *p)
+int xoutset(ENVIRON *csound, XOUT *p)
 {
     OPCOD_IOBUFS  *buf;
     OPCODINFO   *inm;
@@ -1168,7 +1170,7 @@ int xoutset(XOUT *p)
 
 /* IV - Sep 8 2002: new opcode: setksmps */
 
-int setksmpsset(SETKSMPS *p)
+int setksmpsset(ENVIRON *csound, SETKSMPS *p)
 {
     OPCOD_IOBUFS    *buf;
     UOPCODE *pp;
@@ -1201,7 +1203,7 @@ int setksmpsset(SETKSMPS *p)
 /* IV - Oct 16 2002: nstrnum opcode (returns the instrument number of a */
 /* named instrument) */
 
-int nstrnumset(NSTRNUM *p)
+int nstrnumset(ENVIRON *csound, NSTRNUM *p)
 {
     /* IV - Oct 31 2002 */
     *(p->i_insno) = (MYFLT) strarg2insno(p->iname, p->STRARG);
@@ -1211,7 +1213,8 @@ int nstrnumset(NSTRNUM *p)
 /* IV - Nov 16 2002: moved insert_event() here to have access to some static */
 /* variables defined in this file */
 
-INSDS *insert_event(MYFLT instr,
+INSDS *insert_event(ENVIRON *csound,
+                    MYFLT instr,
                     MYFLT when,
                     MYFLT dur,
                     int narg,
@@ -1339,7 +1342,7 @@ INSDS *insert_event(MYFLT instr,
     while ((ids = ids->nxti) != NULL) {  /* do init pass for this instr */
       /*    if (O.odebug) printf("init %s:\n",
             opcodlst[ids->optext->t.opnum].opname);      */
-      (*ids->iopadr)(ids);
+      (*ids->iopadr)(csound,ids);
     }
     if (inerrcnt || !ip->p3) {
       deact(ip);
@@ -1424,7 +1427,7 @@ void timexpire(MYFLT time)      /* unlink expired notes from activ chain */
     }
 }
 
-int subinstr(SUBINST *p)
+int subinstr(ENVIRON *csound, SUBINST *p)
 {
     OPDS    *saved_pds = pds;
     int     saved_sa = spoutactive;
@@ -1443,7 +1446,7 @@ int subinstr(SUBINST *p)
     /*  run each opcode  */
     pds = (OPDS *)p->ip;
     while ((pds = pds->nxtp) != NULL) {
-      (*pds->opadr)(pds);
+      (*pds->opadr)(csound,pds);
     }
 
     /* copy outputs */
@@ -1466,7 +1469,7 @@ int subinstr(SUBINST *p)
 
 /* IV - Sep 17 2002 -- case 1: local ksmps is used */
 
-int useropcd1(UOPCODE *p)
+int useropcd1(ENVIRON *csound, UOPCODE *p)
 {
     OPDS    *saved_pds = pds;
     int     g_ksmps, ofs = 0, n;
@@ -1498,7 +1501,7 @@ int useropcd1(UOPCODE *p)
         /*  run each opcode  */
         pds = (OPDS *) (p->ip);
         while ((pds = pds->nxtp)) {
-          (*pds->opadr)(pds);
+          (*pds->opadr)(csound,pds);
         }
         /* copy outputs */
         while (*(++tmp)) {              /* a-rate */
@@ -1524,7 +1527,7 @@ int useropcd1(UOPCODE *p)
         /*  run each opcode  */
         pds = (OPDS *) (p->ip);
         while ((pds = pds->nxtp)) {
-          (*pds->opadr)(pds);
+          (*pds->opadr)(csound,pds);
         }
         /* copy outputs */
         while (*(++tmp)) {              /* a-rate */
@@ -1557,7 +1560,7 @@ int useropcd1(UOPCODE *p)
 
 /* IV - Sep 17 2002 -- case 2: simplified routine for no local ksmps */
 
-int useropcd2(UOPCODE *p)
+int useropcd2(ENVIRON *csound, UOPCODE *p)
 {
     OPDS    *saved_pds = pds;
     int     n;
@@ -1582,7 +1585,7 @@ int useropcd2(UOPCODE *p)
       }
       /*  run each opcode  */
       do {
-        (*pds->opadr)(pds);
+        (*pds->opadr)(csound,pds);
       } while ((pds = pds->nxtp));
       /* copy outputs */
       while (*(++tmp)) {                /* a-rate */
@@ -1603,7 +1606,7 @@ int useropcd2(UOPCODE *p)
       }
       /*  run each opcode  */
       do {
-        (*pds->opadr)(pds);
+        (*pds->opadr)(csound,pds);
       } while ((pds = pds->nxtp));
       /* copy outputs */
       while (*(++tmp)) {                /* a-rate */

@@ -36,7 +36,7 @@ extern MYFLT TwoZero_tick(TwoZero *, MYFLT);
 /*  to a target at speed set by rate.       */
 /********************************************/
 
-void make_FormSwep(FormSwep *p)
+static void make_FormSwep(FormSwep *p)
 {
     p->poleCoeffs[0] = p->poleCoeffs[1] = FL(0.0);
     p->gain          = FL(1.0);
@@ -158,11 +158,10 @@ static MYFLT Samp_tick(Wave *p)
 }
 
 
-int Moog1set(MOOG1 *p)
+int Moog1set(ENVIRON *csound, MOOG1 *p)
 {
     FUNC        *ftp;
     MYFLT       tempCoeffs[2] = {FL(0.0),-FL(1.0)};
-    ENVIRON *csound = p->h.insdshead->csound;
 
     make_ADSR(&p->adsr);
     make_OnePole(&p->filter);
@@ -192,14 +191,13 @@ int Moog1set(MOOG1 *p)
     return OK;
 }
 
-int Moog1(MOOG1 *p)
+int Moog1(ENVIRON *csound, MOOG1 *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       *ar = p->ar;
     long        nsmps = ksmps;
     MYFLT       temp;
     MYFLT       vib = *p->vibAmt;
-    ENVIRON *csound = p->h.insdshead->csound;
 
     p->baseFreq = *p->frequency;
     p->attk.rate = p->baseFreq * FL(0.01) * p->attk.wave->flen * onedsr;

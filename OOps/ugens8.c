@@ -50,7 +50,7 @@ extern void bytrev4(char *buf, int nbytes);
 
 #define OPWLEN (2*WLN*ksmps)    /* manifest used for final time wdw */
 
-int pvset(PVOC *p)
+int pvset(ENVIRON *csound, PVOC *p)
 {
     int      i;
     long     memsize;
@@ -211,7 +211,7 @@ int pvset(PVOC *p)
     return initerror(errmsg);
 }
 
-int pvoc(PVOC *p)
+int pvoc(ENVIRON *csound, PVOC *p)
 {
     MYFLT  *ar = p->rslt;
     MYFLT  frIndx;

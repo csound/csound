@@ -40,7 +40,7 @@
 /* Coded by Hans Mikelson October 1998                                     */
 /***************************************************************************/
 
-int biquadset(BIQUAD *p)
+int biquadset(ENVIRON *csound, BIQUAD *p)
 {
     /* The biquadratic filter is initialised to zero.    */
     if (*p->reinit==FL(0.0)) {      /* Only reset in in non-legato mode */
@@ -50,7 +50,7 @@ int biquadset(BIQUAD *p)
 } /* end biquadset(p) */
 
 
-int biquad(BIQUAD *p)
+int biquad(ENVIRON *csound, BIQUAD *p)
 {
     long n;
     MYFLT *out, *in;
@@ -76,7 +76,7 @@ int biquad(BIQUAD *p)
 
 /* A-rate version of above -- JPff August 2001 */
 
-int biquada(BIQUAD *p)
+int biquada(ENVIRON *csound, BIQUAD *p)
 {
     long n;
     MYFLT *out, *in;
@@ -107,7 +107,7 @@ int biquada(BIQUAD *p)
 /* translated to C by Hans Mikelson            *****************************/
 /***************************************************************************/
 
-int moogvcfset(MOOGVCF *p)
+int moogvcfset(ENVIRON *csound, MOOGVCF *p)
 {
     if (*p->iskip==FL(0.0)) {
       p->xnm1 = p->y1nm1 = p->y2nm1 = p->y3nm1 = FL(0.0);
@@ -118,7 +118,7 @@ int moogvcfset(MOOGVCF *p)
     return OK;
 }
 
-int moogvcf(MOOGVCF *p)
+int moogvcf(ENVIRON *csound, MOOGVCF *p)
 {
     long n;
     MYFLT *out, *in;
@@ -186,7 +186,7 @@ int moogvcf(MOOGVCF *p)
 /* Coded by Hans Mikelson October 1998                         */
 /***************************************************************/
 
-int rezzyset(REZZY *p)
+int rezzyset(ENVIRON *csound, REZZY *p)
 {
     if (*p->iskip==FL(0.0)) {
       p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = FL(0.0); /* Initialize to zero */
@@ -197,7 +197,7 @@ int rezzyset(REZZY *p)
     return OK;
 } /* end rezzyset(p) */
 
-int rezzy(REZZY *p)
+int rezzy(ENVIRON *csound, REZZY *p)
 {
     long n;
     MYFLT *out, *fcoptr, *rezptr, *in;
@@ -295,7 +295,7 @@ int rezzy(REZZY *p)
 /* Coded by Hans Mikelson November 1998                                    */
 /***************************************************************************/
 
-int distort(DISTORT *p)
+int distort(ENVIRON *csound, DISTORT *p)
 {
     long  n;
     MYFLT *out, *in;
@@ -332,7 +332,7 @@ int distort(DISTORT *p)
 /* Coded by Hans Mikelson November 1998                                    */
 /***************************************************************************/
 
-int vcoset(VCO *p)
+int vcoset(ENVIRON *csound, VCO *p)
 {
     unsigned long ndel = (long)(*p->maxd * esr);  /* Number of bytes in the
                                                      delay*/
@@ -387,7 +387,7 @@ int vcoset(VCO *p)
 
 /* This code modified from Csound's buzz, integ, & vdelay opcodes */
 
-int vco(VCO *p)
+int vco(ENVIRON *csound, VCO *p)
 {
     FUNC *ftp;
     MYFLT *ar, *ampp, *cpsp, *ftbl;
@@ -596,7 +596,7 @@ int vco(VCO *p)
 /* Coded by Hans Mikelson December 1998                                    */
 /***************************************************************************/
 
-int planetset(PLANET *p)
+int planetset(ENVIRON *csound, PLANET *p)
 {
     if (*p->iskip==FL(0.0)) {
       p->x  = *p->xval;  p->y  = *p->yval;  p->z  = *p->zval;
@@ -610,7 +610,7 @@ int planetset(PLANET *p)
 
 /* Planet orbiting in a binary star system coded by Hans Mikelson */
 
-int planet(PLANET *p)
+int planet(ENVIRON *csound, PLANET *p)
 {
     MYFLT *outx, *outy, *outz;
     MYFLT   sqradius1, sqradius2, radius1, radius2, fric;
@@ -678,7 +678,7 @@ int planet(PLANET *p)
 /* ************************************************** */
 
 /* Implementation of Zoelzer's Parmentric Equalizer Filters */
-int pareqset(PAREQ *p)
+int pareqset(ENVIRON *csound, PAREQ *p)
 {
     /* The equalizer filter is initialised to zero.    */
     if (*p->iskip==FL(0.0)) {
@@ -689,7 +689,7 @@ int pareqset(PAREQ *p)
 } /* end pareqset(p) */
 
 
-int pareq(PAREQ *p)
+int pareq(ENVIRON *csound, PAREQ *p)
 {
     long n;
     MYFLT *out, *in;
@@ -762,7 +762,7 @@ int pareq(PAREQ *p)
 /* Derived from Csound's delay opcode                  */
 /* Set up nested all-pass filter                       */
 
-int nestedapset(NESTEDAP *p)
+int nestedapset(ENVIRON *csound, NESTEDAP *p)
 {
     long    npts, npts1=0, npts2=0, npts3=0;
     char    *auxp;
@@ -832,7 +832,7 @@ int nestedapset(NESTEDAP *p)
     return OK;
 }
 
-int nestedap(NESTEDAP *p)
+int nestedap(ENVIRON *csound, NESTEDAP *p)
 {
     MYFLT   *outp, *inp;
     MYFLT   *beg1p, *beg2p, *beg3p, *end1p, *end2p, *end3p;
@@ -960,7 +960,7 @@ int nestedap(NESTEDAP *p)
 /* Coded by Hans Mikelson Jauarary 1999                                    */
 /***************************************************************************/
 
-int lorenzset(LORENZ *p)
+int lorenzset(ENVIRON *csound, LORENZ *p)
 {
     if (*p->iskip==FL(0.0)) {
       p->valx = *p->inx; p->valy = *p->iny; p->valz = *p->inz;
@@ -970,7 +970,7 @@ int lorenzset(LORENZ *p)
 
 /* Lorenz System coded by Hans Mikelson */
 
-int lorenz(LORENZ *p)
+int lorenz(ENVIRON *csound, LORENZ *p)
 {
     MYFLT   *outx, *outy, *outz;
     MYFLT   x, y, z, xx, yy, s, r, b, hstep;
@@ -1021,7 +1021,7 @@ int lorenz(LORENZ *p)
 /* but frequency is only approximate.                                     */
 /**************************************************************************/
 
-int tbvcfset(TBVCF *p)
+int tbvcfset(ENVIRON *csound, TBVCF *p)
 {
     if (*p->iskip==FL(0.0)) {
       p->y = p->y1 = p->y2 = FL(0.0);
@@ -1031,7 +1031,7 @@ int tbvcfset(TBVCF *p)
     return OK;
 }
 
-int tbvcf(TBVCF *p)
+int tbvcf(ENVIRON *csound, TBVCF *p)
 {
     long n;
     MYFLT *out, *in;
@@ -1092,7 +1092,7 @@ int tbvcf(TBVCF *p)
 }
 
 /* bqrez by Matt Gerassimoff */
-int bqrezset(REZZY *p)
+int bqrezset(ENVIRON *csound, REZZY *p)
 {
     if (*p->iskip==FL(0.0)) {
       p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = FL(0.0);  /* Initialise to zero */
@@ -1103,7 +1103,7 @@ int bqrezset(REZZY *p)
     return OK;
 } /* end rezzyset(p) */
 
-int bqrez(REZZY *p)
+int bqrez(ENVIRON *csound, REZZY *p)
 {
     long n;
     MYFLT *out, *fcoptr, *rezptr, *in;

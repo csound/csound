@@ -697,17 +697,17 @@ BaboMatrix_output(BaboMatrix *this, MYFLT outputs[], MYFLT input,
  */
 
 static void resolve_defaults(BABO *p);
-static void set_expert_values(BABO *p);
+static void set_expert_values(ENVIRON *csound, BABO *p);
 
 static void
-set_defaults(BABO *p)
+set_defaults(ENVIRON *csound, BABO *p)
 {
     resolve_defaults(p);
 
     p->diffusion_coeff = p->diffusion_coeff < 0 ?
                          BABO_DEFAULT_DIFFUSION_COEFF : p->diffusion_coeff;
 
-    set_expert_values(p);
+    set_expert_values(csound,p);
 
     /*
      * the user supplies, optionally, the complete distance
@@ -745,13 +745,13 @@ load_value_or_default(const FUNC *table, int idx, MYFLT dEfault)
 }
 
 static void
-set_expert_values(BABO *p)
+set_expert_values(ENVIRON *csound, BABO *p)
 {
     FUNC    *ftp    = (FUNC *) NULL; /* brain-damaged function calling */
     int      n      = 0;
 
     if (p->expert_values > 0)
-        ftp = ftfind(p->h.insdshead->csound, &(p->expert_values));
+        ftp = ftfind(csound, &(p->expert_values));
 
     p->decay        = load_value_or_default(ftp, n++, BABO_DEFAULT_DECAY);
     p->hidecay      = load_value_or_default(ftp, n++, BABO_DEFAULT_HIDECAY);
@@ -789,7 +789,7 @@ baboset(void *entry)
     BABO *p = (BABO *) entry;   /* assuming the engine is right... :)   */
     ENVIRON *csound = p->h.insdshead->csound;
 
-    set_defaults(p);
+    set_defaults(csound,p);
     verify_coherence(p);        /* exits if call is wrong */
 
     BaboTapline_create(csound,&p->tapline, *(p->lx), *(p->ly), *(p->lz));

@@ -115,24 +115,24 @@ typedef struct  {
         MYFLT   prev_time, prev_hdif;
 } NREV2;
 
-int vdelset(VDEL *p);
-int vdelay(VDEL *p);
-int vdelay3(VDEL *p);
-int vdelxset(VDELX *p);
-int vdelxsset(VDELXS *p);
-int vdelxqset(VDELXQ *p);
-int vdelayx(VDELX *p);
-int vdelayxw(VDELX *p);
-int vdelayxs(VDELXS *p);
-int vdelayxws(VDELXS *p);
-int vdelayxq(VDELXQ *p);
-int vdelayxwq(VDELXQ *p);
-int multitap_set(MDEL *p);
-int multitap_play(MDEL *p);
-int nreverb_set(NREV *p);
-int nreverb(NREV *p);
-int reverbx_set(NREV2 *p);
-int reverbx(NREV2 *p);
+int vdelset(ENVIRON*,VDEL *p);
+int vdelay(ENVIRON*,VDEL *p);
+int vdelay3(ENVIRON*,VDEL *p);
+int vdelxset(ENVIRON*,VDELX *p);
+int vdelxsset(ENVIRON*,VDELXS *p);
+int vdelxqset(ENVIRON*,VDELXQ *p);
+int vdelayx(ENVIRON*,VDELX *p);
+int vdelayxw(ENVIRON*,VDELX *p);
+int vdelayxs(ENVIRON*,VDELXS *p);
+int vdelayxws(ENVIRON*,VDELXS *p);
+int vdelayxq(ENVIRON*,VDELXQ *p);
+int vdelayxwq(ENVIRON*,VDELXQ *p);
+int multitap_set(ENVIRON*,MDEL *p);
+int multitap_play(ENVIRON*,MDEL *p);
+int nreverb_set(ENVIRON*,NREV *p);
+int nreverb(ENVIRON*,NREV *p);
+int reverbx_set(ENVIRON*,NREV2 *p);
+int reverbx(ENVIRON*,NREV2 *p);
 
 
 

@@ -131,11 +131,10 @@ static void DLineN_tick(DLINEN *p, MYFLT sample) /*  Take one, yield one */
 /*     return p->lastOutput; */
 }
 
-int bowedbarset(BOWEDBAR *p)
+int bowedbarset(ENVIRON *csound, BOWEDBAR *p)
 {
     long i;
     MYFLT amplitude = *p->amp * AMP_RSCALE;
-    ENVIRON *csound = p->h.insdshead->csound;
 
     p->modes[0] = FL(1.0);
     p->modes[1] = FL(2.756);
@@ -164,9 +163,8 @@ int bowedbarset(BOWEDBAR *p)
 
     p->nr_modes = NR_MODES;
     for (i = 0; i<p->nr_modes; i++) {
-      make_DLineN(p->h.insdshead->csound, &p->delay[i], p->length);
-      DLineN_setDelay(p->h.insdshead->csound,
-                      &p->delay[i], (int)(p->length/p->modes[i]));
+      make_DLineN(csound, &p->delay[i], p->length);
+      DLineN_setDelay(csound, &p->delay[i], (int)(p->length/p->modes[i]));
       BiQuad_clear(&p->bandpass[i]);
     }
 /*     p->gains[0] = FL(0.0); */
@@ -187,7 +185,7 @@ int bowedbarset(BOWEDBAR *p)
     return OK;
 }
 
-int bowedbar(BOWEDBAR *p)
+int bowedbar(ENVIRON *csound, BOWEDBAR *p)
 {
     MYFLT       *ar = p->ar;
     long        nsmps = ksmps;
@@ -196,7 +194,6 @@ int bowedbar(BOWEDBAR *p)
     int i;
     MYFLT       maxVelocity;
     MYFLT       integration_const = *p->integration_const;
-    ENVIRON    *csound = p->h.insdshead->csound;
 
     if (p->lastpress != *p->bowPress)
       p->bowTabl.slope = p->lastpress = *p->bowPress;
@@ -208,8 +205,7 @@ int bowedbar(BOWEDBAR *p)
       p->nr_modes = NR_MODES;   /* reset for frequency shift */
       for (i = 0; i<p->nr_modes; i++) {
         if((int)(p->length/p->modes[i]) > 4)
-          DLineN_setDelay(p->h.insdshead->csound,
-                          &p->delay[i], (int)(p->length/p->modes[i]));
+          DLineN_setDelay(csound, &p->delay[i], (int)(p->length/p->modes[i]));
         else    {
           p->nr_modes = i;
           break;

@@ -130,7 +130,7 @@ static long csoundNumExits_ = -1;
           */
           int rtEvents = O.RTevents;
           O.RTevents = 0;
-          kperf(1);
+          kperf(csound,1);
           kcnt -= 1;
           O.RTevents = rtEvents;
         }
@@ -160,7 +160,7 @@ static long csoundNumExits_ = -1;
       turn it off before calling kperf, and back on afterwards.
       */
       O.RTevents = 0;
-      kperf(1);
+      kperf(csound,1);
       kcnt -= 1;
       O.RTevents = rtEvents;
       return done;
@@ -205,7 +205,7 @@ static long csoundNumExits_ = -1;
             {
               int rtEvents = O.RTevents;
               O.RTevents = 0;
-              kperf(1);
+              kperf(csound,1);
               kcnt -= 1;
               sampsNeeded -= sampsPerKperf;
               O.RTevents = rtEvents;
@@ -867,7 +867,7 @@ static long csoundNumExits_ = -1;
             {
               if(pds->dopadr)
                 {
-                  (*pds->dopadr)(pds);
+                  (*pds->dopadr)(csound,pds);
                 }
             }
         }
@@ -879,7 +879,7 @@ static long csoundNumExits_ = -1;
             {
               if(pds->dopadr)
                 {
-                  (*pds->dopadr)(pds);
+                  (*pds->dopadr)(csound,pds);
                 }
             }
         }

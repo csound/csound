@@ -66,7 +66,7 @@ static SHORT *sampleBase[MAX_SFPRESET];
 static MYFLT pitches[128];
 
 
-int SfReset(void *p)
+int SfReset(ENVIRON *csound, void *p)
 {
     int j,k,l;
     for (j=0; j<currSFndx; j++) {
@@ -153,7 +153,7 @@ static int compare(presetType * elem1, presetType *elem2)
 
 static char *Gfname;
 
-int SfLoad(SFLOAD *p)          /* open a file and return its handle */
+int SfLoad(ENVIRON *csound, SFLOAD *p)          /* open a file and return its handle */
 {                               /* the handle is simply a stack index */
     char fname[256];
     SFBANK *sf;
@@ -187,7 +187,7 @@ static char *filter_string(char *s, char temp_string[24])
     return temp_string;
 }
 
-int Sfplist(SFPLIST *p)
+int Sfplist(ENVIRON *csound, SFPLIST *p)
 {
     SFBANK *sf = &sfArray[(int) *p->ihandle];
     char temp_string[24];
@@ -203,7 +203,7 @@ int Sfplist(SFPLIST *p)
 }
 
 
-int SfAssignAllPresets(SFPASSIGN *p)
+int SfAssignAllPresets(ENVIRON *csound, SFPASSIGN *p)
 {
     SFBANK *sf = &sfArray[(int) *p->ihandle];
     int pHandle = (int)  *p->startNum, pnum = sf->presets_num;
@@ -228,7 +228,7 @@ int SfAssignAllPresets(SFPASSIGN *p)
 
 
 
-int Sfilist(SFPLIST *p)
+int Sfilist(ENVIRON *csound, SFPLIST *p)
 {
     SFBANK *sf = &sfArray[(int) *p->ihandle];
     int j;
@@ -242,7 +242,7 @@ int Sfilist(SFPLIST *p)
 }
 
 
-int SfPreset(SFPRESET *p)
+int SfPreset(ENVIRON *csound, SFPRESET *p)
 {
     int j, presetHandle = (int) *p->iPresetHandle;
     SFBANK *sf = &sfArray[(DWORD) *p->isfhandle];
@@ -277,7 +277,7 @@ int SfPreset(SFPRESET *p)
 }
 
 
-int SfPlay_set(SFPLAY *p)
+int SfPlay_set(ENVIRON *csound, SFPLAY *p)
 {
     DWORD index = (DWORD) *p->ipresethandle;
     presetType *preset = presetp[index];
@@ -394,7 +394,7 @@ int SfPlay_set(SFPLAY *p)
 
 
 
-int SfPlay(SFPLAY *p)
+int SfPlay(ENVIRON *csound, SFPLAY *p)
 {
     MYFLT *out1 = p->out1, *out2 = p->out2;
     int   nsmps = ksmps, j = p->spltNum, arate;
@@ -478,7 +478,7 @@ int SfPlay(SFPLAY *p)
 }
 
 
-int SfPlay3(SFPLAY *p)
+int SfPlay3(ENVIRON *csound, SFPLAY *p)
 {
     MYFLT *out1 = p->out1, *out2 = p->out2;
     int nsmps = ksmps, j = p->spltNum, arate;
@@ -560,7 +560,7 @@ int SfPlay3(SFPLAY *p)
     return OK;
 }
 
-int SfPlayMono_set(SFPLAYMONO *p)
+int SfPlayMono_set(ENVIRON *csound, SFPLAYMONO *p)
 {
     DWORD index = (DWORD) *p->ipresethandle;
     presetType *preset = presetp[index];
@@ -625,7 +625,7 @@ int SfPlayMono_set(SFPLAYMONO *p)
 }
 
 
-int SfPlayMono(SFPLAYMONO *p)
+int SfPlayMono(ENVIRON *csound, SFPLAYMONO *p)
 {
     MYFLT *out1 = p->out1  ;
     int nsmps = ksmps, j = p->spltNum, arate;
@@ -705,7 +705,7 @@ int SfPlayMono(SFPLAYMONO *p)
     return OK;
 }
 
-int SfPlayMono3(SFPLAYMONO *p)
+int SfPlayMono3(ENVIRON *csound, SFPLAYMONO *p)
 {
     MYFLT *out1 = p->out1;
     int nsmps = ksmps, j = p->spltNum, arate;
@@ -786,7 +786,7 @@ int SfPlayMono3(SFPLAYMONO *p)
     return OK;
 }
 
-int SfInstrPlay_set(SFIPLAY *p)
+int SfInstrPlay_set(ENVIRON *csound, SFIPLAY *p)
 {
     int index = (int) *p->sfBank;
     SFBANK *sf = &sfArray[index];
@@ -845,7 +845,7 @@ int SfInstrPlay_set(SFIPLAY *p)
     return OK;
 }
 
-int SfInstrPlay(SFIPLAY *p)
+int SfInstrPlay(ENVIRON *csound, SFIPLAY *p)
 {
     MYFLT *out1= p->out1, *out2= p->out2;
     int nsmps= ksmps, j = p->spltNum, arate;
@@ -932,7 +932,7 @@ int SfInstrPlay(SFIPLAY *p)
     return OK;
 }
 
-int SfInstrPlay3(SFIPLAY *p)
+int SfInstrPlay3(ENVIRON *csound, SFIPLAY *p)
 {
     MYFLT *out1= p->out1, *out2= p->out2;
     int nsmps= ksmps, j = p->spltNum, arate;
@@ -1021,7 +1021,7 @@ int SfInstrPlay3(SFIPLAY *p)
 
 
 
-int SfInstrPlayMono_set(SFIPLAYMONO *p)
+int SfInstrPlayMono_set(ENVIRON *csound, SFIPLAYMONO *p)
 {
     int index = (int) *p->sfBank;
     SFBANK *sf = &sfArray[index];
@@ -1074,7 +1074,7 @@ int SfInstrPlayMono_set(SFIPLAYMONO *p)
     return OK;
 }
 
-int SfInstrPlayMono(SFIPLAYMONO *p)
+int SfInstrPlayMono(ENVIRON *csound, SFIPLAYMONO *p)
 {
     MYFLT *out1= p->out1  ;
     int nsmps= ksmps, j = p->spltNum, arate;
@@ -1156,7 +1156,7 @@ int SfInstrPlayMono(SFIPLAYMONO *p)
 }
 
 
-int SfInstrPlayMono3(SFIPLAYMONO *p)
+int SfInstrPlayMono3(ENVIRON *csound, SFIPLAYMONO *p)
 {
     MYFLT *out1= p->out1  ;
     int nsmps= ksmps, j = p->spltNum, arate;

@@ -44,7 +44,7 @@
 /*  works.  Nothing out of the ordinary in this version.   */
 /***********************************************************/
 
-void make_TwoZero(TwoZero *p)
+static void make_TwoZero(TwoZero *p)
 {
     p->zeroCoeffs[0] = FL(0.0);
     p->zeroCoeffs[1] = FL(0.0);
@@ -134,7 +134,7 @@ void build_FM(void)
     FM_tabs_built = 1;
 }
 
-int make_FM4Op(FM4OP *p)
+int make_FM4Op(ENVIRON *csound, FM4OP *p)
 {
     MYFLT       tempCoeffs[2] = {FL(0.0), -FL(1.0)};
     FUNC        *ftp;
@@ -146,7 +146,7 @@ int make_FM4Op(FM4OP *p)
     make_ADSR(&p->adsr[2]);
     make_ADSR(&p->adsr[3]);
     make_TwoZero(&p->twozero);
-    if ((ftp = ftfind(p->h.insdshead->csound, p->vifn)) != NULL)
+    if ((ftp = ftfind(csound, p->vifn)) != NULL)
       p->vibWave = ftp;
     else { /* Expect sine wave */
       return perferror(Str(X_384,"No table for VibWaveato"));
@@ -165,26 +165,26 @@ int make_FM4Op(FM4OP *p)
     return OK;
 }
 
-static int FM4Op_loadWaves(FM4OP *p)
+static int FM4Op_loadWaves(ENVIRON *csound, FM4OP *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn0)) != NULL)
+    if ((ftp = ftfind(csound, p->ifn0)) != NULL)
       p->waves[0] = ftp;
     else {
       return perferror(Str(X_377,"No table for FM4Op")); /* Expect sine wave */
     }
-    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn1)) != NULL)
+    if ((ftp = ftfind(csound, p->ifn1)) != NULL)
       p->waves[1] = ftp;
     else {
       return perferror(Str(X_373,"No table for  FM4Op")); /* Expect sine wave */
     }
-    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn2)) != NULL)
+    if ((ftp = ftfind(csound, p->ifn2)) != NULL)
       p->waves[2] = ftp;
     else {
       return perferror(Str(X_373,"No table for  FM4Op")); /* Expect sine wave */
     }
-    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn3)) != NULL)
+    if ((ftp = ftfind(csound, p->ifn3)) != NULL)
       p->waves[3] = ftp;
     else {
       return perferror(Str(X_373,"No table for  FM4Op")); /* Expect sine wave */
@@ -279,13 +279,12 @@ MYFLT FM4Alg5_tick(FM4OP *p, MYFLT c1, MYFLT c2)
 /*  Recoded in C by John ffitch 1997-98                        */
 /***************************************************************/
 
-int tubebellset(FM4OP *p)
+int tubebellset(ENVIRON *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
-    ENVIRON     *csound = p->h.insdshead->csound;
 
-    if (make_FM4Op(p)) return NOTOK;
-    if (FM4Op_loadWaves(p)) return NOTOK; /* 4 times  "rawwaves/sinewave.raw" */
+    if (make_FM4Op(csound,p)) return NOTOK;
+    if (FM4Op_loadWaves(csound,p)) return NOTOK; /* 4 times  "rawwaves/sinewave.raw" */
 
     FM4Op_setRatio(p, 0, FL(1.0)   * FL(0.995));
     FM4Op_setRatio(p, 1, FL(1.414) * FL(0.995));
@@ -318,7 +317,7 @@ int tubebellset(FM4OP *p)
     return OK;
 }
 
-int tubebell(FM4OP *p)
+int tubebell(ENVIRON *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       *ar = p->ar;
@@ -352,13 +351,12 @@ int tubebell(FM4OP *p)
 /*  Recoded in C by John ffitch 1997-98                          */
 /*****************************************************************/
 
-int rhodeset(FM4OP *p)
+int rhodeset(ENVIRON *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
-    ENVIRON     *csound = p->h.insdshead->csound;
 
-    if (make_FM4Op(p)) return NOTOK;
-    if (FM4Op_loadWaves(p)) return NOTOK; /* 3 times  "sinewave.raw"; 1 x fwavblnk.raw */
+    if (make_FM4Op(csound,p)) return NOTOK;
+    if (FM4Op_loadWaves(csound,p)) return NOTOK; /* 3 times  "sinewave.raw"; 1 x fwavblnk.raw */
 
     FM4Op_setRatio(p, 0, FL(1.0));
     FM4Op_setRatio(p, 1, FL(0.5));
@@ -398,13 +396,12 @@ int rhodeset(FM4OP *p)
 /***************************************************************/
 
 
-int wurleyset(FM4OP *p)
+int wurleyset(ENVIRON *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
-    ENVIRON     *csound = p->h.insdshead->csound;
 
-    if (make_FM4Op(p)) return NOTOK;
-    if (FM4Op_loadWaves(p)) return NOTOK; /* 3 times  "sinewave.raw"; 1 x fwavblnk.raw */
+    if (make_FM4Op(csound,p)) return NOTOK;
+    if (FM4Op_loadWaves(csound,p)) return NOTOK; /* 3 times  "sinewave.raw"; 1 x fwavblnk.raw */
 
     FM4Op_setRatio(p, 0, FL(1.0));
     FM4Op_setRatio(p, 1, FL(4.05));
@@ -436,7 +433,7 @@ int wurleyset(FM4OP *p)
     return OK;
 }
 
-int wurley(FM4OP *p)
+int wurley(ENVIRON *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       *ar = p->ar;
@@ -512,12 +509,10 @@ MYFLT FM4Alg3_tick(FM4OP *p, MYFLT c1, MYFLT c2)
     return lastOutput;
 }
 
-int heavymetset(FM4OP *p)
+int heavymetset(ENVIRON *csound, FM4OP *p)
 {
-    ENVIRON     *csound = p->h.insdshead->csound;
-
-    if (make_FM4Op(p)) return NOTOK;
-    if (FM4Op_loadWaves(p)) return NOTOK;         /* Mixed -- 2 x sine; 1 x fwavblnk */
+    if (make_FM4Op(csound,p)) return NOTOK;
+    if (FM4Op_loadWaves(csound,p)) return NOTOK;         /* Mixed -- 2 x sine; 1 x fwavblnk */
     FM4Op_setRatio(p, 0, FL(1.00)         );
     FM4Op_setRatio(p, 1, FL(4.00) * FL(0.999));
     FM4Op_setRatio(p, 2, FL(3.00) * FL(1.001));
@@ -539,7 +534,7 @@ int heavymetset(FM4OP *p)
     return OK;
 }
 
-int heavymet(FM4OP *p)
+int heavymet(ENVIRON *csound, FM4OP *p)
 {
     MYFLT       *ar = p->ar;
     long        nsmps = ksmps;
@@ -615,13 +610,12 @@ MYFLT FM4Alg8_tick(FM4OP *p, MYFLT c1, MYFLT c2)
 /**************************************************************/
 
 
-int b3set(FM4OP *p)
+int b3set(ENVIRON *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
-    ENVIRON     *csound = p->h.insdshead->csound;
 
-    if (make_FM4Op(p)) return NOTOK;
-    if (FM4Op_loadWaves(p)) return NOTOK;         /* sines */
+    if (make_FM4Op(csound,p)) return NOTOK;
+    if (FM4Op_loadWaves(csound,p)) return NOTOK;         /* sines */
     FM4Op_setRatio(p, 0, FL(0.999));
     FM4Op_setRatio(p, 1, FL(1.997));
     FM4Op_setRatio(p, 2, FL(3.006));
@@ -647,7 +641,7 @@ int b3set(FM4OP *p)
     return OK;
 }
 
-int hammondB3(FM4OP *p)
+int hammondB3(ENVIRON *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       *ar = p->ar;
@@ -949,14 +943,13 @@ void FMVoices_setFreq(FM4OPV *q, MYFLT frequency)
     q->gains[2] = FL(1.0);  /* pow(10.0f,phonParams[tempi2][2][2] * 0.05f); */
 }
 
-int FMVoiceset(FM4OPV *q)
+int FMVoiceset(ENVIRON *csound, FM4OPV *q)
 {
     FM4OP       *p = (FM4OP *)q;
     MYFLT       amp = *q->amp * AMP_RSCALE;
-    ENVIRON     *csound = p->h.insdshead->csound;
 
-    if (make_FM4Op(p)) return NOTOK;
-    if (FM4Op_loadWaves(p)) return NOTOK;
+    if (make_FM4Op(csound,p)) return NOTOK;
+    if (FM4Op_loadWaves(csound,p)) return NOTOK;
     FM4Op_setRatio(p, 0, FL(2.00));
     FM4Op_setRatio(p, 1, FL(4.00));
     FM4Op_setRatio(p, 2, FL(12.0));
@@ -1076,13 +1069,12 @@ MYFLT FM4Alg4_tick(FM4OP *p, MYFLT c1, MYFLT c2)
 }
 
 
-int percfluteset(FM4OP *p)
+int percfluteset(ENVIRON *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
-    ENVIRON     *csound = p->h.insdshead->csound;
 
-    if (make_FM4Op(p)) return NOTOK;
-    if (FM4Op_loadWaves(p)) return NOTOK;         /* 3 x sines; 1 x fwavblnk */
+    if (make_FM4Op(csound,p)) return NOTOK;
+    if (FM4Op_loadWaves(csound,p)) return NOTOK;         /* 3 x sines; 1 x fwavblnk */
 
     FM4Op_setRatio(p, 0, FL(1.50)            );
     FM4Op_setRatio(p, 1, FL(3.00) * FL(0.995));
@@ -1115,7 +1107,7 @@ int percfluteset(FM4OP *p)
 }
 
 
-int percflute(FM4OP *p)
+int percflute(ENVIRON *csound, FM4OP *p)
 {
     MYFLT       *ar = p->ar;
     long        nsmps = ksmps;

@@ -73,7 +73,7 @@ void rfft (MYFLT [], int, int);
 static void cmult(MYFLT [], MYFLT [], MYFLT [], int);
 extern int bytrevhost(void);
 
-int hrtferxkSet(HRTFER *p)
+int hrtferxkSet(ENVIRON *csound, HRTFER *p)
 {
     int    i; /* standard loop counter */
     char   filename[MAXNAME];
@@ -152,7 +152,7 @@ int hrtferxkSet(HRTFER *p)
 
 /********************** a-rate code ***********************************/
 
-int hrtferxk(HRTFER *p)
+int hrtferxk(ENVIRON *csound, HRTFER *p)
 {
     MYFLT      *aLeft, *aRight; /* audio output streams */
     MYFLT      *aIn, *kAz, *kElev; /* audio and control input streams */

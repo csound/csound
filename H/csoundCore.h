@@ -340,7 +340,7 @@ typedef struct insds {
         MYFLT   p3;
 } INSDS;
 
-typedef int    (*SUBR)(void *);
+typedef int    (*SUBR)(void *, void *);
 
 /* This struct holds the info for one opcode in a concrete
    instrument instance in performance. */

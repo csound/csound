@@ -37,7 +37,7 @@
 #include <windows.h>
 #endif
 
-int bzzset(BUZZ *p)
+int bzzset(ENVIRON *csound, BUZZ *p)
 {
     FUNC        *ftp;
 
@@ -53,7 +53,7 @@ int bzzset(BUZZ *p)
     return NOTOK;
 }
 
-int buzz(BUZZ *p)
+int buzz(ENVIRON *csound, BUZZ *p)
 {
     FUNC        *ftp;
     MYFLT       *ar, *ampp, *cpsp, *ftbl;
@@ -101,7 +101,7 @@ int buzz(BUZZ *p)
     return OK;
 }
 
-int gbzset(GBUZZ *p)
+int gbzset(ENVIRON *csound, GBUZZ *p)
 {
     FUNC        *ftp;
 
@@ -135,7 +135,7 @@ MYFLT intpow(MYFLT x, long n)   /* Binary power function */
     return ans;
 }
 
-int gbuzz(GBUZZ *p)
+int gbuzz(ENVIRON *csound, GBUZZ *p)
 {
     FUNC        *ftp;
     MYFLT       *ar, *ampp, *cpsp, *ftbl;
@@ -206,7 +206,7 @@ int gbuzz(GBUZZ *p)
 static  short   rand15(void);
 static  short   rand16(void);
 
-int plukset(PLUCK *p)
+int plukset(ENVIRON *csound, PLUCK *p)
 {
     int n;
     long        npts, iphs;
@@ -278,7 +278,7 @@ int plukset(PLUCK *p)
     return OK;
 }
 
-int pluck(PLUCK *p)
+int pluck(ENVIRON *csound, PLUCK *p)
 {
     MYFLT       *ar, *fp;
     long        phs256, phsinc, ltwopi, offset;
@@ -440,7 +440,7 @@ long randint31(long seed31)
     return (long)rilo;
 }
 
-int rndset(RAND *p)
+int rndset(ENVIRON *csound, RAND *p)
 {
     p->new = (*p->sel!=FL(0.0));
     if (*p->iseed >= FL(0.0)) {
@@ -480,7 +480,7 @@ int rndset(RAND *p)
     return OK;
 }
 
-int krand(RAND *p)
+int krand(ENVIRON *csound, RAND *p)
 {
     if (p->new) {
       long r = randint31(p->rand);         /* result is a 31-bit value */
@@ -499,7 +499,7 @@ int krand(RAND *p)
     return OK;
 }
 
-int arand(RAND *p)
+int arand(ENVIRON *csound, RAND *p)
 {
     MYFLT       *ar;
     short       rndmul = RNDMUL, n = ksmps;
@@ -551,7 +551,7 @@ int arand(RAND *p)
     return OK;
 }
 
-int rhset(RANDH *p)
+int rhset(ENVIRON *csound, RANDH *p)
 {
     p->new = (*p->sel!=FL(0.0));
     if (*p->iseed >= FL(0.0)) {                       /* new seed:            */
@@ -598,7 +598,7 @@ int rhset(RANDH *p)
     return OK;
 }
 
-int krandh(RANDH *p)
+int krandh(ENVIRON *csound, RANDH *p)
 {
     /* IV - Jul 11 2002 */
     *p->ar = *p->base + p->num1 * *p->xamp;     /* rslt = num * amp     */
@@ -621,7 +621,7 @@ int krandh(RANDH *p)
     return OK;
 }
 
-int randh(RANDH *p)
+int randh(ENVIRON *csound, RANDH *p)
 {
     long        phs = p->phs, inc;
     int n = ksmps;
@@ -660,7 +660,7 @@ int randh(RANDH *p)
     return OK;
 }
 
-int riset(RANDI *p)
+int riset(ENVIRON *csound, RANDI *p)
 {
     p->new = (*p->sel!=FL(0.0));
     if (*p->iseed >= FL(0.0)) {                       /* new seed:            */
@@ -725,7 +725,7 @@ int riset(RANDI *p)
     return OK;
 }
 
-int krandi(RANDI *p)
+int krandi(ENVIRON *csound, RANDI *p)
 {                                       /* rslt = (num1 + diff*phs) * amp */
     /* IV - Jul 11 2002 */
     *p->ar = *p->base + (p->num1 + (MYFLT)p->phs * p->dfdmax) * *p->xamp;
@@ -751,7 +751,7 @@ int krandi(RANDI *p)
     return OK;
 }
 
-int randi(RANDI *p)
+int randi(ENVIRON *csound, RANDI *p)
 {
     long        phs = p->phs, inc;
     int         n = ksmps;

@@ -43,7 +43,7 @@
 /*------------------------------------------------------------------------*/
 /* 7 bit midi control UGs */
 
-int imidic7(MIDICTL2 *p)
+int imidic7(ENVIRON *csound, MIDICTL2 *p)
 {
     MYFLT value;
     FUNC  *ftp;
@@ -54,7 +54,7 @@ int imidic7(MIDICTL2 *p)
     else {
       value = (MYFLT)(curip->m_chnbp->ctl_val[ctlno] * oneTOf7bit);
       if (*p->ifn > 0) {
-        if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) == NULL)
+        if ((ftp = ftfind(csound, p->ifn)) == NULL)
           return NOTOK; /* if valid ftable, use value as index   */
         value = *(ftp->ftable + (long)(value*ftp->flen)); /* no interpolation */
       }
@@ -64,7 +64,7 @@ int imidic7(MIDICTL2 *p)
 }
 
 
-int midic7set(MIDICTL2 *p)
+int midic7set(ENVIRON *csound, MIDICTL2 *p)
 {
     long  ctlno;
     if ((ctlno = (long)*p->ictlno) < 0 || ctlno > 127) {
@@ -72,7 +72,7 @@ int midic7set(MIDICTL2 *p)
     }
     else p->ctlno = ctlno;
     if (*p->ifn > 0) {
-      if (((p->ftp = ftfind(p->h.insdshead->csound, p->ifn)) == NULL))
+      if (((p->ftp = ftfind(csound, p->ifn)) == NULL))
         p->flag = FALSE;  /* invalid ftable */
       else p->flag= TRUE;
     }
@@ -80,7 +80,7 @@ int midic7set(MIDICTL2 *p)
     return OK;
 }
 
-int midic7(MIDICTL2 *p)
+int midic7(ENVIRON *csound, MIDICTL2 *p)
 {
     MYFLT value;
     INSDS *lcurip = p->h.insdshead;
@@ -97,7 +97,7 @@ int midic7(MIDICTL2 *p)
 /*------------------------------------------------------------------------*/
 /* 14 bit midi control UGs */
 
-int imidic14(MIDICTL3 *p)
+int imidic14(ENVIRON *csound, MIDICTL3 *p)
 {
     MYFLT value;
     FUNC  *ftp;
@@ -120,7 +120,7 @@ int imidic14(MIDICTL3 *p)
         MYFLT diff;
         long length;
 
-        if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) == NULL)
+        if ((ftp = ftfind(csound, p->ifn)) == NULL)
           return NOTOK; /* if valid ftable,use value as index   */
         phase = value * (length = ftp->flen);
         diff = phase - (long) phase;
@@ -135,7 +135,7 @@ int imidic14(MIDICTL3 *p)
 }
 
 
-int midic14set(MIDICTL3 *p)
+int midic14set(ENVIRON *csound, MIDICTL3 *p)
 {
     long   ctlno1;
     long   ctlno2;
@@ -146,7 +146,7 @@ int midic14set(MIDICTL3 *p)
     p->ctlno1 = ctlno1;
     p->ctlno2 = ctlno2;
     if (*p->ifn > 0) {
-      if (((p->ftp = ftfind(p->h.insdshead->csound, p->ifn)) == NULL))
+      if (((p->ftp = ftfind(csound, p->ifn)) == NULL))
         p->flag = FALSE;  /* invalid ftable */
       else p->flag= TRUE;
     }
@@ -155,7 +155,7 @@ int midic14set(MIDICTL3 *p)
     return OK;
 }
 
-int midic14(MIDICTL3 *p)
+int midic14(ENVIRON *csound, MIDICTL3 *p)
 {
     MYFLT value;
     INSDS *lcurip = p->h.insdshead;
@@ -194,7 +194,7 @@ int midic14(MIDICTL3 *p)
 
 
 
-int imidic21(MIDICTL4 *p)
+int imidic21(ENVIRON *csound, MIDICTL4 *p)
 {
     MYFLT value;
     long   ctlno1;
@@ -212,7 +212,7 @@ int imidic21(MIDICTL4 *p)
                        * oneTOf21bit);
       if (*p->ifn > 0) {
         /* linear interpolation routine */
-        FUNC *ftp = ftfind(p->h.insdshead->csound, p->ifn); /* gab-A1 */
+        FUNC *ftp = ftfind(csound, p->ifn); /* gab-A1 */
         MYFLT phase;
         MYFLT *base;
         if (ftp == NULL) {
@@ -229,7 +229,7 @@ int imidic21(MIDICTL4 *p)
 }
 
 
-int midic21set(MIDICTL4 *p)
+int midic21set(ENVIRON *csound, MIDICTL4 *p)
 {
     long   ctlno1;
     long   ctlno2;
@@ -243,7 +243,7 @@ int midic21set(MIDICTL4 *p)
     p->ctlno2 = ctlno2;
     p->ctlno3 = ctlno3;
     if (*p->ifn > 0) {
-      if (((p->ftp = ftfind(p->h.insdshead->csound, p->ifn)) == NULL))
+      if (((p->ftp = ftfind(csound, p->ifn)) == NULL))
         p->flag = FALSE;  /* invalid ftable */
       else
         p->flag= TRUE;
@@ -253,7 +253,7 @@ int midic21set(MIDICTL4 *p)
     return OK;
 }
 
-int midic21(MIDICTL4 *p)
+int midic21(ENVIRON *csound, MIDICTL4 *p)
 {
     MYFLT value;
     INSDS *lcurip = p->h.insdshead;
@@ -292,7 +292,7 @@ int midic21(MIDICTL4 *p)
 /* GLOBAL MIDI IN CONTROLS activable by score-oriented instruments*/
 /*-----------------------------------------------------------------*/
 
-int ictrl7(CTRL7 *p)
+int ictrl7(ENVIRON *csound, CTRL7 *p)
 {
     MYFLT value;
     FUNC *ftp;
@@ -303,7 +303,7 @@ int ictrl7(CTRL7 *p)
     else {
       value = (MYFLT)(M_CHNBP[(int) *p->ichan-1]->ctl_val[ctlno]* oneTOf7bit);
       if (*p->ifn > 0) {
-        if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) == NULL)
+        if ((ftp = ftfind(csound, p->ifn)) == NULL)
           return NOTOK;               /* if valid ftable,use value as index   */
         value = *(ftp->ftable + (long)(value*ftp->flen)); /* no interpolation */
       }
@@ -313,7 +313,7 @@ int ictrl7(CTRL7 *p)
 }
 
 
-int ctrl7set(CTRL7 *p)
+int ctrl7set(ENVIRON *csound, CTRL7 *p)
 {
     long  ctlno;
     int chan;
@@ -326,7 +326,7 @@ int ctrl7set(CTRL7 *p)
     /*else if (midi_in_p_num < 0) midi_in_error("ctrl7");*/
     else p->ctlno = ctlno;
     if (*p->ifn > 0) {
-      if (((p->ftp = ftfind(p->h.insdshead->csound, p->ifn)) == NULL))
+      if (((p->ftp = ftfind(csound, p->ifn)) == NULL))
         p->flag = FALSE;  /* invalid ftable */
       else p->flag= TRUE;
     }
@@ -334,7 +334,7 @@ int ctrl7set(CTRL7 *p)
     return OK;
 }
 
-int ctrl7(CTRL7 *p)
+int ctrl7(ENVIRON *csound, CTRL7 *p)
 {
     MYFLT value = (MYFLT) (M_CHNBP[(int) *p->ichan-1]->ctl_val[p->ctlno] *
                            oneTOf7bit);
@@ -349,7 +349,7 @@ int ctrl7(CTRL7 *p)
 
 /* 14 bit midi control UGs */
 
-int ictrl14(CTRL14 *p)
+int ictrl14(ENVIRON *csound, CTRL14 *p)
 {
     MYFLT value;
     long  ctlno1;
@@ -367,7 +367,7 @@ int ictrl14(CTRL14 *p)
 
       if (*p->ifn > 0) {
         /* linear interpolation routine */
-        FUNC *ftp = ftfind(p->h.insdshead->csound, p->ifn);
+        FUNC *ftp = ftfind(csound, p->ifn);
         MYFLT phase;
         MYFLT *base;
         if (ftp == NULL) {
@@ -384,7 +384,7 @@ int ictrl14(CTRL14 *p)
 }
 
 
-int ctrl14set(CTRL14 *p)
+int ctrl14set(ENVIRON *csound, CTRL14 *p)
 {
     long   ctlno1;
     long   ctlno2;
@@ -399,7 +399,7 @@ int ctrl14set(CTRL14 *p)
     p->ctlno1 = ctlno1;
     p->ctlno2 = ctlno2;
     if (*p->ifn > 0) {
-      if (((p->ftp = ftfind(p->h.insdshead->csound, p->ifn)) == NULL))
+      if (((p->ftp = ftfind(csound, p->ifn)) == NULL))
         p->flag = FALSE;  /* invalid ftable */
       else p->flag= TRUE;
     }
@@ -408,7 +408,7 @@ int ctrl14set(CTRL14 *p)
     return OK;
 }
 
-int ctrl14(CTRL14 *p)
+int ctrl14(ENVIRON *csound, CTRL14 *p)
 {
     MYFLT value;
     int chan=(int) *p->ichan-1;
@@ -430,7 +430,7 @@ int ctrl14(CTRL14 *p)
 /*-----------------------------------------------------------------------------*/
 /* 21 bit midi control UGs */
 
-int ictrl21(CTRL21 *p)
+int ictrl21(ENVIRON *csound, CTRL21 *p)
 {
     MYFLT  value;
     long   ctlno1;
@@ -451,7 +451,7 @@ int ictrl21(CTRL21 *p)
 
       if (*p->ifn > 0) {
         /* linear interpolation routine */
-        FUNC *ftp = ftfind(p->h.insdshead->csound, p->ifn);
+        FUNC *ftp = ftfind(csound, p->ifn);
         MYFLT phase;
         MYFLT *base;
         if (ftp == NULL) {
@@ -468,7 +468,7 @@ int ictrl21(CTRL21 *p)
 }
 
 
-int ctrl21set(CTRL21 *p)
+int ctrl21set(ENVIRON *csound, CTRL21 *p)
 {
     long   ctlno1;
     long   ctlno2;
@@ -486,7 +486,7 @@ int ctrl21set(CTRL21 *p)
     p->ctlno2 = ctlno2;
     p->ctlno3 = ctlno3;
     if (*p->ifn > 0) {
-      if (((p->ftp = ftfind(p->h.insdshead->csound, p->ifn)) == NULL))
+      if (((p->ftp = ftfind(csound, p->ifn)) == NULL))
         p->flag = FALSE;  /* invalid ftable */
       else
         p->flag= TRUE;
@@ -495,7 +495,7 @@ int ctrl21set(CTRL21 *p)
     return OK;
 }
 
-int ctrl21(CTRL21 *p)
+int ctrl21(ENVIRON *csound, CTRL21 *p)
 {
     MYFLT value;
     int chan=(int) *p->ichan-1;
@@ -514,7 +514,7 @@ int ctrl21(CTRL21 *p)
 }
 
 
-int initc7(INITC7 *p) /* for setting a precise value use the following formula:*/
+int initc7(ENVIRON *csound, INITC7 *p) /* for setting a precise value use the following formula:*/
 {                      /* (value - min) / (max - min) */
     MYFLT fvalue;
     int chan;
@@ -526,7 +526,7 @@ int initc7(INITC7 *p) /* for setting a precise value use the following formula:*
     return OK;
 }
 
-int initc14(INITC14 *p)
+int initc14(ENVIRON *csound, INITC14 *p)
 {
     MYFLT fvalue;
     int value, msb, lsb, chan;
@@ -544,7 +544,7 @@ int initc14(INITC14 *p)
     return OK;
 }
 
-int initc21(INITC21 *p)
+int initc21(ENVIRON *csound, INITC21 *p)
 {
     MYFLT fvalue;
     int value, msb, xsb, lsb, chan;
@@ -564,13 +564,13 @@ int initc21(INITC21 *p)
     return OK;
 }
 
-int midiin_set(MIDIIN *p)
+int midiin_set(ENVIRON *csound, MIDIIN *p)
 {
     p->local_buf_index = MIDIINbufIndex & MIDIINBUFMSK;
     return OK;
 }
 
-int midiin(MIDIIN *p)
+int midiin(ENVIRON *csound, MIDIIN *p)
 {
     unsigned char *temp;                        /* IV - Nov 30 2002 */
     if  (p->local_buf_index != MIDIINbufIndex) {

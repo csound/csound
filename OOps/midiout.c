@@ -45,7 +45,7 @@ void pitch_bend(int chan, int lsb, int msb);
 void poly_after_touch(int chan, int note_num, int value);
 void send_midi_message(int status, int data1, int data2);
 
-int release_set(REL *p)
+int release_set(ENVIRON *csound, REL *p)
 {
     if (p->h.insdshead->xtratim < EXTRA_TIME)
       /* if not initialised by another opcode */
@@ -53,7 +53,7 @@ int release_set(REL *p)
     return OK;
 }
 
-int release(REL *p)
+int release(ENVIRON *csound, REL *p)
 {
     if (p->h.insdshead->relesing)
       *p->r=FL(1.0); /* TRUE */
@@ -62,7 +62,7 @@ int release(REL *p)
     return OK;
 }
 
-int xtratim(XTRADUR *p)
+int xtratim(ENVIRON *csound, XTRADUR *p)
 {
     int *xtra = &(p->h.insdshead->xtratim);
     int tim = (int) (*p->extradur * ekr);
@@ -71,7 +71,7 @@ int xtratim(XTRADUR *p)
     return OK;
 }
 
-int mclock_set(MCLOCK *p)
+int mclock_set(ENVIRON *csound, MCLOCK *p)
 {
     if (MIDIoutDONE==0) openMIDIout();
     p->period= ekr / *p->freq;
@@ -80,7 +80,7 @@ int mclock_set(MCLOCK *p)
     return OK;
 }
 
-int mclock(MCLOCK *p)
+int mclock(ENVIRON *csound, MCLOCK *p)
 {
     if (p->beginning_flag) {    /* first time */
       send_midi_message(0xF8, 0, 0); /* clock message */
@@ -95,7 +95,7 @@ int mclock(MCLOCK *p)
 }
 
 
-int mrtmsg(MRT *p)
+int mrtmsg(ENVIRON *csound, MRT *p)
 {
     if (MIDIoutDONE==0) openMIDIout();
     switch ((int) *p->message) {
@@ -122,21 +122,21 @@ int mrtmsg(MRT *p)
 }
 
 
-int iout_on(OUT_ON *p)
+int iout_on(ENVIRON *csound, OUT_ON *p)
 {
     if (MIDIoutDONE==0) openMIDIout();
     note_on((int)*p->ichn-1,(int)*p->inum,(int)*p->ivel);
     return OK;
 }
 
-int iout_off(OUT_ON *p)
+int iout_off(ENVIRON *csound, OUT_ON *p)
 {
     if (MIDIoutDONE==0) openMIDIout();
     note_off((int)*p->ichn-1,(int)*p->inum,(int)*p->ivel);
     return OK;
 }
 
-int iout_on_dur_set(OUT_ON_DUR *p)
+int iout_on_dur_set(ENVIRON *csound, OUT_ON_DUR *p)
 {
     int temp;
     if (MIDIoutDONE==0) openMIDIout();
@@ -156,7 +156,7 @@ int iout_on_dur_set(OUT_ON_DUR *p)
 }
 
 
-int iout_on_dur(OUT_ON_DUR *p)
+int iout_on_dur(ENVIRON *csound, OUT_ON_DUR *p)
 {
     if (!(p->fl_expired)) {
       MYFLT actual_dur = (MYFLT) kcounter * onedkr - p->istart_time;
@@ -173,7 +173,7 @@ int iout_on_dur(OUT_ON_DUR *p)
     return OK;
 }
 
-int iout_on_dur2(OUT_ON_DUR *p)
+int iout_on_dur2(ENVIRON *csound, OUT_ON_DUR *p)
 {
     if (!(p->fl_expired)) {
       MYFLT actual_dur = (MYFLT) kcounter * onedkr - p->istart_time;
@@ -199,7 +199,7 @@ int iout_on_dur2(OUT_ON_DUR *p)
 }
 
 
-int moscil_set(MOSCIL *p)
+int moscil_set(ENVIRON *csound, MOSCIL *p)
 {
     if (MIDIoutDONE==0) openMIDIout();
     if (p->h.insdshead->xtratim < EXTRA_TIME)
@@ -212,7 +212,7 @@ int moscil_set(MOSCIL *p)
     return OK;
 }
 
-int moscil(MOSCIL *p)
+int moscil(ENVIRON *csound, MOSCIL *p)
 {
     if (p->fl_first_note) {
       p->fl_first_note = FALSE;
@@ -254,7 +254,7 @@ int moscil(MOSCIL *p)
     return OK;
 }
 
-int kvar_out_on_set(KOUT_ON *p)
+int kvar_out_on_set(ENVIRON *csound, KOUT_ON *p)
 {
     if (MIDIoutDONE==0) openMIDIout();
     if (p->h.insdshead->xtratim < EXTRA_TIME)
@@ -264,7 +264,7 @@ int kvar_out_on_set(KOUT_ON *p)
     return OK;
 }
 
-int kvar_out_on(KOUT_ON *p)
+int kvar_out_on(ENVIRON *csound, KOUT_ON *p)
 {
     if (p->fl_first_note) {
       int temp;
@@ -307,7 +307,7 @@ int kvar_out_on(KOUT_ON *p)
 }
 
 
-int out_controller (OUT_CONTR *p)
+int out_controller (ENVIRON *csound, OUT_CONTR *p)
 {
     if (MIDIoutDONE==0) openMIDIout();
     if (!(p->h.insdshead->prvinstance)) {
@@ -326,7 +326,7 @@ int out_controller (OUT_CONTR *p)
     return OK;
 }
 
-int out_aftertouch (OUT_ATOUCH *p)
+int out_aftertouch (ENVIRON *csound, OUT_ATOUCH *p)
 {
     if (MIDIoutDONE==0) openMIDIout();
     if (!(p->h.insdshead->prvinstance)) {
@@ -344,7 +344,7 @@ int out_aftertouch (OUT_ATOUCH *p)
     return OK;
 }
 
-int out_poly_aftertouch (OUT_POLYATOUCH *p)
+int out_poly_aftertouch (ENVIRON *csound, OUT_POLYATOUCH *p)
 {
     int value;
     MYFLT min = *p->min;
@@ -360,7 +360,7 @@ int out_poly_aftertouch (OUT_POLYATOUCH *p)
     return OK;
 }
 
-int out_progchange (OUT_PCHG *p)
+int out_progchange (ENVIRON *csound, OUT_PCHG *p)
 {
     if (MIDIoutDONE==0) openMIDIout();
     if (!(p->h.insdshead->prvinstance)) {
@@ -380,7 +380,7 @@ int out_progchange (OUT_PCHG *p)
 
 
 
-int out_controller14 (OUT_CONTR14 *p)
+int out_controller14 (ENVIRON *csound, OUT_CONTR14 *p)
 {
     if (MIDIoutDONE==0) openMIDIout();
     if (!(p->h.insdshead->prvinstance)) {
@@ -405,7 +405,7 @@ int out_controller14 (OUT_CONTR14 *p)
     return OK;
 }
 
-int out_pitch_bend(OUT_PB *p)
+int out_pitch_bend(ENVIRON *csound, OUT_PB *p)
 {
     if (MIDIoutDONE==0) openMIDIout();
     if (!(p->h.insdshead->prvinstance)) {
@@ -428,7 +428,7 @@ int out_pitch_bend(OUT_PB *p)
 }
 
 
-int kon2_set(KON2 *p)
+int kon2_set(ENVIRON *csound, KON2 *p)
 {
     if (MIDIoutDONE==0) openMIDIout();
     if (p->h.insdshead->xtratim < EXTRA_TIME)
@@ -440,7 +440,7 @@ int kon2_set(KON2 *p)
 }
 
 
-int kon2(KON2 *p)
+int kon2(ENVIRON *csound, KON2 *p)
 {
     /*
         if (p->fl_first_note) {
@@ -488,7 +488,7 @@ int kon2(KON2 *p)
 }
 
 
-int midiout(MIDIOUT *p)        /*gab-A6 fixed*/
+int midiout(ENVIRON *csound, MIDIOUT *p)        /*gab-A6 fixed*/
 {
     int kstatus ;
     if (MIDIoutDONE==0) openMIDIout();
@@ -499,7 +499,7 @@ int midiout(MIDIOUT *p)        /*gab-A6 fixed*/
 }
 
 
-int nrpn(NRPN *p)
+int nrpn(ENVIRON *csound, NRPN *p)
 {
     int chan = (int) *p->chan-1, parm = (int) *p->parm_num, value = (int) *p->parm_value;
     if (MIDIoutDONE==0) openMIDIout();
@@ -523,7 +523,7 @@ int nrpn(NRPN *p)
 }
 
 
-int mdelay_set(MDELAY *p)
+int mdelay_set(ENVIRON *csound, MDELAY *p)
 {
     if (MIDIoutDONE==0) openMIDIout();
     p->read_index = 0;
@@ -533,7 +533,7 @@ int mdelay_set(MDELAY *p)
 }
 
 
-int mdelay(MDELAY *p)                                                                          /*gab-A6 fixed*/
+int mdelay(ENVIRON *csound, MDELAY *p)                                                                          /*gab-A6 fixed*/
 {
     int read_index = p->read_index % DELTAB_LENGTH;
     int write_index = p->write_index % DELTAB_LENGTH;

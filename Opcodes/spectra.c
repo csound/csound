@@ -53,7 +53,7 @@ void SPECset(ENVIRON *p, SPECDAT *specdp, long npts)
 
 static char *outstring[] = {"mag", "db", "mag sqrd", "root mag"};
 
-int spectset(SPECTRUM *p) /* spectrum - calcs disc Fourier transform of */
+int spectset(ENVIRON *csound, SPECTRUM *p) /* spectrum - calcs disc Fourier transform of */
                            /* oct-downsampled data outputs coefs (mag, */
                            /* db or mag2) of log freq within each octave */
 {
@@ -242,7 +242,7 @@ static MYFLT bicoefs[] =
       FL(0.0505247), FL(0.3514850), FL(0.5257536), FL(0.3505025), FL(0.5257536),
       FL(0.3661840), FL(0.0837990), FL(0.3867783), FL(0.6764264), FL(0.3867783)};
 
-int spectrum(SPECTRUM *p)
+int spectrum(ENVIRON *csound, SPECTRUM *p)
 {
     MYFLT   a, b, *dftp, *sigp = p->signal, SIG, yt1, yt2;
     int     nocts, nsmps = p->nsmps, winlen;
@@ -345,7 +345,7 @@ int spectrum(SPECTRUM *p)
 }
 
 #ifdef never
-int nocdfset(NOCTDFT *p)
+int nocdfset(ENVIRON *csound, NOCTDFT *p)
     /* noctdft - calcs disc Fourier transform of oct-downsampled data */
     /* outputs coefs (mag, db or mag2) of log freq within each octave */
 {
@@ -446,7 +446,7 @@ int nocdfset(NOCTDFT *p)
     return OK;
 }
 
-int noctdft(NOCTDFT *p)
+int noctdft(ENVIRON *csound, NOCTDFT *p)
 {
     DOWNDAT *downp;
     SPECDAT *specp;
@@ -506,7 +506,7 @@ int noctdft(NOCTDFT *p)
 }
 #endif
 
-int spdspset(SPECDISP *p)
+int spdspset(ENVIRON *csound, SPECDISP *p)
 {
 
     /* RWD is this enough? */
@@ -539,7 +539,7 @@ int spdspset(SPECDISP *p)
     return OK;
 }
 
-int specdisp(SPECDISP *p)
+int specdisp(ENVIRON *csound, SPECDISP *p)
 {
     /* RWD is this enough? */
     if (p->wsig->auxch.auxp==NULL) {
@@ -552,7 +552,7 @@ int specdisp(SPECDISP *p)
     return OK;
 }
 
-int sptrkset(SPECPTRK *p)
+int sptrkset(ENVIRON *csound, SPECPTRK *p)
 {
     SPECDAT *inspecp = p->wsig;
     long    npts, nptls, nn, lobin;
@@ -576,7 +576,7 @@ int sptrkset(SPECPTRK *p)
 /*       fdp->altname = "specptrk"; */
 /*       fdp->altarg = "X-corr"; */
       p->wfund.dbout = inspecp->dbout;
-      spdspset(fdp);                              /*  & call specdisp init */
+      spdspset(csound,fdp);                        /*  & call specdisp init */
     }
     else p->ftimcnt = 0;
     if ((nptls = (long)*p->inptls) <= 0 || nptls > MAXPTL) {
@@ -675,7 +675,7 @@ int sptrkset(SPECPTRK *p)
 #define STARTING 1
 #define PLAYING  2
 
-int specptrk(SPECPTRK *p)
+int specptrk(ENVIRON *csound, SPECPTRK *p)
 {
     SPECDAT *inspecp = p->wsig;
 
@@ -811,10 +811,10 @@ int specptrk(SPECPTRK *p)
       p->kavl += p->kanc;
     }
     if (p->ftimcnt)
-      specdisp(&p->fdisplay);
+      specdisp(csound,&p->fdisplay);
     return OK;
 }
-/* void sptrkset(SPECPTRK *p) */
+/* void sptrkset(ENVIRON *csound, SPECPTRK *p) */
 /* { */
 /*     SPECDAT *inspecp = p->wsig; */
 /*     long    npts, nptls, nn, lobin; */
@@ -877,7 +877,7 @@ int specptrk(SPECPTRK *p)
 /*     p->kinc = FZERO; */
 /* } */
 
-/* void specptrk(SPECPTRK *p) */
+/* void specptrk(ENVIRON *csound, SPECPTRK *p) */
 /* { */
 /*     SPECDAT *inspecp = p->wsig; */
 
@@ -939,7 +939,7 @@ int specptrk(SPECPTRK *p)
 /*       specdisp(&p->fdisplay); */
 /* } */
 
-int spsumset(SPECSUM *p)
+int spsumset(ENVIRON *csound, SPECSUM *p)
 {
     p->kinterp = (*p->interp == FZERO) ? 0 : 1;
     p->kval = FZERO;
@@ -947,7 +947,7 @@ int spsumset(SPECSUM *p)
     return OK;
 }
 
-int specsum(SPECSUM *p)        /* sum all vals of a spectrum and put as ksig */
+int specsum(ENVIRON *csound, SPECSUM *p)        /* sum all vals of a spectrum and put as ksig */
                                /*         optionally interpolate the output  */
 {
     SPECDAT *specp = p->wsig;
@@ -971,7 +971,7 @@ int specsum(SPECSUM *p)        /* sum all vals of a spectrum and put as ksig */
     return OK;
 }
 
-int spadmset(SPECADDM *p)
+int spadmset(ENVIRON *csound, SPECADDM *p)
 {
     SPECDAT *inspec1p = p->wsig1;
     SPECDAT *inspec2p = p->wsig2;
@@ -1001,7 +1001,7 @@ int spadmset(SPECADDM *p)
     return OK;
 }
 
-int specaddm(SPECADDM *p)
+int specaddm(ENVIRON *csound, SPECADDM *p)
 {
     if ((p->wsig1->auxch.auxp==NULL) || /* RWD fix */
         (p->wsig2->auxch.auxp==NULL) ||
@@ -1023,7 +1023,7 @@ int specaddm(SPECADDM *p)
     return OK;
 }
 
-int spdifset(SPECDIFF *p)
+int spdifset(ENVIRON *csound, SPECDIFF *p)
 {
     SPECDAT *inspecp = p->wsig;
     MYFLT *lclp;
@@ -1053,7 +1053,7 @@ int spdifset(SPECDIFF *p)
     return OK;
 }
 
-int specdiff(SPECDIFF *p)
+int specdiff(ENVIRON *csound, SPECDIFF *p)
 {
     SPECDAT *inspecp = p->wsig;
 
@@ -1086,7 +1086,7 @@ int specdiff(SPECDIFF *p)
     return OK;
 }
 
-int spsclset(SPECSCAL *p)
+int spsclset(ENVIRON *csound, SPECSCAL *p)
 {
     SPECDAT *inspecp = p->wsig;
     SPECDAT *outspecp = p->wscaled;
@@ -1142,7 +1142,7 @@ int spsclset(SPECSCAL *p)
     return OK;
 }
 
-int specscal(SPECSCAL *p)
+int specscal(ENVIRON *csound, SPECSCAL *p)
 {
     SPECDAT *inspecp = p->wsig;
     if ((inspecp->auxch.auxp==NULL) /* RWD fix */
@@ -1179,7 +1179,7 @@ int specscal(SPECSCAL *p)
     return OK;
 }
 
-int sphstset(SPECHIST *p)
+int sphstset(ENVIRON *csound, SPECHIST *p)
 {
     SPECDAT *inspecp = p->wsig;
     MYFLT *lclp;
@@ -1209,7 +1209,7 @@ int sphstset(SPECHIST *p)
     return OK;
 }
 
-int spechist(SPECHIST *p)
+int spechist(ENVIRON *csound, SPECHIST *p)
 {
     SPECDAT *inspecp = p->wsig;
     if ((inspecp->auxch.auxp==NULL) /* RWD fix */
@@ -1236,7 +1236,7 @@ int spechist(SPECHIST *p)
     return OK;
 }
 
-int spfilset(SPECFILT *p)
+int spfilset(ENVIRON *csound, SPECFILT *p)
 {
     SPECDAT *inspecp = p->wsig;
     SPECDAT *outspecp = p->wfil;
@@ -1297,7 +1297,7 @@ int spfilset(SPECFILT *p)
     return OK;
 }
 
-int specfilt(SPECFILT *p)
+int specfilt(ENVIRON *csound, SPECFILT *p)
 {
     if (p->wsig->ktimstamp == kcounter) {          /* if input spec is new,  */
       SPECDAT *inspecp = p->wsig;

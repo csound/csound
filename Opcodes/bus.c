@@ -39,17 +39,17 @@ typedef struct  {
         MYFLT   *ar, *kn;   /* The parameter */
 } CHANI;
 
-int chanokset(CHANO *p)
+int chanokset(ENVIRON *csound, CHANO *p)
 {
     return OK;
 } /* end chanokset(p) */
 
-int chanoaset(CHANO *p)
+int chanoaset(ENVIRON *csound, CHANO *p)
 {
     return OK;
 } /* end chanset(p) */
 
-int chanokdo(CHANO *p)
+int chanokdo(ENVIRON *csound, CHANO *p)
 {
     int kn = (int)(*p->kn + 0.5);
     if (kn<0)
@@ -62,7 +62,7 @@ int chanokdo(CHANO *p)
     return OK;
 }
 
-int chanoado(CHANO *p)
+int chanoado(ENVIRON *csound, CHANO *p)
 {
     int i,j;
     int kn = (int)(*p->kn + 0.5);
@@ -78,17 +78,17 @@ int chanoado(CHANO *p)
     return OK;
 } /* end chanoas(p) */
 
-int chanikset(CHANI *p)
+int chanikset(ENVIRON *csound, CHANI *p)
 {
     return OK;
 } /* end chaniset(p) */
 
-int chaniaset(CHANI *p)
+int chaniaset(ENVIRON *csound, CHANI *p)
 {
     return OK;
 } /* end chaniaset(p) */
 
-int chanikdo(CHANI *p)
+int chanikdo(ENVIRON *csound, CHANI *p)
 {
     int kn = (int)(*p->kn + 0.5);
     if (kn<0)
@@ -101,7 +101,7 @@ int chanikdo(CHANI *p)
     return OK;
 }
 
-int chaniado(CHANI *p)
+int chaniado(ENVIRON *csound, CHANI *p)
 {
     int i,j;
     int kn = (int)(*p->kn + 0.5);

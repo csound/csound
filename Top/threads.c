@@ -1,6 +1,7 @@
 #include "csound.h"
 #include "cs.h"
 #include "prototyp.h"
+
 #if defined(WIN32) && !defined(__CYGWIN__)
 #include <windows.h>
 #include <portaudio.h>
@@ -23,7 +24,7 @@ PUBLIC void *csoundCreateThreadLock(void *csound_)
 {
     ENVIRON *csound = (ENVIRON *)csound_;
     HANDLE threadLock = CreateEvent(0, 0, 0, 0);
-    if(!threadLock) {
+    if (!threadLock) {
       csound->Message(csound,
                       "csoundCreateThreadLock: Failed to create thread lock.\n");
     }
@@ -53,7 +54,7 @@ void *csoundCreateThread(void *csound,
 			 int (*threadRoutine)(void *userdata), void *userdata)
 {
     pthread_t pthread = 0;
-    if(!pthread_create(&pthread, 0,
+    if (!pthread_create(&pthread, 0,
                        (void *(*) (void*)) threadRoutine, userdata)) {
       return (void *)pthread;
     } else {
@@ -78,7 +79,7 @@ void *csoundCreateThreadLock(void *csound)
 {
     pthread_mutex_t *pthread_mutex =
       (pthread_mutex_t *)mmalloc(sizeof(pthread_mutex_t));
-    if(pthread_mutex_init(pthread_mutex, 0) == 0) {
+    if (pthread_mutex_init(pthread_mutex, 0) == 0) {
       return (void *)pthread_mutex;
     } else {
       return 0;

@@ -170,7 +170,7 @@ static int sngetset(SOUNDINEW *p, char *sfname)
 }
 
 
-int newsndinset(SOUNDINEW *p)       /* init routine for diskin   */
+int newsndinset(ENVIRON *csound, SOUNDINEW *p)       /* init routine for diskin   */
 {
 /****************************************************
         revision history
@@ -366,7 +366,7 @@ int newsndinset(SOUNDINEW *p)       /* init routine for diskin   */
 /*  NB: floats not converted here, but in sreadinew():
     handles autorescale from PEAK, etc) */
 
-void soundinew(SOUNDINEW *p)    /*  a-rate routine for soundinew */
+void soundinew(ENVIRON *csound, SOUNDINEW *p)    /*  a-rate routine for soundinew */
 {
     MYFLT       *r1, *r2, *r3, *r4, ktransp,looping;
     int         chnsout, n, ntogo, samplesLeft;
@@ -688,7 +688,7 @@ void soundinew(SOUNDINEW *p)    /*  a-rate routine for soundinew */
    what will people want for 0dbfs handling? really need to update
    opcode with more options. */
 
-int sndo1set(SNDOUT *p)            /* init routine for instr soundout   */
+int sndo1set(ENVIRON *csound, SNDOUT *p)            /* init routine for instr soundout   */
 {
     int    soutfd, filno;
     char   *sfname, sndoutname[128];
@@ -734,7 +734,7 @@ int sndo1set(SNDOUT *p)            /* init routine for instr soundout   */
     return initerror(errmsg);               /* else just print the errmsg */
 }
 
-int soundout(SNDOUT *p)
+int soundout(ENVIRON *csound, SNDOUT *p)
 {
     MYFLT  *outbufp, *asig;
     int    nn, nsamps, ospace;

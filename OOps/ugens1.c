@@ -34,7 +34,7 @@
 
 #define FHUND (FL(100.0))
 
-int linset(LINE *p)
+int linset(ENVIRON *csound, LINE *p)
 {
     MYFLT       dur;
 
@@ -45,14 +45,14 @@ int linset(LINE *p)
     return OK;
 }
 
-int kline(LINE *p)
+int kline(ENVIRON *csound, LINE *p)
 {
     *p->xr = p->val;            /* rslt = val   */
     p->val += p->incr;          /* val += incr  */
     return OK;
 }
 
-int aline(LINE *p)
+int aline(ENVIRON *csound, LINE *p)
 {
     MYFLT       val, inc, *ar;
     int nsmps = ksmps;
@@ -70,7 +70,7 @@ int aline(LINE *p)
     return OK;
 }
 
-int expset(EXPON *p)
+int expset(ENVIRON *csound, EXPON *p)
 {
     MYFLT       dur, a, b;
 
@@ -90,14 +90,14 @@ int expset(EXPON *p)
     return OK;
 }
 
-int kexpon(EXPON *p)
+int kexpon(ENVIRON *csound, EXPON *p)
 {
     *p->xr = p->val;            /* rslt = val   */
     p->val *= p->mlt;           /* val *= mlt  */
     return OK;
 }
 
-int expon(EXPON *p)
+int expon(ENVIRON *csound, EXPON *p)
 {
     MYFLT       val, mlt, inc, *ar,nxtval;
     int nsmps = ksmps;
@@ -119,7 +119,7 @@ int expon(EXPON *p)
 
 
 /* static int counter; */
-int lsgset(LINSEG *p)
+int lsgset(ENVIRON *csound, LINSEG *p)
 {
     SEG *segp;
     int nsegs;
@@ -160,7 +160,7 @@ int lsgset(LINSEG *p)
     return OK;
 }
 
-int klnseg(LINSEG *p)
+int klnseg(ENVIRON *csound, LINSEG *p)
 {
     *p->rslt = p->curval;               /* put the cur value    */
     if (p->auxch.auxp==NULL) {          /* RWD fix */
@@ -199,7 +199,7 @@ int klnseg(LINSEG *p)
     return OK;
 }
 
-int linseg(LINSEG *p)
+int linseg(ENVIRON *csound, LINSEG *p)
 {
     MYFLT  val, ainc, *rs = p->rslt;
     int         nsmps = ksmps;
@@ -325,13 +325,13 @@ static void adsrset1(LINSEG *p, int midip)
       p->xtra = 0L;
 }
 
-int adsrset(LINSEG *p)
+int adsrset(ENVIRON *csound, LINSEG *p)
 {
     adsrset1(p, 0);
     return OK;
 }
 
-int madsrset(LINSEG *p)
+int madsrset(ENVIRON *csound, LINSEG *p)
 {
     adsrset1(p, 1);
     return OK;
@@ -341,10 +341,10 @@ int madsrset(LINSEG *p)
 /* End of ADSR */
 
 
-int lsgrset(LINSEG *p)
+int lsgrset(ENVIRON *csound, LINSEG *p)
 {
     long relestim;
-    lsgset(p);
+    lsgset(csound,p);
     relestim = (p->cursegp + p->segsrem - 1)->cnt;
     p->xtra = -1;
     if (relestim > p->h.insdshead->xtratim)
@@ -352,7 +352,7 @@ int lsgrset(LINSEG *p)
     return OK;
 }
 
-int klnsegr(LINSEG *p)
+int klnsegr(ENVIRON *csound, LINSEG *p)
 {
     *p->rslt = p->curval;                   /* put the cur value    */
     if (p->segsrem) {                       /* done if no more segs */
@@ -382,7 +382,7 @@ int klnsegr(LINSEG *p)
     return OK;
 }
 
-int linsegr(LINSEG *p)
+int linsegr(ENVIRON *csound, LINSEG *p)
 {
     MYFLT  val, ainc, *rs = p->rslt;
     int    nsmps = ksmps;
@@ -428,7 +428,7 @@ int linsegr(LINSEG *p)
     return OK;
 }
 
-int xsgset(EXXPSEG *p)
+int xsgset(ENVIRON *csound, EXXPSEG *p)
 {
     XSEG        *segp;
     int nsegs;
@@ -475,7 +475,7 @@ int xsgset(EXXPSEG *p)
     return initerror(errmsg);
 }
 
-int xsgset2(EXPSEG2 *p)  /*gab-A1 (G.Maldonado) */
+int xsgset2(ENVIRON *csound, EXPSEG2 *p)  /*gab-A1 (G.Maldonado) */
 {
     XSEG        *segp;
     int         nsegs;
@@ -524,7 +524,7 @@ int xsgset2(EXPSEG2 *p)  /*gab-A1 (G.Maldonado) */
 
 
 /***************************************/
-int expseg2(EXPSEG2 *p)                  /*gab-A1 (G.Maldonado) */
+int expseg2(ENVIRON *csound, EXPSEG2 *p)                  /*gab-A1 (G.Maldonado) */
 {
     XSEG        *segp;
     int         nsmps = ksmps;
@@ -546,7 +546,7 @@ int expseg2(EXPSEG2 *p)                  /*gab-A1 (G.Maldonado) */
 
 /* **** XDSR is just a construction and use of expseg */
 
-int xdsrset(EXXPSEG *p)
+int xdsrset(ENVIRON *csound, EXXPSEG *p)
 {
     XSEG        *segp;
     int nsegs;
@@ -614,7 +614,7 @@ int xdsrset(EXXPSEG *p)
 
 /* end of XDSR */
 
-int kxpseg(EXXPSEG *p)
+int kxpseg(ENVIRON *csound, EXXPSEG *p)
 {
     XSEG        *segp;
 
@@ -629,7 +629,7 @@ int kxpseg(EXXPSEG *p)
     return OK;
 }
 
-int expseg(EXXPSEG *p)
+int expseg(ENVIRON *csound, EXXPSEG *p)
 {
     XSEG        *segp;
     int nsmps = ksmps;
@@ -654,7 +654,7 @@ int expseg(EXXPSEG *p)
     return OK;
 }
 
-int xsgrset(EXPSEG *p)
+int xsgrset(ENVIRON *csound, EXPSEG *p)
 {
     u_short relestim;
     SEG     *segp;
@@ -702,7 +702,7 @@ int xsgrset(EXPSEG *p)
 
 /* **** MXDSR is just a construction and use of expseg */
 
-int mxdsrset(EXPSEG *p)
+int mxdsrset(ENVIRON *csound, EXPSEG *p)
 {
     u_short relestim;
     SEG         *segp;
@@ -741,7 +741,7 @@ int mxdsrset(EXPSEG *p)
 
 /* end of MXDSR */
 
-int kxpsegr(EXPSEG *p)
+int kxpsegr(ENVIRON *csound, EXPSEG *p)
 {
     *p->rslt = p->curval;               /* put the cur value    */
     if (p->segsrem) {                   /* done if no more segs */
@@ -773,7 +773,7 @@ int kxpsegr(EXPSEG *p)
     return OK;
 }
 
-int expsegr(EXPSEG *p)
+int expsegr(ENVIRON *csound, EXPSEG *p)
 {
     MYFLT  val, amlt, *rs = p->rslt;
     int    nsmps = ksmps;
@@ -826,7 +826,7 @@ int expsegr(EXPSEG *p)
     return OK;
 }
 
-int lnnset(LINEN *p)
+int lnnset(ENVIRON *csound, LINEN *p)
 {
     MYFLT a,b,dur;
 
@@ -853,7 +853,7 @@ int lnnset(LINEN *p)
     return OK;
 }
 
-int klinen(LINEN *p)
+int klinen(ENVIRON *csound, LINEN *p)
 {
     MYFLT fact = FL(1.0);
 
@@ -872,7 +872,7 @@ int klinen(LINEN *p)
     return OK;
 }
 
-int linen(LINEN *p)
+int linen(ENVIRON *csound, LINEN *p)
 {
     int flag=0, nsmps=ksmps;
     MYFLT *rs,*sg,li,val,nxtval=FL(1.0);
@@ -925,7 +925,7 @@ int linen(LINEN *p)
     return OK;
 }
 
-int lnrset(LINENR *p)
+int lnrset(ENVIRON *csound, LINENR *p)
 {
     p->cnt1 = (long)(*p->iris * ekr + FL(0.5));
     if (p->cnt1 > 0L) {
@@ -948,7 +948,7 @@ int lnrset(LINENR *p)
     return OK;
 }
 
-int klinenr(LINENR *p)
+int klinenr(ENVIRON *csound, LINENR *p)
 {
     MYFLT fact = FL(1.0);
 
@@ -965,7 +965,7 @@ int klinenr(LINENR *p)
     return OK;
 }
 
-int linenr(LINENR *p)
+int linenr(ENVIRON *csound, LINENR *p)
 {
     int flag=0, nsmps=ksmps;
     MYFLT *rs,*sg,li,val,nxtval=FL(1.0);
@@ -1017,7 +1017,7 @@ int linenr(LINENR *p)
     return OK;
 }
 
-int evxset(ENVLPX *p)
+int evxset(ENVIRON *csound, ENVLPX *p)
 {
     FUNC        *ftp;
     MYFLT       ixmod, iatss, idur, prod, diff, asym, nk, denom, irise;
@@ -1086,7 +1086,7 @@ int evxset(ENVLPX *p)
     return OK;
 }
 
-int knvlpx(ENVLPX *p)
+int knvlpx(ENVIRON *csound, ENVLPX *p)
 {
     FUNC        *ftp;
     long        phs;
@@ -1128,7 +1128,7 @@ int knvlpx(ENVLPX *p)
     return OK;
 }
 
-int envlpx(ENVLPX *p)
+int envlpx(ENVIRON *csound, ENVLPX *p)
 {
     FUNC        *ftp;
     long        phs;
@@ -1186,7 +1186,7 @@ int envlpx(ENVLPX *p)
     return OK;
 }
 
-int evrset(ENVLPR *p)
+int evrset(ENVIRON *csound, ENVLPR *p)
 {
     FUNC        *ftp;
     MYFLT  ixmod, iatss, prod, diff, asym, denom, irise;
@@ -1245,7 +1245,7 @@ int evrset(ENVLPR *p)
     return OK;
 }
 
-int knvlpxr(ENVLPR *p)
+int knvlpxr(ENVIRON *csound, ENVLPR *p)
 {
         MYFLT  fact;
         long   rlscnt;
@@ -1286,7 +1286,7 @@ int knvlpxr(ENVLPR *p)
         return OK;
 }
 
-int envlpxr(ENVLPR *p)
+int envlpxr(ENVIRON *csound, ENVLPR *p)
 {
 #if defined(SYMANTEC) && !defined(THINK_C)
 #pragma options(!global_optimizer)

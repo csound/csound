@@ -145,20 +145,20 @@ static void readvalues(void)
     }
 }
 
-int cntrl_set(CNTRL *p)
+int cntrl_set(ENVIRON *csound, CNTRL *p)
 {
     ensure_slider((int)(*p->kcntl+FL(0.5)));
     return OK;
 }
 
-int control(CNTRL *p)
+int control(ENVIRON *csound, CNTRL *p)
 {
     readvalues();
     *p->kdest = values[(int)(*p->kcntl+FL(0.5))];
     return OK;
 }
 
-int ocontrol(SCNTRL *p)
+int ocontrol(ENVIRON *csound, SCNTRL *p)
 {
     int c = (int)*p->which;
     int slider = (int)(*p->kcntl+FL(0.5));
@@ -203,7 +203,7 @@ int ocontrol(SCNTRL *p)
     return OK;
 }
 
-int button_set(CNTRL *p)
+int button_set(ENVIRON *csound, CNTRL *p)
 {
     int n = (int)(FL(0.5)+*p->kcntl);
 
@@ -216,7 +216,7 @@ int button_set(CNTRL *p)
 
 
 
-int button(CNTRL *p)
+int button(ENVIRON *csound, CNTRL *p)
 {
     readvalues();
     *p->kdest = buttons[(int)(*p->kcntl+FL(0.5))];
@@ -224,7 +224,7 @@ int button(CNTRL *p)
     return OK;
 }
 
-int check_set(CNTRL *p)
+int check_set(ENVIRON *csound, CNTRL *p)
 {
     int n = (int)(FL(0.5)+*p->kcntl);
 
@@ -236,7 +236,7 @@ int check_set(CNTRL *p)
 }
 
 
-int check(CNTRL *p)
+int check(ENVIRON *csound, CNTRL *p)
 {
     readvalues();
     *p->kdest = checks[(int)(*p->kcntl+FL(0.5))];
@@ -244,7 +244,7 @@ int check(CNTRL *p)
 }
 
 /* **** Text Windows **** */
-int textflash(TXTWIN *p)
+int textflash(ENVIRON *csound, TXTWIN *p)
 {
     int wind = (int)(*p->kcntl+FL(0.5));
     char buffer[100];

@@ -37,7 +37,7 @@
 
 static  TABLESEG        *tbladr;
 
-int tblesegset(TABLESEG *p)
+int tblesegset(ENVIRON *csound, TABLESEG *p)
 {
     TSEG        *segp;
     int nsegs;
@@ -90,7 +90,7 @@ int tblesegset(TABLESEG *p)
     return OK;
 }
 
-int ktableseg(TABLESEG *p)
+int ktableseg(ENVIRON *csound, TABLESEG *p)
 {
     TSEG        *segp;
     MYFLT       *curtab, *nxttab,curval, nxtval, durovercnt=FL(0.0);
@@ -121,7 +121,7 @@ int ktableseg(TABLESEG *p)
     return OK;
 }
 
-int ktablexseg(TABLESEG *p)
+int ktablexseg(ENVIRON *csound, TABLESEG *p)
 {
     TSEG        *segp;
     MYFLT       *curtab, *nxttab,curval, nxtval, cntoverdur=FL(0.0);
@@ -150,7 +150,7 @@ int ktablexseg(TABLESEG *p)
 }
 
 #ifdef never
-int voscset(VOSC *p)
+int voscset(ENVIRON *csound, VOSC *p)
 {
     p->tableseg = tbladr;
     if (*p->iphs >= 0)
@@ -158,7 +158,7 @@ int voscset(VOSC *p)
     return OK;
 }
 
-int voscili(VOSC *p)
+int voscili(ENVIRON *csound, VOSC *p)
 {
     FUNC        *ftp;
     MYFLT       v1, fract, *ar, *ampp, *cpsp, *ftab;
@@ -206,7 +206,7 @@ int voscili(VOSC *p)
 /* static       int     pdebug = 0; */
 /* static       int     dchan = 6; */   /* which channel to examine on debug */
 
-int vpvset(VPVOC *p)
+int vpvset(ENVIRON *csound, VPVOC *p)
 {
     int      i;
     char     pvfilnam[64];
@@ -331,7 +331,7 @@ int vpvset(VPVOC *p)
 }
 
 
-int vpvoc(VPVOC *p)
+int vpvoc(ENVIRON *csound, VPVOC *p)
 {
     int    n;
 /*     MYFLT  *samp; */

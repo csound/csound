@@ -26,7 +26,7 @@ typedef struct  {
 
 } TIMEDSEQ;
 
-int metro_set(METRO *p)
+int metro_set(ENVIRON *csound, METRO *p)
 {
     double      phs = *p->iphs;
     long  longphs;
@@ -41,7 +41,7 @@ int metro_set(METRO *p)
 }
 
 
-int metro(METRO *p)
+int metro(ENVIRON *csound, METRO *p)
 {
     double      phs= p->curphs;
     if(phs == 0.0 && p->flag) {
@@ -59,7 +59,7 @@ int metro(METRO *p)
     return OK;
 }
 
-int split_trig_set( SPLIT_TRIG *p)
+int split_trig_set(ENVIRON *csound,  SPLIT_TRIG *p)
 {
 
     /* syntax of each table element:
@@ -90,7 +90,7 @@ int split_trig_set( SPLIT_TRIG *p)
 }
 
 
-int split_trig(SPLIT_TRIG *p)
+int split_trig(ENVIRON *csound, SPLIT_TRIG *p)
 {
     int j;
     int numouts =  p->numouts;
@@ -123,7 +123,7 @@ int split_trig(SPLIT_TRIG *p)
     return OK;
 }
 
-int timeseq_set(TIMEDSEQ *p)
+int timeseq_set(ENVIRON *csound, TIMEDSEQ *p)
 {
     FUNC *ftp;
     MYFLT *table;
@@ -143,7 +143,7 @@ int timeseq_set(TIMEDSEQ *p)
 }
 
 
-int timeseq(TIMEDSEQ *p)
+int timeseq(ENVIRON *csound, TIMEDSEQ *p)
 {
     MYFLT *table = p->table, minDist = onedkr;
     MYFLT phs = *p->kphs, endseq = p->endSeq;

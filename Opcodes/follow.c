@@ -30,7 +30,7 @@
 #include <math.h>
 #include "follow.h"
 
-int flwset(FOL *p)
+int flwset(ENVIRON *csound, FOL *p)
 {
     p->wgh = p->max = FL(0.0);
     p->length = (long)(*p->len * esr);
@@ -44,7 +44,7 @@ int flwset(FOL *p)
 }
 
                                 /* Use absolute value rather than max/min */
-int follow(FOL *p)
+int follow(ENVIRON *csound, FOL *p)
 {
     long        n = ksmps;
     MYFLT       *in = p->in, *out = p->out;
@@ -70,7 +70,7 @@ int follow(FOL *p)
    Bram.DeJong@rug.ac.be and James Maccartney posted on music-dsp;
    Transferred to csound by JPff, 2000 feb 12
 */
-int envset(ENV *p)
+int envset(ENVIRON *csound, ENV *p)
 {
                                 /* Note - 6.90775527898 -- log(0.001) */
     p->lastatt = *p->attack;
@@ -87,7 +87,7 @@ int envset(ENV *p)
     return OK;
 }
 
-int envext(ENV *p)
+int envext(ENVIRON *csound, ENV *p)
 {
     int nsmps = ksmps;
     MYFLT       envelope = p->envelope;

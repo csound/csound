@@ -117,8 +117,8 @@ typedef struct _pvsmix {
         unsigned long   lastframe;
 } PVSMIX;
 
-int pvsmixset(PVSMIX *p);
-int pvsmix(PVSMIX *p);
+int pvsmixset(ENVIRON *,PVSMIX *p);
+int pvsmix(ENVIRON *,PVSMIX *p);
 
 typedef struct _pvsfilter {
         OPDS h;
@@ -130,8 +130,8 @@ typedef struct _pvsfilter {
         unsigned long   lastframe;
 } PVSFILTER;
 
-int pvsfilterset(PVSFILTER *p);
-int pvsfilter(PVSFILTER *p);
+int pvsfilterset(ENVIRON *,PVSFILTER *p);
+int pvsfilter(ENVIRON *,PVSFILTER *p);
 
 typedef struct _pvscale {
         OPDS h;
@@ -143,8 +143,8 @@ typedef struct _pvscale {
         unsigned long   lastframe;
 } PVSSCALE;
 
-int pvsscaleset(PVSSCALE *p);
-int pvsscale(PVSSCALE *p);
+int pvsscaleset(ENVIRON *,PVSSCALE *p);
+int pvsscale(ENVIRON *,PVSSCALE *p);
 
 typedef struct _pvshift {
         OPDS h;
@@ -157,8 +157,8 @@ typedef struct _pvshift {
         unsigned long   lastframe;
 } PVSSHIFT;
 
-int pvsshiftset(PVSSHIFT *p);
-int pvsshift(PVSSHIFT *p);
+int pvsshiftset(ENVIRON *,PVSSHIFT *p);
+int pvsshift(ENVIRON *,PVSSHIFT *p);
 
 typedef struct _pvsblur {
         OPDS h;
@@ -172,8 +172,8 @@ typedef struct _pvsblur {
         unsigned long   lastframe;
 } PVSBLUR;
 
-int pvsblurset(PVSBLUR *p);
-int pvsblur(PVSBLUR *p);
+int pvsblurset(ENVIRON *,PVSBLUR *p);
+int pvsblur(ENVIRON *,PVSBLUR *p);
 
 typedef struct _pvstencil {
         OPDS    h;
@@ -186,8 +186,8 @@ typedef struct _pvstencil {
         unsigned long   lastframe;
 } PVSTENCIL;
 
-int pvstencilset(PVSTENCIL *p);
-int pvstencil(PVSTENCIL *p);
+int pvstencilset(ENVIRON *,PVSTENCIL *p);
+int pvstencil(ENVIRON *,PVSTENCIL *p);
 
 
 #endif

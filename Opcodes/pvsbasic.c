@@ -30,7 +30,7 @@
 
 int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2);
 
-int pvsmixset(PVSMIX *p){
+int pvsmixset(ENVIRON *csound, PVSMIX *p){
 
     long N = p->fa->N;
 
@@ -51,7 +51,7 @@ int pvsmixset(PVSMIX *p){
     return OK;
 }
 
-int pvsmix(PVSMIX *p)
+int pvsmix(ENVIRON *csound, PVSMIX *p)
 {
     int i;
     long framesize;
@@ -87,7 +87,7 @@ int pvsmix(PVSMIX *p)
 
 /* pvsfilter  */
 
-int pvsfilterset(PVSFILTER *p)
+int pvsfilterset(ENVIRON *csound, PVSFILTER *p)
 {
     long N = p->fin->N;
 
@@ -109,7 +109,7 @@ int pvsfilterset(PVSFILTER *p)
     return OK;
 }
 
-int pvsfilter(PVSFILTER *p)
+int pvsfilter(ENVIRON *csound, PVSFILTER *p)
 {
     long i,N = p->fout->N;
     float g = (float) *p->gain;
@@ -138,7 +138,7 @@ int pvsfilter(PVSFILTER *p)
 
 /* pvscale  */
 
-int pvsscaleset(PVSSCALE *p)
+int pvsscaleset(ENVIRON *csound, PVSSCALE *p)
 {
     long N = p->fin->N;
 
@@ -155,7 +155,7 @@ int pvsscaleset(PVSSCALE *p)
     return OK;
 }
 
-int pvsscale(PVSSCALE *p)
+int pvsscale(ENVIRON *csound, PVSSCALE *p)
 {
     long i,chan,newchan,N = p->fout->N;
     float max = 0.f;
@@ -203,7 +203,7 @@ int pvsscale(PVSSCALE *p)
 
 /* pvshift */
 
-int pvsshiftset(PVSSHIFT *p)
+int pvsshiftset(ENVIRON *csound, PVSSHIFT *p)
 {
     long N = p->fin->N;
 
@@ -220,7 +220,7 @@ int pvsshiftset(PVSSHIFT *p)
     return OK;
 }
 
-int pvsshift(PVSSHIFT *p)
+int pvsshift(ENVIRON *csound, PVSSHIFT *p)
 {
     long i,chan,newchan,N = p->fout->N;
     MYFLT pshift = (MYFLT) *p->kshift;
@@ -279,7 +279,7 @@ int pvsshift(PVSSHIFT *p)
 }
 /* pvsblur */
 
-int pvsblurset(PVSBLUR *p)
+int pvsblurset(ENVIRON *csound, PVSBLUR *p)
 {
     float* delay;
     long N = p->fin->N, i, j;
@@ -314,7 +314,7 @@ int pvsblurset(PVSBLUR *p)
     return OK;
 }
 
-int pvsblur(PVSBLUR *p)
+int pvsblur(ENVIRON *csound, PVSBLUR *p)
 {
     long j,i,N = p->fout->N, first, framesize=N+2;
     long countr = p->count;
@@ -371,7 +371,7 @@ int pvsblur(PVSBLUR *p)
 
 
 /* pvstencil  */
-int pvstencilset(PVSTENCIL *p)
+int pvstencilset(ENVIRON *csound, PVSTENCIL *p)
 {
     long N = p->fin->N, i;
     long chans = N/2+1;
@@ -408,7 +408,7 @@ int pvstencilset(PVSTENCIL *p)
     return OK;
 }
 
-int pvstencil(PVSTENCIL *p)
+int pvstencil(ENVIRON *csound, PVSTENCIL *p)
 {
     long framesize, i, j;
     int test;

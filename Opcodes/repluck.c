@@ -31,16 +31,16 @@
 #include "csdl.h"
 #include "repluck.h"
 
-int wgpsetin(WGPLUCK2 *);
+int wgpsetin(ENVIRON *, WGPLUCK2 *);
 
-int wgpset(WGPLUCK2 *p)
+int wgpset(ENVIRON *csound, WGPLUCK2 *p)
 {
     p->ain = NULL;
-    wgpsetin(p);
+    wgpsetin(csound,p);
     return OK;
 }
 
-int wgpsetin(WGPLUCK2 *p)
+int wgpsetin(ENVIRON *csound, WGPLUCK2 *p)
 {
     int     npts;
     int     pickpt;
@@ -148,7 +148,7 @@ static MYFLT getvalue(DelayLine *dl, int position)
 #define OVERSHT (8)
 #define OVERMSK (0xFF)
 
-int wgpluck(WGPLUCK2 *p)
+int wgpluck(ENVIRON *csound, WGPLUCK2 *p)
 {
     MYFLT   *ar, *ain;
     int     nsmps;
@@ -235,7 +235,7 @@ int wgpluck(WGPLUCK2 *p)
 /*          Victor Lazzarini, 1998                     */
 /*******************************************************/
 
-int stresonset(STRES *p)
+int stresonset(ENVIRON *csound, STRES *p)
 {
     int n;
     p->size = (int) (esr/20);   /* size of delay line */
@@ -248,7 +248,7 @@ int stresonset(STRES *p)
     return OK;
 }
 
-int streson(STRES *p)
+int streson(ENVIRON *csound, STRES *p)
 {
     MYFLT *out = p->result;
     MYFLT *in = p->ainput;

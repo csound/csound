@@ -65,7 +65,6 @@ typedef struct FormSwep {
     MYFLT       sweepRate;
 } FormSwep;
 
-void make_FormSwep(FormSwep *);
 #define FormSwep_setSweepRate(p,aRate)  (p.sweepRate = aRate)
 #define FormSwep_clear(p)               (p.outputs[0]=p.outputs[1]=FL(0.0))
 void FormSwep_setTargets(FormSwep *, MYFLT, MYFLT, MYFLT);

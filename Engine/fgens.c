@@ -2241,7 +2241,7 @@ FUNC *hfgens(ENVIRON *csound, EVTBLK *evtblkp)/* create ftable using evtblk data
     return(ftp);
 }
 
-int ftgen(FTGEN *p)        /* set up and call any GEN routine */
+int ftgen(ENVIRON *csound, FTGEN *p) /* set up and call any GEN routine */
 {
     int nargs;
     MYFLT *fp;
@@ -2286,7 +2286,7 @@ int ftgen(FTGEN *p)        /* set up and call any GEN routine */
     return OK;
 }
 
-int ftload(FTLOAD *p)
+int ftload(ENVIRON *csound, FTLOAD *p)
 {
     MYFLT **argp = p->argums;
     FUNC  *ftp;
@@ -2410,16 +2410,16 @@ int ftload(FTLOAD *p)
     return initerror(Str(X_1774,"ftload: unable to open file"));
 }
 
-int ftload_k (FTLOAD_K *p)
+int ftload_k(ENVIRON *csound, FTLOAD_K *p)
 {
     FTLOAD *pp = &(p->p);
     if (*p->ktrig)
-      ftload(pp);
+      ftload(csound, pp);
     return OK;
 }
 
 
-int ftsave(FTLOAD *p)
+int ftsave(ENVIRON *csound, FTLOAD *p)
 {
     MYFLT **argp = p->argums;
     char filename[MAXNAME];
@@ -2513,7 +2513,7 @@ int ftsave(FTLOAD *p)
     return NOTOK;
 }
 
-int ftsave_k_set(FTLOAD_K *p)
+int ftsave_k_set(ENVIRON *csound, FTLOAD_K *p)
 {
     memcpy(&(p->p.h), &(p->h), sizeof(OPDS));
     p->p.INOCOUNT = p->INOCOUNT -1;
@@ -2523,11 +2523,11 @@ int ftsave_k_set(FTLOAD_K *p)
     return OK;
 }
 
-int ftsave_k(FTLOAD_K *p)
+int ftsave_k(ENVIRON *csound, FTLOAD_K *p)
 {
     FTLOAD *pp = &(p->p);
     if (*p->ktrig)
-      ftsave(pp);
+      ftsave(csound, pp);
     return OK;
 }
 

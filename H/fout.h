@@ -119,23 +119,23 @@ typedef struct {
         char    txtstring[8192]; /* Place to store the string printed */
 } FPRINTF;
 
-int fprintf_i(FPRINTF *);
-int fprintf_k(FPRINTF *);
-int fprintf_set(FPRINTF *p);
-int incr(INCR *p);
-int clear(CLEARS *p);
-int outfile_set(OUTFILE *p);
-int outfile (OUTFILE *p);
-int koutfile_set(KOUTFILE *p);
-int koutfile(KOUTFILE *p);
-int fiopen(FIOPEN *p);
-int ioutfile_set(IOUTFILE *p);
-int ioutfile_set_r(IOUTFILE_R *p);
-int ioutfile_r(IOUTFILE_R *p);
-int infile_set(INFILE *p);
-int infile(INFILE *p);
-int kinfile_set(KINFILE *p);
-int kinfile(KINFILE *p);
-int i_infile(I_INFILE *p);
+int fprintf_i(ENVIRON *,FPRINTF *);
+int fprintf_k(ENVIRON *,FPRINTF *);
+int fprintf_set(ENVIRON *,FPRINTF *p);
+int incr(ENVIRON *,INCR *p);
+int clear(ENVIRON *,CLEARS *p);
+int outfile_set(ENVIRON *,OUTFILE *p);
+int outfile (ENVIRON *,OUTFILE *p);
+int koutfile_set(ENVIRON *,KOUTFILE *p);
+int koutfile(ENVIRON *,KOUTFILE *p);
+int fiopen(ENVIRON *,FIOPEN *p);
+int ioutfile_set(ENVIRON *,IOUTFILE *p);
+int ioutfile_set_r(ENVIRON *,IOUTFILE_R *p);
+int ioutfile_r(ENVIRON *,IOUTFILE_R *p);
+int infile_set(ENVIRON *,INFILE *p);
+int infile(ENVIRON *,INFILE *p);
+int kinfile_set(ENVIRON *,KINFILE *p);
+int kinfile(ENVIRON *,KINFILE *p);
+int i_infile(ENVIRON *,I_INFILE *p);
 
 #endif /* FOUT_H */

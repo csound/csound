@@ -54,10 +54,9 @@ But we're smarter than that!!!  See below
 #include "csdl.h"
 #include "shaker.h"
 
-int shakerset(SHAKER *p)
+int shakerset(ENVIRON *csound, SHAKER *p)
 {
     MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
-    ENVIRON     *csound = p->h.insdshead->csound;
 
     p->shake_speed = FL(0.0008) + (amp * FL(0.0004));
     make_BiQuad(&p->filter);
@@ -104,7 +103,7 @@ int shakerset(SHAKER *p)
     return OK;
 }
 
-int shaker(SHAKER *p)
+int shaker(ENVIRON *csound, SHAKER *p)
 {
     MYFLT *ar = p->ar;
     long nsmps = ksmps;
@@ -115,7 +114,6 @@ int shaker(SHAKER *p)
     MYFLT ngain = p->noiseGain;
     MYFLT sEnergy = p->shakeEnergy;
     MYFLT shake_speed = FL(0.0008) + amp * FL(0.0004);
-    ENVIRON *csound = p->h.insdshead->csound;
 
     if (p->freq != *p->kfreq)
       BiQuad_setFreqAndReson(p->filter, p->freq = *p->kfreq, FL(0.96));

@@ -61,7 +61,7 @@
 static MYFLT grand(GRAINV4 *);
 /* MYFLT envv4(int *, GRAINV4 *); */
 
-int grainsetv4(GRAINV4 *p)
+int grainsetv4(ENVIRON *csound, GRAINV4 *p)
 {
     FUNC        *ftp, *ftp_env;
     int         nvoice, cnt;
@@ -299,7 +299,7 @@ int grainsetv4(GRAINV4 *p)
 } /* end grainsetv4(p) */
 
 
-int graingenv4(GRAINV4 *p)
+int graingenv4(ENVIRON *csound, GRAINV4 *p)
 {
     FUNC        *ftp, *ftp_env;
     MYFLT       *ar, *ftbl, *ftbl_env=NULL;
