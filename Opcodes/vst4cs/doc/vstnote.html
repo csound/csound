@@ -1,138 +1,155 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <title>vst4cs</title>
-  <meta name="GENERATOR"
- content="Modular DocBook HTML Stylesheet Version 1.64">
-  <link rel="HOME" title="The Alternative Csound Reference Manual"
- href="index.html">
-  <link rel="UP" title="Orchestra Opcodes and Operators"
- href="opcodestop.html">
-  <link rel="PREVIOUS" title="aweibull" href="aweibull.html">
-  <link rel="NEXT" title="balance" href="balance.html">
-  <meta content="Andres Cabrera" name="author">
-</head>
-<body class="REFENTRY" bgcolor="#ffffff" text="#000000" link="#0000ff"
- vlink="#840084" alink="#0000ff">
-<div class="NAVHEADER">
-<table width="100%" border="0" cellpadding="0" cellspacing="0">
-  <tbody>
-    <tr>
-      <th colspan="3" align="center">Warning: Specifications are still
-subject to change!<br>
-      </th>
-    </tr>
-    <tr>
-      <td width="10%" align="left" valign="bottom"><br>
-      </td>
-      <td width="80%" align="center" valign="bottom"><br>
-      </td>
-      <td width="10%" align="right" valign="bottom"><br>
-      </td>
-    </tr>
-  </tbody>
-</table>
-<hr align="left" width="100%"></div>
-<h1><a name="BABO">vstnote</a></h1>
-<div class="REFNAMEDIV"><a name="AEN6067"></a>vst4cs --&nbsp; Vst
-plugin hosting in Csound5 on Windows. </div>
-<div class="REFSECT1"><a name="AEN6072"></a>
-<h2>Description</h2>
-<span style="font-style: italic;">vstnote </span>sends a midi note
-with definite duration to a vst plugin.<br>
-</div>
-<div class="REFSECT1"><a name="AEN6079"></a>
-<h2>Syntax</h2>
-<p style="font-weight: bold;"><span style="font-weight: normal;"></span>vstnote
-<span style="font-weight: normal;">iflag, kchan, knote,
-kveloc, kdur</span><br>
-</p>
-</div>
-<div class="REFSECT1"><a name="AEN6083"></a>
-<h2>Initialization</h2>
-<p> <i class="EMPHASIS">iflag</i> -- the flag which identifies the
-plugin called previously with a <span style="font-style: italic;">vstinit</span>
-opcode.<br>
-</p>
-</div>
-<div class="REFSECT1">
-<h2><a name="AEN6083"></a></h2>
-<h2>Performance</h2>
-<p><span style="font-style: italic;">kchan </span>-- The midi channel
-to trasnmit the note on.<br>
-</p>
-<p><span style="font-style: italic;">knote </span>-- The midi note
-number to send.<br>
-</p>
-<p><span style="font-style: italic;">kveloc </span>-- The midi note's
-velocity.</p>
-<p><span style="font-style: italic;">kdur </span>-- The midi note's
-duration in seconds.</p>
-<p><br>
-</p>
-<p>Note: Be sure the instrument containing&nbsp; <span
- style="font-style: italic;">vstnote</span> is not finished before the
-duration of the note, otherwise you'll have a 'hung'
-</p>
-<h2><a name="AEN6083"></a></h2>
-<h2>Examples<br>
-</h2>
-<div class="EXAMPLE">
-<pre class="PROGRAMLISTING"><span class="INLINEMEDIAOBJECT"><br>/* orc */<br></span><span
- class="INLINEMEDIAOBJECT"><span class="INLINEMEDIAOBJECT"><span
- class="INLINEMEDIAOBJECT">sr = 44100<br>kr = 4410<br>ksmps = 10<br>nchnls = 2<br><br>giHandle5 vstinit "c:/vstplugins/cheeze/cheeze machine.dll",1<br><br><br>instr 3<br>ain1 = 0<br>ga1, ga2 vstplug gihandle5, ain1, ain1<br>endin<br><br></span></span></span><span
- class="INLINEMEDIAOBJECT">instr 4<br>vstnote giHandle5, 1, p4, p5, p3<br>endin<br><br>instr 10<br>outs ga1, ga2<br>endin<br><br><br>/* sco */<br>i 3 0 21<br>i 10 0 21<br><br>i4 1 3 57 55<br>i4 3 3 60 100<br>i4 5 3 62 100<br>i4 7 3 64 100<br>i4 9 2 65 100<br>i4 11 1 67 100<br>i4 13 1 69 100<br>i4 15 3 71 100<br>i4 18 3 72 100<br><br><br></span>
-</pre>
-</div>
-<p></p>
-</div>
-<div class="REFSECT1"><a name="AEN6152"></a>
-<h2>Credits</h2>
-<p> </p>
-<p></p>
-<table border="0">
-  <tbody>
-    <tr>
-      <td>Author: Cabrera,Andres; Goggins, Michael<br>
-      </td>
-    </tr>
-    <tr>
-      <td>Bogota, Colombia<br>
-      </td>
-    </tr>
-    <tr>
-      <td>2004</td>
-    </tr>
-  </tbody>
-</table>
-<p></p>
-<p></p>
-<p> </p>
-<p></p>
-<br>
-</div>
-<div class="NAVFOOTER">
-<hr align="left" width="100%">
-<table width="100%" border="0" cellpadding="0" cellspacing="0">
-  <tbody>
-    <tr>
-      <td width="33%" align="left" valign="top"><br>
-      </td>
-      <td width="34%" align="center" valign="top"><a href="index.html"><br>
-      </a></td>
-      <td width="33%" align="right" valign="top"><br>
-      </td>
-    </tr>
-    <tr>
-      <td width="33%" align="left" valign="top"><br>
-      </td>
-      <td width="34%" align="center" valign="top"><br>
-      </td>
-      <td width="33%" align="right" valign="top"><br>
-      </td>
-    </tr>
-  </tbody>
-</table>
-</div>
-</body>
-</html>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1252">
+	<TITLE>vst4cs</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 1.1.1  (Win32)">
+	<META NAME="AUTHOR" CONTENT="Andres Cabrera">
+	<META NAME="CREATED" CONTENT="20040719;21052653">
+	<META NAME="CHANGEDBY" CONTENT="Michael Gogins">
+	<META NAME="CHANGED" CONTENT="20040719;21441603">
+	<STYLE>
+	<!--
+		TD P { color: #000000 }
+		H1 { color: #000000 }
+		P { color: #000000 }
+		TH P { color: #000000 }
+		H2 { color: #000000 }
+		PRE { color: #000000 }
+		A:link { color: #0000ff }
+		A:visited { color: #840084 }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="en-US" TEXT="#000000" LINK="#0000ff" VLINK="#840084" BGCOLOR="#ffffff" DIR="LTR">
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=0 CELLSPACING=0 STYLE="page-break-before: always">
+	<TR>
+		<TH COLSPAN=3>
+			<P ALIGN=CENTER>Warning: Specifications are still subject to
+			change!</P>
+		</TH>
+	</TR>
+	<TR VALIGN=BOTTOM>
+		<TD WIDTH=10%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=80%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+</TABLE>
+<HR>
+<H1><A NAME="BABO"></A>vstnote</H1>
+<P><A NAME="AEN6067"></A>vst4cs -- VST plugin hosting in Csound on
+Windows. 
+</P>
+<H2><A NAME="AEN6072"></A>Description</H2>
+<P><I>vstnote </I>sends a MIDI note with definite duration to a VST
+plugin.</P>
+<H2><A NAME="AEN6079"></A>Syntax</H2>
+<P><B>vstnote </B><SPAN STYLE="font-weight: medium">instance, kchan,
+knote, kveloc, kdur</SPAN></P>
+<H2><A NAME="AEN6083"></A>Initialization</H2>
+<P><I>instance</I> -- the number which identifies the plugin,
+returned previously by the <I>vstinit</I> opcode.</P>
+<H2><A NAME="AEN60831"></A>Performance</H2>
+<P><I>kchan </I>-- The midi channel to trasnmit the note on.</P>
+<P><I>knote </I>-- The midi note number to send.</P>
+<P><I>kveloc </I>-- The midi note's velocity.</P>
+<P><I>kdur </I>-- The midi note's duration in seconds.</P>
+<P><BR><BR>
+</P>
+<P>Note: Be sure the instrument containing <I>vstnote</I> is not
+finished before the duration of the note, otherwise you'll have a
+'hung' note.</P>
+<H2><A NAME="AEN60832"></A>Examples</H2>
+<PRE>/* orc */
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 2
+giHandle5 vstinit &quot;c:/vstplugins/cheeze/cheeze machine.dll&quot;,1
+instr 3
+ain1 = 0
+ga1, ga2 vstplugg gihandle5, ain1, ain1
+endin
+instr 4
+vstnote giHandle5, 1, p4, p5, p3
+endin
+instr 10
+outs ga1, ga2
+endin
+/* sco */
+i 3 0 21
+i 10 0 21
+i4 1 3 57 55
+i4 3 3 60 100
+i4 5 3 62 100
+i4 7 3 64 100
+i4 9 2 65 100
+i4 11 1 67 100
+i4 13 1 69 100
+i4 15 3 71 100
+i4 18 3 72 100
+</PRE><H2>
+<A NAME="AEN6152"></A>Credits</H2>
+<TABLE BORDER=0 CELLPADDING=2 CELLSPACING=2>
+	<TR>
+		<TD>
+			<P>Author: Cabrera,Andres; Goggins, Michael</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>Bogota, Colombia</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>2004</P>
+		</TD>
+	</TR>
+</TABLE>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<HR>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=0 CELLSPACING=0>
+	<TR VALIGN=TOP>
+		<TD WIDTH=33%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=34%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=33%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=33%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=34%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=33%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+</BODY>
+</HTML>

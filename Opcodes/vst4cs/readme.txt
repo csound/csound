@@ -73,11 +73,14 @@ Add the ability to load programs and program banks (ac), and to set programs (mk
 
 Implement plugin edit windows (mkg).
 
+Complete and refine message levels (log and debug) (mkg).
+
+Add vstplugg opcode to collect audio from multiple vstnote or vstout instruments (ac and mkg).
+
 
 To Do
 -----
 
-Complete and refine message levels.
 
 Change editor to krate so orcs can open/close/reopen editors.
 

@@ -1,120 +1,159 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <title>vst4cs</title>
-  <meta name="GENERATOR"
- content="Modular DocBook HTML Stylesheet Version 1.64">
-  <link rel="HOME" title="The Alternative Csound Reference Manual"
- href="index.html">
-  <link rel="UP" title="Orchestra Opcodes and Operators"
- href="opcodestop.html">
-  <link rel="PREVIOUS" title="aweibull" href="aweibull.html">
-  <link rel="NEXT" title="balance" href="balance.html">
-  <meta content="Andres Cabrera" name="author">
-</head>
-<body class="REFENTRY" bgcolor="#ffffff" text="#000000" link="#0000ff"
- vlink="#840084" alink="#0000ff">
-<div class="NAVHEADER">
-<table width="100%" border="0" cellpadding="0" cellspacing="0">
-  <tbody>
-    <tr>
-      <th colspan="3" align="center">Warning: Specifications are still
-subject to change!<br>
-      </th>
-    </tr>
-    <tr>
-      <td width="10%" align="left" valign="bottom"><br>
-      </td>
-      <td width="80%" align="center" valign="bottom"><br>
-      </td>
-      <td width="10%" align="right" valign="bottom"><br>
-      </td>
-    </tr>
-  </tbody>
-</table>
-<hr align="left" width="100%"></div>
-<h1><a name="BABO">vstinit</a></h1>
-<div class="REFNAMEDIV"><a name="AEN6067"></a>vst4cs --&nbsp; Vst
-plugin hosting in Csound5 on Windows. </div>
-<div class="REFSECT1"><a name="AEN6072"></a>
-<h2>Description</h2>
-<span style="font-style: italic;">vstinit</span> is used to load a vst
-plug in into memory for use with the set of vst4cs opcodes. Both vst
-plugins and instruments can be used.<br>
-</div>
-<div class="REFSECT1"><a name="AEN6079"></a>
-<h2>Syntax</h2>
-<p style="font-weight: bold;"><span style="font-weight: normal;">iflag </span>vstinit
-<span style="font-weight: normal;">idllpath [,iverbose]</span><br>
-</p>
-</div>
-<div class="REFSECT1"><a name="AEN6083"></a>
-<h2>Initialization</h2>
-<p> <i class="EMPHASIS">idllpath</i> -- the full path to the vst
-plugin dll. Remember to use '/' instead of '\' as separator. </p>
-<p> <i class="EMPHASIS">iverbose</i> -- show plugin information and
-parameters when loading.<br>
-</p>
-</div>
-<div class="REFSECT1">
-<h2>Examples</h2>
-<div class="EXAMPLE">
-<p><b>Example 1.&nbsp; loading a vst plugin</b><br>
-</p>
-<pre class="PROGRAMLISTING"><span class="INLINEMEDIAOBJECT"><span
- class="INLINEMEDIAOBJECT">/* orc */</span><br></span><span
- class="INLINEMEDIAOBJECT">sr = 44100<br>kr = 4410<br>ksmps = 10<br>nchnls = 2<br><br>giHandle1 vstinit "c:/vstplugins/cheeze/cheeze machine.dll",1<br><br>instr 1<br>      giHandle2 vstinit "c:/vstplugins/crazy diamonds.dll",1<br><br>endin<br><br></span></pre>
-<pre class="PROGRAMLISTING"><span class="INLINEMEDIAOBJECT">/* sco */<br>i 1 0 1<br>e<br>/* babo.sco */</span>
-</pre>
-</div>
-<p></p>
-</div>
-<div class="REFSECT1"><a name="AEN6152"></a>
-<h2>Credits</h2>
-<p> </p>
-<p></p>
-<table border="0">
-  <tbody>
-    <tr>
-      <td>Author: Cabrera,Andres</td>
-    </tr>
-    <tr>
-      <td>Bogota, Colombia<br>
-      </td>
-    </tr>
-    <tr>
-      <td>2004</td>
-    </tr>
-  </tbody>
-</table>
-<p></p>
-<p></p>
-<p> </p>
-<p></p>
-<br>
-</div>
-<div class="NAVFOOTER">
-<hr align="left" width="100%">
-<table width="100%" border="0" cellpadding="0" cellspacing="0">
-  <tbody>
-    <tr>
-      <td width="33%" align="left" valign="top"><br>
-      </td>
-      <td width="34%" align="center" valign="top"><a href="index.html"><br>
-      </a></td>
-      <td width="33%" align="right" valign="top"><br>
-      </td>
-    </tr>
-    <tr>
-      <td width="33%" align="left" valign="top"><br>
-      </td>
-      <td width="34%" align="center" valign="top"><br>
-      </td>
-      <td width="33%" align="right" valign="top"><br>
-      </td>
-    </tr>
-  </tbody>
-</table>
-</div>
-</body>
-</html>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1252">
+	<TITLE>vst4cs</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 1.1.1  (Win32)">
+	<META NAME="AUTHOR" CONTENT="Andres Cabrera">
+	<META NAME="CREATED" CONTENT="20040719;21052618">
+	<META NAME="CHANGEDBY" CONTENT="Michael Gogins">
+	<META NAME="CHANGED" CONTENT="20040719;21451768">
+	<STYLE>
+	<!--
+		TD P { color: #000000 }
+		H1 { color: #000000 }
+		P { color: #000000 }
+		TH P { color: #000000 }
+		H2 { color: #000000 }
+		PRE { color: #000000 }
+		A:link { color: #0000ff }
+		A:visited { color: #840084 }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="en-US" TEXT="#000000" LINK="#0000ff" VLINK="#840084" BGCOLOR="#ffffff" DIR="LTR">
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=0 CELLSPACING=0 STYLE="page-break-before: always">
+	<TR>
+		<TH COLSPAN=3>
+			<P ALIGN=CENTER>Warning: Specifications are still subject to
+			change!</P>
+		</TH>
+	</TR>
+	<TR VALIGN=BOTTOM>
+		<TD WIDTH=10%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=80%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+</TABLE>
+<HR>
+<H1><A NAME="BABO"></A>vstinit</H1>
+<P><A NAME="AEN6067"></A>vst4cs -- VST plugin hosting in Csound on
+Windows. 
+</P>
+<H2><A NAME="AEN6072"></A>Description</H2>
+<P><I>vstinit</I> is used to load a VST plugin into memory for use
+with the other vst4cs opcodes. Both VST effects and instruments
+(synthesizers) can be used.</P>
+<H2><A NAME="AEN6079"></A>Syntax</H2>
+<P><SPAN STYLE="font-weight: medium">instance </SPAN><B>vstinit
+</B><SPAN STYLE="font-weight: medium">ilibrarypath [,iverbose]</SPAN></P>
+<H2><A NAME="AEN6083"></A>Initialization</H2>
+<P><I>instance</I> -- the number which identifies the plugin, to be
+passed to other vst4cs opcodes.</P>
+<P><SPAN STYLE="font-weight: medium"><I>ilibrarypath</I></SPAN> --
+the full path to the vst plugin shared library (dll, on Windows).
+Remember to use '/' instead of '\' as separator. 
+</P>
+<P><I>iverbose</I> -- show plugin information and parameters when
+loading.</P>
+<H2>Examples</H2>
+<P><B>Example 1. loading a vst plugin</B></P>
+<PRE>/* orc */
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 2
+giHandle1 vstinit &quot;c:/vstplugins/cheeze/cheeze machine.dll&quot;,1
+instr 1
+      giHandle2 vstinit &quot;c:/vstplugins/crazy diamonds.dll&quot;,1
+endin
+/* sco */
+i 1 0 1
+e
+/* babo.sco */</PRE><H2>
+<A NAME="AEN6152"></A>Credits</H2>
+<TABLE WIDTH=156 BORDER=0 CELLPADDING=2 CELLSPACING=0>
+	<COL WIDTH=152>
+	<TR>
+		<TD WIDTH=152>
+			<P>Authors: 
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=152>
+			<P>Cabrera, Andres</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=152>
+			<P>Bogota, Colombia</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=152>
+			<P>2004</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=152>
+			<P>Gogins, Michael</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=152>
+			<P>New York, USA</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=152 SDVAL="2004" SDNUM="1033;">
+			<P ALIGN=LEFT>2004</P>
+		</TD>
+	</TR>
+</TABLE>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<HR>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=0 CELLSPACING=0>
+	<TR VALIGN=TOP>
+		<TD WIDTH=33%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=34%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=33%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=33%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=34%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=33%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+</BODY>
+</HTML>
