@@ -1,3 +1,10 @@
+2004-05-19  John ffitch  <jpff@codemist.co.uk>
+
+	* SConstruct (customSHLINKFLAGS): Darwin seems to need -dynamic
+
+	* Top/dl_opcodes.c (dlsymIntern): SLOOKUPSYMBOLINIMAGE_OPTION_BIND
+	-> NSLOOKUPSYMBOLINIMAGE_OPTION_BIND
+
 2004-05-18  John ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/vdelayk.c (partial_maximum): Added maxk opcode

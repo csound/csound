@@ -162,10 +162,13 @@ elif getPlatform() == 'mingw' or getPlatform() == 'cygwin':
     commonEnvironment.Append(CCFLAGS = "-mthreads")
     commonEnvironment.Append(LIBPATH = ['.', '#.', '/usr/include/lib', '/usr/local/lib'])    
     
-if (commonEnvironment['makeDynamic'] == 0) and (getPlatform() != 'linux'):
+if (commonEnvironment['makeDynamic'] == 0) and (getPlatform() != 'linux') and (getPlatform() != 'darwin'):
     commonEnvironment.Append(LINKFLAGS = '-static')
 else:
-    commonEnvironment.Append(LINKFLAGS = Split('-Wl,-Bdynamic'))
+    if (getPlatform() == 'linux'):
+        commonEnvironment.Append(LINKFLAGS = Split('-Wl,-Bdynamic'))
+    else:
+        commonEnvironment.Append(LINKFLAGS = Split('-dynamic'))
 
 # Adding libraries and flags if using -mno-cygwin with cygwin
 

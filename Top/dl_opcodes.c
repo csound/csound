@@ -175,7 +175,7 @@ void *dlsymIntern(void *handle, const char *symbol)
           nssym = NSLookupSymbolInImage(
                             (struct mach_header *)handle,
                             symbol,
-                            SLOOKUPSYMBOLINIMAGE_OPTION_BIND |
+                            NSLOOKUPSYMBOLINIMAGE_OPTION_BIND |
                             NSLOOKUPSYMBOLINIMAGE_OPTION_RETURN_ON_ERROR);
         }
       }
