@@ -84,7 +84,7 @@ opts.Add('noCygwin',
     0)
 opts.Add('generateTags',
     'Set to 1 to generate TAGS',
-    1)
+    0)
 opts.Add('generatePDF',
     'Set to 1 to generate PDF documentation',
     0)
