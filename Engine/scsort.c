@@ -41,7 +41,7 @@ void scsort(FILE *scin, FILE *scout)
     sread_init();
     do {
       if ((n = sread()) > 0) {
-        printf("sread returns with %d\n", n);
+/*         printf("sread returns with %d\n", n); */
         sort();
         twarp();
         swrite();
