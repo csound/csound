@@ -1333,10 +1333,8 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
       o->do_callback(o, opcode);
     }
   }
-  csoundYield(0);
   return OK;
 }
-
 
 
 //---------------
@@ -3471,7 +3469,6 @@ extern "C" int FLprintk(ENVIRON *csound, FLPRINTK *p)
   return OK;
 }
 
-
 extern "C" int FLprintk2set(ENVIRON *csound, FLPRINTK2 *p)              // IV - Aug 27 2002
 {
   p->oldvalue = FL(-1.12123e35);      // hack to force printing first value
@@ -3490,5 +3487,4 @@ extern "C" int FLprintk2(ENVIRON *csound, FLPRINTK2 *p)
   }
   return OK;
 }
-
 

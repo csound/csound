@@ -1,7 +1,8 @@
 /*
  * C S O U N D
  *
- * An auto-extensible system for making music on computers by means of software alone.
+ * An auto-extensible system for making music on computers
+ * by means of software alone.
  * Copyright (c) 2001 by Michael Gogins. All rights reserved.
  *
  * L I C E N S E
@@ -1163,7 +1164,7 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
    */
 
 #if !defined(USE_FLTK)
-  int POLL_EVENTS(void)
+  int POLL_EVENTS(ENVIRON *csound)
   {
     return 1;
   }
