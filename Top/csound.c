@@ -1168,12 +1168,12 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
     return 1;
   }
 #else
-  extern int POLL_EVENTS(void);
+  extern int POLL_EVENTS(ENVIRON *csound);
 #endif
 
   int defaultCsoundYield(void *csound)
   {
-    return POLL_EVENTS();
+    return POLL_EVENTS(csound);
   }
 
   static int (*csoundYieldCallback_)(void *csound) = defaultCsoundYield;
