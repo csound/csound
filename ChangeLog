@@ -1,21 +1,24 @@
+2004-05-12  John ffitch  <jpff@codemist.co.uk>
+
+	* SConstruct: Set makeDynamic=1 for linux
+
 2004-05-09  Michael Gogins <gogins@pipeline.com>
 
-      * Added high-level "C" API for CsoundVST 
-       (frontends/CsoundVST/csoundvst_api.h and .c).
-       
-      * Fixed random number generator bug in CsoundVST::StrangeAttractor.
+	* Added high-level "C" API for CsoundVST
+	(frontends/CsoundVST/csoundvst_api.h and .c). 
+
+	* Fixed random number generator bug in CsoundVST::StrangeAttractor.
 
 2004-05-07  Michael Gogins <gogins@pipeline.com>
 
-      * Fixed some bugs in rtpa.c to enable lower-latency
+	* Fixed some bugs in rtpa.c to enable lower-latency
         real-time audio.
 
 2004-05-05  Michael Gogins <gogins@pipeline.com>
 
-      * Fixed Fl_graph.cpp and widgets.cpp event handling with 
-        thread protection. FLTK widgets work now (at least on
-        Windows).
-      
+	* Fixed Fl_graph.cpp and widgets.cpp event handling with thread
+	protection. FLTK widgets work now (at least on Windows).
+
 2004-05-05  John ffitch  <jpff@codemist.co.uk>
 
 	* strings/all_strings: 
@@ -54,7 +57,7 @@
 
 	* Opcodes/uggab.c (kDiscreteUserRand, aDiscreteUserRand) 
 	(kContinuousUserRand, aContinuousUserRand): Inconsidtent use of
-	Strinh 315
+	String 315
 
 	* Opcodes/ugsc.c (phaser2set): String 243 double used -- changed
 	to 245
@@ -81,7 +84,7 @@
 
 2004-05-03  Michael Gogins <gogins@pipeline.com>
 
-      * Fixed midiinterop opcodes that were broken when moved to csound5.
+	* Fixed midiinterop opcodes that were broken when moved to csound5.
 
 2004-05-01  Michael Gogins <gogins@pipeline.com>
 

@@ -72,12 +72,12 @@ void recopen_(int nchanls, int dsize, float sr, int scale)
     paStreamParameters_.hostApiSpecificStreamInfo = 0;
     paError = Pa_OpenStream (&pa_in,
                              &paStreamParameters_,
-                             0,
+                             NULL,
                              (double) sr,
                              (unsigned long) oMaxLag,
-                             0,
-                             0,
-                             0);
+                             paNoFlag,
+                             NULL,
+                             NULL);
     if( paError != paNoError )
       goto error;
     ishift = getshift(dsize);
@@ -125,7 +125,8 @@ void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
 
     if (rtout_dev == 1024) {
       paStreamParameters_.device = 1;
-      err_printf(Str(X_30,"No PortAudio device given; defaulting to device 1.\n"));
+      err_printf(Str(X_30,
+                     "No PortAudio device given; defaulting to device 1.\n"));
     }
     else {
       paStreamParameters_.device = rtout_dev;
@@ -138,15 +139,14 @@ void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
     err_printf("Suggested PortAudio latency = %f seconds.\n",
                paStreamParameters_.suggestedLatency);
     paStreamParameters_.hostApiSpecificStreamInfo = NULL;
-/*     printf("nchnls_ = %d\n", paStreamParameters_.channelCount); */
-    paError = Pa_OpenStream (&pa_out,
-                             NULL,
-                             &paStreamParameters_,
-                             (double) sr_,
-                             (unsigned long) 0,
-                             0,
-                             NULL,
-                             NULL);
+    paError = Pa_OpenStream(&pa_out,
+                            NULL,
+                            &paStreamParameters_,
+                            (double) sr_,
+                            (unsigned long) oMaxLag /* 0ul */,
+                            paNoFlag,
+                            NULL,
+                            NULL);
 
     if ( paError != paNoError )
       goto error;
