@@ -138,6 +138,8 @@ extern "C" {
     p->midiGlobals->midiInUserData = NULL;
     p->midiGlobals->midiOutUserData = NULL;
     p->midiGlobals->mfp = (FILE*) NULL;
+    p->midiGlobals->bufp = &(p->midiGlobals->mbuf[0]);
+    p->midiGlobals->endatp = p->midiGlobals->bufp;
     csoundCreateGlobalVariable(csound, "_RTMIDI", (size_t) max_len);
     s = csoundQueryGlobalVariable(csound, "_RTMIDI");
     strcpy(s, "PortMIDI");
