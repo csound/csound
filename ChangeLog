@@ -1,3 +1,51 @@
+2005-02-19	Istvan Varga	<istvan@csounds.com>
+	* Engine/musmon.c:
+	  fixed orcompact bug (takes a Csound instance pointer)
+	* Engine/oload.c:
+	* H/csoundCore.h:
+	* H/csdl.h:
+	* H/cs.h:
+	  removed variables from ENVIRON (midi_out and oplibs)
+	* frontends/csound/csound_main.c:
+	  check for the case when csoundCompile() aborts but there is
+	  no error (--help or -U utilname)
+	* H/csdl.h:
+	  define Str() for plugin libraries
+	* H/csoundCore.h:
+	  define return value for longjmp() to report success:
+	    CSOUND_EXITJMP_SUCCESS
+          OPARMS.Midioutname on all platforms, not only BeOS
+	* OOps/midisend.c:
+	  Linux midiout writes to device file in non-blocking mode instead
+	  of using OSS /dev/sequencer
+	* Top/argdecode.c:
+	  replaced redundant definitions of short option list with a single one
+	  exit (longjmp) with success after --help, -z, and utility call (-U)
+	  various changes to make argdecode safe to call multiple times
+	  accumulate rather than overwrite --opcode-lib list
+	  minor fixes, removed static variable, etc.
+	* Top/csmodule.c:
+	  search OPCODEDIR64 first if MYFLT=double
+	* Top/csound.c:
+	  on systems other than WIN32 and mills_macintosh, print messages
+	  to stderr instead of stdout so that -o stdout does not get corrupted
+	* Top/cvanal.c:
+	  removed exit() call
+	  return value is zero on success, -1 on error (other utilities may
+	  need similar changes)
+	* Top/dl_opcodes.c:
+	  search OPCODEDIR64 first if MYFLT=double
+	  load redundant (specified multiple times) opcode libraries only once
+	  fixes in opcode library loading
+	* Top/main.c:
+	  return value from setjmp() on failure (forced to negative sign)
+	  replaced some uses of '&cenviron' with 'csound'
+	  removed useless format option warning/errors
+	  run a second pass of argdecode after reading a CSD so that options
+	  will be overridden correctly
+	  moved some code from argdecode here to make multiple calls to
+	  argdecode safe
+
 2005-02-18	Istvan Varga	<istvan@csounds.com>
 	* Engine/auxfd.c, Engine/express.c, Engine/fgens.c, Engine/insert.c:
 	* Engine/linevent.c, Engine/memalloc.c, Engine/memfiles.c:
