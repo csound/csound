@@ -121,7 +121,7 @@ extern "C"
         int midiChannel;
         bool listPresets;
         int soundfontId;
-        int init(void *csound_)
+        int init(ENVIRON *csound)
         {
             fluidProgram = (int) (*iFluidProgram);                  
             midiChannel = (int) (*iMidiChannel);   
@@ -134,11 +134,11 @@ extern "C"
             if(!Fluidsynth) {
                 fluid_settings_t *fluidSettings = new_fluid_settings();
                 Fluidsynth = new_fluid_synth(fluidSettings);
-                float samplingRate = (float) cs()->GetSr(cs());
+                float samplingRate = (float) csound->GetSr(csound);
                 fluid_settings_setnum(fluidSettings, "synth.sample-rate", samplingRate);
                 fluid_settings_setint(fluidSettings, "synth.polyphony", 4096);
                 fluid_settings_setint(fluidSettings, "synth.midi-channels", 256);
-                log("Allocated Fluidsynth with sampling rate = %f.\n",
+                log(csound, "Allocated Fluidsynth with sampling rate = %f.\n",
                     samplingRate);
             }
             std::string filename = STRARG;
@@ -147,10 +147,10 @@ extern "C"
                 soundfontId = fluid_synth_sfload(Fluidsynth, filename.c_str(), false);
                 if(soundfontId == -1)
                 {
-                    log("Failed to load SoundFont %s.\n", filename.c_str());
+                    log(csound, "Failed to load SoundFont %s.\n", filename.c_str());
                 }
                 fluidSoundfont = fluid_synth_get_sfont_by_id(Fluidsynth, soundfontId );
-                log("Loaded SoundFont '%s' id %d.\n", 
+                log(csound, "Loaded SoundFont '%s' id %d.\n", 
                     filename.c_str(),
                     soundfontId);
                 soundfontsForNames[filename] = fluidSoundfont;
@@ -169,7 +169,7 @@ extern "C"
                             fluidPreset.get_banknum(&fluidPreset),
                             fluidPreset.get_num(&fluidPreset),
                             fluidPreset.get_name(&fluidPreset));
-                            log(buffer);
+                            log(csound, buffer);
                     }
     #if defined(WIN32) && defined(__DEBUG__)
                     OutputDebugString(buffer);
@@ -195,14 +195,14 @@ extern "C"
                        &bank_num,
                        &preset_num);
                     if(!status) {
-                        log("Assigned program %d (SoundFont %d bank %d preset %d) to channel %d.\n",             
+                        log(csound, "Assigned program %d (SoundFont %d bank %d preset %d) to channel %d.\n",             
                             fluidProgram,
                             sfontId,
                             bank_num,
                             preset_num,
                             midiChannel);
                     } else {
-                        log("Failed to assign program %d (SoundFont %d bank %d preset %d) to channel %d.\nStatus: %d error: '%s'\n",             
+                        log(csound, "Failed to assign program %d (SoundFont %d bank %d preset %d) to channel %d.\nStatus: %d error: '%s'\n",             
                             fluidProgram,
                             sfontId,
                             bank_num,
@@ -215,7 +215,7 @@ extern "C"
             }
             return OK;
         }
-        int deinit(void *csound_)
+        int deinit(ENVIRON *csound)
         {
             if(Fluidsynth) {
                 delete_fluid_synth(Fluidsynth);
@@ -233,7 +233,7 @@ extern "C"
             if(!soundfontIdsForPrograms.empty()) {
                 soundfontIdsForPrograms.clear();
             }
-            warn("Fluidsynth cleanup.\n");
+            warn(csound, "Fluidsynth cleanup.\n");
             return OK;
         }
     };
@@ -261,7 +261,7 @@ extern "C"
         int priorMidiChannel;
         int priorMidiData1;
         int priorMidiData2;
-        int init(void *csound_)
+        int init(ENVIRON *csound)
         {
             released          = false;
             iMidiStatus       = 0xf0 & (int) (*kMidiStatus);                      
@@ -274,7 +274,7 @@ extern "C"
             priorMidiData2    = -1;
             return OK;
         }
-        int kontrol(void *csound_)
+        int kontrol(ENVIRON *csound)
         {
             midiStatus       = 0xf0 & (int) (*kMidiStatus);                      
             midiChannel      = (int) (*kMidiChannel);                      
@@ -291,7 +291,7 @@ extern "C"
                         fluid_synth_noteoff(Fluidsynth, 
                             midiChannel, 
                             midiData1); 
-                        warn("Note off: s:%3d c:%3d k:%3d\n",
+                        warn(csound, "Note off: s:%3d c:%3d k:%3d\n",
                             midiStatus,
                             midiChannel,
                             midiData1);                         
@@ -301,14 +301,14 @@ extern "C"
                             midiChannel, 
                             midiData1, 
                             midiData2); 
-                        warn("Note on:  s:%3d c:%3d k:%3d v:%3d\n",
+                        warn(csound, "Note on:  s:%3d c:%3d k:%3d v:%3d\n",
                             midiStatus,
                             midiChannel,
                             midiData1,
                             midiData2);                         
                         break;
                     case (int) 0xa0:
-                        warn("Key pressure (not handled): s:%3d c:%3d k:%3d v:%3d\n",
+                        warn(csound, "Key pressure (not handled): s:%3d c:%3d k:%3d v:%3d\n",
                             midiStatus,
                             midiChannel,
                             midiData1,
@@ -319,7 +319,7 @@ extern "C"
                             midiChannel, 
                             midiData1, 
                             midiData2);
-                        warn("Control change: s:%3d c:%3d c:%3d v:%3d\n",
+                        warn(csound, "Control change: s:%3d c:%3d c:%3d v:%3d\n",
                             midiStatus,
                             midiChannel,
                             midiData1,
@@ -329,13 +329,13 @@ extern "C"
                         fluid_synth_program_change(Fluidsynth, 
                             midiChannel, 
                             midiData1); 
-                        warn("Program change: s:%3d c:%3d p:%3d\n",
+                        warn(csound, "Program change: s:%3d c:%3d p:%3d\n",
                             midiStatus,
                             midiChannel,
                             midiData1);                         
                         break;
                     case (int) 0xd0:
-                        warn("After touch (not handled): s:%3d c:%3d k:%3d v:%3d\n",
+                        warn(csound, "After touch (not handled): s:%3d c:%3d k:%3d v:%3d\n",
                             midiStatus,
                             midiChannel,
                             midiData1,
@@ -345,13 +345,13 @@ extern "C"
                         fluid_synth_pitch_bend(Fluidsynth, 
                             midiChannel, 
                             midiData1); 
-                        warn("Pitch bend: s:%d c:%d b:%d\n",
+                        warn(csound, "Pitch bend: s:%d c:%d b:%d\n",
                             midiStatus,
                             midiChannel,
                             midiData1);                         
                         break;
                     case (int) 0xf0:
-                        warn("System exclusive (not handled): c:%3d k:%3d v:%3d\n",
+                        warn(csound, "System exclusive (not handled): c:%3d k:%3d v:%3d\n",
                             midiStatus,
                             midiChannel,
                             midiData1,
@@ -360,13 +360,13 @@ extern "C"
                 }
             }
             if((!released) &&
-              (h.insdshead->offtim <= cs()->GetScoreTime(cs()) ||
+              (h.insdshead->offtim <= csound->GetScoreTime(csound) ||
                 h.insdshead->relesing)) {
                 released = true;
                 fluid_synth_noteoff(Fluidsynth, 
                     iMidiChannel, 
                     iMidiData1); 
-                warn("Note off: s:%3d c:%3d k:%3d v:%3d\n",
+                warn(csound, "Note off: s:%3d c:%3d k:%3d v:%3d\n",
                     iMidiStatus,
                     iMidiChannel,
                     iMidiData1,
@@ -387,13 +387,13 @@ extern "C"
         // Outputs.
         MYFLT *aLeftOut;
         MYFLT *aRightOut;
-        int audio(void *csound_)
+        int audio(ENVIRON *csound)
         {
             float leftSample[1];
             float rightSample[1];
             MYFLT *leftOut    = aLeftOut;
             MYFLT *rightOut   = aRightOut;
-            for(int i = 0, n = cs()->GetKsmps(cs()); i < n; ++i) {
+            for(int i = 0, n = csound->GetKsmps(csound); i < n; ++i) {
                 leftSample[0] = 0;
                 rightSample[0] = 0;
                 fluid_synth_write_float(Fluidsynth, 
