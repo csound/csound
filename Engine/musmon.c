@@ -373,7 +373,9 @@ int cleanup(void)
     }
     /*      if (O.Linein)  RTclose(); */ /* now done via atexit */
     printf(Str(X_548,"\n%d errors in performance\n"),perferrcnt);
+#ifdef RTAUDIO
     rtclose_();
+#endif
     if (O.sfread)
       sfclosein();
     if (O.sfwrite)
