@@ -168,7 +168,7 @@ int koutfile (KOUTFILE *p)
     for (j = 0;j< nargs;j++) {
       vals[j] = *args[j];
     }
-    sf_writef_float(p->fp, vals, 1);
+    sf_writef_MYFLT(p->fp, vals, 1);
     return OK;
 }
 
