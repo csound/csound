@@ -106,7 +106,7 @@ void SoundFontLoad(ENVIRON *csound, char *fname)
            "** http://web.tiscalinet.it/G-Maldonado **\n"
            "******************************************\n\n");
     if (( fil = fopen(fname,"rb")) == NULL) {
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(WIN32) && !defined(__CYGWIN__) && defined(MSVC)
       extern volatile int _errno;
 #define errno _errno
 #endif
