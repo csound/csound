@@ -647,6 +647,8 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('scansyn',
     ['Opcodes/scansyn.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('scansynx',
     ['Opcodes/scansynx.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('screverb',
+    ['Opcodes/screverb.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('seqtime',
     ['Opcodes/seqtime.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('sfont',

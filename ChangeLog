@@ -1,3 +1,8 @@
+2005-03-12	Istvan Varga	<istvan@csounds.com>
+	* SConstruct:
+	* Opcodes/screverb.c:
+	  new opcode (Sean Costello's waveguide reverb)
+
 2005-03-11	Istvan Varga	<istvan@csounds.com>
 	* InOut/widgets.cpp:
 	* Top/csound.c:
