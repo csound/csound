@@ -277,7 +277,7 @@ int ioutfile_set(IOUTFILE *p)
 {
     int j;
     MYFLT **args=p->argums;
-    FILE *fil;
+    SNDFILE *fil;
     int n = (int) *p->ihandle;
     if (n<0 || n>file_num)
       die(Str(X_1469,"fouti: invalid file handle"));

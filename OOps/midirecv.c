@@ -1070,7 +1070,7 @@ void MidiClose(void)
 /**
 * Default MIDI open function for user-defined MIDI; used for CsoundVST.
 */
-void csoundDefaultMidiOpen(void)
+void csoundDefaultMidiOpen(void* csound)
 {
     int i;
     printf("csoundDefaultMidiOpen()...");

@@ -667,7 +667,7 @@ extern "C" {
 	* Sets a function to be called by Csound for performing real-time audio playback.
 	*/
 	PUBLIC void csoundSetRtplayCallback(void *csound,
-                          void (*rtplay__)(char *outBuf, int nbytes));
+                          void (*rtplay__)(void *outBuf, int nbytes));
 
 	/**
 	* Sets a function to be called by Csound for opening real-time audio recording.
