@@ -1,0 +1,147 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{ftmorf}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{ftmorf}
+ftmorf --  Morphs between multiple ftables as specified in a list. \subsection*{Description}
+
+
+  Uses an index into a table of ftable numbers to morph between adjacent tables in the list.This morphed function is written into the table referenced by \emph{iresfn}
+ on every k-cycle. 
+\subsection*{Syntax}
+
+
+ \textbf{ftmorf}
+ kftndx, iftfn, iresfn
+\subsection*{Initialization}
+
+
+ \emph{iftfn}
+ -- The ftable function. The list of values are expected to be pre-existing ftable numbers. 
+
+
+ \emph{iresfn}
+ -- Table number of the morphed function 
+
+
+  The length of all the tables in \emph{iftfn}
+ must equal the length of \emph{iresfn}
+. 
+\subsection*{Performance}
+
+
+ \emph{kftndx}
+ -- the index into the \emph{iftfn}
+ table. 
+
+
+  If \emph{iftfn}
+ contains (6, 4, 6, 8, 7, 4): 
+
+
+ 
+\begin{itemize}
+\item 
+
+ \emph{kftndx=4}
+ will write the contents of f7 into \emph{iresfn}
+. 
+
+\item 
+
+ \emph{kftndx=4.5}
+ will write the average of the contents of f7 and f4 into \emph{iresfn}
+. 
+
+
+\end{itemize}
+\subsection*{Examples}
+
+
+  Here is an example of the ftmorf opcode. It uses the files \emph{ftmorf.orc}
+ and \emph{ftmorf.sco}
+. 
+
+
+ \textbf{Example 1. Example of the ftmorf opcode.}
+
+\begin{lstlisting}
+/* ftmorf.orc */
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+instr 1
+kndx    line    0, p3, 7
+        ftmorf  kndx, 1, 2
+asig    oscili  30000, 440, 2
+        out     asig
+endin
+/* ftmorf.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* ftmorf.sco */
+f1 0 8 -2 3 4 5 6 7 8 9 10
+f2 0 1024 10 1 /*contents of f2 dont matter */
+f3 0 1024 10 1
+f4 0 1024 10 0 1
+f5 0 1024 10 0 0 1
+f6 0 1024 10 0 0 0 1
+f7 0 1024 10 0 0 0 0 1
+f8 0 1024 10 0 0 0 0 0 1
+f9 0 1024 10 0 0 0 0 0 0 1
+f10 0 1024 10 1 1 1 1 1 1 1
+
+i1 0 10
+e
+/* ftmorf.sco */
+        
+\end{lstlisting}
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cccc}
+Author: William ``Pete'' Moss &University of Texas at Austin &Austin, Texas USA &Jan. 2002
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in version 4.18
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+ftlptim &Up &ftsave
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

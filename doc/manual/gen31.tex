@@ -1,0 +1,73 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{GEN31}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{GEN31}
+GEN31 --  Mixes any waveform specified in an existing table. \subsection*{Description}
+
+
+  This routine is similar to GEN09, but allows mixing any waveform specified in an existing table. 
+\subsection*{Syntax}
+
+
+ \textbf{f}
+ \# time size 31 src pna stra phsa pnb strb phsb ...
+\subsection*{Performance}
+
+
+ \emph{src}
+ -- source table number 
+
+
+ \emph{pna, pnb, ...}
+ -- partial number, must be a positive integer 
+
+
+ \emph{stra, strb, ...}
+ -- amplitude scale 
+
+
+ \emph{phsa, phsb, ...}
+ -- start phase (0 to 1) 
+
+
+ \emph{GEN31}
+ does not support tables with an extended guard point (ie. table size = power of two + 1). Although such tables will work both for input and output, when reading source table(s), the guard point is ignored, and when writing the output table, guard point is simply copied from the first sample (table index = 0). 
+
+
+  The reason of this limitation is that \emph{GEN31}
+ uses FFT, which requires power of two table size. \emph{GEN32}
+ allows using linear interpolation for resampling and phase shifting, which makes it possible to use any table size (however, for partials calculated with FFT, the power of two limitation still exists). 
+\subsection*{Credits}
+
+
+ Author: Istvan Varga
+
+
+ New in version 4.15
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+GEN30 &Up &GEN32
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,176 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{lorenz}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{lorenz}
+lorenz --  Implements the Lorenz system of equations. \subsection*{Description}
+
+
+  Implements the Lorenz system of equations. The Lorenz system is a chaotic-dynamic system which was originally used to simulate the motion of a particle in convection currents and simplified weather systems. Small differences in initial conditions rapidly lead to diverging values. This is sometimes expressed as the butterfly effect. If a butterfly flaps its wings in Australia, it will have an effect on the weather in Alaska. This system is one of the milestones in the development of chaos theory. It is useful as a chaotic audio source or as a low frequency modulation source. 
+\subsection*{Syntax}
+
+
+ ax, ay, az \textbf{lorenz}
+ ksv, krv, kbv, kh, ix, iy, iz, iskip
+\subsection*{Initialization}
+
+
+ \emph{ix}
+, \emph{iy}
+, \emph{iz}
+ -- the initial coordinates of the particle. 
+
+
+ \emph{iskip}
+ -- used to skip generated values. If \emph{iskip}
+ is set to 5, only every fifth value generated is output. This is useful in generating higher pitched tones. 
+\subsection*{Performance}
+
+
+ \emph{ksv}
+ -- the Prandtl number or sigma 
+
+
+ \emph{krv}
+ -- the Rayleigh number 
+
+
+ \emph{kbv}
+ -- the ratio of the length and width of the box in which the convection currents are generated 
+
+
+ \emph{kh}
+ -- the step size used in approximating the differential equation. This can be used to control the pitch of the systems. Values of .1-.001 are typical. 
+
+
+  The equations are approximated as follows: 
+
+
+ x = x + h*(s*(y - x))\\ 
+ y = y + h*(-x*z + r*x - y)\\ 
+ z = z + h*(x*y - b*z)\\ 
+       
+
+
+  The historical values of these parameters are: 
+
+
+ ks = 10\\ 
+ kr = 28\\ 
+ kb = 8/3\\ 
+       
+\subsection*{Examples}
+
+
+  Here is an example of the lorenz opcode. It uses the files \emph{lorenz.orc}
+ and \emph{lorenz.sco}
+. 
+
+
+ \textbf{Example 1. Example of the lorenz opcode.}
+
+\begin{lstlisting}
+/* lorenz.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 44100
+ksmps = 1
+nchnls = 2
+
+; Instrument #1 - a lorenz system in 3D space.
+instr 1
+  ; Create a basic tone.
+  kamp init 25000
+  kcps init 220
+  ifn = 1
+  asnd oscil kamp, kcps, ifn
+
+  ; Figure out its X, Y, Z coordinates.
+  ksv init 10
+  krv init 28
+  kbv init 2.667
+  kh init 0.0003
+  ix = 0.6
+  iy = 0.6
+  iz = 0.6
+  iskip = 1
+  ax1, ay1, az1 lorenz ksv, krv, kbv, kh, ix, iy, iz, iskip
+
+  ; Place the basic tone within 3D space.
+  kx downsamp ax1
+  ky downsamp ay1
+  kz downsamp az1
+  idist = 1
+  ift = 0
+  imode = 1
+  imdel = 1.018853416
+  iovr = 2
+  aw2, ax2, ay2, az2 spat3d asnd, kx, ky, kz, idist, \
+                            ift, imode, imdel, iovr
+
+  ; Convert the 3D sound to stereo.
+  aleft = aw2 + ay2
+  aright = aw2 - ay2
+
+  outs aleft, aright
+endin
+/* lorenz.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* lorenz.sco */
+; Table #1 a sine wave.
+f 1 0 16384 10 1
+
+; Play Instrument #1 for 5 seconds.
+i 1 0 5
+e
+/* lorenz.sco */
+        
+\end{lstlisting}
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Author: Hans Mikelson &February 1999
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 3.53
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+loopseg &Up &loscil
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

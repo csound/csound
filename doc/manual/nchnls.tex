@@ -1,0 +1,61 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{nchnls}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{nchnls}
+nchnls --  Sets the number of channels of audio output. \subsection*{Description}
+
+
+  These statements are global value \emph{assignments}
+, made at the beginning of an orchestra, before any instrument block is defined. Their function is to set certain \emph{reserved symbol variables}
+ that are required for performance. Once set, these reserved symbols can be used in expressions anywhere in the orchestra. 
+\subsection*{Syntax}
+
+
+ \textbf{nchnls}
+ = iarg
+\subsection*{Initialization}
+
+
+ \emph{nchnls}
+ = (optional) -- set number of channels of audio output to \emph{iarg}
+. (1 = mono, 2 = stereo, 4 = quadraphonic.) The default value is 1 (mono). 
+
+
+  In addition, any \emph{global variable}
+ can be initialized by an \emph{init-time assignment}
+ anywhere before the first \emph{instr statement}
+. All of the above assignments are run as instrument 0 (i-pass only) at the start of real performance. 
+\subsection*{See Also}
+
+
+ \emph{kr}
+, \emph{ksmps}
+, \emph{sr}
+
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+mxadsr &Up &nestedap
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

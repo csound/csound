@@ -1,0 +1,112 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{delayw}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{delayw}
+delayw --  Writes the audio signal to a digital delay line. \subsection*{Description}
+
+
+  Writes the audio signal to a digital delay line. 
+\subsection*{Syntax}
+
+
+ \textbf{delayw}
+ asig
+\subsection*{Performance}
+
+
+ \emph{delayw}
+ writes \emph{asig}
+ into the delay area established by the preceding \emph{delayr}
+ unit. Viewed as a pair, these two units permit the formation of modified feedback loops, etc. However, there is a lower bound on the value of \emph{idlt}
+, which must be at least 1 control period (or 1/\emph{kr}
+). 
+\subsection*{Examples}
+
+
+  Here is an example of the delayw opcode. It uses the files \emph{delayw.orc}
+ and \emph{delayw.sco}
+. 
+
+
+ \textbf{Example 1. Example of the delayw opcode.}
+
+\begin{lstlisting}
+/* delayw.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 2
+
+; Instrument #1 -- Delayed beeps.
+instr 1
+  ; Make a basic sound.
+  abeep vco 20000, 440, 1
+
+  ; Set up a delay line.
+  idlt = 0.1
+  adel delayr idlt
+
+  ; Write the beep to the delay line.
+  delayw abeep
+
+  ; Send the beep to the left speaker and
+  ; the delayed beep to the right speaker.
+  outs abeep, adel
+endin
+/* delayw.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* delayw.sco */
+; Table #1, a sine wave.
+f 1 0 16384 10 1
+
+; Keep the score running for 2 seconds.
+f 0 2
+
+; Play Instrument #1.
+i 1 0.0 0.2
+i 1 0.5 0.2
+e
+/* delayw.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{delay}
+, \emph{delay1}
+, \emph{delayr}
+
+\subsection*{Credits}
+
+
+ Example written by Kevin Conder.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+delayr &Up &deltap
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

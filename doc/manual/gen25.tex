@@ -1,0 +1,95 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{GEN25}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{GEN25}
+GEN25 --  Construct functions from segments of exponential curves in breakpoint fashion. \subsection*{Description}
+
+
+  These subroutines are used to construct functions from segments of exponential curves in breakpoint fashion. 
+\subsection*{Syntax}
+
+
+ \textbf{f}
+ \# time size 25 x1 y1 x2 y2 x3 ...
+\subsection*{Initialization}
+
+
+ \emph{size }
+ -- number of points in the table. Must be a power of 2 or power-of-2 plus 1 (see \emph{f statement}
+). 
+
+
+ \emph{x1, x2, x3,}
+ etc. -- locations in table at which to attain the following y value. Must be in increasing order. If the last value is less than size, then the rest will be set to zero. Should not be negative but can be zero. 
+
+
+ \emph{y1, y2, y3,}
+, etc. -- Breakpoint values attained at the location specified by the preceding x value. These must be non-zero and must be alike in sign. 
+
+
+ 
+
+
+\begin{tabular}{cc}
+\textbf{Note}
+ \\
+  &
+
+  If p4 is positive, functions are post-normalized (rescaled to a maximum absolute value of 1 after generation). A negative p4 will cause rescaling to be skipped. 
+
+
+\end{tabular}
+
+\subsection*{See Also}
+
+
+ \emph{f statement}
+, \emph{GEN27}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: John ffitch &University of Bath/Codemist Ltd. &Bath, UK
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 3.49
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+GEN24 &Up &GEN27
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

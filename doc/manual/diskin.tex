@@ -1,0 +1,247 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{diskin}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{diskin}
+diskin --  Reads audio data from an external device or stream and can alter its pitch. \subsection*{Description}
+
+
+  Reads audio data from an external device or stream and can alter its pitch. 
+\subsection*{Syntax}
+
+
+ ar1 [,ar2] [, ar3] [, ar4] \textbf{diskin}
+ ifilcod, kpitch [, iskiptim] [, iwraparound] [, iformat]
+\subsection*{Initialization}
+
+
+ \emph{ifilcod}
+ -- integer or character-string denoting the source soundfile name. An integer denotes the file soundin.filcod ; a character-string (in double quotes, spaces permitted) gives the filename itself, optionally a full pathname. If not a full path, the named file is sought first in the current directory, then in that given by the environment variable SSDIR (if defined) then by SFDIR. See also \emph{GEN01}
+. 
+
+
+ \emph{iskptim}
+ (optional) -- time in seconds of input sound to be skipped. The default value is 0. 
+
+
+ \emph{iformat}
+ (optional) -- specifies the audio data file format: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ 1 = 8-bit signed char (high-order 8 bits of a 16-bit integer)
+
+\item 
+
+ 2 = 8-bit A-law bytes
+
+\item 
+
+ 3 = 8-bit U-law bytes
+
+\item 
+
+ 4 = 16-bit short integers
+
+\item 
+
+ 5 = 32-bit long integers
+
+\item 
+
+ 6 = 32-bit floats
+
+
+\end{itemize}
+
+
+ \emph{iwraparound}
+ -- 1 = on, 0 = off (wraps around to end of file either direction) 
+
+
+  If \emph{iformat}
+ = 0 it is taken from the soundfile header, and if no header from the Csound \emph{-o}
+ command-line flag. The default value is 0. 
+\subsection*{Performance}
+
+
+ \emph{kpitch}
+ -- can be any real number. a negative number signifies backwards playback. The given number is a pitch ratio, where: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ \emph{1}
+ = normal pitch
+
+\item 
+
+ \emph{2}
+ = 1 octave higher
+
+\item 
+
+ \emph{3}
+ = 12th higher, etc.
+
+\item 
+
+ \emph{.5}
+ = 1 octave lower
+
+\item 
+
+ \emph{.25}
+ = 2 octaves lower, etc.
+
+\item 
+
+ \emph{-1}
+ = normal pitch backwards
+
+\item 
+
+ \emph{-2}
+ = 1 octave higher backwards, etc.
+
+
+\end{itemize}
+
+
+ \emph{diskin}
+ is identical to \emph{soundin}
+ except that it can alter the pitch of the sound that is being read. 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Caution &\textbf{Note to Windows users}
+ \\
+  &
+
+  Windows users typically use back-slashes, ``$\backslash$'', when specifying the paths of their files. As an example, a Windows user might use the path ``c:$\backslash$music$\backslash$samples$\backslash$loop001.wav''. This is problematic because back-slashes are normally used to specify special characters. 
+
+
+  To correctly specify this path in Csound, one may alternately: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ \emph{Use forward slashes}
+: c:/music/samples/loop001.wav
+
+\item 
+
+ \emph{Use back-slash special characters, ``$\backslash$$\backslash$''}
+: c:$\backslash$$\backslash$music$\backslash$$\backslash$samples$\backslash$$\backslash$loop001.wav
+
+
+\end{itemize}
+
+
+\end{tabular}
+
+\subsection*{Examples}
+
+
+  Here is an example of the diskin opcode. It uses the files \emph{diskin.orc}
+, \emph{diskin.sco}
+, \emph{beats.wav}
+. 
+
+
+ \textbf{Example 1. Example of the diskin opcode.}
+
+\begin{lstlisting}
+/* diskin.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 44100
+ksmps = 1
+nchnls = 1
+
+; Instrument #1 - play an audio file.
+instr 1
+  ; Play the audio file backwards.
+  asig diskin "beats.wav", -1
+  out asig
+endin
+/* diskin.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* diskin.sco */
+; Play Instrument #1, the audio file, for three seconds.
+i 1 0 3
+e
+/* diskin.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{in}
+, \emph{inh}
+, \emph{ino}
+, \emph{inq}
+, \emph{ins}
+, \emph{soundin}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Authors: Barry L. Vercoe, Matt Ingalls/Mike Berry &MIT, Mills College &1993-1997
+
+\end{tabular}
+
+
+
+ 
+
+
+ Example written by Kevin Conder.
+
+
+ Warning to Windows users added by Kevin Conder, April 2002
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+diff &Up &dispfft
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

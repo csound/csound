@@ -1,0 +1,148 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{areson}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{areson}
+areson --  A notch filter whose transfer functions are the complements of the reson opcode. \subsection*{Description}
+
+
+  A notch filter whose transfer functions are the complements of the reson opcode. 
+\subsection*{Syntax}
+
+
+ ar \textbf{areson}
+ asig, kcf, kbw [, iscl] [, iskip]
+\subsection*{Initialization}
+
+
+ \emph{iscl}
+ (optional, default=0) -- coded scaling factor for resonators. A value of 1 signifies a peak response factor of 1, i.e. all frequencies other than kcf are attenuated in accordance with the (normalized) response curve. A value of 2 raises the response factor so that its overall RMS value equals 1. (This intended equalization of input and output power assumes all frequencies are physically present; hence it is most applicable to white noise.) A zero value signifies no scaling of the signal, leaving that to some later adjustment (see \emph{balance}
+). The default value is 0. 
+
+
+ \emph{iskip}
+ (optional, default=0) -- initial disposition of internal data space. Since filtering incorporates a feedback loop of previous output, the initial status of the storage space used is significant. A zero value will clear the space; a non-zero value will allow previous information to remain. The default value is 0. 
+\subsection*{Performance}
+
+
+ \emph{ar}
+ -- the output signal at audio rate. 
+
+
+ \emph{asig}
+ -- the input signal at audio rate. 
+
+
+ \emph{kcf}
+ -- the center frequency of the filter, or frequency position of the peak response. 
+
+
+ \emph{kbw}
+ -- bandwidth of the filter (the Hz difference between the upper and lower half-power points). 
+
+
+ \emph{areson}
+ is a filter whose transfer functions is the complement of \emph{reson}
+. Thus \emph{areson}
+ is a notch filter whose transfer functions represents the ``filtered out'' aspects of their complements. However, power scaling is not normalized in \emph{areson}
+ but remains the true complement of the corresponding unit. Thus an audio signal, filtered by parallel matching \emph{reson}
+ and \emph{areson}
+ units, would under addition simply reconstruct the original spectrum. 
+
+
+  This property is particularly useful for controlled mixing of different sources (see \emph{lpreson}
+). Complex response curves such as those with multiple peaks can be obtained by using a bank of suitable filters in series. (The resultant response is the product of the component responses.) In such cases, the combined attenuation may result in a serious loss of signal power, but this can be regained by the use of \emph{balance}
+. 
+\subsection*{Examples}
+
+
+  Here is an example of the areson opcode. It uses the files \emph{areson.orc}
+ and \emph{areson.sco}
+. 
+
+
+ \textbf{Example 1. Example of the areson opcode.}
+
+\begin{lstlisting}
+/* areson.orc */
+; Initialize the global variables.
+sr = 22050
+kr = 2205
+ksmps = 10
+nchnls = 1
+
+; Instrument #1 - an unfiltered noise waveform.
+instr 1
+  ; Generate a white noise signal.
+  asig rand 20000
+
+  out asig
+endin
+
+
+; Instrument #2 - a filtered noise waveform.
+instr 2
+  ; Generate a white noise signal.
+  asig rand 20000
+
+  ; Filter it using the areson opcode.
+  kcf init 1000
+  kbw init 100
+  afilt areson asig, kcf, kbw
+
+  ; Clip the filtered signal's amplitude to 85 dB.
+  a1 clip afilt, 2, ampdb(85)
+  out a1
+endin
+/* areson.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* areson.sco */
+; Play Instrument #1 for two seconds.
+i 1 0 2
+; Play Instrument #2 for two seconds.
+i 2 2 2
+e
+/* areson.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{aresonk}
+, \emph{atone}
+, \emph{atonek}
+, \emph{port}
+, \emph{portk}
+, \emph{reson}
+, \emph{resonk}
+, \emph{tone}
+, \emph{tonek}
+
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+apow &Up &aresonk
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,171 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{More Advanced Examples}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous &Cscore &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{More Advanced Examples}
+
+
+  The following program demonstrates reading from two different input files. The idea is to switch between two 2-section scores, and write out the interleaved sections to a single output file. 
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+./.htmlinclude "cscore.h"              /*   CSCORE_SWITCH.C  */ 
+cscore()                        /* callable from either CSound or standalone cscore */ 
+{ 
+ EVLIST *a, *b; 
+ FILE   *fp1, *fp2;         /* declare two scorefile stream pointers */ 
+ fp1 = getcurfp();          /*  this is the command-line score */ 
+ fp2 = filopen("score2.srt"); /*  this is an additional score file */ 
+ a = lget();                /* read section from score 1 */ 
+ lput(a);                   /* write it out as is */ 
+ putstr("s"); 
+ setcurfp(fp2); 
+ b = lget();                /* read section from score 2 */ 
+ lput(b);                   /* write it out as is */ 
+ putstr("s"); 
+ lrelev(a);                 /* optional to reclaim space */ 
+ lrelev(b); 
+ setcurfp(fp1); 
+ a = lget();                /* read next section from score 1 */ 
+ lput(a);                   /* write it out */ 
+ putstr("s"); 
+ setcurfp(fp2); 
+ b = lget();                /* read next sect from score 2 */ 
+ lput(b);                   / * write it out */ 
+ putstr("e");
+}
+      
+\end{lstlisting}
+
+
+ 
+
+
+  Finally, we show how to take a literal, uninterpreted score file and imbue it with some expressive timing changes. The theory of composer-related metric pulses has been investigated at length by Manfred Clynes, and the following is in the spirit of his work. The strategy here is to first create an \emph{array}
+ of new \emph{onset }
+times for every possible sixteenth-note onset, then to index into it so as to adjust the start and duration of each note of the input score to the interpreted time-points. This also shows how a\emph{ }
+Csound orchestra can be invoked repeatedly from a run-time score generator. 
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+./.htmlinclude "cscore.h"              /*   CSCORE_PULSE.C  */ 
+  
+  /* program to apply interpretive durational pulse to     */ 
+  /* an existing score in 3/4 time, first beats on 0, 3, 6 ... */
+  
+  
+  static float four[4] = { 1.05, 0.97, 1.03, 0.95 };     /* pulse width for 4's*/ 
+  static float three[3] = { 1.03, 1.05, .92 };           /* pulse width for 3's*/ 
+  
+   
+cscore()          /* callable from either CSound or standalone cscore  */ 
+{ 
+  EVLIST  *a, *b; 
+  register EVENT  *e, **ep; 
+  float pulse16[4*4*4*4*3*4];  /* 16th-note array, 3/4 time, 256 measures */ 
+  float acc16, acc1,inc1, acc3,inc3, acc12,inc12, acc48,inc48, acc192,inc192; 
+  register float *p = pulse16; 
+  register int  n16, n1, n3, n12, n48, n192; 
+
+  /* fill the array with interpreted ontimes  */ 
+  for (acc192=0.,n192=0; n192<4; acc192+=192.*inc192,n192++) 
+    for (acc48=acc192,inc192=four[n192],n48=0; n48<4; acc48+=48.*inc48,n48++) 
+      for (acc12=acc48,inc48=inc192*four[n48],n12=0;n12<4; 
+                                            acc12+=12.*inc12,n12++) 
+        for (acc3=acc12,inc12=inc48*four[n12],n3=0; n3<4; acc3+=3.*inc3,n3++) 
+          for (acc1=acc3,inc3=inc12*four[n3],n1=0; n1<3; acc1+=inc1,n1++) 
+            for (acc16=acc1,inc1=inc3*three[n1],n16=0; n16<4; 
+                                            acc16+=.25*inc1*four[n16],n16++) 
+              *p++ = acc16; 
+   
+  
+  /* for (p = pulse16, n1 = 48; n1--; p += 4)  /* show vals & diffs */ 
+  /*   printf("%g %g %g %g %g %g %g %g\n", *p, *(p+1), *(p+2), *(p+3), 
+  /*  *(p+1)-*p, *(p+2)-*(p+1), *(p+3)-*(p+2), *(p+4)-*(p+3)); */ 
+  
+  a = lget();             /* read sect from tempo-warped score */ 
+  b = lseptwf(a);         /* separate warp & fn statements */ 
+  lplay(b);               /*   and send these to performance */ 
+  a = lappstrev(a, "s");  /* append a sect statement to note list */ 
+  lplay(a);               /* play the note-list without interpretation */ 
+  for (ep = &a-e[1], n1 = a-nevents; n1--; ) { /* now pulse-modifiy it */ 
+    e = *ep++; 
+    if (e-op == 'i') { 
+      e-p[2] = pulse16[(int)(4. * e-p2orig)]; 
+      e-p[3] = pulse16[(int)(4. * (e-p2orig + e-p3orig))] - e-p[2]; 
+    } 
+  } 
+  
+  lplay(a);   /* now play modified list */
+}
+      
+\end{lstlisting}
+
+
+ 
+
+
+  As stated above, the input files to \emph{Cscore}
+ may be in original or time-warped and pre-sorted form; this modality will be preserved (section by section) in reading, processing and writing scores. Standalone processing will most often use unwarped sources and create unwarped new files. When running from within Csound the input score will arrive already warped and sorted, and can thus be sent directly (normally section by section) to the orchestra. 
+
+
+  A list of events can be conveyed to a Csound\emph{ }
+orchestra using \emph{lplay}
+. There may be any number of \emph{lplay }
+calls in a \emph{Cscore}
+ program. Each list so conveyed can be either time-warped or not, but each list must be in strict \emph{p2}
+-chronological order (either from presorting or using \emph{lsort}
+). If there is no \emph{lplay}
+ in a \emph{Cscore}
+ module run from within Csound, all events written out (via \emph{putev, putstr or lput}
+) constitute a new score, which will be sent initially to \emph{scsort}
+ then to the Csound\emph{ }
+orchestra for performance. These can be examined in the files ``\emph{cscore.out}
+`` and ``\emph{cscore.srt}
+``. 
+
+
+  A standalone cscore program will normally use the put commands to write into its output file. If a standalone \emph{Cscore}
+ program contains \emph{lplay}
+, the events thus intended for performance will instead be printed on the console. 
+
+
+  A note list sent by \emph{lplay}
+ for performance should be temporally distinct from subsequent note lists. No note-end should extend past the next list's start time, since \emph{lplay}
+ will complete each list before starting the next (i.e. like a Section marker that doesn't reset local time to zero). This is important when using \emph{lgetnext()}
+ or \emph{lgetuntil()}
+to fetch and process score segments prior to performance. 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+Writing a Main Program &Up &Compiling a Cscore Program
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

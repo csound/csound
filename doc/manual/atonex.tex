@@ -1,0 +1,86 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{atonex}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{atonex}
+atonex --  Emulates a stack of filters using the atone opcode. \subsection*{Description}
+
+
+ \emph{atonex}
+ is equivalent to a filter consisting of more layers of \emph{atone}
+ with the same arguments, serially connected. Using a stack of a larger number of filters allows a sharper cutoff. They are faster than using a larger number instances in a Csound orchestra of the old opcodes, because only one initialization and k- cycle are needed at time and the audio loop falls entirely inside the cache memory of processor. 
+\subsection*{Syntax}
+
+
+ ar \textbf{atonex}
+ asig, khp [, inumlayer] [, iskip]
+\subsection*{Initialization}
+
+
+ \emph{inumlayer}
+ (optional) -- number of elements in the filter stack. Default value is 4. 
+
+
+ \emph{iskip}
+ (optional, default=0) -- initial disposition of internal data space. Since filtering incorporates a feedback loop of previous output, the initial status of the storage space used is significant. A zero value will clear the space; a non-zero value will allow previous information to remain. The default value is 0. 
+\subsection*{Performance}
+
+
+ \emph{asig}
+ -- input signal 
+
+
+ \emph{khp}
+ -- the response curve's half-power point. Half power is defined as peak power / root 2. 
+\subsection*{See Also}
+
+
+ \emph{resonx}
+, \emph{tonex}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Author: Gabriel Maldonado (adapted by John ffitch) &Italy
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 3.49
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+atonek &Up &atrirand
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

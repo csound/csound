@@ -1,0 +1,109 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{ksmps}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{ksmps}
+ksmps --  Sets the number of samples in a control period. \subsection*{Description}
+
+
+  These statements are global value \emph{assignments}
+, made at the beginning of an orchestra, before any instrument block is defined. Their function is to set certain \emph{reserved symbol variables}
+ that are required for performance. Once set, these reserved symbols can be used in expressions anywhere in the orchestra. 
+\subsection*{Syntax}
+
+
+ \textbf{ksmps}
+ = iarg
+\subsection*{Initialization}
+
+
+ \emph{ksmps}
+ = (optional) -- set the number of samples in a control period. This value must equal\emph{ sr/kr}
+. The default value is 10. 
+
+
+  In addition, any \emph{global variable}
+ can be initialized by an \emph{init-time assignment}
+ anywhere before the first \emph{instr statement}
+. All of the above assignments are run as instrument 0 (i-pass only) at the start of real performance. 
+
+
+  Beginning with Csound version 3.46, either \emph{ksmps}
+ may be omitted. Csound will attempt to calculate the omitted value from the specified values, but it should evaluate to an integer. 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Warning &\textbf{Warning}
+ \\
+  &
+
+  ksmps must be an integer value. 
+
+
+\end{tabular}
+
+\subsection*{Examples}
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+\textbf{sr}
+ = 10000
+\textbf{kr}
+ = 500
+\textbf{ksmps}
+ = 20
+gi1 \textbf{= }
+sr/2.
+ga \textbf{init }
+0
+itranspose \textbf{= }
+octpch(.0l)
+        
+\end{lstlisting}
+
+
+ 
+\subsection*{See Also}
+
+
+ \emph{kr}
+, \emph{nchnls}
+, \emph{sr}
+
+\subsection*{Credits}
+
+
+ Thanks to a note from Gabriel Maldonado, added a warning about integer values.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+kread4 &Up &ktableseg
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

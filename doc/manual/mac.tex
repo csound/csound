@@ -1,0 +1,82 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{mac}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{mac}
+mac --  Multiplies and accumulates a- and k-rate signals. \subsection*{Description}
+
+
+  Multiplies and accumulates a- and k-rate signals. 
+\subsection*{Syntax}
+
+
+ ar \textbf{mac}
+ asig1, ksig1 [, asig2] [, ksig2] [, asig3] [, ksig3] [...]
+\subsection*{Performance}
+
+
+ \emph{ksig1, etc.}
+ -- k-rate input signals 
+
+
+ \emph{asig1, etc.}
+ -- a-rate input signals 
+
+
+ \emph{mac}
+ multiplies and accumulates a- and k-rate signals. It is equivalent to: 
+
+
+         ar = asig1 + ksig1*asig2 + ksig2+asig3 + ...\\ 
+       
+\subsection*{See Also}
+
+
+ \emph{maca}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cccc}
+Author: John ffitch &University of Bath, Codemist, Ltd. &Bath, UK &May 1999
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 3.54
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+lpslot &Up &maca
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

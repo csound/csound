@@ -1,0 +1,60 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{e Statement}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{e Statement}
+e statement --  This statement may be used to mark the end of the last section of the score. \subsection*{Description}
+
+
+  This statement may be used to mark the end of the last section of the score. 
+\subsection*{Syntax}
+
+
+ \textbf{e}
+ anything
+\subsection*{Performance}
+
+
+  All pfields are ignored. 
+\subsubsection*{Special Considerations}
+
+
+  The \emph{e statement}
+ is contextually identical to an \emph{s statement}
+. Additionally, the \emph{e statement}
+ terminates all signal generation (including indefinite performance) and closes all input and output files. 
+
+
+  If an \emph{e statement}
+ occurs before the end of a score, all subsequent score lines will be ignored. 
+
+
+  The \emph{e statement}
+ is optional in a score file yet to be sorted. If a score file has no \emph{e statement}
+, then Sort processing will supply one. 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+b Statement &Up &f Statement (or Function Table Statement)
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

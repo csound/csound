@@ -1,0 +1,93 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{gain}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{gain}
+gain --  Adjusts the amplitude audio signal according to a root-mean-square value. \subsection*{Description}
+
+
+  Adjusts the amplitude audio signal according to a root-mean-square value. 
+\subsection*{Syntax}
+
+
+ ar \textbf{gain}
+ asig, krms [, ihp] [, iskip]
+\subsection*{Initialization}
+
+
+ \emph{ihp}
+ (optional, default=10) -- half-power point (in Hz) of a special internal low-pass filter. The default value is 10. 
+
+
+ \emph{iskip}
+ (optional, default=0) -- initial disposition of internal data space (see \emph{reson}
+). The default value is 0. 
+\subsection*{Performance}
+
+
+ \emph{asig}
+ -- input audio signal 
+
+
+ \emph{gain}
+ provides an amplitude modification of \emph{asig}
+ so that the output \emph{ar}
+ has rms power equal to \emph{krms}
+. \emph{rms}
+ and \emph{gain}
+ used together (and given matching \emph{ihp}
+ values) will provide the same effect as \emph{balance}
+. 
+\subsection*{Examples}
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+asrc \emph{buzz}
+    10000,440, sr/440, 1 ; band-limited pulse train
+a1   \emph{reson}
+   asrc, 1000,100       ; sent through
+a2   \emph{reson}
+   a1,3000,500          ; 2 filters
+afin \emph{balance}
+ a2, asrc             ; then balanced with source
+        
+\end{lstlisting}
+
+
+ 
+\subsection*{See Also}
+
+
+ \emph{balance}
+, \emph{rms}
+
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+ftsr &Up &gauss
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,79 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{FLsetTextColor}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{FLsetTextColor}
+FLsetTextColor --  Sets the color of the text label of a FLTK widget. \subsection*{Description}
+
+
+ \emph{FLsetTextColor}
+ sets the color of the text label of the target widget. 
+\subsection*{Syntax}
+
+
+ \textbf{FLsetTextColor}
+ isize, ihandle
+\subsection*{Initialization}
+
+
+ \emph{isize}
+ -- size of the font of the target widget. Normal values are in the order of 15. Greater numbers enlarge font size, while smaller numbers reduce it. 
+
+
+ \emph{ihandle}
+ -- an integer number (used as unique identifier) taken from the output of a previously located widget opcode (which corresponds to the target widget). It is used to unequivocally identify the widget when modifying its appearance with this class of opcodes. The user must not set the \emph{ihandle}
+ value directly, otherwise a Csound crash will occur. 
+\subsection*{See Also}
+
+
+ \emph{FLcolor}
+, \emph{FLcolor2}
+, \emph{FLhide}
+, \emph{FLlabel}
+, \emph{FLsetAlign}
+, \emph{FLsetBox}
+, \emph{FLsetColor}
+, \emph{FLsetColor2}
+, \emph{FLsetFont}
+, \emph{FLsetPosition}
+, \emph{FLsetSize}
+, \emph{FLsetText}
+, \emph{FLsetTextSize}
+, \emph{FLsetTextType}
+, \emph{FLsetVal\_i}
+, \emph{FLsetVal}
+, \emph{FLshow}
+
+\subsection*{Credits}
+
+
+ Author: Gabriel Maldonado
+
+
+ New in version 4.22
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+FLsetText &Up &FLsetTextSize
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

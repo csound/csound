@@ -1,0 +1,78 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{atonek}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{atonek}
+atonek --  A notch filter whose transfer functions are the complements of the tone opcode. \subsection*{Description}
+
+
+  A notch filter whose transfer functions are the complements of the tone opcode. 
+\subsection*{Syntax}
+
+
+ kr \textbf{atonek}
+ ksig, khp [, iskip]
+\subsection*{Initialization}
+
+
+ \emph{iskip}
+ (optional, default=0) -- initial disposition of internal data space. Since filtering incorporates a feedback loop of previous output, the initial status of the storage space used is significant. A zero value will clear the space; a non-zero value will allow previous information to remain. The default value is 0. 
+\subsection*{Performance}
+
+
+ \emph{kr}
+ -- the output signal at control-rate. 
+
+
+ \emph{ksig}
+ -- the input signal at control-rate. 
+
+
+ \emph{khp}
+ -- the response curve's half-power point, in Hertz. Half power is defined as peak power / root 2. 
+
+
+ \emph{atonek}
+ is a filter whose transfer functions is the complement of \emph{tonek}
+. \emph{atonek}
+ is thus a form of high-pass filter whose transfer functions represent the ``filtered out'' aspects of their complements. However, power scaling is not normalized in \emph{atonek}
+ but remains the true complement of the corresponding unit. 
+\subsection*{See Also}
+
+
+ \emph{areson}
+, \emph{aresonk}
+, \emph{atone}
+, \emph{port}
+, \emph{portk}
+, \emph{reson}
+, \emph{resonk}
+, \emph{tone}
+, \emph{tonek}
+
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+atone &Up &atonex
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,128 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{Compiling a Cscore Program}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous &Cscore &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{Compiling a Cscore Program}
+
+
+  A \emph{Cscore}
+ program can be invoked either as a Standalone program or as part of Csound: 
+
+
+ 
+\begin{lstlisting}
+\emph{cscore -U pvanal}
+ scorename outfilename
+      
+\end{lstlisting}
+
+
+ 
+ or 
+
+ 
+\begin{lstlisting}
+\emph{csound}
+ -C [otherflags] orchname scorename
+      
+\end{lstlisting}
+
+
+ 
+
+
+  To create a standalone program, write a \emph{cscore.c}
+ program as shown above and test compile it with '\emph{cc cscore.c'}
+. If the compiler cannot find ``\emph{cscore.h}
+``, try using \emph{-I/usr/local/include}
+, or just copy the \emph{cscore.h }
+module from the Csound source directory into your own. There will still be unresolved references, so you must now link your program with certain Csound\emph{ }
+I/O modules. If your\emph{ }
+Csound installation has created a \emph{libcscore.a}
+, you can type 
+
+
+ 
+\begin{lstlisting}
+cc -o cscore.c -lcscore
+      
+\end{lstlisting}
+
+
+ 
+ Else set an environment variable to a Csound directory containing the already compiled modules, and invoke them explicitly: 
+
+ 
+\begin{lstlisting}
+setenv CSOUND /ti/u/bv/Csound
+  cc -o cscore cscore.c $CSOUND/cscoremain.o $CSOUND/cscorefns.o \
+    $CSOUND/rdscore.o $CSOUND/memalloc.o
+      
+\end{lstlisting}
+
+
+ 
+
+
+  The resulting executable can be applied to an input scorefilein by typing: 
+
+
+ 
+\begin{lstlisting}
+cscore scorefilein scorefileout
+      
+\end{lstlisting}
+
+
+ 
+
+
+  To operate from CSound, first proceed as above then link your program to a complete set of Csound\emph{ }
+modules. If your Csound installation has created a \emph{libcsound.a}
+, you can do this by typing 
+
+
+ 
+\begin{lstlisting}
+cc -o mycsound cscore.o -lcsounc -lX11 -lm (X11 if your installation included it)
+      
+\end{lstlisting}
+
+
+ 
+ Else copy \emph{*.c, *.h}
+ and \emph{Makefile}
+ from the Csound source directory, replace \emph{cscore.c}
+ by your own, then run ``\textbf{make CSound}
+``. The resulting executable is your own special Csound, usable as above. The \emph{-C flag}
+ will invoke your \emph{Cscore}
+ program after the input score is sorted into ``\emph{score.srt}
+``. With no \emph{lplay}
+, the subsequent stages of processing can be seen in the files ``\emph{cscore.out}
+`` and ``\emph{cscore.srt}
+``. %\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+More Advanced Examples &Up &Adding your own Cmodules to Csound
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,91 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{midion}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{midion}
+midion --  Plays MIDI notes. \subsection*{Description}
+
+
+  Plays MIDI notes. 
+\subsection*{Syntax}
+
+
+ \textbf{midion}
+ kchn, knum, kvel
+\subsection*{Performance}
+
+
+ \emph{kchn}
+ -- MIDI channel number (1-16) 
+
+
+ \emph{knum}
+ -- note number (0-127) 
+
+
+ \emph{kvel}
+ -- velocity (0-127) 
+
+
+ \emph{midion}
+ (k-rate note on) plays MIDI notes with current \emph{kchn}
+, \emph{knum}
+ and \emph{kvel}
+. These arguments can be varied at k-rate. Each time the MIDI converted value of any of these arguments changes, last MIDI note played by current instance of \emph{midion}
+ is immediately turned off and a new note with the new argument values is activated. This opcode, as well as \emph{moscil}
+, can generate very complex melodic textures if controlled by complex k-rate signals. 
+
+
+  Any number of \emph{midion}
+ opcodes can appear in the same Csound instrument, allowing a counterpoint-style polyphony within a single instrument. 
+\subsection*{See Also}
+
+
+ \emph{moscil}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Gabriel Maldonado &Italy &May 1997
+
+\end{tabular}
+
+
+
+ 
+
+
+ Thanks goes to Rasmus Ekman for pointing out the correct MIDI channel and controller number ranges.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+midinoteonpch &Up &midion2
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

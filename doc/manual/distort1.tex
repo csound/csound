@@ -1,0 +1,147 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{distort1}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{distort1}
+distort1 --  Modified hyperbolic tangent distortion. \subsection*{Description}
+
+
+  Implementation of modified hyperbolic tangent distortion. \emph{distort1}
+ can be used to generate wave shaping distortion based on a modification of the \emph{tanh}
+ function. 
+
+
+ 
+
+
+          exp(asig * (pregain + shape1)) - exp(asig*(pregain+shape2))\\ 
+   aout = -----------------------------------------------------------\\ 
+          exp(asig*pregain)              + exp(-asig*pregain)\\ 
+       
+\subsection*{Syntax}
+
+
+ ar \textbf{distort1}
+ asig, kpregain, kpostgain, kshape1, kshape2
+\subsection*{Performance}
+
+
+ \emph{asig - }
+is the input signal. 
+
+
+ \emph{kpregain}
+ -- determines the amount of gain applied to the signal before waveshaping. A value of 1 gives slight distortion. 
+
+
+ \emph{kpostgain}
+ -- determines the amount of gain applied to the signal after waveshaping. 
+
+
+ \emph{kshape1}
+ -- determines the shape of the positive part of the curve. A value of 0 gives a flat clip, small positive values give sloped shaping. 
+
+
+ \emph{kshape2}
+ -- determines the shape of the negative part of the curve. 
+\subsection*{Examples}
+
+
+  Here is an example of the distort1 opcode. It uses the files \emph{distort1.orc}
+ and \emph{distort1.sco}
+. 
+
+
+ \textbf{Example 1. Example of the distort1 opcode.}
+
+\begin{lstlisting}
+/* distort1.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 2
+
+gadist init 0
+  
+instr 1
+  iamp = p4
+  ifqc = cpspch(p5)
+  asig pluck iamp, ifqc, ifqc, 0, 1
+  gadist = gadist + asig
+endin
+  
+instr 50
+  kpre init p4
+  kpost init p5
+  kshap1 init p6
+  kshap2 init p7
+  aout distort1 gadist, kpre, kpost, kshap1, kshap2
+
+  outs aout, aout
+
+  gadist = 0
+endin
+/* distort1.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* distort1.sco */
+;   Sta  Dur  Amp    Pitch
+i1  0.0  3.0  10000  6.00
+i1  0.5  2.5  10000  7.00
+i1  1.0  2.0  10000  7.07
+i1  1.5  1.5  10000  8.00
+  
+;   Sta  Dur  PreGain PostGain Shape1 Shape2
+i50 0    3    2       1        0      0
+e
+/* distort1.sco */
+        
+\end{lstlisting}
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Author: Hans Mikelson &December 1998
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 3.50
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+display &Up &divz
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,142 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{cabasa}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{cabasa}
+cabasa --  Semi-physical model of a cabasa sound. \subsection*{Description}
+
+
+ \emph{cabasa}
+ is a semi-physical model of a cabasa sound. It is one of the PhISEM percussion opcodes. PhISEM (Physically Informed Stochastic Event Modeling) is an algorithmic approach for simulating collisions of multiple independent sound producing objects. 
+\subsection*{Syntax}
+
+
+ ar \textbf{cabasa}
+ iamp, idettack [, inum] [, idamp] [, imaxshake]
+\subsection*{Initialization}
+
+
+ \emph{iamp}
+ -- Amplitude of output. Note: As these instruments are stochastic, this is only a approximation. 
+
+
+ \emph{idettack}
+ -- period of time over which all sound is stopped 
+
+
+ \emph{inum}
+ (optional) -- The number of beads, teeth, bells, timbrels, etc. If zero, the default value is 512. 
+
+
+ \emph{idamp}
+ (optional) -- the damping factor, as part of this equation: 
+
+
+ damping\_amount = 0.998 + (idamp * 0.002)
+
+
+  The default \emph{damping\_amount}
+ is 0.997 which means that the default value of \emph{idamp}
+ is -0.5. The maximum \emph{damping\_amount}
+ is 1.0 (no damping). This means the maximum value for \emph{idamp}
+ is 1.0. 
+
+
+  The recommended range for \emph{idamp}
+ is usually below 75\% of the maximum value. 
+
+
+ \emph{imaxshake}
+ (optional) -- amount of energy to add back into the system. The value should be in range 0 to 1. 
+\subsection*{Examples}
+
+
+  Here is an example of the cabasa opcode. It uses the files \emph{cabasa.orc}
+ and \emph{cabasa.sco}
+. 
+
+
+ \textbf{Example 1. Example of the cabasa opcode.}
+
+\begin{lstlisting}
+/* cabasa.orc */
+;orchestra ---------------
+
+  sr =           44100
+  kr =            4410
+  ksmps =              10
+  nchnls =               1
+
+          instr 01                  ;an example of a cabasa
+a1      cabasa p4, 0.01
+          out a1
+          endin
+/* cabasa.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* cabasa.sco */
+;score -------------------
+
+   i1 0 1 26000
+   e
+/* cabasa.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{crunch}
+, \emph{sandpaper}
+, \emph{sekere}
+, \emph{stix}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cccc}
+Author: Perry Cook, part of the PhISEM (Physically Informed Stochastic Event Modeling) &Adapted by John ffitch &University of Bath, Codemist Ltd. &Bath, UK
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 4.07
+
+
+ Added notes by Rasmus Ekman on May 2002.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+buzz &Up &cauchy
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

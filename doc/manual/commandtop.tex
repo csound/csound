@@ -1,0 +1,68 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{The Csound Command}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{The Csound Command}
+
+
+ \emph{Csound}
+ is a command for passing anorchestra file andscore file to Csound to generate a soundfile. The score file can be in one of many different formats, according to user preference. Translation, sorting, and formatting into orchestra-readable numeric text is handled by various preprocessors; all or part of the score is then sent on to the orchestra. Orchestra performance is influenced by command flags, which set the level of displays and console reports, specify I/0 filenames and sample formats, and declare the nature of real-time sensing and control. 
+\section{Order of Precedence}
+
+
+  With some recent additions to Csound, there are now three places (and in some cases four) where options for Csound performance may be set. They are processed in the following order: 
+
+
+ 
+\begin{enumerate}
+\item 
+
+ Csound's own defaults
+
+\item 
+
+ .csoundrc file
+
+\item 
+
+ Csound command line
+
+\item 
+
+ $<$CsOptions$>$ tag in a .csd file
+
+\item 
+
+ Orchestra header (for sr, kr, ksmps, nchnls)
+
+
+\end{enumerate}
+
+
+  The last assignment of an option will override any earlier ones. 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+The Csound Mailing List &Up &Description
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,120 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{FLsavesnap}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{FLsavesnap}
+FLsavesnap --  Saves all snapshots currently created into a file. \subsection*{Description}
+
+
+ \emph{FLsavesnap}
+ saves all snapshots currently created (i.e. the entire memory bank) into a file. 
+\subsection*{Syntax}
+
+
+ \textbf{FLsavesnap}
+ ``filename''
+\subsection*{Initialization}
+
+
+ \emph{``filename''}
+ -- a double-quoted string corresponding to a file to store a bank of snapshots. 
+\subsection*{Performance}
+
+
+ \emph{FLsavesnap}
+ saves all snapshots currently created (i.e. the entire memory bank) into a file whose name is \emph{filename}
+. Since the file is a text file, snapshot values can also be edited manually by means of a text editor. The format of the data stored in the file is the following (at present time, this could be changed in next Csound version): 
+
+
+ 
+\begin{lstlisting}
+----------- 0 -----------
+FLvalue 0 0 1 0 ""
+FLvalue 0 0 1 0 ""
+FLvalue 0 0 1 0 ""
+FLslider 331.946 80 5000 -1 "frequency of the first oscillator"
+FLslider 385.923 80 5000 -1 "frequency of the second oscillator"
+FLslider 80 80 5000 -1 "frequency of the third oscillator"
+FLcount 0 0 10 0 "this index must point to the location number where snapshot is stored"
+FLbutton 0 0 1 0 "Store snapshot to current index"
+FLbutton 0 0 1 0 "Save snapshot bank to disk"
+FLbutton 0 0 1 0 "Load snapshot bank from disk"
+FLbox 0 0 1 0 ""
+----------- 1 -----------
+FLvalue 0 0 1 0 ""
+FLvalue 0 0 1 0 ""
+FLvalue 0 0 1 0 ""
+FLslider 819.72 80 5000 -1 "frequency of the first oscillator"
+FLslider 385.923 80 5000 -1 "frequency of the second oscillator"
+FLslider 80 80 5000 -1 "frequency of the third oscillator"
+FLcount 1 0 10 0 "this index must point to the location number where snapshot is stored"
+FLbutton 0 0 1 0 "Store snapshot to current index"
+FLbutton 0 0 1 0 "Save snapshot bank to disk"
+FLbutton 0 0 1 0 "Load snapshot bank from disk"
+FLbox 0 0 1 0 ""
+----------- 2 -----------
+..... etc...
+----------- 3 -----------
+..... etc...
+---------------------------
+        
+\end{lstlisting}
+
+
+ 
+
+
+  As you can see, each snapshot contain several lines. Each snapshot is separated from previous and next snapshot by a line of this kind: 
+
+
+ ``----------- snapshot Num -----------''\\ 
+       
+ Then there are several lines containing data. Each of these lines corresponds to a widget. 
+
+  The first field of each line is an unquoted string containing opcode name corresponding to that widget. Second field is a number that expresses current value of a snapshot. In current version, this is the only field that can be modified manually. The third and fourth fields shows minimum and maximum values allowed for that valuator. The fifth field is a special number that indicates if the valuator is linear (value 0), exponential (value -1), or is indexed by a table interpolating values (negative table numbers) or non-interpolating (positive table numbers). The last field is a quoted string with the label of the widget. Last line of the file is always 
+
+
+ ``---------------------------''\\ 
+     
+. \subsection*{See Also}
+
+
+ \emph{FLgetsnap}
+, \emph{FLloadsnap}
+, \emph{FLrun}
+, \emph{FLsetsnap}
+, \emph{FLupdate}
+
+\subsection*{Credits}
+
+
+ Author: Gabriel Maldonado
+
+
+ New in version 4.22
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+FLrun &Up &FLscroll
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

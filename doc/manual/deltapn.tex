@@ -1,0 +1,148 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{deltapn}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{deltapn}
+deltapn --  Taps a delay line at variable offset times. \subsection*{Description}
+
+
+  Tap a delay line at variable offset times. 
+\subsection*{Syntax}
+
+
+ ar \textbf{deltapn}
+ xnumsamps
+\subsection*{Performance}
+
+
+ \emph{xnumsamps}
+ -- specifies the tapped delay time in number of samples. Each can range from 1 control period to the full delay time of the read/write pair; however, since there is no internal check for adherence to this range, the user is wholly responsible. Each argument can be a constant, a variable, or a time-varying signal. 
+
+
+ \emph{deltapn}
+ is identical to \emph{deltapi}
+, except delay time is specified in number of samples, instead of seconds (Hans Mikelson). 
+
+
+  This opcode can tap into a \emph{delayr}
+/\emph{delayw}
+ pair, extracting delayed audio from the \emph{idlt}
+ seconds of stored sound. There can be any number of \emph{deltap}
+ and/or \emph{deltapi}
+ units between a read/write pair. Each receives an audio tap with no change of original amplitude. 
+
+
+  This opcode can provide multiple delay taps for arbitrary delay path and feedback networks. They can deliver either constant-time or time-varying taps, and are useful for building chorus effects, harmonizers, and Doppler shifts. Constant-time delay taps (and some slowly changing ones) do not need interpolated readout; they are well served by \emph{deltap}
+. Medium-paced or fast varying dlt's, however, will need the extra services of \emph{deltapi}
+. 
+
+
+ \emph{delayr}
+/\emph{delayw}
+ pairs may be interleaved. To associate a delay tap unit with a specific \emph{delayr}
+ unit, it not only has to be located between that \emph{delayr}
+ and the appropriate \emph{delayw}
+ unit, but must also precede any following \emph{delayr}
+ units. See Example 2. (This feature added in Csound version 3.57 by Jens Groh and John ffitch). 
+
+
+ \emph{N.B.}
+ k-rate delay times are not internally interpolated, but rather lay down stepped time-shifts of audio samples; this will be found quite adequate for slowly changing tap times. For medium to fast-paced changes, however, one should provide a higher resolution audio-rate timeshift as input. 
+\subsection*{Examples}
+
+
+ 
+
+
+ \textbf{Example 1. deltap example \#1}
+
+\begin{lstlisting}
+  asource  \emph{buzz}
+      1, 440, 20, 1
+  atime    \emph{linseg}
+    1, p3/2,.01, p3/2,1   ; trace a distance in secs
+  ampfac   \emph{=}
+         1/atime/atime         ; and calc an amp factor
+  adump    \emph{delayr}
+    1                     ; set maximum distance
+  amove    \emph{deltapi}
+   atime                 ; move sound source past
+           \emph{delayw}
+    asource               ; the listener
+           \emph{out}
+       amove * ampfac
+        
+\end{lstlisting}
+
+
+ 
+
+
+ \textbf{Example 2. deltap example \#2}
+
+\begin{lstlisting}
+  ainput1 =	..... 
+  ainput2 =	..... 
+  kdlyt1  =	..... 
+  kdlyt2  =	..... 
+
+;Read delayed signal, first delayr instance:
+  adump   \emph{delayr}
+  4.0 
+  adly1   \emph{deltap}
+  kdlyt1       ;associated with first delayr instance 
+
+;Read delayed signal, second delayr instance:
+  adump   \emph{delayr}
+  4.0 
+  adly2   \emph{deltap}
+  kdlyt2       ; associated with second delayr instance 
+
+;Do some cross-coupled manipulation: 
+  afdbk1  =       0.7 * adly1 + 0.7 * adly2 + ainput1 
+  afdbk2  =       -0.7 * adly1 + 0.7 * adly2 + ainput2 
+
+;Feed back signal, associated with first delayr instance: 
+          \emph{delayw}
+  afdbk1 
+
+;Feed back signal, associated with second delayr instance: 
+          \emph{delayw}
+  afdbk2
+          \emph{outs}
+    adly1, adly2
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{deltap}
+, \emph{deltap3}
+, \emph{deltapi}
+
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+deltapi &Up &deltapx
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,148 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{gauss}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{gauss}
+gauss --  Gaussian distribution random number generator. \subsection*{Description}
+
+
+  Gaussian distribution random number generator. This is an x-class noise generator. 
+\subsection*{Syntax}
+
+
+ ar \textbf{gauss}
+ krange
+
+
+ ir \textbf{gauss}
+ krange
+
+
+ kr \textbf{gauss}
+ krange
+\subsection*{Performance}
+
+
+ \emph{krange}
+ -- the range of the random numbers (-\emph{krange}
+ to +\emph{krange}
+). Outputs both positive and negative numbers. 
+
+
+  For more detailed explanation of these distributions, see: 
+
+
+ 
+\begin{enumerate}
+\item 
+
+ C. Dodge - T.A. Jerse 1985. Computer music. Schirmer books. pp.265 - 286
+
+\item 
+
+ D. Lorrain. A panoply of stochastic cannons. In C. Roads, ed. 1989. Music machine . Cambridge, Massachusetts: MIT press, pp. 351 - 379.
+
+
+\end{enumerate}
+\subsection*{Examples}
+
+
+  Here is an example of the gauss opcode. It uses the files \emph{gauss.orc}
+ and \emph{gauss.sco}
+. 
+
+
+ \textbf{Example 1. Example of the gauss opcode.}
+
+\begin{lstlisting}
+/* gauss.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  ; Generate a random number between -1 and 1.
+  ; krange = 1
+
+  i1 gauss 1
+
+  print i1
+endin
+/* gauss.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* gauss.sco */
+; Play Instrument #1 for one second.
+i 1 0 1
+e
+/* gauss.sco */
+        
+\end{lstlisting}
+ Its output should include a line like this: \begin{lstlisting}
+instr 1:  i1 = 0.252
+      
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{betarand}
+, \emph{bexprnd}
+, \emph{cauchy}
+, \emph{exprand}
+, \emph{linrand}
+, \emph{pcauchy}
+, \emph{poisson}
+, \emph{trirand}
+, \emph{unirand}
+, \emph{weibull}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Paris Smaragdis &MIT, Cambridge &1995
+
+\end{tabular}
+
+
+
+ 
+
+
+ Example written by Kevin Conder.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+gain &Up &gbuzz
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,108 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{noteondur2}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{noteondur2}
+noteondur2 --  Sends a noteon and a noteoff MIDI message both with the same channel, number and velocity. \subsection*{Description}
+
+
+  Sends a noteon and a noteoff MIDI message both with the same channel, number and velocity. 
+\subsection*{Syntax}
+
+
+ \textbf{noteondur2}
+ ichn, inum, ivel, idur
+\subsection*{Initialization}
+
+
+ \emph{ichn}
+ -- MIDI channel number (1-16) 
+
+
+ \emph{inum}
+ -- note number (0-127) 
+
+
+ \emph{ivel}
+ -- velocity (0-127) 
+
+
+ \emph{idur}
+ -- how long, in seconds, this note should last. 
+\subsection*{Performance}
+
+
+ \emph{noteondur2}
+ (i-rate note on with duration) sends a noteon and a noteoff MIDI message both with the same channel, number and velocity. Noteoff message is sent after \emph{idur}
+ seconds are elapsed by the time \emph{noteondur2}
+ was active. 
+
+
+ \emph{noteondur}
+ differs from \emph{noteondur2}
+ in that \emph{noteondur}
+ truncates note duration when current instrument is deactivated by score or by real-time playing, while \emph{noteondur2}
+ will extend performance time of current instrument until \emph{idur}
+ seconds have elapsed. In real-time playing, it is suggested to use \emph{noteondur}
+ also for undefined durations, giving a large \emph{idur}
+ value. 
+
+
+  Any number of \emph{noteondur2}
+ opcodes can appear in the same Csound instrument, allowing chords to be played by a single instrument. 
+\subsection*{See Also}
+
+
+ \emph{noteoff}
+, \emph{noteon}
+, \emph{noteondur}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Author: Gabriel Maldonado &Italy
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 3.47
+
+
+ Thanks goes to Rasmus Ekman for pointing out the correct MIDI channel and controller number ranges.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+noteondur &Up &notnum
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,111 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{cvanal}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{cvanal}
+cvanal --  Converts a soundfile into a single Fourier transform frame. \subsection*{Description}
+
+
+  Impulse Response Fourier Analysis for \emph{convolve}
+ operator 
+\subsection*{Syntax}
+
+
+ \textbf{CSound -U cvanal}
+ [flags] infilename outfilename
+\subsection*{Initialization}
+
+
+ \emph{cvanal}
+ -- converts a soundfile into a single Fourier transform frame. The output file can be used by the \emph{convolve}
+ operator to perform Fast Convolution between an input signal and the original impulse response. Analysis is conditioned by the flags below. A space is optional between the flag and its argument. 
+
+
+ \emph{-s rate}
+ -- sampling rate of the audio input file. This will over-ride the srate of the soundfile header, which otherwise applies. If neither is present, the default is 10000. 
+
+
+ \emph{-c channel}
+ -- channel number sought. If omitted, the default is to process all channels. If a value is given, only the selected channel will be processed. 
+
+
+ \emph{-b begin}
+ -- beginning time (in seconds) of the audio segment to be analyzed. The default is 0.0 
+
+
+ \emph{-d duration}
+ -- duration (in seconds) of the audio segment to be analyzed. The default of 0.0 means to the end of the file. 
+\subsection*{Examples}
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+\emph{cvanal}
+ asound cvfile
+        
+\end{lstlisting}
+
+
+ 
+ will analyze the soundfile ``asound'' to produce the file ``cvfile'' for the use with \emph{convolve}
+. 
+
+  To use data that is not already contained in a soundfile, a soundfile converter that accepts text files may be used to create a standard audio file, e.g., the .DAT format for SOX. This is useful for implementing FIR filters. 
+\subsubsection*{Files}
+
+
+  The output file has a special \emph{convolve}
+ header, containing details of the source audio file. The analysis data is stored as ``float'', in rectangular (real/imaginary) form. 
+
+
+ 
+
+
+\begin{tabular}{cc}
+\textbf{Note}
+ \\
+  &
+
+  The analysis file is \emph{not}
+ system independent! Ensure that the original impulse recording/data is retained. If/when required, the analysis file can be recreated. 
+
+
+\end{tabular}
+
+\subsection*{Credits}
+
+
+ Author: Greg Sullivan
+
+
+ Based on algorithm given in \emph{Elements Of Computer Music}
+, by F. Richard Moore.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+pvanal &Up &File Queries
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

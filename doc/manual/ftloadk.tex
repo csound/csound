@@ -1,0 +1,92 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{ftloadk}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{ftloadk}
+ftloadk --  Load a set of previously-allocated tables from a file. \subsection*{Description}
+
+
+  Load a set of previously-allocated tables from a file. 
+\subsection*{Syntax}
+
+
+ \textbf{ftloadk}
+ ``filename'', ktrig, iflag, ifn1 [, ifn2] [...]
+\subsection*{Initialization}
+
+
+ \emph{``filename''}
+ -- A quoted string containing the name of the file to load. 
+
+
+ \emph{iflag}
+ -- Type of the file to load/save. (0 = binary file, Non-zero = text file) 
+
+
+ \emph{ifn1, ifn2, ...}
+ -- Numbers of tables to load. 
+\subsection*{Performance}
+
+
+ \emph{ktrig}
+ -- The trigger signal. Load the file each time it is non-zero. 
+
+
+ \emph{ftloadk}
+ loads a list of tables from a file. (The tables have to be already allocated though.) The file's format can be binary or text. Unlike \emph{ftload}
+, the loading operation can be repeated numerous times within the same note by using a trigger signal. 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Warning &\textbf{Warning}
+ \\
+  &
+
+  The file's format is not compatible with a WAV-file and is not endian-safe. 
+
+
+\end{tabular}
+
+\subsection*{See Also}
+
+
+ \emph{ftload}
+, \emph{ftsavek}
+, \emph{ftsave}
+
+\subsection*{Credits}
+
+
+ Author: Gabriel Maldonado
+
+
+ New in version 4.21
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+ftload &Up &ftlptim
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

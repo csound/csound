@@ -1,0 +1,135 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{fprintks}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{fprintks}
+fprintks --  Similar to printks but prints to a file. \subsection*{Description}
+
+
+  Similar to \emph{printks}
+ but prints to a file. 
+\subsection*{Syntax}
+
+
+ \textbf{fprintks}
+ ``filename'', ``string'', [, kval1] [, kval2] [...]
+\subsection*{Initialization}
+
+
+ \emph{``filename''}
+ -- name of the output file. 
+
+
+ \emph{``string''}
+ -- the text string to be printed. Can be up to 8192 characters and must be in double quotes. 
+\subsection*{Performance}
+
+
+ \emph{kval1, kval2, ...}
+ (optional) -- The k-rate values to be printed. These are specified in \emph{``string''}
+ with the standard C value specifier (\%f, \%d, etc.) in the order given. 
+
+
+ \emph{fprintks}
+ is similar to the \emph{printks}
+ opcode except it outputs to a file and doesn't have a \emph{itime}
+ parameter. For more information about output formatting, please look at \emph{printks's documentation}
+. 
+\subsection*{Examples}
+
+
+  Here is an example of the fprintks opcode. It uses the files \emph{fprintks.orc}
+ and \emph{fprintks.sco}
+. 
+
+
+ \textbf{Example 1. Example of the fprintks opcode.}
+
+\begin{lstlisting}
+/* fprintks.orc */
+/* Written by Matt Ingalls, edited by Kevin Conder. */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1 - a score generator example.
+instr 1
+  ; K-rate stuff.
+  kstart init 0
+  kdur linrand 10
+  kpitch linrand 8
+
+  ; Printing to to a file called "my.sco".
+  fprintks "my.sco", "i1\\t%2.2f\\t%2.2f\\t%2.2f\\n", kstart, kdur, 4+kpitch
+
+  knext linrand 1
+  kstart = kstart + knext
+endin
+/* fprintks.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* fprintks.sco */
+/* Written by Matt Ingalls, edited by Kevin Conder. */
+; Play Instrument #1.
+i 1 0 0.001
+/* fprintks.sco */
+        
+\end{lstlisting}
+ This example will generate a file called ``my.sco''. It should contain lines like this: \begin{lstlisting}
+i1      0.00    3.94    10.26
+i1      0.20    3.35    6.22
+i1      0.67    3.65    11.33
+i1      1.31    1.42    4.13
+      
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{printks}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Author: Matt Ingalls &January 2003
+
+\end{tabular}
+
+
+
+ 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+foutk &Up &fprints
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

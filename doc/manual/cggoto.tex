@@ -1,0 +1,125 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{cggoto}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{cggoto}
+cggoto --  Conditionally transfer control on every pass. \subsection*{Description}
+
+
+  Transfer control to \emph{label}
+ on every pass. (Combination of \emph{cigoto}
+ and \emph{ckgoto}
+) 
+\subsection*{Syntax}
+
+
+ \textbf{cggoto}
+ condition, label
+
+
+  where \emph{label}
+ is in the same instrument block and is not an expression, and where \emph{R}
+ is one of the Relational operators (\emph{$<$}
+,\emph{ =}
+, \emph{$<$=}
+, \emph{==}
+, \emph{!=}
+) (and \emph{=}
+ for convenience, see also under \emph{Conditional Values}
+). 
+\subsection*{Examples}
+
+
+  Here is an example of the cggoto opcode. It uses the files \emph{cggoto.orc}
+ and \emph{cggoto.sco}
+. 
+
+
+ \textbf{Example 1. Example of the cggoto opcode.}
+
+\begin{lstlisting}
+/* cggoto.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  i1 = 1
+
+  ; If i1 is equal to one, play a high note.
+  ; Otherwise play a low note.
+  cggoto (i1 == 1), highnote
+
+lownote:
+  a1 oscil 10000, 220, 1
+  goto playit
+  
+highnote:
+  a1 oscil 10000, 440, 1
+  goto playit
+
+playit:
+  out a1
+endin
+/* cggoto.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* cggoto.sco */
+; Table #1: a simple sine wave.
+f 1 0 32768 10 1
+
+; Play Instrument #1 for one second.
+i 1 0 1
+e
+/* cggoto.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{cigoto}
+, \emph{ckgoto}
+, \emph{cngoto}
+, \emph{if}
+, \emph{igoto}
+, \emph{kgoto}
+, \emph{tigoto}
+, \emph{timout}
+
+\subsection*{Credits}
+
+
+ Added a note by Jim Aikin.
+
+
+ Example written by Kevin Conder.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+cent &Up &chanctrl
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,136 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{flanger}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{flanger}
+flanger --  A user controlled flanger. \subsection*{Description}
+
+
+  A user controlled flanger. 
+\subsection*{Syntax}
+
+
+ ar \textbf{flanger}
+ asig, adel, kfeedback [, imaxd]
+\subsection*{Initialization}
+
+
+ \emph{imaxd}
+(optional) -- maximum delay in seconds (needed for inital memory allocation) 
+\subsection*{Performance}
+
+
+ \emph{asig}
+ -- input signal 
+
+
+ \emph{adel}
+ -- delay in seconds 
+
+
+ \emph{kfeedback}
+ -- feedback amount (in normal tasks this should not exceed 1, even if bigger values are allowed) 
+
+
+  This unit is useful for generating choruses and flangers. The delay must be varied at a-rate connecting \emph{adel}
+ to an oscillator output. Also the feedback can vary at k-rate. This opcode is implemented to allow \emph{kr}
+ different than \emph{sr}
+ (else delay could not be lower than \emph{ksmps}
+) enhancing realtime performance. This unit is very similar to \emph{wguide1}
+, the only difference is \emph{flanger}
+ does not have the lowpass filter. 
+\subsection*{Examples}
+
+
+  Here is an example of the flanger opcode. It uses the files \emph{flanger.orc}
+, \emph{flanger.sco}
+, and \emph{beats.wav}
+. 
+
+
+ \textbf{Example 1. Example of the flanger opcode.}
+
+\begin{lstlisting}
+/* flanger.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  ; Use the "beat.wav" audio file.
+  asig soundin "beats.wav"
+
+  ; Vary the delay amount from 0 to 0.01 seconds.
+  adel line 0, p3, 0.01
+  kfeedback = 0.7
+
+  ; Apply flange to the input signal.
+  aflang flanger asig, adel, kfeedback
+
+  ; It can get loud, so clip its amplitude to 30,000.
+  a1 clip aflang, 1, 30000
+  out a1
+endin
+/* flanger.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* flanger.sco */
+; Play Instrument #1 for two seconds.
+i 1 0 2
+e
+/* flanger.sco */
+        
+\end{lstlisting}
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Author: Gabriel Maldonado &Italy
+
+\end{tabular}
+
+
+
+ 
+
+
+ Example written by Kevin Conder.
+
+
+ New in Csound version 3.49
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+fiopen &Up &flashtxt
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

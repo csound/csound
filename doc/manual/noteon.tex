@@ -1,0 +1,101 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{noteon}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{noteon}
+noteon --  Send a noteon message to the MIDI OUT port. \subsection*{Description}
+
+
+  Send a noteon message to the MIDI OUT port. 
+\subsection*{Syntax}
+
+
+ \textbf{noteon}
+ ichn, inum, ivel
+\subsection*{Initialization}
+
+
+ \emph{ichn}
+ -- MIDI channel number (1-16) 
+
+
+ \emph{inum}
+ -- note number (0-127) 
+
+
+ \emph{ivel}
+ -- velocity (0-127) 
+\subsection*{Performance}
+
+
+ \emph{noteon}
+ (i-rate note on) and \emph{noteoff}
+ (i-rate note off) are the simplest MIDI OUT opcodes. \emph{noteon}
+ sends a MIDI noteon message to MIDI OUT port, and \emph{noteoff}
+ sends a noteoff message. A \emph{noteon}
+ opcode must always be followed by an \emph{noteoff}
+ with the same channel and number inside the same instrument, otherwise the note will play endlessly. 
+
+
+  These \emph{noteon}
+ and \emph{noteoff}
+ opcodes are useful only when introducing a \emph{timout}
+ statement to play a non-zero duration MIDI note. For most purposes, it is better to use \emph{noteondur}
+ and \emph{noteondur2}
+. 
+\subsection*{See Also}
+
+
+ \emph{noteoff}
+, \emph{noteondur}
+, \emph{noteondur2}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Author: Gabriel Maldonado &Italy
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 3.47
+
+
+ Thanks goes to Rasmus Ekman for pointing out the correct MIDI channel and controller number ranges.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+noteoff &Up &noteondur
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}
