@@ -1570,7 +1570,7 @@ int useropcd2(ENVIRON *csound, UOPCODE *p)
 int turnoff2(ENVIRON *csound, TURNOFF2 *p)
 {
     MYFLT p1;
-    INSDS *ip;
+    INSDS *ip, *ip2;
     int   mode, insno, allow_release;
 
     if (*(p->kInsNo) <= FL(0.0))
@@ -1588,31 +1588,37 @@ int turnoff2(ENVIRON *csound, TURNOFF2 *p)
       return NOTOK;
     }
     ip = &actanchor;
-    while ((ip = ip->nxtact) != NULL) {
-      if (((!(mode & 4) && (int) ip->insno == insno) ||
-           ((mode & 4) && ip->p1 == p1)) &&
-          (!(mode & 8) || ip->offtim < 0.0)) {
-        if ((mode & 3) == 2) {
-          /* newest only */
-          if (ip->nxtact != NULL &&
-              (((!(mode & 4) && (int) ip->nxtact->insno == insno) ||
-                ((mode & 4) && ip->nxtact->p1 == p1)) &&
-               (!(mode & 8) || ip->nxtact->offtim < 0.0)))
-            continue;
-        }
+    ip2 = NULL;
+    while ((ip = ip->nxtact) != NULL && (int) ip->insno != insno);
+    if (ip == NULL)
+      return OK;
+    do {
+      if (((mode & 8) && ip->offtim >= 0.0) ||
+          ((mode & 4) && ip->p1 != p1) ||
+          (allow_release && ip->relesing))
+        continue;
+      if (!(mode & 3)) {
         if (allow_release)
           xturnoff(csound, ip);
         else
           xturnoff_now(csound, ip);
-        if ((mode & 3) == 1)
-          break;        /* oldest only */
       }
+      else {
+        ip2 = ip;
+        if ((mode & 3) == 1)
+          break;
+      }
+    } while ((ip = ip->nxtact) != NULL && (int) ip->insno == insno);
+    if (ip2 != NULL) {
+      if (allow_release)
+        xturnoff(csound, ip2);
+      else
+        xturnoff_now(csound, ip2);
     }
     if (!p->h.insdshead->actflg) {  /* if current note was deactivated: */
       while (pds->nxtp != NULL)
         pds = pds->nxtp;            /* loop to last opds */
     }
-
     return OK;
 }
 
