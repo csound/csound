@@ -15,7 +15,7 @@ int Counterpoint::_Aeolian[12] =            {1,  0,  1,  1,  0,  1,  0,  1,  0, 
 int Counterpoint::_Locrian[12] =            {1,  1,  0,  1,  0,  1,  1,  0,  1,  0,  1,  0};
 int Counterpoint::BadMelodyInterval[13] =   {0,  0,  0,  0,  0,  0,  1,  0,  0,  1,  1,  1,  0};
 int Counterpoint::Indx[17] =                {0,  1, -1,  2, -2,  3, -3,  0,  4, -4,  5,  7, -5,  8, 12, -7,-12};
-double Counterpoint::inverse_rscl = .000061035156;
+boost::mt19937 Counterpoint::mersenneTwister;
 
 void Counterpoint::initialize(int mostnotes, int mostvoices)
 {

@@ -57,6 +57,8 @@
 #include <cstdarg>
 #include <stdio.h>
 #include <malloc.h>
+#include <boost/random.hpp>
+#include <boost/random/variate_generator.hpp>
 %}
 #else
 #include <string>
@@ -65,6 +67,9 @@
 #include <malloc.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
+#include <boost/random.hpp>
+#include <boost/random/variate_generator.hpp>
+#include "Random.hpp"
 using namespace boost::numeric;
 #endif
 
@@ -72,6 +77,7 @@ using namespace boost::numeric;
 class Counterpoint 
 {
 public:
+  boost::variate_generator<boost::mt19937, boost::uniform_real<> > *uniform_real_generator;  
   void (*messageCallback)(const char *format, va_list valist);
   void message(const char *format,...)
   {
@@ -196,11 +202,13 @@ public:
     CrossBelowBassPenalty		  = Counterpoint::infinity;
     CrossAboveCantusPenalty		  = Counterpoint::infinity;
     NoMotionAgainstOctavePenalty          = 34; 
+    uniform_real_generator = new boost::variate_generator<boost::mt19937, boost::uniform_real<> >(mersenneTwister, boost::uniform_real<>(0.0, 1.0));
     initialize(MostNotes_, MostVoices_);
   }
 
   virtual ~Counterpoint()
   {
+    delete uniform_real_generator;
   }
   int ABS(int i) {if (i < 0) return(-i); else return(i);}
   int MIN(int a, int b) {if (a < b) return(a); else return(b);}
@@ -1440,13 +1448,12 @@ public:
     RhyPat[10][1]=WholeNote;
     RhyNotes[10]=1;
   }
-
-  static double inverse_rscl;
+  
+  static boost::mt19937 mersenneTwister;
 
   float RANDOM(float amp)
   {
-    int i = ((randx = randx*1103515245 + 12345)>>16) & 077777;
-    return(amp * (((float)i)*inverse_rscl));
+    return amp * (*uniform_real_generator)();
   }
 
   void UsedRhy(int n) {RhyPat[n][0]=RhyPat[n][0]+1;}
