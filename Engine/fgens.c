@@ -56,7 +56,7 @@ static void gen30(FUNC*,ENVIRON*), gen31(FUNC*,ENVIRON*), gen32(FUNC*,ENVIRON*);
 static void gen33(FUNC*,ENVIRON*), gen34(FUNC*,ENVIRON*), gen40(FUNC*,ENVIRON*);
 static void gen41(FUNC*,ENVIRON*), gen42(FUNC*,ENVIRON*), gen43(FUNC*,ENVIRON*);
 static void gn1314(FUNC*,ENVIRON*, MYFLT, MYFLT);
-static void gen51(FUNC*, ENVIRON*);
+static void gen51(FUNC*,ENVIRON*), gen52(FUNC*,ENVIRON*);
 static void GENUL(FUNC*,ENVIRON*);
 
 static GEN or_sub[GENMAX + 1] = {
@@ -66,7 +66,7 @@ static GEN or_sub[GENMAX + 1] = {
     gen21, GENUL, gen23, gen24, gen25, GENUL, gen27, gen28, GENUL, gen30,
     gen31, gen32, gen33, gen34, GENUL, GENUL, GENUL, GENUL, GENUL, gen40,
     gen41, gen42, gen43, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL,
-    gen51, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL
+    gen51, gen52, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL
 };
 
 typedef struct namedgen {
@@ -2773,6 +2773,47 @@ static void gen51(FUNC *ftp, ENVIRON *csound)   /* Gab 1/3/2005 */
       }
       factor = (MYFLT) pow((double) interval, (double) factor);
       fp[j] = pp[grade] * factor * basefreq;
+    }
+}
+
+static void gen52 (FUNC *ftp, ENVIRON *csound)
+{
+    FGDATA  *ff = &(csound->ff);
+    MYFLT   *src, *dst;
+    FUNC    *f;
+    int     nchn, len, len2, i, j, k, n;
+    int     nargs = (int) ff->e.pcnt - 4;
+
+    if (nargs < 4) {
+      fterror(ff, Str("insufficient gen arguments"));
+      return;
+    }
+    nchn = (int) (ff->e.p[5] + FL(0.5));
+    if (((nchn * 3) + 1) != nargs) {
+      fterror(ff, Str("number of channels inconsistent with number of args"));
+      return;
+    }
+    len = ((int) ftp->flen / nchn) * nchn;
+    dst = &(ftp->ftable[0]);
+    for (i = len; i <= (int) ftp->flen; i++)
+      dst[i] = FL(0.0);
+    for (n = 0; n < nchn; n++) {
+      f = ftfind(csound, &(ff->e.p[(n * 3) + 6]));
+      if (f == NULL)
+        return;
+      len2 = (int) f->flen;
+      src = &(f->ftable[0]);
+      i = n;
+      j = (int) (ff->e.p[(n * 3) + 7] + FL(0.5));
+      k = (int) (ff->e.p[(n * 3) + 8] + FL(0.5));
+      while (i < len) {
+        if (j >= 0 && j < len2)
+          dst[i] = src[j];
+        else
+          dst[i] = FL(0.0);
+        i += nchn;
+        j += k;
+      }
     }
 }
 
