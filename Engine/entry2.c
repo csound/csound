@@ -252,7 +252,7 @@ OENTRY opcodlst_2[] = {
 { "FLroller",S(FLROLLER), 1,    "ki",   "Siijjjjjjjj",  fl_roller, NULL, NULL   },
 { "FLtext",S(FLTEXT),     1,    "ki",   "Siijjjjjj",    fl_text, NULL, NULL     },
 { "FLjoy",S(FLJOYSTICK),  1,    "kkii", "Siiiijjjjjjjj", fl_joystick, NULL, NULL},
-{ "FLcount",S(FLCOUNTER), 1,    "ki",   "Siiiiiiiiiiz", fl_counter, NULL, NULL  },
+{ "FLcount",S(FLCOUNTER), 1,    "ki",   "Siiiiiiiiiz", fl_counter, NULL, NULL  },
 { "FLbutton",S(FLBUTTON), 1,    "ki",   "Siiiiiiiz",    fl_button, NULL, NULL   },
 { "FLbutBank",S(FLBUTTONBANK), 1, "ki", "iiiiiiiiz", fl_button_bank, NULL, NULL },
 { "FLkeyb",S(FLKEYB),     1,    "k",    "z",            FLkeyb, NULL, NULL      },
