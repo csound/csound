@@ -38,6 +38,7 @@
 * fluid_load            - loads a soundfont into a fluid engine
 * fluid_program_select  - assign a bank and preset of a soundFont to a midi 
 *                         channel as well as select
+* fluid_cc				- send midi controller data to fluid
 * fluid_play            - plays a note on a channel
 * fluid_out             - outputs sound from a fluid engine
 *
@@ -48,18 +49,21 @@
 *
 * SYNTAX
 * 
-* iEngineNumber     fluid_engine    
+* iEngineNumber     fluidEngine    
 * 
-* iInstrumentNumber fluid_load      sfilename, iEngineNumber
+* iInstrumentNumber fluidLoad      sfilename, iEngineNumber
 * 
-*                   fluid_program_select    iEngineNumber, iChannelNumber,
+*                   fluidProgramSelect    iEngineNumber, iChannelNumber,
 *                                           iInstrumentNumber, iBankNumber,
 *                                           iPresetNumber
 * 
-*                   fluid_play      iEngineNumber, iInstrumentNumber,
+* 					fluidCC		iEngineNumber, iChannelNumber, 
+* 									iControllerNumber, kValue
+* 
+*                   fluidPlay      iEngineNumber, iInstrumentNumber,
 *                                   iMidiKeyNumber, iVelocity
 * 
-* aLeft, aRight     fluid_out       iEngineNum
+* aLeft, aRight     fluidOut       iEngineNum
 *
 * PERFORMANCE
 *
@@ -246,6 +250,56 @@ extern "C"
         return OK;  
     }    
     
+/* FLUID_CC */
+
+	int fluidCC_I_Iopadr(void *data) {
+		FLUID_CC *fluid  = (FLUID_CC *)data;
+		
+		int engineNum               = (int)(*fluid->iEngineNumber);
+        int channelNum              = (int)(*fluid->iChannelNumber);
+        unsigned int controllerNum  = (unsigned int)(*fluid->iControllerNumber);
+        unsigned int value        	= (unsigned int)(*fluid->kVal);
+		
+		fluid_synth_cc(fluid_engines[engineNum],
+					channelNum,
+					controllerNum,
+					value);
+
+		
+		return OK;	
+	} 
+
+	int fluidCC_K_Iopadr(void *data) {
+		FLUID_CC *fluid  = (FLUID_CC *)data;
+		
+		
+		fluid->priorMidiValue = -1;
+		
+		return OK;	
+	}    
+	
+	int fluidCC_K_Kopadr(void *data) {
+		FLUID_CC *fluid  = (FLUID_CC *)data;
+		
+        int engineNum               = (int)(*fluid->iEngineNumber);
+        int channelNum              = (int)(*fluid->iChannelNumber);
+        unsigned int controllerNum  = (unsigned int)(*fluid->iControllerNumber);
+        unsigned int value        	= (unsigned int)(*fluid->kVal);
+        unsigned int previousValue  = (unsigned int)(fluid->priorMidiValue);
+		
+		if(value != previousValue) {
+			fluid_synth_cc(fluid_engines[engineNum],
+						channelNum,
+						controllerNum,
+						value);
+		}
+		
+		fluid->priorMidiValue = value;
+						
+		
+		return OK;	
+	}
+    
 /* FLUID_PLAY */
     
     int fluidPlayIopadr(void *data) {
@@ -260,6 +314,13 @@ extern "C"
         
         // fluid->h.insdshead->csound->Message(fluid->h.insdshead->csound, "%i : %i : %i : %i\n", engineNum, instrNum, key, velocity);
         fluid_synth_noteon(fluid_engines[engineNum], channelNum, key, velocity);
+        
+        //MYFLT offTime = fluid->h.insdshead->p3;
+        //unsigned int dur = (int)(offTime * 
+        
+        //fluid->evt		= new_fluid_event();
+        //fluid_event_note(fluid->evt, channelNum, key, vel, 
+        
         return OK;
     }
     
@@ -341,12 +402,18 @@ extern "C"
 /* OPCODE LIBRARY STUFF */
     
     OENTRY fluidOentry[] = { 
-        {   "fluid_engine", sizeof(FLUIDENGINE), 1, "i",   "",         &fluidEngineIopadr, 0, 0, &fluidEngineDopadr },
-        {   "fluid_load",   sizeof(FLUIDLOAD), 1, "i",   "Si",       &fluidLoadIopadr,   0, 0, 0 },
-        {   "fluid_program_select",   sizeof(FLUID_PROGRAM_SELECT), 1, "",   "iiiii",       &fluidProgramSelectIopadr,   0, 0, 0 },
-        {   "fluid_play",   sizeof(FLUIDPLAY), 3, "",    "iiii",  &fluidPlayIopadr,   &fluidPlayKopadr, 0, 0 },
-        {   "fluid_out",    sizeof(FLUIDOUT), 5, "aa",  "i",        &fluidOutIopadr,    0, &fluidOutAopadr, 0}
+        {   "fluidEngine", sizeof(FLUIDENGINE), 1, "i",   "",         &fluidEngineIopadr, 0, 0, &fluidEngineDopadr },
+        {   "fluidLoad",   sizeof(FLUIDLOAD), 1, "i",   "Si",       &fluidLoadIopadr,   0, 0, 0 },
+        {   "fluidProgramSelect", sizeof(FLUID_PROGRAM_SELECT), 1, "",   "iiiii",       &fluidProgramSelectIopadr,   0, 0, 0 },
+		{   "fluidCCi",   sizeof(FLUID_CC), 1, "",   "iiii",       &fluidCC_I_Iopadr,   0, 0, 0 },
+        {   "fluidCCk",   sizeof(FLUID_CC), 3, "",   "iiik",       &fluidCC_K_Iopadr,   &fluidCC_K_Kopadr, 0, 0 },
+        //{   "fluidCC",   sizeof(FLUID_CC), 3, "",   "iiik",       &fluidCC_K_Iopadr,   &fluidCC_K_Kopadr, 0, 0 },        
+        {   "fluidPlay",   sizeof(FLUIDPLAY), 3, "",    "iiii",  &fluidPlayIopadr,   &fluidPlayKopadr, 0, 0 },
+        {   "fluidOut",    sizeof(FLUIDOUT), 5, "aa",  "i",        &fluidOutIopadr,    0, &fluidOutAopadr, 0}
     };
+    
+        
+    
     
     /**
     * Called by Csound to obtain the size of
@@ -354,7 +421,7 @@ extern "C"
     */
     PUBLIC int opcode_size()
     {
-        return sizeof(OENTRY) * 5;
+        return sizeof(OENTRY) * 7;
     }
 
     /**

@@ -32,6 +32,16 @@ typedef struct {
 } FLUID_PROGRAM_SELECT;
 
 typedef struct {
+	OPDS 	h;
+	
+	// INPUTS
+	MYFLT	*iEngineNumber, *iChannelNumber, *iControllerNumber, *kVal;
+	
+	unsigned int 	priorMidiValue;
+	
+} FLUID_CC;
+
+typedef struct {
     OPDS    h;
     
     // INPUTS
