@@ -626,16 +626,6 @@ void sfclosein(void *csound)
         /* closing the device, by replacing it with the dummy function */
         audrecv = (int (*)(void*, MYFLT*, int)) rtrecord_dummy;
         ((ENVIRON*) csound)->rtclose_callback(csound);
-        if (((ENVIRON*) csound)->oparms_->Linein) {
-#ifdef PIPES
-          int _pclose(FILE*);
-          if (((ENVIRON*) csound)->oparms_->Linename[0] == '|')
-            _pclose(((ENVIRON*) csound)->Linepipe_);
-          else
-#endif
-            if (strcmp(((ENVIRON*) csound)->oparms_->Linename, "stdin") != 0)
-              close(((ENVIRON*) csound)->Linefd_);
-        }
       }
     }
     else
@@ -668,16 +658,6 @@ void sfcloseout(void *csound)
         /* closing the device, by replacing it with the dummy function */
         audtran = (void (*)(void*, MYFLT*, int)) rtplay_dummy;
         ((ENVIRON*) csound)->rtclose_callback(csound);
-        if (((ENVIRON*) csound)->oparms_->Linein) {
-#ifdef PIPES
-          int _pclose(FILE*);
-          if (((ENVIRON*) csound)->oparms_->Linename[0] == '|')
-            _pclose(((ENVIRON*) csound)->Linepipe_);
-          else
-#endif
-            if (strcmp(((ENVIRON*) csound)->oparms_->Linename, "stdin") != 0)
-              close(((ENVIRON*) csound)->Linefd_);
-        }
       }
       goto report;
     }

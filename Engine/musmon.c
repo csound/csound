@@ -59,8 +59,7 @@ extern  void    fgens(ENVIRON *,EVTBLK *);
 extern  void    sfopenin(void*), sfopenout(void*), sfnopenout(void);
 extern  void    iotranset(void), sfclosein(void*), sfcloseout(void*);
 extern  void    MidiClose(ENVIRON*);
-
-extern  OPARMS  O;
+extern  void    RTclose(void*);
 
 static  int     playevents(ENVIRON *);
 static  int     lplayed = 0;
@@ -345,6 +344,8 @@ int cleanup(void *csound)
     }
     printf(Str("\n%d errors in performance\n"),perferrcnt);
     print_benchmark_info(csound, Str("end of performance"));
+    /* close line input (-L) */
+    RTclose(csound);
     /* close MIDI input */
     MidiClose((ENVIRON*) csound);
     /* IV - Feb 03 2005: do not need to call rtclose from here, as */
