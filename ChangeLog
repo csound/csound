@@ -1,3 +1,9 @@
+2004-08-22  John ffitch  <jpff@codemist.co.uk>
+
+	* Opcodes/biquad.h: 
+	* Opcodes/biquad.c (vcoset, bqrezset, pareqset, tbvcfset): Skip
+	initialisation option 
+
 2004-08-21  John ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/biquad.c (moogvcfset, rezzyset): Added iskip to avoid

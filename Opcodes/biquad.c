@@ -355,8 +355,10 @@ int vcoset(VCO *p)
     }
     else return NOTOK;
 
-    p->ynm1 = (*p->wave == FL(1.0)) ? -FL(0.5) : FL(0.0);
-    p->ynm2 = FL(0.0);
+    if (*p->iskip==FL(0.0)) {
+      p->ynm1 = (*p->wave == FL(1.0)) ? -FL(0.5) : FL(0.0);
+      p->ynm2 = FL(0.0);
+    }
 
     /* finished setting up buzz now set up internal vdelay */
 
@@ -365,7 +367,7 @@ int vcoset(VCO *p)
         (int)(ndel*sizeof(MYFLT)) > p->aux.size)  /* allocate space for delay
                                                      buffer */
       auxalloc(ndel * sizeof(MYFLT), &p->aux);
-    else {
+    else if (*p->iskip==FL(0.0)) {
       buf = (MYFLT *)p->aux.auxp;   /*    make sure buffer is empty       */
       do {
         *buf++ = FL(0.0);
@@ -596,12 +598,13 @@ int vco(VCO *p)
 
 int planetset(PLANET *p)
 {
-    p->x  = *p->xval;  p->y  = *p->yval;  p->z  = *p->zval;
-    p->vx = *p->vxval; p->vy = *p->vyval; p->vz = *p->vzval;
-    p->ax = FL(0.0); p->ay = FL(0.0); p->az = FL(0.0);
-    p->hstep = *p->delta;
-    p->friction = FL(1.0) - *p->fric/FL(10000.0);
-
+    if (*p->iskip==FL(0.0)) {
+      p->x  = *p->xval;  p->y  = *p->yval;  p->z  = *p->zval;
+      p->vx = *p->vxval; p->vy = *p->vyval; p->vz = *p->vzval;
+      p->ax = FL(0.0); p->ay = FL(0.0); p->az = FL(0.0);
+      p->hstep = *p->delta;
+      p->friction = FL(1.0) - *p->fric/FL(10000.0);
+    }
     return OK;
 } /* end planetset(p) */
 
@@ -678,7 +681,9 @@ int planet(PLANET *p)
 int pareqset(PAREQ *p)
 {
     /* The equalizer filter is initialised to zero.    */
-    p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = FL(0.0);
+    if (*p->iskip==FL(0.0)) {
+      p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = FL(0.0);
+    }
     p->imode = *p->mode;
     return OK;
 } /* end pareqset(p) */
@@ -956,7 +961,9 @@ int nestedap(NESTEDAP *p)
 
 int lorenzset(LORENZ *p)
 {
-    p->valx = *p->inx; p->valy = *p->iny; p->valz = *p->inz;
+    if (*p->iskip==FL(0.0)) {
+      p->valx = *p->inx; p->valy = *p->iny; p->valz = *p->inz;
+    }
     return OK;
 }
 
@@ -1015,7 +1022,9 @@ int lorenz(LORENZ *p)
 
 int tbvcfset(TBVCF *p)
 {
-    p->y = p->y1 = p->y2 = FL(0.0);
+    if (*p->iskip==FL(0.0)) {
+      p->y = p->y1 = p->y2 = FL(0.0);
+    }
     p->fcocod = (XINARG2) ? 1 : 0;
     p->rezcod = (XINARG3) ? 1 : 0;
     return OK;
@@ -1084,7 +1093,9 @@ int tbvcf(TBVCF *p)
 /* bqrez by Matt Gerassimoff */
 int bqrezset(REZZY *p)
 {
-    p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = FL(0.0);  /* Initialise to zero */
+    if (*p->iskip==FL(0.0)) {
+      p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = FL(0.0);  /* Initialise to zero */
+    }
     p->fcocod = (XINARG2) ? 1 : 0;
     p->rezcod = (XINARG3) ? 1 : 0;
 
@@ -1228,14 +1239,14 @@ static OENTRY localops[] = {
 { "biquada", S(BIQUAD),  5, "a", "aaaaaaao",(SUBR)biquadset, NULL, (SUBR)biquada },
 { "moogvcf", S(MOOGVCF), 5, "a", "axxpo", (SUBR)moogvcfset, NULL, (SUBR)moogvcf },
 { "rezzy", S(REZZY),     5, "a", "axxoo", (SUBR)rezzyset, NULL, (SUBR)rezzy     },
-{ "bqrez", S(REZZY),     5, "a", "axxo", (SUBR)bqrezset, NULL, (SUBR)bqrez      },
+{ "bqrez", S(REZZY),     5, "a", "axxoo", (SUBR)bqrezset, NULL, (SUBR)bqrez     },
 { "distort1", S(DISTORT), 4,"a", "akkkk",NULL,     NULL, (SUBR)distort    },
-{ "vco", S(VCO),         5, "a", "xxikppovo",(SUBR)vcoset, NULL, (SUBR)vco      },
-{ "tbvcf", S(TBVCF),     5, "a", "axxkk",  (SUBR)tbvcfset, NULL, (SUBR)tbvcf    },
-{ "planet", S(PLANET),5,"aaa","kkkiiiiiiio", (SUBR)planetset, NULL, (SUBR)planet},
-{ "pareq", S(PAREQ),     5, "a", "akkko",(SUBR)pareqset, NULL, (SUBR)pareq      },
+{ "vco", S(VCO),         5, "a", "xxikppovoo",(SUBR)vcoset, NULL, (SUBR)vco     },
+{ "tbvcf", S(TBVCF),     5, "a", "axxkkp",  (SUBR)tbvcfset, NULL, (SUBR)tbvcf   },
+{ "planet", S(PLANET),5,"aaa","kkkiiiiiiioo", (SUBR)planetset, NULL, (SUBR)planet},
+{ "pareq", S(PAREQ),     5, "a", "akkkoo",(SUBR)pareqset, NULL, (SUBR)pareq     },
 { "nestedap", S(NESTEDAP),5,"a", "aiiiiooooo", (SUBR)nestedapset, NULL, (SUBR)nestedap},
-{ "lorenz", S(LORENZ), 5, "aaa", "kkkkiiii", (SUBR)lorenzset, NULL, (SUBR)lorenz },
+{ "lorenz", S(LORENZ), 5, "aaa", "kkkkiiiio", (SUBR)lorenzset, NULL, (SUBR)lorenz},
 };
 
 LINKAGE

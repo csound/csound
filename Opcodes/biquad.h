@@ -56,7 +56,8 @@ typedef struct {
                                 /* Structure for vco, analog modeling opcode */
 typedef struct {
     OPDS    h;
-    MYFLT   *ar, *xamp, *xcps, *wave, *pw, *sine, *maxd, *leak, *inyq, *iphs;
+    MYFLT   *ar, 
+            *xamp, *xcps, *wave, *pw, *sine, *maxd, *leak, *inyq, *iphs, *iskip;
     MYFLT   ynm1, ynm2, leaky, nyq;
     short   ampcod, cpscod;
     long    lphs;
@@ -71,14 +72,14 @@ typedef struct {
 typedef struct {
     OPDS    h;
     MYFLT   *outx, *outy, *outz, *mass1, *mass2, *sep, *xval, *yval, *zval;
-    MYFLT   *vxval, *vyval, *vzval, *delta, *fric;
+    MYFLT   *vxval, *vyval, *vzval, *delta, *fric, *iskip;
     MYFLT   s1z, s2z, friction;
     MYFLT   x, y, z, vx, vy, vz, ax, ay, az, hstep;
 } PLANET;
 
 typedef struct {
     OPDS h;
-    MYFLT *out, *in, *fc, *v, *q, *mode;
+    MYFLT *out, *in, *fc, *v, *q, *mode, *iskip;
     MYFLT xnm1, xnm2, ynm1, ynm2, imode;
 } PAREQ;
 
@@ -95,7 +96,8 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *outx, *outy, *outz, *s, *r, *b, *hstep, *inx, *iny, *inz, *skip;
+    MYFLT   *outx, *outy, *outz, 
+            *s, *r, *b, *hstep, *inx, *iny, *inz, *skip, *iskip;
     MYFLT   valx, valy, valz;
 } LORENZ;
 
@@ -104,7 +106,7 @@ typedef struct {
 /* Structure for tbvcf filter */
 typedef struct {
     OPDS    h;
-    MYFLT   *out, *in, *fco, *res, *dist, *asym;
+    MYFLT   *out, *in, *fco, *res, *dist, *asym, *iskip;
     MYFLT   y, y1, y2;
     short   fcocod, rezcod;
 } TBVCF;
