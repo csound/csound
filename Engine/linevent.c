@@ -36,9 +36,8 @@
 
 #include "linevent.h"
 
-void RTclose(void);
 extern int close(int);
-#if !defined(mac_classic) && !defined(SYMANTEC) && !defined(LINUX) && !defined(__MACH__)
+#if !defined(mills_macintosh) && !defined(SYMANTEC) && !defined(LINUX) && !defined(__MACH__)
 extern int read(int, void*, unsigned);
 #endif
 
@@ -75,7 +74,7 @@ static LEVTBLK  *Firstact = NULL;
 
 extern OPARMS O;
 extern ENVIRON cenviron;
-int stdmode;
+static int stdmode;
 
 void RTLineset(void)   /* set up Linebuf & ready the input files */
 {                      /*     callable once from musmon.c        */
@@ -97,14 +96,15 @@ void RTLineset(void)   /* set up Linebuf & ready the input files */
       Linecons = stdin;
       setvbuf(stdin, NULL, _IONBF, 0);
 #else
-#if defined(DOSGCC) || defined(__WATCOMC__) || defined(WIN32) || defined(mac_classic)
+  #if defined(DOSGCC) || defined(__WATCOMC__) || defined(WIN32) || \
+      defined(mills_macintosh)
       setvbuf(stdin, NULL, _IONBF, 0);
-      /*      WARNING("-L stdin:  system has no fcntl function to get stdin"); */
-#else
+      /* WARNING("-L stdin:  system has no fcntl function to get stdin"); */
+  #else
       if (fcntl(Linefd, F_SETFL,
                 (stdmode =fcntl(Linefd, F_GETFL, 0)) | O_NDELAY) < 0)
         die(Str("-L stdin fcntl failed"));
-#endif
+  #endif
 #endif
     }
 #ifdef PIPES
@@ -125,25 +125,41 @@ void RTLineset(void)   /* set up Linebuf & ready the input files */
     else if ((Linefd = open(O.Linename, O_RDONLY | O_NDELAY  MODE)) < 0)
       dies(Str("Cannot open %s"), O.Linename);
     printf(Str("stdmode = %.8x Linefd = %d\n"), stdmode, Linefd);
-    atexit(RTclose);
 }
 
-void RTclose(void)
+#ifdef PIPES
+int _pclose(FILE*);
+#endif
+
+void RTclose(void *csound_)
 {
-    printf(Str("stdmode = %.8x Linefd = %d\n"), stdmode, Linefd);
+    ENVIRON *csound = (ENVIRON*) csound_;
+
+    if (csound->oparms_->Linein == 0)
+      return;
+    csound->oparms_->Linein = 0;
+    printf(Str("stdmode = %.8x Linefd = %d\n"), stdmode, csound->Linefd_);
 #if defined(mills_macintosh) || defined(SYMANTEC)
     if (Linecons != NULL) fclose(Linecons);
 #else
-                                /* JPff patch hoping to keep window */
-    if (Linefd)
-      close(Linefd);
+  #ifdef PIPES
+    if (csound->oparms_->Linename[0] == '|')
+      _pclose(csound->Linepipe_);
+  #endif
     else {
-#if !defined(DOSGCC) && !defined(__WATCOMC__) && !defined(WIN32) && !defined(mac_classic)
-        fcntl(Linefd, F_SETFL, stdmode);
-#endif
+      if (strcmp(csound->oparms_->Linename, "stdin") != 0)
+        close(csound->Linefd_);
+  #if !defined(DOSGCC) && !defined(__WATCOMC__) && !defined(WIN32) && \
+      !defined(mills_macintosh)
+      else
+        fcntl(csound->Linefd_, F_SETFL, stdmode);
+  #endif
     }
-#endif
-    mfree(&cenviron, Linebuf);
+#endif      /* !(mills_macintosh || SYMANTEC) */
+    if (Linebuf != NULL) {
+      mfree(csound, Linebuf);
+      Linebuf = NULL;
+    }
 }
 
 static int containsLF(char *cp, char *endp)/* does string segment contain LF? */
@@ -241,6 +257,7 @@ int sensLine(void)
           switch (c) {                  /* look for legal opcode    */
           case 'e':                     /* Quit realtime */
           case 'i':
+          case 'q':
           case 'f':
             e->opcod = c;
             break;

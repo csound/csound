@@ -578,7 +578,7 @@ static int decode_long(void *csound, char *s, int argc, char **argv)
     O.Linename = s;
     if (!strcmp(O.Linename,"stdin")) {
       set_stdin_assign(csound, STDINASSIGN_LINEIN, 1);
-#if defined(WIN32) || defined(mills_macintosh)
+#if defined(mills_macintosh)
       die(Str("-L: stdin not supported on this platform"));
 #endif
     }
@@ -1068,7 +1068,7 @@ int argdecode(void *csound, int argc, char **argv_)
           s += (int) strlen(s);
           if (!strcmp(O.Linename,"stdin")) {
             set_stdin_assign(csound, STDINASSIGN_LINEIN, 1);
-#if defined(WIN32) || defined(mills_macintosh)
+#if defined(mills_macintosh)
             die(Str("-L: stdin not supported on this platform"));
 #endif
           }

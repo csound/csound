@@ -234,7 +234,7 @@ int MIDIinsert(ENVIRON *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     INSDS    *ip, **ipp, *prvp, *nxtp;
     int      err = 0;
 
-    if (insno <= 0)
+    if (insno <= 0 || instrtxtp[insno]->muted == 0)
       return 0;     /* muted */
 
     cpu_power_busy += instrtxtp[insno]->cpuload;
