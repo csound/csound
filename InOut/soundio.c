@@ -20,6 +20,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
+#ifndef SNFLIBFILE
 
 #include "cs.h"                 /*                      SOUNDIO.C       */
 #include "soundio.h"
@@ -2030,3 +2031,5 @@ static void floatrecv_noscl(void)        /* get spin values from float inbuf */
 }
 
 /* <-------------------------- IV (Nov 05 2001) ---------------------------- */
+
+#endif

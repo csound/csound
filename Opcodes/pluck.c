@@ -187,6 +187,13 @@ static MYFLT *pluckShape(WGPLUCK* p)
     return shape;
 }
 
+/* ::update -- waveguide rail insert and update routine */
+inline void guideRailUpdate(guideRail *gr,MYFLT samp)
+{
+    *gr->pointer++ = samp;
+    if (gr->pointer > gr->endPoint)
+      gr->pointer = gr->data;
+}
 
 /* ::getSamps -- the sample generating routine */
 int pluckGetSamps(WGPLUCK* p)
@@ -294,14 +301,6 @@ MYFLT circularBufferRead(circularBuffer* cb)
 /* ***** class guideRail -- waveguide rail derived class ***** */
 #define guideRailGuideRail(csound,gr,d) circularBufferCircularBuffer(csound, gr,d) /* Guide rail is a circular buffer */
 
-
-/* ::update -- waveguide rail insert and update routine */
-inline void guideRailUpdate(guideRail *gr,MYFLT samp)
-{
-    *gr->pointer++ = samp;
-    if (gr->pointer > gr->endPoint)
-      gr->pointer = gr->data;
-}
 
 /* ::access -- waveguide rail access routine */
 MYFLT guideRailAccess(guideRail* gr, len_t pos)

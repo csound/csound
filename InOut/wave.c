@@ -21,6 +21,8 @@
     02111-1307 USA
 */
 
+#ifndef SNDLIBFILE
+
 #include        "cs.h"                            /*                WAVE.C   */
 #include        "soundio.h"
 #include        "wave.h"
@@ -444,3 +446,5 @@ static int write_wavpeak(int fd, int verbose)
     }
     return 0;      /*RWD 3:2000 */
 }
+
+#endif

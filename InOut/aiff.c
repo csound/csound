@@ -20,6 +20,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
+#ifndef SNDLIBFILE
 
 #include        "cs.h"                            /*                AIFF.C    */
 #include        "soundio.h"
@@ -626,3 +627,5 @@ int write_aiffpeak(int fd,int verbose)
     }
     return size;                        /*RWD 3:2000*/
 }
+
+#endif
