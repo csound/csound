@@ -51,9 +51,16 @@ int fltk_abort = 0;
   extern ENVIRON cenviron_;
   static void* csoundExitFuncs_[csoundMaxExits];
   static long csoundNumExits_ = -1;
+#ifdef INGALLS
   static jmp_buf csoundJump_;
+#endif
   extern OPARMS O;
   extern int kperf(int kcnt);
+  extern int csoundMain(void *csound, int argc, char **argv);
+  extern void newevent(void *, char type, MYFLT *pfields, long count);
+  extern void writeLine(const char *text, long size);
+  extern void csoundDefaultMidiOpen(void*);
+  extern void mainRESET(void*);
   extern int kcnt;
   extern char *inbuf;
   extern void *outbuf;
@@ -566,7 +573,7 @@ int fltk_abort = 0;
 #endif
   }
 
-  PUBLIC void csoundSetRtplayCallback(void *csound, void (*rtplay__)(char *outBuf, int nbytes))
+  PUBLIC void csoundSetRtplayCallback(void *csound, void (*rtplay__)(void *outBuf, int nbytes))
   {
 #ifdef RTAUDIO
       rtplay = rtplay__;
@@ -691,8 +698,10 @@ int fltk_abort = 0;
   static void defaultCsoundMakeGraph(void *csound, WINDAT *windat, char *name)
   {
 #if defined(USE_FLTK)
+      extern void MakeGraph_(WINDAT *,char*);
       MakeGraph_(windat, name);
 #else
+      extern void MakeAscii(WINDAT *,char*);
       MakeAscii(windat, name);
 #endif
   }
@@ -712,8 +721,10 @@ int fltk_abort = 0;
   static void defaultCsoundDrawGraph(void *csound, WINDAT *windat)
   {
 #if defined(USE_FLTK)
+      extern void DrawGraph_(WINDAT *);
       DrawGraph_(windat);
 #else
+      extern void MakeAscii(WINDAT *, char*);
       MakeAscii(windat, "");
 #endif
   }
@@ -732,6 +743,7 @@ int fltk_abort = 0;
 
   static void defaultCsoundKillGraph(void *csound, WINDAT *windat)
   {
+      extern void KillAscii(WINDAT *wdptr);
       KillAscii(windat);
   }
 
@@ -965,7 +977,7 @@ int fltk_abort = 0;
 
   PUBLIC void csoundReset(void *csound)
   {
-      mainRESET();
+      mainRESET(csound);
       /* FIXME - SYY - 11.16.2003
        * This call is needed by opcodes in Opcode plugin generated from
        * Opcodes/sfont.c.  Needs to be reword in sfont.c with using opcode
