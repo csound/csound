@@ -100,6 +100,9 @@ opts.Add('generateXmg',
 opts.Add('generateZip',
     'Set to 1 to generate zip archive',
     0)
+opts.Add('buildLoris',
+    'Set to 1 to build the Loris Python extension and opcodes',
+    1)
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -235,7 +238,11 @@ if configure.CheckHeader("dirent.h", language = "C"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_DIRENT_H')
 if configure.CheckFunc("itoa") or getPlatform() == 'mingw':
     commonEnvironment.Append(CCFLAGS = '-DHAVE_ITOA')
-
+if not (configure.CheckHeader("Opcodes/Loris/src/loris.h") and configure.CheckHeader("fftw3.h")):
+    commonEnvironment["buildLoris"] = 0
+else:
+    print "Building Loris Python extension and Csound opcodes."
+        
 # Package contents.
 
 zipfilename = "csound5-" + getPlatform() + "-" + str(today()) + ".zip"
@@ -783,7 +790,7 @@ if (commonEnvironment['buildCsoundVST'] == 1) and boostFound and fltkFound:
     vstEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
     guiProgramEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
     vstEnvironment.Prepend(LIBS = ['csound', 'sndfile'])
-    vstEnvironment.Append(SWIGFLAGS = Split('-python -c++ -includeall -verbose'))
+    vstEnvironment.Append(SWIGFLAGS = Split('-python -c++ -includeall -verbose -outdir .'))
     if getPlatform() == 'linux':
         vstEnvironment.Append(LIBS = ['swigpy', 'python2.3', 'util', 'dl', 'm'])
         vstEnvironment.Append(CPPPATH = ['/usr/local/include/python2.3'])
@@ -866,41 +873,44 @@ if (commonEnvironment['buildCsoundVST'] == 1) and boostFound and fltkFound:
     # Build the Loris and Python opcodes here because they depend 
     # on the same things as CsoundVST.
     
-    #lorispath = 'Opcodes/Loris'
-    #lorisEnvironment = vstEnvironment.Copy();
-    #lorisEnvironment.Append(CXXFLAGS = ['HAVE_FFTW3_H'])
-    #lorisEnvironment.Append(CPPPATH = [lorispath])
-    #lorisEnvironment.Append(CXXFLAGS = ['-I' + lorispath])
-    #lorisEnvironment.Append(SWIGPATH = [lorispath])
-    #lorisEnvironment.Append(SWIGFLAGS = ['-I' + lorispath])
-    #lorisEnvironment.Append(LIB = ['fftw3'])
-    #lorisSources = glob.glob(lorispath + '/*.C')
-    #lorisSources = glob.glob(lorispath + '/*.h')
-    #lorisSources.append(lorispath + '/loris.i')
-    # lorisSources.append('Opcodes/Loris/lorisgens.C')
-    #print lorisSources
-    #loris = vstEnvironment.SharedLibrary('loris', lorisSources, SHLIBPREFIX = '_')
-    #Depends(loris, csoundvst)
-    #zipDependencies.append(loris)
-          
-    
-    pyEnvironment = pluginEnvironment.Copy();
-    if getPlatform() == 'linux':
-        pyEnvironment.Append(LIBS = ['swigpy', 'python2.3', 'util', 'dl', 'm'])
-        pyEnvironment.Append(CPPPATH = ['/usr/local/include/python2.3'])
-        pyEnvironment.Append(LIBPATH = ['/usr/local/lib/python2.3/config'])
-        pyEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
-        pyEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
-    elif getPlatform() == 'cygwin' or getPlatform() == 'mingw':
-        pyEnvironment['ENV']['PATH'] = os.environ['PATH']
-        pyEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
-        pyEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
-        if getPlatform() == 'cygwin':
-                pyEnvironment.Append(CCFLAGS = ['-D_MSC_VER'])
-        pyEnvironment.Append(LIBS = ['python23'])
-    py = pyEnvironment.SharedLibrary('py', ['Opcodes/py/pythonopcodes.c'])
-    Depends(py, csoundvst)
-    zipDependencies.append(py)
+    if commonEnvironment['buildLoris']:
+        # For Loris, we build only the loris Python extension module and
+        # the Csound opcodes (modified for Csound 5).
+        # It is assumed that you have copied the contents of the Loris distribution
+        # 'src' directory into 'Opcodes/Loris/src'.
+        
+        shutil.copy('Opcodes/Loris/lorisgens.h', 'Opcodes/Loris/src/')
+        shutil.copy('Opcodes/Loris/lorisgens.C', 'Opcodes/Loris/src/')
+        shutil.copy('Opcodes/Loris/loris.i', 'Opcodes/Loris/src/')
+        shutil.copy('Opcodes/Loris/lorisPartialList.i', 'Opcodes/Loris/src/')
+        lorisEnvironment = vstEnvironment.Copy();
+        lorisEnvironment.Append(CCFLAGS = '-DHAVE_FFTW3_H')
+        lorisEnvironment.Append(LIBS = ['fftw3'])
+        lorisSources = glob.glob('Opcodes/Loris/src/*.C')
+        lorisSources.append('Opcodes/Loris/src/loris.i')
+        lorisEnvironment.Append(SWIGPATH = ['./'])
+        lorisEnvironment.Append(SWIGFLAGS = ['-DHAVE_FFTW3_H'])
+        loris = lorisEnvironment.SharedLibrary('loris', lorisSources, SHLIBPREFIX = '_')
+        Depends(loris, csoundvst)
+        zipDependencies.append(loris)
+                 
+        pyEnvironment = pluginEnvironment.Copy();
+        if getPlatform() == 'linux':
+            pyEnvironment.Append(LIBS = ['swigpy', 'python2.3', 'util', 'dl', 'm'])
+            pyEnvironment.Append(CPPPATH = ['/usr/local/include/python2.3'])
+            pyEnvironment.Append(LIBPATH = ['/usr/local/lib/python2.3/config'])
+            pyEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
+            pyEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
+        elif getPlatform() == 'cygwin' or getPlatform() == 'mingw':
+            pyEnvironment['ENV']['PATH'] = os.environ['PATH']
+            pyEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
+            pyEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
+            if getPlatform() == 'cygwin':
+                    pyEnvironment.Append(CCFLAGS = ['-D_MSC_VER'])
+            pyEnvironment.Append(LIBS = ['python23'])
+        py = pyEnvironment.SharedLibrary('py', ['Opcodes/py/pythonopcodes.c'])
+        Depends(py, csoundvst)
+        zipDependencies.append(py)
 
 if (commonEnvironment['generateTags']) and (getPlatform() == 'linux' or getPlatform() == 'cygwin'):
     print "Calling TAGS"
