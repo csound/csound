@@ -86,7 +86,8 @@ int paBlockingWriteOpen(ENVIRON *csound,
       mcalloc(pabs->actualBufferSampleCount * sizeof(float));
     memcpy(&pabs->paParameters, paParameters, sizeof(PaStreamParameters));
     csound->Message(csound,
-                    "paBlockingWriteOpen: nchnls %d sr %f buffer frames %u device %d\n",
+                    "paBlockingWriteOpen: nchnls %d sr %f buffer "
+                    "frames %u device %d\n",
                     pabs->paParameters.channelCount,
                     csound->esr_,
                     maxLag,
