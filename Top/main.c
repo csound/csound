@@ -356,7 +356,7 @@ int csoundCompile(void *csound, int argc, char **argv)
 #endif
 		}
 
-#ifdef _SNDFILE_
+#ifdef HAVE_LIBSNDFILE
     {
       char buffer[128];
 #include <sndfile.h>

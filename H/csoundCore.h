@@ -224,7 +224,7 @@ typedef struct op {
         TEXT    t;
 } OPTXT;
 
-#ifdef _SNDFILE_
+#ifdef HAVE_LIBSNDFILE
 typedef struct fdch {
         struct fdch * nxtchp;
         void   *fd;             /* Should be SNDFILE * */

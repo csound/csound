@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#ifdef _SNDFILE_
+#ifdef HAVE_LIBSNDFILE
 #define SNDINEWBUFSIZ  (4096)
 #else
 #define SNDINEWBUFSIZ  (16384)
@@ -43,7 +43,7 @@ typedef struct {
   long          sr, audrem, audsize;
   AIFFDAT       *aiffdata;
   FDCH          fdch;
-#ifdef _SNDFILE_
+#ifdef HAVE_LIBSNDFILE
   MYFLT         *inbufp, *bufend, *guardpt;
   MYFLT         inbuf[SNDINEWBUFSIZ];
 #else
