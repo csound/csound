@@ -281,13 +281,13 @@ int    oscbnkset(ENVIRON *csound, OSCBNK *p)
     MYFLT   x;
 
     p->init_k = 1;
-    p->nr_osc = (int) (*(p->args[5]) + FL(0.5));    /* number of oscs */
-    if (p->nr_osc <= 0) p->nr_osc = -1;     /* no output */
-    oscbnk_seedrand(&(p->seed), *(p->args[6]));        /* random seed    */
+    p->nr_osc = (int) (*(p->args[5]) + FL(0.5));            /* number of oscs */
+    if (p->nr_osc <= 0) p->nr_osc = -1;                     /* no output */
+    oscbnk_seedrand(&(p->seed), *(p->args[6]));             /* random seed    */
     p->ilfomode = (int) (*(p->args[11]) + FL(0.5)) & 0xFF;  /* LFO mode */
     p->eq_interp = 0;                                       /* EQ mode */
     if (*(p->args[18]) < FL(-0.5)) {
-      p->ieqmode = -1; p->ilfomode &= 0xEE;   /* disable EQ */
+      p->ieqmode = -1; p->ilfomode &= 0xEE;                 /* disable EQ */
     }
     else {
       p->ieqmode = (int) (*(p->args[18]) + FL(0.5));
@@ -1905,7 +1905,9 @@ int vco2set(ENVIRON *csound, VCO2 *p)
       if (tnum < 5)
         vco2_tables_create(csound, tnum, -1, NULL);
       else {
-        return initerror(Str(X_1768, "vco2: table array not found for user defined waveform"));
+        return
+          initerror(Str(X_1768,
+                        "vco2: table array not found for user defined waveform"));
       }
     }
 #ifdef VCO2FT_USE_TABLE

@@ -176,7 +176,7 @@ BaboMemory_create(ENVIRON *csound, BaboMemory *this, size_t size_in_floats)
 {
     size_t size_in_bytes = size_in_floats * sizeof(MYFLT);
 
-    csound->auxalloc_((long) size_in_bytes, &this->memptr);
+    auxalloc((long) size_in_bytes, &this->memptr);
 
     memset(this->memptr.auxp, 0, size_in_bytes);
 
@@ -218,7 +218,7 @@ BaboMemory_size(const BaboMemory *this)
 static void
 _Babo_common_delay_create(ENVIRON *csound, BaboDelay *this, MYFLT max_time)
 {
-    size_t num_floats = (size_t) bround((MYFLT)ceil((double)(max_time * csound->esr_)));
+    size_t num_floats = (size_t) bround((MYFLT)ceil((double)(max_time * esr)));
 
     BaboMemory_create(csound, &this->core, num_floats);
 }
@@ -284,7 +284,7 @@ BaboTapline_create(ENVIRON *csound, BaboTapline *this, MYFLT x, MYFLT y, MYFLT z
 INLINE static MYFLT
 BaboTapline_maxtime(ENVIRON *csound, BaboDelay *this)
 {
-    return (((MYFLT) BaboMemory_samples(&this->core)) * csound->onedsr_);
+    return (((MYFLT) BaboMemory_samples(&this->core)) * onedsr);
 }
 
 INLINE static MYFLT
@@ -354,7 +354,7 @@ INLINE static void BaboTapline_preload_parameter(ENVIRON *csound,
      *          direct_att=(1/2) when distance is 1 m
      *          direct_att=1     when distance is 0 m.
      */
-    this->delay_size    = (distance / sound_speed) * csound->esr_;
+    this->delay_size    = (distance / sound_speed) * esr;
     this->attenuation   = 1 / (1 + distance);
 }
 
@@ -540,7 +540,7 @@ BaboMatrix_create_FDN(BaboMatrix *this, MYFLT diffusion)
 
     /*
      * The Real part of the InverseDFT of the eigenvalues supplies the
-     * circulant matrix coefficients.                                                   *
+     * circulant matrix coefficients.
      */
 
     for (i = 0; i < BABO_NODES; ++i)

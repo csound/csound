@@ -72,8 +72,8 @@ int make_Modulatr(ENVIRON *csound,Modulatr *p, MYFLT *i)
     FUNC        *ftp;
 
     if ((ftp = csound->ftfind_(csound,i)) != NULL)      p->wave = ftp;
-    else {
-      return csound->initerror_(csound->getstring_(X_382,"No table for Modulatr")); /* Expect sine wave */
+    else { /* Expect sine wave */
+      return initerror(csound->getstring_(X_382,"No table for Modulatr"));
     }
     p->v_time = FL(0.0);
 /*     p->v_rate = 6.0; */
@@ -86,7 +86,7 @@ int make_Modulatr(ENVIRON *csound,Modulatr *p, MYFLT *i)
     return 0;
 }
 
-#define Modulatr_setVibFreq(p,vibFreq)  (p.v_rate = vibFreq * (MYFLT)p.wave->flen/csound->esr_)
+#define Modulatr_setVibFreq(p,vibFreq)  (p.v_rate = vibFreq * (MYFLT)p.wave->flen/esr)
 #define Modulatr_setVibAmt(p,vibAmount) (p.vibAmt = vibAmount)
 
 MYFLT Modulatr_tick(Modulatr *p)
@@ -96,7 +96,8 @@ MYFLT Modulatr_tick(Modulatr *p)
                     p->v_rate, FL(0.0));
 /* printf("Wave_tick: (%f,%f) %f\n", p->v_time, p->v_rate, lastOutput); */
     lastOutput *= p->vibAmt;        /*  Compute periodic and */
-    lastOutput += OnePole_tick(&p->onepole, SubNoise_tick(&p->noise));  /*   random modulations  */
+    /*   random modulations  */
+    lastOutput += OnePole_tick(&p->onepole, SubNoise_tick(&p->noise)); 
 /* printf("Modulatr_tick: %f\n", lastOutput); */
     return lastOutput;
 }
@@ -111,9 +112,9 @@ static int make_SingWave(ENVIRON *csound, SingWave *p, MYFLT *ifn, MYFLT *ivfn)
 {
     FUNC        *ftp;
 
-    if ((ftp = csound->ftfind_(csound,ifn)) != NULL) p->wave = ftp;
+    if ((ftp = ftfind(csound,ifn)) != NULL) p->wave = ftp;
     else {
-      csound->perferror_(csound->getstring_(X_383,"No table for Singwave"));
+      perferror(getstring(X_383,"No table for Singwave"));
       return NOTOK;
     }
     p->mytime = FL(0.0);
@@ -138,7 +139,7 @@ void SingWave_setFreq(ENVIRON *csound, SingWave *p, MYFLT aFreq)
 {
     MYFLT temp = p->rate;
 
-    p->rate = (MYFLT)p->wave->flen * aFreq * csound->onedsr_;
+    p->rate = (MYFLT)p->wave->flen * aFreq * onedsr;
 /*     printf("SingWave: rate set to %f\n", p->rate); */
     temp -= p->rate;
     if (temp<0) temp = - temp;
@@ -189,7 +190,7 @@ MYFLT SingWave_tick(SingWave *p)
 
 void SingWave_print(ENVIRON *csound, SingWave *p)
 {
-    csound->Printf(csound->getstring_(X_463,"SingWave: rate=%f sweepRate=%f mytime=%f\n"),
+    printf(getstring(X_463,"SingWave: rate=%f sweepRate=%f mytime=%f\n"),
            p->rate, p->sweepRate, p->mytime);
     Modulatr_print(&p->modulator);
     Envelope_print(csound, &p->envelope);
@@ -246,9 +247,12 @@ void VoicForm_setPhoneme(ENVIRON *csound, VOICF *p, int i, MYFLT sc)
     if (i>16) i = i%16;
     VoicForm_setFormantAll(p, 0,sc*phonParams[i][0][0], phonParams[i][0][1],
                            (MYFLT)pow(10.0,phonParams[i][0][2] / FL(20.0)));
-    VoicForm_setFormantAll(p, 1,sc*phonParams[i][1][0], phonParams[i][1][1],FL(1.0));
-    VoicForm_setFormantAll(p, 2,sc*phonParams[i][2][0], phonParams[i][2][1],FL(1.0));
-    VoicForm_setFormantAll(p, 3,sc*phonParams[i][3][0], phonParams[i][3][1],FL(1.0));
+    VoicForm_setFormantAll(p, 1,sc*phonParams[i][1][0],
+                           phonParams[i][1][1], FL(1.0));
+    VoicForm_setFormantAll(p, 2,sc*phonParams[i][2][0],
+                           phonParams[i][2][1], FL(1.0));
+    VoicForm_setFormantAll(p, 3,sc*phonParams[i][3][0],
+                           phonParams[i][3][1], FL(1.0));
     VoicForm_setVoicedUnVoiced(p,phonGains[i][0], phonGains[i][1]);
     printf(Str(X_282,"Found Formant: %s (number %i)\n"),phonemes[i],i);
 }

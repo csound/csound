@@ -284,7 +284,7 @@ int tubebellset(ENVIRON *csound, FM4OP *p)
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
 
     if (make_FM4Op(csound,p)) return NOTOK;
-    if (FM4Op_loadWaves(csound,p)) return NOTOK; /* 4 times  "rawwaves/sinewave.raw" */
+    if (FM4Op_loadWaves(csound,p)) return NOTOK; /* 4 x "rawwaves/sinewave.raw" */
 
     FM4Op_setRatio(p, 0, FL(1.0)   * FL(0.995));
     FM4Op_setRatio(p, 1, FL(1.414) * FL(0.995));
@@ -356,7 +356,8 @@ int rhodeset(ENVIRON *csound, FM4OP *p)
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
 
     if (make_FM4Op(csound,p)) return NOTOK;
-    if (FM4Op_loadWaves(csound,p)) return NOTOK; /* 3 times  "sinewave.raw"; 1 x fwavblnk.raw */
+    if (FM4Op_loadWaves(csound,p)) return NOTOK; /* 3 times "sinewave.raw";
+                                                    1 x fwavblnk.raw */
 
     FM4Op_setRatio(p, 0, FL(1.0));
     FM4Op_setRatio(p, 1, FL(0.5));
@@ -401,7 +402,8 @@ int wurleyset(ENVIRON *csound, FM4OP *p)
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
 
     if (make_FM4Op(csound,p)) return NOTOK;
-    if (FM4Op_loadWaves(csound,p)) return NOTOK; /* 3 times  "sinewave.raw"; 1 x fwavblnk.raw */
+    if (FM4Op_loadWaves(csound,p)) return NOTOK; /* 3 x "sinewave.raw";
+                                                    1 x fwavblnk.raw */
 
     FM4Op_setRatio(p, 0, FL(1.0));
     FM4Op_setRatio(p, 1, FL(4.05));
@@ -478,8 +480,9 @@ MYFLT FM4Alg3_tick(FM4OP *p, MYFLT c1, MYFLT c2)
     MYFLT       temp;
     MYFLT       lastOutput;
 
-    temp = *p->modDepth * FL(0.2) * Wave_tick(&p->v_time, (int)p->vibWave->flen,
-                                          p->vibWave->ftable, p->v_rate, FL(0.0));
+    temp = *p->modDepth * FL(0.2) *
+      Wave_tick(&p->v_time, (int)p->vibWave->flen,
+                p->vibWave->ftable, p->v_rate, FL(0.0));
     p->w_rate[0] = p->baseFreq * (FL(1.0) + temp) * p->ratios[0];
     p->w_rate[1] = p->baseFreq * (FL(1.0) + temp) * p->ratios[1];
     p->w_rate[2] = p->baseFreq * (FL(1.0) + temp) * p->ratios[2];
@@ -512,7 +515,8 @@ MYFLT FM4Alg3_tick(FM4OP *p, MYFLT c1, MYFLT c2)
 int heavymetset(ENVIRON *csound, FM4OP *p)
 {
     if (make_FM4Op(csound,p)) return NOTOK;
-    if (FM4Op_loadWaves(csound,p)) return NOTOK;         /* Mixed -- 2 x sine; 1 x fwavblnk */
+    if (FM4Op_loadWaves(csound,p)) return NOTOK;  /* Mixed -- 2 x sine;
+                                                     1 x fwavblnk */
     FM4Op_setRatio(p, 0, FL(1.00)         );
     FM4Op_setRatio(p, 1, FL(4.00) * FL(0.999));
     FM4Op_setRatio(p, 2, FL(3.00) * FL(1.001));
@@ -1074,7 +1078,7 @@ int percfluteset(ENVIRON *csound, FM4OP *p)
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
 
     if (make_FM4Op(csound,p)) return NOTOK;
-    if (FM4Op_loadWaves(csound,p)) return NOTOK;         /* 3 x sines; 1 x fwavblnk */
+    if (FM4Op_loadWaves(csound,p)) return NOTOK;  /* 3 x sines; 1 x fwavblnk */
 
     FM4Op_setRatio(p, 0, FL(1.50)            );
     FM4Op_setRatio(p, 1, FL(3.00) * FL(0.995));

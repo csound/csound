@@ -174,7 +174,8 @@ static MYFLT *pluckShape(ENVIRON *csound, WGPLUCK* p)
     /* This memory must be freed after use */
     shape = (MYFLT *) mmalloc(len*sizeof(MYFLT));
     if (!shape)
-      error(csound, Str(X_231,"Couldn't allocate for initial shape"),"<pluckShape>");
+      error(csound,
+            Str(X_231,"Couldn't allocate for initial shape"),"<pluckShape>");
 
     scale = FL(0.5) * scale;      /* Scale was squared!! */
     for (i=0;i<p->pickSamp;i++)
@@ -299,7 +300,8 @@ MYFLT circularBufferRead(circularBuffer* cb)
 
 
 /* ***** class guideRail -- waveguide rail derived class ***** */
-#define guideRailGuideRail(csound,gr,d) circularBufferCircularBuffer(csound, gr,d) /* Guide rail is a circular buffer */
+/* Guide rail is a circular buffer */
+#define guideRailGuideRail(csound,gr,d) circularBufferCircularBuffer(csound, gr,d)
 
 
 /* ::access -- waveguide rail access routine */
