@@ -353,7 +353,7 @@ if commonEnvironment['usePortAudio']==1 and portaudioFound:
         csoundProgramEnvironment.Append(LIBS = ['dsound'])
         vstEnvironment.Append(LIBS = ['dsound'])
 
-if (commonEnvironment['useFLTK'] and fltkFound):
+if (commonEnvironment['useFLTK'] == 1 and fltkFound):
     staticLibraryEnvironment.Append(CCFLAGS = '-DWINDOWS')
     pluginEnvironment.Append(CCFLAGS = '-DWINDOWS')
     csoundProgramEnvironment.Append(CCFLAGS = '-DWINDOWS')
@@ -541,7 +541,7 @@ else:
     libCsoundSources.append('InOut/pmidi.c')
     libCsoundSources.append('InOut/fmidi.c')
 
-if not ((commonEnvironment['useFLTK'] and fltkFound)):
+if not ((commonEnvironment['useFLTK'] == 1 and fltkFound)):
     print 'CONFIGURATION DECISION: Not building with FLTK for graphs and widgets.'
 else:
     print 'CONFIGURATION DECISION: Building with FLTK for graphs and widgets.'
