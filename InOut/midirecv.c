@@ -385,23 +385,25 @@ void m_chanmsg(ENVIRON *csound, MEVENT *mep)
 void m_chn_init_all(ENVIRON *csound)
 {                               /* alloc a midi control blk for a midi chnl */
     MCHNBLK *chn;               /*  & assign corr instr n+1, else a default */
-    int     defaultinsno, prv, n;
+    int     defaultinsno, n;
     short   chan;
 
     defaultinsno = 0;
+    while (++defaultinsno <= (int) maxinsno && instrtxtp[defaultinsno] == NULL);
+    if (defaultinsno > (int) maxinsno)
+      defaultinsno = 0;         /* no instruments */
     for (chan = (short) 0; chan < (short) 16; chan++) {
       /* alloc a midi control blk for midi channel */
       /*  & assign default instrument number       */
       M_CHNBP[chan] = chn = (MCHNBLK*) mcalloc(csound, sizeof(MCHNBLK));
-      prv = defaultinsno;
-      while (++defaultinsno <= (int) maxinsno &&
-             instrtxtp[defaultinsno] == NULL);
-      if (defaultinsno > (int) maxinsno)
-        defaultinsno = prv;
-      if (defaultinsno > 0)                     /* if corresp instr exists  */
-        chn->insno = (short) defaultinsno;      /*     assign as insno      */
+      n = (int) chan + 1;
+      /* if corresponding instrument exists, assign as insno, */
+      if (n <= (int) maxinsno && instrtxtp[n] != NULL)
+        chn->insno = (short) n;
+      else if (defaultinsno > 0)
+        chn->insno = (short) defaultinsno;
       else
-        chn->insno = -1;                        /*     else mute channel    */
+        chn->insno = (short) -1;        /* else mute channel */
       /* reset all controllers */
       chn->pgmno = -1;
       ctlreset(csound, chan);
