@@ -20,6 +20,9 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
+#if defined(HAVE_CONFIG_H)
+#include "config.h"
+#endif
 
 #include "cs.h"                 /*                               MAIN.C */
 #include "soundio.h"
@@ -333,23 +336,23 @@ int csoundCompile(void *csound, int argc, char **argv)
     e0dbfs = DFLT_DBFS;
     dbfs_init(e0dbfs);
     /* may get changed by an orch */
-#ifndef USE_DOUBLE
-    err_printf(
-# ifdef BETA
-               "Csound Version %d.%.02dbeta (%s)\n",
-# else
-               Str(X_237,"Csound Version %d.%.02d (%s)\n"),
-# endif
-               VERSION, SUBVER, __DATE__);
+    if (sizeof(MYFLT)==sizeof(float))
+		{
+#ifdef BETA
+			err_printf("Csound version %5.2d beta (float samples) %s\n", PACKAGE_VERSION, __DATE__);
 #else
-    err_printf(
-# ifdef BETA
-               "Csound(d) Version %d.%.02dbeta (%s)\n",
-# else
-               Str(X_1545,"Csound(d) Version %d.%.02d (%s)\n"),
-# endif
-               VERSION, SUBVER, __DATE__);
+			err_printf("Csound version %5.2d (float samples) %s\n", PACKAGE_VERSION, __DATE__);
 #endif
+		}
+    else
+		{
+#ifdef BETA
+			err_printf("Csound version %5.2d beta (double samples) %s\n", PACKAGE_VERSION, __DATE__);
+#else
+			err_printf("Csound version %5.2d (double samples) %s\n", PACKAGE_VERSION, __DATE__);
+#endif
+		}
+
 #ifdef _SNDFILE_
     {
       char buffer[128];
