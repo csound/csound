@@ -49,9 +49,7 @@
 		#undef list
 	%}
 #endif
-#if defined (SWIGPYTHON)
 %module loris
-#endif
 // ----------------------------------------------------------------
 //		notification and exception handlers
 //

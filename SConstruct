@@ -253,6 +253,8 @@ if not (configure.CheckHeader("Opcodes/Loris/src/loris.h") and configure.CheckHe
     print "CONFIGURATION DECISION: Not building Loris Python extension and Csound opcodes."
 else:
     print "CONFIGURATION DECISION: Building Loris Python extension and Csound opcodes."
+if configure.CheckHeader("jni.h", language = "C++"):
+    commonEnvironment.Append(CCFLAGS = '-DHAVE_JNI_H')
         
 # Package contents.
 
@@ -265,7 +267,7 @@ def buildzip(env, target, source):
     
     extensions = ".sln .csproj .vsproj .dev .def .am .sh .ac .in .dll .so .exe "
     extensions = extensions + ".doc .mso .png .xml .mso .gif .jpg .jpeg .hlp .nb .wks .xls "
-    extensions = extensions + ".c .C .cpp .cxx .h .hpp .H .hxx .py .rc .res .fl .i .java "
+    extensions = extensions + ".c .C .cpp .cxx .h .hpp .H .hxx .py .rc .res .fl .i .java .class "
     extensions = extensions + ".sf2 .SF2 .csd .aif .aiff .jar .smf .mid"
     extensions = string.split(extensions)
     
@@ -850,7 +852,7 @@ else:
     vstEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
     guiProgramEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
     vstEnvironment.Prepend(LIBS = ['csound', 'sndfile'])
-    vstEnvironment.Append(SWIGFLAGS = Split('-python -c++ -includeall -verbose -outdir .'))
+    vstEnvironment.Append(SWIGFLAGS = Split('-c++ -includeall -verbose -outdir .'))
     if getPlatform() == 'linux':
         vstEnvironment.Append(LIBS = ['swigpy', 'python2.3', 'util', 'dl', 'm'])
         vstEnvironment.Append(CPPPATH = ['/usr/include/python2.3'])
@@ -860,9 +862,7 @@ else:
         guiProgramEnvironment.Prepend(LINKFLAGS = ['-mwindows', '_CsoundVST.so'])
     elif getPlatform() == 'cygwin' or getPlatform() == 'mingw':
         vstEnvironment['ENV']['PATH'] = os.environ['PATH']
-        vstEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
-        vstEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
-        vstEnvironment.Append(SHLINKFLAGS = '--enable-extra-pe-debug')
+        vstEnvironment.Append(SHLINKFLAGS = '-Wl,--add-stdcall-alias')
         vstEnvironment.Append(CCFLAGS = ['-DNDEBUG'])
         if getPlatform() == 'cygwin':
                 vstEnvironment.Append(CCFLAGS = ['-D_MSC_VER'])
@@ -895,7 +895,6 @@ else:
     frontends/CsoundVST/Cell.cpp 
     frontends/CsoundVST/CsoundVST.cpp
     frontends/CsoundVST/csoundvst_api.cpp 
-    frontends/CsoundVST/CsoundVST.i
     frontends/CsoundVST/CsoundVstFltk.cpp 
     frontends/CsoundVST/CsoundVSTMain.cpp 
     frontends/CsoundVST/CsoundVstUi.cpp 
@@ -925,6 +924,14 @@ else:
         vstEnvironment.Append(SHLINKFLAGS = ['-module'])
         vstEnvironment['ENV']['PATH'] = os.environ['PATH']
         csoundVstSources.append('frontends/CsoundVST/_CsoundVST.def')
+    swigflags = vstEnvironment['SWIGFLAGS']
+    csoundVstPythonWrapper = vstEnvironment.SharedObject('frontends/CsoundVST/CsoundVST.i', SWIGFLAGS = swigflags + '-python')
+    csoundVstSources.append(csoundVstPythonWrapper)
+    if configure.CheckHeader('jni.h', language = 'C++'):
+    	csoundVstJavaWrapper = vstEnvironment.SharedObject('frontends/CsoundVST/JCsoundVST.i', SWIGFLAGS = swigflags + '-java')
+    	csoundVstSources.append(csoundVstJavaWrapper)
+	#jcsound = Java(target = '.', classes = '.')
+	#zipDependencies.append(jcsound)
     csoundvst = vstEnvironment.SharedLibrary('CsoundVST', csoundVstSources, SHLIBPREFIX = '_')
     Depends(csoundvst, 'frontends/CsoundVST/CsoundVST_wrap.cc')
     zipDependencies.append(csoundvst)
@@ -954,6 +961,7 @@ else:
         shutil.copy('Opcodes/Loris/loris.i', 'Opcodes/Loris/src/')
         shutil.copy('Opcodes/Loris/lorisPartialList.i', 'Opcodes/Loris/src/')
         lorisEnvironment = vstEnvironment.Copy();
+	lorisEnvironment.Append(SWIGFLAGS = ['-python'])
         lorisEnvironment.Append(CCFLAGS = '-DHAVE_FFTW3_H')
         lorisEnvironment.Append(LIBS = ['fftw3'])
         lorisSources = glob.glob('Opcodes/Loris/src/*.C')
