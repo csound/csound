@@ -70,8 +70,7 @@ int    expseg(void*), mxdsrset(void*), kxpsegr(void*), expsegr(void*);
 int    schedule(void*), schedwatch(void*), ifschedule(void*), kschedule(void*);
 int    triginset(void*), ktriginstr(void*), trigseq_set(void*), trigseq(void*);
 int    event_set(void*), eventOpcode(void*);
-int    seqtim_set(void*), seqtim(void*), lfoset(void*), lfok(void*);
-int    lfoa(void*);
+int    lfoset(void*), lfok(void*), lfoa(void*);
 int    mute_inst(void*);
 int    vbap_FOUR_init(void*), vbap_FOUR (void*), vbap_EIGHT_init(void*);
 int    vbap_EIGHT(void*), vbap_SIXTEEN_init(void*), vbap_SIXTEEN(void*);
@@ -227,7 +226,6 @@ OENTRY opcodlst_2[] = {
 { "schedkwhen", S(TRIGINSTR), 3,"",     "kkkkkz",triginset, ktriginstr, NULL },
 { "schedkwhennamed", S(TRIGINSTR), 3,"", "kkkSkz",triginset, ktriginstr, NULL },
 { "trigseq", S(TRIGSEQ), 3,     "",     "kkkkkz", trigseq_set, trigseq, NULL },
-{ "seqtime", S(SEQTIM),  3,     "k",    "kkkkk", seqtim_set, seqtim, NULL   },
 { "event", S(LINEVENT),  3,     "",     "SSz",  event_set, eventOpcode, NULL },
 { "lfo", S(LFO),         7,     "s",    "kko",  lfoset,   lfok,   lfoa     },
 { "vbap4",  S(VBAP_FOUR), 5, "aaaa","aioo", vbap_FOUR_init, NULL, vbap_FOUR },

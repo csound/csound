@@ -615,6 +615,8 @@ zipDependencies.append(pluginEnvironment.SharedLibrary('scansyn',
     ['Opcodes/scansyn.c']))
 zipDependencies.append(pluginEnvironment.SharedLibrary('scansynx', 
     ['Opcodes/scansynx.c']))
+zipDependencies.append(pluginEnvironment.SharedLibrary('seqtime', 
+    ['Opcodes/seqtime.c']))
 zipDependencies.append(pluginEnvironment.SharedLibrary('sfont', 
     ['Opcodes/sfont.c']))
 zipDependencies.append(pluginEnvironment.SharedLibrary('sndwarp', 
