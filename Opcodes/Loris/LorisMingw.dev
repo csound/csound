@@ -1,7 +1,7 @@
 [Project]
 FileName=LorisMingw.dev
 Name=Project1
-UnitCount=84
+UnitCount=86
 Type=3
 Ver=1
 ObjFiles=
@@ -12,7 +12,7 @@ ResourceIncludes=
 MakeIncludes=
 Compiler=-DBUILDING_DLL=1_@@_
 CppCompiler=-DHAVE_FFTW3_H_@@_-DWIN32_@@_-D__WIN32___@@_-DDEBUG_LORISGENS_@@_-DUSE_DOUBLE_@@_
-Linker=--no-export-all-symbols --add-stdcall-alias_@@_../../tools/msys/1.0/local/lib/libfftw3.a_@@_../csound5/cygwin_import_libs/libpython23.a_@@_
+Linker=--no-export-all-symbols --add-stdcall-alias_@@_-lfftw3_@@_-lpython23_@@_
 IsCpp=1
 Icon=
 ExeOutput=..\csound5
@@ -30,7 +30,7 @@ CompilerSet=0
 CompilerSettings=0000000000010001000000
 
 [Unit1]
-FileName=src\AiffData.C
+FileName=lorisgens.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -40,7 +40,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit2]
-FileName=src\AiffFile.C
+FileName=lorisgens.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -50,7 +50,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit3]
-FileName=src\Analyzer.C
+FileName=..\..\..\Loris\src\Synthesizer.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -60,7 +60,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit4]
-FileName=src\AssociateBandwidth.C
+FileName=..\..\..\Loris\src\AiffData.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -70,7 +70,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit5]
-FileName=src\Breakpoint.C
+FileName=..\..\..\Loris\src\AiffData.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -80,7 +80,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit6]
-FileName=src\BreakpointEnvelope.C
+FileName=..\..\..\Loris\src\AiffFile.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -90,7 +90,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit7]
-FileName=src\BreakpointUtils.C
+FileName=..\..\..\Loris\src\AiffFile.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -100,7 +100,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit8]
-FileName=src\Channelizer.C
+FileName=..\..\..\Loris\src\Analyzer.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -110,7 +110,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit9]
-FileName=src\Dilator.C
+FileName=..\..\..\Loris\src\Analyzer.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -120,7 +120,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit10]
-FileName=src\Distiller.C
+FileName=..\..\..\Loris\src\AssociateBandwidth.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -130,7 +130,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit11]
-FileName=src\Endian.C
+FileName=..\..\..\Loris\src\AssociateBandwidth.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -140,7 +140,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit12]
-FileName=src\Envelope.C
+FileName=..\..\..\Loris\src\Breakpoint.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -150,7 +150,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit13]
-FileName=src\Exception.C
+FileName=..\..\..\Loris\src\Breakpoint.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -160,7 +160,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit14]
-FileName=src\Filter.C
+FileName=..\..\..\Loris\src\BreakpointEnvelope.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -170,7 +170,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit15]
-FileName=src\FourierTransform.C
+FileName=..\..\..\Loris\src\BreakpointEnvelope.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -180,7 +180,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit16]
-FileName=src\FrequencyReference.C
+FileName=..\..\..\Loris\src\BreakpointUtils.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -190,7 +190,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit17]
-FileName=src\ieee.c
+FileName=..\..\..\Loris\src\BreakpointUtils.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -200,7 +200,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit18]
-FileName=src\ImportLemur.C
+FileName=..\..\..\Loris\src\Channelizer.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -210,7 +210,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit19]
-FileName=src\KaiserWindow.C
+FileName=..\..\..\Loris\src\Channelizer.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -220,7 +220,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit20]
-FileName=src\lorisAnalyzer_pi.C
+FileName=..\..\..\Loris\src\Dilator.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -230,7 +230,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit21]
-FileName=src\lorisBpEnvelope_pi.C
+FileName=..\..\..\Loris\src\Dilator.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -240,7 +240,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit22]
-FileName=src\lorisException_pi.C
+FileName=..\..\..\Loris\src\Distiller.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -250,7 +250,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit23]
-FileName=src\lorisNonObj_pi.C
+FileName=..\..\..\Loris\src\Distiller.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -260,7 +260,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit24]
-FileName=src\lorisPartialList_pi.C
+FileName=..\..\..\Loris\src\Endian.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -270,7 +270,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit25]
-FileName=src\lorisSampleVector_pi.C
+FileName=..\..\..\Loris\src\Endian.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -280,7 +280,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit26]
-FileName=src\lorisUtilities_pi.C
+FileName=..\..\..\Loris\src\Envelope.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -290,7 +290,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit27]
-FileName=src\Marker.C
+FileName=..\..\..\Loris\src\Envelope.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -300,7 +300,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit28]
-FileName=src\Morpher.C
+FileName=..\..\..\Loris\src\Exception.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -310,7 +310,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit29]
-FileName=src\NoiseGenerator.C
+FileName=..\..\..\Loris\src\Exception.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -320,7 +320,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit30]
-FileName=src\Notifier.C
+FileName=..\..\..\Loris\src\Filter.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -330,7 +330,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit31]
-FileName=src\Oscillator.C
+FileName=..\..\..\Loris\src\Filter.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -340,7 +340,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit32]
-FileName=src\Partial.C
+FileName=..\..\..\Loris\src\FourierTransform.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -350,7 +350,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit33]
-FileName=src\PartialBuilder.C
+FileName=..\..\..\Loris\src\FourierTransform.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -360,7 +360,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit34]
-FileName=src\PartialUtils.C
+FileName=..\..\..\Loris\src\FrequencyReference.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -370,7 +370,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit35]
-FileName=src\ReassignedSpectrum.C
+FileName=..\..\..\Loris\src\FrequencyReference.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -380,7 +380,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit36]
-FileName=src\Resampler.C
+FileName=..\..\..\Loris\src\ieee.c
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -390,7 +390,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit37]
-FileName=src\SdifFile.C
+FileName=..\..\..\Loris\src\ieee.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -400,7 +400,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit38]
-FileName=src\Sieve.C
+FileName=..\..\..\Loris\src\ImportLemur.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -410,7 +410,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit39]
-FileName=src\SpcFile.C
+FileName=..\..\..\Loris\src\ImportLemur.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -420,7 +420,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit40]
-FileName=src\SpectralPeakSelector.C
+FileName=..\..\..\Loris\src\KaiserWindow.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -430,7 +430,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit41]
-FileName=src\Synthesizer.C
+FileName=..\..\..\Loris\src\KaiserWindow.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -458,7 +458,7 @@ ProductVersion=
 AutoIncBuildNr=0
 
 [Unit42]
-FileName=src\Synthesizer.h
+FileName=..\..\..\Loris\src\loris.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -468,7 +468,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit43]
-FileName=src\AiffData.h
+FileName=..\..\..\Loris\src\lorisAnalyzer_pi.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -478,7 +478,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit44]
-FileName=src\AiffFile.h
+FileName=..\..\..\Loris\src\lorisBpEnvelope_pi.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -488,7 +488,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit45]
-FileName=src\Analyzer.h
+FileName=..\..\..\Loris\src\lorisException_pi.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -498,7 +498,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit46]
-FileName=src\AssociateBandwidth.h
+FileName=..\..\..\Loris\src\lorisException_pi.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -508,7 +508,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit47]
-FileName=src\Breakpoint.h
+FileName=..\..\..\Loris\src\lorisNonObj_pi.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -518,7 +518,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit48]
-FileName=src\BreakpointEnvelope.h
+FileName=..\..\..\Loris\src\lorisPartialList_pi.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -528,7 +528,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit49]
-FileName=src\BreakpointUtils.h
+FileName=..\..\..\Loris\src\lorisSampleVector_pi.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -538,7 +538,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit50]
-FileName=src\Channelizer.h
+FileName=..\..\..\Loris\src\lorisUtilities_pi.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -548,7 +548,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit51]
-FileName=src\Dilator.h
+FileName=..\..\..\Loris\src\Marker.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -558,7 +558,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit52]
-FileName=src\Distiller.h
+FileName=..\..\..\Loris\src\Marker.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -568,7 +568,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit53]
-FileName=src\Endian.h
+FileName=..\..\..\Loris\src\Morpher.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -578,7 +578,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit54]
-FileName=src\Envelope.h
+FileName=..\..\..\Loris\src\Morpher.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -588,7 +588,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit55]
-FileName=src\Exception.h
+FileName=..\..\..\Loris\src\NoiseGenerator.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -598,7 +598,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit56]
-FileName=src\Filter.h
+FileName=..\..\..\Loris\src\NoiseGenerator.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -608,7 +608,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit57]
-FileName=src\FourierTransform.h
+FileName=..\..\..\Loris\src\Notifier.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -618,7 +618,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit58]
-FileName=src\FrequencyReference.h
+FileName=..\..\..\Loris\src\Notifier.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -628,7 +628,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit59]
-FileName=src\ieee.h
+FileName=..\..\..\Loris\src\Oscillator.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -638,7 +638,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit60]
-FileName=src\ImportLemur.h
+FileName=..\..\..\Loris\src\Oscillator.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -648,7 +648,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit61]
-FileName=src\KaiserWindow.h
+FileName=..\..\..\Loris\src\Partial.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -658,7 +658,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit62]
-FileName=src\lorisException_pi.h
+FileName=..\..\..\Loris\src\Partial.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -668,7 +668,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit63]
-FileName=src\Marker.h
+FileName=..\..\..\Loris\src\PartialBuilder.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -678,7 +678,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit64]
-FileName=src\Morpher.h
+FileName=..\..\..\Loris\src\PartialBuilder.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -688,7 +688,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit65]
-FileName=src\NoiseGenerator.h
+FileName=..\..\..\Loris\src\PartialList.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -698,7 +698,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit66]
-FileName=src\Notifier.h
+FileName=..\..\..\Loris\src\PartialPtrs.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -708,7 +708,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit67]
-FileName=src\Oscillator.h
+FileName=..\..\..\Loris\src\PartialUtils.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -718,7 +718,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit68]
-FileName=src\Partial.h
+FileName=..\..\..\Loris\src\PartialUtils.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -728,7 +728,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit69]
-FileName=src\PartialBuilder.h
+FileName=..\..\..\Loris\src\ReassignedSpectrum.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -738,7 +738,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit70]
-FileName=src\PartialList.h
+FileName=..\..\..\Loris\src\ReassignedSpectrum.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -748,7 +748,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit71]
-FileName=src\PartialPtrs.h
+FileName=..\..\..\Loris\src\Resampler.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -758,7 +758,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit72]
-FileName=src\PartialUtils.h
+FileName=..\..\..\Loris\src\Resampler.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -768,7 +768,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit73]
-FileName=src\ReassignedSpectrum.h
+FileName=..\..\..\Loris\src\SdifFile.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -778,7 +778,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit74]
-FileName=src\Resampler.h
+FileName=..\..\..\Loris\src\SdifFile.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -788,7 +788,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit75]
-FileName=src\SdifFile.h
+FileName=..\..\..\Loris\src\Sieve.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -798,7 +798,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit76]
-FileName=src\Sieve.h
+FileName=..\..\..\Loris\src\Sieve.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -808,7 +808,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit77]
-FileName=src\SpcFile.h
+FileName=..\..\..\Loris\src\SpcFile.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -818,7 +818,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit78]
-FileName=src\SpectralPeaks.h
+FileName=..\..\..\Loris\src\SpcFile.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -828,7 +828,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit79]
-FileName=src\SpectralPeakSelector.h
+FileName=..\..\..\Loris\src\SpectralPeaks.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -838,7 +838,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit80]
-FileName=src\loris.h
+FileName=..\..\..\Loris\src\SpectralPeakSelector.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -848,7 +848,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit81]
-FileName=scripting\loris_python_wrap.C
+FileName=..\..\..\Loris\src\SpectralPeakSelector.h
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -858,7 +858,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit82]
-FileName=csound\lorisgens.C
+FileName=..\..\..\Loris\src\Synthesizer.C
 CompileCpp=1
 Folder=Project1
 Compile=1
@@ -868,7 +868,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit83]
-FileName=scripting\loris.i
+FileName=..\..\..\Loris\scripting\lorisPartialList.i
 Folder=Project1
 Compile=0
 Link=0
@@ -877,7 +877,26 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit84]
-FileName=csound\lorisgens.h
+FileName=..\..\..\Loris\scripting\loris.i
+CompileCpp=1
+Folder=Project1
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit85]
+FileName=..\..\..\Loris\scripting\loris.py
+Folder=Project1
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit86]
+FileName=..\..\..\Loris\scripting\loris_python_wrap.C
 CompileCpp=1
 Folder=Project1
 Compile=1
