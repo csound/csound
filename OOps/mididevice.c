@@ -34,11 +34,8 @@ extern u_char *mbuf, *bufp, *bufend, *endatp;
 
 #define MBUFSIZ   1024
 
-#ifdef PORTMIDI
-#include <portmidi.h>
+#ifndef PORTAUDIO
 
-PortMidiStream* midistream;
-#else
 #ifdef WIN32                    /* IV - Nov 10 2002 */
 #undef u_char
 #undef u_short
@@ -52,7 +49,6 @@ static int tmpbuf_ndx_r, tmpbuf_ndx_w;
 #else
 static int  rtfd = 0;        /* init these to stdin */
 #endif
-#endif /* PortMIDI */
 
 #ifdef HAVE_SGTTY_H
 # include <sgtty.h>
@@ -202,8 +198,6 @@ void CALLBACK win32_midi_in_handler(HMIDIIN, UINT, DWORD, DWORD, DWORD);
 
 void OpenMIDIDevice(void)
 {
-#ifdef PORTMIDI
-#else
 #if defined(WIN32)                              /* IV - Nov 10 2002 */
     int     nr_devs, dev_num;
     MIDIINCAPSA caps;
@@ -420,7 +414,6 @@ void OpenMIDIDevice(void)
 #endif
         }
 #endif          /* WIN32 IV - Nov 10 2002 */
-#endif /* PortMIDI */
 }
 
 /* IV - Nov 10 2002 */
@@ -531,6 +524,7 @@ long GetMIDIData(void)
         if ((n = read(rtfd, (char *)mbuf, MBUFSIZ)) > 0) {
           bufp = mbuf;
           endatp = mbuf + n;
+          return n;             /* JPff added 23 Jun 2004 */
         }
         else return(0);
       }
@@ -542,7 +536,7 @@ long GetMIDIData(void)
         if ((n = read_port_etc(gMidiInPort, &dummy, mbuf, MBUFSIZ, B_TIMEOUT, 0)) > 0) {
           bufp = mbuf;
           endatp = mbuf + n;
-
+          return n;             /* JPff added 23 Jun 2004 */
         } else {
           return 0;
         }
@@ -567,7 +561,7 @@ long GetMIDIData(void)
             }
           bufp = mbuf;
           endatp = mbuf + n*j;
-
+          return n;             /* JPff added 23 Jun 2004 */
         }
         else return (0);
       }
@@ -601,9 +595,6 @@ kern_return_t
 
 void CloseMIDIDevice(void)
 {
-#if PORTMIDI
-    Pm_Close(midistream);
-#else
 #ifdef WIN32                            /* IV - Nov 10 2002 */
     if (midiInStop(hMidiIn) != MMSYSERR_NOERROR  ||
         midiInReset(hMidiIn) != MMSYSERR_NOERROR ||
@@ -626,7 +617,6 @@ void CloseMIDIDevice(void)
     if (rtfd) mdClosePort(sgiport);
 #endif
 #endif      /* WIN32 */
-#endif /* PortMIDI */
 }
 
 
@@ -634,3 +624,69 @@ void MidiOutShortMsg(unsigned char *data)
 {
         /* dummy function */
 }
+
+#else /* PORTMIDI */
+#include <portmidi.h>
+
+PortMidiStream* midistream;
+static int not_started = 1;
+
+void OpenMIDIDevice(void)
+{
+    if (not_started) {
+      Pm_Initialize();
+      Pt_Start(1, 0, 0);
+    }
+    not_started = 0;
+    Pm_OpenInput(&midistream, 
+                 0,             /* Device number */
+                 NULL, 
+                 MBUFSIZE, 
+                 ((long (*)(void *)) Pt_Time), 
+                 NULL);
+    Pm_SetFilter(midistream, PM_FILT_ACTIVE | PM_FILT_CLOCK);
+    while (Pm_Poll(midistream)) { /* empty the buffer after setting filter */
+        Pm_Read(midistream, buffer, 1);
+    }
+}
+
+long GetMIDIData(void)
+{
+    extern int csoundIsExternalMidiEnabled(void*);
+    extern long csoundExternalMidiRead(void*, u_char *, int);
+    /**
+     * Reads from user-defined MIDI input.
+     */
+    if (csoundIsExternalMidiEnabled(&cenviron)) {
+      n = csoundExternalMidiRead(&cenviron, mbuf, MBUFSIZ);
+      if (n == 0) {
+        return 0;
+      }
+      bufp = mbuf;
+      endatp = mbuf + n;
+      return n;
+    }
+    else {
+      int retval;
+      if ((retval=Pm_Poll(midistream))) {
+        if (retval<0) printf(Str(X_1185,"sensMIDI: retval errno %d"),errno);
+        if (retval == 0) {
+          long n = Pm_Read(midistream, buffer, MBUFSIZE);
+          bufp = mbuf;
+          endatp = mbuf + n;
+          return n;
+        }
+        else {
+          printf(Str(X_1185,"sensMIDI: retval errno %d"),errno);
+        }
+      }
+      return(0);
+    }
+}
+
+void CloseMIDIDevice(void)
+{
+    Pm_Close(midistream);
+}
+
+#endif
