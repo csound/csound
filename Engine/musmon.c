@@ -102,7 +102,7 @@ int tempo(ENVIRON *csound, TEMPO *p)
 extern  void    RTLineset(void), MidiOpen(void *), FMidiOpen(void *);
 extern  void    scsort(FILE*, FILE*), oload(ENVIRON *), cscorinit(void);
 extern  void    schedofftim(INSDS *), infoff(MYFLT);
-extern  void    orcompact(void), rlsmemfiles(void), timexpire(double);
+extern  void    orcompact(void*), rlsmemfiles(void), timexpire(double);
 extern  void    beatexpire(double), deact(INSDS*), fgens(ENVIRON *,EVTBLK *);
 extern  void    sfopenin(void*), sfopenout(void*), sfnopenout(void);
 extern  void    iotranset(void), sfclosein(void*), sfcloseout(void*);
@@ -368,7 +368,7 @@ int cleanup(void *csound)
     /* will not clean up more than once */
     csoundDestroyGlobalVariable(csound, "#CLEANUP");
 
-    orcompact();
+    orcompact(csound);
     printf(Str("end of score.\t\t   overall amps:"));
     if (scfp) {
       fclose(scfp); scfp = NULL;
@@ -869,7 +869,7 @@ int sensevents(ENVIRON *csound)
         *srngp++ = 0;
       }
       if (opcod == 's') {                       /* if s code,        */
-        orcompact();                            /*   rtn inactiv spc */
+        orcompact(csound);                      /*   rtn inactiv spc */
         if (actanchor.nxtact == NULL)           /*   if no indef ins */
           rlsmemfiles();                        /*    purge memfiles */
         p->curp2 = p->nxtim = 0.0;              /*   reset sec times */
