@@ -1405,7 +1405,7 @@ static int isActivatedKeyb=0;
 //static int keyb_out=0;
 static FLKEYB* keybp = NULL;
 
-extern "C" void set_snap(FLSETSNAP *p)
+extern "C" int set_snap(FLSETSNAP *p)
 {
     SNAPSHOT snap(AddrSetValue);
     int numfields = snap.fields.size();
@@ -1421,17 +1421,18 @@ extern "C" void set_snap(FLSETSNAP *p)
           table[index*numfields+j] = snap.fields[j].value;
         }
       }
-      else initerror("FLsetsnap: invalid table");
+      else return initerror("FLsetsnap: invalid table");
     }
     else { // else store it into snapshot bank
       if ((int) snapshots.size() < index+1)
         snapshots.resize(index+1);
       snapshots[index]=snap;
     }
+    return OK;
 }
 
 
-extern "C" void get_snap(FLGETSNAP *p)
+extern "C" int get_snap(FLGETSNAP *p)
 {
     int index = (int) *p->index;
     if (!snapshots.empty()) {
@@ -1440,10 +1441,11 @@ extern "C" void get_snap(FLGETSNAP *p)
       snapshots[index].get(AddrSetValue);
     }
     *p->inum_el = snapshots.size();
+    return OK;
 }
 
 
-extern "C" void save_snap(FLSAVESNAPS* p)
+extern "C" int save_snap(FLSAVESNAPS* p)
 {
 #ifdef WIN32
     int id = MessageBox( NULL,
@@ -1502,9 +1504,10 @@ extern "C" void save_snap(FLSAVESNAPS* p)
     }
     file << "---------------------------";
     file.close();
+    return OK;
 }
 
-extern "C" void load_snap(FLLOADSNAPS* p)
+extern "C" int load_snap(FLLOADSNAPS* p)
 {
     char     s[MAXNAME];
     string  filename;
@@ -1551,10 +1554,9 @@ extern "C" void load_snap(FLLOADSNAPS* p)
         opc_orig = ((OPDS *) (v.opcode))->optext->t.opcod;
 
         if (!(opc_orig == opc)) {
-          initerror("unmatched widget, probably due to a modified"
+          return initerror("unmatched widget, probably due to a modified"
                     " orchestra. Modifying an orchestra makes it "
                     "incompatible with old snapshot files");
-          return;
         }
         if (opc == "FLjoy") {
           fld.opcode_name = opc;
@@ -1602,6 +1604,7 @@ extern "C" void load_snap(FLLOADSNAPS* p)
     }
 
     file.close();
+    return OK;
 }
 
 
@@ -2121,45 +2124,49 @@ extern "C" void StartPanel(FLPANEL *p)
     stack_count++;
 }
 
-extern "C" void EndPanel(FLPANELEND *p)
+extern "C" int EndPanel(FLPANELEND *p)
 {
     stack_count--;
     ADDR_STACK adrstk = AddrStack.back();
     if (strcmp( adrstk.h->optext->t.opcod, "FLpanel"))
-      initerror("FLpanel_end: invalid stack pointer: verify its placement");
+      return initerror("FLpanel_end: invalid stack pointer: verify its placement");
     if (adrstk.count != stack_count)
-      initerror("FLpanel_end: invalid stack count: "
+      return initerror("FLpanel_end: invalid stack count: "
                 "verify FLpanel/FLpanel_end count and placement");
     ((Fl_Window*) adrstk.WidgAddress)->end();
     AddrStack.pop_back();
+    return OK;
 }
 
 //-----------
-extern "C" void StartScroll(FLSCROLL *p)
+extern "C" int StartScroll(FLSCROLL *p)
 {
     Fl_Scroll *o = new Fl_Scroll ((int) *p->ix, (int) *p->iy,
                                   (int) *p->iwidth, (int) *p->iheight);
     ADDR_STACK adrstk(&p->h,o,stack_count);
     AddrStack.push_back(adrstk);
     stack_count++;
+    return OK;
 }
 
-extern "C" void EndScroll(FLSCROLLEND *p)
+extern "C" int EndScroll(FLSCROLLEND *p)
 {
     stack_count--;
     ADDR_STACK adrstk = AddrStack.back();
     if (strcmp( adrstk.h->optext->t.opcod, "FLscroll"))
-      initerror("FLscroll_end: invalid stack pointer: verify its placement");
+      return
+	initerror("FLscroll_end: invalid stack pointer: verify its placement");
     if (adrstk.count != stack_count)
-      initerror("FLscroll_end: invalid stack count: "
+      return initerror("FLscroll_end: invalid stack count: "
                 "verify FLscroll/FLscroll_end count and placement");
     ((Fl_Scroll*) adrstk.WidgAddress)->end();
 
     AddrStack.pop_back();
+    return OK;
 }
 
 //-----------
-extern "C" void StartTabs(FLTABS *p)
+extern "C" int StartTabs(FLTABS *p)
 {
     Fl_Tabs *o = new Fl_Tabs ((int) *p->ix, (int) *p->iy,
                               (int) *p->iwidth, (int) *p->iheight);
@@ -2167,24 +2174,27 @@ extern "C" void StartTabs(FLTABS *p)
     ADDR_STACK adrstk(&p->h,o,stack_count);
     AddrStack.push_back(adrstk);
     stack_count++;
+    return OK;
 }
 
-extern "C" void EndTabs(FLTABSEND *p)
+extern "C" int EndTabs(FLTABSEND *p)
 {
     stack_count--;
     ADDR_STACK adrstk = AddrStack.back();
     if (strcmp( adrstk.h->optext->t.opcod, "FLtabs"))
-      initerror("FLscroll_end: invalid stack pointer: verify its placement");
+      return
+	initerror("FLscroll_end: invalid stack pointer: verify its placement");
     if (adrstk.count != stack_count)
-      initerror("FLtabs_end: invalid stack count: "
+      return initerror("FLtabs_end: invalid stack count: "
                 "verify FLtabs/FLtabs_end count and placement");
     ((Fl_Scroll*) adrstk.WidgAddress)->end();
 
     AddrStack.pop_back();
+    return OK;
 }
 
 //-----------
-extern "C" void StartGroup(FLGROUP *p)
+extern "C" int StartGroup(FLGROUP *p)
 {
     char *Name = GetString(*p->name,p->STRARG);
     Fl_Group *o = new Fl_Group ((int) *p->ix, (int) *p->iy,
@@ -2207,25 +2217,27 @@ extern "C" void StartGroup(FLGROUP *p)
     ADDR_STACK adrstk(&p->h,o,stack_count);
     AddrStack.push_back(adrstk);
     stack_count++;
+    return OK;
 }
 
-extern "C" void EndGroup(FLGROUPEND *p)
+extern "C" int EndGroup(FLGROUPEND *p)
 {
     stack_count--;
     ADDR_STACK adrstk = AddrStack.back();
     if (strcmp( adrstk.h->optext->t.opcod, "FLgroup"))
-      initerror("FLgroup_end: invalid stack pointer: verify its placement");
+      return initerror("FLgroup_end: invalid stack pointer: verify its placement");
     if (adrstk.count != stack_count)
-      initerror("FLgroup_end: invalid stack count: "
+      return initerror("FLgroup_end: invalid stack count: "
                 "verify FLgroup/FLgroup_end count and placement");
     ((Fl_Scroll*) adrstk.WidgAddress)->end();
 
     AddrStack.pop_back();
+    return OK;
 }
 
 //-----------
 
-extern "C" void StartPack(FLSCROLL *p)
+extern "C" int StartPack(FLSCROLL *p)
 {
     Fl_Pack *o = new Fl_Pack ((int) *p->ix, (int) *p->iy,
                               (int) *p->iwidth, (int) *p->iheight);
@@ -2236,26 +2248,27 @@ extern "C" void StartPack(FLSCROLL *p)
     ADDR_STACK adrstk(&p->h,o,stack_count);;
     AddrStack.push_back(adrstk);
     stack_count++;
+    return OK;
 }
 
-extern "C" void EndPack(FLSCROLLEND *p)
+extern "C" int EndPack(FLSCROLLEND *p)
 {
     stack_count--;
     ADDR_STACK adrstk = AddrStack.back();
     if (strcmp( adrstk.h->optext->t.opcod, "FLpack"))
-      initerror("FLpack_end: invalid stack pointer: verify its placement");
+      return initerror("FLpack_end: invalid stack pointer: verify its placement");
     if (adrstk.count != stack_count)
-      initerror("FLpack_end: invalid stack count: "
+      return initerror("FLpack_end: invalid stack count: "
                 "verify FLpack/FLpack_end count and placement");
     ((Fl_Pack*) adrstk.WidgAddress)->end();
 
     AddrStack.pop_back();
-
+    return OK;
 }
 
 //-----------
 
-extern "C" void fl_widget_color(FLWIDGCOL *p)
+extern "C" int fl_widget_color(FLWIDGCOL *p)
 {
     if (*p->red1 < 0) { // reset colors to default
       FLcolor = (int) *p->red1; //when called without arguments
@@ -2269,9 +2282,10 @@ extern "C" void fl_widget_color(FLWIDGCOL *p)
                               (int) *p->green2,
                               (int) *p->blue2);
     }
+    return OK;
 }
 
-extern "C" void fl_widget_color2(FLWIDGCOL2 *p)
+extern "C" int fl_widget_color2(FLWIDGCOL2 *p)
 {
     if (*p->red < 0) { // reset colors to default
       FLcolor2 =(int) *p->red;
@@ -2281,9 +2295,10 @@ extern "C" void fl_widget_color2(FLWIDGCOL2 *p)
                               (int) *p->green,
                               (int) *p->blue);
     }
+    return OK;
 }
 
-extern "C" void fl_widget_label(FLWIDGLABEL *p)
+extern "C" int fl_widget_label(FLWIDGLABEL *p)
 {
     if (*p->size <= 0) { // reset settings to default
       FLtext_size = 0; //when called without arguments
@@ -2302,10 +2317,11 @@ extern "C" void fl_widget_label(FLWIDGLABEL *p)
                                     (int) *p->blue);
       }
     }
+    return OK;
 }
 //-----------
 
-extern "C" void fl_setWidgetValuei(FL_SET_WIDGET_VALUE_I *p)
+extern "C" int fl_setWidgetValuei(FL_SET_WIDGET_VALUE_I *p)
 {
     ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
     MYFLT val = *p->ivalue, range, base;
@@ -2356,18 +2372,19 @@ else if (!(strcmp(((OPDS *) v.opcode)->optext->t.opcod, "FLjoy"))) {
         printf("WARNING: System error: value() method called from "
                "non-valuator object");
     o->do_callback(o, v.opcode);
+    return OK;
 }
 
-extern "C" void fl_setWidgetValue(FL_SET_WIDGET_VALUE *p)
+extern "C" int fl_setWidgetValue(FL_SET_WIDGET_VALUE *p)
 {
-
+  return NOTOK;
 }
 
 
 //-----------
 //-----------
 
-extern "C" void fl_setColor1(FL_SET_COLOR *p)
+extern "C" int fl_setColor1(FL_SET_COLOR *p)
 {
     ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
     Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -2375,9 +2392,10 @@ extern "C" void fl_setColor1(FL_SET_COLOR *p)
                              (int) *p->green,
                              (int) *p->blue);
     o->color(color);
+    return OK;
 }
 
-extern "C" void fl_setColor2(FL_SET_COLOR *p)
+extern "C" int fl_setColor2(FL_SET_COLOR *p)
 {
     ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
     Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -2385,9 +2403,10 @@ extern "C" void fl_setColor2(FL_SET_COLOR *p)
                              (int) *p->green,
                              (int) *p->blue);
     o->selection_color(color);
+    return OK;
 }
 
-extern "C" void fl_setTextColor(FL_SET_COLOR *p)
+extern "C" int fl_setTextColor(FL_SET_COLOR *p)
 {
     ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
     Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -2395,16 +2414,18 @@ extern "C" void fl_setTextColor(FL_SET_COLOR *p)
                              (int) *p->green,
                              (int) *p->blue);
     o->labelcolor(color);
+    return OK;
 }
 
-extern "C" void fl_setTextSize(FL_SET_TEXTSIZE *p)
+extern "C" int fl_setTextSize(FL_SET_TEXTSIZE *p)
 {
     ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
     Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
     o->labelsize((uchar) *p->ivalue );
+    return OK;
 }
 
-extern "C" void fl_setFont(FL_SET_FONT *p)
+extern "C" int fl_setFont(FL_SET_FONT *p)
 {
     ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
     Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -2429,9 +2450,10 @@ extern "C" void fl_setFont(FL_SET_FONT *p)
       default: font = FL_SCREEN;
     }
     o->labelfont(font);
+    return OK;
 }
 
-extern "C" void fl_setTextType(FL_SET_FONT *p)
+extern "C" int fl_setTextType(FL_SET_FONT *p)
 {
     ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
     Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -2452,9 +2474,10 @@ extern "C" void fl_setTextType(FL_SET_FONT *p)
     }
     o->labeltype(type);
     o->window()->redraw();
+    return OK;
 }
 
-extern "C" void fl_box(FL_BOX *p)
+extern "C" int fl_box(FL_BOX *p)
 {
     char *text = GetString(*p->itext,p->STRARG);
     Fl_Box *o =  new Fl_Box((int)*p->ix, (int)*p->iy, 
@@ -2509,47 +2532,52 @@ extern "C" void fl_box(FL_BOX *p)
     o->align(FL_ALIGN_WRAP);
     AddrSetValue.push_back(ADDR_SET_VALUE(0, 0, 0, (void *)o, (void *)p));
     *p->ihandle = AddrSetValue.size()-1;
-
+    return OK;
 }
 
 
-extern "C" void fl_setText(FL_SET_TEXT *p)
+extern "C" int fl_setText(FL_SET_TEXT *p)
 {
     char *text = GetString(*p->itext,p->STRARG);
     ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
     Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
     o->label(text);
+    return OK;
 }
 
-extern "C" void fl_setSize(FL_SET_SIZE *p)
+extern "C" int fl_setSize(FL_SET_SIZE *p)
 {
     ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
     Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
     o->size((short)  *p->iwidth, (short) *p->iheight);
+    return OK;
 }
 
-extern "C" void fl_setPosition(FL_SET_POSITION *p)
+extern "C" int fl_setPosition(FL_SET_POSITION *p)
 {
     ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
     Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
     o->position((short)  *p->ix, (short) *p->iy);
+    return OK;
 }
 
-extern "C" void fl_hide(FL_WIDHIDE *p)
+extern "C" int fl_hide(FL_WIDHIDE *p)
 {
     ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
     Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
     o->hide();
+    return OK;
 }
 
-extern "C" void fl_show(FL_WIDSHOW *p)
+extern "C" int fl_show(FL_WIDSHOW *p)
 {
     ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
     Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
     o->show();
+    return OK;
 }
 
-extern "C" void fl_setBox(FL_SETBOX *p)
+extern "C" int fl_setBox(FL_SETBOX *p)
 {
     ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
     Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -2577,9 +2605,10 @@ extern "C" void fl_setBox(FL_SETBOX *p)
       default: type = FL_FLAT_BOX;
     }
     o->box(type);
+    return OK;
 }
 
-extern "C" void fl_align(FL_TALIGN *p)
+extern "C" int fl_align(FL_TALIGN *p)
 {
     ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
     Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -2597,6 +2626,7 @@ extern "C" void fl_align(FL_TALIGN *p)
       default: type = FL_ALIGN_BOTTOM;
     }
     o->align(type);
+    return OK;
 }
 
 //-----------
@@ -2605,7 +2635,7 @@ extern "C" void fl_align(FL_TALIGN *p)
 
 
 
-extern "C" void fl_value(FLVALUE *p)
+extern "C" int fl_value(FLVALUE *p)
 {
     char *controlName = GetString(*p->name,p->STRARG);
     int ix, iy, iwidth, iheight;
@@ -2627,13 +2657,13 @@ extern "C" void fl_value(FLVALUE *p)
     AddrSetValue.push_back(ADDR_SET_VALUE(0, 0, 0, (void *) o, (void *) p));
     //*p->ihandle = AddrValue.size()-1;
     *p->ihandle = AddrSetValue.size()-1;
-
+    return OK;
 }
 
 
 //-----------
 
-extern "C" void fl_slider(FLSLIDER *p)
+extern "C" int fl_slider(FLSLIDER *p)
 {
     char *controlName = GetString(*p->name,p->STRARG);
     int ix,iy,iwidth, iheight,itype, iexp;
@@ -2686,7 +2716,7 @@ extern "C" void fl_slider(FLSLIDER *p)
       case 4:  o->type(FL_VERT_SLIDER); break;
       case 5:  o->type(FL_HOR_NICE_SLIDER); o->box(FL_FLAT_BOX); break;
       case 6:  o->type(FL_VERT_NICE_SLIDER); o->box(FL_FLAT_BOX); break;
-      default: initerror("FLslider: invalid slider type");
+      default: return initerror("FLslider: invalid slider type");
     }
     widget_attributes(o);
     MYFLT min = p->min = *p->imin, max = *p->imax, range;
@@ -2697,7 +2727,7 @@ extern "C" void fl_slider(FLSLIDER *p)
         break;
       case EXP_ : //exponential
         if (min == 0 || max == 0)
-          initerror("FLslider: zero is illegal in exponential operations");
+          return initerror("FLslider: zero is illegal in exponential operations");
         range = max - min;
         o->range(0,range);
         p->base = ::pow((max / min), 1/range);
@@ -2711,7 +2741,7 @@ extern "C" void fl_slider(FLSLIDER *p)
             p->table = ftp->ftable;
             p->tablen = ftp->flen;
           }
-          else return;
+          else return NOTOK;
           o->range(0,.99999999);
           if (iexp > 0) //interpolated
             o->callback((Fl_Callback*)fl_callbackInterpTableSlider,(void *) p);
@@ -2722,17 +2752,17 @@ extern "C" void fl_slider(FLSLIDER *p)
     AddrSetValue.push_back(ADDR_SET_VALUE(iexp, *p->imin, *p->imax,
                                           (void *) o, (void *) p));
     *p->ihandle = AddrSetValue.size()-1;
+    return OK;
 }
 
 
-extern "C" void fl_slider_bank(FLSLIDERBANK *p)
+extern "C" int fl_slider_bank(FLSLIDERBANK *p)
 {
     char s[MAXNAME];
     char *t = p->STRARG;
     if (*p->names == SSTRCOD) {
       if (t == NULL) strcpy(s,unquote(currevent->strarg));
       else strcpy(s, unquote(t));
-
     }
     else if ((long)*p->names <= strsmax &&
              strsets != NULL && strsets[(long)*p->names]) {
@@ -2755,27 +2785,26 @@ extern "C" void fl_slider_bank(FLSLIDERBANK *p)
           zklast > (long) (*p->inumsliders + *p->ioutablestart_ndx))
         outable = zkstart + (long) *p->ioutablestart_ndx;
       else {
-        initerror("invalid ZAK space allocation");
-        return;
+        return initerror("invalid ZAK space allocation");
       }
     }
     else {
       if ((ftp = ftfind(p->ioutable)) != NULL)
         outable = ftp->ftable + (long) *p->ioutablestart_ndx;
       else
-        return;
+        return NOTOK;
     }
     if ((int) *p->iminmaxtable > 0) {
       if ((ftp = ftfind(p->iminmaxtable)) != NULL) minmaxtable = ftp->ftable;
-      else return;
+      else return NOTOK;
     }
     if ((int) *p->iexptable > 0) {
       if ((ftp = ftfind(p->iexptable)) != NULL) exptable = ftp->ftable;
-      else return;
+      else return NOTOK;
     }
     if ((int) *p->itypetable >0) {
       if ((ftp = ftfind(p->itypetable)) != NULL) typetable = ftp->ftable;
-      else return;
+      else return NOTOK;
     }
 
     for (int j =0; j< *p->inumsliders; j++) {
@@ -2834,8 +2863,8 @@ extern "C" void fl_slider_bank(FLSLIDERBANK *p)
         max = minmaxtable[j*2+1];
       }
       else {
-        min = 0.;
-        max = 1.;
+        min = FL(0.0);
+        max = FL(1.0);
       }
       int iexp;
 
@@ -2866,7 +2895,8 @@ extern "C" void fl_slider_bank(FLSLIDERBANK *p)
         break;
       case EXP_ : //exponential
         if (min == 0 || max == 0)
-          initerror("FLsliderBank: zero is illegal in exponential operations");
+          return
+	    initerror("FLsliderBank: zero is illegal in exponential operations");
         range = max - min;
         o->range(0,range);
         p->slider_data[j].base = ::pow((max / min), 1/range);
@@ -2885,7 +2915,7 @@ extern "C" void fl_slider_bank(FLSLIDERBANK *p)
           MYFLT fnum = abs(iexp);
           if ((ftp = ftfind(&fnum)) != NULL)
             p->slider_data[j].table = ftp->ftable;
-          else return;
+          else return NOTOK;
           p->slider_data[j].tablen = ftp->flen;
           o->range(0,.99999999);
           if (iexp > 0) //interpolated
@@ -2911,10 +2941,11 @@ extern "C" void fl_slider_bank(FLSLIDERBANK *p)
     w->end();
     AddrSetValue.push_back(ADDR_SET_VALUE(LIN_, 0, 0, (void *) w, (void *) p));
     //*p->ihandle = AddrSetValue.size()-1;
+    return OK;
 }
 
 
-extern "C" void fl_joystick(FLJOYSTICK *p)
+extern "C" int fl_joystick(FLJOYSTICK *p)
 {
     char *Name = GetString(*p->name,p->STRARG);
     int ix,iy,iwidth, iheight, iexpx, iexpy;
@@ -2953,7 +2984,7 @@ extern "C" void fl_joystick(FLJOYSTICK *p)
       o->xbounds(*p->iminx,*p->imaxx); break;
     case EXP_: //exponential
       { if (*p->iminx == 0 || *p->imaxx == 0)
-        initerror("FLjoy X axe: zero is illegal in exponential operations");
+        return initerror("FLjoy X axe: zero is illegal in exponential operations");
       MYFLT range = *p->imaxx - *p->iminx;
       o->xbounds(0,range);
       p->basex = ::pow((*p->imaxx / *p->iminx), 1/range);
@@ -2966,7 +2997,7 @@ extern "C" void fl_joystick(FLJOYSTICK *p)
           p->tablex = ftp->ftable;
           p->tablenx = ftp->flen;
         }
-        else return;
+        else return NOTOK;
         o->xbounds(0,.99999999);
         /*
           if (iexp > 0) //interpolated
@@ -2981,7 +3012,7 @@ extern "C" void fl_joystick(FLJOYSTICK *p)
       o->ybounds(*p->iminy,*p->imaxy); break;
     case EXP_ : //exponential
       { if (*p->iminy == 0 || *p->imaxy == 0)
-        initerror("FLjoy X axe: zero is illegal in exponential operations");
+        return initerror("FLjoy X axe: zero is illegal in exponential operations");
       MYFLT range = *p->imaxy - *p->iminy;
       o->ybounds(0,range);
       p->basey = ::pow((*p->imaxy / *p->iminy), 1/range);
@@ -2994,7 +3025,7 @@ extern "C" void fl_joystick(FLJOYSTICK *p)
           p->tabley = ftp->ftable;
           p->tableny = ftp->flen;
         }
-        else return;
+        else return NOTOK;
         o->ybounds(0,.99999999);
         /*      if (iexp > 0) //interpolated
                 o->callback((Fl_Callback*)fl_callbackInterpTableSlider,(void *) p);
@@ -3011,7 +3042,7 @@ extern "C" void fl_joystick(FLJOYSTICK *p)
     AddrSetValue.push_back(ADDR_SET_VALUE(iexpy, *p->iminy, *p->imaxy,
                                           (void *) o, (void *) p));
     *p->ihandle2 = AddrSetValue.size()-1;
-
+    return OK;
 }
 
 
@@ -3072,13 +3103,14 @@ extern "C" int fl_knob(FLKNOB *p)
       o->step(0.001);
       break;
     case EXP_ : //exponential
-      { MYFLT min = p->min = *p->imin, max = *p->imax;
-      if (min == 0 || max == 0)
-        initerror("FLknob: zero is illegal in exponential operations");
-      MYFLT range = max - min;
-      o->range(0,range);
-      p->base = ::pow((max / min), 1/range);
-      o->callback((Fl_Callback*)fl_callbackExponentialKnob,(void *) p);
+      {
+	MYFLT min = p->min = *p->imin, max = *p->imax;
+	if (min == 0 || max == 0)
+	  return initerror("FLknob: zero is illegal in exponential operations");
+	MYFLT range = max - min;
+	o->range(0,range);
+	p->base = ::pow((max / min), 1/range);
+	o->callback((Fl_Callback*)fl_callbackExponentialKnob,(void *) p);
       } break;
     default:
       {
@@ -3106,7 +3138,7 @@ extern "C" int fl_knob(FLKNOB *p)
 
 
 
-extern "C" void fl_text(FLTEXT *p)
+extern "C" int fl_text(FLTEXT *p)
 {
     char *controlName = GetString(*p->name,p->STRARG);
     int ix,iy,iwidth,iheight,itype;
@@ -3155,6 +3187,7 @@ extern "C" void fl_text(FLTEXT *p)
     AddrSetValue.push_back(ADDR_SET_VALUE(1, *p->imin, *p->imax,
                                           (void *) o, (void *) p));
     *p->ihandle = AddrSetValue.size()-1;
+    return OK;
 }
 
 extern "C" int fl_button(FLBUTTON *p)
@@ -3250,7 +3283,7 @@ extern "C" int fl_button_bank(FLBUTTONBANK *p)
     return OK;
 }
 
-extern "C" void fl_counter(FLCOUNTER *p)
+extern "C" int fl_counter(FLCOUNTER *p)
 {
     char *controlName = GetString(*p->name,p->STRARG);
 //      int ix,iy,iwidth,iheight,itype;
@@ -3285,6 +3318,7 @@ extern "C" void fl_counter(FLCOUNTER *p)
     O.RTevents = 1;     /* Make sure kperf() looks for RT events */
     O.ksensing = 1;
     O.OrcEvts  = 1;     /* - of the appropriate type */
+    return OK;
 }
 
 
@@ -3345,7 +3379,7 @@ extern "C" int fl_roller(FLROLLER *p)
       {
         MYFLT min = p->min, max = *p->imax;
         if (min == 0 || max == 0)
-          initerror("FLslider: zero is illegal in exponential operations");
+          return initerror("FLslider: zero is illegal in exponential operations");
         MYFLT range = max - min;
         o->range(0,range);
         p->base = ::pow((max / min), 1/range);
@@ -3377,7 +3411,7 @@ extern "C" int fl_roller(FLROLLER *p)
 
 // extern "C" long kcounter;       IV - Aug 23 2002
 
-extern "C" void FLprintkset(FLPRINTK *p)
+extern "C" int FLprintkset(FLPRINTK *p)
 {
     if (*p->ptime < FL(1.0) / global_ekr)
       p->ctime = FL(1.0) / global_ekr;
@@ -3385,9 +3419,10 @@ extern "C" void FLprintkset(FLPRINTK *p)
 
     p->initime = (MYFLT) kcounter * onedkr;
     p->cysofar = -1;
+    return OK;
 }
 
-extern "C" void FLprintk(FLPRINTK *p)
+extern "C" int FLprintk(FLPRINTK *p)
 {
     MYFLT   timel;
     long    cycles;
@@ -3401,15 +3436,17 @@ extern "C" void FLprintk(FLPRINTK *p)
       ((Fl_Output*) (AddrSetValue[(long) *p->idisp]).WidgAddress)->
         value(valString );
     }
+    return OK;
 }
 
 
-extern "C" void FLprintk2set(FLPRINTK2 *p)              // IV - Aug 27 2002
+extern "C" int FLprintk2set(FLPRINTK2 *p)              // IV - Aug 27 2002
 {
     p->oldvalue = FL(-1.12123e35);      // hack to force printing first value
+    return OK;
 }
 
-extern "C" void FLprintk2(FLPRINTK2 *p)
+extern "C" int FLprintk2(FLPRINTK2 *p)
 {
     MYFLT   value = *p->val;
     if (p->oldvalue != value) {
@@ -3419,5 +3456,6 @@ extern "C" void FLprintk2(FLPRINTK2 *p)
         value(valString );
       p->oldvalue = value;
     }
+    return OK;
 }
 
