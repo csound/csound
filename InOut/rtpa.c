@@ -34,7 +34,9 @@ extern int (*audrecv)(void *, int);
 void rtplay_(void *outbuf, int nbytes);
 int rtrecord_(void *inbuf_, int bytes_);
 
+#if !defined(WIN32)
 static PaStream *pa_in = NULL, *pa_out = NULL;
+#endif
 
 #if defined(WIN32)
 static PA_BLOCKING_STREAM *pabsRead = 0;
@@ -237,6 +239,7 @@ int rtrecord_(void *inbuf_, int bytes_) /* get samples from ADC */
 {
 #if defined(WIN32)
     paBlockingRead(pabsRead, (MYFLT *)inbuf_);
+    return bytes_ / sizeof(MYFLT);
 #else
     int samples = bytes_ / sizeof(MYFLT);
     int frames = samples / nchnls;
