@@ -60,7 +60,7 @@ int dspset(ENVIRON *csound, DSPLAY *p)
       npts = (long)(*p->iprd * ekr);
     else npts = (long)(*p->iprd * esr);
     if (npts <= 0) {
-      return initerror(Str("illegal iprd"));
+      return csound->InitError(csound, Str("illegal iprd"));
 
     }
     if ((nprds = (long)*p->inprds) <= 1) {
@@ -96,7 +96,7 @@ int kdsplay(ENVIRON *csound, DSPLAY *p)
     MYFLT  *fp = p->nxtp;
 
     if (p->auxch.auxp==NULL) { /* RWD fix */
-      return perferror(Str("display: not initialised"));
+      return csound->PerfError(csound, Str("display: not initialised"));
     }
     if (!p->nprds) {
       *fp++ = *p->signal;
@@ -166,19 +166,19 @@ int fftset(ENVIRON *csound, DSPFFT *p)          /* fftset, dspfft -- calc Fast F
 
     window_size = (long)*p->inpts;
     if (window_size > WINDMAX) {
-      return initerror(Str("too many points requested"));
+      return csound->InitError(csound, Str("too many points requested"));
     }
     if (window_size < WINDMIN) {
-      return initerror(Str("too few points requested"));
+      return csound->InitError(csound, Str("too few points requested"));
     }
     if (!IsPowerOfTwo(window_size)) {
-      return initerror(Str("window size must be power of two"));
+      return csound->InitError(csound, Str("window size must be power of two"));
     }
     if (p->h.optext->t.intype == 'k')
       step_size = (long)(*p->iprd * ekr);
     else step_size = (long)(*p->iprd * esr);
     if (step_size <= 0) {
-      return initerror(Str("illegal iprd"));
+      return csound->InitError(csound, Str("illegal iprd"));
     }
 /*     if (inerrcnt) */
 /*       return; */
@@ -232,7 +232,7 @@ int kdspfft(ENVIRON *csound, DSPFFT *p)
     MYFLT *bufp = p->bufp, *endp = p->endp;
 
     if (p->auxch.auxp==NULL) { /* RWD fix */
-      return perferror(Str("dispfft: not initialised"));
+      return csound->PerfError(csound, Str("dispfft: not initialised"));
     }
     if (bufp < p->sampbuf)          /* skip any spare samples */
       bufp++;
@@ -268,7 +268,7 @@ int dspfft(ENVIRON *csound, DSPFFT *p)
     int   nsmps = ksmps;
 
     if (p->auxch.auxp==NULL) {
-      perferror(Str("dispfft: not initialised"));
+      csound->PerfError(csound, Str("dispfft: not initialised"));
       return NOTOK;
     }
     do {
@@ -314,24 +314,24 @@ int tempeset(ENVIRON *csound, TEMPEST *p)
     MYFLT b, iperiod = *p->iprd;
 
     if ((p->timcount = (int)(ekr * iperiod)) <= 0)
-      return initerror(Str("illegal iperiod"));
+      return csound->InitError(csound, Str("illegal iperiod"));
     if ((p->dtimcnt = (int)(ekr * *p->idisprd)) < 0)
-      return initerror(Str("illegal idisprd"));
+      return csound->InitError(csound, Str("illegal idisprd"));
     if ((p->tweek = *p->itweek) <= 0)
-      return initerror(Str("illegal itweek"));
+      return csound->InitError(csound, Str("illegal itweek"));
     if (iperiod != FL(0.0)) {
       if ((minlam = (int)(*p->imindur/iperiod)) <= 0)
-        return initerror(Str("illegal imindur"));
+        return csound->InitError(csound, Str("illegal imindur"));
       if ((npts = (int)(*p->imemdur / iperiod)) <= 0)
-        return initerror(Str("illegal imemdur"));
+        return csound->InitError(csound, Str("illegal imemdur"));
     }
     if (*p->ihtim <= FL(0.0))
-      return initerror(Str("illegal ihtim"));
+      return csound->InitError(csound, Str("illegal ihtim"));
     if (*p->istartempo <= FL(0.0))
-      return initerror(Str("illegal startempo"));
+      return csound->InitError(csound, Str("illegal startempo"));
     ftp = csound->FTFind(csound, p->ifn);
     if (ftp != NULL && *ftp->ftable == FL(0.0))
-      return initerror(Str("ifn table begins with zero"));
+      return csound->InitError(csound, Str("ifn table begins with zero"));
     if (ftp==NULL) return NOTOK;
 
     nptsm1 = npts - 1;
@@ -430,7 +430,7 @@ int tempest(ENVIRON *csound, TEMPEST *p)
     p->yt1 = p->coef0 * *p->kin + p->coef1 * p->yt1;  /* get lo-pass of kinput */
 
     if (p->auxch.auxp==NULL) { /* RWD fix */
-      return perferror(Str("tempest: not initialised"));
+      return csound->PerfError(csound, Str("tempest: not initialised"));
     }
     if (!(--p->countdown)) {                          /* then on countdown:    */
       MYFLT *memp;

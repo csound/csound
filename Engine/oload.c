@@ -33,14 +33,9 @@
 
 int csoundGetAPIVersion(void);
 
-void die(char *);
-int initerror(char *);
-int perferror(char *);
 void dispset(WINDAT *, MYFLT *, long, char *, int, char *);
 void display(WINDAT *);
 MYFLT intpow(MYFLT, long);
-FUNC *ftfindp(ENVIRON*,MYFLT *argp);
-FUNC *ftnp2find(ENVIRON*,MYFLT *);
 char *unquote(char *);
 long strarg2insno (MYFLT *p, char *s);
 long strarg2opcno (MYFLT *p, char *s, int);
@@ -145,19 +140,21 @@ ENVIRON cenviron_ = {
         csoundSetRtcloseCallback,
         csoundAuxAlloc,
         csoundFTFind,
+        csoundFTFindP,
+        csoundFTnp2Find,
         csoundGetTable,
         mmalloc,
         mcalloc,
         mrealloc,
         mfree,
-        die,
-        initerror,
-        perferror,
+        csoundDie,
+        csoundInitError,
+        csoundPerfError,
+        csoundWarning,
+        csoundDebugMsg,
         dispset,
         display,
         intpow,
-        ftfindp,
-        ftnp2find,
         unquote,
         ldmemfile,
         err_printf,
@@ -170,7 +167,6 @@ ENVIRON cenviron_ = {
         strarg2insno,
         strarg2opcno,
         instance,
-        dies,
         rewriteheader,
         writeheader,
         csoundPrintf,
@@ -476,10 +472,10 @@ void oload(ENVIRON *csound)
     }
     /* why I want oload() to return an error value.... */
     if (e0dbfs <= 0.0)
-      die(Str("bad value for 0dbfs: must be positive."));
+      csoundDie(csound, Str("bad value for 0dbfs: must be positive."));
     if (O.odebug)
       printf("esr = %7.1f, ekr = %7.1f, ksmps = %d, nchnls = %d 0dbfs = %.1f\n",
-             esr ,ekr, ksmps, nchnls,e0dbfs);  ;
+             esr, ekr, ksmps, nchnls, e0dbfs);  ;
     if (O.sr_override) {        /* if command-line overrides, apply now */
       esr = (MYFLT) O.sr_override;
       ekr = (MYFLT) O.kr_override;
@@ -623,7 +619,7 @@ void oload(ENVIRON *csound)
     sssfinit(); /* must be called before instr 0 initiates */
 
     if ((nn = init0(csound)) > 0)                       /* run instr 0 inits */
-      die(Str("header init errors"));
+      csoundDie(csound, Str("header init errors"));
     /* IV - Feb 18 2003 */
     {
 #ifndef USE_DOUBLE
@@ -637,22 +633,22 @@ void oload(ENVIRON *csound)
       if (ksmps < 1 ||
           fabs(((double) gblspace[2] / (double) ksmps) - 1.0) > max_err) {
         strcat(s, Str("error: invalid ksmps value"));
-        die(s);
+        csoundDie(csound, s);
       }
       gblspace[2] = ensmps = (MYFLT) ksmps;
       if (gblspace[0] <= FL(0.0)) {
         strcat(s, Str("error: invalid sample rate"));
-        die(s);
+        csoundDie(csound, s);
       }
       if (gblspace[1] <= FL(0.0)) {
         strcat(s, Str("error: invalid control rate"));
-        die(s);
+        csoundDie(csound, s);
       }
       if (fabs(((double) gblspace[0]
                 / ((double) gblspace[1] * (double) gblspace[2])) - 1.0)
           > max_err) {
         strcat(s, Str("error: inconsistent sr, kr, ksmps"));
-        die(s);
+        csoundDie(csound, s);
       }
     }
     tpidsr = TWOPI_F / esr;                             /* now set internal  */
@@ -790,7 +786,7 @@ instance(int insno)             /* create instance of an instr template */
         prvids = prvids->nxti = opds;               /* link into ichain */
         opds->iopadr = ep->iopadr;                  /*   & set exec adr */
         if (opds->iopadr == NULL)
-          die(Str("null iopadr"));
+          csoundDie(&cenviron, Str("null iopadr"));
       }
       if ((n = ep->thread & 06)!=0) {               /* thread 2 OR 4:   */
         prvpds = prvpds->nxtp = opds;               /* link into pchain */
@@ -800,7 +796,7 @@ instance(int insno)             /* create instance of an instr template */
         else opds->opadr = ep->aopadr;              /*      arate       */
         if (O.odebug) printf("opadr = %p\n",opds->opadr);
         if (opds->opadr == NULL)
-          die(Str("null opadr"));
+          csoundDie(&cenviron, Str("null opadr"));
       }
       opds->dopadr = ep->dopadr;
     args:
@@ -844,7 +840,8 @@ instance(int insno)             /* create instance of an instr template */
     }
     if (nxtopds != opdslim) {
       printf(Str("nxtopds = %p opdslim = %p\n"), nxtopds, opdslim);
-      if (nxtopds > opdslim) die(Str("inconsistent opds total"));
+      if (nxtopds > opdslim)
+        csoundDie(&cenviron, Str("inconsistent opds total"));
     }
     while (--largp >= larg)
       *largp->argpp = (MYFLT *) lopds[largp->lblno]; /* now label refs */

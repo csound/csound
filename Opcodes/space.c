@@ -77,7 +77,7 @@ int space(ENVIRON *csound, SPACE *p)
 
     if (*p->ifn > 0) { /* get xy vals from function table */
      if ((ftp = p->ftp) == NULL) {
-       return perferror(Str("space: not initialised"));
+       return csound->PerfError(csound, Str("space: not initialised"));
       }
 
       ndx = *p->time * RESOLUTION; /* when data is res. frames/second */
@@ -222,7 +222,7 @@ int spdist(ENVIRON *csound, SPDIST *p)
 
     if (*p->ifn > 0) {
       if ((ftp = p->ftp)==NULL) {
-        return perferror(Str("spdist: not initialised"));
+        return csound->PerfError(csound, Str("spdist: not initialised"));
       }
 
       ndx = *p->time * RESOLUTION; /* when data is 10 frames/second */

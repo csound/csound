@@ -179,7 +179,7 @@ int diskin2_init(ENVIRON *csound, DISKIN2 *p)
     /* check number of channels */
     p->nChannels = (int) (p->OUTOCOUNT);
     if (p->nChannels < 1 || p->nChannels > DISKIN2_MAXCHN) {
-      initerror(Str("diskin2: invalid number of channels"));
+      csound->InitError(csound, Str("diskin2: invalid number of channels"));
       return NOTOK;
     }
     /* if already open, close old file first */
@@ -207,7 +207,8 @@ int diskin2_init(ENVIRON *csound, DISKIN2 *p)
     s = csound->FindInputFile(csound, &(name[0]), "SFDIR;SSDIR");
     if (s == NULL) {
       csound->Message(csound, Str("diskin2: opening '%s':\n"), &(name[0]));
-      initerror(Str("cannot find file in any of the search paths"));
+      csound->InitError(csound,
+                        Str("cannot find file in any of the search paths"));
       return NOTOK;
     }
     memset(&sfinfo, 0, sizeof(SF_INFO));
@@ -233,7 +234,7 @@ int diskin2_init(ENVIRON *csound, DISKIN2 *p)
         case 8: sfinfo.format |= SF_FORMAT_PCM_24;  break;
         case 9: sfinfo.format |= SF_FORMAT_DOUBLE;  break;
         default:
-          initerror(Str("diskin2: unknown sample format"));
+          csound->InitError(csound, Str("diskin2: unknown sample format"));
           mfree(csound, s);
           return NOTOK;
       }
@@ -242,7 +243,7 @@ int diskin2_init(ENVIRON *csound, DISKIN2 *p)
     }
     if (p->sf == NULL) {
       csound->Message(csound, Str("diskin2: opening '%s':\n"), s);
-      initerror(Str("sf_open() failed"));
+      csound->InitError(csound, Str("sf_open() failed"));
       mfree(csound, s);
       return NOTOK;
     }
@@ -260,8 +261,9 @@ int diskin2_init(ENVIRON *csound, DISKIN2 *p)
     fdrecord(&(p->fdch));
     /* check number of channels in file (must equal the number of outargs) */
     if (sfinfo.channels != p->nChannels) {
-      initerror(Str("diskin2: number of output args inconsistent with "
-                    "number of file channels"));
+      csound->InitError(csound,
+                        Str("diskin2: number of output args "
+                            "inconsistent with number of file channels"));
       return NOTOK;
     }
     /* skip initialisation if requested */
@@ -352,7 +354,7 @@ int diskin2_perf(ENVIRON *csound, DISKIN2 *p)
     int     i, nn, chn, wsized2, warp;
 
     if (p->initDone <= 0) {
-      perferror(Str("diskin2: not initialised"));
+      csound->PerfError(csound, Str("diskin2: not initialised"));
       return NOTOK;
     }
     if (*(p->kTranspose) != p->prv_kTranspose) {

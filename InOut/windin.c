@@ -40,7 +40,7 @@ int xyinset(ENVIRON *csound, XYIN *p)
     MYFLT       ixinit = *p->ixinit;
 
     if ((p->timcount = (int)(ekr * *p->iprd)) <= 0) {
-      return initerror(Str("illegal iprd"));
+      return csound->InitError(csound, Str("illegal iprd"));
     }
     if (iymin > iymax) {                /* swap if wrong order */
       f = iymin; iymin = iymax; iymax = f;

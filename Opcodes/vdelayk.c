@@ -66,7 +66,7 @@ int kdelay(ENVIRON *csound, KDEL *p)
     MYFLT *buf = (MYFLT *)p->aux.auxp, fv1, fv2;
 
     if (buf==NULL) {
-      return initerror("vdelayk: not initialized");
+      return csound->InitError(csound, "vdelayk: not initialized");
     }
     indx = p->left;
     buf[indx] = *p->kin;
@@ -132,7 +132,7 @@ int partial_maximum(ENVIRON *csound, P_MAXIMUM *p)
       }
       break;
     default:
-      return perferror("maxk: invalid imaxflag value");
+      return csound->PerfError(csound, "maxk: invalid imaxflag value");
     }
     if (*p->ktrig) {
       if (flag == 3) {

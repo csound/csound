@@ -61,15 +61,15 @@ int pvsanalset(ENVIRON *csound, PVSANAL *p)
     /* deal with iinit and iformat later on! */
 
     if (N <= 32)
-      die(Str("pvsanal: fftsize of 32 is too small!\n"));
+      csound->Die(csound, Str("pvsanal: fftsize of 32 is too small!\n"));
     /* check N for powof2? CARL fft routines and FFTW are not limited to that. */
     N = N  + N%2;       /* Make N even */
     if (M < N)
-      die(Str("pvsanal: window size too small for fftsize\n"));
+      csound->Die(csound, Str("pvsanal: window size too small for fftsize\n"));
     if (overlap > N / 2)
-      die(Str("pvsanal: overlap too big for fft size\n"));
+      csound->Die(csound, Str("pvsanal: overlap too big for fft size\n"));
     if (overlap < ksmps)
-      die(Str("pvsanal: overlap must be >= ksmps\n"));
+      csound->Die(csound, Str("pvsanal: overlap must be >= ksmps\n"));
 
     halfwinsize = M/2;
     buflen = M*4;
@@ -115,7 +115,7 @@ int pvsanalset(ENVIRON *csound, PVSANAL *p)
       break;
       /* KAISER ... etc.... ? */
     default:
-      die(Str("pvsanal: unsupported value for iwintype\n"));
+      csound->Die(csound, Str("pvsanal: unsupported value for iwintype\n"));
       break;
     }
 
@@ -338,7 +338,7 @@ int pvsanal(ENVIRON *csound, PVSANAL *p)
     ain = p->ain;
 
     if (p->input.auxp==NULL) {
-      die(Str("pvsanal: Not Initialised.\n"));
+      csound->Die(csound, Str("pvsanal: Not Initialised.\n"));
     }
 
     for (i=0; i < ksmps; i++)
@@ -411,7 +411,7 @@ int pvsynthset(ENVIRON *csound, PVSYNTH *p)
       vonhann(analwinhalf,halfwinsize,Mf);
       break;
     default:
-      die(Str("pvsanal: unsupported value for iwintype\n"));
+      csound->Die(csound, Str("pvsanal: unsupported value for iwintype\n"));
       break;
     }
 
@@ -446,7 +446,7 @@ int pvsynthset(ENVIRON *csound, PVSYNTH *p)
         vonhann(synwinhalf,halfwinsize,Lf);
         break;
       default:
-        die(Str("pvsynth: internal error: "
+        csound->Die(csound, Str("pvsynth: internal error: "
                 "fsig has unrecognised value for iwintype\n"));
         break;
       }
@@ -478,7 +478,7 @@ int pvsynthset(ENVIRON *csound, PVSYNTH *p)
         vonhann(synwinhalf,halfwinsize,Lf);
         break;
       default:
-        die(Str("pvsynth: internal error: "
+        csound->Die(csound, Str("pvsynth: internal error: "
                 "fsig has unrecognised value for iwintype\n"));
         break;
       }
@@ -678,7 +678,7 @@ int pvsynth(ENVIRON *csound, PVSYNTH *p)
     MYFLT *aout = p->aout;
 
     if (p->output.auxp==NULL) {
-      die(Str("pvsynth: Not Initialised.\n"));
+      csound->Die(csound, Str("pvsynth: Not Initialised.\n"));
     }
     for (i=0;i < ksmps;i++)
       aout[i] = synth_tick(p);

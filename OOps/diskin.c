@@ -66,7 +66,7 @@ static int sreadinew(           /* special handling of sound input       */
 
     do {
       if ((n = sf_read_MYFLT(infd, inbuf + ntot, nsamples - ntot)) < 0)
-        die(Str("soundfile read error"));
+        csoundDie(&cenviron, Str("soundfile read error"));
     } while (n > 0 && (ntot += n) < nsamples);
     if (p->audrem > 0) {      /* AIFF:                  */
       if (ntot > p->audrem)   /*   chk haven't exceeded */
@@ -229,7 +229,7 @@ int newsndinset(ENVIRON *csound, SOUNDINEW *p)       /* init routine for diskin 
            (long)sf_seek(p->fdch.fd,
                          (off_t)(nbytes+p->firstsampinfile)/sizeof(MYFLT),
                          SEEK_SET)) < 0)
-        die(Str("diskin seek error during reinit"));
+        csound->Die(csound, Str("diskin seek error during reinit"));
       /* now rd fulbuf */
       if ((n = sreadinew(p->fdch.fd,p->inbuf,snewbufsize,p)) == 0) /*RWD 5:2001 */
         p->endfile = 1;
@@ -284,7 +284,7 @@ int newsndinset(ENVIRON *csound, SOUNDINEW *p)       /* init routine for diskin 
     }
 
     if (p->sampframsiz <= 0)    /* must know framsiz */
-      die(Str("illegal sampframsiz"));
+      csound->Die(csound, Str("illegal sampframsiz"));
 
     /*****  set file pointers, buffers, and diskin-specific stuff  ******/
     /* we get a crash if backwards and 0 skiptime, so lets set it to file
@@ -317,7 +317,7 @@ int newsndinset(ENVIRON *csound, SOUNDINEW *p)       /* init routine for diskin 
            (long)sf_seek(sinfd,
                          (off_t)(nbytes)/sizeof(MYFLT)+p->firstsampinfile,
                          SEEK_SET)) < 0)
-        die(Str("diskin seek error: invalid skip time"));
+        csound->Die(csound, Str("diskin seek error: invalid skip time"));
     }
     else {
       p->begfile = TRUE;
@@ -339,7 +339,7 @@ int newsndinset(ENVIRON *csound, SOUNDINEW *p)       /* init routine for diskin 
       p->phs = 0.0;
       return OK;
     }
-    else return initerror(errmsg);
+    else return csound->InitError(csound, errmsg);
 
  errtn:
     return NOTOK;                      /*              return empty handed */
@@ -359,7 +359,7 @@ void soundinew(ENVIRON *csound, SOUNDINEW *p)    /*  a-rate routine for soundine
     long oldfilepos = 0;
 
     if ((!p->bufend) || (!p->inbufp) || (!p->sampframsiz)) {
-      initerror(Str("diskin: not initialised"));
+      csound->InitError(csound, Str("diskin: not initialised"));
       return;
     }
     r1      = p->r1;
@@ -452,7 +452,7 @@ void soundinew(ENVIRON *csound, SOUNDINEW *p)    /*  a-rate routine for soundine
                                          SEEK_SET);
               if ((n = sreadinew(p->fdch.fd,
                                  p->inbuf,snewbufsize,p)) == 0) /*RWD 5:2001 */
-                die(Str("error trying to loop back to the beginning "
+                csound->Die(csound, Str("error trying to loop back to the beginning "
                         "of the sound file!?!??"));
               p->begfile = 1;
               phs = 0;
@@ -515,7 +515,7 @@ void soundinew(ENVIRON *csound, SOUNDINEW *p)    /*  a-rate routine for soundine
             /* we should never get here. if we do,
                we're f****d because didn't get a full buffer and our
                present sample is the last sample of the buffer!!!  */
-            die(Str("diskin read error - during backwards playback"));
+            csound->Die(csound, Str("diskin read error - during backwards playback"));
             return;
           }
           /* now get the correct remaining size */
@@ -618,7 +618,7 @@ void soundinew(ENVIRON *csound, SOUNDINEW *p)    /*  a-rate routine for soundine
             /* we should never get here. if we do,
                we're fucked because didn't get a full buffer and our
                present sample is the last sample of the buffer!!!  */
-            die(Str("diskin read error - during backwards playback"));
+            csound->Die(csound, Str("diskin read error - during backwards playback"));
             return;
           }
           /* now get the correct remaining size */
@@ -727,7 +727,7 @@ int sndo1set(ENVIRON *csound, SNDOUT *p) /* init routine for instr soundout   */
     fdrecord(&p->c.fdch);                   /*     instr will close later */
     return OK;
  errtn:
-    return initerror(errmsg);               /* else just print the errmsg */
+    return csound->InitError(csound, errmsg);               /* else just print the errmsg */
 }
 
 int soundout(ENVIRON *csound, SNDOUT *p)

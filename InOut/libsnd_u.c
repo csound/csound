@@ -250,7 +250,7 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
         default: sprintf(errmsg, Str("soundin: invalid sample format: %d"),
                                  (int) (*p->iformat + FL(0.5)));
                  mfree(&cenviron, sfname);
-                 die(errmsg);
+                 csoundDie(&cenviron, errmsg);
                  return NULL;
       }
       /* store default sample format, */
@@ -270,7 +270,7 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
     }
     if (infile == NULL) {
       mfree(&cenviron, sfname);
-      dies(Str("soundin: failed to open '%s'"), sfname);
+      csoundDie(&cenviron, Str("soundin: failed to open '%s'"), sfname);
     }
     p->format = sf2format(sfinfo.format);
     p->fdch.fd = infile;
@@ -318,7 +318,7 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
                 p->channel, sfname, sfinfo.channels);
         sf_close(infile);
         mfree(&cenviron, sfname);
-        die(errmsg);
+        csoundDie(&cenviron, errmsg);
       }
       if (p->format && sf2format(sfinfo.format) != p->format &&
           (O.msglevel & WARNMSG)) {
@@ -357,7 +357,7 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
       if (p->sampframsiz <= 0) {                     /* must know framsiz */
         sf_close(infile);
         mfree(&cenviron, sfname);
-        die(Str("illegal sampframsiz"));
+        csoundDie(&cenviron, Str("illegal sampframsiz"));
       }
       p->audrem = sfinfo.frames * sfinfo.channels;
       p->framesrem = sfinfo.frames;    /*   find frames rem */
@@ -374,7 +374,7 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
         if (sf_seek(infile, (off_t)skipframes, SEEK_SET) < 0) {
           sf_close(infile);
           mfree(&cenviron, sfname);
-          die(Str("soundin seek error"));
+          csoundDie(&cenviron, Str("soundin seek error"));
         }
         /* now rd fulbuf */
         if ((n = sreadin(infile,p->inbuf,SNDINBUFSIZ,p)) == 0)
@@ -409,7 +409,7 @@ char *getstrformat(int format)  /* used here, and in sfheader.c */
       {
         char st[80];
         sprintf(st, Str("unknown sound format %d(0x%x)"), format, format);
-        die(st); return(NULL);
+        csoundDie(&cenviron, st); return(NULL);
       }
     }
 }
@@ -426,7 +426,7 @@ int sreadin(                    /* special handling of sound input       */
     do {
       n = sf_read_MYFLT(infd, inbuf + ntot, nsamples - ntot);
       if (n < 0)
-        die(Str("soundfile read error"));
+        csoundDie(&cenviron, Str("soundfile read error"));
     } while (n > 0 && (ntot += n) < nsamples);
     if (p->audrem > 0) {        /* AIFF:                  */
       if (ntot > p->audrem)     /*   chk haven't exceeded */

@@ -483,6 +483,39 @@ extern "C" {
     va_end(args);
   }
 
+  void csoundDie(void *csound, const char *msg, ...)
+  {
+    va_list args;
+    va_start(args, msg);
+    csoundMessageCallback_(csound, msg, args);
+    va_end(args);
+    csoundMessage(csound, "\n");
+    longjmp(((ENVIRON*) csound)->exitjmp_, 1);
+  }
+
+  void csoundWarning(void *csound, const char *msg, ...)
+  {
+    va_list args;
+    if (!(((ENVIRON*) csound)->oparms_->msglevel & WARNMSG))
+      return;
+    csoundMessage(csound, Str("WARNING: "));
+    va_start(args, msg);
+    csoundMessageCallback_(csound, msg, args);
+    va_end(args);
+    csoundMessage(csound, "\n");
+  }
+
+  void csoundDebugMsg(void *csound, const char *msg, ...)
+  {
+    va_list args;
+    if (!(((ENVIRON*) csound)->oparms_->odebug))
+      return;
+    va_start(args, msg);
+    csoundMessageCallback_(csound, msg, args);
+    va_end(args);
+    csoundMessage(csound, "\n");
+  }
+
   static void (*csoundThrowMessageCallback_)(void *csound,
                                              const char *format,
                                              va_list args) =
@@ -1296,7 +1329,8 @@ static void get_CPU_cycle_time(void)
     /* if frequency is not known yet */
     f = fopen("/proc/cpuinfo", "r");
     if (f == NULL) {
-      die("Cannot open /proc/cpuinfo. Support for RDTSC is not available.");
+      csoundDie(&cenviron, "Cannot open /proc/cpuinfo. "
+                           "Support for RDTSC is not available.");
       return;
     }
     /* find CPU frequency */
@@ -1325,7 +1359,8 @@ static void get_CPU_cycle_time(void)
     }
     fclose(f);
     if (timeResolutionSeconds <= 0.0) {
-      die("No valid CPU frequency entry was found in /proc/cpuinfo.");
+      csoundDie(&cenviron, "No valid CPU frequency entry "
+                           "was found in /proc/cpuinfo.");
       return;
     }
     /* MHz -> seconds */

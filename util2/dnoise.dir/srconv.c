@@ -276,13 +276,13 @@ int main(int argc, char **argv)
               O.outfilename = outfile;            /* soundout name */
             while ((*outfile++ = *s++)); s--;
             if (strcmp(O.outfilename,"stdin") == 0)
-              die(Str("-o cannot be stdin"));
+              csoundDie(&cenviron, Str("-o cannot be stdin"));
             if (strcmp(O.outfilename,"stdout") == 0) {
 #if defined mac_classic || defined SYMANTEC || defined BCC || defined __WATCOMC__ || defined WIN32
-              die(Str("stdout audio not supported"));
+              csoundDie(&cenviron, Str("stdout audio not supported"));
 #else
               if ((O.stdoutfd = dup(1)) < 0) /* redefine stdout */
-                die(Str("too many open files"));
+                csoundDie(&cenviron, Str("too many open files"));
               dup2(2,1);                /* & send 1's to stderr */
 #endif
             }
@@ -402,19 +402,19 @@ int main(int argc, char **argv)
       Chans = 1;
 
     if ((P != FL(0.0)) && (Rout != FL(0.0)))
-      die("srconv: can't specify both -r and -P\n");
+      csoundDie(&cenviron, "srconv: can't specify both -r and -P\n");
     if (P != FL(0.0))
       Rout = Rin / P;
 
     if (tvflg) {
       P = FL(0.0);        /* will be reset to max in time-vary function */
       if ((tvfp = fopen(bfile,"r")) == NULL)
-        die("srconv: can't open time-vary function file\n");
+        csoundDie(&cenviron, "srconv: can't open time-vary function file\n");
       fscanf(tvfp,"%d",&tvlen);
       if ((fxval = (MYFLT *) malloc(tvlen*sizeof(MYFLT))) == NULL)
-        die("srconv: unable to allocate memory\n");
+        csoundDie(&cenviron, "srconv: unable to allocate memory\n");
       if ((fyval = (MYFLT *) malloc(tvlen*sizeof(MYFLT))) == NULL)
-        die("srconv: unable to allocate memory\n");
+        csoundDie(&cenviron, "srconv: unable to allocate memory\n");
       i0 = fxval;
       i1 = fyval;
       for (i = 0; i < tvlen; i++, i0++, i1++){
@@ -423,7 +423,7 @@ int main(int argc, char **argv)
 #else
         if ((fscanf(tvfp,"%f %f",i0,i1)) == EOF)
 #endif
-          die("srconv: too few x-y pairs in time-vary function file\n");
+          csoundDie(&cenviron, "srconv: too few x-y pairs in time-vary function file\n");
         if (*i1 > P)
           P = *i1;
       }
@@ -434,11 +434,11 @@ int main(int argc, char **argv)
       tvy1 = fyval[1];
       tvdx = tvx1 - tvx0;
       if (tvx0 != FL(0.0))
-        die("srconv: first x value in time-vary function must be 0\n");
+        csoundDie(&cenviron, "srconv: first x value in time-vary function must be 0\n");
       if (tvy0 <= FL(0.0))
-        die("srconv: invalid initial y value in time-vary function\n");
+        csoundDie(&cenviron, "srconv: invalid initial y value in time-vary function\n");
       if (tvdx <= FL(0.0))
-        die("srconv: invalid x values in time-vary function\n");
+        csoundDie(&cenviron, "srconv: invalid x values in time-vary function\n");
       tvdy = tvy1 - tvy0;
       tvslope = tvdy / tvdx;
       tvnxt = 1;
@@ -458,30 +458,30 @@ int main(int argc, char **argv)
     O.sfsampsize = sfsampsize(O.outformat);
     if (O.filetyp == TYP_AIFF) {
         if (!O.sfheader)
-          die(Str("can't write AIFF soundfile with no header"));
+          csoundDie(&cenviron, Str("can't write AIFF soundfile with no header"));
         if (
             O.outformat == AE_ALAW ||
             O.outformat == AE_ULAW ||
             O.outformat == AE_FLOAT) {
           sprintf(errmsg,Str("AIFF does not support %s encoding"),
                   getstrformat(O.outformat));
-          die(errmsg);
+          csoundDie(&cenviron, errmsg);
         }
     }
     if (O.filetyp == TYP_WAV) {
         if (!O.sfheader)
-            die(Str("can't write WAV soundfile with no header"));
+            csoundDie(&cenviron, Str("can't write WAV soundfile with no header"));
         if (
             O.outformat == AE_ALAW ||
             O.outformat == AE_ULAW ||
             O.outformat == AE_FLOAT) {
           sprintf(errmsg,Str("WAV does not support %s encoding"),
                   getstrformat(O.outformat));
-          die(errmsg);
+          csoundDie(&cenviron, errmsg);
         }
     }
     if (O.rewrt_hdr && !O.sfheader)
-        die(Str("can't rewrite header if no header requested"));
+        csoundDie(&cenviron, Str("can't rewrite header if no header requested"));
 #ifdef NeXT
     if (O.outfilename == NULL && !O.filetyp) O.outfilename = "test.snd";
 	else if (O.outfilename == NULL) O.outfilename = "test";
@@ -535,7 +535,7 @@ int main(int argc, char **argv)
 
 /* make window: the window is the product of a kaiser and a sin(x)/x */
     if ((window = (MYFLT *) calloc((size_t)(M+1),sizeof(MYFLT))) == NULL)
-      die("srconv: insufficient memory\n");
+      csoundDie(&cenviron, "srconv: insufficient memory\n");
     WinLen = (M-1)/2;
     window += WinLen;
     wLen = (M/2 - L) / L;
@@ -573,14 +573,14 @@ int main(int argc, char **argv)
     are written over. */
 
     if ((input = (MYFLT *) calloc((size_t)IBUF, sizeof(MYFLT))) == NULL)
-      die("srconv: insufficient memory\n");
+      csoundDie(&cenviron, "srconv: insufficient memory\n");
 
 /* set up output buffer:  nextOut always points to the next empty
     word in the output buffer.  If the buffer is full, then
     it is flushed, and nextOut jumps back to the beginning. */
 
     if ((output = (MYFLT *) calloc((size_t)OBUF, sizeof(MYFLT))) == NULL)
-      die("srconv: insufficient memory\n");
+      csoundDie(&cenviron, "srconv: insufficient memory\n");
     nextOut = output;
 
 /* initialization: */
@@ -717,7 +717,7 @@ int main(int argc, char **argv)
               tvy1 = fyval[tvnxt];
               tvdx = tvx1 - tvx0;
               if (tvdx <= FL(0.0))
-                die("srconv: invalid x values in time-vary function\n");
+                csoundDie(&cenviron, "srconv: invalid x values in time-vary function\n");
               tvdy = tvy1 - tvy0;
               tvslope = tvdy / tvdx;
             }

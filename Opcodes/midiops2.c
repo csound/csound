@@ -52,7 +52,7 @@ int imidic7(ENVIRON *csound, MIDICTL2 *p)
     long  ctlno;
 
     if ((ctlno = (long)*p->ictlno) < 0 || ctlno > 127)
-      return initerror(Str("illegal controller number"));
+      return csound->InitError(csound, Str("illegal controller number"));
     else {
       value = (MYFLT)(curip->m_chnbp->ctl_val[ctlno] * oneTOf7bit);
       if (*p->ifn > 0) {
@@ -70,7 +70,7 @@ int midic7set(ENVIRON *csound, MIDICTL2 *p)
 {
     long  ctlno;
     if ((ctlno = (long)*p->ictlno) < 0 || ctlno > 127) {
-      return initerror(Str("illegal controller number"));
+      return csound->InitError(csound, Str("illegal controller number"));
     }
     else p->ctlno = ctlno;
     if (*p->ifn > 0) {
@@ -108,7 +108,7 @@ int imidic14(ENVIRON *csound, MIDICTL3 *p)
 
     if ((ctlno1 = (long)*p->ictlno1) < 0 || ctlno1 > 127 ||
         (ctlno2 = (long)*p->ictlno2) < 0 || ctlno2 > 127 )
-      return initerror(Str("illegal controller number"));
+      return csound->InitError(csound, Str("illegal controller number"));
     else {
       value = (MYFLT) ((curip->m_chnbp->ctl_val[ctlno1] * 128 +
                         curip->m_chnbp->ctl_val[ctlno2])
@@ -143,7 +143,7 @@ int midic14set(ENVIRON *csound, MIDICTL3 *p)
     long   ctlno2;
     if ((ctlno1 = (long)*p->ictlno1) < 0 || ctlno1 > 127 ||
         (ctlno2 = (long)*p->ictlno2) < 0 || ctlno2 > 127 ) {
-      return initerror(Str("illegal controller number"));
+      return csound->InitError(csound, Str("illegal controller number"));
     }
     p->ctlno1 = ctlno1;
     p->ctlno2 = ctlno2;
@@ -206,7 +206,7 @@ int imidic21(ENVIRON *csound, MIDICTL4 *p)
     if ((ctlno1 = (long)*p->ictlno1) < 0 || ctlno1 > 127 ||
         (ctlno2 = (long)*p->ictlno2) < 0 || ctlno2 > 127 ||
         (ctlno3 = (long)*p->ictlno3) < 0 || ctlno3 > 127)
-      return initerror(Str("illegal controller number"));
+      return csound->InitError(csound, Str("illegal controller number"));
     else {
       value = (MYFLT) ((curip->m_chnbp->ctl_val[ctlno1] * 16384 +
                         curip->m_chnbp->ctl_val[ctlno2] * 128   +
@@ -219,7 +219,7 @@ int imidic21(ENVIRON *csound, MIDICTL4 *p)
         MYFLT *base;
         if (ftp == NULL) {
           sprintf(errmsg, Str("Invalid ftable no. %f"), p->ifn);
-          return initerror(errmsg);
+          return csound->InitError(csound, errmsg);
         }
         phase = value * ftp->flen;
         base = ftp->ftable + (long)(phase);
@@ -239,7 +239,7 @@ int midic21set(ENVIRON *csound, MIDICTL4 *p)
     if ((ctlno1 = (long)*p->ictlno1) < 0 || ctlno1 > 127 ||
         (ctlno2 = (long)*p->ictlno2) < 0 || ctlno2 > 127 ||
         (ctlno3 = (long)*p->ictlno3) < 0 || ctlno3 > 127) {
-      return initerror(Str("illegal controller number"));
+      return csound->InitError(csound, Str("illegal controller number"));
     }
     p->ctlno1 = ctlno1;
     p->ctlno2 = ctlno2;
@@ -301,7 +301,7 @@ int ictrl7(ENVIRON *csound, CTRL7 *p)
     long  ctlno;
 
     if ((ctlno = (long)*p->ictlno) < 0 || ctlno > 127)
-      return initerror(Str("illegal controller number"));
+      return csound->InitError(csound, Str("illegal controller number"));
     else {
       value = (MYFLT)(M_CHNBP[(int) *p->ichan-1]->ctl_val[ctlno]* oneTOf7bit);
       if (*p->ifn > 0) {
@@ -320,10 +320,10 @@ int ctrl7set(ENVIRON *csound, CTRL7 *p)
     long  ctlno;
     int chan;
     if ((ctlno = (long) *p->ictlno) < 0 || ctlno > 127) {
-      return initerror(Str("illegal controller number"));
+      return csound->InitError(csound, Str("illegal controller number"));
     }
     else if ((chan=(int) *p->ichan-1) < 0 || chan > 15) {
-      return initerror(Str("illegal midi channel")); /* gab-A2 (chan number fix)*/
+      return csound->InitError(csound, Str("illegal midi channel")); /* gab-A2 (chan number fix)*/
     }
     /*else if (midi_in_p_num < 0) midi_in_error("ctrl7");*/
     else p->ctlno = ctlno;
@@ -360,9 +360,9 @@ int ictrl14(ENVIRON *csound, CTRL14 *p)
 
     if ((ctlno1 = (long)*p->ictlno1) < 0 || ctlno1 > 127 ||
         (ctlno2 = (long)*p->ictlno2) < 0 || ctlno2 > 127 )
-      return initerror(Str("illegal controller number"));
+      return csound->InitError(csound, Str("illegal controller number"));
     else if ((chan=(int) *p->ichan-1) < 0 || chan > 15)
-      return initerror(Str("illegal midi channel"));
+      return csound->InitError(csound, Str("illegal midi channel"));
     else {
       value = (MYFLT)((M_CHNBP[chan]->ctl_val[ctlno1] * 128 +
                        M_CHNBP[chan]->ctl_val[ctlno2]) * oneTOf14bit);
@@ -374,7 +374,7 @@ int ictrl14(ENVIRON *csound, CTRL14 *p)
         MYFLT *base;
         if (ftp == NULL) {
           sprintf(errmsg, Str("Invalid ftable no. %f"), p->ifn);
-          return initerror(errmsg);
+          return csound->InitError(csound, errmsg);
         }
         phase = value * ftp->flen;
         base = ftp->ftable + (long)(phase);
@@ -393,10 +393,10 @@ int ctrl14set(ENVIRON *csound, CTRL14 *p)
     int chan;
     if ((ctlno1 = (long)*p->ictlno1) < 0 || ctlno1 > 127 ||
         (ctlno2 = (long)*p->ictlno2) < 0 || ctlno2 > 127 ) {
-      return initerror(Str("illegal controller number"));
+      return csound->InitError(csound, Str("illegal controller number"));
     }
     else if ((chan=(int) *p->ichan-1) < 0 || chan > 15) {
-      return initerror(Str("illegal midi channel"));
+      return csound->InitError(csound, Str("illegal midi channel"));
     }
     p->ctlno1 = ctlno1;
     p->ctlno2 = ctlno2;
@@ -443,9 +443,9 @@ int ictrl21(ENVIRON *csound, CTRL21 *p)
     if ((ctlno1 = (long)*p->ictlno1) < 0 || ctlno1 > 127 ||
         (ctlno2 = (long)*p->ictlno2) < 0 || ctlno2 > 127 ||
         (ctlno3 = (long)*p->ictlno3) < 0 || ctlno3 > 127)
-      return initerror(Str("illegal controller number"));
+      return csound->InitError(csound, Str("illegal controller number"));
     else if ((chan=(int) *p->ichan-1) < 0 || chan > 15)
-      return initerror(Str("illegal midi channel"));
+      return csound->InitError(csound, Str("illegal midi channel"));
     else {
       value = (MYFLT)((M_CHNBP[chan]->ctl_val[ctlno1] * 16384 +
                        M_CHNBP[chan]->ctl_val[ctlno2] * 128   +
@@ -458,7 +458,7 @@ int ictrl21(ENVIRON *csound, CTRL21 *p)
         MYFLT *base;
         if (ftp == NULL) {
           sprintf(errmsg, Str("Invalid ftable no. %f"), p->ifn);
-          return initerror(errmsg);
+          return csound->InitError(csound, errmsg);
         }
         phase = value * ftp->flen;
         base = ftp->ftable + (long)(phase);
@@ -479,10 +479,10 @@ int ctrl21set(ENVIRON *csound, CTRL21 *p)
     if ((ctlno1 = (long)*p->ictlno1) < 0 || ctlno1 > 127 ||
         (ctlno2 = (long)*p->ictlno2) < 0 || ctlno2 > 127 ||
         (ctlno3 = (long)*p->ictlno3) < 0 || ctlno3 > 127) {
-      return initerror(Str("illegal controller number"));
+      return csound->InitError(csound, Str("illegal controller number"));
     }
     else if ((chan=(int) *p->ichan-1) < 0 || chan > 15) {
-      return initerror(Str("illegal midi channel"));
+      return csound->InitError(csound, Str("illegal midi channel"));
     }
     p->ctlno1 = ctlno1;
     p->ctlno2 = ctlno2;
@@ -521,9 +521,9 @@ int initc7(ENVIRON *csound, INITC7 *p) /* for setting a precise value use the fo
     MYFLT fvalue;
     int chan;
     if ((fvalue = *p->ivalue) < 0. || fvalue > 1. )
-      return initerror(Str("value out of range"));
+      return csound->InitError(csound, Str("value out of range"));
     else if ((chan=(int) *p->ichan-1) < 0 || chan > 15 || !M_CHNBP[chan])
-      return initerror(Str("illegal midi channel"));
+      return csound->InitError(csound, Str("illegal midi channel"));
     else M_CHNBP[chan]->ctl_val[(int) *p->ictlno] = fvalue * f7bit + FL(0.5);
     return OK;
 }
@@ -533,9 +533,9 @@ int initc14(ENVIRON *csound, INITC14 *p)
     MYFLT fvalue;
     int value, msb, lsb, chan;
     if ((fvalue = *p->ivalue) < FL(0.0) || fvalue > FL(1.0) )
-      return initerror(Str("value out of range"));
+      return csound->InitError(csound, Str("value out of range"));
     else if ((chan=(int) *p->ichan-1) < 0 || chan > 15 || !M_CHNBP[chan])
-      return initerror(Str("illegal midi channel"));
+      return csound->InitError(csound, Str("illegal midi channel"));
     else {
       value = (int)(fvalue * f14bit +FL(0.5));
       msb = value >> 7;
@@ -551,9 +551,9 @@ int initc21(ENVIRON *csound, INITC21 *p)
     MYFLT fvalue;
     int value, msb, xsb, lsb, chan;
     if ((fvalue = *p->ivalue) < FL(0.0) || fvalue > FL(1.0) )
-      initerror(Str("value out of range"));
+      csound->InitError(csound, Str("value out of range"));
     else if ((chan=(int) *p->ichan-1) < 0 || chan > 15 || !M_CHNBP[chan])
-      return initerror(Str("illegal midi channel"));
+      return csound->InitError(csound, Str("illegal midi channel"));
     else {
       value = (int)(fvalue * f21bit +FL(0.5));
       msb = value >> 14;

@@ -26,20 +26,17 @@
 #include "csdl.h"
 #include "syncgrain.h"
 
-
-/*extern FUNC *ftnp2find(strunc ENVIRON_*, MYFLT*); */
-
 int syncgrain_init(ENVIRON *csound, syncgrain *p)
 {
     p->efunc = csound->FTFind(p->h.insdshead->csound,p->ifn2);
     if (p->efunc==NULL) {
-      initerror("function table not found\n");
+      csound->InitError(csound, "function table not found\n");
       return NOTOK;
     }
 
-    p->sfunc = ftnp2find(p->h.insdshead->csound,p->ifn1);
+    p->sfunc = csound->FTnp2Find(p->h.insdshead->csound,p->ifn1);
     if (p->sfunc==NULL) {
-      initerror("function table not found\n");
+      csound->InitError(csound, "function table not found\n");
       return NOTOK;
     }
 
@@ -89,7 +86,7 @@ int syncgrain_process(ENVIRON *csound, syncgrain *p)
     amp =    *p->amp;
     grsize = esr * *p->grsize;
     if (grsize<1) {
-      perferror("grain size smaller than 1 sample\n");
+      csound->PerfError(csound, "grain size smaller than 1 sample\n");
       return NOTOK;
     }
     envincr = envtablesize/grsize;

@@ -47,7 +47,7 @@
 #define SHORTMAX                (32767)
 #define FIND(MSG)   if (*s == '\0')  \
                         if (!(--argc) || ((s = *++argv) && *s == '-')) \
-                            die(MSG);
+                            csoundDie(&cenviron, MSG);
 extern int type2sf(int);
 
 long        sample;         /* Time file starts in samples */
@@ -126,13 +126,13 @@ main(int argc, char **argv)
               O.outfilename = filnamp;            /* soundout name */
             while ((*filnamp++ = *s++)); s--;
             if (strcmp(O.outfilename,"stdin") == 0)
-              die("-o cannot be stdin");
+              csoundDie(&cenviron, "-o cannot be stdin");
             if (strcmp(O.outfilename,"stdout") == 0) {
 #ifdef THINK_C
-              die("stdout audio not supported");
+              csoundDie(&cenviron, "stdout audio not supported");
 #else
               if ((O.stdoutfd = dup(1)) < 0) /* redefine stdout */
-                die("too many open files");
+                csoundDie(&cenviron, "too many open files");
               dup2(2,1);                /* & send 1's to stderr */
 #endif
             }

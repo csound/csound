@@ -43,7 +43,7 @@
 #define SHORTMAX 32767
 #define FIND(MSG)   if (*s == '\0')  \
 			if (!(--argc) || ((s = *++argv) && *s == '-')) \
-			    die(MSG);
+			    csoundDie(&cenviron, MSG);
 
 /* Static function prototypes */
 
@@ -207,13 +207,13 @@ int main(int argc, char **argv)
             O.outfilename = filnamp;		/* soundout name */
             while ((*filnamp++ = *s++)); s--;
             if (strcmp(O.outfilename,"stdin") == 0)
-              die("-o cannot be stdin");
+              csoundDie(&cenviron, "-o cannot be stdin");
             if (strcmp(O.outfilename,"stdout") == 0) {
 #if defined mac_classic || defined SYMANTEC || defined BCC || defined __WATCOMC__ || defined WIN32
-              die(Str("stdout audio not supported"));
+              csoundDie(&cenviron, Str("stdout audio not supported"));
 #else
               if ((O.stdoutfd = dup(1)) < 0) /* redefine stdout */
-                die(Str("too many open files"));
+                csoundDie(&cenviron, Str("too many open files"));
               dup2(2,1);                /* & send 1's to stderr */
 #endif
             }
@@ -324,16 +324,16 @@ int main(int argc, char **argv)
       else O.sfheader = 1;
       if (O.filetyp == TYP_AIFF) {
         if (!O.sfheader)
-          die(Str("can't write AIFF/WAV soundfile with no header"));
+          csoundDie(&cenviron, Str("can't write AIFF/WAV soundfile with no header"));
       }
       if (O.filetyp == TYP_WAV) {
         if (!O.sfheader)
-          die(Str("can't write AIFF/WAV soundfile with no header"));
+          csoundDie(&cenviron, Str("can't write AIFF/WAV soundfile with no header"));
       }
       if (OO.filetyp)
         O.filetyp = OO.filetyp;
       if (O.rewrt_hdr && !O.sfheader)
-        die(Str("can't rewrite header if no header requested"));
+        csoundDie(&cenviron, Str("can't rewrite header if no header requested"));
       if (O.outfilename == NULL)  O.outfilename = "test";
       sfinfo.frames = -1;
       sfinfo.samplerate = (int)(esr = p->sr);

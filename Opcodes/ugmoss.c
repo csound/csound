@@ -46,7 +46,7 @@ int dconvset(ENVIRON *csound, DCONV *p)
         p->len = ftp->flen; /* correct len if flen shorter */
     }
     else {
-      return initerror(Str("No table for dconv"));
+      return csound->InitError(csound, Str("No table for dconv"));
     }
     if (p->sigbuf.auxp == NULL || p->sigbuf.size < (int)(p->len*sizeof(MYFLT)))
       csound->AuxAlloc(csound, p->len*sizeof(MYFLT), &p->sigbuf);
@@ -272,18 +272,18 @@ int vcombset(ENVIRON *csound, VCOMB *p)
 
     if (*p->insmps != FL(0.0)) {
       if ((lpsiz = (long)(FL(0.5)+*p->imaxlpt)) <= 0) {
-        return initerror(Str("illegal loop time"));
+        return csound->InitError(csound, Str("illegal loop time"));
       }
     }
     else if ((lpsiz = (long)(*p->imaxlpt * esr)) <= 0) {
-      return initerror(Str("illegal loop time"));
+      return csound->InitError(csound, Str("illegal loop time"));
     }
     nbytes = lpsiz * sizeof(MYFLT);
     if (p->auxch.auxp == NULL || nbytes != p->auxch.size) {
       csound->AuxAlloc(csound, (long)nbytes, &p->auxch);
       p->pntr = (MYFLT *) p->auxch.auxp;
       if (p->pntr==NULL) {
-        return initerror(Str("could not allocate memory"));
+        return csound->InitError(csound, Str("could not allocate memory"));
       }
     }
     else if (!(*p->istor)) {
@@ -309,7 +309,7 @@ int vcomb(ENVIRON *csound, VCOMB *p)
     MYFLT       g = p->g;
 
     if (p->auxch.auxp==NULL) {
-      return perferror(Str("vcomb: not initialised"));
+      return csound->PerfError(csound, Str("vcomb: not initialised"));
     }
     ar = p->ar;
     asig = p->asig;
@@ -360,7 +360,7 @@ int valpass(ENVIRON *csound, VCOMB *p)
     MYFLT       y, z, g = p->g;
 
     if (p->auxch.auxp==NULL) {
-      return perferror(Str("valpass: not initialised"));
+      return csound->PerfError(csound, Str("valpass: not initialised"));
     }
     ar = p->ar;
     asig = p->asig;
@@ -415,24 +415,24 @@ int ftmorfset(ENVIRON *csound, FTMORF *p)
       p->resfn = ftp, len = p->resfn->flen;     /* and set it up */
     }
     else {
-      return initerror(Str("iresfn for ftmorf does not exist"));
+      return csound->InitError(csound, Str("iresfn for ftmorf does not exist"));
     }
 
     if ((ftp = csound->FTFind(csound, p->iftfn)) != NULL) { /* make sure ftfn exists */
       p->ftfn = ftp;                            /* and set it up */
     }
     else {
-      return initerror(Str("iftfn for ftmorf doesnt exist"));
+      return csound->InitError(csound, Str("iftfn for ftmorf doesnt exist"));
     }
 
     do {                /* make sure tables in ftfn exist and are right size*/
       if ((ftp = csound->FTFind(csound, p->ftfn->ftable + j)) != NULL) {
         if ((unsigned int)ftp->flen != len) {
-          return initerror(Str("table in iftfn for ftmorf wrong size"));
+          return csound->InitError(csound, Str("table in iftfn for ftmorf wrong size"));
         }
       }
       else {
-        return initerror(Str("table in iftfn for ftmorf does not exist"));
+        return csound->InitError(csound, Str("table in iftfn for ftmorf does not exist"));
       }
     } while (++j < p->ftfn->flen);
 

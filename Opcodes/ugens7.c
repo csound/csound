@@ -43,7 +43,7 @@ static int fofset0(ENVIRON *csound, FOFS *p, int flag)
           p->fundphs = MAXLEN;                    /*   trigger new FOF */
         else p->fundphs = (long)(*p->iphs * FMAXLEN) & PHMASK;
         if ((olaps = (long)*p->iolaps) <= 0) {
-          return initerror(Str("illegal value for iolaps"));
+          return csound->InitError(csound, Str("illegal value for iolaps"));
         }
         if (*p->iphs >= FL(0.0))
           csound->AuxAlloc(csound, (long)olaps * sizeof(OVRLAP), &p->auxch);
@@ -93,7 +93,7 @@ int fof(ENVIRON *csound, FOFS *p)
     MYFLT  v1, fract ,*ftab;
 
     if (p->auxch.auxp==NULL) { /* RWD fix */
-      return perferror(Str("fof: not initialised"));
+      return csound->PerfError(csound, Str("fof: not initialised"));
     }
     ar = p->ar;
     amp = p->xamp;
@@ -107,7 +107,7 @@ int fof(ENVIRON *csound, FOFS *p)
       if (p->fundphs & MAXLEN) {               /* if phs has wrapped */
         p->fundphs &= PHMASK;
         if ((ovp = p->basovrlap.nxtfree) == NULL) {
-          return perferror(Str("FOF needs more overlaps"));
+          return csound->PerfError(csound, Str("FOF needs more overlaps"));
         }
         if (newpulse(csound, p, ovp, amp, fund, form)) {   /* init new fof */
           ovp->nxtact = p->basovrlap.nxtact;     /* & link into  */
@@ -247,7 +247,7 @@ int harmset(ENVIRON *csound, HARMON *p)
 {
     MYFLT minfrq = *p->ilowest;
     if (minfrq < FL(64.0)) {
-      return initerror(Str("Minimum frequency too low"));
+      return csound->InitError(csound, Str("Minimum frequency too low"));
     }
     if (p->auxch.auxp == NULL || minfrq < p->minfrq) {
       long nbufs = (long)(ekr * FL(3.0) / minfrq) + 1;
@@ -398,7 +398,7 @@ int harmon(ENVIRON *csound, HARMON *p)
     }
     src1 = minqp - p->n2bufsmps;            /* get src equiv of 1st min  */
     if (period==0) {
-      perferror("Period zero\n");
+      csound->PerfError(csound, "Period zero\n");
       outp = p->ar;
       nsmps = ksmps;
       do {

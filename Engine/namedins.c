@@ -209,7 +209,7 @@ void named_instr_free (void)
 
 /* convert opcode string argument to instrument number */
 /* return value is -1 if the instrument cannot be found */
-/* (in such cases, initerror() is also called) */
+/* (in such cases, csoundInitError() is also called) */
 
 long strarg2insno (MYFLT *p, char *s)
 {
@@ -218,14 +218,14 @@ long strarg2insno (MYFLT *p, char *s)
     if (*p == SSTRCOD) {
       if (!(insno = named_instr_find(s))) {
         sprintf(errmsg, "instr %s not found", s);
-        initerror(errmsg); return -1;
+        csoundInitError(&cenviron, errmsg); return -1;
       }
     }
     else {      /* numbered instrument */
       insno = (long) *p;
       if (insno < 1 || insno > maxinsno || !instrtxtp[insno]) {
         sprintf(errmsg, "Cannot Find Instrument %d", (int) insno);
-        initerror(errmsg); return -1;
+        csoundInitError(&cenviron, errmsg); return -1;
       }
     }
     return insno;
@@ -241,7 +241,7 @@ long strarg2insno_p (char *s)
 
     if (!(insno = named_instr_find(s))) {
       sprintf(errmsg, "instr %s not found", s);
-      perferror(errmsg); return -1;
+      csoundPerfError(&cenviron, errmsg); return -1;
     }
     return insno;
 }
@@ -250,7 +250,7 @@ long strarg2insno_p (char *s)
 /* (also allows user defined opcode names); if the integer */
 /* argument is non-zero, only opcode names are searched */
 /* return value is -1 if the instrument cannot be found */
-/* (in such cases, initerror() is also called) */
+/* (in such cases, csoundInitError() is also called) */
 
 long strarg2opcno (MYFLT *p, char *s, int force_opcode)
 {
@@ -264,7 +264,7 @@ long strarg2opcno (MYFLT *p, char *s, int force_opcode)
         insno = (long) *p;
         if (insno < 1 || insno > maxinsno || !instrtxtp[insno]) {
           sprintf(errmsg, "Cannot Find Instrument %d", (int) insno);
-          initerror(errmsg); return -1;
+          csoundInitError(&cenviron, errmsg); return -1;
         }
       }
     }
@@ -274,7 +274,8 @@ long strarg2opcno (MYFLT *p, char *s, int force_opcode)
       if (inm) insno = (long) inm->instno;
     }
     if (insno < 1) {
-      initerror(Str("cannot find the specified instrument or opcode"));
+      csoundInitError(&cenviron,
+                      Str("cannot find the specified instrument or opcode"));
       insno = -1;
     }
     return insno;
@@ -290,7 +291,8 @@ void opcode_list_create (void)
     int     n = oplstend - opcodlst;
 
     if (opcode_list) {
-      die(Str("internal error: opcode list has already been created"));
+      csoundDie(&cenviron,
+                Str("internal error: opcode list has already been created"));
       return;
     }
     opcode_list = (void*) mcalloc(&cenviron, sizeof(int) * 256);

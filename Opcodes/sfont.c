@@ -111,12 +111,11 @@ void SoundFontLoad(ENVIRON *csound, char *fname)
     if (pathnam != NULL)
       fil = fopen(pathnam, "rb");
     if (fil == NULL) {
-      char bb[512];
       if (pathnam != NULL)
         csound->Free(csound, pathnam);
-      sprintf(bb, Str("sfload: cannot open SoundFont file \"%s\" (error %s)"),
+      csound->Die(csound,
+                  Str("sfload: cannot open SoundFont file \"%s\" (error %s)"),
                   fname, strerror(errno));
-      csound->die_(bb);
     }
     soundFont = &sfArray[currSFndx];
     strcpy(soundFont->name, pathnam);
@@ -237,10 +236,8 @@ int SfPreset(ENVIRON *csound, SFPRESET *p)
     SFBANK *sf = &sfArray[(DWORD) *p->isfhandle];
 
     if (presetHandle >= MAX_SFPRESET) {
-      char s[512];
-      sprintf(s,Str("sfpreset: preset handle too big (%d), max: %d"),
-              presetHandle, (int) MAX_SFPRESET-1);
-      dies("%s",s);
+      csound->Die(csound, Str("sfpreset: preset handle too big (%d), max: %d"),
+                          presetHandle, (int) MAX_SFPRESET - 1);
     }
 
     for (j=0; j< sf->presets_num; j++) {
@@ -255,12 +252,10 @@ int SfPreset(ENVIRON *csound, SFPRESET *p)
     *p->ipresethandle = (MYFLT) presetHandle;
 
     if (presetp[presetHandle] == NULL) {
-      char s[512] ;
-      sprintf(s,Str("sfpreset: cannot find any preset having prog"
-                    ".number %d and bank number %d in SoundFont file \"%s\"\n"),
-              (int) *p->iprog ,(int) *p->ibank,
-              sfArray[(DWORD) *p->isfhandle].name);
-      dies("%s",s);
+      csound->Die(csound, Str("sfpreset: cannot find any preset having prog "
+                              "number %d and bank number %d in SoundFont file "
+                              "\"%s\""), (int) *p->iprog, (int) *p->ibank,
+                                         sfArray[(DWORD) *p->isfhandle].name);
     }
     return OK;
 }
@@ -273,8 +268,8 @@ int SfPlay_set(ENVIRON *csound, SFPLAY *p)
     SHORT *sBase = sampleBase[index];
     int layersNum, j, spltNum = 0, flag = (int) *p->iflag;
     if (!preset) {
-      return initerror(Str(
-                           "sfplay: invalid or out-of-range preset number"));
+      return csound->InitError(csound, Str("sfplay: invalid or "
+                                           "out-of-range preset number"));
     }
     layersNum = preset->layers_num;
     for (j =0; j < layersNum; j++) {
@@ -558,8 +553,8 @@ int SfPlayMono_set(ENVIRON *csound, SFPLAYMONO *p)
 
     int layersNum, j, spltNum = 0, flag=(int) *p->iflag;
     if (!preset) {
-      return initerror(Str(
-                           "sfplaym: invalid or out-of-range preset number"));
+      return csound->InitError(csound, Str("sfplaym: invalid or "
+                                           "out-of-range preset number"));
     }
     layersNum= preset->layers_num;
     for (j =0; j < layersNum; j++) {
@@ -780,7 +775,7 @@ int SfInstrPlay_set(ENVIRON *csound, SFIPLAY *p)
     int index = (int) *p->sfBank;
     SFBANK *sf = &sfArray[index];
     if (index > currSFndx || *p->instrNum >  sf->instrs_num) {
-      return initerror(Str("sfinstr: instrument out of range"));
+      return csound->InitError(csound, Str("sfinstr: instrument out of range"));
     }
     else {
       instrType *layer = &sf->instr[(int) *p->instrNum];
@@ -1015,7 +1010,7 @@ int SfInstrPlayMono_set(ENVIRON *csound, SFIPLAYMONO *p)
     int index = (int) *p->sfBank;
     SFBANK *sf = &sfArray[index];
     if (index > currSFndx || *p->instrNum >  sf->instrs_num) {
-      return initerror(Str("sfinstr: instrument out of range"));
+      return csound->InitError(csound, Str("sfinstr: instrument out of range"));
     }
     else {
       instrType *layer = &sf->instr[(int) *p->instrNum];
@@ -1417,11 +1412,12 @@ void fill_SfStruct(ENVIRON *csound)
                         split->num= num;
                         split->sample = &shdr[num];
                         if (split->sample->sfSampleType & 0x8000) {
-                          char buf[256];
-                          sprintf(buf,"SoundFont file \"%s\" contains ROM samples!"
-                                  "\nAt present time only RAM samples are allowed"
-                                  " by sfload. \nSession aborted!",Gfname);
-                          csound->die_(buf);
+                          csound->Die(csound, Str("SoundFont file \"%s\" "
+                                                  "contains ROM samples !\n"
+                                                  "At present time only RAM "
+                                                  "samples are allowed "
+                                                  "by sfload.\n"
+                                                  "Session aborted !"), Gfname);
                         }
                         sglobal_zone = 0;
                         ll++;
@@ -1628,11 +1624,11 @@ void fill_SfStruct(ENVIRON *csound)
                   split->num= num;
                   split->sample = &shdr[num];
                   if (split->sample->sfSampleType & 0x8000) {
-                    char buf[256];
-                    sprintf(buf,"SoundFont file \"%s\" contains ROM samples! "
-                            "\nAt present time only RAM samples are allowed "
-                            "by sfload. \nSession aborted!",Gfname);
-                    csound->die_(buf);
+                    csound->Die(csound, Str("SoundFont file \"%s\" contains "
+                                            "ROM samples !\n"
+                                            "At present time only RAM samples "
+                                            "are allowed by sfload.\n"
+                                            "Session aborted !"), Gfname);
                   }
                   sglobal_zone = 0;
                   ll++;
@@ -1778,7 +1774,7 @@ void fill_SfPointers(ENVIRON *csound)
     CHUNK *pgenChunk=NULL, *instChunk=NULL, *ibagChunk=NULL, *imodChunk=NULL;
     CHUNK *igenChunk=NULL, *shdrChunk=NULL;
     if (main_chunk->ckDATA == NULL) {
-      csound->die_(csound->LocalizeString( "Sfont format not compatible"));
+      csound->Die(csound, Str("Sfont format not compatible"));
     }
     chkp = (char *) main_chunk->ckDATA+4;
     for  (j=4; j< main_chunk->ckSize;) {

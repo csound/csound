@@ -104,7 +104,7 @@ int sndwarp(ENVIRON *csound, SNDWARP *p)
     MYFLT       iwsize = *p->iwsize;
 
     if (p->auxch.auxp==NULL) {
-      return perferror(Str("sndwarp: not initialised"));
+      return csound->PerfError(csound, Str("sndwarp: not initialised"));
     }
     r1 = p->r1;
     r2 = p->r2;
@@ -252,7 +252,7 @@ int sndwarpstgetset(ENVIRON *csound, SNDWARPST *p)
     p->resamplecode = (XINARG3) ? 1 : 0;
     return OK;
  sndwerr:
-    return initerror(errmsg);
+    return csound->InitError(csound, errmsg);
 }
 
 int sndwarpstset(ENVIRON *csound, SNDWARPST *p)
@@ -275,7 +275,7 @@ int sndwarpst(ENVIRON *csound, SNDWARPST *p)
     MYFLT       iwsize = *p->iwsize;
 
     if (p->auxch.auxp==NULL) {  /* RWD fix */
-      return perferror(Str("sndwarpst: not initialised"));
+      return csound->PerfError(csound, Str("sndwarpst: not initialised"));
     }
     r1 = p->r1;
     r2 = p->r2;

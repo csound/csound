@@ -73,7 +73,7 @@ int make_Modulatr(ENVIRON *csound,Modulatr *p, MYFLT *i)
 
     if ((ftp = csound->FTFind(csound,i)) != NULL)      p->wave = ftp;
     else { /* Expect sine wave */
-      return initerror(csound->LocalizeString("No table for Modulatr"));
+      return csound->InitError(csound, csound->LocalizeString("No table for Modulatr"));
     }
     p->v_time = FL(0.0);
 /*     p->v_rate = 6.0; */
@@ -114,7 +114,7 @@ static int make_SingWave(ENVIRON *csound, SingWave *p, MYFLT *ifn, MYFLT *ivfn)
 
     if ((ftp = csound->FTFind(csound,ifn)) != NULL) p->wave = ftp;
     else {
-      perferror(csound->LocalizeString("No table for Singwave"));
+      csound->PerfError(csound, csound->LocalizeString("No table for Singwave"));
       return NOTOK;
     }
     p->mytime = FL(0.0);

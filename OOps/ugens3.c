@@ -62,7 +62,7 @@ int foscil(ENVIRON *csound, FOSC *p)
     ar = p->rslt;
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str("foscil: not initialised"));
+      return csound->PerfError(csound, Str("foscil: not initialised"));
     }
     ftab = ftp->ftable;
     lobits = ftp->lobits;
@@ -129,7 +129,7 @@ int foscili(ENVIRON *csound, FOSC *p)
     ar = p->rslt;
     ftp = p->ftp;
     if (ftp==NULL) {        /* RWD fix */
-      return perferror(Str("foscili: not initialised"));
+      return csound->PerfError(csound, Str("foscili: not initialised"));
     }
     lobits = ftp->lobits;
     mphs = p->mphs;
@@ -196,10 +196,9 @@ int foscili(ENVIRON *csound, FOSC *p)
 
 int losset(ENVIRON *csound, LOSC *p)
 {
-    extern FUNC *ftnp2find(ENVIRON *, MYFLT*);/* permit non-power-of-2 ftable (no masks) */
     FUNC   *ftp;
 
-    if ((ftp = ftnp2find(csound,p->ifn)) != NULL) {
+    if ((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL) {
       p->ftp = ftp;
       if (*p->ibas != FL(0.0))
         p->cpscvt = ftp->cvtbas / *p->ibas;
@@ -253,13 +252,13 @@ int losset(ENVIRON *csound, LOSC *p)
       if (p->OUTOCOUNT == 1) {
         p->stereo = 0;
         if (ftp->nchanls != 1)
-          return initerror(Str(
+          return csound->InitError(csound, Str(
                                "mono loscil cannot read from stereo ftable"));
       }
       else {
         p->stereo = 1;
         if (ftp->nchanls != 2)
-          return initerror(Str(
+          return csound->InitError(csound, Str(
                                "stereo loscil cannot read from mono ftable"));
       }
       return OK;
@@ -267,9 +266,9 @@ int losset(ENVIRON *csound, LOSC *p)
     return OK;
 
  lerr2:
-    return initerror(Str("illegal sustain loop data"));
+    return csound->InitError(csound, Str("illegal sustain loop data"));
  lerr3:
-    return initerror(Str("illegal release loop data"));
+    return csound->InitError(csound, Str("illegal release loop data"));
 }
 
 int loscil(ENVIRON *csound, LOSC *p)
@@ -929,7 +928,7 @@ int adset(ENVIRON *csound, ADSYN *p)
  adsful:
     sprintf(errmsg,Str("partial count exceeds MAXPTLS"));
  adserr:
-    return initerror(errmsg);
+    return csound->InitError(csound, errmsg);
 }
 
 #define ADSYN_MAXLONG FL(2147483647.0)
@@ -946,7 +945,7 @@ int adsyn(ENVIRON *csound, ADSYN *p)
     long    timkincr, nxtim;
 
     if (isintab==NULL) {    /* RWD fix */
-      return perferror(Str("adsyn: not initialised"));
+      return csound->PerfError(csound, Str("adsyn: not initialised"));
     }
     /* IV - Jul 11 2002 */
     ampscale = *p->kamod * dbfs_to_float;      /* (since 15-bit sine table) */

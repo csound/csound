@@ -676,20 +676,22 @@ extern "C" {
     void (*SetRtcloseCallback)(void *csound, void (*rtclose__)(void *csound));
     void (*AuxAlloc)(void *csound, long nbytes, AUXCH *auxchp);
     FUNC *(*FTFind)(void *csound, MYFLT *argp);
+    FUNC *(*FTFindP)(void *csound_, MYFLT *argp);
+    FUNC *(*FTnp2Find)(void *csound_, MYFLT *argp);
     MYFLT *(*GetTable)(void *csound_, int tableNum, int *tableLength);
     void *(*Malloc)(void *csound, size_t nbytes);
     void *(*Calloc)(void *csound, size_t nbytes);
     void *(*ReAlloc)(void *csound, void *oldp, size_t nbytes);
     void (*Free)(void *csound, void *ptr);
+    void (*Die)(void *csound, const char *msg, ...);
+    int (*InitError)(void *csound, const char *msg, ...);
+    int (*PerfError)(void *csound, const char *msg, ...);
+    void (*Warning)(void *csound, const char *msg, ...);
+    void (*DebugMsg)(void *csound, const char *msg, ...);
     /* Internal functions that are needed */
-    void (*die_)(char *);
-    int (*initerror_)(char *);
-    int (*perferror_)(char *);
     void (*dispset)(WINDAT *, MYFLT *, long, char *, int, char *);
     void (*display)(WINDAT *);
     MYFLT (*intpow_)(MYFLT, long);
-    FUNC *(*ftfindp)(struct ENVIRON_*, MYFLT *argp);
-    FUNC *(*ftnp2find)(struct ENVIRON_*, MYFLT *);
     char *(*unquote_)(char *);
     MEMFIL *(*ldmemfile_)(void*, const char*);
     void (*err_printf_)(char *, ...);
@@ -702,7 +704,6 @@ extern "C" {
     long (*strarg2insno_)(MYFLT *p, char *s);
     long (*strarg2opcno_)(MYFLT *p, char *s, int force_opcode);
     INSDS *(*instance_)(int insno);
-    void (*dies)(char *s, char *t);
     void (*rewriteheader_)(SNDFILE *ofd, int verbose);
     void (*writeheader)(int ofd, char *ofname);
     void (*Printf)(const char *format, ...);
@@ -923,18 +924,19 @@ extern "C" {
 #define PI      (3.14159265358979323846)
 #endif
 #define TWOPI   (6.28318530717958647692)
-#define PI_F    (FL(3.14159265358979323846))
-#define TWOPI_F (FL(6.28318530717958647692))
-
+#define PI_F    ((MYFLT) PI)
+#define TWOPI_F ((MYFLT) TWOPI)
 
 #define WARNMSG 04
 
-  /*
-   * Move the C++ guards to enclose the entire file,
-   * in order to enable C++ to #include this file.
-   */
+/*
+ * Move the C++ guards to enclose the entire file,
+ * in order to enable C++ to #include this file.
+ */
+
 #ifdef __cplusplus
 };
 #endif
 
 #endif  /*      CSOUNDCORE_H */
+

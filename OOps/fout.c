@@ -125,7 +125,7 @@ int outfile_set(ENVIRON *csound, OUTFILE *p)
       sfinfo.samplerate = (long)esr;
       sfinfo.channels = p->nargs;
       if ((p->fp = sf_open(fname,SFM_WRITE,&sfinfo)) == NULL)
-        dies(Str("fout: cannot open outfile %s"),fname);
+        csound->Die(csound, Str("fout: cannot open outfile %s"),fname);
       else { /* put the file in the opened stack */
         file_num++;
         if (file_num>=file_max) {
@@ -146,7 +146,7 @@ int outfile_set(ENVIRON *csound, OUTFILE *p)
       n = (int)*p->fname;
       if (n>file_num || ((p->fp = file_opened[n].file) == NULL &&
                          file_opened[n].raw == NULL))
-        die(Str("fout: invalid file handle"));
+        csound->Die(csound, Str("fout: invalid file handle"));
     }
     return OK;
 }
@@ -199,7 +199,7 @@ int koutfile_set(ENVIRON *csound, KOUTFILE *p)
       }
       p->nargs = p->INOCOUNT-2;
       if ((p->fp = sf_open(fname, SFM_WRITE, &sfinfo)) == NULL)
-        dies(Str("foutk: cannot open outfile %s"),fname);
+        csound->Die(csound, Str("foutk: cannot open outfile %s"),fname);
       else { /* put the file in the opened stack */
         file_num++;
         if (file_num>=file_max) {
@@ -218,7 +218,7 @@ int koutfile_set(ENVIRON *csound, KOUTFILE *p)
     else { /* file handle argument */
       n = (int)*p->fname;
       if (n>file_num || (p->fp = file_opened[n].file) == NULL)
-        die(Str("fout: invalid file handle"));
+        csound->Die(csound, Str("fout: invalid file handle"));
     }
  done:
     p->cnt = 0;
@@ -240,7 +240,7 @@ int fiopen(ENVIRON *csound, FIOPEN *p)          /* open a file and return its ha
     strcpy(fname, unquote(p->STRARG));
     if (idx<0 || idx>3) idx=0;
     if ((rfp = fopen(fname,omodes[idx])) == NULL)
-      dies(Str("fout: cannot open outfile %s"),fname);
+      csound->Die(csound, Str("fout: cannot open outfile %s"),fname);
     if (idx>1) setbuf(rfp, NULL);
     file_num++;
     if (file_num>=file_max) {
@@ -269,9 +269,9 @@ int ioutfile_set(ENVIRON *csound, IOUTFILE *p)
     FILE* rfil;
     int n = (int) *p->ihandle;
     if (n<0 || n>file_num)
-      die(Str("fouti: invalid file handle"));
+      csound->Die(csound, Str("fouti: invalid file handle"));
     rfil = file_opened[n].raw;
-    if (rfil == NULL) die(Str("fouti: invalid file handle"));
+    if (rfil == NULL) csound->Die(csound, Str("fouti: invalid file handle"));
     if (*p->iascii == 0) { /* ascii format */
       switch ((int) *p->iflag) {
       case 1: { /* with prefix (i-statement, p1, p2 and p3) */
@@ -335,9 +335,11 @@ int ioutfile_r(ENVIRON *csound, IOUTFILE_R *p)
         MYFLT **args=p->argums;
         FILE *rfil;
         int n = (int) *p->ihandle;
-        if (n<0 || n>file_num) die(Str("fouti: invalid file handle"));
+        if (n<0 || n>file_num)
+          csound->Die(csound, Str("fouti: invalid file handle"));
         rfil = file_opened[n].raw;
-        if (rfil == NULL) die(Str("fouti: invalid file handle"));
+        if (rfil == NULL)
+          csound->Die(csound, Str("fouti: invalid file handle"));
         if (*p->iascii == 0) { /* ascii format */
           switch ((int) *p->iflag) {
           case 1:       {       /* whith prefix (i-statement, p1, p2 and p3) */
@@ -393,7 +395,7 @@ int infile_set(ENVIRON *csound, INFILE *p)
         }
       }
       if (( p->fp = sf_open(fname, SFM_READ, &sfinfo)) == NULL)
-        dies(Str("fin: cannot open infile %s"),fname);
+        csound->Die(csound, Str("fin: cannot open infile %s"),fname);
       else { /* put the file in the opened stack */
         file_num++;
         if (file_num>=file_max) {
@@ -411,7 +413,7 @@ int infile_set(ENVIRON *csound, INFILE *p)
     else { /* file handle argument */
       int n = (int) *p->fname;
       if (n<0 || n> file_num || (p->fp = file_opened[n].file) == NULL)
-        die(Str("fin: invalid file handle"));
+        csound->Die(csound, Str("fin: invalid file handle"));
     }
  done:
     p->nargs = p->INOCOUNT-3;
@@ -467,7 +469,7 @@ int kinfile_set(ENVIRON *csound, KINFILE *p)
         }
       }
       if (( p->fp = sf_open(fname,SFM_READ, &sfinfo)) == NULL)
-        dies(Str("fin: cannot open infile %s"),fname);
+        csound->Die(csound, Str("fin: cannot open infile %s"),fname);
       else { /* put the file in the opened stack */
         file_num++;
         if (file_num>=file_max) {
@@ -484,7 +486,7 @@ int kinfile_set(ENVIRON *csound, KINFILE *p)
     else {/* file handle argument */
       int n = (int) *p->fname;
       if (n<0 || n>file_num || (p->fp = file_opened[n].file) == NULL)
-        die(Str("fink: invalid file handle"));
+        csound->Die(csound, Str("fink: invalid file handle"));
     }
  done:
     p->nargs = p->INOCOUNT-3;
@@ -539,7 +541,7 @@ int i_infile(ENVIRON *csound, I_INFILE *p)
       idx = (int) (*p->iflag+FL(0.5));
       if (idx<0 || idx>2) idx = 0;
       if (( fp = fopen(fname,omodes[idx])) == NULL)
-        dies(Str("fin: cannot open infile %s"),fname);
+        csound->Die(csound, Str("fin: cannot open infile %s"),fname);
       else { /* put the file in the opened stack */
         file_num++;
         if (file_num>=file_max) {
@@ -557,7 +559,7 @@ int i_infile(ENVIRON *csound, I_INFILE *p)
     else {/* file handle argument */
       int n = (int) *p->fname;
       if (n<0 || n>file_num || (fp = file_opened[n].raw) == NULL)
-        die(Str("fink: invalid file handle"));
+        csound->Die(csound, Str("fink: invalid file handle"));
     }
  done:
     nargs = p->INOCOUNT-3;
@@ -678,7 +680,7 @@ int fprintf_set(ENVIRON *csound, FPRINTF *p)
       }
 
       if ((p->fp = fopen(fname,"wb")) == NULL)
-        dies(Str("fprint: cannot open outfile %s"),fname);
+        csound->Die(csound, Str("fprint: cannot open outfile %s"),fname);
       else { /* put the file in the opened stack */
         file_num++;
         if (file_num>=file_max) {
@@ -697,7 +699,7 @@ int fprintf_set(ENVIRON *csound, FPRINTF *p)
     else { /* file handle as argument */
       n = (int)*p->fname;
       if (n>file_num || (p->fp = file_opened[n].raw) == NULL)
-        die(Str("fout: invalid file handle"));
+        csound->Die(csound, Str("fout: invalid file handle"));
     }
 
  done:

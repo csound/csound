@@ -69,9 +69,6 @@
 # define  u_int   unsigned int
 # define  u_long  unsigned long
 # define  O_NDELAY (0)
-# ifdef mills_macintosh
-#  define exit(x) die("");
-# endif
 # define DIRSEP ':'
 #elif defined(SYMANTEC)
 # include <stdlib.h>

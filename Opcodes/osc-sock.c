@@ -260,7 +260,7 @@ int osc_init(ENVIRON *csound, OSCINIT *p)
     int maxGroup = *(p->imaxgroup);
 
     if (oscIsUp)
-      return initerror("you should only call OSCinit once, globally");
+      return csound->InitError(csound, "you should only call OSCinit once, globally");
 
     if (maxService == 0)
       maxService = MAX_SERVICE;
@@ -274,15 +274,15 @@ int osc_init(ENVIRON *csound, OSCINIT *p)
 #endif
 
     if ((oscState = oscStateMake(maxIns, maxService, maxGroup)) == NULL) {
-      return initerror("memory allocation failed");
+      return csound->InitError(csound, "memory allocation failed");
     }
     oscSockFD = oscInitUDP(SERVICE_UDP, port);
 
     if (oscSockFD < 0)
-      return initerror("network initialization failed");
+      return csound->InitError(csound, "network initialization failed");
 
     if (oscInitOSC() == -1)
-      return initerror("OSC library initialization failed (oscInitOSC)");
+      return csound->InitError(csound, "OSC library initialization failed (oscInitOSC)");
 
     oscIsUp = TRUE;
     return OK;
@@ -305,13 +305,13 @@ int osc_recv_set(ENVIRON *csound, OSCRECV *p)
     oscContext c;
 
     if (!oscIsUp)
-      return initerror("OSCrecv: OSC has not been initialised");
+      return csound->InitError(csound, "OSCrecv: OSC has not been initialised");
 
   /* Handle service string argument */
   /* Look at soundin.c if you don't understand
    * what's going on (I don't). */
     if ((serviceName = malloc(64)) == NULL)
-      return initerror("OSCrecv: no space left for service string (osc_sock_set)");
+      return csound->InitError(csound, "OSCrecv: no space left for service string (osc_sock_set)");
     if (*p->iservice == SSTRCOD) {
       if (p->STRARG == NULL)
         strcpy(serviceName, unquote(currevent->strarg));
@@ -353,17 +353,17 @@ int osc_recv_set(ENVIRON *csound, OSCRECV *p)
     if (!oscContextInsNoCheck(&c)) {
       oscRecvWarning("instrument number %d not within valid range [0;%d]",
                      c.insNo, oscMaxInsGet());
-      return initerror("");
+      return csound->InitError(csound, "");
     }
     if (!oscContextServiceNoCheck(&c)) {
       oscRecvWarning("service number %d not within valid range [0;%d]",
                      c.serviceNo, oscMaxServiceGet());
-      return initerror("");
+      return csound->InitError(csound, "");
     }
     if (!oscContextGroupNoCheck(&c)) {
       oscRecvWarning("group number %d not within valid range [0;%d]",
                      c.groupNo, oscMaxGroupGet());
-      return initerror("");
+      return csound->InitError(csound, "");
     }
 
     p->c = c;      /* store context for performance time use */
@@ -409,7 +409,7 @@ int osc_recv(ENVIRON *csound, OSCRECV *p)
     if (select(oscSockFD+1, &readFDs, (fd_set *)0, (fd_set * )0, &wait) < 0) {
       oscRecvWarning("system call select on socket %d failed (osc_sock)",
                      oscSockFD);
-      return perferror("");
+      return csound->PerfError(csound, "");
     }
 
     if (FD_ISSET(oscSockFD, &readFDs))
@@ -929,7 +929,7 @@ int osc_send_set(ENVIRON *csound, OSCSEND *p)
     p->bufPos = 0;
 
     if ((p->oscAddr = malloc(MAX_ADDR_LEN)) == NULL) {
-      return initerror("OSCsend: no space left for address string");
+      return csound->InitError(csound, "OSCsend: no space left for address string");
     }
     if (*p->iaddr == SSTRCOD) {
       if (p->STRARG == NULL)
@@ -938,7 +938,7 @@ int osc_send_set(ENVIRON *csound, OSCSEND *p)
         strcpy(p->oscAddr, unquote(p->STRARG));
     }
     else {
-      return initerror("OSCsend: need an address string, not a number (osc_send_set)");
+      return csound->InitError(csound, "OSCsend: need an address string, not a number (osc_send_set)");
     }
 
     if (*p->ihost) {
@@ -946,7 +946,7 @@ int osc_send_set(ENVIRON *csound, OSCSEND *p)
 
       if (*p->ihost == SSTRCOD) {
         if ((hostName = malloc(MAX_HOST_LEN)) == NULL)
-          return initerror("OSCsend: no space left for host string");
+          return csound->InitError(csound, "OSCsend: no space left for host string");
         if (p->STRARG2 == NULL)
           strcpy(hostName, unquote(currevent->strarg));
         else
@@ -955,7 +955,7 @@ int osc_send_set(ENVIRON *csound, OSCSEND *p)
       else if ((hostNo = (long)*p->ihost) < -strsmax &&
                strsets != NULL && strsets[hostNo]) {
         if ((hostName = malloc(MAX_HOST_LEN)) == NULL) {
-          return initerror("OSCsend: no space left for host string");
+          return csound->InitError(csound, "OSCsend: no space left for host string");
         }
         strcpy(hostName, strsets[hostNo]);
       }
@@ -974,12 +974,12 @@ int osc_send_set(ENVIRON *csound, OSCSEND *p)
      */
 
     if ((p->bufArr = (char **)malloc(smps * sizeof(char))) == NULL) {
-      return initerror("OSC buffer allocation failed ");
+      return csound->InitError(csound, "OSC buffer allocation failed ");
     }
 
     if ((p->oscBufArr = (OSCbuf *)malloc(smps * sizeof(OSCbuf))) == NULL) {
       oscSendWarning("OSC buffer allocation failed (osc_send_set)");
-      return initerror("");
+      return csound->InitError(csound, "");
     }
 
     /* OSC buffer size plus some space for the bundle/timetag */
@@ -990,7 +990,7 @@ int osc_send_set(ENVIRON *csound, OSCSEND *p)
     for (i = 0; i < smps; i++) {
       if ((p->bufArr[i] = (char *)malloc(bufSize)) == NULL) {
         oscSendWarning("OSC buffer allocation failed (osc_send_set)");
-        return initerror("");
+        return csound->InitError(csound, "");
       }
       OSC_initBuffer(&p->oscBufArr[i], bufSize, p->bufArr[i]);
     }
@@ -1005,7 +1005,7 @@ int osc_send_set(ENVIRON *csound, OSCSEND *p)
     hostInfo = gethostbyname(hostName);
     if (hostInfo == NULL) {
       oscSendWarning("host name lookup error: %s (osc_send_set)", hostName);
-      return initerror("");
+      return csound->InitError(csound, "");
     }
 
     p->servAddr.sin_addr = *(struct in_addr *) hostInfo->h_addr;
