@@ -466,6 +466,7 @@ OOps/aops.c
 OOps/cmath.c
 OOps/control.c
 OOps/diskin.c
+OOps/diskin2.c
 OOps/disprep.c
 OOps/dnfft.c
 OOps/dsputil.c
