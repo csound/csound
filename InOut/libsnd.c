@@ -266,15 +266,17 @@ int soundin(ENVIRON *csound, SOUNDIN *p)
     MYFLT       *r[24], scalefac;
     int         nsmps, ntogo, blksiz, chnsout, i = 0, n;
 
-    if (p->format == AE_FLOAT &&
-        (p->filetyp == TYP_WAV || p->filetyp == TYP_AIFF)) {
-      /* NB also INLONGFAC changed def */
-      scalefac = e0dbfs;
-      if (p->do_floatscaling)
-        scalefac *= p->fscalefac;
+    if (p->format == AE_FLOAT) {
+      if (p->filetyp == TYP_WAV || p->filetyp == TYP_AIFF) {
+        scalefac = e0dbfs;
+        if (p->do_floatscaling)
+          scalefac *= p->fscalefac;
+      }
+      else
+        scalefac = FL(1.0);
     }
-    else scalefac = FL(1.0);
-
+    else
+      scalefac = e0dbfs;
     if (!p->inbufp) {
       return perferror(Str("soundin: not initialised"));
     }

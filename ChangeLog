@@ -8,6 +8,13 @@
 	  set DIRSEP to '\\' on Windows
 	* Engine/envvar.c:
 	  try_file_open(): do not test for directory on Windows (breaks WINE)
+	* H/csdl.h:
+	  removed macro definiton for AppendOpcode
+	* InOut/libsnd.c:
+	* OOps/diskin.c:
+	  fixed soundin and diskin amplitude
+	* Opcodes/freeverb.c:
+	  new opcode
 
 2005-03-08	Istvan Varga	<istvan@csounds.com>
 	* Engine/insert.c:
