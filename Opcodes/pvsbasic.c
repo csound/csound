@@ -30,8 +30,8 @@
 
 int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2);
 
-int pvsmixset(ENVIRON *csound, PVSMIX *p){
-
+int pvsmixset(ENVIRON *csound, PVSMIX *p)
+{
     long N = p->fa->N;
 
     if (p->fout->frame.auxp==NULL)
@@ -66,11 +66,11 @@ int pvsmix(ENVIRON *csound, PVSMIX *p)
 
     framesize = p->fa->N + 2;
 
-    if(p->lastframe < p->fa->framecount) {
-      for (i=0;i < framesize;i+=2){
+    if (p->lastframe < p->fa->framecount) {
+      for (i=0;i < framesize;i+=2) {
 
         test = fa[i] >= fb[i];
-        if(test){
+        if (test) {
           fout[i] = fa[i];
           fout[i+1] = fa[i+1];
         }
@@ -116,14 +116,14 @@ int pvsfilter(ENVIRON *csound, PVSFILTER *p)
     MYFLT dirgain, kdepth = (MYFLT) *p->kdepth;
     float *fin = (float *) p->fin->frame.auxp;
     float *fout = (float *) p->fout->frame.auxp;
-	float *fil = (float *) p->fil->frame.auxp;
+    float *fil = (float *) p->fil->frame.auxp;
 
-    if(fout==NULL)
+    if (fout==NULL)
       return perferror(Str(X_230, "pvsfilter: not initialised\n"));
     if (!fsigs_equal(p->fin,p->fil))
       return perferror(Str(X_237,"pvsfilter: formats are different.\n"));
 
-    if(p->lastframe < p->fin->framecount) {
+    if (p->lastframe < p->fin->framecount) {
       kdepth = kdepth >= 0 ? (kdepth <= 1 ? kdepth : FL(1.0)): FL(0.0) ;
       dirgain = 1-kdepth;
       for(i=0;i < N+2;i+=2) {
@@ -165,15 +165,15 @@ int pvsscale(ENVIRON *csound, PVSSCALE *p)
     float *fin = (float *) p->fin->frame.auxp;
     float *fout = (float *) p->fout->frame.auxp;
 
-    if(fout==NULL)
+    if (fout==NULL)
       return perferror(Str(X_238,"pvscale: not initialised\n"));
 
-    if(p->lastframe < p->fin->framecount) {
+    if (p->lastframe < p->fin->framecount) {
 
       fout[0] = fin[0];
       fout[N] = fin[N];
 
-      for(i=2;i<N;i+=2){
+      for(i=2;i<N;i+=2) {
         max =  max < fin[i] ? fin[i] : max;
         fout[i] = 0.f;
         fout[i+1] = -1.0f;
@@ -183,7 +183,7 @@ int pvsscale(ENVIRON *csound, PVSSCALE *p)
 
         newchan = (int)(chan*pscal)<<1;
 
-        if(newchan < N && newchan > 0){
+        if (newchan < N && newchan > 0) {
           fout[newchan] = keepform ?
             (keepform == 1 || !max  ? fin[newchan] : fin[i]*(fin[newchan]/max))
             : fin[i];
@@ -191,8 +191,8 @@ int pvsscale(ENVIRON *csound, PVSSCALE *p)
         }
       }
 
-      for(i=2;i<N;i+=2){
-        if(fout[i+1] == -1.0f) fout[i] = 0.0f;
+      for(i=2;i<N;i+=2) {
+        if (fout[i+1] == -1.0f) fout[i] = 0.0f;
         else fout[i] *= g;
       }
 
@@ -232,20 +232,20 @@ int pvsshift(ENVIRON *csound, PVSSHIFT *p)
     float *fin = (float *) p->fin->frame.auxp;
     float *fout = (float *) p->fout->frame.auxp;
 
-    if(fout==NULL)
+    if (fout==NULL)
       return perferror(Str(X_239, "pvshift: not initialised\n"));
 
-    if(p->lastframe < p->fin->framecount) {
+    if (p->lastframe < p->fin->framecount) {
 
       lowest = lowest ? (lowest > N/2 ? N/2 : lowest<<1 ) : 2;
 
       fout[0] = fin[0];
       fout[N] = fin[N];
 
-      for(i=2;i<N;i+=2){
+      for(i=2;i<N;i+=2) {
         max =  max < fin[i] ? fin[i] : max;
 
-        if(i < lowest) {
+        if (i < lowest) {
           fout[i] = fin[i];
           fout[i+1] = fin[i+1];
         }
@@ -260,7 +260,7 @@ int pvsshift(ENVIRON *csound, PVSSHIFT *p)
 
         newchan = (chan+cshift)<<1;
 
-        if(newchan < N && newchan > lowest){
+        if (newchan < N && newchan > lowest) {
           fout[newchan] = keepform ?
             (keepform == 1 || !max ? fin[newchan] : fin[i]*(fin[newchan]/max))
             : fin[i];
@@ -268,8 +268,8 @@ int pvsshift(ENVIRON *csound, PVSSHIFT *p)
         }
       }
 
-      for(i=lowest;i<N;i+=2){
-        if(fout[i+1] == -1.0f) fout[i] = 0.0f;
+      for(i=lowest;i<N;i+=2) {
+        if (fout[i+1] == -1.0f) fout[i] = 0.0f;
         else fout[i] *= g;
       }
 
@@ -289,16 +289,16 @@ int pvsblurset(ENVIRON *csound, PVSBLUR *p)
 
     delayframes = (int)(*p->maxdel*p->frpsec);
 
-    if(p->fout->frame.auxp==NULL)
-		auxalloc((N+2)*sizeof(float),&p->fout->frame);
+    if (p->fout->frame.auxp==NULL)
+      auxalloc((N+2)*sizeof(float),&p->fout->frame);
 
-    if(p->delframes.auxp==NULL)
+    if (p->delframes.auxp==NULL)
       auxalloc((N+2)*sizeof(float)*delayframes, &p->delframes);
 
     delay = (float *) p->delframes.auxp;
 
     for(j=0; j < framesize*delayframes; j+=framesize)
-      for(i=0; i < N+2; i+=2){
+      for(i=0; i < N+2; i+=2) {
         delay[i+j] = 0.f;
         delay[i+j+1] = i*esr/N;
       }
@@ -326,10 +326,10 @@ int pvsblur(ENVIRON *csound, PVSBLUR *p)
     float *fout = (float *) p->fout->frame.auxp;
     float *delay = (float *) p->delframes.auxp;
 
-    if(fout==NULL || delay==NULL)
+    if (fout==NULL || delay==NULL)
       return perferror(Str(X_247, "pvsblur: not initialised\n"));
 
-    if(p->lastframe < p->fin->framecount) {
+    if (p->lastframe < p->fin->framecount) {
 
       kdel = kdel >= 0 ? (kdel < mdel ? kdel : mdel-framesize): 0;
 
@@ -338,12 +338,12 @@ int pvsblur(ENVIRON *csound, PVSBLUR *p)
         delay[countr+i] = fin[i];
         delay[countr+i+1] = fin[i+1];
 
-        if(kdel){
+        if (kdel) {
 
-          if((first = countr-kdel)< 0)
+          if ((first = countr-kdel)< 0)
             first += mdel;
 
-          for(j=first; j != countr; j=(j+framesize)%mdel){
+          for(j=first; j != countr; j=(j+framesize)%mdel) {
             amp += delay[j+i];
             freq += delay[j+i+1];
 
@@ -423,14 +423,14 @@ int pvstencil(ENVIRON *csound, PVSTENCIL *p)
 
     framesize = p->fin->N + 2;
 
-     if(fout==NULL)
+     if (fout==NULL)
        return perferror(Str(X_253, "pvstencil: not initialised\n"));
 
-    if(p->lastframe < p->fin->framecount){
+    if (p->lastframe < p->fin->framecount) {
 
-      for (i=0, j=0;i < framesize;i+=2, j++){
+      for (i=0, j=0;i < framesize;i+=2, j++) {
         test = fin[i] > ftable[j]*masklevel;
-        if(test)fout[i] = fin[i];
+        if (test)fout[i] = fin[i];
         else fout[i] = fin[i]*g;
 
         fout[i+1] = fin[i+1];

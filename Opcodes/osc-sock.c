@@ -52,10 +52,10 @@
 #include <netdb.h>
 
 #if defined(TRUE)
-#	undef TRUE		/* otherwise we will lose some typedefing */
+#       undef TRUE              /* otherwise we will lose some typedefing */
 #endif  /* defined(TRUE) */
 #if defined(FALSE)
-#	undef FALSE		/* same as above */
+#       undef FALSE             /* same as above */
 #endif /* defined(FALSE) */
 
 #include "OSC-Kit/OSC-common.h"
