@@ -348,7 +348,7 @@ void CsoundVstFltk::postUpdate()
 //	rather than one per instance; this may be fixed in future.
 void CsoundVstFltk::messageCallback(const char *format, va_list valist)
 {
-	char buffer[0x1000];
+	static char buffer[0x1000];
 	vsprintf(buffer, format, valist);
 	static std::string actualBuffer;
 	static std::string lineBuffer;

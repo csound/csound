@@ -355,6 +355,36 @@ bool CppSound::getIsGo() const
     return false;
 }
 
+extern "C" 
+{
+    void csoundSetMessageCallback(void *csound, void (*csoundMessageCallback)(void *csound, const char *format, va_list valist));
+    int PyRun_SimpleString(const char *string);
+}
+
+static void pythonMessageCallback(void *csound, const char *format, va_list valist)
+{
+	static char buffer[0x1000];
+	static char buffer1[0x1000];
+	vsprintf(buffer, format, valist);
+	static std::string actualBuffer;
+	static std::string lineBuffer;
+	actualBuffer.append(buffer);
+	size_t position = 0;
+	while((position = actualBuffer.find("\n")) != std::string::npos)
+	{
+	    lineBuffer = actualBuffer.substr(0, position);
+        actualBuffer.erase(0, position + 1); 
+		actualBuffer.clear();
+		sprintf(buffer1, "print '''%s'''", lineBuffer.c_str());
+		PyRun_SimpleString(buffer1);
+	}
+}
+
+void CppSound::setPythonMessageCallback()
+{
+    csoundSetMessageCallback(csound, pythonMessageCallback);
+}
+
 /**
 * Glue for incomplete Csound API.
 */

@@ -33,4 +33,5 @@
 import sys
 sys.modules["__main__"].csound = CppSound()
 sys.modules["__main__"].csound.thisown = 0
+sys.modules["__main__"].csound.setPythonMessageCallback()
 %}
