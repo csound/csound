@@ -591,9 +591,20 @@ extern "C" {
 
 /* dummy functions for the case when no real-time audio module is available */
 
+#ifdef LINUX
+#include <sched.h>
+#endif
+
 int playopen_dummy(void *csound, csRtAudioParams *parm)
 {
     csound = csound; parm = parm;
+    /* IV - Feb 08 2005: avoid locking up the system with --sched */
+#ifdef LINUX
+    if (sched_getscheduler(0) != SCHED_OTHER) {
+      err_printf(" *** error: cannot use --sched with dummy audio output\n");
+      return CSOUND_ERROR;
+    }
+#endif
     return CSOUND_SUCCESS;
 }
 
@@ -605,6 +616,13 @@ void rtplay_dummy(void *csound, void *outBuf, int nbytes)
 int recopen_dummy(void *csound, csRtAudioParams *parm)
 {
     csound = csound; parm = parm;
+    /* IV - Feb 08 2005: avoid locking up the system with --sched */
+#ifdef LINUX
+    if (sched_getscheduler(0) != SCHED_OTHER) {
+      err_printf(" *** error: cannot use --sched with dummy audio input\n");
+      return CSOUND_ERROR;
+    }
+#endif
     return CSOUND_SUCCESS;
 }
 
