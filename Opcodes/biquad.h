@@ -1,7 +1,8 @@
 /*
     biquad.h:
 
-    Copyright (C) 1998, 1999, 2001 by Hans Mikelson, Matt Gerassimoff, John ffitch
+    Copyright (C) 1998, 1999, 2001 by Hans Mikelson,
+                                      Matt Gerassimoff, John ffitch
 
     This file is part of Csound.
 
@@ -22,7 +23,7 @@
 */
 
                                                         /* biquad.h */
-#include "cs.h"
+#include "csdl.h"
 
                                 /* Structure for biquadratic filter */
 typedef struct {

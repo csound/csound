@@ -51,7 +51,7 @@
 #if !defined(__babo_h__)
 #   define  __babo_h__
 
-#include "cs.h"
+#include "csdl.h"
 
 #define BABO_NODES     (15) /* Number of nodes of feedback delay network    */
 #define BABO_TAPS       (6) /* Number of taps in the early reflections line */
@@ -169,3 +169,4 @@ int baboset(ENVIRON*, void *p);
 int babo(ENVIRON*, void *p);
 
 #endif /* !defined(__babo_h__) */
+

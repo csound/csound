@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"         /*                                      PITCH.C       */
+#include "csdl.h"       /*                                  PITCH.C       */
 #include <limits.h>
 #include "spectra.h"
 #include "pitch.h"

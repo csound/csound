@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"
+#include "csdl.h"
 
 #define POWER_BUFSIZE 1000
 

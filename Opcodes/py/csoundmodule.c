@@ -20,7 +20,7 @@
 #ifdef EMBEDDED_PYTHON
 #include <Python.h>
 #define FUCK_YOU_AND_YOUR_FUCKING_MACROS
-#include "cs.h"
+#include "csdl.h"
 #include "schedule.h"
 
 //extern GLOBALS glob;
