@@ -1307,7 +1307,7 @@ void SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
             ((Fl_Positioner*) o)->xvalue(log(val/fld.min) / log(base)) ;
             break;
           default:
-            warning("not implemented yet");
+            if (O.msglevel & WARNMSG) printf("WARNING: not implemented yet");
             break;
         }
         val = fld.value2; min = fld.min2; max = fld.max2;
@@ -1323,7 +1323,7 @@ void SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
             ((Fl_Positioner*) o)->yvalue(log(val/fld.min2) / log(base)) ;
             break;
           default:
-            warning("not implemented yet");
+            if (O.msglevel & WARNMSG) printf("WARNING: not implemented yet");
             break;
         }
         o->do_callback(o, opcode);
@@ -1369,7 +1369,8 @@ void SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
               break;
             default:
               ((Fl_Valuator *) grup->child(j))->value(val);
-              //warning("not implemented yet (bogus)");
+              //if (O.msglevel & WARNMSG)
+              //  printf("WARNING: not implemented yet (bogus)");
               break;
           }
           grup->child(j)->do_callback( grup->child(j),
@@ -1388,7 +1389,8 @@ void SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
             ((Fl_Valuator*) o)->value(log(val/fld.min) / log(base)) ;
             break;
           default:
-            warning("not implemented yet (bogus)");
+            if (O.msglevel & WARNMSG)
+              printf("WARNING: not implemented yet (bogus)");
             break;
         }
         o->do_callback(o, opcode);
@@ -1719,7 +1721,7 @@ static void __cdecl fltkRun(void *s)
     SetTimer(0,0,200,NULL);
 #endif
     Fl::run();
-    warning("end of widget thread\n");
+    if (O.msglevel & WARNMSG) printf("WARNING: end of widget thread\n");
 #ifdef LINUX
     // IV - Aug 27 2002: exit if all windows are closed
     for (j = 0; j < nchnls; j++) {              // set overall maxamp
@@ -1746,7 +1748,7 @@ static void __cdecl fltkKeybRun(void *s)
       }
 
     }
-    warning("end of keyboard thread\n");
+    if (O.msglevel & WARNMSG) printf("WARNING: end of keyboard thread\n");
 }
 
 extern "C" void FL_run(FLRUN *p)
@@ -2338,7 +2340,7 @@ extern "C" void fl_setWidgetValuei(FL_SET_WIDGET_VALUE_I *p)
         val = (log(val/v.min) / log(base)) ;
         break;
       default:
-        warning("not implemented yet");
+        if (O.msglevel & WARNMSG) printf("WARNING: not implemented yet");
     }
     Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
 #if 0 /* this is broken */
@@ -2370,7 +2372,9 @@ else if (!(strcmp(((OPDS *) v.opcode)->optext->t.opcod, "FLjoy"))) {
     else if (strcmp(((OPDS *) v.opcode)->optext->t.opcod, "FLbox"))
       ((Fl_Valuator *)o)->value(val);
     else
-      warning("System error: value() method called from non-valuator object");
+      if (O.msglevel & WARNMSG)
+        printf("WARNING: System error: value() method called from "
+               "non-valuator object");
     o->do_callback(o, v.opcode);
 }
 
@@ -2680,7 +2684,8 @@ extern "C" void fl_slider(FLSLIDER *p)
     }
 
     if (itype > 10 && iexp == EXP_) {
-      warning("FLslider exponential, using non-labeled slider");
+      if (O.msglevel & WARNMSG)
+        printf("WARNING: FLslider exponential, using non-labeled slider");
       itype -= 10;
     }
 
@@ -2766,8 +2771,6 @@ extern "C" void fl_slider_bank(FLSLIDERBANK *p)
     MYFLT *minmaxtable = NULL, *typetable = NULL, *outable, *exptable = NULL;
 
     if (*p->ioutable  < 1) {
-      extern    MYFLT *zkstart;
-      extern long       zklast;
       if (zkstart != NULL &&
           zklast > (long) (*p->inumsliders + *p->ioutablestart_ndx))
         outable = zkstart + (long) *p->ioutablestart_ndx;
@@ -3177,9 +3180,9 @@ extern "C" void fl_button(FLBUTTON *p)
     char *Name = GetString(*p->name,p->STRARG);
     int type = (int) *p->itype;
     if (type >9 ) { // ignored when getting snapshots
-      char s[512];
-      sprintf(s,"FLbutton \"%s\" ignoring snapshot capture retreive", Name);
-      warning(s);
+      if (O.msglevel & WARNMSG)
+        printf("WARNING: FLbutton \"%s\" ignoring snapshot capture retreive",
+               Name);
       type = type-10;
     }
     Fl_Button *w;
@@ -3222,9 +3225,9 @@ extern "C" void fl_button_bank(FLBUTTONBANK *p)
     char *Name = "/0"; //GetString(*p->name,p->STRARG);
     int type = (int) *p->itype;
     if (type >9 ) { // ignored when getting snapshots
-      char s[512];
-      sprintf(s,"FLbutton \"%s\" ignoring snapshot capture retreive", Name);
-      warning(s);
+      if (O.msglevel & WARNMSG)
+        printf("WARNING: FLbutton \"%s\" ignoring snapshot capture retreive",
+               Name);
       type = type-10;
     }
     Fl_Group* o = new Fl_Group((int)*p->ix, (int)*p->iy,
@@ -3274,9 +3277,9 @@ extern "C" void fl_counter(FLCOUNTER *p)
     widget_attributes(o);
     int type = (int) *p->itype;
     if (type >9 ) { // ignored when getting snapshots
-      char s[512];
-      sprintf(s,"FLcount \"%s\" ignoring snapshot capture retreive", controlName);
-      warning(s);
+      if (O.msglevel & WARNMSG)
+        printf("WARNING: FLcount \"%s\" ignoring snapshot capture retreive",
+               controlName);
       type = type-10;
     }
     switch(type) {

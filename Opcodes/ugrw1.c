@@ -2152,9 +2152,9 @@ int tablewa(TABLEWA *p)
 /* There are four global variables which are used by these ugens. */
 
 /* Starting addresses of zk and za spaces */
-MYFLT   *zkstart = NULL; /* , *zastart = NULL;  */
+/* MYFLT   *zkstart = NULL, *zastart = NULL;  */
 /* Number of the last location in zk/za space */
-long    zklast = 0; /* zalast = 0; */
+/* long    zklast = 0, zalast = 0; */
 /* There are currently no limits on the size of these spaces.  */
 
 /* zakinit is an opcode which must be called once to reserve the memory
