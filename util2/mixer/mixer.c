@@ -97,7 +97,7 @@ extern short sfsampsize(int);
 
 /* Static global variables */
 static unsigned    outbufsiz;
-static void        *outbuf; 
+static MYFLT        *outbuf; 
 static  int        outrange = 0;            /* Count samples out of range */
 
 void *memfiles = NULL;
