@@ -681,6 +681,8 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('bus',
     ['Opcodes/bus.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('pvsbasic', 
     ['Opcodes/pvsbasic.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('ftest', 
+    ['Opcodes/ftest.c']))
 
 # Plugins with External Dependencies
 
