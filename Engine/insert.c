@@ -1398,6 +1398,7 @@ void beatexpire(MYFLT beat)     /* unlink expired notes from activ chain */
 void timexpire(MYFLT time)      /* unlink expired notes from activ chain */
 {                               /*      and mark them inactive           */
     INSDS  *ip;                 /*    close any files in each fdchain    */
+
  strt:
     if ((ip = frstoff) != NULL && ip->offtim <= time) {
       do {
