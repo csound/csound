@@ -29,7 +29,6 @@
 * <p>
 * SWIG is run on this file to generate wrappers for all Silence framework classes
 * in other languages, especially scripting languages such as Python, 
-* and that musicians will then compose in those languages.
 * Therefore, all framework headers must be included in this header,
 * and all framework headers must use #ifdef SWIG to declare
 * the module and make other SWIG declarations (see Node.h for an extensive example).
@@ -65,6 +64,7 @@
 #include "Score.hpp"
 #include "Composition.hpp"
 #include "Node.hpp"
+#include "CounterpointNode.hpp"
 #include "ScoreNode.hpp"
 #include "Cell.hpp"
 #include "Hocket.hpp"

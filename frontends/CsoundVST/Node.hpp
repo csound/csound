@@ -19,8 +19,8 @@
 * License along with this software; if not, write to the Free Software
 * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-#ifndef NODE_H
-#define NODE_H
+#ifndef NODE_HPP
+#define NODE_HPP
 
 #ifdef SWIG
 %module CsoundVST
