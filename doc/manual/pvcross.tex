@@ -1,0 +1,136 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{pvcross}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{pvcross}
+pvcross --  Applies the amplitudes from one phase vocoder analysis file to the data from a second file. \subsection*{Description}
+
+
+ \emph{pvcross}
+ applies the amplitudes from one phase vocoder analysis file to the data from a second file and then performs the resynthesis. The data is passed, as described above, from a previously called \emph{pvbufread}
+ unit. The two k-rate amplitude arguments are used to scale the amplitudes of each files separately before they are added together and used in the resynthesis (see below for further explanation). The frequencies of the first file are not used at all in this process. This unit simply allows for cross-synthesis through the application of the amplitudes of the spectra of one signal to the frequencies of a second signal. Unlike \emph{pvinterp}
+, \emph{pvcross}
+ does allow for the use of the \emph{ispecwp}
+ as in \emph{pvoc}
+ and \emph{vpvoc}
+. 
+\subsection*{Syntax}
+
+
+ ar \textbf{pvcross}
+ ktimpnt, kfmod, ifile, kampscale1, kampscale2 [, ispecwp]
+\subsection*{Initialization}
+
+
+ \emph{ifile}
+ -- the \emph{pvoc}
+ number (n in pvoc.n) or the name in quotes of the analysis file made using pvanal. (See \emph{pvoc}
+.) 
+
+
+ \emph{ispecwp}
+ (optional, default=0) -- if non-zero, attempts to preserve the spectral envelope while its frequency content is varied by \emph{kfmod}
+. The default value is zero. 
+\subsection*{Performance}
+
+
+ \emph{ktimpnt}
+ -- the passage of time, in seconds, through this file. \emph{ktimpnt}
+ must always be positive, but can move forwards or backwards in time, be stationary or discontinuous, as a pointer into the analysis file. 
+
+
+ \emph{kfmod}
+ -- a control-rate transposition factor: a value of 1 incurs no transposition, 1.5 transposes up a perfect fifth, and .5 down an octave. 
+
+
+ \emph{kampscale1, kampscale2}
+ -- used to scale the amplitudes stored in each frame of the phase vocoder analysis file. \emph{kampscale1}
+ scale the amplitudes of the data from the file read by the previously called \emph{pvbufread}
+. \emph{kampscale2}
+ scale the amplitudes of the file named by \emph{ifile}
+. 
+
+
+  By using these arguments, it is possible to adjust these values before applying the interpolation. For example, if file1 is much louder than file2, it might be desirable to scale down the amplitudes of file1 or scale up those of file2 before interpolating. Likewise one can adjust the frequencies of each to bring them more in accord with one another (or just the opposite, of course!) before the interpolation is performed. 
+\subsection*{Examples}
+
+
+  Below is an example using \emph{pvbufread}
+ with \emph{pvcross}
+. In this example the amplitudes used in the resynthesis gradually change from those of the oboe to those of the clarinet. The frequencies, of course, remain those of the clarinet throughout the process since \emph{pvcross}
+ does not use the frequency data from the file read by \emph{pvbufread}
+. 
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+ktime1  \emph{line}
+    0, p3, 3.5 ; used as index in the "oboe.pvoc" file
+ktime2  \emph{line}
+    0, p3, 4.5 ; used as index in the "clar.pvoc" file
+kcross  \emph{expon}
+     .001, p3, 1
+        \emph{pvbufread}
+ ktime1, "oboe.pvoc"
+apv     \emph{pvcross}
+   ktime2, 1, "clar.pvoc", 1-kcross, kcross
+        
+\end{lstlisting}
+
+
+ 
+\subsection*{See Also}
+
+
+ \emph{pvbufread}
+, \emph{pvinterp}
+, \emph{pvread}
+, \emph{tableseg}
+, \emph{tablexseg}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Richard Karpen &Seattle, Wash &1997
+
+\end{tabular}
+
+
+
+ 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+pvbufread &Up &pvinterp
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

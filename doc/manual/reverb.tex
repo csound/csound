@@ -1,0 +1,158 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{reverb}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{reverb}
+reverb --  Reverberates an input signal with a ``natural room'' frequency response. \subsection*{Description}
+
+
+  Reverberates an input signal with a ``natural room'' frequency response. 
+\subsection*{Syntax}
+
+
+ ar \textbf{reverb}
+ asig, krvt [, iskip]
+\subsection*{Initialization}
+
+
+ \emph{iskip}
+ (optional, default=0) -- initial disposition of delay-loop data space (cf. \emph{reson}
+). The default value is 0. 
+\subsection*{Performance}
+
+
+ \emph{krvt}
+ -- the reverberation time (defined as the time in seconds for a signal to decay to 1/1000, or 60dB down from its original amplitude). 
+
+
+  A standard \emph{reverb}
+ unit is composed of four \emph{comb}
+ filters in parallel followed by two \emph{alpass}
+ units in series. Loop times are set for optimal ``natural room response.'' Core storage requirements for this unit are proportional only to the sampling rate, each unit requiring approximately 3K words for every 10KC. The \emph{comb}
+, \emph{alpass}
+, \emph{delay}
+, \emph{tone}
+ and other Csound units provide the means for experimenting with alternate reverberator designs. 
+
+
+  Since output from the standard \emph{reverb}
+ will begin to appear only after 1/20 second or so of delay, and often with less than three-fourths of the original power, it is normal to output both the source and the reverberated signal. If \emph{krvt}
+ is inadvertently set to a non-positive number, \emph{krvt}
+ will be reset automatically to 0.01. (New in Csound version 4.07.) Also, since the reverberated sound will persist long after the cessation of source events, it is normal to put \emph{reverb}
+ in a separate instrument to which sound is passed via a \emph{global variable}
+, and to leave that instrument running throughout the performance. 
+\subsection*{Examples}
+
+
+  Here is an example of the reverb opcode. It uses the files \emph{reverb.orc}
+ and \emph{reverb.sco}
+. 
+
+
+ \textbf{Example 1. Example of the reverb opcode.}
+
+\begin{lstlisting}
+/* reverb.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; init an audio receiver/mixer
+ga1 init 0 
+
+; Instrument #1. (there may be many copies)
+instr 1 
+  ; generate a source signal
+  a1 oscili 7000, cpspch(p4), 1 
+  ; output the direct sound
+  out a1  
+  ; and add to audio receiver
+  ga1 = ga1 + a1 
+endin
+
+; (highest instr number executed last)
+instr 99 
+  ; reverberate whatever is in ga1
+  a3 reverb ga1, 1.5
+  ; and output the result
+  out a3 
+  ; empty the receiver for the next pass
+  ga1 = 0 
+endin
+/* reverb.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* reverb.sco */
+; Table #1, a sine wave.
+f 1 0 128 10 1
+
+; p4 = frequency (in a pitch-class)
+; Play Instrument #1 for a tenth of a second, p4=6.00
+i 1 0 0.1 6.00
+; Play Instrument #1 for a tenth of a second, p4=6.02
+i 1 1 0.1 6.02
+; Play Instrument #1 for a tenth of a second, p4=6.04
+i 1 2 0.1 6.04
+; Play Instrument #1 for a tenth of a second, p4=6.06
+i 1 3 0.1 6.06
+
+; Make sure the reverb remains active.
+i 99 0 6
+e
+/* reverb.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{alpass}
+, \emph{comb}
+, \emph{valpass}
+, \emph{vcomb}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cccc}
+Author: William ``Pete'' Moss &University of Texas at Austin &Austin, Texas USA &January 2002
+
+\end{tabular}
+
+
+
+ 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+resonz &Up &reverb2
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

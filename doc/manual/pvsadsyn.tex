@@ -1,0 +1,114 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{pvsadsyn}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{pvsadsyn}
+pvsadsyn --  Resynthesize using a fast oscillator-bank. \subsection*{Description}
+
+
+  Resynthesize using a fast oscillator-bank. 
+\subsection*{Syntax}
+
+
+ ar \textbf{pvsadsyn}
+ fsrc, inoscs, kfmod [, ibinoffset] [, ibinincr] [, iinit]
+\subsection*{Initialization}
+
+
+ \emph{inoscs}
+ -- The number of analysis bins to synthesise. Cannot be larger than the size of fsrc (see \emph{pvsinfo}
+), e.g. as created by \emph{pvsanal}
+. Processing time is directly proportional to inoscs. 
+
+
+ \emph{ibinoffset}
+ (optional, default=0) -- The first (lowest) bin to resynthesise, counting from 0 (default = 0). 
+
+
+ \emph{ibinincr}
+ (optional) -- Starting from bin ibinoffset, resynthesize bins ibinincr apart. 
+
+
+ \emph{iinit}
+ (optional) -- Skip reinitialization. This is not currently implemented for any of these opcodes, and it remains to be seen if it is even practical. 
+\subsection*{Performance}
+
+
+ \emph{kfmod}
+ -- Scale all frequencies by factor kfmod. 1.0 = no change, 2 = up one octave. 
+
+
+ \emph{pvsadsyn}
+ is experimental, and implements the oscillator bank using a fast direct calculation method, rather than a lookup table. This takes advantage of the fact, empirically arrived at, that for the analysis rates generally used, (and presuming analysis using \emph{pvsanal}
+, where frequencies in a bin change only slightly between frames) it is not necessary to interpolate frequencies between frames, only amplitudes. Accurate resynthesis is often contingent on the use of pvsanal with iwinsize = ifftsize*2. 
+
+
+  This opcode is the most likely to change, or be much extended, according to feedback and advice from users. It is likely that a full interpolating table-based method will be added, via a further optional iarg. The parameter list to pvsadsyn mimics that for \emph{pvadd}
+, but excludes spectral extraction. 
+\subsection*{Examples}
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+; resynth the first 100 odd-numbered bins, with pitch scaling envelope.
+kpch  linseg    1,p3/3,1,p3/3,1.5,p3/3,1
+aout  pvsadsyn  fsrc, 100,kpch,1,2
+        
+\end{lstlisting}
+
+
+ 
+\subsection*{See Also}
+
+
+ \emph{pvsynth}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Author: Richard Dobson &August 2001 
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in version 4.13
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+pvread &Up &pvsanal
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}
