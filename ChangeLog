@@ -2,6 +2,9 @@
 	* Top/csound.c:
 	  the CSRTAUDIO environment variable can be used to set default
 	  for -+rtaudio
+	* Engine/cfgvar.h:
+	* Engine/cfgvar.c:
+	  added documentation for interface functions
 
 2005-02-16	Istvan Varga	<istvan@csounds.com>
 	* InOut/libsnd.c:
