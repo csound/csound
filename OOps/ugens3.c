@@ -77,7 +77,7 @@ int foscil(ENVIRON *csound, FOSC *p)
     xmod = *modp;
 
     if (p->XINCODE) {
-      for (n=0;n<ksmps;n++) {
+      for (n=0;n<csound->ksmps;n++) {
         if (p->ampcod) amp = ampp[n];
         if (p->carcod) xcar = carp[n];
         if (p->modcod) xmod = modp[n];
@@ -102,7 +102,7 @@ int foscil(ENVIRON *csound, FOSC *p)
       mod = cps * *modp;
       ndx = *p->kndx * mod;
       minc = (long)(mod * sicvt);
-      for (n=0;n<ksmps;n++) {
+      for (n=0;n<csound->ksmps;n++) {
         mphs &= PHMASK;
         fmod = *(ftab + (mphs >>lobits)) * ndx;
         mphs += minc;
@@ -142,7 +142,7 @@ int foscili(ENVIRON *csound, FOSC *p)
     xcar = *carp;
     xmod = *modp;
     if (p->XINCODE) {
-      for (n=0;n<ksmps;n++) {
+      for (n=0;n<csound->ksmps;n++) {
         if (p->ampcod)  amp = ampp[n];
         if (p->carcod)  xcar = carp[n];
         if (p->modcod)  xmod = modp[n];
@@ -172,7 +172,7 @@ int foscili(ENVIRON *csound, FOSC *p)
       mod = cps * *modp;
       ndx = *p->kndx * mod;
       minc = (long)(mod * sicvt);
-      for (n=0;n<ksmps;n++) {
+      for (n=0;n<csound->ksmps;n++) {
         mphs &= PHMASK;
         fract = PFRAC(mphs);
         ftab = ftp->ftable + (mphs >>lobits);
@@ -276,7 +276,7 @@ int loscil(ENVIRON *csound, LOSC *p)
     FUNC   *ftp;
     MYFLT  *ar1, *ftbl, *ftab, *xamp;
     long   phs, inc, beg, end;
-    int    nsmps = ksmps, aamp;
+    int    nsmps = csound->ksmps, aamp;
     MYFLT  fract, v1, v2, *ar2;
 
     ftp = p->ftp;
@@ -492,7 +492,7 @@ int loscil3(ENVIRON *csound, LOSC *p)
     FUNC   *ftp;
     MYFLT  *ar1, *ftbl, *xamp;
     long   phs, inc, beg, end;
-    int    nsmps = ksmps, aamp;
+    int    nsmps = csound->ksmps, aamp;
     MYFLT  fract, *ar2;
     int     x0;
     MYFLT   y0, y1, ym1, y2;
@@ -948,11 +948,11 @@ int adsyn(ENVIRON *csound, ADSYN *p)
       return csound->PerfError(csound, Str("adsyn: not initialised"));
     }
     /* IV - Jul 11 2002 */
-    ampscale = *p->kamod * dbfs_to_float;      /* (since 15-bit sine table) */
+    ampscale = *p->kamod * csound->dbfs_to_float; /* since 15-bit sine table */
     frqscale = *p->kfmod * ISINSIZ * onedsr;
     timkincr = (long)(*p->ksmod*FL(1024000.0)*onedkr); /* 1024 * msecs of analysis */
     sp = (long *) p->rslt;                     /* use out array for sums */
-    nsmps = ksmps;
+    nsmps = csound->ksmps;
     do {
       *sp++ = 0L;                               /* cleared first to zero */
     } while (--nsmps);
@@ -969,7 +969,7 @@ int adsyn(ENVIRON *csound, ADSYN *p)
         sinc = (long)(curp->frq * frqscale);
         phs = curp->phs;
         sp = (long *) p->rslt;
-        nsmps = ksmps;                  /*   addin a sinusoid */
+        nsmps = csound->ksmps;            /*   addin a sinusoid */
         do {
           *sp++ += *(isintab + phs) * amp;
           phs += sinc;
@@ -996,11 +996,11 @@ int adsyn(ENVIRON *csound, ADSYN *p)
     p->mksecs += timkincr;                  /* advance the time */
     ar = p->rslt;
     sp = (long *) ar;
-    nsmps = ksmps;
+    nsmps = csound->ksmps;
     do {
       /* a quick-hack fix: should change adsyn to use floats table and
          buffers and should replace hetro format anyway.... */
-      *ar++ = (MYFLT)((*sp++ * ampscale) / ADSYN_MAXLONG) * e0dbfs;
+      *ar++ = (MYFLT)((*sp++ * ampscale) / ADSYN_MAXLONG) * csound->e0dbfs;
     } while (--nsmps);
     return OK;
 }
