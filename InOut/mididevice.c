@@ -22,9 +22,6 @@
 #include "cs.h"
 #include "midiops.h"
 #include "oload.h"
-#include <portmidi.h>
-#include <porttime.h>
-#include <errno.h>
 
 extern  int     csoundIsExternalMidiEnabled(void *);
 extern  void    csoundExternalMidiDeviceOpen(void *);
