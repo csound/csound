@@ -467,6 +467,7 @@ Engine/swrite.c
 Engine/twarp.c
 InOut/libsnd.c
 InOut/libsnd_u.c
+InOut/midifile.c
 InOut/midirecv.c
 InOut/midisend.c
 InOut/winascii.c

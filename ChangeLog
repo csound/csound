@@ -1,3 +1,37 @@
+2005-02-25	Istvan Varga	<istvan@csounds.com>
+	* Engine/entry2.c:
+	  added miditempo opcode (returns current tempo of MIDI file
+	  at control rate)
+	* Engine/insert.c:
+	  allow muting MIDI channels (massign to 0) in MIDIinsert()
+	* Engine/musmon.c:
+	  initialise all MIDI channels before oload()
+	  merged MIDI device and file input code (removed sensFMidi)
+	  made use of MCHNBLK.insno and MCHNBLK.pgmno more consistent
+	* H/csoundCore.h:
+	* Top/csound.c:
+	  increased MIDI input buffer size
+	  changes in MGLOBAL for new MIDI file code
+	* H/midifile.h:
+	* InOut/midifile.c:
+	  new implementation for reading MIDI files (supports multiple tracks)
+	  miditempo opcode
+	* InOut/midirecv.c:
+	  changes for using new MIDI file input
+	  removed sensFMidi (both device and file input is done by sensMidi)
+	  removed FMidiOpen, vlendatum, Fnxtdeltim, fsexdata, and Rnxtdeltim
+	  made use of MCHNBLK.insno and MCHNBLK.pgmno more consistent
+	  m_chinsno: allow massign to <= 0 (mutes channel)
+	  m_chn_init_all: new function
+	  m_getchnl: no longer need to check if channel exists
+	* InOut/midisend.c:
+	* InOut/pmidi.c:
+	  allow sending simple system messages (clock etc.)
+	* OOps/midiops.c:
+	  allow massign to <= 0 (mutes channel)
+	* SConstruct:
+	  compile InOut/midifile.c
+
 2005-02-24	Istvan Varga	<istvan@csounds.com>
 	* Engine/oload.c:
 	* H/csdl.h:
@@ -24,7 +58,7 @@
 	* OOps/ugens2.c:
 	* OOps/ugrw1.c:
 	  minor tweaks in tabli()
-	  made use of FLOOR() macro with negative integer argument safer 
+	  made use of FLOOR() macro with negative integer argument safer
 	* Top/cvanal.c:
 	  always scale input (actually to revert dbfs scaling done in
 	  getsndin(); FFT always expects data in the range 0 to 1)
@@ -82,7 +116,7 @@
 
 	* SConstruct: Added Word64 as an option.  This could be done
 	automatically but one needs to select 64 or 32 bit on a 64 bit
-	machine. 
+	machine.
 
 2005-02-20	Istvan Varga	<istvan@csounds.com>
 	* Top/argdecode.c:

@@ -107,27 +107,17 @@
 #include "cs.h"
 #include "midiops.h"
 #include "oload.h"
+#include "midifile.h"
 
 #define MGLOB(x) (((ENVIRON*) csound)->midiGlobals->x)
 
 static  MYFLT   MastVol = FL(1.0);      /* maps ctlr 7 to ctlr 9 */
-static  long    MTrkrem;
-static  double  FltMidiNxtk, kprdspertick, ekrdQmil;
         void    m_chn_init(ENVIRON *csound, MEVENT *, short);
-static  void    (*nxtdeltim)(void*), Fnxtdeltim(void*), Rnxtdeltim(void*);
 extern  void    schedofftim(INSDS *), deact(INSDS *), beep(void);
         void    midNotesOff(void);
 
 static  int     defaultinsno = 0;
 extern  void    insxtroff(short);
-
-#ifdef WORDS_BIGENDIAN
-# define natshort(x) (x)
-# define natlong(x)  (x)
-#else
-  extern  long  natlong(long);
-  extern  short natshort(short);
-#endif
 
 static MYFLT dsctl_map[12] = {
     FL(1.0), FL(0.0), FL(1.0), FL(0.0), FL(1.0), FL(0.0),
@@ -146,14 +136,23 @@ void MidiOpen(ENVIRON *csound)
     int i;
     MGLOB(Midevtblk) = (MEVENT *) mcalloc(csound, (long) sizeof(MEVENT));
     MGLOB(sexp) = 0;
-    for (i = 0; i < MAXCHAN; i++) M_CHNBP[i] = NULL; /* Clear array */
-    m_chn_init(csound, MGLOB(Midevtblk), (short) 0);
-    /* Then open device. */
-    i = csoundExternalMidiInOpen(csound, &MGLOB(midiInUserData), O.Midiname);
-    if (i != 0) {
-      csoundMessage(csound, Str(" *** error opening MIDI in device: %d (%s)\n"),
-                            i, csoundExternalMidiErrorString(csound, i));
-      longjmp(csound->exitjmp_, 1);
+    /* Then open device... */
+    if (O.Midiin) {
+      i = csoundExternalMidiInOpen(csound, &MGLOB(midiInUserData), O.Midiname);
+      if (i != 0) {
+        csoundMessage(csound,
+                      Str(" *** error opening MIDI in device: %d (%s)\n"),
+                      i, csoundExternalMidiErrorString(csound, i));
+        longjmp(csound->exitjmp_, 1);
+      }
+    }
+    /* and file. */
+    if (O.FMidiin && O.FMidiname != NULL) {
+      i = csoundMIDIFileOpen(csound, O.FMidiname);
+      if (i != 0) {
+        csoundMessage(csound, Str("Failed to load MIDI file.\n"));
+        longjmp(csound->exitjmp_, 1);
+      }
     }
 }
 
@@ -201,14 +200,15 @@ void m_chanmsg(ENVIRON *csound, MEVENT *mep)
     short n;
     MYFLT *fp;
 
-    switch(mep->type) {
+    switch (mep->type) {
     case PROGRAM_TYPE:
+      chn->pgmno = mep->dat1;
       n = (short) MGLOB(pgm2ins)[mep->dat1];    /* program change -> INSTR  */
       if (n > 0 && n <= maxinsno                /* if corresp instr exists  */
-          && instrtxtp[n] != NULL) {            /*     assign as pgmno      */
-        chn->pgmno = n;                         /* else ignore prog. change */
+          && instrtxtp[n] != NULL) {            /*     assign as insno      */
+        chn->insno = n;                         /* else ignore prog. change */
         printf(Str("midi channel %d now using instr %d\n"),
-               mep->chan+1,chn->pgmno);
+               mep->chan + 1, chn->insno);
       }
       break;
     case POLYAFT_TYPE:
@@ -371,13 +371,29 @@ void m_chn_init(ENVIRON *csound, MEVENT *mep, short chan)
     if ((chn = M_CHNBP[chan]) == NULL)
       M_CHNBP[chan] = chn = (MCHNBLK *) mcalloc(csound, (long)sizeof(MCHNBLK));
     if (instrtxtp[chan+1] != NULL)           /* if corresp instr exists  */
-      chn->pgmno = chan+1;                   /*     assign as pgmno      */
-    else chn->pgmno = defaultinsno;          /* else assign the default  */
+      chn->insno = chan+1;                   /*     assign as insno      */
+    else chn->insno = defaultinsno;          /* else assign the default  */
     mep->type = CONTROL_TYPE;
     mep->chan = chan;
     mep->dat1 = 121;  /* reset all controllers */
     m_chanmsg(csound, mep);
-    printf(Str("midi channel %d using instr %d\n"), chan + 1, chn->pgmno);
+    if (csound->oparms_->Midiin || csound->oparms_->FMidiin)
+      printf(Str("midi channel %d using instr %d\n"), chan + 1, chn->insno);
+}
+
+/* initialise all MIDI channels */
+/* called by musmon before oload() */
+
+void m_chn_init_all(ENVIRON *csound)
+{
+    MEVENT  mev;
+    int     i;
+
+    for (i = 0; i < 16; i++) {
+      M_CHNBP[i] = NULL;
+      memset(&mev, 0, sizeof(MEVENT));
+      m_chn_init(csound, &mev, (short) i);
+    }
 }
 
 static void ctlreset(ENVIRON *csound, short chan)
@@ -391,36 +407,34 @@ static void ctlreset(ENVIRON *csound, short chan)
 
 MCHNBLK *m_getchnl(ENVIRON *csound, short chan)
 {                               /* get or create a chnlblk ptr */
-    MCHNBLK *chn;
     if (chan < 0 || chan >= MAXCHAN) {
       sprintf(errmsg,Str("illegal midi chnl no %d"), chan+1);
       die(errmsg);
     }
-    if ((chn = M_CHNBP[chan]) == NULL) {
-      M_CHNBP[chan] = chn = (MCHNBLK *) mcalloc(csound, (long)sizeof(MCHNBLK));
-      chn->pgmno = -1;
-      chn->insno = -1;
-      ctlreset(csound, chan);
-    }
-    return(chn);
+    return (M_CHNBP[chan]);
 }
 
 void m_chinsno(ENVIRON *csound, short chan, short insno)
 {                                         /* assign an insno to a chnl */
     MCHNBLK  *chn = NULL;                 /* =massign: called from i0  */
 
-    if (insno <= 0 || insno >= maxinsno || instrtxtp[insno] == NULL) {
-      printf(Str("Insno = %d\n"), insno);
-      die(Str("unknown instr"));
-    }
-    if (M_CHNBP[chan] != NULL)
-      printf(Str("massign: chnl %d exists, ctrls now defaults\n"), chan+1);
+    if (chan < 0 || chan > 15)
+      die(Str("illegal channel number"));
     chn = m_getchnl(csound, chan);
-    chn->insno = insno;
+    if (insno <= 0) {
+      chn->insno = -1;
+      printf(Str("MIDI channel %d muted\n"), (int) chan + 1);
+    }
+    else {
+      if (insno >= maxinsno || instrtxtp[insno] == NULL) {
+        printf(Str("Insno = %d\n"), insno);
+        die(Str("unknown instr"));
+      }
+      chn->insno = insno;
+      printf(Str("chnl %d using instr %d\n"), chan+1, chn->insno);
+    }
     chn->pchbend = FL(0.0);     /* Mid value */
-    /*    chn->posbend = FL(0.5); */          /* for pos pchbend (0 - 1.0) */
     ctlreset(csound, chan);
-    printf(Str("chnl %d using instr %d\n"), chan+1, chn->insno);
 }
 
 static void AllNotesOff(MCHNBLK *chn)
@@ -470,15 +484,23 @@ int sensMidi(ENVIRON *csound)
     if (MGLOB(bufp) >= MGLOB(endatp)) {
       MGLOB(bufp) = &(MGLOB(mbuf)[0]);
       MGLOB(endatp) = MGLOB(bufp);
-      n = csoundExternalMidiRead(csound, MGLOB(midiInUserData),
-                                 MGLOB(bufp), MBUFSIZ);
-      if (n < 1) {
+      if (O.Midiin) {                   /* read MIDI device */
+        n = csoundExternalMidiRead(csound, MGLOB(midiInUserData),
+                                   MGLOB(bufp), MBUFSIZ);
         if (n < 0)
-          csoundMessage(csound, " *** error reading MIDI input: %d (%s)\n",
-                                n, csoundExternalMidiErrorString(csound, n));
-        return 0;
+          csoundMessage(csound,
+                        Str(" *** error reading MIDI device: %d (%s)\n"),
+                        n, csoundExternalMidiErrorString(csound, n));
+        else
+          MGLOB(endatp) += (int) n;
       }
-      MGLOB(endatp) = (char*) MGLOB(bufp) + (int) n;
+      if (O.FMidiin) {                  /* read MIDI file */
+        n = csoundMIDIFileRead(csound, MGLOB(bufp), MBUFSIZ);
+        if (n > 0)
+          MGLOB(endatp) += (int) n;
+      }
+      if (MGLOB(endatp) <= MGLOB(bufp))
+        return 0;               /* no events were received */
     }
 
     if ((c = *(MGLOB(bufp)++)) & 0x80) { /* STATUS byte:      */
@@ -525,8 +547,6 @@ int sensMidi(ENVIRON *csound)
         short chan;
         MGLOB(sexp) = 0;                /* also implies sys_exclus end */
         chan = c & 0xF;
-        if (M_CHNBP[chan] == NULL)      /* chk chnl exists   */
-          m_chn_init(csound, mep, chan);
         mep->type = type;               /* & begin new event */
         mep->chan = chan;
         MGLOB(datreq) = datbyts[(type>>4) & 0x7];
@@ -560,335 +580,6 @@ int sensMidi(ENVIRON *csound)
     return(2);                          /* else it's note_on/off */
 }
 
-static long vlendatum(void *csound)
-{                               /* rd variable len datum from input stream */
-    long datum = 0;
-    unsigned char c;
-    while ((c = getc(MGLOB(mfp))) & 0x80) {
-      datum += c & 0x7F;
-      datum <<= 7;
-      MTrkrem--;
-    }
-    datum += c;
-    MTrkrem--;
-    return(datum);
-}
-
-static void Fnxtdeltim(void *csound)    /* incr FMidiNxtk by next delta-time */
-{                                       /* standard, with var-length deltime */
-    unsigned long deltim = 0;
-    unsigned char c;
-    short count = 1;
-
-    if (MTrkrem > 0) {
-      while ((c = getc(MGLOB(mfp))) & 0x80) {
-        deltim += c & 0x7F;
-        deltim <<= 7;
-        count++;
-      }
-      MTrkrem -= count;
-      if ((deltim += c) > 0) {                  /* if deltim nonzero */
-        FltMidiNxtk += deltim * kprdspertick;   /*   accum in double */
-        MGLOB(FMidiNxtk) = (long) FltMidiNxtk;  /*   the kprd equiv  */
-      }
-    }
-    else {
-      printf(Str("end of track in midifile '%s'\n"), O.FMidiname);
-      printf(Str("%d forced decays, %d extra noteoffs\n"),
-             Mforcdecs, Mxtroffs);
-      MTrkend = 1;
-      O.FMidiin = 0;
-      if (O.ringbell && !O.termifend)  beep();
-    }
-}
-
-static void Rnxtdeltim(void *csound)    /* incr FMidiNxtk by next delta-time */
-{                 /* Roland MPU401 form: F8 time fillers, no Trkrem val, EOF */
-    unsigned long deltim = 0;
-    int c;
-
-    do {
-      if ((c = getc(MGLOB(mfp))) == EOF) {
-        printf(Str("end of MPU401 midifile '%s'\n"), O.FMidiname);
-        printf(Str("%d forced decays, %d extra noteoffs\n"),
-               Mforcdecs, Mxtroffs);
-        MTrkend = 1;
-        O.FMidiin = 0;
-        if (O.ringbell && !O.termifend)  beep();
-        return;
-      }
-      deltim += (c &= 0xFF);
-    }
-    while (c == 0xF8);      /* loop while sys_realtime tming clock */
-    if (deltim) {                             /* if deltim nonzero */
-      FltMidiNxtk += deltim * kprdspertick;   /*   accum in double */
-      MGLOB(FMidiNxtk) = (long) FltMidiNxtk;  /*   the kprd equiv  */
-    }
-}
-
-void FMidiOpen(ENVIRON *csound) /* open a MidiFile for reading, sense MPU401 */
-{                               /* or standard; callable once from main.c    */
-    short sval;
-    long lval, tickspersec;
-    unsigned long deltim;
-    char inbytes[16];    /* must be long-aligned, 16 >= MThd maxlen */
-
-    MGLOB(FMidevtblk) = (MEVENT *) mcalloc(csound, (long)sizeof(MEVENT));
-    MGLOB(fsexp) = 0;
-    if (M_CHNBP[0] == (MCHNBLK*) NULL)      /* IV May 2002: added check */
-      m_chn_init(csound, MGLOB(FMidevtblk), (short) 0);
-
-    if (strcmp(O.FMidiname,"stdin") == 0) {
-      MGLOB(mfp) = stdin;
-    }
-    else if (!(MGLOB(mfp) = fopen(O.FMidiname, "rb")))
-      dies(Str("cannot open '%s'"), O.FMidiname);
-    if ((inbytes[0] = getc(MGLOB(mfp))) != 'M')
-      goto mpu401;
-    if ((inbytes[1] = getc(MGLOB(mfp))) != 'T') {
-      ungetc(inbytes[1],MGLOB(mfp));
-      goto mpu401;
-    }
-    if (fread(inbytes+2, 1, 6, MGLOB(mfp)) < 6)
-      dies(Str("unexpected end of '%s'"), O.FMidiname);
-    if (strncmp(inbytes, "MThd", 4) != 0)
-      dies(Str("we're confused.  file '%s' begins with 'MT',\n"
-               "but not a legal header chunk"), O.FMidiname);
-    printf(Str("%s: found standard midifile header\n"), O.FMidiname);
-    if ((lval = natlong(*(long *)(inbytes+4))) < 6 || lval > 16) {
-      sprintf(errmsg,Str("bad header length %ld in '%s'"),
-              lval, O.FMidiname);
-      die(errmsg);
-    }
-    if (fread(inbytes, 1, (int)lval, MGLOB(mfp)) < (unsigned long)lval)
-      dies(Str("unexpected end of '%s'"), O.FMidiname);
-    sval = natshort(*(short *)inbytes);
-    if (sval != 0 && sval != 1) { /* Allow Format 1 with single track */
-      sprintf(errmsg,Str("%s: Midifile format %d not supported"),
-              O.FMidiname, sval);
-      die(errmsg);
-    }
-    if ((sval = natshort(*(short *)(inbytes+2))) != 1)
-      dies(Str("illegal ntracks in '%s'"), O.FMidiname);
-    if ((inbytes[4] & 0x80)) {
-      short SMPTEformat, SMPTEticks;
-      SMPTEformat = -(inbytes[4]);
-      SMPTEticks = *(unsigned char *)inbytes+5;
-      if (SMPTEformat == 29)  SMPTEformat = 30;  /* for drop frame */
-      printf(Str("SMPTE timing, %d frames/sec, %d ticks/frame\n"),
-             SMPTEformat, SMPTEticks);
-      tickspersec = SMPTEformat * SMPTEticks;
-    }
-    else {
-      short Qticks = natshort(*(short *)(inbytes+4));
-      printf(Str("Metrical timing, Qtempo = 120.0, Qticks = %d\n"),
-             Qticks);
-      ekrdQmil = (double)ekr / Qticks / 1000000.0;
-      tickspersec = Qticks * 2;
-    }
-    kprdspertick = (double)ekr / tickspersec;
-    printf(Str("kperiods/tick = %7.3f\n"), kprdspertick);
-
- chknxt:
-    if (fread(inbytes, 1, 8, MGLOB(mfp)) < 8)   /* read a chunk ID & size */
-      dies(Str("unexpected end of '%s'"), O.FMidiname);
-    if ((lval = natlong(*(long *)(inbytes+4))) <= 0)
-      dies(Str("improper chunksize in '%s'"), O.FMidiname);
-    if (strncmp(inbytes, "MTrk", 4) != 0) {     /* if not an MTrk chunk,  */
-      do {
-        sval = getc(MGLOB(mfp));                /*    skip over it        */
-      } while (--lval);
-      goto chknxt;
-    }
-    printf(Str("tracksize = %ld\n"), lval);
-    MTrkrem = lval;                             /* else we have a track   */
-    FltMidiNxtk = 0.0;
-    MGLOB(FMidiNxtk) = 0;                       /* init the time counters */
-    nxtdeltim = Fnxtdeltim;                     /* set approp time-reader */
-    nxtdeltim(csound);                          /* incr by 1st delta-time */
-    return;
-
- mpu401:
-    printf(Str("%s: assuming MPU401 midifile format, ticksize = 5 msecs\n"),
-           O.FMidiname);
-    kprdspertick = (double)ekr / 200.0;
-    ekrdQmil = 1.0;                             /* temp ctrl (not needed) */
-    MTrkrem = 0x7FFFFFFF;                       /* no tracksize limit     */
-    FltMidiNxtk = 0.0;
-    MGLOB(FMidiNxtk) = 0;
-    nxtdeltim = Rnxtdeltim;                     /* set approp time-reader */
-    if ((deltim = (inbytes[0] & 0xFF))) {       /* if 1st time nonzero    */
-      FltMidiNxtk += deltim * kprdspertick;     /*     accum in double    */
-      MGLOB(FMidiNxtk) = (long) FltMidiNxtk;    /*     the kprd equiv     */
-      if (deltim == 0xF8)         /* if char was sys_realtime timing clock */
-        nxtdeltim(csound);                      /* then also read nxt time */
-    }
-}
-
-static void fsexdata(void *csound, int n)
-{                             /* place midifile data into a sys_excl buffer */
-    MTrkrem -= n;
-    MGLOB(fsexp) = 1;
-    fseek(MGLOB(mfp), (long) (n - 1), SEEK_CUR);
-    if (getc(MGLOB(mfp)) == 0xF7)               /* if EOX at end          */
-      MGLOB(fsexp) = 0;                         /*    execute and clear   */
-}
-
-int sensFMidi(ENVIRON *csound)  /* read a MidiFile event, collect the data  */
-{                               /* & dispatch; called from sensevents(),    */
-    short  c, type;             /* return(SENSMFIL) if MIDI on/off          */
-    MEVENT *mep = MGLOB(FMidevtblk);
-    long len;
-
- nxtevt:
-    if (--MTrkrem < 0 || (c = getc(MGLOB(mfp))) == EOF)
-      goto Trkend;
-    if (!(c & 0x80))      /* no status, assume running */
-      goto datcpy;
-    if ((type = c & 0xF0) == SYSTEM_TYPE) {     /* STATUS byte:      */
-      short lo3;
-      switch(c) {
-      case 0xF0:                          /* SYS_EX event:  */
-        if ((len = vlendatum(csound)) <= 0)
-          die(Str("zero length sys_ex event"));
-        printf(Str("reading sys_ex event, length %ld\n"),len);
-        fsexdata(csound, (int) len);
-        goto nxtim;
-      case 0xF7:                          /* ESCAPE event:  */
-        if ((len = vlendatum(csound)) <= 0)
-          die(Str("zero length escape event"));
-        printf(Str("escape event, length %ld\n"),len);
-        if (MGLOB(sexp) != 0)
-          fsexdata(csound, (int) len);    /* if sysex contin, send  */
-        else {
-          MTrkrem -= len;
-          do {
-            c = getc(MGLOB(mfp));         /* else for now, waste it */
-          } while (--len);
-        }
-        goto nxtim;
-      case 0xFF:                          /* META event:     */
-        if (--MTrkrem < 0 || (type = getc(MGLOB(mfp))) == EOF)
-          goto Trkend;
-        len = vlendatum(csound);
-        MTrkrem -= len;
-        switch(type) {
-          long usecs;
-        case 0x51: usecs = 0;           /* set new Tempo       */
-          do {
-            usecs <<= 8;
-            usecs += (c = getc(MGLOB(mfp))) & 0xFF;
-          }
-          while (--len);
-          if (usecs <= 0)
-            printf(Str("%ld usecs illegal in Tempo event\n"), usecs);
-          else {
-            kprdspertick = usecs * ekrdQmil;
-            /*    printf("Qtempo = %5.1f\n", 60000000. / usecs); */
-          }
-          break;
-        case 0x01:
-        case 0x02:
-        case 0x03:
-        case 0x04:
-        case 0x05:                      /* print text events  */
-        case 0x06:
-        case 0x07:
-          while (len--) {
-            int ch;
-            ch = getc(MGLOB(mfp));
-            printf("%c", ch);
-          }
-          break;
-        case 0x2F: goto Trkend;         /* normal end of track */
-        default:
-          printf(Str("skipping meta event type %x\n"),type);
-          do {
-            c = getc(MGLOB(mfp));
-          } while (--len);
-        }
-        goto nxtim;
-      }
-      lo3 = (c & 0x07);
-      if (c & 0x08) {               /* sys_realtime:     */
-        switch (lo3) {              /*   dispatch now    */
-        case 0:
-        case 1:                     /* Timing Clk handled in Rnxtdeltim() */
-        case 2:
-        case 3:
-        case 4:
-        case 6:
-        case 7: break;
-        default: printf(Str("undefined sys-realtime msg %x\n"),c);
-        }
-        goto nxtim;
-      }
-      else if (lo3 == 6) {
-        goto nxtim;
-      }
-      else {
-        mep->type = type;         /* ident sys_com event  */
-        mep->chan = lo3;          /* holding code in chan */
-        switch (lo3) {            /* now need some data   */
-        case 1:
-        case 3: MGLOB(fdatreq) = 1;
-          break;
-        case 2: MGLOB(fdatreq) = 2;
-          break;
-        default: sprintf(errmsg,Str("undefined sys_common msg %x\n"), c);
-          die(errmsg);
-        }
-      }
-    }
-    else {                              /* other status types:  */
-      short chan = c & 0xF;
-      if (M_CHNBP[chan] == NULL)        /*   chk chnl exists    */
-        m_chn_init(csound, mep, chan);
-      mep->type = type;                 /*   & begin new event  */
-      mep->chan = chan;
-      MGLOB(fdatreq) = datbyts[(type>>4) & 0x7];
-    }
-    c = getc(MGLOB(mfp));
-    MTrkrem--;
-
- datcpy:
-    mep->dat1 = c;                        /* sav the required data */
-    if (MGLOB(fdatreq) == 2) {
-      mep->dat2 = getc(MGLOB(mfp));
-      MTrkrem--;
-    }
-    /* Enter the input event into a buffer used by 'midiin'. */
-    if (mep->type != SYSTEM_TYPE) {
-      unsigned char *pMessage =
-                    &(MGLOB(MIDIINbuffer2)[MGLOB(MIDIINbufIndex)++].bData[0]);
-      MGLOB(MIDIINbufIndex) &= MIDIINBUFMSK;
-      *pMessage++ = mep->type | mep->chan;
-      *pMessage++ = (unsigned char)mep->dat1;
-      *pMessage = (MGLOB(fdatreq) < 2 ? (unsigned char) 0 : mep->dat2);
-    }
-    if (mep->type > NOTEON_TYPE) {        /* if control or syscom  */
-      m_chanmsg(csound, mep);             /*   handle from here    */
-      goto nxtim;
-    }
-    nxtdeltim(csound);
-    return(3);                            /* else it's note_on/off */
-
- nxtim:
-    nxtdeltim(csound);
-    if (O.FMidiin && kcounter >= MGLOB(FMidiNxtk))
-      goto nxtevt;
-    return(0);
-
- Trkend:
-    printf(Str("end of midi track in '%s'\n"), O.FMidiname);
-    printf(Str("%d forced decays, %d extra noteoffs\n"),
-           Mforcdecs, Mxtroffs);
-    MTrkend = 1;
-    O.FMidiin = 0;
-    if (O.ringbell && !O.termifend)  beep();
-    return(0);
-}
-
 void MidiClose(ENVIRON *csound)
 {
     int retval;
@@ -904,9 +595,9 @@ void MidiClose(ENVIRON *csound)
                       retval, csoundExternalMidiErrorString(csound, retval));
       MGLOB(MIDIoutDONE) = 0;
     }
-    if (MGLOB(mfp) != NULL && strcmp(O.FMidiname, "stdin") != 0) {
-      fclose(MGLOB(mfp));
+    if (MGLOB(midiFileData) != NULL) {
+      csoundMIDIFileClose(csound);
+      MGLOB(midiFileData) = NULL;
     }
-    MGLOB(mfp) = NULL;
 }
 

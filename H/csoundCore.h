@@ -526,7 +526,7 @@ extern "C" {
 
   /* MIDI globals */
 
-#define MBUFSIZ         (1024)
+#define MBUFSIZ         (4096)
 #define MIDIINBUFMAX    (1024)
 #define MIDIINBUFMSK    (MIDIINBUFMAX-1)
 
@@ -544,10 +544,7 @@ extern "C" {
 
   typedef struct midiglobals {
     MEVENT  *Midevtblk;
-    MEVENT  *FMidevtblk;
-    long    FMidiNxtk;
     int     sexp;
-    int     fsexp;
     int     pgm2ins[128];
     int     MIDIoutDONE;
     int     MIDIINbufIndex;
@@ -561,10 +558,10 @@ extern "C" {
     char    *(*MidiErrorStringCallback)(int);
     void    *midiInUserData;
     void    *midiOutUserData;
-    FILE    *mfp;
+    void    *midiFileData;
     unsigned char mbuf[MBUFSIZ];
     unsigned char *bufp, *endatp;
-    short   datreq, datcnt, fdatreq;
+    short   datreq, datcnt;
   } MGLOBAL;
 
   typedef struct ENVIRON_
