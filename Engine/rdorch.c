@@ -899,7 +899,7 @@ static int splitline(void) /* split next orch line into atomic groups */
         }
         else if (strncmp(lp-1,"then",4) == 0) {
           struct iflabel *prv = iflabels;
-          static long tempNum = 0;
+          static long tempNum = 300;
 
           /* modify cggoto */
           *(group[opgrpno-1]+1) = 'n';
@@ -910,14 +910,16 @@ static int splitline(void) /* split next orch line into atomic groups */
           grpp = group[grpcnt++] = cp;
           /* synthesize labels to represent an else and endif */
           if (prvelsif) { /* elseif, so we just need a new elselabel */
-            sprintf(iflabels->els, "else%ld",tempNum++);
+            sprintf(iflabels->els, "__else_%ld",tempNum++);
             prvelsif = 0;
           }
-          else {        /* this is a new if, so put a whole new label struct on the stack */
-            iflabels = (struct iflabel *)mmalloc(&cenviron, sizeof(struct iflabel));
+          else {
+            /* this is a new if, so put a whole new label struct on the stack */
+            iflabels = (struct iflabel *) mmalloc(&cenviron,
+                                                  sizeof(struct iflabel));
             iflabels->prv = prv;
-            sprintf(iflabels->end, "endif%ld",tempNum++);
-            sprintf(iflabels->els, "else%ld", tempNum++);
+            sprintf(iflabels->end, "__endif_%ld",tempNum++);
+            sprintf(iflabels->els, "__else_%ld", tempNum++);
           }
           /* we set the 'goto' label to the 'else' label */
           strcpy(grpp, iflabels->els);
@@ -928,20 +930,24 @@ static int splitline(void) /* split next orch line into atomic groups */
         if (grpcnt >= grpmax) {         /* collectable chars */
           group = (char**)mcalloc(&cenviron, ((grpmax+=GRPMAX)+1)*sizeof(char*));
           grpsav =(char**)mcalloc(&cenviron, (grpmax+1)*sizeof(char*));
-          if (group==NULL || grpsav==NULL)
-            csoundDie(&cenviron, Str("GRPMAX overflow"));
         }
         grpp = group[grpcnt++] = cp;
       }
-      if ((c == '>' || c == '<' || c == '=' ||
-                c == '!' || c == '&' || c == '|')
-               && (prvif || parens) )
-        logical++;
+      if (*lp == c && (c == '<' || c == '>')) {         /* <<, >> */
+        lp++; *cp++ = c;
+      }
+      else if ((prvif || parens) && *lp == c && (c == '&' || c == '|')) {
+        logical++; lp++; *cp++ = c;                     /* &&, || */
+      }
+      else if ((prvif || parens) &&
+               (c == '!' || c == '<' || c == '=' || c == '>')) {
+        logical++;                                      /* ==, !=, <=, >= */
+      }
       else if (isalnum(c) ||            /* establish validity */
                c == '+' || c == '-' ||
                c == '*' || c == '/' ||
                c == '%' || c == '^' ||
-               c == '&' || c == '|' || c == '#' ||  /* Bit operations */
+               c == '&' || c == '|' || c == '#' ||      /* Bit operations */
                c == '\254' || c == '~' ||
                c == '.' || c == '_'
               )         /* allow uppercases and underscore in variables */
@@ -950,7 +956,7 @@ static int splitline(void) /* split next orch line into atomic groups */
         parens++;                   /* and monitor function */
       else if (c == ')')
         --parens;
-      else if (c == '?' && logical )
+      else if (c == '?' && logical)
         condassgn++;
       else if (c == ':' && condassgn)
         ;
@@ -968,12 +974,11 @@ static int splitline(void) /* split next orch line into atomic groups */
       if (strncmp(grpp,"else", 4) == 0) { /* 'else' */
         static int repeatingElseLine = 0;
         if (!iflabels) { /* check to see we had an 'if' before  */
-          synterr(Str(
-                      "invalid 'else' statement.  must have a corresponding 'if'"));
+          synterr(Str("invalid 'else' statement.  must have a corresponding 'if'"));
           goto nxtlin;
         }
         if (repeatingElseLine) {        /* add the elselabel */
-          if (!iflabels->els[0]) { /* check to see we had not another 'else'   */
+          if (!iflabels->els[0]) { /* check to see we had not another 'else' */
             synterr(Str("duplicate 'else' statement"));
             goto nxtlin;
           }
@@ -983,7 +988,7 @@ static int splitline(void) /* split next orch line into atomic groups */
           iflabels->els[0] = '\0';
           repeatingElseLine = 0;
         }
-        else {                                          /* add the goto statement */
+        else {                          /* add the goto statement */
           strcpy(grpp, "goto");
           if (isopcod(grpp))
             opgrpno = grpcnt;
@@ -1127,7 +1132,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
     }
     while (xprtstno >= 0) {             /* for each arg (last 1st):  */
       if (!polcnt)                      /* if not midst of expressn  */
-        polcnt = express(group[xprtstno--]);  /* tst nxtarg  */
+        polcnt = express(&cenviron, group[xprtstno--]); /* tst nxtarg */
       if (polcnt < 0) {                 /* polish but arg only, */
         group[xprtstno+1] = strsav(tokenstring); /* redo ptr */
         polcnt = 0;                     /* & contin */

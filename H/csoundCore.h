@@ -752,12 +752,6 @@ extern "C" {
     csCfgVariable_t **(*ListConfigurationVariables)(void *csound);
     int (*DeleteConfigurationVariable)(void *csound, const char *name);
     char *(*CfgErrorCodeToString)(int errcode);
-    /* real-time audio callbacks */
-    int (*playopen_callback)(void *csound, csRtAudioParams *parm);
-    void (*rtplay_callback)(void *csound, void *outBuf, int nbytes);
-    int (*recopen_callback)(void *csound, csRtAudioParams *parm);
-    int (*rtrecord_callback)(void *csound, void *inBuf, int nbytes);
-    void (*rtclose_callback)(void *csound);
     int (*GetSizeOfMYFLT)(void);
     void **(*GetRtRecordUserData)(void *csound);
     void **(*GetRtPlayUserData)(void *csound);
@@ -769,6 +763,14 @@ extern "C" {
     void (*InverseRealFFT)(void *csound, MYFLT *buf, int FFTsize);
     void (*RealFFTMult)(void *csound, MYFLT *outbuf, MYFLT *buf1, MYFLT *buf2,
                         int FFTsize, MYFLT scaleFac);
+    /* real-time audio callbacks */
+    int (*playopen_callback)(void *csound, csRtAudioParams *parm);
+    void (*rtplay_callback)(void *csound, void *outBuf, int nbytes);
+    int (*recopen_callback)(void *csound, csRtAudioParams *parm);
+    int (*rtrecord_callback)(void *csound, void *inBuf, int nbytes);
+    void (*rtclose_callback)(void *csound);
+    void (*InputValueCallback_)(void *csound, char *channelName, MYFLT *value);
+    void (*OutputValueCallback_)(void *csound, char *channelName, MYFLT value);
     /* End of internals */
     int           ksmps_, nchnls_;
     int           global_ksmps_;
@@ -911,7 +913,7 @@ extern "C" {
     TOKEN         **tokenlist;
     int           toklength;
     int           acount, kcount, icount, Bcount, bcount;
-    char          xprmsg[80], *stringend;
+    char          *stringend;
     TOKEN         **revp, **pushp, **argp, **endlist;
   } ENVIRON;
 

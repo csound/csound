@@ -244,6 +244,98 @@ int xor_ka(ENVIRON *csound, AOP *p)
     return OK;
 }
 
+static int shift_left_kk(ENVIRON *csound, AOP *p)
+{
+    long input1 = RNDINT(*p->a);
+    int  input2 = (int) RNDINT(*p->b);
+    *p->r = (MYFLT) (input1 << input2);
+    return OK;
+}
+
+static int shift_left_aa(ENVIRON *csound, AOP *p)
+{
+    long  input1;
+    int   input2, n;
+
+    for (n = 0; n < ksmps; n++) {
+      input1 = RNDINT(p->a[n]);
+      input2 = (int) RNDINT(p->b[n]);
+      p->r[n] = (MYFLT) (input1 << input2);
+    }
+    return OK;
+}
+
+static int shift_left_ak(ENVIRON *csound, AOP *p)
+{
+    long  input1;
+    int   input2 = RNDINT(*p->b);
+    int   n;
+
+    for (n = 0; n < ksmps; n++) {
+      input1 = RNDINT(p->a[n]);
+      p->r[n] = (MYFLT) (input1 << input2);
+    }
+    return OK;
+}
+
+static int shift_left_ka(ENVIRON *csound, AOP *p)
+{
+    long  input1 = RNDINT(*p->a);
+    int   input2, n;
+
+    for (n = 0; n < ksmps; n++) {
+      input2 = RNDINT(p->b[n]);
+      p->r[n] = (MYFLT) (input1 << input2);
+    }
+    return OK;
+}
+
+static int shift_right_kk(ENVIRON *csound, AOP *p)
+{
+    long input1 = RNDINT(*p->a);
+    int  input2 = (int) RNDINT(*p->b);
+    *p->r = (MYFLT) (input1 >> input2);
+    return OK;
+}
+
+static int shift_right_aa(ENVIRON *csound, AOP *p)
+{
+    long  input1;
+    int   input2, n;
+
+    for (n = 0; n < ksmps; n++) {
+      input1 = RNDINT(p->a[n]);
+      input2 = (int) RNDINT(p->b[n]);
+      p->r[n] = (MYFLT) (input1 >> input2);
+    }
+    return OK;
+}
+
+static int shift_right_ak(ENVIRON *csound, AOP *p)
+{
+    long  input1;
+    int   input2 = RNDINT(*p->b);
+    int   n;
+
+    for (n = 0; n < ksmps; n++) {
+      input1 = RNDINT(p->a[n]);
+      p->r[n] = (MYFLT) (input1 >> input2);
+    }
+    return OK;
+}
+
+static int shift_right_ka(ENVIRON *csound, AOP *p)
+{
+    long  input1 = RNDINT(*p->a);
+    int   input2, n;
+
+    for (n = 0; n < ksmps; n++) {
+      input2 = RNDINT(p->b[n]);
+      p->r[n] = (MYFLT) (input1 >> input2);
+    }
+    return OK;
+}
+
 int not_k(ENVIRON *csound, AOP *p)      /* Added for completeness by JPff */
 {
     long input1 = RNDINT(*p->a);
@@ -481,8 +573,8 @@ static OENTRY localops[] = {
 { "and.ak",  S(AOP),  4, "a", "ak",   NULL,   NULL,   (SUBR)and_ak  },
 { "and.aa",  S(AOP),  4, "a", "aa",   NULL,   NULL,   (SUBR)and_aa  },
 { "or.ii",   S(AOP),  1, "i", "ii",   (SUBR)or_kk                   },
-{ "or.kk",   S(AOP),  1, "i", "kk",   (SUBR)or_kk                   },
-{ "or.ka",   S(AOP),  4, "a", "ka",   NULL,   (SUBR)or_kk,          },
+{ "or.kk",   S(AOP),  2, "k", "kk",   NULL,   (SUBR)or_kk           },
+{ "or.ka",   S(AOP),  4, "a", "ka",   NULL,   NULL,   (SUBR)or_ka   },
 { "or.ak",   S(AOP),  4, "a", "ak",   NULL,   NULL,   (SUBR)or_ak   },
 { "or.aa",   S(AOP),  4, "a", "aa",   NULL,   NULL,   (SUBR)or_aa   },
 { "xor.ii",  S(AOP),  1, "i", "ii",   (SUBR)xor_kk                  },
@@ -493,6 +585,16 @@ static OENTRY localops[] = {
 { "not.i",   S(AOP),  1, "i", "i",    (SUBR)not_k                   },
 { "not.k",   S(AOP),  2, "k", "k",    NULL,   (SUBR)not_k           },
 { "not.a",   S(AOP),  4, "a", "a",    NULL,   NULL,   (SUBR)not_a   },
+{ "shl.ii",  S(AOP),  1, "i", "ii",   (SUBR) shift_left_kk          },
+{ "shl.kk",  S(AOP),  2, "k", "kk",   NULL, (SUBR) shift_left_kk    },
+{ "shl.ka", S(AOP), 4, "a", "ka", NULL, NULL, (SUBR) shift_left_ka  },
+{ "shl.ak", S(AOP), 4, "a", "ak", NULL, NULL, (SUBR) shift_left_ak  },
+{ "shl.aa", S(AOP), 4, "a", "aa", NULL, NULL, (SUBR) shift_left_aa  },
+{ "shr.ii",  S(AOP),  1, "i", "ii",   (SUBR) shift_right_kk         },
+{ "shr.kk",  S(AOP),  2, "k", "kk",   NULL, (SUBR) shift_right_kk   },
+{ "shr.ka", S(AOP), 4, "a", "ka", NULL, NULL, (SUBR) shift_right_ka },
+{ "shr.ak", S(AOP), 4, "a", "ak", NULL, NULL, (SUBR) shift_right_ak },
+{ "shr.aa", S(AOP), 4, "a", "aa", NULL, NULL, (SUBR) shift_right_aa }
 };
 
 LINKAGE
