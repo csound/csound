@@ -390,6 +390,7 @@ if (commonEnvironment['useFLTK'] == '1' and fltkFound):
             vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
             guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
             csoundProgramEnvironment.Append(LINKFLAGS = ['-framework', 'Carbon'])
+            csoundProgramEnvironment.Append(LINKFLAGS = ['-framework', 'Core'])
 
 if (not(commonEnvironment['usePortMIDI']=='0') and portmidiFound):
     print 'Adding PortMIDI flags and libs'
