@@ -67,13 +67,13 @@ enum PVS_ANALFORMAT {PVS_AMP_FREQ = 0,PVS_AMP_PHASE,PVS_COMPLEX};
 
 
 typedef struct pvsdat {
-        long    N;
-        long    overlap;
-        long    winsize;
+        long            N;
+        long            overlap;
+        long            winsize;
         int             wintype;
-        long    format;                 /* fixed for now to AMP:FREQ */
-        unsigned long framecount;
-        AUXCH   frame;                   /* RWD MUST always be 32bit floats */
+        long            format;             /* fixed for now to AMP:FREQ */
+        unsigned long   framecount;
+        AUXCH           frame;              /* RWD MUST always be 32bit floats */
 } PVSDAT;
 
 
