@@ -728,7 +728,44 @@ extern "C" {
         * Sets the value of a slot in a function table.
         */
         PUBLIC void csoundTableSet(void *csound, int table, int index, MYFLT value);
+        
+        /**
+        * Creates and starts a new thread of execution.
+        * Returns an opaque pointer that represents the thread on success, or
+        * null for failure.
+        * The userdata pointer is passed to the thread routine.
+        */
+        PUBLIC void *csoundCreateThread(void *csound, int (*threadRoutine)(void *userdata), void *userdata);
+        
+        /**
+        * Waits until the indicated thread's routine has finished.
+        * Returns the value returned by the thread routine.
+        */
+        PUBLIC int csoundJoinThread(void *csound, void *thread);
 
+        /**
+        * Creates and returns a monitor object, or null if not successful.
+        */
+        PUBLIC void *csoundCreateThreadLock(void *csound);
+        
+        /**
+        * Waits on the indicated monitor object for the indicated period.
+        * The function returns either when the monitor object is notified,
+        * or when the period has elapsed, whichever is sooner.
+        * If the period is 0, the wait is infinite.
+        */        
+        PUBLIC void csoundWaitThreadLock(void *csound, void *lock, size_t milliseconds);
+
+        /**
+        * Notifies the indicated monitor object.
+        */        
+        PUBLIC void csoundNotifyThreadLock(void *csound, void *lock);
+        
+        /**
+        * Destroys the indicated monitor object.
+        */
+        PUBLIC void csoundDestroyThreadLock(void *csound, void *lock);
+        
 #ifdef __cplusplus
 };
 #endif /* __cplusplus */
