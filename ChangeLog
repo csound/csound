@@ -1,3 +1,6 @@
+2003-11-30	Steven Yi	<stevenyi@csounds.com>
+	* Engine/insert.c (orcompact): Added calls to deinitialize i-time opcodes
+
 2003-11-29	Steven Yi 	<stevenyi@csounds.com>
 
 	* H/cs.h - all thing except compability macros moved out to csoundCore.h
