@@ -1,7 +1,8 @@
-/* newfils.c:
-   filter opcodes
+/*
+    newfils.c:
+    filter opcodes
 
-   (c) Victor Lazzarini, 2004
+    (c) Victor Lazzarini, 2004
 
     This file is part of Csound.
 
@@ -51,7 +52,7 @@ int moogladder_process(ENVIRON *csound,moogladder *p)
     if (res < 0) res = 0;
 
     /* sr is half the actual filter sampling rate  */
-    fc =  (double)(freq/esr);
+    fc =  (double)(freq/csound->esr);
     f  =  fc/2;
     fc2 = fc*fc;
     fc3 = fc2*fc;
@@ -60,7 +61,7 @@ int moogladder_process(ENVIRON *csound,moogladder *p)
     acr = -3.9364*fc2 + 1.8409*fc + 0.9968;
     tune = thermal*(1-exp(-2*PI*f*fcr)); /* filter tuning  */
 
-    for (i=0;i<ksmps;i++) {
+    for (i=0;i<csound->ksmps;i++) {
       /* oversampling  */
       for (j=0;j<2;j++) {
         /* filter stages  */
@@ -108,13 +109,13 @@ int statevar_process(ENVIRON *csound,statevar *p)
     double f,q,lim;
     int ostimes = p->ostimes,i,j;
 
-    f = 2.0*sin(PI*freq/(ostimes*esr));
+    f = 2.0*sin(PI*freq/(ostimes*csound->esr));
     q = 1.0/res;
     lim = (2.0 - f) / (ostimes * 0.4);
 
     if (q < lim) q = lim;
 
-    for (i=0; i<ksmps;i++) {
+    for (i=0; i<csound->ksmps;i++) {
       for (j=0;j<ostimes;j++) {
 
         hp = in[i] - q*bpd - lp;
@@ -146,7 +147,7 @@ int fofilter_init(ENVIRON *csound,fofilter *p)
       for (i=0;i<4; i++)
         p->delay[i] = 0;
     }
-    p->twopiosr = TWOPI/esr;
+    p->twopiosr = TWOPI/csound->esr;
     return OK;
 }
 
@@ -163,10 +164,10 @@ int fofilter_process(ENVIRON *csound,fofilter *p)
 
     ang = p->twopiosr*freq;   /* pole angle */
     fsc = sin(ang) - 3.0;       /* freq scl   */
-    rad1 =  pow(10.0, fsc/(dec*esr));  /* filter radii */
-    rad2 =  pow(10.0, fsc/(ris*esr));
+    rad1 =  pow(10.0, fsc/(dec*csound->esr));  /* filter radii */
+    rad2 =  pow(10.0, fsc/(ris*csound->esr));
 
-    for (i=0;i<ksmps;i++) {
+    for (i=0;i<csound->ksmps;i++) {
 
       w1  = in[i] + 2.0*rad1*cos(ang)*delay[0] - rad1*rad1*delay[1];
       y1 =  w1 - delay[1];
@@ -184,13 +185,11 @@ int fofilter_process(ENVIRON *csound,fofilter *p)
     return OK;
 }
 
-
 static OENTRY localops[] = {
 {"moogladder", sizeof(moogladder), 5, "a", "akkp", (SUBR)moogladder_init, NULL, (SUBR)moogladder_process },
 {"statevar", sizeof(statevar), 5, "aaaa", "akkop", (SUBR)statevar_init, NULL,(SUBR)statevar_process },
 {"fofilter", sizeof(fofilter), 5, "a", "akkkp", (SUBR)fofilter_init, NULL,(SUBR)fofilter_process }
 };
-
 
 LINKAGE
 
