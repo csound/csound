@@ -32,8 +32,17 @@ void send_midi_message(int status, int data1, int data2)
     buf[0] = (unsigned char) status;
     buf[1] = (unsigned char) data1;
     buf[2] = (unsigned char) data2;
-    csoundExternalMidiWrite(&cenviron, cenviron.midiGlobals->midiOutUserData,
-                            &(buf[0]), 3);
+    switch (status & 0xF0) {
+      case 0xC0:
+      case 0xD0: csoundExternalMidiWrite(&cenviron,
+                                         cenviron.midiGlobals->midiOutUserData,
+                                         &(buf[0]), 2);
+                 break;
+      case 0xF0: break;
+      default:   csoundExternalMidiWrite(&cenviron,
+                                         cenviron.midiGlobals->midiOutUserData,
+                                         &(buf[0]), 3);
+    }
 }
 
 void note_on(int chan, int num, int vel)
@@ -53,22 +62,12 @@ void control_change(int chan, int num, int value)
 
 void after_touch(int chan, int value)
 {
-    unsigned char buf[4];
-
-    buf[0] = (unsigned char) ((chan & 0x0F) | MD_CHANPRESS);
-    buf[1] = (unsigned char) value;
-    csoundExternalMidiWrite(&cenviron, cenviron.midiGlobals->midiOutUserData,
-                            &(buf[0]), 2);
+    send_midi_message((chan & 0x0F) | MD_CHANPRESS, value, 0);
 }
 
 void program_change(int chan, int num)
 {
-    unsigned char buf[4];
-
-    buf[0] = (unsigned char) ((chan & 0x0F) | MD_PGMCHG);
-    buf[1] = (unsigned char) num;
-    csoundExternalMidiWrite(&cenviron, cenviron.midiGlobals->midiOutUserData,
-                            &(buf[0]), 2);
+    send_midi_message((chan & 0x0F) | MD_PGMCHG, num, 0);
 }
 
 void pitch_bend(int chan, int lsb, int msb)
