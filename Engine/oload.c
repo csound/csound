@@ -46,7 +46,6 @@ MYFLT intpow(MYFLT, long);
 FUNC *ftfindp(ENVIRON*,MYFLT *argp);
 FUNC *ftnp2find(ENVIRON*,MYFLT *);
 char *unquote(char *);
-MEMFIL *ldmemfile(char *);
 long strarg2insno (MYFLT *p, char *s);
 long strarg2opcno (MYFLT *p, char *s, int);
 void rewriteheader(SNDFILE* ofd, int verbose);
@@ -155,6 +154,7 @@ ENVIRON cenviron_ = {
         perferror,
         mmalloc,
         mcalloc,
+        mrealloc,
         mfree,
         dispset,
         display,
@@ -165,7 +165,6 @@ ENVIRON cenviron_ = {
         ldmemfile,
         err_printf,
         hfgens,
-        mrealloc,
         putcomplexdata,
         ShowCpx,
         PureReal,
@@ -321,6 +320,7 @@ ENVIRON cenviron_ = {
         {0L },          /*      rngcnt */
         0, 0,           /*      rngflg, multichan */
         NULL,           /*      OrcTrigEvts */
+        NULL,           /*      freeEvtNodes */
         "",             /*      full_name */
         0, 0, 0,        /*      Mforcdecs, Mxtroffs, MTrkend */
         FL(-1.0), FL(-1.0), /*  tran_sr,tran_kr */
@@ -363,7 +363,9 @@ ENVIRON cenviron_ = {
         (MGLOBAL*) NULL, /* midiGlobals */
         NULL,           /* envVarDB */
         0,              /* evt_poll_cnt */
-        0               /* evt_poll_maxcnt */
+        0,              /* evt_poll_maxcnt */
+        (MEMFIL*) NULL, /* memfiles */
+        (MEMFIL*) NULL  /* rwd_memfiles */
 };
 
 OPARMS O;

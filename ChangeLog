@@ -1,12 +1,63 @@
+2005-03-08	Istvan Varga	<istvan@csounds.com>
+	* Engine/entry2.c:
+	  added "event_i" opcode (same as "event" but runs at i-time)
+	* Engine/fgens.c, Engine/memalloc.c, Engine/memfiles.c:
+	* Engine/musmon.c, H/prototyp.h:
+	* OOps/pstream.c, OOps/pvadd.c, OOps/pvread.c:
+	* OOps/ugens3.c, OOps/ugens5.c, OOps/ugens8.c, OOps/ugens9.c:
+	* OOps/vpvoc.c, Opcodes/hrtferX.c, Opcodes/scansynx.c:
+	  major changes to memfile functions
+	  added ENVIRON* argument to allow for multiple instances
+	  prototypes in prototyp.h rather than all around in various .c files
+	* Engine/linevent.c:
+	  rewritten event opcode to use insert_score_event()
+	  added eventOpcodeI() (i-time version of eventOpcode())
+	* Engine/musmon.c:
+	  removed unused #includes and declarations
+	  improvements and fixes in sensevents() and insert_score_event()
+	* Engine/oload.c:
+	* H/csoundCore.h:
+	  ENVIRON:
+	    cosmetic change: moved mrealloc pointer to after mcalloc
+	    ldmemfile prototype changed, and also renamed to ldmemfile_
+	    added MEMFIL* pointers memfiles and rwd_memfiles
+	  changed SSTRCOD to less trivial value
+	* examples/trapped.csd:
+	* examples/trappedrt.csd:
+	  fixed bug in instr 13 that caused various stability problems
+	* H/csdl.h, Opcodes/clfilt.c, Opcodes/follow.c:
+	* Opcodes/hrtferX.c, Opcodes/modal4.c, Opcodes/sndwarp.c:
+	  removed "oparm" macro (there are still way too many macros)
+	* H/csoundCore.h:
+	* H/csound.h:
+	* Top/csound.c:
+	  return type of csoundScoreEvent() changed to int (zero on success)
+	* H/foo.h:
+	  removed file: was unused
+	* H/linevent.h:
+	  new file: defines LINEVENT (why was it in schedule.h ?)
+	* H/schedule.h:
+	* OOps/schedule.c:
+	  removed sensOrcEvent(); this is now a simple macro in musmon.c
+	* InOut/libsnd.c:
+	  print message correctly
+	* Opcodes/py/csoundmodule.c:
+	  use insert_score_event(), but file is unused anyway (remove ?)
+	* Opcodes/ugens9.c:
+	  removed file: was unused (and redundant as well, also found in OOps)
+	* util2/exports/het_export.c:
+	  call csoundCreate() and csoundPreCompile() - needed to fix crash
+	  added &cenviron to ldmemfile() call
+
 2005-03-07  Michael Gogins <gogins@pipeline.com>
 	* Added CsoundVST, Loris, and the Csound API headers and libraries
 	to the install target in SConstruct.
 	* Added the Csound manual and the API documentation to the Windows
 	installer.
-	* Updated Loris with v1.2 sources from Loris CVS. Note: lorismorph doesn't
-	work and is awaiting fixes from Kelly Fitz. Other loris opcodes may 
-	be broken as well. However, the Loris Python extension module built
-	here does seem to work.
+	* Updated Loris with v1.2 sources from Loris CVS.
+	Note: lorismorph doesn't work and is awaiting fixes from Kelly Fitz.
+	Other loris opcodes may be broken as well. However, the Loris Python
+	extension module built here does seem to work.
 
 2005-03-07	Istvan Varga	<istvan@csounds.com>
 	* Engine/entry2.c:

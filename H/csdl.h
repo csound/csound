@@ -127,7 +127,6 @@
 #undef mpidsr
 #undef mtpdsr
 #undef hostdata
-#undef oparms
 #undef opcodeInfo
 #undef instrumentNames
 #undef dbfs_to_float
@@ -249,7 +248,7 @@
 #define ftfindp csound->ftfindp
 #define ftnp2find csound->ftnp2find
 #define unquote csound->unquote_
-#define ldmemfile csound->ldmemfile
+#define ldmemfile csound->ldmemfile_
 #define err_printf csound->err_printf_
 
 #define ksmps  csound->ksmps_
@@ -355,7 +354,6 @@
 #define mpidsr csound->mpidsr_
 #define mtpdsr csound->mtpdsr_
 #define hostdata_ csound->hostdata_
-#define oparms_ csound->oparms_
 #define opcodeInfo csound->opcodeInfo_     /* IV - Oct 20 2002 */
 #define instrumentNames csound->instrumentNames_
 #define dbfs_to_float csound->dbfs_to_float_

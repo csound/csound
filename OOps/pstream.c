@@ -44,12 +44,8 @@
 #define MY_INLINE
 #endif
 
-
 /* TODO: a generic form of this function! Oh for C++... */
 static int pvx_loadfile(const char *fname,PVSFREAD *p,MEMFIL **mfp);
-extern int find_memfile(const char *fname,MEMFIL **pp_mfp);
-extern void add_memfil(MEMFIL *mfp);
-
 
 int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
 {
@@ -808,7 +804,7 @@ static int pvx_loadfile(const char *fname,PVSFREAD *p,MEMFIL **mfp)
       return 0;
     }
 
-    if (!find_memfile(fname,&mfil)) {
+    if (!find_memfile(&cenviron, fname, &mfil)) {
       mem_wanted = totalframes * 2 * pvdata.nAnalysisBins * sizeof(float);
       /* try for the big block first! */
 
@@ -890,7 +886,7 @@ static int pvx_loadfile(const char *fname,PVSFREAD *p,MEMFIL **mfp)
       mfil->length = mem_wanted;
       /*from memfiles.c */
       printf(Str("file %s (%ld bytes) loaded into memory\n"), fname,mem_wanted);
-      add_memfil(mfil);
+      add_memfil(&cenviron, mfil);
     }
 
     *mfp = mfil;

@@ -422,7 +422,7 @@ int lprdset(ENVIRON *csound, LPREAD *p)
     if ((mfp = p->mfp) != NULL && strcmp(mfp->filename,lpfilname) == 0)
       goto lpend;                             /* rtn if file prv known */
     /* Load analysis in memory file */
-    if ((mfp = ldmemfile(lpfilname)) == NULL) {     /* else read file  */
+    if ((mfp = ldmemfile(csound, lpfilname)) == NULL) { /* else read file  */
       sprintf(errmsg,Str("LPREAD cannot load %s"),lpfilname);
       goto lperr;
     }

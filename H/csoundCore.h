@@ -120,7 +120,7 @@ extern "C" {
 
 #define LOMASK     1023
 
-#define SSTRCOD    0xFFFFFL
+#define SSTRCOD    3945467
 #define SSTRSIZ    200
 #define ALLCHNLS   0x7fff
 #define DFLT_SR    FL(44100.0)
@@ -493,7 +493,7 @@ extern "C" {
   } RESETTER;
 
   FUNC   *ftfind(struct ENVIRON_*,MYFLT*);
-  MEMFIL *ldmemfile(char *);
+
 #define MAXCHAN       96        /* for 6 ports */
 
 #include "sort.h"
@@ -611,7 +611,7 @@ extern "C" {
                    void (*outputValueCalback)(void *hostData,
                                                               char *channelName,
                                                               MYFLT value));
-    void (*ScoreEvent)(void *csound, char type, MYFLT *pFields, long numFields);
+    int (*ScoreEvent)(void *csound, char type, MYFLT *pFields, long numFields);
     void (*SetExternalMidiInOpenCallback)(void *csound,
                                           int (*func)(void*, void**,
                                                       const char*));
@@ -684,6 +684,7 @@ extern "C" {
     int (*perferror_)(char *);
     void *(*mmalloc_)(void*, size_t);
     void *(*mcalloc_)(void*, size_t);
+    void *(*mrealloc_)(void*, void*, size_t);
     void (*mfree_)(void*, void*);
     void (*dispset)(WINDAT *, MYFLT *, long, char *, int, char *);
     void (*display)(WINDAT *);
@@ -691,10 +692,9 @@ extern "C" {
     FUNC *(*ftfindp)(struct ENVIRON_*, MYFLT *argp);
     FUNC *(*ftnp2find)(struct ENVIRON_*, MYFLT *);
     char *(*unquote_)(char *);
-    MEMFIL *(*ldmemfile)(char *);
+    MEMFIL *(*ldmemfile_)(void*, const char*);
     void (*err_printf_)(char *, ...);
     FUNC *(*hfgens_)(struct ENVIRON_*, EVTBLK *);
-    void *(*mrealloc_)(void*, void*, size_t);
     void (*putcomplexdata_)(complex *, long);
     void (*ShowCpx_)(complex *, long, char *);
     int (*PureReal_)(complex *, long);
@@ -850,6 +850,7 @@ extern "C" {
     long          rngcnt_[MAXCHNLS];
     short         rngflg_, multichan_;
     EVTNODE       *OrcTrigEvts;             /* List of events to be started */
+    EVTNODE       *freeEvtNodes;
     char          name_full_[256];          /* Remember name used */
     int           Mforcdecs_, Mxtroffs_, MTrkend_;
     MYFLT         tran_sr_,tran_kr_,tran_ksmps_;
@@ -896,6 +897,8 @@ extern "C" {
     void          *envVarDB;
     int           evt_poll_cnt;
     int           evt_poll_maxcnt;
+    MEMFIL        *memfiles;
+    MEMFIL        *rwd_memfiles;
   } ENVIRON;
 
   extern ENVIRON cenviron_;

@@ -72,7 +72,7 @@ int pvaddset(ENVIRON *csound, PVADD *p)
     char     pvfilnam[MAXNAME];
     PVSTRUCT *pvh;
     int      frInc, chans, size;
-    MEMFIL   *mfp, *ldmemfile(char *);
+    MEMFIL   *mfp;
     FUNC     *ftp = NULL, *AmpGateFunc = NULL;
     MYFLT    *oscphase;
     long     memsize;
@@ -97,7 +97,7 @@ int pvaddset(ENVIRON *csound, PVADD *p)
       strcpy(pvfilnam, strsets[(long)*p->ifilno]);
     else sprintf(pvfilnam,"pvoc.%d", (int)*p->ifilno);
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename, pvfilnam) != 0)
-      if ( (mfp = ldmemfile(pvfilnam)) == NULL) {
+      if ( (mfp = ldmemfile(csound, pvfilnam)) == NULL) {
         sprintf(errmsg,Str("PVADD cannot load %s"), pvfilnam);
         goto pverr;
       }

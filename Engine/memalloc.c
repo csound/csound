@@ -26,7 +26,6 @@
 /*RWD 9:2000 for pvocex support */
 #include "pvfileio.h"
 /* global here so reachable by all standalones */
-extern void rlsmemfiles(void);
 
 #define MEMALLOC_MAGIC  0x6D426C6B
 
@@ -188,7 +187,7 @@ void all_free(void *csound)
 
     if (MEMALLOC_DB == NULL)
       return;           /* no allocs to free */
-    rlsmemfiles();
+    rlsmemfiles(csound);
     pp = (memAllocBlock_t*) MEMALLOC_DB;
     MEMALLOC_DB = NULL;
     do {

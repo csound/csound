@@ -602,7 +602,7 @@ void sfopenout(void *csound)                    /* init for sound out       */
 outset:
     outbufsiz = (unsigned)O.outbufsamps * sizeof(MYFLT);/* calc outbuf size */
     outbufp = outbuf = mmalloc(csound, (long)outbufsiz); /*  & alloc bufspace */
-    printf(Str("writing %d-byte blks of %s to %s\n"),
+    printf(Str("writing %d-byte blks of %s to %s"),
            O.outbufsamps * format_nbytes(O.outformat),
            getstrformat(O.outformat), sfoutname);
     if (strcmp(O.outfilename,"devaudio") == 0   /* realtime output has no
@@ -610,7 +610,7 @@ outset:
         || strcmp(O.outfilename,"dac") == 0)  printf("\n");
     else if (O.sfheader == 0) printf(Str(" (raw)\n"));
     else
-      printf(" %s\n", type2string(O.filetyp));
+      printf(" (%s)\n", type2string(O.filetyp));
     osfopen = 1;
     outbufrem = O.outbufsamps;
 }

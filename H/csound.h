@@ -496,8 +496,8 @@ extern "C" {
    *  of floats with all the pfields for this event, starting with the p1 value
    *  specified in pFields[0].
    */
-  PUBLIC void csoundScoreEvent(void *csound, char type,
-                               MYFLT *pFields, long numFields);
+  PUBLIC int csoundScoreEvent(void *csound, char type,
+                              MYFLT *pFields, long numFields);
 
   /*
    * MIDI

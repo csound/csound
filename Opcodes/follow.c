@@ -35,7 +35,7 @@ int flwset(ENVIRON *csound, FOL *p)
     p->wgh = p->max = FL(0.0);
     p->length = (long)(*p->len * esr);
     if (p->length<=0L) {           /* RWD's suggestion */
-      if (oparms_->msglevel & WARNMSG)
+      if (csound->oparms_->msglevel & WARNMSG)
         printf(Str("WARNING: follow - zero length!\n"));
       p->length = (long)esr;
     }

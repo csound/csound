@@ -29,7 +29,6 @@
 #include "cscore.h"
 #include "midiops.h"
 #include "soundio.h"
-#include "schedule.h"
 #include "namedins.h"
 #include "oload.h"
 #include <math.h>
@@ -48,14 +47,13 @@ static  short   sectno = 0;
 
 extern  int     MIDIinsert(ENVIRON *, int, MCHNBLK*, MEVENT*);
 extern  int     insert(ENVIRON *, int, EVTBLK*);
-extern  void    set_xtratim(ENVIRON *csound, INSDS *ip);
 
 extern  void    print_benchmark_info(void*, const char*);     /* main.c */
 
 extern  void    RTLineset(void), MidiOpen(void *);
 extern  void    m_chn_init_all(ENVIRON *);
 extern  void    scsort(FILE*, FILE*), oload(ENVIRON *), cscorinit(void);
-extern  void    infoff(MYFLT), orcompact(ENVIRON*), rlsmemfiles(void);
+extern  void    infoff(MYFLT), orcompact(ENVIRON*);
 extern  void    beatexpire(ENVIRON *, double), timexpire(ENVIRON *, double);
 extern  void    fgens(ENVIRON *,EVTBLK *);
 extern  void    sfopenin(void*), sfopenout(void*), sfnopenout(void);
@@ -616,18 +614,20 @@ static int process_rt_event(ENVIRON *csound, int sensType)
       evt->p[2] = p->curp2 - p->timeOffs; /*      & insert curp2  */
       retval = process_score_event(csound, evt, 1);
     }
-    else if (sensType == 4) {   /* Realtime orc event (re Aug 1999) */
+    else if (sensType == 4) {             /* Realtime orc event   */
       EVTNODE *e = csound->OrcTrigEvts;
       /* Events are sorted on insertion, so just check the first */
       evt = &(e->evt);
-      /* Pop from the list, as e is mfree'd below */
+      /* pop from the list */
       csound->OrcTrigEvts = e->nxt;
       if (e->nxt == NULL)
         csound->oparms_->OrcEvts = 0;
       retval = process_score_event(csound, evt, 1);
       if (evt->strarg != NULL)
         mfree(csound, evt->strarg);
-      mfree(csound, e);
+      /* push back to free alloc stack so it can be reused later */
+      e->nxt = csound->freeEvtNodes;
+      csound->freeEvtNodes = e;
     }
     else if (sensType == 2) {                           /* Midievent:    */
       MEVENT *mep;
@@ -663,6 +663,10 @@ static int process_rt_event(ENVIRON *csound, int sensType)
     }
     return retval;
 }
+
+#define SENSEORCEVT(x) ((x)->OrcTrigEvts != NULL &&                     \
+                        (x)->OrcTrigEvts->start_kcnt                    \
+                          <= (unsigned long) (x)->global_kcounter_ ? 4 : 0)
 
 #define RNDINT(x) ((int) ((double) (x) + ((double) (x) < 0.0 ? -0.5 : 0.5)))
 
@@ -777,22 +781,29 @@ int sensevents(ENVIRON *csound)
         p->cyclesRemaining = RNDINT((p->nxtim - p->curTime) / p->curTime_inc);
     }
 
-    /* handle any real time events now */
+    /* handle any real time events now: */
+    /* FIXME: the initialisation pass of real time */
+    /*   events is not sorted by instrument number */
+    /*   (although it never was sorted anyway...)  */
     if (O.RTevents) {
-      do {
-        sensType = 0;
-        if (O.Midiin || O.FMidiin)
-          sensType = sensMidi(csound);      /* if MIDI note message */
-        if (!sensType && O.Linein)
-          sensType = sensLine();            /* or Linein event      */
-        if (!sensType && O.OrcEvts)
-          sensType = sensOrcEvent(csound);  /* or triginstr event   */
-        if (sensType) {
-          retval = process_rt_event(csound, sensType);
-          if (retval)
-            goto scode;         /* end of score reqd by line or orc event */
+      if (O.OrcEvts) {                      /* orchestra rtevents */
+        while ((sensType = SENSEORCEVT(csound)) != 0) {
+          if ((retval = process_rt_event(csound, sensType)) != 0)
+            goto scode;
         }
-      } while (sensType);
+      }
+      if (O.Midiin || O.FMidiin) {          /* MIDI note messages */
+        while ((sensType = sensMidi(csound)) != 0) {
+          if ((retval = process_rt_event(csound, sensType)) != 0)
+            goto scode;
+        }
+      }
+      if (O.Linein) {                       /* Linein events      */
+        while ((sensType = sensLine()) != 0) {
+          if ((retval = process_rt_event(csound, sensType)) != 0)
+            goto scode;
+        }
+      }
     }
 
     /* no score event at this time, return to continue performance */
@@ -817,7 +828,7 @@ int sensevents(ENVIRON *csound)
     if (retval == 1) {                        /* if s code,        */
       orcompact(csound);                      /*   rtn inactiv spc */
       if (actanchor.nxtact == NULL)           /*   if no indef ins */
-        rlsmemfiles();                        /*    purge memfiles */
+        rlsmemfiles(csound);                  /*    purge memfiles */
       printf(Str("SECTION %d:\n"), ++sectno);
       goto retest;                            /*   & back for more */
     }
@@ -840,9 +851,15 @@ static int playevents(ENVIRON *csound)
 /* Schedule new score event to be played. 'time_ofs' is the amount of */
 /* time in seconds to add to evt->p[2] to get the actual start time   */
 /* of the event (measured from the beginning of performance, and not  */
-/* section). If 'allow_now' is non-zero, note or ftable events may be */
-/* initialised immediately depending on start time; otherwise, all    */
-/* events are always just queued to be inserted at a later time.      */
+/* section) in seconds.                                               */
+/* If 'allow_now' is non-zero and event type is 'f', the function     */
+/* table may be created immediately depending on start time.          */
+/* Required parameters in 'evt':                                      */
+/*   char   *strarg   string argument of event (NULL if none)         */
+/*   char   opcod     event opcode (a, e, f, i, l, q, s)              */
+/*   short  pcnt      number of p-fields (>=3 for q, i, a; >=4 for f) */
+/*   MYFLT  p[]       array of p-fields, p[1]..p[pcnt] should be set  */
+/*  p2orig and p3orig are calculated from p[2] and p[3].              */
 /* The contents of 'evt', including the string argument, need not be  */
 /* preserved after calling this function, as a copy of the event is   */
 /* made.                                                              */
@@ -853,84 +870,119 @@ int insert_score_event(ENVIRON *csound, EVTBLK *evt, double time_ofs,
 {
     double        start_time;
     EVTNODE       *e, *prv;
-    sensEvents_t  *p;
+    sensEvents_t  *st;
+    MYFLT         *p;
     unsigned long start_kcnt;
-    int           insno, retval;
+    int           i, retval;
 
-    start_kcnt = 0UL;
     retval = -1;
-    p = &(csound->sensEvents_state);
-    /* make a copy of the event */
-    e = (EVTNODE*) mcalloc(csound, sizeof(EVTNODE));
-    memcpy(&(e->evt), evt, sizeof(EVTBLK));
-    if (evt->strarg != NULL) {          /* copy string argument if present */
+    st = &(csound->sensEvents_state);
+    /* make a copy of the event... */
+    if (csound->freeEvtNodes != NULL) {             /* pop alloc from stack */
+      e = csound->freeEvtNodes;                     /*   if available       */
+      csound->freeEvtNodes = e->nxt;
+    }
+    else
+      e = (EVTNODE*) mcalloc(csound, sizeof(EVTNODE));  /* or alloc new one */
+    if (evt->strarg != NULL) {  /* copy string argument if present */
       e->evt.strarg =
             (char*) mmalloc(csound, (size_t) strlen(evt->strarg) + (size_t) 1);
       strcpy(e->evt.strarg, evt->strarg);
     }
     else
       e->evt.strarg = NULL;
-    evt = &(e->evt);            /* and use the copy from now on */
+    e->evt.opcod = evt->opcod;
+    e->evt.pcnt = evt->pcnt;
+    p = &(e->evt.p[0]);
+    p[0] = FL(0.0);             /* FIXME: is this ever used ? */
+    i = 0;
+    while (++i <= evt->pcnt)    /* copy p-field list */
+      p[i] = evt->p[i];
+    /* ...and use the copy from now on */
+    evt = &(e->evt);
 
-    if (evt->opcod == 'q' || evt->opcod == 'i' ||
-        evt->opcod == 'f' || evt->opcod == 'a') {
-      evt->p[0] = FL(0.0);      /* FIXME: is this ever used ? */
-      /* calculate actual start time in seconds and k-periods */
-      start_time = (double) evt->p[2] + time_ofs;
-      start_kcnt = (unsigned long) (start_time * (double) csound->global_ekr_
-                                    + 0.5);
-      /* correct p2 value for section offset */
-      evt->p[2] = (MYFLT) (start_time - p->timeOffs);
-      if (evt->p[2] < FL(0.0))
-        evt->p[2] = FL(0.0);
-      /* start beat: this is possibly wrong */
-      evt->p2orig = (MYFLT) (((start_time - p->curTime) / p->beatTime)
-                             + (p->curBeat - p->beatOffs));
-      if (evt->p2orig < FL(0.0))
-        evt->p2orig = FL(0.0);
-      /* calculate the length in beats */
-      evt->p3orig = (evt->opcod == 'f' || evt->p[3] <= FL(0.0) ?
-                     evt->p[3] : (MYFLT) ((double) evt->p[3] / p->beatTime));
-      /* if event should be handled now: */
-      if (start_kcnt <= (unsigned long) csound->global_kcounter_ && allow_now) {
-        int inerrcnt_old, perferrcnt_old;
-        inerrcnt_old = csound->inerrcnt_;
-        perferrcnt_old = csound->perferrcnt_;
-        process_score_event(csound, evt, 1);
-        /* check for errors */
-        if (csound->inerrcnt_ <= inerrcnt_old &&
-            csound->perferrcnt_ <= perferrcnt_old)
-          retval = 0;   /* no errors */
-        goto err_return;
-      }
+    /* check for required p-fields */
+    switch (evt->opcod) {
+      case 'f':
+        if (evt->pcnt < 4)
+          goto pfld_err;
+      case 'i':
+      case 'q':
+      case 'a':
+        if (evt->pcnt < 3)
+          goto pfld_err;
+        /* calculate actual start time in seconds and k-periods */
+        start_time = (double) p[2] + time_ofs;
+        start_kcnt = (unsigned long)
+                            (start_time * (double) csound->global_ekr_ + 0.5);
+        /* correct p2 value for section offset */
+        p[2] = (MYFLT) (start_time - st->timeOffs);
+        if (p[2] < FL(0.0))
+          p[2] = FL(0.0);
+        /* start beat: this is possibly wrong */
+        evt->p2orig = (MYFLT) (((start_time - st->curTime) / st->beatTime)
+                               + (st->curBeat - st->beatOffs));
+        if (evt->p2orig < FL(0.0))
+          evt->p2orig = FL(0.0);
+        evt->p3orig = p[3];
+        break;
+      default:
+        start_kcnt = 0UL;   /* compiler only */
     }
-    else if (evt->opcod != 'e' && evt->opcod != 'l' && evt->opcod != 's') {
-      csoundMessage(csound, Str("insert_score_event(): unknown opcode: %c\n"),
-                            evt->opcod);
-      goto err_return;
-    }
-    /* if instrument event, check for a valid number or name */
-    if (evt->opcod == 'q' || evt->opcod == 'i') {
-      if (evt->strarg != NULL && evt->p[1] == SSTRCOD)
-        insno = (int) named_instr_find(evt->strarg);
-      else
-        insno = (int) (fabs((double) evt->p[1]) + 0.5);
-      if (insno < 1 || insno > csound->maxinsno_ ||
-          csound->instrtxtp_[insno] == NULL) {
-        csoundMessage(csound, Str("insert_score_event(): invalid instrument "
-                                  "number or name\n"));
+
+    switch (evt->opcod) {
+      case 'f':                         /* function table */
+        /* if event should be handled now: */
+        if (allow_now &&
+            start_kcnt <= (unsigned long) csound->global_kcounter_) {
+          int initErr = csound->inerrcnt_;
+          int perfErr = csound->perferrcnt_;
+          process_score_event(csound, evt, 1);
+          /* check for errors */
+          if (csound->inerrcnt_ <= initErr && csound->perferrcnt_ <= perfErr)
+            retval = 0;   /* no error */
+          goto err_return;
+        }
+        break;
+      case 'i':                         /* note event */
+        /* calculate the length in beats */
+        if (evt->p3orig > FL(0.0))
+          evt->p3orig = (MYFLT) ((double) evt->p3orig / st->beatTime);
+      case 'q':                         /* mute instrument */
+        /* check for a valid instrument number or name */
+        if (evt->strarg != NULL && p[1] == SSTRCOD)
+          i = (int) named_instr_find(evt->strarg);
+        else
+          i = (int) fabs((double) p[1]);
+        if (i < 1 || i > csound->maxinsno_ || csound->instrtxtp_[i] == NULL) {
+          csoundMessage(csound, Str("insert_score_event(): invalid instrument "
+                                    "number or name\n"));
+          goto err_return;
+        }
+        break;
+      case 'a':                         /* advance score time */
+        /* calculate the length in beats */
+        evt->p3orig = (MYFLT) ((double) evt->p3orig / st->beatTime);
+        break;
+      case 'e':                         /* end of score, */
+      case 'l':                         /*   lplay list, */
+      case 's':                         /*   section:    */
+        evt->pcnt = 0;      /* no p-fields for these */
+        start_kcnt = (time_ofs <= 0.0 ?
+                      0UL : (unsigned long)
+                              (time_ofs * (double) csound->global_ekr_ + 0.5));
+        break;
+      default:
+        csoundMessage(csound, Str("insert_score_event(): unknown opcode: %c\n"),
+                              evt->opcod);
         goto err_return;
-      }
     }
     /* queue new event */
     e->start_kcnt = start_kcnt;
     prv = csound->OrcTrigEvts;
-    if (prv == NULL) {                          /* list is empty */
-      csound->OrcTrigEvts = e;
-      e->nxt = NULL;
-    }
-    else if (start_kcnt < prv->start_kcnt) {    /* at beginning of list */
-      e->nxt = csound->OrcTrigEvts;
+    /* if list is empty, or at beginning of list: */
+    if (prv == NULL || start_kcnt < prv->start_kcnt) {
+      e->nxt = prv;
       csound->OrcTrigEvts = e;
     }
     else {                                      /* otherwise sort by time */
@@ -945,11 +997,15 @@ int insert_score_event(ENVIRON *csound, EVTBLK *evt, double time_ofs,
     csound->oparms_->OrcEvts  = 1;      /* - of the appropriate type */
     return 0;
 
+ pfld_err:
+    csoundMessage(csound, Str("insert_score_event(): insufficient p-fields\n"));
  err_return:
     /* clean up */
     if (e->evt.strarg != NULL)
       mfree(csound, e->evt.strarg);
-    mfree(csound, e);
+    e->evt.strarg = NULL;
+    e->nxt = csound->freeEvtNodes;
+    csound->freeEvtNodes = e;
     return retval;
 }
 
