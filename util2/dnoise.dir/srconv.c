@@ -73,7 +73,7 @@ extern char *getstrformat(int);
 
 void kaiser(int, MYFLT *, int, int, MYFLT);
 void usage(int);
-int writebuffer(MYFLT *, int);
+int writebuffer(MYFLT *, int);  /* Not correct in ustub.c */
 extern char *type2string(int);
 
 /* Static global variables */
@@ -86,6 +86,56 @@ OPARMS	O = {0,0, 0,1,1,0, 0,0, 0,0, 0,0, 1,0,0,7, 0,0,0, 0,0,0,0, 0,0 };
 
 extern int type2sf(int);
 
+char set_output_format(char c, char outformch)
+{
+    if (O.outformat && (O.msglevel & WARNMSG)) {
+      printf(Str(X_1198,"WARNING: Sound format -%c has been overruled by -%c\n"),
+             outformch, c);
+    }
+
+    switch (c) {
+    case 'a':
+      O.outformat = AE_ALAW;    /* a-law soundfile */
+      break;
+
+    case 'c':
+      O.outformat = AE_CHAR;    /* signed 8-bit soundfile */
+      break;
+
+    case '8':
+      O.outformat = AE_UNCH;    /* unsigned 8-bit soundfile */
+      break;
+
+    case 'f':
+      O.outformat = AE_FLOAT;   /* float soundfile */
+      break;
+
+    case 's':
+      O.outformat = AE_SHORT;   /* short_int soundfile*/
+      break;
+
+    case 'l':
+      O.outformat = AE_LONG;    /* long_int soundfile */
+      break;
+
+    case 'u':
+      O.outformat = AE_ULAW;    /* mu-law soundfile */
+      break;
+
+    case '3':
+      O.outformat = AE_24INT;   /* 24bit packed soundfile*/
+      break;
+
+    case 'e':
+      O.outformat = AE_FLOAT;   /* float soundfile (for rescaling) */
+      break;
+
+    default:
+      return outformch; /* do nothing */
+    };
+
+  return c;
+}
 
 static void dieu(char *s)
 {
@@ -206,7 +256,7 @@ int main(int argc, char **argv)
             if (strcmp(O.outfilename,"stdin") == 0)
               die(Str(X_156,"-o cannot be stdin"));
             if (strcmp(O.outfilename,"stdout") == 0) {
-#ifdef THINK_C
+#if defined mac_classic || defined SYMANTEC || defined BCC || defined __WATCOMC__ || defined WIN32
               die(Str(X_1244,"stdout audio not supported"));
 #else
               if ((O.stdoutfd = dup(1)) < 0) /* redefine stdout */
@@ -245,43 +295,14 @@ int main(int argc, char **argv)
             O.sfheader = 0;           /* skip sfheader  */
             break;
           case 'c':
-            if (O.outformat) goto outform;
-            outformch = c;
-            O.outformat = AE_CHAR;     /* 8-bit char soundfile */
-            break;
           case '8':
-            if (O.outformat) goto outform;
-            outformch = c;
-            O.outformat = AE_UNCH;     /* 8-bit unsigned char file */
-            break;
-#ifdef never
           case 'a':
-            if (O.outformat) goto outform;
-            outformch = c;
-            O.outformat = AE_ALAW;     /* a-law soundfile */
-            break;
-#endif
-#ifdef ULAW
           case 'u':
-            if (O.outformat) goto outform;
-            outformch = c;
-            O.outformat = AE_ULAW;     /* mu-law soundfile */
-            break;
-#endif
           case 's':
-            if (O.outformat) goto outform;
-            outformch = c;
-            O.outformat = AE_SHORT;    /* short_int soundfile */
-            break;
           case 'l':
-            if (O.outformat) goto outform;
-            outformch = c;
-            O.outformat = AE_LONG;     /* long_int soundfile */
-            break;
+          case '3':
           case 'f':
-            if (O.outformat) goto outform;
-            outformch = c;
-            O.outformat = AE_FLOAT;    /* float soundfile */
+            outformch = set_output_format(c, outformch);
             break;
           case 'R':
             O.rewrt_hdr = 1;
@@ -406,12 +427,8 @@ int main(int argc, char **argv)
         if (!O.sfheader)
           die(Str(X_640,"can't write AIFF soundfile with no header"));
         if (
-#ifdef never
             O.outformat == AE_ALAW ||
-#endif
-#ifdef ULAW
             O.outformat == AE_ULAW ||
-#endif
             O.outformat == AE_FLOAT) {
           sprintf(errmsg,Str(X_180,"AIFF does not support %s encoding"),
                   getstrformat(O.outformat));
@@ -422,12 +439,8 @@ int main(int argc, char **argv)
         if (!O.sfheader)
             die(Str(X_338,"can't write WAV soundfile with no header"));
         if (
-#ifdef never
             O.outformat == AE_ALAW ||
-#endif
-#ifdef ULAW
             O.outformat == AE_ULAW ||
-#endif
             O.outformat == AE_FLOAT) {
           sprintf(errmsg,Str(X_181,"WAV does not support %s encoding"),
                   getstrformat(O.outformat));

@@ -150,8 +150,8 @@ MYFLT operate(MYFLT a, MYFLT b, char c)
     case '%': ans = MOD(a,b); break;
     case '^': ans = (MYFLT)pow((double)a, (double)b); break;
     case '&': ans = (MYFLT)(((long)a)&((long)b)); break;
-    case '|': ans = (MYFLT)(((long)a)&((long)b)); break;
-    case '#': ans = (MYFLT)(((long)a)&((long)b)); break;
+    case '|': ans = (MYFLT)(((long)a)|((long)b)); break;
+    case '#': ans = (MYFLT)(((long)a)^((long)b)); break;
     default:
       err_printf(Str(X_312,"Internal error op=%c\n"), c);
       longjmp(cenviron.exitjmp_,1);
@@ -342,7 +342,7 @@ top:
               c = getscochar(1);
             }
             i = 1;
-            while (i<=n-k && i< 0x4000000) i <<= 2;
+            while (i<=n-k && i< 0x4000000) i <<= 1;
             *++pv = (MYFLT)(i+k);
             type = 1;
           }
