@@ -35,7 +35,8 @@ extern "C" {
 #endif
 
 #include "csound.h"
-#include "cs.h"
+//#include "cs.h"
+#include "csoundCore.h"
 
 #ifndef MAX_PATH
   static const int MAX_PATH = 0xff;
@@ -44,7 +45,7 @@ extern "C" {
 /* HACK to turn off nchnls being defined
  * as cenviron.nchnls
  */
-#define nchnls nchnls
+//#define nchnls nchnls
 
   /**
    * Csound symbols referenced in this file.
@@ -86,7 +87,7 @@ extern "C" {
     //  Currently, there is only one instance of Csound per process.
     //  In the future, this will be dynamically allocated,
     //  and will need to be passed to all internals Csound functions that reference it.
-    cenviron.hostdata = hostData;
+    cenviron.hostdata_ = hostData;
 		csoundReset(&cenviron);
     return &cenviron;
   }
@@ -121,12 +122,12 @@ extern "C" {
 
   void *csoundGetHostData(void *csound)
   {
-    return ((GLOBALS *)csound)->hostdata;
+    return ((ENVIRON *)csound)->hostdata_;
   }
 
   void csoundSetHostData(void *csound, void *hostData)
   {
-    ((GLOBALS *)csound)->hostdata = hostData;
+    ((ENVIRON *)csound)->hostdata_ = hostData;
   }
 
   /*
@@ -262,22 +263,22 @@ extern "C" {
 
   MYFLT csoundGetSr(void *csound)
   {
-    return ((GLOBALS *)csound)->esr;
+    return ((ENVIRON *)csound)->esr_;
   }
 
   MYFLT csoundGetKr(void *csound)
   {
-    return ((GLOBALS *)csound)->ekr;
+    return ((ENVIRON *)csound)->ekr_;
   }
 
   int csoundGetKsmps(void *csound)
   {
-	return ((GLOBALS *)csound)->ksmps;
+	return ((ENVIRON *)csound)->ksmps_;
   }
 
   int csoundGetNchnls(void *csound)
   {
-    return ((GLOBALS *)csound)->nchnls;
+    return ((ENVIRON *)csound)->nchnls_;
   }
 
   int csoundGetSampleFormat(void *csound)
@@ -300,9 +301,14 @@ extern "C" {
     return O.outbufsamps;
   }
 
+
+  /** FIXME - SYY - 2003.11.29
+   * Didn't know where to find inbuf in csound5
+   */
   void *csoundGetInputBuffer(void *csound)
   {
-    return inbuf;
+    /* return inbuf; */
+    return NULL;
   }
 
   void *csoundGetOutputBuffer(void *csound)
@@ -312,17 +318,17 @@ extern "C" {
 
   MYFLT* csoundGetSpin(void *csound)
   {
-    return spin;
+    return ((ENVIRON *)csound)->spin_;
   }
 
   MYFLT* csoundGetSpout(void *csound)
   {
-    return spout;
+    return ((ENVIRON *)csound)->spout_;
   }
 
   MYFLT csoundGetScoreTime(void *csound)
   {
-    return kcounter * onedkr;
+    return ((ENVIRON *)csound)->kcounter_ * ((ENVIRON *)csound)->onedkr_;
   }
 
   MYFLT csoundGetProgress(void *csound)
@@ -370,9 +376,9 @@ extern "C" {
 
   void csoundRewindScore(void *csound)
   {
-    if(scfp)
+    if(((ENVIRON *)csound)->scfp_)
       {
-        fseek(scfp, 0, SEEK_SET);
+        fseek(((ENVIRON *)csound)->scfp_, 0, SEEK_SET);
       }
   }
 
@@ -428,12 +434,12 @@ extern "C" {
 
   int csoundGetMessageLevel(void *csound)
   {
-    return cenviron.oparms->msglevel;
+    return ((ENVIRON *)csound)->oparms_->msglevel;
   }
 
   void csoundSetMessageLevel(void *csound, int messageLevel)
   {
-    cenviron.oparms->msglevel = messageLevel;
+    ((ENVIRON *)csound)->oparms_->msglevel = messageLevel;
   }
 
   void csoundInputMessage(void *csound, const char *message)
@@ -815,21 +821,32 @@ extern "C" {
   }
 
   /*
-        * OPCODES
-        */
+   * OPCODES
+   */
 
+  /** FIXME - SYY - 2003.11.29
+   *  Does function need to exist anymore
+   *  now that opcodelist is stored with ENVIRON?
+   */
   opcodelist *csoundNewOpcodeList()
   {
-    create_opcodlst();
-    return new_opcode_list();
+    /* create_opcodlst();
+    return new_opcode_list(); */
+    
+    return NULL;
   }
 
+  /** FIXME - SYY - 2003.11.29
+   *  Does function need to exist anymore
+   *  now that opcodelist is stored with ENVIRON?
+   */
   void csoundDisposeOpcodeList(opcodelist *list)
   {
-    dispose_opcode_list(list);
+    // dispose_opcode_list(list);
   }
 
-  int csoundAppendOpcode(char *opname,
+  int csoundAppendOpcode(void *csound,
+  						 char *opname,
                          int dsblksiz,
                          int thread,
                          char *outypes,
@@ -839,22 +856,23 @@ extern "C" {
                          SUBR aopadr,
                          SUBR dopadr)
   {
-    int oldSize = (int)((char *)oplstend - (char *)opcodlst);
+    int oldSize = (int)((char *)((ENVIRON *)csound)->oplstend_ - 
+    					(char *)((ENVIRON *)csound)->opcodlst_);
     int newSize = oldSize + sizeof(OENTRY);
     int oldCount = oldSize / sizeof(OENTRY);
     int newCount = oldCount + 1;
-    OENTRY *oldOpcodlst = opcodlst;
-    opcodlst = (OENTRY *) mrealloc(opcodlst, newSize);
-    if(!opcodlst)
+    OENTRY *oldOpcodlst = ((ENVIRON *)csound)->opcodlst_;
+    ((ENVIRON *)csound)->opcodlst_ = (OENTRY *) mrealloc(((ENVIRON *)csound)->opcodlst_, newSize);
+    if(!((ENVIRON *)csound)->opcodlst_)
       {
-        opcodlst = oldOpcodlst;
+        ((ENVIRON *)csound)->opcodlst_ = oldOpcodlst;
         err_printf("Failed to allocate new opcode entry.");
         return 0;
       }
     else
       {
-        OENTRY *oentry = opcodlst + oldCount;
-        oplstend = opcodlst + newCount;
+        OENTRY *oentry = ((ENVIRON *)csound)->opcodlst_ + oldCount;
+        ((ENVIRON *)csound)->oplstend_ = ((ENVIRON *)csound)->opcodlst_ + newCount;
         oentry->opname = opname;
         oentry->dsblksiz = dsblksiz;
         oentry->thread = thread;
@@ -1004,13 +1022,13 @@ extern "C" {
      * destructor functions or csoundAppendResetFunction needs to be created
      */
     /* SfReset();  */
-    spoutactive = 0;
+    ((ENVIRON *)csound)->spoutactive_ = 0;
     csoundIsScorePending_ = 1;
     csoundScoreOffsetSeconds_ = (MYFLT) 0.0;
     O.Midiin = 0;
-    nrecs = 0;
-    orchname = NULL;
-    scorename = NULL;
+    ((ENVIRON *)csound)->nrecs_ = 0;
+    ((ENVIRON *)csound)->orchname_ = NULL;
+    ((ENVIRON *)csound)->scorename_ = NULL;
   }
 
 #ifdef INGALLS
