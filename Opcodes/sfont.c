@@ -168,7 +168,7 @@ int SfLoad(SFLOAD *p)          /* open a file and return its handle */
 }
 
 
-char temp_string[24];
+static char temp_string[24];
 char *filter_string(char *s)
 {
     int i=0, j=0;

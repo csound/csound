@@ -74,6 +74,9 @@ opts.Add('noCygwin',
 opts.Add('generateTags',
     'Set to 1 to generate TAGS',
     1)
+opts.Add('generatePDF',
+    'Set to 1 to generate PDF documentation',
+    0)
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -110,6 +113,8 @@ def getPlatform():
         return 'cygwin'
     elif sys.platform[:3] == 'win' and commonEnvironment['TOOLS'][1] == 'mingw':
         return 'mingw'
+    elif sys.platform[:6] == 'darwin':
+        return 'darwin'
     else:
         return 'unsupported'
 
@@ -245,6 +250,15 @@ if getPlatform() == 'linux':
 	commonEnvironment.Append(CCFLAGS = "-Wall")
 	commonEnvironment.Append(CCFLAGS = "-DPIPES")
 	commonEnvironment.Append(LIBPATH = ['.', '#.', '/usr/include/lib', '/usr/local/lib'])
+elif getPlatform() == 'darwin':
+	commonEnvironment.Append(CCFLAGS = "-DMACOSX")
+	commonEnvironment.Append(CPPPATH = '/usr/local/include')
+	commonEnvironment.Append(CPPPATH = '/usr/include')
+	commonEnvironment.Append(CCFLAGS = "-g")
+	commonEnvironment.Append(CCFLAGS = "-O2")
+	commonEnvironment.Append(CCFLAGS = "-Wall")
+	commonEnvironment.Append(CCFLAGS = "-DPIPES")
+	commonEnvironment.Append(LIBPATH = ['.', '#.', '/usr/lib', '/usr/local/lib'])
 elif getPlatform() == 'mingw' or getPlatform() == 'cygwin':
 	commonEnvironment.Append(CPPPATH = '/usr/local/include')
 	commonEnvironment.Append(CPPPATH = '/usr/include')
@@ -261,6 +275,10 @@ elif getPlatform() == 'mingw' or getPlatform() == 'cygwin':
 staticLibraryEnvironment = commonEnvironment.Copy()
 
 pluginEnvironment = commonEnvironment.Copy()
+
+if getPlatform() == 'darwin':
+	pluginEnvironment.Append(LINKFLAGS = ['-dynamiclib'])
+	pluginEnvironment['SHLIBSUFFIX'] = '.dylib'
 
 csoundProgramEnvironment = commonEnvironment.Copy()
 csoundProgramEnvironment.Append(LIBS = ['csound', 'sndfile'])
@@ -336,7 +354,9 @@ if getPlatform() == 'mingw':
 #
 #############################################################################
 
-csoundPdf = commonEnvironment.Command('csound.pdf', 'csound.tex', 'pdflatex $SOURCE')
+
+if commonEnvironment['generatePDF'] == 1:
+    csoundPdf = commonEnvironment.Command('csound.pdf', 'csound.tex', 'pdflatex $SOURCE')
 
 ustubProgramEnvironment.Program('makedb', 
     ['strings/makedb.c'])
