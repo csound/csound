@@ -1190,7 +1190,11 @@ static void gen28(void) /* read X Y values directly from ascii file */
     x = (MYFLT*)mmalloc(arraysize*sizeof(MYFLT));
     y = (MYFLT*)mmalloc(arraysize*sizeof(MYFLT));
     z = (MYFLT*)mmalloc(arraysize*sizeof(MYFLT));
+#if defined(USE_DOUBLE)
+    while (fscanf( filp, "%lf%lf%lf", &z[i], &x[i], &y[i])!= EOF) {
+#else
     while (fscanf( filp, "%f%f%f", &z[i], &x[i], &y[i])!= EOF) {
+#endif
       i++;
       if (i>=arraysize) {
         arraysize += 1000;
