@@ -1,7 +1,7 @@
 /*
     oscbnk.h:
 
-    Copyright (C) 2002 Istvan Varga
+    Copyright (C) 2002, 2005 Istvan Varga
 
     This file is part of Csound.
 
@@ -21,11 +21,10 @@
     02111-1307 USA
 */
 
-
-/* ---- oscbnk, grain2, and grain3 - written by Istvan Varga, 2001 ---- */
-
 #ifndef CSOUND_OSCBNK_H
 #define CSOUND_OSCBNK_H
+
+/* ---- oscbnk, grain2, and grain3 - written by Istvan Varga, 2001 ---- */
 
 #define OSCBNK_PHSMAX   0x80000000UL    /* max. phase   */
 #define OSCBNK_PHSMSK   0x7FFFFFFFUL    /* phase mask   */
@@ -39,7 +38,7 @@
           : (unsigned long) ((x) * (MYFLT) OSCBNK_PHSMAX + FL(0.5)))        \
          & OSCBNK_PHSMSK)
 
-/* ---- these typedefs are also used by entry2.c ---- */
+/* oscbnk types */
 
 typedef struct {
         unsigned long   LFO1phs;        /* LFO 1 phase                  */
@@ -155,6 +154,7 @@ typedef struct {
         MYFLT   *rpow;                  /* distribution                 */
         MYFLT   *iseed;                 /* seed                         */
                                 /* internal variables   */
+        long    *rnd31i_seed;           /* global seed for rnd31        */
         long    seed;                   /* random seed                  */
 } RND31;
 
@@ -236,6 +236,8 @@ typedef struct {
     VCO2_TABLE  *tables;        /* pointer to array of tables                */
 #endif
     unsigned long   phs, phs2;  /* oscillator phase                          */
+    VCO2_TABLE_ARRAY  ***vco2_tables;
+    int             *vco2_nr_table_arrays;
 } VCO2;
 
 typedef struct {
@@ -247,8 +249,42 @@ typedef struct {
 #else
     MYFLT   *npart_old, *nparts;
 #endif
-    int     base_ftnum;
+    VCO2_TABLE_ARRAY    ***vco2_tables;
+    int                 *vco2_nr_table_arrays;
+    int                 base_ftnum;
 } VCO2FT;
+
+typedef struct {                /* denorm a1[, a2[, a3[, ... ]]] */
+    OPDS    h;
+    MYFLT   *ar[256];
+    int     *seedptr;
+} DENORMS;
+
+typedef struct {                /* kr delayk ksig, idel[, imode] */
+    OPDS    h;
+    MYFLT   *ar, *ksig, *idel, *imode;
+    int     npts, init_k, readp, mode;
+    AUXCH   aux;
+} DELAYK;
+
+typedef struct {                /* kr vdel_k ksig, kdel, imdel[, imode] */
+    OPDS    h;
+    MYFLT   *ar, *ksig, *kdel, *imdel, *imode;
+    int     npts, init_k, wrtp, mode;
+    MYFLT   frstkval;
+    AUXCH   aux;
+} VDELAYK;
+
+typedef struct {                /* ar rbjeq asig, kfco, klvl, kQ, kS[, imode] */
+        OPDS    h;
+        MYFLT   *ar, *asig, *kcps, *klvl, *kQ, *kS, *imode;     /* args */
+        /* internal variables */
+        MYFLT   old_kcps, old_klvl, old_kQ, old_kS;
+        double  omega, cs, sn;
+        MYFLT   xnm1, xnm2, ynm1, ynm2;
+        MYFLT   b0, b1, b2, a1, a2;
+        int     ftype;
+} RBJEQ;
 
 #endif          /* CSOUND_OSCBNK_H */
 
