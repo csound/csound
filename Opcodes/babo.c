@@ -765,7 +765,7 @@ set_expert_values(ENVIRON *csound, BABO *p)
 }
 
 static void
-verify_coherence(BABO *p)
+verify_coherence(ENVIRON *csound, BABO *p)
 {
     if (*(p->lx) <= FL(0.0) || *(p->ly) <= FL(0.0) || *(p->lz) <= FL(0.0))
     {
@@ -784,13 +784,12 @@ verify_coherence(BABO *p)
  */
 
 int
-baboset(void *entry)
+baboset(ENVIRON *csound, void *entry)
 {
     BABO *p = (BABO *) entry;   /* assuming the engine is right... :)   */
-    ENVIRON *csound = p->h.insdshead->csound;
 
     set_defaults(csound,p);
-    verify_coherence(p);        /* exits if call is wrong */
+    verify_coherence(csound,p);        /* exits if call is wrong */
 
     BaboTapline_create(csound,&p->tapline, *(p->lx), *(p->ly), *(p->lz));
     BaboDelay_create(csound, &p->matrix_delay,
@@ -801,14 +800,13 @@ baboset(void *entry)
 }
 
 int
-babo(void *entry)
+babo(ENVIRON *csound, void *entry)
 {
     BABO    *p          = (BABO *) entry;
     int      nsmps      = ksmps;
     MYFLT   *outleft    = p->outleft,
             *outright   = p->outright,
             *input      = p->input;
-    ENVIRON *csound = p->h.insdshead->csound;
 
     BaboTaplineParameters left = { {FL(0.0)}, {{FL(0.0)}} },
                          right = { {FL(0.0)}, {{FL(0.0)}} };

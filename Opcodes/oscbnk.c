@@ -303,7 +303,7 @@ int    oscbnkset(ENVIRON *csound, OSCBNK *p)
     /* set up ftables */
 
     if (p->ilfomode & 0xF0) {
-      ftp = ftfind(p->h.insdshead->csound, p->args[20]);             /* LFO 1 */
+      ftp = ftfind(csound, p->args[20]);             /* LFO 1 */
       if ((ftp == NULL) || ((p->l1t = ftp->ftable) == NULL)) return NOTOK;
       oscbnk_flen_setup(ftp->flen, &(p->l1t_mask), &(p->l1t_lobits),
                          &(p->l1t_pfrac));
@@ -314,7 +314,7 @@ int    oscbnkset(ENVIRON *csound, OSCBNK *p)
     }
 
     if (p->ilfomode & 0x0F) {
-      ftp = ftfind(p->h.insdshead->csound, p->args[21]);             /* LFO 2 */
+      ftp = ftfind(csound, p->args[21]);             /* LFO 2 */
       if ((ftp == NULL) || ((p->l2t = ftp->ftable) == NULL)) return NOTOK;
       oscbnk_flen_setup(ftp->flen, &(p->l2t_mask), &(p->l2t_lobits),
                          &(p->l2t_pfrac));
@@ -325,15 +325,15 @@ int    oscbnkset(ENVIRON *csound, OSCBNK *p)
     }
 
     if (p->ieqmode >= 0) {
-      ftp = ftfind(p->h.insdshead->csound, p->args[22]);             /* EQ frequency */
+      ftp = ftfind(csound, p->args[22]);             /* EQ frequency */
       if ((ftp == NULL) || ((p->eqft = ftp->ftable) == NULL)) return NOTOK;
       p->eqft_len = ftp->flen;
 
-      ftp = ftfind(p->h.insdshead->csound, p->args[23]);             /* EQ level */
+      ftp = ftfind(csound, p->args[23]);             /* EQ level */
       if ((ftp == NULL) || ((p->eqlt = ftp->ftable) == NULL)) return NOTOK;
       p->eqlt_len = ftp->flen;
 
-      ftp = ftfind(p->h.insdshead->csound, p->args[24]);             /* EQ Q */
+      ftp = ftfind(csound, p->args[24]);             /* EQ Q */
       if ((ftp == NULL) || ((p->eqqt = ftp->ftable) == NULL)) return NOTOK;
       p->eqqt_len = ftp->flen;
     }
@@ -343,7 +343,7 @@ int    oscbnkset(ENVIRON *csound, OSCBNK *p)
     }
 
     if (*(p->args[25]) >= FL(1.0)) {        /* parameter table */
-      ftp = ftfind(p->h.insdshead->csound, p->args[25]);
+      ftp = ftfind(csound, p->args[25]);
       if ((ftp == NULL) || ((p->tabl = ftp->ftable) == NULL)) return NOTOK;
       p->tabl_len = ftp->flen;
     }
@@ -353,7 +353,7 @@ int    oscbnkset(ENVIRON *csound, OSCBNK *p)
     p->tabl_cnt = 0L;   /* table ptr. */
 
     if (*(p->args[26]) >= FL(1.0)) {        /* output table */
-      ftp = ftfind(p->h.insdshead->csound, p->args[26]);
+      ftp = ftfind(csound, p->args[26]);
       if ((ftp == NULL) || ((p->outft = ftp->ftable) == NULL)) return NOTOK;
       p->outft_len = ftp->flen;
     }
@@ -421,7 +421,7 @@ int    oscbnk(ENVIRON *csound, OSCBNK *p)
 
     /* check oscillator ftable */
 
-    ftp = ftfindp(p->h.insdshead->csound, p->args[19]);
+    ftp = ftfindp(csound, p->args[19]);
     if ((ftp == NULL) || ((ft = ftp->ftable) == NULL))
       return NOTOK;
     oscbnk_flen_setup(ftp->flen, &(mask), &(lobits), &(pfrac));
@@ -575,7 +575,7 @@ int grain2set(ENVIRON *csound, GRAIN2 *p)
     else {
       p->rnd_mode = 1;
     }
-    ftp = ftfind(p->h.insdshead->csound, p->iwfn);                     /* window table */
+    ftp = ftfind(csound, p->iwfn);                     /* window table */
     if ((ftp == NULL) || ((p->wft = ftp->ftable) == NULL)) return NOTOK;
     oscbnk_flen_setup(ftp->flen, &(p->wft_mask), &(p->wft_lobits),
                        &(p->wft_pfrac));
@@ -680,7 +680,7 @@ int grain2(ENVIRON *csound, GRAIN2 *p)
 
     /* check grain ftable */
 
-    ftp = ftfindp(p->h.insdshead->csound, p->kfn);
+    ftp = ftfindp(csound, p->kfn);
     if ((ftp == NULL) || ((ft = ftp->ftable) == NULL)) return NOTOK;
     oscbnk_flen_setup(ftp->flen, &mask, &lobits, &pfrac);
 
@@ -764,7 +764,7 @@ int grain3set(ENVIRON *csound, GRAIN3 *p)
 
     oscbnk_seedrand(&(p->seed), *(p->iseed));  /* initialise seed */
 
-    ftp = ftfind(p->h.insdshead->csound, p->iwfn);                     /* window table */
+    ftp = ftfind(csound, p->iwfn);                     /* window table */
     if ((ftp == NULL) || ((p->wft = ftp->ftable) == NULL)) return NOTOK;
     oscbnk_flen_setup(ftp->flen, &(p->wft_mask), &(p->wft_lobits),
                        &(p->wft_pfrac));
@@ -843,7 +843,7 @@ int grain3(ENVIRON *csound, GRAIN3 *p)
     phs = p->phase;                             /* grain phase offset   */
     x_ph = p->x_phs;
 
-    ftp = ftfindp(p->h.insdshead->csound, p->kfn); /* check grain ftable  */
+    ftp = ftfindp(csound, p->kfn); /* check grain ftable  */
     if ((ftp == NULL) || ((ft = ftp->ftable) == NULL)) return NOTOK;
     oscbnk_flen_setup(ftp->flen, &mask, &lobits, &pfrac);
 
@@ -1120,7 +1120,7 @@ int kosclikt(ENVIRON *csound, OSCKT *p)
     /* check if table number was changed */
     if (*(p->kfn) != p->oldfn || p->ft == NULL) {
       p->oldfn = *(p->kfn);
-      ftp = ftfindp(p->h.insdshead->csound, p->kfn); /* new table parameters */
+      ftp = ftfindp(csound, p->kfn); /* new table parameters */
       if ((ftp == NULL) || ((p->ft = ftp->ftable) == NULL)) return NOTOK;
       oscbnk_flen_setup(ftp->flen, &(p->mask), &(p->lobits), &(p->pfrac));
     }
@@ -1146,7 +1146,7 @@ int osckkikt(ENVIRON *csound, OSCKT *p)
     /* check if table number was changed */
     if (*(p->kfn) != p->oldfn || p->ft == NULL) {
       p->oldfn = *(p->kfn);
-      ftp = ftfindp(p->h.insdshead->csound, p->kfn); /* new table parameters */
+      ftp = ftfindp(csound, p->kfn); /* new table parameters */
       if ((ftp == NULL) || ((p->ft = ftp->ftable) == NULL)) return NOTOK;
       oscbnk_flen_setup(ftp->flen, &(p->mask), &(p->lobits), &(p->pfrac));
     }
@@ -1178,7 +1178,7 @@ int osckaikt(ENVIRON *csound, OSCKT *p)
     /* check if table number was changed */
     if (*(p->kfn) != p->oldfn || p->ft == NULL) {
       p->oldfn = *(p->kfn);
-      ftp = ftfindp(p->h.insdshead->csound, p->kfn);           /* new table parameters */
+      ftp = ftfindp(csound, p->kfn);           /* new table parameters */
       if ((ftp == NULL) || ((p->ft = ftp->ftable) == NULL)) return NOTOK;
       oscbnk_flen_setup(ftp->flen, &(p->mask), &(p->lobits), &(p->pfrac));
     }
@@ -1224,7 +1224,7 @@ int oscakikt(ENVIRON *csound, OSCKT *p)
     /* check if table number was changed */
     if (*(p->kfn) != p->oldfn || p->ft == NULL) {
       p->oldfn = *(p->kfn);
-      ftp = ftfindp(p->h.insdshead->csound, p->kfn);           /* new table parameters */
+      ftp = ftfindp(csound, p->kfn);           /* new table parameters */
       if ((ftp == NULL) || ((p->ft = ftp->ftable) == NULL)) return NOTOK;
       oscbnk_flen_setup(ftp->flen, &(p->mask), &(p->lobits), &(p->pfrac));
     }
@@ -1256,7 +1256,7 @@ int oscaaikt(ENVIRON *csound, OSCKT *p)
     /* check if table number was changed */
     if (*(p->kfn) != p->oldfn || p->ft == NULL) {
       p->oldfn = *(p->kfn);
-      ftp = ftfindp(p->h.insdshead->csound, p->kfn);           /* new table parameters */
+      ftp = ftfindp(csound, p->kfn);           /* new table parameters */
       if ((ftp == NULL) || ((p->ft = ftp->ftable) == NULL)) return NOTOK;
       oscbnk_flen_setup(ftp->flen, &(p->mask), &(p->lobits), &(p->pfrac));
     }
@@ -1305,7 +1305,7 @@ int oscktp(ENVIRON *csound, OSCKTP *p)
     /* check if table number was changed */
     if (*(p->kfn) != p->oldfn || p->ft == NULL) {
       p->oldfn = *(p->kfn);
-      ftp = ftfindp(p->h.insdshead->csound, p->kfn);           /* new table parameters */
+      ftp = ftfindp(csound, p->kfn);           /* new table parameters */
       if ((ftp == NULL) || ((p->ft = ftp->ftable) == NULL)) return NOTOK;
       oscbnk_flen_setup(ftp->flen, &(p->mask), &(p->lobits), &(p->pfrac));
     }
@@ -1365,7 +1365,7 @@ int osckts(ENVIRON *csound, OSCKTS *p)
     /* check if table number was changed */
     if (*(p->kfn) != p->oldfn || p->ft == NULL) {
       p->oldfn = *(p->kfn);
-      ftp = ftfindp(p->h.insdshead->csound, p->kfn);           /* new table parameters */
+      ftp = ftfindp(csound, p->kfn);           /* new table parameters */
       if ((ftp == NULL) || ((p->ft = ftp->ftable) == NULL)) return NOTOK;
       oscbnk_flen_setup(ftp->flen, &(p->mask), &(p->lobits), &(p->pfrac));
     }
@@ -1751,14 +1751,14 @@ int vco2init(ENVIRON *csound, VCO2INIT *p)
 
       if (w >= 0) {             /* built-in waveforms */
         if (waveforms & (1 << w)) {
-          ftnum = vco2_tables_create(p->h.insdshead->csound, w, ftnum, &tp);
+          ftnum = vco2_tables_create(csound, w, ftnum, &tp);
           if (base_ftable > 0 && ftnum <= 0) {
             return initerror(Str(X_787,"ftgen error"));
           }
         }
       }
     else {                      /* user defined, requires source ftable */
-      if ((ftp = ftfind(p->h.insdshead->csound, p->isrcft)) == NULL ||
+      if ((ftp = ftfind(csound, p->isrcft)) == NULL ||
           ftp->flen < 4) {
         return initerror(Str(X_1766,"vco2init: invalid source ftable"));
       }
@@ -1774,7 +1774,7 @@ int vco2init(ENVIRON *csound, VCO2INIT *p)
       }
       FFT2realpacked(tp.w_fftbuf, ftp->flen, ex);
       /* generate table array */
-      ftnum = vco2_tables_create(p->h.insdshead->csound,waveforms, ftnum, &tp);
+      ftnum = vco2_tables_create(csound,waveforms, ftnum, &tp);
         /* free memory used by FFT buffer */
         mfree(tp.w_fftbuf);
       if (base_ftable > 0 && ftnum <= 0) {
@@ -1903,7 +1903,7 @@ int vco2set(ENVIRON *csound, VCO2 *p)
     /* initialise tables if not done yet */
     if (tnum >= vco2_nr_table_arrays || vco2_tables[tnum] == NULL) {
       if (tnum < 5)
-        vco2_tables_create(p->h.insdshead->csound, tnum, -1, NULL);
+        vco2_tables_create(csound, tnum, -1, NULL);
       else {
         return initerror(Str(X_1768, "vco2: table array not found for user defined waveform"));
       }

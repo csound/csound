@@ -73,11 +73,11 @@ static MYFLT *ewin = NULL;
 /*
  *      Wavetable init
  */
-static int scsnux_initw(PSCSNUX *p)
+static int scsnux_initw(ENVIRON *csound, PSCSNUX *p)
 {
     int i;
     long len = p->len;
-    FUNC *fi = ftfind(p->h.insdshead->csound, p->i_init);
+    FUNC *fi = ftfind(csound, p->i_init);
     if (fi == NULL) {
       return initerror(Str(X_1501, "scanux: Could not find ifnnit ftable"));
     }
@@ -91,7 +91,7 @@ static int scsnux_initw(PSCSNUX *p)
 /*
  *      Hammer hit
  */
-static int scsnux_hammer(PSCSNUX *p, MYFLT pos, MYFLT sgn)
+static int scsnux_hammer(ENVIRON *csound, PSCSNUX *p, MYFLT pos, MYFLT sgn)
 {
     int i, i1, i2;
     FUNC *fi;
@@ -101,7 +101,7 @@ static int scsnux_hammer(PSCSNUX *p, MYFLT pos, MYFLT sgn)
 
     /* Get table */
     if (tab<FL(0.0)) tab = -tab;   /* JPff fix here */
-    if ((fi = ftfind(p->h.insdshead->csound, &tab)) == NULL) {
+    if ((fi = ftfind(csound, &tab)) == NULL) {
       return initerror(Str(X_1502, "scanux: Could not find ifninit ftable"));
     }
 
@@ -206,14 +206,14 @@ int scsnux_init(ENVIRON *csound, PSCSNUX *p)
     int i;
 
     /* Mass */
-    if ((f = ftfind(p->h.insdshead->csound, p->i_m)) == NULL) {
+    if ((f = ftfind(csound, p->i_m)) == NULL) {
       return initerror(Str(X_1503, "scanux: Could not find ifnmass table"));
     }
     len = p->len = f->flen;
     p->m = f->ftable;
 
     /* Centering */
-    if ((f = ftfind(p->h.insdshead->csound, p->i_c)) == NULL) {
+    if ((f = ftfind(csound, p->i_c)) == NULL) {
       return initerror(Str(X_1504, "scanux: Could not find ifncentr table"));
     }
     if (f->flen != len)
@@ -222,7 +222,7 @@ int scsnux_init(ENVIRON *csound, PSCSNUX *p)
     p->c = f->ftable;
 
     /* Damping */
-    if ((f = ftfind(p->h.insdshead->csound, p->i_d)) == NULL) {
+    if ((f = ftfind(csound, p->i_d)) == NULL) {
       return initerror(Str(X_1505, "scanux: Could not find ifndamp table"));
     }
     if (f->flen != len)
@@ -234,7 +234,7 @@ int scsnux_init(ENVIRON *csound, PSCSNUX *p)
       int j, ilen;
 
       /* Get the table */
-      if ((f = ftfind(p->h.insdshead->csound, p->i_f)) == NULL) {
+      if ((f = ftfind(csound, p->i_f)) == NULL) {
         return initerror(Str(X_1506, "scanux: Could not find ifnstiff table"));
       }
 
@@ -345,21 +345,21 @@ int scsnux_init(ENVIRON *csound, PSCSNUX *p)
     /* ... according to scheme */
     if ((int)*p->i_init < 0) {
       int res;
-      res = scsnux_hammer(p, *p->i_l, FL(1.0));
+      res = scsnux_hammer(csound, p, *p->i_l, FL(1.0));
       if (res != OK) return res;
-      res = scsnux_hammer(p, *p->i_r, -FL(1.0));
+      res = scsnux_hammer(csound, p, *p->i_r, -FL(1.0));
       if (res != OK) return res;
     }
     else if (*p->i_id<FL(0.0))
-      scsnux_hammer(p, FL(0.5), FL(1.0));
+      scsnux_hammer(csound, p, FL(0.5), FL(1.0));
     else {
-      int res = scsnux_initw(p);
+      int res = scsnux_initw(csound, p);
       if (res != OK) return res;
     }
 
     /* Velocity gets presidential treatment */
     {
-      FUNC *f = ftfind(p->h.insdshead->csound, p->i_v);
+      FUNC *f = ftfind(csound, p->i_v);
       if (f == NULL) {
         return initerror(Str(X_1507,"scanux: Could not find ifnvel table"));
       }
@@ -399,7 +399,7 @@ int scsnux_init(ENVIRON *csound, PSCSNUX *p)
     /* Throw data into list or use table */
     if (*p->i_id < FL(0.0)) {
       MYFLT id = - *p->i_id;
-      FUNC *f  = ftfind(p->h.insdshead->csound, &id);
+      FUNC *f  = ftfind(csound, &id);
       if (f == NULL) {
         return initerror(Str(X_1508,"scanux: Could not find (id) table"));
       }
@@ -450,7 +450,7 @@ int scsnux(ENVIRON *csound, PSCSNUX *p)
           p->v[i] += p->ext[exti++] * ewin[i];
           if (exti >= len) exti = 0L;
                                 /* And push feedback */
-          scsnux_hammer(p, *p->k_x, *p->k_y);
+          scsnux_hammer(csound, p, *p->k_x, *p->k_y);
                                 /* Estimate acceleration */
           for (j = 0 ; j != len ; j++) {
 #ifdef USING_CHAR
@@ -532,13 +532,13 @@ int scsnux(ENVIRON *csound, PSCSNUX *p)
 int scsnsx_init(ENVIRON *csound, PSCSNSX *p)
 {
     /* Get corresponding update */
-    p->p = listget(p->h.insdshead->csound, (int)*p->i_id);
+    p->p = listget(csound, (int)*p->i_id);
 
     /* Get trajectory matrix */
     {
       int i;
       int oscil_interp = (int)*p->interp;
-      FUNC *t = ftfind(p->h.insdshead->csound, p->i_trj);
+      FUNC *t = ftfind(csound, p->i_trj);
       if (t == NULL) {
         return initerror(Str(X_1526,"scans: Could not find the ifntraj table"));
       }
@@ -651,7 +651,7 @@ int scsnsx(ENVIRON *csound, PSCSNSX *p)
 int scsnmapx_init(ENVIRON *csound, PSCSNMAPX *p)
 {
     /* Get corresponding update */
-    p->p = listget(p->h.insdshead->csound, (int)*p->i_id);
+    p->p = listget(csound, (int)*p->i_id);
     return OK;
 }
 

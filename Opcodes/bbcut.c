@@ -270,7 +270,7 @@ int BBCutMono(ENVIRON *csound, BBCUTMONO *p)
    for interleaved stereo save and code in audio output part
    to cope with that, variables out1,out2 for 2 channels */
 
-int BBCutStereoInit(BBCUTSTEREO * p)
+int BBCutStereoInit(ENVIRON *csound, BBCUTSTEREO * p)
 {
     /* call seed random at time now? */
 

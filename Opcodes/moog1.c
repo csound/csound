@@ -36,7 +36,7 @@ extern MYFLT TwoZero_tick(TwoZero *, MYFLT);
 /*  to a target at speed set by rate.       */
 /********************************************/
 
-void make_FormSwep(FormSwep *p)
+static void make_FormSwep(FormSwep *p)
 {
     p->poleCoeffs[0] = p->poleCoeffs[1] = FL(0.0);
     p->gain          = FL(1.0);
@@ -172,13 +172,13 @@ int Moog1set(ENVIRON *csound, MOOG1 *p)
     make_FormSwep(&p->filters[0]);
     make_FormSwep(&p->filters[1]);
 
-    if ((ftp = ftfind(p->h.insdshead->csound, p->iatt)) != NULL)
+    if ((ftp = ftfind(csound, p->iatt)) != NULL)
       p->attk.wave = ftp; /* mandpluk */
     else return NOTOK;
-    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn )) != NULL)
+    if ((ftp = ftfind(csound, p->ifn )) != NULL)
       p->loop.wave = ftp; /* impuls20 */
     else return NOTOK;
-    if ((ftp = ftfind(p->h.insdshead->csound, p->ivfn)) != NULL)
+    if ((ftp = ftfind(csound, p->ivfn)) != NULL)
       p->vibr.wave = ftp; /* sinewave */
     else return NOTOK;
     p->attk.time = p->attk.phase = FL(0.0);

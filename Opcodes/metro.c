@@ -80,7 +80,7 @@ int split_trig_set(ENVIRON *csound,  SPLIT_TRIG *p)
     */
 
     FUNC *ftp;
-    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) == NULL) {
+    if ((ftp = ftfind(csound, p->ifn)) == NULL) {
       return initerror(Str(X_1535,"splitrig: incorrect table number"));
     }
     p->table = ftp->ftable;
@@ -128,7 +128,7 @@ int timeseq_set(ENVIRON *csound, TIMEDSEQ *p)
     FUNC *ftp;
     MYFLT *table;
     int j;
-    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) == NULL)  return NOTOK;
+    if ((ftp = ftfind(csound, p->ifn)) == NULL)  return NOTOK;
     table = p->table = ftp->ftable;
     p->numParm = p->INOCOUNT-2; /* ? */
     for (j = 0; j < ftp->flen; j+= p->numParm) {

@@ -203,7 +203,7 @@ int vbap_zak_init(ENVIRON *csound, VBAP_ZAK  *p)
       return perferror(Str(X_1532,"outz index < 0. No output."));
     }
     /* Now read from the array in za space and write to the output. */
-    p->out_array     = p->h.insdshead->csound->zastart_ + (indx * ksmps);/* outputs */
+    p->out_array     = csound->zastart_ + (indx * ksmps);/* outputs */
     auxalloc(p->n*sizeof(MYFLT)*4, &p->auxch);
     p->curr_gains    = (MYFLT*)p->auxch.auxp;
     p->beg_gains     = p->curr_gains + p->n;
@@ -497,7 +497,7 @@ int vbap_zak_moving_init(ENVIRON *csound, VBAP_ZAK_MOVING  *p)
       return perferror(Str(X_1532,"outz index < 0. No output."));
     }
     /* Now read from the array in za space and write to the output. */
-    p->out_array     = p->h.insdshead->csound->zastart_ + (indx * ksmps);/* outputs */
+    p->out_array     = csound->zastart_ + (indx * ksmps);/* outputs */
     auxalloc(p->n*sizeof(MYFLT)*4, &p->auxch);
     p->curr_gains    = (MYFLT*)p->auxch.auxp;
     p->beg_gains     = p->curr_gains + p->n;

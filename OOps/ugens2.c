@@ -966,7 +966,7 @@ int oscset(ENVIRON *csound, OSC *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) != NULL) {
+    if ((ftp = ftfind(csound, p->ifn)) != NULL) {
       p->ftp = ftp;
       if (*p->iphs >= 0)
         p->lphs = ((long)(*p->iphs * FMAXLEN)) & PHMASK;
