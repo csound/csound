@@ -1,4 +1,3 @@
-
 /*
   widgets.cpp:
 
@@ -1819,22 +1818,24 @@ static void fl_callbackButton(Fl_Button* w, void *a)
 {
   FLBUTTON *p = (FLBUTTON *) a;
   *((FLBUTTON*) a)->kout =  (w->value()) ? *p->ion : *p->ioff;
-  if (*p->args[0] >= 0) ButtonSched(0, p->args, p->INOCOUNT-8);
+  if (*p->args[0] >= 0) ButtonSched(p->h.insdshead->csound,
+                                    p->args, p->INOCOUNT-8);
 }
 
 static void fl_callbackButtonBank(Fl_Button* w, void *a)
 {
   FLBUTTONBANK *p = (FLBUTTONBANK *) a;
   *((FLBUTTONBANK*) a)->kout = (MYFLT) atoi(w->label());
-  if (*p->args[0] >= 0) ButtonSched(0, p->args, p->INOCOUNT-7);
+  if (*p->args[0] >= 0) ButtonSched(p->h.insdshead->csound,
+                                    p->args, p->INOCOUNT-7);
 }
-
 
 static void fl_callbackCounter(Fl_Counter* w, void *a)
 {
   FLCOUNTER *p = (FLCOUNTER *) a;
   *((FLCOUNTER*) a)->kout =  w->value();
-  if (*p->args[0] >= 0) ButtonSched(0, p->args, p->INOCOUNT-10);
+  if (*p->args[0] >= 0) ButtonSched(p->h.insdshead->csound,
+                                    p->args, p->INOCOUNT-10);
 }
 
 static void fl_callbackLinearSlider(Fl_Valuator* w, void *a)
