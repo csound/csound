@@ -1,3 +1,8 @@
+2004-12-14  John ffitch  <jpff@codemist.co.uk>
+
+	* SConstruct: All over use strings for options rather than
+	numbers.  Seems to work but take care!
+
 2004-12-12  Michael Gogins <gogins@pipeline.com>
 
 	* Updated to FLTK 1.1.6, libsndfile 1.1.11, CVS PortAudio,
