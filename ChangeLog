@@ -1,3 +1,9 @@
+2004-02-28	Steven Yi	<stevenyi@csounds.com>
+
+	* Engine/entry2.c: Added reverbx_set and reverbx back in as well as 
+	opcode entries for nreverb/reverb2
+
+
 2004-02-28  John D. Ramsdell  <ramsdell@mitre.org>
 
 	* Makefile.am: Removed _SOURCES vars from conditionals and made
