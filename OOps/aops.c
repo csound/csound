@@ -27,8 +27,9 @@
 #include <time.h>
 extern ENVIRON cenviron;
 
-static  double  eipt3=8.3333333, oct;
-#define logtwo  (0.69314718056)
+#define EIPT3 (25.0/3.0)
+static  double  oct;
+#define LOGTWO  (0.69314718056)
 
 int rassign(ASSIGN *p)
 {
@@ -110,18 +111,6 @@ MYFLT MOD(MYFLT a, MYFLT bb)
     if (bb==FL(0.0)) return FL(0.0);
     else {
       MYFLT b = (bb<0 ? -bb : bb);
-/*        MYFLT b100 = b*100.0f; */
-/*        MYFLT b10000 = b*10000.0f; */
-/*        MYFLT b1000000 = b*1000000.0f; */
-/*        printf("MOD(%f,%f)=", a, b); fflush(stdout); */
-/*        while (a>b1000000) a -= b1000000; */
-/*        while (a>b10000) a -= b10000; */
-/*        while (a>b100) a -= b100; */
-/*        while (a>b) a -= b; */
-/*        while (-a>b1000000) a += b1000000; */
-/*        while (-a>b10000) a += b10000; */
-/*        while (-a>b100) a += b100; */
-/*        while (-a>b) a += b; */
       int d = (int)(a / b);
 /*        printf("MOD(%f,%f)=[d=%d]", a, b, d); fflush(stdout); */
       a -= d * b;
@@ -566,7 +555,7 @@ int octpch(EVAL *p)
 {
     double      fract;
     fract = modf((double)*p->a, &oct);
-    fract *= eipt3;
+    fract *= EIPT3;
     *p->r = (MYFLT) (oct + fract);
     return OK;
 }
@@ -602,7 +591,7 @@ int acpsoct(EVAL *p)
 
 int octcps(EVAL *p)
 {
-    *p->r = (MYFLT)(log((double)*p->a / ONEPT) / logtwo);
+    *p->r = (MYFLT)(log((double)*p->a / ONEPT) / LOGTWO);
     return OK;
 }
 
@@ -612,7 +601,7 @@ int cpspch(EVAL *p)
     long   loct;
 
     fract = modf((double) *p->a, &oct);
-    fract *= eipt3;
+    fract *= EIPT3;
     loct = (long) ((oct + fract) * OCTRES);
     *p->r = (MYFLT)CPSOCTL(loct);
     return OK;
@@ -780,7 +769,7 @@ static void init_logs(void)
 
     if (logbase2!=NULL) return;
     incr = (INTERVAL - 1/INTERVAL) / (double)STEPS;
-    first = 1.0/(double)INTERVAL;
+    first = 1.0/INTERVAL;
     conv = 1.44269504089 /* 1.0/log(2.0) */;
     logbase2  = (MYFLT *) mmalloc((long)(STEPS+1) * sizeof(MYFLT));
     fp = logbase2;

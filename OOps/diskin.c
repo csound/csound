@@ -349,7 +349,7 @@ int newsndinset(SOUNDINEW *p)       /* init routine for diskin   */
     p->bufend = p->inbuf + n;
 
     /*****  if soundinset successful  ********/
-    if (sinfd > 0) {
+    if (sinfd != NULL) {
       fdrecord(&p->fdch);              /*     instr will close later */
 
       p->guardpt = p->bufend - nchnls;
