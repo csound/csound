@@ -168,8 +168,7 @@ int fastabi(ENVIRON *csound, FASTAB *p)
     /*ftp = ftfind(p->xfn); */
 
     if ((ftp = ftnp2find(csound, p->xfn)) == NULL) {
-      initerror("tab_i: incorrect table number");
-      return NOTOK;
+      return initterror("tab_i: incorrect table number");
     }
     if (*p->ixmode)
       *p->rslt =  *(ftp->ftable + (long) (*p->xndx * ftp->flen));
@@ -183,8 +182,7 @@ int fastabiw(ENVIRON *csound, FASTAB *p)
     FUNC *ftp;
     /*ftp = ftfind(p->xfn); */
     if ((ftp = ftnp2find(csound, p->xfn)) == NULL) {
-      initerror("tabw_i: incorrect table number");
-      return NOTOK;
+      return initerror("tabw_i: incorrect table number");
     }
     if (*p->ixmode)
       *(ftp->ftable + (long) (*p->xndx * ftp->flen)) = *p->rslt;
@@ -556,8 +554,7 @@ int tabrec_k(ENVIRON *csound,TABREC *p)
         if ((*fno = (int)*p->kfn) <= 0 || *fno > csound->maxfnum || (ftp = ftnp2find(csound,fno)) == NULL) {
           /*sprintf(errmsg, Str(X_315,"Invalid ftable no. %f"),*p->kfn); */
           sprintf(errmsg, "Invalid ftable no. %f",*p->kfn);
-          perferror(errmsg);
-          return NOTOK;
+          return perferror(errmsg);
         }
         else {
           p->tablen = ftp->flen;
@@ -623,8 +620,7 @@ int tabplay_k(ENVIRON *csound,TABPLAY *p)
             (ftp = ftnp2find(csound,fno)) == NULL) {
           /*sprintf(errmsg, Str(X_315,"Invalid ftable no. %f"),*p->kfn); */
           sprintf(errmsg, "Invalid ftable no. %f",*p->kfn);
-          perferror(errmsg);
-          return NOTOK;
+          return perferror(errmsg);
         }
         else {
           p->tablen = ftp->flen;
