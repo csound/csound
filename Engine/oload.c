@@ -660,6 +660,8 @@ void oload(void)
 /*     pctlist = (MYFLT **) mcalloc((long)256 * sizeof(MYFLT *)); */
 /*     insbusy = (short *) mcalloc((long)((maxinsno+1) * sizeof(short))); */
 
+    sssfinit(); /* must be called before instr 0 initiates */
+
     if ((nn = init0()) > 0)                             /* run instr 0 inits */
       die(Str(X_828,"header init errors"));
     if ((ensmps != (MYFLT) ksmps) ||
@@ -684,7 +686,6 @@ void oload(void)
 /*  dv32768 = FL(1.0) / FL(32768.0);            IV - Jul 11 2002 */
     cpsoctinit();
     reverbinit();
-    sssfinit();
     dbfs_init(e0dbfs);
 /*  dv32768 = dbfs_to_float;                    IV - Jul 11 2002 */
     nspin = nspout = ksmps * nchnls;                    /* alloc spin & spout */
