@@ -1,3 +1,7 @@
+2003-11-05  John ffitch  <jpff@codemist.co.uk>
+
+	* Opcodes/ugens6.c: reverb was not declared in opcode table
+
 2003-11-04  John D. Ramsdell  <ramsdell@mitre.org>
 
 	* configure.in: Added AM_INIT_AUTOMAKE, AM_PROG_CC_STDC, and code
