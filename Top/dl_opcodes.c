@@ -1,24 +1,24 @@
 /*
-dl_opcodes.c:
+  dl_opcodes.c:
 
-Copyright (C) 2002 John ffitch
+  Copyright (C) 2002 John ffitch
 
-This file is part of Csound.
+  This file is part of Csound.
 
-The Csound Library is free software; you can redistribute it
-and/or modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
+  The Csound Library is free software; you can redistribute it
+  and/or modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
 
-Csound is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
+  Csound is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Lesser General Public License for more details.
 
-You should have received a copy of the GNU Lesser General Public
-License along with Csound; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-02111-1307 USA
+  You should have received a copy of the GNU Lesser General Public
+  License along with Csound; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+  02111-1307 USA
 */
 #if defined(HAVE_CONFIG_H)
 #include "config.h"
@@ -403,7 +403,7 @@ void *dlsym(void *handle, const char *symbol)
     return value;
 }
 
-#else   /* case for platforms without shared libraries -- added 062404, akozar */
+#else /* case for platforms without shared libraries -- added 062404, akozar */
 
 void *csoundOpenLibrary(const char *libraryPath)
 {
@@ -423,53 +423,76 @@ void *csoundGetLibrarySymbol(void *library, const char *procedureName)
         return procedureAddress;
 }
 
-
 #endif
+
+/* load opcode library, returns zero on success, -1 on failure, */
+/* and -2 if the library is already loaded */
+
+#define MAX_PLUGINS 1024
 
 int csoundLoadExternal(void *csound, const char* libraryPath)
 {
-    void *handle;
-    OENTRY *opcodlst_n;
-    long length, olength;
-    OENTRY *(*init)(ENVIRON*);
-    long (*size)(void);
-    if (O.odebug) {
-      printf("Trying to open file '%s' as library.\n", libraryPath);
-    }
+    void    *handle;
+    OENTRY  *opcodlst_n;
+    long    length, olength;
+    OENTRY  *(*init)(ENVIRON*);
+    long    (*size)(void);
+
     handle = csoundOpenLibrary(libraryPath);
-    if (!handle) {
+    if (!handle)
       return -1;
-    }
-    if (O.odebug) {
-      printf("Found library handle.\n");
-    }
     size = csoundGetLibrarySymbol(handle, "opcode_size");
-    if (!size) {
-      return -1;
-    }
-    if (O.odebug) {
-      printf("Found 'opcode_size' function.\n");
-    }
+    if (!size)
+      goto err_return;
     length = (*size)();
-    if (O.odebug) {
-      printf("Length=%d\n", length);
-    }
     init = csoundGetLibrarySymbol(handle, "opcode_init");
-    if (!init) {
-      return -1;
+    if (!init)
+      goto err_return;
+    /* IV - Feb 19 2005: check if this library is already loaded */
+    {
+      void **handle_list;
+      int  i;
+      handle_list =
+        (void**) csoundQueryGlobalVariable(csound, "::dl_opcodes::loaded_libs");
+      if (handle_list == NULL) {
+        csoundCreateGlobalVariable(csound, "::dl_opcodes::loaded_libs",
+                                           sizeof(void*) * MAX_PLUGINS);
+        handle_list =
+          (void**) csoundQueryGlobalVariable(csound,
+                                             "::dl_opcodes::loaded_libs");
+        if (handle_list == NULL) {
+          csoundMessage(csound, Str(" *** csoundLoadExternal(): "
+                                    "memory allocation failure\n"));
+          goto err_return;
+        }
+        for (i = 0; i < MAX_PLUGINS; i++)
+          handle_list[i] = (void*) NULL;
+      }
+      i = -1;
+      while (++i < MAX_PLUGINS && handle_list[i] != NULL) {
+        if (handle == handle_list[i]) {
+          /* this file is already loaded */
+          csoundCloseLibrary(handle);
+          return -2;
+        }
+      }
+      if (i >= MAX_PLUGINS) {
+        csoundMessage(csound, " *** csoundLoadExternal(): "
+                              "too many plugin libraries\n");
+        goto err_return;
+      }
+      /* store handle */
+      handle_list[i] = handle;
     }
-    if (O.odebug) {
-      printf("Found 'opcode_init' function.\n");
-      printf("Calling 'opcode_init'.\n");
-    }
-    /* deal with fgens if there are any, signalled by setting top bit of length */
+    /* deal with fgens if there are any, */
+    /* signalled by setting top bit of length */
     if (length<0) {
       NGFENS *(*nfgens)(ENVIRON*);
       length = length&0x7fffffff; /* Assumes 32 bit */
       nfgens = csoundGetLibrarySymbol(handle, "fgen_init");
       if (nfgens) {
         int allocgen(ENVIRON *, char *, void(*)(void));
-        NGFENS *names = (*nfgens)(&cenviron);
+        NGFENS *names = (*nfgens)(csound);
         int i=0;
         while (names[i].word!=NULL) {
           allocgen(csound, names[i].word, names[i].fn);
@@ -477,7 +500,7 @@ int csoundLoadExternal(void *csound, const char* libraryPath)
         }
       }
     }
-    opcodlst_n = (*init)(&cenviron);
+    opcodlst_n = (*init)(csound);
     olength = oplstend-opcodlst;
     if (O.odebug) {
       printf("Got opcodlst 0x%x\noplstend=0x%x, opcodlst=0x%x, length=%d.\n",
@@ -485,37 +508,68 @@ int csoundLoadExternal(void *csound, const char* libraryPath)
       printf("Adding %d bytes (%d opcodes) -- first opcode is '%s'.\n",
              length, length/sizeof(OENTRY), opcodlst_n[0].opname);
     }
-    opcodlst = (OENTRY*) mrealloc(csound, opcodlst, olength*sizeof(OENTRY) + length);
+    opcodlst = (OENTRY*) mrealloc(csound, opcodlst,
+                                  olength*sizeof(OENTRY) + length);
     memcpy(opcodlst+olength, opcodlst_n, length);
     oplstend = opcodlst + olength + length/sizeof(OENTRY);
     return 0;
+
+ err_return:
+    /* clean up */
+    csoundCloseLibrary(handle);
+    return -1;
 }
 
-#ifdef __MACH__
+/* #ifdef __MACH__ */
+#if 0
 /* There is something odd on OSX about dirent.h */
 typedef void* DIR;
 DIR opendir(const char *);
 struct dirent *readdir(DIR*);
 int closedir(DIR*);
 #endif
+
 int csoundLoadExternals(void *csound)
 {
-    char *libname;
-    char buffer[256];
+    char *s, *buffer;
+    int  i, j;
+
+    buffer = (char*) mcalloc(csound, (size_t) 1024);
 #if defined(HAVE_DIRENT_H)
     {
-      DIR *directory;
+      DIR           *directory;
       struct dirent *file;
-      char buffer[0x500];
-      char *opcodedir = getenv("OPCODEDIR");
-      if (O.odebug) {
-        printf("OPCODEDIR='%s'.\n", opcodedir?opcodedir:"(null)");
+      char          *opcodedir;
+      int           warn64bit;
+
+      opcodedir = NULL;
+      warn64bit = 0;
+#ifdef USE_DOUBLE
+      opcodedir = getenv("OPCODEDIR64");
+      if (opcodedir != NULL && opcodedir[0] == '\0')
+        opcodedir = NULL;
+      if (opcodedir != NULL)
+        warn64bit = -1;
+#endif
+      if (opcodedir == NULL) {
+        opcodedir = getenv("OPCODEDIR");
+        if (opcodedir != NULL && opcodedir[0] == '\0')
+          opcodedir = NULL;
+#ifdef USE_DOUBLE
+        if (opcodedir != NULL)
+          warn64bit = 1;
+#endif
       }
-      if (!opcodedir) {
+      if (opcodedir == NULL)
         opcodedir = ".";
-      }
+      if (warn64bit > 0)
+        printf("WARNING: OPCODEDIR64 undefined, loading 64 bit libraries "
+               "from OPCODEDIR\n");
       if (O.odebug) {
-        printf("OPCODEDIR='%s'.\n", opcodedir?opcodedir:"(null)");
+        if (warn64bit < 0)
+          printf("OPCODEDIR64='%s'.\n", opcodedir);
+        else
+          printf("OPCODEDIR='%s'.\n", opcodedir);
       }
       directory = opendir(opcodedir);
       while ((file = readdir(directory)) != 0) {
@@ -536,16 +590,28 @@ int csoundLoadExternals(void *csound)
       closedir(directory);
     }
 #endif
-    if (((ENVIRON *)csound)->oplibs_ == NULL) {
+    s = (char*) csoundQueryGlobalVariable(csound, "::dl_opcodes::oplibs");
+    if (s == NULL || s[0] == '\0') {
+      mfree(csound, buffer);
       return 1;
     }
-    printf("Loading command-line libraries '%s'.\n", ((ENVIRON *)csound)->oplibs_);
-    strcpy(buffer, ((ENVIRON *)csound)->oplibs_);
-    libname = strtok(buffer, ",");
-    while (libname != NULL) {
-      csoundLoadExternal(csound, libname); /* error code not currently checked!*/
-      libname = strtok(NULL, ",");
-    }
+    /* IV - Feb 19 2005 */
+    printf("Loading command-line libraries:\n");
+    i = j = -1;
+    do {
+      i++; j++;
+      if (s[i] == ',' || s[i] == '\0') {
+        buffer[j] = '\0';
+        j = -1;
+        if (buffer[0] != '\0') {
+          if (csoundLoadExternal(csound, buffer) == 0)
+            printf("  %s\n", buffer);
+        }
+      }
+      else
+        buffer[j] = s[i];
+    } while (s[i] != '\0');
+    mfree(csound, buffer);
     return 1;
 }
 

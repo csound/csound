@@ -302,7 +302,7 @@ int csoundCompile(void *csound, int argc, char **argv)
     if ((n=setjmp(cenviron.exitjmp_))) {
       fprintf(stderr,
               " *** WARNING: longjmp() called during csoundPreCompile() ***\n");
-      return -1;
+      return (-(abs(n)));
     }
 
     /* IV - Feb 05 2005: find out if csoundPreCompile() needs to be called */
@@ -317,7 +317,7 @@ int csoundCompile(void *csound, int argc, char **argv)
       /*
        * Changed from exit(-1) for re-entrancy.
        */
-      return -1;
+      return (-(abs(n)));
     }
 
     /* IV - Jan 28 2005 */
@@ -417,9 +417,9 @@ int csoundCompile(void *csound, int argc, char **argv)
     if (--argc == 0) {
       dieu(Str("insufficient arguments"));
     }
-    if (argdecode(csound, argc, argv, envoutyp)==0) {
+    if (argdecode(csound, argc, argv, envoutyp) == 0) {
 #ifndef mills_macintosh
-      longjmp(cenviron.exitjmp_,1);
+      longjmp(((ENVIRON*) csound)->exitjmp_,1);
 #else
       return(0);
 #endif
@@ -430,13 +430,40 @@ int csoundCompile(void *csound, int argc, char **argv)
     else if ((strcmp(orchname+strlen(orchname)-4, ".csd")==0 ||
               strcmp(orchname+strlen(orchname)-4, ".CSD")==0) &&
              (scorename==NULL || strlen(scorename)==0)) {
-      int read_unified_file(void*, char **, char **);
+      int   read_unified_file(void*, char **, char **);
       err_printf("UnifiedCSD:  %s\n", orchname);
       if (!read_unified_file(csound, &orchname, &scorename)) {
         err_printf(Str("Decode failed....stopping\n"));
-        longjmp(cenviron.exitjmp_,1);
+        longjmp(((ENVIRON*) csound)->exitjmp_,1);
+      }
+      /* IV - Feb 19 2005: run a second pass of argdecode so that */
+      /* command line options override CSD options */
+      /* this assumes that argdecode is safe to run multiple times */
+      argdecode(csound, argc-1, argv, envoutyp); /* should not fail this time */
+    }
+    /* some error checking */
+    {
+      int *nn;
+      nn = (int*) csoundQueryGlobalVariable(csound, "::argdecode::stdinassign");
+      if (nn != NULL && *nn != 0 && (*nn & (*nn - 1)) != 0) {
+        csoundMessage(csound, "error: multiple uses of stdin\n");
+        longjmp(((ENVIRON*) csound)->exitjmp_,1);
+      }
+      nn =
+        (int*) csoundQueryGlobalVariable(csound, "::argdecode::stdoutassign");
+      if (nn != NULL && *nn != 0 && (*nn & (*nn - 1)) != 0) {
+        csoundMessage(csound, "error: multiple uses of stdout\n");
+        longjmp(((ENVIRON*) csound)->exitjmp_,1);
       }
     }
+    /* open MIDI output (moved here from argdecode) */
+#if defined(LINUX)
+    {
+      extern void openMIDIout(void);
+      if (O.Midioutname != NULL && O.Midioutname[0] != '\0')
+        openMIDIout();
+    }
+#endif
     if (scorename==NULL || strlen(scorename)==0) { /* No scorename yet */
       char *p;
       FILE *scof;
@@ -455,43 +482,17 @@ int csoundCompile(void *csound, int argc, char **argv)
       O.RTevents = 1;
     if (O.RTevents || O.sfread)
       O.ksensing = 1;
-    if (O.rewrt_hdr && !O.sfheader)
-      dieu(Str("cannot rewrite header if no header requested"));
+    if (!O.sfheader)
+      O.rewrt_hdr = 0;          /* cannot rewrite header of headerless file */
     if (O.sr_override || O.kr_override) {
-      long ksmpsover;
       if (!O.sr_override || !O.kr_override)
         dieu(Str("srate and krate overrides must occur jointly"));
-      ksmpsover = O.sr_override / O.kr_override;
-      if (ksmpsover * O.kr_override != O.sr_override)
-        dieu(Str("command-line srate / krate not integral"));
     }
     if (!O.outformat)                       /* if no audioformat yet  */
-      O.outformat = AE_SHORT;             /*  default to short_ints */
+      O.outformat = AE_SHORT;               /*  default to short_ints */
     O.sfsampsize = sfsampsize(O.outformat);
-    O.informat = O.outformat; /* informat defaults; resettable by readinheader */
-    O.insampsiz = O.sfsampsize;
-    if (O.filetyp == TYP_AIFF ||
-        O.filetyp == TYP_WAV) {
-      if (!O.sfheader)
-        dieu(Str("cannot write AIFF/WAV soundfile with no header"));
-      /* WAVE format supports only unsigned bytes for 1- to 8-bit
-         samples and signed short integers for 9 to 16-bit samples.
-         -- Jonathan Mohr  1995 Oct 17  */
-      /* Also seems that type 3 is floats */
-      if (
-          (
-           O.outformat == AE_ALAW ||
-           O.outformat == AE_ULAW ||
-#ifdef mills_macintosh
-           (O.outformat == AE_FLOAT && !RescaleFloatFile)
-#else
-           O.outformat == AE_FLOAT
-#endif
-           ))
-        printf(Str("WARNING: %s encoding information cannot\n"
-                   "be contained in the header...\n"),
-               getstrformat(O.outformat));
-    }
+    O.informat = O.outformat;       /* informat defaults; */
+    O.insampsiz = O.sfsampsize;     /* resettable by readinheader */
     err_printf(Str("orchname:  %s\n"), orchname);
     if (scorename != NULL)
       err_printf(Str("scorename: %s\n"), scorename);
@@ -508,14 +509,14 @@ int csoundCompile(void *csound, int argc, char **argv)
 #endif
     /* IV - Oct 31 2002: moved orchestra compilation here, so that named */
     /* instrument numbers are known at the score read/sort stage */
-    create_opcodlst(&cenviron); /* create initial opcode list (if not done yet) */
+    create_opcodlst(&cenviron); /* create initial opcode list if not done yet */
     /* IV - Jan 31 2005: initialise external modules */
     if (csoundInitModules(csound) != 0)
       longjmp(((ENVIRON*) csound)->exitjmp_,1);
     otran();                 /* read orcfile, setup desblks & spaces     */
     /* IV - Jan 28 2005 */
     print_benchmark_info(csound, Str("end of orchestra compile"));
-    if (!csoundYield(&cenviron)) return (-1);
+    if (!csoundYield(csound)) return (-1);
     /* IV - Oct 31 2002: now we can read and sort the score */
     if (scorename == NULL || scorename[0]=='\0') {
       if (O.RTevents) {
