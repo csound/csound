@@ -49,7 +49,8 @@ DEFINES = -DBETA
 # (e.g., Linux on SPARC [not tested]), you should also define -
 #       -DLINUX_BE      Linux audio device handler for big-endian samples
 
-CFLAGS = @CFLAGS@ @XCFLAGS@ $(RPM_OPT_FLAGS) $(DEFINES)
+CFLAGS = @CFLAGS@ @CYGWINCFLAGS@ @XCFLAGS@ $(RPM_OPT_FLAGS) $(DEFINES)
+LDFLAGS = @LDFLAGS@ @CYGWINLDFLAGS@
 #	-O		Simple optimisation
 #	-O2		to be more specific about the optimization level
 #	-f		compile single-precision floats (4.3,VAX,DEC-RISC)
@@ -95,13 +96,14 @@ FLTKSRC = @FLTKSRC@
 FLTKOBJ = @FLTKOBJ@
 #FLTKLIB = -lfltk -lpthread -lg++
 FLTKLIB = @WINLDFLAGS@
+AUDLIBS = @AUDLIBS@
 # libraries required by widgets.cpp
 #	/usr/lib/libpthread.a			suitable for distribution,
 #	/usr/lib/libstdc++-libc6.2-2.a.3	but increases size; the
 #						directiories and version
 #						numbers are system-dependent)
 
-LIBS =	$(FLTKLIB) @X_LIBS@ @LIBS@
+LIBS =	$(FLTKLIB) $(AUDLIBS) @X_LIBS@ @LIBS@
 #	-lefence
 
 WINSRC = @WINSRC@
@@ -405,7 +407,7 @@ LIBRARIES = opcodes
 all:		$(PROGS) $(SUBDIRS) $(LIBRARIES)	#must be run in this order
 
 csound:		$(COBJS) $(CSUM) $(CDEP) csound.xmg
-		$(CC) $(CFLAGS) -o csound $(COBJS) $(LIBS)
+		$(CC) $(CFLAGS) -o csound $(LDFLAGS) $(COBJS) $(LIBS)
 
 TAGS:	$(CSRCS) $(HDRS)
 		etags $(CSRCS) $(HDRS)
@@ -431,7 +433,7 @@ csound.xmg:	strings/all_strings English.xmg
 makedb:	strings/makedb.c H/text.h
 	$(CC) -I H -o makedb strings/makedb.c
 
-$(WINOBJ): $(WINSRC)
+$(WINOBJ): $(	SRC)
 	$(CC) $(CFLAGS) -I H -c $I/$*.c -o $*.$(o)
 
 FL_graph.o: $I/FL_graph.cpp
