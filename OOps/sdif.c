@@ -88,7 +88,7 @@ Music and Audio Technologies, University of California, Berkeley.
 # include <strings.h>
 #endif
 
-#include "sdif.h"
+#include <H/sdif.h>
 
 
 
