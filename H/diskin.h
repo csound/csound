@@ -30,7 +30,7 @@
 #endif
 
 typedef struct {
-  OPDS		h;
+  OPDS          h;
   MYFLT         *r1, *r2, *r3, *r4;
   MYFLT         *ifilno, *ktransp, *iskptim, *ilooping, *iformat;
   short         format, channel, nchanls, sampframsiz, filetyp;

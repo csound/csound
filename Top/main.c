@@ -95,8 +95,8 @@ void set_rt_priority(int argc, char **argv)
     if (argc > 2) {
       for (i = 1; i <= (argc - 2); i++) {
         if (!(strcmp (argv[i], "-o")) &&                    /* check if     */
-            (!(strncmp (argv[i + 1], "dac", 3)) ||              /* output is    */
-             !(strncmp (argv[i + 1], "devaudio", 8))))          /* audio device */
+            (!(strncmp (argv[i + 1], "dac", 3)) ||          /* output is    */
+             !(strncmp (argv[i + 1], "devaudio", 8))))      /* audio device */
           rtmode |= 2;
       }
     }
@@ -253,7 +253,7 @@ void psignal(int sig, char *str)
 static void signal_handler(int sig)
 {
 #if defined(USE_FLTK) && defined(SIGALRM)
-	if (sig == SIGALRM) return;
+        if (sig == SIGALRM) return;
 #endif
     psignal(sig, "Csound tidy up");
     exit(1);
@@ -339,23 +339,24 @@ int csoundCompile(void *csound, int argc, char **argv)
     e0dbfs = DFLT_DBFS;
     dbfs_init(e0dbfs);
     /* may get changed by an orch */
-    if (sizeof(MYFLT)==sizeof(float))
-                {
+    if (sizeof(MYFLT)==sizeof(float)) {
 #ifdef BETA
-                        err_printf("Csound version %s beta (float samples) %s\n", PACKAGE_VERSION, __DATE__);
+      err_printf("Csound version %s beta (float samples) %s\n",
+                 PACKAGE_VERSION, __DATE__);
 #else
-                        err_printf("Csound version %s (float samples) %s\n", PACKAGE_VERSION, __DATE__);
+      err_printf("Csound version %s (float samples) %s\n",
+                 PACKAGE_VERSION, __DATE__);
 #endif
-                }
-    else
-                {
+    }
+    else {
 #ifdef BETA
-                        err_printf("Csound version %s beta (double samples) %s\n", PACKAGE_VERSION, __DATE__);
+      err_printf("Csound version %s beta (double samples) %s\n",
+                 PACKAGE_VERSION, __DATE__);
 #else
-                        err_printf("Csound version %s (double samples) %s\n", PACKAGE_VERSION, __DATE__);
+      err_printf("Csound version %s (double samples) %s\n",
+                 PACKAGE_VERSION, __DATE__);
 #endif
-                }
-
+    }
     {
       char buffer[128];
 #include <sndfile.h>
@@ -488,7 +489,7 @@ int csoundCompile(void *csound, int argc, char **argv)
     create_opcodlst(&cenviron); /* create initial opcode list (if not done yet) */
     otran();                 /* read orcfile, setup desblks & spaces     */
     if (!csoundYield(&cenviron)) return (-1);
-/*     print_elapsed_time("end of orch compile");          /\* IV - Nov 10 2002 *\/ */
+/*     print_elapsed_time("end of orch compile");  /\* IV - Nov 10 2002 *\/ */
     /* IV - Oct 31 2002: now we can read and sort the score */
     if (scorename == NULL || scorename[0]=='\0') {
       if (O.RTevents) {
