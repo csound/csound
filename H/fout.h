@@ -98,7 +98,7 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *ihandle, *iascii, *iflag, *argums[VARGMAX];
-  /*void (*ioutfilep) (void *); */
+        /*void (*ioutfilep) (void *); */
 } IOUTFILE;
 
 
@@ -107,7 +107,7 @@ typedef struct {
         MYFLT   *ihandle, *iascii, *iflag, *argums[VARGMAX];
         long counter;
         int done;
-  /*  void (*ioutfilep) (void *); */
+        /*  void (*ioutfilep) (void *); */
 } IOUTFILE_R;
 
 
@@ -138,4 +138,4 @@ int kinfile_set(KINFILE *p);
 int kinfile(KINFILE *p);
 int i_infile(I_INFILE *p);
  
-#endif // FOUT_H
+#endif /* FOUT_H */

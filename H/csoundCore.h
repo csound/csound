@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-/*  
+/*
     cs.h:
 
     Copyright (C) 1991-2003 Barry Vercoe, John ffitch
@@ -94,7 +94,8 @@ extern "C" {
 #define MAXPOS     0x7FFFFFFFL
 
 #define BYTREVS(n) ((n>>8  & 0xFF) | (n<<8 & 0xFF00))
-#define BYTREVL(n) ((n>>24 & 0xFF) | (n>>8 & 0xFF00L) | (n<<8 & 0xFF0000L) | (n<<24 & 0xFF000000L))
+#define BYTREVL(n) ((n>>24 & 0xFF) | (n>>8 & 0xFF00L) | \
+                    (n<<8 & 0xFF0000L) | (n<<24 & 0xFF000000L))
 
 #define NOCTS      20
 #define OCTRES     8192
@@ -312,11 +313,13 @@ typedef struct insds {
         short   m_pitch;        /* MIDI pitch, for simple access */
         short   m_veloc;        /* ...ditto velocity */
         int     xtratim;        /* Extra release time requested with xtratim opcode */
-        char    relesing;       /* Flag to indicate we are releasing, test with release opcode */
+        char    relesing;       /* Flag to indicate we are releasing, test with release
+                                   opcode */
         char    actflg;         /* Set if instr instance is active (perfing) */
         short   insno;          /* Instrument number */
         MYFLT   offbet;         /* Time to turn off event, in score beats */
-        MYFLT   offtim;         /* Time to turn off event, in seconds (negative on indef/tie) */
+        MYFLT   offtim;         /* Time to turn off event, in seconds (negative on
+                                   indef/tie) */
         struct insds * nxtolap; /* ptr to next overlapping voice */
          /* end of overlap */
         struct ENVIRON_ *csound;/* ptr to Csound engine and API for externals */
@@ -605,39 +608,39 @@ typedef struct ENVIRON_
   char *(*unquote)(char *);
   MEMFIL *(*ldmemfile)(char *);
   void (*err_printf_)(char *, ...);
-	FUNC *(*hfgens_)(EVTBLK *);
-	void *(*mrealloc_)(void *old, long nbytes);
-	void (*putcomplexdata_)(complex *, long);
-	void (*ShowCpx_)(complex *, long, char *);
-	int (*PureReal_)(complex *, long);
-	int (*IsPowerOfTwo_)(long);
-	complex *(*FindTable_)(long);       
-	complex *(*AssignBasis_)(complex *, long);
-	void (*reverseDig_)(complex *, long, int);
-	void (*reverseDigpacked_)(complex *, long);
-	void (*FFT2dimensional_)(complex *, long, long, complex *);
-	void (*FFT2torl_)(complex *, long, int, MYFLT, complex *);
-	void (*FFT2torlpacked_)(complex *, long, MYFLT, complex *);
-	void (*ConjScale_)(complex *, long, MYFLT);
-	void (*FFT2real_)(complex *, long, int, complex *);
-	void (*FFT2realpacked_)(complex *, long, complex *);
-	void (*Reals_)(complex *, long, int, int, complex *);
-	void (*Realspacked_)(complex *, long,int, complex *);
-	void (*FFT2_)(complex *, long, int, complex *);
-	void (*FFT2raw_)(complex *, long, int, int, complex *);
-	void (*FFT2rawpacked_)(complex *, long, int, complex *);
-	void (*FFTarb_)(complex *, complex *, long, complex *);
-	void (*DFT_)(complex *, complex *, long, complex *);
-	void (*cxmult_)(complex *,complex *,long);
-	int (*getopnum_)(char *s);
-	long (*strarg2insno_)(MYFLT *p, char *s);
-	long (*strarg2opcno_)(MYFLT *p, char *s, int force_opcode);
-	INSDS (*instance_)(int insno);
-	int (*isfullpath_)(char *name);  
-	void (*dies)(char *s, char *t);
-	char *(*catpath_)(char *path, char *name);
-	void (*rewriteheader_)(int ofd, long datasize, int verbose);
-	void (*writeheader)(int ofd, char *ofname); 
+  FUNC *(*hfgens_)(EVTBLK *);
+  void *(*mrealloc_)(void *old, long nbytes);
+  void (*putcomplexdata_)(complex *, long);
+  void (*ShowCpx_)(complex *, long, char *);
+  int (*PureReal_)(complex *, long);
+  int (*IsPowerOfTwo_)(long);
+  complex *(*FindTable_)(long);
+  complex *(*AssignBasis_)(complex *, long);
+  void (*reverseDig_)(complex *, long, int);
+  void (*reverseDigpacked_)(complex *, long);
+  void (*FFT2dimensional_)(complex *, long, long, complex *);
+  void (*FFT2torl_)(complex *, long, int, MYFLT, complex *);
+  void (*FFT2torlpacked_)(complex *, long, MYFLT, complex *);
+  void (*ConjScale_)(complex *, long, MYFLT);
+  void (*FFT2real_)(complex *, long, int, complex *);
+  void (*FFT2realpacked_)(complex *, long, complex *);
+  void (*Reals_)(complex *, long, int, int, complex *);
+  void (*Realspacked_)(complex *, long,int, complex *);
+  void (*FFT2_)(complex *, long, int, complex *);
+  void (*FFT2raw_)(complex *, long, int, int, complex *);
+  void (*FFT2rawpacked_)(complex *, long, int, complex *);
+  void (*FFTarb_)(complex *, complex *, long, complex *);
+  void (*DFT_)(complex *, complex *, long, complex *);
+  void (*cxmult_)(complex *,complex *,long);
+  int (*getopnum_)(char *s);
+  long (*strarg2insno_)(MYFLT *p, char *s);
+  long (*strarg2opcno_)(MYFLT *p, char *s, int force_opcode);
+  INSDS (*instance_)(int insno);
+  int (*isfullpath_)(char *name);
+  void (*dies)(char *s, char *t);
+  char *(*catpath_)(char *path, char *name);
+  void (*rewriteheader_)(int ofd, long datasize, int verbose);
+  void (*writeheader)(int ofd, char *ofname);
   /* End of internals */
   int           ksmps_, nchnls_;
   int           global_ksmps_;
@@ -646,7 +649,7 @@ typedef struct ENVIRON_
   long          global_kcounter_;
   MYFLT         esr_, ekr_;
   char          *orchname_, *scorename_, *xfilename_;
-  MYFLT 	e0dbfs_;
+  MYFLT         e0dbfs_;
   /* oload.h */
   RESETTER      *reset_list_;
   short         nlabels_;
@@ -740,9 +743,9 @@ typedef struct ENVIRON_
   MYFLT         long_to_dbfs_;
   unsigned int  rtin_dev_;
   unsigned int  rtout_dev_;
-  int		MIDIINbufIndex_;
+  int           MIDIINbufIndex_;
   MIDIMESSAGE   MIDIINbuffer2_[MIDIINBUFMAX];
-  int		displop4_;
+  int           displop4_;
 } ENVIRON;
 
 #include "text.h"
@@ -785,4 +788,4 @@ char *mytmpnam(char *);
 };
 #endif
 
-#endif	//	CSOUNDCORE_H
+#endif  /*      CSOUNDCORE_H */

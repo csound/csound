@@ -49,4 +49,4 @@ typedef struct {
 #define GENMAX  42
 #define FTPMAX  (150)
 
-#endif // FTGEN_H
+#endif /* FTGEN_H */
