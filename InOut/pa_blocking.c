@@ -3,6 +3,8 @@
 int paBlockingReadOpen(ENVIRON *csound, 
     PA_BLOCKING_STREAM **pabs_, PaStreamParameters *paParameters)
 {
+    PaError paError = -1;
+    unsigned long maxLag_ = 0;
     PA_BLOCKING_STREAM *pabs = (PA_BLOCKING_STREAM *)
         mcalloc(sizeof(PA_BLOCKING_STREAM));
     pabs->csound = csound;
@@ -12,18 +14,17 @@ int paBlockingReadOpen(ENVIRON *csound,
         mcalloc(pabs->actualBufferSampleCount * sizeof(float));
     pabs->paLock = csoundCreateThreadLock(csound);
     pabs->clientLock = csoundCreateThreadLock(csound);
-    unsigned long maxLag = O.oMaxLag <= 0 ? IODACSAMPS : O.oMaxLag;      
-    PaError paError = -1;
+    maxLag_ = O.oMaxLag <= 0 ? IODACSAMPS : O.oMaxLag;      
     memcpy(&pabs->paParameters, paParameters, sizeof(PaStreamParameters));
     csound->Message(csound, "paBlockingReadOpen: nchnls %d sr %f maxLag %u\n",
         pabs->paParameters.channelCount, 
         csound->GetSr(csound),
-        maxLag);  
+        maxLag_);  
     paError = Pa_OpenStream(&pabs->paStream,
         &pabs->paParameters,
         0,
         (double) csound->GetSr(csound),
-        maxLag,
+        maxLag_,
         paNoFlag,
         paBlockingWriteStreamCallback,
         pabs);
@@ -44,10 +45,10 @@ int PaBlockingReadStreamCallback(const void *input, void *output,
     unsigned long frameCount, const PaStreamCallbackTimeInfo* timeInfo,
     PaStreamCallbackFlags statusFlags, void *userData)
 {
-    PA_BLOCKING_STREAM *pabs = (PA_BLOCKING_STREAM *)userData;
-    float *paInput = (float *)input;
     size_t i;
     size_t n;
+    PA_BLOCKING_STREAM *pabs = (PA_BLOCKING_STREAM *)userData;
+    float *paInput = (float *)input;
     csoundWaitThreadLock(pabs->csound, pabs->paLock, 100);
     for(i = 0, n = pabs->actualBufferSampleCount; i < n; i++) {
         pabs->actualBuffer[i] = paInput[i];
@@ -70,6 +71,8 @@ void paBlockingRead(PA_BLOCKING_STREAM *pabs, MYFLT *buffer)
 int paBlockingWriteOpen(ENVIRON *csound, 
     PA_BLOCKING_STREAM **pabs_, PaStreamParameters *paParameters)
 {
+    PaError paError = -1;
+    unsigned long maxLag_ = 0;
     PA_BLOCKING_STREAM *pabs = (PA_BLOCKING_STREAM *)
         mcalloc(sizeof(PA_BLOCKING_STREAM));
     pabs->csound = csound;
@@ -79,19 +82,18 @@ int paBlockingWriteOpen(ENVIRON *csound,
         mcalloc(pabs->actualBufferSampleCount * sizeof(float));
     pabs->paLock = csoundCreateThreadLock(csound);
     pabs->clientLock = csoundCreateThreadLock(csound);
-    PaError paError = -1;
-    unsigned long maxLag = O.oMaxLag <= 0 ? IODACSAMPS : O.oMaxLag;        
+    maxLag_ = O.oMaxLag <= 0 ? IODACSAMPS : O.oMaxLag;        
     memcpy(&pabs->paParameters, paParameters, sizeof(PaStreamParameters));
     csound->Message(csound, "paBlockingWriteOpen: nchnls %d sr %f maxLag %u device %d\n",
         pabs->paParameters.channelCount, 
         csound->GetSr(csound),
-        maxLag,
+        maxLag_,
         pabs->paParameters.device);  
     paError = Pa_OpenStream(&pabs->paStream,
         0,
         &pabs->paParameters,
         (double) csound->GetSr(csound),
-        maxLag,
+        maxLag_,
         paNoFlag,
         paBlockingWriteStreamCallback,
         pabs);
@@ -114,10 +116,10 @@ int paBlockingWriteStreamCallback(const void *input,
     const PaStreamCallbackTimeInfo* timeInfo, 
     PaStreamCallbackFlags statusFlags, void *userData)
 {
-    PA_BLOCKING_STREAM *pabs = (PA_BLOCKING_STREAM *)userData;
-    float *paOutput = (float *)output;
     size_t i;
     size_t n;
+    PA_BLOCKING_STREAM *pabs = (PA_BLOCKING_STREAM *)userData;
+    float *paOutput = (float *)output;
     csoundWaitThreadLock(pabs->csound, pabs->paLock, 100);
     for(i = 0, n = pabs->actualBufferSampleCount; i < n; i++) {
         paOutput[i] = pabs->actualBuffer[i];
