@@ -1,11 +1,11 @@
 MICHAEL GOGINS FOR CSOUND 5
-23 July 2004
+13 March 2005
 
 For more information about Loris, please see http://loris.sourceforge.net.
 
-I have modified the two lorisgens.h and lorisgens.C files to build and run 
+I have created the two lorisgens5.h and lorisgens5.C files to build and run 
 with csound5, and I have placed a prebuilt _loris.dll in the csound5
-directory. This is a Dev-C++ (MinGW) build for Windows with USE_DOUBLE
+directory. This is a MinGW build for Windows with USE_DOUBLE
 defined.
 
 _loris.dll is a Csound plugin opcode, and it is also a Python extension 
@@ -13,12 +13,7 @@ module (along with loris.py, also committed in csound5 along with the
 morphdemo.py demonstration, though to run it you will need source files 
 from Loris CVS on SourceForge).
 
-The Dev-C++ project file has also been committed. You could adapt this
-project file to build Loris without USE_DOUBLE, or to find out how to 
-modify the Loris build system to build for csound 5 on Linux or other platforms.
-Note that sources, libraries, and headers will all likely be in different 
-places on your system.
-
+The Csound 5 build system should build the Loris Python extension and the Loris opcodes if you copy all contents of the Loris CVS directories into the csound5/Opcodes/Loris directory.
 
 KELLY FITZ FOR CSOUND 4
 

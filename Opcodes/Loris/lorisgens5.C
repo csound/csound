@@ -258,13 +258,11 @@ static void accum_samples( Oscillator & oscil, Breakpoint & bp, double * bufbegi
 	    bw = 1.;
 	  else if ( bw < 0. )
 	    bw = 0.;
-	  /*
-	    #ifdef DEBUG_LORISGENS
-	    std::cerr << "initializing oscillator " << std::endl;
-	    std::cerr << "parameters: " << bp.frequency() << "  ";
-	    std::cerr << amp << "  " << bw << std::endl;
-	    #endif
-	  */
+#ifdef DEBUG_LORISGENS
+/* 	    std::cerr << "initializing oscillator " << std::endl; */
+/* 	    std::cerr << "parameters: " << bp.frequency() << "  "; */
+/* 	    std::cerr << amp << "  " << bw << std::endl; */
+#endif
 
 	  //	initialize frequency, amplitude, and bandwidth to 
 	  //	their target values:
@@ -300,18 +298,12 @@ static inline void clear_buffer( double * buf, int nsamps )
 // ---------------------------------------------------------------------------
 //	helper
 //
-static inline void convert_samples( const double * src, float * tgt, int nn )
+static inline void convert_samples( const double * src, MYFLT * tgt, int nn )
 {
   for(int i = 0; i < nn; i++)
     {
-      tgt[i] = src[i] * FL(32767);
+      tgt[i] = src[i] * FL(32767.);
     }
-/*   do  */
-/*     { */
-/*       // 	scale Loris sample amplitudes (+/- 1.0) to  */
-/*       //	csound sample amplitudes (+/- 32k): */
-/*       *tgt++ = (*src++) * 32767.;   */
-/*     } while(--nn); */
 }
 
 #pragma mark -- EnvelopeReader --
@@ -536,7 +528,7 @@ LorisReader::LorisReader( const string & fname, double fadetime, INSDS * owner, 
 #ifdef DEBUG_LORISGENS
 /*       for(Partial_ConstIterator j = _partials[i].begin(); j != _partials[i].end(); ++j) */
 /* 	{ */
-/* 	  fprintf(stderr, "** partial %i freq %f  amp %f  bw %f\n", i, j->frequency(), j->amplitude(), j->bandwidth()); */
+/* 	  fprintf(stderr, "** LorisReader::LorisReader partial %i freq %f  amp %f  bw %f\n", i, j->frequency(), j->amplitude(), j->bandwidth()); */
 /* 	} */
 #endif
     }
@@ -593,9 +585,13 @@ LorisReader::updateEnvelopePoints( double time, double fscale, double ascale, do
       bp.setAmplitude( ascale * p.amplitudeAt( time ) );
       bp.setBandwidth( bwscale * p.bandwidthAt( time ) );
       bp.setPhase( p.phaseAt( time ) );
+#ifdef DEBUG_LORISGENS
+/* 	  fprintf(stderr, "** updateEnvelopePoints time %f partial    %i freq %f  amp %f  bw %f\n", time, i, p.frequencyAt(time), p.amplitudeAt(time), p.bandwidthAt(time)); */
+/* 	  fprintf(stderr, "** updateEnvelopePoints time %f breakpoint %i freq %f  amp %f  bw %f\n", time, i, bp.frequency(), bp.amplitude(), bp.bandwidth()); */
+#endif
 	
       //	update counter:
-      if ( bp.amplitude() > 0 )
+      if ( bp.amplitude() > 0. )
 	++countActive;
     }
 	
@@ -712,7 +708,7 @@ LorisPlayer::LorisPlayer( ENVIRON *csound, LORISPLAY * params ) :
 {
   if ( reader != NULL ) {
     oscils.resize( reader->size() );
-    //std::cerr << "** Oscils size is " << oscils.size() << std::endl;
+    std::cerr << "** LorisPlayer contains " << oscils.size() << " oscillators" << std::endl;
   } else
     std::cerr << "** Could not find lorisplay source with index " << (int)*(params->readerIdx) << std::endl;
 }
@@ -758,6 +754,10 @@ int lorisplay( ENVIRON *csound, LORISPLAY * p )
   for( size_t i = 0; i < player.oscils.size(); ++i )  
     {
       const Breakpoint & bp = player.reader->valueAt(i);
+#ifdef DEBUG_LORISGENS
+/*   fprintf(stderr, "oscil amp: %f  bp.freq: %f  bp.amp: %f  bp.bw: %f\n", */
+/* 	  player.oscils[i].amplitude(), bp.frequency(), bp.amplitude(), bp.bandwidth()); */
+#endif
       Breakpoint modifiedBp(  (*p->freqenv) * bp.frequency(),
 			      (*p->ampenv) * bp.amplitude(),
 			      (*p->bwenv) * bp.bandwidth(),
@@ -1166,24 +1166,6 @@ extern "C"
 
   PUBLIC OENTRY *opcode_init(ENVIRON *csound)
   {
-    //	seems like I ought to be able to take this
-    //	opportunity to initialize the global sample
-    //	rate and k-rate:
-    //
-    //	This would be a good place to do this
-    //	kind of initialization, but sadly, Csound
-    //	calls this function when it loads the module,
-    //	and _before_ it has read the orchestra, so
-    //	the sample and control rates have not been
-    //	set yet.
-    /*
-      Lorisgens_Srate = csound->GetSr( csound );
-      Lorisgens_Krate = csound->GetKr( csound );
-      Lorisgens_Ksamps = csound->GetKsmps( csound );
-      std::cerr << "*** sample rate is " << Lorisgens_Srate << std::endl;
-      std::cerr << "*** control rate is " << Lorisgens_Krate << std::endl;
-    */
-		
     return lorisOentry;
   }
 };
