@@ -28,13 +28,13 @@
 
 /* loosely based on code of Michael Clarke, University of Huddersfield */
 
-static   int    newpulse(FOFS *, OVRLAP *, MYFLT *, MYFLT *, MYFLT *);
+static   int    newpulse(ENVIRON *, FOFS *, OVRLAP *, MYFLT *, MYFLT *, MYFLT *);
 
-static int fofset0(FOFS *p, int flag)
+static int fofset0(ENVIRON *csound, FOFS *p, int flag)
 {
     int skip = (*p->iskip != FL(0.0) && p->auxch.auxp != 0);
-    if ((p->ftp1 = ftfind(p->h.insdshead->csound, p->ifna)) != NULL &&
-        (p->ftp2 = ftfind(p->h.insdshead->csound, p->ifnb)) != NULL) {
+    if ((p->ftp1 = ftfind(csound, p->ifna)) != NULL &&
+        (p->ftp2 = ftfind(csound, p->ifnb)) != NULL) {
       OVRLAP *ovp, *nxtovp;
       long   olaps;
       p->durtogo = (long)(*p->itotdur * esr);
@@ -76,12 +76,12 @@ static int fofset0(FOFS *p, int flag)
 
 int fofset(ENVIRON *csound, FOFS        *p)
 {
-    return fofset0(p, 1);
+    return fofset0(csound, p, 1);
 }
 
 int fofset2(ENVIRON *csound, FOFS       *p)
 {
-    return fofset0(p, 0);
+    return fofset0(csound, p, 0);
 }
 
 int fof(ENVIRON *csound, FOFS *p)
@@ -109,7 +109,7 @@ int fof(ENVIRON *csound, FOFS *p)
         if ((ovp = p->basovrlap.nxtfree) == NULL) {
           return perferror(Str(X_267,"FOF needs more overlaps"));
         }
-        if (newpulse(p, ovp, amp, fund, form)) {   /* init new fof */
+        if (newpulse(csound, p, ovp, amp, fund, form)) {   /* init new fof */
           ovp->nxtact = p->basovrlap.nxtact;     /* & link into  */
           p->basovrlap.nxtact = ovp;             /*   actlist    */
           p->basovrlap.nxtfree = ovp->nxtfree;
@@ -173,7 +173,8 @@ int fof(ENVIRON *csound, FOFS *p)
     return OK;
 }
 
-static int newpulse(FOFS *p, OVRLAP *ovp, MYFLT *amp, MYFLT *fund, MYFLT *form)
+static int newpulse(ENVIRON *csound,
+                    FOFS *p, OVRLAP *ovp, MYFLT *amp, MYFLT *fund, MYFLT *form)
 {
     MYFLT   octamp = *amp, oct;
     long   rismps, newexp = 0;

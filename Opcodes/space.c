@@ -41,7 +41,7 @@ int spaceset(ENVIRON *csound, SPACE *p)
    FUNC *ftp=NULL;
 
    if (*p->ifn > 0) {
-     if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) == NULL)
+     if ((ftp = ftfind(csound, p->ifn)) == NULL)
        return NOTOK;
      p->ftp = ftp;
    }
@@ -204,7 +204,7 @@ int spdistset(ENVIRON *csound, SPDIST *p)
    FUNC *ftp;
 
    if (*p->ifn > 0) {
-     if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) == NULL)
+     if ((ftp = ftfind(csound, p->ifn)) == NULL)
        return NOTOK;
      p->ftp = ftp;
    }

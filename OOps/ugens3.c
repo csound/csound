@@ -39,7 +39,7 @@ int foscset(ENVIRON *csound, FOSC *p)
 {
     FUNC   *ftp;
 
-    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) != NULL) {
+    if ((ftp = ftfind(csound, p->ifn)) != NULL) {
       p->ftp = ftp;
       if (*p->iphs >= 0)
         p->cphs = p->mphs = (long)(*p->iphs * FMAXLEN);
@@ -199,7 +199,7 @@ int losset(ENVIRON *csound, LOSC *p)
     extern FUNC *ftnp2find(ENVIRON *, MYFLT*);/* permit non-power-of-2 ftable (no masks) */
     FUNC   *ftp;
 
-    if ((ftp = ftnp2find(p->h.insdshead->csound,p->ifn)) != NULL) {
+    if ((ftp = ftnp2find(csound,p->ifn)) != NULL) {
       p->ftp = ftp;
       if (*p->ibas != FL(0.0))
         p->cpscvt = ftp->cvtbas / *p->ibas;

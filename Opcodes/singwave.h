@@ -147,7 +147,7 @@ typedef struct VOICF {
 
 void make_VoicForm(VOICF*);
 void VoicForm_clear(VOICF*);
-void VoicForm_setPhoneme(VOICF*, int i, MYFLT s);
+void VoicForm_setPhoneme(ENVIRON *,VOICF*, int i, MYFLT s);
 void VoicForm_setVoicedUnVoiced(VOICF*, MYFLT vGain, MYFLT nGain);
 void VoicForm_noteOn(VOICF*, MYFLT freq, MYFLT amp);
 void VoicForm_noteOff(VOICF*);

@@ -28,14 +28,14 @@
 
 /* FOG generator */
 
-static int newpulse(FOGS *, OVERLAP *, MYFLT *, MYFLT *, MYFLT *);
+static int newpulse(ENVIRON *, FOGS *, OVERLAP *, MYFLT *, MYFLT *, MYFLT *);
 
 int fogset(ENVIRON *csound, FOGS *p)
 {
     /* legato test, not sure if the last bit (auxch) is correct? */
     int skip = (*p->iskip != FL(0.0) && p->auxch.auxp != 0);
-    if ((p->ftp1 = ftfind(p->h.insdshead->csound, p->ifna)) != NULL &&
-        (p->ftp2 = ftfind(p->h.insdshead->csound, p->ifnb)) != NULL) {
+    if ((p->ftp1 = ftfind(csound, p->ifna)) != NULL &&
+        (p->ftp2 = ftfind(csound, p->ifnb)) != NULL) {
       OVERLAP *ovp, *nxtovp;
       long   olaps;
       p->fogcvt = FMAXLEN/(p->ftp1)->flen; /*JMC for FOG*/
@@ -101,7 +101,7 @@ int fog(ENVIRON *csound, FOGS *p)
         if ((ovp = p->basovrlap.nxtfree) == NULL) {
           return perferror(Str(X_267,"FOF needs more overlaps"));
         }
-        if (newpulse(p, ovp, amp, fund, ptch)) {         /* init new fof */
+        if (newpulse(csound, p, ovp, amp, fund, ptch)) {         /* init new fof */
           ovp->nxtact = p->basovrlap.nxtact;           /* & link into  */
           p->basovrlap.nxtact = ovp;                   /*   actlist    */
           p->basovrlap.nxtfree = ovp->nxtfree;
@@ -159,7 +159,7 @@ int fog(ENVIRON *csound, FOGS *p)
     return OK;
 }
 
-static int newpulse(FOGS *p, OVERLAP *ovp, MYFLT  *amp,
+static int newpulse(ENVIRON *csound, FOGS *p, OVERLAP *ovp, MYFLT  *amp,
                     MYFLT *fund, MYFLT *ptch)
 {
     MYFLT       octamp = *amp, oct;

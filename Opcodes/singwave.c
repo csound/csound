@@ -241,7 +241,7 @@ char phonemes[32][4] =
 #define VoicForm_setFormantAll(p,w,f,r,g) \
         FormSwep_setTargets(& p->filters[w],f,r,g)
 
-void VoicForm_setPhoneme(VOICF *p, int i, MYFLT sc)
+void VoicForm_setPhoneme(ENVIRON *csound, VOICF *p, int i, MYFLT sc)
 {
     if (i>16) i = i%16;
     VoicForm_setFormantAll(p, 0,sc*phonParams[i][0][0], phonParams[i][0][1],
@@ -278,6 +278,22 @@ void voicprint(ENVIRON *csound, VOICF *p)
 }
 
 static int step = 0;
+static void make_FormSwep(FormSwep *p)
+{
+    p->poleCoeffs[0] = p->poleCoeffs[1] = FL(0.0);
+    p->gain          = FL(1.0);
+    p->freq          = p->reson         = FL(0.0);
+    p->currentGain   = FL(1.0);
+    p->currentFreq   = p->currentReson  = FL(0.0);
+    p->targetGain    = FL(1.0);
+    p->targetFreq    = p->targetReson   = FL(0.0);
+    p->deltaGain     = FL(0.0);
+    p->deltaFreq     = p->deltaReson    = FL(0.0);
+    p->sweepState    = FL(0.0);
+    p->sweepRate     = FL(0.002);
+    p->dirty         = 0;
+    p->outputs[0]    = p->outputs[1] = FL(0.0);
+}
 
 int voicformset(ENVIRON *csound, VOICF *p)
 {
@@ -311,7 +327,7 @@ int voicformset(ENVIRON *csound, VOICF *p)
 
     p->oldform = *p->formant;
     p->ph = (int)(FL(0.5)+ *p->phoneme);
-    VoicForm_setPhoneme(p, p->ph, p->oldform);
+    VoicForm_setPhoneme(csound, p, p->ph, p->oldform);
                                 /* Clear */
     /*     OnePole_clear(&p->onepole); */ /* Included in make */
     FormSwep_clear(p->filters[0]);
@@ -353,7 +369,7 @@ int voicform(ENVIRON *csound, VOICF *p)
       p->oldform = *p->formant;
       p->ph = (int)(0.5 + *p->phoneme);
       printf(Str(X_461,"Setting Phoneme: %f %d\n"), p->ph, p->oldform);
-      VoicForm_setPhoneme(p,(int)*p->phoneme, p->oldform);
+      VoicForm_setPhoneme(csound, p,(int)*p->phoneme, p->oldform);
     }
 /*     voicprint(csound, p); */
 

@@ -40,7 +40,7 @@ int dconvset(ENVIRON *csound, DCONV *p)
     FUNC *ftp;
 
     p->len = (int)*p->isize;
-    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) != NULL) {         /* find table */
+    if ((ftp = ftfind(csound, p->ifn)) != NULL) {         /* find table */
       p->ftp = ftp;
       if ((unsigned)ftp->flen < p->len)
         p->len = ftp->flen; /* correct len if flen shorter */
@@ -411,14 +411,14 @@ int ftmorfset(ENVIRON *csound, FTMORF *p)
     int j = 0;
     unsigned int len;
 
-    if ((ftp = ftfind(p->h.insdshead->csound, p->iresfn)) != NULL) {    /* make sure resfn exists */
+    if ((ftp = ftfind(csound, p->iresfn)) != NULL) {    /* make sure resfn exists */
       p->resfn = ftp, len = p->resfn->flen;     /* and set it up */
     }
     else {
       return initerror(Str(X_1687,"iresfn for ftmorf does not exist"));
     }
 
-    if ((ftp = ftfind(p->h.insdshead->csound, p->iftfn)) != NULL) {     /* make sure ftfn exists */
+    if ((ftp = ftfind(csound, p->iftfn)) != NULL) {     /* make sure ftfn exists */
       p->ftfn = ftp;                            /* and set it up */
     }
     else {
@@ -426,7 +426,7 @@ int ftmorfset(ENVIRON *csound, FTMORF *p)
     }
 
     do {                /* make sure tables in ftfn exist and are right size*/
-      if ((ftp = ftfind(p->h.insdshead->csound, p->ftfn->ftable + j)) != NULL) {
+      if ((ftp = ftfind(csound, p->ftfn->ftable + j)) != NULL) {
         if ((unsigned int)ftp->flen != len) {
           return initerror(Str(X_1689,"table in iftfn for ftmorf wrong size"));
         }
@@ -453,8 +453,8 @@ int ftmorf(ENVIRON *csound, FTMORF *p)
     f = *p->kftndx - i;
     if (p->ftndx != *p->kftndx) {
       p->ftndx = *p->kftndx;
-      ftp1 = ftfind(p->h.insdshead->csound, p->ftfn->ftable + i++);
-      ftp2 = ftfind(p->h.insdshead->csound, p->ftfn->ftable + i--);
+      ftp1 = ftfind(csound, p->ftfn->ftable + i++);
+      ftp2 = ftfind(csound, p->ftfn->ftable + i--);
       do {
         *(p->resfn->ftable + j) = (*(ftp1->ftable + j) * (1-f)) +
           (*(ftp2->ftable + j) * f);

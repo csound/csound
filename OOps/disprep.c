@@ -332,7 +332,7 @@ int tempeset(ENVIRON *csound, TEMPEST *p)
       return initerror(Str(X_853,"illegal ihtim"));
     if (*p->istartempo <= FL(0.0))
       return initerror(Str(X_884,"illegal startempo"));
-    ftp = ftfind(p->h.insdshead->csound, p->ifn);
+    ftp = ftfind(csound, p->ifn);
     if (ftp != NULL && *ftp->ftable == FL(0.0))
       return initerror(Str(X_835,"ifn table begins with zero"));
     if (ftp==NULL) return NOTOK;

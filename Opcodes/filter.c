@@ -170,7 +170,7 @@ fcomplex Csqrt(fcomplex);
 fcomplex RCmul(double, fcomplex);
 
 /* Filter initialization routine */
-int ifilter(FILTER* p)
+int ifilter(ENVIRON *csound, FILTER* p)
 {
     int i;
 
@@ -251,7 +251,7 @@ int izfilter(ENVIRON *csound, ZFILTER *p)
       a[i] = Complex(coeffs[dim-i-1],0.0);
 
     /* NRIC root finding routine, a[0..M] roots[1..M] */
-    zroots(p->h.insdshead->csound, a, dim,  roots-1/*POLEISH*/);
+    zroots(csound, a, dim,  roots-1/*POLEISH*/);
 
     /* Sort roots into descending order of magnitudes */
     sortRoots(roots, dim);
@@ -267,7 +267,7 @@ int izfilter(ENVIRON *csound, ZFILTER *p)
  *                      - a(1)*y(n-1) - ... - a(na)*y(n-na)
  *
  */
-int afilter(FILTER* p)
+int afilter(ENVIRON *csound, FILTER* p)
 {
     int n,i;
 
@@ -313,7 +313,7 @@ int afilter(FILTER* p)
  *                      - a(1)*y(k-1) - ... - a(na)*y(k-na)
  *
  */
-int kfilter(FILTER* p)
+int kfilter(ENVIRON *csound, FILTER* p)
 {
     int i;
 
@@ -360,7 +360,7 @@ int kfilter(FILTER* p)
  * The rest of the filter is the same as filter
  *
  */
-int azfilter(ZFILTER* p)
+int azfilter(ENVIRON *csound, ZFILTER* p)
 {
     int n,i;
 

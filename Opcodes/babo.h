@@ -165,7 +165,7 @@ typedef struct
  * Public prototypes (used by entry.c)
  */
 
-int baboset(void *p);
-int babo(void *p);
+int baboset(ENVIRON*, void *p);
+int babo(ENVIRON*, void *p);
 
 #endif /* !defined(__babo_h__) */
