@@ -15,8 +15,6 @@
 #include "AEffEditor.hpp"
 #endif
 
-#include <stdio.h>
-
 //---------------------------------------------------------------------------------------------
 // 'canDo' strings. note other 'canDos' can be evaluated by calling the according
 // function, for instance if getSampleRate returns 0, you
@@ -112,7 +110,6 @@ AudioEffectX::AudioEffectX (audioMasterCallback audioMaster, long numPrograms, l
 AudioEffectX::~AudioEffectX ()
 {
 }
-
 
 //-------------------------------------------------------------------------------------------------------
 long AudioEffectX::dispatcher (long opCode, long index, long value, void *ptr, float opt)

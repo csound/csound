@@ -17,7 +17,7 @@
 	#pragma options align=mac68k
 #elif defined __BORLANDC__
 	#pragma -a8
-#elif (defined(_MSC_VER) || defined(__FLAT__)) && !defined(__GNUC__)
+#elif defined(WIN32) || defined(__FLAT__)
 	#pragma pack(push)
 	#pragma pack(8)
 #endif
@@ -995,7 +995,7 @@ enum
 
 #if PRAGMA_STRUCT_ALIGN || __MWERKS__
 	#pragma options align=reset
-#elif (defined(_MSC_VER) || defined(__FLAT__)) && !defined(__GNUC__)
+#elif defined(WIN32) || defined(__FLAT__)
 	#pragma pack(pop)
 #elif defined __BORLANDC__
 	#pragma -a-

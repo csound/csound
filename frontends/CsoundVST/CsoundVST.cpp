@@ -159,6 +159,7 @@ void CsoundVST::performanceThreadRoutine()
 		reset();
 		if(getIsVst())
 		{
+		    csound::System::inform("Python VST performance.\n");
 			getCppSound()->setExternalMidiEnabled(true);
 			getCppSound()->setExternalMidiReadCallback(&CsoundVST::midiRead);
 		}
@@ -171,15 +172,18 @@ void CsoundVST::performanceThreadRoutine()
 		reset();
 		if(getIsVst())
 		{
+		    csound::System::inform("Classic VST performance.\n");
 			getCppSound()->setExternalMidiEnabled(true);
 			getCppSound()->setExternalMidiReadCallback(&CsoundVST::midiRead);
 			if(getCppSound()->compile())
 			{
-				reset();
+			   csound::System::inform("Csound compilation failed.\n");
+			   reset();
 			}
 		}
 		else
 		{
+		    csound::System::inform("Classic performance.\n");
 			cppSound->perform();
 		}     
 	}

@@ -113,7 +113,7 @@ int CppSound::compile(int argc, char **argv)
 	message("BEGAN CppSound::compile(%d, %x)...\n", argc, argv);
 	int returnValue = csoundCompile(csound, argc, argv);
 	spoutSize = ksmps * nchnls * sizeof(MYFLT);
-	if(returnValue == -1)
+	if(returnValue)
 	{
 	    isCompiled = false;
 	    go = false;
@@ -129,15 +129,18 @@ int CppSound::compile(int argc, char **argv)
 
 int CppSound::compile()
 {
+	message("BEGAN CppSound::compile()...\n");
 	int argc = 0;
 	char **argv = 0;
 	if(getCommand().length() <= 0)
 	{
+	   message("No Csound command.\n");
 	   return -1;
 	}
 	scatterArgs(getCommand(), &argc, &argv);
 	int returnValue = compile(argc, argv);
 	deleteArgs(argc, argv);
+	message("ENDED CppSound::compile.\n");
 	return returnValue;
 }
 
