@@ -25,8 +25,8 @@
 #include "ugens2.h"
 #include <math.h>
 
-/* Macro form of Istvan's speedup */
-#define FLOOR(x) (x >= FL(0.0) ? (long) x : (long) ((double) x - 0.99999999))
+/* Macro form of Istvan's speedup ; constant should be 3fefffffffffffff */
+#define FLOOR(x) (x >= FL(0.0) ? (long)x : (long)((double)x - 0.999999999999999))
 
 int phsset(ENVIRON *csound, PHSOR *p)
 {
