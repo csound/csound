@@ -692,7 +692,7 @@ ustubProgramEnvironment.Program('scot',
     ['util1/scot/scot_main.c'])
 ustubProgramEnvironment.Program('scsort',  
     ['util1/sortex/smain.c'])
-ustubProgramEnvironment.Program('sdif2ad',  
+sdif2ad = ustubProgramEnvironment.Program('sdif2ad',  
     Split('''SDIF/sdif2adsyn.c 
     SDIF/sdif.c 
     SDIF/sdif-mem.c'''))
@@ -792,6 +792,7 @@ if (commonEnvironment['buildCsoundVST'] == 1) and boostFound and fltkFound:
 	
     copyPython = commonEnvironment.Install(['.'], ['frontends/CsoundVST/CsoundVST.py'])
     Depends(copyPython, csoundvst)
+    Depends(copyPython, sdif2ad)
 
 if commonEnvironment['generateTags'] == 1 and (getPlatform() == 'linux' or getPlatform() == 'cygwin'):
     print "Calling TAGS"
