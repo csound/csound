@@ -1,3 +1,7 @@
+2004-01-29  John ffitch  <jpff@codemist.co.uk>
+
+	* Engine/insert.c (ingoto): Check that we are in i-rate case
+
 2004-01-13  John ffitch  <jpff@cs.bath.ac.uk>
 
 	* Opcodes/sfont.c: casts in many debug statements

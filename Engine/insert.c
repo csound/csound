@@ -825,7 +825,8 @@ int kcgoto(CGOTO *p)
 /* an 'if-then' variant of 'if-goto' */
 int ingoto(CGOTO *p)
 {
-    if (!*p->cond)
+    /* Make sure we have an i-time conditional */
+    if (p->h.optext->t.intype == 'b' && !*p->cond)
       pds = p->lblblk->prvp;
     return OK;
 }
