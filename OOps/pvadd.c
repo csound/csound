@@ -133,10 +133,10 @@ int pvaddset(ENVIRON *csound, PVADD *p)
     }
     p->mems=memsize;
 
-    if ((p->asr = pvh->samplingRate) != esr &&
+    if ((p->asr = pvh->samplingRate) != csound->esr &&
         (O.msglevel & WARNMSG)) { /* & chk the data */
       printf(Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
-             pvfilnam, p->asr, esr);
+             pvfilnam, p->asr, csound->esr);
     }
     if (pvh->dataFormat != PVMYFLT) {
       sprintf(errmsg,Str("unsupported PV data format %ld in %s"),
@@ -160,7 +160,7 @@ int pvaddset(ENVIRON *csound, PVADD *p)
     }
 
     frInc    = pvh->frameIncr;
-    p->frPrtim = esr/((MYFLT)frInc);
+    p->frPrtim = csound->esr/((MYFLT)frInc);
     /* factor by which to mulitply 'real' time index to get frame index */
 
     size = pvfrsiz(p);
@@ -196,7 +196,7 @@ int pvadd(ENVIRON *csound, PVADD *p)
     MYFLT  *ar, *ftab;
     MYFLT frIndx;
     int    size = pvfrsiz(p);
-    int i, binincr=(int)*p->ibinincr,  nsmps=ksmps;
+    int i, binincr=(int)*p->ibinincr,  nsmps=csound->ksmps;
     MYFLT amp, v1, fract, *oscphase;
     long phase, incr;
     FUNC *ftp;
@@ -235,7 +235,7 @@ int pvadd(ENVIRON *csound, PVADD *p)
     oscphase = p->oscphase;
     for (i = (int)*p->ibinoffset; i < p->maxbin; i+=binincr) {
       lobits = ftp->lobits;
-      nsmps = ksmps;
+      nsmps = csound->ksmps;
       ar = p->rslt;
       phase = (long)*oscphase;
       if (p->buf[i*2+1] == 0 || p->buf[i*2+i] == p->asr*.5) {
@@ -260,7 +260,4 @@ int pvadd(ENVIRON *csound, PVADD *p)
     }
     return OK;
 }
-
-
-
 

@@ -67,7 +67,7 @@ int release(ENVIRON *csound, REL *p)
 int xtratim(ENVIRON *csound, XTRADUR *p)
 {
     int *xtra = &(p->h.insdshead->xtratim);
-    int tim = (int) (*p->extradur * ekr);
+    int tim = (int) (*p->extradur * csound->ekr);
     if (*xtra < tim)  /* gab-a5 revised */
       *xtra = tim;
     return OK;
@@ -76,7 +76,7 @@ int xtratim(ENVIRON *csound, XTRADUR *p)
 int mclock_set(ENVIRON *csound, MCLOCK *p)
 {
     if (!MGLOB(MIDIoutDONE)) openMIDIout();
-    p->period= ekr / *p->freq;
+    p->period= csound->ekr / *p->freq;
     p->clock_tics = p->period;
     p->beginning_flag=TRUE;
     return OK;

@@ -95,7 +95,7 @@ int oscils(ENVIRON *csound, OSCILS *p)
     /* copy object data to local variables */
     ar = p->ar;
 
-    nn = ksmps;
+    nn = csound->ksmps;
     if (p->use_double) {            /* use doubles */
       xd = p->xd; cd = p->cd; vd = p->vd;
       while (nn--) {
@@ -147,7 +147,7 @@ int lphasor(ENVIRON *csound, LPHASOR *p)
     loop_mode = p->loop_mode;
     trns = (double) *xtrns;
 
-    nn = ksmps;
+    nn = csound->ksmps;
     while (nn--) {
       if (XINARG1) trns = (double) *(xtrns++);
       *(ar++) = (MYFLT) phs;
@@ -244,7 +244,7 @@ int tablexkt(ENVIRON *csound, TABLEXKT *p)
     }
     onedpi_d = 1.0 / PI;
 
-    nn = ksmps;
+    nn = csound->ksmps;
     while (nn--) {
       ndx = (double) *xndx;
       if (XINARG1) xndx++;

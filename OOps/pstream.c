@@ -173,7 +173,7 @@ static void adsyn_frame(PVADS *p)
     MYFLT *a,*x,*y;
     MYFLT *amps,*freqs,*lastamps;
     MYFLT ffac = *p->kfmod;
-    MYFLT nyquist = esr * FL(0.5);
+    MYFLT nyquist = cenviron.esr * FL(0.5);
     /* we add to outbuf, so clear it first*/
     memset(p->outbuf.auxp,0,p->overlap * sizeof(MYFLT));
 
@@ -239,7 +239,7 @@ int pvadsyn(ENVIRON *csound, PVADS *p)
     if (p->outbuf.auxp==NULL) {
       csound->Die(csound, Str("pvsynth: Not initialised.\n"));
     }
-    for (i=0;i < ksmps;i++)
+    for (i=0;i < csound->ksmps;i++)
       aout[i] = adsyn_tick(p);
     return OK;
 }
@@ -343,7 +343,7 @@ int pvsfreadset(ENVIRON *csound, PVSFREAD *p)
     /* special case if only one frame - it is an impulse response */
     if (p->nframes == 1)
       csound->Die(csound, Str("pvsfread: file has only one frame (= impulse response).\n"));
-    if (p->overlap < ksmps)
+    if (p->overlap < csound->ksmps)
       csound->Die(csound, Str("pvsfread: analysis frame overlap must be >= ksmps\n"));
     p->blockalign = (p->fftsize+2) * p->chans;
     if ((*p->ichan) >= p->chans)
@@ -423,7 +423,7 @@ int pvsfread(ENVIRON *csound, PVSFREAD *p)
       p->fout->framecount++;
       p->lastframe = p->fout->framecount;
     }
-    p->ptr += ksmps;
+    p->ptr += csound->ksmps;
 
 
     return OK;
@@ -822,7 +822,7 @@ static int pvx_loadfile(const char *fname,PVSFREAD *p,MEMFIL **mfp)
           break;                /* read error, but may still have something to use */
         /* scale amps to Csound range, to fit fsig */
         for (j=0;j < framelen; j+=2) {
-          pFrame[j] *= (float)e0dbfs;
+          pFrame[j] *= (float) cenviron.e0dbfs;
         }
 #ifdef _DEBUG
         assert(pFrame[1] < 200.f);
@@ -846,10 +846,10 @@ static int pvx_loadfile(const char *fname,PVSFREAD *p,MEMFIL **mfp)
     pvoc_closefile(pvx_id);
 
 
-    if ((p->arate = (MYFLT) fmt.nSamplesPerSec) != esr &&
+    if ((p->arate = (MYFLT) fmt.nSamplesPerSec) != cenviron.esr &&
         (O.msglevel & WARNMSG)) { /* & chk the data */
       printf(Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
-              fname, p->arate, esr);
+              fname, p->arate, cenviron.esr);
     }
     p->fftsize  = pvx_fftsize;
     p->winsize  = pvx_winsize;
@@ -857,7 +857,7 @@ static int pvx_loadfile(const char *fname,PVSFREAD *p,MEMFIL **mfp)
     p->overlap  = pvdata.dwOverlap;
     p->chans    = fmt.nChannels;
     p->nframes = (unsigned) totalframes;
-    p->arate    = esr / (MYFLT) p->overlap;
+    p->arate    = cenviron.esr / (MYFLT) p->overlap;
     wtype = (pv_wtype) pvdata.wWindowType;
     switch (wtype) {
     case PVOC_DEFAULT:
