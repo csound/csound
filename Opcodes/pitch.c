@@ -1698,7 +1698,7 @@ int Foscaa(XOSC *p)
 /* ********************************************************************** */
 /* *************** SENSING ********************************************** */
 /* ********************************************************************** */
-#ifdef __unix
+#if defined(__unix)
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
@@ -1712,7 +1712,7 @@ int Foscaa(XOSC *p)
 #include <unistd.h>
 #endif
 
-#if !defined(WIN32)
+#ifdef HAVE_TERMIOS_H
 struct termios tty;
 #endif
 
@@ -1773,7 +1773,7 @@ int ksense(KSENSE *p)
  # else
 int ksense(KSENSE *p)
 {
-        *p->ans = getChar();
+        *p->ans = getchar();
         return OK;
 }
 # endif
