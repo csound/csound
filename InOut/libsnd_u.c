@@ -230,13 +230,11 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
                    sfname);
       goto errtn;
     }
-    infile = sf_open_fd(sinfd, SFM_READ, &sfinfo, SF_TRUE);
-    p->fdch.fd = infile;
-    p->nchanls = sfinfo.channels;
-    sfname = retfilnam;                         /* & record fullpath filnam */
+    /* IV - Feb 26 2005: should initialise sfinfo structure */
+    memset(&sfinfo, 0, sizeof(SF_INFO));
     /* convert spec'd format code */
     switch ((int) (*p->iformat + FL(0.5))) {
-      case 0: p->format = sf2format(sfinfo.format); break;
+      case 0: p->format = (short) -1; break;
       case 1: p->format = AE_CHAR; break;
       case 2: p->format = AE_ALAW; break;
       case 3: p->format = AE_ULAW; break;
@@ -248,6 +246,26 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
                die(errmsg);
                return NULL;
     }
+    if (p->format != (short) -1)            /* store default sample format, */
+      sfinfo.format = (int) format2sf(p->format) | SF_FORMAT_RAW;
+    if ((int) p->OUTOCOUNT > 0)             /* number of channels, */
+      sfinfo.channels = (int) p->OUTOCOUNT;
+    else
+      sfinfo.channels = 1;
+    if (p->analonly)                        /* and sample rate */
+      sfinfo.samplerate = (int) p->sr;
+    else
+      sfinfo.samplerate = (int) (esr + FL(0.5));
+    if (sfinfo.samplerate < 1)
+      sfinfo.samplerate = 44100;
+    infile = sf_open_fd(sinfd, SFM_READ, &sfinfo, SF_TRUE);
+    if (infile == NULL)
+      dies(Str("soundin: failed to open '%s'"), sfname);
+    if (p->format == (short) -1)
+      p->format = sf2format(sfinfo.format);
+    p->fdch.fd = infile;
+    p->nchanls = sfinfo.channels;
+    sfname = retfilnam;                         /* & record fullpath filnam */
     p->endfile = 0;
     p->filetyp = 0;         /* initially non-typed for readheader */
     curr_func_sr = (MYFLT)sfinfo.samplerate;

@@ -1,3 +1,9 @@
+2005-02-26	Istvan Varga	<istvan@csounds.com>
+	* InOut/libsnd_u.c:
+	  fixed bug in sndgetset(): sfinfo structure was uninitialised
+	* InOut/midirecv.c:
+	  fixed bug in reading MIDI device and file at the same time
+
 2005-02-25	Istvan Varga	<istvan@csounds.com>
 	* Engine/entry2.c:
 	  added miditempo opcode (returns current tempo of MIDI file
