@@ -31,7 +31,7 @@
 #include <fcntl.h>
 
 #ifdef RTAUDIO
-extern  int     (*rtrecord)(char *, int);
+extern  int     (*rtrecord)(void *, int);
 extern  void    (*rtplay)(void *, int);
 extern  void    (*rtclose)(void);
 extern  void    (*recopen)(int, int, float, int);
@@ -63,14 +63,15 @@ extern FILE* pin, *pout;
 #  define _pclose pclose
 # endif
 #endif
-extern void (*spinrecv)(void), (*spoutran)(void), (*nzerotran)(long);
+extern  void    (*spinrecv)(void), (*spoutran)(void), (*nzerotran)(long);
 static  int     (*audrecv)(void *, int);
 static  void    (*audtran)(void *, int);
 static  SOUNDIN *p;    /* to be passed via sreadin() */
+int sreadin(SNDFILE*, MYFLT *, int, SOUNDIN *);
 
-extern char *getstrformat(int format);
-extern void sndwrterr(unsigned, unsigned);
-extern unsigned long   nframes;
+extern  char    *getstrformat(int format);
+extern  void    sndwrterr(unsigned, unsigned);
+extern  unsigned long   nframes;
 
 #ifdef  USE_DOUBLE
 #define sf_write_MYFLT	sf_write_double
@@ -96,7 +97,7 @@ static int type2sf(int type)
 
 static int sf2type(format)
 {
-    printf("sf2type(%x, %x)\n",format, format&SF_FORMAT_TYPEMASK);
+/*     printf("sf2type(%x, %x)\n",format, format&SF_FORMAT_TYPEMASK); */
     switch (format&SF_FORMAT_TYPEMASK) {
     case SF_FORMAT_WAV:
       return TYP_WAV;
@@ -117,7 +118,7 @@ static int sf2type(format)
 
 static int format2sf(int format)
 {
-    printf("format2sf(%d)\n",format);
+/*     printf("format2sf(%d)\n",format); */
     switch (format) {
     case AE_CHAR:
       return SF_FORMAT_PCM_S8;
@@ -147,7 +148,7 @@ static int format2sf(int format)
 
 static int sf2format(int type)
 {
-    printf("sf2format(%x,%x)\n",type,type&SF_FORMAT_SUBMASK);
+/*     printf("sf2format(%x,%x)\n",type,type&SF_FORMAT_SUBMASK); */
     switch (type&SF_FORMAT_SUBMASK) {
     case SF_FORMAT_PCM_S8:
       return AE_CHAR;
@@ -178,7 +179,7 @@ static int sf2format(int type)
 
 static short sfsampsize(int type)
 {
-    printf("sfsampsize(%x,%x)\n",type, type&SF_FORMAT_SUBMASK);
+/*     printf("sfsampsize(%x,%x)\n",type, type&SF_FORMAT_SUBMASK); */
     switch (type&SF_FORMAT_SUBMASK) {
     case SF_FORMAT_PCM_S8:
       return 1;
@@ -274,7 +275,7 @@ void spoutsf(void)
     }
 }
 
-void zerosf(int len)
+void zerosf(long len)
 {
     int   n, smpsrem, clearcnt = 0;
 
@@ -334,9 +335,9 @@ static void writesf(void *outbuf, int nbytes)
     }
 }
 
-static void readsf(void *inbuf, int nbytes)
+static int readsf(void *inbuf, int nbytes)
 {
-    sf_read_MYFLT(infile, inbuf, nbytes/nchnls);
+    return sf_read_MYFLT(infile, inbuf, nbytes/nchnls);
 }
 
 int SAsndgetset(
@@ -368,14 +369,14 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
                                 /* called from sndinset, SAsndgetset, & gen01 */
                                 /* Return -1 on failure */
 {
-    int    n;
+    int     n;
     long    hdrsize = 0, framesinbuf, skipframes;
     char    *sfname, soundiname[128];
     int     sinfd;
     SNDFILE *infile;
     SF_INFO sfinfo;
     long    filno;
-    long sndinbufsiz = SNDINBUFSIZ;
+    long    sndinbufsiz = SNDINBUFSIZ;
 
     if ((n = p->OUTOCOUNT) && n > 24) { /* if appl,chkchnls */
       sprintf(errmsg,Str(X_1209,"soundin: illegal no of receiving channels"));
@@ -400,9 +401,10 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
                    sfname);
       goto errtn;
     }
-    infile = sf_open_fd(sinfd, SFM_READ, &sfinfo, SF_TRUE); 
+    infile = sf_open_fd(sinfd, SFM_READ, &sfinfo, SF_TRUE);
+    sf_command(infile, SFC_SET_NORM_FLOAT, NULL, SF_FALSE);
     p->fdch.fd = infile;
-    printf("*** sfinfo: frames=%d/%d\tsamplerate=%d\tchannels=%d\n"
+    printf("*** sfinfo: frames=%lld\tsamplerate=%d\tchannels=%d\n"
            "***       : format=%d\tsections=%d\tseekable=%d\n"
            "***       : infile=%p\n",
            sfinfo.frames, sfinfo.samplerate, sfinfo.channels,
@@ -503,7 +505,6 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
                  p->nchanls == 2 ? Str(X_619,"both") : Str(X_591,"all"));
         else printf(Str(X_655,"channel %d\n"), p->channel);
       }
-      p->bytrev = NULL;
 #ifdef NeXT
       if (!p->filetyp)
         printf(Str(X_1095,"opening NeXT infile %s\n"), sfname);
@@ -514,7 +515,7 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
              sfname);
       if (p->sampframsiz <= 0)                       /* must know framsiz */
         die(Str(X_882,"illegal sampframsiz"));
-      p->audrem = sfinfo.frames * sfinfo.channels*sizeof(MYFLT);
+      p->audrem = sfinfo.frames * sfinfo.channels;
       p->framesrem = sfinfo.frames;    /*   find frames rem */
       skipframes = (long)(*p->iskptim * p->sr);
       framesinbuf = sndinbufsiz / p->sampframsiz;
@@ -522,14 +523,14 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
         int nreq;
         nreq = sndinbufsiz;
         n = sreadin(infile, p->inbuf, nreq, p);
-        p->bufend = p->inbuf + n;
+        printf("sreadin returns %d\n",n);
+        p->bufend = p->inbuf+n;
         p->inbufp = p->inbuf + skipframes * p->sampframsiz;
       }
       else {                                          /* for greater skiptime: */
-        long nbytes = skipframes * p->sampframsiz;
         if (sf_seek(infile, (off_t)skipframes, SEEK_SET) < 0)  /* else seek to bndry */
           die(Str(X_1208,"soundin seek error"));
-        if ((n = sreadin(sinfd,p->inbuf,sndinbufsiz,p)) == 0) /* now rd fulbuf */
+        if ((n = sreadin(NULL,p->inbuf,sndinbufsiz,p)) == 0) /* now rd fulbuf */
           p->endfile = 1;
         p->inbufp = p->inbuf;
         p->bufend = p->inbuf + n;
@@ -543,15 +544,16 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
  errcls:
       close(sinfd);                       /* init error:  close any open file */
  errtn:
-      return -1;                          /*              return empty handed */
+      return NULL;                        /*              return empty handed */
 }
 
 int sreadin(                    /* special handling of sound input       */
-    int     infd,               /* to accomodate reads thru pipes & net  */
-    char    *inbuf,             /* where nbytes rcvd can be < n requested*/
+    SNDFILE *infd,              /* to accomodate reads thru pipes & net  */
+    MYFLT   *inbuf,             /* where nbytes rcvd can be < n requested*/
     int     nbytes,             /*  */
     SOUNDIN *p)                 /* extra arg passed for filetyp testing  */
 {                               /* on POST-HEADER reads of audio samples */
+    /* return the number of samples read */
     int    n, ntot=0;
     SNDFILE *infile = p->fdch.fd;
     int nsamples = nbytes/sizeof(MYFLT);
@@ -571,9 +573,9 @@ int sreadin(                    /* special handling of sound input       */
       p->audrem -= ntot*sizeof(MYFLT);
     }
     else ntot = 0;
-    printf("*** sreadin: result=%d\n", ntot*sizeof(MYFLT));
+    printf("*** sreadin: result=%d\n", ntot);
     printf("%f %f %f %f %f %f\n", inb[0], inb[1], inb[2], inb[3], inb[4], inb[5]);
-    return ntot*sizeof(MYFLT);
+    return ntot;
 }
 
 void writeheader(int ofd, char *ofname) 
@@ -628,36 +630,39 @@ int soundin(SOUNDIN *p)
     }
     chnsout = p->OUTOCOUNT;
     blksiz = chnsout * ksmps;
-    printf("***        : chnsout=%d blksiz=%d\n", chnsout, blksiz);
+/*     printf("***        : chnsout=%d blksiz=%d\n", chnsout, blksiz); */
+/*     printf("***        : p->r[0]=%p, p->r[1]=%p\n", p->r[0], p->r[1]); */
     memcpy(r, p->r, chnsout * sizeof(MYFLT*));
     ntogo = blksiz;
     if (p->endfile)
       goto filend;
-    nsmps = (p->bufend - p->inbufp) / p->sampframsiz;
+    nsmps = (p->bufend - p->inbufp);
     if (nsmps > blksiz)
       nsmps = blksiz;
     ntogo -= nsmps;
  sndin:
     {
-      MYFLT *inbufp = (MYFLT *)p->inbufp;
-      printf("***        : loop start p->fdch.fd=%p\n", p->fdch.fd);
+      MYFLT *inbufp = p->inbufp;
+/*       printf("***        : loop start p->fdch.fd=%p\n", p->fdch.fd); */
       do {
-        printf("Writing %d <- %f\n", i, *inbufp * scalefac);
+/*         printf("Writing %p %d <- %f\n", r[i], i, *inbufp * scalefac); */
         *(r[i]++) = *inbufp++ * scalefac;
+/*         printf("        %f\n", *(r[i]-1)); */
         if (++i >= chnsout) i = 0;
       } while (--nsmps);
-      printf("***        : loop endp->fdch.fd=%p\n", p->fdch.fd);
-      p->inbufp = (void*)inbufp;
+/*       printf("***        : loop endp->fdch.fd=%p\n", p->fdch.fd); */
+      p->inbufp = inbufp;
     }
     if (p->inbufp >= p->bufend) {
       printf("***        : need new data p->fdch.fd=%p\n", p->fdch.fd);
-      if ((n = sreadin(-1, p->inbuf, SNDINBUFSIZ, p)) == 0) {
+      if ((n = sreadin(NULL, p->inbuf, SNDINBUFSIZ, p)) == 0) {
         p->endfile = 1;
         if (ntogo) goto filend;
         else return OK;
       }
       p->inbufp = p->inbuf;
       p->bufend = p->inbuf + n;
+      printf("unbufp=%p bufend=%p diff=%d\n",p->inbufp,p->bufend,p->bufend-p->inbufp);
       {
         MYFLT* b = (MYFLT*)p->inbuf;
         printf("%f %f %f %f %f %f\n", b[0], b[1], b[2], b[3], b[4], b[5]);
@@ -754,7 +759,6 @@ void sfopenin(void)             /* init for continuous soundin */
         p->filetyp = 0;                          /*  (see also soundin.c) */
         p->audrem = -1;
       }
-      p->bytrev = NULL;
       audrecv = readsf;  /* will use standard audio gets  */
     }
 #ifdef RTAUDIO
