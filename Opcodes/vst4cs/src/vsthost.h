@@ -139,6 +139,7 @@ public:
 	virtual void Debug(const char *format,...);
 	virtual void OpenEditor();
 	virtual void CloseEditor();
+	virtual VstTimeInfo *GetTime();
     static bool OnInputConnected(AEffect *effect, long input);
     static bool OnOutputConnected(AEffect *effect, long output);
 	static long OnGetVersion(AEffect *effect);
