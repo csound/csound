@@ -37,7 +37,7 @@ typedef struct namedInstr {
 
 /* do not touch this ! */
 
-static const unsigned char tabl[256] = {
+const unsigned char strhash_tabl_8[256] = {
         230,  69,  87,  14,  21, 133, 233, 229,  54, 111, 196,  53, 128,  23,
          66, 225,  67,  79, 173, 110, 116,  56,  48, 129,  89, 188,  29, 251,
         186, 159, 102, 162, 227,  57, 220, 244, 165, 243, 215, 216, 214,  33,
@@ -59,7 +59,7 @@ static const unsigned char tabl[256] = {
         207, 240, 127,  70
 };
 
-#define name_hash(x,y) (tabl[(unsigned char) x ^ (unsigned char) y])
+#define name_hash(x,y) (strhash_tabl_8[(unsigned char) x ^ (unsigned char) y])
 
 /* check if the string s is a valid instrument or opcode name */
 /* return value is zero if the string is not a valid name */
@@ -913,11 +913,11 @@ PUBLIC int csoundDestroyGlobalVariable(void *csound, const char *name)
       prvp = p;
       p = (GlobalVariableEntry_t*) p->nxt;
     }
-    free((void*) p);
     if (prvp != NULL)
-      prvp->nxt = (struct GlobalVariableEntry_s *) NULL;
+      prvp->nxt = (struct GlobalVariableEntry_s *) (p->nxt);
     else
-      csnd->namedGlobals[(int) h] = (void*) NULL;
+      csnd->namedGlobals[(int) h] = (void*) (p->nxt);
+    free((void*) p);
     /* done */
     return CSOUND_SUCCESS;
 }

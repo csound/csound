@@ -28,6 +28,7 @@
 #include "soundio.h"
 #include "prototyp.h"
 #include "csound.h"
+#include "csmodule.h"
 #include <ctype.h>              /* For isdigit */
 
 #ifdef mills_macintosh
@@ -63,7 +64,7 @@ static  FILE    *scorin, *scorout, *xfile;
 extern  void    dieu(char *);
 extern  OPARMS  O;
 extern  ENVIRON cenviron;
-extern int argdecode(int, char**, char**, char*);
+extern int argdecode(void*, int, char**, char**, char*);
 extern void init_pvsys(void);
 extern int csoundYield(void *);
 
@@ -79,69 +80,6 @@ extern int csoundYield(void *);
 
 #ifdef HAVE_SYS_TYPES_H
 # include <sys/types.h>
-#endif
-
-#if defined(LINUX)
-#include <errno.h>
-#include <sched.h>
-#include <sys/mman.h>
-
-void csoundMessage(void *, const char *, ...);
-
-void set_rt_priority(int argc, char **argv)
-{
-    int     rtmode;
-    struct sched_param p;
-    int     i;
-
-    if (geteuid() != 0) return;    /* not root, nothing to do */
-
-    rtmode = 0;
-    if (argc > 2) {
-      for (i = 1; i <= (argc - 2); i++) {
-        if (!(strcmp (argv[i], "-o")) &&                    /* check if     */
-            (!(strncmp (argv[i + 1], "dac", 3)) ||          /* output is    */
-             !(strncmp (argv[i + 1], "devaudio", 8))))      /* audio device */
-          rtmode |= 2;
-      }
-    }
-    if (argc > 1) {
-      for (i = 1; i <= (argc - 1); i++) {                   /* also check  */
-        if (!(strcmp (argv[i], "--sched"))) rtmode |= 1;    /* for --sched */
-        if (!(strcmp (argv[i], "-d"))) rtmode |= 4;         /* option, and */
-      }                                                     /* -d          */
-    }
-
-    if (rtmode != 7) {          /* all the above are required to enable */
-      setuid(getuid());         /* give up root permissions */
-      if (rtmode & 1) {
-        fprintf (stderr, "csound: --sched requires -d and either -o dac ");
-        fprintf (stderr, "or -o devaudio\n");
-        exit (-1);
-      }
-      return;
-    }
-
-#ifndef __FreeBSD__
-    /* lock all pages into physical memory */
-    if (mlockall(MCL_CURRENT | MCL_FUTURE) != 0) {
-      err_printf( "csound: cannot lock memory pages: %s\n",
-                       strerror(errno));
-      exit(-1);
-    }
-#endif
-
-    /* set round robin mode with max. priority */
-    p.sched_priority = sched_get_priority_max(SCHED_RR);
-    if (sched_setscheduler(0, SCHED_RR, &p) != 0) {
-      err_printf( "csound: cannot set real-time priority: %s\n",
-                       strerror(errno));
-      exit(-1);
-    }
-    /* give up root permissions */
-    setuid(getuid());
-}
-
 #endif
 
 #if !defined(LINUX) && !defined(SGI) && !defined(__BEOS__) && !defined(__MACH__)
@@ -262,9 +200,10 @@ static void signal_handler(int sig)
 #endif
     psignal(sig, "Csound tidy up");
     fltk_abort = 1;
-#ifdef RTAUDIO
-    rtclose_();
-#endif
+    /* FIXME: cannot have a csound pointer here, but signal handling */
+    /* should be done by the host application anyway, and not by the */
+    /* Csound library */
+    cenviron.rtclose_callback(&cenviron);
 #ifndef MSVC /* VL MSVC fix */
     sleep(1);
 #else
@@ -352,18 +291,10 @@ int csoundCompile(void *csound, int argc, char **argv)
     char  *s;
     char  *filnamp, *envoutyp = NULL;
     int   n;
-/* Real-time priority on Linux by Istvan Varga (Jan 6 2002) */
-/* This function is called before anything else to avoid    */
-/* running "normal" Csound code with setuid root.           */
-/* set_rt_priority gives up root privileges after setting   */
-/* priority and locking memory; init_getstring () and other */
-/* functions below will be run as a normal user (unless     */
-/* Csound was actually run as root, and not setuid root).   */
 
-#if defined(LINUX)
-    set_rt_priority (argc, argv);
-#endif
-    csoundReset(csound);
+/*  csoundReset(csound);  IV - Feb 01 2005: should do this in csoundCreate() */
+/*                        to allow host application to change settings       */
+/*                        before csoundCompile() is called                   */
     if ((n=setjmp(cenviron.exitjmp_))) {
       /*
        * Changed from exit(-1) for re-entrancy.
@@ -373,7 +304,8 @@ int csoundCompile(void *csound, int argc, char **argv)
     /* IV - Jan 28 2005 */
     csoundCreateGlobalVariable(csound, "csRtClock", sizeof(RTCLOCK));
     frsturnon = 0;
-    init_getstring(argc, argv);
+/*  init_getstring(argc, argv);     should be done by host application as */
+/*                                string database is global to all instances */
     init_pvsys();
     /* utilities depend on this as well as orchs */
     e0dbfs = DFLT_DBFS;
@@ -430,14 +362,14 @@ int csoundCompile(void *csound, int argc, char **argv)
     {
       FILE *csrc = fopen(".csoundrc", "r");
       if (csrc!=NULL) {
-        readOptions(csrc);
+        readOptions(csound, csrc);
         fclose(csrc);
       }
     }
     if (--argc == 0) {
       dieu(Str("insufficient arguments"));
     }
-    if (argdecode(argc, argv, &filnamp, envoutyp)==0) {
+    if (argdecode(csound, argc, argv, &filnamp, envoutyp)==0) {
 #ifndef mills_macintosh
       longjmp(cenviron.exitjmp_,1);
 #else
@@ -450,9 +382,9 @@ int csoundCompile(void *csound, int argc, char **argv)
     else if ((strcmp(orchname+strlen(orchname)-4, ".csd")==0 ||
               strcmp(orchname+strlen(orchname)-4, ".CSD")==0) &&
              (scorename==NULL || strlen(scorename)==0)) {
-      int read_unified_file(char **, char **);
+      int read_unified_file(void*, char **, char **);
       err_printf("UnifiedCSD:  %s\n", orchname);
-      if (!read_unified_file(&orchname, &scorename)) {
+      if (!read_unified_file(csound, &orchname, &scorename)) {
         err_printf(Str("Decode failed....stopping\n"));
         longjmp(cenviron.exitjmp_,1);
       }
@@ -529,6 +461,9 @@ int csoundCompile(void *csound, int argc, char **argv)
     /* IV - Oct 31 2002: moved orchestra compilation here, so that named */
     /* instrument numbers are known at the score read/sort stage */
     create_opcodlst(&cenviron); /* create initial opcode list (if not done yet) */
+    /* IV - Jan 31 2005: initialise external modules */
+    /* FIXME: check return value */
+    csoundInitModules(csound);
     otran();                 /* read orcfile, setup desblks & spaces     */
     /* IV - Jan 28 2005 */
     print_benchmark_info(csound, Str("end of orchestra compile"));
@@ -659,11 +594,13 @@ void mainRESET(ENVIRON *p)
     void orchRESET(void);
     void soundinRESET(void);
     void tranRESET(void);
-    void csoundDeleteAllGlobalVariables(void*);
 
-#ifdef RTAUDIO
-    rtclose_();                 /* In case need to reopen */
-#endif
+    if (p->rtclose_callback != NULL)
+      p->rtclose_callback((void*) p);   /* In case need to reopen */
+    /* call local destructor routines of external modules */
+    /* should check return value... */
+    csoundDestroyModules((void*) p);
+
 #if defined(USE_FLTK) && defined(never)        /* IV - Nov 30 2002 */
     void widgetRESET(void);     /* N.B. this is not used yet, */
                                 /* because it was not fully tested, */
@@ -692,7 +629,6 @@ void mainRESET(ENVIRON *p)
     oloadRESET();               /* should be called last but changed!! */
     remove_tmpfiles();          /* IV - Oct 31 2002 */
     memRESET();
-    csoundDeleteAllGlobalVariables((void*) p);  /* IV - Jan 28 2005 */
     p->spoutactive_ = 0;
     O.Midiin = 0;
     p->nrecs_ = 0;

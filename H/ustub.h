@@ -25,14 +25,6 @@
 void fdrecord(FDCH *fdchp);
 int initerror(char *s);
 int perferror(char *s);
-void sndwrterr(int n, int nput);
-extern unsigned long nframes;
-extern FILE* pin;
-extern FILE* pout;
-extern void (*audtran)(char *, int);
-extern void (*spoutran)(MYFLT *);
-extern void (*spinrecv)(void);
-extern void (*nzerotran)(long);
 
 extern void nullfn(char *, int);
 

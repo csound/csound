@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 /*
-    cs.h:
+    csoundCore.h:
 
     Copyright (C) 1991-2003 Barry Vercoe, John ffitch
 
@@ -620,17 +620,20 @@ typedef struct ENVIRON_
   void (*SetYieldCallback)(void *csound, int (*yieldCallback)(void *hostData));
   void (*SetEnv)(void *csound, const char *environmentVariableName,
                  const char *path);
+  char *(*GetEnv)(const char *environmentVariableName);
   void (*SetPlayopenCallback)(void *csound,
-                              void (*playopen__)(int nchanls, int dsize,
-                                                 float sr, int scale));
+                              int (*playopen__)(void *csound,
+                                                csRtAudioParams *parm));
   void (*SetRtplayCallback)(void *csound,
-                            void (*rtplay__)(void *outBuf, int nbytes));
+                            void (*rtplay__)(void *csound, void *outBuf,
+                                             int nbytes));
   void (*SetRecopenCallback)(void *csound,
-                             void (*recopen__)(int nchanls, int dsize,
-                                               float sr, int scale));
+                             int (*recopen__)(void *csound,
+                                              csRtAudioParams *parm));
   void (*SetRtrecordCallback)(void *csound,
-                              int (*rtrecord__)(void *inBuf, int nbytes));
-  void (*SetRtcloseCallback)(void *csound, void (*rtclose__)(void));
+                              int (*rtrecord__)(void *csound, void *inBuf,
+                                                int nbytes));
+  void (*SetRtcloseCallback)(void *csound, void (*rtclose__)(void *csound));
   /* Internal functions that are needed */
   void (*auxalloc_)(long nbytes, AUXCH *auxchp);
   void (*die_)(char *);
@@ -688,6 +691,13 @@ typedef struct ENVIRON_
   int (*TableLength)(void *csound, int table);
   MYFLT (*TableGet)(void *csound, int table, int index);
   void (*TableSet)(void *csound, int table, int index, MYFLT value);
+  void *(*CreateThread)(void *csound, int (*threadRoutine)(void *userdata),
+                        void *userdata);
+  int (*JoinThread)(void *csound, void *thread);
+  void *(*CreateThreadLock)(void *csound);
+  void (*WaitThreadLock)(void *csound, void *lock, size_t milliseconds);
+  void (*NotifyThreadLock)(void *csound, void *lock);
+  void (*DestroyThreadLock)(void *csound, void *lock);
   void (*SetFLTKThreadLocking)(void *csound, int isLocking);
   int (*GetFLTKThreadLocking)(void *csound);
   /* IV - Jan 27 2005: new functions */
@@ -700,6 +710,26 @@ typedef struct ENVIRON_
   void *(*QueryGlobalVariable)(void *csound, const char *name);
   void *(*QueryGlobalVariableNoCheck)(void *csound, const char *name);
   int (*DestroyGlobalVariable)(void *csound, const char *name);
+  int (*CreateConfigurationVariable)(void *csound, const char *name,
+                                     void *p, int type, int flags,
+                                     void *min, void *max,
+                                     const char *shortDesc,
+                                     const char *longDesc);
+  int (*SetConfigurationVariable)(void *csound, const char *name, void *value);
+  int (*ParseConfigurationVariable)(void *csound, const char *name,
+                                    const char *value);
+  csCfgVariable_t *(*QueryConfigurationVariable)(void *csound,
+                                                 const char *name);
+  csCfgVariable_t **(*ListConfigurationVariables)(void *csound);
+  int (*DeleteConfigurationVariable)(void *csound, const char *name);
+  char *(*CfgErrorCodeToString)(int errcode);
+  /* real-time audio callbacks */
+  int (*playopen_callback)(void *csound, csRtAudioParams *parm);
+  void (*rtplay_callback)(void *csound, void *outBuf, int nbytes);
+  int (*recopen_callback)(void *csound, csRtAudioParams *parm);
+  int (*rtrecord_callback)(void *csound, void *inBuf, int nbytes);
+  void (*rtclose_callback)(void *csound);
+  int (*GetSizeOfMYFLT)(void);
   /* End of internals */
   int           ksmps_, nchnls_;
   int           global_ksmps_;
@@ -828,6 +858,7 @@ typedef struct ENVIRON_
   void          **namedGlobals;         /* IV - Jan 28 2005 */
   int           namedGlobalsCurrLimit;
   int           namedGlobalsMaxLimit;
+  void          **cfgVariableDB;
 } ENVIRON;
 
 extern ENVIRON cenviron_;

@@ -652,7 +652,8 @@ long kperf(ENVIRON *csound, long kcnt)
 {
     extern  int     sensLine(void);
     extern  int     sensMidi(void), sensFMidi(void);
-    extern  void    (*spinrecv)(void), (*spoutran)(void), (*nzerotran)(long);
+    extern  void    (*spinrecv)(void*), (*spoutran)(void*);
+    extern  void    (*nzerotran)(void*, long);
     INSDS  *ip;
     long    kreq = kcnt;
 
@@ -668,13 +669,13 @@ long kperf(ENVIRON *csound, long kcnt)
         long pcnt = kcnt;
         while (pcnt!=0) {
           long pp = (pcnt>128 ? 128 : pcnt);
-          (*nzerotran)(pp);     /*   send chunk up to kcnt zerospouts  */
+          (*nzerotran)(csound, pp);   /*   send chunk up to kcnt zerospouts  */
           if (!csoundYield(&cenviron)) longjmp(cenviron.exitjmp_,1);
           pcnt -= pp;
         }
       }
 #else
-      (*nzerotran)(kcnt);     /*   send kcnt zerospouts  */
+      (*nzerotran)(csound, kcnt);     /*   send kcnt zerospouts  */
 #endif
     }
     else do {                 /* else for each kcnt:     */
@@ -692,7 +693,7 @@ long kperf(ENVIRON *csound, long kcnt)
       kcounter += 1;
       global_kcounter = kcounter;       /* IV - Sep 8 2002 */
       if (O.sfread)           /*   if audio_infile open  */
-        (*spinrecv)();        /*      fill the spin buf  */
+        (*spinrecv)(csound);  /*      fill the spin buf  */
       spoutactive = 0;        /*   make spout inactive   */
       ip = &actanchor;
       while ((ip = ip->nxtact) != NULL) { /*   for each instr active */
@@ -702,10 +703,10 @@ long kperf(ENVIRON *csound, long kcnt)
         }
       }
       if (spoutactive)        /*   results now in spout? */
-        (*spoutran)();        /*      send to audio_out  */
+        (*spoutran)(csound);  /*      send to audio_out  */
       else
-        (*nzerotran)(1L);  /*   else send zerospout   */
-    } while (--kcnt);         /* on Mac/Win, allow system events */
+        (*nzerotran)(csound, 1L);   /*   else send zerospout   */
+    } while (--kcnt);               /* on Mac/Win, allow system events */
     return(kreq);
 }
 

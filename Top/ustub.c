@@ -41,22 +41,6 @@ long       *lloutbuf;               /* long  pntr           */
 MYFLT      *floutbuf;               /* float pntr           */
 int        outrange = 0;            /* Count samples out of range */
 
-extern unsigned long nframes;
-extern FILE* pin;
-extern FILE* pout;
-
-
-int (*rtrecord)(void *, int);
-void (*rtplay)(void *, int);
-void (*rtclose)(void);
-void (*recopen)(int, int, float, int);
-void (*playopen)(int, int, float, int);
-
-void (*audtran)(char *, int);
-void (*spoutran)(MYFLT *, int);
-void (*spinrecv)(void);
-void (*nzerotran)(long);
-
 void nullfn(char *, int);
 #ifdef never
 void chartran(MYFLT *, int);
