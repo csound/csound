@@ -92,6 +92,7 @@ int main(int argc, char **argv)
     }
     fclose(outf);
     fclose(infd);
+    return 0;
 }
 
 

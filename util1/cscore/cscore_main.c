@@ -2,7 +2,7 @@
 #include <cscore.h>
 #include <ustub.h>
 
-main()
+int main(int argc, const char **argv)
 {
 	EVENT *e, **p;
 	EVLIST *a, *b;
@@ -40,6 +40,7 @@ main()
 	lput(a);
 	lrelev(a);
 	putstr("e");
+	return 0;
 }
 
 

@@ -67,7 +67,6 @@ ENVIRON cenviron;
 extern  HEADATA *readheader(int, char *, SOUNDIN*);
 extern	int      SAsndgetset(char *, SOUNDIN**, MYFLT*, MYFLT*, MYFLT*, int);
 extern	long     getsndin(int, MYFLT *, long, SOUNDIN *);
-extern void rewriteheader(int,long);
 extern int  openout(char *, int);
 extern void writeheader(int, char *);
 extern char *getstrformat(int);

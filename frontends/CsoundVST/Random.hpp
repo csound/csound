@@ -21,7 +21,7 @@
 */
 #ifndef RANDOM_H
 #define RANDOM_H
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__GNUC__)
 #pragma warning (disable:4786) 
 #endif
 

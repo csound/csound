@@ -52,7 +52,7 @@ int main(int argc, char **argv)
   scot(infile,outfile,name);
   fclose(infile);
   fclose(outfile);
-  exit(0);
+  return(0);
 }
 
 

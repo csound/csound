@@ -23,6 +23,7 @@
 
 #include "cs.h"
 #include "midiinterop.h"
+#include "math.h"
 
 #define dv127   (FL(1.0)/FL(127.0))
 

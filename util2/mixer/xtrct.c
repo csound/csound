@@ -68,7 +68,6 @@ static void ExtractSound(int, int);
 
 /* Externs */
 extern long getsndin(int, float *, long, SOUNDIN *);
-extern void rewriteheader(int,long);
 extern int  openout(char *, int);
 extern char *getstrformat(int);
 extern int  sndgetset(SOUNDIN *);
