@@ -20,28 +20,32 @@ extern "C" {
     size_t currentIndex;
     float *actualBuffer;
   } PA_BLOCKING_STREAM;
-  
-  int paBlockingReadOpen(ENVIRON *csound, 
-			 PA_BLOCKING_STREAM **pabs_, 
-			 PaStreamParameters *paParameters,
-			 csRtAudioParams *parm);
+
+  int paBlockingReadOpen(ENVIRON *csound,
+                         PA_BLOCKING_STREAM **pabs_,
+                         PaStreamParameters *paParameters,
+                         csRtAudioParams *parm);
 
   void paBlockingRead(PA_BLOCKING_STREAM *pabs, MYFLT *buffer);
 
-  int paBlockingReadStreamCallback(const void *input, void *output, 
-				   unsigned long frameCount, const PaStreamCallbackTimeInfo* timeInfo,
-				   PaStreamCallbackFlags statusFlags, void *userData);
+  int paBlockingReadStreamCallback(const void *input, void *output,
+                                   unsigned long frameCount,
+                                   const PaStreamCallbackTimeInfo* timeInfo,
+                                   PaStreamCallbackFlags statusFlags,
+                                   void *userData);
 
-  int paBlockingWriteOpen(ENVIRON *csound, 
-			  PA_BLOCKING_STREAM **pabs_, 
-			  PaStreamParameters *paParameters,
-			  csRtAudioParams *parm);
+  int paBlockingWriteOpen(ENVIRON *csound,
+                          PA_BLOCKING_STREAM **pabs_,
+                          PaStreamParameters *paParameters,
+                          csRtAudioParams *parm);
 
   void paBlockingWrite(PA_BLOCKING_STREAM *pabs, int bytes, MYFLT *buffer);
 
-  int paBlockingWriteStreamCallback(const void *input, void *output, 
-				    unsigned long frameCount, const PaStreamCallbackTimeInfo* timeInfo,
-				    PaStreamCallbackFlags statusFlags, void *userData);
+  int paBlockingWriteStreamCallback(const void *input, void *output,
+                                    unsigned long frameCount,
+                                    const PaStreamCallbackTimeInfo* timeInfo,
+                                    PaStreamCallbackFlags statusFlags,
+                                    void *userData);
 
   void paBlockingClose(void *csound, PA_BLOCKING_STREAM *pabs);
 
