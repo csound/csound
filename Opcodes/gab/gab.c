@@ -42,8 +42,7 @@ int krsnsetx(ENVIRON *csound, KRESONX *p)
       csound->AuxAlloc(csound, (long)(p->loop*2*sizeof(MYFLT)), &p->aux);
     p->yt1 = (MYFLT*)p->aux.auxp; p->yt2 = (MYFLT*)p->aux.auxp + p->loop;
     if (scale && scale != 1 && scale != 2) {
-      sprintf(errmsg,"illegal reson iscl value, %f",*p->iscl);
-      return csound->InitError(csound, errmsg);
+      return csound->InitError(csound,"illegal reson iscl value, %f",*p->iscl);
     }
     p->prvcf = p->prvbw = -FL(100.0);
 
@@ -63,12 +62,12 @@ int kresonx(ENVIRON *csound, KRESONX *p) /* Gabriel Maldonado, modified  */
 
     if (*p->kcf != p->prvcf) {
       p->prvcf = *p->kcf;
-      p->cosf = (MYFLT) cos((double)(*p->kcf * tpidsr * ksmps));
+      p->cosf = (MYFLT) cos((double)(*p->kcf * tpidsr * csound->ksmps));
       flag = 1;
     }
     if (*p->kbw != p->prvbw) {
       p->prvbw = *p->kbw;
-      p->c3 = (MYFLT) exp((double)(*p->kbw * mtpdsr * ksmps));
+      p->c3 = (MYFLT) exp((double)(*p->kbw * mtpdsr * csound->ksmps));
       flag = 1;
     }
     if (flag) {
@@ -120,7 +119,7 @@ int fastab_set(ENVIRON *csound, FASTAB *p)
 
 int fastabw(ENVIRON *csound, FASTAB *p)
 {
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
     MYFLT *tab = p->table;
     MYFLT *rslt = p->rslt, *ndx = p->xndx;
     if (p->xmode) {
@@ -185,7 +184,7 @@ int fastabiw(ENVIRON *csound, FASTAB *p)
 
 int fastab(ENVIRON *csound,FASTAB *p)
 {
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
     MYFLT *tab = p->table;
     MYFLT *rslt = p->rslt, *ndx = p->xndx;
     if (p->xmode) {
@@ -310,7 +309,7 @@ int nlalp(ENVIRON *csound,NLALP *p)
    double klfact;
    double knfact;
 
-   nsmps = ksmps;
+   nsmps = csound->ksmps;
    rp = p->aresult;
    ip = p->ainsig;
    klfact = (double)*p->klfact;
@@ -468,14 +467,14 @@ int adsynt2(ENVIRON *csound,ADSYNT2 *p)
 
     ar0 = p->sr;
     ar = ar0;
-    nsmps = ksmps;
+    nsmps = csound->ksmps;
     do {
       *ar++ = FL(0.0);
     } while (--nsmps);
 
     do {
       ar = ar0;
-      nsmps = ksmps;
+      nsmps = csound->ksmps;
       amp2 = *prevAmp;
       amp = *amptbl++ * amp0;
       cps = *freqtbl++ * cps0;
@@ -498,7 +497,7 @@ int adsynt2(ENVIRON *csound,ADSYNT2 *p)
 
 int exitnow(ENVIRON *csound, EXITNOW *p)
 {
-    longjmp(csound->exitjmp_, CSOUND_EXITJMP_SUCCESS);
+    longjmp(csound->exitjmp, CSOUND_EXITJMP_SUCCESS);
     return OK;  /* compiler only */
 }
 
@@ -541,8 +540,7 @@ int tabrec_k(ENVIRON *csound,TABREC *p)
             fno > csound->maxfnum ||
             (ftp = csound->FTnp2Find(csound,&fno)) == NULL) {
           /*sprintf(errmsg, Str(X_315,"Invalid ftable no. %f"),*p->kfn); */
-          sprintf(errmsg, "Invalid ftable no. %f",*p->kfn);
-          return csound->PerfError(csound, errmsg);
+          return csound->PerfError(csound, "Invalid ftable no. %f", *p->kfn);
         }
         else {
           p->tablen = ftp->flen;
@@ -607,8 +605,7 @@ int tabplay_k(ENVIRON *csound,TABPLAY *p)
             fno > csound->maxfnum ||
             (ftp = csound->FTnp2Find(csound,&fno)) == NULL) {
           /*sprintf(errmsg, Str(X_315,"Invalid ftable no. %f"),*p->kfn); */
-          sprintf(errmsg, "Invalid ftable no. %f",*p->kfn);
-          return csound->PerfError(csound, errmsg);
+          return csound->PerfError(csound, "Invalid ftable no. %f", *p->kfn);
         }
         else {
           p->tablen = ftp->flen;
@@ -686,7 +683,7 @@ int partial_maximum_set(ENVIRON *csound,P_MAXIMUM *p)
 
 int partial_maximum(ENVIRON *csound,P_MAXIMUM *p)
 {
-    int n = ksmps, flag = (int) *p->imaxflag;
+    int n = csound->ksmps, flag = (int) *p->imaxflag;
     MYFLT *a = p->asig;
     MYFLT max = p->max;
     switch(flag) {

@@ -186,7 +186,7 @@ static int ftconv_init(ENVIRON *csound, FTCONV *p)
     else if (p->initDone > 0 && *(p->iSkipInit) != FL(0.0))
       return OK;    /* skip initialisation if requested */
     /* if skipping samples: check for possible truncation of IR */
-    if (skipSamples > 0 && (csound->oparms_->msglevel & 4)) {
+    if (skipSamples > 0 && (csound->oparms->msglevel & 4)) {
       n = skipSamples * p->nChannels;
       if (n > (int) ftp->flen)
         n = (int) ftp->flen;
@@ -251,7 +251,7 @@ static int ftconv_perf(ENVIRON *csound, FTCONV *p)
     }
     nSamples = p->partSize;
     rBuf = &(p->ringBuf[p->rbCnt * (nSamples << 1)]);
-    for (nn = 0; nn < csound->ksmps_; nn++) {
+    for (nn = 0; nn < csound->ksmps; nn++) {
       /* store input signal in buffer */
       rBuf[p->cnt] = p->aIn[nn];
       /* copy output signals from buffer */
