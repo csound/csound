@@ -712,6 +712,21 @@ extern "C" {
         * Sets whether Csound is in debug mode.
         */
         PUBLIC void csoundSetDebug(void *csound, int debug);
+        
+        /**
+        * Returns the length of a function table.
+        */
+        PUBLIC int csoundTableLength(void *csound, int table);
+        
+        /**
+        * Returns the value of a slot in a functon table.
+        */
+        PUBLIC MYFLT csoundTableGet(void *csound, int table, int index);
+        
+        /**
+        * Sets the value of a slot in a function table.
+        */
+        PUBLIC void csoundTableSet(void *csound, int table, int index, MYFLT value);
 
 #ifdef __cplusplus
 };

@@ -265,6 +265,18 @@ public:
 	* Set up Python to print Csound messages.
 	*/
 	virtual void setPythonMessageCallback();
+    /**
+    * Returns the length of a function table.
+    */
+    virtual int tableLength(int table);
+    /**
+    * Returns the value of a slot in a functon table.
+    */
+    virtual MYFLT tableGet(int table, int index);
+    /**
+    * Sets the value of a slot in a function table.
+    */
+    virtual void tableSet(int table, int index, MYFLT value);
 };
 
 #endif
