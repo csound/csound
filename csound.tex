@@ -169,6 +169,8 @@ You may need to edit the \texttt{----opcode-lib} option in the Csound command in
 
 For real-time audio output, with or without MIDI control, you will probably want to tune the \texttt{kr} and \texttt{ksmps} orchestra statements, and the \texttt{-b} and \texttt{-B} command-line options, to give you the shortest possible latency that does not cause clicks or stutters in Csound's audio output. For example, with the Windows multimedia library build of the PortAudio library, \texttt{sr = 44100}, \texttt{kr = 441}, \texttt{ksmps = 100}, \texttt{-b100} and \texttt{-B2000} give a CD-equivalent audio sampling rate of 44,100 frames per second, a control sampling rate of 441 control samples per second with 100 audio sample frames per control sample, an audio output software buffer size of 100 sample frames, and an audio output device hardware buffer size of 2,000 sample frames, which yields an audio output latency of about 45 milliseconds --- not fast enough for precise and expressive keyboard playing, but fast enough for smooth control of effects or algorithmically generated or triggered scores.
 
+On Linux with ALSA, the audio output device should be selected using a special form of the \texttt{-odac} option, for example \texttt{-odac:plughw:0} for device 0. The \texttt{plughw} option translates Csound's audio output to the format expected by the sound card. With ALSA, latencies of a few milliseconds are possible, and expressive real-time instrumental performance should be quite feasible.
+
 \subsection{Csound}
 
 \subsubsection{The \texttt{csound} Command}
@@ -381,18 +383,14 @@ This is a ``to do'' list, not necessarily complete, for Csound and CsoundVST:
 
 \begin{enumerate}
 \item In preparation for a beta file release package:
-\begin{enumerate}
-\item Get all the example scores working out of the box.
 \item Complete this document sufficiently to get users started building and running Csound and CsoundVST with MinGW and Linux.
 \item Get MIDI input and output working better on Windows (that is, a lower latency for PortAudio).
-\end{enumerate}
 \item Longer term:
-\begin{enumerate}
 \item Gabriel's Python opcodes.
 \item The Loris plugin opcodes.
 \item The ATS opcodes.
 \item The STK plugin opcodes.
 \item Investigate the Python runtime situation on MinGW.
 \end{enumerate}
-\end{enumerate}
+
 \end{document}
