@@ -117,14 +117,20 @@ $ python c:/tools/python23/scripts/scons
 You will also need to customize the \texttt{custom.py} file to declare to \texttt{scons} the locations of required header files and libraries, since on Windows there is no standard location for these as there is on Unix and Linux.
 
 \section{Installing}
+
 Once you have either unpacked a binary distribution, or built Csound from sources, you will need to install and configure Csound so that it will run properly on your system. 
+
 \subsection{Csound}
+
 Consult the Csound language documentation for instructions on how to install and configure Csound.
+
+On Windows, make sure that the \texttt{windows\_dlls} directory is in your \texttt{PATH} environment variable, or else copy the files in it to your Windows \texttt{system32} directory. 
+
 \subsection{CsoundVST}
 CsoundVST requires some additional configuration:
 \begin{enumerate}
 \item Make sure that the Csound executables are in your \texttt{PATH} environment variable. 
-\item On Windows, make sure that the directory containing the \texttt{\_CsoundVST.dll} file and all the Csound plugin opcodes is also in your \texttt{PATH} variable. On Unix and Linux, make sure that the directory containing the \texttt{\_CsoundVST.so} file and all the Csound plugin opcodes is in your \texttt{LD\_LIBRARY\_PATH} environment variable. This variable may have a different name in different operating systems.
+\item On Windows, make sure the directory containing the \texttt{\_CsoundVST.dll} file and all the Csound plugin opcodes is also in your \texttt{PATH} variable. On Unix and Linux, make sure that the directory containing the \texttt{\_CsoundVST.so} file and all the Csound plugin opcodes is in your \texttt{LD\_LIBRARY\_PATH} environment variable. This variable may have a different name in different operating systems.
 \item On all platforms, the directory containing the \texttt{\_CsoundVST} shared library and the \texttt{CsoundVST.py} file must be in your \texttt{PYTHONPATH} environment variable, so that the Python runtime knows how to load these files.
 \end{enumerate}
 
