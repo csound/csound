@@ -1,3 +1,9 @@
+2004-07-25  Michael Gogins <gogins@pipeline.com>
+
+	* Added csoundTableLength, csoundTableGet, csoundTableSet to API.
+	
+	* Added pyinit opcode.
+
 2004-07-24  Michael Gogins <gogins@pipeline.com>
 
 	* Python opcodes: imported Maurizio Umberto Puxeddu's Python opcodes for 
