@@ -851,7 +851,7 @@
 
 2002-12-04  John ffitch  <jpff@xenakis.codemist.co.uk>
 
-	* musmon.c (gettempo): Result should be 60/betsiz ratehr than betsiz
+	* musmon.c (gettempo): Result should be 60/betsiz rather than betsiz
 
 2002-12-03  John ffitch  <jpff@xenakis.codemist.co.uk>
 
