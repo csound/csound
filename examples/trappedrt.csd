@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
--b128 -h -s -o dac6
+-b128 -h -s -o dac5
 </CsOptions>
 <CsInstruments>
 ;============================================================================; 
