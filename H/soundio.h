@@ -78,6 +78,9 @@
 #define TYP_HTK   (SF_FORMAT_HTK>>16)
 #define TYP_SDS   (SF_FORMAT_SDS>>16)
 
+#define format2sf(x) (x)
+#define sf2format(x) (x&0xffff)
+
 /*RWD 3:2000*/
 #define PEAKCHUNK_VERSION (1L)
 #define MIN_SHORTAMP (FL(1.0) / FL(32767.0))

@@ -28,12 +28,8 @@
 # define SIZEOF_HEADER 1024
 # define SF_MAGIC 107364L
 # define SF_CHAR  sizeof(char)    /* new sfclass, not SFIRCAM standard */
-#ifdef never
 # define SF_ALAW  sizeof(char)    /* new sfclass, not SFIRCAM standard */
-#endif
-#ifdef ULAW
 # define SF_ULAW  sizeof(char)    /* new sfclass, not SFIRCAM standard */
-#endif
 # define SF_SHORT sizeof(short)
 # define SF_LONG  sizeof(long)
 # define SF_FLOAT sizeof(float)

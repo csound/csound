@@ -40,23 +40,12 @@
    * MYFLTARG for type of floats in prototypes
  Macros
    * MIN, MAX (arguments evaluated twice)
-   * PARG -- for optional argument prototypes : void fn PARG((type arg));
- PARG is pretty important, but you could include it explicitly
- in any stand-alone header you wanted to build.
  */
 
 #ifndef _DPWELIB_H_
 #define _DPWELIB_H_
 
 #include <stdio.h>
-
-/* Prototype argument wrapper */
-/* make fn protos like   void fn PARG((int arg1, char arg2));  */
-#ifdef __STDC__
-#define PARG(a)         a
-#else /* !__STDC__ */
-#define PARG(a)         ()
-#endif /* __STDC__ */
 
 #ifdef HAVE_FCNTL_H
 # include <fcntl.h>
@@ -82,12 +71,9 @@
 #include <stdlib.h>
 
 #else  /* ultrix, not NeXT */
-#ifdef clipper
-#else
 # if defined(LATTICE) || defined(WIN32) || defined(SGI) || defined(__FreeBSD__)
 #  include <stdlib.h>
 # endif
-#endif
 #ifdef HAVE_MALLOC_H
 #        include <malloc.h>
 #endif
@@ -98,11 +84,5 @@
 #endif /* NeXT or ultrix */
 
 #endif /* mac or Unix */
-
-/* some general utilities to put in a .h file */
-#ifndef MAX
-#define MAX(a,b)        ((a>b)?(a):(b))
-#define MIN(a,b)        ((a>b)?(b):(a))
-#endif
 
 #endif /* _DPWELIB_H_ */

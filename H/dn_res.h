@@ -42,12 +42,8 @@
 #define OPEN_WIDTH      17
         #define POPUP_8                 1
         #define POPUP_8_US              2
-#ifdef never
         #define POPUP_ALAW              -2 // "not yet implemented"
-#endif
-#ifdef ULAW
         #define POPUP_ULAW              3
-#endif
         #define POPUP_16                4
         #define POPUP_32                5
         #define POPUP_32F               6
@@ -69,12 +65,8 @@
 
 #define FMT_DLG_ID              131
 #define FMT_8                   4
-#ifdef never
 #define FMT_ALAW                5
-#endif
-#ifdef ULAW
 #define FMT_ULAW                6
-#endif
 #define FMT_16                  7
 #define FMT_32                  8
 #define FMT_32F                 9
