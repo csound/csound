@@ -592,7 +592,7 @@ void chan_split(const MYFLT *inbuf,MYFLT **chbuf,long insize,long chans)
 
     len = insize/chans;
 
-    ampfac = FL(1.0) / e0dbfs;
+    ampfac = FL(1.0) / cenviron.e0dbfs;
 
     for (i=0;i < chans;i++)
       buf_c[i] = chbuf[i];

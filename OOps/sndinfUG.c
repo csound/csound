@@ -76,7 +76,7 @@ static HEADATA *getsndinfo(ENVIRON *csound, SNDINFO *p)
     if (sf == NULL) {
       /* open failed: maybe raw file ? */
       memset(&sfinfo, 0, sizeof(SF_INFO));
-      sfinfo.samplerate = (int) (esr + FL(0.5));
+      sfinfo.samplerate = (int) (csound->esr + FL(0.5));
       sfinfo.channels = 1;
       sfinfo.format = (int) format2sf(O.outformat) | (int) type2sf(TYP_RAW);
       /* try again */
