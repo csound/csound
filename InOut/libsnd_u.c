@@ -42,7 +42,6 @@ char* type2string(int x)
     case TYP_PVF: return "PVF";
     case TYP_XI: return "XI";
     case TYP_HTK: return "HTK";
-    case TYP_SDS: return "SDS";
     }
 }
 
