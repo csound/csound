@@ -187,7 +187,7 @@ void CsoundVST::performanceThreadRoutine()
 {
   getCppSound()->stop();
   getCppSound()->reset();
-  getCppSound()->setFLTKThreadLocking(false);
+  getCppSound()->setFLTKThreadLocking(true);
   csoundSetMessageCallback(getCppSound()->getCsound(), &csound::System::message);
   if(getIsPython())
     {
@@ -242,19 +242,18 @@ void performanceThreadRoutine_(void *data)
   ((CsoundVST *)data)->performanceThreadRoutine();
 }
 
-static int threadYieldCallback(void *)
+extern "C"
 {
-  //Fl::lock();
-  Fl::wait(0.0);
-  //Fl::unlock();
-  return 1;
+  extern int POLL_EVENTS(ENVIRON *);
+}
+
+static int threadYieldCallback(void *csound)
+{
+  return Fl::wait(0.0);
 }
 
 static int nonThreadYieldCallback(void *)
 {
-  //#ifndef LINUX
-  //    Fl::wait(0.0);
-  //#endif
   return 1;
 }
 
@@ -265,17 +264,20 @@ int CsoundVST::perform()
     {
       if(getIsVst())
     	{
+	  csound::System::inform("VST performance.\n");
 	  csoundSetYieldCallback(getCppSound()->getCsound(), nonThreadYieldCallback); 
 	  performanceThreadRoutine();
     	}
       else if(getIsMultiThreaded())
     	{
+	  csound::System::inform("Multi-threaded performance.\n");
 	  csoundSetYieldCallback(getCppSound()->getCsound(), threadYieldCallback); 
 	  csoundSetYieldCallback(getCppSound()->getCsound(), nonThreadYieldCallback); 
 	  result = (int) csound::System::createThread(performanceThreadRoutine_, this, 0);
     	}
       else
 	{
+	  csound::System::inform("Single-threaded performance.\n");
 	  csoundSetYieldCallback(getCppSound()->getCsound(), threadYieldCallback); 
 	  performanceThreadRoutine();
 	}
