@@ -707,9 +707,9 @@ typedef struct GLOBALS_
 #define strsets cglob.strsets
 #define strsmax cglob.strsmax
 #define peakchunks cglob.peakchunks
-#define zkstart cglob.zastart
+#define zkstart cglob.zkstart
 #define zastart cglob.zastart
-#define zklast  cglob.zalast
+#define zklast  cglob.zklast
 #define zalast  cglob.zalast
 #define kcounter cglob.kcounter
 #define currevent cglob.currevent
