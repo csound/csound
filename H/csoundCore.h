@@ -144,9 +144,6 @@ extern "C" {
     int     RTevents, ksensing;
     int     ringbell, termifend, stdoutfd;
     int     rewrt_hdr, heartbeat, gen01defer;
-#ifdef LINUX
-    int     Volume;         /* Jonathan Mohr  1995 Oct 17 */
-#endif
     long    sr_override, kr_override;
     long    instxtcount, optxtsize;
     long    poolcount, gblfixed, gblacount;

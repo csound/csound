@@ -7,6 +7,13 @@
 	  added documentation for interface functions
 	* Top/main.c:
 	  fixed opening .csoundrc
+	* H/csoundCore.h:
+	* Top/argdecode.c:
+	  removed unused O.Volume and -V option
+	* Top/argdecode.c:
+	* Top/main.c:
+	* Top/one_file.c:
+	  fixes in parsing string options such as file names
 
 2005-02-16	Istvan Varga	<istvan@csounds.com>
 	* InOut/libsnd.c:
