@@ -52,18 +52,15 @@ int midibset(ENVIRON *,MIDIKMB *);
 
 int massign(ENVIRON *csound, MASSIGN *p)
 {
-    MCHNBLK *chn;
-    short chnl = (short)(*p->chnl - FL(1.0));
+    short chnl = (short) (*p->chnl - FL(0.5));
     long  instno;
 
-    if ((instno = strarg2insno(p->insno, p->STRARG)) < 1) return NOTOK;
-
-    m_chinsno(csound, chnl, (short) instno);
-                                /* Changes from gab */
-    if ((chn = M_CHNBP[chnl]) == NULL)
-      M_CHNBP[chnl] = chn = (MCHNBLK *) mcalloc(csound, (long)sizeof(MCHNBLK));
-    /* if corresp instr exists, assign as pgmno */
-    chn->pgmno = (short) instno;
+    if (*(p->insno) < FL(0.5))
+      m_chinsno(csound, chnl, (short) 0);
+    else {
+      if ((instno = strarg2insno(p->insno, p->STRARG)) < 1) return NOTOK;
+      m_chinsno(csound, chnl, (short) instno);
+    }
     return OK;
 }
 

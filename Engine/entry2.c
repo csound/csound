@@ -37,9 +37,9 @@
 #include "vdelay.h"
 #include "ugens2.h"
 #include "ugens6.h"
-/* #include "babo.h" */
 #include "pstream.h"
 #include "oscils.h"
+#include "midifile.h"
 #include "midiinterop.h"
 #include "ftgen.h"
 #if defined(USE_FLTK)
@@ -333,6 +333,7 @@ OENTRY opcodlst_2[] = {
 { "db.a",     S(EVAL),    5,    "a",    "a",     powoftwo_set, NULL, dba},
 { "midichn",  S(MIDICHN), 1,    "i",    "",     midichn, NULL, NULL     },
 { "pgmassign",S(PGMASSIGN), 1,   "",    "iS",   pgmassign, NULL, NULL   },
+{ "miditempo", S(MIDITEMPO), 2, "k", "", NULL, (SUBR) midiTempoOpcode, NULL },
 { "midinoteoff", S(MIDINOTEON),3,"",    "xx",   midinoteoff, midinoteoff, },
 { "midinoteonkey", S(MIDINOTEON),3, "", "xx",   midinoteonkey, midinoteonkey },
 { "midinoteoncps", S(MIDINOTEON), 3, "", "xx",  midinoteoncps,midinoteoncps },

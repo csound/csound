@@ -34,14 +34,22 @@ void send_midi_message(int status, int data1, int data2)
     buf[2] = (unsigned char) data2;
     switch (status & 0xF0) {
       case 0xC0:
-      case 0xD0: csoundExternalMidiWrite(&cenviron,
-                                         cenviron.midiGlobals->midiOutUserData,
-                                         &(buf[0]), 2);
-                 break;
-      case 0xF0: break;
-      default:   csoundExternalMidiWrite(&cenviron,
-                                         cenviron.midiGlobals->midiOutUserData,
-                                         &(buf[0]), 3);
+      case 0xD0:
+        csoundExternalMidiWrite(&cenviron,
+                                cenviron.midiGlobals->midiOutUserData,
+                                &(buf[0]), 2);
+        break;
+      case 0xF0:
+        if (status >= 0xF8) {
+          csoundExternalMidiWrite(&cenviron,
+                                  cenviron.midiGlobals->midiOutUserData,
+                                  &(buf[0]), 1);
+        }
+        break;
+      default:
+        csoundExternalMidiWrite(&cenviron,
+                                cenviron.midiGlobals->midiOutUserData,
+                                &(buf[0]), 3);
     }
 }
 

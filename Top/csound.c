@@ -125,7 +125,6 @@ extern "C" {
     /* initialise real time MIDI */
     p->midiGlobals = (MGLOBAL*) mcalloc(csound, sizeof(MGLOBAL));
     p->midiGlobals->Midevtblk = (MEVENT*) NULL;
-    p->midiGlobals->FMidevtblk = (MEVENT*) NULL;
     for (i = 0; i < 128; i++)
       p->midiGlobals->pgm2ins[i] = (i + 1);
     csoundSetExternalMidiInOpenCallback(csound, DummyMidiInOpen);
@@ -137,7 +136,7 @@ extern "C" {
     csoundSetExternalMidiErrorStringCallback(csound, DummyMidiErrorString);
     p->midiGlobals->midiInUserData = NULL;
     p->midiGlobals->midiOutUserData = NULL;
-    p->midiGlobals->mfp = (FILE*) NULL;
+    p->midiGlobals->midiFileData = NULL;
     p->midiGlobals->bufp = &(p->midiGlobals->mbuf[0]);
     p->midiGlobals->endatp = p->midiGlobals->bufp;
     csoundCreateGlobalVariable(csound, "_RTMIDI", (size_t) max_len);
