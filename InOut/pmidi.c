@@ -25,6 +25,8 @@
 #include "midiops.h"
 #include "oload.h"
 #include <portmidi.h>
+#include <porttime.h>
+#include <errno.h>
 
 #define MBUFSIZ   512
 #define ON        1
@@ -32,15 +34,12 @@
 #define MAXLONG   0x7FFFFFFFL
 
 PmEvent *mbuf, *bufp, *bufend, *endatp;
-static u_char *sexbuf, *sexp, *sexend;
-static u_char *fsexbuf, *fsexp, *fsexend;
+static PmEvent *sexbuf, *sexp, *sexend;
 
 MGLOBAL mglob;
 /* MEVENT  *Midevtblk, *FMidevtblk; */
 /* MCHNBLK *m_chnbp[MAXCHAN];    ptrs to chan ctrl blks */
 static MYFLT MastVol = FL(1.0);     /* maps ctlr 7 to ctlr 9 */
-static long  MTrkrem;
-static double FltMidiNxtk, kprdspertick, ekrdQmil;
 void  m_chn_init(MEVENT *, short);
 extern void  schedofftim(INSDS *), deact(INSDS *), beep(void);
 void midNotesOff(void);
@@ -65,10 +64,9 @@ extern void OpenMIDIDevice(void);
 PortMidiStream* midistream;
 static int not_started = 1;
 
-#define MBUFSIZ   512
-
 void OpenMIDIDevice(void)
 {
+    PmEvent buffer;
     if (not_started) {
       Pm_Initialize();
       Pt_Start(1, NULL, NULL);
@@ -77,17 +75,18 @@ void OpenMIDIDevice(void)
     Pm_OpenInput(&midistream, 
                  atoi(O.Midiname),             /* Device number */
                  NULL, 
-                 MBUFSIZE, 
+                 MBUFSIZ, 
                  ((long (*)(void *)) Pt_Time), 
                  NULL);
     Pm_SetFilter(midistream, PM_FILT_ACTIVE | PM_FILT_CLOCK);
     while (Pm_Poll(midistream)) { /* empty the buffer after setting filter */
-        Pm_Read(midistream, buffer, 1);
+      Pm_Read(midistream, &buffer, 1);
     }
 }
 
 long GetMIDIData(void)
 {
+    int n;
     extern int csoundIsExternalMidiEnabled(void*);
     extern long csoundExternalMidiRead(void*, u_char *, int);
     /**
@@ -107,8 +106,7 @@ long GetMIDIData(void)
       if ((retval=Pm_Poll(midistream))) {
         if (retval<0) printf(Str(X_1185,"sensMIDI: retval errno %d"),errno);
         if (retval == 0) {
-          int i, j;
-          long n = Pm_Read(midistream, bufp, MBUFSIZE);
+          long n = Pm_Read(midistream, bufp, MBUFSIZ);
           bufp = mbuf;
           endatp = mbuf + n;
           return n;
@@ -529,7 +527,7 @@ int sensMidi(void)         /* sense a MIDI event, collect the data & dispatch */
 
     midiev = bufp->message;
     bufp++;
-    if (c = Pm_MessageStatus(midiev)) { /* STATUS byte:      */
+    if ((c = Pm_MessageStatus(midiev))) { /* STATUS byte:      */
       type = c & 0xF0;
       if (type == SYSTEM_TYPE) {
         short lo3 = (c & 0x07);
