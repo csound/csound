@@ -22,9 +22,11 @@
 */
 
 #include "csdl.h"
+#include <math.h>
 
 #define DEFAULT_SRATE   44100.0
 #define STEREO_SPREAD   23.0
+#define MIN_SRATE       FL(1000.0)
 
 #define NR_COMB         8
 #define NR_ALLPASS      4
@@ -81,13 +83,16 @@ typedef struct {
     freeVerbAllPass *AllPass[NR_ALLPASS][2];
     MYFLT           *tmpBuf;
     AUXCH           auxData;
+    MYFLT           prvDampFactor;
+    double          dampValue;
+    double          srFact;
 } FREEVERB;
 
 static int calc_nsamples(FREEVERB *p, double delTime)
 {
     double  sampleRate;
     sampleRate = (double) *(p->iSampleRate);
-    if (sampleRate <= 0.0)
+    if (sampleRate < MIN_SRATE)
       sampleRate = DEFAULT_SRATE;
     return (int) (delTime * sampleRate + 0.5);
 }
@@ -154,6 +159,11 @@ static int freeverb_init(ENVIRON *csound, FREEVERB *p)
       nbytes += allpass_nbytes(p, allpass_delays[i >> 1][i & 1]);
     }
     p->tmpBuf = (MYFLT*) ((unsigned char*) p->auxData.auxp + (int) nbytes);
+    p->prvDampFactor = FL(-1.0);
+    if (*(p->iSampleRate) >= MIN_SRATE)
+      p->srFact = pow((DEFAULT_SRATE / (double) *(p->iSampleRate)), 0.85);
+    else
+      p->srFact = 1.0;
     return OK;
 }
 
@@ -171,7 +181,16 @@ static int freeverb_perf(ENVIRON *csound, FREEVERB *p)
     }
     /* calculate reverb parameters */
     feedback = (double) *(p->kRoomSize) * scaleRoom + offsetRoom;
-    damp1 = (double) *(p->kDampFactor) * scaleDamp;
+    if (*(p->kDampFactor) != p->prvDampFactor) {
+      p->prvDampFactor = *(p->kDampFactor);
+      damp1 = (double) *(p->kDampFactor) * scaleDamp;
+      /* hack to correct high frequency attenuation for sample rate */
+      if (*(p->iSampleRate) >= MIN_SRATE)
+        damp1 = pow(damp1, p->srFact);
+      p->dampValue = damp1;
+    }
+    else
+      damp1 = p->dampValue;
     damp2 = 1.0 - damp1;
     /* comb filters (left channel) */
     for (n = 0; n < csound->ksmps_; n++)
