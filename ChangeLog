@@ -1,3 +1,8 @@
+2004-11-23  John ffitch  <jpff@codemist.co.uk>
+
+	* OOps/midirecv.c (m_chanmsg): Removed initial values for
+	volume/balance/pan/expressions/bend/mastvol 
+
 2004-11-16  John ffitch  <jpff@codemist.co.uk>
 
 	* OOps/ugens2.c (itable, itabli, itabl3): Need to check OK rather
