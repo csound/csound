@@ -23,12 +23,12 @@
 
 #include "cs.h"                 /*                      ENTRY.C         */
 #include "insert.h"
-#include "clarinet.h"
+/*#include "clarinet.h"
 #include "flute.h"
 #include "bowed.h"
 #include "marimba.h"
 #include "brass.h"
-#include "vibraphn.h"
+#include "vibraphn.h"*/
 #include "midiops.h"
 #if defined(CWIN) || defined(TCLTK)
 #include "control.h"
@@ -44,7 +44,7 @@
 #include "vdelay.h"
 #include "ugens2.h"
 #include "ugens6.h"
-#include "babo.h"
+/* #include "babo.h" */
 #include "pstream.h"
 #include "oscils.h"
 #include "midiinterop.h"
