@@ -162,8 +162,6 @@ if getPlatform() == 'linux':
     commonEnvironment.Append(CCFLAGS = "-DPIPES")
 elif getPlatform() == 'darwin':
     commonEnvironment.Append(CCFLAGS = "-DMACOSX")
-    commonEnvironment.Append(CPPPATH = '/usr/local/include')
-    commonEnvironment.Append(CPPPATH = '/usr/include')
     commonEnvironment.Append(CCFLAGS = "-Wall")
     commonEnvironment.Append(CCFLAGS = "-DPIPES")
 elif getPlatform() == 'mingw' or getPlatform() == 'cygwin':
