@@ -690,7 +690,7 @@ long kperf(long kcnt)   /* perform currently active instrs for kcnt kperiods */
 		/* #if defined(mills_macintosh) || defined(SYMANTEC) */
 		/*       else if (O.Midiin && actanchor.nxtact == NULL) /\* no midi or notes on; check events *\/ */
 		/* #endif */
-		/*         if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); */
+		if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
 		kcounter += 1;
 		global_kcounter = kcounter;       /* IV - Sep 8 2002 */
 		if (O.sfread)           /*   if audio_infile open  */
