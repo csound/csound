@@ -23,8 +23,9 @@
 
 #include "cs.h"                 /*                              OLOAD.C   */
 #include "oload.h"
+#include <math.h>
 #include "midiops.h"
-#include "insert.h"     /* IV - Nov 10 2002 */
+#include "insert.h"
 #include "ftgen.h"
 
 #define DKEY_DFLT  60
@@ -286,8 +287,8 @@ ENVIRON cenviron_ = {
         csoundTableLength,
         csoundTableGet,
         csoundTableSet,
-	csoundSetFLTKThreadLocking,
-	csoundGetFLTKThreadLocking,
+        csoundSetFLTKThreadLocking,
+        csoundGetFLTKThreadLocking,
         /*
         * Data fields.
         */
@@ -417,7 +418,7 @@ ENVIRON cenviron_ = {
         NULL,                   /* gensub */
         GENMAX+1,               /* genmax */
         100,                    /* ftldno */
-	1                       /* doFLTKThreadLocking */
+        1                       /* doFLTKThreadLocking */
 };
 
 OPARMS O;
@@ -498,10 +499,11 @@ void oload(ENVIRON *csound)
 {
     long   n, nn, combinedsize, gblabeg, lclabeg, insno, *lp;
     MYFLT  *combinedspc, *gblspace, *fp1, *fp2;
-/*     short  *pgmdim = NULL; */
+/*     int  *pgmdim = NULL; */
     INSTRTXT *ip;
     OPTXT *optxt;
-    esr = tran_sr; ekr = tran_kr; ksmps = (int) (ensmps = tran_ksmps);
+    esr = tran_sr; ekr = tran_kr;
+    ksmps = (int) ((ensmps = tran_ksmps) + FL(0.5));
     ip = instxtanchor.nxtinstxt;                /* for instr 0 optxts:  */
     optxt = (OPTXT *) ip;
     while ((optxt = optxt->nxtop) !=  NULL) {
@@ -513,13 +515,13 @@ void oload(ENVIRON *csound)
       outoffp = ttp->outoffs;           /* use unexpanded ndxes */
       inoffp = ttp->inoffs;             /* to find sr.. assigns */
       if (outoffp->count == 1 && inoffp->count == 1) {
-        short rindex = (short)outoffp->indx[0] - (short)O.poolcount;
+        int rindex = (int) outoffp->indx[0] - (int) O.poolcount;
         MYFLT conval = pool[inoffp->indx[0] - 1];
         switch (rindex) {
         case 1:  esr = conval;  break;  /* & use those values */
         case 2:  ekr = conval;  break;  /*  to set params now */
-        case 3:  ksmps = (int)(ensmps = conval);  break;
-        case 4:  nchnls = (int)conval;  break;
+        case 3:  ksmps = (int) ((ensmps = conval) + FL(0.5));   break;
+        case 4:  nchnls = (int) (conval + FL(0.5));  break;
         case 5:  e0dbfs = conval; break;
         default: break;
         }
@@ -527,16 +529,16 @@ void oload(ENVIRON *csound)
     }
     /* why I want oload() to return an error value.... */
     if (e0dbfs <= 0.0)
-      die(Str(X_1704,"bad value for 0dbfs: must be positive."));
+      die(Str("bad value for 0dbfs: must be positive."));
     if (O.odebug)
       printf("esr = %7.1f, ekr = %7.1f, ksmps = %d, nchnls = %d 0dbfs = %.1f\n",
              esr ,ekr, ksmps, nchnls,e0dbfs);  ;
     if (O.sr_override) {        /* if command-line overrides, apply now */
-      esr = (MYFLT)O.sr_override;
-      ekr = (MYFLT)O.kr_override;
-      ksmps = (int)(ensmps = (MYFLT)(O.sr_override / O.kr_override));
-      printf(Str(X_1173,
-                 "sample rate overrides: esr = %7.1f, ekr = %7.1f, ksmps = %d\n"),
+      esr = (MYFLT) O.sr_override;
+      ekr = (MYFLT) O.kr_override;
+      ksmps = (int) ((ensmps = ((MYFLT) O.sr_override / (MYFLT) O.kr_override))
+                     + FL(0.5));
+      printf(Str("sample rate overrides: esr = %7.1f, ekr = %7.1f, ksmps = %d\n"),
              esr, ekr, ksmps);
     }
     combinedsize = (O.poolcount + O.gblfixed + O.gblacount * ksmps)
@@ -560,16 +562,10 @@ void oload(ENVIRON *csound)
       optxt = (OPTXT *) ip;             /*   (and set localen)    */
       lclabeg = (long)(ip->pmax + ip->lclfixed + 1);
       if (O.odebug) printf("lclabeg %ld\n",lclabeg);
-#ifdef __alpha__
-      /*
-       * On Alpha, we need to align on 2*sizeof(MYFLT) (i.e. 64 bits).  So
-       * we round up to that size.  heh 981101
-       */
-      ip->localen = ((ip->lclfixed + ip->lclacnt*ksmps + 1) & ~0x1) *
-        sizeof(MYFLT);
-#else
-     ip->localen = (ip->lclfixed + ip->lclacnt*ksmps) * sizeof(MYFLT);
-#endif
+      ip->localen = ((long) ip->lclfixed + (long) ip->lclacnt * (long) ksmps)
+                    * (long) sizeof(MYFLT);
+      /* align to 64 bits */
+      ip->localen = (ip->localen + 7L) & (~7L);
       for (insno=0, n=0; insno <= maxinsno; insno++)
         if (instrtxtp[insno] == ip)  n++;              /* count insnos  */
       lp = ip->inslist = (long *) mmalloc((long)(n+1) * sizeof(long));
@@ -582,7 +578,7 @@ void oload(ENVIRON *csound)
         ARGOFFS *aoffp;
         long  indx;
         long posndx;
-        short *ndxp;
+        int *ndxp;
         int opnum = ttp->opnum;
         if (opnum == ENDIN || opnum == ENDOP) break;    /* IV - Sep 8 2002 */
         if (opnum == LABEL) continue;
@@ -603,12 +599,7 @@ void oload(ENVIRON *csound)
             indx += 3;    /* deflect any old sr,kr,ksmps targets */
           }
           else continue;
-          if ((short)indx != indx) {
-            printf(Str(X_910,"indx=%ld (%lx); (short)indx = %d (%x)\n"),
-                   indx, indx, (short)indx, (short)indx);
-/*             die(Str(X_909,"indexing overflow error")); */
-          }
-          *ndxp = (short)indx;
+          *ndxp = (int) indx;
         }
         aoffp = ttp->inoffs;            /* inargs:                  */
         if (opnum >= SETEND) goto realops;
@@ -631,12 +622,12 @@ void oload(ENVIRON *csound)
           }
           if (strsets == NULL || indx < 0) { /* No space left or -ve index */
             if (O.msglevel & WARNMSG)
-              printf(Str(X_887,"WARNING: illegal strset index\n"));
+              printf(Str("WARNING: illegal strset index\n"));
             longjmp(cenviron.exitjmp_,1);
           }
           if (strsets[indx] != NULL) {
             if (O.msglevel & WARNMSG)
-              printf(Str(X_1249,"WARNING: strset index conflict\n"));
+              printf(Str("WARNING: strset index conflict\n"));
           }
           else {
             strsets[indx] = ttp->strargs[0];
@@ -647,7 +638,7 @@ void oload(ENVIRON *csound)
           printf("PSET: isno=%ld, pmax=%d\n", insno, ip->pmax);
           if ((n = aoffp->count) != ip->pmax) {
             if (O.msglevel & WARNMSG)
-              printf(errmsg,Str(X_834,"WARNING: i%ld pset args != pmax\n"), insno);
+              printf(errmsg,Str("WARNING: i%ld pset args != pmax\n"), insno);
             if (n < ip->pmax) n = ip->pmax; /* cf pset, pmax    */
           }                                   /* alloc the larger */
           ip->psetdata = (MYFLT *) mcalloc((long)n * sizeof(MYFLT));
@@ -674,28 +665,48 @@ void oload(ENVIRON *csound)
             indx = -(lclabeg + (posndx - lclabeg) * ksmps);
           }
           else continue;
-          if ((short)indx != indx) {
-            printf(Str(X_218,"Case2: indx=%ld (%lx); (short)indx = %d (%x)\n"),
-                   indx, indx, (short)indx, (short)indx);
-/*          die(Str(X_909,"indexing overflow error")); */
-          }
-          *ndxp = (short)indx;
+          *ndxp = (int) indx;
         }
       }
     }
 /*     if (pgmdim != NULL) free((char *)pgmdim); */
 /*     pctlist = (MYFLT **) mcalloc((long)256 * sizeof(MYFLT *)); */
-/*     insbusy = (short *) mcalloc((long)((maxinsno+1) * sizeof(short))); */
+/*     insbusy = (int *) mcalloc((long)((maxinsno+1) * sizeof(int))); */
 
     sssfinit(); /* must be called before instr 0 initiates */
 
     if ((nn = init0(csound)) > 0)                       /* run instr 0 inits */
-      die(Str(X_828,"header init errors"));
-    if ((ensmps != (MYFLT) ksmps) ||
-        (gblspace[0]/gblspace[1] != gblspace[2])) {     /* & chk consistency */
-      printf("sr = %f, kr = %f, ksmps = %f\n",
-             gblspace[0], gblspace[1], gblspace[2]);
-      die(Str(X_903,"inconsistent sr, kr, ksmps"));     /*   one more time   */
+      die(Str("header init errors"));
+    /* IV - Feb 18 2003 */
+    {
+#ifdef MYFLT_IS_FLOAT
+      double    max_err = 1.0e-6;
+#else
+      double    max_err = 1.0e-12;
+#endif
+      char  s[256];
+      sprintf(s, "sr = %.7g, kr = %.7g, ksmps = %.7g\n", /* & chk consistency */
+              gblspace[0], gblspace[1], gblspace[2]);    /*   one more time   */
+      if (ksmps < 1 ||
+          fabs(((double) gblspace[2] / (double) ksmps) - 1.0) > max_err) {
+        strcat(s, Str("error: invalid ksmps value"));
+        die(s);
+      }
+      gblspace[2] = ensmps = (MYFLT) ksmps;
+      if (gblspace[0] <= FL(0.0)) {
+        strcat(s, Str("error: invalid sample rate"));
+        die(s);
+      }
+      if (gblspace[1] <= FL(0.0)) {
+        strcat(s, Str("error: invalid control rate"));
+        die(s);
+      }
+      if (fabs(((double) gblspace[0]
+                / ((double) gblspace[1] * (double) gblspace[2])) - 1.0)
+          > max_err) {
+        strcat(s, Str("error: inconsistent sr, kr, ksmps"));
+        die(s);
+      }
     }
     tpidsr = TWOPI_F / esr;                             /* now set internal  */
     mtpdsr = -tpidsr;                                   /*    consts         */
@@ -710,11 +721,9 @@ void oload(ENVIRON *csound)
     global_ksmps = ksmps; global_ensmps = ensmps; global_ekr = ekr;
     global_onedkr = onedkr; global_hfkprd = hfkprd; global_kicvt = kicvt;
     global_kcounter = kcounter;
-/*  dv32768 = FL(1.0) / FL(32768.0);            IV - Jul 11 2002 */
     cpsoctinit();
     reverbinit();
     dbfs_init(e0dbfs);
-/*  dv32768 = dbfs_to_float;                    IV - Jul 11 2002 */
     nspin = nspout = ksmps * nchnls;                    /* alloc spin & spout */
     spin =  (MYFLT *) mcalloc((long)nspin*sizeof(MYFLT));
     spout = (MYFLT *) mcalloc((long)nspout*sizeof(MYFLT));
@@ -735,8 +744,8 @@ instance(int insno)             /* create instance of an instr template */
     char    *nxtopds, *opdslim;
     MYFLT   **argpp, *fltp, *lclbas, *lcloffbas, *csetoffbas = NULL;
     ARGOFFS *aoffp;
-    short   indx, posndx;
-    short   *ndxp;
+    int     indx, posndx;
+    int     *ndxp;
     MCHNBLK *chp = NULL;
 
     lopds = (LBLBLK**)mmalloc(sizeof(LBLBLK*)*nlabels);
@@ -752,8 +761,7 @@ instance(int insno)             /* create instance of an instr template */
           csetoffbas = chp->ctl_val;
           if (!chp->insno) {
             chp->insno = insno;
-            printf(Str(X_929,
-                       "instr %d seeking midi chnl data, assigned chnl %d\n"),
+            printf(Str("instr %d seeking midi chnl data, assigned chnl %d\n"),
                    insno, chp->insno);
             break;
           }
@@ -789,7 +797,7 @@ instance(int insno)             /* create instance of an instr template */
     nxtopds = (char *)lclbas + tp->localen;
     opdslim = nxtopds + tp->opdstot;
     if (O.odebug)
-      printf(Str(X_923,"instr %d allocated at %p\n\tlclbas %p, opds %p\n"),
+      printf(Str("instr %d allocated at %p\n\tlclbas %p, opds %p\n"),
              insno,ip,lclbas,nxtopds);
     optxt = (OPTXT *)tp;
     prvids = prvpds = (OPDS *)ip;
@@ -809,7 +817,7 @@ instance(int insno)             /* create instance of an instr template */
       opds = (OPDS *) nxtopds;                      /*   take reqd opds */
       nxtopds += ep->dsblksiz;
       if (O.odebug)
-        printf(Str(X_1091,"op %d (%s) allocated at %p\n"),
+        printf(Str("op %d (%s) allocated at %p\n"),
                opnum,ep->opname,opds);
       opds->optext = optxt;                         /* set common headata */
       opds->insdshead = ip;
@@ -835,7 +843,7 @@ instance(int insno)             /* create instance of an instr template */
         prvids = prvids->nxti = opds;               /* link into ichain */
         opds->iopadr = ep->iopadr;                  /*   & set exec adr */
         if (opds->iopadr == NULL)
-          die(Str(X_1082,"null iopadr"));
+          die(Str("null iopadr"));
       }
       if ((n = ep->thread & 06)!=0) {               /* thread 2 OR 4:   */
         prvpds = prvpds->nxtp = opds;               /* link into pchain */
@@ -845,7 +853,7 @@ instance(int insno)             /* create instance of an instr template */
         else opds->opadr = ep->aopadr;              /*      arate       */
         if (O.odebug) printf("opadr = %p\n",opds->opadr);
         if (opds->opadr == NULL)
-          die(Str(X_1083,"null opadr"));
+          die(Str("null opadr"));
       }
       opds->dopadr = ep->dopadr;
     args:
@@ -871,7 +879,7 @@ instance(int insno)             /* create instance of an instr template */
       for (n=aoffp->count, ndxp=aoffp->indx; n--; ) {
         if ((indx = *ndxp++) < LABELIM) {
           if (O.odebug) printf("\t***lbl");
-          largp->lblno = indx - MIN_SHORT;          /* if label ref, defer */
+          largp->lblno = indx - LABELOFS;           /* if label ref, defer */
           largp->argpp = argpp++;
           largp++;
         } else {
@@ -888,8 +896,8 @@ instance(int insno)             /* create instance of an instr template */
       if (O.odebug) printf("\n");
     }
     if (nxtopds != opdslim) {
-      printf(Str(X_1087,"nxtopds = %p opdslim = %p\n"), nxtopds, opdslim);
-      if (nxtopds > opdslim) die(Str(X_902,"inconsistent opds total"));
+      printf(Str("nxtopds = %p opdslim = %p\n"), nxtopds, opdslim);
+      if (nxtopds > opdslim) die(Str("inconsistent opds total"));
     }
     while (--largp >= larg)
       *largp->argpp = (MYFLT *) lopds[largp->lblno]; /* now label refs */

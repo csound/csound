@@ -25,33 +25,31 @@
 #define LNAMES  400    /* lcl */
 #define GNAMES  100    /* gbl */
 #define NLABELS 5      /* lcl */
-#define NGOTOS   40
+#define NGOTOS  40
 
+#define LABELOFS    (-0x40000000)
+#define LABELIM     (-0x38000000)
 #ifndef MIN_SHORT
 #define MIN_SHORT (-32768)
 #endif
 extern  ENVIRON cenviron;
-#define LABELIM  (MIN_SHORT + nlabels)
-#define CHKING   0
-#define CBAS    32250
-#define VBAS    32400
-#define GVBAS   (VBAS + PMAX)           /* 32550 */
-#define VMAGIC  0x56444154L     /* "VDAT" */
+#define CBAS    0x7F000000
+#define VMAGIC  0x56444154L             /* "VDAT" */
 
 #define STRSMAX 8
 
 typedef struct  {
         char    *namep;
-        short   type, count;
+        int     type, count;
 } NAME;
 
 typedef struct  {
         char    *lbltxt;
-        short   *ndxp;
+        int     *ndxp;
 } LBLARG;
 
 typedef struct  {
-        short   lblno;
+        int     lblno;
         MYFLT   **argpp;
 } LARGNO;
 
