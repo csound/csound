@@ -385,6 +385,11 @@ typedef struct oentry {
 } OENTRY;
 
 typedef struct {
+        char *word;
+        void (*fn)(void);
+} NGFENS;
+
+typedef struct {
         MYFLT   *begp, *curp, *endp, feedback[6];
         long    scount;
 } OCTDAT;

@@ -454,7 +454,6 @@ int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
 
 }
 
-
 #define S       sizeof
 
 static OENTRY localops[] = {

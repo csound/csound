@@ -39,6 +39,7 @@ extern double besseli(double);
 /* extern void vco2_tables_destroy(void); */
 
 typedef void    (*GEN)(void);
+typedef void    (*GEN1)(FUNC *, EVTBLK *);
 
 static void   gen01raw(void);
 static void   gen01(void), gen02(void), gen03(void), gen04(void), gen05(void);
@@ -102,7 +103,7 @@ void ftRESET(void)
     }
     if (gensub) {
       mfree(gensub);
-      gensub = 0;
+      gensub = NULL;
     }
 /*     vco2_tables_destroy(); */
 }
@@ -163,7 +164,7 @@ void fgens(EVTBLK *evtblkp)     /* create ftable using evtblk data */
       NAMEDGEN *n = namedgen;
       printf("*** Named fgen %s\n", e->strarg); /* Debugging */
       while (n) {
-        if (strcpy(n->name, e->strarg)==0) { /* Look up by name */
+        if (strcmp(n->name, e->strarg)==0) { /* Look up by name */
           genum = n->genum;
           break;
         }
@@ -184,7 +185,7 @@ void fgens(EVTBLK *evtblkp)     /* create ftable using evtblk data */
         return;
       }
     }
-    if ((flen = (long)(e->p[3]+0.5))) {         /* if user flen given       */
+    if ((flen = (long)(e->p[3]+FL(0.5)))) {       /* if user flen given       */
       if (flen < 0 ) { /* gab for non-pow-of-two-length */
         flen = labs(flen-1);
         lenmask = 0xFFFFFFFF;
@@ -223,7 +224,10 @@ void fgens(EVTBLK *evtblkp)     /* create ftable using evtblk data */
     }
     else ftp = NULL;           /* Ensure a null pointer */
     printf(Str(X_782,"ftable %d:\n"), fno);
-    (*gensub[genum])();                 /* call gen subroutine  */
+    if (genum<=GENMAX) (*gensub[genum])(); /* call gen subroutine  */
+    else {
+      ((GEN1)(*gensub[genum]))(ftp, e);
+    }
     if (!fterrcnt)
       ftresdisp();                      /* rescale and display */
 }
@@ -1774,7 +1778,7 @@ static void gen42(void) /*gab d5*/
 static void fterror(char *s)
 {
     printf(Str(X_268,"ftable %d: %s\n"),fno,s);
-    printf("f%3.0f %8.2 f %8.2f ", e->p[1],e->p2orig,e->p3orig);
+    printf("f%3.0f %f8.2 %8.2f ", e->p[1],e->p2orig,e->p3orig);
     if (e->p[4] == SSTRCOD)
       printf("%s", e->strarg);
     else
@@ -2666,8 +2670,9 @@ void gen43(void)
 int allocgen(char *s, GEN fn)
 {
     NAMEDGEN *n = namedgen;
-    while (n) {
-      if (strcpy(s, n->name)==0) return n->genum;
+    printf("**** allocgen %s to %p\n", s, fn);
+    while (n!=NULL) {
+      if (strcmp(s, n->name)==0) return n->genum;
       n = n->next;
     }
     /* Need to allocate */
@@ -2677,7 +2682,12 @@ int allocgen(char *s, GEN fn)
     n->name = mmalloc(strlen(s)+1);
     strcpy(n->name, s);
     namedgen = n;
-    gensub = (GEN*)mrealloc(gensub, genmax*sizeof(GEN));
+    if (gensub==NULL) {
+      gensub = (GEN*)mmalloc(genmax*sizeof(GEN));
+      memcpy(gensub, or_sub, sizeof(or_sub));
+    }
+    else gensub = (GEN*)mrealloc(gensub, genmax*sizeof(GEN));
     gensub[genmax-1] = fn;
+    printf("**** allocated %d\n", genmax-1);
     return genmax-1;
 }
