@@ -278,8 +278,8 @@ static void install_signal_handler(void)
 # endif
 #endif
 
-    for (x = sigs; *x > 0; x++)
-      signal(*x, signal_handler);
+/*     for (x = sigs; *x > 0; x++) */
+/*       signal(*x, signal_handler); */
 }
 
 void create_opcodlst(void *csound)
@@ -485,7 +485,7 @@ int csoundCompile(void *csound, int argc, char **argv)
     /* instrument numbers are known at the score read/sort stage */
     create_opcodlst(&cenviron); /* create initial opcode list (if not done yet) */
     otran();                 /* read orcfile, setup desblks & spaces     */
-    if (!(csoundYield(&cenviron))) return (0);
+    if (!csoundYield(&cenviron)) return (-1);
 /*     print_elapsed_time("end of orch compile");          /\* IV - Nov 10 2002 *\/ */
     /* IV - Oct 31 2002: now we can read and sort the score */
     if (scorename == NULL || scorename[0]=='\0') {
@@ -493,6 +493,7 @@ int csoundCompile(void *csound, int argc, char **argv)
         err_printf(Str(X_1153,
                        "realtime performance using dummy "
                        "numeric scorefile\n"));
+        printf("Junmping to perf-label\n");
         goto perf;
       }
       else {

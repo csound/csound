@@ -121,7 +121,17 @@ MEMFIL *ldmemfile(char *);
 
 static  MYFLT   *gbloffbas;
 
-OPARMS  O_ = {0,0, 0,1,1,0, 0,0, 0,0, 0,0, 1,0,0,7, 0,0,0, 0,0,0,0, 0,0 };
+OPARMS  O_ = {0,0,          /* odebug, initonly */
+              0,1,1,0,      /* sfread, sfwrite, sfheader, filetyp */
+              0,0,          /* inbufsamps, outbufsamps */
+              0,0,          /* informat, outformat */
+              0,0,          /* insampsiz, outsampsiz */
+              1,0,0,7,      /* displays, graphsoff, postscript, msglevel */
+              0,0,0,        /* Beatmode, cmdTempo, oMaxLag */
+              0,0,0,0,      /* usingcscore, Linein, Midiin, FMidiin */
+              0,            /* OrcEvts */
+              0,0           /* RTevents, ksensing */
+};
 ENVIRON cenviron_ = {
         /*
         * Interface functions.
