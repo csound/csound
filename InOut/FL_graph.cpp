@@ -111,7 +111,7 @@ void graph_box::draw()
       MYFLT       *fdata = win->fdata;
       long        npts   = win->npts;
       char        *msg   = win->caption;
-      short       win_x, win_y, win_w, win_h;     /* window rect */
+      short       win_x, win_y,        win_h;     /* window rect */
       short       gra_x, gra_y, gra_w, gra_h;     /* graph rect is inset */
       short       y_axis;
       int         lsegs,pts_pls;
@@ -121,6 +121,7 @@ void graph_box::draw()
       pol  = win->polarity;
 
       win_x = 0;  win_y = 0;              /* window pixels addressed relative */
+      win_h = h();
 
       /* set new width and height so we leave a 20% border around the plot */
       gra_w = w() - 2*BORDERW;
@@ -271,7 +272,6 @@ extern "C"
     
     long MakeWindow(char *name)
     {
-        long m;
         if (form==NULL) {
           makeWindow(name);
           form->show();
