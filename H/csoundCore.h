@@ -475,6 +475,13 @@ typedef struct eventnode {
 } EVTNODE;
 
 typedef struct {
+  EVTBLK  e;
+  double  tpdlen;
+  int     fno, guardreq, fterrcnt;
+  long    flen, flenp1, lenmask;
+} FGDATA;
+
+typedef struct {
         OPDS    h;
         MYFLT   *ktempo, *istartempo;
         MYFLT   prvtempo;

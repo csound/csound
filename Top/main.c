@@ -616,7 +616,7 @@ void mainRESET(ENVIRON *p)
     void cscoreRESET(void);
     void disprepRESET(void);
     void expRESET(void);
-    void ftRESET(void);
+    void ftRESET(ENVIRON *);
     void fftRESET(void);
     void insertRESET(void);
     void lpcRESET(void);
@@ -637,7 +637,7 @@ void mainRESET(ENVIRON *p)
 #endif
     cscoreRESET();
     expRESET();
-    ftRESET();
+    ftRESET(p);
     fftRESET();
     disprepRESET();
     insertRESET();

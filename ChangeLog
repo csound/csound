@@ -1,9 +1,17 @@
+2004-11-14  John ffitch  <jpff@codemist.co.uk>
+
+	* Top/main.c (mainRESET): ftRESET takes environment argument
+
+	* Engine/fgens.c: Move many statics into a single static.  Adjust
+	args to gens to reflect this -- statics almost unnecessary
+
 2004-11-11  Michael Gogins <gogins@pipeline.com>
 
-	* Changed the Python interface to CsoundVST to allow Python programmers
-    to derive new classes in Python from CsoundVST.Node, and these new classes
-    will function as C++ Node * objects in the CsoundVST C++ internals. This enables
-    Python-derived Nodes to function just like regular C++ Nodes in music graphs.
+	* Changed the Python interface to CsoundVST to allow Python
+	programmers to derive new classes in Python from CsoundVST.Node,
+	and these new classes will function as C++ Node * objects in the
+	CsoundVST C++ internals. This enables Python-derived Nodes to
+	function just like regular C++ Nodes in music graphs. 
 
 2004-11-11  John ffitch  <jpff@codemist.co.uk>
 
