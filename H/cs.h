@@ -600,6 +600,8 @@ typedef struct GLOBALS_
   MYFLT (*intpow)(MYFLT, long);
   FUNC *(*ftfindp)(MYFLT *argp);
   FUNC *(*ftnp2find)(MYFLT *);
+  char *(*unquote)(char *);
+  MEMFIL *(*ldmemfile)(char *);
   
   
   /* End of internals */

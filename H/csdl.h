@@ -234,6 +234,8 @@ GLOBALS *pcglob;
 #define intpow pcglob->intpow
 #define ftfindp pcglob->ftfindp
 #define ftnp2find pcglob->ftnp2find
+#define unquote pcglob->unquote
+#define ldmemfile pcglob->ldmemfile
 
 #define ksmps_  pcglob->ksmps
 #define esr_    pcglob->esr
