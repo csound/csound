@@ -408,7 +408,7 @@ if commonEnvironment['generatePDF']==1:
     csoundPdf = commonEnvironment.Command('csound.pdf', 'csound.tex', 'pdflatex $SOURCE')
     zipDependencies.append(csoundPdf)
 
-commonEnvironment.Alias('pdf', commonEnvironment.Command('csound.pdf', 'csound.tex', 'pdflatex $SOURCE'))
+#commonEnvironment.Alias('pdf', commonEnvironment.Command('csound.pdf', 'csound.tex', 'pdflatex $SOURCE'))
     
 makedb = ustubProgramEnvironment.Program('makedb', 
     ['strings/makedb.c'])
