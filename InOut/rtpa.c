@@ -80,7 +80,7 @@ void recopen_(int nchanls, int dsize, float sr, int scale)
     printf("extdev=%p\n", rtin_devs);
     if (rtin_devs!=NULL && strlen(rtin_devs)!=0) {
       info.deviceString = rtin_devs;
-      err_printf("Using Portaudio Device %s\n", rtin_devs);
+      err_printf("Using Portaudio device %s\n", rtin_devs);
       info.hostApiType = paALSA;
       info.version = 1;
       info.size = sizeof(info);
@@ -96,7 +96,7 @@ void recopen_(int nchanls, int dsize, float sr, int scale)
       }
       else {
         paStreamParameters_.device = rtin_dev;
-        err_printf(Str(X_39,"Using Portaudio Device %i\n"), rtin_dev);
+        err_printf(Str(X_39,"Using Portaudio device %i\n"), rtin_dev);
       }
       paStreamParameters_.hostApiSpecificStreamInfo = NULL;
 #if defined(LINUX)
@@ -131,17 +131,18 @@ void listPortAudioDevices(void)
     const PaDeviceInfo *paDeviceInfo;
 
     deviceCount = Pa_GetDeviceCount();
-    err_printf("Found %d audio devices:\n", deviceCount);
+    err_printf("Found %d PortAudio devices:\n", deviceCount);
     for (deviceIndex = 0; deviceIndex < deviceCount; ++deviceIndex) {
       paDeviceInfo = Pa_GetDeviceInfo(deviceIndex);
       if (paDeviceInfo) {
-        err_printf("PortAudio device %d\n  %s\n  Maximum channels in:  "
-                "%5d\n  Maximum channels out: %5d\n  Default sample "
-                "rate: %10.3f\n",
+        err_printf("Device%3d: %s\n",
                 deviceIndex,
-                paDeviceInfo->name,
-                paDeviceInfo->maxInputChannels,
-                paDeviceInfo->maxOutputChannels,
+                paDeviceInfo->name);
+        err_printf("           Maximum channels in: %7d\n",
+                paDeviceInfo->maxInputChannels);
+        err_printf("           Maximum channels out:%7d\n",
+                paDeviceInfo->maxOutputChannels);
+        err_printf("           Default sample rate: %11.3f\n",
                 paDeviceInfo->defaultSampleRate);
       }
     }
@@ -167,7 +168,7 @@ void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
     printf("extdev=%p\n", rtout_devs);
     if (rtout_devs!=NULL && strlen(rtout_devs)!=0) {
       info.deviceString = rtout_devs;
-      err_printf("Using Portaudio Device %s\n", rtout_devs);
+      err_printf("Using Portaudio device %s\n", rtout_devs);
       info.hostApiType = paALSA;
       info.version = 1;
       info.size = sizeof(info);
@@ -183,7 +184,7 @@ void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
       }
       else {
         paStreamParameters_.device = rtout_dev;
-        err_printf(Str(X_39,"Using Portaudio Device %i\n"), rtout_dev);
+        err_printf(Str(X_39,"Using PortAudio device %i\n"), rtout_dev);
       }
       paStreamParameters_.hostApiSpecificStreamInfo = NULL;
 #if defined(LINUX)
