@@ -83,6 +83,12 @@ public:
    */
   virtual void stop();
   /**
+   * Reset and prepare an instance of Csound for compilation.
+   * Returns CSOUND_SUCCESS on success, and CSOUND_ERROR or
+   * CSOUND_MEMORY if an error occured.
+   */
+  virtual int preCompile();
+  /**
    *	Compiles the score and orchestra without performing them,
    *	in preparation for calling performKsmps.
    */
@@ -152,12 +158,12 @@ public:
    *	Called by external software to set a function for Csound to call to open MIDI input.
    */
   virtual void setExternalMidiInOpenCallback(int (*ExternalMidiInOpen)(void *csound, void **userData,
-                               const char *devName));
+								       const char *devName));
   /**
    *	Called by external software to set a function for Csound to call to read MIDI messages.
    */
   virtual void setExternalMidiReadCallback(int (*ExternalMidiRead)(void *csound, void *userData,
-                             unsigned char *buf, int nbytes));
+								   unsigned char *buf, int nbytes));
   /**
    *	Called by external software to set a function for Csound to call to close MIDI input.
    */
