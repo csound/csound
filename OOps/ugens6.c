@@ -251,9 +251,10 @@ int delrset(DELAYR *p)
 
     if (*p->istor && p->auxch.auxp != NULL)
       return OK;
-    if ((npts = (long)(*p->idlt * esr)) < ksmps) {      /* ksmps is min dely */
+    if ((npts = (long)(FL(0.5)+*p->idlt * esr)) < ksmps) { /* ksmps is min dely */
       return initerror(Str(X_846,"illegal delay time"));
     }
+/*     printf("delay %f sr=%f npts = %d\n", *p->idlt, esr, npts); */
     if ((auxp = p->auxch.auxp) == NULL ||       /* new space if reqd */
         npts != p->npts) {
       auxalloc((long)npts*sizeof(MYFLT), &p->auxch);
