@@ -1,4 +1,4 @@
-/**
+/*
 * C S O U N D   V S T 
 *
 * An auto-extensible system for making music on computers by means of software alone.
@@ -25,6 +25,7 @@
 	#include "Silence.hpp"
 %}
 %include "Silence.hpp"
+
 %pythoncode
 %{
 # Create one global instance of CppSound for CsoundVST to grab.
