@@ -90,7 +90,7 @@ CFLAGS = @CFLAGS@ @XCFLAGS@ $(RPM_OPT_FLAGS) $(DEFINES)
 CXX = @CXX@
 o = @OBJEXT@
 # source and object files for FLTK widgets
-CXXFLAGS = -fno-exceptions -fno-rtti @WINCXXFLAGS@
+CXXFLAGS = -I H -fno-exceptions -fno-rtti @WINCXXFLAGS@
 FLTKSRC = @FLTKSRC@
 FLTKOBJ = @FLTKOBJ@
 #FLTKLIB = -lfltk -lpthread -lg++
@@ -154,113 +154,259 @@ MAC = "DEFINES=$(DEFINES)"
 MAKE = make $(MAC)
 
 SHELL = @SHELL@
+E     = Engine
+I     = InOut
+T     = Top
+O     = OOps
 
-CSCMS  = cscormai.c natbem.c
-CSRC1 =	main.c argdecode.c musmon.c otran.c oload.c rdorch.c express.c
-CSRC2 = rdscor.c linevent.c cscore.c cscorfns.c insert.c entry1.c entry2.c aops.c
-CSRC3 = midiops.c midirecv.c fgens.c ugens1.c ugens2.c ugens3.c ugens4.c
-CSRC4 =	ugens5.c ugens6.c ugens7.c ugens8.c ugens9.c spectra.c disprep.c
-CSRC5 =	window.c winascii.c $(WINSRC) hetro.c lpanal.c lptrkfns.c pvanal.c
-CSRC6 =	pvoc.c fft.c dsputil.c sndinfo.c sfheader.c soundin.c soundio.c
-CSRC7 = ulaw.c aiff.c wave.c ieee80.c filopen.c memalloc.c memfiles.c auxfd.c
-CSRC8 = windin.c dumpf.c $(AUDSRC) scot.c scsort.c scxtract.c sread.c sort.c
-CSRC9 = extract.c twarp.c swrite.c butter.c grain.c vdelay.c cmath.c follow.c
-CSRCA = cvanal.c grain4.c pvinterp.c pvread.c sndwarp.c vpvoc.c hrtferX.c
-CSRCB = winEPS.c nlfilt.c opcode.c ugrw1.c ugrw2.c ugensa.c cross2.c dam.c
-CSRCC = midiout.c midiops2.c midisend.c wavegde.c filter.c complex.c repluck.c
-CSRCD = pluck.c physutil.c physmod.c modal4.c shaker.c fm4op.c diskin.c
-CSRCE = pvadd.c moog1.c singwave.c mandolin.c space.c locsig.c dcblockr.c
-CSRCF = pvocext.c flanger.c aifc.c lowpassr.c uggab.c biquad.c one_file.c
-CSRCG = schedule.c midiops3.c pitch.c getstring.c ugsc.c fout.c sndinfUG.c
-CSRCH = pvlook.c scansyn.c sfont.c vbap.c vbap_four.c vbap_eight.c 
-CSRCI = vbap_sixteen.c vbap_zak.c control.c bowedbar.c phisem.c sdif.c
-CSRCJ = sdif-mem.c babo.c ugmoss.c bbcut.c spat3d.c pvxanal.c mxfft.c
-CSRCK = pvsanal.c pstream.c pvfileio.c oscbnk.c scansynx.c oscils.c
-CSRCL = wave-terrain.c dnoise.c dnfft.c mididevice.c clfilt.c midiinterop.c
-CSRCM = dl_opcodes.c jpff_glue.c namedins.c
-CSRCS =	$(CSRC1) $(CSRC2) $(CSRC3) $(CSRC4) $(CSRC5) $(CSRC6) $(CSRC7) \
-	$(CSRC8) $(CSRC9) $(CSRCA) $(CSRCB) $(CSRCC) $(CSRCD) $(CSRCE) \
-	$(CSRCF) $(CSRCG) $(CSRCH) $(CSRCI) $(CSRCJ) $(CSRCK) $(CSRCL) \
-	$(CSRCM) $(FLTKSRC)
+CSRCM  = cscormai.c natbem.c
 
-CSCM  = cscormai.$(o) natben.$(o)
-COBJ1 =	main.$(o) argdecode.$(o) musmon.$(o) otran.$(o) oload.$(o) \
-	rdorch.$(o) express.$(o)
-COBJ2 = rdscor.$(o) linevent.$(o) cscore.$(o) cscorfns.$(o) \
-	insert.$(o) entry1.$(o) entry2.$(o) aops.$(o)
-COBJ3 = midiops.$(o) midirecv.$(o) fgens.$(o) ugens1.$(o) ugens2.$(o) \
-	ugens3.$(o) ugens4.$(o)
-COBJ4 =	ugens5.$(o) ugens6.$(o) ugens7.$(o) ugens8.$(o) ugens9.$(o) \
-	spectra.$(o) disprep.$(o)
-COBJ5 =	window.$(o) winascii.$(o) $(WINOBJ) hetro.$(o) lpanal.$(o) \
-	lptrkfns.$(o) pvanal.$(o)
-COBJ6 =	pvoc.$(o) fft.$(o) dsputil.$(o) sndinfo.$(o) sfheader.$(o) \
-	soundin.$(o) soundio.$(o)
-COBJ7 = ulaw.$(o) aiff.$(o) wave.$(o) ieee80.$(o) filopen.$(o) \
-	memalloc.$(o) memfiles.$(o) auxfd.$(o)
-COBJ8 = windin.$(o) dumpf.$(o) $(AUDOBJ) scot.$(o) scsort.$(o) \
-	scxtract.$(o) sread.$(o) sort.$(o)
-COBJ9 = extract.$(o) twarp.$(o) swrite.$(o) butter.$(o) grain.$(o) \
-	vdelay.$(o) cmath.$(o) follow.$(o)
-COBJA = cvanal.$(o) grain4.$(o) pvinterp.$(o) pvread.$(o) sndwarp.$(o) \
-	vpvoc.$(o) hrtferX.$(o)
-COBJB = winEPS.$(o) nlfilt.$(o) opcode.$(o) ugrw1.$(o) ugrw2.$(o) \
-	ugensa.$(o) cross2.$(o) dam.$(o)
-COBJC = midiout.$(o) midiops2.$(o) midisend.$(o) wavegde.$(o) \
-	filter.$(o) complex.$(o) repluck.$(o)
-COBJD = pluck.$(o) physutil.$(o) physmod.$(o) modal4.$(o) shaker.$(o) \
-	fm4op.$(o) diskin.$(o)
-COBJE = pvadd.$(o) moog1.$(o) singwave.$(o) mandolin.$(o) space.$(o) \
-	locsig.$(o) dcblockr.$(o)
-COBJF = pvocext.$(o) flanger.$(o) aifc.$(o) lowpassr.$(o) uggab.$(o) \
-	biquad.$(o) one_file.$(o)
-COBJG = schedule.$(o) midiops3.$(o) pitch.$(o) getstring.$(o) \
-	ugsc.$(o) fout.$(o) sndinfUG.$(o)
-COBJH = pvlook.$(o) scansyn.$(o) sfont.$(o) vbap.$(o) vbap_four.$(o) \
-	vbap_eight.$(o)
-COBJI = vbap_sixteen.$(o) vbap_zak.$(o) control.$(o) bowedbar.$(o) \
-	phisem.$(o) sdif.$(o) 
-COBJJ = sdif-mem.$(o) babo.$(o) ugmoss.$(o) bbcut.$(o) spat3d.$(o) \
-	pvxanal.$(o) mxfft.$(o)
-COBJK = pvsanal.$(o) pstream.$(o) pvfileio.$(o) oscbnk.$(o) \
-	scansynx.$(o) oscils.$(o)
-COBKL = wave-terrain.$(o) dnoise.$(o) dnfft.$(o) mididevice.$(o) \
-	clfilt.$(o) midiinterop.$(o)
-COBJM = dl_opcodes.$(o) jpff_glue.$(o) namedins.$(o)
-COBJS =	$(COBJ1) $(COBJ2) $(COBJ3) $(COBJ4) $(COBJ5) $(COBJ6) $(COBJ7) \
-	$(COBJ8) $(COBJ9) $(COBJA) $(COBJB) $(COBJC) $(COBJD) $(COBJE) \
-	$(COBJF) $(COBJG) $(COBJH) $(COBJI) $(COBJJ) $(COBJK) $(COBKL) \
-	$(COBJM) $(FLTKOBJ)
+CSRCE = \
+	$E/auxfd.c	\
+	$E/entry1.c	\
+	$E/entry2.c	\
+	$E/express.c	\
+	$E/extract.c	\
+	$E/fgens.c	\
+	$E/filopen.c	\
+	$E/insert.c	\
+	$E/linevent.c	\
+	$E/memalloc.c	\
+	$E/memfiles.c	\
+	$E/musmon.c	\
+	$E/namedins.c	\
+	$E/oload.c	\
+	$E/otran.c	\
+	$E/rdorch.c	\
+	$E/rdscor.c	\
+	$E/scsort.c	\
+	$E/scxtract.c	\
+	$E/sort.c	\
+	$E/sread.c	\
+	$E/swrite.c	\
+	$E/twarp.c
 
-HDRS =  3Dug.h aiff.h aops.h bowed.h brass.h butter.h clarinet.h \
-	cmath.h complex.h convolve.h cs.h cscore.h dam.h diskin.h disprep.h \
-	dpwelib.h dsputil.h dumpf.h fft.h fhtfun.h filter.h flute.h fm4op.h \
-	follow.h ftgen.h grain.h grain4.h hrtferx.h ieee80.h insert.h \
-	lpc.h marimba.h midioops.h midiops.h midiops2.h midiout.h modal4.h \
-	moog1.h nlfilt.h oload.h physutil.h pluck.h prototyp.h ptrigtbl.h \
-	pvadd.h pvinterp.h pvoc.h pvread.h repluck.h revsets.h scot.h \
-	sfheader.h shaker.h singwave.h sndwarp.h sort.h soundio.h spectra.h \
-	sysdep.h ugens1.h ugens2.h ugens3.h ugens4.h ugens5.h ugens6.h \
-	ugens7.h ugens8.h ugens9.h ugensa.h ugrw1.h ugrw2.h vdelay.h \
-	version.h vibraphn.h vpvoc.h wave.h wavegde.h winEPS.h windin.h \
-	cwindow.h mandolin.h space.h locsig.h dcblockr.h pvocext.h flanger.h \
-	lowpassr.h uggab.h biquad.h schedule.h midiops3.h pitch.h text.h \
-	ugsc.h fout.h sndinfUG.h scansyn.h sf.h sfont.h sfenum.h sftype.h \
-	vbap.h control.h bowedbar.h phisem.h sdif.h sdif-mem.h babo.h \
-	ugmoss.h bbcut.h spat3d.h pstream.h pvfileio.h pvxanal.h oscbnk.h \
-	scansynx.h oscils.h wave-terrain.h clfilt.h midiinterop.h opcode.h \
-	csdl.h widgets.h namedins.h
+CSRCI = \
+	$I/aifc.c       \
+	$I/aiff.c       \
+	$I/ieee80.c     \
+	$I/sfheader.c   \
+	$I/soundin.c    \
+	$I/soundio.c    \
+	$I/wave.c       \
+	$I/winEPS.c     \
+	$I/winascii.c   \
+	$I/windin.c     \
+	$I/window.c
+
+CSRCT = \
+	$T/argdecode.c	\
+	$T/cscore.c	\
+	$T/cscorfns.c	\
+	$T/cvanal.c	\
+	$T/dnoise.c 	\
+	$T/getstring.c	\
+	$T/hetro.c	\
+	$T/jpff_glue.c	\
+	$T/lpanal.c	\
+	$T/main.c	\
+	$T/one_file.c	\
+	$T/opcode.c	\
+	$T/pvanal.c	\
+	$T/pvlook.c	\
+	$T/sndinfo.c	\
+	$T/scot.c
+
+
+CSRCO = \
+	$O/aops.c	\
+	$O/cmath.c	\
+	$O/control.c	\
+	$O/diskin.c	\
+	$O/disprep.c	\
+	$O/dnfft.c	\
+	$O/dsputil.c	\
+	$O/dumpf.c	\
+	$O/fft.c	\
+	$O/fout.c	\
+	$O/lptrkfns.c	\
+	$O/mididevice.c	\
+	$O/midiinterop.c	\
+	$O/midiops.c	\
+	$O/midiout.c	\
+	$O/midirecv.c	\
+	$O/midisend.c	\
+	$O/mxfft.c	\
+	$O/oscils.c	\
+	$O/pitch0.c	\
+	$O/pstream.c	\
+	$O/pvadd.c	\
+	$O/pvfileio.c	\
+	$O/pvinterp.c	\
+	$O/pvoc.c	\
+	$O/pvocext.c	\
+	$O/pvread.c	\
+	$O/pvsanal.c	\
+	$O/pvxanal.c	\
+	$O/schedule.c	\
+	$O/sdif.c	\
+	$O/sdif-mem.c	\
+	$O/sndinfUG.c	\
+	$O/ugens1.c	\
+	$O/ugens2.c	\
+	$O/ugens3.c	\
+	$O/ugens4.c	\
+	$O/ugens5.c	\
+	$O/ugens6.c	\
+	$O/ugens7.c	\
+	$O/ugens8.c	\
+	$O/ugens9.c	\
+	$O/vbap.c	\
+	$O/vbap_eight.c	\
+	$O/vbap_four.c	\
+	$O/vbap_sixteen.c	\
+	$O/vbap_zak.c	\
+	$O/vdelay.c	\
+	$O/vpvoc.c
+
+CSRCS =	$(CSRCT) $(CSRCI) $(CSRCO) $(CSRCE) $(WINSRC) $(AUDSRC) $(FLTKSRC)
+
+COBJM  = cscormai.$(o) natben.$(o)
+
+COBJE = \
+	auxfd.$(o)	\
+	entry1.$(o)	\
+	entry2.$(o)	\
+	express.$(o)	\
+	extract.$(o)	\
+	fgens.$(o)	\
+	filopen.$(o)	\
+	insert.$(o)	\
+	linevent.$(o)	\
+	memalloc.$(o)	\
+	memfiles.$(o)	\
+	musmon.$(o)	\
+	namedins.$(o)	\
+	oload.$(o)	\
+	otran.$(o)	\
+	rdorch.$(o)	\
+	rdscor.$(o)	\
+	scsort.$(o)	\
+	scxtract.$(o)	\
+	sort.$(o)	\
+	sread.$(o)	\
+	swrite.$(o)	\
+	twarp.$(o)
+
+COBJI = winascii.$(o) window.$(o) windin.$(o) winEPS.$(o) aiff.$(o) wave.$(o) \
+	ieee80.$(o) sfheader.$(o) soundin.$(o) soundio.$(o) aifc.$(o)
+
+COBJT = \
+	argdecode.$(o)	\
+	cscore.$(o)	\
+	cscorfns.$(o)	\
+	cvanal.$(o)	\
+	dl_opcodes.$(o)	\
+	dnoise.$(o) 	\
+	getstring.$(o)	\
+	hetro.$(o)	\
+	jpff_glue.$(o)	\
+	lpanal.$(o)	\
+	main.$(o)	\
+	one_file.$(o)	\
+	opcode.$(o)	\
+	pvanal.$(o)	\
+	pvlook.$(o)	\
+	sndinfo.$(o)	\
+	scot.$(o)
+
+COBJO = \
+	aops.$(o)	\
+	cmath.$(o)	\
+	control.$(o)	\
+	diskin.$(o)	\
+	disprep.$(o)	\
+	dnfft.$(o)	\
+	dsputil.$(o)	\
+	dumpf.$(o)	\
+	fft.$(o)	\
+	fout.$(o)	\
+	lptrkfns.$(o)	\
+	mididevice.$(o)	\
+	midiinterop.$(o)	\
+	midiops.$(o)	\
+	midiout.$(o)	\
+	midirecv.$(o)	\
+	midisend.$(o)	\
+	mxfft.$(o)	\
+	oscils.$(o)	\
+	pitch0.$(o)	\
+	pstream.$(o)	\
+	pvadd.$(o)	\
+	pvfileio.$(o)	\
+	pvinterp.$(o)	\
+	pvoc.$(o)	\
+	pvocext.$(o)	\
+	pvread.$(o)	\
+	pvsanal.$(o)	\
+	pvxanal.$(o)	\
+	schedule.$(o)	\
+	sdif.$(o)	\
+	sdif-mem.$(o)	\
+	sndinfUG.$(o)	\
+	ugens1.$(o)	\
+	ugens2.$(o)	\
+	ugens3.$(o)	\
+	ugens4.$(o)	\
+	ugens5.$(o)	\
+	ugens6.$(o)	\
+	ugens7.$(o)	\
+	ugens8.$(o)	\
+	ugens9.$(o)	\
+	vbap.$(o)	\
+	vbap_eight.$(o)	\
+	vbap_four.$(o)	\
+	vbap_sixteen.$(o)	\
+	vbap_zak.$(o)	\
+	vdelay.$(o)	\
+	vpvoc.$(o)
+
+COBJS =	$(COBJT) $(COBJI) $(COBJO) $(COBJE) $(WINOBJ) $(AUDOBJ) $(FLTKOBJ)
+
+HDRS =  H/3Dug.h H/aiff.h H/aops.h H/bowed.h H/brass.h H/butter.h H/clarinet.h \
+	H/cmath.h H/convolve.h H/cs.h H/cscore.h H/dam.h H/diskin.h \
+	H/disprep.h H/dpwelib.h H/dsputil.h H/dumpf.h H/fft.h H/fhtfun.h \
+	H/filter.h H/flute.h H/fm4op.h H/follow.h H/ftgen.h H/grain.h H/grain4.h \
+	H/hrtferx.h H/ieee80.h H/insert.h H/lpc.h H/marimba.h H/midioops.h \
+	H/midiops.h H/midiops2.h H/midiout.h H/modal4.h H/moog1.h H/nlfilt.h \
+	H/oload.h H/physutil.h H/pluck.h H/prototyp.h H/ptrigtbl.h H/pvadd.h \
+	H/pvinterp.h H/pvoc.h H/pvread.h H/repluck.h H/revsets.h H/scot.h \
+	H/sfheader.h H/shaker.h H/singwave.h H/sndwarp.h H/sort.h H/soundio.h \
+	H/spectra.h H/sysdep.h H/ugens1.h H/ugens2.h H/ugens3.h H/ugens4.h \
+	H/ugens5.h H/ugens6.h H/ugens7.h H/ugens8.h H/ugens9.h H/ugensa.h \
+	H/ugrw1.h H/ugrw2.h H/vdelay.h H/version.h H/vibraphn.h H/vpvoc.h \
+	H/wave.h H/wavegde.h H/winEPS.h H/windin.h H/cwindow.h H/mandolin.h \
+	H/space.h H/locsig.h H/dcblockr.h H/pvocext.h H/flanger.h H/lowpassr.h \
+	H/uggab.h H/biquad.h H/schedule.h H/midiops3.h H/pitch.h H/text.h \
+	H/ugsc.h H/fout.h H/sndinfUG.h H/scansyn.h H/sf.h H/sfont.h H/sfenum.h \
+	H/sftype.h H/vbap.h H/control.h H/bowedbar.h H/phisem.h H/sdif.h \
+	H/sdif-mem.h H/babo.h H/ugmoss.h H/bbcut.h H/spat3d.h H/pstream.h \
+	H/pvfileio.h H/pvxanal.h H/oscbnk.h H/scansynx.h H/oscils.h \
+	H/wave-terrain.h H/clfilt.h H/midiinterop.h H/opcode.h H/csdl.h \
+	H/widgets.h H/namedins.h
 
 PROGS   = csound
 SUBDIRS = anals utils1 utils2 utils3
+LIBRARIES = opcodes
 
-all:		$(PROGS) $(SUBDIRS)            	#must be run in this order
+all:		$(PROGS) $(SUBDIRS) $(LIBRARIES)	#must be run in this order
 
 csound:		$(COBJS) $(CSUM) $(CDEP) csound.xmg
 		$(CC) $(CFLAGS) -o csound $(COBJS) $(LIBS)
 
 TAGS:	$(CSRCS) $(HDRS)
 		etags $(CSRCS) $(HDRS)
+		(cd Opcodes; $(MAKE) TAGS)
 
 csound.a:	$(COBJS) $(CDEP)
 		-rm csound.a
@@ -269,21 +415,33 @@ csound.a:	$(COBJS) $(CDEP)
 
 xmg:	American.xmg English.xmg csound.xmg
 
-American.xmg:	all_strings makedb
-	./makedb all_strings American
+American.xmg:	strings/all_strings makedb
+	./makedb strings/all_strings American
 
-English.xmg:	english-strings makedb
-	./makedb english-strings English
+English.xmg:	strings/english-strings makedb
+	./makedb strings/english-strings English
 
-csound.xmg:	all_strings English.xmg
+csound.xmg:	strings/all_strings English.xmg
 	cp English.xmg csound.xmg
 #	cp American.xmg csound.xmg
 
-makedb:	makedb.c text.h
-	$(CC) -o makedb makedb.c
+makedb:	strings/makedb.c H/text.h
+	$(CC) -I H -o makedb strings/makedb.c
+
+$(COBJE): $(CSRCE)
+	$(CC) $(CFLAGS) -I H -c $E/$*.c -o $*.$(o)
+
+$(COBJT): $(CSRCT)
+	$(CC) $(CFLAGS) -I H -c $T/$*.c -o $*.$(o)
+
+$(COBJI): $(CSRCI)
+	$(CC) $(CFLAGS) -I H -c $I/$*.c -o $*.$(o)
+
+$(COBJO): $(CSRCO)
+	$(CC) $(CFLAGS) -I H -c $O/$*.c -o $*.$(o)
 
 .c.$(o):
-	$(CC) $(CFLAGS) -c $*.c -o $*.$(o)
+	$(CC) $(CFLAGS) -I H -c $*.c -o $*.$(o)
 
 ADSYNS = hetro 						#targets in anal/adsyn
 LPCS = lpanal						#targets in anal/lpc
@@ -305,13 +463,16 @@ UTILS2 = sndinfos scale mixers extractor envelope pvlook dnoise srconv #targets 
 utils2 $(UTILS2):
 		cd util2; $(MAKE) $@
 
-UTIL3 = sdif2adsyn.c sdif.c sdif-mem.c
+UTIL3 = sdif2adsyn.c $O/sdif.c $O/sdif-mem.c
 
 UTILS3 = sdif2ad
 utils3: $(UTILS3)
 
+opcodes:
+	(cd Opcodes; $(MAKE) $@)
+
 sdif2ad: sdif2adsyn.$(o) sdif.$(o) sdif-mem.$(o)
-	$(CC) sdif2adsyn.$(o) sdif.$(o) sdif-mem.$(o) -o sdif2ad
+	$(CC) -I H sdif2adsyn.$(o) sdif.$(o) sdif-mem.$(o) -o sdif2ad
 
 install:	$(PROGS) $(CSA) csound.a sdif2ad
 		-strip $(PROGS)
@@ -367,7 +528,7 @@ CSLinux.bin.tgz: /usr/local/bin/csound /usr/local/bin/hetro \
 	extractor envext pvlook sdif2ad dnoise srconv)
 
 Csound.tar.gz:  all_files \
-	$(CSRCS) $(HDRS) \
+	$(<CSRCS) $(HDRS) \
 	LINUXaudio.c DECaudio.c DECplay.c HPplay.c DECaudio.h \
 	DECplay.h SGIplay.c anal/adsyn/main.c anal/adsyn/makef anal/lpc/main.c \
 	anal/lpc/makef anal/makef anal/makef anal/pvoc/main.c anal/pvoc/makef \
@@ -408,10 +569,7 @@ distrib:	all Csound.tar.gz
 	cp MUSIC/csound/util2/sndinfo/sndinfo ~ftp/pub/dream/SGI
 
 depend:
-	@CC@ -M $(CFLAGS) $(CSRCS) $(CSMS) $(UTIL3) > deps
+	@CC@ -M -I H $(CFLAGS) $(CSRCS) $(CSRMS) $(UTIL3) > deps
 	cat Makefile deps > makefile
-
-testlib.so: testlib.$(o)
-	ld -E --shared testlib.$(o) -o testlib.so
 
 # DO NOT DELETE THIS LINE
