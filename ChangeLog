@@ -1,3 +1,16 @@
+2005-03-22	Istvan Varga	<istvan@csounds.com>
+	* Engine/entry1.c:
+	* H/diskin2.h:
+	* OOps/diskin2.c:
+	  new opcode
+	* InOut/libsnd_u.c:
+	* OOps/sndinfUG.c:
+	  bug fixes in opening sound files
+	* OOps/diskin.c:
+	  fixed (partly) clicks in multichannel input; still some bugs
+	* H/soundio.h:
+	  fixed soundin crash (was actually caused by unused SOUNDIN.kfrqratio)
+
 2005-03-21  John ffitch  <jpff@codemist.co.uk>
 
 	* Engine/sread.c (MARGIN): Increase to 600, but needs to be

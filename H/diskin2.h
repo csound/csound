@@ -26,11 +26,10 @@
 
 #include <sndfile.h>
 
-#define DISKIN2_BUFSIZE 4096    /* in mono samples */
-#define DISKIN2_MAXCHN  16
-#define POS_FRAC_SHIFT  20
-#define POS_FRAC_SCALE  0x00100000
-#define POS_FRAC_MASK   0x000FFFFF
+#define DISKIN2_MAXCHN  24              /* for consistency with soundin   */
+#define POS_FRAC_SHIFT  24              /* allows pitch accuracy of 2^-24 */
+#define POS_FRAC_SCALE  0x01000000
+#define POS_FRAC_MASK   0x00FFFFFF
 
 typedef struct {
     OPDS    h;
@@ -38,31 +37,31 @@ typedef struct {
     MYFLT   *iFileCode;
     MYFLT   *kTranspose;
     MYFLT   *iSkipTime;
+    MYFLT   *iWrapMode;
     MYFLT   *iSampleFormat;
     MYFLT   *iWinSize;
+    MYFLT   *iBufSize;
     MYFLT   *iSkipInit;
-    MYFLT   *iChannelMap[DISKIN2_MAXCHN];
  /* ------------------------------------- */
     int     initDone;
     int     nChannels;
-    SNDFILE *sf;
-    MYFLT   prv_kTranspose;
-    MYFLT   warpScale;
-    MYFLT   winFact;
-    long    fileLength;                     /* in mono samples */
+    int     bufSize;            /* in sample frames, power of two */
+    int     wrapMode;
+    long    fileLength;         /* in sample frames */
     long    bufStartPos;
     long    prvBufStartPos;
     long    pos_int;
     int     pos_frac;
     int     pos_frac_inc;
-    int     fileChannels;
     int     winSize;
+    MYFLT   prv_kTranspose;
+    MYFLT   warpScale;
+    MYFLT   winFact;
     MYFLT   *buf;
     MYFLT   *prvBuf;
+    SNDFILE *sf;
     FDCH    fdch;
-    int     channelMap[DISKIN2_BUFSIZE];
-    MYFLT   buf_1[DISKIN2_BUFSIZE];
-    MYFLT   buf_2[DISKIN2_BUFSIZE];
+    AUXCH   auxData;            /* for dynamically allocated buffers */
 } DISKIN2;
 
 int diskin2_init(ENVIRON *csound, DISKIN2 *p);
