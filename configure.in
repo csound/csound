@@ -313,7 +313,7 @@ echo
 echo "Configuration Summary"
 echo "----------------------"
 
-if test "$RTAUDIO"; then 
+if test "$USE_RTAUDIO"; then 
 echo "RTAUDIO Support: $AUDOBJ";
 else
 echo "RTAUDIO Support: Disabled ($AUDOBJ)"
