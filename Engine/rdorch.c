@@ -996,7 +996,7 @@ int splitline(void)     /* split next orch line into atomic groups */
     linopnum = opnum;                   /* else save full line ops */
     linopcod = opcod;
     if (O.odebug) printgroups(grpcnt); 
-    if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); /* on Mac/win, allow system events */
+/*     if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); /\* on Mac/win, allow system events *\/ */
     return(grpcnt);
 }
 

@@ -367,7 +367,7 @@ int csoundCompile(void *csound, int argc, char **argv)
       }
     }
 #endif
-    if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
+/*     if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); */
     install_signal_handler();
     O.filnamspace = filnamp = mmalloc((long)1024);
     peakchunks = 1;
@@ -390,7 +390,7 @@ int csoundCompile(void *csound, int argc, char **argv)
 #endif
     }
 
-    if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
+/*     if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); */
     if (orchname == NULL)
       dieu(Str(X_1051,"no orchestra name"));
     else if ((strcmp(orchname+strlen(orchname)-4, ".csd")==0 ||
@@ -484,9 +484,9 @@ int csoundCompile(void *csound, int argc, char **argv)
     /* IV - Oct 31 2002: moved orchestra compilation here, so that named */
     /* instrument numbers are known at the score read/sort stage */
     create_opcodlst(&cenviron); /* create initial opcode list (if not done yet) */
-    if (!(POLL_EVENTS())) return (0);
+/*     if (!(POLL_EVENTS())) return (0); */
     otran();                 /* read orcfile, setup desblks & spaces     */
-    if (!(POLL_EVENTS())) return (0);
+/*     if (!(POLL_EVENTS())) return (0); */
 /*     print_elapsed_time("end of orch compile");          /\* IV - Nov 10 2002 *\/ */
     /* IV - Oct 31 2002: now we can read and sort the score */
     if (scorename == NULL || scorename[0]=='\0') {
@@ -494,7 +494,7 @@ int csoundCompile(void *csound, int argc, char **argv)
         err_printf(Str(X_1153,
                        "realtime performance using dummy "
                        "numeric scorefile\n"));
-        if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
+/*         if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); */
         goto perf;
       }
       else {
@@ -507,7 +507,7 @@ int csoundCompile(void *csound, int argc, char **argv)
         }
       }
     }
-    if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
+/*     if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); */
 #ifdef mills_macintosh
     {
       char *c;
@@ -544,7 +544,7 @@ int csoundCompile(void *csound, int argc, char **argv)
       fclose(scorin);
       fclose(scorout);
     }
-    if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
+/*     if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); */
     if (xfilename != NULL) {                        /* optionally extract */
       if (!strcmp(scorename,"score.xtr"))
         dies(Str(X_634,"cannot extract %s, name conflict"),scorename);
@@ -565,7 +565,7 @@ int csoundCompile(void *csound, int argc, char **argv)
 /*            printf("playscore = %s\n", playscore); */
 /*          } */
     err_printf(Str(X_564,"\t... done\n"));
-    if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
+/*     if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); */
 
     s = playscore;
     O.playscore = filnamp;
@@ -589,7 +589,7 @@ int csoundMain(void *csound, int argc, char **argv)
     returnvalue = csoundCompile(csound, argc, argv);
     printf("Compile returns %d\n", returnvalue);
     if (returnvalue) return returnvalue;
-    if (!(POLL_EVENTS())) return (0);
+/*     if (!(POLL_EVENTS())) return (0); */
     returnvalue = musmon();
     printf("musmon returns %d\n", returnvalue);
     if (returnvalue) return returnvalue;

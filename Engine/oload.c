@@ -592,7 +592,7 @@ void oload(void)
           *ndxp = (short)indx;
         }
       }
-      if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); /* on Mac/Win, allow system events */
+/*       if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); /\* on Mac/Win, allow system events *\/ */
     }
 /*     if (pgmdim != NULL) free((char *)pgmdim); */
 /*     pctlist = (MYFLT **) mcalloc((long)256 * sizeof(MYFLT *)); */

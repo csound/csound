@@ -155,14 +155,14 @@ int pvlook(int argc, char *argv[])
     rewind( fp ) ;
     if (printInts!=0) {
       for (k=0; k < numBins*2; k+=2) {
-        if (!POLL_EVENTS()) exit(1);
+/*         if (!POLL_EVENTS()) exit(1); */
         j=((firstBin*2)-1) + k;
         fprintf(outfd,"\nBin %d Freqs.", firstBin+k/2);
         if (outfd != stdout) {
           printf("\nBin %d Freqs.", firstBin+k/2);
         }
         for (i = firstFrame-1; i < lastFrame; i++) {
-          if (!POLL_EVENTS()) exit(1);
+/*           if (!POLL_EVENTS()) exit(1); */
           m = 56 + ((j + (i * framesize) ) * 4);
           fseek(fp, m, SEEK_SET);
           num+=fread( pvdataF, sizeof(float), 1, fp );
@@ -175,7 +175,7 @@ int pvlook(int argc, char *argv[])
           printf("\nBin %d Amps. ", firstBin+k/2);
         }
         for (i = firstFrame-1; i < lastFrame; i++) {
-          if (!POLL_EVENTS()) exit(1);
+/*           if (!POLL_EVENTS()) exit(1); */
           m =  56 + ((j + (i * framesize) ) * 4);
           fseek(fp, m, SEEK_SET);
           num+=fread( pvdataA, sizeof(float), 1, fp );
@@ -186,12 +186,12 @@ int pvlook(int argc, char *argv[])
     }
     else {
       for (k=0; k < numBins*2; k+=2) {
-        if (!POLL_EVENTS()) exit(1);
+/*         if (!POLL_EVENTS()) exit(1); */
         j=((firstBin*2)-1) + k;
         fprintf(outfd,"\nBin %d Freqs.", firstBin+k/2);
         if (outfd!=stdout) printf("\nBin %d Freqs.", firstBin+k/2);
         for (i = firstFrame-1; i < lastFrame; i++) {
-          if (!POLL_EVENTS()) exit(1);
+/*           if (!POLL_EVENTS()) exit(1); */
           m = 56 + ((j + (i * framesize) ) * 4);
           fseek(fp, m, SEEK_SET);
           num+=fread( pvdataF, sizeof(float), 1, fp );
@@ -203,7 +203,7 @@ int pvlook(int argc, char *argv[])
         fprintf(outfd,"\nBin %d Amps. ", firstBin+k/2);
         if (outfd!=stdout) printf("\nBin %d Amps. ", firstBin+k/2);
         for (i = firstFrame-1; i < lastFrame; i++) {
-          if (!POLL_EVENTS()) exit(1);
+/*           if (!POLL_EVENTS()) exit(1); */
           m =  56 + ((j + (i * framesize) ) * 4);
           fseek(fp, m, SEEK_SET);
           num+=fread( pvdataA, sizeof(float), 1, fp );

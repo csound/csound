@@ -43,11 +43,11 @@ void scsort(FILE *scin, FILE *scout)
       if ((n = sread()) > 0) {
         printf("sread returns with %d\n", n);
         sort();
-        if (!POLL_EVENTS()) break; /* on Mac/Win, system events */
+/*         if (!POLL_EVENTS()) break; /\* on Mac/Win, system events *\/ */
         twarp();
         swrite();
       }
-    } while (POLL_EVENTS() && n > 1); /* on Mac/Win, allow system events */
+    } while (/* POLL_EVENTS() &&*/ n > 1); /* on Mac/Win, allow system events */
     sfree();        /* return all memory used */
 }
 

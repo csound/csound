@@ -204,12 +204,12 @@ static void takeFFT(
         *fp2++ = *fp1;
         fp1 += nchanls;
       }
-      if (!POLL_EVENTS()) exit(1);
+/*       if (!POLL_EVENTS()) exit(1); */
       fp1 = inbuf + i + 1;
       /*printf("about to FFT\n");*/
       /* PrintBuf(outbuf, Hlenpadded, "normalised & padded"); */
       FFT2realpacked((complex *)outbuf, Hlenpadded,basis);
-      if (!POLL_EVENTS()) exit(1);
+/*       if (!POLL_EVENTS()) exit(1); */
       /*printf("finished FFTing\n");*/
       /* PrintBuf(Buf, 2*Hlenpadded, X_761,"FFT'd"); */
       /* write straight out, just the indep vals */

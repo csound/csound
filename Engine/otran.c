@@ -781,8 +781,8 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
       dies(Str(X_1272,"target label '%s' not found"), s);
     }
     nxtargoffp = ndxp;
-    if (!POLL_EVENTS())
-      longjmp(cenviron.exitjmp_,1); /* on Mac/Win, allow system events */
+/*     if (!POLL_EVENTS()) */
+/*       longjmp(cenviron.exitjmp_,1); /\* on Mac/Win, allow system events *\/ */
     mfree(labels);
     mfree(larg);
 }
