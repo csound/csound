@@ -301,7 +301,7 @@ def buildzip(env, target, source):
     extensions = extensions + ".sf2 .SF2 .csd .aif .aiff .jar .smf .mid"
     extensions = string.split(extensions)
 
-    specificFiles = "SConstruct _CsoundVST.* _loris.* pyrun.* loris.py lorisgens.C lorisgens.h morphdemo.py trymorph.csd CsoundCOM.dll msvcp70.dll libsndfile.dll portaudio.dll.0.0.19 msvcr70.dll csound csound.exe CsoundVST CsoundVST.exe CsoundVST.* soundfonts.dll libpython23.a "
+    specificFiles = "SConstruct _CsoundVST.* _loris.* loris.py lorisgens.C lorisgens.h morphdemo.py trymorph.csd CsoundCOM.dll msvcp70.dll libsndfile.dll portaudio.dll.0.0.19 msvcr70.dll csound csound.exe CsoundVST CsoundVST.exe CsoundVST.* soundfonts.dll libpython23.a "
     specificFiles = specificFiles + "README Doxyfile ChangeLog COPYING INSTALL MANIFEST COPYRIGHT AUTHORS TODO all_strings french-strings english-strings"
     specificFiles = string.split(specificFiles)
 
@@ -869,7 +869,7 @@ else:
     vstEnvironment.Prepend(LIBS = ['csound', 'sndfile'])
     vstEnvironment.Append(SWIGFLAGS = Split('-c++ -includeall -verbose -outdir .'))
     if getPlatform() == 'linux':
-        vstEnvironment.Append(LIBS = ['swigpy', 'python2.3', 'util', 'dl', 'm'])
+        vstEnvironment.Append(LIBS = ['python2.3', 'util', 'dl', 'm'])
         vstEnvironment.Append(CPPPATH = ['/usr/include/python2.3'])
         vstEnvironment.Append(LIBPATH = ['/usr/lib/python2.3/config'])
         vstEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
@@ -886,11 +886,6 @@ else:
                 vstEnvironment.Append(CCFLAGS = ['-D_MSC_VER'])
         guiProgramEnvironment.Prepend(LINKFLAGS = ['-mwindows'])
         vstEnvironment.Append(LIBS = ['python23'])
-        pyrunEnvironment = vstEnvironment.Copy()
-        pyrunEnvironment.Append(CCFLAGS = '-DSWIG_GLOBAL')
-        pyrun = pyrunEnvironment.SharedLibrary('pyrun', ['frontends/CsoundVST/pyrun.c'])
-        libs.append(pyrun)
-        #vstEnvironment.Append(LIBS = ['pyrun'])
         vstEnvironment.Append(LIBS = ['fltk_images'])
         vstEnvironment.Append(LIBS = ['fltk'])
         guiProgramEnvironment.Append(LINKFLAGS = '-mwindows')
@@ -961,7 +956,6 @@ else:
     libs.append('CsoundVST.py')
     Depends(csoundvst, csoundLibrary)
     if getPlatform() == 'mingw' or getPlatform() == 'cygwin':
-        Depends(csoundvst, pyrun)
         guiProgramEnvironment.Append(LIBS = ['CsoundVST'])
 
     csoundvstGui = guiProgramEnvironment.Program('CsoundVST', ['frontends/CsoundVST/csoundvst_main.cpp'])
@@ -999,7 +993,7 @@ else:
 
     pyEnvironment = pluginEnvironment.Copy();
     if getPlatform() == 'linux':
-        pyEnvironment.Append(LIBS = ['swigpy', 'python2.3', 'util', 'dl', 'm'])
+        pyEnvironment.Append(LIBS = ['python2.3', 'util', 'dl', 'm'])
         pyEnvironment.Append(CPPPATH = ['/usr/local/include/python2.3'])
         pyEnvironment.Append(LIBPATH = ['/usr/local/lib/python2.3/config'])
         pyEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
