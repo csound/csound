@@ -1,7 +1,37 @@
+2005-02-22	Istvan Varga	<istvan@csounds.com>
+	* Engine/musmon.c:
+	* Engine/oload.c:
+	* H/csdl.h:
+	* H/cs.h:
+	* H/csoundCore.h:
+	* H/csound.h:
+	* H/midiops2.h:
+	* H/midiops.h:
+	* H/prototyp.h:
+	* InOut/midirecv.c:
+	* InOut/midisend.c:
+	* InOut/pmidi.c:
+	* OOps/midiops.c:
+	* OOps/midiout.c:
+	* Opcodes/midiops2.c:
+	* SConstruct:
+	* Top/argdecode.c:
+	* Top/csound.c:
+	* Top/main.c:
+	  MIDI changes: added support for real time MIDI modules (there is
+	  only one currently, pmidi.c); implemented both MIDI in and out
+	  using PortMIDI in pmidi.c; removed many static variables from
+	  MIDI code
+	* InOut/libsnd.c: clip integer format sound files, fixed sfcloseout()
+	* InOut/widgets.cpp: fixed ButtonSched() crash
+	* OOps/diskin.c: fixed soundout opcode
+	* SConstruct: made useJack=1 and useALSA=1 the default again
+	* H/sysdep.h: added integer types
+
 2005-02-22  John ff  <jpff@codemist.co.uk>
 
 	* SConstruct: Added Word64 as an option.  This could be done
-	aitomatically but one needs to select 84 or 32 bit on a 64 bit
+	automatically but one needs to select 64 or 32 bit on a 64 bit
 	machine. 
 
 2005-02-20	Istvan Varga	<istvan@csounds.com>

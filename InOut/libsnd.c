@@ -414,7 +414,9 @@ void sfopenin(void *csound)             /* init for continuous soundin */
         dies(Str("isfinit: cannot open %s"), retfilnam);
       sfname = retfilnam;
       memset(&sfinfo, '\0', sizeof(SF_INFO));
-      infile= sf_open_fd(isfd, SFM_READ, &sfinfo, SF_TRUE);
+      infile = sf_open_fd(isfd, SFM_READ, &sfinfo, SF_TRUE);
+      if (infile == NULL)
+        dies(Str("isfinit: cannot open %s"), retfilnam);
 /*    printf("***sfinfo: samplerate=%d channels=%d format=%.8x sections=%d\n", */
 /*        sfinfo.samplerate, sfinfo.channels, sfinfo.format, sfinfo.sections); */
       p->filetyp = 0;               /* initially non-typed for readheader */
@@ -551,6 +553,11 @@ void sfopenout(void *csound)                    /* init for sound out       */
       sfoutname = mmalloc(csound, (long)strlen(retfilnam)+1);
       strcpy(sfoutname, retfilnam);       /*   & preserve the name */
       outfile = sf_open_fd(osfd, SFM_WRITE, &sfinfo, 1);
+      if (outfile == NULL)
+        dies(Str("sfinit: cannot open %s"), sfoutname);
+      /* IV - Feb 22 2005: clip integer formats */
+      if (O.outformat != AE_FLOAT && O.outformat != AE_DOUBLE)
+        sf_command(outfile, SFC_SET_CLIPPING, NULL, SF_TRUE);
       if (peakchunks)
         sf_command(outfile, SFC_SET_ADD_PEAK_CHUNK, NULL, SF_TRUE);
       if (strcmp(sfoutname, "/dev/audio") == 0) {
@@ -656,7 +663,7 @@ void sfcloseout(void *csound)
 {
     int nb;
     if (!osfopen) return;
-    if ((nb = (O.outbufsamps-outbufrem) * O.sfsampsize) > 0) {  /* flush     */
+    if ((nb = (O.outbufsamps-outbufrem) * sizeof(MYFLT)) > 0) { /* flush     */
       ((ENVIRON*) csound)->nrecs_++;                            /* outbuffer */
       audtran(csound, outbuf, nb);
     }
