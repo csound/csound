@@ -4,7 +4,7 @@ pycall0_krate(PYCALL0 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pycall0_krate: callable must be a string");
       return NOTOK;
@@ -32,7 +32,7 @@ pycall0_krate(PYCALL0 *p)
 int
 pylcall0_irate(PYCALL0 *p)
 {
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall0_irate: callable must be a string");
       return NOTOK;
@@ -48,7 +48,7 @@ pylcall0_krate(PYCALL0 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall0_krate: callable must be a string");
       return NOTOK;
@@ -79,7 +79,7 @@ pylcall0i_irate(PYCALL0 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall0i_irate: callable must be a string");
       return NOTOK;
@@ -112,7 +112,7 @@ pycall0t_krate(PYCALL0T *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pycall0t_krate: callable must be a string");
       return NOTOK;
@@ -145,7 +145,7 @@ pycall0t_krate(PYCALL0T *p)
 int
 pylcall0t_irate(PYCALL0T *p)
 {
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall0t_irate: callable must be a string");
       return NOTOK;
@@ -161,7 +161,7 @@ pylcall0t_krate(PYCALL0T *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall0t_krate: callable must be a string");
       return NOTOK;
@@ -197,7 +197,7 @@ pycall1_krate(PYCALL1 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pycall1_krate: callable must be a string");
       return NOTOK;
@@ -232,7 +232,7 @@ pycall1_krate(PYCALL1 *p)
 int
 pylcall1_irate(PYCALL1 *p)
 {
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall1_irate: callable must be a string");
       return NOTOK;
@@ -248,7 +248,7 @@ pylcall1_krate(PYCALL1 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall1_krate: callable must be a string");
       return NOTOK;
@@ -286,7 +286,7 @@ pylcall1i_irate(PYCALL1 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall1i_irate: callable must be a string");
       return NOTOK;
@@ -326,7 +326,7 @@ pycall1t_krate(PYCALL1T *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pycall1t_krate: callable must be a string");
       return NOTOK;
@@ -367,7 +367,7 @@ pycall1t_krate(PYCALL1T *p)
 int
 pylcall1t_irate(PYCALL1T *p)
 {
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall1t_irate: callable must be a string");
       return NOTOK;
@@ -383,7 +383,7 @@ pylcall1t_krate(PYCALL1T *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall1t_krate: callable must be a string");
       return NOTOK;
@@ -427,7 +427,7 @@ pycall2_krate(PYCALL2 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pycall2_krate: callable must be a string");
       return NOTOK;
@@ -462,7 +462,7 @@ pycall2_krate(PYCALL2 *p)
 int
 pylcall2_irate(PYCALL2 *p)
 {
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall2_irate: callable must be a string");
       return NOTOK;
@@ -478,7 +478,7 @@ pylcall2_krate(PYCALL2 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall2_krate: callable must be a string");
       return NOTOK;
@@ -516,7 +516,7 @@ pylcall2i_irate(PYCALL2 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall2i_irate: callable must be a string");
       return NOTOK;
@@ -556,7 +556,7 @@ pycall2t_krate(PYCALL2T *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pycall2t_krate: callable must be a string");
       return NOTOK;
@@ -598,7 +598,7 @@ pycall2t_krate(PYCALL2T *p)
 int
 pylcall2t_irate(PYCALL2T *p)
 {
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall2t_irate: callable must be a string");
       return NOTOK;
@@ -614,7 +614,7 @@ pylcall2t_krate(PYCALL2T *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall2t_krate: callable must be a string");
       return NOTOK;
@@ -659,7 +659,7 @@ pycall3_krate(PYCALL3 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pycall3_krate: callable must be a string");
       return NOTOK;
@@ -695,7 +695,7 @@ pycall3_krate(PYCALL3 *p)
 int
 pylcall3_irate(PYCALL3 *p)
 {
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall3_irate: callable must be a string");
       return NOTOK;
@@ -711,7 +711,7 @@ pylcall3_krate(PYCALL3 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall3_krate: callable must be a string");
       return NOTOK;
@@ -750,7 +750,7 @@ pylcall3i_irate(PYCALL3 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall3i_irate: callable must be a string");
       return NOTOK;
@@ -791,7 +791,7 @@ pycall3t_krate(PYCALL3T *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pycall3t_krate: callable must be a string");
       return NOTOK;
@@ -835,7 +835,7 @@ pycall3t_krate(PYCALL3T *p)
 int
 pylcall3t_irate(PYCALL3T *p)
 {
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall3t_irate: callable must be a string");
       return NOTOK;
@@ -851,7 +851,7 @@ pylcall3t_krate(PYCALL3T *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall3t_krate: callable must be a string");
       return NOTOK;
@@ -898,7 +898,7 @@ pycall4_krate(PYCALL4 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pycall4_krate: callable must be a string");
       return NOTOK;
@@ -935,7 +935,7 @@ pycall4_krate(PYCALL4 *p)
 int
 pylcall4_irate(PYCALL4 *p)
 {
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall4_irate: callable must be a string");
       return NOTOK;
@@ -951,7 +951,7 @@ pylcall4_krate(PYCALL4 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall4_krate: callable must be a string");
       return NOTOK;
@@ -991,7 +991,7 @@ pylcall4i_irate(PYCALL4 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall4i_irate: callable must be a string");
       return NOTOK;
@@ -1033,7 +1033,7 @@ pycall4t_krate(PYCALL4T *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pycall4t_krate: callable must be a string");
       return NOTOK;
@@ -1079,7 +1079,7 @@ pycall4t_krate(PYCALL4T *p)
 int
 pylcall4t_irate(PYCALL4T *p)
 {
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall4t_irate: callable must be a string");
       return NOTOK;
@@ -1095,7 +1095,7 @@ pylcall4t_krate(PYCALL4T *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall4t_krate: callable must be a string");
       return NOTOK;
@@ -1144,7 +1144,7 @@ pycall5_krate(PYCALL5 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pycall5_krate: callable must be a string");
       return NOTOK;
@@ -1182,7 +1182,7 @@ pycall5_krate(PYCALL5 *p)
 int
 pylcall5_irate(PYCALL5 *p)
 {
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall5_irate: callable must be a string");
       return NOTOK;
@@ -1198,7 +1198,7 @@ pylcall5_krate(PYCALL5 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall5_krate: callable must be a string");
       return NOTOK;
@@ -1239,7 +1239,7 @@ pylcall5i_irate(PYCALL5 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall5i_irate: callable must be a string");
       return NOTOK;
@@ -1282,7 +1282,7 @@ pycall5t_krate(PYCALL5T *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pycall5t_krate: callable must be a string");
       return NOTOK;
@@ -1330,7 +1330,7 @@ pycall5t_krate(PYCALL5T *p)
 int
 pylcall5t_irate(PYCALL5T *p)
 {
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall5t_irate: callable must be a string");
       return NOTOK;
@@ -1346,7 +1346,7 @@ pylcall5t_krate(PYCALL5T *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall5t_krate: callable must be a string");
       return NOTOK;
@@ -1397,7 +1397,7 @@ pycall6_krate(PYCALL6 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pycall6_krate: callable must be a string");
       return NOTOK;
@@ -1436,7 +1436,7 @@ pycall6_krate(PYCALL6 *p)
 int
 pylcall6_irate(PYCALL6 *p)
 {
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall6_irate: callable must be a string");
       return NOTOK;
@@ -1452,7 +1452,7 @@ pylcall6_krate(PYCALL6 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall6_krate: callable must be a string");
       return NOTOK;
@@ -1494,7 +1494,7 @@ pylcall6i_irate(PYCALL6 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall6i_irate: callable must be a string");
       return NOTOK;
@@ -1538,7 +1538,7 @@ pycall6t_krate(PYCALL6T *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pycall6t_krate: callable must be a string");
       return NOTOK;
@@ -1588,7 +1588,7 @@ pycall6t_krate(PYCALL6T *p)
 int
 pylcall6t_irate(PYCALL6T *p)
 {
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall6t_irate: callable must be a string");
       return NOTOK;
@@ -1604,7 +1604,7 @@ pylcall6t_krate(PYCALL6T *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall6t_krate: callable must be a string");
       return NOTOK;
@@ -1657,7 +1657,7 @@ pycall7_krate(PYCALL7 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pycall7_krate: callable must be a string");
       return NOTOK;
@@ -1697,7 +1697,7 @@ pycall7_krate(PYCALL7 *p)
 int
 pylcall7_irate(PYCALL7 *p)
 {
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall7_irate: callable must be a string");
       return NOTOK;
@@ -1713,7 +1713,7 @@ pylcall7_krate(PYCALL7 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall7_krate: callable must be a string");
       return NOTOK;
@@ -1756,7 +1756,7 @@ pylcall7i_irate(PYCALL7 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall7i_irate: callable must be a string");
       return NOTOK;
@@ -1801,7 +1801,7 @@ pycall7t_krate(PYCALL7T *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pycall7t_krate: callable must be a string");
       return NOTOK;
@@ -1853,7 +1853,7 @@ pycall7t_krate(PYCALL7T *p)
 int
 pylcall7t_irate(PYCALL7T *p)
 {
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall7t_irate: callable must be a string");
       return NOTOK;
@@ -1869,7 +1869,7 @@ pylcall7t_krate(PYCALL7T *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall7t_krate: callable must be a string");
       return NOTOK;
@@ -1924,7 +1924,7 @@ pycall8_krate(PYCALL8 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pycall8_krate: callable must be a string");
       return NOTOK;
@@ -1965,7 +1965,7 @@ pycall8_krate(PYCALL8 *p)
 int
 pylcall8_irate(PYCALL8 *p)
 {
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall8_irate: callable must be a string");
       return NOTOK;
@@ -1981,7 +1981,7 @@ pylcall8_krate(PYCALL8 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall8_krate: callable must be a string");
       return NOTOK;
@@ -2025,7 +2025,7 @@ pylcall8i_irate(PYCALL8 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall8i_irate: callable must be a string");
       return NOTOK;
@@ -2071,7 +2071,7 @@ pycall8t_krate(PYCALL8T *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pycall8t_krate: callable must be a string");
       return NOTOK;
@@ -2125,7 +2125,7 @@ pycall8t_krate(PYCALL8T *p)
 int
 pylcall8t_irate(PYCALL8T *p)
 {
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall8t_irate: callable must be a string");
       return NOTOK;
@@ -2141,7 +2141,7 @@ pylcall8t_krate(PYCALL8T *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != sstrcod)
+  if (*p->function != SSTRCOD)
     {
       err_printf("pylcall8t_krate: callable must be a string");
       return NOTOK;

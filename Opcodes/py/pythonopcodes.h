@@ -22,10 +22,9 @@
 #define _pycsound_pythonopcodes_h_
 
 #include <Python.h>
-#include "cs.h"
-
-#include "py/pyx.h.auto"
-#include "py/pycall.h.auto"
+#include "csdl.h"
+#include "pyx.h.auto"
+#include "pycall.h.auto"
 
 typedef struct {
   OPDS h;
@@ -34,10 +33,9 @@ typedef struct {
   MYFLT *args[VARGMAX];
 } PYCALLN;
 
-extern void pycalln_krate(PYCALLN *p);
-
-extern void pylcalln_irate(PYCALLN *p);
-extern void pylcalln_krate(PYCALLN *p);
-extern void pylcallni_irate(PYCALLN *p);
+extern int pycalln_krate(PYCALLN *p);
+extern int pylcalln_irate(PYCALLN *p);
+extern int pylcalln_krate(PYCALLN *p);
+extern int pylcallni_irate(PYCALLN *p);
 
 #endif /* _pycsound_pythonopcodes_h_ */
