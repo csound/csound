@@ -35,6 +35,8 @@ import copy
 zipDependencies = []
 pluginLibraries = []
 executables = []
+headers = glob.glob('H/*.h')
+libs = []
 
 def today():
     return time.strftime("%Y-%m-%d",time.localtime())
@@ -562,7 +564,7 @@ if (commonEnvironment['dynamicCsoundLibrary'] == '1'):
 else:
   print 'CONFIGURATION DECISION: Building static Csound library'
   csoundLibrary = csoundLibraryEnvironment.Library('csound', libCsoundSources)
-
+libs.append(csoundLibrary)
 zipDependencies.append(csoundLibrary)
 
 if commonEnvironment['generatePdf']=='0':
@@ -856,6 +858,8 @@ if not ((commonEnvironment['buildCsoundVST'] == '1') and boostFound and fltkFoun
     print 'CONFIGURATION DECISION: Not building CsoundVST plugin and standalone.'
 else:
     print 'CONFIGURATION DECISION: Building CsoundVST plugin and standalone.'
+    headers += glob.glob('frontends/CsoundVST/*.h')
+    headers += glob.glob('frontends/CsoundVST/*.hpp')
     vstEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
     guiProgramEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
     vstEnvironment.Prepend(LIBS = ['csound', 'sndfile'])
@@ -881,6 +885,7 @@ else:
         pyrunEnvironment = vstEnvironment.Copy()
         pyrunEnvironment.Append(CCFLAGS = '-DSWIG_GLOBAL')
         pyrun = pyrunEnvironment.SharedLibrary('pyrun', ['frontends/CsoundVST/pyrun.c'])
+	libs.append(pyrun)
         #vstEnvironment.Append(LIBS = ['pyrun'])
         vstEnvironment.Append(LIBS = ['fltk_images'])
         vstEnvironment.Append(LIBS = ['fltk'])
@@ -947,12 +952,15 @@ else:
     csoundvst = vstEnvironment.SharedLibrary('CsoundVST', csoundVstSources, SHLIBPREFIX = '_')
     Depends(csoundvst, 'frontends/CsoundVST/CsoundVST_wrap.cc')
     zipDependencies.append(csoundvst)
+    libs.append(csoundvst)
+    libs.append('CsoundVST.py')
     Depends(csoundvst, csoundLibrary)
     if getPlatform() == 'mingw' or getPlatform() == 'cygwin':
         Depends(csoundvst, pyrun)
         guiProgramEnvironment.Append(LIBS = ['CsoundVST'])
 
     csoundvstGui = guiProgramEnvironment.Program('CsoundVST', ['frontends/CsoundVST/csoundvst_main.cpp'])
+    executables.append(csoundvstGui)
     zipDependencies.append(csoundvstGui)
     Depends(csoundvstGui, csoundvst)
 
@@ -963,8 +971,9 @@ else:
     # on the same things as CsoundVST.
 
     if commonEnvironment['buildLoris']=='1':
-	shutil.copy('Opcodes/Loris/Morpher.C', 'Opcodes/Loris/src/Morpher.C')
-	shutil.copy('Opcodes/Loris/Morpher.h', 'Opcodes/Loris/src/Morpher.h')
+	#shutil.copy('Opcodes/Loris/Morpher.C', 'Opcodes/Loris/src/Morpher.C')
+	#shutil.copy('Opcodes/Loris/Morpher.h', 'Opcodes/Loris/src/Morpher.h')
+	#shutil.copy('Opcodes/Loris/loris.i', 'Opcodes/Loris/scripting/loris.i')
         # For Loris, we build only the loris Python extension module and
         # the Csound opcodes (modified for Csound 5).
         # It is assumed that you have copied all contents of the Loris distribution
@@ -985,6 +994,8 @@ else:
         loris = lorisEnvironment.SharedLibrary('loris', lorisSources, SHLIBPREFIX = '_')
         Depends(loris, csoundvst)
         pluginLibraries.append(loris)
+	libs.append(loris)
+	libs.append('loris.py')
 
     pyEnvironment = pluginEnvironment.Copy();
     if getPlatform() == 'linux':
@@ -1052,13 +1063,21 @@ else:
 
 PREFIX = commonEnvironment['prefix']
 
-OPCODE_DIR = PREFIX + "/lib/csound/opcodes"
 BIN_DIR = PREFIX + "/bin"
-
-installOpcodes = Alias('install-opcodes',
-    Install(OPCODE_DIR, pluginLibraries))
+OPCODE_DIR = PREFIX + "/lib/csound/opcodes"
+INCLUDE_DIR = PREFIX + "/include/csound"
+LIB_DIR = PREFIX + "/lib"
 
 installExecutables = Alias('install-executables',
     Install(BIN_DIR, executables))
 
-Alias('install', [installOpcodes, installExecutables])
+installOpcodes = Alias('install-opcodes',
+    Install(OPCODE_DIR, pluginLibraries))
+
+installHeaders = Alias('install-headers',
+    Install(INCLUDE_DIR, headers))
+
+installLibs = Alias('install-libs',
+    Install(LIB_DIR, libs))
+
+Alias('install', [installExecutables, installOpcodes, installLibs, installHeaders, installLibs])
