@@ -171,14 +171,14 @@ pluginEnvironment.SharedLibrary('xxx',
 
 \subsection{About \texttt{OENTRY}}
 
-The \texttt{OENTRY} structure follows this format:
+The \texttt{OENTRY} structure (see \texttt{H/csoundCore.h}, \texttt{Engine/entry1.c}, and \texttt{Engine/rdorch.c}) contains the following fields:
 
 \begin{verbatim}
 name, dspace, thread, outarg, inargs, isub, ksub, asub, dsub
 \end{verbatim}
 
 \begin{description}  
-	\item[\texttt{dspace}] A flag that specifies what types of polymorphism are allowed (see \texttt{Engine/entry1.c} and \texttt{Engine/rdorch.c}), as follows:
+	\item[\texttt{dspace}] There are two types of opcodes, polymorphic and non-polymorphic. For non-polymorphic opcodes, the \texttt{dspace} flag specifies the size of the opcode structure in bytes, and arguments are always passed to the opcode at the same rate. Polymorphic opcodes can accept arguments at different rates, and those arguments are actually dispatched to other opcodes as determined by the \texttt{dspace} flag and the following naming convention:
 
 	\begin{description}
 		\item[\texttt{0xffff}] The type of the first argument determines which unit generator function is actually called: \texttt{XXX} $\Longrightarrow$ \texttt{XXX\_a}, \texttt{XXX\_i}, or \texttt{XXX\_k}.

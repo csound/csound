@@ -1,3 +1,11 @@
+2004-07-24  Michael Gogins <gogins@pipeline.com>
+
+	* Python opcodes: imported Maurizio Umberto Puxeddu's Python opcodes for 
+	Csound 4 from Gabriel Maldonado's CsoundAV sources, updated for Csound 5 with
+	opcode error status return values. Currently these opcodes only work in 
+	CsoundVST, but I may add a pyinit opcode to make them work in command-line
+	csound.
+
 2004-07-23  Michael Gogins <gogins@pipeline.com>
 
 	* Loris: added sources (for Csound 5 opcode ONLY) and prebuilt binaries
