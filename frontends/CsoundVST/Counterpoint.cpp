@@ -36,7 +36,7 @@ void Counterpoint::initialize(int mostnotes, int mostvoices)
 
 void Counterpoint::counterpoint(int OurMode, int *StartPitches, int CurV, int cantuslen, int Species, int *cantus)
 {
-  initialize(cantuslen * 8, CurV);
+  initialize((cantuslen + 1) * 9, CurV);
   if(StartPitches)
     {
       for (int i = 0; i < CurV; i++) 
