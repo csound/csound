@@ -347,7 +347,12 @@ bool CppSound::getIsPerforming() const
 
 bool CppSound::getIsGo() const
 {
-    return go;
+    if(csound){
+        if(csoundGetSpin(csound) && csoundGetSpout(csound)){
+            return go;
+        }
+    }
+    return false;
 }
 
 /**
