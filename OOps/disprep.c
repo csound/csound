@@ -57,8 +57,8 @@ int dspset(ENVIRON *csound, DSPLAY *p)
     char   *auxp;
 
     if (p->h.optext->t.intype == 'k')
-      npts = (long)(*p->iprd * ekr);
-    else npts = (long)(*p->iprd * esr);
+      npts = (long)(*p->iprd * csound->ekr);
+    else npts = (long)(*p->iprd * csound->esr);
     if (npts <= 0) {
       return csound->InitError(csound, Str("illegal iprd"));
 
@@ -126,7 +126,7 @@ int kdsplay(ENVIRON *csound, DSPLAY *p)
 int dsplay(ENVIRON *csound, DSPLAY *p)
 {
     MYFLT  *fp = p->nxtp, *sp = p->signal, *endp = p->endp;
-    int    nsmps = ksmps;
+    int    nsmps = csound->ksmps;
 
     if (!p->nprds) {
       do {
@@ -175,8 +175,8 @@ int fftset(ENVIRON *csound, DSPFFT *p)          /* fftset, dspfft -- calc Fast F
       return csound->InitError(csound, Str("window size must be power of two"));
     }
     if (p->h.optext->t.intype == 'k')
-      step_size = (long)(*p->iprd * ekr);
-    else step_size = (long)(*p->iprd * esr);
+      step_size = (long)(*p->iprd * csound->ekr);
+    else step_size = (long)(*p->iprd * csound->esr);
     if (step_size <= 0) {
       return csound->InitError(csound, Str("illegal iprd"));
     }
@@ -265,7 +265,7 @@ int kdspfft(ENVIRON *csound, DSPFFT *p)
 int dspfft(ENVIRON *csound, DSPFFT *p)
 {
     MYFLT *sigp = p->signal, *bufp = p->bufp, *endp = p->endp;
-    int   nsmps = ksmps;
+    int   nsmps = csound->ksmps;
 
     if (p->auxch.auxp==NULL) {
       csound->PerfError(csound, Str("dispfft: not initialised"));
@@ -313,9 +313,9 @@ int tempeset(ENVIRON *csound, TEMPEST *p)
     FUNC *ftp;
     MYFLT b, iperiod = *p->iprd;
 
-    if ((p->timcount = (int)(ekr * iperiod)) <= 0)
+    if ((p->timcount = (int)(csound->ekr * iperiod)) <= 0)
       return csound->InitError(csound, Str("illegal iperiod"));
-    if ((p->dtimcnt = (int)(ekr * *p->idisprd)) < 0)
+    if ((p->dtimcnt = (int)(csound->ekr * *p->idisprd)) < 0)
       return csound->InitError(csound, Str("illegal idisprd"));
     if ((p->tweek = *p->itweek) <= 0)
       return csound->InitError(csound, Str("illegal itweek"));
@@ -399,17 +399,17 @@ int tempeset(ENVIRON *csound, TEMPEST *p)
       }
     }
     /* calc input lo-pass filter coefs */
-    b = FL(2.0) - (MYFLT)cos((*p->ihp * 6.28318 / ekr));
+    b = FL(2.0) - (MYFLT)cos((*p->ihp * 6.28318 / csound->ekr));
     p->coef1 = b - (MYFLT)sqrt(b * b - 1.0);
     p->coef0 = FL(1.0) - p->coef1;
     p->yt1 = FL(0.0);
-    p->fwdcoef = (MYFLT)pow(0.5, p->timcount/ekr/(*p->ihtim));
+    p->fwdcoef = (MYFLT)pow(0.5, p->timcount/csound->ekr/(*p->ihtim));
     p->fwdmask = FL(0.0);
     printf(Str("kin lopass coef1 %6.4f, fwd mask coef1 %6.4f\n"),
            p->coef1,p->fwdcoef);
     p->thresh = *p->ithresh;            /* record incoming loudness threshold */
     p->xfdbak = *p->ixfdbak;            /*    & expectation feedback fraction */
-    p->tempscal = FL(60.0) * ekr / p->timcount;
+    p->tempscal = FL(60.0) * csound->ekr / p->timcount;
     p->avglam = p->tempscal / *p->istartempo;       /* init the tempo factors */
     p->tempo = FL(0.0);
     p->hcur = p->hbeg;                              /* init the circular ptrs */

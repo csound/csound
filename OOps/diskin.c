@@ -77,7 +77,7 @@ static int sreadinew(           /* special handling of sound input       */
 
     /*RWD 3:2000 expanded format fixups ; more efficient here than in
       soundinew() ?  (well, saves a LOT of typing!) */
-    scalefac = e0dbfs;
+    scalefac = cenviron.e0dbfs;
     if (p->format == AE_FLOAT) {
       if (p->filetyp == TYP_WAV || p->filetyp == TYP_AIFF) {
         if (p->do_floatscaling)
@@ -118,16 +118,15 @@ static int sngetset(SOUNDINEW *p, char *sfname)
     forReadHeader.filetyp = p->filetyp;
     forReadHeader.audrem = p->audrem;
 
-    if (sfinfo.samplerate != (int)esr) {           /* non-anal:  cmp w. esr */
+    if (sfinfo.samplerate != (int) cenviron.esr) {  /* non-anal:  cmp w. esr */
       if (O.msglevel & WARNMSG)
         printf(Str("WARNING: %s sr = %ld, orch sr = %7.1f\n"),
-               sfname, sfinfo.samplerate, esr);
+               sfname, sfinfo.samplerate, cenviron.esr);
     }
 
     if (sfinfo.channels != p->OUTOCOUNT) {         /*        chk nchanls */
       if (O.msglevel & WARNMSG) {
-        printf(Str(
-                   "WARNING: %s nchnls = %d, soundin reading as if nchnls = %d\n"),
+        printf(Str("WARNING: %s nchnls = %d, soundin reading as if nchnls = %d\n"),
                sfname, (int) sfinfo.channels, (int) p->OUTOCOUNT);
       }
       sfinfo.channels = p->OUTOCOUNT;
@@ -235,7 +234,7 @@ int newsndinset(ENVIRON *csound, SOUNDINEW *p)       /* init routine for diskin 
         p->endfile = 1;
       p->inbufp = p->inbuf;
       p->bufend = p->inbuf + n;
-      p->guardpt = p->bufend - nchnls;
+      p->guardpt = p->bufend - csound->nchnls;
       p->phs = 0.0;
 
       return OK;
@@ -335,7 +334,7 @@ int newsndinset(ENVIRON *csound, SOUNDINEW *p)       /* init routine for diskin 
     if (sinfd != NULL) {
       fdrecord(&p->fdch);              /*     instr will close later */
 
-      p->guardpt = p->bufend - nchnls;
+      p->guardpt = p->bufend - csound->nchnls;
       p->phs = 0.0;
       return OK;
     }
@@ -370,7 +369,7 @@ void soundinew(ENVIRON *csound, SOUNDINEW *p)    /*  a-rate routine for soundine
     looping = *p->ilooping;
     chnsout = p->OUTOCOUNT;
     phs     = p->phs;
-    ntogo   = ksmps;
+    ntogo   = csound->ksmps;
     /*RWD 5:2001 need this when instr dur > filelen*/
     n = 0;
     /* RWD 5:2001 interesting issue - if ktransp starts at zero, we have
@@ -431,7 +430,7 @@ void soundinew(ENVIRON *csound, SOUNDINEW *p)    /*  a-rate routine for soundine
         }
 
         samplesLeft = (int)(p->bufend - inbufp);
-        if (samplesLeft <= nchnls) {      /* first set file position
+        if (samplesLeft <= csound->nchnls) {      /* first set file position
                                              to where inbuf p "thinks"
                                              its pointing to */
           p->filepos = (long)sf_seek(p->fdch.fd,
@@ -463,7 +462,7 @@ void soundinew(ENVIRON *csound, SOUNDINEW *p)    /*  a-rate routine for soundine
                * underlying cause */
               if (n < snewbufsize)
                 memset(p->bufend,0,sizeof(MYFLT)*(snewbufsize-n));
-              p->guardpt = p->bufend - nchnls;
+              p->guardpt = p->bufend - csound->nchnls;
             }
             else {
               p->endfile = TRUE;
@@ -478,7 +477,7 @@ void soundinew(ENVIRON *csound, SOUNDINEW *p)    /*  a-rate routine for soundine
              * underlying cause */
             if (n < snewbufsize)
               memset(p->bufend,0,sizeof(MYFLT)*(snewbufsize-n));
-            p->guardpt = p->bufend - nchnls;
+            p->guardpt = p->bufend - csound->nchnls;
             phs = modf(phs,&phsTrunc);
             p->begfile = FALSE;
           }
@@ -522,7 +521,7 @@ void soundinew(ENVIRON *csound, SOUNDINEW *p)    /*  a-rate routine for soundine
           p->audrem = p->audsize - p->firstsampinfile - p->filepos;
           p->bufend = p->inbuf + n;
           /* point to the last sample in buffer */
-          inbufp = p->inbufp = p->guardpt = p->bufend - nchnls;
+          inbufp = p->inbufp = p->guardpt = p->bufend - csound->nchnls;
 
           /*RWD 5:2001 this cures the symptom (bad data in output sometimes,
            * when a transp sweep hits eof), but not, I suspect, the
@@ -590,7 +589,7 @@ void soundinew(ENVIRON *csound, SOUNDINEW *p)    /*  a-rate routine for soundine
             }
           }
           else {
-            samplesLeft = (int)(inbufp - p->inbuf + nchnls);
+            samplesLeft = (int)(inbufp - p->inbuf + csound->nchnls);
             /* we're going backwards, so bytesLeft should be
              * non-positive because inbufp should be pointing
              * to the first sample in the buffer or "in front"
@@ -630,7 +629,7 @@ void soundinew(ENVIRON *csound, SOUNDINEW *p)    /*  a-rate routine for soundine
             n = oldfilepos - p->firstsampinfile;
           p->bufend = p->inbuf + n;
           /* point to the last sample in buffer */
-          inbufp = p->inbufp = p->guardpt = p->bufend - nchnls;
+          inbufp = p->inbufp = p->guardpt = p->bufend - csound->nchnls;
           /*RWD 5:2001 this cures the symptom (bad data in output sometimes,
            * when a transp sweep hits eof), but not, I suspect, the
            * underlying cause */
@@ -694,7 +693,7 @@ int sndo1set(ENVIRON *csound, SNDOUT *p) /* init routine for instr soundout   */
       goto errtn;
     }
     sfinfo.frames = -1;
-    sfinfo.samplerate = (int) (esr + FL(0.5));
+    sfinfo.samplerate = (int) (csound->esr + FL(0.5));
     sfinfo.channels = 1;
     p->c.filetyp = TYP_RAW;
     switch ((int) (*(p->c.iformat) + FL(0.5))) {
@@ -737,7 +736,7 @@ int soundout(ENVIRON *csound, SNDOUT *p)
 
     asig = p->asig;
     outbufp = p->c.outbufp;
-    nsamps = ksmps;
+    nsamps = csound->ksmps;
     ospace = (p->c.bufend - outbufp);
  nchk:
     if ((nn = nsamps) > ospace)
