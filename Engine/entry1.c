@@ -212,6 +212,7 @@ int    phaser2set(void*), phaser2(void*);
 int    phaser1set(void*), phaser1(void*);
 int    balnset(void*), balance(void*);
 int    cvset(void*), convolve(void*);
+int    pconvset(void*), pconvolve(void*);
 
 /* thread vals, where isub=1, ksub=2, asub=4:
                 0 =     1  OR   2  (B out only)
@@ -591,6 +592,7 @@ OENTRY opcodlst_1[] = {
 { "seed",     S(PRAND), 1,      "",     "i",    seedrand, NULL, NULL    },
 { "convolve", S(CONVOLVE), 5,   "mmmm", "aSo",  cvset,   NULL,  convolve},
 { "convle",   S(CONVOLVE), 5,   "mmmm", "aSo",  cvset,   NULL,  convolve},
+{ "pconvolve",S(PCONVOLVE), 5, "a", "aSoo", pconvset, NULL, pconvolve },
 { "tableseg", S(TABLESEG), 3,  "",      "iin",  tblesegset, ktableseg},
 { "ktableseg", S(TABLESEG), 3,  "",     "iin",  tblesegset, ktableseg},
 { "tablexseg", S(TABLESEG), 3, "",      "iin",  tblesegset, ktablexseg},

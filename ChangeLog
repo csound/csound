@@ -1,3 +1,8 @@
+2004-07-17  John ffitch  <jpff@codemist.co.uk>
+
+	* OOps/ugens9.c (pconvset): New code
+	(pconvolve): New code
+
 2004-07-13  John Fitch  <jpff@eriboll.local.>
 
 	* InOut/widgets.cpp: Various changes to make __MACH__ machines be
