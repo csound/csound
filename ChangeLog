@@ -1,4 +1,19 @@
 2005-03-08	Istvan Varga	<istvan@csounds.com>
+	* Engine/insert.c:
+	  MIDIinsert(): allow muting instrument by 'q' score opcode
+	* Engine/linevent.c:
+	  fixes in RTclose(); do not use atexit() to call this function
+	  allow use of 'q' score opcode
+	* Engine/musmon.c:
+	  cleanup(): call RTclose() to close line input (-L)
+	* InOut/libsnd.c:
+	  do not close line input here; this is done by RTclose()
+	* Top/argdecode.c:
+	  allow use of -L stdin on Windows (mills_macintosh still disabled)
+	* Top/csound.c:
+	  csoundScoreEvent(): add p2 to current time, not section start time
+
+2005-03-08	Istvan Varga	<istvan@csounds.com>
 	* Engine/entry2.c:
 	  added "event_i" opcode (same as "event" but runs at i-time)
 	* Engine/fgens.c, Engine/memalloc.c, Engine/memfiles.c:

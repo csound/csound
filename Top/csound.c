@@ -595,7 +595,7 @@ extern "C" {
       evt.p[i + 1] = pfields[i];
     return
       insert_score_event((ENVIRON*) csound, &evt,
-                         ((ENVIRON*) csound)->sensEvents_state.timeOffs, 0);
+                         ((ENVIRON*) csound)->sensEvents_state.curTime, 0);
   }
 
   /*
