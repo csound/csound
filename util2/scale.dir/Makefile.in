@@ -9,7 +9,7 @@ CFLAGS  = @CFLAGS@ @XCFLAGS@ $(DEFINES)
 LIBS    = @WINLDFLAGS@ @X_LIBS@ @LIBS@
 
 OBJS =	$T/sndinfo.@OBJEXT@ $T/filopen.@OBJEXT@ $T/sfheader.@OBJEXT@ \
-	$T/soundin.@OBJEXT@ $T/ulaw.@OBJEXT@ $T/aiff.@OBJEXT@ \
+	$T/soundin.@OBJEXT@ $T/aiff.@OBJEXT@ \
 	$T/aifc.@OBJEXT@ $T/wave.@OBJEXT@ $T/ieee80.@OBJEXT@ \
         $T/memalloc.@OBJEXT@ $T/getstring.@OBJEXT@
 

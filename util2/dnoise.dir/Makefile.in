@@ -18,14 +18,14 @@ INC = ../..
 DSRC =	dnoise.c fft.c
 
 DOBJS =	$T/filopen.@OBJEXT@ $T/sfheader.@OBJEXT@ \
-	$T/soundin.@OBJEXT@ $T/getstring.@OBJEXT@ $T/ulaw.@OBJEXT@ \
+	$T/soundin.@OBJEXT@ $T/getstring.@OBJEXT@ \
 	$T/wave.@OBJEXT@ $T/aiff.@OBJEXT@ $T/ieee80.@OBJEXT@ \
 	$T/memalloc.@OBJEXT@ $T/aifc.@OBJEXT@ fft.@OBJEXT@ dnoise.@OBJEXT@ 
 
 SSRC =	srconv.c
 
 SOBJS =	$T/filopen.@OBJEXT@ $T/sfheader.@OBJEXT@ \
-	$T/soundin.@OBJEXT@ $T/getstring.@OBJEXT@ $T/ulaw.@OBJEXT@ \
+	$T/soundin.@OBJEXT@ $T/getstring.@OBJEXT@ \
 	$T/wave.@OBJEXT@ $T/aiff.@OBJEXT@ $T/ieee80.@OBJEXT@ \
 	$T/memalloc.@OBJEXT@ $T/aifc.@OBJEXT@ srconv.@OBJEXT@
 

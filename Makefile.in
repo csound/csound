@@ -158,8 +158,9 @@ E     = Engine
 I     = InOut
 T     = Top
 O     = OOps
+S     = SDIF
 
-CSRCM  = cscormai.c natbem.c
+CSRCX = $T/cscormai.c $T/natben.c
 
 CSRCE = \
 	$E/auxfd.c	\
@@ -271,7 +272,7 @@ CSRCO = \
 
 CSRCS =	$(CSRCT) $(CSRCI) $(CSRCO) $(CSRCE) $(WINSRC) $(AUDSRC) $(FLTKSRC)
 
-COBJM  = cscormai.$(o) natben.$(o)
+COBJX = cscormai.$(o) natben.$(o)
 
 COBJE = \
 	auxfd.$(o)	\
@@ -318,7 +319,7 @@ COBJT = \
 	pvanal.$(o)	\
 	pvlook.$(o)	\
 	sndinfo.$(o)	\
-	scot.$(o)
+	scot.$(o)	\
 
 COBJO = \
 	aops.$(o)	\
@@ -446,6 +447,9 @@ $(COBJE): $(CSRCE)
 $(COBJT): $(CSRCT)
 	$(CC) $(CFLAGS) -I H -c $T/$*.c -o $*.$(o)
 
+$(COBJX): $(CSRCX)
+	$(CC) $(CFLAGS) -I H -c $T/$*.c -o $*.$(o)
+
 $(COBJI): $(CSRCI)
 	$(CC) $(CFLAGS) -I H -c $I/$*.c -o $*.$(o)
 
@@ -469,20 +473,23 @@ SCOTS = scots						#targets in util1/scot
 CSCORES = cscores					#targets in util1/cscore
 SORTEXS = scsort extract				#targets in util1/sortex
 UTILS1 = $(SCOTS) $(CSCORES) sortexs $(SORTEXS)		#targets in util1
-utils1 $(UTILS1): natben.$(o)
+utils1 $(UTILS1): ####natben.$(o)
 		cd util1; $(MAKE) $@
 
 UTILS2 = sndinfos scale mixers extractor envelope pvlook dnoise srconv #targets in util2
 utils2 $(UTILS2):
 		cd util2; $(MAKE) $@
 
-UTIL3 = sdif2adsyn.c $O/sdif.c $O/sdif-mem.c
+UTIL3 = $S/sdif2adsyn.c $O/sdif.c $O/sdif-mem.c
 
 UTILS3 = sdif2ad
 utils3: $(UTILS3)
 
 opcodes:
 	(cd Opcodes; $(MAKE) $@)
+
+sdif2adsyn.$(o): $S/sdif2adsyn.c
+	$(CC) $(CFLAGS) -c -I H $S/sdif2adsyn.c
 
 sdif2ad: sdif2adsyn.$(o) sdif.$(o) sdif-mem.$(o)
 	$(CC) -I H sdif2adsyn.$(o) sdif.$(o) sdif-mem.$(o) -o sdif2ad

@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdarg.h>
-#include "../../text.h"
+#include "text.h"
 
 void die(char *);
 

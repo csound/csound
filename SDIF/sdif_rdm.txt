@@ -1,0 +1,40 @@
+SDIF support in Csound.
+
+
+For detailed information on  the Sound Description Interchange Format,
+refer to the CNMAT website: http://cnmat.CNMAT.Berkeley.EDU/SDIF
+
+
+If the filename passed to HETRO has the extension .sdif, data will be
+written in SDIF format as 1TRC frames of additive synthesis data. The
+accompanying utility program "sdif2ads" can be used to convert any
+SDIF file containing a stream of 1TRC data to the Csound 'adsyn'
+format. 'sdif2ads' allows the user to limit the number of partials
+retained, and to apply an amplitude scaling factor. This is often
+necessary, as the SDIF specification does not, to date, require
+amplitudes to be within a particular range. 'sdif2ads' reports
+information about the file to the console, including the frequency
+range.
+
+
+The main advantages of SDIF over the adsyn format, for Csound users,
+is that SDIF files are fully portable across platforms (data is
+'big-endian'), and do not have the duration limit of 32.76 seconds
+imposed by the 16bit adsyn format.This limit is necessarily imposed by
+'sdif2ads'. It is planned to incorporate sdif reading directly into
+adsyn, thus enabling files of any length (currently memory-permitting)
+to be analysed and processed.
+
+It is important to note that the SDIF formats are still under
+development, and that while the 1TRC format is now fairly well
+established, it can still change.
+
+
+Some other SDIF resources (including a viewer) are available via the
+NC_DREAM website:
+
+http://www.bath.ac.uk/~masjpf/NCD/dreamhome.html
+
+
+Richard Dobson 5th August 2000
+rwd@cableinet.co.uk

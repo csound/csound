@@ -12,7 +12,7 @@ T = ../..
 INC = ../../H
 
 OBJS =  het_main.@OBJEXT@ $T/hetro.@OBJEXT@ $T/filopen.@OBJEXT@ \
-	$T/sfheader.@OBJEXT@ $T/soundin.@OBJEXT@ $T/ulaw.@OBJEXT@ \
+	$T/sfheader.@OBJEXT@ $T/soundin.@OBJEXT@ \
 	$T/aiff.@OBJEXT@ $T/ieee80.@OBJEXT@ $T/memalloc.@OBJEXT@ \
 	$T/wave.@OBJEXT@ $T/window.@OBJEXT@ $T/winFLTK.@OBJEXT@ \
 	$T/FL_graph.@OBJEXT@ $T/winEPS.@OBJEXT@ $T/aifc.@OBJEXT@ \

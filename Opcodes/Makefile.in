@@ -48,7 +48,6 @@ LIBRARIES = \
 	ugrw1.so	\
 	ugrw2.so	\
 	ugsc.so		\
-	vdelay.so	\
 	wave-terrain.so
 
 
@@ -96,7 +95,6 @@ LSRC = \
 	ugrw1.c		\
 	ugrw2.c		\
 	ugsc.c		\
-	vdelay.c	\
 	wave-terrain.c
 
 

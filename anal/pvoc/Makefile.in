@@ -14,7 +14,7 @@ INC = ../../H
 OBJS =  pvc_main.@OBJEXT@ $T/pvanal.@OBJEXT@ $T/pvxanal.@OBJEXT@ \
 	$T/pvfileio.@OBJEXT@ $T/filopen.@OBJEXT@ \
         $T/sfheader.@OBJEXT@ $T/mxfft.@OBJEXT@ \
-	$T/soundin.@OBJEXT@ $T/ulaw.@OBJEXT@ $T/aiff.@OBJEXT@ \
+	$T/soundin.@OBJEXT@ $T/aiff.@OBJEXT@ \
 	$T/wave.@OBJEXT@ $T/ieee80.@OBJEXT@ $T/memalloc.@OBJEXT@ \
 	$T/pvoc.@OBJEXT@ $T/fft.@OBJEXT@ $T/dsputil.@OBJEXT@ \
 	$T/window.@OBJEXT@ $T/winFLTK.@OBJEXT@ $T/winascii.@OBJEXT@ \

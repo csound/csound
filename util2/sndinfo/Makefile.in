@@ -12,7 +12,7 @@ T = ../..
 INC = ../../H
 
 OBJS =  main.@OBJEXT@ $T/sndinfo.@OBJEXT@ $T/filopen.@OBJEXT@ \
-	$T/sfheader.@OBJEXT@ $T/soundin.@OBJEXT@ $T/ulaw.@OBJEXT@ \
+	$T/sfheader.@OBJEXT@ $T/soundin.@OBJEXT@ \
 	$T/aiff.@OBJEXT@ $T/wave.@OBJEXT@ $T/ieee80.@OBJEXT@ \
 	$T/memalloc.@OBJEXT@ $T/aifc.@OBJEXT@ $T/getstring.@OBJEXT@
 

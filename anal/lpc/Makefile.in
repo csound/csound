@@ -13,7 +13,7 @@ INC = ../../H
 
 OBJS =  lpc_main.@OBJEXT@ $T/lpanal.@OBJEXT@ $T/lptrkfns.@OBJEXT@ \
 	$T/filopen.@OBJEXT@ $T/sfheader.@OBJEXT@ $T/soundin.@OBJEXT@ \
-	$T/ulaw.@OBJEXT@ $T/aiff.@OBJEXT@ $T/wave.@OBJEXT@ $T/ieee80.@OBJEXT@ \
+	$T/aiff.@OBJEXT@ $T/wave.@OBJEXT@ $T/ieee80.@OBJEXT@ \
         $T/memalloc.@OBJEXT@ $T/window.@OBJEXT@ $T/winFLTK.@OBJEXT@ \
 	$T/winascii.@OBJEXT@ $T/winEPS.@OBJEXT@ $T/aifc.@OBJEXT@ \
 	$T/getstring.@OBJEXT@ $T/FL_graph.@OBJEXT@
