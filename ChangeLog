@@ -1,3 +1,15 @@
+2005-02-09  Michael Gogins <gogins@pipeline.com>
+
+	* Added '--help' to short usage list.
+	* Permit .orc and .sco filenames in .csd files.
+	* Added Sequence node in CsoundVST: 
+	child nodes of a Sequence node follow each other
+	in strict temporal order, in the same order that
+	the child nodes were added to the Sequence;
+	the duration of each node is the total duration
+	of all notes that it produces.
+	
+	
 2005-02-19	Istvan Varga	<istvan@csounds.com>
 	* Engine/musmon.c:
 	  fixed orcompact bug (takes a Csound instance pointer)
