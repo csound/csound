@@ -1,3 +1,9 @@
+2003-11-07  John D. Ramsdell  <ramsdell@mitre.org>
+
+	* Top/getstring.c (init_getstring): The default location for the
+	csound.xmg file is passed in by defining XMGDIR to be a directory
+	string.
+
 2003-11-05  John  <jpff@codemist.co.uk>
 
 	* util2/sndinfo/main.c (main): 

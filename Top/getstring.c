@@ -23,6 +23,10 @@
 
 #include "cs.h"
 
+#if !defined XMGDIR
+#define XMGDIR "/usr/local/lib"
+#endif
+
 static char **strings = NULL;
 
 /*RWD*/
@@ -163,8 +167,9 @@ void init_getstring(int argc, char **argv)
       db = fopen(name, "rb");
     }
     if (db == NULL) {
-      strcpy(name, "/usr/local/lib/csound.xmg");
-      db = fopen("/usr/local/lib/csound.xmg", "rb");
+      path = XMGDIR;
+      sprintf(name, "%s/csound.xmg", path);
+      db = fopen(name, "rb");
     }
 #ifdef mills_macintosh
     if (db == NULL) {
