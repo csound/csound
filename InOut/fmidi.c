@@ -222,17 +222,17 @@ void FMidiOpen(void) /* open a MidiFile for reading, sense MPU401 or standard */
                "%s: assuming MPU401 midifile format, ticksize = 5 msecs\n"),
            O.FMidiname);
     kprdspertick = (double)ekr / 200.0;
-    ekrdQmil = 1.0;                             /* temp ctrl (not needed) */
+    ekrdQmil = 1.0;                            /* temp ctrl (not needed) */
     MTrkrem = MAXLONG;                         /* no tracksize limit     */
     FltMidiNxtk = 0.0;
     FMidiNxtk = 0;
     nxtdeltim = Rnxtdeltim;                    /* set approp time-reader */
     if ((deltim = (inbytes[0] & 0xFF))) {      /* if 1st time nonzero    */
-      FltMidiNxtk += deltim * kprdspertick;  /*     accum in double    */
-      FMidiNxtk = (long) FltMidiNxtk;        /*     the kprd equiv     */
+      FltMidiNxtk += deltim * kprdspertick;    /*     accum in double    */
+      FMidiNxtk = (long) FltMidiNxtk;          /*     the kprd equiv     */
 /*          printf("FMidiNxtk = %ld\n", FMidiNxtk);   */
-      if (deltim == 0xF8)     /* if char was sys_realtime timing clock */
-        nxtdeltim();                      /* then also read nxt time */
+      if (deltim == 0xF8)       /* if char was sys_realtime timing clock */
+        nxtdeltim();                           /* then also read nxt time */
     }
 }
 
@@ -252,10 +252,10 @@ static void fsexdata(int n) /* place midifile data into a sys_excl buffer */
     if (fsexp == NULL)                 /* 1st call, init the ptr */
       fsexp = fsexbuf;
     if (fsexp + n <= fsexend) {
-      fread(fsexp, 1, n, mfp);       /* addin the new bytes    */
+      fread(fsexp, 1, n, mfp);         /* addin the new bytes    */
       fsexp += n;
-      if (*(fsexp-1) == 0xF7) {      /* if EOX at end          */
-        m_sysex(fsexbuf,fsexp);    /*    execute and clear   */
+      if (*(fsexp-1) == 0xF7) {        /* if EOX at end          */
+        m_sysex(fsexbuf,fsexp);        /*    execute and clear   */
         fsexp = NULL;
       }
     }
@@ -280,38 +280,38 @@ int sensFMidi(void)   /* read a MidiFile event, collect the data & dispatch   */
  nxtevt:
     if (--MTrkrem < 0 || (c = getc(mfp)) == EOF)
       goto Trkend;
-    if (!(c & 0x80))               /* no status, assume running */
+    if (!(c & 0x80))                    /* no status, assume running */
       goto datcpy;
     if ((type = c & 0xF0) == SYSTEM_TYPE) {     /* STATUS byte:      */
       short lo3;
       switch(c) {
-      case 0xF0:                    /* SYS_EX event:  */
+      case 0xF0:                                   /* SYS_EX event:  */
         if ((len = vlendatum()) <= 0)
           die(Str(X_1401,"zero length sys_ex event"));
         printf(Str(X_1152,"reading sys_ex event, length %ld\n"),len);
         fsexdata((int)len);
         goto nxtim;
-      case 0xF7:                    /* ESCAPE event:  */
+      case 0xF7:                                   /* ESCAPE event:  */
         if ((len = vlendatum()) <= 0)
           die(Str(X_1400,"zero length escape event"));
         printf(Str(X_747,"escape event, length %ld\n"),len);
         if (sexp != NULL)
-          fsexdata((int)len);       /* if sysex contin, send  */
+          fsexdata((int)len);              /* if sysex contin, send  */
         else {
           MTrkrem -= len;
           do {
-            c = getc(mfp);          /* else for now, waste it */
+            c = getc(mfp);                 /* else for now, waste it */
           } while (--len);
         }
         goto nxtim;
-      case 0xFF:                    /* META event:     */
+      case 0xFF:                                  /* META event:     */
         if (--MTrkrem < 0 || (type = getc(mfp)) == EOF)
           goto Trkend;
         len = vlendatum();
         MTrkrem -= len;
         switch(type) {
           long usecs;
-        case 0x51: usecs = 0;       /* set new Tempo       */
+        case 0x51: usecs = 0;                 /* set new Tempo       */
           do {
             usecs <<= 8;
             usecs += (c = getc(mfp)) & 0xFF;
@@ -328,7 +328,7 @@ int sensFMidi(void)   /* read a MidiFile event, collect the data & dispatch   */
         case 0x02:
         case 0x03:
         case 0x04:
-        case 0x05:                   /* print text events  */
+        case 0x05:                             /* print text events  */
         case 0x06:
         case 0x07:
           while (len--) {
@@ -337,7 +337,7 @@ int sensFMidi(void)   /* read a MidiFile event, collect the data & dispatch   */
             printf("%c", ch);
           }
           break;
-        case 0x2F: goto Trkend;      /* normal end of track */
+        case 0x2F: goto Trkend;               /* normal end of track */
         default:
           printf(Str(X_1192,"skipping meta event type %x\n"),type);
           do {
@@ -347,10 +347,10 @@ int sensFMidi(void)   /* read a MidiFile event, collect the data & dispatch   */
         goto nxtim;
       }
       lo3 = (c & 0x07);
-      if (c & 0x08) {                /* sys_realtime:     */
-        switch (lo3) {               /*   dispatch now    */
+      if (c & 0x08) {                          /* sys_realtime:     */
+        switch (lo3) {                         /*   dispatch now    */
         case 0:
-        case 1: break;    /* Timing Clk handled in Rnxtdeltim() */
+        case 1: break;        /* Timing Clk handled in Rnxtdeltim() */
         case 2: /*m_start();*/ break;
         case 3: /*m_contin();*/ break;
         case 4: /*m_stop()*/; break;

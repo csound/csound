@@ -1,8 +1,14 @@
+2004-12-10  John ffitch  <jpff@codemist.co.uk>
+
+	* InOut/libsnd.c: and code
+
+	* OOps/sndinfUG.c (getsndinfo): Removed unused called to readheader
+
 2004-12-03  Michael Gogins <gogins@pipeline.com>
 
 	* Tried to remove most remaining compiler warnings: mostly returning 
 	int from main, sscanf for %lf with USE_DOUBLE, type casting, etc.
-	
+
 2004-12-02  John ffitch  <jpff@codemist.co.uk>
 
 	* SConstruct (else): Added PortMIDI build option to aid experimentation.

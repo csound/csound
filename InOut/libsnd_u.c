@@ -127,7 +127,8 @@ SNDFILE *SAsndgetset(
     if (p->framesrem < 0 ) {
       if (O.msglevel & WARNMSG)
         printf(Str(X_1318,
-                   "WARNING: undetermined file length, will attempt requested duration\n"));
+                   "WARNING: undetermined file length, will attempt "
+                   "requested duration\n"));
     }
     else {
       if (*ainput_dur == FL(0.0)) {         /* 0 durtim, use to EOF */
@@ -345,7 +346,8 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
         p->inbufp = p->inbuf + skipframes * p->sampframsiz;
       }
       else {                                          /* for greater skiptime: */
-        if (sf_seek(infile, (off_t)skipframes, SEEK_SET) < 0)  /* else seek to bndry */
+        /* else seek to bndry */
+        if (sf_seek(infile, (off_t)skipframes, SEEK_SET) < 0)
           die(Str(X_1208,"soundin seek error"));
         if ((n = sreadin(infile,p->inbuf,SNDINBUFSIZ,p)) == 0) /* now rd fulbuf */
           p->endfile = 1;
@@ -366,7 +368,7 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
 char *getstrformat(int format)  /* used here, and in sfheader.c */
 {
     switch(format) {
-    case AE_UNCH:  return(Str(X_1356,"unsigned bytes"));   /* J. Mohr 1995 Oct 17 */
+    case AE_UNCH:  return(Str(X_1356,"unsigned bytes")); /* J. Mohr 1995 Oct 17 */
     case AE_CHAR:  return(Str(X_1190,"signed chars"));
     case AE_ALAW:  return(Str(X_589,"alaw bytes"));
     case AE_ULAW:  return(Str(X_1304,"ulaw bytes"));
