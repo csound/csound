@@ -678,17 +678,18 @@ if configure.CheckHeader("fluidsynth.h", language = "C"):
             
 # VST HOST OPCODES
 
-#vst4Environment = pluginEnvironment.Copy()
-#if getPlatform() == 'mingw':
-#    vst4Environment.Append(LIBS = ['kernel32'])
-#    vst4Environment.Append(LIBS = ['gdi32'])
-#    vst4Environment.Append(LIBS = ['wsock32'])
-#    vst4Environment.Append(LIBS = ['ole32'])
-#    vst4Environment.Append(LIBS = ['uuid'])
-#vst4Environment.Append(CPPPATH = ['frontends/CsoundVST'])
-#zipDependencies.append(vst4Environment.SharedLibrary('vst4cs', 
-#     Split('''Opcodes/vst4cs/src/vst4cs.cpp
-#              Opcodes/vst4cs/src/vsthost.cpp''')))
+if getPlatform() == 'mingw':
+    vst4Environment = pluginEnvironment.Copy()
+    if getPlatform() == 'mingw':
+        vst4Environment.Append(LIBS = ['kernel32'])
+        vst4Environment.Append(LIBS = ['gdi32'])
+        vst4Environment.Append(LIBS = ['wsock32'])
+        vst4Environment.Append(LIBS = ['ole32'])
+        vst4Environment.Append(LIBS = ['uuid'])
+    vst4Environment.Append(CPPPATH = ['frontends/CsoundVST'])
+    zipDependencies.append(vst4Environment.SharedLibrary('vst4cs', 
+         Split('''Opcodes/vst4cs/src/vst4cs.cpp
+              Opcodes/vst4cs/src/vsthost.cpp''')))
             
 # Utility programs.
 
