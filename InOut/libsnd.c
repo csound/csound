@@ -715,39 +715,39 @@ static void sndfilein(void)
         else clrspin1(r,spinrem);  /* 1st filend pass: partial clr  */
       }
       else clrspin2();           /* 2nd filend pass: zero the spinbuf */
-  }
+    }
 }
 
 #endif
 
 void bytrev4(char *buf, int nbytes)     /* reverse bytes in buf of longs */
 {
-        char *p = buf, *q = buf;
-        char c1, c2, c3, c4;
-        int n = nbytes/4;
+    char *p = buf, *q = buf;
+    char c1, c2, c3, c4;
+    int n = nbytes/4;
 
-        do {
-            c1 = *p++;
-            c2 = *p++;
-            c3 = *p++;
-            c4 = *p++;
-            *q++ = c4;
-            *q++ = c3;
-            *q++ = c2;
-            *q++ = c1;
-        } while (--n);
+    do {
+      c1 = *p++;
+      c2 = *p++;
+      c3 = *p++;
+      c4 = *p++;
+      *q++ = c4;
+      *q++ = c3;
+      *q++ = c2;
+      *q++ = c1;
+    } while (--n);
 }
 
 void bytrev2(char *buf, int nbytes)      /* reverse bytes in buf of shorts */
 {
-        char *p = buf, c1, c2;
-        int n = nbytes/2;
+    char *p = buf, c1, c2;
+    int n = nbytes/2;
 
-        do {
-            c1 = *p++;
-            c2 = *p--;
-            *p++ = c2;
-            *p++ = c1;
-        } while (--n);
+    do {
+      c1 = *p++;
+      c2 = *p--;
+      *p++ = c2;
+      *p++ = c1;
+    } while (--n);
 }
 
