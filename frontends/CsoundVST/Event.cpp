@@ -342,7 +342,7 @@ namespace csound
 	{
 		char buffer[0x100];
 		sprintf(buffer, "i %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g\n", 
-			getInstrument() + 1.0,
+			getInstrument(),
 			getTime(),
 			getDuration(),
 			getKey(tonesPerOctave),
@@ -365,7 +365,7 @@ namespace csound
 			octave = Conversions::temper(octave, tempering);
 		}
 		sprintf(buffer, "i %d.%d %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g\n", 
-			(int) Conversions::round(getInstrument() + 1.0), 
+			(int) Conversions::round(getInstrument()), 
 			tag,
 			getTime(), 
 			std::fabs(getDuration()) * -1.0,
@@ -389,7 +389,7 @@ namespace csound
 			octave = Conversions::temper(octave, tempering);
 		}
 		sprintf(buffer, "i -%d.%d %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g\n", 
-			(int) Conversions::round(getInstrument() + 1.0), 
+			(int) Conversions::round(getInstrument()), 
 			tag,
 			getTime(),
 			getDuration(),
