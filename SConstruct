@@ -904,23 +904,23 @@ if (commonEnvironment['buildCsoundVST'] == 1) and boostFound and fltkFound:
         Depends(loris, csoundvst)
         pluginLibraries.append(loris)
                  
-        pyEnvironment = pluginEnvironment.Copy();
-        if getPlatform() == 'linux':
-            pyEnvironment.Append(LIBS = ['swigpy', 'python2.3', 'util', 'dl', 'm'])
-            pyEnvironment.Append(CPPPATH = ['/usr/local/include/python2.3'])
-            pyEnvironment.Append(LIBPATH = ['/usr/local/lib/python2.3/config'])
-            pyEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
-            pyEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
-        elif getPlatform() == 'cygwin' or getPlatform() == 'mingw':
-            pyEnvironment['ENV']['PATH'] = os.environ['PATH']
-            pyEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
-            pyEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
-            if getPlatform() == 'cygwin':
-                    pyEnvironment.Append(CCFLAGS = ['-D_MSC_VER'])
-            pyEnvironment.Append(LIBS = ['python23'])
-        py = pyEnvironment.SharedLibrary('py', ['Opcodes/py/pythonopcodes.c'])
-        Depends(py, csoundvst)
-        pluginLibraries.append(py)
+    pyEnvironment = pluginEnvironment.Copy();
+    if getPlatform() == 'linux':
+        pyEnvironment.Append(LIBS = ['swigpy', 'python2.3', 'util', 'dl', 'm'])
+        pyEnvironment.Append(CPPPATH = ['/usr/local/include/python2.3'])
+        pyEnvironment.Append(LIBPATH = ['/usr/local/lib/python2.3/config'])
+        pyEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
+        pyEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
+    elif getPlatform() == 'cygwin' or getPlatform() == 'mingw':
+        pyEnvironment['ENV']['PATH'] = os.environ['PATH']
+        pyEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
+        pyEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
+        if getPlatform() == 'cygwin':
+            pyEnvironment.Append(CCFLAGS = ['-D_MSC_VER'])
+        pyEnvironment.Append(LIBS = ['python23'])
+    py = pyEnvironment.SharedLibrary('py', ['Opcodes/py/pythonopcodes.c'])
+    Depends(py, csoundvst)
+    pluginLibraries.append(py)
 
 if (commonEnvironment['generateTags']) and (getPlatform() == 'linux' or getPlatform() == 'cygwin'):
     print "CONFIGURATION DECISION: Calling TAGS"
