@@ -976,16 +976,14 @@ else:
         # the Csound opcodes (modified for Csound 5).
         # It is assumed that you have copied all contents of the Loris distribution
         # into the csound5/Opcodes/Loris directory, e.g.
-	# csound5/Opcodes/Loris/src.
+	# csound5/Opcodes/Loris/src/*, etc.
         lorisEnvironment = vstEnvironment.Copy();
         lorisEnvironment.Append(CCFLAGS = '-DHAVE_FFTW3_H -DDEBUG_LORISGENS -D_MSC_VER')
         lorisEnvironment.Append(CPPPATH = Split('Opcodes/Loris Opcodes/Loris/src ./'))
         lorisEnvironment.Append(LIBS = ['fftw3'])
         lorisSources = glob.glob('Opcodes/Loris/src/*.C')
-	# The following file has been patched for Csound 5 and you should update it from Csound 5 CVS.
         lorisSources.append('Opcodes/Loris/scripting/loris.i')
 	# The following file has been patched for Csound 5 and you should update it from Csound 5 CVS.
-	# Need help from Fitz to patch this? Commented out morphPartials calls for now.
         lorisSources.append('Opcodes/Loris/lorisgens5.C')
         lorisEnvironment.Append(SWIGPATH = ['./'])
         lorisEnvironment.Prepend(SWIGFLAGS = Split('-module loris -c++ -python -DHAVE_FFTW3_H -I./Opcodes/Loris/src -I.'))
