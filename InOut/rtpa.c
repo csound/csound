@@ -58,7 +58,7 @@ int csoundModuleInit(void *csound)
       return 0;
     if (!(strcmp(drv, "portaudio") == 0 || strcmp(drv, "PortAudio") == 0 ||
           strcmp(drv, "portAudio") == 0 || strcmp(drv, "Portaudio") == 0 ||
-          strcmp(drv, "pa") == 0 || strcmp(drv, "PA")))
+          strcmp(drv, "pa") == 0 || strcmp(drv, "PA") == 0))
       return 0;
     p->Message(csound, "rtaudio: PortAudio module enabled\n");
     p->SetPlayopenCallback(csound, playopen_);
