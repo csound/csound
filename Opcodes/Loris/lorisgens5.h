@@ -37,7 +37,7 @@
  *
  */
 #include "csound.h"
-#include "cs.h"
+#include "csdl.h"
 
 /* declare structures holding private internal data */
 typedef struct LorisReader LorisReader;

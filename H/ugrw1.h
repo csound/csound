@@ -43,7 +43,7 @@
  * clearly indicated as such.
  */
 
-#include "cs.h"
+#include "csoundCore.h"
 
 /*
  *      Unit generators by Robin Whittle                6 January 1996

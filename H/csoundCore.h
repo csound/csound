@@ -108,11 +108,8 @@ extern "C" {
 #define BYTREVL(n) ((n>>24 & 0xFF) | (n>>8 & 0xFF00L) | \
                     (n<<8 & 0xFF0000L) | (n<<24 & 0xFF000000L))
 
-#define NOCTS      20
 #define OCTRES     8192
-#define RESMASK    8191L
-#define RESHIFT    13
-#define CPSOCTL(n) cpsocint[n >> RESHIFT] * cpsocfrc[n & RESMASK]
+#define CPSOCTL(n) ((MYFLT)(1<<((int)(n)>>13))*csound->cpsocfrc[(int)(n)&8191])
 
 #define LOBITS     10
 #define LOFACT     1024
@@ -160,7 +157,7 @@ extern "C" {
     int     expr_opt;       /* IV - Jan 27 2005: for --expression-opt */
   } OPARMS;
 
-#define  ONEPT          1.021975               /* A440 tuning factor */
+#define  ONEPT          1.02197486             /* A440 tuning factor */
 #define  LOG10D20       0.11512925             /* for db to ampfac   */
 #define  DV32768        FL(0.000030517578125)
 
@@ -843,7 +840,7 @@ extern "C" {
     SRTBLK        *frstbp;
     int           sectcnt;
     MCHNBLK       *m_chnbp[MAXCHAN];
-    MYFLT         *cpsocint_, *cpsocfrc_;
+    MYFLT         *cpsocfrc;
     int           inerrcnt_, synterrcnt_, perferrcnt_;
     char          strmsg_[100];
     INSTRTXT      instxtanchor_;

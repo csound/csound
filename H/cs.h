@@ -85,8 +85,6 @@ extern "C" {
 #define hfkprd              cenviron.hfkprd_
 #define pool                cenviron.pool_
 #define M_CHNBP             cenviron.m_chnbp
-#define cpsocint            cenviron.cpsocint_
-#define cpsocfrc            cenviron.cpsocfrc_
 #define inerrcnt            cenviron.inerrcnt_
 #define synterrcnt          cenviron.synterrcnt_
 #define perferrcnt          cenviron.perferrcnt_

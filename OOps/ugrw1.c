@@ -43,6 +43,8 @@
  * any alterations to the source code, including comments, are
  * clearly indicated as such.
  */
+
+#include "cs.h"
 #include "ugrw1.h"
 #include <math.h>
 #include <ctype.h>

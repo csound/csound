@@ -25,7 +25,7 @@
 
 #ifndef VST4CS_H
 #define VST4CS_H
-#include "cs.h"
+#include "csdl.h"
 
 typedef struct VSTINIT_ {
 	OPDS h;

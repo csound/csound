@@ -577,17 +577,14 @@ int rtclock(ENVIRON *csound, EVAL *p)
     return OK;
 }
 
-void cpsoctinit(void)           /* init the arrays, called by oload */
+void cpsoctinit(ENVIRON *csound)        /* init the arrays, called by oload */
 {
     MYFLT *fp;
     int  count;
 
-    cpsocint = (MYFLT *) mmalloc(&cenviron, (long)NOCTS * sizeof(MYFLT));
-    cpsocfrc = (MYFLT *) mmalloc(&cenviron, (long)OCTRES * sizeof(MYFLT));
-    for (fp = cpsocint, count = 0; count < NOCTS; count++)
-      *fp++ = (MYFLT) intpow(FL(2.0), count);
-    for (fp = cpsocfrc, count = 0; count < OCTRES; count++)
-      *fp++ = (MYFLT)(pow(2.0, (double)count / (double)OCTRES) * ONEPT);
+    csound->cpsocfrc = (MYFLT*) csound->Malloc(csound, OCTRES * sizeof(MYFLT));
+    for (fp = csound->cpsocfrc, count = 0; count < OCTRES; count++)
+      *fp++ = (MYFLT) (pow(2.0, (double) count / (double) OCTRES) * ONEPT);
 }
 
 int octpch(ENVIRON *csound, EVAL *p)

@@ -26,7 +26,7 @@
 #ifndef VSTPLUGIN_HOST_H
 #define VSTPLUGIN_HOST_H
 
-#include "cs.h"
+#include "csdl.h"
 #include "AEffectx.h"
 #include "AEffEditor.hpp"
 #include <vector>
