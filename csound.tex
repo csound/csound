@@ -218,6 +218,7 @@ To run CsoundVST as a stand-alone front end to Csound, execute \texttt{CsoundVST
 CsoundVST extends the Csound API with C++. There is a C++ class for the Csound API proper, another C++ class for manipulating Csound files in code, and additional classes for algorithmic composition based on music space. All these C++ classes also have a Python interface in the \texttt{CsoundVST} Python extension module. For more information, consult the Doxygen-generated files in the \texttt{csound5/doc} directory.
 
 You can build CsoundVST into your own software using the \texttt{\_CsoundVST} shared library and \texttt{CsoundVST.hpp} header file. For example, the CsoundVST stand-alone graphical user interface program is made this way:
+
 \begin{verbatim}
 #include <CsoundVST.hpp>
 #include <CsoundVstFltk.hpp>
@@ -231,7 +232,10 @@ int main(int argc, char **argv)
 }
 \end{verbatim}
 
+There is also a high-level C API for CsoundVST, declared in \linebreak[4] \texttt{frontends/CsoundVST/csoundvst\_api.h}. Any program able to interface with C calling convention functions can use this API. For example, a \textbf{\emph{Mathematica}} 5.0 notebook can use the .NET/Link package's \texttt{DefineDLLFunction} to access the CsoundVST API to create an instance of CsoundVST, load an orchestra, generate a score using the power of \textbf{\emph{Mathematica}}, and render that score.
+
 \subsubsection{Python scripting}
+
 You can use CsoundVST as a Python extension module. In fact, you can do this either in a standard Python interpreter, such as Python command line or the Idle Python GUI, or in CsoundVST itself in Python mode.
 
 To use CsoundVST in a standard Python interpreter, import CsoundVST.
@@ -381,7 +385,6 @@ This is a ``to do'' list, not necessarily complete, for Csound and CsoundVST:
 \item Get all the example scores working out of the box.
 \item Complete this document sufficiently to get users started building and running Csound and CsoundVST with MinGW and Linux.
 \item Get MIDI input and output working better on Windows.
-\item A \emph{\textbf{Mathematica}} interface - but what kind? C API or MathLink wrappers?
 \end{enumerate}
 \item Longer term:
 \begin{enumerate}
