@@ -424,7 +424,7 @@ int tablefn(ENVIRON *csound, TABLE  *p)
       /* do the wrap code only if we are not doing the non-wrap code.  */
       else
         indx &= mask;
-      rslt[n] = *(tab + indx);
+      rslt[n] = tab[indx];
     }
     return OK;
 }
@@ -647,11 +647,11 @@ int tabli(ENVIRON *csound, TABLE  *p)
         ndx = (pxndx[n] * xbmul) + offset;
         indx = (long) ndx;
         if (ndx <= FL(0.0)) {
-          rslt[n] = *tab;
+          rslt[n] = tab[0];
           continue;
         }
         if (indx >= length) {
-          *rslt++ = *(tab + length);
+          rslt[n] = tab[length];
           continue;
         }
         /* We need to generate a fraction - How much above indx is ndx?
@@ -659,8 +659,8 @@ int tabli(ENVIRON *csound, TABLE  *p)
         fract = ndx - indx;
         /* As for ktabli(), read two values and interpolate between
          * them.  */
-        v1 = *(tab + indx);
-        v2 = *(tab + indx + 1);
+        v1 = tab[indx];
+        v2 = tab[indx + 1];
         rslt[n] = v1 + (v2 - v1)*fract;
       }
     }
@@ -678,8 +678,8 @@ int tabli(ENVIRON *csound, TABLE  *p)
         indx &= mask;
         /* As for ktabli(), read two values and interpolate between
          * them.  */
-        v1 = *(tab + indx);
-        v2 = *(tab + indx + 1);
+        v1 = tab[indx];
+        v2 = tab[indx + 1];
         rslt[n] = v1 + (v2 - v1)*fract;
       }
     }
@@ -732,8 +732,8 @@ int tabl3(ENVIRON *csound, TABLE  *p)   /* Like tabli but cubic interpolation */
         indx &= mask;
       /* interpolate with cubic if we can */
       if (indx <1 || indx == length-1 || length<4) {/* Too short or at ends */
-        v1 = *(tab + indx);
-        v2 = *(tab + indx + 1);
+        v1 = tab[indx];
+        v2 = tab[indx + 1];
         rslt[n] = v1 + (v2 - v1)*fract;
       }
       else {
@@ -972,22 +972,24 @@ int osciln(ENVIRON *csound, OSCILN *p)
       MYFLT inc = p->inc;
       MYFLT maxndx = p->maxndx;
       for (n=0; n<ksmps; n++) {
-        rs[n] = *(ftbl + (long)ndx) * amp;
+        rs[n] = ftbl[(long)ndx] * amp;
         if ((ndx += inc) > maxndx) {
           if (--p->ntimes)
             ndx -= maxndx;
-          else if (n==ksmps) return OK;
-          else goto putz;
+          else if (n==ksmps)
+            return OK;
+          else
+            goto putz;
         }
       }
       p->index = ndx;
     }
     else {
-      n=0;                      /* Can jump out of previous loop into this one */
+      n=0;              /* Can jump out of previous loop into this one */
     putz:
       for (; n<ksmps; n++) {
-        *rs++ = FL(0.0);
-     }
+        rs[n] = FL(0.0);
+      }
     }
     return OK;
 }
@@ -1016,7 +1018,7 @@ int koscil(ENVIRON *csound, OSC *p)
     }
     phs = p->lphs;
     inc = (long) (*p->xcps * kicvt);
-    *p->sr = *(ftp->ftable + (phs >> ftp->lobits)) * *p->xamp;
+    *p->sr = ftp->ftable[phs >> ftp->lobits] * *p->xamp;
     phs += inc;
     phs &= PHMASK;
     p->lphs = phs;
@@ -1041,7 +1043,7 @@ int osckk(ENVIRON *csound, OSC *p)
     amp = *p->xamp;
     ar = p->sr;
     for (n=0;n<ksmps;n++) {
-      ar[n] = *(ftbl + (phs >> lobits)) * amp;
+      ar[n] = ftbl[phs >> lobits] * amp;
       phs += inc;
       phs &= PHMASK;
     }
@@ -1069,7 +1071,7 @@ int oscka(ENVIRON *csound, OSC *p)
     for (n=0;n<ksmps;n++) {
       long inc;
       inc = (long)(cpsp[n] * sicvt);
-      ar[n] = *(ftbl + (phs >> lobits)) * amp;
+      ar[n] = ftbl[phs >> lobits] * amp;
       phs += inc;
       phs &= PHMASK;
     }
@@ -1095,7 +1097,7 @@ int oscak(ENVIRON *csound, OSC *p)
     ampp = p->xamp;
     ar = p->sr;
     for (n=0;n<ksmps;n++) {
-      ar[n] = *(ftbl + (phs >>lobits)) * ampp[n];
+      ar[n] = ftbl[phs >> lobits] * ampp[n];
       phs += inc;
       phs &= PHMASK;
     }
@@ -1123,7 +1125,7 @@ int oscaa(ENVIRON *csound, OSC *p)
     for (n=0;n<ksmps;n++) {
       long inc;
       inc = (long)(cpsp[n] * sicvt);
-      ar[n] = *(ftbl + (phs >>lobits)) * ampp[n];
+      ar[n] = ftbl[phs >> lobits] * ampp[n];
       phs += inc;
       phs &= PHMASK;
     }
