@@ -25,7 +25,7 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#ifdef _SNDFILE_
+#ifdef HAVE_LIBSNDFILE
 #include <sndfile.h>
 #endif
 
@@ -83,7 +83,7 @@ void fdclose(FDCH *fdchp)       /* close a file and remove from fd chain */
     prvchp = &curip->fdch;                      /* from current insds,  */
     while ((nxtchp = prvchp->nxtchp) != NULL) {     /* chain through fdlocs */
       if (nxtchp == fdchp) {            /*   till find this one */
-#ifdef _SNDFILE_
+#ifdef HAVE_LIBSNDFILE
         sf_close(fdchp->fd);            /* then close the file  */
 #else
         close(fdchp->fd);               /* then close the file  */
@@ -127,7 +127,7 @@ void fdchclose(INSDS *ip)   /* close all files in instr fd chain     */
 
     if (O.odebug) fdchprint(ip);
       while ((curchp = curchp->nxtchp) != NULL) { /* for all fd's in chain: */
-#ifndef _SNDFILE_
+#ifndef HAVE_LIBSNDFILE
         if ((fd = curchp->fd) <= 2) {
           fdchprint(ip);
           sprintf(errmsg,Str(X_758,"fdclose: illegal fd %d in chain"),fd);

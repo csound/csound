@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#ifndef _SNDFILE_
+#ifndef HAVE_LIBSNDFILE
 /*  major kludge to implement AIFF-C 32 Floating point "compression" type */
 /*  someday I'll rewrite AAAAAALLLLLL this stuff */
 /*  Dave Madole 1/97 */

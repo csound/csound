@@ -107,7 +107,7 @@ char *creatsfcode(int ctype)    /* add a new sfcode struct to current out_header
 
 #endif
 
-#ifndef _SNDFILE_
+#ifndef HAVE_LIBSNDFILE
 
 #ifdef NeXT
 #include <sound/soundstruct.h>

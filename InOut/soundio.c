@@ -39,7 +39,7 @@ extern  void    (*recopen)(int, int, float, int);
 extern  void    (*playopen)(int, int, float, int);
 #endif
 
-#ifdef _SNDFILE_
+#ifdef HAVE_LIBSNDFILE
 void spoutsf(void);
 void zerosf(long len);
 void writesf(void *outbuf, int nbytes);
@@ -165,7 +165,7 @@ uzerotran(long),
 szerotran(long), lzerotran(long), fzerotran(long);
 static void floatran_noscl(void), floatrecv_noscl(void); /* IV - Jul 11 2002 */
 
-#if defined(_SNDFILE_)
+#if defined(HAVE_LIBSNDFILE)
 
 void iotranset()
 {
@@ -259,7 +259,7 @@ void iotranset(void)
 											 else spoutran = floatran_noscl;
 											 nzerotran = fzerotran;
 											 floutbufp = (float *)outbuf;
-#ifdef _SNDFILE_
+#ifdef HAVE_LIBSNDFILE
 											 spoutran = spoutsf;       /* accumulate output */
 											 nzerotran = zerosf;       /* quick zeros */
 											 audtran = writesf;        /* flush buffer */
@@ -368,7 +368,7 @@ static void audwrt4(char *outbuf,int nbytes)
 	audwrite(outbuf, nbytes);   /*  & send the data    */
 }
 
-#ifndef _SNDFILE_
+#ifndef HAVE_LIBSNDFILE
 
 void sfopenin(void)             /* init for continuous soundin */
 {                               /*    called only if -i flag   */
@@ -651,7 +651,7 @@ void sfnopenout(void)
 
 extern int close(int);
 
-#ifndef _SNDFILE_
+#ifndef HAVE_LIBSNDFILE
 
 void sfclosein(void)
 {

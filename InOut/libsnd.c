@@ -24,7 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 #include "config.h"
 #endif
 
-#ifdef _SNDFILE_
+#ifdef HAVE_LIBSNDFILE
 
 #include "cs.h"                         /*             SNDLIB.C       */
 #include "soundio.h"
