@@ -1784,8 +1784,9 @@ inline void displ(MYFLT val, MYFLT index)
 {
     if (index >= 0) {//display current value of valuator
       char valString[MAXNAME];
+      sprintf(valString, "%.5g", val);
       ((Fl_Output*) (AddrSetValue[(long) index]).WidgAddress)->
-        value(gcvt( val, 5, valString ));
+	value(valString);
     }
 }
 
@@ -3412,8 +3413,9 @@ extern "C" void FLprintk(FLPRINTK *p)
     if (p->cysofar < cycles) {
       p->cysofar = cycles;
       char valString[MAXNAME];
+      sprintf(valString,"%.5g", *p->val);
       ((Fl_Output*) (AddrSetValue[(long) *p->idisp]).WidgAddress)->
-        value(gcvt( *p->val, 5, valString ));
+        value(valString );
     }
 }
 
@@ -3428,8 +3430,9 @@ extern "C" void FLprintk2(FLPRINTK2 *p)
     MYFLT   value = *p->val;
     if (p->oldvalue != value) {
       char valString[MAXNAME];
+      sprintf(valString,"%.5g", *p->val);
       ((Fl_Output*) (AddrSetValue[(long) *p->idisp]).WidgAddress)->
-        value(gcvt( *p->val, 5, valString ));
+        value(valString );
       p->oldvalue = value;
     }
 }

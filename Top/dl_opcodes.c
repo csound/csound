@@ -45,7 +45,7 @@ static const char *error(int setget, const char *str, ...)
     const char *dylderrstr;
     const char *file;
     va_list arg;
-    f (setget <= 0) {
+    if (setget <= 0) {
       va_start(arg, str);
       strncpy(errstr, "dlsimple: ", ERR_STR_LEN);
       vsnprintf(errstr + 10, ERR_STR_LEN - 10, str, arg);
@@ -77,7 +77,7 @@ void *dlsymIntern(void *handle, const char *symbol)
     /* If the handle is -1, if is the app global context */
     if (handle == (void *)-1) {
       /* Global context, use NSLookupAndBindSymbol */
-      if (NSIsSymbolNameD\efined(symbol)) {
+      if (NSIsSymbolNameDefined(symbol)) {
         nssym = NSLookupAndBindSymbol(symbol);
       }
     }

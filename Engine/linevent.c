@@ -38,7 +38,7 @@
 
 void RTclose(void);
 extern int close(int);
-#if !defined(mac_classic) && !defined(SYMANTEC) && !defined(LINUX)
+#if !defined(mac_classic) && !defined(SYMANTEC) && !defined(LINUX) && !defined(MACOSX)
 extern int read(int, void*, unsigned);
 #endif
 

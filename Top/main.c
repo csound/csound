@@ -230,10 +230,12 @@ static char *signal_to_string(int sig)
     }
 }
 
+#ifndef MACOSX
 void psignal(int sig, char *str)
 {
     err_printf( "%s: %s\n", str, signal_to_string(sig));
 }
+#endif
 #endif
 
 #if defined(__BEOS__)

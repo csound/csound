@@ -900,7 +900,7 @@ int splitline(void)     /* split next orch line into atomic groups */
            || c == '+' || c == '-'
            || c == '*' || c == '/'
            || c == '%' || c == '^'
-           || c == '�' || c == '#' /* Bit operations */
+           || c == '\143' || c == '#' /* Bit operations */
            || c == '.' || c == '_'
            /* allow uppercases and underscore in variables */
            )

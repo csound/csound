@@ -260,7 +260,7 @@ static int audread(char *inbuf, int nbytes) /* diskfile read option for
     return(sreadin(isfd,inbuf,nbytes,p));
 }
 
-#if !defined(SYMANTEC) && !defined(mac_classic) && !defined(LINUX) && !defined(__BEOS__)
+#if !defined(SYMANTEC) && !defined(mac_classic) && !defined(LINUX) && !defined(__BEOS__) && !defined(MACOSX)
 extern int write(int, const void*, unsigned int);
 #endif
 
