@@ -107,6 +107,8 @@ Rebuild and install a version of libsndfile no earlier than:
 http://www.mega-nerd.com/tmp/libsndfile-1.0.10pre4.tar.gz
 \end{verbatim}
 
+For PortAudio, I have found that \texttt{./configure ---with-winapi=wmme} works and other \texttt{configure} options do not. If you can build PortAudio version 19 with DirectX and MinGW, please let me know how to do it.
+
 The build procedure for MinGW is similar, but not identical, to the Cygwin procedure. The MSys shell does not allow the user to execute Python commands directly. Therefore, you need to install the \emph{Windows} versions of Python and SCons, make sure that Python is in your Windows executable path, and run the build like this:
 \begin{verbatim}
 $ python c:/tools/python23/scripts/scons
