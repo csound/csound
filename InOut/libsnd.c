@@ -32,7 +32,7 @@
 
 #ifdef RTAUDIO
 extern  int     (*rtrecord)(char *, int);
-extern  void    (*rtplay)(char *, int);
+extern  void    (*rtplay)(void *, int);
 extern  void    (*rtclose)(void);
 extern  void    (*recopen)(int, int, float, int);
 extern  void    (*playopen)(int, int, float, int);
@@ -62,6 +62,7 @@ extern FILE* pin, *pout;
 #  define _pclose pclose
 # endif
 #endif
+extern void (*spinrecv)(void), (*spoutran)(void), (*nzerotran)(long);
 static  int     (*audrecv)(void *, int);
 static  void    (*audtran)(void *, int);
 
@@ -111,7 +112,19 @@ int format2sf(int format)
 
 void writesf(void *b, int len)
 {
+    int i;
+    printf("***writesf:%p, %d\n", b, len);
+    for (i=0; i<len; i++) {
+    }
     sf_writef_float(outfile, (float*)b, len);
+}
+
+void zerosf(int len)
+{
+    int i;
+    MYFLT x = FL(0.0);
+    for (i=0; i<len; i++)
+      sf_writef_float(outfile, &x, 1);
 }
 
 int SAsndgetset(
@@ -183,6 +196,7 @@ void sfopenin(void)             /* init for continuous soundin */
 
 void sfopenout(void)                            /* init for sound out       */
 {                                               /* (not called if nosound)  */
+    printf("***sfopenout\n");
 #ifdef NeXT
     if (O.outfilename == NULL && !O.filetyp) O.outfilename = "test.snd";
         else if (O.outfilename == NULL) O.outfilename = "test";
@@ -193,6 +207,7 @@ void sfopenout(void)                            /* init for sound out       */
       else O.outfilename = "test";
     }
 #endif
+    printf("***O.outfilename=%s\n", O.outfilename);
     if (strcmp(O.outfilename,"stdout") == 0) {
       sfoutname = O.outfilename;
       osfd = O.stdoutfd;              /* send sound to stdout if requested */
@@ -266,12 +281,15 @@ void sfopenout(void)                            /* init for sound out       */
         dies(Str(X_1187,"sfinit: cannot open %s"), retfilnam);
       sfoutname = mmalloc((long)strlen(retfilnam)+1);
       strcpy(sfoutname, retfilnam);       /*   & preserve the name */
+      printf("***Opening sndfile %s\n", O.outfilename);
       outfile = sf_open_fd(osfd, SFM_WRITE, &sfinfo, 1);
+      printf("***Done\n");
       if (strcmp(sfoutname, "/dev/audio") == 0) {
         /*      ioctl(   );   */
         pipdevout = 1;
       }
-      audtran = writesf;
+      spoutran = writesf;
+      nzerotran = zerosf;
     }
 #if defined(SYMANTEC)
     AddMacHeader(sfoutname,nchnls,esr,O.outsampsiz);  /* set Mac resource */
@@ -284,6 +302,7 @@ void sfopenout(void)                            /* init for sound out       */
 #endif
     }
  outset:
+    printf("***finished sfopenout\n");
 }
 
 void iotranset(void)
@@ -301,10 +320,16 @@ void sfcloseout(void)
 {
     int nb;
     if (!osfopen) return;
-    if ((nb = (O.outbufsamps-outbufrem) *
-         O.outsampsiz) > 0)/* flush outbuffer */
+    if ((nb = (O.outbufsamps-outbufrem) * O.outsampsiz) > 0)/* flush outbuffer */
       audtran(outbuf, nb);
     sf_close(outfile);
+#ifdef RTAUDIO
+    if (osfd == DEVAUDIO) {
+      if (!isfopen || isfd != DEVAUDIO)
+        rtclose();     /* close only if not open for input too */
+      goto report;
+    }
+#endif
 #ifdef PIPES
     if (pout!=NULL) {
       int _pclose(FILE*);

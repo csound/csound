@@ -54,19 +54,19 @@ int main(int argc, char **argv)
 
 void *csoundCreate(void *hostData)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE (csoundCreate)\n");
     return NULL;
 }
 
 int csoundQueryInterface(const char *name, void **interface, int *version)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundQueryInterface)\n");
     return 0;
 }
 
 void csoundDestroy(void *csound)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundDestroy)\n");
 }
 
 int csoundGetVersion(void)
@@ -85,13 +85,13 @@ int csoundGetAPIVersion(void)
 
 void *csoundGetHostData(void *csound)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundGetHostData)\n");
     return NULL;
 }
 
 void csoundSetHostData(void *csound, void *hostData)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundSetHostData)\n");
 }
 
 int csoundPerform(void *csound, int argc, char **argv)
@@ -137,7 +137,7 @@ int csoundPerformKsmps(void *csound)
 
 int csoundPerformBuffer(void *csound)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundPerformBuffer)\n");
     return -1;
 }
 
@@ -189,77 +189,77 @@ long csoundGetOutputBufferSize(void *csound)
 
 void *csoundGetInputBuffer(void *csound)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundGetInputBuffer)\n");
     return NULL;
 }
 
 void *csoundGetOutputBuffer(void *csound)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundGetOutputBuffer)\n");
     return NULL;
 }
 
 MYFLT* csoundGetSpin(void *csound)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundGetSpin)\n");
     return NULL;
 }
 
 MYFLT* csoundGetSpout(void *csound)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundGetSpout)\n");
     return NULL;
 }
 
 MYFLT csoundGetScoreTime(void *csound)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundGetScoreTime)\n");
     return FL(0.0);
 }
 
 MYFLT csoundGetProgress(void *csound)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundGetProgress)\n");
     return FL(0.0);
 }
 
 MYFLT csoundGetProfile(void *csound)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundGetProfile)\n");
     return FL(0.0);
 }
 
 MYFLT csoundGetCpuUsage(void *csound)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundGetCpuUsage)\n");
     return FL(0.0);
 }
 
 int csoundIsScorePending(void *csound)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundIsScorePending)\n");
     return 0;
 }
 
 void csoundSetScorePending(void *csound, int pending)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundSetScorePending)\n");
 }
 
 void csoundSetScoreOffsetSeconds(void *csound, MYFLT offset)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundSetScoreOffsetSeconds)\n");
 }
 
 MYFLT csoundGetScoreOffsetSeconds(void *csound)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundGetScoreOffsetSeconds)\n");
     return FL(0.0);
 }
 
 void csoundRewindScore(void *csound)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundRewindScore)\n");
 }
 
 static void csoundMessageCallback(void *csound, const char *format, va_list args)
@@ -273,7 +273,7 @@ void csoundSetMessageCallback(void *csound,
                                                             const char *format,
                                                             va_list args))
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundSetMessageCallback)\n");
 }
 
 void csoundMessageS(void *csound, const char *format, va_list args)
@@ -302,7 +302,7 @@ csoundSetThrowMessageCallback(void *csound,
                                                                  const char *format,
                                                                  va_list args))
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundSetThrowMessageCallback)\n");
 }
 
 void csoundThrowMessageV(void *csound, const char *format, va_list args)
@@ -326,23 +326,23 @@ int csoundGetMessageLevel(void *csound)
 
 void csoundSetMessageLevel(void *csound, int messageLevel)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundSetMessageLevel)\n");
 }
 
 void csoundInputMessage(void *csound, const char *message)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundInputMessage)\n");
 }
 
 
 void csoundKeyPress(void *csound, char c)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundKeyPress)\n");
 }
 
 char getChar(void)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(getChar)\n");
     return '\0';
 }
 
@@ -351,12 +351,12 @@ void csoundSetInputValueCallback(void *csound,
                                                            char *channelName,
                                                            MYFLT *value))
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundSetInputValueCallback)\n");
 }
 
 void InputValue(char *channelName, MYFLT *value)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(InputValue)\n");
 }
 
 void csoundSetOutputValueCallback(void *csound,
@@ -364,17 +364,17 @@ void csoundSetOutputValueCallback(void *csound,
                                                              char *channelName,
                                                              MYFLT value))
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundSetOutputValueCallback)\n");
 }
 
 void OutputValue(char *channelName, MYFLT value)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(OutputValue)\n");
 }
 
 void csoundScoreEvent(void *csound, char type, MYFLT *pfields, long numFields)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundScoreEvent)\n");
 }
 
 #ifdef RTAUDIO
@@ -382,9 +382,9 @@ extern void playopen_(int nchanls, int dsize, float sr, int scale);
 
 void (*playopen)(int nchanls, int dsize, float sr, int scale) = playopen_;
 
-extern void rtplay_(char *outBuf, int nbytes);
+extern void rtplay_(void *outBuf, int nbytes);
 
-void (*rtplay)(char *outBuf, int nbytes) = rtplay_;
+void (*rtplay)(void *outBuf, int nbytes) = rtplay_;
 
 extern void recopen_(int nchanls, int dsize, float sr, int scale);
 
@@ -403,42 +403,42 @@ void csoundSetPlayopenCallback(void *csound,
                                void (*playopen__)(int nchanls, int dsize,
                                                   float sr, int scale))
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundSetPlayopenCallback)\n");
 }
 
 void csoundSetRtplayCallback(void *csound,
                              void (*rtplay__)(char *outBuf, int nbytes))
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundSetRtplayCallback)\n");
 }
 
 void csoundSetRecopenCallback(void *csound,
                               void (*recopen__)(int nchanls, int dsize,
                                                 float sr, int scale))
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundSetRecopenCallback)\n");
 }
 
 void csoundSetRtrecordCallback(void *csound,
                                int (*rtrecord__)(char *inBuf, int nbytes))
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundSetRtrecordCallback)\n");
 }
 
 void csoundSetRtcloseCallback(void *csound, void (*rtclose__)(void))
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundSetRtcloseCallback)\n");
 }
 
 void csoundSetExternalMidiOpenCallback(void *csound,
                                        void (*csoundMidiOpen)(void *csound))
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundSetExternalMidiOpenCallback)\n");
 }
 
 void csoundExternalMidiOpen(void *csound)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundExternalMidiOpen)\n");
 }
 
 void csoundSetExternalMidiReadCallback(void *csound,
@@ -446,81 +446,81 @@ void csoundSetExternalMidiReadCallback(void *csound,
                                                                unsigned char *midiData,
                                                                int size))
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundSetExternalMidiReadCallback)\n");
 }
 
 int csoundExternalMidiRead(void *csound, char *mbuf, int size)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundExternalMidiRead)\n");
     return 0;
 }
 
 int csoundIsExternalMidiEnabled(void *csound)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundIsExternalMidiEnabled)\n");
     return 0;
 }
 
 void csoundSetExternalMidiEnabled(void *csound, int enabled)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundSetExternalMidiEnabled)\n");
 }
 
 void csoundSetExternalMidiWriteCallback(void *csound,
                                         int (*midiWriteCallback)(void *csound,
                                                                  unsigned char *midiData))
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundSetExternalMidiWriteCallback)\n");
 }
 
 int csoundExternalMidiWrite(unsigned char *midiData)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundExternalMidiWrite)\n");
     return 0;
 }
 
 void csoundDefaultMidiCloseCallback(void *csound)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundDefaultMidiCloseCallback)\n");
 }
 
 void csoundSetExternalMidiCloseCallback(void *csound,
                                         void (*csoundExternalMidiCloseCallback)(void *csound))
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundSetExternalMidiCloseCallback)\n");
 }
 
 void csoundExternalMidiClose(void *csound)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundExternalMidiClose)\n");
 }
 
 void csoundSetIsGraphable(void *csound, int isGraphable)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundSetIsGraphable)\n");
 }
 
 void csoundSetMakeGraphCallback(void *csound,
                                 void (*makeGraphCallback)(void *csound, WINDAT *windat, char *name))
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundSetMakeGraphCallback)\n");
 }
 
 void csoundSetDrawGraphCallback(void *csound,
                                 void (*drawGraphCallback)(void *csound, WINDAT *windat))
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundSetDrawGraphCallback)\n");
 }
 
 void csoundSetKillGraphCallback(void *csound,
                                 void (*killGraphCallback)(void *csound, WINDAT *windat))
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundSetKillGraphCallback)\n");
 }
 
 void csoundSetExitGraphCallback(void *csound, int (*exitGraphCallback)(void *csound))
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundSetExitGraphCallback)\n");
 }
 
 #ifdef WINDOWS
@@ -570,13 +570,13 @@ void ReadXYin(XYINDAT *xyindat)
 
 opcodelist *csoundNewOpcodeList(void)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundNewOpcodeList)\n");
     return NULL;
 }
 
 void csoundDisposeOpcodeList(opcodelist *list)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE()\n");
 }
 
 int csoundAppendOpcode(char *opname,
@@ -589,25 +589,27 @@ int csoundAppendOpcode(char *opname,
                        SUBR aopadr,
                        SUBR dopadr)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE()\n");
     return -1;
 }
 
 void csoundSetYieldCallback(void *csound, int (*yieldCallback)(void *csound))
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundSetYieldCallback)\n");
 }
 
 int csoundYield(void *csound)
 {
-    return 0;
+    return 1;
 }
 
 void csoundSetEnv(void *csound,
                   const char *environmentVariableName,
                   const char *path)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    char buffer[256];
+    sprintf("%s=%s", environmentVariableName, path);
+    putenv(buffer);
 }
 
 char *csoundGetEnv(const char *environmentVariableName)
@@ -623,19 +625,19 @@ void csoundReset(void *csound)
 
 void *csoundOpenLibrary(const char *libraryPath)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundOpenLibrary)\n");
     return NULL;
 }
 
 void *csoundCloseLibrary(void *library)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundCloseLibrary)\n");
     return NULL;
 }
 
 void *csoundGetLibrarySymbol(void *library, const char *procedureName)
 {
-    printf("DO NOT USE THIS INTERFACE\n");
+    printf("DO NOT USE THIS INTERFACE(csoundGetLibrarySymbol)\n");
     return NULL;
 }
 

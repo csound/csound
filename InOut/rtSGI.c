@@ -86,7 +86,7 @@ int rtrecord_(char *inbuf, int nbytes) /* get samples from ADC */
     return(nbytes);
 }
 
-void rtplay_(char *outbuf, int nbytes) /* put samples to DAC  */
+void rtplay_(void *outbuf, int nbytes) /* put samples to DAC  */
     /* N.B. This routine serves as a THROTTLE in Csound Realtime Performance, */
     /* delaying the actual writes and return until the hardware output buffer */
     /* passes a sample-specific THRESHOLD.  If the I/O BLOCKING functionality */
@@ -100,7 +100,7 @@ void rtplay_(char *outbuf, int nbytes) /* put samples to DAC  */
     /* the above audio I/O blocks, i.e. by setting -b to some 1 or 2 K-prds.  */
 {
     long sampframes = nbytes >> oshift;
-    ALwritesamps(oport, outbuf, sampframes);
+    ALwritesamps(oport, (char*)outbuf, sampframes);
     nrecs++;
 }
 

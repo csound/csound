@@ -33,7 +33,7 @@
 
 #ifdef RTAUDIO
 extern  int     (*rtrecord)(char *, int);
-extern  void    (*rtplay)(char *, int);
+extern  void    (*rtplay)(void *, int);
 extern  void    (*rtclose)(void);
 extern  void    (*recopen)(int, int, float, int);
 extern  void    (*playopen)(int, int, float, int);
@@ -296,11 +296,11 @@ static void audwrite(char *outbuf, int nbytes)
     }
 }
 #ifdef NeXT /*sbrandon: for RT playback */
-static void swaprtplay(char *outbuf, int nbytes)
+static void swaprtplay(void *outbuf, int nbytes)
                                 /* soundout write option for audtran's */
                                 /*      assigned during sfopenout()    */
 {
-    bytrev2(outbuf, nbytes);    /* rev bytes in shorts  */
+    bytrev2((char*)outbuf, nbytes);    /* rev bytes in shorts  */
     rtplay(outbuf, nbytes);     /*   & send the data    */
 }
 #endif

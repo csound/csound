@@ -82,7 +82,7 @@ int rtrecord_(char *inbuf, int nbytes) /* get samples from ADC */
         return(nbytes);
 }
 
-void rtplay_(char *outbuf, int nbytes) /* put samples to DAC  */
+void rtplay_(void *outbuf, int nbytes) /* put samples to DAC  */
     /* N.B. This routine serves as a THROTTLE in Csound Realtime Performance, */
     /* delaying the actual writes and return until the hardware output buffer */
     /* passes a sample-specific THRESHOLD.  If the I/O BLOCKING functionality */
@@ -97,7 +97,7 @@ void rtplay_(char *outbuf, int nbytes) /* put samples to DAC  */
 {
         while (nbytes > 0) {
           size_t toWrite = (nbytes < oMaxLag) ? nbytes : oMaxLag;
-          if (write_port_etc(gDACPort, 0, outbuf, toWrite,
+          if (write_port_etc(gDACPort, 0, (char*)outbuf, toWrite,
                              B_TIMEOUT, portTimeout) < B_NO_ERROR) {
             printf(Str(X_1170,"rtplay: failed write to DAC port\n"));
           }
