@@ -248,16 +248,19 @@ if test "$WINDOWS" = yes; then
 fi
 
 if test "$USE_GUI" = yes; then
-     FLTKOBJ="widgets.$ac_objext"
-     FLTKSRC="InOut/widgets.cpp"
-         AC_PATH_PROG(FLTK_CONFIG,fltk-config)
-         AC_LANG_CPLUSPLUS
-         AC_LANG_C
+	FLTKOBJ="widgets.$ac_objext"
+	FLTKSRC="InOut/widgets.cpp"
+     
+	AC_PATH_PROG(FLTK_CONFIG,fltk-config)
+	AC_LANG_CPLUSPLUS
+	AC_LANG_C
 
-	 WINLDFLAGS=`$FLTK_CONFIG --ldflags`
-	  AC_DEFINE(HAVE_FLTK)
+	WINLDFLAGS=`$FLTK_CONFIG --ldflags` 
+	WINLDFLAGS="$WINLDFLAGS -lpthread -lstdc++"
+	WINCXXFLAGS=`$FLTK_CONFIG --cxxflags`
+     	AC_DEFINE(HAVE_FLTK)
 
-     AC_CHECK_LIB([pthread], [pthread_mutex_lock])
+	AC_CHECK_LIB([pthread], [pthread_mutex_lock])
 fi
 AC_CHECK_LIB([m], [sin])
 
@@ -270,8 +273,9 @@ AC_SUBST(AUDHDR)
 AC_SUBST(AUDLIBS)
 AC_SUBST(FLTKSRC)
 AC_SUBST(FLTKOBJ)
-AC_SUBST(WINCXXFLAGS)
 AC_SUBST(WINLDFLAGS)
+AC_SUBST(WINCXXFLAGS)
+
 
 AC_OUTPUT(Makefile Opcodes/Makefile anal/Makefile util1/Makefile util2/Makefile \
           anal/adsyn/Makefile anal/convol/Makefile anal/lpc/Makefile \
