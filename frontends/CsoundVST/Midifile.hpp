@@ -25,19 +25,19 @@
 %module CsoundVST
 %{
 #include <algorithm>
+#include <utility>
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <string>
 #include <vector>
 %}
-%template(IntToDoubleMap) std::map<int, double>;
-#ifdef SWIGPYTHON
-%template(IntDoublePair) std::pair<int, MYFLT>;
-#endif
+%include "std_string.i"
+%template(EventVector) std::vector<csound::Event>;
 %template(MidiByteVector) std::vector<unsigned char>;
 #else
 #include <algorithm>
+#include <utility>
 #include <fstream>
 #include <iostream>
 #include <map>
