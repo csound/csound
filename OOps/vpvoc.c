@@ -75,7 +75,7 @@ int tblesegset(ENVIRON *csound, TABLESEG *p)
         dur = **argp++;
         if ((nxtfunc = csound->FTFind(csound, *argp++)) == NULL) return OK;
         if (dur > FL(0.0)) {
-                segp->d = dur * ekr;
+                segp->d = dur * csound->ekr;
                 segp->function =  curfunc;
                 segp->nxtfunction = nxtfunc;
                 segp->cnt = (long) (segp->d + .5);
@@ -163,7 +163,7 @@ int voscili(ENVIRON *csound, VOSC *p)
     FUNC        *ftp;
     MYFLT       v1, fract, *ar, *ampp, *cpsp, *ftab;
     long        phs, lobits;
-    int         nsmps = ksmps;
+    int         nsmps = csound->ksmps;
     TABLESEG    *q = p->tableseg;
 
     /* RWD fix */
@@ -201,7 +201,7 @@ int voscili(ENVIRON *csound, VOSC *p)
 #define WLN   1         /* time window is WLN*2*ksmps long */
 
 /*  #define OPWLEN      size    */
-#define OPWLEN (2*WLN*ksmps)    /* manifest used for final time wdw */
+#define OPWLEN (2*WLN*csound->ksmps)    /* manifest used for final time wdw */
 
 /* static       int     pdebug = 0; */
 /* static       int     dchan = 6; */   /* which channel to examine on debug */
@@ -263,10 +263,10 @@ int vpvset(ENVIRON *csound, VPVOC *p)
     p->frSiz = pvh->frameSize;
     frInc    = pvh->frameIncr;
     chans    = pvh->channels;
-    if ((p->asr = pvh->samplingRate) != esr &&
+    if ((p->asr = pvh->samplingRate) != csound->esr &&
         (O.msglevel & WARNMSG)) { /* & chk the data */
       printf(Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
-             pvfilnam, p->asr, esr);
+             pvfilnam, p->asr, csound->esr);
     }
     if (pvh->dataFormat != PVMYFLT) {
       sprintf(errmsg,Str("unsupported PVOC data format %ld in %s"),
@@ -293,14 +293,14 @@ int vpvset(ENVIRON *csound, VPVOC *p)
     p->baseFr = 0;  /* point to first data frame */
     p->maxFr = -1 + ( pvh->dataBsize / (chans * (p->frSiz+2) * sizeof(MYFLT)));
     /* highest possible frame index */
-    p->frPktim = ((MYFLT)ksmps)/((MYFLT)frInc);
+    p->frPktim = ((MYFLT)csound->ksmps)/((MYFLT)frInc);
     /* factor by which to mult expand phase diffs (ratio of samp spacings) */
-    p->frPrtim = esr/((MYFLT)frInc);
+    p->frPrtim = csound->esr/((MYFLT)frInc);
     /* factor by which to mulitply 'real' time index to get frame index */
     size = pvfrsiz(p);          /* size used in def of OPWLEN ? */
-/*  p->scale = 4.*((MYFLT)ksmps)/((MYFLT)pvfrsiz(p)*(MYFLT)pvfrsiz(p)); */
-/*    p->scale = 2.*((MYFLT)ksmps)/((MYFLT)OPWLEN*(MYFLT)pvfrsiz(p));   */
-    p->scale = e0dbfs * FL(2.0)*((MYFLT)ksmps)/((MYFLT)OPWLEN*(MYFLT)pvfrsiz(p));
+/*  p->scale = 4.*((MYFLT)csound->ksmps)/((MYFLT)pvfrsiz(p)*(MYFLT)pvfrsiz(p)); */
+/*    p->scale = 2.*((MYFLT)csound->ksmps)/((MYFLT)OPWLEN*(MYFLT)pvfrsiz(p));   */
+    p->scale = csound->e0dbfs * FL(2.0)*((MYFLT)csound->ksmps)/((MYFLT)OPWLEN*(MYFLT)pvfrsiz(p));
     /* 2*incr/OPWLEN scales down for win ovlp, windo'd 1ce (but 2ce?) */
     /* 1/frSiz is the required scale down before (i)FFT */
     p->prFlg = 1;    /* true */
@@ -313,7 +313,7 @@ int vpvset(ENVIRON *csound, VPVOC *p)
     }
     if ( (OPWLEN/2 + 1)>PVWINLEN ) {
         sprintf(errmsg, Str("ksmps of %d needs wdw of %d, max is %d for pv %s\n"),
-                ksmps, (OPWLEN/2 + 1), PVWINLEN, pvfilnam);
+                csound->ksmps, (OPWLEN/2 + 1), PVWINLEN, pvfilnam);
         goto pverr;
     }
     for (i=0; i < OPWLEN/2+1; ++i)    /* time window is OPWLEN long */
@@ -360,7 +360,7 @@ int vpvoc(ENVIRON *csound, VPVOC *p)
                             /* ..so we won't run into buf2Size problems */
       return csound->PerfError(csound, Str("PVOC transpose too low"));
     }
-    if (outlen<2*ksmps) {   /* minimum post-squeeze windowlength */
+    if (outlen<2*csound->ksmps) {   /* minimum post-squeeze windowlength */
       return csound->PerfError(csound, Str("PVOC transpose too high"));
     }
     buf2Size = OPWLEN;     /* always window to same length after DS */
@@ -385,7 +385,7 @@ int vpvoc(ENVIRON *csound, VPVOC *p)
       buf[i] *= *(q->outfunc->ftable + j);
 /***************************************************/
 
-    FrqToPhase(buf, asize, pex*(MYFLT)ksmps, p->asr,
+    FrqToPhase(buf, asize, pex*(MYFLT)csound->ksmps, p->asr,
            /*a0.0*/(MYFLT)(.5 * ( (pex / p->lastPex) - 1) ));
     /* Offset the phase to align centres of stretched windows, not starts */
     RewrapPhase(buf,asize,p->lastPhase);
@@ -416,11 +416,11 @@ int vpvoc(ENVIRON *csound, VPVOC *p)
     else
       for (n = 0; n<buf2Size; ++n)
         buf2[n] = FL(0.0);            /*      */
-    addToCircBuf(buf2, p->outBuf, p->opBpos, ksmps, circBufSize);
-    writeClrFromCircBuf(p->outBuf, ar, p->opBpos, ksmps, circBufSize);
-    p->opBpos += ksmps;
+    addToCircBuf(buf2, p->outBuf, p->opBpos, csound->ksmps, circBufSize);
+    writeClrFromCircBuf(p->outBuf, ar, p->opBpos, csound->ksmps, circBufSize);
+    p->opBpos += csound->ksmps;
     if (p->opBpos > circBufSize)     p->opBpos -= circBufSize;
-    addToCircBuf(buf2+ksmps,p->outBuf,p->opBpos,buf2Size-ksmps,circBufSize);
+    addToCircBuf(buf2+csound->ksmps,p->outBuf,p->opBpos,buf2Size-csound->ksmps,circBufSize);
     p->lastPex = pex;        /* needs to know last pitchexp to update phase */
     return OK;
 }

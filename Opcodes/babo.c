@@ -218,7 +218,7 @@ BaboMemory_size(const BaboMemory *this)
 static void
 _Babo_common_delay_create(ENVIRON *csound, BaboDelay *this, MYFLT max_time)
 {
-    size_t num_floats = (size_t) bround((MYFLT)ceil((double)(max_time * esr)));
+    size_t num_floats = (size_t) bround((MYFLT)ceil((double)(max_time * csound->esr)));
 
     BaboMemory_create(csound, &this->core, num_floats);
 }
@@ -354,7 +354,7 @@ INLINE static void BaboTapline_preload_parameter(ENVIRON *csound,
      *          direct_att=(1/2) when distance is 1 m
      *          direct_att=1     when distance is 0 m.
      */
-    this->delay_size    = (distance / sound_speed) * esr;
+    this->delay_size    = (distance / sound_speed) * csound->esr;
     this->attenuation   = 1 / (1 + distance);
 }
 
@@ -769,10 +769,8 @@ verify_coherence(ENVIRON *csound, BABO *p)
 {
     if (*(p->lx) <= FL(0.0) || *(p->ly) <= FL(0.0) || *(p->lz) <= FL(0.0))
     {
-        char buf[128] = { '\0' };
-        sprintf(buf, "Babo: resonator dimensions are incorrect (%.1f, %.1f, %.1f)",
-                *(p->lx), *(p->ly), *(p->lz));
-        csound->Die(csound, buf);
+        csound->Die(csound, "Babo: resonator dimensions are incorrect "
+                            "(%.1f, %.1f, %.1f)", *(p->lx), *(p->ly), *(p->lz));
     }
 }
 
@@ -803,7 +801,7 @@ int
 babo(ENVIRON *csound, void *entry)
 {
     BABO    *p          = (BABO *) entry;
-    int      nsmps      = ksmps;
+    int      nsmps      = csound->ksmps;
     MYFLT   *outleft    = p->outleft,
             *outright   = p->outright,
             *input      = p->input;
@@ -860,3 +858,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
+
