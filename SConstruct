@@ -32,6 +32,7 @@ import shutil
 #############################################################################
 
 zipDependencies = []
+pluginLibraries = []
 
 def today():
     return time.strftime("%Y-%m-%d",time.localtime())
@@ -402,6 +403,8 @@ if commonEnvironment['generatePDF']==1:
     csoundPdf = commonEnvironment.Command('csound.pdf', 'csound.tex', 'pdflatex $SOURCE')
     zipDependencies.append(csoundPdf)
 
+commonEnvironment.Alias('pdf', commonEnvironment.Command('csound.pdf', 'csound.tex', 'pdflatex $SOURCE'))
+    
 makedb = ustubProgramEnvironment.Program('makedb', 
     ['strings/makedb.c'])
 zipDependencies.append(makedb)
@@ -568,55 +571,56 @@ zipDependencies.append(ustub)
 
 # Plugin opcodes.
 
-zipDependencies.append(pluginEnvironment.SharedLibrary('babo', 
+
+pluginLibraries.append(pluginEnvironment.SharedLibrary('babo', 
     ['Opcodes/babo.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('bbcut', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('bbcut', 
     ['Opcodes/bbcut.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('biquad', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('biquad', 
     ['Opcodes/biquad.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('butter', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('butter', 
     ['Opcodes/butter.c']))    
-zipDependencies.append(pluginEnvironment.SharedLibrary('clfilt', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('clfilt', 
     ['Opcodes/clfilt.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('cross2', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('cross2', 
     ['Opcodes/cross2.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('dam', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('dam', 
     ['Opcodes/dam.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('dcblockr', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('dcblockr', 
     ['Opcodes/dcblockr.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('filter', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('filter', 
     ['Opcodes/filter.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('flanger', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('flanger', 
     ['Opcodes/flanger.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('follow', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('follow', 
     ['Opcodes/follow.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('grain', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('grain', 
     ['Opcodes/grain.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('grain4', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('grain4', 
     ['Opcodes/grain4.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('hrtferX', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('hrtferX', 
     Split('''Opcodes/hrtferX.c 
     Top/natben.c''')))
-zipDependencies.append(pluginEnvironment.SharedLibrary('locsig', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('locsig', 
     ['Opcodes/locsig.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('lowpassr', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('lowpassr', 
     ['Opcodes/lowpassr.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('metro', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('metro', 
     ['Opcodes/metro.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('midiops2', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('midiops2', 
     ['Opcodes/midiops2.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('midiops3', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('midiops3', 
     ['Opcodes/midiops3.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('modal4', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('modal4', 
     Split('''Opcodes/modal4.c 
     Opcodes/physutil.c''')))
-zipDependencies.append(pluginEnvironment.SharedLibrary('nlfilt', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('nlfilt', 
     ['Opcodes/nlfilt.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('oscbnk', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('oscbnk', 
     ['Opcodes/oscbnk.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('phisem', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('phisem', 
     ['Opcodes/phisem.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('physmod', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('physmod', 
     Split('''Opcodes/physmod.c 
     Opcodes/physutil.c 
     Opcodes/mandolin.c 
@@ -625,41 +629,41 @@ zipDependencies.append(pluginEnvironment.SharedLibrary('physmod',
     Opcodes/moog1.c 
     Opcodes/shaker.c 
     Opcodes/bowedbar.c''')))
-zipDependencies.append(pluginEnvironment.SharedLibrary('pitch', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('pitch', 
     Split('''Opcodes/pitch.c 
     Opcodes/pitch0.c 
     Opcodes/spectra.c''')))
-zipDependencies.append(pluginEnvironment.SharedLibrary('pluck', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('pluck', 
     ['Opcodes/pluck.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('repluck', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('repluck', 
     ['Opcodes/repluck.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('scansyn',  
+pluginLibraries.append(pluginEnvironment.SharedLibrary('scansyn',  
     ['Opcodes/scansyn.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('scansynx', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('scansynx', 
     ['Opcodes/scansynx.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('seqtime', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('seqtime', 
     ['Opcodes/seqtime.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('sfont', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('sfont', 
     ['Opcodes/sfont.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('sndwarp', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('sndwarp', 
     ['Opcodes/sndwarp.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('space', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('space', 
     ['Opcodes/space.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('spat3d', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('spat3d', 
     ['Opcodes/spat3d.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('ugens7', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('ugens7', 
     ['Opcodes/ugens7.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('ugensa', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('ugensa', 
     ['Opcodes/ugensa.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('uggab', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('uggab', 
     ['Opcodes/uggab.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('ugmoss', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('ugmoss', 
     ['Opcodes/ugmoss.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('ugsc', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('ugsc', 
     ['Opcodes/ugsc.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('vdelayk', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('vdelayk', 
     ['Opcodes/vdelayk.c']))
-zipDependencies.append(pluginEnvironment.SharedLibrary('wave-terrain', 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('wave-terrain', 
     ['Opcodes/wave-terrain.c']))
 
 # Plugins with External Dependencies
@@ -670,7 +674,7 @@ if configure.CheckHeader("fluidsynth.h", language = "C"):
     if getPlatform() == 'linux':
         fluidEnvironment = pluginEnvironment.Copy()
         fluidEnvironment.Append(LIBS = ['fluidsynth'])
-        zipDependencies.append(fluidEnvironment.SharedLibrary('fluidOpcodes', 
+        pluginLibraries.append(fluidEnvironment.SharedLibrary('fluidOpcodes', 
             ['Opcodes/fluidOpcodes/fluidOpcodes.cpp']))
     if getPlatform() == 'cygwin' or getPlatform() == 'mingw':        
         vstEnvironment.Append(CCFLAGS = ['-DFLUIDSYNTH_NOT_A_DLL', '-DMAKEDLL','-DBUILDING_DLL'])    
@@ -684,9 +688,9 @@ if configure.CheckHeader("fluidsynth.h", language = "C"):
             fluidEnvironment.Append(LIBS = ['wsock32'])
             fluidEnvironment.Append(LIBS = ['ole32'])
             fluidEnvironment.Append(LIBS = ['uuid'])
-        zipDependencies.append(fluidEnvironment.SharedLibrary('fluidOpcodes', 
+        pluginLibraries.append(fluidEnvironment.SharedLibrary('fluidOpcodes', 
             ['Opcodes/fluidOpcodes/fluidOpcodes.cpp']))    
-        zipDependencies.append(fluidEnvironment.SharedLibrary('fluid', Split('''
+        pluginLibraries.append(fluidEnvironment.SharedLibrary('fluid', Split('''
             Opcodes/fluid/AudioEffect.cpp        
             Opcodes/fluid/audioeffectx.cpp        
             Opcodes/fluid/Soundfonts.cpp        
@@ -716,7 +720,7 @@ if getPlatform() == 'mingw' and fltkFound:
 # Experimental OSC Opcodes ** THIS DOES NOT WORK **
 if getPlatform() == 'linux':
     oscEnvironment = pluginEnvironment.Copy()
-    zipDependencies.append(oscEnvironment.SharedLibrary('osc-sock', 
+    pluginLibraries.append(oscEnvironment.SharedLibrary('osc-sock', 
         Split('''
         Opcodes/osc-sock.c
         Opcodes/OSC-Kit/NetworkReturnAddress.c
@@ -796,8 +800,8 @@ if (commonEnvironment['buildCsoundVST'] == 1) and boostFound and fltkFound:
     vstEnvironment.Append(SWIGFLAGS = Split('-python -c++ -includeall -verbose -outdir .'))
     if getPlatform() == 'linux':
         vstEnvironment.Append(LIBS = ['swigpy', 'python2.3', 'util', 'dl', 'm'])
-        vstEnvironment.Append(CPPPATH = ['/usr/local/include/python2.3'])
-        vstEnvironment.Append(LIBPATH = ['/usr/local/lib/python2.3/config'])
+        vstEnvironment.Append(CPPPATH = ['/usr/include/python2.3'])
+        vstEnvironment.Append(LIBPATH = ['/usr/lib/python2.3/config'])
         vstEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
         vstEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
         guiProgramEnvironment.Prepend(LINKFLAGS = ['-mwindows', '_CsoundVST.so'])
@@ -895,7 +899,7 @@ if (commonEnvironment['buildCsoundVST'] == 1) and boostFound and fltkFound:
         lorisEnvironment.Append(SWIGFLAGS = ['-DHAVE_FFTW3_H'])
         loris = lorisEnvironment.SharedLibrary('loris', lorisSources, SHLIBPREFIX = '_')
         Depends(loris, csoundvst)
-        zipDependencies.append(loris)
+        pluginLibraries.append(loris)
                  
         pyEnvironment = pluginEnvironment.Copy();
         if getPlatform() == 'linux':
@@ -913,7 +917,7 @@ if (commonEnvironment['buildCsoundVST'] == 1) and boostFound and fltkFound:
             pyEnvironment.Append(LIBS = ['python23'])
         py = pyEnvironment.SharedLibrary('py', ['Opcodes/py/pythonopcodes.c'])
         Depends(py, csoundvst)
-        zipDependencies.append(py)
+        pluginLibraries.append(py)
 
 if (commonEnvironment['generateTags']) and (getPlatform() == 'linux' or getPlatform() == 'cygwin'):
     print "Calling TAGS"
@@ -943,9 +947,13 @@ if commonEnvironment['generateXmg']:
     Depends(xmgs2, makedb)
     zipDependencies.append(xmgs2)
 
+    
+zipDependencies += pluginLibraries
+    
 if commonEnvironment['generateZip']:    
     print 'Compiling zip file for release.'
     zip = commonEnvironment.Command(zipfilename, staticLibrary, buildzip)
     for node in zipDependencies:
         Depends(zip, node)
+
 
