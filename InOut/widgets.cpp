@@ -1454,7 +1454,7 @@ extern "C" int save_snap(FLSAVESNAPS* p)
                          "Warning",
                          MB_TASKMODAL|MB_ICONWARNING |MB_OKCANCEL
                          );
-    if (id != IDOK ) return;
+    if (id != IDOK ) return OK;
 #elif defined(LINUX)
     // put here some warning message!!
 #endif
