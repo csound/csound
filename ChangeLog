@@ -1,8 +1,12 @@
 2005-03-10	Istvan Varga	<istvan@csounds.com>
 	* Engine/entry2.c:
 	  run miditempo opcode both at init and performance time
+	* Engine/musmon.c:
+	  check for extra MIDI note-offs also when sustaining
 	* Opcodes/freeverb.c:
 	  attempts to correct high frequency attenuation for sample rate
+	* Top/argdecode.c:
+	  load external modules before printing opcode list
 
 2005-03-09	Istvan Varga	<istvan@csounds.com>
 	* Engine/insert.c:

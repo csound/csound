@@ -26,6 +26,7 @@
 #include "prototyp.h"
 #include "soundio.h"
 #include "new_opts.h"
+#include "csmodule.h"
 #include <ctype.h>
 
 #ifdef mills_macintosh
@@ -770,7 +771,9 @@ static int decode_long(void *csound, char *s, int argc, char **argv)
     if (*s != '\0') {
       if (isdigit(*s)) full = *s++ - '0';
     }
-    create_opcodlst(&cenviron);
+    create_opcodlst(csound);
+    if (csoundInitModules(csound) != 0)
+      longjmp(((ENVIRON*) csound)->exitjmp_, 1);
     list_opcodes(full);
     longjmp(((ENVIRON*) csound)->exitjmp_, CSOUND_EXITJMP_SUCCESS);
   }
@@ -1139,6 +1142,8 @@ int argdecode(void *csound, int argc, char **argv_)
               if (isdigit(*s)) full = *s++ - '0';
             }
             create_opcodlst(&cenviron);
+            if (csoundInitModules(csound) != 0)
+              longjmp(((ENVIRON*) csound)->exitjmp_, 1);
             list_opcodes(full);
           }
           longjmp(((ENVIRON*) csound)->exitjmp_, CSOUND_EXITJMP_SUCCESS);
