@@ -1152,7 +1152,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
       extern int opcode_is_assign;
       if (O.expr_opt && opcode_is_assign < 0) {
         /* if optimised away, skip line */
-	nxtest = grpcnt; goto tstnxt;
+        nxtest = grpcnt; goto tstnxt;
       }
     }
     if (nxtest <= opgrpno-1) {  /* Some aopcodes do not have ans! */
