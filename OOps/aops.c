@@ -499,45 +499,16 @@ int ftsr(ENVIRON *csound, EVAL *p)              /**** ftsr by G.Maldonado ****/
     return OK;
 }
 
-#ifdef HAVE_GETTIMEOFDAY
-# ifdef HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# endif
-# ifdef HAVE_UNISTD_H
-#  include <unistd.h>
-# endif
-
 int rtclock(ENVIRON *csound, EVAL *p)
 {
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    *p->r = (MYFLT)tv.tv_sec + FL(0.000001)*(MYFLT)tv.tv_usec;
+    /* IV - Jan 28 2005 */
+    RTCLOCK *pp;
+    pp = (RTCLOCK*) csoundQueryGlobalVariable(csound, "csRtClock");
+    if (pp == NULL)
+      return CSOUND_ERROR;
+    *p->r = (MYFLT) timers_get_real_time(pp);
     return OK;
 }
-#elif defined(WIN32)
-/* Need to undefine these else MSVC barfs */
-#undef u_char
-#undef u_short
-#undef u_int
-#undef u_long
-#include <windows.h>
-int rtclock(ENVIRON *csound, EVAL *p)
-{
-    FILETIME    t;
-    GetSystemTimeAsFileTime((LPFILETIME) &t);
-    *(p->r) = (FL(2147483648.0) * (MYFLT) ((unsigned long) t.dwHighDateTime) +
-               (MYFLT) ((long) ((unsigned long) t.dwLowDateTime >> 1))) *
-               FL(2.0e-7);
-    return OK;
-}
-#else
-int rtclock(ENVIRON *csound, EVAL *p)
-{
-    time_t realtime = time(NULL);
-    *p->r = (MYFLT) realtime;
-    return OK;
-}
-#endif
 
 void cpsoctinit(void)           /* init the arrays, called by oload */
 {

@@ -839,8 +839,9 @@ typedef struct RTCLOCK_S {
    * Allocate nbytes bytes of memory that can be accessed later by calling
    * csoundQueryGlobalVariable() with the specified name; the space is
    * cleared to zero.
-   * Returns zero on success, or a non-zero error code if the name is already
-   * in use or there is not enough memory.
+   * Returns CSOUND_SUCCESS on success, CSOUND_ERROR in case of invalid
+   * parameters (zero nbytes, invalid or already used name), or
+   * CSOUND_MEMORY if there is not enough memory.
    */
   PUBLIC int csoundCreateGlobalVariable(void *csound, const char *name,
                                         size_t nbytes);
@@ -853,7 +854,7 @@ typedef struct RTCLOCK_S {
 
   /**
    * Free memory allocated for "name" and remove "name" from the database.
-   * Returns zero on success, or a non-zero error code if the name is
+   * Return value is CSOUND_SUCCESS on success, or CSOUND_ERROR if the name is
    * not defined.
    */
   PUBLIC int csoundDestroyGlobalVariable(void *csound, const char *name);

@@ -824,6 +824,9 @@ typedef struct ENVIRON_
   int           genmax;
   int           ftldno;
   int           doFLTKThreadLocking;
+  void          **namedGlobals;         /* IV - Jan 28 2005 */
+  int           namedGlobalsCurrLimit;
+  int           namedGlobalsMaxLimit;
 } ENVIRON;
 
 extern ENVIRON cenviron_;
