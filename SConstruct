@@ -293,7 +293,6 @@ def buildzip(env, target, source):
         if extension in ['.exe', '.dll', '.so']:
             os.system('strip %s' % filename)
             print "Stripped",filename
-        print
     print "Creating archive..."
     archive = zipfile.ZipFile("csound5/" + zipfilename, "w", zipfile.ZIP_DEFLATED)
     pathnames.sort()

@@ -747,7 +747,7 @@ int cmbset(COMB *p)
         return initerror(Str(X_867,"illegal loop time"));
       }
     }
-    else if ((lpsiz = (long)(*p->ilpt * esr)) <= 0) {
+    else if ((lpsiz = (long)(FL(0.5)+*p->ilpt * esr)) <= 0) {
       return initerror(Str(X_867,"illegal loop time"));
     }
     nbytes = lpsiz * sizeof(MYFLT);
