@@ -28,8 +28,8 @@
 
 #include <math.h>
 
-#define AMP_SCALE (e0dbfs)
-#define AMP_RSCALE (dbfs_to_float)
+#define AMP_SCALE (csound->e0dbfs)
+#define AMP_RSCALE (csound->dbfs_to_float)
 /* #define AMP_SCALE       (FL(32768.0)) */
 /* #define AMP_RSCALE      (FL(0.000030517578125)) */
 
@@ -83,7 +83,7 @@ MYFLT DLineL_tick(DLineL *, MYFLT);
 /*  the target value (the state bit).      */
 /*******************************************/
 
-#define RATE_NORM       (FL(22050.0)/csound->esr_)
+#define RATE_NORM       (FL(22050.0)/csound->esr)
 
 typedef struct Envelope {
     MYFLT       value;
@@ -130,7 +130,7 @@ void make_OnePole(OnePole*);
 void OnePole_setPole(OnePole*, MYFLT aValue);
 void OnePole_setGain(OnePole*, MYFLT aValue);
 MYFLT OnePole_tick(OnePole*, MYFLT sample);
-void OnePole_print(OnePole*);
+void OnePole_print(ENVIRON*, OnePole*);
 
 /*******************************************/
 /*  DC Blocking Filter                     */
@@ -229,7 +229,7 @@ void BiQuad_setZeroCoeffs(BiQuad*, MYFLT *);
 #define BiQuad_setFreqAndReson(b,freq,reson)    \
         { (b).poleCoeffs[1]= -((reson)*(reson)); \
           (b).poleCoeffs[0]= FL(2.0)*(reson)*\
-          (MYFLT)cos(TWOPI*(double)(freq)/(double)csound->esr_); }
+          (MYFLT)cos(TWOPI*(double)(freq)/(double)csound->esr); }
 MYFLT BiQuad_tick(BiQuad*, MYFLT);
 #define BiQuad_lastOut(x)       (x)->lastOutput
 

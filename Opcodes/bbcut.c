@@ -75,7 +75,7 @@ int BBCutMonoInit(ENVIRON *csound, BBCUTMONO *p)
     /* allocate space- need no more than a half bar at current
        tempo and barlength */
     if (p->repeatbuffer.auxp == NULL) {
-      csound->AuxAlloc(csound, ((int)(esr*(*p->barlength)/(*p->bps)))*sizeof(MYFLT),
+      csound->AuxAlloc(csound, ((int)(csound->esr*(*p->barlength)/(*p->bps)))*sizeof(MYFLT),
                &p->repeatbuffer);
     }
 
@@ -90,7 +90,7 @@ int BBCutMonoInit(ENVIRON *csound, BBCUTMONO *p)
     /* samp per unit= samp per bar/ subdiv */
     /* = samp per beat * beats per bar /subdiv */
     /* =(samp per sec / beats per sec)* (beats per bar/subdiv)  */
-    p->samplesperunit = roundoffint(((MYFLT)esr*(FL(1.0)/(*p->bps)))*
+    p->samplesperunit = roundoffint(((MYFLT)csound->esr*(FL(1.0)/(*p->bps)))*
                                     (*p->barlength/(MYFLT)p->Subdiv));
 
     /* enveloping */
@@ -111,7 +111,7 @@ int BBCutMono(ENVIRON *csound, BBCUTMONO *p)
     int unitb,unitl,unitd;      /* temp for integer unitblock calculations */
     MYFLT envmult,out;          /* intermedaites for enveloping grains */
 
-    for (i=0;i<ksmps;i++) {
+    for (i=0;i<csound->ksmps;i++) {
       if ((p->unitsdone+FL(0.000001))>=p->totalunits) { /* a new phrase of cuts */
         p->numbarsnow  = random_number(1,p->Phrasebars);
         p->totalunits  = p->numbarsnow*p->Subdiv;
@@ -304,7 +304,7 @@ int BBCutStereoInit(ENVIRON *csound, BBCUTSTEREO * p)
        and barlength */
     if (p->repeatbuffer.auxp == NULL) {
       /* multiply by 2 for stereo buffer */
-      csound->AuxAlloc(csound, 2*((int)(esr*(*p->barlength)/(*p->bps)))*sizeof(MYFLT),
+      csound->AuxAlloc(csound, 2*((int)(csound->esr*(*p->barlength)/(*p->bps)))*sizeof(MYFLT),
                &p->repeatbuffer);
     }
 
@@ -318,7 +318,7 @@ int BBCutStereoInit(ENVIRON *csound, BBCUTSTEREO * p)
     /* samp per unit= samp per bar/ subdiv */
     /* = samp per beat * beats per bar /subdiv */
     /* =(samp per sec / beats per sec)* (beats per bar/subdiv)  */
-    p->samplesperunit = roundoffint(((MYFLT)esr/
+    p->samplesperunit = roundoffint(((MYFLT)csound->esr/
                                      (*p->bps))*(*p->barlength/
                                                  (MYFLT)p->Subdiv));
 
@@ -340,7 +340,7 @@ int BBCutStereo(ENVIRON *csound, BBCUTSTEREO *p)
     int unitb,unitl,unitd;      /* temp for integer unitblock calculations */
     MYFLT envmult,out1,out2;/* intermediates for enveloping grains */
 
-    for (i=0;i<ksmps;i++) {
+    for (i=0;i<csound->ksmps;i++) {
       if ((p->unitsdone+FL(0.000001))>=p->totalunits) {/* a new phrase of cuts */
         p->numbarsnow  = random_number(1,p->Phrasebars);
         p->totalunits  = p->numbarsnow*p->Subdiv;

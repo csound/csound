@@ -60,7 +60,7 @@ int biquad(ENVIRON *csound, BIQUAD *p)
     MYFLT xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
     in   = p->in;
     out  = p->out;
-    for (n=0; n<ksmps; n++) {
+    for (n=0; n<csound->ksmps; n++) {
       xn = in[n];
       yn = (b0*xn + b1*xnm1 + b2*xnm2 - a1*ynm1 - a2*ynm2)/a0;
       xnm2 = xnm1;
@@ -83,10 +83,10 @@ int biquada(ENVIRON *csound, BIQUAD *p)
     MYFLT *a0 = p->a0, *a1 = p->a1, *a2 = p->a2;
     MYFLT *b0 = p->b0, *b1 = p->b1, *b2 = p->b2;
     MYFLT xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
-    n    = ksmps;
+    n    = csound->ksmps;
     in   = p->in;
     out  = p->out;
-    for (n=0; n<ksmps; n++) {
+    for (n=0; n<csound->ksmps; n++) {
       xn = in[n];
       yn = ( b0[n] * xn + b1[n] * xnm1 + b2[n] * xnm2 -
              a1[n] * ynm1 - a2[n] * ynm2)/ a0[n];
@@ -137,12 +137,12 @@ int moogvcf(ENVIRON *csound, MOOGVCF *p)
 
     if (max==FL(1.0)) max = FL(1.0); /* Avoid disaster? */
 
-    fcon    = FL(2.0)*fco * onedsr;           /* normalised freq. 0 to Nyquist */
-    kp      = FL(3.6)*fcon-FL(1.6)*fcon*fcon-FL(1.0);  /* Emperical tuning     */
-    pp1d2   = (kp+FL(1.0))*FL(0.5);              /* Timesaver                  */
+    fcon    = FL(2.0)*fco * onedsr;         /* normalised freq. 0 to Nyquist */
+    kp      = FL(3.6)*fcon-FL(1.6)*fcon*fcon-FL(1.0);  /* Emperical tuning   */
+    pp1d2   = (kp+FL(1.0))*FL(0.5);         /* Timesaver                  */
     scale   = (MYFLT)exp((1.0-(double)pp1d2)*1.386249); /* Scaling factor  */
     k       = res*scale;
-    for (n=0; n<ksmps; n++) {
+    for (n=0; n<csound->ksmps; n++) {
       xn = in[n] / max;
       xn = xn - k * y4n; /* Inverted feed back for corner peaking */
 
@@ -167,10 +167,10 @@ int moogvcf(ENVIRON *csound, MOOGVCF *p)
         res = *(++resptr);
       }
       if ((p->rezcod==1) || (p->fcocod==1)) {
-        fcon    = FL(2.0)*fco*onedsr;         /* normalised freq. 0 to Nyquist */
-        kp      = FL(3.6)*fcon-FL(1.6)*fcon*fcon-FL(1.0);  /* Emperical tuning */
-        pp1d2   = (kp+FL(1.0))*FL(0.5);                           /* Timesaver */
-        scale   = (MYFLT)exp((1.0-(double)pp1d2)*1.386249);  /* Scaling factor */
+        fcon    = FL(2.0)*fco*onedsr;       /* normalised freq. 0 to Nyquist */
+        kp      = FL(3.6)*fcon-FL(1.6)*fcon*fcon-FL(1.0); /* Emperical tuning */
+        pp1d2   = (kp+FL(1.0))*FL(0.5);                   /* Timesaver */
+        scale   = (MYFLT)exp((1.0-(double)pp1d2)*1.386249); /* Scaling factor */
         k       = res*scale;
       }
     }
@@ -211,7 +211,8 @@ int rezzy(ENVIRON *csound, REZZY *p)
     fco    = *fcoptr;
     rez    = *rezptr;
 
-    fqcadj = FL(0.149659863)*esr; /* Freq. is adjusted based on sample rate */
+    /* Freq. is adjusted based on sample rate */
+    fqcadj = FL(0.149659863)*csound->esr;
     c      = fqcadj/fco;          /* Filter constant c=1/Fco * adjustment   */
     /* Try to keep the resonance under control     */
     if (rez < FL(1.0)) rez = FL(1.0);
@@ -221,8 +222,8 @@ int rezzy(ENVIRON *csound, REZZY *p)
       csq    = c*c;               /* Precalculate c^2 */
       b      = FL(1.0) + a + csq; /* Normalization constant */
 
-      for (n=0; n<ksmps; n++) {                        /* do ksmp times   */
-        xn = in[n];               /* Get the next sample */
+      for (n=0; n<csound->ksmps; n++) { /* do ksmp times   */
+        xn = in[n];                     /* Get the next sample */
         /* Mikelson Biquad Filter Guts*/
         yn = (FL(1.0)/(MYFLT)sqrt(1.0+(double)rez)*xn -
               (-a-FL(2.0)*csq)*ynm1 - csq*ynm2)/b;
@@ -254,8 +255,8 @@ int rezzy(ENVIRON *csound, REZZY *p)
       tval   = FL(0.75)/(MYFLT)sqrt(1.0 + (double) rez);
       csq    = c*c;
       b      = (c/rez2 + csq);
-      for (n=0; n<ksmps; n++) {                      /* do ksmp times   */
-        xn = in[n];             /* Get the next sample */
+      for (n=0; n<csound->ksmps; n++) { /* do ksmp times   */
+        xn = in[n];                     /* Get the next sample */
         /* Mikelson Biquad Filter Guts*/
         yn = ((c/rez2 + FL(2.0)*csq - FL(1.0))*ynm1 - csq*ynm2
               + ( c/rez2 + csq)*tval*xn + (-c/rez2 - FL(2.0)*csq)*tval*xnm1
@@ -306,7 +307,7 @@ int distort(ENVIRON *csound, DISTORT *p)
     postgain = postgain*FL(20000.0);
     shape1   = shape1*FL(0.000125);
     shape2   = shape2*FL(0.000125);
-    for (n=0; n<ksmps; n++) {
+    for (n=0; n<csound->ksmps; n++) {
       sig    = in[n];
       x1     =  sig*(pregain+shape1);  /* Precalculate a few values to make
                                           things faster */
@@ -330,8 +331,8 @@ int distort(ENVIRON *csound, DISTORT *p)
 
 int vcoset(ENVIRON *csound, VCO *p)
 {
-    unsigned long ndel = (long)(*p->maxd * esr);  /* Number of bytes in the
-                                                     delay*/
+    /* Number of bytes in the delay */
+    unsigned long ndel = (long)(*p->maxd * csound->esr);
     MYFLT *buf;    /* Delay buffer */
     FUNC  *ftp;    /* Pointer to a sine function */
     MYFLT ndsave;
@@ -404,9 +405,9 @@ int vco(ENVIRON *csound, VCO *p)
     if (buf==NULL) {            /* RWD fix */
       return csound->PerfError(csound, Str("vco: not initialised"));
     }
-    maxd = (unsigned long) (*p->maxd * esr);
+    maxd = (unsigned long) (*p->maxd * csound->esr);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
-    nn = ksmps;
+    nn = csound->ksmps;
     indx = p->left;
     /* End of VDelay insert */
 
@@ -422,10 +423,10 @@ int vco(ENVIRON *csound, VCO *p)
     cpsp = p->xcps;
     fqc = *cpsp;
     rtfqc = (MYFLT)sqrt(fqc);
-    knh = (int)(esr*p->nyq/fqc);
+    knh = (int)(csound->esr*p->nyq/fqc);
     if ((n = (int)knh) <= 0) {
                                 /* Line apparently missing here */
-      printf(Str("vco knh (%d) <= 0; taken as 1\n"), n);
+      csound->Message(csound, Str("vco knh (%d) <= 0; taken as 1\n"), n);
       n = 1;
     }
     tnp1 = n + n + 1;         /* calc 2n + 1 */
@@ -436,7 +437,7 @@ int vco(ENVIRON *csound, VCO *p)
     inc = (long)(fqc * sicvt2);
     ar = p->ar;
     phs = p->lphs;
-    nn = ksmps;
+    nn = csound->ksmps;
 
 /*-----------------------------------------------------*/
 /* PWM Wave                                            */
@@ -467,7 +468,7 @@ int vco(ENVIRON *csound, VCO *p)
 
         /* VDelay inserted here */
         buf[indx] = pulse;
-        fv1 = indx - (FL(1.0)/fqc/* *FL(0.5)*/) * esr * pw;
+        fv1 = indx - (FL(1.0)/fqc/* *FL(0.5)*/) * csound->esr * pw;
         /* Make sure Inside the buffer      */
         while (fv1 > maxd)
           fv1 -= maxd;
@@ -521,8 +522,9 @@ int vco(ENVIRON *csound, VCO *p)
 
         /* VDelay inserted here */
         buf[indx] = pulse;
-        fv1 = indx - (FL(1.0)/fqc/* *FL(0.5)*/) *esr*pw;  /* Make sure Inside the
-                                                           buffer      */
+        /* Make sure Inside the buffer */
+        fv1 = indx - (FL(1.0)/fqc/* *FL(0.5)*/) *csound->esr*pw;
+
         while (fv1 > maxd)
           fv1 -= maxd;
         while (fv1 < 0)
@@ -625,7 +627,7 @@ int planet(ENVIRON *csound, PLANET *p)
     mass1 = *p->mass1;
     mass2 = *p->mass2;
 
-    nn = ksmps;
+    nn = csound->ksmps;
     do {
       xxpyy = p->x * p->x + p->y * p->y;
       dz1 = p->s1z - p->z;
@@ -693,7 +695,7 @@ int pareq(ENVIRON *csound, PAREQ *p)
     MYFLT fc = *p->fc, v = *p->v, q = *p->q;
     MYFLT omega, k, kk, vkk, vk, vkdq;
     MYFLT xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
-    n    = ksmps;
+    n    = csound->ksmps;
     in   = p->in;
     out  = p->out;
 
@@ -766,12 +768,12 @@ int nestedapset(ENVIRON *csound, NESTEDAP *p)
     if (*p->istor && p->auxch.auxp != NULL)
       return OK;
 
-    npts2 = (long)(*p->del2 * esr);
-    npts3 = (long)(*p->del3 * esr);
-    npts1 = (long)(*p->del1 * esr) - npts2 -npts3;
+    npts2 = (long)(*p->del2 * csound->esr);
+    npts3 = (long)(*p->del3 * csound->esr);
+    npts1 = (long)(*p->del1 * csound->esr) - npts2 -npts3;
 
-    if (((long)(*p->del1 * esr)) <=
-        ((long)(*p->del2 * esr) + (long)(*p->del3 * esr))) {
+    if (((long)(*p->del1 * csound->esr)) <=
+        ((long)(*p->del2 * csound->esr) + (long)(*p->del3 * csound->esr))) {
       return csound->InitError(csound, Str("illegal delay time"));
     }
     npts = npts1 + npts2 + npts3;
@@ -834,7 +836,7 @@ int nestedap(ENVIRON *csound, NESTEDAP *p)
     MYFLT   *beg1p, *beg2p, *beg3p, *end1p, *end2p, *end3p;
     MYFLT   *del1p, *del2p, *del3p;
     MYFLT   in1, g1, g2, g3;
-    int     nsmps = ksmps;
+    int     nsmps = csound->ksmps;
 
     if (p->auxch.auxp==NULL) { /* RWD fix */
       return csound->PerfError(csound, Str("delay: not initialised"));
@@ -985,7 +987,7 @@ int lorenz(ENVIRON *csound, LORENZ *p)
     y     = p->valy;
     z     = p->valz;
 
-    nn = ksmps;
+    nn = csound->ksmps;
     do {
       do {
         xx   =      x+hstep*s*(y-x);
@@ -1040,7 +1042,7 @@ int tbvcf(ENVIRON *csound, TBVCF *p)
     ih  = FL(0.001); /* ih is the incremental factor */
 
  /* Set up the pointers */
-    n       = ksmps;
+    n       = csound->ksmps;
     in      = p->in;
     out     = p->out;
     fcoptr  = p->fco;
@@ -1058,7 +1060,7 @@ int tbvcf(ENVIRON *csound, TBVCF *p)
     q1  = res/(FL(1.0) + (MYFLT)sqrt((double)dist));
     fco1 = (MYFLT)pow((double)fco*260.0/(1.0+(double)q1*0.5),0.58);
     q  = q1*fco1*fco1*FL(0.0005);
-    fc  = fco1/FL(8.0)/esr*FL(44100.0);
+    fc  = fco1/FL(8.0)/csound->esr*FL(44100.0);
     do {
       x  = *in++;
       fdbk = q*y/(FL(1.0) + (MYFLT)exp(-3.0*(double)y)*asym);
@@ -1080,7 +1082,7 @@ int tbvcf(ENVIRON *csound, TBVCF *p)
         q1  = res/(FL(1.0) + (MYFLT)sqrt((double)dist));
         fco1 = (MYFLT)pow((double)(fco*260.0/(1.0+q1*0.5)),0.58);
         q  = q1*fco1*fco1*FL(0.0005);
-        fc  = fco1/FL(8.0)/esr*FL(44100.0);
+        fc  = fco1/FL(8.0)/csound->esr*FL(44100.0);
       }
     } while (--n);
     p->y = y; p->y1 = y1; p->y2 = y2;
@@ -1108,7 +1110,7 @@ int bqrez(ENVIRON *csound, REZZY *p)
     double theta;
     MYFLT xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
 
-    n      = ksmps;
+    n      = csound->ksmps;
     in     = p->in;
     out    = p->out;
     fcoptr = p->fco;
@@ -1247,3 +1249,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
+

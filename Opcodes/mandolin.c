@@ -76,19 +76,19 @@ int mandolinset(ENVIRON *csound, MANDOL *p)
     FUNC        *ftp;
 
     if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) p->soundfile = ftp;
-    else {
-      return csound->PerfError(csound, Str("No table for Mandolin")); /* Expect pluck wave */
+    else {                                      /* Expect pluck wave */
+      return csound->PerfError(csound, Str("No table for Mandolin"));
     }
     if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation */
       if (*p->lowestFreq!=FL(0.0)) {
-        p->length = (long) (esr / (*p->lowestFreq * FL(0.9)) + FL(1.0));
+        p->length = (long) (csound->esr / (*p->lowestFreq * FL(0.9)) + FL(1.0));
       }
       else if (*p->frequency!=FL(0.0)) {
-        p->length = (long) (esr / *p->frequency + FL(1.0));
+        p->length = (long) (csound->esr / *p->frequency + FL(1.0));
       }
       else {
-        err_printf(Str("No base frequency for mandolin"));
-        p->length = (long) (esr / FL(50.0) + FL(1.0));
+        csound->Message(csound, Str("No base frequency for mandolin"));
+        p->length = (long) (csound->esr / FL(50.0) + FL(1.0));
       }
       p->lastFreq = FL(50.0);
 /*     p->baseLoopGain = 0.995; */
@@ -99,10 +99,10 @@ int mandolinset(ENVIRON *csound, MANDOL *p)
       make_OneZero(&p->filter1);
       make_OneZero(&p->filter2);
       p->lastLength = p->length * FL(0.5);
-/*     soundfile->normalize(0.05);    Empirical hack here transferred to use  */
-      p->lastLength = ( esr / p->lastFreq);        /* length - delays */
-/*        DLineA_setDelay(&p->delayLine1, (p->lastLength / *p->detuning) - 0.5f); */
-/*        DLineA_setDelay(&p->delayLine2, (p->lastLength * *p->detuning) - 0.5f); */
+/*    soundfile->normalize(0.05);    Empirical hack here transferred to use  */
+      p->lastLength = ( csound->esr / p->lastFreq);        /* length - delays */
+/*    DLineA_setDelay(&p->delayLine1, (p->lastLength / *p->detuning) - 0.5f); */
+/*    DLineA_setDelay(&p->delayLine2, (p->lastLength * *p->detuning) - 0.5f); */
 
                            /* this function gets interesting here, */
       p->s_time = FL(0.0); /* because pluck may be longer than     */
@@ -115,11 +115,12 @@ int mandolinset(ENVIRON *csound, MANDOL *p)
       p->dampTime = (long) p->lastLength;/* See tick method below         */
       p->waveDone = 0;
       {
-        int relestim = (int)(ekr * FL(0.1)); /* 1/10th second decay extention */
+        int relestim = (int)(csound->global_ekr * FL(0.1));
+        /* 1/10th second decay extention */
         if (relestim > p->h.insdshead->xtratim)
           p->h.insdshead->xtratim = relestim;
       }
-      p->kloop = (int)(p->h.insdshead->offtim * ekr);
+      p->kloop = (int)(p->h.insdshead->offtim * csound->global_ekr);
     }
     return OK;
 }
@@ -127,7 +128,7 @@ int mandolinset(ENVIRON *csound, MANDOL *p)
 int mandolin(ENVIRON *csound, MANDOL *p)
 {
     MYFLT *ar = p->ar;
-    int  n,nsmps = ksmps;
+    int  n,nsmps = csound->ksmps;
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT lastOutput;
     MYFLT loopGain;
@@ -139,9 +140,11 @@ int mandolin(ENVIRON *csound, MANDOL *p)
 
     if (p->lastFreq != *p->frequency) {
       p->lastFreq = *p->frequency;
-      p->lastLength = ( esr / p->lastFreq);        /* length - delays */
-      DLineA_setDelay(csound,&p->delayLine1, (p->lastLength / *p->detuning) - FL(0.5));
-      DLineA_setDelay(csound,&p->delayLine2, (p->lastLength * *p->detuning) - FL(0.5));
+      p->lastLength = ( csound->esr / p->lastFreq);        /* length - delays */
+      DLineA_setDelay(csound, &p->delayLine1,
+                              (p->lastLength / *p->detuning) - FL(0.5));
+      DLineA_setDelay(csound, &p->delayLine2,
+                              (p->lastLength * *p->detuning) - FL(0.5));
     }
 
     if ((--p->kloop) == 0) {
@@ -165,8 +168,9 @@ int mandolin(ENVIRON *csound, MANDOL *p)
         lastOutput +=
           DLineA_tick(&p->delayLine2, /* and 2nd delay just like the 1st   */
                       OneZero_tick(&p->filter2,
-                                   temp + (p->delayLine2.lastOutput * FL(0.7))));
-                                /* that's the whole thing!!     */
+                                   temp
+                                   + (p->delayLine2.lastOutput * FL(0.7))));
+                              /* that's the whole thing!!     */
       }
       else {                  /*  No damping hack after 1 period */
         lastOutput =
@@ -185,24 +189,4 @@ int mandolin(ENVIRON *csound, MANDOL *p)
     }
     return OK;
 }
-
-/* void Mandolin_controlChange(int number, MYFLT value) */
-/* { */
-/* #if defined(_debug_)         */
-/*     printf("Mandolin : ControlChange: Number=%i Value=%f\n",number,value); */
-/* #endif     */
-/*     if (number == MIDI_control1) */
-/*      this->setBodySize(value * NORM_7 * 2.0); */
-/*     else if (number == MIDI_control2) */
-/*      this->setPluckPos(value * NORM_7); */
-/*     else if (number == MIDI_control3) */
-/*      this->setBaseLoopGain(0.97 + (value * NORM_7 * 0.03)); */
-/*     else if (number == MIDI_mod_wheel) */
-/*      this->setDetune(1.0 - (value * NORM_7 * 0.1)); */
-/*     else if (number == MIDI_after_touch) */
-/*         this->pluck(value * NORM_7); */
-/*     else    {         */
-/*         printf("Mandolin : Undefined Control Number!!\n"); */
-/*     }    */
-/* } */
 

@@ -33,62 +33,6 @@
 #include "csdl.h"
 #include "bowedbar.h"
 
-#ifdef EXTRA_DEBUG
-static void print_state(BOWEDBAR *p)
-{
-    printf("BowTabl\t%f %f\n", p->bowTabl.offSet, p->bowTabl.slope);
-    printf("adsr\t%f %f %f %d %f %f %f %f\n",
-           p->adsr.value, p->adsr.target, p->adsr.rate, p->adsr.state,
-           p->adsr.attackRate, p->adsr.decayRate, p->adsr.sustainLevel,
-           p->adsr.releaseRate);
-    printf("BiQuad[0]\n%f %f %f %f %f %f %f %f\n", p->bandpass[0].gain,
-           p->bandpass[0].inputs[0], p->bandpass[0].inputs[1],
-           p->bandpass[0].lastOutput, p->bandpass[0].poleCoeffs[0],
-           p->bandpass[0].poleCoeffs[1], p->bandpass[0].zeroCoeffs[0],
-           p->bandpass[0].zeroCoeffs[1]);
-    printf("BiQuad[1]\n%f %f %f %f %f %f %f %f\n", p->bandpass[1].gain,
-           p->bandpass[1].inputs[0], p->bandpass[1].inputs[1],
-           p->bandpass[1].lastOutput, p->bandpass[1].poleCoeffs[0],
-           p->bandpass[1].poleCoeffs[1], p->bandpass[1].zeroCoeffs[0],
-           p->bandpass[1].zeroCoeffs[1]);
-    printf("BiQuad[2]\n%f %f %f %f %f %f %f %f\n", p->bandpass[2].gain,
-           p->bandpass[2].inputs[0], p->bandpass[2].inputs[1],
-           p->bandpass[2].lastOutput, p->bandpass[2].poleCoeffs[0],
-           p->bandpass[2].poleCoeffs[1], p->bandpass[2].zeroCoeffs[0],
-           p->bandpass[2].zeroCoeffs[1]);
-    printf("BiQuad[3]\n%f %f %f %f %f %f %f %f\n", p->bandpass[3].gain,
-           p->bandpass[3].inputs[0], p->bandpass[3].inputs[1],
-           p->bandpass[3].lastOutput, p->bandpass[3].poleCoeffs[0],
-           p->bandpass[3].poleCoeffs[1], p->bandpass[3].zeroCoeffs[0],
-           p->bandpass[3].zeroCoeffs[1]);
-
-    printf("maxVelocity\t%f\n", p->maxVelocity);
-    printf("modes[4]\t%f %f %f %f\n", p->modes[0], p->modes[1], p->modes[2],
-           p->modes[3]);
-/*     DLINEN      delay[4]; */
-    printf("DLIN[0]\t%f %d %d %d\n", p->delay[0].lastOutput,
-           p->delay[0].inPoint, p->delay[0].outPoint, p->delay[0].length);
-    printf("DLIN[1]\t%f %d %d %d\n", p->delay[1].lastOutput,
-           p->delay[1].inPoint, p->delay[1].outPoint, p->delay[1].length);
-    printf("DLIN[2]\t%f %d %d %d\n", p->delay[2].lastOutput,
-           p->delay[2].inPoint, p->delay[2].outPoint, p->delay[2].length);
-    printf("DLIN[3]\t%f %d %d %d\n", p->delay[3].lastOutput,
-           p->delay[3].inPoint, p->delay[3].outPoint, p->delay[3].length);
-
-    printf("freq\t%f\n", p->freq);
-    printf("nr_modes\t%d\n", p->nr_modes);
-    printf("length\t%d\n", p->length);
-    printf("gains[4]\t%f %f %f %f\n", p->gains[0], p->gains[1], p->gains[2],
-           p->gains[3]);
-    printf("velinput\t%f\n", p->velinput);
-    printf("bowvel, bowTarg, lastBowPos\t%f %f %f\n", p->bowvel, p->bowTarg,
-           p->lastBowPos);
-    printf("lastpos\t%f\n", p->lastpos);
-    printf("lastpress\t%f\n", p->lastpress);
-    printf("kloop\t%d\n", p->kloop);
-}
-#endif
-
 /* Number of banded waveguide modes */
 
 static void make_DLineN(ENVIRON *csound, DLINEN *p, long length)
@@ -150,14 +94,14 @@ int bowedbarset(ENVIRON *csound, BOWEDBAR *p)
 
     if (*p->lowestFreq>=FL(0.0)) {      /* If no init skip */
       if (*p->lowestFreq!=FL(0.0))
-        p->length = (long) (esr / *p->lowestFreq + FL(1.0));
+        p->length = (long) (csound->esr / *p->lowestFreq + FL(1.0));
       else if (*p->frequency!=FL(0.0))
-        p->length = (long) (esr / *p->frequency + FL(1.0));
+        p->length = (long) (csound->esr / *p->frequency + FL(1.0));
       else {
-        err_printf(Str(
-                       "unknown lowest frequency for bowed string -- "
-                       "assuming 50Hz\n"));
-        p->length = (long) (esr / FL(50.0) + FL(1.0));
+        csound->Message(csound,
+                        Str("unknown lowest frequency for bowed string -- "
+                            "assuming 50Hz\n"));
+        p->length = (long) (csound->esr / FL(50.0) + FL(1.0));
       }
     }
 
@@ -188,7 +132,7 @@ int bowedbarset(ENVIRON *csound, BOWEDBAR *p)
 int bowedbar(ENVIRON *csound, BOWEDBAR *p)
 {
     MYFLT       *ar = p->ar;
-    long        nsmps = ksmps;
+    long        nsmps = csound->ksmps;
     MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     long k;
     int i;
@@ -201,7 +145,7 @@ int bowedbar(ENVIRON *csound, BOWEDBAR *p)
       p->freq = *p->frequency;
       if (p->freq > FL(1568.0)) p->freq = FL(1568.0);
 
-      p->length = (int)(esr/p->freq);
+      p->length = (int)(csound->esr/p->freq);
       p->nr_modes = NR_MODES;   /* reset for frequency shift */
       for (i = 0; i<p->nr_modes; i++) {
         if((int)(p->length/p->modes[i]) > 4)
