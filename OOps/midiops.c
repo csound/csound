@@ -427,10 +427,13 @@ int pgmassign(PGMASSIGN *p)
     int pgm, ins;
 
     /* IV - Oct 31 2002: allow named instruments */
-    if (*p->inst == SSTRCOD)
-      ins = (int) strarg2insno(p->inst, p->STRARG);
-    else
-    ins = (int) (*(p->inst) + FL(0.5));
+    if (*p->inst == SSTRCOD) {
+      if (p->STRARG != NULL) 
+        ins = (int) strarg2insno(p->inst, p->STRARG);
+      else
+        ins = (int) strarg2insno(p->inst, unquote(currevent->strarg));
+    } else
+      ins = (int) (*(p->inst) + FL(0.5));
     if (*(p->ipgm) == FL(0.0)) {        /* program = 0: assign all pgms */
       for (pgm = 0; pgm < 128; pgm++) pgm2ins[pgm] = ins;
     }

@@ -2907,13 +2907,14 @@ int printksset(PRINTKS *p)
      * program (under DJGPP at least) seems to crash elsewhere if
      * the first parameter is "".     */
 
-    if ((*p->ifilcod != SSTRCOD) || (*p->STRARG == 0)) {
+    if (*p->ifilcod != SSTRCOD && p->STRARG==NULL && currevent->strarg==NULL) {
         sprintf(errmsg,
                 Str(X_1135,"printks parm 1 was not a \"quoted string\"\n"));
         return initerror(errmsg);
     }
     else {
       sarg = p->STRARG;
+      if (sarg==NULL) sarg = currevent->strarg;
       memset(p->txtstring, 0, 8192);   /* This line from matt ingalls */
       sdest = p->txtstring;
       /* Copy the string to the storage place in PRINTKS.

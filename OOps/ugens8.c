@@ -61,8 +61,12 @@ int pvset(PVOC *p)
     FUNC     *AmpGateFunc = NULL;
     int      old_format = 1;
 
-    if (*p->ifilno == SSTRCOD)                         /* if strg name given */
-      strcpy(pvfilnam, p->STRARG);                     /*   use that         */
+    if (*p->ifilno == SSTRCOD) {                       /* if strg name given */
+      if (p->STRARG!=NULL)
+        strcpy(pvfilnam, p->STRARG);                   /*   use that         */
+      else
+        strcpy(pvfilnam, currevent->strarg);
+    }
     else if ((long)*p->ifilno <= strsmax && strsets != NULL &&
              strsets[(long)*p->ifilno])
       strcpy(pvfilnam, strsets[(long)*p->ifilno]);
