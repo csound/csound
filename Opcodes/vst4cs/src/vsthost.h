@@ -155,6 +155,7 @@ inline long VSTPlugin::Dispatch(long opCode,
 {
     if(aeffect)
         return aeffect->dispatcher(aeffect, opCode, index, value, ptr, opt);
+    else return 0;
 }
 
 inline void VSTPlugin::processReplacing(float **ins, float **outs, long frames)

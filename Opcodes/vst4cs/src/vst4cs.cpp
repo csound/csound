@@ -46,7 +46,9 @@ extern "C"
 {
 	std::vector<VSTPlugin *> vstPlugins;
 	std::string version = "0.1alpha";
+#ifdef WIN32
 	void path_convert(char* in);
+#endif
 		
 	int vstinit (void *data)
 	{		
@@ -365,6 +367,7 @@ extern "C"
 		ENVIRON *csound = p->h.insdshead->csound;
 		VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
 		plugin->SetCurrentProgram(*p->iprogram);
+		//return OK;
     }
 
 	int vstedit(void *data)
@@ -373,6 +376,7 @@ extern "C"
 		ENVIRON *csound = p->h.insdshead->csound;
 		VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
 		plugin->OpenEditor();
+		//return OK;
     }
 	
     int vstedit_deinit(void *data)
@@ -381,8 +385,9 @@ extern "C"
 		ENVIRON *csound = p->h.insdshead->csound;
 		VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
 		plugin->CloseEditor();
+		//return OK;
     }
-
+#ifdef WIN32
 	void path_convert(char* in)
 	{
 		char inpath[strlen(in)];
@@ -404,7 +409,8 @@ extern "C"
 		}
 		in = outpath;
 	}
-
+#endif
+	
     OENTRY vstOentry[] = { 
         {"vstinit",    sizeof(VSTINIT),    1, "i",  "So",    &vstinit,       0,         0,         &vstinit_free  },
 		{"vstinfo",    sizeof(VSTINFO),    1, "",   "i",     &vstinfo,       0,         0,         0              },
