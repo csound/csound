@@ -44,8 +44,6 @@ int wtinit(ENVIRON *csound, WAVETER *p)
       return csound->InitError(csound, Str("wterrain: ftable not found"));
     }
 
-/* printf("WAVE TERRAIN INIT v1.0 - terrain(%d,%d)\n", tabxlen, tabylen);  */
-
     /* ALLOCATE FOR COPIES OF FTABLES */
     csound->AuxAlloc(csound, ftpx->flen * sizeof(MYFLT), &p->aux_x);
     csound->AuxAlloc(csound, ftpy->flen * sizeof(MYFLT), &p->aux_y);
@@ -78,7 +76,7 @@ int wtPerf(ENVIRON *csound, WAVETER *p)
     MYFLT amp = *p->kamp;
     MYFLT pch = *p->kpch;
 
-    for (i=0; i<ksmps; i++) {
+    for (i=0; i<csound->ksmps; i++) {
 
       /* COMPUTE LOCATION OF SCANNING POINT */
       xc = *(p->kcx) + *(p->krx) * (MYFLT)sin((double)p->theta);
@@ -195,11 +193,8 @@ int scantinit(ENVIRON *csound, SCANTABLE *p)
     /* SET SCANNING POSITION */
     p->pos = 0;
 
-/*     printf("SCANTABLE INIT v0.1\n");  */
     return OK;
 }
-
-
 
 int scantPerf(ENVIRON *csound, SCANTABLE *p)
 {
@@ -247,16 +242,15 @@ int scantPerf(ENVIRON *csound, SCANTABLE *p)
         fc1 = (fpoint->ftable[i] - fpoint->ftable[last]) * fstiff->ftable[last];
         fc2 = (fpoint->ftable[i] - fpoint->ftable[next]) * fstiff->ftable[i];
         force = fc1 + fc2;
-        p->newvel[i] = (fvel->ftable[i] - force / (fmass->ftable[i] * ekr)) *
-                       fdamp->ftable[i];
-        p->newloc[i] = fpoint->ftable[i] + p->newvel[i] / ekr;
+        p->newvel[i] = (fvel->ftable[i]
+                        - force / (fmass->ftable[i] * csound->ekr))
+                       * fdamp->ftable[i];
+        p->newloc[i] = fpoint->ftable[i] + p->newvel[i] / csound->ekr;
 
       }
     }
 
-/*  printf ("p->size:\t%f\n",p->size); */
-
-    for (i=0; i<ksmps; i++) {
+    for (i=0; i<csound->ksmps; i++) {
 
       /* NO INTERPOLATION */
       p->aout[i] = fpoint->ftable[(int)(p->pos)] * *(p->kamp);

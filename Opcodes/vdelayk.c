@@ -43,7 +43,7 @@ int kdel_set(ENVIRON *csound, KDEL *p)
 {
     unsigned long n;
     MYFLT *buf;
-    n = (p->maxd = (long) (*p->imaxd * ekr));
+    n = (p->maxd = (long) (*p->imaxd * csound->ekr));
     if (n == 0) n = (p->maxd = 1);
 
     if (!*p->istod) {
@@ -70,7 +70,7 @@ int kdelay(ENVIRON *csound, KDEL *p)
     }
     indx = p->left;
     buf[indx] = *p->kin;
-    fv1 = indx - *p->kdel * ekr;
+    fv1 = indx - *p->kdel * csound->ekr;
     while (fv1 < 0.0f)  fv1 += (MYFLT)maxd;
     while (fv1 >= (MYFLT)maxd) fv1 -= (MYFLT)maxd;
     if (*p->interp) {           /* no interpolation */
@@ -96,7 +96,7 @@ int partial_maximum_set(ENVIRON *csound, P_MAXIMUM *p)
 
 int partial_maximum(ENVIRON *csound, P_MAXIMUM *p)
 {
-    int n = ksmps, flag = (int) *p->imaxflag;
+    int n = csound->ksmps, flag = (int) *p->imaxflag;
     MYFLT *a = p->asig;
     MYFLT max = p->max;
     switch(flag) {

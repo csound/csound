@@ -52,7 +52,7 @@ int svf(ENVIRON *csound, SVF *p)
     MYFLT *low, *high, *band, *in, ynm1, ynm2;
     MYFLT low2, high2, band2;
     MYFLT kfco = *p->kfco, kq = *p->kq;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
 
     /* calculate frequency and Q coefficients */
     f1 = FL(2.0) * (MYFLT)sin((double)(kfco * pidsr));
@@ -111,13 +111,13 @@ int hilbertset(ENVIRON *csound, HILBERT *p)
     double polefreq[12], rc[12], alpha[12], beta[12];
     /* calculate coefficients for allpass filters, based on sampling rate */
     for (j=0; j<12; j++) {
-      /*      p->coef[j] = (1 - (15 * PI * pole[j]) / esr) /
-              (1 + (15 * PI * pole[j]) / esr); */
+      /*      p->coef[j] = (1 - (15 * PI * pole[j]) / csound->esr) /
+              (1 + (15 * PI * pole[j]) / csound->esr); */
       polefreq[j] = poles[j] * 15.0;
       rc[j] = 1.0 / (2.0 * PI * polefreq[j]);
       alpha[j] = 1.0 / rc[j];
-      beta[j] = (1.0 - (alpha[j] / (2.0 * (double)esr))) /
-                (1.0 + (alpha[j] / (2.0 * (double)esr)));
+      beta[j] = (1.0 - (alpha[j] / (2.0 * (double)csound->esr))) /
+                (1.0 + (alpha[j] / (2.0 * (double)csound->esr)));
       p->xnm1[j] = p->ynm1[j] = FL(0.0);
       p->coef[j] = -(MYFLT)beta[j];
     }
@@ -129,7 +129,7 @@ int hilbert(ENVIRON *csound, HILBERT *p)
     MYFLT xn1 = FL(0.0), yn1 = FL(0.0), xn2 = FL(0.0), yn2 = FL(0.0);
     MYFLT *out1, *out2, *in;
     MYFLT *xnm1, *ynm1, *coef;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
     int j;
 
     xnm1 = p->xnm1;
@@ -186,14 +186,13 @@ int resonzset(ENVIRON *csound, RESONZ *p)
     int scaletype;
     p->scaletype = scaletype = (int)*p->iscl;
     if (scaletype && scaletype != 1 && scaletype != 2) {
-      sprintf(errmsg,Str("illegal reson iscl value, %f"),*p->iscl);
-      return csound->InitError(csound, errmsg);
+      return csound->InitError(csound, Str("illegal reson iscl value, %f"),
+                                       *p->iscl);
     }
     if (!(*p->istor))
       p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = FL(0.0);
 
 /*     p->aratemod = (XINARG2) ? 1 : 0; */
-    /* printf("The value of aratemod is %d\n", p->aratemod); */
 
     return OK;
 }
@@ -216,7 +215,7 @@ int resonr(ENVIRON *csound, RESONZ *p)
     MYFLT c1, c2;   /* filter coefficients */
     MYFLT *out, *in, xn, yn, xnm1, xnm2, ynm1, ynm2;
     MYFLT kcf = *p->kcf, kbw = *p->kbw;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
 
     r = (MYFLT)exp((double)(kbw * mpidsr));
     c1 = FL(2.0) * r * (MYFLT)cos((double)(kcf * tpidsr));
@@ -268,7 +267,7 @@ int resonz(ENVIRON *csound, RESONZ *p)
     MYFLT c1, c2;   /* filter coefficients */
     MYFLT *out, *in, xn, yn, xnm1, xnm2, ynm1, ynm2;
     MYFLT kcf = *p->kcf, kbw = *p->kbw;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
 
     r = (MYFLT)exp(-(double)(kbw * pidsr));
     c1 = FL(2.0) * r * (MYFLT)cos((double)(tpidsr*kcf));
@@ -347,7 +346,7 @@ int phaser1(ENVIRON *csound, PHASER1 *p)
     MYFLT *xnm1, *ynm1, feedback;
     MYFLT coef = *p->kcoef, fbgain = *p->fbgain;
     MYFLT beta, wp;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
     int j;
 
     xnm1 = p->xnm1;
@@ -391,8 +390,8 @@ int phaser2set(ENVIRON *csound, PHASER2 *p)
 
     p->modetype = modetype = (int)*p->mode;
     if (modetype && modetype != 1 && modetype != 2) {
-      sprintf(errmsg,Str("Phaser mode must be either 1 or 2"));
-      return csound->InitError(csound, errmsg);
+      return csound->InitError(csound,
+                               Str("Phaser mode must be either 1 or 2"));
     }
 
     loop = p->loop = (int) (*p->order + FL(0.5));
@@ -414,7 +413,7 @@ int phaser2(ENVIRON *csound, PHASER2 *p)
     MYFLT b, a, r, freq;
     MYFLT temp;
     MYFLT *nm1, *nm2, feedback;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
     int j;
 
     nm1 = p->nm1;
@@ -489,9 +488,9 @@ int lp2(ENVIRON *csound, LP2 *p)
     MYFLT a, b, c, temp;
     MYFLT *out, *in, yn, ynm1, ynm2;
     MYFLT kfco = *p->kfco, kres = *p->kres;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
 
-    temp = mpidsr * kfco / kres; /* (-PI_F * kfco / (kres * esr)); */
+    temp = mpidsr * kfco / kres; /* (-PI_F * kfco / (kres * csound->esr)); */
     a = FL(2.0) * (MYFLT)(cos((double)(kfco * tpidsr)) * exp((double)temp));
     b = (MYFLT)exp((double)(temp+temp));
     c = FL(1.0) - a + b;

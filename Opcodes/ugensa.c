@@ -39,7 +39,7 @@ int fogset(ENVIRON *csound, FOGS *p)
       OVERLAP *ovp, *nxtovp;
       long   olaps;
       p->fogcvt = FMAXLEN/(p->ftp1)->flen; /*JMC for FOG*/
-      p->durtogo = (long)(*p->itotdur * esr);
+      p->durtogo = (long)(*p->itotdur * csound->esr);
       if (!skip) { /* legato: skip all memory management */
         p->spdphs = 0L; /*JMC for FOG*/
         if (*p->iphs == FL(0.0))                  /* if fundphs zero,  */
@@ -82,7 +82,7 @@ int fog(ENVIRON *csound, FOGS *p)
     FUNC        *ftp1,  *ftp2;
     MYFLT       *ar, *amp, *fund, *ptch, *speed;
     MYFLT  v1, fract ,*ftab, fogcvt = p->fogcvt; /*JMC added for FOG*/
-    long   n,nsmps = ksmps, fund_inc, form_inc;
+    long   n,nsmps = csound->ksmps, fund_inc, form_inc;
     /* long speed_inc; */ /*JMC added last--out for phs version*/
 
     ar = p->ar;
@@ -115,7 +115,6 @@ int fog(ENVIRON *csound, FOGS *p)
         ovp = ovp->nxtact;                     /*  formant waveform  */
         fract = PFRAC1(ovp->formphs);                   /*JMC Fog*/
         ftab = ftp1->ftable + (ovp->formphs >> ftp1->lobits);/*JMC Fog*/
-/*      printf("\n ovp->formphs = %ld, ", ovp->formphs); */ /* TEMP JMC*/
         v1 = *ftab++;                                   /*JMC Fog*/
         result = v1 + (*ftab - v1) * fract;             /*JMC Fog*/
 /*  result = *(ftp1->ftable + (ovp->formphs >> ftp1->lobits) ); FOF version*/
@@ -164,7 +163,7 @@ static int newpulse(ENVIRON *csound, FOGS *p, OVERLAP *ovp, MYFLT  *amp,
     MYFLT       octamp = *amp, oct;
     MYFLT       form = *ptch /sicvt, fogcvt = p->fogcvt;  /*added JMC for Fog*/
     long   rismps, newexp = 0;
-    if ((ovp->timrem = (long)(*p->kdur * esr)) > p->durtogo &&
+    if ((ovp->timrem = (long)(*p->kdur * csound->esr)) > p->durtogo &&
         (*p->iskip==FL(0.0)))  /* ringtime    */
       return(0);
     if ((oct = *p->koct) > 0.0) {                   /* octaviation */
@@ -207,7 +206,7 @@ static int newpulse(ENVIRON *csound, FOGS *p, OVERLAP *ovp, MYFLT  *amp,
     }
     ovp->curamp = octamp * p->preamp;                /* set startamp  */
     ovp->expamp = p->expamp;
-    if ((ovp->dectim = (long)(*p->kdec * esr)) > 0)          /*      fnb dec  */
+    if ((ovp->dectim = (long)(*p->kdec * csound->esr)) > 0) /*      fnb dec  */
       ovp->decinc = (long)(sicvt / *p->kdec);
     ovp->decphs = PHMASK;
     return(1);
