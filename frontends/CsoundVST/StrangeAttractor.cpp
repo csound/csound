@@ -28,10 +28,9 @@
 
 namespace csound
 {
-	boost::uniform_01<boost::mt19937> StrangeAttractor::uniform_01(Random::mersenneTwister);
-
 	StrangeAttractor::StrangeAttractor () : scoreType(1)
 	{
+	    random.createDistribution("uniform_01");
 		initialize ();
 		reset ();
 	}
@@ -79,12 +78,12 @@ namespace csound
 		YE = Y;
 		ZE = Z;
 		WE = W;
-		LSUM = 0;
+		LSUM = 0.;
 		N = 1;
 		getCoefficients ();
-		P = 0;
-		LSUM = 0;
-		NL = 0;
+		P = 0.;
+		LSUM = 0.;
+		NL = 0.;
 		N1 = 0;
 		N2 = 0;
 		TWOD = D << 1;
@@ -92,7 +91,7 @@ namespace csound
 
 	void StrangeAttractor::codeRandomize ()
 	{
-		O = 2 + (int) (std::floor (double(OMAX - 1)) * uniform_01());
+		O = 2 + (int) (std::floor (double(OMAX - 1)) * random.sample());
 		code.clear();
 		code.push_back(59 + 4 * D + O + 8 * ODE);
 		if (ODE > 1)
@@ -103,12 +102,12 @@ namespace csound
 		getDimensionAndOrder ();
 		for (I = 1; I <= M; I++)
 		{
-			code[I] = (65 + ((int) std::floor (25 * uniform_01())));
+			code[I] = (65 + ((int) std::floor (25 * random.sample())));
 		}
 		static std::string copybuffer;
 		copybuffer = code;
 		Fl::copy(copybuffer.c_str(), copybuffer.length(), 1);
-		// System::debug(code.c_str());
+		System::debug(code.c_str());
 		//code.push_back(0);
 	}
 
@@ -444,7 +443,7 @@ namespace csound
 				D2MAX = D2MAX + std::pow (ZMAX - ZMIN, 2);
 				D2MAX = D2MAX + std::pow (WMAX - WMIN, 2);
 			}
-			J = (P + 1 + ((int) (std::floor (480 * uniform_01())))) % 500;
+			J = (P + 1 + ((int) (std::floor (480 * random.sample())))) % 500;
 			DX = XNEW - XS[J];
 			DY = YNEW - YS[J];
 			DZ = ZNEW - ZS[J];
@@ -533,7 +532,7 @@ namespace csound
 			duration = 0.25;
 			octave = X;
 			decibels = 70.0;
-			x = uniform_01() * 2.0 - 1.0;
+			x = random.sample() * 2.0 - 1.0;
 			break;
 		case 2:switch (scoreType)
 					 {
@@ -543,7 +542,7 @@ namespace csound
 			duration = 0.25;
 			octave = Y;
 			decibels = 70.0;
-			x = uniform_01() * 2.0 - 1.0;
+			x = random.sample() * 2.0 - 1.0;
 			break;
 		case 0:
 			instrument = 1.0;
@@ -551,7 +550,7 @@ namespace csound
 			duration = 0.25;
 			octave = Y;
 			decibels = 70.0;
-			x = uniform_01() * 2.0 - 1.0;
+			x = random.sample() * 2.0 - 1.0;
 			break;
 					 }
 					 break;
@@ -564,7 +563,7 @@ namespace csound
 				duration = 0.25;
 				octave = Y;
 				decibels = Z;
-				x = uniform_01() * 2.0 - 1.0;
+				x = random.sample() * 2.0 - 1.0;
 				break;
 			case 0:
 				instrument = Z;
@@ -572,7 +571,7 @@ namespace csound
 				duration = 0.25;
 				octave = Y;
 				decibels = 70.0;
-				x = uniform_01() * 2.0 - 1.0;
+				x = random.sample() * 2.0 - 1.0;
 				break;
 			}
 			break;
@@ -585,7 +584,7 @@ namespace csound
 				duration = W;
 				octave = Y;
 				decibels = ((double) Z);
-				x = uniform_01() * 2.0 - 1.0;
+				x = random.sample() * 2.0 - 1.0;
 				break;
 			case 0:
 				instrument = Z;
@@ -593,7 +592,7 @@ namespace csound
 				duration = 0.25;
 				octave = Y;
 				decibels = W;
-				x = uniform_01() * 2.0 - 1.0;
+				x = random.sample() * 2.0 - 1.0;
 				break;
 			}
 			break;
@@ -607,12 +606,12 @@ namespace csound
 		{
 			for (J = 0; J <= 99; J++)
 			{
-				V[J] = uniform_01();
+				V[J] = random.sample();
 			}
 		}
 		J = (int) std::floor (100 * RAN);
 		RAN = V[J];
-		V[J] = uniform_01();
+		V[J] = random.sample();
 	}
 
 	int StrangeAttractor::getAttractorType () const
@@ -691,7 +690,7 @@ namespace csound
 			calculateLyupanovExponent ();
 		}
 		//      The attractor at infinity has been found.
-		if ((std::fabs (XNEW) + std::fabs (YNEW) + std::fabs (ZNEW) + std::fabs (WNEW)) > 1000000)
+		if ( ( std::fabs (XNEW) + std::fabs (YNEW) + std::fabs (ZNEW) + std::fabs (WNEW) ) > 1000000.0 )
 		{
 			//      It can't be musical, so force an immediate new search.
 			N = 1;
@@ -704,7 +703,7 @@ namespace csound
 			return false;
 		}
 		//      The attractor at zero has been found.
-		if ((std::fabs (XNEW - X) + std::fabs (YNEW - Y) + std::fabs (ZNEW - Z) + std::fabs (WNEW - W)) < .000001)
+		if ( ( std::fabs (XNEW - X) + std::fabs (YNEW - Y) + std::fabs (ZNEW - Z) + std::fabs (WNEW - W) ) < .000001 )
 		{
 			//      It can't be musical, so force an immediate new search.
 			N = 1;

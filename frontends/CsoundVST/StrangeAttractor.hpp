@@ -58,7 +58,7 @@ namespace csound
 	{
 	protected:
 		std::string code;
-		static boost::uniform_01<boost::mt19937> uniform_01;
+		Random random;
 		std::string filename;
 		int scoreType;
 		int NMAX;
