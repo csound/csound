@@ -159,11 +159,11 @@ AC_ARG_WITH(libsndfile,
 	[USE_LIBSNDFILE=$withval],
 	[USE_LIBSNDFILE=yes])
 
-AC_ARG_WITH(gcc3,
-	AC_HELP_STRING([--with-gcc3],
-		[use gcc3 style CFLAGS (default=yes)]),
-	[USE_GCC3_FLAGS=$withval],
-	[USE_GCC3_FLAGS=yes])
+#AC_ARG_WITH(gcc3,
+#	AC_HELP_STRING([--with-gcc3],
+#		[use gcc3 style CFLAGS (default=yes)]),
+#	[USE_GCC3_FLAGS=$withval],
+#	[USE_GCC3_FLAGS=yes])
 
 #	Compiler options used for all compilation.
 
@@ -171,11 +171,15 @@ CPPFLAGS="-DBETA -IH -I/usr/local/include -I/usr/local/boost"
 
 CFLAGS="-O2 -g -Wall"
 
-if test "x$USE_GCC3_FLAGS" = xyes; then
-	ALIGN_FLAGS="-falign-loops=4 -falign-jumps=4"
-else
-	ALIGN_FLAGS="-malign-loops=4 -malign-jumps=4"
+if test "x$GCC" = xyes; then
+  case `$CC -dumpversion 2>/dev/null` in
+    [[12]].*) 
+      ALIGN_FLAGS="-malign-loops=4 -malign-jumps=4";;
+    *) 
+      ALIGN_FLAGS="-falign-loops=4 -falign-jumps=4";;
+  esac
 fi
+
 
 #	Now we adapt compiler options to the platform.
 
