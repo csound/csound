@@ -29,7 +29,7 @@
 
 /* INSDS   *curip; current insds, maintained by insert.c */
 
-static  void auxrecord(AUXCH  *),auxchprint(INSDS *),fdchprint(INSDS *);
+static  void auxrecord(AUXCH *),auxchprint(INSDS *),fdchprint(INSDS *);
 
 void auxalloc(long nbytes, AUXCH *auxchp)
      /* allocate an auxds, or expand an old one */
@@ -51,7 +51,7 @@ static void auxrecord(AUXCH *auxchp)
      /* put auxch into chain of xp's for this instr */
      /* called only from auxalloc       */
 {
-    AUXCH       *prvchp, *nxtchp;
+    AUXCH	*prvchp, *nxtchp;
 
     prvchp = &curip->auxch;                     /* from current insds,  */
     while ((nxtchp = prvchp->nxtchp) != NULL)   /* chain through xplocs */
@@ -79,14 +79,14 @@ void fdclose(FDCH *fdchp)       /* close a file and remove from fd chain */
     FDCH        *prvchp, *nxtchp;
 
     prvchp = &curip->fdch;                      /* from current insds,  */
-    while ((nxtchp = prvchp->nxtchp) != NULL) {     /* chain through fdlocs */
-      if (nxtchp == fdchp) {            /*   till find this one */
+    while ((nxtchp = prvchp->nxtchp) != NULL) { /* chain through fdlocs */
+      if (nxtchp == fdchp) {                    /*   till find this one */
         if (fdchp->fd)
-        sf_close(fdchp->fd);            /* then close the file  */
+          sf_close(fdchp->fd);                  /* then close the file  */
         else
-          close(fdchp->fdc);              /* then close the file  */
-        fdchp->fd = 0;                  /*   delete the fd &    */
-        prvchp->nxtchp = fdchp->nxtchp; /* unlnk from fdchain */
+          close(fdchp->fdc);                    /* then close the file  */
+        fdchp->fd = 0;                          /*   delete the fd &    */
+        prvchp->nxtchp = fdchp->nxtchp;         /* unlnk from fdchain   */
         if (O.odebug) fdchprint(curip);
         return;
       }
@@ -123,11 +123,6 @@ void fdchclose(INSDS *ip)   /* close all files in instr fd chain     */
 
     if (O.odebug) fdchprint(ip);
       while ((curchp = curchp->nxtchp) != NULL) { /* for all fd's in chain: */
-/*         if ((fd = curchp->fd) <= 2) { */
-/*           fdchprint(ip); */
-/*           sprintf(errmsg,Str(X_758,"fdclose: illegal fd %d in chain"),fd); */
-/*           die(errmsg); */
-/*         } */
         if (curchp->fd)
           sf_close(curchp->fd);
         else

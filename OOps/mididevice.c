@@ -113,7 +113,7 @@ struct pollfd midipoll;
      static port_id gMidiInPort = B_ERROR;
 #elif defined(mac_classic)
 
-#elif !defined(DOSGCC) && !defined(__WATCOMC__)&& !defined(LATTICE) && !defined(WIN32) && !defined(SYMANTEC) && !defined(__EMX__)
+#elif !defined(DOSGCC) && !defined(__WATCOMC__) && !defined(WIN32) && !defined(SYMANTEC) && !defined(__EMX__)
 #    if defined(__MACH__)
 #      define USE_OLD_TTY 1
 #    endif
@@ -234,7 +234,7 @@ void OpenMIDIDevice(void)
     if (strcmp(O.Midiname,"stdin") == 0) {
 #if defined(mac_classic) || defined(SYMANTEC) || defined(WIN32) || defined(__BEOS__)   /*** double condition for the moment (see above) ***/
       {  die(Str(X_437,"RT Midi_event Console not implemented")); }
-# elif defined (DOSGCC) || defined (__WATCOMC__) || defined (LATTICE)
+# elif defined (DOSGCC) || defined (__WATCOMC__)
       { if (O.msglevel & WARNMSG)
         printf(Str(X_118,"WARNING: -M stdin: system has no fcntl reading stdin\n")); }
 # else
@@ -247,18 +247,16 @@ void OpenMIDIDevice(void)
     else {                   /* open MIDI device, & set nodelay on reads  */
       if ((rtfd = open(O.Midiname, O_RDONLY | O_NDELAY, 0)) < 0)
         dies(Str(X_210,"Cannot open %s"), O.Midiname);
-#ifndef SYS5
-# if defined (DOSGCC) || defined (__WATCOMC__) || defined (LATTICE) || defined(WIN32) || defined(__EMX__)
+#if defined (DOSGCC) || defined (__WATCOMC__) || defined(WIN32) || defined(__EMX__)
       { if (O.msglevel & WARNMSG)
         printf(Str(X_827,"WARNING: have not figured out DOS or BCC fcntl yet !!!\n")); }
-# else
+#else
       if (fcntl(rtfd, F_SETFL, fcntl(rtfd, F_GETFL, 0) | O_NDELAY) < 0)
         dies(Str(X_756,"fcntl failed on %s"), O.Midiname);
-# endif
 #endif
 #if defined sun
       while (ioctl(rtfd, I_POP, 0) == 0)  /* pop the 2 STREAMS modules */
-        ;                               /*  betwn user & uart driver */
+        ;                                 /*  betwn user & uart driver */
       gtty(rtfd, &tty);
       tty.sg_ispeed = (char)15;
       tty.sg_ospeed = (char)15;
@@ -357,7 +355,7 @@ void OpenMIDIDevice(void)
       }
 # endif /* HAVE_BSD_SGTTY_H */
 #elif !defined(__BEOS__) && !defined(mac_classic)
-# if !defined(DOSGCC) && !defined(__WATCOMC__) && !defined(LATTICE) && !defined(WIN32) && !defined(__EMX__)
+# if !defined(DOSGCC) && !defined(__WATCOMC__) && !defined(WIN32) && !defined(__EMX__)
       ioctl(rtfd, TIOCGETP, &tty);           /* for other machines      */
       tty.sg_ispeed = INBAUD;                /*   set baud rate         */
       tty.sg_flags = RAW;                    /*   and no I/O processing */
