@@ -60,5 +60,6 @@ EVLIST *lsepf(EVLIST*), *lseptwf(EVLIST*), *lcat(EVLIST*,EVLIST*);
 void putstr(char*), putev(EVENT*), relev(EVENT*), lput(EVLIST*);
 void lsort(EVLIST*), lrel(EVLIST*), lrelev(EVLIST*);
 int lplay(EVLIST*);
+int lcount(EVLIST *);
 FILE *filopen(char*), *getcurfp(void);
 void filclose(FILE*), setcurfp(FILE*);

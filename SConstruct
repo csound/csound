@@ -814,9 +814,9 @@ if commonEnvironment['generateTags'] == 1 and (getPlatform() == 'linux' or getPl
 
 if commonEnvironment['generateXmg'] == 1:
     print "Calling makedb"
-    xmgs = commonEnvironment.Command('American.xmg', ['strings/all_strings'], 'makedb strings/all_strings American')
-    xmgs1 = commonEnvironment.Command('English.xmg', ['strings/english-strings'], 'makedb strings/english-strings English')
-    xmgs2 = commonEnvironment.Command('csound.xmg', ['strings/english-strings'], 'makedb strings/english-strings csound')
+    xmgs = commonEnvironment.Command('American.xmg', ['strings/all_strings'], './makedb strings/all_strings American')
+    xmgs1 = commonEnvironment.Command('English.xmg', ['strings/english-strings'], './makedb strings/english-strings English')
+    xmgs2 = commonEnvironment.Command('csound.xmg', ['strings/english-strings'], './makedb strings/english-strings csound')
     Depends(xmgs, makedb)
     Depends(xmgs1, makedb)
     Depends(xmgs2, makedb)
