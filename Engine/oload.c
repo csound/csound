@@ -80,9 +80,15 @@ void csoundSetInputValueCallback(void *, void (*)(void *, char *, MYFLT *));
 void csoundSetOutputValueCallback(void *, void (*)(void *, char *, MYFLT));
 void csoundScoreEvent(void *, char, MYFLT *, long);
 void csoundSetExternalMidiDeviceOpenCallback(void *, void (*)(void *));
+#ifdef PORTMIDI
+void csoundSetExternalMidiReadCallback(void *,
+                                       int (*)(void *, void *, int));
+void csoundSetExternalMidiWriteCallback(void *, int (*)(void *, void *));
+#else
 void csoundSetExternalMidiReadCallback(void *,
                                        int (*)(void *, unsigned char *, int));
 void csoundSetExternalMidiWriteCallback(void *, int (*)(void *, unsigned char *));
+#endif
 void csoundSetExternalMidiDeviceCloseCallback(void *, void (*)(void *));
 int csoundIsExternalMidiEnabled(void *);
 void csoundSetExternalMidiEnabled(void *, int);
@@ -401,7 +407,7 @@ ENVIRON cenviron_ = {
         0, NULL,   /*      nchania, chania */
         0, NULL,   /*      nchanok, chanok */
         0, NULL,   /*      nchanoa, chanoa */
-        {},
+        {{NULL}, 0.0, 0,0,0,0l,0l,0l},                 /*      ff */
         NULL,                   /* flist */
         0,                      /* maxfnum */
         NULL,                   /* gensub */
