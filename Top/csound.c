@@ -1,7 +1,5 @@
-#include <stdio.h>
-#include <stdarg.h>
-/**
-* S I L E N C E
+/*
+* C S O U N D
 *
 * An auto-extensible system for making music on computers by means of software alone.
 * Copyright (c) 2001 by Michael Gogins. All rights reserved.
@@ -22,10 +20,6 @@
 * License along with this software; if not, write to the Free Software
 * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-* P U R P O S E
-*
-* Defines the public C application programming interface to Csound.
-*
 * 29 May 2002 - ma++ merge with CsoundLib.
 * 30 May 2002 - mkg add csound "this" pointer argument back into merge.
 * 27 Jun 2002 - mkg complete Linux dl code and Makefile
@@ -34,18 +28,14 @@
 extern "C" {
 #endif
 
+#include <stdio.h>
+#include <stdarg.h>
 #include "csound.h"
-//#include "cs.h"
 #include "csoundCore.h"
 
 #ifndef MAX_PATH
   static const int MAX_PATH = 0xff;
 #endif
-
-/* HACK to turn off nchnls being defined
- * as cenviron.nchnls
- */
-//#define nchnls nchnls
 
   /**
    * Csound symbols referenced in this file.
@@ -75,24 +65,13 @@ extern "C" {
   extern int dispose_opcode_list(opcodelist *list);
   extern void csoundDefaultExternalMidiCloseCallback(void *csound);
 
-  //    This needs a stub definition in this file.
-
-  char *getDB(void)
+  PUBLIC void *csoundCreate(void *hostdata)
   {
-    return 0;
-  }
-
-  void *csoundCreate(void *hostData)
-  {
-    //  Currently, there is only one instance of Csound per process.
-    //  In the future, this will be dynamically allocated,
-    //  and will need to be passed to all internals Csound functions that reference it.
-    cenviron.hostdata_ = hostData;
-		csoundReset(&cenviron);
+	cenviron.hostdata_ = hostdata;
     return &cenviron;
   }
 
-  int csoundQueryInterface(const char *name, void **interface, int *version)
+  PUBLIC int csoundQueryInterface(const char *name, void **interface, int *version)
   {
     if(strcmp(name, "CSOUND") == 0)
       {
@@ -103,7 +82,7 @@ extern "C" {
     return 1;
   }
 
-  void csoundDestroy(void *csound)
+  PUBLIC void csoundDestroy(void *csound)
   {
     //  Do nothing at this time.
     //  In the future, it will be necessary to destroy
