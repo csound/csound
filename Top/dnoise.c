@@ -373,7 +373,11 @@ int dnoise(int argc, char **argv)
                 break;
               case 't':
                 FIND("no t arg");
+#if defined(USE_DOUBLE)
+                sscanf(s,"%lf",&th);
+#else
                 sscanf(s,"%f",&th);
+#endif
                 while (*++s);
                 break;
               case 'S':
@@ -383,7 +387,11 @@ int dnoise(int argc, char **argv)
                 break;
               case 'm':
                 FIND("no m arg");
+#if defined(USE_DOUBLE)
+                sscanf(s,"%lf",&g0);
+#else
                 sscanf(s,"%f",&g0);
+#endif
                 while (*++s);
                 break;
               case 'n':
@@ -393,7 +401,11 @@ int dnoise(int argc, char **argv)
                 break;
               case 'b':
                 FIND("no b arg");
+#if defined(USE_DOUBLE)
+                sscanf(s,"%lf",&beg);
+#else
                 sscanf(s,"%f",&beg);
+#endif
                 while (*++s);
                 break;
               case 'B': FIND("no B arg");
@@ -401,7 +413,11 @@ int dnoise(int argc, char **argv)
                 while (*++s);
                 break;
               case 'e': FIND("no e arg");
+#if defined(USE_DOUBLE)
+                sscanf(s,"%lf",&end);
+#else
                 sscanf(s,"%f",&end);
+#endif
                 while (*++s);
                 break;
               case 'E': FIND("no E arg");

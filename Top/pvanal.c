@@ -116,16 +116,28 @@ int pvanal(int argc, char **argv)
             while (*s++); s--;
             break;
           case 's': FIND(Str(X_1057,"no sampling rate"));
+#if defined(USE_DOUBLE)
+            sscanf(s,"%lf",&sr);
+#else
             sscanf(s,"%f",&sr);
+#endif
             break;
           case 'c':  FIND(Str(X_1026,"no channel"));
             sscanf(s,"%d",&channel);
             break;
           case 'b':  FIND(Str(X_1025,"no begin time"));
+#if defined(USE_DOUBLE)
+            sscanf(s,"%lf",&beg_time);
+#else
             sscanf(s,"%f",&beg_time);
+#endif
             break;
           case 'd':  FIND(Str(X_1030,"no duration time"));
+#if defined(USE_DOUBLE)
+            sscanf(s,"%lf",&input_dur);
+#else
             sscanf(s,"%f",&input_dur);
+#endif
             break;
           case 'H':
             {
