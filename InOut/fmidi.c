@@ -108,9 +108,10 @@ void midNotesOff(void)          /* turnoff ALL curr midi notes, ALL chnls */
 {                               /* called by musmon, ctrl 123 & sensFMidi */
     int chan = 0;
     MCHNBLK *chn;
-    do  if ((chn = M_CHNBP[chan]) != NULL)
-      AllNotesOff(chn);
-    while (++chan < MAXCHAN);
+    do {
+      if ((chn = M_CHNBP[chan]) != NULL)
+        AllNotesOff(chn);
+    } while (++chan < MAXCHAN);
 }
 
 void m_chanmsg(MEVENT *mep) /* exec non-note chnl_voice & chnl_mode cmnds */
@@ -219,12 +220,13 @@ void m_chanmsg(MEVENT *mep) /* exec non-note chnl_voice & chnl_mode cmnds */
               long xtratim = 0;                   /*     turnoff all instrs */
               for (insp = inxp->inslst; cnt--; insp++)
                 if ((ip = instrtxtp[*insp]->instance) != NULL) {
-                  do  if (ip->actflg) {
-                    if (ip->xtratim > xtratim)
-                      xtratim = ip->xtratim;
-                    xturnoff(ip);
-                  }
-                  while ((ip = ip->nxtinstance) != NULL);
+                  do {
+                    if (ip->actflg) {
+                      if (ip->xtratim > xtratim)
+                        xtratim = ip->xtratim;
+                      xturnoff(ip);
+                    }
+                  } while ((ip = ip->nxtinstance) != NULL);
                 }
               if (index) {
                 int insno = inxp->inslst[index-1];
@@ -244,14 +246,9 @@ void m_chanmsg(MEVENT *mep) /* exec non-note chnl_voice & chnl_mode cmnds */
       if (n == 121) {                           /* CHANNEL MODE MESSAGES:  */
         MYFLT *fp = chn->ctl_val + 1;           /* from ctlr 1 */
         short nn = 101;                         /* to ctlr 101 */
-        do *fp++ = FL(0.0);                     /*   reset all ctlrs to 0 */
-        while (--nn);                           /* exceptions:  */
-        chn->ctl_val[7]  = FL(127.0);           /*   volume     */
-        chn->ctl_val[8]  = FL(64.0);            /*   balance    */
-        chn->ctl_val[10] = FL(64.0);            /*   pan        */
-        chn->ctl_val[11] = FL(127.0);           /*   expression */
-        chn->ctl_val[BENDSENS] = FL(2.0);
-        chn->ctl_val[9]  = chn->ctl_val[7] * MastVol;
+        do {
+          *fp++ = FL(0.0);                      /*   reset all ctlrs to 0 */
+        } while (--nn);
         /* reset aftertouch to max value - added by Istvan Varga, May 2002 */
         chn->aftouch = FL(127.0);
         for (nn = 0; nn < 128; nn++) chn->polyaft[nn] = FL(127.0);
@@ -265,8 +262,9 @@ void m_chanmsg(MEVENT *mep) /* exec non-note chnl_voice & chnl_mode cmnds */
           MONPCH *mnew, *mend;
           chn->monobas = (MONPCH *)mcalloc((long)sizeof(MONPCH) * 8);
           mnew = chn->monobas;  mend = mnew + 8;
-          do  mnew->pch = -1;
-          while (++mnew < mend);
+          do {
+            mnew->pch = -1;
+          } while (++mnew < mend);
         }
         chn->mono = 1;
       }
@@ -488,8 +486,9 @@ void FMidiOpen(void) /* open a MidiFile for reading, sense MPU401 or standard */
     if ((lval = natlong(*(long *)(inbytes+4))) <= 0)
       dies(Str(X_895,"improper chunksize in '%s'"), O.FMidiname);
     if (strncmp(inbytes, "MTrk", 4) != 0) {    /* if not an MTrk chunk,  */
-      do sval = getc(mfp);                     /*    skip over it        */
-      while (--lval);
+      do {
+        sval = getc(mfp);                      /*    skip over it        */
+      } while (--lval);
       goto chknxt;
     }
     printf(Str(X_1294,"tracksize = %ld\n"), lval);
@@ -545,8 +544,9 @@ static void fsexdata(int n) /* place midifile data into a sys_excl buffer */
     else {
       unsigned char c;
       printf(Str(X_1262,"system exclusive buffer overflow\n"));
-      do c = getc(mfp);
-      while (--n);
+      do {
+        c = getc(mfp);
+      } while (--n);
       if (c == 0xF7)
         fsexp = NULL;
     }
@@ -581,8 +581,9 @@ int sensFMidi(void)     /* read a MidiFile event, collect the data & dispatch */
           fsexdata((int)len);       /* if sysex contin, send  */
         else {
           MTrkrem -= len;
-          do c = getc(mfp);         /* else for now, waste it */
-          while (--len);
+          do {
+            c = getc(mfp);         /* else for now, waste it */
+          } while (--len);
         }
         goto nxtim;
       case 0xFF:                    /* META event:     */
@@ -621,8 +622,9 @@ int sensFMidi(void)     /* read a MidiFile event, collect the data & dispatch */
         case 0x2F: goto Trkend;      /* normal end of track */
         default:
           printf(Str(X_1192,"skipping meta event type %x\n"),type);
-          do c = getc(mfp);
-          while (--len);
+          do {
+            c = getc(mfp);
+          } while (--len);
         }
         goto nxtim;
       }

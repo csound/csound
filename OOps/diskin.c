@@ -663,8 +663,9 @@ void soundinew(SOUNDINEW *p)    /*  a-rate routine for soundinew */
     if (ntogo > n) {            /* At RWD's suggestion */
       switch(chnsout) {                   /* if past end of file, */
       case 1:
-        do *r1++ = FL(0.0);               /*    move in zeros     */
-        while (--ntogo);
+        do {
+          *r1++ = FL(0.0);                /*    move in zeros     */
+        } while (--ntogo);
         break;
       case 2:
         do {
@@ -747,8 +748,9 @@ int soundout(SNDOUT *p)
       nn = ospace;
     nsamps -= nn;
     ospace -= nn;
-    do  *outbufp++ = *asig++;
-    while (--nn);
+    do {
+      *outbufp++ = *asig++;
+    } while (--nn);
     if (!ospace) {              /* when buf is full  */
       sf_read_MYFLT(p->c.fdch.fd, p->c.outbuf, p->c.bufend - p->c.outbuf);
       outbufp = p->c.outbuf;

@@ -493,8 +493,9 @@ int limit(LIMIT *p)
 
     if ((xlow = *p->xlow) >= (xhigh = *p->xhigh)) {
         xaverage = (xlow + xhigh) / 2;
-        do *adest++ = xaverage;
-        while (--loopcount);
+        do {
+          *adest++ = xaverage;
+        } while (--loopcount);
     }
     else
       do {

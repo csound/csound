@@ -238,8 +238,9 @@ static void gen02(FUNC *ftp, ENVIRON *csound)
 
     if (nvals > ff->flenp1)
       nvals = ff->flenp1;                      /* for all vals up to flen+1 */
-    do  *fp++ = *pp++;                         /*   copy into ftable   */
-    while (--nvals);
+    do  {
+      *fp++ = *pp++;                           /*   copy into ftable   */
+    } while (--nvals);
 }
 
 static void gen03(FUNC *ftp, ENVIRON *csound)

@@ -692,13 +692,15 @@ int SfPlayMono(SFPLAYMONO *p)
     nsmps = ksmps;
     if (arate) {
       MYFLT *amp = p->xamp;
-      do        *outemp1++ *= *amp++;
-      while (--nsmps);
+      do {
+        *outemp1++ *= *amp++;
+      } while (--nsmps);
     }
     else {
       MYFLT famp = *p->xamp;
-      do        *outemp1++ *= famp;
-      while (--nsmps);
+      do {
+        *outemp1++ *= famp;
+      } while (--nsmps);
     }
     return OK;
 }
@@ -716,8 +718,9 @@ int SfPlayMono3(SFPLAYMONO *p)
 
     arate = (p->XINCODE) ? 1 : 0;
 
-    do  *outemp1++ = FL(0.0);
-    while(--nsmps);
+    do {
+      *outemp1++ = FL(0.0);
+    } while(--nsmps);
 
     if (arate) {
       while (j--) {
@@ -769,13 +772,15 @@ int SfPlayMono3(SFPLAYMONO *p)
     nsmps = ksmps;
     if (arate) {
       MYFLT *amp = p->xamp;
-      do        *outemp1++ *= *amp++;
-      while (--nsmps);
+      do {
+        *outemp1++ *= *amp++;
+      } while (--nsmps);
     }
     else {
       MYFLT famp = *p->xamp;
-      do        *outemp1++ *= famp;
-      while (--nsmps);
+      do {
+        *outemp1++ *= famp;
+      } while (--nsmps);
     }
 
     return OK;
@@ -1083,8 +1088,9 @@ int SfInstrPlayMono(SFIPLAYMONO *p)
 
     arate = (p->XINCODE) ? 1 : 0;
 
-    do  *outemp1++ = FL(0.0);
-    while (--nsmps);
+    do {
+      *outemp1++ = FL(0.0);
+    } while (--nsmps);
 
     if (arate) {
       while (j--) {
@@ -1136,13 +1142,15 @@ int SfInstrPlayMono(SFIPLAYMONO *p)
     nsmps = ksmps;
     if (arate) {
       MYFLT *amp = p->xamp;
-      do        *outemp1++ *= *amp;
-      while (--nsmps);
+      do {
+        *outemp1++ *= *amp;
+      } while (--nsmps);
     }
     else {
       MYFLT famp = *p->xamp;
-      do        *outemp1++ *= famp;
-      while (--nsmps);
+      do {
+        *outemp1++ *= famp;
+      } while (--nsmps);
     }
     return OK;
 }
@@ -1161,8 +1169,9 @@ int SfInstrPlayMono3(SFIPLAYMONO *p)
 
     arate = (p->XINCODE) ? 1 : 0;
 
-    do  *outemp1++ = FL(0.0);
-    while (--nsmps);
+    do {
+      *outemp1++ = FL(0.0);
+    } while (--nsmps);
 
     if (arate) {
       while (j--) {
@@ -1214,13 +1223,15 @@ int SfInstrPlayMono3(SFIPLAYMONO *p)
     nsmps = ksmps;
     if (arate) {
       MYFLT *amp = p->xamp;
-      do        *outemp1++ *= *amp++;
-      while (--nsmps);
+      do {
+        *outemp1++ *= *amp++;
+      } while (--nsmps);
     }
     else {
       MYFLT famp = *p->xamp;
-      do        *outemp1++ *= famp;
-      while (--nsmps);
+      do {
+        *outemp1++ *= famp;
+      } while (--nsmps);
     }
     return OK;
 }

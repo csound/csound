@@ -124,8 +124,9 @@ int partial_maximum(P_MAXIMUM *p)
     case 3:  /* average */
       {
         MYFLT temp=0;
-        do temp += *a++;
-        while (--n);
+        do {
+          temp += *a++;
+        } while (--n);
         ++(p->counter);
         p->max += temp;
       }

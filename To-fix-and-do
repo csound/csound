@@ -32,4 +32,3 @@ B2.     Many differences between FL code on Csound and CsoundAV
 
 B3.     If no output format given does not have a sane default.
 
-B4.     Sections starting with silence have the silence ignored.

@@ -894,23 +894,25 @@ int adset(ADSYN *p)
 
     ptlap = ptlfp = (PTLPTR*)p->aux.auxp;   /* find base ptl blk */
     ptlim = ptlap + size;
-    do if ((val = *adp++) < 0) {            /* then for each brkpt set,   */
-      switch (val) {
-      case -1:
-        ptlap->nxtp = ptlap + 1;       /* chain the ptl blks */
-        if ((ptlap = ptlap->nxtp) >= ptlim) goto adsful;
-        ptlap->ap = (DUPLE *) adp;     /*  record start amp  */
-        ptlap->amp = ptlap->ap->val;
-        break;
-      case -2:
-        if ((ptlfp += 1) >= ptlim) goto adsful;
-        ptlfp->fp = (DUPLE *) adp;     /*  record start frq  */
-        ptlfp->frq = ptlfp->fp->val;
-        ptlfp->phs = 0;                /*  and clr the phase */
-        break;
-      default:
-        sprintf(errmsg,Str(X_842,"illegal code %d encountered"),val);
-        goto adserr;
+    do {
+      if ((val = *adp++) < 0) {            /* then for each brkpt set,   */
+        switch (val) {
+        case -1:
+          ptlap->nxtp = ptlap + 1;       /* chain the ptl blks */
+          if ((ptlap = ptlap->nxtp) >= ptlim) goto adsful;
+          ptlap->ap = (DUPLE *) adp;     /*  record start amp  */
+          ptlap->amp = ptlap->ap->val;
+          break;
+        case -2:
+          if ((ptlfp += 1) >= ptlim) goto adsful;
+          ptlfp->fp = (DUPLE *) adp;     /*  record start frq  */
+          ptlfp->frq = ptlfp->fp->val;
+          ptlfp->phs = 0;                /*  and clr the phase */
+          break;
+        default:
+          sprintf(errmsg,Str(X_842,"illegal code %d encountered"),val);
+          goto adserr;
+        }
       }
     } while (adp < endata);
     if (ptlap != ptlfp) {
