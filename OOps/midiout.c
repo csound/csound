@@ -489,14 +489,19 @@ int kon2(ENVIRON *csound, KON2 *p)
     return OK;
 }
 
-
 int midiout(ENVIRON *csound, MIDIOUT *p)        /*gab-A6 fixed*/
 {
-    int kstatus ;
+    int st, ch, d1, d2;
+
     if (!MGLOB(MIDIoutDONE)) openMIDIout();
-    if ((kstatus = (int) *p->in_type))
-      send_midi_message( ((int) *p->in_type) | ((int) *p->in_chan-1),
-                         (int) *p->in_dat1, (int) *p->in_dat2 );
+    st = (int) (*p->in_type + 0.5);
+    if (!st)
+      return OK;
+    st = (st & 0x70) | 0x80;
+    ch = (int) (*p->in_chan - 0.5) & 0x0F;
+    d1 = (int) (*p->in_dat1 + 0.5) & 0x7F;
+    d2 = (int) (*p->in_dat2 + 0.5) & 0x7F;
+    send_midi_message(st | ch, d1, d2);
     return OK;
 }
 

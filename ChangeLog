@@ -1,3 +1,8 @@
+2005-02-23	Istvan Varga	<istvan@csounds.com>
+	* InOut/midisend.c:
+	* OOps/midiout.c:
+	  Fixed 2 byte messages (program change and channel pressure).
+
 2005-02-22	Istvan Varga	<istvan@csounds.com>
 	* Engine/musmon.c:
 	* Engine/oload.c:
