@@ -44,7 +44,7 @@
 /*  works.  Nothing out of the ordinary in this version.   */
 /***********************************************************/
 
-static void make_TwoZero(TwoZero *p)
+void make_TwoZero(TwoZero *p)
 {
     p->zeroCoeffs[0] = FL(0.0);
     p->zeroCoeffs[1] = FL(0.0);
