@@ -151,15 +151,13 @@ void add_tmpfile(void *csound, char *name)      /* IV - Feb 03 2005 */
     (*toremove) = tmp;
 }
 
-static char files[1000];
-extern int argdecode(void*, int, char**, char**, char*);
+extern int argdecode(void*, int, char**, char*);
 
 int readOptions(void *csound, FILE *unf)
 {
     char *p;
     int argc = 0;
     char *argv[100];
-    char *filnamp = files;
 
     while (my_fgets(buffer, 200, unf)!= NULL) {
       p = buffer;
@@ -222,7 +220,7 @@ int readOptions(void *csound, FILE *unf)
 #endif
       /*      argc++; */                  /* according to Nicola but wrong */
       /* Read an argv thing */
-      argdecode(csound, argc, argv, &filnamp, getenv("SFOUTYP"));
+      argdecode(csound, argc, argv, getenv("SFOUTYP"));
     }
     return FALSE;
 }

@@ -64,7 +64,7 @@ static  FILE    *scorin, *scorout, *xfile;
 extern  void    dieu(char *);
 extern  OPARMS  O;
 extern  ENVIRON cenviron;
-extern int argdecode(void*, int, char**, char**, char*);
+extern int argdecode(void*, int, char**, char*);
 extern void init_pvsys(void);
 extern int csoundYield(void *);
 
@@ -412,7 +412,7 @@ int csoundCompile(void *csound, int argc, char **argv)
     if (--argc == 0) {
       dieu(Str("insufficient arguments"));
     }
-    if (argdecode(csound, argc, argv, &filnamp, envoutyp)==0) {
+    if (argdecode(csound, argc, argv, envoutyp)==0) {
 #ifndef mills_macintosh
       longjmp(cenviron.exitjmp_,1);
 #else

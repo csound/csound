@@ -178,11 +178,7 @@ void usage(void)
   err_printf(Str("-N\tnotify (ring the bell) when score or miditrack is done\n"));
   err_printf(Str("-T\tterminate the performance when miditrack is done\n"));
   err_printf(Str("-D\tdefer GEN01 soundfile loads until performance time\n"));
-#ifdef LINUX                    /* Jonathan Mohr  1995 Oct 17 */
-  err_printf(Str("-Q dnam\tselect MIDI output device\n"));
-  err_printf(Str("-V N\tset real-time audio output volume to N (1 to 100)\n"));
-#endif
-#ifdef __BEOS__                 /* jjk 09252000 */
+#if defined(LINUX) || defined(__BEOS__)     /* Jonathan Mohr  1995 Oct 17 */
   err_printf(Str("-Q dnam\tselect MIDI output device\n"));
 #endif
   err_printf(Str("-z\tList opcodes in this version\n"));
@@ -352,11 +348,7 @@ static void longusage(void *csound)
                  "-T\tterminate the performance when miditrack is done\n"));
   err_printf(Str(
                  "-D\tdefer GEN01 soundfile loads until performance time\n"));
-#ifdef LINUX                    /* Jonathan Mohr  1995 Oct 17 */
-  err_printf(Str("-Q dnam\tselect MIDI output device\n"));
-  err_printf(Str("-V N\tset real-time audio output volume to N (1 to 100)\n"));
-#endif
-#ifdef __BEOS__                 /* jjk 09252000 */
+#if defined(LINUX) || defined(__BEOS__)     /* Jonathan Mohr  1995 Oct 17 */
   err_printf(Str("-Q dnam\tselect MIDI output device\n"));
 #endif
   err_printf(Str("-z\tList opcodes in this version\n"));
@@ -378,20 +370,17 @@ static void longusage(void *csound)
   err_printf(Str("-X fnam\t Sound File Directory\n"));
   err_printf(Str("-q fnam\t Sound Sample-In Directory\n"));
   err_printf(Str("-Q fnam\t Analysis Directory\n"));
-  err_printf(Str(
-                 "-V N\t Number of chars in screen buffer for output window\n"));
+  err_printf(Str("-V N\t Number of chars in screen buffer for output window\n"));
   err_printf(Str("-E N\t Number of tables in graphics window\n"));
   err_printf(Str("-p\t\t Play after rendering\n"));
   err_printf(Str("-e\t\t Rescaled floats as shorts to max amplitude\n"));
   err_printf(Str("-w\t\t Record and Save MIDI input to a file\n"));
   err_printf(Str("-y N\t Enables Progress Display at rate N seconds,\n"));
   err_printf(Str("\t\t\tor for negative N, at -N kperiods\n"));
-  err_printf(Str(
-                 "-Y N\t Enables Profile Display at rate N in seconds,\n"));
+  err_printf(Str("-Y N\t Enables Profile Display at rate N in seconds,\n"));
   err_printf(Str("\t\t\tor for negative N, at -N kperiods\n"));
-  err_printf("-P N\t Poll Events Every N Buffer Writes\n");
-  err_printf(Str(
-                 "______________________________________________________\n"));
+  err_printf(Str("-P N\t Poll Events Every N Buffer Writes\n"));
+  err_printf(Str("______________________________________________________\n"));
 #endif
   err_printf(Str("flag defaults: csound -s -otest -b%d -B%d -m7 -P128\n"),
              IOBUFSAMPS, IODACSAMPS);
@@ -942,19 +931,31 @@ static int decode_long(void *csound,
   return (0);
 }
 
-int argdecode(void *csound,
-              int argc, char **argv, char **pfilnamp, char *envoutyp)
+int argdecode(void *csound, int argc, char **argv_, char *envoutyp)
 {
-  char *s;
-  char c;
-  int n;
-  char *filnamp = *pfilnamp;
+    char  *s, **argv;
+    int   n;
+    char  c;
 
-  /*#ifdef mills_macintosh
-    keep_tmp = 1;
-    #else */
-  keep_tmp = 0;
-  /*#endif */
+    /* make a copy of the option list */
+    {
+      char  *p1, *p2;
+      int   nbytes, i;
+      /* calculate the number of bytes to allocate */
+      /* N.B. the argc value passed to argdecode is decremented by one */
+      nbytes = (argc + 1) * (int) sizeof(char*);
+      for (i = 0; i <= argc; i++)
+        nbytes += ((int) strlen(argv_[i]) + 1);
+      p1 = (char*) mmalloc(nbytes);     /* will be freed by all_free() */
+      p2 = (char*) p1 + ((int) sizeof(char*) * (argc + 1));
+      argv = (char**) p1;
+      for (i = 0; i <= argc; i++) {
+        argv[i] = p2;
+        strcpy(p2, argv_[i]);
+        p2 = (char*) p2 + ((int) strlen(argv_[i]) + 1);
+      }
+    }
+    keep_tmp = 0;
 
   do {
 
@@ -980,39 +981,25 @@ int argdecode(void *csound,
           }
           dies(Str("-U %s not a valid UTIL name"),s);
         fnd:
-          *pfilnamp = filnamp;
           return(0);
           /********** commandline flags only for mac version***************/
           /*********************  matt 5/26/96 ****************************/
 #ifdef mills_macintosh
         case 'q':
           FIND(Str("no sound sample directory name")) ;
-          foo = filnamp;
-          while ((*filnamp++ = *s++));  s--;
-          strcpy(ssdir_path,foo);
+          strcpy(ssdir_path, s);
+          s += (int) strlen(s);
           break;
         case 'Q':
           FIND(Str("no analysis directory name")) ;
-          foo = filnamp;
-          while ((*filnamp++ = *s++));  s--;
-          strcpy(sadir_path,foo);
+          strcpy(sadir_path, s);
+          s += (int) strlen(s);
           break;
         case 'X':
           FIND(Str("no sound file directory name"));
-          foo = filnamp;
-          while ((*filnamp++ = *s++));  s--;
-          strcpy(sfdir_path,foo);
+          strcpy(sfdir_path, s);
+          s += (int) strlen(s);
           break;
-          /*      case '-': FIND(Str("no listing file name")) ;
-                  foo = filnamp;
-                  while ((*filnamp++ = *s++));  s--;
-                  strcpy(listing_file,foo);
-                  printf(Str("redirecting standard out to %s......\n"),
-                  listing_file);
-                  if (!freopen(listing_file,"w",stdout))
-                  die(Str("could not redirect sandard out\n"));
-                  break;
-          */
         case 'V':
           FIND(Str("no screen buffer size"));
           sscanf(s,"%d",&vbuf);
@@ -1058,8 +1045,8 @@ int argdecode(void *csound,
           break;
         case 'i':
           FIND(Str("no infilename"));
-          O.infilename = filnamp;   /* soundin name */
-          while ((*filnamp++ = *s++));  s--;
+          O.infilename = s;         /* soundin name */
+          s += (int) strlen(s);
           if (strcmp(O.infilename,"stdout") == 0)
             dieu(Str("-i cannot be stdout"));
           if (strcmp(O.infilename,"stdin") == 0)
@@ -1076,8 +1063,8 @@ int argdecode(void *csound,
           break;
         case 'o':
           FIND(Str("no outfilename"));
-          O.outfilename = filnamp;          /* soundout name */
-          while ((*filnamp++ = *s++)); s--;
+          O.outfilename = s;                /* soundout name */
+          s += (int) strlen(s);
           if (strcmp(O.outfilename,"stdin") == 0)
             dieu(Str("-o cannot be stdin"));
           if (strcmp(O.outfilename,"stdout") == 0)
@@ -1196,8 +1183,8 @@ int argdecode(void *csound,
           break;
         case 'L':
           FIND(Str("no Linein score device_name"));
-          O.Linename = filnamp;     /* Linein device name */
-          while ((*filnamp++ = *s++));  s--;
+          O.Linename = s;           /* Linein device name */
+          s += (int) strlen(s);
           if (!strcmp(O.Linename,"stdin")) {
             if (stdinassgn)
               dieu(Str("-L: stdin previously assigned"));
@@ -1207,8 +1194,8 @@ int argdecode(void *csound,
           break;
         case 'M':
           FIND(Str("no midi device_name"));
-          O.Midiname = filnamp;     /* Midi device name */
-          while ((*filnamp++ = *s++));  s--;
+          O.Midiname = s;           /* Midi device name */
+          s += (int) strlen(s);
           if (!strcmp(O.Midiname,"stdin")) {
             if (stdinassgn)
               dieu(Str("-M: stdin previously assigned"));
@@ -1218,8 +1205,8 @@ int argdecode(void *csound,
           break;
         case 'F':
           FIND(Str("no midifile name"));
-          O.FMidiname = filnamp;    /* Midifile name */
-          while ((*filnamp++ = *s++));  s--;
+          O.FMidiname = s;          /* Midifile name */
+          s += (int) strlen(s);
           if (!strcmp(O.FMidiname,"stdin")) {
             if (stdinassgn)
               dieu(Str("-F: stdin previously assigned"));
@@ -1241,8 +1228,8 @@ int argdecode(void *csound,
 #ifdef __BEOS__                     /* jjk 09252000 - MIDI output device */
         case 'Q':
           FIND(Str("no midi output device name"));
-          O.Midioutname = filnamp;
-          while ((*filnamp++ = *s++));  s--;
+          O.Midioutname = s;
+          s += (int) strlen(s);
           break;
 #endif
         case 'R':
@@ -1268,15 +1255,6 @@ int argdecode(void *csound,
         case 'K':
           peakchunks = 0;     /* Do not write peak information */
           break;
-#ifdef LINUX
-          /* Add option to set soundcard output volume for real-
-             time audio output under Linux. -- J. Mohr 95 Oct 17 */
-        case 'V':
-          FIND(Str("no volume level"));
-          sscanf(s,"%d%n",&O.Volume, &n);
-          s += n;
-          break;
-#endif
         case 'z':
           {
             int full = 0;
@@ -1287,7 +1265,6 @@ int argdecode(void *csound,
             list_opcodes(full);
           }
 #ifndef mills_macintosh
-          *pfilnamp = filnamp;
           return (1);
 #else
           break;
@@ -1300,8 +1277,7 @@ int argdecode(void *csound,
           {
             FILE *ind = fopen(s, "r");
             if (ind==0) {
-              sprintf(errmsg,
-                      Str("Cannot open indirection file %s\n"), s);
+              sprintf(errmsg, Str("Cannot open indirection file %s\n"), s);
               dieu(errmsg);
             }
             else {
@@ -1352,13 +1328,11 @@ int argdecode(void *csound,
       }
     }
   } while (--argc);
-  *pfilnamp = filnamp;
   return 1;
 
  outtyp:
   dieu(Str("output soundfile cannot be both AIFF and WAV"));
 
-  *pfilnamp = filnamp;
   return (0);
 }
 
