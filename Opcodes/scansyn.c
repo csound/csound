@@ -348,7 +348,7 @@ int scsnu_init(ENVIRON *csound, PSCSNU *p)
  *      Performance function for updater
  */
 
-static MYFLT dt = FL(1.0);
+#define dt  (FL(1.0))
 
 int scsnu_play(ENVIRON *csound, PSCSNU *p)
 {
