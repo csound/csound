@@ -265,6 +265,12 @@ void otran(void)
 /*     displop4 = getopnum("specdisp"); */
 
     rdorchfile();                               /* go read orch file    */
+    if (pool == NULL) {
+      pool = (MYFLT *)mmalloc((long)NCONSTS * sizeof(MYFLT));
+      *pool = (MYFLT)SSTRCOD;
+      poolcount = 1;
+      nconsts = NCONSTS;
+    }
     while ((tp = getoptxt(&init)) != NULL) {    /*   then for each opcode: */
         unsigned int threads=0;
         int opnum = tp->opnum;
@@ -851,16 +857,10 @@ static int constndx(char *s)    /* get storage ndx of float const value */
     MYFLT       *fp;
     char        *str = s;
 
-    if (pool == NULL) {
-      pool = (MYFLT *)mmalloc((long)NCONSTS * sizeof(MYFLT));
-      *pool = (MYFLT)SSTRCOD;
-      poolcount = 1;
-      nconsts = NCONSTS;
-    }
 #ifdef USE_DOUBLE
-      if (sscanf(s,"%lf",&newval) != 1) goto flerror;
+    if (sscanf(s,"%lf",&newval) != 1) goto flerror;
 #else
-      if (sscanf(s,"%f",&newval) != 1) goto flerror;
+    if (sscanf(s,"%f",&newval) != 1) goto flerror;
 #endif
     /* It is tempting to assume that if this loop is removed then we
      * would not share constants.  However this breaks something else
