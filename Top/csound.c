@@ -32,6 +32,7 @@ extern "C" {
 #include <stdarg.h>
 #include "csound.h"
 #include "csoundCore.h"
+#include "prototyp.h"
 
 #ifndef MAX_PATH
   static const int MAX_PATH = 0xff;
@@ -52,26 +53,10 @@ int fltk_abort = 0;
   static long csoundNumExits_ = -1;
   static jmp_buf csoundJump_;
   extern OPARMS O;
-  extern int csoundMain(void *csound, int argc, char **argv);
-  extern void csoundMainCleanup(void);
-  extern void mainRESET(void);
-  extern void dispkill(WINDAT *windat);
   extern int kperf(int kcnt);
   extern int kcnt;
   extern char *inbuf;
   extern void *outbuf;
-  extern void SfReset(void);
-  extern void csoundDefaultMidiOpen(void *csound);
-  extern void create_opcodlst(void);
-  extern int writeLine(const char *text, long size);
-  extern void newevent(void *csound, char type, MYFLT *pfields, long numFields);
-  extern opcodelist* new_opcode_list();
-  extern int dispose_opcode_list(opcodelist *list);
-  extern void csoundDefaultExternalMidiCloseCallback(void *csound);
-  extern void MakeAscii(WINDAT *wdptr, char *n);
-  extern void KillAscii(WINDAT *wdptr);
-  extern void DrawAscii(WINDAT *wdptr);
-  extern void rtclose_(void);
 
   PUBLIC void *csoundCreate(void *hostdata)
   {
@@ -891,13 +876,15 @@ int fltk_abort = 0;
    */
 
 #if !defined(USE_FLTK)
-  int POLL_EVENTS()
+  int POLL_EVENTS(void)
   {
       return 1;
   }
+#else
+  extern int POLL_EVENTS(void);
 #endif
 
-  static int defaultCsoundYield(void *csound)
+  int defaultCsoundYield(void *csound)
   {
       return POLL_EVENTS();
   }
