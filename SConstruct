@@ -236,6 +236,7 @@ jackFound = configure.CheckHeader("jack/jack.h", language = "C")
 
 if getPlatform() == 'mingw':
     commonEnvironment['ENV']['PATH'] = os.environ['PATH']
+    commonEnvironment['SYSTEMROOT'] = os.environ['SYSTEMROOT']
 
 # Define macros that configure and config.h used to define.
 
@@ -936,6 +937,9 @@ else:
         vstEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
         guiProgramEnvironment.Prepend(LINKFLAGS = ['-mwindows', '_CsoundVST.so'])
     elif getPlatform() == 'cygwin' or getPlatform() == 'mingw':
+    	pythonImportLibrary = vstEnvironment.Command('/usr/local/lib/libpython23.a', 
+		'$SYSTEMROOT/System32/python23.dll', 
+		['pexports $SYSTEMROOT/System32/python23.dll > python23.def', 'dlltool --input-def python23.def --dllname python23.dll --output-lib /usr/local/lib/libpython23.a'])
         vstEnvironment['ENV']['PATH'] = os.environ['PATH']
         vstEnvironment.Append(SHLINKFLAGS = '-Wl,--add-stdcall-alias')
         vstEnvironment.Append(CCFLAGS = ['-DNDEBUG'])
