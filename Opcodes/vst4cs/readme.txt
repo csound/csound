@@ -77,11 +77,5 @@ Complete and refine message levels (log and debug) (mkg).
 
 Add vstplugg opcode to collect audio from multiple vstnote or vstout instruments (ac and mkg).
 
-
-To Do
------
-
-
-Change editor to krate so orcs can open/close/reopen editors.
-
+Renamed opcodes -- vstaudio for vstplug, vstmidiout for vstout, vstparamset for vstpsend, vstparamget for vstpret (mkg).
 
