@@ -21,7 +21,8 @@ VSTPlugin::VSTPlugin(ENVIRON *csound_) :
     overwrite(false),
     show_params(false),
     _midichannel(0),
-    edited(false)
+    edited(false),
+    blockSize(0)
 {
     vstEvents = (VstEvents *)&buffer[0];
 	 //w = GetForegroundWindow();
@@ -29,13 +30,12 @@ VSTPlugin::VSTPlugin(ENVIRON *csound_) :
 
 VSTPlugin::~VSTPlugin()
 {
-	Free();				// Call free
+	Free();			
 }
 
-bool VSTPlugin::AddMIDI(int data0,int data1,int data2)
+bool VSTPlugin::AddMIDI(int data0, int data1, int data2)
 {
-	if (instantiated)
-	{
+	if (instantiated) {
 		VstMidiEvent* pevent=&midievent[queue_size];
 		pevent->type = kVstMidiType;
 		pevent->byteSize = 24;
@@ -51,17 +51,18 @@ bool VSTPlugin::AddMIDI(int data0,int data1,int data2)
 		pevent->midiData[1] = data1;
 		pevent->midiData[2] = data2;
 		pevent->midiData[3] = 0;
-		if ( queue_size < MAX_EVENTS ) queue_size++;
+		if ( queue_size < MAX_EVENTS ) 
+            queue_size++;
 		SendMidi();
 		return true;
 	}
-	else return false;
+	else 
+        return false;
 }
 
-bool VSTPlugin::AddNoteOn( int note,int speed,int midichannel)
+bool VSTPlugin::AddNoteOn( int note, int speed, int midichannel)
 {
-	if(instantiated)
-	{
+	if (instantiated) {
 		VstMidiEvent* pevent=&midievent[queue_size];
 		pevent->type = kVstMidiType;
 		pevent->byteSize = 24;
@@ -73,42 +74,43 @@ bool VSTPlugin::AddNoteOn( int note,int speed,int midichannel)
 		pevent->reserved1 = 0;
 		pevent->reserved2 = 0;
 		pevent->noteOffVelocity = 0;
-		pevent->midiData[0] = (char)MIDI_NOTEON | midichannel; // Midi On
+		pevent->midiData[0] = 144 | midichannel;
 		pevent->midiData[1] = note;
 		pevent->midiData[2] = speed;
 		pevent->midiData[3] = 0;
-		if ( queue_size < MAX_EVENTS ) queue_size++;
+		if ( queue_size < MAX_EVENTS ) 
+            queue_size++;
 		SendMidi();
-		//csound->Message(csound,"Note On\n");
 		return true;
 	}
-	else	return false;
+	else 
+        return false;
 }
 
-bool VSTPlugin::AddNoteOff( int note,int midichannel)
+bool VSTPlugin::AddNoteOff( int note, int midichannel)
 {
 	if (instantiated) {
-			VstMidiEvent* pevent=&midievent[queue_size];
-			pevent->type = kVstMidiType;
-			pevent->byteSize = 24;
-			pevent->deltaFrames = 0;
-			pevent->flags = 0;
-			pevent->detune = 0;
-			pevent->noteLength = 0;
-			pevent->noteOffset = 0;
-			pevent->reserved1 = 0;
-			pevent->reserved2 = 0;
-			pevent->noteOffVelocity = 0;
-			pevent->midiData[0] = (char)MIDI_NOTEOFF | midichannel; // Midi Off
-			pevent->midiData[1] = note;
-			pevent->midiData[2] = 0;
-			pevent->midiData[3] = 0;
-
-			if ( queue_size < MAX_EVENTS ) queue_size++;
-			SendMidi();
-			return true;
+		VstMidiEvent* pevent=&midievent[queue_size];
+		pevent->type = kVstMidiType;
+		pevent->byteSize = 24;
+		pevent->deltaFrames = 0;
+		pevent->flags = 0;
+		pevent->detune = 0;
+		pevent->noteLength = 0;
+		pevent->noteOffset = 0;
+		pevent->reserved1 = 0;
+		pevent->reserved2 = 0;
+		pevent->noteOffVelocity = 0;
+		pevent->midiData[0] = 128 | midichannel;
+		pevent->midiData[1] = note;
+		pevent->midiData[2] = 0;
+		pevent->midiData[3] = 0;
+		if ( queue_size < MAX_EVENTS ) 
+            queue_size++;
+		SendMidi();
+		return true;
 	}
-	else
+	else 
         return false;
 }
 
@@ -246,6 +248,7 @@ void VSTPlugin::Free() // Called also in destruction
 void VSTPlugin::Init( float samplerate , float blocksize )
 {
 	sample_rate = samplerate;
+	blockSize = blocksize;
 	//csound->Message(csound,"init ok\n");
 	Dispatch(effOpen        ,  0, 0, NULL, 0.f);
 	Dispatch(effSetProgram  ,  0, 0, NULL, 0.0f);
@@ -300,8 +303,16 @@ void VSTPlugin::SendMidi()
 	if(instantiated && queue_size>0) {
 		vstEvents->numEvents = queue_size;
 		vstEvents->reserved  = 0;
-		for(int q=0;q<queue_size;q++) 
-            vstEvents->events[q] = (VstEvent*)&midievent[q];
+		for(int q=0;q<queue_size;q++) {
+		    VstMidiEvent &vstMidiEvent = midievent[q];
+		    VstEvent &vstEvent = (VstEvent &)vstMidiEvent;
+            vstEvents->events[q] = &vstEvent;
+            csound->Message(csound, 
+                "VSTPlugin::SendMidi(status %d data1 %d data2 %d\n",
+                vstMidiEvent.midiData[0],
+                vstMidiEvent.midiData[1],
+                vstMidiEvent.midiData[2]);
+        }           
 		Dispatch(effProcessEvents, 0, 0, vstEvents, 0.0f);
 		queue_size=0;
 	}
