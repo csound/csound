@@ -686,7 +686,8 @@ if configure.CheckHeader("fluidsynth.h", language = "C"):
 # VST HOST OPCODES
 
 if getPlatform() == 'mingw':
-    vst4Environment = pluginEnvironment.Copy()
+    vst4Environment = vstEnvironment.Copy()
+    vst4Environment.Append(LIBS = ['stdc++', 'fltk'])    
     if getPlatform() == 'mingw':
         vst4Environment.Append(LIBS = ['kernel32'])
         vst4Environment.Append(LIBS = ['gdi32'])
@@ -695,8 +696,11 @@ if getPlatform() == 'mingw':
         vst4Environment.Append(LIBS = ['uuid'])
     vst4Environment.Append(CPPPATH = ['frontends/CsoundVST'])
     zipDependencies.append(vst4Environment.SharedLibrary('vst4cs', 
-         Split('''Opcodes/vst4cs/src/vst4cs.cpp
-              Opcodes/vst4cs/src/vsthost.cpp''')))
+         Split('''
+         Opcodes/vst4cs/src/vst4cs.cpp 
+         Opcodes/vst4cs/src/fxbank.cpp
+         Opcodes/vst4cs/src/vsthost.cpp
+         ''')))
             
 # Utility programs.
 
