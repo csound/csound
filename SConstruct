@@ -15,9 +15,13 @@ For Microsoft Visual C++, run 'scons' in the Visual Studio .NET command prompt
 For Cygwin, run SCons.bat in the Python directory 
     and use Cygwin Python.
 '''
+import datetime
+import glob
 import os
+import os.path
 import sys
 import string
+import zipfile
 
 #############################################################################
 #
@@ -66,6 +70,7 @@ Help(opts.GenerateHelpText(commonEnvironment))
 
 commonEnvironment.Append(CPPPATH  = ['.', './H'])
 commonEnvironment.Append(CCFLAGS = '-DCSOUND_WITH_API')
+
 # Define options for different platforms.
 
 if (sys.platform[:5] == 'linux'):
@@ -139,8 +144,6 @@ portaudioFound = configure.CheckHeader("portaudio.h", language = "C")
 fltkFound = configure.CheckHeader("FL/Fl.H", language = "C++")
 boostFound = configure.CheckHeader("boost/any.hpp", language = "C++")
 
-
-
 # Define macros that configure and config.h used to define.
 
 if configure.CheckHeader("io.h", language = "C"):
@@ -169,6 +172,59 @@ if configure.CheckHeader("strings.h", language = "C"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_STRINGS_H')
 if configure.CheckHeader("dirent.h", language = "c"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_DIRENT_H')
+
+# Package contents.
+
+zipfilename = "csoundvst-" + sys.platform + "-" + str(datetime.date.today()) + ".zip"
+
+def buildzip(env, target, source):
+
+    os.chdir('..')
+    directories = string.split("csound5")
+    
+    extensions = ".sln .csproj .vsproj .dev .def .am .sh .ac .in "
+    extensions = extensions + ".htm .html .doc .mso .png .xml .mso .gif .jpg .jpeg .hlp .nb .wks .xls .pdf "
+    extensions = extensions + ".c .C .cpp .cxx .h .hpp .H .hxx .py .rc .res .fl .i .java"
+    extensions = extensions + ".sf2 .SF2 .csd .aif .aiff .jar .smf .mid"
+    extensions = string.split(extensions)
+    
+    specificFiles = "SConstruct _CsoundVST.* _loris.* pyrun.* CsoundCOM.dll msvcp70.dll msvcr70.dll CsoundVST.exe CsoundVST _CsoundVST.dll _CsoundVST.so soundfonts.dll "
+    specificFiles = specificFiles + "README Doxyfile ChangeLog COPYING INSTALL MANIFEST Makefile COPYRIGHT AUTHORS "
+    specificFiles = string.split(specificFiles)
+    
+    print "Types of files to be archived..."
+    extensions.sort()
+    for extension in extensions:
+        print extension
+    print
+    
+    print "Compiling list of files to archive..."
+    pathnames = []
+    for directory in directories:
+        for root, directories, files in os.walk(directory):
+            if files:
+                print root
+                if root.find("vstsdk2") == -1:
+                    for filename in files:
+                        basename, extension = os.path.splitext(filename)
+                        if extension in extensions or filename in specificFiles:
+                            pathname = os.path.join(root, filename)
+                            pathnames.append(pathname)
+    print
+    pathnames.sort()
+    for filename in pathnames:
+        print filename
+    print
+    print "Creating archive..."
+    archive = zipfile.ZipFile("csound5/" + zipfilename, "w", zipfile.ZIP_DEFLATED)
+    pathnames.sort()
+    for filename in pathnames:
+        print filename
+        archive.write(filename)
+    archive.close()
+    os.chdir('csound5')
+    print
+    print "Finished packaging '" + zipfilename + "'."    
 
 # Define different build environments for different types of targets.
 
@@ -349,13 +405,13 @@ if commonEnvironment['usePortAudio'] and portaudioFound:
 	
 if commonEnvironment['useFLTK'] and fltkFound:
     print 'Building with FLTK for graphs and widgets.'
-    libCsoundSources.append('InOut/winFLTK.c')
     libCsoundSources.append('InOut/FL_graph.cpp')
+    libCsoundSources.append('InOut/winFLTK.c')
     libCsoundSources.append('InOut/widgets.cpp')
     
-staticLibraryEnvironment.Library('csound', 
+staticLibrary = staticLibraryEnvironment.Library('csound', 
     libCsoundSources)
-
+    
 libUstubSources = Split('''
 Engine/extract.c 
 Engine/filopen.c 
@@ -655,5 +711,14 @@ if commonEnvironment['buildCsoundVST'] == 1 and boostFound and fltkFound:
     csoundvst = vstEnvironment.SharedLibrary('CsoundVST', csoundVstSources, SHLIBPREFIX = '_')
     Depends(csoundvst, pyrun)
 
-    guiProgramEnvironment.Program('CsoundVST', ['frontends/CsoundVST/csoundvst_main.cpp']) 
+    csoundvstGui = guiProgramEnvironment.Program('CsoundVST', ['frontends/CsoundVST/csoundvst_main.cpp']) 
 
+    zip = commonEnvironment.Command(zipfilename, [csoundvst, csoundvstGui], buildzip)
+    Depends(zip, [csoundvst, csoundvstGui])
+
+allSources = string.join(glob.glob('*/*.h*'))
+allSources = allSources + ' ' + string.join(glob.glob('*/*.h*'))
+allSources = allSources + ' ' + string.join(glob.glob('*/*/*.c*'))
+allSources = allSources + ' ' + string.join(glob.glob('*/*/*.h*'))
+tags = commonEnvironment.Command('TAGS', Split(allSources), 'etags $SOURCES')
+Depends(tags, staticLibrary)
