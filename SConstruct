@@ -182,14 +182,14 @@ def buildzip(env, target, source):
     os.chdir('..')
     directories = string.split("csound5")
     
-    extensions = ".sln .csproj .vsproj .dev .def .am .sh .ac .in "
+    extensions = ".sln .csproj .vsproj .dev .def .am .sh .ac .in .dll .so .exe"
     extensions = extensions + ".htm .html .doc .mso .png .xml .mso .gif .jpg .jpeg .hlp .nb .wks .xls .pdf "
     extensions = extensions + ".c .C .cpp .cxx .h .hpp .H .hxx .py .rc .res .fl .i .java"
     extensions = extensions + ".sf2 .SF2 .csd .aif .aiff .jar .smf .mid"
     extensions = string.split(extensions)
     
-    specificFiles = "SConstruct _CsoundVST.* _loris.* pyrun.* CsoundCOM.dll msvcp70.dll msvcr70.dll CsoundVST.exe CsoundVST _CsoundVST.dll _CsoundVST.so soundfonts.dll "
-    specificFiles = specificFiles + "README Doxyfile ChangeLog COPYING INSTALL MANIFEST Makefile COPYRIGHT AUTHORS "
+    specificFiles = "SConstruct _CsoundVST.* _loris.* pyrun.* CsoundCOM.dll msvcp70.dll msvcr70.dll CsoundVST.exe CsoundVST.* soundfonts.dll "
+    specificFiles = specificFiles + "README Doxyfile ChangeLog COPYING INSTALL MANIFEST Makefile COPYRIGHT AUTHORS TODO"
     specificFiles = string.split(specificFiles)
     
     print "Types of files to be archived..."
