@@ -74,7 +74,7 @@ static OSCcontainer OSCTopLevelContainer;
 static OSCcontainer freeContainers;   /* Linked list via next field. */
 static OSCMethod freeMethods;         /* Linked list via next field. */
 static void *(*RealTimeMemoryAllocator)(int numBytes);
-
+static int gasHelp(char *, int, OSCcontainer);
 
 /* Note:  The free list of containers should actually be a "free forest", so 
    that all the subcontainers recursively under a freed container are 
@@ -110,10 +110,10 @@ static void MakeFreeMethodsList(int n) {
 }
 
 OSCcontainer OSCInitAddressSpace(struct OSCAddressSpaceMemoryTuner *t) {
-    int bytesNeeded, i;
+    int bytesNeeded;
 
     if (Initialized)
-	fatal_error("OSCInitAddressSpace: already initialized!");
+      fatal_error("OSCInitAddressSpace: already initialized!");
     Initialized = TRUE;
 
     RealTimeMemoryAllocator = t->RealTimeMemoryAllocator;
@@ -121,8 +121,8 @@ OSCcontainer OSCInitAddressSpace(struct OSCAddressSpaceMemoryTuner *t) {
     bytesNeeded = (1 + t->initNumContainers) * sizeof(*freeContainers);
     freeContainers = (OSCcontainer) (*(t->InitTimeMemoryAllocator))(bytesNeeded);
     if (freeContainers == 0) {
-	fatal_error("OSCInitAddressSpace: couldn't allocate %d bytes for %d containers",
-		    bytesNeeded, t->initNumContainers);
+      fatal_error("OSCInitAddressSpace: couldn't allocate %d bytes for %d containers",
+                  bytesNeeded, t->initNumContainers);
     }
 
     OSCTopLevelContainer = &freeContainers[t->initNumContainers];
@@ -131,8 +131,8 @@ OSCcontainer OSCInitAddressSpace(struct OSCAddressSpaceMemoryTuner *t) {
     bytesNeeded = t->initNumMethods * sizeof(*freeMethods);
     freeMethods = (OSCMethod) (*(t->InitTimeMemoryAllocator))(bytesNeeded);
     if (freeMethods == 0) {
-        fatal_error("OSCInitAddressSpace: couldn't allocate %d bytes for %d methods",
-		    bytesNeeded, t->initNumMethods);
+      fatal_error("OSCInitAddressSpace: couldn't allocate %d bytes for %d methods",
+                  bytesNeeded, t->initNumMethods);
     }
     MakeFreeMethodsList(t->initNumMethods);
 
@@ -172,10 +172,10 @@ static OSCcontainer AllocContainer(void) {
     }
 }
 
-static void FreeContainer(OSCcontainer c) {
-    c->next = freeContainers;
-    freeContainers = c;
-}
+/* static void FreeContainer(OSCcontainer c) { */
+/*     c->next = freeContainers; */
+/*     freeContainers = c; */
+/* } */
 
 static OSCMethod AllocMethod(void) {
     static int numExtraAllocs = 0;
@@ -200,10 +200,10 @@ static OSCMethod AllocMethod(void) {
     }
 }
 
-static void FreeMethod(OSCMethod c) {
-    c->next = freeMethods;
-    freeMethods = c;
-}
+/* static void FreeMethod(OSCMethod c) { */
+/*     c->next = freeMethods; */
+/*     freeMethods = c; */
+/* } */
 
 
 /**************************** Containers  ****************************/    
@@ -541,59 +541,59 @@ static callbackListEnds DispatchSubMessage(char *pattern, OSCcontainer c) {
     callbackListEnds result;
     char *nextSlash, *restOfPattern;
     char offendingAddr[LONG_ADDR_LEN];
-    int i, j;
+    int i;
 
     result.begin = result.end = 0;
     nextSlash = NextSlashOrNull(pattern);
 
     if (*nextSlash == '\0') {
-	/* Base case: the pattern names methods of this container. */
-	for (i = 0; i < c->numMethods; i++) {
-	    if (PatternMatch(pattern, c->methodNames[i])) {
-		callbackList node = AllocCallbackListNode(c->methods[i]->callback,
-							  c->methods[i]->context,
-							  result.begin);
-		if (node == 0) {
-		    /* Excuse the hairyness of the code to generate the error message. */
-		    if (OSCGetAddressString(offendingAddr, 
-					    LONG_ADDR_LEN-strlen(c->methodNames[i]),
-					    c)) {
-			strcat(offendingAddr, c->methodNames[i]);
-		    } else {
-			strcpy(offendingAddr, c->methodNames[i]);
-		    }
-			
-		    OSCWarning("No memory for callback node; not invoking %s",
-			       offendingAddr);
-		} else {
-		    if (result.end == 0) {
-			result.end = node;
-		    }
-		    result.begin = node;
-		}
-	    }
-	}
+      /* Base case: the pattern names methods of this container. */
+      for (i = 0; i < c->numMethods; i++) {
+        if (PatternMatch(pattern, c->methodNames[i])) {
+          callbackList node = AllocCallbackListNode(c->methods[i]->callback,
+                                                    c->methods[i]->context,
+                                                    result.begin);
+          if (node == 0) {
+            /* Excuse the hairyness of the code to generate the error message. */
+            if (OSCGetAddressString(offendingAddr, 
+                                    LONG_ADDR_LEN-strlen(c->methodNames[i]),
+                                    c)) {
+              strcat(offendingAddr, c->methodNames[i]);
+            } else {
+              strcpy(offendingAddr, c->methodNames[i]);
+            }
+            
+            OSCWarning("No memory for callback node; not invoking %s",
+                       offendingAddr);
+          } else {
+            if (result.end == 0) {
+              result.end = node;
+            }
+            result.begin = node;
+          }
+        }
+      }
     } else {
-	/* Recursive case: in the middle of an address, so the job at this 
-	   step is to look for containers that match.  We temporarily turn
-           the next slash into a null so pattern will be a null-terminated
-	   string of the stuff between the slashes. */
-	*nextSlash = '\0';
-	restOfPattern = nextSlash + 1;
-
-	for (i = 0; i < c->numChildren; ++i) {
-	    if (PatternMatch(pattern, c->childrenNames[i])) {
-		callbackListEnds subResult =	
-		    DispatchSubMessage(restOfPattern, c->children[i]);
-		if (result.end == 0) {
-		    result = subResult;
-		} else {
-		    subResult.end->next = result.begin;
-		    result.begin = subResult.begin;
-		}
-	    }
-	}
-	*nextSlash = '/';
+      /* Recursive case: in the middle of an address, so the job at this 
+         step is to look for containers that match.  We temporarily turn
+         the next slash into a null so pattern will be a null-terminated
+         string of the stuff between the slashes. */
+      *nextSlash = '\0';
+      restOfPattern = nextSlash + 1;
+      
+      for (i = 0; i < c->numChildren; ++i) {
+        if (PatternMatch(pattern, c->childrenNames[i])) {
+          callbackListEnds subResult =	
+            DispatchSubMessage(restOfPattern, c->children[i]);
+          if (result.end == 0) {
+            result = subResult;
+          } else {
+            subResult.end->next = result.begin;
+            result.begin = subResult.begin;
+          }
+        }
+      }
+      *nextSlash = '/';
     }
     return result;
 }
