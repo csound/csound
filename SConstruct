@@ -503,6 +503,7 @@ Top/pvanal.c
 Top/pvlook.c
 Top/scot.c
 Top/sndinfo.c
+Top/threads.c
 ''')
 
 if (commonEnvironment['usePortAudio']==1) and portaudioFound:
