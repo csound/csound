@@ -215,7 +215,7 @@ int cabasaset(ENVIRON *csound, CABASA *p)
 int cabasa(ENVIRON *csound, CABASA *p)
 {
     MYFLT *ar = p->ar;
-    long nsmps = ksmps;
+    int   n,nsmps = ksmps;
     MYFLT data;
                                 /* Use locals for speed */
     MYFLT shakeEnergy = p->shakeEnergy;
@@ -258,7 +258,7 @@ int cabasa(ENVIRON *csound, CABASA *p)
       shakeEnergy = FL(0.0);
     }
 
-    do {
+    for (n=0;n<nsmps;n++) {
 /*        if (shakeEnergy > MIN_ENERGY) { */
       shakeEnergy *= systemDecay;               /* Exponential system decay */
       if (MY_RANDOM(1024) < p->num_objects) {
@@ -273,12 +273,12 @@ int cabasa(ENVIRON *csound, CABASA *p)
       data =  outputs0 - outputs1;
 /*          if (data > 10000.0f)        data = 10000.0f; */
 /*          if (data < -10000.0f) data = -10000.0f; */
-      *ar++ = data * FL(0.0005) * e0dbfs ;
+      ar[n] = data * FL(0.0005) * e0dbfs ;
 /*        } */
 /*        else { */
 /*          *ar++ = 0.0f; */
 /*        } */
-    } while (--nsmps);
+    }
     p->shakeEnergy = shakeEnergy;
     p->sndLevel = sndLevel;
     p->outputs0 = outputs0;
@@ -315,7 +315,7 @@ int sekereset(ENVIRON *csound, SEKERE *p)
 int sekere(ENVIRON *csound, SEKERE *p)
 {
     MYFLT *ar = p->ar;
-    long nsmps = ksmps;
+    int   n,nsmps = ksmps;
     MYFLT data;
                                 /* Use locals for speed */
     MYFLT shakeEnergy = p->shakeEnergy;
@@ -356,7 +356,7 @@ int sekere(ENVIRON *csound, SEKERE *p)
       shakeEnergy = FL(0.0);
     }
 
-    do {
+    for (n=0;n<nsmps;n++) {
 /*        if (shakeEnergy > MIN_ENERGY) { */
       shakeEnergy *= systemDecay;               /* Exponential system decay */
       if (MY_RANDOM(1024) < p->num_objects) {
@@ -374,12 +374,12 @@ int sekere(ENVIRON *csound, SEKERE *p)
       data = p->finalZ0 - p->finalZ2;
 /*          if (data > 10000.0f)        data = 10000.0f; */
 /*          if (data < -10000.0f) data = -10000.0f; */
-      *ar++ = data * FL(0.0005) * e0dbfs ;
+      ar[n] = data * FL(0.0005) * e0dbfs ;
 /*        } */
 /*        else { */
-/*          *ar++ = 0.0f; */
+/*          ar[n] = 0.0f; */
 /*        } */
-    } while (--nsmps);
+    }
     p->shakeEnergy = shakeEnergy;
     p->sndLevel = sndLevel;
     p->outputs0 = outputs0;
@@ -514,7 +514,7 @@ int guiroset(ENVIRON *csound, GUIRO *p)
 int guiro(ENVIRON *csound, GUIRO *p)
 {
     MYFLT *ar = p->ar;
-    long nsmps = ksmps;
+    int  n,nsmps = ksmps;
     MYFLT lastOutput;
 
     if (*p->num_teeth != FL(0.0) &&
@@ -574,7 +574,7 @@ int guiro(ENVIRON *csound, GUIRO *p)
       MYFLT gains0       = p->gains0;
       MYFLT gains1       = p->gains1;
       MYFLT amp          = *p->amp;
-      do {
+      for (n=0;n<nsmps;n++) {
         if (ratchetPos > 0) {
           ratchet -= (ratchetDelta + (FL(0.002)*totalEnergy));
           if (ratchet < FL(0.0)) {
@@ -607,8 +607,8 @@ int guiro(ENVIRON *csound, GUIRO *p)
         }
         else
           lastOutput = FL(0.0);
-        *ar++ = FL(1.33)*lastOutput*amp;
-      } while (--nsmps);
+        ar[n] = FL(1.33)*lastOutput*amp;
+      }
       p->sndLevel    = sndLevel;
       p->ratchet     = ratchet;
       p->ratchetPos  = ratchetPos;
@@ -674,7 +674,7 @@ int tambourset(ENVIRON *csound, TAMBOURINE *p)
 int tambourine(ENVIRON *csound, TAMBOURINE *p)
 {
     MYFLT *ar = p->ar;
-    long nsmps = ksmps;
+    int  n,nsmps = ksmps;
     MYFLT data;
     MYFLT temp_rand;
     MYFLT lastOutput;
@@ -719,7 +719,7 @@ int tambourine(ENVIRON *csound, TAMBOURINE *p)
       MYFLT sndLevel = p->sndLevel;
       MYFLT soundDecay = p->soundDecay;
       MYFLT inputs0, inputs1, inputs2;
-      do {
+      for (n=0;n<nsmps;n++) {
         shakeEnergy *= systemDecay; /* Exponential system decay */
         if (MY_RANDOM(1024) < p->num_objects) {
           sndLevel += p->gain * shakeEnergy;
@@ -754,8 +754,8 @@ int tambourine(ENVIRON *csound, TAMBOURINE *p)
         p->finalZ0 += p->gains2 * p->outputs21;
         data = p->finalZ0 - p->finalZ2;         /* Extra zero(s) for shape */
         lastOutput = data * FL(0.0009);
-        *ar++ = lastOutput*e0dbfs;
-      } while (--nsmps);
+        ar[n] = lastOutput*e0dbfs;
+      }
       p->shakeEnergy = shakeEnergy;
       p->sndLevel = sndLevel;
     }
@@ -806,7 +806,7 @@ int bambooset(ENVIRON *csound, BAMBOO *p)
 int bamboo(ENVIRON *csound, BAMBOO *p)
 {
     MYFLT *ar = p->ar;
-    long nsmps = ksmps;
+    int   n, nsmps = ksmps;
     MYFLT data;
     MYFLT temp_rand;
     MYFLT lastOutput;
@@ -850,7 +850,7 @@ int bamboo(ENVIRON *csound, BAMBOO *p)
       MYFLT sndLevel = p->sndLevel;
       MYFLT soundDecay = p->soundDecay;
       MYFLT inputs0, inputs1, inputs2;
-      do {
+      for (n=0;n<nsmps;n++) {
         shakeEnergy *= systemDecay; /* Exponential system decay */
         if (MY_RANDOM(1024) < p->num_objects) {
           sndLevel += shakeEnergy;
@@ -888,8 +888,8 @@ int bamboo(ENVIRON *csound, BAMBOO *p)
 /*            if (data > 10000.0f)      data = 10000.0f; */
 /*            if (data < -10000.0f) data = -10000.0f; */
         lastOutput = data * FL(0.00051);
-        *ar++ = lastOutput*e0dbfs;
-      } while (--nsmps);
+        ar[n] = lastOutput*e0dbfs;
+      }
       p->shakeEnergy = shakeEnergy;
       p->sndLevel = sndLevel;
     }
@@ -940,7 +940,7 @@ int wuterset(ENVIRON *csound, WUTER *p)
 int wuter(ENVIRON *csound, WUTER *p)
 {
     MYFLT *ar = p->ar;
-    long nsmps = ksmps;
+    int   n, nsmps = ksmps;
     MYFLT data;
     MYFLT lastOutput;
 
@@ -985,7 +985,7 @@ int wuter(ENVIRON *csound, WUTER *p)
       MYFLT soundDecay = p->soundDecay;
       MYFLT inputs0, inputs1, inputs2;
 
-      do {
+      for (n=0;n<nsmps;n++) {
 
         shakeEnergy *= systemDecay;               /* Exponential system decay */
         if (MY_RANDOM(32767) < num_objects) {
@@ -1057,8 +1057,8 @@ int wuter(ENVIRON *csound, WUTER *p)
 
         lastOutput = p->finalZ2 - p->finalZ0;
         lastOutput *= FL(0.005);
-        *ar++ = lastOutput*e0dbfs;
-      } while (--nsmps);
+        ar[n] = lastOutput*e0dbfs;
+      }
       p->shakeEnergy = shakeEnergy;
       p->sndLevel = sndLevel;
     }
@@ -1119,7 +1119,7 @@ int sleighset(ENVIRON *csound, SLEIGHBELLS *p)
 int sleighbells(ENVIRON *csound, SLEIGHBELLS *p)
 {
     MYFLT *ar = p->ar;
-    long nsmps = ksmps;
+    int  n, nsmps = ksmps;
     MYFLT data;
     MYFLT temp_rand;
     MYFLT lastOutput;
@@ -1163,7 +1163,7 @@ int sleighbells(ENVIRON *csound, SLEIGHBELLS *p)
       MYFLT sndLevel = p->sndLevel;
       MYFLT soundDecay = p->soundDecay;
       MYFLT inputs0, inputs1, inputs2, inputs3, inputs4;
-      do {
+      for (n=0;n<nsmps;n++) {
         shakeEnergy *= systemDecay; /* Exponential system decay */
         if (MY_RANDOM(1024) < p->num_objects) {
           sndLevel += p->gain * shakeEnergy;
@@ -1219,8 +1219,8 @@ int sleighbells(ENVIRON *csound, SLEIGHBELLS *p)
         p->finalZ0   = data;
         data         = p->finalZ2 - p->finalZ0;
         lastOutput   = data * FL(0.001);
-        *ar++        = lastOutput*e0dbfs;
-      } while (--nsmps);
+        ar[n]        = lastOutput*e0dbfs;
+      }
       p->shakeEnergy = shakeEnergy;
       p->sndLevel = sndLevel;
     }

@@ -127,7 +127,7 @@ int mandolinset(ENVIRON *csound, MANDOL *p)
 int mandolin(ENVIRON *csound, MANDOL *p)
 {
     MYFLT *ar = p->ar;
-    long  nsmps = ksmps;
+    int  n,nsmps = ksmps;
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT lastOutput;
     MYFLT loopGain;
@@ -148,7 +148,7 @@ int mandolin(ENVIRON *csound, MANDOL *p)
         loopGain = (FL(1.0) - amp) * FL(0.5);
     }
 
-    do {
+    for (n=0;n<nsmps;n++) {
       MYFLT temp = FL(0.0);
       if (!p->waveDone) {
         p->waveDone = infoTick(p);       /* as long as it goes . . .   */
@@ -181,8 +181,8 @@ int mandolin(ENVIRON *csound, MANDOL *p)
                                    (p->delayLine2.lastOutput * loopGain)));
       }
       lastOutput *= FL(3.7);
-      *ar++ = lastOutput*AMP_SCALE;
-    } while (--nsmps);
+      ar[n] = lastOutput*AMP_SCALE;
+    }
     return OK;
 }
 

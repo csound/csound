@@ -151,7 +151,7 @@ static MYFLT getvalue(DelayLine *dl, int position)
 int wgpluck(ENVIRON *csound, WGPLUCK2 *p)
 {
     MYFLT   *ar, *ain;
-    int     nsmps;
+    int     n,nsmps=ksmps;
     MYFLT   yp0,ym0,ypM,ymM;
     DelayLine   *upper_rail;
     DelayLine   *lower_rail;
@@ -169,7 +169,6 @@ int wgpluck(ENVIRON *csound, WGPLUCK2 *p)
     ain   = p->ain;
     scale = p->scale;
     reflect = FL(1.0) - (FL(1.0) - reflect)/(MYFLT)scale; /* For over sapling */
-    nsmps = ksmps;              /* Number of points to calculate */
     upper_rail = (DelayLine*)p->upper.auxp;
     lower_rail = (DelayLine*)p->lower.auxp;
     pickup = (int)((MYFLT)OVERCNT * *(p->pickup) * p->rail_len); /* fract delays */
@@ -181,25 +180,26 @@ int wgpluck(ENVIRON *csound, WGPLUCK2 *p)
       pickfrac = pickup & OVERMSK;
       pickup = pickup>>OVERSHT;
     }
-                                /* *** Start the loop .... *** */
-    do {                        /* while (--nsmps) */
+
+    for (n=0;n<nsmps;n++) {
       MYFLT s, s1;
       s = getvalue(upper_rail, pickup) + getvalue(lower_rail, pickup);
       s1 = getvalue(upper_rail, pickup+1) + getvalue(lower_rail, pickup+1);
-      *ar = s + (s1 - s)*(MYFLT)pickfrac/(MYFLT)OVERCNT; /* Fractional delay */
+      ar[n] = s + (s1 - s)*(MYFLT)pickfrac/(MYFLT)OVERCNT; /* Fractional delay */
       if (ain != NULL) {        /* Excite the string from input */
         MYFLT *loc = locate(lower_rail,1);
         *loc += (FL(0.5)* *ain)/(*p->xamp);
         loc = locate(upper_rail,1);
         *loc += (FL(0.5)* *ain++)/(*p->xamp);
       }
-      *ar++ *= *p->xamp;        /* Increment and scale */
+      ar[n] *= *p->xamp;        /* and scale */
       for (i=0; i<scale; i++) { /* Loop for precision figure */
         ym0 = getvalue(lower_rail, 1); /* Sample traveling into "bridge" */
         ypM = getvalue(upper_rail, upper_rail->length - 2); /* Sample to "nut" */
         ymM = -ypM;             /* Inverting reflection at rigid nut */
                                 /* reflection at yielding bridge */
-                                /* Implement a one-pole lowpass with feedback coefficient from input */
+                                /* Implement a one-pole lowpass with
+                                   feedback coefficient from input */
         state = (state * reflect) + ym0 * (FL(1.0) - reflect);
         yp0 = - state;          /* String state update */
                                 /* Decrement pointer and then update */
@@ -221,7 +221,7 @@ int wgpluck(ENVIRON *csound, WGPLUCK2 *p)
           lower_rail->pointer = ptr;
         }
       }
-    } while (--nsmps);
+    };
     p->state = state;           /* Remember last state sample */
 
     return OK;
@@ -254,7 +254,7 @@ int streson(ENVIRON *csound, STRES *p)
     MYFLT *in = p->ainput;
     MYFLT g = *p->ifdbgain;
     MYFLT freq, a, s, w, sample, tdelay, fracdelay;
-    int delay, nn = ksmps;
+    int delay, n, nsmps = ksmps;
     int rp = p->rpointer, wp = p->wpointer;
     int size = p->size;
     MYFLT       APdelay = p->APdelay;
@@ -268,21 +268,21 @@ int streson(ENVIRON *csound, STRES *p)
     fracdelay = tdelay - (delay + FL(0.5)); /* fractional delay */
     p->vdtime = size - delay;       /* set the var delay */
     a = (1-fracdelay)/(1+fracdelay);   /* set the all-pass gain */
-    do {
+    for (n=0;n<nsmps;n++) {
       /* GetSample(p); */
       MYFLT tmpo;
       tmpo = p->Cdelay[rp];
       rp = (vdt + wp)%size;
-      w = *in++ + tmpo;
+      w = in[n] + tmpo;
       s = LPdelay*FL(0.5) + w*FL(0.5);
       LPdelay = w;
-      *out++ = sample = APdelay + s*a;
+      out[n] = sample = APdelay + s*a;
       APdelay = s - (sample*a);
       /* PutSample(sample*g, p); */
       p->Cdelay[wp] = sample*g;
       wp++;
       if (wp == size) wp=0;
-    } while (--nn);
+    }
     p->rpointer = rp; p->wpointer = wp;
     p->LPdelay = LPdelay; p->APdelay = APdelay;
     return OK;

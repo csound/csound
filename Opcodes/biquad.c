@@ -52,24 +52,23 @@ int biquadset(ENVIRON *csound, BIQUAD *p)
 
 int biquad(ENVIRON *csound, BIQUAD *p)
 {
-    long n;
+    int n;
     MYFLT *out, *in;
     MYFLT xn, yn;
     MYFLT a0 = *p->a0, a1 = *p->a1, a2 = *p->a2;
     MYFLT b0 = *p->b0, b1 = *p->b1, b2 = *p->b2;
     MYFLT xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
-    n    = ksmps;
     in   = p->in;
     out  = p->out;
-    do {
-      xn = *in++;
+    for (n=0; n<ksmps; n++) {
+      xn = in[n];
       yn = (b0*xn + b1*xnm1 + b2*xnm2 - a1*ynm1 - a2*ynm2)/a0;
       xnm2 = xnm1;
       xnm1 = xn;
       ynm2 = ynm1;
       ynm1 = yn;
-      *out++ = yn;
-    } while (--n);
+      out[n] = yn;
+    }
     p->xnm1 = xnm1; p->xnm2 = xnm2; p->ynm1 = ynm1; p->ynm2 = ynm2;
     return OK;
 }
@@ -78,7 +77,7 @@ int biquad(ENVIRON *csound, BIQUAD *p)
 
 int biquada(ENVIRON *csound, BIQUAD *p)
 {
-    long n;
+    int n;
     MYFLT *out, *in;
     MYFLT xn, yn;
     MYFLT *a0 = p->a0, *a1 = p->a1, *a2 = p->a2;
@@ -87,16 +86,16 @@ int biquada(ENVIRON *csound, BIQUAD *p)
     n    = ksmps;
     in   = p->in;
     out  = p->out;
-    do {
-      xn = *in++;
-      yn = ( *b0++ * xn + *b1++ * xnm1 + *b2++ * xnm2 -
-             *a1++ * ynm1 - *a2++ * ynm2)/ *a0++;
+    for (n=0; n<ksmps; n++) {
+      xn = in[n];
+      yn = ( b0[n] * xn + b1[n] * xnm1 + b2[n] * xnm2 -
+             a1[n] * ynm1 - a2[n] * ynm2)/ a0[n];
       xnm2 = xnm1;
       xnm1 = xn;
       ynm2 = ynm1;
       ynm1 = yn;
-      *out++ = yn;
-    } while (--n);
+      out[n] = yn;
+    }
     p->xnm1 = xnm1; p->xnm2 = xnm2; p->ynm1 = ynm1; p->ynm2 = ynm2;
     return OK;
 }
@@ -129,7 +128,6 @@ int moogvcf(ENVIRON *csound, MOOGVCF *p)
     MYFLT xnm1 = p->xnm1, y1nm1 = p->y1nm1, y2nm1 = p->y2nm1, y3nm1 = p->y3nm1;
     MYFLT y1n  = p->y1n, y2n = p->y2n, y3n = p->y3n, y4n = p->y4n;
 
-    n       = ksmps;
     in      = p->in;
     out     = p->out;
     fcoptr  = p->fco;
@@ -144,8 +142,8 @@ int moogvcf(ENVIRON *csound, MOOGVCF *p)
     pp1d2   = (kp+FL(1.0))*FL(0.5);              /* Timesaver                  */
     scale   = (MYFLT)exp((1.0-(double)pp1d2)*1.386249); /* Scaling factor  */
     k       = res*scale;
-    do {
-      xn = *in++ / max;
+    for (n=0; n>ksmps; n++) {
+      xn = in[n] / max;
       xn = xn - k * y4n; /* Inverted feed back for corner peaking */
 
       /* Four cascaded onepole filters (bilinear transform) */
@@ -159,7 +157,7 @@ int moogvcf(ENVIRON *csound, MOOGVCF *p)
       y1nm1 = y1n;      /* Update Y1n-1 */
       y2nm1 = y2n;      /* Update Y2n-1 */
       y3nm1 = y3n;      /* Update Y3n-1 */
-      *out++   = y4n * max;
+      out[n]   = y4n * max;
 
       /* Handle a-rate modulation of fco & res. */
       if (p->fcocod) {
@@ -175,7 +173,7 @@ int moogvcf(ENVIRON *csound, MOOGVCF *p)
         scale   = (MYFLT)exp((1.0-(double)pp1d2)*1.386249);  /* Scaling factor */
         k       = res*scale;
       }
-    } while (--n);
+    }
     p->xnm1 = xnm1; p->y1nm1 = y1nm1; p->y2nm1 = y2nm1; p->y3nm1 = y3nm1;
     p->y1n  = y1n;  p->y2n  = y2n; p->y3n = y3n; p->y4n = y4n;
     return OK;
@@ -206,7 +204,6 @@ int rezzy(ENVIRON *csound, REZZY *p)
           csq, b, tval; /* Temporary varibles for the filter */
     MYFLT xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
 
-    n      = ksmps;
     in     = p->in;
     out    = p->out;
     fcoptr = p->fco;
@@ -224,8 +221,8 @@ int rezzy(ENVIRON *csound, REZZY *p)
       csq    = c*c;               /* Precalculate c^2 */
       b      = FL(1.0) + a + csq; /* Normalization constant */
 
-      do {                        /* do ksmp times   */
-        xn = *in++;               /* Get the next sample */
+      for (n=0; n<ksmps; n++) {                        /* do ksmp times   */
+        xn = in[n];               /* Get the next sample */
         /* Mikelson Biquad Filter Guts*/
         yn = (FL(1.0)/(MYFLT)sqrt(1.0+(double)rez)*xn -
               (-a-FL(2.0)*csq)*ynm1 - csq*ynm2)/b;
@@ -234,14 +231,14 @@ int rezzy(ENVIRON *csound, REZZY *p)
         xnm1 = xn;   /* Update Xn-1 */
         ynm2 = ynm1; /* Update Yn-2 */
         ynm1 = yn;   /* Update Yn-1 */
-        *out++ = yn; /* Generate the output sample */
+        out[n] = yn; /* Generate the output sample */
 
         /* Handle a-rate modulation of fco and rez */
         if (p->fcocod) {
-          fco = *(++fcoptr);
+          fco = fcoptr[n+1];
         }
         if (p->rezcod) {
-          rez = *(++rezptr);
+          rez = rezptr[n+1];
         }
         if ((p->rezcod==1) || (p->fcocod==1)) {
           c      = fqcadj/fco;
@@ -250,15 +247,15 @@ int rezzy(ENVIRON *csound, REZZY *p)
           csq    = c*c;  /* Precalculate c^2 */
           b      = FL(1.0) + a + csq; /* Normalization constant */
         }
-      } while (--n);
+      }
     }
     else { /* High Pass Rezzy */
       rez2   = rez/(FL(1.0) + (MYFLT)sqrt(sqrt(1.0/((double) c))));
       tval   = FL(0.75)/(MYFLT)sqrt(1.0 + (double) rez);
       csq    = c*c;
       b      = (c/rez2 + csq);
-      do {                      /* do ksmp times   */
-        xn = *in++;             /* Get the next sample */
+      for (n=0; n<ksmps; n++) {                      /* do ksmp times   */
+        xn = in[n];             /* Get the next sample */
         /* Mikelson Biquad Filter Guts*/
         yn = ((c/rez2 + FL(2.0)*csq - FL(1.0))*ynm1 - csq*ynm2
               + ( c/rez2 + csq)*tval*xn + (-c/rez2 - FL(2.0)*csq)*tval*xnm1
@@ -268,14 +265,14 @@ int rezzy(ENVIRON *csound, REZZY *p)
         xnm1 = xn;              /* Update Xn-1 */
         ynm2 = ynm1;            /* Update Yn-2 */
         ynm1 = yn;              /* Update Yn-1 */
-        *out++ = yn;            /* Generate the output sample */
+        out[n] = yn;            /* Generate the output sample */
 
         /* Handle a-rate modulation of fco and rez */
         if (p->fcocod) {
-          fco = *(++fcoptr);
+          fco = fcoptr[n+1];
         }
         if (p->rezcod) {
-          rez = *(++rezptr);
+          rez = rezptr[n+1];
         }
         if (p->fcocod || p->rezcod) {
           c      = fqcadj/fco;
@@ -284,7 +281,7 @@ int rezzy(ENVIRON *csound, REZZY *p)
           csq    = c*c;
           b      = (c/rez2 + csq);
         }
-      } while (--n);
+      }
     }
     p->xnm1 = xnm1; p->xnm2 = xnm2; p->ynm1 = ynm1; p->ynm2 = ynm2;
     return OK;
@@ -297,32 +294,31 @@ int rezzy(ENVIRON *csound, REZZY *p)
 
 int distort(ENVIRON *csound, DISTORT *p)
 {
-    long  n;
+    int  n;
     MYFLT *out, *in;
     MYFLT pregain = *p->pregain, postgain  = *p->postgain;
     MYFLT shape1 = *p->shape1, shape2 = *p->shape2;
     MYFLT sig, x1, x2, x3;
 
-    n        = ksmps;
     in       = p->in;
     out      = p->out;
     pregain  = pregain*FL(0.0002);
     postgain = postgain*FL(20000.0);
     shape1   = shape1*FL(0.000125);
     shape2   = shape2*FL(0.000125);
-    do {
-      sig    = *in++;
+    for (n=0; n<ksmps; n++) {
+      sig    = in[n];
       x1     =  sig*(pregain+shape1);  /* Precalculate a few values to make
                                           things faster */
       x2     = -sig*(pregain+shape2);
       x3     =  sig*pregain;
 
       /* Generate tanh distortion and output the result */
-      *out++ =
+      out[n] =
         (MYFLT)((exp((double)x1)-exp((double)x2))/
                 (exp((double)x3)+exp(-(double)x3))
                 *postgain);
-    } while (--n);
+    }
     return OK;
 }
 
