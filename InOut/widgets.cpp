@@ -1276,7 +1276,7 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
             ((Fl_Positioner*) o)->xvalue(log(val/fld.min) / log(base)) ;
             break;
           default:
-            if (O.msglevel & WARNMSG) printf("WARNING: not implemented yet");
+            if (O.msglevel & WARNMSG) printf("WARNING (SNAPSHOT::get): not implemented yet; exp=%d\n", fld.exp);
             break;
         }
         val = fld.value2; min = fld.min2; max = fld.max2;
@@ -1292,7 +1292,7 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
             ((Fl_Positioner*) o)->yvalue(log(val/fld.min2) / log(base)) ;
             break;
           default:
-            if (O.msglevel & WARNMSG) printf("WARNING: not implemented yet");
+            if (O.msglevel & WARNMSG) printf("WARNING (SNAPSHOT::get): not implemented yet; exp2=%d\n", fld.exp2);
             break;
         }
         o->do_callback(o, opcode);
@@ -1359,7 +1359,7 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
             break;
           default:
             if (O.msglevel & WARNMSG)
-              printf("WARNING: not implemented yet (bogus)");
+              printf("WARNING (SNAPSHOT::get): not implemented yet; exp=%d\n", fld.exp);
             break;
         }
         o->do_callback(o, opcode);
@@ -2337,7 +2337,7 @@ extern "C" int fl_setWidgetValuei(FL_SET_WIDGET_VALUE_I *p)
         val = (log(val/v.min) / log(base)) ;
         break;
       default:
-        if (O.msglevel & WARNMSG) printf("WARNING: not implemented yet");
+        if (O.msglevel & WARNMSG) printf("WARNING (fl_setWidgetValuei): not implemented yet; exp=%d\n", v.exponential);
     }
     Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
 #if 0 /* this is broken */
@@ -2371,7 +2371,7 @@ else if (!(strcmp(((OPDS *) v.opcode)->optext->t.opcod, "FLjoy"))) {
     else
       if (O.msglevel & WARNMSG)
         printf("WARNING: System error: value() method called from "
-               "non-valuator object");
+               "non-valuator object\n");
     o->do_callback(o, v.opcode);
     return OK;
 }
@@ -2396,7 +2396,7 @@ extern "C" int fl_setWidgetValue_set(FL_SET_WIDGET_VALUE *p)
       p->log_base = log(base);
       break;
     default:
-      if (O.msglevel & WARNMSG) printf("WARNING: not implemented yet");
+      if (O.msglevel & WARNMSG) printf("WARNING (fl_setWidgetValue_set): not implemented yet; exp=%d\n", v.exponential);
       return NOTOK;
     }
     return OK;
@@ -2417,7 +2417,7 @@ extern "C" int fl_setWidgetValue(FL_SET_WIDGET_VALUE *p)
         val = (log(val/p->min) / p->log_base) ;
         break;
       default:
-        if (O.msglevel & WARNMSG) printf("WARNING: not implemented yet");
+        if (O.msglevel & WARNMSG) printf("WARNING (fl_setWidgetValue): not implemented yet; exp=%d\n", p->exp);
         return NOTOK;
       }
       Fl_Widget *o = (Fl_Widget *) p->WidgAddress;
@@ -2747,7 +2747,7 @@ extern "C" int fl_slider(FLSLIDER *p)
 
     if (itype > 10 && iexp == EXP_) {
       if (O.msglevel & WARNMSG)
-        printf("WARNING: FLslider exponential, using non-labeled slider");
+        printf("WARNING: FLslider exponential, using non-labeled slider\n");
       itype -= 10;
     }
 
@@ -3250,7 +3250,7 @@ extern "C" int fl_button(FLBUTTON *p)
     int type = (int) *p->itype;
     if (type >9 ) { // ignored when getting snapshots
       if (O.msglevel & WARNMSG)
-        printf("WARNING: FLbutton \"%s\" ignoring snapshot capture retreive",
+        printf("WARNING: FLbutton \"%s\" ignoring snapshot capture retrieve\n",
                Name);
       type = type-10;
     }
@@ -3295,7 +3295,7 @@ extern "C" int fl_button_bank(FLBUTTONBANK *p)
     int type = (int) *p->itype;
     if (type >9 ) { // ignored when getting snapshots
       if (O.msglevel & WARNMSG)
-        printf("WARNING: FLbutton \"%s\" ignoring snapshot capture retreive",
+        printf("WARNING: FLbutton \"%s\" ignoring snapshot capture retrieve\n",
                Name);
       type = type-10;
     }
@@ -3349,7 +3349,7 @@ extern "C" int fl_counter(FLCOUNTER *p)
     int type = (int) *p->itype;
     if (type >9 ) { // ignored when getting snapshots
       if (O.msglevel & WARNMSG)
-        printf("WARNING: FLcount \"%s\" ignoring snapshot capture retreive",
+        printf("WARNING: FLcount \"%s\" ignoring snapshot capture retrieve\n",
                controlName);
       type = type-10;
     }
