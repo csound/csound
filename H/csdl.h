@@ -433,14 +433,14 @@
 #define catpath p->h.insdshead->csound->catpath_
 #define rewriteheader p->h.insdshead->csound->rewriteheader_
 #define writeheader p->h.insdshead->csound->writeheader_
-#define nbusik p->h.insdshead->csound->nbusik_
-#define busik p->h.insdshead->csound->busik_
-#define nbusia p->h.insdshead->csound->nbusia_
-#define busia p->h.insdshead->csound->busia_
-#define nbusok p->h.insdshead->csound->nbusok_
-#define busok p->h.insdshead->csound->busok_
-#define nbusoa p->h.insdshead->csound->nbusoa_
-#define busoa p->h.insdshead->csound->busoa_
+#define nchanik p->h.insdshead->csound->nchanik_
+#define chanik p->h.insdshead->csound->chanik_
+#define nchania p->h.insdshead->csound->nchania_
+#define chania p->h.insdshead->csound->chania_
+#define nchanok p->h.insdshead->csound->nchanok_
+#define chanok p->h.insdshead->csound->chanok_
+#define nchanoa p->h.insdshead->csound->nchanoa_
+#define chanoa p->h.insdshead->csound->chanoa_
 #if defined(printf)
 #undef printf
 #endif
