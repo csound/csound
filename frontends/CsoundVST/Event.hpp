@@ -29,6 +29,7 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <algorithm>
   %}
 %include "std_string.i"
 %include "std_map.i"
@@ -44,6 +45,7 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <algorithm>
 #include <boost/numeric/ublas/vector.hpp>
 using namespace boost::numeric;
 #endif
