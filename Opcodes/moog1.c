@@ -82,7 +82,7 @@ void FormSwep_setTargets(FormSwep *p, MYFLT aFreq, MYFLT aReson, MYFLT aGain)
     p->sweepState  = FL(0.0);
 }
 
-MYFLT FormSwep_tick(ENVIRON *csound,
+static MYFLT FormSwep_tick(ENVIRON *csound,
                     FormSwep *p, MYFLT sample) /* Perform Filter Operation */
 {
     MYFLT temp;
