@@ -26,6 +26,7 @@
 
 #include "cs.h"                 /*                               MAIN.C */
 #include "soundio.h"
+#include "prototyp.h"
 #include <ctype.h>              /* For isdigit */
 
 #ifdef mills_macintosh
@@ -256,6 +257,7 @@ static void signal_handler(int sig)
         if (sig == SIGALRM) return;
 #endif
     psignal(sig, "Csound tidy up");
+    rtclose_();
     exit(1);
 }
 
@@ -606,7 +608,6 @@ void err_printf(char *fmt, ...)
 
 void mainRESET(ENVIRON *p)
 {
-    extern  void    *rtclose_(void);
     void adsynRESET(void);
     void argdecodeRESET(void);
     void cscoreRESET(void);
