@@ -267,6 +267,7 @@ void longusage(void)
                "\n"
                "--extract-score=FNAME\textract from score.srt using extract file\n"
                "--keep-sorted-score\n"
+               "--expression-opt\toptimise use of temporary variables in expressions\n"
                "--utility=NAME\t\trun utility program\n"
                "--verbose\t\tverbose orch translation\n"
                "--list-opcodes\t\tList opcodes in this version\n"
@@ -785,9 +786,14 @@ static int decode_long(char *s, int argc, char **argv, char *envoutyp)
       keep_tmp = 1;
       return 1;
     }
+    /* IV - Jan 27 2005: --expression-opt */
+    else if (!(strcmp (s, "expression-opt"))) {
+      O.expr_opt = 1;
+      return 1;
+    }
     /* -T terminate the performance when miditrack is done */
     else if (!(strcmp (s, "terminate-on-midi"))) {
-            O.termifend = 1;       /* terminate on midifile end */
+      O.termifend = 1;          /* terminate on midifile end */
       return 1;
     }
     else if (!(strncmp (s, "utility=", 8))) {

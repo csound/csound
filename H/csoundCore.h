@@ -157,6 +157,7 @@ typedef struct {
 #ifdef __BEOS__
         char *Midioutname; /* jjk 09252000 - MIDI output device, -Q option */
 #endif
+        int     expr_opt;       /* IV - Jan 27 2005: for --expression-opt */
 } OPARMS;
 
 #define  ONEPT          1.021975               /* A440 tuning factor */
