@@ -1,6 +1,11 @@
+2004-12-03  Michael Gogins <gogins@pipeline.com>
+
+	* Tried to remove most remaining compiler warnings: mostly returning 
+	int from main, sscanf for %lf with USE_DOUBLE, type casting, etc.
+	
 2004-12-02  John ffitch  <jpff@codemist.co.uk>
 
-	* SConstruct (else): Added PortMIDI build option to aid experimensta
+	* SConstruct (else): Added PortMIDI build option to aid experimentation.
 
 2004-11-30  John ffitch  <jpff@codemist.co.uk>
 
