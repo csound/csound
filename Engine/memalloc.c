@@ -48,19 +48,15 @@ static int ap=0;
 void all_free(void)
 {
     if (!all) return;
-/*     DisplayMsg("%d blocks to free", ap); */
     rlsmemfiles();
     while (--ap>=0) {
-/*        DisplayMsg("freeing %p(%d)", all[ap].p, all[ap].n); */
       if (all[ap].p != NULL) free(all[ap].p);
       all[ap].p = NULL;
     }
     free(all);
     all = NULL;                 /* For safety */
-    ap = 0;
-    apsize = 0;
+    apsize = ap = 0;
     memfiles = NULL;
-
     return;
 }
 #endif
@@ -107,7 +103,7 @@ void *mcalloc(long nbytes) /* allocate new memory space, cleared to 0 */
         err_printf( "Too many allocs\n"), longjmp(cenviron.exitjmp_,1);
       all = new_all;
     }
-    all[ap].n = nbytes;
+    all[ap].n   = nbytes;
     all[ap++].p = p;
 #endif
     return(p);
@@ -127,11 +123,13 @@ void *mmalloc(long nbytes) /* allocate new memory space, NOT cleared to 0 */
 #ifdef MEMDEBUG
     if (ap >= apsize) {
       MEMREC *new_all = (MEMREC *)realloc(all, sizeof(MEMREC)*(apsize += 1020));
-      if (new_all == NULL)
-        err_printf( "Too many allocs\n"), longjmp(cenviron.exitjmp_,1);
+      if (new_all == NULL) {
+        err_printf("Too many allocs\n");
+        longjmp(cenviron.exitjmp_,1);
+      }
       all = new_all;
     }
-    all[ap].n = nbytes;
+    all[ap].n   = nbytes;
     all[ap++].p = p;
 #endif
     return(p);
@@ -163,11 +161,13 @@ void *mrealloc(void *old, long nbytes) /* Packaged realloc */
     else {
       if (ap >= apsize) {
         MEMREC *new_all = (MEMREC*)realloc(all, sizeof(MEMREC)*(apsize += 1020));
-        if (new_all == NULL)
-          err_printf( "Too many allocs\n"), longjmp(cenviron.exitjmp_,1);
+        if (new_all == NULL) {
+          err_printf( "Too many allocs\n");
+          longjmp(cenviron.exitjmp_,1);
+        }
         all = new_all;
       }
-      all[ap].n = nbytes;
+      all[ap].n   = nbytes;
       all[ap++].p = p;
     }
 #endif

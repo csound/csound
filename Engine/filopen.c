@@ -63,13 +63,13 @@ int isfullpath(char *name)
        (strchr(name, DIRSEP) != NULL)      /* if name already a pathname */
 #else
        (
-# if defined(DOSGCC) || defined(LATTICE) || defined(__WATCOMC__) || defined(WIN32)
+# if defined(DOSGCC) || defined(__WATCOMC__) || defined(WIN32)
      (isalpha(*name) && *(name+1)==':') ||
 # endif
      *name == DIRSEP || *name == '.')
 #endif
-    return(1);                     /*   return yes  */
-    else return(0);
+    return (1);                     /*   return yes  */
+    else return (0);
 }
 
 char *catpath(char *path, char *name) /*  build a fullpath filename     */
@@ -94,7 +94,7 @@ char *unquote(char *name)       /* remove any quotes from a filename   */
         *nnew++ = c;
       }
     } while (c);
-    return(newname);
+    return (newname);
 }
 
 #if defined MSVC
@@ -106,9 +106,6 @@ char *unquote(char *name)       /* remove any quotes from a filename   */
 #elif defined DOSGCC
 #define RD_OPTS  O_RDONLY | O_BINARY, 0
 #define WR_OPTS  O_TRUNC | O_CREAT | O_WRONLY | O_BINARY, 0644
-#elif defined LATTICE
-#define RD_OPTS  O_RDONLY | O_RAW, 0
-#define WR_OPTS  O_TRUNC | O_CREAT | O_WRONLY | O_RAW, 0644
 #else
 #ifndef O_BINARY
 # define O_BINARY (0)
@@ -122,7 +119,6 @@ openin(char *filnam)/* open a file for reading. If not fullpath, will search: */
                    /*  current directory, then SSDIR (if defined), then SFDIR */
 {                  /*  returns normal fd, also sets a global return filename  */
                    /*  called by sndgetset (for soundin, gen01), and sfopenin */
-
     char *pathnam = filnam;
     int  infd;
 
@@ -160,7 +156,7 @@ int openout(              /* open a file for writing.  If not fullpath, then  */
 
     if (isfullpath(filnam))
       outfd = open(filnam, WR_OPTS);
-    else switch(dirtyp) {
+    else switch (dirtyp) {
     case 3:
     case 2:
       if (sfdirpath != NULL) {
@@ -178,7 +174,7 @@ int openout(              /* open a file for writing.  If not fullpath, then  */
     default: die(Str(X_1096,"openout: illegal dirtyp"));
     }
     retfilnam = pathnam;
-    return(outfd);
+    return (outfd);
 }
 
 #ifdef mills_macintosh
@@ -188,13 +184,12 @@ int openoutforin(       /* open a file for writing.  If not fullpath, then  */
 {                       /*   dirtyp 3 will put it in SFDIR else in cur dir  */
                         /* returns normal fd, & sets global return filename */
                         /* called by anals,dumpf (typ 1), sfopenout (typ 3) */
-
     char *pathnam = filnam;
     int  outfd;
 
     if (isfullpath(filnam))
       outfd = open(filnam, RD_OPTS);
-    else switch(dirtyp) {
+    else switch (dirtyp) {
     case 3:
     case 2:
       if (sfdirpath != NULL) {
@@ -220,7 +215,6 @@ int openrdwr(           /* open a file for writing.  If not fullpath, then  */
 {                       /*   dirtyp 3 will put it in SFDIR else in cur dir  */
                         /* returns normal fd, & sets global return filename */
                         /* called by anals,dumpf (typ 1), sfopenout (typ 3) */
-
     char *pathnam = filnam;
     int  outfd;
 

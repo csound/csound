@@ -1,3 +1,7 @@
+2004-11-07  John ffitch  <jpff@codemist.co.uk>
+
+	* H/ftgen.h (GENMAX): set to 43 (really part is fgens below)
+
 2004-11-06  John ffitch  <jpff@codemist.co.uk>
 
 	* Engine/musmon.c (sensevents): Need to reset nxtim and nxtbt at
