@@ -44,7 +44,7 @@ int lowpr(ENVIRON *csound, LOWPR *p)
     MYFLT kfco = *p->kfco;
     MYFLT kres = *p->kres;
     MYFLT coef1 = p->coef1, coef2 = p->coef2;
-    int nsmps = ksmps;
+    int n,nsmps = ksmps;
 
     if (p->okf != kfco || p->okr != kres) { /* Only if changed */
       b = FL(10.0) / (*p->kres * (MYFLT)sqrt((double)kfco)) - FL(1.0);
@@ -57,11 +57,11 @@ int lowpr(ENVIRON *csound, LOWPR *p)
     ynm1 = p->ynm1;
     ynm2 = p->ynm2;
 
-    do {
-      *ar++ = yn = (coef1 * ynm1 - k * ynm2 + *asig++) * coef2;
+    for (n=0; n<nsmps;n++) {
+      ar[n] = yn = (coef1 * ynm1 - k * ynm2 + asig[n]) * coef2;
       ynm2 = ynm1;
       ynm1 =  yn;
-    } while (--nsmps);
+    }
     p->ynm1 = ynm1;
     p->ynm2 = ynm2;             /* And save */
 
@@ -87,7 +87,7 @@ int lowprx(ENVIRON *csound, LOWPRX *p)
     MYFLT *ar, *asig, yn,*ynm1, *ynm2 ;
     MYFLT coef1 = p->coef1, coef2 = p->coef2;
     MYFLT kfco = *p->kfco, kres = *p->kres;
-    int nsmps, j;
+    int n,nsmps = ksmps, j;
 
     if (p->okf != kfco || p->okr != kres) { /* Only if changed */
       b = FL(10.0) / (*p->kres * (MYFLT)sqrt((double)kfco)) - FL(1.0);
@@ -101,11 +101,10 @@ int lowprx(ENVIRON *csound, LOWPRX *p)
     asig = p->asig;
 
     for (j=0; j< p->loop; j++) {
-      nsmps = ksmps;
       ar = p->ar;
 
-      do {
-        *ar++ = yn = (coef1 * *ynm1 - k * *ynm2 + *asig++) * coef2;
+      for (n=0;n<nsmps;n++) {
+        ar[n] = yn = (coef1 * *ynm1 - k * *ynm2 + asig[n]) * coef2;
         *ynm2 = *ynm1;
         *ynm1 = yn;
       } while (--nsmps);
@@ -136,7 +135,7 @@ int lowpr_w_sep(ENVIRON *csound, LOWPR_SEP *p)
     MYFLT coef1, coef2;
     MYFLT kfcobase = *p->kfco;
     MYFLT sep = (*p->sep / p->loop);
-    int nsmps, j;
+    int n, nsmps=ksmps, j;
 
     MYFLT kres = *p->kres;
     MYFLT kfco;
@@ -157,13 +156,12 @@ int lowpr_w_sep(ENVIRON *csound, LOWPR_SEP *p)
       coef1 = (b+FL(2.0) *k);
       coef2 = FL(1.0)/(FL(1.0) + b + k);
 
-      nsmps = ksmps;
       ar = p->ar;
-      do {                      /* This can be speeded up avoiding indirection */
-        *ar++ = yn = (coef1 * *ynm1 - k * *ynm2 + *asig++) * coef2;
+      for (n=0;n<nsmps; n++) { /* This can be speeded up avoiding indirection */
+        ar[n] = yn = (coef1 * *ynm1 - k * *ynm2 + asig[n]) * coef2;
         *ynm2 = *ynm1;
         *ynm1 =  yn;
-      } while (--nsmps);
+      }
       ynm1++;
       ynm2++;
       asig= p->ar;

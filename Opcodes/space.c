@@ -70,7 +70,7 @@ int space(ENVIRON *csound, SPACE *p)
     MYFLT half_pi = FL(0.5)*PI_F;
     MYFLT sqrt2 = (MYFLT)sqrt(2.0);
     MYFLT fabxndx, fabyndx;
-    int nsmps = ksmps;
+    int n;
     FUNC        *ftp;
     long        indx, length, halflen;
     MYFLT       v1, v2, fract, ndx;
@@ -146,22 +146,20 @@ int space(ENVIRON *csound, SPACE *p)
     rrev3 = p->rrev3;
     rrev4 = p->rrev4;
     sigp = p->asig;
-    do {
-      direct = *sigp * distr;
-      torev = *sigp * distrsq * *p->reverbamount;
+    for (n=0; n<ksmps; n++) {
+      direct = sigp[n] * distr;
+      torev = sigp[n] * distrsq * *p->reverbamount;
       globalrev = torev * distr;
       localrev = torev * (1 - distr);
-      *r1++ = direct * ch1;
-      *r2++ = direct * ch2;
-      *r3++ = direct * ch3;
-      *r4++ = direct * ch4;
-      *rrev1++ = (localrev * ch1) + globalrev;
-      *rrev2++ = (localrev * ch2) + globalrev;
-      *rrev3++ = (localrev * ch3) + globalrev;
-      *rrev4++ = (localrev * ch4) + globalrev;
-      sigp++;
+      r1[n] = direct * ch1;
+      r2[n] = direct * ch2;
+      r3[n] = direct * ch3;
+      r4[n] = direct * ch4;
+      rrev1[n] = (localrev * ch1) + globalrev;
+      rrev2[n] = (localrev * ch2) + globalrev;
+      rrev3[n] = (localrev * ch3) + globalrev;
+      rrev4[n] = (localrev * ch4) + globalrev;
     }
-    while (--nsmps);
     return OK;
 }
 
@@ -176,7 +174,7 @@ int spsend(ENVIRON *csound, SPSEND *p)
 {
     MYFLT       *r1, *r2, *r3, *r4, *rrev1, *rrev2, *rrev3, *rrev4;
     SPACE *q = p->space;
-    int nsmps = ksmps;
+    int n;
 
     r1 = p->r1;
     r2 = p->r2;
@@ -187,14 +185,16 @@ int spsend(ENVIRON *csound, SPSEND *p)
     rrev3 = q->rrev3;
     rrev4 = q->rrev4;
 
-    do {
-      *r1++ = *rrev1++;
-      *r2++ = *rrev2++;
-      *r3++ = *rrev3++;
-      *r4++ = *rrev4++;
-
-    }
-    while (--nsmps);
+/*     for (n=0; n<ksmps; n++) { */
+/*       r1[n] = rrev1[n]; */
+/*       r2[n] = rrev2[n]; */
+/*       r3[n] = rrev3[n]; */
+/*       r4[n] = rrev4[n]; */
+/*     } */
+    memmove(r1, rrev1, ksmps*sizeof(MYFLT));
+    memmove(r2, rrev2, ksmps*sizeof(MYFLT));
+    memmove(r3, rrev3, ksmps*sizeof(MYFLT));
+    memmove(r4, rrev4, ksmps*sizeof(MYFLT));
     return OK;
 }
 

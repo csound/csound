@@ -321,7 +321,7 @@ int tubebell(ENVIRON *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       *ar = p->ar;
-    long        nsmps = ksmps;
+    int         n, nsmps = ksmps;
     MYFLT       c1 = *p->control1;
     MYFLT       c2 = *p->control2;
 
@@ -337,11 +337,10 @@ int tubebell(ENVIRON *csound, FM4OP *p)
     p->w_rate[3] = p->baseFreq *  p->ratios[3] * p->waves[3]->flen * onedsr;
     p->v_rate = *p->vibFreq * p->vibWave->flen * onedsr;
 
-    do {
-        MYFLT   lastOutput;
-        lastOutput = FM4Alg5_tick(p, c1, c2);
-        *ar++ = lastOutput*AMP_SCALE*FL(1.8);
-    } while (--nsmps);
+    for (n=0;n<nsmps;n++) {
+      MYFLT   lastOutput = FM4Alg5_tick(p, c1, c2);
+      ar[n] = lastOutput*AMP_SCALE*FL(1.8);
+    }
     return OK;
 }
 
@@ -439,7 +438,7 @@ int wurley(ENVIRON *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       *ar = p->ar;
-    long        nsmps = ksmps;
+    int         n, nsmps = ksmps;
     MYFLT       c1 = *p->control1;
     MYFLT       c2 = *p->control2;
 
@@ -455,11 +454,10 @@ int wurley(ENVIRON *csound, FM4OP *p)
     p->w_rate[3] =                p->ratios[3] * p->waves[3]->flen * onedsr;
     p->v_rate = *p->vibFreq * p->vibWave->flen * onedsr;
 
-    do {
-      MYFLT   lastOutput;
-      lastOutput = FM4Alg5_tick(p, c1, c2);
-      *ar++ = lastOutput*AMP_SCALE*FL(1.9);
-    } while (--nsmps);
+    for (n=0;n<nsmps;n++) {
+      MYFLT   lastOutput = FM4Alg5_tick(p, c1, c2);
+      ar[n] = lastOutput*AMP_SCALE*FL(1.9);
+    }
     return OK;
 }
 
@@ -541,7 +539,7 @@ int heavymetset(ENVIRON *csound, FM4OP *p)
 int heavymet(ENVIRON *csound, FM4OP *p)
 {
     MYFLT       *ar = p->ar;
-    long        nsmps = ksmps;
+    int         n, nsmps = ksmps;
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       c1 = *p->control1;
     MYFLT       c2 = *p->control2;
@@ -557,11 +555,11 @@ int heavymet(ENVIRON *csound, FM4OP *p)
     p->w_rate[2] = p->baseFreq *  p->ratios[2] * p->waves[2]->flen * onedsr;
     p->w_rate[3] = p->baseFreq *  p->ratios[3] * p->waves[3]->flen * onedsr;
     p->v_rate = *p->vibFreq * p->vibWave->flen * onedsr;
-    do {
+    for (n=0;n<nsmps;n++) {
       MYFLT   lastOutput;
       lastOutput = FM4Alg3_tick(p, c1, c2);
-      *ar++ = lastOutput*AMP_SCALE*FL(2.0);
-    } while (--nsmps);
+      ar[n] = lastOutput*AMP_SCALE*FL(2.0);
+    }
     return OK;
 }
 
@@ -649,7 +647,7 @@ int hammondB3(ENVIRON *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       *ar = p->ar;
-    long        nsmps = ksmps;
+    int         n, nsmps = ksmps;
     MYFLT       c1 = *p->control1;
     MYFLT       c2 = *p->control2;
     MYFLT       temp;
@@ -659,7 +657,7 @@ int hammondB3(ENVIRON *csound, FM4OP *p)
     p->gains[1] = amp * FM4Op_gains[95];
     p->gains[2] = amp * FM4Op_gains[99];
     p->gains[3] = amp * FM4Op_gains[95];
-    do {
+    for (n=0;n<nsmps;n++) {
       MYFLT   lastOutput;
       if (*p->modDepth > FL(0.0)) {
         p->v_rate = *p->vibFreq * p->vibWave->flen * onedsr;
@@ -673,8 +671,8 @@ int hammondB3(ENVIRON *csound, FM4OP *p)
         p->w_rate[3] = p->ratios[3] * temp * p->waves[3]->flen * onedsr;
       }
       lastOutput = FM4Alg8_tick(p, c1, c2);
-      *ar++ = lastOutput*AMP_SCALE;
-    } while (--nsmps);
+      ar[n]= lastOutput*AMP_SCALE;
+    }
     return OK;
 }
 
@@ -1000,7 +998,7 @@ int FMVoice(ENVIRON *csound, FM4OPV *q)
     FM4OP       *p = (FM4OP *)q;
     MYFLT       amp = *q->amp * AMP_RSCALE;
     MYFLT       *ar = q->ar;
-    long        nsmps = ksmps;
+    int         n, nsmps = ksmps;
 
     if (p->baseFreq != *q->frequency || *q->control1 != q->last_control) {
       q->last_control = *q->control1;
@@ -1012,11 +1010,11 @@ int FMVoice(ENVIRON *csound, FM4OPV *q)
     q->tilt[2] = amp * amp * amp;
     p->gains[3] = FM4Op_gains[(int) (*p->control2 * FL(0.78125))];
 
-    do {
-        MYFLT   lastOutput;
-        lastOutput = FM4Alg6_tick(csound,q);
-        *ar++ = lastOutput*AMP_SCALE*FL(0.8);
-    } while (--nsmps);
+    for (n=0;n<nsmps;n++) {
+      MYFLT   lastOutput;
+      lastOutput = FM4Alg6_tick(csound,q);
+      ar[n] = lastOutput*AMP_SCALE*FL(0.8);
+    }
 
     return OK;
 }
@@ -1114,7 +1112,7 @@ int percfluteset(ENVIRON *csound, FM4OP *p)
 int percflute(ENVIRON *csound, FM4OP *p)
 {
     MYFLT       *ar = p->ar;
-    long        nsmps = ksmps;
+    int         n, nsmps = ksmps;
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       c1 = *p->control1;
     MYFLT       c2 = *p->control2;
@@ -1124,10 +1122,9 @@ int percflute(ENVIRON *csound, FM4OP *p)
     p->gains[1] = amp * FM4Op_gains[71] * FL(0.5);
     p->gains[2] = amp * FM4Op_gains[93] * FL(0.5);
     p->gains[3] = amp * FM4Op_gains[85] * FL(0.5);
-    do {
-      MYFLT   lastOutput;
-      lastOutput = FM4Alg4_tick(csound, p, c1, c2);
-      *ar++ = lastOutput*AMP_SCALE*FL(2.0);
-    } while (--nsmps);
+    for (n=0;n<nsmps;n++) {
+      MYFLT   lastOutput = FM4Alg4_tick(csound, p, c1, c2);
+      ar[n] = lastOutput*AMP_SCALE*FL(2.0);
+    }
     return OK;
 }

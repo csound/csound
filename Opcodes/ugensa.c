@@ -82,7 +82,7 @@ int fog(ENVIRON *csound, FOGS *p)
     FUNC        *ftp1,  *ftp2;
     MYFLT       *ar, *amp, *fund, *ptch, *speed;
     MYFLT  v1, fract ,*ftab, fogcvt = p->fogcvt; /*JMC added for FOG*/
-    long   nsmps = ksmps, fund_inc, form_inc;
+    long   n,nsmps = ksmps, fund_inc, form_inc;
     /* long speed_inc; */ /*JMC added last--out for phs version*/
 
     ar = p->ar;
@@ -95,7 +95,7 @@ int fog(ENVIRON *csound, FOGS *p)
     fund_inc = (long)(*fund * sicvt);
     form_inc = (long)(*ptch * fogcvt);  /*form_inc = *form * sicvt;*/
 /*      speed_inc = *speed * fogcvt; */   /*JMC for FOG--out for phs version*/
-    do {
+    for (n=0;n<nsmps;n++) {
       if (p->fundphs & MAXLEN) {                       /* if phs has wrapped */
         p->fundphs &= PHMASK;
         if ((ovp = p->basovrlap.nxtfree) == NULL) {
@@ -107,7 +107,7 @@ int fog(ENVIRON *csound, FOGS *p)
           p->basovrlap.nxtfree = ovp->nxtfree;
         }
       }
-      *ar = FL(0.0);
+      ar[n] = FL(0.0);
       ovp = &p->basovrlap;
       while (ovp->nxtact != NULL) {         /* perform cur actlist:  */
         MYFLT result;
@@ -132,7 +132,7 @@ int fog(ENVIRON *csound, FOGS *p)
           if ((ovp->decphs -= ovp->decinc) < 0)
             ovp->decphs = 0;
         }
-        *ar += (result * ovp->curamp);        /*  add wavfrm to out */
+        ar[n] += (result * ovp->curamp);        /*  add wavfrm to out */
         if (--ovp->timrem)                    /*  if fof not expird */
           ovp->curamp *= ovp->expamp;       /*   apply bw exp dec */
         else {
@@ -144,7 +144,7 @@ int fog(ENVIRON *csound, FOGS *p)
       }
       p->fundphs += fund_inc;
 /*          p->spdphs += speed_inc; */ /*JMC for FOG*/
-      p->spdphs = (long)(*speed++ * FMAXLEN); /*for phs version of FOG*/
+      p->spdphs = (long)(speed[n] * FMAXLEN); /*for phs version of FOG*/
       p->spdphs &= PHMASK; /*JMC for FOG*/
       if (p->xincod) {
         if (p->ampcod)    amp++;
@@ -154,8 +154,7 @@ int fog(ENVIRON *csound, FOGS *p)
 /*      if (p->speedcod)  speed_inc = *++speed * fogcvt; */  /*JMC for FOG*/
       }
       p->durtogo--;
-      ar++;
-    } while (--nsmps);
+    }
     return OK;
 }
 

@@ -341,7 +341,7 @@ int marimba(ENVIRON *csound, MARIMBA *p)
 {
     Modal4      *m = &(p->m4);
     MYFLT       *ar = p->ar;
-    long        nsmps = ksmps;
+    int         n,nsmps = ksmps;
     MYFLT       amp = (*p->amplitude) * AMP_RSCALE; /* Normalise */
 
     if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
@@ -356,7 +356,7 @@ int marimba(ENVIRON *csound, MARIMBA *p)
       Modal4_setFreq(csound, m, *p->frequency);
       p->first = 0;
     }
-    do {
+    for (n=0;n<nsmps;n++) {
       MYFLT     lastOutput;
       if (p->multiStrike>0)
         if (p->m4.w_allDone) {
@@ -367,8 +367,8 @@ int marimba(ENVIRON *csound, MARIMBA *p)
         }
       lastOutput = Modal4_tick(m);
 /*       printf("Sample=%f\n", lastOutput); */
-      *ar++ = lastOutput*AMP_SCALE*FL(0.5);
-    } while (--nsmps);
+      ar[n] = lastOutput*AMP_SCALE*FL(0.5);
+    }
     return OK;
 }
 
@@ -432,7 +432,7 @@ int vibraphn(ENVIRON *csound, VIBRAPHN *p)
 {
     Modal4      *m = &(p->m4);
     MYFLT       *ar = p->ar;
-    long        nsmps = ksmps;
+    int         n,nsmps = ksmps;
     MYFLT       amp = (*p->amplitude)*AMP_RSCALE; /* Normalise */
 
     if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
@@ -447,12 +447,11 @@ int vibraphn(ENVIRON *csound, VIBRAPHN *p)
     }
     p->m4.v_rate = *p->vibFreq;
     p->m4.vibrGain =*p->vibAmt;
-    do {
-      MYFLT     lastOutput;
-      lastOutput = Modal4_tick(m);
+    for (n=0;n<nsmps;n++) {
+      MYFLT     lastOutput = Modal4_tick(m);
 /*       printf("Sample=%f\n", lastOutput); */
-      *ar++ = lastOutput*FL(8.0)*AMP_SCALE;/* Times 8 as seems too quiet */
-    } while (--nsmps);
+      ar[n] = lastOutput*FL(8.0)*AMP_SCALE;/* Times 8 as seems too quiet */
+    }
     return OK;
 }
 
@@ -521,7 +520,7 @@ int agogobel(ENVIRON *csound, VIBRAPHN *p)
 {
     Modal4      *m = &(p->m4);
     MYFLT       *ar = p->ar;
-    long        nsmps = ksmps;
+    int         n,nsmps = ksmps;
 
     p->m4.v_rate = *p->vibFreq;
     p->m4.vibrGain =*p->vibAmt;
@@ -530,12 +529,11 @@ int agogobel(ENVIRON *csound, VIBRAPHN *p)
       Modal4_setFreq(csound, m, *p->frequency);
       p->first = 0;
     }
-    do {
-      MYFLT     lastOutput;
-      lastOutput = Modal4_tick(m);
+    for (n=0;n<nsmps;n++) {
+      MYFLT     lastOutput = Modal4_tick(m);
 /*       printf("Sample=%f\n", lastOutput); */
-      *ar++ = lastOutput*AMP_SCALE;
-    } while (--nsmps);
+      ar[n] = lastOutput*AMP_SCALE;
+    }
     return OK;
 }
 
