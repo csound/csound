@@ -804,6 +804,7 @@ if (commonEnvironment['buildCsoundVST'] == 1) and boostFound and fltkFound:
         vstEnvironment['ENV']['PATH'] = os.environ['PATH']
         csoundVstSources.append('frontends/CsoundVST/_CsoundVST.def')
     csoundvst = vstEnvironment.SharedLibrary('CsoundVST', csoundVstSources, SHLIBPREFIX = '_')
+    Depends(csoundvst, 'frontends/CsoundVST/CsoundVST_wrap.cc')
     zipDependencies.append(csoundvst)
     if getPlatform() == 'mingw' or getPlatform() == 'cygwin':
         Depends(csoundvst, pyrun)

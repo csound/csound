@@ -22,11 +22,12 @@ elif sys.platform == 'cygwin':
     customCPPPATH.append('c:/tools/Python23/include')
     customLIBPATH.append('cygwin_import_libs')
 elif sys.platform[:3] == 'win':
-    customCPPPATH.append('c:/tools/mingw/include')
     customCPPPATH.append('c:/tools/boost')
     customCPPPATH.append('c:/tools/Python23/include')
     customCPPPATH.append('c:/tools/msys/1.0/local/include')
     customCPPPATH.append('c:/tools/fluidsynth/include')
+    # customLIBPATH.append('c:/projects/portaudio/lib')
+    customLIBPATH.append('c:/projects/csound5/windows_dlls')
     customLIBPATH.append('cygwin_import_libs')
     customLIBPATH.append('c:/tools/mingw/lib')
     customLIBPATH.append('c:/tools/msys/1.0/local/lib')
