@@ -349,6 +349,10 @@ int VSTPlugin::Instantiate(const char *libraryName_)
 		aeffect=NULL;
 		return VSTINSTANCE_ERR_REJECTED;
 	}
+	if(!Dispatch( effGetProductString, 0, 0, &productName, 0.0f))
+	{
+		strcpy(productName, libraryName);
+	}
 	return VSTINSTANCE_NO_ERROR;
 }
 
@@ -356,9 +360,6 @@ void VSTPlugin::Info()
 {
 	int i =0;
 	Log("====================================================\n");
-	if(!Dispatch( effGetProductString, 0, 0, &productName, 0.0f)) {
-		strcpy(productName, libraryName);
-	}
 	Log("Loaded plugin: %s\n", productName);
 	if(!aeffect->dispatcher(aeffect, 
         effGetVendorString, 0, 0, &vendorName, 0.0f)) {
@@ -494,24 +495,32 @@ ERect VSTPlugin::GetEditorRect()
 
 void VSTPlugin::OpenEditor()
 {
-    GetEditorRect();
-    Debug("ERect top %d left %d right %d bottom %d.\n", rect.top, rect.left, 
-        rect.right, rect.bottom);
-    window = new Fl_Window(rect.right, rect.bottom, GetName());
-    Debug("Window 0x%x.\n", window);
-    window->show();						
+    if (aeffect->flags & effFlagsHasEditor== 1)	
+    {
+	GetEditorRect();
+	Debug("ERect top %d left %d right %d bottom %d.\n", rect.top, 
+			rect.left, rect.right, rect.bottom);
+    	window = new Fl_Window(rect.right, rect.bottom, GetName());
+    	Debug("Window 0x%x.\n", window);
+   	window->show();						
 	windowHandle = fl_xid(window);
-    Debug("windowHandle 0x%x.\n", windowHandle);
+	Debug("windowHandle 0x%x.\n", windowHandle);
 	SetEditWindow(windowHandle);
+    }
+    else
+	   Log("Plugin:%s has no GUI.\n",productName); 
 }
 
 void VSTPlugin::CloseEditor()
 {
-    OnEditorClose();
+    if (aeffect->flags & effFlagsHasEditor== 1)
+    {
+	OnEditorClose();
 	window->hide();
 	delete window;
 	window = 0;
 	windowHandle = 0;
+    }
 }
 
 void VSTPlugin::SetEditWindow(void *h)
@@ -703,7 +712,10 @@ bool VSTPlugin::OnCanDo(const char *ptr)
 {
     printf("Can do call: %s.\n", ptr);
     if((!strcmp(ptr, "sendVstMidiEvent")) ||
-       (!strcmp(ptr, "receiveVstMidiEvent")) /*||
+       (!strcmp(ptr, "receiveVstMidiEvent")) ||
+	(!strcmp(ptr, "sendVstEvents")) ||
+	(!strcmp(ptr, "receiveVstEvents")) || 
+	(!strcmp(ptr, "sendVstTimeInfo")) /*||
        (!strcmp(ptr, "sizeWindow"))*/)
        return true;
     return false; 
@@ -767,11 +779,11 @@ long VSTPlugin::Master(AEffect *effect, long opcode, long index,
 	    if(plugin)
 	        return (long) plugin->GetTime();
         else {
-            static VstTimeInfo vstTimeInfo;
-            memset(&vstTimeInfo, 0, sizeof(VstTimeInfo));
-            return (long) &vstTimeInfo;
+            //static VstTimeInfo vstTimeInfo;
+            //memset(&vstTimeInfo, 0, sizeof(VstTimeInfo));
+            //return (long) &vstTimeInfo;
         }
-        //return 0;
+        return 0;
 	case audioMasterTempoAt:			
 		return 0;
 	case audioMasterNeedIdle:
@@ -794,8 +806,10 @@ long VSTPlugin::Master(AEffect *effect, long opcode, long index,
 	case audioMasterGetLanguage:		
 		return kVstLangEnglish;
 	case audioMasterUpdateDisplay:
-		effect->dispatcher(effect, effEditIdle, 0, 0, NULL, 0.0f);
-		return 0;
+		if (plugin)
+			plugin->Dispatch(effEditIdle, 0, 0, NULL, 0.0f);
+		else
+			return 1;
 	case audioMasterGetNextPlug: 
         return 1;
 	case audioMasterWillReplaceOrAccumulate:		
