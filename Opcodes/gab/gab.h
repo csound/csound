@@ -31,13 +31,6 @@ typedef	struct {
 
 typedef struct {
 	OPDS	h;
-	MYFLT	*sr, *xcps, *iphs;
-	double	curphs;
-	int flag;
-} METRO;
-
-typedef struct {
-	OPDS	h;
 	MYFLT	*rslt, *xndx, *xfn, *ixmode;
 	MYFLT   *table;
 	MYFLT  	xbmul;
@@ -95,24 +88,6 @@ typedef struct {
 typedef struct {
     OPDS    h;
 } EXITNOW;
-
-typedef struct	{
-	OPDS	h;
-	MYFLT	*trig, *ndx, *maxtics, *ifn, *outargs[VARGMAX];
-	int		numouts, currtic, old_ndx;
-	MYFLT *table;
-} SPLIT_TRIG;
-
-
-typedef struct	{
-	OPDS	h;
-	MYFLT	*ktrig, *kphs, *ifn, *args[VARGMAX];
-	MYFLT endSeq, *table, oldPhs;
-	int numParm, /*currIndex,*/ endIndex, prevIndex, nextIndex /*, lastIndex */;
-	MYFLT prevActime, nextActime/*, lastActime*/;
-	int initFlag/*,jump*/;
-
-} TIMEDSEQ;
 
 #include "H/ugrw1.h"  //for zread function
 
