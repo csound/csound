@@ -45,9 +45,13 @@ namespace csound
     perform();
   }
 
-  void Composition::createCsoundScore()
+  void Composition::createCsoundScore(std::string addToScore)
   {
     cppSound->removeScore();
+    if(addToScore.length())
+      {
+	cppSound->setScore(addToScore);
+      }
     score.sort();
     for(Score::iterator it = score.begin(); it != score.end(); ++it)
       {
