@@ -455,7 +455,6 @@ OOps/ugens3.c
 OOps/ugens4.c
 OOps/ugens5.c
 OOps/ugens6.c
-OOps/ugens7.c
 OOps/ugens8.c
 OOps/ugens9.c
 OOps/ugrw1.c
