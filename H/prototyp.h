@@ -67,7 +67,9 @@ int  sensLine(void);
 void fgens(EVTBLK *);
 FUNC *ftnp2find(MYFLT *), *ftfindp(MYFLT *argp);
 void beep(void), rlsmemfiles(void);
+#ifdef never
 double modf(double, double *);  /* not included in math.h */
+#endif
 MYFLT intpow(MYFLT, long);
 void list_opcodes(int);
 
