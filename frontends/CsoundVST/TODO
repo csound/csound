@@ -1,0 +1,30 @@
+TO DO
+=====
+
+For Release
+-----------
+
+Install target.
+
+mingw build or MSVC build? - or live with Cygwin?
+
+Rework csound.h.
+
+Make sure CsoundVST works in Cubase.
+
+PortMidi, or at least get MIDI working.
+
+Get graphs working in CsoundVST.
+
+Get regular csd options working for CsoundVST.
+
+
+For Future Versions
+-------------------
+
+Loris opcode.
+
+Gabriel's Python opcodes.
+
+Multiple instances?
+
