@@ -121,7 +121,7 @@ extern "C"
         int midiChannel;
         bool listPresets;
         int soundfontId;
-        int init()
+        int init(void *csound_)
         {
             fluidProgram = (int) (*iFluidProgram);                  
             midiChannel = (int) (*iMidiChannel);   
@@ -215,7 +215,7 @@ extern "C"
             }
             return OK;
         }
-        int deinit()
+        int deinit(void *csound_)
         {
             if(Fluidsynth) {
                 delete_fluid_synth(Fluidsynth);
@@ -261,7 +261,7 @@ extern "C"
         int priorMidiChannel;
         int priorMidiData1;
         int priorMidiData2;
-        int init()
+        int init(void *csound_)
         {
             released          = false;
             iMidiStatus       = 0xf0 & (int) (*kMidiStatus);                      
@@ -274,7 +274,7 @@ extern "C"
             priorMidiData2    = -1;
             return OK;
         }
-        int kontrol()
+        int kontrol(void *csound_)
         {
             midiStatus       = 0xf0 & (int) (*kMidiStatus);                      
             midiChannel      = (int) (*kMidiChannel);                      
@@ -387,7 +387,7 @@ extern "C"
         // Outputs.
         MYFLT *aLeftOut;
         MYFLT *aRightOut;
-        int audio()
+        int audio(void *csound_)
         {
             float leftSample[1];
             float rightSample[1];
