@@ -718,22 +718,6 @@ extern "C" {
                                      int (*yieldCallback)(void *csound));
 
   /**
-   * Sets an evironment path for a getenv() call in Csound.
-   * you can also use this method as a way to have different
-   * csound instances have different default directories,
-   * change the default dirs during performance, etc..
-   *
-   * Currently, Csound uses these 'envi' names only:
-   *       "SSDIR", "SFDIR", "SADIR", "SFOUTYP", "INCDIR",
-   *               "CSSTRNGS", "MIDIOUTDEV", and "HOME"
-   */
-  PUBLIC void csoundSetEnv(void *csound,
-                           const char *environmentVariableName,
-                           const char *path);
-
-  PUBLIC char *csoundGetEnv(const char *environmentVariableName);
-
-  /**
    *       REAL-TIME AUDIO PLAY AND RECORD
    */
 
@@ -964,7 +948,8 @@ typedef struct RTCLOCK_S {
    */
   PUBLIC void **csoundGetRtPlayUserData(void *csound);
 
-#include "cfgvar.h"     /* IV - Jan 30 2005 */
+#include "cfgvar.h"
+#include "envvar.h"
 
 #ifdef __cplusplus
 };

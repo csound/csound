@@ -50,8 +50,8 @@ typedef struct namelst {
 #ifdef WIN32
 char *mytmpnam(char *a)
 {
-    char *dir = getenv("SFDIR");
-    if (dir==NULL) dir=getenv("HOME");
+    char *dir = csoundGetEnv(&cenviron, "SFDIR");
+    if (dir==NULL) dir = csoundGetEnv(&cenviron, "HOME");
     dir = _tempnam(dir, "cs");
     strcpy(a, dir);
     free(dir);
@@ -171,13 +171,12 @@ int readOptions(void *csound, FILE *unf)
        * the command line arguments can be exactly the same in unified files
        * as for regular command line invocation.
        */
-      orchname = 0;
       if (*p==';' || *p=='#') continue; /* Comment line? */
       if (*p=='\n' || *p=='\r') continue; /* Empty line? */
       argc = 0;
       argv[0] = p;
-      while (*p==' ') p++;      /* Ignore leading space */
-      if (*p=='-') {            /* Deal with case where no command name is given */
+      while (*p==' ') p++;  /* Ignore leading space */
+      if (*p=='-') {        /* Deal with case where no command name is given */
         argv[0] = "csound";
         argv[1] = p;
         argc++;
@@ -220,7 +219,7 @@ int readOptions(void *csound, FILE *unf)
 #endif
       /*      argc++; */                  /* according to Nicola but wrong */
       /* Read an argv thing */
-      argdecode(csound, argc, argv, getenv("SFOUTYP"));
+      argdecode(csound, argc, argv, csoundGetEnv(csound, "SFOUTYP"));
     }
     return FALSE;
 }
@@ -556,6 +555,7 @@ int read_unified_file(void *csound, char **pname, char **score)
       }
       else if (strstr(p,"<CsOptions>") == buffer) {
         printf(Str("Creating options\n"));
+        orchname = NULL;  /* allow orchestra/score name in CSD file */
         r = readOptions(csound, unf);
         result = r && result;
       }
@@ -615,3 +615,4 @@ int read_unified_file(void *csound, char **pname, char **score)
     fclose(unf);
     return result;
 }
+

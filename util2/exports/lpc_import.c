@@ -27,15 +27,11 @@
 /* John ffitch 1998 Nov 15                                           */
 /* ***************************************************************** */
 
-#include "ustub.h"
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#ifndef MYFLT
-#include "sysdep.h"
-#endif
+#include "cs.h"
 #include "lpc.h"
-#include "text.h"
 
 void lpc_import_usage(void)
 {
@@ -52,6 +48,7 @@ int main(int argc, char **argv)
     MYFLT *coef;
 
     init_getstring(0, NULL);
+    csoundPreCompile(csoundCreate(NULL));
     if (argc!= 3)
       lpc_import_usage();
     inf = fopen(argv[1], "rb");
@@ -87,5 +84,4 @@ int main(int argc, char **argv)
     fclose(inf);
     return 0;
 }
-
 

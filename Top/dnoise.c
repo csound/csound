@@ -238,7 +238,7 @@ int dnoise(int argc, char **argv)
 
     O.filnamspace = outfile = (char*)mmalloc(&cenviron, (long)1024);
     nfile = (char*)mmalloc(&cenviron, (long)1024);
-    if ((envoutyp = getenv("SFOUTYP")) != NULL) {
+    if ((envoutyp = csoundGetEnv(&cenviron, "SFOUTYP")) != NULL) {
       if (strcmp(envoutyp,"AIFF") == 0)
         O.filetyp = TYP_AIFF;
       else if (strcmp(envoutyp,"WAV") == 0)

@@ -33,7 +33,7 @@
 #include "pvoc.h"
 #include "text.h"
 
-void usage(int);
+static void usage(int);
 
 int main(int argc, char **argv)
 {
@@ -103,7 +103,7 @@ int main(int argc, char **argv)
     return 0;
 }
 
-void usage(int argc)
+static void usage(int argc)
 {
     fprintf(stderr, Str("pv_export usage: pvfile commafile\n"));
     fprintf(stderr, "argc=%d\n", argc);

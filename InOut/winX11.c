@@ -424,11 +424,9 @@ void KillXYin_(XYINDAT *wdptr)
 
 int ExitGraph_(void) /* print click-Exit message in most recently active window */
 {
-    char *env = getenv("CSNOSTOP");
+    char *env = csoundGetEnv(&cenviron, "CSNOSTOP");
     if (env==NULL || strcmp(env,"yes")==0)
       myXwait(Str("click here to EXIT"));
     return 0;
 }
-
-
 

@@ -140,7 +140,6 @@ ENVIRON cenviron_ = {
         csoundCloseLibrary,
         csoundGetLibrarySymbol,
         csoundSetYieldCallback,
-        csoundSetEnv,
         csoundGetEnv,
         csoundSetPlayopenCallback,
         csoundSetRtplayCallback,
@@ -364,7 +363,8 @@ ENVIRON cenviron_ = {
         NULL,           /* rtRecord_userdata */
         NULL,           /* rtPlay_userdata */
         NULL,           /* memalloc_db */
-        (MGLOBAL*) NULL /* midiGlobals */
+        (MGLOBAL*) NULL, /* midiGlobals */
+        NULL            /* envVarDB */
 };
 
 OPARMS O;

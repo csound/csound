@@ -20,14 +20,17 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "ustub.h"
+#include "cs.h"
+
 void dnoise_usage(int);
 
 int main(int argc, char **argv)
 {
     init_getstring(0, NULL);
+    csoundPreCompile(csoundCreate(NULL));
     if(argc < 3) {
       dnoise_usage(1);
     }
     return dnoise(argc, argv);
 }
+

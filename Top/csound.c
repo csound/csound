@@ -101,11 +101,15 @@ extern "C" {
     saved_hostdata = p->hostdata_;
     csoundReset(csound);
     p->hostdata_ = saved_hostdata;
+    /* copy system environment variables */
+    i = csoundInitEnv(csound);
+    if (i != CSOUND_SUCCESS)
+      return i;
     /* allow selecting real time audio module */
     max_len = 21;
     csoundCreateGlobalVariable(csound, "_RTAUDIO", (size_t) max_len);
     s = csoundQueryGlobalVariable(csound, "_RTAUDIO");
-    s2 = getenv("CSRTAUDIO");
+    s2 = csoundGetEnv(csound, "CSRTAUDIO");
     if (s2 != NULL && s2[0] != '\0') {
       if ((int) strlen(s2) < max_len) {
         strcpy(s, s2);
@@ -1264,71 +1268,6 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
   int csoundYield(void *csound)
   {
     return csoundYieldCallback_(csound);
-  }
-
-  const static int MAX_ENVIRONS = 10;
-
-  typedef struct Environs
-  {
-    char *environmentVariableName;
-    char *path;
-  } Environs;
-
-  static Environs *csoundEnv_ = 0;
-
-  static int csoundNumEnvs_ = 0;
-
-  PUBLIC void csoundSetEnv(void *csound,
-                           const char *environmentVariableName, const char *path)
-  {
-    int i = 0;
-    if (!environmentVariableName || !path)
-      return;
-
-    if (csoundEnv_ == NULL)
-      {
-        csoundEnv_ = (Environs *) mcalloc(csound, MAX_ENVIRONS * sizeof(Environs));
-        if (!csoundEnv_)
-          {
-            return;
-          }
-      }
-    for (i = 0; i < csoundNumEnvs_; i++) {
-      if (strcmp(csoundEnv_[i].environmentVariableName,
-                 environmentVariableName) == 0)
-        {
-          mrealloc(csound, csoundEnv_[i].path, strlen(path)+1);
-          strcpy(csoundEnv_[i].path, path);
-          return;
-        }
-    }
-    if (csoundNumEnvs_ >= MAX_ENVIRONS)
-      {
-        /* warning("Exceeded maximum number of environment paths"); */
-        csoundMessage(csound, "Exceeded maximum number of environment paths");
-        return;
-      }
-
-    csoundNumEnvs_++;
-    csoundEnv_[csoundNumEnvs_].environmentVariableName =
-      mmalloc(csound, strlen(environmentVariableName)+1);
-    strcpy(csoundEnv_[csoundNumEnvs_].environmentVariableName,
-           environmentVariableName);
-    csoundEnv_[csoundNumEnvs_].path = mmalloc(csound, strlen(path) + 1);
-    strcpy(csoundEnv_[csoundNumEnvs_].path, path);
-  }
-
-  PUBLIC char *csoundGetEnv(const char *environmentVariableName)
-  {
-    int i;
-    for (i = 0; i < csoundNumEnvs_; i++) {
-      if (strcmp(csoundEnv_[i].environmentVariableName,
-                 environmentVariableName) == 0)
-        {
-          return (csoundEnv_[i].path);
-        }
-    }
-    return 0;
   }
 
   extern void csoundDeleteAllGlobalVariables(void *csound);
