@@ -54,7 +54,7 @@ static void   GENUL(void);
 
 FUNC    **flist=NULL /*[MAXFNUM+1]*/, *ftp;
 static  int     maxfnum = 0;
-static  GEN     gensub[GENMAX+1] = { GENUL,
+static  GEN     or_sub[GENMAX+1] = { GENUL,
                                      gen01, gen02, gen03, gen04, gen05,
                                      gen06, gen07, gen08, gen09, gen10,
                                      gen11, gen12, gen13, gen14, gen15,
@@ -64,6 +64,15 @@ static  GEN     gensub[GENMAX+1] = { GENUL,
                                      gen31, gen32, gen33, gen34, GENUL,
                                      GENUL, GENUL, GENUL, GENUL, gen40,
                                      gen41, gen42, gen43 };
+static  GEN    *gensub = NULL;
+static  int    genmax = GENMAX+1;
+typedef struct namedgen {
+        char            *name;
+        int              genum;
+        struct namedgen *next;
+} NAMEDGEN;
+NAMEDGEN *namedgen = NULL;
+
 static  EVTBLK  *e;
 
 #define tpd360  (0.017453293)
@@ -91,6 +100,10 @@ void ftRESET(void)
       mfree(ftevt);
       ftevt = NULL;
     }
+    if (gensub) {
+      mfree(gensub);
+      gensub = 0;
+    }
 /*     vco2_tables_destroy(); */
 }
 
@@ -104,6 +117,11 @@ void fgens(EVTBLK *evtblkp)     /* create ftable using evtblk data */
 {
     long        ltest, lobits, lomod, genum;
 
+    if (gensub==NULL) {
+      gensub = (GEN*) mmalloc(sizeof(GEN)*(GENMAX+1));
+      memcpy(gensub, or_sub, sizeof(GEN)*(GENMAX+1));
+      genmax = GENMAX+1;
+    }
     e = evtblkp;
     fterrcnt = 0;
     if ((fno = (int)e->p[1]) < 0) {                     /* fno < 0: remove */
@@ -140,11 +158,28 @@ void fgens(EVTBLK *evtblkp)     /* create ftable using evtblk data */
       fterror(Str(X_941,"insufficient gen arguments"));
       return;
     }
-    if ((genum = (long)e->p[4]) < 0)
+    if ((genum = (long)e->p[4])==SSTRCOD) {
+      NAMEDGEN *n = namedgen;
+      printf("*** Named fgen %s\n", e->strarg);
+      while (n) {
+        if (strcpy(n->name, e->strarg)==0) {
+          genum = n->genum;
+          break;
+        }
+        n = n->next;
+      }
+      if (n==NULL) {
+        fterror("No named gen");
+        return;
+      }
+    }
+    else {
+      if (genum < 0)
         genum = -genum;
-    if (!genum || genum > GENMAX) {             /*   & legal gen number */
-      fterror(Str(X_850,"illegal gen number"));
-      return;
+      if (!genum || genum > GENMAX) {             /*   & legal gen number */
+        fterror(Str(X_850,"illegal gen number"));
+        return;
+      }
     }
     if ((flen = (long)(e->p[3]+0.5))) {         /* if user flen given       */
       if (flen < 0 ) { /* gab for non-pow-of-two-length */
