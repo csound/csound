@@ -72,6 +72,7 @@ void list_opcodes(int);
 short sfsampsize(int);
 void rewriteheader(SNDFILE* ofd, int verbose);
 char *unquote(char *);
+void scoreRESET(ENVIRON *p);
 
 extern OPARMS O;
 extern ENVIRON cenviron;
