@@ -692,7 +692,7 @@ static int writesdif(void)
     scale = m_ampsum / maxampsum;
     /* SDIF does not specify a range, 'cos it's too clever for that sort
      * of thing, but this seems consistent with existing examples! */
-    scale *= (double)dbfs_to_float;
+    scale *= (double) cenviron.dbfs_to_float;
 /*     scale /= 32768.0; */
 
     for (h = 0; h < hmax; h++) {

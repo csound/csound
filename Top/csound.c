@@ -49,7 +49,7 @@ extern "C" {
     ENVIRON *csound = &cenviron;
     memcpy(csound, &cenviron_, sizeof(ENVIRON));
     csoundReset(csound);
-    csound->hostdata_ = hostdata;
+    csound->hostdata = hostdata;
     return csound;
   }
 
@@ -96,9 +96,9 @@ extern "C" {
 
     p = (ENVIRON*) csound;
     /* reset instance, but keep host data pointer */
-    saved_hostdata = p->hostdata_;
+    saved_hostdata = p->hostdata;
     csoundReset(csound);
-    p->hostdata_ = saved_hostdata;
+    p->hostdata = saved_hostdata;
     /* copy system environment variables */
     i = csoundInitEnv(csound);
     if (i != CSOUND_SUCCESS)
@@ -192,12 +192,12 @@ extern "C" {
 
   PUBLIC void *csoundGetHostData(void *csound)
   {
-    return ((ENVIRON *)csound)->hostdata_;
+    return ((ENVIRON *)csound)->hostdata;
   }
 
   PUBLIC void csoundSetHostData(void *csound, void *hostData)
   {
-    ((ENVIRON *)csound)->hostdata_ = hostData;
+    ((ENVIRON *)csound)->hostdata = hostData;
   }
 
   /*
@@ -211,11 +211,10 @@ extern "C" {
   {
     volatile int returnValue;
     /* setup jmp for return after an exit() */
-    if ((returnValue = setjmp(cenviron.exitjmp_)))
-      {
-        csoundMessage(csound, "Early return from csoundPerform().\n");
-        return returnValue;
-      }
+    if ((returnValue = setjmp(((ENVIRON*) csound)->exitjmp))) {
+      csoundMessage(csound, "Early return from csoundPerform().\n");
+      return returnValue;
+    }
     return csoundMain(csound, argc, argv);
   }
 
@@ -223,24 +222,20 @@ extern "C" {
   {
     int done = 0;
     volatile int returnValue;
-    /* setup jmp for return after an exit()
-     */
-    if ((returnValue = setjmp(((ENVIRON*) csound)->exitjmp_)))
-      {
-        csoundMessage(csound, "Early return from csoundPerformKsmps().\n");
-        return returnValue;
-      }
+    /* setup jmp for return after an exit() */
+    if ((returnValue = setjmp(((ENVIRON*) csound)->exitjmp))) {
+      csoundMessage(csound, "Early return from csoundPerformKsmps().\n");
+      return returnValue;
+    }
     done = sensevents(csound);
-    if (!done)
-      {
-        /* IV - Feb 05 2005 */
-        if (!((ENVIRON*) csound)->oparms_->initonly)
-          kperf(csound);
-      }
-    if(done)
-      {
-        csoundMessage(csound, "Score finished in csoundPerformKsmps()\n");
-      }
+    if (!done) {
+      /* IV - Feb 05 2005 */
+      if (!((ENVIRON*) csound)->oparms->initonly)
+        kperf(csound);
+    }
+    else {
+      csoundMessage(csound, "Score finished in csoundPerformKsmps()\n");
+    }
     return done;
   }
 
@@ -250,15 +245,14 @@ extern "C" {
     volatile int returnValue;
     /* setup jmp for return after an exit()
      */
-    if ((returnValue = setjmp(((ENVIRON*) csound)->exitjmp_)))
-      {
-        csoundMessage(csound, "Early return from csoundPerformKsmps().\n");
-        return returnValue;
-      }
+    if ((returnValue = setjmp(((ENVIRON*) csound)->exitjmp))) {
+      csoundMessage(csound, "Early return from csoundPerformKsmps().\n");
+      return returnValue;
+    }
     done = sensevents(csound);
 
     /* IV - Feb 05 2005 */
-    if (!((ENVIRON*) csound)->oparms_->initonly)
+    if (!((ENVIRON*) csound)->oparms->initonly)
       kperf(csound);
     return done;
   }
@@ -288,24 +282,21 @@ extern "C" {
     int done = 0;
     /* Setup jmp for return after an exit().
      */
-    if ((returnValue = setjmp(((ENVIRON*) csound)->exitjmp_)))
-      {
-        csoundMessage(csound, "Early return from csoundPerformBuffer().\n");
-        return returnValue;
-      }
+    if ((returnValue = setjmp(((ENVIRON*) csound)->exitjmp))) {
+      csoundMessage(csound, "Early return from csoundPerformBuffer().\n");
+      return returnValue;
+    }
     _rtCurOutBufCount = 0;
     sampsNeeded += O.outbufsamps;
-    while (!done && sampsNeeded > 0)
-      {
-        done = sensevents(csound);
-        if (done)
-          {
-            return done;
-          }
-        if (!((ENVIRON*) csound)->oparms_->initonly)
-            kperf(csound);
-        sampsNeeded -= sampsPerKperf;
+    while (!done && sampsNeeded > 0) {
+      done = sensevents(csound);
+      if (done) {
+        return done;
       }
+      if (!((ENVIRON*) csound)->oparms->initonly)
+        kperf(csound);
+      sampsNeeded -= sampsPerKperf;
+    }
     return done;
   }
 
@@ -327,22 +318,22 @@ extern "C" {
 
   PUBLIC MYFLT csoundGetSr(void *csound)
   {
-    return ((ENVIRON *)csound)->esr_;
+    return ((ENVIRON *)csound)->esr;
   }
 
   PUBLIC MYFLT csoundGetKr(void *csound)
   {
-    return ((ENVIRON *)csound)->ekr_;
+    return ((ENVIRON *)csound)->ekr;
   }
 
   PUBLIC int csoundGetKsmps(void *csound)
   {
-    return ((ENVIRON *)csound)->ksmps_;
+    return ((ENVIRON *)csound)->ksmps;
   }
 
   PUBLIC int csoundGetNchnls(void *csound)
   {
-    return ((ENVIRON *)csound)->nchnls_;
+    return ((ENVIRON *)csound)->nchnls;
   }
 
   PUBLIC int csoundGetSampleFormat(void *csound)
@@ -387,7 +378,7 @@ extern "C" {
 
   PUBLIC MYFLT csoundGetScoreTime(void *csound)
   {
-    return ((ENVIRON *)csound)->kcounter_ * ((ENVIRON *)csound)->onedkr_;
+    return (MYFLT) ((ENVIRON*)csound)->sensEvents_state.curTime;
   }
 
   PUBLIC MYFLT csoundGetProgress(void *csound)
@@ -490,13 +481,13 @@ extern "C" {
     csoundMessageCallback_(csound, msg, args);
     va_end(args);
     csoundMessage(csound, "\n");
-    longjmp(((ENVIRON*) csound)->exitjmp_, 1);
+    longjmp(((ENVIRON*) csound)->exitjmp, 1);
   }
 
   void csoundWarning(void *csound, const char *msg, ...)
   {
     va_list args;
-    if (!(((ENVIRON*) csound)->oparms_->msglevel & WARNMSG))
+    if (!(((ENVIRON*) csound)->oparms->msglevel & WARNMSG))
       return;
     csoundMessage(csound, Str("WARNING: "));
     va_start(args, msg);
@@ -508,7 +499,7 @@ extern "C" {
   void csoundDebugMsg(void *csound, const char *msg, ...)
   {
     va_list args;
-    if (!(((ENVIRON*) csound)->oparms_->odebug))
+    if (!(((ENVIRON*) csound)->oparms->odebug))
       return;
     va_start(args, msg);
     csoundMessageCallback_(csound, msg, args);
@@ -544,12 +535,12 @@ extern "C" {
 
   PUBLIC int csoundGetMessageLevel(void *csound)
   {
-    return ((ENVIRON *)csound)->oparms_->msglevel;
+    return ((ENVIRON *)csound)->oparms->msglevel;
   }
 
   PUBLIC void csoundSetMessageLevel(void *csound, int messageLevel)
   {
-    ((ENVIRON *)csound)->oparms_->msglevel = messageLevel;
+    ((ENVIRON *)csound)->oparms->msglevel = messageLevel;
   }
 
   PUBLIC void csoundInputMessage(void *csound, const char *message)
@@ -643,15 +634,18 @@ int playopen_dummy(void *csound, csRtAudioParams *parm)
     if (s != NULL && !(strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
                        strcmp(s, "NULL") == 0)) {
       if (s[0] == '\0')
-        err_printf(Str(" *** error: rtaudio module set to empty string\n"));
+        csoundMessage(csound,
+                      Str(" *** error: rtaudio module set to empty string\n"));
       else
-        err_printf(Str(" *** error: unknown rtaudio module: '%s'\n"), s);
+        csoundMessage(csound,
+                      Str(" *** error: unknown rtaudio module: '%s'\n"), s);
       return CSOUND_ERROR;
     }
     /* IV - Feb 08 2005: avoid locking up the system with --sched */
 #ifdef LINUX
     if (sched_getscheduler(0) != SCHED_OTHER) {
-      err_printf(" *** error: cannot use --sched with dummy audio output\n");
+      csoundMessage(csound,
+                    " *** error: cannot use --sched with dummy audio output\n");
       return CSOUND_ERROR;
     }
 #endif
@@ -674,15 +668,18 @@ int recopen_dummy(void *csound, csRtAudioParams *parm)
     if (s != NULL && !(strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
                        strcmp(s, "NULL") == 0)) {
       if (s[0] == '\0')
-        err_printf(Str(" *** error: rtaudio module set to empty string\n"));
+        csoundMessage(csound,
+                      Str(" *** error: rtaudio module set to empty string\n"));
       else
-        err_printf(Str(" *** error: unknown rtaudio module: '%s'\n"), s);
+        csoundMessage(csound,
+                      Str(" *** error: unknown rtaudio module: '%s'\n"), s);
       return CSOUND_ERROR;
     }
     /* IV - Feb 08 2005: avoid locking up the system with --sched */
 #ifdef LINUX
     if (sched_getscheduler(0) != SCHED_OTHER) {
-      err_printf(" *** error: cannot use --sched with dummy audio input\n");
+      csoundMessage(csound,
+                    " *** error: cannot use --sched with dummy audio input\n");
       return CSOUND_ERROR;
     }
 #endif
@@ -1075,12 +1072,14 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
 
   void MakeXYin(XYINDAT *xyindat, MYFLT x, MYFLT y)
   {
-    printf("xyin not supported. use invalue opcode instead.\n");
+    csoundMessage(&cenviron,
+                  "xyin not supported. use invalue opcode instead.\n");
   }
 
   void ReadXYin(XYINDAT *xyindat)
   {
-    printf("xyin not supported. use invlaue opcodes instead.\n");
+    csoundMessage(&cenviron,
+                  "xyin not supported. use invlaue opcodes instead.\n");
   }
 
   /*
@@ -1121,7 +1120,7 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
       (OENTRY *) mrealloc(csound, ((ENVIRON *)csound)->opcodlst_, newSize);
     if(!((ENVIRON *)csound)->opcodlst_) {
       ((ENVIRON *)csound)->opcodlst_ = oldOpcodlst;
-      err_printf("Failed to allocate new opcode entry.");
+      csoundMessage(csound, "Failed to allocate new opcode entry.\n");
       return -1;
     }
     else {
@@ -1136,14 +1135,6 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
       oentry->kopadr = (SUBR) kopadr;
       oentry->aopadr = (SUBR) aopadr;
       oentry->dopadr = (SUBR) dopadr;
-#if 0
-      printf("Appended opcodlst[%d]: opcode = %-20s "
-             "intypes = %-20s outypes = %-20s\n",
-             oldCount,
-             oentry->opname,
-             oentry->intypes,
-             oentry->outypes);
-#endif
       return 0;
     }
   }
@@ -1230,48 +1221,41 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
     csoundScoreOffsetSeconds_ = (MYFLT) 0.0;
   }
 
-  PUBLIC int csoundGetDebug(void *csound_)
+  PUBLIC int csoundGetDebug(void *csound)
   {
-    ENVIRON *csound = (ENVIRON *)csound;
-    return csound->oparms_->odebug;
+    return ((ENVIRON*) csound)->oparms->odebug;
   }
 
-  PUBLIC void csoundSetDebug(void *csound_, int debug)
+  PUBLIC void csoundSetDebug(void *csound, int debug)
   {
-    ENVIRON *csound = (ENVIRON *)csound_;
-    csound->oparms_->odebug = debug;
+    ((ENVIRON*) csound)->oparms->odebug = debug;
   }
 
-  PUBLIC int csoundTableLength(void *csound_, int table)
+  PUBLIC int csoundTableLength(void *csound, int table)
   {
-    ENVIRON *csound = (ENVIRON *)csound_;
-    int     tableLength;
-    csound->GetTable(csound, table, &tableLength);
+    int tableLength;
+    ((ENVIRON*) csound)->GetTable((ENVIRON*) csound, table, &tableLength);
     return tableLength;
   }
 
-  MYFLT csoundTableGet(void *csound_, int table, int index)
+  MYFLT csoundTableGet(void *csound, int table, int index)
   {
-    ENVIRON *csound = (ENVIRON *)csound_;
-    return (csound->GetTable(csound, table, NULL)[index]);
+    return ((ENVIRON*) csound)->GetTable((ENVIRON*) csound, table, NULL)[index];
   }
 
-  PUBLIC void csoundTableSet(void *csound_, int table, int index, MYFLT value)
+  PUBLIC void csoundTableSet(void *csound, int table, int index, MYFLT value)
   {
-    ENVIRON *csound = (ENVIRON *)csound_;
-    csound->GetTable(csound, table, NULL)[index] = value;
+    ((ENVIRON*) csound)->GetTable((ENVIRON*)csound, table, NULL)[index] = value;
   }
 
-  PUBLIC void csoundSetFLTKThreadLocking(void *csound_, int isLocking)
+  PUBLIC void csoundSetFLTKThreadLocking(void *csound, int isLocking)
   {
-    ENVIRON *csound = (ENVIRON *)csound_;
-    csound->doFLTKThreadLocking = isLocking;
+    ((ENVIRON*) csound)->doFLTKThreadLocking = isLocking;
   }
 
-  PUBLIC int csoundGetFLTKThreadLocking(void *csound_)
+  PUBLIC int csoundGetFLTKThreadLocking(void *csound)
   {
-    ENVIRON *csound = (ENVIRON *)csound_;
-    return csound->doFLTKThreadLocking;
+    return ((ENVIRON*) csound)->doFLTKThreadLocking;
   }
 
 /* -------- IV - Jan 27 2005: timer functions -------- */
