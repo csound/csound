@@ -258,6 +258,7 @@ OENTRY opcodlst_2[] = {
 { "FLcolor2",S(FLWIDGCOL2), 1,  "",     "jjj",     fl_widget_color2, NULL, NULL },
 { "FLlabel",S(FLWIDGLABEL), 1,  "",     "ojojjj",   fl_widget_label, NULL, NULL },
 { "FLsetVal_i",S(FL_SET_WIDGET_VALUE_I), 1, "", "ii", fl_setWidgetValuei, NULL, NULL },
+{ "FLsetVali",S(FL_SET_WIDGET_VALUE_I), 1, "", "ii", fl_setWidgetValuei, NULL, NULL },
 { "FLsetVal",S(FL_SET_WIDGET_VALUE), 3, "", "kki", fl_setWidgetValue_set, fl_setWidgetValue },
 { "FLsetColor",S(FL_SET_COLOR), 1, "",  "iiii",         fl_setColor1, NULL, NULL},
 { "FLsetColor2",S(FL_SET_COLOR), 1, "", "iiii",         fl_setColor2, NULL, NULL},
