@@ -59,9 +59,10 @@ namespace csound
     /**
      * Translate the generated score to a Csound score and export it for performance.
      */
-    virtual void createCsoundScore();
+    virtual void createCsoundScore(std::string addToScore = "");
     /**
      * Convenience function that erases the existing score, 
+     * appends optional text to it,
      * invokes generate(), invokes createCsoundScore(), and invokes perform().
      */
     virtual void render();
