@@ -28,9 +28,6 @@
 #include "soundio.h"
 #include <ctype.h>              /* For isdigit */
 
-extern void remove_tmpfiles(void);      /* IV - Oct 31 2002 */
-extern void add_tmpfile(char*);
-
 #ifdef mills_macintosh
 #include <SIOUX.h>
 #include "perf.h"
@@ -386,7 +383,6 @@ int csoundCompile(void *csound, int argc, char **argv)
     peakchunks = 1;
     {
       FILE *csrc = fopen(".csoundrc", "r");
-      extern int readOptions(FILE *);
       if (csrc!=NULL) {
         readOptions(csrc);
         fclose(csrc);
