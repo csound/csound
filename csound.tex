@@ -49,7 +49,7 @@ cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/csound login
 cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/csound co csound5 
 \end{verbatim}
 
-Information about accessing the CVS repository may be found in the SourceForge document``Basic Introduction to CVS and SourceForge.net (SF.net) Project CVS Services''. 
+Information about accessing the CVS repository may be found in the SourceForge document ``Basic Introduction to CVS and SourceForge.net (SF.net) Project CVS Services''. 
 
 If you wish to become a Csound developer, obtain a SourceForge login, and then apply to John ffitch at the \linebreak[3] \texttt{http:\-//www.sourceforge.net/projects/\-csound} site.
 
@@ -102,7 +102,7 @@ to:
 cmd = SCons.Util.CLVar(['$SHLINK', '$SHLINKFLAGS']) 
 \end{verbatim}
 
-It is highly recommend that you update your MinGW installation from the SourceForge site to the ``current'' level for core gcc, g++, binutils,  utils, and the Windows API headers and libraries.(w32api).
+It is highly recommend that you update your MinGW installation from the SourceForge site to the ``current'' level for core gcc, g++, binutils,  utils, and the Windows API headers and libraries (w32api).
 
 Rebuild and install a version of libsndfile no earlier than:
 \begin{verbatim}
@@ -132,7 +132,7 @@ On Windows, make sure that the \texttt{windows\_dlls} directory is in your \text
 CsoundVST requires some additional configuration:
 \begin{enumerate}
 \item Make sure that the Csound executables are in your \texttt{PATH} environment variable. 
-\item On Windows, make sure the directory containing the \texttt{\_CsoundVST.dll} file and all the Csound plugin opcodes is also in your \texttt{PATH} variable. On Unix and Linux, make sure that the directory containing the \texttt{\_CsoundVST.so} file and all the Csound plugin opcodes is in your \texttt{LD\_LIBRARY\_PATH} environment variable. This variable may have a different name in different operating systems.
+\item On Windows, make sure the directory containing the \texttt{\_CsoundVST.dll} file and all the Csound plugin opcodes is also in your \texttt{PATH} variable. On Unix and Linux, either install the Csound program in one of the system bin directories, typically \texttt{/usr/local/bin},  and the Csound and plugin shared libraries in one of the system lib directories, typically \texttt{/usr/local/lib}; or make sure that the directory containing the \texttt{\_CsoundVST.so} file and all the Csound plugin opcodes is in your \texttt{LD\_LIBRARY\_PATH} environment variable. This variable may have a different name in different operating systems.
 \item On all platforms, CsoundVST requires that you have Python installed on your computer. The directory containing the \texttt{\_CsoundVST} shared library and the \texttt{CsoundVST.py} file must be in your \texttt{PYTHONPATH} environment variable, so that the Python runtime knows how to load these files.
 \end{enumerate}
 
@@ -529,7 +529,7 @@ Csound contains contributions from musicians, scientists, and programmers from a
 \item Greg Sullivan 
 \item Hans Mikelson 
 \item Istvan Varga 
-\item Jean Pich� 
+\item Jean Piche 
 \item John ffitch 
 \item John Ramsdell 
 \item Marc Resibois 
@@ -542,7 +542,7 @@ Csound contains contributions from musicians, scientists, and programmers from a
 \item Mike Berry 
 \item Paris Smaragdis 
 \item Perry Cook 
-\item Peter Neub�cker 
+\item Peter Neubacker 
 \item Peter Nix 
 \item Rasmus Ekman 
 \item Richard Dobson 
@@ -558,17 +558,17 @@ Csound contains contributions from musicians, scientists, and programmers from a
 
 \section{To Do}
 
-This is a ``to do'' list, not necessarily complete, for Csound and CsoundVST:
+This is a ``to do'' list, not necessarily complete, and in no particular order of priority or time, for Csound and CsoundVST:
 
 \begin{enumerate}
-\item In preparation for a beta file release package:
-\begin{enumerate}
-\item Get the ASIO version of PortAudio working on Windows.
-\end{enumerate}
-\item Longer term:
-\begin{enumerate}
-\item Implement either Loris or ATS as both Python extension module and plugin opcodes.
-\end{enumerate}
+\item See also the \texttt{To-fix-and-do} file in the \texttt{csound5} directory.
+\item Get the ASIO version of PortAudio working on Windows, or write a kernel streaming PortAudio driver, for latency adequate to real-time performance.
+\item Create a Pure Data (PD) adapter opcode that will run Pure Data (PD) patches in Csound orchestra, for both MIDI and audio input and output.
+\item Create a \emph{Mathematica} interface for CsoundVST.
+\item Create a COM interface for CsoundVST.
+\item Create better examples, especially to demonstrate the use of Python and of VST plugins. One example should be a live performance instrument with a Python GUI that controls instrument parameters or algorithmic composition parameters in real time.
+\item Complete the work of making Csound multi-instantiable.
+\item All Csound documentation in this one PDF.
 \end{enumerate}
 
 \end{document}
