@@ -1021,7 +1021,7 @@ static void ifa(void)
           if (*sp == '.') {
             nxp = sp;
             pcopy((int)bp->pcnt, 1, prvbp);
-            prvp2 = bp->p2val;
+            if (bp->pcnt >= 2) prvp2 = bp->p2val;
           }
           else /* need the fabs() in case of neg p3 */
             prvp2 = bp->p2val = prvbp->p2val + (MYFLT)fabs(prvbp->p3val);
