@@ -1,3 +1,8 @@
+2005-03-13  John ffitch  <jpff@codemist.co.uk>
+
+	* Opcodes/ftest.c (gentune): Added Gabriel's gen to the loadable
+	gens under the name gentune
+
 2005-03-12	Istvan Varga	<istvan@csounds.com>
 	* SConstruct:
 	* Opcodes/screverb.c:
