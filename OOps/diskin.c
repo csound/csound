@@ -434,7 +434,9 @@ void soundinew(ENVIRON *csound, SOUNDINEW *p)    /*  a-rate routine for soundine
         if (samplesLeft <= nchnls) {      /* first set file position
                                              to where inbuf p "thinks"
                                              its pointing to */
-          p->filepos = (long)sf_seek(p->fdch.fd,(off_t)(-samplesLeft),SEEK_CUR);
+          p->filepos = (long)sf_seek(p->fdch.fd,
+                                     (off_t)(-samplesLeft / chnsout),
+                                     SEEK_CUR);
           if ((n = sreadinew(p->fdch.fd,
                              p->inbuf,snewbufsize,p)) == 0) {  /*RWD 5:2001 */
             if (looping) {

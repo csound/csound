@@ -205,8 +205,7 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
 {
     int     n;
     long    framesinbuf, skipframes;
-    char    *sfname, soundiname[128];
-    int     sinfd=0;
+    char    *sfname, *s, soundiname[128];
     SNDFILE *infile;
     SF_INFO sfinfo;
     long    filno;
@@ -225,46 +224,57 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
     else
       sprintf(soundiname,"soundin.%ld",filno);  /* soundin.filno */
     sfname = soundiname;
-    if ((sinfd = openin(sfname)) < 0) {         /* open with full dir paths */
+    /* open with full dir paths */
+    s = csoundFindInputFile(&cenviron, sfname, "SFDIR;SSDIR");
+    if (s == NULL) {
       sprintf(errmsg,Str("soundin cannot open %s"), sfname);
       goto errtn;
     }
+    /* & record fullpath filnam */
+    sfname = s;
     /* IV - Feb 26 2005: should initialise sfinfo structure */
     memset(&sfinfo, 0, sizeof(SF_INFO));
-    /* convert spec'd format code */
-    switch ((int) (*p->iformat + FL(0.5))) {
-      case 0: p->format = (short) -1; break;
-      case 1: p->format = AE_CHAR; break;
-      case 2: p->format = AE_ALAW; break;
-      case 3: p->format = AE_ULAW; break;
-      case 4: p->format = AE_SHORT; break;
-      case 5: p->format = AE_LONG; break;
-      case 6: p->format = AE_FLOAT; break;
-      default: sprintf(errmsg, Str("soundin: invalid sample format: %d"),
-                               (int) (*p->iformat + FL(0.5)));
-               die(errmsg);
-               return NULL;
-    }
-    if (p->format != (short) -1)            /* store default sample format, */
+    infile = sf_open(sfname, SFM_READ, &sfinfo);
+    if (infile == NULL) {
+      /* open failed: maybe raw file ? */
+      memset(&sfinfo, 0, sizeof(SF_INFO));
+      /* convert spec'd format code */
+      switch ((int) (*p->iformat + FL(0.5))) {
+        case 0: p->format = AE_SHORT; break;
+        case 1: p->format = AE_CHAR; break;
+        case 2: p->format = AE_ALAW; break;
+        case 3: p->format = AE_ULAW; break;
+        case 4: p->format = AE_SHORT; break;
+        case 5: p->format = AE_LONG; break;
+        case 6: p->format = AE_FLOAT; break;
+        default: sprintf(errmsg, Str("soundin: invalid sample format: %d"),
+                                 (int) (*p->iformat + FL(0.5)));
+                 mfree(&cenviron, sfname);
+                 die(errmsg);
+                 return NULL;
+      }
+      /* store default sample format, */
       sfinfo.format = (int) format2sf(p->format) | SF_FORMAT_RAW;
-    if ((int) p->OUTOCOUNT > 0)             /* number of channels, */
-      sfinfo.channels = (int) p->OUTOCOUNT;
-    else
-      sfinfo.channels = 1;
-    if (p->analonly)                        /* and sample rate */
-      sfinfo.samplerate = (int) p->sr;
-    else
-      sfinfo.samplerate = (int) (esr + FL(0.5));
-    if (sfinfo.samplerate < 1)
-      sfinfo.samplerate = 44100;
-    infile = sf_open_fd(sinfd, SFM_READ, &sfinfo, SF_TRUE);
-    if (infile == NULL)
+      if ((int) p->OUTOCOUNT > 0)           /* number of channels, */
+        sfinfo.channels = (int) p->OUTOCOUNT;
+      else
+        sfinfo.channels = 1;
+      if (p->analonly)                      /* and sample rate */
+        sfinfo.samplerate = (int) p->sr;
+      else
+        sfinfo.samplerate = (int) (esr + FL(0.5));
+      if (sfinfo.samplerate < 1)
+        sfinfo.samplerate = 44100;
+      /* try again */
+      infile = sf_open(sfname, SFM_READ, &sfinfo);
+    }
+    if (infile == NULL) {
+      mfree(&cenviron, sfname);
       dies(Str("soundin: failed to open '%s'"), sfname);
-    if (p->format == (short) -1)
-      p->format = sf2format(sfinfo.format);
+    }
+    p->format = sf2format(sfinfo.format);
     p->fdch.fd = infile;
     p->nchanls = sfinfo.channels;
-    sfname = retfilnam;                         /* & record fullpath filnam */
     p->endfile = 0;
     p->filetyp = 0;         /* initially non-typed for readheader */
     curr_func_sr = (MYFLT)sfinfo.samplerate;
@@ -306,6 +316,8 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
       else if (p->channel != ALLCHNLS && p->channel > sfinfo.channels) {
         sprintf(errmsg,Str("req chan %d, file %s has only %ld"),
                 p->channel, sfname, sfinfo.channels);
+        sf_close(infile);
+        mfree(&cenviron, sfname);
         die(errmsg);
       }
       if (p->format && sf2format(sfinfo.format) != p->format &&
@@ -342,8 +354,11 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
       }
       printf(Str("opening %s infile %s\n"),
              type2string(p->filetyp), sfname);
-      if (p->sampframsiz <= 0)                       /* must know framsiz */
+      if (p->sampframsiz <= 0) {                     /* must know framsiz */
+        sf_close(infile);
+        mfree(&cenviron, sfname);
         die(Str("illegal sampframsiz"));
+      }
       p->audrem = sfinfo.frames * sfinfo.channels;
       p->framesrem = sfinfo.frames;    /*   find frames rem */
       skipframes = (long)(*p->iskptim * p->sr);
@@ -355,9 +370,14 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
         p->inbufp = p->inbuf + skipframes * sfinfo.channels;
       }
       else {                                    /* for greater skiptime: */
-        if (sf_seek(infile, (off_t)skipframes, SEEK_SET) < 0)  /* else seek to bndry */
+        /* else seek to bndry */
+        if (sf_seek(infile, (off_t)skipframes, SEEK_SET) < 0) {
+          sf_close(infile);
+          mfree(&cenviron, sfname);
           die(Str("soundin seek error"));
-        if ((n = sreadin(infile,p->inbuf,SNDINBUFSIZ,p)) == 0) /* now rd fulbuf */
+        }
+        /* now rd fulbuf */
+        if ((n = sreadin(infile,p->inbuf,SNDINBUFSIZ,p)) == 0)
           p->endfile = 1;
         p->inbufp = p->inbuf;
         p->bufend = p->inbuf + n;
@@ -365,12 +385,13 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
       if (p->inbufp >= p->bufend)   /* needed? */
         p->endfile = 1;
       if (p->framesrem != -1)
-        p->framesrem -= skipframes;                  /* sampleframes to EOF   */
+        p->framesrem -= skipframes;             /* sampleframes to EOF   */
       p->datpos = 0;
-      return(infile);                                /* return the active fd  */
+      mfree(&cenviron, sfname);
+      return(infile);                           /* return the active fd  */
 
  errtn:
-      return NULL;                        /*              return empty handed */
+      return NULL;                      /*              return empty handed */
 }
 
 char *getstrformat(int format)  /* used here, and in sfheader.c */
