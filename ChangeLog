@@ -1,3 +1,7 @@
+2004-08-18  John ffitch  <jpff@codemist.co.uk>
+
+	* Engine/fgens.c (gen20): Corrected sinc window
+
 2004-08-12  Michael Gogins <gogins@pipeline.com>
 
 	* Re-arranged sections in csound.pdf to be more helpful for beginners.
