@@ -1,0 +1,89 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{Tools for Real-time Spectral Processing}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous &Spectral Processing &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{Tools for Real-time Spectral Processing}
+
+
+  With these opcodes, two new core facilities are added to Csound. They offer improved audio quality, and fast performance, enabling high-quality analysis and resynthesis (together with transformations) to be applied in real-time to live signals. The original Csound phase vocoder remains unaltered; the new opcodes use an entirely separate set of functions based on ``pvoc.c'' in the CARL distribution, written by Mark Dolson. 
+
+
+  The Csound \emph{dnoise}
+ and \emph{srconv}
+ utilities (also by Dolson, from CARL) also use this pvoc engine. CARL pvoc is also the basis for the phase vocoder included in the Composer's Desktop Project. A few small but important modifications have been made to the original CARL code to support real-time streaming. 
+
+
+ 
+
+
+ 
+\begin{enumerate}
+\item 
+
+ Support for the new PVOC-EX analysis file format. This is a fully portable (cross-platform) open file format, supporting three analysis formats, and multi-channel signals. Currently only the standard amplitude+frequency format has been implemented in the opcodes, but the file format itself supports amplitude+phase and complex (real-imaginary) formats. In addition to the new opcodes, the original Csound pvoc opcodes have been extended (and thereby with enhanced audio quality in some cases) to read PVOC-EX files as well as the original (non-portable) format.
+
+
+ Full details of the structure of a PVOC-EX file are available via the website: \emph{\url{http://www.cs.bath.ac.uk/~jpff/NOS-DREAM/researchdev/pvocex/pvocex.html}}
+. This site also gives details of the freely available console programs pvocex and pvocex2 which can be used to create PVOC-EX files in all supported formats.
+
+\item 
+
+ A new frequency-domain signal type, fully streamable, with \emph{f}
+ as the leading character. In this document it is conveniently referred to as an \emph{fsig}
+. Primary support for fsigs is provided by the opcodes pvsanal and pvsynth, which perform conventional phase vocoder overlap-add analysis and resynthesis, independently of the orchestra control-rate. The only requirement is that the control-rate kr be higher than or equal to the analysis rate, whch can be expressed by the requirement that ksmps $<$= overlap, where overlap is the distance in samples between analysis frames, as specified for pvsanal. As overlap is typically at least 128, and more usually 256, this is not an onerous restriction in practice. The opcode pvsinfo can be used at init time to acquire the properties of an fsig.
+
+
+ The fsig enables the nominal separation between the analysis and resynthesis stages of the phase vocoder to be exposed to the Csound programmer, so that not only can alternatives be employed for either or both of these stages (not only oscillator-bank resynthesis, but also the generation of synthetic fsig streams), but opcodes, operating on the fsig stream, can themselves become more elemental. Thus the fsig enables the creation of a true streaming plugin framework for frequency domain signals. With the old pvoc opcodes, each opcode is required to act as a resynthesiser, so that facilities such as pitch scaling are duplicated in each opcode; and in many cases the opcodes are parameter-rich. The separation of analysis and synthesis stages by means of the fsig encourages the development of a wide range of simple building-block opcodes implementing one or two functions, with which more elaborate processes can be constructed.
+
+
+\end{enumerate}
+
+
+  This is very much a preliminary and experimental release, and it is possible that the precise definition of the opcodes may change, in response to user feedback. Also, clearly, many new possibilities for opcodes are opened up; these factors may also have a retrospective influence on the opcodes presented here. 
+
+
+  Note that some opcode parameters currently have restricted or missing implementation. This is at least in part in order to keep the opcodes simple at this stage, and also because they highlight important design issues on which no decision has yet been made, and on which opinions from users are sought. 
+
+
+  One important point about the new signal type is that because the analysis rate is typically much lower than kr, new analysis frames are not available on each k-cycle. Internally, the opcodes track ksmps, and also maintain a frame counter, so that frames are read and written at the correct times; this process is generally transparent to the user. However, it means that k-rate signals only act on an fsig at the analysis rate, not at each k-cycle. The opocde pvsftw returns a k-rate flag that is set when new fsig data is valid. 
+
+
+  Because of the nature of the overlap-add system, the use of these opcodes incurs a small but significant delay, or latency, determined by the window size (max(ifftsize,iwinsize)). This is typically around 23msecs. In this first release, the delay is slightly in excess of the theoretical minimum, and it is hoped that it can be reduced, as the opcodes are further optimized for real-time streaming. 
+
+
+  The opcodes for real-time spectral processing are \emph{pvsadsyn}
+, \emph{pvsanal}
+, \emph{pvscross}
+, \emph{pvsfread}
+, \emph{pvsftr}
+, \emph{pvsftw}
+, \emph{pvsinfo}
+, \emph{pvsmaska}
+, and \emph{pvsynth}
+. 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+Spectral Processing &Up &Zak Patch System
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

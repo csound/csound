@@ -1,0 +1,74 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{strset}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{strset}
+strset --  Allows a string to be linked with a numeric value. \subsection*{Description}
+
+
+  Allows a string to be linked with a numeric value. 
+\subsection*{Syntax}
+
+
+ \textbf{strset}
+ iarg, istring
+\subsection*{Initialization}
+
+
+ \emph{iarg}
+ -- the numeric value. 
+
+
+ \emph{istring}
+ -- the alphanumeric string (in double-quotes). 
+
+
+ \emph{strset}
+ (optional) allows a string, such as a filename, to be linked with a numeric value. Its use is optional. 
+\subsection*{Examples}
+
+
+  The following statement, used in the orchestra header, will allow the numeric value 10 to substituted anywhere the soundfile \emph{asound.wav}
+ is called for. 
+
+
+ 
+\begin{lstlisting}
+\textbf{strset}
+ 10, "asound.wav"
+        
+\end{lstlisting}
+
+
+ 
+\subsection*{See Also}
+
+
+ \emph{pset}
+
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+streson &Up &subinstr
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

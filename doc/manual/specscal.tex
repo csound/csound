@@ -1,0 +1,96 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{specscal}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{specscal}
+specscal --  Scales an input spectral datablock with spectral envelopes. \subsection*{Description}
+
+
+  Scales an input spectral datablock with spectral envelopes. 
+\subsection*{Syntax}
+
+
+ wsig \textbf{specscal}
+ wsigin, ifscale, ifthresh
+\subsection*{Initialization}
+
+
+ \emph{ifscale}
+ -- scale function table. A function table containing values by which a value's magnitude is rescaled. 
+
+
+ \emph{ifthresh}
+ -- threshold function table. If \emph{ifthresh}
+ is non-zero, each magnitude is reduced by its corresponding table-value (to not less than zero) 
+\subsection*{Performance}
+
+
+ \emph{wsig}
+ -- the output spectrum 
+
+
+ \emph{wsigin}
+ -- the input spectra 
+
+
+  Scales an input spectral datablock with spectral envelopes. Function tables \emph{ifthresh}
+ and \emph{ifscale}
+ are initially sampled across the (logarithmic) frequency space of the input spectrum; then each time a new input spectrum is sensed the sampled values are used to scale each of its magnitude channels as follows: if \emph{ifthresh}
+ is non-zero, each magnitude is reduced by its corresponding table-value (to not less than zero); then each magnitude is rescaled by the corresponding \emph{ifscale}
+ value, and the resulting spectrum written to \emph{wsig}
+. 
+\subsection*{Examples}
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+  wsig2    \emph{specdiff}
+         wsig1               ; sense onsets 
+  wsig3    \emph{specfilt}
+         wsig2, 2            ; absorb slowly 
+           \emph{specdisp}
+         wsig2, .1           ; & display both spectra 
+           \emph{specdisp}
+         wsig3, .1
+        
+\end{lstlisting}
+
+
+ 
+\subsection*{See Also}
+
+
+ \emph{specaddm}
+, \emph{specdiff}
+, \emph{specfilt}
+, \emph{spechist}
+
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+specptrk &Up &specsum
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

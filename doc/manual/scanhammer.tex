@@ -1,0 +1,84 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{scanhammer}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{scanhammer}
+scanhammer --  Copies from one table to another with a gain control. \subsection*{Description}
+
+
+  This is is a variant of \emph{tablecopy}
+, copying from one table to another, starting at \emph{ipos}
+, and with a gain control. The number of points copied is determined by the length of the source. Other points are not changed. This opcode can be used to ``hit'' a string in the scanned synthesis code. 
+\subsection*{Syntax}
+
+
+ \textbf{scanhammer}
+ isrc, idst, ipos, imult
+\subsection*{Initialization}
+
+
+ \emph{isrc}
+ -- source function table. 
+
+
+ \emph{idst}
+ -- destination function table. 
+
+
+ \emph{ipos}
+ -- starting position (in points). 
+
+
+ \emph{imult}
+ -- gain multiplier. A value of 0 will leave values unchanged. 
+\subsection*{See Also}
+
+
+ \emph{scantable}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Author: Matt Gilliard &April 2002
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in version 4.20
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+sandpaper &Up &scans
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,108 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{sdif2ad}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{sdif2ad}
+sdif2ad --  Converts SDIF files to files usable by adsynt. \subsection*{Description}
+
+
+  Convert files Sound Description Interchange Format (SDIF) to the format usable by Csound's \emph{adsyn}
+ opcode. As of Csound version 4.10, \emph{sdif2ad}
+ was available only as a standalone program for Windows console and DOS. 
+\subsection*{Syntax}
+
+
+ \textbf{Csound -U sdif2ad}
+ [flags] infilename outfilename
+\subsection*{Initialization}
+
+
+  Flags: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ \emph{-s}
+N -- apply amplitude scale factor N
+
+\item 
+
+ \emph{-p}
+N -- keep only the first N partials. Limited to 1024 partials. The source partial track indices are used directly to select internal storage. As these can be arbitrary values, the maximum of 1024 partials may not be realized in all cases.
+
+\item 
+
+ \emph{-r}
+ -- byte-reverse output file data. The byte-reverse option is there to facilitate transfer across platforms, as Csound's \emph{adsyn}
+ file format is not portable.
+
+
+\end{itemize}
+
+
+  If the filename passed to \emph{hetro}
+ has the extension ``.sdif'', data will be written in SDIF format as 1TRC frames of additive synthesis data. The utility program \emph{sdif2ad}
+ can be used to convert any SDIF file containing a stream of 1TRC data to the Csound \emph{adsyn}
+ format. \emph{sdif2ad}
+ allows the user to limit the number of partials retained, and to apply an amplitude scaling factor. This is often necessary, as the SDIF specification does not, as of the release of \emph{sdif2ad}
+, require amplitudes to be within a particular range. \emph{sdif2ad}
+ reports information about the file to the console, including the frequency range. 
+
+
+  The main advantages of SDIF over the \emph{adsyn}
+ format, for Csound users, is that SDIF files are fully portable across platforms (data is ``big-endian''), and do not have the duration limit of 32.76 seconds imposed by the 16 bit \emph{adsyn}
+ format. This limit is necessarily imposed by \emph{sdif2ad}
+. Eventually, SDIF reading will be incorporated directly into \emph{adsyn}
+, thus enabling files of any length (subject to system memory limits) to be analysed and processed. 
+
+
+  Users should remember that the SDIF formats are still under development. While the 1TRC format is now fairly well established, it can still change. 
+
+
+  For detailed information on the Sound Description Interchange Format, refer to the CNMAT website: \emph{\url{http://cnmat.CNMAT.Berkeley.EDU/SDIF}}
+
+
+
+  Some other SDIF resources (including a viewer) are available via the NC\_DREAM website: \emph{\url{http://www.bath.ac.uk/~masjpf/NCD/dreamhome.html}}
+
+\subsection*{Credits}
+
+
+ Author: Richard Dobson
+
+
+ Somerset, England
+
+
+ August, 2000
+
+
+ New in Csound version 4.08
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+pvlook &Up &srconv
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

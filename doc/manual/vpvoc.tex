@@ -1,0 +1,155 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{vpvoc}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{vpvoc}
+vpvoc --  Implements signal reconstruction using an fft-based phase vocoder and an extra envelope. \subsection*{Description}
+
+
+  Implements signal reconstruction using an fft-based phase vocoder and an extra envelope. 
+\subsection*{Syntax}
+
+
+ ar \textbf{vpvoc}
+ ktimpnt, kfmod, ifile [, ispecwp] [, ifn]
+\subsection*{Initialization}
+
+
+ \emph{ifile}
+ -- the pvoc number (n in pvoc.n) or the name in quotes of the analysis file made using pvanal. (See \emph{pvoc}
+.) 
+
+
+ \emph{ispecwp}
+ (optional, default=0) -- if non-zero, attempts to preserve the spectral envelope while its frequency content is varied by \emph{kfmod}
+. The default value is zero. 
+
+
+ \emph{ifn}
+ (optional, default=0) -- optional function table containing control information for vpvoc. If \emph{ifn}
+ = 0, control is derived internally from a previous \emph{tableseg}
+ or \emph{tablexseg}
+ unit. Default is 0. (New in Csound version 3.59) 
+\subsection*{Performance}
+
+
+ \emph{ktimpnt}
+ -- The passage of time, in seconds, through the analysis file. \emph{ktimpnt}
+ must always be positive, but can move forwards or backwards in time, be stationary or discontinuous, as a pointer into the analysis file. 
+
+
+ \emph{kfmod}
+ -- a control-rate transposition factor: a value of 1 incurs no transposition, 1.5 transposes up a perfect fifth, and .5 down an octave. 
+
+
+  This implementation of \emph{pvoc}
+ was orignally written by Dan Ellis. It is based in part on the system of Mark Dolson, but the pre-analysis concept is new. The spectral extraction and amplitude gating (new in Csound version 3.56) were added by Richard Karpen based on functions in SoundHack by Tom Erbe. 
+
+
+ \emph{vpvoc}
+ is identical to \emph{pvoc}
+ except that it takes the result of a previous \emph{tableseg}
+ or \emph{tablexseg}
+ and uses the resulting function table (passed internally to the \emph{vpvoc}
+), as an envelope over the magnitudes of the analysis data channels. Optionally, a table specified by \emph{ifn}
+ may be used. 
+
+
+  The result is spectral enveloping. The function size used in the \emph{tableseg}
+ should be \emph{framesize/2,}
+ where framesize is the number of bins in the phase vocoder analysis file that is being used by the \emph{vpvoc}
+. Each location in the table will be used to scale a single analysis bin. By using different functions for \emph{ifn1}
+, \emph{ifn2}
+, etc.. in the \emph{tableseg}
+, the spectral envelope becomes a dynamically changing one. See also \emph{tableseg}
+ and \emph{tablexseg}
+. 
+\subsection*{Examples}
+
+
+  The following example, using \emph{vpvoc}
+, shows the use of functions such as 
+
+
+ 
+\begin{lstlisting}
+\emph{f}
+ 1 0 256 5 .001 128 1 128 .001
+\emph{f}
+ 2 0 256  5 1 128 .001 128 1
+\emph{f}
+ 3 0 256  7 1 256 1
+       
+\end{lstlisting}
+
+
+ 
+ to scale the amplitudes of the separate analysis bins. 
+
+ 
+
+
+ 
+\begin{lstlisting}
+ktime   \emph{line}
+            0, p3,3 ; time pointer, in seconds, into file
+        \emph{tablexseg}
+       1, p3*.5, 2, p3*.5, 3
+apv     \emph{vpvoc}
+           ktime,1, "pvoc.file"
+       
+\end{lstlisting}
+
+
+ 
+
+
+  The result would be a time-varying ``spectral envelope'' applied to the phase vocoder analysis data. Since this amplifies or attenuates the amount of signal at the frequencies that are paired with the amplitudes which are scaled by these functions, it has the effect of applying very accurate filters to the signal. In this example the first table would have the effect of a band-pass filter, gradually be band-rejected over half the note's duration, and then go towards no modification of the magnitudes over the second half. 
+\subsection*{See Also}
+
+
+ \emph{pvoc}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Authors: Dan Ellis and Richard Karpen &Seattle, WA USA &1997
+
+\end{tabular}
+
+
+
+ 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+voice &Up &waveset
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,90 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{sr}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{sr}
+sr --  Sets the audio sampling rate. \subsection*{Description}
+
+
+  These statements are global value \emph{assignments}
+, made at the beginning of an orchestra, before any instrument block is defined. Their function is to set certain \emph{reserved symbol variables}
+ that are required for performance. Once set, these reserved symbols can be used in expressions anywhere in the orchestra. 
+\subsection*{Syntax}
+
+
+ \textbf{sr}
+ = iarg
+\subsection*{Initialization}
+
+
+ \emph{sr}
+ = (optional) -- set sampling rate to \emph{iarg}
+ samples per second per channel. The default value is 10000. 
+
+
+  In addition, any \emph{global variable}
+ can be initialized by an \emph{init-time assignment}
+ anywhere before the first \emph{instr statement}
+. All of the above assignments are run as instrument 0 (i-pass only) at the start of real performance. 
+
+
+  Beginning with Csound version 3.46, \emph{sr}
+ may be omitted. Csound will attempt to calculate the omitted value from the specified values, but it should evaluate to an integer. 
+\subsection*{Examples}
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+\textbf{sr}
+ = 10000
+\textbf{kr}
+ = 500
+\textbf{ksmps}
+ = 20
+gi1 \textbf{= }
+sr/2.
+ga \textbf{init }
+0
+itranspose \textbf{= }
+octpch(.0l)
+        
+\end{lstlisting}
+
+
+ 
+\subsection*{See Also}
+
+
+ \emph{kr}
+, \emph{ksmps}
+, \emph{nchnls}
+
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+sqrt &Up &stix
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -176,7 +176,7 @@ elif getPlatform() == 'mingw' or getPlatform() == 'cygwin':
     commonEnvironment.Append(CCFLAGS = "-DPIPES")
     commonEnvironment.Append(CCFLAGS = "-DOS_IS_WIN32")
     commonEnvironment.Append(CCFLAGS = "-mthreads")
-    commonEnvironment.Append(CCFLAGS = "-mtune=pentium4")
+    #commonEnvironment.Append(CCFLAGS = "-mtune=pentium4")
     
 if (commonEnvironment['makeDynamic'] == 0) and (getPlatform() != 'linux') and (getPlatform() != 'darwin'):
     commonEnvironment.Append(LINKFLAGS = '-static')

@@ -1,0 +1,81 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{tlineto}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{tlineto}
+tlineto --  Generate glissandos starting from a control signal. \subsection*{Description}
+
+
+  Generate glissandos starting from a control signal with a trigger. 
+\subsection*{Syntax}
+
+
+ kr \textbf{tlineto}
+ ksig, ktime, ktrig
+\subsection*{Performance}
+
+
+ \emph{kr}
+ -- Output signal. 
+
+
+ \emph{ksig}
+ -- Input signal. 
+
+
+ \emph{ktime}
+ -- Time length of glissando in seconds. 
+
+
+ \emph{ktrig}
+ -- Trigger signal. 
+
+
+ \emph{tlineto}
+ is similar to \emph{lineto}
+ but can be applied to any kind of signal (not only stepped signals) without producing discontinuities. Last value of each segment is sampled and held from input signal each time \emph{ktrig}
+ value is set to a nonzero value. Normally \emph{ktrig}
+ signal consists of a sequence of zeroes (see \emph{trigger opcode}
+). 
+
+
+  The effect of glissando is quite different from \emph{port}
+. Since in these cases, the lines are straight. Also the context of useage is different. 
+\subsection*{See Also}
+
+
+ \emph{lineto}
+
+\subsection*{Credits}
+
+
+ Author: Gabriel Maldonado
+
+
+ New in Version 4.13
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+tival &Up &tone
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

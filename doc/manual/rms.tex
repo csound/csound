@@ -1,0 +1,88 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{rms}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{rms}
+rms --  Determines the root-mean-square amplitude of an audio signal. \subsection*{Description}
+
+
+  Determines the root-mean-square amplitude of an audio signal. 
+\subsection*{Syntax}
+
+
+ kr \textbf{rms}
+ asig [, ihp] [, iskip]
+\subsection*{Initialization}
+
+
+ \emph{ihp}
+ (optional, default=10) -- half-power point (in Hz) of a special internal low-pass filter. The default value is 10. 
+
+
+ \emph{iskip}
+ (optional, default=0) -- initial disposition of internal data space (see \emph{reson}
+). The default value is 0. 
+\subsection*{Performance}
+
+
+ \emph{asig}
+ -- input audio signal 
+
+
+ \emph{rms}
+ output values \emph{kr}
+ will trace the root-mean-square value of the audio input \emph{asig}
+. This unit is not a signal modifier, but functions rather as a signal power-gauge. 
+\subsection*{Examples}
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+asrc \emph{buzz}
+    10000,440, sr/440, 1 ; band-limited pulse train
+a1   \emph{reson}
+   asrc, 1000,100       ; sent through
+a2   \emph{reson}
+   a1,3000,500          ; 2 filters
+afin \emph{balance}
+ a2, asrc             ; then balanced with source
+        
+\end{lstlisting}
+
+
+ 
+\subsection*{See Also}
+
+
+ \emph{balance}
+, \emph{gain}
+
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+rireturn &Up &rnd
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

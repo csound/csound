@@ -1,0 +1,72 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{xscanmap}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{xscanmap}
+xscanmap --  Allows the position and velocity of a node in a scanned process to be read. \subsection*{Description}
+
+
+  Allows the position and velocity of a node in a scanned process to be read. 
+\subsection*{Syntax}
+
+
+ kpos, kvel \textbf{xscanmap}
+ iscan, kamp, kvamp [, iwhich]
+\subsection*{Initialization}
+
+
+ \emph{iscan}
+ -- which scan process to read 
+
+
+ \emph{iwhich}
+ (optional) -- which node to sense. The default is 0. 
+\subsection*{Performance}
+
+
+ \emph{kamp}
+ -- amount to amplify the \emph{kpos}
+ value. 
+
+
+ \emph{kvamp}
+ -- amount to amplify the \emph{kvel}
+ value. 
+
+
+  The internal state of a node is read. This includes its position and velocity. They are amplified by the \emph{kamp}
+ and \emph{kvamp}
+ values. 
+\subsection*{Credits}
+
+
+ Author: John ffitch
+
+
+ New in version 4.20
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+xout &Up &xscansmap
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,113 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{tablei}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{tablei}
+tablei --  Accesses table values by direct indexing with linear interpolation. \subsection*{Description}
+
+
+  Accesses table values by direct indexing with linear interpolation. 
+\subsection*{Syntax}
+
+
+ ar \textbf{tablei}
+ andx, ifn [, ixmode] [, ixoff] [, iwrap]
+
+
+ ir \textbf{tablei}
+ indx, ifn [, ixmode] [, ixoff] [, iwrap]
+
+
+ kr \textbf{tablei}
+ kndx, ifn [, ixmode] [, ixoff] [, iwrap]
+\subsection*{Initialization}
+
+
+ \emph{ifn}
+ -- function table number. \emph{tablei}
+ requires the extended guard point. 
+
+
+ \emph{ixmode}
+ (optional) -- index data mode. The default value is 0. 
+
+
+ 
+\begin{itemize}
+\item 
+
+ 0 = raw index
+
+\item 
+
+ 1 = normalized (0 to 1)
+
+
+\end{itemize}
+
+
+ \emph{ixoff}
+ (optional) -- amount by which index is to be offset. For a table with origin at center, use tablesize/2 (raw) or .5 (normalized). The default value is 0. 
+
+
+ \emph{iwrap}
+ (optional) -- wraparound index flag. The default value is 0. 
+
+
+ 
+\begin{itemize}
+\item 
+
+ 0 = nowrap (index $<$ 0 treated as index=0; index tablesize sticks at index=size)
+
+\item 
+
+ 1 = wraparound.
+
+
+\end{itemize}
+\subsection*{Performance}
+
+
+ \emph{tablei}
+ is a interpolating unit in which the fractional part of index is used to interpolate between adjacent table entries. The smoothness gained by interpolation is at some small cost in execution time (see also \emph{oscili}
+, etc.), but the interpolating and non-interpolating units are otherwise interchangeable. Note that when \emph{tablei}
+ uses a periodic index whose modulo \emph{n}
+ is less than the power of 2 table length, the interpolation process requires that there be an (\emph{n}
++ 1)th table value that is a repeat of the 1st (see \emph{f Statement}
+ in score). 
+\subsection*{See Also}
+
+
+ \emph{table}
+, \emph{table3}
+, \emph{oscil1}
+, \emph{oscil1i}
+, \emph{osciln}
+
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+tablegpw &Up &tableicopy
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

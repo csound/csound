@@ -1,0 +1,131 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{xout}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{xout}
+xout --  Retrieves variables from a user-defined opcode block, \subsection*{Description}
+
+
+  The \emph{xin}
+ and \emph{xout}
+ opcodes copy variables to and from the opcode definition, allowing communication with the calling instrument. 
+
+
+  The types of input and output variables are defined by the parameters \emph{intypes}
+ and \emph{outtypes}
+. 
+
+
+ 
+
+
+\begin{tabular}{cc}
+\textbf{Notes}
+ \\
+  &
+
+ 
+
+
+ 
+\begin{itemize}
+\item 
+
+ \emph{xin}
+ and \emph{xout}
+ should be called only once, and \emph{xin}
+ should precede \emph{xout}
+, otherwise an init error and deactivation of the current instrument may occur.
+
+\item 
+
+ These opcodes actually run only at i-time. Performance time copying is done by the user opcode call. This means that skipping \emph{xin}
+ or \emph{xout}
+ with \emph{kgoto}
+ has no effect, while skipping with \emph{igoto}
+ affects both init and performance time operation.
+
+
+\end{itemize}
+
+
+\end{tabular}
+
+\subsection*{Syntax}
+
+
+ \textbf{xout}
+ xoutarg1 [, xoutarg2] ... [, xoutargN]
+\subsection*{Performance}
+
+
+ \emph{xoutarg1}
+, \emph{xoutarg2}
+, ... - output arguments. The number and type of variables must agree with the user-defined opcode's \emph{outtypes}
+ declaration. However, \emph{xout}
+ does not check for incorrect use of init-time and control-rate variables. 
+
+
+  The syntax of a user-defined opcode block is as follows: 
+
+
+ opcode  name, outtypes, intypes\\ 
+ xinarg1 [, xinarg2] [, xinarg3] ... [xinargN]  xin\\ 
+ [setksmps  iksmps]\\ 
+ ... the rest of the instrument's code.\\ 
+ xout  xoutarg1 [, xoutarg2] [, xoutarg3] ... [xoutargN]\\ 
+ endop\\ 
+       
+
+
+  The new opcode can then be used with the usual syntax: 
+
+
+ [xinarg1] [, xinarg2] ... [xinargN]  name  [xoutarg1] [, xoutarg2] ... [xoutargN] [, iksmps]\\ 
+       
+\subsection*{Examples}
+
+
+  See the example for the \emph{opcode}
+ opcode. 
+\subsection*{See Also}
+
+
+ \emph{endop}
+, \emph{opcode}
+, \emph{setksmps}
+, \emph{xin}
+
+\subsection*{Credits}
+
+
+ Author: Istvan Varga, 2002; based on code by Matt J. Ingalls
+
+
+ New in version 4.22
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+xin &Up &xscanmap
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

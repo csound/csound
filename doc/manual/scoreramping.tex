@@ -1,0 +1,75 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{Ramping}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous &The Standard Numeric Score &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{Ramping}
+
+
+ \emph{i statement}
+ pfields containing the symbol \emph{$<$}
+ will be replaced by values derived from linear interpolation of a time-based ramp. Ramps are anchored at each end by the first real number found in the same pfield of a preceding and following note played by the same instrument. E.g.: the statements 
+
+
+ 
+\begin{lstlisting}
+i1   0    1    100
+i1   1    1    <
+i1   2    1    <
+i1   3    1    400
+i1   4    1    <
+i1   5    1    0
+      
+\end{lstlisting}
+
+
+ 
+ will result in 
+
+ 
+\begin{lstlisting}
+i1   0    1    100 
+i1   1    1    200
+i1   2    1    300
+i1   3    1    400
+i1   4    1    200
+i1   5    1    0
+      
+\end{lstlisting}
+
+
+ 
+
+
+  Ramps cannot cross a Section boundary. Ramps cannot be anchored by an \emph{np}
+ or \emph{pp}
+ symbol (although they may be referenced by these). Ramp symbols are illegal in p1, p2 and p3. Ramp symbols may be Carried. Note, however, that while the Carry feature will propagate ramp symbols through unsorted statements, the operation that interprets these symbols is acting on a time-warped and fully sorted version of the score. In fact, time-based linear interpolation is based on warped score-time, so that a ramp which spans a group of accelerating notes will remain linear with respect to strict chronological time. 
+
+
+  Starting with Csound version 3.52, using the symbols ( or ) will result in an exponential interpolation ramp, similar to \emph{expon}
+. The symbols \{ and \} to define an exponential ramp have been deprecated. Using the symbol \&\#732; will result in uniform, random distribution between the first and last values of the ramp. Use of these functions must follow the same rules as the linear ramp function. 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+Next-P and Previous-P Symbols &Up &Score Macros
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

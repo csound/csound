@@ -1,0 +1,148 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{zkw}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{zkw}
+zkw --  Writes to a zk variable at k-rate without mixing. \subsection*{Description}
+
+
+  Writes to a zk variable at k-rate without mixing. 
+\subsection*{Syntax}
+
+
+ \textbf{zkw}
+ ksig, kndx
+\subsection*{Performance}
+
+
+ \emph{ksig}
+ -- value to be written to the zk location. 
+
+
+ \emph{kndx}
+ -- points to the zk or za location to which to write. 
+
+
+ \emph{zkw}
+ writes \emph{ksig}
+ into the zk variable specified by \emph{kndx}
+. 
+\subsection*{Examples}
+
+
+  Here is an example of the zkw opcode. It uses the files \emph{zkw.orc}
+ and \emph{zkw.sco}
+. 
+
+
+ \textbf{Example 1. Example of the zkw opcode.}
+
+\begin{lstlisting}
+/* zkw.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Initialize the ZAK space.
+; Create 1 a-rate variable and 1 k-rate variable.
+zakinit 1, 1
+
+; Instrument #1 -- a simple waveform.
+instr 1
+  ; Linearly vary a k-rate signal from 100 to 1,000.
+  kline line 100, p3, 1000
+
+  ; Add the linear signal to zk variable #1.
+  zkw kline, 1
+endin
+
+; Instrument #2 -- generates audio output.
+instr 2
+  ; Read zk variable #1.
+  kfreq zkr 1
+
+  ; Use the value of zk variable #1 to vary 
+  ; the frequency of a sine waveform.
+  a1 oscil 20000, kfreq, 1
+
+  ; Generate the audio output.
+  out a1
+
+  ; Clear the zk variables, get them ready for 
+  ; another pass.
+  zkcl 0, 1
+endin
+/* zkw.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* zkw.sco */
+; Table #1, a sine wave.
+f 1 0 16384 10 1
+
+; Play Instrument #1 for two seconds.
+i 1 0 2
+; Play Instrument #2 for two seconds.
+i 2 0 2
+e
+/* zkw.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{zaw}
+, \emph{zawm}
+, \emph{ziw}
+, \emph{ziwm}
+, \emph{zkr}
+, \emph{zkwm}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Robin Whittle &Australia &May 1997
+
+\end{tabular}
+
+
+
+ 
+
+
+ Example written by Kevin Conder.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+zkr &Up &zkwm
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

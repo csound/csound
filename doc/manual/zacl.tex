@@ -1,0 +1,142 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{zacl}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{zacl}
+zacl --  Clears one or more variables in the za space. \subsection*{Description}
+
+
+  Clears one or more variables in the za space. 
+\subsection*{Syntax}
+
+
+ \textbf{zacl}
+ kfirst, klast
+\subsection*{Performance}
+
+
+ \emph{kfirst}
+ -- first zk or za location in the range to clear. 
+
+
+ \emph{klast}
+ -- last zk or za location in the range to clear. 
+
+
+ \emph{zacl}
+ clears one or more variables in the za space. This is useful for those variables which are used as accumulators for mixing a-rate signals at each cycle, but which must be cleared before the next set of calculations. 
+\subsection*{Examples}
+
+
+  Here is an example of the zacl opcode. It uses the files \emph{zacl.orc}
+ and \emph{zacl.sco}
+. 
+
+
+ \textbf{Example 1. Example of the zacl opcode.}
+
+\begin{lstlisting}
+/* zacl.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Initialize the ZAK space.
+; Create 1 a-rate variable and 1 k-rate variable.
+zakinit 1, 1
+
+; Instrument #1 -- a simple waveform.
+instr 1
+  ; Generate a simple sine waveform.
+  asin oscil 20000, 440, 1
+
+  ; Send the sine waveform to za variable #1.
+  zaw asin, 1
+endin
+
+; Instrument #2 -- generates audio output.
+instr 2
+  ; Read za variable #1.
+  a1 zar 1
+
+  ; Generate the audio output.
+  out a1
+
+  ; Clear the za variables, get them ready for 
+  ; another pass.
+  zacl 0, 1
+endin
+/* zacl.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* zacl.sco */
+; Table #1, a sine wave.
+f 1 0 16384 10 1
+
+; Play Instrument #1 for one second.
+i 1 0 1
+; Play Instrument #2 for one second.
+i 2 0 1
+e
+/* zacl.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{zamod}
+, \emph{zar}
+, \emph{zaw}
+, \emph{zawm}
+, \emph{ziw}
+, \emph{ziwm}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Robin Whittle &Australia &May 1997
+
+\end{tabular}
+
+
+
+ 
+
+
+ Example written by Kevin Conder.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+xyin &Up &zakinit
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

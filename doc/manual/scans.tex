@@ -1,0 +1,149 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{scans}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{scans}
+scans --  Generate audio output using scanned synthesis. \subsection*{Description}
+
+
+  Generate audio output using scanned synthesis. 
+\subsection*{Syntax}
+
+
+ ar \textbf{scans}
+ kamp, kfreq, ifn, id [, iorder]
+\subsection*{Initialization}
+
+
+ \emph{ifn}
+ -- ftable containing the scanning trajectory. This is a series of numbers that contains addresses of masses. The order of these addresses is used as the scan path. It should not contain values greater than the number of masses, or negative numbers. See the \emph{introduction to the scanned synthesis section}
+. 
+
+
+ \emph{id}
+ -- ID number of the \emph{scanu}
+ opcode's waveform to use 
+
+
+ \emph{iorder}
+ (optional, default=0) -- order of interpolation used internally. It can take any value in the range 1 to 4, and defaults to 4, which is quartic interpolation. The setting of 2 is quadratic and 1 is linear. The higher numbers are slower, but not necessarily better. 
+\subsection*{Performance}
+
+
+ \emph{kamp}
+ -- output amplitude. Note that the resulting amplitude is also dependent on instantaneous value in the wavetable. This number is effectively the scaling factor of the wavetable. 
+
+
+ \emph{kfreq}
+ -- frequency of the scan rate 
+\subsection*{Examples}
+
+
+  Here is an example of the scanned synthesis. It uses the files \emph{scans.orc}
+, \emph{scans.sco}
+, and \emph{string-128.matrix}
+. 
+
+
+ \textbf{Example 1. Example of the scans opcode.}
+
+\begin{lstlisting}
+/* scans.orc */
+    sr =   44100
+    kr =   4410
+    ksmps =   10
+    nchnls =   1
+
+    instr 1
+a0  = 0
+;   scanu init, irate, ifnvel, ifnmass, ifnstif, ifncentr, ifndamp, kmass, kstif, kcentr, kdamp, ileft, iright, kpos, kstrngth, ain, idisp, id
+    scanu 1,     .01,    6,       2,       3,     4,        5,       2,     .1,    .1,     -.01,  .1,    .5,     0,    0,        a0,  1,     2
+;ar scans kamp,      kfreq,      ifntraj, id
+a1  scans ampdb(p4), cpspch(p5), 7,       2
+    out a1
+    endin
+/* scans.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* scans.sco */
+; Initial condition
+f1 0 128 7 0 64 1 64 0
+   
+; Masses
+f2 0 128 -7 1 128 1
+   
+; Spring matrices
+f3 0 16384 -23 "string-128.matrix"
+   
+; Centering force
+f4  0 128 -7 0 128 2
+   
+; Damping
+f5 0 128 -7 1 128 1
+   
+; Initial velocity
+f6 0 128 -7 0 128 0
+   
+; Trajectories
+f7 0 128 -5 .001 128 128
+
+; Note list
+i1 0  10  86 6.00
+i1 11 14  86 7.00
+i1 15 20  86 5.00
+e
+/* scans.sco */
+        
+\end{lstlisting}
+
+
+  The matrix file ``string-128.matrix'', as well as several other matrices, is also available in a \emph{zipped file}
+ from the \emph{Scanned Synthesis page}
+ at cSounds.com. 
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Paris Smaragdis &MIT Media Lab &Boston, Massachussetts USA
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 4.05
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+scanhammer &Up &scantable
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,209 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{vco}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{vco}
+vco --  Implementation of a band limited, analog modeled oscillator. \subsection*{Description}
+
+
+  Implementation of a band limited, analog modeled oscillator, based on integration of band limited impulses. \emph{vco}
+ can be used to simulate a variety of analog wave forms. 
+\subsection*{Syntax}
+
+
+ ar \textbf{vco}
+ xamp, xcps, iwave, kpw [, ifn] [, imaxd] [, ileak] [, inyx] [, iphs]
+\subsection*{Initialization}
+
+
+ \emph{iwave}
+ -- determines the waveform: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ \emph{iwave}
+ = 1 - sawtooth
+
+\item 
+
+ \emph{iwave}
+ = 2 - Square/PWM
+
+\item 
+
+ \emph{iwave}
+ = 3 - triangle/Saw/Ramp
+
+
+\end{itemize}
+
+
+ \emph{ifn}
+ (optional, default = 1) -- should be the table number of a of a stored sine wave. 
+
+
+ \emph{imaxd}
+ (optional, default = 1) -- is the maximum delay time. A time of 1/ifqc may be required for the pwm and triangle waveform. To bend the pitch down this value must be as large as 1/(minimum frequency). 
+
+
+ \emph{ileak}
+ (optional, default = 0) -- If ileak is between zero and one (0 $<$ ileak $<$ 1) then ileak is used as the leaky integrator value. Otherwise a leaky integrator value of .999 is used for the saw and square waves and .995 is used for the triangle wave. This can be used to ``flatten'' the square wave or ``straighten'' the saw wave at low frequencies by setting ileak to .99999 or a similar value. This should give a hollower sounding square wave. 
+
+
+ \emph{inyx}
+ (optional, default = .5) -- This is used to determine the number of harmonics in the band limited pulse. All overtones up to sr * inyx will be used. The default gives sr * .5 (sr / 2). For sr / 4 use inyx = .25. This can generate a ``fatter'' sound in some cases. 
+
+
+ \emph{iphs}
+ (optional, default = 0) -- This is a phase value. There is an artifact (bug-like feature) in \emph{vco}
+ which occurs during the first half cycle of the square wave which causes the waveform to be greater in magnitude than all others. The value of \emph{iphs}
+ has an effect on this artifact. In particular setting \emph{iphs}
+ to .5 will cause the first half cycle of the square wave to resemble a small triangle wave. This may be more desirable than the large wave artifact which is the current default. 
+\subsection*{Performance}
+
+
+ \emph{kpw}
+ -- determines either the pulse width (if \emph{iwave}
+ is 2) or the saw/ramp character (if \emph{iwave}
+ is 3) The value of \emph{kpw}
+ should be greater than 0 and less than 2. A value of 1 will generate either a square wave (if \emph{iwave}
+ is 2) or a triangle wave (if \emph{iwave}
+ is 3). 
+
+
+ \emph{xamp}
+ -- determines the amplitude 
+
+
+ \emph{xcps}
+ -- is the frequency of the wave in cycles per second. 
+\subsection*{Examples}
+
+
+  Here is an example of the vco opcode. It uses the files \emph{vco.orc}
+ and \emph{vco.sco}
+. 
+
+
+ \textbf{Example 1. Example of the vco opcode.}
+
+\begin{lstlisting}
+/* vco.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 44100
+ksmps = 1
+nchnls = 1
+
+; Instrument #1
+instr 1
+  ; Set the amplitude.
+  kamp = p4 
+
+  ; Set the frequency.
+  kcps = cpspch(p5) 
+
+  ; Select the wave form.
+  iwave = p6
+
+  ; Set the pulse-width/saw-ramp character.
+  kpw init 0.5
+
+  ; Use Table #1.
+  ifn = 1
+  
+  ; Generate the waveform.
+  asig vco kamp, kcps, iwave, kpw, ifn
+
+  ; Output and amplification.
+  out asig
+endin
+/* vco.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* vco.sco */
+; Table #1, a sine wave.
+f 1 0 65536 10 1
+
+; Define the score.
+; p4 = raw amplitude (0-32767)
+; p5 = frequency, in pitch-class notation.
+; p6 = the waveform (1=Saw, 2=Square/PWM, 3=Tri/Saw-Ramp-Mod)
+i 1 00 02 20000 05.00 1
+i 1 02 02 20000 05.00 2
+i 1 04 02 20000 05.00 3
+
+i 1 06 02 20000 07.00 1
+i 1 08 02 20000 07.00 2
+i 1 10 02 20000 07.00 3
+
+i 1 12 02 20000 09.00 1
+i 1 14 02 20000 09.00 2
+i 1 16 02 20000 09.00 3
+
+i 1 18 02 20000 11.00 1
+i 1 20 02 20000 11.00 2
+i 1 22 02 20000 11.00 3
+e
+/* vco.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{vco2}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Author: Hans Mikelson &December 1998
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 3.50
+
+
+ November 2002. Corrected the documentation for the \emph{kpw}
+ parameter thanks to Luis Jure and Hans Mikelson.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+vbapzmove &Up &vco2
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

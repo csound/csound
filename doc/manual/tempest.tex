@@ -1,0 +1,166 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{tempest}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{tempest}
+tempest --  Estimate the tempo of beat patterns in a control signal. \subsection*{Description}
+
+
+  Estimate the tempo of beat patterns in a control signal. 
+\subsection*{Syntax}
+
+
+ ktemp \textbf{tempest}
+ kin, iprd, imindur, imemdur, ihp, ithresh, ihtim, ixfdbak, istartempo, ifn [, idisprd] [, itweek]
+\subsection*{Initialization}
+
+
+ \emph{iprd}
+ -- period between analyses (in seconds). Typically about .02 seconds. 
+
+
+ \emph{imindur}
+ -- minimum duration (in seconds) to serve as a unit of tempo. Typically about .2 seconds. 
+
+
+ \emph{imemdur}
+ -- duration (in seconds) of the \emph{kin}
+ short-term memory buffer which will be scanned for periodic patterns. Typically about 3 seconds. 
+
+
+ \emph{ihp}
+ -- half-power point (in Hz) of a low-pass filter used to smooth input \emph{kin}
+ prior to other processing. This will tend to suppress activity that moves much faster. Typically 2 Hz. 
+
+
+ \emph{ithresh}
+ -- loudness threshold by which the low-passed \emph{kin}
+ is center-clipped before being placed in the short-term buffer as tempo-relevant data. Typically at the noise floor of the incoming data. 
+
+
+ \emph{ihtim}
+ -- half-time (in seconds) of an internal forward-masking filter that masks new \emph{kin}
+ data in the presence of recent, louder data. Typically about .005 seconds. 
+
+
+ \emph{ixfdbak}
+ -- proportion of this unit's \emph{anticipated value}
+ to be mixed with the incoming \emph{kin}
+ prior to all processing. Typically about .3. 
+
+
+ \emph{istartempo}
+ -- initial tempo (in beats per minute). Typically 60. 
+
+
+ \emph{ifn}
+ -- table number of a stored function (drawn left-to-right) by which the short-term memory data is attenuated over time. 
+
+
+ \emph{idisprd}
+ (optional) -- if non-zero, display the short-term past and future buffers every \emph{idisprd}
+ seconds (normally a multiple of \emph{iprd}
+). The default value is 0 (no display). 
+
+
+ \emph{itweek}
+ (optional) -- fine-tune adjust this unit so that it is stable when analyzing events controlled by its own output. The default value is 1 (no change). 
+\subsection*{Performance}
+
+
+ \emph{tempest}
+ examines \emph{kin}
+ for amplitude periodicity, and estimates a current tempo. The input is first low-pass filtered, then center-clipped, and the residue placed in a short-term memory buffer (attenuated over time) where it is analyzed for periodicity using a form of autocorrelation. The period, expressed as a \emph{tempo}
+ in beats per minute, is output as \emph{ktemp}
+. The period is also used internally to make predictions about future amplitude patterns, and these are placed in a buffer adjacent to that of the input. The two adjacent buffers can be periodically displayed, and the predicted values optionally mixed with the incoming signal to simulate expectation. 
+
+
+ This unit is useful for sensing the metric implications of any k-signal (e.g.- the RMS of an audio signal, or the second derivative of a conducting gesture), before sending to a \emph{tempo}
+ statement. 
+\subsection*{Examples}
+
+
+  Here is an example of the tempest opcode. It uses the files \emph{tempest.orc}
+, \emph{tempest.sco}
+, and \emph{beats.wav}
+. 
+
+
+ \textbf{Example 1. Example of the tempest opcode.}
+
+\begin{lstlisting}
+/* tempest.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  ; Use the "beats.wav" sound file.
+  asig soundin "beats.wav"
+  ; Extract the pitch and the envelope.
+  kcps, krms pitchamdf asig, 150, 500, 200
+
+  iprd = 0.01
+  imindur = 0.1
+  imemdur = 3
+  ihp = 1
+  ithresh = 30
+  ihtim = 0.005
+  ixfdbak = 0.05
+  istartempo = 110
+  ifn = 1
+
+  ; Estimate its tempo.
+  k1 tempest krms, iprd, imindur, imemdur, ihp, ithresh, ihtim, ixfdbak, istartempo, ifn
+  printk2 k1
+
+  out asig
+endin
+/* tempest.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* tempest.sco */
+; Table #1, a declining line.
+f 1 0 128 16 1 128 1
+
+; Play Instrument #1 for two seconds.
+i 1 0 2
+e
+/* tempest.sco */
+        
+\end{lstlisting}
+ The tempo of the audio file ``beats.wav'' is 120 beats per minute. In this examples, tempest will print out its best guess as the audio file plays. Its output should include lines like this: \begin{lstlisting}
+. i1   118.24654
+. i1   121.72949
+      
+\end{lstlisting}
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+tbvcf &Up &tempo
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

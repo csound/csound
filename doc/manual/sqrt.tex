@@ -1,0 +1,104 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{sqrt}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{sqrt}
+sqrt --  Returns a square root value. \subsection*{Description}
+
+
+  Returns the square root of \emph{x}
+ (\emph{x}
+ non-negative). 
+
+
+  The argument value is restricted for \emph{log}
+, \emph{log10}
+, and \emph{sqrt}
+. 
+\subsection*{Syntax}
+
+
+ \textbf{sqrt}
+(x) (no rate restriction)
+
+
+  where the argument within the parentheses may be an expression. Value converters perform arithmetic translation from units of one kind to units of another. The result can then be a term in a further expression. 
+\subsection*{Examples}
+
+
+  Here is an example of the sqrt opcode. It uses the files \emph{sqrt.orc}
+ and \emph{sqrt.sco}
+. 
+
+
+ \textbf{Example 1. Example of the sqrt opcode.}
+
+\begin{lstlisting}
+/* sqrt.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  i1 = sqrt(64)
+  print i1
+endin
+/* sqrt.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* sqrt.sco */
+; Play Instrument #1 for one second.
+i 1 0 1
+e
+/* sqrt.sco */
+        
+\end{lstlisting}
+ Its output should include lines like this: \begin{lstlisting}
+instr 1:  i1 = 8.000
+      
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{abs}
+, \emph{exp}
+, \emph{frac}
+, \emph{int}
+, \emph{log}
+, \emph{log10}
+, \emph{i}
+
+\subsection*{Credits}
+
+
+ Example written by Kevin Conder.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+spsend &Up &sr
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

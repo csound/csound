@@ -1,0 +1,149 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{slider16f}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{slider16f}
+slider16f --  Creates a bank of 16 different MIDI control message numbers, filtered before output. \subsection*{Description}
+
+
+  Creates a bank of 16 different MIDI control message numbers, filtered before output. 
+\subsection*{Syntax}
+
+
+ k1,...,k16 \textbf{slider16f}
+ ichan, ictlnum1, imin1, imax1, init1, ifn1, icutoff1,..., ictlnum16, imin16, imax16, init16, ifn16, icutoff16
+\subsection*{Initialization}
+
+
+ \emph{ichan}
+ -- MIDI channel (1-16) 
+
+
+ \emph{ictlnum1 ... ictlnum64}
+ -- MIDI control number (0-127) 
+
+
+ \emph{imin1 ... imin64}
+ -- minimum values for each controller 
+
+
+ \emph{imax1 ... imax64}
+ -- maximum values for each controller 
+
+
+ \emph{init1 ... init64}
+ -- initial value for each controller 
+
+
+ \emph{ifn1 ... ifn64}
+ -- function table for conversion for each controller 
+
+
+ \emph{icutoff1 ... icutoff64}
+ -- low-pass filter cutoff frequency for each controller 
+\subsection*{Performance}
+
+
+ \emph{k1 ... k64}
+ -- output values 
+
+
+ \emph{slider16f}
+ is a bank of MIDI controllers, useful when using MIDI mixer such as Kawai MM-16 or others for changing whatever sound parameter in real-time. The raw MIDI control messages at the input port are converted to agree with \emph{iminN}
+ and \emph{imaxN}
+, and an initial value can be set. Also, an optional non-interpolated function table with a custom translation curve is allowed, useful for enabling exponential response curves. 
+
+
+  When no function table translation is required, set the \emph{ifnN}
+ value to 0, else set \emph{ifnN}
+ to a valid function table number. When table translation is enabled (i.e. setting \emph{ifnN}
+ value to a non-zero number referring to an already allocated function table), \emph{initN}
+ value should be set equal to \emph{iminN}
+ or \emph{imaxN}
+ value, else the initial output value will not be the same as specified in \emph{initN}
+ argument. 
+
+
+ \emph{slider16f}
+ allows a bank of 16 different MIDI control message numbers. It filters the signal before output. This eliminates discontinuities due to the low resolution of the MIDI (7 bit). The cutoff frequency can be set separately for each controller (suggested range: .1 to 5 Hz). 
+
+
+  As the input and output arguments are many, you can split the line using '$\backslash$' (backslash) character (new in 3.47 version) to improve the readability. Using these opcodes is considerably more efficient than using the separate ones (\emph{ctrl7}
+ and \emph{tonek}
+) when more controllers are required. 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Warning &
+
+ \emph{slider16f}
+ does not output the required initial value immediately, but only after some k-cycles because the filter slightly delays the output. 
+
+
+\end{tabular}
+
+\subsection*{See Also}
+
+
+ \emph{s16b14}
+, \emph{s32b14}
+, \emph{slider16}
+, \emph{slider32}
+, \emph{slider32f}
+, \emph{slider64}
+, \emph{slider64f}
+, \emph{slider8}
+, \emph{slider8f}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Gabriel Maldonado &Italy &December 1998
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 3.50
+
+
+ Thanks goes to Rasmus Ekman for pointing out the correct MIDI channel and controller number ranges.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+slider16 &Up &slider32
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,124 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{vibr}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{vibr}
+vibr --  Easier-to-use user-controllable vibrato. \subsection*{Description}
+
+
+  Easier-to-use user-controllable vibrato. 
+\subsection*{Syntax}
+
+
+ kout \textbf{vibr}
+ kAverageAmp, kAverageFreq, ifn
+\subsection*{Initialization}
+
+
+ \emph{ifn}
+ -- Number of vibrato table. It normally contains a sine or a triangle wave. 
+\subsection*{Performance}
+
+
+ \emph{kAverageAmp}
+ -- Average amplitude value of vibrato 
+
+
+ \emph{kAverageFreq}
+ -- Average frequency value of vibrato (in cps) 
+
+
+ \emph{vibr}
+ is an easier-to-use version of \emph{vibrato}
+. It has the same generation-engine of \emph{vibrato}
+, but the parameters corresponding to missing input arguments are hard-coded to default values. 
+\subsection*{Examples}
+
+
+  Here is an example of the vibr opcode. It uses the files \emph{vibr.orc}
+ and \emph{vibr.sco}
+. 
+
+
+ \textbf{Example 1. Example of the vibr opcode.}
+
+\begin{lstlisting}
+/* vibr.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  ; Create a vibrato waveform.
+  kaverageamp init 7500
+  kaveragefreq init 5
+  ifn = 1
+  kvamp vibr kaverageamp, kaveragefreq, ifn
+
+  ; Generate a tone including the vibrato.
+  a1 oscili 10000+kvamp, 440, 2
+
+  out a1
+endin
+/* vibr.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* vibr.sco */
+; Table #1, a sine wave for the vibrato.
+f 1 0 256 10 1
+; Table #1, a sine wave for the oscillator.
+f 2 0 16384 10 1
+
+; Play Instrument #1 for 2 seconds.
+i 1 0 2
+e
+/* vibr.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{jitter}
+, \emph{jitter2}
+, \emph{vibrato}
+
+\subsection*{Credits}
+
+
+ Author: Gabriel Maldonado
+
+
+ Example written by Kevin Conder.
+
+
+ New in Version 4.15
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+vibes &Up &vibrato
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

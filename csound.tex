@@ -1,22 +1,28 @@
-\documentclass[10pt,letterpaper,onecolumn]{ltxguide}
+\documentclass[10pt,letterpaper,onecolumn]{book}
+\usepackage{comment}
+\usepackage{vmargin}
 \usepackage{t1enc}
-\usepackage{verbatim}
+\usepackage{fancyvrb}
 \usepackage{url}
-%\usepackage{calc}
-%\usepackage{array}
-%\usepackage{fancyhdr}
+\usepackage{calc}
+\usepackage{array}
+\usepackage{fancyhdr}
 \usepackage{graphicx}
+\usepackage{color}
+\usepackage{listings}
 \usepackage[latin1]{inputenc}
 \usepackage[english]{babel}
-%\usepackage{doc/latex/doxygen}
+\usepackage{doc/latex/doxygen}
 \pagestyle{headings}
 \begin{document}
+\definecolor{LstColor}{cmyk}{0.1,0.1,0,0.05} 
+\lstset{language=c++,basicstyle=\ttfamily\scriptsize,commentstyle=\ttfamily\scriptsize,tabsize=2,breaklines,backgroundcolor=\color{LstColor},fontadjust=true,fancyvrb=true,moredelim=[is][\textbf]{\\emph\{}{\}}}.
 
 \title{Csound and CsoundVST}
 \author{Michael Gogins \\ \texttt{gogins@pipeline.com}}
 \maketitle
 
-\abstract{This document explains how to download, install, use, build, and extend Csound and CsoundVST on Windows and Linux.}
+%\abstract{This document explains how to download, install, use, build, and extend Csound and CsoundVST on Windows and Linux.}
 
 \section{Introduction}
 
@@ -94,7 +100,7 @@ Csound can read and write soundfiles (off-line rendering), read and write digita
 
 The Csound API consists of the Csound library (\texttt{libcsound.a}) and the Csound header file (\texttt{csound.h}). You can build Csound into your own software very easily using this API. For example, the Csound command itself is made this way:
 
-\begin{verbatim}
+\begin{lstlisting}
 #include "csound.h"
 
 int main(int argc, char **argv)
@@ -112,7 +118,7 @@ int main(int argc, char **argv)
     csoundDestroy(csound);
     return result;
 }
-\end{verbatim}
+\end{lstlisting}
 
 %\include{doc/latex/classCppSound}
 %\include{doc/latex/classCsoundFile}
@@ -133,7 +139,7 @@ CsoundVST extends the Csound API with C++. There is a C++ class for the Csound A
 
 You can build CsoundVST into your own software using the \texttt{\_CsoundVST} shared library and \texttt{CsoundVST.hpp} header file. For example, the CsoundVST stand-alone graphical user interface program is made this way:
 
-\begin{verbatim}
+\begin{lstlisting}
 #include <CsoundVST.hpp>
 #include <CsoundVstFltk.hpp>
 
@@ -144,7 +150,7 @@ int main(int argc, char **argv)
     editor ->open(0);
     return 0;
 }
-\end{verbatim}
+\end{lstlisting}
 
 There is also a high-level C API for CsoundVST, declared in \url{frontends/CsoundVST/csoundvst\_api.h}. Any program able to interface with C calling convention functions can use this API. For example, a \textbf{\emph{Mathematica}} 5.0 notebook can use the .NET/Link package's \texttt{DefineDLLFunction} to access the CsoundVST API to create an instance of CsoundVST, load an orchestra, generate a score using the power of \textbf{\emph{Mathematica}}, and render that score.
 
@@ -154,13 +160,13 @@ You can use CsoundVST as a Python extension module. In fact, you can do this eit
 
 To use CsoundVST in a standard Python interpreter, import CsoundVST.
 
-\begin{verbatim}
+\begin{lstlisting}
 import CsoundVST
-\end{verbatim}
+\end{lstlisting}
 
 The CsoundVST module automatically creates an instance of CppSound named \texttt{csound}, which provides an object-oriented interface to the Csound API. In a standard Python interpreter, you can load a Csound \texttt{.csd} file and perform it like this: 
 
-\begin{verbatim}
+\begin{lstlisting}
 C:\Documents and Settings\mkg>python
 Python 2.3.3 (#51, Dec 18 2003, 20:22:39) [MSC v.1200 32 bit (Intel)] on win32
 Type "help", "copyright", "credits" or "license" for more information.
@@ -248,13 +254,13 @@ Elapsed time = 13.469000 seconds.
 ENDED CppSound::perform.
 1
 >>>
-\end{verbatim}
+\end{lstlisting}
 
 To use CsoundVST itself as your Python interpreter, click on the CsoundVST Settings tab, and select the Python check box in the Csound performance mode box. Do not create a new CppSound object; you must use the builtin \texttt{csound} object in the CsoundVST module. 
 
 The \texttt{koch.py} script shows how to use Python to do algorithmic composition for Csound. You can use Python triple-quoted string literals to hold your Csound files right in your script, and assign them to Csound: 
 
-\begin{verbatim}
+\begin{lstlisting}
 csound.setOrchestra('''sr = 44100
 kr = 441
 ksmps = 100   
@@ -279,7 +285,7 @@ csound.setCommand("csound --opcode-lib=c:/projects/csound5/fluid.dll \\
     -RWdfo ./koch.wav ./temp.orc ./temp.sco")
 csound.exportForPerformance()
 csound.perform()
-\end{verbatim}
+\end{lstlisting}
 
 To run your script in Csound VST, click on the Perform button. 
 
@@ -324,11 +330,11 @@ You can assign up to 16 channels to a single CsoundVST plugin. However, you can'
 
 The latest Csound source code is available through the Concurrent Versions System (CVS)(\url{http://www.cvshome.org}). To download Csound sources using CVS, run the following commands:
 
-\begin{verbatim}
+\begin{lstlisting}
 cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/csound login 
  
 cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/csound co csound5 
-\end{verbatim}
+\end{lstlisting}
 
 Information about accessing the CVS repository may be found in the SourceForge document ``Basic Introduction to CVS and SourceForge.net (SF.net) Project CVS Services''. 
 
@@ -374,13 +380,13 @@ The build procedure for Cygwin is identical to Linux. However, Cygwin comes with
 
 For MinGW, you may need to patch versions of SCons earlier than \texttt{0.96.1} as follows. Change line 51 of \texttt{SCons/Tool/mingw.py} from:
 
-\begin{verbatim}
+\begin{lstlisting}
 cmd = SCons.Util.CLVar('$SHLINK', '$SHLINKFLAGS')
-\end{verbatim}
+\end{lstlisting}
 to:
-\begin{verbatim}
+\begin{lstlisting}
 cmd = SCons.Util.CLVar(['$SHLINK', '$SHLINKFLAGS']) 
-\end{verbatim}
+\end{lstlisting}
 
 It is highly recommend that you update your MinGW installation from the SourceForge site to the ``current'' level for core gcc, g++, binutils,  utils, and the Windows API headers and libraries (w32api).
 
@@ -390,9 +396,9 @@ PortAudio works with either the Windows multimedia libaries (\texttt{./configure
 
 The build procedure for MinGW is similar, but not identical, to the Cygwin procedure. The MSys shell does not allow the user to execute Python commands directly. Therefore, you need to install the \emph{Windows} versions of Python and SCons, make sure that Python is in your Windows executable path, and run the build like this:
 
-\begin{verbatim}
+\begin{lstlisting}
 $$ python c:/tools/python23/scripts/scons
-\end{verbatim}
+\end{lstlisting}
 
 You may also need to customize the \texttt{custom.py} file to declare to \texttt{scons} the locations of required header files and libraries, since on Windows there is no standard location for these as there is on Unix and Linux. You will not need to modify \texttt{custom.py} if you install all third-party libraries in the MSys \texttt{/usr/local/include} and \texttt{/usr/local/lib} directories.
 
@@ -405,7 +411,7 @@ Supposing that your unit generator is named \texttt{xxx}, perform the following 
 \item Write your \texttt{xxx.c} and \texttt{xxx.h} file as you would for a regular Csound unit generator. Put these files in the \texttt{csound5/Opcodes} directory.
 \item \texttt{\#include "csdl.h"} in your unit generator sources. This causes the plugin development environment to emulate the regular Csound unit generator development environment.
 \item Add your \texttt{OENTRY} records and unit generator registration functions at the bottom of your C file. Example (but you can have as many unit generators in one plugin as you like):
-\begin{verbatim}
+\begin{lstlisting}
 \#define S sizeof
 
 static OENTRY localops[] = {
@@ -418,14 +424,14 @@ static OENTRY localops[] = {
  * opcode registration functions for the localops table.
  */
 LINKAGE
-\end{verbatim}
+\end{lstlisting}
 \item Add your plugin as a new target in the plugin opcodes section of the \texttt{SConstruct} build file:
-\begin{verbatim}
+\begin{lstlisting}
 pluginEnvironment.SharedLibrary('xxx', 
     Split('''Opcodes/xxx.c 
     Opcodes/another_file_used_by_xxx.c 
     Opcodes/yet_another_file_used_by_xxx.c'''))
-\end{verbatim}
+\end{lstlisting}
 \item Run the Csound 5 build in the regular way.
 \end{enumerate}		
 
@@ -433,9 +439,9 @@ pluginEnvironment.SharedLibrary('xxx',
 
 The \texttt{OENTRY} structure (see \texttt{H/csoundCore.h}, \texttt{Engine/entry1.c}, and \texttt{Engine/rdorch.c}) contains the following fields:
 
-\begin{verbatim}
+\begin{lstlisting}
 name, dspace, thread, outarg, inargs, isub, ksub, asub, dsub
-\end{verbatim}
+\end{lstlisting}
 
 \begin{description}  
 	\item[\texttt{dspace}] There are two types of opcodes, polymorphic and non-polymorphic. For non-polymorphic opcodes, the \texttt{dspace} flag specifies the size of the opcode structure in bytes, and arguments are always passed to the opcode at the same rate. Polymorphic opcodes can accept arguments at different rates, and those arguments are actually dispatched to other opcodes as determined by the \texttt{dspace} flag and the following naming convention:
@@ -585,5 +591,8 @@ This is a ``to do'' list, not necessarily complete, and in no particular order o
 \item All Csound documentation in this one PDF.
 \item Complete the work of making Csound multi-instantiable.
 \end{enumerate}
+
+\input{doc/manual/a.tex}
+\input{doc/manual/i.tex}
 
 \end{document}

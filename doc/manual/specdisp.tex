@@ -1,0 +1,91 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{specdisp}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{specdisp}
+specdisp --  Displays the magnitude values of the spectrum. \subsection*{Description}
+
+
+  Displays the magnitude values of the spectrum. 
+\subsection*{Syntax}
+
+
+ \textbf{specdisp}
+ wsig, iprd [, iwtflg]
+\subsection*{Initialization}
+
+
+ \emph{iprd}
+ -- the period, in seconds, of each new display. 
+
+
+ \emph{iwtflg}
+ (optional, default=0) -- wait flag. If non-zero, hold each display until released by the user. The default value is 0 (no wait). 
+\subsection*{Performance}
+
+
+ \emph{wsig}
+ -- the input spectrum. 
+
+
+  Displays the magnitude values of spectrum \emph{wsig}
+ every \emph{iprd}
+ seconds (rounded to some integral number of \emph{wsig}
+'s originating \emph{iprd}
+). 
+\subsection*{Examples}
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+  ksum     \emph{specsum}
+   wsig,  1                    ; sum the spec bins, and ksmooth
+           \emph{if}
+        ksum < 2000   \emph{kgoto}
+  zero   ; if sufficient amplitude
+  koct     \emph{specptrk}
+  wsig                        ;    pitch-track the signal
+           \emph{kgoto}
+      contin
+zero:  
+  koct    =     0                                ; else output zero
+contin:
+        
+\end{lstlisting}
+
+
+ 
+\subsection*{See Also}
+
+
+ \emph{specsum}
+
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+specdiff &Up &specfilt
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}
