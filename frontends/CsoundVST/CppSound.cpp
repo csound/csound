@@ -37,11 +37,11 @@ extern "C"
     extern void csoundDefaultMidiOpen(void *csound);
 };
 
-CppSound::CppSound() : isCompiled(false), 
-	isPerforming(false), 
- 	csound(0), 
-  	spoutSize(0),
-  	go(false)
+CppSound::CppSound() : 	csound(0),
+	isCompiled(false),
+    isPerforming(false),
+    go(false),
+    spoutSize(0)
 {
 	csound = (ENVIRON *)csoundCreate(this);
 }

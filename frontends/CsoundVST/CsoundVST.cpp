@@ -30,12 +30,22 @@ const MYFLT CsoundVST::outputScale = (float) (1.0 / 32767.0);
 std::list<VstMidiEvent> CsoundVST::midiEventQueue;
 
 CsoundVST::CsoundVST(audioMasterCallback audioMaster) : 
-AudioEffectX(audioMaster, kNumPrograms, 0),
-csoundVstFltk(0),
-isSynth(true),
-cppSound(&cppSound_),
-isVst(true),
-isPython(false)
+    AudioEffectX(audioMaster, kNumPrograms, 0),
+    cppSound(&cppSound_),
+    isSynth(true),
+    isVst(true),
+    isPython(false),
+   	csoundFrameI(0),
+	csoundLastFrame(0),
+	channelI(0),
+	channelN(0),
+	hostFrameI(0),
+	vstSr(0),
+	vstCurrentSampleBlockStart(0),
+	vstCurrentSampleBlockEnd(0),
+	vstCurrentSamplePosition(0),
+	vstPriorSamplePosition(0),
+    csoundVstFltk(0)
 {
 	setNumInputs(kNumInputs);		// stereo in
 	setNumOutputs(kNumOutputs);		// stereo out
@@ -69,12 +79,22 @@ isPython(false)
 }
 
 CsoundVST::CsoundVST() : 
-AudioEffectX(0, kNumPrograms, 0),
-isVst(false),
-isSynth(true),
-isPython(false),
-csoundVstFltk(0),
-cppSound(&cppSound_)
+    AudioEffectX(0, kNumPrograms, 0),
+    cppSound(&cppSound_),
+    isSynth(true),
+    isVst(false),
+    isPython(false),
+   	csoundFrameI(0),
+	csoundLastFrame(0),
+	channelI(0),
+	channelN(0),
+	hostFrameI(0),
+	vstSr(0),
+	vstCurrentSampleBlockStart(0),
+	vstCurrentSampleBlockEnd(0),
+	vstCurrentSamplePosition(0),
+	vstPriorSamplePosition(0),
+    csoundVstFltk(0)
 {
 	setNumInputs(2);		// stereo in
 	setNumOutputs(2);		// stereo out
@@ -256,12 +276,6 @@ void CsoundVST::open()
 	{
 		PyErr_Print();
 	}
-//	result = Shell::run("csound = CsoundVST.CppSound()\n");
-//	if(result)
-//	{
-//		PyErr_Print();
-//	}
-	PyObject *csoundVstModule = PyImport_ImportModule("CsoundVST");
 	PyObject *pyCsound = PyObject_GetAttrString(mainModule, "csound");
 	// No doubt SWIG or the Python API could do this directly,
 	// but damned if I could figure out how, and this works.
@@ -455,7 +469,7 @@ bool CsoundVST::getInputProperties(long index, VstPinProperties* properties)
 {
 	if(index < kNumInputs)
 	{
-		sprintf(properties->label, "My %1d In", index + 1);
+		sprintf(properties->label, "My %ld In", index + 1);
 		properties->flags = kVstPinIsStereo | kVstPinIsActive;
 		return true;
 	}
@@ -466,7 +480,7 @@ bool CsoundVST::getOutputProperties(long index, VstPinProperties* properties)
 {
 	if(index < kNumOutputs)
 	{
-		sprintf(properties->label, "My %1d Out", index + 1);
+		sprintf(properties->label, "My %ld Out", index + 1);
 		properties->flags = kVstPinIsStereo | kVstPinIsActive;
 		return true;
 	}
