@@ -1,0 +1,514 @@
+/*  
+    bbcut.c:
+
+    Copyright (C) 2001 Nick Collins
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
+*/
+#include "csdl.h"
+#include "bbcut.h"
+#include <math.h>
+
+/* my auxilliary functions */
+
+int roundoffint(MYFLT x)
+{
+    if (x > 0)
+      return((int)(x + 0.500001)); /* in case of a close rounding
+                                      error when x= 0.5 +- integer */
+    else
+      return((int)(x - 0.5));
+}
+
+int random_number (int a, int b)
+{
+    return roundoffint((MYFLT)a+((MYFLT)rand()/(MYFLT)RAND_MAX)*(MYFLT)(b-a));
+}
+
+MYFLT myfltrandom(MYFLT a, MYFLT b)
+{
+    return (a+((MYFLT)rand()/RAND_MAX)*(b-a));
+}
+
+
+int BBCutMonoInit(BBCUTMONO *p)
+{
+    /* call seed random at time now? */
+    /* later for efficiency- lookup table for grain envelope */
+    /* int i; */
+    /* MYFLT t; */
+
+    /* allocate space for a 256 point quarter sine/ exponential wavetable  */
+/*     if (p->envbuffer.auxp == NULL) { */
+/*       auxalloc(256*sizeof(MYFLT),&p->envbuffer); */
+
+/*       for (i=0;i<256;++i) { */
+/*         t= (PI*0.5*(MYFLT)i)/255.0; */
+/*         ((MYFLT*) (p->envbuffer.auxp))[i]=t; */
+/*       } */
+/*     } */
+
+    /* have no knowledge of source length */
+    p->numbarsnow  = 0;
+    p->unitsdone   = 0;
+    p->totalunits  = 0;
+    p->unitblock   = 0;
+    p->repeats     = 0;
+    p->repeatsdone = 0;
+    p->stutteron   = 0;
+
+    /* allocate space- need no more than a half bar at current
+       tempo and barlength */
+    if (p->repeatbuffer.auxp == NULL) {
+      auxalloc(((int)(esr_*(*p->barlength)/(*p->bps)))*sizeof(MYFLT),
+               &p->repeatbuffer);
+    }
+
+    p->repeatsampdone = 0;
+
+    p->Subdiv       = roundoffint(*p->subdiv);
+    p->Phrasebars   = roundoffint(*p->phrasebars);
+    p->Numrepeats   = roundoffint(*p->numrepeats);
+
+    p->Stutterspeed = roundoffint(*p->stutterspeed);
+
+    /* samp per unit= samp per bar/ subdiv */
+    /* = samp per beat * beats per bar /subdiv */
+    /* =(samp per sec / beats per sec)* (beats per bar/subdiv)  */
+    p->samplesperunit = roundoffint(((MYFLT)esr_*(FL(1.0)/(*p->bps)))*
+                                    (*p->barlength/(MYFLT)p->Subdiv));
+
+    /* enveloping */
+    p->Envelopingon = roundoffint(*p->envelopingon);
+    p->envsize = (p->Envelopingon) ? 64 : 0;
+
+    return OK;
+}
+
+      /* rounding errors will accumulate slowly with respect to bps,  */
+      /* true tempo is determined by samplesperunit (which has been rounded off) */
+      /* only make floating point corrections for stutters with stutterspeed>1 */
+
+int BBCutMono(BBCUTMONO *p)
+{
+    int i;
+    int oddmax,unitproj;
+    int unitb,unitl,unitd;      /* temp for integer unitblock calculations */
+    MYFLT envmult,out;          /* intermedaites for enveloping grains */
+
+    for (i=0;i<ksmps_;i++) {
+      if ((p->unitsdone+FL(0.000001))>=p->totalunits) { /* a new phrase of cuts */
+        p->numbarsnow  = random_number(1,p->Phrasebars);
+        p->totalunits  = p->numbarsnow*p->Subdiv;
+
+        p->unitsdone   = 0;
+        p->unitsleft   = (MYFLT)p->totalunits;    /* must reset here */
+        p->repeats     = 0;
+        p->repeatsdone = 0;
+        p->stutteron   = 0;
+      }
+
+      if (p->repeatsdone>=p->repeats) {
+        /* a new subphrase- a cut + some repeats of it */
+        p->repeatsdone = 0;
+
+        /* STUTTER- only within half a bar of the end */
+        if ((*p->stutterchance> myfltrandom(FL(0.0),FL(1.0))) &&
+            (p->unitsleft<(p->Subdiv/2))) {
+          /* stutterspeed must be an integer greater than zero */
+
+          p->repeats = roundoffint(p->unitsleft*p->Stutterspeed);
+          p->unitblock = FL(1.0)/(p->Stutterspeed);
+          p->stutteron = 1;
+        }
+        else {  /* NO STUTTER */
+          /* finding set of valid odd numbers for syncopated cuts */
+          /* integer division */
+          oddmax = p->Subdiv/2;
+          if ((oddmax % 2)==0)
+            oddmax =(oddmax-2)/2;
+          else
+            oddmax = (oddmax-1)/2;
+
+          unitb = random_number(0,oddmax);
+          unitb = (2*unitb)+1;
+
+          unitl = roundoffint(p->unitsleft);
+
+          while (unitb> unitl)
+            unitb = unitb-2;
+
+          unitd = roundoffint(p->unitsdone);
+
+          /* for debug testing           */
+          /* if (unitblock<=0, {"this should never happen".postln}); */
+          /* p->repeats is the total number of repeats, including
+             initial statement */
+          p->repeats = random_number(1,p->Numrepeats+1); /* usually 1 or 2  */
+          /* take right arg as p->Numrepeats+1 if make param more sensible */
+          unitproj = (p->repeats*unitb)+ unitd;
+          /* should be same logic as old algorithm for numrepeats=2 */
+          while (unitproj> p->totalunits) {
+            p->repeats = p->repeats-1;
+
+            if (p->repeats<=1) {
+              p->repeats = 1;
+              unitb = unitl;    /* at this point is an integer */
+            }
+            unitproj =(p->repeats*unitb)+ unitd;
+          }
+
+          /* convert integer to float */
+          p->unitblock = (MYFLT) unitb;
+        }       /* end of stutter/no stutter */
+
+        /* determine offset - this part is very different for the csound
+           version */
+        /* there is no random access possible any more, only have now
+           (and past) */
+
+        /* we must determine how long in samples a repeat is */
+        /* must persist between calls to this function */
+
+        p->repeatlengthsamp = roundoffint(p->unitblock*p->samplesperunit);
+
+        p->repeatsampdone = 0;
+
+        /* determine envelope size - default is always 0 if enveloping off,
+           128 if on; */
+
+        /* envsize must be at most a quarter of repeatsamplelength */
+        if ((p->Envelopingon) ==1) {
+          if (p->repeatlengthsamp<256) {
+            p->envsize = p->repeatlengthsamp/4;
+          }
+        }
+
+      }
+
+      /* AUDIO OUT */
+      if (p->repeatsdone==0) {
+        out = p->ain[i];        /* pass in directly to out */
+
+        /* ENVELOPING */
+        envmult = FL(1.0);
+
+        /* envelope in */
+        if (p->repeatsampdone<p->envsize) {
+          /* used sinusoid- prefer exponential */
+/* envmult= sin(PI*0.5*(((MYFLT)(p->repeatsampdone))/(MYFLT)p->envsize)); */
+          envmult = ((MYFLT)exp(((double)p->repeatsampdone)/
+                                ((double)p->envsize))-FL(1.0))/
+            FL(1.7182818284590);
+        }
+
+        /* envelope out if necessary */
+        if (p->repeatsampdone>=(p->repeatlengthsamp-p->envsize)) {
+          /* envmult = sin(PI*0.5*
+             (((MYFLT)(p->repeatlengthsamp-p->repeatsampdone))/
+             (MYFLT)p->envsize)); */
+          envmult = ((MYFLT)exp(((double)(p->repeatlengthsamp-p->repeatsampdone))/
+                                ((double)p->envsize))-FL(1.0))/
+            FL(1.7182818284590);
+        }
+
+        out *= envmult;
+        /* /ENVELOPING DONE */
+
+        p->aout[i] = out;
+
+        if (p->repeats>1) {     /* if recording a repeat */
+          ((MYFLT*)(p->repeatbuffer.auxp))[p->repeatsampdone] = out;
+        }
+      }
+      else {    /* reading repeatbuffer for repeats */
+        p->aout[i] = ((MYFLT*)(p->repeatbuffer.auxp))[p->repeatsampdone];
+      }
+
+
+      /* per sample accounting */
+      ++(p->repeatsampdone);
+
+      /* if finished a cut, do accounting  */
+      if (p->repeatsampdone>=p->repeatlengthsamp) {
+        ++(p->repeatsdone);
+        p->repeatsampdone = 0;
+
+        p->unitsdone = p->unitsdone + p->unitblock;
+
+        p->unitsleft = p->totalunits - p->unitsdone;
+
+        /* to account for floating point errors in unitblock when  */
+        /* stuttering with stutterspeed > 1 */
+        if (p->stutteron && (p->repeatsdone==(p->repeats-1))) {
+          p->unitblock = p->unitsleft;
+        }
+      }
+    }
+
+    return OK;
+}
+
+/* Stereo versions */
+/* This following code is excatly the same as above, but */
+/* uses BBCUTSTEREO- changes are doubling of buffer size
+   for interleaved stereo save and code in audio output part
+   to cope with that, variables out1,out2 for 2 channels */
+
+int BBCutStereoInit(BBCUTSTEREO * p)
+{
+    /* call seed random at time now? */
+
+    /* later for efficiency- lookup table for grain envelope */
+    /* int i; */
+    /* MYFLT t; */
+
+       /* allocate space for a 256 point quarter sine/ exponential wavetable  */
+/*     if (p->envbuffer.auxp == NULL) { */
+/*       auxalloc(((int)(256*sizeof(MYFLT),&p->envbuffer); */
+
+/*                 for (i=0;i<256;++i) */
+/*       { */
+/*         t= (PI*0.5*(MYFLT)i)/255.0; */
+/*         ((MYFLT*) (p->envbuffer.auxp))[i]=t; */
+/*       } */
+/*                 } */
+
+
+    /* have no knowledge of source length */
+
+    p->numbarsnow = 0;
+    p->unitsdone = 0;
+    p->totalunits = 0;
+    p->unitblock = 0;
+    p->repeats = 0;
+    p->repeatsdone = 0;
+    p->stutteron = 0;
+
+    /* allocate space- need no more than a half bar at current tempo
+       and barlength */
+    if (p->repeatbuffer.auxp == NULL) {
+      /* multiply by 2 for stereo buffer */
+      auxalloc(2*((int)(esr_*(*p->barlength)/(*p->bps)))*sizeof(MYFLT),
+               &p->repeatbuffer);
+    }
+
+    p->repeatsampdone = 0;
+    p->Subdiv = roundoffint(*p->subdiv);
+    p->Phrasebars = roundoffint(*p->phrasebars);
+    p->Numrepeats = roundoffint(*p->numrepeats);
+
+    p->Stutterspeed = roundoffint(*p->stutterspeed);
+
+    /* samp per unit= samp per bar/ subdiv */
+    /* = samp per beat * beats per bar /subdiv */
+    /* =(samp per sec / beats per sec)* (beats per bar/subdiv)  */
+    p->samplesperunit = roundoffint(((MYFLT)esr_/
+                                     (*p->bps))*(*p->barlength/
+                                                 (MYFLT)p->Subdiv));
+
+    /* enveloping */
+    p->Envelopingon = roundoffint(*p->envelopingon);
+    p->envsize = (p->Envelopingon) ? 64 : 0;
+
+    return OK;
+}
+
+
+/* rounding errors will accumulate slowly with respect to bps,  */
+/* true tempo is determined by samplesperunit (which has been rounded off) */
+/* only make floating point corrections for stutters with stutterspeed>1 */
+int BBCutStereo(BBCUTSTEREO *p)
+{
+    int i;
+    int oddmax,unitproj;
+    int unitb,unitl,unitd;      /* temp for integer unitblock calculations */
+    MYFLT envmult,out1,out2;/* intermediates for enveloping grains */
+
+    for (i=0;i<ksmps_;i++) {
+      if ((p->unitsdone+FL(0.000001))>=p->totalunits) {/* a new phrase of cuts */
+        p->numbarsnow  = random_number(1,p->Phrasebars);
+        p->totalunits  = p->numbarsnow*p->Subdiv;
+
+        p->unitsdone   = 0;
+        p->unitsleft   = (MYFLT)p->totalunits;    /* must reset here */
+        p->repeats     = 0;
+        p->repeatsdone = 0;
+        p->stutteron   = 0;
+      }
+
+      if (p->repeatsdone>=p->repeats) { /* a new subphrase- a cut + some repeats of it */
+        p->repeatsdone = 0;
+
+        /* STUTTER- only within half a bar of the end */
+        if ((*p->stutterchance> myfltrandom(FL(0.0),FL(1.0))) &&
+            (p->unitsleft<(p->Subdiv/2))) {
+          /* stutterspeed must be an integer greater than zero */
+
+          p->repeats   = roundoffint(p->unitsleft*p->Stutterspeed);
+          p->unitblock = FL(1.0)/p->Stutterspeed;
+          p->stutteron = 1;
+        }
+        else {  /* NO STUTTER */
+          /* finding set of valid odd numbers for syncopated cuts */
+          /* integer division */
+          oddmax = p->Subdiv/2;
+          if ((oddmax % 2)==0)
+            oddmax = (oddmax-2)/2;
+          else
+            oddmax = (oddmax-1)/2;
+
+          unitb = random_number(0,oddmax);
+          unitb = (2*unitb)+1;
+
+          unitl = roundoffint(p->unitsleft);
+
+          while (unitb> unitl)
+            unitb = unitb-2;
+
+          unitd = roundoffint(p->unitsdone);
+
+          /* for debug testing           */
+          /* if (unitblock<=0, {"this should never happen".postln}); */
+
+          /* p->repeats is the total number of repeats, including
+             initial statement */
+
+          p->repeats = random_number(1,p->Numrepeats+1); /* usually 1 or 2  */
+          /* take right arg as p->Numrepeats+1 if make param more sensible */
+
+          unitproj = (p->repeats*unitb)+ unitd;
+
+          /* should be same logic as old algorithm for numrepeats=2 */
+          while (unitproj> p->totalunits) {
+            p->repeats = p->repeats-1;
+
+            if (p->repeats<=1) {
+              p->repeats = 1;
+              unitb = unitl;    /* at this point is an integer */
+            }
+
+            unitproj = (p->repeats*unitb)+ unitd;
+          }
+
+          /* convert integer to float */
+          p->unitblock = (MYFLT) unitb;
+
+        }       /* end of stutter/no stutter */
+
+        /* determine offset- this part is very different for the
+           csound version */
+        /* there is no random access possible any more, only have now
+           (and past) */
+
+        /* we must determine how long in samples a repeat is */
+        /* must persist between calls to this function */
+
+        p->repeatlengthsamp = roundoffint(p->unitblock*p->samplesperunit);
+
+        p->repeatsampdone = 0;
+
+        /* determine envelope size- default is always 0 if enveloping off,
+           128 if on; */
+
+        /* envsize must be at most a quarter of repeatsamplelength */
+        if (p->Envelopingon ==1) {
+          if (p->repeatlengthsamp<256) {
+            p->envsize = p->repeatlengthsamp/4;
+          }
+        }
+      }
+
+      /* AUDIO OUT- some changes for buffer access */
+      if (p->repeatsdone == 0) {
+
+        out1 = p->ain1[i];      /* pass in directly to out */
+        out2 = p->ain2[i];
+
+        /* ENVELOPING */
+        envmult = FL(1.0);
+
+        /* envelope in */
+        if (p->repeatsampdone<p->envsize) {
+          /* used sinusoid- prefer exponential */
+          /* envmult = sin(PI*0.5*(((MYFLT)(p->repeatsampdone))/
+             (MYFLT)p->envsize)); */
+          envmult = ((MYFLT)exp(((double)p->repeatsampdone)/
+                                ((double)p->envsize))-
+                     FL(1.0))/FL(1.7182818284590);
+        }
+
+        /* envelope out if necessary */
+        if (p->repeatsampdone>=(p->repeatlengthsamp-p->envsize)) {
+   /* envmult = sin(PI*0.5*(((MYFLT)(p->repeatlengthsamp-p->repeatsampdone))/
+      (MYFLT)p->envsize)); */
+          envmult = ((MYFLT)exp(((double)(p->repeatlengthsamp-
+                                          p->repeatsampdone))/
+                                ((double)p->envsize))-FL(1.0))/
+            FL(1.7182818284590);
+        }
+
+        out1 *= envmult;
+        out2 *= envmult;
+        /* /ENVELOPING DONE */
+
+        p->aout1[i] = out1;
+        p->aout2[i] = out2;
+
+        if (p->repeats>1) {     /* if recording a repeat */
+          /* STEREO INTERLEAVED */
+          ((MYFLT*)(p->repeatbuffer.auxp))[2*p->repeatsampdone] = out1;
+          ((MYFLT*)(p->repeatbuffer.auxp))[2*p->repeatsampdone+1] = out2;
+        }
+
+      }
+      else {    /* reading repeatbuffer for repeats */
+        p->aout1[i] = ((MYFLT*)(p->repeatbuffer.auxp))[2*p->repeatsampdone];
+        p->aout2[i] = ((MYFLT*)(p->repeatbuffer.auxp))[2*p->repeatsampdone+1];
+      }
+
+      /* per sample accounting */
+      ++(p->repeatsampdone);
+
+      /* if finished a cut, do accounting  */
+      if (p->repeatsampdone>=p->repeatlengthsamp) {
+        ++(p->repeatsdone);
+        p->repeatsampdone = 0;
+
+        p->unitsdone = p->unitsdone+ p->unitblock;
+
+        p->unitsleft = p->totalunits- p->unitsdone;
+
+        /* to account for floating point errors in unitblock when  */
+        /* stuttering with stutterspeed > 1 */
+        if (p->stutteron && (p->repeatsdone== (p->repeats-1))) {
+          p->unitblock = p->unitsleft;
+        }
+      }
+    }
+    return OK;
+}
+
+#define S       sizeof
+
+static OENTRY localops[] = {
+{ "bbcutm",S(BBCUTMONO), 5, "a","aiiiiipop",(SUBR)BBCutMonoInit, NULL, (SUBR)BBCutMono  },
+{ "bbcuts",S(BBCUTSTEREO),5, "aa","aaiiiiipop",(SUBR)BBCutStereoInit, NULL, (SUBR)BBCutStereo}
+};
+
+LINKAGE

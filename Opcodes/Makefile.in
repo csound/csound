@@ -1,0 +1,135 @@
+o = @OBJEXT@
+CC = @CC@
+DEFINES = -DBETA
+CFLAGS = @CFLAGS@ @XCFLAGS@ $(RPM_OPT_FLAGS) $(DEFINES)
+INCLUDE	= @includedir@
+P = ../Plugins
+
+LIBRARIES = \
+	babo.so		\
+	bbcut.so	\
+	biquad.so	\
+	bowedbar.so 	\
+	butter.so  	\
+	clfilt.so  	\
+	cross2.so	\
+	dam.so		\
+	filter.so	\
+	flanger.so	\
+	follow.so	\
+	grain.so	\
+	grain4.so	\
+	hrtferX.so	\
+	locsig.so	\
+	lowpassr.so	\
+	midiops2.so	\
+	midiops3.so	\
+	modal4.so	\
+	nlfilt.so	\
+	oscbnk.so	\
+	phisem.so	\
+	physmod.so	\
+	pitch.so	\
+	pluck.so	\
+	repluck.so	\
+	scansyn.so	\
+	scansynx.so	\
+	sfont.so	\
+	sndwarp.so	\
+	space.so 	\
+	spat3d.so 	\
+	spectra.so 	\
+	ugens6.c	\
+	ugens7.c	\
+	ugens9.c	\
+	ugensa.so	\
+	uggab.so	\
+	ugmoss.so	\
+	ugrw1.so	\
+	ugrw2.so	\
+	ugsc.so		\
+	vdelay.so	\
+	wave-terrain.so
+
+
+LSRC = \
+	babo.c		\
+	bbcut.c		\
+	biquad.c	\
+	bowedbar.c	\
+	butter.c	\
+	clfilt.c	\
+	cross2.c	\
+	dam.c		\
+	filter.c	\
+	flanger.c	\
+	follow.c	\
+	grain.c		\
+	grain4.c	\
+	hrtferX.c	\
+	locsig.c	\
+	lowpassr.c	\
+	midiops2.c	\
+	midiops3.c	\
+	modal4.c	\
+	oscbnk.c	\
+	nlfilt.c 	\
+	phisem.c	\
+	physmod.c	\
+	physutil.c	\
+	pitch.c		\
+	pluck.c		\
+	repluck.c	\
+	scansyn.c 	\
+	scansynx.c 	\
+	sfont.c		\
+	sndwarp.c	\
+	space.c 	\
+	spat3d.c 	\
+	spectra.c 	\
+	ugens6.c	\
+	ugens7.c	\
+	ugens9.c	\
+	ugensa.c	\
+	uggab.c		\
+	ugmoss.c	\
+	ugrw1.c		\
+	ugrw2.c		\
+	ugsc.c		\
+	vdelay.c	\
+	wave-terrain.c
+
+
+all:	$(LIBRARIES)
+
+opcodes: all
+
+PHYSOBJ = physmod.$(o) physutil.$(o) mandolin.$(o) singwave.$(o) \
+	fm4op.$(o) moog1.$(o) shaker.$(o)
+
+physmod.so:	$(PHYSOBJ)
+	ld -E --shared $(PHYSOBJ) -o physmod.so
+	-rm $P/physmod.so
+	ln physmod.so $P
+
+ugrw1.so:	ugrw1.$(o) fprint.$(o)
+	ld -E --shared ugrw1.$(o) fprint.$(o) -o physmod.so
+	-rm $P/ugrw1.so
+	ln ugrw1.so $P
+
+%.so: %.$(o)
+	ld -E --shared $*.$(o) -o $*.so
+	-rm $P/$*.so
+	ln $*.so $P
+
+%.$(o): %.c
+	$(CC) -I .. -I ../H $(CFLAGS) -c $*.c -o $*.$(o)
+
+TAGS:
+	etags -a -o ../TAGS $(LSRC)
+
+depend:
+	gcc -M -I ../H $(CFLAGS) $(LSRC) > deps
+	cat Makefile deps > makefile
+
+# DO NOT DELETE THIS LINE
