@@ -108,7 +108,7 @@ typedef struct {
         long    sr, audrem, framesrem, getframes;    /* bytes, frames, frames */
         AIFFDAT *aiffdata;
         FDCH    fdch;
-#ifdef _SNDFILE_
+#ifdef HAVE_LIBSNDFILE
         void    (*bytrev)(char*,int);
         MYFLT   *inbufp, *bufend;
         MYFLT   inbuf[SNDINBUFSIZ];
@@ -147,7 +147,7 @@ typedef struct {
         SNDCOM  c;
 } SNDOUTS;
 
-#ifdef _SNDFILE_
+#ifdef HAVE_LIBSNDFILE
 #include <sndfile.h>
 int sreadin(SNDFILE*, MYFLT *, int, SOUNDIN *);
 #else
