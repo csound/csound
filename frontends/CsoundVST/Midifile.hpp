@@ -32,6 +32,9 @@
 #include <vector>
 %}
 %template(IntToDoubleMap) std::map<int, double>;
+#ifdef SWIGPYTHON
+%template(IntDoublePair) std::pair<int, MYFLT>;
+#endif
 %template(MidiByteVector) std::vector<unsigned char>;
 #else
 #include <algorithm>

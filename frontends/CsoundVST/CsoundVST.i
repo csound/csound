@@ -24,11 +24,13 @@
 
 %module(directors="1") CsoundVST
 %{
+	#include <algorithm>
 	#include "Silence.hpp"
 %}
 %apply int { size_t };
 %feature("director") Node;
 %include "Silence.hpp"
+
 
 %pythoncode
 %{

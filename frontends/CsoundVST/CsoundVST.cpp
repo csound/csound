@@ -184,6 +184,7 @@ void CsoundVST::midiDeviceOpen(void *csound)
 void CsoundVST::performanceThreadRoutine()
 {
   getCppSound()->stop();
+  getCppSound()->reset();
   getCppSound()->setExternalMidiEnabled(false);
   getCppSound()->setExternalMidiDeviceOpenCallback(0);
   getCppSound()->setExternalMidiReadCallback(0);

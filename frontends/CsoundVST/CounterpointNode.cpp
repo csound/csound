@@ -121,8 +121,8 @@ namespace csound
     Event e;
     for (int i = 0, n = generated.size(); i < n; i++)
       {
-    	ublas::axpy_prod(compositeCoordinates, generated[i], e);
-    	generated[i] = e;
+	ublas::axpy_prod(compositeCoordinates, generated[i], e);
+	generated[i] = e;
       }
     // Put the generated counterpoint (back?) into the target score.
     score.insert(score.end(), generated.begin(), generated.end());
