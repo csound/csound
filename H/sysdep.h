@@ -93,7 +93,7 @@ extern  off_t lseek(int, off_t, int);
 #      define  u_long  unsigned long
 #      if !defined(O_NDELAY)
 #       define  O_NDELAY (0)
-#		   endif
+#      endif
 #      include <io.h>
 #     else
 #     ifdef WIN32
@@ -103,13 +103,13 @@ extern  off_t lseek(int, off_t, int);
 #      define  u_long  unsigned long
 #      if !defined(O_NDELAY)
 #       define  O_NDELAY (0)
-#		   endif
+#                  endif
 #      include <io.h>
 #     else
 #      ifdef DOSGCC
 #      if !defined(O_NDELAY)
 #       define  O_NDELAY (0)
-#		   endif
+#                  endif
 #      endif
 #      include <sys/types.h>
 #     endif

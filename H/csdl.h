@@ -430,12 +430,12 @@
 #define rewriteheader p->h.insdshead->csound->rewriteheader_
 #define writeheader p->h.insdshead->csound->writeheader_
 
-#define LINKAGE long opcode_size(void)		\
-		{				\
-    		    return sizeof(localops);	\
-		}				\
-						\
-		OENTRY *opcode_init(ENVIRON *xx)\
-		{				\
-		    return localops;		\
-		}
+#define LINKAGE long opcode_size(void)          \
+                {                               \
+                    return sizeof(localops);    \
+                }                               \
+                                                \
+                OENTRY *opcode_init(ENVIRON *xx)\
+                {                               \
+                    return localops;            \
+                }

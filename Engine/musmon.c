@@ -1,4 +1,4 @@
-/*  
+/*
     musmon.c:
 
     Copyright (C) 1991,2002 Barry Vercoe, John ffitch, Istvan Varga, rasmus ekman
@@ -343,7 +343,7 @@ int musmon(void)
 
     if (frsturnon != NULL)           /* if something in turnon list  */
       kturnon();                     /*   turnon now                 */
-    
+
                                      /* since we are running in components */
     return 0;                        /* we exit here to playevents later   */
 }

@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"                                 /*              EXPRESS.C       */
+#include "cs.h"                                 /*       EXPRESS.C       */
 
 #define BITSET  0x17
 #define BITCLR  0x16

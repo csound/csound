@@ -22,7 +22,7 @@
 */
 
 #include "cs.h"
-#include "sysdep.h"                                          /*    EXTRACT.C   */
+#include "sysdep.h"                                 /*    EXTRACT.C   */
 
 #define INSMAX  256
 
@@ -48,7 +48,7 @@ void readxfil(FILE *xfp)        /* read the extract control file */
     char s[82];
 
     all = 1;
-    flag = 'i';                     /* default -i flag supplied */
+    flag = 'i';                          /* default -i flag supplied */
     onsect = 1;     onbeat = FL(0.0);    /* other default vals   */
     offsect = 999;  offbeat = FL(0.0);
     while (fscanf(xfp, "%s", s) != EOF) {
@@ -98,7 +98,7 @@ void extract(void)      /* extract instr events within the time period */
       return;
     if (++sectno > offsect) {               /* or later section,    */
       frstbp = NULL;
-      return;                         /*      return          */
+      return;                               /*      return          */
     }
 
     frstout = prvout = NULL;

@@ -25,7 +25,7 @@
 
 int fprintf_k(FPRINTF *p)
 {
-    char 	string[8192];
+    char        string[8192];
     sprints(string, p->txtstring, p->argums, p->INOCOUNT-2);
     fprintf(p->fp, string);
     return OK;
@@ -34,7 +34,7 @@ int fprintf_k(FPRINTF *p)
 /* i-rate fprints */
 int fprintf_i(FPRINTF *p)
 {
-    char 	string[8192];
+    char        string[8192];
     fprintf_set(p);
     sprints(string, p->txtstring, p->argums, p->INOCOUNT-2);
     fprintf(p->fp, string);

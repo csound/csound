@@ -1,4 +1,4 @@
-/*  
+/*
     FL_graph.cpp: code for drawing graphs using FLTK library
 
     Copyright (C) 2003 John ffitch
@@ -52,36 +52,36 @@ Fl_Choice *choice;
 Fl_Button *end;
 
 Fl_Menu_Item menu[] = {
-  {NULL,	0, 0, (void*)NULL}, //0
-  {NULL,	0, 0, (void*)NULL}, //1
-  {NULL,	0, 0, (void*)NULL}, //2
-  {NULL,	0, 0, (void*)NULL}, //3
-  {NULL,	0, 0, (void*)NULL}, //4
-  {NULL,	0, 0, (void*)NULL}, //5
-  {NULL,	0, 0, (void*)NULL}, //6
-  {NULL,	0, 0, (void*)NULL}, //7
-  {NULL,	0, 0, (void*)NULL}, //8
-  {NULL,	0, 0, (void*)NULL}, //9
-  {NULL,	0, 0, (void*)NULL}, //10
-  {NULL,	0, 0, (void*)NULL}, //11
-  {NULL,	0, 0, (void*)NULL}, //12
-  {NULL,	0, 0, (void*)NULL}, //13
-  {NULL,	0, 0, (void*)NULL}, //14
-  {NULL,	0, 0, (void*)NULL}, //15
-  {NULL,	0, 0, (void*)NULL}, //16
-  {NULL,	0, 0, (void*)NULL}, //17
-  {NULL,	0, 0, (void*)NULL}, //18
-  {NULL,	0, 0, (void*)NULL}, //19
-  {NULL,	0, 0, (void*)NULL}, //20
-  {NULL,	0, 0, (void*)NULL}, //21
-  {NULL,	0, 0, (void*)NULL}, //22
-  {NULL,	0, 0, (void*)NULL}, //23
-  {NULL,	0, 0, (void*)NULL}, //24
-  {NULL,	0, 0, (void*)NULL}, //25
-  {NULL,	0, 0, (void*)NULL}, //26
-  {NULL,	0, 0, (void*)NULL}, //27
-  {NULL,	0, 0, (void*)NULL}, //28
-  {NULL,	0, 0, (void*)NULL}, //29
+  {NULL,        0, 0, (void*)NULL}, //0
+  {NULL,        0, 0, (void*)NULL}, //1
+  {NULL,        0, 0, (void*)NULL}, //2
+  {NULL,        0, 0, (void*)NULL}, //3
+  {NULL,        0, 0, (void*)NULL}, //4
+  {NULL,        0, 0, (void*)NULL}, //5
+  {NULL,        0, 0, (void*)NULL}, //6
+  {NULL,        0, 0, (void*)NULL}, //7
+  {NULL,        0, 0, (void*)NULL}, //8
+  {NULL,        0, 0, (void*)NULL}, //9
+  {NULL,        0, 0, (void*)NULL}, //10
+  {NULL,        0, 0, (void*)NULL}, //11
+  {NULL,        0, 0, (void*)NULL}, //12
+  {NULL,        0, 0, (void*)NULL}, //13
+  {NULL,        0, 0, (void*)NULL}, //14
+  {NULL,        0, 0, (void*)NULL}, //15
+  {NULL,        0, 0, (void*)NULL}, //16
+  {NULL,        0, 0, (void*)NULL}, //17
+  {NULL,        0, 0, (void*)NULL}, //18
+  {NULL,        0, 0, (void*)NULL}, //19
+  {NULL,        0, 0, (void*)NULL}, //20
+  {NULL,        0, 0, (void*)NULL}, //21
+  {NULL,        0, 0, (void*)NULL}, //22
+  {NULL,        0, 0, (void*)NULL}, //23
+  {NULL,        0, 0, (void*)NULL}, //24
+  {NULL,        0, 0, (void*)NULL}, //25
+  {NULL,        0, 0, (void*)NULL}, //26
+  {NULL,        0, 0, (void*)NULL}, //27
+  {NULL,        0, 0, (void*)NULL}, //28
+  {NULL,        0, 0, (void*)NULL}, //29
   0};
 
 class graph_box: public Fl_Window {
@@ -101,7 +101,7 @@ void graph_box::draw()
     fl_line_style(FL_SOLID);
     fl_rect(0,0,w(),h());
     if (curr>=0) {
-      WINDAT	  *win   = (WINDAT*)menu[curr].user_data_;
+      WINDAT      *win   = (WINDAT*)menu[curr].user_data_;
       if (win==NULL) return;
       MYFLT       *fdata = win->fdata;
       long        npts   = win->npts;
@@ -316,7 +316,7 @@ void MakeXYin_(XYINDAT *w, MYFLT x, MYFLT y)
       short   gra_x, gra_y, gra_w, gra_h;
 
       win_x = 0;  win_y = 0;              /* window pixels addressed relative */
-      
+
       /* set new width and height so we leave a 20% border around the plot */
       gra_w = xyin->w() - 2*BORDERW;      gra_h = xyin->h() - 2*GUTTERH;
       gra_x = win_x + BORDERW;            gra_y = win_y + GUTTERH;
