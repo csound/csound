@@ -10,8 +10,6 @@
 #include "cs.h"
 #include "aeffectx.h"
 #include <vector>
-#include <map>
-#include <list>
 
 #define MAX_EVENTS		64
 #define MAX_INOUTS		8
@@ -29,6 +27,12 @@
 
 typedef AEffect* (*PVSTMAIN)(audioMasterCallback audioMaster);
 static int vsthandle = -1;
+
+typedef union VstEventBlock_
+{
+    VstEvents vstEvents;
+    void *block[0x1000];
+} VstEventBlock;
 
 class VSTPlugin
 {
@@ -56,22 +60,25 @@ public:
 	int Instance(ENVIRON *csound, const char *sharedLibraryPath);
 	void Info(ENVIRON *csound);
 	void Create(VSTPlugin *plug);
-	void Init( float samplerate , float blocksize );
+	void Init(ENVIRON *csound);
 	virtual int GetNumParams(void) { return pEffect->numParams; }
 	virtual void GetParamName(int numparam,char* name)
 	{
-		if ( numparam < pEffect->numParams ) Dispatch(effGetParamName,numparam,0,name,0.0f);
-		else strcpy(name,"Out of Range");
+		if ( numparam < pEffect->numParams ) 
+            Dispatch(effGetParamName,numparam,0,name,0.0f);
+		else 
+            strcpy(name,"Out of Range");
 	}
 	/*virtual void GetParamValue(int numparam,char* parval)
 	{
 		if ( numparam < pEffect->numParams ) DescribeValue(numparam,parval);
 		else strcpy(parval,"Out of Range");
 	}*/
-	virtual float GetParamValue(int numparam)
-	{
-		if ( numparam < pEffect->numParams ) return (pEffect->getParameter(pEffect, numparam));
-		else return -1.0;
+	virtual float GetParamValue(int numparam) {
+		if ( numparam < pEffect->numParams ) 
+            return (pEffect->getParameter(pEffect, numparam));
+		else 
+            return -1.0;
 	}
 	int getNumInputs( void );
 	int getNumOutputs( void );
@@ -116,7 +123,6 @@ public:
 	static long OnGetVersion(AEffect *effect);
     static bool OnInputConnected(AEffect *effect, long input) { return true; }
     static bool OnOutputConnected(AEffect *effect, long output) { return true; }
-protected:
 	void *h_dll;
 	void *h_winddll;
 	char _sProductName[64];
@@ -124,18 +130,17 @@ protected:
 	char *_sDllName;	// Contains dll name
 	unsigned long _version;
 	bool _isSynth;
-	float * inputs[MAX_INOUTS];
-	float * outputs[MAX_INOUTS];
-	float junk[256];
-	static VstTimeInfo _timeInfo;
-	std::vector<VstMidiEvent> vstMidiEventQueue;
-	VstEvents vstEvents;
+	float *inputs[MAX_INOUTS];
+	float *outputs[MAX_INOUTS];
+	size_t vstMidiEventIndex;
+	VstMidiEvent vstMidiEventQueue[0x1000];
+	VstEventBlock vstEventBlock;
 	bool overwrite;
-private:
 	bool edited;
 	bool show_params;
-	static float sample_rate;
-	std::map<size_t, std::list<VstMidiEvent> > noteOffs;
+	static VstTimeInfo vstTimeInfo;
+	static float sampleRate;
+	static long blockSize;
 };
 
 #endif // _VSTPLUGIN_HOST
