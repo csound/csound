@@ -65,7 +65,7 @@ extern "C"
 			strcpy(vstplugname, p->STRARG);          
 		}
 		else 
-           csound->Message(csound,"Invalid plugin name.\n");
+           plugin->Log("Invalid plugin name.\n");
 		path_convert (vstplugname);
 		if (plugin->Instantiate(vstplugname)) {
 			plugin->Log("Error loading effect.\n");
@@ -106,7 +106,7 @@ extern "C"
 		VSTPLUG_ *p = (VSTPLUG_ *)data;
   		//ENVIRON *csound = p->h.insdshead->csound;
 		VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
-		//csound->Message(csound, "vstplug: plugin %x.\n", plugin);
+		//plugin->Log("vstplug: plugin %x.\n", plugin);
         if(!p->h.insdshead->nxtact) {
             for(size_t i = 0; i < p->framesPerBlock; i++) {
                 plugin->inputs_[0][i] = p->ain1[i] / SCALING_FACTOR;
@@ -132,7 +132,6 @@ extern "C"
 	{
 		VSTNOTE *p = (VSTNOTE *)data;
   		ENVIRON *csound = p->h.insdshead->csound;
-  		//csound->Message(csound, "vstnote_init.\n");
 		VSTPlugin *vstPlugin = vstPlugins[(size_t) *p->iVSThandle];
 		vstPlugin->Debug("vstnote_init\n");
 		p->framesRemaining = *p->kdur * vstPlugin->framesPerSecond;
@@ -147,7 +146,6 @@ extern "C"
             ENVIRON *csound = p->h.insdshead->csound;
             p->framesRemaining -= (size_t) csound->GetKsmps(csound);
             if(p->framesRemaining <= 0) {
-                //csound->Message(csound, "vstnote.\n");
                 VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
                 plugin->Debug("vstnote.\n");
                 plugin->AddNoteOff(*p->kchan, *p->knote);
@@ -245,12 +243,11 @@ extern "C"
 	{
 		VSTPRET *p = (VSTPRET *)data;
   		ENVIRON *csound = p->h.insdshead->csound;
-		//csound->Message(csound, "vstpret(%d).\n", int(*p->kparam));
 		VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
 		plugin->Debug("vstpret(%d).\n", int(*p->kparam));
 		*p->kvalue = plugin->GetParamValue(int(*p->kparam));
 		if ((*p->kvalue) == -1)
-			csound->Message(csound, "Invalid parameter number %d.\n", int(*p->kparam));
+			plugin->Log("Invalid parameter number %d.\n", int(*p->kparam));
 		return OK;	
 	}	
 	
@@ -258,7 +255,6 @@ extern "C"
 	{
 		VSTPSEND *p = (VSTPSEND *)data;
   		ENVIRON *csound = p->h.insdshead->csound;
-		//csound->Message(csound, "vstpsend_init.\n");
 		VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
 		plugin->Debug("vstpsend_init.\n");
 		p->oldkparam = 0;
@@ -270,7 +266,6 @@ extern "C"
 	{
 		VSTPSEND *p = (VSTPSEND *)data;
   		ENVIRON *csound = p->h.insdshead->csound;
-		//csound->Message(csound, "vstpsend.\n");
 		VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
 		if(*p->kparam == p->oldkparam &&
            *p->kvalue == p->oldkvalue)

@@ -150,7 +150,7 @@ void VSTPlugin::SendMidi()
 
 bool VSTPlugin::DescribeValue(int parameter,char* value)
 {
-    csound->Message(csound, "VSTPlugin::DescribeValue.\n");
+    Log("VSTPlugin::DescribeValue.\n");
 	if(aeffect)
 	{
 		if(parameter<aeffect->numParams)
@@ -168,35 +168,35 @@ bool VSTPlugin::DescribeValue(int parameter,char* value)
 
 int VSTPlugin::Instantiate(const char *libraryName_)
 {
-    csound->Message(csound, "VSTPlugin::Instance.\n");
+    Log("VSTPlugin::Instance.\n");
  	libraryHandle = csound->OpenLibrary(libraryName_);
 	if(!libraryHandle)	
 	{
-		csound->Message(csound, "WARNING! '%s' was not found or is invalid.\n", libraryName_);
+		Log("WARNING! '%s' was not found or is invalid.\n", libraryName_);
 		return VSTINSTANCE_ERR_NO_VALID_FILE;
 	}
-	csound->Message(csound, "Loaded plugin library '%s'.\n" , libraryName_);
+	Log("Loaded plugin library '%s'.\n" , libraryName_);
 	PVSTMAIN main = (PVSTMAIN)csound->GetLibrarySymbol(libraryHandle,"main");
 	if(!main)
 	{	
-	    csound->Message(csound, "Failed to find 'main' function.\n");
+	    Log("Failed to find 'main' function.\n");
      	csound->CloseLibrary(libraryHandle);
 		aeffect=NULL;
 		return VSTINSTANCE_ERR_NO_VST_PLUGIN;
 	}
-	csound->Message(csound, "Found 'main' function at 0x%x.\n" , main);
+	Log("Found 'main' function at 0x%x.\n" , main);
 	aeffect = main((audioMasterCallback) VSTPlugin::Master);
 	aeffect->user = this;
 	if(!aeffect)
 	{
-		csound->Message(csound, "VST plugin: unable to create effect.\n");
+		Log("VST plugin: unable to create effect.\n");
 		csound->CloseLibrary(libraryHandle);
 		return VSTINSTANCE_ERR_REJECTED;
 	}
-	csound->Message(csound, "Created effect '%x'.\n" , aeffect);	
+	Log("Created effect '%x'.\n" , aeffect);	
 	if(  aeffect->magic!=kEffectMagic)
 	{
-		csound->Message(csound, "VST plugin: Instance query rejected by 0x%x\n", aeffect);
+		Log("VST plugin: Instance query rejected by 0x%x\n", aeffect);
 		csound->CloseLibrary(libraryHandle);
 		aeffect=NULL;
 		return VSTINSTANCE_ERR_REJECTED;
@@ -236,26 +236,26 @@ void VSTPlugin::Info()
 	for(i = 0; i < aeffect->numPrograms; i++) {
         strcpy(buffer, "No program");
 	    GetProgramName(0, i, buffer);
-	    csound->Message(csound, "  Program%7i: %s\n", i, buffer);
+	    Log("  Program%7i: %s\n", i, buffer);
     }	
 	csound->Message(csound,"----------------------------------------------------\n");
 }
 
 int VSTPlugin::getNumInputs( void )
 {
-    csound->Message(csound, "VSTPlugin::getNumInputs.\n");
+    Log("VSTPlugin::getNumInputs.\n");
 	return aeffect->numInputs;
 }
 
 int VSTPlugin::getNumOutputs( void )
 {
-    csound->Message(csound, "VSTPlugin::getNumOutputs.\n");
+    Log("VSTPlugin::getNumOutputs.\n");
 	return aeffect->numOutputs;
 }
 
 void VSTPlugin::Free() // Called also in destruction
 {
-    csound->Message(csound, "VSTPlugin::Free.\n");
+    Log("VSTPlugin::Free.\n");
 	if(aeffect) {
 		Dispatch(effMainsChanged, 0, 0, NULL, 0.0f);
 		Dispatch(effClose,        0, 0, NULL, 0.0f);
@@ -268,7 +268,7 @@ void VSTPlugin::Free() // Called also in destruction
 
 void VSTPlugin::Init()
 {
-    csound->Message(csound, "VSTPlugin::Init.\n");
+    Log("VSTPlugin::Init.\n");
 	framesPerSecond = csound->GetSr(csound);
 	framesPerBlock = csound->GetKsmps(csound);
 	channels = csound->GetNchnls(csound);
@@ -289,7 +289,7 @@ void VSTPlugin::Init()
 
 bool VSTPlugin::SetParameter(int parameter, float value)
 {
-    csound->Message(csound, "VSTPlugin::SetParameter(%d, %f).\n", parameter, value);
+    Log("VSTPlugin::SetParameter(%d, %f).\n", parameter, value);
 	if(aeffect) {
 		if(( parameter >= 0 ) && (parameter<=aeffect->numParams)) {
 			aeffect->setParameter(aeffect,parameter,value);
@@ -302,13 +302,13 @@ bool VSTPlugin::SetParameter(int parameter, float value)
 
 bool VSTPlugin::SetParameter(int parameter, int value)
 {
-    csound->Message(csound, "VSTPlugin::SetParameter(%d, %d).\n", parameter, value);
+    Log("VSTPlugin::SetParameter(%d, %d).\n", parameter, value);
 	return SetParameter(parameter,value/65535.0f);
 }
 
 int VSTPlugin::GetCurrentProgram()
 {
-    csound->Message(csound, "VSTPlugin::GetCurrentProgram.\n");
+    Log("VSTPlugin::GetCurrentProgram.\n");
 	if(aeffect)
 		return Dispatch(effGetProgram,0,0,NULL,0.0f);
 	else
@@ -317,7 +317,7 @@ int VSTPlugin::GetCurrentProgram()
 
 void VSTPlugin::SetCurrentProgram(int prg)
 {
-    csound->Message(csound, "VSTPlugin::SetCurrentProgram((%d).\n", prg);
+    Log("VSTPlugin::SetCurrentProgram((%d).\n", prg);
 	if(aeffect)
 		Dispatch(effSetProgram,0,prg,NULL,0.0f);
 }
@@ -434,7 +434,7 @@ void VSTPlugin::Log(const char *format,...)
             csound->MessageV(csound, format, args);
       }
       else {
-            vfprintf(stderr, format, args);
+            vfprintf(stdout, format, args);
       }
       va_end(args);
 }
@@ -450,7 +450,7 @@ void VSTPlugin::Debug(const char *format,...)
           }
       }
       else {
-            vfprintf(stderr, format, args);
+            vfprintf(stdout, format, args);
       }
       va_end(args);
 }
@@ -613,85 +613,85 @@ long VSTPlugin::Master(AEffect *effect, long opcode, long index,
 	case audioMasterGetLanguage:		
 		return kVstLangEnglish;
 	case audioMasterUpdateDisplay:
-		if(csound) 
-            csound->Message(csound,"audioMasterUpdateDisplay\n");
+		if(plugin) plugin->Log("audioMasterUpdateDisplay\n");
 		effect->dispatcher(effect, effEditIdle, 0, 0, NULL, 0.0f);
 		return 0;
-	case 	audioMasterSetTime:						
-        if(csound) csound->Message(csound,"VST master dispatcher: Set Time\n");
+	case audioMasterSetTime:						
+        if(plugin) plugin->Log("VST master dispatcher: Set Time\n");
         break;
 	case audioMasterGetNumAutomatableParameters:	
-        if(csound) csound->Message(csound,"VST master dispatcher: GetNumAutPar\n");
+        if(plugin) plugin->Log("VST master dispatcher: GetNumAutPar\n");
         break;
 	case audioMasterGetParameterQuantization:
-        if(csound) csound->Message(csound,"VST master dispatcher: ParamQuant\n");
+        if(plugin) plugin->Log("VST master dispatcher: ParamQuant\n");
         break;
 	case audioMasterIOChanged:
-        if(csound) csound->Message(csound,"VST master dispatcher: IOchanged\n");
+        if(plugin) plugin->Log("VST master dispatcher: IOchanged\n");
         break;
 	case audioMasterSizeWindow:					
-        if(csound) csound->Message(csound,"VST master dispatcher: Size Window\n");
+        if(plugin) plugin->Log("VST master dispatcher: Size Window\n");
         break;
 	case audioMasterGetBlockSize:				
-        if(csound) csound->Message(csound,"VST master dispatcher: GetBlockSize\n");
+        if(plugin) plugin->Log("VST master dispatcher: GetBlockSize\n");
         break;
 	case audioMasterGetInputLatency:
-        if(csound) csound->Message(csound,"VST master dispatcher: GetInLatency\n");
+        if(plugin) plugin->Log("VST master dispatcher: GetInLatency\n");
         break;
 	case audioMasterGetOutputLatency:
-	    if(csound) csound->Message(csound,"VST master dispatcher: GetOutLatency\n");
+	    if(plugin) plugin->Log("VST master dispatcher: GetOutLatency\n");
 	    break;
 	case audioMasterGetPreviousPlug:
-	    if(csound) csound->Message(csound,"VST master dispatcher: PrevPlug\n");
+	    if(plugin) plugin->Log("VST master dispatcher: PrevPlug\n");
 	    break;
-	case audioMasterGetNextPlug: if(csound) csound->Message(csound,"VST master dispatcher: NextPlug\n");
+	case audioMasterGetNextPlug: 
+        if(plugin) plugin->Log("VST master dispatcher: NextPlug\n");
         return 1;
 	case audioMasterWillReplaceOrAccumulate:		
-        if(csound) csound->Message(csound,"VST master dispatcher: WillReplace\n");
+        if(plugin) plugin->Log("VST master dispatcher: WillReplace\n");
         return 1;
 	case audioMasterGetCurrentProcessLevel:		
         return 0; 
  	case audioMasterGetAutomationState:			
-        if(csound) csound->Message(csound,"VST master dispatcher: GetAutState\n");
+        if(plugin) plugin->Log("VST master dispatcher: GetAutState\n");
 		break;
 	case audioMasterOfflineStart:			
-        if(csound) csound->Message(csound,"VST master dispatcher: Offlinestart\n");
+        if(plugin) plugin->Log("VST master dispatcher: Offlinestart\n");
         break;
 	case audioMasterOfflineRead:
-        if(csound) csound->Message(csound,"VST master dispatcher: Offlineread\n");
+        if(plugin) plugin->Log("VST master dispatcher: Offlineread\n");
         break;
 	case audioMasterOfflineWrite:
-        if(csound) csound->Message(csound,"VST master dispatcher: Offlinewrite\n");
+        if(plugin) plugin->Log("VST master dispatcher: Offlinewrite\n");
         break;
 	case audioMasterOfflineGetCurrentPass:
-        if(csound) csound->Message(csound,"VST master dispatcher: OfflineGetcurrentpass\n");
+        if(plugin) plugin->Log("VST master dispatcher: OfflineGetcurrentpass\n");
         break;
 	case audioMasterOfflineGetCurrentMetaPass:
-        if(csound) csound->Message(csound,"VST master dispatcher: GetGetCurrentMetapass\n");
+        if(plugin) plugin->Log("VST master dispatcher: GetGetCurrentMetapass\n");
         break;
 	case audioMasterSetOutputSampleRate:		
-        if(csound) csound->Message(csound,"VST master dispatcher: Setsamplerate\n");
+        if(plugin) plugin->Log("VST master dispatcher: Setsamplerate\n");
         break;
 	case audioMasterGetSpeakerArrangement:
-        if(csound) csound->Message(csound,"VST master dispatcher: Getspeaker\n");
+        if(plugin) plugin->Log("VST master dispatcher: Getspeaker\n");
         break;
 	case audioMasterSetIcon:
-        if(csound) csound->Message(csound,"VST master dispatcher: seticon\n");break;
+        if(plugin) plugin->Log("VST master dispatcher: seticon\n");break;
 	case audioMasterCanDo:
         if(plugin) 
             OnCanDo((char *)ptr);
         break;
 	case audioMasterOpenWindow:
-        if(csound) csound->Message(csound,"VST master dispatcher: OpenWindow\n");
+        if(plugin) plugin->Log("VST master dispatcher: OpenWindow\n");
         break;
 	case audioMasterCloseWindow:
-	    if(csound) csound->Message(csound,"VST master dispatcher: CloseWindow\n");
+	    if(plugin) plugin->Log("VST master dispatcher: CloseWindow\n");
 	    break;
 	case audioMasterGetDirectory:
-        if(csound) csound->Message(csound,"VST master dispatcher: GetDirectory\n");
+        if(plugin) plugin->Log("VST master dispatcher: GetDirectory\n");
         break;
 	default: 
-        if(csound) csound->Message(csound,"VST master dispatcher: "
+        if(plugin) plugin->Log("VST master dispatcher: "
             "undefined opcode: %d , %d\n",opcode , effKeysRequired);
         break;
 	}	
