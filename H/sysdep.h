@@ -60,7 +60,6 @@
 # include <stat.h>
 # define  SFDIGDES
 # define  WINDOWS
-/* # define  RTAUDIO /\* FIX ME: We want real-time audio eventually !! - akozar */
 /*# define  SFIRCAM*/
 # define  u_char  unsigned char
 # define  u_short unsigned short

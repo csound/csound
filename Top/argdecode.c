@@ -25,6 +25,7 @@
 #include "cs.h"                 /*                              ARG_DECODE.C */
 #include "prototyp.h"
 #include "soundio.h"
+#include "new_opts.h"
 #include <ctype.h>
 
 #ifdef mills_macintosh
@@ -178,9 +179,7 @@ err_printf(Str("-T\tterminate the performance when miditrack is done\n"));
 err_printf(Str("-D\tdefer GEN01 soundfile loads until performance time\n"));
 #ifdef LINUX                    /* Jonathan Mohr  1995 Oct 17 */
 err_printf(Str("-Q dnam\tselect MIDI output device\n"));
-#ifdef RTAUDIO
 err_printf(Str("-V N\tset real-time audio output volume to N (1 to 100)\n"));
-#endif
 #endif
 #ifdef __BEOS__                 /* jjk 09252000 */
 err_printf(Str("-Q dnam\tselect MIDI output device\n"));
@@ -213,7 +212,7 @@ err_printf(Str("flag defaults: csound -s -otest -b%d -B%d -m7\n"),
         longjmp(cenviron.exitjmp_,1);
 }
 
-void longusage(void)
+static void longusage(void *csound)
 {
     err_printf(Str("Usage:\tcsound [-flags] orchfile scorefile\n"));
     err_printf(Str("Legal flags are:\n"));
@@ -277,9 +276,8 @@ void longusage(void)
                "--opcode-lib=NAMES\tDynamic libraries to load\n"
                "\n"
                "--help\t\t\tLong help\n"
-               "\n"
 #ifdef mills_macintosh
-               "--graphs=N\tNumber of tables in graphics window\n"
+               "\n--graphs=N\tNumber of tables in graphics window\n"
                "--pollrate=N\n"
                "--play-on-end\t Play after rendering\n"
                "--sample-directory=FNAME\n"
@@ -290,6 +288,8 @@ void longusage(void)
                "--save-midi\tRecord and Save MIDI input to a file\n"
 #endif
                );
+    /* IV - Feb 01 2005 */
+    dump_cfg_variables(csound);
     err_printf(Str("\nShort form:\n"));
     err_printf(Str("-U unam\trun utility program unam\n"));
     err_printf(Str("-C\tuse Cscore processing of scorefile\n"));
@@ -347,10 +347,7 @@ void longusage(void)
                    "-D\tdefer GEN01 soundfile loads until performance time\n"));
 #ifdef LINUX                    /* Jonathan Mohr  1995 Oct 17 */
     err_printf(Str("-Q dnam\tselect MIDI output device\n"));
-#ifdef RTAUDIO
-    err_printf(Str(
-                   "-V N\tset real-time audio output volume to N (1 to 100)\n"));
-#endif
+    err_printf(Str("-V N\tset real-time audio output volume to N (1 to 100)\n"));
 #endif
 #ifdef __BEOS__                 /* jjk 09252000 */
     err_printf(Str("-Q dnam\tselect MIDI output device\n"));
@@ -480,7 +477,8 @@ SAMPLE_FORMAT_ENTRY sample_format_map[] = {
   {0, 0}
 };
 
-static int decode_long(char *s, int argc, char **argv, char *envoutyp)
+static int decode_long(void *csound,
+                       char *s, int argc, char **argv, char *envoutyp)
 {
 
     /* Add other long options here */
@@ -925,14 +923,15 @@ static int decode_long(char *s, int argc, char **argv, char *envoutyp)
       return 1;
     }
     else if (!(strcmp(s ,"help"))) {
-      longusage();
+      longusage(csound);
       return 0;
     }
 outtyp:
     return (0);
 }
 
-int argdecode(int argc, char **argv, char **pfilnamp, char *envoutyp)
+int argdecode(void *csound,
+              int argc, char **argv, char **pfilnamp, char *envoutyp)
 {
     char *s;
     char c;
@@ -1257,15 +1256,13 @@ int argdecode(int argc, char **argv, char **pfilnamp, char *envoutyp)
             peakchunks = 0;     /* Do not write peak information */
             break;
 #ifdef LINUX
-#ifdef RTAUDIO
           /* Add option to set soundcard output volume for real-
-                       time audio output under Linux. -- J. Mohr 95 Oct 17 */
+             time audio output under Linux. -- J. Mohr 95 Oct 17 */
           case 'V':
             FIND(Str("no volume level"));
             sscanf(s,"%d%n",&O.Volume, &n);
             s += n;
             break;
-#endif
 #endif
           case 'z':
             {
@@ -1295,7 +1292,7 @@ int argdecode(int argc, char **argv, char **pfilnamp, char *envoutyp)
                 dieu(errmsg);
               }
               else {
-                readOptions(ind);
+                readOptions(csound, ind);
                 fclose(ind);
               }
               while (*s++); s--;
@@ -1312,8 +1309,13 @@ int argdecode(int argc, char **argv, char **pfilnamp, char *envoutyp)
               break;
             }
 #endif
-            if (!decode_long(s, argc, argv, envoutyp))
+            if (!decode_long(csound, s, argc, argv, envoutyp))
               goto outtyp;
+            while (*(++s));
+            break;
+          case '+':                                     /* IV - Feb 01 2005 */
+            if (parse_option_as_cfgvar(csound, (char*) s - 2) != 0)
+              longjmp(((ENVIRON*) csound)->exitjmp_,1);
             while (*(++s));
             break;
           default:

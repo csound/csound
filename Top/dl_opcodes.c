@@ -106,9 +106,9 @@ void *csoundGetLibrarySymbol(void *library,
                              const char *procedureName)
 {
     void *procedureAddress = dlsym(library, procedureName);
-    if (!procedureAddress) {
+/*  if (!procedureAddress) {
       printf("Failed to find %s in library: %s\n", procedureName, dlerror());
-    }
+    } */
     return procedureAddress;
 }
 

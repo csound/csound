@@ -40,7 +40,7 @@ extern unsigned long RoundDownToPowerOF2(unsigned long);
 Str255 PPCVER;
 extern void GetVersNumString(Str255 versStr);
 #endif
-int cleanup(void);
+int cleanup(void*);
 extern int sensMidi(void);
 extern int sensFMidi(void);
 extern long kperf(ENVIRON *, long);
@@ -111,8 +111,8 @@ extern  void    scsort(FILE*, FILE*), oload(ENVIRON *), cscorinit(void);
 extern  void    schedofftim(INSDS *), infoff(MYFLT);
 extern  void    orcompact(void), rlsmemfiles(void), timexpire(MYFLT);
 extern  void    beatexpire(MYFLT), deact(INSDS*), fgens(ENVIRON *,EVTBLK *);
-extern  void    sfopenin(void), sfopenout(void), sfnopenout(void);
-extern  void    iotranset(void), sfclosein(void), sfcloseout(void);
+extern  void    sfopenin(void*), sfopenout(void*), sfnopenout(void);
+extern  void    iotranset(void), sfclosein(void*), sfcloseout(void*);
 extern  int     csoundIsExternalMidiEnabled(void *);
 extern  void    csoundExternalMidiOpen(void *);
 
@@ -291,9 +291,9 @@ int musmon(ENVIRON *csound)
     O.inbufsamps *= nchnls;         /* now adjusted for n channels  */
     O.outbufsamps *= nchnls;
     if (O.sfread)                   /* if audio-in requested,       */
-      sfopenin();                   /*   open/read? infile or device */
+      sfopenin(csound);             /*   open/read? infile or device */
     if (O.sfwrite)                  /* if audio-out requested,      */
-      sfopenout();                  /*   open the outfile or device */
+      sfopenout(csound);            /*   open the outfile or device */
     else sfnopenout();
     iotranset();                    /* point recv & tran to audio formatter */
 
@@ -353,11 +353,11 @@ int musmon2(ENVIRON *csound)
 {
     playevents(csound);              /* play all events in the score */
 
-    return cleanup();
+    return cleanup(csound);
 }
 
 
-int cleanup(void)
+int cleanup(void *csound)
 {
     int     n;
 
@@ -374,13 +374,11 @@ int cleanup(void)
     }
     /*      if (O.Linein)  RTclose(); */ /* now done via atexit */
     printf(Str("\n%d errors in performance\n"),perferrcnt);
-#ifdef RTAUDIO
-    rtclose_();
-#endif
+    ((ENVIRON*) csound)->rtclose_callback(csound);
     if (O.sfread)
-      sfclosein();
+      sfclosein(csound);
     if (O.sfwrite)
-      sfcloseout();
+      sfcloseout(csound);
     else printf(Str("no sound written to disk\n"));
     if (O.ringbell) beep();
     return dispexit();      /* hold or terminate the display output     */
