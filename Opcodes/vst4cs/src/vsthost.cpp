@@ -25,7 +25,6 @@ VSTPlugin::VSTPlugin(ENVIRON *csound_) :
     blockSize(0)
 {
     vstEvents = (VstEvents *)&buffer[0];
-	 //w = GetForegroundWindow();
 }
 
 VSTPlugin::~VSTPlugin()
@@ -36,7 +35,7 @@ VSTPlugin::~VSTPlugin()
 bool VSTPlugin::AddMIDI(int data0, int data1, int data2)
 {
 	if(aeffect) {
-		VstMidiEvent *pevent = &midievent[queue_size];
+		VstMidiEvent *pevent = &vstMidiEvents[queue_size];
 		pevent->type = kVstMidiType;
 		pevent->byteSize = 24;
 		pevent->deltaFrames = 0;
@@ -53,7 +52,6 @@ bool VSTPlugin::AddMIDI(int data0, int data1, int data2)
 		pevent->midiData[3] = 0;
 		if( queue_size < MAX_EVENTS ) 
             queue_size++;
-		SendMidi();
 		return true;
 	}
 	else 
@@ -65,7 +63,7 @@ bool VSTPlugin::AddNoteOn(int midichannel, MYFLT note, MYFLT speed)
 	if(aeffect) {
 	    MYFLT rounded = round(note);
 	    MYFLT cents = (note - rounded) * FL(100.0);
-		VstMidiEvent *pevent = &midievent[queue_size];
+		VstMidiEvent *pevent = &vstMidiEvents[queue_size];
 		pevent->type = kVstMidiType;
 		pevent->byteSize = 24;
 		pevent->deltaFrames = 0;
@@ -82,7 +80,6 @@ bool VSTPlugin::AddNoteOn(int midichannel, MYFLT note, MYFLT speed)
 		pevent->midiData[3] = 0;
 		if( queue_size < MAX_EVENTS ) 
             queue_size++;
-		SendMidi();
 		return true;
 	}
 	else 
@@ -93,7 +90,7 @@ bool VSTPlugin::AddNoteOff(int midichannel, MYFLT note)
 {
 	if(aeffect) {
 	    MYFLT rounded = round(note);
-		VstMidiEvent* pevent = &midievent[queue_size];
+		VstMidiEvent* pevent = &vstMidiEvents[queue_size];
 		pevent->type = kVstMidiType;
 		pevent->byteSize = 24;
 		pevent->deltaFrames = 0;
@@ -110,11 +107,47 @@ bool VSTPlugin::AddNoteOff(int midichannel, MYFLT note)
 		pevent->midiData[3] = 0;
 		if( queue_size < MAX_EVENTS ) 
             queue_size++;
-		SendMidi();
 		return true;
 	}
 	else 
         return false;
+}
+
+void VSTPlugin::SendMidi()
+{
+	if(aeffect && queue_size>0) {
+		vstEvents->numEvents = queue_size;
+		vstEvents->reserved  = 0;
+		for(size_t q=0;q<queue_size;q++) {
+            vstEvents->events[q] = (VstEvent *)&vstMidiEvents[q];	
+            csound->Message(csound, 
+                "VSTPlugin::SendMidi(queue size %d status %d data1 %d data2 %d detune %d delta %d\n",
+                queue_size,
+                ((VstMidiEvent *)vstEvents->events[q])->midiData[0],
+                ((VstMidiEvent *)vstEvents->events[q])->midiData[1],
+                ((VstMidiEvent *)vstEvents->events[q])->midiData[2],
+                ((VstMidiEvent *)vstEvents->events[q])->detune,
+                ((VstMidiEvent *)vstEvents->events[q])->deltaFrames);                 
+        }           
+		Dispatch(effProcessEvents, 0, 0, buffer, 0.0f);
+		queue_size=0;
+	}
+}
+
+void VSTPlugin::processReplacing( float **inputs, float **outputs, long sampleframes )
+{
+    if(aeffect) {
+        SendMidi();
+	    aeffect->processReplacing( aeffect , inputs , outputs , sampleframes );
+    }
+}
+
+void VSTPlugin::process( float **inputs, float **outputs, long sampleframes )
+{
+    if(aeffect) {
+        SendMidi();
+	    aeffect->process( aeffect , inputs , outputs , sampleframes );
+    }
 }
 
 bool VSTPlugin::DescribeValue(int parameter,char* value)
@@ -265,7 +298,6 @@ void VSTPlugin::Init( float samplerate , float blocksize )
 	}
 }
 
-
 bool VSTPlugin::SetParameter(int parameter, float value)
 {
     csound->Message(csound, "VSTPlugin::SetParameter(%d, %f).\n", parameter, value);
@@ -299,39 +331,6 @@ void VSTPlugin::SetCurrentProgram(int prg)
     csound->Message(csound, "VSTPlugin::SetCurrentProgram((%d).\n", prg);
 	if(aeffect)
 		Dispatch(effSetProgram,0,prg,NULL,0.0f);
-}
-
-
-void VSTPlugin::SendMidi()
-{
-	if(aeffect && queue_size>0) {
-		vstEvents->numEvents = queue_size;
-		vstEvents->reserved  = 0;
-		for(int q=0;q<queue_size;q++) {
-		    VstMidiEvent &vstMidiEvent = midievent[q];
-		    VstEvent &vstEvent = (VstEvent &)vstMidiEvent;
-            vstEvents->events[q] = &vstEvent;
-            csound->Message(csound, 
-                "VSTPlugin::SendMidi(status %d data1 %d data2 %d\n",
-                vstMidiEvent.midiData[0],
-                vstMidiEvent.midiData[1],
-                vstMidiEvent.midiData[2]);
-        }           
-		Dispatch(effProcessEvents, 0, 0, vstEvents, 0.0f);
-		queue_size=0;
-	}
-}
-
-void VSTPlugin::processReplacing( float **inputs, float **outputs, long sampleframes )
-{
-    if(aeffect)
-	    aeffect->processReplacing( aeffect , inputs , outputs , sampleframes );
-}
-
-void VSTPlugin::process( float **inputs, float **outputs, long sampleframes )
-{
-    if(aeffect)
-	    aeffect->process( aeffect , inputs , outputs , sampleframes );
 }
 
 long VSTPlugin::Master(AEffect *effect, long opcode, long index, long value, void *ptr, float opt)
