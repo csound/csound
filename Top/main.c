@@ -252,8 +252,8 @@ void psignal(int sig, char *str)
 
 static void signal_handler(int sig)
 {
-#if defined(USE_FLTK)
-        if (sig == SIGALRM) return;
+#if defined(USE_FLTK) && defined(SIGALRM)
+	if (sig == SIGALRM) return;
 #endif
     psignal(sig, "Csound tidy up");
     exit(1);
