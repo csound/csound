@@ -1,5 +1,8 @@
 2005-01-18  John ffitch  <jpff@codemist.co.uk>
 
+	* Opcodes/newfils.c: New code
+	* Opcodes/syncgrain.c: New code
+
 	* InOut/widgets.cpp (fl_joystick): Change to way up of joystick
 
 005-01-16  John ffitch  <jpff@codemist.co.uk>
