@@ -93,18 +93,18 @@ void listPortAudioDevices(void)
     const PaDeviceInfo *paDeviceInfo;
 
     deviceCount = Pa_GetDeviceCount();
-
+    err_printf("Found %d audio devices:\n", deviceCount);
     for (deviceIndex = 0; deviceIndex < deviceCount; ++deviceIndex) {
       paDeviceInfo = Pa_GetDeviceInfo(deviceIndex);
       if (paDeviceInfo) {
-        err_printf(Str(X_29,"PortAudio device %d\n  %s\n  Maximum channels in:  "
-                       "%5d\n  Maximum channels out: %5d\n  Default sample "
-                       "rate: %10.3f\n"),
-                   deviceIndex,
-                   paDeviceInfo->name,
-                   paDeviceInfo->maxInputChannels,
-                   paDeviceInfo->maxOutputChannels,
-                   paDeviceInfo->defaultSampleRate);
+        err_printf("PortAudio device %d\n  %s\n  Maximum channels in:  "
+                "%5d\n  Maximum channels out: %5d\n  Default sample "
+                "rate: %10.3f\n",
+                deviceIndex,
+                paDeviceInfo->name,
+                paDeviceInfo->maxInputChannels,
+                paDeviceInfo->maxOutputChannels,
+                paDeviceInfo->defaultSampleRate);
       }
     }
 }
