@@ -603,6 +603,7 @@ void CsoundVstFltk::onEdit(Fl_Button*, CsoundVstFltk* csoundVstFltk)
 {
 	csound::System::message("BEGAN CsoundVstFltk::onEdit...\n");
 	csoundVST->getCppSound()->stop();
+	updateModel();
 	char buffer[0x500];
 	preferences.get("SoundfileOpen", (char *)buffer, "mplayer2.exe", 0x500);
 	std::string command = buffer;
