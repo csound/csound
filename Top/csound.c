@@ -133,7 +133,7 @@ extern "C" {
    * PERFORMANCE
    */
 
-  extern int runincomponents;
+  extern int frsturnon;
   extern int sensevents(void);
   extern int cleanup(void);
   extern int orcompact(void);
@@ -148,7 +148,7 @@ extern "C" {
         return returnValue;
       }
     csoundReset(csound);
-    runincomponents = 0;
+    frsturnon = 0;
     return csoundMain(csound, argc, argv);
   }
 
@@ -163,7 +163,7 @@ extern "C" {
         return returnValue;
       }
     csoundReset(csound);
-    runincomponents = 1;
+    frsturnon = 1;
     return csoundMain(csound, argc, argv);
   }
 
@@ -970,7 +970,8 @@ extern "C" {
       }
     if (csoundNumEnvs_ >= MAX_ENVIRONS)
       {
-        warning("Exceeded maximum number of environment paths");
+        /* warning("Exceeded maximum number of environment paths"); */
+        csoundMessage(csound, "Exceeded maximum number of environment paths");
         return;
       }
 
@@ -997,7 +998,12 @@ extern "C" {
   void csoundReset(void *csound)
   {
     mainRESET();
-    SfReset();
+    /* FIXME - SYY - 11.16.2003
+     * This call is needed by opcodes in Opcode plugin generated from 
+     * Opcodes/sfont.c.  Needs to be reword in sfont.c with using opcode 
+     * destructor functions or csoundAppendResetFunction needs to be created
+     */
+    /* SfReset();  */
     spoutactive = 0;
     csoundIsScorePending_ = 1;
     csoundScoreOffsetSeconds_ = (MYFLT) 0.0;
