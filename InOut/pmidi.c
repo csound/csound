@@ -318,6 +318,7 @@ void m_chanmsg(MEVENT *mep) /* exec non-note chnl_voice & chnl_mode cmnds */
         break;
       }
 /* modemsg: */
+      /* 121 == RESET ALL CONTROLLERS */
       if (n == 121) {                           /* CHANNEL MODE MESSAGES:  */
         MYFLT *fp = chn->ctl_val + 1;           /* from ctlr 1 */
         short nn = 101;                         /* to ctlr 101 */
@@ -328,10 +329,15 @@ void m_chanmsg(MEVENT *mep) /* exec non-note chnl_voice & chnl_mode cmnds */
         chn->aftouch = FL(127.0);
         for (nn = 0; nn < 128; nn++) chn->polyaft[nn] = FL(127.0);
       }
+      /* 122 == LOCAL CONTROL */
       else if (n == 122) {                      /* absorb lcl ctrl data */
 /*      int lcl_ctrl = mep->dat2;  ?? */        /* 0:off, 127:on */
       }
+      /* 123 == ALL NOTES OFF */
       else if (n == 123) midNotesOff();         /* allchnl AllNotesOff */
+      /* 124 ==	OMNI OFF
+         125 ==	OMNI ON */
+      /* 126 ==	MONO ON (POLY OFF) */
       else if (n == 126) {                      /* MONO mode */
         if (chn->monobas == NULL) {
           MONPCH *mnew, *mend;
@@ -343,6 +349,7 @@ void m_chanmsg(MEVENT *mep) /* exec non-note chnl_voice & chnl_mode cmnds */
         }
         chn->mono = 1;
       }
+      /* 127 ==	POLY ON (MONO OFF) */
       else if (n == 127) {                      /* POLY mode */
         if (chn->monobas != NULL) {
           mfree((char *)chn->monobas);
