@@ -30,13 +30,9 @@
 #include <iostream>
 #include <sstream>
 #include <algorithm>
+#include <utility>
   %}
 %include "std_string.i"
-%include "std_map.i"
-%template(StringMap) std::map<std::string,std::string>;
-#ifdef SWIGPYTHON
-%template(StringStringPair) std::pair<std::string,std::string>;
-#endif
 %template(EventVector) std::vector<csound::Event>;
 #else
 #include "Conversions.hpp"
@@ -46,6 +42,7 @@
 #include <iostream>
 #include <sstream>
 #include <algorithm>
+#include <utility>
 #include <boost/numeric/ublas/vector.hpp>
 using namespace boost::numeric;
 #endif
