@@ -134,14 +134,15 @@ void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
 
     paStreamParameters_.channelCount = nchnls_;
     paStreamParameters_.sampleFormat = paFloat32;
-    paStreamParameters_.suggestedLatency = ((double) sr_) / ((double) oMaxLag);
+    paStreamParameters_.suggestedLatency = ((double) oMaxLag) / ((double) sr_);
+    err_printf("Suggested PortAudio latency = %f seconds.\n", paStreamParameters_.suggestedLatency);
     paStreamParameters_.hostApiSpecificStreamInfo = 0;
 /*     printf("nchnls_ = %d\n", paStreamParameters_.channelCount); */
     paError = Pa_OpenStream (&pa_out,
                              0,
                              &paStreamParameters_,
                              (double) sr_,
-                             (unsigned long) oMaxLag,
+                             (unsigned long) 0,
                              0,
                              0,
                              0);
