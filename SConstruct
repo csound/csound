@@ -391,7 +391,7 @@ if (commonEnvironment['useFLTK'] == 1 and fltkFound):
             guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
             csoundProgramEnvironment.Append(LINKFLAGS = ['-framework', 'Carbon'])
 
-if (commonEnvironment['usePortMIDI'] and portmidiFound):
+if (commonEnvironment['usePortMIDI'] != 0 and portmidiFound):
     staticLibraryEnvironment.Append(CCFLAGS = '-DPORTMIDI')
     pluginEnvironment.Append(CCFLAGS = '-DPORTMIDI')
     csoundProgramEnvironment.Append(CCFLAGS = '-DPORTMIDI')
@@ -533,7 +533,7 @@ else:
 
 print commonEnvironment['usePortMIDI']
 print portmidiFound
-if not (((commonEnvironment['usePortMIDI'])) and portmidiFound):
+if not ((commonEnvironment['usePortMIDI'] != 0) and portmidiFound):
     print 'CONFIGURATION DECISION: Building with internal MIDI.'
     libCsoundSources.append('OOps/midirecv.c')
 else:
