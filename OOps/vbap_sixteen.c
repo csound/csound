@@ -52,7 +52,7 @@ int vbap_SIXTEEN(ENVIRON *csound, VBAP_SIXTEEN  *p) /* during note performance: 
 
     /* write audio to result audio streams weighted
        with gain factors*/
-    invfloatn =  FL(1.0) / (MYFLT) ksmps;
+    invfloatn =  FL(1.0) / (MYFLT) csound->ksmps;
     for (j=0; j<SIXTEEN; j++) {
       inptr      = p->audio;
       outptr     = p->out_array[j];
@@ -61,7 +61,7 @@ int vbap_SIXTEEN(ENVIRON *csound, VBAP_SIXTEEN  *p) /* during note performance: 
       gainsubstr = ngain - ogain;
       if (ngain != FL(0.0) || ogain != FL(0.0)) {
         if (ngain != ogain) {
-          for (i = 0 /* p->counter */; i < ksmps /* + p->counter */; i++) {
+          for (i = 0 /* p->counter */; i < csound->ksmps /* + p->counter */; i++) {
             *outptr++ = *inptr++ *
               (ogain + (MYFLT) (i+1) * invfloatn * gainsubstr);
           }
@@ -69,12 +69,12 @@ int vbap_SIXTEEN(ENVIRON *csound, VBAP_SIXTEEN  *p) /* during note performance: 
             (MYFLT) (i) * invfloatn * gainsubstr;
         }
         else {
-          for (i=0; i<ksmps; ++i)
+          for (i=0; i<csound->ksmps; ++i)
             *outptr++ = *inptr++ * ogain;
         }
       }
       else {
-        for (i=0; i<ksmps; ++i)
+        for (i=0; i<csound->ksmps; ++i)
           *outptr++ = FL(0.0);
     }
     }
@@ -252,7 +252,7 @@ int vbap_SIXTEEN_moving(ENVIRON *csound, VBAP_SIXTEEN_MOVING  *p) /* during note
 
     /* write audio to resulting audio streams weighted
        with gain factors*/
-    invfloatn =  FL(1.0) / (MYFLT) ksmps;
+    invfloatn =  FL(1.0) / (MYFLT) csound->ksmps;
     for (j=0; j<SIXTEEN ;j++) {
       inptr = p->audio;
       outptr = p->out_array[j];
@@ -261,7 +261,7 @@ int vbap_SIXTEEN_moving(ENVIRON *csound, VBAP_SIXTEEN_MOVING  *p) /* during note
       gainsubstr = ngain - ogain;
       if (ngain != FL(0.0) || ogain != FL(0.0))
         if (ngain != ogain) {
-          for (i = 0; i < ksmps; i++) {
+          for (i = 0; i < csound->ksmps; i++) {
             *outptr++ = *inptr++ *
               (ogain + (MYFLT) (i+1) * invfloatn * gainsubstr);
           }
@@ -269,10 +269,10 @@ int vbap_SIXTEEN_moving(ENVIRON *csound, VBAP_SIXTEEN_MOVING  *p) /* during note
             (MYFLT) (i) * invfloatn * gainsubstr;
         }
         else
-          for (i=0; i<ksmps; ++i)
+          for (i=0; i<csound->ksmps; ++i)
             *outptr++ = *inptr++ * ogain;
       else
-        for (i=0; i<ksmps; ++i)
+        for (i=0; i<csound->ksmps; ++i)
           *outptr++ = FL(0.0);
     }
     return OK;
@@ -361,13 +361,13 @@ int vbap_SIXTEEN_moving_control(ENVIRON *csound, VBAP_SIXTEEN_MOVING  *p)
     }
     else { /* angular velocities */
       if (p->dim == 2) {
-        p->ang_dir.azi =  p->ang_dir.azi + (*p->fld[p->next_fld] / ekr);
+        p->ang_dir.azi =  p->ang_dir.azi + (*p->fld[p->next_fld] / csound->ekr);
         scale_angles(&(p->ang_dir));
       }
       else { /* 3D angular*/
-        p->ang_dir.azi =  p->ang_dir.azi + (*p->fld[p->next_fld] / ekr);
+        p->ang_dir.azi =  p->ang_dir.azi + (*p->fld[p->next_fld] / csound->ekr);
         p->ang_dir.ele =  p->ang_dir.ele +
-          p->ele_vel * (*p->fld[p->next_fld+1] / ekr);
+          p->ele_vel * (*p->fld[p->next_fld+1] / csound->ekr);
         if (p->ang_dir.ele > FL(90.0)) {
           p->ang_dir.ele = FL(90.0);
           p->ele_vel = -p->ele_vel;
@@ -495,17 +495,18 @@ int vbap_SIXTEEN_moving_init(ENVIRON *csound, VBAP_SIXTEEN_MOVING  *p)
     /* other initialization */
     p->ele_vel = FL(1.0);    /* functions specific to movement */
     if (fabs(*p->field_am) < (2+ (p->dim - 2)*2)) {
-      printf(Str("Have to have at least %d directions in vbap16move\n"),2+ (p->dim - 2)*2);
-      longjmp(cenviron.exitjmp_,-1);
+      csound->Die(csound,
+                  Str("Have to have at least %d directions in vbap16move"),
+                  2 + (p->dim - 2) * 2);
     }
     if (p->dim == 2)
       p->point_change_interval =
-        (int)(ekr * *p->dur /(fabs(*p->field_am) - 1));
+        (int)(csound->ekr * *p->dur /(fabs(*p->field_am) - 1));
     else if (p->dim == 3)
       p->point_change_interval =
-        (int)(ekr * *p->dur /((fabs(*p->field_am)/2.0) - 1.0 ));
+        (int)(csound->ekr * *p->dur /((fabs(*p->field_am)/2.0) - 1.0 ));
       else
-        csound->Die(csound, Str("Wrong dimension\n"));
+        csound->Die(csound, Str("Wrong dimension"));
     p->point_change_counter = 0;
     p->curr_fld = 0;
     p->next_fld = 1;
