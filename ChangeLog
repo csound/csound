@@ -1,3 +1,27 @@
+2005-02-16	Istvan Varga	<istvan@csounds.com>
+	* InOut/libsnd.c:
+	  print correct audio block sizes
+	  audrecv/rtrecord returns the number of bytes read
+	* InOut/rtjack.c:
+	  do not connect to JACK server if real time audio is not used
+	* InOut/rtpa.c:
+	  audrecv/rtrecord returns the number of bytes read
+	* Opcodes/deps:
+	  removed unused file
+	* Opcodes/oscbnk.c:
+	* Opcodes/oscbnk.h:
+	  added new opcodes from 4.24.1 (denorm, delayk, vdel_k, and rbjeq)
+	  a-rate rnd31 was made faster
+	  improved seeding from time
+	  removed all static variables (hopefully did not break anything...)
+	* Top/argdecode.c:
+	  fixed output to raw sound files (set O.filetyp = TYP_RAW)
+	* Top/csound.c:
+	  print newline at end of various "early return" error messages
+	  more error checking in dummy rtaudio functions; allow -+rtaudio=null
+	  audrecv/rtrecord returns the number of bytes read
+	  fixed return value in csoundAppendOpcode (should be zero on success)
+
 2005-02-13  John ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/uggab.c (lpshold, loopseg, loopseg_set): Changed to
