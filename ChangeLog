@@ -45,6 +45,9 @@
 	  will be overridden correctly
 	  moved some code from argdecode here to make multiple calls to
 	  argdecode safe
+	  call MidiClose() earlier
+	* Engine/oload.c:
+	  fixed memory leak (overwrite of ENVIRON.memalloc_db by oloadRESET())
 
 2005-02-18	Istvan Varga	<istvan@csounds.com>
 	* Engine/auxfd.c, Engine/express.c, Engine/fgens.c, Engine/insert.c:

@@ -434,8 +434,11 @@ void oloadRESET(void)
       size_t front = (size_t)&tempGlobals;
       size_t back = (size_t)&tempGlobals.ksmps_;
       size_t length = back - front;
+      void *saved_memalloc_db;
+      saved_memalloc_db = cenviron.memalloc_db;
       cenviron = cenviron_;
       memcpy(&cenviron, &tempGlobals, length);
+      cenviron.memalloc_db = saved_memalloc_db;
     }
     O = O_;
     O.expr_opt = 0; /* disable --expression-opt by default for safety */
