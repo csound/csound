@@ -29,7 +29,7 @@
 
 extern INSDS   *instance(int);
 extern void    showallocs(void);
-extern INSDS *insert_event(MYFLT, MYFLT, MYFLT, int, MYFLT **, int);
+extern INSDS   *insert_event(ENVIRON*, MYFLT, MYFLT, MYFLT, int, MYFLT **, int);
 
 typedef struct rsched {
   void          *parent;
@@ -44,9 +44,6 @@ static RSCHED *kicked = NULL;
 /* August 1999 by rasmus ekman.                                               */
 /******************************************************************************/
 
-/* Some global declarations we need */
-extern void  infoff(MYFLT p1); /* Turn off an indef copy of instr p1          */
-
 #define FZERO (FL(0.0))    /* (Shouldn't there be global decl's for these?) */
 
 static void queue_event(ENVIRON *csound,
@@ -58,12 +55,12 @@ static void queue_event(ENVIRON *csound,
 
     evt.strarg = NULL;
     evt.opcod = 'i';
-    evt.pcnt = narg;
+    evt.pcnt = narg + 3;
     evt.p[1] = instr;
     evt.p[2] = FL(0.0);
     evt.p[3] = dur;
-    for (i = 4; i <= narg; i++)
-      evt.p[i] = *(args[i - 4]);
+    for (i = 0; i < narg; i++)
+      evt.p[i + 4] = *(args[i]);
     insert_score_event(csound, &evt, when, 0);
 }
 
@@ -91,28 +88,33 @@ int schedule(ENVIRON *csound, SCHED *p)
       if (p->STRARG!=NULL) which = (int)named_instr_find(p->STRARG);
       else                 which = (int)named_instr_find(currevent->strarg);
     }
-    else which = (int)(FL(0.5)+*p->which);
-    if (which==0) {
+    else
+      which = (int) (FL(0.5) + *p->which);
+    if (which < 1 || which > csound->maxinsno_ ||
+        csound->instrtxtp_[which] == NULL) {
       return initerror(Str("Instrument not defined"));
     }
-    if (which >= curip->p1 || *p->when>0) {
+    {
       RSCHED *rr;
       /* if duration is zero assume MIDI schedule */
       MYFLT dur = *p->dur;
       printf("SCH: when = %f dur = %f\n", *p->when, dur);
-      p->midi = (dur<=FL(0.0));
+      p->midi = (dur <= FL(0.0));
       if (p->midi) {
         int *xtra;
         printf("SCH: MIDI case\n");
+        printf(Str(" *** WARNING: schedule in MIDI mode is not correctly "
+                   "implemented, do not use it\n"));
         /* set 1 k-cycle of extratime in ordeto allow mtrnoff to
            recognize whether the note is turned off */
         if (*(xtra = &(p->h.insdshead->xtratim)) < 1 )
           *xtra = 1;
       }
-      if (*p->when == 0.0) {
-        p->kicked = insert_event((MYFLT)which,
-                                 (MYFLT)global_kcounter*global_onedkr,
-                                 dur, p->INOCOUNT, p->argums, p->midi);
+      if (*p->when <= FL(0.0)) {
+        p->kicked = insert_event(csound, (MYFLT) which,
+                                 (MYFLT) (csound->sensEvents_state.curTime
+                                          - csound->sensEvents_state.timeOffs),
+                                 dur, p->INOCOUNT - 3, p->argums, p->midi);
         if (p->midi) {
           rr = (RSCHED*) malloc(sizeof(RSCHED));
           rr->parent = p; rr->kicked = p->kicked; rr->next = kicked;
@@ -122,11 +124,8 @@ int schedule(ENVIRON *csound, SCHED *p)
       else
         queue_event(csound, (MYFLT) which,
                     (double) *p->when + csound->sensEvents_state.curTime, dur,
-                    p->INOCOUNT, p->argums);
+                    p->INOCOUNT - 3, p->argums);
     }
-    else
-      if (O.odebug) printf("Cannot schedule instr %d at inc time %f\n",
-                           which, *p->when);
     return OK;
 }
 
@@ -159,29 +158,39 @@ int schedwatch(ENVIRON *csound, SCHED *p)
 int ifschedule(ENVIRON *csound, WSCHED *p)
 {                       /* All we need to do is ensure the trigger is set */
     p->todo = 1;
-    p->abs_when =
-              (MYFLT) ((double) curip->p2 + csound->sensEvents_state.timeOffs);
+    p->abs_when = p->h.insdshead->p2;
     p->midi = 0;
     return OK;
 }
 
 int kschedule(ENVIRON *csound, WSCHED *p)
 {
-    if (p->todo && *p->trigger!=0.0) { /* If not done and trigger */
+    if (p->todo && *p->trigger != FL(0.0)) { /* If not done and trigger */
+      double starttime;
       RSCHED *rr;
       MYFLT dur = *p->dur;
       int which =
-        (*p->which == SSTRCOD) ? (p->STRARG!=NULL ? named_instr_find(p->STRARG) :
-          named_instr_find(currevent->strarg)) : (int)(FL(0.5)+*p->which);
-      if (which==0) {
+        (*p->which == SSTRCOD) ?
+         (p->STRARG != NULL ? named_instr_find(p->STRARG)
+                              : named_instr_find(currevent->strarg))
+         : (int) (FL(0.5) + *p->which);
+      if (which < 1 || which > csound->maxinsno_ ||
+          csound->instrtxtp_[which] == NULL) {
         return perferror(Str("Instrument not defined"));
       }
-      p->midi = (dur<=FL(0.0));
+      p->midi = (dur <= FL(0.0));
+      if (p->midi)
+        printf(Str(" *** WARNING: schedule in MIDI mode is not correctly "
+                   "implemented, do not use it\n"));
       p->todo = 0;
                                 /* Insert event */
-      if (*p->when==0) {
-        p->kicked = insert_event((MYFLT)which, p->abs_when, dur,
-                                 p->INOCOUNT-1, p->argums, p->midi);
+      starttime = (double) p->abs_when + (double) *(p->when)
+                  + csound->sensEvents_state.timeOffs;
+      if (starttime <= csound->sensEvents_state.curTime) {
+        p->kicked = insert_event(csound, (MYFLT) which,
+                                 (MYFLT) (csound->sensEvents_state.curTime
+                                          - csound->sensEvents_state.timeOffs),
+                                 dur, p->INOCOUNT - 4, p->argums, p->midi);
         if (p->midi) {
           rr = (RSCHED*) malloc(sizeof(RSCHED));
           rr->parent = p; rr->kicked = p->kicked; rr->next = kicked;
@@ -190,8 +199,7 @@ int kschedule(ENVIRON *csound, WSCHED *p)
       }
       else
         queue_event(csound, (MYFLT) which,
-                    (double) *p->when + (double) p->abs_when, dur,
-                    p->INOCOUNT-1, p->argums);
+                    starttime, dur, p->INOCOUNT - 4, p->argums);
     }
     else if (p->midi && p->h.insdshead->relesing) {
                                 /* If MIDI case watch for release */
@@ -417,36 +425,42 @@ int ktriginstr(ENVIRON *csound, TRIGINSTR *p)
     int     i, argnum;
     EVTBLK  evt;
 
+    if (p->timrem > 0)
+      p->timrem--;
     if (*p->trigger == FZERO) /* Only do something if triggered */
       return OK;
 
     /* Check if mintime has changed */
     if (p->prvmintim != *p->mintime) {
-      long timrem = (int)(*p->mintime * global_ekr + FL(0.5));
+      long timrem = (int) (*p->mintime * global_ekr + FL(0.5));
       if (timrem > 0) {
         /* Adjust countdown for new mintime */
         p->timrem += timrem - p->prvktim;
         p->prvktim = timrem;
-      } else timrem = 0;
+      }
+      else
+        p->timrem = 0;
       p->prvmintim = *p->mintime;
     }
-    /* Check for rate limit on event generation and count down */
-    if (*p->mintime > FZERO && --p->timrem > 0)
-      return OK;
-    /* See if there are too many instances already */
-    if (*p->maxinst >= FL(1.0) &&
-        (*p->args[0] >= FL(0.0) || *p->args[0] == SSTRCOD)) {
-      INSDS *ip;
-      int absinsno, numinst = 0;
-      /* Count active instr instances */
-      absinsno = get_absinsno(csound, p);
-      if (absinsno < 1)
-        return NOTOK;
-      ip = &actanchor;
-      while ((ip = ip->nxtact) != NULL)
-        if (ip->insno == absinsno) numinst++;
-      if (numinst >= (int)*p->maxinst)
+
+    if (*p->args[0] >= FL(0.0) || *p->args[0] == SSTRCOD) {
+      /* Check for rate limit on event generation */
+      if (*p->mintime > FZERO && p->timrem > 0)
         return OK;
+      /* See if there are too many instances already */
+      if (*p->maxinst >= FL(1.0)) {
+        INSDS *ip;
+        int absinsno, numinst = 0;
+        /* Count active instr instances */
+        absinsno = get_absinsno(csound, p);
+        if (absinsno < 1)
+          return NOTOK;
+        ip = &actanchor;
+        while ((ip = ip->nxtact) != NULL)
+          if (ip->insno == absinsno) numinst++;
+        if (numinst >= (int) *p->maxinst)
+          return OK;
+      }
     }
 
     /* Create the new event */
