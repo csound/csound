@@ -61,7 +61,6 @@
                         if (!(--argc) || (((s = *argv++) != NULL) && *s == '-')) \
                             dieu(MSG);
 
-extern  HEADATA *readheader(int, char *, SOUNDIN*);
 extern	SNDFILE *SAsndgetset(char *, SOUNDIN**, MYFLT*, MYFLT*, MYFLT*, int);
 extern	long     getsndin(SNDFILE *, MYFLT *, long, SOUNDIN *);
 extern int  openout(char *, int);

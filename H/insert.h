@@ -93,3 +93,8 @@ typedef struct {                /* IV - Oct 20 2002 */
         MYFLT       *i_insno, *iname;
 } NSTRNUM;
 
+typedef struct {
+        OPDS        h;
+        MYFLT       *kInsNo, *kFlags, *kRelease;
+} TURNOFF2;
+

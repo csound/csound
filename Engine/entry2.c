@@ -149,7 +149,7 @@ int    subinstrset(void*,void*), subinstr(void*,void*);    /* IV - Sep 1 2002 */
 int    useropcdset(void*,void*), useropcd(void*,void*), setksmpsset(void*,void*); /* IV - Sep 8 2002 */
 int    xinset(void*,void*), xoutset(void*,void*);          /* IV - Sep 10 2002 */
 int    ingoto(void*,void*), kngoto(void*,void*);
-int    nstrnumset(void*,void*);
+int    nstrnumset(void*,void*), turnoff2(void*,void*);
 int    ftsave(void*,void*), ftload(void*,void*), ftsave_k_set(void*,void*), ftsave_k(void*,void*);
 int    ftsave_k_set(void*,void*), ftload_k(void*,void*);
 
@@ -363,6 +363,7 @@ OENTRY opcodlst_2[] = {
 { "subinstr", S(SUBINST), 5, "mmmmmmmm", "Sm",  subinstrset, NULL, subinstr },
 { "subinstrinit", S(SUBINST), 1, "",    "Sm",   subinstrset, NULL, NULL  },
 { "nstrnum", S(NSTRNUM), 1,     "i",    "S",    nstrnumset, NULL, NULL   },
+{ "turnoff2",S(TURNOFF2),2,     "",     "kkk",  NULL, turnoff2, NULL     },
 { "cngoto", S(CGOTO),   3,      "",     "Bl",   ingoto, kngoto, NULL     },
 /* IV - Sep 8 2002 - added entries for user defined opcodes, xin, xout */
 /* and setksmps */
