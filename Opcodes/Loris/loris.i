@@ -49,7 +49,7 @@
 		#undef list
 	%}
 #endif
-%module loris
+
 // ----------------------------------------------------------------
 //		notification and exception handlers
 //
@@ -74,7 +74,7 @@ char *check_exception() {
         else return NULL;
 }
 
-#include "loris.h"
+#include <loris.h>
 
 //	import the entire Loris namespace, because
 //	SWIG does not seem to like to wrap functions
@@ -112,7 +112,7 @@ static void printf_notifier( const char * s )
 %include "std_vector.i"
 
 %{
-	#include "Marker.h"	// for defining a vector of Markers
+	#include <Marker.h>	// for defining a vector of Markers
 %}
 
 namespace std {
@@ -171,7 +171,7 @@ void channelize( PartialList * partials,
 %newobject createFreqReference;
 BreakpointEnvelope * 
 createFreqReference( PartialList * partials, 
-					 double minFreq, double maxFreq, long numSamps = 0 );
+					 double minFreq, double maxFreq, long numSamps);
 /*	Return a newly-constructed BreakpointEnvelope by sampling the 
 	frequency envelope of the longest Partial in a PartialList. 
 	Only Partials whose frequency at the Partial's loudest (highest 
@@ -188,31 +188,7 @@ createFreqReference( PartialList * partials,
 	channelization (see channelize()).
  */
 
-%{
-#include "Exception.h"
-#include "Notifier.h"
-#include <vector>
-
-	void dilate_v( PartialList * partials, 
-		   		   const std::vector<double> & ivec, 
-				   const std::vector<double> & tvec )
-	{
-		Loris::debugger << ivec.size() << " initial points, " 
-						<< tvec.size() << " target points" << Loris::endl;
-						
-		if ( ivec.size() != tvec.size() )
-		{
-			Throw( InvalidArgument, "Invalid arguments to dilate(): there must be as many target points as initial points" );
-		}
-		
-		const double * initial = &(ivec[0]);
-		const double * target = &(tvec[0]);
-		int npts = ivec.size();
-		dilate( partials, const_cast<double *>(initial), const_cast<double *>(target), npts );
-	}
-%}
-
-%exception dilate_v
+%exception dilate
 {
     char * err;
     clear_exception();
@@ -230,11 +206,29 @@ createFreqReference( PartialList * partials,
     }
 }
 
-%rename (dilate) dilate_v;
-void dilate_v( PartialList * partials, 
-			   const std::vector<double> & ivec, 
-			   const std::vector<double> & tvec );
+%{
+#include <Exception.h>
+#include <vector>
+%}
 
+%inline
+%{
+	void dilate( PartialList * partials, 
+		   	     const std::vector< double > & ivec, 
+				 const std::vector< double > & tvec )
+	{
+		if ( ivec.size() != tvec.size() )
+		{
+			Throw( InvalidArgument, "Invalid arguments to dilate(): "
+			       "there must be as many target points as initial points" );
+		}
+		
+		const double * initial = &( ivec.front() );
+		const double * target = &( tvec.front() );
+		int npts = ivec.size();
+		dilate( partials, initial, target, npts );
+	}
+%}
 /*	Dilate Partials in a PartialList according to the given 
 	initial and target time points. Partial envelopes are 
 	stretched and compressed so that temporal features at
@@ -265,10 +259,10 @@ void distill( PartialList * partials );
 %inline 
 %{
 	void exportAiff( const char * path, const std::vector< double > & samples,
-					 double samplerate = 44100.0, int nchannels = 1, 
-					 int bitsPerSamp = 16 )
+					 double samplerate = 44100.0, int bitsPerSamp = 16 )
 	{
-		exportAiff( path, &samples, samplerate, nchannels, bitsPerSamp );
+		exportAiff( path, &(samples.front()), samples.size(), 
+					samplerate, bitsPerSamp );
 	}
 %}
 /*	Export audio samples stored in a SampleVector to an AIFF file
@@ -292,7 +286,7 @@ void exportSdif( const char * path, PartialList * partials );
 
 
 void exportSpc( const char * path, PartialList * partials, double midiPitch, 
-				int enhanced = true, double endApproachTime = 0. );
+				int enhanced, double endApproachTime);
 /*	Export Partials in a PartialList to a Spc file at the specified file
 	path (or name). The fractional MIDI pitch must be specified. The optional
 	enhanced parameter defaults to true (for bandwidth-enhanced spc files), 
@@ -330,7 +324,7 @@ void exportSpc( const char * path, PartialList * partials, double midiPitch,
  */
 
 %{
-	#include "BreakpointEnvelope.h"
+	#include<BreakpointEnvelope.h>
 %}
 
 %newobject importSpc;
@@ -401,12 +395,17 @@ void exportSpc( const char * path, PartialList * partials, double midiPitch,
  */
 
 
+%{
+	#include<Synthesizer.h>
+%}
+
 %newobject synthesize;
 %inline %{
 	std::vector<double> synthesize( const PartialList * partials, double srate = 44100.0 )
 	{
 		std::vector<double> dst;
-		synthesize( partials, &dst, srate );
+		Synthesizer synth( srate, dst );
+		synth.synthesize( partials->begin(), partials->end() );
 		return dst;
 	}
 %}
@@ -586,7 +585,7 @@ void sortByLabel( PartialList * partials );
 //	the procedural interface!
 //
 %{
-	#include "Exception.h"
+	#include <Exception.h>
 	#include <stdexcept>
 %}
 
@@ -629,7 +628,7 @@ void sortByLabel( PartialList * partials );
 //	and exported data.
 //
 %{
-	#include "Marker.h"
+	#include<Marker.h>
 %}
 
 class Marker
@@ -684,7 +683,7 @@ public:
 //	returns them in a SampleVector.
 //
 %{
-	#include "AiffFile.h"
+	#include<AiffFile.h>
 %}
 
 %newobject AiffFile::samples;
@@ -717,7 +716,7 @@ class AiffFile
 {
 public:
 	AiffFile( const char * filename );
-	AiffFile( const std::vector< double > & vec, double samplerate = 44100 );
+	AiffFile( const std::vector< double > & vec, double samplerate 	);
 
 	~AiffFile( void );
 	
@@ -852,8 +851,8 @@ public:
 //
 
 %{
-	#include "Analyzer.h"
-	#include "Partial.h"
+	#include<Analyzer.h>
+	#include<Partial.h>
 %}
 
 %newobject Analyzer::analyze;
@@ -953,7 +952,7 @@ public:
 //	values at the nearest end).
 //
 %{
-	#include "BreakpointEnvelope.h"
+	#include<BreakpointEnvelope.h>
 %}
 
 class BreakpointEnvelope
@@ -1000,7 +999,7 @@ public:
 //	from a stream or filename automatically imports the Partial
 //	data. 
 %{
-	#include "SdifFile.h"
+	#include<SdifFile.h>
 %}
 
 
@@ -1132,7 +1131,7 @@ public:
 //	file I/O and conversion between Partials and envelope parameter streams.
 //	
 %{
-	#include "SpcFile.h"
+	#include<SpcFile.h>
 %}
 
 %newobject SpcFile::partials;
