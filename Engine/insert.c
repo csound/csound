@@ -861,7 +861,7 @@ int subinstrset(ENVIRON *csound, SUBINST *p)
 
     /* allocate memory for a temporary store of spout buffers */
     if (!init_op && !(reinitflag | tieflag))
-      auxalloc(csound, (long)nspout*sizeof(MYFLT), &p->saved_spout);
+      csoundAuxAlloc(csound, (long)nspout*sizeof(MYFLT), &p->saved_spout);
 
     /* do init pass for this instr */
     curip = p->ip;

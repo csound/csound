@@ -181,7 +181,7 @@ static int sc_reverb_init(ENVIRON *csound, SC_REVERB *p)
     for (i = 0; i < 8; i++)
       nBytes += delay_line_bytes_alloc(p, i);
     if (nBytes != (int) p->auxData.size)
-      auxalloc(csound, (long) nBytes, &(p->auxData));
+      csound->AuxAlloc(csound, (long) nBytes, &(p->auxData));
     else if (p->initDone && *(p->iSkipInit) != FL(0.0))
       return OK;    /* skip initialisation if requested */
     /* set up delay lines */

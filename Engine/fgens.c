@@ -824,8 +824,8 @@ static void gen18(FUNC *ftp, ENVIRON *csound)
         return;
       }
 
-      if ((fnp = ftfind(csound,&fn)) != NULL) {    /* make sure fn exists */
-        fp = fnp->ftable, fnlen = fnp->flen-1;     /* and set it up */
+      if ((fnp = csoundFTFind(csound,&fn)) != NULL) { /* make sure fn exists */
+        fp = fnp->ftable, fnlen = fnp->flen-1;        /* and set it up */
       }
       else {
         fterror(ff,Str("an input function does not exist"));
@@ -1344,7 +1344,7 @@ static void gen30 (FUNC *ftp, ENVIRON *csound)
     }
     xsr = FL(1.0);
     if ((nargs > 3) && (ff->e.p[8] > FL(0.0))) xsr = esr / ff->e.p[8];
-    f = ftfind(csound,&(ff->e.p[5])); if (f == NULL) return;
+    f = csoundFTFind(csound,&(ff->e.p[5])); if (f == NULL) return;
     l1 = ftp->flen; l2 = f->flen;
     minfrac = ff->e.p[6];          /* lowest harmonic number */
     maxfrac = ff->e.p[7] * xsr;    /* highest harmonic number */
@@ -1407,7 +1407,7 @@ static void gen31 (FUNC *ftp, ENVIRON *csound)
       fterror(ff,Str("insufficient gen arguments"));
       return;
     }
-    f = ftfind(csound,&(ff->e.p[5])); if (f == NULL) return;
+    f = csoundFTFind(csound,&(ff->e.p[5])); if (f == NULL) return;
     l1 = ftp->flen; l2 = f->flen;
 
     x = (complex*) mcalloc(csound, sizeof (complex) * ((l2 >> 1) + 1));
@@ -1493,7 +1493,7 @@ static void gen32 (FUNC *ftp, ENVIRON *csound)
       p = ff->e.p[pnum[j]];                /* table number */
       i = (long) (p + (p < FL(0.0) ? FL(-0.5) : FL(0.5)));
       p = (MYFLT) (abs (i));
-      if ((f = ftfind(csound,&p)) == NULL) return;    /* source table */
+      if ((f = csoundFTFind(csound,&p)) == NULL) return;    /* source table */
       l2 = f->flen;             /* src table length */
       if (i < 0) {              /* use linear interpolation */
         ft = i;
@@ -1583,7 +1583,7 @@ static void gen33 (FUNC *ftp, ENVIRON *csound)
     /* table length and data */
     ft = ftp->ftable; flen = (long) ftp->flen;
     /* source table */
-    if ((src = ftfind(csound,&(ff->e.p[5]))) == NULL) return;
+    if ((src = csoundFTFind(csound,&(ff->e.p[5]))) == NULL) return;
     srcft = src->ftable; srclen = (long) src->flen;
     /* number of partials */
     nh = (long) (ff->e.p[6] + FL(0.5));
@@ -1662,7 +1662,7 @@ static void gen34 (FUNC *ftp, ENVIRON *csound)
     /* table length and data */
     ft = ftp->ftable; flen = (long) ftp->flen;
     /* source table */
-    if ((src = ftfind(csound,&(ff->e.p[5]))) == NULL) return;
+    if ((src = csoundFTFind(csound,&(ff->e.p[5]))) == NULL) return;
     srcft = src->ftable; srclen = (long) src->flen;
     /* number of partials */
     nh = (long) (ff->e.p[6] + FL(0.5));
@@ -1886,12 +1886,14 @@ static FUNC *ftalloc(ENVIRON *csound)
     return ftp;
 }
 
-FUNC *
-ftfind(ENVIRON *cs, MYFLT *argp) /* find the ptr to an existing ftable structure */
-                        /*   called by oscils, etc at init time         */
+/* find the ptr to an existing ftable structure */
+/*   called by oscils, etc at init time         */
+
+FUNC *csoundFTFind(void *csound, MYFLT *argp)
 {
-    int fno;
-    FUNC        *ftp;
+    ENVIRON *cs = (ENVIRON*) csound;
+    FUNC    *ftp;
+    int     fno;
 
     if ((fno = (int)*argp) <= 0 ||
         fno > cs->maxfnum       ||
@@ -1908,11 +1910,30 @@ ftfind(ENVIRON *cs, MYFLT *argp) /* find the ptr to an existing ftable structure
     else return(ftp);
 }
 
+MYFLT *csoundGetTable(void *csound_, int tableNum, int *tableLength)
+{
+    ENVIRON *csound = (ENVIRON*) csound_;
+    FUNC    *ftp;
+
+    if (tableLength != NULL)
+      *tableLength = -1;
+    if (tableNum <= 0 || tableNum > csound->maxfnum)
+      return NULL;
+    ftp = csound->flist[tableNum];
+    if (ftp == NULL)
+      return NULL;
+    if (!ftp->lenmask)
+      return NULL;
+    if (tableLength != NULL)
+      *tableLength = (int) ftp->flen;
+    return &(ftp->ftable[0]);
+}
+
 /*************************************/
 /* ftfindp()
  *
  * New function to find a function table at performance time.  Based
- * on ftfind() which is intended to run at init time only.
+ * on csoundFTFind() which is intended to run at init time only.
  *
  * This function can be called from other modules - such as ugrw1.c.
  *
@@ -2308,7 +2329,7 @@ int ftload(ENVIRON *csound, FTLOAD *p)
         /* ***** Need to do byte order here ***** */
         ff->flen = header.flen;
         header.fno = ff->fno;
-        if ((ftp = ftfind(csound,*argp)) != NULL) {
+        if ((ftp = csoundFTFind(csound,*argp)) != NULL) {
           MYFLT *table = ftp->ftable;
           memcpy(ftp, &header, sizeof(FUNC)-sizeof(MYFLT)-SSTRSIZ);
           ftp = ftalloc(csound);
@@ -2381,7 +2402,7 @@ int ftload(ENVIRON *csound, FTLOAD *p)
            in text format */
         ff->flen = header.flen;
         header.fno = ff->fno;
-        if ((ftp = ftfind(csound,*argp)) != NULL) {
+        if ((ftp = csoundFTFind(csound,*argp)) != NULL) {
           long j;
           MYFLT *table = ftp->ftable;
           memcpy(ftp, &header, sizeof(FUNC)-sizeof(MYFLT));
@@ -2434,7 +2455,7 @@ int ftsave(ENVIRON *csound, FTLOAD *p)
       while (nargs--) {
         FUNC *ftp;
 
-        if ((ftp = ftfind(csound,*argp)) != NULL) {
+        if ((ftp = csoundFTFind(csound,*argp)) != NULL) {
           MYFLT *table = ftp->ftable;
           long flen = ftp->flen;
           fwrite(ftp, sizeof(FUNC)-sizeof(MYFLT)-SSTRSIZ, 1, file);
@@ -2450,7 +2471,7 @@ int ftsave(ENVIRON *csound, FTLOAD *p)
       while (nargs--)  {
         FUNC *ftp;
 
-        if ((ftp = ftfind(csound,*argp)) != NULL) {
+        if ((ftp = csoundFTFind(csound,*argp)) != NULL) {
           long flen = ftp->flen;
           long j;
           MYFLT *table = ftp->ftable;
@@ -2793,7 +2814,7 @@ static void gen52 (FUNC *ftp, ENVIRON *csound)
     for (i = len; i <= (int) ftp->flen; i++)
       dst[i] = FL(0.0);
     for (n = 0; n < nchn; n++) {
-      f = ftfind(csound, &(ff->e.p[(n * 3) + 6]));
+      f = csoundFTFind(csound, &(ff->e.p[(n * 3) + 6]));
       if (f == NULL)
         return;
       len2 = (int) f->flen;

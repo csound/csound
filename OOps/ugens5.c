@@ -108,7 +108,7 @@ int tonsetx(ENVIRON *csound, TONEX *p) /* From Gabriel Maldonado, modified for a
     if ((p->loop = (int) (*p->ord + FL(0.5))) < 1) p->loop = 4;
     if (!*p->istor && (p->aux.auxp == NULL ||
                        (int)(p->loop*sizeof(MYFLT)) > p->aux.size))
-      auxalloc(csound, (long)(p->loop*sizeof(MYFLT)), &p->aux);
+      csound->AuxAlloc(csound, (long)(p->loop*sizeof(MYFLT)), &p->aux);
     p->yt1 = (MYFLT*)p->aux.auxp;
     if (!(*p->istor)) {
       int j;
@@ -264,7 +264,7 @@ int rsnsetx(ENVIRON *csound, RESONX *p) /* Gabriel Maldonado, modifies for arb o
     if ((p->loop = (int) (*p->ord + FL(0.5))) < 1) p->loop = 4; /*default value*/
     if (!*p->istor && (p->aux.auxp == NULL ||
                        (int)(p->loop*2*sizeof(MYFLT)) > p->aux.size))
-      auxalloc(csound, (long)(p->loop*2*sizeof(MYFLT)), &p->aux);
+      csound->AuxAlloc(csound, (long)(p->loop*2*sizeof(MYFLT)), &p->aux);
     p->yt1 = (MYFLT*)p->aux.auxp; p->yt2 = (MYFLT*)p->aux.auxp + p->loop;
     if (scale && scale != 1 && scale != 2) {
       sprintf(errmsg,Str("illegal reson iscl value, %f"),*p->iscl);

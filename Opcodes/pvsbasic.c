@@ -35,7 +35,7 @@ int pvsmixset(ENVIRON *csound, PVSMIX *p)
     long N = p->fa->N;
 
     if (p->fout->frame.auxp==NULL)
-      auxalloc(csound, (N+2)*sizeof(float),&p->fout->frame);
+      csound->AuxAlloc(csound, (N+2)*sizeof(float),&p->fout->frame);
     p->fout->N =  N;
     p->fout->overlap = p->fa->overlap;
     p->fout->winsize = p->fa->winsize;
@@ -93,7 +93,7 @@ int pvsfilterset(ENVIRON *csound, PVSFILTER *p)
 
 
     if (p->fout->frame.auxp==NULL)
-      auxalloc(csound, (N+2)*sizeof(float),&p->fout->frame);
+      csound->AuxAlloc(csound, (N+2)*sizeof(float),&p->fout->frame);
     p->fout->N =  N;
     p->fout->overlap = p->fin->overlap;
     p->fout->winsize = p->fin->winsize;
@@ -143,7 +143,7 @@ int pvsscaleset(ENVIRON *csound, PVSSCALE *p)
     long N = p->fin->N;
 
     if (p->fout->frame.auxp==NULL)
-      auxalloc(csound, (N+2)*sizeof(float),&p->fout->frame);     /* RWD MUST be 32bit */
+      csound->AuxAlloc(csound, (N+2)*sizeof(float),&p->fout->frame);     /* RWD MUST be 32bit */
     p->fout->N =  N;
     p->fout->overlap = p->fin->overlap;
     p->fout->winsize = p->fin->winsize;
@@ -208,7 +208,7 @@ int pvsshiftset(ENVIRON *csound, PVSSHIFT *p)
     long N = p->fin->N;
 
     if (p->fout->frame.auxp==NULL)
-      auxalloc(csound, (N+2)*sizeof(float),&p->fout->frame);     /* RWD MUST be 32bit */
+      csound->AuxAlloc(csound, (N+2)*sizeof(float),&p->fout->frame);     /* RWD MUST be 32bit */
     p->fout->N =  N;
     p->fout->overlap = p->fin->overlap;
     p->fout->winsize = p->fin->winsize;
@@ -290,10 +290,10 @@ int pvsblurset(ENVIRON *csound, PVSBLUR *p)
     delayframes = (int)(*p->maxdel*p->frpsec);
 
     if (p->fout->frame.auxp==NULL)
-      auxalloc(csound, (N+2)*sizeof(float),&p->fout->frame);
+      csound->AuxAlloc(csound, (N+2)*sizeof(float),&p->fout->frame);
 
     if (p->delframes.auxp==NULL)
-      auxalloc(csound, (N+2)*sizeof(float)*delayframes, &p->delframes);
+      csound->AuxAlloc(csound, (N+2)*sizeof(float)*delayframes, &p->delframes);
 
     delay = (float *) p->delframes.auxp;
 
@@ -378,7 +378,7 @@ int pvstencilset(ENVIRON *csound, PVSTENCIL *p)
     MYFLT *ftable;
 
     if (p->fout->frame.auxp==NULL)
-      auxalloc(csound, (N+2)*sizeof(float),&p->fout->frame);
+      csound->AuxAlloc(csound, (N+2)*sizeof(float),&p->fout->frame);
 
     p->fout->N =  N;
     p->fout->overlap = p->fin->overlap;
@@ -393,7 +393,7 @@ int pvstencilset(ENVIRON *csound, PVSTENCIL *p)
         initerror(Str(
                   "pvstencil: signal format must be amp-phase or amp-freq.\n"));
 
-    p->func = ftfind(csound, p->ifn);
+    p->func = csound->FTFind(csound, p->ifn);
     if (p->func==NULL)
       return OK;
 
@@ -466,3 +466,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
+

@@ -55,25 +55,25 @@ int pvsdemix_init(ENVIRON *csound, PVSDEMIX *p)
     p->beta = (int)(*p->slices);
 
     if (p->fout->frame.auxp==NULL)
-      auxalloc(csound, (N+2)*sizeof(float),&p->fout->frame);
+      csound->AuxAlloc(csound, (N+2)*sizeof(float),&p->fout->frame);
 
     if (p->left.auxp==NULL)
-      auxalloc(csound, (N+2)*sizeof(float)*p->beta, &p->left);
+      csound->AuxAlloc(csound, (N+2)*sizeof(float)*p->beta, &p->left);
 
     if (p->right.auxp==NULL)
-      auxalloc(csound, (N+2)*sizeof(float)*p->beta, &p->right);
+      csound->AuxAlloc(csound, (N+2)*sizeof(float)*p->beta, &p->right);
 
     if (p->maxl.auxp==NULL)
-      auxalloc(csound, (N/2+1)*sizeof(float), &p->maxl);
+      csound->AuxAlloc(csound, (N/2+1)*sizeof(float), &p->maxl);
 
     if (p->maxr.auxp==NULL)
-      auxalloc(csound, (N/2+1)*sizeof(float), &p->maxr);
+      csound->AuxAlloc(csound, (N/2+1)*sizeof(float), &p->maxr);
 
     if (p->minl.auxp==NULL)
-      auxalloc(csound, (N/2+1)*sizeof(float), &p->minl);
+      csound->AuxAlloc(csound, (N/2+1)*sizeof(float), &p->minl);
 
     if (p->minr.auxp==NULL)
-      auxalloc(csound, (N/2+1)*sizeof(float), &p->minr);
+      csound->AuxAlloc(csound, (N/2+1)*sizeof(float), &p->minr);
 
     p->fout->N =  N;
     p->fout->overlap = olap;
@@ -188,5 +188,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
-
 

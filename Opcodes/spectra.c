@@ -36,7 +36,7 @@ void DOWNset(ENVIRON *p, DOWNDAT *downdp, long npts)
     long nbytes = npts * sizeof(MYFLT);
 
     if (downdp->auxch.auxp == NULL || downdp->auxch.size != nbytes)
-      p->auxalloc_(p, nbytes, &downdp->auxch);
+      p->AuxAlloc(p, nbytes, &downdp->auxch);
     downdp->npts = npts;
 }
 
@@ -45,7 +45,7 @@ void SPECset(ENVIRON *p, SPECDAT *specdp, long npts)
     long nbytes = npts * sizeof(MYFLT);
 
     if (specdp->auxch.auxp == NULL || nbytes != specdp->auxch.size)
-      p->auxalloc_(p, nbytes, &specdp->auxch);
+      p->AuxAlloc(p, nbytes, &specdp->auxch);
     specdp->npts = npts;
 }
 
@@ -135,7 +135,7 @@ int spectset(ENVIRON *csound, SPECTRUM *p) /* spectrum - calcs disc Fourier tran
              Q, windsiz);
       auxsiz = (windsiz + 2*sumk) * sizeof(MYFLT);   /* calc lcl space rqd */
 
-      auxalloc(csound, (long)auxsiz, &p->auxch1);            /*  & alloc auxspace  */
+      csound->AuxAlloc(csound, (long)auxsiz, &p->auxch1);            /*  & alloc auxspace  */
 
       fltp = (MYFLT *) p->auxch1.auxp;
       p->linbufp = fltp;      fltp += windsiz; /* linbuf must take nsamps */
@@ -188,7 +188,7 @@ int spectset(ENVIRON *csound, SPECTRUM *p) /* spectrum - calcs disc Fourier tran
              nocts, bufsiz, (int)(bufsiz*1000/dwnp->srate));
       if (p->disprd) {                      /* if display requested, */
         totsize = totsamps * sizeof(MYFLT); /*  alloc an equiv local */
-        auxalloc(csound, (long)totsize, &p->auxch2);/*  linear output window */
+        csound->AuxAlloc(csound, (long)totsize, &p->auxch2);/*  linear output window */
         dispset(&p->octwindow, (MYFLT *)p->auxch2.auxp, (long)totsamps,
                 Str("octdown buffers:"), 0, "spectrum");
       }
@@ -403,7 +403,7 @@ int nocdfset(ENVIRON *csound, NOCTDFT *p)
       else printf(Str("noctdft: Q %4.1f uses %d of %d samps per octdown\n"),
                   Q, windsiz, nsamps);
       auxsiz = (nsamps + 2*sumk) * sizeof(MYFLT);    /* calc local space reqd */
-      auxalloc(csound, (long)auxsiz, &p->auxch);             /*     & alloc auxspace  */
+      csound->AuxAlloc(csound, (long)auxsiz, &p->auxch);             /*     & alloc auxspace  */
       fltp = (MYFLT *) p->auxch.auxp;
       p->linbufp = fltp;          fltp += nsamps; /* linbuf must handle nsamps */
       p->sinp = sinp = fltp;      fltp += sumk;
@@ -1095,7 +1095,7 @@ int spsclset(ENVIRON *csound, SPECSCAL *p)
       SPECset(csound,
               outspecp, (long)npts);                 /*    realloc             */
       outspecp->downsrcp = inspecp->downsrcp;
-      auxalloc(csound, (long)npts * 2 * sizeof(MYFLT), &p->auxch);
+      csound->AuxAlloc(csound, (long)npts * 2 * sizeof(MYFLT), &p->auxch);
     }
     outspecp->ktimprd = inspecp->ktimprd;      /* pass the source spec info     */
     outspecp->nfreqs = inspecp->nfreqs;
@@ -1105,7 +1105,7 @@ int spsclset(ENVIRON *csound, SPECSCAL *p)
       return initerror(Str("specscal: local buffer not initialised"));
     }
     p->fthresh = p->fscale + npts;
-    if ((ftp=ftfind(csound, p->ifscale)) == NULL) {
+    if ((ftp=csound->FTFind(csound, p->ifscale)) == NULL) {
       /* if fscale given,        */
       return initerror(Str("missing fscale table"));
     }
@@ -1122,7 +1122,7 @@ int spsclset(ENVIRON *csound, SPECSCAL *p)
       } while (--nn);
     }
     if ((p->thresh = (int)*p->ifthresh)
-        && (ftp=ftfind(csound, p->ifthresh)) != NULL) {
+        && (ftp=csound->FTFind(csound, p->ifthresh)) != NULL) {
       /* if fthresh given,       */
       long nn = npts;
       long phs = 0;
@@ -1244,7 +1244,7 @@ int spfilset(ENVIRON *csound, SPECFILT *p)
     if ((npts = inspecp->npts) != outspecp->npts) {  /* if inspec not matched */
       SPECset(csound,
               outspecp, (long)npts);                 /*   reinit the out spec */
-      auxalloc(csound, (long)npts*2* sizeof(MYFLT), &p->auxch);/*   & local auxspace  */
+      csound->AuxAlloc(csound, (long)npts*2* sizeof(MYFLT), &p->auxch);/*   & local auxspace  */
       p->coefs = (MYFLT *) p->auxch.auxp;            /*   reassign filt tbls  */
       p->states = p->coefs + npts;
     }
@@ -1255,7 +1255,7 @@ int spfilset(ENVIRON *csound, SPECFILT *p)
     outspecp->nfreqs = inspecp->nfreqs;
     outspecp->dbout = inspecp->dbout;
     outspecp->downsrcp = inspecp->downsrcp;
-    if ((ftp=ftfind(csound, p->ifhtim)) == NULL) {
+    if ((ftp=csound->FTFind(csound, p->ifhtim)) == NULL) {
       /* if fhtim table given,    */
       return initerror(Str("missing htim ftable"));
     }

@@ -163,7 +163,7 @@ static int ftconv_init(ENVIRON *csound, FTCONV *p)
       initerror(Str("ftconv: invalid impulse response partition length"));
       return NOTOK;
     }
-    ftp = csound->ftfind_(csound, p->iFTNum);
+    ftp = csound->FTFind(csound, p->iFTNum);
     if (ftp == NULL)
       return NOTOK; /* ftfind should already have printed the error message */
     /* calculate total length / number of partitions */
@@ -181,7 +181,7 @@ static int ftconv_init(ENVIRON *csound, FTCONV *p)
     /* calculate the amount of aux space to allocate (in bytes) */
     nBytes = buf_bytes_alloc(p->nChannels, p->partSize, p->nPartitions);
     if (nBytes != (int) p->auxData.size)
-      csound->auxalloc_(csound, (long) nBytes, &(p->auxData));
+      csound->AuxAlloc(csound, (long) nBytes, &(p->auxData));
     else if (p->initDone > 0 && *(p->iSkipInit) != FL(0.0))
       return OK;    /* skip initialisation if requested */
     /* if skipping samples: check for possible truncation of IR */

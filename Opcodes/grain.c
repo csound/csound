@@ -42,11 +42,11 @@ int agsset(ENVIRON *csound, PGRA *p)                    /*      Granular U.G. se
     long        bufsize;
     MYFLT       *d;
 
-    if ((gftp = ftfind(csound, p->igfn)) != NULL)
+    if ((gftp = csound->FTFind(csound, p->igfn)) != NULL)
       p->gftp = gftp;
     else return NOTOK;
 
-    if ((eftp = ftfind(csound, p->iefn)) != NULL)
+    if ((eftp = csound->FTFind(csound, p->iefn)) != NULL)
       p->eftp = eftp;
     else return NOTOK;
 
@@ -60,7 +60,7 @@ int agsset(ENVIRON *csound, PGRA *p)                    /*      Granular U.G. se
     bufsize = sizeof(MYFLT)*(2L * (long)(esr * *p->imkglen) +  (3L * ksmps));
 
     if (p->aux.auxp == NULL || bufsize > p->aux.size)
-      auxalloc(csound, bufsize, &p->aux);
+      csound->AuxAlloc(csound, bufsize, &p->aux);
     else memset(p->aux.auxp, '\0', bufsize); /* Clear any old data */
     d  = p->x = (MYFLT *)p->aux.auxp;
     d +=  (int)(esr * *p->imkglen) + ksmps;
@@ -159,3 +159,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
+

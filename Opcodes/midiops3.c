@@ -65,11 +65,11 @@
                   j);                                             \
           return initerror(sbuf);                                 \
         }                                                         \
-        if (*sld->ifn > 0)   *ftp++ = ftfind(csound, sld->ifn);   \
+        if (*sld->ifn > 0)   *ftp++ = csound->FTFind(csound, sld->ifn); \
         else                 *ftp++ = NULL;                       \
         value =  (*(sld++)->initvalue - *min) / (*max++ - *min);  \
         min++;                                                    \
-        chanblock[*slnum++] =  (MYFLT)((int)(value * f7bit + FL(0.5)));\
+        chanblock[*slnum++] =  (MYFLT)((int)(value * f7bit + FL(0.5))); \
       }                                                           \
     }                                                             \
     return OK;                                                    \
@@ -173,7 +173,7 @@ int slider64(ENVIRON *csound, SLIDER64 *p)
                   Str("illegal initvalue at position n.%d"), j); \
           return initerror(sbuf);                                 \
         }                                                         \
-        if (*sld->ifn > 0)   *ftp++ = ftfind(csound, sld->ifn);   \
+        if (*sld->ifn > 0)   *ftp++ = csound->FTFind(csound, sld->ifn); \
         else                 *ftp++ = NULL;                       \
         value =  (*sld->initvalue - *min) / (*max++ - *min);      \
         min++;;                                                   \
@@ -279,7 +279,7 @@ int slider64f(ENVIRON *csound, SLIDER64f *p)
         }                                                         \
         value = chanblock[slnum] * oneTOf7bit;                    \
         if (*sld->ifn > 0)  {                                     \
-          ftp = ftfind(csound, sld->ifn);                         \
+          ftp = csound->FTFind(csound, sld->ifn);                 \
           value = *( ftp->ftable + (long)(value * ftp->flen));    \
                                 /* no interpolation */            \
         }                                                         \
@@ -353,7 +353,7 @@ int islider64(ENVIRON *csound, ISLIDER64 *p)
                   Str("illegal initvalue at position n.%d"), j); \
           return initerror(sbuf);                                      \
         }                                                              \
-        if (*sld->ifn > 0)   *ftp++ = ftfind(csound, sld->ifn);        \
+        if (*sld->ifn > 0)   *ftp++ = csound->FTFind(csound, sld->ifn); \
         else                 *ftp++ = NULL;                            \
         intvalue = (int) (((*(sld++)->initvalue - *min) / (*max++ - *min)) \
                           * f14bit+FL(0.5));                           \
@@ -447,7 +447,7 @@ int slider32bit14(ENVIRON *csound, SLIDER32BIT14 *p)
         value = (MYFLT)((chanblock[slnum_msb]  * 128                   \
                          + chanblock[slnum_lsb]) * oneTOf14bit);       \
         if (*sld->ifn > 0) {    /* linear interpolation routine */     \
-          FUNC *ftp= ftfind(csound, sld->ifn);                         \
+          FUNC *ftp= csound->FTFind(csound, sld->ifn);                 \
           MYFLT phase = value * ftp->flen;                             \
           MYFLT *base = ftp->ftable + (long)(phase);                   \
           value = *base + (*(base + 1) - *base) * (phase - (long) phase); \
@@ -600,3 +600,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
+

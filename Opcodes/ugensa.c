@@ -34,8 +34,8 @@ int fogset(ENVIRON *csound, FOGS *p)
 {
     /* legato test, not sure if the last bit (auxch) is correct? */
     int skip = (*p->iskip != FL(0.0) && p->auxch.auxp != 0);
-    if ((p->ftp1 = ftfind(csound, p->ifna)) != NULL &&
-        (p->ftp2 = ftfind(csound, p->ifnb)) != NULL) {
+    if ((p->ftp1 = csound->FTFind(csound, p->ifna)) != NULL &&
+        (p->ftp2 = csound->FTFind(csound, p->ifnb)) != NULL) {
       OVERLAP *ovp, *nxtovp;
       long   olaps;
       p->fogcvt = FMAXLEN/(p->ftp1)->flen; /*JMC for FOG*/
@@ -49,7 +49,7 @@ int fogset(ENVIRON *csound, FOGS *p)
           return initerror(Str("illegal value for iolaps"));
         }
         if (*p->iphs>=FL(0.0))
-          auxalloc(csound, (long)olaps * sizeof(OVERLAP), &p->auxch);
+          csound->AuxAlloc(csound, (long)olaps * sizeof(OVERLAP), &p->auxch);
         ovp = &p->basovrlap;
         nxtovp = (OVERLAP *) p->auxch.auxp;
         do {
@@ -221,3 +221,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
+

@@ -104,7 +104,7 @@ int cpstmid(ENVIRON *csound, CPSTABLE *p)
     int basekeymidi;
     MYFLT basefreq, factor,interval;
 
-    if ((ftp = ftfind(csound, p->tablenum)) == NULL) {
+    if ((ftp = csound->FTFind(csound, p->tablenum)) == NULL) {
       initerror(Str("cpstabm: invalid modulator table"));
       return NOTOK;
     }
@@ -242,7 +242,7 @@ int ampmidi(ENVIRON *csound, MIDIAMP *p)  /* convert midi veloc to amplitude */
 
     amp = curip->m_veloc / FL(128.0);             /* amp = normalised veloc */
     if ((fno = (long)*p->ifn) > 0) {              /* if valid ftable,       */
-      if ((ftp = ftfind(csound, p->ifn)) == NULL)
+      if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
         return NOTOK;                             /*     use amp as index   */
       amp = *(ftp->ftable + (long)(amp * ftp->flen));
     }
@@ -469,3 +469,4 @@ int kpchbend(ENVIRON *csound, MIDIKMAP *p)
     *p->r = p->lo + pitchbend_value(lcurip->m_chnbp) * p->scale;
     return OK;
 }
+

@@ -31,7 +31,7 @@
 
 static void auxrecord(void*, AUXCH *), auxchprint(INSDS *), fdchprint(INSDS *);
 
-void auxalloc(void *csound, long nbytes, AUXCH *auxchp)
+void csoundAuxAlloc(void *csound, long nbytes, AUXCH *auxchp)
      /* allocate an auxds, or expand an old one */
      /*    call only from init (xxxset) modules */
 {

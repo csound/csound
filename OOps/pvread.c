@@ -111,7 +111,7 @@ int pvreadset(ENVIRON *csound, PVREAD *p)
       }
     /* only old-format stuff from here */
     if (p->fftBuf.auxp  == NULL) /* Allocate space dynamically */
-      auxalloc(csound, sizeof(MYFLT)*PVFFTSIZE, &p->fftBuf);
+      csound->AuxAlloc(csound, sizeof(MYFLT)*PVFFTSIZE, &p->fftBuf);
     pvh = (PVSTRUCT *)mfp->beginp;
     if (pvh->magic != PVMAGIC) {
       sprintf(errmsg,Str("%s not a PVOC file (magic %ld)"),
@@ -254,7 +254,7 @@ int pvocex_loadfile(const char *fname,PVREAD *p,MEMFIL **mfp)
       /* try for the big block first! */
       memblock = (float *) mmalloc(&cenviron, mem_wanted);
       if (p->fftBuf.auxp  == NULL) /* Allocate space dynamically */
-        auxalloc(&cenviron, sizeof(MYFLT)*PVFFTSIZE, &p->fftBuf);
+        csoundAuxAlloc(&cenviron, sizeof(MYFLT)*PVFFTSIZE, &p->fftBuf);
 
       /* fill'er-up */
       /* need to loop, as we need to rescale amplitudes for Csound */
@@ -327,3 +327,4 @@ int pvocex_loadfile(const char *fname,PVREAD *p,MEMFIL **mfp)
     *mfp = mfil;
     return 1;
 }
+

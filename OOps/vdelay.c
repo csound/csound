@@ -42,7 +42,7 @@ int vdelset(ENVIRON *csound, VDEL *p)           /*  vdelay set-up   */
     if (!*p->istod) {
       if (p->aux.auxp == NULL ||
           (int)(n*sizeof(MYFLT))>p->aux.size) /* allocate space for delay buffer */
-        auxalloc(csound, n * sizeof(MYFLT), &p->aux);
+        csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux);
       else {
         buf = (MYFLT *)p->aux.auxp;  /*    make sure buffer is empty       */
         do {
@@ -250,7 +250,7 @@ int vdelxset(ENVIRON *csound, VDELX *p)           /*  vdelayx set-up (1 channel)
     if (!*p->istod) {
       if (p->aux1.auxp == NULL ||
           (int)(n*sizeof(MYFLT)) > p->aux1.size) /* allocate space */
-        auxalloc(csound, n * sizeof(MYFLT), &p->aux1);   /* for delay buffer */
+        csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux1);   /* for delay buffer */
       buf1 = (MYFLT *)p->aux1.auxp;  /*    make sure buffer is empty       */
       for (i=0; i<n; i++) buf1[i] = FL(0.0);
 
@@ -273,10 +273,10 @@ int vdelxsset(ENVIRON *csound, VDELXS *p)           /*  vdelayxs set-up (stereo)
     if (!*p->istod) {
       if (p->aux1.auxp == NULL ||
           (int)(n*sizeof(MYFLT)) > p->aux1.size) /* allocate space */
-        auxalloc(csound, n * sizeof(MYFLT), &p->aux1);   /* for delay buffer */
+        csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux1);   /* for delay buffer */
       if (p->aux2.auxp == NULL ||
           (int)(n*sizeof(MYFLT)) > p->aux2.size)
-        auxalloc(csound, n * sizeof(MYFLT), &p->aux2);
+        csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux2);
       buf1 = (MYFLT *)p->aux1.auxp;  /*    make sure buffer is empty       */
       buf2 = (MYFLT *)p->aux2.auxp;
       for (i=0;i<n; i++) {
@@ -304,16 +304,16 @@ int vdelxqset(ENVIRON *csound, VDELXQ *p)  /*  vdelayxq set-up (quad channels) *
     if (!*p->istod) {
       if (p->aux1.auxp == NULL ||
           (int)(n*sizeof(MYFLT)) > p->aux1.size) /* allocate space */
-        auxalloc(csound, n * sizeof(MYFLT), &p->aux1);   /* for delay buffer */
+        csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux1);   /* for delay buffer */
       if (p->aux2.auxp == NULL ||
           (int)(n*sizeof(MYFLT)) > p->aux2.size)
-        auxalloc(csound, n * sizeof(MYFLT), &p->aux2);
+        csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux2);
       if (p->aux3.auxp == NULL ||
           (int)(n*sizeof(MYFLT)) > p->aux3.size)
-        auxalloc(csound, n * sizeof(MYFLT), &p->aux3);
+        csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux3);
       if (p->aux4.auxp == NULL ||
           (int)(n*sizeof(MYFLT)) > p->aux4.size)
-        auxalloc(csound, n * sizeof(MYFLT), &p->aux4);
+        csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux4);
       buf1 = (MYFLT *)p->aux1.auxp;  /*    make sure buffer is empty       */
       buf2 = (MYFLT *)p->aux2.auxp;
       buf3 = (MYFLT *)p->aux3.auxp;
@@ -761,7 +761,7 @@ int multitap_set(ENVIRON *csound, MDEL *p)
     n = (long)(esr * max * sizeof(MYFLT));
     if (p->aux.auxp == NULL ||    /* allocate space for delay buffer */
         n > p->aux.size)
-      auxalloc(csound, n, &p->aux);
+      csound->AuxAlloc(csound, n, &p->aux);
     else {
       buf = (MYFLT *)p->aux.auxp; /* make sure buffer is empty       */
       n = p->max;
@@ -891,7 +891,7 @@ int nreverb_set(ENVIRON *csound, NREV *p)   /* 6-comb/lowpass,
       die(Str("High frequency diffusion not in (0, 1)\n"));
 
     if (*p->istor == FL(0.0) || p->temp.auxp == NULL) {
-      auxalloc(csound, ksmps * sizeof(MYFLT), &p->temp);
+      csound->AuxAlloc(csound, ksmps * sizeof(MYFLT), &p->temp);
       temp = (MYFLT *)p->temp.auxp;
       for (n = 0; n < ksmps; n++)
         *temp++ = FL(0.0);
@@ -909,7 +909,7 @@ int nreverb_set(ENVIRON *csound, NREV *p)   /* 6-comb/lowpass,
         p->c_gain[i] = p->c_gain[i] * (FL(1.0) - p->g[i]);
         p->z[i] = FL(0.0);
 
-        auxalloc(csound, (long)(p->c_time[i] * sizeof(MYFLT)), &p->caux[i]);
+        csound->AuxAlloc(csound, (long)(p->c_time[i] * sizeof(MYFLT)), &p->caux[i]);
         p->cbuf_cur[i] = (MYFLT *)p->caux[i].auxp;
         for (n = 0; n < p->c_time[i]; n++)
           *(p->cbuf_cur[i] + n) = FL(0.0);
@@ -921,7 +921,7 @@ int nreverb_set(ENVIRON *csound, NREV *p)   /* 6-comb/lowpass,
         p->a_time[i] = (MYFLT)a_time;
         p->a_gain[i] = (MYFLT)exp((double)(LOG001 * (p->a_time[i]*onedsr) /
                                            (nga_gain * *p->time)));
-        auxalloc(csound, (long) p->a_time[i] * sizeof(MYFLT), &p->aaux[i]);
+        csound->AuxAlloc(csound, (long) p->a_time[i] * sizeof(MYFLT), &p->aaux[i]);
         p->abuf_cur[i] = (MYFLT *)p->aaux[i].auxp;
       }
     }
@@ -1071,7 +1071,7 @@ int reverbx_set(ENVIRON *csound, NREV2 *p)
       FUNC *ftCombs;
       p->numCombs = (int)*p->inumCombs;
       /* Get user-defined set of comb constants from table */
-      if ((ftCombs = ftfind(csound, p->ifnCombs)) == NULL)
+      if ((ftCombs = csound->FTFind(csound, p->ifnCombs)) == NULL)
         return NOTOK;
       if (ftCombs->flen < p->numCombs * 2) {
         sprintf(errmsg,
@@ -1085,7 +1085,7 @@ int reverbx_set(ENVIRON *csound, NREV2 *p)
     }
     /* Alloc a single block and get arrays of comb pointers from that */
     cmbAllocSize = p->numCombs * sizeof(MYFLT);
-    auxalloc(csound, 4 * cmbAllocSize + 2 * (p->numCombs+1)*sizeof(MYFLT*),
+    csound->AuxAlloc(csound, 4 * cmbAllocSize + 2 * (p->numCombs+1)*sizeof(MYFLT*),
              &p->caux2);
     p->c_time = (MYFLT*)p->caux2.auxp;
     p->c_gain = (MYFLT*)((char*)p->caux2.auxp + 1 * cmbAllocSize);
@@ -1104,7 +1104,7 @@ int reverbx_set(ENVIRON *csound, NREV2 *p)
     else {    /* Have user-defined set of alpas constants */
       FUNC *ftAlpas;
       p->numAlpas = (int)*p->inumAlpas;
-      if ((ftAlpas = ftfind(csound, p->ifnAlpas)) == NULL)
+      if ((ftAlpas = csound->FTFind(csound, p->ifnAlpas)) == NULL)
         return NOTOK;
       if (ftAlpas->flen < p->numAlpas * 2) {
         sprintf(errmsg,
@@ -1118,7 +1118,7 @@ int reverbx_set(ENVIRON *csound, NREV2 *p)
     }
     /* Dynamic alloc of alpass space */
     alpAllocSize = p->numAlpas * sizeof(MYFLT);
-    auxalloc(csound, 2 * alpAllocSize + 2 * (p->numAlpas +1) * sizeof(MYFLT*),
+    csound->AuxAlloc(csound, 2 * alpAllocSize + 2 * (p->numAlpas +1) * sizeof(MYFLT*),
              &p->aaux2);
     p->a_time = (MYFLT*)p->aaux2.auxp;
     p->a_gain = (MYFLT*)((char*)p->aaux2.auxp + 1 * alpAllocSize);
@@ -1128,7 +1128,7 @@ int reverbx_set(ENVIRON *csound, NREV2 *p)
 
     /* Init variables */
     if (*p->istor == 0.0f || p->temp.auxp == NULL) {
-      auxalloc(csound, ksmps * sizeof(MYFLT), &p->temp);
+      csound->AuxAlloc(csound, ksmps * sizeof(MYFLT), &p->temp);
       temp = (MYFLT *)p->temp.auxp;
       for (n = 0; n < ksmps; n++)
         *temp++ = 0.0f;
@@ -1158,7 +1158,7 @@ int reverbx_set(ENVIRON *csound, NREV2 *p)
         p->c_gain[i] = p->c_gain[i] * (FL(1.0) - p->g[i]);
         p->z[i] = FL(0.0);
       }
-      auxalloc(csound, n * sizeof(MYFLT), &p->caux);
+      csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->caux);
       for (i = 0; i < n; i++) {
         ((MYFLT*)(p->caux.auxp))[i] = FL(0.0);
       }
@@ -1184,7 +1184,7 @@ int reverbx_set(ENVIRON *csound, NREV2 *p)
                                            (p->a_orggains[i] * *p->time)));
         n += a_time;
       }
-      auxalloc(csound, n * sizeof(MYFLT), &p->aaux);
+      csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aaux);
       for (i = 0; i < n; i++) {
         ((MYFLT*)(p->aaux.auxp))[i] = FL(0.0);
       }
@@ -1292,3 +1292,4 @@ int reverbx(ENVIRON *csound, NREV2 *p)
     }
     return OK;
 }
+

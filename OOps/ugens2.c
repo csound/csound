@@ -128,7 +128,7 @@ int phsor(ENVIRON *csound, PHSOR *p)
 
 int itblchk(ENVIRON *csound, TABLE *p)
 {
-    if ((p->ftp = ftfind(csound, p->xfn)) == NULL)
+    if ((p->ftp = csound->FTFind(csound, p->xfn)) == NULL)
       return NOTOK;
 
     /* Although TABLE has an integer variable for the table number
@@ -873,7 +873,7 @@ int ko1set(ENVIRON *csound, OSCIL1 *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = ftfind(csound, p->ifn)) == NULL)
+    if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
       return NOTOK;
     if (*p->idur <= FL(0.0)) {
       if (O.msglevel & WARNMSG)
@@ -946,7 +946,7 @@ int oscnset(ENVIRON *csound, OSCILN *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = ftfind(csound, p->ifn)) != NULL) {
+    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) {
       p->ftp = ftp;
       p->inc = ftp->flen * *p->ifrq * onedsr;
       p->index = FL(0.0);
@@ -998,7 +998,7 @@ int oscset(ENVIRON *csound, OSC *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = ftfind(csound, p->ifn)) != NULL) {
+    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) {
       p->ftp = ftp;
       if (*p->iphs >= 0)
         p->lphs = ((long)(*p->iphs * FMAXLEN)) & PHMASK;

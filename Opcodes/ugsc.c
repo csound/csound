@@ -312,8 +312,8 @@ int phaser1set(ENVIRON *csound, PHASER1 *p)
     int j;
     int loop = (int) (*p->iorder + FL(0.5));
     if (!(*p->istor) || p->auxx.auxp == NULL || p->auxy.auxp == NULL) {
-      auxalloc(csound, (long)loop*sizeof(MYFLT), &p->auxx);
-      auxalloc(csound, (long)loop*sizeof(MYFLT), &p->auxy);
+      csound->AuxAlloc(csound, (long)loop*sizeof(MYFLT), &p->auxx);
+      csound->AuxAlloc(csound, (long)loop*sizeof(MYFLT), &p->auxy);
       p->xnm1 = (MYFLT *) p->auxx.auxp;
       p->ynm1 = (MYFLT *) p->auxy.auxp;
       for (j=0; j< loop; j++)
@@ -323,14 +323,14 @@ int phaser1set(ENVIRON *csound, PHASER1 *p)
                                 /* Existing arrays too small so copy */
       AUXCH tmp1, tmp2;
       tmp1.auxp = tmp2.auxp = NULL;
-      auxalloc(csound, (long)loop*sizeof(MYFLT), &tmp1);
-      auxalloc(csound, (long)loop*sizeof(MYFLT), &tmp2);
+      csound->AuxAlloc(csound, (long)loop*sizeof(MYFLT), &tmp1);
+      csound->AuxAlloc(csound, (long)loop*sizeof(MYFLT), &tmp2);
       for (j=0; j< loop; j++) {
         ((MYFLT*)tmp1.auxp)[j] = p->xnm1[j];
         ((MYFLT*)tmp2.auxp)[j] = p->ynm1[j];
       }
-      mfree(csound, p->auxx.auxp);      /* and fiddle it */
-      mfree(csound, p->auxy.auxp);
+      csound->Free(csound, p->auxx.auxp);       /* and fiddle it */
+      csound->Free(csound, p->auxy.auxp);
       p->auxx = tmp1;
       p->auxy = tmp2;
       p->xnm1 = (MYFLT *) p->auxx.auxp;
@@ -396,8 +396,8 @@ int phaser2set(ENVIRON *csound, PHASER2 *p)
     }
 
     loop = p->loop = (int) (*p->order + FL(0.5));
-    auxalloc(csound, (long)loop*sizeof(MYFLT), &p->aux1);
-    auxalloc(csound, (long)loop*sizeof(MYFLT), &p->aux2);
+    csound->AuxAlloc(csound, (long)loop*sizeof(MYFLT), &p->aux1);
+    csound->AuxAlloc(csound, (long)loop*sizeof(MYFLT), &p->aux2);
     p->nm1 = (MYFLT *) p->aux1.auxp;
     p->nm2 = (MYFLT *) p->aux2.auxp;
     for (j=0; j< loop; j++)

@@ -458,7 +458,7 @@ int ftlptim(ENVIRON *csound, EVAL *p)
 int numsamp(ENVIRON *csound, EVAL *p)           /***** nsamp by G.Maldonado ****/
 {
     FUNC        *ftp;
-    if ((ftp = ftfind(csound, p->a)) != NULL)
+    if ((ftp = csound->FTFind(csound, p->a)) != NULL)
       *p->r = (MYFLT) ftp->soundend;
     else
       *p->r = FL(0.0);
@@ -468,7 +468,7 @@ int numsamp(ENVIRON *csound, EVAL *p)           /***** nsamp by G.Maldonado ****
 int ftsr(ENVIRON *csound, EVAL *p)              /**** ftsr by G.Maldonado ****/
 {
     FUNC        *ftp;
-    if ((ftp = ftfind(csound, p->a)) != NULL)
+    if ((ftp = csound->FTFind(csound, p->a)) != NULL)
       *p->r = ftp->gen01args.sample_rate;
     else
       *p->r = FL(0.0);
@@ -565,7 +565,7 @@ int cpsxpch(ENVIRON *csound, XENH *p)
     }
     else {                      /* Values in a table */
       MYFLT t = - *p->et;
-      FUNC* ftp = ftfind(csound, &t);
+      FUNC* ftp = csound->FTFind(csound, &t);
       long len;
       if (ftp == NULL) {
         sprintf(errmsg, Str("No tuning table %d\n"), (int)(- *p->et));
@@ -594,7 +594,7 @@ int cps2pch(ENVIRON *csound, XENH *p)
     }
     else {
       MYFLT t = - *p->et;
-      FUNC* ftp = ftfind(csound, &t);
+      FUNC* ftp = csound->FTFind(csound, &t);
       long len;
       if (ftp == NULL) {
         sprintf(errmsg,Str("No tuning table %d\n"), (int)(- *p->et));
@@ -622,7 +622,7 @@ int cpstun_i(ENVIRON *csound, CPSTUNI *p)
     int numgrades;
     int basekeymidi;
     MYFLT basefreq, factor,interval;
-    if ((ftp = ftfind(csound, p->tablenum)) == NULL) {
+    if ((ftp = csound->FTFind(csound, p->tablenum)) == NULL) {
       return perferror(Str("cpstun: invalid table"));
     }
     func = ftp->ftable;
@@ -656,7 +656,7 @@ int cpstun(ENVIRON *csound, CPSTUN *p)
       int numgrades;
       int basekeymidi;
       MYFLT basefreq, factor,interval;
-      if ((ftp = ftfind(csound, p->tablenum)) == NULL) {
+      if ((ftp = csound->FTFind(csound, p->tablenum)) == NULL) {
         return perferror(Str("cpstun: invalid table"));
       }
       func = ftp->ftable;

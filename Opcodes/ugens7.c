@@ -33,8 +33,8 @@ static   int    newpulse(ENVIRON *, FOFS *, OVRLAP *, MYFLT *, MYFLT *, MYFLT *)
 static int fofset0(ENVIRON *csound, FOFS *p, int flag)
 {
     int skip = (*p->iskip != FL(0.0) && p->auxch.auxp != 0);
-    if ((p->ftp1 = ftfind(csound, p->ifna)) != NULL &&
-        (p->ftp2 = ftfind(csound, p->ifnb)) != NULL) {
+    if ((p->ftp1 = csound->FTFind(csound, p->ifna)) != NULL &&
+        (p->ftp2 = csound->FTFind(csound, p->ifnb)) != NULL) {
       OVRLAP *ovp, *nxtovp;
       long   olaps;
       p->durtogo = (long)(*p->itotdur * esr);
@@ -46,7 +46,7 @@ static int fofset0(ENVIRON *csound, FOFS *p, int flag)
           return initerror(Str("illegal value for iolaps"));
         }
         if (*p->iphs >= FL(0.0))
-          auxalloc(csound, (long)olaps * sizeof(OVRLAP), &p->auxch);
+          csound->AuxAlloc(csound, (long)olaps * sizeof(OVRLAP), &p->auxch);
         ovp = &p->basovrlap;
         nxtovp = (OVRLAP *) p->auxch.auxp;
         do {
@@ -254,7 +254,7 @@ int harmset(ENVIRON *csound, HARMON *p)
       long nbufsmps = nbufs * ksmps;
       long maxprd = (long)(esr / minfrq);
       long totalsiz = nbufsmps * 5 + maxprd; /* Surely 5! not 4 */
-      auxalloc(csound, (long)totalsiz * sizeof(MYFLT), &p->auxch);
+      csound->AuxAlloc(csound, (long)totalsiz * sizeof(MYFLT), &p->auxch);
       p->bufp = (MYFLT *) p->auxch.auxp;
       p->midp = p->bufp + nbufsmps;        /* each >= maxprd * 3 */
       p->bufq = p->midp + nbufsmps;

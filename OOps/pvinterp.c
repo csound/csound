@@ -57,7 +57,7 @@ int pvbufreadset(ENVIRON *csound, PVBUFREAD *p)
 
     if (p->auxch.auxp == NULL) {              /* if no buffers yet, alloc now */
       MYFLT *fltp;
-      auxalloc(csound, (long)(PVDATASIZE + PVFFTSIZE*3 + PVWINLEN) * sizeof(MYFLT),
+      csound->AuxAlloc(csound, (long)(PVDATASIZE + PVFFTSIZE*3 + PVWINLEN) * sizeof(MYFLT),
                &p->auxch);
       fltp = (MYFLT *) p->auxch.auxp;
       p->lastPhase = fltp;   fltp += PVDATASIZE;    /* and insert addresses */
@@ -178,7 +178,7 @@ int pvinterpset(ENVIRON *csound, PVINTERP *p)
 
     if (p->auxch.auxp == NULL) {              /* if no buffers yet, alloc now */
       MYFLT *fltp;
-      auxalloc(csound, (long)(PVDATASIZE + PVFFTSIZE*3 + PVWINLEN) * sizeof(MYFLT),
+      csound->AuxAlloc(csound, (long)(PVDATASIZE + PVFFTSIZE*3 + PVWINLEN) * sizeof(MYFLT),
                &p->auxch);
       fltp = (MYFLT *) p->auxch.auxp;
       p->lastPhase = fltp;   fltp += PVDATASIZE;    /* and insert addresses */
@@ -374,7 +374,7 @@ int pvcrossset(ENVIRON *csound, PVCROSS *p)
 
     if (p->auxch.auxp == NULL) {              /* if no buffers yet, alloc now */
         MYFLT *fltp;
-        auxalloc(csound, (long)(PVDATASIZE + PVFFTSIZE*3 + PVWINLEN) * sizeof(MYFLT),
+        csound->AuxAlloc(csound, (long)(PVDATASIZE + PVFFTSIZE*3 + PVWINLEN) * sizeof(MYFLT),
                  &p->auxch);
         fltp = (MYFLT *) p->auxch.auxp;
         p->lastPhase = fltp;   fltp += PVDATASIZE;    /* and insert addresses */

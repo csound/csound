@@ -131,7 +131,7 @@ static int freeverb_init(ENVIRON *csound, FREEVERB *p)
     nbytes += (int) sizeof(MYFLT) * (int) csound->ksmps_;
     /* allocate space if size has changed */
     if (nbytes != (int) p->auxData.size)
-      auxalloc(csound, (long) nbytes, &(p->auxData));
+      csound->AuxAlloc(csound, (long) nbytes, &(p->auxData));
     else if (*(p->iSkipInit) != FL(0.0))    /* skip initialisation */
       return OK;                            /*   if requested      */
     /* set up comb and allpass filters */

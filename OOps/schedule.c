@@ -243,7 +243,7 @@ int lfoset(ENVIRON *csound, LFO *p)
     if (type == 0) {            /* Sine wave so need to create */
       int i;
       if (p->auxd.auxp==NULL) {
-        auxalloc(csound, sizeof(MYFLT)*4097L, &p->auxd);
+        csound->AuxAlloc(csound, sizeof(MYFLT)*4097L, &p->auxd);
         p->sine = (MYFLT*)p->auxd.auxp;
       }
       for (i=0; i<4096; i++)
@@ -495,7 +495,7 @@ int ktriginstr(ENVIRON *csound, TRIGINSTR *p)
 int trigseq_set(ENVIRON *csound, TRIGSEQ *p)     /* by G.Maldonado */
 {
     FUNC *ftp;
-    if ((ftp = ftfind(csound, p->kfn)) == NULL) {
+    if ((ftp = csound->FTFind(csound, p->kfn)) == NULL) {
       return initerror(Str("trigseq: incorrect table number"));
     }
     p->done=0;
