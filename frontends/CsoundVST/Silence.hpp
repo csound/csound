@@ -1,4 +1,4 @@
-/**
+/*
 * C S O U N D   V S T 
 *
 * A VST plugin version of Csound, with Python scripting.
