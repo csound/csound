@@ -28,7 +28,6 @@
 #undef esr_
 #undef ekr_
 #undef nchnls_
-#undef e0dbfs_
 #undef reset_list
 #undef strsets
 #undef strsmax
@@ -103,7 +102,6 @@
 #define esr_                csound->esr
 #define ekr_                csound->ekr
 #define nchnls_             csound->nchnls
-#define e0dbfs_             csound->e0dbfs
 #define reset_list          csound->reset_list_
 #define strsets             csound->strsets_
 #define strsmax             csound->strsmax_
