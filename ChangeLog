@@ -1,3 +1,9 @@
+2004-07-11  Michael Gogins <gogins@pipeline.com>
+
+	* Added vst4cs plugin opcode by Andres Cabrera for hosting VST plugins
+	  in Csound. Made a number of bug fixes and changes. More changes coming.
+	  This is alpha code. Currently building only on mingw.
+
 2004-07-09  John ffitch  <jpff@codemist.co.uk>
 
 	* Engine/musmon.c (playevents): matt's suggestion to avoid missing
