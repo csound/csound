@@ -273,7 +273,7 @@ top:
         int old = str-inputs;
         input_size += 20;
 /*         printf("Expanding includes to %d\n", input_size); */
-        inputs = realloc(inputs, input_size*sizeof(struct in_stack));
+        inputs = mrealloc(inputs, input_size*sizeof(struct in_stack));
         if (inputs == NULL) {
           printf(Str("No space for include files"));
           longjmp(cenviron.exitjmp_,1);
@@ -449,7 +449,7 @@ top:
           int old = str-inputs;
 /*           printf("Expanding includes to %d\n", input_size+20); */
           input_size += 20;
-          inputs = realloc(inputs, input_size*sizeof(struct in_stack));
+          inputs = mrealloc(inputs, input_size*sizeof(struct in_stack));
           if (inputs == NULL) {
             printf(Str("No space for include files"));
             longjmp(cenviron.exitjmp_,1);
@@ -586,7 +586,7 @@ static int do_repeat(void)      /* At end of section repeat if necessary */
 
 void sread_init(void)
 {
-    inputs = (struct in_stack*)malloc(20*sizeof(struct in_stack));
+    inputs = (struct in_stack*)mmalloc(20*sizeof(struct in_stack));
     input_size = 20;
     input_cnt = 0;
     str = inputs;
@@ -883,7 +883,7 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
               int old = str-inputs;
               input_size += 20;
 /*               printf("Expanding includes to %d\n", input_size); */
-              inputs = realloc(inputs, input_size*sizeof(struct in_stack));
+              inputs = mrealloc(inputs, input_size*sizeof(struct in_stack));
               if (inputs == NULL) {
                 printf(Str("No space for include files"));
                 longjmp(cenviron.exitjmp_,1);
@@ -1314,7 +1314,7 @@ static int sget1(void)          /* get first non-white, non-comment char */
             mm->arg[arg] = mmalloc(i+1);
             strcpy(mm->arg[arg++], mname);
             if (arg>=mm->margs) {
-              mm = (MACRO*)realloc(mm, sizeof(MACRO)+mm->margs*sizeof(char*));
+              mm = (MACRO*)mrealloc(mm, sizeof(MACRO)+mm->margs*sizeof(char*));
               mm->margs += MARGS;
             }
             while (isspace(c)) c = getscochar(1);
@@ -1369,7 +1369,7 @@ static int sget1(void)          /* get first non-white, non-comment char */
           int old = str-inputs;
           input_size += 20;
 /*           printf("Expanding includes to %d\n", input_size); */
-          inputs = realloc(inputs, input_size*sizeof(struct in_stack));
+          inputs = mrealloc(inputs, input_size*sizeof(struct in_stack));
           if (inputs == NULL) {
             printf(Str("No space for include files"));
             longjmp(cenviron.exitjmp_,1);
