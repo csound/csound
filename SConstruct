@@ -591,7 +591,7 @@ else:
     refmanTex = commonEnvironment.Command('doc/latex/refman.tex', 'Doxyfile', ['doxygen $SOURCE'])
     Depends(refmanTex, staticLibrary)
     zipDependencies.append(refmanTex)
-    csoundPdf = commonEnvironment.Command('refman.pdf', 'doc/latex/refman.tex', ['pdflatex --include-directory=doc/latex --interaction=nonstopmode --job-name=csound' + '-' + str(today()) + ' $SOURCE'])
+    csoundPdf = commonEnvironment.Command('refman.pdf', 'doc/latex/refman.tex', ['pdflatex --include-directory=doc/latex --interaction=nonstopmode --job-name=CsoundAPI $SOURCE'])
     Depends(csoundPdf, refmanTex)
     zipDependencies.append(csoundPdf)
     
