@@ -35,7 +35,7 @@ int flwset(FOL *p)
     p->wgh = p->max = FL(0.0);
     p->length = (long)(*p->len * esr_);
     if (p->length<=0L) {           /* RWD's suggestion */
-      if (O.msglevel & WARNMSG)
+      if (oparms_->msglevel & WARNMSG)
         printf(Str(X_549,"WARNING: follow - zero length!\n"));
       p->length = (long)esr_;
     }

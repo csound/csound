@@ -25,8 +25,6 @@
 #include "soundio.h"
 #include <ctype.h>              /* For isdigit */
 
-MYFLT e0dbfs;
-
 extern void remove_tmpfiles(void);      /* IV - Oct 31 2002 */
 extern void add_tmpfile(char*);
 

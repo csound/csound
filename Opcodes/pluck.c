@@ -37,7 +37,7 @@
 #include "pluck.h"
 
 /* external prototypes */
-void error(const char*, const char*);
+static void error(const char*, const char*);
 static void pluckSetFilters(WGPLUCK*, MYFLT, MYFLT);
 static MYFLT *pluckShape(WGPLUCK*);    /* pluck shape function */
 
@@ -469,10 +469,10 @@ void waveguideSetTuning(waveguide* wg, MYFLT df)
 }
 
 /* error -- report errors */
-void error(const char* a, const char* b)
+static void error(const char* a, const char* b)
 {
     printf(Str(X_259,"Error:%s,%s\n"),a,b);
-    longjmp(cglob.exitjmp,1);
+    longjmp(pcglob->exitjmp,1);
 }
 
 #define S       sizeof

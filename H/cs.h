@@ -592,8 +592,11 @@ typedef struct GLOBALS_
   void (*die)(char *);
   FUNC *(*ftfind)(MYFLT *);
   int (*initerror)(char *);
+  int (*perferror)(char *);
   void *(*mmalloc)(long);
   void (*mfree)(void *);
+  void (*dispset)(WINDAT *, MYFLT *, long, char *, int, char *);
+  void (*display)(WINDAT *);
   /* End of internals */
   int           ksmps, nchnls;
   int           global_ksmps;
@@ -601,6 +604,7 @@ typedef struct GLOBALS_
   MYFLT         global_hfkprd, global_kicvt;  long          global_kcounter;
   MYFLT         esr, ekr;
   char          *orchname, *scorename, *xfilename;
+  MYFLT 	e0dbfs;
   /* oload.h */
   RESETTER      *reset_list;
   short         nlabels;
@@ -752,6 +756,7 @@ typedef struct GLOBALS_
 #define orchname cglob.orchname
 #define scorename cglob.scorename
 #define xfilename cglob.xfilename
+#define e0dbfs cglob.e0dbfs
 #define instrtxtp cglob.instrtxtp
 #define errmsg  cglob.errmsg
 #define scfp    cglob.scfp

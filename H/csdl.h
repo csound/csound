@@ -79,6 +79,7 @@ GLOBALS *pcglob;
 #undef orchname
 #undef scorename
 #undef xfilename
+#undef e0dbfs
 #undef instrtxtp
 #undef errmsg
 #undef scfp
@@ -225,8 +226,11 @@ GLOBALS *pcglob;
 #define die pcglob->die
 #define ftfind pcglob->ftfind
 #define initerror pcglob->initerror
+#define perrerror pcglob->perferror
 #define mmalloc pcglob->mmalloc
 #define mfree pcglob->mfree
+#define dispset pcglob->dispset
+#define display pcglob->display
 
 #define ksmps_  pcglob->ksmps
 #define esr_    pcglob->esr
@@ -282,6 +286,7 @@ GLOBALS *pcglob;
 #define orchname pcglob->orchname
 #define scorename pcglob->scorename
 #define xfilename pcglob->xfilename
+#define e0dbfs pcglob->e0dbfs
 #define instrtxtp pcglob->instrtxtp
 #define errmsg  pcglob->errmsg
 #define scfp    pcglob->scfp

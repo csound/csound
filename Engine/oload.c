@@ -108,8 +108,11 @@ char *getstring(int, char*);
 void die(char *);
 FUNC *ftfind(MYFLT *);
 int initerror(char *);
+int perferror(char *);
 void *mmalloc(long);
 void mfree(void *);
+void dispset(WINDAT *, MYFLT *, long, char *, int, char *);
+void display(WINDAT *);
 
 static  MYFLT   *gbloffbas;
 
@@ -196,8 +199,11 @@ GLOBALS cglob_ = {
         die,
         ftfind,
         initerror,
+        perferror,
         mmalloc,
         mfree,
+        dispset,
+        display,
         /*
         * Data fields.
         */
@@ -213,6 +219,7 @@ GLOBALS cglob_ = {
         FL(0.0),      /*      esr */
         FL(0.0),      /*      ekr */
         NULL, NULL, NULL,     /* orchname, scorename, xfilename */
+        DFLT_DBFS,    /*	e0dbfs */
         NULL,         /*      reset_list */
         NLABELS,      /*      nlabels */
         NGOTOS,       /*      ngotos */

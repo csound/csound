@@ -77,8 +77,6 @@ inputs mixin[NUMBER_OF_FILES];
 int outputs = 0;
 int debug   = 0;
 
-MYFLT e0dbfs = DFLT_DBFS;
-
 /* Static function prototypes */
 
 static void InitScaleTable(int);

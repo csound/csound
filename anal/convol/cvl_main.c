@@ -2,7 +2,6 @@
 #include "cs.h"
 #include "ustub.h"
 
-MYFLT e0dbfs = DFLT_DBFS;
 #ifdef HAVE_FLTK
 int fltk_abort = 0;
 #endif

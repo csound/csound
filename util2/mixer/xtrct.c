@@ -60,8 +60,6 @@ int	    outputs;	    /* Number of out chanels */
 
 SOUNDIN *   p;              /* Csound structure */
 
-MYFLT e0dbfs = DFLT_DBFS;
-
 int debug   = 0;
 
 /* Static function prototypes */
