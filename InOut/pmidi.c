@@ -66,6 +66,7 @@ void OpenMIDIDevice(void)
     int devnum = atoi(O.Midiname);
     int cntdev = Pm_CountDevices();
     PmEvent buffer;
+    PmError retval;
 
     if (not_started) {
       Pm_Initialize();
@@ -86,12 +87,18 @@ void OpenMIDIDevice(void)
         printf("\n");
       }
     }
-    Pm_OpenInput(&midistream, 
+    
+    retval = Pm_OpenInput(&midistream, 
                  atoi(O.Midiname),             /* Device number */
                  NULL, 
                  MBUFSIZ, 
                  ((long (*)(void *)) Pt_Time), 
                  NULL);
+    
+    if(retval != 0) {
+    	printf("PortMIDI Error: %s\n", Pm_GetErrorText(retval));
+    }
+    
     Pm_SetFilter(midistream, PM_FILT_ACTIVE | PM_FILT_CLOCK);
     while (Pm_Poll(midistream)) { /* empty the buffer after setting filter */
       Pm_Read(midistream, &buffer, 1);
@@ -116,7 +123,7 @@ long GetMIDIData(void)
     else {
       int retval;
       if ((retval=Pm_Poll(midistream))) {
-        if (retval<0) printf(Str(X_1185,"sensMIDI: retval errno %d"), errno);
+        if (retval<0) printf(Str(X_1185,"sensMIDI: retval errno %d\n"), errno);
         if (retval == 0) {
           long n = Pm_Read(midistream, bufp, MBUFSIZ);
           bufp = mbuf;
@@ -124,7 +131,7 @@ long GetMIDIData(void)
           return n;
         }
         else {
-          printf(Str(X_1185,"sensMIDI: retval errno %d"),errno);
+          printf(Str(X_1185,"sensMIDI: retval errno %d\n"),errno);
         }
       }
       return 0;
