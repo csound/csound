@@ -31,7 +31,7 @@ random.setElement(8, 11, 1)
 rescale = CsoundVST.Rescale()
 rescale.setRescale(0, 1, 1,  0,     300)
 rescale.setRescale(1, 1, 1,  2.75,    4)
-rescale.setRescale(3, 1, 1,  4,      12)
+rescale.setRescale(3, 1, 1,  5,      12)
 rescale.setRescale(4, 1, 1, 33,      60)
 rescale.setRescale(5, 1, 1, 65,      16)
 rescale.setRescale(7, 1, 1, -0.5,     1)
@@ -42,10 +42,11 @@ rescale.addChild(random)
 model.addChild(rescale)
 filename = csound.getFilename();
 print 'Filename:', filename
-csound.load("c:/projects/csound5/examples/CsoundVST.csd")
+csound.load("c:/utah/home/mkg/projects/csound5/examples/CsoundVST.csd")
 csound.setFilename(filename);
 csound.setCommand("csound -RWdfo " + filename + ".wav " + filename + ".orc " + filename + ".sco")
 model.render()
+
 
 
 
