@@ -121,7 +121,7 @@ static void chartran(MYFLT *, int),
 int writebuffer(MYFLT *, int);
 /* Static global variables */
 static unsigned outbufsiz;
-//static MFLT     *outbuf;
+/*static MFLT     *outbuf; */
 static char     *choutbuf;               /* char  pntr to above  */
 static short    *shoutbuf;               /* short pntr           */
 static long     *lloutbuf;               /* long  pntr           */

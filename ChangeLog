@@ -1,9 +1,9 @@
 2004-05-16  Michael Gogins <gogins@pipeline.com>
-    
-    * Amended SConstruct to keep a list of all dependencies to make sure
-    that zipfiles get built at the very end.
-    
-    * Updated csound.pdf with information about -odac:xxx on ALSA.
+
+	* Amended SConstruct to keep a list of all dependencies to make
+	sure that zipfiles get built at the very end.
+
+	* Updated csound.pdf with information about -odac:xxx on ALSA.
 
 2004-05-20  John ffitch  <jpff@codemist.co.uk>
 
