@@ -32,7 +32,7 @@
 typedef struct {
   OPDS          h;
   MYFLT         *r1, *r2, *r3, *r4;
-  MYFLT         *ifilno, *ktransp, *iskptim, *ilooping, *iformat;
+  MYFLT         *ifilno, *ktransp, *iskptim, *ilooping, *iformat, *skipinit;
   short         format, channel, nchanls, sampframsiz, filetyp;
   short         analonly, endfile, begfile;
   long          sr, audrem, audsize;
