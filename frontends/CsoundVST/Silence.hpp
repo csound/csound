@@ -61,7 +61,7 @@
 #include "CsoundFile.hpp"
 #include "CppSound.hpp"
 #include "Event.hpp"
-#include "MidiFile.hpp"
+#include "Midifile.hpp"
 #include "Score.hpp"
 #include "Composition.hpp"
 #include "Node.hpp"

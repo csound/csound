@@ -19,6 +19,10 @@
 * License along with this software; if not, write to the Free Software
 * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+#if defined(HAVE_CONFIG_H)
+#include "config.h"
+#endif
+
 #include "CsoundVST.hpp"
 
 static AudioEffect *effect = 0;
@@ -32,7 +36,8 @@ bool oome = false;
 #if __GNUC__ && (WIN32||BEOS)
 #define main main_plugin
 extern "C" __declspec(dllexport) AEffect *main_plugin (audioMasterCallback audioMaster);
-
+#elif defined(LINUX)
+#define main main_plugin
 #else
 AEffect *main (audioMasterCallback audioMaster);
 #endif

@@ -19,12 +19,16 @@
 * License along with this software; if not, write to the Free Software
 * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-#include <FL/Fl_File_Chooser.H>
-#include <FL/x.H>
-#include <Python.h>
+#if defined(HAVE_CONFIG_H)
+#include "config.h"
+#endif
+
 #include "CsoundVstFltk.hpp"
 #include "CsoundVST.hpp"
 #include "System.hpp"
+#include <FL/Fl_File_Chooser.H>
+#include <FL/x.H>
+#include <Python.h>
 #include <algorithm>
 
 static std::string about = 
@@ -236,7 +240,9 @@ long CsoundVstFltk::open(void *parentWindow)
 		if(csoundVST->getIsVst())
 		{
 			//this->csoundVstUi->make_current();
+#if defined(WIN32)
 			SetParent((HWND) fl_xid(this->csoundVstUi), (HWND) parentWindow);
+#endif
 			this->csoundVstUi->position(0, 0);
 		}
 		this->aboutTextBuffer->text(removeCarriageReturns(about));
