@@ -35,6 +35,7 @@
 
 #include "csdl.h"
 #include "singwave.h"
+#include "moog1.h"
 
 void OneZero_setCoeff(OneZero*, MYFLT);
 MYFLT Wave_tick(MYFLT *, int len, MYFLT *, MYFLT, MYFLT);
