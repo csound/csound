@@ -1,3 +1,10 @@
+2005-01-29	Istvan Varga	<istvan@csounds.com>
+	* H/csound.h, H/csoundCore.h:
+	* Engine/namedins.c, Engine/oload.c, Top/csound.c:
+	  new function: csoundQueryGlobalVariableNoCheck()
+	  functions moved from csound.c to namedins.c
+	* OOps/aops.c: use csoundQueryGlobalVariableNoCheck()
+
 2005-01-28	Istvan Varga	<istvan@csounds.com>
 	* H/csoundCore.h, Engine/oload.c:
 	  added void **namedGlobals, int namedGlobalsCurrLimit, and

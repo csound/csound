@@ -859,6 +859,14 @@ typedef struct RTCLOCK_S {
    */
   PUBLIC int csoundDestroyGlobalVariable(void *csound, const char *name);
 
+ /**
+  * This function is the same as csoundQueryGlobalVariable(), except the
+  * variable is assumed to exist and no error checking is done.
+  * Faster, but may crash or return an invalid pointer if 'name' is
+  * not defined.
+  */
+  PUBLIC void *csoundQueryGlobalVariableNoCheck(void *csound, const char *name);
+
 #ifdef __cplusplus
 };
 #endif /* __cplusplus */

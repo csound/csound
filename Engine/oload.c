@@ -206,6 +206,7 @@ ENVIRON cenviron_ = {
         csoundLocalizeString,
         csoundCreateGlobalVariable,
         csoundQueryGlobalVariable,
+        csoundQueryGlobalVariableNoCheck,
         csoundDestroyGlobalVariable,
         /*
         * Data fields.
