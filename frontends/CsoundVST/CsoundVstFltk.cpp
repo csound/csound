@@ -60,7 +60,7 @@ static std::string about =
 "\n"
 "For more information and documentation on Csound visit http://csounds.com. \n"
 "This version of Csound is programmable in Python, and scores can be \n"
-"generated in Python. See csound.py for more information. \n"
+"generated in Python. See the Csound documentation for more information. \n"
 "\n"
 "CONTRIBUTORS \n"
 "\n"
