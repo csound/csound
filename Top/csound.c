@@ -380,7 +380,7 @@ int fltk_abort = 0;
   {
       va_list args;
       va_start(args, format);
-      vfprintf(stderr, format, args);
+      csoundMessageCallback_(0, format, args);
       va_end(args);
   }
 
