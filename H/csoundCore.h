@@ -727,7 +727,7 @@ typedef struct ENVIRON_
 #  define POLL_EVENTS()     (1)
 #endif
 
-#if !defined(__BEOS__) || defined(__MWERKS__)
+#if (!defined(__BEOS__) || defined(__MWERKS__)) && !defined(__CYGWIN__)
 #  define __cdecl
 #endif
 
