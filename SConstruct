@@ -125,8 +125,8 @@ else:
 
 if commonEnvironment['noCygwin'] and (sys.platform[:3] == 'win' or sys.platform == 'cygwin'):
     print 'Using -mno-cygwin.'
-    commonEnvironment.Append(CCFLAGS = ['-mno-cygwin'])
-    commonEnvironment.Append(CPPFLAGS = ['-mno-cygwin'])
+    commonEnvironment.Prepend(CCFLAGS = ['-mno-cygwin'])
+    commonEnvironment.Prepend(CPPFLAGS = ['-mno-cygwin'])
     commonEnvironment.Append(LIBS = ['m'])    
     
 # Check for prerequisites.
