@@ -119,8 +119,11 @@ int wguide1(WGUIDE1 *p)
     if (p->xdelcod) { /* delay changes at audio-rate */
       do {
         /*---------------- delay -----------------------*/
+        MYFLT fd = *freq_del++;
         buf[indx] = *in++ + (*yt1 * feedback);
-        fv1 = indx - (esr / *freq_del++); /* Make sure inside the buffer */
+        if (fd<FL(1.0)/MAXDELAY) /* Avoid silly values jpff */
+          fd = FL(1.0)/MAXDELAY;
+        fv1 = indx - (esr / fd); /* Make sure inside the buffer */
         while (fv1 < 0) {
           fv1 = fv1 + (MYFLT)maxd;
         }
@@ -134,8 +137,11 @@ int wguide1(WGUIDE1 *p)
     } else {
       do {
         /*---------------- delay -----------------------*/
+        MYFLT fd = *freq_del;
         buf[indx] = *in++ + (*yt1 * feedback);
-        fv1 = indx - (esr / *freq_del); /* Make sure inside the buffer */
+        if (fd<FL(1.0)/MAXDELAY) /* Avoid silly values jpff */
+          fd = FL(1.0)/MAXDELAY;
+        fv1 = indx - (esr / fd); /* Make sure inside the buffer */
         while (fv1 < 0) {
           fv1 = fv1 + (MYFLT)maxd;
         }
@@ -231,10 +237,16 @@ int wguide2(WGUIDE2 *p)
 
     if (p->xdel1cod) { /* delays change at audio-rate */
       do {
+        MYFLT fd1 = *freq_del1++;
+        MYFLT fd2 = *freq_del2++;
         buf1[indx1] = buf2[indx2] =
           *in++ + (*old_out * feedback1) + (*old_out * feedback2);
-        fv1_1 = indx1 - (esr / *freq_del1++); /*Make sure inside the buffer */
-        fv1_2 = indx2 - (esr / *freq_del2++); /* Make sure inside the buffer  */
+        if (fd1<FL(1.0)/MAXDELAY) /* Avoid silly values jpff */
+          fd1 = FL(1.0)/MAXDELAY;
+        if (fd2<FL(1.0)/MAXDELAY) /* Avoid silly values jpff */
+          fd2 = FL(1.0)/MAXDELAY;
+        fv1_1 = indx1 - (esr / fd1); /*Make sure inside the buffer */
+        fv1_2 = indx2 - (esr / fd2); /* Make sure inside the buffer  */
         while (fv1_1 < 0)    fv1_1 += maxd;
         while (fv1_2 < 0)    fv1_2 += maxd;
         fv2_1 = (fv1_1<maxdM1)?fv1_1+1:0; /*Find next sample for interpolation */
@@ -252,10 +264,16 @@ int wguide2(WGUIDE2 *p)
     }
     else {
       do {
+        MYFLT fd1 = *freq_del1;
+        MYFLT fd2 = *freq_del2;
         buf1[indx1] = buf2[indx2] =
           *in++ + (*old_out * feedback1) + (*old_out * feedback2);
-        fv1_1 = indx1 - (esr / *freq_del1); /*Make sure inside the buffer     */
-        fv1_2 = indx2 - (esr / *freq_del2); /*Make sure inside the buffer     */
+        if (fd1<FL(1.0)/MAXDELAY) /* Avoid silly values jpff */
+          fd1 = FL(1.0)/MAXDELAY;
+        if (fd2<FL(1.0)/MAXDELAY) /* Avoid silly values jpff */
+          fd2 = FL(1.0)/MAXDELAY;
+        fv1_1 = indx1 - (esr / fd1); /*Make sure inside the buffer     */
+        fv1_2 = indx2 - (esr / fd2); /*Make sure inside the buffer     */
         while (fv1_1 < 0)    fv1_1 += maxd;
         while (fv1_2 < 0)    fv1_2 += maxd;
         fv2_1 = (fv1_1<maxdM1)?fv1_1+1:0; /*Find next sample for interpolation */
