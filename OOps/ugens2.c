@@ -25,6 +25,9 @@
 #include "ugens2.h"
 #include <math.h>
 
+/* Macro form of Istvan's speedup */
+#define FLOOR(x) (x >= FL(0.0) ? (long) x : (long) ((double) x - 0.99999999))
+
 int phsset(ENVIRON *csound, PHSOR *p)
 {
     MYFLT       phs;
@@ -320,7 +323,7 @@ int ktable(ENVIRON *csound, TABLE  *p)
      * This is a problem, causes problems with negative numbers.
      *
      */
-    indx = (long) floor((double)ndx);
+     indx = (long) FLOOR((double)ndx);
 
     /* Now for "limit mode" - the "non-wrap" function, depending on
      * iwrap.
@@ -398,7 +401,7 @@ int tablefn(ENVIRON *csound, TABLE  *p)
        * the offset.  */
 
       ndx = (*pxndx++ * xbmul) + offset;
-      indx = (long) floor((double)ndx);
+      indx = (long) FLOOR((double)ndx);
 
       /* Limit = non-wrap.  Limits to 0 and (length - 1), or does the
        * wrap code.  See notes above in ktable().  */
@@ -450,7 +453,7 @@ int ktabli(ENVIRON *csound, TABLE  *p)
      * tblchk().  */
 
     ndx    = (ndx * p->xbmul) + p->offset;
-    indx = (long) floor((double)ndx);
+    indx = (long) FLOOR((double)ndx);
 
     /* We need to generate a fraction - How much above indx is ndx?
      * It will be between 0 and just below 1.0.  */
@@ -527,7 +530,7 @@ int ktabl3(ENVIRON *csound, TABLE  *p)
      * tblchk().  */
 
     ndx    = (ndx * p->xbmul) + p->offset;
-    indx = (long) floor((double)ndx);
+    indx = (long) FLOOR((double)ndx);
 
     /* We need to generate a fraction - How much above indx is ndx?
      * It will be between 0 and just below 1.0.  */
@@ -611,7 +614,7 @@ int tabli(ENVIRON *csound, TABLE  *p)
     long        indx, mask, length;
     int nsmps = ksmps;
     MYFLT       *rslt, *pxndx, *tab;
-    MYFLT       fract, v1, v2, ndx, xbmul, offset;
+    MYFLT       v1, v2, ndx, xbmul, offset;
 
     ftp = p->ftp;
     if (ftp==NULL) {
@@ -647,6 +650,7 @@ int tabli(ENVIRON *csound, TABLE  *p)
         }
         /* As for ktabli(), read two values and interpolate between
          * them.  */
+        fract = ndx - indx;
         v1 = *(tab + indx);
         v2 = *(tab + indx + 1);
         *rslt++ = v1 + (v2 - v1)*fract;
@@ -703,7 +707,7 @@ int tabl3(ENVIRON *csound, TABLE  *p)           /* Like tabli but cubic interpol
        * the offset.  */
 
       ndx = (*pxndx++ * xbmul) + offset;
-      indx = (long) floor((double)ndx);
+      indx = (long) FLOOR((double)ndx);
 
       /* We need to generate a fraction - How much above indx is ndx?
        * It will be between 0 and just below 1.0.  */
