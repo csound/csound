@@ -71,7 +71,7 @@ extern "C"
 	
 	int vstplug_init (void *data)
 	{
-		VSTPLUG *p = (VSTPLUG_ *)data;
+		VST_PLUGIN *p = (VST_PLUGIN *)data;
   		ENVIRON *csound = p->h.insdshead->csound;
   		*p->nsamps = csound->GetKsmps(csound);
   		//csound->Message(csound, "Number of ksmps: %i\n", int(p->nsamps));
@@ -80,7 +80,7 @@ extern "C"
 	
 	int vstplug (void *data)
 	{
-		VSTPLUG *p = (VSTPLUG_ *)data;
+		VST_PLUGIN *p = (VST_PLUGIN *)data;
 		size_t iVSThandle = (size_t) *p->iVSThandle;
 		MYFLT *aout1 = p->aout1;
 		MYFLT *aout2 = p->aout2;
@@ -163,7 +163,7 @@ extern "C"
 	
 	int outvst_init(void *data)
 	{
-		OUTVST *p = (OUTVST_ *)data;
+		OUTVST *p = (OUTVST *)data;
 		p->oldKstatus = 0.;
 		p->oldKchan = 0.;
 		p->oldKdata1 = 0.;
@@ -173,7 +173,7 @@ extern "C"
 	
 	int outvst (void *data)  //pensar en agregar un parametro 'trigger' o solo enviar cuando cambia
 	{
-		OUTVST *p = (OUTVST_ *)data;
+		OUTVST *p = (OUTVST *)data;
 		int iVSThandle = (int) *p->iVSThandle;
 		MYFLT kstatus = *p->kstatus;
 		MYFLT kchan = *p->kchan;
@@ -190,7 +190,6 @@ extern "C"
         p->oldKdata2 = kdata2;
 		switch (int(kstatus)) {
 		case 144: {  
-				//printf ("sending note on\n");
 				pluginInstances[iVSThandle]->AddNoteOn(kdata1, kdata2, kchan);
 			}
 			break;
@@ -299,7 +298,7 @@ extern "C"
     OENTRY vstOentry[] = { 
         {   "vstinit", sizeof (VSTINIT), 1, "i", "So", &vstinit, 0, 0, &vstinit_free },
 		{	"vstinfo", sizeof (VSTINFO), 1, "", "i", &vstinfo, 0, 0, 0},
-		{	"vstplug", sizeof (VSTPLUG), 5, "mm", "iaa", &vstplug_init, 0, &vstplug, 0},
+		{	"vstplug", sizeof (VST_PLUGIN), 3, "mm", "iaa", &vstplug_init, 0, &vstplug, 0},
 		/* TODO (#1#): Cambiar por parametros opcionales */
 		{	"vstnote", sizeof (VSTNOTE), 3, "", "kikkkk", &vstnote_init, &vstnote, 0, 0},
 		{	"vstout", sizeof (OUTVST), 3, "", "ikkkk", &outvst_init, &outvst, 0, 0},

@@ -93,7 +93,6 @@ bool VSTPlugin::AddNoteOn(MYFLT note, MYFLT speed, MYFLT midichannel)
 		vstMidiEvent.midiData[3] = 0;
 		vstMidiEventQueue.push_back(vstMidiEvent);
 		SendMidi();
-		//printf ("Note On\n");
 		return true;
 	}
 	else	
@@ -219,12 +218,12 @@ void VSTPlugin::Info (ENVIRON *csound)
 		char* str1=_sDllName;
 		strcpy(_sProductName,str1);
 	}
-	csound->Message(csound, "Plugin loaded:%s \n", _sProductName);
+	csound->Message(csound, "Plugin loaded: %s \n", _sProductName);
 	if (!pEffect->dispatcher(pEffect, effGetVendorString, 
         0, 0, &_sVendorName, 0.0f)) {
 		strcpy(_sVendorName, "Unknown vendor");
 	}
-	csound->Message(csound, "Vendor name:%s \n", _sVendorName);
+	csound->Message(csound, "Vendor name: %s \n", _sVendorName);
 	_version = pEffect->version;
 	csound->Message(csound, "Version: %lu \n",_version);
 	_isSynth = (pEffect->flags & effFlagsIsSynth)?true:false;
@@ -306,13 +305,11 @@ void VSTPlugin::Init( float samplerate , float blocksize )
 	sample_rate = samplerate;
 	//printf ("init ok\n");
 	Dispatch(effOpen        ,  0, 0, NULL, 0.f);
-	Dispatch( effSetProgram  ,  0, 0, NULL, 0.0f);
+	Dispatch(effSetProgram  ,  0, 0, NULL, 0.0f);
 	Dispatch(effMainsChanged,  0, 1, NULL, 0.f);
 	Dispatch(effSetSampleRate, 0, 0, 0, (float) sample_rate );
-	Dispatch(effSetBlockSize,  0, blocksize, NULL, 0.f );
-	
+	Dispatch(effSetBlockSize,  0, blocksize, NULL, 0.f );	
 }
-
 
 bool VSTPlugin::SetParameter(int parameter, float value)
 {
