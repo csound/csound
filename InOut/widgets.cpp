@@ -1731,7 +1731,7 @@ static void __cdecl fltkKeybRun(void *userdata)
   oKeyb->show();
   //Fl::run();
   bool run = true;
-  while(run && kcnt) {
+  while(run) {
     if(csound->GetFLTKThreadLocking(csound)) {
       Fl::lock();
     }
