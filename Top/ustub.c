@@ -34,7 +34,7 @@ OPARMS O, O_;
 ENVIRON cenviron, cenviron_;           
 
 unsigned    outbufsiz;
-void        *outbuf;
+MYFLT        *outbuf;
 char       *choutbuf;               /* char  pntr to above  */
 short      *shoutbuf;               /* short pntr           */
 long       *lloutbuf;               /* long  pntr           */
