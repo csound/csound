@@ -102,7 +102,7 @@ commonEnvironment.Prepend(SHLINKFLAGS = customSHLINKFLAGS)
 Help(opts.GenerateHelpText(commonEnvironment))
 
 commonEnvironment.Append(CPPPATH  = ['.', './H', './SDIF'])
-commonEnvironment.Append(CCFLAGS = Split('-DCSOUND_WITH_API -g -O2'))
+commonEnvironment.Append(CCFLAGS = Split('-DCSOUND_WITH_API -g -O2 -mthreads'))
 commonEnvironment.Append(CXXFLAGS = Split('-DCSOUND_WITH_API -fexceptions'))
 if commonEnvironment['makeDynamic']==0:
         commonEnvironment.Append(LINKFLAGS = '-static')
