@@ -35,6 +35,10 @@ int main(int argc, char **argv)
 		CsoundVST *csoundVST = CreateCsoundVST();
 		AEffEditor *editor = csoundVST->getEditor();
 		editor->open(0);
-		return 0;
+		if(argc == 2)
+		{
+		  csoundVST->openFile(argv[1]);
+		}
+		return csoundVST->run();
 }
 

@@ -677,6 +677,37 @@ void CsoundVST::setText(const std::string text)
 	}
 }
 
+void CsoundVST::openFile(std::string filename_)
+{
+	WaitCursor wait;
+	if(filename_.rfind(".py") != std::string::npos)
+	{
+	   setIsPython(true);
+	}
+	else
+	{
+	   setIsPython(false);
+	}
+	if(getIsPython())
+	{
+		load(filename_);
+		setFilename(filename_);
+	}
+	else
+	{
+		getCppSound()->load(filename_);
+	}
+	bank[getProgram()].text = getText();
+	editor->update();
+	getCppSound()->setFilename(filename_);        
+	csound::System::message("Opened file: '%s'.\n", getCppSound()->getFilename().c_str());
+}
+
+int CsoundVST::run()
+{
+    return Fl::run();
+}
+
 extern "C"
 {
 #if __GNUC__ && (WIN32||BEOS)
