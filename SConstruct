@@ -362,7 +362,10 @@ if (not(commonEnvironment['usePortMIDI']=='0') and portmidiFound):
     if getPlatform() == 'mingw':
         csoundProgramEnvironment.Append(LIBS = ['winmm'])
         vstEnvironment.Append(LIBS = ['winmm'])	
-	
+    if getPlatform() == 'linux' and alsaFound:
+        csoundProgramEnvironment.Append(LIBS = ['asound'])
+        vstEnvironment.Append(LIBS = ['asound'])
+
 if commonEnvironment['useALSA']=='1' and alsaFound:
     guiProgramEnvironment.Append(LINKFLAGS = '-mwindows')
 elif commonEnvironment['usePortAudio']=='1' and portaudioFound:
