@@ -1,0 +1,23 @@
+PYTHON OPCODES FOR CSOUND
+By Maurizio Umberto Puxeddu
+Modified by Michael Gogins for Csound 5
+
+
+BEFORE COMPILING
+
+To generate the source code for the py-opcodes
+just run the 
+
+pycall-gen.py
+
+and
+
+pyx-gen.py
+
+scripts in this directory.
+
+
+NOTES
+
+The {{ and }} directives for mutiple-line strings are not implemented in 
+Csound 5, so many of the examples will not run without editing.

@@ -1,0 +1,93 @@
+typedef struct {
+  OPDS h;
+  MYFLT *string;
+} PYEXEC;
+
+typedef struct {
+  OPDS h;
+  MYFLT *trigger;
+  MYFLT *string;
+} PYEXECT;
+
+extern int pyexec_krate(PYEXEC *p);
+extern int pyexeci_irate(PYEXEC *p);
+
+extern int pylexec_irate(PYEXEC *p);
+extern int pylexec_krate(PYEXEC *p);
+extern int pylexeci_irate(PYEXEC *p);
+
+extern int pyexect_krate(PYEXECT *p);
+extern int pylexect_irate(PYEXECT *p);
+extern int pylexect_krate(PYEXECT *p);
+
+typedef struct {
+  OPDS h;
+  MYFLT *string;
+} PYRUN;
+
+typedef struct {
+  OPDS h;
+  MYFLT *trigger;
+  MYFLT *string;
+} PYRUNT;
+
+extern int pyrun_krate(PYRUN *p);
+extern int pyruni_irate(PYRUN *p);
+
+extern int pylrun_irate(PYRUN *p);
+extern int pylrun_krate(PYRUN *p);
+extern int pylruni_irate(PYRUN *p);
+
+extern int pyrunt_krate(PYRUNT *p);
+extern int pylrunt_irate(PYRUNT *p);
+extern int pylrunt_krate(PYRUNT *p);
+
+typedef struct {
+  OPDS h;
+  MYFLT *result;
+  MYFLT *string;
+} PYEVAL;
+
+typedef struct {
+  OPDS h;
+  MYFLT *result;
+  MYFLT *trigger;
+  MYFLT *string;
+  MYFLT oresult;
+} PYEVALT;
+
+extern int pyeval_krate(PYEVAL *p);
+extern int pyevali_irate(PYEVAL *p);
+
+extern int pyleval_irate(PYEVAL *p);
+extern int pyleval_krate(PYEVAL *p);
+extern int pylevali_irate(PYEVAL *p);
+
+extern int pyevalt_krate(PYEVALT *p);
+extern int pylevalt_irate(PYEVALT *p);
+extern int pylevalt_krate(PYEVALT *p);
+
+typedef struct {
+  OPDS h;
+  MYFLT *string;
+  MYFLT *value;
+} PYASSIGN;
+
+typedef struct {
+  OPDS h;
+  MYFLT *trigger;
+  MYFLT *string;
+  MYFLT *value;
+} PYASSIGNT;
+
+extern int pyassign_krate(PYASSIGN *p);
+extern int pyassigni_irate(PYASSIGN *p);
+
+extern int pylassign_irate(PYASSIGN *p);
+extern int pylassign_krate(PYASSIGN *p);
+extern int pylassigni_irate(PYASSIGN *p);
+
+extern int pyassignt_krate(PYASSIGNT *p);
+extern int pylassignt_irate(PYASSIGNT *p);
+extern int pylassignt_krate(PYASSIGNT *p);
+
