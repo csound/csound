@@ -38,10 +38,6 @@
 #include <dirent.h>
 #endif
 
-#if defined(HAVE_DIRENT_H)
-#include <dirent.h>
-#endif
-
 #if defined(WIN32) && !defined(__CYGWIN__)
 
 #include <io.h>
@@ -520,8 +516,7 @@ int csoundLoadExternal(void *csound, const char* libraryPath)
     return -1;
 }
 
-/* #ifdef __MACH__ */
-#if 0
+#ifdef __MACH__
 /* There is something odd on OSX about dirent.h */
 typedef void* DIR;
 DIR opendir(const char *);
