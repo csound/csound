@@ -13,6 +13,7 @@ customCXXFLAGS = []
 customLIBS = []
 customLIBPATH = []
 customSHLINKFLAGS = []
+customSWIGFLAGS = []
 
 if sys.platform[:5] == 'linux':
     platform = 'linux'
@@ -43,8 +44,10 @@ elif sys.platform[:3] == 'win':
     ################################################################
     # If you want to build CsoundVST you need Python and
     # a MinGW import library for Python. Add them here:
-    customCPPPATH.append('c:/tools/Python23/include')
+    customCPPPATH.append('c:/apcc/tools/Python23/include')
+    customCPPPATH.append('c:/apcc/tools/mingw/include')
     customLIBPATH.append('c:/projects/csound5/cygwin_import_libs')    
+    customSWIGFLAGS.append('-Ic:/apcc/tools/mingw/lib/gcc-lib/mingw32/3.3.1/include')
     ################################################################
     # If you want to build CsoundVST you need boost.
     # If it is not in a standard lcoation add it here
