@@ -758,7 +758,8 @@ if (commonEnvironment['buildCsoundVST'] == 1) and boostFound and fltkFound:
 if commonEnvironment['generateTags'] == 1:
     print "Calling TAGS"
     allSources = string.join(glob.glob('*/*.h*'))
-    allSources = allSources + ' ' + string.join(glob.glob('*/*.h*'))
+    allSources = allSources + ' ' + string.join(glob.glob('*/*.h'))
+    allSources = allSources + ' ' + string.join(glob.glob('*/*.hpp'))
     allSources = allSources + ' ' + string.join(glob.glob('*/*/*.c*'))
     allSources = allSources + ' ' + string.join(glob.glob('*/*/*.h'))
     allSources = allSources + ' ' + string.join(glob.glob('*/*/*.hpp'))

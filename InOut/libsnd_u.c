@@ -210,7 +210,7 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
     int     n;
     long    hdrsize = 0, framesinbuf, skipframes;
     char    *sfname, soundiname[128];
-    int     sinfd;
+    int     sinfd=0;
     SNDFILE *infile;
     SF_INFO sfinfo;
     long    filno;

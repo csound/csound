@@ -124,11 +124,11 @@ void fdchclose(INSDS *ip)   /* close all files in instr fd chain     */
 
     if (O.odebug) fdchprint(ip);
       while ((curchp = curchp->nxtchp) != NULL) { /* for all fd's in chain: */
-        if ((fd = curchp->fd) <= 2) {
-          fdchprint(ip);
-          sprintf(errmsg,Str(X_758,"fdclose: illegal fd %d in chain"),fd);
-          die(errmsg);
-        }
+/*         if ((fd = curchp->fd) <= 2) { */
+/*           fdchprint(ip); */
+/*           sprintf(errmsg,Str(X_758,"fdclose: illegal fd %d in chain"),fd); */
+/*           die(errmsg); */
+/*         } */
         if (fd)
           sf_close(fd);
         else

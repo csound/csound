@@ -1737,6 +1737,7 @@ static void __cdecl fltkRun(void *s)
 #endif
 }
 
+#ifdef _WINDOWS
 static void __cdecl fltkKeybRun(void *s)
 {
     oKeyb->show();
@@ -1752,6 +1753,7 @@ static void __cdecl fltkKeybRun(void *s)
     }
     if (O.msglevel & WARNMSG) printf("WARNING: end of keyboard thread\n");
 }
+#endif
 
 extern "C" void FL_run(FLRUN *p)
 {
@@ -2059,7 +2061,7 @@ void widget_attributes(Fl_Widget *o)
     if (FLtext_align > 0) {
       Fl_Align type;
       switch (FLtext_align) {
-        case -1: break;
+        case -1: break;         // What type is this?
         case 1: type  = FL_ALIGN_CENTER; break;
         case 2: type  = FL_ALIGN_TOP; break;
         case 3: type  = FL_ALIGN_BOTTOM; break;
@@ -3037,7 +3039,7 @@ extern "C" void fl_joystick(FLJOYSTICK *p)
 }
 
 
-extern "C" void fl_knob(FLKNOB *p)
+extern "C" int fl_knob(FLKNOB *p)
 {
     char *controlName = GetString(*p->name,p->STRARG);
     int ix,iy,iwidth, itype, iexp;
@@ -3082,7 +3084,7 @@ extern "C" void fl_knob(FLKNOB *p)
       o->box(_FL_OSHADOW_BOX);
       break;
     default:
-      initerror("FLknob: invalid knob type");
+      return initerror("FLknob: invalid knob type");
     }
     widget_attributes(o);
     o->align(FL_ALIGN_BOTTOM | FL_ALIGN_WRAP);
@@ -3111,7 +3113,7 @@ extern "C" void fl_knob(FLKNOB *p)
           p->table = ftp->ftable;
           p->tablen = ftp->flen;
         }
-        else return;
+        else return OK;
         o->range(0,.99999999);
         if (iexp > 0) //interpolated
           o->callback((Fl_Callback*)fl_callbackInterpTableKnob,(void *) p);
@@ -3122,6 +3124,7 @@ extern "C" void fl_knob(FLKNOB *p)
     AddrSetValue.push_back(ADDR_SET_VALUE(iexp, *p->imin, *p->imax,
                                           (void *) o, (void *) p));
     *p->ihandle = AddrSetValue.size()-1;
+    return OK;
 }
 
 
@@ -3178,7 +3181,7 @@ extern "C" void fl_text(FLTEXT *p)
     *p->ihandle = AddrSetValue.size()-1;
 }
 
-extern "C" void fl_button(FLBUTTON *p)
+extern "C" int fl_button(FLBUTTON *p)
 {
     char *Name = GetString(*p->name,p->STRARG);
     int type = (int) *p->itype;
@@ -3209,7 +3212,7 @@ extern "C" void fl_button(FLBUTTON *p)
                                 (int)*p->iwidth, (int)*p->iheight, Name);
         break;
     default:
-      initerror("FLbutton: invalid button type");
+      return initerror("FLbutton: invalid button type");
     }
     Fl_Button *o = w;
     o->align(FL_ALIGN_WRAP);
@@ -3220,10 +3223,10 @@ extern "C" void fl_button(FLBUTTON *p)
     O.RTevents = 1;     /* Make sure kperf() looks for RT events */
     O.ksensing = 1;
     O.OrcEvts  = 1;     /* - of the appropriate type */
-
+    return OK;
 }
 
-extern "C" void fl_button_bank(FLBUTTONBANK *p)
+extern "C" int fl_button_bank(FLBUTTONBANK *p)
 {
     char *Name = "/0"; //GetString(*p->name,p->STRARG);
     int type = (int) *p->itype;
@@ -3248,7 +3251,7 @@ extern "C" void fl_button_bank(FLBUTTONBANK *p)
         case 2: w= new Fl_Light_Button(x, y, 10, 10, btName); break;
         case 3: w= new Fl_Check_Button(x, y, 10, 10, btName); break;
         case 4: w= new Fl_Round_Button(x, y, 10, 10, btName); break;
-        default: initerror("FLbuttonBank: invalid button type");
+        default: return initerror("FLbuttonBank: invalid button type");
         }
         widget_attributes(w);
         w->type(FL_RADIO_BUTTON);
@@ -3267,6 +3270,7 @@ extern "C" void fl_button_bank(FLBUTTONBANK *p)
     O.RTevents = 1;     /* Make sure kperf() looks for RT events */
     O.ksensing = 1;
     O.OrcEvts  = 1;     /* - of the appropriate type */
+    return OK;
 }
 
 extern "C" void fl_counter(FLCOUNTER *p)
@@ -3308,7 +3312,7 @@ extern "C" void fl_counter(FLCOUNTER *p)
 
 
 
-extern "C" void fl_roller(FLROLLER *p)
+extern "C" int fl_roller(FLROLLER *p)
 {
     char *controlName = GetString(*p->name,p->STRARG);
     int ix,iy,iwidth, iheight,itype, iexp ;
@@ -3351,7 +3355,7 @@ extern "C" void fl_roller(FLROLLER *p)
       o->type(FL_VERTICAL);
       break;
     default:
-      initerror("FLroller: invalid roller type");
+      return initerror("FLroller: invalid roller type");
     }
     widget_attributes(o);
     o->step(istep);
@@ -3379,7 +3383,7 @@ extern "C" void fl_roller(FLROLLER *p)
           p->table = ftp->ftable;
           p->tablen = ftp->flen;
         }
-        else return;
+        else return OK;
         o->range(0,0.99999999);
         if (iexp > 0) //interpolated
           o->callback((Fl_Callback*)fl_callbackInterpTableRoller,(void *) p);
@@ -3390,6 +3394,7 @@ extern "C" void fl_roller(FLROLLER *p)
     AddrSetValue.push_back(ADDR_SET_VALUE(iexp, *p->imin, *p->imax,
                                           (void *) o, (void *) p));
     *p->ihandle = AddrSetValue.size()-1;
+    return OK;
 }
 
 
