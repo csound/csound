@@ -48,13 +48,14 @@ namespace csound
     // place the child nodes in strict temporal sequence.
     Score childScore;
     double deltaTime = 0.0;
-    for(std::vector<Node*>::iterator i = children.begin(); i != children.end(); ++i)
+    for(size_t i = 0, n = children.size(); i < n; i++)
       {
 	childScore.clear();
-	(*i)->traverse(compositeCoordinates, childScore);
-	for(size_t i = 0, n = childScore.size(); i < n; i++)
+	children[i]->traverse(compositeCoordinates, childScore);
+	System::message("Sequence node at time %f: child %d of %d has %d notes.\n", deltaTime, i, n, childScore.size());
+	for(size_t j = 0, k = childScore.size(); j < k; j++)
 	  {
-	    Event event = childScore[i];
+	    Event event = childScore[j];
 	    event.setTime(event.getTime() + deltaTime);
 	    score.push_back(event);
 	  }
