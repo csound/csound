@@ -1,3 +1,7 @@
+2004-09-17  John ffitch  <jpff@codemist.co.uk>
+
+	* util2/exports/pv_export.c (main): Free malloced space
+
 2004-09-12  Michael Gogins <gogins@pipeline.com>
 
 	* Restored PortAudio to ASIO only, re-ordered 'notify' and 'wait' for
@@ -25,6 +29,18 @@
 
 	* SConstruct: Added install, install-executables, and install-opcodes
 	targets
+
+2004-09-08  John ffitch  <jpff@codemist.co.uk>
+
+	* SConstruct (ustub): Added bus.c
+
+	* Opcodes/bus.c: New code for IO bus
+
+	* Engine/oload.c: Initialise below
+
+	* H/csoundCore.h (ENVIRON_): Added busik_, busia_, busok_, busia_
+
+	* H/csdl.h (busik, busia, busok, busia): Added macros
 
 2004-08-22  John ffitch  <jpff@codemist.co.uk>
 

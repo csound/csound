@@ -396,7 +396,11 @@ ENVIRON cenviron_ = {
         -1,     /*      displop4 */
         NULL,   /*      file_opened  */
         0,      /*      file_max */
-        -1      /*      file_num */
+        -1,     /*      file_num */
+        0, NULL,   /*      nbusik, busik */
+        0, NULL,   /*      nbusia, busia */
+        0, NULL,   /*      nbusok, busok */
+        0, NULL    /*      nbusoa, busoa */
 };
 
 OPARMS O;
