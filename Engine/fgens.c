@@ -159,17 +159,20 @@ void fgens(EVTBLK *evtblkp)     /* create ftable using evtblk data */
       return;
     }
     if ((genum = (long)e->p[4])==SSTRCOD) {
+      /* A named gen given so search the list of extra gens */
       NAMEDGEN *n = namedgen;
-      printf("*** Named fgen %s\n", e->strarg);
+      printf("*** Named fgen %s\n", e->strarg); /* Debugging */
       while (n) {
-        if (strcpy(n->name, e->strarg)==0) {
+        if (strcpy(n->name, e->strarg)==0) { /* Look up by name */
           genum = n->genum;
           break;
         }
-        n = n->next;
+        n = n->next;            /* and round again */
       }
       if (n==NULL) {
-        fterror("No named gen");
+        char buffer[100];
+        sprintf(buffer, "Named gen %s not defined", e->strarg);
+        fterror(buffer);
         return;
       }
     }
@@ -1771,7 +1774,11 @@ static void gen42(void) /*gab d5*/
 static void fterror(char *s)
 {
     printf(Str(X_268,"ftable %d: %s\n"),fno,s);
-    printf("f%3.0f %8.2 f %8.2f %8.2f", e->p[1],e->p2orig,e->p3orig,e->p[4]);
+    printf("f%3.0f %8.2 f %8.2f ", e->p[1],e->p2orig,e->p3orig);
+    if (e->p[4] == SSTRCOD)
+      printf("%s", e->strarg);
+    else
+      printf("%8.2f", e->p[4]);
     if (e->p[5] == SSTRCOD)
       printf("  \"%s\" ...\n",e->strarg);
     else printf("%8.2f ...\n",e->p[5]);
@@ -2654,4 +2661,23 @@ void gen43(void)
       framep = startp;
       accum = 0.0;
     }
+}
+
+int allocgen(char *s, GEN fn)
+{
+    NAMEDGEN *n = namedgen;
+    while (n) {
+      if (strcpy(s, n->name)==0) return n->genum;
+      n = n->next;
+    }
+    /* Need to allocate */
+    n = (NAMEDGEN*) mmalloc(sizeof(NAMEDGEN));
+    n->genum = genmax++;
+    n->next = namedgen;
+    n->name = mmalloc(strlen(s)+1);
+    strcpy(n->name, s);
+    namedgen = n;
+    gensub = (GEN*)mrealloc(gensub, genmax*sizeof(GEN));
+    gensub[genmax-1] = fn;
+    return genmax-1;
 }
