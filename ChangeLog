@@ -1,3 +1,8 @@
+2004-06-25  Michael Gogins <gogins@pipeline.com>
+
+	* The CsoundVST Python module now prints Csound messages to Python
+	sys.stdout when running in IDLE.
+
 2004-06-25  Anthony Kozar <anthony.kozar@utoledo.edu>
 
 	* These are all changes to allow compilation on MacOS 9
