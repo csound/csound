@@ -1317,21 +1317,21 @@ static OENTRY localops[] = {
 { "noise",  S(VARI),   5,    "a", "xk",   (SUBR)varicolset, NULL, (SUBR)varicol },
 { "transeg", S(TRANSEG), 7,  "s", "iiim", (SUBR)trnset,(SUBR)ktrnseg,(SUBR)trnseg},
 { "clip", S(CLIP),       5,  "a", "aiiv", (SUBR)clip_set, NULL, (SUBR)clip       },
-{ "cpuprc", S(CPU_PERC), 1,     "",     "ii",   cpuperc, NULL, NULL        },
+{ "cpuprc", S(CPU_PERC), 1,     "",     "ii",   (SUBR)cpuperc, NULL, NULL        },
 /* IV - Oct 20 2002 */
-{ "prealloc", S(CPU_PERC), 1,   "",     "Sio",  prealloc, NULL, NULL       },
-{ "maxalloc", S(CPU_PERC), 1,   "",     "ii",   maxalloc, NULL, NULL       },
-{ "active_i", S(INSTCNT),1,     "i",    "i",    instcount, NULL, NULL      },
-{ "active_k", S(INSTCNT),2,     "k",    "k",    NULL, instcount, NULL      },
-{ "p_i", S(PFUN),        1,     "i",    "i",     pfun, NULL, NULL               },
-{ "p_k", S(PFUN),        2,     "k",    "k",     NULL, pfun, NULL               },
-{ "mute", S(MUTE), 1,          "",      "So",   mute_inst                },
+{ "prealloc", S(CPU_PERC), 1,   "",     "Sio",  (SUBR)prealloc, NULL, NULL       },
+{ "maxalloc", S(CPU_PERC), 1,   "",     "ii",   (SUBR)maxalloc, NULL, NULL       },
+{ "active_i", S(INSTCNT),1,     "i",    "i",    (SUBR)instcount, NULL, NULL      },
+{ "active_k", S(INSTCNT),2,     "k",    "k",    NULL, (SUBR)instcount, NULL      },
+{ "p_i", S(PFUN),        1,     "i",    "i",     (SUBR)pfun, NULL, NULL          },
+{ "p_k", S(PFUN),        2,     "k",    "k",     NULL, (SUBR)pfun, NULL          },
+{ "mute", S(MUTE), 1,          "",      "So",   (SUBR)mute_inst                  },
 #ifdef BETA
 { "oscilv",  0xfffe                                                       },
-{ "oscilv_kk", S(XOSC),  5,     "a",    "kkio", Foscset, NULL,   Fosckk   },
-{ "oscilv_ka", S(XOSC),  5,     "a",    "kaio", Foscset, NULL,   Foscka   },
-{ "oscilv_ak", S(XOSC),  5,     "a",    "akio", Foscset, NULL,   Foscak   },
-{ "oscilv_aa", S(XOSC),  5,     "a",    "aaio", Foscset, NULL,   Foscaa   },
+{ "oscilv_kk", S(XOSC),  5,     "a",   "kkio", (SUBR)Foscset, NULL, (SUBR)Fosckk },
+{ "oscilv_ka", S(XOSC),  5,     "a",   "kaio", (SUBR)Foscset, NULL, (SUBR)Foscka },
+{ "oscilv_ak", S(XOSC),  5,     "a",   "akio", (SUBR)Foscset, NULL, (SUBR)Foscak },
+{ "oscilv_aa", S(XOSC),  5,     "a",   "aaio", (SUBR)Foscset, NULL, (SUBR)Foscaa },
 #endif
 };
 
