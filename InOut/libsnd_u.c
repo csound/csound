@@ -68,7 +68,7 @@ short sfsampsize(int type)
     return 4;
 }
 
-static MYFLT fzero = FL(0.0);
+static const MYFLT fzero = FL(0.0);
 
 void rewriteheader(SNDFILE* ofd, int verbose)
 {

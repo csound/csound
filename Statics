@@ -1,0 +1,417 @@
+Engine/cfgvar.c:static  void    **global_cfg_db = NULL;
+
+Engine/express.c:static  TOKEN   *tokens = NULL;
+Engine/express.c:static  TOKEN   **tokenlist = NULL;
+Engine/express.c:static  int     toklength = TOKMAX;
+
+Engine/extract.c:static char    inslst[INSMAX];         /*   values set by readxfil     */
+Engine/extract.c:static int     onsect, offsect;        /*      "       "       "       */
+Engine/extract.c:static MYFLT   onbeat, offbeat;        /*      "       "       "       */
+Engine/extract.c:static MYFLT   ontime, offtime;        /* set by readxfil, mod by w-stmnt */
+Engine/extract.c:static SRTBLK *frstout, *prvout;       /* links for building new outlist */
+Engine/extract.c:static SRTBLK a0 = { NULL,NULL,0,3,FL(0.0),FL(0.0),FL(0.0),FL(0.0),FL(0.0),
+Engine/extract.c:static SRTBLK f0 = { NULL,NULL,0,2,FL(0.0),FL(0.0),FL(0.0),FL(0.0),FL(0.0),
+Engine/extract.c:static SRTBLK e  = { NULL,NULL,0,0,FL(0.0),FL(0.0),FL(0.0),FL(0.0),FL(0.0),
+Engine/extract.c:    static  int   sectno, a0done;
+
+Engine/fgens.c:    static      WINDAT  dwindow; /* Why is this static? */
+Engine/fgens.c:    static  ARGOFFS argoffs = {0};  /* OUTOCOUNT-not applicable yet */
+Engine/fgens.c:    static  OPTXT   optxt;          /* create dummy optext  */
+
+Engine/filopen.c:    static char newname[MAXNAME];
+
+Engine/insert.c:static MYFLT cpu_power_busy=FL(0.0);
+Engine/insert.c:static  int     reinitflag = 0;         /* toggled by reinit for others */
+Engine/insert.c:static  OPDS    *ids, *pds;             /* used by init and perf loops  */
+
+Engine/linevent.c:static char *Linebuf = NULL, *Linep = NULL, *Linebufend = NULL;
+Engine/linevent.c:static FILE *Linecons;
+Engine/linevent.c:static LEVTBLK  *Firstblk = NULL;
+Engine/linevent.c:static LEVTBLK  *Firstact = NULL;
+Engine/linevent.c:static int stdmode;
+Engine/linevent.c:    static EVTBLK *prve = NULL;
+Engine/linevent.c:    static char prvop = ' ';
+Engine/linevent.c:    static int prvpcnt = 0;
+
+Engine/musmon.c:static  short   sectno = 0;
+Engine/musmon.c:static  int     lplayed = 0;
+Engine/musmon.c:static  int     segamps, sormsg;
+Engine/musmon.c:static  EVENT   **ep, **epend;  /* pointers for stepping through lplay list */
+Engine/musmon.c:static  EVENT   *lsect = NULL;
+
+Engine/namedins.c:static STRSAV **strsav_str = NULL;
+Engine/namedins.c:static STRSAV_SPACE *strsav_space = NULL;
+
+Engine/oload.c:static  MYFLT   *gbloffbas;
+
+Engine/otran.c:static struct namepool {
+Engine/otran.c:static  int     gblsize = GNAMES, lclsize = LNAMES;
+Engine/otran.c:static  ARGLST  *nullist;
+Engine/otran.c:static  ARGOFFS *nulloffs;
+Engine/otran.c:static  int     lclkcnt, lcldcnt, lclwcnt, lclfixed;
+Engine/otran.c:static  int     lclpcnt, lclnxtpcnt;
+Engine/otran.c:static  int     lclnxtkcnt, lclnxtdcnt, lclnxtwcnt, lclnxtacnt;
+Engine/otran.c:static  int     gblnxtkcnt = 0, gblnxtacnt = 0, gblfixed, gblacount;
+Engine/otran.c:static  int     *nxtargoffp, *argofflim, lclpmax;
+Engine/otran.c:static  char    *strargspace, *strargptr;
+Engine/otran.c:static  long    poolcount, strargsize = 0, argoffsize;
+Engine/otran.c:static  int     nconsts;
+Engine/otran.c:static  int     displop1, displop2, displop3;
+
+Engine/rdorch.c:static  MACRO   *macros = NULL;
+Engine/rdorch.c:static  long    lenmax = LENMAX;        /* Length of input line buffer  */
+Engine/rdorch.c:static  char    **linadr;               /* adr of each line in text     */
+Engine/rdorch.c:static  short   *srclin;                /* text no. of expanded lines   */
+Engine/rdorch.c:static  int     curline;                /* current line being examined  */
+Engine/rdorch.c:static  char    *collectbuf = NULL;     /* splitline collect buffer     */
+Engine/rdorch.c:static  char    **group;                /* splitline local storage      */
+Engine/rdorch.c:static  char    **grpsav;               /* copy of above                */
+Engine/rdorch.c:static  long    grpmax = GRPMAX;        /* Size of group structure      */
+Engine/rdorch.c:static  int     opgrpno;                /* grpno identified as opcode   */
+Engine/rdorch.c:static  int     linopnum;               /* data for opcode in this line */
+Engine/rdorch.c:static  char    *linopcod;
+Engine/rdorch.c:static  int     linlabels;              /* count of labels this line    */
+Engine/rdorch.c:static  LBLREQ  *lblreq;
+Engine/rdorch.c:static  int     lblmax;
+Engine/rdorch.c:static  int     lblcnt;
+Engine/rdorch.c:static  int     lgprevdef = 0;
+Engine/rdorch.c:static  int     opnum;                  /* opcod data carriers          */
+Engine/rdorch.c:static  char    *opcod;                 /*  (line or subline)           */
+Engine/rdorch.c:static  ARGLST  *nxtarglist, *nullist;
+Engine/rdorch.c:static  FILE    *fp;
+Engine/rdorch.c:static struct in_stack *inputs = NULL, *str;
+Engine/rdorch.c:static int input_size = 0, input_cnt = 0;
+Engine/rdorch.c:static int pop = 0;             /* Number of macros to pop */
+Engine/rdorch.c:static int ingappop = 1;
+Engine/rdorch.c:static int linepos = -1;
+Engine/rdorch.c:static  long    ORCHSIZ;
+Engine/rdorch.c:    static struct iflabel {             /* for if/else/endif */
+Engine/rdorch.c:            static int repeatingElseifLine = 0;
+Engine/rdorch.c:          static long tempNum = 0;
+Engine/rdorch.c:        static int repeatingElseLine = 0;
+Engine/rdorch.c:    static      short   grpcnt = 0, nxtest = 1;
+Engine/rdorch.c:    static      short   xprtstno = 0, polcnt = 0;
+Engine/rdorch.c:    static      short   instrblk = 0, instrcnt = 0;
+Engine/rdorch.c:    static      short   opcodblk = 0;   /* IV - Sep 8 2002 */
+Engine/rdorch.c:    static      TEXT    optext; /* struct to be passed back to caller   */
+
+Engine/rdscor.c:static char *sstrbuf = NULL;
+Engine/rdscor.c:static int  sstrlen = 0;
+
+Engine/sread.c:static SRTBLK  *bp, *prvibp;    /* current srtblk,  prev w/same int(p1) */
+Engine/sread.c:static char    *sp, *nxp;       /* string pntrs into srtblk text        */
+Engine/sread.c:static int     op;              /* opcode of current event              */
+Engine/sread.c:static int     warpin;          /* input format sensor                  */
+Engine/sread.c:static int     linpos;          /* line position sensor                 */
+Engine/sread.c:static int     lincnt;          /* count of lines/section in scorefile  */
+Engine/sread.c:static MYFLT   prvp2 = -FL(1.0);        /* Last event time */
+Engine/sread.c:static MYFLT   clock_base = FL(0.0);
+Engine/sread.c:static MYFLT   warp_factor = FL(1.0);
+Engine/sread.c:static MEMHDR *basmem = NULL;
+Engine/sread.c:static MEMHDR *curmem;
+Engine/sread.c:static char   *memend;          /* end of cur memblk     */
+Engine/sread.c:static  MACRO   *macros = NULL;
+Engine/sread.c:static int next_name = -1;
+Engine/sread.c:static struct in_stack *inputs = NULL, *str; /* Currently allow 20 maximum */
+Engine/sread.c:static int input_size = 0, input_cnt = 0;
+Engine/sread.c:static int pop = 0;                          /* Number of macros to pop */
+Engine/sread.c:static int ingappop = 1;                     /* Are we in a popable gap? */
+Engine/sread.c:static int linepos = -1;
+Engine/sread.c:static char repeat_name_n[40][40];
+Engine/sread.c:static int repeat_cnt_n[40] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+Engine/sread.c:static long repeat_point_n[40];
+Engine/sread.c:static int repeat_inc_n = 1;
+Engine/sread.c:static MACRO *repeat_mm_n[40];
+Engine/sread.c:static int repeat_index=0;
+Engine/sread.c:static char repeat_name[40];
+Engine/sread.c:static int repeat_cnt = 0;
+Engine/sread.c:static long repeat_point;
+Engine/sread.c:static int repeat_inc = 1;
+Engine/sread.c:static MACRO *repeat_mm;
+
+InOut/libsnd.c:static  SNDFILE *outfile;
+InOut/libsnd.c:static  char    *sfoutname;                     /* soundout filename    */
+InOut/libsnd.c:static  MYFLT   *outbufp;                       /* MYFLT pntr           */
+InOut/libsnd.c:static  unsigned inbufsiz,  outbufsiz;          /* alloc in sfopenin/out     */
+InOut/libsnd.c:static  int     isfd;
+InOut/libsnd.c:static  int     osfd;
+InOut/libsnd.c:static  int     pipdevin = 0, pipdevout = 0;    /* mod by sfopenin,sfopenout */
+InOut/libsnd.c:static  SOUNDIN *p;    /* to be passed via sreadin() */
+InOut/libsnd.c:static  long    datpos= 0L;       /* Used in resetting only */
+
+InOut/libsnd_u.c:    static  ARGOFFS  argoffs = {0};     /* these for sndgetset */
+InOut/libsnd_u.c:    static  OPTXT    optxt;
+
+InOut/pmidi.c:static  int             not_started = 1;
+
+InOut/rtpa.c:static PA_BLOCKING_STREAM *pabsRead = 0;
+InOut/rtpa.c:static PA_BLOCKING_STREAM *pabsWrite = 0;
+InOut/rtpa.c:static  int oMaxLag;
+
+InOut/sfheader.c:static  char    *incodbeg,  *incodend;   /* re-defined by each readheader */
+InOut/sfheader.c:static  char    *outcodbeg, *outcodend;  /* defined during writeheader */
+InOut/sfheader.c:static short codblksiz[] = {   sizeof(CODE_HDR),
+
+InOut/winascii.c:static  char    *points = NULL;
+
+InOut/window.c:static void (*makeFn)(WINDAT*, char*);  /* pointer to window make fn - */
+InOut/window.c:static void (*drawFn)(WINDAT *);        /* pointer to appropriate drawing fn */
+InOut/window.c:static void (*killFn)(WINDAT *);        /* pointer to window destroy fn */
+InOut/window.c:static int (*exitFn)(void) = NULL; /* pointer to window last exit fn - returns
+
+InOut/winEPS.c:static int   winPSinitialized = 0;
+InOut/winEPS.c:static int   psFileOk = 0;               /* Flag for ``psFile opened O.K.''  */
+InOut/winEPS.c:static FILE *psFile;
+InOut/winEPS.c:static char  ps_date[40];                /* Print time & date on every plot  */
+InOut/winEPS.c:static int   currentPage = 0;            /* Current page number              */
+
+OOps/aops.c:static  double  oct;
+OOps/aops.c:static double rndfrac = 0.5;
+
+OOps/control.c:static char cmd[100];
+OOps/control.c:static int wish_pid = 0;
+OOps/control.c:static int *values = NULL;
+OOps/control.c:static int *minvals = NULL;
+OOps/control.c:static int *maxvals = NULL;
+OOps/control.c:static int max_sliders  = 0;
+OOps/control.c:static int *buttons = NULL;
+OOps/control.c:static int *checks = NULL;
+OOps/control.c:static int max_button  = 0;
+OOps/control.c:static int max_check  = 0;
+
+OOps/disprep.c:static  MYFLT   *fftcoefs = NULL;     /* malloc for fourier coefs, mag or db */
+OOps/disprep.c:static MYFLT lenmults[NMULTS] = { FL(3.0), FL(2.0), FL(1.0), FL(0.5), FL(0.333)};
+OOps/disprep.c:static MYFLT lenfracs[NMULTS*2] = { FL(0.30), FL(0.3667), FL(0.45), FL(0.55),
+OOps/disprep.c:        mults = lenmults;                       /* use the static lentables  */
+
+OOps/dsputil.c:static MYFLT *sncTab = NULL;    /* point to our sin(x)/x lookup table */
+OOps/dsputil.c:static  MYFLT   *env = (MYFLT *)NULL;   /* Scratch buffer to hold 'envelope' */
+
+OOps/dumpf.c:static MYFLT kval[4];     /* handle up to four ksig arguments */
+
+OOps/fft.c:static LNODE   *lroot = NULL;  /* root of look up table list */
+
+OOps/fftlib.c:static MYFLT *UtblArray[8 * sizeof(int)] = {
+OOps/fftlib.c:static short *BRLowArray[8 * sizeof(int) / 2] = {
+
+OOps/lptrkfns.c:static MYFLT   *tphi[FREQS],*tpsi[FREQS]; /* prv tphi[50][5][25],tpsi[50][6][25] */
+OOps/lptrkfns.c:static MYFLT   *tgamph[FREQS], *tgamps[FREQS], freq[FREQS];
+OOps/lptrkfns.c:static MYFLT    NYQ10;
+OOps/lptrkfns.c:static int      Windsiz, Windsiz2;         /* settable windowsize, halfthat */
+OOps/lptrkfns.c:static int      Dwind, Hwind;              /* settable downsamp10, halfthat */
+OOps/lptrkfns.c:static  int   firstcall = 1, tencount = 0;
+OOps/lptrkfns.c:static  MYFLT *Dwind_dbuf, *Dwind_end1;    /* double buffer for downsamps   */
+OOps/lptrkfns.c:static  MYFLT *dbp1, *dbp2;
+OOps/lptrkfns.c:static  MYFLT w1 = FL(0.0), w11 = FL(0.0), w12 = FL(0.0);
+OOps/lptrkfns.c:static  MYFLT w2 = FL(0.0), w21 = FL(0.0), w22 = FL(0.0);
+OOps/lptrkfns.c:static  MYFLT w3 = FL(0.0), w31 = FL(0.0), w32 = FL(0.0);
+OOps/lptrkfns.c:static  MYFLT w4 = FL(0.0), w41 = FL(0.0), w42 = FL(0.0);
+
+OOps/pvfileio.c:static  char *pv_errstr = "";
+OOps/pvfileio.c:static PVOCFILE *files[MAXFILES];
+
+OOps/pvinterp.c:static  int     pdebug = 0;
+OOps/pvinterp.c:static  PVBUFREAD       *pvbufreadaddr;
+
+OOps/pvoc.c:static PVSTRUCT tmphdr;         /* scratch space for pre-load */
+OOps/pvoc.c:static char unspecMsg[27] = "Unspecified error :        ";
+
+OOps/schedule.c:static RSCHED *kicked = NULL;
+
+OOps/sdif.c:static  char    p[BUFSIZE];
+OOps/sdif.c:    static char errorMessage[sizeof("sizeof(sdif_float64) is 999!!!")];
+
+OOps/sdif-mem.c:static void *(*my_malloc)(int numBytes);
+OOps/sdif-mem.c:static void (*my_free)(void *memory, int numBytes);
+
+OOps/ugens3.c:static short *isintab = NULL;
+
+OOps/ugens4.c:static short
+OOps/ugens4.c:    static long rand = 1000;
+OOps/ugens4.c:static short
+OOps/ugens4.c:    static long rand = 1000;
+
+OOps/ugens5.c:static  int     currentLPCSlot=0 ;
+OOps/ugens5.c:static int max_lpc_slot=0;
+OOps/ugens5.c:static  LPREAD  **lprdadr=NULL;
+OOps/ugens5.c:static  char    lpfilname[MAXNAME];
+
+OOps/ugens6.c:static   DELAYR   *first_delayr = NULL;   /* fifo anchor */
+OOps/ugens6.c:static   DELAYR   *last_delayr = NULL;   /* fifo anchor */
+OOps/ugens6.c:static  MYFLT   revlptimes[6] ={FL(0.0297), FL(0.0371), FL(0.0411),
+OOps/ugens6.c:static  long    revlpsiz[6];
+OOps/ugens6.c:static  long    revlpsum;
+
+OOps/ugens8.c:static int pvx_loadfile(const char *fname,PVOC *p,MEMFIL **mfp);
+OOps/ugens8.c:static int byterev_pvoc(MEMFIL *mfil);
+OOps/ugens8.c:static
+
+OOps/ugens9.c:    static  MYFLT    format = FL(0.0), skptm = FL(0.0);
+OOps/ugens9.c:    static  MYFLT    sstrcod = (MYFLT)SSTRCOD;
+OOps/ugens9.c:    static  ARGOFFS  argofs = {0};
+OOps/ugens9.c:    static  OPTXT    optxt;
+
+OOps/vpvoc.c:static  TABLESEG        *tbladr;
+
+Opcodes/fm4op.c:static int      FM_tabs_built = 0;
+Opcodes/fm4op.c:static MYFLT    FM4Op_gains[100];
+Opcodes/fm4op.c:static MYFLT    FM4Op_susLevels[16];
+Opcodes/fm4op.c:static MYFLT    FM4Op_attTimes[32];
+
+Opcodes/locsig.c:static  LOCSIG  *locsigaddr;
+
+Opcodes/oscbnk.c:    static MYFLT    x;
+Opcodes/oscbnk.c:    static long     n;
+Opcodes/oscbnk.c:    static MYFLT    lfo1val = FL(0.0), lfo2val = FL(0.0);
+
+Opcodes/osc-sock.c:static oscStateStruct *oscState;
+Opcodes/osc-sock.c:static OSCBoolean oscIsUp = FALSE;
+Opcodes/osc-sock.c:static int oscSockFD = 0;
+Opcodes/osc-sock.c:static OSCcontainer oscTopLevelCont;
+Opcodes/osc-sock.c:static OSCcontainer oscVarCont;
+Opcodes/osc-sock.c:    static short __lineNo;
+Opcodes/osc-sock.c:    static oscContext Sc;
+
+Opcodes/pitch.c:static MYFLT bicoefs[] =
+
+Opcodes/sfont.c:static SFBANK *soundFont;
+Opcodes/sfont.c:static SFBANK sfArray[MAX_SFONT];
+Opcodes/sfont.c:static int currSFndx = 0;
+Opcodes/sfont.c:static presetType *presetp[MAX_SFPRESET];
+Opcodes/sfont.c:static SHORT *sampleBase[MAX_SFPRESET];
+Opcodes/sfont.c:static MYFLT pitches[128];
+Opcodes/sfont.c:static char *Gfname;
+Opcodes/sfont.c:static void
+
+Opcodes/singwave.c:static int step = 0;
+
+Opcodes/space.c:static SPACE    *spaceaddr;
+
+Opcodes/spectra.c:static MYFLT bicoefs[] =
+
+Opcodes/ugens6.c:static   DELAYR   *first_delayr = NULL;   /* fifo anchor */
+Opcodes/ugens6.c:static   DELAYR   *last_delayr = NULL;   /* fifo anchor */
+Opcodes/ugens6.c:static  MYFLT   revlptimes[6] ={FL(0.0297), FL(0.0371), FL(0.0411),
+Opcodes/ugens6.c:static  long    revlpsiz[6];
+Opcodes/ugens6.c:static  long    revlpsum;
+
+Opcodes/ugens7.c:static int hrngflg=0;
+
+SDIF/sdif.c:static char *error_string_array[] = {
+SDIF/sdif.c:    static int id;
+SDIF/sdif.c:static  char    p[BUFSIZE];
+SDIF/sdif.c:    static char errorMessage[sizeof("sizeof(sdif_float64) is 999!!!")];
+SDIF/sdif-mem.c:static void *(*my_malloc)(int numBytes);
+SDIF/sdif-mem.c:static void (*my_free)(void *memory, int numBytes);
+
+Top/argdecode.c:static char listing_file[PATH_LEN];
+Top/argdecode.c:static int  vbuf;
+Top/argdecode.c:static int csNGraphs;
+Top/argdecode.c:static int rescale24 = 0;
+Top/argdecode.c:static
+
+Top/cscorfns.c:static INFILE *infiles = NULL;    /* array of infile status blks */
+Top/cscorfns.c:static  EVENT  *evtmp = NULL;
+Top/cscorfns.c:static  EVTBLK *evtmpblk;
+Top/cscorfns.c:static SPACE  spaceanchor = { { NULL, NULL, TYP_SPACE, 0 }, NULL };
+Top/cscorfns.c:static CSHDR  *nxtfree = NULL;   /* fast pointer to yet unused free space */
+Top/cscorfns.c:static EVENT  *nxtevt = NULL;    /* to hold nxt infil event, PMAX pfields */
+Top/cscorfns.c:static EVTBLK *nxtevtblk;        /* cs.h EVTBLK subset of EVENT nxtevt    */
+Top/cscorfns.c:static int    warpout = 0;
+Top/cscorfns.c:static MYFLT curuntil;           /* initialised to zero by filopen */
+Top/cscorfns.c:static int   wasend;             /* ditto */
+Top/cscorfns.c:static void
+
+Top/csound.c:  static jmp_buf csoundJump_;
+Top/csound.c:  static void* csoundExitFuncs_[csoundMaxExits];
+Top/csound.c:  static long csoundNumExits_ = -1;
+Top/csound.c:  static long _rtCurOutBufCount = 0;
+Top/csound.c:  static char *_rtCurOutBuf = 0;
+Top/csound.c:  static long _rtCurOutBufSize = 0;
+Top/csound.c:  static char *_rtOutOverBuf = 0;
+Top/csound.c:  static long _rtOutOverBufSize = 0;
+Top/csound.c:  static long _rtOutOverBufCount = 0;
+Top/csound.c:  static char *_rtInputBuf = 0;
+Top/csound.c:    static int sampsNeeded = 0;
+Top/csound.c:  static int csoundIsScorePending_ = 0;
+Top/csound.c:  static MYFLT csoundScoreOffsetSeconds_ = (MYFLT) 0.0;
+Top/csound.c:  static char inChar_ = 0;
+Top/csound.c:  static int isGraphable_ = 1;
+Top/csound.c:static double timeResolutionSeconds = -1.0;
+
+Top/cvanal.c:static  complex *basis;             /* LUTable for FFT */
+
+Top/dl_opcodes.c:    static char errstr[ERR_STR_LEN];
+Top/dl_opcodes.c:    static int err_filled = 0;
+Top/dl_opcodes.c:    static char undersym[257];  /* Saves calls to malloc(3) */
+Top/dl_opcodes.c:    static char undersym[257];  /* Saves calls to malloc(3) */
+
+Top/dnoise.c:static unsigned outbufsiz;
+Top/dnoise.c:static int outfd;
+Top/dnoise.c:static SNDFILE* outsdf;
+
+Top/dnoise_int.c:static int ok_enabled = FALSE;          /* TRUE if allow \r to mean OK button */
+Top/dnoise_int.c:    static Boolean dispFlag = FALSE;    /* to make it possible to type in
+Top/dnoise_int.c:    static Boolean forTesting = true;
+Top/dnoise_int.c:    static int  prevFormat =    POPUP_16;        /*set to default*/
+
+Top/getstring.c:static  l10ndb_t    getstr_db = { CSLANGUAGE_DEFAULT, { NULL } };
+Top/getstring.c:static LanguageSpec_t lang_list[] = {
+
+Top/hetro.c:static MYFLT    x1,x2,yA,y2,y3,         /* lpf coefficients*/
+Top/hetro.c:static double *cos_mul, *sin_mul,       /* quad. term buffers*/
+Top/hetro.c:static long    windsiz;                 /* # of pts. in one per. of sample*/
+Top/hetro.c:static short    hmax = 10;              /* max harmonics requested */
+Top/hetro.c:static int      num_pts = 256,          /* breakpoints per harmonic */
+Top/hetro.c:static int     skip,                    /* flag to stop analysis if zeros*/
+Top/hetro.c:static long     smpsin;                 /* num sampsin */
+Top/hetro.c:static long    midbuf,                  /* set to bufsiz / 2   */
+Top/hetro.c:static char    *infilnam,               /* input file name */
+Top/hetro.c:static MYFLT    *auxp;                  /* pointer to input file */
+Top/hetro.c:static MYFLT    *adp;           /*pointer to front of sample file*/
+Top/hetro.c:static double   *c_p,*s_p;      /* pointers to space for sine and cos terms */
+Top/hetro.c:static double
+Top/hetro.c:static void
+
+Top/lpanal.c:static  int     poleCount, WINDIN, debug=0, verbose=0, doPitch = 1;
+Top/lpanal.c:static  double  *x;
+Top/lpanal.c:static  double  (*a)[MAXPOLES];
+Top/lpanal.c:static  WINDAT   pwindow;
+Top/lpanal.c:static void alpol(MYFLT *sig, double *errn,
+
+Top/main.c:static char *foo;
+Top/main.c:static char listing_file[PATH_LEN];
+Top/main.c:static int  vbuf;
+Top/main.c:static int csNGraphs;
+Top/main.c:static MYFLT temp;
+Top/main.c:static  char    *sortedscore = NULL;
+Top/main.c:static  char    *xtractedscore = "score.xtr";
+Top/main.c:static  char    scnm[255];
+Top/main.c:static  char    nme[255];
+Top/main.c:static  char    *playscore = NULL;     /* unless we extract */
+Top/main.c:static  FILE    *scorin, *scorout, *xfile;
+
+Top/one_file.c:static char buffer[CSD_MAX_LINE_LEN];
+Top/one_file.c:static char orcname[L_tmpnam+4];
+Top/one_file.c:static char midname[L_tmpnam+4];
+Top/one_file.c:static int midiSet;
+
+Top/pvanal.c:static  long frameSize  = 0;        /* size of FFT frames */
+Top/pvanal.c:static  long frameIncr  = 0;        /* step between successive frames */
+Top/pvanal.c:static  long fftfrmBsiz = 0;        /* bytes of fft output frame      */
+Top/pvanal.c:static  complex *basis;             /* LUTable for FFT */
+Top/pvanal.c:static  WINDAT   dwindow;
+Top/pvanal.c:static  int      cnt = 0;
+Top/pvanal.c:static  int      latch = 200;
+Top/pvanal.c:static  int      verbose = 0;
+Top/pvanal.c:static  FILE*    trfil = NULL; /* was stdout */
+Top/pvanal.c:static  int WindowType = 1;
+
+Top/scot.c:static char curline[MAXLINE+1]; /* current line of infile */
+Top/scot.c:static int inx,                 /* column # */
+Top/scot.c:static FILE *infile,*outfile;
+Top/scot.c:static char *infilename;
+Top/scot.c:static int naturals[PITCHCLASSES]={0,2,4,5,7,9,11};
+Top/scot.c:static Macro *gmac;             /* global macro list */
+Top/scot.c:    static Rat durdiv={4L,1L};
+

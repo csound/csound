@@ -23,7 +23,7 @@
 
                                                   /*                NATBEN.C */
 
-static char     FORM_ID[4] = {'F','O','R','M'};
+static const char FORM_ID[4] = {'F','O','R','M'};
 
 int bytrevhost(void)
 {
