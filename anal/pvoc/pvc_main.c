@@ -21,13 +21,13 @@
 */
 #include <stdio.h>
 #include "cs.h"
-#include "ustub.h"
 
 int main(int argc, char **argv)
 {
     scorename = "pvanal";
     orchname = "pvanal";
     init_getstring(argc,argv);
+    csoundPreCompile(csoundCreate(NULL));
     return pvanal(argc,argv);
 }
 

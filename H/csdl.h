@@ -234,7 +234,7 @@
 #define CloseLibrary csound->CloseLibrary
 #define GetLibrarySymbol csound->GetLibrarySymbol
 #define SetYieldCallback csound->SetYieldCallback
-#define SetEnv csound->SetEnv
+#define GetEnv csound->GetEnv
 #define SetPlayopenCallback csound->SetPlayopenCallback
 #define SetRtplayCallback csound->SetRtplayCallback
 #define SetRecopenCallback csound->SetRecopenCallback

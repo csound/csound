@@ -122,8 +122,6 @@ static int set_rt_priority(int argc, char **argv)
 
 #endif  /* LINUX */
 
-extern  void    print_benchmark_info(void*, const char*);     /* main.c */
-
 int main(int argc, char **argv)
 {
     void  *csound;
@@ -152,11 +150,9 @@ int main(int argc, char **argv)
     /*  One complete performance cycle. */
     result = csoundCompile(csound, argc, argv);
     if (!result) {
-        while (csoundPerformKsmps(csound) == 0) {
-          csoundYield(csound);
-        }
-	/* IV - Jan 28 2005 */
-	print_benchmark_info(csound, Str("end of performance"));
+      while (csoundPerformKsmps(csound) == 0) {
+        csoundYield(csound);
+      }
     }
     /* delete Csound instance */
     csoundDestroy(csound);

@@ -118,16 +118,12 @@ static int build_module_database(void *csound)
     int             is_library, len;
     /* open plugin directory */
 #ifdef USE_DOUBLE
-    if (csoundGetEnv(plugindir64_envvar) != NULL)
-      dname = (char*) csoundGetEnv(plugindir64_envvar);
-    else if (getenv(plugindir64_envvar) != NULL)
-      dname = (char*) getenv(plugindir64_envvar);
+    if (csoundGetEnv(csound, plugindir64_envvar) != NULL)
+      dname = (char*) csoundGetEnv(csound, plugindir64_envvar);
     else {
 #endif
-      if (csoundGetEnv(plugindir_envvar) != NULL)
-        dname = (char*) csoundGetEnv(plugindir_envvar);
-      else if (getenv(plugindir_envvar) != NULL)
-        dname = (char*) getenv(plugindir_envvar);
+      if (csoundGetEnv(csound, plugindir_envvar) != NULL)
+        dname = (char*) csoundGetEnv(csound, plugindir_envvar);
       else
         dname = (char*) default_plugin_dir;
 #ifdef USE_DOUBLE

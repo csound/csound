@@ -33,27 +33,11 @@ static  char    *incdirpath;
 
 void sssfinit(void)
 {
-#if defined(mills_macintosh) || defined(SYMANTEC)
-    extern char ssdir_path[], sfdir_path[], sadir_path[], incdir_path[];
-    if (ssdir_path != NULL && ssdir_path[0] != '\0')
-      ssdirpath = ssdir_path;
-    else ssdirpath = NULL;
-    if (sfdir_path != NULL && sfdir_path[0] != '\0')
-      sfdirpath = sfdir_path;
-    else sfdirpath = NULL;
-    if (sadir_path != NULL && sadir_path[0] != '\0')
-      sadirpath = sadir_path;
-    else sadirpath = NULL;
-    if (incdir_path != NULL && incdir_path[0] != '\0')
-      incdirpath = incdir_path;
-    else incdirpath = NULL;
-#else
-    char        *getenv(const char *);
-    ssdirpath = getenv("SSDIR");
-    sfdirpath = getenv("SFDIR");
-    sadirpath = getenv("SADIR");
-    incdirpath = getenv("INCDIR");
-#endif
+    csoundInitEnv(&cenviron);
+    ssdirpath = csoundGetEnv(&cenviron, "SSDIR");
+    sfdirpath = csoundGetEnv(&cenviron, "SFDIR");
+    sadirpath = csoundGetEnv(&cenviron, "SADIR");
+    incdirpath = csoundGetEnv(&cenviron, "INCDIR");
 }
 
 int isfullpath(char *name)

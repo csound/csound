@@ -24,13 +24,15 @@
 /*******************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
-#include "ustub.h"
-ENVIRON cenviron;
+#include "cs.h"
 
 int pvlook(int, char **);
 
 int main(int argc, char *argv[])
 {
+    init_getstring(argc, argv);
+    csoundPreCompile(csoundCreate(NULL));
+
     if ( argc == 1 ) {
       fprintf( stderr,"pvlook is a program which reads a Csound pvanal's pvoc.n "
                "file and outputs frequency and magnitude trajectories for each "

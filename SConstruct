@@ -98,9 +98,6 @@ opts.Add('generateTags',
 opts.Add('generatePdf',
     'Set to 1 to generate PDF documentation',
     '0')
-opts.Add('makeDynamic',
-    'Set to 1 to generate dynamically linked programs',
-    '1')
 opts.Add('generateXmg',
     'Set to 1 to generate string database',
     '1')
@@ -127,6 +124,9 @@ opts.Add('useGprof',
     '0')
 opts.Add('Word64',
     'Build for 64bit computer',
+    '0')
+opts.Add('dynamicCsoundLibrary',
+    'Build dynamic Csound library instead of libcsound.a',
     '0')
 
 # Define the common part of the build environment.
@@ -160,8 +160,8 @@ print
 
 commonEnvironment.Prepend(CPPPATH  = ['.', './H'])
 if (commonEnvironment['gcc3opt']=='1'):
-  commonEnvironment.Prepend(CCFLAGS = Split('-march=i686 -mcpu=pentium3 -fomit-frame-pointer -finline-functions -frename-registers -fweb -ffast-math -falign-functions=16'))
-if (commonEnvironment['noDebug']=='0'):
+  commonEnvironment.Prepend(CCFLAGS = Split('-DCSOUND_WITH_API -O3 -march=i686 -mcpu=pentium3 -fomit-frame-pointer -ffast-math -falign-functions=16'))
+elif (commonEnvironment['noDebug']=='0'):
   commonEnvironment.Prepend(CCFLAGS = Split('-DCSOUND_WITH_API -g -gstabs -O2'))
 else:
   commonEnvironment.Prepend(CCFLAGS = Split('-DCSOUND_WITH_API -O2'))
@@ -207,11 +207,8 @@ elif getPlatform() == 'mingw' or getPlatform() == 'cygwin':
     commonEnvironment.Append(CCFLAGS = "-mthreads")
     #commonEnvironment.Append(CCFLAGS = "-mtune=pentium4")
 
-if (commonEnvironment['makeDynamic'] == '1') or (getPlatform() == 'linux') or (getPlatform() == 'darwin'):
-    if (getPlatform() == 'linux'):
-        commonEnvironment.Append(LINKFLAGS = Split('-Wl,-Bdynamic'))
-else:
-    commonEnvironment.Append(LINKFLAGS = '-static')
+if (getPlatform() == 'linux'):
+    commonEnvironment.Append(LINKFLAGS = Split('-Wl,-Bdynamic'))
 
 # Adding libraries and flags if using -mno-cygwin with cygwin
 
@@ -348,7 +345,7 @@ def buildzip(env, target, source):
     print "Finished packaging '" + zipfilename + "'."
 
 
-staticLibraryEnvironment = commonEnvironment.Copy()
+csoundLibraryEnvironment = commonEnvironment.Copy()
 
 pluginEnvironment = commonEnvironment.Copy()
 
@@ -359,9 +356,6 @@ if getPlatform() == 'darwin':
 csoundProgramEnvironment = commonEnvironment.Copy()
 csoundProgramEnvironment.Append(LIBS = ['csound', 'sndfile'])
 csoundProgramEnvironment.ParseConfig('fltk-config --cflags --cxxflags --ldflags')
-
-ustubProgramEnvironment = commonEnvironment.Copy()
-ustubProgramEnvironment.Append(LIBS = ['ustub', 'sndfile'])
 
 vstEnvironment = commonEnvironment.Copy()
 if vstEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags'):
@@ -375,39 +369,33 @@ elif commonEnvironment['usePortAudio']=='1' and portaudioFound:
     guiProgramEnvironment.Append(LINKFLAGS = '-mwindows')
 
 if (commonEnvironment['useFLTK'] == '1' and fltkFound):
-    staticLibraryEnvironment.Append(CCFLAGS = '-DWINDOWS')
+    csoundLibraryEnvironment.Append(CCFLAGS = '-DWINDOWS')
     pluginEnvironment.Append(CCFLAGS = '-DWINDOWS')
     csoundProgramEnvironment.Append(CCFLAGS = '-DWINDOWS')
-    ustubProgramEnvironment.Append(CCFLAGS = '-DWINDOWS')
     vstEnvironment.Append(CCFLAGS = '-DWINDOWS')
     guiProgramEnvironment.Append(CCFLAGS = '-DWINDOWS')
-    staticLibraryEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
+    csoundLibraryEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
     pluginEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
     csoundProgramEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
-    ustubProgramEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
     vstEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
     guiProgramEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
     csoundProgramEnvironment.Append(LIBS = ['fltk'])
     if getPlatform() == 'linux':
         csoundProgramEnvironment.Append(LIBS = ['dl'])
-        ustubProgramEnvironment.Append(LIBS = ['dl'])
         vstEnvironment.Append(LIBS = ['dl'])
         guiProgramEnvironment.Append(LIBS = ['dl'])
     if getPlatform() == 'linux' or getPlatform() == 'cygwin':
         csoundProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
-        ustubProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
         vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
         guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     elif getPlatform() == 'mingw':
         vstEnvironment.Append(LINKFLAGS = "--subsystem:windows")
         guiProgramEnvironment.Append(LINKFLAGS = "--subsystem:windows")
         csoundProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
-        ustubProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
         vstEnvironment.Append(LIBS = ['stdc++', 'supc++'])
         guiProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
     elif getPlatform() == 'darwin':
         csoundProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
-        ustubProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
         vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
         guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
         csoundProgramEnvironment.Append(LINKFLAGS = ['-framework', 'Carbon'])
@@ -436,8 +424,7 @@ if getPlatform() == 'mingw':
 #
 #############################################################################
 
-makedb = ustubProgramEnvironment.Program('makedb',
-    ['strings/makedb.c'])
+makedb = commonEnvironment.Program('makedb', ['strings/makedb.c'])
 zipDependencies.append(makedb)
 
 libCsoundSources = Split('''
@@ -445,6 +432,7 @@ Engine/auxfd.c
 Engine/cfgvar.c
 Engine/entry1.c
 Engine/entry2.c
+Engine/envvar.c
 Engine/express.c
 Engine/extract.c
 Engine/fgens.c
@@ -567,64 +555,26 @@ else:
     libCsoundSources.append('InOut/winFLTK.c')
     libCsoundSources.append('InOut/widgets.cpp')
 
-staticLibrary = staticLibraryEnvironment.Library('csound',
-    libCsoundSources)
-zipDependencies.append(staticLibrary)
+if (commonEnvironment['dynamicCsoundLibrary'] == '1'):
+  print 'CONFIGURATION DECISION: Building dynamic Csound library'
+  csoundLibrary = csoundLibraryEnvironment.SharedLibrary('csound',
+                                                         libCsoundSources)
+else:
+  print 'CONFIGURATION DECISION: Building static Csound library'
+  csoundLibrary = csoundLibraryEnvironment.Library('csound', libCsoundSources)
+
+zipDependencies.append(csoundLibrary)
 
 if commonEnvironment['generatePdf']=='0':
     print 'CONFIGURATION DECISION: Not generating PDF documentation.'
 else:
     print 'CONFIGURATION DECISION: Generating PDF documentation.'
     refmanTex = commonEnvironment.Command('doc/latex/refman.tex', 'Doxyfile', ['doxygen $SOURCE'])
-    Depends(refmanTex, staticLibrary)
+    Depends(refmanTex, csoundLibrary)
     zipDependencies.append(refmanTex)
     csoundPdf = commonEnvironment.Command('refman.pdf', 'doc/latex/refman.tex', ['pdflatex --include-directory=doc/latex --interaction=nonstopmode --job-name=CsoundAPI $SOURCE'])
     Depends(csoundPdf, refmanTex)
     zipDependencies.append(csoundPdf)
-
-libUstubSources = Split('''
-Engine/extract.c
-Engine/filopen.c
-Engine/memalloc.c
-Engine/memfiles.c
-Engine/scsort.c
-Engine/scxtract.c
-Engine/sort.c
-Engine/sread.c
-Engine/swrite.c
-Engine/twarp.c
-InOut/libsnd.c
-InOut/libsnd_u.c
-InOut/winascii.c
-InOut/window.c
-InOut/winEPS.c
-InOut/winFLTK.c
-OOps/dsputil.c
-OOps/fft.c
-OOps/mxfft.c
-OOps/lptrkfns.c
-OOps/pvfileio.c
-OOps/pvoc.c
-OOps/pvocext.c
-OOps/pvread.c
-OOps/pvsanal.c
-OOps/pvxanal.c
-OOps/sdif.c
-Top/cvanal.c
-Top/getstring.c
-Top/hetro.c
-Top/lpanal.c
-Top/natben.c
-Top/pvanal.c
-Top/pvlook.c
-Top/scot.c
-Top/sndinfo.c
-Top/ustub.c
-''')
-
-ustub = staticLibraryEnvironment.Library('ustub',
-    libUstubSources)
-zipDependencies.append(ustub)
 
 # Plugin opcodes.
 
@@ -854,47 +804,47 @@ executables.append(csoundProgramEnvironment.Program('cvanal',
     ['anal/convol/cvl_main.c']))
 executables.append(csoundProgramEnvironment.Program('dnoise',
     ['util2/dnoise.dir/dnoise_main.c']))
-executables.append(ustubProgramEnvironment.Program('envext',
+executables.append(csoundProgramEnvironment.Program('envext',
     ['util2/envext/envext.c']))
-executables.append(ustubProgramEnvironment.Program('extract',
+executables.append(csoundProgramEnvironment.Program('extract',
     ['util1/sortex/xmain.c']))
-executables.append(ustubProgramEnvironment.Program('extractor',
+executables.append(csoundProgramEnvironment.Program('extractor',
     ['util2/mixer/xtrct.c']))
-executables.append(ustubProgramEnvironment.Program('het_export',
+executables.append(csoundProgramEnvironment.Program('het_export',
     ['util2/exports/het_export.c']))
-executables.append(ustubProgramEnvironment.Program('het_import',
+executables.append(csoundProgramEnvironment.Program('het_import',
     ['util2/exports/het_import.c']))
-executables.append(ustubProgramEnvironment.Program('hetro',
+executables.append(csoundProgramEnvironment.Program('hetro',
     ['anal/adsyn/het_main.c']))
-executables.append(ustubProgramEnvironment.Program('lpanal',
+executables.append(csoundProgramEnvironment.Program('lpanal',
     ['anal/lpc/lpc_main.c']))
-executables.append(ustubProgramEnvironment.Program('lpc_export',
+executables.append(csoundProgramEnvironment.Program('lpc_export',
     ['util2/exports/lpc_export.c']))
-executables.append(ustubProgramEnvironment.Program('lpc_import',
+executables.append(csoundProgramEnvironment.Program('lpc_import',
     ['util2/exports/lpc_import.c']))
-executables.append(ustubProgramEnvironment.Program('mixer',
+executables.append(csoundProgramEnvironment.Program('mixer',
     ['util2/mixer/mixer.c']))
-executables.append(ustubProgramEnvironment.Program('pv_export',
+executables.append(csoundProgramEnvironment.Program('pv_export',
     ['util2/exports/pv_export.c']))
-executables.append(ustubProgramEnvironment.Program('pv_import',
+executables.append(csoundProgramEnvironment.Program('pv_import',
     ['util2/exports/pv_import.c']))
 executables.append(csoundProgramEnvironment.Program('pvanal',
     ['anal/pvoc/pvc_main.c']))
-executables.append(ustubProgramEnvironment.Program('pvlook',
+executables.append(csoundProgramEnvironment.Program('pvlook',
     ['util2/pvlook.dir/pvl_main.c']))
-executables.append(ustubProgramEnvironment.Program('scale',
+executables.append(csoundProgramEnvironment.Program('scale',
     ['util2/scale.dir/scale.c']))
-executables.append(ustubProgramEnvironment.Program('scot',
+executables.append(csoundProgramEnvironment.Program('scot',
     ['util1/scot/scot_main.c']))
-executables.append(ustubProgramEnvironment.Program('scsort',
+executables.append(csoundProgramEnvironment.Program('scsort',
     ['util1/sortex/smain.c']))
-executables.append(ustubProgramEnvironment.Program('sdif2ad',
+executables.append(csoundProgramEnvironment.Program('sdif2ad',
     Split('''SDIF/sdif2adsyn.c
     SDIF/sdif.c
     SDIF/sdif-mem.c''')))
-executables.append(ustubProgramEnvironment.Program('sndinfo',
+executables.append(csoundProgramEnvironment.Program('sndinfo',
     ['util2/sndinfo/sndinfo_main.c']))
-executables.append(ustubProgramEnvironment.Program('srconv',
+executables.append(csoundProgramEnvironment.Program('srconv',
     ['util2/dnoise.dir/srconv.c']))
 
 # Front ends.
@@ -996,7 +946,7 @@ else:
     csoundvst = vstEnvironment.SharedLibrary('CsoundVST', csoundVstSources, SHLIBPREFIX = '_')
     Depends(csoundvst, 'frontends/CsoundVST/CsoundVST_wrap.cc')
     zipDependencies.append(csoundvst)
-    Depends(csoundvst, staticLibrary)
+    Depends(csoundvst, csoundLibrary)
     if getPlatform() == 'mingw' or getPlatform() == 'cygwin':
         Depends(csoundvst, pyrun)
         guiProgramEnvironment.Append(LIBS = ['CsoundVST'])
@@ -1062,7 +1012,7 @@ else:
     allSources = allSources + ' ' + string.join(glob.glob('*/*/*.hpp'))
     tags = commonEnvironment.Command('TAGS', Split(allSources), 'etags $SOURCES')
     zipDependencies.append(tags)
-    Depends(tags, staticLibrary)
+    Depends(tags, csoundLibrary)
 
 if commonEnvironment['generateXmg']=='1':
     print "CONFIGURATION DECISION: Calling makedb"
@@ -1091,7 +1041,7 @@ if (commonEnvironment['generateZip']=='0'):
     print 'CONFIGURATION DECISION: Not compiling zip file for release.'
 else:
     print 'CONFIGURATION DECISION: Compiling zip file for release.'
-    zip = commonEnvironment.Command(zipfilename, staticLibrary, buildzip)
+    zip = commonEnvironment.Command(zipfilename, csoundLibrary, buildzip)
     for node in zipDependencies:
         Depends(zip, node)
 

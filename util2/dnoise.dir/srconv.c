@@ -46,7 +46,6 @@
 #include "cs.h"
 #include "sfheader.h"
 #include "soundio.h"
-#include "ustub.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -54,8 +53,6 @@
 #ifdef LINUX
 #include <unistd.h>
 #endif
-
-ENVIRON cenviron;
 
 #define IBUF 	(4096)
 #define IBUF2 	(IBUF/2)
@@ -73,7 +70,6 @@ extern char *getstrformat(int);
 
 static void kaiser(int, MYFLT *, int, int, MYFLT);
 static void usage(int);
-int writebuffer(MYFLT *, int);  /* Not correct in ustub.c */
 extern char *type2string(int);
 
 /* Static global variables */
@@ -84,8 +80,36 @@ static SNDFILE *outfd;
 OPARMS	O = {0,0, 0,1,1,0, 0,0, 0,0, 0,0, 1,0,0,7, 0,0,0, 0,0,0,0, 0,0 };
 
 extern int type2sf(int);
+static int block = 0;
 
-char set_output_format(char c, char outformch)
+static int writebuffer(MYFLT * obuf, int length)
+{
+    sf_write_MYFLT(outfd, outbuf, length);
+    block++;
+    if (O.rewrt_hdr)
+       rewriteheader(outfd,0);
+    if (O.heartbeat) {
+      if (O.heartbeat==1) {
+#ifdef SYMANTEC
+        nextcurs();
+#elif __BEOS__
+        putc('.', stderr); fflush(stderr);
+#else
+        putc("|/-\\"[block&3], stderr); putc(8,stderr);
+#endif
+      }
+      else if (O.heartbeat==2) putc('.', stderr);
+      else if (O.heartbeat==3) {
+        int n;
+        err_printf( "%d%n", block, &n);
+        while (n--) putc(8, stderr);
+      }
+      else putc(7, stderr);
+    }
+    return length;
+}
+
+static char set_output_format(char c, char outformch)
 {
     if (O.outformat && (O.msglevel & WARNMSG)) {
       printf(Str("WARNING: Sound format -%c has been overruled by -%c\n"),
@@ -215,13 +239,13 @@ int main(int argc, char **argv)
     char        c, *s;
     char 	*envoutyp = NULL;
     char        outformch = 's';
-    char *getenv(const char*);
 
-    e0dbfs = DFLT_DBFS;
     init_getstring(argc, argv);
+    csoundPreCompile(csoundCreate(NULL));
+    e0dbfs = DFLT_DBFS;
 
     O.filnamspace = outfile = (char*)mmalloc(&cenviron, (long)1024);
-    if ((envoutyp = getenv("SFOUTYP")) != NULL) {
+    if ((envoutyp = csoundGetEnv(&cenviron, "SFOUTYP")) != NULL) {
       if (strcmp(envoutyp,"AIFF") == 0)
         O.filetyp = TYP_AIFF;
       else if (strcmp(envoutyp,"WAV") == 0)

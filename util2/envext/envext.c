@@ -27,7 +27,7 @@
 *   mainly lifted from scale and Csound itself		*
 \*******************************************************/
 
-#include "ustub.h"
+#include "cs.h"
 #include "soundio.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -78,6 +78,7 @@ main(int argc, char **argv)
     peakchunks = 1;
 
     init_getstring(argc, argv);
+    csoundPreCompile(csoundCreate(NULL));
     memset(&OO, 0, sizeof(OO));
 
     /* Check arguments */

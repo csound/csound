@@ -322,17 +322,14 @@ int csoundCompile(void *csound, int argc, char **argv)
 
     /* IV - Jan 28 2005 */
     csoundCreateGlobalVariable(csound, "csRtClock", sizeof(RTCLOCK));
-    csoundCreateGlobalVariable(csound, "#CLEANUP", (size_t) 1);
     frsturnon = 0;
-/*  init_getstring(argc, argv);     should be done by host application as */
-/*                                string database is global to all instances */
     init_pvsys();
     /* utilities depend on this as well as orchs */
-    e0dbfs = DFLT_DBFS;
+    e0dbfs = DFLT_DBFS; /* may get changed by an orch */
     dbfs_init(e0dbfs);
     timers_struct_init((RTCLOCK*)
-                        csoundQueryGlobalVariable(csound, "csRtClock"));
-    /* may get changed by an orch */
+                       csoundQueryGlobalVariable(csound, "csRtClock"));
+    csoundCreateGlobalVariable(csound, "#CLEANUP", (size_t) 1);
     if (sizeof(MYFLT)==sizeof(float)) {
 #ifdef BETA
       err_printf("Csound version %s beta (float samples) %s\n",
@@ -357,25 +354,25 @@ int csoundCompile(void *csound, int argc, char **argv)
       sf_command (NULL, SFC_GET_LIB_VERSION, buffer, 128);
       err_printf("%s\n", buffer);
     }
-#if !defined(mills_macintosh) && !defined(SYMANTEC)
-    {
-      char *getenv(const char*);
-      if ((envoutyp = getenv("SFOUTYP")) != NULL) {
-        if (strcmp(envoutyp,"AIFF") == 0)
-          O.filetyp = TYP_AIFF;
-        else if (strcmp(envoutyp,"WAV") == 0)
-          O.filetyp = TYP_WAV;
-        else if (strcmp(envoutyp,"IRCAM") == 0)
-          O.filetyp = TYP_IRCAM;
-        else {
-          sprintf(errmsg,
-                  Str("%s not a recognised SFOUTYP env setting"),
-                  envoutyp);
-          dieu(errmsg);
-        }
+    if ((envoutyp = getenv("SFOUTYP")) != NULL) {
+      if (strcmp(envoutyp,"AIFF") == 0) {
+        O.filetyp = TYP_AIFF; O.sfheader = 1;
+      }
+      else if (strcmp(envoutyp,"WAV") == 0) {
+        O.filetyp = TYP_WAV; O.sfheader = 1;
+      }
+      else if (strcmp(envoutyp,"IRCAM") == 0) {
+        O.filetyp = TYP_IRCAM; O.sfheader = 1;
+      }
+      else if (strcmp(envoutyp, "RAW") == 0) {
+        O.filetyp = TYP_RAW; O.sfheader = 0;
+      }
+      else {
+        sprintf(errmsg, Str("%s not a recognised SFOUTYP env setting"),
+                        envoutyp);
+        dieu(errmsg);
       }
     }
-#endif
     install_signal_handler();
     O.filnamspace = filnamp = mmalloc(csound, (long)1024);
     peakchunks = 1;
@@ -383,13 +380,20 @@ int csoundCompile(void *csound, int argc, char **argv)
       return -1;
     orcNameMode = (char*) csoundQueryGlobalVariable(csound,
                                                     "::argdecode::orcNameMode");
+    if (--argc == 0) {
+      dieu(Str("insufficient arguments"));
+    }
+    /* command line: allow orc/sco/csd name */
+    strcpy(orcNameMode, "normal");
+    if (argdecode(csound, argc, argv, envoutyp) == 0)
+      longjmp(((ENVIRON*) csound)->exitjmp_, 1);
     /* do not allow orc/sco/csd name in .csoundrc */
     strcpy(orcNameMode, "fail");
     {
       char *csrcname;
       FILE *csrc;
       /* IV - Feb 17 2005 */
-      csrcname = getenv("CSOUNDRC");
+      csrcname = csoundGetEnv(csound, "CSOUNDRC");
       csrc = NULL;
       if (csrcname != NULL && csrcname[0] != '\0') {
         csrc = fopen(csrcname, "r");
@@ -397,14 +401,17 @@ int csoundCompile(void *csound, int argc, char **argv)
           err_printf(Str("WARNING: cannot open csoundrc file %s\n"), csrcname);
       }
       if (csrc == NULL &&
-          (getenv("HOME") != NULL && ((char*) getenv("HOME"))[0] != '\0')) {
+          (csoundGetEnv(csound, "HOME") != NULL &&
+           csoundGetEnv(csound, "HOME")[0] != '\0')) {
         /* 11 bytes for DIRSEP, ".csoundrc" (9 chars), and null character */
-        csrcname = (char*) malloc((size_t) ((int) strlen(getenv("HOME")) + 11));
+        csrcname = (char*)
+          malloc((size_t) strlen(csoundGetEnv(csound, "HOME")) + (size_t) 11);
         if (csrcname == NULL) {
           err_printf(Str(" *** memory allocation failure\n"));
           longjmp(((ENVIRON*) csound)->exitjmp_,1);
         }
-        sprintf(csrcname, "%s%c%s", getenv("HOME"), DIRSEP, ".csoundrc");
+        sprintf(csrcname, "%s%c%s",
+                          csoundGetEnv(csound, "HOME"), DIRSEP, ".csoundrc");
         csrc = fopen(csrcname, "r");
         free(csrcname);
       }
@@ -420,19 +427,7 @@ int csoundCompile(void *csound, int argc, char **argv)
         fclose(csrc);
       }
     }
-    if (--argc == 0) {
-      dieu(Str("insufficient arguments"));
-    }
-    /* command line: allow orc/sco/csd name */
-    strcpy(orcNameMode, "normal");
-    if (argdecode(csound, argc, argv, envoutyp) == 0) {
-#ifndef mills_macintosh
-      longjmp(((ENVIRON*) csound)->exitjmp_,1);
-#else
-      return(0);
-#endif
-    }
-
+    /* check for CSD file */
     if (orchname == NULL)
       dieu(Str("no orchestra name"));
     else if ((strcmp(orchname+strlen(orchname)-4, ".csd")==0 ||
@@ -446,12 +441,12 @@ int csoundCompile(void *csound, int argc, char **argv)
         err_printf(Str("Decode failed....stopping\n"));
         longjmp(((ENVIRON*) csound)->exitjmp_,1);
       }
-      /* IV - Feb 19 2005: run a second pass of argdecode so that */
-      /* command line options override CSD options */
-      /* this assumes that argdecode is safe to run multiple times */
-      strcpy(orcNameMode, "ignore");
-      argdecode(csound, argc, argv, envoutyp);  /* should not fail this time */
     }
+    /* IV - Feb 19 2005: run a second pass of argdecode so that */
+    /* command line options override CSD options */
+    /* this assumes that argdecode is safe to run multiple times */
+    strcpy(orcNameMode, "ignore");
+    argdecode(csound, argc, argv, envoutyp);    /* should not fail this time */
     /* some error checking */
     {
       int *nn;
@@ -638,7 +633,6 @@ void err_printf(char *fmt, ...)
 void mainRESET(ENVIRON *p)
 {
     void adsynRESET(void);
-    void argdecodeRESET(void);
     void cscoreRESET(void);
     void disprepRESET(void);
     void expRESET(void);
@@ -670,7 +664,6 @@ void mainRESET(ENVIRON *p)
     soundinRESET();
     adsynRESET();
     lpcRESET();
-    argdecodeRESET();
     while (reset_list) {
       RESETTER *x = reset_list->next;
       (*reset_list->fn)(p);

@@ -660,9 +660,7 @@ extern "C" {
     void *(*GetLibrarySymbol)(void *library, const char *procedureName);
     void (*SetYieldCallback)(void *csound,
                              int (*yieldCallback)(void *hostData));
-    void (*SetEnv)(void *csound, const char *environmentVariableName,
-                   const char *path);
-    char *(*GetEnv)(const char *environmentVariableName);
+    char *(*GetEnv)(void *csound, const char *name);
     void (*SetPlayopenCallback)(void *csound,
                                 int (*playopen__)(void *csound,
                                                   csRtAudioParams *parm));
@@ -898,6 +896,7 @@ extern "C" {
     void          *rtPlay_userdata;
     void          *memalloc_db;
     MGLOBAL       *midiGlobals;
+    void          *envVarDB;
   } ENVIRON;
 
   extern ENVIRON cenviron_;

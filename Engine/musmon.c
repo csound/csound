@@ -60,6 +60,8 @@ static  MYFLT   betsiz, ekrbetsiz;
 extern  int     MIDIinsert(ENVIRON *, int, MCHNBLK*, MEVENT*);
 extern  int     insert(ENVIRON *, int, EVTBLK*);
 
+extern  void    print_benchmark_info(void*, const char*);     /* main.c */
+
 static void settempo(MYFLT tempo)
 {
     if (tempo > FL(0.0)) {
@@ -382,6 +384,7 @@ int cleanup(void *csound)
         printf("%9ld", *rngp++);
     }
     printf(Str("\n%d errors in performance\n"),perferrcnt);
+    print_benchmark_info(csound, Str("end of performance"));
     /* close MIDI input */
     MidiClose((ENVIRON*) csound);
     /* IV - Feb 03 2005: do not need to call rtclose from here, as */

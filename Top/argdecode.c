@@ -259,6 +259,8 @@ static void longusage(void *csound)
              "--extract-score=FNAME\textract from score.srt using extract file\n"
              "--keep-sorted-score\n"
              "--expression-opt\toptimise use of temporary variables in expressions\n"
+             "--env:NAME=VALUE\tset environment variable NAME to VALUE\n"
+             "--env:NAME+=VALUE\tappend VALUE to environment variable NAME\n"
              "--utility=NAME\t\trun utility program\n"
              "--verbose\t\tverbose orch translation\n"
              "--list-opcodes\t\tList opcodes in this version\n"
@@ -674,6 +676,12 @@ static int decode_long(void *csound,
   else if (!(strcmp (s, "expression-opt"))) {
     O.expr_opt = 1;
     return 1;
+  }
+  else if (!(strncmp (s, "env:", 4))) {
+    if (csoundParseEnv(csound, s + 4) == CSOUND_SUCCESS)
+      return 1;
+    else
+      return 0;
   }
   /* -T terminate the performance when miditrack is done */
   else if (!(strcmp (s, "terminate-on-midi"))) {
@@ -1206,9 +1214,5 @@ int argdecode(void *csound, int argc, char **argv_, char *envoutyp)
     }
   } while (--argc);
   return 1;
-}
-
-void argdecodeRESET(void)
-{
 }
 

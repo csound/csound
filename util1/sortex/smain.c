@@ -23,26 +23,11 @@
 #include <string.h>
 #include <stdlib.h>
 
-ENVIRON cenviron;
-
-#ifndef POLL_EVENTS
-int POLL_EVENTS(void)
-{
-    return (1);
-}
-#endif
-
-void pvsys_release(void) {};
-
-void *memfiles = NULL;
-void rlsmemfiles(void)
-{
-}
-
 /* char        *scorename = NULL; */
 int main(void)                           /* stdio stub for standalone scsort */
 {
     init_getstring(0, NULL);
+    csoundPreCompile(csoundCreate(NULL));
     scsort(stdin,stdout);
     return 0;
 }         
