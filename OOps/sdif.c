@@ -98,7 +98,7 @@ static SDIFresult SkipBytes(FILE *f, int numBytes);
 
 
 /* error handling stuff. */
-static char *error_string_array[] = {
+static const char *error_string_array[] = {
     "Everything's cool",
     "This program should display strerror(errno) instead of this string",
     "Bad SDIF header",
@@ -447,7 +447,7 @@ SDIF_ReadMatrixData(void *putItHere, FILE *f, const SDIF_MatrixHeader *head) {
 
 
 sdif_int32 SDIF_UniqueStreamID(void) {
-    static int id;
+    static int id=0;
     return ++id;
 }
 

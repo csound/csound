@@ -261,7 +261,6 @@ int fiopen(ENVIRON *csound, FIOPEN *p)          /* open a file and return its ha
    fouti  ihandle, iascii, iflag, iarg1 [,iarg2,....,iargN]
 */
 
-static long kreset=0;
 int ioutfile_set(ENVIRON *csound, IOUTFILE *p)
 {
     int j;
@@ -285,10 +284,10 @@ int ioutfile_set(ENVIRON *csound, IOUTFILE *p)
       }
       break;
       case 2: /* with prefix (start at 0 time) */
-        if (kreset == 0) kreset = kcounter;
+        if (p->kreset == 0) p->kreset = kcounter;
         {
           int p1 = (int) p->h.insdshead->insno;
-          double p2= (double) (kcounter - kreset) * onedkr;
+          double p2= (double) (kcounter - p->kreset) * onedkr;
           double p3 = p->h.insdshead->p3;
           if (p3 > FL(0.0))
             fprintf(rfil, "i %i %f %f ", p1, p2, p3);
@@ -297,7 +296,7 @@ int ioutfile_set(ENVIRON *csound, IOUTFILE *p)
         }
         break;
       case 3: /* reset */
-        kreset=0;
+        p->kreset=0;
         return OK;
       }
       for (j=0; j < p->INOCOUNT - 3;j++) {
@@ -322,7 +321,7 @@ int ioutfile_set_r(ENVIRON *csound, IOUTFILE_R *p)
     p->counter =  kcounter;
     p->done = 1;
     if (*p->iflag==2)
-      if (kreset == 0) kreset = kcounter;
+      if (p->kreset == 0) p->kreset = kcounter;
     return OK;
 }
 
@@ -352,13 +351,13 @@ int ioutfile_r(ENVIRON *csound, IOUTFILE_R *p)
           case 2: /* with prefix (start at 0 time) */
             {
               int p1 = (int) p->h.insdshead->insno;
-              double p2 = (p->counter - kreset) *onedkr;
+              double p2 = (p->counter - p->kreset) *onedkr;
               double p3 = (double) (kcounter-p->counter) * onedkr;
               fprintf(rfil, "i %i %f %f ", p1, p2, p3);
             }
             break;
           case 3: /* reset */
-            kreset=0;
+            p->kreset=0;
             return OK;
           }
           for (j=0; j < p->INOCOUNT - 3;j++) {
