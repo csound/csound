@@ -1,3 +1,31 @@
+2005-02-03	Istvan Varga	<istvan@csounds.com>
+	* SConstruct:
+	  Fixed (hopefully) the PortMIDI compile error.
+	* Engine/musmon.c:
+	  Made it sure that cleanup() is done only once, no matter how
+	  many times it is called; fixed closing sound I/O (still not
+	  sure if it is correct); remove temporary files in cleanup().
+	* H/prototyp.h:
+	* Top/main.c:
+	* Top/one_file.c:
+	  add_tmpfile() and remove_tmpfiles() now take a void *csound
+	  pointer to remove the temporary files of a particular Csound
+	  instance. Also removed the static global variable 'toremove'.
+	  In main.c, cleanup() is called instead of rtclose to close sound
+	  output (cleanup is more useful as it will also close files,
+	  remove temporaries, etc.).
+	* InOut/libsnd.c:
+	* InOut/pa_blocking.c:
+	* InOut/rtalsa.c:
+	* InOut/rtpa.c:
+	  Incrementing ENVIRON.nrecs_ is now done in libsnd.c, and not in
+	  the plugins. Closing line input was also moved to libsnd.c.
+	  Fixed memory access problem in rtalsa.c (allocated space was too
+	  small in some cases) that caused crashes and odd errors.
+	  Attempts were made to make the closing of sound I/O more reliable;
+	  this is still not perfect in the case of PortAudio, but ALSA is
+	  better now.
+
 2005-02-02	Istvan Varga	<istvan@csounds.com>
 
 	* Top/main.c:

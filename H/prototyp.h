@@ -81,9 +81,8 @@ void mainRESET(ENVIRON *);
 void create_opcodlst(void *csound);
 int readOptions(void*, FILE*);
 int csoundMain(void *csound, int argc, char **argv);
-void remove_tmpfiles(void);
-void add_tmpfile(char*);
-
+void remove_tmpfiles(void*);
+void add_tmpfile(void*, char*);
 
 extern OPARMS O;
 extern ENVIRON cenviron;

@@ -731,6 +731,7 @@ else:
     print "CONFIGURATION DECISION: Building ALSA plugin."
     alsaEnvironment = pluginEnvironment.Copy()
     alsaEnvironment.Append(LIBS = ['asound'])
+    alsaEnvironment.Append(LIBS = ['pthread'])
     pluginLibraries.append(alsaEnvironment.SharedLibrary('rtalsa',
                                                          ['InOut/rtalsa.c']))
 
@@ -740,12 +741,13 @@ else:
     print "CONFIGURATION DECISION: Building PortAudio module."
     portaudioEnvironment = pluginEnvironment.Copy()
     portaudioEnvironment.Append(LIBS = ['portaudio'])
-    if (getPlatform() == 'linux'): 
-        portaudioEnvironment.Append(LIBS = ['asound'])
+    if (getPlatform() == 'linux'):
         if (commonEnvironment['useJack']=='1'):
             print "Adding Jack library for PortAudio"
             portaudioEnvironment.Append(LIBS = ['jack'])
-    elif getPlatform() == 'cygwin' or getPlatform() == 'mingw': 
+        portaudioEnvironment.Append(LIBS = ['asound'])
+        portaudioEnvironment.Append(LIBS = ['pthread'])
+    elif getPlatform() == 'cygwin' or getPlatform() == 'mingw':
         portaudioEnvironment.Append(LIBS = ['winmm'])
         portaudioEnvironment.Append(LIBS = ['dsound'])
     	portaudioEnvironment.Append(LIBS = ['kernel32'])
