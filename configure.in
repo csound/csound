@@ -130,6 +130,12 @@ AC_ARG_WITH(tcltk,
 	[USE_TCLTK=$withval],
 	[USE_TCLTK=yes])
 
+AC_ARG_WITH(gcc3,
+	AC_HELP_STRING([--with-gcc3],
+		       [use gcc3 style CFLAGS (default no)]),
+	[USE_GCC3_FLAGS=$withval],
+	[USE_GCC3_FLAGS=no])
+
 case $host in 
      *irix*) 
 	     RTAUDIO_SRC="InOut/rtSGI.c InOut/SGIplay.c"
@@ -178,7 +184,15 @@ case $host in
                 GRAPHING_SRC=
                 GRAPHING_OBJS=
              fi
-             XCFLAGS="-Wall -malign-loops=4 -malign-jumps=4 -ffast-math -fomit-frame-pointer -finline-functions -funroll-loops -DWITHx87"
+		
+
+	     if test "$USE_GCC3_FLAGS" = yes; then
+		ALIGN_FLAGS="-falign-loops=4 -falign-jumps=4"
+             else
+		ALIGN_FLAGS="-malign-loops=4 -malign-jumps=4"
+	     fi
+
+             XCFLAGS="-Wall $ALIGN_FLAGS -ffast-math -fomit-frame-pointer -finline-functions -funroll-loops -DWITHx87"
 	     ;;
      *dec*)
              AC_DEFINE(DEC)
