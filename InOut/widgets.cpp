@@ -3109,7 +3109,7 @@ extern "C" int fl_joystick(ENVIRON *csound, FLJOYSTICK *p)
 }
 
 
-extern "C" int fl_knob(FLKNOB *p)
+extern "C" int fl_knob(ENVIRON *csound, FLKNOB *p)
 {
     char *controlName = GetString(*p->name,p->STRARG);
     int ix,iy,iwidth, itype, iexp;
