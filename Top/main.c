@@ -251,7 +251,7 @@ void psignal(int sig, char *str)
 
 static void signal_handler(int sig)
 {
-#if defined(HAVE_FLTK) && (defined(LINUX) || defined(SGI) || defined(sol))
+#if defined(USE_FLTK) && (defined(LINUX) || defined(SGI) || defined(sol))
     if (sig == SIGALRM) return;
 #elif defined(FLTK_GUI)
     if (sig == SIGALRM) return;
@@ -307,6 +307,7 @@ void create_opcodlst(void *csound)
 
 extern  int   getsizformat(int), musmon(void), musmon2(void);
 extern  char  *getstrformat(int);
+extern int frsturnon;
 
 int csoundCompile(void *csound, int argc, char **argv)
 {
@@ -330,6 +331,8 @@ int csoundCompile(void *csound, int argc, char **argv)
        */
       return -1;
     }
+    csoundReset(csound);
+    frsturnon = 0;
     init_getstring(argc, argv);
     init_pvsys();
     /* utilities depend on this as well as orchs */
@@ -580,7 +583,7 @@ int csoundCompile(void *csound, int argc, char **argv)
 
  perf:
     O.filnamsize = filnamp - O.filnamspace;
-    return 0;
+    return musmon();
 }
 
 int csoundMain(void *csound, int argc, char **argv)
@@ -596,7 +599,6 @@ int csoundMain(void *csound, int argc, char **argv)
     returnvalue = csoundCompile(csound, argc, argv);
     printf("Compile returns %d\n", returnvalue);
     if (returnvalue) return returnvalue;
-    returnvalue = musmon();
     printf("musmon returns %d\n", returnvalue);
     if (returnvalue) return returnvalue;
     return musmon2();
@@ -637,7 +639,7 @@ void mainRESET(ENVIRON *p)
 #ifdef RTAUDIO
     rtclose();                  /* In case need to reopen */
 #endif
-#if defined(HAVE_FLTK) && defined(never)        /* IV - Nov 30 2002 */
+#if defined(USE_FLTK_WIDGETS) && defined(never)        /* IV - Nov 30 2002 */
     void widgetRESET(void);     /* N.B. this is not used yet, */
                                 /* because it was not fully tested, */
     widgetRESET();              /* and may crash on some systems */

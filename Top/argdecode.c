@@ -67,8 +67,8 @@ extern void create_opcodlst(void);
 extern void readOptions(FILE*);
 
 #define FIND(MSG)   if (*s == '\0')  \
-                      if (!(--argc) || (((s = *++argv) != NULL) && *s == '-')) \
-                         dieu(MSG);
+                        if (!(--argc) || ((s = *++argv) && *s == '-'))  \
+                            dieu(MSG);
 
 /* alphabetically, so i dont have to hunt for a letter next time...
 **********************************************************************

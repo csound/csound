@@ -39,7 +39,6 @@
 #include <unistd.h>
 #endif
 #include "cs.h"
-#include "ustub.h"
 #include "soundio.h"
 
 /* Constants */
@@ -48,7 +47,6 @@
 #define FIND(MSG)   if (*s == '\0')  \
                         if (!(--argc) || ((s = *++argv) && *s == '-')) \
                             die(MSG);
-
 
 long        sample;         /* Time file starts in samples */
 long	    stop;           /* Time file ends in samples */
@@ -60,7 +58,7 @@ int	    outputs;	    /* Number of out chanels */
 
 SOUNDIN *   p;              /* Csound structure */
 
-int debug   = 0;
+extern int debug;
 
 /* Static function prototypes */
 
@@ -75,7 +73,7 @@ extern void writeheader(int, char *);
 extern char *getstrformat(int);
 extern int  sndgetset(SOUNDIN *);
 
-static void usage(char *mesg)
+static void xtract_usage(char *mesg)
 {
     err_printf( "%s\n", mesg);
     err_printf("Usage:\textracter [-flags] soundfile\n");
@@ -85,8 +83,6 @@ static void usage(char *mesg)
     err_printf("-S integer\tsample number at which to start file\n");
     err_printf("-Z integer\tsample number at which to end file\n");
     err_printf("-Q integer\tnumber of samples to read\n");
-
-
     err_printf("-T fpnum\ttime in secs at which to start file\n");
     err_printf("-E fpnum\ttime in secs at which to end file\n");
     err_printf("-D fpnum\tduration in secs of extract\n");
@@ -97,15 +93,6 @@ static void usage(char *mesg)
     err_printf("flag defaults: extracter -otest -S 0\n");
     exit(1);
 }
-
-#ifndef POLL_EVENTS
-int POLL_EVENTS(void)
-{
-    return (1);
-}
-#endif
-
-void pvsys_release(void) {};
 
 int
 main(int argc, char **argv)
@@ -122,7 +109,7 @@ main(int argc, char **argv)
     stop  = -1; endtime = -FL(1.0);
     numsamps = -1; dur = -FL(1.0);
     if (!(--argc))
-      usage("Insufficient arguments");
+      xtract_usage("Insufficient arguments");
     do {
       s = *++argv;
       if (*s++ == '-')                      /* read all flags:  */
@@ -258,10 +245,10 @@ main(int argc, char **argv)
             break;
           default:
             sprintf(errmsg,"unknown flag -%c", c);
-            usage(errmsg);
+            xtract_usage(errmsg);
           }
       else {
-        if (inputfile != NULL) usage("Too many inputs");
+        if (inputfile != NULL) xtract_usage("Too many inputs");
         inputfile = --s;
       }
     } while (--argc);
@@ -270,7 +257,7 @@ main(int argc, char **argv)
     dbfs_init(DFLT_DBFS);
 #endif
     /* Read sound file */
-    if (inputfile == NULL) usage("No input");
+    if (inputfile == NULL) xtract_usage("No input");
 
     if (!(infd = EXsndgetset(inputfile))) {
       err_printf("%s: error while opening %s", argv[0], inputfile);
@@ -374,21 +361,3 @@ ExtractSound(int infd, int outfd)
     return;
 }
 
-#ifndef CWIN
-#include <stdarg.h>
-
-void err_printf(char *fmt, ...)
-{
-    va_list a;
-    va_start(a, fmt);
-    vfprintf(stderr, fmt, a);
-    va_end(a);
-}
-#endif
-void csoundMessage0(const char *format, ...)
-{
-    va_list args;
-    va_start(args, format);
-    vprintf(format, args);
-    va_end(args);
-}

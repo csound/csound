@@ -1,15 +1,18 @@
-/* config.h.in.  Generated from configure.in by autoheader.  */
-
-/* Define to 1 if the `closedir' function returns void instead of `int'. */
-#undef CLOSEDIR_VOID
+/* H/config.h.in.  Generated from configure.ac by autoheader.  */
 
 /* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
    systems. This function is required for `alloca.c' support on those systems.
    */
 #undef CRAY_STACKSEG_END
 
+/* Define when building Csound with the Csound API library */
+#undef CSOUND_WITH_API
+
 /* Define to 1 if using `alloca.c'. */
 #undef C_ALLOCA
+
+/* Build for DEC platform */
+#undef DEC
 
 /* Define to 1 if you have `alloca', as a function or macro. */
 #undef HAVE_ALLOCA
@@ -21,91 +24,48 @@
 /* Define to 1 if you have the <arpa/inet.h> header file. */
 #undef HAVE_ARPA_INET_H
 
-/* Define to 1 if you have the `atexit' function. */
-#undef HAVE_ATEXIT
+/* Define to 1 if you have the <boost/numeric/ublas/blas.hpp> header file. */
+#undef HAVE_BOOST_NUMERIC_UBLAS_BLAS_HPP
 
-/* Define to 1 if you have the `bzero' function. */
-#undef HAVE_BZERO
+/* Define to 1 if you have the <boost/random.hpp> header file. */
+#undef HAVE_BOOST_RANDOM_HPP
+
+/* Define to 1 if you have the <bsd/sgtty.h> header file. */
+#undef HAVE_BSD_SGTTY_H
 
 /* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
    */
 #undef HAVE_DIRENT_H
 
-/* Define to 1 if you don't have `vprintf' but do have `_doprnt.' */
-#undef HAVE_DOPRNT
-
-/* Define to 1 if you have the `dup2' function. */
-#undef HAVE_DUP2
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
 
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 
-/* Define to 1 if you have the `floor' function. */
-#undef HAVE_FLOOR
-
-/* Define to 1 if you have the `fork' function. */
-#undef HAVE_FORK
-
-/* Define to 1 if you have the `ftruncate' function. */
-#undef HAVE_FTRUNCATE
-
-/* Define to 1 if you have the `getcwd' function. */
-#undef HAVE_GETCWD
-
-/* Define to 1 if you have the `gethostbyname' function. */
-#undef HAVE_GETHOSTBYNAME
-
-/* Define to 1 if you have the `gettimeofday' function. */
-#undef HAVE_GETTIMEOFDAY
+/* Define to 1 if you have the <FL/Fl.H> header file. */
+#undef HAVE_FL_FL_H
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* Define to 1 if you have the `Alib' library (-lAlib). */
-#undef HAVE_LIBALIB
+/* Define to 1 if you have the `fltk' library (-lfltk). */
+#undef HAVE_LIBFLTK
 
-/* Define to 1 if you have the `asound' library (-lasound). */
-#undef HAVE_LIBASOUND
-
-/* Define to 1 if you have the `audio' library (-laudio). */
-#undef HAVE_LIBAUDIO
-
-/* Define to 1 if you have the `c' library (-lc). */
-#undef HAVE_LIBC
-
-/* Define to 1 if you have the `dl' library (-ldl). */
-#undef HAVE_LIBDL
-
-/* Define to 1 if you have the `m' library (-lm). */
-#undef HAVE_LIBM
-
-/* Define to 1 if you have the `midi' library (-lmidi). */
-#undef HAVE_LIBMIDI
-
-/* Define to 1 if you have the `X11' library (-lX11). */
-#undef HAVE_LIBX11
+/* Define to 1 if you have the `pthread' library (-lpthread). */
+#undef HAVE_LIBPTHREAD
 
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
 
-/* Define to 1 if your system has a GNU libc compatible `malloc' function, and
-   to 0 otherwise. */
-#undef HAVE_MALLOC
-
 /* Define to 1 if you have the <malloc.h> header file. */
 #undef HAVE_MALLOC_H
-
-/* Define to 1 if you have the `memmove' function. */
-#undef HAVE_MEMMOVE
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
-/* Define to 1 if you have the `memset' function. */
-#undef HAVE_MEMSET
-
-/* Define to 1 if you have the `modf' function. */
-#undef HAVE_MODF
+/* Define to 1 if you have the <mmsystem.h> header file. */
+#undef HAVE_MMSYSTEM_H
 
 /* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
 #undef HAVE_NDIR_H
@@ -119,34 +79,23 @@
 /* Define to 1 if you have the <OS.h> header file. */
 #undef HAVE_OS_H
 
-/* Define to 1 if you have the `pow' function. */
-#undef HAVE_POW
+/* Define to 1 if you have the <portaudio.h> header file. */
+#undef HAVE_PORTAUDIO_H
 
-/* Define to 1 if you have the `putenv' function. */
-#undef HAVE_PUTENV
+/* Define to 1 if you have the <portmidi.h> header file. */
+#undef HAVE_PORTMIDI_H
 
-/* Define to 1 if your system has a GNU libc compatible `realloc' function,
-   and to 0 otherwise. */
-#undef HAVE_REALLOC
+/* Define to 1 if you have the <python2.3/Python.h> header file. */
+#undef HAVE_PYTHON2_3_PYTHON_H
 
-/* Define to 1 if you have the `rint' function. */
-#undef HAVE_RINT
-
-/* Define to 1 if you have the `select' function. */
-#undef HAVE_SELECT
+/* Define to 1 if you have the <sdif.h> header file. */
+#undef HAVE_SDIF_H
 
 /* Define to 1 if you have the <sgtty.h> header file. */
 #undef HAVE_SGTTY_H
 
-/* Define to 1 if you have the `socket' function. */
-#undef HAVE_SOCKET
-
-/* Define to 1 if you have the `sqrt' function. */
-#undef HAVE_SQRT
-
-/* Define to 1 if `stat' has the bug that it succeeds when given the
-   zero-length file name argument. */
-#undef HAVE_STAT_EMPTY_STRING_BUG
+/* Define to 1 if you have the <sndfile.h> header file. */
+#undef HAVE_SNDFILE_H
 
 /* Define to 1 if stdbool.h conforms to C99. */
 #undef HAVE_STDBOOL_H
@@ -160,32 +109,11 @@
 /* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
 
-/* Define to 1 if you have the `strchr' function. */
-#undef HAVE_STRCHR
-
-/* Define to 1 if you have the `strdup' function. */
-#undef HAVE_STRDUP
-
-/* Define to 1 if you have the `strerror' function. */
-#undef HAVE_STRERROR
-
 /* Define to 1 if you have the <strings.h> header file. */
 #undef HAVE_STRINGS_H
 
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
-
-/* Define to 1 if you have the `strrchr' function. */
-#undef HAVE_STRRCHR
-
-/* Define to 1 if you have the `strstr' function. */
-#undef HAVE_STRSTR
-
-/* Define to 1 if you have the `strtol' function. */
-#undef HAVE_STRTOL
-
-/* Define to 1 if you have the `strtoul' function. */
-#undef HAVE_STRTOUL
 
 /* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
    */
@@ -203,9 +131,6 @@
 
 /* Define to 1 if you have the <sys/param.h> header file. */
 #undef HAVE_SYS_PARAM_H
-
-/* Define to 1 if you have the <sys/select.h> header file. */
-#undef HAVE_SYS_SELECT_H
 
 /* Define to 1 if you have the <sys/socket.h> header file. */
 #undef HAVE_SYS_SOCKET_H
@@ -225,27 +150,26 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
-/* Define to 1 if you have the `vfork' function. */
-#undef HAVE_VFORK
-
-/* Define to 1 if you have the <vfork.h> header file. */
-#undef HAVE_VFORK_H
-
-/* Define to 1 if you have the `vprintf' function. */
-#undef HAVE_VPRINTF
-
-/* Define to 1 if `fork' works. */
-#undef HAVE_WORKING_FORK
-
-/* Define to 1 if `vfork' works. */
-#undef HAVE_WORKING_VFORK
-
 /* Define to 1 if the system has the type `_Bool'. */
 #undef HAVE__BOOL
 
-/* Define to 1 if `lstat' dereferences a symlink specified with a trailing
-   slash. */
-#undef LSTAT_FOLLOWS_SLASHED_SYMLINK
+/* Build for HP platform */
+#undef HP
+
+/* Enable IRCAM soundfile format */
+#undef IRCAM
+
+/* Build for Linux platform */
+#undef LINUX
+
+/* Build for Linux big-endian platform */
+#undef LINUX_BE
+
+/* Enable NeXT soundfile format */
+#undef NeXT
+
+/* Name of package */
+#undef PACKAGE
 
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT
@@ -262,36 +186,31 @@
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
-/* Define to 1 if the C compiler supports function prototypes. */
-#undef PROTOTYPES
+/* Enable use of UNIX-style pipes */
+#undef PIPES
 
-/* Define as the return type of signal handlers (`int' or `void'). */
-#undef RETSIGTYPE
+/* Define to enable real-time audio */
+#undef RTAUDIO
 
-/* Define to the type of arg 1 for `select'. */
-#undef SELECT_TYPE_ARG1
-
-/* Define to the type of args 2, 3 and 4 for `select'. */
-#undef SELECT_TYPE_ARG234
-
-/* Define to the type of arg 5 for `select'. */
-#undef SELECT_TYPE_ARG5
-
-/* Define to 1 if the `setvbuf' function takes the buffering type as its
-   second argument and the buffer pointer as the third, as on System V before
-   release 3. */
-#undef SETVBUF_REVERSED
+/* Build for SGI platform */
+#undef SGI
 
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
    automatically deduced at run-time.
-        STACK_DIRECTION > 0 => grows toward higher addresses
-        STACK_DIRECTION < 0 => grows toward lower addresses
-        STACK_DIRECTION = 0 => direction of growth unknown */
+	STACK_DIRECTION > 0 => grows toward higher addresses
+	STACK_DIRECTION < 0 => grows toward lower addresses
+	STACK_DIRECTION = 0 => direction of growth unknown */
 #undef STACK_DIRECTION
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
+
+/* Enable Sun 4.1 soundfile format */
+#undef SUN41
+
+/* Enable Tcl/Tk support */
+#undef TCLTK
 
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
 #undef TIME_WITH_SYS_TIME
@@ -299,52 +218,52 @@
 /* Define to 1 if your <sys/time.h> declares `struct tm'. */
 #undef TM_IN_SYS_TIME
 
+/* Define when using double precision floating point */
+#undef USE_DOUBLE
+
+/* Define to build FLTK widget opcodes */
+#undef USE_FLTK
+
+/* Use GUI */
+#undef USE_FLTK_WIDGETS
+
+/* Version number of package */
+#undef VERSION
+
+/* Build for Win32 platform */
+#undef WIN32
+
+/* Enable graphing of function tables */
+#undef WINDOWS
+
 /* Define to 1 if your processor stores words with the most significant byte
    first (like Motorola and SPARC, unlike Intel and VAX). */
 #undef WORDS_BIGENDIAN
 
-/* Define like PROTOTYPES; this can be used by system headers. */
-#undef __PROTOTYPES
+/* Define to 1 if the X Window System is missing or not being used. */
+#undef X_DISPLAY_MISSING
+
+/* Use libsndfile for soundfile access */
+#undef _SNDFILE_
 
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
 
-/* Define as `__inline' if that's what the C compiler calls it, or to nothing
-   if it is not supported. */
+/* Define to `__inline__' or `__inline' if that's what the C compiler
+   calls it, or to nothing if 'inline' is not supported under any name.  */
+#ifndef __cplusplus
 #undef inline
-
-/* Define to rpl_malloc if the replacement function should be used. */
-#undef malloc
+#endif
 
 /* Define to `long' if <sys/types.h> does not define. */
 #undef off_t
 
-/* Define to `int' if <sys/types.h> does not define. */
-#undef pid_t
-
-/* Define to rpl_realloc if the replacement function should be used. */
-#undef realloc
-
 /* Define to `unsigned' if <sys/types.h> does not define. */
 #undef size_t
 
-/* Define as `fork' if `vfork' does not work. */
-#undef vfork
+/* Build for SunOS platform */
+#undef sun
 
 /* Define to empty if the keyword `volatile' does not work. Warning: valid
    code using `volatile' can become incorrect without. Disable with care. */
 #undef volatile
-
-#undef HAVE_FLTK
-#undef IRCAM
-#undef LINUX
-#undef LINUX_BE
-#undef NeXT
-#undef PIPES
-#undef RTAUDIO
-#undef SGI
-#undef SUN41
-#undef TCLTK
-#undef WIN32
-#undef WINDOWS
-#undef sun

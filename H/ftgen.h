@@ -1,3 +1,5 @@
+#ifndef FTGEN_H
+#define FTGEN_H
 /*  
     ftgen.h:
 
@@ -46,3 +48,5 @@ typedef struct {
 
 #define GENMAX  42
 #define FTPMAX  (150)
+
+#endif // FTGEN_H

@@ -130,7 +130,7 @@ void init_getstring(int argc, char **argv)
 #endif
 #ifdef WIN32
     if (db==NULL)
-# ifdef _CONSOLE
+# ifdef CSOUND_WITH_API
     {
 /*    if (GetPrivateProfileString("csound", "StringDB", "",
                                   name, 256, "csound.ini"))  */
@@ -231,3 +231,4 @@ void free_strings(void)
       strings = NULL;
     }
 }
+

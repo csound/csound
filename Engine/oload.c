@@ -25,6 +25,7 @@
 #include "oload.h"
 #include "midiops.h"
 #include "insert.h"     /* IV - Nov 10 2002 */
+#include "ftgen.h"
 
 #define DKEY_DFLT  60
 
@@ -118,6 +119,10 @@ FUNC *ftfindp(MYFLT *argp);
 FUNC *ftnp2find(MYFLT *);
 char *unquote(char *);
 MEMFIL *ldmemfile(char *);
+long strarg2insno (MYFLT *p, char *s);
+long strarg2opcno (MYFLT *p, char *s);
+void rewriteheader(int ofd, long datasize, int verbose);
+void writeheader(int ofd, char *ofname);
 
 static  MYFLT   *gbloffbas;
 
@@ -226,6 +231,39 @@ ENVIRON cenviron_ = {
         unquote,
         ldmemfile,
         err_printf,
+				hfgens,
+				mrealloc,
+				putcomplexdata,
+				ShowCpx,
+				PureReal,
+				IsPowerOfTwo,
+				FindTable,
+				AssignBasis,
+				reverseDig,
+				reverseDigpacked,
+				FFT2dimensional,
+				FFT2torl,
+				FFT2torlpacked,
+				ConjScale,
+				FFT2real,
+				FFT2realpacked,
+				Reals,
+				Realspacked,
+				FFT2,
+				FFT2raw,
+				FFT2rawpacked,
+				FFTarb,
+				DFT,
+				cxmult,
+				getopnum,
+				strarg2insno,
+				strarg2opcno,
+				instance,
+				isfullpath,
+				dies,
+				catpath,
+				rewriteheader,
+				writeheader,
         /*
         * Data fields.
         */
@@ -630,7 +668,7 @@ void oload(void)
     global_kcounter = kcounter;
 /*  dv32768 = FL(1.0) / FL(32768.0);            IV - Jul 11 2002 */
     cpsoctinit();
-/*     reverbinit(); */
+    reverbinit();
     sssfinit();
     dbfs_init(e0dbfs);
 /*  dv32768 = dbfs_to_float;                    IV - Jul 11 2002 */

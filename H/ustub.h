@@ -20,19 +20,32 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
-
+#include "cs.h"
                                                 /*  USTUB.H  */
+void fdrecord(FDCH *fdchp);
+int initerror(char *s);
+int perferror(char *s);
+void sndwrterr(int n, int nput);
+extern unsigned long nframes;
+extern FILE* pin;
+extern FILE* pout;
+extern void (*audtran)(char *, int);
+extern void (*spoutran)(MYFLT *, int);
+extern void (*spinrecv)(void);
+extern void (*nzerotran)(long);
 
-/* header and dummy global references for main.c stub in  */
-/* standalone versions of hetro, lpanal, pvanal, sndinfo  */
-
-OPARMS O, O_;                              /* dummy global resolving */
-ENVIRON cenviron, cenviron_;                     /*  for references unused */
-
-void fdrecord(FDCH *fdchp) {}
-int initerror(char *s) { return NOTOK;}
-int perferror(char *s) { return NOTOK;}
-void sndwrterr(int n, int nput) {}
+extern void nullfn(char *, int);
+extern void chartran(MYFLT *, int);
+#ifdef never 
+extern void alawtran(MYFLT *, int);
+#endif
+#ifdef ULAW
+extern void ulawtran(MYFLT *, int); 
+#endif
+extern void shortran(MYFLT *, int);
+extern void longtran(MYFLT *, int); 
+extern void floatran(MYFLT *, int);
+extern void bytetran(MYFLT *, int);
 
 int  Graphable_(void);           /* initialise windows.  Returns 1 if X ok */
 void MakeGraph_(WINDAT *, char *);       /* create wdw for a graph */
@@ -44,3 +57,5 @@ void KillGraph_(WINDAT *);       /* remove a graph window */
 void KillXYin_(XYINDAT *);       /* remove a ms input window */
 int  ExitGraph_(void); /* print click-Exit message in most recently active window */
 void err_printf(char*, ...);
+
+

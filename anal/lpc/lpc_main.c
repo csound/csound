@@ -19,30 +19,12 @@
     along with Csound; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-#include <stdio.h>
-#include "cs.h"
 #include "ustub.h"
+#include <stdio.h>
 
-#ifdef HAVE_FLTK
+#ifdef USE_FLTK
 int fltk_abort = 0;
 #endif
-
-#ifdef WINDOWS
-int  Graphable(void){return Graphable_();}
-void MakeGraph(WINDAT *x, char *y){MakeGraph_(x,y);}
-void MakeXYin(XYINDAT *x, MYFLT y, MYFLT z){MakeXYin_(x,y,z);}
-void DrawGraph(WINDAT *x){DrawGraph_(x);}
-void ReadXYin(XYINDAT *x){ReadXYin_(x);}
-void KillGraph(WINDAT *x){KillGraph_(x);}
-void KillXYin(XYINDAT *x){KillXYin_(x);}
-int  ExitGraph(void){ return ExitGraph_();}
-#endif
-
-void pvsys_release(void) {};
-int  csoundYield(void* csound)
-{
-    return 1;
-}
 
 int main(int argc, char **argv)
 {
@@ -50,23 +32,4 @@ int main(int argc, char **argv)
     orchname = "LPC";
     init_getstring(argc,argv);
     return lpanal(argc,argv);
-}
-
-#ifndef CWIN
-#include <stdarg.h>
-
-void err_printf(char *fmt, ...)
-{
-    va_list a;
-    va_start(a, fmt);
-    vfprintf(stderr, fmt, a);
-    va_end(a);
-}
-#endif
-void csoundMessage0(const char *format, ...)
-{
-    va_list args;
-    va_start(args, format);
-    vprintf(format, args);
-    va_end(args);
 }

@@ -46,13 +46,12 @@
 #include "ftgen.h"
 #include "oload.h"
 #include "midiout.h"
-#include "pitch.h"
-
 #include "pvadd.h"
-
-#include "fout.h"
 #include "sndinfUG.h"
 #include "sf.h"
+#include "fout.h"
+#include "ugrw1.h"
+#include "ugrw2.h"
 
 #define S       sizeof
 
@@ -90,7 +89,7 @@ int    ipchbend(void*), kbndset(void*), kpchbend(void*);
 int    imidictl(void*), mctlset(void*), midictl(void*);
 int    imidiaft(void*), maftset(void*), midiaft(void*);
 int    midiout(void*);
-int    ichanctl(void*), chctlset(void*), chanctl(void*), turnon(void*);
+int    turnon(void*);
 int    kmapset(void*), polyaft(void*), ichanctl(void*), chctlset(void*);
 int    chanctl(void*), ftgen(void*), linset(void*), kline(void*), aline(void*);
 int    expset(void*), kexpon(void*), expon(void*);
@@ -143,10 +142,10 @@ int    balnset(void*), balance(void*);
 int    sndinset(void*), soundin(void*);
 int    sndo1set(void*), soundout(void*), sndo2set(void*), soundouts(void*);
 int    in(void*),  ins(void*), inq(void*), inh(void*),  ino(void*), in16(void*);
-int    in32(void*), inall(void*), inz(void*);
+int    in32(void*), inall(void*); 
 int    out(void*),  outs(void*), outs1(void*), outs2(void*), outall(void*);
 int    outq(void*), outq1(void*), outq2(void*), outq3(void*), outq4(void*);
-int    outz(void*), igoto(void*), kgoto(void*), icgoto(void*), kcgoto(void*);
+int    igoto(void*), kgoto(void*), icgoto(void*), kcgoto(void*);
 int    timset(void*), timout(void*);
 int    reinit(void*), rigoto(void*), rireturn(void*);
 int    tigoto(void*), tival(void*);
@@ -174,9 +173,6 @@ int    pvreadset(void*), pvread(void*), pvcrossset(void*), pvcross(void*);
 int    pvbufreadset(void*), pvbufread(void*);
 int    pvinterpset(void*), pvinterp(void*);
 int    auniform(void*), ikuniform(void*);
-int    printk2set(void*), printk2(void*), printsset(void*);
-int    peakk(void*), peaka(void*);
-int    limitset(void*), klimit(void*), limit(void*);
 int    newsndinset(void*), soundinew(void*);
 int    iout_on(void*), iout_off(void*), out_controller(void*);
 int    iout_on_dur_set(void*), iout_on_dur(void*),iout_on_dur2(void*);
@@ -203,18 +199,11 @@ int    button_set(void*), button(void*), check_set(void*), check(void*);
 int    sum(void*), product(void*), macset(void*), mac(void*), maca(void*);
 int    nestedapset(void*), nestedap(void*);
 int    lorenzset(void*), lorenz(void*);
-int    outfile_set(void*), outfile (void*), incr (void*), incr_set(void*);
-int    clear(void*),clear_set(void*);
-int    koutfile_set(void*), koutfile (void*);
-int    ioutfile_set(void*), fiopen(void*), ioutfile_set_r(void*);
-int    ioutfile_r(void*), infile_set(void*), infile (void*);
-int    kinfile_set(void*), kinfile (void*), i_infile(void*);
 int    filelen(void*), filenchnls(void*), filesr(void*), filepeak(void*);
 int    ipowoftwo(void*), ilogbasetwo(void*);
-int    powoftwo_set(void*), logbasetwo_set(void*), powoftwoa(void*);
+int    powoftwo_set(void*), logbasetwo_set(void*);
 int    powoftwo(void*), powoftwoa(void*);
 int    logbasetwo(void*), logbasetwoa(void*);
-int    cpuperc(void*), maxalloc(void*), prealloc(void*);
 /* int    nlalp_set(void*), nlalp(void*); */
 int    lp2_set(void*), lp2(void*);
 int    phaser2set(void*), phaser2(void*);
@@ -632,16 +621,6 @@ OENTRY opcodlst_1[] = {
 { "nrpn",   S(NRPN),     2,     "",     "kkk",  NULL,  nrpn ,NULL          },
 { "mdelay", S(MDELAY),   3,     "",     "kkkkk",mdelay_set, mdelay,   NULL },
 { "nsamp_i", S(EVAL),    1,     "i",    "i",    numsamp                    },
-{ "vincr", S(INCR),      4,     "",     "aa",   NULL, NULL, incr           },
-{ "clear", S(CLEARS),    4,     "",     "y",    NULL, NULL, clear          },
-{ "fout", S(OUTFILE),    5,     "",     "Siy",  outfile_set, NULL, outfile },
-{ "foutk", S(KOUTFILE),  3,     "",     "Siz",  koutfile_set, koutfile     },
-{ "fouti", S(IOUTFILE),  1,     "",     "iiim", ioutfile_set               },
-{ "foutir", S(IOUTFILE_R), 3,   "",     "iiim", ioutfile_set_r, ioutfile_r },
-{ "fiopen", S(FIOPEN),   1,     "i",    "Si",   fiopen                      },
-{ "fin", S(INFILE),      5,     "",     "Siiy", infile_set,  NULL, infile  },
-{ "fink", S(KINFILE),    3,     "",     "Siiz", kinfile_set, kinfile       },
-{ "fini", S(I_INFILE),   1,     "",     "Siim", i_infile                   },
 { "powoftwo_i",S(EVAL),  1,     "i",    "i",    ipowoftwo                  },
 { "powoftwo_k",S(EVAL),  2,     "k",    "k",    powoftwo_set, powoftwo     },
 { "powoftwo_a",S(EVAL),  4,     "a",    "a",  powoftwo_set, NULL, powoftwoa },
@@ -652,11 +631,73 @@ OENTRY opcodlst_1[] = {
 { "filenchnls", S(SNDINFO), 1,  "i",    "S",    filenchnls, NULL, NULL     },
 { "filesr", S(SNDINFO),  1,     "i",    "S",    filesr, NULL, NULL         },
 { "filepeak", S(SNDINFOPEAK), 1, "i",   "So",   filepeak, NULL, NULL       },
-{ "cpuprc", S(CPU_PERC), 1,     "",     "ii",   cpuperc, NULL, NULL        },
-/* IV - Oct 20 2002 */
-{ "prealloc", S(CPU_PERC), 1,   "",     "Sio",  prealloc, NULL, NULL       },
-{ "maxalloc", S(CPU_PERC), 1,   "",     "ii",   maxalloc, NULL, NULL       },
 /*  { "nlalp", S(NLALP),     5,     "a",    "akkoo", nlalp_set, NULL, nlalp     }, */
+/* Robin Whittle */
+{ "tableiw",  S(TABLEW),1,     "",      "iiiooo", (SUBR)itablew, NULL, NULL},
+{ "tablew_kk", S(TABLEW),3,     "",      "kkiooo",(SUBR)tblsetw,(SUBR)ktablew, NULL},
+{ "tablew_aa", S(TABLEW),5,     "",      "aaiooo",(SUBR)tblsetw, NULL, (SUBR)tablew},
+{ "tablewkt_kk", S(TABLEW),3,     "",     "kkkooo",(SUBR)tblsetwkt,(SUBR)ktablewkt,NULL},
+{ "tablewkt_aa", S(TABLEW),5,     "",     "aakooo",(SUBR)tblsetwkt,NULL,(SUBR)tablewkt},
+{ "tableng_i", S(TABLENG),1,   "i",     "i",    (SUBR)itableng, NULL,  NULL},
+{ "tableng_k",  S(TABLENG),2,  "k",     "k",    NULL,   (SUBR)tableng, NULL},
+{ "tableigpw",S(TABLENG),1,    "",      "i",    (SUBR)itablegpw, NULL,  NULL},
+{ "tablegpw", S(TABLENG),2,    "",      "k",    NULL,   (SUBR)tablegpw, NULL},
+{ "tableimix",S(TABLEMIX),1,   "",   "iiiiiiiii", (SUBR)itablemix, NULL, NULL},
+{ "tablemix", S(TABLEMIX),2,   "",   "kkkkkkkkk",(SUBR)tablemixset, (SUBR)tablemix, NULL},
+{ "tableicopy",S(TABLECOPY),1, "",      "ii",   (SUBR)itablecopy, NULL, NULL},
+{ "tablecopy", S(TABLECOPY),2, "",      "kk",   (SUBR)tablecopyset, (SUBR)tablecopy, NULL},
+{ "tablera", S(TABLERA),5,     "a",     "kkk",  (SUBR)tableraset, NULL, (SUBR)tablera},
+{ "tablewa", S(TABLEWA),5,     "k",     "kak",  (SUBR)tablewaset, NULL, (SUBR)tablewa},
+{ "zakinit", S(ZAKINIT), 1,    "",      "ii",   (SUBR)zakinit, NULL,  NULL},
+{ "zir",    S(ZKR),     1,     "i",     "i",    (SUBR)zir,     NULL,  NULL},
+{ "zkr",    S(ZKR),     3,     "k",     "k",    (SUBR)zkset,   (SUBR)zkr,   NULL},
+{ "ziw",    S(ZKW),     1,     "",      "ii",   (SUBR)ziw,     NULL,  NULL},
+{ "zkw",    S(ZKW),     3,     "",      "kk",   (SUBR)zkset,   (SUBR)zkw,   NULL},
+{ "ziwm",   S(ZKWM),    1,     "",      "iip",  (SUBR)ziwm,    NULL,  NULL},
+{ "zkwm",   S(ZKWM),    3,     "",      "kkp",  (SUBR)zkset,   (SUBR)zkwm,  NULL},
+{ "zkmod",  S(ZKMOD),   2,     "k",     "kk",   NULL,    (SUBR)zkmod, NULL},
+{ "zkcl",   S(ZKCL),    3,     "",      "kk",   (SUBR)zkset,   (SUBR)zkcl,  NULL},
+{ "zar",    S(ZAR),     5,     "a",     "k",    (SUBR)zaset,   NULL,  (SUBR)zar},
+{ "zarg",   S(ZARG),    5,     "a",     "kk",   (SUBR)zaset,   NULL,  (SUBR)zarg},
+{ "zaw",    S(ZAW),     5,     "",      "ak",   (SUBR)zaset,   NULL,  (SUBR)zaw},
+{ "zawm",   S(ZAWM),    5,     "",      "akp",  (SUBR)zaset,   NULL,  (SUBR)zawm},
+{ "zamod",  S(ZAMOD),   4,     "a",     "ak",   NULL,    NULL,  (SUBR)zamod},
+{ "zacl",   S(ZACL),    5,     "",      "kk",   (SUBR)zaset,   NULL,  (SUBR)zacl},
+{ "inz",    S(IOZ),     4,      "",     "k",    (SUBR)zaset,  NULL,   (SUBR)inz  },
+{ "outz",   S(IOZ),     4,      "",     "k",    (SUBR)zaset,  NULL,   (SUBR)outz },
+{ "timek_i", S(RDTIME), 1,     "i",     "",     (SUBR)timek,   NULL,  NULL},
+{ "times_i", S(RDTIME), 1,     "i",     "",     (SUBR)timesr,  NULL,  NULL},
+{ "timek_k",  S(RDTIME), 2,    "k",     "",     NULL,    (SUBR)timek, NULL},
+{ "times_k",  S(RDTIME), 2,    "k",     "",     NULL,    (SUBR)timesr,NULL},
+{ "timeinstk", S(RDTIME), 3,   "k",     "",     (SUBR)instimset, (SUBR)instimek, NULL},
+{ "timeinsts", S(RDTIME), 3,   "k",     "",     (SUBR)instimset, (SUBR)instimes, NULL},
+{ "peak_k",  S(PEAK),   2,     "k",     "k",    NULL,    (SUBR)peakk,    NULL},
+{ "peak_a",   S(PEAK),  4,     "k",     "a",    NULL,    NULL,     (SUBR)peaka},
+{ "printk", S(PRINTK),  3,     "",      "iko",  (SUBR)printkset, (SUBR)printk, NULL},
+{ "printks",S(PRINTKS), 3,     "",      "SiM",  (SUBR)printksset,(SUBR)printks, NULL},
+{ "prints",S(PRINTS),   1,     "",      "SM",	(SUBR)printsset, NULL, NULL },
+{ "printk2", S(PRINTK2),3,     "",      "ko",   (SUBR)printk2set, (SUBR)printk2, NULL},
+{ "fprints", S(FPRINTF),1,     "",      "SSM",  (SUBR)fprintf_i, NULL, NULL },
+{ "fprintks", S(FPRINTF), 3,   "",      "SSM",  (SUBR)fprintf_set, (SUBR)fprintf_k, NULL },
+{ "vincr", S(INCR),      4,     "",     "aa",   NULL, NULL, incr           },
+{ "clear", S(CLEARS),    4,     "",     "y",    NULL, NULL, clear          },
+{ "fout", S(OUTFILE),    5,     "",     "Siy",  outfile_set, NULL, outfile },
+{ "foutk", S(KOUTFILE),  3,     "",     "Siz",  koutfile_set, koutfile     },
+{ "fouti", S(IOUTFILE),  1,     "",     "iiim", ioutfile_set               },
+{ "foutir", S(IOUTFILE_R), 3,   "",     "iiim", ioutfile_set_r, ioutfile_r },
+{ "fiopen", S(FIOPEN),   1,     "i",    "Si",   fiopen                      },
+{ "fin", S(INFILE),      5,     "",     "Siiy", infile_set,  NULL, infile  },
+{ "fink", S(KINFILE),    3,     "",     "Siiz", kinfile_set, kinfile       },
+{ "fini", S(I_INFILE),   1,     "",     "Siim", i_infile                   },
+{ "portk",  S(KPORT),   3, "k",     "kko",  (SUBR)kporset, (SUBR)kport, NULL    },
+{ "tonek",  S(KTONE),   3, "k",     "kko",  (SUBR)ktonset, (SUBR)ktone, NULL    },
+{ "atonek", S(KTONE),   3, "k",     "kko",  (SUBR)ktonset, (SUBR)katone, NULL   },
+{ "resonk", S(KRESON),  3, "k",     "kkkpo",(SUBR)krsnset, (SUBR)kreson, NULL   },
+{ "aresonk",S(KRESON),  3, "k",     "kkkpo",(SUBR)krsnset, (SUBR)kareson, NULL  },
+{ "limit_i", S(LIMIT),  1, "i",     "iii",  (SUBR)klimit,  NULL,    NULL  },
+{ "limit_i", S(LIMIT),  1, "i",     "iii",  (SUBR)klimit,  NULL,    NULL  },
+{ "limit_k",  S(LIMIT), 3, "k",     "xkk",  (SUBR)limitset, (SUBR)klimit, NULL  },
+{ "limit_a",  S(LIMIT), 5, "a",     "xkk",  (SUBR)limitset, NULL,   (SUBR)limit },
 };
 
 long oplength_1 = sizeof(opcodlst_1);

@@ -92,7 +92,7 @@ extern ENVIRON cenviron;
                         if (!(--argc) || (((s = *argv++) != NULL) && *s == '-')) \
                             dieu(MSG);
 
-static void dnoise_usage(int);
+void dnoise_usage(int);
 void fast(MYFLT*, int);
 void hamming(MYFLT *, int, int);
 void fsst(MYFLT *, int);
@@ -1215,7 +1215,7 @@ int dnoise(int argc, char **argv)
     return 0;
 }
 
-static void dnoise_usage(int exitcode)
+void dnoise_usage(int exitcode)
 {
     err_printf(
             "usage: dnoise [flags] input_file\n"

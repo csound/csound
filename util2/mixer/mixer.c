@@ -32,12 +32,11 @@
  */
 
 
+#include "cs.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <unistd.h>
-#include "cs.h"
-#include "ustub.h"
 #include "soundio.h"
 
 /* Constants */
@@ -75,7 +74,7 @@ typedef struct inputs {
 
 inputs mixin[NUMBER_OF_FILES];
 int outputs = 0;
-int debug   = 0;
+extern int debug;
 
 /* Static function prototypes */
 
@@ -113,7 +112,7 @@ static  long       *lloutbuf;               /* long  pntr           */
 static  MYFLT      *floutbuf;               /* float pntr           */
 static  int        outrange = 0;            /* Count samples out of range */
 
-static void usage(char *mesg)
+static void mixer_usage(char *mesg)
 {
     err_printf( "%s\n", mesg);
     err_printf(Str(X_339,"Usage:\tmixer [-flags] soundfile [-flags] soundfile ...\n"));
@@ -148,15 +147,6 @@ static void usage(char *mesg)
     err_printf(Str(X_930,"flag defaults: mixer -s -otest -F 1.0 -S 0\n"));
     exit(1);
 }
-
-#ifndef POLL_EVENTS
-int POLL_EVENTS(void)
-{
-    return (1);
-}
-#endif
-
-void pvsys_release(void) {};
 
 int
 main(int argc, char **argv)
@@ -193,7 +183,7 @@ main(int argc, char **argv)
     mixin[n].fulltable = NULL; mixin[n].use_table = 0;
     for (i=1; i<5; i++) mixin[n].channels[i] = 0;
     if (!(--argc))
-      usage(Str(X_939,"Insufficient arguments"));
+      mixer_usage(Str(X_939,"Insufficient arguments"));
     do {
       s = *++argv;
       if (*s++ == '-')                      /* read all flags:  */
@@ -357,7 +347,7 @@ main(int argc, char **argv)
             break;
           default:
             sprintf(errmsg,Str(X_1334,"unknown flag -%c"), c);
-            usage(errmsg);
+            mixer_usage(errmsg);
           }
       else {
         int i;
@@ -365,7 +355,7 @@ main(int argc, char **argv)
         if (!mixin[n].non_clear)
           for (i=1; i<5; i++) mixin[n].channels[i] = i;
         if (n++ >= NUMBER_OF_FILES) {
-          usage(Str(X_1425,"Too many mixin"));
+          mixer_usage(Str(X_1425,"Too many mixin"));
         }
         mixin[n].start = -1;
         mixin[n].time = -1;
@@ -530,12 +520,12 @@ main(int argc, char **argv)
     return 0;
 
  outtyp:
-    usage(Str(X_1113,"output soundfile cannot be both AIFF and WAV"));
+    mixer_usage(Str(X_1113,"output soundfile cannot be both AIFF and WAV"));
     return 0;
  outform:
     sprintf(errmsg,Str(X_1198,"sound output format cannot be both -%c and -%c"),
             outformch, c);
-    usage(errmsg);
+    mixer_usage(errmsg);
     return 0;
 }
 
@@ -923,21 +913,3 @@ floatran(MYFLT *buffer, int size)
     for (n=0; n<size; n++) floutbuf[n] = (float)buffer[n];
 }
 
-#ifndef CWIN
-#include <stdarg.h>
-
-void err_printf(char *fmt, ...)
-{
-    va_list a;
-    va_start(a, fmt);
-    vfprintf(stderr, fmt, a);
-    va_end(a);
-}
-#endif
-void csoundMessage0(const char *format, ...)
-{
-    va_list args;
-    va_start(args, format);
-    vprintf(format, args);
-    va_end(args);
-}

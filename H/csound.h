@@ -70,8 +70,6 @@
 * {
 *		void *csound = csoundCreate(0);
 *		int result = csoundPerform(csound, argc, argv);
-*		csoundCleanup(csound);
-*		csoundReset(csound);
 *		csoundDestroy(csound);
 *		return result;
 *	}

@@ -20,6 +20,9 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
+#if defined(HAVE_CONFIG_H)
+#include "config.h"
+#endif
 
 #include "cs.h"                                       /*  SNDINFO.C  */
 #include "soundio.h"
@@ -30,7 +33,7 @@
 #include "MacTransport.h"
 #endif
 
-int sndinfo(int argc, char **argv)
+int		sndinfo(int argc, char **argv)
 {
     char    *infilnam;
     int     infd, openin(char *);

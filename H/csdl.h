@@ -22,7 +22,6 @@
 */
 
 #include "cs.h"
-#undef printf
 
 #undef ksmps
 #undef esr
@@ -148,6 +147,40 @@
 #undef MIDIINbufIndex
 #undef MIDIINbuffer2
 #undef displop4
+#undef mmalloc
+#undef mfree
+#undef hfgens
+#undef putcomplexdata
+#undef ShowCpx
+#undef PureReal
+#undef IsPowerOfTwo
+#undef FindTable
+#undef AssignBasis
+#undef reverseDig
+#undef reverseDigpacked
+#undef FFT2dimensional
+#undef FFT2torl
+#undef FFT2torlpacked
+#undef ConjScale
+#undef FFT2real
+#undef FFT2realpacked
+#undef Reals
+#undef Realspacked
+#undef FFT2
+#undef FFT2raw
+#undef FFT2rawpacked
+#undef FFTarb
+#undef DFT
+#undef cxmul
+#undef getopnum
+#undef strarg2insno
+#undef strarg2opcno
+#undef instance
+#undef isfullpath
+#undef dies
+#undef catpath
+#undef rewriteheader
+#undef writeheader
 
 #define GetVersion p->h.insdshead->csound->GetVersion
 #define GetHostData p->h.insdshead->csound->GetHostData
@@ -361,9 +394,41 @@
 #define rtout_dev p->h.insdshead->csound->rtout_dev_
 #define MIDIINbufIndex p->h.insdshead->csound->MIDIINbufIndex_
 #define MIDIINbuffer2 p->h.insdshead->csound->MIDIINbuffer2_
-#define displop4 p->h.insdshead->csound->displop4_
-
-#undef printf
+#define mmalloc p->h.insdshead->csound->mmalloc_
+#define mfree p->h.insdshead->csound->mfree_
+#define hfgens p->h.insdshead->csound->hfgens_
+#define AssignBasis p->h.insdshead->csound->AssignBasis_
+#define putcomplexdata p->h.insdshead->csound->putcomplexdata_
+#define ShowCpx p->h.insdshead->csound->ShowCpx_
+#define PureReal p->h.insdshead->csound->PureReal_
+#define IsPowerOfTwo p->h.insdshead->csound->IsPowerOfTwo_
+#define FindTable p->h.insdshead->csound->FindTable_
+#define AssignBasis p->h.insdshead->csound->AssignBasis_
+#define reverseDig p->h.insdshead->csound->reverseDig_
+#define reverseDigpacked p->h.insdshead->csound->reverseDigpacked_
+#define FFT2dimensional p->h.insdshead->csound->FFT2dimensional_
+#define FFT2torl p->h.insdshead->csound->FFT2torl_
+#define FFT2torlpacked p->h.insdshead->csound->FFT2torlpacked_
+#define ConjScale p->h.insdshead->csound->ConjScale_
+#define FFT2real p->h.insdshead->csound->FFT2real_
+#define FFT2realpacked p->h.insdshead->csound->FFT2realpacked_
+#define Reals p->h.insdshead->csound->Reals_
+#define Realspacked p->h.insdshead->csound->Realspacked_
+#define FFT2 p->h.insdshead->csound->FFT2_
+#define FFT2raw p->h.insdshead->csound->FFT2raw_
+#define FFT2rawpacked p->h.insdshead->csound->FFT2rawpacked_
+#define FFTarb p->h.insdshead->csound->FFTarb_
+#define DFT p->h.insdshead->csound->DFT_
+#define cxmul p->h.insdshead->csound->cxmul_
+#define getopnum p->h.insdshead->csound->getopnum_
+#define strarg2insno p->h.insdshead->csound->strarg2insno_
+#define strarg2opcno p->h.insdshead->csound->strarg2opcno_
+#define instance p->h.insdshead->csound->instance_
+#define isfullpath p->h.insdshead->csound->isfullpath_
+#define dies p->h.insdshead->csound->dies
+#define catpath p->h.insdshead->csound->catpath_
+#define rewriteheader p->h.insdshead->csound->rewriteheader_
+#define writeheader p->h.insdshead->csound->writeheader_
 
 #define LINKAGE long opcode_size(void)		\
 		{				\

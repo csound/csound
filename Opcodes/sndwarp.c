@@ -149,7 +149,7 @@ int sndwarp(SNDWARP *p)
           frIndx = (MYFLT)p->maxFr;
           if (p->prFlg) {
             p->prFlg = 0;   /* false */
-            if (O.msglevel & WARNMSG)
+            if (oparms_->msglevel & WARNMSG)
               printf(Str(X_451,"WARNING: SNDWARP at last sample frame\n"));
           }
         }
@@ -327,7 +327,7 @@ int sndwarpst(SNDWARPST *p)
           frIndx = (MYFLT)p->maxFr;
           if (p->prFlg) {
             p->prFlg = 0;   /* false */
-            if (O.msglevel & WARNMSG)
+            if (oparms_->msglevel & WARNMSG)
               printf(Str(X_451,"WARNING: SNDWARP at last sample frame\n"));
           }
         }

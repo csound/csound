@@ -784,3 +784,18 @@ void setcurfp(FILE *fp)         /* save the current infil states */
             savinfdata(scfp, nxtevt, curuntil, wasend, warped);
         makecurrent(fp);
 }
+
+int lcount(a)			/* count entries in event list */
+ EVLIST *a;
+{
+register EVENT **p;
+register int  n, nrem;
+
+	n = 0;	nrem = a->nslots;
+	p = &a->e[1];
+	while ((nrem--) && *p++ != NULL)
+		n++;
+	return(n);
+}
+
+

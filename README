@@ -1,7 +1,11 @@
 /*******************
  * CSOUND 5 - BETA *
  *******************/
+ 
+[AUTOTOOLS]-----------------------------------------------------------------
 
+To compile Csound 5, you'll need to install up to date versions of the 
+GNU Autotools: autoconf, automake, libtool, and their dependencies.
 
 [ABOUT THE SOURCES]---------------------------------------------------------
 
@@ -18,31 +22,50 @@ Top	- code that will generate binaries
 util1	- score related utilities
 util2	- audio file related utilities
 
+[DEPENDENCIES]--------------------------------------------------------------
 
-[COMPILING]-----------------------------------------------------------------
+Csound 5 tries to use the sndfile library to read and write soundfiles,
+the portaudio library to read and write real-time audio,
+the SDIF library to read and write SDIF files,
+and the FLTK library to graph function tables and draw control widgets.
 
-To compile Csound 5, you'll need a copy of the GNU Autotools, specifically 
-autoconf.  
+[Windows dependencies]
 
-To compile, enter the root of the source tree (the same directory as this R
-EADME file), and type:
+Csound5 is designed to be built using Cygwin, 
+so all the dependencies also need to be built with Cygwin or to have Cygwin import libraries.
 
-autoconf
+Portaudio needs the Windows multimedia library (libwinmm.a). You can run ./configure --with-winapi=wmme --with-host_os=mingw.
 
-This will create and configure script file.  After this is done, type:
+SDIF's configure.in needs to have AC_LIBTOOL_WIN32_DLL added just above 
+AC_PROG_LIBTOOL, and the configure.in and Makefile.am files in the topmost directory need 
+to be converted to Unix text.
 
-./configure
+[Linux dependencies]
+
+Portaudio needs the ALSA library (libasound.so). If the portaudio library doesn't build,
+copy the config.sub and config.guess files from Csound 5 to the portaudio directory.
+
+[COMPILING CSOUND]----------------------------------------------------------
+
+To compile, enter the root of the source tree (the same directory as this README file), 
+and type:
+
+	autoreconf -i -f
+
+This will recreate the configuration script files.  After this is done, type:
+
+	./configure
 
 and the file will check your system to see if required libraries are 
 available.  Optionally, if you type:
 
-./configure --help
+	./configure --help
 
 a list of additional commandline flags will be shown that you may use to 
 customize the configure script.
 
 After this completes, a Makefile will be generated. Now type:
 
-make
+	make
 
 and this will start the build process.  
