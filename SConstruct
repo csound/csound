@@ -523,7 +523,7 @@ ustubProgramEnvironment.Program('srconv',
 csoundProgramEnvironment.Program('csound', 
     ['frontends/csound/csound_main.c'])
     
-if commonEnvironment['buildCsoundVST'] and boostFound and fltkFound:
+if commonEnvironment['buildCsoundVST'] == 1 and boostFound and fltkFound:
     print 'Building CsoundVST plugin and standalone.'
     vstEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
     guiProgramEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
