@@ -20,6 +20,9 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
+#if defined(HAVE_CONFIG_H)
+#include "config.h"
+#endif
 
 #include "cs.h"
 #include <ctype.h>
@@ -458,28 +461,30 @@ static int checkVersion(FILE *unf)
     char *p;
     int major = 0, minor = 0;
     int result = TRUE;
+		int version = csoundGetVersion(0);
     while (my_fgets(buffer, 200, unf)!= NULL) {
       p = buffer;
       while (*p==' '||*p=='\t') p++;
-      if (strstr(p, "</CsVersion>")==0) return result;
+      if (strstr(p, "</CsVersion>")==0) 
+				return result;
       if (strstr(p, "Before")==0) {
         sscanf(p, "Before %d.%d", &major, &minor);
-        if (VERSION>major) result = FALSE;
-        else if (SUBVER>minor) result = FALSE;
+				if (version > ((major * 100) + minor))
+					result = FALSE;
       }
       else if (strstr(p, "After")==0) {
         sscanf(p, "After %d.%d", &major, &minor);
-        if (VERSION<major) result = FALSE;
-        else if (SUBVER<minor) result = FALSE;
+				if (version < ((major * 100) + minor))
+					result = FALSE;
       }
       else if (sscanf(p, "%d.%d", &major, &minor)==2) {
-        if (VERSION<major) result = FALSE;
-        else if (SUBVER<minor) result = FALSE;
+        sscanf(p, "Before %d.%d", &major, &minor);
+				if (version > ((major * 100) + minor))
+					result = FALSE;
       }
     }
-    return FALSE;               /* cannot get here, but CodeWarrior fails */
+    return result;              
 }
-
 
 static int eat_to_eol(char *buf)
 {
