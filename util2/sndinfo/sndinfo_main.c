@@ -26,7 +26,7 @@ int main(int argc,char **argv)
 {
     init_getstring(argc,argv);
     csoundPreCompile(csoundCreate(NULL));
-    e0dbfs = DFLT_DBFS;
+    cenviron.e0dbfs = DFLT_DBFS;
     sndinfo(argc,argv);
     return 0;
 }

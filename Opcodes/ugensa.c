@@ -201,7 +201,7 @@ static int newpulse(ENVIRON *csound, FOGS *p, OVERLAP *ovp, MYFLT  *amp,
 
     if (newexp || rismps != p->prvsmps) {            /* if new params */
       if ((p->prvsmps = rismps))                     /*   redo preamp */
-        p->preamp = intpow(p->expamp, -rismps);
+        p->preamp = csound->intpow_(p->expamp, -rismps);
       else p->preamp = FL(1.0);
     }
     ovp->curamp = octamp * p->preamp;                /* set startamp  */

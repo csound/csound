@@ -336,8 +336,8 @@ int main(int argc, char **argv)
         csoundDie(&cenviron, Str("can't rewrite header if no header requested"));
       if (O.outfilename == NULL)  O.outfilename = "test";
       sfinfo.frames = -1;
-      sfinfo.samplerate = (int)(esr = p->sr);
-      sfinfo.channels = nchnls = p->nchanls ;
+      sfinfo.samplerate = (int)(cenviron.esr = p->sr);
+      sfinfo.channels = cenviron.nchnls = p->nchanls;
       sfinfo.format = type2sf(O.filetyp)|format2sf(O.outformat);
       sfinfo.sections = 0;
       sfinfo.seekable = 0;
@@ -468,7 +468,7 @@ SCsndgetset(char *inputfile)
     static MYFLT sstrcod = SSTRCOD;
 
     sssfinit();                 /* stand-alone init of SFDIR etc. */
-    esr = 0.0;                  /* set esr 0. with no orchestra   */
+    cenviron.esr = 0.0;         /* set esr 0. with no orchestra   */
     optxt.t.outoffs = &argoffs; /* point to dummy OUTOCOUNT       */
     p = (SOUNDIN *) mcalloc(&cenviron, (long)sizeof(SOUNDIN));
     p->channel = ALLCHNLS;
@@ -516,7 +516,7 @@ ScaleSound(SNDFILE *infile, SNDFILE *outfd)
         if (buffer[i] < min)
           min = buffer[i], minpos = i+BUFFER_LEN*block; mintimes = 1;
       }
-      sf_write_MYFLT(outfd, buffer, read_in/nchnls);
+      sf_write_MYFLT(outfd, buffer, read_in / cenviron.nchnls);
       block++;
       bytes += read_in*O.sfsampsize;
       if (O.heartbeat) {
@@ -575,3 +575,4 @@ FindAndReportMax(SNDFILE *infile)
 	   (float)SHORTMAX/(float)((max>-min)?max:-min) );
     return (max>-min ? max : -min);
 }
+

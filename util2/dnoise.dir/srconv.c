@@ -241,7 +241,7 @@ int main(int argc, char **argv)
 
     init_getstring(argc, argv);
     csoundPreCompile(csoundCreate(NULL));
-    e0dbfs = DFLT_DBFS;
+    cenviron.e0dbfs = DFLT_DBFS;
 
     O.filnamspace = outfile = (char*)mmalloc(&cenviron, (long)1024);
     if ((envoutyp = csoundGetEnv(&cenviron, "SFOUTYP")) != NULL) {
@@ -449,10 +449,10 @@ int main(int argc, char **argv)
     }
 
     if (P != FL(0.0)) {          /* This is not right *********  */
-      esr = Rin;
+      cenviron.esr = Rin;
     }
     if (P == FL(0.0)) {
-      esr = Rout;
+      cenviron.esr = Rout;
     }
     if (O.outformat == 0) O.outformat = p->format;
     O.sfsampsize = sfsampsize(O.outformat);
@@ -493,8 +493,8 @@ int main(int argc, char **argv)
     }
 #endif
     sfinfo.frames = -1;
-    sfinfo.samplerate = (int)(esr = p->sr);
-    sfinfo.channels = nchnls = Chans = p->nchanls;
+    sfinfo.samplerate = (int)(cenviron.esr = p->sr);
+    sfinfo.channels = cenviron.nchnls = Chans = p->nchanls;
     sfinfo.format = type2sf(O.filetyp)|format2sf(O.outformat);
     sfinfo.sections = 0;
     sfinfo.seekable = 0;

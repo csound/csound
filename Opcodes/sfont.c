@@ -141,11 +141,11 @@ static int compare(presetType * elem1, presetType *elem2)
 
 static char *Gfname;
 
-int SfLoad(ENVIRON *csound, SFLOAD *p)          /* open a file and return its handle */
-{                               /* the handle is simply a stack index */
+int SfLoad(ENVIRON *csound, SFLOAD *p)  /* open a file and return its handle */
+{                                      /* the handle is simply a stack index */
     char fname[256];
     SFBANK *sf;
-    strcpy(fname, unquote(p->STRARG));
+    strcpy(fname, csound->unquote_(p->STRARG));
     Gfname = fname;
     SoundFontLoad(csound, fname);
     *p->ihandle = (float) currSFndx;
