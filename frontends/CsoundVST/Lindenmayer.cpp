@@ -97,6 +97,7 @@ namespace csound
 		while(!finalInputStream.eof())
 		{
 			finalInputStream >> word;
+			//std::cerr << word << std::endl;
 			interpret(word, true);
 		}
 		finalInputStream.close();
@@ -185,16 +186,16 @@ namespace csound
 						turtle[dimension] =  (turtleStep[dimension] * n);
 						break;
 					case '*':
-						turtle[dimension] *= (turtleStep[dimension] * n);
+						turtle[dimension] = (turtle[dimension] * (turtleStep[dimension] * n));
 						break;
 					case '/':
-						turtle[dimension] /= (turtleStep[dimension] * n);
+						turtle[dimension] = (turtle[dimension] / (turtleStep[dimension] * n));
 						break;
 					case '+':
-						turtle[dimension] += (turtleStep[dimension] * n);
+						turtle[dimension] = (turtle[dimension] + (turtleStep[dimension] * n));
 						break;
 					case '-':
-						turtle[dimension] -= (turtleStep[dimension] * n);
+						turtle[dimension] = (turtle[dimension] - (turtleStep[dimension] * n));
 						break;
 					}
 					if(dimension == Event::PITCHES)
@@ -225,18 +226,19 @@ namespace csound
 						turtleStep[dimension] = n;
 						break;
 					case '*':
-						turtleStep[dimension] *= n;
+						turtleStep[dimension] = (turtleStep[dimension] * n);
 						break;
 					case '/':
-						turtleStep[dimension] /= n;
+						turtleStep[dimension] = (turtleStep[dimension] / n);
 						break;
 					case '+':
-						turtleStep[dimension] += n;
+						turtleStep[dimension] = (turtleStep[dimension] + n);
 						break;
 					case '-':
-						turtleStep[dimension] -= n;
+						turtleStep[dimension] = (turtleStep[dimension] - n);
 						break;
 					}
+					//std::cerr << "step for " << dimension << " = " << turtleStep[dimension] << std::endl;
 					if(dimension == Event::PITCHES)
 					{
 						turtle[dimension] = Conversions::modulus(turtle[dimension], 4096.0);
