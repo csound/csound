@@ -276,7 +276,7 @@ if configure.CheckHeader("string.h", language = "C"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_STRING_H')
 else:
     if configure.CheckHeader("strings.h", language = "C"):
-     	commonEnvironment.Append(CCFLAGS = '-DHAVE_STRINGS_H')
+         commonEnvironment.Append(CCFLAGS = '-DHAVE_STRINGS_H')
 if getPlatform() == 'darwin':
     commonEnvironment.Append(CCFLAGS = '-DHAVE_DIRENT_H')
 else:
@@ -389,30 +389,30 @@ if (commonEnvironment['useFLTK'] == '1' and fltkFound):
     guiProgramEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
     csoundProgramEnvironment.Append(LIBS = ['fltk'])
     if getPlatform() == 'linux':
-	    csoundProgramEnvironment.Append(LIBS = ['dl'])
-	    ustubProgramEnvironment.Append(LIBS = ['dl'])
-	    vstEnvironment.Append(LIBS = ['dl'])
-	    guiProgramEnvironment.Append(LIBS = ['dl'])
+        csoundProgramEnvironment.Append(LIBS = ['dl'])
+        ustubProgramEnvironment.Append(LIBS = ['dl'])
+        vstEnvironment.Append(LIBS = ['dl'])
+        guiProgramEnvironment.Append(LIBS = ['dl'])
     if getPlatform() == 'linux' or getPlatform() == 'cygwin':
-            csoundProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
-            ustubProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
-            vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
-            guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+        csoundProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+        ustubProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+        vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+        guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     elif getPlatform() == 'mingw':
-    	    vstEnvironment.Append(LINKFLAGS = "--subsystem:windows")
-    	    guiProgramEnvironment.Append(LINKFLAGS = "--subsystem:windows")
-            csoundProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
-            ustubProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
-            vstEnvironment.Append(LIBS = ['stdc++', 'supc++'])
-            guiProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+        vstEnvironment.Append(LINKFLAGS = "--subsystem:windows")
+        guiProgramEnvironment.Append(LINKFLAGS = "--subsystem:windows")
+        csoundProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+        ustubProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+        vstEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+        guiProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
     elif getPlatform() == 'darwin':
-            csoundProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
-            ustubProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
-            vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
-            guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
-            csoundProgramEnvironment.Append(LINKFLAGS = ['-framework', 'Carbon'])
-	    csoundProgramEnvironment.Append(LINKFLAGS = ['-framework', 'CoreAudio'])
-	    csoundProgramEnvironment.Append(LINKFLAGS = ['-framework', 'CoreMidi'])
+        csoundProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+        ustubProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+        vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+        guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+        csoundProgramEnvironment.Append(LINKFLAGS = ['-framework', 'Carbon'])
+        csoundProgramEnvironment.Append(LINKFLAGS = ['-framework', 'CoreAudio'])
+        csoundProgramEnvironment.Append(LINKFLAGS = ['-framework', 'CoreMidi'])
 
 if getPlatform() == 'mingw':
     # These are the Windows system call libraries.
@@ -766,11 +766,11 @@ else:
     elif getPlatform() == 'cygwin' or getPlatform() == 'mingw':
         portaudioEnvironment.Append(LIBS = ['winmm'])
         portaudioEnvironment.Append(LIBS = ['dsound'])
-    	portaudioEnvironment.Append(LIBS = ['kernel32'])
-    	portaudioEnvironment.Append(LIBS = ['gdi32'])
-    	portaudioEnvironment.Append(LIBS = ['wsock32'])
-    	portaudioEnvironment.Append(LIBS = ['ole32'])
-    	portaudioEnvironment.Append(LIBS = ['uuid'])
+        portaudioEnvironment.Append(LIBS = ['kernel32'])
+        portaudioEnvironment.Append(LIBS = ['gdi32'])
+        portaudioEnvironment.Append(LIBS = ['wsock32'])
+        portaudioEnvironment.Append(LIBS = ['ole32'])
+        portaudioEnvironment.Append(LIBS = ['uuid'])
     pluginLibraries.append(portaudioEnvironment.SharedLibrary('rtpa',
                                                           Split('''
                                                             InOut/rtpa.c
@@ -800,20 +800,27 @@ else:
         pluginLibraries.append(fluidEnvironment.SharedLibrary('fluidOpcodes',
             ['Opcodes/fluidOpcodes/fluidOpcodes.cpp']))
     if getPlatform() == 'cygwin' or getPlatform() == 'mingw':
-        vstEnvironment.Append(CCFLAGS = ['-DFLUIDSYNTH_NOT_A_DLL', '-DMAKEDLL','-DBUILDING_DLL'])
-        fluidEnvironment = vstEnvironment.Copy()
-        fluidEnvironment.Append(LIBS = ['fluidsynth', 'stdc++', 'fltk'])
-        fluidEnvironment.Append(LINKFLAGS = ['-mno-cygwin'])
-        fluidEnvironment.Append(LIBS = ['winmm','dsound'])
-        if getPlatform() == 'mingw':
-            fluidEnvironment.Append(LIBS = ['kernel32'])
-            fluidEnvironment.Append(LIBS = ['gdi32'])
-            fluidEnvironment.Append(LIBS = ['wsock32'])
-            fluidEnvironment.Append(LIBS = ['ole32'])
-            fluidEnvironment.Append(LIBS = ['uuid'])
+        fluidEnvironment = pluginEnvironment.Copy()
+        fluidEnvironment.Append(LIBS = ['fluidsynth', 'stdc++'])
+        fluidEnvironment.Append(LIBS = ['winmm', 'dsound'])
+        fluidEnvironment.Append(CCFLAGS = ['-DFLUIDSYNTH_NOT_A_DLL', '-DMAKEDLL','-DBUILDING_DLL'])
         pluginLibraries.append(fluidEnvironment.SharedLibrary('fluidOpcodes',
             ['Opcodes/fluidOpcodes/fluidOpcodes.cpp']))
+
         if fltkFound:
+            vstEnvironment.Append(CCFLAGS = ['-DFLUIDSYNTH_NOT_A_DLL', '-DMAKEDLL','-DBUILDING_DLL'])
+            fluidEnvironment = vstEnvironment.Copy()
+            fluidEnvironment.Append(LIBS = ['fluidsynth', 'stdc++', 'fltk'])
+            fluidEnvironment.Append(LINKFLAGS = ['-mno-cygwin'])
+            fluidEnvironment.Append(LIBS = ['winmm','dsound'])
+
+            if getPlatform() == 'mingw':
+                fluidEnvironment.Append(LIBS = ['kernel32'])
+                fluidEnvironment.Append(LIBS = ['gdi32'])
+                fluidEnvironment.Append(LIBS = ['wsock32'])
+                fluidEnvironment.Append(LIBS = ['ole32'])
+                fluidEnvironment.Append(LIBS = ['uuid'])
+
             pluginLibraries.append(fluidEnvironment.SharedLibrary('fluid', Split('''
                 Opcodes/fluid/AudioEffect.cpp
                 Opcodes/fluid/audioeffectx.cpp
@@ -932,9 +939,9 @@ else:
         vstEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
         guiProgramEnvironment.Prepend(LINKFLAGS = ['-mwindows', '_CsoundVST.so'])
     elif getPlatform() == 'cygwin' or getPlatform() == 'mingw':
-    	pythonImportLibrary = vstEnvironment.Command('/usr/local/lib/libpython23.a',
-		'$SYSTEMROOT/System32/python23.dll',
-		['pexports $SYSTEMROOT/System32/python23.dll > python23.def', 'dlltool --input-def python23.def --dllname python23.dll --output-lib /usr/local/lib/libpython23.a'])
+        pythonImportLibrary = vstEnvironment.Command('/usr/local/lib/libpython23.a',
+        '$SYSTEMROOT/System32/python23.dll',
+        ['pexports $SYSTEMROOT/System32/python23.dll > python23.def', 'dlltool --input-def python23.def --dllname python23.dll --output-lib /usr/local/lib/libpython23.a'])
         vstEnvironment['ENV']['PATH'] = os.environ['PATH']
         vstEnvironment.Append(SHLINKFLAGS = '-Wl,--add-stdcall-alias')
         vstEnvironment.Append(CCFLAGS = ['-DNDEBUG'])
@@ -1003,17 +1010,17 @@ else:
     csoundVstPythonWrapper = vstEnvironment.SharedObject('frontends/CsoundVST/CsoundVST.i', SWIGFLAGS = [swigflags,'-python'])
     csoundVstSources.append(csoundVstPythonWrapper)
     if configure.CheckHeader('jni.h', language = 'C++'):
-    	csoundVstJavaWrapper = vstEnvironment.SharedObject('frontends/CsoundVST/JCsoundVST.i', SWIGFLAGS = [swigflags,'-java'])
-    	csoundVstSources.append(csoundVstJavaWrapper)
-	#jcsound = Java(target = '.', classes = '.')
-	#zipDependencies.append(jcsound)
+        csoundVstJavaWrapper = vstEnvironment.SharedObject('frontends/CsoundVST/JCsoundVST.i', SWIGFLAGS = [swigflags,'-java'])
+        csoundVstSources.append(csoundVstJavaWrapper)
+    #jcsound = Java(target = '.', classes = '.')
+    #zipDependencies.append(jcsound)
     csoundvst = vstEnvironment.SharedLibrary('CsoundVST', csoundVstSources, SHLIBPREFIX = '_')
     Depends(csoundvst, 'frontends/CsoundVST/CsoundVST_wrap.cc')
     zipDependencies.append(csoundvst)
     Depends(csoundvst, staticLibrary)
     if getPlatform() == 'mingw' or getPlatform() == 'cygwin':
         Depends(csoundvst, pyrun)
-    	guiProgramEnvironment.Append(LIBS = ['CsoundVST'])
+        guiProgramEnvironment.Append(LIBS = ['CsoundVST'])
 
     csoundvstGui = guiProgramEnvironment.Program('CsoundVST', ['frontends/CsoundVST/csoundvst_main.cpp'])
     zipDependencies.append(csoundvstGui)
@@ -1036,7 +1043,7 @@ else:
         shutil.copy('Opcodes/Loris/loris.i', 'Opcodes/Loris/src/')
         shutil.copy('Opcodes/Loris/lorisPartialList.i', 'Opcodes/Loris/src/')
         lorisEnvironment = vstEnvironment.Copy();
-	lorisEnvironment.Append(SWIGFLAGS = ['-python'])
+        lorisEnvironment.Append(SWIGFLAGS = ['-python'])
         lorisEnvironment.Append(CCFLAGS = '-DHAVE_FFTW3_H')
         lorisEnvironment.Append(LIBS = ['fftw3'])
         lorisSources = glob.glob('Opcodes/Loris/src/*.C')
