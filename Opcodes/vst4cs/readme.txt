@@ -39,11 +39,13 @@ See html docuentation for new opcodes.
 
 vst4cs
 ------
+
 Host VST para Csound5
 
 Version actual:0.1alpha
 
-Instalacion: Copie el archivo vst4cs.dll a la carpeta que contiene los plugins de csound5. Copie la documentacion y el codigo fuente donde le parezca.
+Instalacion: Copie el archivo vst4cs.dll a la carpeta que contiene los plugins 
+de csound5. Copie la documentacion y el codigo fuente donde le parezca.
 
 Vea la documentacion html para conocer los nuevos opcodes.
 
@@ -55,7 +57,11 @@ Add to Csound 5 CVS and SConstruct.
 
 Use MYFLT for compiling with either single or double precision.
 
+Change many parameters and non-in/out fields from MYFLT* to MYFLT or other type.
+
 Add virtual destructor to VSTHost class.
+
+Make static members of VSTPlugin non-static.
 
 Remove Windows-specific header files and data types 
 to enable building on Linux and OS X.
@@ -69,9 +75,11 @@ Use Csound message printing functions throughout.
 
 Remove all redundant comments.
 
+Simplify turnoff code in vstnote.
+
 Enable fractional pitches.
 
 Cleanup plugin memory allocated on the heap.
 
-
+Write audio only on last instance of vstplug.
 

@@ -10,7 +10,7 @@
 #define DIR_SEP '/'
 #endif
 
-extern double SCALING_FACTOR;
+extern MYFLT SCALING_FACTOR;
 
 typedef struct VSTINIT_ {
 	OPDS h;
@@ -31,20 +31,18 @@ typedef struct VST_PLUGIN_ {
 	MYFLT *iVSThandle;
 	MYFLT *ain1;
 	MYFLT *ain2;
-	MYFLT *nsamps;
-	//MYFLT   yt1;
+	long nsamps;
 } VST_PLUGIN ;
 
 typedef struct VSTNOTE_ {
 	OPDS h;
-	MYFLT *ktrigger;
 	MYFLT *iVSThandle;
 	MYFLT *kchan;
 	MYFLT *knote;
 	MYFLT *kveloc;
 	MYFLT *kdur;
-	MYFLT *counting;
-	MYFLT *elapsed;
+	int ktrigger;
+	int kremaining;
 } VSTNOTE ;
 
 typedef struct OUTVST_ {
@@ -65,7 +63,6 @@ typedef struct VSTPRET_ {
 	MYFLT *kvalue;
 	MYFLT *iVSThandle;
 	MYFLT *kparam;
-	MYFLT oldvalue;
 } VSTPRET ;
 
 typedef struct VSTPSEND_ {
@@ -73,6 +70,7 @@ typedef struct VSTPSEND_ {
 	MYFLT *iVSThandle;
 	MYFLT *kparam;
 	MYFLT *kvalue;
+	MYFLT oldparam;
 	MYFLT oldvalue;
 } VSTPSEND ;
 

@@ -4,29 +4,14 @@
 //June 2004
 //Using code by Hermann Seib and from the vst~ object in pd 
 //(which in turn borrows from the psycle tracker).
+
 #include "vsthost.h"
 
-/*typedef struct _dsp_args
-{
-	float num_samples;
-	float sample_rate;
-	int num_in;
-	int num_out;
-	t_float** inbufs;
-	t_float** outbufs;
-	VSTPlugin *plug;
-} t_dsp_args;
-*/
+VstTimeInfo VSTPlugin::vstTimeInfo;
+float VSTPlugin::sampleRate = 0;
+long VSTPlugin::blockSize = 0;
 
-VstTimeInfo VSTPlugin::_timeInfo;
 
-float VSTPlugin::sample_rate = 44100;
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////
-//VSTPlugin class implementation
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Constructor
 VSTPlugin::VSTPlugin() : 
     h_dll(0),
     _sDllName(0),
@@ -43,13 +28,13 @@ VSTPlugin::VSTPlugin() :
 VSTPlugin::~VSTPlugin()
 {
 	Free(0);				// Call free
-	delete _sDllName;	// if _sDllName = NULL , the operation does nothing -> it's safe.
+	delete _sDllName;	// if _sDllName = 0 , the operation does nothing -> it's safe.
 }
 
 bool VSTPlugin::AddMIDI(int data0, int data1, int data2)
 {
 	if (instantiated) {
-	    VstMidiEvent vstMidiEvent;	    
+	    VstMidiEvent vstMidiEvent = vstMidiEventQueue[vstMidiEventIndex++];	    
 		vstMidiEvent.type = kVstMidiType;
 		vstMidiEvent.byteSize = 24;
 		vstMidiEvent.deltaFrames = 0;
@@ -64,7 +49,6 @@ bool VSTPlugin::AddMIDI(int data0, int data1, int data2)
 		vstMidiEvent.midiData[1] = data1;
 		vstMidiEvent.midiData[2] = data2;
 		vstMidiEvent.midiData[3] = 0;
-		vstMidiEventQueue.push_back(vstMidiEvent);
 		SendMidi();
 		return true;
 	}
@@ -76,7 +60,7 @@ bool VSTPlugin::AddNoteOn(MYFLT note, MYFLT speed, MYFLT midichannel)
 {
 	if(instantiated)
 	{
-		VstMidiEvent vstMidiEvent;
+		VstMidiEvent &vstMidiEvent = vstMidiEventQueue[vstMidiEventIndex++];
 		vstMidiEvent.type = kVstMidiType;
 		vstMidiEvent.byteSize = 24;
 		vstMidiEvent.deltaFrames = 0;
@@ -87,11 +71,11 @@ bool VSTPlugin::AddNoteOn(MYFLT note, MYFLT speed, MYFLT midichannel)
 		vstMidiEvent.reserved1 = 0;
 		vstMidiEvent.reserved2 = 0;
 		vstMidiEvent.noteOffVelocity = 0;
-		vstMidiEvent.midiData[0] = (char) (MIDI_NOTEON | ((int) midichannel)); 
-		vstMidiEvent.midiData[1] = (char) note;
-		vstMidiEvent.midiData[2] = (char) speed;
+		int channel = midichannel;
+		vstMidiEvent.midiData[0] = (char)MIDI_NOTEON | channel;
+		vstMidiEvent.midiData[1] = note;
+		vstMidiEvent.midiData[2] = speed;
 		vstMidiEvent.midiData[3] = 0;
-		vstMidiEventQueue.push_back(vstMidiEvent);
 		SendMidi();
 		return true;
 	}
@@ -103,7 +87,7 @@ bool VSTPlugin::AddNoteOff(MYFLT note, MYFLT midichannel)
 {
 	if (instantiated)
 	{
-		VstMidiEvent vstMidiEvent;
+		VstMidiEvent &vstMidiEvent = vstMidiEventQueue[vstMidiEventIndex++];
 		vstMidiEvent.type = kVstMidiType;
 		vstMidiEvent.byteSize = 24;
 		vstMidiEvent.deltaFrames = 0;
@@ -114,16 +98,34 @@ bool VSTPlugin::AddNoteOff(MYFLT note, MYFLT midichannel)
 		vstMidiEvent.reserved1 = 0;
 		vstMidiEvent.reserved2 = 0;
 		vstMidiEvent.noteOffVelocity = 0;
-		vstMidiEvent.midiData[0] = (char) (MIDI_NOTEOFF | ((int) midichannel)); 
-		vstMidiEvent.midiData[1] = (char) note;
+		int channel = midichannel;
+		vstMidiEvent.midiData[0] = (char)MIDI_NOTEOFF | channel;
+		vstMidiEvent.midiData[1] = note;
 		vstMidiEvent.midiData[2] = 0;
 		vstMidiEvent.midiData[3] = 0;
-		vstMidiEventQueue.push_back(vstMidiEvent);
 		SendMidi();
 		return true;
 	}
 	else
     	return false;
+}
+
+void VSTPlugin::SendMidi()
+{
+    vstEventBlock.vstEvents.numEvents = vstMidiEventIndex;
+	if(instantiated && vstEventBlock.vstEvents.numEvents) {
+		vstEventBlock.vstEvents.reserved  = 0;
+		for(size_t i = 0; i < vstMidiEventIndex; i++) {
+		  vstEventBlock.vstEvents.events[i] = (VstEvent *)&vstMidiEventQueue[i];
+		  printf("VSTPlugin::SendMidi: event %d status %d data1 %d data2 %d\n",
+              i, 
+		      vstMidiEventQueue[i].midiData[0],
+		      vstMidiEventQueue[i].midiData[1],
+		      vstMidiEventQueue[i].midiData[2]);
+		}
+		Dispatch(effProcessEvents, 0, 0, &vstEventBlock.vstEvents, 0.0f);
+		vstMidiEventIndex = 0;
+	}
 }
 
 bool VSTPlugin::DescribeValue(int p,char* value)
@@ -155,50 +157,36 @@ int VSTPlugin::Instance(ENVIRON *csound, const char *dllname)
 	//printf ("Instance \n");
  	h_dll = csound->OpenLibrary(dllname);
 	//strcpy(_sDllName,dllname);
-	if(!h_dll)	
-	{
-		csound->Message(csound, "WARNING! Library \"%s\" was not found or is invalid.\n", dllname);
+	if(!h_dll) {
+		csound->Message(csound, "VSTPlugin::Instance: WARNING! Library \"%s\" was not found or is invalid.\n", dllname);
 		return VSTINSTANCE_ERR_NO_VALID_FILE;
 	}
-	csound->Message(csound, "Loaded library %s\n" , dllname);
+	csound->Message(csound, "VSTPlugin::Instance: Loaded library %s.\n" , dllname);
 	PVSTMAIN main = (PVSTMAIN)csound->GetLibrarySymbol(h_dll, "main");
-	if(!main)
-	{	
+	if(!main) {	
+		csound->Message(csound, "VSTPlugin::Instance: Unable to get main function.\n");
 		csound->CloseLibrary(h_dll);
 		pEffect = 0;
 		instantiated = false;
 		return VSTINSTANCE_ERR_NO_VST_PLUGIN;
 	}
-	//printf("Found main function - about to call it\n");
-	//This calls the "main" function and receives the pointer to the AEffect structure.
-	pEffect = main((audioMasterCallback)&(this->Master));
-	//printf ("Main function called\n");
-	if(!pEffect)
-	{
-		csound->Message(csound, "VST plugin: Unable to create effect.\n");
+	pEffect = main(Master);
+	if(!pEffect) {
+		csound->Message(csound, "VSTPlugin::Instance: Unable to create effect.\n");
 		csound->CloseLibrary(h_dll);
 		pEffect = 0;
 		instantiated = false;
 		return VSTINSTANCE_ERR_REJECTED;
 	}
-	if(  pEffect->magic!=kEffectMagic)
-	{
-		csound->Message(csound, "VST plugin : Instance query rejected by 0x%.8X\n",(int)pEffect);
+	if( pEffect->magic != kEffectMagic) {
+		csound->Message(csound, "VSTPlugin::Instance: Instance query rejected by %x.\n",(int)pEffect);
 		csound->CloseLibrary(h_dll);
 		pEffect = 0;
 		instantiated = false;
 		return VSTINSTANCE_ERR_REJECTED;
 	}
 	pEffect->user = this;
-	//  Dispatch( effOpen        ,  0, 0, NULL, 0.0f);
-	//  Dispatch( effSetProgram  ,  0, 0, NULL, 0.0f);
-	//	Dispatch( effMainsChanged,  0, 1, NULL, 0.0f);
-	//  ************************************set samplerate and stream size here
-    //  we get it when we init our DSP
-    //	Dispatch( effSetSampleRate, 0, 0, NULL, (float)Global::pConfig->_pOutputDriver->_samplesPerSec);
-    //	Dispatch( effSetBlockSize,  0, STREAM_SIZE, NULL, 0.0f);
-	//printf("all well...\n");
-	if ( _sDllName != NULL ) 
+	if ( _sDllName != 0 ) 
         delete _sDllName;
 	//_sDllName = new char[strlen(dllname)+1];
 	//printf(_sDllName,dllname);
@@ -272,7 +260,7 @@ void VSTPlugin::Create(VSTPlugin *plug)
 	h_dll=plug->h_dll;
 	pEffect=plug->pEffect;
 	pEffect->user=this;
-	Dispatch( effMainsChanged,  0, 1, NULL, 0.0f);
+	Dispatch( effMainsChanged,  0, 1, 0, 0.0f);
 //	strcpy(_editName,plug->_editName); On current implementation, this replaces the right one. 
 	strcpy(_sProductName,plug->_sProductName);
 	strcpy(_sVendorName,plug->_sVendorName);
@@ -290,9 +278,9 @@ void VSTPlugin::Free(ENVIRON *csound)
 {
 	if(instantiated) {
 		instantiated = false;
-		pEffect->user = NULL;
-		Dispatch( effMainsChanged, 0, 0, NULL, 0.0f);
-		Dispatch( effClose,        0, 0, NULL, 0.0f);
+		pEffect->user = 0;
+		Dispatch( effMainsChanged, 0, 0, 0, 0.f);
+		Dispatch( effClose,        0, 0, 0, 0.f);
 //		delete pEffect; // <-  Should check for the necessity of this command.
 		pEffect=0;
 		if(csound)
@@ -300,22 +288,25 @@ void VSTPlugin::Free(ENVIRON *csound)
 	}
 }
 
-void VSTPlugin::Init( float samplerate , float blocksize )
+void VSTPlugin::Init( ENVIRON *csound )
 {
-	sample_rate = samplerate;
-	//printf ("init ok\n");
-	Dispatch(effOpen        ,  0, 0, NULL, 0.f);
-	Dispatch(effSetProgram  ,  0, 0, NULL, 0.0f);
-	Dispatch(effMainsChanged,  0, 1, NULL, 0.f);
-	Dispatch(effSetSampleRate, 0, 0, 0, (float) sample_rate );
-	Dispatch(effSetBlockSize,  0, blocksize, NULL, 0.f );	
+	sampleRate = csound->GetSr(csound);
+	blockSize = csound->GetKsmps(csound);
+	vstMidiEventIndex = 0;
+	Dispatch(effOpen        ,  0, 0, 0, 0.f);
+	Dispatch(effSetProgram  ,  0, 0, 0, 0.f);
+	Dispatch(effMainsChanged,  0, 1, 0, 0.f);
+	Dispatch(effSetSampleRate, 0, 0, 0, (float) sampleRate );
+	Dispatch(effSetBlockSize,  0, blockSize, 0, 0.f );
+	csound->Message(csound, "VSTPlugin::Init: sampleRate = %f blockSize = %d\n",
+	    sampleRate, blockSize);
 }
 
 bool VSTPlugin::SetParameter(int parameter, float value)
 {
 	if(instantiated) {
-		if (( parameter >= 0 ) && (parameter<=pEffect->numParams)) {
-			pEffect->setParameter(pEffect,parameter,value);
+		if (( parameter >= 0 ) && (parameter <= pEffect->numParams)) {
+			pEffect->setParameter(pEffect, parameter, value);
 			return true;
 		}
 		else return false;
@@ -331,7 +322,7 @@ bool VSTPlugin::SetParameter(int parameter, int value)
 int VSTPlugin::GetCurrentProgram()
 {
 	if(instantiated)
-		return Dispatch(effGetProgram,0,0,NULL,0.0f);
+		return Dispatch(effGetProgram,0,0,0,0.0f);
 	else
 		return 0;
 }
@@ -339,20 +330,7 @@ int VSTPlugin::GetCurrentProgram()
 void VSTPlugin::SetCurrentProgram(int prg)
 {
 	if(instantiated)
-		Dispatch(effSetProgram,0,prg,NULL,0.0f);
-}
-
-void VSTPlugin::SendMidi()
-{
-    vstEvents.numEvents = vstMidiEventQueue.size();
-	if(instantiated && vstEvents.numEvents) {
-		vstEvents.reserved  = 0;
-		for(size_t i = 0; i < vstEvents.numEvents; i++) {
-		  vstEvents.events[i] = (VstEvent *)&vstMidiEventQueue[i];
-		}
-		Dispatch(effProcessEvents, 0, 0, &vstEvents, 0.0f);
-		vstMidiEventQueue.clear();
-	}
+		Dispatch(effSetProgram,0,prg,0,0.0f);
 }
 
 void VSTPlugin::processReplacing( float **inputs, float **outputs, long sampleframes )
@@ -367,9 +345,7 @@ void VSTPlugin::process( float **inputs, float **outputs, long sampleframes )
 
 long VSTPlugin::Master(AEffect *effect, long opcode, long index, long value, void *ptr, float opt)
 {
-	//printf("VST plugin call to host dispatcher: Eff: 0x%.8X, Opcode = %d, Index = %d, Value = %d, PTR = %.8X, OPT = %.3f\n",(int)effect, opcode,index,value,(int)ptr,opt);
-	//st( "audioMasterWantMidi %d " , audioMasterWantMidi);
-	// Support opcodes
+    
 	switch(opcode)
 	{
 	case audioMasterAutomate:			
@@ -379,7 +355,7 @@ long VSTPlugin::Master(AEffect *effect, long opcode, long index, long value, voi
 	case audioMasterCurrentId:			
 		return vsthandle;	// returns the unique id of a plug that's currently loading
 	case audioMasterIdle:
-		effect->dispatcher(effect, effEditIdle, 0, 0, NULL, 0.0f);
+		effect->dispatcher(effect, effEditIdle, 0, 0, 0, 0.0f);
 		return 0;		// call application idle routine (this will call effEditIdle for all open editors too) 
 	case audioMasterPinConnected:	
 		    return !((value) ? 
@@ -390,18 +366,18 @@ long VSTPlugin::Master(AEffect *effect, long opcode, long index, long value, voi
 	case audioMasterProcessEvents:		
 		return false; 	// Support of vst events to host is not available
 	case audioMasterGetTime:
-		memset(&_timeInfo, 0, sizeof(_timeInfo));
-		_timeInfo.samplePos = 0;
-		_timeInfo.sampleRate = sample_rate;
-		return (long)&_timeInfo;
+		memset(&vstTimeInfo, 0, sizeof(VstTimeInfo));
+		vstTimeInfo.samplePos = 0;
+		vstTimeInfo.sampleRate = sampleRate;
+		return (long)&vstTimeInfo;
 		/* TODO (#1#): Sera este el problema? */
 	case audioMasterTempoAt:			
 		return 0;
 	case audioMasterNeedIdle:	
-		//effect->dispatcher(effect, effIdle, 0, 0, NULL, 0.0f);  //linea del problema
+		//effect->dispatcher(effect, effIdle, 0, 0, 0, 0.0f);  //linea del problema
 		return false;
 	case audioMasterGetSampleRate:		
-		return sample_rate;	
+		return sampleRate;	
 	case audioMasterGetVendorString:	// Just fooling version string
 		//strcpy((char*)ptr,"Steinberg");
 		return 0;
@@ -417,7 +393,7 @@ long VSTPlugin::Master(AEffect *effect, long opcode, long index, long value, voi
 		return kVstLangEnglish;
 	case audioMasterUpdateDisplay:
 		//printf("audioMasterUpdateDisplay\n");
-		//effect->dispatcher(effect, effEditIdle, 0, 0, NULL, 0.0f);
+		//effect->dispatcher(effect, effEditIdle, 0, 0, 0, 0.0f);
 		return 0;
 	case 	audioMasterSetTime:						printf("VST master dispatcher: Set Time\n");break;
 	case 	audioMasterGetNumAutomatableParameters:	printf("VST master dispatcher: GetNumAutPar\n");break;
@@ -564,7 +540,7 @@ bool VSTPlugin::GetProgramName( int cat , int p, char *buf)
 int VSTPlugin::GetNumCategories()
 {
 	if(instantiated)
-		return Dispatch(effGetNumProgramCategories,0,0,NULL,0.0f);
+		return Dispatch(effGetNumProgramCategories,0,0,0,0.0f);
 	else
 		return 0;
 }
