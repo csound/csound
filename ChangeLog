@@ -1,8 +1,19 @@
+2004-04-29  Michael Gogins <gogins@pipeline.com>
+
+    * Made inbuf and outbuf MYFLT * throughout the sources.
+    
+    * Moved "extern" function and data declarations from csound.c to prototyp.h 
+      as much as possible, in order to prevent inconsistencies from spreading.
+
 2004-04-27  John ffitch  <jpff@codemist.co.uk>
 
 	* Engine/oload.c: Initialise file_opened_
 
 	* H/csoundCore.h (ENVIRON_): Added file_opened_ to environment
+
+2004-04-26  Michael Gogins <gogins@pipeline.com>
+
+    * Added scoreRESET to enable multiple renderings with one Csound API instance.
 
 2004-04-08  John ffitch  <jpff@codemist.co.uk>
 
