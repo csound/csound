@@ -1775,7 +1775,7 @@ extern "C" void FL_run(ENVIRON *csound, FLRUN *p)
   threadHandle = _beginthread(fltkRun, 0, csound);
   if (isActivatedKeyb)
     threadHandle = _beginthread(fltkKeybRun, 0, csound);
-#elif defined(LINUX) || defined(NETBSD) || defined(HAVE_LIBPTHREAD)
+#elif defined(LINUX) || defined(NETBSD) || defined(HAVE_LIBPTHREAD) || defined(__MACH__)
   pthread_attr_t a;
   pthread_t thread1;
   // IV - Aug 27 2002: widget thread is always run with normal priority
