@@ -937,14 +937,14 @@ static int splitline(void) /* split next orch line into atomic groups */
                 c == '!' || c == '&' || c == '|')
                && (prvif || parens) )
         logical++;
-      else if ( isalnum(c)       /* establish validity */
-           || c == '+' || c == '-'
-           || c == '*' || c == '/'
-           || c == '%' || c == '^'
-           || c == '\143' || c == '#' /* Bit operations */
-           || c == '.' || c == '_'
-           /* allow uppercases and underscore in variables */
-           )
+      else if (isalnum(c) ||            /* establish validity */
+               c == '+' || c == '-' ||
+               c == '*' || c == '/' ||
+               c == '%' || c == '^' ||
+               c == '&' || c == '|' || c == '#' ||  /* Bit operations */
+               c == '\254' || c == '~' ||
+               c == '.' || c == '_'
+              )         /* allow uppercases and underscore in variables */
         ;
       else if (c == '(')
         parens++;                   /* and monitor function */
@@ -1721,9 +1721,9 @@ void synterrp(char *errp, char *s)
     while (cp < errp) {
       int ch = *cp++;
       if (ch != '\t') ch = ' ';
-      putchar(ch);
+      csoundMessage(&cenviron, "%c", ch);
     }
-    printf("^\n");
+    csoundMessage(&cenviron, "^\n");
 }
 
 static void lexerr(char *s)

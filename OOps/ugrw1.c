@@ -3263,6 +3263,7 @@ int printk2set(ENVIRON *csound, PRINTK2 *p)
     if (*p->space < 0)        p->pspace = 0;
     else if (*p->space > 120) p->pspace = 120;
     else                      p->pspace = (int)*p->space;
+    p->oldvalue = FL(-1.12123e35);  /* hack to force printing first value */
     return OK;
 }
 
