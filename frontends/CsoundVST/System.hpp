@@ -228,7 +228,7 @@ namespace csound
     /**
      * Releases one thread that is waiting on the monitor.
      */
-    virtual void notify();
+    virtual void endWait();
   };
 }
 #endif
