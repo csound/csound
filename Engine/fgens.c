@@ -2776,6 +2776,8 @@ static void gen51(FUNC *ftp, ENVIRON *csound)   /* Gab 1/3/2005 */
     }
 }
 
+#define RNDINT(x) ((int) ((double) (x) + ((double) (x) < 0.0 ? -0.5 : 0.5)))
+
 static void gen52 (FUNC *ftp, ENVIRON *csound)
 {
     FGDATA  *ff = &(csound->ff);
@@ -2788,7 +2790,7 @@ static void gen52 (FUNC *ftp, ENVIRON *csound)
       fterror(ff, Str("insufficient gen arguments"));
       return;
     }
-    nchn = (int) (ff->e.p[5] + FL(0.5));
+    nchn = RNDINT(ff->e.p[5]);
     if (((nchn * 3) + 1) != nargs) {
       fterror(ff, Str("number of channels inconsistent with number of args"));
       return;
@@ -2804,8 +2806,8 @@ static void gen52 (FUNC *ftp, ENVIRON *csound)
       len2 = (int) f->flen;
       src = &(f->ftable[0]);
       i = n;
-      j = (int) (ff->e.p[(n * 3) + 7] + FL(0.5));
-      k = (int) (ff->e.p[(n * 3) + 8] + FL(0.5));
+      j = RNDINT(ff->e.p[(n * 3) + 7]);
+      k = RNDINT(ff->e.p[(n * 3) + 8]);
       while (i < len) {
         if (j >= 0 && j < len2)
           dst[i] = src[j];
