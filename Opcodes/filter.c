@@ -280,7 +280,7 @@ int afilter(ENVIRON *csound, FILTER* p)
     double poleSamp, zeroSamp, inSamp;
 
     /* Outer loop */
-    for (n=0; n<ksmps; n++) {
+    for (n=0; n<csound->ksmps; n++) {
 
       inSamp = p->in[n];
       poleSamp = inSamp;
@@ -392,7 +392,7 @@ int azfilter(ENVIRON *csound, ZFILTER* p)
     /* and a contains their associated real coefficients. */
 
     /* Outer loop */
-    for (n=0; n<ksmps; n++) {
+    for (n=0; n<csound->ksmps; n++) {
       inSamp = p->in[n];
       poleSamp = inSamp;
       zeroSamp = 0.0;

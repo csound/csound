@@ -33,11 +33,10 @@
 int flwset(ENVIRON *csound, FOL *p)
 {
     p->wgh = p->max = FL(0.0);
-    p->length = (long)(*p->len * esr);
+    p->length = (long)(*p->len * csound->esr);
     if (p->length<=0L) {           /* RWD's suggestion */
-      if (csound->oparms_->msglevel & WARNMSG)
-        printf(Str("WARNING: follow - zero length!\n"));
-      p->length = (long)esr;
+      csound->Warning(csound, Str("follow - zero length!"));
+      p->length = (long)csound->esr;
     }
     p->count = p->length;
     return OK;
@@ -46,7 +45,7 @@ int flwset(ENVIRON *csound, FOL *p)
                                 /* Use absolute value rather than max/min */
 int follow(ENVIRON *csound, FOL *p)
 {
-    long        n = ksmps;
+    long        n = csound->ksmps;
     MYFLT       *in = p->in, *out = p->out;
     MYFLT       max = p->max;
     long        count = p->count;
@@ -77,19 +76,19 @@ int envset(ENVIRON *csound, ENV *p)
     if (p->lastatt<=FL(0.0))
       p->ga = (MYFLT) exp(- 69.0775527898*(double)onedsr);
     else
-      p->ga = (MYFLT) exp(- 6.90775527898/(double)(esr* p->lastatt));
+      p->ga = (MYFLT) exp(- 6.90775527898/(double)(csound->esr* p->lastatt));
     p->lastrel = *p->release;
     if (p->lastrel<=FL(0.0))
       p->gr = (MYFLT) exp(- 69.0775527898*(double)onedsr);
     else
-      p->gr = (MYFLT) exp(- 6.90775527898/(double)(esr* p->lastrel));
+      p->gr = (MYFLT) exp(- 6.90775527898/(double)(csound->esr* p->lastrel));
     p->envelope = FL(0.0);
     return OK;
 }
 
 int envext(ENVIRON *csound, ENV *p)
 {
-    int n, nsmps = ksmps;
+    int n, nsmps = csound->ksmps;
     MYFLT       envelope = p->envelope;
     MYFLT       ga, gr;
     MYFLT       *in = p->in, *out = p->out;
@@ -98,7 +97,7 @@ int envext(ENVIRON *csound, ENV *p)
       if (p->lastatt<=FL(0.0))
         ga = p->ga = (MYFLT) exp(-10000.0*(double)onedsr);
       else
-        ga = p->ga = (MYFLT) exp(-1.0/(double)(esr* p->lastatt));
+        ga = p->ga = (MYFLT) exp(-1.0/(double)(csound->esr* p->lastatt));
     }
     else ga = p->ga;
     if (p->lastrel!=*p->release) {
@@ -106,7 +105,7 @@ int envext(ENVIRON *csound, ENV *p)
       if (p->lastrel<=FL(0.0))
         gr = p->gr = (MYFLT) exp(-100.0*(double)onedsr);
       else
-        gr = p->gr = (float) exp(-1.0/(double)(esr* p->lastrel));
+        gr = p->gr = (float) exp(-1.0/(double)(csound->esr* p->lastrel));
     }
     else gr = p->gr;
     for (n=0;n<nsmps;n++) {
@@ -131,3 +130,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
+

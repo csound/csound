@@ -47,7 +47,7 @@ int dcblockrset(ENVIRON *csound, DCBlocker* p)
 int dcblockr(ENVIRON *csound, DCBlocker* p)
 {
     MYFLT       *ar = p->ar;
-    int         nsmps = ksmps;
+    int         nsmps = csound->ksmps;
     MYFLT       gain = p->gain;
     MYFLT       outputs = p->outputs;
     MYFLT       inputs = p->inputs;
@@ -71,3 +71,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
+
