@@ -204,24 +204,33 @@ void OpenMIDIDevice(void)
     if (nr_devs < 1) {
       die(Str(X_359,"No MIDI device available\n"));
     }
-    err_printf(Str(X_48,"Available MIDI input devices:"));
-    for (dev_num = 0; dev_num < nr_devs; dev_num++) {
+    if (isdigit(O.Midiname[0])) {
+      dev_num = atoi(O.Midiname);
+      err_printf("opening device number: %d, ", dev_num);
+      midiInGetDevCapsA((UINT) dev_num, (LPMIDIINCAPSA) &caps,
+                        (UINT) sizeof(MIDIINCAPSA));
+      err_printf("%s\n", caps.szPname);
+    }
+    /* or else the normal way, by device name  */
+    else {
+      for (dev_num = 0; dev_num < nr_devs; dev_num++) {
         midiInGetDevCapsA((UINT) dev_num, (LPMIDIINCAPSA) &caps,
-                              (UINT) sizeof(MIDIINCAPSA));
+                          (UINT) sizeof(MIDIINCAPSA));
         err_printf(Str(X_54,"MIDI out %d \"%s\"\n"), dev_num, caps.szPname);
-    }
-    dev_num = atoi(O.Midiname);
-    if (dev_num >= nr_devs) {
-      /* not found, print error message and list of available devices */
-      err_printf(Str(X_52,"\nMIDI in device \"%s\" not found\n"), O.Midiname);
-      longjmp(cenviron.exitjmp_,1);
-    }
-    err_printf(Str(X_55,"Assigned MIDI output to device %d\n"), dev_num);
+      }
+      dev_num = atoi(O.Midiname);
+      if (dev_num >= nr_devs) {
+        /* not found, print error message and list of available devices */
+        err_printf(Str(X_52,"\nMIDI in device \"%s\" not found\n"), O.Midiname);
+        longjmp(cenviron.exitjmp_,1);
+      }
+      err_printf(Str(X_55,"Assigned MIDI output to device %d\n"), dev_num);
 /*     for (dev_num = 0; dev_num < nr_devs; dev_num++) { */
 /*       midiInGetDevCapsA((UINT) dev_num, (LPMIDIINCAPSA) &caps, */
 /*                         (UINT) sizeof(MIDIINCAPSA)); */
 /*       if (!strcmp(O.Midiname, caps.szPname)) break;     /\* found device *\/ */
 /*     } */
+    }
     /* reset circular buffer */
     tmpbuf_ndx_r = tmpbuf_ndx_w = 0;
     /* open device */

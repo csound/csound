@@ -154,10 +154,10 @@ void fgens(ENVIRON *csound, EVTBLK *evtblkp) /* create ftable using evtblk data 
       nn = (FUNC**)mrealloc(csound->flist, size*sizeof(FUNC*));
       csound->flist = nn;
       for (i=csound->maxfnum+1; i<size; i++)
-        csound->flist[i] = NULL; /* Clear new section */
+        csound->flist[i] = NULL;             /* Clear new section */
       csound->maxfnum = size-1;
     }
-    if ((nargs = ff->e.pcnt - 4) <= 0) {           /* chk minimum arg count */
+    if ((nargs = ff->e.pcnt - 4) <= 0) {     /* chk minimum arg count */
       fterror(ff,Str(X_941,"insufficient gen arguments"));
       return;
     }
@@ -170,7 +170,7 @@ void fgens(ENVIRON *csound, EVTBLK *evtblkp) /* create ftable using evtblk data 
           genum = n->genum;
           break;
         }
-        n = n->next;            /* and round again */
+        n = n->next;                          /* and round again */
       }
       if (n==NULL) {
         char buffer[100];
@@ -182,7 +182,7 @@ void fgens(ENVIRON *csound, EVTBLK *evtblkp) /* create ftable using evtblk data 
     else {
       if (genum < 0)
         genum = -genum;
-      if (!genum || genum > GENMAX) {           /*   & legal gen number */
+      if (!genum || genum > GENMAX) {          /*   & legal gen number */
         fterror(ff,Str(X_850,"illegal gen number"));
         return;
       }
@@ -227,7 +227,7 @@ void fgens(ENVIRON *csound, EVTBLK *evtblkp) /* create ftable using evtblk data 
     printf(Str(X_782,"ftable %d:\n"), ff->fno);
     (*csound->gensub[genum])(ftp, csound);
     if (!ff->fterrcnt && ftp)
-      ftresdisp(ff,ftp);                      /* rescale and display */
+      ftresdisp(ff,ftp);                        /* rescale and display */
 }
 
 static void gen02(FUNC *ftp, ENVIRON *csound)
@@ -237,8 +237,8 @@ static void gen02(FUNC *ftp, ENVIRON *csound)
     int     nvals = ff->e.pcnt-1;
 
     if (nvals > ff->flenp1)
-      nvals = ff->flenp1;             /* for all vals up to flen+1 */
-    do  *fp++ = *pp++;                /*   copy into ftable   */
+      nvals = ff->flenp1;                      /* for all vals up to flen+1 */
+    do  *fp++ = *pp++;                         /*   copy into ftable   */
     while (--nvals);
 }
 
@@ -261,14 +261,14 @@ static void gen03(FUNC *ftp, ENVIRON *csound)
       return;
     }
     xscale = xintvl / (MYFLT)ff->flen;
-    xloc = (int)(ff->e.p[5] / xscale);          /* initial xloc */
+    xloc = (int)(ff->e.p[5] / xscale);         /* initial xloc */
     nlocs = ff->flenp1;
-    do {                                        /* for each loc:        */
+    do {                                       /* for each loc:        */
       x     = xloc++ * xscale;
       coefp = coeflim;
-      sum   = *--coefp;                         /* init sum to coef(n)  */
+      sum   = *--coefp;                        /* init sum to coef(n)  */
       while (coefp > coef0) {
-        sum *= x;                               /*  & accum by Horner's rule */
+        sum *= x;                              /*  & accum by Horner's rule */
         sum += *--coefp;
       }
       *fp++ = sum;
@@ -345,7 +345,7 @@ static void gen05(FUNC *ftp, ENVIRON *csound)
     MYFLT   *valp, *fp, *finp;
     MYFLT   amp1, mult;
 
-    if ((nsegs = (ff->e.pcnt-5) >> 1) <= 0)         /* nsegs = nargs-1 /2 */
+    if ((nsegs = (ff->e.pcnt-5) >> 1) <= 0)    /* nsegs = nargs-1 /2 */
       return;
     valp = &ff->e.p[5];
     fp = ftp->ftable;
@@ -459,7 +459,7 @@ static void gen08(FUNC *ftp, ENVIRON *csound)
     }
     valp = &ff->e.p[5];
     fp = ftp->ftable;
-    fplim = fp + ff->flen;    
+    fplim = fp + ff->flen;
     f0 = *valp++;                    /* 1st 3 params give vals at x0, x1 */
     if ((dx01 = *valp++) <= FL(0.0)) {      /*      and dist between     */
      fterror(ff,Str(X_892,"illegal x interval")); return;
@@ -2138,8 +2138,6 @@ static void gen01raw(FUNC *ftp, ENVIRON *csound)
     ftp->soundend = inlocs / ftp->nchanls;   /* record end of sound samps */
     sf_close(fd);
 }
-
-/* static int ftldno = 100;        /* Count table number */
 
 #define FTPLERR(s)     {fterror(ff,s); \
                         die(Str(X_784,"ftable load error"));\
