@@ -178,11 +178,12 @@ opcodeName, dspace, thread, outarg, inargs, isub, ksub, asub, dsub
 
 dspace - the size field is used as a flag in saying what types of polymorphism are allowed (look at Engine/entry1.c and Engine/rdorch.c)
 
-	0xffff means that the first argument type determines which opcode is actually being used, XXX -> XXX\_a or XXX\_i or XXX\_k
-	0xfffe means that the first two argument types determine the actual opcode.  So XXX -> XXX\_aa, XXX\_ak, XXX\_ka, and XXX\_kk.  Think oscil
-	0xfffd looks at one argument but does not allow i type (eg peak)
-	0xfffc is rather like 0xfffe but deals with divz -- so allows a, k and i arguments
-
+\begin{description}
+	\item[0xffff] means that the first argument type determines which opcode is actually being used, XXX -> XXX\_a or XXX\_i or XXX\_k
+	\item[0xfffe] means that the first two argument types determine the actual opcode.  So XXX -> XXX\_aa, XXX\_ak, XXX\_ka, and XXX\_kk.  Think oscil
+	\item[0xfffd] looks at one argument but does not allow i type (eg peak)
+	\item[0xfffc] is rather like 0xfffe but deals with divz -- so allows a, k and i arguments
+\end{description}
 
 \section{Using}
 
