@@ -28,11 +28,6 @@
 #define SP ' '
 #define LF '\n'
 
-typedef struct memblk {
-        struct memblk *nxtmem;
-        char   *memend;
-} MEMHDR;
-
 typedef struct srtblk {
         struct srtblk *nxtblk;
         struct srtblk *prvblk;
