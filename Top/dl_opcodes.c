@@ -80,7 +80,7 @@ void *csoundOpenLibrary(const char *libraryPath)
     void *library = 0;
 #if defined(LINUX)    
     if (strstr(libraryPath, ".so")) {
-#elif defined(__CYGWIN__)
+#elif defined(WIN32)
 	if (strstr(libraryPath, ".dll") || strstr(libraryPath, ".DLL")) {
 /* #elif defined(__MACH__) */
 /*        (strstr(libraryPath, ".dylib")) */
