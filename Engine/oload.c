@@ -397,10 +397,10 @@ ENVIRON cenviron_ = {
         NULL,   /*      file_opened  */
         0,      /*      file_max */
         -1,     /*      file_num */
-        0, NULL,   /*      nbusik, busik */
-        0, NULL,   /*      nbusia, busia */
-        0, NULL,   /*      nbusok, busok */
-        0, NULL    /*      nbusoa, busoa */
+        0, NULL,   /*      nchanik, chanik */
+        0, NULL,   /*      nchania, chania */
+        0, NULL,   /*      nchanok, chanok */
+        0, NULL    /*      nchanoa, chanoa */
 };
 
 OPARMS O;
