@@ -1,0 +1,131 @@
+This document outlines the steps necessary to add Loris unit generators
+to Csound. You will need, in addition to Loris and the libraries on
+which it depends (FFTW), a copy of the Csound source code, available at, 
+for example
+
+  ftp://ftp.maths.bath.ac.uk/pub/dream
+
+or
+
+  ftp://ftp.musique.umontreal.ca/pub/mirrors/dream
+
+Some versions of Csound (on some platforms) support dynamically-
+loaded modules, using the --opcode-lib command line flag. On these 
+platforms, Loris can be configured to automatically build a 
+dynamically-loadable module by using the --with-csound flag with
+the configure script to specify a path to the csound source code.
+For example:
+
+  ./configure  --with-csound=/usr/local/src/Csound-4.23
+
+Since the lorisgens code needs to include a header that is part
+of the Csound source code, you must have the Csound source code,
+and you must specify its location using the --with-csound flag
+when configuring Loris. Otherwise, the lorisgens module is not
+built. 
+
+The remainder of this document describes the method for adding 
+the Loris generators to Csound by rebuilding the Csound program
+from source code. 
+
+The Loris unit generators make use of some recent improvements to the
+Csound extension API (such as deinitialization routines and support for
+modules written in C++), so before you begin, make sure that your
+version of the Csound source is newer than version 4.17. Version 4.18
+seems to work fine. Also, of course, make sure that you can build csound
+from your copy of the source before you attempt to add the new Loris
+modules.
+
+Adding lorisgens to Csound:
+
+Step 1: Introduce the Loris unit generators into entry1.c or entry2.c:
+
+a) Add
+  
+  #include "lorisgens.h"Ê 
+
+to the list of headers included at top of file.
+
+b) Add declarations for the functions invoked directly by the Loris unit
+generators:
+
+void lorisread_setup(void*);  
+void lorisread(void*);
+void lorisplay_setup(void*);
+void lorisplay(void*);
+void lorismorph_setup(void*);
+void lorismorph(void*);
+
+must be added to the list of function definitions found after all the
+#include statements.
+
+
+c) Add the Loris unit generator to the opcode list by adding:
+
+{"lorisread",  S(LORISREAD),  3, "",  "kSikkko", lorisread_setup,  lorisread, NULL },
+{"lorisplay",  S(LORISPLAY),  5, "a", "ikkk",    lorisplay_setup,  NULL, lorisplay },
+{"lorismorph", S(LORISMORPH), 3, "",  "iiikkk",  lorismorph_setup, lorismorph, NULL }
+ 
+to the array of similar OENTRY structures.
+
+
+Step 2: Modify the Makefile (there are several, make sure to modify the
+one you use in your csound build!) to compile and link the Loris unit
+generator source, and to link in the loris library.
+
+a) Add the Loris unit generator source code to the list of sources:
+
+LORISSRC = lorisgens.C
+
+and add $(LORISSRC) to list of sources CSRCS.
+
+b) Add the Loris unit generator object file to the list of objects used
+to link the csound binary:
+
+LORISOBJ = lorisgens.o
+
+and add $(LORISOBJ) to list of objects COBJS.
+
+c) Add the Loris unit generator header to the list of headers by adding
+lorisgens.h to list of headers HDRS.
+
+d) Add the Loris C++ headers 
+path (usually /usr/local/include/loris, but depending on the prefix
+you used when building Loris) to the header search path. This can be accomplished
+by adding something like
+
+  -I/usr/local/include/loris
+
+(substituting the correct path if necessary) to the definition of CFLAGS.
+
+e) Add the loris library to the list of libraries LIBS. This can be accomplished
+by adding 
+
+  -lloris
+  
+and possibly (if you are using a platform like Darwin, for which shared versions
+of the SDIF library are not available in the standard distribution)
+
+  -lsdif
+  
+to the definition of LIBS. If you have used a nonstandard prefix, say /opt, for building the
+Loris library, you may also need to add something like 
+
+  -L/opt/lib
+  
+to the LIB definition.
+
+You may also need to add
+
+	-lstdc++
+
+to the LIB definition to include the standard C++ library (it may
+have a different name if you are not using a GNU C/C++ compiler).
+
+f) Finally, add a rule for compiling c++ source files. The following should do:
+
+.C.o:
+	$(CXX) $(CFLAGS) -c $*.C
+
+
+Step 3: Build and install csound, and start enjoying the Loris unit generators. 
