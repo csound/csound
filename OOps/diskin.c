@@ -25,6 +25,7 @@
 /*                                                              */
 /*      diskin  -       a new soundin that shifts pitch         */
 /*              based on the old soundin code                   */
+/*              Adjusted to include sndfile library             */
 #include "cs.h"
 #include "soundio.h"
 #include "diskin.h"
@@ -45,9 +46,794 @@
 #ifdef _DEBUG
 #include <assert.h>
 #endif
-/*RWD*/
-#define DISKINHACK
 
+#ifdef _SNDFILE_
+#ifdef  USE_DOUBLE
+#define sf_write_MYFLT	sf_write_double
+#define sf_read_MYFLT	sf_read_double
+#else
+#define sf_write_MYFLT	sf_write_float
+#define sf_read_MYFLT	sf_read_float
+#endif
+extern int type2sf(int);
+extern int format2sf(int);
+extern  char    *getstrformat(int format);
+extern short sf2type(int);
+extern short sfsampsize(int);
+
+static int sreadinew(           /* special handling of sound input       */
+    SNDFILE *infd,              /* to accomodate reads thru pipes & net  */
+    MYFLT   *inbuf,             /* where nbytes rcvd can be < n requested*/
+    int     nbytes,             /*                                       */
+    SOUNDINEW *p)               /* extra arg passed for filetyp testing  */
+{                               /* on POST-HEADER reads of audio samples */
+    int    n, ntot=0;
+
+    do {
+      if ((n = sf_read_MYFLT(infd, inbuf+ntot, nbytes-ntot)) < 0)
+        die(Str(X_1201,"soundfile read error"));
+    } while (n > 0 && (ntot += n) < nbytes);
+    if (p->filetyp
+#ifdef NeXT
+        || 1
+#endif
+        ) {             /* for AIFF and WAV samples */
+      if (p->filetyp == TYP_AIFF ||
+          p->filetyp == TYP_AIFC ||
+          p->filetyp == TYP_WAV) {     /*RWD 3:2000*/
+        if (p->audrem > 0) {      /* AIFF:                  */
+          if (ntot > p->audrem)   /*   chk haven't exceeded */
+            ntot = p->audrem;     /*   limit of audio data  */
+          p->audrem -= ntot;
+        }
+        else ntot = 0;
+      }
+    }
+    /*RWD 3:2000 expanded format fixups ; more efficient here than in
+      soundinew() ?  (well, saves a LOT of typing!) */
+    if (p->filetyp==TYP_WAV  ||
+        p->filetyp==TYP_AIFF ||
+        p->filetyp==TYP_AIFC) {
+      if (p->format==AE_FLOAT) {
+        int i,cnt;
+        float scalefac = (float)INMYFLTFAC;
+        float *ptr = (float *) inbuf;
+
+        if (p->do_floatscaling)
+          scalefac *= p->fscalefac;
+        cnt = ntot/sizeof(float);
+        for (i=0; i<cnt; i++)
+          *ptr++ *= scalefac;
+      }
+      else if (p->format==AE_LONG) {
+        int i;
+        int cnt = ntot/sizeof(long);
+        long *ptr = (long*) inbuf;
+        for (i=0; i<cnt; i++) {
+          *ptr = (long) ((double) *ptr *  INLONGFAC);
+          ptr++;
+        }
+      }
+    }
+    return(ntot);
+}
+
+
+static int sngetset(SOUNDINEW *p, char *sfname)
+{
+    HEADATA *hdr = NULL;
+    int     sinfd;
+    SNDFILE *infile;
+    SF_INFO sfinfo;
+    SOUNDIN forReadHeader;
+
+    if ((sinfd = openin(sfname)) < 0) {     /* open with full dir paths */
+      if (isfullpath(sfname))
+        sprintf(errmsg,Str(X_696,"diskin cannot open %s"), sfname);
+      else
+        sprintf(errmsg,Str(X_695,
+                           "diskin cannot find \"%s\" in its search paths"),
+                sfname);
+      goto errtn;
+    }
+    infile = sf_open_fd(sinfd, SFM_READ, &sfinfo, SF_TRUE);
+#ifdef USE_DOUBLE
+    sf_command(infile, SFC_SET_NORM_DOUBLE, NULL, SF_FALSE);
+#else
+    sf_command(infile, SFC_SET_NORM_FLOAT, NULL, SF_FALSE);
+#endif
+    p->fdch.fd = infile;
+    sfname = retfilnam;                        /* & record fullpath filnam */
+    if ((p->format = (short)*p->iformat) > 0)  /* convert spec'd format code */
+      p->format |= 0x100;
+
+    p->endfile = 0;
+    p->begfile = 0;
+    p->filetyp = 0;             /* initially non-typed for readheader */
+    
+    /******* construct the SOUNDIN struct to use old readheader ***********/
+    forReadHeader.filetyp = p->filetyp;
+    forReadHeader.audrem = p->audrem;
+
+    if (sfinfo.samplerate != (int)esr) {                       /* non-anal:  cmp w. esr */
+      if (O.msglevel & WARNMSG)
+        printf(Str(X_62,"WARNING: %s sr = %ld, orch sr = %7.1f\n"),
+               sfname, sfinfo.samplerate, esr);
+    }
+
+    if (sfinfo.channels != p->OUTOCOUNT) {         /*        chk nchanls */
+      if (O.msglevel & WARNMSG) {
+        printf(Str(X_58, "WARNING: %s nchanls = %d, soundin reading as if nchanls = %d\n"),
+               sfname, (int) sfinfo.channels, (int) p->OUTOCOUNT);
+      }
+      sfinfo.channels = p->OUTOCOUNT;
+    }
+
+    /***********  copy header data  *************/
+    /*RWD 3:2000 copy scalefac stuff */
+    p->do_floatscaling = forReadHeader.do_floatscaling;
+    p->fscalefac = forReadHeader.fscalefac;
+    
+    switch ((p->format = (short)hdr->format)) {
+    case AE_CHAR:
+    case AE_UNCH:
+#ifdef ULAW
+    case AE_ULAW:
+#endif
+    case AE_SHORT:
+    case AE_LONG:
+    case AE_FLOAT:
+    case AE_24INT:
+      break;            /*RWD 5:2001 */
+      
+    default:
+      sprintf(errmsg,Str(X_52,"%s format %s not yet supported"),
+              sfname, getstrformat((int)p->format));
+      goto errcls;
+    }
+    p->sampframsiz = (short)sfsampsize(sfinfo.format) * sfinfo.channels;
+    p->filetyp     = sf2type(sfinfo.format);
+    /*       p->aiffdata    = hdr->aiffdata; */
+    p->sr          = sfinfo.samplerate;
+    p->nchanls     = (short)sfinfo.channels;
+    p->audrem = p->audsize = sfinfo.frames;
+    p->fdch.fd = infile;                  /*     store & log the fd     */
+    return (TRUE);
+
+ errcls:
+    sf_close(infile);                        /* init error:  close any open file */
+ errtn:
+    return (FALSE);                      /*              return empty handed */
+}
+
+
+int newsndinset(SOUNDINEW *p)       /* init routine for diskin   */
+{
+/****************************************************
+        revision history
+        6/98                    -matt
+                fixed headerless file defaults,
+                allowed for reinits, and cleaned up code
+        8/11/98                 -matt
+                made backwards playback and 0 skiptime
+                        set skiptime to end of file
+        1/26/99                         -matt
+                fixed bug when skiptime is default
+*****************************************************/
+    int     n;
+    char    *sfname, soundiname[128];
+    SNDFILE *sinfd = NULL;
+    long    nbytes, filno;
+    MYFLT   skiptime = *p->iskptim;
+
+    /* RWD 5:2001 need this as var, change size to read 24bit data */
+    /* should go in SOUNDINEW struct eventually */
+    long snewbufsize = SNDINEWBUFSIZ;
+
+
+    if (skiptime < 0) {
+      if (O.msglevel & WARNMSG)
+        printf(Str(X_1460,"WARNING: negative skip time, substituting zero.\n"));
+      skiptime = FL(0.0);
+    }
+
+/* #####RWD: it is not safe to assume all compilers init this to 0 */
+    if (p->fdch.fd != 0) {  /* if file already open, rtn */
+      /*********** for reinits, we gotta do some stuff here ************/
+      /* we get a crash if backwards and 0 skiptime, so lets set it to file
+                        end instead..*/
+      if (skiptime <= 0 && *p->ktransp < 0) {
+        if (p->audsize > 0)
+          skiptime = (MYFLT)p->audsize/(MYFLT)(p->sr * p->sampframsiz);
+        else
+          skiptime = FL(1.0)/(MYFLT)p->sr; /* one sample */
+      }
+
+      nbytes = (long)(skiptime * p->sr) * p->sampframsiz;
+      if (nbytes > p->audrem) { /* RWD says p->audsize but that seems unlikely */
+        if (O.msglevel & WARNMSG)
+          printf(Str(X_1191,
+                    "WARNING: skip time larger than audio data,substituting zero.\n"));
+        if ( *p->ktransp < 0) {
+          if (p->audsize > 0)
+            skiptime = (MYFLT)p->audsize/(MYFLT)(p->sr * p->sampframsiz);
+          else
+            skiptime = FL(1.0)/(MYFLT)p->sr; /* one sample */
+          nbytes = (long)(skiptime * p->sr) * p->sampframsiz;
+        }
+        else
+          nbytes = 0;
+      }
+      p->endfile = 0;
+      p->begfile = 0;
+
+      if (nbytes > 0) {
+        p->audrem = p->audsize-nbytes+p->firstsampinfile;
+      }
+      else {
+        p->begfile = TRUE;
+        if (*p->ktransp < 0)
+          p->endfile = TRUE;
+        p->audrem = p->audsize;
+      }
+
+      /* set file pointer */
+      if ((p->filepos =         /* seek to bndry */
+           (long)sf_seek(p->fdch.fd,
+                         (off_t)(nbytes+p->firstsampinfile), SEEK_SET)) < 0)
+        die(Str(X_698,"diskin seek error during reinit"));
+      
+      if ((n =                  /* now rd fulbuf */
+           sreadinew(p->fdch.fd,p->inbuf,
+                     snewbufsize/*SNDINEWBUFSIZ*/,p)) == 0)  /*RWD 5:2001 */
+        p->endfile = 1;
+      
+      p->inbufp = p->inbuf;
+      p->bufend = p->inbuf + n;
+      p->guardpt = p->bufend - p->sampframsiz;
+      p->phs = 0.0;
+
+      return OK;
+    }
+
+    p->channel = ALLCHNLS;      /* reading all channels     */
+    p->analonly = 0;
+
+    /********  open the file  ***********/
+    if ((n = p->OUTOCOUNT) && n != 1 && n != 2 && n != 4 &&
+        n != 6 && n!= 8) {      /* if appl,chkchnls */
+      sprintf(errmsg,Str(X_700,"diskin: illegal no of receiving channels"));
+      goto errtn;
+    }
+    if (*p->ifilno == SSTRCOD) { /* if char string name given */
+      if (p->STRARG == NULL) strcpy(soundiname,unquote(currevent->strarg));
+      else strcpy(soundiname,unquote(p->STRARG));    /* unquote it,  else use */
+    }
+    else if ((filno=(long)*p->ifilno) <= strsmax && strsets != NULL &&
+             strsets[filno])
+      strcpy(soundiname, strsets[filno]);
+    else sprintf(soundiname,"soundin.%ld",filno);  /* soundin.filno */
+    sfname = soundiname;
+    if (!sngetset(p, sfname))
+      return OK;
+    sinfd  = p->fdch.fd;
+
+    /*******  display messages ####possibly this be verbose mode only??? */
+    printf(Str(X_604,"audio sr = %ld, "), p->sr);
+    if (p->nchanls == 1)
+      printf(Str(X_1006,"monaural\n"));
+    else {
+      printf(Str(X_64,"%s, reading "),
+             p->nchanls == 2 ? Str(X_1246,"stereo") :
+             p->nchanls == 4 ? Str(X_1148,"quad") :
+             p->nchanls == 6 ? Str(X_830,"hex") : Str(X_1088,"oct") );
+      if (p->channel == ALLCHNLS)
+        printf(Str(X_51,"%s channels\n"),
+               p->nchanls == 2 ? Str(X_619,"both") : Str(X_591,"all"));
+      else printf(Str(X_655,"channel %d\n"), p->channel);
+    }
+
+    /********  handle byte reversals  *******/
+#ifdef NeXT
+    if (!p->filetyp)
+      printf(/*Str(X_1095,*/"opening NeXT infile %s\n"/*)*/, sfname);
+    else
+#endif
+    printf("opening %s infile %s\n",
+      p->filetyp == TYP_AIFF ? "AIFF" : TYP_AIFC ? "AIFF-C" : "WAV",
+                                                              sfname);
+
+if (p->sampframsiz <= 0)    /* must know framsiz */
+      die(Str(X_882,"illegal sampframsiz"));
+
+    /*****  set file pointers, buffers, and diskin-specific stuff  ******/
+    /* we get a crash if backwards and 0 skiptime, so lets set it to file
+       end instead..*/
+    if (skiptime <= 0 && *p->ktransp < 0) {
+      if (p->audsize > 0)
+        skiptime = (MYFLT)p->audsize/(MYFLT)(p->sr * p->sampframsiz);
+      else
+        skiptime = FL(1.0)/(MYFLT)p->sr; /* one sample */
+    }
+
+    nbytes = (long)(skiptime * p->sr) * p->sampframsiz;
+                /*#### will this work for all header types??? */
+    p->firstsampinfile = sf_seek(sinfd,(off_t)0L,SEEK_CUR);
+
+    if ((p->audrem > 0) && (nbytes > p->audrem)) {
+      if (O.msglevel & WARNMSG)
+        printf(Str(X_1191,"WARNING: skip time larger than audio data,substituting zero.\n"));
+      nbytes = 0;
+    }
+
+    if (nbytes > 0) {
+      if (p->audsize > 0 )      /* change audsize   */
+        p->audrem = p->audsize-nbytes+p->firstsampinfile;
+
+      if ((p->filepos =         /* seek to bndry */
+           (long)sf_seek(sinfd, (off_t)(nbytes+p->firstsampinfile), SEEK_SET)) < 0)
+        die(Str(X_699,"diskin seek error: invalid skip time"));
+    }
+    else {
+      p->begfile = TRUE;
+      if (*p->ktransp < 0)
+        p->endfile = TRUE;
+    }
+
+    if ((n =                    /* now rd fulbuf */
+         sreadinew(sinfd,p->inbuf,snewbufsize,p)) == 0) /*RWD 5:2001 */
+      p->endfile = 1;
+    p->inbufp = p->inbuf;
+    p->bufend = p->inbuf + n;
+
+    /*****  if soundinset successful  ********/
+    if (sinfd > 0) {
+      fdrecord(&p->fdch);              /*     instr will close later */
+
+      p->guardpt = p->bufend - p->sampframsiz;
+      p->phs = 0.0;
+      return OK;
+    }
+    else return initerror(errmsg);
+
+ errtn:
+    return NOTOK;                      /*              return empty handed */
+}
+
+
+/*  NB: floats not converted here, but in sreadinew():
+    handles autorescale from PEAK, etc) */
+
+void soundinew(SOUNDINEW *p)    /*  a-rate routine for soundinew */
+{
+    MYFLT       *r1, *r2, *r3, *r4, ktransp,looping;
+    int         chnsout, n, ntogo, bytesLeft;
+    double      phs,phsFract,phsTrunc;
+    MYFLT       *inbufp = p->inbufp;
+    long snewbufsize = SNDINEWBUFSIZ;            /*RWD 5:2001 */
+    long oldfilepos = 0;
+
+#ifdef _DEBUG
+    static long samplecount = 0;
+    long tellpos;
+    short *sbufp1,*sbufp2;
+#endif
+
+    if ((!p->bufend) || (!p->inbufp) || (!p->sampframsiz)) {
+      initerror(Str(X_701,"diskin: not initialised"));
+      return;
+    }
+    r1      = p->r1;
+    r2      = p->r2;
+    r3      = p->r3;
+    r4      = p->r4;
+    ktransp = *p->ktransp;
+    looping = *p->ilooping;
+    chnsout = p->OUTOCOUNT;
+    phs     = p->phs;
+    ntogo   = ksmps;
+    /*RWD 5:2001 need this when instr dur > filelen*/
+    n = 0;
+    /* RWD 5:2001 interesting issue - if ktransp starts at zero, we have
+     * no idea what direction to go in!  below, it was "if ktransp > 0",
+     * but the docs stipulate that only a negative transp signifies
+     * backwards rendering, so really, ktransp=0 implies we go forwards */
+#ifdef _DEBUG
+    if (inbufp != p->bufend)
+      assert(((p->bufend - inbufp) % p->sampframsiz)==0);
+#endif
+    if (ktransp >= 0 ) {        /* forwards... */
+/* RWD 5:2001 want to keep phase if reversing mid-data */
+      if (phs < 0 && p->begfile)
+        phs = 0; /* we have just switched directions, forget (-ve) old phase */
+      if (p->endfile) {
+        if (p->begfile) p->endfile = FALSE;
+        else goto filend;
+      }
+      
+      while (ntogo) {
+        /* a lot of the following code has been "written out" for speed */
+        switch (chnsout) {
+        case 1:
+          phsFract = modf(phs,&phsTrunc);
+          do {
+            *r1++ = *inbufp + (*(inbufp + 4) - *inbufp) * phsFract;
+            phs += ktransp;
+            phsFract = modf(phs,&phsTrunc);
+            inbufp = p->inbufp + (long)(phsTrunc * 4);
+            --ntogo;
+            } while ((inbufp < p->guardpt) && (ntogo));
+          /*RWD 5:2001*/
+          break;
+        case 2:
+          phsFract = modf(phs,&phsTrunc);
+            do {
+              *r1++ = *inbufp + (*(inbufp + 8) - *inbufp) * phsFract;
+              *r2++ = *(inbufp + 4) + (*(inbufp + 12) - *(inbufp + 4)) * phsFract;
+              phs += ktransp;
+              phsFract = modf(phs,&phsTrunc);
+              inbufp = p->inbufp + (long)(phsTrunc * 8);
+              --ntogo;
+            } while ((inbufp < p->guardpt) && (ntogo));
+            break;
+        case 4:
+          phsFract = modf(phs,&phsTrunc);
+            do {
+              *r1++ = *inbufp + (*(inbufp + 16) - *inbufp) * phsFract;
+              *r2++ = *(inbufp + 4) + (*(inbufp + 20) - *(inbufp + 4)) * phsFract;
+              *r3++ = *(inbufp + 8) + (*(inbufp + 24) - *(inbufp + 8)) * phsFract;
+              *r4++ = *(inbufp + 12)+ (*(inbufp + 28) - *(inbufp + 12)) * phsFract;
+              phs += ktransp;
+              phsFract = modf(phs,&phsTrunc);
+              inbufp = p->inbufp + (long)(phsTrunc * 16);
+              --ntogo;
+            } while ((inbufp < p->guardpt) && (ntogo));
+        break;
+        }
+      }
+
+      bytesLeft = (int)(p->bufend - inbufp);
+      if (bytesLeft <= p->sampframsiz) {      /* first set file position
+                                                 to where inbuf p "thinks"
+                                                 its pointing to */
+        p->filepos = (long)sf_seek(p->fdch.fd,(off_t)(-bytesLeft),SEEK_CUR);
+        if ((n = sreadinew(p->fdch.fd,
+                           p->inbuf,snewbufsize,p)) == 0) {  /*RWD 5:2001 */
+          if (looping) {
+            /* go to beginning of file.
+               depending on the pitch and
+               phase, we might drop a few "guardpoint" samples, but
+               this ugen is intended for large files anyway -- if a
+               few end samples are critical for looping, use oscil or
+               table!!!!  */
+            p->audrem = p->audsize;
+            p->filepos = (long)sf_seek(p->fdch.fd,
+                                       (off_t)p->firstsampinfile,SEEK_SET);
+            if ((n = sreadinew(p->fdch.fd,
+                               p->inbuf,snewbufsize,p)) == 0) /*RWD 5:2001 */
+              die(Str(X_733,"error trying to loop back to the beginning "
+                      "of the sound file!?!??"));
+            p->begfile = 1;
+            phs = 0;
+            inbufp = p->inbufp = p->inbuf;
+            p->bufend = p->inbuf + n;
+            /*RWD 5:2001 this cures the symptom (bad data in output sometimes,
+             * when a transp sweep hits eof), but not, I suspect, the
+             * underlying cause */
+            if (n < snewbufsize)
+              memset(p->bufend,0,snewbufsize-n);
+            p->guardpt = p->bufend - p->sampframsiz;
+          }
+          else {
+            p->endfile = TRUE;
+            goto filend;
+          }
+        }
+        else {
+          inbufp = p->inbufp = p->inbuf;
+          p->bufend = p->inbuf + n;
+          /*RWD 5:2001 this cures the symptom (bad data in output sometimes,
+           * when a transp sweep hits eof), but not, I suspect, the
+           * underlying cause */
+            if (n < snewbufsize)
+              memset(p->bufend,0,snewbufsize-n);
+            p->guardpt = p->bufend - p->sampframsiz;
+            phs = modf(phs,&phsTrunc);
+            p->begfile = FALSE;
+        }
+      }
+#ifdef _DEBUG
+      if (inbufp != p->bufend)
+        assert(((p->bufend - inbufp) % p->sampframsiz)==0);
+#endif
+    }
+    else {      /* backwards...                 same thing but different */
+      if (phs > 0 && p->endfile)  /*RWD 5:2001 as above */
+        phs = 0; /* have just switched directions, forget (+ve) old phase */
+      
+      if (p->endfile) {   /* firewall-flag signaling when we are at either
+                                   end of the file */
+        if (p->begfile)
+          goto filend; /* make sure we are at beginning, not end */
+        else
+          /* RWD 5:2001: read in the first block (= last block of infile) */
+          {
+            bytesLeft = (int)(inbufp - p->inbuf);
+            if ((p->filepos = (long)sf_seek(p->fdch.fd,
+                                            (off_t)(bytesLeft-snewbufsize),
+                                            SEEK_CUR)) <= p->firstsampinfile) {
+              p->filepos = (long)sf_seek(p->fdch.fd,
+                                         (off_t)p->firstsampinfile,SEEK_SET);
+              p->begfile = 1;
+            }
+            
+            /* RWD 5:2001 but don't know if this is required here... */
+            p->audrem = p->audsize; /* a hack to prevent errors (returning
+                                       'ntot')in the sread for AIFF */
+            if ((n = sreadinew(p->fdch.fd,p->inbuf,snewbufsize,p)) !=
+                snewbufsize) {
+              /* we should never get here. if we do,
+                 we're fucked because didn't get a full buffer and our
+                 present sample is the last sample of the buffer!!!  */
+              die(Str(X_697,"diskin read error - during backwards playback"));
+              return;
+            }
+#ifdef _DEBUG
+            sbufp1 = (short *) p->inbuf;
+#endif
+            /* now get the correct remaining size */
+            p->audrem = p->audsize - p->firstsampinfile - p->filepos;
+            p->bufend = p->inbuf + n;
+            /* point to the last sample in buffer */
+            inbufp = p->inbufp = p->guardpt = p->bufend - p->sampframsiz;
+            
+            /*RWD 5:2001 this cures the symptom (bad data in output sometimes,
+             * when a transp sweep hits eof), but not, I suspect, the
+             * underlying cause */
+            if (n < snewbufsize)
+              memset(p->bufend,0,snewbufsize-n);
+            phs = modf(phs,&phsTrunc);
+            p->endfile = FALSE;
+          }
+      }
+
+      while (ntogo) {
+        switch(chnsout) {
+        case 1:
+          phsFract = modf(phs,&phsTrunc); /* phsFract and phsTrunc will be
+                                             non-positive */
+          do {
+              *r1++ = *inbufp + (*inbufp - *(inbufp - 4)) * phsFract;
+              phs += ktransp;
+              phsFract = modf(phs,&phsTrunc);
+              inbufp = p->inbufp + (long)(phsTrunc * 4);
+              --ntogo;
+            } while ((inbufp > p->inbuf) && (ntogo));
+            break;
+        case 2:
+          phsFract = modf(phs,&phsTrunc);       /*  phsFract will be negative */
+            do {
+              *r1++ = *inbufp + (*inbufp - *(inbufp - 8)) * phsFract;
+              *r2++ = *(inbufp + 4) + (*(inbufp + 4) - *(inbufp - 4)) * phsFract;
+              phs += ktransp;
+              phsFract = modf(phs,&phsTrunc);
+              inbufp = p->inbufp + (long)(phsTrunc * 8);
+              --ntogo;
+            } while ((inbufp > p->inbuf) && (ntogo));
+            break;
+        case 4:
+          phsFract = modf(phs,&phsTrunc);       /*  phsFract will be negative */
+          do {
+              *r1++ = *inbufp + (*inbufp - *(inbufp - 16)) * phsFract;
+              *r2++ = *(inbufp + 4) + (*(inbufp + 4) - *(inbufp - 12)) * phsFract;
+              *r3++ = *(inbufp + 8) + (*(inbufp + 8) - *(inbufp - 8)) * phsFract;
+              *r4++ = *(inbufp + 12)+ (*(inbufp + 12) - *(inbufp - 4)) * phsFract;
+              phs += ktransp;
+              phsFract = modf(phs,&phsTrunc);
+              inbufp = p->inbufp + (long)(phsTrunc * 16);
+              --ntogo;
+          } while ((inbufp > p->inbuf) && (ntogo));
+          break;
+      }
+
+      if (inbufp <= p->inbuf) { /* we need to get some more samples!! */
+        if (p->begfile) {
+          if (looping) {      /* hopes this works -- set 1 buffer lenght
+                                 at end of sound file */
+            p->filepos =
+              (long)sf_seek(p->fdch.fd,
+                            (off_t)(p->firstsampinfile+p->audsize-snewbufsize),
+                            SEEK_SET);   /*RWD 5:2001*/
+            phs = -0.0;
+            p->begfile = 0;
+          }
+          else {
+            p->endfile = 1;
+            goto filend;
+          }
+        }
+        else {
+          bytesLeft = (int)(inbufp - p->inbuf + p->sampframsiz);
+          /* we're going backwards, so bytesLeft should be
+           * non-positive because inbufp should be pointing
+           * to the first sample in the buffer or "in front"
+           * the buffer.  But we must add a sample frame
+           * (p->sampframsiz) to make sure the sample we are
+           * pointing at right now becomes the last sample
+           * in the next buffer*/
+          /*RWD remember this for when lseek returns -1 */
+          oldfilepos = p->filepos;
+#ifdef _DEBUG
+          tellpos = sf_seek(p->fdch.fd,(off_t)0L,SEEK_CUR);
+          sbufp1 = (short *) p->inbuf;
+#endif
+          
+          if ((p->filepos =
+               (long)sf_seek(p->fdch.fd,
+                             (off_t)(bytesLeft-snewbufsize - snewbufsize),
+                             /*RWD 5:2001 was SNDINEWBUFSIZ*/
+                             SEEK_CUR)) <= p->firstsampinfile) {
+            p->filepos = (long)sf_seek(p->fdch.fd,
+                                       (off_t)p->firstsampinfile,SEEK_SET);
+            p->begfile = 1;
+          }
+        }
+        
+        p->audrem = p->audsize; /* a hack to prevent errors (returning
+                                   'ntot') in the sread for AIFF */
+
+        if ((n = sreadinew(p->fdch.fd,p->inbuf,snewbufsize,p)) !=
+            snewbufsize) {       /* RWD 4:2001 was SNDINEWBUFSIZ*/
+          /* we should never get here. if we do,
+             we're fucked because didn't get a full buffer and our
+             present sample is the last sample of the buffer!!!  */
+          die(Str(X_697,"diskin read error - during backwards playback"));
+          return;
+        }
+#ifdef _DEBUG
+        sbufp1 = (short *) p->inbuf;
+#endif
+        /* now get the correct remaining size */
+        p->audrem = p->audsize - p->firstsampinfile - p->filepos;
+        /* RWD 5:2001  this clears a glitch doing
+         * plain reverse looping (pitch  = -1) over file
+         */
+        if (p->begfile )
+          n = oldfilepos - p->firstsampinfile;
+        p->bufend = p->inbuf + n;
+        /* point to the last sample in buffer */
+        inbufp = p->inbufp = p->guardpt = p->bufend - p->sampframsiz;
+        /*RWD 5:2001 this cures the symptom (bad data in output sometimes,
+         * when a transp sweep hits eof), but not, I suspect, the
+         * underlying cause */
+        if (n < snewbufsize)
+          memset(p->bufend,0,snewbufsize-n);
+        phs = modf(phs,&phsTrunc);
+      }
+#ifdef _DEBUG
+      if (inbufp != p->bufend)
+        assert(((p->bufend - inbufp) % p->sampframsiz)==0);
+#endif
+      }
+    }
+    p->inbufp = inbufp;
+    p->phs = modf(phs,&phsTrunc);
+
+    return;
+
+ filend:
+    if (ntogo > n) {            /* At RWD's suggestion */
+      switch(chnsout) {                   /* if past end of file, */
+      case 1:
+        do *r1++ = FL(0.0);               /*    move in zeros     */
+        while (--ntogo);
+        break;
+      case 2:
+        do {
+          *r1++ = FL(0.0);
+          *r2++ = FL(0.0);
+        } while (--ntogo);
+        break;
+      case 4:
+        do {
+          *r1++ = FL(0.0);
+          *r2++ = FL(0.0);
+          *r3++ = FL(0.0);
+          *r4++ = FL(0.0);
+        } while (--ntogo);
+      }
+    }
+}
+
+/* RWD:DBFS: NB: thse funcs all supposed to write to a 'raw' file, so
+   what will people want for 0dbfs handling? really need to update
+   opcode with more options. */
+
+int sndo1set(SNDOUT *p)            /* init routine for instr soundout   */
+{
+    int    soutfd, filno;
+    char   *sfname, sndoutname[128];
+    SF_INFO sfinfo;
+    SNDFILE *outfile;
+
+    if (p->c.fdch.fd != NULL)   return OK;        /* if file already open, rtn  */
+    if (*p->c.ifilcod == SSTRCOD)
+      strcpy(sndoutname, unquote(p->STRARG));
+    else if ((filno = (int)*p->c.ifilcod) <= strsmax && strsets != NULL &&
+             strsets[filno])
+      strcpy(sndoutname, strsets[filno]);
+    else
+      sprintf(sndoutname,"soundout.%d", filno);
+    sfname = sndoutname;
+    if ((soutfd = openout(sfname, 1)) < 0) {   /* if openout successful */
+      if (isfullpath(sfname))
+        sprintf(errmsg,Str(X_1212,"soundout cannot open %s"), sfname);
+      else
+        sprintf(errmsg,Str(X_1211,"soundout cannot find %s in search paths"),
+                sfname);
+      goto errtn;
+    }
+    sfinfo.frames = -1;
+    sfinfo.samplerate = (int)esr;
+    sfinfo.channels = nchnls;        /* WRONG *************************** */
+    sfinfo.format = type2sf(p->c.filetyp)|format2sf(p->c.format);
+    sfinfo.sections = 0;
+    sfinfo.seekable = 0;
+    outfile = sf_open_fd(soutfd, SFM_WRITE, &sfinfo, SF_TRUE);
+    sfname = retfilnam;
+    if ((p->c.format = (short)*p->c.iformat) > 0)
+      p->c.format |= 0x100;
+
+    printf(/*Str(X_1094,*/"opening %s outfile %s\n"/*)*/,
+             p->c.filetyp==TYP_AIFF ? "AIFF":
+             p->c.filetyp==TYP_AIFC ? "AIFF-C":"WAV",
+             sfname);
+    p->c.outbufp = p->c.outbuf;         /* fix - isro 20-11-96 */
+    p->c.bufend = p->c.outbuf + SNDOUTSMPS; /* fix - isro 20-11-96 */
+    p->c.fdch.fd = outfile;                  /*     store & log the fd     */
+    fdrecord(&p->c.fdch);                   /*     instr will close later */
+    return OK;
+ errtn:
+    return initerror(errmsg);               /* else just print the errmsg */
+}
+
+int soundout(SNDOUT *p)
+{
+    MYFLT  *outbufp, *asig;
+    int    nn, nsamps, ospace;
+
+    asig = p->asig;
+    outbufp = p->c.outbufp;
+    nsamps = ksmps;
+    ospace = (p->c.bufend - outbufp);
+ nchk:
+    if ((nn = nsamps) > ospace)
+      nn = ospace;
+    nsamps -= nn;
+    ospace -= nn;
+    do  *outbufp++ = *asig++;
+    while (--nn);
+    if (!ospace) {              /* when buf is full  */
+      sf_read_MYFLT(p->c.fdch.fd, p->c.outbuf, p->c.bufend - p->c.outbuf);
+      outbufp = p->c.outbuf;
+      ospace = SNDOUTSMPS;
+      if (nsamps) goto nchk;    /*   chk rem samples */
+    }
+    p->c.outbufp = outbufp;
+    return OK;
+}
+
+void sndo2set(SNDOUTS *p)
+{
+    IGN(p);
+}
+
+void soundouts(SNDOUTS *p)
+{
+    IGN(p);
+}
+
+#else
 extern  HEADATA *readheader(int, char *, SOUNDIN*);
 extern  void bytrev2(char*, int);
 extern  void bytrev4(char*, int);
@@ -126,7 +912,9 @@ static int sngetset(SOUNDINEW *p, char *sfname)
 {
     HEADATA *hdr = NULL;
     int     sinfd = 0;
+    SNDFILE *infile;
     SOUNDIN forReadHeader;
+    SF_INFO sfinfo;
     long readlong = 0;
 
     if ((sinfd = openin(sfname)) < 0) {     /* open with full dir paths */
@@ -138,10 +926,17 @@ static int sngetset(SOUNDINEW *p, char *sfname)
                 sfname);
       goto errtn;
     }
+    infile = sf_open_fd(sinfd, SFM_READ, &sfinfo, SF_TRUE);
+#ifdef USE_DOUBLE
+    sf_command(infile, SFC_SET_NORM_DOUBLE, NULL, SF_FALSE);
+#else
+    sf_command(infile, SFC_SET_NORM_FLOAT, NULL, SF_FALSE);
+#endif
+    p->fdch.fd = infile;
     sfname = retfilnam;                        /* & record fullpath filnam */
-    if ((p->format = (short)*p->iformat) > 0)  /* convert spec'd format code */
+    p->format = sf2format(sfinfo.format);
+    if ((p->format = (short)*p->iformat) > 0)   /* convert spec'd format code */
       p->format |= 0x100;
-
     p->endfile = 0;
     p->begfile = 0;
     p->filetyp = 0;             /* initially non-typed for readheader */
@@ -153,28 +948,25 @@ static int sngetset(SOUNDINEW *p, char *sfname)
 #endif
     forReadHeader.audrem = p->audrem;
 
-    /****** if headerblk returned ******/
-    if ((hdr=readheader(sinfd,sfname,&forReadHeader)) != NULL
-        && !(readlong = hdr->readlong)) {         /* & hadn't readin audio */
-      if (hdr->sr != esr) {                       /* non-anal:  cmp w. esr */
+    if (sfinfo.sr != esr) {                       /* non-anal:  cmp w. esr */
         if (O.msglevel & WARNMSG)
           printf(Str(X_62,"WARNING: %s sr = %ld, orch sr = %7.1f\n"),
-                 sfname, hdr->sr, esr);
+                 sfname, sfinfo.sr, esr);
       }
 
-      if (hdr->nchanls != p->OUTOCOUNT) {         /*        chk nchanls */
+      if (sfinfo.channels != p->OUTOCOUNT) {         /*        chk nchanls */
         if (O.msglevel & WARNMSG) {
           printf(Str(X_58, "WARNING: %s nchanls = %d, soundin reading as if nchanls = %d\n"),
-                sfname, (int) hdr->nchanls, (int) p->OUTOCOUNT);
+                sfname, sfinfo.channels, (int) p->OUTOCOUNT);
         }
-        hdr->nchanls = p->OUTOCOUNT;
+        sfinfo.channels = p->OUTOCOUNT;
       }
 
-      if (p->format && hdr->format != p->format &&
+      if (p->format && sf2format(sfinfo.format) != p->format &&
           (O.msglevel & WARNMSG)) {   /*    chk format */
         printf(Str(X_694,"WARNING: diskin %s superceded by %s header format %s\n"),
                 getstrformat((int)p->format), sfname,
-                getstrformat((int)hdr->format));
+                getstrformat((int)sf2format(sfinfo.format)));
       }
 
       /***********  copy header data  *************/
@@ -182,41 +974,28 @@ static int sngetset(SOUNDINEW *p, char *sfname)
       p->do_floatscaling = forReadHeader.do_floatscaling;
       p->fscalefac = forReadHeader.fscalefac;
 
-      switch ((p->format = (short)hdr->format)) {
-      case AE_CHAR:   break;
-      case AE_UNCH:   break;
+      switch ((p->format = (short)sf2format(sfinfo.format))) {
+      case AE_CHAR:
+      case AE_UNCH:
 #ifdef ULAW
-      case AE_ULAW:   break;
+      case AE_ULAW:
 #endif
-      case AE_SHORT:  break;
-      case AE_LONG:   break;
-      case AE_FLOAT:  break;
-      case AE_24INT:  break;            /*RWD 5:2001 */
+      case AE_SHORT:
+      case AE_LONG:
+      case AE_FLOAT:
+      case AE_24INT:
+        break;            /*RWD 5:2001 */
 
       default: sprintf(errmsg,Str(X_52,"%s format %s not yet supported"),
                        sfname, getstrformat((int)p->format));
         goto errcls;
       }
-      p->sampframsiz = (short)(hdr->sampsize * hdr->nchanls);
-      p->filetyp     = hdr->filetyp;
-      p->aiffdata    = hdr->aiffdata;
-      p->sr          = hdr->sr;
-      p->nchanls     = (short)hdr->nchanls;
-      if (hdr->audsize > 0 )    /* given audiosize */
-        p->audrem = p->audsize = hdr->audsize;
-      else
-        p->audrem = p->audsize  = -1;    /* else mark unknown */
-    }
-    /******* no hdr:  find info elsewhere *********/
-    else {
-      printf(Str(X_1062,"WARNING: no soundin header, presuming orchestra sr\n"));
-      p->sr = (long) esr;
-      p->channel = p->OUTOCOUNT;
-
-      if (!p->format) {         /* no format:                     */
-        p->format = O.outformat; /*     orch defaults to outformat */
-      }
-
+      p->sampframsiz = (short)sfsampsize(sfinfo.format) * sfinfo.channels;
+      p->filetyp     = sf2type(sfinfo.format);
+      /* ******      p->aiffdata    = hdr->aiffdata; */
+      p->sr          = sfinfo.samplerate;
+      p->nchanls     = (short)sfinfo.channels;
+      p->audrem = sfinfo.frames * sfinfo.channels; 
       if (O.msglevel & WARNMSG) {
         printf(Str(X_55,
                    "WARNING: %s has no soundfile header, reading as %s, %d chnl%s"),
@@ -374,39 +1153,15 @@ int newsndinset(SOUNDINEW *p)       /* init routine for diskin   */
       else printf(Str(X_655,"channel %d\n"), p->channel);
     }
 
-        /********  handle byte reversals  *******/
-    if ((p->filetyp == TYP_AIFF && bytrevhost()) ||
-        (p->filetyp == TYP_AIFC && bytrevhost()) ||
-#ifdef NeXT
-        (!p->filetyp && bytrevhost()) ||
-#endif
-        (p->filetyp == TYP_WAV && !bytrevhost())) {
-      if (p->format == AE_SHORT)          /* if audio_in needs byte rev */
-        p->bytrev = bytrev2;              /*     set on sample size       */
-      else if (p->format == AE_LONG || p->format==AE_FLOAT)     /*RWD 3:2000*/
-        p->bytrev = bytrev4;
-      else if (p->format == AE_24INT) {    /*RWD 5:2001 */
-        p->bytrev = bytrev3;
-      }
-      else p->bytrev = NULL;
 #ifdef NeXT
         if (!p->filetyp)
-          printf(Str(X_1095,"opening NeXT infile %s, with%s bytrev\n"),
-                 sfname, p->bytrev == NULL ? Str(X_21," no") : "");
-        else
+          printf(/*Str(X_1095,*/"opening NeXT infile %s\n", sfname);
 #endif
-          printf(Str(X_1093,"opening %s infile %s, with%s bytrev\n"),
+printf(/*Str(X_1093,*/"opening %s infile %s, with%s bytrev\n",
                  p->filetyp == TYP_AIFF ? "AIFF" : TYP_AIFC ? "AIFF-C" : "WAV",
                  sfname, p->bytrev == NULL ? Str(X_21," no") : "");
-    }
-    else
-      p->bytrev = NULL;
 
     /*RWD 5:2001  */
-    /* 24bit format: ~should~ calc for n-chans? */
-    if (p->format == AE_24INT)
-      snewbufsize = SNDINEWBUFSIZ_24;
-
     if (p->sampframsiz <= 0)    /* must know framsiz */
       die(Str(X_882,"illegal sampframsiz"));
 
@@ -475,9 +1230,7 @@ void soundinew(SOUNDINEW *p)    /*  a-rate routine for soundinew */
     double      phs,phsFract,phsTrunc;
     char        *inbufp = p->inbufp;
     long snewbufsize = SNDINEWBUFSIZ;            /*RWD 5:2001 */
-#ifdef DISKINHACK
     long oldfilepos = 0;
-#endif
 
 #ifdef _DEBUG
     static long samplecount = 0;
@@ -511,13 +1264,9 @@ void soundinew(SOUNDINEW *p)    /*  a-rate routine for soundinew */
       assert(((p->bufend - inbufp) % p->sampframsiz)==0);
 #endif
     if (ktransp >= 0 ) {        /* forwards... */
-#ifdef DISKINHACK
 /* RWD 5:2001 want to keep phase if reversing mid-data */
       if (phs < 0 && p->begfile)
-#else
-        if (phs < 0)
-#endif
-          phs = 0; /* we have just switched directions, forget (-ve) old phase */
+        phs = 0; /* we have just switched directions, forget (-ve) old phase */
       if (p->endfile) {
         if (p->begfile) p->endfile = FALSE;
         else goto filend;
@@ -1012,13 +1761,11 @@ void soundinew(SOUNDINEW *p)    /*  a-rate routine for soundinew */
               phs = 0;
               inbufp = p->inbufp = p->inbuf;
               p->bufend = p->inbuf + n;
-#ifdef DISKINHACK
               /*RWD 5:2001 this cures the symptom (bad data in output sometimes,
                * when a transp sweep hits eof), but not, I suspect, the
                * underlying cause */
               if (n < snewbufsize)
                 memset(p->bufend,0,snewbufsize-n);
-#endif
               p->guardpt = p->bufend - p->sampframsiz;
             }
             else {
@@ -1029,13 +1776,11 @@ void soundinew(SOUNDINEW *p)    /*  a-rate routine for soundinew */
           else {
             inbufp = p->inbufp = p->inbuf;
             p->bufend = p->inbuf + n;
-#ifdef DISKINHACK
             /*RWD 5:2001 this cures the symptom (bad data in output sometimes,
              * when a transp sweep hits eof), but not, I suspect, the
              * underlying cause */
             if (n < snewbufsize)
               memset(p->bufend,0,snewbufsize-n);
-#endif
             p->guardpt = p->bufend - p->sampframsiz;
             phs = modf(phs,&phsTrunc);
             p->begfile = FALSE;
@@ -1049,21 +1794,14 @@ void soundinew(SOUNDINEW *p)    /*  a-rate routine for soundinew */
     }
 
     else {      /* backwards...                 same thing but different */
-      if
-#ifdef DISKINHACK
-      /*RWD 5:2001 as above */
-         (phs > 0 && p->endfile)
-#else
-         (phs > 0)
-#endif
-           phs = 0; /* have just switched directions, forget (+ve) old phase */
+      if (phs > 0 && p->endfile)      /*RWD 5:2001 as above */
+        phs = 0; /* have just switched directions, forget (+ve) old phase */
 
       if (p->endfile) {   /* firewall-flag signaling when we are at either
                              end of the file */
         if (p->begfile)
           goto filend; /* make sure we are at beginning, not end */
         else
-#ifdef DISKINHACK
           /* RWD 5:2001: read in the first block (= last block of infile) */
           {
             bytesLeft = (int)(inbufp - p->inbuf);
@@ -1103,10 +1841,6 @@ void soundinew(SOUNDINEW *p)    /*  a-rate routine for soundinew */
             phs = modf(phs,&phsTrunc);
             p->endfile = FALSE;
           }
-#else
-        p->endfile = FALSE; /* at end, must have just switched directions,
-                               start making sound again */
-#endif
       }
 
       while (ntogo) {
@@ -1590,10 +2324,8 @@ void soundinew(SOUNDINEW *p)    /*  a-rate routine for soundinew */
              * (p->sampframsiz) to make sure the sample we are
              * pointing at right now becomes the last sample
              * in the next buffer*/
-#ifdef DISKINHACK
             /*RWD remember this for when lseek returns -1 */
             oldfilepos = p->filepos;
-#endif
 #ifdef _DEBUG
             tellpos = lseek(p->fdch.fd,(off_t)0L,SEEK_CUR);
             sbufp1 = (short *) p->inbuf;
@@ -1626,23 +2358,19 @@ void soundinew(SOUNDINEW *p)    /*  a-rate routine for soundinew */
 #endif
           /* now get the correct remaining size */
           p->audrem = p->audsize - p->firstsampinfile - p->filepos;
-#ifdef DISKINHACK
           /* RWD 5:2001  this clears a glitch doing
            * plain reverse looping (pitch  = -1) over file
            */
           if (p->begfile )
             n = oldfilepos - p->firstsampinfile;
-#endif
           p->bufend = p->inbuf + n;
           /* point to the last sample in buffer */
           inbufp = p->inbufp = p->guardpt = p->bufend - p->sampframsiz;
-#ifdef DISKINHACK
           /*RWD 5:2001 this cures the symptom (bad data in output sometimes,
            * when a transp sweep hits eof), but not, I suspect, the
            * underlying cause */
           if (n < snewbufsize)
             memset(p->bufend,0,snewbufsize-n);
-#endif
           phs = modf(phs,&phsTrunc);
         }
 #ifdef _DEBUG
@@ -1979,3 +2707,4 @@ void soundouts(SNDOUTS *p)
 {
     IGN(p);
 }
+#endif

@@ -46,6 +46,7 @@ extern off_t lseek(int, off_t, int);
 #define DEBUG   0
 
 static char     FORM_ID[4] = {'F','O','R','M'};
+#ifndef _SNDFILE_
 static char     COMM_ID[4] = {'C','O','M','M'};
 static char     MARK_ID[4] = {'M','A','R','K'};
 static char     INST_ID[4] = {'I','N','S','T'};
@@ -73,6 +74,7 @@ static int aiffhdrsiz = sizeof(FormHdr)
                       + sizeof(SoundDataHdr);
 /*RWD 3:2000 */
 static int sizPeakChunk = sizeof(PeakChunk);/*but will change if more than mono..*/
+#endif
 
 int bytrevhost(void)
 {

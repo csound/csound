@@ -21,8 +21,12 @@
     02111-1307 USA
 */
 
+#ifdef _SNDFILE_
+#define SNDINEWBUFSIZ  (4096)
+#else
 #define SNDINEWBUFSIZ  (16384)
 #define SNDINEWBUFSIZ_24 (16416)  /*RWD 4:2001 good for 24bit 4/6/8 ch (mult of 216) */
+#endif
 #ifndef TRUE
 #define TRUE (1)
 #endif
@@ -31,21 +35,27 @@
 #endif
 
 typedef struct {
-  OPDS  h;
-  MYFLT *r1, *r2, *r3, *r4, *ifilno, *ktransp, *iskptim, *ilooping, *iformat;
-  short format, channel, nchanls, sampframsiz, filetyp;
-  short analonly, endfile, begfile;
-  long  sr, audrem, audsize;
-  AIFFDAT *aiffdata;
-  void  (*bytrev)(char*,int);
-  FDCH  fdch;
-  char  *inbufp, *bufend, *guardpt;
-  char  inbuf[SNDINEWBUFSIZ_24];
+  OPDS		h;
+  MYFLT         *r1, *r2, *r3, *r4;
+  MYFLT         *ifilno, *ktransp, *iskptim, *ilooping, *iformat;
+  short         format, channel, nchanls, sampframsiz, filetyp;
+  short         analonly, endfile, begfile;
+  long          sr, audrem, audsize;
+  AIFFDAT       *aiffdata;
+  FDCH          fdch;
+#ifdef _SNDFILE_
+  MYFLT         *inbufp, *bufend, *guardpt;
+  MYFLT         inbuf[SNDINEWBUFSIZ];
+#else
+  void          (*bytrev)(char*,int);
+  char          *inbufp, *bufend, *guardpt;
+  char          inbuf[SNDINEWBUFSIZ_24];
+#endif
   double        phs;
-  long  filepos, firstsampinfile;
+  long          filepos, firstsampinfile;
   /*RWD 3:2000*/
-  float fscalefac;
-  long  do_floatscaling;
+  float         fscalefac;
+  long          do_floatscaling;
 } SOUNDINEW;
 
 
