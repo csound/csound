@@ -495,7 +495,8 @@ int sensMidi(ENVIRON *csound)
           MGLOB(endatp) += (int) n;
       }
       if (O.FMidiin) {                  /* read MIDI file */
-        n = csoundMIDIFileRead(csound, MGLOB(bufp), MBUFSIZ);
+        n = csoundMIDIFileRead(csound, MGLOB(endatp),
+                               MBUFSIZ - (int) (MGLOB(endatp) - MGLOB(bufp)));
         if (n > 0)
           MGLOB(endatp) += (int) n;
       }
