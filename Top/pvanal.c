@@ -44,11 +44,13 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#include <sndfile.h>
+
                  /* prototype arguments */
-extern int pvxanal(SOUNDIN *, int, const char *, long, long,
+extern int pvxanal(SOUNDIN *, SNDFILE *, const char *, long, long,
                    long, long, long, int, int);
 static long takeFFTs(SOUNDIN *inputSound, PVSTRUCT *outputPVH,
-                     int sndfd, int fftd, long oframeEst);
+                     SNDFILE *sndfd, int fftd, long oframeEst);
 static void quit(char *msg);
 static void PrintBuf(MYFLT *buf, long size, char *msg);
 
@@ -74,8 +76,8 @@ static  FILE*    trfil = NULL; /* was stdout */
 static  int WindowType = 1;
 
 extern  OPARMS   O;
-extern  int      SAsndgetset(char*,SOUNDIN **,MYFLT*,MYFLT*,MYFLT*,int);
-extern  long     getsndin(int, MYFLT *, long, SOUNDIN *);
+extern  SNDFILE  *SAsndgetset(char*,SOUNDIN **,MYFLT*,MYFLT*,MYFLT*,int);
+extern  long     getsndin(SNDFILE *, MYFLT *, long, SOUNDIN *);
 extern  int      csoundYield(void*);
 
 #ifdef mills_macintosh
@@ -90,7 +92,8 @@ int pvanal(int argc, char **argv)
 {
     PVSTRUCT *pvh;
     char    *infilnam, *outfilnam;
-    int     infd, ofd, err, channel = 1;
+    SNDFILE *infd;
+    int     ofd, err, channel = 1;
     int     ovlp = 0;            /* number of overlapping windows to have */
     SOUNDIN  *p;  /* space allocated by SAsndgetset() */
 
@@ -189,8 +192,8 @@ int pvanal(int argc, char **argv)
       quit(Str("pvanal cannot have both -w and -h"));
     /* open sndfil, do skiptime */
     channel = ALLCHNLS; /* we can analyse up to 8 chans with pvxanal! */
-    if (
-        (infd = SAsndgetset(infilnam,&p,&beg_time,&input_dur,&sr,channel))<0) {
+    if ((infd = SAsndgetset(infilnam,&p,&beg_time,&input_dur,&sr,channel))
+        == NULL) {
       sprintf(errmsg,Str("error while opening %s"), retfilnam);
       quit(errmsg);
     }
@@ -226,8 +229,7 @@ int pvanal(int argc, char **argv)
         tolower(ext[2]) == 'v' && tolower(ext[3]) == 'x' && ext[4] == '\0') {
       /* even for old pvoc file, is absence of extension OK? */
       if (p->nchanls > MAXPVXCHANS) {
-        printf(Str(
-                   "pvxanal - source has too many channels: Maxchans = %d.\n"),
+        printf(Str("pvxanal - source has too many channels: Maxchans = %d.\n"),
                MAXPVXCHANS);
         return 1;
       }
@@ -267,7 +269,7 @@ int pvanal(int argc, char **argv)
       dispexit();
       printf(Str("%ld output frames written\n"), oframeAct);
     }
-    close(infd);
+    sf_close(infd);
   /*     close(ofd); */
 #if !defined(mills_macintosh)
     exit(0);
@@ -303,7 +305,7 @@ static void quit(char *msg)
 static long takeFFTs(
     SOUNDIN         *p,
     PVSTRUCT        *outputPVH,
-    int             infd,
+    SNDFILE         *infd,
     int             ofd,
     long            oframeEst)
 {

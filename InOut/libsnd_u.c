@@ -163,12 +163,13 @@ long getsndin(SNDFILE *fd, MYFLT *fp, long nlocs, SOUNDIN *p)
           if ((n = sreadin(fd,p->inbuf,SNDINBUFSIZ,p)) == 0){
             break;
           }
-
           inbufp = p->inbuf;
           bufend = p->inbuf + n;
         }
         *fp++ = *inbufp++ * scalefac * gain;
       }
+      p->inbufp = inbufp;
+      p->bufend = bufend;
     }
     else {                                /* MULTI-CHANNEL, SELECT ONE */
       int chcnt = 0, chreq = p->channel, nchanls = p->nchanls;
@@ -188,6 +189,8 @@ long getsndin(SNDFILE *fd, MYFLT *fp, long nlocs, SOUNDIN *p)
         inbufp++;
         if (chcnt == nchanls) chcnt = 0;
       }
+      p->inbufp = inbufp;
+      p->bufend = bufend;
     }
 
     nread = fp - fbeg;
@@ -323,7 +326,7 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
       p->sr = sfinfo.samplerate;
       p->nchanls = (short)sfinfo.channels;
       if (p->OUTOCOUNT)
-        p->channel = p->OUTOCOUNT;
+        p->channel = ALLCHNLS;
 /*    else if (p->channel == ALLCHNLS)
         p->channel = 1;                             ???                 */
       printf(Str("audio sr = %ld, "), p->sr);
@@ -348,12 +351,12 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
       p->audrem = sfinfo.frames * sfinfo.channels;
       p->framesrem = sfinfo.frames;    /*   find frames rem */
       skipframes = (long)(*p->iskptim * p->sr);
-      framesinbuf = SNDINBUFSIZ / p->sampframsiz;
+      framesinbuf = SNDINBUFSIZ / sfinfo.channels;
       if (skipframes < framesinbuf) {           /* if sound within 1st buf */
         int nreq = SNDINBUFSIZ;
         n = sreadin(infile, p->inbuf, nreq, p);
         p->bufend = p->inbuf+n;
-        p->inbufp = p->inbuf + skipframes * p->sampframsiz;
+        p->inbufp = p->inbuf + skipframes * sfinfo.channels;
       }
       else {                                    /* for greater skiptime: */
         if (sf_seek(infile, (off_t)skipframes, SEEK_SET) < 0)  /* else seek to bndry */

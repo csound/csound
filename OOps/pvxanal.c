@@ -37,7 +37,7 @@
 
 #define DEFAULT_BUFLEN (8192)   /* per channel */
 
-long getsndin(int fd, MYFLT *fp, long nlocs, SOUNDIN *p);
+long getsndin(SNDFILE *fd, MYFLT *fp, long nlocs, SOUNDIN *p);
 /* Only supports PVOC_AMP_FREQ format for now */
 
 void fft_(MYFLT *, MYFLT *,int,int,int,int);
@@ -58,7 +58,7 @@ void vonhann(MYFLT *win,int winLen,int even);
 
 /* not sure how to use 'verbose' yet; but it's here...*/
 /* cannot add display code, as we may have 8 channels here...*/
-int pvxanal(SOUNDIN *p, int fd, const char *fname, long srate,
+int pvxanal(SOUNDIN *p, SNDFILE *fd, const char *fname, long srate,
             long chans, long fftsize, long overlap, long winsize,
             pv_wtype wintype, int verbose)
 {
