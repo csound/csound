@@ -28,8 +28,8 @@ elif sys.platform[:3] == 'win':
     customCPPPATH.append('c:/apcc/tools/msys/1.0/local/include')
     customLIBPATH.append('c:/apcc/tools/msys/1.0/local/lib')
     # If libsndfile is not in a standard location add it here:
-    customCPPPATH.append('C:/apcc/tools/libsndfile-1.0.10/src')
-    customLIBPATH.append('C:/apcc/tools/libsndfile-1.0.10')
+    #customCPPPATH.append('C:/apcc/tools/libsndfile-1.0.11/src')
+    #customLIBPATH.append('C:/apcc/tools/libsndfile-1.0.11')
     ################################################################
     # If you want real-time audio you need PortAudio.
     # If it is not in a standard location add it here
@@ -40,8 +40,8 @@ elif sys.platform[:3] == 'win':
     # If you want FLTK widgets or if you want to build CsoundVST,
     # you need FLTK. If it is not in a standard location,
     # add it here (of course you must build it first):
-    # customCPPPATH.append('C:/tools/fltk-1.1.5rc1')
-    # customLIBPATH.append('C:/tools/fltk-1.1.5rc1/lib')
+    # customCPPPATH.append('C:/tools/fltk-1.1.6')
+    # customLIBPATH.append('C:/tools/fltk-1.1.6/lib')
     ################################################################
     # If you want to build CsoundVST you need Python and
     # a MinGW import library for Python. Add them here:
