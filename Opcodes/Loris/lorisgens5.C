@@ -1016,19 +1016,19 @@ LorisMorpher::updateEnvelopes( void )
 		{
 			//	morph from the source to a dummy:
 			// std::cerr << "** Morphing source to dummy " << envidx << std::endl;
-			morpher.morphParameters( src_reader->valueAt(isrc), dummy, 0, bp );
+			//morpher.morphParameters( src_reader->valueAt(isrc), dummy, 0, bp );
 		}
 		else if ( isrc < 0 )
 		{
 			//	morph from a dummy to the target:
 			// std::cerr << "** Morphing dummy to target " << envidx << std::endl;
-			morpher.morphParameters( dummy, tgt_reader->valueAt(itgt), 0, bp );
+			//morpher.morphParameters( dummy, tgt_reader->valueAt(itgt), 0, bp );
 		}
 		else 
 		{
 			//	morph from the source to the target:
 			// std::cerr << "** Morphing source to target " << envidx << std::endl;
-			morpher.morphParameters( src_reader->valueAt(isrc), tgt_reader->valueAt(itgt), 0, bp );
+			//morpher.morphParameters( src_reader->valueAt(isrc), tgt_reader->valueAt(itgt), 0, bp );
 		}	
 	} 
 	
@@ -1039,7 +1039,7 @@ LorisMorpher::updateEnvelopes( void )
 	{
 		//	morph from the source to a dummy:
 		Breakpoint & bp = morphed_envelopes.valueAt(envidx);
-		morpher.morphParameters( src_reader->valueAt( src_unlabeled[i] ), dummy, 0, bp );
+		//morpher.morphParameters( src_reader->valueAt( src_unlabeled[i] ), dummy, 0, bp );
 	}
 	
 	
@@ -1050,7 +1050,7 @@ LorisMorpher::updateEnvelopes( void )
 	{
 		//	morph from a dummy to the target:
 		Breakpoint & bp = morphed_envelopes.valueAt(envidx);
-		morpher.morphParameters( dummy, tgt_reader->valueAt( tgt_unlabeled[i] ), 0, bp );
+		//morpher.morphParameters( dummy, tgt_reader->valueAt( tgt_unlabeled[i] ), 0, bp );
 	}	
 	
 	//	tag these envelopes:
