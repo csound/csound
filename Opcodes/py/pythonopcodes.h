@@ -28,6 +28,10 @@
 
 typedef struct {
   OPDS h;
+} PYINIT;
+
+typedef struct {
+  OPDS h;
   MYFLT *function;
   MYFLT *nresult;
   MYFLT *args[VARGMAX];
