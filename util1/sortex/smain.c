@@ -32,6 +32,8 @@ int POLL_EVENTS(void)
 }
 #endif
 
+void pvsys_release(void) {};
+
 long named_instr_find (char *name)
 {
     err_printf("WARNING: named instruments are not supported ");

@@ -36,6 +36,9 @@ void ReadXYin(XYINDAT *x){ReadXYin_(x);}
 void KillGraph(WINDAT *x){KillGraph_(x);}
 void KillXYin(XYINDAT *x){KillXYin_(x);}
 int  ExitGraph(void){ExitGraph_();}
+
+void pvsys_release(void) {};
+
 #endif
 int main(int argc, char **argv)
 {

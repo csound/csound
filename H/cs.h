@@ -590,6 +590,10 @@ typedef struct GLOBALS_
   void (*auxalloc)(long nbytes, AUXCH *auxchp);
   char *(*getstring)(int, char*);
   void (*die)(char *);
+  FUNC *(*ftfind)(MYFLT *);
+  int (*initerror)(char *);
+  void *(*mmalloc)(long);
+  void (*mfree)(void *);
   /* End of internals */
   int           ksmps, nchnls;
   int           global_ksmps;

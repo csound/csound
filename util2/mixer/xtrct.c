@@ -107,6 +107,8 @@ int POLL_EVENTS(void)
 }
 #endif
 
+void pvsys_release(void) {};
+
 int
 main(int argc, char **argv)
 {

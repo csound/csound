@@ -18,6 +18,8 @@ void KillXYin(XYINDAT *x){KillXYin_(x);}
 int  ExitGraph(void){int ExitGraph_();}
 #endif
 
+void pvsys_release(void) {};
+
 int main(int argc, char **argv)
 {
     scorename = "Cvanal";

@@ -140,6 +140,8 @@ OPARMS	O = {0,0, 0,1,1,0, 0,0, 0,0, 0,0, 1,0,0,7, 0,0,0, 0,0,0,0, 0,0 };
 /*     return 1; */
 /* } */
 
+void pvsys_release(void) {};
+
 void dieu(char *s)
 {
     fprintf(stderr, "dnoise: %s\n", s);

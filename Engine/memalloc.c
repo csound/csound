@@ -59,11 +59,8 @@ void all_free(void)
     all = NULL;                 /* For safety */
     ap = 0;
     apsize = 0;
-
-    /*RWD 9:2000 not terribly vital, but good to do this somewhere... */
-    pvsys_release();
-    free_strings();
     memfiles = NULL;
+
     return;
 }
 #endif
@@ -76,6 +73,9 @@ void memRESET(void)
     all = NULL;
 #endif
     apsize = 0;
+    /*RWD 9:2000 not terribly vital, but good to do this somewhere... */
+    pvsys_release();
+    free_strings();
 }
 
 static void memdie(long nbytes)

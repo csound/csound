@@ -106,6 +106,10 @@ void csoundSetRtcloseCallback(void *, void (*)(void));
 void auxalloc(long, AUXCH*);
 char *getstring(int, char*);
 void die(char *);
+FUNC *ftfind(MYFLT *);
+int initerror(char *);
+void *mmalloc(long);
+void mfree(void *);
 
 static  MYFLT   *gbloffbas;
 
@@ -190,6 +194,10 @@ GLOBALS cglob_ = {
         auxalloc,
         getstring,
         die,
+        ftfind,
+        initerror,
+        mmalloc,
+        mfree,
         /*
         * Data fields.
         */

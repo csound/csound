@@ -223,6 +223,10 @@ GLOBALS *pcglob;
 #define auxalloc pcglob->auxalloc
 #define getstring pcglob->getstring
 #define die pcglob->die
+#define ftfind pcglob->ftfind
+#define initerror pcglob->initerror
+#define mmalloc pcglob->mmalloc
+#define mfree pcglob->mfree
 
 #define ksmps_  pcglob->ksmps
 #define esr_    pcglob->esr
