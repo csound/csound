@@ -1,5 +1,15 @@
-2005-03-13  John ffitch  <jpff@codemist.co.uk>
+2005-03-13	Istvan Varga	<istvan@csounds.com>
+	* SConstruct:
+	* Opcodes/ftconv.c:
+	  new opcode (zero delay multichannel convolve, reads IR from ftable)
+	  not fully tested yet
+	* Engine/fgens.c:
+	  added GEN52: creates interleaved multichannel table from other tables
+	* Opcodes/spat3d.c:
+	  fixed spat3dt slowdown at end of table
+	  made it possible to run spat3dt from the orchestra header (instr 0)
 
+2005-03-13  John ffitch  <jpff@codemist.co.uk>
 	* SConstruct (opts): make installation optional
 
 2005-03-13	Istvan Varga	<istvan@csounds.com>
