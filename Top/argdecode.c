@@ -73,135 +73,136 @@ extern void openMIDIout(void);
 
 static void set_stdin_assign(void *csound, int type, int state)
 {
-    int *n;
+  int *n;
+  n = (int*) csoundQueryGlobalVariable(csound, "::argdecode::stdinassign");
+  if (n == NULL) {
+    csoundCreateGlobalVariable(csound,
+			       "::argdecode::stdinassign", sizeof(int));
     n = (int*) csoundQueryGlobalVariable(csound, "::argdecode::stdinassign");
-    if (n == NULL) {
-      csoundCreateGlobalVariable(csound,
-                                 "::argdecode::stdinassign", sizeof(int));
-      n = (int*) csoundQueryGlobalVariable(csound, "::argdecode::stdinassign");
-    }
-    if (state)
-      *n |= type;
-    else
-      *n &= (~type);
+  }
+  if (state)
+    *n |= type;
+  else
+    *n &= (~type);
 }
 
 static void set_stdout_assign(void *csound, int type, int state)
 {
-    int *n;
+  int *n;
+  n = (int*) csoundQueryGlobalVariable(csound, "::argdecode::stdoutassign");
+  if (n == NULL) {
+    csoundCreateGlobalVariable(csound,
+			       "::argdecode::stdoutassign", sizeof(int));
     n = (int*) csoundQueryGlobalVariable(csound, "::argdecode::stdoutassign");
-    if (n == NULL) {
-      csoundCreateGlobalVariable(csound,
-                                 "::argdecode::stdoutassign", sizeof(int));
-      n = (int*) csoundQueryGlobalVariable(csound, "::argdecode::stdoutassign");
-    }
-    if (state)
-      *n |= type;
-    else
-      *n &= (~type);
+  }
+  if (state)
+    *n |= type;
+  else
+    *n &= (~type);
 }
 
 /* IV - Feb 19 2005 */
 static const char *shortUsageList[] = {
-    "-U unam\trun utility program unam",
-    "-C\tuse Cscore processing of scorefile",
-    "-I\tI-time only orch run",
-    "-n\tno sound onto disk",
-    "-i fnam\tsound input filename",
-    "-o fnam\tsound output filename",
-    "-b N\tsample frames (or -kprds) per software sound I/O buffer",
-    "-B N\tsamples per hardware sound I/O buffer",
-    "-A\tcreate an AIFF format output soundfile",
-    "-W\tcreate a WAV format output soundfile",
-    "-J\tcreate an IRCAM format output soundfile",
-    "-h\tno header on output soundfile",
-    "-c\t8-bit signed_char sound samples",
+  "--help\tprint long usage options",
+  "-U unam\trun utility program unam",
+  "-C\tuse Cscore processing of scorefile",
+  "-I\tI-time only orch run",
+  "-n\tno sound onto disk",
+  "-i fnam\tsound input filename",
+  "-o fnam\tsound output filename",
+  "-b N\tsample frames (or -kprds) per software sound I/O buffer",
+  "-B N\tsamples per hardware sound I/O buffer",
+  "-A\tcreate an AIFF format output soundfile",
+  "-W\tcreate a WAV format output soundfile",
+  "-J\tcreate an IRCAM format output soundfile",
+  "-h\tno header on output soundfile",
+  "-c\t8-bit signed_char sound samples",
 #ifdef never
-    "-a\talaw sound samples",
+  "-a\talaw sound samples",
 #endif
-    "-8\t8-bit unsigned_char sound samples",
-    "-u\tulaw sound samples",
-    "-s\tshort_int sound samples",
-    "-l\tlong_int sound samples",
-    "-f\tfloat sound samples",
-    "-3\t24bit sound samples",
-    "-r N\torchestra srate override",
-    "-k N\torchestra krate override",
-    "-K\tDo not generate PEAK chunks",
-    "-v\tverbose orch translation",
-    "-m N\ttty message level. Sum of:",
-    "\t\t1=note amps, 2=out-of-range msg, 4=warnings",
-    "\t\t0/32/64/96=note amp format (raw,dB,colors)",
-    "\t\t128=print benchmark information",
-    "-d\tsuppress all displays",
-    "-g\tsuppress graphics, use ascii displays",
-    "-G\tsuppress graphics, use Postscript displays",
-    "-x fnam\textract from score.srt using extract file 'fnam'",
-    "-t N\tuse uninterpreted beats of the score, initially at tempo N",
-    "-t 0\tuse score.srt for sorted score rather than a temporary",
-    "-L dnam\tread Line-oriented realtime score events from device 'dnam'",
-    "-M dnam\tread MIDI realtime events from device 'dnam'",
-    "-F fnam\tread MIDIfile event stream from file 'fnam'",
-/*  "-P N\tMIDI sustain pedal threshold (0 - 128)", */
-    "-R\tcontinually rewrite header while writing soundfile (WAV/AIFF)",
-    "-H#\tprint a heartbeat style 1, 2 or 3 at each soundfile write",
-    "-N\tnotify (ring the bell) when score or miditrack is done",
-    "-T\tterminate the performance when miditrack is done",
-    "-D\tdefer GEN01 soundfile loads until performance time",
+  "-8\t8-bit unsigned_char sound samples",
+  "-u\tulaw sound samples",
+  "-s\tshort_int sound samples",
+  "-l\tlong_int sound samples",
+  "-f\tfloat sound samples",
+  "-3\t24bit sound samples",
+  "-r N\torchestra srate override",
+  "-k N\torchestra krate override",
+  "-K\tDo not generate PEAK chunks",
+  "-v\tverbose orch translation",
+  "-m N\ttty message level. Sum of:",
+  "\t\t1=note amps, 2=out-of-range msg, 4=warnings",
+  "\t\t0/32/64/96=note amp format (raw,dB,colors)",
+  "\t\t128=print benchmark information",
+  "-d\tsuppress all displays",
+  "-g\tsuppress graphics, use ascii displays",
+  "-G\tsuppress graphics, use Postscript displays",
+  "-x fnam\textract from score.srt using extract file 'fnam'",
+  "-t N\tuse uninterpreted beats of the score, initially at tempo N",
+  "-t 0\tuse score.srt for sorted score rather than a temporary",
+  "-L dnam\tread Line-oriented realtime score events from device 'dnam'",
+  "-M dnam\tread MIDI realtime events from device 'dnam'",
+  "-F fnam\tread MIDIfile event stream from file 'fnam'",
+  /*  "-P N\tMIDI sustain pedal threshold (0 - 128)", */
+  "-R\tcontinually rewrite header while writing soundfile (WAV/AIFF)",
+  "-H#\tprint a heartbeat style 1, 2 or 3 at each soundfile write",
+  "-N\tnotify (ring the bell) when score or miditrack is done",
+  "-T\tterminate the performance when miditrack is done",
+  "-D\tdefer GEN01 soundfile loads until performance time",
 #if defined(LINUX) || defined(__BEOS__)     /* Jonathan Mohr  1995 Oct 17 */
-    "-Q dnam\tselect MIDI output device",
+  "-Q dnam\tselect MIDI output device",
 #endif
-    "-z\tList opcodes in this version",
-    "-Z\tDither output",
+  "-z\tList opcodes in this version",
+  "-Z\tDither output",
 #if defined(LINUX)
-    "--sched     set real-time priority and lock memory",
-    "            (requires -d and real time audio (-iadc/-odac))",
-    "--sched=N   set specified scheduling priority, and lock memory",
-    "            (requires -d and real time audio (-iadc/-odac))",
+  "--sched     set real-time priority and lock memory",
+  "            (requires -d and real time audio (-iadc/-odac))",
+  "--sched=N   set specified scheduling priority, and lock memory",
+  "            (requires -d and real time audio (-iadc/-odac))",
 #endif
 #ifdef mills_macintosh
-    "_____________Macintosh Command Line Flags_________________",
-    "-X fnam\t Sound File Directory",
-    "-q fnam\t Sound Sample-In Directory",
-    "-Q fnam\t Analysis Directory",
-    "-V N\t Number of chars in screen buffer for output window",
-    "-E N\t Number of tables in graphics window",
-    "-p\t\t Play after rendering",
-    "-e\t\t Rescaled floats as shorts to max amplitude",
-    "-w\t\t Record and Save MIDI input to a file",
-    "-y N\t Enables Progress Display at rate N seconds,",
-    "\t\t\tor for negative N, at -N kperiods",
-    "-Y N\t Enables Profile Display at rate N in seconds,",
-    "\t\t\tor for negative N, at -N kperiods",
-    "-P N\t Poll Events Every N Buffer Writes",
-    "__________________________________________________________",
+  "_____________Macintosh Command Line Flags_________________",
+  "-X fnam\t Sound File Directory",
+  "-q fnam\t Sound Sample-In Directory",
+  "-Q fnam\t Analysis Directory",
+  "-V N\t Number of chars in screen buffer for output window",
+  "-E N\t Number of tables in graphics window",
+  "-p\t\t Play after rendering",
+  "-e\t\t Rescaled floats as shorts to max amplitude",
+  "-w\t\t Record and Save MIDI input to a file",
+  "-y N\t Enables Progress Display at rate N seconds,",
+  "\t\t\tor for negative N, at -N kperiods",
+  "-Y N\t Enables Profile Display at rate N in seconds,",
+  "\t\t\tor for negative N, at -N kperiods",
+  "-P N\t Poll Events Every N Buffer Writes",
+  "__________________________________________________________",
 #endif
-    NULL
+  NULL
 };
 
 /* IV - Feb 19 2005 */
 void print_short_usage(void *csound)
 {
-    ENVIRON *p;
-    char    buf[256];
-    int     i;
-    p = (ENVIRON*) csound;
-    i = -1;
-    while (shortUsageList[++i] != NULL) {
-      sprintf(buf, "%s\n", shortUsageList[i]);
-      p->Message(csound, Str(buf));
-    }
-    p->Message(csound, Str("flag defaults: csound -s -otest -b%d -B%d -m7\n"),
-                       IOBUFSAMPS, IODACSAMPS);
+  ENVIRON *p;
+  char    buf[256];
+  int     i;
+  p = (ENVIRON*) csound;
+  i = -1;
+  while (shortUsageList[++i] != NULL) {
+    sprintf(buf, "%s\n", shortUsageList[i]);
+    p->Message(csound, Str(buf));
+  }
+  p->Message(csound, Str("flag defaults: csound -s -otest -b%d -B%d -m7\n"),
+	     IOBUFSAMPS, IODACSAMPS);
 }
 
 void usage(void)
 {
-    csoundMessage(&cenviron,
-                  Str("Usage:\tcsound [-flags] orchfile scorefile\n"));
-    csoundMessage(&cenviron, Str("Legal flags are:\n"));
-    print_short_usage(&cenviron);
-    longjmp(cenviron.exitjmp_,1);
+  csoundMessage(&cenviron,
+		Str("Usage:\tcsound [-flags] orchfile scorefile\n"));
+  csoundMessage(&cenviron, Str("Legal flags are:\n"));
+  print_short_usage(&cenviron);
+  longjmp(cenviron.exitjmp_,1);
 }
 
 static void longusage(void *csound)
@@ -281,18 +282,18 @@ static void longusage(void *csound)
              "--save-midi\tRecord and Save MIDI input to a file\n"
 #endif
              );
-    /* IV - Feb 19 2005 */
-    dump_cfg_variables(csound);
-    err_printf(Str("\nShort form:\n"));
-    print_short_usage(csound);
-    longjmp(((ENVIRON*) csound)->exitjmp_, CSOUND_EXITJMP_SUCCESS);
+  /* IV - Feb 19 2005 */
+  dump_cfg_variables(csound);
+  err_printf(Str("\nShort form:\n"));
+  print_short_usage(csound);
+  longjmp(((ENVIRON*) csound)->exitjmp_, CSOUND_EXITJMP_SUCCESS);
 }
 
 void dieu(char *s)
 {
-    err_printf(Str("Csound Command ERROR:\t%s\n"), s);
-    usage();
-    longjmp(cenviron.exitjmp_,1);
+  err_printf(Str("Csound Command ERROR:\t%s\n"), s);
+  usage();
+  longjmp(cenviron.exitjmp_,1);
 }
 
 typedef struct {
@@ -372,8 +373,8 @@ SAMPLE_FORMAT_ENTRY sample_format_map[] = {
 static int decode_long(void *csound,
                        char *s, int argc, char **argv, char *envoutyp)
 {
-    /* Add other long options here */
-    if (!(strncmp(s, "format=", 7)))
+  /* Add other long options here */
+  if (!(strncmp(s, "format=", 7)))
     {
       SAMPLE_FORMAT_ENTRY *sfe = sample_format_map;
       char c = '\0';
@@ -588,7 +589,7 @@ static int decode_long(void *csound,
   }
   /*
     -m N tty message level. Sum of: 1=note amps, 2=out-of-range msg, 4=warnings
-   */
+  */
   else if (!(strncmp (s, "messagelevel=", 13))) {
     s += 13;
     if (*s=='\0') dieu(Str("no message level"));
@@ -597,7 +598,7 @@ static int decode_long(void *csound,
   }
   /*
     -M dnam read MIDI realtime events from device 'dnam'
-   */
+  */
   else if (!(strncmp (s, "midi-device=", 12))) {
     s += 12;
     if (*s=='\0') dieu(Str("no midi device_name"));
@@ -818,29 +819,29 @@ static int decode_long(void *csound,
 
 int argdecode(void *csound, int argc, char **argv_, char *envoutyp)
 {
-    char  *s, **argv;
-    int   n;
-    char  c;
+  char  *s, **argv;
+  int   n;
+  char  c;
 
-    /* make a copy of the option list */
-    {
-      char  *p1, *p2;
-      int   nbytes, i;
-      /* calculate the number of bytes to allocate */
-      /* N.B. the argc value passed to argdecode is decremented by one */
-      nbytes = (argc + 1) * (int) sizeof(char*);
-      for (i = 0; i <= argc; i++)
-        nbytes += ((int) strlen(argv_[i]) + 1);
-      p1 = (char*) mmalloc(csound, nbytes);   /* will be freed by all_free() */
-      p2 = (char*) p1 + ((int) sizeof(char*) * (argc + 1));
-      argv = (char**) p1;
-      for (i = 0; i <= argc; i++) {
-        argv[i] = p2;
-        strcpy(p2, argv_[i]);
-        p2 = (char*) p2 + ((int) strlen(argv_[i]) + 1);
-      }
+  /* make a copy of the option list */
+  {
+    char  *p1, *p2;
+    int   nbytes, i;
+    /* calculate the number of bytes to allocate */
+    /* N.B. the argc value passed to argdecode is decremented by one */
+    nbytes = (argc + 1) * (int) sizeof(char*);
+    for (i = 0; i <= argc; i++)
+      nbytes += ((int) strlen(argv_[i]) + 1);
+    p1 = (char*) mmalloc(csound, nbytes);   /* will be freed by all_free() */
+    p2 = (char*) p1 + ((int) sizeof(char*) * (argc + 1));
+    argv = (char**) p1;
+    for (i = 0; i <= argc; i++) {
+      argv[i] = p2;
+      strcpy(p2, argv_[i]);
+      p2 = (char*) p2 + ((int) strlen(argv_[i]) + 1);
     }
-    keep_tmp = 0;
+  }
+  keep_tmp = 0;
 
   do {
 
@@ -1188,11 +1189,11 @@ int argdecode(void *csound, int argc, char **argv_, char *envoutyp)
       char *orcNameMode;
       orcNameMode =
         (char*) csoundQueryGlobalVariable(csound, "::argdecode::orcNameMode");
-      if (orcNameMode != NULL && strcmp(orcNameMode, "fail") == 0) {
-        csoundMessage(csound, Str("error: orchestra and score name is not "
-                                  "allowed in .csoundrc and CSD files\n"));
-        longjmp(((ENVIRON*) csound)->exitjmp_, 1);
-      }
+      /*       if (orcNameMode != NULL && strcmp(orcNameMode, "fail") == 0) { */
+      /*         csoundMessage(csound, Str("error: orchestra and score name is not " */
+      /*                                   "allowed in .csoundrc and CSD files\n")); */
+      /*         longjmp(((ENVIRON*) csound)->exitjmp_, 1); */
+      /*       } */
       if (orcNameMode == NULL || strcmp(orcNameMode, "ignore") != 0) {
         if (orchname == NULL)
           orchname = --s;
