@@ -78,11 +78,16 @@ void writeLine(const char *text, long size);
 void newevent(void *, char type, MYFLT *pfields, long count);
 void csoundDefaultMidiOpen(void*);
 void mainRESET(ENVIRON *);
+void create_opcodlst(void *csound);
+int readOptions(FILE*);
+int csoundMain(void *csound, int argc, char **argv);
+void remove_tmpfiles(void);  
+void add_tmpfile(char*);
+
 
 extern OPARMS O;
 extern ENVIRON cenviron;
 extern int fltk_abort;
-extern int csoundMain(void *csound, int argc, char **argv);
 extern long kcnt;
 extern MYFLT *inbuf;
 extern MYFLT *outbuf;
