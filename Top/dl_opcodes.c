@@ -52,9 +52,12 @@ static int dl_opcodes_debug = 0;
 
 void *csoundOpenLibrary(const char *libraryPath)
 {
-        void *library = 0;
-        library = (void *) LoadLibrary(libraryPath);
-        return library;
+	void *library = 0;
+	if(strstr(libraryPath, ".dll") || strstr(libraryPath, ".DLL"))
+	{
+	   library = (void *) LoadLibrary(libraryPath);
+    }
+	return library;
 }
 
 void *csoundCloseLibrary(void *library)
@@ -78,12 +81,18 @@ void *csoundGetLibrarySymbol(void *library,
 
 void *csoundOpenLibrary(const char *libraryPath)
 {
-        void *library = 0;
-        library = dlopen(libraryPath, RTLD_NOW | RTLD_GLOBAL );
-        if(!library) {
-                fprintf(stderr, "Error '%s' in dlopen(%s).\n", dlerror(), libraryPath);
-        }
-        return library;
+	void *library = 0;
+	#if defined(LINUX)
+	if(strstr(libraryPath, ".so")) {
+	#elif defined(__CYGWIN__)
+	if(strstr(libraryPath, ".dll") || strstr(libraryPath, ".DLL")) {
+	#endif
+	    library = dlopen(libraryPath, RTLD_NOW | RTLD_GLOBAL );
+	    if(!library) {
+			    fprintf(stderr, "Error '%s' in dlopen(%s).\n", dlerror(), libraryPath);
+	    }
+	}
+	return library;
 }
 
 void *csoundCloseLibrary(void *library)
