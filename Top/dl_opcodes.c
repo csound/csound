@@ -59,7 +59,7 @@ void *csoundOpenLibrary(const char *libraryPath)
 
 void *csoundCloseLibrary(void *library)
 {
-    return FreeLibrary((HINSTANCE) library);
+    return (void *)FreeLibrary((HINSTANCE) library);
 }
 
 void *csoundGetLibrarySymbol(void *library, const char *procedureName)
