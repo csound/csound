@@ -48,11 +48,12 @@ static  char    *sfoutname;                     /* soundout filename    */
         MYFLT   *inbuf;
         MYFLT   *outbuf;                        /* contin sndio buffers */
 static  MYFLT   *outbufp;                       /* MYFLT pntr           */
-static  unsigned inbufrem;
+        unsigned inbufrem;
         unsigned outbufrem;                     /* in monosamps         */
                                                 /* (see openin,iotranset)    */
 static  unsigned inbufsiz,  outbufsiz;          /* alloc in sfopenin/out     */
-static  int     isfd, isfopen = 0, infilend = 0;/* (real set in sfopenin)    */
+static  int     isfd;
+        int     isfopen = 0, infilend = 0;      /* (real set in sfopenin)    */
 static  int     osfd;
         int     osfopen = 0;                    /* (real set in sfopenout)   */
 static  int     pipdevin = 0, pipdevout = 0;    /* mod by sfopenin,sfopenout */
@@ -69,7 +70,7 @@ extern FILE* pin, *pout;
 # endif
 #endif
 extern  void    (*spinrecv)(void), (*spoutran)(void), (*nzerotran)(long);
-static  int     (*audrecv)(MYFLT *, int);
+int     (*audrecv)(MYFLT *, int);
 void    (*audtran)(MYFLT *, int);
 static  SOUNDIN *p;    /* to be passed via sreadin() */
 SNDFILE *sndgetset(SOUNDIN *);
@@ -408,14 +409,14 @@ void sfopenin(void)             /* init for continuous soundin */
 #ifdef RTAUDIO
  inset:
 #endif
-    inbufsiz = (unsigned)O.inbufsamps;     /* calc inbufsize reqd   */
-    inbuf = (MYFLT*)mcalloc((long)inbufsiz*sizeof(MYFLT)); /* alloc inbuf space */
+    inbufsiz = (unsigned)(O.inbufsamps * sizeof(MYFLT));     /* calc inbufsize reqd   */
+    inbuf = (MYFLT *)mcalloc(inbufsiz); /* alloc inbuf space */
     printf(Str(X_1151,"reading %d-sample blks of %s from %s (%s)\n"),
            inbufsiz, getstrformat(O.informat), sfname,
            type2string(p->filetyp));
     isfopen = 1;
     n = audrecv(inbuf, inbufsiz);          /*     file or devaudio  */
-    inbufrem = (unsigned int)n;            /* datasiz in monosamps  */
+    //inbufrem = (unsigned int)n;            /* datasiz in monosamps  */
 }
 
 void sfopenout(void)                            /* init for sound out       */
@@ -607,7 +608,6 @@ void soundinRESET(void)
     datpos = 0;
 }
 
-
 extern  HEADATA *readheader(int, char*, SOUNDIN*);
 extern  OPARMS  O;
 
@@ -675,6 +675,19 @@ static void clrspin2(void)              /* clear spinbuf to zeros   */
 
 static void sndfilein(void)
 {
+    int samples = nchnls * ksmps;
+    int i;
+    audrecv(spin, sizeof(MYFLT) * samples);
+    for(i = 0; i < samples; i++)
+    {
+        spin[i] *= float_to_dbfs;
+    }
+}
+
+#ifdef OLD_CODE_DID_NOT_WORK
+
+static void sndfilein(void)
+{
     MYFLT *r = spin;
     int   n, spinrem = nspin;
     MYFLT *bufp = &inbuf[inbufsiz-inbufrem];
@@ -700,8 +713,10 @@ static void sndfilein(void)
         else clrspin1(r,spinrem);  /* 1st filend pass: partial clr  */
       }
       else clrspin2();           /* 2nd filend pass: zero the spinbuf */
-    }
+  }
 }
+
+#endif
 
 void bytrev4(char *buf, int nbytes)     /* reverse bytes in buf of longs */
 {
@@ -733,3 +748,4 @@ void bytrev2(char *buf, int nbytes)      /* reverse bytes in buf of shorts */
             *p++ = c1;
         } while (--n);
 }
+
