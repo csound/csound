@@ -71,8 +71,8 @@
 
 #include <vector>
 #include <string>
-#include <fstream.h>
-#include <strstream.h>
+#include <fstream>
+#include <strstream>
 
 using namespace std ;
 
