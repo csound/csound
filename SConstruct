@@ -160,7 +160,7 @@ if (commonEnvironment['gcc3opt']=='1'):
   commonEnvironment.Prepend(CCFLAGS = Split('-march=i686 -mcpu=pentium3 -fomit-frame-pointer -finline-functions -frename-registers -fweb -ffast-math -falign-functions=16'))
 if (commonEnvironment['noDebug']=='0'):
   commonEnvironment.Prepend(CCFLAGS = Split('-DCSOUND_WITH_API -g -gstabs -O2'))
-else
+else:
   commonEnvironment.Prepend(CCFLAGS = Split('-DCSOUND_WITH_API -O2'))
 if (commonEnvironment['useGprof']=='1'):
   commonEnvironment.Append(CCFLAGS = ['-pg'])
@@ -778,7 +778,7 @@ else:
 
 if (not(commonEnvironment['useJack']=='1' and jackFound)):
     print "CONFIGURATION DECISION: Not building JACK plugin."
-else
+else:
     print "CONFIGURATION DECISION: Building JACK plugin."
     jackEnvironment = pluginEnvironment.Copy()
     jackEnvironment.Append(LIBS = ['jack'])
