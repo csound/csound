@@ -1586,7 +1586,7 @@ static int vco2_table_size(int npart, VCO2_TABLE_PARAMS *tp)
 /* from table number "base_ftable" if it is greater than zero.           */
 /* The return value is the first ftable number that is not allocated.    */
 
-/extern FUNC* hfgens(EVTBLK*); */
+/* extern FUNC* hfgens(EVTBLK*); */
 
 static int vco2_tables_create(ENVIRON *csound, int waveform, int base_ftable,
                               VCO2_TABLE_PARAMS *tp)
