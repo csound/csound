@@ -123,9 +123,10 @@ namespace csound
       {
     	ublas::axpy_prod(compositeCoordinates, generated[i], e);
     	generated[i] = e;
-     }
+      }
     // Put the generated counterpoint (back?) into the target score.
     score.insert(score.end(), generated.begin(), generated.end());
-    initialize(1, 1);
+    // Free up memory that was used.
+    Counterpoint::clear();
   }
 }
