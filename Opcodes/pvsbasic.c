@@ -224,9 +224,9 @@ int pvsshift(ENVIRON *csound, PVSSHIFT *p)
 {
     long i,chan,newchan,N = p->fout->N;
     MYFLT pshift = (MYFLT) *p->kshift;
-    int lowest =  abs((int)(*p->lowest*N/esr));
+    int lowest =  abs((int)(*p->lowest*N/csound->esr));
     float max = 0.0f;
-    int cshift = (int)(pshift*N/esr);
+    int cshift = (int)(pshift*N/csound->esr);
     int  keepform = (int) *p->keepform;
     float g = (float) *p->gain;
     float *fin = (float *) p->fin->frame.auxp;
@@ -285,7 +285,7 @@ int pvsblurset(ENVIRON *csound, PVSBLUR *p)
     long N = p->fin->N, i, j;
     int olap = p->fin->overlap;
     int delayframes, framesize = N+2;
-    p->frpsec = esr/olap;
+    p->frpsec = csound->esr/olap;
 
     delayframes = (int)(*p->maxdel*p->frpsec);
 
@@ -300,7 +300,7 @@ int pvsblurset(ENVIRON *csound, PVSBLUR *p)
     for(j=0; j < framesize*delayframes; j+=framesize)
       for(i=0; i < N+2; i+=2) {
         delay[i+j] = 0.f;
-        delay[i+j+1] = i*esr/N;
+        delay[i+j+1] = i*csound->esr/N;
       }
 
     p->fout->N = N;

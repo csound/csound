@@ -31,14 +31,14 @@
 
 int mute_inst(ENVIRON *csound, MUTE *p)
 {
-    int n = (int) strarg2insno(p->ins, p->STRARG);      /* IV - Oct 31 2002 */
+    int n = (int) strarg2insno(csound, p->ins, p->STRARG);
     int onoff = (*p->onoff == FL(0.0) ? 0 : 1);
     if (n < 1) return NOTOK;
     if (onoff==0) {
-      printf(Str("Muting new instances of instr %d\n"), n);
+      csound->Message(csound, Str("Muting new instances of instr %d\n"), n);
     }
     else {
-      printf(Str("Allowing instrument %d to start\n"), n);
+      csound->Message(csound, Str("Allowing instrument %d to start\n"), n);
     }
     instrtxtp[n]->muted = onoff;
     return OK;
@@ -59,7 +59,7 @@ int instcount(ENVIRON *csound, INSTCNT *p)
 int cpuperc(ENVIRON *csound, CPU_PERC *p)
 {
     int n = (int) *p->instrnum;
-    if (n>=0 && n<=maxinsno && instrtxtp[n]!=NULL)     /* If instrument exists */
+    if (n>=0 && n<=maxinsno && instrtxtp[n]!=NULL)  /* If instrument exists */
       instrtxtp[n]->cpuload = *p->ipercent;
     return OK;
 }
@@ -67,7 +67,7 @@ int cpuperc(ENVIRON *csound, CPU_PERC *p)
 int maxalloc(ENVIRON *csound, CPU_PERC *p)
 {
     int n = (int) *p->instrnum;
-    if (n>=0 && n<=maxinsno && instrtxtp[n]!=NULL)     /* If instrument exists */
+    if (n>=0 && n<=maxinsno && instrtxtp[n]!=NULL)  /* If instrument exists */
       instrtxtp[n]->maxalloc = (int)*p->ipercent;
     return OK;
 }
@@ -77,8 +77,8 @@ int prealloc(ENVIRON *csound, CPU_PERC *p)
     int     n, a;
 
     /* IV - Oct 31 2002 */
-    n = (int) strarg2opcno(p->instrnum, p->STRARG,
-                           (*p->iopc == FL(0.0) ? 0 : 1));
+    n = (int) strarg2opcno(csound, p->instrnum, p->STRARG,
+                                   (*p->iopc == FL(0.0) ? 0 : 1));
     if (n < 1) return NOTOK;
     /* IV - Oct 24 2002 */
     a = (int) *p->ipercent - instrtxtp[n]->active;
@@ -90,7 +90,7 @@ int pfun(ENVIRON *csound, PFUN *p)
 {
     int n = (int)(*p->pnum + FL(0.5));
     MYFLT ans;
-    printf("p(%d) %f\n", n,*p->pnum);
+    csound->Message(csound, "p(%d) %f\n", n,*p->pnum);
     if (n<1 || n>PMAX) ans = FL(0.0);
     else ans = currevent->p[n];
     *p->ans = ans;
