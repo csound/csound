@@ -99,13 +99,13 @@ void SoundFontLoad(ENVIRON *csound, char *fname)
 {
     FILE *fil;
     char *pathnam;
-    csound->Printf("\n"
-           "******************************************\n"
-           "**  Csound SoundFont2 support ver. 1.2  **\n"
-           "**          by Gabriel Maldonado        **\n"
-           "**        g.maldonado@agora.stm.it      **\n"
-           "** http://web.tiscalinet.it/G-Maldonado **\n"
-           "******************************************\n\n");
+    csound->Message(csound, "\n"
+                            "******************************************\n"
+                            "**  Csound SoundFont2 support ver. 1.2  **\n"
+                            "**          by Gabriel Maldonado        **\n"
+                            "**        g.maldonado@agora.stm.it      **\n"
+                            "** http://web.tiscalinet.it/G-Maldonado **\n"
+                            "******************************************\n\n");
     pathnam = csound->FindInputFile(csound, fname, "SFDIR;SSDIR");
     fil = NULL;
     if (pathnam != NULL)
@@ -180,13 +180,14 @@ int Sfplist(ENVIRON *csound, SFPLIST *p)
     SFBANK *sf = &sfArray[(int) *p->ihandle];
     char temp_string[24];
     int j;
-    printf(Str("\nPreset list of \"%s\"\n"),sf->name);
+    csound->Message(csound, Str("\nPreset list of \"%s\"\n"), sf->name);
     for (j =0; j < sf->presets_num; j++) {
       presetType *prs = &sf->preset[j];
-      printf(Str("%3d) %-20s\tprog:%-3d bank:%d\n"),
-             j, filter_string(prs->name, temp_string), prs->prog, prs->bank);
+      csound->Message(csound, Str("%3d) %-20s\tprog:%-3d bank:%d\n"),
+                              j, filter_string(prs->name, temp_string),
+                              prs->prog, prs->bank);
     }
-    printf("\n");
+    csound->Message(csound, "\n");
     return OK;
 }
 
@@ -196,21 +197,20 @@ int SfAssignAllPresets(ENVIRON *csound, SFPASSIGN *p)
     SFBANK *sf = &sfArray[(int) *p->ihandle];
     int pHandle = (int)  *p->startNum, pnum = sf->presets_num;
     int j;
-    printf(Str("\nAssigning all Presets of \"%s\" starting from"
-               " %d (preset handle number)\n"),
-           sf->name, pHandle);
+    csound->Message(csound,
+                    Str("\nAssigning all Presets of \"%s\" starting from"
+                        " %d (preset handle number)\n"), sf->name, pHandle);
     for (j =0; j < pnum;  j++) {
       presetType *prs = &sf->preset[j];
-      printf(Str("%3d<--%-20s\t(prog:%-3d bank:%d)\n"),
-             j, prs->name, prs->prog, prs->bank);
+      csound->Message(csound, Str("%3d<--%-20s\t(prog:%-3d bank:%d)\n"),
+                              j, prs->name, prs->prog, prs->bank);
       presetp[pHandle] = &sf->preset[j];
       sampleBase[pHandle] = sf->sampleData;
       pHandle++;
     }
-    printf(Str(
-               "\nAll presets have been assigned to preset"
-               " handles from %d to %d \n\n"),
-           (int) *p->startNum, pHandle-1);
+    csound->Message(csound, Str("\nAll presets have been assigned to preset"
+                                " handles from %d to %d \n\n"),
+                            (int) *p->startNum, pHandle-1);
     return OK;
 }
 
@@ -220,12 +220,12 @@ int Sfilist(ENVIRON *csound, SFPLIST *p)
 {
     SFBANK *sf = &sfArray[(int) *p->ihandle];
     int j;
-    printf(Str("\nInstrument list of \"%s\"\n"),sf->name);
+    csound->Message(csound, Str("\nInstrument list of \"%s\"\n"), sf->name);
     for (j =0; j < sf->instrs_num; j++) {
       instrType *inst = &sf->instr[j];
-      printf("%3d) %-20s\n", j, inst->name);
+      csound->Message(csound, "%3d) %-20s\n", j, inst->name);
     }
-    printf("\n");
+    csound->Message(csound, "\n");
     return OK;
 }
 
@@ -381,7 +381,7 @@ int SfPlay_set(ENVIRON *csound, SFPLAY *p)
 int SfPlay(ENVIRON *csound, SFPLAY *p)
 {
     MYFLT *out1 = p->out1, *out2 = p->out2;
-    int   nsmps = ksmps, j = p->spltNum, arate;
+    int   nsmps = csound->ksmps, j = p->spltNum, arate;
     SHORT **base = p->base;
     DWORD *end = p->end,  *startloop= p->startloop, *endloop= p->endloop;
     SHORT *mode = p->mode;
@@ -399,7 +399,7 @@ int SfPlay(ENVIRON *csound, SFPLAY *p)
       while (j--) {
         double looplength = *endloop - *startloop;
         MYFLT *freq = p->xfreq;
-        nsmps = ksmps;
+        nsmps = csound->ksmps;
         outemp1 = out1;
         outemp2 = out2;
 
@@ -425,7 +425,7 @@ int SfPlay(ENVIRON *csound, SFPLAY *p)
       while (j--) {
         double looplength = *endloop - *startloop;
         double si = *sampinc * freq;
-        nsmps = ksmps;
+        nsmps = csound->ksmps;
         outemp1 = out1;  outemp2 = out2;
         if (*mode == 1 || *mode ==3) {
           int flag =0;
@@ -443,7 +443,7 @@ int SfPlay(ENVIRON *csound, SFPLAY *p)
       }
     }
     outemp1 = out1;  outemp2 = out2;
-    nsmps = ksmps;
+    nsmps = csound->ksmps;
     if (arate) {
       MYFLT *amp = p->xamp;
       do {
@@ -465,7 +465,7 @@ int SfPlay(ENVIRON *csound, SFPLAY *p)
 int SfPlay3(ENVIRON *csound, SFPLAY *p)
 {
     MYFLT *out1 = p->out1, *out2 = p->out2;
-    int nsmps = ksmps, j = p->spltNum, arate;
+    int nsmps = csound->ksmps, j = p->spltNum, arate;
     SHORT **base = p->base;
     DWORD *end = p->end,  *startloop = p->startloop, *endloop = p->endloop;
     SHORT *mode = p->mode;
@@ -483,7 +483,7 @@ int SfPlay3(ENVIRON *csound, SFPLAY *p)
       while (j--) {
         double looplength = *endloop - *startloop;
         MYFLT *freq = p->xfreq;
-        nsmps = ksmps;
+        nsmps = csound->ksmps;
         outemp1 = out1; outemp2 = out2;
         if (*mode == 1 || *mode ==3) {
           int flag =0;
@@ -506,7 +506,7 @@ int SfPlay3(ENVIRON *csound, SFPLAY *p)
       MYFLT freq = *p->xfreq;
       while(j--) {
         double looplength = *endloop - *startloop, si = *sampinc * freq;
-        nsmps = ksmps;
+        nsmps = csound->ksmps;
         outemp1 = out1; outemp2 = out2;
         if (*mode == 1 || *mode ==3) {
           int flag =0;
@@ -526,7 +526,7 @@ int SfPlay3(ENVIRON *csound, SFPLAY *p)
 
     outemp1 = out1;
     outemp2 = out2;
-    nsmps = ksmps;
+    nsmps = csound->ksmps;
     if (arate) {
       MYFLT *amp = p->xamp;
       do {
@@ -612,7 +612,7 @@ int SfPlayMono_set(ENVIRON *csound, SFPLAYMONO *p)
 int SfPlayMono(ENVIRON *csound, SFPLAYMONO *p)
 {
     MYFLT *out1 = p->out1  ;
-    int nsmps = ksmps, j = p->spltNum, arate;
+    int nsmps = csound->ksmps, j = p->spltNum, arate;
     SHORT **base = p->base;
     DWORD *end= p->end, *startloop= p->startloop, *endloop= p->endloop;
     SHORT *mode = p->mode;
@@ -631,7 +631,7 @@ int SfPlayMono(ENVIRON *csound, SFPLAYMONO *p)
         double looplength = *endloop - *startloop;
         MYFLT *freq = p->xfreq;
 
-        nsmps = ksmps;
+        nsmps = csound->ksmps;
         outemp1 = out1;
         if (*mode == 1 || *mode ==3) {
           int flag =0;
@@ -655,7 +655,7 @@ int SfPlayMono(ENVIRON *csound, SFPLAYMONO *p)
       while (j--) {
         double looplength = *endloop - *startloop;
         double si = *sampinc * freq;
-        nsmps = ksmps;
+        nsmps = csound->ksmps;
         outemp1 = out1;
         if (*mode == 1 || *mode ==3) {
           int flag =0;
@@ -673,7 +673,7 @@ int SfPlayMono(ENVIRON *csound, SFPLAYMONO *p)
       }
     }
     outemp1 = out1;
-    nsmps = ksmps;
+    nsmps = csound->ksmps;
     if (arate) {
       MYFLT *amp = p->xamp;
       do {
@@ -692,7 +692,7 @@ int SfPlayMono(ENVIRON *csound, SFPLAYMONO *p)
 int SfPlayMono3(ENVIRON *csound, SFPLAYMONO *p)
 {
     MYFLT *out1 = p->out1;
-    int nsmps = ksmps, j = p->spltNum, arate;
+    int nsmps = csound->ksmps, j = p->spltNum, arate;
     SHORT **base = p->base;
     DWORD *end = p->end,  *startloop = p->startloop, *endloop = p->endloop;
     SHORT *mode = p->mode;
@@ -710,7 +710,7 @@ int SfPlayMono3(ENVIRON *csound, SFPLAYMONO *p)
       while (j--) {
         double looplength = *endloop - *startloop;
         MYFLT *freq = p->xfreq;
-        nsmps = ksmps;
+        nsmps = csound->ksmps;
         outemp1 = out1;
 
         if (*mode == 1 || *mode ==3) {
@@ -735,7 +735,7 @@ int SfPlayMono3(ENVIRON *csound, SFPLAYMONO *p)
       while (j--) {
         double looplength = *endloop - *startloop;
         double si = *sampinc * freq;
-        nsmps = ksmps;
+        nsmps = csound->ksmps;
         outemp1 = out1;
         if (*mode == 1 || *mode ==3) {
           int flag =0;
@@ -753,7 +753,7 @@ int SfPlayMono3(ENVIRON *csound, SFPLAYMONO *p)
       }
     }
     outemp1 = out1;
-    nsmps = ksmps;
+    nsmps = csound->ksmps;
     if (arate) {
       MYFLT *amp = p->xamp;
       do {
@@ -832,7 +832,7 @@ int SfInstrPlay_set(ENVIRON *csound, SFIPLAY *p)
 int SfInstrPlay(ENVIRON *csound, SFIPLAY *p)
 {
     MYFLT *out1= p->out1, *out2= p->out2;
-    int nsmps= ksmps, j = p->spltNum, arate;
+    int nsmps= csound->ksmps, j = p->spltNum, arate;
     SHORT **base = p->base;
     DWORD *end= p->end,  *startloop= p->startloop, *endloop= p->endloop;
     SHORT *mode = p->mode;
@@ -852,7 +852,7 @@ int SfInstrPlay(ENVIRON *csound, SFIPLAY *p)
         double looplength = *endloop - *startloop;
         MYFLT *freq = p->xfreq;
 
-        nsmps = ksmps;
+        nsmps = csound->ksmps;
         outemp1 = out1;
         outemp2 = out2;
         if (*mode == 1 || *mode ==3) {
@@ -877,7 +877,7 @@ int SfInstrPlay(ENVIRON *csound, SFIPLAY *p)
       while (j--) {
         double looplength = *endloop - *startloop;
         double si = *sampinc * freq;
-        nsmps = ksmps;
+        nsmps = csound->ksmps;
         outemp1 = out1;
         outemp2 = out2;
         if (*mode == 1 || *mode ==3) {
@@ -898,7 +898,7 @@ int SfInstrPlay(ENVIRON *csound, SFIPLAY *p)
 
     outemp1 = out1;
     outemp2 = out2;
-    nsmps = ksmps;
+    nsmps = csound->ksmps;
     if (arate) {
       MYFLT *amp = p->xamp;
       do {
@@ -919,7 +919,7 @@ int SfInstrPlay(ENVIRON *csound, SFIPLAY *p)
 int SfInstrPlay3(ENVIRON *csound, SFIPLAY *p)
 {
     MYFLT *out1= p->out1, *out2= p->out2;
-    int nsmps= ksmps, j = p->spltNum, arate;
+    int nsmps= csound->ksmps, j = p->spltNum, arate;
     SHORT **base = p->base;
     DWORD *end= p->end,  *startloop= p->startloop, *endloop= p->endloop;
     SHORT *mode = p->mode;
@@ -939,7 +939,7 @@ int SfInstrPlay3(ENVIRON *csound, SFIPLAY *p)
         double looplength = *endloop - *startloop;
         MYFLT *freq = p->xfreq;
 
-        nsmps = ksmps;
+        nsmps = csound->ksmps;
         outemp1 = out1;
         outemp2 = out2;
         if (*mode == 1 || *mode ==3) {
@@ -964,7 +964,7 @@ int SfInstrPlay3(ENVIRON *csound, SFIPLAY *p)
       while (j--) {
         double looplength = *endloop - *startloop;
         double si = *sampinc * freq;
-        nsmps = ksmps;
+        nsmps = csound->ksmps;
         outemp1 = out1;
         outemp2 = out2;
         if (*mode == 1 || *mode ==3) {
@@ -985,7 +985,7 @@ int SfInstrPlay3(ENVIRON *csound, SFIPLAY *p)
 
     outemp1 = out1;
     outemp2 = out2;
-    nsmps = ksmps;
+    nsmps = csound->ksmps;
     if (arate) {
       MYFLT *amp = p->xamp;
       do {
@@ -1061,7 +1061,7 @@ int SfInstrPlayMono_set(ENVIRON *csound, SFIPLAYMONO *p)
 int SfInstrPlayMono(ENVIRON *csound, SFIPLAYMONO *p)
 {
     MYFLT *out1= p->out1  ;
-    int nsmps= ksmps, j = p->spltNum, arate;
+    int nsmps= csound->ksmps, j = p->spltNum, arate;
     SHORT **base = p->base;
     DWORD *end= p->end,  *startloop= p->startloop, *endloop= p->endloop;
     SHORT *mode = p->mode;
@@ -1081,7 +1081,7 @@ int SfInstrPlayMono(ENVIRON *csound, SFIPLAYMONO *p)
         double looplength = *endloop - *startloop;
         MYFLT *freq = p->xfreq;
 
-        nsmps = ksmps;
+        nsmps = csound->ksmps;
         outemp1 = out1;
         if (*mode == 1 || *mode ==3) {
           int flag =0;
@@ -1105,7 +1105,7 @@ int SfInstrPlayMono(ENVIRON *csound, SFIPLAYMONO *p)
       while (j--) {
         double looplength = *endloop - *startloop;
         double si = *sampinc * freq;
-        nsmps = ksmps;
+        nsmps = csound->ksmps;
         outemp1 = out1;
         if (*mode == 1 || *mode ==3) {
           int flag =0;
@@ -1123,7 +1123,7 @@ int SfInstrPlayMono(ENVIRON *csound, SFIPLAYMONO *p)
       }
     }
     outemp1 = out1;
-    nsmps = ksmps;
+    nsmps = csound->ksmps;
     if (arate) {
       MYFLT *amp = p->xamp;
       do {
@@ -1143,7 +1143,7 @@ int SfInstrPlayMono(ENVIRON *csound, SFIPLAYMONO *p)
 int SfInstrPlayMono3(ENVIRON *csound, SFIPLAYMONO *p)
 {
     MYFLT *out1= p->out1  ;
-    int nsmps= ksmps, j = p->spltNum, arate;
+    int nsmps= csound->ksmps, j = p->spltNum, arate;
     SHORT **base = p->base;
     DWORD *end= p->end,  *startloop= p->startloop, *endloop= p->endloop;
     SHORT *mode = p->mode;
@@ -1162,7 +1162,7 @@ int SfInstrPlayMono3(ENVIRON *csound, SFIPLAYMONO *p)
         double looplength = *endloop - *startloop;
         MYFLT *freq = p->xfreq;
 
-        nsmps = ksmps;
+        nsmps = csound->ksmps;
         outemp1 = out1;
         if (*mode == 1 || *mode ==3) {
           int flag =0;
@@ -1186,7 +1186,7 @@ int SfInstrPlayMono3(ENVIRON *csound, SFIPLAYMONO *p)
       while (j--) {
         double looplength = *endloop - *startloop;
         double si = *sampinc * freq;
-        nsmps = ksmps;
+        nsmps = csound->ksmps;
         outemp1 = out1;
         if (*mode == 1 || *mode ==3) {
           int flag =0;
@@ -1204,7 +1204,7 @@ int SfInstrPlayMono3(ENVIRON *csound, SFIPLAYMONO *p)
       }
     }
     outemp1 = out1;
-    nsmps = ksmps;
+    nsmps = csound->ksmps;
     if (arate) {
       MYFLT *amp = p->xamp;
       do {
@@ -1477,13 +1477,13 @@ void fill_SfStruct(ENVIRON *csound)
                       split->endLoopOffset += igen[m].genAmount.shAmount * 32768;
                       break;
                     case keynum:
-                      /*printf("");*/
+                      /*csound->Message(csound, "");*/
                       break;
                     case velocity:
-                      /*printf("");*/
+                      /*csound->Message(csound, "");*/
                       break;
                     case exclusiveClass:
-                      /*printf("");*/
+                      /*csound->Message(csound, "");*/
                       break;
 
                     }
@@ -1688,13 +1688,13 @@ void fill_SfStruct(ENVIRON *csound)
                 split->endLoopOffset += igen[m].genAmount.shAmount * 32768;
                 break;
               case keynum:
-                /*printf("");*/
+                /*csound->Message(csound, "");*/
                 break;
               case velocity:
-                /*printf("");*/
+                /*csound->Message(csound, "");*/
                 break;
               case exclusiveClass:
-                /*printf("");*/
+                /*csound->Message(csound, "");*/
                 break;
               }
             }
@@ -1745,9 +1745,11 @@ int chunk_read(FILE *fil, CHUNK *chunk)
     fread(&chunk->ckSize,4,1,fil);
     ChangeByteOrder("d", (char *)&chunk->ckSize, 4);
     chunk->ckDATA = (BYTE *) malloc( chunk->ckSize);
+#if 0
 #ifdef BETA
-    fprintf(stdout, "read chunk (%.4s) length %ld\n",
-            (char*)&chunk->ckID, chunk->ckSize);
+    csound->Message(csound, "read chunk (%.4s) length %ld\n",
+                            (char*) &chunk->ckID, chunk->ckSize);
+#endif
 #endif
     return fread(chunk->ckDATA,1,chunk->ckSize,fil);
 }
@@ -1780,42 +1782,42 @@ void fill_SfPointers(ENVIRON *csound)
     for  (j=4; j< main_chunk->ckSize;) {
       chkid = /* (DWORD *) chkp*/ dword(chkp);
 #ifdef BETA
-      csound->Printf("Looking at %.4s\n", (char*)&chkid);
+      csound->Message(csound, "Looking at %.4s\n", (char*) &chkid);
 #endif
       if (chkid == s2d("LIST")) {
 #ifdef BETA
-        csound->Printf("LIST ");
+        csound->Message(csound, "LIST ");
 #endif
         j += 4; chkp += 4;
         ChangeByteOrder("d", chkp, 4);
         size = /* (DWORD *) chkp */ dword(chkp);
 #ifdef BETA
-        csound->Printf("**size %ld %ld\n", size, *((DWORD *) chkp));
+        csound->Message(csound, "**size %ld %ld\n", size, *((DWORD *) chkp));
 #endif
         j += 4; chkp += 4;
         chkid = /* (DWORD *) chkp */ dword(chkp);
 #ifdef BETA
-        csound->Printf("**chkid %p %p\n",
-                       (void*)chkid, (void*)(*((DWORD *) chkp)));
-        csound->Printf(":Looking at %.4s (%ld)\n", (char*)&chkid, size);
+        csound->Message(csound, "**chkid %p %p\n",
+                                (void*) chkid, (void*) (*((DWORD *) chkp)));
+        csound->Message(csound, ":Looking at %.4s (%ld)\n",(char*)&chkid,size);
 #endif
         if (chkid == s2d("INFO")) {
 #ifdef BETA
-          csound->Printf("INFO ");
+          csound->Message(csound, "INFO ");
 #endif
           chkp += size;
           j    += size;
         }
         else if (chkid == s2d("sdta")) {
 #ifdef BETA
-          csound->Printf("sdta ");
+          csound->Message(csound, "sdta ");
 #endif
           j +=4; chkp += 4;
           smplChunk = (CHUNK *) chkp;
           soundFont->sampleData = (SHORT *) &smplChunk->ckDATA;
 #ifdef BETA
-          csound->Printf("Change %d and then %ld times w\n",
-                         *(chkp + 4), size - 12);
+          csound->Message(csound, "Change %d and then %ld times w\n",
+                                  *(chkp + 4), size - 12);
 #endif
           ChangeByteOrder("d", chkp + 4, 4);
           ChangeByteOrder("w", chkp + 8, size - 12);
@@ -1823,8 +1825,8 @@ void fill_SfPointers(ENVIRON *csound)
           {
             DWORD i;
             for (i=size-12; i< size+4; i++)
-              csound->Printf("%c(%.2x)",chkp[i], chkp[i]);
-            csound->Printf("\n");
+              csound->Message(csound, "%c(%.2x)", chkp[i], chkp[i]);
+            csound->Message(csound, "\n");
           }
 #endif
           chkp += size-4;
@@ -1832,15 +1834,15 @@ void fill_SfPointers(ENVIRON *csound)
         }
         else if (chkid  ==  s2d("pdta")) {
 #ifdef BETA
-          csound->Printf("pdta ");
+          csound->Message(csound, "pdta ");
 #endif
           j += 4; chkp += 4;
           do {
             chkid = /* (DWORD *) chkp */ dword(chkp);
-            /*            printf("::Looking at %.4s (%d)\n", &chkid, size); */
+         /* csound->Message(csound, "::Looking at %.4s (%d)\n",&chkid,size); */
             if (chkid == s2d("phdr")) {
 #ifdef BETA
-              csound->Printf("phdr ");
+              csound->Message(csound, "phdr ");
 #endif
               phdrChunk = (CHUNK *) chkp;
               soundFont->chunk.phdr= (sfPresetHeader *) &phdrChunk->ckDATA;
@@ -1851,7 +1853,7 @@ void fill_SfPointers(ENVIRON *csound)
             }
             else if (chkid == s2d("pbag")) {
 #ifdef BETA
-              csound->Printf("pbag ");
+              csound->Message(csound, "pbag ");
 #endif
               pbagChunk = (CHUNK *) chkp;
               soundFont->chunk.pbag= (sfPresetBag *) &pbagChunk->ckDATA;
@@ -1862,7 +1864,7 @@ void fill_SfPointers(ENVIRON *csound)
             }
             else if (chkid == s2d("pmod")) {
 #ifdef BETA
-              csound->Printf("pmod ");
+              csound->Message(csound, "pmod ");
 #endif
               pmodChunk = (CHUNK *) chkp;
               soundFont->chunk.pmod= (sfModList *) &pmodChunk->ckDATA;
@@ -1873,7 +1875,7 @@ void fill_SfPointers(ENVIRON *csound)
             }
             else if (chkid == s2d("pgen")) {
 #ifdef BETA
-              csound->Printf("pgen ");
+              csound->Message(csound, "pgen ");
 #endif
               pgenChunk = (CHUNK *) chkp;
               soundFont->chunk.pgen= (sfGenList *) &pgenChunk->ckDATA;
@@ -1884,7 +1886,7 @@ void fill_SfPointers(ENVIRON *csound)
             }
             else if (chkid == s2d("inst")) {
 #ifdef BETA
-              csound->Printf("inst ");
+              csound->Message(csound, "inst ");
 #endif
               instChunk = (CHUNK *) chkp;
               soundFont->chunk.inst= (sfInst *) &instChunk->ckDATA;
@@ -1895,7 +1897,7 @@ void fill_SfPointers(ENVIRON *csound)
             }
             else if (chkid == s2d("ibag")) {
 #ifdef BETA
-              csound->Printf("ibag ");
+              csound->Message(csound, "ibag ");
 #endif
               ibagChunk = (CHUNK *) chkp;
               soundFont->chunk.ibag= (sfInstBag *) &ibagChunk->ckDATA;
@@ -1906,7 +1908,7 @@ void fill_SfPointers(ENVIRON *csound)
             }
             else if (chkid == s2d("imod")) {
 #ifdef BETA
-              csound->Printf("imod ");
+              csound->Message(csound, "imod ");
 #endif
               imodChunk = (CHUNK *) chkp;
               soundFont->chunk.imod= (sfInstModList *) &imodChunk->ckDATA;
@@ -1917,7 +1919,7 @@ void fill_SfPointers(ENVIRON *csound)
             }
             else if (chkid == s2d("igen")) {
 #ifdef BETA
-              csound->Printf("igen ");
+              csound->Message(csound, "igen ");
 #endif
               igenChunk = (CHUNK *) chkp;
               soundFont->chunk.igen= (sfInstGenList *) &igenChunk->ckDATA;
@@ -1928,7 +1930,7 @@ void fill_SfPointers(ENVIRON *csound)
             }
             else if (chkid == s2d("shdr")) {
 #ifdef BETA
-              csound->Printf("shdr ");
+              csound->Message(csound, "shdr ");
 #endif
               shdrChunk = (CHUNK *) chkp;
               soundFont->chunk.shdr= (sfSample *) &shdrChunk->ckDATA;
@@ -1939,7 +1941,8 @@ void fill_SfPointers(ENVIRON *csound)
             }
             else {
 #ifdef BETA
-              csound->Printf("Unknown sfont %.4s(%.8lx)\n", (char*)&chkid, chkid);
+              csound->Message(csound, "Unknown sfont %.4s(%.8lx)\n",
+                                      (char*) &chkid, chkid);
 #endif
               shdrChunk = (CHUNK *) chkp;
               chkp += shdrChunk->ckSize+8;
@@ -1949,7 +1952,8 @@ void fill_SfPointers(ENVIRON *csound)
         }
         else {
 #ifdef BETA
-          csound->Printf("Unknown sfont %.4s(%.8lx)\n", (char*)&chkid, chkid);
+          csound->Message(csound, "Unknown sfont %.4s(%.8lx)\n",
+                                  (char*) &chkid, chkid);
 #endif
           shdrChunk = (CHUNK *) chkp;
           chkp += shdrChunk->ckSize+8;
@@ -1958,7 +1962,8 @@ void fill_SfPointers(ENVIRON *csound)
       }
       else {
 #ifdef BETA
-        csound->Printf("Unknown sfont %.4s(%.8lx)\n", (char*)&chkid, chkid);
+        csound->Message(csound, "Unknown sfont %.4s(%.8lx)\n",
+                                (char*) &chkid, chkid);
 #endif
         shdrChunk = (CHUNK *) chkp;
         chkp += shdrChunk->ckSize+8;
