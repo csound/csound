@@ -3190,39 +3190,7 @@ static void riffts1(MYFLT *ioptr, int M, MYFLT *Utbl, short *BRLow)
     }
 }
 
-/*********************************************************************
-* This file extends the fftlib with calls to maintain the cosine and *
-* bit reversed tables for you (including mallocs and free's).        *
-* Call the init routine for each fft size you will be using.         *
-* Then you can call the fft routines below which will make the       *
-* fftlib library call with the appropriate tables passed.            *
-* When you are done with all fft's you can call fftfree to release   *
-* the storage for the tables.                                        *
-* Note that you can call fftinit repeatedly with the same size, the  *
-* extra calls will be ignored. So, you could make a macro to call    *
-* fftInit every time you call ffts.                                  *
-* For example you could have someting like:                          *
-*   #define FFT(a,n)                    \                            *
-*     if(!fftInit(roundtol(LOG2(n))))   \                            *
-*       ffts(a,roundtol(LOG2(n)),1);    \                            *
-*     else printf("fft error\n");                                    *
-*********************************************************************/
-
-/* pointers to storage of Utbl's and  BRLow's */
-
-static MYFLT *UtblArray[8 * sizeof(int)] = {
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
-};
-
-static short *BRLowArray[8 * sizeof(int) / 2] = {
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
-};
-
-static int fftInit(int M)
+static void fftInit(ENVIRON *csound, int M)
 {
     /* malloc and init cosine and bit reversed tables for a given size  */
     /* fft, ifft, rfft, rifft                                           */
@@ -3231,67 +3199,48 @@ static int fftInit(int M)
     /* OUTPUTS                                                          */
     /*   private cosine and bit reversed tables                         */
 
-    int theError = 1;
+    MYFLT **UtblArray;
+    short **BRLowArray;
+    int   i;
+
+    if (!csound->FFT_max_size) {
+      if (csound->FFT_table_1 == NULL)
+        csound->FFT_table_1 = csound->Malloc(csound, sizeof(MYFLT*) * 32);
+      if (csound->FFT_table_2 == NULL)
+        csound->FFT_table_2 = csound->Malloc(csound, sizeof(short*) * 32);
+      for (i = 0; i < 32; i++) {
+        ((MYFLT**) csound->FFT_table_1)[i] = (MYFLT*) NULL;
+        ((short**) csound->FFT_table_2)[i] = (short*) NULL;
+      }
+    }
+    UtblArray = (MYFLT**) csound->FFT_table_1;
+    BRLowArray = (short**) csound->FFT_table_2;
 
     /*** I did NOT test cases with M>27 ***/
-    if ((M >= 0) && (M < 8 * (int) sizeof(int))) {
-      theError = 0;
-      if (UtblArray[M] == 0) {    /* have we not inited this size fft yet? */
-        /* init cos table */
-        UtblArray[M] = (MYFLT *) malloc((POW2(M) / 4 + 1) * sizeof(MYFLT));
-        if (UtblArray[M] == 0)
-          theError = 2;
-        else {
-          fftCosInit(M, UtblArray[M]);
-        }
-        if (M > 1) {
-          /* init bit reversed table for cmplx fft */
-          if (BRLowArray[M / 2] == 0) {
-            BRLowArray[M / 2] =
-              (short *) malloc(POW2(M / 2 - 1) * sizeof(short));
-            if (BRLowArray[M / 2] == 0)
-              theError = 2;
-            else {
-              fftBRInit(M, BRLowArray[M / 2]);
-            }
-          }
-        }
-        if (M > 2) {
-          /* init bit reversed table for real fft */
-          if (BRLowArray[(M - 1) / 2] == 0) {
-            BRLowArray[(M - 1) / 2] =
-                (short *) malloc(POW2((M - 1) / 2 - 1) * sizeof(short));
-            if (BRLowArray[(M - 1) / 2] == 0)
-              theError = 2;
-            else {
-              fftBRInit(M - 1, BRLowArray[(M - 1) / 2]);
-            }
-          }
-        }
+    /* init cos table */
+    UtblArray[M] = (MYFLT*) csound->Malloc(csound,
+                                           (POW2(M) / 4 + 1) * sizeof(MYFLT));
+    fftCosInit(M, UtblArray[M]);
+    if (M > 1) {
+      /* init bit reversed table for cmplx FFT */
+      if (BRLowArray[M / 2] == NULL) {
+        BRLowArray[M / 2] =
+          (short*) csound->Malloc(csound, POW2(M / 2 - 1) * sizeof(short));
+        fftBRInit(M, BRLowArray[M / 2]);
       }
     }
-    return theError;
-}
+    if (M > 2) {
+      /* init bit reversed table for real FFT */
+      if (BRLowArray[(M - 1) / 2] == 0) {
+        BRLowArray[(M - 1) / 2] =
+          (short*) csound->Malloc(csound,
+                                  POW2((M - 1) / 2 - 1) * sizeof(short));
+        fftBRInit(M - 1, BRLowArray[(M - 1) / 2]);
+      }
+    }
 
-#if 0
-static void fftFree(void)
-{
-    /* release storage for all private cosine and bit reversed tables */
-    int i1;
-    for (i1 = 8 * sizeof(int) / 2 - 1; i1 >= 0; i1--) {
-      if (BRLowArray[i1] != 0) {
-        free(BRLowArray[i1]);
-        BRLowArray[i1] = 0;
-      }
-    }
-    for (i1 = 8 * sizeof(int) - 1; i1 >= 0; i1--) {
-      if (UtblArray[i1] != 0) {
-        free(UtblArray[i1]);
-        UtblArray[i1] = 0;
-      }
-    }
+    csound->FFT_max_size |= (1 << M);
 }
-#endif
 
 #define ConvertFFTSize(x,y)                                         \
 {                                                                   \
@@ -3337,6 +3286,14 @@ static void fftFree(void)
     }                                                               \
 }
 
+#define GET_TABLE_POINTERS(p,ct,bt,cn,bn)       \
+{                                               \
+    if (!((p)->FFT_max_size & (1 << (cn))))     \
+      fftInit(p, cn);                           \
+    (ct) = ((MYFLT**) (p)->FFT_table_1)[cn];    \
+    (bt) = ((short**) (p)->FFT_table_2)[bn];    \
+}
+
 /**
  * Returns the amplitude scale that should be applied to the result of
  * an inverse complex FFT with a length of 'FFTsize' samples.
@@ -3368,11 +3325,13 @@ PUBLIC MYFLT csoundGetInverseRealFFTScale(void *csound, int FFTsize)
 
 PUBLIC void csoundComplexFFT(void *csound, MYFLT *buf, int FFTsize)
 {
-    int log2size;
+    MYFLT *Utbl;
+    short *BRLow;
+    int   M;
 
-    ConvertFFTSize(log2size, FFTsize);
-    fftInit(log2size);
-    ffts1(buf, log2size, UtblArray[log2size], BRLowArray[log2size / 2]);
+    ConvertFFTSize(M, FFTsize);
+    GET_TABLE_POINTERS((ENVIRON*) csound, Utbl, BRLow, M, M / 2);
+    ffts1(buf, M, Utbl, BRLow);
 }
 
 /**
@@ -3386,11 +3345,13 @@ PUBLIC void csoundComplexFFT(void *csound, MYFLT *buf, int FFTsize)
 
 PUBLIC void csoundInverseComplexFFT(void *csound, MYFLT *buf, int FFTsize)
 {
-    int log2size;
+    MYFLT *Utbl;
+    short *BRLow;
+    int   M;
 
-    ConvertFFTSize(log2size, FFTsize);
-    fftInit(log2size);
-    iffts1(buf, log2size, UtblArray[log2size], BRLowArray[log2size / 2]);
+    ConvertFFTSize(M, FFTsize);
+    GET_TABLE_POINTERS((ENVIRON*) csound, Utbl, BRLow, M, M / 2);
+    iffts1(buf, M, Utbl, BRLow);
 }
 
 /**
@@ -3403,11 +3364,13 @@ PUBLIC void csoundInverseComplexFFT(void *csound, MYFLT *buf, int FFTsize)
 
 PUBLIC void csoundRealFFT(void *csound, MYFLT *buf, int FFTsize)
 {
-    int log2size;
+    MYFLT *Utbl;
+    short *BRLow;
+    int   M;
 
-    ConvertFFTSize(log2size, FFTsize);
-    fftInit(log2size);
-    rffts1(buf, log2size, UtblArray[log2size], BRLowArray[(log2size - 1) / 2]);
+    ConvertFFTSize(M, FFTsize);
+    GET_TABLE_POINTERS((ENVIRON*) csound, Utbl, BRLow, M, (M - 1) / 2);
+    rffts1(buf, M, Utbl, BRLow);
 }
 
 /**
@@ -3422,11 +3385,13 @@ PUBLIC void csoundRealFFT(void *csound, MYFLT *buf, int FFTsize)
 
 PUBLIC void csoundInverseRealFFT(void *csound, MYFLT *buf, int FFTsize)
 {
-    int log2size;
+    MYFLT *Utbl;
+    short *BRLow;
+    int   M;
 
-    ConvertFFTSize(log2size, FFTsize);
-    fftInit(log2size);
-    riffts1(buf, log2size, UtblArray[log2size], BRLowArray[(log2size - 1) / 2]);
+    ConvertFFTSize(M, FFTsize);
+    GET_TABLE_POINTERS((ENVIRON*) csound, Utbl, BRLow, M, (M - 1) / 2);
+    riffts1(buf, M, Utbl, BRLow);
 }
 
 /**

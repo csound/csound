@@ -41,7 +41,7 @@ extern "C" {
   static void* csoundExitFuncs_[csoundMaxExits];
   static long csoundNumExits_ = -1;
 
-  extern ENVIRON cenviron_;
+  extern const ENVIRON cenviron_;
 
   PUBLIC void *csoundCreate(void *hostdata)
   {
@@ -587,7 +587,7 @@ extern "C" {
   {
     if (csoundInputValueCallback_)
       {
-        csoundInputValueCallback_(&cenviron_, channelName, value);
+        csoundInputValueCallback_(&cenviron, channelName, value);
       }
     else
       {
@@ -609,7 +609,7 @@ extern "C" {
   {
     if (csoundOutputValueCallback_)
       {
-        csoundOutputValueCallback_(&cenviron_, channelName, value);
+        csoundOutputValueCallback_(&cenviron, channelName, value);
       }
   }
 

@@ -98,7 +98,7 @@ SNDFILE *SAsndgetset(
     p->h.optext = &optxt;
     p->ifilno = &sstrcod;
     p->iskptim = abeg_time;
-    p->iformat = &fzero;
+    p->iformat = (MYFLT*) &fzero;
     sprintf(quotname,"%c%s%c",'"',infilnam,'"');
     p->STRARG = quotname;
     p->sr = (long)*asr;

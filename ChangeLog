@@ -1,3 +1,14 @@
+2005-03-30	Istvan Varga	<istvan@csounds.com>
+	* Engine/oload.c:
+	* Engine/twarp.c:
+	* H/csoundCore.h:
+	* InOut/libsnd_u.c:
+	* OOps/fftlib.c:
+	* OOps/fout.c:
+	* OOps/sdif.c:
+	* Top/csound.c:
+	  minor fixes; removed a few more static variables
+
 2005-03-30  John ff  <jpff@codemist.co.uk>
 
 	* Engine/swrite.c: Remove statics from swrite.c
