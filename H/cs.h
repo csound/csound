@@ -120,7 +120,6 @@ extern "C" {
 #define synterrcnt cenviron.synterrcnt_
 #define perferrcnt cenviron.perferrcnt_
 #define MIDIoutDONE cenviron.MIDIoutDONE_
-#define midi_out cenviron.midi_out_
 #define strmsg  cenviron.strmsg_
 #define instxtanchor cenviron.instxtanchor_
 #define actanchor cenviron.actanchor_

@@ -318,7 +318,6 @@ ENVIRON cenviron_ = {
         NULL, NULL,   /*  cpsocint, cpsocfrc */
         0, 0, 0,      /* inerrcnt, synterrcnt, perferrcnt */
         0,      /*      MIDIoutDONE */
-        -1,     /*      midi_out */
         "",     /*      strmsg */
         {NULL}, /*      instxtanchor */
         {NULL}, /*      actanchor */
@@ -333,7 +332,6 @@ ENVIRON cenviron_ = {
         DFLT_NCHNLS,  /*      tran_nchnls */
         FL(-1.0), FL(-1.0), FL(-1.0), FL(-1.0), /* tpidsr, pidsr, mpidsr, mtpdsr */
         NULL,   /*      sadirpath */
-        NULL,   /*      oplibs */
         &O,     /*      oparms */
         NULL,   /*      hostData */
         NULL,   /*      opcodeInfo  */

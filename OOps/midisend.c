@@ -28,32 +28,6 @@
 # include <fcntl.h>
 #endif
 
-#ifdef LINUX
-/*
-   This is very provisional code for Linux Csound MIDI output. Data
-   from Gabriel Maldonado's opcodes is sent to these functions and out
-   the indicated MIDI port. At this time the port is hardwired to the
-   first available MIDI port (DEVNUM 0). I'll work on activating the
-   -Q flag which should then allow the user to indicate which
-   interface he or she wishes to use.
-   DLP October, 1997
-*/
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-#include <stdarg.h>
-#include <ctype.h>
-#include <sys/ioctl.h>
-#ifdef __FreeBSD__
-#  include <sys/soundcard.h>
-#else
-#  include <linux/soundcard.h>
-#endif
-
-#define MIDI_DEV "/dev/sequencer"
-#define DEVNUM midi_out
-#endif
-
 /* The MIDI output requires the following functions to be defined */
 
 void send_midi_message(int /*status*/, int /*data1*/, int /*data2*/);
@@ -67,89 +41,99 @@ void poly_after_touch(int /*chan*/, int /*note_num*/, int /*value*/);
 void openMIDIout(void);
 
 #ifdef LINUX
+
+#include <unistd.h>
+#include <stdarg.h>
+#include <ctype.h>
+#include <sys/ioctl.h>
+
 #define _gotMIDIout
-void seqbuf_dump(void);
 
-int seqfd;
-SEQ_DEFINEBUF(128);
-
-unsigned char _seqbuf[];
-int _seqbuflen;
-int _seqbufptr;
-
-void seqbuf_dump(void)
-{
-    if (_seqbufptr)
-      if (write (seqfd, _seqbuf, _seqbufptr) == -1)
-        perror(Str("Can't write to MIDI device"));
-    _seqbufptr = 0;
-}
+static int seqfd = -1;
+static unsigned char _seqbuf[4];
 
 void send_midi_message(int status, int data1, int data2)
 {
-    SEQ_MIDIOUT(DEVNUM,status);
-    SEQ_MIDIOUT(DEVNUM,data1);
-    SEQ_MIDIOUT(DEVNUM,data2);
-    seqbuf_dump();
+    if (seqfd < 0)
+      return;
+    _seqbuf[0] = (unsigned char) status;
+    _seqbuf[1] = (unsigned char) data1;
+    _seqbuf[2] = (unsigned char) data2;
+    write(seqfd, (void*) &(_seqbuf[0]), (size_t) 3);
 }
 
 void note_on(int chan, int num, int vel)
 {
-    SEQ_MIDIOUT(DEVNUM,MD_NOTEON+chan);
-    SEQ_MIDIOUT(DEVNUM,num);
-    SEQ_MIDIOUT(DEVNUM,vel);
-    seqbuf_dump();
+    if (seqfd < 0)
+      return;
+    _seqbuf[0] = (unsigned char) (MD_NOTEON + chan);
+    _seqbuf[1] = (unsigned char) num;
+    _seqbuf[2] = (unsigned char) vel;
+    write(seqfd, (void*) &(_seqbuf[0]), (size_t) 3);
 }
 
 void note_off(int chan, int num, int vel)
 {
-    SEQ_MIDIOUT(DEVNUM,MD_NOTEOFF+chan);
-    SEQ_MIDIOUT(DEVNUM,num);
-    SEQ_MIDIOUT(DEVNUM,vel);
-    seqbuf_dump();
+    if (seqfd < 0)
+      return;
+    _seqbuf[0] = (unsigned char) (MD_NOTEOFF + chan);
+    _seqbuf[1] = (unsigned char) num;
+    _seqbuf[2] = (unsigned char) vel;
+    write(seqfd, (void*) &(_seqbuf[0]), (size_t) 3);
 }
 
 void control_change(int chan, int num, int value)
 {
-    SEQ_MIDIOUT(DEVNUM,MD_CNTRLCHG+chan);
-    SEQ_MIDIOUT(DEVNUM,num);
-    SEQ_MIDIOUT(DEVNUM,value);
-    seqbuf_dump();
+    if (seqfd < 0)
+      return;
+    _seqbuf[0] = (unsigned char) (MD_CNTRLCHG + chan);
+    _seqbuf[1] = (unsigned char) num;
+    _seqbuf[2] = (unsigned char) value;
+    write(seqfd, (void*) &(_seqbuf[0]), (size_t) 3);
 }
 
 void after_touch(int chan, int value)
 {
-    SEQ_MIDIOUT(DEVNUM,MD_CHANPRESS+chan);
-    SEQ_MIDIOUT(DEVNUM,value);
-    seqbuf_dump();
+    if (seqfd < 0)
+      return;
+    _seqbuf[0] = (unsigned char) (MD_CHANPRESS + chan);
+    _seqbuf[1] = (unsigned char) value;
+    write(seqfd, (void*) &(_seqbuf[0]), (size_t) 2);
 }
 
 void program_change(int chan, int num)
 {
-    SEQ_MIDIOUT(DEVNUM,MD_PGMCHG+chan);
-    SEQ_MIDIOUT(DEVNUM,num);
-    seqbuf_dump();
+    if (seqfd < 0)
+      return;
+    _seqbuf[0] = (unsigned char) (MD_PGMCHG + chan);
+    _seqbuf[1] = (unsigned char) num;
+    write(seqfd, (void*) &(_seqbuf[0]), (size_t) 2);
 }
 
 void pitch_bend(int chan, int lsb, int msb)
 {
-    SEQ_MIDIOUT(DEVNUM,MD_PTCHBENDCHG+chan);
-    SEQ_MIDIOUT(DEVNUM,lsb);
-    SEQ_MIDIOUT(DEVNUM,msb);
-    seqbuf_dump();
+    if (seqfd < 0)
+      return;
+    _seqbuf[0] = (unsigned char) (MD_PTCHBENDCHG + chan);
+    _seqbuf[1] = (unsigned char) lsb;
+    _seqbuf[2] = (unsigned char) msb;
+    write(seqfd, (void*) &(_seqbuf[0]), (size_t) 3);
 }
 
 void poly_after_touch(int chan, int note_num, int value)
 {
-    SEQ_MIDIOUT(DEVNUM,MD_POLYAFTER+chan);
-    SEQ_MIDIOUT(DEVNUM,note_num);
-    SEQ_MIDIOUT(DEVNUM,value);
-    seqbuf_dump();
+    if (seqfd < 0)
+      return;
+    _seqbuf[0] = (unsigned char) (MD_POLYAFTER + chan);
+    _seqbuf[1] = (unsigned char) note_num;
+    _seqbuf[2] = (unsigned char) value;
+    write(seqfd, (void*) &(_seqbuf[0]), (size_t) 3);
 }
 
-void openMIDIout()
+void openMIDIout(void)
 {
-    if (MIDIoutDONE==0 && (seqfd = open(MIDI_DEV, O_RDWR)) == -1)
+    if (MIDIoutDONE == 0 &&
+        (seqfd = open(O.Midioutname, O_RDWR | O_NONBLOCK)) == -1)
       printf(Str("Can't open MIDI device\n"));
     MIDIoutDONE = 1;
 }

@@ -81,6 +81,9 @@ static  const   char    *ErrCodeToStr_Name =  "csoundModuleErrorCodeToString";
 
 /* environment variable storing path to plugin libraries */
 static  const   char    *plugindir_envvar =     "OPCODEDIR";
+#ifdef USE_DOUBLE
+static  const   char    *plugindir64_envvar =   "OPCODEDIR64";
+#endif
 /* default directory to load plugins from if environment variable is not set */
 static  const   char    *default_plugin_dir =   ".";
 /* name of dynamic variable storing plugin database */
@@ -108,12 +111,22 @@ static int build_module_database(void *csound)
     void            *h, *sym;
     int             is_library, len;
     /* open plugin directory */
-    if (csoundGetEnv(plugindir_envvar) != NULL)
-      dname = (char*) csoundGetEnv(plugindir_envvar);
-    else if (getenv(plugindir_envvar) != NULL)
-      dname = (char*) getenv(plugindir_envvar);
-    else
-      dname = (char*) default_plugin_dir;
+#ifdef USE_DOUBLE
+    if (csoundGetEnv(plugindir64_envvar) != NULL)
+      dname = (char*) csoundGetEnv(plugindir64_envvar);
+    else if (getenv(plugindir64_envvar) != NULL)
+      dname = (char*) getenv(plugindir64_envvar);
+    else {
+#endif
+      if (csoundGetEnv(plugindir_envvar) != NULL)
+        dname = (char*) csoundGetEnv(plugindir_envvar);
+      else if (getenv(plugindir_envvar) != NULL)
+        dname = (char*) getenv(plugindir_envvar);
+      else
+        dname = (char*) default_plugin_dir;
+#ifdef USE_DOUBLE
+    }
+#endif
     dir = opendir(dname);
     if (dir == (DIR*) NULL) {
       err_printf(Str("Error opening plugin directory '%s': %s\n"),

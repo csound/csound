@@ -46,172 +46,162 @@ extern unsigned char mytitle[];
 extern Boolean util_perf;
 extern unsigned short pollEventRate;
 
-static char *foo;
 static char listing_file[PATH_LEN];
 static int  vbuf;
 static int csNGraphs;
 static int rescale24 = 0;
-static MYFLT temp;
 #endif
 
 #ifdef LINUX
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 extern void openMIDIout(void);
 #endif
-
-static char outformch;
-static int     stdinassgn = 0;
 
 #define FIND(MSG)   if (*s == '\0')  \
                       if (!(--argc) || (((s = *++argv) != NULL) && *s == '-')) \
                          dieu(MSG);
 
-/* alphabetically, so i dont have to hunt for a letter next time...
-**********************************************************************
--a alaw sound samples *************NOT NEEDED***************
--A create an AIFF format output soundfile
--b N sample frames (or -kprds) per software sound I/O buffer
--B N samples per hardware sound I/O buffer
--c 8-bit signed_char sound samples
--C use Cscore processing of scorefile
--d suppress all displays
--D defer GEN01 soundfile loads until performance time
--e Rescale floats as shorts to max amplitude
--E (was -G) N  Number of tables in graphics window
--f float sound samples
--F fnam read MIDIfile event stream from file 'fnam'
--g suppress graphics, use ascii displays
--G suppress graphics, use Postscript displays
--h no header on output soundfile
--H N print a heartbeat style 1, 2 or 3 at each soundfile write
--i fnam sound input filename
--I I-time only orch run
--j Used in localisation
--J create an IRCAM format output soundfile
--k N orchestra krate override
--K No Peak Chunks
--l long_int sound samples
--L dnam read Line-oriented realtime score events from device 'dnam'
--m N tty message level. Sum of: 1=note amps, 2=out-of-range msg, 4=warnings
--M dnam read MIDI realtime events from device 'dnam'
--n no sound onto disk
--N notify (ring the bell) when score or miditrack is done
--o fnam sound output filename
--O fnam log output to file
--p Play after rendering
--P N Poll Events Every N Buffer Writes (Mac)
--q fnam  Sound Sample-In Directory
--Q fnam  Analysis Directory (Macintosh)
-MIDI output device (Linux, BeOS)
--r N orchestra srate override
--R continually rewrite header while writing soundfile (WAV/AIFF)
--s short_int sound samples
--S *** was *** score is in Scot format
--t N use uninterpreted beats of the score, initially at tempo N
--t0 Use score.srt rather than a temporary
--T terminate the performance when miditrack is done
--u ulaw sound samples ******* NOT NEEDED *****************
--U unam run utility program unam
--v verbose orch translation
--V N  Number of chars in screen buffer for output window
--w   Record and Save MIDI input to a file
--W create a WAV format output soundfile
--x fnam extract from score.srt using extract file 'fnam'
--X fnam  Sound File Directory
--y N  Enables Profile Display at rate N in seconds,
-or for negative N, at -N kperiods
--Y N  Enables Progress Display at rate N seconds,
-or for negative N, at -N kperiods
--z List opcodes in this version
--Z Dither output
---sched real-time scheduling and memory lock (LINUX only)
---sched=N set specified scheduling priority, and lock memory (LINUX only)
--3 24bit samples
--8 8-bit unsigned_char sound samples  J. Mohr 1995 Oct 17
-*/
+#define STDINASSIGN_SNDFILE     1
+#define STDINASSIGN_LINEIN      2
+#define STDINASSIGN_MIDIFILE    4
+#define STDINASSIGN_MIDIDEV     8
+
+#define STDOUTASSIGN_SNDFILE    1
+#define STDOUTASSIGN_MIDIOUT    2
+
+/* IV - Feb 19 2005 */
+
+static void set_stdin_assign(void *csound, int type, int state)
+{
+    int *n;
+    n = (int*) csoundQueryGlobalVariable(csound, "::argdecode::stdinassign");
+    if (n == NULL) {
+      csoundCreateGlobalVariable(csound,
+                                 "::argdecode::stdinassign", sizeof(int));
+      n = (int*) csoundQueryGlobalVariable(csound, "::argdecode::stdinassign");
+    }
+    if (state)
+      *n |= type;
+    else
+      *n &= (~type);
+}
+
+static void set_stdout_assign(void *csound, int type, int state)
+{
+    int *n;
+    n = (int*) csoundQueryGlobalVariable(csound, "::argdecode::stdoutassign");
+    if (n == NULL) {
+      csoundCreateGlobalVariable(csound,
+                                 "::argdecode::stdoutassign", sizeof(int));
+      n = (int*) csoundQueryGlobalVariable(csound, "::argdecode::stdoutassign");
+    }
+    if (state)
+      *n |= type;
+    else
+      *n &= (~type);
+}
+
+/* IV - Feb 19 2005 */
+static const char *shortUsageList[] = {
+    "-U unam\trun utility program unam",
+    "-C\tuse Cscore processing of scorefile",
+    "-I\tI-time only orch run",
+    "-n\tno sound onto disk",
+    "-i fnam\tsound input filename",
+    "-o fnam\tsound output filename",
+    "-b N\tsample frames (or -kprds) per software sound I/O buffer",
+    "-B N\tsamples per hardware sound I/O buffer",
+    "-A\tcreate an AIFF format output soundfile",
+    "-W\tcreate a WAV format output soundfile",
+    "-J\tcreate an IRCAM format output soundfile",
+    "-h\tno header on output soundfile",
+    "-c\t8-bit signed_char sound samples",
+#ifdef never
+    "-a\talaw sound samples",
+#endif
+    "-8\t8-bit unsigned_char sound samples",
+    "-u\tulaw sound samples",
+    "-s\tshort_int sound samples",
+    "-l\tlong_int sound samples",
+    "-f\tfloat sound samples",
+    "-3\t24bit sound samples",
+    "-r N\torchestra srate override",
+    "-k N\torchestra krate override",
+    "-K\tDo not generate PEAK chunks",
+    "-v\tverbose orch translation",
+    "-m N\ttty message level. Sum of:",
+    "\t\t1=note amps, 2=out-of-range msg, 4=warnings",
+    "\t\t0/32/64/96=note amp format (raw,dB,colors)",
+    "\t\t128=print benchmark information",
+    "-d\tsuppress all displays",
+    "-g\tsuppress graphics, use ascii displays",
+    "-G\tsuppress graphics, use Postscript displays",
+    "-x fnam\textract from score.srt using extract file 'fnam'",
+    "-t N\tuse uninterpreted beats of the score, initially at tempo N",
+    "-t 0\tuse score.srt for sorted score rather than a temporary",
+    "-L dnam\tread Line-oriented realtime score events from device 'dnam'",
+    "-M dnam\tread MIDI realtime events from device 'dnam'",
+    "-F fnam\tread MIDIfile event stream from file 'fnam'",
+/*  "-P N\tMIDI sustain pedal threshold (0 - 128)", */
+    "-R\tcontinually rewrite header while writing soundfile (WAV/AIFF)",
+    "-H#\tprint a heartbeat style 1, 2 or 3 at each soundfile write",
+    "-N\tnotify (ring the bell) when score or miditrack is done",
+    "-T\tterminate the performance when miditrack is done",
+    "-D\tdefer GEN01 soundfile loads until performance time",
+#if defined(LINUX) || defined(__BEOS__)     /* Jonathan Mohr  1995 Oct 17 */
+    "-Q dnam\tselect MIDI output device",
+#endif
+    "-z\tList opcodes in this version",
+    "-Z\tDither output",
+#if defined(LINUX)
+    "--sched     set real-time priority and lock memory",
+    "            (requires -d and real time audio (-iadc/-odac))",
+    "--sched=N   set specified scheduling priority, and lock memory",
+    "            (requires -d and real time audio (-iadc/-odac))",
+#endif
+#ifdef mills_macintosh
+    "_____________Macintosh Command Line Flags_________________",
+    "-X fnam\t Sound File Directory",
+    "-q fnam\t Sound Sample-In Directory",
+    "-Q fnam\t Analysis Directory",
+    "-V N\t Number of chars in screen buffer for output window",
+    "-E N\t Number of tables in graphics window",
+    "-p\t\t Play after rendering",
+    "-e\t\t Rescaled floats as shorts to max amplitude",
+    "-w\t\t Record and Save MIDI input to a file",
+    "-y N\t Enables Progress Display at rate N seconds,",
+    "\t\t\tor for negative N, at -N kperiods",
+    "-Y N\t Enables Profile Display at rate N in seconds,",
+    "\t\t\tor for negative N, at -N kperiods",
+    "-P N\t Poll Events Every N Buffer Writes",
+    "__________________________________________________________",
+#endif
+    NULL
+};
+
+/* IV - Feb 19 2005 */
+void print_short_usage(void *csound)
+{
+    ENVIRON *p;
+    char    buf[256];
+    int     i;
+    p = (ENVIRON*) csound;
+    i = -1;
+    while (shortUsageList[++i] != NULL) {
+      sprintf(buf, "%s\n", shortUsageList[i]);
+      p->Message(csound, Str(buf));
+    }
+    p->Message(csound, Str("flag defaults: csound -s -otest -b%d -B%d -m7\n"),
+                       IOBUFSAMPS, IODACSAMPS);
+}
 
 void usage(void)
 {
-  err_printf(Str("Usage:\tcsound [-flags] orchfile scorefile\n"));
-  err_printf(Str("Legal flags are:\n"));
-  err_printf(Str("-U unam\trun utility program unam\n"));
-  err_printf(Str("-C\tuse Cscore processing of scorefile\n"));
-  err_printf(Str("-I\tI-time only orch run\n"));
-  err_printf(Str("-n\tno sound onto disk\n"));
-  err_printf(Str("-i fnam\tsound input filename\n"));
-  err_printf(Str("-o fnam\tsound output filename\n"));
-  err_printf(Str("-b N\tsample frames (or -kprds) per software sound I/O buffer\n"));
-  err_printf(Str("-B N\tsamples per hardware sound I/O buffer\n"));
-  err_printf(Str("-A\tcreate an AIFF format output soundfile\n"));
-  err_printf(Str("-W\tcreate a WAV format output soundfile\n"));
-  err_printf(Str("-J\tcreate an IRCAM format output soundfile\n"));
-  err_printf(Str("-h\tno header on output soundfile\n"));
-  err_printf(Str("-c\t8-bit signed_char sound samples\n"));
-#ifdef never
-  err_printf(Str("-a\talaw sound samples\n"));
-#endif
-  err_printf(Str("-8\t8-bit unsigned_char sound samples\n")); /* J. Mohr 1995 Oct 17 */
-  err_printf(Str("-u\tulaw sound samples\n"));
-  err_printf(Str("-s\tshort_int sound samples\n"));
-  err_printf(Str("-l\tlong_int sound samples\n"));
-  err_printf(Str("-f\tfloat sound samples\n"));
-  err_printf(Str("-3\t24bit sound samples\n"));
-  err_printf(Str("-r N\torchestra srate override\n"));
-  err_printf(Str("-k N\torchestra krate override\n"));
-  err_printf(Str("-K\tDo not generate PEAK chunks\n"));
-  err_printf(Str("-v\tverbose orch translation\n"));
-  err_printf(Str("-m N\ttty message level. Sum of: 1=note amps, 2=out-of-range msg, 4=warnings\n"));
-  err_printf(Str("-d\tsuppress all displays\n"));
-  err_printf(Str("-g\tsuppress graphics, use ascii displays\n"));
-  err_printf(Str("-G\tsuppress graphics, use Postscript displays\n"));
-  err_printf(Str("-x fnam\textract from score.srt using extract file 'fnam'\n"));
-  err_printf(Str("-t N\tuse uninterpreted beats of the score, initially at tempo N\n"));
-  err_printf(Str("-t 0\tuse score.srt for sorted score rather than a temporary\n"));
-  err_printf(Str("-L dnam\tread Line-oriented realtime score events from device 'dnam'\n"));
-  err_printf(Str("-M dnam\tread MIDI realtime events from device 'dnam'\n"));
-  err_printf(Str("-F fnam\tread MIDIfile event stream from file 'fnam'\n"));
-  /* err_printf(Str("-P N\tMIDI sustain pedal threshold (0 - 128)\n")); */
-  err_printf(Str("-R\tcontinually rewrite header while writing soundfile (WAV/AIFF)\n"));
-  err_printf(Str("-H#\tprint a heartbeat style 1, 2 or 3 at each soundfile write\n"));
-  err_printf(Str("-N\tnotify (ring the bell) when score or miditrack is done\n"));
-  err_printf(Str("-T\tterminate the performance when miditrack is done\n"));
-  err_printf(Str("-D\tdefer GEN01 soundfile loads until performance time\n"));
-#if defined(LINUX) || defined(__BEOS__)     /* Jonathan Mohr  1995 Oct 17 */
-  err_printf(Str("-Q dnam\tselect MIDI output device\n"));
-#endif
-  err_printf(Str("-z\tList opcodes in this version\n"));
-  err_printf(Str("-Z\tDither output\n"));
-#if defined(LINUX)
-  err_printf(Str("--sched     set real-time priority and lock memory\n"));
-  err_printf(Str("            (requires -d and real time audio "
-                 "(-iadc/-odac))\n"));
-  err_printf(Str("--sched=N   set specified scheduling priority, and "
-                 "lock memory\n"));
-  err_printf(Str("            (requires -d and real time audio "
-                 "(-iadc/-odac))\n"));
-#endif
-#ifdef mills_macintosh
-  err_printf(Str("_____________Macintosh Command Line Flags_________________\n"));
-  err_printf(Str("-X fnam\t Sound File Directory\n"));
-  err_printf(Str("-q fnam\t Sound Sample-In Directory\n"));
-  err_printf(Str("-Q fnam\t Analysis Directory\n"));
-  err_printf(Str("-V N\t Number of chars in screen buffer for output window\n"));
-  err_printf(Str("-E N\t Number of tables in graphics window\n"));
-  err_printf(Str("-p\t\t Play after rendering\n"));
-  err_printf(Str("-e\t\t Rescaled floats as shorts to max amplitude\n"));
-  err_printf(Str("-w\t\t Record and Save MIDI input to a file\n"));
-  err_printf(Str("-y N\t Enables Progress Display at rate N seconds,\n"));
-  err_printf(Str("\t\t\tor for negative N, at -N kperiods\n"));
-  err_printf(Str("-Y N\t Enables Profile Display at rate N in seconds,\n"));
-  err_printf(Str("\t\t\tor for negative N, at -N kperiods\n"));
-  err_printf("-P N\t Poll Events Every N Buffer Writes\n");
-  err_printf(Str("__________________________________________________________\n"));
-#endif
-  err_printf(Str("flag defaults: csound -s -otest -b%d -B%d -m7\n"),
-             IOBUFSAMPS, IODACSAMPS);
-  longjmp(cenviron.exitjmp_,1);
+    csoundMessage(&cenviron,
+                  Str("Usage:\tcsound [-flags] orchfile scorefile\n"));
+    csoundMessage(&cenviron, Str("Legal flags are:\n"));
+    print_short_usage(&cenviron);
+    longjmp(cenviron.exitjmp_,1);
 }
 
 static void longusage(void *csound)
@@ -291,109 +281,18 @@ static void longusage(void *csound)
              "--save-midi\tRecord and Save MIDI input to a file\n"
 #endif
              );
-  /* IV - Feb 01 2005 */
-  dump_cfg_variables(csound);
-  err_printf(Str("\nShort form:\n"));
-  err_printf(Str("-U unam\trun utility program unam\n"));
-  err_printf(Str("-C\tuse Cscore processing of scorefile\n"));
-  err_printf(Str("-I\tI-time only orch run\n"));
-  err_printf(Str("-n\tno sound onto disk\n"));
-  err_printf(Str("-i fnam\tsound input filename\n"));
-  err_printf(Str("-o fnam\tsound output filename\n"));
-  err_printf(Str("-b N\tsample frames (or -kprds) per software "
-                 "sound I/O buffer\n"));
-  err_printf(Str("-B N\tsamples per hardware sound I/O buffer\n"));
-  err_printf(Str("-A\tcreate an AIFF format output soundfile\n"));
-  err_printf(Str("-W\tcreate a WAV format output soundfile\n"));
-  err_printf(Str("-J\tcreate an IRCAM format output soundfile\n"));
-  err_printf(Str("-h\tno header on output soundfile\n"));
-  err_printf(Str("-c\t8-bit signed_char sound samples\n"));
-  err_printf(Str("-a\talaw sound samples\n"));
-  /* J. Mohr 1995 Oct 17 */
-  err_printf(Str("-8\t8-bit unsigned_char sound samples\n"));
-  err_printf(Str("-u\tulaw sound samples\n"));
-  err_printf(Str("-s\tshort_int sound samples\n"));
-  err_printf(Str("-l\tlong_int sound samples\n"));
-  err_printf(Str("-f\tfloat sound samples\n"));
-  err_printf(Str("-3\t24bit sound samples\n"));
-  err_printf(Str("-r N\torchestra srate override\n"));
-  err_printf(Str("-k N\torchestra krate override\n"));
-  err_printf(Str("-K\tDo not generate PEAK chunks\n"));
-  err_printf(Str("-v\tverbose orch translation\n"));
-  err_printf(Str("-m N\ttty message level. Sum of: 1=note amps, "
-                 "2=out-of-range msg, 4=warnings\n"));
-  err_printf(Str("-d\tsuppress all displays\n"));
-  err_printf(Str("-g\tsuppress graphics, use ascii displays\n"));
-  err_printf(Str("-G\tsuppress graphics, use Postscript displays\n"));
-  err_printf(Str(
-                 "-x fnam\textract from score.srt using extract file 'fnam'\n"));
-  err_printf(Str("-t N\tuse uninterpreted beats of the score, "
-                 "initially at tempo N\n"));
-  err_printf(Str("-t 0\tuse score.srt for sorted score rather "
-                 "than a temporary\n"));
-  err_printf(Str("-L dnam\tread Line-oriented realtime score "
-                 "events from device 'dnam'\n"));
-  err_printf(Str(
-                 "-M dnam\tread MIDI realtime events from device 'dnam'\n"));
-  err_printf(Str("-F fnam\tread MIDIfile event stream from "
-                 "file 'fnam'\n"));
-  /* err_printf(Str("-P N\tMIDI sustain pedal threshold (0 - 128)\n")); */
-  err_printf(Str("-R\tcontinually rewrite header while writing "
-                 "soundfile (WAV/AIFF)\n"));
-  err_printf(Str("-H#\tprint a heartbeat style 1, 2 or 3 at each "
-                 "soundfile write\n"));
-  err_printf(Str("-N\tnotify (ring the bell) when score or "
-                 "miditrack is done\n"));
-  err_printf(Str(
-                 "-T\tterminate the performance when miditrack is done\n"));
-  err_printf(Str(
-                 "-D\tdefer GEN01 soundfile loads until performance time\n"));
-#if defined(LINUX) || defined(__BEOS__)     /* Jonathan Mohr  1995 Oct 17 */
-  err_printf(Str("-Q dnam\tselect MIDI output device\n"));
-#endif
-  err_printf(Str("-z\tList opcodes in this version\n"));
-  err_printf(Str("-Z\tDither output\n"));
-  err_printf(Str("-- fnam\tlog output to file\n"));
-#if defined(LINUX)
-  err_printf(Str("--sched     set real-time priority and lock memory\n"));
-  err_printf(Str("            (requires -d and real time audio "
-                 "(-iadc/-odac))\n"));
-  err_printf(Str("--sched=N   set specified scheduling priority, and "
-                 "lock memory\n"));
-  err_printf(Str("            (requires -d and real time audio "
-                 "(-iadc/-odac))\n"));
-#endif
-#ifdef mills_macintosh
-  err_printf(Str(
-                 "_____________Macintosh Command Line Flags_____________\n"));
-  /* err_printf(Str("-- fnam\t Redirect output to listing file 'fnam'\n")); */
-  err_printf(Str("-X fnam\t Sound File Directory\n"));
-  err_printf(Str("-q fnam\t Sound Sample-In Directory\n"));
-  err_printf(Str("-Q fnam\t Analysis Directory\n"));
-  err_printf(Str("-V N\t Number of chars in screen buffer for output window\n"));
-  err_printf(Str("-E N\t Number of tables in graphics window\n"));
-  err_printf(Str("-p\t\t Play after rendering\n"));
-  err_printf(Str("-e\t\t Rescaled floats as shorts to max amplitude\n"));
-  err_printf(Str("-w\t\t Record and Save MIDI input to a file\n"));
-  err_printf(Str("-y N\t Enables Progress Display at rate N seconds,\n"));
-  err_printf(Str("\t\t\tor for negative N, at -N kperiods\n"));
-  err_printf(Str("-Y N\t Enables Profile Display at rate N in seconds,\n"));
-  err_printf(Str("\t\t\tor for negative N, at -N kperiods\n"));
-  err_printf(Str("-P N\t Poll Events Every N Buffer Writes\n"));
-  err_printf(Str("______________________________________________________\n"));
-#endif
-  err_printf(Str("flag defaults: csound -s -otest -b%d -B%d -m7 -P128\n"),
-             IOBUFSAMPS, IODACSAMPS);
-  longjmp(cenviron.exitjmp_,0);
+    /* IV - Feb 19 2005 */
+    dump_cfg_variables(csound);
+    err_printf(Str("\nShort form:\n"));
+    print_short_usage(csound);
+    longjmp(((ENVIRON*) csound)->exitjmp_, CSOUND_EXITJMP_SUCCESS);
 }
 
 void dieu(char *s)
 {
-  err_printf(Str("Csound Command ERROR:\t%s\n"),s);
-  usage();
-#ifdef mills_macintosh
-  die("");
-#endif
+    err_printf(Str("Csound Command ERROR:\t%s\n"), s);
+    usage();
+    longjmp(cenviron.exitjmp_,1);
 }
 
 typedef struct {
@@ -413,14 +312,8 @@ UTILS utilities[] = {
   { NULL, NULL, 0}
 };
 
-void
-set_output_format(char c)
+void set_output_format(char c)
 {
-  if (O.outformat && (O.msglevel & WARNMSG)) {
-    printf(Str("WARNING: Sound format -%c has been overruled by -%c\n"),
-           outformch, c);
-  }
-
   switch (c) {
   case 'a':
     O.outformat = AE_ALAW;    /* a-law soundfile */
@@ -461,8 +354,6 @@ set_output_format(char c)
   default:
     return; /* do nothing */
   };
-
-  outformch = c;
 }
 
 typedef struct  {
@@ -517,21 +408,13 @@ static int decode_long(void *csound,
     }
   /* -A */
   else if (!(strcmp (s, "aiff"))) {
-    if (O.filetyp != TYP_IRCAM) {
-      if (envoutyp == NULL) goto outtyp;
-      if (O.msglevel & WARNMSG)
-        printf(Str("WARNING: --aiff overriding local default out\n"));
-    }
+    O.sfheader = 1;
     O.filetyp = TYP_AIFF;     /* AIFF output request*/
     return 1;
   }
   else if (!(strcmp (s, "au"))) {
-    if (O.filetyp != TYP_IRCAM) {
-      if (envoutyp == NULL) goto outtyp;
-      if (O.msglevel & WARNMSG)
-        printf(Str("WARNING: -au overriding local default out\n"));
-    }
-    O.filetyp = TYP_AU;     /* AIFF output request*/
+    O.sfheader = 1;
+    O.filetyp = TYP_AU;       /* AU output request*/
     return 1;
   }
   else if (!(strncmp (s, "iobufsamps=", 11))) {
@@ -595,13 +478,17 @@ static int decode_long(void *csound,
   else if (!(strncmp (s, "midifile=", 9))) {
     s += 9;
     if (*s == '\0') dieu(Str("no midifile name"));
-    O.FMidiname = s;    /* Midifile name */
+    O.FMidiname = s;            /* Midifile name */
     if (!strcmp(O.FMidiname,"stdin")) {
-      if (stdinassgn)
-        dieu(Str("-F: stdin previously assigned"));
-      stdinassgn = 1;
+      set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
+#if defined(WIN32) || defined(mills_macintosh)
+      die(Str("-F: stdin not supported on this platform"));
+#endif
     }
-    O.FMidiin = 1;          /***************/
+    else
+      set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 0);
+    O.FMidiin = 1;              /***************/
+    return 1;
   }
   /* -g */
   else if (!(strcmp (s, "asciidisplay"))) {
@@ -639,17 +526,15 @@ static int decode_long(void *csound,
     if (*s == '\0') dieu(Str("no infilename"));
     O.infilename = s;   /* soundin name */
     if (strcmp(O.infilename,"stdout") == 0)
-      dieu(Str("input cannot be stdout"));
-    if (strcmp(O.infilename,"stdin") == 0)
-#if defined mills_macintosh || defined SYMANTEC
-      dieu(Str("stdin audio not supported"));
-#else
-    {
-      if (stdinassgn)
-        dieu(Str("-i: stdin previously assigned"));
-      stdinassgn = 1;
-    }
+      die(Str("input cannot be stdout"));
+    if (strcmp(O.infilename,"stdin") == 0) {
+      set_stdin_assign(csound, STDINASSIGN_SNDFILE, 1);
+#if defined(WIN32) || defined(mills_macintosh)
+      die(Str("stdin audio not supported"));
 #endif
+    }
+    else
+      set_stdin_assign(csound, STDINASSIGN_SNDFILE, 0);
     O.sfread = 1;
     return 1;
   }
@@ -665,12 +550,7 @@ static int decode_long(void *csound,
     -J create an IRCAM format output soundfile
   */
   else if (!(strcmp (s, "ircam"))) {
-    if (O.filetyp == TYP_AIFF ||
-        O.filetyp == TYP_WAV) {
-      if (envoutyp == NULL) goto outtyp;
-      if (O.msglevel & WARNMSG)
-        printf(Str("WARNING: -J overriding local default AIFF/WAV out\n"));
-    }
+    O.sfheader = 1;
     O.filetyp = TYP_IRCAM;      /* IRCAM output request */
     return 1;
   }
@@ -696,16 +576,19 @@ static int decode_long(void *csound,
     if (*s=='\0') dieu(Str("no Linein score device_name"));
     O.Linename = s;
     if (!strcmp(O.Linename,"stdin")) {
-      if (stdinassgn)
-        dieu(Str("-L: stdin previously assigned"));
-      stdinassgn = 1;
+      set_stdin_assign(csound, STDINASSIGN_LINEIN, 1);
+#if defined(WIN32) || defined(mills_macintosh)
+      die(Str("-L: stdin not supported on this platform"));
+#endif
     }
+    else
+      set_stdin_assign(csound, STDINASSIGN_LINEIN, 0);
     O.Linein = 1;
     return 1;
   }
   /*
     -m N tty message level. Sum of: 1=note amps, 2=out-of-range msg, 4=warnings
-  */
+   */
   else if (!(strncmp (s, "messagelevel=", 13))) {
     s += 13;
     if (*s=='\0') dieu(Str("no message level"));
@@ -714,16 +597,19 @@ static int decode_long(void *csound,
   }
   /*
     -M dnam read MIDI realtime events from device 'dnam'
-  */
+   */
   else if (!(strncmp (s, "midi-device=", 12))) {
     s += 12;
     if (*s=='\0') dieu(Str("no midi device_name"));
     O.Midiname = s;
     if (!strcmp(O.Midiname,"stdin")) {
-      if (stdinassgn)
-        dieu(Str("-M: stdin previously assigned"));
-      stdinassgn = 1;
+      set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 1);
+#if defined(WIN32) || defined(mills_macintosh)
+      die(Str("-M: stdin not supported on this platform"));
+#endif
     }
+    else
+      set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 0);
     O.Midiin = 1;
     return 1;
   }
@@ -743,16 +629,15 @@ static int decode_long(void *csound,
     O.outfilename = s;          /* soundout name */
     if (strcmp(O.outfilename,"stdin") == 0)
       dieu(Str("-o cannot be stdin"));
-    if (strcmp(O.outfilename,"stdout") == 0)
-#if defined mac_classic || defined SYMANTEC || defined __WATCOMC__ || defined WIN32
-      dieu(Str("stdout audio not supported"));
-#else
-    {
-      if ((O.stdoutfd = dup(1)) < 0) /* redefine stdout */
-        die(Str("too many open files"));
-      dup2(2,1);                /* & send 1's to stderr */
-    }
+    if (strcmp(O.outfilename,"stdout") == 0) {
+      set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 1);
+#if defined(WIN32) || defined(mills_macintosh)
+      die(Str("stdout audio not supported"));
 #endif
+    }
+    else
+      set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 0);
+    O.sfwrite = 1;
     return 1;
   }
   else if (!(strncmp (s, "logfile=", 8))) {
@@ -796,7 +681,7 @@ static int decode_long(void *csound,
     return 1;
   }
   else if (!(strncmp (s, "utility=", 8))) {
-    int n;
+    int n, retval;
     s += 8;
     if (*s=='\0') dieu(Str("no utility name"));
 #ifdef mills_macintosh
@@ -809,8 +694,11 @@ static int decode_long(void *csound,
 #ifdef mills_macintosh
         SIOUXSetTitle((unsigned char *)CtoPstr((char *)s));
 #endif
-        (utilities[n].fn)(argc,argv);
-        return 0;
+        retval = (utilities[n].fn)(argc,argv);
+        if (!retval)
+          longjmp(((ENVIRON*) csound)->exitjmp_, CSOUND_EXITJMP_SUCCESS);
+        else
+          longjmp(((ENVIRON*) csound)->exitjmp_, abs(retval));
       }
     }
     dies(Str("-U %s not a valid UTIL name"),s);
@@ -852,49 +740,19 @@ static int decode_long(void *csound,
     strcpy(sadir_path,s);
     return 1;
   }
-  /* -y N  Enables Profile Display at rate N in seconds,
-     or for negative N, at -N kperiods
-     else if (!(strncmp(s, "progress-rate=", 14))) {
-     s += 14;
-     if (*s=='\0') dieu(Str("no Rate for Progress Display"));
-     err_printf(
-     Str("The Progress/Profile feature is currently disabled, sorry.\n"));
-     return 1;
-     }
-  */
-  /* -Y N  Enables Progress Display at rate N seconds,
-     or for negative N, at -N kperiods
-     else if (!(strncmp(s, "profile-rate=", 13))) {
-     s += 13;
-     if (*s=='\0') dieu(Str("no Rate for Profile Display"));
-     return 1;
-     }
-  */
 #endif
   else if (!(strcmp(s, "wave"))) {
-    if (O.filetyp != TYP_RAW) {
-      if (envoutyp == NULL) goto outtyp;
-      if (O.msglevel & WARNMSG)
-        printf(Str("WARNING: --wave overriding local default out\n"));
-    }
+    O.sfheader = 1;
     O.filetyp = TYP_WAV;      /* WAV output request */
     return 1;
   }
   else if (!(strcmp(s, "wave64"))) {
-    if (O.filetyp != TYP_RAW) {
-      if (envoutyp == NULL) goto outtyp;
-      if (O.msglevel & WARNMSG)
-        printf(Str("WARNING: --wave64 overriding local default out\n"));
-    }
+    O.sfheader = 1;
     O.filetyp = TYP_W64;      /* WAVE 64 output request */
     return 1;
   }
   else if (!(strcmp(s, "voc"))) {
-    if (O.filetyp != TYP_RAW) {
-      if (envoutyp == NULL) goto outtyp;
-      if (O.msglevel & WARNMSG)
-        printf(Str("WARNING: --voc overriding local default out\n"));
-    }
+    O.sfheader = 1;
     O.filetyp = TYP_VOC;      /* VOC output request */
     return 1;
   }
@@ -907,11 +765,7 @@ static int decode_long(void *csound,
     }
     create_opcodlst(&cenviron);
     list_opcodes(full);
-#ifndef mills_macintosh
-    return (0);
-#else
-    return 1;
-#endif
+    longjmp(((ENVIRON*) csound)->exitjmp_, CSOUND_EXITJMP_SUCCESS);
   }
   /* -Z */
   else if (!(strcmp (s, "dither"))) {
@@ -920,14 +774,45 @@ static int decode_long(void *csound,
   }
   else if (!(strncmp(s, "opcode-lib=", 11))) {
     s += 11;
-    cenviron.oplibs_ = s;
+    {
+      char  *oplibs;
+      int   nbytes;
+      nbytes = (int) strlen(s);
+      oplibs =
+        (char*) csoundQueryGlobalVariable(csound, "::dl_opcodes::oplibs");
+      if (oplibs == NULL) {
+        csoundCreateGlobalVariable(csound, "::dl_opcodes::oplibs", 4096);
+        oplibs =
+          (char*) csoundQueryGlobalVariable(csound, "::dl_opcodes::oplibs");
+        if (oplibs == NULL) {
+          csoundMessage(csound, "argdecode(): memory allocation failure\n");
+          return 0;
+        }
+      }
+      else
+        nbytes += ((int) strlen(oplibs) + 1);
+      if (nbytes >= 4096) {
+        csoundMessage(csound, "argdecode(): opcode library list too long\n");
+        return 0;
+      }
+      if (oplibs[0] == '\0') {
+        /* start new library list */
+        strcpy(oplibs, s);
+      }
+      else {
+        /* append to existing list */
+        strcat(oplibs, ",");
+        strcat(oplibs, s);
+      }
+    }
     return 1;
   }
   else if (!(strcmp(s ,"help"))) {
     longusage(csound);
-    return 0;
+    longjmp(((ENVIRON*) csound)->exitjmp_, CSOUND_EXITJMP_SUCCESS);
   }
- outtyp:
+
+  csoundMessage(csound, Str("unknown long option: '--%s'\n"), s);
   return (0);
 }
 
@@ -946,7 +831,7 @@ int argdecode(void *csound, int argc, char **argv_, char *envoutyp)
       nbytes = (argc + 1) * (int) sizeof(char*);
       for (i = 0; i <= argc; i++)
         nbytes += ((int) strlen(argv_[i]) + 1);
-      p1 = (char*) mmalloc(csound, nbytes);     /* will be freed by all_free() */
+      p1 = (char*) mmalloc(csound, nbytes);   /* will be freed by all_free() */
       p2 = (char*) p1 + ((int) sizeof(char*) * (argc + 1));
       argv = (char**) p1;
       for (i = 0; i <= argc; i++) {
@@ -971,16 +856,19 @@ int argdecode(void *csound, int argc, char **argv_, char *envoutyp)
 #endif
           for (n=0; utilities[n].util!=NULL; n++) {
             if (strcmp(s,utilities[n].util) == 0) {
+              int retval;
               printf(Str(utilities[n].string));
 #ifdef mills_macintosh
               SIOUXSetTitle((unsigned char *)CtoPstr((char *)s));
 #endif
-              (utilities[n].fn)(argc,argv);
-              goto fnd;
+              retval = (utilities[n].fn)(argc,argv);
+              if (!retval)
+                longjmp(((ENVIRON*) csound)->exitjmp_, CSOUND_EXITJMP_SUCCESS);
+              else
+                longjmp(((ENVIRON*) csound)->exitjmp_, abs(retval));
             }
           }
           dies(Str("-U %s not a valid UTIL name"),s);
-        fnd:
           return(0);
           /********** commandline flags only for mac version***************/
           /*********************  matt 5/26/96 ****************************/
@@ -1048,35 +936,32 @@ int argdecode(void *csound, int argc, char **argv_, char *envoutyp)
           O.infilename = s;         /* soundin name */
           s += (int) strlen(s);
           if (strcmp(O.infilename,"stdout") == 0)
-            dieu(Str("-i cannot be stdout"));
-          if (strcmp(O.infilename,"stdin") == 0)
-#if defined mills_macintosh || defined SYMANTEC
-            dieu(Str("stdin audio not supported"));
-#else
-          {
-            if (stdinassgn)
-              dieu(Str("-i: stdin previously assigned"));
-            stdinassgn = 1;
-          }
+            die(Str("input cannot be stdout"));
+          if (strcmp(O.infilename,"stdin") == 0) {
+            set_stdin_assign(csound, STDINASSIGN_SNDFILE, 1);
+#if defined(WIN32) || defined(mills_macintosh)
+            die(Str("stdin audio not supported"));
 #endif
+          }
+          else
+            set_stdin_assign(csound, STDINASSIGN_SNDFILE, 0);
           O.sfread = 1;
           break;
         case 'o':
           FIND(Str("no outfilename"));
-          O.outfilename = s;                /* soundout name */
+          O.outfilename = s;          /* soundout name */
           s += (int) strlen(s);
           if (strcmp(O.outfilename,"stdin") == 0)
             dieu(Str("-o cannot be stdin"));
-          if (strcmp(O.outfilename,"stdout") == 0)
-#if defined mac_classic || defined SYMANTEC || defined BCC || defined __WATCOMC__ || defined WIN32
-            dieu(Str("stdout audio not supported"));
-#else
-          {
-            if ((O.stdoutfd = dup(1)) < 0) /* redefine stdout */
-              die(Str("too many open files"));
-            dup2(2,1);                /* & send 1's to stderr */
-          }
+          if (strcmp(O.outfilename,"stdout") == 0) {
+            set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 1);
+#if defined(WIN32) || defined(mills_macintosh)
+            die(Str("stdout audio not supported"));
 #endif
+          }
+          else
+            set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 0);
+          O.sfwrite = 1;
           break;
         case 'b':
           FIND(Str("no iobufsamps"));
@@ -1092,28 +977,15 @@ int argdecode(void *csound, int argc, char **argv_, char *envoutyp)
           s += n;
           break;
         case 'A':
-          if (O.filetyp == TYP_WAV) {
-            if (envoutyp == NULL) goto outtyp;
-            if (O.msglevel & WARNMSG)
-              printf(Str("WARNING: -A overriding local default WAV out\n"));
-          }
+          O.sfheader = 1;
           O.filetyp = TYP_AIFF;     /* AIFF output request*/
           break;
         case 'J':
-          if (O.filetyp == TYP_AIFF ||
-              O.filetyp == TYP_WAV) {
-            if (envoutyp == NULL) goto outtyp;
-            if (O.msglevel & WARNMSG)
-              printf(Str("WARNING: -J overriding local default AIFF/WAV out\n"));
-          }
+          O.sfheader = 1;
           O.filetyp = TYP_IRCAM;      /* IRCAM output request */
           break;
         case 'W':
-          if (O.filetyp == TYP_AIFF) {
-            if (envoutyp == NULL) goto outtyp;
-            if (O.msglevel & WARNMSG)
-              printf(Str("WARNING: -W overriding local default AIFF out\n"));
-          }
+          O.sfheader = 1;
           O.filetyp = TYP_WAV;      /* WAV output request */
           break;
         case 'h':
@@ -1186,10 +1058,13 @@ int argdecode(void *csound, int argc, char **argv_, char *envoutyp)
           O.Linename = s;           /* Linein device name */
           s += (int) strlen(s);
           if (!strcmp(O.Linename,"stdin")) {
-            if (stdinassgn)
-              dieu(Str("-L: stdin previously assigned"));
-            stdinassgn = 1;
+            set_stdin_assign(csound, STDINASSIGN_LINEIN, 1);
+#if defined(WIN32) || defined(mills_macintosh)
+            die(Str("-L: stdin not supported on this platform"));
+#endif
           }
+          else
+            set_stdin_assign(csound, STDINASSIGN_LINEIN, 0);
           O.Linein = 1;
           break;
         case 'M':
@@ -1197,10 +1072,13 @@ int argdecode(void *csound, int argc, char **argv_, char *envoutyp)
           O.Midiname = s;           /* Midi device name */
           s += (int) strlen(s);
           if (!strcmp(O.Midiname,"stdin")) {
-            if (stdinassgn)
-              dieu(Str("-M: stdin previously assigned"));
-            stdinassgn = 1;
+            set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 1);
+#if defined(WIN32) || defined(mills_macintosh)
+            die(Str("-M: stdin not supported on this platform"));
+#endif
           }
+          else
+            set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 0);
           O.Midiin = 1;
           break;
         case 'F':
@@ -1208,26 +1086,18 @@ int argdecode(void *csound, int argc, char **argv_, char *envoutyp)
           O.FMidiname = s;          /* Midifile name */
           s += (int) strlen(s);
           if (!strcmp(O.FMidiname,"stdin")) {
-            if (stdinassgn)
-              dieu(Str("-F: stdin previously assigned"));
-            stdinassgn = 1;
+            set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
+#if defined(WIN32) || defined(mills_macintosh)
+            die(Str("-F: stdin not supported on this platform"));
+#endif
           }
-          O.FMidiin = 1;          /***************/
+          else
+            set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 0);
+          O.FMidiin = 1;            /***************/
           break;
-#ifdef LINUX
+#if defined(LINUX) || defined(__BEOS__)
         case 'Q':
           FIND(Str("no MIDI output device"));
-          midi_out = -1;
-          if (isdigit(*s)) {
-            sscanf(s,"%d%n",&midi_out,&n);
-            s += n;
-            openMIDIout();
-          }
-          break;
-#endif
-#ifdef __BEOS__                     /* jjk 09252000 - MIDI output device */
-        case 'Q':
-          FIND(Str("no midi output device name"));
           O.Midioutname = s;
           s += (int) strlen(s);
           break;
@@ -1264,11 +1134,8 @@ int argdecode(void *csound, int argc, char **argv_, char *envoutyp)
             create_opcodlst(&cenviron);
             list_opcodes(full);
           }
-#ifndef mills_macintosh
-          return (1);
-#else
+          longjmp(((ENVIRON*) csound)->exitjmp_, CSOUND_EXITJMP_SUCCESS);
           break;
-#endif
         case 'Z':
           dither_output = 1;
           break;
@@ -1303,7 +1170,7 @@ int argdecode(void *csound, int argc, char **argv_, char *envoutyp)
           }
 #endif
           if (!decode_long(csound, s, argc, argv, envoutyp))
-            goto outtyp;
+            return 0;
           while (*(++s));
           break;
         case '+':                                     /* IV - Feb 01 2005 */
@@ -1329,14 +1196,8 @@ int argdecode(void *csound, int argc, char **argv_, char *envoutyp)
     }
   } while (--argc);
   return 1;
-
- outtyp:
-  dieu(Str("output soundfile cannot be both AIFF and WAV"));
-
-  return (0);
 }
 
 void argdecodeRESET(void)
 {
-  stdinassgn = 0;
 }

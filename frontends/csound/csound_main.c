@@ -1,5 +1,6 @@
 /* Console Csound using the Csound API. */
 
+#include "csoundCore.h"
 #include "csound.h"
 #include "csmodule.h"
 #include <stdio.h>
@@ -154,13 +155,15 @@ int main(int argc, char **argv)
         while (csoundPerformKsmps(csound) == 0) {
           csoundYield(csound);
         }
+	/* IV - Jan 28 2005 */
+	print_benchmark_info(csound, Str("end of performance"));
     }
-    /* IV - Jan 28 2005 */
-    print_benchmark_info(csound, Str("end of performance"));
     /* delete Csound instance */
     csoundDestroy(csound);
     /* remove global configuration variables, if there are any */
     csoundDeleteAllGlobalConfigurationVariables();
+    if (result == CSOUND_EXITJMP_SUCCESS || result == -(CSOUND_EXITJMP_SUCCESS))
+      result = 0;
 
     return result;
 }
