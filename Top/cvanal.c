@@ -192,7 +192,7 @@ static void takeFFT(
     /*if (p->format == AE_SHORT) { */
     /*floating point raw and IRCAM files are not normalised (IV Oct 2001) */
     if ((p->format != AE_FLOAT) || (p->filetyp == TYP_WAV) ||
-        (p->filetyp == TYP_AIFF) || (p->filetyp == TYP_AIFC)) {
+        (p->filetyp == TYP_AIFF)) {
       for (i = read_in; i--; ) {
         *fp1++ *= dbfs_to_float;
 /*         *fp1++ *= DV32768;              /\* IV - Jul 11 2002 *\/ */

@@ -356,14 +356,12 @@ int csoundCompile(void *csound, int argc, char **argv)
 #endif
 		}
 
-#ifdef HAVE_LIBSNDFILE
     {
       char buffer[128];
 #include <sndfile.h>
       sf_command (NULL, SFC_GET_LIB_VERSION, buffer, 128);
       err_printf("%s\n", buffer);
     }
-#endif
 #if !defined(mills_macintosh) && !defined(SYMANTEC)
     {
       char *getenv(const char*);
@@ -450,21 +448,18 @@ int csoundCompile(void *csound, int argc, char **argv)
     O.outsampsiz = getsizformat(O.outformat);
     O.informat = O.outformat; /* informat defaults; resettable by readinheader */
     O.insampsiz = O.outsampsiz;
-    if (O.filetyp == TYP_AIFF || O.filetyp == TYP_AIFC || O.filetyp == TYP_WAV) {
+    if (O.filetyp == TYP_AIFF ||
+        O.filetyp == TYP_WAV) {
       if (!O.sfheader)
         dieu(Str(X_629,"cannot write AIFF/WAV soundfile with no header"));
       /* WAVE format supports only unsigned bytes for 1- to 8-bit
          samples and signed short integers for 9 to 16-bit samples.
          -- Jonathan Mohr  1995 Oct 17  */
       /* Also seems that type 3 is floats */
-      if ((O.filetyp != TYP_AIFC) &&
+      if (
           (
-#ifdef never
            O.outformat == AE_ALAW ||
-#endif
-#ifdef ULAW
            O.outformat == AE_ULAW ||
-#endif
 #ifdef mills_macintosh
            (O.outformat == AE_FLOAT && !RescaleFloatFile)
 #else
@@ -591,7 +586,7 @@ int csoundMain(void *csound, int argc, char **argv)
     jmp_buf lj;
     int returnvalue;
 
-    if ((returnvalue = setjmp(cenviron.exitjmp_))) {
+    if ((returnvalue = setjmp(lj))) {
         csoundMessage(csound, "Error return");
         return returnvalue;
     }

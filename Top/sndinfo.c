@@ -67,24 +67,6 @@ int		sndinfo(int argc, char **argv)
           else printf(Str(X_85,", no looping"));
           printf("\n");
         }
-        else if (hdr->filetyp == TYP_AIFC) {
-          AIFFDAT *adp;
-          int i = 0;
-          printf(Str(X_188,"AIFF-C soundfile"));
-          if ((adp = hdr->aiffdata) != NULL
-              && (adp->loopmode1 || adp->loopmode2))
-            printf(Str(X_84,", looping with modes %d, %d"),
-                   adp->loopmode1, adp->loopmode2);
-          else printf(Str(X_85,", no looping"));
-          printf("\n");
-          O.outformat = AE_FLOAT;
-          for (i=0; i< MAXCHNLS; i++) {
-            maxamp[i] = smaxamp[i] = omaxamp[i] = 0.0f;
-          }
-          /*RWD 3:2000 may be no data */
-          if (adp)
-            maxamp[0] = smaxamp[0] = omaxamp[0] = (MYFLT)adp->fmaxamps[0];
-        }
         else if (hdr->filetyp == TYP_WAV)
           printf(Str(X_567,"\tWAVE soundfile\n"));
         else printf("%s:\n", retfilnam);
