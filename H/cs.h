@@ -144,12 +144,7 @@ extern "C" {
 #define oparms cenviron.oparms_
 #define opcodeInfo cenviron.opcodeInfo_     /* IV - Oct 20 2002 */
 #define instrumentNames cenviron.instrumentNames_
-#define dbfs_to_short cenviron.dbfs_to_short_
-#define short_to_dbfs cenviron.short_to_dbfs_
 #define dbfs_to_float cenviron.dbfs_to_float_
-#define float_to_dbfs cenviron.float_to_dbfs_
-#define dbfs_to_long cenviron.dbfs_to_long_
-#define long_to_dbfs cenviron.long_to_dbfs_
 #define rtin_dev cenviron.rtin_dev_
 #define rtin_devs cenviron.rtin_devs_
 #define rtout_dev cenviron.rtout_dev_

@@ -316,60 +316,55 @@ ENVIRON cenviron_ = {
         NULL,   /*      frstbp */
         0,      /*      sectcnt */
         {0},    /*      m_chnbp */
-        NULL, NULL,   /*  cpsocint, cpsocfrc */
-        0, 0, 0,      /* inerrcnt, synterrcnt, perferrcnt */
-        "",     /*      strmsg */
-        {NULL}, /*      instxtanchor */
-        {NULL}, /*      actanchor */
-        {0L },  /*      rngcnt */
-        0, 0,   /*      rngflg, multichan */
-        {{NULL}}, /*      OrcTrigEvts */
-        "",     /*      full_name */
-        0, 0, 0,      /*      Mforcdecs, Mxtroffs, MTrkend */
-        FL(-1.0), FL(-1.0),   /* tran_sr,tran_kr */
-        FL(-1.0),     /* tran_ksmps */
-        FL(32767.0),  /*      tran_0dbfs */
-        DFLT_NCHNLS,  /*      tran_nchnls */
-        FL(-1.0), FL(-1.0), FL(-1.0), FL(-1.0), /* tpidsr, pidsr, mpidsr, mtpdsr */
-        NULL,   /*      sadirpath */
-        &O,     /*      oparms */
-        NULL,   /*      hostData */
-        NULL,   /*      opcodeInfo  */
-        NULL,   /*      instrumentNames */
-        FL(0.0),        /*      dbfs_to_short */
-        FL(0.0),        /*      short_to_dbfs */
-        FL(0.0),        /*      dbfs_to_float */
-        FL(0.0),        /*      float_to_dbfs */
-        FL(0.0),        /*      dbfs_to_long */
-        FL(0.0),        /*      long_to_dbfs */
-        1024,   /*      rtin_dev */
-        NULL,   /*      rtin_devs */
-        1024,   /*      rtout_dev */
-        NULL,   /*      rtout_devs */
-        -1,     /*      displop4 */
-        NULL,   /*      file_opened  */
-        0,      /*      file_max */
-        -1,     /*      file_num */
-        0, NULL,   /*      nchanik, chanik */
-        0, NULL,   /*      nchania, chania */
-        0, NULL,   /*      nchanok, chanok */
-        0, NULL,   /*      nchanoa, chanoa */
-        {{NULL}, 0.0, 0,0,0,0l,0l,0l},                 /*      ff */
-        NULL,                   /* flist */
-        0,                      /* maxfnum */
-        NULL,                   /* gensub */
-        GENMAX+1,               /* genmax */
-        100,                    /* ftldno */
-        1,                      /* doFLTKThreadLocking */
-        NULL,                   /* namedGlobals -- IV - Jan 28 2005 */
-        0,                      /* namedGlobalsCurrLimit */
-        0,                      /* namedGlobalsMaxLimit */
-        NULL,                   /* cfgVariableDB */
+        NULL, NULL,     /*      cpsocint, cpsocfrc */
+        0, 0, 0,        /*      inerrcnt, synterrcnt, perferrcnt */
+        "",             /*      strmsg */
+        {NULL},         /*      instxtanchor */
+        {NULL},         /*      actanchor */
+        {0L },          /*      rngcnt */
+        0, 0,           /*      rngflg, multichan */
+        {{NULL}},       /*      OrcTrigEvts */
+        "",             /*      full_name */
+        0, 0, 0,        /*      Mforcdecs, Mxtroffs, MTrkend */
+        FL(-1.0), FL(-1.0), /*  tran_sr,tran_kr */
+        FL(-1.0),       /*      tran_ksmps */
+        DFLT_DBFS,      /*      tran_0dbfs */
+        DFLT_NCHNLS,    /*      tran_nchnls */
+        FL(-1.0), FL(-1.0), FL(-1.0), FL(-1.0), /* tpidsr,pidsr,mpidsr,mtpdsr */
+        NULL,           /*      sadirpath */
+        &O,             /*      oparms */
+        NULL,           /*      hostData */
+        NULL,           /*      opcodeInfo  */
+        NULL,           /*      instrumentNames */
+        FL(0.0),        /* dbfs_to_float ( = 1.0 / e0dbfs) */
+        1024,           /*      rtin_dev */
+        NULL,           /*      rtin_devs */
+        1024,           /*      rtout_dev */
+        NULL,           /*      rtout_devs */
+        -1,             /*      displop4 */
+        NULL,           /*      file_opened  */
+        0,              /*      file_max */
+        -1,             /*      file_num */
+        0, NULL,        /*      nchanik, chanik */
+        0, NULL,        /*      nchania, chania */
+        0, NULL,        /*      nchanok, chanok */
+        0, NULL,        /*      nchanoa, chanoa */
+        {{NULL}, 0.0, 0,0,0,0l,0l,0l},      /*       ff */
+        NULL,           /* flist */
+        0,              /* maxfnum */
+        NULL,           /* gensub */
+        GENMAX+1,       /* genmax */
+        100,            /* ftldno */
+        1,              /* doFLTKThreadLocking */
+        NULL,           /* namedGlobals -- IV - Jan 28 2005 */
+        0,              /* namedGlobalsCurrLimit */
+        0,              /* namedGlobalsMaxLimit */
+        NULL,           /* cfgVariableDB */
         { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0 },   /* sensEvents_state */
-        NULL,                   /* rtRecord_userdata */
-        NULL,                   /* rtPlay_userdata */
-        NULL,                   /* memalloc_db */
-        (MGLOBAL*) NULL         /* midiGlobals */
+        NULL,           /* rtRecord_userdata */
+        NULL,           /* rtPlay_userdata */
+        NULL,           /* memalloc_db */
+        (MGLOBAL*) NULL /* midiGlobals */
 };
 
 OPARMS O;

@@ -1,14 +1,6 @@
 #include "cs.h"
 #include "soundio.h"
 
-#ifdef  USE_DOUBLE
-#define sf_write_MYFLT  sf_write_double
-#define sf_read_MYFLT   sf_read_double
-#else
-#define sf_write_MYFLT  sf_write_float
-#define sf_read_MYFLT   sf_read_float
-#endif
-
 SNDFILE *infile=NULL;
 SNDFILE *sndgetset(SOUNDIN *);
 char    *getstrformat(int format);
@@ -115,19 +107,17 @@ SNDFILE *SAsndgetset(
    are not able to handle this case. I have been lazy, and have not yet
    bothered to do this. The reason I made this change was so that
    cvanal could handle stereo, or quad, soundfiles */
-    if (channel < 1 || ((channel > 4) && (channel != ALLCHNLS))) {
-/*        if (channel < 1 || channel > 4)  { */   /* SAsnd is chan 1,2,3 or 4 */
+    if (channel < 1 && channel != ALLCHNLS) {
       printf(Str("channel request %d illegal\n"), channel);
       return(NULL);
     }
     p->channel = channel;
     p->analonly = 1;
-    if ((infile = sndgetset(p)) == NULL)            /* open sndfil, do skiptime */
+    if ((infile = sndgetset(p)) == NULL)        /* open sndfil, do skiptime */
       return(NULL);
     if (p->framesrem < 0 ) {
       if (O.msglevel & WARNMSG)
-        printf(Str(
-                   "WARNING: undetermined file length, will attempt requested duration\n"));
+        printf(Str("WARNING: undetermined file length, will attempt requested duration\n"));
     }
     else {
       if (*ainput_dur == FL(0.0)) {         /* 0 durtim, use to EOF */
@@ -222,17 +212,17 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
       sprintf(errmsg,Str("soundin: illegal no of receiving channels"));
       goto errtn;
     }
-    if (*p->ifilno == SSTRCOD) {                 /* if char string name given */
+    if (*p->ifilno == SSTRCOD) {                /* if char string name given */
       if (p->STRARG == NULL) strcpy(soundiname,unquote(currevent->strarg));
-      else strcpy(soundiname,unquote(p->STRARG));    /* unquote it,  else use */
+      else strcpy(soundiname,unquote(p->STRARG));   /* unquote it,  else use */
     }
     else if ((filno = (long)*p->ifilno) <= strsmax &&
              strsets != NULL && strsets[filno])
       strcpy(soundiname, strsets[filno]);
     else
-      sprintf(soundiname,"soundin.%ld",filno);       /* soundin.filno */
+      sprintf(soundiname,"soundin.%ld",filno);  /* soundin.filno */
     sfname = soundiname;
-    if ((sinfd = openin(sfname)) < 0) {              /* open with full dir paths */
+    if ((sinfd = openin(sfname)) < 0) {         /* open with full dir paths */
       if (isfullpath(sfname))
         sprintf(errmsg,Str("soundin cannot open %s"), sfname);
       else sprintf(errmsg,
@@ -241,25 +231,23 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
       goto errtn;
     }
     infile = sf_open_fd(sinfd, SFM_READ, &sfinfo, SF_TRUE);
-/*
-#ifdef USE_DOUBLE
-    sf_command(infile, SFC_SET_NORM_DOUBLE, NULL, SF_FALSE);
-#else
-    sf_command(infile, SFC_SET_NORM_FLOAT, NULL, SF_FALSE);
-#endif
-*/
     p->fdch.fd = infile;
     p->nchanls = sfinfo.channels;
-/*     printf("*** sfinfo: frames=%lld\tsamplerate=%d\tchannels=%d\n" */
-/*            "***       : format=%d\tsections=%d\tseekable=%d\n" */
-/*            "***       : infile=%p\n", */
-/*            sfinfo.frames, sfinfo.samplerate, sfinfo.channels, */
-/*            sfinfo.format, sfinfo.sections, sfinfo.seekable, */
-/*            p->fdch.fd); */
-    sfname = retfilnam;                           /* & record fullpath filnam */
-    p->format = sf2format(sfinfo.format);
-    if ((short)*p->iformat > 0)   /* convert spec'd format code */
-      p->format = ((short)*p->iformat) | 0x100;
+    sfname = retfilnam;                         /* & record fullpath filnam */
+    /* convert spec'd format code */
+    switch ((int) (*p->iformat + FL(0.5))) {
+      case 0: p->format = sf2format(sfinfo.format); break;
+      case 1: p->format = AE_CHAR; break;
+      case 2: p->format = AE_ALAW; break;
+      case 3: p->format = AE_ULAW; break;
+      case 4: p->format = AE_SHORT; break;
+      case 5: p->format = AE_LONG; break;
+      case 6: p->format = AE_FLOAT; break;
+      default: sprintf(errmsg, Str("soundin: invalid sample format: %d"),
+                               (int) (*p->iformat + FL(0.5)));
+               die(errmsg);
+               return NULL;
+    }
     p->endfile = 0;
     p->filetyp = 0;         /* initially non-typed for readheader */
     curr_func_sr = (MYFLT)sfinfo.samplerate;
@@ -312,14 +300,14 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
       }
       p->format = (short)sf2format(sfinfo.format);
       p->sampframsiz = (short)sfsampsize(sfinfo.format) * sfinfo.channels;
-      p->filetyp = sf2type(sfinfo.format);            /* copy type from headata */
-      p->aiffdata = NULL;       /* Something to di with looping!! */
+      p->filetyp = sf2type(sfinfo.format);      /* copy type from headata */
+      p->aiffdata = NULL;               /* Something to do with looping!! */
       p->sr = sfinfo.samplerate;
       p->nchanls = (short)sfinfo.channels;
       if (p->OUTOCOUNT)
         p->channel = p->OUTOCOUNT;
-      else if (p->channel == ALLCHNLS)
-        p->channel = 1;
+/*    else if (p->channel == ALLCHNLS)
+        p->channel = 1;                             ???                 */
       printf(Str("audio sr = %ld, "), p->sr);
       if (p->nchanls == 1)
         printf(Str("monaural\n"));
@@ -343,13 +331,13 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
       p->framesrem = sfinfo.frames;    /*   find frames rem */
       skipframes = (long)(*p->iskptim * p->sr);
       framesinbuf = SNDINBUFSIZ / p->sampframsiz;
-      if (skipframes < framesinbuf) {              /* if sound within 1st buf */
+      if (skipframes < framesinbuf) {           /* if sound within 1st buf */
         int nreq = SNDINBUFSIZ;
         n = sreadin(infile, p->inbuf, nreq, p);
         p->bufend = p->inbuf+n;
         p->inbufp = p->inbuf + skipframes * p->sampframsiz;
       }
-      else {                                          /* for greater skiptime: */
+      else {                                    /* for greater skiptime: */
         if (sf_seek(infile, (off_t)skipframes, SEEK_SET) < 0)  /* else seek to bndry */
           die(Str("soundin seek error"));
         if ((n = sreadin(infile,p->inbuf,SNDINBUFSIZ,p)) == 0) /* now rd fulbuf */
@@ -395,17 +383,13 @@ int sreadin(                    /* special handling of sound input       */
     SOUNDIN *p)                 /* extra arg passed for filetyp testing  */
 {                               /* on POST-HEADER reads of audio samples */
     /* return the number of samples read */
-    int    n, ntot=0;
-    int nsamples = nbytes/sizeof(MYFLT);
-    MYFLT *inb = (MYFLT*)inbuf;
+    int   n, ntot = 0;
+    int   nsamples = nbytes / sizeof(MYFLT);
     do {
-/*       printf("***        : ntot=%d nbytes=%d nsamples=%d nchnls=%d\n", */
-/*              ntot, nbytes, nsamples, p->nchanls); */
-      n = sf_read_MYFLT(infd, inb+ntot, (nsamples-ntot)/p->nchanls);
-/*       printf("***        : n=%d\n", n); */
-      if (n<0)
+      n = sf_read_MYFLT(infd, inbuf + ntot, nsamples - ntot);
+      if (n < 0)
         die(Str("soundfile read error"));
-    } while (n > 0 && (ntot += n*p->nchanls) < nsamples);
+    } while (n > 0 && (ntot += n) < nsamples);
     if (p->audrem > 0) {        /* AIFF:                  */
       if (ntot > p->audrem)     /*   chk haven't exceeded */
         ntot = p->audrem;       /*   limit of audio data  */
@@ -417,13 +401,9 @@ int sreadin(                    /* special handling of sound input       */
 
 void dbfs_init(MYFLT dbfs)
 {
-    dbfs_to_short = FL(32767.0) / dbfs;
-    short_to_dbfs = dbfs / FL(32767.0);
     dbfs_to_float = FL(1.0) / dbfs;
-    float_to_dbfs = dbfs / FL(1.0); /* Really!!! */
-    dbfs_to_long  = FL(2147483647.0) / dbfs;
-    long_to_dbfs  = dbfs / FL(2147483647.0);
+    e0dbfs = dbfs;
     /* probably want this message written just before note messages start... */
-    err_printf(Str("0dBFS level = %.1f\n"),dbfs);
+    err_printf(Str("0dBFS level = %.1f\n"), dbfs);
 }
 
