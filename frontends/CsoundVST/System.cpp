@@ -23,6 +23,10 @@
 #include "config.h"
 #endif
 
+#if defined(HAVE_UNISTD_H)
+#include <unistd.h>
+#endif
+
 #include <cstdarg>
 #include <vector>
 #include <string>
