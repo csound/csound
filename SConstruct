@@ -701,7 +701,7 @@ if getPlatform() == 'mingw' and fltkFound:
          Opcodes/vst4cs/src/fxbank.cpp
          Opcodes/vst4cs/src/vsthost.cpp
          ''')))
-          
+
 # Experimental OSC Opcodes ** THIS DOES NOT WORK **
 if getPlatform() == 'linux':
     oscEnvironment = pluginEnvironment.Copy()
@@ -862,6 +862,45 @@ if (commonEnvironment['buildCsoundVST'] == 1) and boostFound and fltkFound:
     zipDependencies.append(csoundvstGui)
     Depends(csoundvstGui, csoundvst)
      
+    # Build the Loris and Python opcodes here because they depend 
+    # on the same things as CsoundVST.
+    
+    #lorispath = 'Opcodes/Loris'
+    #lorisEnvironment = vstEnvironment.Copy();
+    #lorisEnvironment.Append(CXXFLAGS = ['HAVE_FFTW3_H'])
+    #lorisEnvironment.Append(CPPPATH = [lorispath])
+    #lorisEnvironment.Append(CXXFLAGS = ['-I' + lorispath])
+    #lorisEnvironment.Append(SWIGPATH = [lorispath])
+    #lorisEnvironment.Append(SWIGFLAGS = ['-I' + lorispath])
+    #lorisEnvironment.Append(LIB = ['fftw3'])
+    #lorisSources = glob.glob(lorispath + '/*.C')
+    #lorisSources = glob.glob(lorispath + '/*.h')
+    #lorisSources.append(lorispath + '/loris.i')
+    # lorisSources.append('Opcodes/Loris/lorisgens.C')
+    #print lorisSources
+    #loris = vstEnvironment.SharedLibrary('loris', lorisSources, SHLIBPREFIX = '_')
+    #Depends(loris, csoundvst)
+    #zipDependencies.append(loris)
+          
+    
+    pyEnvironment = pluginEnvironment.Copy();
+    if getPlatform() == 'linux':
+        pyEnvironment.Append(LIBS = ['swigpy', 'python2.3', 'util', 'dl', 'm'])
+        pyEnvironment.Append(CPPPATH = ['/usr/local/include/python2.3'])
+        pyEnvironment.Append(LIBPATH = ['/usr/local/lib/python2.3/config'])
+        pyEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
+        pyEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
+    elif getPlatform() == 'cygwin' or getPlatform() == 'mingw':
+        pyEnvironment['ENV']['PATH'] = os.environ['PATH']
+        pyEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
+        pyEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
+        if getPlatform() == 'cygwin':
+                pyEnvironment.Append(CCFLAGS = ['-D_MSC_VER'])
+        pyEnvironment.Append(LIBS = ['python23'])
+    py = pyEnvironment.SharedLibrary('py', ['Opcodes/py/pythonopcodes.c'])
+    Depends(py, csoundvst)
+    zipDependencies.append(py)
+
 if (commonEnvironment['generateTags']) and (getPlatform() == 'linux' or getPlatform() == 'cygwin'):
     print "Calling TAGS"
     allSources = string.join(glob.glob('*/*.h*'))
