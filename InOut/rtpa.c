@@ -88,17 +88,13 @@ error:
 	die(Str(X_1307,"unable to open soundcard for audio input"));
 }
 
-void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
-/* open for audio output */
-{
-	struct PaStreamParameters paStreamParameters_;
+void listPortAudioDevices() {
 	PaDeviceIndex deviceIndex = 0;
 	PaDeviceIndex deviceCount = 0;
 	PaDeviceInfo *paDeviceInfo;
-	PaError paError = Pa_Initialize();
-	if( paError != paNoError ) 
-		goto error;
+	
 	deviceCount = Pa_GetDeviceCount();
+	
 	for(deviceIndex = 0; deviceIndex < deviceCount; ++deviceIndex)
 	{
 		paDeviceInfo = Pa_GetDeviceInfo(deviceIndex);
@@ -112,14 +108,35 @@ void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
 				paDeviceInfo->defaultSampleRate);
 		}
 	}
+}
+
+void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
+/* open for audio output */
+{
+	struct PaStreamParameters paStreamParameters_;
+	PaError paError = Pa_Initialize();
+	if( paError != paNoError ) 
+		goto error;
+	
+	listPortAudioDevices();
+	
 	oMaxLag = O.oMaxLag;        /* import DAC setting from command line   */
 	if (oMaxLag <= 0)           /* if DAC sampframes ndef in command line */
 		oMaxLag = IODACSAMPS;     /*    use the default value               */
-	paStreamParameters_.device = rtout_dev;
+		
+	if(rtout_dev == 1024) {
+		paStreamParameters_.device = 1;
+		err_printf("No PortAudio device given.  Defaulting to device 1.\n");
+	} else {
+		paStreamParameters_.device = rtout_dev;
+		err_printf("Using Portaudio Device %i\n", rtout_dev);
+	}
+		
 	paStreamParameters_.channelCount = nchnls_;
 	paStreamParameters_.sampleFormat = paFloat32;
 	paStreamParameters_.suggestedLatency = ((double) sr_) / ((double) oMaxLag);
 	paStreamParameters_.hostApiSpecificStreamInfo = 0;
+	
 	paError = Pa_OpenStream (&pa_out, 
 		0,
 		&paStreamParameters_,
@@ -128,22 +145,27 @@ void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
 		0,
 		0,
 		0);
+		
 	if( paError != paNoError ) 
 		goto error;
+		
 	paError = Pa_StartStream( pa_out );
 	audtran = rtplay_;
+	
 	if( paError != paNoError ) 
 		goto error;
+		
 	spoutran = spoutsf;       /* accumulate output */
 	nzerotran = zerosf;       /* quick zeros */
 	audtran = rtplay_;        /* flush buffer */
-  outbufrem = O.outbufsamps;
+	outbufrem = O.outbufsamps;
 	osfopen = 1;
 	return;
 error:
 	err_printf("PortAudio error %d: %s\n", paError, Pa_GetErrorText(paError));
 	die(Str(X_1308,"unable to open soundcard for audio output"));
 }
+
 
 int rtrecord_(char *inbuf, int nbytes) /* get samples from ADC */
 {
