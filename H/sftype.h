@@ -33,6 +33,7 @@
 #  define     PACKED
 #elif defined(mac_classic)
 #  pragma               pack(1)
+#  define     PACKED
 #elif defined(__WATCOMC__)
 #  include <pshpack1.h>
 #  define     PACKED

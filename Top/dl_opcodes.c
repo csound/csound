@@ -405,6 +405,27 @@ void *dlsym(void *handle, const char *symbol)
     return value;
 }
 
+#else   /* case for platforms without shared libraries -- added 062404, akozar */
+
+void *csoundOpenLibrary(const char *libraryPath)
+{
+	void *library = NULL;
+	return library;
+}
+
+void *csoundCloseLibrary(void *library)
+{
+        void *returnValue = NULL;
+        return returnValue;
+}
+
+void *csoundGetLibrarySymbol(void *library, const char *procedureName)
+{
+        void *procedureAddress = NULL;
+        return procedureAddress;
+}
+
+
 #endif
 
 int csoundLoadExternal(void *csound, const char* libraryPath)

@@ -46,7 +46,7 @@ Technologies, University of California, Berkeley.
 #endif
 #include <assert.h>
 #include <errno.h>
-#include <H/sdif-mem.h>
+#include "H/sdif-mem.h"
 
 /* Global variables local to this file */
 static void *(*my_malloc)(int numBytes);
