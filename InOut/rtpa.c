@@ -127,9 +127,7 @@ void recopen_(int nchnls_, int dsize_, float sr_, int scale_)
     paError = paBlockingReadOpen(&cenviron,
         &pabsRead,
         &paStreamParameters_);
-    if (paError != paNoError) goto error;
-    paError = Pa_StartStream(pabsRead->paStream);
-    if (paError != paNoError) goto error;
+     if (paError != paNoError) goto error;
 #else
     paError = Pa_OpenStream(&pa_in,
                             &paStreamParameters_,
@@ -207,8 +205,6 @@ void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
     paError = paBlockingWriteOpen(&cenviron,
         &pabsWrite,
         &paStreamParameters_);
-    if (paError != paNoError) goto error;
-    paError = Pa_StartStream(pabsWrite->paStream);
     if (paError != paNoError) goto error;
 #else
     paError = Pa_OpenStream(&pa_out,

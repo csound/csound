@@ -27,6 +27,9 @@ int paBlockingReadOpen(ENVIRON *csound,
         paNoFlag,
         paBlockingWriteStreamCallback,
         pabs);
+    if(paError == paNoError) {
+        paError = Pa_StartStream(pabs->paStream);
+    }
     if(paError != paNoError) {
         mfree(pabs->actualBuffer);
         mfree(pabs);
@@ -92,6 +95,9 @@ int paBlockingWriteOpen(ENVIRON *csound,
         paNoFlag,
         paBlockingWriteStreamCallback,
         pabs);
+    if(paError == paNoError) {
+        paError = Pa_StartStream(pabs->paStream);
+    }
     csound->Message(csound, "paBlockingWriteOpen returned %d.\n", paError);
     if(paError != paNoError) {
         mfree(pabs->actualBuffer);
@@ -138,6 +144,7 @@ void paBlockingClose(PA_BLOCKING_STREAM *pabs)
             Pa_AbortStream(pabs->paStream);
             mfree(pabs->actualBuffer);
             mfree(pabs);
+            pabs->paStream = 0;
         }
     }
 }
