@@ -540,7 +540,7 @@ extern "C" {
 	* The opcode list is extended by one slot,
 	* and the parameters are copied into the new slot.
 	*/
-	PUBLIC int csoundAppendOpcode(void *csound, char *opname, int dsblksiz, int thread, char *outypes, char *intypes, void (*iopadr)(void *), void (*kopadr)(void *), void (*aopadr)(void *), void (*dopadr)(void *));          
+	PUBLIC int csoundAppendOpcode(void *csound, char *opname, int dsblksiz, int thread, char *outypes, char *intypes, int (*iopadr)(void *), int (*kopadr)(void *), int (*aopadr)(void *), int (*dopadr)(void *));          
 
 #ifndef SWIG
 	/*

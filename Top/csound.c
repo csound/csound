@@ -564,27 +564,37 @@ extern "C" {
 
 	PUBLIC void csoundSetPlayopenCallback(void *csound, void (*playopen__)(int nchanls, int dsize, float sr, int scale))
 	{
+#ifdef RTAUDIO
 		playopen = playopen__;
+#endif
 	}
 
 	PUBLIC void csoundSetRtplayCallback(void *csound, void (*rtplay__)(char *outBuf, int nbytes))
 	{
+#ifdef RTAUDIO
 		rtplay = rtplay__;
+#endif
 	}
 
 	PUBLIC void csoundSetRecopenCallback(void *csound, void (*recopen__)(int nchanls, int dsize, float sr, int scale))
 	{
+#ifdef RTAUDIO
 		recopen = recopen__;
+#endif
 	}
 
 	PUBLIC void csoundSetRtrecordCallback(void *csound, int (*rtrecord__)(char *inBuf, int nbytes))
 	{
+#ifdef RTAUDIO
 		rtrecord = rtrecord__;
+#endif
 	}
 
 	PUBLIC void csoundSetRtcloseCallback(void *csound, void (*rtclose__)(void))
 	{
+#ifdef RTAUDIO
 		rtclose = rtclose__;
+#endif
 	}
 
 	/*
@@ -868,11 +878,12 @@ extern "C" {
 	* MISC FUNCTIONS
 	*/
 
-	/**
-	*       to enable csoundYield(), you must define 
-	*       USE_CSOUND_YIELD in cs.h, so that the following happens:
-	*       #define POLL_EVENTS() csoundYield(0)
-	*/
+#if !defined(USE_FLTK)
+	int POLL_EVENTS()
+	{
+		return 1;
+	}
+#endif
 
 	static int defaultCsoundYield(void *csound)
 	{
@@ -994,7 +1005,6 @@ extern "C" {
 		}
 	}
 #endif
-
 
 #ifdef __cplusplus
 };

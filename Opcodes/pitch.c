@@ -21,6 +21,9 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
+#if defined HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <math.h>
 #include <limits.h>
@@ -1706,16 +1709,21 @@ int Foscaa(XOSC *p)
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+
+#if !defined(WIN32)
 struct termios tty;
+#endif
 
 int isense(KSENSE *p)
 {
-    /* setvbuf(stdin, NULL, _IONBF, 0)); Does not seem to work */
-
-     tcgetattr(0, &tty);
-     tty.c_lflag &= (~ICANON);
-     tcsetattr(0, TCSANOW, &tty);
-     return OK;
+#if defined(WIN32)
+	setvbuf(stdin, NULL, _IONBF, 0); /* Does not seem to work */
+#else
+	tcgetattr(0, &tty);
+	tty.c_lflag &= (~ICANON);
+	tcsetattr(0, TCSANOW, &tty);
+#endif
+	return OK;
 }
 
 int ksense(KSENSE *p)

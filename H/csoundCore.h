@@ -754,12 +754,7 @@ typedef struct ENVIRON_
 #include "text.h"
 
 #if defined(mac_classic) || defined(SYMANTEC)
-# define POLL_EVENTS() STasks()
 # define __cdecl
-#endif
-
-#if (defined(LINUX) || defined(MACOSX)) && !defined(USE_GUI)
-#  define POLL_EVENTS()     (1)
 #endif
 
 #if (!defined(__BEOS__) || defined(__MWERKS__)) && !defined(__CYGWIN__)
