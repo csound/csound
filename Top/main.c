@@ -650,9 +650,15 @@ void mainRESET(ENVIRON *p)
       mfree(reset_list);
       reset_list = x;
     }
+    scoreRESET(p);
     oloadRESET();               /* should be called last but changed!! */
     remove_tmpfiles();          /* IV - Oct 31 2002 */
     memRESET();
+          p->spoutactive_ = 0;
+      O.Midiin = 0;
+      p->nrecs_ = 0;
+      p->orchname_ = NULL;
+      p->scorename_ = NULL;
 }
 
 /**

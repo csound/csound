@@ -978,19 +978,8 @@ int fltk_abort = 0;
   PUBLIC void csoundReset(void *csound)
   {
       mainRESET(csound);
-      /* FIXME - SYY - 11.16.2003
-       * This call is needed by opcodes in Opcode plugin generated from
-       * Opcodes/sfont.c.  Needs to be reword in sfont.c with using opcode
-       * destructor functions or csoundAppendResetFunction needs to be created
-       */
-      /* SfReset();  */
-      ((ENVIRON *)csound)->spoutactive_ = 0;
       csoundIsScorePending_ = 1;
       csoundScoreOffsetSeconds_ = (MYFLT) 0.0;
-      O.Midiin = 0;
-      ((ENVIRON *)csound)->nrecs_ = 0;
-      ((ENVIRON *)csound)->orchname_ = NULL;
-      ((ENVIRON *)csound)->scorename_ = NULL;
   }
 
 #ifdef INGALLS
