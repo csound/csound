@@ -28,7 +28,7 @@
                                 /*  4 april 02 -- ma++ */
                                 /*  restructure to retrieve externally  */
 #include "cs.h"
-#include "opcode.h"
+#include "H/opcode.h"
 
 static int mystrcmp(const void *v1, const void *v2)
 {

@@ -21,8 +21,8 @@
     02111-1307 USA
 */
 
-#ifndef OPCODE_H
-#define OPCODE_H
+#ifndef CSOUND_OPCODE_H
+#define CSOUND_OPCODE_H
 
 typedef struct sortable {
   char *name;

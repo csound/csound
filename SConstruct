@@ -2,7 +2,7 @@ print '''
 C S O U N D   5
 
 SCons build file for Csound 5: 
-API library, opcodes, utilities, and front ends.
+API library, plugin opcodes, utilities, and front ends.
 
 By Michael Gogins <gogins at pipeline dot com>
 
@@ -46,6 +46,12 @@ print
 # Define configuration options.
 
 opts = Options('custom.py')
+opts.Add('customCPPPATH', 'List of custom CPPPATH variables')
+opts.Add('customCCFLAGS')
+opts.Add('customCXXFLAGS')
+opts.Add('customLIBS')
+opts.Add('customLIBPATH')
+opts.Add('customSHLINKFLAGS')
 opts.Add('useDouble', 
     'Set to 1 to use double-precision floating point for audio samples.', 
     0)
@@ -72,8 +78,23 @@ opts.Add('generateTags',
     1)
 
 # Define the common part of the build environment.
+# This section also sets up customized options for third-party libraries.
 
 commonEnvironment = Environment(options = opts)
+
+customCPPPATH = commonEnvironment['customCPPPATH']
+commonEnvironment.Prepend(CPPPATH = customCPPPATH)
+customCCFLAGS = commonEnvironment['customCCFLAGS']
+commonEnvironment.Prepend(CCFLAGS = customCCFLAGS)
+customCXXFLAGS = commonEnvironment['customCXXFLAGS']
+commonEnvironment.Prepend(CXXFLAGS = customCXXFLAGS)
+customLIBS = commonEnvironment['customLIBS']
+commonEnvironment.Prepend(LIBS = customLIBS)
+customLIBPATH = commonEnvironment['customLIBPATH']
+commonEnvironment.Prepend(LIBPATH = customLIBPATH)
+customSHLINKFLAGS = commonEnvironment['customSHLINKFLAGS']
+commonEnvironment.Prepend(SHLINKFLAGS = customSHLINKFLAGS)
+
 if commonEnvironment['useMingw'] and (sys.platform[:3] == 'win' or sys.platform == 'cygwin'):
     print 'Using mingw.'
     commonEnvironment.Append(TOOLS = ['mingw'])

@@ -81,12 +81,12 @@ namespace csound
 		if(distribution == "uniform_smallint")
 		{
 			cleanup(uniform_smallint);
-			uniform_smallint = new boost::uniform_smallint<boost::mt19937>(mersenneTwister, int(minimum), int(maximum));
+			uniform_smallint = new boost::uniform_smallint<>(int(minimum), int(maximum));
 		}
 		else if(distribution == "uniform_int")
 		{
 			cleanup(uniform_int);
-			uniform_int = new boost::uniform_int<boost::mt19937>(mersenneTwister, int(minimum), int(maximum));
+			uniform_int = new boost::uniform_int<>(int(minimum), int(maximum));
 		}
 		else if(distribution == "uniform_01")
 		{
@@ -96,51 +96,51 @@ namespace csound
 		else if(distribution == "uniform_real")
 		{
 			cleanup(uniform_real);
-			uniform_real = new boost::uniform_real<boost::mt19937>(mersenneTwister, minimum, maximum);
+			uniform_real = new boost::uniform_real<>(minimum, maximum);
 		}
 		else if(distribution == "bernoulli")
 		{
 			cleanup(bernoulli_distribution);
-			bernoulli_distribution = new boost::bernoulli_distribution<boost::mt19937>(mersenneTwister, q);
+			bernoulli_distribution = new boost::bernoulli_distribution<>(q);
 		}
 		else if(distribution == "geometric")
 		{
 			cleanup(geometric_distribution);
-			geometric_distribution = new boost::geometric_distribution<boost::mt19937>(mersenneTwister, q);
+			geometric_distribution = new boost::geometric_distribution<>(q);
 		}
 		else if(distribution == "triangle")
 		{
 			cleanup(triangle_distribution);
-			triangle_distribution = new boost::triangle_distribution<boost::mt19937>(mersenneTwister, a, b, c);
+			triangle_distribution = new boost::triangle_distribution<>(a, b, c);
 		}
 		else if(distribution == "exponential")
 		{
 			cleanup(exponential_distribution);
-			exponential_distribution = new boost::exponential_distribution<boost::mt19937>(mersenneTwister, Lambda);
+			exponential_distribution = new boost::exponential_distribution<>(Lambda);
 		}
 		else if(distribution == "normal")
 		{
 			cleanup(normal_distribution);
-			normal_distribution = new boost::normal_distribution<boost::mt19937>(mersenneTwister, mean, sigma);
+			normal_distribution = new boost::normal_distribution<>(mean, sigma);
 		}
 		else if(distribution == "lognormal")
 		{
 			cleanup(lognormal_distribution);
-			lognormal_distribution = new boost::lognormal_distribution<boost::mt19937>(mersenneTwister, mean, sigma);
+			lognormal_distribution = new boost::lognormal_distribution<>(mean, sigma);
 		}
 	}
 	double Random::sample() const
 	{
-		if(uniform_smallint) return (*uniform_smallint)();
-		if(uniform_int) return (*uniform_int)();
+		if(uniform_smallint) return (*uniform_smallint)(mersenneTwister);
+		if(uniform_int) return (*uniform_int)(mersenneTwister);
 		if(uniform_01) return (*uniform_01)();
-		if(uniform_real) return (*uniform_real)();
-		if(bernoulli_distribution) return (*bernoulli_distribution)();
-		if(geometric_distribution) return (*geometric_distribution)();
-		if(triangle_distribution) return (*triangle_distribution)();
-		if(exponential_distribution) return (*exponential_distribution)();
-		if(normal_distribution) return (*normal_distribution)();
-		if(lognormal_distribution) return (*lognormal_distribution)();
+		if(uniform_real) return (*uniform_real)(mersenneTwister);
+		if(bernoulli_distribution) return (*bernoulli_distribution)(mersenneTwister);
+		if(geometric_distribution) return (*geometric_distribution)(mersenneTwister);
+		if(triangle_distribution) return (*triangle_distribution)(mersenneTwister);
+		if(exponential_distribution) return (*exponential_distribution)(mersenneTwister);
+		if(normal_distribution) return (*normal_distribution)(mersenneTwister);
+		if(lognormal_distribution) return (*lognormal_distribution)(mersenneTwister);
 		return 0;
 	}
 	ublas::matrix<double> Random::getLocalCoordinates() const

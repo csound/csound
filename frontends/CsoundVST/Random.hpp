@@ -56,16 +56,16 @@ namespace csound
 		public Node
 	{
 	protected:
-		boost::uniform_smallint<boost::mt19937> *uniform_smallint;
-		boost::uniform_int<boost::mt19937> *uniform_int;
+		boost::uniform_smallint<> *uniform_smallint;
+		boost::uniform_int<> *uniform_int;
 		boost::uniform_01<boost::mt19937> *uniform_01;
-		boost::uniform_real<boost::mt19937> *uniform_real;
-		boost::bernoulli_distribution<boost::mt19937> *bernoulli_distribution;
-		boost::geometric_distribution<boost::mt19937> *geometric_distribution;
-		boost::triangle_distribution<boost::mt19937> *triangle_distribution;
-		boost::exponential_distribution<boost::mt19937> *exponential_distribution;
-		boost::normal_distribution<boost::mt19937> *normal_distribution;
-		boost::lognormal_distribution<boost::mt19937> *lognormal_distribution;
+		boost::uniform_real<> *uniform_real;
+		boost::bernoulli_distribution<> *bernoulli_distribution;
+		boost::geometric_distribution<> *geometric_distribution;
+		boost::triangle_distribution<> *triangle_distribution;
+		boost::exponential_distribution<> *exponential_distribution;
+		boost::normal_distribution<> *normal_distribution;
+		boost::lognormal_distribution<> *lognormal_distribution;
 	public:
 		static boost::mt19937 mersenneTwister;
 		std::string distribution;
