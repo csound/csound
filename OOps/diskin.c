@@ -713,8 +713,23 @@ int sndo1set(ENVIRON *csound, SNDOUT *p)            /* init routine for instr so
       goto errtn;
     }
     sfinfo.frames = -1;
-    sfinfo.samplerate = (int)esr;
+    sfinfo.samplerate = (int) (esr + FL(0.5));
+#if 0
     sfinfo.channels = nchnls;        /* WRONG *************************** */
+#endif
+    sfinfo.channels = 1;
+    p->c.filetyp = TYP_RAW;
+    switch ((int) (*(p->c.iformat) + FL(0.5))) {
+      case 0: p->c.format = O.outformat; break;
+      case 1: p->c.format = AE_CHAR; break;
+      case 4: p->c.format = AE_SHORT; break;
+      case 5: p->c.format = AE_LONG; break;
+      case 6: p->c.format = AE_FLOAT; break;
+      default:
+        sprintf(errmsg, Str("soundout: invalid sample format: %d"),
+                        (int) p->c.format);
+        goto errtn;
+    }
     sfinfo.format = type2sf(p->c.filetyp)|format2sf(p->c.format);
     sfinfo.sections = 0;
     sfinfo.seekable = 0;
@@ -752,7 +767,7 @@ int soundout(ENVIRON *csound, SNDOUT *p)
       *outbufp++ = *asig++;
     } while (--nn);
     if (!ospace) {              /* when buf is full  */
-      sf_read_MYFLT(p->c.fdch.fd, p->c.outbuf, p->c.bufend - p->c.outbuf);
+      sf_write_MYFLT(p->c.fdch.fd, p->c.outbuf, p->c.bufend - p->c.outbuf);
       outbufp = p->c.outbuf;
       ospace = SNDOUTSMPS;
       if (nsamps) goto nchk;    /*   chk rem samples */
