@@ -247,7 +247,7 @@ def buildzip(env, target, source):
     extensions = extensions + ".sf2 .SF2 .csd .aif .aiff .jar .smf .mid"
     extensions = string.split(extensions)
     
-    specificFiles = "SConstruct _CsoundVST.* _loris.* pyrun.* CsoundCOM.dll msvcp70.dll msvcr70.dll CsoundVST.exe CsoundVST.* soundfonts.dll libpython23.a "
+    specificFiles = "SConstruct _CsoundVST.* _loris.* pyrun.* CsoundCOM.dll msvcp70.dll msvcr70.dll csound csound.exe CsoundVST CsoundVST.exe CsoundVST.* soundfonts.dll libpython23.a "
     specificFiles = specificFiles + "README Doxyfile ChangeLog COPYING INSTALL MANIFEST COPYRIGHT AUTHORS TODO all_strings french-strings english-strings"
     specificFiles = string.split(specificFiles)
     
