@@ -419,7 +419,7 @@ static int oscbnk(ENVIRON *csound, OSCBNK *p)
 
     /* clear output signal */
 
-    for (nn = 0; nn < ksmps; nn++) p->args[0][nn] = FL(0.0);
+    for (nn = 0; nn < csound->ksmps; nn++) p->args[0][nn] = FL(0.0);
 
     if (p->nr_osc == -1) {
       return OK;         /* nothing to render */
@@ -436,14 +436,14 @@ static int oscbnk(ENVIRON *csound, OSCBNK *p)
     oscbnk_flen_setup(ftp->flen, &(mask), &(lobits), &(pfrac));
 
     /* some constants */
-    onedksmps = FL(1.0) / (MYFLT) ksmps;
+    onedksmps = FL(1.0) / (MYFLT) csound->ksmps;
     pm_enabled = (p->ilfomode & 0x22 ? 1 : 0);
     am_enabled = (p->ilfomode & 0x44 ? 1 : 0);
     p->frq_scl = onedsr;                              /* osc. freq.   */
-    p->lf1_scl = (*(p->args[8]) - *(p->args[7])) / ekr;
-    p->lf1_ofs = *(p->args[7]) / ekr;                 /* LFO1 freq.   */
-    p->lf2_scl = (*(p->args[10]) - *(p->args[9])) / ekr;
-    p->lf2_ofs = *(p->args[9]) / ekr;                 /* LFO2 freq.   */
+    p->lf1_scl = (*(p->args[8]) - *(p->args[7])) / csound->ekr;
+    p->lf1_ofs = *(p->args[7]) / csound->ekr;         /* LFO1 freq.   */
+    p->lf2_scl = (*(p->args[10]) - *(p->args[9])) / csound->ekr;
+    p->lf2_ofs = *(p->args[9]) / csound->ekr;         /* LFO2 freq.   */
     if (p->ieqmode >= 0) {
       p->eqo_scl = (*(p->args[13]) - *(p->args[12])) * tpidsr;
       p->eqo_ofs = *(p->args[12]) * tpidsr;           /* EQ omega */
@@ -472,7 +472,7 @@ static int oscbnk(ENVIRON *csound, OSCBNK *p)
         f_i = OSCBNK_PHS2INT(f);
         if (am_enabled) a_d = (o->osc_amp - a) * onedksmps;
         /* oscillator */
-        for (nn = 0; nn < ksmps; nn++) {
+        for (nn = 0; nn < csound->ksmps; nn++) {
           /* read from table */
           n = ph >> lobits; k = ft[n++];
           k += (ft[n] - k) * (MYFLT) ((long) (ph & mask)) * pfrac;
@@ -506,7 +506,7 @@ static int oscbnk(ENVIRON *csound, OSCBNK *p)
           b1_d = (o->b1 - b1) * onedksmps;
           b2_d = (o->b2 - b2) * onedksmps;
           /* oscillator */
-          for (nn = 0; nn < ksmps; nn++) {
+          for (nn = 0; nn < csound->ksmps; nn++) {
             /* update ramps */
             a1 += a1_d; a2 += a2_d;
             b0 += b0_d; b1 += b1_d; b2 += b2_d;
@@ -529,7 +529,7 @@ static int oscbnk(ENVIRON *csound, OSCBNK *p)
         }
         else {                /* EQ w/o interpolation */
           /* oscillator */
-          for (nn = 0; nn < ksmps; nn++) {
+          for (nn = 0; nn < csound->ksmps; nn++) {
             /* read from table */
             n = ph >> lobits; k = ft[n++];
             k += (ft[n] - k) * (MYFLT) ((long) (ph & mask)) * pfrac;
@@ -678,7 +678,7 @@ static int grain2(ENVIRON *csound, GRAIN2 *p)
 
     /* clear output signal */
 
-    for (nn = 0; nn < ksmps; nn++) aout[nn] = FL(0.0);
+    for (nn = 0; nn < csound->ksmps; nn++) aout[nn] = FL(0.0);
 
     if (p->nr_osc == -1) {
       return OK;                   /* nothing to render */
@@ -717,7 +717,7 @@ static int grain2(ENVIRON *csound, GRAIN2 *p)
       }
     }
     aout = p->ar;                       /* audio output         */
-    nn = ksmps;
+    nn = csound->ksmps;
     do {
       i = p->nr_osc;
       do {
@@ -780,12 +780,12 @@ static int grain3set(ENVIRON *csound, GRAIN3 *p)
 
     /* allocate space */
 
-    n = ((long) ksmps + 1L) * (long) sizeof(unsigned long);
+    n = ((long) csound->ksmps + 1L) * (long) sizeof(unsigned long);
     n += (long) p->ovrlap * (long) sizeof(GRAIN2_OSC);
     if ((p->auxdata.auxp == NULL) || (p->auxdata.size < n))
       csound->AuxAlloc(csound, n, &(p->auxdata));
     p->phase = (unsigned long *) p->auxdata.auxp;
-    p->osc = (GRAIN2_OSC *) ((unsigned long *) p->phase + ksmps + 1);
+    p->osc = (GRAIN2_OSC *) ((unsigned long *) p->phase + csound->ksmps + 1);
     p->osc_start = p->osc;
     p->osc_end = p->osc;
     p->osc_max = p->osc + (p->ovrlap - 1);
@@ -835,7 +835,7 @@ static int grain3(ENVIRON *csound, GRAIN3 *p)
 
     /* clear output */
 
-    for (nn = 0; nn < ksmps; nn++) p->ar[nn] = FL(0.0);
+    for (nn = 0; nn < csound->ksmps; nn++) p->ar[nn] = FL(0.0);
 
     if ((p->seed == 0L) || (p->osc == NULL)) {
       return csound->PerfError(csound, Str("grain3: not initialised"));
@@ -884,17 +884,17 @@ static int grain3(ENVIRON *csound, GRAIN3 *p)
       f = *(p->kphs); g_ph = OSCBNK_PHS2INT(f);
     }
     else {
-      f = p->phs0; g_ph = phs[ksmps];
+      f = p->phs0; g_ph = phs[csound->ksmps];
     }
     p->phs0 = *(p->kphs);
     /* convert phase modulation to frequency modulation */
-    f = (MYFLT) ((double) p->phs0 - (double) f) / (MYFLT) ksmps;
+    f = (MYFLT) ((double) p->phs0 - (double) f) / (MYFLT) csound->ksmps;
     f -= (MYFLT) ((long) f); g_frq = OSCBNK_PHS2INT(f);
     f = *(p->kcps) * onedsr;            /* grain frequency      */
     frq = (g_frq + OSCBNK_PHS2INT(f)) & OSCBNK_PHSMSK;
     if (p->mode & 0x40) g_frq = frq;    /* phase sync   */
     /* calculate phase offset values for this k-cycle */
-    for (nn = 0; nn <= ksmps; nn++) {
+    for (nn = 0; nn <= csound->ksmps; nn++) {
       phs[nn] = g_ph; g_ph = (g_ph + g_frq) & OSCBNK_PHSMSK;
     }
 
@@ -938,7 +938,7 @@ static int grain3(ENVIRON *csound, GRAIN3 *p)
     }
     p->init_k = 0;
 
-    nn = ksmps; o = p->osc_start;
+    nn = csound->ksmps; o = p->osc_start;
     while (nn) {
       if (x_ph >= OSCBNK_PHSMAX) {      /* check for new grain  */
         x_ph &= OSCBNK_PHSMSK;
@@ -1085,7 +1085,7 @@ static int rnd31a(ENVIRON *csound, RND31 *p)
       return csound->PerfError(csound, Str("rnd31: not initialised"));
     }
 
-    nn = ksmps;
+    nn = csound->ksmps;
     scl = *(p->scl); out = p->out;
     /* random distribution */
     rpow = *(p->rpow);
@@ -1174,7 +1174,7 @@ static int osckkikt(ENVIRON *csound, OSCKT *p)
     lobits = p->lobits; mask = p->mask; pfrac = p->pfrac;
     /* read from table with interpolation */
     v = *(p->xcps) * onedsr; frq = OSCBNK_PHS2INT(v);
-    nn = ksmps;
+    nn = csound->ksmps;
     do {
       n = phs >> lobits;
       v = ft[n++]; v += (ft[n] - v) * (MYFLT) ((long) (phs & mask)) * pfrac;
@@ -1205,7 +1205,7 @@ static int osckaikt(ENVIRON *csound, OSCKT *p)
     ft = p->ft; phs = p->phs; a = *(p->xamp); ar = p->sr; xcps = p->xcps;
     lobits = p->lobits; mask = p->mask; pfrac = p->pfrac;
     /* read from table with interpolation */
-    nn = ksmps;
+    nn = csound->ksmps;
     do {
       n = phs >> lobits;
       v = ft[n++]; v += (ft[n] - v) * (MYFLT) ((long) (phs & mask)) * pfrac;
@@ -1252,7 +1252,7 @@ static int oscakikt(ENVIRON *csound, OSCKT *p)
     lobits = p->lobits; mask = p->mask; pfrac = p->pfrac;
     /* read from table with interpolation */
     v = *(p->xcps) * onedsr; frq = OSCBNK_PHS2INT(v);
-    nn = ksmps;
+    nn = csound->ksmps;
     do {
       n = phs >> lobits;
       v = ft[n++]; v += (ft[n] - v) * (MYFLT) ((long) (phs & mask)) * pfrac;
@@ -1283,7 +1283,7 @@ static int oscaaikt(ENVIRON *csound, OSCKT *p)
     ft = p->ft; phs = p->phs; ar = p->sr; xcps = p->xcps; xamp = p->xamp;
     lobits = p->lobits; mask = p->mask; pfrac = p->pfrac;
     /* read from table with interpolation */
-    nn = ksmps;
+    nn = csound->ksmps;
     do {
       n = phs >> lobits;
       v = ft[n++]; v += (ft[n] - v) * (MYFLT) ((long) (phs & mask)) * pfrac;
@@ -1307,7 +1307,7 @@ static int oscktpset(ENVIRON *csound, OSCKTP *p)
     /* initial phase */
     p->phs = 0UL; p->old_phs = FL(0.0);
     p->init_k = 1;
-    p->dv_ksmps = FL(1.0) / (MYFLT) ksmps;
+    p->dv_ksmps = FL(1.0) / (MYFLT) csound->ksmps;
     return OK;
 }
 
@@ -1345,7 +1345,7 @@ static int oscktp(ENVIRON *csound, OSCKTP *p)
     p->old_phs = *(p->kphs);
     frq = (frq + OSCBNK_PHS2INT(v)) & OSCBNK_PHSMSK;
     /* read from table with interpolation */
-    nn = ksmps;
+    nn = csound->ksmps;
     do {
       n = phs >> lobits;
       v = ft[n++]; v += (ft[n] - v) * (MYFLT) ((long) (phs & mask)) * pfrac;
@@ -1404,7 +1404,7 @@ static int osckts(ENVIRON *csound, OSCKTS *p)
       phs = OSCBNK_PHS2INT(v);
     }
     /* read from table with interpolation */
-    nn = ksmps;
+    nn = csound->ksmps;
     do {
       if (*(async++) > FL(0.0)) {               /* re-initialise phase */
         v = *(p->kphs) - (MYFLT) ((long) *(p->kphs));
@@ -1654,9 +1654,10 @@ static int vco2_tables_create(ENVIRON *csound, int waveform, int base_ftable,
     /* clear table array if already initialised */
     if ((*vco2_tables)[waveform] != NULL) {
       vco2_delete_table_array(csound, waveform);
-      /*if (csound->oparms_->msglevel & WARNMSG) */
-      csound->err_printf_("WARNING: redefined table array for waveform %d\n",
-                          (waveform > 4 ? 4 - waveform : waveform));
+   /* if (csound->oparms->msglevel & WARNMSG) */
+      csound->Message(csound,
+                      Str("WARNING: redefined table array for waveform %d\n"),
+                      (waveform > 4 ? 4 - waveform : waveform));
     }
     /* calculate number of tables */
     i = tp->max_size >> 1;
@@ -1870,11 +1871,11 @@ static int vco2ftset(ENVIRON *csound, VCO2FT *p)
 #endif
     p->base_ftnum = (*(p->vco2_tables))[w]->base_ftnum;
     if (*(p->inyx) > FL(0.5))
-      p->p_scl = FL(0.5) * esr;
+      p->p_scl = FL(0.5) * csound->esr;
     else if (*(p->inyx) < FL(0.001))
-      p->p_scl = FL(0.001) * esr;
+      p->p_scl = FL(0.001) * csound->esr;
     else
-      p->p_scl = *(p->inyx) * esr;
+      p->p_scl = *(p->inyx) * csound->esr;
     p->p_min = p->p_scl / (MYFLT) VCO2_MAX_NPART;
     /* in case of vco2ift opcode, find table number now */
     if (!strcmp(p->h.optext->t.opcod, "vco2ift"))
@@ -2074,7 +2075,7 @@ static int vco2(ENVIRON *csound, VCO2 *p)
     lobits = tabl->lobits; mask = tabl->mask; pfrac = tabl->pfrac;
     ftable = tabl->ftable;
 
-    nn = ksmps;
+    nn = csound->ksmps;
     if (!p->mode) {                     /* - mode 0: simple table playback - */
       do {
         n = phs >> lobits;
@@ -2154,7 +2155,7 @@ static int denorms(ENVIRON *csound, DENORMS *p)
     do {
       r = DENORM_RND;
       ar = *args++;
-      nn = ksmps;
+      nn = csound->ksmps;
       do {
         *ar++ += r;
       } while (--nn);
@@ -2171,7 +2172,7 @@ static int delaykset(ENVIRON *csound, DELAYK *p)
     if (mode & 1) return OK;            /* skip initialisation */
     p->mode = mode;
     /* calculate delay time */
-    npts = (int) (*p->idel * ekr + FL(1.5));
+    npts = (int) (*p->idel * csound->ekr + FL(1.5));
     if (npts < 1)
       return csound->InitError(csound, Str("delayk: invalid delay time "
                                            "(must be >= 0)"));
@@ -2211,7 +2212,7 @@ static int vdelaykset(ENVIRON *csound, VDELAYK *p)
       return OK;                /* skip initialisation */
     p->mode = mode;
     /* calculate max. delay time */
-    npts = (int) (*p->imdel * ekr + FL(1.5));
+    npts = (int) (*p->imdel * csound->ekr + FL(1.5));
     if (npts < 1)
       return csound->InitError(csound, Str("vdel_k: invalid max delay time "
                                            "(must be >= 0)"));
@@ -2233,7 +2234,7 @@ static int vdelayk(ENVIRON *csound, VDELAYK *p)
     if (!buf)
       return csound->PerfError(csound, Str("vdel_k: not initialised"));
     buf[p->wrtp] = *(p->ksig);              /* write input signal to buffer */
-    n = (int) (*(p->kdel) * ekr + FL(0.5));     /* calculate delay time */
+    n = (int) (*(p->kdel) * csound->ekr + FL(0.5)); /* calculate delay time */
     if (n < 0)
       return csound->PerfError(csound, Str("vdel_k: invalid delay time "
                                            "(must be >= 0)"));
@@ -2312,7 +2313,7 @@ static int rbjeq(ENVIRON *csound, RBJEQ *p)
       new_frq = 1;
       p->old_kcps = *(p->kcps);
       /* calculate variables that depend on freq., and are used by all modes */
-      p->omega = (double) p->old_kcps * TWOPI / (double) esr;
+      p->omega = (double) p->old_kcps * TWOPI / (double) csound->esr;
       p->cs = cos(p->omega);
       p->sn = sqrt(1.0 - p->cs * p->cs);
     }
@@ -2321,7 +2322,7 @@ static int rbjeq(ENVIRON *csound, RBJEQ *p)
     /* copy object data to local variables */
     ar = p->ar; asig = p->asig;
     xnm1 = p->xnm1; xnm2 = p->xnm2; ynm1 = p->ynm1; ynm2 = p->ynm2;
-    nn = (int) ksmps;
+    nn = (int) csound->ksmps;
     switch (p->ftype) {
     case 0:                                     /* lowpass filter */
       if (new_frq || *(p->kQ) != p->old_kQ) {

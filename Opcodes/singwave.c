@@ -86,7 +86,7 @@ int make_Modulatr(ENVIRON *csound,Modulatr *p, MYFLT *i)
     return 0;
 }
 
-#define Modulatr_setVibFreq(p,vibFreq)  (p.v_rate = vibFreq * (MYFLT)p.wave->flen/esr)
+#define Modulatr_setVibFreq(p,vibFreq)  (p.v_rate = vibFreq * (MYFLT)p.wave->flen/csound->esr)
 #define Modulatr_setVibAmt(p,vibAmount) (p.vibAmt = vibAmount)
 
 MYFLT Modulatr_tick(Modulatr *p)
@@ -94,18 +94,16 @@ MYFLT Modulatr_tick(Modulatr *p)
     MYFLT lastOutput;
     lastOutput = Wave_tick(&p->v_time, p->wave->flen, p->wave->ftable,
                     p->v_rate, FL(0.0));
-/* printf("Wave_tick: (%f,%f) %f\n", p->v_time, p->v_rate, lastOutput); */
     lastOutput *= p->vibAmt;        /*  Compute periodic and */
     /*   random modulations  */
-    lastOutput += OnePole_tick(&p->onepole, SubNoise_tick(&p->noise)); 
-/* printf("Modulatr_tick: %f\n", lastOutput); */
+    lastOutput += OnePole_tick(&p->onepole, SubNoise_tick(&p->noise));
     return lastOutput;
 }
 
-static void Modulatr_print(Modulatr *p)
+static void Modulatr_print(ENVIRON *csound, Modulatr *p)
 {
-    fprintf(stdout, "Modulatr: v_rate=%f v_time=%f vibAmt=%f\n",
-           p->v_rate, p->v_time, p->vibAmt);
+    csound->Message(csound, "Modulatr: v_rate=%f v_time=%f vibAmt=%f\n",
+                            p->v_rate, p->v_time, p->vibAmt);
 }
 
 static int make_SingWave(ENVIRON *csound, SingWave *p, MYFLT *ifn, MYFLT *ivfn)
@@ -140,7 +138,6 @@ void SingWave_setFreq(ENVIRON *csound, SingWave *p, MYFLT aFreq)
     MYFLT temp = p->rate;
 
     p->rate = (MYFLT)p->wave->flen * aFreq * onedsr;
-/*     printf("SingWave: rate set to %f\n", p->rate); */
     temp -= p->rate;
     if (temp<0) temp = - temp;
     Envelope_setTarget(&p->pitchEnvelope, p->rate);
@@ -184,15 +181,14 @@ MYFLT SingWave_tick(SingWave *p)
     lastOutput *= Envelope_tick(&p->envelope);
 
     p->mytime = mytime;
-/* printf("SingWave_tick: %f\n", lastOutput); */
     return lastOutput;
 }
 
 void SingWave_print(ENVIRON *csound, SingWave *p)
 {
-    printf(csound->LocalizeString("SingWave: rate=%f sweepRate=%f mytime=%f\n"),
-           p->rate, p->sweepRate, p->mytime);
-    Modulatr_print(&p->modulator);
+    csound->Message(csound, Str("SingWave: rate=%f sweepRate=%f mytime=%f\n"),
+                            p->rate, p->sweepRate, p->mytime);
+    Modulatr_print(csound, &p->modulator);
     Envelope_print(csound, &p->envelope);
     Envelope_print(csound, &p->pitchEnvelope);
 }
@@ -254,7 +250,8 @@ void VoicForm_setPhoneme(ENVIRON *csound, VOICF *p, int i, MYFLT sc)
     VoicForm_setFormantAll(p, 3,sc*phonParams[i][3][0],
                            phonParams[i][3][1], FL(1.0));
     VoicForm_setVoicedUnVoiced(p,phonGains[i][0], phonGains[i][1]);
-    printf(Str("Found Formant: %s (number %i)\n"),phonemes[i],i);
+    csound->Message(csound,
+                    Str("Found Formant: %s (number %i)\n"), phonemes[i], i);
 }
 
 void VoicForm_setVoicedUnVoiced(VOICF *p, MYFLT vGain, MYFLT nGain)
@@ -277,8 +274,8 @@ void VoicForm_noteOff(VOICF *p)
 void voicprint(ENVIRON *csound, VOICF *p)
 {
     SingWave_print(csound, &p->voiced);
-    OneZero_print(&p->onezero);
-    OnePole_print(&p->onepole);
+    OneZero_print(csound, &p->onezero);
+    OnePole_print(csound, &p->onepole);
 }
 
 static int step = 0;
@@ -319,9 +316,9 @@ int voicformset(ENVIRON *csound, VOICF *p)
     FormSwep_setSweepRate(p->filters[3], FL(0.001));
 
     make_OneZero(&p->onezero);
-/*     OneZero_print(&p->onezero); */
+/*     OneZero_print(csound, &p->onezero); */
     OneZero_setCoeff(&p->onezero, - FL(0.9));
-/*     OneZero_print(&p->onezero); */
+/*     OneZero_print(csound, &p->onezero); */
     make_OnePole(&p->onepole);
     OnePole_setPole(&p->onepole, FL(0.9));
 
@@ -339,12 +336,10 @@ int voicformset(ENVIRON *csound, VOICF *p)
     FormSwep_clear(p->filters[2]);
     FormSwep_clear(p->filters[3]);
     Envelope_setTarget(&(p->voiced.envelope), amp);
-/*     printf("Setting onepole to %f (%f)\n", 0.95 - (amp * 0.2)/128.0, amp); */
     OnePole_setPole(&p->onepole, FL(0.95) - (amp * FL(0.2))/FL(128.0));
     p->basef = *p->frequency;
     SingWave_setFreq(csound, &p->voiced, p->basef);
 /*     voicprint(csound, p); */
-/*     printf("**********************************\n"); */
     step = 1;
     return OK;
 }
@@ -352,7 +347,7 @@ int voicformset(ENVIRON *csound, VOICF *p)
 int voicform(ENVIRON *csound, VOICF *p)
 {
     MYFLT *ar = p->ar;
-    long nsmps = ksmps;
+    long nsmps = csound->ksmps;
     MYFLT temp;
     MYFLT lastOutput;
 
@@ -364,96 +359,27 @@ int voicform(ENVIRON *csound, VOICF *p)
 /*     Envelope_setTarget(&(p->voiced.envelope), amp); */
 /*     Envelope_setTarget(&p->noiseEnv,   0.95 - (amp * 0.1)); */
     SingWave_setVibFreq(p->voiced, *p->vibf);
-/*     printf("Vibf=%f (%f %f)\n", */
-/*            *p->vibf, (MYFLT)p->voiced.modulator.wave->flen, */
-/*            p->voiced.modulator.v_rate); */
     Modulatr_setVibAmt(p->voiced.modulator, *p->vibAmt);
                                 /* Set phoneme */
     if (p->oldform != *p->formant || p->ph != (int)(0.5+*p->phoneme)) {
       p->oldform = *p->formant;
       p->ph = (int)(0.5 + *p->phoneme);
-      printf(Str("Setting Phoneme: %f %d\n"), p->ph, p->oldform);
+      csound->Message(csound, Str("Setting Phoneme: %f %d\n"),
+                              p->ph, p->oldform);
       VoicForm_setPhoneme(csound, p,(int)*p->phoneme, p->oldform);
     }
 /*     voicprint(csound, p); */
 
     do {
-/*       printf("FormSwep: poleCoeffs=%f, %f\tfreq=%.2f\treson=%f\n", */
-/*              p->filters[0].poleCoeffs[0], p->filters[0].poleCoeffs[1], */
-/*              p->filters[0].freq, p->filters[0].reson); */
-/*       printf("        : dirty=%d\ttargetFreq=%f\ttargetReson=%f\n", */
-/*              p->filters[0].dirty, p->filters[0].targetFreq, */
-/*              p->filters[0].targetReson); */
-/*       printf("        : targetGain=%f\tcurrentFreq=%f\tcurrentReson=%f\n", */
-/*              p->filters[0].targetGain, p->filters[0].currentFreq, */
-/*              p->filters[0].currentReson); */
-/*       printf("        : currentGain=%f\tdeltaFreq=%.2f\tdeltaReson=%f\n", */
-/*              p->filters[0].currentGain, p->filters[0].deltaFreq, */
-/*              p->filters[0].deltaReson); */
-/*       printf("        : deltaGain=%f\tsweepState=%f\tsweepRate=%f\n", */
-/*              p->filters[0].deltaGain, p->filters[0].sweepState, */
-/*              p->filters[0].sweepRate); */
-/*       printf("FormSwep: poleCoeffs=%f, %f\tfreq=%.2f\treson=%f\n", */
-/*              p->filters[1].poleCoeffs[0], p->filters[1].poleCoeffs[1], */
-/*              p->filters[1].freq, p->filters[1].reson); */
-/*       printf("        : dirty=%d\ttargetFreq=%f\ttargetReson=%f\n", */
-/*              p->filters[1].dirty, p->filters[1].targetFreq, */
-/*              p->filters[1].targetReson); */
-/*       printf("        : targetGain=%f\tcurrentFreq=%f\tcurrentReson=%f\n", */
-/*              p->filters[1].targetGain, p->filters[1].currentFreq, */
-/*              p->filters[1].currentReson); */
-/*       printf("        : currentGain=%f\tdeltaFreq=%.2f\tdeltaReson=%f\n", */
-/*              p->filters[1].currentGain, p->filters[1].deltaFreq, */
-/*              p->filters[1].deltaReson); */
-/*       printf("        : deltaGain=%f\tsweepState=%f\tsweepRate=%f\n", */
-/*              p->filters[1].deltaGain, p->filters[1].sweepState, */
-/*              p->filters[1].sweepRate); */
-/*       printf("FormSwep: poleCoeffs=%f, %f\tfreq=%.2f\treson=%f\n", */
-/*              p->filters[2].poleCoeffs[0], p->filters[2].poleCoeffs[1], */
-/*              p->filters[2].freq, p->filters[2].reson); */
-/*       printf("        : dirty=%d\ttargetFreq=%f\ttargetReson=%f\n", */
-/*              p->filters[2].dirty, p->filters[2].targetFreq, */
-/*              p->filters[2].targetReson); */
-/*       printf("        : targetGain=%f\tcurrentFreq=%f\tcurrentReson=%f\n", */
-/*              p->filters[2].targetGain, p->filters[2].currentFreq, */
-/*              p->filters[2].currentReson); */
-/*       printf("        : currentGain=%f\tdeltaFreq=%.2f\tdeltaReson=%f\n", */
-/*              p->filters[2].currentGain, p->filters[2].deltaFreq, */
-/*              p->filters[2].deltaReson); */
-/*       printf("        : deltaGain=%f\tsweepState=%f\tsweepRate=%f\n", */
-/*              p->filters[2].deltaGain, p->filters[2].sweepState, */
-/*              p->filters[2].sweepRate); */
-/*       printf("FormSwep: poleCoeffs=%f, %f\tfreq=%.2f\treson=%f\n", */
-/*              p->filters[3].poleCoeffs[0], p->filters[3].poleCoeffs[1], */
-/*              p->filters[3].freq, p->filters[3].reson); */
-/*       printf("        : dirty=%d\ttargetFreq=%f\ttargetReson=%f\n", */
-/*              p->filters[3].dirty, p->filters[3].targetFreq, */
-/*              p->filters[3].targetReson); */
-/*       printf("        : targetGain=%f\tcurrentFreq=%f\tcurrentReson=%f\n", */
-/*              p->filters[3].targetGain, p->filters[3].currentFreq, */
-/*              p->filters[3].currentReson); */
-/*       printf("        : currentGain=%f\tdeltaFreq=%.2f\tdeltaReson=%f\n", */
-/*              p->filters[3].currentGain, p->filters[3].deltaFreq, */
-/*              p->filters[3].deltaReson); */
-/*       printf("        : deltaGain=%f\tsweepState=%f\tsweepRate=%f\n", */
-/*              p->filters[3].deltaGain, p->filters[3].sweepState, */
-/*              p->filters[3].sweepRate); */
       temp   = OnePole_tick(&p->onepole,
                             OneZero_tick(&p->onezero,
                                          SingWave_tick(&p->voiced)));
-/*       printf("VF: %f(%f) ", temp, p->onezero.lastOutput); */
       temp  += Envelope_tick(&p->noiseEnv) * Noise_tick(&p->noise);
-/*       printf("E:%f ", temp); */
       lastOutput  = FormSwep_tick(csound, &p->filters[0], temp);
-/*       printf("F0:%f ", lastOutput); */
       lastOutput  = FormSwep_tick(csound, &p->filters[1], lastOutput);
-/*       printf("F1:%f ", lastOutput); */
       lastOutput  = FormSwep_tick(csound, &p->filters[2], lastOutput);
-/*       printf("F2:%f ", lastOutput); */
       lastOutput  = FormSwep_tick(csound, &p->filters[3], lastOutput);
-/*       printf("F3:%f\n", lastOutput); */
       lastOutput *= FL(0.07) * FL(1.5);        /* JPff rescaled */
-/* printf("Voice_tick: %f\t", lastOutput); */
       *ar++ = lastOutput * AMP_SCALE;
     } while (--nsmps);
 

@@ -61,14 +61,14 @@ int spectset(ENVIRON *csound, SPECTRUM *p) /* spectrum - calcs disc Fourier tran
     DOWNDAT *dwnp = &p->downsig;
     SPECDAT *specp = p->wsig;
 
-    p->timcount = (int)(ekr * *p->iprd + FL(0.001)); /* for mac roundoff */
+    p->timcount = (int)(csound->ekr * *p->iprd + FL(0.001)); /* for mac roundoff */
     nocts = (int)*p->iocts;
     nfreqs = (int)*p->ifrqs;
     ncoefs = nocts * nfreqs;
     Q = *p->iq;
     hanning = (*p->ihann) ? 1 : 0;
     p->dbout = (int)*p->idbout;
-    if ((p->disprd = (int)(ekr * *p->idisprd)) < 0)  p->disprd = 0;
+    if ((p->disprd = (int)(csound->ekr * *p->idisprd)) < 0)  p->disprd = 0;
 
     if (p->timcount <= 0)
       return csound->InitError(csound, Str("illegal iprd"));
@@ -98,16 +98,17 @@ int spectset(ENVIRON *csound, SPECTRUM *p) /* spectrum - calcs disc Fourier tran
       p->curq = Q;
       p->hanning = hanning;
       p->ncoefs = ncoefs;
-      printf(Str("spectrum: %s window, %s out, making tables ...\n"),
-             (hanning) ? "hanning":"hamming", outstring[p->dbout]);
+      csound->Message(csound,
+                      Str("spectrum: %s window, %s out, making tables ...\n"),
+                      (hanning) ? "hanning":"hamming", outstring[p->dbout]);
 
       if (p->h.optext->t.intype == 'k') {
-        dwnp->srate = ekr;                    /* define the srate           */
+        dwnp->srate = csound->ekr;            /* define the srate           */
         p->nsmps = 1;
       }
       else {
-        dwnp->srate = esr;
-        p->nsmps = ksmps;
+        dwnp->srate = csound->esr;
+        p->nsmps = csound->ksmps;
       }
       hicps = dwnp->srate * 0.375;            /* top freq is 3/4 pi/2 ...   */
       oct = log(hicps / ONEPT) / LOGTWO;      /* octcps()  (see aops.c)     */
@@ -117,7 +118,8 @@ int spectset(ENVIRON *csound, SPECTRUM *p) /* spectrum - calcs disc Fourier tran
       }
       dwnp->looct = (MYFLT)(oct - nocts);     /* true oct val of lowest frq */
       locps = hicps / (1L << nocts);
-      printf(Str("\thigh cps %7.1f\n\t low cps %7.1f\n"),hicps,locps);
+      csound->Message(csound, Str("\thigh cps %7.1f\n\t low cps %7.1f\n"),
+                              hicps, locps);
 
       basfrq = hicps/2.0;                          /* oct below retuned top */
       frqmlt = pow((double)2.0,(double)1./nfreqs);   /* nfreq interval mult */
@@ -127,15 +129,15 @@ int spectset(ENVIRON *csound, SPECTRUM *p) /* spectrum - calcs disc Fourier tran
         *wsizp++ = k = (int)(Qfactor/curfrq) | 01;  /* calc odd wind sizes */
         *woffp++ = (*(p->winlen) - k) / 2;          /* & symmetric offsets */
         sumk += k;                                  /*    and find total   */
-/*    printf("frq %f, k = %d, offset = %d\n", curfrq, k, *(woffp - 1));  */
         curfrq *= frqmlt;
       }
       windsiz = *(p->winlen);
-      printf(Str("\tQ %4.1f uses a %d sample window each octdown\n"),
-             Q, windsiz);
+      csound->Message(csound,
+                      Str("\tQ %4.1f uses a %d sample window each octdown\n"),
+                      Q, windsiz);
       auxsiz = (windsiz + 2*sumk) * sizeof(MYFLT);   /* calc lcl space rqd */
 
-      csound->AuxAlloc(csound, (long)auxsiz, &p->auxch1);            /*  & alloc auxspace  */
+      csound->AuxAlloc(csound, (long)auxsiz, &p->auxch1); /* & alloc auxspace */
 
       fltp = (MYFLT *) p->auxch1.auxp;
       p->linbufp = fltp;      fltp += windsiz; /* linbuf must take nsamps */
@@ -179,13 +181,12 @@ int spectset(ENVIRON *csound, SPECTRUM *p) /* spectrum - calcs disc Fourier tran
       fltp = (MYFLT *) dwnp->auxch.auxp;    /*  & distrib to octdata */
       for (n=nocts,octp=dwnp->octdata+(nocts-1); n--; octp--) {
         bufsiz = majr + minr;
-        /*              printf("bufsiz = %ld\n", bufsiz);  */
         octp->begp = fltp;  fltp += bufsiz; /*        (lo oct first) */
         octp->endp = fltp;  minr *= 2;
       }
-      printf(Str(
-                 "\t%d oct analysis window delay = %ld samples (%d msecs)\n"),
-             nocts, bufsiz, (int)(bufsiz*1000/dwnp->srate));
+      csound->Message(csound, Str("\t%d oct analysis window "
+                                  "delay = %ld samples (%d msecs)\n"),
+                              nocts, bufsiz, (int)(bufsiz*1000/dwnp->srate));
       if (p->disprd) {                      /* if display requested, */
         totsize = totsamps * sizeof(MYFLT); /*  alloc an equiv local */
         csound->AuxAlloc(csound, (long)totsize, &p->auxch2);/*  linear output window */
@@ -352,28 +353,29 @@ int nocdfset(ENVIRON *csound, NOCTDFT *p)
     DOWNDAT *downp = p->dsig;
     SPECDAT *specp = p->wsig;
 
-    p->timcount = ekr * *p->iprd;
+    p->timcount = csound->ekr * *p->iprd;
     nfreqs = *p->ifrqs;
     Q = *p->iq;
     hanning = (*p->ihann) ? 1 : 0;
     if ((p->dbout = *p->idbout) && p->dbout != 1 && p->dbout != 2) {
-      sprintf(errmsg, Str("noctdft: unknown dbout code of %d"), p->dbout);
-      return csound->InitError(csound, errmsg);
+      return csound->InitError(csound, Str("noctdft: unknown dbout code of %d"),
+                                       p->dbout);
     }
     nocts = downp->nocts;
     ncoefs = nocts * nfreqs;
-    if (nfreqs != p->nfreqs || Q != p->curq             /* if anything changed */
+    if (nfreqs != p->nfreqs || Q != p->curq         /* if anything changed */
         || p->timcount <= 0 || Q <= 0.
         || hanning != p->hanning
-        || ncoefs != p->ncoefs) {                      /*     make new tables */
+        || ncoefs != p->ncoefs) {                   /*     make new tables */
       double      basfrq, curfrq, frqmlt, Qfactor;
       double      theta, a, windamp, onedws, pidws;
       MYFLT       *sinp, *cosp;
       int         n, k, sumk, windsiz, *wsizp, nsamps;
       long        auxsiz;
 
-      err_printf(Str("noctdft: %s window, %s out, making tables ...\n"),
-                 (hanning) ? "hanning":"hamming", outstring[p->dbout]);
+      csound->Message(csound,
+                      Str("noctdft: %s window, %s out, making tables ...\n"),
+                      (hanning) ? "hanning":"hamming", outstring[p->dbout]);
       if (p->timcount <= 0)
         return csound->InitError(csound, Str("illegal iprd"));
       if (nfreqs <= 0 || nfreqs > MAXFRQS)
@@ -392,18 +394,18 @@ int nocdfset(ENVIRON *csound, NOCTDFT *p)
       for (sumk=0,wsizp=p->winlen,n=nfreqs; n--; ) {
         *wsizp++ = k = Qfactor/curfrq + 0.5;         /* calc window sizes  */
         sumk += k;                                   /*   and find total   */
-        /*      printf("frq %f, k = %d\n",curfrq,k);  */
         curfrq *= frqmlt;
       }
       if ((windsiz = *(p->winlen)) > nsamps) {        /* chk longest windsiz */
-        sprintf(errmsg,Str("Q %4.1f needs %d samples, octdown has just %d"),
-                Q, windsiz, nsamps);
-        return csound->InitError(csound, errmsg);
+        return csound->InitError(csound, Str("Q %4.1f needs %d samples, "
+                                             "octdown has just %d"),
+                                         Q, windsiz, nsamps);
       }
-      else printf(Str("noctdft: Q %4.1f uses %d of %d samps per octdown\n"),
-                  Q, windsiz, nsamps);
+      else csound->Message(csound, Str("noctdft: Q %4.1f uses %d of "
+                                       "%d samps per octdown\n"),
+                                   Q, windsiz, nsamps);
       auxsiz = (nsamps + 2*sumk) * sizeof(MYFLT);    /* calc local space reqd */
-      csound->AuxAlloc(csound, (long)auxsiz, &p->auxch);             /*     & alloc auxspace  */
+      csound->AuxAlloc(csound, (long)auxsiz, &p->auxch); /* & alloc auxspace  */
       fltp = (MYFLT *) p->auxch.auxp;
       p->linbufp = fltp;          fltp += nsamps; /* linbuf must handle nsamps */
       p->sinp = sinp = fltp;      fltp += sumk;
@@ -511,22 +513,20 @@ int spdspset(ENVIRON *csound, SPECDISP *p)
     if (p->wsig->auxch.auxp==NULL) {
       return csound->InitError(csound, Str("specdisp: not initialised"));
     }
-    if ((p->timcount = (int)(ekr * *p->iprd)) <= 0) {
+    if ((p->timcount = (int)(csound->ekr * *p->iprd)) <= 0) {
       return csound->InitError(csound, Str("illegal iperiod"));
     }
     if (!(p->dwindow.windid)) {
       SPECDAT *specp = p->wsig;
       DOWNDAT *downp = specp->downsrcp;
       if (downp->lofrq > 5.) {
-        sprintf(strmsg,Str(
-                           "instr %d %s, dft (%s), %ld octaves (%d - %d Hz):"),
+        sprintf(strmsg, Str("instr %d %s, dft (%s), %ld octaves (%d - %d Hz):"),
                 p->h.insdshead->insno, p->STRARG, outstring[specp->dbout],
                 downp->nocts, (int)downp->lofrq, (int)downp->hifrq);
       }
       else {                      /* more detail if low frequency  */
         sprintf(strmsg,
-                Str(
-                    "instr %d %s, dft (%s), %ld octaves (%3.1f - %3.1f Hz):"),
+                Str("instr %d %s, dft (%s), %ld octaves (%3.1f - %3.1f Hz):"),
                 p->h.insdshead->insno, p->STRARG, outstring[specp->dbout],
                 downp->nocts, downp->lofrq, downp->hifrq);
       }
@@ -565,7 +565,7 @@ int sptrkset(ENVIRON *csound, SPECPTRK *p)
       p->fundp = (MYFLT *) p->wfund.auxch.auxp;
       p->winpts = npts;
         }
-    if ((p->ftimcnt = (int)(ekr * *p->ifprd)) > 0) {/* if displaying wfund   */
+    if ((p->ftimcnt = (int)(csound->ekr * *p->ifprd)) > 0) {/* if displaying wfund   */
       SPECDISP *fdp = &p->fdisplay;
       fdp->h = p->h;
       fdp->wsig = &p->wfund;                      /*  pass the param pntrs */
@@ -626,14 +626,14 @@ int sptrkset(ENVIRON *csound, SPECPTRK *p)
     for (fp = fhip; fp < fendp; )
       *fp++ = FZERO;
 
-    printf(Str("specptrk: %d freqs, %d%s ptls at "),
-           (int)nfreqs, (int)nptls, inc==2 ? Str(" odd") : "");
+    csound->Message(csound, Str("specptrk: %d freqs, %d%s ptls at "),
+                            (int)nfreqs, (int)nptls, inc==2 ? Str(" odd") : "");
     for (nn = 0; nn < nptls; nn++)
-      printf("\t%d", p->pdist[nn]);
+      csound->Message(csound, "\t%d", p->pdist[nn]);
     if (p->rolloff) {
-      printf(Str("\n\t\trolloff vals:"));
+      csound->Message(csound, Str("\n\t\trolloff vals:"));
       for (nn = 0; nn < nptls; nn++)
-        printf("\t%4.2f", p->pmult[nn]);
+        csound->Message(csound, "\t%4.2f", p->pmult[nn]);
     }
 
     dbthresh = *p->idbthresh;                     /* thresholds: */
@@ -654,9 +654,10 @@ int sptrkset(ENVIRON *csound, SPECPTRK *p)
     }
     p->threshon *= weightsum;
     p->threshoff *= weightsum;
-    printf(Str(
-               "\n\tdbthresh %4.1f: X-corr %s threshon %4.1f, threshoff %4.1f\n"),
-           dbthresh, outstring[inspecp->dbout], p->threshon, p->threshoff);
+    csound->Message(csound, Str("\n\tdbthresh %4.1f: X-corr %s "
+                                "threshon %4.1f, threshoff %4.1f\n"),
+                            dbthresh, outstring[inspecp->dbout],
+                            p->threshon, p->threshoff);
     p->oct0p = oct0p;                 /* virtual loc of oct 0 */
     p->confact = *p->iconf;
     p->flop = flop;
@@ -812,130 +813,6 @@ int specptrk(ENVIRON *csound, SPECPTRK *p)
       specdisp(csound,&p->fdisplay);
     return OK;
 }
-/* void sptrkset(ENVIRON *csound, SPECPTRK *p) */
-/* { */
-/*     SPECDAT *inspecp = p->wsig; */
-/*     long    npts, nptls, nn, lobin; */
-/*     int     *dstp; */
-/*     MYFLT   nfreqs, rolloff; */
-
-/*     if ((npts = inspecp->npts) != p->winpts) {  */        /* if size has changed */
-/*       SPECset(&p->wfund, (long)npts);   */              /*   realloc for wfund */
-/*       p->wfund.downsrcp = inspecp->downsrcp; */
-/*       p->fundp = (MYFLT *) p->wfund.auxch.auxp; */
-/*       p->winpts = npts; */
-/*     } */
-/*     if ((p->ftimcnt = (int)(ekr * *p->ifprd)) > 0) { */    /* if displaying wfund   */
-/*       SPECDISP *fdp = &p->fdisplay; */
-/*       fdp->h = p->h; */
-/*       fdp->wsig = &p->wfund;   */                     /*  pass the param pntrs */
-/*       fdp->iprd = p->ifprd; */
-/*       fdp->iwtflg = p->iwtflg; */
-/*       spdspset(fdp);   */                             /*  & call specdisp init */
-/*     } */
-/*     else p->ftimcnt = 0; */
-/*     if ((nptls = (long)*p->inptls) <= 0 || nptls > MAXPTL) { */
-/*       csound->InitError(csound, X_874,"illegal no of partials"); */
-/*       return; */
-/*     } */
-/*     p->nptls = nptls; */
-/*     dstp = p->pdist; */
-/*     nfreqs = (MYFLT)inspecp->nfreqs; */
-/*     for (nn = 1; nn <= nptls; nn++) */
-/*       *dstp++ = (int) ((log((double) nn) / logtwo) * nfreqs); */
-/*     if ((rolloff = *p->irolloff) == 0. || rolloff == 1. || nptls == 1) */
-/*       p->rolloff = 0; */
-/*     else { */
-/*       MYFLT *fltp = p->pmult; */
-/*       MYFLT octdrop = (FL(1.0) - rolloff) / nfreqs; */
-/*       dstp = p->pdist; */
-/*       nn = nptls; */
-/*       do  *fltp++ = FL(1.0) - octdrop * *dstp++; */ /* rolloff * octdistance */
-/*       while (--nn); */
-/*       if (*--fltp < FZERO) */
-/*      csound->InitError(csound, X_1123,"per oct rolloff too steep"); */
-/*       p->rolloff = 1; */
-/*     } */
-/*     lobin = (long)(inspecp->downsrcp->looct * nfreqs); */
-/*     p->oct0p = p->fundp - lobin; */ /* virtual loc of oct 0 */
-/*     p->octfreqs = nfreqs; */
-
-/*     printf("nfreqs: %d, dist array:", (int)nfreqs); */
-/*     for (nn = 0; nn < nptls; nn++) */
-/*       printf(" %d", p->pdist[nn]); */
-/*     if (p->rolloff) { */
-/*       printf("\n\troll array:"); */
-/*       for (nn = 0; nn < nptls; nn++) */
-/*      printf(" %4.2f", p->pmult[nn]); */
-/*     } */
-/*     printf("\n"); */
-
-/*     p->kinterp = (*p->interp == FZERO) ? 0 : 1; */
-/*     p->kval = FZERO; */
-/*     p->kinc = FZERO; */
-/* } */
-
-/* void specptrk(ENVIRON *csound, SPECPTRK *p) */
-/* { */
-/*     SPECDAT *inspecp = p->wsig; */
-
-/*     if (inspecp->ktimstamp == kcounter) { */         /* if inspectrum is new:      */
-/*       MYFLT *inp2, sum; */
-/*       MYFLT *inp = (MYFLT *) inspecp->auxch.auxp; */
-/*       MYFLT *endp = inp + inspecp->npts; */
-/*       MYFLT *fundp = p->fundp; */
-/*       long  nn; */
-/*       int   *pdist; */
-/*       MYFLT fmax, *fmaxp, kval; */
-/*       if (inp==NULL) { */            /* RWD fix */
-/*      csound->InitError(csound, X_1225,"specptrk: not initialised"); */
-/*               return; */
-/*       } */
-/*       if (p->rolloff) { */
-/*      MYFLT *pmult; */
-/*      do { */
-/*        sum = *inp; */
-/*        pdist = p->pdist + 1; */
-/*        pmult = p->pmult + 1; */
-/*        for (nn = p->nptls; --nn; ) { */
-/*          if ((inp2 = inp + *pdist++) >= endp) */
-/*            break; */
-/*          sum += *inp2 * *pmult++; */
-/*        } */
-/*        *fundp++ = sum; */
-/*      } while (++inp < endp); */
-/*       } */
-/*       else { */
-/*      do { */
-/*        sum = *inp; */
-/*        pdist = p->pdist + 1; */
-/*        for (nn = p->nptls; --nn; ) { */
-/*          if ((inp2 = inp + *pdist++) >= endp) */
-/*            break; */
-/*          sum += *inp2; */
-/*        } */
-/*        *fundp++ = sum; */
-/*      } while (++inp < endp); */
-/*       } */
-/*       p->wfund.ktimstamp = kcounter; */            /* mark the fundspec as new */
-/*       fundp = p->fundp; */
-/*       for (fmaxp=fundp,fmax=FZERO,nn=inspecp->npts; --nn; fundp++) { */
-/*      if (*fundp > fmax) { */
-/*        fmax = *fundp; */
-/*        fmaxp = fundp; */
-/*      } */
-/*       } */
-/*       kval = (fmaxp - p->oct0p) / p->octfreqs; */  /* cvt binno to true decoct */
-/*       if (p->kinterp) */                               /*   new kinc if interp */
-/*      p->kinc = (kval - p->kval) / inspecp->ktimprd; */
-/*       else p->kval = kval; */
-/*         } */
-/*     *p->koct = p->kval; */                  /* output true decoct */
-/*     if (p->kinterp)  */                     /*   & interp if reqd */
-/*       p->kval += p->kinc; */
-/*     if (p->ftimcnt) */
-/*       specdisp(&p->fdisplay); */
-/* } */
 
 int spsumset(ENVIRON *csound, SPECSUM *p)
 {
@@ -1283,15 +1160,15 @@ int spfilset(ENVIRON *csound, SPECFILT *p)
         }
       } while (--nn);
     }
-    printf(Str("coef range: %6.3f - %6.3f\n"),
-           *p->coefs, *(p->coefs+npts-1));
+    csound->Message(csound, Str("coef range: %6.3f - %6.3f\n"),
+                            *p->coefs, *(p->coefs+npts-1));
     {
       MYFLT *flp = (MYFLT *) p->states;
       do {
-        *flp++ = FL(0.0);                      /* clr the persist buf state mem */
+        *flp++ = FL(0.0);               /* clr the persist buf state mem */
       } while (--npts);
     }
-    outspecp->ktimstamp = 0;                 /* mark the output spec as not new */
+    outspecp->ktimstamp = 0;            /* mark the output spec as not new */
     return OK;
 }
 
@@ -1374,7 +1251,7 @@ long opcode_size(void)
 
 OENTRY *opcode_init(ENVIRON *xx)
 {
-/*     xx->displop4_ = xx->getopnum_("specdisp"); /\* This will not work!!! *\/ */
+/*  xx->displop4 = xx->getopnum_("specdisp"); /\* This will not work!!! *\/ */
     return localops;
 }
 

@@ -33,7 +33,7 @@ int metro_set(ENVIRON *csound, METRO *p)
 
     if (phs >= 0.0) {
       if ((longphs = (long)phs))
-        err_printf("metro:init phase truncation");
+        csound->Message(csound, "metro:init phase truncation");
       p->curphs = phs - (MYFLT)longphs;
     }
     p->flag=1;
