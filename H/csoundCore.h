@@ -892,6 +892,8 @@ extern "C" {
     int           FFT_max_size;
     void          *FFT_table_1;
     void          *FFT_table_2;
+    /* statics from twap.c should be TSEG* */
+    void          *tseg, *tpsave, *tplim;
   } ENVIRON;
 
   extern ENVIRON cenviron_;
