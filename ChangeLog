@@ -1,3 +1,7 @@
+2004-12-18  John ffitch  <jpff@codemist.co.uk>
+
+	* Engine/fgens.c (hfgens): Ensure gensub array is initialised
+
 2004-12-14  John ffitch  <jpff@codemist.co.uk>
 
 	* SConstruct: All over use strings for options rather than

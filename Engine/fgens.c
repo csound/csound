@@ -2231,6 +2231,10 @@ FUNC *hfgens(ENVIRON *csound, EVTBLK *evtblkp)/* create ftable using evtblk data
       /* else defer alloc to gen01|gen23|gen28 */
       FTPLERR(Str(X_684,"deferred size for GEN1 only"))
     printf(Str(X_782,"ftable %d:\n"), ff->fno);
+    if (csound->gensub==NULL) {
+      csound->gensub = (GEN*)mmalloc(csound->genmax*sizeof(GEN));
+      memcpy(csound->gensub, or_sub, sizeof(or_sub));
+    }
     (*csound->gensub[genum])(ftp, csound);     /* call gen subroutine  */
     if (!ff->fterrcnt)
       ftresdisp(ff,ftp);                       /* rescale and display */

@@ -87,7 +87,7 @@ Fl_Menu_Item menu[] = {
   {NULL,        0, 0, (void*)NULL}, //27
   {NULL,        0, 0, (void*)NULL}, //28
   {NULL,        0, 0, (void*)NULL}, //29
-  0};
+  NULL};
 
 class graph_box: public Fl_Window {
   void draw();
