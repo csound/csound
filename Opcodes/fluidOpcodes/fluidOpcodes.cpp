@@ -92,6 +92,8 @@
  * or of changing their parameters, from Csound.
  */
 #include "fluidOpcodes.hpp"
+#include <OpcodeBase.hpp>
+#include <cs.h>
 #include <string>
 #include <vector>
 #include <stdlib.h>
@@ -395,6 +397,151 @@ extern "C"
     return OK;
   }    
     
+  class FLUIDCONTROL : public OpcodeBase<FLUIDCONTROL>
+  {
+  public:
+    // Inputs.
+    MYFLT *iFluidEngine;
+    MYFLT *kMidiStatus;
+    MYFLT *kMidiChannel;
+    MYFLT *kMidiData1;
+    MYFLT *kMidiData2;
+    // No outputs.
+    // Internal state.
+    int fluidId;
+    bool released;
+    int iMidiStatus;
+    int iMidiChannel;
+    int iMidiData1;
+    int iMidiData2;
+    int midiStatus;
+    int midiChannel;
+    int midiData1;
+    int midiData2;
+    int priorMidiStatus;
+    int priorMidiChannel;
+    int priorMidiData1;
+    int priorMidiData2;
+    int init(void *csound_)
+    {
+      fluidId           = (int) (*iFluidEngine);
+      released          = false;
+      iMidiStatus       = 0xf0 & (int) (*kMidiStatus);                      
+      iMidiChannel      = (int) (*kMidiChannel);                      
+      iMidiData1        = (int) (*kMidiData1);                      
+      iMidiData2        = (int) (*kMidiData2);                      
+      priorMidiStatus   = -1;
+      priorMidiChannel  = -1;
+      priorMidiData1    = -1;
+      priorMidiData2    = -1;
+      return OK;
+    }
+    int kontrol(void *csound_)
+    {
+      midiStatus       = 0xf0 & (int) (*kMidiStatus);                      
+      midiChannel      = (int) (*kMidiChannel);                      
+      midiData1        = (int) (*kMidiData1);                      
+      midiData2        = (int) (*kMidiData2);                      
+      if( midiStatus   != priorMidiStatus  ||
+	  midiChannel  != priorMidiChannel ||
+	  midiData1    != priorMidiData1   ||
+	  midiData2    != priorMidiData2)
+	{
+	  switch(midiStatus)
+	    {
+	    case (int) 0x80:
+	      fluid_synth_noteoff(fluid_engines[fluidId], 
+				  midiChannel, 
+				  midiData1); 
+	      warn("Note off: s:%3d c:%3d k:%3d\n",
+		   midiStatus,
+		   midiChannel,
+		   midiData1);                         
+	      break;
+	    case (int) 0x90:
+	      fluid_synth_noteon(fluid_engines[fluidId], 
+				 midiChannel, 
+				 midiData1, 
+				 midiData2); 
+	      warn("Note on:  s:%3d c:%3d k:%3d v:%3d\n",
+		   midiStatus,
+		   midiChannel,
+		   midiData1,
+		   midiData2);                         
+	      break;
+	    case (int) 0xa0:
+	      warn("Key pressure (not handled): s:%3d c:%3d k:%3d v:%3d\n",
+		   midiStatus,
+		   midiChannel,
+		   midiData1,
+		   midiData2);                         
+	      break;
+	    case (int) 0xb0:
+	      fluid_synth_cc(fluid_engines[fluidId], 
+			     midiChannel, 
+			     midiData1, 
+			     midiData2);
+	      warn("Control change: s:%3d c:%3d c:%3d v:%3d\n",
+		   midiStatus,
+		   midiChannel,
+		   midiData1,
+		   midiData2);                         
+	      break;
+	    case (int) 0xc0:
+	      fluid_synth_program_change(fluid_engines[fluidId], 
+					 midiChannel, 
+					 midiData1); 
+	      warn("Program change: s:%3d c:%3d p:%3d\n",
+		   midiStatus,
+		   midiChannel,
+		   midiData1);                         
+	      break;
+	    case (int) 0xd0:
+	      warn("After touch (not handled): s:%3d c:%3d k:%3d v:%3d\n",
+		   midiStatus,
+		   midiChannel,
+		   midiData1,
+		   midiData2);                         
+	      break;
+	    case (int) 0xe0:
+	      fluid_synth_pitch_bend(fluid_engines[fluidId], 
+				     midiChannel, 
+				     midiData1); 
+	      warn("Pitch bend: s:%d c:%d b:%d\n",
+		   midiStatus,
+		   midiChannel,
+		   midiData1);                         
+	      break;
+	    case (int) 0xf0:
+	      warn("System exclusive (not handled): c:%3d k:%3d v:%3d\n",
+		   midiStatus,
+		   midiChannel,
+		   midiData1,
+		   midiData2);                         
+	      break;
+	    }
+	}
+      if((!released) &&
+	 (h.insdshead->offtim <= cs()->GetScoreTime(cs()) ||
+	  h.insdshead->relesing)) {
+	released = true;
+	fluid_synth_noteoff(fluid_engines[fluidId], 
+			    iMidiChannel, 
+			    iMidiData1); 
+	warn("Note off: s:%3d c:%3d k:%3d v:%3d\n",
+	     iMidiStatus,
+	     iMidiChannel,
+	     iMidiData1,
+	     iMidiData2);                         
+      }
+      priorMidiStatus  = midiStatus;
+      priorMidiChannel = midiChannel;
+      priorMidiData1   = midiData1;
+      priorMidiData2   = midiData2;
+      return OK;
+    }
+  };
+
     
   /* OPCODE LIBRARY STUFF */
     
@@ -486,6 +633,17 @@ extern "C"
       0,                  
       (SUBR)&fluidAllOutAopadr,  
       0 
+    },
+    {
+      "fluidControl", 
+      sizeof(FLUIDCONTROL), 
+      3, 
+      "",   
+      "ikkkk", 
+      &FLUIDCONTROL::init_, 
+      &FLUIDCONTROL::kontrol_, 
+      0,                 
+      0                  
     }
   };
     
@@ -495,7 +653,7 @@ extern "C"
    */
   PUBLIC int opcode_size()
   {
-    return sizeof(OENTRY) * 8;
+    return sizeof(OENTRY) * 9;
   }
 
   /**
