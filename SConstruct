@@ -242,8 +242,8 @@ if configure.CheckHeader("termios.h", language = "C"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_TERMIOS_H')
 if configure.CheckHeader("string.h", language = "C"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_STRING_H')
-else :
-     if configure.CheckHeader("strings.h", language = "C"):
+else:
+    if configure.CheckHeader("strings.h", language = "C"):
      	commonEnvironment.Append(CCFLAGS = '-DHAVE_STRINGS_H')
 if getPlatform() == 'darwin':
     commonEnvironment.Append(CCFLAGS = '-DHAVE_DIRENT_H')
