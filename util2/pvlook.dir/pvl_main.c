@@ -24,6 +24,8 @@
 /*******************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
+#include "ustub.h"
+ENVIRON cenviron;
 
 int pvlook(int, char **);
 
