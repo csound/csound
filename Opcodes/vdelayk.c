@@ -1,5 +1,5 @@
 /*  
-    vdelayk.c:
+    vdelayk.c: (incorporating max_k)
 
     Copyright (C) 2004 Gabriel Maldonado
 
@@ -22,6 +22,7 @@
 */
 
 #include "csdl.h"
+#include <math.h>
 
 typedef struct {
 	OPDS	h;
@@ -29,6 +30,13 @@ typedef struct {
 	AUXCH	aux;
 	long	left, maxd;
 } KDEL;
+
+typedef struct	{
+	OPDS	h;
+	MYFLT	*kout, *asig, *ktrig, *imaxflag;
+	MYFLT	max;
+	int		counter;
+} P_MAXIMUM;
 
 
 int kdel_set(KDEL *p)
@@ -79,10 +87,68 @@ int kdelay(KDEL *p)
     return OK;
 }
 
+int partial_maximum_set(P_MAXIMUM *p)
+{
+    p->max = 0;
+    p->counter = 0;
+    return OK;
+}
+
+int partial_maximum(P_MAXIMUM *p)
+{
+    int	n = ksmps, flag = (int) *p->imaxflag;
+    MYFLT *a = p->asig;
+    MYFLT max = p->max;
+    switch(flag) {
+    case 0: /* absolute maximum */
+      do {
+        MYFLT temp;
+        if ((temp= (MYFLT) fabs(*a++)) > max) max = temp;
+      } while (--n);
+      if (max > p->max) p->max = max;
+      break;
+    case 1: /* actual maximum */
+      do {
+        if (*a > max) max = *a;
+        ++a;
+      } while (--n);
+      if (max > p->max) p->max = max;
+      break;
+    case 2: /* actual minimum */
+      do {
+        if (*a < max) max = *a;
+        ++a;
+      } while (--n);
+      if (max < p->max) p->max = max;
+      break;
+    case 3:  /* average */
+      {
+        MYFLT temp=0;
+        do temp += *a++;
+        while (--n);
+        ++(p->counter);
+        p->max += temp;
+      }
+      break;
+    default:
+      return perferror("maxk: invalid imaxflag value");
+    }
+    if (*p->ktrig) {
+      if (flag == 3) {
+        *p->kout = p->max / p->counter;
+        p->counter = 0;
+      }
+      else *p->kout = p->max;
+      p->max = 0;
+    }
+    return OK;
+}
+
 #define S       sizeof
 
 static OENTRY localops[] = {
-{ "vdelayk",S(KDEL),   3,        "k",   "kkioo",  (SUBR)kdel_set,  (SUBR)kdelay },
+{ "vdelayk",S(KDEL),   3,    "k", "kkioo",  (SUBR)kdel_set,  (SUBR)kdelay },
+{ "maxk", S(P_MAXIMUM), 5, "k", "aki", (SUBR)partial_maximum_set,NULL,(SUBR)partial_maximum},
 };
 
 LINKAGE
