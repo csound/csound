@@ -770,7 +770,7 @@ void sfopenin(void)             /* init for continuous soundin */
 		|| strncmp(O.infilename,"adc", 3) == 0
 #endif
 		|| strcmp(O.infilename,"adc") == 0)) {
-#if defined(WIN32) || defined(HAVE_ALSA)
+#if defined(WIN32) || defined(HAVE_LIBASOUND)
 			rtin_dev = 0;
 			if (strncmp(O.infilename,"devaudio", 8) == 0)
 				sscanf(O.infilename+8, "%d", &rtin_dev);
@@ -871,7 +871,7 @@ void sfopenout(void)                            /* init for sound out       */
 		|| strcmp(O.outfilename,"/dev/dsp") ==0
 # endif
 		|| strcmp(O.outfilename,"dac") == 0) {
-#if defined(WIN32) || defined(HAVE_ALSA)
+#if defined(WIN32) || defined(HAVE_LIBASOUND)
 			if (strncmp(O.outfilename,"devaudio", 8) == 0)
 				sscanf(O.outfilename+8, "%d", &rtout_dev);
 			else if (strncmp(O.outfilename,"dac", 3) == 0)

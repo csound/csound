@@ -30,6 +30,7 @@ pkglib_LTLIBRARIES+=butter.la
 pkglib_LTLIBRARIES+=clfilt.la
 pkglib_LTLIBRARIES+=cross2.la
 pkglib_LTLIBRARIES+=dam.la
+pkglib_LTLIBRARIES+=dcblock.la
 pkglib_LTLIBRARIES+=filter.la
 pkglib_LTLIBRARIES+=flanger.la
 pkglib_LTLIBRARIES+=follow.la
@@ -454,6 +455,12 @@ dam_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
 dam_la_CFLAGS=@PLUGIN_CFLAGS@
 dam_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
 dam_la_LIBADD=@PLUGIN_LIBADD@
+
+dcblock_la_SOURCES=Opcodes/dcblockr.c
+dcblock_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
+dcblock_la_CFLAGS=@PLUGIN_CFLAGS@
+dcblock_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
+dcblock_la_LIBADD=@PLUGIN_LIBADD@
 
 filter_la_SOURCES=Opcodes/filter.c
 filter_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
