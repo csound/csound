@@ -213,12 +213,13 @@ int tablexkt(ENVIRON *csound, TABLEXKT *p)
     /* window size */
     wsize = p->wsize;
     if ((wsize < 2) || (wsize > 1024)) {
-      perferror(Str("tablexkt: not initialised")); return NOTOK;
+      csound->PerfError(csound, Str("tablexkt: not initialised"));
+      return NOTOK;
     }
     wsized2 = wsize >> 1;
 
     /* check ftable */
-    if ((ftp = ftfindp(csound, p->kfn)) == NULL)
+    if ((ftp = csound->FTFindP(csound, p->kfn)) == NULL)
       return NOTOK;     /* invalid table */
     if ((ftable = ftp->ftable) == NULL) return NOTOK;
     flen = ftp->flen;               /* table length */

@@ -1215,7 +1215,7 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators)
 int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
 {
   if (is_empty) {
-    return initerror("empty snapshot");
+    return csoundInitError(&cenviron, "empty snapshot");
   }
   for (int j =0; j< (int) valuators.size(); j++) {
     Fl_Widget* o = (Fl_Widget*) (valuators[j].WidgAddress);
@@ -1387,7 +1387,7 @@ extern "C" int set_snap(ENVIRON *csound, FLSETSNAP *p)
         table[index*numfields+j] = snap.fields[j].value;
       }
     }
-    else return initerror("FLsetsnap: invalid table");
+    else return csound->InitError(csound, "FLsetsnap: invalid table");
   }
   else { // else store it into snapshot bank
     if ((int) snapshots.size() < index+1)
@@ -1430,7 +1430,7 @@ extern "C" int save_snap(ENVIRON *csound, FLSAVESNAPS* p)
   else sprintf(s,"snap.%d", (int)*p->filename);
   s2 = csound->FindOutputFile(csound, s, "SNAPDIR");
   if (s2 == NULL)
-    return initerror(Str("FLsavesnap: cannot open file"));
+    return csound->InitError(csound, Str("FLsavesnap: cannot open file"));
   strcpy(s, s2);
   csound->Free(csound, s2);
   filename = s;
@@ -1481,7 +1481,7 @@ extern "C" int load_snap(ENVIRON *csound, FLLOADSNAPS* p)
   else sprintf(s,"snap.%d", (int)*p->filename);
   s2 = csound->FindInputFile(csound, s, "SNAPDIR");
   if (s2 == NULL)
-    return initerror(Str("FLloadsnap: cannot open file"));
+    return csound->InitError(csound, Str("FLloadsnap: cannot open file"));
   strcpy(s, s2);
   csound->Free(csound, s2);
   filename = s;
@@ -1513,7 +1513,8 @@ extern "C" int load_snap(ENVIRON *csound, FLLOADSNAPS* p)
       opc_orig = ((OPDS *) (v.opcode))->optext->t.opcod;
 
       if (!(opc_orig == opc)) {
-        return initerror("unmatched widget, probably due to a modified"
+        return csound->InitError(csound,
+                         "unmatched widget, probably due to a modified"
                          " orchestra. Modifying an orchestra makes it "
                          "incompatible with old snapshot files");
       }
@@ -2092,10 +2093,11 @@ extern "C" int EndPanel(ENVIRON *csound, FLPANELEND *p)
   stack_count--;
   ADDR_STACK adrstk = AddrStack.back();
   if (strcmp( adrstk.h->optext->t.opcod, "FLpanel"))
-    return initerror("FLpanel_end: invalid stack pointer: verify its placement");
+    return csound->InitError(csound, "FLpanel_end: invalid stack pointer: "
+                                     "verify its placement");
   if (adrstk.count != stack_count)
-    return initerror("FLpanel_end: invalid stack count: "
-                     "verify FLpanel/FLpanel_end count and placement");
+    return csound->InitError(csound, "FLpanel_end: invalid stack count: "
+                             "verify FLpanel/FLpanel_end count and placement");
   ((Fl_Window*) adrstk.WidgAddress)->end();
   AddrStack.pop_back();
   return OK;
@@ -2118,10 +2120,11 @@ extern "C" int EndScroll(ENVIRON *csound, FLSCROLLEND *p)
   ADDR_STACK adrstk = AddrStack.back();
   if (strcmp( adrstk.h->optext->t.opcod, "FLscroll"))
     return
-      initerror("FLscroll_end: invalid stack pointer: verify its placement");
+      csound->InitError(csound, "FLscroll_end: invalid stack pointer: "
+                                "verify its placement");
   if (adrstk.count != stack_count)
-    return initerror("FLscroll_end: invalid stack count: "
-                     "verify FLscroll/FLscroll_end count and placement");
+    return csound->InitError(csound, "FLscroll_end: invalid stack count: "
+                            "verify FLscroll/FLscroll_end count and placement");
   ((Fl_Scroll*) adrstk.WidgAddress)->end();
 
   AddrStack.pop_back();
@@ -2146,9 +2149,10 @@ extern "C" int EndTabs(ENVIRON *csound, FLTABSEND *p)
   ADDR_STACK adrstk = AddrStack.back();
   if (strcmp( adrstk.h->optext->t.opcod, "FLtabs"))
     return
-      initerror("FLscroll_end: invalid stack pointer: verify its placement");
+      csound->InitError(csound, "FLscroll_end: invalid stack pointer: "
+                                "verify its placement");
   if (adrstk.count != stack_count)
-    return initerror("FLtabs_end: invalid stack count: "
+    return csound->InitError(csound, "FLtabs_end: invalid stack count: "
                      "verify FLtabs/FLtabs_end count and placement");
   ((Fl_Scroll*) adrstk.WidgAddress)->end();
 
@@ -2188,10 +2192,11 @@ extern "C" int EndGroup(ENVIRON *csound, FLGROUPEND *p)
   stack_count--;
   ADDR_STACK adrstk = AddrStack.back();
   if (strcmp( adrstk.h->optext->t.opcod, "FLgroup"))
-    return initerror("FLgroup_end: invalid stack pointer: verify its placement");
+    return csound->InitError(csound, "FLgroup_end: invalid stack pointer: "
+                                     "verify its placement");
   if (adrstk.count != stack_count)
-    return initerror("FLgroup_end: invalid stack count: "
-                     "verify FLgroup/FLgroup_end count and placement");
+    return csound->InitError(csound, "FLgroup_end: invalid stack count: "
+                             "verify FLgroup/FLgroup_end count and placement");
   ((Fl_Scroll*) adrstk.WidgAddress)->end();
 
   AddrStack.pop_back();
@@ -2219,10 +2224,11 @@ extern "C" int EndPack(ENVIRON *csound, FLSCROLLEND *p)
   stack_count--;
   ADDR_STACK adrstk = AddrStack.back();
   if (strcmp( adrstk.h->optext->t.opcod, "FLpack"))
-    return initerror("FLpack_end: invalid stack pointer: verify its placement");
+    return csound->InitError(csound, "FLpack_end: invalid stack pointer: "
+                                     "verify its placement");
   if (adrstk.count != stack_count)
-    return initerror("FLpack_end: invalid stack count: "
-                     "verify FLpack/FLpack_end count and placement");
+    return csound->InitError(csound, "FLpack_end: invalid stack count: "
+                             "verify FLpack/FLpack_end count and placement");
   ((Fl_Pack*) adrstk.WidgAddress)->end();
 
   AddrStack.pop_back();
@@ -2741,7 +2747,7 @@ extern "C" int fl_slider(ENVIRON *csound, FLSLIDER *p)
   case 4:  o->type(FL_VERT_SLIDER); break;
   case 5:  o->type(FL_HOR_NICE_SLIDER); o->box(FL_FLAT_BOX); break;
   case 6:  o->type(FL_VERT_NICE_SLIDER); o->box(FL_FLAT_BOX); break;
-  default: return initerror("FLslider: invalid slider type");
+  default: return csound->InitError(csound, "FLslider: invalid slider type");
   }
   widget_attributes(o);
   MYFLT min = p->min = *p->imin, max = *p->imax, range;
@@ -2752,7 +2758,8 @@ extern "C" int fl_slider(ENVIRON *csound, FLSLIDER *p)
     break;
   case EXP_ : //exponential
     if (min == 0 || max == 0)
-      return initerror("FLslider: zero is illegal in exponential operations");
+      return csound->InitError(csound, "FLslider: zero is illegal "
+                                       "in exponential operations");
     range = max - min;
     o->range(0,range);
     p->base = ::pow((max / min), 1/range);
@@ -2810,7 +2817,7 @@ extern "C" int fl_slider_bank(ENVIRON *csound, FLSLIDERBANK *p)
         zklast > (long) (*p->inumsliders + *p->ioutablestart_ndx))
       outable = zkstart + (long) *p->ioutablestart_ndx;
     else {
-      return initerror("invalid ZAK space allocation");
+      return csound->InitError(csound, "invalid ZAK space allocation");
     }
   }
   else {
@@ -2924,7 +2931,8 @@ extern "C" int fl_slider_bank(ENVIRON *csound, FLSLIDERBANK *p)
     case EXP_ : //exponential
       if (min == 0 || max == 0)
         return
-          initerror("FLsliderBank: zero is illegal in exponential operations");
+          csound->InitError(csound, "FLsliderBank: zero is illegal "
+                                    "in exponential operations");
       range = max - min;
       o->range(0,range);
       p->slider_data[j].base = ::pow((max / min), 1/range);
@@ -3012,7 +3020,8 @@ extern "C" int fl_joystick(ENVIRON *csound, FLJOYSTICK *p)
     o->xbounds(*p->iminx,*p->imaxx); break;
   case EXP_: //exponential
     { if (*p->iminx == 0 || *p->imaxx == 0)
-      return initerror("FLjoy X axe: zero is illegal in exponential operations");
+      return csound->InitError(csound, "FLjoy X axe: zero is illegal "
+                                       "in exponential operations");
     MYFLT range = *p->imaxx - *p->iminx;
     o->xbounds(0,range);
     p->basex = ::pow((*p->imaxx / *p->iminx), 1/range);
@@ -3040,7 +3049,8 @@ extern "C" int fl_joystick(ENVIRON *csound, FLJOYSTICK *p)
     o->ybounds(*p->imaxy,*p->iminy); break;
   case EXP_ : //exponential
     { if (*p->iminy == 0 || *p->imaxy == 0)
-      return initerror("FLjoy X axe: zero is illegal in exponential operations");
+      return csound->InitError(csound, "FLjoy X axe: zero is illegal "
+                                       "in exponential operations");
     MYFLT range = *p->imaxy - *p->iminy;
     o->ybounds(range,0);
     p->basey = ::pow((*p->imaxy / *p->iminy), 1/range);
@@ -3119,7 +3129,7 @@ extern "C" int fl_knob(ENVIRON *csound, FLKNOB *p)
     o->box(_FL_OSHADOW_BOX);
     break;
   default:
-    return initerror("FLknob: invalid knob type");
+    return csound->InitError(csound, "FLknob: invalid knob type");
   }
   widget_attributes(o);
   o->align(FL_ALIGN_BOTTOM | FL_ALIGN_WRAP);
@@ -3134,7 +3144,8 @@ extern "C" int fl_knob(ENVIRON *csound, FLKNOB *p)
     {
       MYFLT min = p->min = *p->imin, max = *p->imax;
       if (min == 0 || max == 0)
-        return initerror("FLknob: zero is illegal in exponential operations");
+        return csound->InitError(csound, "FLknob: zero is illegal "
+                                         "in exponential operations");
       MYFLT range = max - min;
       o->range(0,range);
       p->base = ::pow((max / min), 1/range);
@@ -3251,7 +3262,7 @@ extern "C" int fl_button(ENVIRON *csound, FLBUTTON *p)
                             (int)*p->iwidth, (int)*p->iheight, Name);
     break;
   default:
-    return initerror("FLbutton: invalid button type");
+    return csound->InitError(csound, "FLbutton: invalid button type");
   }
   Fl_Button *o = w;
   o->align(FL_ALIGN_WRAP);
@@ -3291,7 +3302,8 @@ extern "C" int fl_button_bank(ENVIRON *csound, FLBUTTONBANK *p)
       case 2: w= new Fl_Light_Button(x, y, 10, 10, btName); break;
       case 3: w= new Fl_Check_Button(x, y, 10, 10, btName); break;
       case 4: w= new Fl_Round_Button(x, y, 10, 10, btName); break;
-      default: return initerror("FLbuttonBank: invalid button type");
+      default: return csound->InitError(csound, "FLbuttonBank: "
+                                                "invalid button type");
       }
       widget_attributes(w);
       w->type(FL_RADIO_BUTTON);
@@ -3396,7 +3408,7 @@ extern "C" int fl_roller(ENVIRON *csound, FLROLLER *p)
     o->type(FL_VERTICAL);
     break;
   default:
-    return initerror("FLroller: invalid roller type");
+    return csound->InitError(csound, "FLroller: invalid roller type");
   }
   widget_attributes(o);
   o->step(istep);
@@ -3409,7 +3421,8 @@ extern "C" int fl_roller(ENVIRON *csound, FLROLLER *p)
     {
       MYFLT min = p->min, max = *p->imax;
       if (min == 0 || max == 0)
-        return initerror("FLslider: zero is illegal in exponential operations");
+        return csound->InitError(csound, "FLslider: zero is illegal "
+                                         "in exponential operations");
       MYFLT range = max - min;
       o->range(0,range);
       p->base = ::pow((max / min), 1/range);

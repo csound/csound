@@ -179,7 +179,7 @@ static void takeFFT(
     inbuf   = fp1 = (MYFLT *)mmalloc(&cenviron, Hlen * nchanls * sizeof(MYFLT));
     if ( (read_in = getsndin(infd, inbuf, (long) (Hlen * nchanls), p))
          < (long) (Hlen * nchanls))
-      die(Str("less sound than expected!"));
+      csoundDie(&cenviron, Str("less sound than expected!"));
 
     /* normalize the samples read in. */
     for (i = read_in; i--; ) {

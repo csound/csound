@@ -199,7 +199,7 @@ int vbap_FOUR_init(ENVIRON *csound, VBAP_FOUR  *p)
     ptr = &(ls_table[3]);
     csound->AuxAlloc(csound, p->ls_set_am * sizeof (LS_SET), &p->aux);
     if (p->aux.auxp==NULL) {
-      return initerror(Str("could not allocate memory"));
+      return csound->InitError(csound, Str("could not allocate memory"));
     }
     p->ls_sets = (LS_SET*) p->aux.auxp;
     ls_set_ptr = p->ls_sets;
@@ -313,7 +313,7 @@ int vbap_FOUR_moving_control(ENVIRON *csound, VBAP_FOUR_MOVING *p)
         }
       }
       if ((p->fld[abs(p->next_fld)]==NULL))
-        die(Str("Missing fields in vbap4move\n"));
+        csound->Die(csound, Str("Missing fields in vbap4move\n"));
       if (*p->field_am >= FL(0.0) && p->dim == 2) /* point-to-point */
         if (fabs(fabs(*p->fld[p->next_fld] - *p->fld[p->curr_fld]) - 180.0) < 1.0)
           err_printf(Str("Warning: Ambiguous transition 180 degrees.\n"));
@@ -355,7 +355,7 @@ int vbap_FOUR_moving_control(ENVIRON *csound, VBAP_FOUR_MOVING *p)
         p->ang_dir.ele = FL(0.0);
       }
       else {
-        die(Str("Wrong dimension\n"));
+        csound->Die(csound, Str("Wrong dimension\n"));
       }
     }
     else { /* angular velocities */
@@ -475,7 +475,7 @@ int vbap_FOUR_moving_init(ENVIRON *csound, VBAP_FOUR_MOVING  *p)
     ptr = &(ls_table[3]);
     csound->AuxAlloc(csound, p->ls_set_am * sizeof (LS_SET), &p->aux);
     if (p->aux.auxp == NULL) {
-      return initerror(Str("could not allocate memory"));
+      return csound->InitError(csound, Str("could not allocate memory"));
     }
     p->ls_sets = (LS_SET*) p->aux.auxp;
     ls_set_ptr = p->ls_sets;
@@ -504,7 +504,7 @@ int vbap_FOUR_moving_init(ENVIRON *csound, VBAP_FOUR_MOVING  *p)
       p->point_change_interval =
         (int)(ekr * *p->dur /((fabs(*p->field_am)/2.0) - 1.0 ));
     else
-      die(Str("Wrong dimension\n"));
+      csound->Die(csound, Str("Wrong dimension\n"));
     p->point_change_counter = 0;
     p->curr_fld = 0;
     p->next_fld = 1;

@@ -60,14 +60,14 @@ static HEADATA *getsndinfo(ENVIRON *csound, SNDINFO *p)
     sfname = soundiname;
     if (strcmp(sfname, "-i") == 0) {    /* get info on the -i    */
       if (!O.infilename)                /* commandline inputfile */
-        die(Str("no infile specified in the commandline"));
+        csound->Die(csound, Str("no infile specified in the commandline"));
       sfname = O.infilename;
     }
     s = csoundFindInputFile(csound, sfname, "SFDIR;SSDIR");
     if (s == NULL) {                        /* open with full dir paths */
       sprintf(errmsg,Str("diskinfo cannot open %s"), sfname);
       /* RWD 5:2001 better to exit in this situation ! */
-      die(errmsg);
+      csound->Die(csound, errmsg);
     }
     sfname = s;                             /* & record fullpath filnam */
     hdr = (HEADATA*) mcalloc(csound, sizeof(HEADATA));
@@ -85,7 +85,7 @@ static HEADATA *getsndinfo(ENVIRON *csound, SNDINFO *p)
     if (sf == NULL) {
       sprintf(errmsg, Str("diskinfo cannot open %s"), sfname);
       mfree(csound, sfname);
-      die(errmsg);
+      csound->Die(csound, errmsg);
     }
     mfree(csound, sfname);
     hdr->sr = (long) sfinfo.samplerate;
@@ -148,7 +148,7 @@ int filesr(ENVIRON *csound, SNDINFO *p)
 
 int filepeak(ENVIRON *csound, SNDINFOPEAK *p)
 {
-    die(Str("filepeak is not implemented"));
+    csound->Die(csound, Str("filepeak is not implemented"));
     return NOTOK;
 #if 0
     HEADATA *hdr = NULL;
@@ -164,7 +164,7 @@ int filepeak(ENVIRON *csound, SNDINFOPEAK *p)
     if ((hdr = getsndinfo(&info)) != NULL
         && !(readlong = hdr->readlong)) {         /* & hadn't readin audio */
       if (channel > hdr->nchanls)
-        die(Str("Input channel for peak exceeds number of channels in file"));
+        csound->Die(csound, Str("Input channel for peak exceeds number of channels in file"));
 
       if (
           hdr->filetyp == TYP_AIFF ||
@@ -185,13 +185,13 @@ int filepeak(ENVIRON *csound, SNDINFOPEAK *p)
         }
       }
       else { /* ## should we have an option to calculate peaks? */
-        die(Str("No peak information contained in the header of this file"));
+        csound->Die(csound, Str("No peak information contained in the header of this file"));
       }
     }
     else {
       /* RWD: we ought to be able to recover, in this situation ?
          e.g return -1, which can be trapped in the orc. */
-      die(Str("No valid header.  Cannot calculate peak values"));
+      csound->Die(csound, Str("No valid header.  Cannot calculate peak values"));
     }
     return OK;
 #endif

@@ -20,10 +20,9 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
-
                                                          /* PROTOTYP.H */
-#ifndef __PROTO_H
-#define __PROTO_H
+#ifndef _CSOUND_PROTO_H
+#define _CSOUND_PROTO_H
 
 #include <stdlib.h>
 #define IGN(X) X = X
@@ -32,74 +31,78 @@
 extern "C" {
 #endif
 
-int hetro(int argc, char **argv), lpanal(int argc, char **argv);
-int pvanal(int argc, char **argv), cvanal(int argc, char **argv);
-int sndinfo(int argc, char **argv), pvlook(int argc, char **argv);
-int dnoise(int argc, char **argv);
-void dnoise_usage(int);
-void cscorinit(void), cscore(ENVIRON*);
-void *mmalloc(void*, size_t), *mcalloc(void*, size_t);
-void *mrealloc(void*, void*, size_t), mfree(void*, void*);
-void csoundAuxAlloc(void*, long, AUXCH *), auxchfree(void*, INSDS *);
-void fdrecord(FDCH *), fdclose(FDCH *), fdchclose(INSDS *);
-void warning(char *);
-int  initerror(char *), perferror(char *);
-void synterr(char *), synterrp(char *, char *);
-void die(char *), dies(char *, char *);
-void putop(TEXT *), putstrg(char *);
-void rdorchfile(void), otran(void), resetouts(void);
-char argtyp(char *);
-TEXT *getoptxt(int *);
-int  express(char *), getopnum(char *), pnum(char *), lgexist(char *);
-void oload(ENVIRON*);
-void cpsoctinit(void), reverbinit(void);
-void dispinit(void);
-void sssfinit(void);
-int  init0(ENVIRON*);
-INSDS *instance(int);
-int  openin(char *), openout(char *, int);
-void scsort(FILE *, FILE *);
-int  scxtract(FILE *, FILE *, FILE *);
-int  rdscor(EVTBLK *);
-int  musmon(ENVIRON*);
-void RTLineset(void);
-int  sensLine(void);
-void fgens(ENVIRON *, EVTBLK *);
-FUNC *ftnp2find(ENVIRON *,MYFLT *), *ftfindp(ENVIRON *,MYFLT *);
-FUNC *csoundFTFind(void*, MYFLT*);
-MYFLT *csoundGetTable(void*, int, int*);
-void beep(void);
-MYFLT intpow(MYFLT, long);
-void list_opcodes(int);
-short sfsampsize(int);
-void rewriteheader(SNDFILE* ofd, int verbose);
-char *unquote(char *);
-void scoreRESET(ENVIRON *p);
-void kperf(ENVIRON*);
-void writeLine(const char *text, long size);
-void mainRESET(ENVIRON *);
-void create_opcodlst(void *csound);
-int readOptions(void*, FILE*);
-int csoundMain(void *csound, int argc, char **argv);
-void remove_tmpfiles(void*);
-void add_tmpfile(void*, char*);
-void xturnoff(ENVIRON*, INSDS*);
-void xturnoff_now(ENVIRON*, INSDS*);
-int insert_score_event(ENVIRON*, EVTBLK*, double, int);
-MEMFIL *ldmemfile(void*, const char*);
-void rlsmemfiles(void*);
-int delete_memfile(void*, const char*);
-int find_memfile(void*, const char*, MEMFIL**);
-void add_memfil(void*, MEMFIL*);
+int     hetro(int argc, char **argv), lpanal(int argc, char **argv);
+int     pvanal(int argc, char **argv), cvanal(int argc, char **argv);
+int     sndinfo(int argc, char **argv), pvlook(int argc, char **argv);
+int     dnoise(int argc, char **argv);
+void    dnoise_usage(int);
+void    cscorinit(void), cscore(ENVIRON*);
+void    *mmalloc(void*, size_t), *mcalloc(void*, size_t);
+void    *mrealloc(void*, void*, size_t), mfree(void*, void*);
+void    csoundAuxAlloc(void*, long, AUXCH *), auxchfree(void*, INSDS *);
+void    fdrecord(FDCH *), fdclose(FDCH *), fdchclose(INSDS *);
+int     csoundInitError(void *, const char *, ...);
+int     csoundPerfError(void *, const char *, ...);
+void    synterr(char *), synterrp(char *, char *);
+void    csoundDie(void *, const char *, ...);
+void    csoundWarning(void *, const char *, ...);
+void    csoundDebugMsg(void *, const char *, ...);
+void    putop(TEXT *), putstrg(char *);
+void    rdorchfile(void), otran(void), resetouts(void);
+char    argtyp(char *);
+TEXT    *getoptxt(int *);
+int     express(char *), getopnum(char *), pnum(char *), lgexist(char *);
+void    oload(ENVIRON*);
+void    cpsoctinit(void), reverbinit(void);
+void    dispinit(void);
+void    sssfinit(void);
+int     init0(ENVIRON*);
+INSDS   *instance(int);
+int     openin(char *), openout(char *, int);
+void    scsort(FILE *, FILE *);
+int     scxtract(FILE *, FILE *, FILE *);
+int     rdscor(EVTBLK *);
+int     musmon(ENVIRON*);
+void    RTLineset(void);
+int     sensLine(void);
+void    fgens(ENVIRON *, EVTBLK *);
+FUNC    *csoundFTFind(void*, MYFLT*);
+FUNC    *csoundFTFindP(void*, MYFLT*);
+FUNC    *csoundFTnp2Find(void*, MYFLT*);
+MYFLT   *csoundGetTable(void*, int, int*);
+void    beep(void);
+MYFLT   intpow(MYFLT, long);
+void    list_opcodes(int);
+short   sfsampsize(int);
+void    rewriteheader(SNDFILE* ofd, int verbose);
+char    *unquote(char *);
+void    scoreRESET(ENVIRON *p);
+void    kperf(ENVIRON*);
+void    writeLine(const char *text, long size);
+void    mainRESET(ENVIRON *);
+void    create_opcodlst(void *csound);
+int     readOptions(void*, FILE*);
+int     csoundMain(void *csound, int argc, char **argv);
+void    remove_tmpfiles(void*);
+void    add_tmpfile(void*, char*);
+void    xturnoff(ENVIRON*, INSDS*);
+void    xturnoff_now(ENVIRON*, INSDS*);
+int     insert_score_event(ENVIRON*, EVTBLK*, double, int);
+MEMFIL  *ldmemfile(void*, const char*);
+void    rlsmemfiles(void*);
+int     delete_memfile(void*, const char*);
+int     find_memfile(void*, const char*, MEMFIL**);
+void    add_memfil(void*, MEMFIL*);
 
-extern OPARMS O;
-extern ENVIRON cenviron;
-extern int fltk_abort;
-extern MYFLT *inbuf;
-extern MYFLT *outbuf;
+extern  OPARMS  O;
+extern  ENVIRON cenviron;
+extern  int     fltk_abort;
+extern  MYFLT   *inbuf;
+extern  MYFLT   *outbuf;
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif
+

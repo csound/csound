@@ -43,7 +43,7 @@ int krsnsetx(ENVIRON *csound, KRESONX *p)
     p->yt1 = (MYFLT*)p->aux.auxp; p->yt2 = (MYFLT*)p->aux.auxp + p->loop;
     if (scale && scale != 1 && scale != 2) {
       sprintf(errmsg,"illegal reson iscl value, %f",*p->iscl);
-      return initerror(errmsg);
+      return csound->InitError(csound, errmsg);
     }
     p->prvcf = p->prvbw = -FL(100.0);
 
@@ -106,8 +106,8 @@ int kresonx(ENVIRON *csound, KRESONX *p) /* Gabriel Maldonado, modified  */
 int fastab_set(ENVIRON *csound, FASTAB *p)
 {
     FUNC *ftp;
-    if ((ftp = ftnp2find(csound, p->xfn)) == NULL) {
-      return initerror("fastab: incorrect table number");
+    if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL) {
+      return csound->InitError(csound, "fastab: incorrect table number");
     }
     p->table = ftp->ftable;
     p->xmode = (int) *p->ixmode;
@@ -158,8 +158,8 @@ int fastabi(ENVIRON *csound, FASTAB *p)
     FUNC *ftp;
     /*ftp = csound->FTFind(p->xfn); */
 
-    if ((ftp = ftnp2find(csound, p->xfn)) == NULL) {
-      return initerror("tab_i: incorrect table number");
+    if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL) {
+      return csound->InitError(csound, "tab_i: incorrect table number");
     }
     if (*p->ixmode)
       *p->rslt =  *(ftp->ftable + (long) (*p->xndx * ftp->flen));
@@ -172,8 +172,8 @@ int fastabiw(ENVIRON *csound, FASTAB *p)
 {
     FUNC *ftp;
     /*ftp = csound->FTFind(p->xfn); */
-    if ((ftp = ftnp2find(csound, p->xfn)) == NULL) {
-      return initerror("tabw_i: incorrect table number");
+    if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL) {
+      return csound->InitError(csound, "tabw_i: incorrect table number");
     }
     if (*p->ixmode)
       *(ftp->ftable + (long) (*p->xndx * ftp->flen)) = *p->rslt;
@@ -203,8 +203,8 @@ static MYFLT *tb0,*tb1,*tb2,*tb3,*tb4,*tb5,*tb6,*tb7,*tb8,
              *tb9,*tb10,*tb11,*tb12,*tb13,*tb14,*tb15;
 
 #define tabMacro        FUNC *ftp;\
-    if ((ftp = ftnp2find(csound, p->ifn)) == NULL) {\
-      return initerror("tab_init: incorrect table number");\
+    if ((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL) {\
+      return csound->InitError(csound, "tab_init: incorrect table number");\
     }\
 
 int tab0_init(ENVIRON *csound,TB_INIT *p)
@@ -269,7 +269,7 @@ int tab15(ENVIRON *csound,FASTB *p) { *p->r = tb15[(long) *p->ndx]; return OK;}
 /*  */
 /*     if ((*p->ifilcod != sstrcod) || (*p->STRARG == 0))  */
 /*     {   sprintf(errmsg, "printi parameter was not a \"quoted string\"\n"); */
-/*         initerror(errmsg); */
+/*         csound->InitError(csound, errmsg); */
 /*         return NOTOK; */
 /*     } */
 /*     else  */
@@ -371,13 +371,13 @@ int adsynt2_set(ENVIRON *csound,ADSYNT2 *p)
     MYFLT       *pAmp;
     p->inerr = 0;
 
-    if ((ftp = ftnp2find(csound, p->ifn)) != NULL) {
+    if ((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL) {
       p->ftp = ftp;
     }
     else {
       p->inerr = 1;
-      /*initerror(Str(X_173,"adsynt: wavetable not found!")); */
-      return initerror("adsynt2: wavetable not found!");
+      /*csound->InitError(csound, Str(X_173,"adsynt: wavetable not found!")); */
+      return csound->InitError(csound, "adsynt2: wavetable not found!");
     }
 
     count = (int)*p->icnt;
@@ -385,34 +385,34 @@ int adsynt2_set(ENVIRON *csound,ADSYNT2 *p)
       count = 1;
     p->count = count;
 
-    if ((ftp = ftnp2find(csound, p->ifn)) != NULL) {
+    if ((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL) {
       p->freqtp = ftp;
     }
     else {
       p->inerr = 1;
-      /*initerror(Str(X_309,"adsynt: freqtable not found!")); */
-      return initerror("adsynt: freqtable not found!");
+      /*csound->InitError(csound, Str(X_309,"adsynt: freqtable not found!")); */
+      return csound->InitError(csound, "adsynt: freqtable not found!");
     }
     if (ftp->flen < count) {
       p->inerr = 1;
-/* initerror(Str(X_1424,
+/* csound->InitError(csound, Str(X_1424,
              "adsynt: partial count is greater than freqtable size!")); */
-      return initerror("adsynt: partial count is greater than freqtable size!");
+      return csound->InitError(csound, "adsynt: partial count is greater than freqtable size!");
     }
 
-    if ((ftp = ftnp2find(csound, p->ifn)) != NULL) {
+    if ((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL) {
       p->amptp = ftp;
     }
     else {
       p->inerr = 1;
-      /*       initerror(Str(X_1473, "adsynt: amptable not found!")); */
-      return initerror("adsynt: amptable not found!");
+      /*       csound->InitError(csound, Str(X_1473, "adsynt: amptable not found!")); */
+      return csound->InitError(csound, "adsynt: amptable not found!");
     }
     if (ftp->flen < count) {
       p->inerr = 1;
-      /* initerror(Str(X_1474,
+      /* csound->InitError(csound, Str(X_1474,
                    "adsynt: partial count is greater than amptable size!")); */
-      return initerror("adsynt: partial count is greater than amptable size!");
+      return csound->InitError(csound, "adsynt: partial count is greater than amptable size!");
     }
 
     if (p->lphs.auxp==NULL ||
@@ -449,8 +449,8 @@ int adsynt2(ENVIRON *csound,ADSYNT2 *p)
     int     nsmps, count;
 
     if (p->inerr) {
-      /*initerror(Str(X_1475,"adsynt: not initialized")); */
-      return initerror("adsynt: not initialized");
+      /*csound->InitError(csound, Str(X_1475,"adsynt: not initialized")); */
+      return csound->InitError(csound, "adsynt: not initialized");
     }
     ftp = p->ftp;
     ftbl = ftp->ftable;
@@ -502,8 +502,6 @@ int exitnow(ENVIRON *csound, EXITNOW *p)
     return OK;  /* compiler only */
 }
 
-/* extern MYFLT *zkstart; */
-/*extern MYFLT *zastart; */
 /*-----zak opcodes */
 /* int zread(ENVIRON *csound,ZKR *p) */
 /* { */
@@ -521,7 +519,7 @@ int tabrec_set(ENVIRON *csound,TABREC *p)
 {
     /*FUNC *ftp; */
     /*if ((ftp = csound->FTFind(p->ifn)) == NULL) { */
-    /*  initerror(Str(X_1535,"tabrec: incorrect table number")); */
+    /*  csound->InitError(csound, Str(X_1535,"tabrec: incorrect table number")); */
     /*  return; */
     /*} */
     /*p->table = ftp->ftable; */
@@ -541,10 +539,10 @@ int tabrec_k(ENVIRON *csound,TABREC *p)
         MYFLT fno;             /* **** THIS IS AN ERROR **** Uninitialised */
         if ((fno = (int)*p->kfn) <= 0 ||
             fno > csound->maxfnum ||
-            (ftp = ftnp2find(csound,&fno)) == NULL) {
+            (ftp = csound->FTnp2Find(csound,&fno)) == NULL) {
           /*sprintf(errmsg, Str(X_315,"Invalid ftable no. %f"),*p->kfn); */
           sprintf(errmsg, "Invalid ftable no. %f",*p->kfn);
-          return perferror(errmsg);
+          return csound->PerfError(csound, errmsg);
         }
         else {
           p->tablen = ftp->flen;
@@ -586,7 +584,7 @@ int tabplay_set(ENVIRON *csound,TABPLAY *p)
 {
     /*   FUNC *ftp; */
     /* if ((ftp = csound->FTFind(p->ifn)) == NULL) { */
-    /*   initerror(Str(X_1535,"tabplay: incorrect table number")); */
+    /*   csound->InitError(csound, Str(X_1535,"tabplay: incorrect table number")); */
     /*   return; */
     /* } */
     /*  p->table = ftp->ftable; */
@@ -607,10 +605,10 @@ int tabplay_k(ENVIRON *csound,TABPLAY *p)
         /*  if ((fno = (int)*p->kfn) <= 0 || fno > csound->maxfnum || (ftp = flist[fno]) == NULL) { */
         if ((fno = (int)*p->kfn) <= 0 ||
             fno > csound->maxfnum ||
-            (ftp = ftnp2find(csound,&fno)) == NULL) {
+            (ftp = csound->FTnp2Find(csound,&fno)) == NULL) {
           /*sprintf(errmsg, Str(X_315,"Invalid ftable no. %f"),*p->kfn); */
           sprintf(errmsg, "Invalid ftable no. %f",*p->kfn);
-          return perferror(errmsg);
+          return csound->PerfError(csound, errmsg);
         }
         else {
           p->tablen = ftp->flen;
@@ -723,7 +721,7 @@ int partial_maximum(ENVIRON *csound,P_MAXIMUM *p)
     }
       break;
     default:
-      return perferror("max_k: invalid imaxflag value");
+      return csound->PerfError(csound, "max_k: invalid imaxflag value");
     }
     if (*p->ktrig) {
       if (flag == 3) {

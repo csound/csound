@@ -133,18 +133,16 @@ int insert(ENVIRON *csound, int insno, EVTBLK *newevtp)
     /* if there is no more cpu processing time*/
     if (cpu_power_busy > FL(100.0)) {
       cpu_power_busy -= instrtxtp[insno]->cpuload;
-      if (O.msglevel & WARNMSG)
-        printf(Str("WARNING: cannot allocate last note because it exceeds "
-                   "100%% of cpu time\n"));
+      csoundWarning(csound, Str("cannot allocate last note because it exceeds "
+                                "100%% of cpu time"));
       return(0);
     }
     /* Add an active instrument */
     if (++instrtxtp[insno]->active > instrtxtp[insno]->maxalloc &&
-        instrtxtp[insno]->maxalloc>0) {
+        instrtxtp[insno]->maxalloc > 0) {
       instrtxtp[insno]->active--;
-      if (O.msglevel & WARNMSG)
-        printf(Str("WARNING: cannot allocate last note "
-                   "because it exceeds instr maxalloc\n"));
+      csoundWarning(csound, Str("cannot allocate last note because it exceeds "
+                                "instr maxalloc"));
       return(0);
     }
 
@@ -177,11 +175,9 @@ int insert(ENVIRON *csound, int insno, EVTBLK *newevtp)
           *pfld++ = *pdat++;
         } while (nn--);
       }
-      if ((n = tp->pmax) != newevtp->pcnt && !tp->psetdata &&
-          (O.msglevel & WARNMSG)) {
-        sprintf(errmsg,Str("instr %d uses %d p-fields but is given %d"),
-                insno, n, newevtp->pcnt);
-        printf(Str("WARNING: %s\n"), errmsg);
+      if ((n = tp->pmax) != newevtp->pcnt && !tp->psetdata) {
+        csoundWarning(csound, Str("instr %d uses %d p-fields but is given %d"),
+                              insno, n, newevtp->pcnt);
       }
       if (newevtp->p3orig >= FL(0.0))
         ip->offbet = csound->sensEvents_state.beatOffs
@@ -250,17 +246,15 @@ int MIDIinsert(ENVIRON *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     cpu_power_busy += instrtxtp[insno]->cpuload;
     if (cpu_power_busy > FL(100.0)) {   /* if there is no more cpu time*/
       cpu_power_busy -= instrtxtp[insno]->cpuload;
-      if (O.msglevel & WARNMSG)
-        printf(Str("WARNING: cannot allocate last note because "
-                   "it exceeds 100%% of cpu time"));
+      csoundWarning(csound, Str("cannot allocate last note because it exceeds "
+                                "100%% of cpu time"));
       return(0);
     }
     if (++instrtxtp[insno]->active > instrtxtp[insno]->maxalloc &&
         instrtxtp[insno]->maxalloc > 0) {
       instrtxtp[insno]->active--;
-      if (O.msglevel & WARNMSG)
-        printf(Str("WARNING: cannot allocate last note because "
-                   "it exceeds instr maxalloc\n"));
+      csoundWarning(csound, Str("cannot allocate last note because it exceeds "
+                                "instr maxalloc"));
       return(0);
     }
     if (O.odebug) printf("activating instr %d\n",insno);
@@ -282,10 +276,9 @@ int MIDIinsert(ENVIRON *csound, int insno, MCHNBLK *chn, MEVENT *mep)
       printf("Now %d active instr %d\n", instrtxtp[insno]->active, insno);
 
     if ((prvp = *ipp) != NULL) {          /*   if key currently activ */
-      if (O.msglevel & WARNMSG) {
-        printf(Str("WARNING: MIDI note overlaps with key %d on same channel\n"),
-               (int) mep->dat1);
-      }
+      csoundWarning(csound,
+                    Str("MIDI note overlaps with key %d on same channel"),
+                    (int) mep->dat1);
       while (prvp->nxtolap != NULL)       /*   append to overlap list */
         prvp = prvp->nxtolap;
       prvp->nxtolap = ip;
@@ -307,9 +300,9 @@ int MIDIinsert(ENVIRON *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     ip->prvact = prvp;
     prvp->nxtact = ip;
     ip->actflg++;                         /* and mark the instr active */
-    if (tp->pmax > 3 && tp->psetdata == NULL && (O.msglevel & WARNMSG)) {
-      sprintf(errmsg, Str("instr %d p%d illegal for MIDI"), insno, tp->pmax);
-      printf(Str("WARNING: %s\n"), errmsg);
+    if (tp->pmax > 3 && tp->psetdata == NULL) {
+      csoundWarning(csound, Str("instr %d p%d illegal for MIDI"),
+                            insno, tp->pmax);
     }
     ip->m_chnbp = chn;                    /* rec address of chnl ctrl blk */
     ip->m_pitch = (unsigned char) mep->dat1;    /* rec MIDI data   */
@@ -640,13 +633,19 @@ void kperf(ENVIRON *csound)
     }
 }
 
-int initerror(char *s)
+int csoundInitError(void *csound, const char *s, ...)
 {
-    INSDS *ip;
+    va_list args;
+    INSDS   *ip;
 
     /* RWD: need this! */
-    if (ids==NULL) {
-      dies(Str("\nINIT ERROR: %s\n"),s);
+    if (ids == NULL) {
+      csoundMessage(csound, Str("\nINIT ERROR: "));
+      va_start(args, s);
+      csoundMessageV(csound, s, args);
+      va_end(args);
+      csoundMessage(csound, "\n");
+      longjmp(((ENVIRON*) csound)->exitjmp_, 1);
     }
     /* IV - Oct 16 2002: check for subinstr and user opcode */
     ip = ids->insdshead;
@@ -656,26 +655,36 @@ int initerror(char *s)
       while (ip->opcod_iobufs)
         ip = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->parent_ip;
       if (buf->opcode_info)
-        printf(Str("INIT ERROR in instr %d (opcode %s): %s\n"),
-               ip->insno, buf->opcode_info->name, s);
+        csoundMessage(csound, Str("INIT ERROR in instr %d (opcode %s): "),
+                              ip->insno, buf->opcode_info->name);
       else
-        printf(Str("INIT ERROR in instr %d (subinstr %d): %s\n"),
-               ip->insno, ids->insdshead->insno, s);
+        csoundMessage(csound, Str("INIT ERROR in instr %d (subinstr %d): "),
+                              ip->insno, ids->insdshead->insno);
     }
     else
-      printf(Str("INIT ERROR in instr %d: %s\n"), ip->insno, s);
+      csoundMessage(csound, Str("INIT ERROR in instr %d: "), ip->insno);
+    va_start(args, s);
+    csoundMessageV(csound, s, args);
+    va_end(args);
+    csoundMessage(csound, "\n");
     putop(&ids->optext->t);
-    inerrcnt++;
-    return inerrcnt;
+
+    return (++inerrcnt);
 }
 
-int perferror(char *s)
+int csoundPerfError(void *csound, const char *s, ...)
 {
-    INSDS *ip;
+    va_list args;
+    INSDS   *ip;
 
-    /*RWD and probably this too... */
-    if (pds==NULL) {
-      dies(Str("\nPERF ERROR: %s\n"),s);
+    /* RWD and probably this too... */
+    if (pds == NULL) {
+      csoundMessage(csound, Str("\nPERF ERROR: "));
+      va_start(args, s);
+      csoundMessageV(csound, s, args);
+      va_end(args);
+      csoundMessage(csound, "\n");
+      longjmp(((ENVIRON*) csound)->exitjmp_, 1);
     }
     /* IV - Oct 16 2002: check for subinstr and user opcode */
     ip = pds->insdshead;
@@ -685,20 +694,25 @@ int perferror(char *s)
       while (ip->opcod_iobufs)
         ip = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->parent_ip;
       if (buf->opcode_info)
-        printf(Str("PERF ERROR in instr %d (opcode %s): %s\n"),
-               ip->insno, buf->opcode_info->name, s);
+        csoundMessage(csound, Str("PERF ERROR in instr %d (opcode %s): "),
+                              ip->insno, buf->opcode_info->name);
       else
-        printf(Str("PERF ERROR in instr %d (subinstr %d): %s\n"),
-               ip->insno, pds->insdshead->insno, s);
+        csoundMessage(csound, Str("PERF ERROR in instr %d (subinstr %d): "),
+                              ip->insno, pds->insdshead->insno);
     }
     else
-      printf(Str("PERF ERROR in instr %d: %s\n"), ip->insno, s);
+      csoundMessage(csound, Str("PERF ERROR in instr %d: "), ip->insno);
+    va_start(args, s);
+    csoundMessageV(csound, s, args);
+    va_end(args);
+    csoundMessage(csound, "\n");
     putop(&pds->optext->t);
-    printf(Str("   note aborted\n"));
+    csoundMessage(csound, Str("   note aborted\n"));
     perferrcnt++;
-    xturnoff_now(&cenviron, ip);              /* rm ins fr actlist */
+    xturnoff_now((ENVIRON*) csound, ip);      /* rm ins fr actlist */
     while (pds->nxtp != NULL)
       pds = pds->nxtp;                        /* loop to last opds */
+
     return perferrcnt;
 }                                             /* contin from there */
 
@@ -748,7 +762,7 @@ int timset(ENVIRON *csound, TIMOUT *p)
 {
     if ((p->cnt1 = (long)(*p->idel * ekr + FL(0.5))) < 0L
         || (p->cnt2 = (long)(*p->idur * ekr + FL(0.5))) < 0L)
-      return initerror(Str("negative time period"));
+      return csoundInitError(csound, Str("negative time period"));
     return OK;
 }
 
@@ -815,8 +829,8 @@ int subinstrset(ENVIRON *csound, SUBINST *p)
     if ((instno = strarg2insno(p->ar[inarg_ofs], p->STRARG)) < 0) return OK;
     /* IV - Oct 9 2002: need this check */
     if (!init_op && p->OUTOCOUNT > nchnls) {
-      return
-        initerror(Str("subinstr: number of output args greater than nchnls"));
+      return csoundInitError(csound, Str("subinstr: number of output "
+                                         "args greater than nchnls"));
     }
     /* IV - Oct 9 2002: copied this code from useropcdset() to fix some bugs */
     if (!(reinitflag | tieflag)) {
@@ -854,7 +868,7 @@ int subinstrset(ENVIRON *csound, SUBINST *p)
     flp = &p->ip->p3 + 1;
     /* by default all inputs are i-rate mapped to p-fields */
     if (p->INOCOUNT > (instrtxtp[instno]->pmax + 1)) {  /* IV - Nov 10 2002 */
-      return initerror(Str("subinstr: too many p-fields"));
+      return csoundInitError(csound, Str("subinstr: too many p-fields"));
     }
     for (n = 1; n < p->INOCOUNT; n++)
       *flp++ = *p->ar[inarg_ofs + n];
@@ -908,9 +922,8 @@ int useropcdset(ENVIRON *csound, UOPCODE *p)
     if (*(p->ar[n]) != FL(0.0)) {
       i = (int) *(p->ar[n]);
       if (i < 1 || i > ksmps || ((ksmps / i) * i) != ksmps) {
-        sprintf(errmsg, Str("%s: invalid local ksmps value: %d"),
-                inm->name, i);
-        return initerror(errmsg);
+        return csoundInitError(csound, Str("%s: invalid local ksmps value: %d"),
+                                       inm->name, i);
       }
       p->l_ksmps = i;
     }
@@ -1021,8 +1034,8 @@ int useropcdset(ENVIRON *csound, UOPCODE *p)
 
 int useropcd(ENVIRON *csound, UOPCODE *p)
 {
-    sprintf(errmsg, Str("%s: not initialised"), p->h.optext->t.opcod);
-    return perferror(errmsg);
+    return csoundPerfError(csound, Str("%s: not initialised"),
+                                   p->h.optext->t.opcod);
 }
 
 /* IV - Sep 1 2002: new opcodes: xin, xout */
@@ -1046,7 +1059,8 @@ int xinset(ENVIRON *csound, XIN *p)
     /* find a-rate variables and add to list of perf-time buf ptrs ... */
     tmp = buf->iobufp_ptrs;
     if (*tmp || *(tmp + 1)) {
-      return initerror(Str("xin was already used in this opcode definition"));
+      return csoundInitError(csound, Str("xin was already used in this "
+                                         "opcode definition"));
     }
     while (*++ndx_list >= 0) {
       *(tmp++) = *(bufs + *ndx_list);   /* "from" address */
@@ -1085,7 +1099,8 @@ int xoutset(ENVIRON *csound, XOUT *p)
     if (*tmp || *(tmp + 1)) tmp += (inm->perf_incnt << 1);
     tmp += 2;
     if (*tmp || *(tmp + 1)) {
-      return initerror(Str("xout was already used in this opcode definition"));
+      return csoundInitError(csound, Str("xout was already used in this "
+                                         "opcode definition"));
     }
     /* find a-rate variables and add to list of perf-time buf ptrs ... */
     while (*++ndx_list >= 0) {
@@ -1115,8 +1130,8 @@ int setksmpsset(ENVIRON *csound, SETKSMPS *p)
     if (!l_ksmps) return OK;       /* zero: do not change */
     if (l_ksmps < 1 || l_ksmps > ksmps
         || ((ksmps / l_ksmps) * l_ksmps != ksmps)) {
-      sprintf(errmsg, Str("setksmps: invalid ksmps value: %d"), l_ksmps);
-      return initerror(errmsg);
+      return csoundInitError(csound, Str("setksmps: invalid ksmps value: %d"),
+                                     l_ksmps);
     }
     /* set up global variables according to the new ksmps value */
     pp = (UOPCODE*) buf->uopcode_struct;
@@ -1203,17 +1218,15 @@ INSDS *insert_event(ENVIRON *csound,
     cpu_power_busy += tp->cpuload;
     if (cpu_power_busy > 100.0) { /* if there is no more cpu processing time*/
       cpu_power_busy -= tp->cpuload;
-      if (O.msglevel & WARNMSG)
-        printf(Str("WARNING: cannot allocate last note because it exceeds"
-                   " 100%% of cpu time"));
+      csoundWarning(csound, Str("cannot allocate last note because it exceeds "
+                                "100%% of cpu time"));
       ip = NULL; goto endsched;
     }
     /* Add an active instrument */
     if (++tp->active > tp->maxalloc && tp->maxalloc > 0) {
       tp->active--;
-      if (O.msglevel & WARNMSG)
-        printf(Str("WARNING: cannot allocate last note because it exceeds"
-                   " instr maxalloc"));
+      csoundWarning(csound, Str("cannot allocate last note because it exceeds "
+                                "instr maxalloc"));
       ip = NULL; goto endsched;
     }
     ip->insno = insno;
@@ -1233,11 +1246,9 @@ INSDS *insert_event(ENVIRON *csound,
       int i;
       int imax = tp->pmax - 3;
       MYFLT  *flp;
-      if ((int) tp->pmax != pcnt &&
-          (O.msglevel & WARNMSG)) {
-        sprintf(errmsg,Str("instr %d pmax = %d, note pcnt = %d"),
-                insno, (int) tp->pmax, pcnt);
-        printf(Str("WARNING: %s\n"), errmsg);
+      if ((int) tp->pmax != pcnt) {
+        csoundWarning(csound, Str("instr %d pmax = %d, note pcnt = %d"),
+                              insno, (int) tp->pmax, pcnt);
       }
       ip->p1 = instr;
       ip->p2 = when;
@@ -1375,7 +1386,7 @@ int subinstr(ENVIRON *csound, SUBINST *p)
     long    frame, chan;
 
     if (p->ip == NULL) {                /* IV - Oct 26 2002 */
-      return perferror(Str("subinstr: not initialised"));
+      return csoundPerfError(csound, Str("subinstr: not initialised"));
     }
     /* copy current spout buffer and clear it */
     spout = (MYFLT*) p->saved_spout.auxp;
@@ -1578,13 +1589,13 @@ int turnoff2(ENVIRON *csound, TURNOFF2 *p)
     p1 = *(p->kInsNo);
     insno = (int) p1;
     if (insno < 1 || insno > (int) maxinsno || instrtxtp[insno] == NULL) {
-      perferror(Str("turnoff2: invalid instrument number"));
+      csoundPerfError(csound, Str("turnoff2: invalid instrument number"));
       return NOTOK;
     }
     mode = (int) (*(p->kFlags) + FL(0.5));
     allow_release = (*(p->kRelease) == FL(0.0) ? 0 : 1);
     if (mode < 0 || mode > 15 || (mode & 3) == 3) {
-      perferror(Str("turnoff2: invalid mode parameter"));
+      csoundPerfError(csound, Str("turnoff2: invalid mode parameter"));
       return NOTOK;
     }
     ip = &actanchor;

@@ -73,9 +73,9 @@ int pitchset(ENVIRON *csound, PITCH *p)    /* pitch - uses specta technology */
       ncoefs = nocts * nfreqs;
       Q = *p->iq; if (Q<=FL(0.0)) Q = FL(15.0);
 
-      if (p->timcount <= 0)     return initerror(Str("illegal iprd"));
-      if (nocts > MAXOCTS)      return initerror(Str("illegal iocts"));
-      if (nfreqs > MAXFRQS)     return initerror(Str("illegal ifrqs"));
+      if (p->timcount <= 0)     return csound->InitError(csound, Str("illegal iprd"));
+      if (nocts > MAXOCTS)      return csound->InitError(csound, Str("illegal iocts"));
+      if (nfreqs > MAXFRQS)     return csound->InitError(csound, Str("illegal ifrqs"));
 
       if (nocts != dwnp->nocts
           || nfreqs != p->nfreqs  /* if anything has changed */
@@ -170,7 +170,7 @@ int pitchset(ENVIRON *csound, PITCH *p)    /* pitch - uses specta technology */
     if (*p->inptls<=FL(0.0)) nptls = 4;
     else nptls = (long)*p->inptls;
     if (nptls > MAXPTL) {
-      return initerror(Str("illegal no of partials"));
+      return csound->InitError(csound, Str("illegal no of partials"));
     }
     if (*p->irolloff<=FL(0.0)) *p->irolloff = FL(0.6);
     p->nptls = nptls;        /* number, whether all or odd */
@@ -192,7 +192,7 @@ int pitchset(ENVIRON *csound, PITCH *p)    /* pitch - uses specta technology */
         *fltp++ = weight;
       }
       if (*--fltp < FL(0.0)) {
-        return initerror(Str("per oct rolloff too steep"));
+        return csound->InitError(csound, Str("per oct rolloff too steep"));
       }
       p->rolloff = 1;
     }
@@ -206,7 +206,7 @@ int pitchset(ENVIRON *csound, PITCH *p)    /* pitch - uses specta technology */
     if (flop < fundp) flop = fundp;
     if (fhip > fendp) fhip = fendp;
     if (flop >= fhip) {         /* chk hi-lo range valid */
-      return initerror(Str("illegal lo-hi values"));
+      return csound->InitError(csound, Str("illegal lo-hi values"));
     }
     for (fp = fundp; fp < flop; )
       *fp++ = FL(0.0);   /* clear unused lo and hi range */
@@ -336,7 +336,7 @@ int pitch(ENVIRON *csound, PITCH *p)
       long  lobin, hibin;
 
       if (inp==NULL) {             /* RWD fix */
-        return perferror(Str("pitch: not initialised"));
+        return csound->PerfError(csound, Str("pitch: not initialised"));
       }
       kval = p->playing == PLAYING ? p->kval : p->kvalsav;
       lobin = (long)((kval - kvar) * specp->nfreqs);/* set lims of frq interest */
@@ -450,7 +450,7 @@ output:
 int macset(ENVIRON *csound, SUM *p)
 {
     if ((((int)p->INOCOUNT)&1)==1) {
-      return perferror(Str("Must have even number of arguments in mac\n"));
+      return csound->PerfError(csound, Str("Must have even number of arguments in mac\n"));
     }
     return OK;
 }
@@ -570,7 +570,7 @@ int adsyntset(ENVIRON *csound, ADSYNT *p)
     }
     else {
       p->inerr = 1;
-      return initerror(Str("adsynt: wavetable not found!"));
+      return csound->InitError(csound, Str("adsynt: wavetable not found!"));
     }
 
     count = (int)*p->icnt;
@@ -583,11 +583,11 @@ int adsyntset(ENVIRON *csound, ADSYNT *p)
     }
     else {
       p->inerr = 1;
-      return initerror(Str("adsynt: freqtable not found!"));
+      return csound->InitError(csound, Str("adsynt: freqtable not found!"));
     }
     if (ftp->flen < count) {
       p->inerr = 1;
-      return initerror(Str(
+      return csound->InitError(csound, Str(
                     "adsynt: partial count is greater than freqtable size!"));
     }
 
@@ -596,11 +596,11 @@ int adsyntset(ENVIRON *csound, ADSYNT *p)
     }
     else {
       p->inerr = 1;
-      return initerror(Str("adsynt: amptable not found!"));
+      return csound->InitError(csound, Str("adsynt: amptable not found!"));
     }
     if (ftp->flen < count) {
       p->inerr = 1;
-      return initerror(Str(
+      return csound->InitError(csound, Str(
                     "adsynt: partial count is greater than amptable size!"));
     }
 
@@ -632,7 +632,7 @@ int adsynt(ENVIRON *csound, ADSYNT *p)
     int     nsmps, count;
 
     if (p->inerr) {
-      return perferror(Str("adsynt: not initialised"));
+      return csound->PerfError(csound, Str("adsynt: not initialised"));
     }
     ftp = p->ftp;
     ftbl = ftp->ftable;
@@ -712,7 +712,7 @@ int hsboscil(ENVIRON *csound, HSBOSC  *p)
     ftp = p->ftp;
     mixtp = p->mixtp;
     if (ftp==NULL || mixtp==NULL) {
-      return perferror(Str("hsboscil: not initialised"));
+      return csound->PerfError(csound, Str("hsboscil: not initialised"));
     }
 
     tonal = *p->ktona;
@@ -801,7 +801,7 @@ int pitchamdfset(ENVIRON *csound, PITCHAMDF *p)
     maxperi = (long)(srate / *p->imincps);
     if (maxperi <= minperi) {
       p->inerr = 1;
-      return initerror(Str("pitchamdf: maxcps must be > mincps !"));
+      return csound->InitError(csound, Str("pitchamdf: maxcps must be > mincps !"));
     }
 
     if (*p->iexcps < 1)
@@ -953,7 +953,7 @@ int pitchamdf(ENVIRON *csound, PITCHAMDF *p)
     MYFLT acc, accmin, diff;
 
     if (p->inerr) {
-      return perferror(Str("pitchamdf: not initialised"));
+      return csound->PerfError(csound, Str("pitchamdf: not initialised"));
     }
 
     if (upsamp) {
@@ -1129,7 +1129,7 @@ int kphsorbnk(ENVIRON *csound, PHSORBNK *p)
     int     index = (int)(*p->kindx);
 
     if (curphs == NULL) {
-      return perferror(Str("phasorbnk: not initialised"));
+      return csound->PerfError(csound, Str("phasorbnk: not initialised"));
     }
 
     if (index<0 || index>=size) {
@@ -1156,7 +1156,7 @@ int phsorbnk(ENVIRON *csound, PHSORBNK *p)
     int     index = (int)(*p->kindx);
 
     if (curphs == NULL) {
-      return perferror(Str("phasorbnk: not initialised"));
+      return csound->PerfError(csound, Str("phasorbnk: not initialised"));
     }
 
     if (index<0 || index>=size) {
@@ -1221,7 +1221,7 @@ int pinkset(ENVIRON *csound, PINKISH *p)
         /* Check valid method */
     if (*p->imethod != GARDNER_PINK && *p->imethod != KELLET_PINK
         && *p->imethod != KELLET_CHEAP_PINK) {
-      return initerror(Str("pinkish: Invalid method code"));
+      return csound->InitError(csound, Str("pinkish: Invalid method code"));
     }
     /* User range scaling can be a- or k-rate for Gardner, a-rate only
        for filter */
@@ -1231,7 +1231,7 @@ int pinkset(ENVIRON *csound, PINKISH *p)
     else {
       /* Cannot accept k-rate input with filter method */
       if (*p->imethod != FL(0.0)) {
-        return initerror(Str(
+        return csound->InitError(csound, Str(
                       "pinkish: Filter method requires a-rate (noise) input"));
       }
       p->ampinc = 0;
@@ -1568,7 +1568,7 @@ int Foscset(ENVIRON *csound, XOSC *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = ftnp2find(csound, p->ifn)) != NULL) { /* Allow any length */
+    if ((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL) { /*Allow any length*/
       p->ftp = ftp;
       if (*p->iphs >= 0) {
         p->lphs = *p->iphs * ftp->flen;
@@ -1590,7 +1590,7 @@ int Fosckk(ENVIRON *csound, XOSC *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str("oscil: not initialised"));
+      return csound->PerfError(csound, Str("oscil: not initialised"));
     }
     flen = ftp->flen;
     ftbl = ftp->ftable;
@@ -1617,7 +1617,7 @@ int Foscak(ENVIRON *csound, XOSC *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str("oscil: not initialised"));
+      return csound->PerfError(csound, Str("oscil: not initialised"));
     }
     flen = ftp->flen;
     ftbl = ftp->ftable;
@@ -1644,7 +1644,7 @@ int Foscka(ENVIRON *csound, XOSC *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str("oscil: not initialised"));
+      return csound->PerfError(csound, Str("oscil: not initialised"));
     }
     flen = ftp->flen;
     ftbl = ftp->ftable;
@@ -1673,7 +1673,7 @@ int Foscaa(ENVIRON *csound, XOSC *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str("oscil: not initialised"));
+      return csound->PerfError(csound, Str("oscil: not initialised"));
     }
     flen = ftp->flen;
     ftbl = ftp->ftable;
@@ -1889,7 +1889,7 @@ int ktrnseg(ENVIRON *csound, TRANSEG *p)
 {
     *p->rslt = p->curval;               /* put the cur value    */
     if (p->auxch.auxp==NULL) { /* RWD fix */
-      die(Str("\nError: transeg not initialised (krate)\n"));
+      csound->Die(csound, Str("\nError: transeg not initialised (krate)\n"));
     }
     if (p->segsrem) {                   /* done if no more segs */
       if (--p->curcnt <= 0) {            /* if done cur segment  */
@@ -1927,7 +1927,7 @@ int trnseg(ENVIRON *csound, TRANSEG *p)
     int         nsmps = ksmps;
     NSEG        *segp = p->cursegp;
     if (p->auxch.auxp==NULL) {
-      return perferror(Str("transeg: not initialised (arate)\n"));
+      return csound->PerfError(csound, Str("transeg: not initialised (arate)\n"));
     }
     val = p->curval;                      /* sav the cur value    */
     if (p->segsrem) {                     /* if no more segs putk */

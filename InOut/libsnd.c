@@ -259,7 +259,7 @@ int sndinset(ENVIRON *csound, SOUNDIN *p) /* init routine for instr soundin  */
       p->sampframsiz /= p->OUTOCOUNT;        /* IV - Nov 16 2002 */
     }
     else
-      return initerror(errmsg);              /* else just print the errmsg*/
+      return csound->InitError(csound, errmsg); /* else just print the errmsg */
     return OK;
 }
 
@@ -280,7 +280,7 @@ int soundin(ENVIRON *csound, SOUNDIN *p)
     else
       scalefac = e0dbfs;
     if (!p->inbufp) {
-      return perferror(Str("soundin: not initialised"));
+      return csound->PerfError(csound, Str("soundin: not initialised"));
     }
     chnsout = p->OUTOCOUNT;
     blksiz = chnsout * ksmps;
@@ -389,7 +389,7 @@ void sfopenin(void *csound)             /* init for continuous soundin */
         parm.sampleRate = (float) esr;
         /* open devaudio for input */
         if (((ENVIRON*) csound)->recopen_callback(csound, &parm) != 0)
-          die(Str("Failed to initialise real time audio input"));
+          csoundDie(csound, Str("Failed to initialise real time audio input"));
         /*  & redirect audio gets  */
         audrecv = (int (*)(void*, MYFLT*, int))
                     ((ENVIRON*) csound)->rtrecord_callback;
@@ -401,21 +401,20 @@ void sfopenin(void *csound)             /* init for continuous soundin */
     else {                      /* else build filename and open that */
       SF_INFO sfinfo;
       if ((isfd = openin(O.infilename)) < 0)
-        dies(Str("isfinit: cannot open %s"), retfilnam);
+        csoundDie(csound, Str("isfinit: cannot open %s"), retfilnam);
       sfname = retfilnam;
       memset(&sfinfo, 0, sizeof(SF_INFO));
       infile = sf_open_fd(isfd, SFM_READ, &sfinfo, SF_TRUE);
       if (infile == NULL)
-        dies(Str("isfinit: cannot open %s"), retfilnam);
+        csoundDie(csound, Str("isfinit: cannot open %s"), retfilnam);
       if (sfinfo.samplerate != (long)esr &&
           (O.msglevel & WARNMSG)) {              /*    chk the hdr codes  */
         printf(Str("WARNING: audio_in %s has sr = %ld, orch sr = %ld\n"),
                sfname, sfinfo.samplerate, (long)esr);
       }
       if (sfinfo.channels != nchnls) {
-        sprintf(errmsg,Str("audio_in %s has %ld chnls, orch %d chnls"),
-                sfname, sfinfo.channels, nchnls);
-        die(errmsg);
+        csoundDie(csound, Str("audio_in %s has %ld chnls, orch %d chnls"),
+                          sfname, sfinfo.channels, nchnls);
       }
       /* Do we care about the format?  Can assume float?? */
       O.insampsiz = sizeof(MYFLT);        /*    & cpy header vals  */
@@ -503,7 +502,7 @@ void sfopenout(void *csound)                    /* init for sound out       */
         nzerotran = zerosf;
         /* open devaudio for output */
         if (((ENVIRON*) csound)->playopen_callback(csound, &parm) != 0)
-          die(Str("Failed to initialise real time audio output"));
+          csoundDie(csound, Str("Failed to initialise real time audio output"));
         /*  & redirect audio puts  */
         audtran = (void (*)(void*, MYFLT*, int))
                     ((ENVIRON*) csound)->rtplay_callback;
@@ -533,12 +532,12 @@ void sfopenout(void *csound)                    /* init for sound out       */
       sfinfo.sections = 0;
       sfinfo.seekable = 0;
       if ((osfd = openout(O.outfilename, 3)) < 0)
-        dies(Str("sfinit: cannot open %s"), retfilnam);
+        csoundDie(csound, Str("sfinit: cannot open %s"), retfilnam);
       sfoutname = mmalloc(csound, (long)strlen(retfilnam)+1);
       strcpy(sfoutname, retfilnam);       /*   & preserve the name */
       outfile = sf_open_fd(osfd, SFM_WRITE, &sfinfo, 1);
       if (outfile == NULL)
-        dies(Str("sfinit: cannot open %s"), sfoutname);
+        csoundDie(csound, Str("sfinit: cannot open %s"), sfoutname);
       /* IV - Feb 22 2005: clip integer formats */
       if (O.outformat != AE_FLOAT && O.outformat != AE_DOUBLE)
         sf_command(outfile, SFC_SET_CLIPPING, NULL, SF_TRUE);
@@ -699,7 +698,7 @@ static void sndwrterr(void *csound, unsigned nret, unsigned nput)
     printf(Str("(disk may be full...\n closing the file ...)\n"));
     outbufrem = O.outbufsamps;       /* consider buf is flushed */
     sfcloseout(csound);              /* & try to close the file */
-    die(Str("\t... closed\n"));
+    csoundDie(csound, Str("\t... closed\n"));
 }
 
 void sfnopenout(void)

@@ -48,7 +48,7 @@
 #define NUMBER_OF_FILES (20)
 #define FIND(MSG)   if (*s == '\0')  \
                         if (!(--argc) || ((s = *++argv) && *s == '-')) \
-                            die(MSG);
+                            csoundDie(&cenviron, MSG);
 typedef struct scalepoint {
     MYFLT y0;
     MYFLT y1;
@@ -241,13 +241,13 @@ int main(int argc, char **argv)
               O.outfilename = filnamp;            /* soundout name */
             while ((*filnamp++ = *s++)); s--;
             if (strcmp(O.outfilename,"stdin") == 0)
-              die(Str("-o cannot be stdin"));
+              csoundDie(&cenviron, Str("-o cannot be stdin"));
             if (strcmp(O.outfilename,"stdout") == 0) {
 #if defined mac_classic || defined SYMANTEC || defined BCC || defined __WATCOMC__ || defined WIN32
-              die(Str("stdout audio not supported"));
+              csoundDie(&cenviron, Str("stdout audio not supported"));
 #else
               if ((O.stdoutfd = dup(1)) < 0) /* redefine stdout */
-                die(Str("too many open files"));
+                csoundDie(&cenviron, Str("too many open files"));
               dup2(2,1);                /* & send 1's to stderr */
 #endif
             }
@@ -437,7 +437,7 @@ int main(int argc, char **argv)
     if (OO.filetyp) O.filetyp = OO.filetyp;
     if (O.filetyp == TYP_AIFF) {
       if (!O.sfheader)
-        die(Str("can't write AIFF soundfile with no header"));
+        csoundDie(&cenviron, Str("can't write AIFF soundfile with no header"));
       if (
 #ifdef never
           O.outformat == AE_ALAW ||
@@ -448,12 +448,12 @@ int main(int argc, char **argv)
           O.outformat == AE_FLOAT) {
         sprintf(errmsg,Str("AIFF does not support %s encoding"),
                 getstrformat(O.outformat));
-        die(errmsg);
+        csoundDie(&cenviron, errmsg);
       }
     }
     if (O.filetyp == TYP_WAV) {
       if (!O.sfheader)
-        die(Str("can't write WAV soundfile with no header"));
+        csoundDie(&cenviron, Str("can't write WAV soundfile with no header"));
       if (
 #ifdef never
           O.outformat == AE_ALAW ||
@@ -464,11 +464,11 @@ int main(int argc, char **argv)
           O.outformat == AE_FLOAT) {
         sprintf(errmsg,Str("WAV does not support %s encoding"),
                 getstrformat(O.outformat));
-        die(errmsg);
+        csoundDie(&cenviron, errmsg);
       }
     }
     if (O.rewrt_hdr && !O.sfheader)
-      die(Str("can't rewrite header if no header requested"));
+      csoundDie(&cenviron, Str("can't rewrite header if no header requested"));
 #ifdef NeXT
     if (O.outfilename == NULL && !O.filetyp) O.outfilename = "test.snd";
     else if (O.outfilename == NULL) O.outfilename = "test";

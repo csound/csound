@@ -77,7 +77,7 @@ int grainsetv4(ENVIRON *csound, GRAINV4 *p)
       p->ftp = ftp;
     }
     else {
-      return initerror(Str("granule_set: Unable to find function table"));
+      return csound->InitError(csound, Str("granule_set: Unable to find function table"));
     }
 
     /* call ftfind() to get the function table for the envelop...*/
@@ -94,65 +94,65 @@ int grainsetv4(ENVIRON *csound, GRAINV4 *p)
       }
       else {
         return
-          initerror(Str(
+          csound->InitError(csound, Str(
                         "granule_set: Unable to find function table for envelop"));
       }
     }
 
     if (*p->ivoice > MAXVOICE) {
-      return initerror(Str("granule_set: Too many voices"));
+      return csound->InitError(csound, Str("granule_set: Too many voices"));
     }
     if (*p->iratio <= 0) {
-      return initerror(Str("granule_set: iratio must be greater then 0"));
+      return csound->InitError(csound, Str("granule_set: iratio must be greater then 0"));
     }
     if ((*p->imode != 0) && ((*p->imode != -1) && (*p->imode != 1))) {
-      return initerror(Str("granule_set: imode must be -1, 0 or +1"));
+      return csound->InitError(csound, Str("granule_set: imode must be -1, 0 or +1"));
     }
     if (*p->ithd < 0) {
-      return initerror(Str(
+      return csound->InitError(csound, Str(
                            "granule_set: Illegal ithd, must be greater then 0"));
     }
     if ((*p->ipshift != 1) && (*p->ipshift!=2) && (*p->ipshift!=3) &&
         (*p->ipshift!=4) && (*p->ipshift!=0) ) {
       return
-        initerror(Str(
+        csound->InitError(csound, Str(
                       "granule_set: ipshift must be integer between 0 and 4"));
     }
     if (((*p->ipshift >=1) && (*p->ipshift <=4)) &&
         (*p->ivoice < *p->ipshift)) {
       return
-        initerror(Str(
+        csound->InitError(csound, Str(
                       "granule_set: Not enough voices for the number of pitches"));
     }
     if ( *p->ipshift !=FL(0.0) ) {
       if (*p->ipitch1 < FL(0.0) ) {
         return
-          initerror(Str(
+          csound->InitError(csound, Str(
                         "granule_set: ipitch1 must be greater then zero"));
       }
       if (*p->ipitch2 < FL(0.0) ) {
         return
-          initerror(Str(
+          csound->InitError(csound, Str(
                         "granule_set: ipitch2 must be greater then zero"));
       }
       if (*p->ipitch3 < FL(0.0) ) {
         return
-          initerror(Str(
+          csound->InitError(csound, Str(
                         "granule_set: ipitch3 must be greater then zero"));
       }
       if (*p->ipitch4 < FL(0.0) ) {
         return
-          initerror(Str(
+          csound->InitError(csound, Str(
                         "granule_set: ipitch4 must be greater then zero"));
       }
     }
 
     if ((*p->igskip < 0) || (*p->igskip * esr > ftp->flen) ) {
-      return initerror(Str("granule_set: must be positive and smaller than"
+      return csound->InitError(csound, Str("granule_set: must be positive and smaller than"
                 "function table length"));
     }
     if (*p->igskip_os < 0) {
-      return initerror(Str("granule_set: igskip_os must be greater then 0"));
+      return csound->InitError(csound, Str("granule_set: igskip_os must be greater then 0"));
     }
 
     p->gstart = (long)(*p->igskip * esr);
@@ -160,20 +160,20 @@ int grainsetv4(ENVIRON *csound, GRAINV4 *p)
     p->gend = p->gstart + p->glength;
 
     if (*p->kgap < 0) {
-      return initerror(Str("granule_set: kgap must be greater then 0"));
+      return csound->InitError(csound, Str("granule_set: kgap must be greater then 0"));
     }
     if ((*p->igap_os < 0) || (*p->igap_os > 100)) {
-      return initerror(Str("granule_set: igap_os must be 0%% to 100%%"));
+      return csound->InitError(csound, Str("granule_set: igap_os must be 0%% to 100%%"));
     }
     if (*p->kgsize < 0) {
-      return initerror(Str("granule_set: kgsize must be greater then 0"));
+      return csound->InitError(csound, Str("granule_set: kgsize must be greater then 0"));
     }
     if ((*p->igsize_os < 0) || (*p->igsize_os >100)) {
-      return initerror(Str("granule_set: igsize_os must be 0%% to 100%%"));
+      return csound->InitError(csound, Str("granule_set: igsize_os must be 0%% to 100%%"));
     }
     if ((*p->iatt < FL(0.0)) || (*p->idec < 0.0) ||
         ((*p->iatt + *p->idec) > FL(100.0))) {
-      return initerror(Str(
+      return csound->InitError(csound, Str(
                            "granule_set: Illegal value of iatt and/or idec"));
     } /* end if */
 
@@ -274,7 +274,7 @@ int grainsetv4(ENVIRON *csound, GRAINV4 *p)
     }
 
     if (p->gend > ftp->flen) {
-      return initerror(
+      return csound->InitError(csound, 
                    Str(
                        "granule_set: Illegal combination of igskip and ilength"));
     }
@@ -320,7 +320,7 @@ int graingenv4(ENVIRON *csound, GRAINV4 *p)
  /* Recover parameters from previous call.... */
    ftp = p->ftp;
    if (p->ftp==NULL) {          /* RWD fix */
-     return perferror(Str("grain4: not initialised"));
+     return csound->PerfError(csound, Str("grain4: not initialised"));
    }
    flen = ftp->flen;
    ftbl = ftp->ftable;

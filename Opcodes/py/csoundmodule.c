@@ -350,7 +350,8 @@ csound_ievent(PyObject *self, PyObject *args)
   /* Set start time from kwhen */
   if (newevt.p[2] < FL(0.0)) {
     newevt.p[2] = FL(0.0);
-    warning(Str("queue_ievent warning: negative onset reset to zero"));
+    csoundWarning(&cenviron,
+                  Str("queue_ievent warning: negative onset reset to zero"));
   }
   insert_score_event(&cenviron, &newevt,
                      cenviron.sensEvents_state.curTime, 0);

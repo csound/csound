@@ -103,7 +103,7 @@ void RTLineset(void)   /* set up Linebuf & ready the input files */
   #else
       if (fcntl(Linefd, F_SETFL,
                 (stdmode =fcntl(Linefd, F_GETFL, 0)) | O_NDELAY) < 0)
-        die(Str("-L stdin fcntl failed"));
+        csoundDie(&cenviron, Str("-L stdin fcntl failed"));
   #endif
 #endif
     }
@@ -114,7 +114,7 @@ void RTLineset(void)   /* set up Linebuf & ready the input files */
         FILE *xxx = Linepipe;
         Linefd = fileno(xxx);
       }
-      else dies(Str("Cannot open %s"), O.Linename);
+      else csoundDie(&cenviron, Str("Cannot open %s"), O.Linename);
     }
 #endif
 #if defined(mills_macintosh) || defined(SYMANTEC)
@@ -123,7 +123,7 @@ void RTLineset(void)   /* set up Linebuf & ready the input files */
 #define MODE ,0
 #endif
     else if ((Linefd = open(O.Linename, O_RDONLY | O_NDELAY  MODE)) < 0)
-      dies(Str("Cannot open %s"), O.Linename);
+      csoundDie(&cenviron, Str("Cannot open %s"), O.Linename);
     printf(Str("stdmode = %.8x Linefd = %d\n"), stdmode, Linefd);
 }
 
@@ -386,16 +386,17 @@ int eventOpcode(ENVIRON *csound, LINEVENT *p)
     if (*p->args[0] != SSTRCOD || p->STRARG == NULL ||
         (*p->STRARG != 'i' && *p->STRARG != 'q' && *p->STRARG != 'f' &&
          *p->STRARG != 'e'))
-      return
-        perferror(Str("event param 1 must be \"i\", \"q\", \"f\", or \"e\""));
+      return csound->PerfError(csound, Str("event param 1 must be "
+                                           "\"i\", \"q\", \"f\", or \"e\""));
     evt.strarg = NULL;
     evt.opcod = *p->STRARG;
     evt.pcnt = p->INOCOUNT - 1;
     /* IV - Oct 31 2002: allow string argument */
     if (evt.pcnt > 0 && *p->args[1] == SSTRCOD) {
       if (evt.opcod != 'i' && evt.opcod != 'q')
-        return perferror(Str("event: string name is allowed only for "
-                             "\"i\" and \"q\" events"));
+        return
+          csound->PerfError(csound, Str("event: string name is allowed "
+                                        "only for \"i\" and \"q\" events"));
       evt.strarg = p->STRARG2;
     }
     for (i = 1; i <= evt.pcnt; i++)
@@ -416,15 +417,17 @@ int eventOpcodeI(ENVIRON *csound, LINEVENT *p)
         (*p->STRARG != 'i' && *p->STRARG != 'q' && *p->STRARG != 'f' &&
          *p->STRARG != 'e'))
       return
-        initerror(Str("event param 1 must be \"i\", \"q\", \"f\", or \"e\""));
+        csound->InitError(csound, Str("event param 1 must be "
+                                      "\"i\", \"q\", \"f\", or \"e\""));
     evt.strarg = NULL;
     evt.opcod = *p->STRARG;
     evt.pcnt = p->INOCOUNT - 1;
     /* IV - Oct 31 2002: allow string argument */
     if (evt.pcnt > 0 && *p->args[1] == SSTRCOD) {
       if (evt.opcod != 'i' && evt.opcod != 'q')
-        return initerror(Str("event: string name is allowed only for "
-                             "\"i\" and \"q\" events"));
+        return
+          csound->InitError(csound, Str("event: string name is allowed "
+                                        "only for \"i\" and \"q\" events"));
       evt.strarg = p->STRARG2;
     }
     for (i = 1; i <= evt.pcnt; i++)

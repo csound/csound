@@ -50,20 +50,20 @@ int clfiltset(ENVIRON *csound, CLFILT *p)
     cotfpi2 = cotfpi*cotfpi;
     p->ilohi = (int)*p->lohi;
     if ((p->ilohi < 0) || (p->ilohi > 1)) {
-      return initerror(Str(
+      return csound->InitError(csound, Str(
                            "filter type not lowpass or highpass in clfilt"));
     }
     p->ikind = (int)*p->kind;
     if ((p->ikind < 0) || (p->ikind > 3)) {
       sprintf(errmsg, Str("filter kind, %d, out of range in clfilt"),
               p->ikind);
-      return initerror(errmsg);
+      return csound->InitError(csound, errmsg);
     }
     if ((*p->npol < FL(1.0)) || (*p->npol > 2*CL_LIM)) {
       sprintf(errmsg,
               Str("number of poles, %f, out of range in clfilt"),
               *p->npol);
-      return initerror(errmsg);
+      return csound->InitError(csound, errmsg);
 /*       p->nsec = nsec = 1; */
     }
     else if (fmod((double)*p->npol,2.0) != 0.0) {
@@ -178,11 +178,11 @@ int clfiltset(ENVIRON *csound, CLFILT *p)
                                 }
         break;
       case 3: /* Lowpass Elliptical */
-        return initerror(Str(
+        return csound->InitError(csound, Str(
                              "Lowpass Elliptical not implemented yet. Sorry!"));
         break;
       default: /* Because of earlier conditionals, should never get here. */
-        return initerror(Str("code error, ikind out of range"));
+        return csound->InitError(csound, Str("code error, ikind out of range"));
       }
       break;
     case 1: /* Highpass filters */
@@ -288,14 +288,14 @@ int clfiltset(ENVIRON *csound, CLFILT *p)
         }
         break;
       case 3: /* Highpass Elliptical */
-        return initerror(Str("Highpass Elliptical not implemented yet. Sorry!"));
+        return csound->InitError(csound, Str("Highpass Elliptical not implemented yet. Sorry!"));
         break;
       default: /* Because of earlier conditionals, should never get here. */
-        return initerror(Str("code error, ikind out of range"));
+        return csound->InitError(csound, Str("code error, ikind out of range"));
       }
       break;
     default: /* Because of earlier conditionals, should never get here. */
-      return initerror(Str("code error, ihilo out of range"));
+      return csound->InitError(csound, Str("code error, ihilo out of range"));
     }
     if (*p->reinit==FL(0.0)) {      /* Only reset in in non-legato mode */
       for (m=0;m<=nsec-1;m++) {
@@ -357,10 +357,10 @@ int clfilt(ENVIRON *csound, CLFILT *p)
           }
           break;
         case 3: /* Lowpass Elliptical */
-          return perferror(Str("Lowpass Elliptical not implemented yet. Sorry!"));
+          return csound->PerfError(csound, Str("Lowpass Elliptical not implemented yet. Sorry!"));
           break;
         default: /* Because of earlier contditionals, should never get here. */
-          return perferror(Str("code error, ikind out of range"));
+          return csound->PerfError(csound, Str("code error, ikind out of range"));
         }
         break;
       case 1: /* Highpass filters */
@@ -392,14 +392,14 @@ int clfilt(ENVIRON *csound, CLFILT *p)
           }
           break;
         case 3: /* Highpass Elliptical */
-          return perferror(Str("Highpass Elliptical not implemented yet. Sorry!"));
+          return csound->PerfError(csound, Str("Highpass Elliptical not implemented yet. Sorry!"));
           break;
         default: /* Because of earlier contditionals, should never get here. */
-          return perferror(Str("code error, ikind out of range"));
+          return csound->PerfError(csound, Str("code error, ikind out of range"));
         }
         break;
       default: /* Because of earlier conditionals, should never get here. */
-        return perferror(Str("code error, ihilo out of range"));
+        return csound->PerfError(csound, Str("code error, ihilo out of range"));
       }
     }
     n    = ksmps;

@@ -300,10 +300,10 @@ int dnoise(int argc, char **argv)
                 O.outfilename = outfile;            /* soundout name */
               while ((*outfile++ = *s++)); s--;
               if (strcmp(O.outfilename,"stdin") == 0)
-                die(Str("-o cannot be stdin"));
+                csoundDie(&cenviron, Str("-o cannot be stdin"));
               if (strcmp(O.outfilename,"stdout") == 0) {
                 if ((O.stdoutfd = dup(1)) < 0) /* redefine stdout */
-                  die(Str("too many open files"));
+                  csoundDie(&cenviron, Str("too many open files"));
                 dup2(2,1);                /* & send 1's to stderr */
               }
               break;
@@ -495,28 +495,28 @@ int dnoise(int argc, char **argv)
     O.sfsampsize = sfsampsize(O.outformat);
     if (O.filetyp == TYP_AIFF) {
       if (!O.sfheader)
-        die(Str("cannot write AIFF soundfile with no header"));
+        csoundDie(&cenviron, Str("cannot write AIFF soundfile with no header"));
       if (O.outformat == AE_ALAW ||
           O.outformat == AE_ULAW ||
           O.outformat == AE_FLOAT) {
         sprintf(errmsg,Str("AIFF does not support %s encoding"),
                 getstrformat(O.outformat));
-        die(errmsg);
+        csoundDie(&cenviron, errmsg);
       }
     }
     if (O.filetyp == TYP_WAV) {
       if (!O.sfheader)
-        die(Str("cannot write WAV soundfile with no header"));
+        csoundDie(&cenviron, Str("cannot write WAV soundfile with no header"));
       if (O.outformat == AE_ALAW ||
           O.outformat == AE_ULAW ||
           O.outformat == AE_FLOAT) {
         sprintf(errmsg,Str("WAV does not support %s encoding"),
                 getstrformat(O.outformat));
-        die(errmsg);
+        csoundDie(&cenviron, errmsg);
       }
     }
     if (O.rewrt_hdr && !O.sfheader)
-      die(Str("cannot rewrite header if no header requested"));
+      csoundDie(&cenviron, Str("cannot rewrite header if no header requested"));
     if (O.outfilename == NULL)
       O.outfilename = "test";
     {
@@ -529,14 +529,14 @@ int dnoise(int argc, char **argv)
       if (strcmp(O.outfilename, "stdout") != 0) {
         name = csoundFindOutputFile(&cenviron, O.outfilename, "SFDIR");
         if (name == NULL)
-          dies(Str("cannot open %s."), O.outfilename);
+          csoundDie(&cenviron, Str("cannot open %s."), O.outfilename);
         outfd = sf_open(name, SFM_WRITE, &sfinfo);
         mfree(&cenviron, name);
       }
       else
         outfd = sf_open_fd(O.stdoutfd, SFM_WRITE, &sfinfo, 1);
       if (outfd == NULL)
-        dies(Str("cannot open %s."), O.outfilename);
+        csoundDie(&cenviron, Str("cannot open %s."), O.outfilename);
       sf_command(outfd, SFC_SET_CLIPPING, NULL, SF_TRUE);
     }
     esr = (MYFLT)p->sr;
@@ -1212,7 +1212,7 @@ static void sndwrterr(unsigned nret, unsigned nput) /* report soundfile write(os
            nret,nput);
     printf(Str("(disk may be full...\n closing the file ...)\n"));
     sfcloseout();                    /* & try to close the file */
-    die(Str("\t... closed\n"));
+    csoundDie(&cenviron, Str("\t... closed\n"));
 }
 
 static int writebuffer(MYFLT *outbuf, int nsmps)

@@ -154,13 +154,14 @@ static int ftconv_init(ENVIRON *csound, FTCONV *p)
     /* check parameters */
     p->nChannels = (int) p->OUTOCOUNT;
     if (p->nChannels < 1 || p->nChannels > FTCONV_MAXCHN) {
-      initerror(Str("ftconv: invalid number of channels"));
+      csound->InitError(csound, Str("ftconv: invalid number of channels"));
       return NOTOK;
     }
     /* partition length */
     p->partSize = RNDINT(*(p->iPartLen));
     if (p->partSize < 4 || (p->partSize & (p->partSize - 1)) != 0) {
-      initerror(Str("ftconv: invalid impulse response partition length"));
+      csound->InitError(csound, Str("ftconv: invalid impulse response "
+                                    "partition length"));
       return NOTOK;
     }
     ftp = csound->FTFind(csound, p->iFTNum);
@@ -173,8 +174,8 @@ static int ftconv_init(ENVIRON *csound, FTCONV *p)
     if (RNDINT(*(p->iTotLen)) > 0 && n > RNDINT(*(p->iTotLen)))
       n = RNDINT(*(p->iTotLen));
     if (n <= 0) {
-      initerror(Str("ftconv: invalid length, "
-                    "or insufficient IR data for convolution"));
+      csound->InitError(csound, Str("ftconv: invalid length, "
+                                    "or insufficient IR data for convolution"));
       return NOTOK;
     }
     p->nPartitions = (n + (p->partSize - 1)) / p->partSize;
@@ -245,7 +246,7 @@ static int ftconv_perf(ENVIRON *csound, FTCONV *p)
     int           i, n, nn, nSamples, rBufPos;
 
     if (p->initDone <= 0) {
-      perferror(Str("ftconv: not initialised"));
+      csound->PerfError(csound, Str("ftconv: not initialised"));
       return NOTOK;
     }
     nSamples = p->partSize;

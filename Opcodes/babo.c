@@ -772,7 +772,7 @@ verify_coherence(ENVIRON *csound, BABO *p)
         char buf[128] = { '\0' };
         sprintf(buf, "Babo: resonator dimensions are incorrect (%.1f, %.1f, %.1f)",
                 *(p->lx), *(p->ly), *(p->lz));
-        die(buf);
+        csound->Die(csound, buf);
     }
 }
 

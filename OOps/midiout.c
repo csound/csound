@@ -118,7 +118,7 @@ int mrtmsg(ENVIRON *csound, MRT *p)
       send_midi_message(0xFE, 0, 0); /* active_sensing */
       break;
     default:
-      initerror(Str("illegal mrtmsg argument"));
+      csound->InitError(csound, Str("illegal mrtmsg argument"));
     }
     return OK;
 }

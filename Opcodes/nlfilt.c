@@ -65,7 +65,7 @@ int nlfilt(ENVIRON *csound, NLFILT *p)
     MYFLT       L = *p->L;
 
     if (fp==NULL) {             /* RWD fix */
-      return perferror(Str("nlfilt: not initialised"));
+      return csound->PerfError(csound, Str("nlfilt: not initialised"));
     }
     ar   = p->ar;
                                 /* L is k-rate so need to check */

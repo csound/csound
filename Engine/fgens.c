@@ -1899,12 +1899,12 @@ FUNC *csoundFTFind(void *csound, MYFLT *argp)
         fno > cs->maxfnum       ||
         (ftp = cs->flist[fno]) == NULL) {
       sprintf(errmsg, Str("Invalid ftable no. %f"), *argp);
-      initerror(errmsg);
+      csoundInitError(csound, errmsg);
       return NULL;
     }
     else if (!ftp->lenmask) {
       sprintf(errmsg, Str("deferred-size ftable %f illegal here"), *argp);
-      initerror(errmsg);
+      csoundInitError(csound, errmsg);
       return NULL;
     }
     else return(ftp);
@@ -1930,7 +1930,7 @@ MYFLT *csoundGetTable(void *csound_, int tableNum, int *tableLength)
 }
 
 /*************************************/
-/* ftfindp()
+/* csoundFTFindP()
  *
  * New function to find a function table at performance time.  Based
  * on csoundFTFind() which is intended to run at init time only.
@@ -1945,11 +1945,13 @@ MYFLT *csoundGetTable(void *csound_, int tableNum, int *tableLength)
  *
  * Maybe this could be achieved, but some exploration would be
  * required to see that this is feasible at performance time.
- *  */
-FUNC * ftfindp(ENVIRON *csound, MYFLT *argp)
+ */
+FUNC *csoundFTFindP(void *csound_, MYFLT *argp)
 {
-    int fno = csound->ff.fno;
-    FUNC        *ftp;
+    ENVIRON *csound = (ENVIRON*) csound_;
+    FUNC    *ftp;
+    int     fno = csound->ff.fno;
+
     /* Check limits, and then index  directly into the flist[] which
      * contains pointers to FUNC data structures for each table.
      */
@@ -1957,37 +1959,36 @@ FUNC * ftfindp(ENVIRON *csound, MYFLT *argp)
         fno > csound->maxfnum           ||
         (ftp = csound->flist[fno]) == NULL) {
       sprintf(errmsg, Str("Invalid ftable no. %f"), *argp);
-      perferror(errmsg);
+      csoundPerfError(csound, errmsg);
       return NULL;
     }
     else if (!ftp->lenmask) {
       /* Now check that the table has a length > 0.  This should only
        * occur for tables which have not been loaded yet.  */
       sprintf(errmsg,
-              Str(
-                  "Deferred-size ftable %f load not available at perf time."),
+              Str("Deferred-size ftable %f load not available at perf time."),
               *argp);
-      perferror(errmsg);
+      csoundPerfError(csound, errmsg);
       return NULL;
     }
     else return(ftp);
 }
 
- FUNC *
-ftnp2find(ENVIRON *csound, MYFLT *argp)
+FUNC *csoundFTnp2Find(void *csound_, MYFLT *argp)
    /* find ptr to a deferred-size ftable structure */
    /*   called by loscil at init time, and ftlen   */
 {
-    EVTBLK evt;
-    FUNC *ftp;
-    char strarg[SSTRSIZ];
-    FGDATA *ff = &(csound->ff);
+    ENVIRON *csound = (ENVIRON*) csound_;
+    FUNC    *ftp;
+    char    strarg[SSTRSIZ];
+    EVTBLK  evt;
+    FGDATA  *ff = &(csound->ff);
 
     if ((ff->fno = (int)*argp) <= 0 ||
         ff->fno > csound->maxfnum           ||
         (ftp = csound->flist[ff->fno]) == NULL) {
       sprintf(errmsg, Str("Invalid ftable no. %f"), *argp);
-      initerror(errmsg);
+      csoundInitError(csound, errmsg);
       return NULL;
     }
     else {
@@ -2158,7 +2159,7 @@ static void gen01raw(FUNC *ftp, ENVIRON *csound)
 }
 
 #define FTPLERR(s)     {fterror(ff,s); \
-                        die(Str("ftable load error"));\
+                        csoundDie(csound, Str("ftable load error"));\
                         return(NULL);}
 
 FUNC *hfgens(ENVIRON *csound, EVTBLK *evtblkp)/* create ftable using evtblk data */
@@ -2289,7 +2290,7 @@ int ftgen(ENVIRON *csound, FTGEN *p) /* set up and call any GEN routine */
       }
       else {
         mfree(csound, ftevt);
-        return initerror(Str("ftgen string arg not allowed"));
+        return csoundInitError(csound, Str("ftgen string arg not allowed"));
       }
     }
     else ftevt->strarg = NULL;                    /* else no string */
@@ -2298,7 +2299,7 @@ int ftgen(ENVIRON *csound, FTGEN *p) /* set up and call any GEN routine */
       *p->ifno = (MYFLT)ftp->fno;                 /* record the fno */
     else if (ftevt->p[1] >=0) {
       mfree(csound, ftevt);
-      return initerror(Str("ftgen error"));
+      return csoundInitError(csound, Str("ftgen error"));
     }
     mfree(csound, ftevt);
     return OK;
@@ -2420,12 +2421,13 @@ int ftload(ENVIRON *csound, FTLOAD *p)
     fclose(file);
     return OK;
  err:
-    return initerror(Str("ftload: Bad table number. Loading is possible "
-                         "only into existing tables."));
+    return csoundInitError(csound,
+                           Str("ftload: Bad table number. Loading is possible "
+                               "only into existing tables."));
  err2:
-    return initerror(Str("ftload: no table numbers"));
+    return csoundInitError(csound, Str("ftload: no table numbers"));
  err3:
-    return initerror(Str("ftload: unable to open file"));
+    return csoundInitError(csound, Str("ftload: unable to open file"));
 }
 
 int ftload_k(ENVIRON *csound, FTLOAD_K *p)
@@ -2520,14 +2522,14 @@ int ftsave(ENVIRON *csound, FTLOAD *p)
     fclose(file);
     return OK;
  err:
-    return initerror(Str(
-                         "ftsave: Bad table number. Saving is possible only "
-                         "for existing tables."));
+    return csoundInitError(csound,
+                           Str("ftsave: Bad table number. Saving is possible "
+                               "only for existing tables."));
  err2:
-    initerror(Str("ftsave: no table numbers"));
+    csoundInitError(csound, Str("ftsave: no table numbers"));
     return NOTOK;
  err3:
-    initerror(Str("ftsave: unable to open file"));
+    csoundInitError(csound, Str("ftsave: unable to open file"));
     return NOTOK;
 }
 
@@ -2719,7 +2721,7 @@ void gen43(FUNC *ftp, ENVIRON *csound)
     else if ((long)*filno < strsmax && strsets != NULL && strsets[(long)*filno])
       strcpy(filename, strsets[(long)*filno]);
     else sprintf(filename,"pvoc.%d", (int)*filno); /* pvoc.filnum   */
-    if (!pvx_loadfile_mem(filename,&p, &mfp)) die(errmsg);
+    if (!pvx_loadfile_mem(filename,&p, &mfp)) csoundDie(csound, errmsg);
 
     channel = &ff->e.p[6];
 

@@ -63,7 +63,7 @@ int buzz(ENVIRON *csound, BUZZ *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {        /* RWD fix */
-      return perferror(Str("buzz: not initialised"));
+      return csound->PerfError(csound, Str("buzz: not initialised"));
     }
     ftbl = ftp->ftable;
     sicvt2 = sicvt * FL(0.5);           /* for theta/2  */
@@ -146,7 +146,7 @@ int gbuzz(ENVIRON *csound, GBUZZ *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str("gbuzz: not initialised"));
+      return csound->PerfError(csound, Str("gbuzz: not initialised"));
     }
     ftbl = ftp->ftable;
     lobits = ftp->lobits;
@@ -248,32 +248,32 @@ int plukset(ENVIRON *csound, PLUCK *p)
       break;
     case 2:     /* stretch factor: param1 >= 1 */
       if (p->param1 < FL(1.0))
-        return initerror(Str("illegal stretch factor(param1) value"));
+        return csound->InitError(csound, Str("illegal stretch factor(param1) value"));
       else p->thresh1 =  (short)(FL(32768.0) / p->param1);
       break;
     case 3: /* roughness factor: 0 <= param1 <= 1 */
       if (p->param1 < FL(0.0) || p->param1 > FL(1.0))
-        return initerror(Str("illegal roughness factor(param1) value"));
+        return csound->InitError(csound, Str("illegal roughness factor(param1) value"));
       else
         p->thresh1 = (short)(FL(32768.0) * p->param1);
       break;
     case 4: /* rough and stretch factor: 0 <= param1 <= 1, param2 >= 1 */
       if (p->param1 < FL(0.0) || p->param1 > FL(1.0))
-        return initerror(Str("illegal roughness factor(param1) value"));
+        return csound->InitError(csound, Str("illegal roughness factor(param1) value"));
       else p->thresh1 = (short)(FL(32768.0) * p->param1);
       if (p->param2 < FL(1.0))
-        return initerror(Str("illegal stretch factor(param2) value"));
+        return csound->InitError(csound, Str("illegal stretch factor(param2) value"));
       else p->thresh2 = (short)(FL(32768.0) / p->param2);
       break;
     case 5: /* weighting coeff's: param1 + param2 <= 1 */
       if (p->param1 + p->param2 > 1)
-        return initerror(Str("coefficients too large(param1 + param2)"));
+        return csound->InitError(csound, Str("coefficients too large(param1 + param2)"));
       break;
     case 6: /* ignore any given parameters */
       break;
 
     default:
-      return initerror(Str("unknown method code"));
+      return csound->InitError(csound, Str("unknown method code"));
     }
     return OK;
 }
@@ -286,14 +286,14 @@ int pluck(ENVIRON *csound, PLUCK *p)
     MYFLT       frac, diff;
 
     if (p->auxch.auxp==NULL) { /* RWD FIX */
-      return perferror(Str("pluck: not initialised"));
+      return csound->PerfError(csound, Str("pluck: not initialised"));
     }
     ar = p->ar;
     phsinc = (long)(*p->kcps * p->sicps);
     phs256 = p->phs256;
     ltwopi = p->npts << 8;
     if (phsinc > ltwopi) {
-      return perferror(Str("pluck: kcps more than sample rate"));
+      return csound->PerfError(csound, Str("pluck: kcps more than sample rate"));
     }
     nsmps = ksmps;
     do {

@@ -179,7 +179,7 @@ int wguide2set (ENVIRON *csound, WGUIDE2 *p)
     p->xdel1cod = (XINARG1) ? 1 : 0;
     p->xdel2cod = (XINARG2) ? 1 : 0;
     if (p->xdel2cod != p->xdel2cod)
-      return initerror(Str(
+      return csound->InitError(csound, Str(
                     "wguide2 xfreq1 and xfreq2 arguments must"
                     " be both a-rate or k and i-rate"));
     return OK;

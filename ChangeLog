@@ -1,3 +1,8 @@
+2005-03-29	Istvan Varga	<istvan@csounds.com>
+	* more API changes (affecting a large number of files)
+	* Opcodes/newfils.c:
+	  fixed statevar bug
+
 2005-03-28	Istvan Varga	<istvan@csounds.com>
 	* Engine/auxfd.c, Engine/fgens.c, Engine/insert.c, Engine/oload.c:
 	* H/csdl.h, H/csoundCore.h, H/prototyp.h, InOut/pa_blocking.c:

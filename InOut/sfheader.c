@@ -64,7 +64,7 @@ char *findsfcode(int ctype)     /* locate start of sfcode in current in_header *
         CODE_HDR *cdhp;
 
         if (ctype <= 0 || ctype > SF_CODMAX)
-            die(Str("illegal sfcode type"));
+            csoundDie(&cenviron, Str("illegal sfcode type"));
         for (cp = incodbeg; cp < incodend;) { /* starting from beg codespace */
             cdhp = (CODE_HDR *)cp;
             if (cdhp->type == ctype)             /* if find required code */
@@ -87,7 +87,7 @@ char *creatsfcode(int ctype)    /* add a new sfcode struct to current out_header
         CODE_HDR *cdhp;
 
         if (ctype <= 0 || ctype > SF_CODMAX)
-            die(Str("illegal sfcode type"));
+            csoundDie(&cenviron, Str("illegal sfcode type"));
         for (cp=outcodbeg; cp<outcodend; ) { /* starting from beg codespace  */
             cdhp = (CODE_HDR *)cp;
             if (cdhp->type == SF_END) {             /* if find end code      */

@@ -93,8 +93,7 @@ void fdclose(FDCH *fdchp)       /* close a file and remove from fd chain */
       else prvchp = nxtchp;
     }
     fdchprint(curip);
-    sprintf(errmsg,Str("fdclose: no record of fd %d"), fdchp->fd);
-    die(errmsg);
+    csoundDie(&cenviron, Str("fdclose: no record of fd %d"), fdchp->fd);
 }
 
 void auxchfree(void *csound, INSDS *ip) /* release all xds in instr auxp chain*/
@@ -107,7 +106,7 @@ void auxchfree(void *csound, INSDS *ip) /* release all xds in instr auxp chain*/
     while ((curchp = curchp->nxtchp) != NULL) { /* for all xp's in chain: */
       if ((auxp = curchp->auxp) == NULL) {
         auxchprint(ip);
-        dies(Str("auxchfree: illegal auxp %lx in chain"),auxp);
+        csoundDie(csound, Str("auxchfree: illegal auxp %lx in chain"), auxp);
       }
       mfree(csound, auxp);                      /*      free the space  */
       curchp->auxp = NULL;              /*      & delete the pntr */
@@ -153,3 +152,4 @@ static void fdchprint(INSDS *ip)   /* print the fd chain for this insds blk */
       printf(Str("  fd %p/%d in %lx"), curchp->fd, curchp->fdc, curchp);
     printf("\n");
 }
+

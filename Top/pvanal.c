@@ -236,7 +236,7 @@ int pvanal(int argc, char **argv)
       /* handle all messages in here, for now */
       if (pvxanal(p,infd,outfilnam,p->sr,p->nchanls,frameSize,frameIncr,
                   frameSize*2,PVOC_HAMMING,verbose))
-        die(Str("error generating pvocex file.\n"));
+        csoundDie(&cenviron, Str("error generating pvocex file.\n"));
     }
     else {
       fftfrmBsiz = sizeof(MYFLT) * 2 * (frameSize/2 + 1);
@@ -328,7 +328,7 @@ static long takeFFTs(
       *fp1++ = FL(0.0);
                              /* .. and read in second half from file */
     if ((read_in = getsndin(infd, fp1, (long)(frameSize/2),p)) < frameSize/2)
-      die(Str("insufficient sound for analysis"));
+      csoundDie(&cenviron, Str("insufficient sound for analysis"));
     for (nn = read_in; nn--; )
       /* IV - Jul 11 2002 */
       *fp1++ *= dbfs_to_float;      /* normalize the samples read in */

@@ -41,7 +41,7 @@ int wtinit(ENVIRON *csound, WAVETER *p)
 
     /* CHECK */
     if ((ftpx == NULL)||(ftpy == NULL)) {
-      return initerror(Str("wterrain: ftable not found"));
+      return csound->InitError(csound, Str("wterrain: ftable not found"));
     }
 
 /* printf("WAVE TERRAIN INIT v1.0 - terrain(%d,%d)\n", tabxlen, tabylen);  */
@@ -122,7 +122,7 @@ int scanhinit(ENVIRON *csound, SCANHAMMER *p)
   FUNC *fdst = csound->FTFind(csound, p->idst); /* Destination table */
 
   if (fsrc->flen > fdst->flen) {
-    return initerror(Str(
+    return csound->InitError(csound, Str(
                   "Source table must be same size or smaller than dest table\n"));
   }
 
@@ -159,19 +159,19 @@ int scantinit(ENVIRON *csound, SCANTABLE *p)
 
     /* CHECK */
     if (fpoint == NULL) {
-      return initerror(Str("Scantable: point table not found"));
+      return csound->InitError(csound, Str("Scantable: point table not found"));
     }
     if (fmass == NULL) {
-      return initerror(Str("Scantable: mass table not found"));
+      return csound->InitError(csound, Str("Scantable: mass table not found"));
     }
     if (fstiff == NULL) {
-      return initerror(Str("Scantable: stiffness table not found"));
+      return csound->InitError(csound, Str("Scantable: stiffness table not found"));
     }
     if (fdamp == NULL) {
-      return initerror(Str("Scantable: damping table not found"));
+      return csound->InitError(csound, Str("Scantable: damping table not found"));
     }
     if (fvel == NULL) {
-      return initerror(Str("Scantable: velocity table not found"));
+      return csound->InitError(csound, Str("Scantable: velocity table not found"));
     }
 
     /* CHECK ALL TABLES SAME LENGTH */
@@ -179,7 +179,7 @@ int scantinit(ENVIRON *csound, SCANTABLE *p)
           (fdamp->flen==fstiff->flen)  &&
           (fvel->flen==fstiff->flen)   &&
           (fpoint->flen==fdamp->flen))) {
-      return initerror(Str("Table lengths do not agree!!"));
+      return csound->InitError(csound, Str("Table lengths do not agree!!"));
     }
 
     p->size = (MYFLT)fpoint->flen;
