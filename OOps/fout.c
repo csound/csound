@@ -42,10 +42,10 @@
 #endif
 
 struct fileinTag {
-    SNDFILE* file;
-    char  *name;
-    long  cnt;
-    int   hdr;
+    SNDFILE*	file;
+    FILE*	raw;            /* Only used if text file */
+    char	*name;
+    long	cnt;
 };
 
 static struct fileinTag *file_opened = NULL;
@@ -56,14 +56,12 @@ static void close_files(void)
 {
     while (file_num>=0) {
       printf("%d (%s):", file_num, file_opened[file_num].name);
-/*       fflush(file_opened[file_num].file); */
-      if (file_opened[file_num].hdr) {
-        rewriteheader(file_opened[file_num].file,
-                      /*file_opened[file_num].cnt,*/ 1);
-      }
-      sf_close(file_opened[file_num].file);
+      if (file_opened[file_num].raw != NULL)
+        fclose(file_opened[file_num].raw);
+      else
+        sf_close(file_opened[file_num].file);
       file_num--;
-      printf("\n");
+      printf(" closed\n");
     }
 }
 
@@ -72,12 +70,23 @@ int outfile(OUTFILE *p)
     int nsmps = ksmps, j, nargs = p->nargs, k=0;
     MYFLT **args = p->argums;
     MYFLT vals[VARGMAX];
-    do {
-      for (j = 0;j< nargs;j++)
-        vals[j] = args[j][k];
-      sf_writef_MYFLT(p->fp, vals, 1);
-      k++;
-    } while (--nsmps);
+    if (p->fp==NULL) {
+      FILE* fp = file_opened[p->idx].raw;
+      do {
+        for (j = 0;j< nargs;j++)
+          fprintf(fp, "%g ", args[j][k]);
+        fprintf(fp, "\n");
+        k++;
+      } while (--nsmps);
+    }
+    else {
+      do {
+        for (j = 0;j< nargs;j++)
+          vals[j] = args[j][k];
+        sf_writef_MYFLT(p->fp, vals, 1);
+        k++;
+      } while (--nsmps);
+    }
     return OK;
 }
 
@@ -104,7 +113,6 @@ int outfile_set(OUTFILE *p)
           case 1:
             break;
           case 2:
-            file_opened[n].hdr = 1;
             break;
           default:
           }
@@ -141,20 +149,17 @@ int outfile_set(OUTFILE *p)
         file_opened[file_num].name = (char*) mmalloc(strlen(fname)+1);
         strcpy(file_opened[file_num].name, fname);
         file_opened[file_num].file = p->fp;
+        file_opened[file_num].raw = NULL;
         p->idx = n = file_num;
         file_opened[file_num].cnt = 0;
-        if (sfinfo.format==(SF_FORMAT_PCM_16 | O.filetyp))
-          file_opened[n].hdr = 1;
-        else
-          file_opened[file_num].hdr = 0;
       }
     }
     else { /* file handle as argument */
       n = (int)*p->fname;
-      if (n>file_num || (p->fp = file_opened[n].file) == NULL)
+      if (n>file_num || ((p->fp = file_opened[n].file) == NULL &&
+                         file_opened[n].raw == NULL))
         die(Str(X_1466,"fout: invalid file handle"));
     }
- done:
     return OK;
 }
 
@@ -188,7 +193,6 @@ int koutfile_set(KOUTFILE *p)
           goto done;
         }
       }
-                                /* *** NON ANSI CODE *** */
       sfinfo.channels = p->nargs;
       sfinfo.samplerate = (long)esr;
       switch((int) (*p->iflag+FL(0.5))) {
@@ -221,10 +225,6 @@ int koutfile_set(KOUTFILE *p)
         file_opened[file_num].file=p->fp;
         p->idx = n = file_num;
         file_opened[file_num].cnt = 0;
-        if (sfinfo.format==(SF_FORMAT_PCM_16 | O.filetyp))
-          file_opened[file_num].hdr = 1;
-        else
-          file_opened[file_num].hdr = 0;
       }
     }
     else { /* file handle argument */
@@ -246,14 +246,35 @@ int koutfile_set(KOUTFILE *p)
 int fiopen(FIOPEN *p)          /* open a file and return its handle  */
 {                              /* the handle is simply a stack index */
     char fname[FILENAME_MAX];
-    char *omodes[] = {"w", "r", "wb", "rb"};
-    SNDFILE *fp;
+/*     char *omodes[] = {"w", "r", "wb", "rb"}; */
+    SNDFILE *fp = NULL;
+    SF_INFO sfinfo;
+    FILE *rfp = NULL;
     int idx = (int)*p->iascii;
     strcpy(fname, unquote(p->STRARG));
     if (idx<0 || idx>3) idx=0;
-    if (( fp = fopen(fname,omodes[idx])) == NULL)
-      dies(Str(X_1468,"fout: cannot open outfile %s"),fname);
-    if (idx>1) setbuf(fp, NULL);
+    switch (idx) {
+    case 0:                     /* Text write */
+      if ((rfp = fopen(fname,"w")) == NULL)
+        dies(Str(X_1468,"fout: cannot open outfile %s"),fname);
+      break;
+    case 1:
+      if ((rfp = fopen(fname,"r")) == NULL)
+        dies(Str(X_1468,"fout: cannot open outfile %s"),fname);
+      break;
+    default:
+    case 2:
+      sfinfo.format = SF_FORMAT_WAV | SF_FORMAT_PCM_16;
+      sfinfo.channels = 2;
+      sfinfo.samplerate = (long)esr;
+      if ((fp = sf_open(fname, SFM_WRITE, &sfinfo))==NULL)
+        dies(Str(X_1468,"fout: cannot open outfile %s"),fname);
+      break;
+    case 3:
+      if ((fp = sf_open(fname, SFM_READ, &sfinfo))==NULL)
+        dies(Str(X_1468,"fout: cannot open outfile %s"),fname);
+      break;
+    }
     file_num++;
     if (file_num>=file_max) {
       if (file_max==0) atexit(close_files);
@@ -264,24 +285,27 @@ int fiopen(FIOPEN *p)          /* open a file and return its handle  */
     file_opened[file_num].name = (char*)mmalloc(strlen(fname)+1);
     strcpy(file_opened[file_num].name, fname);
     file_opened[file_num].file=fp;
+    file_opened[file_num].raw=rfp;
     *p->ihandle = (MYFLT) file_num;
     return OK;
-}
+    }
 
 /* syntax:
    fouti  ihandle, iascii, iflag, iarg1 [,iarg2,....,iargN]
 */
 
-long kreset=0;
+static long kreset=0;
 int ioutfile_set(IOUTFILE *p)
 {
     int j;
     MYFLT **args=p->argums;
     SNDFILE *fil;
+    FILE* rfil;
     int n = (int) *p->ihandle;
     if (n<0 || n>file_num)
       die(Str(X_1469,"fouti: invalid file handle"));
     fil = file_opened[n].file;
+    rfil = file_opened[n].raw;
     if (fil == NULL) die(Str(X_1469,"fouti: invalid file handle"));
     if (*p->iascii == 0) { /* ascii format */
       switch ((int) *p->iflag) {
@@ -290,9 +314,9 @@ int ioutfile_set(IOUTFILE *p)
         double p2 =   (double) kcounter * onedkr;
         double p3 = p->h.insdshead->p3;
         if (p3 > FL(0.0))
-          fprintf(fil, "i %i %f %f ", p1, p2, p3);
+          fprintf(rfil, "i %i %f %f ", p1, p2, p3);
         else
-          fprintf(fil, "i %i %f . ", p1, p2);
+          fprintf(rfil, "i %i %f . ", p1, p2);
       }
       break;
       case 2: /* whith prefix (start at 0 time) */
@@ -302,9 +326,9 @@ int ioutfile_set(IOUTFILE *p)
           double p2= (double) (kcounter - kreset) * onedkr;
           double p3 = p->h.insdshead->p3;
           if (p3 > FL(0.0))
-            fprintf(fil, "i %i %f %f ", p1, p2, p3);
+            fprintf(rfil, "i %i %f %f ", p1, p2, p3);
           else
-            fprintf(fil, "i %i %f . ", p1, p2);
+            fprintf(rfil, "i %i %f . ", p1, p2);
         }
         break;
       case 3: /* reset */
@@ -312,14 +336,15 @@ int ioutfile_set(IOUTFILE *p)
         return OK;
       }
       for (j=0; j < p->INOCOUNT - 3;j++) {
-        fprintf( fil, " %f",(double) *args[j]);
+        fprintf(rfil, " %f",(double) *args[j]);
       }
-      putc('\n',fil);
+      putc('\n',rfil);
     }
     else { /* binary format */
-      for (j=0; j < p->INOCOUNT - 3;j++) {
-        fwrite(args[j], sizeof(MYFLT),1, fil );
-      }
+      MYFLT vals[VARGMAX];
+      for (j=0; j < p->INOCOUNT - 3;j++)
+        vals[j] = *args[j];
+      sf_writef_MYFLT(fil, vals, 1);
     }
     return OK;
 }
@@ -344,10 +369,12 @@ int ioutfile_r(IOUTFILE_R *p)
       if (p->done) {
         int j;
         MYFLT **args=p->argums;
-        FILE *fil;
+        SNDFILE *fil;
+        FILE *rfil;
         int n = (int) *p->ihandle;
         if (n<0 || n>file_num) die(Str(X_1469,"fouti: invalid file handle"));
         fil = file_opened[n].file;
+        rfil = file_opened[n].raw;
         if (fil == NULL) die(Str(X_1469,"fouti: invalid file handle"));
         if (*p->iascii == 0) { /* ascii format */
           switch ((int) *p->iflag) {
@@ -355,15 +382,15 @@ int ioutfile_r(IOUTFILE_R *p)
             int p1 = (int) p->h.insdshead->insno;
             double p2 = p->counter * onedkr;
             double p3 = (double) (kcounter-p->counter) * onedkr;
-            fprintf(fil, "i %i %f %f ", p1, p2, p3);
+            fprintf(rfil, "i %i %f %f ", p1, p2, p3);
           }
           break;
-          case 2: /* whith prefix (start at 0 time) */
+          case 2: /* with prefix (start at 0 time) */
             {
               int p1 = (int) p->h.insdshead->insno;
               double p2 = (p->counter - kreset) *onedkr;
               double p3 = (double) (kcounter-p->counter) * onedkr;
-              fprintf(fil, "i %i %f %f ", p1, p2, p3);
+              fprintf(rfil, "i %i %f %f ", p1, p2, p3);
             }
             break;
           case 3: /* reset */
@@ -371,14 +398,15 @@ int ioutfile_r(IOUTFILE_R *p)
             return OK;
           }
           for (j=0; j < p->INOCOUNT - 3;j++) {
-            fprintf( fil, " %f",(double) *args[j]);
+            fprintf(rfil, " %f",(double) *args[j]);
           }
-          putc('\n',fil);
+          putc('\n',rfil);
         }
         else { /* binary format */
-          for (j=0; j < p->INOCOUNT - 3;j++) {
-            fwrite(args[j], sizeof(MYFLT),1, fil );
-          }
+          MYFLT vals[VARGMAX];
+          for (j=0; j < p->INOCOUNT - 3;j++) 
+            vals[j] = *args[j];
+          sf_writef_MYFLT(fil, vals,1);
         }
         p->done = 0;
       }
@@ -388,67 +416,9 @@ int ioutfile_r(IOUTFILE_R *p)
 
 /*----------------------------------*/
 
-static int infile_float(INFILE *p)
-{
-    int nsmps= ksmps, j, nargs = p->nargs,k=0;
-    MYFLT **args = p->argums;
-    if (p->flag) {
-      fseek(p->fp, p->currpos*sizeof(MYFLT)*nargs ,SEEK_SET);
-      p->currpos+=nsmps;
-      do {
-        for (j = 0;j< nargs;j++) {
-          if (fread(&(args[j][k]), sizeof(MYFLT), 1, p->fp));
-          else {
-            p->flag = 0;
-            args[j][k] = FL(0.0);
-          }
-        }
-        k++;
-      } while (--nsmps);
-    }
-    else { /* after end of file */
-      do {
-        for (j = 0;j< nargs;j++)
-          args[j][k] = FL(0.0);
-        k++;
-      } while (--nsmps);
-    }
-    return OK;
-}
-
-
-int infile_int(INFILE *p)
-{
-    int nsmps= ksmps, j,nargs = p->nargs,k=0;
-    MYFLT **args = p->argums;
-    short tmp;
-    if (p->flag) {
-      fseek(p->fp, p->currpos*sizeof(short)*nargs ,SEEK_SET);
-      p->currpos+=nsmps;
-      do {
-        for (j = 0;j< nargs;j++) {
-          if (fread( &tmp, sizeof(short),1,p->fp))
-            args[j][k] = (MYFLT) tmp;
-          else {
-            p->flag = 0;
-            args[j][k] = FL(0.0);
-          }
-        }
-        k++;
-      } while (--nsmps);
-    }
-    else {  /* after end of file */
-      do {
-        for (j = 0;j< nargs;j++)
-          args[j][k] = FL(0.0);
-        k++;
-      } while (--nsmps);
-    }
-    return OK;
-}
-
 int infile_set(INFILE *p)
 {
+    SF_INFO sfinfo;
     if (*p->fname == SSTRCOD) { /* if char string name given */
       int j;
       /*extern char *unquote(char *name); */
@@ -461,7 +431,7 @@ int infile_set(INFILE *p)
           goto done;
         }
       }
-      if (( p->fp = fopen(fname,"rb")) == NULL)
+      if (( p->fp = sf_open(fname, SFM_READ, &sfinfo)) == NULL)
         dies(Str(X_1470,"fin: cannot open infile %s"),fname);
       else { /* put the file in the opened stack */
         file_num++;
@@ -474,6 +444,7 @@ int infile_set(INFILE *p)
         file_opened[file_num].name = (char*)mmalloc(strlen(fname)+1);
         strcpy(file_opened[file_num].name, fname);
         file_opened[file_num].file=p->fp;
+        file_opened[file_num].raw=NULL;
       }
     }
     else { /* file handle argument */
@@ -482,16 +453,6 @@ int infile_set(INFILE *p)
         die(Str(X_1471,"fin: invalid file handle"));
     }
  done:
-    switch((int) (*p->iflag+FL(0.5))) {
-    case 0:
-      p->infilep = (SUBR)infile_float;
-      break;
-    case 1:
-      p->infilep = (SUBR)infile_int;
-      break;
-    default:
-      p->infilep = (SUBR)infile_int;
-    }
     p->nargs = p->INOCOUNT-3;
     p->currpos = (long) *p->iskpfrms;
     p->flag=1;
@@ -500,63 +461,40 @@ int infile_set(INFILE *p)
 
 int infile_act(INFILE *p)
 {
-    p->infilep(p);
+    int nsmps= ksmps, j, nargs = p->nargs,k=0;
+    MYFLT **args = p->argums;
+    if (p->flag) {
+      sf_seek(p->fp, p->currpos, SEEK_SET);
+      p->currpos+=nsmps;
+      do {
+        MYFLT vals[VARGMAX];
+        if (sf_readf_MYFLT(p->fp, vals, 1)) {
+          for (j=0; j< nargs; j++) args[j][k] = vals[j];
+        }
+        else {
+          p->flag = 0;
+          for (j=0; j< nargs; j++) args[j][k] = FL(0.0);
+        }
+        k++;
+      } while (--nsmps);
+    }
+    else { /* after end of file */
+      do {
+        for (j=0; j< nargs; j++)
+          args[j][k] = FL(0.0);
+        k++;
+      } while (--nsmps);
+    }
     return OK;
 }
 
 
 /*----------------------------*/
 
-static int kinfile_float(KINFILE *p)
-{
-    int j, nargs = p->nargs;
-    MYFLT **args = p->argums;
-    if (p->flag) {
-      fseek(p->fp, p->currpos*sizeof(MYFLT)*nargs ,SEEK_SET);
-      p->currpos++;
-      for (j = 0;j< nargs;j++) {
-        if (fread(args[j], sizeof(MYFLT),1,p->fp));
-        else {
-          p->flag = 0;
-          *(args[j]) = FL(0.0);
-        }
-      }
-    }
-    else { /* after end of file */
-      for (j = 0; j < nargs; j++)
-        *(args[j]) = FL(0.0);
-    }
-    return OK;
-}
-
-
-int kinfile_int(KINFILE *p)
-{
-    int j,nargs = p->nargs;
-    MYFLT **args = p->argums;
-    short tmp;
-    if (p->flag) {
-      fseek(p->fp, p->currpos*sizeof(short)*nargs ,SEEK_SET);
-      p->currpos++;
-      for (j = 0;j< nargs;j++) {
-        if (fread( &tmp, sizeof(short),1,p->fp))
-          *(args[j]) = (MYFLT) tmp;
-        else {
-          p->flag = 0;
-          *(args[j]) = FL(0.0);
-        }
-      }
-    }
-    else {  /* after end of file */
-      for (j = 0;j< nargs;j++)
-        *(args[j]) = FL(0.0);
-    }
-    return OK;
-}
-
 
 int kinfile_set(KINFILE *p)
 {
+    SF_INFO sfinfo;
     if (*p->fname == SSTRCOD) { /* if char string name given */
       int j;
       /*extern char *unquote(char *name); */
@@ -569,7 +507,7 @@ int kinfile_set(KINFILE *p)
           goto done;
         }
       }
-      if (( p->fp = fopen(fname,"rb")) == NULL)
+      if (( p->fp = sf_open(fname,SFM_READ, &sfinfo)) == NULL)
         dies(Str(X_1470,"fin: cannot open infile %s"),fname);
       else { /* put the file in the opened stack */
         file_num++;
@@ -590,16 +528,6 @@ int kinfile_set(KINFILE *p)
         die(Str(X_1472,"fink: invalid file handle"));
     }
  done:
-    switch((int) (*p->iflag+FL(0.5))) {
-    case 0:
-      p->kinfilep = (SUBR)kinfile_float;
-      break;
-    case 1:
-      p->kinfilep = (SUBR)kinfile_int;
-      break;
-    default:
-      p->kinfilep = (SUBR)kinfile_int;
-    }
     p->nargs = p->INOCOUNT-3;
     p->currpos = (long) *p->iskpfrms;
     p->flag=1;
@@ -609,10 +537,25 @@ int kinfile_set(KINFILE *p)
 
 int kinfile(KINFILE *p)
 {
-    p->kinfilep(p);
+    int j, nargs = p->nargs;
+    MYFLT **args = p->argums;
+    if (p->flag) {
+      sf_seek(p->fp, p->currpos, SEEK_SET);
+      p->currpos++;
+      for (j = 0;j< nargs;j++) {
+        if (sf_read_MYFLT(p->fp, args[j], 1));
+        else {
+          p->flag = 0;
+          *(args[j]) = FL(0.0);
+        }
+      }
+    }
+    else { /* after end of file */
+      for (j = 0; j < nargs; j++)
+        *(args[j]) = FL(0.0);
+    }
     return OK;
 }
-
 
 
 int i_infile(I_INFILE *p)
@@ -729,8 +672,9 @@ int incr(INCR *p)
 {
     MYFLT *avar = p->avar, *aincr = p->aincr;
     int nsmps= ksmps;
-    do  *(avar++) += *(aincr++);
-    while (--nsmps);
+    do {
+      *(avar++) += *(aincr++);
+    } while (--nsmps);
     return OK;
 }
 
@@ -742,8 +686,9 @@ int clear(CLEARS *p)
     for (j=0;j< p->INOCOUNT;j++) {
       avar = p->argums[j];
       nsmps= ksmps;
-      do        *(avar++) = FL(0.0);
-      while (--nsmps);
+      do {
+        *(avar++) = FL(0.0);
+      } while (--nsmps);
     }
     return OK;
 }
@@ -769,7 +714,7 @@ int fprintf_set(FPRINTF *p)
       else strcpy(fname, unquote(p->STRARG));
       for (j=0; j<= file_num; j++) {
         if (!strcmp(file_opened[j].name,fname)) {
-          p->fp = file_opened[j].file;
+          p->fp = file_opened[j].raw;
           p->idx = n = j;
           goto done;
         }
@@ -787,15 +732,14 @@ int fprintf_set(FPRINTF *p)
         }
         file_opened[file_num].name = (char*) mmalloc(strlen(fname)+1);
         strcpy(file_opened[file_num].name, fname);
-        file_opened[file_num].file = p->fp;
+        file_opened[file_num].raw = p->fp;
         p->idx = n = file_num;
         file_opened[file_num].cnt = 0;
-        file_opened[file_num].hdr = 0;
       }
     }
     else { /* file handle as argument */
       n = (int)*p->fname;
-      if (n>file_num || (p->fp = file_opened[n].file) == NULL)
+      if (n>file_num || (p->fp = file_opened[n].raw) == NULL)
         die(Str(X_1466,"fout: invalid file handle"));
     }
 

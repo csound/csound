@@ -110,6 +110,7 @@ extern short sfsampsize(int);
 extern void writeheader(int, char *);
 extern char *getstrformat(int);
 extern void dieu(char*);
+extern char* type2string(int);
 
 static void (*audtran)(char *, int), nullfn(char *, int);
 static void (*spoutran)(MYFLT *, int);
@@ -1153,7 +1154,7 @@ int dnoise(int argc, char **argv)
     if (i > 0)
       writebuffer(ob1, i);
 
-    rewriteheader(outfd, 0);
+/*     rewriteheader(outfd, 0); */
     printf("\n\n");
     close(outfd);
     if (Verbose) {

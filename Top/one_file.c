@@ -27,6 +27,7 @@
 #include "cs.h"
 #include <ctype.h>
 
+extern int csoundGetVersion(int);
 static char buffer[200];
 #ifdef WIN32
 #undef L_tmpnam
@@ -461,7 +462,7 @@ static int checkVersion(FILE *unf)
     char *p;
     int major = 0, minor = 0;
     int result = TRUE;
-		int version = csoundGetVersion(0);
+    int version = csoundGetVersion(0);
     while (my_fgets(buffer, 200, unf)!= NULL) {
       p = buffer;
       while (*p==' '||*p=='\t') p++;

@@ -22,6 +22,7 @@
 */
 
 #include "fout.h"
+#include "ugrw1.h"
 
 int fprintf_k(FPRINTF *p)
 {

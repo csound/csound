@@ -67,6 +67,7 @@ extern  ENVIRON cenviron;
 extern int argdecode(int, char**, char**, char*);
 extern void init_pvsys(void);
 extern int csoundYield(void *);
+extern void csoundReset(ENVIRON*);
 
 #include <signal.h>
 

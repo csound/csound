@@ -33,6 +33,7 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#include <math.h>
 
 /* RWD 5:2001 added 24 bit file support */
 /* also: my attempt to fix bugs in diskin, unrelated to sample formats
@@ -165,8 +166,6 @@ static int sngetset(SOUNDINEW *p, char *sfname)
     p->fdch.fd = infile;                  /*     store & log the fd     */
     return (TRUE);
 
- errcls:
-    sf_close(infile);                        /* init error:  close any open file */
  errtn:
     return (FALSE);                      /*              return empty handed */
 }

@@ -253,11 +253,11 @@ void makeWindow(char *name)
     }
 }
 
-extern "C" 
+extern "C"
 {
     void DrawGraph_(WINDAT *);
     long MakeWindow(char *);
-  int POLL_EVENTS(void);
+    int POLL_EVENTS(void);
     void kill_graph(int);
     int myFLwait(void);
     void MakeXYin_(XYINDAT*, MYFLT, MYFLT);
@@ -269,7 +269,7 @@ extern "C"
         add_graph(wdptr);
         csoundYield(&cenviron);
     }
-    
+
     long MakeWindow(char *name)
     {
         if (form==NULL) {
@@ -278,8 +278,8 @@ extern "C"
         }
         return (long)form;
     }
-    
-int POLL_EVENTS(void)
+
+    int POLL_EVENTS(void)
     {
         Fl::wait(0.0);
     #ifdef FLTK_GUI
@@ -289,7 +289,7 @@ int POLL_EVENTS(void)
     #endif
         return 1;
     }
-    
+
     void kill_graph(int m)
     {
         WINDAT *n = (WINDAT*)menu[m].user_data_;
@@ -298,28 +298,28 @@ int POLL_EVENTS(void)
         menu[m].user_data_ = NULL;
         menu[m].text = "(deleted)";
     }
-    
+
     int myFLwait()
     {
         if (form==NULL) return 1;
         end->show();
         while (end->value()==0) Fl::wait(0.5);
-    
+
         return 1;
     }
-    
+
     #define GUTTERH 20           /* space for text at top & bottom */
     #define BORDERW 10           /* inset from L & R edge */
-    
+
     void MakeXYin_(XYINDAT *w, MYFLT x, MYFLT y)
     {
         if (w->windid==0) {
           Fl_Window *xyin = new Fl_Window(WIDTH,WIDTH, "XY input");
           short   win_x, win_y;
           short   gra_x, gra_y, gra_w, gra_h;
-    
-          win_x = 0;  win_y = 0;              /* window pixels addressed relative */
-    
+
+          win_x = 0;  win_y = 0;           /* window pixels addressed relative */
+
           /* set new width and height so we leave a 20% border around the plot */
           gra_w = xyin->w() - 2*BORDERW;      gra_h = xyin->h() - 2*GUTTERH;
           gra_x = win_x + BORDERW;            gra_y = win_y + GUTTERH;
@@ -333,30 +333,30 @@ int POLL_EVENTS(void)
           xyin->show();
         }
     }
-    
+
     void ReadXYin_(XYINDAT *wdptr)
     {
         short       win_x, win_y;
         short       gra_x, gra_y, gra_w, gra_h;
         short       m_x, m_y;
         Fl_Window *xwin = (Fl_Window *)wdptr->windid;
-    
+
         Fl::wait(0.1);
         m_x = Fl::event_x();
         m_y = Fl::event_y();
-    
+
         win_x = 0;  win_y = 0;      /* window pixels addressed relative */
-    
+
         /* set new width and height so we leave a 20% border around the plot */
         gra_w = xwin->w() - 2*BORDERW;      gra_h = xwin->h() - 2*GUTTERH;
         gra_x = win_x + BORDERW;            gra_y = win_y + GUTTERH;
-    
+
         /* clip mouse position */
         if (m_x < gra_x)            m_x = gra_x;
         else if (m_x > gra_x+gra_w) m_x = gra_x+gra_w;
         if (m_y < gra_y)            m_y = gra_y;
         else if (m_y > gra_y+gra_h) m_y = gra_y+gra_h;
-    
+
         if (m_x != wdptr->m_x || m_y != wdptr->m_y) { /* only redo if changed */
           /* undraw old crosshairs */
           fl_color(FL_BACKGROUND_COLOR);
@@ -373,7 +373,7 @@ int POLL_EVENTS(void)
           wdptr->y = ((MYFLT)m_y-gra_y)/(MYFLT)gra_h;
         }
     }
-    
+
     void KillXYin_(XYINDAT *wdptr)
     {
         Fl_Window *x = (Fl_Window*)wdptr->windid;

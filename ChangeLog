@@ -1,3 +1,8 @@
+2004-04-08  John ffitch  <jpff@codemist.co.uk>
+
+	* InOut/widgets.cpp (fl_knob): Added retuirn to initerror call
+	(fl_button): 
+
 2004-04-06  John ffitch  <jpff@codemist.co.uk>
 
 	* InOut/FL_graph.cpp (draw): Initialise win_h
