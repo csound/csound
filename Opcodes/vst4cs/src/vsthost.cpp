@@ -379,13 +379,15 @@ void VSTPlugin::Info()
 	for(i=0; i<nparams;i++) {
 	    strcpy(buffer, "No parameter");
 		GetParamName(i, buffer);
-		Log("  Parameter%5i: %s\n",i, buffer);		
+		if (strcmp("unused",buffer)==1)
+			Log("  Parameter%5i: %s\n",i, buffer);		
 	}
 	csound->Message(csound,"Number of programs: %d\n",aeffect->numPrograms);
 	for(i = 0; i < aeffect->numPrograms; i++) {
         strcpy(buffer, "No program");
 	    GetProgramName(0, i, buffer);
-	    Log("  Program%7i: %s\n", i, buffer);
+	    if (strcmp("default",buffer)==1)
+	    	Log("  Program%7i: %s\n", i, buffer);
     }	
 	csound->Message(csound,"----------------------------------------------------\n");
 }
@@ -699,6 +701,7 @@ bool VSTPlugin::IsSynth()
 
 bool VSTPlugin::OnCanDo(const char *ptr) 
 {
+    printf("Can do call: %s.\n", ptr);
     if((!strcmp(ptr, "sendVstMidiEvent")) ||
        (!strcmp(ptr, "receiveVstMidiEvent")) /*||
        (!strcmp(ptr, "sizeWindow"))*/)
@@ -751,8 +754,8 @@ long VSTPlugin::Master(AEffect *effect, long opcode, long index,
 		if(effect)
 		    return effect->uniqueID; else return -1;	
 	case audioMasterIdle:
-		effect->dispatcher(effect, effEditIdle, 0, 0, NULL, 0.0f);
-		return 0;		
+		return plugin->Dispatch(effEditIdle, 0, 0, NULL, 0.0f);
+		//return 0;		
 	case audioMasterPinConnected:	
         return !((value) ?  OnOutputConnected(effect, index) :
                             OnInputConnected(effect, index));	
@@ -761,18 +764,19 @@ long VSTPlugin::Master(AEffect *effect, long opcode, long index,
 	case audioMasterProcessEvents:		
 		return false; 	
 	case audioMasterGetTime:
-//	    if(plugin)
-//	        return (long) plugin->GetTime();
-//        else {
-//            static VstTimeInfo vstTimeInfo;
-//            memset(&vstTimeInfo, 0, sizeof(VstTimeInfo));
-//            return (long) &vstTimeInfo;
-//        }
-        return 0;
+	    if(plugin)
+	        return (long) plugin->GetTime();
+        else {
+            static VstTimeInfo vstTimeInfo;
+            memset(&vstTimeInfo, 0, sizeof(VstTimeInfo));
+            return (long) &vstTimeInfo;
+        }
+        //return 0;
 	case audioMasterTempoAt:			
 		return 0;
-	case audioMasterNeedIdle:	
-		effect->dispatcher(effect, effIdle, 0, 0, NULL, 0.0f);  
+	case audioMasterNeedIdle:
+		if (plugin)	
+			return plugin->Dispatch(effIdle, 0, 0, NULL, 0.0f);  
 		return false;
 	case audioMasterGetSampleRate:
         if(plugin)		
@@ -784,7 +788,7 @@ long VSTPlugin::Master(AEffect *effect, long opcode, long index,
 		return 0;
 	case audioMasterGetVendorVersion:	
 		return 5000;	
-	case audioMasterGetProductString:	// Just fooling product string
+	case audioMasterGetProductString:
 		strcpy((char*)ptr,"vst4cs");
 		return 0;
 	case audioMasterGetLanguage:		
@@ -799,8 +803,9 @@ long VSTPlugin::Master(AEffect *effect, long opcode, long index,
 	case audioMasterGetCurrentProcessLevel:		
         return 0; 
 	case audioMasterCanDo:
-        if(plugin) 
-            OnCanDo((char *)ptr);
+        //if(plugin) 
+            return OnCanDo((char *)ptr);
+	//else printf("No instance");
         break;
 	}	
 	return 0;
