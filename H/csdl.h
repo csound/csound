@@ -22,6 +22,7 @@
 */
 
 #include "cs.h"
+#include <limits.h>
 
 #undef ksmps
 #undef esr
@@ -447,19 +448,19 @@
                     return localops;            \
                 }
 
-#define FLINKAGE long opcode_size(void)                          \
-                {                                                \
-                    if (localops==NULL) return 0x80000000;       \
-                    else return ((sizeof(localops))|0x80000000); \
-                }                                                \
-                                                                 \
-                OENTRY *opcode_init(ENVIRON *xx)                 \
-                {                                                \
-                    return localops;                             \
-                }                                                \
-                                                                 \
-                NGFENS *fgen_init(ENVIRON *xx)                   \
-                {                                                \
-                    return localfgens;                           \
+#define FLINKAGE long opcode_size(void)                        \
+                {                                              \
+                    if (localops==NULL) return LONG_MIN;       \
+                    else return ((sizeof(localops))|LONG_MIN); \
+                }                                              \
+                                                               \
+                OENTRY *opcode_init(ENVIRON *xx)               \
+                {                                              \
+                    return localops;                           \
+                }                                              \
+                                                               \
+                NGFENS *fgen_init(ENVIRON *xx)                 \
+                {                                              \
+                    return localfgens;                         \
                 }
 
