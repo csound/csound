@@ -405,7 +405,8 @@ ENVIRON cenviron_ = {
         NULL,                   /* flist */
         0,                      /* maxfnum */
         NULL,                   /* gensub */
-        GENMAX+1                /* genmax */
+        GENMAX+1,               /* genmax */
+        100			/* ftldno */
 };
 
 OPARMS O;
