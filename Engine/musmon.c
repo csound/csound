@@ -299,7 +299,6 @@ int musmon(void)
     /*        if (!O.Linein) { */   /*  *************** */
     if (!(scfp = fopen(O.playscore, "r"))) {
       if (!O.Linein) {
-        printf("O.Linein=%d scfp=%p playscore=%s\n", O.Linein, scfp, O.playscore);
         dies(Str(X_649,"cannot reopen %s"), O.playscore);
       }
     }
