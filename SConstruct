@@ -356,10 +356,13 @@ if (not(commonEnvironment['usePortMIDI']=='0') and portmidiFound):
     guiProgramEnvironment.Append(CCFLAGS = '-DPORTMIDI')
     csoundProgramEnvironment.Append(LIBS = ['portmidi'])
     vstEnvironment.Append(LIBS = ['portmidi'])
-    if getPlatform() != 'darwin' :
+    if getPlatform() != 'darwin':
         csoundProgramEnvironment.Append(LIBS = ['porttime'])
         vstEnvironment.Append(LIBS = ['porttime'])
-
+    if getPlatform() == 'mingw':
+        csoundProgramEnvironment.Append(LIBS = ['winmm'])
+        vstEnvironment.Append(LIBS = ['winmm'])	
+	
 if commonEnvironment['useALSA']=='1' and alsaFound:
     guiProgramEnvironment.Append(LINKFLAGS = '-mwindows')
 elif commonEnvironment['usePortAudio']=='1' and portaudioFound:
@@ -413,6 +416,13 @@ if getPlatform() == 'mingw':
     csoundProgramEnvironment.Append(LIBS = ['ole32'])
     csoundProgramEnvironment.Append(LIBS = ['uuid'])
     csoundProgramEnvironment.Append(LIBS = ['winmm'])
+
+    vstEnvironment.Append(LIBS = ['kernel32'])
+    vstEnvironment.Append(LIBS = ['gdi32'])
+    vstEnvironment.Append(LIBS = ['wsock32'])
+    vstEnvironment.Append(LIBS = ['ole32'])
+    vstEnvironment.Append(LIBS = ['uuid'])
+    vstEnvironment.Append(LIBS = ['winmm'])
 
 #############################################################################
 #
@@ -735,6 +745,11 @@ else:
     elif getPlatform() == 'cygwin' or getPlatform() == 'mingw': 
         portaudioEnvironment.Append(LIBS = ['winmm'])
         portaudioEnvironment.Append(LIBS = ['dsound'])
+    	portaudioEnvironment.Append(LIBS = ['kernel32'])
+    	portaudioEnvironment.Append(LIBS = ['gdi32'])
+    	portaudioEnvironment.Append(LIBS = ['wsock32'])
+    	portaudioEnvironment.Append(LIBS = ['ole32'])
+    	portaudioEnvironment.Append(LIBS = ['uuid'])
     pluginLibraries.append(portaudioEnvironment.SharedLibrary('rtpa',
                                                           Split('''
                                                             InOut/rtpa.c
