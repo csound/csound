@@ -405,90 +405,91 @@ public:
       infinity = 1000000,
       Bad = 100,
       RealBad = 200,
-
-      UnisonPenalty		       = Bad,
-      DirectToFifthPenalty		=RealBad,
-      DirectToOctavePenalty		=RealBad,
-      ParallelFifthPenalty		=infinity,
-      ParallelUnisonPenalty		=infinity,
-      EndOnPerfectPenalty		=infinity,
-      NoLeadingTonePenalty		=infinity,
-      DissonancePenalty		=infinity,
-      OutOfRangePenalty		=RealBad,
-      OutOfModePenalty		=infinity,
-      TwoSkipsPenalty			=1,
-      DirectMotionPenalty		=1,
-      PerfectConsonancePenalty	=2,
-      CompoundPenalty			=1,
-      TenthToOctavePenalty		=8,
-      SkipTo8vePenalty		=8,
-      SkipFromUnisonPenalty		=4,
-      SkipPrecededBySameDirectionPenalty	=1,
-      FifthPrecededBySameDirectionPenalty	=3,
-      SixthPrecededBySameDirectionPenalty	=8,
-      SkipFollowedBySameDirectionPenalty	=3,
-      FifthFollowedBySameDirectionPenalty	=8,
-      SixthFollowedBySameDirectionPenalty	=34,
-      TwoSkipsNotInTriadPenalty	=3,
-      BadMelodyPenalty		=infinity,
-      ExtremeRangePenalty		=5,
-      LydianCadentialTritonePenalty	=13,
-      UpperNeighborPenalty		=1,
-      LowerNeighborPenalty		=1,
-      OverTwelfthPenalty		=infinity,
-      OverOctavePenalty		=Bad,
-      SixthLeapPenalty		=2,
-      OctaveLeapPenalty		=5,
-      BadCadencePenalty		=infinity,
-      DirectPerfectOnDownbeatPenalty	=infinity,
-      RepetitionOnUpbeatPenalty	=Bad,
-      DissonanceNotFillingThirdPenalty	=infinity,
-      UnisonDownbeatPenalty		=3,
-      TwoRepeatedNotesPenalty		=2,
-      ThreeRepeatedNotesPenalty	=4,
-      FourRepeatedNotesPenalty	=7,
-      LeapAtCadencePenalty		=13,
-      NotaCambiataPenalty		=infinity,
-      NotBestCadencePenalty		=8,
-      UnisonOnBeat4Penalty		=3,
-      NotaLigaturePenalty		=21,
-      LesserLigaturePenalty           =8,
-      UnresolvedLigaturePenalty	=infinity,
-      NoTimeForaLigaturePenalty	=infinity,
-      EighthJumpPenalty		=Bad,
-      HalfUntiedPenalty		=13,
-      UnisonUpbeatPenalty		=21,
-      MelodicBoredomPenalty		=1,
-      SkipToDownBeatPenalty		=1,
-      ThreeSkipsPenalty		=3,
-      DownBeatUnisonPenalty		=Bad,
-      VerticalTritonePenalty		=2,
-      MelodicTritonePenalty		=8,
-      AscendingSixthPenalty		=1,
-      RepeatedPitchPenalty		=1,
-      NotContraryToOthersPenalty	=1,
-      NotTriadPenalty			=34,
-      InnerVoicesInDirectToPerfectPenalty	=21,
-      InnerVoicesInDirectToTritonePenalty	=13,
-      SixFiveChordPenalty		=infinity,
-      UnpreparedSixFivePenalty	=Bad,
-      UnresolvedSixFivePenalty	=Bad,
-      AugmentedIntervalPenalty	=infinity,
-      ThirdDoubledPenalty		=5,
-      DoubledLeadingTonePenalty	=infinity,
-      DoubledSixthPenalty		=5,
-      DoubledFifthPenalty		=3,
-      TripledBassPenalty		=3,
-      UpperVoicesTooFarApartPenalty	=1,
-      UnresolvedLeadingTonePenalty	=infinity,
-      AllVoicesSkipPenalty		=8,
-      DirectToTritonePenalty		=Bad,
-      CrossBelowBassPenalty		=infinity,
-
-      /* I added the following during the translation to C */
-      CrossAboveCantusPenalty		=infinity,
-      NoMotionAgainstOctavePenalty    =34,
     };
+
+  static int UnisonPenalty;
+  static int DirectToFifthPenalty;
+  static int DirectToOctavePenalty;
+  static int ParallelFifthPenalty;
+  static int ParallelUnisonPenalty;
+  static int EndOnPerfectPenalty;
+  static int NoLeadingTonePenalty;
+  static int DissonancePenalty;
+  static int OutOfRangePenalty;
+  static int OutOfModePenalty;
+  static int TwoSkipsPenalty;
+  static int DirectMotionPenalty;
+  static int PerfectConsonancePenalty;
+  static int CompoundPenalty;
+  static int TenthToOctavePenalty;
+  static int SkipTo8vePenalty;
+  static int SkipFromUnisonPenalty;
+  static int SkipPrecededBySameDirectionPenalty;
+  static int FifthPrecededBySameDirectionPenalty;
+  static int SixthPrecededBySameDirectionPenalty;
+  static int SkipFollowedBySameDirectionPenalty;
+  static int FifthFollowedBySameDirectionPenalty;
+  static int SixthFollowedBySameDirectionPenalty;
+  static int TwoSkipsNotInTriadPenalty;
+  static int BadMelodyPenalty;
+  static int ExtremeRangePenalty;
+  static int LydianCadentialTritonePenalty;
+  static int LowerNeighborPenalty;
+  static int UpperNeighborPenalty;
+  static int OverTwelfthPenalty;
+  static int OverOctavePenalty;
+  static int SixthLeapPenalty;
+  static int OctaveLeapPenalty;
+  static int BadCadencePenalty;
+  static int DirectPerfectOnDownbeatPenalty;
+  static int RepetitionOnUpbeatPenalty;
+  static int DissonanceNotFillingThirdPenalty;
+  static int UnisonDownbeatPenalty;
+  static int TwoRepeatedNotesPenalty;
+  static int ThreeRepeatedNotesPenalty;
+  static int FourRepeatedNotesPenalty;
+  static int LeapAtCadencePenalty;		
+  static int NotaCambiataPenalty;		
+  static int NotBestCadencePenalty;		
+  static int UnisonOnBeat4Penalty;		
+  static int NotaLigaturePenalty;		
+  static int LesserLigaturePenalty;         
+  static int UnresolvedLigaturePenalty;	
+  static int NoTimeForaLigaturePenalty;	
+  static int EighthJumpPenalty;		
+  static int HalfUntiedPenalty;		
+  static int UnisonUpbeatPenalty;		
+  static int MelodicBoredomPenalty;		
+  static int SkipToDownBeatPenalty;		
+  static int ThreeSkipsPenalty;		
+  static int DownBeatUnisonPenalty;		
+  static int VerticalTritonePenalty;	
+  static int MelodicTritonePenalty;		
+  static int AscendingSixthPenalty;		
+  static int RepeatedPitchPenalty;		
+  static int NotContraryToOthersPenalty;	
+  static int NotTriadPenalty;			
+  static int InnerVoicesInDirectToPerfectPenalty;	
+  static int InnerVoicesInDirectToTritonePenalty;	
+  static int SixFiveChordPenalty;		
+  static int UnpreparedSixFivePenalty;	
+  static int UnresolvedSixFivePenalty;	
+  static int AugmentedIntervalPenalty;	
+  static int ThirdDoubledPenalty;		
+  static int DoubledLeadingTonePenalty;    
+  static int DoubledSixthPenalty;	       
+  static int DoubledFifthPenalty;	       
+  static int TripledBassPenalty;	       
+  static int UpperVoicesTooFarApartPenalty;	
+  static int UnresolvedLeadingTonePenalty;	
+  static int AllVoicesSkipPenalty;		
+  static int DirectToTritonePenalty;	       
+  static int CrossBelowBassPenalty;	       
+
+  /* I added the following during the translation to C */
+  static int CrossAboveCantusPenalty;
+  static int NoMotionAgainstOctavePenalty;
+
   int SpecialSpeciesCheck(int Cn, int Cp, int v, int Other0, int Other1, int Other2, int NumParts,
 			  int Species, int MelInt, int Interval, int ActInt, int LastIntClass, int Pitch, int LastMelInt, int CurLim)
   {
