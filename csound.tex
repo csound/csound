@@ -178,16 +178,10 @@ opcodeName, dspace, thread, outarg, inargs, isub, ksub, asub, dsub
 
 dspace - the size field is used as a flag in saying what types of polymorphism are allowed (look at Engine/entry1.c and Engine/rdorch.c)
 
-	0xffff means that the first argument type determines which opcode is
-actually being used, XXX -> XXX_a or XXX_i or XXX_k
-
-	0xfffe means that the first two argument types determine the actual
-opcode.  So XXX -> XXX_aa, XXX_ak, XXX_ka, and XXX_kk.  Think oscil
-
+	0xffff means that the first argument type determines which opcode is actually being used, XXX -> XXX\_a or XXX\_i or XXX\_k
+	0xfffe means that the first two argument types determine the actual opcode.  So XXX -> XXX\_aa, XXX\_ak, XXX\_ka, and XXX\_kk.  Think oscil
 	0xfffd looks at one argument but does not allow i type (eg peak)
-
-	0xfffc is rather like 0xfffe but deals with divz -- so allows a, k and
-i arguments
+	0xfffc is rather like 0xfffe but deals with divz -- so allows a, k and i arguments
 
 
 \section{Using}
@@ -462,7 +456,7 @@ Csound contains contributions from musicians, scientists, and programmers from a
 \item Greg Sullivan 
 \item Hans Mikelson 
 \item Istvan Varga 
-\item Jean Piché 
+\item Jean Pichï¿½ 
 \item John ffitch 
 \item John Ramsdell 
 \item Marc Resibois 
@@ -475,7 +469,7 @@ Csound contains contributions from musicians, scientists, and programmers from a
 \item Mike Berry 
 \item Paris Smaragdis 
 \item Perry Cook 
-\item Peter Neubäcker 
+\item Peter Neubï¿½cker 
 \item Peter Nix 
 \item Rasmus Ekman 
 \item Richard Dobson 
