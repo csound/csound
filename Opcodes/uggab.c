@@ -647,7 +647,7 @@ int fold(ENVIRON *csound, FOLD *p)
 
 int loopseg_set(ENVIRON *csound, LOOPSEG *p)
 {
-    p->nsegs = p->INOCOUNT-4;
+    p->nsegs = p->INOCOUNT-2;   /* Changed from -4 ref gab mail of 05Feb12 */
     p->phs      = FL(0.0);
     return OK;
 }
