@@ -113,7 +113,7 @@ static int sf2type(format)
     }
 }
 
-int format2sf(int format)
+static int format2sf(int format)
 {
     switch (format) {
     case AE_CHAR:
@@ -142,6 +142,65 @@ int format2sf(int format)
     return SF_FORMAT_PCM_16;
 }
 
+static int sf2format(int type)
+{
+    switch (type) {
+    case SF_FORMAT_PCM_S8:
+      return AE_CHAR;
+#ifdef never
+    case SF_FORMAT_ALAW:
+      return AE_ALAW;
+#endif
+#ifdef ULAW
+    case SF_FORMAT_ULAW:
+      return AE_ULAW;
+#endif
+    case SF_FORMAT_PCM_16:
+      return AE_SHORT;       /* Signed 16 bit data */
+    case SF_FORMAT_PCM_32:
+      return AE_LONG;       /* Signed 32 bit data */
+    case SF_FORMAT_FLOAT:
+      return AE_FLOAT;       /* 32 bit float data */
+    case SF_FORMAT_PCM_U8:
+      return AE_UNCH;       /* Unsigned 8 bit data (WAV and RAW only) */
+    case SF_FORMAT_PCM_24:
+      return AE_24INT;       /* Signed 24 bit data */
+    case SF_FORMAT_DOUBLE:
+      return AE_DOUBLE;       /* 64 bit float data */
+    }
+    return -1;
+}
+
+
+static short sfsampsize(int type)
+{
+    switch (type) {
+    case SF_FORMAT_PCM_S8:
+      return 1;
+#ifdef never
+    case SF_FORMAT_ALAW:
+      return 1;
+#endif
+#ifdef ULAW
+    case SF_FORMAT_ULAW:
+      return 1;
+#endif
+    case SF_FORMAT_PCM_16:
+      return 2;       /* Signed 16 bit data */
+    case SF_FORMAT_PCM_32:
+      return 4;       /* Signed 32 bit data */
+    case SF_FORMAT_FLOAT:
+      return 4;       /* 32 bit float data */
+    case SF_FORMAT_PCM_U8:
+      return 1;       /* Unsigned 8 bit data (WAV and RAW only) */
+    case SF_FORMAT_PCM_24:
+      return 3;       /* Signed 24 bit data */
+    case SF_FORMAT_DOUBLE:
+      return 8;       /* 64 bit float data */
+    }
+}
+
+
 /* The interface requires 3 functions:
    spoutran to transfer nspout items to buffer
    nzerotran to transfer nspout zeros to buffer
@@ -157,32 +216,32 @@ void spoutsf(void)
     int n, spoutrem = nspout;
     MYFLT *maxampp = maxamp;
     unsigned long       *maxps = maxpos;
-    long   *rngp;                       /*RWD Nov 2001 */
+    long   *rngp;                        /*RWD Nov 2001 */
     MYFLT *sp = spout;
     MYFLT       absamp;
 
-nchk:
+ nchk:
     if ((n = spoutrem) > (int)outbufrem) /* if nspout remaining > buf rem, */
-      n = outbufrem;          /*      prepare to send in parts  */
+      n = outbufrem;                     /*      prepare to send in parts  */
     spoutrem -= n;
     outbufrem -= n;
     do {
       if ((absamp = *sp) < FL(0.0))
         absamp = -absamp;
-      if (absamp > *maxampp) {         /*  maxamp this seg  */
+      if (absamp > *maxampp) {           /*  maxamp this seg  */
         *maxampp = absamp;
         *maxps = nframes;
       }
       absamp = *sp;
-      if (absamp >= 0) { /* +ive samp:   */
-        if (absamp > e0dbfs) {          /* out of range?     */
+      if (absamp >= 0) {                 /* +ive samp:   */
+        if (absamp > e0dbfs) {           /* out of range?     */
           /*   report it*/
           rngp = rngcnt + (maxampp - maxamp);
           (*rngp)++;
           rngflg = 1;
         }
       }
-      else {                            /* ditto -ive samp */
+      else {                             /* ditto -ive samp */
         if (absamp < -e0dbfs) {
           rngp = rngcnt + (maxampp - maxamp);
           (*rngp)++;
@@ -202,7 +261,7 @@ nchk:
     } while (--n);
     if (!outbufrem) {
       if (osfopen) {
-        audtran(outbuf,outbufsiz);
+        audtran(outbuf,outbufsiz); /* Flush buffer */
         outbufp = (MYFLT *) outbuf;
       }
       outbufrem = O.outbufsamps;
@@ -217,18 +276,18 @@ void zerosf(int len)
     if (!osfopen)  return;
     smpsrem = nspout * (int)len;        /* calculate total smps to go   */
  nchk:
-    if ((n = smpsrem) > (int)outbufrem)  /* if smps remaining > buf rem, */
-      n = outbufrem;          /*      prepare to send in parts  */
+    if ((n = smpsrem) > (int)outbufrem) /* if smps remaining > buf rem, */
+      n = outbufrem;                    /*      prepare to send in parts  */
     smpsrem -= n;
     outbufrem -= n;
     if (clearcnt < O.outbufsamps) {
-      clearcnt += n;          /* clear buf only till clean */
+      clearcnt += n;                    /* clear buf only till clean */
       do *outbufp++ = FL(0.0);
       while (--n);
     }
     else outbufp += n;
     if (!outbufrem) {
-      audtran(outbuf,outbufsiz);
+      audtran(outbuf,outbufsiz);        /* Flush */
       outbufp = (MYFLT*)outbuf;
       outbufrem = O.outbufsamps;
       if (smpsrem) goto nchk;
@@ -238,7 +297,6 @@ void zerosf(int len)
 void rewriteheader(int ofd, long datasize, int verbose)
 {
     sf_command(outfile, SFC_UPDATE_HEADER_NOW, NULL, 0);
-    return;
 }
 
 static void writesf(void *outbuf, int nbytes)
@@ -247,7 +305,8 @@ static void writesf(void *outbuf, int nbytes)
 {
     int n;
     if (osfd<0) return;
-    if ((n = sf_write_MYFLT(outfile, outbuf, nbytes/sizeof(MYFLT))) < nbytes/sizeof(MYFLT))
+    n = sf_write_MYFLT(outfile, outbuf, nbytes/sizeof(MYFLT));
+    if (n < nbytes/sizeof(MYFLT))
       sndwrterr(n, nbytes);
     if (O.rewrt_hdr)
       rewriteheader(osfd, nbytes +(long)nrecs*outbufsiz, 0);
@@ -300,11 +359,194 @@ HEADATA *readheader(            /* read soundfile hdr, fill HEADATA struct */
     return NULL;
 }
 
-int sndgetset(SOUNDIN *p)       /* core of soundinset                */
+SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
                                 /* called from sndinset, SAsndgetset, & gen01 */
                                 /* Return -1 on failure */
 {
-    return -1;
+    int    n;
+    long    hdrsize = 0, framesinbuf, skipframes;
+    char    *sfname, soundiname[128];
+    int     sinfd;
+    SNDFILE *infile;
+    SF_INFO sfinfo;
+    long    filno;
+    long sndinbufsiz = SNDINBUFSIZ;
+
+    if ((n = p->OUTOCOUNT) && n > 24) { /* if appl,chkchnls */
+      sprintf(errmsg,Str(X_1209,"soundin: illegal no of receiving channels"));
+      goto errtn;
+    }
+    if (*p->ifilno == SSTRCOD) {                 /* if char string name given */
+      if (p->STRARG == NULL) strcpy(soundiname,unquote(currevent->strarg));
+      else strcpy(soundiname,unquote(p->STRARG));    /* unquote it,  else use */
+    }
+    else if ((filno = (long)*p->ifilno) <= strsmax &&
+             strsets != NULL && strsets[filno])
+      strcpy(soundiname, strsets[filno]);
+    else
+      sprintf(soundiname,"soundin.%ld",filno);       /* soundin.filno */
+    sfname = soundiname;
+    if ((sinfd = openin(sfname)) < 0) {              /* open with full dir paths */
+      if (isfullpath(sfname))
+        sprintf(errmsg,Str(X_1206,"soundin cannot open %s"), sfname);
+      else sprintf(errmsg,
+                   Str(X_1205,"soundin cannot find \"%s\" in its search paths"),
+                   sfname);
+      goto errtn;
+    }
+    infile = sf_open_fd(sinfd, SFM_READ, &sfinfo, SF_TRUE); 
+    sfname = retfilnam;                           /* & record fullpath filnam */
+    if ((p->format = (short)*p->iformat) > 0)   /* convert spec'd format code */
+      p->format |= 0x100;
+    p->endfile = 0;
+    p->filetyp = 0;         /* initially non-typed for readheader */
+    curr_func_sr = (MYFLT)sfinfo.samplerate;
+#ifdef never
+      if (hdr->filetyp == TYP_AIFF                  /*    chk the hdr codes  */
+          && hdr->aiffdata != NULL
+          && hdr->aiffdata->loopmode1 != 0          /* looping aiff:         */
+          && (p->analonly || p->OUTOCOUNT)) {       /*     ok for gen01 only */
+        if (O.msglevel & WARNMSG)
+          printf(Str(X_586,"WARNING: aiff looping file, once through only\n"));
+      }
+#endif
+      if (p->analonly) {                          /* anal: if sr param val */
+        if (p->sr != 0 && p->sr != sfinfo.samplerate) {  /*   use it       */
+          if (O.msglevel & WARNMSG)
+            printf(Str(X_162,"WARNING: -s %ld overriding soundfile sr %ld\n"),
+                   p->sr, sfinfo.samplerate);
+          /*           sfinfo.samplerate = p->sr; */
+        }
+      }
+      else if (sfinfo.samplerate != esr &&
+               (O.msglevel & WARNMSG)) {            /* non-anal:  cmp w. esr */
+        if (O.msglevel & WARNMSG)
+          printf(Str(X_62,"WARNING: %s sr = %ld, orch sr = %7.1f\n"),
+                 sfname, sfinfo.samplerate, esr);
+      }
+      if (p->OUTOCOUNT) {                            /* for orch SOUNDIN: */
+        if (sfinfo.channels != p->OUTOCOUNT) {       /*        chk nchanls */
+          if (O.msglevel & WARNMSG) {
+            if (O.msglevel & WARNMSG)
+              printf(errmsg,
+                     Str(X_58, "WARNING: %s nchnls = %d, soundin reading "
+                         "as if nchnls = %d\n"),
+                     sfname, sfinfo.channels , (int) p->OUTOCOUNT);
+          }
+          sfinfo.channels = p->OUTOCOUNT;
+        }
+      }                                            /* else chk sufficient */
+      else if (p->channel != ALLCHNLS && p->channel > sfinfo.channels) {
+        sprintf(errmsg,Str(X_1162,"req chan %d, file %s has only %ld"),
+                p->channel, sfname, sfinfo.channels);
+        die(errmsg);
+      }
+      if (p->format && sf2format(sfinfo.format) != p->format &&
+          (O.msglevel & WARNMSG)) {
+        printf(Str(X_1204,"WARNING: soundin %s superceded by "
+                   "%s header format %s\n"),
+               getstrformat((int)p->format), sfname,
+               getstrformat((int)sf2format(sfinfo.format)));
+      }
+      switch ((p->format = (short)sf2format(sfinfo.format))) {
+        /* & copy header data */
+      case AE_UNCH:
+      case AE_CHAR:
+#ifdef ULAW
+      case AE_ULAW:
+#endif
+      case AE_SHORT:
+      case AE_LONG:
+      case AE_FLOAT:
+      case AE_24INT:  break;            /*RWD 5:2001 */
+      default:        sprintf(errmsg,Str(X_52,"%s format %s not yet supported"),
+                              sfname, getstrformat((int)p->format));
+        goto errcls;
+      }
+      p->sampframsiz = (short)sfsampsize(sfinfo.format) * sfinfo.channels;
+      p->filetyp = sf2type(sfinfo.format);            /* copy type from headata */
+      /* ******      p->aiffdata = hdr->aiffdata; */
+      p->sr = sfinfo.samplerate;
+      p->nchanls = (short)sfinfo.channels;
+      if (p->OUTOCOUNT)
+        p->channel = p->OUTOCOUNT;
+      else if (p->channel == ALLCHNLS)
+        p->channel = 1;
+      if (!p->format) {                     /* no format:                  */
+        if (p->analonly)                    /*  analonly defaults to short */
+          p->format = AE_SHORT;
+        else p->format = O.outformat;       /*  orch defaults to outformat */
+      }
+      if (O.msglevel & WARNMSG)
+        printf(Str(X_55,"WARNING: %s has no soundfile header, "
+                   "reading as %s, %d chnl%s\n"),
+               sfname, getstrformat((int)p->format), (int)p->channel,
+               p->channel == 1 ? "" : "s");
+      p->sampframsiz = getsizformat((int)p->format) * p->channel;
+      p->filetyp = 0;                       /* in_type cannot be AIFF or WAV */
+      p->aiffdata = NULL;
+      p->nchanls = p->channel;
+      printf(Str(X_604,"audio sr = %ld, "), p->sr);
+      if (p->nchanls == 1)
+        printf(Str(X_1006,"monaural\n"));
+      else {
+        printf(Str(X_64,"%s, reading "),
+               p->nchanls == 2 ? Str(X_1246,"stereo") :
+               p->nchanls == 4 ? Str(X_1148,"quad") :
+               p->nchanls == 6 ? Str(X_830,"hex") :
+               p->nchanls == 8 ? Str(X_1088,"oct") :
+               Str(X_1556,"chanels-"), p->nchanls);
+        if (p->channel == ALLCHNLS)
+          printf(Str(X_51,"%s channels\n"),
+                 p->nchanls == 2 ? Str(X_619,"both") : Str(X_591,"all"));
+        else printf(Str(X_655,"channel %d\n"), p->channel);
+      }
+      p->bytrev = NULL;
+#ifdef NeXT
+      if (!p->filetyp)
+        printf(Str(X_1095,"opening NeXT infile %s\n"), sfname);
+#endif
+      printf(Str(X_1093,"opening %s infile %s\n"),
+             p->filetyp == TYP_AIFF ? "AIFF" :
+             p->filetyp == TYP_AIFC ? "AIFF-C" : "WAV",
+             sfname);
+      if (p->sampframsiz <= 0)                       /* must know framsiz */
+        die(Str(X_882,"illegal sampframsiz"));
+      p->audrem = sfinfo.frames * sfinfo.channels;
+      p->framesrem = sfinfo.frames;    /*   find frames rem */
+      skipframes = (long)(*p->iskptim * p->sr);
+      /*RWD 5:2001; will probably need new field to disinguish
+        sample size and word size.
+        How about: dwBlockAlign? */
+      if (p->format == AE_24INT)
+        sndinbufsiz = SNDIN24BUFSIZ;
+      framesinbuf = sndinbufsiz / p->sampframsiz;
+      if (skipframes < framesinbuf) {              /* if sound within 1st buf */
+        int nreq;
+        nreq = sndinbufsiz;
+        n = sreadin(infile, p->inbuf, nreq, p);
+        p->bufend = p->inbuf + n;
+        p->inbufp = p->inbuf + skipframes * p->sampframsiz;
+      }
+      else {                                          /* for greater skiptime: */
+        long nbytes = skipframes * p->sampframsiz;
+        if (lseek(sinfd, (off_t)(nbytes+hdrsize), 0) < 0)  /* else seek to bndry */
+          die(Str(X_1208,"soundin seek error"));
+        if ((n = sreadin(sinfd,p->inbuf,sndinbufsiz,p)) == 0) /* now rd fulbuf */
+          p->endfile = 1;
+        p->inbufp = p->inbuf;
+        p->bufend = p->inbuf + n;
+      }
+      if (p->inbufp >= p->bufend)   /* needed? */
+        p->endfile = 1;
+      if (p->framesrem != -1)
+        p->framesrem -= skipframes;                  /* sampleframes to EOF   */
+      p->datpos = hdrsize;
+      return(sinfd);                                 /* return the active fd  */
+ errcls:
+      close(sinfd);                       /* init error:  close any open file */
+ errtn:
+      return -1;                          /*              return empty handed */
 }
 
 int sreadin(                    /* special handling of sound input       */
@@ -326,7 +568,7 @@ int sreadin(                    /* special handling of sound input       */
       p->audrem -= ntot;
     }
     else ntot = 0;
-    return(ntot);
+    return ntot;
 }
 
 void writeheader(int ofd, char *ofname) 
@@ -335,14 +577,91 @@ void writeheader(int ofd, char *ofname)
 }
 
 int sndinset(SOUNDIN *p)    /* init routine for instr soundin   */
-                             /* shares above sndgetset with SAsndgetset, gen01*/
+                            /* shares above sndgetset with SAsndgetset, gen01*/
 {
-    return 0;
+    SNDFILE *sinfd;
+    int     reinit = 0;
+
+    if (p->fdch.fd==NULL) {                 /* if file already open, close it */
+          /* RWD: it is not safe to assume all compilers init this to 0 */
+          /* (IV: but it is allocated with mcalloc...) */
+      /* reload the file */
+      reinit++; sf_close(p->fdch.fd);
+    }
+    p->channel = ALLCHNLS;                   /* reading all channels      */
+    p->analonly = 0;
+    if ((sinfd = sndgetset(p)) >= 0) {       /* if soundinset successful  */
+      p->fdch.fd = sinfd;                    /*    store & log the fd     */
+      if (!reinit) fdrecord(&p->fdch);       /*    instr will close later */
+      p->sampframsiz /= p->OUTOCOUNT;        /* IV - Nov 16 2002 */
+    }
+    else
+      return initerror(errmsg);              /* else just print the errmsg*/
+    return OK;
 }
 
 int soundin(SOUNDIN *p)
 {
-    return 0;
+    MYFLT       *r[24], scalefac;
+    int         nsmps, ntogo, blksiz, chnsout, i = 0, n;
+
+    if (p->format == AE_FLOAT &&
+        (p->filetyp == TYP_WAV || p->filetyp == TYP_AIFF ||
+         p->filetyp == TYP_AIFC)) {
+      /* NB also INLONGFAC changed def */
+      scalefac = e0dbfs;
+      if (p->do_floatscaling)
+        scalefac *= p->fscalefac;
+    }
+    else scalefac = FL(1.0);
+    
+    if (!p->inbufp) {
+      return perferror(Str(X_1210,"soundin: not initialised"));
+    }
+    chnsout = p->OUTOCOUNT;
+    blksiz = chnsout * ksmps;
+    memcpy(r, p->r, chnsout * sizeof(MYFLT*));
+    ntogo = blksiz;
+    if (p->endfile)
+      goto filend;
+    nsmps = (p->bufend - p->inbufp) / p->sampframsiz;
+    if (nsmps > blksiz)
+      nsmps = blksiz;
+    ntogo -= nsmps;
+ sndin:
+    {
+      MYFLT *inbufp = (MYFLT *)p->inbufp;
+      do {
+        *(r[i]++) = *inbufp++ * scalefac;
+        if (++i >= chnsout) i = 0;
+      } while (--nsmps);
+      p->inbufp = inbufp;
+    }
+    if (p->inbufp >= p->bufend) {
+      if ((n = sreadin(p->fdch.fd, p->inbuf, SNDINBUFSIZ, p)) == 0) {
+        p->endfile = 1;
+        if (ntogo) goto filend;
+        else return OK;
+      }
+      p->inbufp = p->inbuf;
+      p->bufend = p->inbuf + n;
+      if (ntogo > 0) {
+        if ((nsmps = n)  > ntogo)
+          nsmps = ntogo;
+        ntogo -= nsmps;
+        goto sndin;
+      }
+    }
+    return OK;
+
+ filend:
+    if ((nsmps = ntogo) > 0) {            /* At RWD's suggestion  */
+      do {                                /* if past end of file, */
+        *(r[i]++) = FL(0.0);              /*    move in zeros     */
+        if (++i >= chnsout) i = 0;
+      } while (--nsmps);
+    }
+    return OK;
 }
 
 void sfopenin(void)             /* init for continuous soundin */
@@ -581,6 +900,24 @@ void iotranset(void)
 
 void sfclosein(void)
 {
+    if (!isfopen) return;
+#ifdef RTAUDIO
+    if (isfd == DEVAUDIO) {
+      if (!osfopen || osfd != DEVAUDIO)
+        rtclose();     /* close only if not open for output too */
+    }
+    else
+#endif
+#ifdef PIPES
+      if (pin != NULL) {
+        int _pclose(FILE*);
+        _pclose(pin);
+        pin = NULL;
+      }
+      else
+#endif
+        sf_close(infile);
+    isfopen = 0;
     return;
 }
 

@@ -361,7 +361,11 @@ int harmon(HARMON *p)
           maxval = *autop;
           maxp = autop;
 #ifdef BETA
-          printf("new maxval %f at %ld\n", maxval, maxp);
+# ifdef USE_DOUBLE
+          printf("new maxval %lf at %p\n", maxval, maxp);
+# else
+          printf("new maxval %f at %p\n", maxval, maxp);
+# endif
 #endif
         }
         autop++;

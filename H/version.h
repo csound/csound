@@ -22,13 +22,13 @@
 */
 
 # define VERSION (4)
-# define SUBVER  (24)
+# define SUBVER  (50)
 #ifdef BETA
-# define VERSIONSTRING  " v4.24beta"
-# define PVERSION "\p                                               Csound 4.24betsa"
+# define VERSIONSTRING  " v4.50beta"
+# define PVERSION "\p                                               Csound 4.50beta"
 #else
-# define VERSIONSTRING  " v4.24"
-# define PVERSION "\p                                               Csound 4.24"
+# define VERSIONSTRING  " v4.50"
+# define PVERSION "\p                                               Csound 4.50"
 #endif
 
 # define APIVERSION 1  /* should be increased anytime a new version

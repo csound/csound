@@ -350,6 +350,14 @@ int csoundCompile(void *csound, int argc, char **argv)
 # endif
                VERSION, SUBVER, __DATE__);
 #endif
+#ifdef _SNDFILE_
+    {
+      char buffer[128];
+#include <sndfile.h>
+      sf_command (NULL, SFC_GET_LIB_VERSION, buffer, 128);
+      err_printf("%s\n", buffer);
+    }
+#endif
 #if !defined(mills_macintosh) && !defined(SYMANTEC)
     {
       char *getenv(const char*);
