@@ -314,7 +314,7 @@ int vbap_SIXTEEN_moving_control(VBAP_SIXTEEN_MOVING  *p)
         }
       }
       if ((p->fld[abs(p->next_fld)]==NULL))
-        die(Str(X_1700,"Missing fields in vbap8move\n"));
+        die(Str(X_1700,"Missing fields in vbap16move\n"));
       if (*p->field_am >= 0.0 && p->dim == 2) /* point-to-point */
         if (fabs(fabs(*p->fld[p->next_fld] - *p->fld[p->curr_fld]) - 180.0) < 1.0)
           err_printf(Str(X_1694,"Warning: Ambiguous transition 180 degrees.\n"));
