@@ -579,6 +579,8 @@ zipDependencies.append(pluginEnvironment.SharedLibrary('locsig',
     ['Opcodes/locsig.c']))
 zipDependencies.append(pluginEnvironment.SharedLibrary('lowpassr', 
     ['Opcodes/lowpassr.c']))
+zipDependencies.append(pluginEnvironment.SharedLibrary('metro', 
+    ['Opcodes/metro.c']))
 zipDependencies.append(pluginEnvironment.SharedLibrary('midiops2', 
     ['Opcodes/midiops2.c']))
 zipDependencies.append(pluginEnvironment.SharedLibrary('midiops3', 
