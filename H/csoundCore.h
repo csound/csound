@@ -826,7 +826,12 @@ extern ENVIRON cenviron_;
 
 #include "prototyp.h"
 extern void err_printf(char *, ...);
+
+#ifdef MSVC /* VL MSVC fix */
+__declspec(dllexport) extern void csoundPrintf(const char *, ...);
+#else
 extern void csoundPrintf(const char *, ...);
+#endif
 
 #ifdef WIN32
 #define tmpnam mytmpnam

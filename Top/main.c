@@ -73,6 +73,10 @@ extern void csoundReset(ENVIRON*);
 #include <unistd.h>
 #endif
 
+#ifdef MSVC
+#include <windows.h>
+#endif
+
 #ifdef HAVE_SYS_TYPES_H
 # include <sys/types.h>
 #endif
@@ -261,7 +265,11 @@ static void signal_handler(int sig)
 #ifdef RTAUDIO
     rtclose_();
 #endif
-    sleep((unsigned int)1);
+#ifndef MSVC /* VL MSVC fix */
+    sleep(1);
+#else
+    Sleep(1000);
+#endif
     exit(1);
 }
 
@@ -312,7 +320,6 @@ void create_opcodlst(void *csound)
     memcpy(opcodlst+length/sizeof(OENTRY), opcodlst_2, oplength_2);
     length += oplength_2;
     oplstend = opcodlst +  length/sizeof(OENTRY);
-    printf("**** calling LoadExternals\n");
     csoundLoadExternals(csound);
 }
 
@@ -321,6 +328,10 @@ extern  char  *getstrformat(int);
 extern  short  sfsampsize(int);
 extern int frsturnon;
 
+
+#ifdef MSVC
+_declspec(dllexport) /* VL linkage fix 11-04 */
+#endif
 int csoundCompile(void *csound, int argc, char **argv)
 {
     char  *s;

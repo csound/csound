@@ -619,6 +619,8 @@ int sensMidi(void)         /* sense a MIDI event, collect the data & dispatch */
       else printf(Str(X_1262,"system exclusive buffer overflow\n"));
       goto nxtmsg;
     }
+    mep->dat1 = Pm_MessageData1(midiev);   /* else normal data      */
+    mep->dat2 = Pm_MessageData2(midiev);
     /*
      *  Enter the input event into a buffer used by 'midiin'.
      *  This is a horrible hack that emulates what DirectCsound does,
