@@ -115,7 +115,7 @@ opts.Add('prefix',
     '/usr/local')
 opts.Add('usePortMIDI',
     'Use portmidi library rather than internal MIDI (experimental).',
-    '0')
+    '1')
 opts.Add('noDebug',
     'Build without debugging information.',
     '0')
@@ -480,6 +480,7 @@ Engine/swrite.c
 Engine/twarp.c
 InOut/libsnd.c
 InOut/libsnd_u.c
+InOut/midirecv.c
 InOut/winascii.c
 InOut/windin.c
 InOut/window.c
@@ -555,14 +556,12 @@ Top/sndinfo.c
 Top/threads.c
 ''')
 
-if (not (commonEnvironment['usePortMIDI']=='0')) and portmidiFound:
+if (commonEnvironment['usePortMIDI']=='1' and portmidiFound):
     print 'CONFIGURATION DECISION: Building with PortMIDI.'
     libCsoundSources.append('InOut/pmidi.c')
-    libCsoundSources.append('InOut/fmidi.c')
 else:
-    print 'CONFIGURATION DECISION: Building with internal MIDI.'
-    libCsoundSources.append('OOps/midirecv.c')
-    libCsoundSources.append('OOps/mididevice.c')
+    print 'CONFIGURATION DECISION: Building without real time MIDI support.'
+    libCsoundSources.append('InOut/mididevice.c')
 
 if not ((commonEnvironment['useFLTK'] == '1' and fltkFound)):
     print 'CONFIGURATION DECISION: Not building with FLTK for graphs and widgets.'
