@@ -190,7 +190,7 @@ static int FM4Op_loadWaves(FM4OP *p)
       return perferror(Str(X_373,"No table for  FM4Op")); /* Expect sine wave */
     }
     p->w_time[0] = p->w_time[1] = p->w_time[2] = p->w_time[3] = FL(0.0);
-    return 0;
+    return OK;
 }
 
 void FM4Op_setRatio(FM4OP *p, int whichOne, MYFLT ratio)
