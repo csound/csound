@@ -134,7 +134,8 @@ int paBlockingWriteStreamCallback(const void *input,
 /*     for (i = 0, n = pabs->actualBufferSampleCount; i < n; i++) { */
 /*       paOutput[i] = pabs->actualBuffer[i]; */
 /*     } */
-    memcpy(paOutput, pabs->actualBuffer, n*sizeof(float));
+    memcpy(paOutput, pabs->actualBuffer,
+	   pabs->actualBufferSampleCount*sizeof(float));
     return paContinue;
 }
 
