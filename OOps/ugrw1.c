@@ -913,7 +913,7 @@ int itblchkw(TABLEW *p)
       return initerror(errmsg);
     }
     p->iwgm   = (long)*p->iwgmode;
-    return (1);
+    return OK;
 }
 
 /*************************************/
@@ -1243,7 +1243,6 @@ int ftkrchkw(TABLEW *p)
     }
     /* If all is well, return 1 to tell calling function to proceed
      * with a or k rate operations.  */
-    return (1);
     return OK;
 }
 
@@ -2198,11 +2197,10 @@ int zakinit(ZAKINIT *p)
 int zkset(ZKR *p)
 {
     if  (zkstart == NULL) {
-      initerror(Str(X_389,"No zk space: zakinit has not been called yet."));
-      return (0);
+      return initerror(Str(X_389,"No zk space: zakinit has not been called yet."));
     }
     else
-      return (1);
+      return OK;
 }
 
 /*-----------------------------------*/
@@ -2470,7 +2468,7 @@ int zaset(ZAR *p)
       return initerror(Str(X_388,"No za space: zakinit has not been called yet."));
     }
     else
-      return (1);
+      return (OK);
 }
 
 /*-----------------------------------*/

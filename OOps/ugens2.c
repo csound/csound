@@ -747,7 +747,7 @@ int tabl3(TABLE  *p)           /* Like tabli but cubic interpolation */
 int ftkrchk(TABLE *p)
 {
     /* Check the table number is >= 1.  Print error and deactivate if
-     * it is not.  Return 0 to tell calling function not to proceed
+     * it is not.  Return NOTOK to tell calling function not to proceed
      * with a or k rate operations.
      *
      * We must do this to catch the situation where the first call has
@@ -801,7 +801,7 @@ int ftkrchk(TABLE *p)
         return perferror(errmsg);
       }
     }
-    return (1);
+    return OK;
 }
 
 /* Now for the four functions, which are called as a result of being
@@ -809,37 +809,37 @@ int ftkrchk(TABLE *p)
 
 int    ktablekt(TABLE *p)
 {
-    if (ftkrchk(p)) return ktable(p);
+    if (ftkrchk(p)==OK) return ktable(p);
     return OK;
 }
 
 int    tablekt(TABLE *p)
 {
-    if (ftkrchk(p)) return tablefn(p);
+    if (ftkrchk(p)==OK) return tablefn(p);
     return NOTOK;
 }
 
 int    ktablikt(TABLE *p)
 {
-    if (ftkrchk(p)) return ktabli(p);
+    if (ftkrchk(p)==OK) return ktabli(p);
     return NOTOK;
 }
 
 int    tablikt(TABLE *p)
 {
-    if (ftkrchk(p)) return tabli(p);
+    if (ftkrchk(p)==OK) return tabli(p);
     return NOTOK;
 }
 
 int    ktabl3kt(TABLE *p)
 {
-    if (ftkrchk(p)) return ktabl3(p);
+    if (ftkrchk(p)==OK) return ktabl3(p);
     return NOTOK;
 }
 
 int    tabl3kt(TABLE *p)
 {
-    if (ftkrchk(p)) return tabl3(p);
+    if (ftkrchk(p)==OK) return tabl3(p);
     return NOTOK;
 }
 
