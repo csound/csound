@@ -404,6 +404,7 @@ void oloadRESET(void)
       memcpy(&cenviron, &tempGlobals, length);
     }
     O = O_;
+    O.expr_opt = 0; /* disable --expression-opt by default for safety */
     cenviron.oparms_ = &O;
     /* IV - Sep 8 2002: also reset saved globals */
     global_ksmps = ksmps; global_ensmps = ensmps; global_ekr = ekr;

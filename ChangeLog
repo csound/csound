@@ -1,4 +1,9 @@
 2005-01-27	Istvan Varga	<istvan@csounds.com>
+	* Engine/express.c, Engine/oload.c, Engine/rdorch.c, H/csoundCore.h:
+	* Top/argdecode.c:
+	  implemented --expression-opt
+
+2005-01-27	Istvan Varga	<istvan@csounds.com>
 	* Engine/entry1.c:
 	* Engine/entry2.c:
 	* Engine/express.c:
