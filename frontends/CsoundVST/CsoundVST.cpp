@@ -31,14 +31,14 @@ std::list<VstMidiEvent> CsoundVST::midiEventQueue;
 
 CsoundVST::CsoundVST(audioMasterCallback audioMaster) : 
 AudioEffectX(audioMaster, kNumPrograms, 0),
-isVst(true),
-isSynth(true),
-isPython(false),
 csoundVstFltk(0),
-cppSound(&cppSound_)
+isSynth(true),
+cppSound(&cppSound_),
+isVst(true),
+isPython(false)
 {
-	setNumInputs(2);		// stereo in
-	setNumOutputs(2);		// stereo out
+	setNumInputs(kNumInputs);		// stereo in
+	setNumOutputs(kNumOutputs);		// stereo out
 	setUniqueID('cVsT');	// identify
 	canMono();				// makes sense to feed both inputs with the same signal
 	canProcessReplacing();	// supports both accumulating and replacing output
