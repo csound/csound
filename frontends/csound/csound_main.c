@@ -85,8 +85,7 @@ int main(int argc, char **argv)
     void  *csound;
     int   result;
     /* set stdout to non buffering if not outputing to console window */
-    if(!isatty(fileno(stdout)))
-    {
+    if (!isatty(fileno(stdout))) {
         setvbuf(stdout, (char *)NULL, _IONBF, 0);
     }
     /* Real-time priority on Linux by Istvan Varga (Jan 6 2002) */
@@ -108,13 +107,11 @@ int main(int argc, char **argv)
     csound = csoundCreate(NULL);
     /*	One complete performance cycle. */
     result = csoundCompile(csound, argc, argv);
-    if (!result)
-      {
-        while (csoundPerformKsmps(csound) == 0)
-        {
+    if (!result) {
+        while (csoundPerformKsmps(csound) == 0) {
           csoundYield(csound);
         }
-      }
+    }
     /* IV - Jan 28 2005 */
     print_benchmark_info(csound, Str("end of performance"));
     /* delete Csound instance */
