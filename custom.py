@@ -61,6 +61,11 @@ elif sys.platform[:3] == 'win':
     customLIBPATH.append('c:/apcc/tools/fluidsynth-1.0.3-win32')
     customCPPPATH.append('c:/apcc/tools/fluidsynth-1.0.3-win32/include')
     ################################################################
+    # If you want to build the Java wrapper for CsoundVST
+    # you need Java. If it is not in a standard location, 
+    # add it here (you do NOT need to build it first):
+    customCPPPATH.append('c:/tools/jdk1.5.0/include')
+    customCPPPATH.append('c:/tools/jdk1.5.0/include/win32')
     platform = 'mingw'
 else:
     platform = 'unsupported platform'
