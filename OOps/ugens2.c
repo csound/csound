@@ -147,7 +147,7 @@ int itblchk(ENVIRON *csound, TABLE *p)
       return initerror(errmsg);
     }
 
-    p->wrap   = (long)*p->iwrap;
+    p->wrap   = (int)*p->iwrap;
     return OK;
 }
 
@@ -181,7 +181,7 @@ int ptblchk(ENVIRON *csound, TABLE *p)
 
     /* The only other thing to do is write the wrap value into the
      * immediate copy of it in TABLE.  */
-    p->wrap   = (long)*p->iwrap;
+    p->wrap   = (int)*p->iwrap;
     return OK;
 }
 
@@ -816,7 +816,7 @@ int ftkrchk(ENVIRON *csound, TABLE *p)
         /* Multiply the ixoff value by the xbmul denormalisation
          * factor and then check it is between 0 and the table length.  */
 
-      if ((p->offset = p->xbmul * *p->ixoff) < 0.0 ||
+      if ((p->offset = p->xbmul * *p->ixoff) < FL(0.0) ||
           p->offset > p->ftp->flen) {
         sprintf(errmsg, Str("Offset %f < 0 or > tablelength"), p->offset);
         return perferror(errmsg);

@@ -36,7 +36,8 @@ typedef struct {
         long    pfn; /* Previous function table number - used to
                         detect a change in table number when this is
                         supplied by a k rate input parameter. */
-        long    xbmul, wrap;
+        long    xbmul;
+        int     wrap;
         FUNC    *ftp;
 } TABLE;
 
