@@ -1,0 +1,27 @@
+KNOWN AREAS OF INCOMPLETENESS
+-----------------------------
+
+K1.	There is no looping structures for aiff (or wav) files
+
+K2.	Parser
+
+K3.     Portaudio.v19 on OSX
+
+K4.     Use of PortMIDI
+
+K5.     Installer for Windows
+
+K6.     Installer for Linux
+
+K7.     Installer for MacOSX
+
+K8.     ASIO not working in PortAudio (Windows)
+
+
+BUGS NOT FIXED
+--------------
+
+B1.     Loading of deferred files in gen1 suspect
+
+B2.     Many differences between FL code on Csound and CsoundAV
+
