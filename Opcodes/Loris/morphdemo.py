@@ -128,11 +128,11 @@ tgt_times = [0., 0.19, 3., 3.25]
 
 print 'dilating sounds to match', tgt_times, '(%s)' % time.ctime(time.time())
 print 'flute times:', flute_times
-loris.dilate( flut, str(flute_times), str(tgt_times) )
+loris.dilate( flut, flute_times, tgt_times )
 print 'clarinet times:', clar_times
-loris.dilate( clar, str(clar_times), str(tgt_times) )
+loris.dilate( clar, clar_times, tgt_times )
 print 'cello times:', cel_times
-loris.dilate( cel, str(cel_times), str(tgt_times) )
+loris.dilate( cel, cel_times, tgt_times )
 
 #
 #	synthesize and save dilated sources
