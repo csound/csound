@@ -89,10 +89,18 @@ typedef struct {
 
 typedef struct {
         OPDS    h;
-        MYFLT   *out, *freq,*retrig, *argums[VARGMAX];
+        MYFLT   *out, *freq, *retrig, *iphase, *argums[VARGMAX];
+        MYFLT   args[VARGMAX];
         double  phs;
         int     nsegs;
 } LOOPSEG;
+
+typedef struct {
+        OPDS    h;
+        MYFLT   *out, *kphase, *argums[VARGMAX];
+        MYFLT   args[VARGMAX];
+        int     nsegs;
+} LOOPSEGP;
 
 typedef struct {  /* gab f1 */
         OPDS    h;

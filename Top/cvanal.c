@@ -42,7 +42,9 @@
 static void takeFFT(SOUNDIN *inputSound, CVSTRUCT *outputCVH,
                      long Hlenpadded, int indfd, int ofd);
 static void quit(char *msg);
+#ifdef DEBUGGING
 static void PrintBuf(MYFLT *buf, long size, char *msg);
+#endif
 static int CVAlloc(CVSTRUCT**, long, int, MYFLT, int, int, long, int, int);
 int csoundYield(void *csound);
 
@@ -256,6 +258,7 @@ static int CVAlloc(
     return(CVE_OK);
 }
 
+#ifdef DEBUGGING
 #define DBGPTS 8
 static void PrintBuf(MYFLT *buf, long size, char *msg)
 {
@@ -267,5 +270,6 @@ static void PrintBuf(MYFLT *buf, long size, char *msg)
       printf("buf[%d] = %7.2f\n",i,buf[i]);
 /*      printf("\n"); */
 }
+#endif
 
 

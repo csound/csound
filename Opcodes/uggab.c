@@ -647,38 +647,40 @@ int fold(ENVIRON *csound, FOLD *p)
 
 int loopseg_set(ENVIRON *csound, LOOPSEG *p)
 {
-    p->nsegs = p->INOCOUNT-2;   /* Changed from -4 ref gab mail of 05Feb12 */
-    p->phs      = FL(0.0);
+    p->nsegs   = p->INOCOUNT-3;
+    p->args[0] = FL(0.0);
+    p->phs     = *p->iphase;
     return OK;
 }
 
 int loopseg(ENVIRON *csound, LOOPSEG *p)
 {
-    MYFLT **argp = p->argums;
-    MYFLT beg_seg = FL(0.0), end_seg = FL(0.0), durtot = FL(0.0);
-    double   phs, si = *p->freq/ekr;
-    int nsegs = p->nsegs;
+    MYFLT *argp=p->args;
+    MYFLT beg_seg=FL(0.0), end_seg, durtot=FL(0.0);
+    double   phs, si=*p->freq/ekr;
+    int nsegs=p->nsegs+1;
     int j;
-
-/*     *argp[nsegs] = *argp[0]; */
-    if (*p->retrig) {
-      phs    = 0.0;
-      p->phs = 0.0;
-    }
+    if (*p->retrig) 
+      phs=p->phs=*p->iphase;
     else
-      phs    = p->phs;
+      phs=p->phs;
 
-    for ( j=0; j <=nsegs; j+=2)
-      durtot += *argp[j];
+    for (j=1; j<nsegs; j++)
+      argp[j] = *p->argums[j-1];
 
+    argp[nsegs] = *p->argums[0];
+
+    for ( j=0; j <nsegs; j+=2) 
+      durtot += argp[j];
     for ( j=0; j < nsegs; j+=2) {
-      beg_seg += *argp[j] / durtot;
-      end_seg = beg_seg + *argp[(j+2)%nsegs] / durtot;
+      beg_seg += argp[j] / durtot;
+      end_seg = beg_seg + argp[j+2] / durtot;
+
       if (beg_seg <= phs && end_seg > phs) {
         MYFLT diff = end_seg - beg_seg;
         MYFLT fract = ((MYFLT)phs-beg_seg)/diff;
-        MYFLT v1 = *argp[j+1];
-        MYFLT v2 = *argp[j+3];
+        MYFLT v1 = argp[j+1];
+        MYFLT v2 = argp[j+3];
         *p->out = v1 + (v2-v1) * fract;
         break;
       }
@@ -692,38 +694,35 @@ int loopseg(ENVIRON *csound, LOOPSEG *p)
     return OK;
 }
 
-
 int lpshold(ENVIRON *csound, LOOPSEG *p)
 {
-    MYFLT **argp = p->argums;
-    MYFLT beg_seg = FL(0.0), end_seg = FL(0.0), durtot = FL(0.0);
-    double   phs, si = *p->freq/ekr;
-    int nsegs = p->nsegs;
+    MYFLT *argp=p->args;
+    MYFLT beg_seg=0, end_seg, durtot=FL(0.0);
+    double   phs, si=*p->freq/ekr;
+    int nsegs=p->nsegs+1;
     int j;
 
-/*     *argp[nsegs] = *argp[0]; */
-    if (*p->retrig) {
-      phs    = 0.0;
-      p->phs = 0.0;
-    }
+    if (*p->retrig) 
+      phs=p->phs=*p->iphase;
     else
-      phs    = p->phs;
-
-    for ( j=0; j <nsegs; j+=2)  /* gab 25/9/2002 fix */
-      durtot += *argp[j];
+      phs=p->phs;
+    
+    for (j=1; j<nsegs; j++)
+      argp[j] = *p->argums[j-1];
+	
+    argp[nsegs] = *p->argums[0];
+	
+    for ( j=0; j <nsegs; j+=2) 
+      durtot += argp[j];
 
     for ( j=0; j < nsegs; j+=2) {
-      if (j==0) beg_seg = 0;
-      else      beg_seg += *argp[j] / durtot;
-      end_seg = beg_seg + *argp[j+2] / durtot;
+      beg_seg += argp[j] / durtot;
+      end_seg = beg_seg + argp[j+2] / durtot;
       if (beg_seg <= phs && end_seg > phs) {
-        /* MYFLT diff = end_seg - beg_seg; */
-        /* MYFLT fract = (phs-beg_seg)/diff;) */
-        /* MYFLT v1 = *argp[j+1]; */
-        /* MYFLT v2 = *argp[j+3]; */
-        /* *p->out = v1 + (v2-v1) * fract; */
-        *p->out = *argp[j+1];
-        break;
+        if (beg_seg <= phs && end_seg > phs) {
+          *p->out = argp[j+1];
+          break;
+        }
       }
     }
     phs    += si;
@@ -732,6 +731,88 @@ int lpshold(ENVIRON *csound, LOOPSEG *p)
     while (phs < 0.0 )
       phs += 1.0;
     p->phs = phs;
+    return OK;
+}
+
+
+int loopsegp_set(ENVIRON *csound, LOOPSEGP *p)
+{
+    p->nsegs = p->INOCOUNT-1;
+    p->args[0]=FL(0.0);
+    return OK;
+}
+
+int loopsegp(ENVIRON *csound, LOOPSEGP *p)
+{
+    MYFLT *argp=p->args;
+    MYFLT beg_seg=0, end_seg, durtot=FL(0.0);
+    MYFLT phs;
+    int nsegs=p->nsegs+1;
+    int j;
+
+    phs = *p->kphase;
+
+    while (phs >= 1.0)
+      phs -= 1.0;
+    while (phs < 0.0 )
+      phs += 1.0;
+
+    for (j=1; j<nsegs; j++)
+      argp[j] = *p->argums[j-1];
+	
+    argp[nsegs] = *p->argums[0];
+
+    for ( j=0; j <nsegs; j+=2) 
+      durtot += argp[j];
+    for ( j=0; j < nsegs; j+=2) {
+      beg_seg += argp[j] / durtot;
+      end_seg = beg_seg + argp[j+2] / durtot;
+
+      if (beg_seg <= phs && end_seg > phs) {
+        MYFLT diff = end_seg - beg_seg;
+        MYFLT fract = ((MYFLT)phs-beg_seg)/diff;
+        MYFLT v1 = argp[j+1];
+        MYFLT v2 = argp[j+3];
+        *p->out = v1 + (v2-v1) * fract;
+        break;
+      }
+    }
+    return OK;
+}
+
+int lpsholdp(ENVIRON *csound, LOOPSEGP *p)
+{
+    MYFLT *argp=p->args;
+    MYFLT beg_seg=FL(0.0), end_seg, durtot=FL(0.0);
+    MYFLT phs;
+    int nsegs=p->nsegs+1;
+    int j;
+
+    phs = *p->kphase;
+
+    while (phs >= 1.0)
+      phs -= 1.0;
+    while (phs < 0.0 )
+      phs += 1.0;
+
+    for (j=1; j<nsegs; j++)
+      argp[j] = *p->argums[j-1];
+	
+    argp[nsegs] = *p->argums[0];
+
+    for ( j=0; j <nsegs; j+=2) 
+      durtot += argp[j];
+    for ( j=0; j < nsegs; j+=2) {
+      beg_seg += argp[j] / durtot;
+      end_seg = beg_seg + argp[j+2] / durtot;
+
+      if (beg_seg <= phs && end_seg > phs) {
+        if (beg_seg <= phs && end_seg > phs) {
+          *p->out = argp[j+1];
+          break;
+        }
+      }
+    }
     return OK;
 }
 
@@ -1446,8 +1527,10 @@ static OENTRY localops[] = {
 { "jitter2",  S(JITTER2), 3, "k", "kkkkkkk", (SUBR)jitter2_set, (SUBR)jitter2, NULL    },
 { "jitter",   S(JITTER),  3, "k", "kkk",    (SUBR)jitter_set, (SUBR)jitter, NULL },
 { "jspline",  S(JITTERS), 7, "s", "xkk",    (SUBR)jitters_set, (SUBR)jitters, (SUBR)jittersa },
-{ "loopseg",  S(LOOPSEG), 3, "k", "kkz", (SUBR)loopseg_set, (SUBR)loopseg, NULL },
-{ "lpshold",  S(LOOPSEG), 3, "k", "kkz", (SUBR)loopseg_set, (SUBR)lpshold, NULL },
+{ "loopseg",  S(LOOPSEG), 3, "k", "kkiz", (SUBR)loopseg_set, (SUBR)loopseg, NULL },
+{ "lpshold",  S(LOOPSEG), 3, "k", "kkiz", (SUBR)loopseg_set, (SUBR)lpshold, NULL },
+{ "loopsegp", S(LOOPSEGP), 3,"k", "kz",   (SUBR)loopsegp_set,(SUBR)loopsegp, NULL},
+{ "lpsholdp", S(LOOPSEGP), 3,"k", "kz",   (SUBR)loopsegp_set,(SUBR)lpsholdp, NULL},
 { "cuserrnd", 0xffff                                                            },
 { "duserrnd", 0xffff                                                            },
 { "random",   0xffff                                                            },
