@@ -470,6 +470,11 @@ namespace csound
 								double denominator = getMetaData(1);
 								double clocksPerBeat = getMetaData(2);
 								double thirtySecondNotesPerMidiQuarterNote = getMetaData(3);
+								std::cout << "numerator:" << numerator << std::endl;
+								std::cout << "denominator:" << denominator << std::endl;
+								std::cout << "clocksPerBeat:" << clocksPerBeat << std::endl;
+								std::cout << "thirtySecondNotesPerMidiQuarterNote:" << thirtySecondNotesPerMidiQuarterNote << std::endl;
+								
 							}
 							break;
 						case MidiFile::META_SEQUENCER_SPECIFIC:
