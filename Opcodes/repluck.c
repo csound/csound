@@ -59,7 +59,7 @@ int wgpsetin(WGPLUCK2 *p)
       npts += (int)(esr / *p->icps);
       scale++;
     }
-    rail_len = npts/2 + 1;      /* but only need half length */
+    rail_len = npts/2/* + 1*/;      /* but only need half length */
     if (plk >= FL(1.0) || plk <= FL(0.0)) {
 /*       printf("Pluck point %f invalid, using 0.5\n", plk); */
       plk = (p->ain ? FL(0.0) : FL(0.5));
