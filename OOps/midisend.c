@@ -252,7 +252,7 @@ void openMIDIout(void)
     if (j>=DeviceNum) j = 0;
     midiOutGetDevCaps(j, &moc, sizeof(moc));
     err_printf("MIDI OUT %u: %s\n", j, moc.szPname);
-    if (j=midiOutOpen(&MIDIoutport, j, (DWORD)NULL, 0, 0)) {
+    if ((j=midiOutOpen(&MIDIoutport, j, (DWORD)NULL, 0, 0))) {
       err_printf(Str(X_271,"Failed to open MIDI OUT due to %s\n"),
                  j==MMSYSERR_BADDEVICEID ? Str(X_470,"Specified device is out of range") :
                  j==MMSYSERR_ALLOCATED   ? Str(X_190,"Already allocated") :

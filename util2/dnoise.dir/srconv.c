@@ -145,17 +145,17 @@ static void dieu(char *s)
 int main(int argc, char **argv)
 {
     MYFLT
-      *input,    /* pointer to start of input buffer */
-      *output,   /* pointer to start of output buffer */
-      *nextIn,   /* pointer to next empty word in input */
-      *nextOut,  /* pointer to next empty word in output */
-      *window,   /* pointer to center of analysis window */
-      *wj,       /* pointer to window */
-      *wj1,      /* pointer to window */
-      *fxval,    /* pointer to start of time-array for time-vary function */
-      *fyval,    /* pointer to start of P-scale-array for time-vary func */
-      *i0,       /* pointer */
-      *i1;       /* pointer */
+      *input,     /* pointer to start of input buffer */
+      *output,    /* pointer to start of output buffer */
+      *nextIn,    /* pointer to next empty word in input */
+      *nextOut,   /* pointer to next empty word in output */
+      *window,    /* pointer to center of analysis window */
+      *wj,        /* pointer to window */
+      *wj1,       /* pointer to window */
+      *fxval = 0, /* pointer to start of time-array for time-vary function */
+      *fyval = 0, /* pointer to start of P-scale-array for time-vary func */
+      *i0,        /* pointer */
+      *i1;        /* pointer */
 
     int
       M = 2401,   /* length of window impulse response */
@@ -182,13 +182,13 @@ int main(int argc, char **argv)
       of,                       /* fractional o */
       fL = FL(120.0),           /* float L */
       iw,                       /* interpolated window */
-      tvx0,                     /* current x value of time-var function */
-      tvx1,                     /* next x value of time-var function */
+      tvx0 = 0,                 /* current x value of time-var function */
+      tvx1 = 0,                 /* next x value of time-var function */
       tvdx,                     /* tvx1 - tvx0 */
-      tvy0,                     /* current y value of time-var function */
-      tvy1,                     /* next y value of time-var function */
+      tvy0 = 0,                 /* current y value of time-var function */
+      tvy1 = 0,                 /* next y value of time-var function */
       tvdy,                     /* tvy1 - tvy0 */
-      tvslope,                  /* tvdy / tvdx */
+      tvslope = 0,              /* tvdy / tvdx */
       time,                     /* n / Rin */
       invRin,                   /* 1. / Rin */
       P = FL(0.0),              /* Rin / Rout */
@@ -196,16 +196,16 @@ int main(int argc, char **argv)
       Rout = FL(0.0);           /* output sample rate */
 
     int
-      i,k,                    /* index variables */
+      i,k,                      /* index variables */
       nread,                    /* number of bytes read */
       tvflg = 0,                /* flag for time-varying time-scaling */
-      tvnxt,                    /* counter for stepping thru time-var func */
+      tvnxt = 0,                /* counter for stepping thru time-var func */
       tvlen,                    /* length of time-varying function */
       Chans = 0,                /* number of channels */
       chan,                     /* current channel */
       Q = 0;                    /* quality factor */
     SF_INFO     sfinfo;
-    FILE    *tvfp;    /* time-vary function file */
+    FILE    *tvfp;              /* time-vary function file */
 
     SOUNDIN     *p;
     int		channel = ALLCHNLS;
@@ -396,7 +396,11 @@ int main(int argc, char **argv)
       i0 = fxval;
       i1 = fyval;
       for (i = 0; i < tvlen; i++, i0++, i1++){
+#ifdef USE_DOUBLE
+        if ((fscanf(tvfp,"%lf %lf",i0,i1)) == EOF)
+#else
         if ((fscanf(tvfp,"%f %f",i0,i1)) == EOF)
+#endif
           die("srconv: too few x-y pairs in time-vary function file\n");
         if (*i1 > P)
           P = *i1;
@@ -711,11 +715,6 @@ int main(int argc, char **argv)
 
 outtyp:
     dieu(Str(X_1113,"output soundfile cannot be both AIFF and WAV"));
-    exit(1);
-outform:
-    sprintf(errmsg,Str(X_1198,"sound output format cannot be both -%c and -%c"),
-            outformch, c);
-    usage(1);
     exit(1);
 }
 

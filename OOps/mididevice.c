@@ -66,6 +66,10 @@ static int  rtfd = 0;        /* init these to stdin */
 #    include <sys/types.h>
 #endif
 
+#if HAVE_CTYPE_H
+#include <ctype.h>
+#endif
+
 #ifdef SGI
 /*******************************************/
 /* Irix media library MIDI implementation  */

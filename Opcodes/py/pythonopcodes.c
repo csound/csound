@@ -134,7 +134,7 @@ int pycalln_krate(PYCALLN *p)
 {
   int i;
   char command[1024];
-  PyObject *result, *module, *namespace;
+  PyObject *result;
 
   if (*p->function != SSTRCOD)
     return NOTOK;
@@ -170,7 +170,7 @@ int pylcalln_krate(PYCALLN *p)
 {
   int i;
   char command[1024];
-  PyObject *result, *module, *namespace;
+  PyObject *result;
 
   if (*p->function != SSTRCOD)
     return NOTOK;
@@ -197,7 +197,7 @@ int pylcallni_irate(PYCALLN *p)
 {
   int i;
   char command[1024];
-  PyObject *result, *module, *namespace;
+  PyObject *result;
 
   if (*p->function != SSTRCOD)
     return NOTOK;
