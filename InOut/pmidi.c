@@ -95,7 +95,7 @@ void OpenMIDIDevice(void)
                  ((long (*)(void *)) Pt_Time), 
                  NULL);
     
-    if(retval != 0) {
+    if (retval != 0) {
     	printf("PortMIDI Error: %s\n", Pm_GetErrorText(retval));
     }
     
@@ -121,21 +121,23 @@ long GetMIDIData(void)
       return n;
     }
     else {
-      int retval;
-      if ((retval=Pm_Poll(midistream))) {
-        if (retval<0) printf(Str(X_1185,"sensMIDI: retval errno %d\n"), errno);
-        if (retval == 0) {
-          long n = Pm_Read(midistream, bufp, MBUFSIZ);
-          bufp = mbuf;
-          endatp = mbuf + n;
-          return n;
-        }
-        else {
-          printf(Str(X_1185,"sensMIDI: retval errno %d\n"),errno);
-        }
+      int retval = Pm_Poll(midistream);
+      if (retval<0) {
+        printf(Str(X_1185,"sensMIDI: retval errno %d\n"),errno);
       }
-      return 0;
+      else if (retval) {           /* Pm_Poll return TRUE, FALSE of error!! */
+        long n = Pm_Read(midistream, bufp, MBUFSIZ);
+        if (n<0) {
+          printf("**** read error %d\n", n);
+          return 0;
+        }
+        printf("**** %ld events read\n", n);
+        bufp = mbuf;
+        endatp = mbuf + n;
+        return n;
+      }
     }
+    return 0;
 }
 
 void MidiOpen(void)   /* open a Midi event stream for reading, alloc bufs */
@@ -159,7 +161,6 @@ void MidiOpen(void)   /* open a Midi event stream for reading, alloc bufs */
       OpenMIDIDevice();
     }
 }
-
 
 static void AllNotesOff(MCHNBLK *);
 
@@ -655,7 +656,7 @@ int sensMidi(void)         /* sense a MIDI event, collect the data & dispatch */
 
 void MidiClose(void)
 {
-    if(csoundIsExternalMidiEnabled(&cenviron)) {
+    if (csoundIsExternalMidiEnabled(&cenviron)) {
       csoundExternalMidiDeviceClose(&cenviron);
     }
     else {
