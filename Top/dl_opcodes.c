@@ -240,6 +240,7 @@ int csoundLoadExternals(void)
     char *libname;
 #ifdef HAVE_LIBDL
     void *handle;
+    const char *dle;
 #elif WIN32
     long handle;
 #else
@@ -310,7 +311,8 @@ int csoundLoadExternals(void)
         opcodlst_n = (*init)(&cglob);
         olength = oplstend-opcodlst;
         resetter = dlsym(handle, "RESET");
-        if (dlerror()==NULL) {
+        dle = dlerror();
+        if (dle==NULL) {
           RESETTER *x = (RESETTER*)mmalloc(sizeof(RESETTER));
           x->fn = resetter;
           x->next = reset_list;

@@ -589,12 +589,12 @@ typedef struct GLOBALS_
   /* Internal functions that are needed */
   void (*auxalloc)(long nbytes, AUXCH *auxchp);
   char *(*getstring)(int, char*);
+  void (*die)(char *);
   /* End of internals */
   int           ksmps, nchnls;
   int           global_ksmps;
   MYFLT         global_ensmps, global_ekr, global_onedkr;
-  MYFLT         global_hfkprd, global_kicvt;
-  long          global_kcounter;
+  MYFLT         global_hfkprd, global_kicvt;  long          global_kcounter;
   MYFLT         esr, ekr;
   char          *orchname, *scorename, *xfilename;
   /* oload.h */
