@@ -1,0 +1,132 @@
+
+Opcode Name		csound5			CsoundAV
+------------------------------------------------------------
+adsynt2			gab.c			newopcodes.c
+bminfo
+bmopen
+bmoscil
+bmoscili
+bmscan
+bmscani
+bmtable
+bmtablei
+call
+calld
+callm
+callmd
+changed			gab.c			newopcodes.c
+dashow
+exitnow			gab.c			newopcodes.c
+fof3
+foscili2
+ftlen2
+img2GLtex
+imgConvolve
+imgCreate
+imgGain
+imgPoint
+k			gab.c			newopcodes.c
+loscil2
+lposc
+lposcila
+lposcilsa
+lposcilsa2
+lposcint
+lposcinta
+lposcintsa
+lposcintsa2
+lpres
+lpresx
+mandel			gab.c			newopcodes.c
+max			gab.c			newopcodes.c
+metro			gab.c			newopcodes.c
+nlalp			gab.c			newopcodes.c
+oscfeed
+parmca
+parmck
+parmta
+parmtk
+physic1
+physic2
+posc
+rbatonPercPad
+rbatonPot
+rbatonXYZ
+resonxk			gab.c			newopcodes.c
+rgb2hsvl
+rtrnca
+rtrnck
+rtrnta
+rtrntk
+schedk
+seqtime2
+set
+sliderKawai
+spec2tab
+specinfo
+splitrig		gab.c			newopcodes.c
+system
+tab			gab.c			newopcodes.c
+tabk2t
+tabplay			gab.c			newopcodes.c
+tabrec			gab.c			newopcodes.c
+tabw			gab.c			newopcodes.c
+tb0			gab.c			newopcodes.c
+tb1			gab.c			newopcodes.c
+tb10			gab.c			newopcodes.c
+tb11			gab.c			newopcodes.c
+tb12			gab.c			newopcodes.c
+tb13			gab.c			newopcodes.c
+tb14			gab.c			newopcodes.c
+tb15			gab.c			newopcodes.c
+tb2			gab.c			newopcodes.c
+tb3			gab.c			newopcodes.c
+tb4			gab.c			newopcodes.c
+tb5			gab.c			newopcodes.c
+tb6			gab.c			newopcodes.c
+tb7			gab.c			newopcodes.c
+tb8			gab.c			newopcodes.c
+tb9			gab.c			newopcodes.c
+timedseq		gab.c			newopcodes.c
+turnoffk
+vadd			vectorial.c		vectorial.c
+vaddv			vectorial.c		vectorial.c
+vcella			vectorial.c		vectorial.c
+vcopy			vectorial.c		vectorial.c
+vdelayk			vectorial.c		vectorial.c
+vdivv			vectorial.c		vectorial.c
+vecdelay		vectorial.c		vectorial.c
+vexp			vectorial.c		vectorial.c
+vexpseg			vectorial.c		vectorial.c
+vexpv			vectorial.c		vectorial.c
+vlimit			vectorial.c		vectorial.c
+vlinseg			vectorial.c		vectorial.c
+vlpres
+vmap			vectorial.c		vectorial.c
+vmirror			vectorial.c		vectorial.c
+vmult			vectorial.c		vectorial.c
+vmultv			vectorial.c		vectorial.c
+vphaseseg
+vport			vectorial.c		vectorial.c
+vpow			vectorial.c		vectorial.c
+vpowv			vectorial.c		vectorial.c
+vrandh			vectorial.c		vectorial.c
+vrandi			vectorial.c		vectorial.c
+vsubv			vectorial.c		vectorial.c
+vtaba			vectorial.c		newopcodes.c
+vtabi			vectorial.c		newopcodes.c
+vtabk			vectorial.c		newopcodes.c
+vtablea			vectorial.c		newopcodes.c
+vtablei			vectorial.c		newopcodes.c
+vtablek			vectorial.c		newopcodes.c
+vtablewa		vectorial.c		newopcodes.c
+vtablewi		vectorial.c		newopcodes.c
+vtablewk		vectorial.c		newopcodes.c
+vtabwa			vectorial.c		newopcodes.c
+vtabwi			vectorial.c		newopcodes.c
+vtabwk			vectorial.c		newopcodes.c
+vwrap			vectorial.c		vectorial.c
+xxx
+zr			gab.c			newopcodes.c
+
+
