@@ -348,6 +348,7 @@ if (commonEnvironment['useFLTK'] and fltkFound):
     vstEnvironment.Append(LINKFLAGS = "--subsystem:windows")
     guiProgramEnvironment.Append(LINKFLAGS = "--subsystem:windows")
     if getPlatform() == 'linux' or getPlatform() == 'cygwin':
+            csoundProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
             ustubProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
             vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
             guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
