@@ -35,7 +35,7 @@ int write_aiffpeak(int fd,int verbose);
 #include <unistd.h>
 #endif
 
-#if !defined(mac_classic) && !defined(SYMANTEC) && !defined(LINUX) && !defined(__AMCH__)
+#if !defined(mac_classic) && !defined(SYMANTEC) && !defined(LINUX) && !defined(__MACH__)
 extern int write(int, const void*, unsigned int);
 extern off_t lseek(int, off_t, int);
 #endif
