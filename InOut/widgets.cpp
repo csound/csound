@@ -78,10 +78,10 @@
 using namespace std ;
 
 extern "C" {
-    #undef __cplusplus
+    //#undef __cplusplus
     #include "cs.h"
     #include "oload.h"
-    #define __cplusplus
+    //#define __cplusplus
 //    extern EVTBLK *currevent;    IV - Aug 23 2002
     extern char *unquote(char *name);
 #ifdef LINUX
@@ -147,8 +147,7 @@ FLkeyboard_init(void)
 }
 
 #if defined(__cplusplus)
-extern "C"
-{
+extern "C" {
 #endif /* defined(__cplusplus) */
 
 #if !defined(HAVE_ITOA)
@@ -258,7 +257,7 @@ void ButtonSched(MYFLT  *args[], int numargs)
 }
 
 #if defined(__cplusplus)
-}
+};
 #endif /* defined(__cplusplus) */
 
 // #else        IV - Sep 8 2002
