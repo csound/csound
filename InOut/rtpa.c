@@ -313,5 +313,6 @@ void rtclose_(void)             /* close the I/O device entirely  */
       Pa_AbortStream(pa_out);
     pa_in = pa_out = 0;
 #endif
+    sleep(1);
 }
 
