@@ -1,10 +1,10 @@
 2004-10-24  Michael Gogins <gogins@pipeline.com>
 
-	* Fixes to rtpa.c and pa_callback.c for duplex audio, and libsnd_u.c forsoundfile input,
-    by Victor Lazzarini.
-	
-    * CsoundVST changes directory to that of loaded files.
-    
+	* Fixes to rtpa.c and pa_callback.c for duplex audio, and
+	libsnd_u.c forsoundfile input, by Victor Lazzarini.
+
+	* CsoundVST changes directory to that of loaded files.
+
 2004-11-07  John ffitch  <jpff@codemist.co.uk>
 
 	* H/ftgen.h (GENMAX): set to 43 (really part is fgens below)
@@ -29,13 +29,13 @@
 2004-10-24  Michael Gogins <gogins@pipeline.com>
 
 	* Renamed libsndfile.dll.0.0.19.
-    
-    * Updated documentation to provide improved directions for extending
-	Csound with builtin or plugin opcodes.   
-    
-    * Fixed badly formatted tables in documentation.
-    
-    * Improved API documentation with simple examples.
+
+	* Updated documentation to provide improved directions for extending
+	Csound with builtin or plugin opcodes.
+
+	* Fixed badly formatted tables in documentation.
+
+	* Improved API documentation with simple examples.
 
 2004-10-26  John ffitch  <jpff@codemist.co.uk>
 

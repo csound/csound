@@ -72,7 +72,7 @@ void sort(void)
     if ((bp = frstbp) == NULL)
       return;
     do  {
-      switch(bp->text[0]) {
+      switch (bp->text[0]) {
       case 'i':
         if (bp->insno < 0)
           bp->preced = 'a';

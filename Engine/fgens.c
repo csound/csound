@@ -32,8 +32,6 @@
 #include "ftgen.h"
 #include "fft.h"
 
-#define GENMAX  43
-
 extern OPARMS  O;
 /* New function in FILOPEN.C to look around for (text) files */
 extern FILE *fopenin(char* filnam);
@@ -827,7 +825,7 @@ static void gen20(void)
     if (nargs > 2)
       beta = (double)e->p[7];
 
-    switch( (int)e->p[5])  {
+    switch ((int)e->p[5])  {
     case 1:                     /* Hamming */
         cf[0] = FL(0.54);
         cf[1] = FL(0.46);
@@ -2526,7 +2524,7 @@ static int pvx_loadfile_mem(const char *fname,PVSTABLEDAT *p, MEMFIL **mfp)
     p->chans    = fmt.nChannels;
     p->frames = (unsigned) totalframes;
     wtype = (pv_wtype) pvdata.wWindowType;
-    switch (wtype){
+    switch (wtype) {
     case PVOC_DEFAULT:
     case PVOC_HAMMING:
       p->wintype = PVS_WIN_HAMMING;
