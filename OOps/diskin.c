@@ -87,8 +87,10 @@ static int sreadinew(           /* special handling of sound input       */
         }
         else ntot = 0;
       }
+#ifndef _SNDFILE_
       if (ntot && p->bytrev != NULL)        /* for post-header of both */
         p->bytrev(inbuf, ntot);             /*   bytrev 2 or 4 as reqd */
+#endif
     }
     /*RWD 3:2000 expanded format fixups ; more efficient here than in
       soundinew() ?  (well, saves a LOT of typing!) */
@@ -146,7 +148,9 @@ static int sngetset(SOUNDINEW *p, char *sfname)
 
     /******* construct the SOUNDIN struct to use old readheader ***********/
     forReadHeader.filetyp = p->filetyp;
+#ifndef _SNDFILE_
     forReadHeader.bytrev = p->bytrev;
+#endif
     forReadHeader.audrem = p->audrem;
 
     /****** if headerblk returned ******/

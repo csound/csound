@@ -107,19 +107,19 @@ typedef struct {
         short   analonly, endfile;
         long    sr, audrem, framesrem, getframes;    /* bytes, frames, frames */
         AIFFDAT *aiffdata;
-        void    (*bytrev)(char*,int);
         FDCH    fdch;
-        char    *inbufp, *bufend;
-        char    inbuf[SNDINBUFSIZ+8];
+#ifdef _SNDFILE_
+        MYFLT   *inbufp, *bufend;
+        MYFLT   inbuf[SNDINBUFSIZ];
+#else
+        void    (*bytrev)(char*,int);
+        void    *inbufp, *bufend;
+        void    inbuf[SNDINBUFSIZ+8];
+#endif
                 /*RWD 3:2000*/
         float   fscalefac;
         long    do_floatscaling;
         long    datpos;
-                                /* work variables for soundin2 */
-/*        double  phase_gab; */
-/*         double  fl_buf; */
-/*         int     base_sample_gab; */
-/*         int     initflag_gab; */
 } SOUNDIN;
 
 
@@ -146,7 +146,13 @@ typedef struct {
         SNDCOM  c;
 } SNDOUTS;
 
+#ifdef _SNDFILE_
+#include <sndfile.h>
+int sreadin(SNDFILE*, MYFLT *, int, SOUNDIN *);
+#else
 int sreadin(int, char *, int, SOUNDIN *);
+#endif
+
 
 #ifdef SFSUN41
 #include <multimedia/audio_hdr.h>
