@@ -88,6 +88,8 @@ extern "C" {
     extern int cleanup();
     extern long srngcnt[], orngcnt[];   // from musmon.c
 #endif
+	extern ENVIRON cenviron;
+	extern int csoundYield(void *);
 }
 #undef exit
 
@@ -1397,7 +1399,7 @@ void SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
         o->do_callback(o, opcode);
       }
     }
-    Fl::check();
+    csoundYield(0);
 }
 
 
