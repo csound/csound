@@ -77,7 +77,7 @@ static int scsnux_initw(PSCSNUX *p)
 {
     int i;
     long len = p->len;
-    FUNC *fi = ftfind(p->i_init);
+    FUNC *fi = ftfind(p->h.insdshead->csound, p->i_init);
     if (fi == NULL) {
       return initerror(Str(X_1501, "scanux: Could not find ifnnit ftable"));
     }
@@ -101,7 +101,7 @@ static int scsnux_hammer(PSCSNUX *p, MYFLT pos, MYFLT sgn)
 
     /* Get table */
     if (tab<FL(0.0)) tab = -tab;   /* JPff fix here */
-    if ((fi = ftfind(&tab)) == NULL) {
+    if ((fi = ftfind(p->h.insdshead->csound, &tab)) == NULL) {
       return initerror(Str(X_1502, "scanux: Could not find ifninit ftable"));
     }
 
@@ -206,14 +206,14 @@ int scsnux_init(PSCSNUX *p)
     int i;
 
     /* Mass */
-    if ((f = ftfind(p->i_m)) == NULL) {
+    if ((f = ftfind(p->h.insdshead->csound, p->i_m)) == NULL) {
       return initerror(Str(X_1503, "scanux: Could not find ifnmass table"));
     }
     len = p->len = f->flen;
     p->m = f->ftable;
 
     /* Centering */
-    if ((f = ftfind(p->i_c)) == NULL) {
+    if ((f = ftfind(p->h.insdshead->csound, p->i_c)) == NULL) {
       return initerror(Str(X_1504, "scanux: Could not find ifncentr table"));
     }
     if (f->flen != len)
@@ -222,7 +222,7 @@ int scsnux_init(PSCSNUX *p)
     p->c = f->ftable;
 
     /* Damping */
-    if ((f = ftfind(p->i_d)) == NULL) {
+    if ((f = ftfind(p->h.insdshead->csound, p->i_d)) == NULL) {
       return initerror(Str(X_1505, "scanux: Could not find ifndamp table"));
     }
     if (f->flen != len)
@@ -234,7 +234,7 @@ int scsnux_init(PSCSNUX *p)
       int j, ilen;
 
       /* Get the table */
-      if ((f = ftfind(p->i_f)) == NULL) {
+      if ((f = ftfind(p->h.insdshead->csound, p->i_f)) == NULL) {
         return initerror(Str(X_1506, "scanux: Could not find ifnstiff table"));
       }
 
@@ -359,7 +359,7 @@ int scsnux_init(PSCSNUX *p)
 
     /* Velocity gets presidential treatment */
     {
-      FUNC *f = ftfind(p->i_v);
+      FUNC *f = ftfind(p->h.insdshead->csound, p->i_v);
       if (f == NULL) {
         return initerror(Str(X_1507,"scanux: Could not find ifnvel table"));
       }
@@ -399,7 +399,7 @@ int scsnux_init(PSCSNUX *p)
     /* Throw data into list or use table */
     if (*p->i_id < FL(0.0)) {
       MYFLT id = - *p->i_id;
-      FUNC *f  = ftfind(&id);
+      FUNC *f  = ftfind(p->h.insdshead->csound, &id);
       if (f == NULL) {
         return initerror(Str(X_1508,"scanux: Could not find (id) table"));
       }
@@ -538,7 +538,7 @@ int scsnsx_init(PSCSNSX *p)
     {
       int i;
       int oscil_interp = (int)*p->interp;
-      FUNC *t = ftfind(p->i_trj);
+      FUNC *t = ftfind(p->h.insdshead->csound, p->i_trj);
       if (t == NULL) {
         return initerror(Str(X_1526,"scans: Could not find the ifntraj table"));
       }

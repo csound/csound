@@ -323,7 +323,7 @@ int spat3d_set_opcode_params (SPAT3D *p)
         p->ftable = NULL;
       }
       else {
-        ftp = ftfind (p->args[xift]);
+        ftp = ftfind(p->h.insdshead->csound, p->args[xift]);
         if ((ftp == NULL) || (ftp->flen < 64)) {
           p->ftable = NULL;
         }
@@ -343,7 +343,7 @@ int spat3d_set_opcode_params (SPAT3D *p)
         p->outft = NULL; p->outftlnth = 0;
       }
       else {
-        if ((ftp = ftfind (p->args[xioutft])) == NULL) {
+        if ((ftp = ftfind(p->h.insdshead->csound,p->args[xioutft])) == NULL) {
           p->outft = NULL; p->outftlnth = 0;
         } else {
           p->outft = ftp->ftable;

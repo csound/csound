@@ -78,12 +78,12 @@ int pvaddset(PVADD *p)
     long     memsize;
 
    if (*p->ifn > 0)
-     if ((ftp = ftfind(p->ifn)) == NULL)
+     if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) == NULL)
        return NOTOK;
    p->ftp = ftp;
 
    if (*p->igatefun > 0)
-     if ((AmpGateFunc = ftfind(p->igatefun)) == NULL)
+     if ((AmpGateFunc = ftfind(p->h.insdshead->csound, p->igatefun)) == NULL)
        return NOTOK;
     p->AmpGateFunc = AmpGateFunc;
 

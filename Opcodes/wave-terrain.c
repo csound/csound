@@ -36,8 +36,8 @@ int wtinit(WAVETER *p)
 {
     /* DECLARE */
     int i;
-    FUNC *ftpx = ftfind(p->i_tabx);
-    FUNC *ftpy = ftfind(p->i_taby);
+    FUNC *ftpx = ftfind(p->h.insdshead->csound, p->i_tabx);
+    FUNC *ftpy = ftfind(p->h.insdshead->csound, p->i_taby);
 
     /* CHECK */
     if ((ftpx == NULL)||(ftpy == NULL)) {
@@ -118,8 +118,8 @@ int scanhinit(SCANHAMMER *p)
   int srcpos = 0;
   int dstpos = (int)(*p->ipos + FL(0.5));
 
-  FUNC *fsrc = ftfind(p->isrc); /* Source table */
-  FUNC *fdst = ftfind(p->idst); /* Destination table */
+  FUNC *fsrc = ftfind(p->h.insdshead->csound, p->isrc); /* Source table */
+  FUNC *fdst = ftfind(p->h.insdshead->csound, p->idst); /* Destination table */
 
   if (fsrc->flen > fdst->flen) {
     return initerror(Str(X_1789,
@@ -151,11 +151,11 @@ int scanhinit(SCANHAMMER *p)
 int scantinit(SCANTABLE *p)
 {
     /* DECLARE */
-    FUNC *fpoint = ftfind(p->i_point);
-    FUNC *fmass  = ftfind(p->i_mass);
-    FUNC *fstiff = ftfind(p->i_stiff);
-    FUNC *fdamp  = ftfind(p->i_damp);
-    FUNC *fvel   = ftfind(p->i_vel);
+    FUNC *fpoint = ftfind(p->h.insdshead->csound, p->i_point);
+    FUNC *fmass  = ftfind(p->h.insdshead->csound, p->i_mass);
+    FUNC *fstiff = ftfind(p->h.insdshead->csound, p->i_stiff);
+    FUNC *fdamp  = ftfind(p->h.insdshead->csound, p->i_damp);
+    FUNC *fvel   = ftfind(p->h.insdshead->csound, p->i_vel);
 
     /* CHECK */
     if (fpoint == NULL) {
@@ -208,11 +208,11 @@ int scantPerf(SCANTABLE *p)
     int next, last;
 
     /* DECLARE */
-    FUNC *fpoint = ftfind(p->i_point);
-    FUNC *fmass  = ftfind(p->i_mass);
-    FUNC *fstiff = ftfind(p->i_stiff);
-    FUNC *fdamp  = ftfind(p->i_damp);
-    FUNC *fvel   = ftfind(p->i_vel);
+    FUNC *fpoint = ftfind(p->h.insdshead->csound, p->i_point);
+    FUNC *fmass  = ftfind(p->h.insdshead->csound, p->i_mass);
+    FUNC *fstiff = ftfind(p->h.insdshead->csound, p->i_stiff);
+    FUNC *fdamp  = ftfind(p->h.insdshead->csound, p->i_damp);
+    FUNC *fvel   = ftfind(p->h.insdshead->csound, p->i_vel);
 
 
 

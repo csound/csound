@@ -313,8 +313,9 @@ typedef struct
  * in the first place.
  */
 /* a-rate function */
-static MYFLT
-BaboTapline_single_output(ENVIRON *csound, const BaboTapline *this, const BaboTapParameter *pp)
+static MYFLT BaboTapline_single_output(ENVIRON *csound,
+                                       const BaboTapline *this,
+                                       const BaboTapParameter *pp)
 {
         /*
          * the assignement right below should be really a floor(p->delay_size),
@@ -343,8 +344,9 @@ BaboTapline_single_output(ENVIRON *csound, const BaboTapline *this, const BaboTa
 }
 
 /* k-rate function */
-INLINE static void
-BaboTapline_preload_parameter(ENVIRON *csound, BaboTapParameter *this, MYFLT distance)
+INLINE static void BaboTapline_preload_parameter(ENVIRON *csound,
+                                                 BaboTapParameter *this,
+                                                 MYFLT distance)
 {
     /*
      * Direct sound parameters at the input of delay tap_lines.
@@ -358,8 +360,8 @@ BaboTapline_preload_parameter(ENVIRON *csound, BaboTapParameter *this, MYFLT dis
 
 /* k-rate function */
 static BaboTaplineParameters *
-BaboTapline_precalculate_parameters(ENVIRON *csound, const BaboTapline *this,
-    BaboTaplineParameters   *results,
+BaboTapline_precalculate_parameters(
+    ENVIRON *csound, const BaboTapline *this, BaboTaplineParameters   *results,
     MYFLT r_x, MYFLT r_y, MYFLT r_z,    /* receiver position (i-rate) */
     MYFLT s_x, MYFLT s_y, MYFLT s_z,    /* source   position (k-rate) */
     MYFLT l_x, MYFLT l_y, MYFLT l_z)    /* room     coords   (i-rate) */
@@ -389,10 +391,12 @@ BaboTapline_precalculate_parameters(ENVIRON *csound, const BaboTapline *this,
     BaboTapline_preload_parameter(csound, &results->tap[3],
                         (MYFLT)sqrt(sqr_xz + square(l_y + r_y + s_y)));
 
-    BaboTapline_preload_parameter(csound, &results->tap[4],
-                                        (MYFLT)sqrt(sqr_xy + square(l_z - r_z - s_z)));
-    BaboTapline_preload_parameter(csound, &results->tap[5],
-                                        (MYFLT)sqrt(sqr_xy + square(l_z + r_z + s_z)));
+    BaboTapline_preload_parameter(csound,
+                                  &results->tap[4],
+                                  (MYFLT)sqrt(sqr_xy + square(l_z - r_z - s_z)));
+    BaboTapline_preload_parameter(csound,
+                                  &results->tap[5],
+                                  (MYFLT)sqrt(sqr_xy + square(l_z + r_z + s_z)));
 
     return results;
 }
@@ -448,7 +452,8 @@ BaboLowPass_output(const BaboLowPass *this)
  */
 
 static BaboNode *
-BaboNode_create(ENVIRON *csound, BaboNode *this, MYFLT time, MYFLT min_time, MYFLT decay,
+BaboNode_create(ENVIRON *csound, BaboNode *this, MYFLT time,
+                MYFLT min_time, MYFLT decay,
     MYFLT hidecay)
 {
     BaboDelay_create(csound, &this->delay, time);
@@ -626,7 +631,8 @@ BaboMatrix_create(ENVIRON *csound,
     BaboMatrix_create_FDN(this, diffusion);
 
     for (i = 0; i < BABO_NODES; ++i)
-        BaboNode_create(csound, &this->node[i], delays[i], min_delay, decay, hidecay);
+        BaboNode_create(csound, &this->node[i], delays[i],
+                        min_delay, decay, hidecay);
 
     return this;
 }
@@ -745,7 +751,7 @@ set_expert_values(BABO *p)
     int      n      = 0;
 
     if (p->expert_values > 0)
-        ftp = ftfind(&(p->expert_values));
+        ftp = ftfind(p->h.insdshead->csound, &(p->expert_values));
 
     p->decay        = load_value_or_default(ftp, n++, BABO_DEFAULT_DECAY);
     p->hidecay      = load_value_or_default(ftp, n++, BABO_DEFAULT_HIDECAY);
@@ -787,9 +793,10 @@ baboset(void *entry)
     verify_coherence(p);        /* exits if call is wrong */
 
     BaboTapline_create(csound,&p->tapline, *(p->lx), *(p->ly), *(p->lz));
-    BaboDelay_create(csound, &p->matrix_delay, BaboTapline_maxtime(csound, &p->tapline));
+    BaboDelay_create(csound, &p->matrix_delay,
+                     BaboTapline_maxtime(csound, &p->tapline));
     BaboMatrix_create(csound, &p->matrix, p->diffusion_coeff, *(p->lx),
-        *(p->ly), *(p->lz), p->decay, p->hidecay, p->early_diffuse);
+                      *(p->ly), *(p->lz), p->decay, p->hidecay, p->early_diffuse);
     return OK;
 }
 

@@ -116,7 +116,7 @@ void csoundTableSet(void *csound, int table, int index, MYFLT value);
 void auxalloc(long, AUXCH*);
 char *getstring(int, char*);
 void die(char *);
-FUNC *ftfind(MYFLT *);
+FUNC *ftfind(ENVIRON *,MYFLT *);
 int initerror(char *);
 int perferror(char *);
 void *mmalloc(long);
@@ -124,8 +124,8 @@ void mfree(void *);
 void dispset(WINDAT *, MYFLT *, long, char *, int, char *);
 void display(WINDAT *);
 MYFLT intpow(MYFLT, long);
-FUNC *ftfindp(MYFLT *argp);
-FUNC *ftnp2find(MYFLT *);
+FUNC *ftfindp(ENVIRON*,MYFLT *argp);
+FUNC *ftnp2find(ENVIRON*,MYFLT *);
 char *unquote(char *);
 MEMFIL *ldmemfile(char *);
 long strarg2insno (MYFLT *p, char *s);
@@ -401,6 +401,9 @@ ENVIRON cenviron_ = {
         0, NULL,   /*      nchania, chania */
         0, NULL,   /*      nchanok, chanok */
         0, NULL,   /*      nchanoa, chanoa */
+        {},
+        NULL,                   /* flist */
+        0                       /* maxfnum */
 };
 
 OPARMS O;

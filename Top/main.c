@@ -315,7 +315,7 @@ void create_opcodlst(void *csound)
     csoundLoadExternals(csound);
 }
 
-extern  int    musmon(void), musmon2(void);
+extern  int    musmon(ENVIRON*), musmon2(ENVIRON*);
 extern  char  *getstrformat(int);
 extern  short  sfsampsize(int);
 extern int frsturnon;
@@ -576,7 +576,7 @@ int csoundCompile(void *csound, int argc, char **argv)
     while ((*filnamp++ = *s++));    /* copy sorted score name */
  perf:
     O.filnamsize = filnamp - O.filnamspace;
-    return musmon();
+    return musmon(csound);
 }
 
 int csoundMain(void *csound, int argc, char **argv)
@@ -594,7 +594,7 @@ int csoundMain(void *csound, int argc, char **argv)
     if (returnvalue) return returnvalue;
     printf("musmon returns %d\n", returnvalue);
     if (returnvalue) return returnvalue;
-    return musmon2();
+    return musmon2(csound);
 }
 
 /* #ifdef mills_macintosh		/\* comment out - 062404, akozar *\/ */

@@ -117,7 +117,7 @@ int clarinset(CLARIN *p)
     FUNC        *ftp;
     ENVIRON     *csound = p->h.insdshead->csound;
 
-    if ((ftp = ftfind(p->ifn)) != NULL) p->vibr = ftp;
+    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) != NULL) p->vibr = ftp;
     else {
       return perferror(Str(X_376,"No table for Clarinet")); /* Expect sine wave */
     }
@@ -272,7 +272,7 @@ int fluteset(FLUTE *p)
     long        length;
     ENVIRON     *csound = p->h.insdshead->csound;
 
-    if ((ftp = ftfind(p->ifn)) != NULL) p->vibr = ftp;
+    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) != NULL) p->vibr = ftp;
     else {
       return perferror(Str(X_378,"No table for Flute")); /* Expect sine wave */
     }
@@ -480,7 +480,7 @@ int bowedset(BOWED *p)
     MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     ENVIRON     *csound = p->h.insdshead->csound;
 
-    if ((ftp = ftfind(p->ifn)) != NULL) p->vibr = ftp;
+    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) != NULL) p->vibr = ftp;
     else {
       return perferror(Str(X_386,"No table for wgbow vibrato")); /* Expect sine wave */
     }
@@ -779,7 +779,7 @@ int brassset(BRASS *p)
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     ENVIRON     *csound = p->h.insdshead->csound;
 
-    if ((ftp = ftfind(p->ifn)) != NULL) p->vibr = ftp;
+    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) != NULL) p->vibr = ftp;
     else {
       return perferror(Str(X_375,"No table for Brass")); /* Expect sine wave */
     }

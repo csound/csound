@@ -65,7 +65,7 @@
                   j);                                             \
           return initerror(sbuf);                                 \
         }                                                         \
-        if (*sld->ifn > 0)   *ftp++ = ftfind(sld->ifn);           \
+        if (*sld->ifn > 0)   *ftp++ = ftfind(p->h.insdshead->csound, sld->ifn);           \
         else                 *ftp++ = NULL;                       \
         value =  (*(sld++)->initvalue - *min) / (*max++ - *min);  \
         min++;                                                    \
@@ -173,7 +173,7 @@ int slider64(SLIDER64 *p)
                   Str(X_856,"illegal initvalue at position n.%d"), j); \
           return initerror(sbuf);                                 \
         }                                                         \
-        if (*sld->ifn > 0)   *ftp++ = ftfind(sld->ifn);           \
+        if (*sld->ifn > 0)   *ftp++ = ftfind(p->h.insdshead->csound, sld->ifn);           \
         else                 *ftp++ = NULL;                       \
         value =  (*sld->initvalue - *min) / (*max++ - *min);      \
         min++;;                                                   \
@@ -278,7 +278,7 @@ int slider64f(SLIDER64f *p)
         }                                                         \
         value = chanblock[slnum] * oneTOf7bit;                    \
         if (*sld->ifn > 0)  {                                     \
-          ftp = ftfind(sld->ifn);                                 \
+          ftp = ftfind(p->h.insdshead->csound, sld->ifn);         \
           value = *( ftp->ftable + (long)(value * ftp->flen));    \
                                 /* no interpolation */            \
         }                                                         \
@@ -352,7 +352,7 @@ int islider64(ISLIDER64 *p)
                   Str(X_856,"illegal initvalue at position n.%d"), j); \
           return initerror(sbuf);                                      \
         }                                                              \
-        if (*sld->ifn > 0)   *ftp++ = ftfind(sld->ifn);                \
+        if (*sld->ifn > 0)   *ftp++ = ftfind(p->h.insdshead->csound, sld->ifn); \
         else                 *ftp++ = NULL;                            \
         intvalue = (int) (((*(sld++)->initvalue - *min) / (*max++ - *min)) \
                           * f14bit+FL(0.5));                           \
@@ -446,7 +446,7 @@ int slider32bit14(SLIDER32BIT14 *p)
         value = (MYFLT)((chanblock[slnum_msb]  * 128                   \
                          + chanblock[slnum_lsb]) * oneTOf14bit);       \
         if (*sld->ifn > 0) {    /* linear interpolation routine */     \
-          FUNC *ftp= ftfind(sld->ifn);                                 \
+          FUNC *ftp= ftfind(p->h.insdshead->csound, sld->ifn);         \
           MYFLT phase = value * ftp->flen;                             \
           MYFLT *base = ftp->ftable + (long)(phase);                   \
           value = *base + (*(base + 1) - *base) * (phase - (long) phase); \

@@ -950,7 +950,7 @@ int panset(PAN *p)
 {
     FUNC *ftp;
 
-    if ((ftp = ftfind(p->ifn)) == NULL)
+    if ((ftp = ftfind(p->h.insdshead->csound, p->ifn)) == NULL)
       return NOTOK;
     p->ftp = ftp;
     if (*p->imode)

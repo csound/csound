@@ -1416,7 +1416,7 @@ extern "C" int set_snap(FLSETSNAP *p)
 
     if (*p->ifn >= 1) { // if the table number is valid
       FUNC    *ftp;   // store the snapshot into the table
-      if ((ftp = ftfind(p->ifn)) != NULL) {
+      if ((ftp = ftfind(p->h.insdshead->csound,p->ifn)) != NULL) {
         MYFLT * table = ftp->ftable;
         for ( int j=0; j < numfields; j++) {
           table[index*numfields+j] = snap.fields[j].value;
@@ -2798,7 +2798,7 @@ extern "C" int fl_slider(FLSLIDER *p)
         {
           FUNC *ftp;
           MYFLT fnum = abs(iexp);
-          if ((ftp = ftfind(&fnum)) != NULL) {
+          if ((ftp = ftfind(p->h.insdshead->csound,&fnum)) != NULL) {
             p->table = ftp->ftable;
             p->tablen = ftp->flen;
           }
@@ -2850,21 +2850,21 @@ extern "C" int fl_slider_bank(FLSLIDERBANK *p)
       }
     }
     else {
-      if ((ftp = ftfind(p->ioutable)) != NULL)
+      if ((ftp = ftfind(p->h.insdshead->csound,p->ioutable)) != NULL)
         outable = ftp->ftable + (long) *p->ioutablestart_ndx;
       else
         return NOTOK;
     }
     if ((int) *p->iminmaxtable > 0) {
-      if ((ftp = ftfind(p->iminmaxtable)) != NULL) minmaxtable = ftp->ftable;
+      if ((ftp = ftfind(p->h.insdshead->csound,p->iminmaxtable)) != NULL) minmaxtable = ftp->ftable;
       else return NOTOK;
     }
     if ((int) *p->iexptable > 0) {
-      if ((ftp = ftfind(p->iexptable)) != NULL) exptable = ftp->ftable;
+      if ((ftp = ftfind(p->h.insdshead->csound,p->iexptable)) != NULL) exptable = ftp->ftable;
       else return NOTOK;
     }
     if ((int) *p->itypetable >0) {
-      if ((ftp = ftfind(p->itypetable)) != NULL) typetable = ftp->ftable;
+      if ((ftp = ftfind(p->h.insdshead->csound,p->itypetable)) != NULL) typetable = ftp->ftable;
       else return NOTOK;
     }
 
@@ -2974,7 +2974,7 @@ extern "C" int fl_slider_bank(FLSLIDERBANK *p)
         {
           FUNC *ftp;
           MYFLT fnum = abs(iexp);
-          if ((ftp = ftfind(&fnum)) != NULL)
+          if ((ftp = ftfind(p->h.insdshead->csound,&fnum)) != NULL)
             p->slider_data[j].table = ftp->ftable;
           else return NOTOK;
           p->slider_data[j].tablen = ftp->flen;
@@ -3054,7 +3054,7 @@ extern "C" int fl_joystick(FLJOYSTICK *p)
       {
         FUNC *ftp;
         MYFLT fnum = abs(iexpx);
-        if ((ftp = ftfind(&fnum)) != NULL) {
+        if ((ftp = ftfind(p->h.insdshead->csound,&fnum)) != NULL) {
           p->tablex = ftp->ftable;
           p->tablenx = ftp->flen;
         }
@@ -3082,7 +3082,7 @@ extern "C" int fl_joystick(FLJOYSTICK *p)
       {
         FUNC *ftp;
         MYFLT fnum = abs(iexpy);
-        if ((ftp = ftfind(&fnum)) != NULL) {
+        if ((ftp = ftfind(p->h.insdshead->csound,&fnum)) != NULL) {
           p->tabley = ftp->ftable;
           p->tableny = ftp->flen;
         }
@@ -3178,7 +3178,7 @@ extern "C" int fl_knob(FLKNOB *p)
         FUNC *ftp;
         p->min = *p->imin;
         MYFLT fnum = abs(iexp);
-        if ((ftp = ftfind(&fnum)) != NULL) {
+        if ((ftp = ftfind(p->h.insdshead->csound,&fnum)) != NULL) {
           p->table = ftp->ftable;
           p->tablen = ftp->flen;
         }
@@ -3453,7 +3453,7 @@ extern "C" int fl_roller(FLROLLER *p)
       {
         FUNC *ftp;
         MYFLT fnum = abs(iexp);
-        if ((ftp = ftfind(&fnum)) != NULL) {
+        if ((ftp = ftfind(p->h.insdshead->csound,&fnum)) != NULL) {
           p->table = ftp->ftable;
           p->tablen = ftp->flen;
         }

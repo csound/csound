@@ -42,11 +42,11 @@ int agsset(PGRA *p)                    /*      Granular U.G. set-up */
     long        bufsize;
     MYFLT       *d;
 
-    if ((gftp = ftfind(p->igfn)) != NULL)
+    if ((gftp = ftfind(p->h.insdshead->csound, p->igfn)) != NULL)
       p->gftp = gftp;
     else return NOTOK;
 
-    if ((eftp = ftfind(p->iefn)) != NULL)
+    if ((eftp = ftfind(p->h.insdshead->csound, p->iefn)) != NULL)
       p->eftp = eftp;
     else return NOTOK;
 

@@ -502,7 +502,7 @@ typedef struct resetter {
        struct resetter *next;
 } RESETTER;
 
-FUNC   *ftfind(MYFLT*);
+FUNC   *ftfind(struct ENVIRON_*,MYFLT*);
 MEMFIL *ldmemfile(char *);
 #define MAXCHAN       96        /* for 6 ports */
 
@@ -621,7 +621,7 @@ typedef struct ENVIRON_
   void (*auxalloc_)(long nbytes, AUXCH *auxchp);
   char *(*getstring_)(int, char*);
   void (*die_)(char *);
-  FUNC *(*ftfind_)(MYFLT *);
+  FUNC *(*ftfind_)(struct ENVIRON_*, MYFLT *);
   int (*initerror_)(char *);
   int (*perferror_)(char *);
   void *(*mmalloc_)(long);
@@ -630,12 +630,12 @@ typedef struct ENVIRON_
   void (*dispset)(WINDAT *, MYFLT *, long, char *, int, char *);
   void (*display)(WINDAT *);
   MYFLT (*intpow_)(MYFLT, long);
-  FUNC *(*ftfindp)(MYFLT *argp);
-  FUNC *(*ftnp2find)(MYFLT *);
+  FUNC *(*ftfindp)(struct ENVIRON_*, MYFLT *argp);
+  FUNC *(*ftnp2find)(struct ENVIRON_*, MYFLT *);
   char *(*unquote)(char *);
   MEMFIL *(*ldmemfile)(char *);
   void (*err_printf_)(char *, ...);
-  FUNC *(*hfgens_)(EVTBLK *);
+  FUNC *(*hfgens_)(struct ENVIRON_*, EVTBLK *);
   void *(*mrealloc_)(void *old, long nbytes);
   void (*putcomplexdata_)(complex *, long);
   void (*ShowCpx_)(complex *, long, char *);
@@ -793,6 +793,9 @@ typedef struct ENVIRON_
   MYFLT*	chanok_;
   int		nchanoa_;
   MYFLT*	chanoa_;
+  FGDATA        ff;
+  FUNC**        flist;
+  int           maxfnum;
 } ENVIRON;
 
 extern ENVIRON cenviron_;
