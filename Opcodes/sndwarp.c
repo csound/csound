@@ -61,7 +61,7 @@ int sndwarpgetset(ENVIRON *csound, SNDWARP *p)
 
     p->maxFr  = -1 + ftpSamp->flen;
     p->prFlg = 1;    /* true */
-    p->begin = (int)(*p->ibegin * esr);
+    p->begin = (int)(*p->ibegin * csound->esr);
 
     exp = p->exp;
     exp--;
@@ -91,7 +91,7 @@ int sndwarpgetset(ENVIRON *csound, SNDWARP *p)
 
 int sndwarp(ENVIRON *csound, SNDWARP *p)
 {
-    int         nsmps = ksmps;
+    int         nsmps = csound->ksmps;
     MYFLT       frm0,frm1;
     long        base, longphase;
     MYFLT       frac, frIndx;
@@ -119,7 +119,7 @@ int sndwarp(ENVIRON *csound, SNDWARP *p)
     exp--;
     for (i=0; i<*p->ioverlap; i++) {
       exp++;
-      nsmps = ksmps;
+      nsmps = csound->ksmps;
       r1 = p->r1;
       if (p->OUTOCOUNT >1)  r2 = p->r2;
       resample = p->xresample;
@@ -130,14 +130,12 @@ int sndwarp(ENVIRON *csound, SNDWARP *p)
         if (exp->cnt < exp->wsize) goto skipover;
 
         if (*p->itimemode!=0)
-          exp->offset=(esr * *timewarpby)+p->begin;
+          exp->offset=(csound->esr * *timewarpby)+p->begin;
         else
           exp->offset += (MYFLT)exp->wsize/(*timewarpby);
-/* printf("section=%d  offset=%f\n", exp->section, exp->offset); */
 
         exp->cnt=0;
         exp->wsize = (int)(iwsize + (((MYFLT)rand()/RAND_MAX)*(*p->irandw)));
-        /* printf("section =%d  windowsize =%d\n", exp->section, exp->wsize); */
         exp->ampphs = FL(0.0);
         exp->ampincr = flen/(exp->wsize-1);
 
@@ -149,8 +147,7 @@ int sndwarp(ENVIRON *csound, SNDWARP *p)
           frIndx = (MYFLT)p->maxFr;
           if (p->prFlg) {
             p->prFlg = 0;   /* false */
-            if (csound->oparms_->msglevel & WARNMSG)
-              printf(Str("WARNING: SNDWARP at last sample frame\n"));
+            csound->Warning(csound, Str("SNDWARP at last sample frame"));
           }
         }
         longphase = (long)exp->ampphs;
@@ -165,7 +162,6 @@ int sndwarp(ENVIRON *csound, SNDWARP *p)
         frac = ((MYFLT)(frIndx - (MYFLT)base));
         frm0 = *(ftpSamp->ftable + base);
         frm1 = *(ftpSamp->ftable + (base+1));
-/* printf("Base=%ld, frm0, frm1 = %f, %f; frac=%f\n", base, frm0, frm1, frac); */
         if (frac != FL(0.0)) {
           *r1++ += ((frm0 + frac*(frm1-frm0)) * windowamp) * *amp;
           if (i==0)
@@ -199,9 +195,8 @@ int sndwarpstgetset(ENVIRON *csound, SNDWARPST *p)
     char        *auxp;
 
     if (p->OUTOCOUNT > 2 && p->OUTOCOUNT < 4) {
-      sprintf(errmsg,
-              Str("Wrong number of outputs in sndwarpst; must be 2 or 4"));
-      goto sndwerr;
+      return csound->InitError(csound, Str("Wrong number of outputs "
+                                           "in sndwarpst; must be 2 or 4"));
     }
     nsections = (int)*p->ioverlap;
     if ((auxp = p->auxch.auxp) == NULL || nsections != p->nsections) {
@@ -225,7 +220,7 @@ int sndwarpstgetset(ENVIRON *csound, SNDWARPST *p)
 
     p->maxFr  = -1L + (long)(ftpSamp->flen*FL(0.5));
     p->prFlg = 1;    /* true */
-    p->begin = (int)(*p->ibegin * esr);
+    p->begin = (int)(*p->ibegin * csound->esr);
 
     exp = p->exp;
     exp--;
@@ -251,8 +246,6 @@ int sndwarpstgetset(ENVIRON *csound, SNDWARPST *p)
     p->timewarpcode = (XINARG2) ? 1 : 0;
     p->resamplecode = (XINARG3) ? 1 : 0;
     return OK;
- sndwerr:
-    return csound->InitError(csound, errmsg);
 }
 
 int sndwarpstset(ENVIRON *csound, SNDWARPST *p)
@@ -262,7 +255,7 @@ int sndwarpstset(ENVIRON *csound, SNDWARPST *p)
 
 int sndwarpst(ENVIRON *csound, SNDWARPST *p)
 {
-    int         nsmps = ksmps;
+    int         nsmps = csound->ksmps;
     MYFLT       frm10,frm11, frm20, frm21;
     long        base, longphase;
     MYFLT       frac, frIndx;
@@ -296,7 +289,7 @@ int sndwarpst(ENVIRON *csound, SNDWARPST *p)
     exp--;
     for (i=0; i<*p->ioverlap; i++) {
       exp++;
-      nsmps = ksmps;
+      nsmps = csound->ksmps;
       r1 = p->r1;
       r2 = p->r2;
       if (p->OUTOCOUNT >2)  {
@@ -311,14 +304,12 @@ int sndwarpst(ENVIRON *csound, SNDWARPST *p)
         if (exp->cnt < exp->wsize) goto skipover;
 
         if (*p->itimemode!=0)
-          exp->offset=(esr * *timewarpby)+p->begin;
+          exp->offset=(csound->esr * *timewarpby)+p->begin;
         else
           exp->offset += (MYFLT)exp->wsize/(*timewarpby);
-/* printf("section=%d  offset=%f\n", exp->section, exp->offset); */
 
         exp->cnt=0;
         exp->wsize = (int)(iwsize + (((MYFLT)rand()/RAND_MAX)*(*p->irandw)));
-        /* printf("section =%d  windowsize =%d\n", exp->section, exp->wsize); */
         exp->ampphs = FL(0.0);
         exp->ampincr = flen/(exp->wsize-1);
 
@@ -329,8 +320,7 @@ int sndwarpst(ENVIRON *csound, SNDWARPST *p)
           frIndx = (MYFLT)p->maxFr;
           if (p->prFlg) {
             p->prFlg = 0;   /* false */
-            if (csound->oparms_->msglevel & WARNMSG)
-              printf(Str("WARNING: SNDWARP at last sample frame\n"));
+            csound->Warning(csound, Str("SNDWARP at last sample frame"));
           }
         }
         longphase = (long)exp->ampphs;

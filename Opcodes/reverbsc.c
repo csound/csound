@@ -165,7 +165,7 @@ static int sc_reverb_init(ENVIRON *csound, SC_REVERB *p)
 
     /* check for valid parameters */
     if (*(p->iSampleRate) <= FL(0.0))
-      p->sampleRate = (double) csound->esr_;
+      p->sampleRate = (double) csound->esr;
     else
       p->sampleRate = (double) *(p->iSampleRate);
     if (p->sampleRate < MIN_SRATE || p->sampleRate > MAX_SRATE) {
@@ -218,7 +218,7 @@ static int sc_reverb_perf(ENVIRON *csound, SC_REVERB *p)
       p->dampFact = p->dampFact - sqrt(p->dampFact * p->dampFact - 1.0);
     }
     /* update delay lines */
-    for (i = 0; i < csound->ksmps_; i++) {
+    for (i = 0; i < csound->ksmps; i++) {
       /* calculate "resultant junction pressure" and mix to input signals */
       ainL = aoutL = aoutR = 0.0;
       for (n = 0; n < 8; n++)

@@ -79,7 +79,7 @@ int spat3d_init_eq (ENVIRON *csound, SPAT3D_WALL *wstruct, MYFLT *ftable)
     /* EQ code taken from biquad.c */
 
     eqmode = (int) ((double) ftable[3] + 0.5);                  /* mode      */
-    omega = (double) ftable[0] * TWOPI / (double) csound->esr_; /* frequency */
+    omega = (double) ftable[0] * TWOPI / (double) csound->esr;  /* frequency */
     sq = sqrt (2.0 * (double) ftable[1]);                       /* level     */
 
     k = tan ((eqmode > 1 ? (PI - omega) : omega) * 0.5); kk = k * k;
@@ -208,8 +208,8 @@ spat3d_init_wall(SPAT3D *p,             /* opcode struct                    */
       /* extend delay buffer */
       if ((MYFLT) d0 > p->mdel) p->mdel = (MYFLT) d0;
       if ((MYFLT) d1 > p->mdel) p->mdel = (MYFLT) d1;
-      ws->D0 = d0 * (double) esr + 0.5;
-      ws->D1 = d1 * (double) esr + 0.5;
+      ws->D0 = d0 * (double) csound->esr + 0.5;
+      ws->D1 = d1 * (double) csound->esr + 0.5;
       ws->W0 = w; ws->X0 = x; ws->Y0 = y; ws->Z0 = z;
     }
 
@@ -234,7 +234,8 @@ int spat3d_init_delay (ENVIRON *csound, SPAT3D *p)
 {
     long    i, j;
 
-    i = ((long) (p->mdel * esr) + (long) ksmps + 34L) * (long) p->oversamp;
+    i = ((long) (p->mdel * csound->esr) + (long) csound->ksmps + 34L)
+        * (long) p->oversamp;
     p->mdel_s = i;
     if (p->o_num == 1) i += 4;      /* extra samples for spat3d */
     j = i * (long) sizeof (MYFLT) * (long) (p->zout > 3 ? 4 : p->zout + 1);
@@ -286,14 +287,13 @@ int spat3d_set_opcode_params (ENVIRON *csound, SPAT3D *p)
     int     xidist, xift, ximode, ximdel, xiovr, xirlen, xioutft;
     int     d, wmask;
     long    i;
-    FUNC    *ftp;
 
     /* default settings */
 
     p->ftable = p->outft = NULL;    /* no ftables */
     p->zout = p->rseed = p->mindep = p->maxdep = p->outftlnth = wmask = 0;
     p->oversamp = 1;                /* oversample */
-    p->bs = (int) ksmps;           /* block size */
+    p->bs = (int) csound->ksmps;    /* block size */
     p->irlen = 2;                   /* IR length  */
     p->mdist = p->mdel = FL(0.001); /* unit circle dist., max. delay */
     p->mdel_s = p->del_p = 0L;
@@ -318,37 +318,25 @@ int spat3d_set_opcode_params (ENVIRON *csound, SPAT3D *p)
     if (xidist >= 0)                                /* unit circle dist. */
       p->mdist = *(p->args[xidist]);
     if (xift >= 0) {                                /* ftable */
-      if ((int) *(p->args[xift]) <= 0) {
+      int fLen;
+      p->ftable = csound->GetTable(csound, (int) *(p->args[xift]), &fLen);
+      if (fLen < 64)
         p->ftable = NULL;
-      }
-      else {
-        ftp = csound->FTFind(csound, p->args[xift]);
-        if ((ftp == NULL) || (ftp->flen < 64)) {
-          p->ftable = NULL;
-        }
-        else {
-          p->ftable = ftp->ftable;
-        }
-      }
     }
     if (ximdel >= 0)                                /* max. delay */
       p->mdel = *(p->args[ximdel]);
     if (xiovr >= 0)                                 /* oversample */
       p->oversamp = (int) SPAT3D_ROUND (*(p->args[xiovr]));
     if (xirlen >= 0)                                /* IR length */
-      p->irlen = (int) SPAT3D_ROUND (*(p->args[xirlen]) * esr);
+      p->irlen = (int) SPAT3D_ROUND (*(p->args[xirlen]) * csound->esr);
     if (xioutft >= 0) {                             /* output table */
-      if ((int) *(p->args[xioutft]) <= 0) {
+      int fLen;
+      p->outft = csound->GetTable(csound, (int) *(p->args[xioutft]), &fLen);
+      if (fLen < 1) {
         p->outft = NULL; p->outftlnth = 0;
       }
-      else {
-        if ((ftp = csound->FTFind(csound,p->args[xioutft])) == NULL) {
-          p->outft = NULL; p->outftlnth = 0;
-        } else {
-          p->outft = ftp->ftable;
-          p->outftlnth = ftp->flen;
-        }
-      }
+      else
+        p->outftlnth = fLen;
     }
 
     /* get parameters from ftable */
@@ -365,7 +353,7 @@ int spat3d_set_opcode_params (ENVIRON *csound, SPAT3D *p)
       if (p->ftable[2] >= FL(0.0))            /* max. delay        */
         p->mdel = p->ftable[2];
       if (p->ftable[3] >= FL(0.0))            /* IR length         */
-        p->irlen = (int) SPAT3D_ROUND (p->ftable[3] * esr);
+        p->irlen = (int) SPAT3D_ROUND (p->ftable[3] * csound->esr);
       if (p->ftable[4] >= FL(0.0))            /* unit circle dist. */
         p->mdist = p->ftable[4];
       p->rseed = (long) SPAT3D_ROUND (p->ftable[5]);  /* seed      */
@@ -497,10 +485,10 @@ void    spat3d_wall_perf (ENVIRON      *csound, /* General environment       */
       d0 = (double) SPAT3D_DIST2DEL (d);        /* delay     */
       a = SPAT3D_DIST2AMP (d);                  /* amp.      */
       x = (MYFLT) sqrt (1.0 - (double) (x / (d + FL(0.0001))));
-      x *= a; w = a - x;                        /* Lh, Ll    */
-      d1 *= (double) p->oversamp * (double) esr;/* convert  */
-    }                                           /* delay to */
-    d0 *= (double) p->oversamp * (double) esr;  /* samples  */
+      x *= a; w = a - x;                                /* Lh, Ll   */
+      d1 *= (double) p->oversamp * (double) csound->esr;/* convert  */
+    }                                                   /* delay to */
+    d0 *= (double) p->oversamp * (double) csound->esr;  /* samples  */
 
     /* interpolate W, X, Y, Z, and delay */
 
@@ -888,9 +876,12 @@ int    spat3dt (ENVIRON *csound, SPAT3D *p)
 #define S       sizeof
 
 static OENTRY localops[] = {
-{ "spat3d", S(SPAT3D), 5, "aaaa", "akkkiiiiio", (SUBR)spat3dset,NULL,(SUBR)spat3d},
-{ "spat3di",S(SPAT3D), 5, "aaaa", "aiiiiiio", (SUBR)spat3diset,NULL,(SUBR)spat3di},
-{ "spat3dt",S(SPAT3D), 1, "", "iiiiiiiio", (SUBR)spat3dt, NULL, NULL           },
+    { "spat3d", S(SPAT3D), 5, "aaaa", "akkkiiiiio",
+                    (SUBR) spat3dset,   NULL,   (SUBR) spat3d   },
+    { "spat3di",S(SPAT3D), 5, "aaaa", "aiiiiiio",
+                    (SUBR) spat3diset,  NULL,   (SUBR) spat3di  },
+    { "spat3dt",S(SPAT3D), 1, "", "iiiiiiiio",
+                    (SUBR) spat3dt,     NULL,   NULL            }
 };
 
 LINKAGE

@@ -48,12 +48,13 @@ int spaceset(ENVIRON *csound, SPACE *p)
 
    if (p->auxch.auxp == NULL) {
      MYFLT *fltp;
-     csound->AuxAlloc(csound, (long)(ksmps * 4)  * sizeof(MYFLT), &p->auxch);
+     csound->AuxAlloc(csound, (long) (csound->ksmps * 4)
+                              * sizeof(MYFLT), &p->auxch);
      fltp = (MYFLT *) p->auxch.auxp;
-     p->rrev1 = fltp;   fltp += ksmps;
-     p->rrev2 = fltp;   fltp += ksmps;
-     p->rrev3 = fltp;   fltp += ksmps;
-     p->rrev4 = fltp;   fltp += ksmps;
+     p->rrev1 = fltp;   fltp += csound->ksmps;
+     p->rrev2 = fltp;   fltp += csound->ksmps;
+     p->rrev3 = fltp;   fltp += csound->ksmps;
+     p->rrev4 = fltp;   fltp += csound->ksmps;
    }
 
    spaceaddr = p;
@@ -146,7 +147,7 @@ int space(ENVIRON *csound, SPACE *p)
     rrev3 = p->rrev3;
     rrev4 = p->rrev4;
     sigp = p->asig;
-    for (n=0; n<ksmps; n++) {
+    for (n=0; n<csound->ksmps; n++) {
       direct = sigp[n] * distr;
       torev = sigp[n] * distrsq * *p->reverbamount;
       globalrev = torev * distr;
@@ -184,16 +185,16 @@ int spsend(ENVIRON *csound, SPSEND *p)
     rrev3 = q->rrev3;
     rrev4 = q->rrev4;
 
-/*     for (n=0; n<ksmps; n++) { */
+/*     for (n=0; n<csound->ksmps; n++) { */
 /*       r1[n] = rrev1[n]; */
 /*       r2[n] = rrev2[n]; */
 /*       r3[n] = rrev3[n]; */
 /*       r4[n] = rrev4[n]; */
 /*     } */
-    memmove(r1, rrev1, ksmps*sizeof(MYFLT));
-    memmove(r2, rrev2, ksmps*sizeof(MYFLT));
-    memmove(r3, rrev3, ksmps*sizeof(MYFLT));
-    memmove(r4, rrev4, ksmps*sizeof(MYFLT));
+    memmove(r1, rrev1, csound->ksmps*sizeof(MYFLT));
+    memmove(r2, rrev2, csound->ksmps*sizeof(MYFLT));
+    memmove(r3, rrev3, csound->ksmps*sizeof(MYFLT));
+    memmove(r4, rrev4, csound->ksmps*sizeof(MYFLT));
     return OK;
 }
 
