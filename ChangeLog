@@ -8,6 +8,8 @@
 	  removed use of direct convolution due to patent issues
 	* H/csdl.h:
 	  removed some unused macros (fewer is better)
+	* Engine/fgens.c:
+	  minor GEN52 fix
 
 2005-03-15  Michael Gogins <gogins@pipeline.com>
 	* The Loris opcodes now work.
