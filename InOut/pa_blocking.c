@@ -128,9 +128,9 @@ int paBlockingWriteStreamCallback(const void *input,
                                   void *userData)
 {
   PA_BLOCKING_STREAM *pabs = (PA_BLOCKING_STREAM *)userData;
+  float *paOutput = (float *)output; /* Declarations must be at start of block in C */
   if(!pabs) return paContinue;
   if(!pabs->paStream) return paContinue;
-  float *paOutput = (float *)output;
   csoundWaitThreadLock(pabs->csound, pabs->paLock, 100);
   memcpy(paOutput, pabs->actualBuffer,
 	 pabs->actualBufferSampleCount * sizeof(float));
