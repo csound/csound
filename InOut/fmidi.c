@@ -123,8 +123,9 @@ static void Rnxtdeltim(void)        /* incr FMidiNxtk by next delta-time */
     }
 }
 
-void FMidiOpen(void) /* open a MidiFile for reading, sense MPU401 or standard */
+void FMidiOpen(void *csound_) /* open a MidiFile for reading, sense MPU401 or standard */
 {                    /*     callable once from main.c      */
+  ENVIRON *csound = (ENVIRON *)csound_;
     short sval;
     long lval, tickspersec;
     u_long deltim;
