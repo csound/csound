@@ -42,8 +42,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 #include <dirent.h>
 #endif
 
-static int dl_opcodes_debug = 0;
-
 #if defined(WIN32) && !defined(__CYGWIN__)
 
 #include <io.h>
@@ -202,7 +200,7 @@ void *csoundOpenLibrary(const char *libraryPath)
     static int (*make_private_module_public) (NSModule module) = NULL;
     unsigned int flags =  NSLINKMODULE_OPTION_RETURN_ON_ERROR |
                           NSLINKMODULE_OPTION_PRIVATE;
-    if(dl_opcodes_debug) {
+    if(O.odebug) {
       printf("csoundOpenLibrary\n");
     }
     /* If we got no path, the app wants the global namespace,
@@ -212,12 +210,12 @@ void *csoundOpenLibrary(const char *libraryPath)
     /* Create the object file image, works for things linked
        with the -bundle arg to ld */
     ofirc = NSCreateObjectFileImageFromFile(libraryPath, &ofi);
-    if(dl_opcodes_debug) {
+    if(O.odebug) {
       printf("ofirc=%d\n", ofirc);
     }
     switch (ofirc) {
     case NSObjectFileImageSuccess:
-      if(dl_opcodes_debug) {
+      if(O.odebug) {
         printf("ofirc=NSObjectFileImageSuccess\n");
       }
       /* It was okay, so use NSLinkModule to link in the image */
@@ -235,7 +233,7 @@ void *csoundOpenLibrary(const char *libraryPath)
       make_private_module_public(module);
       break;
     case NSObjectFileImageInappropriateFile:
-      if(dl_opcodes_debug) {
+      if(O.odebug) {
         printf("ofirc=NSObjectFileImageInappropriateFile\n");
       }
       /* It may have been a dynamic library rather
@@ -317,7 +315,7 @@ void *dlopen(const char *path, int mode)
     ofirc = NSCreateObjectFileImageFromFile(path, &ofi);
     switch (ofirc) {
     case NSObjectFileImageSuccess:
-      if(dl_opcodes_debug) {
+      if(O.odebug) {
         printf("ofirc=NSObjectFileImageSuccess\n");
       }
       /* It was okay, so use NSLinkModule to link in the image */
@@ -335,7 +333,7 @@ void *dlopen(const char *path, int mode)
       make_private_module_public(module);
       break;
     case NSObjectFileImageInappropriateFile:
-       if(dl_opcodes_debug) {
+       if(O.odebug) {
         printf("ofirc=NSObjectFileImageInappropriateFile\n");
       }
      /* It may have been a dynamic library rather
@@ -435,46 +433,46 @@ int csoundLoadExternal(void *csound, const char* libraryPath)
     long length, olength;
     OENTRY *(*init)(ENVIRON*);
     long (*size)(void);
-    if(dl_opcodes_debug) {
-      printf("Opening '%s'.\n", libraryPath);
+    if(O.odebug) {
+      printf("Trying to open file '%s' as library.\n", libraryPath);
     }
     handle = csoundOpenLibrary(libraryPath);
     if(!handle) {
       return -1;
     }
-    if(dl_opcodes_debug) {
-      printf("Found handle\n");
+    if(O.odebug) {
+      printf("Found library handle.\n");
     }
     size = csoundGetLibrarySymbol(handle, "opcode_size");
     if(!size) {
       return -1;
     }
-    if(dl_opcodes_debug) {
-      printf("Found size\n");
+    if(O.odebug) {
+      printf("Found 'opcode_size' function.\n");
     }
     length = (*size)();
-    if(dl_opcodes_debug) {
+    if(O.odebug) {
       printf("Length=%d\n", length);
     }
     init = csoundGetLibrarySymbol(handle, "opcode_init");
     if(!init) {
       return -1;
     }
-    if(dl_opcodes_debug) {
-      printf("Found init\n");
-      printf("Calling init\n");
+    if(O.odebug) {
+      printf("Found 'opcode_init' function.\n");
+      printf("Calling 'opcode_init'.\n");
     }
     opcodlst_n = (*init)(&cenviron);
     olength = oplstend-opcodlst;
-    if(dl_opcodes_debug) {
-      printf("Got opcodlst %p\noplstend=%p, opcodlst=%p, length=%d\n",
+    if(O.odebug) {
+      printf("Got opcodlst 0x%x\noplstend=0x%x, opcodlst=0x%x, length=%d.\n",
              opcodlst_n, oplstend, opcodlst, olength);
-      printf("Adding %d(%d) -- first opcode is %s\n",
+      printf("Adding %d bytes (%d opcodes) -- first opcode is '%s'.\n",
              length, length/sizeof(OENTRY), opcodlst_n[0].opname);
     }
     opcodlst = (OENTRY*) mrealloc(opcodlst, olength*sizeof(OENTRY) + length);
     memcpy(opcodlst+olength, opcodlst_n, length);
-    oplstend = opcodlst +  olength + length/sizeof(OENTRY);
+    oplstend = opcodlst + olength + length/sizeof(OENTRY);
     return 0;
 }
 
@@ -488,14 +486,14 @@ int csoundLoadExternals(void *csound)
       struct dirent *file;
       char buffer[0x500];
       char *opcodedir = getenv("OPCODEDIR");
-      if(dl_opcodes_debug) {
-	printf("opcodedir=%s\n", opcodedir?opcodedir:"(null)");
+      if(O.odebug) {
+	printf("OPCODEDIR='%s'.\n", opcodedir?opcodedir:"(null)");
       }
       if(!opcodedir) {
         opcodedir = ".";
       }
-      if(dl_opcodes_debug) {
-	printf("opcodedir=%s\n", opcodedir?opcodedir:"(null)");
+      if(O.odebug) {
+	printf("OPCODEDIR='%s'.\n", opcodedir?opcodedir:"(null)");
       }
       directory = opendir(opcodedir);
       while((file = readdir(directory)) != 0) {
@@ -508,7 +506,7 @@ int csoundLoadExternals(void *csound)
     if(((ENVIRON *)csound)->oplibs_ == NULL) {
       return 1;
     }
-    printf("Loading libraries %s\n", ((ENVIRON *)csound)->oplibs_);
+    printf("Loading command-line libraries '%s'.\n", ((ENVIRON *)csound)->oplibs_);
     strcpy(buffer, ((ENVIRON *)csound)->oplibs_);
     libname = strtok(buffer, ",");
     while(libname != NULL) {
