@@ -1,0 +1,80 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{oscil1}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{oscil1}
+oscil1 --  Accesses table values by incremental sampling. \subsection*{Description}
+
+
+  Accesses table values by incremental sampling. 
+\subsection*{Syntax}
+
+
+ kr \textbf{oscil1}
+ idel, kamp, idur, ifn
+\subsection*{Initialization}
+
+
+ \emph{idel}
+ -- delay in seconds before \emph{oscil1}
+ incremental sampling begins. 
+
+
+ \emph{idur}
+ -- duration in seconds to sample through the \emph{oscil1}
+ table just once. A zero or negative value will cause all initialization to be skipped. 
+
+
+ \emph{ifn}
+ -- function table number. \emph{tablei, oscil1i}
+ require the extended guard point. 
+\subsection*{Performance}
+
+
+ \emph{kamp}
+ -- amplitude factor. 
+
+
+ \emph{oscil1}
+ accesses values by sampling once through the function table at a rate determined by \emph{idur}
+. For the first \emph{idel}
+ seconds, the point of scan will reside at the first location of the table; it will then begin moving through the table at a constant rate, reaching the end in another \emph{idur}
+ seconds; from that time on (i.e. after \emph{idel}
+ + \emph{idur}
+ seconds) it will remain pointing at the last location. Each value obtained from sampling is then multiplied by an amplitude factor \emph{kamp}
+ before being written into the result. 
+\subsection*{See Also}
+
+
+ \emph{table}
+, \emph{tablei}
+, \emph{table3}
+, \emph{oscil1i}
+, \emph{osciln}
+
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+oscil &Up &oscil1i
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

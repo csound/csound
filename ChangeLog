@@ -1,3 +1,13 @@
+2004-10-24  Michael Gogins <gogins@pipeline.com>
+
+	* Updated build system for gcc 3.4.2 (candidate), changed some flags to avoid
+    DLL relocation errors on Windows that caused problems with restarting CsoundVST,
+    and with debugging.
+    
+    * First draft of complete Csound 5 manual with Kevin Conder documentation included.
+    There are as yet many errors with tables and graphics, but all (or almost all) 
+    of the text appears to be good.
+
 2004-10-21  John ffitch  <jpff@codemist.co.uk>
 
 	* OOps/ugens6.c (delset, delrset): Round not truncate
@@ -13,9 +23,9 @@
 	easier use of algorithmic composition classes in other
 	Csound-based systems.
 
-        * Updated csound.pdf with API documentation.
+    * Updated csound.pdf with API documentation.
 
-        * Restored real-time audio code to more functional version.
+    * Restored real-time audio code to more functional version.
 
 2004-10-16  John ffitch  <jpff@codemist.co.uk>
 

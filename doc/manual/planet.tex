@@ -1,0 +1,164 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{planet}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{planet}
+planet --  Simulates a planet orbiting in a binary star system. \subsection*{Description}
+
+
+ \emph{planet}
+ simulates a planet orbiting in a binary star system. The outputs are the x, y and z coordinates of the orbiting planet. It is possible for the planet to achieve escape velocity by a close encounter with a star. This makes this system somewhat unstable. 
+\subsection*{Syntax}
+
+
+ ax, ay, az \textbf{planet}
+ kmass1, kmass2, ksep, ix, iy, iz, ivx, ivy, ivz, idelta [, ifriction]
+\subsection*{Initialization}
+
+
+ \emph{ix, iy, iz}
+ -- the initial x, y and z coordinates of the planet 
+
+
+ \emph{ivx, ivy, ivz}
+ -- the initial velocity vector components for the planet. 
+
+
+ \emph{idelta}
+ -- the step size used to approximate the differential equation. 
+
+
+ \emph{ifriction}
+ (optional, default=0) -- a value for friction, which can used to keep the system from blowing up 
+\subsection*{Performance}
+
+
+ \emph{ax, ay, az}
+ -- the output x, y, and z coodinates of the planet 
+
+
+ \emph{kmass1}
+ -- the mass of the first star 
+
+
+ \emph{kmass2}
+ -- the mass of the second star 
+\subsection*{Examples}
+
+
+  Here is an example of the planet opcode. It uses the files \emph{planet.orc}
+ and \emph{planet.sco}
+. 
+
+
+ \textbf{Example 1. Example of the planet opcode.}
+
+\begin{lstlisting}
+/* planet.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 44100
+ksmps = 1
+nchnls = 2
+
+; Instrument #1 - a planet oribiting in 3D space.
+instr 1
+  ; Create a basic tone.
+  kamp init 5000
+  kcps init 440
+  ifn = 1
+  asnd oscil kamp, kcps, ifn
+
+  ; Figure out its X, Y, Z coordinates.
+  km1 init 0.5
+  km2 init 0.35
+  ksep init 2.2
+  ix = 0
+  iy = 0.1
+  iz = 0
+  ivx = 0.5
+  ivy = 0
+  ivz = 0
+  ih = 0.0003
+  ifric = -0.1
+  ax1, ay1, az1 planet km1, km2, ksep, ix, iy, iz, \
+                       ivx, ivy, ivz, ih, ifric
+
+  ; Place the basic tone within 3D space.
+  kx downsamp ax1
+  ky downsamp ay1
+  kz downsamp az1
+  idist = 1
+  ift = 0
+  imode = 1
+  imdel = 1.018853416
+  iovr = 2
+  aw2, ax2, ay2, az2 spat3d asnd, kx, ky, kz, idist, \
+                            ift, imode, imdel, iovr
+
+  ; Convert the 3D sound to stereo.
+  aleft = aw2 + ay2
+  aright = aw2 - ay2
+
+  outs aleft, aright
+endin
+/* planet.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* planet.sco */
+; Table #1 a sine wave.
+f 1 0 16384 10 1
+
+; Play Instrument #1 for 10 seconds.
+i 1 0 10
+e
+/* planet.sco */
+        
+\end{lstlisting}
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Author: Hans Mikelson &December 1998
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 3.50
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+pitchamdf &Up &pluck
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

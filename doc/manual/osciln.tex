@@ -1,0 +1,70 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{osciln}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{osciln}
+osciln --  Accesses table values at a user-defined frequency. \subsection*{Description}
+
+
+  Accesses table values at a user-defined frequency. This opcode can also be written as \emph{oscilx}
+. 
+\subsection*{Syntax}
+
+
+ ar \textbf{osciln}
+ kamp, ifrq, ifn, itimes
+\subsection*{Initialization}
+
+
+ \emph{ifrq, itimes}
+ -- rate and number of times through the stored table. 
+
+
+ \emph{ifn}
+ -- function table number. 
+\subsection*{Performance}
+
+
+ \emph{kamp}
+ -- amplitude factor 
+
+
+ \emph{osciln}
+ will sample several times through the stored table at a rate of \emph{ifrq}
+ times per second, after which it will output zeros. Generates audio signals only, with output values scaled by \emph{kamp.}
+
+\subsection*{See Also}
+
+
+ \emph{table}
+, \emph{tablei}
+, \emph{table3}
+, \emph{oscil1}
+, \emph{oscil1i}
+
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+oscilikts &Up &oscils
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

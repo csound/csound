@@ -1,0 +1,75 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{oscil1i}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{oscil1i}
+oscil1i --  Accesses table values by incremental sampling with linear interpolation. \subsection*{Description}
+
+
+  Accesses table values by incremental sampling with linear interpolation. 
+\subsection*{Syntax}
+
+
+ kr \textbf{oscil1i}
+ idel, kamp, idur, ifn
+\subsection*{Initialization}
+
+
+ \emph{idel}
+ -- delay in seconds before \emph{oscil1}
+ incremental sampling begins. 
+
+
+ \emph{idur}
+ -- duration in seconds to sample through the \emph{oscil1}
+ table just once. A zero or negative value will cause all initialization to be skipped. 
+
+
+ \emph{ifn}
+ -- function table number. \emph{oscil1i}
+ requires the extended guard point. 
+\subsection*{Performance}
+
+
+ \emph{kamp}
+ -- amplitude factor 
+
+
+ \emph{oscil1i}
+ is an interpolating unit in which the fractional part of index is used to interpolate between adjacent table entries. The smoothness gained by interpolation is at some small cost in execution time (see also \emph{oscili}
+, etc.), but the interpolating and non-interpolating units are otherwise interchangeable. 
+\subsection*{See Also}
+
+
+ \emph{table}
+, \emph{tablei}
+, \emph{table3}
+, \emph{oscil1}
+, \emph{osciln}
+
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+oscil1 &Up &oscil3
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

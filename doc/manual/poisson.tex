@@ -1,0 +1,146 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{poisson}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{poisson}
+poisson --  Poisson distribution random number generator (positive values only). \subsection*{Description}
+
+
+  Poisson distribution random number generator (positive values only). This is an x-class noise generator. 
+\subsection*{Syntax}
+
+
+ ar \textbf{poisson}
+ klambda
+
+
+ ir \textbf{poisson}
+ klambda
+
+
+ kr \textbf{poisson}
+ klambda
+\subsection*{Performance}
+
+
+ \emph{klambda}
+ -- the mean of the distribution. Outputs only positive numbers. 
+
+
+  For more detailed explanation of these distributions, see: 
+
+
+ 
+\begin{enumerate}
+\item 
+
+ C. Dodge - T.A. Jerse 1985. Computer music. Schirmer books. pp.265 - 286
+
+\item 
+
+ D. Lorrain. A panoply of stochastic cannons. In C. Roads, ed. 1989. Music machine . Cambridge, Massachusetts: MIT press, pp. 351 - 379.
+
+
+\end{enumerate}
+\subsection*{Examples}
+
+
+  Here is an example of the poisson opcode. It uses the files \emph{poisson.orc}
+ and \emph{poisson.sco}
+. 
+
+
+ \textbf{Example 1. Example of the poisson opcode.}
+
+\begin{lstlisting}
+/* poisson.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  ; Generates a random number in a poisson distribution.
+  ; klambda = 1
+
+  i1 poisson 1
+
+  print i1
+endin
+/* poisson.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* poisson.sco */
+; Play Instrument #1 for one second.
+i 1 0 1
+e
+/* poisson.sco */
+        
+\end{lstlisting}
+ Its output should include a line like this: \begin{lstlisting}
+instr 1:  i1 = 1.000
+      
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{betarand}
+, \emph{bexprnd}
+, \emph{cauchy}
+, \emph{exprand}
+, \emph{gauss}
+, \emph{linrand}
+, \emph{pcauchy}
+, \emph{trirand}
+, \emph{unirand}
+, \emph{weibull}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Paris Smaragdis &MIT, Cambridge &1995
+
+\end{tabular}
+
+
+
+ 
+
+
+ Example written by Kevin Conder.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+pluck &Up &polyaft
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}
