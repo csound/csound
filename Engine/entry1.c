@@ -68,7 +68,12 @@ int    addka(void*,void*), subka(void*,void*), mulka(void*,void*), divka(void*,v
 int    addak(void*,void*), subak(void*,void*), mulak(void*,void*), divak(void*,void*), modak(void*,void*);
 int    addaa(void*,void*), subaa(void*,void*), mulaa(void*,void*), divaa(void*,void*), modaa(void*,void*);
 int    divzkk(void*,void*), divzka(void*,void*), divzak(void*,void*), divzaa(void*,void*);
-int    int1(void*,void*), frac1(void*,void*), rnd1(void*,void*), birnd1(void*,void*);
+int    int1(void*,void*), int1a(void*,void*);
+int    frac1(void*,void*), frac1a(void*,void*);
+int    int1_round(void*,void*), int1a_round(void*,void*);
+int    int1_floor(void*,void*), int1a_floor(void*,void*);
+int    int1_ceil(void*,void*), int1a_ceil(void*,void*);
+int    rnd1(void*,void*), birnd1(void*,void*);
 int    abs1(void*,void*), exp01(void*,void*), log01(void*,void*), sqrt1(void*,void*);
 int    sin1(void*,void*), cos1(void*,void*), tan1(void*,void*), asin1(void*,void*), acos1(void*,void*);
 int    atan1(void*,void*), sinh1(void*,void*), cosh1(void*,void*), tanh1(void*,void*), log101(void*,void*);
@@ -359,6 +364,9 @@ OENTRY opcodlst_1[] = {
 { "divz.aa", S(DIVZ),   4,      "a",    "aak",  NULL,   NULL,   divzaa  },
 { "int.i",  S(EVAL),    1,      "i",    "i",    int1                    },
 { "frac.i", S(EVAL),    1,      "i",    "i",    frac1                   },
+{ "round.i",S(EVAL),    1,      "i",    "i",    int1_round              },
+{ "floor.i",S(EVAL),    1,      "i",    "i",    int1_floor              },
+{ "ceil.i", S(EVAL),    1,      "i",    "i",    int1_ceil               },
 { "rnd.i",  S(EVAL),    1,      "i",    "i",    rnd1                    },
 { "birnd.i",S(EVAL),    1,      "i",    "i",    birnd1                  },
 { "abs.i",  S(EVAL),    1,      "i",    "i",    abs1                    },
@@ -378,6 +386,9 @@ OENTRY opcodlst_1[] = {
 { "tanh.i", S(EVAL),    1,      "i",    "i",    tanh1                   },
 { "int.k",  S(EVAL),    2,      "k",    "k",    NULL,   int1            },
 { "frac.k", S(EVAL),    2,      "k",    "k",    NULL,   frac1           },
+{ "round.k",S(EVAL),    2,      "k",    "k",    NULL,   int1_round      },
+{ "floor.k",S(EVAL),    2,      "k",    "k",    NULL,   int1_floor      },
+{ "ceil.k", S(EVAL),    2,      "k",    "k",    NULL,   int1_ceil       },
 { "rnd.k",  S(EVAL),    2,      "k",    "k",    NULL,   rnd1            },
 { "birnd.k",S(EVAL),    2,      "k",    "k",    NULL,   birnd1          },
 { "abs.k",  S(EVAL),    2,      "k",    "k",    NULL,   abs1            },
@@ -395,6 +406,11 @@ OENTRY opcodlst_1[] = {
 { "cosh.k", S(EVAL),    2,      "k",    "k",    NULL,   cosh1           },
 { "tanh.k", S(EVAL),    2,      "k",    "k",    NULL,   tanh1           },
 { "log10.k",S(EVAL),    2,      "k",    "k",    NULL,   log101          },
+{ "int.a",  S(EVAL),    4,      "a",    "a",    NULL, NULL, int1a       },
+{ "frac.a", S(EVAL),    4,      "a",    "a",    NULL, NULL, frac1a      },
+{ "round.a",S(EVAL),    4,      "a",    "a",    NULL, NULL, int1a_round },
+{ "floor.a",S(EVAL),    4,      "a",    "a",    NULL, NULL, int1a_floor },
+{ "ceil.a", S(EVAL),    4,      "a",    "a",    NULL, NULL, int1a_ceil  },
 { "abs.a",  S(EVAL),    4,      "a",    "a",    NULL,   NULL,   absa    },
 { "exp.a",  S(EVAL),    4,      "a",    "a",    NULL,   NULL,   expa    },
 { "log.a",  S(EVAL),    4,      "a",    "a",    NULL,   NULL,   loga    },

@@ -1,3 +1,22 @@
+2005-03-31	Istvan Varga	<istvan@csounds.com>
+	* Engine/entry1.c:
+	* OOps/aops.c:
+	  added a-rate int() and frac(), and round(), floor(), and ceil()
+	* Engine/express.c:
+	* Engine/rdorch.c:
+	* Top/main.c:
+	* H/prototyp.h:
+	  added << and >> operators, fixed order of precedence
+	  express(), expRESET(): use ENVIRON *csound pointer
+	  use less obvious label names for if...then
+	* Engine/oload.c:
+	* H/csoundCore.h:
+	* Top/csound.c:
+	  moved static invalue/outvalue function pointers to ENVIRON
+	* Opcodes/ugmoss.c:
+	  implemented << and >> shift operators
+	  fixed bitwise OR at k- and a-rate
+
 2005-03-31  John ffitch  <jpff@codemist.co.uk>
 
 	* Engine/express.c: Removed statics to environment structure

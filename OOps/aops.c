@@ -300,11 +300,90 @@ int int1(ENVIRON *csound, EVAL *p)              /* returns signed whole no. */
     return OK;
 }
 
+int int1a(ENVIRON *csound, EVAL *p)             /* returns signed whole no. */
+{
+    double intpart;
+    int    n;
+    for (n = 0; n < ksmps; n++) {
+      modf((double) p->a[n], &intpart);
+      p->r[n] = (MYFLT) intpart;
+    }
+    return OK;
+}
+
 int frac1(ENVIRON *csound, EVAL *p)             /* returns positive frac part */
 {
     double intpart, fracpart;
     fracpart = modf((double)*p->a, &intpart);
     *p->r = (MYFLT)fracpart;
+    return OK;
+}
+
+int frac1a(ENVIRON *csound, EVAL *p)            /* returns positive frac part */
+{
+    double intpart, fracpart;
+    int    n;
+    for (n = 0; n < ksmps; n++) {
+      fracpart = modf((double) p->a[n], &intpart);
+      p->r[n] = (MYFLT) fracpart;
+    }
+    return OK;
+}
+
+#ifdef RNDINT
+#undef RNDINT
+#endif
+#define RNDINT(x) ((long) ((double) (x) + ((double) (x) >= 0.0 ? 0.5 : -0.5)))
+
+#ifdef FLOOR
+#undef FLOOR
+#endif
+#define FLOOR(x) ((long) ((double) (x) >= 0.0 ? (x) : (x) - 0.99999999))
+
+#ifdef CEIL
+#undef CEIL
+#endif
+#define CEIL(x) ((long) ((double) (x) >= 0.0 ? (x) + 0.99999999 : (x)))
+
+int int1_round(ENVIRON *csound, EVAL *p)        /* round to nearest integer */
+{
+    *p->r = (MYFLT) (RNDINT(*p->a));
+    return OK;
+}
+
+int int1a_round(ENVIRON *csound, EVAL *p)       /* round to nearest integer */
+{
+    int n;
+    for (n = 0; n < ksmps; n++)
+      p->r[n] = (MYFLT) (RNDINT(p->a[n]));
+    return OK;
+}
+
+int int1_floor(ENVIRON *csound, EVAL *p)        /* round down */
+{
+    *p->r = (MYFLT) (FLOOR(*p->a));
+    return OK;
+}
+
+int int1a_floor(ENVIRON *csound, EVAL *p)       /* round down */
+{
+    int n;
+    for (n = 0; n < ksmps; n++)
+      p->r[n] = (MYFLT) (FLOOR(p->a[n]));
+    return OK;
+}
+
+int int1_ceil(ENVIRON *csound, EVAL *p)         /* round up */
+{
+    *p->r = (MYFLT) (CEIL(*p->a));
+    return OK;
+}
+
+int int1a_ceil(ENVIRON *csound, EVAL *p)        /* round up */
+{
+    int n;
+    for (n = 0; n < ksmps; n++)
+      p->r[n] = (MYFLT) (CEIL(p->a[n]));
     return OK;
 }
 
@@ -1502,8 +1581,8 @@ int invalset(ENVIRON *csound, INVAL *p)
 
 int kinval(ENVIRON *csound, INVAL *p)
 {
-    extern void InputValue(char *, MYFLT *);
-    InputValue(p->channelName, p->value);  /* in csound.c */
+    extern void InputValue(ENVIRON*, char*, MYFLT*);
+    InputValue(csound, p->channelName, p->value);  /* in csound.c */
     return OK;
 }
 
@@ -1523,8 +1602,8 @@ int outvalset(ENVIRON *csound, OUTVAL *p)
 
 int koutval(ENVIRON *csound, OUTVAL *p)
 {
-    extern void OutputValue(char *, MYFLT);
-    OutputValue(p->channelName, *p->value);  /* in csound.c */
+    extern void OutputValue(ENVIRON*, char*, MYFLT);
+    OutputValue(csound, p->channelName, *p->value);  /* in csound.c */
     return OK;
 }
 

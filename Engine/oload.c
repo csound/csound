@@ -202,11 +202,6 @@ const ENVIRON cenviron_ = {
         csoundListConfigurationVariables,
         csoundDeleteConfigurationVariable,
         csoundCfgErrorCodeToString,
-        playopen_dummy,
-        rtplay_dummy,
-        recopen_dummy,
-        rtrecord_dummy,
-        rtclose_dummy,
         csoundGetSizeOfMYFLT,
         csoundGetRtRecordUserData,
         csoundGetRtPlayUserData,
@@ -217,18 +212,25 @@ const ENVIRON cenviron_ = {
         csoundRealFFT,
         csoundInverseRealFFT,
         csoundRealFFTMult,
+        playopen_dummy,
+        rtplay_dummy,
+        recopen_dummy,
+        rtrecord_dummy,
+        rtclose_dummy,
+        (void (*)(void*, char*, MYFLT*)) NULL,
+        (void (*)(void*, char*, MYFLT)) NULL,
         /*
         * Data fields.
         */
-        DFLT_KSMPS, /*  ksmps */
-        DFLT_NCHNLS,  /*      nchnls */
-        DFLT_KSMPS,     /*      global_ksmps */
-        FL(0.0),        /*      global_ensmps */
-        FL(0.0),        /*      global_ekr */
-        FL(0.0),        /*      global_onedkr */
-        FL(0.0),        /*      global_hfkprd */
-        FL(0.0),        /*      global_kicvt */
-        0L,     /* global_kcounter */
+        DFLT_KSMPS,     /*  ksmps               */
+        DFLT_NCHNLS,    /*      nchnls          */
+        DFLT_KSMPS,     /*      global_ksmps    */
+        FL(0.0),        /*      global_ensmps   */
+        FL(0.0),        /*      global_ekr      */
+        FL(0.0),        /*      global_onedkr   */
+        FL(0.0),        /*      global_hfkprd   */
+        FL(0.0),        /*      global_kicvt    */
+        0L,             /* global_kcounter      */
         FL(0.0),      /*      esr */
         FL(0.0),      /*      ekr */
         NULL, NULL, NULL,     /* orchname, scorename, xfilename */
@@ -363,7 +365,6 @@ const ENVIRON cenviron_ = {
         NULL,           /* tokenlist  */
         TOKMAX,         /* toklength  */
         0,0,0,0,0,      /* acount, kcount, icount, Bcount, bcount; */
-        "",             /* xprmsg */
         NULL,           /* stringend; */
         NULL, NULL, NULL, NULL /* revp, pushp, argp, endlist */
 };
