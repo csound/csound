@@ -526,7 +526,14 @@ extern "C" {
 
   /* MIDI globals */
 
-#define MBUFSIZ 1024
+#define MBUFSIZ         (1024)
+#define MIDIINBUFMAX    (1024)
+#define MIDIINBUFMSK    (MIDIINBUFMAX-1)
+
+  typedef union {
+    unsigned long dwData;
+    unsigned char bData[4];
+  } MIDIMESSAGE;
 
   typedef struct {
     short  type;
@@ -555,6 +562,9 @@ extern "C" {
     void    *midiInUserData;
     void    *midiOutUserData;
     FILE    *mfp;
+    unsigned char mbuf[MBUFSIZ];
+    unsigned char *bufp, *endatp;
+    short   datreq, datcnt, fdatreq;
   } MGLOBAL;
 
   typedef struct ENVIRON_
