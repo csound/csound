@@ -89,7 +89,9 @@ extern  off_t lseek(int, off_t, int);
 #  define  u_short unsigned short
 #  define  u_int   unsigned int
 #  define  u_long  unsigned long
-#  include <sys/types.h>
+#ifdef HAVE_SYS_TYPES_H
+#      include <sys/types.h>
+#endif
 #  else
 #     ifdef __WATCOMC__
 #      define  u_char  unsigned char
@@ -116,7 +118,9 @@ extern  off_t lseek(int, off_t, int);
 #       define  O_NDELAY (0)
 #                  endif
 #      endif
+#ifdef HAVE_SYS_TYPES_H
 #      include <sys/types.h>
+#endif
 #     endif
 /*  RWD for WIN32 on VC++ */
 #         ifndef _MSC_VER

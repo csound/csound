@@ -58,6 +58,14 @@ static int  rtfd = 0;        /* init these to stdin */
 #    include <unistd.h>
 #endif
 
+#if HAVE_SYS_TIME_H
+#    include <sys/time.h>
+#endif
+
+#if HAVE_SYS_TYPES_H
+#    include <sys/types.h>
+#endif
+
 #ifdef SGI
 /************************************/
 /* obsolete SGI code                */
@@ -88,7 +96,6 @@ struct pollfd midipoll;
 #    define INBAUD    EXTB
      static struct sgttyb tty;
 #elif defined LINUX                              /* J. Mohr  1995 Oct 17 */
-#    include <sys/time.h>
 
 /* Include either termios.h or bsd/sgtty.h depending on autoconf tests */
 /* We prefer termios as it appears to be the newer interface */
@@ -496,6 +503,14 @@ void CALLBACK win32_midi_in_handler(HMIDIIN hmin, UINT wMsg, DWORD dwInstance,
 long GetMIDIData(void)
 {
   long n;
+#ifdef LINUX
+  /* For select() call, from David Ratajczak */
+  fd_set rfds;
+  struct timeval tv;
+  int retval;
+#endif
+  extern int csoundIsExternalMidiEnabled(void*);
+  extern long csoundExternalMidiRead(void*, u_char *, int);
   /**
    * Reads from user-defined MIDI input.
    */
@@ -519,12 +534,6 @@ long GetMIDIData(void)
 #else
 #ifdef SGI  /* for new SGI media library implementation*/
     int i, j;
-#endif
-#ifdef LINUX
-    /* For select() call, from David Ratajczak */
-    fd_set rfds;
-    struct timeval tv;
-    int retval;
 #endif
 
 #ifdef NeXTi

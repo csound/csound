@@ -72,8 +72,11 @@ extern void csoundReset(ENVIRON*);
 #include <unistd.h>
 #endif
 
+#ifdef HAVE_SYS_TYPES_H
+# include <sys/types.h>
+#endif
+
 #if defined(LINUX)
-#include <sys/types.h>
 #include <errno.h>
 #include <sched.h>
 #include <sys/mman.h>
