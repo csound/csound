@@ -148,7 +148,8 @@ int express(char *s)
         *t++ = c = *s++, open = 1;
       else if ( c == '(' || c == '+' || c == '-' || c == '*' || c == '/' ||
                 c == '%' || c == '>' || c == '<' || c == '=' || c == '&' ||
-                c == '|' || c == '?' || c == ':' || c == '#' || c == '¬') {
+                c == '|' || c == '?' || c == ':' || c == '#' || c == '\254' ||
+                c == '~') {
         if (c == '&') *(t-1) = BITCLR;
         else if (c == '|') *(t-1) = BITSET;
         else if (c == '#') *(t-1) = BITFLP;
@@ -209,7 +210,8 @@ int express(char *s)
       case BITSET:
       case BITFLP:      prec = 9;       break;
       case BITCLR:      prec = 10;      break;
-      case '¬':         prec = 11;      break;
+      case '~':
+      case '\254':      prec = 11;      break;
       case '(':         prec = 13;      break;
       default:
         if (((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) &&
@@ -323,7 +325,7 @@ int express(char *s)
         goto common_ops;
       }
       else if (prec >= BITOPS && argcnt == 1) { /* bit op:    */
-        if ((c = *(*st.revp)->str) == '¬')
+        if ((c = *(*st.revp)->str) == '\254' || c == '~')
           strcpy(op,"not");
         else printf(Str("Expression got lost\n"));
         pp->incount = 1;                    /*   copy 1 arg txts */
@@ -333,16 +335,16 @@ int express(char *s)
           XERROR(Str("misplaced relational op"))
 /*              printf("op=%s e=%c c=%c\n", op, e, c); */
         if (e == 'a') {                     /*   to complete optxt*/
-          if (c=='¬')
+          if (c=='\254' || c=='~')
             strcat(op,".a");
           outype = 'a';
         }
         else if (e == 'k') {
-          if (c == '¬') strcat(op,".k");
+          if (c == '\254' || c == '~') strcat(op,".k");
           outype = 'k';
         }
         else {
-          if (c == '¬') strcat(op,".i");
+          if (c == '\254' || c == '~') strcat(op,".i");
           outype = 'i';
         }
       }
@@ -521,12 +523,31 @@ int express(char *s)
 
 static int nontermin(int c)
 {
-    if (c == '(' || c == ')' || c == '\0'|| c == '^' || c == '+' ||
-        c == '-' || c == '*' || c == '/' || c == '%' || c == '>' ||
-        c == '<' || c == '=' || c == '!' || c == '&' || c == '|' ||
-        c == '?' || c == ':' )
-      return(0);
-    else return(1);
+    switch (c) {
+      case '(':
+      case ')':
+      case '\0':
+      case '^':
+      case '+':
+      case '-':
+      case '*':
+      case '/':
+      case '%':
+      case '>':
+      case '<':
+      case '=':
+      case '!':
+      case '&':
+      case '|':
+      case '#':
+      case '\254':
+      case '~':
+      case '?':
+      case ':':
+        return 0;
+      default:
+        return 1;
+    }
 }
 
 static void putokens(void)      /* for debugging check only */
