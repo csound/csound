@@ -110,7 +110,6 @@
 #undef synterrcnt
 #undef perferrcnt
 #undef MIDIoutDONE
-#undef midi_out
 #undef strmsg
 #undef instxtanchor
 #undef actanchor
@@ -360,7 +359,6 @@
 #define synterrcnt csound->synterrcnt_
 #define perferrcnt csound->perferrcnt_
 #define MIDIoutDONE csound->MIDIoutDONE_
-#define midi_out csound->midi_out_
 #define strmsg  csound->strmsg_
 #define instxtanchor csound->instxtanchor_
 #define actanchor csound->actanchor_
@@ -445,6 +443,11 @@
 #undef printf
 #endif
 #define printf csound->Printf
+
+#ifdef Str
+#undef Str
+#endif
+#define Str(x) (((ENVIRON*) csound)->LocalizeString(x))
 
 #define LINKAGE long opcode_size(void)          \
                 {                               \

@@ -54,6 +54,10 @@ extern "C" {
 #define OK        (0)
 #define NOTOK     (-1)
 
+/* IV - Feb 19 2005: value to pass to longjmp() to return with success */
+/* (e.g. after --help or running an utility) */
+#define CSOUND_EXITJMP_SUCCESS  256
+
 #define INSTR     1
 #define ENDIN     2
 #define OPCODE    3
@@ -151,9 +155,7 @@ extern "C" {
     char    *argoffspace, *strargspace, *filnamspace;
     char    *infilename, *outfilename, *playscore;
     char    *Linename, *Midiname, *FMidiname;
-#ifdef __BEOS__
-    char *Midioutname; /* jjk 09252000 - MIDI output device, -Q option */
-#endif
+    char    *Midioutname;   /* jjk 09252000 - MIDI output device, -Q option */
     int     expr_opt;       /* IV - Jan 27 2005: for --expression-opt */
   } OPARMS;
 
@@ -817,7 +819,6 @@ extern "C" {
     MYFLT         *cpsocint_, *cpsocfrc_;
     int           inerrcnt_, synterrcnt_, perferrcnt_;
     int           MIDIoutDONE_;
-    int           midi_out_;
     char          strmsg_[100];
     INSTRTXT      instxtanchor_;
     INSDS         actanchor_;
@@ -831,7 +832,6 @@ extern "C" {
     int           tran_nchnls_;
     MYFLT         tpidsr_, pidsr_, mpidsr_, mtpdsr_;
     char          *sadirpath_;
-    char          *oplibs_;
     OPARMS        *oparms_;
     void          *hostdata_;
     OPCODINFO     *opcodeInfo_;    /* IV - Oct 20 2002 */

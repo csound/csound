@@ -410,7 +410,11 @@ extern "C" {
   static void csoundDefaultMessageCallback(void *csound,
                                            const char *format, va_list args)
   {
+#if defined(WIN32) || defined(mills_macintosh)
     vfprintf(stdout, format, args);
+#else
+    vfprintf(stderr, format, args);
+#endif
   }
 
   static void (*csoundMessageCallback_)(void *csound,
