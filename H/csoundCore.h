@@ -752,6 +752,9 @@ typedef struct ENVIRON_
   int           MIDIINbufIndex_;
   MIDIMESSAGE   MIDIINbuffer2_[MIDIINBUFMAX];
   int           displop4_;
+  void          *file_opened_;
+  int		file_max_;
+  int		file_num_;
 } ENVIRON;
 
 extern ENVIRON cenviron_;

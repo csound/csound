@@ -382,7 +382,10 @@ ENVIRON cenviron_ = {
         1024,   /*      rtout_dev */
         0,      /*      MIDIINbufIndex */
         {{0}},  /*      MIDIINbuffer2 */
-        -1      /*      displop4 */
+        -1,     /*      displop4 */
+        NULL,	/*	file_opened  */
+        0,	/*	file_max */
+        -1	/*	file_num */
 };
 
 OPARMS O;
