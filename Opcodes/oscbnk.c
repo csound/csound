@@ -1586,7 +1586,7 @@ static int vco2_table_size(int npart, VCO2_TABLE_PARAMS *tp)
 /* from table number "base_ftable" if it is greater than zero.           */
 /* The return value is the first ftable number that is not allocated.    */
 
-//extern FUNC* hfgens(EVTBLK*);
+/extern FUNC* hfgens(EVTBLK*); */
 
 static int vco2_tables_create(ENVIRON *csound, int waveform, int base_ftable,
                               VCO2_TABLE_PARAMS *tp)
@@ -1614,7 +1614,7 @@ static int vco2_tables_create(ENVIRON *csound, int waveform, int base_ftable,
     /* clear table array if already initialised */
     if (vco2_tables[waveform] != NULL) {
       vco2_delete_table_array(csound, waveform);
-      //if (csound->oparms_->msglevel & WARNMSG)
+      /*if (csound->oparms_->msglevel & WARNMSG) */
         csound->err_printf_("WARNING: redefined table array for waveform %d\n",
                       (waveform > 4 ? 4 - waveform : waveform));
     }
