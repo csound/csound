@@ -21,6 +21,8 @@
     02111-1307 USA
 */
 
+/* Realtime MIDI using Portmidi library */
+
 #include "cs.h"                                       /*    PMIDI.C    */
 #include "midiops.h"
 #include "oload.h"
@@ -37,8 +39,6 @@ PmEvent *mbuf, *bufp, *bufend, *endatp;
 static PmEvent *sexbuf, *sexp, *sexend;
 
 MGLOBAL mglob;
-/* MEVENT  *Midevtblk, *FMidevtblk; */
-/* MCHNBLK *m_chnbp[MAXCHAN];    ptrs to chan ctrl blks */
 static MYFLT MastVol = FL(1.0);     /* maps ctlr 7 to ctlr 9 */
 void  m_chn_init(MEVENT *, short);
 extern void  schedofftim(INSDS *), deact(INSDS *), beep(void);
@@ -48,11 +48,7 @@ void csoundExternalMidiDeviceOpen(void*);
 void csoundExternalMidiDeviceClose(void*);
 void OpenMIDIDevice(void);
 
-/* static int   LCtl = ON; */
-/* static int   NVoices = 1; */
 static int   defaultinsno = 0;
-/* extern INSDS *insalloc[]; */
-/* extern short *insbusy; */
 extern OPARMS O;
 extern INX inxbas;
 extern int pgm2ins[];   /* IV May 2002 */
