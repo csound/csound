@@ -492,7 +492,7 @@ extern "C" {
     struct resetter *next;
   } RESETTER;
 
-#define MAXCHAN       96        /* for 6 ports */
+#define MAXCHAN 16      /* 16 MIDI channels; only one port for now */
 
 #include "sort.h"
 #include "midiops2.h"
