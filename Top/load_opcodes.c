@@ -312,7 +312,7 @@ int csoundLoadExternal(void *csound, const char* libraryPath) {
     OENTRY *opcodlst_n;
     long length, olength;    
     
-    OENTRY *(*init)(GLOBALS*);
+    OENTRY *(*init)(ENVIRON*);
     long (*size)(void);    
     
     handle = csoundOpenLibrary(libraryPath);
@@ -374,13 +374,13 @@ int csoundLoadExternals(void *csound)
 {
     char *libname;
     char buffer[256];
-    if(cenviron.oplibs == NULL)
+    if(((ENVIRON *)csound)->oplibs_ == NULL)
     {
         return 1;   
     }
         
-    printf("Loading libraries %s\n", cenviron.oplibs);
-    strcpy(buffer, cenviron.oplibs);
+    printf("Loading libraries %s\n", ((ENVIRON *)csound)->oplibs_);
+    strcpy(buffer, ((ENVIRON *)csound)->oplibs_);
     libname = strtok(buffer, ",");    
     
     while(libname != NULL)
