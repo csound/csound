@@ -91,8 +91,6 @@ int paBlockingWriteOpen(ENVIRON *csound,
 #ifdef __MACH__
   maxLag =  ((int)ekr)*((maxLag + (int)ekr-1)%krate); /* Round to multiple */
 #endif
-  //pabs->actualBufferSampleCount = csound->GetKsmps(csound)
-  //  * csound->GetNchnls(csound);
   pabs->actualBufferSampleCount = maxLag * csound->GetNchnls(csound);
   pabs->actualBuffer = (float *)
     mcalloc(pabs->actualBufferSampleCount * sizeof(float));
@@ -132,6 +130,8 @@ int paBlockingWriteStreamCallback(const void *input,
                                   void *userData)
 {
   PA_BLOCKING_STREAM *pabs = (PA_BLOCKING_STREAM *)userData;
+  if(!pabs) return paContinue;
+  if(!pabs->paStream) return paContinue;
   float *paOutput = (float *)output;
   csoundWaitThreadLock(pabs->csound, pabs->paLock, 100);
   memcpy(paOutput, pabs->actualBuffer,
@@ -143,13 +143,15 @@ int paBlockingWriteStreamCallback(const void *input,
 void paBlockingWrite(PA_BLOCKING_STREAM *pabs, int samples, MYFLT *buffer)
 {
   size_t i;
+  if(!pabs) return;
+  if(!pabs->actualBuffer) return;
   for (i = 0; i < samples; i++, pabs->currentIndex++) {
-    pabs->actualBuffer[pabs->currentIndex] = (MYFLT) buffer[i];
     if(pabs->currentIndex >= pabs->actualBufferSampleCount) {
       csoundNotifyThreadLock(pabs->csound, pabs->paLock);
       csoundWaitThreadLock(pabs->csound, pabs->clientLock, 100);
       pabs->currentIndex = 0;
     }
+    pabs->actualBuffer[pabs->currentIndex] = (MYFLT) buffer[i];
   }
 }
 
