@@ -758,7 +758,7 @@ typedef struct ENVIRON_
 # define __cdecl
 #endif
 
-#if (defined(LINUX) || defined(MACOSX)) && !defined(FLTK_GUI)
+#if (defined(LINUX) || defined(MACOSX)) && !defined(USE_GUI)
 #  define POLL_EVENTS()     (1)
 #endif
 
