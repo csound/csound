@@ -19,6 +19,7 @@
     along with Csound; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+
 /*******************************************************\
 *   mixer.c                                             *
 *   mix a set of sound files with arbitary starts       *
@@ -67,7 +68,7 @@ typedef struct inputs {
     char *      fname;          /* Name of scale table file */
     scalepoint *fulltable;      /* Scaling table */
     scalepoint *table;          /* current position in table */
-    int         fd;             /* File descriptor handle */
+    SNDFILE    *fd;             /* File descriptor handle */
     short       channels[5];    /* destinations of channels */
     int         non_clear;      /* Boolean to say if fiddled mixing */
     SOUNDIN *   p;              /* Csound structure */
@@ -81,24 +82,28 @@ int debug   = 0;
 
 static void InitScaleTable(int);
 static MYFLT gain(int, int);
-static int  MXsndgetset(inputs *);
-static void MixSound(int, int);
-static void (*audtran)(char *, int);
-static void (*spoutran)(MYFLT *);
+static SNDFILE *MXsndgetset(inputs *);
+static void MixSound(int, SNDFILE*);
 
 /* Externs */
-extern long getsndin(int, MYFLT *, long, SOUNDIN *);
-extern void bytrev2(char *, int), bytrev4(char *, int);
-extern int  openout(char *, int), bytrevhost(void), getsizformat(int);
+extern long getsndin(SNDFILE*, MYFLT *, long, SOUNDIN *);
+extern int  openout(char *, int), getsizformat(int);
 extern void writeheader(int, char *);
 extern char *getstrformat(int);
-extern int  sndgetset(SOUNDIN *);
+extern SNDFILE *sndgetset(SOUNDIN *);
 extern short sfsampsize(int);
+extern int type2sf(int);
+#ifdef  USE_DOUBLE
+#define sf_write_MYFLT  sf_write_double
+#else
+#define sf_write_MYFLT  sf_write_float
+#endif
 
 /* Static global variables */
 static unsigned    outbufsiz;
 static MYFLT        *outbuf; 
 static  int        outrange = 0;            /* Count samples out of range */
+        OPARMS	   OO;
 
 void *memfiles = NULL;
 void rlsmemfiles(void)
@@ -141,6 +146,57 @@ static void usage(char *mesg)
     exit(1);
 }
 
+char set_output_format(char c, char outformch)
+{
+    if (OO.outformat && (O.msglevel & WARNMSG)) {
+      printf(Str(X_1198,"WARNING: Sound format -%c has been overruled by -%c\n"),
+             outformch, c);
+    }
+
+    switch (c) {
+    case 'a':
+      OO.outformat = AE_ALAW;    /* a-law soundfile */
+      break;
+
+    case 'c':
+      OO.outformat = AE_CHAR;    /* signed 8-bit soundfile */
+      break;
+
+    case '8':
+      OO.outformat = AE_UNCH;    /* unsigned 8-bit soundfile */
+      break;
+
+    case 'f':
+      OO.outformat = AE_FLOAT;   /* float soundfile */
+      break;
+
+    case 's':
+      OO.outformat = AE_SHORT;   /* short_int soundfile*/
+      break;
+
+    case 'l':
+      OO.outformat = AE_LONG;    /* long_int soundfile */
+      break;
+
+    case 'u':
+      OO.outformat = AE_ULAW;    /* mu-law soundfile */
+      break;
+
+    case '3':
+      OO.outformat = AE_24INT;   /* 24bit packed soundfile*/
+      break;
+
+    case 'e':
+      OO.outformat = AE_FLOAT;   /* float soundfile (for rescaling) */
+      break;
+
+    default:
+      return outformch; /* do nothing */
+    };
+
+  return c;
+}
+
 #ifndef POLL_EVENTS
 int POLL_EVENTS(void)
 {
@@ -154,12 +210,12 @@ int
 main(int argc, char **argv)
 {
     char        *inputfile = NULL;
-    int         infd, outfd;
+    SNDFILE     *infd, *outfd;
     int         i;
     char        outformch='s', c, *s, *filnamp;
     char        *envoutyp;
-    OPARMS      OO;
     int         n = 0;
+    SF_INFO     sfinfo;
 
     init_getstring(argc, argv);
 /*     response_expand(&argc, &argv); /\* Permits "@xxx" response files *\/ */
@@ -172,6 +228,8 @@ main(int argc, char **argv)
           OO.filetyp = TYP_AIFF;
         else if (strcmp(envoutyp,"WAV") == 0)
           OO.filetyp = TYP_WAV;
+        else if (strcmp(envoutyp,"IRCAM") == 0)
+          OO.filetyp = TYP_IRCAM;
         else {
           err_printf(Str(X_61,"%s not a recognized SFOUTYP env setting"),
                      envoutyp);
@@ -202,7 +260,7 @@ main(int argc, char **argv)
             if (strcmp(O.outfilename,"stdin") == 0)
               die(Str(X_156,"-o cannot be stdin"));
             if (strcmp(O.outfilename,"stdout") == 0) {
-#ifdef THINK_C
+#if defined mac_classic || defined SYMANTEC || defined BCC || defined __WATCOMC__ || defined WIN32
               die(Str(X_1244,"stdout audio not supported"));
 #else
               if ((O.stdoutfd = dup(1)) < 0) /* redefine stdout */
@@ -218,6 +276,15 @@ main(int argc, char **argv)
                 printf(Str(X_95,"-A overriding local default WAV out"));
             }
             OO.filetyp = TYP_AIFF;     /* AIFF output request  */
+            break;
+          case 'J':
+            if (OO.filetyp == TYP_AIFF ||
+                OO.filetyp == TYP_WAV) {
+              if (envoutyp == NULL) goto outtyp;
+              if (O.msglevel & WARNMSG)
+                printf(Str(X_110,"WARNING: -J overriding local default AIFF/WAV out\n"));
+            }
+            OO.filetyp = TYP_IRCAM;      /* IRCAM output request */
             break;
           case 'W':
             if (OO.filetyp == TYP_AIFF) {
@@ -292,43 +359,13 @@ main(int argc, char **argv)
             OO.sfheader = 0;           /* skip sfheader  */
             break;
           case 'c':
-            if (OO.outformat) goto outform;
-            outformch = c;
-            OO.outformat = AE_CHAR;     /* 8-bit char soundfile */
-            break;
-          case '8':
-            if (OO.outformat) goto outform;
-            outformch = c;
-            OO.outformat = AE_UNCH;     /* 8-bit unsigned char file */
-            break;
-#ifdef never
           case 'a':
-            if (OO.outformat) goto outform;
-            outformch = c;
-            OO.outformat = AE_ALAW;     /* a-law soundfile */
-            break;
-#endif
-#ifdef ULAW
           case 'u':
-            if (OO.outformat) goto outform;
-            outformch = c;
-            OO.outformat = AE_ULAW;     /* mu-law soundfile */
-            break;
-#endif
+          case '8':
           case 's':
-            if (OO.outformat) goto outform;
-            outformch = c;
-            OO.outformat = AE_SHORT;    /* short_int soundfile */
-            break;
           case 'l':
-            if (OO.outformat) goto outform;
-            outformch = c;
-            OO.outformat = AE_LONG;     /* long_int soundfile */
-            break;
           case 'f':
-            if (OO.outformat) goto outform;
-            outformch = c;
-            OO.outformat = AE_FLOAT;    /* float soundfile */
+            outformch = set_output_format(c, outformch);
             break;
           case 'R':
             O.rewrt_hdr = 1;
@@ -459,9 +496,15 @@ main(int argc, char **argv)
       else O.outfilename = "test";
     }
 #endif
-    outfd = openout(O.outfilename, 1);
+    sfinfo.frames = -1;
+    sfinfo.samplerate = (int)(esr = mixin[0].p->sr);
+    sfinfo.channels = nchnls = mixin[0].p->nchanls ;
+    sfinfo.format = type2sf(O.filetyp)|format2sf(O.outformat);
+    sfinfo.sections = 0;
+    sfinfo.seekable = 0;
+    outfd = sf_open_fd(openout(O.outfilename, 1), SFM_WRITE, &sfinfo, 1);
+    if (O.rewrt_hdr) sf_command(outfd, SFC_SET_UPDATE_HEADER_AUTO, NULL, 0);
     esr = (MYFLT)mixin[0].p->sr;
-    nchnls = outputs;
     outbufsiz = NUMBER_OF_SAMPLES * outputs * O.sfsampsize;/* calc outbuf size */
     outbuf = mmalloc((long)outbufsiz);                 /*  & alloc bufspace */
     printf(Str(X_1382,"writing %d-byte blks of %s to %s %s\n"),
@@ -469,17 +512,12 @@ main(int argc, char **argv)
            O.filetyp == TYP_AIFF ? "(AIFF)" :
            O.filetyp == TYP_WAV ? "(WAV)" : "");
     MixSound(n, outfd);
-    close(outfd);
+    sf_close(outfd);
     if (O.ringbell) putc(7, stderr);
     return 0;
 
  outtyp:
     usage(Str(X_1113,"output soundfile cannot be both AIFF and WAV"));
-    return 0;
- outform:
-    sprintf(errmsg,Str(X_1198,"sound output format cannot be both -%c and -%c"),
-            outformch, c);
-    usage(errmsg);
     return 0;
 }
 
@@ -569,10 +607,10 @@ gain(int n, int i)
                             mixin[n].table->yr*(MYFLT)(i - mixin[n].table->x0));
 }
 
-static int
+static SNDFILE*
 MXsndgetset(inputs *ddd)
 {
-    int          infd;
+    SNDFILE *infd;
     MYFLT        dur;
     static  ARGOFFS  argoffs = {0};     /* these for sndgetset */
     static  OPTXT    optxt;
@@ -603,7 +641,7 @@ MXsndgetset(inputs *ddd)
 }
 
 static void 
-MixSound(int n, int outfd)
+MixSound(int n, SNDFILE *outfd)
 {
     MYFLT buffer[4 * NUMBER_OF_SAMPLES];
     MYFLT ibuffer[4 * NUMBER_OF_SAMPLES];
@@ -659,7 +697,7 @@ MixSound(int n, int outfd)
           }
           if (read_in < size) {
             mixin[i].start = 0x7ffffff;
-            close(mixin[i].fd);
+            sf_close(mixin[i].fd);
           }
           else more_to_read++;
         }
@@ -672,15 +710,9 @@ MixSound(int n, int outfd)
         if (buffer[j] > max) max = buffer[j], lmaxpos = sample+j, maxtimes=1;
         if (buffer[j] < min) min = buffer[j], lminpos = sample+j, mintimes=1;
       }
-      spoutran(buffer);
-      audtran(outbuf, O.sfsampsize*this_block*outputs);
-      write(outfd, outbuf, O.sfsampsize*this_block*outputs);
+      sf_write_MYFLT(outfd, outbuf, O.sfsampsize*this_block*outputs/nchnls);
       block++;
       bytes += O.sfsampsize*this_block*outputs;
-      if (O.rewrt_hdr) {
-        rewriteheader(outfd, bytes);
-        lseek(outfd, 0L, SEEK_END); /* Place at end again */
-      }
       if (O.heartbeat) {
         if (O.heartbeat==1) {
 #ifdef SYMANTEC
