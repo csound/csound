@@ -115,6 +115,7 @@ void dispset(WINDAT *, MYFLT *, long, char *, int, char *);
 void display(WINDAT *);
 MYFLT intpow(MYFLT, long);
 FUNC *ftfindp(MYFLT *argp);
+FUNC *ftnp2find(MYFLT *);
 
 static  MYFLT   *gbloffbas;
 
@@ -208,6 +209,7 @@ GLOBALS cglob_ = {
         display,
         intpow,
         ftfindp,
+        ftnp2find,
         /*
         * Data fields.
         */
