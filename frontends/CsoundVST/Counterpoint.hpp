@@ -111,7 +111,8 @@ public:
   boost::numeric::ublas::vector<int> RhyNotes;
   int Fits[3];
 
-  void initialize(int mostnotes, int mostvoices);
+  virtual void initialize(int mostnotes, int mostvoices);
+  virtual void clear();
 
   Counterpoint() : messageCallback(0), LowestSemitone(24), HighestSemitone(72)
   {
