@@ -22,7 +22,6 @@ if sys.platform[:5] == 'linux':
 elif sys.platform == 'cygwin':
     platform = 'cygwin'
     customCPPPATH.append('c:/apcc/tools/Python23/include')
-    customLIBPATH.append('cygwin_import_libs')
 elif sys.platform[:3] == 'win':
     # For the basic build you need MinGW, MSys, and libsndfile.
     # Add them here:
