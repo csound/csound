@@ -1,4 +1,4 @@
-/*  
+/*
     spectra.h:
 
     Copyright (C) 1995 Barry Vercoe

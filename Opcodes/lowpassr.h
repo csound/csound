@@ -1,4 +1,4 @@
-/*  
+/*
     lowpassr.h:
 
     Copyright (C) 1998 Gabriel Maldonado

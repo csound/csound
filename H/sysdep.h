@@ -1,4 +1,4 @@
-/*  
+/*
     sysdep.h:
 
     Copyright (C) 1991 Barry Vercoe, John ffitch
@@ -71,7 +71,7 @@
 #  define exit(x) die("");
 # endif
 # define DIRSEP ':'
-#elif defined(SYMANTEC)   
+#elif defined(SYMANTEC)
 # include <stdlib.h>
 # include <unix.h>       /* for open() etc protos on mac */
 # define  SFDIGDES

@@ -1,4 +1,4 @@
-/*  
+/*
     csdl.h:
 
     Copyright (C) 2002 John ffitch
@@ -472,5 +472,5 @@
                     return localfgens;                           \
                 }
 
-    
+
 

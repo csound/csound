@@ -1,4 +1,4 @@
-/*  
+/*
     wave-terrain.h:
 
     Copyright (C) 2002 Matt Gilliard, John ffitch
@@ -40,7 +40,7 @@ typedef struct {
   MYFLT *xarr, *yarr;
 
   AUXCH aux_x, aux_y;
-  
+
   MYFLT sizx, sizy;
   MYFLT theta;
 

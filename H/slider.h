@@ -1,4 +1,4 @@
-/*  
+/*
     slider.h:
 
     Copyright (C) 1995 John ffitch

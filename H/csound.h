@@ -239,7 +239,7 @@ extern "C" {
         * and to synchronize performance with audio input and output.
         */
         PUBLIC int csoundPerformKsmps(void *csound);
- 
+
         /**
         * Senses input events, and performs one control sample worth (ksmps) of
         * audio output.
@@ -522,12 +522,12 @@ extern "C" {
                           void (*externalMidiDeviceCloseCallback)(void *csound));
 
         /**
-        * Returns true if external MIDI is enabled, and false otherwise. 
+        * Returns true if external MIDI is enabled, and false otherwise.
         */
         PUBLIC int csoundIsExternalMidiEnabled(void *csound);
 
         /**
-        * Sets whether external MIDI is enabled. 
+        * Sets whether external MIDI is enabled.
         */
         PUBLIC void csoundSetExternalMidiEnabled(void *csound, int enabled);
 
@@ -702,33 +702,33 @@ extern "C" {
         * audio playback and recording.
         */
         PUBLIC void csoundSetRtcloseCallback(void *csound, void (*rtclose__)(void));
-        
+
         /**
         * Returns whether Csound is in debug mode.
         */
         PUBLIC int csoundGetDebug(void *csound);
-        
+
         /**
         * Sets whether Csound is in debug mode.
         */
         PUBLIC void csoundSetDebug(void *csound, int debug);
-        
+
         /**
-        * Returns the length of a function table, or -1 if the table does 
+        * Returns the length of a function table, or -1 if the table does
         * not exist.
         */
         PUBLIC int csoundTableLength(void *csound, int table);
-        
+
         /**
         * Returns the value of a slot in a function table.
         */
         PUBLIC MYFLT csoundTableGet(void *csound, int table, int index);
-        
+
         /**
         * Sets the value of a slot in a function table.
         */
         PUBLIC void csoundTableSet(void *csound, int table, int index, MYFLT value);
-        
+
         /**
         * Creates and starts a new thread of execution.
         * Returns an opaque pointer that represents the thread on success, or
@@ -736,7 +736,7 @@ extern "C" {
         * The userdata pointer is passed to the thread routine.
         */
         PUBLIC void *csoundCreateThread(void *csound, int (*threadRoutine)(void *userdata), void *userdata);
-        
+
         /**
         * Waits until the indicated thread's routine has finished.
         * Returns the value returned by the thread routine.
@@ -747,25 +747,25 @@ extern "C" {
         * Creates and returns a monitor object, or null if not successful.
         */
         PUBLIC void *csoundCreateThreadLock(void *csound);
-        
+
         /**
         * Waits on the indicated monitor object for the indicated period.
         * The function returns either when the monitor object is notified,
         * or when the period has elapsed, whichever is sooner.
         * If the period is 0, the wait is infinite.
-        */        
+        */
         PUBLIC void csoundWaitThreadLock(void *csound, void *lock, size_t milliseconds);
 
         /**
         * Notifies the indicated monitor object.
-        */        
+        */
         PUBLIC void csoundNotifyThreadLock(void *csound, void *lock);
-        
+
         /**
         * Destroys the indicated monitor object.
         */
         PUBLIC void csoundDestroyThreadLock(void *csound, void *lock);
-        
+
 #ifdef __cplusplus
 };
 #endif /* __cplusplus */

@@ -1,4 +1,4 @@
-/*  
+/*
     ieee80.h:
 
     Copyright (C) 1992 Bill Gardener, Dan Ellis

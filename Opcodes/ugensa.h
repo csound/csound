@@ -1,4 +1,4 @@
-/*  
+/*
     ugensa.h:
 
     Copyright (C) 1997 J. Michael Clarke, based on ideas from CHANT (IRCAM)

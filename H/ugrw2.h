@@ -1,4 +1,4 @@
-/*  
+/*
     ugrw2.h:
 
     Copyright (C) 1995 Robin Whittle

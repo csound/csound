@@ -1,4 +1,4 @@
-/*  
+/*
     biquad.h:
 
     Copyright (C) 1998, 1999, 2001 by Hans Mikelson, Matt Gerassimoff, John ffitch
@@ -56,7 +56,7 @@ typedef struct {
                                 /* Structure for vco, analog modeling opcode */
 typedef struct {
     OPDS    h;
-    MYFLT   *ar, 
+    MYFLT   *ar,
             *xamp, *xcps, *wave, *pw, *sine, *maxd, *leak, *inyq, *iphs, *iskip;
     MYFLT   ynm1, ynm2, leaky, nyq;
     short   ampcod, cpscod;
@@ -96,7 +96,7 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *outx, *outy, *outz, 
+    MYFLT   *outx, *outy, *outz,
             *s, *r, *b, *hstep, *inx, *iny, *inz, *skip, *iskip;
     MYFLT   valx, valy, valz;
 } LORENZ;

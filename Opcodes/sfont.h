@@ -1,4 +1,4 @@
-/*  
+/*
     sfont.h:
 
     Copyright (C) 2000 Gabriel Maldonado

@@ -1,4 +1,4 @@
-/*  
+/*
     nlfilt.h:
 
     Copyright (C) 1996 John ffitch, Richard Dobson

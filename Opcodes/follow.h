@@ -1,4 +1,4 @@
-/*  
+/*
     follow.h:
 
     Copyright (C) 1994, 1999 Paris Smaragdis, John ffitch

@@ -1,4 +1,4 @@
-/*  
+/*
     wave.h:
 
     Copyright (C) 1995, 2001 Barry Vercoe, Richard Dobson, John ffitch

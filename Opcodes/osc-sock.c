@@ -1,4 +1,4 @@
-/*  
+/*
     OS-sock.c:
 
     Copyright (C) 2001, 2003 Nicola Bernadino, Stefan Kersten, John ffitch
@@ -518,7 +518,7 @@ int oscInitReceive(void)
     rt.numReceiveBuffers = MAX_NUM_RECV_BUF;
     rt.numQueuedObjects = MAX_NUM_QUEUE;
     rt.numCallbackListNodes = MAX_NUM_CB;
-    
+
     result = OSCInitReceive(&rt);
 
     if (!result)
@@ -546,7 +546,7 @@ void oscReceivePacket(int sockFD)
     int capacity = OSCGetReceiveBufferSize();
     int morePackets = 1;
     char *buf;
-    
+
     while(morePackets) {
       pb = OSCAllocPacketBuffer();
       if (!pb) {
@@ -733,7 +733,7 @@ oscStateStruct *oscStateMake(int maxIns, int maxService, int maxGroup)
       for (j = 0; j < serviceNo; j++) {
         oscState->ins[i].service[j].state = FALSE;
 
-        oscState->ins[i].service[j].group = 
+        oscState->ins[i].service[j].group =
           (oscGroupStruct *)malloc(sizeof(oscGroupStruct)*groupNo);
         if (oscState->ins[i].service[j].group == NULL)
           return oscState;
@@ -877,7 +877,7 @@ void oscGroupAddMethod(const oscContext *c)
       __DEBUG("oscGroupAddMethod: parent address %p", parent);
     }
 #endif
-    
+
     OSCNewMethod(groupNoString, parent, oscGroupCB, groupP, &mqInfo);
 }
 
@@ -940,7 +940,7 @@ int osc_send_set(OSCSEND *p)
     else {
       return initerror("OSCsend: need an address string, not a number (osc_send_set)");
     }
-    
+
     if (*p->ihost) {
       long hostNo;
 

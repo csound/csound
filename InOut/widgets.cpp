@@ -1460,7 +1460,7 @@ extern "C" int save_snap(FLSAVESNAPS* p)
 #elif defined(LINUX) || defined(__MACH__)
     // put here some warning message!!
     if (fl_ask("Saving could overwrite the old file\n"
-	       "Are you sure you want to save?")==0) return OK;
+               "Are you sure you want to save?")==0) return OK;
 #endif
     char     s[MAXNAME];
     string  filename;
@@ -2162,7 +2162,7 @@ extern "C" int EndScroll(FLSCROLLEND *p)
     ADDR_STACK adrstk = AddrStack.back();
     if (strcmp( adrstk.h->optext->t.opcod, "FLscroll"))
       return
-	initerror("FLscroll_end: invalid stack pointer: verify its placement");
+        initerror("FLscroll_end: invalid stack pointer: verify its placement");
     if (adrstk.count != stack_count)
       return initerror("FLscroll_end: invalid stack count: "
                 "verify FLscroll/FLscroll_end count and placement");
@@ -2190,7 +2190,7 @@ extern "C" int EndTabs(FLTABSEND *p)
     ADDR_STACK adrstk = AddrStack.back();
     if (strcmp( adrstk.h->optext->t.opcod, "FLtabs"))
       return
-	initerror("FLscroll_end: invalid stack pointer: verify its placement");
+        initerror("FLscroll_end: invalid stack pointer: verify its placement");
     if (adrstk.count != stack_count)
       return initerror("FLtabs_end: invalid stack count: "
                 "verify FLtabs/FLtabs_end count and placement");
@@ -2872,8 +2872,8 @@ extern "C" int fl_slider_bank(FLSLIDERBANK *p)
       string stemp;
       if (tempname == " ") {
         char s[40];
-	sprintf(s, "%d", j);
-	stemp = s;
+        sprintf(s, "%d", j);
+        stemp = s;
       }
       else
         getline(sbuf, stemp, '@');
@@ -2957,7 +2957,7 @@ extern "C" int fl_slider_bank(FLSLIDERBANK *p)
       case EXP_ : //exponential
         if (min == 0 || max == 0)
           return
-	    initerror("FLsliderBank: zero is illegal in exponential operations");
+            initerror("FLsliderBank: zero is illegal in exponential operations");
         range = max - min;
         o->range(0,range);
         p->slider_data[j].base = ::pow((max / min), 1/range);
@@ -3165,13 +3165,13 @@ extern "C" int fl_knob(FLKNOB *p)
       break;
     case EXP_ : //exponential
       {
-	MYFLT min = p->min = *p->imin, max = *p->imax;
-	if (min == 0 || max == 0)
-	  return initerror("FLknob: zero is illegal in exponential operations");
-	MYFLT range = max - min;
-	o->range(0,range);
-	p->base = ::pow((max / min), 1/range);
-	o->callback((Fl_Callback*)fl_callbackExponentialKnob,(void *) p);
+        MYFLT min = p->min = *p->imin, max = *p->imax;
+        if (min == 0 || max == 0)
+          return initerror("FLknob: zero is illegal in exponential operations");
+        MYFLT range = max - min;
+        o->range(0,range);
+        p->base = ::pow((max / min), 1/range);
+        o->callback((Fl_Callback*)fl_callbackExponentialKnob,(void *) p);
       } break;
     default:
       {
@@ -3317,7 +3317,7 @@ extern "C" int fl_button_bank(FLBUTTONBANK *p)
         Fl_Button *w;
         char    *btName=  new char[30];
         allocatedStrings.push_back(btName);
-	sprintf(btName, "%d", z);
+        sprintf(btName, "%d", z);
         z++;
         switch (type) {
         case 1: w= new Fl_Button(x, y, 10, 10, btName); break;

@@ -1,4 +1,4 @@
-/*  
+/*
     ugmoss.h:
 
     Copyright (C) 2001 Willian 'Pete' Moss

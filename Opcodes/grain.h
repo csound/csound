@@ -1,4 +1,4 @@
-/*  
+/*
     grain.h:
 
     Copyright (C) 1994 Paris Smaragdis, John ffitch

@@ -1,4 +1,4 @@
-/*  
+/*
     ugens7.h:
 
     Copyright (C) 1995 Michael Clarke, based on ideas from CHANT (IRCAM)

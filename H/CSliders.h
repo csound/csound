@@ -1,4 +1,4 @@
-/*  
+/*
     CSliders.h:
 
     Copyright (C) 1995 John ffitch
@@ -162,7 +162,7 @@ protected:
   virtual void PostNcDestroy();
   virtual void OnOK();
   //}}AFX_VIRTUAL
-  
+
   // Implementation
 protected:
   CWnd* m_pParent;

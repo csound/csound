@@ -532,9 +532,6 @@ else:
     libCsoundSources.append('InOut/rtpa.c')
     libCsoundSources.append('InOut/pa_blocking.c')
 
-print commonEnvironment['usePortMIDI']
-print portmidiFound
-print ((commonEnvironment['usePortMIDI']) and (portmidiFound==1))
 if ((commonEnvironment['usePortMIDI']) and (portmidiFound==1)):
     print 'CONFIGURATION DECISION: Building with PortMIDI.'
     libCsoundSources.append('InOut/pmidi.c')

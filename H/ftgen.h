@@ -1,6 +1,6 @@
 #ifndef FTGEN_H
 #define FTGEN_H
-/*  
+/*
     ftgen.h:
 
     Copyright (C) 1991 Barry Vercoe
@@ -34,13 +34,13 @@ typedef struct {
         MYFLT   *ifno, *p1, *p2, *p3, *p4, *p5, *argums[VARGMAX];
 } FTGEN;
 
-typedef struct { 
+typedef struct {
         OPDS    h;
         MYFLT   *ifilno, *iflag, *argums[VARGMAX];
 } FTLOAD;  /* gab 30 jul 2002 */
 
 
-typedef struct { 
+typedef struct {
         OPDS    h;
         MYFLT   *ifilno, *ktrig, *iflag, *argums[VARGMAX];
         FTLOAD  p;

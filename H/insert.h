@@ -1,4 +1,4 @@
-/*  
+/*
     insert.h:
 
     Copyright (C) 1991, 2002 Barry Vercoe, Istvan Varga

@@ -1,4 +1,4 @@
-/*  
+/*
     wavegde.h:
 
     Copyright (C) 1994 Michael A. Casey, John ffitch

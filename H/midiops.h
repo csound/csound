@@ -1,4 +1,4 @@
-/*  
+/*
     midiops.h:
 
     Copyright (C) 1995 Barry Vercoe, Gabriel maldonado, Istvan Varga, John ffitch

@@ -1,9 +1,9 @@
 #ifndef PITCH_H
 #define PITCH_H
-/*  
+/*
     pitch.h:
 
-    Copyright (C) 1999 John ffitch, Istvan Varga, Peter Neubäcker, 
+    Copyright (C) 1999 John ffitch, Istvan Varga, Peter Neubäcker,
                        rasmus ekman, Phil Burk
 
     This file is part of Csound.
@@ -275,7 +275,7 @@ int pinkset(PINKISH *p);
 int pitch(PITCH *p);
 int pitchamdf(PITCHAMDF *p);
 int pitchamdfset(PITCHAMDF *p);
-int pitchset(PITCH *p); 
+int pitchset(PITCH *p);
 int prealloc(CPU_PERC *p);
 int trnseg(TRANSEG *p);
 int trnset(TRANSEG *p);

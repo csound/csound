@@ -117,14 +117,14 @@ void recopen_(int nchnls_, int dsize_, float sr_, int scale_)
         rtin_dev = paStreamParameters_.device = Pa_GetDefaultInputDevice();
         err_printf(Str(X_30,
                        "No PortAudio input device given; "
-		       "defaulting to device %d\n"), rtin_dev);
+                       "defaulting to device %d\n"), rtin_dev);
         paStreamParameters_.suggestedLatency =
-	  Pa_GetDeviceInfo(rtin_dev)->defaultLowInputLatency;
+          Pa_GetDeviceInfo(rtin_dev)->defaultLowInputLatency;
       }
       else {
         paStreamParameters_.device = rtin_dev;
-			/* VL: dodgy... only works well with ASIO */
-	paStreamParameters_.suggestedLatency = ((double) oMaxLag) / ((double) sr_);
+                        /* VL: dodgy... only works well with ASIO */
+        paStreamParameters_.suggestedLatency = ((double) oMaxLag) / ((double) sr_);
       }
       paStreamParameters_.hostApiSpecificStreamInfo = NULL;
 #if defined(LINUX)
@@ -132,7 +132,7 @@ void recopen_(int nchnls_, int dsize_, float sr_, int scale_)
 #endif
     paStreamParameters_.channelCount = nchnls_;
     paStreamParameters_.sampleFormat = paFloat32;
-	/* VL: moved to five lines above */
+        /* VL: moved to five lines above */
     /*paStreamParameters_.suggestedLatency = ((double) oMaxLag) / ((double) sr_);*/
     err_printf("Suggested PortAudio input latency = %f seconds.\n",
                paStreamParameters_.suggestedLatency);
@@ -159,7 +159,7 @@ void recopen_(int nchnls_, int dsize_, float sr_, int scale_)
     /* nzerotran = zerosf;   */    /* quick zeros */
     inbufrem = O.inbufsamps;
     isfopen = 1;
-    err_printf(Str(X_39,"Opened PortAudio input device %i.\n"), 
+    err_printf(Str(X_39,"Opened PortAudio input device %i.\n"),
         paStreamParameters_.device);
     return;
  error:
@@ -194,18 +194,18 @@ void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
     else {
 #endif
       if (rtout_dev == 1024) {
-	rtout_dev = paStreamParameters_.device = Pa_GetDefaultOutputDevice();
-	paStreamParameters_.suggestedLatency =
-	  Pa_GetDeviceInfo(rtout_dev)->defaultLowOutputLatency;
-	err_printf(Str(X_30,
-		       "No PortAudio output device given; "
-		       "defaulting to device %d.\n"),
-		   paStreamParameters_.device);
+        rtout_dev = paStreamParameters_.device = Pa_GetDefaultOutputDevice();
+        paStreamParameters_.suggestedLatency =
+          Pa_GetDeviceInfo(rtout_dev)->defaultLowOutputLatency;
+        err_printf(Str(X_30,
+                       "No PortAudio output device given; "
+                       "defaulting to device %d.\n"),
+                   paStreamParameters_.device);
       }
       else {
-	paStreamParameters_.device = rtout_dev;
-	/* VL: dodgy... only works well with ASIO */
-	paStreamParameters_.suggestedLatency = ((double) oMaxLag) / ((double) sr_);
+        paStreamParameters_.device = rtout_dev;
+        /* VL: dodgy... only works well with ASIO */
+        paStreamParameters_.suggestedLatency = ((double) oMaxLag) / ((double) sr_);
       }
       paStreamParameters_.hostApiSpecificStreamInfo = NULL;
 #if defined(LINUX)
@@ -238,7 +238,7 @@ void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
     nzerotran = zerosf;       /* quick zeros */
     outbufrem = O.outbufsamps;
     osfopen = 1;
-    err_printf(Str(X_39,"Opened PortAudio output device %i.\n"), 
+    err_printf(Str(X_39,"Opened PortAudio output device %i.\n"),
                paStreamParameters_.device);
     return;
  error:

@@ -570,13 +570,23 @@ typedef struct ENVIRON_
   void (*ScoreEvent)(void *csound, char type, MYFLT *pFields, long numFields);
   void (*SetExternalMidiDeviceOpenCallback)(void *csound,
                        void (*midiDeviceOpenCallback)(void *hostData));
+#ifdef PORTMIDI
+  void (*SetExternalMidiReadCallback)(void *csound,
+                        int (*readMidiCallback)(void *hostData,
+                                                void *midiData,
+                                                int size));
+  void (*SetExternalMidiWriteCallback)(void *csound,
+                        int (*writeMidiCallback)(void *hostData,
+                                                 void *midiData));
+#else
   void (*SetExternalMidiReadCallback)(void *csound,
                         int (*readMidiCallback)(void *hostData,
                                                 unsigned char *midiData,
-                                                              int size));
+                                                int size));
   void (*SetExternalMidiWriteCallback)(void *csound,
                         int (*writeMidiCallback)(void *hostData,
                                                  unsigned char *midiData));
+#endif
   void (*SetExternalMidiDeviceoseCallback)(void *csound,
                         void (*midiDeviceCloseCallback)(void *hostData));
   int (*IsExternalMidiEnabled)(void *csound);
@@ -786,20 +796,20 @@ typedef struct ENVIRON_
   void          *file_opened_;
   int           file_max_;
   int           file_num_;
-  int		nchanik_;
-  MYFLT*	chanik_;
-  int		nchania_;
-  MYFLT*	chania_;
-  int		nchanok_;
-  MYFLT*	chanok_;
-  int		nchanoa_;
-  MYFLT*	chanoa_;
+  int           nchanik_;
+  MYFLT*        chanik_;
+  int           nchania_;
+  MYFLT*        chania_;
+  int           nchanok_;
+  MYFLT*        chanok_;
+  int           nchanoa_;
+  MYFLT*        chanoa_;
   FGDATA        ff;
   FUNC**        flist;
   int           maxfnum;
   GEN           *gensub;
   int           genmax;
-  int		ftldno;
+  int           ftldno;
 } ENVIRON;
 
 extern ENVIRON cenviron_;
