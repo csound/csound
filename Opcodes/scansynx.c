@@ -259,11 +259,13 @@ int scsnux_init(ENVIRON *csound, PSCSNUX *p)
         for (j = 0 ; j != len ; j++) {
 #ifdef USING_CHAR
           p->f[ilen+j] = (f->ftable[ilen+j] != 0 ? 1 : 0);
-          if (p->f[ilen+j]) printf("%.0f: %d %d\n", *p->i_f, i, j);
+          if (p->f[ilen+j])
+            csound->Message(csound, "%.0f: %d %d\n", *p->i_f, i, j);
 #else
           int wd = (ilen+j)>>LOG_BITS_PER_UNIT; /* dead reckonng would be faster */
           int bt = (ilen+j)&(BITS_PER_UNIT-1);
-          printf("%.0f: %d %d -> wd%d/bt%d\n", *p->i_f, i, j, wd, bt);
+          csound->Message(csound,
+                          "%.0f: %d %d -> wd%d/bt%d\n", *p->i_f, i, j, wd, bt);
           p->f[wd] |= (1<<bt);
 #endif
         }
@@ -285,7 +287,8 @@ int scsnux_init(ENVIRON *csound, PSCSNUX *p)
         int j;
         char *pp = mfp->beginp;
         if ((i=strncmp(pp, MATRIX, MATLEN))) {
-          printf("%d: Looking for (%d)%s Found %.12s\n", i, MATLEN, MATRIX, pp);
+          csound->Message(csound, "%d: Looking for (%d)%s Found %.12s\n",
+                                  i, MATLEN, MATRIX, pp);
           return csound->InitError(csound, "Not a valid matrix");
         }
         else pp += MATLEN;
@@ -306,15 +309,12 @@ int scsnux_init(ENVIRON *csound, PSCSNUX *p)
             int wd = (i*len+j)>>LOG_BITS_PER_UNIT;
             int bt = (i*len+j)&(BITS_PER_UNIT-1);
             p->f[wd] |= (1<<bt);
-/*             printf("%.0f: %d %d -> wd%d/bt%d %.8x\n", */
-/*                    *p->i_f, i, j, wd, bt, p->f[wd]); */
           }
           else {
-            printf("(%d,%d) is out of range\n", i, j);
+            csound->Message(csound, "(%d,%d) is out of range\n", i, j);
           }
 #endif
           while (*pp++ != '\n') ;
-/*           printf("Read: %d %d [pp=%p end = %p]\n", i, j, pp, mfp->endp); */
         }
       }
     }
@@ -372,7 +372,7 @@ int scsnux_init(ENVIRON *csound, PSCSNUX *p)
         p->v[i] = f->ftable[i];
     }
     /* Cache update rate over to local structure */
-    p->rate = *p->i_rate * esr;
+    p->rate = *p->i_rate * csound->esr;
 
       /* Initialize index */
     p->idx  = 0;
@@ -433,7 +433,7 @@ int scsnux(ENVIRON *csound, PSCSNUX *p)
     long idx   = p->idx;
     MYFLT rate = p->rate;
 
-    for (n = 0 ; n != ksmps ; n++) {
+    for (n = 0 ; n != csound->ksmps ; n++) {
 
       /* Put audio input in external force */
       p->ext[exti] = p->a_ext[n];
@@ -544,7 +544,6 @@ int scsnsx_init(ENVIRON *csound, PSCSNSX *p)
       }
       if (oscil_interp<1 || oscil_interp>4) oscil_interp = 4;
       p->oscil_interp = oscil_interp;
-/*       printf("interP %d\n", oscil_interp); */
       p->tlen = t->flen;
       /* Check that trajectory is within bounds */
       for (i = 0 ; i != p->tlen ; i++)
@@ -587,7 +586,7 @@ int scsnsx(ENVIRON *csound, PSCSNSX *p)
 
     switch (p->oscil_interp) {
     case 1:
-      for (i = 0 ; i != ksmps ; i++) {
+      for (i = 0 ; i != csound->ksmps ; i++) {
       /* Do various interpolations to get output sample ... */
 /*      MYFLT x     = phs - (int)phs; */
         int ph = (int)phs;
@@ -598,7 +597,7 @@ int scsnsx(ENVIRON *csound, PSCSNSX *p)
       }
       break;
     case 2:
-      for (i = 0 ; i != ksmps ; i++) {
+      for (i = 0 ; i != csound->ksmps ; i++) {
       /* Do various interpolations to get output sample ... */
         int ph = (int)phs;
         MYFLT x     = phs - ph;
@@ -611,7 +610,7 @@ int scsnsx(ENVIRON *csound, PSCSNSX *p)
       }
       break;
     case 3:
-      for (i = 0 ; i != ksmps ; i++) {
+      for (i = 0 ; i != csound->ksmps ; i++) {
       /* Do various interpolations to get output sample ... */
         int ph = (int)phs;
         MYFLT x     = phs - ph;
@@ -626,7 +625,7 @@ int scsnsx(ENVIRON *csound, PSCSNSX *p)
       }
       break;
     case 4:
-      for (i = 0 ; i != ksmps ; i++) {
+      for (i = 0 ; i != csound->ksmps ; i++) {
       /* Do various interpolations to get output sample ... */
         int ph = (int)phs;
         MYFLT x     = phs - ph;

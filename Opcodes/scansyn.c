@@ -127,7 +127,6 @@ void listadd(PSCSNU *p)
     struct scsn_elem *i = &scsn_list;
     while(i->next != NULL) {
       if (i->id==p->id) {
-/*         printf("Reusing id %d\n", i->id); */
         i->p = p;               /* Reuse the space */
         return;
       }
@@ -137,18 +136,17 @@ void listadd(PSCSNU *p)
     i->next = (struct scsn_elem *)calloc(1, sizeof(struct scsn_elem));
     i->p = p;
     i->id = p->id;
-    i->next->next = NULL;       /* ??? was i->next = NULL which is clearly wrong! */
-/*     printf("scsn_list of length %d\n", cnt+1); */
+    i->next->next = NULL;   /* ??? was i->next = NULL which is clearly wrong! */
 }
 
 #ifdef never
-/* This code is not used as csoudn has no dealloc method */
+/* This code is not used as csound has no dealloc method */
 /* remove from list */
 void listrm(PSCSNU *p)
 {
     struct scsn_elem *q;
     struct scsn_elem *i = &scsn_list;
-    printf("remove from scsn_listd\n");
+    csound->Message(csound, "remove from scsn_listd\n");
     while (i->next->p != p) {
       i = i->next;
       if (i == NULL)
@@ -297,7 +295,7 @@ int scsnu_init(ENVIRON *csound, PSCSNU *p)
     }
 
     /* Cache update rate over to local structure */
-    p->rate = *p->i_rate * esr;
+    p->rate = *p->i_rate * csound->esr;
 
       /* Initialize index */
     p->idx = 0;
@@ -355,7 +353,7 @@ int scsnu_play(ENVIRON *csound, PSCSNU *p)
     int n;
     int len = p->len;
 
-    for (n = 0 ; n != ksmps ; n++) {
+    for (n = 0 ; n != csound->ksmps ; n++) {
 
       /* Put audio input in external force */
       p->ext[p->exti] = p->a_ext[n];
@@ -496,7 +494,7 @@ int scsns_play(ENVIRON *csound, PSCSNS *p)
 
     switch (p->oscil_interp) {
     case 1:
-      for (i = 0 ; i != ksmps ; i++) {
+      for (i = 0 ; i != csound->ksmps ; i++) {
       /* Do various interpolations to get output sample ... */
         PSCSNU *pp = p->p;
 /*        MYFLT x = phs - (int)phs; */
@@ -508,7 +506,7 @@ int scsns_play(ENVIRON *csound, PSCSNS *p)
       }
       break;
     case 2:
-      for (i = 0 ; i != ksmps ; i++) {
+      for (i = 0 ; i != csound->ksmps ; i++) {
       /* Do various interpolations to get output sample ... */
         PSCSNU *pp = p->p;
         MYFLT x = phs - (int)phs;
@@ -523,7 +521,7 @@ int scsns_play(ENVIRON *csound, PSCSNS *p)
       }
       break;
     case 3:
-      for (i = 0 ; i != ksmps ; i++) {
+      for (i = 0 ; i != csound->ksmps ; i++) {
       /* Do various interpolations to get output sample ... */
         PSCSNU *pp = p->p;
         MYFLT x = phs - (int)phs;
@@ -540,7 +538,7 @@ int scsns_play(ENVIRON *csound, PSCSNS *p)
       }
       break;
     case 4:
-      for (i = 0 ; i != ksmps ; i++) {
+      for (i = 0 ; i != csound->ksmps ; i++) {
       /* Do various interpolations to get output sample ... */
         PSCSNU *pp = p->p;
         MYFLT x = phs - (int)phs;

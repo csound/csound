@@ -78,28 +78,9 @@ int shakerset(ENVIRON *csound, SHAKER *p)
     p->gain_norm = FL(0.0005);
     p->shake_num = (int)*p->times;
     ADSR_keyOn(&p->envelope);
-    p->kloop = (int)(p->h.insdshead->offtim * ekr) - (int)(ekr* *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
+               - (int)(csound->ekr * *p->dettack);
     p->freq = -FL(1.0);        /* So will get changed */
-/*     printf("Shaker_set: num_beans=%ld\twait_time=%ld\tshake_num=%ld\n" */
-/*            "\tshake_speed=%f\tres_freq=%f\n" */
-/*            "\tcoll_damp=%f\tshakeEnergy=%f\tnoiseGain=%f\n" */
-/*            "\tgain_norm=%f\tkloop=%d\n", */
-/*            p->num_beans,p->wait_time,p->shake_num, */
-/*            p->shake_speed,p->res_freq,p->coll_damp,p->shakeEnergy, */
-/*            p->noiseGain,p->gain_norm,p->kloop); */
-/* printf("Env:\tvalue=%f\ttarget=%f\trate=%f\n" */
-/*        "state=%d\tattackRate=%f\tdecayRate=%f\n" */
-/*        "sustainLevel=%f\treleaseRate=%f\n", */
-/*        p->envelope.value,p->envelope.target,p->envelope.rate,p->envelope.state, */
-/*        p->envelope.attackRate,p->envelope.decayRate,p->envelope.sustainLevel, */
-/*        p->envelope.releaseRate); */
-/* printf("BiQ:\tzeroCoeffs[0] = %f\tzeroCoeffs[1] = %f\npoleCoeffs[0] = %f\t" */
-/*        X_1131,"poleCoeffs[1] = %f\ngain = %f\tinputs[0] = %f\t" */
-/*        "inputs[1] = %f\nlastOutput = %f\n",     */
-/*        p->filter.zeroCoeffs[0], p->filter.zeroCoeffs[1], */
-/*        p->filter.poleCoeffs[0], p->filter.poleCoeffs[1], */
-/*        p->filter.gain, p->filter.inputs[0], */
-/*        p->filter.inputs[1], p->filter.lastOutput); */
     return OK;
 }
 
@@ -131,7 +112,7 @@ int shaker(ENVIRON *csound, SHAKER *p)
       p->shake_num = 0;
     }
     gain *= p->num_beans;       /* Save work in loop */
-    for (n=0; n<ksmps; n++) {
+    for (n=0; n<csound->ksmps; n++) {
         MYFLT   lastOutput;
         MYFLT   temp;
 
@@ -168,5 +149,4 @@ int shaker(ENVIRON *csound, SHAKER *p)
     p->shakeEnergy = sEnergy;
     return OK;
 }
-
 

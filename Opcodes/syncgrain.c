@@ -76,15 +76,15 @@ int syncgrain_process(ENVIRON *csound, syncgrain *p)
     int *streamon = (int *)p->streamon.auxp;
     float start = p->start, frac = p->frac;
     float *index = (float *) p->index.auxp, *envindex = (float *) p->envindex.auxp;
-    int vecpos, vecsize=ksmps, firststream = p->firststream;
+    int vecpos, vecsize=csound->ksmps, firststream = p->firststream;
     int numstreams = p->numstreams, olaps = p->olaps;
     int count = p->count, i,j, newstream;
     int datasize = p->datasize, envtablesize = p->envtablesize;
 
     pitch  = *p->pitch;
-    fperiod = esr/(*p->fr);
+    fperiod = csound->esr/(*p->fr);
     amp =    *p->amp;
-    grsize = esr * *p->grsize;
+    grsize = csound->esr * *p->grsize;
     if (grsize<1) {
       csound->PerfError(csound, "grain size smaller than 1 sample\n");
       return NOTOK;
@@ -163,11 +163,9 @@ int syncgrain_process(ENVIRON *csound, syncgrain *p)
     return OK;
 }
 
-
 static OENTRY localops[] = {
 {"syncgrain", sizeof(syncgrain), 5, "a", "kkkkkiii",(SUBR)syncgrain_init, NULL,(SUBR)syncgrain_process }
 };
-
 
 LINKAGE
 
