@@ -2022,7 +2022,7 @@ FUNC *hfgens(EVTBLK *evtblkp)               /* create ftable using evtblk data *
     if (!fno) {                               /* fno = 0, automatic number */
       do {
         fno = ++ftldno;
-      } while (fno<maxfnum || flist[fno]==NULL);
+      } while (fno<maxfnum && flist[fno]!=NULL);
       if (fno==maxfnum) {
         int size = maxfnum+1;
         FUNC **nn;
