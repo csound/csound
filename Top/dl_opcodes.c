@@ -488,8 +488,14 @@ int csoundLoadExternals(void *csound)
       struct dirent *file;
       char buffer[0x500];
       char *opcodedir = getenv("OPCODEDIR");
+      if(dl_opcodes_debug) {
+	printf("opcodedir=%s\n", opcodedir?opcodedir:"(null)");
+      }
       if(!opcodedir) {
         opcodedir = ".";
+      }
+      if(dl_opcodes_debug) {
+	printf("opcodedir=%s\n", opcodedir?opcodedir:"(null)");
       }
       directory = opendir(opcodedir);
       while((file = readdir(directory)) != 0) {
