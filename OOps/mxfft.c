@@ -29,7 +29,10 @@
 static char *rcsid = "$Id$";
 /*
  *      $Log$
- *      Revision 1.3  2004-06-07 11:33:09  jpff
+ *      Revision 1.4  2004-09-27 05:52:31  jpff
+ *      Minor coding
+ *
+ *      Revision 1.3  2004/06/07 11:33:09  jpff
  *      line endings
  *
  *      Revision 1.2  2004/05/31 15:53:06  jpff
@@ -258,7 +261,7 @@ fftmx(MYFLT *a, MYFLT *b, int ntot, int n, int nspan, int isn, int m,
 /*************************** APRIL 1991 POW & POW2 not WORKING.. REPLACE *******
                     cd = 2.0 * (pow2 ( sin((double)0.5 * dr * rad)) );
 *******************************************************************************/
-    xx =  sin((double)0.5 * dr * rad);
+    xx =  sin(0.5 * dr * rad);
     cd = 2.0 * xx * xx;
     sd = sin(dr * rad);
     kk = 1;
@@ -836,8 +839,8 @@ reals_(MYFLT *a, MYFLT *b, int n, int isn)
     double      xx;     /******* ADDED APRIL 1991 ******/
     /* adjust  input array pointers (called from C) */
     a--;        b--;
-    inc=abs(isn);
-    nf=abs(n);
+    inc = abs(isn);
+    nf = abs(n);
     if (nf*isn==0) {
       err_printf(Str(X_1663,"\nerror - zero in reals parameters : %d : %d "),n,isn);
       return;

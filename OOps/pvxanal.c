@@ -656,19 +656,21 @@ double besseli( double x)
     return ans;
 }
 
-void kaiser(MYFLT *win,int len,double Beta)
+void kaiser(MYFLT *win, int len, double Beta)
 {
     MYFLT *ft = win;
-    double i,xarg = 1.0;        /*xarg = amp scalefactor */
-    for (i = -len/2.0 + 0.1 ; i < len/2.0 ; i++)
+    double i, xarg = 1.0;        /*xarg = amp scalefactor */
+    for (i = -len/2.0 + 0.1 ; i < len/2.0 ; i++) {
+      double z = 2.0*i/(double)(len - 1);
       *ft++ = (MYFLT) (xarg *
-                       besseli((Beta * sqrt(1.0-pow((2.0*i/(len - 1)), 2.0)))) /
-                       besseli( Beta));
+                       besseli(Beta * sqrt(1.0-z*z)) /
+                       besseli(Beta));
+    }
     /*  assymetrical hack: sort out first value! */
     win[0] = win[len-1];
 }
 
-void vonhann(MYFLT *win,int winLen,int even)
+void vonhann(MYFLT *win, int winLen, int even)
 {
     MYFLT ftmp;
     int i;
