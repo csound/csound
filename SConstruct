@@ -105,6 +105,9 @@ opts.Add('generateZip',
 opts.Add('buildLoris',
     'Set to 1 to build the Loris Python extension and opcodes',
     1)
+opts.Add('prefix',
+    'Base directory for installs.  Defaults to /usr/local.',
+    '/usr/local')
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -959,8 +962,10 @@ if commonEnvironment['generateZip']:
 
 # INSTALL OPTIONS
         
-OPCODE_DIR = "/usr/local/share/csound/opcodes"
-BIN_DIR = "/usr/local/bin"
+PREFIX = commonEnvironment['prefix']
+        
+OPCODE_DIR = PREFIX + "/lib/csound/opcodes"
+BIN_DIR = PREFIX + "/bin"
 
 installOpcodes = Alias('install-opcodes', 
     Install(OPCODE_DIR, pluginLibraries)) 
