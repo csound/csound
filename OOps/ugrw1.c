@@ -964,8 +964,7 @@ int ptblchkw(TABLEW *p)
  */
 int tblsetw(TABLEW *p)
 {
-    itblchkw(p);
-    return OK;
+    return itblchkw(p);
 }
 
 /* tblsetwkt()
@@ -977,8 +976,7 @@ int tblsetw(TABLEW *p)
  * Call the ptblchkw() function to do the work.  */
 int tblsetwkt(TABLEW *p)
 {
-    ptblchkw(p);
-    return OK;
+    return ptblchkw(p);
 }
 
 /* itablew()
@@ -1275,8 +1273,7 @@ int    tablewkt(TABLEW *p)
  * between these i time and perf time.  */
 int    tableng(TABLENG *p)
 {
-    /*  Pointer to data structure for accessing table.
-     */
+    /*  Pointer to data structure for accessing table. */
     FUNC        *ftp;
     /* Check to see we can find the table and find its location in
      * memory.  Returns zero if not found.  Report and error, which
@@ -1383,8 +1380,7 @@ int itablegpw(TABLEGPW *p)
      * Pointer to data structure for
      * accessing table.
                                          */
-    FUNC        *ftp;    /* Pointer to start of table.
-                                         */
+    FUNC        *ftp;    /* Pointer to start of table.            */
     MYFLT  *ptab;        /* Value read from location 0 in table.  */
     MYFLT       val0;    /* Temporary storage for length in floats, not in bytes.*/
     long        length;
@@ -1459,8 +1455,8 @@ int tablemixset(TABLEMIX *p)
  *
  * Declare it here.
  */
-int domix(TABLEMIX *p);
-
+void domix(TABLEMIX *p);
+/* Actually unnecessary as it is declared in teh ugrw1.h header file -- JPff */
 
 int tablemix(TABLEMIX *p)
 {
@@ -1617,7 +1613,7 @@ int itablemix(TABLEMIX *p)
  * that if the gain of source 2 is 0, then we do not bother reading
  * it.  This is to save time when all that the user wants is a copy.
  */
-int domix(TABLEMIX *p)
+void domix(TABLEMIX *p)
 {
     MYFLT       gains1, gains2; /* Gains for source tables 1 and 2. */
     long length;                /* from len input parameter */
@@ -1640,7 +1636,7 @@ int domix(TABLEMIX *p)
     /* Get the length and generate the loop count.
      * Return with no action if it is 0.    */
 
-    if ((length = (long)floor(*p->len)) == 0L) return OK;
+    if ((length = (long)floor(*p->len)) == 0L) return;
 
     if (length < 0L) loopcount = 0L - length;
     else             loopcount = length;
@@ -1722,7 +1718,7 @@ int domix(TABLEMIX *p)
         } while (--loopcount);
       }
     }
-    return OK;
+    return;
 }
 
 /*---------------------------------------------------------------------------*/
