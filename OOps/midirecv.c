@@ -431,14 +431,15 @@ void m_chanmsg(MEVENT *mep) /* exec non-note chnl_voice & chnl_mode cmnds */
       if (n == 121) {                           /* CHANNEL MODE MESSAGES:  */
         MYFLT *fp = chn->ctl_val + 1;           /* from ctlr 1 */
         short nn = 101;                         /* to ctlr 101 */
-        do *fp++ = FL(0.0);                     /*   reset all ctlrs to 0 */
-        while (--nn);                           /* exceptions:  */
-        chn->ctl_val[7]  = FL(127.0);           /*   volume     */
-        chn->ctl_val[8]  = FL(64.0);            /*   balance    */
-        chn->ctl_val[10] = FL(64.0);            /*   pan        */
-        chn->ctl_val[11] = FL(127.0);           /*   expression */
-        chn->ctl_val[BENDSENS] = FL(2.0);
-        chn->ctl_val[9]  = chn->ctl_val[7] * MastVol;
+        do {
+          *fp++ = FL(0.0);                      /*   reset all ctlrs to 0 */
+        } while (--nn);                         /* exceptions:  */
+/*         chn->ctl_val[7]  = FL(127.0);           /\*   volume     *\/ */
+/*         chn->ctl_val[8]  = FL(64.0);            /\*   balance    *\/ */
+/*         chn->ctl_val[10] = FL(64.0);            /\*   pan        *\/ */
+/*         chn->ctl_val[11] = FL(127.0);           /\*   expression *\/ */
+/*         chn->ctl_val[BENDSENS] = FL(2.0); */
+/*         chn->ctl_val[9]  = chn->ctl_val[7] * MastVol; */
         /* reset aftertouch to max value - added by Istvan Varga, May 2002 */
         chn->aftouch = FL(127.0);
         for (nn = 0; nn < 128; nn++) chn->polyaft[nn] = FL(127.0);

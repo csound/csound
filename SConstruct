@@ -982,7 +982,6 @@ else:
 zipDependencies += executables
 zipDependencies += pluginLibraries
   
-print   commonEnvironment['generateZip']
 if not (commonEnvironment['generateZip']==1):    
     print 'CONFIGURATION DECISION: Not compiling zip file for release.'
 else:
