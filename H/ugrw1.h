@@ -329,7 +329,7 @@ typedef struct {
 
 
 int docopy(TABLECOPY *p);
-int domix(TABLEMIX *p);
+void domix(TABLEMIX *p);
 int ftkrchkw(TABLEW *p);
 int instimek(RDTIME *p);
 int instimes(RDTIME *p);

@@ -68,7 +68,8 @@ static  GEN     gensub[GENMAX+1] = { GENUL,
                                      gen41, gen42 };
 static  EVTBLK  *e;
 
-static  double  tpdlen, tpd360 = 0.017453293;
+#define tpd360  (0.017453293)
+static  double  tpdlen;
 static  int     fno, guardreq, nargs, fterrcnt;
 static  long    flen, flenp1, lenmask;
 static  void    fterror(char *), ftresdisp(void), ftalloc(void);
@@ -1311,7 +1312,7 @@ static void gen30 (void)
     x[minh].re *= minfrac; x[minh].im *= minfrac;
     x[maxh].re *= maxfrac; x[maxh].im *= maxfrac;
     ex = AssignBasis (NULL, l1);
-    FFT2torlpacked (x, l1, FL(1.0) / l2, ex);
+    FFT2torlpacked (x, l1, FL(1.0) / (MYFLT)l2, ex);
     /* write dest. table */
     for (i = 0; i < l1; i++) {
       ftp->ftable[i] = x[i >> 1].re; i++;
