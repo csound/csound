@@ -414,8 +414,4 @@ void beep(void)
 #endif
 }
 
-int POLL_EVENTS()
-{
-	return 1;
-}
 

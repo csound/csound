@@ -14,7 +14,7 @@
 
 #	The makedb program for compiling xmg files:
 
-noinst_PROGRAMS=makedb
+noinst_PROGRAMS=makedb 
 
 #	Headers (incomplete for now).
 
