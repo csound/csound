@@ -951,7 +951,9 @@ else:
         csoundVstSources.append(csoundVstJavaWrapper)
         jcsound = vstEnvironment.Java(target = 'frontends/CsoundVST/classes', source = '.')
         zipDependencies.append(jcsound)
-    jcsoundJar = vstEnvironment.Jar('CsoundVST.jar', 'frontends/CsoundVST/classes', JARCHDIR = 'frontends/CsoundVST/classes')
+    	jcsoundJar = vstEnvironment.Jar('CsoundVST.jar', 'frontends/CsoundVST/classes', JARCHDIR = 'frontends/CsoundVST/classes')
+    else:
+	print 'CONFIGURATION DECISION: Not building Java wrappers for CsoundVST.'
     csoundvst = vstEnvironment.SharedLibrary('CsoundVST', csoundVstSources, SHLIBPREFIX = '_')
     Depends(csoundvst, 'frontends/CsoundVST/CsoundVST_wrap.cc')
     zipDependencies.append(csoundvst)
@@ -991,8 +993,8 @@ else:
         loris = lorisEnvironment.SharedLibrary('loris', lorisSources, SHLIBPREFIX = '_')
         Depends(loris, csoundvst)
         pluginLibraries.append(loris)
-    libs.append(loris)
-    libs.append('loris.py')
+    	libs.append(loris)
+    	libs.append('loris.py')
 
     pyEnvironment = pluginEnvironment.Copy();
     if getPlatform() == 'linux':
