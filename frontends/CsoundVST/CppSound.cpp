@@ -219,32 +219,24 @@ void CppSound::throwMessageV(const char *format, va_list args)
 
 void CppSound::setThrowMessageCallback(void (*throwCallback)(void *csound_, const char *format, va_list args))
 {
-  csoundSetThrowMessageCallback(csound, throwCallback);
+  csoundSetThrowMessageCallback(this->csound, throwCallback);
 }
 
-int CppSound::isExternalMidiEnabled()
+void CppSound::setExternalMidiInOpenCallback(int (*ExternalMidiInOpen)(void *csound, void **userData,
+								       const char *devName))
 {
-  return csoundIsExternalMidiEnabled(csound);
+  csoundSetExternalMidiInOpenCallback(this->csound, ExternalMidiInOpen);
 }
 
-void CppSound::setExternalMidiEnabled(int enabled)
+void CppSound::setExternalMidiReadCallback(int (*ExternalMidiRead)(void *csound, void *userData,
+								   unsigned char *buf, int nbytes))
 {
-  csoundSetExternalMidiEnabled(csound, enabled);
+  csoundSetExternalMidiReadCallback(this->csound, ExternalMidiRead);
 }
 
-void CppSound::setExternalMidiDeviceOpenCallback(void (*midiDeviceOpen)(void *csound))
+void CppSound::setExternalMidiInCloseCallback(int (*ExternalMidiInClose)(void *csound, void *userData))
 {
-  csoundSetExternalMidiDeviceOpenCallback(csound, midiDeviceOpen);
-}
-
-void CppSound::setExternalMidiReadCallback(int (*midiReadCallback)(void *ownerData, unsigned char *midiData, int size))
-{
-  csoundSetExternalMidiReadCallback(csound, midiReadCallback);
-}
-
-void CppSound::setExternalMidiDeviceCloseCallback(void (*midiDeviceClose)(void *csound))
-{
-  csoundSetExternalMidiDeviceCloseCallback(csound, midiDeviceClose);
+  csoundSetExternalMidiInCloseCallback(this->csound, ExternalMidiInClose);
 }
 
 int CppSound::isScorePending()
