@@ -1,3 +1,12 @@
+2005-02-20  Michael Gogins <gogins@pipeline.com>
+	* Changed fluid* opcodes: removed Gogins version, merged
+	option to print presets to fluidLoad and added fluidControl opcode
+	from Gogins version, added new fluidAllOut opcode to collect
+	all audio from all Fluidsynth engines in a performance.
+	* Removed Opcodes/fluid directory (Opcodes/fluidOpcodes now
+	implements all features formerly found there).
+	* Updated H/OpcodeBase.hpp to work properly with new SUBR signature.
+	* Updated examples/Koch.py to use fluidOpcodes.
 2005-02-27	Istvan Varga	<istvan@csounds.com>
 	* Engine/entry2.c:
 	* H/midiops.h:
