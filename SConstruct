@@ -481,7 +481,6 @@ OOps/diskin2.c
 OOps/disprep.c
 OOps/dsputil.c
 OOps/dumpf.c
-OOps/fft.c
 OOps/fftlib.c
 OOps/fout.c
 OOps/fprint.c

@@ -30,7 +30,6 @@
 
 #include "sysdep.h"
 #include "dpwelib.h"
-#include "fft.h"
 #include "dsputil.h"
 #include <math.h>
 #ifdef MSVC                   /* Thanks to Richard Dobson */
@@ -713,5 +712,4 @@ void PreWarpSpec(
         i, j, mag, env[i], env[j], spec[2*i]);  */
     }
 }
-
 

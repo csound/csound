@@ -466,12 +466,33 @@ extern "C" {
     va_end(args);
   }
 
-  PUBLIC void csoundPrintf(const char *format, ...)
+  static int deprecated_printf_cnt = 0;
+
+  static void print_deprecated_printf(const char *s)
+  {
+    if (deprecated_printf_cnt >= 10)
+      return;
+    deprecated_printf_cnt++;
+    csoundMessage(&cenviron,
+                  "WARNING: use csound->Message() instead of %s()\n", s);
+  }
+
+  void csoundPrintf(const char *format, ...)
   {
     va_list args;
+    print_deprecated_printf("printf");
     va_start(args, format);
-    csoundMessageCallback_(0, format, args);
+    csoundMessageCallback_(&cenviron, format, args);
     va_end(args);
+  }
+
+  void err_printf(char *fmt, ...)
+  {
+    va_list a;
+    print_deprecated_printf("err_printf");
+    va_start(a, fmt);
+    csoundMessageCallback_(&cenviron, fmt, a);
+    va_end(a);
   }
 
   void csoundDie(void *csound, const char *msg, ...)
@@ -1219,6 +1240,7 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
     mainRESET(csound);
     csoundIsScorePending_ = 1;
     csoundScoreOffsetSeconds_ = (MYFLT) 0.0;
+    deprecated_printf_cnt = 0;
   }
 
   PUBLIC int csoundGetDebug(void *csound)

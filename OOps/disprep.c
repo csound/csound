@@ -21,11 +21,10 @@
     02111-1307 USA
 */
 
-#include "cs.h"         /*                                      DISPREP.C       */
+#include "cs.h"         /*                              DISPREP.C       */
 #include <math.h>
 #include "cwindow.h"
 #include "disprep.h"
-#include "fft.h"
 #include "dsputil.h"
 
 static  MYFLT   *fftcoefs = NULL;     /* malloc for fourier coefs, mag or db */
@@ -171,7 +170,7 @@ int fftset(ENVIRON *csound, DSPFFT *p)          /* fftset, dspfft -- calc Fast F
     if (window_size < WINDMIN) {
       return csound->InitError(csound, Str("too few points requested"));
     }
-    if (!IsPowerOfTwo(window_size)) {
+    if (window_size < 1L || (window_size & (window_size - 1L)) != 0L) {
       return csound->InitError(csound, Str("window size must be power of two"));
     }
     if (p->h.optext->t.intype == 'k')
@@ -218,9 +217,11 @@ static void d_fft(      /* perform an FFT as reqd below */
   MYFLT *hWin,  /* hanning window lookup table */
   int   dbq)    /* flag: 1-> convert output into db */
 {
-    CopySamps(sce,dst,size);        /* copy into scratch buffer */
+    CopySamps(sce,dst,size);                    /* copy into scratch buffer */
     ApplyHalfWin(dst,hWin,size);
-    FFT2realpacked((complex *)dst,size,(complex *)NULL); /* perform the FFT */
+    csoundRealFFT(&cenviron, dst, (int) size);  /* perform the FFT */
+    dst[size] = dst[1];
+    dst[1] = dst[size + 1L] = FL(0.0);
     Rect2Polar(dst, (size >> 1) + 1);
     PackReals(dst, (size >> 1) + 1);
     if (dbq)
@@ -534,7 +535,7 @@ int tempest(ENVIRON *csound, TEMPEST *p)
 /*       printf("%6.1f\n",p->tempo);  */
         fputc('.', stderr);
       }
-      else p->tempo = FL(0.0);                          /* else tempo is 0     */
+      else p->tempo = FL(0.0);              /* else tempo is 0     */
       p->fwdmask = p->fwdmask * p->fwdcoef + kin;
     }
     if (!(--p->dcntdown)) {                 /* on display countdown    */
@@ -543,12 +544,13 @@ int tempest(ENVIRON *csound, TEMPEST *p)
       MYFLT *xend = p->xend;
       long wrap = xcur - p->xbeg;
       while (xcur < xend)                   /* lineariz the circ xbuf */
-        *linp++ = *xcur++;                /*  into linexp buf       */
+        *linp++ = *xcur++;                  /*  into linexp buf       */
       for (xcur=p->xbeg; wrap--; )
         *linp++ = *xcur++;
       display(&p->dwindow);                 /* display double window  */
       p->dcntdown = p->dtimcnt;             /*   & reset the counter  */
     }
-    *p->kout = p->tempo;                      /* put current tempo */
+    *p->kout = p->tempo;                    /* put current tempo */
     return OK;
 }
+

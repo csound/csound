@@ -624,14 +624,6 @@ int csoundMain(void *csound, int argc, char **argv)
     return musmon2(csound);
 }
 
-void err_printf(char *fmt, ...)
-{
-    va_list a;
-    va_start(a, fmt);
-    cenviron.MessageV(&cenviron, fmt, a);
-    va_end(a);
-}
-
 void mainRESET(ENVIRON *p)
 {
     void adsynRESET(void);
@@ -639,7 +631,6 @@ void mainRESET(ENVIRON *p)
     void disprepRESET(void);
     void expRESET(ENVIRON *);
     void ftRESET(ENVIRON *);
-    void fftRESET(void);
     void insertRESET(ENVIRON *);
     void lpcRESET(void);
     void memRESET(void*);
@@ -657,7 +648,6 @@ void mainRESET(ENVIRON *p)
     cscoreRESET();
     expRESET(p);
     ftRESET(p);
-    fftRESET();
     disprepRESET();
     insertRESET(p);
     musRESET();

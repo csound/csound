@@ -23,8 +23,6 @@
 
 /*                                                              UGENS9.H    */
 
-#include "fft.h"
-
 typedef struct {
     OPDS    h;
     MYFLT   *ar1,*ar2,*ar3,*ar4,*ain,*ifilno,*channel;
@@ -48,7 +46,6 @@ typedef struct {
     long    numPartitions;
     long    Hlen, Hlenpadded;
     int     nchanls;    /* number of channels we are actually processing */
-    complex *cvlut;             /* lookup table used for fft */
 
     AUXCH   H;                  /* array of Impulse Responses */
 
@@ -66,3 +63,4 @@ typedef struct {
     MYFLT   *outWrite, *outRead; /* i/o pointers to the output buf */
     long    outCount;   /* number of valid samples in the outbuf */
 } PCONVOLVE;
+
