@@ -33,7 +33,7 @@ To create music with Csound:
 \item Run Csound to compile the orchestra and score, run the sorted and preprocessed score through the orchestra, and write digital audio out to a soundfile or sound card.
 \end{enumerate}
 
-CsoundVST is based on Csound, and adds a graphical user interface, C++ and Python APIs, Python scripting, a library of Python extension modules for algorithmic composition, a VST plugin interface, and a \emph{Mathematica} interface.
+CsoundVST is an extended version of Csound that adds a graphical user interface, C++ and Python APIs, Python scripting, a library of Python extension modules for algorithmic composition, a VST plugin interface, and a \emph{Mathematica} interface.
 
 In addition to this ``canonical'' version of Csound and CsoundVST, there are other versions of Csound and other front ends for Csound, many of which can be found at \texttt{http://csounds.com}.
 
@@ -109,7 +109,7 @@ Rebuild and install a version of libsndfile no earlier than:
 http://www.mega-nerd.com/tmp/libsndfile-1.0.10pre4.tar.gz
 \end{verbatim}
 
-For PortAudio, I have found that \texttt{./configure ---with-winapi=wmme} works and other \texttt{configure} options do not. If you can build PortAudio version 19 with DirectX and MinGW, please let me know how to do it.
+For PortAudio, I have found that \texttt{./configure ---with-winapi=wmme} works and other \texttt{configure} options do not. If you can build PortAudio version 19 with MinGW and DirectX, ASIO, or Windows kernel streaming, please let me know how to do it.
 
 The build procedure for MinGW is similar, but not identical, to the Cygwin procedure. The MSys shell does not allow the user to execute Python commands directly. Therefore, you need to install the \emph{Windows} versions of Python and SCons, make sure that Python is in your Windows executable path, and run the build like this:
 \begin{verbatim}
@@ -169,81 +169,92 @@ pluginEnvironment.SharedLibrary('xxx',
 \item Run the Csound 5 build in the regular way.
 \end{enumerate}		
 
-\subsection{About OENTRY}
+\subsection{About \texttt{OENTRY}}
 
-OENTRY's follow this format:
+The \texttt{OENTRY} structure follows this format:
 
 \begin{verbatim}
-opcodeName, dspace, thread, outarg, inargs, isub, ksub, asub, dsub
+name, dspace, thread, outarg, inargs, isub, ksub, asub, dsub
 \end{verbatim}
 
 \begin{description}  
-	\item[dspace] the size field is used as a flag in saying what types of polymorphism are allowed (look at Engine/entry1.c and Engine/rdorch.c)
+	\item[\texttt{dspace}] A flag that specifies what types of polymorphism are allowed (see \texttt{Engine/entry1.c} and \texttt{Engine/rdorch.c}), as follows:
 
 	\begin{description}
-		\item[0xffff] means that the first argument type determines which opcode is actually being used, XXX -> XXX\_a or XXX\_i or XXX\_k
-		\item[0xfffe] means that the first two argument types determine the actual opcode.  So XXX -> XXX\_aa, XXX\_ak, XXX\_ka, and XXX\_kk.  Think oscil
-		\item[0xfffd] looks at one argument but does not allow i type (eg peak)
-		\item[0xfffc] is rather like 0xfffe but deals with divz -- so allows a, k and i arguments
+		\item[\texttt{0xffff}] The type of the first argument determines which unit generator function is actually called: \texttt{XXX} $\Longrightarrow$ \texttt{XXX\_a}, \texttt{XXX\_i}, or \texttt{XXX\_k}.
+		\item[\texttt{0xfffe}] The types of the first two arguments determine which unit generator function is actually called:  \texttt{XXX} $\Longrightarrow$ \texttt{XXX\_aa}, \texttt{XXX\_ak}, \texttt{XXX\_ka}, or \texttt{XXX\_kk}, as in the \texttt{oscil} unit generator.
+		\item[\texttt{0xfffd}] Refers to one argument, but does not allow \texttt{i} type, as in the \texttt{peak} unit generator.
+		\item[\texttt{0xfffc}] Similar to \texttt{0xfffe}, but deals with division by zero --- thus, allows \texttt{a}, \texttt{k} and \texttt{i} type arguments.
 	\end{description}
 
-	\item[thread] the rate(s) at which the opcode is able to run at
+	\item[\texttt{thread}] Specifies the rate(s) at which the unit generator's functions are called, as follows:
 	
-	\item[outargs] a listing of the arguments this opcode will emit, if any.  The types allowed are:
+			\begin{center}
+			\begin{tabular*}{280pt}[t]{cl}
+			\texttt{thread} & Description \\
+			\hline
+			\texttt{0} & i-rate \emph{or} k-rate (\texttt{B} out only) \\
+			\texttt{1} & i-rate \\
+			\texttt{2} & k-rate \\
+			\texttt{3} & i-rate \emph{and} k-rate\\
+			\texttt{4} & a-rate \\
+			\texttt{5} & i-rate \emph{and} a-rate \\
+			\texttt{7} & i-rate \emph{and} (k-rate \emph{or} a-rate) \\
+			\end{tabular*}
+			\end{center}
+	
+	\item[\texttt{outargs}] Lists the return values of the unit generator functions, if any.  The types allowed are:
 
 			\begin{center}
 			\begin{tabular*}{280pt}[t]{cl}
 			Type & Description \\
 			\hline
-			i & i-rate scalar \\
-			k & k-rate scalar \\
-			a & a-rate vector \\
-			x & k-rate scalar or a-rate vector \\
-			w & w-rate spectral data type \\
-			f & f-rate streaming pvoc fsig type \\
-			m & multiple outargs (1 to 4 allowed) \\
+			\texttt{i} & i-rate scalar \\
+			\texttt{k} & k-rate scalar \\
+			\texttt{a} & a-rate vector \\
+			\texttt{x} & k-rate scalar or a-rate vector \\
+			\texttt{w} & w-rate spectral data type \\
+			\texttt{f} & f-rate streaming pvoc fsig type \\
+			\texttt{m} & multiple outargs (1 to 4 allowed) \\
 			\end{tabular*}
 			\end{center}
-
 					
-	\item[inargs] a listing of the arguments this opcode will take, if any.  The types allowed are: 
+	\item[\texttt{inargs}] Lists the arguments the unit generator functions take, if any.  The types allowed are: 
 
 			\begin{center}
 			\begin{tabular*}{280pt}[t]{cl}
 			Type & Description \\
 			\hline
-			i & i-rate scalar \\
-			k & k-rate scalar \\
-			a & a-rate scalar \\
-			x & k-rate scalar or a-rate vector \\
-			w & w-rate spectral data type \\
-			f & f-rate streaming pvoc fsig type \\
-			S & string \\
-			B & \\
-			l & \\
-			m & begins an indef list of iargs (any count) \\
-			M & begins an indef list of args (any count and rate) \\
-			n & begins an indef list of iargs (nargs odd) \\
-			o & optional, defaulting to 0 \\
-			p & optional defaulting to 1 \\
-			q & optional defaulting to 10 \\
-			v & optional defaulting to .5 \\ 
-			j & optional defaulting to -1 \\
-			h & optional defaulting to 127 \\
-			y & begins indef list of aargs (any count) \\ 
-			z & begins indef list of kargs (any count) \\
-			Z & begins alternating kakaka...list (any count) \\
+			\texttt{i} & i-rate scalar \\
+			\texttt{k} & k-rate scalar \\
+			\texttt{a} & a-rate scalar \\
+			\texttt{x} & k-rate scalar or a-rate vector \\
+			\texttt{w} & w-rate spectral data type \\
+			\texttt{f} & f-rate streaming pvoc fsig type \\
+			\texttt{S} & string \\
+			\texttt{B} & \\
+			\texttt{l} & \\
+			\texttt{m} & begins an indefinite list of iargs (any count) \\
+			\texttt{M} & begins an indefinite list of args (any count and rate) \\
+			\texttt{n} & begins an indefinite list of iargs (must be an odd count) \\
+			\texttt{o} & optional, defaulting to 0 \\
+			\texttt{p} & optional, defaulting to 1 \\
+			\texttt{q} & optional, defaulting to 10 \\
+			\texttt{v} & optional, defaulting to .5 \\ 
+			\texttt{j} & optional, defaulting to -1 \\
+			\texttt{h} & optional, defaulting to 127 \\
+			\texttt{y} & begins an indefinite list of aargs (any count) \\ 
+			\texttt{z} & begins indefinite list of kargs (any count) \\
+			\texttt{Z} & begins alternating \texttt{kakaka...} list (any count) \\
 			\end{tabular*}
 			\end{center}
 
-	\item[isub] a reference to the function that will run at i-time for this opcode
-	\item[ksub] a reference to the function that will run at k-time for this opcode
-	\item[asub] a reference to the function that will run at a-time for this opcode
-	\item[dsub] a reference to the function that will run at the end of csound run
+	\item[\texttt{isub}] The address of the unit generator function (of type \texttt{int (*SUBR)(void *)}) that is called at i-time, or null for no function.
+	\item[\texttt{ksub}] The address of the unit generator function (of type \texttt{int (*SUBR)(void *)}) that is called at k-rate, or null for no function.
+	\item[\texttt{asub}] The address of the unit generator function (of type \texttt{int (*SUBR)(void *)}) that is called at a-rate, or null for no function.
+	\item[\texttt{dsub}] The address of the unit generator function (of type \texttt{int (*SUBR)(void *)}) that is called after performance, or null for no function.
 
 \end{description}
-
-
 
 \section{Using}
 
@@ -507,6 +518,7 @@ CsoundVST source code contains modified versions of source code files from the V
 Csound contains contributions from musicians, scientists, and programmers from around the world. They include (but are not limited to): 
 \begin{itemize}
 \item Allan Lee 
+\item Andres Cabrera
 \item Barry Vercoe
 \item Bill Gardner 
 \item Bill Verplank 

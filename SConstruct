@@ -99,7 +99,7 @@ opts.Add('generateXmg',
     1)
 opts.Add('generateZip',
     'Set to 1 to generate zip archive',
-    1)
+    0)
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which

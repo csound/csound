@@ -657,6 +657,8 @@ typedef struct ENVIRON_
   void (*writeheader)(int ofd, char *ofname);
   void (*Printf)(const char *format, ...);
   int (*PerformKsmpsAbsolute_)(void *csound);
+  int (*GetDebug)(void *csound);
+  void (*SetDebug)(void *csound, int d);
   /* End of internals */
   int           ksmps_, nchnls_;
   int           global_ksmps_;

@@ -127,6 +127,8 @@ long strarg2insno (MYFLT *p, char *s);
 long strarg2opcno (MYFLT *p, char *s, int);
 void rewriteheader(SNDFILE* ofd, int verbose);
 void writeheader(int ofd, char *ofname);
+int csoundGetDebug(void *);
+void csoundSetDebug(void *,int);
 
 static  MYFLT   *gbloffbas;
 
@@ -268,6 +270,8 @@ ENVIRON cenviron_ = {
         writeheader,
         csoundPrintf,
         csoundPerformKsmpsAbsolute,
+        csoundGetDebug,
+        csoundSetDebug,
         /*
         * Data fields.
         */
