@@ -107,6 +107,8 @@ char *creatsfcode(int ctype)    /* add a new sfcode struct to current out_header
 
 #endif
 
+#ifndef _SNDFILE_
+
 #ifdef NeXT
 #include <sound/soundstruct.h>
 #endif /* NeXT */
@@ -543,5 +545,4 @@ void rewriteheader(int ofd, long datasize, int verbose) /* write MaxAmps (IRCAM)
     }
 }
 
-
-
+#endif
