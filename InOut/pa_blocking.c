@@ -84,10 +84,6 @@ int paBlockingWriteOpen(ENVIRON *csound,
   PA_BLOCKING_STREAM *pabs =
     (PA_BLOCKING_STREAM *) mcalloc(sizeof(PA_BLOCKING_STREAM));
   pabs->csound = csound;
-  pabs->actualBufferSampleCount = csound->GetKsmps(csound)
-    * csound->GetNchnls(csound);
-  pabs->actualBuffer = (float *)
-    mcalloc(pabs->actualBufferSampleCount * sizeof(float));
   pabs->currentIndex = 0;
   pabs->paLock = csoundCreateThreadLock(csound);
   pabs->clientLock = csoundCreateThreadLock(csound);
@@ -95,12 +91,18 @@ int paBlockingWriteOpen(ENVIRON *csound,
 #ifdef __MACH__
   maxLag =  ((int)ekr)*((maxLag + (int)ekr-1)%krate); /* Round to multiple */
 #endif
+  pabs->actualBufferSampleCount = csound->GetKsmps(csound)
+    * csound->GetNchnls(csound);
+  //pabs->actualBufferSampleCount = maxLag * csound->GetKsmps(csound);
+  pabs->actualBuffer = (float *)
+    mcalloc(pabs->actualBufferSampleCount * sizeof(float));
   memcpy(&pabs->paParameters, paParameters, sizeof(PaStreamParameters));
   csound->Message(csound,
-		  "paBlockingWriteOpen: nchnls %d sr %f maxLag %u device %d\n",
+		  "paBlockingWriteOpen: nchnls %d sr %f maxLag %u buffer samples %d device %d\n",
 		  pabs->paParameters.channelCount,
 		  csound->esr_,
 		  maxLag,
+		  pabs->actualBufferSampleCount,
 		  pabs->paParameters.device);
   paError = Pa_OpenStream(&pabs->paStream,
 			  0,
@@ -134,15 +136,15 @@ int paBlockingWriteStreamCallback(const void *input,
   float *paOutput = (float *)output;
   csoundWaitThreadLock(pabs->csound, pabs->paLock, 100);
   memcpy(paOutput, pabs->actualBuffer,
-	 pabs->actualBufferSampleCount*sizeof(float));
+	 pabs->actualBufferSampleCount * sizeof(float));
   csoundNotifyThreadLock(pabs->csound, pabs->clientLock);
   return paContinue;
 }
 
-void paBlockingWrite(PA_BLOCKING_STREAM *pabs, int bytes, MYFLT *buffer)
+void paBlockingWrite(PA_BLOCKING_STREAM *pabs, int samples, MYFLT *buffer)
 {
   size_t i;
-  for (i = 0; i < bytes; i++, pabs->currentIndex++) {
+  for (i = 0; i < samples; i++, pabs->currentIndex++) {
     pabs->actualBuffer[pabs->currentIndex] = (MYFLT) buffer[i];
     if(pabs->currentIndex >= pabs->actualBufferSampleCount) {
       csoundNotifyThreadLock(pabs->csound, pabs->paLock);
