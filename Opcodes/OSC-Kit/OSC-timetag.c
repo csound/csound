@@ -83,7 +83,7 @@ void OSCTT_SetFromInt(OSCTimeTag *self, unsigned int value) {
 #ifdef __sgi
 #include <sys/time.h>
 
-#define SECONDS_FROM_1900_to_1970 2208988800 /* 17 leap years */
+#define SECONDS_FROM_1900_to_1970 2208988800UL /* 17 leap years */
 #define TWO_TO_THE_32_OVER_ONE_MILLION 4295
 
 
@@ -143,7 +143,7 @@ OSCTimeTag OSCTT_CurrentTime(void) {
 #include <math.h>
 #include <sys/time.h>
 
-#define SECONDS_FROM_1900_to_1970 2208988800 /* 17 leap years */
+#define SECONDS_FROM_1900_to_1970 2208988800UL /* 17 leap years */
 
 /*
   Is this right: we do have nanosec precision,

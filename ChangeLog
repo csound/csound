@@ -1,3 +1,18 @@
+2005-02-28	Istvan Varga	<istvan@csounds.com>
+	* cleanup.sh:
+	  new script to remove files generated during compilation
+	* OOps/fout.c:
+	* Opcodes/fluidOpcodes/fluidOpcodes.cpp:
+	* Opcodes/OSC-Kit/OSC-priority-queue.c:
+	* Opcodes/OSC-Kit/OSC-timetag.c:
+	* util2/mixer/xtrct.c:
+	  fixed compiler warnings
+	* American.xmg:
+	* English.xmg:
+	* csound.pdf:
+	* csound.xmg:
+	  removed files from repository
+
 2005-02-27	Steven Yi <stevenyi@csounds.com>
 	* frontends/CsoundVST/CppSound.hpp: changed #include of cs.h to 
 	csoundCore.h
@@ -11,6 +26,7 @@
 	implements all features formerly found there).
 	* Updated H/OpcodeBase.hpp to work properly with new SUBR signature.
 	* Updated examples/Koch.py to use fluidOpcodes.
+
 2005-02-27	Istvan Varga	<istvan@csounds.com>
 	* Engine/entry2.c:
 	* H/midiops.h:
