@@ -390,7 +390,8 @@ if (commonEnvironment['useFLTK'] == '1' and fltkFound):
             vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
             guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
             csoundProgramEnvironment.Append(LINKFLAGS = ['-framework', 'Carbon'])
-            csoundProgramEnvironment.Append(LINKFLAGS = ['-framework', 'Core'])
+	    csoundProgramEnvironment.Append(LINKFLAGS = ['-framework', 'CoreAudio'])
+	    csoundProgramEnvironment.Append(LINKFLAGS = ['-framework', 'CoreMidi'])
 
 if (not(commonEnvironment['usePortMIDI']=='0') and portmidiFound):
     print 'Adding PortMIDI flags and libs'
@@ -402,8 +403,9 @@ if (not(commonEnvironment['usePortMIDI']=='0') and portmidiFound):
     guiProgramEnvironment.Append(CCFLAGS = '-DPORTMIDI')
     csoundProgramEnvironment.Append(LIBS = ['portmidi'])
     vstEnvironment.Append(LIBS = ['portmidi'])
-    csoundProgramEnvironment.Append(LIBS = ['porttime'])
-    vstEnvironment.Append(LIBS = ['porttime'])
+    if getPlatform() != 'darwin' :
+        csoundProgramEnvironment.Append(LIBS = ['porttime'])
+        vstEnvironment.Append(LIBS = ['porttime'])
 
 ##### -framework ApplicationServices'))
 
@@ -979,7 +981,7 @@ else:
     Depends(py, csoundvst)
     pluginLibraries.append(py)
 
-if (commonEnvironment['generateTags']=='0') or (getPlatform() != 'linux' and getPlatform() != 'cygwin'):
+if (commonEnvironment['generateTags']=='0') or (getPlatform() != 'darwin' and getPlatform() != 'linux' and getPlatform() != 'cygwin'):
     print "CONFIGURATION DECISION: Not calling TAGS"
 else:
     print "CONFIGURATION DECISION: Calling TAGS"
