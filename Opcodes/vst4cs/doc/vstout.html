@@ -1,137 +1,172 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <title>vst4cs</title>
-  <meta name="GENERATOR"
- content="Modular DocBook HTML Stylesheet Version 1.64">
-  <link rel="HOME" title="The Alternative Csound Reference Manual"
- href="index.html">
-  <link rel="UP" title="Orchestra Opcodes and Operators"
- href="opcodestop.html">
-  <link rel="PREVIOUS" title="aweibull" href="aweibull.html">
-  <link rel="NEXT" title="balance" href="balance.html">
-  <meta content="Andres Cabrera" name="author">
-</head>
-<body class="REFENTRY" bgcolor="#ffffff" text="#000000" link="#0000ff"
- vlink="#840084" alink="#0000ff">
-<div class="NAVHEADER">
-<table width="100%" border="0" cellpadding="0" cellspacing="0">
-  <tbody>
-    <tr>
-      <th colspan="3" align="center">Warning: Specifications are still
-subject to change!<br>
-      </th>
-    </tr>
-    <tr>
-      <td width="10%" align="left" valign="bottom"><br>
-      </td>
-      <td width="80%" align="center" valign="bottom"><br>
-      </td>
-      <td width="10%" align="right" valign="bottom"><br>
-      </td>
-    </tr>
-  </tbody>
-</table>
-<hr align="left" width="100%"></div>
-<h1><a name="BABO">vstout</a></h1>
-<div class="REFNAMEDIV"><a name="AEN6067"></a>vst4cs --&nbsp; Vst
-plugin hosting in Csound5 on Windows. </div>
-<div class="REFSECT1"><a name="AEN6072"></a>
-<h2>Description</h2>
-<span style="font-style: italic;">vstout</span> is used for sending
-MIDI information to a vst plugin..<br>
-</div>
-<div class="REFSECT1"><a name="AEN6079"></a>
-<h2>Syntax</h2>
-<p style="font-weight: bold;"><span style="font-weight: normal;"></span>vstout
-<span style="font-weight: normal;">iflag, kstatus, kchan, kdata1, kdata2</span><br>
-</p>
-</div>
-<div class="REFSECT1"><a name="AEN6083"></a>
-<h2>Initialization</h2>
-<p> <i class="EMPHASIS">iflag</i> -- the flag which identifies the
-plugin called previously with a <span style="font-style: italic;">vstinit</span>
-opcode.<br>
-</p>
-</div>
-<div class="REFSECT1">
-<h2><a name="AEN6083"></a></h2>
-<h2>Performance</h2>
-<p><span style="font-style: italic;">kstatus </span>-- the type of
-midi message to be sent. Currently noteon (144), note off (128),
-Control Change (176),&nbsp; Program change (192), Aftertouch (208) and
-pitch bend (224) are supported.<br>
-</p>
-<p><span style="font-style: italic;">kchan </span>-- the MIDI channel
-transmitted on.<br>
-</p>
-<p><span style="font-style: italic;">kdata1, kdata2 </span>-- the MIDI
-data pair, which varies depending on kstatus. e.g. note/velocity for
-note on and note off, Controller number/value for control change.<br>
-</p>
-<h2><a name="AEN6083"></a></h2>
-<h2>Examples<br>
-</h2>
-<div class="EXAMPLE">
-<pre class="PROGRAMLISTING"><span class="INLINEMEDIAOBJECT"><br></span><span
- class="INLINEMEDIAOBJECT"><span class="INLINEMEDIAOBJECT"><span
- class="INLINEMEDIAOBJECT">/* orc */</span><br></span><span
- class="INLINEMEDIAOBJECT">sr = 44100<br>kr = 4410<br>ksmps = 10<br>nchnls = 2<br><br>giHandle1 vstinit "c:/vstplugins/cheeze/cheeze machine.dll",1<br><br>instr 3<br>ain1 = 0<br>ab1, ab2 vstplug gihandle1, ain1, ain1<br>outs ab1, ab2<br>endin<br><br></span></span><span
- class="INLINEMEDIAOBJECT"><span class="INLINEMEDIAOBJECT"><span
- class="INLINEMEDIAOBJECT">instr 4<br>vstout gihandle1,144,1,p4,p5<br>endin</span><br></span></span><span
- class="INLINEMEDIAOBJECT"><span class="INLINEMEDIAOBJECT"></span><br><span
- class="INLINEMEDIAOBJECT">/* sco */<br>i 3 0 21<br><br>i4 1 1 57 32<br>i4 3 1 60 100<br>i4 5 1 62 100<br>i4 7 1 64 100<br>i4 9 1 65 100<br>i4 11 1 67 100<br>i4 13 1 69 100<br>i4 15 3 71 100<br>i4 18 3 72 100<br><br>e</span></span><span
- class="INLINEMEDIAOBJECT"><br></span>
-</pre>
-</div>
-<p></p>
-</div>
-<div class="REFSECT1"><a name="AEN6152"></a>
-<h2>Credits</h2>
-<p> </p>
-<p></p>
-<table border="0">
-  <tbody>
-    <tr>
-      <td>Author: Cabrera,Andres</td>
-    </tr>
-    <tr>
-      <td>Bogota, Colombia<br>
-      </td>
-    </tr>
-    <tr>
-      <td>2004</td>
-    </tr>
-  </tbody>
-</table>
-<p></p>
-<p></p>
-<p> </p>
-<p></p>
-<br>
-</div>
-<div class="NAVFOOTER">
-<hr align="left" width="100%">
-<table width="100%" border="0" cellpadding="0" cellspacing="0">
-  <tbody>
-    <tr>
-      <td width="33%" align="left" valign="top"><br>
-      </td>
-      <td width="34%" align="center" valign="top"><a href="index.html"><br>
-      </a></td>
-      <td width="33%" align="right" valign="top"><br>
-      </td>
-    </tr>
-    <tr>
-      <td width="33%" align="left" valign="top"><br>
-      </td>
-      <td width="34%" align="center" valign="top"><br>
-      </td>
-      <td width="33%" align="right" valign="top"><br>
-      </td>
-    </tr>
-  </tbody>
-</table>
-</div>
-</body>
-</html>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1252">
+	<TITLE>vst4cs</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 1.1.1  (Win32)">
+	<META NAME="AUTHOR" CONTENT="Andres Cabrera">
+	<META NAME="CREATED" CONTENT="20040719;21052681">
+	<META NAME="CHANGEDBY" CONTENT="Michael Gogins">
+	<META NAME="CHANGED" CONTENT="20040719;21444457">
+	<STYLE>
+	<!--
+		TD P { color: #000000 }
+		H1 { color: #000000 }
+		P { color: #000000 }
+		TH P { color: #000000 }
+		H2 { color: #000000 }
+		PRE { color: #000000 }
+		A:link { color: #0000ff }
+		A:visited { color: #840084 }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="en-US" TEXT="#000000" LINK="#0000ff" VLINK="#840084" BGCOLOR="#ffffff" DIR="LTR">
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=0 CELLSPACING=0 STYLE="page-break-before: always">
+	<TR>
+		<TH COLSPAN=3>
+			<P ALIGN=CENTER>Warning: Specifications are still subject to
+			change!</P>
+		</TH>
+	</TR>
+	<TR VALIGN=BOTTOM>
+		<TD WIDTH=10%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=80%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+</TABLE>
+<HR>
+<H1><A NAME="BABO"></A>vstout</H1>
+<P><A NAME="AEN6067"></A>vst4cs -- VST plugin hosting in Csound on
+Windows. 
+</P>
+<H2><A NAME="AEN6072"></A>Description</H2>
+<P><I>vstout</I> is used for sending MIDI information to a vst
+plugin..</P>
+<H2><A NAME="AEN6079"></A>Syntax</H2>
+<P><B>vstout </B><SPAN STYLE="font-weight: medium">instance, kstatus,
+kchan, kdata1, kdata2</SPAN></P>
+<H2><A NAME="AEN6083"></A>Initialization</H2>
+<P><I>instance</I> -- the number which identifies the plugin,
+returned previously by the <I>vstinit</I> opcode.</P>
+<H2><A NAME="AEN60831"></A>Performance</H2>
+<P><I>kstatus </I>-- the type of midi message to be sent. Currently
+noteon (144), note off (128), Control Change (176),&nbsp; Program
+change (192), Aftertouch (208) and Pitch Bend (224) are supported.</P>
+<P><I>kchan </I>-- the MIDI channel transmitted on.</P>
+<P><I>kdata1, kdata2 </I>-- the MIDI data pair, which varies
+depending on kstatus. e.g. note/velocity for note on and note off,
+Controller number/value for control change.</P>
+<H2><A NAME="AEN60832"></A>Examples</H2>
+<PRE>/* orc */
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 2
+giHandle1 vstinit &quot;c:/vstplugins/cheeze/cheeze machine.dll&quot;,1
+instr 3
+ain1 = 0
+ab1, ab2 vstplug gihandle1, ain1, ain1
+outs ab1, ab2
+endin
+instr 4
+vstout gihandle1,144,1,p4,p5
+endin
+/* sco */
+i 3 0 21
+i4 1 1 57 32
+i4 3 1 60 100
+i4 5 1 62 100
+i4 7 1 64 100
+i4 9 1 65 100
+i4 11 1 67 100
+i4 13 1 69 100
+i4 15 3 71 100
+i4 18 3 72 100
+e
+</PRE><H2>
+<A NAME="AEN6152"></A>Credits</H2>
+<TABLE WIDTH=156 BORDER=0 CELLPADDING=2 CELLSPACING=0>
+	<COL WIDTH=152>
+	<TR>
+		<TD WIDTH=152>
+			<P>Authors: 
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=152>
+			<P>Cabrera, Andres</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=152>
+			<P>Bogota, Colombia</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=152>
+			<P>2004</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=152>
+			<P>Gogins, Michael</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=152>
+			<P>New York, USA</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=152 SDVAL="2004" SDNUM="1033;">
+			<P ALIGN=LEFT>2004</P>
+		</TD>
+	</TR>
+</TABLE>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=0 CELLSPACING=0>
+	<TR VALIGN=TOP>
+		<TD WIDTH=33%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=34%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=33%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=33%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=34%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=33%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+</BODY>
+</HTML>
