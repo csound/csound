@@ -140,7 +140,7 @@ print "SCons tools on this platform: ", commonEnvironment['TOOLS']
 print
 
 commonEnvironment.Prepend(CPPPATH  = ['.', './H'])
-commonEnvironment.Prepend(CCFLAGS = Split('-DCSOUND_WITH_API -g -O2'))
+commonEnvironment.Prepend(CCFLAGS = Split('-DCSOUND_WITH_API -g -gstabs -O2'))
 commonEnvironment.Prepend(CXXFLAGS = Split('-DCSOUND_WITH_API -fexceptions'))
 commonEnvironment.Prepend(LIBPATH = ['.', '#.'])
 commonEnvironment.Prepend(CPPFLAGS = ['-DBETA'])
@@ -176,6 +176,7 @@ elif getPlatform() == 'mingw' or getPlatform() == 'cygwin':
     commonEnvironment.Append(CCFLAGS = "-DPIPES")
     commonEnvironment.Append(CCFLAGS = "-DOS_IS_WIN32")
     commonEnvironment.Append(CCFLAGS = "-mthreads")
+    commonEnvironment.Append(CCFLAGS = "-mtune=pentium4")
     
 if (commonEnvironment['makeDynamic'] == 0) and (getPlatform() != 'linux') and (getPlatform() != 'darwin'):
     commonEnvironment.Append(LINKFLAGS = '-static')
@@ -614,7 +615,7 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('grain4',
     ['Opcodes/grain4.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('hrtferX', 
     Split('''Opcodes/hrtferX.c 
-    Top/natben.c''')))
+    Opcodes/natben.c''')))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('locsig', 
     ['Opcodes/locsig.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('lowpassr', 
@@ -830,9 +831,10 @@ else:
         vstEnvironment['ENV']['PATH'] = os.environ['PATH']
         vstEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
         vstEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
+        vstEnvironment.Append(SHLINKFLAGS = '--enable-extra-pe-debug')
         if getPlatform() == 'cygwin':
                 vstEnvironment.Append(CCFLAGS = ['-D_MSC_VER'])
-        guiProgramEnvironment.Prepend(LINKFLAGS = ['-mwindows', '_CsoundVST.dll'])
+        guiProgramEnvironment.Prepend(LINKFLAGS = ['-mwindows'])
         vstEnvironment.Append(LIBS = ['python23'])
         pyrunEnvironment = vstEnvironment.Copy()
         pyrunEnvironment.Append(CCFLAGS = '-DSWIG_GLOBAL')
@@ -886,6 +888,7 @@ else:
         vstEnvironment.Append(LIBS = ['wsock32'])
         vstEnvironment.Append(LIBS = ['ole32'])
         vstEnvironment.Append(LIBS = ['uuid'])
+        vstEnvironment.Append(SHLINKFLAGS = ['-module'])
         vstEnvironment['ENV']['PATH'] = os.environ['PATH']
         csoundVstSources.append('frontends/CsoundVST/_CsoundVST.def')
     csoundvst = vstEnvironment.SharedLibrary('CsoundVST', csoundVstSources, SHLIBPREFIX = '_')
@@ -896,6 +899,7 @@ else:
         Depends(csoundvst, pyrun)
 
     csoundvstGui = guiProgramEnvironment.Program('CsoundVST', ['frontends/CsoundVST/csoundvst_main.cpp']) 
+    guiProgramEnvironment.Append(LIBS = ['CsoundVST'])
     zipDependencies.append(csoundvstGui)
     Depends(csoundvstGui, csoundvst)
      
