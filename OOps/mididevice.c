@@ -30,7 +30,6 @@
 /* ********************************************************************** */
 /* ********************************************************************** */
 
-#ifndef PORTMIDI
 extern u_char *mbuf, *bufp, *bufend, *endatp;
 
 #define MBUFSIZ   1024
@@ -624,72 +623,3 @@ void MidiOutShortMsg(unsigned char *data)
         /* dummy function */
 }
 
-#else /* PORTMIDI */
-#include <portmidi.h>
-
-PortMidiStream* midistream;
-static int not_started = 1;
-extern PmEvent *mbuf, *bufp, *bufend, *endatp;
-
-#define MBUFSIZ   512
-
-void OpenMIDIDevice(void)
-{
-    if (not_started) {
-      Pm_Initialize();
-      Pt_Start(1, NULL, NULL);
-    }
-    not_started = 0;
-    Pm_OpenInput(&midistream, 
-                 atoi(O.Midiname),             /* Device number */
-                 NULL, 
-                 MBUFSIZE, 
-                 ((long (*)(void *)) Pt_Time), 
-                 NULL);
-    Pm_SetFilter(midistream, PM_FILT_ACTIVE | PM_FILT_CLOCK);
-    while (Pm_Poll(midistream)) { /* empty the buffer after setting filter */
-        Pm_Read(midistream, buffer, 1);
-    }
-}
-
-long GetMIDIData(void)
-{
-    extern int csoundIsExternalMidiEnabled(void*);
-    extern long csoundExternalMidiRead(void*, u_char *, int);
-    /**
-     * Reads from user-defined MIDI input.
-     */
-    if (csoundIsExternalMidiEnabled(&cenviron)) {
-      n = csoundExternalMidiRead(&cenviron, mbuf, MBUFSIZ);
-      if (n == 0) {
-        return 0;
-      }
-      bufp = mbuf;
-      endatp = mbuf + n;
-      return n;
-    }
-    else {
-      int retval;
-      if ((retval=Pm_Poll(midistream))) {
-        if (retval<0) printf(Str(X_1185,"sensMIDI: retval errno %d"),errno);
-        if (retval == 0) {
-          int i, j;
-          long n = Pm_Read(midistream, bufp, MBUFSIZE/3);
-          bufp = mbuf;
-          endatp = mbuf + n;
-          return n;
-        }
-        else {
-          printf(Str(X_1185,"sensMIDI: retval errno %d"),errno);
-        }
-      }
-      return(0);
-    }
-}
-
-void CloseMIDIDevice(void)
-{
-    Pm_Close(midistream);
-}
-
-#endif
