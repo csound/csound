@@ -93,7 +93,7 @@ opts.Add('makeDynamic',
     0)
 opts.Add('generateXmg',
     'Set to 1 to generate string database',
-    0)
+    1)
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -116,7 +116,7 @@ commonEnvironment.Prepend(SHLINKFLAGS = customSHLINKFLAGS)
 
 Help(opts.GenerateHelpText(commonEnvironment))
 
-commonEnvironment.Append(CPPPATH  = ['.', './H', './SDIF'])
+commonEnvironment.Append(CPPPATH  = ['.', './H'])
 commonEnvironment.Append(CCFLAGS = Split('-DCSOUND_WITH_API -g -O2'))
 commonEnvironment.Append(CXXFLAGS = Split('-DCSOUND_WITH_API -fexceptions'))
 if commonEnvironment['makeDynamic']==0:
@@ -142,8 +142,6 @@ if getPlatform() == 'linux':
     commonEnvironment.Append(CCFLAGS = "-DLINUX")
     commonEnvironment.Append(CPPPATH = '/usr/local/include')
     commonEnvironment.Append(CPPPATH = '/usr/include')
-    commonEnvironment.Append(CCFLAGS = "-g")
-    commonEnvironment.Append(CCFLAGS = "-O2")
     commonEnvironment.Append(CCFLAGS = "-Wall")
     commonEnvironment.Append(CCFLAGS = "-DPIPES")
     commonEnvironment.Append(LIBPATH = ['.', '#.', '/usr/lib', '/usr/local/lib'])
@@ -151,16 +149,12 @@ elif getPlatform() == 'darwin':
     commonEnvironment.Append(CCFLAGS = "-DMACOSX")
     commonEnvironment.Append(CPPPATH = '/usr/local/include')
     commonEnvironment.Append(CPPPATH = '/usr/include')
-    commonEnvironment.Append(CCFLAGS = "-g")
-    commonEnvironment.Append(CCFLAGS = "-O2")
     commonEnvironment.Append(CCFLAGS = "-Wall")
     commonEnvironment.Append(CCFLAGS = "-DPIPES")
     commonEnvironment.Append(LIBPATH = ['.', '#.', '/usr/lib', '/usr/local/lib'])
 elif getPlatform() == 'mingw' or getPlatform() == 'cygwin':
     commonEnvironment.Append(CPPPATH = '/usr/local/include')
     commonEnvironment.Append(CPPPATH = '/usr/include')
-    commonEnvironment.Append(CCFLAGS = "-g")
-    commonEnvironment.Append(CCFLAGS = "-O2")
     commonEnvironment.Append(CCFLAGS = "-Wall")
     commonEnvironment.Append(CCFLAGS = "-D_WIN32")
     commonEnvironment.Append(CCFLAGS = "-DWIN32")
@@ -380,7 +374,7 @@ if commonEnvironment['generatePDF']:
     print 'Generating PDF documentation.'
     csoundPdf = commonEnvironment.Command('csound.pdf', 'csound.tex', 'pdflatex $SOURCE')
 
-ustubProgramEnvironment.Program('makedb', 
+makedb = ustubProgramEnvironment.Program('makedb', 
     ['strings/makedb.c'])
 
 libCsoundSources = Split('''
@@ -820,9 +814,9 @@ if commonEnvironment['generateTags'] == 1 and (getPlatform() == 'linux' or getPl
 
 if commonEnvironment['generateXmg'] == 1:
     print "Calling makedb"
-    xmgs = commonEnvironment.Command('American.xmg', ['strings/all_strings'], './makedb strings/all_strings American')
-    xmgs1 = commonEnvironment.Command('English.xmg', ['strings/english_strings'], './makedb strings/english_strings English')
-    xmgs2 = commonEnvironment.Command('csound.xmg', ['strings/english_strings'], './makedb strings/english_strings csound')
+    xmgs = commonEnvironment.Command('American.xmg', ['strings/all_strings'], 'makedb strings/all_strings American')
+    xmgs1 = commonEnvironment.Command('English.xmg', ['strings/english-strings'], 'makedb strings/english-strings English')
+    xmgs2 = commonEnvironment.Command('csound.xmg', ['strings/english-strings'], 'makedb strings/english-strings csound')
     Depends(xmgs, makedb)
     Depends(xmgs1, makedb)
     Depends(xmgs2, makedb)
