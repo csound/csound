@@ -594,6 +594,8 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('flanger',
     ['Opcodes/flanger.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('follow',
     ['Opcodes/follow.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('freeverb',
+    ['Opcodes/freeverb.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('grain',
     ['Opcodes/grain.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('grain4',
