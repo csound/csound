@@ -1,0 +1,393 @@
+/*  
+    load_opcodes.c:
+
+    Copyright (C) 1991 Barry Vercoe, John ffitch
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
+*/
+#include "cs.h"
+#include "csound.h"
+
+
+#if defined(WIN32)
+
+#include <io.h>
+#include <direct.h>
+#include <windows.h>
+
+
+void *csoundOpenLibrary(const char *libraryPath)
+{
+	void *library = 0;
+	library = (void *) LoadLibrary(libraryPath);
+	return library;
+}
+
+void *csoundCloseLibrary(void *library)
+{
+  return 0;
+}
+
+void *csoundGetLibrarySymbol(void *library, 
+							 const char *procedureName)
+{
+	void *procedureAddress = 0;
+	procedureAddress = GetProcAddress((HINSTANCE) library, 
+		procedureName);
+	return procedureAddress;
+}
+
+#elif defined(LINUX) 
+
+#include <dlfcn.h>
+#include <dirent.h>
+#include <string.h>
+
+void *csoundOpenLibrary(const char *libraryPath)
+{
+  void *library = 0;
+  library = dlopen(libraryPath, RTLD_NOW | RTLD_GLOBAL );
+  if(!library)
+    {
+      fprintf(stderr, "Error in dlopen(): '%s'\n", dlerror());
+    }
+  return library;
+}
+
+void *csoundCloseLibrary(void *library)
+{
+  void *returnValue = 0;
+  returnValue = (void *)dlclose(library);
+  return returnValue;
+}
+
+void *csoundGetLibrarySymbol(void *library, 
+			     const char *procedureName)
+{
+  void *procedureAddress = 0;
+  procedureAddress = dlsym(library, procedureName);
+  
+    if (!procedureAddress)  {
+      printf("Failed to find %s in library: %s\n", procedureName, dlerror());
+    }  
+  
+  return procedureAddress;
+}
+
+#elif defined(MACOSX)
+
+#define ERR_STR_LEN 255
+
+#include <mach-o/dyld.h>
+
+
+/* Set and get the error string for use by dlerror */
+static const char *error(int setget, const char *str, ...)
+{
+    static char errstr[ERR_STR_LEN];
+    static int err_filled = 0;
+    const char *retval;
+    NSLinkEditErrors ler;
+    int lerno;
+    const char *dylderrstr;
+    const char *file;
+    va_list arg;
+    if (setget <= 0)
+    {
+        va_start(arg, str);
+        strncpy(errstr, "dlsimple: ", ERR_STR_LEN);
+        vsnprintf(errstr + 10, ERR_STR_LEN - 10, str, arg);
+        va_end(arg);
+    /* We prefer to use the dyld error string if getset is 1*/
+        if (setget == 0) {
+            NSLinkEditError(&ler, &lerno, &file, &dylderrstr);
+            fprintf(stderr,"dyld: %s\n",dylderrstr);
+            if (dylderrstr && strlen(dylderrstr))
+                strncpy(errstr,dylderrstr,ERR_STR_LEN);
+        }       
+        err_filled = 1;
+        retval = NULL;
+    }
+    else
+    {
+        if (!err_filled)
+            retval = NULL;
+        else
+            retval = errstr;
+        err_filled = 0;
+    }
+    return retval;
+}
+
+/* dlsymIntern is used by dlsym to find the symbol */
+void *dlsymIntern(void *handle, const char *symbol)
+{
+    NSSymbol *nssym = 0;
+    /* If the handle is -1, if is the app global context */
+    if (handle == (void *)-1)
+    {
+        /* Global context, use NSLookupAndBindSymbol */
+        if (NSIsSymbolNameDefined(symbol))
+        {
+            nssym = NSLookupAndBindSymbol(symbol);
+        }
+
+    }
+    /* Now see if the handle is a struch mach_header* or not,
+       use NSLookupSymbol in image for libraries, and
+       NSLookupSymbolInModule for bundles */
+    else
+    {
+        /* Check for both possible magic numbers depending
+           on x86/ppc byte order */
+        if ((((struct mach_header *)handle)->magic == MH_MAGIC) ||
+            (((struct mach_header *)handle)->magic == MH_CIGAM))
+        {
+            if (NSIsSymbolNameDefinedInImage((struct mach_header *)handle,
+                symbol))
+            {
+                nssym = NSLookupSymbolInImage((struct mach_header *)handle,
+                            symbol, NSLOOKUPSYMBOLINIMAGE_OPTION_BIND
+                          | NSLOOKUPSYMBOLINIMAGE_OPTION_RETURN_ON_ERROR);
+            }
+
+        }
+        else
+        {
+            nssym = NSLookupSymbolInModule(handle, symbol);
+        }
+    }
+    if (!nssym)
+    {
+        error(0, "Symbol \"%s\" Not found", symbol);
+        return NULL;
+    }
+    return NSAddressOfSymbol(nssym);
+}
+
+void *csoundOpenLibrary(const char *libraryPath)
+{
+	void *module = 0;
+    NSObjectFileImage ofi = 0;
+    NSObjectFileImageReturnCode ofirc;
+    static int (*make_private_module_public) (NSModule module) = 0;
+    unsigned int flags =  NSLINKMODULE_OPTION_RETURN_ON_ERROR |
+                          NSLINKMODULE_OPTION_PRIVATE;
+
+    /* If we got no path, the app wants the global namespace,
+       use -1 as the marker in this case */
+    if (!libraryPath)
+        return (void *)-1;
+
+    /* Create the object file image, works for things linked
+       with the -bundle arg to ld */
+    ofirc = NSCreateObjectFileImageFromFile(libraryPath, &ofi);
+    switch (ofirc)
+    {
+        case NSObjectFileImageSuccess:
+            /* It was okay, so use NSLinkModule to link in the image */
+             module = NSLinkModule(ofi, libraryPath,flags);
+            /* Don't forget to destroy the object file
+               image, unless you like leaks */
+            NSDestroyObjectFileImage(ofi);
+            /* If the mode was global, then change the module, this avoids
+               multiply defined symbol errors to first load private then
+               make global. Silly, isn't it. */
+	       
+            if (!make_private_module_public)
+	    {
+		_dyld_func_lookup("__dyld_NSMakePrivateModulePublic", 
+		(unsigned long *)&make_private_module_public);
+	    }
+            make_private_module_public(module);
+            
+            break;
+        case NSObjectFileImageInappropriateFile:
+            /* It may have been a dynamic library rather
+               than a bundle, try to load it */
+            module = (void *)NSAddImage(libraryPath, 
+                        NSADDIMAGE_OPTION_RETURN_ON_ERROR);
+            break;
+        case NSObjectFileImageFailure:
+            error(0,"Object file setup failure :  \"%s\"", libraryPath);
+            return 0;
+        case NSObjectFileImageArch:
+            error(0,"No object for this architecture :  \"%s\"", libraryPath);
+            return 0;
+        case NSObjectFileImageFormat:
+            error(0,"Bad object file format :  \"%s\"", libraryPath);
+            return 0;
+        case NSObjectFileImageAccess:
+            error(0,"Can't read object file :  \"%s\"", libraryPath);
+            return 0;       
+    }
+    if (!module)
+        error(0, "Can not open \"%s\"", libraryPath);
+    return module;
+}
+
+void *csoundCloseLibrary(void *library)
+{
+    if ((((struct mach_header *)library)->magic == MH_MAGIC) ||
+        (((struct mach_header *)library)->magic == MH_CIGAM))
+    {
+        error(-1, "Can't remove dynamic libraries on darwin");
+        return 0;
+    }
+    if (!NSUnLinkModule(library, 0))
+    {
+        error(0, "unable to unlink module %s", NSNameOfModule(library));
+        //return 1;
+		return 0;
+    }
+    return 0;
+}
+void *csoundGetLibrarySymbol(void *library, const char *procedureName)
+{
+    static char undersym[257];  /* Saves calls to malloc(3) */
+    int sym_len = strlen(procedureName);
+    void *value = NULL;
+    char *malloc_sym = NULL;
+
+    if (sym_len < 256)
+    {
+        snprintf(undersym, 256, "_%s", procedureName);
+        value = dlsymIntern(library, undersym);
+    }
+    else
+    {
+        malloc_sym = malloc(sym_len + 2);
+        if (malloc_sym)
+        {
+            sprintf(malloc_sym, "_%s", procedureName);
+            value = dlsymIntern(library, malloc_sym);
+            free(malloc_sym);
+        }
+        else
+        {
+            error(-1, "Unable to allocate memory");
+        }
+    }
+    return value;
+}
+
+
+#else
+
+// not sure what this is for - SYY - 11.5.2003
+//#include <extras.h>  
+
+void *csoundOpenLibrary(const char *libraryPath)
+{
+	return 0;
+}
+void *csoundCloseLibrary(void *library)
+{
+   	return 0;
+}
+void *csoundGetLibrarySymbol(void *library, const char *procedureName)
+{
+	return 0;
+}
+
+#endif
+
+int csoundLoadExternal(void *csound, const char* libraryPath) {
+    void *handle;
+    OENTRY *opcodlst_n;
+    long length, olength;    
+    
+    OENTRY *(*init)(GLOBALS*);
+    long (*size)(void);    
+    
+    handle = csoundOpenLibrary(libraryPath);
+    
+    if(!handle) {
+        return -1;
+    }
+    
+#ifdef BETA
+    printf("Found handle\n");
+#endif    
+    
+    size = csoundGetLibrarySymbol(handle, "opcode_size");
+    if(!size) 
+    {
+        return -1;   
+    }
+    
+#ifdef BETA
+    printf("Found size\n");
+#endif    
+    
+    length = (*size)();
+  
+#ifdef BETA
+    printf("Length=%d\n", length);
+#endif
+  
+    init = csoundGetLibrarySymbol(handle, "opcode_init");
+    if(!init) 
+    {
+        return -1;   
+    }    
+    
+#ifdef BETA
+    printf("Found init\n");
+    printf("Calling init\n");
+#endif
+
+    opcodlst_n = (*init)(&cglob);
+    olength = oplstend-opcodlst;    
+ 
+#ifdef BETA
+    printf("Got opcodlst %p\noplstend=%p, opcodlst=%p, length=%d\n",
+               opcodlst_n, oplstend, opcodlst, olength);
+    printf("Adding %d(%d) -- first opcode is %s\n",
+               length, length/sizeof(OENTRY), opcodlst_n[0].opname);
+#endif
+    opcodlst = (OENTRY*) mrealloc(opcodlst, olength*sizeof(OENTRY) + length);
+    memcpy(opcodlst+olength, opcodlst_n, length);
+    oplstend = opcodlst +  olength + length/sizeof(OENTRY);
+ 
+    
+    return 0;
+}
+
+
+int csoundLoadExternals(void *csound)
+{
+    char *libname;
+    char buffer[256];
+    if(cglob.oplibs == NULL)
+    {
+        return 1;   
+    }
+        
+    printf("Loading libraries %s\n", cglob.oplibs);
+    strcpy(buffer, cglob.oplibs);
+    libname = strtok(buffer, ",");    
+    
+    while(libname != NULL)
+    {
+        csoundLoadExternal(csound, libname);  // error code not currently checked!!!    
+        libname = strtok(NULL, ",");  
+    }
+    
+    return 1;    
+}
