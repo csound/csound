@@ -1409,8 +1409,8 @@ int outo(OUTO *p)
         sp[m+3] = ap4[n];
         sp[m+4] = ap5[n];
         sp[m+5] = ap6[n];
-        sp[m+7] = ap7[n];
-        sp[m+8] = ap8[n];
+        sp[m+6] = ap7[n];
+        sp[m+7] = ap8[n];
       }
       spoutactive = 1;
     }

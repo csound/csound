@@ -208,7 +208,7 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
                                 /* Return -1 on failure */
 {
     int     n;
-    long    hdrsize = 0, framesinbuf, skipframes;
+    long    framesinbuf, skipframes;
     char    *sfname, soundiname[128];
     int     sinfd=0;
     SNDFILE *infile;
@@ -308,7 +308,7 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
       p->format = (short)sf2format(sfinfo.format);
       p->sampframsiz = (short)sfsampsize(sfinfo.format) * sfinfo.channels;
       p->filetyp = sf2type(sfinfo.format);            /* copy type from headata */
-      /* ******      p->aiffdata = hdr->aiffdata; */
+      p->aiffdata = NULL;       /* Something to di with looping!! */
       p->sr = sfinfo.samplerate;
       p->nchanls = (short)sfinfo.channels;
       if (p->OUTOCOUNT)
@@ -356,7 +356,7 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
         p->endfile = 1;
       if (p->framesrem != -1)
         p->framesrem -= skipframes;                  /* sampleframes to EOF   */
-      p->datpos = hdrsize;
+      p->datpos = 0;
       return(infile);                                /* return the active fd  */
 
  errtn:

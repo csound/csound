@@ -244,7 +244,7 @@ int sndinset(SOUNDIN *p)    /* init routine for instr soundin   */
     }
     p->channel = ALLCHNLS;                   /* reading all channels      */
     p->analonly = 0;
-    if ((sinfd = sndgetset(p)) >= 0) {       /* if soundinset successful  */
+    if ((sinfd = sndgetset(p)) != NULL) {    /* if soundinset successful  */
       p->fdch.fd = sinfd;                    /*    store & log the fd     */
       if (!reinit) fdrecord(&p->fdch);       /*    instr will close later */
       p->sampframsiz /= p->OUTOCOUNT;        /* IV - Nov 16 2002 */

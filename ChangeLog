@@ -1,3 +1,7 @@
+2004-06-15  John ffitch  <jpff@codemist.co.uk>
+
+	* OOps/aops.c (outo): Skipped +6 case!
+
 2004-06-12  John ffitch  <jpff@codemist.co.uk>
 
 	* OOps/ugens2.c (ftkrchk): 
@@ -7,8 +11,8 @@
 2004-06-07  Michael Gogins <gogins@pipeline.com>
 
 	* Changed the CsoundVST module to create a global csound instance of 
-    CsoundVST.CppSound that will work both in CsoundVST and in the standalone
-    Python interpreter.
+	CsoundVST.CppSound that will work both in CsoundVST and in the
+	standalone Python interpreter.
 
 2004-06-02  Michael Gogins <gogins@pipeline.com>
 
