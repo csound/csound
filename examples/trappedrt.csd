@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
--d -h --sched -odac1 
+-h --sched -odac7 
 </CsOptions>
 <CsInstruments>
 ;============================================================================; 

@@ -23,9 +23,9 @@ elif sys.platform == 'cygwin':
     customLIBPATH.append('cygwin_import_libs')
 elif sys.platform[:3] == 'win':
     customCPPPATH.append('c:/tools/mingw/include')
+    customCPPPATH.append('c:/tools/boost')
     customCPPPATH.append('c:/tools/Python23/include')
     customCPPPATH.append('c:/tools/msys/1.0/local/include')
-    customCPPPATH.append('c:/tools/boost')
     customCPPPATH.append('c:/tools/fluidsynth/include')
     customLIBPATH.append('cygwin_import_libs')
     customLIBPATH.append('c:/tools/mingw/lib')
@@ -34,4 +34,5 @@ elif sys.platform[:3] == 'win':
     platform = 'windows'
 else:
     platform = 'unsupported platform'
+
 

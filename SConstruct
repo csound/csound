@@ -23,6 +23,7 @@ import os.path
 import sys
 import string
 import zipfile
+import shutil
 
 #############################################################################
 #
@@ -807,11 +808,7 @@ if (commonEnvironment['buildCsoundVST'] == 1) and boostFound and fltkFound:
     csoundvstGui = guiProgramEnvironment.Program('CsoundVST', ['frontends/CsoundVST/csoundvst_main.cpp']) 
     zipDependencies.append(csoundvstGui)
     Depends(csoundvstGui, csoundvst)
-            
-    copyPython = commonEnvironment.Install(['.'], ['frontends/CsoundVST/CsoundVST.py'])
-    zipDependencies.append(copyPython)
-    Depends(copyPython, csoundvst)
-    
+     
 if (commonEnvironment['generateTags'] == 1) and (getPlatform() == 'linux' or getPlatform() == 'cygwin'):
     print "Calling TAGS"
     allSources = string.join(glob.glob('*/*.h*'))
