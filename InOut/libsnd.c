@@ -555,9 +555,9 @@ int sreadin(                    /* special handling of sound input       */
     int    n, ntot=0;
     SNDFILE *infile = p->fdch.fd;
     int nsamples = nbytes/sizeof(MYFLT);
+    MYFLT *inb = (MYFLT*)inbuf;
     printf("*** sreadin: %p\n",infile);
     do {
-      MYFLT *inb = (MYFLT*)inbuf;
       printf("***        : ntot=%d nbytes=%d reading %d\n",
              ntot, nbytes, (nsamples-ntot)/nchnls);
       n = sf_read_MYFLT(infile, inb+ntot, (nsamples-ntot)/nchnls);
@@ -572,6 +572,7 @@ int sreadin(                    /* special handling of sound input       */
     }
     else ntot = 0;
     printf("*** sreadin: result=%d\n", ntot*sizeof(MYFLT));
+    printf("%f %f %f %f %f %f\n", inb[0], inb[1], inb[2], inb[3], inb[4], inb[5]);
     return ntot*sizeof(MYFLT);
 }
 
@@ -641,6 +642,7 @@ int soundin(SOUNDIN *p)
       MYFLT *inbufp = (MYFLT *)p->inbufp;
       printf("***        : loop start p->fdch.fd=%p\n", p->fdch.fd);
       do {
+        printf("Writing %d <- %f\n", i, *inbufp * scalefac);
         *(r[i]++) = *inbufp++ * scalefac;
         if (++i >= chnsout) i = 0;
       } while (--nsmps);
@@ -656,6 +658,10 @@ int soundin(SOUNDIN *p)
       }
       p->inbufp = p->inbuf;
       p->bufend = p->inbuf + n;
+      {
+        MYFLT* b = (MYFLT*)p->inbuf;
+        printf("%f %f %f %f %f %f\n", b[0], b[1], b[2], b[3], b[4], b[5]);
+      }
       if (ntogo > 0) {
         if ((nsmps = n)  > ntogo)
           nsmps = ntogo;
