@@ -108,7 +108,7 @@ long benlong(long lval)       /* coerce a natural long into a bigendian long */
     *p++ = (char)(0xFF & (lval >> 16));
     *p++ = (char)(0xFF & (lval >> 8));
     *p   = (char)(0xFF & lval);
-    printf("%.8x -> %.8x\n", lval, *(long *)benchar);
+    printf("%.8lx -> %.8lx\n", lval, *(long *)benchar);
     return(*(long *)benchar);
 }
 
@@ -399,7 +399,7 @@ void aiffReadHeader(            /* Read AIFF header, fill hdr, &  */
                ckHdr.ckID == *(long *)ANNOTATION_ID) {
         int i=natlong(ckHdr.ckSize);            /* Counter */
         char c[24];            /* Buffer */
-        printf("%4s: ", (char *)(&ckHdr.ckID), i);
+        printf("%4s: %d", (char *)(&ckHdr.ckID), i);
         while (i>0) {
           int n = (i>=24 ? 24 : i);
           n = read(fd, c, n); /* Skip the chunk */

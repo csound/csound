@@ -427,7 +427,7 @@ top:
           c = getscochar(1);
           continue;
         default:
-          printf("read %c(%.2x)\n", c);
+          printf("read %c(%.2x)\n", c, c);
           printf(Str(X_306,"Incorrect evaluation\n"));
           longjmp(cenviron.exitjmp_,1);
         }

@@ -281,7 +281,7 @@ int csoundLoadExternals(void)
 #endif
         length = (*size)();
 #ifdef BETA
-        printf("Length=%d\n", length);
+        printf("Length=%ld\n", length);
 #endif
         init = dlsym(handle, "opcode_init");
 #ifdef BETA
@@ -341,9 +341,9 @@ int csoundLoadExternals(void)
 #endif
 
 #ifdef BETA
-        printf("Got opcodlst %p\noplstend=%p, opcodlst=%p, length=%d\n",
+        printf("Got opcodlst %p\noplstend=%p, opcodlst=%p, length=%ld\n",
                opcodlst_n, oplstend, opcodlst, olength);
-        printf("Adding %d(%d) -- first opcode is %s\n",
+        printf("Adding %ld(%ld) -- first opcode is %s\n",
                length, length/sizeof(OENTRY), opcodlst_n[0].opname);
 #endif
         opcodlst = (OENTRY*) mrealloc(opcodlst, olength*sizeof(OENTRY) + length);
