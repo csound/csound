@@ -56,7 +56,7 @@
 
 #define S       sizeof
 
-#if defined(CWIN) || defined(TCLTK)
+#if defined(TCLTK)
 int    cntrl_set(void*), control(void*), ocontrol(void*);
 int    button_set(void*), button(void*), check_set(void*), check(void*);
 int    textflash(void*);

@@ -1749,7 +1749,7 @@ int isense(KSENSE *p)
 {
     return OK;
 }
-# ifdef CWIN
+# ifdef WIN32
 #include <conio.h>
 
 int ksense(KSENSE *p)

@@ -685,7 +685,7 @@ long kperf(long kcnt)   /* perform currently active instrs for kcnt kperiods */
             || (O.OrcEvts && (sensType = sensOrcEvent()))) /* or triginstr event (re Aug 1999) */
           return(kreq - kcnt); /*      do early return    */
       }
-/* #if defined(mills_macintosh) || defined(CWIN) || defined(SYMANTEC) */
+/* #if defined(mills_macintosh) || defined(SYMANTEC) */
 /*       else if (O.Midiin && actanchor.nxtact == NULL) /\* no midi or notes on; check events *\/ */
 /* #endif */
 /*         if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); */
