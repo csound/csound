@@ -21,16 +21,16 @@ if sys.platform[:5] == 'linux':
     customLIBPATH.append('/usr/local/lib/python2.3/config')
 elif sys.platform == 'cygwin':
     platform = 'cygwin'
-    customCPPPATH.append('c:/apcc/tools/Python23/include')
+    customCPPPATH.append('c:/utah/usr/Python23/include')
 elif sys.platform[:3] == 'win':
     # For the basic build you need MinGW, MSys, and libsndfile.
     # Add them here:
-    customLIBPATH.append('c:/apcc/tools/mingw/lib')
-    customCPPPATH.append('c:/apcc/tools/msys/1.0/local/include')
-    customLIBPATH.append('c:/apcc/tools/msys/1.0/local/lib')
+    customLIBPATH.append('c:/utah/usr/mingw/lib')
+    customCPPPATH.append('c:/utah/usr/msys/1.0/local/include')
+    customLIBPATH.append('c:/utah/usr/msys/1.0/local/lib')
     # If libsndfile is not in a standard location add it here:
-    #customCPPPATH.append('C:/apcc/tools/libsndfile-1.0.11/src')
-    #customLIBPATH.append('C:/apcc/tools/libsndfile-1.0.11')
+    #customCPPPATH.append('C:/utah/usr/libsndfile-1.0.11/src')
+    #customLIBPATH.append('C:/utah/usr/libsndfile-1.0.11')
     ################################################################
     # If you want real-time audio you need PortAudio.
     # If it is not in a standard location add it here
@@ -41,32 +41,32 @@ elif sys.platform[:3] == 'win':
     # If you want FLTK widgets or if you want to build CsoundVST,
     # you need FLTK. If it is not in a standard location,
     # add it here (of course you must build it first):
-    # customCPPPATH.append('C:/tools/fltk-1.1.6')
-    # customLIBPATH.append('C:/tools/fltk-1.1.6/lib')
+    # customCPPPATH.append('C:/utah/opt/fltk-1.1.6')
+    # customLIBPATH.append('C:/utah/opt/fltk-1.1.6/lib')
     ################################################################
     # If you want to build CsoundVST you need Python and
     # a MinGW import library for Python. Add them here:
-    customCPPPATH.append('c:/apcc/tools/Python23/include')
-    customCPPPATH.append('c:/apcc/tools/mingw/include')
+    customCPPPATH.append('c:/utah/opt/Python23/include')
+    customCPPPATH.append('c:/utah/usr/mingw/include')
     customLIBPATH.append('c:/projects/csound5/cygwin_import_libs')    
     customSWIGFLAGS.append('-Derrmsg=err_msg')
     ################################################################
     # If you want to build CsoundVST you need boost.
     # If it is not in a standard lcoation add it here
     # (you do NOT need to build it first):
-    customCPPPATH.append('c:/apcc/tools/boost')
+    customCPPPATH.append('c:/utah/opt/boost')
     ################################################################
     # If you want to build the FluidSynth opcodes 
     # you need FluidSynth. If it is not a standard location,
     # add it here (you do NOT need to build it first):
-    customLIBPATH.append('c:/apcc/tools/fluidsynth-1.0.3-win32')
-    customCPPPATH.append('c:/apcc/tools/fluidsynth-1.0.3-win32/include')
+    #customLIBPATH.append('c:/utah/opt/fluidsynth-1.0.3-win32')
+    #customCPPPATH.append('c:/utah/opt/fluidsynth-1.0.3-win32/include')
     ################################################################
     # If you want to build the Java wrapper for CsoundVST
     # you need Java. If it is not in a standard location, 
     # add it here (you do NOT need to build it first):
-    customCPPPATH.append('c:/tools/jdk1.5.0/include')
-    customCPPPATH.append('c:/tools/jdk1.5.0/include/win32')
+    customCPPPATH.append('c:/utah/opt/jdk1.5.0/include')
+    customCPPPATH.append('c:/utah/opt/jdk1.5.0/include/win32')
     platform = 'mingw'
 else:
     platform = 'unsupported platform'
