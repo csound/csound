@@ -3,8 +3,8 @@
 
 AC_PREREQ(2.57)
 AC_INIT(Csound, 4.24, csound-bug@cs.bath.ac.uk)
-AC_CONFIG_SRCDIR([main.c])
-AC_CONFIG_HEADER([config.h])
+AC_CONFIG_SRCDIR([Top/main.c])
+AC_CONFIG_HEADER([H/config.h])
 AC_CANONICAL_SYSTEM
 LDFLAGS="-L/usr/lib -L/usr/X11R6/lib -L/usr/local/lib"
 
@@ -132,21 +132,21 @@ AC_ARG_WITH(tcltk,
 
 case $host in 
      *irix*) 
-	     RTAUDIO_SRC="rtSGI.c SGIplay.c"
+	     RTAUDIO_SRC="InOut/rtSGI.c InOut/SGIplay.c"
 	     RTAUDIO_OBJS="rtSGI.$ac_objext SGIplay.$ac_objext"
              RTAUDIO_HDR=
 	     AC_DEFINE(SGI)
-	     GRAPHING_SRC="winX11.c"
+	     GRAPHING_SRC="InOut/winX11.c"
 	     GRAPHING_OBJS="winX11.$ac_objext"
              XCFLAGS=""
 	     ;;
 
      *sun*)
-	     RTAUDIO_SRC="rtSUN.c"
+	     RTAUDIO_SRC="InOut/rtSUN.c"
 	     RTAUDIO_OBJS="rtSUN.$ac_objext"
              RTAUDIO_HDR=
 	     AC_DEFINE(sun)
-	     GRAPHING_SRC="winX11.c"
+	     GRAPHING_SRC="InOut/winX11.c"
 	     GRAPHING_OBJS="winX11.$ac_objext"
              XCFLAGS="-ffpa"
 	     ;;
@@ -158,7 +158,7 @@ case $host in
 
      *linux*)
              AC_DEFINE(LINUX)
-             RTAUDIO_SRC="rtpa.c pablio.c ringbuffer.c"
+             RTAUDIO_SRC="InOut/rtpa.c InOut/pablio.c InOut/ringbuffer.c"
              RTAUDIO_OBJS="rtpa.$ac_objext pablio.$ac_objext ringbuffer.$ac_objext"
              RTAUDIO_HDR=
 	     if test "$WORDS_BIG_ENDIAN"; then
@@ -166,12 +166,12 @@ case $host in
 	     fi
              if test "$WINDOWS" = yes; then
                  if test "$USE_FLTK" = yes; then
-             	     GRAPHING_SRC="winFLTK.c FL_graph.cpp"
+             	     GRAPHING_SRC="InOut/winFLTK.c InOut/FL_graph.cpp"
                      GRAPHING_OBJS="winFLTK.o FL_graph.o"
                      AC_HAVE_LIBRARY(fltk)
                      AC_HAVE_LIBRARY(pthread)
                  else
-             	     GRAPHING_SRC="winX11.c"
+             	     GRAPHING_SRC="InOut/winX11.c"
                      GRAPHING_OBJS="winX11.$ac_objext"
                  fi
              else
@@ -182,14 +182,14 @@ case $host in
 	     ;;
      *dec*)
              AC_DEFINE(DEC)
-             RTAUDIO_SRC="rtDEC.c DECaudio.c DECplay.c"
+             RTAUDIO_SRC="InOut/rtDEC.c InOut/DECaudio.c InOut/DECplay.c"
              RTAUDIO_OBJS="rtDEC.$ac_objext DECaudio.$ac_objext DECplay.$ac_objext"
-             RTAUDIO_HDR="DECplay.h"
+             RTAUDIO_HDR="H/DECplay.h"
              XCFLAGS=""
 	     ;;
      *hp*)
              AC_DEFINE(HP)
-             RTAUDIO_SRC="rtDEC.c DECaudio.c DECplay.c"
+             RTAUDIO_SRC="InOut/rtDEC.c InOut/DECaudio.c InOut/DECplay.c"
              RTAUDIO_OBJS="rtDEC.$ac_objext DECaudio.$ac_objext DECplay.$ac_objext"
              RTAUDIO_HDR=""
              XCFLAGS="-Aa +e +x"
@@ -250,21 +250,13 @@ fi
 if test "$USE_GUI" = yes; then
      FLTKOBJ="widgets.$ac_objext"
      FLTKSRC="widgets.cpp"
-     if test "$FLTK_CONFIG"; then
          AC_PATH_PROG(FLTK_CONFIG,fltk-config)
-#        AC_CHECK_LIB([fltk], [fl_alphasort])
          AC_LANG_CPLUSPLUS
-#        AC_CHECK_LIB([stdc++-libc6.2-2], [::pow])
-#        AC_HAVE_LIBRARY(g++)
          AC_LANG_C
-dnl Cannot work out to automate this
-dnl	  WINLDFLAGS="-lg++"
-          WINLDFLAGS="/usr/local/lib/libfltk.a /usr/lib/libstdc++-libc6.2-2.a.3"
-	  WINCXXFLAGS=`$FLTK_CONFIG --cxxflags`
+
+	 WINLDFLAGS=`$FLTK_CONFIG --ldflags`
 	  AC_DEFINE(HAVE_FLTK)
-     else
-	  AC_MSG_RESULT([fltk-config not found])
-     fi
+
      AC_CHECK_LIB([pthread], [pthread_mutex_lock])
 fi
 AC_CHECK_LIB([m], [sin])
@@ -281,7 +273,7 @@ AC_SUBST(FLTKOBJ)
 AC_SUBST(WINCXXFLAGS)
 AC_SUBST(WINLDFLAGS)
 
-AC_OUTPUT(Makefile anal/Makefile util1/Makefile util2/Makefile \
+AC_OUTPUT(Makefile Opcodes/Makefile anal/Makefile util1/Makefile util2/Makefile \
           anal/adsyn/Makefile anal/convol/Makefile anal/lpc/Makefile \
           anal/pvoc/Makefile util1/cscore/Makefile util1/scot/Makefile \
           util1/sortex/Makefile util2/dnoise.dir/Makefile util2/envext/Makefile \

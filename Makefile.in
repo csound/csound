@@ -428,6 +428,12 @@ csound.xmg:	strings/all_strings English.xmg
 makedb:	strings/makedb.c H/text.h
 	$(CC) -I H -o makedb strings/makedb.c
 
+$(WINOBJ): $(WINSRC)
+	$(CC) $(CFLAGS) -I H -c $I/$*.c -o $*.$(o)
+
+FL_graph.o: $I/FL_graph.cpp
+	$(CXX) $(CXXFLAGS) -I H -c $I/$*.cpp -o $*.$(o)
+
 $(AUDOBJ): $(AUDSRC)
 	$(CC) $(CFLAGS) -I H -c $I/$*.c -o $*.$(o)
 
