@@ -1,0 +1,48 @@
+#							SORTEX makef
+# macros defined in toplevel csound/Makefile
+#	CFLAGS INCLUDE LIB DEST
+
+INCLUDE	= @includedir@
+LIB	= @datadir@
+DEST	= @bindir@
+CFLAGS  = @CFLAGS@ @XCFLAGS@ $(DEFINES)
+LIBS    = @WINLDFLAGS@ @X_LIBS@ @LIBS@
+
+T = ../..
+
+SCSORT =  smain.@OBJEXT@ $T/scsort.@OBJEXT@ $T/sread.@OBJEXT@ \
+	  $T/sort.@OBJEXT@ $T/twarp.@OBJEXT@ $T/swrite.@OBJEXT@ \
+	  $T/memalloc.@OBJEXT@ MOD.@OBJEXT@ $T/getstring.@OBJEXT@
+EXTRACT = xmain.@OBJEXT@ $T/scxtract.@OBJEXT@ $T/sread.@OBJEXT@ \
+	  $T/extract.@OBJEXT@ $T/twarp.@OBJEXT@ $T/swrite.@OBJEXT@ \
+	  $T/memalloc.@OBJEXT@ MOD.@OBJEXT@ $T/getstring.@OBJEXT@
+
+PROGS = scsort extract
+
+sortexs:	$(PROGS)
+
+scsort: 	$(SCSORT)
+		@CC@ $(CFLAGS) -o scsort $(SCSORT) $(LIBS)
+
+extract: 	$(EXTRACT)
+		@CC@ $(CFLAGS) -o extract $(EXTRACT) $(LIBS)
+
+smain.@OBJEXT@:	smain.c
+		@CC@ -I ../../H $(CFLAGS) -c smain.c
+
+xmain.@OBJEXT@:	xmain.c
+		@CC@ -I ../../H $(CFLAGS) -c xmain.c
+
+MOD.@OBJEXT@:   MOD.c
+		@CC@ -I ../../H $(CFLAGS) -c MOD.c
+
+install: 	$(PROGS)
+		-strip $(PROGS)
+		-rm -f $(DEST)/scsort $(DEST)/extract
+		cp $(PROGS) $(DEST)
+
+clean:
+		-rm smain.@OBJEXT@ xmain.@OBJEXT@ $(PROGS)
+
+rmbak:
+		-rm *.bak *~

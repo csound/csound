@@ -1,0 +1,36 @@
+#								SNDINFO makef
+# macros defined in toplevel csound/makefile
+#	CFLAGS INCLUDE LIB DEST
+
+INCLUDE	= @includedir@
+LIB	= @datadir@
+DEST	= @bindir@
+CFLAGS  = @CFLAGS@ @XCFLAGS@ $(DEFINES)
+LIBS    = @WINLDFLAGS@ @X_LIBS@ @LIBS@
+
+T = ../..
+INC = ../../H
+
+OBJS =  main.@OBJEXT@ $T/sndinfo.@OBJEXT@ $T/filopen.@OBJEXT@ \
+	$T/sfheader.@OBJEXT@ $T/soundin.@OBJEXT@ $T/ulaw.@OBJEXT@ \
+	$T/aiff.@OBJEXT@ $T/wave.@OBJEXT@ $T/ieee80.@OBJEXT@ \
+	$T/memalloc.@OBJEXT@ $T/aifc.@OBJEXT@ $T/getstring.@OBJEXT@
+
+sndinfos:	sndinfo
+
+sndinfo:	$(OBJS)
+		@CC@ $(CFLAGS) -o sndinfo $(OBJS) -lm
+
+main.@OBJEXT@:		main.c $(INC)/ustub.h
+		@CC@ -I $(INC) $(CFLAGS) -c main.c
+
+install: 	sndinfo
+		-strip sndinfo
+		-rm -f $(DEST)/sndinfo
+		cp sndinfo $(DEST)
+
+clean:
+		-rm -f sndinfo main.@OBJEXT@
+
+rmbak:
+		-rm *.bak *~

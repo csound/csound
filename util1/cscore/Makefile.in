@@ -1,0 +1,51 @@
+#							CSCORE makef
+# macros defined in toplevel csound/Makefile
+# 	CFLAGS INCLUDE LIB DEST
+
+INCLUDE	= @includedir@
+LIB	= @datadir@
+DEST	= @bindir@
+CFLAGS  = @CFLAGS@ @XCFLAGS@ $(DEFINES)
+LIBS    = @WINLDFLAGS@ @X_LIBS@ @LIBS@
+
+T = ../..
+
+OBJS = $T/cscormai.@OBJEXT@ $T/cscorfns.@OBJEXT@ $T/rdscor.@OBJEXT@ \
+	$T/memalloc.@OBJEXT@ $T/getstring.@OBJEXT@ $T/natben.@OBJEXT@
+
+I = $(INCLUDE)
+
+includes:	$I/cscore.h
+
+$I/cscore.h:	$T/cscore.h
+		-mkdir -p $I
+		cp $T/cscore.h $I
+
+cscore.a:	$(OBJS)
+		-rm cscore.a
+		ar q cscore.a $(OBJS)
+		-@RANLIB@ cscore.a
+
+cscores:	cscore.a
+
+$T/cscormai.@OBJEXT@:	
+		(cd ../..; make cscormai.@OBJEXT@ )
+
+$T/rdscor.@OBJEXT@:
+		(cd ../..; make rdscor.@OBJEXT@ )
+
+$T/memalloc.@OBJEXT@:
+		(cd ../..; make memalloc.@OBJEXT@ )
+
+
+install:	includes cscore.a
+		-rm $(LIB)/libcscore.a
+		cp cscore.a $(LIB)/libcscore.a
+
+clean:
+		-rm cscore.a
+
+rmbak:
+		-rm *.bak *~
+
+

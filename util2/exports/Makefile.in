@@ -1,0 +1,68 @@
+#								SNDINFO makef
+# macros defined in toplevel csound/makefile
+#	CFLAGS INCLUDE LIB DEST
+
+INCLUDE	= @includedir@
+LIB	= @datadir@
+DEST	= @bindir@
+CFLAGS  = @CFLAGS@ @XCFLAGS@ $(DEFINES)
+LIBS    = @WINLDFLAGS@ @X_LIBS@ @LIBS@
+
+T = ../..
+
+POBJS =  pv_export.@OBJEXT@ $T/pvoc.@OBJEXT@
+HOBJS =  het_export.@OBJEXT@ $T/memfiles.@OBJEXT@ $T/memalloc.@OBJEXT@ \
+	$T/filopen.@OBJEXT@
+LOBJS =  lpc_export.@OBJEXT@
+HIOBJS = het_import.@OBJEXT@
+LIOBJS = lpc_import.@OBJEXT@
+
+all:	pv_export het_export lpc_export pv_import het_import lpc_import
+
+pv_export:	$(POBJS)
+		@CC@ $(CFLAGS) -o pv_export $(POBJS) -lm
+
+pv_export.@OBJEXT@:	pv_export.c
+		@CC@ -I ../../H -c $(CFLAGS) pv_export.c
+
+het_export:	$(HOBJS)
+		@CC@ $(CFLAGS) -o het_export $(HOBJS) -lm
+
+het_export.@OBJEXT@:	het_export.c
+		@CC@ -I ../../H -c $(CFLAGS) het_export.c
+
+lpc_export:	$(LOBJS)
+		@CC@ $(CFLAGS) -o lpc_export $(LOBJS) -lm
+
+lpc_export.@OBJEXT@:	lpc_export.c
+		@CC@ -I ../../H -c $(CFLAGS) lpc_export.c
+
+pv_import:	pv_import.@OBJEXT@
+		@CC@ $(CFLAGS) -o pv_import pv_import.@OBJEXT@ -lm
+
+pv_import.@OBJEXT@:	pv_import.c
+		@CC@ -I ../../H -c $(CFLAGS) pv_import.c
+
+het_import:	$(HIOBJS)
+		@CC@ $(CFLAGS) -o het_import $(HIOBJS) -lm
+
+het_import.@OBJEXT@:	het_import.c
+		@CC@ -c $(CFLAGS) -I ../../H het_import.c
+
+lpc_import:	$(LIOBJS)
+		@CC@ $(CFLAGS) -o lpc_import $(LIOBJS) -lm
+
+lpc_import.@OBJEXT@:	lpc_import.c
+		@CC@ -c $(CFLAGS) -I ../../H lpc_import.c
+
+
+install: 	pv_export pv_import
+		-strip pv_export
+		-rm -f $(DEST)/pv_export
+		cp pv_export $(DEST)
+
+clean:
+		-rm -f pv_export pv_export.@OBJEXT@
+
+rmbak:
+		-rm *.bak *~

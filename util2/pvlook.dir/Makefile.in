@@ -1,0 +1,30 @@
+#								scale Makef
+# macros passed from csound/Makefile
+#	CFLAGS INCLUDE LIB DEST
+
+INCLUDE	= @includedir@
+LIB	= @datadir@
+DEST	= @bindir@
+CFLAGS  = @CFLAGS@ @XCFLAGS@ $(DEFINES)
+LIBS    = @WINLDFLAGS@ @X_LIBS@ @LIBS@
+
+T = ../..
+
+INC = ../../H
+
+all:	pvlook
+
+pvlook:		pvl_main.c $T/pvlook.@OBJEXT@
+		@CC@ -I $(INC) $(CFLAGS) pvl_main.c $T/Top/pvlook.c -lm -o pvlook
+
+install:	pvlook
+		-strip pvlook
+		rm -f $(DEST)/pvlook
+		cp pvlook $(DEST)
+
+clean:		rmbak
+		-rm pvlook
+		-rm *.@OBJEXT@
+
+rmbak:
+		-rm *.bak *~

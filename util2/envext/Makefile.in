@@ -1,0 +1,35 @@
+#								scale Makef
+# macros passed from csound/Makefile
+#	CFLAGS INCLUDE LIB DEST
+
+INCLUDE	= @includedir@
+LIB	= @datadir@
+DEST	= @bindir@
+CFLAGS  = @CFLAGS@ @XCFLAGS@ $(DEFINES)
+LIBS    = @WINLDFLAGS@ @X_LIBS@ @LIBS@
+
+T = ../..
+
+INC = ../..
+
+OBJS =	$T/sndinfo.$OBJEXT$ $T/filopen.$OBJEXT$ $T/sfheader.$OBJEXT$ \
+	$T/soundin.$OBJEXT$ $T/memalloc.$OBJEXT$ $T/wave.$OBJEXT$ \
+	$T/aiff.$OBJEXT$ $T/aifc.$OBJEXT$ $T/ieee80.$OBJEXT$ \
+	$T/ulaw.$OBJEXT$ $T/getstring.$OBJEXT$
+
+envext:		envext.$OBJEXT$ $(OBJS)
+		@CC@ $(CFLAGS) envext.$OBJEXT$ $(OBJS) -lm -o envext
+
+envext.$OBJEXT$:	envext.c ../../cs.h ../../ustub.h ../../soundio.h
+		@CC@ -I ../../H $(CFLAGS) -I$(INC) -c envext.c
+
+install:	envext
+		-strip envext
+		rm -f $(DEST)/envext
+		cp envext $(DEST)
+
+clean:		rmbak
+		-rm envext
+
+rmbak:
+		-rm *.bak *~

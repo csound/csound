@@ -1,0 +1,12 @@
+The files in this directory are concerned with hetrodyne filter analysis
+of sound, and the formation of control files for Csound reconstruction
+using ADSYN.
+The analysis program takes only integer sound samples, such as are produced
+by the standalone 'sndin' utility.  Compiling and running that utility
+requires the UCSD/carl support programs (see ../../utils/sndin.dir).
+
+The ADSYN unit is not in final form.  I expect to be changing the control
+format at some time, merging it with fuller phase vocoder analysis
+still later in the future.
+
+	bv

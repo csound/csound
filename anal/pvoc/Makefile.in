@@ -1,0 +1,41 @@
+#								PVOC makef
+# macros defined in toplevel csound/makefile
+#	CFLAGS INCLUDE LIB DEST
+
+INCLUDE	= @includedir@
+LIB	= @datadir@
+DEST	= @bindir@
+CFLAGS = @CFLAGS@ @XCFLAGS@ $(DEFINES)
+LIBS    = @WINLDFLAGS@ @X_LIBS@ @LIBS@
+
+T = ../..
+INC = ../../H
+
+OBJS =  pvc_main.@OBJEXT@ $T/pvanal.@OBJEXT@ $T/pvxanal.@OBJEXT@ \
+	$T/pvfileio.@OBJEXT@ $T/filopen.@OBJEXT@ \
+        $T/sfheader.@OBJEXT@ $T/mxfft.@OBJEXT@ \
+	$T/soundin.@OBJEXT@ $T/ulaw.@OBJEXT@ $T/aiff.@OBJEXT@ \
+	$T/wave.@OBJEXT@ $T/ieee80.@OBJEXT@ $T/memalloc.@OBJEXT@ \
+	$T/pvoc.@OBJEXT@ $T/fft.@OBJEXT@ $T/dsputil.@OBJEXT@ \
+	$T/window.@OBJEXT@ $T/winFLTK.@OBJEXT@ $T/winascii.@OBJEXT@ \
+	$T/winEPS.@OBJEXT@ $T/aifc.@OBJEXT@ $T/getstring.@OBJEXT@ \
+	$T/FL_graph.@OBJEXT@
+
+pvocs:	pvanal
+
+pvanal:	$(OBJS)
+	@CC@ $(CFLAGS) -o pvanal $(OBJS) $(LIBS)
+
+pvc_main.@OBJEXT@:	pvc_main.c $(INC)/ustub.h $(INC)/cs.h
+	@CC@ -I $(INC) $(CFLAGS) -c pvc_main.c
+
+install: pvanal
+	-strip pvanal
+	-rm -f $(DEST)/pvanal
+	cp pvanal $(DEST)
+
+clean:
+	-rm -f pvanal pvc_main.@OBJEXT@
+
+rmbak:
+	-rm *.bak *~
