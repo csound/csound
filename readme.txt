@@ -25,7 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 
 INSTALLATION
 
-See the Csound documentation for more information, 
+See the Csound documentation at csounds.com for more information, 
 or go to http://sourceforge.net/projects/csound.
 
 HELP
