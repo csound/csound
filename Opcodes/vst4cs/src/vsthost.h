@@ -36,7 +36,7 @@ public:
 	float **inputs;
 	float **outputs;
 	static VstTimeInfo _timeInfo;
-	VstMidiEvent midievent[MAX_EVENTS];
+	VstMidiEvent vstMidiEvents[MAX_EVENTS];
 	char buffer[0x1000];
 	VstEvents *vstEvents;
 	int	queue_size;

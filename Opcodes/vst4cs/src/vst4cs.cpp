@@ -29,12 +29,12 @@ extern "C"
 		float sr = csound->GetSr(csound);
 		float kr = csound->GetKr(csound);	
 		if (vstPlugins.size() == 0) {
-           csound->Message(csound, "=======================================================\n");
+           csound->Message(csound, "===========================================================\n");
            csound->Message(csound, "vst4cs version %s by Andres Cabrera and Michael Gogins\n", vst4csver);
            csound->Message(csound, "Using code from Hermann Seib and the vst~ object in pd\n");
            csound->Message(csound, "VST is a trademark of Steinberg Media Technologies GmbH\n");
            csound->Message(csound, "VST Plug-In Technology by Steinberg\n");
-           csound->Message(csound, "=======================================================\n");
+           csound->Message(csound, "===========================================================\n");
 		}
 		verbose = p->iverbose;
 		if (*p->iplugin == SSTRCOD) {
@@ -61,7 +61,7 @@ extern "C"
 		return OK;
 	}
 	
-	int vstinfo (void *data)  //This opcode will probably disappear
+	int vstinfo(void *data)
 	{
 		VSTINFO *p = (VSTINFO *)data;
 		VSTPlugin *plugin = vstPlugins[(size_t) p->iVSThandle];
@@ -69,7 +69,7 @@ extern "C"
 		return OK;
 	}
 	
-	int vstplug_init (void *data)
+	int vstplug_init(void *data)
 	{
 		VSTPLUG_ *p = (VSTPLUG_ *)data;
   		ENVIRON *csound = p->h.insdshead->csound;
@@ -80,27 +80,30 @@ extern "C"
 		return OK;
 	}
 	
-	int vstplug (void *data)
+	int vstplug(void *data)
 	{
 		VSTPLUG_ *p = (VSTPLUG_ *)data;
-		// Only transmit audio for final active instance.
-        if(p->h.insdshead->nxtact) {
-            return OK;
-        }
   		//ENVIRON *csound = p->h.insdshead->csound;
 		VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
 		//csound->Message(csound, "vstplug: plugin %x.\n", plugin);
-		for(size_t i = 0; i < p->framesPerBlock; i++) {
-          plugin->inputs[0][i] = p->ain1[i] / SCALING_FACTOR;
-          plugin->inputs[1][i] = p->ain2[i] / SCALING_FACTOR;
-          plugin->outputs[0][i] = 0;
-          plugin->outputs[1][i] = 0;
-        }		
-		plugin->process(plugin->inputs, plugin->outputs, p->framesPerBlock);
-		for(size_t i = 0; i < p->framesPerBlock; i++) {
-          p->aout1[i] = plugin->outputs[0][i] * SCALING_FACTOR;
-          p->aout2[i] = plugin->outputs[1][i] * SCALING_FACTOR;
-        }		
+        if(!p->h.insdshead->nxtact) {
+            for(size_t i = 0; i < p->framesPerBlock; i++) {
+                plugin->inputs[0][i] = p->ain1[i] / SCALING_FACTOR;
+                plugin->inputs[1][i] = p->ain2[i] / SCALING_FACTOR;
+                plugin->outputs[0][i] = FL(0.0);
+                plugin->outputs[1][i] = FL(0.0);
+            }
+            plugin->process(plugin->inputs, plugin->outputs, p->framesPerBlock);
+            for(size_t i = 0; i < p->framesPerBlock; i++) {
+                p->aout1[i] = plugin->outputs[0][i] * SCALING_FACTOR;
+                p->aout2[i] = plugin->outputs[1][i] * SCALING_FACTOR;
+            }
+        } else {
+            for(size_t i = 0; i < p->framesPerBlock; i++) {
+               p->aout1[i] = p->ain1[i];
+               p->aout2[i] = p->ain2[i];
+            }	
+        }
 		return OK;
 	}
 	
