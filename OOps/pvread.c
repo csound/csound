@@ -121,10 +121,10 @@ int pvreadset(ENVIRON *csound, PVREAD *p)
     p->frSiz = pvh->frameSize;
     frInc    = pvh->frameIncr;
     chans    = pvh->channels;
-    if ((p->asr = pvh->samplingRate) != esr &&
+    if ((p->asr = pvh->samplingRate) != csound->esr &&
         (O.msglevel & WARNMSG)) { /* & chk the data */
       printf(Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
-              pvfilnam, p->asr, esr);
+              pvfilnam, p->asr, csound->esr);
     }
     if (pvh->dataFormat != PVMYFLT) {
       sprintf(errmsg,Str("unsupported PVOC data format %ld in %s"),
@@ -152,7 +152,7 @@ int pvreadset(ENVIRON *csound, PVREAD *p)
     p->maxFr = -1 + (pvh->dataBsize / (chans * (p->frSiz+2) * sizeof(MYFLT)));
     /* highest possible frame index */
     /* factor by which to mult expand phase diffs (ratio of samp spacings) */
-    p->frPrtim = esr/((MYFLT)frInc);
+    p->frPrtim = csound->esr/((MYFLT)frInc);
     size = pvfrsiz(p);          /* size used in def of OPWLEN ? */
     p->prFlg = 1;    /* true */
     p->mybin = (long)(*p->ibin-FL(1.0));
@@ -200,6 +200,7 @@ int pvread(ENVIRON *csound, PVREAD *p)
 
 int pvocex_loadfile(const char *fname,PVREAD *p,MEMFIL **mfp)
 {
+    ENVIRON *csound = &cenviron;
     PVOCDATA pvdata;
     WAVEFORMATEX fmt;
     MEMFIL *mfil = NULL;
@@ -290,10 +291,10 @@ int pvocex_loadfile(const char *fname,PVREAD *p,MEMFIL **mfp)
     else
       memblock = (float *) mfil->beginp;
 
-    if ((p->asr = (MYFLT) fmt.nSamplesPerSec) != esr &&
+    if ((p->asr = (MYFLT) fmt.nSamplesPerSec) != csound->esr &&
         (O.msglevel & WARNMSG)) { /* & chk the data */
       printf(Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
-              fname, p->asr, esr);
+              fname, p->asr, csound->esr);
     }
     p->frSiz = pvx_fftsize;
     p->frPtr = (MYFLT *) memblock;
@@ -303,7 +304,7 @@ int pvocex_loadfile(const char *fname,PVREAD *p,MEMFIL **mfp)
     /* highest possible frame index */
     /* factor by which to mult expand phase diffs (ratio of samp spacings) */
 
-    p->frPrtim = esr/((MYFLT) pvdata.dwOverlap);
+    p->frPrtim = csound->esr/((MYFLT) pvdata.dwOverlap);
     /*size = pvfrsiz(p);*/              /* size used in def of OPWLEN ? */
     p->prFlg = 1;    /* true */
     p->mybin = (long)(*p->ibin-1.0f);
