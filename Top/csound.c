@@ -372,6 +372,14 @@ extern "C" {
 		va_end(args);
 	}
 
+	PUBLIC void csoundMessage0(const char *format, ...)
+	{
+		va_list args;
+		va_start(args, format);
+		vfprintf(stderr, format, args);
+		va_end(args);
+	}
+
 	static void (*csoundThrowMessageCallback_)(void *csound, const char *format, va_list args) = csoundDefaultMessageCallback;
 
 	PUBLIC void csoundSetThrowMessageCallback(void *csound, void (*csoundThrowMessageCallback)(void *csound, const char *format, va_list args))
