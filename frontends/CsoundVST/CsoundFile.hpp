@@ -21,7 +21,9 @@
 */
 #ifndef CSOUNDFILE_H
 #define CSOUNDFILE_H
+#if defined(_MSC_VER) && !defined(__GNUC__)
 #pragma warning(disable: 4786)
+#endif
 #ifdef SWIG
 %module CsoundVST
 %include "std_string.i"
