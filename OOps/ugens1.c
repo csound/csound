@@ -65,8 +65,7 @@ int aline(ENVIRON *csound, LINE *p)
     do {
       *ar++ = val;
       val += inc;       /* interp val for ksmps */
-    }
-    while (--nsmps);
+    } while (--nsmps);
     return OK;
 }
 
@@ -111,8 +110,7 @@ int expon(ENVIRON *csound, EXPON *p)
     do {
       *ar++ = val;
       val += inc;       /* interp val for ksmps */
-    }
-    while (--nsmps);
+    } while (--nsmps);
     p->val = nxtval;    /*store next value */
     return OK;
 }
@@ -1031,7 +1029,7 @@ int evxset(ENVIRON *csound, ENVLPX *p)
         return initerror("iatss = 0");
       }
       if (iatss != FL(1.0) && (ixmod = *p->ixmod) != FL(0.0)) {
-        if (fabs(ixmod) > .95) {
+        if (fabs(ixmod) > 0.95) {
           return initerror(Str("ixmod out of range."));
         }
         ixmod = -(MYFLT)sin(sin(ixmod));
@@ -1198,7 +1196,7 @@ int evrset(ENVIRON *csound, ENVLPR *p)
       return initerror("iatss = 0");
     }
     if (iatss != FL(1.0) && (ixmod = *p->ixmod) != FL(0.0)) {
-      if (fabs(ixmod) > .95) {
+      if (fabs(ixmod) > 0.95) {
         return initerror(Str("ixmod out of range."));
       }
       ixmod = -(MYFLT)sin(sin((double)ixmod));
@@ -1231,7 +1229,7 @@ int evrset(ENVIRON *csound, ENVLPR *p)
     }
     p->mlt1 = (MYFLT)pow((double)iatss, (double)onedkr);
     if (*p->idec > FL(0.0)) {
-      long rlscnt = (long)(*p->idec * ekr + .5);
+      long rlscnt = (long)(*p->idec * ekr + FL(0.5));
       if ((p->rindep = (long)*p->irind))
         p->rlscnt = rlscnt;
       else if (rlscnt > p->h.insdshead->xtratim)
@@ -1247,43 +1245,43 @@ int evrset(ENVIRON *csound, ENVLPR *p)
 
 int knvlpxr(ENVIRON *csound, ENVLPR *p)
 {
-        MYFLT  fact;
-        long   rlscnt;
+    MYFLT  fact;
+    long   rlscnt;
 
-        if (!p->rlsing) {                       /* if not in reles seg  */
-          if (p->h.insdshead->relesing) {
-            p->rlsing = 1;                  /*   if new flag, set mlt2 */
-            rlscnt = (p->rindep) ? p->rlscnt : p->h.insdshead->xtratim;
-            if (rlscnt)
-              p->mlt2 = (MYFLT)pow((double)p->atdec, 1.0/(double)rlscnt);
-            else p->mlt2 = FL(1.0);
-          }
-          if (p->phs >= 0) {                  /* do fn rise for seg 1 */
-            FUNC *ftp = p->ftp;
-            long phs = p->phs;
-            MYFLT fract = PFRAC(phs);
-            MYFLT *ftab = ftp->ftable + (phs >> ftp->lobits);
-            MYFLT v1 = *ftab++;
-            fact = (v1 + (*ftab - v1) * fract);
-            phs += p->ki;
-            if (phs < MAXLEN || p->rlsing)  /* if more fn or beg rls */
-              p->val = fact;              /*      save cur val     */
-            else {                          /* else prep for seg 2  */
-              p->val = *(ftp->ftable + ftp->flen) - p->asym;
-              phs = -1L;
-            }
-            p->phs = phs;
-          }
-          else {
-            fact = p->val + p->asym;        /* do seg 2 with asym */
-            p->val *= p->mlt1;
-            if (p->rlsing)                  /* if ending, rm asym */
-              p->val += p->asym;
-          }
+    if (!p->rlsing) {                   /* if not in reles seg  */
+      if (p->h.insdshead->relesing) {
+        p->rlsing = 1;                  /*   if new flag, set mlt2 */
+        rlscnt = (p->rindep) ? p->rlscnt : p->h.insdshead->xtratim;
+        if (rlscnt)
+          p->mlt2 = (MYFLT)pow((double)p->atdec, 1.0/(double)rlscnt);
+        else p->mlt2 = FL(1.0);
+      }
+      if (p->phs >= 0) {                /* do fn rise for seg 1 */
+        FUNC *ftp = p->ftp;
+        long phs = p->phs;
+        MYFLT fract = PFRAC(phs);
+        MYFLT *ftab = ftp->ftable + (phs >> ftp->lobits);
+        MYFLT v1 = *ftab++;
+        fact = (v1 + (*ftab - v1) * fract);
+        phs += p->ki;
+        if (phs < MAXLEN || p->rlsing)  /* if more fn or beg rls */
+          p->val = fact;                /*      save cur val     */
+        else {                          /* else prep for seg 2  */
+          p->val = *(ftp->ftable + ftp->flen) - p->asym;
+          phs = -1L;
         }
-        else fact = p->val *= p->mlt2;          /* else do seg 3 decay */
-        *p->rslt = *p->xamp * fact;
-        return OK;
+        p->phs = phs;
+      }
+      else {
+        fact = p->val + p->asym;        /* do seg 2 with asym */
+        p->val *= p->mlt1;
+        if (p->rlsing)                  /* if ending, rm asym */
+          p->val += p->asym;
+      }
+    }
+    else fact = p->val *= p->mlt2;      /* else do seg 3 decay */
+    *p->rslt = *p->xamp * fact;
+    return OK;
 }
 
 int envlpxr(ENVIRON *csound, ENVLPR *p)
@@ -1291,63 +1289,63 @@ int envlpxr(ENVIRON *csound, ENVLPR *p)
 #if defined(SYMANTEC) && !defined(THINK_C)
 #pragma options(!global_optimizer)
 #endif
-        int    nsmps = ksmps;
-        long   rlscnt;
-        MYFLT  *xamp, *rslt, val, nxtval, li;
+    int    nsmps = ksmps;
+    long   rlscnt;
+    MYFLT  *xamp, *rslt, val, nxtval, li;
 
-        xamp = p->xamp;
-        rslt = p->rslt;
-        val = p->val;
-        if (!p->rlsing) {                       /* if not in reles seg  */
-          if (p->h.insdshead->relesing) {
-            p->rlsing = 1;                      /*   if new flag, set mlt2 */
-            rlscnt = (p->rindep) ? p->rlscnt : p->h.insdshead->xtratim;
-            if (rlscnt)
-              p->mlt2 = (MYFLT)pow((double)p->atdec, 1.0/(double)rlscnt);
-            else p->mlt2 = FL(1.0);
-          }
-          if (p->phs >= 0) {                    /* do fn rise for seg 1 */
-            FUNC *ftp = p->ftp;
-            long phs = p->phs;
-            MYFLT fract = PFRAC(phs);
-            MYFLT *ftab = ftp->ftable + (phs >> ftp->lobits);
-            MYFLT v1 = *ftab++;
-            ftp = p->ftp;
-            fract = PFRAC(phs);
-            ftab = ftp->ftable + (phs >> ftp->lobits);
-            v1 = *ftab++;
-            nxtval = (v1 + (*ftab - v1) * fract);
-            phs += p->ki;
-            if (phs < MAXLEN || p->rlsing)  /* if more fn or beg rls */
-              p->val = nxtval;              /*      save 2nd brkpnt */
-            else {                          /* else prep for seg 2  */
-              p->val = *(ftp->ftable + ftp->flen) - p->asym;
-              phs = -1;
-            }
-            p->phs = phs;
-          }
-          else {
-            nxtval = p->val *= p->mlt1;     /* do seg 2 with asym   */
-            val += p->asym;
-            nxtval += p->asym;
-            if (p->rlsing)                  /* if ending, rm asym   */
-              p->val += p->asym;
-          }
+    xamp = p->xamp;
+    rslt = p->rslt;
+    val = p->val;
+    if (!p->rlsing) {                   /* if not in reles seg  */
+      if (p->h.insdshead->relesing) {
+        p->rlsing = 1;                  /*   if new flag, set mlt2 */
+        rlscnt = (p->rindep) ? p->rlscnt : p->h.insdshead->xtratim;
+        if (rlscnt)
+          p->mlt2 = (MYFLT)pow((double)p->atdec, 1.0/(double)rlscnt);
+        else p->mlt2 = FL(1.0);
+      }
+      if (p->phs >= 0) {                /* do fn rise for seg 1 */
+        FUNC *ftp = p->ftp;
+        long phs = p->phs;
+        MYFLT fract = PFRAC(phs);
+        MYFLT *ftab = ftp->ftable + (phs >> ftp->lobits);
+        MYFLT v1 = *ftab++;
+        ftp = p->ftp;
+        fract = PFRAC(phs);
+        ftab = ftp->ftable + (phs >> ftp->lobits);
+        v1 = *ftab++;
+        nxtval = (v1 + (*ftab - v1) * fract);
+        phs += p->ki;
+        if (phs < MAXLEN || p->rlsing)  /* if more fn or beg rls */
+          p->val = nxtval;              /*      save 2nd brkpnt */
+        else {                          /* else prep for seg 2  */
+          p->val = *(ftp->ftable + ftp->flen) - p->asym;
+          phs = -1;
         }
-        else p->val = nxtval = val * p->mlt2;   /* else do seg 3 decay  */
-        li = (nxtval - val) / ensmps;           /* all segs use interp  */
-        if (p->XINCODE) {
-          do {
-            *rslt++ = *xamp++ * val;
-            val += li;
-          } while(--nsmps);
-        }
-        else {
-          do {
-            *rslt++ = *xamp * val;
-            val += li;
-          } while(--nsmps);
-        }
-        return OK;
+        p->phs = phs;
+      }
+      else {
+        nxtval = p->val *= p->mlt1;     /* do seg 2 with asym   */
+        val += p->asym;
+        nxtval += p->asym;
+        if (p->rlsing)                  /* if ending, rm asym   */
+          p->val += p->asym;
+      }
+    }
+    else p->val = nxtval = val * p->mlt2;   /* else do seg 3 decay  */
+    li = (nxtval - val) / ensmps;           /* all segs use interp  */
+    if (p->XINCODE) {
+      do {
+        *rslt++ = *xamp++ * val;
+        val += li;
+      } while(--nsmps);
+    }
+    else {
+      do {
+        *rslt++ = *xamp * val;
+        val += li;
+      } while(--nsmps);
+    }
+    return OK;
 }
 

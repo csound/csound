@@ -66,25 +66,23 @@ static void close_files(void)
 
 int outfile(ENVIRON *csound, OUTFILE *p)
 {
-    int nsmps = ksmps, j, nargs = p->nargs, k=0;
+    int j, nargs = p->nargs, k;
     MYFLT **args = p->argums;
     MYFLT vals[VARGMAX];
     if (p->fp==NULL) {
       FILE* fp = file_opened[p->idx].raw;
-      do {
-        for (j = 0;j< nargs;j++)
+      for (k=0; k<ksmps; k++) {
+        for (j=0;j<nargs;j++)
           fprintf(fp, "%g ", args[j][k]);
         fprintf(fp, "\n");
-        k++;
-      } while (--nsmps);
+      }
     }
     else {
-      do {
-        for (j = 0;j< nargs;j++)
+      for (k=0; k<ksmps; k++) {
+        for (j = 0; j<nargs; j++)
           vals[j] = args[j][k];
         sf_writef_MYFLT(p->fp, vals, 1);
-        k++;
-      } while (--nsmps);
+      }
     }
     return OK;
 }
@@ -429,7 +427,7 @@ int infile_act(ENVIRON *csound, INFILE *p)
     if (p->flag) {
       sf_seek(p->fp, p->currpos, SEEK_SET);
       p->currpos+=nsmps;
-      do {
+      for (k=0; k<ksmps; k++) {
         MYFLT vals[VARGMAX];
         if (sf_readf_MYFLT(p->fp, vals, 1)) {
           for (j=0; j< nargs; j++) args[j][k] = vals[j];
@@ -438,15 +436,13 @@ int infile_act(ENVIRON *csound, INFILE *p)
           p->flag = 0;
           for (j=0; j< nargs; j++) args[j][k] = FL(0.0);
         }
-        k++;
-      } while (--nsmps);
+      };
     }
     else { /* after end of file */
-      do {
+      for (k=0; k<ksmps; k++) {
         for (j=0; j< nargs; j++)
           args[j][k] = FL(0.0);
-        k++;
-      } while (--nsmps);
+      }
     }
     return OK;
 }
