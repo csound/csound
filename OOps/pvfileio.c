@@ -173,6 +173,10 @@ static int write_pvocdata(int fd,int byterev,const PVOCDATA *pData)
 {
     long written;
     long dwval;
+    union CHEAT {
+         long  dw;
+         float df;
+    } cheat;
 #ifdef _DEBUG
     assert(fd >= 0);
     assert(pData);
@@ -191,12 +195,12 @@ static int write_pvocdata(int fd,int byterev,const PVOCDATA *pData)
       data.dwFrameAlign  = REVDWBYTES(pData->dwFrameAlign);
 
       dwval = * (long *) &(pData->fAnalysisRate);
-      dwval = REVDWBYTES(dwval);
-      data.fAnalysisRate = * (float *) &dwval;
+      cheat.dw = REVDWBYTES(dwval);
+      data.fAnalysisRate = cheat.df;
 
       dwval = * (long *) &(pData->fWindowParam);
-      dwval = REVDWBYTES(dwval);
-      data.fWindowParam = * (float *) &dwval;
+      cheat.dw = REVDWBYTES(dwval);
+      data.fWindowParam = cheat.df;
 
       written = write(fd,(void *) &data,sizeof(PVOCDATA));
     }
@@ -703,6 +707,10 @@ static int pvoc_readfmt(int fd,int byterev,WAVEFORMATPVOCEX *pWfpx)
     }
 
     if (byterev) {
+      union CHEAT {
+        long	dw;
+        float	df;
+      } cheat;
       dword = pWfpx->dwVersion;
       pWfpx->dwVersion = REVDWBYTES(dword);
 
@@ -734,11 +742,11 @@ static int pvoc_readfmt(int fd,int byterev,WAVEFORMATPVOCEX *pWfpx)
       pWfpx->data.dwFrameAlign = REVDWBYTES(dword);
 
       dword = * (DWORD *)&(pWfpx->data.fAnalysisRate);
-      dword = REVDWBYTES(dword);
-      pWfpx->data.fAnalysisRate = *(float *)&dword;
+      cheat.dw = REVDWBYTES(dword);
+      pWfpx->data.fAnalysisRate = cheat.df;
       dword = * (DWORD *)&(pWfpx->data.fWindowParam);
-      dword = REVDWBYTES(dword);
-      pWfpx->data.fWindowParam = *(float *)&dword;
+      cheat.dw = REVDWBYTES(dword);
+      pWfpx->data.fWindowParam = cheat.df;
 
     }
     if (pWfpx->dwVersion != PVX_VERSION) {
