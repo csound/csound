@@ -314,9 +314,9 @@ int osc_recv_set(ENVIRON *csound, OSCRECV *p)
       return csound->InitError(csound, "OSCrecv: no space left for service string (osc_sock_set)");
     if (*p->iservice == SSTRCOD) {
       if (p->STRARG == NULL)
-        strcpy(serviceName, unquote(currevent->strarg));
+        strcpy(serviceName, csound->unquote_(currevent->strarg));
       else
-        strcpy(serviceName, unquote(p->STRARG));
+        strcpy(serviceName, csound->unquote_(p->STRARG));
     }
     /*
      * Do we need that, too?
@@ -933,9 +933,9 @@ int osc_send_set(ENVIRON *csound, OSCSEND *p)
     }
     if (*p->iaddr == SSTRCOD) {
       if (p->STRARG == NULL)
-        strcpy(p->oscAddr, unquote(currevent->strarg));
+        strcpy(p->oscAddr, csound->unquote_(currevent->strarg));
       else
-        strcpy(p->oscAddr, unquote(p->STRARG));
+        strcpy(p->oscAddr, csound->unquote_(p->STRARG));
     }
     else {
       return csound->InitError(csound, "OSCsend: need an address string, not a number (osc_send_set)");
@@ -948,9 +948,9 @@ int osc_send_set(ENVIRON *csound, OSCSEND *p)
         if ((hostName = malloc(MAX_HOST_LEN)) == NULL)
           return csound->InitError(csound, "OSCsend: no space left for host string");
         if (p->STRARG2 == NULL)
-          strcpy(hostName, unquote(currevent->strarg));
+          strcpy(hostName, csound->unquote_(currevent->strarg));
         else
-          strcpy(hostName, unquote(p->STRARG2));
+          strcpy(hostName, csound->unquote_(p->STRARG2));
       }
       else if ((hostNo = (long)*p->ihost) < -strsmax &&
                strsets != NULL && strsets[hostNo]) {
@@ -1114,3 +1114,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
+

@@ -31,7 +31,7 @@
 
 int mute_inst(ENVIRON *csound, MUTE *p)
 {
-    int n = (int) strarg2insno(csound, p->ins, p->STRARG);
+    int n = (int) csound->strarg2insno_(csound, p->ins, p->STRARG);
     int onoff = (*p->onoff == FL(0.0) ? 0 : 1);
     if (n < 1) return NOTOK;
     if (onoff==0) {
@@ -77,12 +77,12 @@ int prealloc(ENVIRON *csound, CPU_PERC *p)
     int     n, a;
 
     /* IV - Oct 31 2002 */
-    n = (int) strarg2opcno(csound, p->instrnum, p->STRARG,
-                                   (*p->iopc == FL(0.0) ? 0 : 1));
+    n = (int) csound->strarg2opcno_(csound, p->instrnum, p->STRARG,
+                                            (*p->iopc == FL(0.0) ? 0 : 1));
     if (n < 1) return NOTOK;
     /* IV - Oct 24 2002 */
     a = (int) *p->ipercent - instrtxtp[n]->active;
-    for ( ; a > 0; a--) instance(n);
+    for ( ; a > 0; a--) csound->instance_(n);
     return OK;
 }
 

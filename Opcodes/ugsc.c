@@ -443,8 +443,8 @@ int phaser2(ENVIRON *csound, PHASER2 *p)
       for (j=0; j < p->loop; j++) {
         if (p->modetype == 1)
           freq = kbf + (kbf * ksep * j);
-        else freq = kbf * intpow(ksep,(long)j);
-
+        else
+          freq = kbf * csound->intpow_(ksep,(long)j);
         /* Note similarities of following equations to
          * equations in resonr/resonz. The 2nd-order
          * allpass filter used here is similar to the

@@ -310,7 +310,7 @@ PUBLIC char *csoundLocalizeString(const char *s)
 {                                                               \
     i = (getc(f));                                              \
     if (i == EOF) {                                             \
-      err_printf("%s: unexpected end of file\n", fname);        \
+      fprintf(stderr, "%s: unexpected end of file\n", fname);   \
       goto end_of_file;                                         \
     }                                                           \
 }
@@ -329,12 +329,12 @@ static int load_language_file(const char *fname, cslanguage_t lang_code)
     /* allocate memory for string buffers */
     buf1 = (char*) malloc((size_t) max_length * sizeof(char));
     if (buf1 == NULL) {
-      err_printf("csoundSetLanguage: not enough memory\n");
+      fprintf(stderr, "csoundSetLanguage: not enough memory\n");
       return 0;
     }
     buf2 = (char*) malloc((size_t) max_length * sizeof(char));
     if (buf2 == NULL) {
-      err_printf("csoundSetLanguage: not enough memory\n");
+      fprintf(stderr, "csoundSetLanguage: not enough memory\n");
       return 0;
     }
     /* open file */
@@ -357,7 +357,8 @@ static int load_language_file(const char *fname, cslanguage_t lang_code)
     /* number of strings (4 bytes, big-endian) */
     j = 0; READ_HDR_BYTE; READ_HDR_BYTE; READ_HDR_BYTE; READ_HDR_BYTE;
     if (j < 1) {
-      err_printf("csoundSetLanguage: %s: warning: no strings in file\n", fname);
+      fprintf(stderr, "csoundSetLanguage: %s: warning: no strings in file\n",
+                      fname);
       goto end_of_file;
     }
     nr_reqd = j;
@@ -366,7 +367,7 @@ static int load_language_file(const char *fname, cslanguage_t lang_code)
       /* original string: */
       READ_DATA_BYTE;
       if (i != 0x81) {
-        err_printf("csoundSetLanguage: %s: corrupted file\n", fname);
+        fprintf(stderr, "csoundSetLanguage: %s: corrupted file\n", fname);
         goto end_of_file;
       }
       c = (unsigned char*) buf1;
@@ -379,15 +380,15 @@ static int load_language_file(const char *fname, cslanguage_t lang_code)
         if (!i) break;
         h = (int) name_hash_10(h, i);
         if (++j >= max_length) {
-          err_printf("csoundSetLanguage: %s: error: string length > %d\n",
-                     fname, max_length);
+          fprintf(stderr, "csoundSetLanguage: %s: error: string length > %d\n",
+                          fname, max_length);
           goto end_of_file;
         }
       }
       /* translated string: */
       READ_DATA_BYTE;
       if (i != 0x82) {
-        err_printf("csoundSetLanguage: %s: corrupted file\n", fname);
+        fprintf(stderr, "csoundSetLanguage: %s: corrupted file\n", fname);
         goto end_of_file;
       }
       c = (unsigned char*) buf2;
@@ -395,8 +396,8 @@ static int load_language_file(const char *fname, cslanguage_t lang_code)
       /* read */
       do {
         if (j >= max_length) {
-          err_printf("csoundSetLanguage: %s: error: string length > %d\n",
-                     fname, max_length);
+          fprintf(stderr, "csoundSetLanguage: %s: error: string length > %d\n",
+                          fname, max_length);
           goto end_of_file;
         }
         READ_DATA_BYTE;
@@ -410,17 +411,20 @@ static int load_language_file(const char *fname, cslanguage_t lang_code)
       /* store in database */
       p = (lclstr_t*) malloc(sizeof(lclstr_t));
       if (p == NULL) {
-        err_printf("csoundSetLanguage: not enough memory\n"); goto end_of_file;
+        fprintf(stderr, "csoundSetLanguage: not enough memory\n");
+        goto end_of_file;
       }
       p->str = (char*) malloc((size_t) strlen(buf1) + (size_t) 1);
       if (p->str == NULL) {
         free(p);
-        err_printf("csoundSetLanguage: not enough memory\n"); goto end_of_file;
+        fprintf(stderr, "csoundSetLanguage: not enough memory\n");
+        goto end_of_file;
       }
       p->str_tran = (char*) malloc((size_t) strlen(buf2) + (size_t) 1);
       if (p->str_tran == NULL) {
         free(p->str); free(p);
-        err_printf("csoundSetLanguage: not enough memory\n"); goto end_of_file;
+        fprintf(stderr, "csoundSetLanguage: not enough memory\n");
+        goto end_of_file;
       }
       strcpy(p->str, buf1);
       strcpy(p->str_tran, buf2);
@@ -459,11 +463,11 @@ PUBLIC void csoundSetLanguage(cslanguage_t lang_code)
 #endif
 
     if (lang_code == CSLANGUAGE_DEFAULT)
-      err_printf("Localisation of messages is disabled, using "
-                 "default language.\n");
+      fprintf(stderr, "Localisation of messages is disabled, using "
+                      "default language.\n");
     else
-      err_printf("Setting language of messages to %s ...\n",
-                 language_names[(int) lang_code]);
+      fprintf(stderr, "Setting language of messages to %s ...\n",
+                      language_names[(int) lang_code]);
     if (getstr_db.lang_code == lang_code)
       return;
 
@@ -504,7 +508,7 @@ PUBLIC void csoundSetLanguage(cslanguage_t lang_code)
     /* point to a single file */
     nr_strings += load_language_file(dirnam, lang_code);
 #endif
-    err_printf(" ... done, %d strings loaded.\n", nr_strings);
+    fprintf(stderr, " ... done, %d strings loaded.\n", nr_strings);
 }
 
 /* ------------------------------------------------------------------------- */

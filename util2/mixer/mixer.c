@@ -480,8 +480,8 @@ int main(int argc, char **argv)
     }
 #endif
     sfinfo.frames = -1;
-    sfinfo.samplerate = (int)(esr = mixin[0].p->sr);
-    sfinfo.channels = nchnls = mixin[0].p->nchanls ;
+    sfinfo.samplerate = (int)(cenviron.esr = mixin[0].p->sr);
+    sfinfo.channels = cenviron.nchnls = mixin[0].p->nchanls ;
     sfinfo.format = type2sf(O.filetyp)|format2sf(O.outformat);
     sfinfo.sections = 0;
     sfinfo.seekable = 0;
@@ -606,7 +606,7 @@ MXsndgetset(inputs *ddd)
     static MYFLT sstrcod = (MYFLT)SSTRCOD;
 
     sssfinit();                 /* stand-alone init of SFDIR etc. */
-    esr = FL(0.0);              /* set esr 0. with no orchestra   */
+    cenviron.esr = FL(0.0);     /* set esr 0. with no orchestra   */
     optxt.t.outoffs = &argoffs; /* point to dummy OUTOCOUNT       */
     ddd->p = p = (SOUNDIN *) mcalloc(&cenviron, (long)sizeof(SOUNDIN));
     p->channel = ALLCHNLS;
@@ -696,7 +696,8 @@ MixSound(int n, SNDFILE *outfd)
         if (buffer[j] > max) max = buffer[j], lmaxpos = sample+j, maxtimes=1;
         if (buffer[j] < min) min = buffer[j], lminpos = sample+j, mintimes=1;
       }
-      sf_write_MYFLT(outfd, outbuf, O.sfsampsize*this_block*outputs/nchnls);
+      sf_write_MYFLT(outfd, outbuf,
+                     O.sfsampsize * this_block * outputs / cenviron.nchnls);
       block++;
       bytes += O.sfsampsize*this_block*outputs;
       if (O.heartbeat) {
