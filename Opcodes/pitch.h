@@ -284,4 +284,4 @@ int varicolset(ENVIRON*,VARI *p);
 int waveset(ENVIRON*,BARRI *p);
 int wavesetset(ENVIRON*,BARRI *p);
 
-#endif // PITCH_H
+#endif /* PITCH_H */
