@@ -81,7 +81,6 @@ static unsigned    outbufsiz;
 static MYFLT       *outbuf;
 
 static SNDFILE *outfd;
-static long  bytes = 0;
 OPARMS	O = {0,0, 0,1,1,0, 0,0, 0,0, 0,0, 1,0,0,7, 0,0,0, 0,0,0,0, 0,0 };
 
 extern int type2sf(int);
@@ -325,12 +324,20 @@ int main(int argc, char **argv)
             break;
           case 'P':
             FIND("No P argument")
+#if defined(USE_DOUBLE)
+            sscanf(s,"%lf", &P);
+#else
             sscanf(s,"%f", &P);
+#endif
             while (*++s);
             break;
           case 'r':
             FIND("No r argument")
+#if defined(USE_DOUBLE)
+            sscanf(s,"%lf", &Rout);
+#else
             sscanf(s,"%f", &Rout);
+#endif
             while (*++s);
             break;
           case 'i':
