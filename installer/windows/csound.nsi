@@ -69,7 +69,6 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\*.dll
   File ..\..\*.xmg
   File ..\..\csound*.pdf
-  File ..\..\*.htm*
   File ..\..\*.txt
   File ..\..\ChangeLog
   File ..\..\loris.py
@@ -80,7 +79,8 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\libCsoundVST.a
   SetOutPath $INSTDIR\include
   File ..\..\H\*.h
-  File ..\..\frontends\CsoundVST\*.h*
+  File ..\..\frontends\CsoundVST\*.h
+  File ..\..\frontends\CsoundVST\*.hpp
   SetOutPath $INSTDIR\examples
   File ..\..\examples\*.csd
   File ..\..\examples\*.py
