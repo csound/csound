@@ -31,6 +31,7 @@
 /* ********************************************************************** */
 
 extern u_char *mbuf, *bufp, *bufend, *endatp;
+
 #define MBUFSIZ   1024
 
 #ifdef WIN32                    /* IV - Nov 10 2002 */
@@ -494,15 +495,27 @@ void CALLBACK win32_midi_in_handler(HMIDIIN hmin, UINT wMsg, DWORD dwInstance,
 
 long GetMIDIData(void)
 {
-        int  n;
+  long n;
+  /**
+   * Reads from user-defined MIDI input.
+   */
+  if (csoundIsExternalMidiEnabled(&cenviron)) {
+    n = csoundExternalMidiRead(&cenviron, mbuf, MBUFSIZ);
+    if (n == 0) {
+      return 0;
+    }
+    bufp = mbuf;
+    endatp = mbuf + n;
+    return n;
+  }
 #ifdef WIN32                                    /* IV - Nov 10 2002 */
-    n = 0;      /* count the number of bytes received */
-    if (tmpbuf_ndx_r == tmpbuf_ndx_w) return 0L;        /* no data */
-    bufp = endatp = mbuf;
-    do {
-      *endatp++ = mbuf_tmp[tmpbuf_ndx_r++]; tmpbuf_ndx_r &= MBUFSIZ_MASK; n++;
-    } while (endatp < bufend && tmpbuf_ndx_r != tmpbuf_ndx_w);
-    return (long) n;
+  n = 0;      /* count the number of bytes received */
+  if (tmpbuf_ndx_r == tmpbuf_ndx_w) return 0L;        /* no data */
+  bufp = endatp = mbuf;
+  do {
+    *endatp++ = mbuf_tmp[tmpbuf_ndx_r++]; tmpbuf_ndx_r &= MBUFSIZ_MASK; n++;
+  } while (endatp < bufend && tmpbuf_ndx_r != tmpbuf_ndx_w);
+  return (long) n;
 #else
 #ifdef SGI  /* for new SGI media library implementation*/
     int i, j;
@@ -591,17 +604,6 @@ long GetMIDIData(void)
       }
       else return (0);
 #else
-      /**
-       * Reads from user-defined MIDI input.
-       */
-      if (csoundIsExternalMidiEnabled(&cenviron)) {
-        int n = csoundExternalMidiRead(&cenviron, mbuf, MBUFSIZ);
-        if (n == 0) {
-          return 0;
-        }
-        bufp = mbuf;
-        endatp = mbuf + n;
-      }
       else {
         return 0;
       }

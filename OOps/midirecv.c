@@ -58,13 +58,12 @@ extern int pgm2ins[];   /* IV May 2002 */
 extern void xturnon(int, long);
 extern void xturnoff(INSDS*);
 extern void insxtroff(short);
-
-
 extern void OpenMIDIDevice(void);
 extern void CloseMIDIDevice(void);
 
 void MidiOpen(void)   /* open a Midi event stream for reading, alloc bufs */
 {                     /*     callable once from main.c                    */
+    /* First set up buffers. */
     int i;
     Midevtblk = (MEVENT *) mcalloc((long)sizeof(MEVENT));
     mbuf = (u_char *) mcalloc((long)MBUFSIZ);
@@ -75,9 +74,14 @@ void MidiOpen(void)   /* open a Midi event stream for reading, alloc bufs */
     sexp = NULL;
     for (i=0; i<MAXCHAN; i++) M_CHNBP[i] = NULL; /* Clear array */
     m_chn_init(Midevtblk,(short)0);
-    OpenMIDIDevice();
+    /* Then open device. */
+    if(csoundIsExternalMidiEnabled(&cenviron)) {
+        csoundExternalMidiDeviceOpen(&cenviron);
+    }
+    else {
+        OpenMIDIDevice();
+    }
 }
-
 
 static void Fnxtdeltim(void) /* incr FMidiNxtk by next delta-time */
 {                            /* standard, with var-length deltime */
@@ -245,8 +249,6 @@ void FMidiOpen(void) /* open a MidiFile for reading, sense MPU401 or standard */
     }
 }
 
-
-
 static void AllNotesOff(MCHNBLK *);
 
 static void sustsoff(MCHNBLK *chn)  /* turnoff all notes in chnl sust array */
@@ -293,7 +295,6 @@ static void m_song_pos(long a) { IGN(a);}
 static void m_song_sel(long a) { IGN(a);}
 static MYFLT dsctl_map[12] = {FL(1.0),FL(0.0),FL(1.0),FL(0.0),FL(1.0),FL(0.0),
                               FL(1.0),FL(0.0),FL(1.0),FL(0.0),FL(1.0),FL(0.0)};
-
 
 void m_chanmsg(MEVENT *mep) /* exec non-note chnl_voice & chnl_mode cmnds */
 {
@@ -714,7 +715,6 @@ void midNotesOff(void)          /* turnoff ALL curr midi notes, ALL chnls */
     while (++chan < MAXCHAN);
 }
 
-
 void setmastvol(short mvdat)    /* set MastVol & adjust all chan modvols */
 {
     MCHNBLK *chn;
@@ -1062,31 +1062,13 @@ int sensFMidi(void)     /* read a MidiFile event, collect the data & dispatch */
 
 void MidiClose(void)
 {
-    CloseMIDIDevice();
+    if(csoundIsExternalMidiEnabled(&cenviron)) {
+        csoundExternalMidiDeviceClose(&cenviron);
+    }
+    else {
+        CloseMIDIDevice();
+    }
     if (mfp)
       fclose(mfp);
-}
-
-/**
-* Default MIDI open function for user-defined MIDI; used for CsoundVST.
-*/
-void csoundDefaultMidiOpen(void *csound)
-{
-    int i;
-    printf("csoundDefaultMidiOpen()...");
-    Midevtblk = (MEVENT *)mcalloc((long) sizeof(MEVENT));
-    mbuf = (u_char *)mcalloc((long) MBUFSIZ);
-    bufend = mbuf + MBUFSIZ;
-    bufp = endatp = mbuf;
-    sexbuf = (u_char *)mcalloc((long) MBUFSIZ);
-    sexend = sexbuf + MBUFSIZ;
-    sexp = NULL;
-    for (i = 0; i < MAXCHAN; i++) {
-      M_CHNBP[i] = NULL;
-    }
-    m_chn_init(Midevtblk,(short) 0);
-    O.RTevents = 1;
-    O.Midiin = 1;
-    O.ksensing = 1;
 }
 
