@@ -15,11 +15,7 @@ int paBlockingReadOpen(ENVIRON *csound,
     pabs->paLock = csoundCreateThreadLock(csound);
     pabs->clientLock = csoundCreateThreadLock(csound);
     maxLag = O.oMaxLag <= 0 ? IODACSAMPS : O.oMaxLag;
-#ifdef __MACH__
-    maxLag =  ((int)ekr)*((maxLag + (int)ekr-1)%krate); /* Round to multiple */
-#else
     maxLag = csound->GetKsmps(csound);
-#endif
     memcpy(&pabs->paParameters, paParameters, sizeof(PaStreamParameters));
     csound->Message(csound, "paBlockingReadOpen: nchnls %d sr %f maxLag %u\n",
                     pabs->paParameters.channelCount,
@@ -85,9 +81,6 @@ int paBlockingWriteOpen(ENVIRON *csound,
     pabs->paLock = csoundCreateThreadLock(csound);
     pabs->clientLock = csoundCreateThreadLock(csound);
     maxLag = O.oMaxLag <= 0 ? IODACSAMPS : O.oMaxLag;
-#ifdef __MACH__
-    maxLag =  ((int)ekr)*((maxLag + (int)ekr-1)%krate); /* Round to multiple */
-#endif
     pabs->actualBufferSampleCount = maxLag * csound->GetNchnls(csound);
     pabs->actualBuffer = (float *)
       mcalloc(pabs->actualBufferSampleCount * sizeof(float));
