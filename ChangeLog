@@ -1,5 +1,11 @@
-2005-03-13  John ffitch  <jpff@codemist.co.uk>
+2005-03-13	Istvan Varga	<istvan@csounds.com>
+	* Engine/fgens.c:
+	* H/ftgen.h:
+	  added GEN51
+	* Opcodes/reverbsc.c:
+	  minor code improvements
 
+2005-03-13  John ffitch  <jpff@codemist.co.uk>
 	* Opcodes/ftest.c (gentune): Added Gabriel's gen to the loadable
 	gens under the name gentune
 
