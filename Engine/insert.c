@@ -662,14 +662,14 @@ long kperf(long kcnt)   /* perform currently active instrs for kcnt kperiods */
         actanchor.nxtact == NULL) {  /* if !kreads & !instrs_activ, */
       kcounter += kcnt;
       global_kcounter = kcounter;       /* IV - Sep 8 2002 */
-#if defined(mills_macintosh) || defined(CWIN) || defined(SYMANTEC)
+#if defined(mills_macintosh) || defined(SYMANTEC)
       /* silence here, so we can afford to check events more often */
       {
         long pcnt = kcnt;
         while (pcnt!=0) {
           long pp = (pcnt>128 ? 128 : pcnt);
           (*nzerotran)(pp);     /*   send chunk up to kcnt zerospouts  */
-          if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
+/*           if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); */
           pcnt -= pp;
         }
       }
@@ -685,10 +685,10 @@ long kperf(long kcnt)   /* perform currently active instrs for kcnt kperiods */
             || (O.OrcEvts && (sensType = sensOrcEvent()))) /* or triginstr event (re Aug 1999) */
           return(kreq - kcnt); /*      do early return    */
       }
-#if defined(mills_macintosh) || defined(CWIN) || defined(SYMANTEC)
-      else if (O.Midiin && actanchor.nxtact == NULL) /* no midi or notes on; check events */
-#endif
-        if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
+/* #if defined(mills_macintosh) || defined(CWIN) || defined(SYMANTEC) */
+/*       else if (O.Midiin && actanchor.nxtact == NULL) /\* no midi or notes on; check events *\/ */
+/* #endif */
+/*         if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); */
       kcounter += 1;
       global_kcounter = kcounter;       /* IV - Sep 8 2002 */
       if (O.sfread)           /*   if audio_infile open  */
@@ -696,7 +696,7 @@ long kperf(long kcnt)   /* perform currently active instrs for kcnt kperiods */
       spoutactive = 0;        /*   make spout inactive   */
       ip = &actanchor;
       while ((ip = ip->nxtact) != NULL) { /*   for each instr active */
-        if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); /* PC GUI needs attention */
+/*         if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); /\* PC GUI needs attention *\/ */
         pds = (OPDS *)ip;
         while ((pds = pds->nxtp) != NULL) {
           (*pds->opadr)(pds); /*      run each opcode    */

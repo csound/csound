@@ -30,7 +30,7 @@
 #include "brass.h"
 #include "vibraphn.h"*/
 #include "midiops.h"
-#if defined(CWIN) || defined(TCLTK)
+#if defined(TCLTK)
 #include "control.h"
 #endif
 #include "schedule.h"
@@ -221,7 +221,7 @@ OENTRY opcodlst_2[] = {
 { "active", 0xffff                                                         },
 { "active_i", S(INSTCNT),1,     "i",    "i",    instcount, NULL, NULL      },
 { "active_k", S(INSTCNT),2,     "k",    "k",    NULL, instcount, NULL      },
-#if defined(CWIN) || defined(TCLTK)
+#if defined(TCLTK)
 { "control", S(CNTRL),   3,     "k",    "k",    cntrl_set, control, NULL   },
 { "setctrl", S(SCNTRL),  1,     "",     "iSi",  ocontrol, NULL, NULL   },
 { "button", S(CNTRL),    3,     "k",    "k",    button_set, button, NULL   },

@@ -667,7 +667,7 @@ int lpanal(int argc, char **argv)
 
               if (poleFound!=poleCount) {
                 err_printf(Str(X_283,"Found only %d poles...sorry\n"), poleFound);
-#if !defined(mills_macintosh) && !defined(CWIN)
+#if !defined(mills_macintosh)
                 exit(-1);
 #else
                 return(-1);
@@ -744,7 +744,7 @@ int lpanal(int argc, char **argv)
             if ((n = getsndin(infd, sigbuf2, (long)slice, p)) == 0)
                 break;          /* refil til EOF */
 
-        } while (POLL_EVENTS() && counter < analframes); /* or nsmps done */
+        } while (/*POLL_EVENTS() &&*/ counter < analframes); /* or nsmps done */
 
    /* clean up stuff */
         dispexit();
@@ -753,7 +753,7 @@ int lpanal(int argc, char **argv)
         close(ofd);
         free(a); free(x);
         mfree(coef);
-#if !defined(mills_macintosh) && !defined(CWIN)
+#if !defined(mills_macintosh)
         exit(0);
 #endif
         return (-1);            /* To quieten compilers */

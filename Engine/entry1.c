@@ -195,7 +195,7 @@ int    bamboo(void*), wuterset(void*), wuter(void*), sleighset(void*), sleighbel
 int    trig_set(void*), trig(void*), numsamp(void*), ftsr(void*);
 int    kon2_set(void*), kon2(void*);
 int    nrpn(void*), mdelay(void*), mdelay_set(void*);
-#if defined(CWIN) || defined(TCLTK)
+#if defined(TCLTK)
 int    cntrl_set(void*), control(void*), ocontrol(void*);
 int    button_set(void*), button(void*), check_set(void*), check(void*);
 #endif

@@ -80,7 +80,6 @@ int lplay(EVLIST *a)           /* for standalone cscore: no full Csound, so */
 /*       cscore scorin > scoreout                                          */
 
 
-#ifndef CWIN
 #include <stdarg.h>
 
 void err_printf(char *fmt, ...)
@@ -90,4 +89,3 @@ void err_printf(char *fmt, ...)
     vfprintf(stderr, fmt, a);
     va_end(a);
 }
-#endif

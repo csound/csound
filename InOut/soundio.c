@@ -285,21 +285,14 @@ static void audwrite(char *outbuf, int nbytes)
       }
       else if (O.heartbeat==2) putc('.', stderr);
       else if (O.heartbeat==3) {
-#ifdef CWIN
-        char report[40];
-        extern void cwin_report_right(char *);
-        sprintf(report, "%d(%.3f)", nrecs, nrecs/ekr);
-        cwin_report_right(report);
-#else
         int n;
         err_printf( "%d(%.3f)%n", nrecs, nrecs/ekr, &n);
         while (n--) err_printf("\b");
-#endif
       }
       else err_printf("\a");
 
     }
-    if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1);
+/*     if (!POLL_EVENTS()) longjmp(cenviron.exitjmp_,1); */
 }
 #ifdef NeXT /*sbrandon: for RT playback */
 static void swaprtplay(char *outbuf, int nbytes)

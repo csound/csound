@@ -711,8 +711,7 @@ typedef struct ENVIRON_
 
 #include "text.h"
 
-#if defined CWIN
-#elif defined(mac_classic) || defined(SYMANTEC)
+#if defined(mac_classic) || defined(SYMANTEC)
 # define POLL_EVENTS() STasks()
 # define __cdecl
 #endif
@@ -730,24 +729,6 @@ extern void err_printf(char *, ...);
 #ifdef FLTK_GUI
 #define printf csoundMessage0
 extern void csoundMessage0(const char *, ...);
-#else
-#ifdef CWIN
-#include <stdlib.h>
-#define printf cwin_printf
-#undef putchar
-#define putchar cwin_putchar
-#define exit(n) cwin_exit(n)
-extern void cwin_printf(char *, ...);
-extern void cwin_fprintf(FILE *, char *, ...);
-extern int  cwin_ensure_screen(void);
-extern int cwin_poll_window_manager(void);
-extern void cwin_putchar(int);
-extern void cwin_exit(int);
-#define atexit(x) cwin_atexit(x)
-#define POLL_EVENTS() cwin_poll_window_manager()/*cwin_ensure_screen()*/
-typedef void ExitFunction(void);
-extern int cwin_atexit(ExitFunction*);
-#endif
 #endif /* POLL_EVENTS */
 
 #ifdef WIN32

@@ -388,9 +388,6 @@ void beep(void)
 {
 #ifdef mills_macintosh
     SysBeep(10000);
-#elif CWIN
-    extern void cwin_Beep(void);
-    cwin_Beep();
 #else
     printf(Str(X_28,"%c\tbeep!\n"),'\007');
 #endif

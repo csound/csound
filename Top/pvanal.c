@@ -256,7 +256,7 @@ int pvanal(int argc, char **argv)
     }
     close(infd);
   /*     close(ofd); */
-#if !defined(mills_macintosh) && !defined(CWIN)
+#if !defined(mills_macintosh)
     exit(0);
 #endif
     return (-1);
@@ -365,7 +365,7 @@ static long takeFFTs(
         /* IV - Jul 11 2002 */
         *fp1++ *= dbfs_to_float;       /* normalize samples just read in */
       /* debug = 0; */
-    } while (POLL_EVENTS() && i < oframeEst);
+    } while (/*POLL_EVENTS() &&*/ i < oframeEst);
     if (!O.displays && !verbose) printf("%ld\n",i);
     if (i < oframeEst)
       printf(Str(X_575,"\tearly end of file\n"));
