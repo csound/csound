@@ -300,7 +300,7 @@ static void read_base64(void *csound, FILE *in, FILE *out)
 
     n = nbits = 0;
     while ((c = getc(in)) != '=' && c != '<') {
-      while (c == ' ' || c == '\t' || c == '\n')
+      while (c == ' ' || c == '\t' || c == '\n' || c == '\r')
         c = getc(in);
       if (c == '=' || c == '<' || c == EOF)
         break;
