@@ -126,6 +126,8 @@ public:
 	virtual void setText(const std::string text);
 	virtual void synchronizeScore();
 	virtual void reset();
+	virtual void openFile(std::string filename);
+	virtual int run();
 	static void midiDeviceOpen(void *csound);
 	static int midiRead(void * csound, unsigned char *mbuf, int size);
 };

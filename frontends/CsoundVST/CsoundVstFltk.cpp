@@ -255,14 +255,7 @@ long CsoundVstFltk::open(void *parentWindow)
 		this->csoundVstUi->show();
 		update();
 	}
-	if(csoundVST->getIsVst() || parentWindow)
-	{
-		return true;
-	}
-	else
-	{
-		return Fl::run();
-	}
+	return true;
 }
 
 void CsoundVstFltk::close()
@@ -513,20 +506,7 @@ void CsoundVstFltk::onOpen(Fl_Button*, CsoundVstFltk* csoundVstFltk)
 	}
 	if(filename_)
 	{
-		WaitCursor wait;
-		if(csoundVST->getIsPython())
-		{
-			csoundVST->load(filename_);
-			csoundVST->setFilename(filename_);
-		}
-		else
-		{
-			csoundVST->getCppSound()->load(filename_);
-		}
-		csoundVST->bank[csoundVST->getProgram()].text = csoundVST->getText();
-		update();
-		csoundVST->getCppSound()->setFilename(filename_);        
-		csound::System::message("Opened file: '%s'.\n", csoundVST->getCppSound()->getFilename().c_str());
+        csoundVST->openFile(filename_);
 	}
 	csound::System::message("ENDED CsoundVstFltk::onOpen.\n");
 }
