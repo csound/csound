@@ -52,13 +52,14 @@ int chanoaset(ENVIRON *csound, CHANO *p)
 int chanokdo(ENVIRON *csound, CHANO *p)
 {
     int kn = (int)(*p->kn + 0.5);
-    if (kn<0)
+    if (kn < 0)
       return NOTOK;
-    if (kn>nchanok) {
-      chanok = (MYFLT*)realloc(chanok,kn*sizeof(MYFLT));
-      nchanok = kn;
+    if (kn > csound->nchanok) {
+      csound->chanok =
+        (MYFLT*) csound->ReAlloc(csound, csound->chanok, kn * sizeof(MYFLT));
+      csound->nchanok = kn;
     }
-    chanok[kn] = *p->ain;
+    csound->chanok[kn] = *p->ain;
     return OK;
 }
 
@@ -66,14 +67,16 @@ int chanoado(ENVIRON *csound, CHANO *p)
 {
     int i,j;
     int kn = (int)(*p->kn + 0.5);
-    if (kn<0)
+    if (kn < 0)
       return NOTOK;
-    if (kn>nchanoa) {
-      chanoa = (MYFLT*)realloc(chanoa,kn*sizeof(MYFLT)*ksmps);
-      nchanoa = kn;
+    if (kn > csound->nchanoa) {
+      csound->chanoa =
+        (MYFLT*) csound->ReAlloc(csound, csound->chanoa,
+                                         kn * sizeof(MYFLT) * csound->ksmps);
+      csound->nchanoa = kn;
     }
-    for (i=0, j=kn*ksmps; i<ksmps; i++, j++) {
-      chanok[j] = (*p->ain)++;
+    for (i=0, j=kn*csound->ksmps; i<csound->ksmps; i++, j++) {
+      csound->chanok[j] = (*p->ain)++;
     }
     return OK;
 } /* end chanoas(p) */
@@ -91,13 +94,14 @@ int chaniaset(ENVIRON *csound, CHANI *p)
 int chanikdo(ENVIRON *csound, CHANI *p)
 {
     int kn = (int)(*p->kn + 0.5);
-    if (kn<0)
+    if (kn < 0)
       return NOTOK;
-    if (kn>nchanik) {
-      chanik = (MYFLT*)realloc(chanik, kn*sizeof(MYFLT));
-      nchanik = kn;
+    if (kn > csound->nchanik) {
+      csound->chanik =
+        (MYFLT*) csound->ReAlloc(csound, csound->chanik, kn * sizeof(MYFLT));
+      csound->nchanik = kn;
     }
-    *p->ar = chanok[kn];
+    *p->ar = csound->chanok[kn];
     return OK;
 }
 
@@ -105,14 +109,16 @@ int chaniado(ENVIRON *csound, CHANI *p)
 {
     int i,j;
     int kn = (int)(*p->kn + 0.5);
-    if (kn<0)
+    if (kn < 0)
       return NOTOK;
-    if (kn>nchania) {
-      chania = (MYFLT*)realloc(chania, kn*sizeof(MYFLT));
-      nchania = kn;
+    if (kn > csound->nchania) {
+      csound->chania =
+        (MYFLT*) csound->ReAlloc(csound, csound->chania,
+                                         kn * sizeof(MYFLT) * csound->ksmps);
+      csound->nchania = kn;
     }
-    for (i=0, j=kn*ksmps; i<ksmps; i++, j++) {
-      *(p->ar++) = chanoa[j];
+    for (i=0, j=kn*csound->ksmps; i<csound->ksmps; i++, j++) {
+      *(p->ar++) = csound->chanoa[j];
     }
     return OK;
 } /* end chanias(p) */

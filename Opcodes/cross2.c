@@ -432,7 +432,7 @@ int Xsynth(ENVIRON *csound, CON *p)
 
     n = p->count;
     m = n % div;
-    for (samps = 0; samps < ksmps; samps++) {
+    for (samps = 0; samps < csound->ksmps; samps++) {
       *(buf1 + n) = *s++;
       *(buf2 + n) = *f++;
 
