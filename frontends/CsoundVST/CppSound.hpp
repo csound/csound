@@ -36,7 +36,7 @@
 #include <string>
 #include <vector>
 #include <csound.h>
-#include <cs.h>
+#include <csoundCore.h>
 #endif
 
 /**

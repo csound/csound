@@ -1,4 +1,8 @@
-2005-02-20  Michael Gogins <gogins@pipeline.com>
+2005-02-27	Steven Yi <stevenyi@csounds.com>
+	* frontends/CsoundVST/CppSound.hpp: changed #include of cs.h to 
+	csoundCore.h
+
+2005-02-27  Michael Gogins <gogins@pipeline.com>
 	* Changed fluid* opcodes: removed Gogins version, merged
 	option to print presets to fluidLoad and added fluidControl opcode
 	from Gogins version, added new fluidAllOut opcode to collect
