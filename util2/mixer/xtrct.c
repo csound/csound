@@ -77,7 +77,7 @@ static void ExtractSound(SNDFILE*, SNDFILE*);
 extern long getsndin(SNDFILE*, MYFLT *, long, SOUNDIN *);
 extern int  openout(char *, int);
 extern char *getstrformat(int);
-extern int  sndgetset(SOUNDIN *);
+extern SNDFILE *sndgetset(SOUNDIN *);
 extern short sfsampsize(int);
 
 static void usage(char *mesg)
@@ -345,7 +345,7 @@ EXsndgetset(char *name)
 static void 
 ExtractSound(SNDFILE* infd, SNDFILE* outfd)
 {
-    char  buffer[4*NUMBER_OF_SAMPLES];
+    double buffer[NUMBER_OF_SAMPLES];
     long  read_in;
     long  bytes = 0;
     int   block = 0;

@@ -378,7 +378,7 @@ extern "C"
     MYFLT *rightOut   = fluid->aRightOut;
     for(int i = 0; i < fluid->blockSize; ++i)
       {
-	for(int j = 0; j < fluid_engines.size(); j++)
+	for(int j = 0; j < (int) fluid_engines.size(); j++)
 	  {
 	    leftSample[0] = 0;
 	    rightSample[0] = 0;

@@ -133,7 +133,7 @@ int outfile_set(ENVIRON *csound, OUTFILE *p)
         if (file_num>=file_max) {
           if (file_max==0) atexit(close_files);
           file_max += 4;        /* Expand by 4 each time */
-          file_opened = (struct fileinTag*)
+          csound->file_opened_ = (void*)
             mrealloc(csound, file_opened, sizeof(struct fileinTag)*file_max);
         }
         file_opened[file_num].name = (char*) mmalloc(csound, strlen(fname)+1);
@@ -207,7 +207,7 @@ int koutfile_set(ENVIRON *csound, KOUTFILE *p)
         if (file_num>=file_max) {
           if (file_max==0) atexit(close_files);
           file_max += 4;
-          file_opened = (struct fileinTag*)
+          csound->file_opened_ = (void*)
             mrealloc(csound, file_opened, sizeof(struct fileinTag)*file_max);
         }
         file_opened[file_num].name = (char*)mmalloc(csound, strlen(fname)+1);
@@ -248,7 +248,7 @@ int fiopen(ENVIRON *csound, FIOPEN *p)          /* open a file and return its ha
     if (file_num>=file_max) {
       if (file_max==0) atexit(close_files);
       file_max += 4;
-      file_opened = (struct fileinTag*)
+      csound->file_opened_ = (void*)
         mrealloc(csound, file_opened, sizeof(struct fileinTag)*file_max);
     }
     file_opened[file_num].name = (char*)mmalloc(csound, strlen(fname)+1);
@@ -401,7 +401,7 @@ int infile_set(ENVIRON *csound, INFILE *p)
         if (file_num>=file_max) {
           if (file_max==0) atexit(close_files);
           file_max += 4;
-          file_opened = (struct fileinTag*)
+          csound->file_opened_ = (void*)
             mrealloc(csound, file_opened, sizeof(struct fileinTag)*file_max);
         }
         file_opened[file_num].name = (char*)mmalloc(csound, strlen(fname)+1);
@@ -477,7 +477,7 @@ int kinfile_set(ENVIRON *csound, KINFILE *p)
         if (file_num>=file_max) {
           if (file_max==0) atexit(close_files);
           file_max += 4;
-          file_opened = (struct fileinTag*)
+          csound->file_opened_ = (void*)
             mrealloc(csound, file_opened, sizeof(struct fileinTag)*file_max);
         }
         file_opened[file_num].name = (char*)mmalloc(csound, strlen(fname)+1);
@@ -549,7 +549,7 @@ int i_infile(ENVIRON *csound, I_INFILE *p)
         if (file_num>=file_max) {
           if (file_max==0) atexit(close_files);
           file_max += 4;
-          file_opened = (struct fileinTag*)
+          csound->file_opened_ = (void*)
             mrealloc(csound, file_opened, sizeof(struct fileinTag)*file_max);
         }
         file_opened[file_num].name = (char*)mmalloc(csound, strlen(fname)+1);
@@ -691,7 +691,7 @@ int fprintf_set(ENVIRON *csound, FPRINTF *p)
         if (file_num>=file_max) {
           if (file_max==0) atexit(close_files);
           file_max += 4;
-          file_opened = (struct fileinTag*)
+          csound->file_opened_ = (void*)
             mrealloc(csound, file_opened, sizeof(struct fileinTag)*file_max);
         }
         file_opened[file_num].name = (char*) mmalloc(csound, strlen(fname)+1);

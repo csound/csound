@@ -156,8 +156,16 @@ void OSCQueuePrint(OSCQueue q) {
     printf("OSC Priority queue at %p has %d elements:\n", q, q->n);
 
     for (i = 0; i < q->n; ++i) {
-	printf("   list[%2d] is %p, timetag = %x\n",
-               i, q->list[i], q->list[i]->timetag);
+#ifdef HAS8BYTEINT
+	printf("   list[%2d] is %p, timetag = %llu\n",
+               i, (void*) q->list[i],
+               (unsigned long long) q->list[i]->timetag);
+#else
+	printf("   list[%2d] is %p, timetag = %f\n",
+               i, (void*) q->list[i],
+               (double) q->list[i]->timetag.seconds
+               + ((double) q->list[i]->timetag.fraction * 1.0e-9));
+#endif
     }
     printf("\n\n");
 }
