@@ -18,10 +18,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include <stdio.h>
-#include <stdarg.h>
-#include <stdlib.h>
-#include <limits.h>
+#include <cstdio>
+#include <cstdarg>
+#include <cstdlib>
+#include <climits>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -58,7 +58,7 @@ const int transcript_height = 50;
 
 #if defined HAVE_FL__LOCK
 #  if defined HAVE_PTHREAD_H
-#    include <errno.h>
+#    include <cerrno>
 #    include <pthread.h>
 #    define USE_THREADS
 #    define thread_exit() return 0
@@ -82,7 +82,7 @@ namespace {
   }
 };
 #  elif defined WIN32
-#    include <errno.h>
+#    include <cerrno>
 #    include <windows.h>
 #    include <process.h>
 #    define USE_THREADS
@@ -311,8 +311,8 @@ void Main::draw_graph(Curve *curve)
   unlock();
 }
 
-bool Main::s_stop = false;
-bool Main::s_exit = false;
+bool Main::s_stop = false;	// Should Csound stop?
+bool Main::s_exit = false;	// Should main window be deleted after stop?
 
 int Main::yield(void *data)
 {
@@ -513,6 +513,8 @@ void Main::message(const char *msg)
   m_transcript->insert_position(INT_MAX);
   m_transcript->insert(msg);
   m_transcript->scroll(INT_MAX, 0);
+  if (strchr(msg, '\n'))
+    awake();
   unlock();
 }
 
