@@ -84,11 +84,11 @@ int pvxanal(SOUNDIN *p, int fd, const char *fname, long srate,
     if (ext == NULL || ext[0]!='.' || tolower(ext[1]) != 'p' ||
         tolower(ext[2]) != 'v' ||
         tolower(ext[3]) != 'x' || ext[4] != '\0') {
-      printf(Str(X_1560,"pvxanal: outfile name must use extension .pvx\n"));
+      printf(Str("pvxanal: outfile name must use extension .pvx\n"));
       return 1;
     }
     if (chans > MAXPVXCHANS) {
-      printf(Str(X_1561,
+      printf(Str(
                  "pvxanal - source has too many channels: Maxchans = %d.\n"),
              MAXPVXCHANS);
       return 1;
@@ -138,7 +138,7 @@ int pvxanal(SOUNDIN *p, int fd, const char *fname, long srate,
                               PVOC_AMP_FREQ,srate,stype,
                               wintype,0.0f,NULL,winsize);
     if (pvfile < 0) {
-      printf(Str(X_1562,"pvxanal: unable to create analysis file: %s"),
+      printf(Str("pvxanal: unable to create analysis file: %s"),
              pvoc_errorstr());
       rc = 1;
       goto error;
@@ -161,7 +161,7 @@ int pvxanal(SOUNDIN *p, int fd, const char *fname, long srate,
           generate_frame(pvx[k],chanbuf+i,frame,overlap,PVOC_AMP_FREQ);
 
           if (!pvoc_putframes(pvfile,frame,1)) {
-            printf(Str(X_1563,"pvxanal: error writing analysis frames: %s\n"),
+            printf(Str("pvxanal: error writing analysis frames: %s\n"),
                    pvoc_errorstr());
             rc = 1;
             goto error;
@@ -186,7 +186,7 @@ int pvxanal(SOUNDIN *p, int fd, const char *fname, long srate,
         chanbuf = inbuf_c[k];
         generate_frame(pvx[k],chanbuf+i,frame,overlap,PVOC_AMP_FREQ);
         if (!pvoc_putframes(pvfile,frame,1)) {
-          printf(Str(X_1563,"pvxanal: error writing analysis frames: %s\n"),
+          printf(Str("pvxanal: error writing analysis frames: %s\n"),
                  pvoc_errorstr());
           rc = 1;
           goto error;
@@ -194,7 +194,7 @@ int pvxanal(SOUNDIN *p, int fd, const char *fname, long srate,
         blocks_written++;
       }
     }
-    printf(Str(X_1564,"\n%ld %d-chan blocks written to %s\n"),
+    printf(Str("\n%ld %d-chan blocks written to %s\n"),
            blocks_written/chans,chans,fname);
 
  error:

@@ -137,7 +137,7 @@ openin(char *filnam)/* open a file for reading. If not fullpath, will search: */
         if ((infd = open(pathnam, RD_OPTS)) >= 0)
           goto done;
       }
-      dies(Str(X_642,"cannot open %s.  Not in cur dir, SSDIR or SFDIR as defined"),
+      dies(Str("cannot open %s.  Not in cur dir, SSDIR or SFDIR as defined"),
            filnam);
     }
  done:
@@ -165,13 +165,13 @@ int openout(              /* open a file for writing.  If not fullpath, then  */
         break;
       }
       else if (dirtyp == 2)
-        dies(Str(X_641,"cannot open %s, SFDIR undefined"), filnam);
+        dies(Str("cannot open %s, SFDIR undefined"), filnam);
       else
-        printf(Str(X_449,"SFDIR undefined.  using current directory\n"));
+        printf(Str("SFDIR undefined.  using current directory\n"));
     case 1:
       outfd = open(filnam, WR_OPTS);
       break;
-    default: die(Str(X_1096,"openout: illegal dirtyp"));
+    default: die(Str("openout: illegal dirtyp"));
     }
     retfilnam = pathnam;
     return (outfd);
@@ -198,12 +198,12 @@ int openoutforin(       /* open a file for writing.  If not fullpath, then  */
         break;
       }
       else if (dirtyp == 2)
-        dies(Str(X_641,"cannot open %s, SFDIR undefined"), filnam);
-      else printf(Str(X_449,"SFDIR undefined.  using current directory\n"));
+        dies(Str("cannot open %s, SFDIR undefined"), filnam);
+      else printf(Str("SFDIR undefined.  using current directory\n"));
     case 1:
       outfd = open(filnam, RD_OPTS);
       break;
-    default: die(Str(X_1096,"openout: illegal dirtyp"));
+    default: die(Str("openout: illegal dirtyp"));
     }
     retfilnam = pathnam;
     return(outfd);
@@ -229,13 +229,13 @@ int openrdwr(           /* open a file for writing.  If not fullpath, then  */
         break;
       }
       else if (dirtyp == 2)
-        dies(Str(X_638,"cannot open %s for read/write, SFDIR undefined"),
+        dies(Str("cannot open %s for read/write, SFDIR undefined"),
              filnam);
-      else printf(Str(X_449,"SFDIR undefined.  using current directory\n"));
+      else printf(Str("SFDIR undefined.  using current directory\n"));
     case 1:
       outfd = open(filnam, O_RDWR);
       break;
-    default: die(Str(X_1097,"openwr: illegal dirtyp"));
+    default: die(Str("openwr: illegal dirtyp"));
     }
     retfilnam = pathnam;
     return(outfd);
@@ -275,7 +275,7 @@ FILE *fopenin(char *filnam)
           goto done;
       }
       dies(
-        Str(X_1528,
+        Str(
             "cannot open %s.  Not in cur dir, INCDIR SSDIR or SFDIR as defined"),
         filnam);
     }

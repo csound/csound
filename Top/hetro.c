@@ -137,98 +137,98 @@ extern  long     getsndin(int, MYFLT*, long, SOUNDIN*);
         dbfs_init(DFLT_DBFS);
 
         if (!(--argc)) {
-          quit(Str(X_1024,"no arguments"));
+          quit(Str("no arguments"));
         }
         do {
           char *s = *++argv;
           if (*s++ == '-')
             switch (*s++) {
-            case 's':   FIND(Str(X_1057,"no sampling rate"))
+            case 's':   FIND(Str("no sampling rate"))
 #if defined(USE_DOUBLE)
                           sscanf(s,"%lf",&sr);
 #else
                           sscanf(s,"%f",&sr);
 #endif
               break;
-            case 'c':   FIND(Str(X_1026,"no channel"))
+            case 'c':   FIND(Str("no channel"))
                           sscanf(s,"%d",&channel);
               break;
-            case 'b':   FIND(Str(X_1025,"no begin time"))
+            case 'b':   FIND(Str("no begin time"))
 #if defined(USE_DOUBLE)
                           sscanf(s,"%lf",&beg_time);
 #else
                           sscanf(s,"%f",&beg_time);
 #endif
               break;
-            case 'd':   FIND(Str(X_1030,"no duration time"))
+            case 'd':   FIND(Str("no duration time"))
 #if defined(USE_DOUBLE)
                           sscanf(s,"%lf",&input_dur);
 #else
                           sscanf(s,"%f",&input_dur);
 #endif
               break;
-            case 'f':   FIND(Str(X_1033,"no fundamental estimate"))
+            case 'f':   FIND(Str("no fundamental estimate"))
 #if defined(USE_DOUBLE)
                           sscanf(s,"%lf",&fund_est);
 #else
                           sscanf(s,"%f",&fund_est);
 #endif
               break;
-            case 'h':   FIND(Str(X_1035,"no harmonic count"))
+            case 'h':   FIND(Str("no harmonic count"))
                           sscanf(s,"%hd",&hmax);
               if (hmax > HMAX)
-                err_printf(Str(X_1115,"over %d harmonics but continuing"),
+                err_printf(Str("over %d harmonics but continuing"),
                            HMAX);
               if (hmax < 1) {
-                err_printf(Str(X_821,"h of %d too low, reset to 1\n"),
+                err_printf(Str("h of %d too low, reset to 1\n"),
                            hmax);
                 hmax = 1;
               }
               break;
-            case 'M':   FIND(Str(X_1021,"no amplitude maximum"))
+            case 'M':   FIND(Str("no amplitude maximum"))
                           sscanf(s,"%lf",&m_ampsum);
               break;
-            case 'm':   FIND(Str(X_1022,"no amplitude minimum"))
+            case 'm':   FIND(Str("no amplitude minimum"))
                           sscanf(s,"%d",&amp_min);
               break;
-            case 'n':   FIND(Str(X_1050,"no number of output points"))
+            case 'n':   FIND(Str("no number of output points"))
                           sscanf(s,"%d",&num_pts);
               break;
-            case 'l':   FIND(Str(X_1031,"no filter cutoff"))
+            case 'l':   FIND(Str("no filter cutoff"))
 #if defined(USE_DOUBLE)
                           sscanf(s,"%lf",&freq_c);
 #else
                           sscanf(s,"%f",&freq_c);
 #endif
               break;
-            case '-':   FIND(Str(X_1044,"no log file"));
+            case '-':   FIND(Str("no log file"));
               while (*s++); s--;
               break;
-            default:   quit(Str(X_317,"Invalid switch option"));
+            default:   quit(Str("Invalid switch option"));
             }
           else break;
         } while (--argc);
 
-        if (argc != 2)  quit(Str(X_907,"incorrect number of filenames"));
+        if (argc != 2)  quit(Str("incorrect number of filenames"));
         infilnam = *argv++;
         outfilnam = *argv;
 
         if (freq_c > 1)
-            fprintf (stderr,Str(X_276,"Filter cutoff freq. = %f\n"),freq_c);
+            fprintf (stderr,Str("Filter cutoff freq. = %f\n"),freq_c);
 
         if ((input_dur < 0) || (beg_time < 0))
-            quit(Str(X_912,"input and begin times cannot be less than zero"));
+            quit(Str("input and begin times cannot be less than zero"));
                                            /* open sndfil, do skiptime */
         if (
          (infd = SAsndgetset(infilnam,&p,&beg_time,&input_dur,&sr,channel))<0) {
-            sprintf(errmsg,Str(X_210,"Cannot open %s"), retfilnam);
+            sprintf(errmsg,Str("Cannot open %s"), retfilnam);
             quit (errmsg);
         }
         nsamps = p->getframes;
         auxp = (MYFLT*)mmalloc(nsamps * sizeof(MYFLT));   /* alloc for MYFLTs */
         if ((smpsin = getsndin(infd,auxp,nsamps,p)) <= 0) { /* & read them in */
           printf("smpsin = %d\n", smpsin);
-            sprintf(errmsg,Str(X_439,"Read error on %s\n"), retfilnam);
+            sprintf(errmsg,Str("Read error on %s\n"), retfilnam);
             quit(errmsg);
         }
         close(infd);
@@ -238,10 +238,10 @@ extern  long     getsndin(int, MYFLT*, long, SOUNDIN*);
         /*RWD no limit for SDIF files! */
         if (is_sdiffile(outfilnam)) {
           if (num_pts >= nsamps - windsiz)
-            quit(Str(X_1085,"number of output points is too great"));
+            quit(Str("number of output points is too great"));
         }
         else
-          if (num_pts > 32767 || num_pts >= nsamps - windsiz)            quit(Str(X_1085,"number of output points is too great"));
+          if (num_pts > 32767 || num_pts >= nsamps - windsiz)            quit(Str("number of output points is too great"));
         delta_t = FL(1.0)/sr;
         t = FL(1.0)/fund_est;
         outdelta_t = (MYFLT)num_pts / (smpsin - windsiz);
@@ -294,11 +294,11 @@ extern  long     getsndin(int, MYFLT*, long, SOUNDIN*);
             max_frq = FL(0.0);
             max_amp = FL(0.0);
 
-            err_printf(Str(X_599,"analyzing harmonic #%d\n"),hno);
-            err_printf(Str(X_778,"freq est %6.1f,"), cur_est);
+            err_printf(Str("analyzing harmonic #%d\n"),hno);
+            err_printf(Str("freq est %6.1f,"), cur_est);
             hetdyn(hno);                /* perform actual computation */
             if (!csoundYield(NULL)) exit(1);
-            err_printf(Str(X_20," max found %6.1f, rel amp %6.1f\n"), max_frq, max_amp);
+            err_printf(Str(" max found %6.1f, rel amp %6.1f\n"), max_frq, max_amp);
         }
         mfree(dspace);
 #ifdef mills_macintosh
@@ -308,7 +308,7 @@ extern  long     getsndin(int, MYFLT*, long, SOUNDIN*);
             /*RWD if extension is .sdif, write as 1TRC frames */
             if (is_sdiffile(outfilnam)) {
               if (!writesdif()) {
-                err_printf(Str(X_1538,"Unable to write to SDIF file\n"));
+                err_printf(Str("Unable to write to SDIF file\n"));
                 mfree(mspace);
                 exit(1);
               }
@@ -508,10 +508,10 @@ static void quit (char *msg)
 {
 #ifdef mills_macintosh
     char temp[256];
-    sprintf(temp,Str(X_829,"hetro:  %s\n\tanalysis aborted\n"),msg);
+    sprintf(temp,Str("hetro:  %s\n\tanalysis aborted\n"),msg);
     die(temp);
 #else
-    err_printf(Str(X_829,"hetro:  %s\n\tanalysis aborted\n"),msg);
+    err_printf(Str("hetro:  %s\n\tanalysis aborted\n"),msg);
 #endif
     exit(1);
 }
@@ -542,7 +542,7 @@ static void filedump(void)     /* WRITE OUTPUT FILE in DATA-REDUCED format */
       TIME[pnt] = (short)(pnt * timesiz);
 
     if ((ofd = openout(outfilnam, 1)) < 0)     /* fullpath else cur dir */
-      quit(Str(X_633,"cannot create output file\n"));
+      quit(Str("cannot create output file\n"));
 
     write(ofd, (char*)&hmax, sizeof(hmax)); /* Write header */
 
@@ -554,7 +554,7 @@ static void filedump(void)     /* WRITE OUTPUT FILE in DATA-REDUCED format */
         maxampsum = ampsum;
     }
     scale = m_ampsum / maxampsum;
-    err_printf(Str(X_1176,"scale = %f\n"), scale);
+    err_printf(Str("scale = %f\n"), scale);
 
     for (h = 0; h < hmax; h++) {
       for (pnt = 0; pnt < num_pts; pnt++) {
@@ -646,10 +646,10 @@ static void filedump(void)     /* WRITE OUTPUT FILE in DATA-REDUCED format */
       }
 #endif
       lenfil += nbytes;
-      printf(Str(X_826,"harmonic #%d:\tamp points %d, \tfrq points %d,\tpeakamp %d\n"),
+      printf(Str("harmonic #%d:\tamp points %d, \tfrq points %d,\tpeakamp %d\n"),
              h,mpoints,fpoints,pkamp);
     }
-    err_printf(Str(X_1383,"wrote %ld bytes to %s\n"), lenfil, outfilnam);
+    err_printf(Str("wrote %ld bytes to %s\n"), lenfil, outfilnam);
     close(ofd);
     mfree(magout);
     mfree(frqout);
@@ -677,7 +677,7 @@ static int writesdif(void)
     FILE        *sdiffile = NULL;
 
     if (SDIF_Init() != ESDIF_SUCCESS) {
-      err_printf(Str(X_1539,"OOPS: SDIF does not work on this machine!\n"));
+      err_printf(Str("OOPS: SDIF does not work on this machine!\n"));
       return 0;
     }
 
@@ -704,7 +704,7 @@ static int writesdif(void)
 
     if ((r = SDIF_OpenWrite(outfilnam, &sdiffile))!=ESDIF_SUCCESS) {
       /* can get SDIF error messages, but trickly for CSTRINGS */
-      err_printf(Str(X_1540,"Error creating %s\n"),outfilnam);
+      err_printf(Str("Error creating %s\n"),outfilnam);
       fclose(sdiffile);
       return 0;
     }
@@ -730,7 +730,7 @@ static int writesdif(void)
       sdif_float32 amp,freq,phase = 0.0f; /* cannot offer anything interesting with phase! */
       head.time = (sdif_float32) ((MYFLT)i * timesiz);
       if ((r = SDIF_WriteFrameHeader(&head,sdiffile))!=ESDIF_SUCCESS) {
-        err_printf(Str(X_1541,"Error writing SDIF frame header.\n"));
+        err_printf(Str("Error writing SDIF frame header.\n"));
         return 0;
       }
       /*setup data matrix */
@@ -739,7 +739,7 @@ static int writesdif(void)
       SDIF_Copy4Bytes(mh.matrixType,"1TRC");
       mh.matrixDataType = SDIF_FLOAT32;
       if ((r = SDIF_WriteMatrixHeader(&mh,sdiffile))!=ESDIF_SUCCESS) {
-        err_printf(Str(X_1542,"Error writing SDIF matrix header.\n"));
+        err_printf(Str("Error writing SDIF matrix header.\n"));
         return 0;
       }
       for (j=0;j < hmax;j++) {
@@ -752,13 +752,13 @@ static int writesdif(void)
             ((r = SDIF_Write4(&freq,1,sdiffile))!= ESDIF_SUCCESS)  ||
             ((r = SDIF_Write4(&amp,1,sdiffile))!= ESDIF_SUCCESS)   ||
             ((r = SDIF_Write4(&phase,1,sdiffile))!= ESDIF_SUCCESS)) {
-          err_printf(Str(X_1543,"Error writing SDIF data.\n"));
+          err_printf(Str("Error writing SDIF data.\n"));
           return 0;
         }
       }
       /* 64-bit alignment can be relied upon here, so no need to calc padding */
     }
-    err_printf(Str(X_1544,"wrote %ld 1TRC frames to %s\n"), num_pts, outfilnam);
+    err_printf(Str("wrote %ld 1TRC frames to %s\n"), num_pts, outfilnam);
     SDIF_CloseWrite(sdiffile);
     return 1;
 }

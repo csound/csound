@@ -80,37 +80,37 @@ static  int	   outrange = 0; 	    /* Count samples out of range */
 static void usage(char *mesg)
 {
     err_printf( "%s\n", mesg);
-    err_printf(Str(X_19,"Usage:\tscale [-flags] soundfile\n"));
-    err_printf(Str(X_9,"Legal flags are:\n"));
-    err_printf(Str(X_157,"-o fnam\tsound output filename\n"));
-    err_printf(Str(X_96,"-A\tcreate an AIFF format output soundfile\n"));
-    err_printf(Str(X_132,"-W\tcreate a WAV format output soundfile\n"));
-    err_printf(Str(X_149,"-h\tno header on output soundfile\n"));
-    err_printf(Str(X_141,"-c\t8-bit signed_char sound samples\n"));
-    err_printf(Str(X_136,"-a\talaw sound samples\n"));
+    err_printf(Str("Usage:\tscale [-flags] soundfile\n"));
+    err_printf(Str("Legal flags are:\n"));
+    err_printf(Str("-o fnam\tsound output filename\n"));
+    err_printf(Str("-A\tcreate an AIFF format output soundfile\n"));
+    err_printf(Str("-W\tcreate a WAV format output soundfile\n"));
+    err_printf(Str("-h\tno header on output soundfile\n"));
+    err_printf(Str("-c\t8-bit signed_char sound samples\n"));
+    err_printf(Str("-a\talaw sound samples\n"));
 #ifdef ULAW
-    err_printf(Str(X_166,"-u\tulaw sound samples\n"));
+    err_printf(Str("-u\tulaw sound samples\n"));
 #endif
-    err_printf(Str(X_164,"-s\tshort_int sound samples\n"));
-    err_printf(Str(X_153,"-l\tlong_int sound samples\n"));
-    err_printf(Str(X_145,"-f\tfloat sound samples\n"));
-    err_printf(Str(X_11,"-F fpnum\tamount to scale amplitude\n"));
-    err_printf(Str(X_24,
+    err_printf(Str("-s\tshort_int sound samples\n"));
+    err_printf(Str("-l\tlong_int sound samples\n"));
+    err_printf(Str("-f\tfloat sound samples\n"));
+    err_printf(Str("-F fpnum\tamount to scale amplitude\n"));
+    err_printf(Str(
                    "-F file \tfile of scaling information (alternative)\n"));
-    err_printf(Str(X_427,
+    err_printf(Str(
                    "-M fpnum\tScale file to given maximum\n"));
-    err_printf(Str(X_1484,
+    err_printf(Str(
                    "-P fpnum\tscale file to given percentage of full\n"));
     err_printf(
-      Str(X_125,
+      Str(
         "-R\tcontinually rewrite header while writing soundfile (WAV/AIFF)\n"));
-    err_printf(Str(X_108,
+    err_printf(Str(
         "-H#\tprint a heartbeat style 1, 2 or 3 at each soundfile write\n"));
-    err_printf(Str(X_120,
+    err_printf(Str(
         "-N\tnotify (ring the bell) when score or miditrack is done\n"));
-    err_printf(Str(X_90,"-- fnam\tlog output to file\n"));
-    err_printf(Str(X_39,"flag defaults: scale -s -otest -F 0.0\n"));
-    err_printf(Str(X_41,
+    err_printf(Str("-- fnam\tlog output to file\n"));
+    err_printf(Str("flag defaults: scale -s -otest -F 0.0\n"));
+    err_printf(Str(
         "If scale is 0.0 then reports maximum possible scaling\n"));
     exit(1);
 }
@@ -118,7 +118,7 @@ static void usage(char *mesg)
 char set_output_format(char c, char outformch)
 {
     if (OO.outformat && (O.msglevel & WARNMSG)) {
-      printf(Str(X_1198,"WARNING: Sound format -%c has been overruled by -%c\n"),
+      printf(Str("WARNING: Sound format -%c has been overruled by -%c\n"),
              outformch, c);
     }
 
@@ -204,7 +204,7 @@ main(int argc, char **argv)
         else if (strcmp(envoutyp,"IRCAM") == 0)
           OO.filetyp = TYP_IRCAM;
         else {
-          err_printf(Str(X_61,"%s not a recognized SFOUTYP env setting"),
+          err_printf(Str("%s not a recognized SFOUTYP env setting"),
                      envoutyp);
           exit(1);
         }
@@ -212,24 +212,24 @@ main(int argc, char **argv)
     }
     O.filnamspace = filnamp = mmalloc((long)1024);
     if (!(--argc))
-      usage(Str(X_939,"Insufficient arguments"));
+      usage(Str("Insufficient arguments"));
     do {
       s = *++argv;
       if (*s++ == '-')    		      /* read all flags:  */
         while ((c = *s++) != '\0')
           switch(c) {
           case 'o':
-            FIND(Str(X_1052,"no outfilename"))
+            FIND(Str("no outfilename"))
             O.outfilename = filnamp;		/* soundout name */
             while ((*filnamp++ = *s++)); s--;
             if (strcmp(O.outfilename,"stdin") == 0)
               die("-o cannot be stdin");
             if (strcmp(O.outfilename,"stdout") == 0) {
 #if defined mac_classic || defined SYMANTEC || defined BCC || defined __WATCOMC__ || defined WIN32
-              die(Str(X_1244,"stdout audio not supported"));
+              die(Str("stdout audio not supported"));
 #else
               if ((O.stdoutfd = dup(1)) < 0) /* redefine stdout */
-                die(Str(X_1290,"too many open files"));
+                die(Str("too many open files"));
               dup2(2,1);                /* & send 1's to stderr */
 #endif
             }
@@ -238,7 +238,7 @@ main(int argc, char **argv)
             if (OO.filetyp == TYP_WAV) {
               if (envoutyp == NULL) goto outtyp;
               if (O.msglevel & WARNMSG)
-                printf(Str(X_95,"-A overriding local default WAV out"));
+                printf(Str("-A overriding local default WAV out"));
             }
             OO.filetyp = TYP_AIFF;     /* AIFF output request  */
             break;
@@ -247,7 +247,7 @@ main(int argc, char **argv)
                 OO.filetyp == TYP_WAV) {
               if (envoutyp == NULL) goto outtyp;
               if (O.msglevel & WARNMSG)
-                printf(Str(X_110,"WARNING: -J overriding local default AIFF/WAV out\n"));
+                printf(Str("WARNING: -J overriding local default AIFF/WAV out\n"));
             }
             OO.filetyp = TYP_IRCAM;      /* IRCAM output request */
             break;
@@ -255,12 +255,12 @@ main(int argc, char **argv)
             if (OO.filetyp == TYP_AIFF) {
               if (envoutyp == NULL) goto outtyp;
               if (O.msglevel & WARNMSG)
-                printf(Str(X_131,"-W overriding local default AIFF out"));
+                printf(Str("-W overriding local default AIFF out"));
             }
             OO.filetyp = TYP_WAV;      /* WAV output request  */
             break;
           case 'F':
-            FIND(Str(X_42,"no scale factor"));
+            FIND(Str("no scale factor"));
             if (isdigit(*s) || *s == '-' || *s == '+')
               factor = atof(s);
             else
@@ -268,12 +268,12 @@ main(int argc, char **argv)
             while (*++s);
             break;
           case 'M':
-            FIND(Str(X_426,"No maximum"));
+            FIND(Str("No maximum"));
             maximum = atof(s);
             while (*++s);
             break;
           case 'P':       /* Percentage */
-            FIND(Str(X_426,"No maximum"));
+            FIND(Str("No maximum"));
             maximum = atof(s);
             if (OO.outformat == AE_FLOAT) maximum = maximum*0.01;
             else maximum = 327.67*maximum;
@@ -311,20 +311,20 @@ main(int argc, char **argv)
             O.ringbell = 1;         	/* notify on completion */
             break;
           default:
-            sprintf(errmsg,Str(X_1334,"unknown flag -%c"), c);
+            sprintf(errmsg,Str("unknown flag -%c"), c);
             usage(errmsg);
           }
       else if (inputfile == NULL) {
         inputfile = --s;
       }
-      else usage(Str(X_1286,"too many arguments"));
+      else usage(Str("too many arguments"));
     } while (--argc);
     dbfs_init(DFLT_DBFS);
  
  retry:
     /* Read sound file */
     if (!(infile = SCsndgetset(inputfile))) {
-      err_printf(Str(X_76,"%s: error while opening %s"), argv[0], inputfile);
+      err_printf(Str("%s: error while opening %s"), argv[0], inputfile);
       exit(1);
     }
     if (factor != 0.0 || factorfile != NULL) {		/* perform scaling */
@@ -340,16 +340,16 @@ main(int argc, char **argv)
       else O.sfheader = 1;
       if (O.filetyp == TYP_AIFF) {
         if (!O.sfheader)
-          die(Str(X_629,"can't write AIFF/WAV soundfile with no header"));
+          die(Str("can't write AIFF/WAV soundfile with no header"));
       }
       if (O.filetyp == TYP_WAV) {
         if (!O.sfheader)
-          die(Str(X_629,"can't write AIFF/WAV soundfile with no header"));
+          die(Str("can't write AIFF/WAV soundfile with no header"));
       }
       if (OO.filetyp)
         O.filetyp = OO.filetyp;
       if (O.rewrt_hdr && !O.sfheader)
-        die(Str(X_628,"can't rewrite header if no header requested"));
+        die(Str("can't rewrite header if no header requested"));
       if (O.outfilename == NULL)  O.outfilename = "test";
       sfinfo.frames = -1;
       sfinfo.samplerate = (int)(esr = p->sr);
@@ -361,7 +361,7 @@ main(int argc, char **argv)
       outfile = sf_open_fd(outfd, SFM_WRITE, &sfinfo, 1);
       outbufsiz = 1024 * O.sfsampsize;/* calc outbuf size  */
       outbuf = mmalloc((long)outbufsiz);                 /*  & alloc bufspace */
-      printf(Str(X_1382,"writing %d-byte blks of %s to %s %s\n"),
+      printf(Str("writing %d-byte blks of %s to %s %s\n"),
              outbufsiz, getstrformat(O.outformat), O.outfilename,
              type2string(O.filetyp));
       InitScaleTable(factor, factorfile);
@@ -380,8 +380,8 @@ main(int argc, char **argv)
     return 0;
 
  outtyp:
-    usage(Str(X_1113,"output soundfile cannot be both AIFF and WAV"));
-    sprintf(errmsg,Str(X_1198,"sound output format cannot be both -%c and -%c"),
+    usage(Str("output soundfile cannot be both AIFF and WAV"));
+    sprintf(errmsg,Str("sound output format cannot be both -%c and -%c"),
 	    outformch, c);
     usage(errmsg);
     exit(1);

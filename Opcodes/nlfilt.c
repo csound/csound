@@ -65,7 +65,7 @@ int nlfilt(ENVIRON *csound, NLFILT *p)
     MYFLT       L = *p->L;
 
     if (fp==NULL) {             /* RWD fix */
-      return perferror(Str(X_1015,"nlfilt: not initialised"));
+      return perferror(Str("nlfilt: not initialised"));
     }
     ar   = p->ar;
     nsmps = ksmps;             /* Number of points to calculate */

@@ -49,6 +49,7 @@ extern "C" {
 #include "fft.h"
 #include "version.h"
 #include <sndfile.h>
+#include "csound.h"
 
 #define OK        (0)
 #define NOTOK     (-1)
@@ -164,32 +165,32 @@ typedef struct {
 
 typedef struct polish {
         char    opcod[12];
-        short   incount;
+        int     incount;
         char    *arg[4];     /* Was [4][12] */
 } POLISH;
 
 typedef struct arglst {
-        short   count;
+        int     count;
         char    *arg[1];
 } ARGLST;
 
 typedef struct argoffs {
-        short   count;
-        short   indx[1];
+        int     count;
+        int     indx[1];
 } ARGOFFS;
 
 /* Storage for parsed orchestra code, for each opcode in an INSTRTXT. */
 typedef struct text {
-        short   linenum;        /* Line num in orch file (currently buggy!)  */
-        short   opnum;          /* Opcode index in opcodlst[] */
+        int     linenum;        /* Line num in orch file (currently buggy!)  */
+        int     opnum;          /* Opcode index in opcodlst[] */
         char    *opcod;         /* Pointer to opcode name in global pool */
         char    *strargs[4];    /* (Unquoted) array of file names if opcode uses */
         ARGLST  *inlist;        /* Input args (pointer to item in name list) */
         ARGLST  *outlist;
         ARGOFFS *inoffs;        /* Input args (index into list of values) */
         ARGOFFS *outoffs;
-        short   xincod;         /* Rate switch for multi-rate opcode functions */
-        short   xoutcod;        /* output rate switch (IV - Sep 1 2002) */
+        int     xincod;         /* Rate switch for multi-rate opcode functions */
+        int     xoutcod;        /* output rate switch (IV - Sep 1 2002) */
         char    intype;         /* Type of first input argument (g,k,a,w etc) */
         char    pftype;         /* Type of output argument (k, a etc) */
 } TEXT;
@@ -199,13 +200,13 @@ typedef struct text {
 typedef struct instr {
         struct op * nxtop;              /* Linked list of instr opcodes */
         TEXT    t;                      /* Text of instrument (same in nxtop) */
-        short   pmax, vmax, pextrab;    /* Arg count, size of data for all
+        int     pmax, vmax, pextrab;    /* Arg count, size of data for all
                                            opcodes in instr */
-        short   mdepends;               /* Opcode type (i/k/a) */
-        short   lclkcnt, lcldcnt;       /* Storage reqs for this instr */
-        short   lclwcnt, lclacnt;
-        short   lclpcnt;
-        short   lclfixed, optxtcount;
+        int     mdepends;               /* Opcode type (i/k/a) */
+        int     lclkcnt, lcldcnt;       /* Storage reqs for this instr */
+        int     lclwcnt, lclacnt;
+        int     lclpcnt;
+        int     lclfixed, optxtcount;
         short   muted;
         long    localen;
         long    opdstot;                /* Total size of opds structs in instr */
@@ -606,9 +607,10 @@ typedef struct ENVIRON_
                                int (*exitGraphCallback)(void *hostData));
   opcodelist *(*NewOpcodeList)(void);
   void (*DisposeOpcodeList)(opcodelist *opcodelist_);
-  int (*AppendOpcode)(char *opname, int dsblksiz, int thread,
-                      char *outypes, char *intypes, SUBR iopadr,
-                      SUBR kopadr, SUBR aopadr, SUBR dopadr);
+  int (*AppendOpcode)(void *csound, char *opname, int dsblksiz,
+                      int thread, char *outypes, char *intypes,
+                      int (*iopadr)(void*, void*), int (*kopadr)(void*, void*),
+                      int (*aopadr)(void*, void*), int (*dopadr)(void*, void*));
   int (*LoadExternal)(void *csound, const char *libraryPath);
   int (*LoadExternals)(void *csound);
   void *(*OpenLibrary)(const char *libraryPath);
@@ -621,16 +623,15 @@ typedef struct ENVIRON_
                               void (*playopen__)(int nchanls, int dsize,
                                                  float sr, int scale));
   void (*SetRtplayCallback)(void *csound,
-                            void (*rtplay__)(char *outBuf, int nbytes));
+                            void (*rtplay__)(void *outBuf, int nbytes));
   void (*SetRecopenCallback)(void *csound,
                              void (*recopen__)(int nchanls, int dsize,
                                                float sr, int scale));
   void (*SetRtrecordCallback)(void *csound,
-                              int (*rtrecord__)(char *inBuf, int nbytes));
+                              int (*rtrecord__)(void *inBuf, int nbytes));
   void (*SetRtcloseCallback)(void *csound, void (*rtclose__)(void));
   /* Internal functions that are needed */
   void (*auxalloc_)(long nbytes, AUXCH *auxchp);
-  char *(*getstring_)(int, char*);
   void (*die_)(char *);
   FUNC *(*ftfind_)(struct ENVIRON_*, MYFLT *);
   int (*initerror_)(char *);
@@ -688,6 +689,15 @@ typedef struct ENVIRON_
   void (*TableSet)(void *csound, int table, int index, MYFLT value);
   void (*SetFLTKThreadLocking)(void *csound, int isLocking);
   int (*GetFLTKThreadLocking)(void *csound);
+  /* IV - Jan 27 2005: new functions */
+  void (*timers_struct_init)(RTCLOCK*);
+  double (*timers_get_real_time)(RTCLOCK*);
+  double (*timers_get_CPU_time)(RTCLOCK*);
+  unsigned long (*timers_random_seed)(void);
+  char *(*LocalizeString)(const char*);
+  int (*CreateGlobalVariable)(void *csound, const char *name, size_t nbytes);
+  void *(*QueryGlobalVariable)(void *csound, const char *name);
+  int (*DestroyGlobalVariable)(void *csound, const char *name);
   /* End of internals */
   int           ksmps_, nchnls_;
   int           global_ksmps_;
@@ -753,7 +763,7 @@ typedef struct ENVIRON_
   FILE*         scoreout_;
   MYFLT         ensmps_, hfkprd_;
   MYFLT         *pool_;
-  short         *argoffspace_;
+  int           *argoffspace_;
   INSDS         *frstoff_;
   int           sensType_;
   jmp_buf       exitjmp_;

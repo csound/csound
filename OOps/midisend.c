@@ -81,7 +81,7 @@ void seqbuf_dump(void)
 {
     if (_seqbufptr)
       if (write (seqfd, _seqbuf, _seqbufptr) == -1)
-        perror(Str(X_205,"Can't write to MIDI device"));
+        perror(Str("Can't write to MIDI device"));
     _seqbufptr = 0;
 }
 
@@ -150,7 +150,7 @@ void poly_after_touch(int chan, int note_num, int value)
 void openMIDIout()
 {
     if (MIDIoutDONE==0 && (seqfd = open(MIDI_DEV, O_RDWR)) == -1)
-      printf(Str(X_204,"Can't open MIDI device\n"));
+      printf(Str("Can't open MIDI device\n"));
     MIDIoutDONE = 1;
 }
 
@@ -242,7 +242,7 @@ void openMIDIout(void)
     char *dev;
     MIDIOUTCAPS moc;
     if (DeviceNum==0) {
-      err_printf(Str(X_359,"No MIDI device available\n"));
+      err_printf(Str("No MIDI device available\n"));
       return;
     }
     /* For now select MIDI device 0 */
@@ -253,13 +253,13 @@ void openMIDIout(void)
     midiOutGetDevCaps(j, &moc, sizeof(moc));
     err_printf("MIDI OUT %u: %s\n", j, moc.szPname);
     if ((j=midiOutOpen(&MIDIoutport, j, (DWORD)NULL, 0, 0))) {
-      err_printf(Str(X_271,"Failed to open MIDI OUT due to %s\n"),
-                 j==MMSYSERR_BADDEVICEID ? Str(X_470,"Specified device is out of range") :
-                 j==MMSYSERR_ALLOCATED   ? Str(X_190,"Already allocated") :
-                 j==MMSYSERR_NOMEM       ? Str(X_501,"Unable to allocate or lock memory") :
-                 j==MIDIERR_NOMAP        ? Str(X_365,"No current MIDI map") :
-                 j==MIDIERR_NODEVICE     ? Str(X_431,"Port in map does not exist") :
-                 Str(X_1345,"unknown"));
+      err_printf(Str("Failed to open MIDI OUT due to %s\n"),
+                 j==MMSYSERR_BADDEVICEID ? Str("Specified device is out of range") :
+                 j==MMSYSERR_ALLOCATED   ? Str("Already allocated") :
+                 j==MMSYSERR_NOMEM       ? Str("Unable to allocate or lock memory") :
+                 j==MIDIERR_NOMAP        ? Str("No current MIDI map") :
+                 j==MIDIERR_NODEVICE     ? Str("Port in map does not exist") :
+                 Str("unknown"));
       return;
     }
     MIDIoutDONE = 1;
@@ -356,7 +356,7 @@ void openMIDIout(void)
     OutputFlag = O_RDWR | O_NDELAY;
     MIDIoutport = open("/dev/midi", OutputFlag, 0666);
     if (MIDIoutport < 0) {
-      err_printf(Str(X_503,"Unable to open Midi Port %s\n"), "/dev/midi");
+      err_printf(Str("Unable to open Midi Port %s\n"), "/dev/midi");
       return;
     }
     t.c_iflag = IGNBRK;
@@ -372,7 +372,7 @@ void openMIDIout(void)
     t.c_cc[VTIME] = 0;
     ioctl(MIDIoutport, TCSETAF, &t);
     if (ioctl(MIDIoutport, I_POP, 0) < 0) {
-      err_printf(Str(X_502,"Unable to configure MIDI port\n"));
+      err_printf(Str("Unable to configure MIDI port\n"));
       return;
     }
     str.ic_cmd = SIOC_RS422;
@@ -381,7 +381,7 @@ void openMIDIout(void)
     arg = RS422_ON;
     str.ic_dp = (char *)&arg;
     if (ioctl(MIDIoutport, I_STR, &str) < 0) {
-      err_printf(Str(X_203,"Can't ioctl RS422\n"));
+      err_printf(Str("Can't ioctl RS422\n"));
       return;
     }
     str.ic_cmd = SIOC_EXTCLK;
@@ -390,7 +390,7 @@ void openMIDIout(void)
     arg = EXTCLK_32X;
     str.ic_dp = (char *)&arg;
     if (ioctl(MIDIoutport, I_STR, &str) < 0) {
-      err_printf(Str(X_200,"Can't ioctl EXTCLK\n"));
+      err_printf(Str("Can't ioctl EXTCLK\n"));
       return;
     }
     str.ic_cmd = SIOC_ITIMER;
@@ -399,7 +399,7 @@ void openMIDIout(void)
     arg = 0;
     str.ic_dp = (char *)&arg;
     if (ioctl(MIDIoutport, I_STR, &str) < 0) {
-      err_printf(Str(X_201,"Can't ioctl ITIMER"));
+      err_printf(Str("Can't ioctl ITIMER"));
       return;
     }
     MIDIoutDONE = 1;
@@ -617,7 +617,7 @@ void openMIDIout(void)
       }
     }
     if (gMidiOutPort < B_OK) {
-      err_printf(Str(X_753,
+      err_printf(Str(
                      "Failed to open MIDI output port to Csound Server.\n"));
     }
     MIDIoutDONE = 1;

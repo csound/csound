@@ -56,17 +56,17 @@ int main(int argc, char **argv)
       lpc_import_usage();
     inf = fopen(argv[1], "rb");
     if (inf == NULL) {
-      fprintf(stderr, Str(X_214,"Cannot open input file %s\n"), argv[1]);
+      fprintf(stderr, Str("Cannot open input file %s\n"), argv[1]);
       exit(1);
     }
     outf = fopen(argv[2], "w");
     if (outf == NULL) {
-      fprintf(stderr, Str(X_215,"Cannot open output file %s\n"), argv[2]);
+      fprintf(stderr, Str("Cannot open output file %s\n"), argv[2]);
       exit(1);
     }
     if (fread(&hdr, sizeof(LPHEADER)-4, 1, inf) != 1 ||
         (hdr.lpmagic != LP_MAGIC && hdr.lpmagic != LP_MAGIC2)) {
-      fprintf(stderr, Str(X_274,"Failed to read LPC header\n"));
+      fprintf(stderr, Str("Failed to read LPC header\n"));
       exit(1);
     }
     fprintf(outf, "%ld,%ld,%ld,%ld,%f,%f,%f",

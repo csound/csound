@@ -124,7 +124,7 @@ void SoundFontLoad(ENVIRON *csound, char *fname)
         }
       }
       sprintf(bb,
-              csound->getstring_(X_1491,
+              csound->LocalizeString(
                   "sfload: cannot open SoundFont file \"%s\" (error %s)"),
               fname, strerror(errno));
       csound->die_(bb);
@@ -192,10 +192,10 @@ int Sfplist(ENVIRON *csound, SFPLIST *p)
     SFBANK *sf = &sfArray[(int) *p->ihandle];
     char temp_string[24];
     int j;
-    printf(Str(X_1492,"\nPreset list of \"%s\"\n"),sf->name);
+    printf(Str("\nPreset list of \"%s\"\n"),sf->name);
     for (j =0; j < sf->presets_num; j++) {
       presetType *prs = &sf->preset[j];
-      printf(Str(X_1493,"%3d) %-20s\tprog:%-3d bank:%d\n"),
+      printf(Str("%3d) %-20s\tprog:%-3d bank:%d\n"),
              j, filter_string(prs->name, temp_string), prs->prog, prs->bank);
     }
     printf("\n");
@@ -208,18 +208,18 @@ int SfAssignAllPresets(ENVIRON *csound, SFPASSIGN *p)
     SFBANK *sf = &sfArray[(int) *p->ihandle];
     int pHandle = (int)  *p->startNum, pnum = sf->presets_num;
     int j;
-    printf(Str(X_1494,"\nAssigning all Presets of \"%s\" starting from"
+    printf(Str("\nAssigning all Presets of \"%s\" starting from"
                " %d (preset handle number)\n"),
            sf->name, pHandle);
     for (j =0; j < pnum;  j++) {
       presetType *prs = &sf->preset[j];
-      printf(Str(X_1495,"%3d<--%-20s\t(prog:%-3d bank:%d)\n"),
+      printf(Str("%3d<--%-20s\t(prog:%-3d bank:%d)\n"),
              j, prs->name, prs->prog, prs->bank);
       presetp[pHandle] = &sf->preset[j];
       sampleBase[pHandle] = sf->sampleData;
       pHandle++;
     }
-    printf(Str(X_1496,
+    printf(Str(
                "\nAll presets have been assigned to preset"
                " handles from %d to %d \n\n"),
            (int) *p->startNum, pHandle-1);
@@ -232,7 +232,7 @@ int Sfilist(ENVIRON *csound, SFPLIST *p)
 {
     SFBANK *sf = &sfArray[(int) *p->ihandle];
     int j;
-    printf(Str(X_1497,"\nInstrument list of \"%s\"\n"),sf->name);
+    printf(Str("\nInstrument list of \"%s\"\n"),sf->name);
     for (j =0; j < sf->instrs_num; j++) {
       instrType *inst = &sf->instr[j];
       printf("%3d) %-20s\n", j, inst->name);
@@ -249,7 +249,7 @@ int SfPreset(ENVIRON *csound, SFPRESET *p)
 
     if (presetHandle >= MAX_SFPRESET) {
       char s[512];
-      sprintf(s,Str(X_1498,"sfpreset: preset handle too big (%d), max: %d"),
+      sprintf(s,Str("sfpreset: preset handle too big (%d), max: %d"),
               presetHandle, (int) MAX_SFPRESET-1);
       dies("%s",s);
     }
@@ -267,7 +267,7 @@ int SfPreset(ENVIRON *csound, SFPRESET *p)
 
     if (presetp[presetHandle] == NULL) {
       char s[512] ;
-      sprintf(s,Str(X_1499,"sfpreset: cannot find any preset having prog"
+      sprintf(s,Str("sfpreset: cannot find any preset having prog"
                     ".number %d and bank number %d in SoundFont file \"%s\"\n"),
               (int) *p->iprog ,(int) *p->ibank,
               sfArray[(DWORD) *p->isfhandle].name);
@@ -284,7 +284,7 @@ int SfPlay_set(ENVIRON *csound, SFPLAY *p)
     SHORT *sBase = sampleBase[index];
     int layersNum, j, spltNum = 0, flag = (int) *p->iflag;
     if (!preset) {
-      return initerror(Str(X_1820,
+      return initerror(Str(
                            "sfplay: invalid or out-of-range preset number"));
     }
     layersNum = preset->layers_num;
@@ -569,7 +569,7 @@ int SfPlayMono_set(ENVIRON *csound, SFPLAYMONO *p)
 
     int layersNum, j, spltNum = 0, flag=(int) *p->iflag;
     if (!preset) {
-      return initerror(Str(X_1823,
+      return initerror(Str(
                            "sfplaym: invalid or out-of-range preset number"));
     }
     layersNum= preset->layers_num;
@@ -791,7 +791,7 @@ int SfInstrPlay_set(ENVIRON *csound, SFIPLAY *p)
     int index = (int) *p->sfBank;
     SFBANK *sf = &sfArray[index];
     if (index > currSFndx || *p->instrNum >  sf->instrs_num) {
-      return initerror(Str(X_1821,"sfinstr: instrument out of range"));
+      return initerror(Str("sfinstr: instrument out of range"));
     }
     else {
       instrType *layer = &sf->instr[(int) *p->instrNum];
@@ -1026,7 +1026,7 @@ int SfInstrPlayMono_set(ENVIRON *csound, SFIPLAYMONO *p)
     int index = (int) *p->sfBank;
     SFBANK *sf = &sfArray[index];
     if (index > currSFndx || *p->instrNum >  sf->instrs_num) {
-      return initerror(Str(X_1500,"sfinstr: instrument out of range"));
+      return initerror(Str("sfinstr: instrument out of range"));
     }
     else {
       instrType *layer = &sf->instr[(int) *p->instrNum];
@@ -1789,7 +1789,7 @@ void fill_SfPointers(ENVIRON *csound)
     CHUNK *pgenChunk=NULL, *instChunk=NULL, *ibagChunk=NULL, *imodChunk=NULL;
     CHUNK *igenChunk=NULL, *shdrChunk=NULL;
     if (main_chunk->ckDATA == NULL) {
-      csound->die_(csound->getstring_(X_1555, "Sfont format not compatible"));
+      csound->die_(csound->LocalizeString( "Sfont format not compatible"));
     }
     chkp = (char *) main_chunk->ckDATA+4;
     for  (j=4; j< main_chunk->ckSize;) {

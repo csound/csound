@@ -186,7 +186,7 @@ static Window MakeWindow(int type /* 0 => graph, 1 => xyinp */, char *name)
     if ((xbfsp = XLoadQueryFont(xdisp,fontname)) == NULL)
         xbfsp = XLoadQueryFont(xdisp, "fixed");
     xbfont = xbfsp->fid;
-    myXwait(Str(X_358,"New window: \nPosition & size, \nclick to go on"));
+    myXwait(Str("New window: \nPosition & size, \nclick to go on"));
     xlwin = (Window)NULL;               /* first draw to win has no wait */
     return(xwin);
 }
@@ -207,7 +207,7 @@ void MakeXYin_(XYINDAT *wdptr, MYFLT x, MYFLT y) /* initial proportions */
     short   win_x, win_y, win_w, win_h;
     short   gra_x, gra_y, gra_w, gra_h;
 
-    wdptr->windid = xwin = MakeWindow(1,Str(X_544,"XY input"));
+    wdptr->windid = xwin = MakeWindow(1,Str("XY input"));
     wdptr->down = 0;    /* by def released after Make */
 
     XGetWindowAttributes(xdisp,xwin,&info);
@@ -246,7 +246,7 @@ void DrawGraph_(WINDAT *wdptr)
     pol  = wdptr->polarity;
 
     if (wdptr->waitflg)
-      myXwait(Str(X_220,"Click here to continue.."));
+      myXwait(Str("Click here to continue.."));
     xlwin = xwin;                   /* keep track of latest window for msgs */
     /* setting xlwin here rather than in MakeWin avoids first pause */
 
@@ -329,7 +329,7 @@ void DrawGraph_(WINDAT *wdptr)
                 win_x+win_w/2, win_y+win_h-GUTTERH);
       /*      RestoreSolidCopyPen();  */
     }
-    sprintf(string,Str(X_49,"%s  %ld points, max %5.3f"),msg,npts,wdptr->oabsmax);
+    sprintf(string,Str("%s  %ld points, max %5.3f"),msg,npts,wdptr->oabsmax);
     txitem[0].chars  = string;          /* draw the label under the curve */
     txitem[0].nchars = strlen(string);
     txitem[0].delta  = 1;
@@ -426,7 +426,7 @@ int ExitGraph_(void) /* print click-Exit message in most recently active window 
 {
     char *env = getenv("CSNOSTOP");
     if (env==NULL || strcmp(env,"yes")==0)
-      myXwait(Str(X_662,"click here to EXIT"));
+      myXwait(Str("click here to EXIT"));
     return 0;
 }
 

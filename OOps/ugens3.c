@@ -62,7 +62,7 @@ int foscil(ENVIRON *csound, FOSC *p)
     ar = p->rslt;
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str(X_774,"foscil: not initialised"));
+      return perferror(Str("foscil: not initialised"));
     }
     ftab = ftp->ftable;
     lobits = ftp->lobits;
@@ -129,7 +129,7 @@ int foscili(ENVIRON *csound, FOSC *p)
     ar = p->rslt;
     ftp = p->ftp;
     if (ftp==NULL) {        /* RWD fix */
-      return perferror(Str(X_775,"foscili: not initialised"));
+      return perferror(Str("foscili: not initialised"));
     }
     lobits = ftp->lobits;
     mphs = p->mphs;
@@ -206,13 +206,13 @@ int losset(ENVIRON *csound, LOSC *p)
       else if ((p->cpscvt = ftp->cpscvt) == FL(0.0)) {
         p->cpscvt = FL(261.62561); /* Middle C */
         if (O.msglevel & WARNMSG)
-          printf(Str(X_1041,"WARNING: no legal base frequency\n"));
+          printf(Str("WARNING: no legal base frequency\n"));
         /* goto lerr1; */
       }
       if ((p->mod1 = (short)*p->imod1) < 0) {
         if ((p->mod1 = ftp->loopmode1) == 0) {
           if (O.msglevel & WARNMSG)
-            printf(Str(X_968,
+            printf(Str(
                    "WARNING: locscil: sustain defers to non-looping source\n"));
         }
         p->beg1 = ftp->begin1;
@@ -253,13 +253,13 @@ int losset(ENVIRON *csound, LOSC *p)
       if (p->OUTOCOUNT == 1) {
         p->stereo = 0;
         if (ftp->nchanls != 1)
-          return initerror(Str(X_1007,
+          return initerror(Str(
                                "mono loscil cannot read from stereo ftable"));
       }
       else {
         p->stereo = 1;
         if (ftp->nchanls != 2)
-          return initerror(Str(X_1245,
+          return initerror(Str(
                                "stereo loscil cannot read from mono ftable"));
       }
       return OK;
@@ -267,9 +267,9 @@ int losset(ENVIRON *csound, LOSC *p)
     return OK;
 
  lerr2:
-    return initerror(Str(X_888,"illegal sustain loop data"));
+    return initerror(Str("illegal sustain loop data"));
  lerr3:
-    return initerror(Str(X_879,"illegal release loop data"));
+    return initerror(Str("illegal release loop data"));
 }
 
 int loscil(ENVIRON *csound, LOSC *p)
@@ -880,7 +880,7 @@ int adset(ENVIRON *csound, ADSYN *p)
     else sprintf(filnam,"adsyn.%ld",filno);/* else adsyn.filnum */
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename,filnam) != 0) {
       if ((mfp = ldmemfile(filnam)) == NULL) {    /*   readfile if reqd */
-        sprintf(errmsg,Str(X_185,"ADSYN cannot load %s"),filnam);
+        sprintf(errmsg,Str("ADSYN cannot load %s"),filnam);
         goto adserr;
       }
       p->mfp = mfp;                               /*   & record         */
@@ -910,13 +910,13 @@ int adset(ENVIRON *csound, ADSYN *p)
           ptlfp->phs = 0;                /*  and clr the phase */
           break;
         default:
-          sprintf(errmsg,Str(X_842,"illegal code %d encountered"),val);
+          sprintf(errmsg,Str("illegal code %d encountered"),val);
           goto adserr;
         }
       }
     } while (adp < endata);
     if (ptlap != ptlfp) {
-      sprintf(errmsg,Str(X_31,"%d amp tracks, %d freq tracks"),
+      sprintf(errmsg,Str("%d amp tracks, %d freq tracks"),
               ptlap - (PTLPTR*)p->aux.auxp - 1,
               ptlfp - (PTLPTR*)p->aux.auxp - 1);
       goto adserr;
@@ -927,7 +927,7 @@ int adset(ENVIRON *csound, ADSYN *p)
     return OK;
 
  adsful:
-    sprintf(errmsg,Str(X_1119,"partial count exceeds MAXPTLS"));
+    sprintf(errmsg,Str("partial count exceeds MAXPTLS"));
  adserr:
     return initerror(errmsg);
 }
@@ -946,7 +946,7 @@ int adsyn(ENVIRON *csound, ADSYN *p)
     long    timkincr, nxtim;
 
     if (isintab==NULL) {    /* RWD fix */
-      return perferror(Str(X_585,"adsyn: not initialised"));
+      return perferror(Str("adsyn: not initialised"));
     }
     /* IV - Jul 11 2002 */
     ampscale = *p->kamod * dbfs_to_float;      /* (since 15-bit sine table) */

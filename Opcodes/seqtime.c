@@ -28,7 +28,7 @@ int seqtim_set(ENVIRON *csound, SEQTIM *p)   /* by G.Maldonado */
     long *ndx = &p->ndx;
     p->pfn = (long) *p->kfn;
     if ((ftp = ftfind(csound, p->kfn)) == NULL) {
-      return initerror(Str(X_1536,"seqtime: incorrect table number"));
+      return initerror(Str("seqtime: incorrect table number"));
     }
     *ndx = (long) *p->initndx;
     p->done = 0;
@@ -67,7 +67,7 @@ int seqtim(ENVIRON *csound, SEQTIM *p)
       if (p->pfn != (long)*p->kfn) {
         FUNC *ftp;
         if ((ftp = ftfindp(csound, p->kfn)) == NULL) {
-          return perferror(Str(X_1536,"seqtime: incorrect table number"));
+          return perferror(Str("seqtime: incorrect table number"));
         }
         p->pfn = (long)*p->kfn;
         p->table = ftp->ftable;

@@ -25,9 +25,9 @@
 #endif
 
 #include "cs.h"
+#include "csound.h"
 #include <ctype.h>
 
-extern int csoundGetVersion(int);
 static char buffer[200];
 #ifdef WIN32
 #undef L_tmpnam
@@ -125,7 +125,7 @@ void remove_tmpfiles (void)             /* IV - Oct 31 2002 */
       err_printf("Removing temporary file %s ...\n", toremove->name);
 #endif
       if (remove(toremove->name))
-        err_printf(Str(X_1814,"WARNING: could not remove %s\n"), toremove->name);
+        err_printf(Str("WARNING: could not remove %s\n"), toremove->name);
       mfree(toremove->name);
       mfree(toremove);
       toremove = nxt;
@@ -225,9 +225,9 @@ static int createOrchestra(FILE *unf)
     if ((p=strchr(orcname, '.')) != NULL) *p='\0'; /* with extention */
     strcat(orcname, ".orc");
     orcf = fopen(orcname, "w");
-    printf(Str(X_232,"Creating %s (%p)\n"), orcname, orcf);
+    printf(Str("Creating %s (%p)\n"), orcname, orcf);
     if (orcf==NULL) {
-      perror(Str(X_269,"Failed to create\n"));
+      perror(Str("Failed to create\n"));
       longjmp(cenviron.exitjmp_,1);
     }
     while (my_fgets(buffer, 200, unf)!= NULL) {
@@ -278,20 +278,20 @@ static int createMIDI(FILE *unf)
     int c;
 
     if (tmpnam(midname)==NULL) { /* Generate MIDI file name */
-      printf(Str(X_206,"Cannot create temporary file for MIDI subfile\n"));
+      printf(Str("Cannot create temporary file for MIDI subfile\n"));
       longjmp(cenviron.exitjmp_,1);
     }
     if ((p=strchr(midname, '.')) != NULL) *p='\0'; /* with extention */
     strcat(midname, ".mid");
     midf = fopen(midname, "wb");
     if (midf==NULL) {
-      printf(Str(X_217,"Cannot open temporary file (%s) for MIDI subfile\n"),
+      printf(Str("Cannot open temporary file (%s) for MIDI subfile\n"),
              midname);
       longjmp(cenviron.exitjmp_,1);
     }
     my_fgets(buffer, 200, unf);
-    if (sscanf(buffer, Str(X_464,"Size = %d"), &size)==0) {
-      printf(Str(X_255,"Error in reading MIDI subfile -- no size read\n"));
+    if (sscanf(buffer, Str("Size = %d"), &size)==0) {
+      printf(Str("Error in reading MIDI subfile -- no size read\n"));
       longjmp(cenviron.exitjmp_,1);
     }
     for (; size > 0; size--) {
@@ -362,14 +362,14 @@ static int createMIDI2(FILE *unf)
     FILE *midf;
 
     if (tmpnam(midname)==NULL) { /* Generate MIDI file name */
-      printf(Str(X_206,"Cannot create temporary file for MIDI subfile\n"));
+      printf(Str("Cannot create temporary file for MIDI subfile\n"));
       longjmp(cenviron.exitjmp_,1);
     }
     if ((p=strchr(midname, '.')) != NULL) *p='\0'; /* with extention */
     strcat(midname, ".mid");
     midf = fopen(midname, "wb");
     if (midf==NULL) {
-      printf(Str(X_217,"Cannot open temporary file (%s) for MIDI subfile\n"),
+      printf(Str("Cannot open temporary file (%s) for MIDI subfile\n"),
              midname);
       longjmp(cenviron.exitjmp_,1);
     }
@@ -398,13 +398,13 @@ static int createSample(FILE *unf)
     sscanf(buffer, "<CsSampleB filename=%d>", &num);
     sprintf(sampname, "soundin.%d", num);
     if ((smpf=fopen(sampname, "r")) !=NULL) {
-      printf(Str(X_1815,"File %s already exists\n"), sampname);
+      printf(Str("File %s already exists\n"), sampname);
       longjmp(cenviron.exitjmp_,1);
     }
     fclose(smpf);
     smpf = fopen(sampname, "wb");
     if (smpf==NULL) {
-      printf(Str(X_1816,"Cannot open sample file (%s) subfile\n"), sampname);
+      printf(Str("Cannot open sample file (%s) subfile\n"), sampname);
       longjmp(cenviron.exitjmp_,1);
     }
     read_base64(unf, smpf);
@@ -431,13 +431,13 @@ static int createFile(FILE *unf)
 
     sscanf(buffer, "<CsFileB filename=%s>", filename);
     if ((smpf=fopen(filename, "r")) !=NULL) {
-      printf(Str(X_1815,"File %s already exists\n"), filename);
+      printf(Str("File %s already exists\n"), filename);
       longjmp(cenviron.exitjmp_,1);
     }
     fclose(smpf);
     smpf = fopen(filename, "wb");
     if (smpf==NULL) {
-      printf(Str(X_1817,"Cannot open file (%s) subfile\n"), filename);
+      printf(Str("Cannot open file (%s) subfile\n"), filename);
       longjmp(cenviron.exitjmp_,1);
     }
     read_base64(unf, smpf);
@@ -462,7 +462,7 @@ static int checkVersion(FILE *unf)
     char *p;
     int major = 0, minor = 0;
     int result = TRUE;
-    int version = csoundGetVersion(0);
+    int version = csoundGetVersion();
     while (my_fgets(buffer, 200, unf)!= NULL) {
       p = buffer;
       while (*p==' '||*p=='\t') p++;
@@ -531,7 +531,7 @@ int read_unified_file(char **pname, char **score)
       while (*p==' '||*p=='\t') p++;
       if (strstr(p,"<CsoundSynthesizer>") == buffer ||
           strstr(p,"<CsoundSynthesiser>") == buffer) {
-        printf(Str(X_453,"STARTING FILE\n"));
+        printf(Str("STARTING FILE\n"));
         started = TRUE;
       }
       else if (strstr(p,"</CsoundSynthesizer>") == buffer ||
@@ -546,7 +546,7 @@ int read_unified_file(char **pname, char **score)
         return result;
       }
       else if (strstr(p,"<CsOptions>") == buffer) {
-        printf(Str(X_233,"Creating options\n"));
+        printf(Str("Creating options\n"));
         r = readOptions(unf);
         result = r && result;
       }
@@ -554,7 +554,7 @@ int read_unified_file(char **pname, char **score)
 /*      importFunctions(unf); */
 /*        } */
       else if (strstr(p,"<CsInstruments>") == buffer) {
-        printf(Str(X_234,"Creating orchestra\n"));
+        printf(Str("Creating orchestra\n"));
         r = createOrchestra(unf);
         result = r && result;
       }
@@ -562,7 +562,7 @@ int read_unified_file(char **pname, char **score)
 /*          importArrangement(unf); */
 /*        } */
       else if (strstr(p,"<CsScore>") == buffer) {
-        printf(Str(X_235,"Creating score\n"));
+        printf(Str("Creating score\n"));
         r = createScore(unf);
         result = r && result;
       }
@@ -591,10 +591,10 @@ int read_unified_file(char **pname, char **score)
       }
       else if (blank_buffer()) continue;
       else if (started && strchr(p, '<') == buffer) {
-        printf(Str(X_510,"unknown command :%s\n"), buffer);
+        printf(Str("unknown command :%s\n"), buffer);
       }
       else {                    /* Quietly skip unknown text */
-        /* printf(Str(X_510,"unknown command :%s\n"), buffer); */
+        /* printf(Str("unknown command :%s\n"), buffer); */
       }
     }
     *pname = orcname;

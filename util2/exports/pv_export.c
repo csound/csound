@@ -53,37 +53,37 @@ int main(int argc, char **argv)
       usage(argc);
     inf = fopen(argv[1], "rb");
     if (inf == NULL) {
-      fprintf(stderr, Str(X_214,"Cannot open input file %s\n"), argv[1]);
+      fprintf(stderr, Str("Cannot open input file %s\n"), argv[1]);
       exit(1);
     }
     outf = fopen(argv[2], "w");
     if (outf == NULL) {
-      fprintf(stderr, Str(X_215,"Cannot open output file %s\n"), argv[2]);
+      fprintf(stderr, Str("Cannot open output file %s\n"), argv[2]);
       exit(1);
     }
     if ((i = PVReadHdr(inf, &pv)) != PVE_OK) {
       char *msg;
       switch (i) {
       case PVE_NOPEN:
-        msg = Str(X_670,"could not open file");
+        msg = Str("could not open file");
         break;
       case PVE_NPV:
-        msg = Str(X_1077,"not a PVOC file");
+        msg = Str("not a PVOC file");
         break;
       case PVE_MALLOC:
-        msg = Str(X_668,"could not allocate memory");
+        msg = Str("could not allocate memory");
         break;
       case PVE_RDERR:
-        msg = Str(X_1150,"read error");
+        msg = Str("read error");
         break;
       case PVE_WRERR:
-        msg = Str(X_1381,"write error");
+        msg = Str("write error");
         break;
       default:
         msg = "???";
         break;
       }
-      fprintf(stderr, Str(X_256,"Error reading PV header: %s\n"), msg);
+      fprintf(stderr, Str("Error reading PV header: %s\n"), msg);
       exit(1);
     }
     fprintf(outf,
@@ -110,7 +110,7 @@ int main(int argc, char **argv)
 
 void usage(int argc)
 {
-    fprintf(stderr, Str(X_1139,"pv_export usage: pvfile commafile\n"));
+    fprintf(stderr, Str("pv_export usage: pvfile commafile\n"));
     fprintf(stderr, "argc=%d\n", argc);
     exit(1);
 }

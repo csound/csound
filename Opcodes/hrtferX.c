@@ -82,15 +82,15 @@ int hrtferxkSet(ENVIRON *csound, HRTFER *p)
         /* first check if orchestra's sampling rate is compatible with HRTF
            measurement's */
     if (esr != SAMP_RATE) {
-      printf (Str(X_399,"Orchestra sampling rate is not compatible with HRTF.\n"));
-      printf (Str(X_462,"Should be %d...exiting.\n"), SAMP_RATE);
+      printf (Str("Orchestra sampling rate is not compatible with HRTF.\n"));
+      printf (Str("Should be %d...exiting.\n"), SAMP_RATE);
       longjmp(csound->exitjmp_,1);
     }
 
     if (*p->ifilno == SSTRCOD)
       strcpy(filename, p->STRARG);
     else {
-      printf(Str(X_552,"\nLast argument must be the string 'HRTFcompact' "
+      printf(Str("\nLast argument must be the string 'HRTFcompact' "
              "...correcting.\n"));
       strcpy(filename, "HRTFcompact");
 /*       longjmp(pcglob->exitjmp,1); */
@@ -186,7 +186,7 @@ int hrtferxk(ENVIRON *csound, HRTFER *p)
 
 
     if (p->mfp==NULL) {         /* RWD fix */
-      perferror(Str(X_832,"hrtfer: not initialised"));
+      perferror(Str("hrtfer: not initialised"));
       return NOTOK;
     }
         /* update local variables */

@@ -63,7 +63,7 @@ int buzz(ENVIRON *csound, BUZZ *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {        /* RWD fix */
-      return perferror(Str(X_624,"buzz: not initialised"));
+      return perferror(Str("buzz: not initialised"));
     }
     ftbl = ftp->ftable;
     sicvt2 = sicvt * FL(0.5);           /* for theta/2  */
@@ -146,7 +146,7 @@ int gbuzz(ENVIRON *csound, GBUZZ *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str(X_793,"gbuzz: not initialised"));
+      return perferror(Str("gbuzz: not initialised"));
     }
     ftbl = ftp->ftable;
     lobits = ftp->lobits;
@@ -248,32 +248,32 @@ int plukset(ENVIRON *csound, PLUCK *p)
       break;
     case 2:     /* stretch factor: param1 >= 1 */
       if (p->param1 < FL(1.0))
-        return initerror(Str(X_885,"illegal stretch factor(param1) value"));
+        return initerror(Str("illegal stretch factor(param1) value"));
       else p->thresh1 =  (short)(FL(32768.0) / p->param1);
       break;
     case 3: /* roughness factor: 0 <= param1 <= 1 */
       if (p->param1 < FL(0.0) || p->param1 > FL(1.0))
-        return initerror(Str(X_881,"illegal roughness factor(param1) value"));
+        return initerror(Str("illegal roughness factor(param1) value"));
       else
         p->thresh1 = (short)(FL(32768.0) * p->param1);
       break;
     case 4: /* rough and stretch factor: 0 <= param1 <= 1, param2 >= 1 */
       if (p->param1 < FL(0.0) || p->param1 > FL(1.0))
-        return initerror(Str(X_881,"illegal roughness factor(param1) value"));
+        return initerror(Str("illegal roughness factor(param1) value"));
       else p->thresh1 = (short)(FL(32768.0) * p->param1);
       if (p->param2 < FL(1.0))
-        return initerror(Str(X_886,"illegal stretch factor(param2) value"));
+        return initerror(Str("illegal stretch factor(param2) value"));
       else p->thresh2 = (short)(FL(32768.0) / p->param2);
       break;
     case 5: /* weighting coeff's: param1 + param2 <= 1 */
       if (p->param1 + p->param2 > 1)
-        return initerror(Str(X_664,"coefficients too large(param1 + param2)"));
+        return initerror(Str("coefficients too large(param1 + param2)"));
       break;
     case 6: /* ignore any given parameters */
       break;
 
     default:
-      return initerror(Str(X_1338,"unknown method code"));
+      return initerror(Str("unknown method code"));
     }
     return OK;
 }
@@ -286,14 +286,14 @@ int pluck(ENVIRON *csound, PLUCK *p)
     MYFLT       frac, diff;
 
     if (p->auxch.auxp==NULL) { /* RWD FIX */
-      return perferror(Str(X_1130,"pluck: not initialised"));
+      return perferror(Str("pluck: not initialised"));
     }
     ar = p->ar;
     phsinc = (long)(*p->kcps * p->sicps);
     phs256 = p->phs256;
     ltwopi = p->npts << 8;
     if (phsinc > ltwopi) {
-      return perferror(Str(X_1480,"pluck: kcps more than sample rate"));
+      return perferror(Str("pluck: kcps more than sample rate"));
     }
     nsmps = ksmps;
     do {
@@ -458,7 +458,7 @@ int rndset(ENVIRON *csound, RAND *p)
 #else
         seed = time(NULL);
 #endif
-        printf(Str(X_458,"Seeding from current time %d\n"), seed);
+        printf(Str("Seeding from current time %d\n"), seed);
         if (!p->new) {
           p->rand = 0xffff&(short)seed;
         }
@@ -569,7 +569,7 @@ int rhset(ENVIRON *csound, RANDH *p)
 #else
         seed = time(NULL);
 #endif
-        printf(Str(X_458,"Seeding from current time %d\n"), seed);
+        printf(Str("Seeding from current time %d\n"), seed);
         if (!p->new) {
           p->rand = 0xffff&(short)seed;
           p->num1 = (MYFLT)seed * dv2_31;
@@ -678,7 +678,7 @@ int riset(ENVIRON *csound, RANDI *p)
 #else
         seed = time(NULL);
 #endif
-        printf(Str(X_458,"Seeding from current time %d\n"), seed);
+        printf(Str("Seeding from current time %d\n"), seed);
         if (!p->new) {
           short rand = (short)seed;
 /*           short ss = rand; */

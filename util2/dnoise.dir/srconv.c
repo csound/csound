@@ -88,7 +88,7 @@ extern int type2sf(int);
 char set_output_format(char c, char outformch)
 {
     if (O.outformat && (O.msglevel & WARNMSG)) {
-      printf(Str(X_1198,"WARNING: Sound format -%c has been overruled by -%c\n"),
+      printf(Str("WARNING: Sound format -%c has been overruled by -%c\n"),
              outformch, c);
     }
 
@@ -230,7 +230,7 @@ int main(int argc, char **argv)
         O.filetyp = TYP_IRCAM;
       else {
         sprintf(errmsg,
-                Str(X_61,"%s not a recognized SFOUTYP env setting"),
+                Str("%s not a recognized SFOUTYP env setting"),
                 envoutyp);
         dieu(errmsg);
       }
@@ -249,17 +249,17 @@ int main(int argc, char **argv)
               while (*++s);
             break;
           case 'o':
-            FIND(Str(X_1052,"no outfilename"))
+            FIND(Str("no outfilename"))
               O.outfilename = outfile;            /* soundout name */
             while ((*outfile++ = *s++)); s--;
             if (strcmp(O.outfilename,"stdin") == 0)
-              die(Str(X_156,"-o cannot be stdin"));
+              die(Str("-o cannot be stdin"));
             if (strcmp(O.outfilename,"stdout") == 0) {
 #if defined mac_classic || defined SYMANTEC || defined BCC || defined __WATCOMC__ || defined WIN32
-              die(Str(X_1244,"stdout audio not supported"));
+              die(Str("stdout audio not supported"));
 #else
               if ((O.stdoutfd = dup(1)) < 0) /* redefine stdout */
-                die(Str(X_1290,"too many open files"));
+                die(Str("too many open files"));
               dup2(2,1);                /* & send 1's to stderr */
 #endif
             }
@@ -268,7 +268,7 @@ int main(int argc, char **argv)
             if (O.filetyp == TYP_WAV) {
               if (envoutyp == NULL) goto outtyp;
               if (O.msglevel & WARNMSG)
-                printf(Str(X_95,"-A overriding local default WAV out"));
+                printf(Str("-A overriding local default WAV out"));
             }
             O.filetyp = TYP_AIFF;     /* AIFF output request*/
             break;
@@ -277,7 +277,7 @@ int main(int argc, char **argv)
                 O.filetyp == TYP_WAV) {
               if (envoutyp == NULL) goto outtyp;
               if (O.msglevel & WARNMSG)
-                printf(Str(X_110,"-J overriding local default AIFF/WAV out"));
+                printf(Str("-J overriding local default AIFF/WAV out"));
             }
             O.filetyp = TYP_IRCAM;      /* IRCAM output request */
             break;
@@ -285,7 +285,7 @@ int main(int argc, char **argv)
             if (O.filetyp == TYP_AIFF) {
               if (envoutyp == NULL) goto outtyp;
               if (O.msglevel & WARNMSG)
-                printf(Str(X_131,"-W overriding local default AIFF out"));
+                printf(Str("-W overriding local default AIFF out"));
             }
 /*             if (!POLL_EVENTS()) exit(1); */
             O.filetyp = TYP_WAV;      /* WAV output request */
@@ -369,7 +369,7 @@ int main(int argc, char **argv)
       usage(1);
     }
     if ((inf = SAsndgetset(infile,&p,&beg_time,&input_dur,&sr,channel))<0) {
-      fprintf(stderr,Str(X_735,"error while opening %s"), infile);
+      fprintf(stderr,Str("error while opening %s"), infile);
       exit(1);
     }
     if (Rin == FL(0.0))
@@ -436,30 +436,30 @@ int main(int argc, char **argv)
     O.sfsampsize = sfsampsize(O.outformat);
     if (O.filetyp == TYP_AIFF) {
         if (!O.sfheader)
-          die(Str(X_640,"can't write AIFF soundfile with no header"));
+          die(Str("can't write AIFF soundfile with no header"));
         if (
             O.outformat == AE_ALAW ||
             O.outformat == AE_ULAW ||
             O.outformat == AE_FLOAT) {
-          sprintf(errmsg,Str(X_180,"AIFF does not support %s encoding"),
+          sprintf(errmsg,Str("AIFF does not support %s encoding"),
                   getstrformat(O.outformat));
           die(errmsg);
         }
     }
     if (O.filetyp == TYP_WAV) {
         if (!O.sfheader)
-            die(Str(X_338,"can't write WAV soundfile with no header"));
+            die(Str("can't write WAV soundfile with no header"));
         if (
             O.outformat == AE_ALAW ||
             O.outformat == AE_ULAW ||
             O.outformat == AE_FLOAT) {
-          sprintf(errmsg,Str(X_181,"WAV does not support %s encoding"),
+          sprintf(errmsg,Str("WAV does not support %s encoding"),
                   getstrformat(O.outformat));
           die(errmsg);
         }
     }
     if (O.rewrt_hdr && !O.sfheader)
-        die(Str(X_628,"can't rewrite header if no header requested"));
+        die(Str("can't rewrite header if no header requested"));
 #ifdef NeXT
     if (O.outfilename == NULL && !O.filetyp) O.outfilename = "test.snd";
 	else if (O.outfilename == NULL) O.outfilename = "test";
@@ -480,7 +480,7 @@ int main(int argc, char **argv)
     if (O.rewrt_hdr) sf_command(outfd, SFC_SET_UPDATE_HEADER_AUTO, NULL, 0);
     outbufsiz = OBUF * O.sfsampsize;/* calc outbuf size */
     outbuf = mmalloc((long)outbufsiz);                 /*  & alloc bufspace */
-    printf(Str(X_1382,"writing %d-byte blks of %s to %s"),
+    printf(Str("writing %d-byte blks of %s to %s"),
            outbufsiz, getstrformat(O.outformat), O.outfilename);
     printf(" %s\n", type2string(O.filetyp));
 
@@ -714,7 +714,7 @@ int main(int argc, char **argv)
     exit(0);
 
 outtyp:
-    dieu(Str(X_1113,"output soundfile cannot be both AIFF and WAV"));
+    dieu(Str("output soundfile cannot be both AIFF and WAV"));
     exit(1);
 }
 
@@ -725,29 +725,29 @@ err_printf("-P num\tpitch transposition ratio (srate / r) [don't specify both P 
 err_printf("-Q num\tquality factor (1, 2, 3, or 4: default = 2)\n");
 err_printf("-i filnam\tbreak file\n");
 err_printf("-r num\toutput sample rate (must be specified)\n");
-err_printf(Str(X_157,"-o fnam\tsound output filename\n"));
+err_printf(Str("-o fnam\tsound output filename\n"));
 err_printf("\n");
-err_printf(Str(X_96,"-A\tcreate an AIFF format output soundfile\n"));
-err_printf(Str(X_111,"-J\tcreate an IRCAM format output soundfile\n"));
-err_printf(Str(X_132,"-W\tcreate a WAV format output soundfile\n"));
-err_printf(Str(X_149,"-h\tno header on output soundfile\n"));
-err_printf(Str(X_141,"-c\t8-bit signed_char sound samples\n"));
+err_printf(Str("-A\tcreate an AIFF format output soundfile\n"));
+err_printf(Str("-J\tcreate an IRCAM format output soundfile\n"));
+err_printf(Str("-W\tcreate a WAV format output soundfile\n"));
+err_printf(Str("-h\tno header on output soundfile\n"));
+err_printf(Str("-c\t8-bit signed_char sound samples\n"));
 #ifdef never
-err_printf(Str(X_136,"-a\talaw sound samples\n"));
+err_printf(Str("-a\talaw sound samples\n"));
 #endif
-err_printf(Str(X_94,"-8\t8-bit unsigned_char sound samples\n"));
+err_printf(Str("-8\t8-bit unsigned_char sound samples\n"));
 #ifdef ULAW
-err_printf(Str(X_166,"-u\tulaw sound samples\n"));
+err_printf(Str("-u\tulaw sound samples\n"));
 #endif
-err_printf(Str(X_164,"-s\tshort_int sound samples\n"));
-err_printf(Str(X_153,"-l\tlong_int sound samples\n"));
-err_printf(Str(X_145,"-f\tfloat sound samples\n"));
-err_printf(Str(X_161,"-r N\torchestra srate override\n"));
-err_printf(Str(X_1552,"-K\tDo not generate PEAK chunks\n"));
-err_printf(Str(X_125,"-R\tcontinually rewrite header while writing soundfile (WAV/AIFF)\n"));
-err_printf(Str(X_108,"-H#\tprint a heartbeat style 1, 2 or 3 at each soundfile write\n"));
-err_printf(Str(X_120,"-N\tnotify (ring the bell) when score or miditrack is done\n"));
-err_printf(Str(X_90,"-- fnam\tlog output to file\n"));
+err_printf(Str("-s\tshort_int sound samples\n"));
+err_printf(Str("-l\tlong_int sound samples\n"));
+err_printf(Str("-f\tfloat sound samples\n"));
+err_printf(Str("-r N\torchestra srate override\n"));
+err_printf(Str("-K\tDo not generate PEAK chunks\n"));
+err_printf(Str("-R\tcontinually rewrite header while writing soundfile (WAV/AIFF)\n"));
+err_printf(Str("-H#\tprint a heartbeat style 1, 2 or 3 at each soundfile write\n"));
+err_printf(Str("-N\tnotify (ring the bell) when score or miditrack is done\n"));
+err_printf(Str("-- fnam\tlog output to file\n"));
     exit(exitcode);
 }
 

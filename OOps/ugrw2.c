@@ -288,7 +288,7 @@ int krsnset(ENVIRON *csound, KRESON *p)
 
     p->scale = scale = (int)*p->iscl;
     if (scale && scale != 1 && scale != 2) {
-      sprintf(errmsg,Str(X_302,"Illegal resonk iscl value, %f"),*p->iscl);
+      sprintf(errmsg,Str("Illegal resonk iscl value, %f"),*p->iscl);
       return initerror(errmsg);
     }
     /* Put dummy values into previous centre freq and bandwidth.         */

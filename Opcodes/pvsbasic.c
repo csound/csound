@@ -46,7 +46,7 @@ int pvsmixset(ENVIRON *csound, PVSMIX *p)
 
     if (!(p->fout->format==PVS_AMP_FREQ) || (p->fout->format==PVS_AMP_PHASE))
       return
-        initerror(Str(X_227,
+        initerror(Str(
                       "pvsmix: signal format must be amp-phase or amp-freq.\n"));
     return OK;
 }
@@ -59,7 +59,7 @@ int pvsmix(ENVIRON *csound, PVSMIX *p)
     float *fout,*fa, *fb;
 
     if (!fsigs_equal(p->fa,p->fb))
-      return perferror(Str(X_228, "pvsmix: formats are different.\n"));
+      return perferror(Str("pvsmix: formats are different.\n"));
     fout = (float *) p->fout->frame.auxp;
     fa = (float *) p->fa->frame.auxp;
     fb = (float *) p->fb->frame.auxp;
@@ -104,7 +104,7 @@ int pvsfilterset(ENVIRON *csound, PVSFILTER *p)
 
     if (!(p->fout->format==PVS_AMP_FREQ) || (p->fout->format==PVS_AMP_PHASE))
       return
-        initerror(Str(X_229,
+        initerror(Str(
                   "pvsfilter: signal format must be amp-phase or amp-freq.\n"));
     return OK;
 }
@@ -119,9 +119,9 @@ int pvsfilter(ENVIRON *csound, PVSFILTER *p)
     float *fil = (float *) p->fil->frame.auxp;
 
     if (fout==NULL)
-      return perferror(Str(X_230, "pvsfilter: not initialised\n"));
+      return perferror(Str("pvsfilter: not initialised\n"));
     if (!fsigs_equal(p->fin,p->fil))
-      return perferror(Str(X_237,"pvsfilter: formats are different.\n"));
+      return perferror(Str("pvsfilter: formats are different.\n"));
 
     if (p->lastframe < p->fin->framecount) {
       kdepth = kdepth >= 0 ? (kdepth <= 1 ? kdepth : FL(1.0)): FL(0.0) ;
@@ -166,7 +166,7 @@ int pvsscale(ENVIRON *csound, PVSSCALE *p)
     float *fout = (float *) p->fout->frame.auxp;
 
     if (fout==NULL)
-      return perferror(Str(X_238,"pvscale: not initialised\n"));
+      return perferror(Str("pvscale: not initialised\n"));
 
     if (p->lastframe < p->fin->framecount) {
 
@@ -233,7 +233,7 @@ int pvsshift(ENVIRON *csound, PVSSHIFT *p)
     float *fout = (float *) p->fout->frame.auxp;
 
     if (fout==NULL)
-      return perferror(Str(X_239, "pvshift: not initialised\n"));
+      return perferror(Str("pvshift: not initialised\n"));
 
     if (p->lastframe < p->fin->framecount) {
 
@@ -327,7 +327,7 @@ int pvsblur(ENVIRON *csound, PVSBLUR *p)
     float *delay = (float *) p->delframes.auxp;
 
     if (fout==NULL || delay==NULL)
-      return perferror(Str(X_247, "pvsblur: not initialised\n"));
+      return perferror(Str("pvsblur: not initialised\n"));
 
     if (p->lastframe < p->fin->framecount) {
 
@@ -390,7 +390,7 @@ int pvstencilset(ENVIRON *csound, PVSTENCIL *p)
 
     if (!(p->fout->format==PVS_AMP_FREQ) || (p->fout->format==PVS_AMP_PHASE))
       return
-        initerror(Str(X_248,
+        initerror(Str(
                   "pvstencil: signal format must be amp-phase or amp-freq.\n"));
 
     p->func = ftfind(csound, p->ifn);
@@ -398,7 +398,7 @@ int pvstencilset(ENVIRON *csound, PVSTENCIL *p)
       return OK;
 
     if (p->func->flen + 1 < chans)
-      return initerror(Str(X_252,
+      return initerror(Str(
                            "pvstencil: ftable needs to equal the number of bins"));
 
     ftable = p->func->ftable;
@@ -424,7 +424,7 @@ int pvstencil(ENVIRON *csound, PVSTENCIL *p)
     framesize = p->fin->N + 2;
 
      if (fout==NULL)
-       return perferror(Str(X_253, "pvstencil: not initialised\n"));
+       return perferror(Str("pvstencil: not initialised\n"));
 
     if (p->lastframe < p->fin->framecount) {
 

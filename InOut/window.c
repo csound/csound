@@ -88,7 +88,7 @@ static void RdXYDummy(XYINDAT *wdptr)
 void dispinit(void)     /* called once on initialisation of program to  */
 {                       /*   choose between teletype or bitmap graphics */
     if (!O.displays) {
-      printf(Str(X_705,"displays suppressed\n"));
+      printf(Str("displays suppressed\n"));
       makeFn = DummyFn2;
       drawFn = DummyFn1;
       killFn = DummyFn1;
@@ -108,9 +108,9 @@ void dispinit(void)     /* called once on initialisation of program to  */
     }
 #endif
     else {
-      printf(Str(X_820,"graphics %s, ascii substituted\n"),
-             (O.graphsoff)? Str(X_1250,"suppressed") :
-             Str(X_1078,"not supported on this terminal"));
+      printf(Str("graphics %s, ascii substituted\n"),
+             (O.graphsoff)? Str("suppressed") :
+             Str("not supported on this terminal"));
       makeFn = MakeAscii;
       drawFn = DrawAscii;
       killFn = KillAscii;

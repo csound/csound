@@ -61,14 +61,14 @@ HEADATA *getsndinfo(SNDINFO *p)
     sfname = soundiname;
     if (strcmp(sfname, "-i") == 0) { /* get info on the -i commandline inputfile */
       if (!O.infilename)
-        die(Str(X_1691,"no infile specified in the commandline"));
+        die(Str("no infile specified in the commandline"));
       sfname = O.infilename;
     }
     if ((sinfd = openin(sfname)) < 0) {     /* open with full dir paths */
       if (isfullpath(sfname))
-        sprintf(errmsg,Str(X_1463,"diskinfo cannot open %s"), sfname);
+        sprintf(errmsg,Str("diskinfo cannot open %s"), sfname);
       else
-        sprintf(errmsg,Str(X_1464,
+        sprintf(errmsg,Str(
                            "diskinfo cannot find \"%s\" in its search paths"),
                 sfname);
      /* RWD 5:2001 better to exit in this situation ! */
@@ -109,7 +109,7 @@ int filelen(ENVIRON *csound, SNDINFO *p)
     else {
       short bytes = 1;
       if (O.msglevel & WARNMSG)
-        printf(Str(X_1455,
+        printf(Str(
                   "WARNING: No valid header.  Calculating length "
                   "using output file's format\n"));
       /*RWD 5:2001 which I think is a very bad idea... */
@@ -151,7 +151,7 @@ int filenchnls(ENVIRON *csound, SNDINFO *p)
     }
     else {
       if (O.msglevel & WARNMSG)
-        printf(Str(X_1456,"WARNING: No valid header.  Returning output nchnls\n"));
+        printf(Str("WARNING: No valid header.  Returning output nchnls\n"));
       *(p->r1) = (MYFLT)nchnls;
     }
     return OK;
@@ -168,7 +168,7 @@ int filesr(ENVIRON *csound, SNDINFO *p)
     }
     else {
       if (O.msglevel & WARNMSG)
-        printf(Str(X_1457,"WARNING: No valid header.  Returning orch's sr\n"));
+        printf(Str("WARNING: No valid header.  Returning orch's sr\n"));
       *(p->r1) = esr;
     }
     return OK;
@@ -192,7 +192,7 @@ int filepeak(ENVIRON *csound, SNDINFOPEAK *p)
     if ((hdr = getsndinfo(&info)) != NULL
         && !(readlong = hdr->readlong)) {         /* & hadn't readin audio */
       if (channel > hdr->nchanls)
-        die(Str(X_1458,
+        die(Str(
                 "Input channel for peak exceeds number of channels in file"));
 
       if (
@@ -214,13 +214,13 @@ int filepeak(ENVIRON *csound, SNDINFOPEAK *p)
         }
       }
       else { /* ## should we have an option to calculate peaks? */
-        die(Str(X_1787,"No peak information contained in the header of this file"));
+        die(Str("No peak information contained in the header of this file"));
       }
     }
     else {
       /* RWD: we ought to be able to recover, in this situation ?
          e.g return -1, which can be trapped in the orc. */
-      die(Str(X_1459,"No valid header.  Cannot calculate peak values"));
+      die(Str("No valid header.  Cannot calculate peak values"));
     }
     return OK;
 }

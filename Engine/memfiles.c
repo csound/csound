@@ -58,7 +58,7 @@ static int LoadFile(            /* simulate the THINK_C LoadFile  */
     *len = statbuf.st_size;
     *allocp = mmalloc((long)(*len));            /*   alloc as reqd     */
     if (read(fd, *allocp, (int)(*len)) != *len) /*   read file in      */
-      dies(Str(X_1149,"read error on %s"),filnam);
+      dies(Str("read error on %s"),filnam);
     close(fd);                                  /*   and close it      */
     return(0);                                  /*   return 0 for OK   */
 }
@@ -88,7 +88,7 @@ MEMFIL *ldmemfile(char *filnam) /* read an entire file into memory and log it */
     mfp = (MEMFIL*)mcalloc(sizeof(MEMFIL)); /* Add new file description */
     if (mfp == NULL) {
       sprintf(errmsg,                                   /* else overflow */
-              Str(X_988,
+              Str(
                   "memfiles: cannot allocate for MEMFIL extention"));
       goto lderr;
     }
@@ -98,7 +98,7 @@ MEMFIL *ldmemfile(char *filnam) /* read an entire file into memory and log it */
  ldopn:
     if (isfullpath(filnam)) {
       if (LoadFile(filnam,0,&allocp,&len)) {          /* look fullpath */
-        sprintf(errmsg,Str(X_636,"cannot load %s"), filnam);
+        sprintf(errmsg,Str("cannot load %s"), filnam);
         goto lderr;
       }
     }
@@ -111,12 +111,12 @@ MEMFIL *ldmemfile(char *filnam) /* read an entire file into memory and log it */
           if (strcmp(mfp2->filename,pathnam) == 0)
             return(mfp2);                       /*   if match, rtn */
         if (LoadFile(pathnam,0,&allocp,&len)) {     /*   else loadfile */
-          sprintf(errmsg,Str(X_636,"cannot load %s"), pathnam);
+          sprintf(errmsg,Str("cannot load %s"), pathnam);
           goto lderr;
         }
       }
       else {
-        sprintf(errmsg,Str(X_637,"cannot load %s, or SADIR undefined"), pathnam);
+        sprintf(errmsg,Str("cannot load %s, or SADIR undefined"), pathnam);
         goto lderr;
       }
     }
@@ -125,7 +125,7 @@ MEMFIL *ldmemfile(char *filnam) /* read an entire file into memory and log it */
     mfp->beginp = allocp;
     mfp->endp = allocp + len;
     mfp->length = len;
-    printf(Str(X_764,"file %s (%ld bytes) loaded into memory\n"), pathnam,len);
+    printf(Str("file %s (%ld bytes) loaded into memory\n"), pathnam,len);
     return(mfp);                                         /* rtn new slotadr */
 
  lderr:
@@ -153,8 +153,8 @@ void rlsmemfiles(void) /* clear the memfile array, & free all allocated space */
       mfp = nxt;
     }
     if (memcount)
-      printf(Str(X_36,"%d memfile%s deleted\n"),
-             memcount, (memcount>1)? Str(X_1172,"s"):"");
+      printf(Str("%d memfile%s deleted\n"),
+             memcount, (memcount>1)? Str("s"):"");
     memfiles = NULL;
 }
 

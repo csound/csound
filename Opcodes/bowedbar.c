@@ -108,7 +108,7 @@ static void make_DLineN(ENVIRON *csound, DLINEN *p, long length)
 static void DLineN_setDelay(ENVIRON *csound, DLINEN *p, int lag)
 {
     if (lag > p->length-1) {                   /* if delay is too big, */
-      csound->Printf(csound->getstring_(X_1769,
+      csound->Printf(csound->LocalizeString(
                  "DLineN: Delay length too big ... setting to "
                  "maximum length of %ld.\n"),
              p->length-1);
@@ -154,7 +154,7 @@ int bowedbarset(ENVIRON *csound, BOWEDBAR *p)
       else if (*p->frequency!=FL(0.0))
         p->length = (long) (esr / *p->frequency + FL(1.0));
       else {
-        err_printf(Str(X_512,
+        err_printf(Str(
                        "unknown lowest frequency for bowed string -- "
                        "assuming 50Hz\n"));
         p->length = (long) (esr / FL(50.0) + FL(1.0));

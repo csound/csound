@@ -91,7 +91,7 @@ int vbap_SIXTEEN_control(ENVIRON *csound, VBAP_SIXTEEN  *p)
 
     MYFLT tmp_gains[SIXTEEN],sum=FL(0.0);
     if (p->dim == 2 && fabs(*p->ele) > 0.0) {
-      err_printf(Str(X_1693,"Warning: truncating elevation to 2-D plane\n"));
+      err_printf(Str("Warning: truncating elevation to 2-D plane\n"));
       *p->ele = FL(0.0);
     }
 
@@ -200,7 +200,7 @@ int vbap_SIXTEEN_init(ENVIRON *csound, VBAP_SIXTEEN  *p)
     ptr = &(ls_table[3]);
     auxalloc(p->ls_set_am * sizeof (LS_SET), &p->aux);
     if (p->aux.auxp==NULL) {
-      return initerror(Str(X_668,"could not allocate memory"));
+      return initerror(Str("could not allocate memory"));
     }
     p->ls_sets = (LS_SET*) p->aux.auxp;
     ls_set_ptr = p->ls_sets;
@@ -218,7 +218,7 @@ int vbap_SIXTEEN_init(ENVIRON *csound, VBAP_SIXTEEN  *p)
 
     /* other initialization */
     if (p->dim == 2 && fabs(*p->ele) > 0.0) {
-      err_printf(Str(X_1693,"Warning: truncating elevation to 2-D plane\n"));
+      err_printf(Str("Warning: truncating elevation to 2-D plane\n"));
       *p->ele = FL(0.0);
     }
     p->ang_dir.azi    = (MYFLT) *p->azi;
@@ -288,7 +288,7 @@ int vbap_SIXTEEN_moving_control(ENVIRON *csound, VBAP_SIXTEEN_MOVING  *p)
     MYFLT coeff, angle;
     MYFLT tmp_gains[SIXTEEN],sum=FL(0.0);
     if (p->dim == 2 && fabs(p->ang_dir.ele) > 0.0) {
-      err_printf(Str(X_1693,"Warning: truncating elevation to 2-D plane\n"));
+      err_printf(Str("Warning: truncating elevation to 2-D plane\n"));
       p->ang_dir.ele = FL(0.0);
     }
     if (*p->spread <FL(0.0))
@@ -314,10 +314,10 @@ int vbap_SIXTEEN_moving_control(ENVIRON *csound, VBAP_SIXTEEN_MOVING  *p)
         }
       }
       if ((p->fld[abs(p->next_fld)]==NULL))
-        die(Str(X_1700,"Missing fields in vbap16move\n"));
+        die(Str("Missing fields in vbap16move\n"));
       if (*p->field_am >= 0.0 && p->dim == 2) /* point-to-point */
         if (fabs(fabs(*p->fld[p->next_fld] - *p->fld[p->curr_fld]) - 180.0) < 1.0)
-          err_printf(Str(X_1694,"Warning: Ambiguous transition 180 degrees.\n"));
+          err_printf(Str("Warning: Ambiguous transition 180 degrees.\n"));
     }
     if (*p->field_am >= FL(0.0)) { /* point-to-point */
       if (p->dim == 3) { /* 3-D*/
@@ -356,7 +356,7 @@ int vbap_SIXTEEN_moving_control(ENVIRON *csound, VBAP_SIXTEEN_MOVING  *p)
         p->ang_dir.ele = FL(0.0);
       }
       else {
-        die(Str(X_1696,"Wrong dimension\n"));
+        die(Str("Wrong dimension\n"));
       }
     }
     else { /* angular velocities */
@@ -476,7 +476,7 @@ int vbap_SIXTEEN_moving_init(ENVIRON *csound, VBAP_SIXTEEN_MOVING  *p)
     ptr = &(ls_table[3]);
     auxalloc(p->ls_set_am * sizeof (LS_SET), &p->aux);
     if (p->aux.auxp == NULL) {
-      return initerror(Str(X_668,"could not allocate memory"));
+      return initerror(Str("could not allocate memory"));
     }
     p->ls_sets = (LS_SET*) p->aux.auxp;
     ls_set_ptr = p->ls_sets;
@@ -495,7 +495,7 @@ int vbap_SIXTEEN_moving_init(ENVIRON *csound, VBAP_SIXTEEN_MOVING  *p)
     /* other initialization */
     p->ele_vel = FL(1.0);    /* functions specific to movement */
     if (fabs(*p->field_am) < (2+ (p->dim - 2)*2)) {
-      printf(Str(X_1701,"Have to have at least %d directions in vbap16move\n"),2+ (p->dim - 2)*2);
+      printf(Str("Have to have at least %d directions in vbap16move\n"),2+ (p->dim - 2)*2);
       longjmp(cenviron.exitjmp_,-1);
     }
     if (p->dim == 2)
@@ -505,7 +505,7 @@ int vbap_SIXTEEN_moving_init(ENVIRON *csound, VBAP_SIXTEEN_MOVING  *p)
       p->point_change_interval =
         (int)(ekr * *p->dur /((fabs(*p->field_am)/2.0) - 1.0 ));
       else
-        die(Str(X_1696,"Wrong dimension\n"));
+        die(Str("Wrong dimension\n"));
     p->point_change_counter = 0;
     p->curr_fld = 0;
     p->next_fld = 1;

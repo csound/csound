@@ -186,7 +186,7 @@ int resonzset(ENVIRON *csound, RESONZ *p)
     int scaletype;
     p->scaletype = scaletype = (int)*p->iscl;
     if (scaletype && scaletype != 1 && scaletype != 2) {
-      sprintf(errmsg,Str(X_981,"illegal reson iscl value, %f"),*p->iscl);
+      sprintf(errmsg,Str("illegal reson iscl value, %f"),*p->iscl);
       return initerror(errmsg);
     }
     if (!(*p->istor))
@@ -391,7 +391,7 @@ int phaser2set(ENVIRON *csound, PHASER2 *p)
 
     p->modetype = modetype = (int)*p->mode;
     if (modetype && modetype != 1 && modetype != 2) {
-      sprintf(errmsg,Str(X_245,"Phaser mode must be either 1 or 2"));
+      sprintf(errmsg,Str("Phaser mode must be either 1 or 2"));
       return initerror(errmsg);
     }
 

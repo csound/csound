@@ -135,7 +135,7 @@ void PS_MakeGraph(WINDAT *wdptr, char *name)
       if (t!=NULL) *t='\0';
       strcat(pathnam, ".eps");
       if ( (psFile = fopen(pathnam, "w"))==NULL )
-        printf(Str(X_79,"** Warning **  PostScript file %s cannot be opened \n"),
+        printf(Str("** Warning **  PostScript file %s cannot be opened \n"),
                pathnam);
       else {
 #ifdef __MACH__
@@ -143,7 +143,7 @@ void PS_MakeGraph(WINDAT *wdptr, char *name)
         extern struct tm* localtime(const time_t*);
         extern char* asctime(const struct tm*);
 #endif
-        printf(Str(X_546,"\n PostScript graphs written to file %s \n \n"), pathnam);
+        printf(Str("\n PostScript graphs written to file %s \n \n"), pathnam);
         psFileOk = 1;
 
             /*

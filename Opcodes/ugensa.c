@@ -46,7 +46,7 @@ int fogset(ENVIRON *csound, FOGS *p)
           p->fundphs = MAXLEN;                    /*   trigger new FOF */
         else p->fundphs = (long)(*p->iphs * FMAXLEN) & PHMASK;
         if ((olaps = (long)*p->iolaps) <= 0) {
-          return initerror(Str(X_891,"illegal value for iolaps"));
+          return initerror(Str("illegal value for iolaps"));
         }
         if (*p->iphs>=FL(0.0))
           auxalloc((long)olaps * sizeof(OVERLAP), &p->auxch);
@@ -99,7 +99,7 @@ int fog(ENVIRON *csound, FOGS *p)
       if (p->fundphs & MAXLEN) {                       /* if phs has wrapped */
         p->fundphs &= PHMASK;
         if ((ovp = p->basovrlap.nxtfree) == NULL) {
-          return perferror(Str(X_267,"FOF needs more overlaps"));
+          return perferror(Str("FOF needs more overlaps"));
         }
         if (newpulse(csound, p, ovp, amp, fund, ptch)) { /* init new fof */
           ovp->nxtact = p->basovrlap.nxtact;           /* & link into  */

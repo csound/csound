@@ -246,7 +246,7 @@ EVENT * defev(char *s)                    /* define an event from string arg */
                 s++;
             if (p > q && *s != '\0')  {         /* too many ? */
                 p++;
-                printf(Str(X_405,"PMAX exceeded, string event truncated.\n"));
+                printf(Str("PMAX exceeded, string event truncated.\n"));
                 break;
             }
         }
@@ -596,8 +596,8 @@ fp2chk(EVLIST *a, char *s) /* look for f statements with non-0 p[2] */
             if ((e = *ep++) && e->op == 'f' && e->p[2] != 0.)
                 count++;
         if (count)
-            printf(Str(X_53,"%s found %d f event%s with non-zero p2\n"),
-                   s, count, count==1 ? "" : Str(X_1172,"s"));
+            printf(Str("%s found %d f event%s with non-zero p2\n"),
+                   s, count, count==1 ? "" : Str("s"));
 }
 
 EVLIST * lsepf(EVLIST *a)       /* separate f events from evlist */
@@ -688,7 +688,7 @@ static void savinfdata(         /* store input file data */
         for (infp = infiles, n = MAXOPEN; n--; infp++)
             if (infp->iscfp == NULL)
                 goto save;
-        printf(Str(X_1288,"too many input files open\n"));
+        printf(Str("too many input files open\n"));
         exit(0);
 
 save:   infp->iscfp = fp;
@@ -719,7 +719,7 @@ static void makecurrent(FILE *fp)
                             nxtevt->op = '\0';
                     return;
                 }
-        printf(Str(X_986,"makecurrent: fp not recorded\n"));
+        printf(Str("makecurrent: fp not recorded\n"));
         exit(0);
 }
 
@@ -728,7 +728,7 @@ void cscorinit(void)            /* verify initial scfp, init other data */
         EVENT *next;
 
         if (scfp == NULL) {
-            printf(Str(X_677,"cscorinit: scorin not yet open"));
+            printf(Str("cscorinit: scorin not yet open"));
             exit(0);
         }
         next = createv(PMAX);              /* creat EVENT blk receiving buf */
@@ -743,7 +743,7 @@ FILE *filopen(char *name)       /* open new cscore input file, init data */
         EVENT *next;
 
         if ((fp = fopen(name, "r")) == NULL) {
-            printf(Str(X_722,"error in opening %s\n"), name);
+            printf(Str("error in opening %s\n"), name);
             exit(0);
         }
         next = createv(PMAX);             /* alloc a receiving evtblk     */
@@ -757,7 +757,7 @@ void filclose(FILE *fp)
         int n;
 
         if (fp == NULL) {
-            printf(Str(X_762,"filclose: NULL file pointer\n"));
+            printf(Str("filclose: NULL file pointer\n"));
             return;
         }
         if ((infp = infiles) != NULL)
@@ -769,13 +769,13 @@ void filclose(FILE *fp)
                     if (scfp == fp) scfp = NULL;
                     return;
                 }
-        printf(Str(X_763,"filclose: fp not recorded\n"));
+        printf(Str("filclose: fp not recorded\n"));
 }
 
 FILE *getcurfp(void)
 {
         if (scfp == NULL) {
-            printf(Str(X_796,"getcurfp: no fp current\n"));
+            printf(Str("getcurfp: no fp current\n"));
             exit(0);
         }
         return(scfp);

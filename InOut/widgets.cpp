@@ -73,7 +73,7 @@
 #include <vector>
 #include <string>
 #include <fstream>
-#include <strstream>
+#include <sstream>
 #include <cstdlib>
 
 using namespace std ;
@@ -166,7 +166,7 @@ extern "C" {
       }
       while ((ip = ip->nxtinstance) != NULL);
     }
-    //printf(Str(X_669,"could not find indefinitely playing instr %d\n"),insno);
+    //printf(Str("could not find indefinitely playing instr %d\n"),insno);
   }
 
   void ButtonSched(ENVIRON *csound, MYFLT  *args[], int numargs)
@@ -1540,7 +1540,7 @@ extern "C" int load_snap(ENVIRON *csound, FLLOADSNAPS* p)
     char buf[MAXNAME];
     file.getline(buf,MAXNAME);
 
-    strstream sbuf;
+    stringstream sbuf;
     sbuf << buf;
 
     string opc, opc_orig;
@@ -2846,7 +2846,7 @@ extern "C" int fl_slider_bank(ENVIRON *csound, FLSLIDERBANK *p)
     strcpy(s, strsets[(long)*p->names]);
   }
   string tempname(s);
-  strstream sbuf;
+  stringstream sbuf;
   sbuf << tempname;
 
   int width = (int) *p->iwidth;

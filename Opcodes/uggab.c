@@ -158,7 +158,7 @@ int trig(ENVIRON *csound, TRIG *p)
         *p->kout = FL(0.0);
       break;
     default:
-      return perferror(Str(X_17," bad imode value"));
+      return perferror(Str(" bad imode value"));
     }
     p->old_sig = *p->ksig;
     return OK;
@@ -416,7 +416,7 @@ int lposc_set(ENVIRON *csound, LPOSC *p)
 
     if ((ftp = ftnp2find(csound, p->ift)) == NULL) return NOTOK;
     if (!(p->fsr=ftp->gen01args.sample_rate)) {
-      printf(Str(X_970,"losc: no sample rate stored in function assuming=sr\n"));
+      printf(Str("losc: no sample rate stored in function assuming=sr\n"));
       p->fsr=esr;
     }
     p->ftp    = ftp;
@@ -545,7 +545,7 @@ int rsnsety(ENVIRON *csound, RESONY *p)
 /*      else if (p->loop > 50) */
 /*        initerror("illegal order num. (min 1, max 50)"); */
     if (scale && scale != 1 && scale != 2) {
-      sprintf(errmsg,Str(X_1452, "illegal reson iscl value, %f"),*p->iscl);
+      sprintf(errmsg,Str("illegal reson iscl value, %f"),*p->iscl);
       return initerror(errmsg);
     }
     if (!(*p->istor)) {
@@ -836,7 +836,7 @@ int vibrato(ENVIRON *csound, VIBRATO *p)
     phs = p->lphs;
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str(X_1664,"vibrato(krate): not initialised"));
+      return perferror(Str("vibrato(krate): not initialised"));
     }
     fract = (MYFLT) (phs - (long)phs);
     ftab = ftp->ftable + (long)phs;
@@ -910,7 +910,7 @@ int vibr(ENVIRON *csound, VIBR *p)
     phs = p->lphs;
     ftp = p->ftp;
     if (ftp==NULL) {
-      return perferror(Str(X_1664,"vibrato(krate): not initialised"));
+      return perferror(Str("vibrato(krate): not initialised"));
     }
     fract = (MYFLT) (phs - (long)phs); /*PFRAC(phs);*/
     ftab = ftp->ftable + (long)phs; /*(phs >> ftp->lobits);*/
@@ -1125,7 +1125,7 @@ int kDiscreteUserRand(ENVIRON *csound, DURAND *p)
 { /* gab d5*/
     if (p->pfn != (long)*p->tableNum) {
       if ( (p->ftp = ftfindp(csound, p->tableNum) ) == NULL) {
-        sprintf(errmsg, Str(X_315,"Invalid ftable no. %f"), *p->tableNum);
+        sprintf(errmsg, Str("Invalid ftable no. %f"), *p->tableNum);
         return perferror(errmsg);
       }
       p->pfn = (long)*p->tableNum;
@@ -1148,7 +1148,7 @@ int aDiscreteUserRand(ENVIRON *csound, DURAND *p)
 
     if (p->pfn != (long)*p->tableNum) {
       if ( (p->ftp = ftfindp(csound, p->tableNum) ) == NULL) {
-        sprintf(errmsg, Str(X_315,"Invalid ftable no. %f"), *p->tableNum);
+        sprintf(errmsg, Str("Invalid ftable no. %f"), *p->tableNum);
         return perferror(errmsg);
       }
       p->pfn = (long)*p->tableNum;
@@ -1168,7 +1168,7 @@ int kContinuousUserRand(ENVIRON *csound, CURAND *p)
     MYFLT findx, fract, v1, v2;
     if (p->pfn != (long)*p->tableNum) {
       if ( (p->ftp = ftfindp(csound, p->tableNum) ) == NULL) {
-        sprintf(errmsg, Str(X_315,"Invalid ftable no. %f"), *p->tableNum);
+        sprintf(errmsg, Str("Invalid ftable no. %f"), *p->tableNum);
         return perferror(errmsg);
       }
       p->pfn = (long)*p->tableNum;
@@ -1204,7 +1204,7 @@ int aContinuousUserRand(ENVIRON *csound, CURAND *p)
 
     if (p->pfn != (long)*p->tableNum) {
       if ( (p->ftp = ftfindp(csound, p->tableNum) ) == NULL) {
-        sprintf(errmsg, Str(X_315,"Invalid ftable no. %f"), *p->tableNum);
+        sprintf(errmsg, Str("Invalid ftable no. %f"), *p->tableNum);
         return perferror(errmsg);
       }
       p->pfn = (long)*p->tableNum;
@@ -1432,13 +1432,13 @@ int random3a(ENVIRON *csound, RANDOM3 *p)
 #define S       sizeof
 
 static OENTRY localops[] = {
-{ "wrap_i", S(WRAP),     1,  "i", "iii",  (SUBR)kwrap, NULL,    NULL        },
+{ "wrap.i", S(WRAP),     1,  "i", "iii",  (SUBR)kwrap, NULL,    NULL        },
 { "wrap",  S(WRAP),      6,  "s", "xkk",  NULL,  (SUBR)kwrap,       (SUBR)wrap   },
-{ "mirror_i", S(WRAP),   1,  "i", "iii",  (SUBR)kmirror, NULL,  NULL},
+{ "mirror.i", S(WRAP),   1,  "i", "iii",  (SUBR)kmirror, NULL,  NULL},
 { "mirror",  S(WRAP),    6,  "s", "xkk",  NULL,  (SUBR)kmirror,     (SUBR)mirror },
-{ "ntrpol_i",S(INTERPOL), 1, "i", "iiiop",(SUBR)interpol                   },
-{ "ntrpol_k",S(INTERPOL), 3, "k", "kkkop",(SUBR)nterpol_init, (SUBR)knterpol     },
-{ "ntrpol_a",S(INTERPOL), 5, "a", "aakop",(SUBR)nterpol_init,NULL, (SUBR)anterpol },
+{ "ntrpol.i",S(INTERPOL), 1, "i", "iiiop",(SUBR)interpol                   },
+{ "ntrpol.k",S(INTERPOL), 3, "k", "kkkop",(SUBR)nterpol_init, (SUBR)knterpol     },
+{ "ntrpol.a",S(INTERPOL), 5, "a", "aakop",(SUBR)nterpol_init,NULL, (SUBR)anterpol },
 { "fold",    S(FOLD),     5, "a", "ak",   (SUBR)fold_set, NULL, (SUBR)fold       },
 { "lineto",   S(LINETO),  3, "k", "kk",     (SUBR)lineto_set,   (SUBR)lineto, NULL     },
 { "tlineto",  S(LINETO2), 3, "k", "kkk",    (SUBR)tlineto_set,   (SUBR)tlineto, NULL   },
@@ -1452,26 +1452,26 @@ static OENTRY localops[] = {
 { "cuserrnd", 0xffff                                                            },
 { "duserrnd", 0xffff                                                            },
 { "random",   0xffff                                                            },
-{ "cuserrnd_i", S(CURAND),1,"i",  "iii",  (SUBR)iContinuousUserRand, NULL, NULL },
-{ "cuserrnd_k", S(CURAND),2,"k",  "kkk", (SUBR)Cuserrnd_set, (SUBR)kContinuousUserRand, NULL },
-{ "cuserrnd_a",S(CURAND),4, "a", "kkk", (SUBR)Cuserrnd_set, NULL, (SUBR)aContinuousUserRand },
-{ "random_i", S(RANGERAND), 1, "i", "ii",    (SUBR)ikRangeRand, NULL, NULL      },
-{ "random_k", S(RANGERAND), 2, "k", "kk",    NULL, (SUBR)ikRangeRand, NULL      },
-{ "random_a", S(RANGERAND), 4, "a", "kk",    NULL, NULL,  (SUBR)aRangeRand      },
+{ "cuserrnd.i", S(CURAND),1,"i",  "iii",  (SUBR)iContinuousUserRand, NULL, NULL },
+{ "cuserrnd.k", S(CURAND),2,"k",  "kkk", (SUBR)Cuserrnd_set, (SUBR)kContinuousUserRand, NULL },
+{ "cuserrnd.a",S(CURAND),4, "a", "kkk", (SUBR)Cuserrnd_set, NULL, (SUBR)aContinuousUserRand },
+{ "random.i", S(RANGERAND), 1, "i", "ii",    (SUBR)ikRangeRand, NULL, NULL      },
+{ "random.k", S(RANGERAND), 2, "k", "kk",    NULL, (SUBR)ikRangeRand, NULL      },
+{ "random.a", S(RANGERAND), 4, "a", "kk",    NULL, NULL,  (SUBR)aRangeRand      },
 { "rspline",  S(RANDOM3), 7, "s", "xxkk",  (SUBR)random3_set, (SUBR)random3, (SUBR)random3a },
 { "randomi",  S(RANDOMI), 7, "s", "kkx",   (SUBR)randomi_set, (SUBR)krandomi, (SUBR)randomi },
 { "randomh",  S(RANDOMH), 7, "s", "kkx",(SUBR)randomh_set,(SUBR)krandomh,(SUBR)randomh },
-{ "urd_i",    S(DURAND),  1, "i", "i", (SUBR)iDiscreteUserRand, NULL, NULL  },
-{ "urd_k",    S(DURAND),  2, "k", "k", (SUBR)Cuserrnd_set, (SUBR)kDiscreteUserRand, NULL },
-{ "urd_a",    S(DURAND),  4, "a", "k", (SUBR)Cuserrnd_set, NULL, (SUBR)aDiscreteUserRand },
-{ "duserrnd_i", S(DURAND),1, "i", "i",  (SUBR)iDiscreteUserRand, NULL, NULL  },
-{ "duserrnd_k", S(DURAND),2, "k", "k", (SUBR)Cuserrnd_set,(SUBR)kDiscreteUserRand,NULL },
-{ "duserrnd_a", S(DURAND),4, "a", "k", (SUBR)Cuserrnd_set,NULL,(SUBR)aDiscreteUserRand },
+{ "urd.i",    S(DURAND),  1, "i", "i", (SUBR)iDiscreteUserRand, NULL, NULL  },
+{ "urd.k",    S(DURAND),  2, "k", "k", (SUBR)Cuserrnd_set, (SUBR)kDiscreteUserRand, NULL },
+{ "urd.a",    S(DURAND),  4, "a", "k", (SUBR)Cuserrnd_set, NULL, (SUBR)aDiscreteUserRand },
+{ "duserrnd.i", S(DURAND),1, "i", "i",  (SUBR)iDiscreteUserRand, NULL, NULL  },
+{ "duserrnd.k", S(DURAND),2, "k", "k", (SUBR)Cuserrnd_set,(SUBR)kDiscreteUserRand,NULL },
+{ "duserrnd.a", S(DURAND),4, "a", "k", (SUBR)Cuserrnd_set,NULL,(SUBR)aDiscreteUserRand },
 { "poscil", 0xfffe                                                      },
-{ "poscil_kk", S(POSC), 7, "s", "kkio", (SUBR)posc_set,(SUBR)kposc,(SUBR)posckk },
-{ "poscil_ka", S(POSC), 5, "a", "kaio", (SUBR)posc_set, NULL,  (SUBR)poscka },
-{ "poscil_ak", S(POSC), 5, "a", "akio", (SUBR)posc_set, NULL,  (SUBR)poscak },
-{ "poscil_aa", S(POSC), 5, "a", "aaio", (SUBR)posc_set, NULL,  (SUBR)poscaa },
+{ "poscil.kk", S(POSC), 7, "s", "kkio", (SUBR)posc_set,(SUBR)kposc,(SUBR)posckk },
+{ "poscil.ka", S(POSC), 5, "a", "kaio", (SUBR)posc_set, NULL,  (SUBR)poscka },
+{ "poscil.ak", S(POSC), 5, "a", "akio", (SUBR)posc_set, NULL,  (SUBR)poscak },
+{ "poscil.aa", S(POSC), 5, "a", "aaio", (SUBR)posc_set, NULL,  (SUBR)poscaa },
 { "lposcil",  S(LPOSC), 5, "a", "kkkkio", (SUBR)lposc_set, NULL, (SUBR)lposc},
 { "poscil3",  S(POSC),  7, "s", "kkio", (SUBR)posc_set,(SUBR)kposc3,(SUBR)posc3 },
 { "lposcil3", S(LPOSC), 5, "a", "kkkkio", (SUBR)lposc_set, NULL,(SUBR)lposc3},

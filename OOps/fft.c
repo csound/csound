@@ -625,7 +625,7 @@ static TestArith(void)
     a = -10000;
     b = (1/2);
     c = (a*b);
-    printf(Str(X_447,"Result .. and what it should have been\n"));
+    printf(Str("Result .. and what it should have been\n"));
     printf("%f %f\n",c,a/2);
 }
 
@@ -646,16 +646,16 @@ static TestReals(void)
       datb[i].re = data[i].re = -7+(15&rand()); /* (i-1)? 0 : 1; */ /* i+1; */
       datb[i].im = data[i].im = 0; /* (tDLEN - i); */
     }
-    ShowCpx(data, tDLEN, Str(X_471,"Start data"));
+    ShowCpx(data, tDLEN, Str("Start data"));
     FFT2real(data, tDLEN, 1, e);
-    ShowCpx(data, tDLEN, Str(X_497,"Transform"));
+    ShowCpx(data, tDLEN, Str("Transform"));
     data[tDLEN/2].re = 0; data[tDLEN/2].im = 0;
     for (i=tDLEN/2+1; i<tDLEN; ++i) {
       data[i].re = FL(0.0); data[i].im = FL(0.0);
     }
     /* conjugate 2nd half of data should make no difference to FFT2torl */
     FFT2torl(data, tDLEN, 1, 1.0/(MYFLT)tDLEN,e); /* */
-    ShowCpx(data, tDLEN, Str(X_279,"Final result"));
+    ShowCpx(data, tDLEN, Str("Final result"));
 }
 
 

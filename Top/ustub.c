@@ -168,7 +168,7 @@ chartran(MYFLT *buffer, int size) /* same as above, but 8-bit char output */
 static void
 alawtran(MYFLT *buffer, int size)
 {
-    die(Str(X_590,"alaw not yet implemented"));
+    die(Str("alaw not yet implemented"));
 }
 #endif
 
@@ -413,7 +413,7 @@ void beep(void)
 #ifdef mills_macintosh
     SysBeep(10000);
 #else
-    printf(Str(X_28,"%c\tbeep!\n"),'\007');
+    printf(Str("%c\tbeep!\n"),'\007');
 #endif
 }
 

@@ -107,7 +107,7 @@ int pvanal(int argc, char **argv)
     O.displays = 0;
     WindowType = 1;
     if (!(--argc))
-      quit(Str(X_939,"insufficient arguments"));
+      quit(Str("insufficient arguments"));
       do {
         char *s = *++argv;
         if (*s++ == '-')
@@ -115,24 +115,24 @@ int pvanal(int argc, char **argv)
           case 'j': FIND("");
             while (*s++); s--;
             break;
-          case 's': FIND(Str(X_1057,"no sampling rate"));
+          case 's': FIND(Str("no sampling rate"));
 #if defined(USE_DOUBLE)
             sscanf(s,"%lf",&sr);
 #else
             sscanf(s,"%f",&sr);
 #endif
             break;
-          case 'c':  FIND(Str(X_1026,"no channel"));
+          case 'c':  FIND(Str("no channel"));
             sscanf(s,"%d",&channel);
             break;
-          case 'b':  FIND(Str(X_1025,"no begin time"));
+          case 'b':  FIND(Str("no begin time"));
 #if defined(USE_DOUBLE)
             sscanf(s,"%lf",&beg_time);
 #else
             sscanf(s,"%f",&beg_time);
 #endif
             break;
-          case 'd':  FIND(Str(X_1030,"no duration time"));
+          case 'd':  FIND(Str("no duration time"));
 #if defined(USE_DOUBLE)
             sscanf(s,"%lf",&input_dur);
 #else
@@ -145,53 +145,53 @@ int pvanal(int argc, char **argv)
               if (c=='M' || c=='\0') WindowType = 0;
             }
             break;
-          case 'n':  FIND(Str(X_1032,"no framesize"));
+          case 'n':  FIND(Str("no framesize"));
             sscanf(s,"%ld",&frameSize);
             if (frameSize < MINFRMPTS || frameSize > MAXFRMPTS) {
-              sprintf(errmsg,Str(X_777,"frameSize must be between %d &%d\n"),
+              sprintf(errmsg,Str("frameSize must be between %d &%d\n"),
                       MINFRMPTS, MAXFRMPTS);
               quit(errmsg);
             }
             if (!(IsPowerOfTwo(frameSize)))  {
-              sprintf(errmsg,Str(X_1143,"pvanal: frameSize must be 2^r"));
+              sprintf(errmsg,Str("pvanal: frameSize must be 2^r"));
               quit(errmsg);
             }
             break;
-          case 'w':  FIND(Str(X_1067,"no windfact"));
+          case 'w':  FIND(Str("no windfact"));
             sscanf(s,"%d",&ovlp);
             break;
-          case 'h':  FIND(Str(X_1037,"no hopsize"));
+          case 'h':  FIND(Str("no hopsize"));
             sscanf(s,"%ld",&frameIncr);
             break;
           case 'g':  O.displays = 1;
             break;
-          case 'G':  FIND(Str(X_1040,"no latch"));
+          case 'G':  FIND(Str("no latch"));
             sscanf(s,"%d",&latch);
             O.displays = 1;
             break;
-          case 'V':  FIND(Str(X_1053,"no output file for trace"));
+          case 'V':  FIND(Str("no output file for trace"));
             trfil = fopen(s,"w");
-            if (trfil==NULL) quit(Str(X_273,"Failed to open text file"));
-            printf(Str(X_538,"Writing text form to file %s\n"), s);
+            if (trfil==NULL) quit(Str("Failed to open text file"));
+            printf(Str("Writing text form to file %s\n"), s);
           case 'v':
             verbose = 1;
             break;
-          default:   quit(Str(X_1352,"unrecognised switch option"));
+          default:   quit(Str("unrecognised switch option"));
           }
         else break;
       } while (--argc);
 
-      if (argc !=  2) quit(Str(X_876,"illegal number of filenames"));
+      if (argc !=  2) quit(Str("illegal number of filenames"));
       infilnam = *argv++;
       outfilnam = *argv;
 
     if (ovlp && frameIncr)
-      quit(Str(X_1141,"pvanal cannot have both -w and -h"));
+      quit(Str("pvanal cannot have both -w and -h"));
     /* open sndfil, do skiptime */
     channel = ALLCHNLS; /* we can analyse up to 8 chans with pvxanal! */
     if (
         (infd = SAsndgetset(infilnam,&p,&beg_time,&input_dur,&sr,channel))<0) {
-      sprintf(errmsg,Str(X_735,"error while opening %s"), retfilnam);
+      sprintf(errmsg,Str("error while opening %s"), retfilnam);
       quit(errmsg);
     }
     sr = (MYFLT)p->sr;
@@ -212,13 +212,13 @@ int pvanal(int argc, char **argv)
     else frameIncr = frameSize/ovlp;
 
     if (ovlp < 2 || ovlp > 16) {
-      err_printf(Str(X_1142,"pvanal: %d is a bad window overlap index\n"),
+      err_printf(Str("pvanal: %d is a bad window overlap index\n"),
                  ovlp);
       exit(1);
     }
     oframeEst = (p->getframes - frameSize/2) / frameIncr;
     printf("%ld infrsize, %ld infrInc\n", frameSize, frameIncr);
-    printf(Str(X_45,"%ld output frames estimated\n"), oframeEst);
+    printf(Str("%ld output frames estimated\n"), oframeEst);
 
     ext = strrchr(outfilnam,'.');
     /* Look for .pvx extension in any case */
@@ -226,16 +226,16 @@ int pvanal(int argc, char **argv)
         tolower(ext[2]) == 'v' && tolower(ext[3]) == 'x' && ext[4] == '\0') {
       /* even for old pvoc file, is absence of extension OK? */
       if (p->nchanls > MAXPVXCHANS) {
-        printf(Str(X_1561,
+        printf(Str(
                    "pvxanal - source has too many channels: Maxchans = %d.\n"),
                MAXPVXCHANS);
         return 1;
       }
-      printf(Str(X_1780,"pvanal: creating pvocex file\n"));
+      printf(Str("pvanal: creating pvocex file\n"));
       /* handle all messages in here, for now */
       if (pvxanal(p,infd,outfilnam,p->sr,p->nchanls,frameSize,frameIncr,
                   frameSize*2,PVOC_HAMMING,verbose))
-        die(Str(X_1771,"error generating pvocex file.\n"));
+        die(Str("error generating pvocex file.\n"));
     }
     else {
       fftfrmBsiz = sizeof(MYFLT) * 2 * (frameSize/2 + 1);
@@ -248,10 +248,10 @@ int pvanal(int argc, char **argv)
         exit(1);
       }
       if ((ofd = openout(outfilnam, 1)) < 0)     /* open the output PV file */
-        quit(Str(X_632,"cannot create output file"));
+        quit(Str("cannot create output file"));
       /* & wrt hdr into the file */
       if ((nb = write(ofd,(char *)pvh,(int)pvh->headBsize)) < pvh->headBsize)
-        quit(Str(X_630,"cannot write header"));
+        quit(Str("cannot write header"));
 
       dispinit();
       if (verbose) {
@@ -265,7 +265,7 @@ int pvanal(int argc, char **argv)
       basis = AssignBasis(NULL,frameSize);      /* set up FFT tables */
       oframeAct = takeFFTs(p, pvh, infd, ofd, oframeEst);
       dispexit();
-      printf(Str(X_46,"%ld output frames written\n"), oframeAct);
+      printf(Str("%ld output frames written\n"), oframeAct);
     }
     close(infd);
   /*     close(ofd); */
@@ -279,7 +279,7 @@ static void quit(char *msg)
 {
         err_printf("pvanal error: %s\n", msg);
         err_printf(
-        Str(X_518,"Usage: pvanal [-n<frmsiz>] [-w<windfact> | "
+        Str("Usage: pvanal [-n<frmsiz>] [-w<windfact> | "
             "-h<hopsize>] [-g | -G<latch>] [-v | -V txtfile] "
             "inputSoundfile outputFFTfile\n"));
         exit(0);
@@ -328,12 +328,12 @@ static long takeFFTs(
       *fp1++ = FL(0.0);
                              /* .. and read in second half from file */
     if ((read_in = getsndin(infd, fp1, (long)(frameSize/2),p)) < frameSize/2)
-      die(Str(X_943,"insufficient sound for analysis"));
+      die(Str("insufficient sound for analysis"));
     for (nn = read_in; nn--; )
       /* IV - Jul 11 2002 */
       *fp1++ *= dbfs_to_float;      /* normalize the samples read in */
     oframeEst -= 1;
-    if (!O.displays && !verbose) printf(Str(X_776,"frame: "));
+    if (!O.displays && !verbose) printf(Str("frame: "));
     do {
       if (((++i)%20)==0)
         if (!O.displays && !verbose) {
@@ -358,7 +358,7 @@ static long takeFFTs(
       write(ofd, (char *)tmpBuf, fftfrmBsiz);
       if (verbose) {
         char msg[20];
-        sprintf(msg, Str(X_284,"Frame %ld"), i);
+        sprintf(msg, Str("Frame %ld"), i);
         PrintBuf(tmpBuf, frameSize, msg);
       }
       if (O.displays) {
@@ -382,7 +382,7 @@ static long takeFFTs(
     } while (i < oframeEst);
     if (!O.displays && !verbose) printf("%ld\n",i);
     if (i < oframeEst)
-      printf(Str(X_575,"\tearly end of file\n"));
+      printf(Str("\tearly end of file\n"));
     return((long)i + 1);
 }
 

@@ -908,7 +908,7 @@ int itblchkw(ENVIRON *csound, TABLEW *p)
      * factor and then check it is between 0 and the table length.  */
     if ((p->offset = p->xbmul * *p->ixoff) < FL(0.0)
         || p->offset > p->ftp->flen) {
-      sprintf(errmsg, Str(X_486,"Table write offset %f < 0 or > tablelength"),
+      sprintf(errmsg, Str("Table write offset %f < 0 or > tablelength"),
               p->offset);
       return initerror(errmsg);
     }
@@ -1189,7 +1189,7 @@ int ftkrchkw(ENVIRON *csound, TABLEW *p)
  * it, catch negative values too.  */
     if (*p->xfn < 1) {
       sprintf(errmsg,
-              Str(X_485,"Table write k rate function table no. %f < 1"), *p->xfn);
+              Str("Table write k rate function table no. %f < 1"), *p->xfn);
       return perferror(errmsg);
     }
     /* Check to see if table number has changed from previous value.
@@ -1234,7 +1234,7 @@ int ftkrchkw(ENVIRON *csound, TABLEW *p)
 
       if ((p->offset = p->xbmul * *p->ixoff) < FL(0.0) ||
           p->offset > p->ftp->flen) {
-        sprintf(errmsg, Str(X_486,"Table write offset %f < 0 or > tablelength"),
+        sprintf(errmsg, Str("Table write offset %f < 0 or > tablelength"),
                 p->offset);
         return perferror(errmsg);
       }
@@ -1281,7 +1281,7 @@ int    tableng(ENVIRON *csound, TABLENG *p)
 
     if ((ftp = ftfindp(csound, p->xfn)) == NULL) {
         *p->kout = FL(0.0);
-        sprintf(errmsg, Str(X_479,"Table %f not found\n"), *(p->xfn));
+        sprintf(errmsg, Str("Table %f not found\n"), *(p->xfn));
         return perferror(errmsg);
       }
     /* Return length as a float if we do find the table. */
@@ -1305,7 +1305,7 @@ int    itableng(ENVIRON *csound, TABLENG *p)
 
     if ((ftp = ftfind(csound, p->xfn)) == NULL) {
       *p->kout = FL(0.0);
-/*       sprintf(errmsg, Str(X_479,"Table %f not found\n"), *(p->xfn)); */
+/*       sprintf(errmsg, Str("Table %f not found\n"), *(p->xfn)); */
 /*       return initerror(errmsg); */
     }
     /* Return length as a float if we do find the table. */
@@ -1349,7 +1349,7 @@ int    tablegpw(ENVIRON *csound, TABLEGPW *p)
      */
 
     if ((ftp = ftfindp(csound, p->xfn)) == NULL) {
-/*       sprintf(errmsg, Str(X_479,"Table %f not found\n"), *(p->xfn)); */
+/*       sprintf(errmsg, Str("Table %f not found\n"), *(p->xfn)); */
 /*       return perferror(errmsg); */
     }
     /* Find length of table.
@@ -1387,7 +1387,7 @@ int itablegpw(ENVIRON *csound, TABLEGPW *p)
 
     /* Check to see we can find the table and find its location in memory. */
     if ((ftp = ftfind(csound, p->xfn)) == NULL) {
-      sprintf(errmsg, Str(X_479,"Table %f not found\n"), *(p->xfn));
+      sprintf(errmsg, Str("Table %f not found\n"), *(p->xfn));
       return initerror(errmsg);
     }
     /* Find length of table. */
@@ -1467,7 +1467,7 @@ int tablemix(ENVIRON *csound, TABLEMIX *p)
      * which is initially 0.
      */
     if ((*p->dft  < 1) || (*p->s1ft < 1) || (*p->s2ft < 1)) {
-      sprintf(errmsg, Str(X_482,"Table no. < 1 dft=%.2f  s1ft=%.2f  s2ft=%.2f\n"),
+      sprintf(errmsg, Str("Table no. < 1 dft=%.2f  s1ft=%.2f  s2ft=%.2f\n"),
               *p->dft, *p->s1ft, *p->s2ft);
       return perferror(errmsg);
     }
@@ -1482,7 +1482,7 @@ int tablemix(ENVIRON *csound, TABLEMIX *p)
        */
 
       if ((p->funcd = ftfindp(csound, p->dft)) == NULL) {
-        sprintf(errmsg, Str(X_244,"Destination dft table %.2f not found.\n"),
+        sprintf(errmsg, Str("Destination dft table %.2f not found.\n"),
                 *p->dft);
         return perferror(errmsg);
       }
@@ -1495,7 +1495,7 @@ int tablemix(ENVIRON *csound, TABLEMIX *p)
     /* Source 1 */
     if (p->ps1ft != (int)*p->s1ft) {
       if ((p->funcs1 = ftfindp(csound, p->s1ft)) == NULL) {
-        sprintf(errmsg, Str(X_467,"Source 1 s1ft table %.2f not found.\n"),
+        sprintf(errmsg, Str("Source 1 s1ft table %.2f not found.\n"),
                 *p->s1ft);
         return perferror(errmsg);
       }
@@ -1505,7 +1505,7 @@ int tablemix(ENVIRON *csound, TABLEMIX *p)
     /* Source 2 */
     if (p->ps2ft != (int)*p->s2ft) {
       if ((p->funcs2 = ftfindp(csound, p->s2ft)) == NULL) {
-        sprintf(errmsg, Str(X_468,"Source 2 s2ft table %.2f not found.\n"),
+        sprintf(errmsg, Str("Source 2 s2ft table %.2f not found.\n"),
                 *p->s2ft);
         return perferror(errmsg);
       }
@@ -1541,7 +1541,7 @@ int itablemix(ENVIRON *csound, TABLEMIX *p)
      * This runs only once, so speed is not an issue.    */
     if ((*p->dft < 1) || (*p->s1ft < 1) || (*p->s2ft < 1)) {
       sprintf(errmsg,
-              Str(X_484,"Table number < 1 dft=%.2f  s1ft=%.2f  s2ft=%.2f\n"),
+              Str("Table number < 1 dft=%.2f  s1ft=%.2f  s2ft=%.2f\n"),
               *p->dft, *p->s1ft, *p->s2ft);
       return initerror(errmsg);
     }
@@ -1555,7 +1555,7 @@ int itablemix(ENVIRON *csound, TABLEMIX *p)
      */
 
     if ((p->funcd = ftfind(csound, p->dft)) == NULL) {
-      sprintf(errmsg, Str(X_244,"Destination dft table %.2f not found.\n"),
+      sprintf(errmsg, Str("Destination dft table %.2f not found.\n"),
               *p->dft);
       return initerror(errmsg);
     }
@@ -1566,7 +1566,7 @@ int itablemix(ENVIRON *csound, TABLEMIX *p)
 
     /* Source 1 */
     if ((p->funcs1 = ftfind(csound, p->s1ft)) == NULL) {
-      sprintf(errmsg, Str(X_467,"Source 1 s1ft table %.2f not found.\n"),
+      sprintf(errmsg, Str("Source 1 s1ft table %.2f not found.\n"),
               *p->s1ft);
       return initerror(errmsg);
     }
@@ -1574,7 +1574,7 @@ int itablemix(ENVIRON *csound, TABLEMIX *p)
 
     /* Source 2 */
     if ((p->funcs2 = ftfind(csound, p->s2ft)) == NULL) {
-      sprintf(errmsg, Str(X_468,"Source 2 s2ft table %.2f not found.\n"),
+      sprintf(errmsg, Str("Source 2 s2ft table %.2f not found.\n"),
               *p->s2ft);
       return initerror(errmsg);
     }
@@ -1755,7 +1755,7 @@ int tablecopy(ENVIRON *csound, TABLECOPY *p)
     /* Check the state of the two table number variables.
      * Error message if any are < 1 and no further action.     */
     if ((*p->dft < 1) || (*p->sft < 1)) {
-      sprintf(errmsg, Str(X_483,"Table no. < 1 dft=%.2f  sft=%.2f\n"),
+      sprintf(errmsg, Str("Table no. < 1 dft=%.2f  sft=%.2f\n"),
               *p->dft, *p->sft);
       return perferror(errmsg);
     }
@@ -1767,7 +1767,7 @@ int tablecopy(ENVIRON *csound, TABLECOPY *p)
        * ftfindp() for perf time. ftfind() for init time.
        */
       if ((p->funcd = ftfindp(csound, p->dft)) == NULL) {
-        sprintf(errmsg, Str(X_244,"Destination dft table %.2f not found.\n"),
+        sprintf(errmsg, Str("Destination dft table %.2f not found.\n"),
                 *p->dft);
         return perferror(errmsg);
       }
@@ -1778,7 +1778,7 @@ int tablecopy(ENVIRON *csound, TABLECOPY *p)
     /* Source  */
     if (p->psft != (int)*p->sft) {
       if ((p->funcs = ftfindp(csound, p->sft)) == NULL) {
-        sprintf(errmsg, Str(X_469,"Source sft table %.2f not found.\n"),
+        sprintf(errmsg, Str("Source sft table %.2f not found.\n"),
                 *p->sft);
         return perferror(errmsg);
       }
@@ -1797,7 +1797,7 @@ int itablecopy(ENVIRON *csound, TABLECOPY *p)
     /* Check the state of the two table number variables.
      * Error message if any are < 1 and no further action. */
     if ((*p->dft < 1) || (*p->sft < 1)) {
-      sprintf(errmsg, Str(X_483,"Table no. < 1 dft=%.2f  sft=%.2f\n"),
+      sprintf(errmsg, Str("Table no. < 1 dft=%.2f  sft=%.2f\n"),
               *p->dft, *p->sft);
       return initerror(errmsg);
     }
@@ -1808,7 +1808,7 @@ int itablecopy(ENVIRON *csound, TABLECOPY *p)
       /* Get pointer to the function table data structure.
        * ftfindp() for perf time. ftfind() for init time. */
       if ((p->funcd = ftfind(csound, p->dft)) == NULL) {
-        sprintf(errmsg, Str(X_244,"Destination dft table %.2f not found.\n"),
+        sprintf(errmsg, Str("Destination dft table %.2f not found.\n"),
                 *p->dft);
         return initerror(errmsg);
       }
@@ -1819,7 +1819,7 @@ int itablecopy(ENVIRON *csound, TABLECOPY *p)
     /* Source  */
     if (p->psft != (int)*p->sft) {
       if ((p->funcs = ftfind(csound, p->sft)) == NULL) {
-        sprintf(errmsg, Str(X_469,"Source sft table %.2f not found.\n"),
+        sprintf(errmsg, Str("Source sft table %.2f not found.\n"),
                 *p->sft);
         return initerror(errmsg);
       }
@@ -1909,7 +1909,7 @@ int tablera(ENVIRON *csound, TABLERA *p)
     /* Check the state of the table number variable.
      * Error message if it is < 1 and no further action. */
     if (*p->kfn < 1) {
-      sprintf(errmsg, Str(X_480,"Table kfn=%.2f < 1\n"), *p->kfn);
+      sprintf(errmsg, Str("Table kfn=%.2f < 1\n"), *p->kfn);
       return perferror(errmsg);
     }
 
@@ -1918,7 +1918,7 @@ int tablera(ENVIRON *csound, TABLERA *p)
        * ftfindp() for perf time.                              */
 
       if ((p->ftp = ftfindp(csound, p->kfn)) == NULL) {
-        sprintf(errmsg, Str(X_957,"kfn table %.2f not found\n"), *p->kfn);
+        sprintf(errmsg, Str("kfn table %.2f not found\n"), *p->kfn);
         return perferror(errmsg);
       }
       /* Table number is valid.
@@ -1931,7 +1931,7 @@ int tablera(ENVIRON *csound, TABLERA *p)
 
       if (p->ftp->flen < ksmps) {
         sprintf(errmsg,
-                Str(X_481,"Table kfn=%.2f length %ld shorter than ksmps %d\n"),
+                Str("Table kfn=%.2f length %ld shorter than ksmps %d\n"),
                 *p->kfn, p->ftp->flen, ksmps);
         return perferror(errmsg);
       }
@@ -1940,7 +1940,7 @@ int tablera(ENVIRON *csound, TABLERA *p)
 
     if (((kstart = (long)*p->kstart) < 0L) || (kstart >= p->ftp->flen)) {
       sprintf(errmsg,
-              Str(X_961,"kstart %.2f is outside table %.2f range 0 to %ld\n"),
+              Str("kstart %.2f is outside table %.2f range 0 to %ld\n"),
               *p->kstart, *p->kfn, p->ftp->flen - 1);
       return perferror(errmsg);
     }
@@ -2032,7 +2032,7 @@ int tablewa(ENVIRON *csound, TABLEWA *p)
     /* Check the state of the table number variable.
      * Error message if it is < 1 and no further action.     */
     if (*p->kfn < 1) {
-        sprintf(errmsg, Str(X_480,"Table kfn=%.2f < 1\n"), *p->kfn);
+        sprintf(errmsg, Str("Table kfn=%.2f < 1\n"), *p->kfn);
         return perferror(errmsg);
     }
 
@@ -2041,7 +2041,7 @@ int tablewa(ENVIRON *csound, TABLEWA *p)
          * ftfindp() for perf time. */
 
         if ((p->ftp = ftfindp(csound, p->kfn)) == NULL) {
-            sprintf(errmsg, Str(X_957,"kfn table %.2f not found\n"), *p->kfn);
+            sprintf(errmsg, Str("kfn table %.2f not found\n"), *p->kfn);
             return perferror(errmsg);
         }
         /* Table number is valid.
@@ -2055,7 +2055,7 @@ int tablewa(ENVIRON *csound, TABLEWA *p)
 
         if (p->ftp->flen < ksmps) {
           sprintf(errmsg,
-                  Str(X_481,"Table kfn=%.2f length %ld shorter than ksmps %d\n"),
+                  Str("Table kfn=%.2f length %ld shorter than ksmps %d\n"),
                   *p->kfn, p->ftp->flen, ksmps);
           return perferror(errmsg);
         }
@@ -2064,7 +2064,7 @@ int tablewa(ENVIRON *csound, TABLEWA *p)
     /* Check that kstart is within the range of the table. */
     if (((kstart = (long)*p->kstart) < 0L) || (kstart >= p->ftp->flen)) {
         sprintf(errmsg,
-                Str(X_961,"kstart %.2f is outside table %.2f range 0 to %ld\n"),
+                Str("kstart %.2f is outside table %.2f range 0 to %ld\n"),
                 *p->kstart, *p->kfn, p->ftp->flen - 1);
         return perferror(errmsg);
       }
@@ -2159,11 +2159,11 @@ int zakinit(ENVIRON *csound, ZAKINIT *p)
      * Global variables will be zero if it has not been called.     */
 
     if ((zkstart != NULL) || (zastart != NULL)) {
-      return initerror(Str(X_1391,"zakinit should only be called once."));
+      return initerror(Str("zakinit should only be called once."));
     }
 
     if ((*p->isizea <= 0) || (*p->isizek <= 0)) {
-      return initerror(Str(X_1392,"zakinit: both isizea and isizek should be > 0."));
+      return initerror(Str("zakinit: both isizea and isizek should be > 0."));
     }
     /* Allocate memory for zk space.
      * This is all set to 0 and there will be an error report if the
@@ -2192,7 +2192,7 @@ int zakinit(ENVIRON *csound, ZAKINIT *p)
 int zkset(ENVIRON *csound, ZKR *p)
 {
     if  (zkstart == NULL) {
-      return initerror(Str(X_389,"No zk space: zakinit has not been called yet."));
+      return initerror(Str("No zk space: zakinit has not been called yet."));
     }
     else
       return OK;
@@ -2213,12 +2213,12 @@ int zkr(ENVIRON *csound, ZKR *p)
     if (indx > zklast) {
       *p->rslt = FL(0.0);
       if (O.msglevel & WARNMSG)
-        printf(Str(X_1411,"WARNING: zkr index > isizek. Returning 0.\n"));
+        printf(Str("WARNING: zkr index > isizek. Returning 0.\n"));
     }
     else if (indx < 0) {
       *p->rslt = FL(0.0);
       if (O.msglevel & WARNMSG)
-        printf(Str(X_1410,"WARNING: zkr index < 0. Returning 0.\n"));
+        printf(Str("WARNING: zkr index < 0. Returning 0.\n"));
     }
     else {
         /* Now read from the zk space and write to the destination. */
@@ -2247,12 +2247,12 @@ int zir(ENVIRON *csound, ZKR *p)
     indx = (long) *p->ndx;
     if (indx > zklast) {
       if (O.msglevel & WARNMSG)
-        printf(Str(X_1403,"WARNING: zir index > isizek. Returning 0.\n"));
+        printf(Str("WARNING: zir index > isizek. Returning 0.\n"));
       *p->rslt = FL(0.0);
     }
     else if (indx < 0) {
       if (O.msglevel & WARNMSG)
-        printf(Str(X_1402,"WARNING: zir index < 0. Returning 0.\n"));
+        printf(Str("WARNING: zir index < 0. Returning 0.\n"));
       *p->rslt = FL(0.0);
     }
     else {
@@ -2274,10 +2274,10 @@ int zkw(ENVIRON *csound, ZKW *p)
     /* Check to see this index is within the limits of zk space. */
     indx = (long) *p->ndx;
     if (indx > zklast) {
-      return perferror(Str(X_1413,"zkw index > isizek. Not writing."));
+      return perferror(Str("zkw index > isizek. Not writing."));
     }
     else if (indx < 0) {
-      return perferror(Str(X_1412,"zkw index < 0. Not writing."));
+      return perferror(Str("zkw index < 0. Not writing."));
     }
     else {
       /* Now write to the appropriate location in zk space.  */
@@ -2301,10 +2301,10 @@ int ziw(ENVIRON *csound, ZKW *p)
     if (zkset(csound,(ZKR*)p) == 0) return NOTOK;
     indx = (long) *p->ndx;
     if (indx > zklast) {
-      return perferror(Str(X_1413,"zkw index > isizek. Not writing."));
+      return perferror(Str("zkw index > isizek. Not writing."));
     }
     else if (indx < 0) {
-      return perferror(Str(X_1412,"zkw index < 0. Not writing."));
+      return perferror(Str("zkw index < 0. Not writing."));
     }
     else {
         /* Now write to the appropriate location in zk space. */
@@ -2328,10 +2328,10 @@ int zkwm(ENVIRON *csound, ZKWM *p)
     /* Check to see this index is within the limits of zk space.   */
     indx = (long) *p->ndx;
     if (indx > zklast) {
-      return perferror(Str(X_1415,"zkwm index > isizek. Not writing."));
+      return perferror(Str("zkwm index > isizek. Not writing."));
     }
     else if (indx < 0) {
-       return  perferror(Str(X_1414,"zkwm index < 0. Not writing."));
+       return  perferror(Str("zkwm index < 0. Not writing."));
     }
     else {
         /* Now write to the appropriate location in zk space.  */
@@ -2362,10 +2362,10 @@ int ziwm(ENVIRON *csound, ZKWM *p)
     if (zkset(csound,(ZKR*)p) == 0) return OK;
     indx = (long) *p->ndx;
     if (indx > zklast) {
-      return initerror(Str(X_1405,"ziwm index > isizek. Not writing."));
+      return initerror(Str("ziwm index > isizek. Not writing."));
     }
     else if (indx < 0) {
-      return initerror(Str(X_1404,"ziwm index < 0. Not writing."));
+      return initerror(Str("ziwm index < 0. Not writing."));
     }
     else {
       writeloc = zkstart + indx;
@@ -2407,7 +2407,7 @@ int zkmod(ENVIRON *csound, ZKMOD *p)
     /* Check to see this index is within the limits of zk space. */
 
     if (indx > zklast) {
-      return perferror(Str(X_1409,"zkmod kzkmod > isizek. Not writing."));
+      return perferror(Str("zkmod kzkmod > isizek. Not writing."));
     }
     else {
       /* Now read the value from zk space. */
@@ -2432,12 +2432,12 @@ int zkcl(ENVIRON *csound, ZKCL *p)
     /* Check to see both kfirst and klast are within the limits of zk space
      * and that last is >= first.                */
     if ((first > zklast) || (last > zklast))
-      return perferror(Str(X_1408,"zkcl first or last > isizek. Not clearing."));
+      return perferror(Str("zkcl first or last > isizek. Not clearing."));
     else if ((first < 0) || (last < 0)) {
-      return perferror(Str(X_1407,"zkcl first or last < 0. Not clearing."));
+      return perferror(Str("zkcl first or last < 0. Not clearing."));
     }
     else if (first > last) {
-      return perferror(Str(X_1406,"zkcl first > last. Not clearing."));
+      return perferror(Str("zkcl first > last. Not clearing."));
     }
     else {
           /* Now clear the appropriate locations in zk space. */
@@ -2461,7 +2461,7 @@ int zkcl(ENVIRON *csound, ZKCL *p)
 int zaset(ENVIRON *csound, ZAR *p)
 {
     if  (zastart == NULL) {
-      return initerror(Str(X_388,"No za space: zakinit has not been called yet."));
+      return initerror(Str("No za space: zakinit has not been called yet."));
     }
     else
       return (OK);
@@ -2488,13 +2488,13 @@ int zar(ENVIRON *csound, ZAR *p)
       do {
         *writeloc++ = FL(0.0);
       } while(--nsmps);
-      return perferror(Str(X_1395,"zar index > isizea. Returning 0."));
+      return perferror(Str("zar index > isizea. Returning 0."));
     }
     else if (indx < 0) {
       do {
         *writeloc++ = FL(0.0);
       } while(--nsmps);
-      return perferror(Str(X_1394,"zar index < 0. Returning 0."));
+      return perferror(Str("zar index < 0. Returning 0."));
     }
     else {
       /* Now read from the array in za space and write to the destination.
@@ -2529,14 +2529,14 @@ int zarg(ENVIRON *csound, ZARG *p)
       do {
         *writeloc++ = FL(0.0);
       } while(--nsmps);
-      return perferror(Str(X_1397,"zarg index > isizea. Returning 0."));
+      return perferror(Str("zarg index > isizea. Returning 0."));
     }
     else {
       if (indx < 0) {
         do {
           *writeloc++ = FL(0.0);
         } while(--nsmps);
-        return perferror(Str(X_1396,"zarg index < 0. Returning 0."));
+        return perferror(Str("zarg index < 0. Returning 0."));
       }
       else {
         /* Now read from the array in za space multiply by kgain and write
@@ -2567,10 +2567,10 @@ int zaw(ENVIRON *csound, ZAW *p)
     /* Check to see this index is within the limits of za space.     */
     indx = (long) *p->ndx;
     if (indx > zalast) {
-        return perferror(Str(X_1399,"zaw index > isizea. Not writing."));
+        return perferror(Str("zaw index > isizea. Not writing."));
     }
     else if (indx < 0) {
-        return perferror(Str(X_1398,"zaw index < 0. Not writing."));
+        return perferror(Str("zaw index < 0. Not writing."));
     }
     else {
         /* Now write to the array in za space pointed to by indx.    */
@@ -2602,10 +2602,10 @@ int zawm(ENVIRON *csound, ZAWM *p)
     /* Check to see this index is within the limits of za space.    */
     indx = (long) *p->ndx;
     if (indx > zalast) {
-      return perferror(Str(X_1399,"zaw index > isizea. Not writing."));
+      return perferror(Str("zaw index > isizea. Not writing."));
     }
     else if (indx < 0) {
-      return perferror(Str(X_1398,"zaw index < 0. Not writing."));
+      return perferror(Str("zaw index < 0. Not writing."));
     }
     else {
       /* Now write to the array in za space pointed to by indx.    */
@@ -2659,7 +2659,7 @@ int zamod(ENVIRON *csound, ZAMOD *p)
     }
     /* Check to see this index is within the limits of za space.    */
     if (indx > zalast) {
-      return perferror(Str(X_1393,"zamod kzamod > isizea. Not writing."));
+      return perferror(Str("zamod kzamod > isizea. Not writing."));
     }
     else {                      /* Now read the values from za space.    */
       readloc = zastart + (indx * ksmps);
@@ -2690,14 +2690,14 @@ int zacl(ENVIRON *csound, ZACL *p)
     /* Check to see both kfirst and klast are within the limits of za space
      * and that last is >= first.    */
     if ((first > zalast) || (last > zalast))
-      return perferror(Str(X_1390,"zacl first or last > isizea. Not clearing."));
+      return perferror(Str("zacl first or last > isizea. Not clearing."));
     else {
       if ((first < 0) || (last < 0)) {
-        return perferror(Str(X_1389,"zacl first or last < 0. Not clearing."));
+        return perferror(Str("zacl first or last < 0. Not clearing."));
       }
       else {
         if (first > last) {
-          return perferror(Str(X_1388,"zacl first > last. Not clearing."));
+          return perferror(Str("zacl first > last. Not clearing."));
         }
         else {  /* Now clear the appropriate locations in za space. */
           loopcount = (last - first + 1) * ksmps;
@@ -2761,7 +2761,7 @@ int instimset(ENVIRON *csound, RDTIME *p)
 
 /*  void instimset1(RDTIME *p) */
 /*  { */
-/*      printf(Str(X_243,"Deprecated opcode instime[ks].  Use timeinst[ks]\n")); */
+/*      printf(Str("Deprecated opcode instime[ks].  Use timeinst[ks]\n")); */
 /*      p->instartk = kcounter; */
 /*      *p->rslt = FL(0.0); */
 /*  } */
@@ -2853,7 +2853,7 @@ int printk(ENVIRON *csound, PRINTK *p)
          * printv() in disprep.c.
          */
         printf(" i%4d ", p->h.insdshead->insno);
-        printf(Str(X_1279,"time %11.5f:"), (MYFLT) kcounter * onedkr);
+        printf(Str("time %11.5f:"), (MYFLT) kcounter * onedkr);
         /* Print spaces and then the value we want to read.      */
         spcount = p->pspace + 1;
         do {
@@ -2908,7 +2908,7 @@ int printksset(ENVIRON *csound, PRINTKS *p)
 
     if (*p->ifilcod != SSTRCOD && p->STRARG==NULL && currevent->strarg==NULL) {
         sprintf(errmsg,
-                Str(X_1135,"printks parm 1 was not a \"quoted string\"\n"));
+                Str("printks parm 1 was not a \"quoted string\"\n"));
         return initerror(errmsg);
     }
     else {
@@ -3270,10 +3270,10 @@ int inz(ENVIRON *csound, IOZ *p)
     /* Check to see this index is within the limits of za space.     */
     indx = (long) *p->ndx;
     if (indx > zalast) {
-      return perferror(Str(X_1529,"inz index > isizea. Not writing."));
+      return perferror(Str("inz index > isizea. Not writing."));
     }
     else if (indx < 0) {
-      return perferror(Str(X_1530,"inz index < 0. Not writing."));
+      return perferror(Str("inz index < 0. Not writing."));
     }
     else {
       /* Now write to the array in za space pointed to by indx.    */
@@ -3300,10 +3300,10 @@ int outz(ENVIRON *csound, IOZ *p)
     /* Check to see this index is within the limits of za space.    */
     indx = (long) *p->ndx;
     if (indx > zalast) {
-      return perferror(Str(X_1531,"outz index > isizea. No output"));
+      return perferror(Str("outz index > isizea. No output"));
     }
     else if (indx < 0) {
-      return perferror(Str(X_1532,"outz index < 0. No output."));
+      return perferror(Str("outz index < 0. No output."));
     }
     /* Now read from the array in za space and write to the output. */
     readloc = zastart + (indx * ksmps);

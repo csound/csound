@@ -90,12 +90,12 @@ insert(ENVIRON *csound, int insno, EVTBLK *newevtp)
     inerrcnt = 0;
     tp = instrtxtp[insno];
     if (tp->muted==0) {
-      printf(Str(X_11,"Instrument %d muted\n"), insno);
+      printf(Str("Instrument %d muted\n"), insno);
       /*       if (O.odebug) printf("Instrument %d muted\n", insno); */
       return 0;
     }
     if (tp->mdepends & 04) {
-      printf(Str(X_925,
+      printf(Str(
                  "instr %d expects midi event data, cannot run from score\n"),
              insno);
       return(1);
@@ -117,7 +117,7 @@ insert(ENVIRON *csound, int insno, EVTBLK *newevtp)
       } while ((ip = ip->nxtinstance) != NULL);
     }
     /* RWD: screen writes badly slow down RT playback */
-    if (O.msglevel & 2) printf(Str(X_1013,"new alloc for instr %d:\n"),insno);
+    if (O.msglevel & 2) printf(Str("new alloc for instr %d:\n"),insno);
     ip = instance(insno);                   /* else alloc new dspace  */
 
  actlnk:
@@ -125,7 +125,7 @@ insert(ENVIRON *csound, int insno, EVTBLK *newevtp)
     if (cpu_power_busy > FL(100.0)) { /* if there is no more cpu processing time*/
       cpu_power_busy -= instrtxtp[insno]->cpuload;
       if (O.msglevel & WARNMSG)
-        printf(Str(X_26,
+        printf(Str(
                    "WARNING: cannot allocate last note because it exceeds "
                    "100%% of cpu time"));
       return(0);
@@ -135,7 +135,7 @@ insert(ENVIRON *csound, int insno, EVTBLK *newevtp)
         instrtxtp[insno]->maxalloc>0) {
       instrtxtp[insno]->active--;
       if (O.msglevel & WARNMSG)
-        printf(Str(X_27,
+        printf(Str(
                    "WARNING: cannot allocate last note because it exceeds instr maxalloc"));
       return(0);
     }
@@ -171,9 +171,9 @@ insert(ENVIRON *csound, int insno, EVTBLK *newevtp)
       }
       if ((n = tp->pmax) != newevtp->pcnt && !tp->psetdata &&
           (O.msglevel & WARNMSG)) {
-        sprintf(errmsg,Str(X_928,"instr %d uses %d p-fields but is given %d"),
+        sprintf(errmsg,Str("instr %d uses %d p-fields but is given %d"),
                 insno, n, newevtp->pcnt);
-        printf(Str(X_526,"WARNING: %s\n"), errmsg);
+        printf(Str("WARNING: %s\n"), errmsg);
       }
       if (newevtp->p3orig >= FL(0.0))
         ip->offbet = newevtp->p2orig + newevtp->p3orig;
@@ -225,7 +225,7 @@ int MIDIinsert(ENVIRON *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     if (cpu_power_busy > FL(100.0)) { /* if there is no more cpu processing time*/
       cpu_power_busy -= instrtxtp[insno]->cpuload;
       if (O.msglevel & WARNMSG)
-        printf(Str(X_26,
+        printf(Str(
                    "WARNING: cannot allocate last note because "
                    "it exceeds 100%% of cpu time"));
       return(0);
@@ -263,7 +263,7 @@ int MIDIinsert(ENVIRON *csound, int insno, MCHNBLK *chn, MEVENT *mep)
           goto actlnk;                    /*      then use its space  */
       } while ((ip = ip->nxtinstance) != NULL);
     }
-    printf(Str(X_1013,"new alloc for instr %d:\n"),insno);
+    printf(Str("new alloc for instr %d:\n"),insno);
     ip = instance(insno);                 /* else alloc new dspace  */
 
  actlnk:
@@ -272,7 +272,7 @@ int MIDIinsert(ENVIRON *csound, int insno, MCHNBLK *chn, MEVENT *mep)
         instrtxtp[insno]->maxalloc>0) {
       instrtxtp[insno]->active--;
       if (O.msglevel & WARNMSG)
-        printf(Str(X_27,
+        printf(Str(
                    "WARNING: cannot allocate last note because "
                    "it exceeds instr maxalloc"));
       return(0);
@@ -295,9 +295,9 @@ int MIDIinsert(ENVIRON *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     ip->actflg++;            /*    and mark the instr active */
     if (tp->pmax > 3 && tp->psetdata==NULL &&
         (O.msglevel & WARNMSG)) {
-      sprintf(errmsg,Str(X_927,"instr %d p%d illegal for MIDI"),
+      sprintf(errmsg,Str("instr %d p%d illegal for MIDI"),
               insno, tp->pmax);
-      printf(Str(X_526,"WARNING: %s\n"), errmsg);
+      printf(Str("WARNING: %s\n"), errmsg);
     }
     ip->m_chnbp = chn;       /* rec address of chnl ctrl blk */
     *ipp = ip;               /* insds ptr for quick midi-off */
@@ -580,7 +580,7 @@ void orcompact(ENVIRON *csound)         /* free all inactive instr spaces */
       }
       txtp->act_instance = NULL;                /* no free instances */
     }
-    printf(Str(X_897,"inactive allocs returned to freespace\n"));
+    printf(Str("inactive allocs returned to freespace\n"));
 }
 
 void infoff(MYFLT p1)           /*  turn off an indef copy of instr p1  */
@@ -634,7 +634,7 @@ void infoff(MYFLT p1)           /*  turn off an indef copy of instr p1  */
         }
       } while ((ip = ip->nxtinstance) != NULL);
     }
-    printf(Str(X_669,"could not find indefinitely playing instr %d\n"),insno);
+    printf(Str("could not find indefinitely playing instr %d\n"),insno);
 }
 
 #ifdef never
@@ -715,7 +715,7 @@ int initerror(char *s)
 
     /* RWD: need this! */
     if (ids==NULL) {
-      dies(Str(X_551,"\nINIT ERROR: %s\n"),s);
+      dies(Str("\nINIT ERROR: %s\n"),s);
     }
     /* IV - Oct 16 2002: check for subinstr and user opcode */
     ip = ids->insdshead;
@@ -725,14 +725,14 @@ int initerror(char *s)
       while (ip->opcod_iobufs)
         ip = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->parent_ip;
       if (buf->opcode_info)
-        printf(Str(X_1798,"INIT ERROR in instr %d (opcode %s): %s\n"),
+        printf(Str("INIT ERROR in instr %d (opcode %s): %s\n"),
                ip->insno, buf->opcode_info->name, s);
       else
-        printf(Str(X_1799,"INIT ERROR in instr %d (subinstr %d): %s\n"),
+        printf(Str("INIT ERROR in instr %d (subinstr %d): %s\n"),
                ip->insno, ids->insdshead->insno, s);
     }
     else
-      printf(Str(X_299,"INIT ERROR in instr %d: %s\n"), ip->insno, s);
+      printf(Str("INIT ERROR in instr %d: %s\n"), ip->insno, s);
     putop(&ids->optext->t);
     inerrcnt++;
     return inerrcnt;
@@ -744,7 +744,7 @@ int perferror(char *s)
 
     /*RWD and probably this too... */
     if (pds==NULL) {
-      dies(Str(X_553,"\nPERF ERROR: %s\n"),s);
+      dies(Str("\nPERF ERROR: %s\n"),s);
     }
     /* IV - Oct 16 2002: check for subinstr and user opcode */
     ip = pds->insdshead;
@@ -754,16 +754,16 @@ int perferror(char *s)
       while (ip->opcod_iobufs)
         ip = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->parent_ip;
       if (buf->opcode_info)
-        printf(Str(X_1800,"PERF ERROR in instr %d (opcode %s): %s\n"),
+        printf(Str("PERF ERROR in instr %d (opcode %s): %s\n"),
                ip->insno, buf->opcode_info->name, s);
       else
-        printf(Str(X_1801,"PERF ERROR in instr %d (subinstr %d): %s\n"),
+        printf(Str("PERF ERROR in instr %d (subinstr %d): %s\n"),
                ip->insno, pds->insdshead->insno, s);
     }
     else
-      printf(Str(X_403,"PERF ERROR in instr %d: %s\n"), ip->insno, s);
+      printf(Str("PERF ERROR in instr %d: %s\n"), ip->insno, s);
     putop(&pds->optext->t);
-    printf(Str(X_7,"   note aborted\n"));
+    printf(Str("   note aborted\n"));
     perferrcnt++;
     deact(ip);                                /* rm ins fr actlist */
     while (pds->nxtp != NULL)
@@ -817,7 +817,7 @@ int timset(ENVIRON *csound, TIMOUT *p)
 {
     if ((p->cnt1 = (long)(*p->idel * ekr + FL(0.5))) < 0L
         || (p->cnt2 = (long)(*p->idur * ekr + FL(0.5))) < 0L)
-      return initerror(Str(X_1012,"negative time period"));
+      return initerror(Str("negative time period"));
     return OK;
 }
 
@@ -884,7 +884,7 @@ int subinstrset(ENVIRON *csound, SUBINST *p)
     if ((instno = strarg2insno(p->ar[inarg_ofs], p->STRARG)) < 0) return OK;
     /* IV - Oct 9 2002: need this check */
     if (!init_op && p->OUTOCOUNT > nchnls) {
-      return initerror(Str(X_1802,"subinstr: number of output args grester than nchnls"));
+      return initerror(Str("subinstr: number of output args grester than nchnls"));
     }
     /* IV - Oct 9 2002: copied this code from useropcdset() to fix some bugs */
     if (!(reinitflag | tieflag)) {
@@ -920,7 +920,7 @@ int subinstrset(ENVIRON *csound, SUBINST *p)
     flp = &p->ip->p3 + 1;
     /* by default all inputs are i-rate mapped to p-fields */
     if (p->INOCOUNT > (instrtxtp[instno]->pmax + 1)) {  /* IV - Nov 10 2002 */
-      return initerror(Str(X_1803,"subinstr: too many p-fields"));
+      return initerror(Str("subinstr: too many p-fields"));
     }
     for (n = 1; n < p->INOCOUNT; n++)
       *flp++ = *p->ar[inarg_ofs + n];
@@ -974,7 +974,7 @@ int useropcdset(ENVIRON *csound, UOPCODE *p)
     if (*(p->ar[n]) != FL(0.0)) {
       i = (int) *(p->ar[n]);
       if (i < 1 || i > ksmps || ((ksmps / i) * i) != ksmps) {
-        sprintf(errmsg, Str(X_1729, "%s: invalid local ksmps value: %d"),
+        sprintf(errmsg, Str("%s: invalid local ksmps value: %d"),
                 inm->name, i);
         return initerror(errmsg);
       }
@@ -1087,7 +1087,7 @@ int useropcdset(ENVIRON *csound, UOPCODE *p)
 
 int useropcd(ENVIRON *csound, UOPCODE *p)
 {
-    sprintf(errmsg, Str(X_1730, "%s: not initialised"), p->h.optext->t.opcod);
+    sprintf(errmsg, Str("%s: not initialised"), p->h.optext->t.opcod);
     return perferror(errmsg);
 }
 
@@ -1112,7 +1112,7 @@ int xinset(ENVIRON *csound, XIN *p)
     /* find a-rate variables and add to list of perf-time buf ptrs ... */
     tmp = buf->iobufp_ptrs;
     if (*tmp || *(tmp + 1)) {
-      return initerror(Str(X_1734,"xin was already used in this opcode definition"));
+      return initerror(Str("xin was already used in this opcode definition"));
     }
     while (*++ndx_list >= 0) {
       *(tmp++) = *(bufs + *ndx_list);   /* "from" address */
@@ -1151,7 +1151,7 @@ int xoutset(ENVIRON *csound, XOUT *p)
     if (*tmp || *(tmp + 1)) tmp += (inm->perf_incnt << 1);
     tmp += 2;
     if (*tmp || *(tmp + 1)) {
-      return initerror(Str(X_1738,"xout was already used in this opcode definition"));
+      return initerror(Str("xout was already used in this opcode definition"));
     }
     /* find a-rate variables and add to list of perf-time buf ptrs ... */
     while (*++ndx_list >= 0) {
@@ -1181,7 +1181,7 @@ int setksmpsset(ENVIRON *csound, SETKSMPS *p)
     if (!l_ksmps) return OK;       /* zero: do not change */
     if (l_ksmps < 1 || l_ksmps > ksmps
         || ((ksmps / l_ksmps) * l_ksmps != ksmps)) {
-      sprintf(errmsg, Str(X_1750,"setksmps: invalid ksmps value: %d"), l_ksmps);
+      sprintf(errmsg, Str("setksmps: invalid ksmps value: %d"), l_ksmps);
       return initerror(errmsg);
     }
     /* set up global variables according to the new ksmps value */
@@ -1233,7 +1233,7 @@ INSDS *insert_event(ENVIRON *csound,
 
     inerrcnt = tieflag = reinitflag = 0;        /* IV - Nov 16 2002 */
     if (instrtxtp[insno] == NULL) {
-      printf(Str(X_1177,"schedule event ignored. instr %d undefined\n"), insno);
+      printf(Str("schedule event ignored. instr %d undefined\n"), insno);
       perferrcnt++;
       goto endsched;            /* IV - Nov 16 2002 */
     }
@@ -1241,7 +1241,7 @@ INSDS *insert_event(ENVIRON *csound,
     if (O.odebug) printf("activating instr %d\n",insno);
     tp = instrtxtp[insno];
     if (tp->mdepends & 04) {
-      printf(Str(X_925,
+      printf(Str(
                  "instr %d expects midi event data, cannot run from score\n"),
              insno);
       perferrcnt++;
@@ -1264,7 +1264,7 @@ INSDS *insert_event(ENVIRON *csound,
       } while ((ip = ip->nxtinstance) != NULL);
     }
 
-    if (O.msglevel & 2) printf(Str(X_1013,"new alloc for instr %d:\n"),insno);
+    if (O.msglevel & 2) printf(Str("new alloc for instr %d:\n"),insno);
     ip = instance(insno);     /* else alloc new dspace  */
 
  actlnk:
@@ -1272,7 +1272,7 @@ INSDS *insert_event(ENVIRON *csound,
     if (cpu_power_busy > 100.0) { /* if there is no more cpu processing time*/
       cpu_power_busy -= tp->cpuload;
       if (O.msglevel & WARNMSG)
-        printf(Str(X_26,
+        printf(Str(
                    "WARNING: cannot allocate last note because it exceeds"
                    " 100%% of cpu time"));
       ip = NULL; goto endsched;
@@ -1281,7 +1281,7 @@ INSDS *insert_event(ENVIRON *csound,
     if (tp->active++ > tp->maxalloc && tp->maxalloc > 0) {
       tp->active--;
       if (O.msglevel & WARNMSG)
-        printf(Str(X_27,
+        printf(Str(
                    "WARNING: cannot allocate last note because it exceeds"
                    " instr maxalloc"));
       ip = NULL; goto endsched;
@@ -1305,23 +1305,23 @@ INSDS *insert_event(ENVIRON *csound,
       MYFLT  *flp;
       if ((int) tp->pmax != pcnt &&
           (O.msglevel & WARNMSG)) {
-        sprintf(errmsg,Str(X_928,"instr %d pmax = %d, note pcnt = %d"),
+        sprintf(errmsg,Str("instr %d pmax = %d, note pcnt = %d"),
                 insno, (int) tp->pmax, pcnt);
-        printf(Str(X_526,"WARNING: %s\n"), errmsg);
+        printf(Str("WARNING: %s\n"), errmsg);
       }
       ip->offbet = (dur >= FL(0.0) ? when + dur : FL(-1.0));
       ip->p1 = instr;
       ip->p2 = when;
       ip->p3 = dur;
       flp = &(ip->p1) + 3;
-      if (O.odebug) printf(Str(X_1137,"psave beg at %p\n"),flp);
+      if (O.odebug) printf(Str("psave beg at %p\n"),flp);
       for (i = 0; i < imax; i++) {
         if (i < narg )
           *flp++ = *(args[i]);
         else
           *flp++ = FL(0.0);
       }
-      if (O.odebug) printf(Str(X_6,"   ending at %p\n"),flp);
+      if (O.odebug) printf(Str("   ending at %p\n"),flp);
     }
     ip->offtim = ip->p3;      /* & duplicate p3 for now */
     ip->xtratim = 0;
@@ -1435,7 +1435,7 @@ int subinstr(ENVIRON *csound, SUBINST *p)
     long    frame, chan;
 
     if (p->ip == NULL) {                /* IV - Oct 26 2002 */
-      return perferror(Str(X_1804,"subinstr: not initialised"));
+      return perferror(Str("subinstr: not initialised"));
     }
     /* copy current spout buffer and clear it */
     spout = (MYFLT*) p->saved_spout.auxp;

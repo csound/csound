@@ -53,13 +53,13 @@ int scot(FILE *inf,FILE *outf, char *fil) /* main externally-visible procedure *
 
     initf(inf,outf,fil);
     if (findword(s) || strcmp(s,"orchestra"))
-      scotferror(Str(X_456,"Score must start with orchestra section"));
+      scotferror(Str("Score must start with orchestra section"));
     readorch(&insttop);
     for (;;) {
       if (findword(s)) break;
       if (!strcmp(s,"functions")) readfunctions();
       else if (!strcmp(s,"score")) readscore(insttop);
-      else scotferror(Str(X_261,"Expected score or functions section"));
+      else scotferror(Str("Expected score or functions section"));
     }
     fputs("e\n",outfile);
     while (insttop) {
@@ -118,11 +118,11 @@ void readinstsec(
       switch (c) {
       case 't':
         if (findint(&c)) {
-          scoterror(Str(X_487,"Tempo must be specified"));
+          scoterror(Str("Tempo must be specified"));
           break;
         }
         if ((*tempop)->next) {
-          scoterror(Str(X_442,"Redefinition of tempo"));
+          scoterror(Str("Redefinition of tempo"));
           break;
         }
         (*tempop)->next = (Tempo *) malloc(sizeof(Tempo));
@@ -134,10 +134,10 @@ void readinstsec(
       case '!':
         efindword(s);
         if ((c=strlen(s))<2)
-          scoterror(Str(X_350,"Must specify 2 or more letters of keyword"));
+          scoterror(Str("Must specify 2 or more letters of keyword"));
         if (!strncmp(s,"accidentals",c)) {
           if (findonoff(accidentals))
-            scoterror(Str(X_349,"Must be \"on\" or \"off\""));
+            scoterror(Str("Must be \"on\" or \"off\""));
 
 #ifdef DEBUG
           printf(" accidentals %s\n",accidentals ? "on" : "off");
@@ -146,7 +146,7 @@ void readinstsec(
         }
         else if (!strncmp(s, "octaves",c)) {
           if (findonoff(octaves))
-            scoterror(Str(X_349,"Must be \"on\" or \"off\""));
+            scoterror(Str("Must be \"on\" or \"off\""));
 
 #ifdef DEBUG
           printf(" ocatves %s\n",*octaves ? "on" : "off");
@@ -155,7 +155,7 @@ void readinstsec(
         }
         else if (!strncmp(s,"vertical",c)) {
           if (findonoff(vertical))
-            scoterror(Str(X_349,"Must be \"on\" or \"off\""));
+            scoterror(Str("Must be \"on\" or \"off\""));
 
 #ifdef DEBUG
           printf(" vertical %s\n",*vertical ? "on" : "off");
@@ -166,7 +166,7 @@ void readinstsec(
           efindword(s);
           if ((sscanf(s,"%lu/%lu",&timesig->num,&timesig->denom)!=2) ||
               (&timesig->denom==0)) {
-            scoterror(Str(X_318,"Invalid time signature"));
+            scoterror(Str("Invalid time signature"));
             timesig->num=0;
             timesig->denom=1;
           }
@@ -200,7 +200,7 @@ void readinstsec(
               y--;
               break;
             default:
-              if (!isalpha(s[z])) scoterror(Str(X_193,"Bad key signature"));
+              if (!isalpha(s[z])) scoterror(Str("Bad key signature"));
               key[letterval((int) s[z])]=c;
               y=0;
             }
@@ -234,13 +234,13 @@ void readinstsec(
         else if (!strncmp(s,"next",c)) {
           efindword(s);
           if (sscanf(s,"p%d",&c)!=1) {
-            scoterror(Str(X_314,"Invalid field"));
+            scoterror(Str("Invalid field"));
             efindword(s);
             break;
           }
           efindword(s);
           if (sscanf(s,"p%d",&z)!=1) {
-            scoterror(Str(X_314,"Invalid field"));
+            scoterror(Str("Invalid field"));
             break;
           }
           if (*nextlist==NULL) {
@@ -251,11 +251,11 @@ void readinstsec(
           else {
             nextpp=(*nextlist);
             if ((c==nextpp->dst) || (z==nextpp->src))
-              scoterror(Str(X_357,"Nested next-parameter passing"));
+              scoterror(Str("Nested next-parameter passing"));
             while (nextpp->next) {
               nextpp=nextpp->next;
               if ((c==nextpp->dst) || (z==nextpp->src))
-                scoterror(Str(X_357,"Nested next-parameter passing"));
+                scoterror(Str("Nested next-parameter passing"));
             }
             nextpp->next=(Nextp *) malloc(sizeof(Nextp));
             nextpp=nextpp->next;
@@ -264,7 +264,7 @@ void readinstsec(
           nextpp->src=c;
           nextpp->dst=z;
         }
-        else scoterror(Str(X_515,"Unrecognised keyword"));
+        else scoterror(Str("Unrecognised keyword"));
         break;
       case '{':
         findint(&c);
@@ -312,14 +312,14 @@ void readinstsec(
       case '/':
         ratadd(lastbar,lastbar,timesig);
         if ((timesig->num) && (ratcmp(lastbar,curtime))) {
-          scoterror(Str(X_540,"Wrong number of beats in bar"));
+          scoterror(Str("Wrong number of beats in bar"));
           ratass(lastbar,curtime);
         }
         for (z=0;z<PITCHCLASSES;z++) barkey[z]=key[z];
         break;
       case '<':
         if (pn==NULL) {
-          scoterror(Str(X_475,"Syntax error: cannot back up"));
+          scoterror(Str("Syntax error: cannot back up"));
           break;
         }
         if (pn->next==NULL) {
@@ -472,13 +472,13 @@ void readinstsec(
 
         if (pn->tie) {
           ratadd(&rattmp,&pn->start,&pn->dur);
-          if (ratcmp(&rattmp,curtime)) scoterror(Str(X_304,"Improper tie"));
+          if (ratcmp(&rattmp,curtime)) scoterror(Str("Improper tie"));
           if (((nn->octave != pn->octave) ||
                (nn->pitchclass != pn->pitchclass) ||
                ((nn->accid != pn->accid) && (nn->accmod))) &&
               (pitchval(nn->octave,nn->pitchclass,nn->accid,*transpose) !=
                pitchval(pn->octave,pn->pitchclass,pn->accid,*transpose)))
-            scoterror(Str(X_491,"Tie between different pitches"));
+            scoterror(Str("Tie between different pitches"));
           ratadd(&pn->dur,&pn->dur,&nn->dur);
           ratass(&pn->lastdur,&nn->lastdur);
           pn->slur+=nn->slur;
@@ -486,7 +486,7 @@ void readinstsec(
           freenote(nn);
           nn=pn;
           if (c==(char) '[')
-            scoterror(Str(X_534,"Warning: params changed on tie"));
+            scoterror(Str("Warning: params changed on tie"));
         }
         else {
           ps=nn->p=(Strlist *) malloc(sizeof(Strlist));
@@ -533,7 +533,7 @@ void readinstsec(
             while (strchr(" \t\r\n",(int) pars[z])) z++;
             if (pars[z]==(char) ':') {
               pnum=atoi(s);
-              if (pnum<6) scoterror(Str(X_422,"Parameter number out of range"));
+              if (pnum<6) scoterror(Str("Parameter number out of range"));
               z++;
               while (strchr(" \t\r\n",(int) pars[z])) z++;
               continue;
@@ -589,7 +589,7 @@ void readinstsec(
         if ((!(*nextlist)) && (!nn->tie)) writenote(nn);
         if (nn!=pn) {
           if (!pn->written)
-            scoterror(Str(X_330,"Lost previous note: not written"));
+            scoterror(Str("Lost previous note: not written"));
 
 #ifdef DEBUG
           if (pn->next==nn) printf("* pn->next==nn\n");
@@ -705,7 +705,7 @@ int applymacs(char **s, Inst *n) /* returns TRUE if substituted */
     nz=(-1);
     for (sz=0;(*s)[sz];sz++) {
       if (sz>=300) {
-        scoterror(Str(X_342,"Macro expansion too long -- circular macros?"));
+        scoterror(Str("Macro expansion too long -- circular macros?"));
         return FALSE;
       }
       news[sz]=(*s)[sz];
@@ -780,7 +780,7 @@ void readscore(Inst *insttop)
 #endif
 
     maxtime=0.0;
-    if (expectchar('{')) scotferror(Str(X_478,"Syntax error: no {"));
+    if (expectchar('{')) scotferror(Str("Syntax error: no {"));
     tempotop=(Tempo *) malloc(sizeof(Tempo));
     tempotop->time.num=0; tempotop->time.denom=1;
     tempotop->val=60;
@@ -789,10 +789,10 @@ void readscore(Inst *insttop)
       tempop=tempotop;
       efindword(s);
       if (s[0]=='}') break;
-      if (s[0]!='$') scotferror(Str(X_366,"No instrument specified"));
+      if (s[0]!='$') scotferror(Str("No instrument specified"));
       p=insttop;
       while ((p!=NULL) && (strcmp(&s[1],p->name))) p=p->next;
-      if (p==NULL) scotferror(Str(X_311,"Instrument not defined"));
+      if (p==NULL) scotferror(Str("Instrument not defined"));
       notetop=ln=NULL;
       grpmul.num=1; grpmul.denom=1;
       timesig.num=0; timesig.denom=1;
@@ -820,13 +820,13 @@ void readscore(Inst *insttop)
           }
           writenote(pn);
         }
-        if (pn->tie) scoterror(Str(X_1355,"unresolved tie"));
-        if (pn->slur & 1) scoterror(Str(X_1354,"unresolved slur"));
+        if (pn->tie) scoterror(Str("unresolved tie"));
+        if (pn->slur & 1) scoterror(Str("unresolved slur"));
         ratadd(&rattmp,&pn->start,&pn->dur);
         if (ratcmp(&rattmp,&curtime)>0) ratass(&curtime,&rattmp);
 
 #ifdef DEBUG
-        if (pn==pn->next) scotferror(Str(X_219,"Circular note list\n"));
+        if (pn==pn->next) scotferror(Str("Circular note list\n"));
 #endif
 
       }
@@ -867,9 +867,9 @@ void readfunctions(void)
     printf("Reading function section\n");
 #endif
 
-    if (expectchar('{')) scotferror(Str(X_478,"Syntax error: no {"));
+    if (expectchar('{')) scotferror(Str("Syntax error: no {"));
     for (;;) {
-      if ((c=getccom())==EOF) scotferror(Str(X_506,"Unexpected end of file"));
+      if ((c=getccom())==EOF) scotferror(Str("Unexpected end of file"));
       if (c=='}') {
         putc('\n',outfile);
         return;
@@ -890,7 +890,7 @@ void readorch(Inst **insttopp)
 #endif
 
     gmac=NULL;
-    if (expectchar('{')) scotferror(Str(X_478,"Syntax error: no {"));
+    if (expectchar('{')) scotferror(Str("Syntax error: no {"));
     p=(*insttopp)=(Inst *) malloc(sizeof(Inst));
     p->lmac=NULL;
     for (;;) {
@@ -908,9 +908,9 @@ void readorch(Inst **insttopp)
       printf("Instrument name: %s ",p->name);
 #endif
 
-      if (expectchar('=')) scoterror(Str(X_476,"Syntax error: no ="));
+      if (expectchar('=')) scoterror(Str("Syntax error: no ="));
       if (findint((int *)&p->number))
-        scoterror(Str(X_477,"Syntax error: no number"));
+        scoterror(Str("Syntax error: no number"));
 
 #ifdef DEBUG
       printf(" number: %d\n",p->number);
@@ -921,7 +921,7 @@ void readorch(Inst **insttopp)
       p       = p->next;
       p->lmac = NULL;
     }
-    if (p==*insttopp) scotferror(Str(X_367,"No instruments declared"));
+    if (p==*insttopp) scotferror(Str("No instruments declared"));
     free((char *)p);
     q->next=NULL;
 }
@@ -941,7 +941,7 @@ void readmacros(Macro **mtop)
     for (;;) {
       q=p;
       if (p->name[0]==(char) ']') break;
-      if (expectchar('=')) scoterror(Str(X_260,"Expected ="));
+      if (expectchar('=')) scoterror(Str("Expected ="));
       efindword(p->text);
 
 #ifdef DEBUG
@@ -979,7 +979,7 @@ int findchar(int *ip)
     int c;
 
     do {
-      if ((c=getccom())==EOF) scotferror(Str(X_506,"Unexpected end of file"));
+      if ((c=getccom())==EOF) scotferror(Str("Unexpected end of file"));
     } while (strchr(" \t\r\n",c));
     *ip=c;
     return FALSE;
@@ -994,13 +994,13 @@ int findint(int *ip)
     t=TRUE;
     *ip=0;
     do {
-      if ((c=getccom())==EOF) scotferror(Str(X_506,"Unexpected end of file"));
+      if ((c=getccom())==EOF) scotferror(Str("Unexpected end of file"));
     } while (strchr(" \t\r\n",c));
     while (isdigit(c)) {
       t=FALSE;
       *ip*=10;
       *ip+=(c-'0');
-      if ((c=getccom())==EOF) scotferror(Str(X_506,"Unexpected end of file"));
+      if ((c=getccom())==EOF) scotferror(Str("Unexpected end of file"));
     }
     scotungetc();
     return t;
@@ -1028,7 +1028,7 @@ int findonoff(int *ip)
 static
 void efindword(char *s)
 {
-    if (findword(s)) scotferror(Str(X_506,"Unexpected end of file"));
+    if (findword(s)) scotferror(Str("Unexpected end of file"));
 }
 
 
@@ -1095,7 +1095,7 @@ int letterval(int c)
     case 'g':
       return 4;
     default:
-      scoterror(Str(X_316,"Invalid pitch class"));
+      scoterror(Str("Invalid pitch class"));
       return 0;
     }
 }
@@ -1242,7 +1242,7 @@ static
 double ratval(Rat *r)           /* evaluate r */
 {
     if (!r->denom) {
-      scoterror(Str(X_246,"Division by zero"));
+      scoterror(Str("Division by zero"));
       return (double) 1.0;
     }
     return (double) r->num/(double) r->denom;
@@ -1259,7 +1259,7 @@ void ratreduce(Rat *r)          /* reduce r */
       return;
     }
     if (!r->denom) {
-      scoterror(Str(X_246,"Division by zero"));
+      scoterror(Str("Division by zero"));
       return;
     }
     if (r->num > r->denom) {
@@ -1318,7 +1318,7 @@ static
 void ratdiv(Rat *d,Rat *a1,Rat *a2)             /* d=a1/a2; OK if d=a1=a2 */
 {
     if (!a2->num) {
-      scoterror(Str(X_246,"Division by zero"));
+      scoterror(Str("Division by zero"));
       ratass(d,a1);
       return;
     }
@@ -1416,7 +1416,7 @@ static                          /* fatal error */
 void scotferror(char *s)
 {
     scoterror(s);
-    fprintf(stderr,Str(X_1180,"scot processing terminated\n"));
+    fprintf(stderr,Str("scot processing terminated\n"));
     reporterrcount();
     exit(1);
 }
@@ -1425,5 +1425,5 @@ void scotferror(char *s)
 static
 void reporterrcount(void)
 {
-    fprintf(stderr,Str(X_1181,"scot: %d errors.\n"),errcount);
+    fprintf(stderr,Str("scot: %d errors.\n"),errcount);
 }
