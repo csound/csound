@@ -12,9 +12,7 @@ T = ../..
 INC = ../../H
 
 OBJS =  cvl_main.@OBJEXT@ $T/cvanal.@OBJEXT@ $T/fft.@OBJEXT@ $T/dsputil.@OBJEXT@ \
-	$T/filopen.@OBJEXT@ $T/sfheader.@OBJEXT@ $T/soundin.@OBJEXT@ \
-	$T/aiff.@OBJEXT@ $T/ieee80.@OBJEXT@ $T/memalloc.@OBJEXT@ \
-	$T/wave.@OBJEXT@ $T/window.@OBJEXT@ $T/aifc.@OBJEXT@ \
+	$T/filopen.@OBJEXT@ $T/memalloc.@OBJEXT@ $T/window.@OBJEXT@ \
 	$T/getstring.@OBJEXT@ $T/winFLTK.@OBJEXT@ $T/FL_graph.@OBJEXT@ \
 	$T/winEPS.@OBJEXT@ $T/winascii.@OBJEXT@ 
 

@@ -48,6 +48,10 @@
 #define FIND(MSG)   if (*s == '\0')  \
                         if (!(--argc) || ((s = *++argv) && *s == '-')) \
                             die(MSG);
+void *memfiles = NULL;
+void rlsmemfiles(void)
+{
+}
 
 long        sample;         /* Time file starts in samples */
 long	    stop;           /* Time file ends in samples */

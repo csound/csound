@@ -188,7 +188,7 @@ extern  long     getsndin(int, MYFLT*, long, SOUNDIN*);
             }
           else break;
         } while (--argc);
-        
+
         if (argc != 2)  quit(Str(X_907,"incorrect number of filenames"));
         infilnam = *argv++;
         outfilnam = *argv;
@@ -207,6 +207,7 @@ extern  long     getsndin(int, MYFLT*, long, SOUNDIN*);
         nsamps = p->getframes;
         auxp = (MYFLT*)mmalloc(nsamps * sizeof(MYFLT));   /* alloc for MYFLTs */
         if ((smpsin = getsndin(infd,auxp,nsamps,p)) <= 0) { /* & read them in */
+          printf("smpsin = %d\n", smpsin);
             sprintf(errmsg,Str(X_439,"Read error on %s\n"), retfilnam);
             quit(errmsg);
         }
@@ -220,8 +221,7 @@ extern  long     getsndin(int, MYFLT*, long, SOUNDIN*);
             quit(Str(X_1085,"number of output points is too great"));
         }
         else
-          if (num_pts > 32767 || num_pts >= nsamps - windsiz)
-            quit(Str(X_1085,"number of output points is too great"));
+          if (num_pts > 32767 || num_pts >= nsamps - windsiz)            quit(Str(X_1085,"number of output points is too great"));
         delta_t = FL(1.0)/sr;
         t = FL(1.0)/fund_est;
         outdelta_t = (MYFLT)num_pts / (smpsin - windsiz);

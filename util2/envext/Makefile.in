@@ -12,10 +12,8 @@ T = ../..
 
 INC = ../..
 
-OBJS =	$T/sndinfo.$OBJEXT$ $T/filopen.$OBJEXT$ $T/sfheader.$OBJEXT$ \
-	$T/soundin.$OBJEXT$ $T/memalloc.$OBJEXT$ $T/wave.$OBJEXT$ \
-	$T/aiff.$OBJEXT$ $T/aifc.$OBJEXT$ $T/ieee80.$OBJEXT$ \
-	$T/ulaw.$OBJEXT$ $T/getstring.$OBJEXT$
+OBJS =	$T/sndinfo.$OBJEXT$ $T/filopen.$OBJEXT$ $T/memalloc.$OBJEXT$ \
+	$T/linsnd_u.$OBJEXT$ $T/getstring.$OBJEXT$
 
 envext:		envext.$OBJEXT$ $(OBJS)
 		@CC@ $(CFLAGS) envext.$OBJEXT$ $(OBJS) -lm -o envext

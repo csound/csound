@@ -28,6 +28,14 @@
 #include "fout.h"
 #include <ctype.h>
 
+#ifdef  USE_DOUBLE
+#define sf_write_MYFLT	sf_write_double
+#define sf_read_MYFLT	sf_read_double
+#else
+#define sf_write_MYFLT	sf_write_float
+#define sf_read_MYFLT	sf_read_float
+#endif
+
 struct fileinTag {
     SNDFILE* file;
     char  *name;
@@ -43,12 +51,12 @@ static void close_files(void)
 {
     while (file_num>=0) {
       printf("%d (%s):", file_num, file_opened[file_num].name);
-      fflush(file_opened[file_num].file);
+/*       fflush(file_opened[file_num].file); */
       if (file_opened[file_num].hdr) {
         rewriteheader(file_opened[file_num].file,
                       /*file_opened[file_num].cnt,*/ 1);
       }
-      fclose(file_opened[file_num].file);
+      sf_close(file_opened[file_num].file);
       file_num--;
       printf("\n");
     }
@@ -60,7 +68,7 @@ static int outfile_float(OUTFILE *p)
     MYFLT **args = p->argums;
     do {
       for (j = 0;j< nargs;j++)
-        fwrite(&(args[j][k]), sizeof(MYFLT), 1, p->fp);
+        sf_write_MYFLT(p->fp, &(args[j][k]), 1);
       k++;
     } while (--nsmps);
     return OK;
@@ -75,7 +83,7 @@ static int outfile_int(OUTFILE *p)
     do {
       for (j = 0;j< nargs;j++) {
         tmp = (short)    args[j][k];
-        fwrite(&tmp, sizeof(short), 1, p->fp);
+        sf_write_MYFLT(p->fp,&tmp, 1);
       }
       k++;
     } while (--nsmps);
@@ -90,7 +98,7 @@ static int outfile_int_head(OUTFILE *p)
     do {
       for (j = 0;j< nargs;j++) {
         short tmp = (short) args[j][k];
-        fwrite(&tmp, sizeof(short), 1, p->fp);
+        sf_write_MYFLT(p->fp, &tmp, 1);
       }
       k++;
     } while (--nsmps);
@@ -177,8 +185,7 @@ static int koutfile_float (KOUTFILE *p)
     int j, nargs = p->nargs;
     MYFLT **args = p->argums;
     for (j = 0;j< nargs;j++) {
-      float tmp = (float) *args[j];
-      fwrite(&tmp, sizeof(float), 1, p->fp);
+      sf_write_MYFLT(p->fp, args[j],1);
     }
     return OK;
 }

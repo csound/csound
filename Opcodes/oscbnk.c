@@ -1,4 +1,4 @@
-/*  
+/*
     oscbnk.c:
 
     Copyright (C) 2002 Istvan Varga
