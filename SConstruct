@@ -251,12 +251,9 @@ Engine/sort.c
 Engine/sread.c
 Engine/swrite.c
 Engine/twarp.c
-InOut/ieee80.c
 InOut/libsnd.c
 InOut/libsnd_u.c
 InOut/sfheader.c
-InOut/soundin.c
-InOut/soundio.c
 InOut/winascii.c
 InOut/windin.c
 InOut/window.c
@@ -356,12 +353,9 @@ Engine/sort.c
 Engine/sread.c 
 Engine/swrite.c 
 Engine/twarp.c 
-InOut/ieee80.c 
 InOut/libsnd.c 
 InOut/libsnd_u.c
 InOut/sfheader.c 
-InOut/soundin.c 
-InOut/soundio.c 
 InOut/winascii.c 
 InOut/window.c 
 InOut/winEPS.c 
