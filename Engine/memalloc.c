@@ -63,7 +63,7 @@ void *mmalloc(void *csound, size_t size)
 #ifdef NO_ZERO_ALLOCS
     if (size == (size_t) 0) {
       fprintf(stderr,
-              " *** internal error: mmalloc__() called with zero nbytes\n");
+              " *** internal error: mmalloc() called with zero nbytes\n");
       return NULL;
     }
 #endif
@@ -91,7 +91,7 @@ void *mcalloc(void *csound, size_t size)
 #ifdef NO_ZERO_ALLOCS
     if (size == (size_t) 0) {
       fprintf(stderr,
-              " *** internal error: mcalloc__() called with zero nbytes\n");
+              " *** internal error: mcalloc() called with zero nbytes\n");
       return NULL;
     }
 #endif
@@ -120,7 +120,7 @@ void mfree(void *csound, void *p)
       return;
     pp = HDR_PTR(p);
     if (pp->magic != MEMALLOC_MAGIC || pp->ptr != p) {
-      fprintf(stderr, " *** internal error: mfree__() called with invalid "
+      fprintf(stderr, " *** internal error: mfree() called with invalid "
                       "pointer (0x%p)\n", p);
       /* exit() is ugly, but this is a fatal error that can only occur */
       /* as a result of a bug */
@@ -150,7 +150,7 @@ void *mrealloc(void *csound, void *oldp, size_t size)
     }
     pp = HDR_PTR(oldp);
     if (pp->magic != MEMALLOC_MAGIC || pp->ptr != oldp) {
-      fprintf(stderr, " *** internal error: mrealloc__() called with invalid "
+      fprintf(stderr, " *** internal error: mrealloc() called with invalid "
                       "pointer (0x%p)\n", oldp);
       /* exit() is ugly, but this is a fatal error that can only occur */
       /* as a result of a bug */
