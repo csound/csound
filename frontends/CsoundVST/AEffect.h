@@ -32,8 +32,10 @@
 #if defined __BORLANDC__
 	#pragma -a8
 #elif defined(_MSC_VER) || defined(__FLAT__) || defined CBUILDER
+#if !defined(__GNUC__)
 	#pragma pack(push)
 	#pragma pack(8)
+#endif
 	#define VSTCALLBACK __cdecl
 #else
 	#define VSTCALLBACK
@@ -188,7 +190,9 @@ enum
 #if PRAGMA_ALIGN_SUPPORTED || __MWERKS__
 	#pragma options align=reset
 #elif defined(_MSC_VER) || defined(__FLAT__)
+#if !defined(__GNUC__)
 	#pragma pack(pop)
+#endif
 #elif defined __BORLANDC__
 	#pragma -a-
 #endif
