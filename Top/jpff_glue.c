@@ -72,9 +72,9 @@ void csoundDestroy(void *csound)
 int csoundGetVersion(void)
 {
 #if BETA
-    return -(100*VERSION);
+    return -(100*atof(PACKAGE_VERSION));
 #else
-    return 100*VERSION;
+    return 100*atof(PACKAGE_VERSION);
 #endif
 }
 

@@ -94,7 +94,7 @@ extern "C" {
 
   PUBLIC int csoundGetVersion()
   {
-    return (int) atoi(VERSION) * 100;
+    return (int) (atof(VERSION) * 100);
   }
 
 	int csoundGetAPIVersion(void)
