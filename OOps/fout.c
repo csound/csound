@@ -71,14 +71,14 @@ int outfile(ENVIRON *csound, OUTFILE *p)
     MYFLT vals[VARGMAX];
     if (p->fp==NULL) {
       FILE* fp = file_opened[p->idx].raw;
-      for (k=0; k<ksmps; k++) {
+      for (k=0; k<csound->ksmps; k++) {
         for (j=0;j<nargs;j++)
           fprintf(fp, "%g ", args[j][k]);
         fprintf(fp, "\n");
       }
     }
     else {
-      for (k=0; k<ksmps; k++) {
+      for (k=0; k<csound->ksmps; k++) {
         for (j = 0; j<nargs; j++)
           vals[j] = args[j][k];
         sf_writef_MYFLT(p->fp, vals, 1);
@@ -122,7 +122,7 @@ int outfile_set(ENVIRON *csound, OUTFILE *p)
       default:
         sfinfo.format = SF_FORMAT_PCM_16 | SF_FORMAT_RAW;
       }
-      sfinfo.samplerate = (long)esr;
+      sfinfo.samplerate = (long)csound->esr;
       sfinfo.channels = p->nargs;
       if ((p->fp = sf_open(fname,SFM_WRITE,&sfinfo)) == NULL)
         csound->Die(csound, Str("fout: cannot open outfile %s"),fname);
@@ -182,7 +182,7 @@ int koutfile_set(ENVIRON *csound, KOUTFILE *p)
         }
       }
       sfinfo.channels = p->nargs;
-      sfinfo.samplerate = (long)esr;
+      sfinfo.samplerate = (long)csound->esr;
       switch((int) (*p->iflag+FL(0.5))) {
       case 0:
         sfinfo.format = SF_FORMAT_FLOAT | SF_FORMAT_RAW;
@@ -428,8 +428,8 @@ int infile_act(ENVIRON *csound, INFILE *p)
     MYFLT **args = p->argums;
     if (p->flag) {
       sf_seek(p->fp, p->currpos, SEEK_SET);
-      p->currpos+=ksmps;
-      for (k=0; k<ksmps; k++) {
+      p->currpos+=csound->ksmps;
+      for (k=0; k<csound->ksmps; k++) {
         MYFLT vals[VARGMAX];
         if (sf_readf_MYFLT(p->fp, vals, 1)) {
           for (j=0; j< nargs; j++) args[j][k] = vals[j];
@@ -441,7 +441,7 @@ int infile_act(ENVIRON *csound, INFILE *p)
       };
     }
     else { /* after end of file */
-      for (k=0; k<ksmps; k++) {
+      for (k=0; k<csound->ksmps; k++) {
         for (j=0; j< nargs; j++)
           args[j][k] = FL(0.0);
       }
@@ -634,7 +634,7 @@ int incr(ENVIRON *csound, INCR *p)
 {
     MYFLT *avar = p->avar, *aincr = p->aincr;
     int n;
-    for (n=0; n<ksmps; n++)
+    for (n=0; n<csound->ksmps; n++)
       avar[n] += aincr[n];
     return OK;
 }
@@ -646,7 +646,7 @@ int clear(ENVIRON *csound, CLEARS *p)
     MYFLT *avar;
     for (j=0;j< p->INOCOUNT;j++) {
       avar = p->argums[j];
-      for (n=0; n<ksmps; n++)
+      for (n=0; n<csound->ksmps; n++)
         avar[n] = FL(0.0);
     }
     return OK;

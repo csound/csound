@@ -216,7 +216,7 @@ int diskin2_init(ENVIRON *csound, DISKIN2 *p)
     if (p->sf == NULL) {
       /* file may be raw, set default format parameters */
       memset(&sfinfo, 0, sizeof(SF_INFO));
-      sfinfo.samplerate = (int) (csound->esr_ + FL(0.5));
+      sfinfo.samplerate = (int) (csound->esr + FL(0.5));
       sfinfo.channels = p->nChannels;
       sfinfo.format = SF_FORMAT_RAW;
       /* check for user specified sample format */
@@ -284,16 +284,16 @@ int diskin2_init(ENVIRON *csound, DISKIN2 *p)
     /* set file parameters from header info */
     p->fileLength = (long) sfinfo.frames;
     p->warpScale = 1.0;
-    if ((int) (csound->esr_ + FL(0.5)) != sfinfo.samplerate) {
+    if ((int) (csound->esr + FL(0.5)) != sfinfo.samplerate) {
       if (p->winSize != 1) {
         /* will automatically convert sample rate if interpolation is enabled */
-        p->warpScale = (double) sfinfo.samplerate / (double) csound->esr_;
+        p->warpScale = (double) sfinfo.samplerate / (double) csound->esr;
       }
       else {
         csound->Message(csound,
                         Str("diskin2: warning: file sample rate (%d) "
                             "!= orchestra sr (%d)\n"),
-                        sfinfo.samplerate, (int) (csound->esr_ + FL(0.5)));
+                        sfinfo.samplerate, (int) (csound->esr + FL(0.5)));
       }
     }
     /* wrap mode */
@@ -301,7 +301,7 @@ int diskin2_init(ENVIRON *csound, DISKIN2 *p)
     if (p->fileLength < 1L)
       p->wrapMode = 0;
     /* initialise read position */
-    pos = (double) *(p->iSkipTime) * (double) csound->esr_ * p->warpScale;
+    pos = (double) *(p->iSkipTime) * (double) csound->esr * p->warpScale;
     pos *= (double) POS_FRAC_SCALE;
     p->pos_frac = (int64_t) (pos >= 0.0 ? (pos + 0.5) : (pos - 0.5));
     if (p->wrapMode) {
@@ -364,13 +364,13 @@ int diskin2_perf(ENVIRON *csound, DISKIN2 *p)
     }
     /* clear outputs to zero first */
     for (chn = 0; chn < p->nChannels; chn++)
-      for (nn = 0; nn < csound->ksmps_; nn++)
+      for (nn = 0; nn < csound->ksmps; nn++)
         p->aOut[chn][nn] = FL(0.0);
     /* file read position (updated by DISKIN2_FILE_POS_INC macro) */
     ndx = (long) (p->pos_frac >> POS_FRAC_SHIFT);
     switch (p->winSize) {
       case 1:                   /* ---- no interpolation ---- */
-        for (nn = 0; nn < csound->ksmps_; nn++) {
+        for (nn = 0; nn < csound->ksmps; nn++) {
           if (p->pos_frac & ((int64_t) POS_FRAC_SCALE >> 1))
             ndx++;                      /* round to nearest sample */
           DISKIN2_GET_SAMPLE(p, ndx, nn, FL(1.0));
@@ -379,7 +379,7 @@ int diskin2_perf(ENVIRON *csound, DISKIN2 *p)
         }
         break;
       case 2:                   /* ---- linear interpolation ---- */
-        for (nn = 0; nn < csound->ksmps_; nn++) {
+        for (nn = 0; nn < csound->ksmps; nn++) {
           a1 = (MYFLT) ((int) (p->pos_frac & (int64_t) POS_FRAC_MASK))
                * (FL(1.0) / (MYFLT) POS_FRAC_SCALE);
           a0 = FL(1.0) - a1;
@@ -391,7 +391,7 @@ int diskin2_perf(ENVIRON *csound, DISKIN2 *p)
         }
         break;
       case 4:                   /* ---- cubic interpolation ---- */
-        for (nn = 0; nn < csound->ksmps_; nn++) {
+        for (nn = 0; nn < csound->ksmps; nn++) {
           frac = (MYFLT) ((int) (p->pos_frac & (int64_t) POS_FRAC_MASK))
                  * (FL(1.0) / (MYFLT) POS_FRAC_SCALE);
           a3 = frac * frac; a3 -= FL(1.0); a3 *= (FL(1.0) / FL(6.0));
@@ -432,7 +432,7 @@ int diskin2_perf(ENVIRON *csound, DISKIN2 *p)
           pidwarp_d = c = 0.0;
           winFact = p->winFact;
         }
-        for (nn = 0; nn < csound->ksmps_; nn++) {
+        for (nn = 0; nn < csound->ksmps; nn++) {
           frac_d = (double) ((int) (p->pos_frac & (int64_t) POS_FRAC_MASK))
                    * (1.0 / (double) POS_FRAC_SCALE);
           ndx += (long) (1 - wsized2);
@@ -511,8 +511,8 @@ int diskin2_perf(ENVIRON *csound, DISKIN2 *p)
     }
     /* apply 0dBFS scale */
     for (chn = 0; chn < p->nChannels; chn++)
-      for (nn = 0; nn < csound->ksmps_; nn++)
-        p->aOut[chn][nn] *= csound->e0dbfs_;
+      for (nn = 0; nn < csound->ksmps; nn++)
+        p->aOut[chn][nn] *= csound->e0dbfs;
     return OK;
 }
 

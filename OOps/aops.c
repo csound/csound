@@ -25,7 +25,6 @@
 #include "aops.h"
 #include <math.h>
 #include <time.h>
-extern ENVIRON cenviron;
 
 #define EIPT3 (25.0/3.0)
 static  double  oct;
@@ -47,13 +46,13 @@ int aassign(ENVIRON *csound, ASSIGN *p)
 {
     MYFLT       *r, *a;
     int n;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
 
     r = p->r;
     a = p->a;
     if (p->XINCODE) {
       memmove(r, a, nsmps * sizeof(MYFLT)); /* Can we use memcpy?? */
-/*       for (n=0; n<ksmps; n++) */
+/*       for (n=0; n<csound->ksmps; n++) */
 /*         r[n] = a[n]; */
     }
     else {
@@ -74,7 +73,7 @@ int ainit(ENVIRON *csound, ASSIGN *p)
     MYFLT       *r, *a;
     int n;
     MYFLT aa;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
 
     r = p->r;
     a = p->a;
@@ -131,7 +130,7 @@ int modkk(ENVIRON *csound, AOP *p)
 #define KA(OPNAME,OP) int OPNAME(ENVIRON *csound, AOP *p) {      \
         int     n;                              \
         MYFLT   *r, a, *b;                      \
-        int nsmps = ksmps;                      \
+        int nsmps = csound->ksmps;              \
         r = p->r;                               \
         a = *p->a;                              \
         b = p->b;                               \
@@ -149,7 +148,7 @@ int modka(ENVIRON *csound, AOP *p)
 {
     int n;
     MYFLT       *r, a, *b;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
     r = p->r;
     a = *p->a;
     b = p->b;
@@ -161,7 +160,7 @@ int modka(ENVIRON *csound, AOP *p)
 #define AK(OPNAME,OP) int OPNAME(ENVIRON *csound, AOP *p) {      \
         int     n;                              \
         MYFLT   *r, *a, b;                      \
-        int nsmps = ksmps;                      \
+        int nsmps = csound->ksmps;              \
         r = p->r;                               \
         a = p->a;                               \
         b = *p->b;                              \
@@ -179,7 +178,7 @@ int modak(ENVIRON *csound, AOP *p)
 {
     int n;
     MYFLT       *r, *a, b;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
     r = p->r;
     a = p->a;
     b = *p->b;
@@ -192,7 +191,7 @@ int modak(ENVIRON *csound, AOP *p)
 #define AA(OPNAME,OP) int OPNAME(ENVIRON *csound, AOP *p) {      \
         int     n;                              \
         MYFLT   *r, *a, *b;                     \
-        int nsmps = ksmps;                      \
+        int nsmps = csound->ksmps;              \
         r = p->r;                               \
         a = p->a;                               \
         b = p->b;                               \
@@ -210,7 +209,7 @@ int modaa(ENVIRON *csound, AOP *p)
 {
     int n;
     MYFLT       *r, *a, *b;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
     r = p->r;
     a = p->a;
     b = p->b;
@@ -229,7 +228,7 @@ int divzka(ENVIRON *csound, DIVZ *p)
 {
     int         n;
     MYFLT       *r, a, *b, def;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
     r = p->r;
     a = *p->a;
     b = p->b;
@@ -243,7 +242,7 @@ int divzak(ENVIRON *csound, DIVZ *p)
 {
     int         n;
     MYFLT       *r, *a, b, def;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
     r = p->r;
     a = p->a;
     b = *p->b;
@@ -261,7 +260,7 @@ int divzaa(ENVIRON *csound, DIVZ *p)
 {
     int n;
     MYFLT       *r, *a, *b, def;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
     r = p->r;
     a = p->a;
     b = p->b;
@@ -288,7 +287,7 @@ int aconval(ENVIRON *csound, CONVAL *p)
     if (*p->cond)
       s = p->a;
     else s = p->b;
-    memmove(r, s, ksmps*sizeof(MYFLT));
+    memmove(r, s, csound->ksmps*sizeof(MYFLT));
     return OK;
 }
 
@@ -304,7 +303,7 @@ int int1a(ENVIRON *csound, EVAL *p)             /* returns signed whole no. */
 {
     double intpart;
     int    n;
-    for (n = 0; n < ksmps; n++) {
+    for (n = 0; n < csound->ksmps; n++) {
       modf((double) p->a[n], &intpart);
       p->r[n] = (MYFLT) intpart;
     }
@@ -323,7 +322,7 @@ int frac1a(ENVIRON *csound, EVAL *p)            /* returns positive frac part */
 {
     double intpart, fracpart;
     int    n;
-    for (n = 0; n < ksmps; n++) {
+    for (n = 0; n < csound->ksmps; n++) {
       fracpart = modf((double) p->a[n], &intpart);
       p->r[n] = (MYFLT) fracpart;
     }
@@ -354,7 +353,7 @@ int int1_round(ENVIRON *csound, EVAL *p)        /* round to nearest integer */
 int int1a_round(ENVIRON *csound, EVAL *p)       /* round to nearest integer */
 {
     int n;
-    for (n = 0; n < ksmps; n++)
+    for (n = 0; n < csound->ksmps; n++)
       p->r[n] = (MYFLT) (RNDINT(p->a[n]));
     return OK;
 }
@@ -368,7 +367,7 @@ int int1_floor(ENVIRON *csound, EVAL *p)        /* round down */
 int int1a_floor(ENVIRON *csound, EVAL *p)       /* round down */
 {
     int n;
-    for (n = 0; n < ksmps; n++)
+    for (n = 0; n < csound->ksmps; n++)
       p->r[n] = (MYFLT) (FLOOR(p->a[n]));
     return OK;
 }
@@ -382,7 +381,7 @@ int int1_ceil(ENVIRON *csound, EVAL *p)         /* round up */
 int int1a_ceil(ENVIRON *csound, EVAL *p)        /* round up */
 {
     int n;
-    for (n = 0; n < ksmps; n++)
+    for (n = 0; n < csound->ksmps; n++)
       p->r[n] = (MYFLT) (CEIL(p->a[n]));
     return OK;
 }
@@ -432,7 +431,7 @@ int atan21(ENVIRON *csound, AOP *p)
 #define LIBA(OPNAME,LIBNAME) int OPNAME(ENVIRON *csound, EVAL *p) {    \
                                 int     n;                             \
                                 MYFLT   *r, *a;                        \
-                                int nsmps = ksmps;                     \
+                                int nsmps = csound->ksmps;             \
                                 r = p->r;                              \
                                 a = p->a;                              \
                                 for (n=0;n<nsmps;n++)                  \
@@ -458,7 +457,7 @@ int atan2aa(ENVIRON *csound, AOP *p)
 {
     int n;
     MYFLT       *r, *a, *b;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
     r = p->r;
     a = p->a;
     b = p->b;
@@ -483,7 +482,7 @@ int aampdb(ENVIRON *csound, EVAL *p)
 {
     int   n;
     MYFLT *r = p->r, *a = p->a;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
     for (n=0;n<nsmps;n++)
       r[n] = (MYFLT) exp((double)a[n] * LOG10D20);
     return OK;
@@ -491,13 +490,13 @@ int aampdb(ENVIRON *csound, EVAL *p)
 
 int dbfsamp(ENVIRON *csound, EVAL *p)
 {
-    *p->r = (MYFLT)(log(fabs((double)*p->a) / e0dbfs) / LOG10D20);
+    *p->r = (MYFLT)(log(fabs((double)*p->a) / csound->e0dbfs) / LOG10D20);
     return OK;
 }
 
 int ampdbfs(ENVIRON *csound, EVAL *p)
 {
-    *p->r =  e0dbfs * (MYFLT) exp((double)*p->a * LOG10D20);
+    *p->r =  csound->e0dbfs * (MYFLT) exp((double)*p->a * LOG10D20);
     return OK;
 }
 
@@ -505,11 +504,11 @@ int aampdbfs(ENVIRON *csound, EVAL *p)
 {
     int n;
     MYFLT       *r, *a;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
     r = p->r;
     a = p->a;
     for (n=0;n<nsmps;n++)
-      r[n] = e0dbfs * (MYFLT) exp((double)a[n] * LOG10D20);
+      r[n] = csound->e0dbfs * (MYFLT) exp((double)a[n] * LOG10D20);
     return OK;
 }
 
@@ -620,7 +619,7 @@ int acpsoct(ENVIRON *csound, EVAL *p)
 {
     MYFLT       *r, *a;
     long        loct;
-    int         n,nsmps = ksmps;
+    int         n,nsmps = csound->ksmps;
     a = p->a;
     r = p->r;
     for (n=0; n<nsmps; n++) {
@@ -843,7 +842,7 @@ int powoftwo(ENVIRON *csound, EVAL *p)
 int powoftwoa(ENVIRON *csound, EVAL *p) /* by G.Maldonado, liberalised by JPff */
 {
     MYFLT *r, *a;
-    int nsmps=ksmps, n;
+    int nsmps=csound->ksmps, n;
     a = p->a;
     r = p->r;
     for (n=0; n<nsmps; n++) {
@@ -879,7 +878,7 @@ int asemitone(ENVIRON *csound, EVAL *p)           /* JPff */
 {
     MYFLT *r, *a;
     int n;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
     a = p->a;
     r = p->r;
     for (n=0; n<nsmps; n++) {
@@ -900,7 +899,7 @@ int acent(ENVIRON *csound, EVAL *p)       /* JPff */
 {
     MYFLT *r, *a;
     int n;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
     a = p->a;
     r = p->r;
     for (n=0; n<nsmps; n++) {
@@ -942,7 +941,7 @@ int dba(ENVIRON *csound, EVAL *p)         /* JPff */
 {
     MYFLT *r, *a;
     int n;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
     a = p->a;
     r = p->r;
     for (n=0; n<nsmps; n++) {
@@ -968,7 +967,7 @@ int logbasetwoa(ENVIRON *csound, EVAL *p) /* by G.Maldonado liberalised by JPff 
 {
     MYFLT *r, *a;
     int n;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
     a = p->a;
     r = p->r;
     for (n=0; n<nsmps; n++) {
@@ -1001,7 +1000,7 @@ int in(ENVIRON *csound, INM *p)
 
     sp = spin;
     ar = p->ar;
-    memmove(ar, sp, ksmps*sizeof(MYFLT));
+    memmove(ar, sp, csound->ksmps*sizeof(MYFLT));
 /*     do { */
 /*       *ar++ = *sp++; */
 /*     } while (--nsmps); */
@@ -1012,7 +1011,7 @@ int ins(ENVIRON *csound, INS *p)
 {
     MYFLT       *sp, *ar1, *ar2;
     int n, k;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
 
     sp = spin;
     ar1 = p->ar1;
@@ -1028,7 +1027,7 @@ int inq(ENVIRON *csound, INQ *p)
 {
     MYFLT       *sp, *ar1, *ar2, *ar3, *ar4;
     int n, k;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
 
     sp = spin;
     ar1 = p->ar1;
@@ -1048,7 +1047,7 @@ int inh(ENVIRON *csound, INH *p)
 {
     MYFLT       *sp, *ar1, *ar2, *ar3, *ar4, *ar5, *ar6;
     int n, k;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
 
     sp = spin;
     ar1 = p->ar1;
@@ -1072,7 +1071,7 @@ int ino(ENVIRON *csound, INO *p)
 {
     MYFLT       *sp, *ar1, *ar2, *ar3, *ar4, *ar5, *ar6, *ar7, *ar8;
     int n, k;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
 
     sp = spin;
     ar1 = p->ar1;
@@ -1098,10 +1097,10 @@ int ino(ENVIRON *csound, INO *p)
 
 int inn(INALL *p, int n)
 {
-    MYFLT       *sp, **ara;
-    int         m;
-    int         i;
-    int nsmps = ksmps;
+    MYFLT *sp, **ara;
+    int   m;
+    int   i;
+    int   nsmps = cenviron.ksmps;
 
     sp = spin;
     ara = p->ar;
@@ -1127,16 +1126,16 @@ int in32(ENVIRON *csound, INALL *p)
 int inall(ENVIRON *csound, INCH *p)
 {
 /*      int nch = (int) p->INOCOUNT; */
-/*      inn(p, (nch>nchnls ? nchnls : nch)); */
+/*      inn(p, (nch>csound->nchnls ? csound->nchnls : nch)); */
     int ch = (int)(*p->ch+FL(0.5));
     int n;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
     MYFLT *sp = spin+ch-1;
     MYFLT *ain = p->ar;
-    if (ch>nchnls) return NOTOK;
+    if (ch>csound->nchnls) return NOTOK;
     for (n=0; n<nsmps; n++) {
       ain[n] = *sp;
-      sp += nchnls;
+      sp += csound->nchnls;
     }
     return OK;
 }
@@ -1145,7 +1144,7 @@ int out(ENVIRON *csound, OUTM *p)
 {
     MYFLT       *sp, *ap;
     int n;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
 
     ap = p->asig;
     sp = spout;
@@ -1163,7 +1162,7 @@ int out(ENVIRON *csound, OUTM *p)
 int outs(ENVIRON *csound, OUTS *p)
 {
     MYFLT       *sp, *ap1, *ap2;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
 
     ap1 = p->asig1;
     ap2 = p->asig2;
@@ -1189,7 +1188,7 @@ int outs(ENVIRON *csound, OUTS *p)
 int outq(ENVIRON *csound, OUTQ *p)
 {
     MYFLT       *sp, *ap1, *ap2, *ap3, *ap4;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
 
     ap1 = p->asig1;
     ap2 = p->asig2;
@@ -1221,7 +1220,7 @@ int outq(ENVIRON *csound, OUTQ *p)
 int outs1(ENVIRON *csound, OUTM *p)
 {
     MYFLT       *sp, *ap1;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
 
     ap1 = p->asig;
     sp = spout;
@@ -1245,7 +1244,7 @@ int outs1(ENVIRON *csound, OUTM *p)
 int outs2(ENVIRON *csound, OUTM *p)
 {
     MYFLT       *sp, *ap2;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
 
     ap2 = p->asig;
     sp = spout;
@@ -1269,7 +1268,7 @@ int outs2(ENVIRON *csound, OUTM *p)
 int outs12(ENVIRON *csound, OUTM *p)
 {
     MYFLT       *sp, *ap;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
 
     ap = p->asig;
     sp = spout;
@@ -1293,7 +1292,7 @@ int outs12(ENVIRON *csound, OUTM *p)
 int outq1(ENVIRON *csound, OUTM *p)
 {
     MYFLT       *sp, *ap1;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
 
     ap1 = p->asig;
     sp = spout;
@@ -1319,7 +1318,7 @@ int outq1(ENVIRON *csound, OUTM *p)
 int outq2(ENVIRON *csound, OUTM *p)
 {
     MYFLT       *sp, *ap2;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
 
     ap2 = p->asig;
     sp = spout;
@@ -1345,7 +1344,7 @@ int outq2(ENVIRON *csound, OUTM *p)
 int outq3(ENVIRON *csound, OUTM *p)
 {
     MYFLT       *sp, *ap3;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
 
     ap3 = p->asig;
     sp = spout;
@@ -1371,7 +1370,7 @@ int outq3(ENVIRON *csound, OUTM *p)
 int outq4(ENVIRON *csound, OUTM *p)
 {
     MYFLT       *sp, *ap4;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
 
     ap4 = p->asig;
     sp = spout;
@@ -1397,7 +1396,7 @@ int outq4(ENVIRON *csound, OUTM *p)
 int outh(ENVIRON *csound, OUTH *p)
 {
     MYFLT       *sp, *ap1, *ap2, *ap3, *ap4, *ap5, *ap6;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
 
     ap1 = p->asig1;
     ap2 = p->asig2;
@@ -1435,7 +1434,7 @@ int outh(ENVIRON *csound, OUTH *p)
 int outo(ENVIRON *csound, OUTO *p)
 {
     MYFLT       *sp, *ap1, *ap2, *ap3, *ap4, *ap5, *ap6, *ap7, *ap8;
-    int nsmps = ksmps;
+    int nsmps = csound->ksmps;
 
     ap1 = p->asig1;
     ap2 = p->asig2;
@@ -1478,9 +1477,9 @@ int outo(ENVIRON *csound, OUTO *p)
 
 static void outn(int n, OUTX *p)
 {
-    MYFLT       *sp, *ap[64];
-    int nsmps = ksmps;
-    int i;
+    MYFLT *sp, *ap[64];
+    int   nsmps = cenviron.ksmps;
+    int   i;
 
     for (i=0; i<n; i++) ap[i] = p->asig[i];
     sp = spout;
@@ -1489,7 +1488,7 @@ static void outn(int n, OUTX *p)
         for (i=0; i<n; i++) {
           *sp = *ap[i]++;       sp++;
         }
-        for (i=n+1; i<nchnls; i++) {
+        for (i=n+1; i < cenviron.nchnls; i++) {
           *sp = FL(0.0); sp++;
         }
       }
@@ -1501,7 +1500,7 @@ static void outn(int n, OUTX *p)
         for (i=0; i<n; i++) {
           *sp += *ap[i]++;      sp++;
         }
-        for (i=n+1; i<nchnls; i++) {
+        for (i=n+1; i < cenviron.nchnls; i++) {
           sp++;
         }
       }
@@ -1524,7 +1523,7 @@ int outX(ENVIRON *csound, OUTX *p)
 int outall(ENVIRON *csound, OUTX *p)            /* Output a list of channels */
 {
     int nch = (int) p->INOCOUNT;
-    outn((nch <= nchnls ? nch : nchnls), p);
+    outn((nch <= csound->nchnls ? nch : csound->nchnls), p);
     return OK;
 }
 
@@ -1533,19 +1532,19 @@ int outch(ENVIRON *csound, OUTCH *p)
     int         ch;
     int         i, j;
     MYFLT       *sp, *apn;
-    int         nsmps = ksmps;
+    int         nsmps = csound->ksmps;
     int         count = (int) p->INOCOUNT;
     MYFLT       **args = p->args;
 
     for (j=0; j<count; j +=2) {
-      nsmps = ksmps;
+      nsmps = csound->ksmps;
       ch = (int)(*args[j]+FL(0.5));
       apn = args[j+1];
-      if (ch>nchnls) continue;
+      if (ch>csound->nchnls) continue;
       if (!spoutactive) {
         sp = spout;
         do {
-          for (i=1; i<=nchnls; i++) {
+          for (i=1; i<=csound->nchnls; i++) {
             *sp = ((i==ch) ? *apn++ : FL(0.0));
             sp++;
           }
@@ -1556,7 +1555,7 @@ int outch(ENVIRON *csound, OUTCH *p)
         sp = spout + ch-1;
         do {
           *sp += *apn++;
-          sp += nchnls;
+          sp += csound->nchnls;
         }
         while (--nsmps);
       }
