@@ -482,8 +482,8 @@ int csoundCompile(void *csound, int argc, char **argv)
     /* instrument numbers are known at the score read/sort stage */
     create_opcodlst(&cenviron); /* create initial opcode list (if not done yet) */
     /* IV - Jan 31 2005: initialise external modules */
-    /* FIXME: check return value */
-    csoundInitModules(csound);
+    if (csoundInitModules(csound) != 0)
+      longjmp(((ENVIRON*) csound)->exitjmp_,1);
     otran();                 /* read orcfile, setup desblks & spaces     */
     /* IV - Jan 28 2005 */
     print_benchmark_info(csound, Str("end of orchestra compile"));

@@ -158,7 +158,6 @@ extern "C" {
     char *Midioutname; /* jjk 09252000 - MIDI output device, -Q option */
 #endif
     int     expr_opt;       /* IV - Jan 27 2005: for --expression-opt */
-    char *id_title, *id_copyright, *id_software, *id_artist, *id_comment, *id_date;
   } OPARMS;
 
 #define  ONEPT          1.021975               /* A440 tuning factor */
