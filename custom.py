@@ -16,22 +16,38 @@ if sys.platform[:5] == 'linux':
     platform = 'linux'
 elif sys.platform == 'cygwin':
     platform = 'cygwin'
-    # Example:
-    # customCPPPATH.append('c:/tools/Python23/include')
-    # customLIBPATH.append('cygwin_import_libs')
     customCPPPATH.append('c:/tools/Python23/include')
     customLIBPATH.append('cygwin_import_libs')
 elif sys.platform[:3] == 'win':
-    customCPPPATH.append('c:/tools/boost')
+    #for the basic build use: (modify paths to your system)
+    #the location of the mingw compiler:
+    customLIBPATH.append('c:/tools/mingw/lib')
     customCPPPATH.append('c:/tools/Python23/include')
     customCPPPATH.append('c:/tools/msys/1.0/local/include')
-    customCPPPATH.append('c:/tools/fluidsynth/include')
-    # customLIBPATH.append('c:/projects/portaudio/lib')
-    customLIBPATH.append('c:/projects/csound5/windows_dlls')
-    customLIBPATH.append('cygwin_import_libs')
-    customLIBPATH.append('c:/tools/mingw/lib')
     customLIBPATH.append('c:/tools/msys/1.0/local/lib')
-    customLIBPATH.append('c:/tools/fluidsynth')
+    customLIBPATH.append('c:/projects/csound5/windows_dlls')
+    customCPPPATH.append('C:/tools/libsndfile-1.0.10pre8/src')
+    #inside the windows_dlls directory should be libsndfile.dll
+    #if you don't have it or have built it yourself use: (and change accordingly)
+    #customLIBPATH.append('C:/tools/libsndfile-1.0.10pre8')
+    ################################################################
+    #if you want to build with PORTAUDIO include: (you must to build portaudio first)
+    #customCPPPATH.append('C:/tools/portaudio/pa_common')
+    #customLIBPATH.append('C:/tools/portaudio/lib')
+    ################################################################
+    #if you want to build with FLTK include: (you must to build portaudio first)
+    #customCPPPATH.append('C:/tools/fltk-1.1.5rc1')
+    #customLIBPATH.append('C:/tools/fltk-1.1.5rc1/lib')
+    ################################################################
+    #if you want to build CsoundVST include:
+    #customCPPPATH.append('c:/tools/boost')
+    ################################################################
+    #if you want to build FLUIDSYNTH include:
+    #customLIBPATH.append('c:/tools/fluidsynth')
+    #customCPPPATH.append('c:/tools/fluidsynth/include')
+    ################################################################
+
+    #customLIBPATH.append('cygwin_import_libs')
     platform = 'windows'
 else:
     platform = 'unsupported platform'
