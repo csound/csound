@@ -192,7 +192,8 @@ static int sc_reverb_init(ENVIRON *csound, SC_REVERB *p)
       init_delay_line(p, p->delayLines[i], i);
       nBytes += delay_line_bytes_alloc(p, i);
     }
-    p->prv_LPFreq = FL(-1.0);
+    p->dampFact = 1.0;
+    p->prv_LPFreq = FL(0.0);
     p->initDone = 1;
 
     return OK;
