@@ -1,7 +1,7 @@
-#if defined(WIN32)
 #include "csound.h"
 #include "cs.h"
 #include "prototyp.h"
+#if defined(WIN32)
 #include <windows.h>
 #include <portaudio.h>
 
@@ -69,7 +69,7 @@ int csoundJoinThread(void *csound, void *thread)
     }
 }
 
-void *csoundCreateThreadLock()
+void *csoundCreateThreadLock(void *csound)
 {
   pthread_mutex_t *pthread_mutex = (pthread_mutex_t *)mmalloc(sizeof(pthread_mutex_t)); 
   if(pthread_mutex_init(pthread_mutex, 0) == 0) {
@@ -79,22 +79,22 @@ void *csoundCreateThreadLock()
   }
 }
 
-void csoundWaitThreadLock(void *lock, size_t milliseconds)
+void csoundWaitThreadLock(void *csound, void *lock, size_t milliseconds)
 {
 	pthread_mutex_t *pthread_mutex = (pthread_mutex_t *)lock;
-	int returnValue = pthread_mutex_lock(pthread_mutex);
+	/*int returnValue = */pthread_mutex_lock(pthread_mutex);
 }
 
-void csoundNotifyThreadLock(void *lock)
+void csoundNotifyThreadLock(void *csound, void *lock)
 {
 	pthread_mutex_t *pthread_mutex = (pthread_mutex_t *)lock;
-	int returnValue = pthread_mutex_unlock(pthread_mutex);
+	/*int returnValue = */pthread_mutex_unlock(pthread_mutex);
 }
 
-void csoundDestroyThreadLock(void *lock)
+void csoundDestroyThreadLock(void *csound, void *lock)
 {
 	pthread_mutex_t *pthread_mutex = (pthread_mutex_t *)lock;
-	int returnValue = pthread_mutex_destroy(pthread_mutex);
+	/*int returnValue = */pthread_mutex_destroy(pthread_mutex);
 	mfree(lock);
 }
 
