@@ -125,8 +125,6 @@ extern "C" {
     /* initialise real time MIDI */
     p->midiGlobals = (MGLOBAL*) mcalloc(csound, sizeof(MGLOBAL));
     p->midiGlobals->Midevtblk = (MEVENT*) NULL;
-    for (i = 0; i < 128; i++)
-      p->midiGlobals->pgm2ins[i] = (i + 1);
     csoundSetExternalMidiInOpenCallback(csound, DummyMidiInOpen);
     csoundSetExternalMidiReadCallback(csound, DummyMidiRead);
     csoundSetExternalMidiInCloseCallback(csound, DummyMidiInClose);
@@ -145,6 +143,18 @@ extern "C" {
     csoundCreateConfigurationVariable(csound, "rtmidi", s,
                                       CSOUNDCFG_STRING, 0, NULL, &max_len,
                                       "Real time MIDI module name", NULL);
+    max_len = 256;  /* should be the same as in csoundCore.h */
+    csoundCreateConfigurationVariable(csound, "mute_tracks",
+                                      &(p->midiGlobals->muteTrackList[0]),
+                                      CSOUNDCFG_STRING, 0, NULL, &max_len,
+                                      "Ignore events (other than tempo "
+                                      "changes) in tracks defined by pattern",
+                                      NULL);
+    csoundCreateConfigurationVariable(csound, "raw_controller_mode",
+                                      &(p->midiGlobals->rawControllerMode),
+                                      CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
+                                      "Do not handle special MIDI controllers "
+                                      "(sustain pedal etc.)", NULL);
     /* sound file tag options */
     max_len = 201;
     i = -1;

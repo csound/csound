@@ -332,7 +332,7 @@ OENTRY opcodlst_2[] = {
 { "db.k",     S(EVAL),    3,    "k",    "k",     powoftwo_set, db       },
 { "db.a",     S(EVAL),    5,    "a",    "a",     powoftwo_set, NULL, dba},
 { "midichn",  S(MIDICHN), 1,    "i",    "",     midichn, NULL, NULL     },
-{ "pgmassign",S(PGMASSIGN), 1,   "",    "iS",   pgmassign, NULL, NULL   },
+{ "pgmassign",S(PGMASSIGN), 1,   "",    "iSo",  pgmassign, NULL, NULL   },
 { "miditempo", S(MIDITEMPO), 2, "k", "", NULL, (SUBR) midiTempoOpcode, NULL },
 { "midinoteoff", S(MIDINOTEON),3,"",    "xx",   midinoteoff, midinoteoff, },
 { "midinoteonkey", S(MIDINOTEON),3, "", "xx",   midinoteonkey, midinoteonkey },

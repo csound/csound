@@ -514,6 +514,14 @@ int sensevents(ENVIRON *csound)
       sensType = 0;
     }
     else {
+      if (MTrkend && O.termifend) {     /* end of MIDI file: */
+        while (frstoff != NULL) {
+          deact(frstoff);
+          frstoff = frstoff->nxtoff;
+        }
+        printf(Str("terminating.\n"));
+        return 1;                       /* abort with perf incomplete */
+      }
       if (--(p->cyclesRemaining) <= 0)
         p->cyclesRemaining = 0;
       p->kDone++;
@@ -590,10 +598,6 @@ int sensevents(ENVIRON *csound)
                e->opcod, e->opcod);
         perferrcnt++;
         continue;
-      }
-      if (MTrkend && O.termifend && frstoff == NULL) {
-        printf(Str("terminating. "));
-        return 1;              /* aborting with perf incomplete */
       }
       if (O.Beatmode)
         p->cyclesRemaining = RNDINT(((double) p->nxtbt - (double) p->curbt)

@@ -111,12 +111,9 @@
 
 #define MGLOB(x) (((ENVIRON*) csound)->midiGlobals->x)
 
-static  MYFLT   MastVol = FL(1.0);      /* maps ctlr 7 to ctlr 9 */
-        void    m_chn_init(ENVIRON *csound, MEVENT *, short);
 extern  void    schedofftim(INSDS *), deact(INSDS *), beep(void);
         void    midNotesOff(void);
 
-static  int     defaultinsno = 0;
 extern  void    insxtroff(short);
 
 static MYFLT dsctl_map[12] = {
@@ -125,7 +122,7 @@ static MYFLT dsctl_map[12] = {
 };
 
 static const short datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0 };
-static short m_clktim = 0;
+/* static short m_clktim = 0; */
 
 static void AllNotesOff(MCHNBLK *);
 
@@ -194,16 +191,49 @@ static void sustsoff(MCHNBLK *chn)  /* turnoff all notes in chnl sust array */
     chn->ksuscnt = 0;
 }
 
+/* reset all controllers for this channel */
+
+static void ctlreset(ENVIRON *csound, short chan)
+{
+    MCHNBLK *chn;
+    int     i;
+
+    chn = M_CHNBP[chan];
+    for (i = 1; i <= 109; i++)                  /* from ctlr 1 to ctlr 109 */
+      chn->ctl_val[i] = FL(0.0);                /*   reset all ctlrs to 0  */
+    /* exceptions:  */
+    chn->ctl_val[7]  = FL(127.0);               /*   volume           */
+    chn->ctl_val[8]  = FL(64.0);                /*   balance          */
+    chn->ctl_val[10] = FL(64.0);                /*   pan              */
+    chn->ctl_val[11] = FL(127.0);               /*   expression       */
+    chn->pbensens = FL(2.0);                    /*   pitch bend range */
+    chn->datenabl = 0;
+    /* reset aftertouch to max value - added by Istvan Varga, May 2002 */
+    chn->aftouch = FL(127.0);
+    for (i = 0; i < 128; i++)
+      chn->polyaft[i] = FL(127.0);
+    /* controller 64 has just been set to zero: terminate any held notes */
+    if (chn->ksuscnt && !MGLOB(rawControllerMode))
+      sustsoff(chn);
+    chn->sustaining = 0;
+    /* reset pitch bend */
+    chn->pchbend = FL(0.0);
+}
+
+/* execute non-note channel voice and channel mode commands */
+
 void m_chanmsg(ENVIRON *csound, MEVENT *mep)
-{                           /* exec non-note chnl_voice & chnl_mode cmnds */
+{
     MCHNBLK *chn = M_CHNBP[mep->chan];
     short n;
     MYFLT *fp;
 
     switch (mep->type) {
-    case PROGRAM_TYPE:
+    case PROGRAM_TYPE:                    /* PROGRAM CHANGE */
       chn->pgmno = mep->dat1;
-      n = (short) MGLOB(pgm2ins)[mep->dat1];    /* program change -> INSTR  */
+      if (chn->insno <= 0)          /* ignore if channel is muted */
+        break;
+      n = (short) chn->pgm2ins[mep->dat1];      /* program change -> INSTR  */
       if (n > 0 && n <= maxinsno                /* if corresp instr exists  */
           && instrtxtp[n] != NULL) {            /*     assign as insno      */
         chn->insno = n;                         /* else ignore prog. change */
@@ -215,22 +245,29 @@ void m_chanmsg(ENVIRON *csound, MEVENT *mep)
       chn->polyaft[mep->dat1] = mep->dat2;     /* Polyphon per-Key Press  */
       break;
     case CONTROL_TYPE:                    /* CONTROL CHANGE MESSAGES: */
-      if ((n = mep->dat1) >= 111)         /* if special, redirect */
+      n = mep->dat1;
+      if (MGLOB(rawControllerMode)) {           /* "raw" mode:        */
+        chn->ctl_val[n] = (MYFLT) mep->dat2;    /*   only store value */
+        break;
+      }
+      if (n >= 111)                       /* if special, redirect */
         goto special;
-      if (n == RPNLSB && mep->dat2 == 127 && chn->dpmsb == 127)
-        chn->ctl_val[DATENABL] = FL(0.0);
-      else if (n == NRPNMSB || n == RPNMSB)
+      if (n == NRPNMSB || n == RPNMSB) {
         chn->dpmsb = mep->dat2;
+      }
       else if (n == NRPNLSB || n == RPNLSB) {
         chn->dplsb = mep->dat2;
-        chn->ctl_val[DATENABL] = FL(1.0);
+        if (chn->dplsb == 127 && chn->dpmsb == 127)
+          chn->datenabl = 0;
+        else
+          chn->datenabl = 1;
       }
-      else if (n == DATENTRY && chn->ctl_val[DATENABL] != FL(0.0)) {
+      else if (n == DATENTRY && chn->datenabl) {
         int   msb = chn->dpmsb;
         int   lsb = chn->dplsb;
         MYFLT fval;
         if (msb == 0 && lsb == 0) {
-          chn->ctl_val[BENDSENS] = mep->dat2;
+          chn->pbensens = (MYFLT) mep->dat2;
         }
         else if (msb == 1) {            /* GS system PART PARAMS */
           int ctl;
@@ -273,11 +310,10 @@ void m_chanmsg(ENVIRON *csound, MEVENT *mep)
           }
         }
       }
-      else chn->ctl_val[n] = (MYFLT) mep->dat2;   /* record data as MYFLT */
+      else
+        chn->ctl_val[n] = (MYFLT) mep->dat2;      /* record data as MYFLT */
     err:
-      if (n == VOLUME)
-        chn->ctl_val[MOD_VOLUME] = chn->ctl_val[VOLUME] * MastVol;
-      else if (n == SUSTAIN_SW) {
+      if (n == SUSTAIN_SW) {
         short temp = (mep->dat2 > 0);
         if (chn->sustaining != temp) {            /* if sustainP changed  */
           if (chn->sustaining && chn->ksuscnt)    /*  & going off         */
@@ -289,25 +325,13 @@ void m_chanmsg(ENVIRON *csound, MEVENT *mep)
 
     special:
       if (n < 121) {          /* for ctrlr 111, 112, ... chk inexclus lists */
-        printf(Str("ctrl %ld has no exclus list\n"), (long)n);
+        if ((csound->oparms_->msglevel & 7) == 7)
+          printf(Str("ctrl %d has no exclus list\n"), (int) n);
         break;
       }
       /* 121 == RESET ALL CONTROLLERS */
       if (n == 121) {                           /* CHANNEL MODE MESSAGES:  */
-        MYFLT *fp = chn->ctl_val + 1;           /* from ctlr 1 */
-        short nn = 101;                         /* to ctlr 101 */
-        do {
-          *fp++ = FL(0.0);                      /*   reset all ctlrs to 0 */
-        } while (--nn);                         /* exceptions:  */
-        chn->ctl_val[7]  = FL(127.0);           /*   volume     */
-        chn->ctl_val[8]  = FL(64.0);            /*   balance    */
-        chn->ctl_val[10] = FL(64.0);            /*   pan        */
-        chn->ctl_val[11] = FL(127.0);           /*   expression */
-        chn->ctl_val[BENDSENS] = FL(2.0);
-        chn->ctl_val[9]  = chn->ctl_val[7] * MastVol;
-        /* reset aftertouch to max value - added by Istvan Varga, May 2002 */
-        chn->aftouch = FL(127.0);
-        for (nn = 0; nn < 128; nn++) chn->polyaft[nn] = FL(127.0);
+        ctlreset(csound, mep->chan);
       }
       else if (n == 122) {                      /* absorb lcl ctrl data */
 /*      int lcl_ctrl = mep->dat2;  ?? */        /* 0:off, 127:on */
@@ -356,85 +380,72 @@ void m_chanmsg(ENVIRON *csound, MEVENT *mep)
     }
 }
 
-void m_chn_init(ENVIRON *csound, MEVENT *mep, short chan)
-{                               /* alloc a midi control blk for a midi chnl */
-    MCHNBLK *chn;               /*  & assign corr instr n+1, else a default */
-
-    if (!defaultinsno) {        /* find lowest instr as default */
-      defaultinsno = 1;
-      while (instrtxtp[defaultinsno]==NULL) {
-        defaultinsno++;
-        if (defaultinsno > maxinsno)
-          die(Str("midi init cannot find any instrs"));
-      }
-    }
-    if ((chn = M_CHNBP[chan]) == NULL)
-      M_CHNBP[chan] = chn = (MCHNBLK *) mcalloc(csound, (long)sizeof(MCHNBLK));
-    if (instrtxtp[chan+1] != NULL)           /* if corresp instr exists  */
-      chn->insno = chan+1;                   /*     assign as insno      */
-    else chn->insno = defaultinsno;          /* else assign the default  */
-    mep->type = CONTROL_TYPE;
-    mep->chan = chan;
-    mep->dat1 = 121;  /* reset all controllers */
-    m_chanmsg(csound, mep);
-    if (csound->oparms_->Midiin || csound->oparms_->FMidiin)
-      printf(Str("midi channel %d using instr %d\n"), chan + 1, chn->insno);
-}
-
-/* initialise all MIDI channels */
-/* called by musmon before oload() */
+/* initialise all MIDI channels; called by musmon before oload() */
 
 void m_chn_init_all(ENVIRON *csound)
-{
-    MEVENT  mev;
-    int     i;
+{                               /* alloc a midi control blk for a midi chnl */
+    MCHNBLK *chn;               /*  & assign corr instr n+1, else a default */
+    int     defaultinsno, prv, n;
+    short   chan;
 
-    for (i = 0; i < 16; i++) {
-      M_CHNBP[i] = NULL;
-      memset(&mev, 0, sizeof(MEVENT));
-      m_chn_init(csound, &mev, (short) i);
+    defaultinsno = 0;
+    for (chan = (short) 0; chan < (short) 16; chan++) {
+      /* alloc a midi control blk for midi channel */
+      /*  & assign default instrument number       */
+      M_CHNBP[chan] = chn = (MCHNBLK*) mcalloc(csound, sizeof(MCHNBLK));
+      prv = defaultinsno;
+      while (++defaultinsno <= (int) maxinsno &&
+             instrtxtp[defaultinsno] == NULL);
+      if (defaultinsno > (int) maxinsno)
+        defaultinsno = prv;
+      if (defaultinsno > 0)                     /* if corresp instr exists  */
+        chn->insno = (short) defaultinsno;      /*     assign as insno      */
+      else
+        chn->insno = -1;                        /*     else mute channel    */
+      /* reset all controllers */
+      chn->pgmno = -1;
+      ctlreset(csound, chan);
+      for (n = 0; n < 128; n++)
+        chn->pgm2ins[n] = (short) (n + 1);
+      if (csound->oparms_->Midiin || csound->oparms_->FMidiin) {
+        if (chn->insno > 0)
+          printf(Str("midi channel %d using instr %d\n"), chan + 1, chn->insno);
+        else
+          printf(Str("midi channel %d is muted\n"), chan + 1);
+      }
     }
 }
 
-static void ctlreset(ENVIRON *csound, short chan)
-{                               /* reset all controllers for this channel */
-    MEVENT  mev;
-    mev.type = CONTROL_TYPE;
-    mev.chan = chan;
-    mev.dat1 = 121;
-    m_chanmsg(csound, &mev);
-}
-
-MCHNBLK *m_getchnl(ENVIRON *csound, short chan)
-{                               /* get or create a chnlblk ptr */
-    if (chan < 0 || chan >= MAXCHAN) {
-      sprintf(errmsg,Str("illegal midi chnl no %d"), chan+1);
-      die(errmsg);
-    }
-    return (M_CHNBP[chan]);
-}
-
-void m_chinsno(ENVIRON *csound, short chan, short insno)
+int m_chinsno(ENVIRON *csound, short chan, short insno)
 {                                         /* assign an insno to a chnl */
-    MCHNBLK  *chn = NULL;                 /* =massign: called from i0  */
+    MCHNBLK  *chn;                        /* =massign: called from i0  */
+    MEVENT   mev;
 
     if (chan < 0 || chan > 15)
-      die(Str("illegal channel number"));
-    chn = m_getchnl(csound, chan);
+      return initerror(Str("illegal channel number"));
+    chn = M_CHNBP[chan];
     if (insno <= 0) {
       chn->insno = -1;
       printf(Str("MIDI channel %d muted\n"), (int) chan + 1);
     }
     else {
-      if (insno >= maxinsno || instrtxtp[insno] == NULL) {
+      if (insno > maxinsno || instrtxtp[insno] == NULL) {
         printf(Str("Insno = %d\n"), insno);
-        die(Str("unknown instr"));
+        return initerror(Str("unknown instr"));
       }
       chn->insno = insno;
       printf(Str("chnl %d using instr %d\n"), chan+1, chn->insno);
+      /* check for program change: will override massign if enabled */
+      if (chn->pgmno >= 0) {
+        mev.type = PROGRAM_TYPE;
+        mev.chan = chan;
+        mev.dat1 = chn->pgmno;
+        mev.dat2 = 0;
+        m_chanmsg(csound, &mev);
+      }
     }
-    chn->pchbend = FL(0.0);     /* Mid value */
     ctlreset(csound, chan);
+    return OK;
 }
 
 static void AllNotesOff(MCHNBLK *chn)
@@ -462,16 +473,6 @@ void midNotesOff(void)          /* turnoff ALL curr midi notes, ALL chnls */
       if ((chn = M_CHNBP[chan]) != NULL)
         AllNotesOff(chn);
     } while (++chan < MAXCHAN);
-}
-
-void setmastvol(short mvdat)    /* set MastVol & adjust all chan modvols */
-{
-    MCHNBLK *chn;
-    int chnl;
-    MastVol = (MYFLT)mvdat * (FL(1.0)/FL(128.0));
-    for (chnl = 0; chnl < MAXCHAN; chnl++)
-      if ((chn = M_CHNBP[chnl]) != NULL)
-        chn->ctl_val[MOD_VOLUME] = chn->ctl_val[VOLUME] * MastVol;
 }
 
 int sensMidi(ENVIRON *csound)
@@ -510,12 +511,12 @@ int sensMidi(ENVIRON *csound)
         short lo3 = (c & 0x07);
         if (c & 0x08)                    /* sys_realtime:     */
           switch (lo3) {                 /*   dispatch now    */
-          case 0: m_clktim++;
-          case 2:
-          case 3:
-          case 4:
-          case 6:
-          case 7:
+          case 0: /* m_clktim++; */      /* timing clock      */
+          case 2:                        /* start             */
+          case 3:                        /* continue          */
+          case 4:                        /* stop              */
+          case 6:                        /* active sensing    */
+          case 7:                        /* system reset      */
             goto nxtchr;
           default: printf(Str("undefined sys-realtime msg %x\n"),c);
             goto nxtchr;
@@ -526,12 +527,13 @@ int sensMidi(ENVIRON *csound)
           case 7: goto nxtchr;           /* EOX: already done */
           case 0: MGLOB(sexp) = 1;       /* sys_ex begin:     */
             goto nxtchr;                 /*   goto copy data  */
-          case 1:                        /* sys_common:       */
-          case 3: MGLOB(datreq) = 1;     /*   need some data  */
+          /* sys_common: need some data, so build evt */
+          case 1:                        /* MTC quarter frame */
+          case 3: MGLOB(datreq) = 1;     /* song select       */
             break;
-          case 2: MGLOB(datreq) = 2;     /*   (so build evt)  */
+          case 2: MGLOB(datreq) = 2;     /* song position     */
             break;
-          case 6:
+          case 6:                        /* tune request      */
             goto nxtchr;
           default: printf(Str("undefined sys_common msg %x\n"), c);
             MGLOB(datreq) = 32767;       /* waste any data following */

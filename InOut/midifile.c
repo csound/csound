@@ -45,11 +45,13 @@ typedef struct midiEvent_s {
     unsigned long   kcnt;               /* time (in ticks while reading     */
                                         /*   MIDI file, will be converted   */
                                         /*   to kperiods once file is read) */
+#ifdef never
     unsigned char   *data;              /* pointer to sysex or meta event   */
-                                        /*   data (currently always NULL)   */
-    int             st;                 /* status byte (0x80-0xFF)          */
-    int             d1;                 /* data byte 1 (0x00-0x7F)          */
-    int             d2;                 /* data byte 2 (0x00-0x7F)          */
+                                        /*   data (currently not used)      */
+#endif
+    unsigned char   st;                 /* status byte (0x80-0xFF)          */
+    unsigned char   d1;                 /* data byte 1 (0x00-0x7F)          */
+    unsigned char   d2;                 /* data byte 2 (0x00-0x7F)          */
 } midiEvent_t;
 
 typedef struct midiFile_s {
@@ -174,8 +176,13 @@ static int alloc_event(ENVIRON *csound,
     /* store new event */
     tmp = &(MF(eventList)[MF(nEvents)]);
     MF(nEvents)++;
-    tmp->kcnt = kcnt; tmp->data = data;
-    tmp->st = st; tmp->d1 = d1; tmp->d2 = d2;
+    tmp->kcnt = kcnt;
+#ifdef never
+    tmp->data = data;   /* not used yet */
+#endif
+    tmp->st = (unsigned char) st;
+    tmp->d1 = (unsigned char) d1;
+    tmp->d2 = (unsigned char) d2;
     /* done */
     return 0;
 }
@@ -304,8 +311,10 @@ static int readEvent(ENVIRON *csound, FILE *f, int *tlen,
       if (st < 0 || *tlen < 0) return -1;
       i = getVLenData(csound, f, tlen);         /* message length */
       if (i < 0 || *tlen < 0) return -1;
-      if (st >= 1 && st <= 5 && i > 0) {
-        /* print non-empty text meta events */
+      if (i > 0 &&
+          ((st >= 1 && st <= 5 && (csound->GetMessageLevel(csound) & 7) == 7) ||
+           (st == 3 && csound->GetMessageLevel(csound) != 0))) {
+        /* print non-empty text meta events, depending on message level */
         switch (st) {
           case 0x01: csound->Message(csound, Str("  Message: ")); break;
           case 0x02: csound->Message(csound, Str("  Copyright info: ")); break;
@@ -506,9 +515,11 @@ static void sortEventLists(ENVIRON *csound)
 
 int csoundMIDIFileOpen(void *csound_, const char *name)
 {
-    ENVIRON     *csound;
-    FILE        *f = NULL;
-    int         i, c, hdrLen, fileFormat, nTracks, timeCode;
+    ENVIRON *csound;
+    FILE    *f = NULL;
+    char    *m;
+    int     i, c, hdrLen, fileFormat, nTracks, timeCode, saved_nEvents;
+    int     mute_track;
 
     csound = (ENVIRON*) csound_;
     if (MIDIFILE != NULL)
@@ -617,10 +628,27 @@ int csoundMIDIFileOpen(void *csound_, const char *name)
     MF(eventListIndex) = 0;
     MF(tempoListIndex) = 0;
     /* read all tracks */
+    m = &(csound->midiGlobals->muteTrackList[0]);
     for (i = 0; i < nTracks; i++) {
-      csound->Message(csound, Str(" Track %2d\n"), i + 1);
+      saved_nEvents = MF(nEvents);
+      mute_track = 0;
+      if (*m != '\0') {             /* is this track muted ? */
+        if (*m == '1')
+          mute_track = 1;
+        else if (*m != '0') {
+          csound->Message(csound, Str(" *** invalid mute track list format\n"));
+          goto err_return;
+        }
+        m++;
+      }
+      if (!mute_track)
+        csound->Message(csound, Str(" Track %2d\n"), i);
+      else
+        csound->Message(csound, Str(" Track %2d is muted\n"), i);
       if (readTrack(csound, f) != 0)
         goto err_return;
+      if (mute_track)                   /* if track is muted, discard any */
+        MF(nEvents) = saved_nEvents;    /* non-tempo events read */
     }
     if (strcmp(name, "stdin") != 0)
       fclose(f);
@@ -672,15 +700,15 @@ int csoundMIDIFileRead(void *csound_, unsigned char *buf, int nBytes)
     /* otherwise read any events with time less than or equal to */
     /* current orchestra time */
     while (j < mf->nTempo &&
-           csound->global_kcounter_ >= mf->tempoList[j].kcnt) {
+           (unsigned long) csound->global_kcounter_ >= mf->tempoList[j].kcnt) {
       /* tempo change */
       mf->currentTempo = mf->tempoList[j++].tempoVal;
     }
     mf->tempoListIndex = j;
     nRead = 0;
     while (i < mf->nEvents &&
-           csound->global_kcounter_ >= mf->eventList[i].kcnt) {
-      n = msgDataBytes(mf->eventList[i].st) + 1;
+           (unsigned long) csound->global_kcounter_ >= mf->eventList[i].kcnt) {
+      n = msgDataBytes((int) mf->eventList[i].st) + 1;
       if (n < 1) {
         i++; continue;        /* unknown or system event: skip */
       }
@@ -691,11 +719,9 @@ int csoundMIDIFileRead(void *csound_, unsigned char *buf, int nBytes)
         break;      /* return with whatever has been read so far */
       }
       nRead += n;
-      *buf++ = (unsigned char) mf->eventList[i].st;
-      if (n > 1)
-        *buf++ = (unsigned char) mf->eventList[i].d1;
-      if (n > 2)
-        *buf++ = (unsigned char) mf->eventList[i].d2;
+      *buf++ = mf->eventList[i].st;
+      if (n > 1) *buf++ = mf->eventList[i].d1;
+      if (n > 2) *buf++ = mf->eventList[i].d2;
       i++;
     }
     mf->eventListIndex = i;
