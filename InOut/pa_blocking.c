@@ -42,15 +42,26 @@ int PaBlockingReadStreamCallback(const void *input, void *output,
     PaStreamCallbackFlags statusFlags, void *userData)
 {
     PA_BLOCKING_STREAM *pabs = (PA_BLOCKING_STREAM *)userData;
-    float *paInput = (float *)input;
+    float *paOutput = (float *)output;
     size_t i;
     size_t n;
-    csoundNotifyThreadLock(pabs->csound, pabs->clientLock);
-    csoundWaitThreadLock(pabs->csound, pabs->paLock, 0);
+    csoundWaitThreadLock(pabs->csound, pabs->paLock, 100);
     for(i = 0, n = pabs->actualBufferSampleCount; i < n; i++) {
         pabs->actualBuffer[i] = paInput[i];
     }
+    csoundNotifyThreadLock(pabs->csound, pabs->clientLock);
     return paContinue;
+}
+
+void paBlockingRead(PA_BLOCKING_STREAM *pabs, MYFLT *buffer)
+{
+    size_t i;
+    size_t n;
+    csoundNotifyThreadLock(pabs->csound, pabs->paLock);
+    csoundWaitThreadLock(pabs->csound, pabs->clientLock, 100);    
+    for(i = 0, n = pabs->actualBufferSampleCount; i < n; i++) {
+        buffer[i] = pabs->actualBuffer[i];
+    }
 }
 
 int paBlockingWriteOpen(ENVIRON *csound, 
@@ -59,7 +70,8 @@ int paBlockingWriteOpen(ENVIRON *csound,
     PA_BLOCKING_STREAM *pabs = (PA_BLOCKING_STREAM *)
         mcalloc(sizeof(PA_BLOCKING_STREAM));
     pabs->csound = csound;
-    pabs->actualBufferSampleCount = csound->GetKsmps(csound) * csound->GetNchnls(csound); 
+    pabs->actualBufferSampleCount = csound->GetKsmps(csound) 
+        * csound->GetNchnls(csound); 
     pabs->actualBuffer = (float *) 
         mcalloc(pabs->actualBufferSampleCount * sizeof(float));
     pabs->paLock = csoundCreateThreadLock(csound);
@@ -89,17 +101,6 @@ int paBlockingWriteOpen(ENVIRON *csound,
         *pabs_ = pabs;
     }
     return paError;
-}
-
-void paBlockingRead(PA_BLOCKING_STREAM *pabs, MYFLT *buffer)
-{
-    size_t i;
-    size_t n;
-    csoundWaitThreadLock(pabs->csound, pabs->clientLock, 0);    
-    for(i = 0, n = pabs->actualBufferSampleCount; i < n; i++) {
-        buffer[i] = pabs->actualBuffer[i];
-    }
-    csoundNotifyThreadLock(pabs->csound, pabs->paLock);
 }
 
 int paBlockingWriteStreamCallback(const void *input, 
