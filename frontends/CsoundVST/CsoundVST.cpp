@@ -249,7 +249,8 @@ extern "C"
 
 static int threadYieldCallback(void *csound)
 {
-  return Fl::wait(0.0);
+  Fl::wait(0.0);
+  return 1;
 }
 
 static int nonThreadYieldCallback(void *)
