@@ -314,12 +314,13 @@ int marimbaset(ENVIRON *csound, MARIMBA *p)
       itemp = rand() % 100;
       if (itemp < triples) {
         p->multiStrike = 2;
-        if (oparms_->msglevel & 02)
+        if (csound->oparms_->msglevel & 02)
           printf(Str("striking three times here!!!\n"));
       }
       else if (itemp < doubles) {
         p->multiStrike = 1;
-        if (oparms_->msglevel & 02) printf(Str("striking twice here!!\n"));
+        if (csound->oparms_->msglevel & 02)
+          printf(Str("striking twice here!!\n"));
       }
       else p->multiStrike = 0;
     }

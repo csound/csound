@@ -271,7 +271,7 @@ int scsnux_init(ENVIRON *csound, PSCSNUX *p)
       MEMFIL *mfp;
       if (p->STRARG == NULL) strcpy(filnam,unquote(currevent->strarg));
       else strcpy(filnam, unquote(p->STRARG));
-      if ((mfp = ldmemfile(filnam)) == NULL) {    /*   readfile if reqd */
+      if ((mfp = ldmemfile(csound, filnam)) == NULL) {  /*   readfile if reqd */
         sprintf(errmsg,"SCANU cannot load %s",filnam);
         return initerror(errmsg);
       }

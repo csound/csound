@@ -364,16 +364,6 @@ int lfoa(ENVIRON *csound, LFO *p)
 /* Changes made also to Cs.h, Musmon.c and Insert.c; look for "(re Aug 1999)" */
 /******************************************************************************/
 
-/* Called from kperf() to see if any event to turn on */
-int sensOrcEvent(ENVIRON *csound)
-{
-    if (csound->OrcTrigEvts != NULL &&
-        csound->OrcTrigEvts->start_kcnt <= (unsigned long) global_kcounter)
-      return 4;     /* sensType value (0=score,1=line,2=midi) */
-    else
-      return 0;
-}
-
 int ktriginstr(ENVIRON *csound, TRIGINSTR *p);
 
 int triginset(ENVIRON *csound, TRIGINSTR *p)

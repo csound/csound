@@ -333,54 +333,27 @@ csound_time(PyObject *self, PyObject *args)
 static PyObject *
 csound_ievent(PyObject *self, PyObject *args)
 {
-  MYFLT instr, when, dur;
-  int insno, i, narg = PyTuple_Size(args);
-  MYFLT starttime;
-  EVTNODE *evtlist, *newnode;
-  EVTBLK *newevt;
+  int i, narg = PyTuple_Size(args);
+  EVTBLK newevt;
   
   if (narg < 3)
     return NULL;
 
-  instr = (MYFLT)PyFloat_AsDouble(PyTuple_GET_ITEM(args, 0));
-  when = (MYFLT)PyFloat_AsDouble(PyTuple_GET_ITEM(args, 1));
-  dur = (MYFLT)PyFloat_AsDouble(PyTuple_GET_ITEM(args, 2));
-
-  insno = (int)instr;
-  newnode = (EVTNODE *) mmalloc(csound, (long)sizeof(EVTNODE));
-  newevt = &newnode->evt;
-  newevt->opcod = 'i';
+  newevt.strarg = NULL;
+  newevt.opcod = 'i';
+  newevt.pcnt = narg;
+  newevt.p[1] = (MYFLT) PyFloat_AsDouble(PyTuple_GET_ITEM(args, 0));
+  newevt.p[2] = (MYFLT) PyFloat_AsDouble(PyTuple_GET_ITEM(args, 1));
+  newevt.p[3] = (MYFLT) PyFloat_AsDouble(PyTuple_GET_ITEM(args, 2));
+  for (i = 0; i < narg - 3; i++)
+    newevt.p[i + 4] = (MYFLT) PyFloat_AsDouble(PyTuple_GET_ITEM(args, i + 3));
   /* Set start time from kwhen */
-  starttime = when;
-  if (starttime < FZERO) {
-    starttime = FZERO;
+  if (newevt.p[2] < FL(0.0)) {
+    newevt.p[2] = FL(0.0);
     warning(Str("queue_ievent warning: negative onset reset to zero"));
   }
-
-  /* Add current time (see note about kadjust in triginset() above) */
-  newnode->kstart = (long)(starttime * /* glob. */ ekr + FL(0.5));
-  newevt->p2orig = starttime;
-  newevt->p3orig = dur;
-  /* Copy all arguments to the new event */
-  newevt->pcnt = narg;
-  for (i = 0; i < narg-3; i++)
-    newevt->p[i+4] = (MYFLT)PyFloat_AsDouble(PyTuple_GET_ITEM(args, i + 3));
-  newevt->p[3] = dur;
-  newevt->p[2] = starttime;    /* Set actual start time in p2 */
-  newevt->p[1] = (MYFLT)(newnode->insno = insno);
-
-  /* Insert eventnode in list of generated events */
-  evtlist = &/* glob. */ OrcTrigEvts;
-  while (evtlist->nxtevt) {
-    if (newnode->kstart < evtlist->nxtevt->kstart) break;
-    evtlist = evtlist->nxtevt;
-  }
-  newnode->nxtevt = evtlist->nxtevt;
-  evtlist->nxtevt = newnode;
-  O.RTevents = 1;     /* Make sure kperf() looks for RT events */
-  O.ksensing = 1;
-  O.OrcEvts  = 1;     /* - of the appropriate type */
-  
+  insert_score_event(&cenviron, &newevt,
+                     cenviron.sensEvents_state.curTime, 0);
   Py_INCREF(Py_None);
   return Py_None;
 }
@@ -389,45 +362,17 @@ static PyObject *
 csound_eevent(PyObject *self, PyObject *args)
 {
   double onset;
-  MYFLT instr, when, dur;
-  MYFLT starttime;
-  EVTNODE *evtlist, *newnode;
-  EVTBLK *newevt;
+  EVTBLK newevt;
 
   if (!PyArg_ParseTuple(args, "d:eevent", &PyList_Type, &onset))
     return NULL;
 
   onset = PyFloat_AsDouble(PyTuple_GET_ITEM(args, 0));
-
-  newnode = (EVTNODE *) mmalloc(csound, (long)sizeof(EVTNODE));
-  newevt = &newnode->evt;
-  newevt->opcod = 'e';
-  /* Set start time from kwhen */
-  starttime = onset;
-  if (starttime < FZERO) {
-    starttime = FZERO;
-    warning(Str("queue_ievent warning: negative onset reset to zero"));
-  }
-
-  /* Add current time (see note about kadjust in triginset() above) */
-  newnode->kstart = (long)(starttime * /* glob. */ ekr + FL(0.5));
-  newevt->p2orig = starttime;
-  newevt->p3orig = dur;
-  /* Copy all arguments to the new event */
-  newevt->pcnt = 1;
-
-  /* Insert eventnode in list of generated events */
-  evtlist = &/* glob. */ OrcTrigEvts;
-  while (evtlist->nxtevt) {
-    if (newnode->kstart < evtlist->nxtevt->kstart) break;
-    evtlist = evtlist->nxtevt;
-  }
-  newnode->nxtevt = evtlist->nxtevt;
-  evtlist->nxtevt = newnode;
-  O.RTevents = 1;     /* Make sure kperf() looks for RT events */
-  O.ksensing = 1;
-  O.OrcEvts  = 1;     /* - of the appropriate type */
-  
+  newevt.strarg = NULL;
+  newevt.opcod = 'e';
+  newevt.pcnt = 0;
+  insert_score_event(&cenviron, &newevt,
+                     cenviron.sensEvents_state.curTime + onset, 0);
   Py_INCREF(Py_None);
   return Py_None;
 }

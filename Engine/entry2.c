@@ -45,6 +45,7 @@
 #if defined(USE_FLTK)
 #include "widgets.h"                    /* IV - Aug 23 2002 */
 #endif
+#include "linevent.h"
 
 #define S       sizeof
 
@@ -69,7 +70,7 @@ int    klnsegr(void*,void*), linsegr(void*,void*), xdsrset(void*,void*), kxpseg(
 int    expseg(void*,void*), mxdsrset(void*,void*), kxpsegr(void*,void*), expsegr(void*,void*);
 int    schedule(void*,void*), schedwatch(void*,void*), ifschedule(void*,void*), kschedule(void*,void*);
 int    triginset(void*,void*), ktriginstr(void*,void*), trigseq_set(void*,void*), trigseq(void*,void*);
-int    eventOpcode(void*,void*);
+int    eventOpcode(void*,void*), eventOpcodeI(void*,void*);
 int    lfoset(void*,void*), lfok(void*,void*), lfoa(void*,void*);
 int    mute_inst(void*,void*);
 int    vbap_FOUR_init(void*,void*), vbap_FOUR (void*,void*), vbap_EIGHT_init(void*,void*);
@@ -237,8 +238,9 @@ OENTRY opcodlst_2[] = {
 { "schedkwhen", S(TRIGINSTR), 3,"",     "kkkkkz",triginset, ktriginstr, NULL },
 { "schedkwhennamed", S(TRIGINSTR), 3,"", "kkkSkz",triginset, ktriginstr, NULL },
 { "trigseq", S(TRIGSEQ), 3,     "",     "kkkkkz", trigseq_set, trigseq, NULL },
-{ "event", S(LINEVENT),  2,     "",     "SSz",  NULL, eventOpcode, NULL },
-{ "lfo", S(LFO),         7,     "s",    "kko",  lfoset,   lfok,   lfoa     },
+{ "event", S(LINEVENT),  2,     "",     "SSz",  NULL, eventOpcode, NULL   },
+{ "event_i", S(LINEVENT),1,     "",     "SSm",  eventOpcodeI, NULL, NULL  },
+{ "lfo", S(LFO),         7,     "s",    "kko",  lfoset,   lfok,   lfoa    },
 { "vbap4",  S(VBAP_FOUR), 5, "aaaa","aioo", vbap_FOUR_init, NULL, vbap_FOUR },
 { "vbap8",  S(VBAP_EIGHT), 5, "aaaaaaaa","aioo", vbap_EIGHT_init, NULL, vbap_EIGHT },
 { "vbap16", S(VBAP_SIXTEEN), 5, "aaaaaaaaaaaaaaaa","aioo", vbap_SIXTEEN_init, NULL, vbap_SIXTEEN },

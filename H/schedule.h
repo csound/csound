@@ -1,7 +1,8 @@
 /*
     schedule.h:
 
-    Copyright (C) 1999, 2002 rasmus ekman, Istvan Varga, John ffitch, Gabriel Maldonado, matt ingalls
+    Copyright (C) 1999, 2002 rasmus ekman, Istvan Varga, John ffitch,
+                             Gabriel Maldonado, matt ingalls
 
     This file is part of Csound.
 
@@ -65,9 +66,6 @@ typedef struct {
         long   timrem, prvktim, kadjust;
 } TRIGINSTR;
 
-
-extern int sensOrcEvent(ENVIRON*);
-
 /*****************************************************************/
 /* trigseq, seqtime -                                            */
 /* May 2000 by Gabriel Maldonado                                 */
@@ -92,11 +90,3 @@ typedef struct {
   MYFLT *table;
 } SEQTIM;
 
-/*****************************************************************/
-/* linevent                                                      */
-/* Dec 2001 by matt ingalls                                      */
-/*****************************************************************/
-typedef struct {
-    OPDS   h;
-    MYFLT  *args[VARGMAX];
-} LINEVENT;

@@ -582,30 +582,20 @@ extern "C" {
       }
   }
 
-  PUBLIC void csoundScoreEvent(void *csound_, char type,
-                               MYFLT *pfields, long numFields)
+  PUBLIC int csoundScoreEvent(void *csound, char type,
+                              MYFLT *pfields, long numFields)
   {
     EVTBLK        evt;
-    ENVIRON       *csound;
     int           i;
 
-    csound = (ENVIRON*) csound_;
-    if (numFields < 4 && (type != 'e' && type != 'l' && type != 's')) {
-      if (numFields < 3 || type == 'f') {
-        csound->Message(csound, Str("too few pfields\n"));
-        return;
-      }
-    }
     evt.strarg = NULL;
     evt.opcod = type;
     evt.pcnt = (short) numFields;
-    evt.p[1] = evt.p[2] = evt.p[3] = FL(0.0);
     for (i = 0; i < (int) numFields; i++)
       evt.p[i + 1] = pfields[i];
-    if (type != 'f')
-      insert_score_event(csound, &evt, csound->sensEvents_state.timeOffs, 0);
-    else
-      insert_score_event(csound, &evt, csound->sensEvents_state.timeOffs, 1);
+    return
+      insert_score_event((ENVIRON*) csound, &evt,
+                         ((ENVIRON*) csound)->sensEvents_state.timeOffs, 0);
   }
 
   /*

@@ -2544,9 +2544,6 @@ int ftsave_k(ENVIRON *csound, FTLOAD_K *p)
 #include "pstream.h"
 #include "pvfileio.h"
 
-extern int find_memfile(const char *fname,MEMFIL **pp_mfp);
-extern void add_memfil(MEMFIL *mfp);
-
 typedef struct _pvstabledat {
         long    fftsize;
         long    overlap;
@@ -2604,7 +2601,7 @@ static int pvx_loadfile_mem(const char *fname,PVSTABLEDAT *p, MEMFIL **mfp)
       return 0;
     }
 
-    if (!find_memfile(fname,&mfil)){
+    if (!find_memfile(&cenviron, fname, &mfil)){
       mem_wanted = totalframes * 2 * pvdata.nAnalysisBins * sizeof(float);
       /* try for the big block first! */
 
@@ -2677,7 +2674,7 @@ static int pvx_loadfile_mem(const char *fname,PVSTABLEDAT *p, MEMFIL **mfp)
       /*from memfiles.c */
       printf(Str("file %s (%ld bytes) loaded into memory\n"),
              fname,mem_wanted);
-      add_memfil(mfil);
+      add_memfil(&cenviron, mfil);
     }
 
     *mfp = mfil;

@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
-csound -m7 -RW  temp.orc temp.sco
+csound -d -m231 -R -W  temp.orc temp.sco
 </CsOptions>
 <CsInstruments>
 ;============================================================================; 
@@ -360,9 +360,9 @@ k8     oscil   k7, p7 * 1.2, 1, .7
 k9     linen   p6, p3 * .5, p3, p3 * .333
 a3     oscil   k6, cpsoct((ifreq + .007) + k8), 5, .5
 
-k10    expseg  1, p3 * .8, p6, p3 * .2, 4
+k10    expseg  1, p3 * .8, p8, p3 * .2, 4
 k11    oscil   k10, p7 * .97, 1, .6
-k12    expseg  .001, p3 * .99, p8 * .97, p3 * .01, p8 * .97
+k12    expseg  .001, p3 * .99, p6 * .97, p3 * .01, p6 * .97
 a4     oscil   k12, cpsoct((ifreq + .005) + k11), 6, .8
 
 k13    expseg  .002, p3 * .91, p8 * .99, p3 * .09, p8 * .99
@@ -673,10 +673,6 @@ e
 ;============================================================================; 
 ;======================= TOTAL TIME: 283 SECONDS ============================;
 ;============================================================================; 
-
-
-
-
 
 </CsScore>
 </CsoundSynthesizer>

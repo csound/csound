@@ -23,6 +23,8 @@
 
                                                          /* PROTOTYP.H */
 #ifndef __PROTO_H
+#define __PROTO_H
+
 #include <stdlib.h>
 #define IGN(X) X = X
 
@@ -64,7 +66,7 @@ void RTLineset(void);
 int  sensLine(void);
 void fgens(ENVIRON *, EVTBLK *);
 FUNC *ftnp2find(ENVIRON *,MYFLT *), *ftfindp(ENVIRON *,MYFLT *);
-void beep(void), rlsmemfiles(void);
+void beep(void);
 MYFLT intpow(MYFLT, long);
 void list_opcodes(int);
 short sfsampsize(int);
@@ -82,6 +84,11 @@ void add_tmpfile(void*, char*);
 void xturnoff(ENVIRON*, INSDS*);
 void xturnoff_now(ENVIRON*, INSDS*);
 int insert_score_event(ENVIRON*, EVTBLK*, double, int);
+MEMFIL *ldmemfile(void*, const char*);
+void rlsmemfiles(void*);
+int delete_memfile(void*, const char*);
+int find_memfile(void*, const char*, MEMFIL**);
+void add_memfil(void*, MEMFIL*);
 
 extern OPARMS O;
 extern ENVIRON cenviron;
@@ -93,5 +100,4 @@ extern MYFLT *outbuf;
 }
 #endif
 
-#define __PROTO_H
 #endif

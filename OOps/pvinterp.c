@@ -49,7 +49,7 @@ static  PVBUFREAD       *pvbufreadaddr;
 int pvbufreadset(ENVIRON *csound, PVBUFREAD *p)
 {
     char     pvfilnam[MAXNAME];
-    MEMFIL   *mfp, *ldmemfile(char *);
+    MEMFIL   *mfp;
     PVSTRUCT *pvh;
     int      frInc, chans, size; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
 
@@ -75,7 +75,7 @@ int pvbufreadset(ENVIRON *csound, PVBUFREAD *p)
     else sprintf(pvfilnam,"pvoc.%d", (int)*p->ifilno); /* else pvoc.filnum   */
     if ((mfp = p->mfp) == NULL ||
         strcmp(mfp->filename, pvfilnam) != 0) { /* if file not already readin */
-      if ( (mfp = ldmemfile(pvfilnam)) == NULL) {
+      if ( (mfp = ldmemfile(csound, pvfilnam)) == NULL) {
         sprintf(errmsg,Str("PVOC cannot load %s"), pvfilnam);
         goto pverr;
       }
@@ -170,7 +170,7 @@ int pvinterpset(ENVIRON *csound, PVINTERP *p)
 {
     int      i;
     char     pvfilnam[MAXNAME];
-    MEMFIL   *mfp, *ldmemfile(char *);
+    MEMFIL   *mfp;
     PVSTRUCT *pvh;
     int      frInc, chans, size; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
 
@@ -198,7 +198,7 @@ int pvinterpset(ENVIRON *csound, PVINTERP *p)
     else sprintf(pvfilnam,"pvoc.%d", (int)*p->ifilno); /* else pvoc.filnum   */
     if ((mfp = p->mfp) == NULL ||
         strcmp(mfp->filename, pvfilnam) != 0) { /* if file not already readin */
-      if ( (mfp = ldmemfile(pvfilnam)) == NULL) {
+      if ( (mfp = ldmemfile(csound, pvfilnam)) == NULL) {
         sprintf(errmsg,Str("PVOC cannot load %s"), pvfilnam);
         goto pverr;
       }
@@ -370,7 +370,7 @@ int pvcrossset(ENVIRON *csound, PVCROSS *p)
 {
     int      i;
     char     pvfilnam[MAXNAME];
-    MEMFIL   *mfp, *ldmemfile(char *);
+    MEMFIL   *mfp;
     PVSTRUCT *pvh;
     int      frInc, chans, size; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
 
@@ -395,7 +395,7 @@ int pvcrossset(ENVIRON *csound, PVCROSS *p)
     else sprintf(pvfilnam,"pvoc.%d", (int)*p->ifilno); /* else pvoc.filnum   */
     if ((mfp = p->mfp) == NULL ||
         strcmp(mfp->filename, pvfilnam) != 0) {/* if file not already readin */
-        if ( (mfp = ldmemfile(pvfilnam)) == NULL) {
+        if ( (mfp = ldmemfile(csound, pvfilnam)) == NULL) {
             sprintf(errmsg,Str("PVOC cannot load %s"), pvfilnam);
             goto pverr;
         }

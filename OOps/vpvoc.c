@@ -210,7 +210,7 @@ int vpvset(ENVIRON *csound, VPVOC *p)
 {
     int      i;
     char     pvfilnam[64];
-    MEMFIL   *mfp, *ldmemfile(char*);
+    MEMFIL   *mfp;
     PVSTRUCT *pvh;
     int     frInc, chans, size; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
                                 /* If optional table given, fake it up -- JPff */
@@ -250,7 +250,7 @@ int vpvset(ENVIRON *csound, VPVOC *p)
     else sprintf(pvfilnam,"pvoc.%d", (int)*p->ifilno); /* else pvoc.filnum   */
     if ((mfp = p->mfp) == NULL
       || strcmp(mfp->filename, pvfilnam) != 0) /* if file not already readin */
-        if ( (mfp = ldmemfile(pvfilnam)) == NULL) {
+        if ( (mfp = ldmemfile(csound, pvfilnam)) == NULL) {
             sprintf(errmsg,Str("PVOC cannot load %s"), pvfilnam);
             goto pverr;
         }

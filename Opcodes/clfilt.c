@@ -68,11 +68,9 @@ int clfiltset(ENVIRON *csound, CLFILT *p)
     }
     else if (fmod((double)*p->npol,2.0) != 0.0) {
       p->nsec = nsec = (int)((*p->npol+FL(1.0))/FL(2.0));
-      if (oparms_->msglevel & WARNMSG) {
-        printf(Str(
-                   "WARNING: odd number of poles chosen in clfilt,"
-                   " rounded to %d\n"),
-              2*nsec);
+      if (csound->oparms_->msglevel & WARNMSG) {
+        printf(Str("WARNING: odd number of poles chosen in clfilt,"
+                   " rounded to %d\n"), 2*nsec);
       }
     }
     else p->nsec = nsec = (int)((*p->npol)/FL(2.0));
@@ -97,20 +95,16 @@ int clfiltset(ENVIRON *csound, CLFILT *p)
       case 1: /* Lowpass Chebyshev type I */
         if ( pbr < FL(0.0) ) {
           pbr = -pbr;
-          if (oparms_->msglevel & WARNMSG) {
-            printf(Str(
-                        "WARNING: passband ripple must be positive "
-                       "in clfilt. Set to %f\n"),
-                    pbr);
+          if (csound->oparms_->msglevel & WARNMSG) {
+            printf(Str("WARNING: passband ripple must be positive "
+                       "in clfilt. Set to %f\n"), pbr);
           }
         }
         else if ( pbr == FL(0.0) ) {
           pbr = FL(1.0);
-          if (oparms_->msglevel & WARNMSG) {
-            printf(Str(
-                       "WARNING: passband ripple must be non-zero in "
-                       "clfilt. Set to %f\n"),
-                   pbr);
+          if (csound->oparms_->msglevel & WARNMSG) {
+            printf(Str("WARNING: passband ripple must be non-zero in "
+                       "clfilt. Set to %f\n"), pbr);
           }
         }
         eps = sqrt(pow(10.0,(pbr/10.0))-1.0);
@@ -152,20 +146,16 @@ int clfiltset(ENVIRON *csound, CLFILT *p)
         }
         else if ( sbr > FL(0.0) ) {
           sbr = -sbr;
-          if (oparms_->msglevel & WARNMSG) {
-            printf(Str(
-                       "WARNING: stopband attenuation must be negative "
-                       "in clfilt. Set to %f\n"),
-                    sbr);
+          if (csound->oparms_->msglevel & WARNMSG) {
+            printf(Str("WARNING: stopband attenuation must be negative "
+                       "in clfilt. Set to %f\n"), sbr);
           }
         }
         else if ( sbr == FL(0.0) ) {
           sbr = FL(-60.0);
-          if (oparms_->msglevel & WARNMSG) {
-            printf(Str(
-                       "WARNING: stopband attenuation must be non-zero "
-                       "in clfilt. Set to %f\n"),
-                   sbr);
+          if (csound->oparms_->msglevel & WARNMSG) {
+            printf(Str("WARNING: stopband attenuation must be non-zero "
+                       "in clfilt. Set to %f\n"), sbr);
           }
         }
         eps = sqrt(1.0/(pow(10.0,-(sbr/10.0))-1.0));
@@ -215,20 +205,16 @@ int clfiltset(ENVIRON *csound, CLFILT *p)
       case 1: /* Highpass Chebyshev type I */
         if ( pbr < FL(0.0) ) {
           pbr = -pbr;
-          if (oparms_->msglevel & WARNMSG) {
-            printf(Str(
-                       "WARNING: passband ripple must be positive in clfilt. "
-                       "Set to %f\n"),
-                    pbr);
+          if (csound->oparms_->msglevel & WARNMSG) {
+            printf(Str("WARNING: passband ripple must be positive in clfilt. "
+                       "Set to %f\n"), pbr);
           }
         }
         else if ( pbr == FL(0.0) ) {
           pbr = FL(1.0);
-          if (oparms_->msglevel & WARNMSG) {
-            printf(Str(
-                        "WARNING: passband ripple must be non-zero "
-                       "in clfilt. Set to %f\n"),
-                    pbr);
+          if (csound->oparms_->msglevel & WARNMSG) {
+            printf(Str("WARNING: passband ripple must be non-zero "
+                       "in clfilt. Set to %f\n"), pbr);
           }
         }
         eps = sqrt((pow(10.0,(pbr/10.0))-1.0));
@@ -270,20 +256,16 @@ int clfiltset(ENVIRON *csound, CLFILT *p)
         }
         else if ( sbr > FL(0.0) ) {
           sbr = -sbr;
-          if (oparms_->msglevel & WARNMSG) {
-            printf(Str(
-                       "WARNING: stopband attenuation must be negative "
-                       "in clfilt. Set to %f\n"),
-                   sbr);
+          if (csound->oparms_->msglevel & WARNMSG) {
+            printf(Str("WARNING: stopband attenuation must be negative "
+                       "in clfilt. Set to %f\n"), sbr);
           }
         }
         else if ( sbr == FL(0.0) ) {
           sbr = FL(-60.0);
-          if (oparms_->msglevel & WARNMSG) {
-            printf(Str(
-                       "WARNING: stopband attenuation must be non-zero "
-                       "in clfilt. Set to %f\n"),
-                   sbr);
+          if (csound->oparms_->msglevel & WARNMSG) {
+            printf(Str("WARNING: stopband attenuation must be non-zero "
+                       "in clfilt. Set to %f\n"), sbr);
           }
         }
         eps = sqrt(1.0/(pow(10.0,-(sbr/10.0))-1.0));
@@ -306,8 +288,7 @@ int clfiltset(ENVIRON *csound, CLFILT *p)
         }
         break;
       case 3: /* Highpass Elliptical */
-        return initerror(Str(
-                             "Highpass Elliptical not implemented yet. Sorry!"));
+        return initerror(Str("Highpass Elliptical not implemented yet. Sorry!"));
         break;
       default: /* Because of earlier conditionals, should never get here. */
         return initerror(Str("code error, ikind out of range"));
@@ -376,8 +357,7 @@ int clfilt(ENVIRON *csound, CLFILT *p)
           }
           break;
         case 3: /* Lowpass Elliptical */
-          return perferror(Str(
-                               "Lowpass Elliptical not implemented yet. Sorry!"));
+          return perferror(Str("Lowpass Elliptical not implemented yet. Sorry!"));
           break;
         default: /* Because of earlier contditionals, should never get here. */
           return perferror(Str("code error, ikind out of range"));
@@ -412,8 +392,7 @@ int clfilt(ENVIRON *csound, CLFILT *p)
           }
           break;
         case 3: /* Highpass Elliptical */
-          return perferror(Str(
-                               "Highpass Elliptical not implemented yet. Sorry!"));
+          return perferror(Str("Highpass Elliptical not implemented yet. Sorry!"));
           break;
         default: /* Because of earlier contditionals, should never get here. */
           return perferror(Str("code error, ikind out of range"));
