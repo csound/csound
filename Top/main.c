@@ -645,8 +645,8 @@ void mainRESET(ENVIRON *p)
     void tranRESET(void);
     void MidiClose(ENVIRON*);
 
-    cleanup((void*) p);                 /* IV - Feb 03 2005 */
     MidiClose(p);
+    cleanup((void*) p);                 /* IV - Feb 03 2005 */
 
 #if defined(USE_FLTK) && defined(never)        /* IV - Nov 30 2002 */
     void widgetRESET(void);     /* N.B. this is not used yet, */
