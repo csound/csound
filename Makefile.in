@@ -434,6 +434,9 @@ $(WINOBJ): $(WINSRC)
 FL_graph.o: $I/FL_graph.cpp
 	$(CXX) $(CXXFLAGS) -I H -c $I/$*.cpp -o $*.$(o)
 
+$(FLTKOBJ): $(FLTKSRC)
+	$(CXX) $(CXXFLAGS) -I H -c $I/$*.cpp -o $*.$(o)
+
 $(AUDOBJ): $(AUDSRC)
 	$(CC) $(CFLAGS) -I H -c $I/$*.c -o $*.$(o)
 
@@ -451,6 +454,7 @@ $(COBJO): $(CSRCO)
 
 .c.$(o):
 	$(CC) $(CFLAGS) -I H -c $*.c -o $*.$(o)
+
 
 ADSYNS = hetro 						#targets in anal/adsyn
 LPCS = lpanal						#targets in anal/lpc
