@@ -1,0 +1,226 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{printks}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{printks}
+printks --  Prints at k-rate using a printf() style syntax. \subsection*{Description}
+
+
+  Prints at k-rate using a printf() style syntax. 
+\subsection*{Syntax}
+
+
+ \textbf{printks}
+ ``string'', itime [, kval1] [, kval2] [...]
+\subsection*{Initialization}
+
+
+ \emph{``string''}
+ -- the text string to be printed. Can be up to 8192 characters and must be in double quotes. 
+
+
+ \emph{itime}
+ -- time in seconds between printings. 
+\subsection*{Performance}
+
+
+ \emph{kval1, kval2, ...}
+ (optional) -- The k-rate values to be printed. These are specified in \emph{``string''}
+ with the standard C value specifier (\%f, \%d, etc.) in the order given. 
+
+
+  In Csound version 4.23, you can use as many \emph{kval}
+ variables as you like. In versions prior to 4.23, you must specify 4 and only 4 kvals (using 0 for unused kvals). 
+
+
+ \emph{printks}
+ prints numbers and text which can be i-time or k-rate values. \emph{printks}
+ is highly flexible, and if used together with cursor positioning codes, could be used to write specific values to locations in the screen as the Csound processing proceeds. 
+
+
+  A special mode of operation allows this \emph{printks}
+ to convert \emph{kval1}
+ input parameter into a 0 to 255 value and to use it as the first character to be printed. This enables a Csound program to send arbitrary characters to the console. To achieve this, make the first character of the string a \# and then, if desired continue with normal text and format specifiers. 
+
+
+  This opcode can be run on every k-cycle it is run in the instrument. To every accomplish this, set \emph{itime}
+ to 0. 
+
+
+  When \emph{itime}
+ is not 0, the opcode print on the first k-cycle it is called, and subsequently when every \emph{itime}
+ period has elapsed. The time cycles start from the time the opcode is initialized - typically the initialization of the instrument. 
+\subsection*{Print Output Formatting}
+
+
+  All standard C language printf() control characters may be used. For example, if \emph{kval1}
+ = 153.26789 then some common formatting options are: 
+
+
+ 
+\begin{enumerate}
+\item 
+
+ \%f prints with full precision: 153.26789
+
+\item 
+
+ \%5.2f prints: 153.26
+
+\item 
+
+ \%d prints integers-only: 153
+
+\item 
+
+ \%c treats \emph{kval1}
+ as an ascii character code. 
+
+
+\end{enumerate}
+
+
+  In addition to all the printf() codes, printks supports these useful character codes: 
+
+
+ 
+
+
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
+%\hline 
+printks CodeCharacter Code & & & & & & & \\
+ %\hline 
+$\backslash$$\backslash$r, $\backslash$$\backslash$R, \%r, or \%Rreturn character ($\backslash$r) &$\backslash$$\backslash$n, $\backslash$$\backslash$N, \%n, \%Nnewline character ($\backslash$n) &$\backslash$$\backslash$t, $\backslash$$\backslash$T, \%t, or \%Ttab character ($\backslash$t) &\%!semicolon character (;) This was needed because a ``;'' is interpreted as an comment. &\^{}escape character (0x1B) &\^{} \^{}caret character (\^{}) &\&\#732;ESC[ (escape+[ is the escape sequence for ANSI consoles) &\&\#732;\&\#732;tilde (\&\#732;) \\
+ %\hline 
+
+\end{tabular}
+
+
+
+ 
+
+
+  For more information about printf() formatting, consult any C language documentation. 
+
+
+ 
+
+
+\begin{tabular}{cc}
+\textbf{Note}
+ \\
+  &
+
+  Prior to version 4.23, only the \%f format code was supported. 
+
+
+\end{tabular}
+
+\subsection*{Examples}
+
+
+  Here is an example of the printks opcode. It uses the files \emph{printks.orc}
+ and \emph{printks.sco}
+. 
+
+
+ \textbf{Example 1. Example of the printks opcode.}
+
+\begin{lstlisting}
+/* printks.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 44100
+ksmps = 1
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  ; Change a value linearly from 0 to 100,
+  ; over the period defined by p3.
+  kup line 0, p3, 100
+  ; Change a value linearly from 30 to 10, 
+  ; over the period defined by p3.
+  kdown line 30, p3, 10
+
+  ; Print the value of kup and kdown, once per second.
+  printks "kup = %f, kdown = %f\\n", 1, kup, kdown
+endin
+/* printks.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* printks.sco */
+; Play Instrument #1 for 5 seconds.
+i 1 0 5
+e
+/* printks.sco */
+        
+\end{lstlisting}
+ Its output should include lines like this: \begin{lstlisting}
+kup = 0.000000, kdown = 30.000000
+kup = 20.010843, kdown = 25.962524
+kup = 40.029991, kdown = 21.925049
+kup = 60.049141, kdown = 17.887573
+kup = 79.933266, kdown = 13.872493
+      
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{printk2}
+ and \emph{printk}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Robin Whittle &Australia &May 1997
+
+\end{tabular}
+
+
+
+ 
+
+
+ Example written by Kevin Conder.
+
+
+ Thanks goes to Luis Jure for pointing out a mistake with the \emph{itime}
+ parameter.
+
+
+ Thanks to Matt Ingalls, updated the documentation for version 4.23.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+printk2 &Up &prints
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

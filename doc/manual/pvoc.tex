@@ -1,0 +1,117 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{pvoc}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{pvoc}
+pvoc --  Implements signal reconstruction using an fft-based phase vocoder. \subsection*{Description}
+
+
+  Implements signal reconstruction using an fft-based phase vocoder. 
+\subsection*{Syntax}
+
+
+ ar \textbf{pvoc}
+ ktimpnt, kfmod, ifilcod [, ispecwp] [, iextractmode] [, ifreqlim] [, igatefn]
+\subsection*{Initialization}
+
+
+ \emph{ifilcod}
+ -- integer or character-string denoting a control-file derived from analysis of an audio signal. An integer denotes the suffix of a file \emph{pvoc.m}
+; a character-string (in double quotes) gives a filename, optionally a full pathname. If not fullpath, the file is sought first in the current directory, then in the one given by the environment variable \emph{SADIR}
+ (if defined). \emph{pvoc}
+ control contains breakpoint amplitude and frequency envelope values organized for fft resynthesis. Memory usage depends on the size of the files involved, which are read and held entirely in memory during computation but are shared by multiple calls (see also \emph{lpread}
+). 
+
+
+ \emph{ispecwp}
+ (optional) -- if non-zero, attempts to preserve the spectral envelope while its frequency content is varied by \emph{kfmod}
+. The default value is zero. 
+
+
+ \emph{iextractmode}
+ (optional) -- determines if spectral extraction will be carried out and if so whether components that have changes in frequency below \emph{ifreqlim}
+ or above \emph{ifreqlim}
+ will be discarded. A value for \emph{iextractmode}
+ of 1 will cause \emph{pvadd}
+ to synthesize only those components where the frequency difference between analysis frames is greater than \emph{ifreqlim}
+. A value of 2 for \emph{iextractmode}
+ will cause \emph{pvadd}
+ to synthesize only those components where the frequency difference between frames is less than \emph{ifreqlim}
+. The default values for \emph{iextractmode}
+ and \emph{ifreqlim}
+ are 0, in which case a simple resynthesis will be done. See examples under \emph{pvadd}
+ for how to use spectral extraction. 
+
+
+ \emph{igatefn}
+ (optional) -- the number of a stored function which will be applied to the amplitudes of the analysis bins before resynthesis takes place. If \emph{igatefn}
+ is greater than 0 the amplitudes of each bin will be scaled by \emph{igatefn}
+ through a simple mapping process. First, the amplitudes of all of the bins in all of the frames in the entire analysis file are compared to determine the maximum amplitude value. This value is then used create normalized amplitudes as indeces into the stored function \emph{igatefn}
+. The maximum amplitude will map to the last point in the function. An amplitude of 0 will map to the first point in the function. Values between 0 and 1 will map accordingly to points along the function table. See examples under \emph{pvadd}
+ for how to use amplitude gating. 
+\subsection*{Performance}
+
+
+ \emph{ktimpnt}
+ -- The passage of time, in seconds, through the analysis file. \emph{ktimpnt}
+ must always be positive, but can move forwards or backwards in time, be stationary or discontinuous, as a pointer into the analysis file. 
+
+
+ \emph{kfmod}
+ -- a control-rate transposition factor: a value of 1 incurs no transposition, 1.5 transposes up a perfect fifth, and .5 down an octave. 
+
+
+ \emph{pvoc}
+ implements signal reconstruction using an fft-based phase vocoder. The control data stems from a precomputed analysis file with a known frame rate. 
+
+
+  This implementation of \emph{pvoc}
+ was orignally written by Dan Ellis. It is based in part on the system of Mark Dolson, but the pre-analysis concept is new. The spectral extraction and amplitude gating (new in Csound version 3.56) were added by Richard Karpen based on functions in SoundHack by Tom Erbe. 
+\subsection*{See Also}
+
+
+ \emph{vpvoc}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Authors: Dan Ellis and Richard Karpen &Seattle, Wash &1997
+
+\end{tabular}
+
+
+
+ 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+pvinterp &Up &pvread
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

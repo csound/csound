@@ -1,0 +1,115 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{print}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{print}
+print --  Displays the values init, control, or audio signals. \subsection*{Description}
+
+
+  These units will print orchestra init-values, or produce graphic display of orchestra control signals and audio signals. Uses X11 windows if enabled, else (or if \emph{-g}
+ flag is set) displays are approximated in ASCII characters. 
+\subsection*{Syntax}
+
+
+ \textbf{print}
+ iarg [, iarg1] [, iarg2] [...]
+\subsection*{Initialization}
+
+
+ \emph{iarg, iarg2, ... }
+ -- i-rate arguments. 
+\subsection*{Performance}
+
+
+ \emph{print}
+ -- print the current value of the i-time arguments (or expressions) \emph{iarg}
+ at every i-pass through the instrument. 
+\subsection*{Examples}
+
+
+  Here is an example of the print opcode. It uses the files \emph{print.orc}
+ and \emph{print.sco}
+. 
+
+
+ \textbf{Example 1. Example of the print opcode.}
+
+\begin{lstlisting}
+/* print.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  ; Print the fourth p-field.
+  print p4
+endin
+/* print.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* print.sco */
+; p4 = value to be printed.
+; Play Instrument #1 for one second, p4 = 50.375.
+i 1 0 1 50.375
+; Play Instrument #1 for one second, p4 = 300.
+i 1 1 1 300
+; Play Instrument #1 for one second, p4 = -999.
+i 1 2 1 -999
+e
+/* print.sco */
+        
+\end{lstlisting}
+ Its output should include lines like this: \begin{lstlisting}
+instr 1:  p4 = 50.375
+instr 1:  p4 = 300.000
+instr 1:  p4 = -999.000
+      
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{dispfft}
+, \emph{display}
+, \emph{printk}
+, \emph{printk2}
+, \emph{printks}
+ and \emph{prints}
+
+\subsection*{Credits}
+
+
+ Example written by Kevin Conder.
+
+
+ Comments about the \emph{inprds}
+ parameter contributed by Rasmus Ekman.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+prealloc &Up &printk
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

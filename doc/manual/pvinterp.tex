@@ -1,0 +1,154 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{pvinterp}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{pvinterp}
+pvinterp --  Interpolates between the amplitudes and frequencies of two phase vocoder analysis files. \subsection*{Description}
+
+
+ \emph{pvinterp}
+ interpolates between the amplitudes and frequencies, on a bin by bin basis, of two phase vocoder analysis files (one from a previously called \emph{pvbufread}
+ unit and the other from within its own argument list), allowing for user defined transitions between analyzed sounds. It also allows for general scaling of the amplitudes and frequencies of each file separately before the interpolated values are calculated and sent to the resynthesis routines. The \emph{kfmod}
+ argument in \emph{pvinterp}
+ performs its frequency scaling on the frequency values after their derivation from the separate scaling and subsequent interpolation is performed so that this acts as an overall scaling value of the new frequency components. 
+\subsection*{Syntax}
+
+
+ ar \textbf{pvinterp}
+ ktimpnt, kfmod, ifile, kfreqscale1, kfreqscale2, kampscale1, kampscale2, kfreqinterp, kampinterp
+\subsection*{Initialization}
+
+
+ \emph{ifile}
+ -- the \emph{pvoc}
+ number (n in pvoc.n) or the name in quotes of the analysis file made using pvanal. (See \emph{pvoc}
+.) 
+\subsection*{Performance}
+
+
+ \emph{ktimpnt}
+ -- the passage of time, in seconds, through this file. \emph{ktimpnt}
+ must always be positive, but can move forwards or backwards in time, be stationary or discontinuous, as a pointer into the analysis file. 
+
+
+ \emph{kfmod}
+ -- a control-rate transposition factor: a value of 1 incurs no transposition, 1.5 transposes up a perfect fifth, and .5 down an octave. 
+
+
+ \emph{kfreqscale1}
+, \emph{kfreqscale2}
+, \emph{kampscale1}
+, \emph{kampscale2}
+ -- used in \emph{pvinterp}
+ to scale the frequencies and amplitudes stored in each frame of the phase vocoder analysis file. \emph{kfreqscale1}
+ and \emph{kampscale1}
+ scale the frequencies and amplitudes of the data from the file read by the previously called \emph{pvbufread}
+ (this data is passed internally to the pvinterp unit). \emph{kfreqscale2}
+ and \emph{kampscale2}
+ scale the frequencies and amplitudes of the file named by \emph{ifile}
+ in the \emph{pvinterp}
+ argument list and read within the \emph{pvinterp}
+ unit. 
+
+
+  By using these arguments, it is possible to adjust these values before applying the interpolation. For example, if file1 is much louder than file2, it might be desirable to scale down the amplitudes of file1 or scale up those of file2 before interpolating. Likewise one can adjust the frequencies of each to bring them more in accord with one another (or just the opposite, of course!) before the interpolation is performed. 
+
+
+ \emph{kfreqinterp}
+, \emph{kampinterp}
+ -- used in \emph{pvinterp}
+, determine the interpolation distance between the values of one phase vocoder file and the values of a second file. When the value of \emph{kfreqinterp}
+ is 0, the frequency values will be entirely those from the first file (read by the \emph{pvbufread}
+), post scaling by the \emph{kfreqscale1}
+ argument. When the value of \emph{kfreqinterp}
+ is 1 the frequency values will be those of the second file (read by the \emph{pvinterp}
+ unit itself), post scaling by kfreqscale2. When \emph{kfreqinterp}
+ is between 0 and 1 the frequency values will be calculated, on a bin, by bin basis, as the percentage between each pair of frequencies (in other words, \emph{kfreqinterp}
+=.5 will cause the frequencies values to be half way between the values in the set of data from the first file and the set of data from the second file). 
+
+
+ \emph{kampinterp}
+ works in the same way upon the amplitudes of the two files. Since these are k-rate arguments, the percentages can change over time making it possible to create many kinds of transitions between sounds. 
+\subsection*{Examples}
+
+
+  The example below shows an example using \emph{pvbufread}
+ with \emph{pvinterp}
+ to interpolate between the sound of an oboe and the sound of a clarinet. The value of \emph{kinterp}
+ returned by a linseg is used to determine the timing of the transitions between the two sounds. The interpolation of frequencies and amplitudes are controlled by the same factor in this example, but for other effects it might be interesting to not have them synchronized in this way. In this example the sound will begin as a clarinet, transform into the oboe and then return again to the clarinet sound. The value of \emph{kfreqscale2}
+ is 1.065 because the oboe in this case is a semitone higher in pitch than the clarinet and this brings them approximately to the same pitch. The value of \emph{kampscale2}
+ is .75 because the analyzed clarinet was somewhat louder than the analyzed oboe. The setting of these two parameters make the transition quite smooth in this case, but such adjustments are by no means necessary or even advocated. 
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+ktime1  \emph{line}
+      0, p3, 3.5 ; used as index in the "oboe.pvoc" file
+ktime2  \emph{line}
+      0, p3, 4.5 ; used as index in the  "clar.pvoc" file
+kinterp \emph{linseg}
+    1, p3*.15, 1, p3*.35, 0, p3*.25, 0, p3*.15, 1, p3*.1, 1
+        \emph{pvbufread}
+ ktime1, "oboe.pvoc"
+apv     \emph{pvinterp}
+  ktime2,1,"clar.pvoc",1,1.065,1,.75,1-kinterp,1-kinterp
+        
+\end{lstlisting}
+
+
+ 
+\subsection*{See Also}
+
+
+ \emph{pvbufread}
+, \emph{pvcross}
+, \emph{pvread}
+, \emph{tableseg}
+, \emph{tablexseg}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Richard Karpen &Seattle, Wash &1997
+
+\end{tabular}
+
+
+
+ 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+pvcross &Up &pvoc
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

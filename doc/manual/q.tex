@@ -1,0 +1,57 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{q Statement}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{q Statement}
+q statement --  This statement may be used to quiet an instrument. \subsection*{Description}
+
+
+  This statement may be used to quiet an instrument. 
+\subsection*{Syntax}
+
+
+ \textbf{q}
+ p1 p2 p3
+\subsection*{Performance}
+
+
+ \emph{p1}
+ -- Instrument number to mute/unmute. 
+
+
+ \emph{p2}
+ -- Action time of function generation (or destruction) in beats. 
+
+
+ \emph{p3}
+ -- determines whether the instrument is muted/unmuted. The value of 0 means the instrument is muted, other values mean it is unmuted. 
+
+
+  Note that this does not affect instruments that are already running at time \emph{p2}
+. It blocks any attempt to start one afterwards. 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+n Statement &Up &r Statement (Repeat Statement)
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}
