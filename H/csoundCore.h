@@ -698,6 +698,7 @@ typedef struct ENVIRON_
   char *(*LocalizeString)(const char*);
   int (*CreateGlobalVariable)(void *csound, const char *name, size_t nbytes);
   void *(*QueryGlobalVariable)(void *csound, const char *name);
+  void *(*QueryGlobalVariableNoCheck)(void *csound, const char *name);
   int (*DestroyGlobalVariable)(void *csound, const char *name);
   /* End of internals */
   int           ksmps_, nchnls_;

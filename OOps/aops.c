@@ -501,12 +501,10 @@ int ftsr(ENVIRON *csound, EVAL *p)              /**** ftsr by G.Maldonado ****/
 
 int rtclock(ENVIRON *csound, EVAL *p)
 {
-    /* IV - Jan 28 2005 */
-    RTCLOCK *pp;
-    pp = (RTCLOCK*) csoundQueryGlobalVariable(csound, "csRtClock");
-    if (pp == NULL)
-      return CSOUND_ERROR;
-    *p->r = (MYFLT) timers_get_real_time(pp);
+    /* IV - Jan 29 2005 */
+    *p->r = (MYFLT)
+            timers_get_real_time(csoundQueryGlobalVariableNoCheck(csound,
+                                                                  "csRtClock"));
     return OK;
 }
 
