@@ -208,7 +208,7 @@ err_printf(Str(X_572,"\t\t\tor for negative N, at -N kperiods\n"));
 err_printf("-P N\t Poll Events Every N Buffer Writes\n");
 err_printf(Str(X_582,"__________________________________________________________\n"));
 #endif
-err_printf(Str(X_768,"flag defaults: csound -s -otest -b%d -B%d -m7 -P128\n"),
+err_printf(Str(X_768,"flag defaults: csound -s -otest -b%d -B%d -m7\n"),
         IOBUFSAMPS, IODACSAMPS);
         longjmp(cenviron.exitjmp_,1);
 }
