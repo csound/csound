@@ -1,0 +1,80 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{endop}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{endop}
+endop --  Marks the end of an user-defined opcode block. \subsection*{Description}
+
+
+  Marks the end of an user-defined opcode block. 
+\subsection*{Syntax}
+
+
+ \textbf{endop}
+
+\subsection*{Performance}
+
+
+  The syntax of a user-defined opcode block is as follows: 
+
+
+ opcode  name, outtypes, intypes\\ 
+ xinarg1 [, xinarg2] [, xinarg3] ... [xinargN]  xin\\ 
+ [setksmps  iksmps]\\ 
+ ... the rest of the instrument's code.\\ 
+ xout  xoutarg1 [, xoutarg2] [, xoutarg3] ... [xoutargN]\\ 
+ endop\\ 
+       
+
+
+  The new opcode can then be used with the usual syntax: 
+
+
+ [xinarg1] [, xinarg2] ... [xinargN]  name  [xoutarg1] [, xoutarg2] ... [xoutargN] [, iksmps]\\ 
+       
+\subsection*{Examples}
+
+
+  See the example for the \emph{opcode}
+ opcode. 
+\subsection*{See Also}
+
+
+ \emph{opcode}
+, \emph{setksmps}
+, \emph{xin}
+, \emph{xout}
+
+\subsection*{Credits}
+
+
+ Author: Istvan Varga, 2002; based on code by Matt J. Ingalls
+
+
+ New in version 4.22
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+endin &Up &envlpx
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

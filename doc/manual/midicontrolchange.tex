@@ -1,0 +1,153 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{midicontrolchange}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{midicontrolchange}
+midicontrolchange --  Gets a MIDI control change value. \subsection*{Description}
+
+
+ \emph{midicontrolchange}
+ is designed to simplify writing instruments that can be used interchangeably for either score or MIDI input, and to make it easier to adapt instruments originally written for score input to work with MIDI input. 
+
+
+  In general, it should be possible to write instrument definitions that work identically with both scores and MIDI, including both MIDI files and real-time MIDI input, without using any conditional statements, and that take full advantage of MIDI voice messages. 
+
+
+  Note that correlating Csound instruments with MIDI channel numbers is done using the \emph{massign}
+ opcode for real-time performance,. For file-driven performance, instrument numbers default to MIDI channel number + 1, but the defaults are overridden by any MIDI program change messages in the file. 
+\subsection*{Syntax}
+
+
+ \textbf{midicontrolchange}
+ xcontroller, xcontrollervalue [, ilow] [, ihigh]
+\subsection*{Initialization}
+
+
+ \emph{ilow}
+ (optional) -- optional low value after rescaling, defaults to 0. 
+
+
+ \emph{ihigh}
+ (optional) -- optional high value after rescaling, defaults to 127. 
+\subsection*{Performance}
+
+
+ \emph{xcontroller}
+ -- specifies a MIDI controller number (0-127). 
+
+
+ \emph{xcontrollervalue}
+ -- returns the value of the MIDI controller during MIDI activation, remains unchanged otherwise. 
+
+
+  If the instrument was activated by MIDI input, the opcode overwrites the values of the \emph{xcontroller}
+ and \emph{xcontrollervalue}
+ with the corresponding values from MIDI input. If the instrument was \emph{NOT}
+ activated by MIDI input, the values of \emph{xcontroller}
+ and \emph{xcontrollervalue}
+ remain unchanged. 
+
+
+  This enables score p-fields to receive MIDI input data during MIDI activation, and score values otherwise. 
+
+
+ 
+
+
+\begin{tabular}{cc}
+\textbf{Adapting a score-activated Csound instrument.}
+ \\
+  &
+
+  To adapt an ordinary Csound instrument designed for score activation for score/MIDI interoperability: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ Change all \emph{linen}
+, \emph{linseg}
+, and \emph{expseg}
+ opcodes to \emph{linenr}
+, \emph{linsegr}
+, and \emph{expsegr}
+, respectively, except for a de-clicking or damping envelope. This will not materially change score-driven performance.
+
+\item 
+
+ Add the following lines at the beginning of the instrument definition: 
+
+
+ 
+\begin{lstlisting}
+; Ensures that a MIDI-activated instrument
+; will have a positive p3 field.
+mididefault 60, p3 
+; Puts MIDI key translated to cycles per
+; second into p4, and MIDI velocity into p5
+midinoteoncps p4, p5 
+                
+\end{lstlisting}
+
+
+ 
+
+
+\end{itemize}
+
+
+\end{tabular}
+
+ Obviously, \emph{midinoteoncps}
+ could be changed to \emph{midinoteonoct}
+ or any of the other options, and the choice of p-fields is arbitrary. \subsection*{See Also}
+
+
+ \emph{midichannelaftertouch}
+, \emph{mididefault}
+, \emph{midinoteoff}
+, \emph{midinoteoncps}
+, \emph{midinoteonkey}
+, \emph{midinoteonoct}
+, \emph{midinoteonpch}
+, \emph{midipitchbend}
+, \emph{midipolyaftertouch}
+, \emph{midiprogramchange}
+
+\subsection*{Credits}
+
+
+ Author: Michael Gogins
+
+
+ New in version 4.20
+
+
+ Thanks goes to Rasmus Ekman for pointing out the correct MIDI channel and controller number ranges.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+midichn &Up &midictrl
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,217 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{fmmetal}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{fmmetal}
+fmmetal --  Uses FM synthesis to create a ``Heavy Metal'' sound. \subsection*{Description}
+
+
+  Uses FM synthesis to create a ``Heavy Metal'' sound. It comes from a family of FM sounds, all using 4 basic oscillators and various architectures, as used in the TX81Z synthesizer. 
+\subsection*{Syntax}
+
+
+ ar \textbf{fmmetal}
+ kamp, kfreq, kc1, kc2, kvdepth, kvrate, ifn1, ifn2, ifn3, ifn4, ivfn
+\subsection*{Initialization}
+
+
+  All these opcodes take 5 tables for initialization. The first 4 are the basic inputs and the last is the low frequency oscillator (LFO) used for vibrato. The last table should usually be a sine wave. 
+
+
+  The initial waves should be: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ \emph{ifn1}
+ -- sine wave
+
+\item 
+
+ \emph{ifn2}
+ -- \emph{twopeaks.aiff}
+
+
+\item 
+
+ \emph{ifn3}
+ -- \emph{twopeaks.aiff}
+
+
+\item 
+
+ \emph{ifn4}
+ -- sine wave
+
+
+\end{itemize}
+
+
+ 
+
+
+\begin{tabular}{cc}
+\textbf{Note}
+ \\
+  &
+
+  The file ``twopeaks.aiff'' is also available at \emph{\url{ftp://ftp.cs.bath.ac.uk/pub/dream/documentation/sounds/modelling/}}
+. 
+
+
+\end{tabular}
+
+\subsection*{Performance}
+
+
+ \emph{kamp}
+ -- Amplitude of note. 
+
+
+ \emph{kfreq}
+ -- Frequency of note played. 
+
+
+ \emph{kc1, kc2}
+ -- Controls for the synthesizer: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ \emph{kc1}
+ -- Total mod index
+
+\item 
+
+ \emph{kc2}
+ -- Crossfade of two modulators
+
+\item 
+
+ \emph{Algorithm}
+ -- 3
+
+
+\end{itemize}
+
+
+ \emph{kvdepth}
+ -- Vibrator depth 
+
+
+ \emph{kvrate}
+ -- Vibrator rate 
+\subsection*{Examples}
+
+
+  Here is an example of the fmmetal opcode. It uses the files \emph{fmmetal.orc}
+, \emph{fmmetal.sco}
+, and \emph{twopeaks.aiff}
+. 
+
+
+ \textbf{Example 1. Example of the fmmetal opcode.}
+
+\begin{lstlisting}
+/* fmmetal.orc */
+; Initialize the global variables.
+sr = 22050
+kr = 2205
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  kamp = 10000
+  kfreq = 440
+  kc1 = 6
+  kc2 = 5
+  kvdepth = 0
+  kvrate = 0
+  ifn1 = 1
+  ifn2 = 2
+  ifn3 = 2
+  ifn4 = 1
+  ivfn = 1
+
+  a1 fmmetal kamp, kfreq, kc1, kc2, kvdepth, kvrate, ifn1, ifn2, ifn3, ifn4, ivfn
+  out a1
+endin
+/* fmmetal.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* fmmetal.sco */
+; Table #1, a normal sine wave.
+f 1 0 32768 10 1
+; Table #2, the "twopeaks.aiff" audio file.
+f 2 0 256 1 "twopeaks.aiff" 0 0 0 
+
+; Play Instrument #1 for one second.
+i 1 0 1
+e
+/* fmmetal.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{fmb3}
+, \emph{fmbell}
+, \emph{fmpercfl}
+, \emph{fmrhode}
+, \emph{fmwurlie}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: John ffitch (after Perry Cook) &University of Bath, Codemist Ltd. &Bath, UK
+
+\end{tabular}
+
+
+
+ 
+
+
+ Example written by Kevin Conder.
+
+
+ New in Csound version 3.47
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+fmbell &Up &fmpercfl
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,196 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{fmpercfl}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{fmpercfl}
+fmpercfl --  Uses FM synthesis to create a percussive flute sound. \subsection*{Description}
+
+
+  Uses FM synthesis to create a percussive flute sound. It comes from a family of FM sounds, all using 4 basic oscillators and various architectures, as used in the TX81Z synthesizer. 
+\subsection*{Syntax}
+
+
+ ar \textbf{fmpercfl}
+ kamp, kfreq, kc1, kc2, kvdepth, kvrate, ifn1, ifn2, ifn3, ifn4, ivfn
+\subsection*{Initialization}
+
+
+  All these opcodes take 5 tables for initialization. The first 4 are the basic inputs and the last is the low frequency oscillator (LFO) used for vibrato. The last table should usually be a sine wave. 
+
+
+  The initial waves should be: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ \emph{ifn1}
+ -- sine wave
+
+\item 
+
+ \emph{ifn2}
+ -- sine wave
+
+\item 
+
+ \emph{ifn3}
+ -- sine wave
+
+\item 
+
+ \emph{ifn4}
+ -- sine wave
+
+
+\end{itemize}
+\subsection*{Performance}
+
+
+ \emph{kamp}
+ -- Amplitude of note. 
+
+
+ \emph{kfreq}
+ -- Frequency of note played. 
+
+
+ \emph{kc1, kc2}
+ -- Controls for the synthesizer: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ \emph{kc1}
+ -- Total mod index
+
+\item 
+
+ \emph{kc2}
+ -- Crossfade of two modulators
+
+\item 
+
+ \emph{Algorithm}
+ -- 4
+
+
+\end{itemize}
+
+
+ \emph{kvdepth}
+ -- Vibrator depth 
+
+
+ \emph{kvrate}
+ -- Vibrator rate 
+\subsection*{Examples}
+
+
+  Here is an example of the fmpercfl opcode. It uses the files \emph{fmpercfl.orc}
+ and \emph{fmpercfl.sco}
+. 
+
+
+ \textbf{Example 1. Example of the fmpercfl opcode.}
+
+\begin{lstlisting}
+/* fmpercfl.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  kamp = 30000
+  kfreq = 220
+  kc1 = 5
+  kc2 = 5
+  kvdepth = 0.005
+  kvrate = 6
+  ifn1 = 1
+  ifn2 = 1
+  ifn3 = 1
+  ifn4 = 1
+  ivfn = 1
+
+  a1 fmpercfl kamp, kfreq, kc1, kc2, kvdepth, kvrate, ifn1, ifn2, ifn3, ifn4, ivfn
+  out a1
+endin
+/* fmpercfl.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* fmpercfl.sco */
+; Table #1, a sine wave.
+f 1 0 32768 10 1
+
+; Play Instrument #1 for one second.
+i 1 0 1
+e
+/* fmpercfl.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{fmb3}
+, \emph{fmbell}
+, \emph{fmmetal}
+, \emph{fmrhode}
+, \emph{fmwurlie}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: John ffitch (after Perry Cook) &University of Bath, Codemist Ltd. &Bath, UK
+
+\end{tabular}
+
+
+
+ 
+
+
+ Example written by Kevin Conder.
+
+
+ New in Csound version 3.47
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+fmmetal &Up &fmrhode
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

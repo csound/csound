@@ -1,0 +1,119 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{checkbox}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{checkbox}
+checkbox --  Sense on-screen controls. \subsection*{Description}
+
+
+  Sense on-screen controls. Requires Winsound or TCL/TK. 
+\subsection*{Syntax}
+
+
+ kr \textbf{checkbox}
+ knum
+\subsection*{Performance}
+
+
+ \emph{kr}
+ -- value of the checkbox control. If the checkbox is set (pushed) then return 1, if not, return 0. 
+
+
+ \emph{knum}
+ -- the number of the checkbox. If it does not exist, it is made on-screen at initialization. 
+\subsection*{Examples}
+
+
+  Here is a simple example of the checkbox opcode. It uses the files \emph{checkbox.orc}
+ and \emph{checkbox.sco}
+. 
+
+
+ \textbf{Example 1. Simple example of the checkbox opcode.}
+
+\begin{lstlisting}
+/* checkbox.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 44100
+ksmps = 1
+nchnls = 1
+ 
+instr 1
+  ; Get the value from the checkbox.
+  k1 checkbox 1
+
+  ; If the checkbox is selected then k2=440, otherwise k2=880.
+  k2 = (k1 == 0 ? 440 : 880)
+
+  a1 oscil 10000, k2, 1
+  out a1
+endin
+/* checkbox.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* checkbox.sco */
+; Just generate a nice, ordinary sine wave.
+f 1 0 32768 10 1
+
+; Play Instrument #1 for ten seconds.
+i 1 0 10 
+e
+/* checkbox.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{button}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cccc}
+Author: John ffitch &University of Bath, Codemist. Ltd. &Bath, UK &September, 2000
+
+\end{tabular}
+
+
+
+ 
+
+
+ Example written by Kevin Conder.
+
+
+ New in Csound version 4.08
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+chanctrl &Up &cigoto
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,141 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{mididefault}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{mididefault}
+mididefault --  Changes values, depending on MIDI activation. \subsection*{Description}
+
+
+ \emph{mididefault}
+ is designed to simplify writing instruments that can be used interchangeably for either score or MIDI input, and to make it easier to adapt instruments originally written for score input to work with MIDI input. 
+
+
+  In general, it should be possible to write instrument definitions that work identically with both scores and MIDI, including both MIDI files and real-time MIDI input, without using any conditional statements, and that take full advantage of MIDI voice messages. 
+
+
+  Note that correlating Csound instruments with MIDI channel numbers is done using the \emph{massign}
+ opcode for real-time performance,. For file-driven performance, instrument numbers default to MIDI channel number + 1, but the defaults are overridden by any MIDI program change messages in the file. 
+\subsection*{Syntax}
+
+
+ \textbf{mididefault}
+ xdefault, xvalue
+\subsection*{Performance}
+
+
+ \emph{xdefault}
+ -- specifies a default value that will be used during MIDI activation. 
+
+
+ \emph{xvalue}
+ -- overwritten by \emph{xdefault}
+ during MIDI activation, remains unchanged otherwise. 
+
+
+  If the instrument was activated by MIDI input, the opcode will overwrite the value of \emph{xvalue}
+ with the value of \emph{xdefault}
+. If the instrument was \emph{NOT}
+ activated by MIDI input, \emph{xvalue}
+ will remain unchanged. 
+
+
+  This enables score pfields to receive a default value during MIDI activation, and score values otherwise. 
+
+
+ 
+
+
+\begin{tabular}{cc}
+\textbf{Adapting a score-activated Csound instrument.}
+ \\
+  &
+
+  To adapt an ordinary Csound instrument designed for score activation for score/MIDI interoperability: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ Change all \emph{linen}
+, \emph{linseg}
+, and \emph{expseg}
+ opcodes to \emph{linenr}
+, \emph{linsegr}
+, and \emph{expsegr}
+, respectively, except for a de-clicking or damping envelope. This will not materially change score-driven performance.
+
+\item 
+
+ Add the following lines at the beginning of the instrument definition: 
+
+
+ 
+\begin{lstlisting}
+; Ensures that a MIDI-activated instrument
+; will have a positive p3 field.
+mididefault 60, p3 
+; Puts MIDI key translated to cycles per
+; second into p4, and MIDI velocity into p5
+midinoteoncps p4, p5 
+                
+\end{lstlisting}
+
+
+ 
+
+
+\end{itemize}
+
+
+\end{tabular}
+
+ Obviously, \emph{midinoteoncps}
+ could be changed to \emph{midinoteonoct}
+ or any of the other options, and the choice of p-fields is arbitrary. \subsection*{See Also}
+
+
+ \emph{midichannelaftertouch}
+, \emph{midicontrolchange}
+, \emph{midinoteoff}
+, \emph{midinoteoncps}
+, \emph{midinoteonkey}
+, \emph{midinoteonoct}
+, \emph{midinoteonpch}
+, \emph{midipitchbend}
+, \emph{midipolyaftertouch}
+, \emph{midiprogramchange}
+
+\subsection*{Credits}
+
+
+ Author: Michael Gogins
+
+
+ New in version 4.20
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+midictrl &Up &midiin
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,185 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{midichn}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{midichn}
+midichn --  Returns the MIDI channel number from which the note was activated. \subsection*{Description}
+
+
+ \emph{midichn}
+ returns the MIDI channel number (1 - 16) from which the note was activated. In the case of score notes, it returns 0. 
+\subsection*{Syntax}
+
+
+ ichn \textbf{midichn}
+
+\subsection*{Initialization}
+
+
+ \emph{ichn}
+ -- channel number. If the current note was activated from score, it is set to zero. 
+\subsection*{Examples}
+
+
+  Here is a simple example of the midichn opcode. It uses the files \emph{midichn.orc}
+ and \emph{midichn.sco}
+. 
+
+
+ \textbf{Example 1. Example of the midichn opcode.}
+
+\begin{lstlisting}
+/* midichn.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  i1 midichn
+
+  print i1
+endin
+/* midichn.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* midichn.sco */
+; Play Instrument #1 for 12 seconds.
+i 1 0 12
+e
+/* midichn.sco */
+        
+\end{lstlisting}
+
+
+  Here is an advanced example of the midichn opcode. It uses the files \emph{midichn\_advanced.mid}
+, \emph{midichn\_advanced.orc}
+, and \emph{midichn\_advanced.sco}
+. 
+
+
+  Don't forget that you must include the \emph{-F flag}
+ when using an external MIDI file like ``midichn\_advanced.mid''. 
+
+
+ 
+
+
+ \textbf{Example 2. An advanced example of the midichn opcode.}
+
+\begin{lstlisting}
+/* midichn_advanced.orc - written by Istvan Varga */
+sr	=  44100
+ksmps	=  10
+nchnls	=  1
+
+	massign  1, 1		; all channels use instr 1
+	massign  2, 1
+	massign  3, 1
+	massign  4, 1
+	massign  5, 1
+	massign  6, 1
+	massign  7, 1
+	massign  8, 1
+	massign  9, 1
+	massign 10, 1
+	massign 11, 1
+	massign 12, 1
+	massign 13, 1
+	massign 14, 1
+	massign 15, 1
+	massign 16, 1
+
+gicnt	=  0			; note counter
+
+	instr 1
+
+gicnt	=  gicnt + 1	; update note counter
+kcnt	init gicnt	; copy to local variable
+ichn	midichn		; get channel number
+istime	times		; note-on time
+
+	if (ichn > 0.5) goto l2		; MIDI note
+	printks "note %.0f (time = %.2f) was activated from the score\\n", \
+		3600, kcnt, istime
+	goto l1
+l2:
+	printks "note %.0f (time = %.2f) was activated from channel %.0f\\n", \
+		3600, kcnt, istime, ichn
+l1:
+	endin
+/* midichn_advanced.orc - written by Istvan Varga */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* midichn_advanced.sco - written by Istvan Varga */
+t 0 60
+f 0 6 2 -2 0
+i 1 1 0.5
+i 1 4 0.5
+e
+/* midichn_advanced.sco - written by Istvan Varga */
+        
+\end{lstlisting}
+ Its output should include lines like: \begin{lstlisting}
+note 7 (time = 0.00) was activated from channel 4
+note 8 (time = 0.00) was activated from channel 2
+      
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{pgmassign}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Author: Istvan Varga &May 2002
+
+\end{tabular}
+
+
+
+ 
+
+
+ The simple example was written by Kevin Conder.
+
+
+ New in version 4.20
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+midichannelaftertouch &Up &midicontrolchange
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,134 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{ctrl14}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{ctrl14}
+ctrl14 --  Allows a floating-point 14-bit MIDI signal scaled with a minimum and a maximum range. \subsection*{Description}
+
+
+  Allows a floating-point 14-bit MIDI signal scaled with a minimum and a maximum range. 
+\subsection*{Syntax}
+
+
+ idest \textbf{ctrl14}
+ ichan, ictlno1, ictlno2, imin, imax [, ifn]
+
+
+ kdest \textbf{ctrl14}
+ ichan, ictlno1, ictlno2, kmin, kmax [, ifn]
+\subsection*{Initialization}
+
+
+ \emph{idest}
+ -- output signal 
+
+
+ \emph{ichan}
+ -- MIDI channel number (1-16) 
+
+
+ \emph{ictln1o}
+ -- most-significant byte controller number (0-127) 
+
+
+ \emph{ictlno2}
+ -- least-significant byte controller number (0-127) 
+
+
+ \emph{imin}
+ -- user-defined minimum floating-point value of output 
+
+
+ \emph{imax}
+ -- user-defined maximum floating-point value of output 
+
+
+ \emph{ifn}
+ (optional) -- table to be read when indexing is required. Table must be normalized. Output is scaled according to \emph{imax}
+ and \emph{imin}
+ val. 
+\subsection*{Performance}
+
+
+ \emph{kdest}
+ -- output signal 
+
+
+ \emph{kmin}
+ -- user-defined minimum floating-point value of output 
+
+
+ \emph{kmax}
+ -- user-defined maximum floating-point value of output 
+
+
+ \emph{ctrl14}
+ (i- and k-rate 14 bit MIDI control) allows a floating-point 14-bit MIDI signal scaled with a minimum and a maximum range. The minimum and maximum values can be varied at k-rate. It can use optional interpolated table indexing. It requires two MIDI controllers as input. 
+
+
+ \emph{ctrl14}
+ differs from \emph{midic14}
+ becase it can be included in score-oriented instruments without Csound crashes. It needs the additional parameter \emph{ichan}
+ containing the MIDI channel of the controller. MIDI channel is the same for all the controllers used in a single \emph{ctrl14}
+ opcode. 
+\subsection*{See Also}
+
+
+ \emph{ctrl7}
+, \emph{ctrl21}
+, \emph{initc7}
+, \emph{initc14}
+, \emph{initc21}
+, \emph{midic7}
+, \emph{midic14}
+, \emph{midic21}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Author: Gabriel Maldonado &Italy
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 3.47
+
+
+ Thanks goes to Rasmus Ekman for pointing out the correct MIDI channel and controller number ranges.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+crunch &Up &ctrl21
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,192 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{Unified File Format for Orchestras and Scores}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous &The Csound Command &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{Unified File Format for Orchestras and Scores}
+\subsection*{Description}
+
+
+  The Unified File Format , introduced in Csound version 3.50, enables the orchestra and score files, as well as command line flags, to be combined in one file. The file has the extension \emph{.csd}
+. This format was originally introduced by Michael Gogins in AXCsound. 
+
+
+  The file is a structured data file which uses markup language, similar to any SGML such as HTML. Start tags ($<$\emph{tag}
+$>$) and end tags ($<$/\emph{tag}
+$>$) are used to delimit the various elements. The file is saved as a text file. 
+\subsection*{Structured Data File Format}
+\subsubsection*{Mandatory Elements}
+
+
+  The Csound Element is used to alert the csound compiler to the \emph{.csd}
+ format. The file must begin with the start tag \emph{$<$CsoundSynthesizer$>$. }
+The last line of the file must be the end tag \emph{$<$/CsoundSynthesizer$>$.}
+ The remaining elements are defined below. 
+\textbf{Options}
+
+
+  Csound command line flags are put in the Options Element. This section is delimited by the start tag \emph{$<$CsOptions$>$}
+ and the end tag \emph{$<$/CsOptions$>$ }
+Lines beginning with \emph{\#}
+ or \emph{;}
+ are treated as comments. 
+\textbf{Instruments (Orchestra)}
+
+
+  The instrument definitions (orchestra) are put into the Instruments Element. The statements and syntax in this section are identical to the Csound orchestra file, and have the same requirements, including the header statements (\emph{sr}
+, \emph{kr}
+, etc.) This Instruments Element is delimited with the start tag \emph{$<$CsInstruments$>$}
+ and the end tag \emph{$<$/CsInstruments$>$.}
+
+\textbf{Score}
+
+
+  Csound score statements are put in the Score Element. The statements and syntax in this section are identical to the Csound score file, and have the same requirements. The Score Element is delimited by the start tag \emph{$<$CsScore$>$ }
+and the end tag \emph{$<$/CsScore$>$.}
+
+\subsubsection*{Optional Elements}
+\textbf{Included Base64 Files}
+
+
+  Base64 encoded MIDI files may be included with the tag \emph{$<$CsMidifileB filename=}
+\emph{filename}
+\emph{$>$}
+, where \emph{filename}
+ is the name of the file containing the MIDI information. There is no matching end tag. New in Csound version 4.07. 
+
+
+  Base64 encoded sample files may be included with the tag \emph{$<$CsSampleB filename=}
+\emph{filename}
+\emph{$>$}
+, where \emph{filename}
+ is the name of the file containing the sample. There is no matching end tag. New in Csound version 4.07. 
+\textbf{Version Blocking}
+
+
+  Versions of Csound may blocked by placing one of the following statements between the start tag $<$CsVersion$>$ and the end tag $<$/CsVersion$>$: 
+
+
+ 
+\begin{lstlisting}
+Before #.#
+            
+\end{lstlisting}
+
+
+ 
+ or 
+
+ 
+\begin{lstlisting}
+After #.#
+            
+\end{lstlisting}
+
+
+ 
+ where \#.\# is the requested Csound version number. The second statement may be written simply as: 
+
+ 
+\begin{lstlisting}
+#.#
+            
+\end{lstlisting}
+
+
+ 
+ See example below. New in Csound version 4.09. \textbf{Example}
+
+
+  Below is a sample file, test.csd, which renders a .wav file at 44.1 kHz sample rate containing one second of a 1 kHz sine wave. Displays are suppressed. test.csd was created from two files, tone.orc and tone.sco, with the addition of command line flags. 
+
+
+ 
+\begin{lstlisting}
+\emph{<CsoundSynthesizer>}
+;
+  ; test.csd - a Csound structured data file
+  
+\emph{<CsOptions>}
+
+  -W -d -o tone.wav 
+\emph{</CsOptions>}
+
+  
+\emph{<CsVersion>}
+    ;optional section
+  Before 4.10  ;these two statements check for
+  After 4.08   ;   Csound version 4.09
+\emph{</CsVersion>}
+
+  
+\emph{<CsInstruments>}
+
+  ; originally tone.orc 
+  \emph{sr}
+ = 44100
+  \emph{kr}
+ = 4410
+  \emph{ksmps}
+ = 10
+  \emph{nchnls}
+ = 1
+  \emph{instr}
+   1 
+      a1 \emph{oscil}
+ p4, p5, 1 ; simple oscillator 
+         \emph{out}
+ a1
+    \emph{endin}
+
+\emph{</CsInstruments>}
+
+
+\emph{<CsScore>}
+
+  ; originally tone.sco
+  f1 0 8192 10 1
+  i1 0 1 20000 1000 ;play one second of one kHz tone
+  e
+\emph{</CsScore>}
+
+
+\emph{</CsoundSynthesizer>}
+
+            
+\end{lstlisting}
+
+
+ 
+\subsection*{Command Line Parameter File}
+
+
+  If the file \emph{.csoundrc}
+ exists, it will be used to set the command line parameters. These can be overridden. It uses the same form as a \emph{.csd}
+ file. Lines beginning with \emph{\#}
+ or \emph{;}
+ are treated as comments. 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+Command-line Flags &Up &Score File Preprocessing
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,74 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{Additional Space}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous &Adding your own Cmodules to Csound &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{Additional Space}
+
+
+  Sometimes the space requirement of a module is too large to be part of a structure (upper limit 65535 bytes), or it is dependent on an i-arg value which is not known until initialization. Additional space can be dynamically allocated and properly managed by including the line 
+
+
+ 
+\begin{lstlisting}
+AUXCH      auxch;
+        
+\end{lstlisting}
+
+
+ 
+
+
+  in the defined structure (*p), then using the following style of code in the init module: 
+
+
+ 
+\begin{lstlisting}
+if (p-auxch.auxp == NULL)
+  auxalloc(npoints * sizeof(float), &p-auxch);
+        
+\end{lstlisting}
+
+
+ 
+
+
+  The address of this auxiliary space is kept in a chain of such spaces belonging to this instrument, and is automatically managed while the instrument is being duplicated or garbage-collected during performance. The assignment 
+
+
+ 
+\begin{lstlisting}
+char *auxp = p-auxch.auxp;
+        
+\end{lstlisting}
+
+
+ 
+
+
+  will find the allocated space for init-time and perf-time use. See the LINSEG structure in opcodes1.h and the code for lsgset() and klnseg() in opcodes1.c. 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+Adding your own Cmodules to Csound &Up &File Sharing
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,87 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{aresonk}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{aresonk}
+aresonk --  A notch filter whose transfer functions are the complements of the reson opcode. \subsection*{Description}
+
+
+  A notch filter whose transfer functions are the complements of the reson opcode. 
+\subsection*{Syntax}
+
+
+ kr \textbf{aresonk}
+ ksig, kcf, kbw [, iscl] [, iskip]
+\subsection*{Initialization}
+
+
+ \emph{iscl}
+ (optional, default=0) -- coded scaling factor for resonators. A value of 1 signifies a peak response factor of 1, i.e. all frequencies other than kcf are attenuated in accordance with the (normalized) response curve. A value of 2 raises the response factor so that its overall RMS value equals 1. (This intended equalization of input and output power assumes all frequencies are physically present; hence it is most applicable to white noise.) A zero value signifies no scaling of the signal, leaving that to some later adjustment (see \emph{balance}
+). The default value is 0. 
+
+
+ \emph{iskip}
+ (optional, default=0) -- initial disposition of internal data space. Since filtering incorporates a feedback loop of previous output, the initial status of the storage space used is significant. A zero value will clear the space; a non-zero value will allow previous information to remain. The default value is 0. 
+\subsection*{Performance}
+
+
+ \emph{kr}
+ -- the output signal at control-rate. 
+
+
+ \emph{ksig}
+ -- the input signal at control-rate. 
+
+
+ \emph{kcf}
+ -- the center frequency of the filter, or frequency position of the peak response. 
+
+
+ \emph{kbw}
+ -- bandwidth of the filter (the Hz difference between the upper and lower half-power points). 
+
+
+ \emph{aresonk}
+ is a filter whose transfer functions is the complement of \emph{reson}
+. Thus \emph{aresonk}
+ is a notch filter whose transfer functions represents the ``filtered out'' aspects of their complements. However, power scaling is not normalized in \emph{aresonk}
+ but remains the true complement of the corresponding unit. 
+\subsection*{See Also}
+
+
+ \emph{areson}
+, \emph{atone}
+, \emph{atonek}
+, \emph{port}
+, \emph{portk}
+, \emph{reson}
+, \emph{resonk}
+, \emph{tone}
+, \emph{tonek}
+
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+areson &Up &atone
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

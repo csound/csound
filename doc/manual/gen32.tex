@@ -1,0 +1,131 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{GEN32}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{GEN32}
+GEN32 --  Mixes any waveform, resampled with either FFT or linear interpolation. \subsection*{Description}
+
+
+  This routine is similar to \emph{GEN31}
+, but allows specifying source ftable for each partial. Tables can be resampled either with FFT, or linear interpolation. 
+\subsection*{Syntax}
+
+
+ \textbf{f}
+ \# time size 32 srca pna stra phsa srcb pnb strb phsb ...
+\subsection*{Performance}
+
+
+ \emph{srca, srcb}
+ -- source table number. A negative value can be used to read the table with linear interpolation (by default, the source waveform is transposed and phase shifted using FFT); this is less accurate, but faster, and allows non-integer and negative partial numbers. 
+
+
+ \emph{pna, pnb, ...}
+ -- partial number, must be a positive integer if source table number is positive (i.e. resample with FFT). 
+
+
+ \emph{stra, strb, ...}
+ -- amplitude scale 
+
+
+ \emph{phsa, phsb, ...}
+ -- start phase (0 to 1) 
+\subsection*{Examples}
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+itmp    ftgen 1, 0, 16384, 7, 1, 16384, -1      ; sawtooth
+itmp    ftgen 2, 0, 8192, 10, 1                 ; sine
+; mix tables
+itmp    ftgen 5, 0, 4096, -32, -2, 1.5, 1.0, 0.25, 1, 2, 0.5, 0,        \
+                                1, 3, -0.25, 0.5
+; window
+itmp    ftgen 6, 0, 16384, 20, 3, 1
+; generate band-limited waveforms
+inote   =  0
+loop0:
+icps    =  440 * exp(log(2) * (inote - 69) / 12)        ; one table for
+inumh   =  sr / (2 * icps)                              ; each MIDI note number
+ift     =  int(inote + 256.5)
+itmp    ftgen ift, 0, 4096, -30, 5, 1, inumh
+inote   =  inote + 1
+        if (inote < 127.5) igoto loop0
+
+        instr 1
+
+kcps    expon 20, p3, 16000
+kft     =  int(256.5 + 69 + 12 * log(kcps / 440) / log(2))
+kft     =  (kft > 383 ? 383 : kft)
+
+a1      phasor kcps
+a1      tableikt a1, kft, 1, 0, 1
+
+        out a1 * 10000
+
+        endin
+        instr 2
+
+kcps    expon 20, p3, 16000
+kft     =  int(256.5 + 69 + 12 * log(kcps / 440) / log(2))
+kft     =  (kft > 383 ? 383 : kft)
+
+kgdur   limit 10 / kcps, 0.1, 1
+a1      grain2 kcps, 0.02, kgdur, 30, kft, 6, -0.5
+
+        out a1 * 2000
+
+        endin
+
+----------
+score:
+----------
+
+t 0 60
+i 1 0 10
+i 2 12 10
+e
+        
+\end{lstlisting}
+
+
+ 
+\subsection*{Credits}
+
+
+ Author: Rasmus Ekman
+
+
+ Programmer: Istvan Varga
+
+
+ New in version 4.17
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+GEN31 &Up &GEN33
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

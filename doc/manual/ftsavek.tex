@@ -1,0 +1,92 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{ftsavek}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{ftsavek}
+ftsavek --  Save a set of previously-allocated tables to a file. \subsection*{Description}
+
+
+  Save a set of previously-allocated tables to a file. 
+\subsection*{Syntax}
+
+
+ \textbf{ftsavek}
+ ``filename'', ktrig, iflag, ifn1 [, ifn2] [...]
+\subsection*{Initialization}
+
+
+ \emph{``filename''}
+ -- A quoted string containing the name of the file to save. 
+
+
+ \emph{iflag}
+ -- Type of the file to save. (0 = binary file, Non-zero = text file) 
+
+
+ \emph{ifn1, ifn2, ...}
+ -- Numbers of tables to save. 
+\subsection*{Performance}
+
+
+ \emph{ktrig}
+ -- The trigger signal. Save the file each time it is non-zero. 
+
+
+ \emph{ftsavek}
+ saves a list of tables to a file. The file's format can be binary or text. Unlike \emph{ftsave}
+, the saving operation can be repeated numerous times within the same note by using a trigger signal. 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Warning &\textbf{Warning}
+ \\
+  &
+
+  The file's format is not compatible with a WAV-file and is not endian-safe. 
+
+
+\end{tabular}
+
+\subsection*{See Also}
+
+
+ \emph{ftloadk}
+, \emph{ftload}
+, \emph{ftsave}
+
+\subsection*{Credits}
+
+
+ Author: Gabriel Maldonado
+
+
+ New in version 4.21
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+ftsave &Up &ftsr
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

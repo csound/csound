@@ -1,0 +1,102 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{GEN18}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{GEN18}
+GEN18 --  Writes composite waveforms made up of pre-existing waveforms. \subsection*{Description}
+
+
+  Writes composite waveforms made up of pre-existing waveforms. Each contributing waveform requires 4 pfields and can overlap with other waveforms. 
+\subsection*{Syntax}
+
+
+ \textbf{f}
+ \# time size 18 fna ampa starta finisha fna ampa starta finisha ...
+\subsection*{Initialization}
+
+
+ \emph{size}
+ -- number of points in the table. Must be a power-of-2 plus 1 (see f statement). 
+
+
+ \emph{fna, fnb, etc.}
+ -- pre-existing table number to be written into the table. 
+
+
+ \emph{ampa, ampb, etc.}
+ -- strength of wavefoms. These are relative strengths, since the composite waveform may be rescaled later. Negative values are permitted and imply a 180 degree phase shift. 
+
+
+ \emph{starta, startb, etc.}
+ -- where to start writing the fn into the table. 
+
+
+ \emph{finisha, finishb, etc.}
+ -- where to stop writing the fn into the table. 
+\subsection*{Examples}
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+f 1  0  4096  10  1
+f 2  0  1025  18  1  1  0  512  1  1  513  1025
+        
+\end{lstlisting}
+
+
+ 
+ f2 consists of two copies of f1 written in to locations 0-512 and 513-1025. \subsection*{Deprecated Names}
+
+
+ \emph{GEN18}
+ was called \emph{GEN22}
+ in version 4.18. The name was changed due to a conflict with DirectCsound. 
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cccc}
+Author: William ``Pete'' Moss &University of Texas at Austin &Austin, Texas USA &January 2002
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in version 4.18, changed in version 4.19
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+GEN17 &Up &GEN19
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

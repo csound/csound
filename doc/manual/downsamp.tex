@@ -1,0 +1,108 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{downsamp}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{downsamp}
+downsamp --  Modify a signal by down-sampling. \subsection*{Description}
+
+
+  Modify a signal by down-sampling. 
+\subsection*{Syntax}
+
+
+ kr \textbf{downsamp}
+ asig [, iwlen]
+\subsection*{Initialization}
+
+
+ \emph{iwlen}
+ (optional) -- window length in samples over which the audio signal is averaged to determine a downsampled value. Maximum length is \emph{ksmps}
+; 0 and 1 imply no window averaging. The default value is 0. 
+\subsection*{Performance}
+
+
+ \emph{downsamp}
+ converts an audio signal to a control signal by downsampling. It produces one kval for each audio control period. The optional window invokes a simple averaging process to suppress foldover. 
+\subsection*{Examples}
+
+
+  Here is an example of the downsamp opcode. It uses the files \emph{downsamp.orc}
+ and \emph{downsamp.sco}
+. 
+
+
+ \textbf{Example 1. Example of the downsamp opcode.}
+
+\begin{lstlisting}
+/* downsamp.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  ; Create a noise signal at a-rate.
+  anoise noise 20000, 0.2
+
+  ; Downsample the noise signal to k-rate.
+  knoise downsamp anoise
+
+  ; Use the noise signal at k-rate.
+  a1 oscil 30000, knoise, 1
+  out anoise
+endin
+/* downsamp.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* downsamp.sco */
+; Table #1, a sine wave.
+f 1 0 16384 10 1
+
+; Play Instrument #1 for one second.
+i 1 0 1
+e
+/* downsamp.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{diff}
+, \emph{integ}
+, \emph{interp}
+, \emph{samphold}
+, \emph{upsamp}
+
+\subsection*{Credits}
+
+
+ Example written by Kevin Conder.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+divz &Up &dripwater
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

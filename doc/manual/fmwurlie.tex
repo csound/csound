@@ -1,0 +1,216 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{fmwurlie}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{fmwurlie}
+fmwurlie --  Uses FM synthesis to create a Wurlitzer electric piano sound. \subsection*{Description}
+
+
+  Uses FM synthesis to create a Wurlitzer electric piano sound. It comes from a family of FM sounds, all using 4 basic oscillators and various architectures, as used in the TX81Z synthesizer. 
+\subsection*{Syntax}
+
+
+ ar \textbf{fmwurlie}
+ kamp, kfreq, kc1, kc2, kvdepth, kvrate, ifn1, ifn2, ifn3, ifn4, ivfn
+\subsection*{Initialization}
+
+
+  All these opcodes take 5 tables for initialization. The first 4 are the basic inputs and the last is the low frequency oscillator (LFO) used for vibrato. The last table should usually be a sine wave. 
+
+
+  The initial waves should be: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ \emph{ifn1}
+ -- sine wave
+
+\item 
+
+ \emph{ifn2}
+ -- sine wave
+
+\item 
+
+ \emph{ifn3}
+ -- sine wave
+
+\item 
+
+ \emph{ifn4}
+ -- \emph{fwavblnk.aiff}
+
+
+
+\end{itemize}
+
+
+ 
+
+
+\begin{tabular}{cc}
+\textbf{Note}
+ \\
+  &
+
+  The file ``fwavblnk.aiff'' is also available at \emph{\url{ftp://ftp.cs.bath.ac.uk/pub/dream/documentation/sounds/modelling/}}
+. 
+
+
+\end{tabular}
+
+\subsection*{Performance}
+
+
+ \emph{kamp}
+ -- Amplitude of note. 
+
+
+ \emph{kfreq}
+ -- Frequency of note played. 
+
+
+ \emph{kc1, kc2}
+ -- Controls for the synthesizer: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ \emph{kc1}
+ -- Mod index 1
+
+\item 
+
+ \emph{kc2}
+ -- Crossfade of two outputs
+
+\item 
+
+ \emph{Algorithm}
+ -- 5
+
+
+\end{itemize}
+
+
+ \emph{kvdepth}
+ -- Vibrator depth 
+
+
+ \emph{kvrate}
+ -- Vibrator rate 
+\subsection*{Examples}
+
+
+  Here is an example of the fmwurlie opcode. It uses the files \emph{fmwurlie.orc}
+, \emph{fmwurlie.sco}
+, and \emph{fwavblnk.aiff}
+. 
+
+
+ \textbf{Example 1. Example of the fmwurlie opcode.}
+
+\begin{lstlisting}
+/* fmwurlie.orc */
+; Initialize the global variables.
+sr = 22050
+kr = 2205
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  kamp = 30000
+  kfreq = 440
+  kc1 = 6
+  kc2 = 1
+  kvdepth = 0.005
+  kvrate = 6
+  ifn1 = 1
+  ifn2 = 1
+  ifn3 = 1
+  ifn4 = 2
+  ivfn = 1
+
+  a1 fmwurlie kamp, kfreq, kc1, kc2, kvdepth, kvrate, ifn1, ifn2, ifn3, ifn4, ivfn
+  out a1
+endin
+/* fmwurlie.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* fmwurlie.sco */
+; Table #1, a sine wave.
+f 1 0 32768 10 1
+; Table #2, the "fwavblnk.aiff" audio file.
+f 2 0 256 1 "fwavblnk.aiff" 0 0 0
+
+; Play Instrument #1 for two seconds.
+i 1 0 2
+e
+/* fmwurlie.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{fmb3}
+, \emph{fmbell}
+, \emph{fmmetal}
+, \emph{fmpercfl}
+, \emph{fmrhode}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: John ffitch (after Perry Cook) &University of Bath, Codemist Ltd. &Bath, UK
+
+\end{tabular}
+
+
+
+ 
+
+
+ Example written by Kevin Conder.
+
+
+ New in Csound version 3.47
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+fmvoice &Up &fof
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

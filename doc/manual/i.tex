@@ -1,0 +1,252 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{i Statement (Instrument or Note Statement)}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{i Statement (Instrument or Note Statement)}
+i --  Makes an instrument active at a specific time and for a certain duration. \subsection*{Description}
+
+
+  This statement calls for an instrument to be made active at a specific time and for a certain duration. The parameter field values are passed to that instrument prior to its initialization, and remain valid throughout its Performance. 
+\subsection*{Syntax}
+
+
+ \textbf{i}
+ p1 p2 p3 p4 ...
+\subsection*{Initialization}
+
+
+ \emph{p1}
+ -- Instrument number, usually a non-negative integer. An optional fractional part can provide an additional tag for specifying ties between particular notes of consecutive clusters. A negative p1 (including tag) can be used to turn off a particular ``held'' note. 
+
+
+ \emph{p2}
+ -- Starting time in arbitrary units called beats. 
+
+
+ \emph{p3}
+ -- Duration time in beats (usually positive). A negative value will initiate a held note (see also \emph{ihold}
+). A zero value will invoke an initialization pass without performance (see also \emph{instr}
+). 
+
+
+ \emph{p4 ...}
+ -- Parameters whose significance is determined by the instrument. 
+\subsection*{Performance}
+
+
+  Beats are evaluated as seconds, unless there is a \emph{t statement}
+ in this score section or a \emph{-t flag}
+ in the command-line. 
+
+
+  Starting or action times are relative to the beginning of a section ( see \emph{s statement}
+), which is assigned time 0. 
+
+
+  Note statements within a section may be placed in any order. Before being sent to an orchestra, unordered score statements must first be processed by Sorter, which will reorder them by ascending p2 value. Notes with the same p2 value will be ordered by ascending p1; if the same p1, then by ascending p3. 
+
+
+  Notes may be stacked, i.e., a single instrument can perform any number of notes simultaneously. (The necessary copies of the instrument's data space will be allocated dynamically by the orchestra loader.) Each note will normally turn off when its p3 duration has expired, or on receipt of a MIDI noteoff signal. An instrument can modify its own duration either by changing its p3 value during note initialization, or by prolonging itself through the action of a \emph{linenr}
+ unit. 
+
+
+  An instrument may be turned on and left to perform indefinitely either by giving it a negative p3 or by including an \emph{ihold}
+ in its i-time code. If a held note is active, an \emph{i statement}
+ \emph{with matching p1}
+ will not cause a new allocation but will take over the data space of the held note. The new pfields (including p3) will now be in effect, and an i-time pass will be executed in which the units can either be newly initialized or allowed to continue as required for a tied note (see \emph{tigoto}
+). A held note may be succeeded either by another held note or by a note of finite duration. A held note will continue to perform across section endings (see \emph{s statement}
+). It is halted only by \emph{turnoff}
+ or by an \emph{i statement}
+ with negative matching p1 or by an \emph{e statement}
+. 
+
+
+  It is possible to have multiple instances (usually, but not necessarily, notes of different pitches) of the same instrument, held simultaneously, via negative p3 values. The instrument can then be fed new parameters from the score. This is useful for avoiding long hard-coded \emph{linseg}
+s, and can be accomplished by adding a decimal part to the instrument number. 
+
+
+  For example, to hold three copies of instrument 10 in a simple chord: 
+
+
+ 
+\begin{lstlisting}
+i10.1    0    -1    7.00
+i10.2    0    -1    7.04
+i10.3    0    -1    7.07
+        
+\end{lstlisting}
+
+
+ 
+
+
+  Subsequent \emph{i}
+ statements can refer to the same sounding note instances, and if the instrument definition is done properly, the new p-fields can be used to alter the character of the notes in progress. For example, to bend the previous chord up an octave and release it: 
+
+
+ 
+\begin{lstlisting}
+i10.1    1    1    8.00
+i10.2    1    1    8.04
+i10.3    1    1    8.07
+        
+\end{lstlisting}
+
+
+ 
+
+
+  The instrument definition has to take this into account, however, especially if clicks are to be avoided (see the example below). 
+
+
+  Note that the decimal instrument number notation cannot be used in conjunction with real-time MIDI. In this case, the instrument would be monophonic while a note was held. 
+
+
+  Notes being tied to previous instances of the same instrument, should skip most initialization by means of \emph{tigoto}
+, except for the values entered in score. For example, all table reading opcodes in the instrument, should usually be skipped, as they store their phase internally. If this is suddenly changed, there will be audible clicks in the output. 
+
+
+  Note that many opcodes (such as \emph{delay}
+ and \emph{reverb}
+) are prepared for optional initialization. To use this feature, the \emph{tival opcode}
+ is suitable. Therefore, they need not be hidden by a \emph{tigoto}
+ jump. 
+
+
+  Beginning with Csound version 3.53, strings are recognized in p-fields for opcodes that accept them (\emph{convolve, adsyn, diskin,}
+ etc.). There may be only one string per score line. 
+\subsubsection*{Special Considerations}
+
+
+  The maximum instrument number used to be 200. This has been changed to be limited by memory only (currently there is an internal soft limit of 200; this is automatically extended as required). 
+\subsection*{Examples}
+
+
+  Here is an instrument which can find out whether it is tied to a previous note (\emph{tival}
+ returns 1), and whether it is held (negative p3). Attack and release are handled accordingly: 
+
+
+ 
+\begin{lstlisting}
+\emph{instr}
+ 10
+        
+  icps     \emph{init}
+      \emph{cpspch}
+(p4)                  ;Get target pitch from score event
+  iportime \emph{init}
+      \emph{abs}
+(p3)/7                   ; Portamento time dep on note length
+  iamp0    \emph{init}
+      p5                          ; Set default amps
+  iamp1    \emph{init}
+      p5
+  iamp2    \emph{init}
+      p5
+      
+  itie     \emph{tival}
+                                 ; Check if this note is tied,
+  \emph{if}
+ itie  ==  1     \emph{igoto}
+ nofadein              ; if not fade in
+  iamp0    \emph{init}
+      0
+
+ nofadein:
+  \emph{if}
+ p3    < 0       \emph{igoto}
+ nofadeout             ; Check if this note is held, if not fade out
+  iamp2    \emph{init}
+      0    
+
+ nofadeout:
+  ; Now do amp from the set values:
+  kamp     \emph{linseg}
+    iamp0, .03, iamp1, abs(p3)-.03, iamp2
+        
+  ; Skip rest of initialization on tied note:
+           \emph{tigoto}
+    tieskip
+
+  kcps     \emph{init}
+      icps                        ; Init pitch for untied note
+  kcps     \emph{port}
+      icps, iportime, icps        ; Drift towards target pitch
+
+  kpw      \emph{oscil}
+     .4, rnd(1), 1, rnd(.7)      ; A simple triangle-saw oscil
+  ar       \emph{vco}
+       kamp, kcps, 3, kpw+.5, 1, 1/icps
+        
+  ; (Used in testing - one may set ipch to cpspch(p4+2)
+  ;       and view output spectrum)
+  ;       ar oscil kamp, kcps, 1
+
+          out        ar
+
+ tieskip:                                       ; Skip some initialization on tied note
+
+\emph{endin}
+
+        
+\end{lstlisting}
+
+
+ 
+
+
+  A simple score using three instances of the above instrument: 
+
+
+ 
+\begin{lstlisting}
+  f1   0 8192 10 1            ; Sine
+
+  i10.1    0    -1    7.00    10000
+  i10.2    0    -1    7.04
+  i10.3    0    -1    7.07
+  i10.1    1    -1    8.00  
+  i10.2    1    -1    8.04
+  i10.3    1    -1    8.07
+  i10.1    2     1    7.11  
+  i10.2    2     1    8.04  
+  i10.3    2     1    8.07
+  e
+        
+\end{lstlisting}
+
+
+ 
+\subsection*{Credits}
+
+
+  Additional text (Csound Version 4.07) explaining tied notes, edited by Rasmus Ekman from a note by David Kirsh, posted to the Csound mailing list. Example instrument by Rasmus Ekman. 
+
+
+  Updated August 2002 thanks to a note from Rasmus Ekman. There is no longer a hard limit of 200 instruments. 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+f Statement (or Function Table Statement) &Up &m Statement (Mark Statement)
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,285 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{FLslider}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{FLslider}
+FLslider --  Puts a slider into the corresponding FLTK container. \subsection*{Description}
+
+
+ \emph{FLslider}
+ puts a slider into the corresponding container. 
+\subsection*{Syntax}
+
+
+ kout, ihandle \textbf{FLslider}
+ ``label'', imin, imax, iexp, itype, idisp, iwidth, iheight, ix, iy
+\subsection*{Initialization}
+
+
+ \emph{ihandle}
+ -- a handle value (an integer number) that unequivocally references a corresponding widget. This is used by other opcodes that modify a widget's properties (see \emph{Modifying FLTK Widget Appearance}
+). It is automatically output by \emph{FLslider}
+ and must not be set by the user label. (The user label is a double-quoted string containing some user-provided text placed near the widget.) 
+
+
+ \emph{``label''}
+ -- a double-quoted string containing some user-provided text, placed near the corresponding widget. 
+
+
+ \emph{imin}
+ -- minimum value of output range. 
+
+
+ \emph{imax}
+ -- maximum value of output range. 
+
+
+  The \emph{imin}
+ argument may be greater than \emph{imax}
+ argument. This has the effect of ``reversing'' the object so the larger values are in the opposite direction. This also switches which end of the filled sliders is filled. 
+
+
+ \emph{iexp}
+ -- an integer number denoting the behaviour of valuator: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ 0 = valuator output is linear
+
+\item 
+
+ -1 = valuator output is exponential
+
+
+\end{itemize}
+
+
+  All other positive numbers for \emph{iexp}
+ indicate the number of an existing table that is used for indexing. Linear interpolation is provided in table indexing. A negative table number suppresses interpolation. 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Warning &\textbf{IMPORTANT!}
+ \\
+  &
+
+  Notice that the tables used by valuators must be created with the \emph{ftgen}
+ opcode and placed in the orchestra before the corresponding valuator. They can not placed in the score. In fact, tables placed in the score are created later than the initialization of the opcodes placed in the header section of the orchestra. 
+
+
+\end{tabular}
+
+
+
+ \emph{itype}
+ -- an integer number denoting the appearance of the valuator. 
+
+
+  The \emph{itype}
+ argument can be set to the following values: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ 1 - shows a horizontal fill slider
+
+\item 
+
+ 2 - a vertical fill slider
+
+\item 
+
+ 3 - a horizontal engraved slider
+
+\item 
+
+ 4 - a vertical engraved slider
+
+\item 
+
+ 5 - a horizontal nice slider
+
+\item 
+
+ 6 - a vertical nice slider
+
+\item 
+
+ 7 - a horizontal up-box nice slider
+
+\item 
+
+ 8 - a vertical up-box nice slider
+
+
+\end{itemize}
+
+
+ \includegraphics[scale=1]{flslider_horizontal-fill} 
+
+
+ FLslider - a horizontal fill slider (itype=1).
+
+
+ \includegraphics[scale=1]{flslider_horizontal-engraved} 
+
+
+ FLslider - a horizontal engraved slider (itype=3).
+
+
+ \includegraphics[scale=1]{flslider_horizontal-nice} 
+
+
+ FLslider - a horizontal nice slider (itype=5).
+
+
+ \emph{idisp}
+ -- a handle value that was output from a previous instance of the \emph{FLvalue}
+ opcode to display the current value of the current valuator in the \emph{FLvalue}
+ widget itself. If the user doesn't want to use this feature that displays current values, it must be set to a negative number by the user. 
+
+
+ \emph{iwidth}
+ -- width of widget. 
+
+
+ \emph{iheight}
+ -- height of widget. 
+
+
+ \emph{ix}
+ -- horizontal position of upper left corner of the valuator, relative to the upper left corner of corresponding window (expressed in pixels). 
+
+
+ \emph{iy}
+ -- vertical position of upper left corner of the valuator, relative to the upper left corner of corresponding window (expressed in pixels). 
+\subsection*{Performance}
+
+
+ \emph{kout}
+ -- output value 
+\subsection*{Examples}
+
+
+  Here is an example of the flslider opcode. It uses the files \emph{flslider.orc}
+ and \emph{flslider.sco}
+. 
+
+
+ \textbf{Example 1. Example of the flslider opcode.}
+
+\begin{lstlisting}
+/* flslider.orc */
+; A sine with oscillator with flslider controlled frequency
+sr = 44100
+kr = 441
+ksmps = 100
+nchnls = 1
+
+FLpanel "Frequency Slider", 900, 400, 50, 50
+    ; Minimum value output by the slider
+    imin = 200
+    ; Maximum value output by the slider
+    imax = 5000
+    ; Logarithmic type slider selected
+    iexp = -1
+    ; Slider graphic type (5='nice' slider)
+    itype = 5 
+    ; Display handle (-1=not used)
+    idisp = -1
+    ; Width of the slider in pixels
+    iwidth = 750
+    ; Height of the slider in pixels
+    iheight = 30
+    ; Distance of the left edge of the slider
+    ; from the left edge of the panel
+    ix = 125
+    ; Distance of the top edge of the slider 
+    ; from the top edge of the panel
+    iy = 50
+
+    gkfreq, ihandle FLslider "Frequency", imin, imax, iexp, itype, idisp, iwidth, iheight, ix, iy
+; End of panel contents
+FLpanelEnd
+; Run the widget thread!
+FLrun
+
+instr 1
+    iamp = 15000
+    ifn = 1
+    asig oscili iamp, gkfreq, ifn
+    out asig
+endin
+/* flslider.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* flslider.sco */
+; Function table that defines a single cycle
+; of a sine wave.
+f 1 0 1024 10 1
+
+; Instrument 1 will play a note for 1 hour.
+i 1 0 3600
+e
+/* flslider.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{FLcount}
+, \emph{FLjoy}
+, \emph{FLkeyb}
+, \emph{FLknob}
+, \emph{FLroller}
+, \emph{FLslidBnk}
+, \emph{FLtext}
+
+\subsection*{Credits}
+
+
+ Author: Gabriel Maldonado
+
+
+ New in version 4.22
+
+
+ February 2004. Thanks to a note from Dave Phillips, deleted the extraneous istep parameter.
+
+
+ Example written by Iain McCurdy, edited by Kevin Conder.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+FLslidBnk &Up &FLtabs
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

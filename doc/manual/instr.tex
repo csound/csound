@@ -1,0 +1,299 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{instr}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{instr}
+instr --  Starts an instrument block. \subsection*{Description}
+
+
+  Starts an instrument block. 
+\subsection*{Syntax}
+
+
+ \textbf{instr}
+ i, j, ...
+\subsection*{Initialization}
+
+
+  Starts an instrument block defining instruments \emph{i, j}
+, ... 
+
+
+ \emph{i, j}
+, ... must be numbers, not expressions. Any positive integer is legal, and in any order, but excessively high numbers are best avoided. 
+
+
+ 
+
+
+\begin{tabular}{cc}
+\textbf{Note}
+ \\
+  &
+
+  There may be any number of instrument blocks in an orchestra. 
+
+
+\end{tabular}
+
+
+
+  Instruments can be defined in any order (but they will always be both initialized and performed in ascending instrument number order). Instrument blocks cannot be nested (i.e. one block cannot contain another). 
+\subsection*{Performance}
+\subsubsection*{Calling an Instrument within an Instrument}
+
+
+  You can call an instrument within an instrument as if it were an opcode either with the \emph{subinstr}
+ opcode or by specifying an instrument with a text name: 
+
+
+ 
+\begin{lstlisting}
+instr MyOscil
+...
+endin
+          
+\end{lstlisting}
+
+
+ 
+
+
+  If an instrument is defined with a name, you simply call it directly like an opcode: 
+
+
+ 
+\begin{lstlisting}
+asig MyOscil iamp, ipitch, iftable
+          
+\end{lstlisting}
+
+
+ 
+
+
+  By default, all output parameters correspond to the called instrument's output with the \emph{signal output}
+ opcodes. All input parameters are mapped to the called instrument's p-fields starting with the fourth one, p4. The values of the called instrument's second and third p-fields, p2 and p3, are automatically set to those of the calling instrument's. 
+
+
+  A named instrument must be defined before any instrument that calls it. 
+\textbf{Advanced Options}
+
+
+  You can optionally define an instrument's interface if you need to pass k-rate values, audio input, or greater than 8 audio output channels. The output and input types are specified after the instrument name, as a list of characters (0, a, i, k, or p): 
+
+
+ 
+\begin{lstlisting}
+instr name, outputlist, inputlist
+            
+\end{lstlisting}
+
+
+ 
+
+
+  For example, this instrument: 
+
+
+ 
+\begin{lstlisting}
+instr MyFilter, aak, aaki
+...
+endin
+            
+\end{lstlisting}
+
+
+ 
+ Specifies an instrument that outputs 2 a-rate signals and 1 k-rate signal. It takes 2 a-rate signals as input followed by a k-rate signal and an i-rate signal. 
+
+  A call to this instrument would something like like: 
+
+
+ 
+\begin{lstlisting}
+asig1, asig2, k1 MyFilter aleft, aright, kfreq, ibw
+            
+\end{lstlisting}
+
+
+ 
+
+
+  The allowable character types are: 
+
+
+ \textbf{Table 1. Allowable Character Types}
+
+
+
+\begin{tabular}{ccccc}
+CharacterSignalContext & & & & \\
+0Specifies no signal passed.Allowed with input and output. Cannot occur with other types. &aa-rate signal.Allowed with input and output. Accessed with the \emph{signal input}
+ and \emph{signal output}
+ opcodes. &ii-rate signal mapped to a p-field.Input only. &kk-rate signal.Allowed with input and output. Accessed with the \emph{ink}
+ and \emph{outk}
+ opcodes. &pk-rate signal mapped to a p-field.Input only.
+
+\end{tabular}
+
+ The \emph{i}
+ and \emph{p}
+ character types are mapped to p-fields as they occur in order starting with the fourth p-field, p4. The \emph{a}
+ and \emph{k}
+ character types are mapped in order of channels to be accessed with the \emph{signal input}
+ and \emph{signal output}
+ opcodes. 
+
+  For example: 
+
+
+ 
+\begin{lstlisting}
+instr MyProcess 0, apaki
+            
+\end{lstlisting}
+
+
+ 
+ Defines an instrument with no output, 2 a-rate signal inputs (the first and third input parameters). The second input (``p'') is mapped to p4, which potentially changes every k-pass. The fourth input parameter is mapped to be retrieved with the \emph{ink}
+ opcode. The last input signal is mapped to p5, and will stay the same value during the instrument instance's performance. 
+
+  A call to this instrument would look something like: 
+
+
+ 
+\begin{lstlisting}
+MyProcess asig, kfreq, arefsig, kamp, imode
+            
+\end{lstlisting}
+
+
+ 
+
+
+  Accessing the data passed to the instrument would look something like: 
+
+
+ 
+\begin{lstlisting}
+instr MyProcess 0, apaki
+    imode = p5
+
+    asig, arefsig ins
+    kamp ink
+
+    ; p4 can change during performance
+    printk .1, p4  
+endin
+            
+\end{lstlisting}
+
+
+ 
+
+
+  See \emph{ink}
+/\emph{outk}
+ documentation for another example. 
+
+
+ 
+
+
+\begin{tabular}{cc}
+\textbf{Hint}
+ \\
+  &
+
+  If you use the \emph{inch}
+, \emph{outc}
+, \emph{outch}
+, etc. opcodes, you can create an instrument that will compile and function in any orchestra of any number of channels. 
+
+
+  A nice feature to use with named instruments is the \emph{\#include}
+ feature. You can then define your named instruments in separate files, using \#include when you need to use one. 
+
+
+\end{tabular}
+
+\subsection*{Examples}
+
+
+  Here is an example of the instr opcode. It uses the files \emph{instr.orc}
+ and \emph{instr.sco}
+. 
+
+
+ \textbf{Example 1. Example of the instr opcode.}
+
+\begin{lstlisting}
+/* instr.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  iamp = 10000
+  icps = 440
+  iphs = 0
+
+  a1 oscils iamp, icps, iphs
+  out a1
+endin
+/* instr.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* instr.sco */
+; Play Instrument #1 for 2 seconds.
+i 1 0 2
+e
+/* instr.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{endin}
+, \emph{ink}
+, \emph{in}
+, \emph{outk}
+, \emph{out}
+, \emph{subinstr}
+
+\subsection*{Credits}
+
+
+ Example written by Kevin Conder.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+instimes &Up &int
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

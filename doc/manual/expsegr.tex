@@ -1,0 +1,152 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{expsegr}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{expsegr}
+expsegr --  Trace a series of exponential segments between specified points including a release segment. \subsection*{Description}
+
+
+  Trace a series of exponential segments between specified points including a release segment. 
+\subsection*{Syntax}
+
+
+ ar \textbf{expsegr}
+ ia, idur1, ib [, idur2] [, ic] [...], irel, iz
+
+
+ kr \textbf{expsegr}
+ ia, idur1, ib [, idur2] [, ic] [...], irel, iz
+\subsection*{Initialization}
+
+
+ \emph{ia}
+ -- starting value. Zero is illegal for exponentials. 
+
+
+ \emph{ib, ic}
+, etc. -- value after \emph{dur1}
+ seconds, etc. For exponentials, must be non-zero and must agree in sign with \emph{ia}
+. 
+
+
+ \emph{idur1}
+ -- duration in seconds of first segment. A zero or negative value will cause all initialization to be skipped. 
+
+
+ \emph{idur2, idur3}
+, etc. -- duration in seconds of subsequent segments. A zero or negative value will terminate the initialization process with the preceding point, permitting the last-defined line or curve to be continued indefinitely in performance. The default is zero. 
+
+
+ \emph{irel, iz}
+ -- duration in seconds and final value of a note releasing segment. 
+\subsection*{Performance}
+
+
+  These units generate control or audio signals whose values can pass through 2 or more specified points. The sum of \emph{dur}
+ values may or may not equal the instrument's performance time: a shorter performance will truncate the specified pattern, while a longer one will cause the last-defined segment to continue on in the same direction. 
+
+
+ \emph{expsegr}
+ is amongst the Csound ``r'' units that contain a note-off sensor and release time extender. When each senses an event termination or MIDI noteoff, it immediately extends the performance time of the current instrument by \emph{irel }
+seconds, and sets out to reach the value \emph{iz}
+ by the end of that period (no matter which segment the unit is in). ``r'' units can also be modified by MIDI noteoff velocities. For two or more extenders in an instrument, extension is by the greatest period. 
+\subsection*{Examples}
+
+
+  Here is an example of the expsegr opcode. It uses the files \emph{expsegr.orc}
+ and \emph{expsegr.sco}
+. 
+
+
+ \textbf{Example 1. Example of the expsegr opcode.}
+
+\begin{lstlisting}
+/* expsegr.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  ; p4 = frequency in pitch-class notation.
+  kcps = cpspch(p4)
+
+  ; Use an amplitude envelope with second-long release.
+  kenv expsegr 0.01, p3/2, 1, p3/2, 0.01, 1, 1
+  kamp = kenv * 30000
+
+  a1 oscil kamp, kcps, 1
+  out a1
+endin
+/* expsegr.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* expsegr.sco */
+; Table #1, a sine wave.
+f 1 0 16384 10 1
+
+; Make sure the score lasts for four seconds.
+f 0 4
+
+; p4 = frequency (in pitch-class notation).
+; Play Instrument #1 for a half-second, p4=8.00
+i 1 0 0.5 8.00
+; Play Instrument #1 for a half-second, p4=8.01
+i 1 1 0.5 8.01
+; Play Instrument #1 for a half-second, p4=8.02
+i 1 2 0.5 8.02
+; Play Instrument #1 for a half-second, p4=8.03
+i 1 3 0.5 8.03
+e
+/* expsegr.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{expon}
+, \emph{expseg}
+, \emph{expsega}
+, \emph{line}
+, \emph{linseg}
+, \emph{linsegr}
+
+\subsection*{Credits}
+
+
+ Author: Barry L. Vercoe
+
+
+ Example written by Kevin Conder.
+
+
+ New in Csound 3.47
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+expsega &Up &filelen
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,168 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{betarand}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{betarand}
+betarand --  Beta distribution random number generator (positive values only). \subsection*{Description}
+
+
+  Beta distribution random number generator (positive values only). This is an x-class noise generator. 
+\subsection*{Syntax}
+
+
+ ar \textbf{betarand}
+ krange, kalpha, kbeta
+
+
+ ir \textbf{betarand}
+ krange, kalpha, kbeta
+
+
+ kr \textbf{betarand}
+ krange, kalpha, kbeta
+\subsection*{Performance}
+
+
+ \emph{krange}
+ -- range of the random numbers (0 - \emph{krange}
+). 
+
+
+ \emph{kalpha}
+ -- alpha value. If \emph{kalpha}
+ is smaller than one, smaller values favor values near 0. 
+
+
+ \emph{kbeta}
+ -- beta value. If \emph{kbeta}
+ is smaller than one, smaller values favor values near \emph{krange}
+. 
+
+
+  If both \emph{kalpha}
+ and \emph{kbeta}
+ equal one we have uniform distribution. If both \emph{kalpha}
+ and \emph{kbeta}
+ are greater than one we have a sort of Gaussian distribution. Outputs only positive numbers. 
+
+
+  For more detailed explanation of these distributions, see: 
+
+
+ 
+\begin{enumerate}
+\item 
+
+ C. Dodge - T.A. Jerse 1985. Computer music. Schirmer books. pp.265 - 286
+
+\item 
+
+ D. Lorrain. A panoply of stochastic cannons. In C. Roads, ed. 1989. Music machine . Cambridge, Massachusetts: MIT press, pp. 351 - 379.
+
+
+\end{enumerate}
+\subsection*{Examples}
+
+
+  Here is an example of the betarand opcode. It uses the files \emph{betarand.orc}
+ and \emph{betarand.sco}
+. 
+
+
+ \textbf{Example 1. Example of the betarand opcode.}
+
+\begin{lstlisting}
+/* betarand.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  ; Generate a number between 0 and 1 with a 
+  ; uniform distribution.
+  ; krange = 1
+  ; kalpha = 1
+  ; kbeta = 1
+
+  i1 betarand 1, 1, 1
+
+  print i1
+endin
+/* betarand.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* betarand.sco */
+; Play Instrument #1 for one second.
+i 1 0 1
+e
+/* betarand.sco */
+        
+\end{lstlisting}
+ Its output should include lines like: \begin{lstlisting}
+instr 1:  i1 = 24583.412
+      
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{bexprnd}
+, \emph{cauchy}
+, \emph{exprand}
+, \emph{gauss}
+, \emph{linrand}
+, \emph{pcauchy}
+, \emph{poisson}
+, \emph{trirand}
+, \emph{unirand}
+, \emph{weibull}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Paris Smaragdis &MIT, Cambridge &1995
+
+\end{tabular}
+
+
+
+ 
+
+
+ Example written by Kevin Conder.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+bbcuts &Up &bexprnd
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

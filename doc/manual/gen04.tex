@@ -1,0 +1,104 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{GEN04}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{GEN04}
+GEN04 --  Generates a normalizing function. \subsection*{Description}
+
+
+  This subroutine generates a normalizing function by examining the contents of an existing table. 
+\subsection*{Syntax}
+
+
+ \textbf{f}
+ \# time size 4 source\# sourcemode
+\subsection*{Initialization}
+
+
+ \emph{size}
+ -- number of points in the table. Should be power-of-2 plus 1. Must not exceed (except by 1) the size of the source table being examined; limited to just half that size if the sourcemode is of type offset (see below). 
+
+
+ \emph{source \#}
+ -- table number of stored function to be examined. 
+
+
+ \emph{sourcemode}
+ -- a coded value, specifying how the source table is to be scanned to obtain the normalizing function. Zero indicates that the source is to be scanned from left to right. Non-zero indicates that the source has a bipolar structure; scanning will begin at the mid-point and progress outwards, looking at pairs of points equidistant from the center. 
+
+
+ 
+
+
+\begin{tabular}{cc}
+\textbf{Note}
+ \\
+  &
+
+ 
+
+
+ 
+\begin{itemize}
+\item 
+
+  The normalizing function derives from the progressive absolute maxima of the source table being scanned. The new table is created left-to-right, with stored values equal to 1/(absolute maximum so far scanned). Stored values will thus begin with 1/(first value scanned), then get progressively smaller as new maxima are encountered. For a source table which is normalized (values $<$= 1), the derived values will range from 1/(first value scanned) down to 1. If the first value scanned is zero, that inverse will be set to 1. 
+
+\item 
+
+  The normalizing function from \emph{GEN04}
+ is not itself normalized. 
+
+\item 
+
+ \emph{GEN04}
+ is useful for scaling a table-derived signal so that it has a consistent peak amplitude. A particular application occurs in waveshaping when the carrier (or indexing) signal is less than full amplitude. 
+
+
+\end{itemize}
+
+
+\end{tabular}
+
+\subsection*{Examples}
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+\emph{f}
+   2   0   512   4    1   1   
+        
+\end{lstlisting}
+
+
+ 
+ This creates a normalizing function for use in connection with the \emph{GEN03}
+ table 1 example. Midpoint bipolar offset is specified. %\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+GEN03 &Up &GEN05
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

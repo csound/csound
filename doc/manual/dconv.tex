@@ -1,0 +1,139 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{dconv}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{dconv}
+dconv --  A direct convolution opcode. \subsection*{Description}
+
+
+  A direct convolution opcode. 
+\subsection*{Syntax}
+
+
+ ar \textbf{dconv}
+ asig, isize, ifn
+\subsection*{Initialization}
+
+
+ \emph{isize}
+ -- the size of the convolution buffer to use. if the buffer size is smaller than the size of ifn, then only the first isize values will be used from the table. 
+
+
+ \emph{ifn}
+ -- table number of a stored function containing the impulse response for convolution. 
+\subsection*{Performance}
+
+
+  Rather than the analysis/resynthesis method of the convolve opcode, \emph{dconv}
+ uses direct convolution to create the result. For small tables it can do this quite efficiently, however larger table require much more time to run. \emph{dconv}
+ does (isize * ksmps) multiplies on every k-cycle. Therefore, reverb and delay effects are best done with other opcodes (unless the times are short). 
+
+
+ \emph{dconv}
+ was designed to be used with time varying tables to facilitate new realtime filtering capabilities. 
+\subsection*{Examples}
+
+
+  Here is an example of the dconv opcode. It uses the files \emph{dconv.orc}
+ and \emph{dconv.sco}
+. 
+
+
+ \textbf{Example 1. Example of the dconv opcode.}
+
+\begin{lstlisting}
+/* dconv.orc */
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+ 
+#define RANDI(A) #kout  randi   1, kfq, $A*.001+iseed, 1
+        tablew  kout, $A, itable#
+ 
+instr 1
+itable  init    1
+iseed   init    .6
+isize   init    ftlen(itable)
+kfq     line    1, p3, 10
+ 
+$RANDI(0)
+$RANDI(1)
+$RANDI(2)
+$RANDI(3)
+$RANDI(4)
+$RANDI(5)
+$RANDI(6)
+$RANDI(7)
+$RANDI(8)
+$RANDI(9)
+$RANDI(10)
+$RANDI(11)
+$RANDI(12)
+$RANDI(13)
+$RANDI(14)
+$RANDI(15)
+
+asig    rand    10000, .5, 1
+asig    butlp   asig, 5000
+asig    dconv   asig, isize, itable
+ 
+        out     asig *.5
+endin
+/* dconv.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* dconv.sco */
+f1 0 16 10 1
+i1 0 10
+e
+/* dconv.sco */
+        
+\end{lstlisting}
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Author: William ``Pete'' Moss &2001
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in version 4.12
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+dcblock &Up &delay
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

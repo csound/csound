@@ -1,0 +1,108 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{lpinterp}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{lpinterp}
+lpslot, lpinterp --  Computes a new set of poles from the interpolation between two analysis. \subsection*{Description}
+
+
+  Computes a new set of poles from the interpolation between two analysis. 
+\subsection*{Syntax}
+
+
+ \textbf{lpinterp}
+ islot1, islot2, kmix
+\subsection*{Initialization}
+
+
+ \emph{islot1}
+ -- slot where the first analysis was stored 
+
+
+ \emph{islot2}
+ -- slot where the second analysis was stored 
+
+
+ \emph{kmix}
+ -- mix value between the two analysis. Should be between 0 and 1. 0 means analysis 1 only. 1 means analysis 2 only. Any value in between will produce interpolation between the filters. 
+
+
+ \emph{lpinterp}
+ computes a new set of poles from the interpolation between two analysis. The poles will be stored in the current \emph{lpslot}
+ and used by the next \emph{lpreson}
+ opcode. 
+\subsection*{Examples}
+
+
+  Here is a typical orc using the opcodes: 
+
+
+ 
+\begin{lstlisting}
+ipower \emph{init}
+ 50000  ; Define sound generator
+ifreq  \emph{init}
+ 440 
+asrc   \emph{buzz}
+ ipower,ifreq,10,1
+  
+ktime  \emph{line}
+ 0,p3,p3          ; Define time lin
+       \emph{lpslot}
+ 0              ; Read square data poles
+krmsr,krmso,kerr,kcps \emph{lpread}
+    ktime,"square.pol"                     
+       \emph{lpslot}
+ 1              ; Read triangle data poles
+krmsr,krmso,kerr,kcps \emph{lpread}
+    ktime,"triangle.pol"
+kmix   \emph{line}
+ 0,p3,1           ; Compute result of mixing
+       \emph{lpinterp}
+ 0,1,kmix     ; and balance power
+ares   \emph{lpreson}
+ asrc
+aout   \emph{balance}
+ ares,asrc
+       \emph{out}
+ aout
+        
+\end{lstlisting}
+
+
+ 
+\subsection*{See Also}
+
+
+ \emph{lpslot}
+
+\subsection*{Credits}
+
+
+ Author: Gabriel Maldonado
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+lphasor &Up &lposcil
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,90 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{GEN17}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{GEN17}
+GEN17 --  Creates a step function from given x-y pairs. \subsection*{Description}
+
+
+  This subroutine creates a step function from given x-y pairs. 
+\subsection*{Syntax}
+
+
+ \textbf{f}
+ \# time size 17 x1 a x2 b x3 c ...
+\subsection*{Initialization}
+
+
+ \emph{size}
+ -- number of points in the table. Must be a power of 2 or a power-of-2 plus 1 (see \emph{f statement}
+). The normal value is power-of-2 plus 1. 
+
+
+ \emph{x1, x2, x3,}
+ etc. -- x-ordinate values, in ascending order, 0 first. 
+
+
+ \emph{a, b, c,}
+ etc. -- y-values at those x-ordinates, held until the next x-ordinate. 
+
+
+ 
+
+
+\begin{tabular}{cc}
+\textbf{Note}
+ \\
+  &
+
+  This subroutine creates a step function of x-y pairs whose y-values are held to the right. The right-most y-value is then held to the end of the table. The function is useful for mapping one set of data values onto another, such as MIDI note numbers onto sampled sound ftable numbers ( see \emph{loscil}
+). 
+
+
+\end{tabular}
+
+\subsection*{Examples}
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+\emph{f}
+  1  0  128  -17   0  1   12  2   24  3   36  4   48  5  60  6   72  7   84  8
+        
+\end{lstlisting}
+
+
+ 
+ This describes a step function with 8 successively increasing levels, each 12 locations wide except the last which extends its value to the end of the table. Rescaling is inhibited. Indexing into this table with a MIDI note-number would retrieve a different value every octave up to the eighth, above which the value returned would remain the same. \subsection*{See Also}
+
+
+ \emph{GEN02}
+
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+GEN16 &Up &GEN18
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

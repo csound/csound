@@ -1,0 +1,292 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{hilbert}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{hilbert}
+hilbert --  A Hilbert transformer. \subsection*{Description}
+
+
+  An IIR implementation of a Hilbert transformer. 
+\subsection*{Syntax}
+
+
+ ar1, ar2 \textbf{hilbert}
+ asig
+\subsection*{Performance}
+
+
+ \emph{asig}
+ -- input signal 
+
+
+ \emph{ar1}
+ -- cosine output of \emph{asig}
+
+
+
+ \emph{ar2}
+ -- sine output of \emph{asig}
+
+
+
+ \emph{hilbert}
+ is an IIR filter based implementation of a broad-band 90 degree phase difference network. The input to \emph{hilbert}
+ is an audio signal, with a frequency range from 15 Hz to 15 kHz. The outputs of \emph{hilbert}
+ have an identical frequency response to the input (i.e. they sound the same), but the two outputs have a constant phase difference of 90 degrees, plus or minus some small amount of error, throughout the entire frequency range. The outputs are in quadrature. 
+
+
+ \emph{hilbert}
+ is useful in the implementation of many digital signal processing techniques that require a signal in phase quadrature. \emph{ar1}
+ corresponds to the cosine output of \emph{hilbert}
+, while \emph{ar2}
+ corresponds to the sine output. The two outputs have a constant phase difference throughout the audio range that corresponds to the phase relationship between cosine and sine waves. 
+
+
+  Internally, \emph{hilbert}
+ is based on two parallel 6th-order allpass filters. Each allpass filter implements a phase lag that increases with frequency; the difference between the phase lags of the parallel allpass filters at any given point is approximately 90 degrees. 
+
+
+  Unlike an FIR-based Hilbert transformer, the output of \emph{hilbert}
+ does not have a linear phase response. However, the IIR structure used in \emph{hilbert}
+ is far more efficient to compute, and the nonlinear phase response can be used in the creation of interesting audio effects, as in the second example below. 
+\subsection*{Examples}
+
+
+  The first example implements frequency shifting, or single sideband amplitude modulation. Frequency shifting is similar to ring modulation, except the upper and lower sidebands are separated into individual outputs. By using only one of the outputs, the input signal can be ``detuned,'' where the harmonic components of the signal are shifted out of harmonic alignment with each other, e.g. a signal with harmonics at 100, 200, 300, 400 and 500 Hz, shifted up by 50 Hz, will have harmonics at 150, 250, 350, 450, and 550 Hz. 
+
+
+  Here is the first example of the hilbert opcode. It uses the files \emph{hilbert.orc}
+, \emph{hilbert.sco}
+, and \emph{mary.wav}
+. 
+
+
+ \textbf{Example 1. Example of the hilbert opcode implementing frequency shifting.}
+
+\begin{lstlisting}
+/* hilbert.orc */
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+  
+instr 1
+  idur = p3
+  ; Initial amount of frequency shift.
+  ; It can be positive or negative.
+  ibegshift = p4 
+  ; Final amount of frequency shift.
+  ; It can be positive or negative.
+  iendshift = p5 
+  
+  ; A simple envelope for determining the 
+  ; amount of frequency shift.
+  kfreq linseg ibegshift, idur, iendshift
+ 
+  ; Use the sound of your choice.
+  ain soundin "mary.wav"
+ 
+  ; Phase quadrature output derived from input signal.
+  areal, aimag hilbert ain
+ 
+  ; Quadrature oscillator.
+  asin oscili 1, kfreq, 1
+  acos oscili 1, kfreq, 1, .25
+ 
+  ; Use a trigonometric identity. 
+  ; See the references for further details.
+  amod1 = areal * acos
+  amod2 = aimag * asin
+
+  ; Both sum and difference frequencies can be 
+  ; output at once.
+  ; aupshift corresponds to the sum frequencies.
+  aupshift = (amod1 + amod2) * 0.7
+  ; adownshift corresponds to the difference frequencies. 
+  adownshift = (amod1 - amod2) * 0.7
+
+  ; Notice that the adding of the two together is
+  ; identical to the output of ring modulation.
+
+  out aupshift
+endin
+/* hilbert.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* hilbert.sco */
+; Sine table for quadrature oscillator.
+f 1 0 16384 10 1
+
+; Starting with no shift, ending with all
+; frequencies shifted up by 200 Hz.
+i 1 0 2 0 200
+
+; Starting with no shift, ending with all
+; frequencies shifted down by 200 Hz.
+i 1 2 2 0 -200
+e
+/* hilbert.sco */
+        
+\end{lstlisting}
+
+
+  The second example is a variation of the first, but with the output being fed back into the input. With very small shift amounts (i.e. between 0 and +-6 Hz), the result is a sound that has been described as a ``barberpole phaser'' or ``Shepard tone phase shifter.'' Several notches appear in the spectrum, and are constantly swept in the direction opposite that of the shift, producing a filtering effect that is reminiscent of Risset's ``endless glissando''. 
+
+
+  Here is the second example of the hilbert opcode. It uses the files \emph{hilbert\_barberpole.orc}
+, \emph{hilbert\_barberpole.sco}
+, and \emph{mary.wav}
+. 
+
+
+ \textbf{Example 2. Example of the hilbert opcode sounding like a ``barberpole phaser''.}
+
+\begin{lstlisting}
+/* hilbert_barberpole.orc */
+; Initialize the global variables.
+sr = 44100
+; kr must equal sr for the barberpole effect to work.
+kr = 44100
+ksmps = 1
+nchnls = 2
+
+; Instrument #1
+instr 1
+  idur = p3
+  ibegshift = p4
+  iendshift = p5
+
+  ; sawtooth wave, not bandlimited
+  asaw   phasor 100
+  ; add offset to center phasor amplitude between -.5 and .5
+  asaw = asaw - .5
+  ; sawtooth wave, with amplitude of 10000
+  ain = asaw * 20000
+  
+  ; The envelope of the frequency shift.
+  kfreq linseg ibegshift, idur, iendshift
+
+  ; Phase quadrature output derived from input signal.
+  areal, aimag hilbert ain
+
+  ; The quadrature oscillator.
+  asin oscili 1, kfreq, 1
+  acos oscili 1, kfreq, 1, .25
+
+  ; Based on trignometric identities.
+  amod1 = areal * acos
+  amod2 = aimag * asin
+
+  ; Calculate the up-shift and down-shift.
+  aupshift = (amod1 + amod2) * 0.7
+  adownshift = (amod1 - amod2) * 0.7
+
+  ; Mix in the original signal to achieve the barberpole effect.
+  amix1 = aupshift + ain
+  amix2 = aupshift + ain
+  
+  ; Make sure the output doesn't get louder than the original signal.
+  aout1 balance amix1, ain
+  aout2 balance amix2, ain
+
+  outs aout1, aout2
+endin
+/* hilbert_barberpole.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* hilbert_barberpole.sco */
+; Table 1: A sine wave for the quadrature oscillator.
+f 1 0 16384 10 1
+
+; The score.
+; p4 = frequency shifter, starting frequency.
+; p5 = frequency shifter, ending frequency.
+i 1 0 6 -10 10
+e
+/* hilbert_barberpole.sco */
+        
+\end{lstlisting}
+\subsection*{Technical History}
+
+
+  The use of phase-difference networks in frequency shifters was pioneered by Harald Bode.1 Bode and Bob Moog provide an excellent description of the implementation and use of a frequency shifter in the analog realm in;2 this would be an excellent first source for those that wish to explore the possibilities of single sideband modulation. Bernie Hutchins provides more applications of the frequency shifter, as well as a detailed technical analysis.3 A recent paper by Scott Wardle4 describes a digital implementation of a frequency shifter, as well as some unique applications. 
+\subsection*{References}
+
+
+ 
+
+
+ 
+\begin{enumerate}
+\item 
+
+  H. Bode, ``Solid State Audio Frequency Spectrum Shifter.'' AES Preprint No. 395 (1965). 
+
+\item 
+
+  H. Bode and R.A. Moog, ``A High-Accuracy Frequency Shfiter for Professional Audio Applications.'' \emph{Journal of the Audio Engineering Society}
+, July/August 1972, vol. 20, no. 6, p. 453. 
+
+\item 
+
+  B. Hutchins. \emph{Musical Engineer's Handbook}
+ (Ithaca, NY: Electronotes, 1975), ch. 6a. 
+
+\item 
+
+  S. Wardle, ``A Hilbert-Transformer Frequency Shifter for Audio.'' Available online at \emph{\url{http://www.iua.upf.es/dafx98/papers/}}
+. 
+
+
+\end{enumerate}
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Sean Costello &Seattle, Washington &1999
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 3.55
+
+
+ The examples were updated April 2002. Thanks go to Sean Costello for fixing the barberpole example.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+harmon &Up &hrtfer
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,135 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{nlfilt}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{nlfilt}
+nlfilt --  A filter with a non-linear effect. \subsection*{Description}
+
+
+  Implements the filter: 
+
+
+ Y\{n\} =a Y\{n-1\} + b Y\{n-2\} + d Y\^{}2\{n-L\} + X\{n\} - C \\ 
+       
+ described in Dobson and Fitch (ICMC'96) \subsection*{Syntax}
+
+
+ ar \textbf{nlfilt}
+ ain, ka, kb, kd, kC, kL
+\subsection*{Performance}
+
+
+ 
+
+
+ 
+\begin{enumerate}
+\item 
+
+  Non-linear effect. The range of parameters are: 
+
+
+   a = b = 0\\ 
+   d = 0.8, 0.9, 0.7\\ 
+   C = 0.4, 0.5, 0.6\\ 
+   L = 20\\ 
+             
+ This affects the lower register most but there are audible effects over the whole range. We suggest that it may be useful for coloring drums, and for adding arbitrary highlights to notes. 
+\item 
+
+  Low Pass with non-linear. The range of parameters are: 
+
+
+   a = 0.4\\ 
+   b = 0.2\\ 
+   d = 0.7\\ 
+   C = 0.11\\ 
+   L = 20, ... 200\\ 
+             
+ There are instability problems with this variant but the effect is more pronounced of the lower register, but is otherwise much like the pure comb. Short values of \emph{L}
+ can add attack to a sound. 
+\item 
+
+  High Pass with non-linear. The range of parameters are: 
+
+
+   a = 0.35\\ 
+   b = -0.3\\ 
+   d = 0.95\\ 
+   C = 0,2, ... 0.4\\ 
+   L = 200\\ 
+             
+
+\item 
+
+  High Pass with non-linear. The range of parameters are: 
+
+
+   a = 0.7\\ 
+   b = -0.2, ... 0.5\\ 
+   d = 0.9\\ 
+   C = 0.12, ... 0.24\\ 
+   L = 500, 10\\ 
+             
+ The high pass version is less likely to oscillate. It adds scintillation to medium-high registers. With a large delay \emph{L}
+ it is a little like a reverberation, while with small values there appear to be formant-like regions. There are arbitrary color changes and resonances as the pitch changes. Works well with individual notes. 
+
+\end{enumerate}
+
+
+ 
+
+
+\begin{tabular}{cc}
+Warning &\textbf{Warning}
+ \\
+  &
+
+  The ``useful'' ranges of parameters are not yet mapped. 
+
+
+\end{tabular}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cccc}
+Author: John ffitch &University of Bath/Codemist Ltd. &Bath, UK &1997
+
+\end{tabular}
+
+
+
+ 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+nestedap &Up &noise
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

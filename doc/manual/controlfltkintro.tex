@@ -1,0 +1,339 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{Introduction to FLTK Widgets and GUI controllers}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous &Instrument Control &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{Introduction to FLTK Widgets and GUI controllers}
+
+
+  Written by Gabriel Maldonado (\emph{\url{http://csounds.com/maldonado}}
+) 
+
+
+  Widgets allow the design of a custom Graphical User Interface to control an orchestra in real-time. They are derived from the open-source library FLTK (Fast Light Tool Kit). Such library is one of the fastest graphic libraries available, supports OpenGL and should be source compatible with different platforms (Windows, Linux, Unix and Mac OS). The subset of FLTK implemented in Csound provides the following types of objects: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ Containers
+
+\item 
+
+ Valuators
+
+\item 
+
+ Other widgets
+
+
+\end{itemize}
+
+
+  Containers are widgets that contain other widgets such as panels, windows, etc. Csound provides the following container objects: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ Panels
+
+\item 
+
+ Scroll areas
+
+\item 
+
+ Pack
+
+\item 
+
+ Tabs
+
+\item 
+
+ Groups
+
+
+\end{itemize}
+
+
+  The most useful objects are named valuators. These objects allow the user to vary synthesis parameter values in real-time. Csound provides the following valuator objects: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ Sliders
+
+\item 
+
+ Knobs
+
+\item 
+
+ Rollers
+
+\item 
+
+ Text fields
+
+\item 
+
+ Joysticks
+
+\item 
+
+ Counters
+
+
+\end{itemize}
+
+
+  There are other widgets that are not valuators nor containers: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ Buttons
+
+\item 
+
+ Button banks
+
+\item 
+
+ Labels
+
+
+\end{itemize}
+
+
+  Also there are some other opcodes useful to modify the widget appearance: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ Updating widget value.
+
+\item 
+
+ Setting primary and selection colors of a widget.
+
+\item 
+
+ Setting font type, size and color of widgets.
+
+\item 
+
+ Resizing a widget.
+
+\item 
+
+ Hiding and showing a widget.
+
+
+\end{itemize}
+
+
+  At last, there are three important opcodes that allow the following actions: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ Running the widget thread.
+
+\item 
+
+ Loading snapshots containing the status of all valuators of an orchestra.
+
+\item 
+
+ Saving snapshots containing the status of all valuators of an orchestra.
+
+
+\end{itemize}
+
+
+  Here is an example preview of Csound code for a window containing a valuator. Notice that all opcodes are init-rate and must be called only once per session. The best way to use them is to place them in the header section of an orchestra, externally to any instrument. Even though placing them inside an instrument is not prohibited, unpredictable results can occur if that instrument is called more than once. 
+
+
+  Each container is made up of a couple of opcodes: the first indicating the start of the container block and the last indicating the end of that container block. Some container blocks can be nested but they must not be crossed. After defining all containers, a widget thread must be run by using the special FLrun opcode that takes no arguments. 
+
+
+  Here is an example of creating a window: 
+
+
+ 
+\begin{lstlisting}
+;*******************************
+sr=48000
+kr=480
+ksmps=100
+nchnls=1
+
+;*** It is recommended to put almost all GUI code in the
+;*** header section of an orchestra
+
+        FLpanel         "Panel1",450,550 ;***** start of container
+; some widgets should contained here
+        FLpanelEnd     ;***** end of container
+
+        FLrun           ;***** runs the widget thread, it is always required!
+instr 1
+;put some synthesis code here
+endin
+;*******************************
+      
+\end{lstlisting}
+
+
+ 
+ The previous code simply creates a panel (an empty window because no widgets are defined inside the container). 
+
+  The following example creates two panels and inserts a slider inside each of them: 
+
+
+ 
+\begin{lstlisting}
+;*******************************
+sr=48000
+kr=480
+ksmps=100
+nchnls=1
+
+        FLpanel         "Panel1",450,550,100,100 ;***** start of container
+gk1,iha FLslider        "FLslider 1", 500, 1000, 2 ,1, ih1, 300,15, 20,50
+        FLpanelEnd      ;***** end of container
+
+        FLpanel         "Panel1",450,550,100,100 ;***** start of container
+gk2,ihb FLslider        "FLslider 2", 100, 200, 2 ,1, ih2, 300,15, 20,50
+        FLpanelEnd      ;***** end of container
+
+        FLrun           ;***** runs the widget thread, it is always required!
+instr 1
+;put some synthesis code here
+; gk1 and gk2 variables that contain the output of valuator
+; widgets previously defined, can be used inside any instrument
+endin
+;*******************************
+      
+\end{lstlisting}
+
+
+ 
+
+
+  All widget opcodes are init-rate opcodes, even if valuators output k-rate variables. This happens because an independent thread is run based on a callback mechanism. It consumes very few processing resources since there is no need of polling. (This differs from other MIDI based controller opcodes.) So you can use any number of windows and valuators without degrading the real-time performance. 
+
+
+  Since FLTK toolkit is still in evolution process, opcode syntax provided in Csound could be modified in future version. This could cause some incompatibilities between orchestras of a determinate version. However it should not be hard to modify early orchestras in order to make them compatible with later versions. 
+
+
+  For more information, see the following sections. 
+\subsection*{FLTK Containers}
+
+
+  The opcodes for FTLK containers are \emph{FLgroup}
+, \emph{FLgroupEnd}
+, \emph{FLpack}
+, \emph{FLpackEnd}
+, \emph{FLpanel}
+, \emph{FLpanelEnd}
+, \emph{FLscroll}
+, \emph{FLscrollEnd}
+, \emph{FLtabs}
+, and \emph{FLtabsEnd}
+. 
+\subsection*{FLTK Valuators}
+
+
+  The opcodes for FLTK valuators are \emph{FLcount}
+, \emph{FLjoy}
+, \emph{FLkeyb}
+, \emph{FLknob}
+, \emph{FLroller}
+, \emph{FLslider}
+, and \emph{FLtext}
+. 
+\subsection*{Other FLTK Widgets}
+
+
+  Other FLTK widget opcodes are \emph{FLbox}
+, \emph{FLbutBank}
+, \emph{FLbutton}
+, \emph{FLprintk}
+, \emph{FLprintk2}
+, and \emph{FLvalue}
+, 
+\subsubsection*{Modifying FLTK Widget Appearance}
+
+
+  Opcodes one can use to modify FLTK widget appearance are \emph{FLcolor2}
+, \emph{FLcolor}
+, \emph{FLhide}
+, \emph{FLlabel}
+, \emph{FLsetAlign}
+, \emph{FLsetBox}
+, \emph{FLsetColor2}
+, \emph{FLsetColor}
+, \emph{FLsetFont}
+, \emph{FLsetPosition}
+, \emph{FLsetSize}
+, \emph{FLsetText}
+, \emph{FLsetTextColor}
+, \emph{FLsetTextSize}
+, \emph{FLsetTextType}
+, \emph{FLsetVal}
+, \emph{FLsetVal\_i}
+, and \emph{FLshow}
+. 
+\subsubsection*{General FLTK Widget-related Opcodes}
+
+
+  The general FLTK widget-related opcodes are \emph{FLgetsnap}
+, \emph{FLloadsnap}
+, \emph{FLrun}
+, \emph{FLsavesnap}
+, \emph{FLsetsnap}
+, and \emph{FLupdate}
+. 
+\subsubsection*{FLTK Slider Bank}
+
+
+  The opcode for the FLTK slider bank is \emph{FLslidBnk}
+. 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+Duration Control Statements &Up &Instrument Invocation
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

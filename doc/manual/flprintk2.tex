@@ -1,0 +1,75 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{FLprintk2}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{FLprintk2}
+FLprintk2 --  A FLTK opcode that prints a new value every time a control-rate variable changes. \subsection*{Description}
+
+
+ \emph{FLprintk2}
+ is similar to \emph{FLprintk}
+ but shows a k-rate variable's value only when it changes. 
+\subsection*{Syntax}
+
+
+ \textbf{FLprintk2}
+ kval, idisp
+\subsection*{Initialization}
+
+
+ \emph{idisp}
+ -- a handle value that was output from a previous instance of the \emph{FLvalue}
+ opcode to display the current value of the current valuator in the \emph{FLvalue}
+ widget itself. If the user doesn't want to use this feature that displays current values, it must be set to a negative number by the user. 
+\subsection*{Performance}
+
+
+ \emph{kval}
+ -- k-rate signal to be displayed. 
+
+
+ \emph{FLprintk2}
+ is similar to \emph{FLprintk}
+, but shows the k-rate variable's value only each time it changes. Useful for monitoring MIDI control changes when using sliders. It should be used for debugging purposes only, since it slows-down performance. 
+\subsection*{See Also}
+
+
+ \emph{FLbox}
+, \emph{FLbutBank}
+, \emph{FLbutton}
+, \emph{FLprintk}
+, \emph{FLvalue}
+
+\subsection*{Credits}
+
+
+ Author: Gabriel Maldonado
+
+
+ New in version 4.22
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+FLprintk &Up &FLroller
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,161 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{harmon}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{harmon}
+harmon --  Analyze an audio input and generate harmonizing voices in synchrony. \subsection*{Description}
+
+
+  Analyze an audio input and generate harmonizing voices in synchrony. 
+\subsection*{Syntax}
+
+
+ ar \textbf{harmon}
+ asig, kestfrq, kmaxvar, kgenfreq1, kgenfreq2, imode, iminfrq, iprd
+\subsection*{Initialization}
+
+
+ \emph{imode}
+ -- interpreting mode for the generating frequency inputs \emph{kgenfreq1}
+, \emph{kgenfreq2}
+. 0: input values are ratios with respect to the audio signal analyzed frequency. 1: input values are the actual requested frequencies in Hz. 
+
+
+ \emph{iminfrq}
+ -- the lowest expected frequency (in Hz) of the audio input. This parameter determines how much of the input is saved for the running analysis, and sets a lower bound on the internal pitch tracker. 
+
+
+ \emph{iprd}
+ -- period of analysis (in seconds). Since the internal pitch analysis can be time-consuming, the input is typically analyzed only each 20 to 50 milliseconds. 
+\subsection*{Performance}
+
+
+ \emph{kestfrq}
+ -- estimated frequency of the input. 
+
+
+ \emph{kmaxvar}
+ -- the maximum variance. 
+
+
+ \emph{kgenfreq1}
+ -- the first generated frequency. 
+
+
+ \emph{kgenfreq2}
+ -- the second generated frequency. 
+
+
+  This unit is a harmonizer, able to provide up to two additional voices with the same amplitude and spectrum as the input. The input analysis is assisted by two things: an input estimated frequency \emph{kestfrq}
+ (in Hz), and a fractional maximum variance \emph{kmaxvar}
+ about that estimate which serves to limit the size of the search. Once the real input frequency is determined, the most recent pulse shape is used to generate the other voices at their requested frequencies. 
+
+
+  The three frequency inputs can be derived in various ways from a score file or MIDI source. The first is the expected pitch, with a variance parameter allowing for inflections or inaccuracies; if the expected pitch is zero the harmonizer will be silent. The second and third pitches control the output frequencies; if either is zero the harmonizer will output only the non-zero request; if both are zero the harmonizer will be silent. When the requested frequency is higher than the input, the process requires additional computation due to overlapped output pulses. This is currently limited for efficiency reasons, with the result that only one voice can be higher than the input at any one time. 
+
+
+  This unit is useful for supplying a background chorus effect on demand, or for correcting the pitch of a faulty input vocal. There is essentially no delay between input and output. Output includes only the generated parts, and does not include the input. 
+\subsection*{Examples}
+
+
+  Here is an example of the harmon opcode. It uses the files \emph{harmon.orc}
+ and \emph{harmon.sco}
+. 
+
+
+ \textbf{Example 1. Example of the harmon opcode.}
+
+\begin{lstlisting}
+/* harmon.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  ; The frequency of the base note.
+  inote = 440
+
+  ; Generate the base note.
+  avco vco 20000, inote, 1
+
+  kestfrq = inote
+  kmaxvar = 200
+  
+  ; Calculate frequencies 3 semitones above and
+  ; below the base note.
+  kgenfreq1 = inote * semitone(3)
+  kgenfreq2 = inote * semitone(-3)
+
+  imode = 1
+  iminfrq = inote - 200
+  iprd = 0.1
+  
+  ; Generate the harmony notes.
+  a1 harmon avco, kestfrq, kmaxvar, kgenfreq1, kgenfreq2, \
+            imode, iminfrq, iprd
+
+  out a1
+endin
+/* harmon.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* harmon.sco */
+; Table #1, a sine wave.
+f 1 0 16384 10 1
+
+; Play Instrument #1 for two seconds.
+i 1 0 2
+e
+/* harmon.sco */
+        
+\end{lstlisting}
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Barry L. Vercoe &M.I.T., Cambridge, Mass &1997
+
+\end{tabular}
+
+
+
+ 
+
+
+ Example written by Kevin Conder.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+guiro &Up &hilbert
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

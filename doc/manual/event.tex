@@ -1,0 +1,203 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{event}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{event}
+event --  Generates a score event from an instrument. \subsection*{Description}
+
+
+  Generates a score event from an instrument. 
+\subsection*{Syntax}
+
+
+ \textbf{event}
+ ``scorechar'', kinsnum, kdelay, kdur, [, kp4] [, kp5] [, ...]
+
+
+ \textbf{event}
+ ``scorechar'', ``insname'', kdelay, kdur, [, kp4] [, kp5] [, ...]
+\subsection*{Initialization}
+
+
+ \emph{``scorechar''}
+ -- A string (in double-quotes) representing the first p-field in a score statement. This is usually \emph{``e''}
+, \emph{``f''}
+, or \emph{``i''}
+. 
+
+
+ \emph{``insname''}
+ -- A string (in double-quotes) representing a named instrument. 
+\subsection*{Performance}
+
+
+ \emph{kinsnum}
+ -- The instrument to use for the event. This corresponds to the first p-field, p1, in a score statement. 
+
+
+ \emph{kdelay}
+ -- When (in seconds) the event will occur from the current performance time. This corresponds to the second p-field, p2, in a score statement. 
+
+
+ \emph{kdur}
+ -- How long (in seconds) the event will happen. This corresponds to the third p-field, p3, in a score statement. 
+
+
+ \emph{kp4, kp5, ...}
+ (optional) -- Parameters representing additional p-field in a score statement. It starts with the fourth p-field, p4. 
+\subsection*{Examples}
+
+
+  Here is an example of the event opcode. It uses the files \emph{event.orc}
+ and \emph{event.sco}
+. 
+
+
+ \textbf{Example 1. Example of the event opcode.}
+
+\begin{lstlisting}
+/* event.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1 - an oscillator with a high note.
+instr 1
+  ; Create a trigger and set its initial value to 1.
+  ktrigger init 1
+
+  ; If the trigger is equal to 0, continue playing.
+  ; If not, schedule another event.
+  if (ktrigger == 0) goto contin
+    ; kscoreop="i", an i-statement.
+    ; kinsnum=2, play Instrument #2.
+    ; kwhen=1, start at 1 second.
+    ; kdur=0.5, play for a half-second.
+    event "i", 2, 1, 0.5
+
+    ; Make sure the event isn't triggered again.
+    ktrigger = 0
+
+contin:
+  a1 oscils 10000, 440, 1
+  out a1
+endin
+
+; Instrument #2 - an oscillator with a low note.
+instr 2
+  a1 oscils 10000, 220, 1
+  out a1
+endin
+/* event.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* event.sco */
+; Make sure the score plays for two seconds.
+f 0 2
+
+; Play Instrument #1 for a half-second.
+i 1 0 0.5
+e
+/* event.sco */
+        
+\end{lstlisting}
+
+
+  Here is an example of the event opcode using a named instrument. It uses the files \emph{event\_named.orc}
+ and \emph{event\_named.sco}
+. 
+
+
+ \textbf{Example 2. Example of the event opcode using a named instrument.}
+
+\begin{lstlisting}
+/* event_named.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1 - an oscillator with a high note.
+instr 1
+  ; Create a trigger and set its initial value to 1.
+  ktrigger init 1
+
+  ; If the trigger is equal to 0, continue playing.
+  ; If not, schedule another event.
+  if (ktrigger == 0) goto contin
+    ; kscoreop="i", an i-statement.
+    ; kinsnum="low_note", instrument named "low_note".
+    ; kwhen=1, start at 1 second.
+    ; kdur=0.5, play for a half-second.
+    event "i", "low_note", 1, 0.5
+
+    ; Make sure the event isn't triggered again.
+    ktrigger = 0
+
+contin:
+  a1 oscils 10000, 440, 1
+  out a1
+endin
+
+; Instrument "low_note" - an oscillator with a low note.
+instr low_note
+  a1 oscils 10000, 220, 1
+  out a1
+endin
+/* event_named.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* event_named.sco */
+; Make sure the score plays for two seconds.
+f 0 2
+
+; Play Instrument #1 for a half-second.
+i 1 0 0.5
+e
+/* event_named.sco */
+        
+\end{lstlisting}
+\subsection*{Credits}
+
+
+ Examples written by Kevin Conder.
+
+
+ New in version 4.17
+
+
+ Thanks goes to Matt Ingalls for helping to fix the example.
+
+
+ Thanks goes to Matt Ingalls for helping clarify the kwhen/kdelay parameter.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+envlpxr &Up &exp
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

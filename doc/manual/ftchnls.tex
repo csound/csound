@@ -1,0 +1,117 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{ftchnls}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{ftchnls}
+ftchnls --  Returns the number of channels in a stored function table. \subsection*{Description}
+
+
+  Returns the number of channels in a stored function table. 
+\subsection*{Syntax}
+
+
+ \textbf{ftchnls}
+(x) (init-rate args only)
+\subsection*{Performance}
+
+
+  Returns the number of channels of a \emph{GEN01}
+ table, determined from the header of the original file. If the original file has no header or the table was not created by these GEN01, \emph{ftchnls}
+ returns -1. 
+\subsection*{Examples}
+
+
+  Here is an example of the ftchnls opcode. It uses the files \emph{ftchnls.orc}
+, \emph{ftchnls.sco}
+, and \emph{mary.wav}
+. 
+
+
+ \textbf{Example 1. Example of the ftchnls opcode.}
+
+\begin{lstlisting}
+/* ftchnls.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  ; Print out the number of channels in Table #1.
+  ichnls = ftchnls(1)
+  print ichnls
+endin
+/* ftchnls.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* ftchnls.sco */
+; Table #1: Use an audio file, Csound will determine its size.
+f 1 0 0 1 "mary.wav" 0 0 0
+
+; Play Instrument #1 for 1 second.
+i 1 0 1
+e
+/* ftchnls.sco */
+        
+\end{lstlisting}
+ Since the audio file ``mary.wav'' is monophonic (1 channel), its output should include a line like this: \begin{lstlisting}
+instr 1:  ichnls = 1.000
+      
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{ftlen}
+, \emph{ftlptim}
+, \emph{ftsr}
+, \emph{nsamp}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Chris McCormick &Perth, Australia &December 2001
+
+\end{tabular}
+
+
+
+ 
+
+
+ Example written by Kevin Conder.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+frac &Up &ftgen
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

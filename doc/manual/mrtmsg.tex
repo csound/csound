@@ -1,0 +1,101 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{mrtmsg}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{mrtmsg}
+mrtmsg --  Send system real-time messages to the MIDI OUT port. \subsection*{Description}
+
+
+  Send system real-time messages to the MIDI OUT port. 
+\subsection*{Syntax}
+
+
+ \textbf{mrtmsg}
+ imsgtype
+\subsection*{Initialization}
+
+
+ \emph{imsgtype}
+ -- type of real-time message: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ 1 sends a START message (0xFA);
+
+\item 
+
+ 2 sends a CONTINUE message (0xFB);
+
+\item 
+
+ 0 sends a STOP message (0xFC);
+
+\item 
+
+ -1 sends a SYSTEM RESET message (0xFF);
+
+\item 
+
+ -2 sends an ACTIVE SENSING message (0xFE)
+
+
+\end{itemize}
+\subsection*{Performance}
+
+
+  Sends a real-time message once, in init stage of current instrument. \emph{imsgtype}
+ parameter is a flag to indicate the message type. 
+\subsection*{See Also}
+
+
+ \emph{mclock}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Author: Gabriel Maldonado &Italy
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 3.47
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+mpulse &Up &multitap
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

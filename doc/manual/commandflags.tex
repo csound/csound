@@ -1,0 +1,421 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{Command-line Flags}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous &The Csound Command &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{Command-line Flags}
+
+
+  Many flags are generic Csound command-line flags. Various platform implementations may not react the same way to different flags! 
+
+
+  The format of a command is either: 
+
+
+ \textbf{csound}
+ [-flags] [\emph{orchname}
+] [\emph{scorename}
+]
+ or 
+
+ \textbf{csound}
+ [-flags] [\emph{csdfilename}
+]
+
+
+  where the arguments are of 2 types: \emph{flags}
+ arguments (beginning with a ``-''), and \emph{name}
+ arguments (such as filenames). Certain flag arguments take a following name or numeric argument. 
+
+
+ 
+
+
+ \textbf{Command-line Flags}
+
+\begin{description}
+\item[-@ FILE]
+
+  Provide an extended command-line in file ``FILE''
+
+\item[-3, --format=24bit]
+
+  Use 24-bit audio samples. 
+
+\item[-8, --format=uchar]
+
+  Use 8-bit unsigned character audio samples. 
+
+\item[-A, --aiff]
+
+  Write an AIFF format soundfile. Use with the \emph{-c}
+, \emph{-s}
+, \emph{-l}
+, or \emph{-f}
+ flags. 
+
+\item[-a, --format=alaw]
+
+  Use a-law audio samples. 
+
+\item[-B NUM, --hardwarebufsamps=NUM]
+
+  Number of audio sample-frames held in the DAC \emph{hardware}
+ buffer. This is a threshold on which \emph{software}
+ audio I/O (above) will wait before returning. A small number reduces audio I/O delay; but the value is often hardware limited, and small values will risk data lates. The default is 1024. 
+
+\item[-b NUM, --iobufsamps=NUM]
+
+  Number of audio sample-frames per sound i/o \emph{software}
+ buffer. Large is efficient, but small will reduce audio I/O delay. The default is 1024. In real-time performance, Csound waits on audio I/O on \emph{NUM}
+ boundaries. It also processes audio (and polls for other input like MIDI) on orchestra \emph{ksmps}
+ boundaries. The two can be made synchronous. For convenience, if NUM = -NUM (is negative) the effective value is \emph{ksmps * NUM}
+ (audio synchronous with k-period boundaries). With NUM small (e.g. 1) polling is then frequent and also locked to fixed DAC sample boundaries. 
+
+\item[-C, --cscore]
+
+  Use Cscore processing of the scorefile. 
+
+\item[-c, --format=schar]
+
+  Use 8-bit signed character audio samples. 
+
+\item[-D, --defer-gen1]
+
+  Defer GEN01 soundfile loads until performance time. 
+
+\item[-d, --nodisplays]
+
+  Suppress all displays. 
+
+\item[-E NUM, --graphs=NUM]
+
+ \emph{Mac only.}
+ Number of tables in graphics window. \emph{(was -G)}
+
+
+\item[-e, --format=rescale]
+
+ \emph{Mac only.}
+ Rescale floats as shorts to max amplitude. 
+
+\item[-F FILE, --midifile=FILE]
+
+  Read MIDI events from MIDI file \emph{FILE}
+. 
+
+\item[-f, --format=float]
+
+  Use single-precision float audio samples (not playable, but can be read by \emph{-i}
+, \emph{soundin}
+ and \emph{GEN01}
+
+
+\item[-G, --postscriptdisplay]
+
+  Suppress graphics, use PostScript displays instead. 
+
+\item[-g, --asciidisplay]
+
+  Suppress graphics, use ASCII displays instead. 
+
+\item[-H\#, --heartbeat=NUM]
+
+  Print a heartbeat after each soundfile buffer write: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ no NUM, a rotating bar.
+
+\item 
+
+ NUM = 1, a rotating bar.
+
+\item 
+
+ NUM = 2, a dot (.)
+
+\item 
+
+ NUM = 3, filesize in seconds.
+
+\item 
+
+ NUM = 4, sound a bell.
+
+
+\end{itemize}
+
+\item[-h, --noheader]
+
+  No header on output soundfile. Don't write a file header, just binary samples. 
+
+\item[--help]
+
+  Display on-line help message. 
+
+\item[-I, --i-only]
+
+ \emph{i-time only.}
+ Allocate and initialize all instruments as per the score, but skip all p-time processing (no k-signals or a-signals, and thus no amplitudes and no sound). Provides a fast validity check of the score pfields and orchestra i-variables. 
+
+\item[-i FILE, --input=FILE]
+
+  Input soundfile name. If not a full pathname, the file will be sought first in the current directory, then in that given by the environment variable SSDIR (if defined), then by SFDIR. The name \emph{stdin}
+ will cause audio to be read from standard input. If RTAUDIO is enabled, the name \emph{devaudio}
+ will request sound from the host audio input device. 
+
+\item[-J, --ircam]
+
+  Write an IRCAM format soundfile. 
+
+\item[-j FILE]
+
+ \emph{Currently disabled.}
+ Use database \emph{FILE}
+ for messages to print to console during performance. 
+
+\item[-K, --nopeaks]
+
+  Do not generate any PEAK chunks. 
+
+\item[-k NUM, --control-rate=NUM]
+
+  Override the control rate (\emph{KR}
+) supplied by the orchestra. 
+
+\item[-L DEVICE, --score-in=DEVICE]
+
+  Read line-oriented real-time score events from device \emph{DEVICE}
+. The name \emph{stdin}
+ will permit score events to be typed at your terminal, or piped from another process. Each line-event is terminated by a carriage-return. Events are coded just like those in a \emph{standard numeric score}
+, except that an event with p2=0 will be performed immediately, and an event with p2=T will be performed T seconds after arrival. Events can arrive at any time, and in any order. The score \emph{carry}
+ feature is legal here, as are held notes (p3 negative) and string arguments, but ramps and \emph{pp}
+ or \emph{np}
+ references are not. 
+
+\item[-l, --format=long]
+
+  Use long integer audio samples. 
+
+\item[-M DEVICE, --midi-device=DEVICE]
+
+  Read MIDI events from device \emph{DEVICE}
+. 
+
+\item[-m NUM, --messagelevel=NUM]
+
+  Message level for standard (terminal) output. Takes the \emph{sum}
+ of 3 print control flags, turned on by the following values: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ 1 = note amplitude messages
+
+\item 
+
+ 2 = samples out of range message
+
+\item 
+
+ 4 = warning messages
+
+
+\end{itemize}
+
+
+  The default value is \emph{m7}
+ (all messages on). 
+
+\item[-N, --notify]
+
+  Notify (ring the bell) when score or MIDI track is done. 
+
+\item[-n, --nosound]
+
+  No sound. Do all processing, but bypass writing of sound to disk. This flag does not change the execution in any other way. 
+
+\item[-O FILE, --logfile=FILE]
+
+  Log output to file \emph{FILE}
+. 
+
+\item[-o FILE, --output=FILE]
+
+  Output soundfile name. If not a full pathname, the soundfile will be placed in the directory given by the environment variable SFDIR (if defined), else in the current directory. The name \emph{stdout}
+ will cause audio to be written to standard output. If no name is given, the default name will be \emph{test}
+. If RTAUDIO is enabled, the name \emph{devaudio}
+ will send to the host audio output device. 
+
+\item[-P NUM, --pollrate=NUM]
+
+ \emph{Mac only.}
+ Poll events every NUM buffer writes. 
+
+\item[-p, --play-on-end]
+
+ \emph{Mac only.}
+ Play after rendering. 
+
+\item[-Q DEVICE, -Q DIRECTORY, --analysis-directory=DIRECTORY]
+
+ \emph{Beos and Linux only.}
+ Enables MIDI OUT operations and optionally chooses device id \emph{DEVICE}
+ (if the DEVICE argument is present). This flag allows parallel MIDI OUT and DAC performance. Unfortunately the real-time timing implemented in Csound is completely managed by DAC buffer sample flow. So MIDI OUT operations can present some time irregularities. These irregularities can be fully eliminated when suppressing DAC operations themselves (see \emph{-Y}
+ flag). 
+
+
+ \emph{Mac only.}
+ Define the analysis (SADIR) directory. 
+
+\item[-q DIRECTORY, --sample-directory=DIRECTORY]
+
+ \emph{Mac only.}
+ Define the sound sample-in (SSDIR) directory. 
+
+\item[-R, --rewrite]
+
+  Continually rewrite the header while writing the soundfile (WAV/AIFF). 
+
+\item[-r NUM, --sample-rate=NUM]
+
+  Override the sampling rate (\emph{SR}
+) supplied by the orchestra. 
+
+\item[-s, --format=short]
+
+  Use short integer audio samples. 
+
+\item[--sched]
+
+ \emph{Linux only.}
+ Use real-time scheduling and lock memory. (Also requires \emph{-d}
+ and either \emph{-o dac}
+ or \emph{-o devaudio}
+). 
+
+\item[-T, --terminate-on-midi]
+
+  Terminate the performance when MIDI track is done. 
+
+\item[-t0, --keep-sorted-score]
+
+  Prevents Csound from deleting the sorted score file, score.srt, upon exit. 
+
+\item[-t NUM, --tempo=NUM]
+
+  Use the uninterpreted beats of \emph{score.srt}
+ for this performance, and set the initial tempo at \emph{NUM}
+ beats per minute. When this flag is set, the tempo of score performance is also controllable from within the orchestra. 
+
+\item[-U UTILITY, --utility=UTILITY]
+
+  Invoke the utility program \emph{UTILITY}
+. 
+
+\item[-u, --format=ulaw]
+
+  Use u-law audio samples. 
+
+\item[-V NUM, --screen-buffer=NUM, --volume=NUM]
+
+ \emph{Linux only.}
+ Set real-time audio output volume to NUM (1 to 100). 
+
+
+ \emph{Mac only.}
+ Number of chars in the screen buffer for the output window. 
+
+\item[-v, --verbose]
+
+  Verbose translate and run. Prints details of orch translation and performance, enabling errors to be more clearly located. 
+
+\item[-W, --wave]
+
+  Write a WAV format soundfile. 
+
+\item[-w, --save-midi]
+
+ \emph{Mac only.}
+ Record and save MIDI input to a file. 
+
+\item[-X DIRECTORY, --sound-directory=DIRECTORY]
+
+ \emph{Mac only.}
+ Define the sound file (SFDIR) directory. 
+
+\item[-x FILE, --extract-score=FILE]
+
+  Extract a portion of the sorted score, score.srt, using the extract file \emph{FILE}
+ (see \emph{Extract}
+). 
+
+\item[-Y NUM, --progress-rate=NUM]
+
+ \emph{Currently disabled. Mac only.}
+ Enables progress display at rate NUM in seconds, or for negative NUM, at -NUM kperiods. 
+
+\item[-y NUM, --profile-rate=NUM]
+
+ \emph{Currently disabled. Mac only.}
+ Enables profile display at rate NUM in seconds, or for negative NUM, at -NUM kperiods. 
+
+\item[-Z, --dither]
+
+  Switch on dithering of audio conversion from internal floating point to 32, 16 and 8-bit formats. 
+
+\item[-z NUM, --list-opcodesNUM]
+
+  List opcodes in this version: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ no NUM, just show names
+
+\item 
+
+ NUM = 0, just show names
+
+\item 
+
+ NUM = 1, show arguments to each opcode using the format $<$opname$>$ $<$inargs$>$ $<$outargs$>$
+
+
+\end{itemize}
+
+
+\end{description}
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+Description &Up &Unified File Format for Orchestras and Scores
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,153 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{dripwater}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{dripwater}
+dripwater --  Semi-physical model of a water drop. \subsection*{Description}
+
+
+ \emph{dripwater}
+ is a semi-physical model of a water drop. It is one of the PhISEM percussion opcodes. PhISEM (Physically Informed Stochastic Event Modeling) is an algorithmic approach for simulating collisions of multiple independent sound producing objects. 
+\subsection*{Syntax}
+
+
+ ar \textbf{dripwater}
+ kamp, idettack [, inum] [, idamp] [, imaxshake] [, ifreq] [, ifreq1] [, ifreq2]
+\subsection*{Initialization}
+
+
+ \emph{idettack}
+ -- period of time over which all sound is stopped 
+
+
+ \emph{inum}
+ (optional) -- The number of beads, teeth, bells, timbrels, etc. If zero, the default value is 10. 
+
+
+ \emph{idamp}
+ (optional) -- the damping factor, as part of this equation: 
+
+
+ damping\_amount = 0.996 + (idamp * 0.002)
+
+
+  The default \emph{damping\_amount}
+ is 0.996 which means that the default value of \emph{idamp}
+ is 0. The maximum \emph{damping\_amount}
+ is 1.0 (no damping). This means the maximum value for \emph{idamp}
+ is 2.0. 
+
+
+  The recommended range for \emph{idamp}
+ is usually below 75\% of the maximum value. Rasmus Ekman suggests a range of 1.4-1.75. He also suggests a maximum value of 1.9 instead of the theoretical limit of 2.0. 
+
+
+ \emph{imaxshake}
+ (optional, default=0) -- amount of energy to add back into the system. The value should be in range 0 to 1. 
+
+
+ \emph{ifreq}
+ (optional) -- the main resonant frequency. The default value is 450. 
+
+
+ \emph{ifreq1}
+ (optional) -- the first resonant frequency. The default value is 600. 
+
+
+ \emph{ifreq2}
+ (optional) -- the second resonant frequency. The default value is 750. 
+\subsection*{Performance}
+
+
+ \emph{kamp}
+ -- Amplitude of output. Note: As these instruments are stochastic, this is only an approximation. 
+\subsection*{Examples}
+
+
+  Here is an example of the dripwater opcode. It uses the files \emph{dripwater.orc}
+ and \emph{dripwater.sco}
+. 
+
+
+ \textbf{Example 1. Example of the dripwater opcode.}
+
+\begin{lstlisting}
+/* dripwater.orc */
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+instr 01  ;example of a water drip
+a1  line 5, p3, 5  ;preset an amplitude boost
+a2  dripwater p4, 0.01, 0, .9  ;dripwater needs a little amplitude help at these values
+a3  product a1, a2 ;increase amplitude
+    out a3
+    endin
+/* dripwater.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* dripwater.sco */
+i1 0 1 20000
+e
+/* dripwater.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{bamboo}
+, \emph{guiro}
+, \emph{sleighbells}
+, \emph{tambourine}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cccc}
+Author: Perry Cook, part of the PhISEM (Physically Informed Stochastic Event Modeling) &Adapted by John ffitch &University of Bath, Codemist Ltd. &Bath, UK
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 4.07
+
+
+ Added notes by Rasmus Ekman on May 2002.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+downsamp &Up &dumpk
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,134 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{guiro}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{guiro}
+guiro --  Semi-physical model of a guiro sound. \subsection*{Description}
+
+
+ \emph{guiro}
+ is a semi-physical model of a guiro sound. It is one of the PhISEM percussion opcodes. PhISEM (Physically Informed Stochastic Event Modeling) is an algorithmic approach for simulating collisions of multiple independent sound producing objects. 
+\subsection*{Syntax}
+
+
+ ar \textbf{guiro}
+ kamp, idettack [, inum] [, idamp] [, imaxshake] [, ifreq] [, ifreq1]
+\subsection*{Initialization}
+
+
+ \emph{idettack}
+ -- period of time over which all sound is stopped 
+
+
+ \emph{inum}
+ (optional) -- The number of beads, teeth, bells, timbrels, etc. If zero, the default value is 128. 
+
+
+ \emph{idamp}
+ (optional) -- the damping factor of the instrument. \emph{Not used.}
+
+
+
+ \emph{imaxshake}
+ (optional, default=0) -- amount of energy to add back into the system. The value should be in range 0 to 1. 
+
+
+ \emph{ifreq}
+ (optional) -- the main resonant frequency. The default value is 2500. 
+
+
+ \emph{ifreq1}
+ (optional) -- the first resonant frequency. 
+\subsection*{Performance}
+
+
+ \emph{kamp}
+ -- Amplitude of output. Note: As these instruments are stochastic, this is only an approximation. 
+\subsection*{Examples}
+
+
+  Here is an example of the guiro opcode. It uses the files \emph{guiro.orc}
+ and \emph{guiro.sco}
+. 
+
+
+ \textbf{Example 1. Example of the guiro opcode.}
+
+\begin{lstlisting}
+/* guiro.orc */
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+    instr 01  ;example of a guiro
+a1  guiro p4, 0.01
+    out a1
+    endin
+/* guiro.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* guiro.sco */
+i1 0 1 20000
+e
+/* guiro.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{bamboo}
+, \emph{dripwater}
+, \emph{sleighbells}
+, \emph{tambourine}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cccc}
+Author: Perry Cook, part of the PhISEM (Physically Informed Stochastic Event Modeling) &Adapted by John ffitch &University of Bath, Codemist Ltd. &Bath, UK
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 4.07
+
+
+ Added notes by Rasmus Ekman on May 2002.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+granule &Up &harmon
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,227 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{envlpx}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{envlpx}
+envlpx --  Applies an envelope consisting of 3 segments. \subsection*{Description}
+
+
+ \emph{envlpx}
+ -- apply an envelope consisting of 3 segments: 
+
+
+ 
+\begin{enumerate}
+\item 
+
+ stored function rise shape
+
+\item 
+
+ modified exponential pseudo steady state
+
+\item 
+
+ exponential decay
+
+
+\end{enumerate}
+\subsection*{Syntax}
+
+
+ ar \textbf{envlpx}
+ xamp, irise, idur, idec, ifn, iatss, iatdec [, ixmod]
+
+
+ kr \textbf{envlpx}
+ kamp, irise, idur, idec, ifn, iatss, iatdec [, ixmod]
+\subsection*{Initialization}
+
+
+ \emph{irise}
+ -- rise time in seconds. A zero or negative value signifies no rise modification. 
+
+
+ \emph{idur}
+ -- overall duration in seconds. A zero or negative value will cause initialization to be skipped. 
+
+
+ \emph{idec}
+ -- decay time in seconds. Zero means no decay. An \emph{idec}
+ $>$ \emph{idur}
+ will cause a truncated decay. 
+
+
+ \emph{ifn}
+ -- function table number of stored rise shape with extended guard point. 
+
+
+ \emph{iatss}
+ -- attenuation factor, by which the last value of the \emph{envlpx}
+ rise is modified during the note's pseudo steady state. A factor greater than 1 causes an exponential growth and a factor less than 1 creates an exponential decay. A factor of 1 will maintain a true steady state at the last rise value. Note that this attenuation is not by fixed rate (as in a piano), but is sensitive to a note's duration. However, if \emph{iatss}
+ is negative (or if steady state $<$ 4 k-periods) a fixed attenuation rate of \emph{abs}
+(\emph{iatss}
+) per second will be used. 0 is illegal. 
+
+
+ \emph{iatdec}
+ -- attenuation factor by which the closing steady state value is reduced exponentially over the decay period. This value must be positive and is normally of the order of .01. A large or excessively small value is apt to produce a cutoff which is audible. A zero or negative value is illegal. 
+
+
+ \emph{ixmod}
+ (optional, between +- .9 or so) -- exponential curve modifier, influencing the steepness of the exponential trajectory during the steady state. Values less than zero will cause an accelerated growth or decay towards the target (e.g. \emph{subito piano}
+). Values greater than zero will cause a retarded growth or decay. The default value is zero (unmodified exponential). 
+\subsection*{Performance}
+
+
+ \emph{kamp, xamp}
+ -- input amplitude signal. 
+
+
+  Rise modifications are applied for the first \emph{irise}
+ seconds, and decay from time \emph{idur - idec}
+. If these periods are separated in time there will be a steady state during which \emph{amp}
+ will be modified by the first exponential pattern. If the rise and decay periods overlap then that will cause a truncated decay. If the overall duration \emph{idur}
+ is exceeded in performance, the final decay will continue on in the same direction, tending asymptotically to zero. 
+\subsection*{Examples}
+
+
+  Here is an example of the envlpx opcode. It uses the files \emph{envlpx.orc}
+ and \emph{envlpx.sco}
+. 
+
+
+ \textbf{Example 1. Example of the envlpx opcode.}
+
+\begin{lstlisting}
+/* envlpx.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1 - a simple instrument.
+instr 1
+  ; Set the amplitude.
+  kamp init 20000
+  ; Get the frequency from the fourth p-field.
+  kcps = cpspch(p4)
+
+  a1 vco kamp, kcps, 1
+  out a1
+endin
+
+; Instrument #2 - instrument with an amplitude envelope.
+instr 2
+  kamp = 20000
+  irise = 0.05
+  idur = p3 - .01
+  idec = 0.5
+  ifn = 2
+  iatss = 1
+  iatdec = 0.01
+
+  ; Create an amplitude envelope.
+  kenv envlpx kamp, irise, idur, idec, ifn, iatss, iatdec
+
+  ; Get the frequency from the fourth p-field.
+  kcps = cpspch(p4)
+
+  a1 vco kenv, kcps, 1
+  out a1
+endin
+/* envlpx.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* envlpx.sco */
+; Table #1, a sine wave.
+f 1 0 16384 10 1
+; Table #2, a rising envelope.
+f 2 0 129 -7 0 128 1
+
+; Set the tempo to 120 beats per minute.
+t 0 120
+
+; Make sure the score plays for 33 seconds.
+f 0 33
+
+; Play a melody with Instrument #1.
+; p4 = frequency in pitch-class notation.
+i  1  0   1  8.04
+i  1  1   1  8.04
+i  1  2   1  8.05
+i  1  3   1  8.07
+i  1  4   1  8.07
+i  1  5   1  8.05
+i  1  6   1  8.04
+i  1  7   1  8.02
+i  1  8   1  8.00
+i  1  9   1  8.00
+i  1  10  1  8.02
+i  1  11  1  8.04
+i  1  12  2  8.04
+i  1  14  2  8.02
+
+; Repeat the melody with Instrument #2.
+; p4 = frequency in pitch-class notation.
+i  2  16  1  8.04
+i  2  17  1  8.04
+i  2  18  1  8.05
+i  2  19  1  8.07
+i  2  20  1  8.07
+i  2  21  1  8.05
+i  2  22  1  8.04
+i  2  23  1  8.02
+i  2  24  1  8.00
+i  2  25  1  8.00
+i  2  26  1  8.02
+i  2  27  1  8.04
+i  2  28  2  8.04
+i  2  30  2  8.02
+e
+/* envlpx.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{envlpxr}
+, \emph{linen}
+, \emph{linenr}
+
+\subsection*{Credits}
+
+
+ Thanks goes to Luis Jure for pointing out a mistake with \emph{iatss}
+.
+
+
+ Example written by Kevin Conder.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+endop &Up &envlpxr
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

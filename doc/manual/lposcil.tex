@@ -1,0 +1,92 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{lposcil}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{lposcil}
+lposcil, lposcil3 --  Read sampled sound from a table with optional looping and high precision. \subsection*{Description}
+
+
+  Read sampled sound (mono or stereo) from a table, with optional sustain and release looping, and high precision. 
+\subsection*{Syntax}
+
+
+ ar \textbf{lposcil}
+ kamp, kfreqratio, kloop, kend, ifn [, iphs]
+\subsection*{Initialization}
+
+
+ \emph{ifn}
+ -- function table number 
+\subsection*{Performance}
+
+
+ \emph{kamp}
+ -- amplitude 
+
+
+ \emph{kfreqratio}
+ -- multiply factor of table frequency (for example: 1 = original frequency, 1.5 = a fifth up , .5 = an octave down) 
+
+
+ \emph{kloop}
+ -- loop point (in samples) 
+
+
+ \emph{kend}
+ -- end loop point (in samples) 
+
+
+ \emph{lposcil}
+ (looping precise oscillator) allows varying at k-rate, the starting and ending point of a sample contained in a table (\emph{GEN01}
+). This can be useful when reading a sampled loop of a wavetable, where repeat speed can be varied during the performance. 
+\subsection*{See Also}
+
+
+ \emph{lposcil3}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Author: Gabriel Maldonado &Italy
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 3.52
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+lpinterp &Up &lposcil3
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,210 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{adsynt}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{adsynt}
+adsynt --  Performs additive synthesis with an arbitrary number of partials, not necessarily harmonic. \subsection*{Description}
+
+
+  Performs additive synthesis with an arbitrary number of partials, not necessarily harmonic. 
+\subsection*{Syntax}
+
+
+ ar \textbf{adsynt}
+ kamp, kcps, iwfn, ifreqfn, iampfn, icnt [, iphs]
+\subsection*{Initialization}
+
+
+ \emph{iwfn}
+ -- table containing a waveform, usually a sine. Table values are not interpolated for performance reasons, so larger tables provide better quality. 
+
+
+ \emph{ifreqfn}
+ -- table containing frequency values for each partial. \emph{ifreqfn}
+ may contain beginning frequency values for each partial, but is usually used for generating parameters at runtime with \emph{tablew}
+. Frequencies must be relative to \emph{kcps}
+. Size must be at least \emph{icnt}
+. 
+
+
+ \emph{iampfn}
+ -- table containing amplitude values for each partial. \emph{iampfn}
+ may contain beginning amplitude values for each partial, but is usually used for generating parameters at runtime with \emph{tablew}
+. Amplitudes must be relative to \emph{kamp}
+. Size must be at least \emph{icnt}
+. 
+
+
+ \emph{icnt}
+ -- number of partials to be generated 
+
+
+ \emph{iphs}
+ -- initial phase of each oscillator, if \emph{iphs}
+ = -1, initialization is skipped. If \emph{iphs}
+ $>$ 1, all phases will be initialized with a random value. 
+\subsection*{Performance}
+
+
+ \emph{kamp}
+ -- amplitude of note 
+
+
+ \emph{kcps}
+ -- base frequency of note. Partial frequencies will be relative to \emph{kcps}
+. 
+
+
+  Frequency and amplitude of each partial is given in the two tables provided. The purpose of this opcode is to have an instrument generate synthesis parameters at k-rate and write them to global parameter tables with the \emph{tablew}
+ opcode. 
+\subsection*{Examples}
+
+
+  Here is an example of the adsynt opcode. It uses the files \emph{adsynt.orc}
+ and \emph{adsynt.sco}
+. These two instruments perform additive synthesis. The output of each sounds like a Tibetan bowl. The first one is static, as parameters are only generated at init-time. In the second one, parameters are continuously changed. 
+
+
+ \textbf{Example 1. Example of the adsynt opcode.}
+
+\begin{lstlisting}
+/* adsynt.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Generate a sinewave table.
+giwave ftgen 1, 0, 1024, 10, 1
+; Generate two empty tables for adsynt.
+gifrqs ftgen 2, 0, 32, 7, 0, 32, 0
+; A table for freqency and amp parameters.
+giamps ftgen 3, 0, 32, 7, 0, 32, 0
+  
+; Generates parameters at init time
+instr 1
+  ; Generate 10 voices.
+  icnt = 10 
+  ; Init loop index.
+  index = 0 
+
+; Loop only executed at init time.
+loop: 
+  ; Define non-harmonic partials.
+  ifreq pow index + 1, 1.5 
+  ; Define amplitudes.
+  iamp = 1 / (index+1) 
+  ; Write to tables.
+  tableiw ifreq, index, gifrqs 
+  ; Used by adsynt.
+  tableiw iamp, index, giamps 
+  
+  index = index + 1
+  ; Do loop/
+  if (index < icnt) igoto loop 
+  
+  asig adsynt 5000, 150, giwave, gifrqs, giamps, icnt
+  out asig
+endin
+
+; Generates parameters every k-cycle.
+instr 2 
+  ; Generate 10 voices.
+  icnt = 10 
+  ; Reset loop index.
+  kindex = 0
+
+; Loop executed every k-cycle.
+loop:
+  ; Generate lfo for frequencies.
+  kspeed  pow kindex + 1, 1.6
+  ; Individual phase for each voice.
+  kphas phasorbnk kspeed * 0.7, kindex, icnt
+  klfo table kphas, giwave, 1
+  ; Arbitrary parameter twiddling...
+  kdepth pow 1.4, kindex
+  kfreq pow kindex + 1, 1.5
+  kfreq = kfreq + klfo*0.006*kdepth
+
+  ; Write freqs to table for adsynt.
+  tablew kfreq, kindex, gifrqs 
+  
+  ; Generate lfo for amplitudes.
+  kspeed  pow kindex + 1, 0.8
+  ; Individual phase for each voice.
+  kphas phasorbnk kspeed*0.13, kindex, icnt, 2
+  klfo table kphas, giwave, 1
+  ; Arbitrary parameter twiddling...
+  kamp pow 1 / (kindex + 1), 0.4
+  kamp = kamp * (0.3+0.35*(klfo+1))
+
+  ; Write amps to table for adsynt.
+  tablew kamp, kindex, giamps
+  
+  kindex = kindex + 1
+  ; Do loop.
+  if (kindex < icnt) kgoto loop
+
+  asig adsynt 5000, 150, giwave, gifrqs, giamps, icnt
+  out asig
+endin
+/* adsynt.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* adsynt.sco */
+; Play Instrument #1 for 2.5 seconds.
+i 1 0 2.5
+; Play Instrument #2 for 2.5 seconds.
+i 2 3 2.5
+e
+/* adsynt.sco */
+        
+\end{lstlisting}
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Peter Neub\"acker &Munich, Germany &August, 1999
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 3.58
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+adsyn &Up &aexprand
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

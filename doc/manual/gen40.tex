@@ -1,0 +1,54 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{GEN40}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{GEN40}
+GEN40 --  Generates a random distribution using a distribution histogram. \subsection*{Description}
+
+
+  Generates a continuous random distribution function starting from the shape of a user-defined distribution histogram. 
+\subsection*{Syntax}
+
+
+ \textbf{f}
+ \# time size -40 shapetab
+\subsection*{Performance}
+
+
+  The shape of histogram must be stored in a previously defined table, in fact shapetab argument must be filled with the number of such table. 
+
+
+  Histogram shape can be generated with any other GEN routines. Since no interpolation is used when GEN40 processes the translation, it is suggested that the size of the table containing the histogram shape to be reasonably big, in order to obtain more precision (however after the processing the shaping-table can be destroyed in order to re-gain memory). 
+
+
+  This subroutine is designed to be used together with cuserrnd opcode (see cuserrnd for more information). 
+\subsection*{Credits}
+
+
+ Author: Gabriel Maldonado
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+GEN34 &Up &GEN41
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

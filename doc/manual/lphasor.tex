@@ -1,0 +1,125 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{lphasor}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{lphasor}
+lphasor --  Generates a table index for sample playback \subsection*{Description}
+
+
+  This opcode can be used to generate table index for sample playback (e.g. tablexkt). 
+\subsection*{Syntax}
+
+
+ ar \textbf{lphasor}
+ xtrns [, ilps] [, ilpe] [, imode] [, istrt] [, istor]
+\subsection*{Initialization}
+
+
+ \emph{ilps}
+ -- loop start. 
+
+
+ \emph{ilpe}
+ -- loop end (must be greater than \emph{ilps}
+ to enable looping). The default value of \emph{ilps}
+ and \emph{ilpe}
+ is zero. 
+
+
+ \emph{imode}
+ (optional: default = 0) -- loop mode. Allowed values are: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ \emph{0:}
+ no loop
+
+\item 
+
+ \emph{1:}
+ forward loop
+
+\item 
+
+ \emph{2:}
+ backward loop
+
+\item 
+
+ \emph{3:}
+ forward-backward loop
+
+
+\end{itemize}
+
+
+ \emph{istrt}
+ (optional: default = 0) -- The initial output value (phase). It must be less than \emph{ilpe}
+ if looping is enabled, but is allowed to be greater than \emph{ilps}
+ (i.e. you can start playback in the middle of the loop). 
+
+
+ \emph{istor}
+ (optional: default = 0) -- skip initialization if set to any non-zero value. 
+\subsection*{Performance}
+
+
+ \emph{ar}
+ -- a raw table index in samples (same unit for loop points). Can be used as index with the table opcodes. 
+
+
+ \emph{xtrns}
+ -- transpose factor, expressed as a playback ratio. \emph{ar}
+ is incremented by this value, and wraps around loop points. For example, 1.5 means a fifth above, 0.75 means fourth below. It is not allowed to be negative. 
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Author: Istvan Varga &January 2002
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in version 4.18
+
+
+ Updated April 2002 and November 2002 by Istvan Varga
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+lpfreson &Up &lpinterp
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

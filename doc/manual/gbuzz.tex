@@ -1,0 +1,155 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{gbuzz}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{gbuzz}
+gbuzz --  Output is a set of harmonically related cosine partials. \subsection*{Description}
+
+
+  Output is a set of harmonically related cosine partials. 
+\subsection*{Syntax}
+
+
+ ar \textbf{gbuzz}
+ xamp, xcps, knh, klh, kmul, ifn [, iphs]
+\subsection*{Initialization}
+
+
+ \emph{ifn}
+ -- table number of a stored function containing a cosine wave. A large table of at least 8192 points is recommended. 
+
+
+ \emph{iphs}
+ (optional, default=0) -- initial phase of the fundamental frequency, expressed as a fraction of a cycle (0 to 1). A negative value will cause phase initialization to be skipped. The default value is zero 
+\subsection*{Performance}
+
+
+  The buzz units generate an additive set of harmonically related cosine partials of fundamental frequency \emph{xcps}
+, and whose amplitudes are scaled so their summation peak equals \emph{xamp}
+. The selection and strength of partials is determined by the following control parameters: 
+
+
+ \emph{knh}
+ -- total number of harmonics requested. If \emph{knh}
+ is negative, the absolute value is used. If \emph{knh}
+ is zero, a value of 1 is used. 
+
+
+ \emph{klh}
+ -- lowest harmonic present. Can be positive, zero or negative. In \emph{gbuzz}
+ the set of partials can begin at any partial number and proceeds upwards; if \emph{klh}
+ is negative, all partials below zero will reflect as positive partials without phase change (since cosine is an even function), and will add constructively to any positive partials in the set. 
+
+
+ \emph{kmul}
+ -- specifies the multiplier in the series of amplitude coefficients. This is a power series: if the \emph{klh}
+th partial has a strength coefficient of A, the (\emph{klh}
+ + n)th partial will have a coefficient of A * (\emph{kmul}
+ ** n), i.e. strength values trace an exponential curve. \emph{kmul}
+ may be positive, zero or negative, and is not restricted to integers. 
+
+
+ \emph{buzz}
+ and \emph{gbuzz }
+are useful as complex sound sources in subtractive synthesis. \emph{buzz}
+ is a special case of the more general \emph{gbuzz}
+ in which \emph{klh}
+ = \emph{kmul}
+= 1; it thus produces a set of \emph{knh}
+ equal-strength harmonic partials, beginning with the fundamental. (This is a band-limited pulse train; if the partials extend to the Nyquist, i.e. \emph{knh}
+ = int (sr / 2 / fundamental freq.), the result is a real pulse train of amplitude \emph{xamp}
+.) 
+
+
+  Although both \emph{knh}
+ and \emph{klh}
+ may be varied during performance, their internal values are necessarily integer and may cause ``pops'' due to discontinuities in the output. \emph{kmul,}
+ however, can be varied during performance to good effect. \emph{gbuzz}
+ can be amplitude- and/or frequency-modulated by either control or audio signals. 
+
+
+  N.B. This unit has its analog in \emph{GEN11}
+, in which the same set of cosines can be stored in a function table for sampling by an oscillator. Although computationally more efficient, the stored pulse train has a fixed spectral content, not a time-varying one as above. 
+\subsection*{Examples}
+
+
+  Here is an example of the gbuzz opcode. It uses the files \emph{gbuzz.orc}
+ and \emph{gbuzz.sco}
+. 
+
+
+ \textbf{Example 1. Example of the gbuzz opcode.}
+
+\begin{lstlisting}
+/* gbuzz.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  kamp = 20000
+  kcps = 440
+  knh = 3
+  klh = 2
+  kmul = 0.7
+  ifn = 1
+
+  a1 gbuzz kamp, kcps, knh, klh, kmul, ifn
+  out a1
+endin
+/* gbuzz.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* gbuzz.sco */
+; Table #1, a simple cosine waveform.
+f 1 0 16384 11 1
+
+; Play Instrument #1 for one second.
+i 1 0 1
+e
+/* gbuzz.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{buzz}
+
+\subsection*{Credits}
+
+
+ Example written by Kevin Conder.
+
+
+ September 2003. Thanks to Kanata Motohashi for correcting the mentions of the \emph{kmul}
+ parameter.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+gauss &Up &gogobel
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

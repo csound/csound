@@ -1,0 +1,74 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{button}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{button}
+button --  Sense on-screen controls. \subsection*{Description}
+
+
+  Sense on-screen controls. Requires Winsound or TCL/TK. 
+\subsection*{Syntax}
+
+
+ kr \textbf{button}
+ knum
+\subsection*{Performance}
+
+
+ \emph{kr}
+ -- value of the button control. If the button has been pushed since the last k-period, then return 1, otherwise return 0. 
+
+
+ \emph{knum}
+ -- the number of the button. If it does not exist, it is made on-screen at initialization. 
+\subsection*{See Also}
+
+
+ \emph{checkbox}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cccc}
+Author: John ffitch &University of Bath, Codemist. Ltd. &Bath, UK &September 2000
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 4.08
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+butterlp &Up &buzz
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

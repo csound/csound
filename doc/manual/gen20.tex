@@ -1,0 +1,196 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{GEN20}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{GEN20}
+GEN20 --  Generates functions of different windows. \subsection*{Description}
+
+
+  This subroutine generates functions of different windows. These windows are usually used for spectrum analysis or for grain envelopes. 
+\subsection*{Syntax}
+
+
+ \textbf{f}
+ \# time size 20 window max [opt]
+\subsection*{Initialization}
+
+
+ \emph{size}
+ -- number of points in the table. Must be a power of 2 ( + 1). 
+
+
+ \emph{window}
+ -- Type of window to generate: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ 1 = Hamming
+
+\item 
+
+ 2 = Hanning
+
+\item 
+
+ 3 = Bartlett ( triangle)
+
+\item 
+
+ 4 = Blackman ( 3-term)
+
+\item 
+
+ 5 = Blackman - Harris ( 4-term)
+
+\item 
+
+ 6 = Gaussian
+
+\item 
+
+ 7 = Kaiser
+
+\item 
+
+ 8 = Rectangle
+
+\item 
+
+ 9 = Sync
+
+
+\end{itemize}
+
+
+ \emph{max}
+ -- For negative p4 this will be the absolute value at window peak point. If p4 is positive or p4 is negative and p6 is missing the table will be post-rescaled to a maximum value of 1. 
+
+
+ \emph{opt}
+ -- Optional argument required by the Kaiser window. 
+\subsection*{Examples}
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+\emph{f}
+       1       0       1024    20      5
+        
+\end{lstlisting}
+
+
+ 
+ This creates a function which contains a 4 - term Blackman - Harris window with maximum value of 1. 
+
+ 
+
+
+ 
+\begin{lstlisting}
+\emph{f}
+       1       0       1024    -20     2       456
+        
+\end{lstlisting}
+
+
+ 
+ This creates a function that contains a Hanning window with a maximum value of 456. 
+
+ 
+
+
+ 
+\begin{lstlisting}
+\emph{f}
+       1       0       1024    -20     1
+        
+\end{lstlisting}
+
+
+ 
+ This creates a function that contains a Hamming window with a maximum value of 1. 
+
+ 
+
+
+ 
+\begin{lstlisting}
+\emph{f}
+       1       0       1024    20      7       1       2
+        
+\end{lstlisting}
+
+
+ 
+ This creates a function that contains a Kaiser window with a maximum value of 1. The extra argument specifies how ``open'' the window is, for example a value of 0 results in a rectangular window and a value of 10 in a Hamming like window. 
+
+  For diagrams, see \emph{Window Functions}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Paris Smaragdis &MIT, Cambridge &1995
+
+\end{tabular}
+
+
+
+ 
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: John ffitch &University of Bath/Codemist Ltd. &Bath, UK
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 3.2
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+GEN19 &Up &GEN21
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,167 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{moog}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{moog}
+moog --  An emulation of a mini-Moog synthesizer. \subsection*{Description}
+
+
+  An emulation of a mini-Moog synthesizer. 
+\subsection*{Syntax}
+
+
+ ar \textbf{moog}
+ kamp, kfreq, kfiltq, kfiltrate, kvibf, kvamp, iafn, iwfn, ivfn
+\subsection*{Initialization}
+
+
+ \emph{iafn, iwfn, ivfn}
+ -- three table numbers containing the attack waveform (unlooped), the main looping wave form, and the vibrato waveform. The files \emph{mandpluk.aiff}
+ and \emph{impuls20.aiff}
+ are suitable for the first two, and a sine wave for the last. 
+
+
+ 
+
+
+\begin{tabular}{cc}
+\textbf{Note}
+ \\
+  &
+
+  The files ``mandpluk.aiff'' and ``impuls20.aiff'' are also available at \emph{\url{ftp://ftp.cs.bath.ac.uk/pub/dream/documentation/sounds/modelling/}}
+. 
+
+
+\end{tabular}
+
+\subsection*{Performance}
+
+
+ \emph{kamp}
+ -- Amplitude of note. 
+
+
+ \emph{kfreq}
+ -- Frequency of note played. 
+
+
+ \emph{kfiltq}
+ -- Q of the filter, in the range 0.8 to 0.9 
+
+
+ \emph{kfiltrate}
+ -- rate control for the filter in the range 0 to 0.0002 
+
+
+ \emph{kvibf}
+ -- frequency of vibrato in Hertz. Suggested range is 0 to 12 
+
+
+ \emph{kvamp}
+ -- amplitude of the vibrato 
+\subsection*{Examples}
+
+
+  Here is an example of the moog opcode. It uses the files \emph{moog.orc}
+, \emph{moog.sco}
+, \emph{mandpluk.aiff}
+, and \emph{impuls20.aiff}
+. 
+
+
+ \textbf{Example 1. Example of the moog opcode.}
+
+\begin{lstlisting}
+/* moog.orc */
+; Initialize the global variables.
+sr = 22050
+kr = 2205
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  kamp = 30000
+  kfreq = 220
+  kfiltq = 0.81
+  kfiltrate = 0
+  kvibf = 1.4
+  kvamp = 2.22
+  iafn = 1
+  iwfn = 2
+  ivfn = 3
+
+  am moog kamp, kfreq, kfiltq, kfiltrate, kvibf, kvamp, iafn, iwfn, ivfn
+
+  ; It tends to get loud, so clip moog's amplitude at 30,000.
+  a1 clip am, 2, 30000
+  out a1
+endin
+/* moog.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* moog.sco */
+; Table #1: the "mandpluk.aiff" audio file
+f 1 0 8192 1 "mandpluk.aiff" 0 0 0
+; Table #2: the "impuls20.aiff" audio file
+f 2 0 256 1 "impuls20.aiff" 0 0 0
+; Table #3: a sine wave
+f 3 0 256 10 1
+
+; Play Instrument #1 for three seconds.
+i 1 0 3
+e
+/* moog.sco */
+        
+\end{lstlisting}
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: John ffitch (after Perry Cook) &University of Bath, Codemist Ltd. &Bath, UK
+
+\end{tabular}
+
+
+
+ 
+
+
+ Example written by Kevin Conder.
+
+
+ New in Csound version 3.47
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+mirror &Up &moogvcf
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,89 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{multitap}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{multitap}
+multitap --  Multitap delay line implementation. \subsection*{Description}
+
+
+  Multitap delay line implementation. 
+\subsection*{Syntax}
+
+
+ ar \textbf{multitap}
+ asig [, itime1] [, igain1] [, itime2] [, igain2] [...]
+\subsection*{Initialization}
+
+
+  The arguments \emph{itime}
+ and \emph{igain}
+ set the position and gain of each tap. 
+
+
+  The delay line is fed by \emph{asig}
+. 
+\subsection*{Examples}
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+  a1      \emph{oscil}
+      1000, 100, 1
+  a2      \emph{multitap}
+   a1, 1.2, .5, 1.4, .2
+          \emph{out}
+        a2
+        
+\end{lstlisting}
+
+
+ 
+
+
+  This results in two delays, one with length of 1.2 and gain of .5, and one with length of 1.4 and gain of .2. 
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Paris Smaragdis &MIT, Cambridge &1996
+
+\end{tabular}
+
+
+
+ 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+mrtmsg &Up &mute
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}
