@@ -1,3 +1,8 @@
+2004-11-28  John ffitch  <jpff@codemist.co.uk>
+
+	* OOps/pvfileio.c (write_pvocdata, pvoc_readfmt): Use a union
+	rather than dubious casts.
+
 2004-11-23  John ffitch  <jpff@codemist.co.uk>
 
 	* OOps/midirecv.c (m_chanmsg): Removed initial values for
