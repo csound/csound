@@ -364,11 +364,6 @@ extern "C" {
 		csoundMessageCallback_(csound, format, args);
 	}
 
-	PUBLIC void csoundMessageS(void *csound, const char *format, va_list args)
-	{
-		csoundMessageCallback_(csound, format, args);
-	}
-
 	PUBLIC void csoundMessage(void *csound, const char *format, ...)
 	{
 		va_list args;
