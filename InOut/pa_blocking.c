@@ -42,7 +42,7 @@ int PaBlockingReadStreamCallback(const void *input, void *output,
     PaStreamCallbackFlags statusFlags, void *userData)
 {
     PA_BLOCKING_STREAM *pabs = (PA_BLOCKING_STREAM *)userData;
-    float *paOutput = (float *)output;
+    float *paInput = (float *)input;
     size_t i;
     size_t n;
     csoundWaitThreadLock(pabs->csound, pabs->paLock, 100);
