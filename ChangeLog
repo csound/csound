@@ -1,3 +1,26 @@
+2004-02-22  Michael Gogins <gogins@pipeline.com>
+
+	New configure.ac, which is a modified version of John Ramsdell's
+	configure.ac. Thanks to John for providing a framework, implementing the
+	required tests, and enabling me to understand the online documentation.
+
+	All new Makefile.am, which puts all source configuration in one file for all
+	targets.
+
+	Renamed some "main.c" files to prevent naming conflicts caused by having a
+	single Makefile.am.
+
+	Moved some opcodes from Opcodes back to OOps due to tangled dependencies.
+
+	Plugin opcodes are loaded from the directory pointed to by the OPCODEDIR
+	environment variable. The --shared-lib flag is still effective.
+
+	Enabled PortAudio in Csound 5 together with libsndfile, and changed
+	PortAudio support from v18 to v19.
+
+	Renamed libanal.a to libustub.a and moved as much code as possible
+	from analysis and utility program "main" files to ustub.c.
+
 2004-01-29  John ffitch  <jpff@codemist.co.uk>
 
 	* Engine/insert.c (ingoto): Check that we are in i-rate case
