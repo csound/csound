@@ -39,34 +39,37 @@ Technologies, University of California, Berkeley.
 */
 
 #include <stdio.h>
-#include <string.h> /* for strerror() */
+#ifdef HAVE_STRING_H
+# include <string.h>
+#elif HAVE_STRINGS_H
+# include <strings.h>
+#endif
 #include <assert.h>
 #include <errno.h>
-#include <H/sdif-mem.h>
-
+#include "H/sdif-mem.h"
 
 /* Global variables local to this file */
 static void *(*my_malloc)(int numBytes);
 static void (*my_free)(void *memory, int numBytes);
 
-
 SDIFresult SDIFmem_Init(void *(*MemoryAllocator)(int numBytes),
-                        void (*MemoryFreer)(void *memory, int numBytes)) {
-        my_malloc = MemoryAllocator;
-        my_free = MemoryFreer;
+                        void (*MemoryFreer)(void *memory, int numBytes))
+{
+    my_malloc = MemoryAllocator;
+    my_free = MemoryFreer;
 
-        return ESDIF_SUCCESS;
+    return ESDIF_SUCCESS;
 }
 
 
-SDIFmem_Frame SDIFmem_CreateEmptyFrame(void) {
-
+SDIFmem_Frame SDIFmem_CreateEmptyFrame(void)
+{
     SDIFmem_Frame f;
 
     f = (*my_malloc)(sizeof(*f));
 
     if (f == NULL) {
-        return NULL;
+      return NULL;
     }
 
     f->header.frameType[0] = '\0';
@@ -84,20 +87,20 @@ SDIFmem_Frame SDIFmem_CreateEmptyFrame(void) {
     return f;
 }
 
+void SDIFmem_FreeFrame(SDIFmem_Frame f)
+{
+    SDIFmem_Matrix m, next;
 
-void SDIFmem_FreeFrame(SDIFmem_Frame f) {
-        SDIFmem_Matrix m, next;
+    if (f == 0) return;
 
-        if (f == 0) return;
+    m = f->matrices;
+    while (m != NULL) {
+      next = m->next;
+      SDIFmem_FreeMatrix(m);
+      m = next;
+    }
 
-        m = f->matrices;
-        while (m != NULL) {
-                next = m->next;
-                SDIFmem_FreeMatrix(m);
-                m = next;
-        }
-
-        (*my_free)(f, sizeof(*f));
+    (*my_free)(f, sizeof(*f));
 }
 
 
@@ -291,9 +294,9 @@ SDIFresult SDIFmem_WriteMatrix(FILE *sdif_handle, SDIFmem_Matrix m) {
     if (r !=ESDIF_SUCCESS) return r;
     paddingNeeded = SDIF_PaddingRequired(&(m->header));
     if (paddingNeeded) {
-                char pad[8] = "\0\0\0\0\0\0\0\0";
-                if((r = SDIF_Write1(pad, paddingNeeded, sdif_handle))!=ESDIF_SUCCESS)
-                        return r;
+      char pad[8] = "\0\0\0\0\0\0\0\0";
+      if ((r = SDIF_Write1(pad, paddingNeeded, sdif_handle))!=ESDIF_SUCCESS)
+        return r;
     }
     return ESDIF_SUCCESS;
 }

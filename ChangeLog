@@ -1,3 +1,33 @@
+2004-06-25  Anthony Kozar <anthony.kozar@utoledo.edu>
+
+	* These are all changes to allow compilation on MacOS 9
+	
+	* Top/csound.c:  In declaration of csoundExternalMidiRead(), made mbuf
+	 unsigned char* to match other calls.
+
+	* OOps/diskin.c: (newsndinset) changed if (sinfd > 0) to 
+	if (sinfd != NULL).
+
+	* Top/dl_opcodes.c: added #else case for platforms without shared 
+	libraries.
+
+	* InOut/libsnd.c: added #include "MacTransport.h" for Mac builds.
+
+	* Top/main.c: commented out conditional exclusion of err_printf() for Mac.
+
+	* OOps/sdif-mem.c:
+	* SDIF/sdif-mem.c:
+	* H/sdif-mem.h:
+	* SDIF/sdif-mem.h:
+	* OOps/sdif.c:
+	* SDIF/sdif.c: changed #include <H/sdif-mem.h" to #include 
+	"H/sdif-mem.h" and <H/sdif.h> to "H/sdif.h".
+
+	* H/sftype.h: #defined PACKED for mac_classic
+
+	* H/sysdep.h: undefined mills_macintosh (now defined in Prefix.h) and
+	temporarily undefined RTAUDIO for Mac build until PortAudio working.
+
 2004-06-15  John ffitch  <jpff@codemist.co.uk>
 
 	* OOps/aops.c (outo): Skipped +6 case!

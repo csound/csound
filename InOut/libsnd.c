@@ -30,6 +30,10 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#ifdef mills_macintosh
+# include "MacTransport.h"
+#endif
+
 #ifdef RTAUDIO
 extern  int     rtrecord_(MYFLT *, int);
 extern  void    rtplay_(MYFLT *, int);

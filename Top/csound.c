@@ -637,7 +637,7 @@ static long csoundNumExits_ = -1;
       csoundExternalMidiReadCallback = csoundExternalMidiReadCallback_;
   }
 
-  int csoundExternalMidiRead(void *csound, char *mbuf, int size)
+  int csoundExternalMidiRead(void *csound, unsigned char *mbuf, int size)
   {
     if(csoundExternalMidiReadCallback){
       return csoundExternalMidiReadCallback(csound, mbuf, size);

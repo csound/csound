@@ -55,12 +55,12 @@
 
 #if defined(macintosh)
 # define mac_classic /* All Mac Compiles Before OSX, including Carbon */
-# define mills_macintosh /* DEFINE THIS to COMPILE the Mills"Perf"Version */
+/* # define mills_macintosh /* DEFINE THIS to COMPILE the Mills"Perf"Version */
 # include <stdlib.h>
 # include <stat.h>
 # define  SFDIGDES
 # define  WINDOWS
-# define  RTAUDIO
+/* # define  RTAUDIO	/* FIX ME: We want real-time audio eventually !! - akozar */
 /*# define  SFIRCAM*/
 # define  u_char  unsigned char
 # define  u_short unsigned short
