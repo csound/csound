@@ -1,3 +1,8 @@
+2005-03-21  John ffitch  <jpff@codemist.co.uk>
+
+	* Engine/sread.c (MARGIN): Increase to 600, but needs to be
+	rethought 
+
 2005-03-18	Istvan Varga	<istvan@csounds.com>
 	* Engine/oload.c:
 	* H/csoundCore.h:

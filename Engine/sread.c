@@ -46,7 +46,7 @@ static int     getop(void), getpfld(void);
 extern FILE    *fopen_path(char *, char *, char *, char *);
 
 #define MEMSIZ  10000L          /* size of memory requests from system  */
-#define MARGIN  400             /* minimum remaining before new request */
+#define MARGIN  600             /* minimum remaining before new request */
 
 static MEMHDR *basmem = NULL;
 static MEMHDR *curmem;
