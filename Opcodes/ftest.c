@@ -12,7 +12,7 @@ void tanhtable(FUNC *ftp, FGDATA *ff)
       *fp++ = (MYFLT)tanh(x);
 }
 
-static void gentune(void)             /* Gab 1/3/2005 */
+static void gentune(FUNC *ftp, FGDATA *ff)             /* Gab 1/3/2005 */
 {
     int j;
     int notenum;
@@ -21,7 +21,7 @@ static void gentune(void)             /* Gab 1/3/2005 */
     int basekeymidi;
     MYFLT basefreq, factor,interval;
 
-    MYFLT	*fp = ftp->ftable, *pp = &e->p[5];
+    MYFLT	*fp = ftp->ftable, *pp = &(ff->e.p[5]);
     int	nvals = nargs;
 
     numgrades = (int) *pp++;
@@ -29,7 +29,7 @@ static void gentune(void)             /* Gab 1/3/2005 */
     basefreq  = *pp++;
     basekeymidi=  (int) *pp++;
 
-    nvals = flenp1 - 1;
+    nvals = ff->flenp1 - 1;
 
     for (j =0; j < nvals; j++) {
       notenum = j;
