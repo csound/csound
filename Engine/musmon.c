@@ -102,12 +102,13 @@ int tempo(ENVIRON *csound, TEMPO *p)
 extern  void    RTLineset(void), MidiOpen(void *), FMidiOpen(void *);
 extern  void    scsort(FILE*, FILE*), oload(ENVIRON *), cscorinit(void);
 extern  void    schedofftim(INSDS *), infoff(MYFLT);
-extern  void    orcompact(void*), rlsmemfiles(void), timexpire(double);
+extern  void    orcompact(ENVIRON*), rlsmemfiles(void), timexpire(double);
 extern  void    beatexpire(double), deact(INSDS*), fgens(ENVIRON *,EVTBLK *);
 extern  void    sfopenin(void*), sfopenout(void*), sfnopenout(void);
 extern  void    iotranset(void), sfclosein(void*), sfcloseout(void*);
 extern  int     csoundIsExternalMidiEnabled(void *);
 extern  void    csoundExternalMidiOpen(void *);
+extern  void    MidiClose(ENVIRON*);
 
 extern  OPARMS  O;
 
@@ -386,6 +387,8 @@ int cleanup(void *csound)
         printf("%9ld", *rngp++);
     }
     printf(Str("\n%d errors in performance\n"),perferrcnt);
+    /* close MIDI input */
+    MidiClose((ENVIRON*) csound);
     /* IV - Feb 03 2005: do not need to call rtclose from here, as */
     /* sfclosein/sfcloseout will do that. Checking O.sfread and */
     /* O.sfwrite is not needed either. */
@@ -489,7 +492,7 @@ void kturnon(ENVIRON *csound)/* turn on instrs due in turnon list */
 /* IV - Feb 05 2005 */
 #define RNDINT(x) ((int) ((double) (x) + ((double) (x) < 0.0 ? -0.5 : 0.5)))
 
-extern  int     sensLine();
+extern  int     sensLine(void);
 extern  int     sensMidi(ENVIRON *), sensFMidi(ENVIRON *);
 
 /* sense events for one k-period            */
