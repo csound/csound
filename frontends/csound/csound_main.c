@@ -16,9 +16,7 @@ int main(int argc, char **argv)
         {
           csoundYield(csound);
         }
-        csoundCleanup(csound);
       }
-    /*	Destroy Csound. */
     csoundDestroy(csound);
     return result;
 }
