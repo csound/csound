@@ -67,8 +67,8 @@ extern void create_opcodlst(void);
 extern void readOptions(FILE*);
 
 #define FIND(MSG)   if (*s == '\0')  \
-                        if (!(--argc) || ((s = *++argv) && *s == '-'))  \
-                            dieu(MSG);
+                      if (!(--argc) || (((s = *++argv) != NULL) && *s == '-')) \
+                         dieu(MSG);
 
 /* alphabetically, so i dont have to hunt for a letter next time...
 **********************************************************************
@@ -224,14 +224,11 @@ void longusage(void)
     err_printf(Str(X_325,"Legal flags are:\n"));
     err_printf("Long format:\n\n");
     err_printf("--format={"
-#ifdef never
                "alaw,"
-#endif
-#ifdef ULAW
                "ulaw,"
-#endif
 "schar,uchar,float,short,long,24bit,rescale}\t Set sound type\n"
 "--aiff\t\t\tSet AIFF format\n"
+"--au\t\t\tSet AU format\n"
 "--wave\t\t\tSet WAV format\n"
 "--ircam\t\t\tSet IRCAM format\n"
 "--noheader\t\tRaw format\n"
@@ -409,11 +406,9 @@ set_output_format(char c)
     }
 
     switch (c) {
-#ifdef never
     case 'a':
       O.outformat = AE_ALAW;    /* a-law soundfile */
       break;
-#endif
 
     case 'c':
       O.outformat = AE_CHAR;    /* signed 8-bit soundfile */
@@ -425,12 +420,6 @@ set_output_format(char c)
 
     case 'f':
       O.outformat = AE_FLOAT;   /* float soundfile */
-      if (O.filetyp == TYP_AIFF) {
-        if (O.msglevel & WARNMSG)
-          printf(Str(X_402,
-                    "WARNING: Overriding File Type to AIFF-C for float output\n"));
-        O.filetyp = TYP_AIFC;
-      }
       break;
 
     case 's':
@@ -441,11 +430,9 @@ set_output_format(char c)
       O.outformat = AE_LONG;    /* long_int soundfile */
       break;
 
-#ifdef ULAW
     case 'u':
       O.outformat = AE_ULAW;    /* mu-law soundfile */
       break;
-#endif
 
     case '3':
       O.outformat = AE_24INT;   /* 24bit packed soundfile*/
@@ -469,13 +456,9 @@ typedef struct  {
 
 static
 SAMPLE_FORMAT_ENTRY sample_format_map[] = {
-#ifdef never
   {"alaw", 'a'}, 
-#endif
   {"schar", 'c'}, 
-#ifdef ULAW
   {"uchar", '8'}, 
-#endif
   {"float", 'f'},
   {"short", 's'}, {"ulaw", 'u'}, {"24bit", '3'},
   {0, 0}
@@ -520,17 +503,21 @@ static int decode_long(char *s, int argc, char **argv, char *envoutyp)
     }
     /* -A */
     else if (!(strcmp (s, "aiff"))) {
-      if (O.filetyp == TYP_WAV) {
+      if (O.filetyp != TYP_IRCAM) {
         if (envoutyp == NULL) goto outtyp;
         if (O.msglevel & WARNMSG)
-          printf(Str(X_95,"WARNING: -A overriding local default WAV out\n"));
+          printf(Str(X_95,"WARNING: --aiff overriding local default out\n"));
       }
-      if (O.outformat == AE_FLOAT) {
+      O.filetyp = TYP_AIFF;     /* AIFF output request*/
+      return 1;
+    }
+    else if (!(strcmp (s, "au"))) {
+      if (O.filetyp != TYP_IRCAM) {
+        if (envoutyp == NULL) goto outtyp;
         if (O.msglevel & WARNMSG)
-          printf(Str(X_401,"WARNING: Overriding File Type to AIFF-C for AIFF float format\n"));
-        O.filetyp = TYP_AIFC;
+          printf("WARNING: -au overriding local default out\n");
       }
-      else O.filetyp = TYP_AIFF;     /* AIFF output request*/
+      O.filetyp = TYP_AU;     /* AIFF output request*/
       return 1;
     }
     else if (!(strncmp (s, "iobufsamps=", 11))) {
@@ -865,12 +852,30 @@ static int decode_long(char *s, int argc, char **argv, char *envoutyp)
     */
 #endif
     else if (!(strcmp(s, "wave"))) {
-      if (O.filetyp == TYP_AIFF) {
+      if (O.filetyp != TYP_RAW) {
         if (envoutyp == NULL) goto outtyp;
         if (O.msglevel & WARNMSG)
-          printf(Str(X_131,"WARNING: -W overriding local default AIFF out\n"));
+          printf("WARNING: --wave overriding local default out\n");
       }
       O.filetyp = TYP_WAV;      /* WAV output request */
+      return 1;
+    }
+    else if (!(strcmp(s, "wave64"))) {
+      if (O.filetyp != TYP_RAW) {
+        if (envoutyp == NULL) goto outtyp;
+        if (O.msglevel & WARNMSG)
+          printf("WARNING: --wave64 overriding local default out\n");
+      }
+      O.filetyp = TYP_W64;      /* WAVE 64 output request */
+      return 1;
+    }
+    else if (!(strcmp(s, "voc"))) {
+      if (O.filetyp != TYP_RAW) {
+        if (envoutyp == NULL) goto outtyp;
+        if (O.msglevel & WARNMSG)
+          printf("WARNING: --voc overriding local default out\n");
+      }
+      O.filetyp = TYP_VOC;      /* VOC output request */
       return 1;
     }
     else if (!(strcmp (s, "list-opcodes"))) {
@@ -1071,13 +1076,7 @@ int argdecode(int argc, char **argv, char **pfilnamp, char *envoutyp)
               if (O.msglevel & WARNMSG)
                 printf(Str(X_95,"WARNING: -A overriding local default WAV out\n"));
             }
-            if (O.outformat == AE_FLOAT) {
-              if (O.msglevel & WARNMSG)
-                printf(Str(X_401,
-                          "WARNING: Overriding File Type to AIFF-C for AIFF float format\n"));
-              O.filetyp = TYP_AIFC;
-            }
-            else O.filetyp = TYP_AIFF;     /* AIFF output request*/
+            O.filetyp = TYP_AIFF;     /* AIFF output request*/
             break;
           case 'J':
             if (O.filetyp == TYP_AIFF ||

@@ -266,8 +266,8 @@ int main(int argc, char **argv)
             }
             if (O.outformat == AE_FLOAT) {
               if (O.msglevel & WARNMSG)
-        printf(Str(X_401,"Overriding File Type to AIFF-C for AIFF float format"));
-              O.filetyp = TYP_AIFC;
+        printf(Str(X_401,"Overriding File Type to AIFF float format"));
+              O.filetyp = TYP_AIFF;
             }
             else O.filetyp = TYP_AIFF;     /* AIFF output request*/
             break;
@@ -513,7 +513,6 @@ int main(int argc, char **argv)
            outbufsiz, getstrformat(O.outformat), O.outfilename);
     printf(" %s\n",
            O.filetyp == TYP_AIFF ? "(AIFF)" :
-           O.filetyp == TYP_AIFC ? "(AIFF-C)" :
            O.filetyp == TYP_WAV ? "(WAV)" :
 #ifdef _macintosh
              "(SDII)"

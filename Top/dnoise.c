@@ -316,12 +316,7 @@ int dnoise(int argc, char **argv)
                   if (O.msglevel & WARNMSG)
                     printf(Str(X_95,"WARNING: -A overriding local default WAV out\n"));
                 }
-                if (O.outformat == AE_FLOAT) {
-                  if (O.msglevel & WARNMSG)
-                    printf(Str(X_401,"WARNING: Overriding File Type to AIFF-C for AIFF float format\n"));
-                  O.filetyp = TYP_AIFC;
-                }
-                else O.filetyp = TYP_AIFF;     /* AIFF output request*/
+                O.filetyp = TYP_AIFF;     /* AIFF output request*/
                 break;
               case 'J':
                 if (O.filetyp == TYP_AIFF ||
@@ -633,20 +628,7 @@ int dnoise(int argc, char **argv)
     outbuf = mmalloc((long)outbufsiz);                 /*  & alloc bufspace */
     printf(Str(X_1382,"writing %d-byte blks of %s to %s"),
            outbufsiz, getstrformat(O.outformat), O.outfilename);
-    printf(" %s\n",
-           O.filetyp == TYP_AIFF ? "(AIFF)" :
-           O.filetyp == TYP_AIFC ? "(AIFF-C)" :
-           O.filetyp == TYP_WAV ? "(WAV)" :
-#ifdef mac_classic
-             "(SDII)"
-#elif defined(SFIRCAM)
-             "(IRCAM)"
-#elif defined(NeXT)
-             "(NeXT)"
-#else
-             "(Raw)"
-#endif
-             );
+    printf(" %s\n", type2string(O.filetyp));
     switch(O.outformat) {
     case AE_CHAR:
         spoutran = chartran;
