@@ -59,7 +59,7 @@ int pvsmix(PVSMIX *p)
     float *fout,*fa, *fb;
 
     if (!fsigs_equal(p->fa,p->fb))
-      return perferror(Str(X_228, "pvsmix : formats are different.\n"));
+      return perferror(Str(X_228, "pvsmix: formats are different.\n"));
     fout = (float *) p->fout->frame.auxp;
     fa = (float *) p->fa->frame.auxp;
     fb = (float *) p->fb->frame.auxp;
@@ -233,7 +233,7 @@ int pvsshift(PVSSHIFT *p)
     float *fout = (float *) p->fout->frame.auxp;
 
     if(fout==NULL)
-      return perferror(Str(X_239, "pvsshift: not initialised\n"));
+      return perferror(Str(X_239, "pvshift: not initialised\n"));
 
     if(p->lastframe < p->fin->framecount) {
 
@@ -391,7 +391,7 @@ int pvstencilset(PVSTENCIL *p)
     if (!(p->fout->format==PVS_AMP_FREQ) || (p->fout->format==PVS_AMP_PHASE))
       return
         initerror(Str(X_248,
-                      "pvstencil: signal format must be amp-phase or amp-freq.\n");
+                  "pvstencil: signal format must be amp-phase or amp-freq.\n"));
 
     p->func = ftfind(p->ifn);
     if (p->func==NULL)
