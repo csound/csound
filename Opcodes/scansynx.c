@@ -171,13 +171,13 @@ static PSCSNUX *listget(int id)
     struct scsnx_elem *i = scsnx_list;
     if (i == NULL) {
       initerror(Str(X_1527,"scans: No scan synthesis net specified"));
-      longjmp(cglob.exitjmp,1);
+      longjmp(pcglob->exitjmp,1);
     }
     while (i->id != id) {
       i = i->next;
       if (i == NULL) {
         initerror(Str(X_1485,"Eek ... scan synthesis id was not found"));
-        longjmp(cglob.exitjmp,1);
+        longjmp(pcglob->exitjmp,1);
       }
     }
     return i->p;
@@ -413,7 +413,7 @@ int scsnux_init(PSCSNUX *p)
 /*     for (i = 0; i<= (len*len)/BITS_PER_UNIT; i++) { */
 /*       printf("[%d,] %.8x\n", i, p->f[i]); */
 /*     } */
-/*     longjmp(cglob.exitjmp,1); */
+/*     longjmp(pcglob->exitjmp,1); */
     return OK;
 }
 

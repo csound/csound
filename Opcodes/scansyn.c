@@ -164,7 +164,7 @@ PSCSNU *listget(int id)
     struct scsn_elem *i = &scsn_list;
     if (i->p == NULL) {
         initerror(Str(X_1527,"scans: No scan synthesis net specified"));
-        longjmp(cglob.exitjmp,1);
+        longjmp(pcglob->exitjmp,1);
     }
     while (i->id != id) {
       i = i->next;

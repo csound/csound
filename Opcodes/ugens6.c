@@ -868,7 +868,7 @@ int rvbset(REVERB *p)
       p->adr6 = p->p6 = p->adr5 + *sizp++;
       if (p->adr6 + *sizp != (MYFLT *) p->auxch.endp) {
         printf(Str(X_1167,"revlpsiz inconsistent\n"));
-        longjmp(cglob.exitjmp,1);
+        longjmp(pcglob->exitjmp,1);
       }
       p->prvt = FL(0.0);
     }

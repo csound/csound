@@ -84,7 +84,7 @@ int hrtferxkSet(HRTFER *p)
     if (esr_ != SAMP_RATE) {
       printf (Str(X_399,"Orchestra sampling rate is not compatible with HRTF.\n"));
       printf (Str(X_462,"Should be %d...exiting.\n"), SAMP_RATE);
-      longjmp(cglob.exitjmp,1);
+      longjmp(pcglob->exitjmp,1);
     }
 
     if (*p->ifilno == SSTRCOD)
@@ -93,7 +93,7 @@ int hrtferxkSet(HRTFER *p)
       printf(Str(X_552,"\nLast argument must be the string 'HRTFcompact' "
              "...correcting.\n"));
       strcpy(filename, "HRTFcompact");
-/*       longjmp(cglob.exitjmp,1); */
+/*       longjmp(pcglob->exitjmp,1); */
     }
 
     if ((mfp = p->mfp) == NULL)
