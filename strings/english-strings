@@ -1698,7 +1698,7 @@
 1697,"Have to have at least %d directions in vbap4move\n"
 1698,"Missing fields in vbap8move\n"
 1699,"Have to have at least %d directions in vbap8move\n"
-1700,"Missing fields in vbap8move\n"
+1700,"Missing fields in vbap16move\n"
 1701,"Have to have at least %d directions in vbap16move\n"
 1702,"Missing fields in vbapzmove\n"
 1703,"Have to have at least %d directions in vbapzmove\n"
