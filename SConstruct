@@ -176,8 +176,6 @@ if (commonEnvironment['makeDynamic'] == 0) and (getPlatform() != 'linux') and (g
 else:
     if (getPlatform() == 'linux'):
         commonEnvironment.Append(LINKFLAGS = Split('-Wl,-Bdynamic'))
-    else:
-        commonEnvironment.Append(LINKFLAGS = Split('-dynamic'))
 
 # Adding libraries and flags if using -mno-cygwin with cygwin
 
@@ -509,6 +507,7 @@ Top/threads.c
 if (commonEnvironment['usePortAudio']==1) and portaudioFound:
     print 'Building with PortAudio.'
     libCsoundSources.append('InOut/rtpa.c')
+    libCsoundSources.append('InOut/pa_blocking.c')
     
 if (commonEnvironment['useFLTK'] and fltkFound):
     print 'Building with FLTK for graphs and widgets.'
