@@ -94,6 +94,9 @@ struct pollfd midipoll;
 #  ifdef HAVE_TERMIOS_H
 #    include <termios.h>
      struct termios tty;
+#  elif HAVE_SGTTY_H
+#    include <sgtty.h>
+     static struct sgttyb tty;
 #  else /* HAVE_TERMIOS_H */
      static struct sgttyb tty;
 #  endif /* HAVE_TERMIOS_H */

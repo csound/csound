@@ -62,7 +62,7 @@ commonEnvironment.Append(CPPPATH  = ['.', './H'])
 commonEnvironment.Append(CCFLAGS = '-DCSOUND_WITH_API')
 # Define options for different platforms.
 
-if sys.platform == 'linux1':
+if (sys.platform == 'linux1' or sys.platform == 'linux2'):
 	commonEnvironment.Append(CCFLAGS = "-DLINUX")
 	commonEnvironment.Append(CPPPATH = '/usr/local/include')
 	commonEnvironment.Append(CPPPATH = '/usr/include')
@@ -93,10 +93,12 @@ if sys.platform == 'win32':
 # Pick up some things from the local shell's environment.
 # This is used for Microsoft Visual Studio.
 
-commonEnvironment['ENV']['TMP'] = os.environ['TMP']
-commonEnvironment['ENV']['PATH'] = os.environ['PATH']
-commonEnvironment['ENV']['INCLUDE'] = os.environ['INCLUDE']
-commonEnvironment['ENV']['LIB'] = os.environ['LIB']
+if sys.platform == 'win32':
+    commonEnvironment['ENV']['TMP'] = os.environ['TMP']
+    commonEnvironment['ENV']['PATH'] = os.environ['PATH']
+    commonEnvironment['ENV']['INCLUDE'] = os.environ['INCLUDE']
+    commonEnvironment['ENV']['LIB'] = os.environ['LIB']
+
 commonEnvironment.Append(LIBPATH = '#.')
 commonEnvironment.Append(CPPFLAGS = "-DBETA")
 if commonEnvironment['useDouble']:
@@ -140,6 +142,12 @@ if configure.CheckHeader("sys/time.h", language = "C"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_SYS_TIME_H')
 if configure.CheckHeader("term/ios.h", language = "C"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_TERM_IOS_H')
+if configure.CheckHeader("termios.h", language = "C"):
+    commonEnvironment.Append(CCFLAGS = '-DHAVE_TERMIOS_H')
+if configure.CheckHeader("string.h", language = "C"):
+    commonEnvironment.Append(CCFLAGS = '-DHAVE_STRING_H')
+if configure.CheckHeader("strings.h", language = "C"):
+    commonEnvironment.Append(CCFLAGS = '-DHAVE_STRINGS_H')
 
 # Define different build environments for different types of targets.
 
@@ -149,11 +157,14 @@ pluginEnvironment = commonEnvironment.Copy()
 
 csoundProgramEnvironment = commonEnvironment.Copy()
 csoundProgramEnvironment.Append(LIBS = ['csound', 'sndfile'])
+csoundProgramEnvironment.ParseConfig('fltk-config --cflags --cxxflags --ldflags') 
 
 ustubProgramEnvironment = commonEnvironment.Copy()
 ustubProgramEnvironment.Append(LIBS = ['ustub', 'sndfile'])
 
 vstEnvironment = commonEnvironment.Copy()
+if vstEnvironment.ParseConfig('fltk-config --cflags --cxxflags --ldflags'):
+	print "Parsed fltk-config." 
 
 guiProgramEnvironment = commonEnvironment.Copy()
 
@@ -166,7 +177,7 @@ if commonEnvironment['usePortAudio'] and portaudioFound:
     guiProgramEnvironment.Append(CCFLAGS = '-DRTAUDIO')
     csoundProgramEnvironment.Append(LIBS = ['portaudio'])
     vstEnvironment.Append(LIBS = ['portaudio'])
-    if sys.platform == 'linux1': 
+    if (sys.platform == 'linux1' or sys.platform == 'linux2'): 
         csoundProgramEnvironment.Append(LIBS = ['asound'])
         vstEnvironment.Append(LIBS = ['asound'])
     if sys.platform == 'cygwin' or sys.platform == 'mingw' or sys.platform == 'win32': 
@@ -190,7 +201,7 @@ if commonEnvironment['usePortAudio'] and portaudioFound:
         guiProgramEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
         csoundProgramEnvironment.Append(LIBS = ['fltk'])
         vstEnvironment.Append(LIBS = ['fltk'])
-        if sys.platform == 'linux1' or sys.platform == 'cygwin' or sys.platform == 'mingw':
+        if (sys.platform == 'linux1' or sys.platform == 'linux2') or sys.platform == 'cygwin' or sys.platform == 'mingw':
             csoundProgramEnvironment.Append(LIBS = ['stdc++', 'pthread'])
             ustubProgramEnvironment.Append(LIBS = ['stdc++', 'pthread'])
             vstEnvironment.Append(LIBS = ['stdc++', 'pthread'])
@@ -518,7 +529,7 @@ if commonEnvironment['buildCsoundVST'] and boostFound and fltkFound:
     guiProgramEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
     vstEnvironment.Prepend(LIBS = ['csound', 'sndfile'])
     guiProgramEnvironment.Prepend(LIBS = ['_CsoundVST'])
-    if sys.platform == 'linux1':
+    if (sys.platform == 'linux1' or sys.platform == 'linux2'):
     	vstEnvironment.Append(LIBS = ['python2.3'])
     if sys.platform == 'cygwin':
         # vstEnvironment.Append(CPPPATH = ['/usr/include/python2.3'])
