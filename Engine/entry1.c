@@ -649,6 +649,8 @@ OENTRY opcodlst_1[] = {
 { "tablecopy", S(TABLECOPY),2, "", "kk",   (SUBR)tablecopyset, (SUBR)tablecopy, NULL},
 { "tablera", S(TABLERA),5,   "a",  "kkk",  (SUBR)tableraset, NULL, (SUBR)tablera},
 { "tablewa", S(TABLEWA),5,   "k",  "kak",  (SUBR)tablewaset, NULL, (SUBR)tablewa},
+{ "tablekt",  S(TABLE), 7,     "s",  "xkooo",tblsetkt,  ktablekt, tablekt },
+{ "tableikt", S(TABLE), 7,     "s",  "xkooo",tblsetkt,  ktablikt, tablikt },
 { "zakinit", S(ZAKINIT), 1,  "",   "ii",   (SUBR)zakinit, NULL,  NULL},
 { "zir",    S(ZKR),     1,   "i",  "i",    (SUBR)zir,     NULL,  NULL},
 { "zkr",    S(ZKR),     3,   "k",  "k",    (SUBR)zkset,   (SUBR)zkr,   NULL},

@@ -690,176 +690,176 @@ INSDS *
 instance(int insno)             /* create instance of an instr template */
                                 /*   allocates and sets up all pntrs    */
 {
-        INSTRTXT *tp;
-        INSDS   *ip;
-        OPTXT   *optxt;
-        OPDS    *opds, *prvids, *prvpds;
-        OENTRY  *ep;
-        LBLBLK  **lopds, **lopdsp;
-        LARGNO  *larg, *largp/* = larg */;
-        int     n, pextent, opnum, reqd;
-        char    *nxtopds, *opdslim;
-        MYFLT   **argpp, *fltp, *lclbas, *lcloffbas, *csetoffbas = NULL;
-        ARGOFFS *aoffp;
-        short   indx, posndx;
-        short   *ndxp;
-        MCHNBLK *chp = NULL;
+    INSTRTXT *tp;
+    INSDS   *ip;
+    OPTXT   *optxt;
+    OPDS    *opds, *prvids, *prvpds;
+    OENTRY  *ep;
+    LBLBLK  **lopds, **lopdsp;
+    LARGNO  *larg, *largp/* = larg */;
+    int     n, pextent, opnum, reqd;
+    char    *nxtopds, *opdslim;
+    MYFLT   **argpp, *fltp, *lclbas, *lcloffbas, *csetoffbas = NULL;
+    ARGOFFS *aoffp;
+    short   indx, posndx;
+    short   *ndxp;
+    MCHNBLK *chp = NULL;
 
-        lopds = (LBLBLK**)mmalloc(sizeof(LBLBLK*)*nlabels);
-        lopdsp = lopds;
-        larg = (LARGNO*)mmalloc(sizeof(LARGNO)*ngotos);
-        largp = larg;
-        lopdsp = lopds;
-        tp = instrtxtp[insno];
-        if (tp->mdepends & 06) {                /* if need midi chan, chk ok */
-          MCHNBLK **chpp = M_CHNBP;
-          for (n = MAXCHAN; n--; ) {
-            if ((chp = *chpp++) !=((MCHNBLK*)NULL))     {
-              csetoffbas = chp->ctl_val;
-              if (!chp->insno) {
-                chp->insno = insno;
-                printf(Str(X_929,
-                           "instr %d seeking midi chnl data, assigned chnl %d\n"),
-                       insno, chp->insno);
-                break;
-              }
-              if (chp->insno != insno)
-                continue;
-            }
+    lopds = (LBLBLK**)mmalloc(sizeof(LBLBLK*)*nlabels);
+    lopdsp = lopds;
+    larg = (LARGNO*)mmalloc(sizeof(LARGNO)*ngotos);
+    largp = larg;
+    lopdsp = lopds;
+    tp = instrtxtp[insno];
+    if (tp->mdepends & 06) {                /* if need midi chan, chk ok */
+      MCHNBLK **chpp = M_CHNBP;
+      for (n = MAXCHAN; n--; ) {
+        if ((chp = *chpp++) !=((MCHNBLK*)NULL))     {
+          csetoffbas = chp->ctl_val;
+          if (!chp->insno) {
+            chp->insno = insno;
+            printf(Str(X_929,
+                       "instr %d seeking midi chnl data, assigned chnl %d\n"),
+                   insno, chp->insno);
+            break;
           }
+          if (chp->insno != insno)
+            continue;
         }
-        pextent = sizeof(INSDS) + tp->pextrab;          /* alloc new space,  */
-        ip = (INSDS *) mcalloc((long)pextent + tp->localen + tp->opdstot);
-                ip->csound = &cenviron;
-        if (tp->mdepends & 06)
-            ip->m_chnbp = chp;
-        /* IV - Oct 26 2002: replaced with faster version (no search) */
-        ip->prvinstance = tp->lst_instance;
-        if (tp->lst_instance)
-          tp->lst_instance->nxtinstance = ip;
+      }
+    }
+    pextent = sizeof(INSDS) + tp->pextrab;          /* alloc new space,  */
+    ip = (INSDS *) mcalloc((long)pextent + tp->localen + tp->opdstot);
+    ip->csound = &cenviron;
+    if (tp->mdepends & 06)
+      ip->m_chnbp = chp;
+    /* IV - Oct 26 2002: replaced with faster version (no search) */
+    ip->prvinstance = tp->lst_instance;
+    if (tp->lst_instance)
+      tp->lst_instance->nxtinstance = ip;
+    else
+      tp->instance = ip;
+    tp->lst_instance = ip;
+    /* IV - Nov 10 2002 */
+    if (insno > maxinsno) {
+      int pcnt;
+      ip->nxtact = tp->act_instance;                /* next free instance */
+      tp->act_instance = ip;                        /* for user opcodes */
+      pcnt = (int) tp->opcode_info->perf_incnt;
+      pcnt += (int) tp->opcode_info->perf_outcnt;
+      pcnt = sizeof(OPCOD_IOBUFS) + sizeof(MYFLT*) * (pcnt << 1);
+      ip->opcod_iobufs = (void*) mmalloc(pcnt);
+    }
+    lcloffbas = &ip->p0;
+    lclbas = (MYFLT *)((char *)ip + pextent);       /* split local space */
+    nxtopds = (char *)lclbas + tp->localen;
+    opdslim = nxtopds + tp->opdstot;
+    if (O.odebug)
+      printf(Str(X_923,"instr %d allocated at %p\n\tlclbas %p, opds %p\n"),
+             insno,ip,lclbas,nxtopds);
+    optxt = (OPTXT *)tp;
+    prvids = prvpds = (OPDS *)ip;
+    while ((optxt = optxt->nxtop) != NULL) {        /* for each op in instr */
+      TEXT *ttp = &optxt->t;
+      if ((opnum = ttp->opnum) == ENDIN           /*  (until ENDIN)  */
+          || opnum == ENDOP)      /* IV - Sep 8 2002: (or ENDOP) */
+        break;
+      if (opnum == STRSET) {
+        nxtopds +=  2 * sizeof(MYFLT*);
+        continue; /* Only at load time */
+      }
+      if (opnum == PSET) {
+        ip->p1 = (MYFLT)insno; continue;
+      }
+      ep = &opcodlst[opnum];                        /* for all ops:     */
+      opds = (OPDS *) nxtopds;                      /*   take reqd opds */
+      nxtopds += ep->dsblksiz;
+      if (O.odebug)
+        printf(Str(X_1091,"op %d (%s) allocated at %p\n"),
+               opnum,ep->opname,opds);
+      opds->optext = optxt;                         /* set common headata */
+      opds->insdshead = ip;
+      if (opnum == LABEL) {                         /* LABEL:       */
+        LBLBLK  *lblbp = (LBLBLK *) opds;
+        lblbp->prvi = prvids;                       /*    save i/p links */
+        lblbp->prvp = prvpds;
+        *lopdsp++ = lblbp;                          /*    log the lbl bp */
+        continue;                                   /*    for later refs */
+      }
+      if ((ep->thread & 07)==0) {                   /* thread 1 OR 2:  */
+        if (ttp->pftype == 'b') {
+          prvids = prvids->nxti = opds;
+          opds->iopadr = ep->iopadr;
+        }
+        else {
+          prvpds = prvpds->nxtp = opds;
+          opds->opadr = ep->kopadr;
+        }
+        goto args;
+      }
+      if ((ep->thread & 01)!=0) {                   /* thread 1:        */
+        prvids = prvids->nxti = opds;               /* link into ichain */
+        opds->iopadr = ep->iopadr;                  /*   & set exec adr */
+        if (opds->iopadr == NULL)
+          die(Str(X_1082,"null iopadr"));
+      }
+      if ((n = ep->thread & 06)!=0) {               /* thread 2 OR 4:   */
+        prvpds = prvpds->nxtp = opds;               /* link into pchain */
+        if (!(n & 04) ||
+            (ttp->pftype == 'k' && ep->kopadr != NULL))
+          opds->opadr = ep->kopadr;                 /*      krate or    */
+        else opds->opadr = ep->aopadr;              /*      arate       */
+        if (O.odebug) printf("opadr = %p\n",opds->opadr);
+        if (opds->opadr == NULL)
+          die(Str(X_1083,"null opadr"));
+      }
+      opds->dopadr = ep->dopadr;
+    args:
+      argpp = (MYFLT **)((char *)opds + sizeof(OPDS));
+      if (O.odebug) printf("argptrs:");
+      aoffp = ttp->outoffs;                         /* for outarg codes: */
+      reqd = strlen(ep->outypes);
+      for (n=aoffp->count, ndxp=aoffp->indx; n--; reqd--) {
+        if ((indx = *ndxp++) > 0)            /* cvt index to lcl/gbl adr */
+          fltp = gbloffbas + indx;
+        else if ((posndx = -indx) < CBAS)
+          fltp = lcloffbas + posndx;
         else
-          tp->instance = ip;
-        tp->lst_instance = ip;
-        /* IV - Nov 10 2002 */
-        if (insno > maxinsno) {
-          int pcnt;
-          ip->nxtact = tp->act_instance;        /* next free instance for */
-          tp->act_instance = ip;                /* user opcodes */
-          pcnt = (int) tp->opcode_info->perf_incnt;
-          pcnt += (int) tp->opcode_info->perf_outcnt;
-          pcnt = sizeof(OPCOD_IOBUFS) + sizeof(MYFLT*) * (pcnt << 1);
-          ip->opcod_iobufs = (void*) mmalloc(pcnt);
+          fltp = csetoffbas + posndx - CBAS;
+        if (O.odebug) printf("\t%p", fltp);
+        *argpp++ = fltp;
+      }
+      while (reqd--) {                              /* if more outypes, pad */
+        if (O.odebug) printf("\tPADOUT");
+        *argpp++ = NULL;
+      }
+      aoffp = ttp->inoffs;                          /* for inarg codes: */
+      for (n=aoffp->count, ndxp=aoffp->indx; n--; ) {
+        if ((indx = *ndxp++) < LABELIM) {
+          if (O.odebug) printf("\t***lbl");
+          largp->lblno = indx - MIN_SHORT;          /* if label ref, defer */
+          largp->argpp = argpp++;
+          largp++;
+        } else {
+          if (indx > 0)                         /* else cvt ndx to lcl/gbl */
+            fltp = gbloffbas + indx;
+          else if ((posndx = -indx) < CBAS)
+            fltp = lcloffbas + posndx;
+          else
+            fltp = csetoffbas + posndx - CBAS;
+          if (O.odebug) printf("\t%p", fltp);
+          *argpp++ = fltp;
         }
-        lcloffbas = &ip->p0;
-        lclbas = (MYFLT *)((char *)ip + pextent);       /* split local space */
-        nxtopds = (char *)lclbas + tp->localen;
-        opdslim = nxtopds + tp->opdstot;
-        if (O.odebug)
-          printf(Str(X_923,"instr %d allocated at %p\n\tlclbas %p, opds %p\n"),
-                 insno,ip,lclbas,nxtopds);
-        optxt = (OPTXT *)tp;
-        prvids = prvpds = (OPDS *)ip;
-        while ((optxt = optxt->nxtop) != NULL) {     /* for each op in instr */
-            TEXT *ttp = &optxt->t;
-            if ((opnum = ttp->opnum) == ENDIN           /*  (until ENDIN)  */
-                || opnum == ENDOP)      /* IV - Sep 8 2002: (or ENDOP) */
-                break;
-            if (opnum == STRSET) {
-              nxtopds +=  2 * sizeof(MYFLT*);
-              continue; /* Only at load time */
-            }
-            if (opnum == PSET) {
-              ip->p1 = (MYFLT)insno; continue;
-            }
-            ep = &opcodlst[opnum];                      /* for all ops:     */
-            opds = (OPDS *) nxtopds;                    /*   take reqd opds */
-            nxtopds += ep->dsblksiz;
-            if (O.odebug)
-              printf(Str(X_1091,"op %d (%s) allocated at %p\n"),
-                     opnum,ep->opname,opds);
-            opds->optext = optxt;                       /* set common headata */
-            opds->insdshead = ip;
-            if (opnum == LABEL) {                       /* LABEL:       */
-                LBLBLK  *lblbp = (LBLBLK *) opds;
-                lblbp->prvi = prvids;                   /*    save i/p links */
-                lblbp->prvp = prvpds;
-                *lopdsp++ = lblbp;                      /*    log the lbl bp */
-                continue;                               /*    for later refs */
-            }
-            if ((ep->thread & 07)==0) {                   /* thread 1 OR 2:  */
-                if (ttp->pftype == 'b') {
-                    prvids = prvids->nxti = opds;
-                    opds->iopadr = ep->iopadr;
-                }
-                else {
-                    prvpds = prvpds->nxtp = opds;
-                    opds->opadr = ep->kopadr;
-                }
-                goto args;
-            }
-            if ((ep->thread & 01)!=0) {                 /* thread 1:        */
-                prvids = prvids->nxti = opds;           /* link into ichain */
-                opds->iopadr = ep->iopadr;              /*   & set exec adr */
-                if (opds->iopadr == NULL)
-                    die(Str(X_1082,"null iopadr"));
-            }
-            if ((n = ep->thread & 06)!=0) {             /* thread 2 OR 4:   */
-                prvpds = prvpds->nxtp = opds;           /* link into pchain */
-                if (!(n & 04) ||
-                    (ttp->pftype == 'k' && ep->kopadr != NULL))
-                    opds->opadr = ep->kopadr;           /*      krate or    */
-                else opds->opadr = ep->aopadr;          /*      arate       */
-                if (O.odebug) printf("opadr = %p\n",opds->opadr);
-                if (opds->opadr == NULL)
-                    die(Str(X_1083,"null opadr"));
-            }
-            opds->dopadr = ep->dopadr;
-        args:
-            argpp = (MYFLT **)((char *)opds + sizeof(OPDS));
-            if (O.odebug) printf("argptrs:");
-            aoffp = ttp->outoffs;               /* for outarg codes: */
-            reqd = strlen(ep->outypes);
-            for (n=aoffp->count, ndxp=aoffp->indx; n--; reqd--) {
-                if ((indx = *ndxp++) > 0)           /* cvt index to lcl/gbl adr */
-                    fltp = gbloffbas + indx;
-                else if ((posndx = -indx) < CBAS)
-                    fltp = lcloffbas + posndx;
-                else
-                    fltp = csetoffbas + posndx - CBAS;
-                if (O.odebug) printf("\t%p", fltp);
-                *argpp++ = fltp;
-            }
-            while (reqd--) {                    /* if more outypes, pad */
-                if (O.odebug) printf("\tPADOUT");
-                *argpp++ = NULL;
-            }
-            aoffp = ttp->inoffs;                /* for inarg codes: */
-            for (n=aoffp->count, ndxp=aoffp->indx; n--; ) {
-                if ((indx = *ndxp++) < LABELIM) {
-                    if (O.odebug) printf("\t***lbl");
-                    largp->lblno = indx - MIN_SHORT;  /* if label ref, defer */
-                    largp->argpp = argpp++;
-                    largp++;
-                } else {
-                    if (indx > 0)                   /* else cvt ndx to lcl/gbl */
-                        fltp = gbloffbas + indx;
-                    else if ((posndx = -indx) < CBAS)
-                        fltp = lcloffbas + posndx;
-                    else
-                        fltp = csetoffbas + posndx - CBAS;
-                    if (O.odebug) printf("\t%p", fltp);
-                    *argpp++ = fltp;
-                }
-            }
-            if (O.odebug) printf("\n");
-        }
-        if (nxtopds != opdslim) {
-          printf(Str(X_1087,"nxtopds = %p opdslim = %p\n"), nxtopds, opdslim);
-          if (nxtopds > opdslim) die(Str(X_902,"inconsistent opds total"));
-        }
-        while (--largp >= larg)
-            *largp->argpp = (MYFLT *) lopds[largp->lblno]; /* now label refs */
-        return(ip);
+      }
+      if (O.odebug) printf("\n");
+    }
+    if (nxtopds != opdslim) {
+      printf(Str(X_1087,"nxtopds = %p opdslim = %p\n"), nxtopds, opdslim);
+      if (nxtopds > opdslim) die(Str(X_902,"inconsistent opds total"));
+    }
+    while (--largp >= larg)
+      *largp->argpp = (MYFLT *) lopds[largp->lblno]; /* now label refs */
+    return(ip);
 }
 
 int pnum(char *s)               /* check a char string for pnum format  */
