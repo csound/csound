@@ -1,15 +1,15 @@
 #include "csdl.h"
 #include <math.h>
 
-void tanhtable(FUNC *ftp, EVTBLK *e)
+void tanhtable(FUNC *ftp, FGDATA *ff)
 {
     MYFLT *fp = ftp->ftable;
-    MYFLT range = e->p[5];
-    MYFLT step = range/(e->p[3]);
+    MYFLT range = ff->e.p[5];
+    double step = (double)range/(ff->e.p[3]);
     int i;
-    MYFLT x;
-    for (i=0, x=0.0; i<e->p[3]; i++, x+=step)
-      *fp++ = tanh(x);
+    double x;
+    for (i=0, x=FL(0.0); i<ff->e.p[3]; i++, x+=step)
+      *fp++ = (MYFLT)tanh(x);
 }
 
 static NGFENS localfgens[] = {
