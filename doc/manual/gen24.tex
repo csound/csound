@@ -1,0 +1,75 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{GEN24}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{GEN24}
+GEN24 --  Reads numeric values from another allocated function-table and rescales them. \subsection*{Description}
+
+
+  This subroutine reads numeric values from another allocated function-table and rescales them according to the max and min values given by the user. 
+\subsection*{Syntax}
+
+
+ \textbf{f}
+ \# time size -24 ftable min max
+\subsection*{Initialization}
+
+
+ \emph{\#, time, size}
+ -- the usual GEN parameters. See f statement. 
+
+
+ \emph{ftable}
+ -- ftable must be an already allocated table with the same size as this function. 
+
+
+ \emph{min, max}
+ -- the rescaling range. 
+
+
+ 
+
+
+\begin{tabular}{cc}
+\textbf{Note}
+ \\
+  &
+
+  This GEN is useful, for example, to eliminate the starting offset in exponential segments allowing a real starting from zero. 
+
+
+\end{tabular}
+
+\subsection*{Credits}
+
+
+ Author: Gabriel Maldonado
+
+
+ New in Csound version 4.16
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+GEN23 &Up &GEN25
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

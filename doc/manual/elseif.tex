@@ -1,0 +1,82 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{elseif}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{elseif}
+elseif --  Defines another ``if...then'' condition when a ``if...then'' condition is false. \subsection*{Description}
+
+
+  Defines another ``if...then'' condition when a ``if...then'' condition is false. 
+\subsection*{Syntax}
+
+
+ \textbf{elseif}
+ xa R xb \textbf{then}
+
+
+
+  where \emph{label}
+ is in the same instrument block and is not an expression, and where \emph{R}
+ is one of the Relational operators (\emph{$<$}
+, \emph{=}
+, \emph{$<$=}
+, \emph{==}
+, \emph{!=}
+) (and \emph{=}
+ for convenience, see also under \emph{Conditional Values}
+). 
+\subsection*{Performance}
+
+
+ \emph{elseif}
+ is used inside of a block of code between the \emph{``if...then''}
+ and \emph{endif}
+ opcodes. When a ``if...then'' condition is false, it defines another ``if...then'' condition to be met. Any number of \emph{elseif}
+ statements are allowed. 
+\subsection*{Examples}
+
+
+  See the example for the \emph{if}
+ opcode. 
+\subsection*{See Also}
+
+
+ \emph{else}
+, \emph{endif}
+, \emph{goto}
+, \emph{if}
+, \emph{igoto}
+, \emph{kgoto}
+, \emph{tigoto}
+, \emph{timout}
+
+\subsection*{Credits}
+
+
+ New in version 4.21
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+else &Up &endif
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

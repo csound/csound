@@ -1,0 +1,116 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{fold}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{fold}
+fold --  Adds artificial foldover to an audio signal. \subsection*{Description}
+
+
+  Adds artificial foldover to an audio signal. 
+\subsection*{Syntax}
+
+
+ ar \textbf{fold}
+ asig, kincr
+\subsection*{Performance}
+
+
+ \emph{asig}
+ -- input signal 
+
+
+ \emph{kincr}
+ -- amount of foldover expressed in multiple of sampling rate. Must be $>$= 1 
+
+
+ \emph{fold}
+ is an opcode which creates artificial foldover. For example, when \emph{kincr}
+ is equal to 1 with sr=44100, no foldover is added. When \emph{kincr}
+ is set to 2, the foldover is equivalent to a downsampling to 22050, when it is set to 4, to 11025 etc. Fractional values of \emph{kincr}
+ are possible, allowing a continuous variation of foldover amount. This can be used for a wide range of special effects. 
+\subsection*{Examples}
+
+
+  Here is an example of the fold opcode. It uses the files \emph{fold.orc}
+ and \emph{fold.sco}
+. 
+
+
+ \textbf{Example 1. Example of the fold opcode.}
+
+\begin{lstlisting}
+/* fold.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  ; Use an ordinary sine wave.
+  asig oscils 30000, 100, 1
+
+  ; Vary the fold-over amount from 1 to 200.
+  kincr line 1, p3, 200
+  a1 fold asig, kincr
+
+  out a1
+endin
+/* fold.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* fold.sco */
+; Play Instrument #1 for four seconds.
+i 1 0 4
+e
+/* fold.sco */
+        
+\end{lstlisting}
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Gabriel Maldonado &Italy &1999
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 3.56
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+fog &Up &follow
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

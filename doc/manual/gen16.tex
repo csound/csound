@@ -1,0 +1,110 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{GEN16}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{GEN16}
+GEN16 --  Creates a table from a starting value to an ending value. \subsection*{Description}
+
+
+  Creates a table from \emph{beg}
+ value to \emph{end}
+ value of \emph{dur}
+ steps. 
+\subsection*{Syntax}
+
+
+ \textbf{f}
+ \# time size 16 beg dur type end
+\subsection*{Initialization}
+
+
+ \emph{size}
+ -- number of points in the table. Must be a power of 2 or a power-of-2 plus 1 (see \emph{f statement}
+). The normal value is power-of-2 plus 1. 
+
+
+ \emph{beg}
+ -- starting value 
+
+
+ \emph{dur}
+ -- number of segments 
+
+
+ \emph{type}
+ -- if 0, a straight line is produced. If non-zero, then \emph{GEN16}
+ creates the following curve, for \emph{dur}
+ steps: 
+
+
+ beg + (end - beg) * (1 - exp( i*type/(dur-1) )) / (1 - exp(type))\\ 
+       
+
+
+ \emph{end}
+ -- value after \emph{dur}
+ segments 
+
+
+ 
+
+
+\begin{tabular}{cc}
+\textbf{Note}
+ \\
+  &
+
+  If \emph{type}
+ $>$ 0, there is a slowly rising, fast decaying (convex) curve, while if \emph{type}
+ $<$ 0, the curve is fast rising, slowly decaying (concave). See also \emph{transeg}
+. 
+
+
+\end{tabular}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cccc}
+Author: John ffitch &University of Bath, Codemist. Ltd. &Bath, UK &October, 2000
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 4.09
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+GEN15 &Up &GEN17
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

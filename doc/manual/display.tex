@@ -1,0 +1,116 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{display}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{display}
+display --  Displays the audio or control signals as an amplitude vs. time graph. \subsection*{Description}
+
+
+  These units will print orchestra init-values, or produce graphic display of orchestra control signals and audio signals. Uses X11 windows if enabled, else (or if \emph{-g}
+ flag is set) displays are approximated in ASCII characters. 
+\subsection*{Syntax}
+
+
+ \textbf{display}
+ xsig, iprd [, inprds] [, iwtflg]
+\subsection*{Initialization}
+
+
+ \emph{iprd}
+ -- the period of display in seconds. 
+
+
+ \emph{inprds}
+ (optional, default=1) -- Number of display periods retained in each display graph. A value of 2 or more will provide a larger perspective of the signal motion. The default value is 1 (each graph completely new). 
+
+
+ \emph{inprds}
+ (optional, default=1) -- a scaling factor for the displayed waveform, controlling how many iprd-sized frames of samples are drawn in the window (the default and minimum value is 1.0). Higher inprds values are slower to draw (more points to draw) but will show the waveform scrolling through the window, which is useful with low iprd values. 
+
+
+ \emph{iwtflg}
+ (optional, default=0) -- wait flag. If non-zero, each display is held until released by the user. The default value is 0 (no wait). 
+\subsection*{Performance}
+
+
+ \emph{display}
+ -- displays the audio or control signal \emph{xsig}
+ every \emph{iprd}
+ seconds, as an amplitude vs. time graph. 
+\subsection*{Examples}
+
+
+  Here is an example of the display opcode. It uses the files \emph{display.orc}
+ and \emph{display.sco}
+. 
+
+
+ \textbf{Example 1. Example of the display opcode.}
+
+\begin{lstlisting}
+/* display.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  ; Go from 1000 to 0 linearly, over the period defined by p3.
+  klin line 1000, p3, 0
+
+  ; Create a new display each second, wait for the user.
+  display klin, 1, 1, 1
+endin
+/* display.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* display.sco */
+; Play Instrument #1 for 5 seconds.
+i 1 0 5
+e
+/* display.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{dispfft}
+, \emph{print}
+
+\subsection*{Credits}
+
+
+ Comments about the \emph{inprds}
+ parameter contributed by Rasmus Ekman.
+
+
+ Example written by Kevin Conder.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+dispfft &Up &distort1
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,92 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{midictrl}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{midictrl}
+midictrl --  Get the current value (0-127) of a specified MIDI controller. \subsection*{Description}
+
+
+  Get the current value (0-127) of a specified MIDI controller. 
+\subsection*{Syntax}
+
+
+ ival \textbf{midictrl}
+ inum [, imin] [, imax]
+
+
+ kval \textbf{midictrl}
+ inum [, imin] [, imax]
+\subsection*{Initialization}
+
+
+ \emph{inum}
+ -- MIDI controller number (0-127) 
+
+
+ \emph{imin, imax}
+ -- set minimum and maximum limits on values obtained. 
+\subsection*{Performance}
+
+
+  Get the current value (0-127) of a specified MIDI controller. 
+\subsection*{See Also}
+
+
+ \emph{aftouch}
+, \emph{ampmidi}
+, \emph{cpsmidi}
+, \emph{cpsmidib}
+, \emph{notnum}
+, \emph{octmidi}
+, \emph{octmidib}
+, \emph{pchbend}
+, \emph{pchmidi}
+, \emph{pchmidib}
+, \emph{veloc}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Barry L. Vercoe - Mike Berry &MIT - Mills &May 1997
+
+\end{tabular}
+
+
+
+ 
+
+
+ Thanks goes to Rasmus Ekman for pointing out the correct MIDI channel and controller number ranges.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+midicontrolchange &Up &mididefault
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,172 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{Cscore}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{Cscore}
+
+
+ \emph{Cscore}
+ is a program for generating and manipulating numeric score files. It comprises a number of function subprograms, called into operation by a user-written control program, and can be invoked either as a standalone score preprocessor, or as part of the Csound run-time system: 
+
+
+ 
+
+
+ \textbf{Cscore}
+ [\emph{scorefilein}
+] [\emph{scorefileout}
+]
+
+
+ or
+
+
+ 
+
+
+ \textbf{CSound}
+ [\emph{-C}
+] [otherflags] [\emph{orchname}
+] [\emph{scorename}
+]
+
+
+  The available function programs augment the C language library functions; they can read either standard or pre-sorted score files, can massage and expand the data in various ways, then make it available for performance by a Csound orchestra. 
+
+
+  The user-written control program is also in C, and is compiled and linked to the function programs (or the entire Csound) by the user. It is not essential to know the C language well to write this program, since the function calls have a simple syntax, and are powerful enough to do most of the complicated work. Additional power can come from C later as the need arises. 
+\section{Events, Lists, and Operations}
+
+
+  An event in \emph{Cscore}
+ is equivalent to one statement of a \emph{standard numeric score}
+ or time-warped score (see any score.srt), stored internally in time-warped format. It is either created in-line, or read in from an existing score file (either format). Its main components are an opcode and an array of pfield values. It is stored somewhere in memory, organized by a structure that starts as follows: 
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+typedef struct {
+     CSHDR  h;      /* space-managing header   */
+     long op;       /* opcode-t, w, f, i, a, s or e */
+     long pcnt;     /* number of pfields p1, p2, p3 ... */
+     long strlen;   /* length of optional string argument  */
+     char *strarg;  /* address of optional string argument */
+     float p2orig;  /* unwarped p2, p3   */
+     float p3orig;
+     float offtim;  /* storage used during performance */
+     float p[1];    /* array of pfields p0, p1, p2 ... */
+} EVENT;
+      
+\end{lstlisting}
+
+
+ 
+
+
+  Any function subprogram that creates, reads, or copies an event will return a pointer to the storage structure holding the event data. The event pointer can be used to access any component of the structure, in the form of \emph{e-op}
+ or \emph{e-p[n]}
+. Each newly stored event will give rise to a new pointer, and a sequence of new events will generate a sequence of distinct pointers that must themselves be stored. Groups of event pointers are stored in an event list, which has its own structure: 
+
+
+ 
+\begin{lstlisting}
+typedef struct {
+     CSHDR  h;
+     int nslots;    /* max events in this event list  */
+     int nevents;   /* number of events present  */
+     EVENT *e[1];   /* array of event pointers e0, e1, e2.. */
+} EVLIST;
+      
+\end{lstlisting}
+
+
+ 
+
+
+  Any function that creates or modifies a list will return a pointer to the new list. The list pointer can be used to access any of its component event pointers, in the form of \emph{a-e[n]}
+. Event pointers and list pointers are thus primary tools for manipulating the data of a score file. Pointers and lists of pointers can be copied and reordered without modifying the data values they refer to. This means that notes and phrases can be copied and manipulated from a high level of control. Alternatively, the data within an event or group of events can be modified without changing the event or list pointers. The \emph{Cscore}
+ function subprograms enable scores to be created and manipulated in this way. 
+
+
+  In the following summary of\emph{ Cscore}
+ function calls, some simple naming conventions are used: 
+
+
+ 
+\begin{lstlisting}
+  the symbols e, f are pointers to events (notes);
+  the symbols a, b are pointers to lists (arrays) of such events;
+  the letters ev at the end of a function name signify operation on an event;
+  the letter l at the start of a function name signifies operation on a list.
+  the symbol fp is a score input stream file pointer (FILE *);
+  calling syntax           description
+  e = createv(n);          create a blank event with n pfields
+       int  n;
+  e = defev("...");        defines an event as per the character string ...
+  e = copyev(f);           make a new copy of event f
+  e = getev();             read the next event in the score input file
+  putev(e);                write event e to the score output file
+  putstr("...");           write the string-defined event to score output
+  a = lcreat(n);           create an empty event list with n slots
+       int  n;
+  a = lappev(a,e);         append event e to list a
+  a = lappstrev(a,"...");  append a string-defined event to list a;
+  a = lcopy(b);            copy the list b (but not the events)
+  a = lcopyev(b);          copy the events of b, making a new list
+  a = lget();              read all events from score input, up to next s or e
+  a = lgetnext(nbeats);    read next nbeats beats from score input
+       float  nbeats;
+  a = lgetuntil(beatno);   read all events from score input up to beat beatno 
+       float  beatno;
+  a = lsepf(b);            separate the f statements from list b into list a
+  a = lseptwf(b);          separate the t,w & f statements from list b into list a
+  a = lcat(a,b);           concatenate (append) the list b onto the list a
+  lsort(a);                sort the list a into chronological order by p[2]
+  a = lxins(b,"...");      extract notes of instruments ... (no new events)
+  a = lxtimev(b,from,to);  extract notes of time-span, creating new events
+       float  from, to;
+  lput(a);                 write the events of list a to the score output file
+  lplay(a);                send events of list a to the Csound orchestra for
+                           immediate performance (or print events if no orchestra)
+  relev(e);                release the space of event e
+  lrel(a);                 release the space of list a (but not the events)
+  lrelev(a);               release the events of list a, and the list space
+  fp = getcurfp();         get the currently active input scorefile pointer
+                           (initially finds the command-line input scorefile pointer)
+  fp = filopen("filename"); open another input scorefile (maximum of 5)
+  setcurfp(fp);            make fp the currently active scorefile pointer
+  filclose(fp);            close the scorefile relating to FILE *fp
+      
+\end{lstlisting}
+
+
+ 
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+srconv &Up &Writing a Main Program
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

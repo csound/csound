@@ -1,0 +1,149 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{moogvcf}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{moogvcf}
+moogvcf --  A digital emulation of the Moog diode ladder filter configuration. \subsection*{Description}
+
+
+  A digital emulation of the Moog diode ladder filter configuration. 
+\subsection*{Syntax}
+
+
+ ar \textbf{moogvcf}
+ asig, xfco, xres [, iscale]
+\subsection*{Initialization}
+
+
+ \emph{iscale}
+ (optional, default=1) -- internal scaling factor. Use if \emph{asig}
+ is not in the range +/-1. Input is first divided by \emph{iscale}
+, then output is mutliplied \emph{iscale}
+. Default value is 1. (New in Csound version 3.50) 
+\subsection*{Performance}
+
+
+ \emph{asig}
+ -- input signal 
+
+
+ \emph{xfco}
+ -- filter cut-off frequency in Hz. As of version 3.50, may i-,k-, or a-rate. 
+
+
+ \emph{xres}
+ -- amount of resonance. Self-oscillation occurs when \emph{xres}
+ is approximately one. As of version 3.50, may a-rate, i-rate, or k-rate. 
+
+
+ \emph{moogvcf}
+ is a digital emulation of the Moog diode ladder filter configuration. This emulation is based loosely on the paper ``Analyzing the Moog VCF with Considerations for Digital Implemnetation'' by Stilson and Smith (CCRMA). This version was originally coded in Csound by Josep Comajuncosas. Some modifications and conversion to C were done by Hans Mikelson 
+
+
+ \emph{Note}
+: This filter requires that the input signal be normalized to one. 
+\subsection*{Examples}
+
+
+  Here is an example of the moogvcf opcode. It uses the files \emph{moogvcf.orc}
+ and \emph{moogvcf.sco}
+. 
+
+
+ \textbf{Example 1. Example of the moogvcf opcode.}
+
+\begin{lstlisting}
+/* moogvcf.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  ; Use a nice sawtooth waveform.
+  asig vco 32000, 220, 1
+
+  ; Vary the filter-cutoff frequency from .2 to 2 KHz.
+  kfco line 200, p3, 2000
+
+  ; Set the resonance amount to one.
+  krez init 1
+
+  ; Scale the amplitude to 32768.
+  iscale = 32768
+
+  a1 moogvcf asig, kfco, krez, iscale
+
+  out a1
+endin
+/* moogvcf.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* moogvcf.sco */
+; Table #1, a sine wave for the vco opcode.
+f 1 0 16384 10 1
+
+; Play Instrument #1 for three seconds.
+i 1 0 3
+e
+/* moogvcf.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{biquad}
+, \emph{rezzy}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Author: Hans Mikelson &October 1998
+
+\end{tabular}
+
+
+
+ 
+
+
+ Example written by Kevin Conder.
+
+
+ New in Csound version 3.49
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+moog &Up &moscil
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

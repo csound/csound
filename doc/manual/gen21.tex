@@ -1,0 +1,166 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{GEN21}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{GEN21}
+GEN21 --  Generates tables of different random distributions. \subsection*{Description}
+
+
+  This generates tables of different random distributions. (See also \emph{betarand}
+, \emph{bexprnd}
+, \emph{cauchy}
+, \emph{exprand}
+, \emph{gauss}
+, \emph{linrand}
+, \emph{pcauchy}
+, \emph{poisson}
+, \emph{trirand}
+, \emph{unirand}
+, and \emph{weibull}
+) 
+\subsection*{Syntax}
+
+
+ \textbf{f}
+ \# time size 21 type level [arg1 [arg2]]
+\subsection*{Initialization}
+
+
+ \emph{time}
+ and \emph{size}
+ are the usual GEN function arguments. \emph{level}
+ defines the amplitude. Note that GEN21 is not self-normalizing as are most other GEN functions. \emph{type}
+ defines the distribution to be used as follow: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ 1 = Uniform (positive numbers only)
+
+\item 
+
+ 2 = Linear (positive numbers only)
+
+\item 
+
+ 3 = Triangular (positive and negative numbers)
+
+\item 
+
+ 4 = Exponential (positive numbers only)
+
+\item 
+
+ 5 = Biexponential (positive and negative numbers)
+
+\item 
+
+ 6 = Gaussian (positive and negative numbers)
+
+\item 
+
+ 7 = Cauchy (positive and negative numbers)
+
+\item 
+
+ 8 = Positive Cauchy (positive numbers only)
+
+\item 
+
+ 9 = Beta (positive numbers only)
+
+\item 
+
+ 10 = Weibull (positive numbers only)
+
+\item 
+
+ 11 = Poisson (positive numbers only)
+
+
+\end{itemize}
+ Of all these cases only 9 (Beta) and 10 (Weibull) need extra arguments. Beta needs two arguments and Weibull one. \subsection*{Examples}
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+\emph{f}
+1 0 1024 21 1       ; Uniform (white noise)
+\emph{f}
+1 0 1024 21 6       ; Gaussian
+\emph{f}
+1 0 1024 21 9 1 1 2 ; Beta (note that level precedes arguments)
+\emph{f}
+1 0 1024 21 10 1 2  ; Weibull
+        
+\end{lstlisting}
+
+
+ 
+ All of the above additions were designed by the author between May and December 1994, under the supervision of Dr. Richard Boulanger. \subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Paris Smaragdis &MIT, Cambridge &1995
+
+\end{tabular}
+
+
+
+ 
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: John ffitch &University of Bath/Codemist Ltd. &Bath, UK
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 3.2
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+GEN20 &Up &GEN22
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

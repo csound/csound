@@ -1,0 +1,61 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{init}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{init}
+init --  Puts the value of the i-time expression into a k- or a-rate variable. \subsection*{Syntax}
+
+
+ ar \textbf{init}
+ iarg
+
+
+ ir \textbf{init}
+ iarg
+
+
+ kr \textbf{init}
+ iarg
+\subsection*{Description}
+
+
+  Put the value of the i-time expression into a k- or a-rate variable. 
+\subsection*{Initialization}
+
+
+  Puts the value of the i-time expression \emph{iarg}
+ into a k- or a-rate variable, i.e., initialize the result. Note that \emph{init}
+ provides the only case of an init-time statement being permitted to write into a perf-time (k- or a-rate) result cell; the statement has no effect at perf-time. 
+\subsection*{See Also}
+
+
+ \emph{=}
+, \emph{divz}
+, \emph{tival}
+
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+inh &Up &initc14
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

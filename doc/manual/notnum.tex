@@ -1,0 +1,114 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{notnum}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{notnum}
+notnum --  Get a note number from a MIDI event. \subsection*{Description}
+
+
+  Get a note number from a MIDI event. 
+\subsection*{Syntax}
+
+
+ ival \textbf{notnum}
+
+\subsection*{Performance}
+
+
+  Get the MIDI byte value (0 - 127) denoting the note number of the current event. 
+\subsection*{Examples}
+
+
+  Here is an example of the notnum opcode. It uses the files \emph{notnum.orc}
+ and \emph{notnum.sco}
+. 
+
+
+ \textbf{Example 1. Example of the notnum opcode.}
+
+\begin{lstlisting}
+/* notnum.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  i1 notnum
+
+  print i1
+endin
+/* notnum.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* notnum.sco */
+; Play Instrument #1 for 12 seconds.
+i 1 0 12
+e
+/* notnum.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{aftouch}
+, \emph{ampmidi}
+, \emph{cpsmidi}
+, \emph{cpsmidib}
+, \emph{midictrl}
+, \emph{octmidi}
+, \emph{octmidib}
+, \emph{pchbend}
+, \emph{pchmidi}
+, \emph{pchmidib}
+, \emph{veloc}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Barry L. Vercoe - Mike Berry &MIT - Mills &May 1997
+
+\end{tabular}
+
+
+
+ 
+
+
+ Example written by Kevin Conder.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+noteondur2 &Up &nreverb
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

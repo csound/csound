@@ -1,0 +1,110 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{GEN27}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{GEN27}
+GEN27 --  Construct functions from segments of straight lines in breakpoint fashion. \subsection*{Description}
+
+
+  Construct functions from segments of straight lines in breakpoint fashion. 
+\subsection*{Syntax}
+
+
+ \textbf{f}
+ \# time size 27 x1 y1 x2 y2 x3 ...
+\subsection*{Initialization}
+
+
+ \emph{size }
+ -- number of points in the table. Must be a power of 2 or power-of-2 plus 1 (see \emph{f statement}
+). 
+
+
+ \emph{x1, x2, x3,}
+ etc. -- locations in table at which to attain the following y value. Must be in increasing order. If the last value is less than size, then the rest will be set to zero. Should not be negative but can be zero. 
+
+
+ \emph{y1, y2, y3,}
+, etc. -- Breakpoint values attained at the location specified by the preceding x value. 
+
+
+ 
+
+
+\begin{tabular}{cc}
+\textbf{Note}
+ \\
+  &
+
+  If p4 is positive, functions are post-normalized (rescaled to a maximum absolute value of 1 after generation). A negative p4 will cause rescaling to be skipped. 
+
+
+\end{tabular}
+
+\subsection*{Examples}
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+\emph{f}
+ 1 0 257 27 0 0 100 1 200 -1 256 0
+        
+\end{lstlisting}
+
+
+ 
+ This describes a function which begins at 0, rises to 1 at the 100th table location, falls to -1, by the 200th location, and returns to 0 by the end of the table. The interpolation is linear. \subsection*{See Also}
+
+
+ \emph{f statement}
+, \emph{GEN25}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: John ffitch &University of Bath/Codemist Ltd. &Bath, UK
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 3.49
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+GEN25 &Up &GEN28
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

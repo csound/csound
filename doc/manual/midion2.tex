@@ -1,0 +1,86 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{midion2}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{midion2}
+midion2 --  Sends noteon and noteoff messages to the MIDI OUT port. \subsection*{Description}
+
+
+  Sends noteon and noteoff messages to the MIDI OUT port when triggered by a value different than zero. 
+\subsection*{Syntax}
+
+
+ \textbf{midion2}
+ kchn, knum, kvel, ktrig
+\subsection*{Performance}
+
+
+ \emph{kchn}
+ -- MIDI channel (1-16) 
+
+
+ \emph{knum}
+ -- MIDI note number (0-127) 
+
+
+ \emph{kvel}
+ -- note velocity (0-127) 
+
+
+ \emph{ktrig}
+ -- trigger input signal (normally 0) 
+
+
+  Similar to \emph{midion}
+, this opcode sends noteon and noteoff messages to the MIDI out port, but only when \emph{ktrig}
+ is non-zero. This opcode is can work together with the output of the \emph{trigger}
+ opcode. 
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Gabriel Maldonado &Italy &1998
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 3.492
+
+
+ Thanks goes to Rasmus Ekman for pointing out the correct MIDI channel and controller number ranges.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+midion &Up &midiout
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

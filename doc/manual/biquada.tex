@@ -1,0 +1,95 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{biquada}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{biquada}
+biquada --  A sweepable general purpose biquadratic digital filter with a-rate parameters. \subsection*{Description}
+
+
+  A sweepable general purpose biquadratic digital filter. 
+\subsection*{Syntax}
+
+
+ ar \textbf{biquada}
+ asig, ab0, ab1, ab2, aa0, aa1, aa2 [, iskip]
+\subsection*{Initialization}
+
+
+ \emph{iskip}
+ (optional, default=0) -- if non-zero, intialization will be skipped. Default value 0. (New in Csound version 3.50) 
+\subsection*{Performance}
+
+
+ \emph{asig}
+ -- input signal 
+
+
+ \emph{biquada}
+ is a general purpose biquadratic digital filter of the form: 
+
+
+   a0*y(n) + a1*y[n-1] + a2*y[n-2] = b0*x[n] + b1*x[n-1] + b2*x[n-2]\\ 
+       
+
+
+  This filter has the following frequency response: 
+
+
+          B(Z)   b0 + b1*Z-1  + b2*Z-2\\ 
+   H(Z) = ---- = ------------------\\ 
+          A(Z)   a0 + a1*Z-1  + a2*Z-2\\ 
+       
+
+
+  This type of filter is often encountered in digital signal processing literature. It allows six user-defined a-rate coefficients. 
+\subsection*{See Also}
+
+
+ \emph{biquad}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Author: Hans Mikelson &October 1998
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 3.49
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+biquad &Up &birnd
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

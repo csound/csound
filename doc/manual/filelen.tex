@@ -1,0 +1,123 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{filelen}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{filelen}
+filelen --  Returns the length of a sound file. \subsection*{Description}
+
+
+  Returns the length of a sound file. 
+\subsection*{Syntax}
+
+
+ ir \textbf{filelen}
+ ifilcod
+\subsection*{Initialization}
+
+
+ \emph{ifilcod}
+ -- sound file to be queried 
+\subsection*{Performance}
+
+
+ \emph{filelen}
+ returns the length of the sound file \emph{ifilcod}
+ in seconds. 
+\subsection*{Examples}
+
+
+  Here is an example of the filelen opcode. It uses the files \emph{filelen.orc}
+, \emph{filelen.sco}
+, and \emph{mary.wav}
+. 
+
+
+ \textbf{Example 1. Example of the filelen opcode.}
+
+\begin{lstlisting}
+/* filelen.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  ; Print out the length of the audio file 
+  ; "mary.wav" in seconds. 
+  ilen  filelen "mary.wav"
+  print ilen
+endin
+/* filelen.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* filelen.sco */
+; Play Instrument #1 for 1 second.
+i 1 0 1
+e
+/* filelen.sco */
+        
+\end{lstlisting}
+ The audio file ``mary.wav'' is 3.5 seconds long. So \emph{filelen}
+'s output should include a line like this: \begin{lstlisting}
+instr 1:  ilen = 3.501
+      
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{filenchnls}
+, \emph{filepeak}
+, \emph{filesr}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Author: Matt Ingalls &July 1999
+
+\end{tabular}
+
+
+
+ 
+
+
+ Example written by Kevin Conder.
+
+
+ New in Csound version 3.57
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+expsegr &Up &filenchnls
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,90 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{flashtxt}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{flashtxt}
+flashtxt --  Allows text to be displayed from instruments like sliders \subsection*{Description}
+
+
+  Allows text to be displayed from instruments like sliders etc. (only on Unix and Windows at present) 
+\subsection*{Syntax}
+
+
+ \textbf{flashtxt}
+ iwhich, String
+\subsection*{Initialization}
+
+
+ \emph{iwhich}
+ -- the number of the window. 
+
+
+ \emph{String}
+ -- the string to be displayed. 
+\subsection*{Performance}
+
+
+  A window is created, identified by the iwhich argument, with the text string displayed. If the text is replaced by a number then the window id deleted. Note that the text windows are globally numbered so different instruments can change the text, and the window survives the instance of the instrument. 
+\subsection*{Examples}
+
+
+  Here is an example of the flashtxt opcode. It uses the files \emph{flashtxt.orc}
+ and \emph{flashtxt.sco}
+. 
+
+
+ \textbf{Example 1. Example of the flashtxt opcode.}
+
+\begin{lstlisting}
+/* flashtxt.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 44100
+ksmps = 1
+nchnls = 1
+
+instr 1
+  flashtxt 1, "Instr 1 live"
+  ao oscil 4000, 440, 1
+  out ao
+endin
+/* flashtxt.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* flashtxt.sco */
+; Table 1: an ordinary sine wave.
+f 1 0 32768 10 1 
+
+; Play Instrument #1 for three seconds.
+i 1 0 3
+e
+/* flashtxt.sco */
+        
+\end{lstlisting}
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+flanger &Up &FLbox
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

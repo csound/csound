@@ -1,0 +1,78 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{chanctrl}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{chanctrl}
+chanctrl --  Get the current value of a MIDI channel controller. \subsection*{Description}
+
+
+  Get the current value of a controller and optionally map it onto specified range. 
+\subsection*{Syntax}
+
+
+ ival \textbf{chanctrl}
+ ichnl, ictlno [, ilow] [, ihigh]
+
+
+ kval \textbf{chanctrl}
+ ichnl, ictlno [, ilow] [, ihigh]
+\subsection*{Initialization}
+
+
+ \emph{ichnl}
+ -- the MIDI channel (1-16). 
+
+
+ \emph{ictlno}
+ -- the MIDI controller number (0-127). 
+
+
+ \emph{ilow}
+, \emph{ihigh}
+ -- low and high ranges for mapping 
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Mike Berry &Mills College &May, 1997
+
+\end{tabular}
+
+
+
+ 
+
+
+ Thanks goes to Rasmus Ekman for pointing out the correct MIDI channel and controller number ranges.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+cggoto &Up &checkbox
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

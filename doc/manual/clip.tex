@@ -1,0 +1,234 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{clip}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{clip}
+clip --  Clips a signal to a predefined limit. \subsection*{Description}
+
+
+  Clips an a-rate signal to a predefined limit, in a ``soft'' manner, using one of three methods. 
+\subsection*{Syntax}
+
+
+ ar \textbf{clip}
+ asig, imeth, ilimit [, iarg]
+\subsection*{Initialization}
+
+
+ \emph{imeth}
+ -- selects the clipping method. The default is 0. The methods are: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ 0 = Bram de Jong method (default)
+
+\item 
+
+ 1 = sine clipping
+
+\item 
+
+ 2 = tanh clipping
+
+
+\end{itemize}
+
+
+ \emph{ilimit}
+ -- limiting value 
+
+
+ \emph{iarg}
+ (optional, default=0.5) -- when \emph{imeth}
+ = 0, indicates the point at which clipping starts, in the range 0 - 1. Not used when \emph{imeth}
+ = 1 or \emph{imeth}
+ = 2. Default is 0.5. 
+\subsection*{Performance}
+
+
+ \emph{asig}
+ -- a-rate input signal 
+
+
+  The Bram de Jong method (\emph{imeth}
+ = 0) applies the algorithm: 
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+|\emph{x}
+| > \emph{a}
+:     f(\emph{x}
+) = sin(\emph{x}
+) * (a+(\emph{x-a}
+)/(1+((\emph{x-a}
+)/(1-\emph{a}
+))2 |\emph{x}
+| > 1: f(\emph{x}
+) = sin(\emph{x}
+) * (\emph{a}
++1)/2
+        
+\end{lstlisting}
+
+
+ 
+
+
+  This method requires that \emph{asig}
+ be normalized to 1. 
+
+
+  The second method (\emph{imeth}
+ = 1) is the sine clip: 
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+|\emph{x}
+| < \emph{limit}
+: f(\emph{x}
+) = \emph{limit}
+ * sin(&#960;*\emph{x}
+/(2*\emph{limit}
+)) f(\emph{x}
+) = \emph{limit}
+ * sin(\emph{x}
+)
+        
+\end{lstlisting}
+
+
+ 
+
+
+  The third method (imeth = 0) is the tanh clip: 
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+|\emph{x}
+| < \emph{limit}
+: f(\emph{x}
+) = \emph{limit}
+ * tanh(\emph{x/limit}
+)/tanh(1) f(\emph{x}
+) = \emph{limit}
+ * sin(\emph{x}
+)
+        
+\end{lstlisting}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cc}
+\textbf{Note}
+ \\
+  &
+
+  Method 1 appears to be non-functional at release of Csound version 4.07. 
+
+
+\end{tabular}
+
+\subsection*{Examples}
+
+
+  Here is an example of the clip opcode. It uses the files \emph{clip.orc}
+ and \emph{clip.sco}
+. 
+
+
+ \textbf{Example 1. Example of the clip opcode.}
+
+\begin{lstlisting}
+/* clip.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  ; Generate a noisy waveform.
+  arnd rand 44100
+  ; Clip the noisy waveform's amplitude to 20,000
+  a1 clip arnd, 2, 20000
+
+  out a1
+endin
+/* clip.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* clip.sco */
+; Play Instrument #1 for one second.
+i 1 0 1
+e
+/* clip.sco */
+        
+\end{lstlisting}
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cccc}
+Author: John ffitch &University of Bath, Codemist Ltd. &Bath, UK &August, 2000
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 4.07
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+clfilt &Up &clock
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,96 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{lpread}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{lpread}
+lpread --  Reads a control file of time-ordered information frames. \subsection*{Description}
+
+
+  Reads a control file of time-ordered information frames. 
+\subsection*{Syntax}
+
+
+ krmsr, krmso, kerr, kcps \textbf{lpread}
+ ktimpnt, ifilcod [, inpoles] [, ifrmrate]
+\subsection*{Initialization}
+
+
+ \emph{ifilcod}
+ -- integer or character-string denoting a control-file (reflection coefficients and four parameter values) derived from n-pole linear predictive spectral analysis of a source audio signal. An integer denotes the suffix of a file \emph{lp.m}
+; a character-string (in double quotes) gives a filename, optionally a full pathname. If not fullpath, the file is sought first in the current directory, then in that of the environment variable SADIR (if defined). Memory usage depends on the size of the file, which is held entirely in memory during computation but shared by multiple calls (see also \emph{adsyn}
+, \emph{pvoc}
+). 
+
+
+ \emph{inpoles}
+ (optional, default=0) -- number of poles in the lpc analysis. It is required only when the control file does not have a header; it is ignored when a header is detected. 
+
+
+ \emph{ifrmrate}
+ (optional, default=0) -- frame rate per second in the lpc analysis. It is required only when the control file does not have a header; it is ignored when a header is detected. 
+\subsection*{Performance}
+
+
+ \emph{lpread}
+ accesses a control file of time-ordered information frames, each containing n-pole filter coefficients derived from linear predictive analysis of a source signal at fixed time intervals (e.g. 1/100 of a second), plus four parameter values: 
+
+
+ \emph{krmsr}
+ -- root-mean-square (rms) of the residual of analysis 
+
+
+ \emph{krmso}
+ -- rms of the original signal 
+
+
+ \emph{kerr}
+ -- the normalized error signal 
+
+
+ \emph{kcps}
+ -- pitch in Hz 
+
+
+ \emph{ktimpnt}
+ -- The passage of time, in seconds, through the analysis file. \emph{ktimpnt}
+ must always be positive, but can move forwards or backwards in time, be stationary or discontinuous, as a pointer into the analysis file. 
+
+
+ \emph{lpread}
+ gets its values from the control file according to the input value \emph{ktimpnt}
+ (in seconds). If \emph{ktimpnt}
+ proceeds at the analysis rate, time-normal synthesis will result; proceeding at a faster, slower, or variable rate will result in time-warped synthesis. At each k-period, \emph{lpread}
+ interpolates between adjacent frames to more accurately determine the parameter values (presented as output) and the filter coefficient settings (passed internally to a subsequent \emph{lpreson}
+). 
+\subsection*{See Also}
+
+
+ \emph{lpfreson}
+, \emph{lpreson}
+
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+lposcil3 &Up &lpreson
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,60 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{delay1}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{delay1}
+delay1 --  Delays an input signal by one sample. \subsection*{Description}
+
+
+  Delays an input signal by one sample. 
+\subsection*{Syntax}
+
+
+ ar \textbf{delay1}
+ asig [, iskip]
+\subsection*{Initialization}
+
+
+ \emph{iskip}
+ (optional, default=0) -- initial disposition of delay-loop data space (see \emph{reson}
+). The default value is 0. 
+\subsection*{Performance}
+
+
+ \emph{delay1}
+ is a special form of delay that serves to delay the audio signal \emph{asig}
+ by just one sample. It is thus functionally equivalent to the \emph{delay}
+ opcode but is more efficient in both time and space. This unit is particularly useful in the fabrication of generalized non-recursive filters. 
+\subsection*{See Also}
+
+
+ \emph{delay}
+, \emph{delayr}
+, \emph{delayw}
+
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+delay &Up &delayr
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,138 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{atone}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{atone}
+atone --  A notch filter whose transfer functions are the complements of the tone opcode. \subsection*{Description}
+
+
+  A notch filter whose transfer functions are the complements of the tone opcode. 
+\subsection*{Syntax}
+
+
+ ar \textbf{atone}
+ asig, khp [, iskip]
+\subsection*{Initialization}
+
+
+ \emph{iskip}
+ (optional, default=0) -- initial disposition of internal data space. Since filtering incorporates a feedback loop of previous output, the initial status of the storage space used is significant. A zero value will clear the space; a non-zero value will allow previous information to remain. The default value is 0. 
+\subsection*{Performance}
+
+
+ \emph{ar}
+ -- the output signal at audio rate. 
+
+
+ \emph{asig}
+ -- the input signal at audio rate. 
+
+
+ \emph{khp}
+ -- the response curve's half-power point, in Hertz. Half power is defined as peak power / root 2. 
+
+
+ \emph{atone}
+ is a filter whose transfer functions is the complement of \emph{tone}
+. \emph{atone}
+ is thus a form of high-pass filter whose transfer functions represent the ``filtered out'' aspects of their complements. However, power scaling is not normalized in \emph{atone}
+ but remains the true complement of the corresponding unit. Thus an audio signal, filtered by parallel matching \emph{tone}
+ and \emph{atone}
+ units, would under addition simply reconstruct the original spectrum. 
+
+
+  This property is particularly useful for controlled mixing of different sources (see \emph{lpreson}
+). Complex response curves such as those with multiple peaks can be obtained by using a bank of suitable filters in series. (The resultant response is the product of the component responses.) In such cases, the combined attenuation may result in a serious loss of signal power, but this can be regained by the use of \emph{balance}
+. 
+\subsection*{Examples}
+
+
+  Here is an example of the atone opcode. It uses the files \emph{atone.orc}
+ and \emph{atone.sco}
+. 
+
+
+ \textbf{Example 1. Example of the atone opcode.}
+
+\begin{lstlisting}
+/* atone.orc */
+; Initialize the global variables.
+sr = 22050
+kr = 2205
+ksmps = 10
+nchnls = 1
+
+; Instrument #1 - an unfiltered noise waveform.
+instr 1
+  ; Generate a white noise signal.
+  asig rand 20000
+
+  out asig
+endin
+
+
+; Instrument #2 - a filtered noise waveform.
+instr 2
+  ; Generate a white noise signal.
+  asig rand 20000
+
+  ; Filter it using the atone opcode.
+  khp init 2000
+  afilt atone asig, khp
+
+  ; Clip the filtered signal's amplitude to 85 dB.
+  a1 clip afilt, 2, ampdb(85)
+  out a1
+endin
+/* atone.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* atone.sco */
+; Play Instrument #1 for two seconds.
+i 1 0 2
+; Play Instrument #2 for two seconds.
+i 2 2 2
+e
+/* atone.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{areson}
+, \emph{aresonk}
+, \emph{atonek}
+, \emph{port}
+, \emph{portk}
+, \emph{reson}
+, \emph{resonk}
+, \emph{tone}
+, \emph{tonek}
+
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+aresonk &Up &atonek
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,117 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{midiin}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{midiin}
+midiin --  Returns a generic MIDI message received by the MIDI IN port. \subsection*{Description}
+
+
+  Returns a generic MIDI message received by the MIDI IN port 
+\subsection*{Syntax}
+
+
+ kstatus, kchan, kdata1, kdata2 \textbf{midiin}
+
+\subsection*{Performance}
+
+
+ \emph{kstatus}
+ -- the type of MIDI message. Can be: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ 128 (note off)
+
+\item 
+
+ 144 (note on)
+
+\item 
+
+ 160 (polyphonic aftertouch)
+
+\item 
+
+ 176 (control change)
+
+\item 
+
+ 192 (program change)
+
+\item 
+
+ 208 (channel aftertouch)
+
+\item 
+
+ 224 (pitch bend
+
+\item 
+
+ 0 if no MIDI message are pending in the MIDI IN buffer
+
+
+\end{itemize}
+
+
+ \emph{kchan}
+ -- MIDI channel (1-16) 
+
+
+ \emph{kdata1, kdata2}
+ -- message-dependent data values 
+
+
+ \emph{midiin}
+ has no input arguments, because it reads at the MIDI in port implicitly. It works at k-rate. Normally (i.e., when no messages are pending) \emph{kstatus}
+ is zero, only when MIDI data are present in the MIDI IN buffer, is \emph{kstatus}
+ set to the type of the relevant messages. 
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Gabriel Maldonado &Italy &1998
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 3.492
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+mididefault &Up &midinoteoff
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,3336 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{Quick Reference}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{Quick Reference}
+
+
+ (a \textbf{!=}
+ b \textbf{?}
+ v1 \textbf{:}
+ v2)
+
+
+ \textbf{\#define}
+ NAME \# replacement text \#
+
+
+ \textbf{\#define}
+ NAME(a' b' c') \# replacement text \#
+
+
+ \textbf{\#include}
+ ``filename''
+
+
+ \textbf{\#undef}
+ NAME
+
+
+ \textbf{\$NAME}
+
+
+
+ a \textbf{\%}
+ b (no rate restriction)
+
+
+ a \textbf{\&\&}
+ b (logical AND; not audio-rate)
+
+
+ (a \textbf{$>$}
+ b \textbf{?}
+ v1 \textbf{:}
+ v2)
+
+
+ (a \textbf{$>$=}
+ b \textbf{?}
+ v1 \textbf{:}
+ v2)
+
+
+ (a \textbf{$<$}
+ b \textbf{?}
+ v1 \textbf{:}
+ v2)
+
+
+ (a \textbf{$<$=}
+ b \textbf{?}
+ v1 \textbf{:}
+ v2)
+
+
+ a \textbf{*}
+ b (no rate restriction)
+
+
+ \textbf{+}
+ a (no rate restriction)
+
+
+ \textbf{\&\#8722;}
+ a (no rate restriction)
+
+
+ a \textbf{/}
+ b (no rate restriction)
+
+
+ ar \textbf{=}
+ xarg
+
+
+ ir \textbf{=}
+ iarg
+
+
+ kr \textbf{=}
+ karg
+
+
+ (a \textbf{==}
+ b \textbf{?}
+ v1 \textbf{:}
+ v2)
+
+
+ a \textbf{\^{}}
+ b (b not audio-rate)
+
+
+ a \textbf{||}
+ b (logical OR; not audio-rate)
+
+
+ \textbf{0dbfs}
+ = iarg
+
+
+ \textbf{a}
+(x) (control-rate args only)
+
+
+ \textbf{abs}
+(x) (no rate restriction)
+
+
+ ir \textbf{active}
+ insnum
+
+
+ kr \textbf{active}
+ kinsnum
+
+
+ ar \textbf{adsr}
+ iatt, idec, islev, irel [, idel]
+
+
+ kr \textbf{adsr}
+ iatt, idec, islev, irel [, idel]
+
+
+ ar \textbf{adsyn}
+ kamod, kfmod, ksmod, ifilcod
+
+
+ ar \textbf{adsynt}
+ kamp, kcps, iwfn, ifreqfn, iampfn, icnt [, iphs]
+
+
+ kaft \textbf{aftouch}
+ [imin] [, imax]
+
+
+ ar \textbf{alpass}
+ asig, krvt, ilpt [, iskip] [, insmps]
+
+
+ \textbf{ampdbfs}
+(x) (no rate restriction)
+
+
+ \textbf{ampdb}
+(x) (no rate restriction)
+
+
+ iamp \textbf{ampmidi}
+ iscal [, ifn]
+
+
+ kr \textbf{aresonk}
+ ksig, kcf, kbw [, iscl] [, iskip]
+
+
+ ar \textbf{areson}
+ asig, kcf, kbw [, iscl] [, iskip]
+
+
+ kr \textbf{atonek}
+ ksig, khp [, iskip]
+
+
+ ar \textbf{atone}
+ asig, khp [, iskip]
+
+
+ ar \textbf{atonex}
+ asig, khp [, inumlayer] [, iskip]
+
+
+ a1, a2 \textbf{babo}
+ asig, ksrcx, ksrcy, ksrcz, irx, iry, irz [, idiff] [, ifno]
+
+
+ ar \textbf{balance}
+ asig, acomp [, ihp] [, iskip]
+
+
+ ar \textbf{bamboo}
+ kamp, idettack [, inum] [, idamp] [, imaxshake] [, ifreq] [, ifreq1] [, ifreq2]
+
+
+ a1 \textbf{bbcutm}
+ asource, ibps, isubdiv, ibarlength, iphrasebars, inumrepeats [, istutterspeed] [, istutterchance] [, ienvchoice ]
+
+
+ a1,a2 \textbf{bbcuts}
+ asource1, asource2, ibps, isubdiv, ibarlength, iphrasebars, inumrepeats [, istutterspeed] [, istutterchance] [, ienvchoice]
+
+
+ ar \textbf{betarand}
+ krange, kalpha, kbeta
+
+
+ ir \textbf{betarand}
+ krange, kalpha, kbeta
+
+
+ kr \textbf{betarand}
+ krange, kalpha, kbeta
+
+
+ ar \textbf{bexprnd}
+ krange
+
+
+ ir \textbf{bexprnd}
+ krange
+
+
+ kr \textbf{bexprnd}
+ krange
+
+
+ ar \textbf{biquada}
+ asig, ab0, ab1, ab2, aa0, aa1, aa2 [, iskip]
+
+
+ ar \textbf{biquad}
+ asig, kb0, kb1, kb2, ka0, ka1, ka2 [, iskip]
+
+
+ \textbf{birnd}
+(x) (init- or control-rate only)
+
+
+ ar \textbf{bqrez}
+ asig, xfco, xres [, imode]
+
+
+ ar \textbf{butbp}
+ asig, kfreq, kband [, iskip]
+
+
+ ar \textbf{butbr}
+ asig, kfreq, kband [, iskip]
+
+
+ ar \textbf{buthp}
+ asig, kfreq [, iskip]
+
+
+ ar \textbf{butlp}
+ asig, kfreq [, iskip]
+
+
+ ar \textbf{butterbp}
+ asig, kfreq, kband [, iskip]
+
+
+ ar \textbf{butterbr}
+ asig, kfreq, kband [, iskip]
+
+
+ ar \textbf{butterhp}
+ asig, kfreq [, iskip]
+
+
+ ar \textbf{butterlp}
+ asig, kfreq [, iskip]
+
+
+ kr \textbf{button}
+ knum
+
+
+ ar \textbf{buzz}
+ xamp, xcps, knh, ifn [, iphs]
+
+
+ ar \textbf{cabasa}
+ iamp, idettack [, inum] [, idamp] [, imaxshake]
+
+
+ ar \textbf{cauchy}
+ kalpha
+
+
+ ir \textbf{cauchy}
+ kalpha
+
+
+ kr \textbf{cauchy}
+ kalpha
+
+
+ \textbf{cent}
+(x) 
+
+
+ \textbf{cggoto}
+ condition, label
+
+
+ ival \textbf{chanctrl}
+ ichnl, ictlno [, ilow] [, ihigh]
+
+
+ kval \textbf{chanctrl}
+ ichnl, ictlno [, ilow] [, ihigh]
+
+
+ kr \textbf{checkbox}
+ knum
+
+
+ \textbf{cigoto}
+ condition, label
+
+
+ \textbf{ckgoto}
+ condition, label
+
+
+ \textbf{clear}
+ avar1 [, avar2] [, avar3] [...]
+
+
+ ar \textbf{clfilt}
+ asig, kfreq, itype, inpol [, ikind] [, ipbr] [, isba] [, iskip]
+
+
+ ar \textbf{clip}
+ asig, imeth, ilimit [, iarg]
+
+
+ \textbf{clockoff}
+ inum
+
+
+ \textbf{clockon}
+ inum
+
+
+ \textbf{cngoto}
+ condition, label
+
+
+ ar \textbf{comb}
+ asig, krvt, ilpt [, iskip] [, insmps]
+
+
+ kr \textbf{control}
+ knum
+
+
+ ar1 [, ar2] [, ar3] [, ar4] \textbf{convle}
+ ain, ifilcod [, ichannel]
+
+
+ ar1 [, ar2] [, ar3] [, ar4] \textbf{convolve}
+ ain, ifilcod [, ichannel]
+
+
+ \textbf{cosh}
+(x) (no rate restriction)
+
+
+ \textbf{cosinv}
+(x) (no rate restriction)
+
+
+ \textbf{cos}
+(x) (no rate restriction)
+
+
+ icps \textbf{cps2pch}
+ ipch, iequal
+
+
+ icps \textbf{cpsmidib}
+ [irange]
+
+
+ kcps \textbf{cpsmidib}
+ [irange]
+
+
+ icps \textbf{cpsmidi}
+
+
+
+ \textbf{cpsoct}
+ (oct) (no rate restriction)
+
+
+ \textbf{cpspch}
+ (pch) (init- or control-rate args only)
+
+
+ icps \textbf{cpstmid}
+ ifn
+
+
+ icps \textbf{cpstuni}
+ index, ifn
+
+
+ kcps \textbf{cpstun}
+ ktrig, kindex, kfn
+
+
+ icps \textbf{cpsxpch}
+ ipch, iequal, irepeat, ibase
+
+
+ \textbf{cpuprc}
+ insnum, ipercent
+
+
+ ar \textbf{cross2}
+ ain1, ain2, isize, ioverlap, iwin, kbias
+
+
+ ar \textbf{crunch}
+ iamp, idettack [, inum] [, idamp] [, imaxshake]
+
+
+ idest \textbf{ctrl14}
+ ichan, ictlno1, ictlno2, imin, imax [, ifn]
+
+
+ kdest \textbf{ctrl14}
+ ichan, ictlno1, ictlno2, kmin, kmax [, ifn]
+
+
+ idest \textbf{ctrl21}
+ ichan, ictlno1, ictlno2, ictlno3, imin, imax [, ifn]
+
+
+ kdest \textbf{ctrl21}
+ ichan, ictlno1, ictlno2, ictlno3, kmin, kmax [, ifn]
+
+
+ idest \textbf{ctrl7}
+ ichan, ictlno, imin, imax [, ifn]
+
+
+ kdest \textbf{ctrl7}
+ ichan, ictlno, kmin, kmax [, ifn]
+
+
+ \textbf{ctrlinit}
+ ichnl, ictlno1, ival1 [, ictlno2] [, ival2] [, ictlno3] [, ival3] [,...ival32]
+
+
+ aout \textbf{cuserrnd}
+ kmin, kmax, ktableNum
+
+
+ iout \textbf{cuserrnd}
+ imin, imax, itableNum
+
+
+ kout \textbf{cuserrnd}
+ kmin, kmax, ktableNum
+
+
+ ar \textbf{dam}
+ asig, kthreshold, icomp1, icomp2, irtime, iftime
+
+
+ \textbf{dbamp}
+(x) (init-rate or control-rate args only)
+
+
+ \textbf{dbfsamp}
+(x) (init-rate or control-rate args only)
+
+
+ \textbf{db}
+(x)
+
+
+ ar \textbf{dcblock}
+ ain [, igain]
+
+
+ ar \textbf{dconv}
+ asig, isize, ifn
+
+
+ ar \textbf{delay1}
+ asig [, iskip]
+
+
+ ar \textbf{delayr}
+ idlt [, iskip]
+
+
+ ar \textbf{delay}
+ asig, idlt [, iskip]
+
+
+ \textbf{delayw}
+ asig
+
+
+ ar \textbf{deltap3}
+ xdlt
+
+
+ ar \textbf{deltapi}
+ xdlt
+
+
+ ar \textbf{deltapn}
+ xnumsamps
+
+
+ ar \textbf{deltap}
+ kdlt
+
+
+ aout \textbf{deltapx}
+ adel, iwsize
+
+
+ \textbf{deltapxw}
+ ain, adel, iwsize
+
+
+ ar \textbf{diff}
+ asig [, iskip]
+
+
+ kr \textbf{diff}
+ ksig [, iskip]
+
+
+ ar1 [,ar2] [, ar3] [, ar4] \textbf{diskin}
+ ifilcod, kpitch [, iskiptim] [, iwraparound] [, iformat]
+
+
+ \textbf{dispfft}
+ xsig, iprd, iwsiz [, iwtyp] [, idbout] [, iwtflg]
+
+
+ \textbf{display}
+ xsig, iprd [, inprds] [, iwtflg]
+
+
+ ar \textbf{distort1}
+ asig, kpregain, kpostgain, kshape1, kshape2
+
+
+ ar \textbf{divz}
+ xa, xb, ksubst
+
+
+ ir \textbf{divz}
+ ia, ib, isubst
+
+
+ kr \textbf{divz}
+ ka, kb, ksubst
+
+
+ kr \textbf{downsamp}
+ asig [, iwlen]
+
+
+ ar \textbf{dripwater}
+ kamp, idettack [, inum] [, idamp] [, imaxshake] [, ifreq] [, ifreq1] [, ifreq2]
+
+
+ \textbf{dumpk2}
+ ksig1, ksig2, ifilname, iformat, iprd
+
+
+ \textbf{dumpk3}
+ ksig1, ksig2, ksig3, ifilname, iformat, iprd
+
+
+ \textbf{dumpk4}
+ ksig1, ksig2, ksig3, ksig4, ifilname, iformat, iprd
+
+
+ \textbf{dumpk}
+ ksig, ifilname, iformat, iprd
+
+
+ aout \textbf{duserrnd}
+ ktableNum
+
+
+ iout \textbf{duserrnd}
+ itableNum
+
+
+ kout \textbf{duserrnd}
+ ktableNum
+
+
+ \textbf{elseif}
+ xa R xb \textbf{then}
+
+
+
+ \textbf{else}
+
+
+
+ \textbf{endif}
+
+
+
+ \textbf{endin}
+
+
+
+ \textbf{endop}
+
+
+
+ ar \textbf{envlpxr}
+ xamp, irise, idur, idec, ifn, iatss, iatdec [, ixmod] [,irind]
+
+
+ kr \textbf{envlpxr}
+ kamp, irise, idur, idec, ifn, iatss, iatdec [, ixmod] [,irind]
+
+
+ ar \textbf{envlpx}
+ xamp, irise, idur, idec, ifn, iatss, iatdec [, ixmod]
+
+
+ kr \textbf{envlpx}
+ kamp, irise, idur, idec, ifn, iatss, iatdec [, ixmod]
+
+
+ \textbf{event}
+ ``scorechar'', kinsnum, kdelay, kdur, [, kp4] [, kp5] [, ...]
+
+
+ \textbf{event}
+ ``scorechar'', ``insname'', kdelay, kdur, [, kp4] [, kp5] [, ...]
+
+
+ ar \textbf{expon}
+ ia, idur1, ib
+
+
+ kr \textbf{expon}
+ ia, idur1, ib
+
+
+ ar \textbf{exprand}
+ krange
+
+
+ ir \textbf{exprand}
+ krange
+
+
+ kr \textbf{exprand}
+ krange
+
+
+ ar \textbf{expsega}
+ ia, idur1, ib [, idur2] [, ic] [...]
+
+
+ ar \textbf{expsegr}
+ ia, idur1, ib [, idur2] [, ic] [...], irel, iz
+
+
+ kr \textbf{expsegr}
+ ia, idur1, ib [, idur2] [, ic] [...], irel, iz
+
+
+ ar \textbf{expseg}
+ ia, idur1, ib [, idur2] [, ic] [...]
+
+
+ kr \textbf{expseg}
+ ia, idur1, ib [, idur2] [, ic] [...]
+
+
+ \textbf{exp}
+(x) (no rate restriction)
+
+
+ ir \textbf{filelen}
+ ifilcod
+
+
+ ir \textbf{filenchnls}
+ ifilcod
+
+
+ ir \textbf{filepeak}
+ ifilcod [, ichnl]
+
+
+ ir \textbf{filesr}
+ ifilcod
+
+
+ ar \textbf{filter2}
+ asig, iM, iN, ib0, ib1, ..., ibM, ia1, ia2, ..., iaN
+
+
+ kr \textbf{filter2}
+ ksig, iM, iN, ib0, ib1, ..., ibM, ia1, ia2, ..., iaN
+
+
+ \textbf{fini}
+ ifilename, iskipframes, iformat, in1 [, in2] [, in3] [, ...]
+
+
+ \textbf{fink}
+ ifilename, iskipframes, iformat, kin1 [, kin2] [, kin3] [,...]
+
+
+ \textbf{fin}
+ ifilename, iskipframes, iformat, ain1 [, ain2] [, ain3] [,...]
+
+
+ ihandle \textbf{fiopen}
+ ifilename, imode
+
+
+ ar \textbf{flanger}
+ asig, adel, kfeedback [, imaxd]
+
+
+ \textbf{flashtxt}
+ iwhich, String
+
+
+ ihandle \textbf{FLbox}
+ ``label'', itype, ifont, isize, iwidth, iheight, ix, iy [, image]
+
+
+ kout, ihandle \textbf{FLbutBank}
+ itype, inumx, inumy, iwidth, iheight, ix, iy, iopcode [, kp1] [, kp2] [, kp3] [, kp4] [, kp5] [....] [, kpN]
+
+
+ kout, ihandle \textbf{FLbutton}
+ ``label'', ion, ioff, itype, iwidth, iheight, ix, iy, iopcode [, kp1] [, kp2] [, kp3] [, kp4] [, kp5] [....] [, kpN]
+
+
+ \textbf{FLcolor2}
+ ired, igreen, iblue
+
+
+ \textbf{FLcolor}
+ ired, igreen, iblue
+
+
+ kout, ihandle \textbf{FLcount}
+ ``label'', imin, imax, istep1, istep2, itype, iwidth, iheight, ix, iy, iopcode [, kp1] [, kp2] [, kp3] [...] [, kpN]
+
+
+ inumsnap \textbf{FLgetsnap}
+ index
+
+
+ \textbf{FLgroupEnd}
+
+
+
+ \textbf{FLgroup}
+ ``label'', iwidth, iheight, ix, iy [, iborder] [, image]
+
+
+ \textbf{FLhide}
+ ihandle
+
+
+ koutx, kouty, ihandlex, ihandley \textbf{FLjoy}
+ ``label'', iminx, imaxx, iminy, imaxy, iexpx, iexpy, idispx, idispy, iwidth, iheight, ix, iy
+
+
+ kout \textbf{FLkeyb}
+ kparam1 [, kparam2] ... [, kparamN]
+
+
+ kout, ihandle \textbf{FLknob}
+ ``label'', imin, imax, iexp, itype, idisp, iwidth, ix, iy [, icursorsize]
+
+
+ \textbf{FLlabel}
+ isize, ifont, ialign, ired, igreen, iblue
+
+
+ \textbf{FLloadsnap}
+ ``filename''
+
+
+ \textbf{FLpackEnd}
+
+
+
+ \textbf{FLpack}
+ iwidth, iheight, ix, iy, itype, ispace, iborder
+
+
+ \textbf{FLpanelEnd}
+
+
+
+ \textbf{FLpanel}
+ ``label'', iwidth, iheight [, ix] [, iy] [, iborder]
+
+
+ \textbf{FLprintk2}
+ kval, idisp
+
+
+ \textbf{FLprintk}
+ itime, kval, idisp
+
+
+ kout, ihandle \textbf{FLroller}
+ ``label'', imin, imax, istep, iexp, itype, idisp, iwidth, iheight, ix, iy
+
+
+ \textbf{FLrun}
+
+
+
+ \textbf{FLsavesnap}
+ ``filename''
+
+
+ \textbf{FLscrollEnd}
+
+
+
+ \textbf{FLscroll}
+ iwidth, iheight [, ix] [, iy]
+
+
+ \textbf{FLsetAlign}
+ ialign, ihandle
+
+
+ \textbf{FLsetBox}
+ itype, ihandle
+
+
+ \textbf{FLsetColor2}
+ ired, igreen, iblue, ihandle
+
+
+ \textbf{FLsetColor}
+ ired, igreen, iblue, ihandle
+
+
+ \textbf{FLsetFont}
+ ifont, ihandle
+
+
+ \textbf{FLsetPosition}
+ ix, iy, ihandle
+
+
+ \textbf{FLsetSize}
+ iwidth, iheight, ihandle
+
+
+ inumsnap, inumval \textbf{FLsetsnap}
+ index [, ifn]
+
+
+ \textbf{FLsetTextColor}
+ isize, ihandle
+
+
+ \textbf{FLsetText}
+ ``itext'', ihandle
+
+
+ \textbf{FLsetTextSize}
+ isize, ihandle
+
+
+ \textbf{FLsetTextType}
+ itype, ihandle
+
+
+ \textbf{FLsetVal\_i}
+ kvalue, ihandle
+
+
+ \textbf{FLsetVal}
+ ktrig, kvalue, ihandle
+
+
+ \textbf{FLshow}
+ ihandle
+
+
+ \textbf{FLslidBnk}
+ ``names'', inumsliders [, ioutable] [, iwidth] [, iheight] [, ix] [, iy] [, itypetable] [, iexptable] [, istart\_index] [, iminmaxtable]
+
+
+ kout, ihandle \textbf{FLslider}
+ ``label'', imin, imax, iexp, itype, idisp, iwidth, iheight, ix, iy
+
+
+ \textbf{FLtabsEnd}
+
+
+
+ \textbf{FLtabs}
+ iwidth, iheight, ix, iy
+
+
+ kout, ihandle \textbf{FLtext}
+ ``label'', imin, imax, istep, itype, iwidth, iheight, ix, iy
+
+
+ \textbf{FLupdate}
+
+
+
+ ihandle \textbf{FLvalue}
+ ``label'', iwidth, iheight, ix, iy
+
+
+ ar \textbf{fmb3}
+ kamp, kfreq, kc1, kc2, kvdepth, kvrate, ifn1, ifn2, ifn3, ifn4, ivfn
+
+
+ ar \textbf{fmbell}
+ kamp, kfreq, kc1, kc2, kvdepth, kvrate, ifn1, ifn2, ifn3, ifn4, ivfn
+
+
+ ar \textbf{fmmetal}
+ kamp, kfreq, kc1, kc2, kvdepth, kvrate, ifn1, ifn2, ifn3, ifn4, ivfn
+
+
+ ar \textbf{fmpercfl}
+ kamp, kfreq, kc1, kc2, kvdepth, kvrate, ifn1, ifn2, ifn3, ifn4, ivfn
+
+
+ ar \textbf{fmrhode}
+ kamp, kfreq, kc1, kc2, kvdepth, kvrate, ifn1, ifn2, ifn3, ifn4, ivfn
+
+
+ ar \textbf{fmvoice}
+ kamp, kfreq, kvowel, ktilt, kvibamt, kvibrate, ifn1, ifn2, ifn3, ifn4, ivibfn
+
+
+ ar \textbf{fmwurlie}
+ kamp, kfreq, kc1, kc2, kvdepth, kvrate, ifn1, ifn2, ifn3, ifn4, ivfn
+
+
+ ar \textbf{fof2}
+ xamp, xfund, xform, koct, kband, kris, kdur, kdec, iolaps, ifna, ifnb, itotdur, kphs, kgliss [, iskip]
+
+
+ ar \textbf{fof}
+ xamp, xfund, xform, koct, kband, kris, kdur, kdec, iolaps, ifna, ifnb, itotdur [, iphs] [, ifmode] [, iskip]
+
+
+ ar \textbf{fog}
+ xamp, xdens, xtrans, aspd, koct, kband, kris, kdur, kdec, iolaps, ifna, ifnb, itotdur [, iphs] [, itmode] [, iskip]
+
+
+ ar \textbf{fold}
+ asig, kincr
+
+
+ ar \textbf{follow2}
+ asig, katt, krel
+
+
+ ar \textbf{follow}
+ asig, idt
+
+
+ ar \textbf{foscili}
+ xamp, kcps, xcar, xmod, kndx, ifn [, iphs]
+
+
+ ar \textbf{foscil}
+ xamp, kcps, xcar, xmod, kndx, ifn [, iphs]
+
+
+ \textbf{foutir}
+ ihandle, iformat, iflag, iout1 [, iout2, iout3,....,ioutN]
+
+
+ \textbf{fouti}
+ ihandle, iformat, iflag, iout1 [, iout2, iout3,....,ioutN]
+
+
+ \textbf{foutk}
+ ifilename, iformat, kout1 [, kout2, kout3,....,koutN]
+
+
+ \textbf{fout}
+ ifilename, iformat, aout1 [, aout2, aout3,...,aoutN]
+
+
+ \textbf{fprintks}
+ ``filename'', ``string'', [, kval1] [, kval2] [...]
+
+
+ \textbf{fprints}
+ ``filename'', ``string'' [, kval1] [, kval2] [...]
+
+
+ \textbf{frac}
+(x) (init-rate or control-rate args only)
+
+
+ \textbf{ftchnls}
+(x) (init-rate args only)
+
+
+ gir \textbf{ftgen}
+ ifn, itime, isize, igen, iarga [, iargb ] [...]
+
+
+ \textbf{ftlen}
+(x) (init-rate args only)
+
+
+ \textbf{ftloadk}
+ ``filename'', ktrig, iflag, ifn1 [, ifn2] [...]
+
+
+ \textbf{ftload}
+ ``filename'', iflag, ifn1 [, ifn2] [...]
+
+
+ \textbf{ftlptim}
+(x) (init-rate args only)
+
+
+ \textbf{ftmorf}
+ kftndx, iftfn, iresfn
+
+
+ \textbf{ftsavek}
+ ``filename'', ktrig, iflag, ifn1 [, ifn2] [...]
+
+
+ \textbf{ftsave}
+ ``filename'', iflag, ifn1 [, ifn2] [...]
+
+
+ \textbf{ftsr}
+(x) (init-rate args only)
+
+
+ ar \textbf{gain}
+ asig, krms [, ihp] [, iskip]
+
+
+ ar \textbf{gauss}
+ krange
+
+
+ ir \textbf{gauss}
+ krange
+
+
+ kr \textbf{gauss}
+ krange
+
+
+ ar \textbf{gbuzz}
+ xamp, xcps, knh, klh, kmul, ifn [, iphs]
+
+
+ ar \textbf{gogobel}
+ kamp, kfreq, ihrd, ipos, imp, kvibf, kvamp, ivfn
+
+
+ \textbf{goto}
+ label
+
+
+ ar \textbf{grain2}
+ kcps, kfmd, kgdur, iovrlp, kfn, iwfn [, irpow] [, iseed] [, imode]
+
+
+ ar \textbf{grain3}
+ kcps, kphs, kfmd, kpmd, kgdur, kdens, imaxovr, kfn, iwfn, kfrpow, kprpow [, iseed] [, imode]
+
+
+ ar \textbf{grain}
+ xamp, xpitch, xdens, kampoff, kpitchoff, kgdur, igfn, iwfn, imgdur [, igrnd]
+
+
+ ar \textbf{granule}
+ xamp, ivoice, iratio, imode, ithd, ifn, ipshift, igskip, igskip\_os, ilength, kgap, igap\_os, kgsize, igsize\_os, iatt, idec [, iseed] [, ipitch1] [, ipitch2] [, ipitch3] [, ipitch4] [, ifnenv]
+
+
+ ar \textbf{guiro}
+ kamp, idettack [, inum] [, idamp] [, imaxshake] [, ifreq] [, ifreq1]
+
+
+ ar \textbf{harmon}
+ asig, kestfrq, kmaxvar, kgenfreq1, kgenfreq2, imode, iminfrq, iprd
+
+
+ ar1, ar2 \textbf{hilbert}
+ asig
+
+
+ aleft, aright \textbf{hrtfer}
+ asig, kaz, kelev, ``HRTFcompact''
+
+
+ ar \textbf{hsboscil}
+ kamp, ktone, kbrite, ibasfreq, iwfn, ioctfn [, ioctcnt] [, iphs]
+
+
+ \textbf{i}
+(x) (control-rate args only)
+
+
+ \textbf{if}
+ ia R ib \textbf{igoto}
+ label
+
+
+ \textbf{if}
+ ka R kb \textbf{kgoto}
+ label
+
+
+ \textbf{if}
+ ia R ib \textbf{goto}
+ label
+
+
+ \textbf{if}
+ xa R xb \textbf{then}
+
+
+
+ \textbf{igoto}
+ label
+
+
+ \textbf{ihold}
+
+
+
+ ar1, ar2, ar3, ar4, ar5, ar6, ar7, ar8, ar9, ar10, ar11, ar12, ar13, ar14, ar15, ar16, ar17, ar18, ar19, ar20, ar21, ar22, ar23, ar24, ar25, ar26, ar27, ar28, ar29, ar30, ar31, ar32 \textbf{in32}
+
+
+
+ ar1 \textbf{inch}
+ ksig1
+
+
+ ar1, ar2, ar3, ar4, ar5, ar6 \textbf{inh}
+
+
+
+ \textbf{initc14}
+ ichan, ictlno1, ictlno2, ivalue
+
+
+ \textbf{initc21}
+ ichan, ictlno1, ictlno2, ictlno3, ivalue
+
+
+ \textbf{initc7}
+ ichan, ictlno, ivalue
+
+
+ ar \textbf{init}
+ iarg
+
+
+ ir \textbf{init}
+ iarg
+
+
+ kr \textbf{init}
+ iarg
+
+
+ k1 [, k2] [...] \textbf{ink}
+
+
+
+ ar1, ar2, ar3, ar4, ar5, ar6, ar7, ar8 \textbf{ino}
+
+
+
+ ar1, ar2, ar3, a4 \textbf{inq}
+
+
+
+ ar1 \textbf{in}
+
+
+
+ ar1, ar2 \textbf{ins}
+
+
+
+ \textbf{instr}
+ i, j, ...
+
+
+ ar \textbf{integ}
+ asig [, iskip]
+
+
+ kr \textbf{integ}
+ ksig [, iskip]
+
+
+ ar \textbf{interp}
+ ksig [, iskip] [, imode]
+
+
+ \textbf{int}
+(x) (init-rate or control-rate args only)
+
+
+ kvalue \textbf{invalue}
+ ``channel name''
+
+
+ ar1, ar2, ar3, ar4, ar5, ar6, ar7, ar8, ar9, ar10, ar11, ar12, ar13, ar14, ar15, ar16 \textbf{inx}
+
+
+
+ \textbf{inz}
+ ksig1
+
+
+ kout \textbf{jitter2}
+ ktotamp, kamp1, kcps1, kamp2, kcps2, kamp3, kcps3
+
+
+ kout \textbf{jitter}
+ kamp, kcpsMin, kcpsMax
+
+
+ ar \textbf{jspline}
+ xamp, kcpsMin, kcpsMax
+
+
+ kr \textbf{jspline}
+ kamp, kcpsMin, kcpsMax
+
+
+ \textbf{kgoto}
+ label
+
+
+ \textbf{kr}
+ = iarg
+
+
+ \textbf{ksmps}
+ = iarg
+
+
+ \textbf{ktableseg}
+ ifn1, idur1, ifn2 [, idur2] [, ifn3] [...]
+
+
+ kr \textbf{lfo}
+ kamp, kcps [, itype]
+
+
+ ar \textbf{lfo}
+ kamp, kcps [, itype]
+
+
+ ar \textbf{limit}
+ asig, klow, khigh
+
+
+ ir \textbf{limit}
+ isig, ilow, ihigh
+
+
+ kr \textbf{limit}
+ ksig, klow, khigh
+
+
+ ar \textbf{linenr}
+ xamp, irise, idec, iatdec
+
+
+ kr \textbf{linenr}
+ kamp, irise, idec, iatdec
+
+
+ ar \textbf{linen}
+ xamp, irise, idur, idec
+
+
+ kr \textbf{linen}
+ kamp, irise, idur, idec
+
+
+ ar \textbf{line}
+ ia, idur1, ib
+
+
+ kr \textbf{line}
+ ia, idur1, ib
+
+
+ kr \textbf{lineto}
+ ksig, ktime
+
+
+ ar \textbf{linrand}
+ krange
+
+
+ ir \textbf{linrand}
+ krange
+
+
+ kr \textbf{linrand}
+ krange
+
+
+ ar \textbf{linsegr}
+ ia, idur1, ib [, idur2] [, ic] [...], irel, iz
+
+
+ kr \textbf{linsegr}
+ ia, idur1, ib [, idur2] [, ic] [...], irel, iz
+
+
+ ar \textbf{linseg}
+ ia, idur1, ib [, idur2] [, ic] [...]
+
+
+ kr \textbf{linseg}
+ ia, idur1, ib [, idur2] [, ic] [...]
+
+
+ a1, a2 \textbf{locsend}
+
+
+
+ a1, a2, a3, a4 \textbf{locsend}
+
+
+
+ a1, a2 \textbf{locsig}
+ asig, kdegree, kdistance, kreverbsend
+
+
+ a1, a2, a3, a4 \textbf{locsig}
+ asig, kdegree, kdistance, kreverbsend
+
+
+ \textbf{log10}
+(x) (no rate restriction)
+
+
+ \textbf{logbtwo}
+(x) (init-rate or control-rate args only)
+
+
+ \textbf{log}
+(x) (no rate restriction)
+
+
+ ksig \textbf{loopseg}
+ kfreq, ktrig, ktime0, kvalue0 [, ktime1] [, kvalue1] [, ktime2] [, kvalue2] [...]
+
+
+ ax, ay, az \textbf{lorenz}
+ ksv, krv, kbv, kh, ix, iy, iz, iskip
+
+
+ ar [,ar2] \textbf{loscil3}
+ xamp, kcps, ifn [, ibas] [, imod1] [, ibeg1] [, iend1] [, imod2] [, ibeg2] [, iend2]
+
+
+ ar [,ar2] \textbf{loscil}
+ xamp, kcps, ifn [, ibas] [, imod1] [, ibeg1] [, iend1] [, imod2,] [, ibeg2] [, iend2]
+
+
+ ar \textbf{lowpass2}
+ asig, kcf, kq [, iskip]
+
+
+ ar \textbf{lowres}
+ asig, kcutoff, kresonance [, iskip]
+
+
+ ar \textbf{lowresx}
+ asig, kcutoff, kresonance [, inumlayer] [, iskip]
+
+
+ ar \textbf{lpf18}
+ asig, kfco, kres, kdist
+
+
+ ar \textbf{lpfreson}
+ asig, kfrqratio
+
+
+ ar \textbf{lphasor}
+ xtrns [, ilps] [, ilpe] [, imode] [, istrt] [, istor]
+
+
+ \textbf{lpinterp}
+ islot1, islot2, kmix
+
+
+ ar \textbf{lposcil3}
+ kamp, kfreqratio, kloop, kend, ifn [, iphs]
+
+
+ ar \textbf{lposcil}
+ kamp, kfreqratio, kloop, kend, ifn [, iphs]
+
+
+ krmsr, krmso, kerr, kcps \textbf{lpread}
+ ktimpnt, ifilcod [, inpoles] [, ifrmrate]
+
+
+ ar \textbf{lpreson}
+ asig
+
+
+ ksig \textbf{lpshold}
+ kfreq, ktrig, ktime0, kvalue0 [, ktime1] [, kvalue1] [, ktime2] [, kvalue2] [...]
+
+
+ \textbf{lpslot}
+ islot
+
+
+ ar \textbf{maca}
+ asig1 [, asig2] [, asig3] [, asig4] [, asig5] [...]
+
+
+ ar \textbf{mac}
+ asig1, ksig1 [, asig2] [, ksig2] [, asig3] [, ksig3] [...]
+
+
+ ar \textbf{madsr}
+ iatt, idec, islev, irel [, idel] [, ireltim]
+
+
+ kr \textbf{madsr}
+ iatt, idec, islev, irel [, idel] [, ireltim]
+
+
+ ar \textbf{mandol}
+ kamp, kfreq, kpluck, kdetune, kgain, ksize, ifn [, iminfreq]
+
+
+ ar \textbf{marimba}
+ kamp, kfreq, ihrd, ipos, imp, kvibf, kvamp, ivibfn, idec [, idoubles] [, itriples]
+
+
+ \textbf{massign}
+ ichnl, insnum
+
+
+ \textbf{massign}
+ ichnl, ``insname''
+
+
+ \textbf{maxalloc}
+ insnum, icount
+
+
+ \textbf{mclock}
+ ifreq
+
+
+ \textbf{mdelay}
+ kstatus, kchan, kd1, kd2, kdelay
+
+
+ idest \textbf{midic14}
+ ictlno1, ictlno2, imin, imax [, ifn]
+
+
+ kdest \textbf{midic14}
+ ictlno1, ictlno2, kmin, kmax [, ifn]
+
+
+ idest \textbf{midic21}
+ ictlno1, ictlno2, ictlno3, imin, imax [, ifn]
+
+
+ kdest \textbf{midic21}
+ ictlno1, ictlno2, ictlno3, kmin, kmax [, ifn]
+
+
+ idest \textbf{midic7}
+ ictlno, imin, imax [, ifn]
+
+
+ kdest \textbf{midic7}
+ ictlno, kmin, kmax [, ifn]
+
+
+ \textbf{midichannelaftertouch}
+ xchannelaftertouch [, ilow] [, ihigh]
+
+
+ ichn \textbf{midichn}
+
+
+
+ \textbf{midicontrolchange}
+ xcontroller, xcontrollervalue [, ilow] [, ihigh]
+
+
+ ival \textbf{midictrl}
+ inum [, imin] [, imax]
+
+
+ kval \textbf{midictrl}
+ inum [, imin] [, imax]
+
+
+ \textbf{mididefault}
+ xdefault, xvalue
+
+
+ kstatus, kchan, kdata1, kdata2 \textbf{midiin}
+
+
+
+ \textbf{midinoteoff}
+ xkey, xvelocity
+
+
+ \textbf{midinoteoncps}
+ xcps, xvelocity
+
+
+ \textbf{midinoteonkey}
+ xkey, xvelocity
+
+
+ \textbf{midinoteonoct}
+ xoct, xvelocity
+
+
+ \textbf{midinoteonpch}
+ xpch, xvelocity
+
+
+ \textbf{midion2}
+ kchn, knum, kvel, ktrig
+
+
+ \textbf{midion}
+ kchn, knum, kvel
+
+
+ \textbf{midiout}
+ kstatus, kchan, kdata1, kdata2
+
+
+ \textbf{midipitchbend}
+ xpitchbend [, ilow] [, ihigh]
+
+
+ \textbf{midipolyaftertouch}
+ xpolyaftertouch, xcontrollervalue [, ilow] [, ihigh]
+
+
+ \textbf{midiprogramchange}
+ xprogram
+
+
+ ar \textbf{mirror}
+ asig, klow, khigh
+
+
+ ir \textbf{mirror}
+ isig, ilow, ihigh
+
+
+ kr \textbf{mirror}
+ ksig, klow, khigh
+
+
+ ar \textbf{moog}
+ kamp, kfreq, kfiltq, kfiltrate, kvibf, kvamp, iafn, iwfn, ivfn
+
+
+ ar \textbf{moogvcf}
+ asig, xfco, xres [, iscale]
+
+
+ \textbf{moscil}
+ kchn, knum, kvel, kdur, kpause
+
+
+ ar \textbf{mpulse}
+ kamp, kfreq [, ioffset]
+
+
+ \textbf{mrtmsg}
+ imsgtype
+
+
+ ar \textbf{multitap}
+ asig [, itime1] [, igain1] [, itime2] [, igain2] [...]
+
+
+ \textbf{mute}
+ insnum [, iswitch]
+
+
+ \textbf{mute}
+ ``insname'' [, iswitch]
+
+
+ ar \textbf{mxadsr}
+ iatt, idec, islev, irel [, idel] [, ireltim]
+
+
+ kr \textbf{mxadsr}
+ iatt, idec, islev, irel [, idel] [, ireltim]
+
+
+ \textbf{nchnls}
+ = iarg
+
+
+ ar \textbf{nestedap}
+ asig, imode, imaxdel, idel1, igain1 [, idel2] [, igain2] [, idel3] [, igain3] [, istor]
+
+
+ ar \textbf{nlfilt}
+ ain, ka, kb, kd, kC, kL
+
+
+ ar \textbf{noise}
+ xamp, kbeta
+
+
+ \textbf{noteoff}
+ ichn, inum, ivel
+
+
+ \textbf{noteondur2}
+ ichn, inum, ivel, idur
+
+
+ \textbf{noteondur}
+ ichn, inum, ivel, idur
+
+
+ \textbf{noteon}
+ ichn, inum, ivel
+
+
+ ival \textbf{notnum}
+
+
+
+ ar \textbf{nreverb}
+ asig, ktime, khdif [, iskip] [,inumCombs] [, ifnCombs] [, inumAlpas] [, ifnAlpas]
+
+
+ \textbf{nrpn}
+ kchan, kparmnum, kparmvalue
+
+
+ \textbf{nsamp}
+(x) (init-rate args only)
+
+
+ insno \textbf{nstrnum}
+ ``name''
+
+
+ ar \textbf{ntrpol}
+ asig1, asig2, kpoint [, imin] [, imax]
+
+
+ ir \textbf{ntrpol}
+ isig1, isig2, ipoint [, imin] [, imax]
+
+
+ kr \textbf{ntrpol}
+ ksig1, ksig2, kpoint [, imin] [, imax]
+
+
+ \textbf{octave}
+(x)
+
+
+ \textbf{octcps}
+ (cps) (init- or control-rate args only)
+
+
+ ioct \textbf{octmidib}
+ [irange]
+
+
+ koct \textbf{octmidib}
+ [irange]
+
+
+ ioct \textbf{octmidi}
+
+
+
+ \textbf{octpch}
+ (pch) (init- or control-rate args only)
+
+
+ \textbf{opcode}
+ name, outtypes, intypes
+
+
+ ar \textbf{oscbnk}
+ kcps, kamd, kfmd, kpmd, iovrlap, iseed, kl1minf, kl1maxf, kl2minf, kl2maxf, ilfomode, keqminf, keqmaxf, keqminl, keqmaxl, keqminq, keqmaxq, ieqmode, kfn [, il1fn] [, il2fn] [, ieqffn] [, ieqlfn] [, ieqqfn] [, itabl] [, ioutfn]
+
+
+ kr \textbf{oscil1i}
+ idel, kamp, idur, ifn
+
+
+ kr \textbf{oscil1}
+ idel, kamp, idur, ifn
+
+
+ ar \textbf{oscil3}
+ xamp, xcps, ifn [, iphs]
+
+
+ kr \textbf{oscil3}
+ kamp, kcps, ifn [, iphs]
+
+
+ ar \textbf{osciliktp}
+ kcps, kfn, kphs [, istor]
+
+
+ ar \textbf{oscilikt}
+ xamp, xcps, kfn [, iphs] [, istor]
+
+
+ kr \textbf{oscilikt}
+ kamp, kcps, kfn [, iphs] [, istor]
+
+
+ ar \textbf{oscilikts}
+ xamp, xcps, kfn, async, kphs [, istor]
+
+
+ ar \textbf{oscili}
+ xamp, xcps, ifn [, iphs]
+
+
+ kr \textbf{oscili}
+ kamp, kcps, ifn [, iphs]
+
+
+ ar \textbf{osciln}
+ kamp, ifrq, ifn, itimes
+
+
+ ar \textbf{oscil}
+ xamp, xcps, ifn [, iphs]
+
+
+ kr \textbf{oscil}
+ kamp, kcps, ifn [, iphs]
+
+
+ ar \textbf{oscils}
+ iamp, icps, iphs [, iflg]
+
+
+ ar \textbf{oscilx}
+ kamp, ifrq, ifn, itimes
+
+
+ \textbf{out32}
+ asig1, asig2, asig3, asig4, asig5, asig6, asig7, asig8, asig10, asig11, asig12, asig13, asig14, asig15, asig16, asig17, asig18, asig19, asig20, asig21, asig22, asig23, asig24, asig25, asig26, asig27, asig28, asig29, asig30, asig31, asig32
+
+
+ \textbf{outch}
+ ksig1, asig1 [, ksig2] [, asig2] [...]
+
+
+ \textbf{outc}
+ asig1 [, asig2] [...]
+
+
+ \textbf{outh}
+ asig1, asig2, asig3, asig4, asig5, asig6
+
+
+ \textbf{outiat}
+ ichn, ivalue, imin, imax
+
+
+ \textbf{outic14}
+ ichn, imsb, ilsb, ivalue, imin, imax
+
+
+ \textbf{outic}
+ ichn, inum, ivalue, imin, imax
+
+
+ \textbf{outipat}
+ ichn, inotenum, ivalue, imin, imax
+
+
+ \textbf{outipb}
+ ichn, ivalue, imin, imax
+
+
+ \textbf{outipc}
+ ichn, iprog, imin, imax
+
+
+ \textbf{outkat}
+ kchn, kvalue, kmin, kmax
+
+
+ \textbf{outkc14}
+ kchn, kmsb, klsb, kvalue, kmin, kmax
+
+
+ \textbf{outkc}
+ kchn, knum, kvalue, kmin, kmax
+
+
+ \textbf{outkpat}
+ kchn, knotenum, kvalue, kmin, kmax
+
+
+ \textbf{outkpb}
+ kchn, kvalue, kmin, kmax
+
+
+ \textbf{outkpc}
+ kchn, kprog, kmin, kmax
+
+
+ \textbf{outk}
+ k1 [, k2] [...]
+
+
+ \textbf{outo}
+ asig1, asig2, asig3, asig4, asig5, asig6, asig7, asig8
+
+
+ \textbf{outq1}
+ asig
+
+
+ \textbf{outq2}
+ asig
+
+
+ \textbf{outq3}
+ asig
+
+
+ \textbf{outq4}
+ asig
+
+
+ \textbf{outq}
+ asig1, asig2, asig3, asig4
+
+
+ \textbf{outs1}
+ asig
+
+
+ \textbf{outs2}
+ asig
+
+
+ \textbf{out}
+ asig
+
+
+ \textbf{outs}
+ asig1, asig2
+
+
+ \textbf{outvalue}
+ ``channel name'', kvalue
+
+
+ \textbf{outx}
+ asig1, asig2, asig3, asig4, asig5, asig6, asig7, asig8, asig9, asig10, asig11, asig12, asig13, asig14, asig15, asig16
+
+
+ \textbf{outz}
+ ksig1
+
+
+ a1, a2, a3, a4 \textbf{pan}
+ asig, kx, ky, ifn [, imode] [, ioffset]
+
+
+ ar \textbf{pareq}
+ asig, kc, kv, kq [, imode]
+
+
+ ar \textbf{pcauchy}
+ kalpha
+
+
+ ir \textbf{pcauchy}
+ kalpha
+
+
+ kr \textbf{pcauchy}
+ kalpha
+
+
+ ibend \textbf{pchbend}
+ [imin] [, imax]
+
+
+ kbend \textbf{pchbend}
+ [imin] [, imax]
+
+
+ ipch \textbf{pchmidib}
+ [irange]
+
+
+ kpch \textbf{pchmidib}
+ [irange]
+
+
+ ipch \textbf{pchmidi}
+
+
+
+ \textbf{pchoct}
+ (oct) (init- or control-rate args only)
+
+
+ kr \textbf{peak}
+ asig
+
+
+ kr \textbf{peak}
+ ksig
+
+
+ \textbf{pgmassign}
+ ipgm, inst
+
+
+ \textbf{pgmassign}
+ ipgm, ``insname''
+
+
+ ar \textbf{phaser1}
+ asig, kfreq, kord, kfeedback [, iskip]
+
+
+ ar \textbf{phaser2}
+ asig, kfreq, kq, kord, kmode, ksep, kfeedback
+
+
+ ar \textbf{phasorbnk}
+ xcps, kndx, icnt [, iphs]
+
+
+ kr \textbf{phasorbnk}
+ kcps, kndx, icnt [, iphs]
+
+
+ ar \textbf{phasor}
+ xcps [, iphs]
+
+
+ kr \textbf{phasor}
+ kcps [, iphs]
+
+
+ ar \textbf{pinkish}
+ xin [, imethod] [, inumbands] [, iseed] [, iskip]
+
+
+ kcps, krms \textbf{pitchamdf}
+ asig, imincps, imaxcps [, icps] [, imedi] [, idowns] [, iexcps] [, irmsmedi]
+
+
+ koct, kamp \textbf{pitch}
+ asig, iupdte, ilo, ihi, idbthresh [, ifrqs] [, iconf] [, istrt] [, iocts] [, iq] [, inptls] [, irolloff] [, iskip]
+
+
+ ax, ay, az \textbf{planet}
+ kmass1, kmass2, ksep, ix, iy, iz, ivx, ivy, ivz, idelta [, ifriction]
+
+
+ ar \textbf{pluck}
+ kamp, kcps, icps, ifn, imeth [, iparm1] [, iparm2]
+
+
+ ar \textbf{poisson}
+ klambda
+
+
+ ir \textbf{poisson}
+ klambda
+
+
+ kr \textbf{poisson}
+ klambda
+
+
+ ir \textbf{polyaft}
+ inote [, ilow] [, ihigh]
+
+
+ kr \textbf{polyaft}
+ inote [, ilow] [, ihigh]
+
+
+ kr \textbf{portk}
+ ksig, khtim [, isig]
+
+
+ kr \textbf{port}
+ ksig, ihtim [, isig]
+
+
+ ar \textbf{poscil3}
+ kamp, kcps, ifn [, iphs]
+
+
+ kr \textbf{poscil3}
+ kamp, kcps, ifn [, iphs]
+
+
+ ar \textbf{poscil}
+ aamp, acps, ifn [, iphs]
+
+
+ ar \textbf{poscil}
+ aamp, kcps, ifn [, iphs]
+
+
+ ar \textbf{poscil}
+ kamp, acps, ifn [, iphs]
+
+
+ ar \textbf{poscil}
+ kamp, kcps, ifn [, iphs]
+
+
+ ir \textbf{poscil}
+ kamp, kcps, ifn [, iphs]
+
+
+ kr \textbf{poscil}
+ kamp, kcps, ifn [, iphs]
+
+
+ \textbf{powoftwo}
+(x) (init-rate or control-rate args only)
+
+
+ ar \textbf{pow}
+ aarg, kpow [, inorm]
+
+
+ ir \textbf{pow}
+ iarg, ipow [, inorm]
+
+
+ kr \textbf{pow}
+ karg, kpow [, inorm]
+
+
+ \textbf{prealloc}
+ insnum, icount
+
+
+ \textbf{prealloc}
+ ``insname'', icount
+
+
+ \textbf{printk2}
+ kvar [, inumspaces]
+
+
+ \textbf{printk}
+ itime, kval [, ispace]
+
+
+ \textbf{printks}
+ ``string'', itime [, kval1] [, kval2] [...]
+
+
+ \textbf{print}
+ iarg [, iarg1] [, iarg2] [...]
+
+
+ \textbf{prints}
+ ``string'' [, kval1] [, kval2] [...]
+
+
+ ar \textbf{product}
+ asig1, asig2 [, asig3] [...]
+
+
+ \textbf{pset}
+ icon1 [, icon2] [...]
+
+
+ \textbf{p}
+(x) 
+
+
+ ar \textbf{pvadd}
+ ktimpnt, kfmod, ifilcod, ifn, ibins [, ibinoffset] [, ibinincr] [, iextractmode] [, ifreqlim] [, igatefn]
+
+
+ \textbf{pvbufread}
+ ktimpnt, ifile
+
+
+ ar \textbf{pvcross}
+ ktimpnt, kfmod, ifile, kampscale1, kampscale2 [, ispecwp]
+
+
+ ar \textbf{pvinterp}
+ ktimpnt, kfmod, ifile, kfreqscale1, kfreqscale2, kampscale1, kampscale2, kfreqinterp, kampinterp
+
+
+ ar \textbf{pvoc}
+ ktimpnt, kfmod, ifilcod [, ispecwp] [, iextractmode] [, ifreqlim] [, igatefn]
+
+
+ kfreq, kamp \textbf{pvread}
+ ktimpnt, ifile, ibin
+
+
+ ar \textbf{pvsadsyn}
+ fsrc, inoscs, kfmod [, ibinoffset] [, ibinincr] [, iinit]
+
+
+ fsig \textbf{pvsanal}
+ ain, ifftsize, ioverlap, iwinsize, iwintype [, iformat] [, iinit]
+
+
+ fsig \textbf{pvscross}
+ fsrc, fdest, kamp1, kamp2
+
+
+ fsig \textbf{pvsfread}
+ ktimpt, ifn [, ichan]
+
+
+ \textbf{pvsftr}
+ fsrc, ifna [, ifnf]
+
+
+ kflag \textbf{pvsftw}
+ fsrc, ifna [, ifnf]
+
+
+ ioverlap, inumbins, iwinsize, iformat \textbf{pvsinfo}
+ fsrc
+
+
+ fsig \textbf{pvsmaska}
+ fsrc, ifn, kdepth
+
+
+ ar \textbf{pvsynth}
+ fsrc, [iinit]
+
+
+ ar \textbf{randh}
+ xamp, xcps [, iseed] [, isize] [, ioffset]
+
+
+ kr \textbf{randh}
+ kamp, kcps [, iseed] [, isize] [, ioffset]
+
+
+ ar \textbf{randi}
+ xamp, xcps [, iseed] [, isize] [, ioffset]
+
+
+ kr \textbf{randi}
+ kamp, kcps [, iseed] [, isize] [, ioffset]
+
+
+ ar \textbf{randomh}
+ kmin, kmax, acps
+
+
+ kr \textbf{randomh}
+ kmin, kmax, kcps
+
+
+ ar \textbf{randomi}
+ kmin, kmax, acps
+
+
+ kr \textbf{randomi}
+ kmin, kmax, kcps
+
+
+ ar \textbf{random}
+ kmin, kmax
+
+
+ ir \textbf{random}
+ imin, imax
+
+
+ kr \textbf{random}
+ kmin, kmax
+
+
+ ar \textbf{rand}
+ xamp [, iseed] [, isel] [, ibase]
+
+
+ kr \textbf{rand}
+ xamp [, iseed] [, isel] [, ibase]
+
+
+ ir \textbf{readclock}
+ inum
+
+
+ kr1, kr2 \textbf{readk2}
+ ifilname, iformat, ipol [, interp]
+
+
+ kr1, kr2, kr3 \textbf{readk3}
+ ifilname, iformat, ipol [, interp]
+
+
+ kr1, kr2, kr3, kr4 \textbf{readk4}
+ ifilname, iformat, ipol [, interp]
+
+
+ kr \textbf{readk}
+ ifilname, iformat, ipol [, interp]
+
+
+ \textbf{reinit}
+ label
+
+
+ kflag \textbf{release}
+
+
+
+ ar \textbf{repluck}
+ iplk, kamp, icps, kpick, krefl, axcite
+
+
+ kr \textbf{resonk}
+ ksig, kcf, kbw [, iscl] [, iskip]
+
+
+ ar \textbf{resonr}
+ asig, kcf, kbw [, iscl] [, iskip]
+
+
+ ar \textbf{reson}
+ asig, kcf, kbw [, iscl] [, iskip]
+
+
+ ar \textbf{resonx}
+ asig, kcf, kbw [, inumlayer] [, iscl] [, iskip]
+
+
+ ar \textbf{resony}
+ asig, kbf, kbw, inum, ksep [, isepmode] [, iscl] [, iskip]
+
+
+ ar \textbf{resonz}
+ asig, kcf, kbw [, iscl] [, iskip]
+
+
+ ar \textbf{reverb2}
+ asig, ktime, khdif [, iskip] [,inumCombs] [, ifnCombs] [, inumAlpas] [, ifnAlpas]
+
+
+ ar \textbf{reverb}
+ asig, krvt [, iskip]
+
+
+ ar \textbf{rezzy}
+ asig, xfco, xres [, imode]
+
+
+ \textbf{rigoto}
+ label
+
+
+ \textbf{rireturn}
+
+
+
+ kr \textbf{rms}
+ asig [, ihp] [, iskip]
+
+
+ ax \textbf{rnd31}
+ kscl, krpow [, iseed]
+
+
+ ix \textbf{rnd31}
+ iscl, irpow [, iseed]
+
+
+ kx \textbf{rnd31}
+ kscl, krpow [, iseed]
+
+
+ \textbf{rnd}
+(x) (init- or control-rate only)
+
+
+ ar \textbf{rspline}
+ xrangeMin, xrangeMax, kcpsMin, kcpsMax
+
+
+ kr \textbf{rspline}
+ krangeMin, krangeMax, kcpsMin, kcpsMax
+
+
+ ir \textbf{rtclock}
+
+
+
+ kr \textbf{rtclock}
+
+
+
+ i1,...,i16 \textbf{s16b14}
+ ichan, ictlno\_msb1, ictlno\_lsb1, imin1, imax1, initvalue1, ifn1,..., ictlno\_msb16, ictlno\_lsb16, imin16, imax16, initvalue16, ifn16
+
+
+ k1,...,k16 \textbf{s16b14}
+ ichan, ictlno\_msb1, ictlno\_lsb1, imin1, imax1, initvalue1, ifn1,..., ictlno\_msb16, ictlno\_lsb16, imin16, imax16, initvalue16, ifn16
+
+
+ i1,...,i32 \textbf{s32b14}
+ ichan, ictlno\_msb1, ictlno\_lsb1, imin1, imax1, initvalue1, ifn1,..., ictlno\_msb32, ictlno\_lsb32, imin32, imax32, initvalue32, ifn32
+
+
+ k1,...,k32 \textbf{s32b14}
+ ichan, ictlno\_msb1, ictlno\_lsb1, imin1, imax1, initvalue1, ifn1,..., ictlno\_msb32, ictlno\_lsb32, imin32, imax32, initvalue32, ifn32
+
+
+ ar \textbf{samphold}
+ asig, agate [, ival] [, ivstor]
+
+
+ kr \textbf{samphold}
+ ksig, kgate [, ival] [, ivstor]
+
+
+ ar \textbf{sandpaper}
+ iamp, idettack [, inum] [, idamp] [, imaxshake]
+
+
+ \textbf{scanhammer}
+ isrc, idst, ipos, imult
+
+
+ ar \textbf{scans}
+ kamp, kfreq, ifn, id [, iorder]
+
+
+ aout \textbf{scantable}
+ kamp, kpch, ipos, imass, istiff, idamp, ivel
+
+
+ \textbf{scanu}
+ init, irate, ifnvel, ifnmass, ifnstif, ifncentr, ifndamp, kmass, kstif, kcentr, kdamp, ileft, iright, kpos, kstrngth, ain, idisp, id
+
+
+ \textbf{schedkwhennamed}
+ ktrigger, kmintim, kmaxnum, ``name'', kwhen, kdur [, ip4] [, ip5] [...]
+
+
+ \textbf{schedkwhen}
+ ktrigger, kmintim, kmaxnum, kinsnum, kwhen, kdur [, ip4] [, ip5] [...]
+
+
+ \textbf{schedkwhen}
+ ktrigger, kmintim, kmaxnum, ``insname'', kwhen, kdur [, ip4] [, ip5] [...]
+
+
+ \textbf{schedule}
+ insnum, iwhen, idur [, ip4] [, ip5] [...]
+
+
+ \textbf{schedule}
+ ``insname'', iwhen, idur [, ip4] [, ip5] [...]
+
+
+ \textbf{schedwhen}
+ ktrigger, kinsnum, kwhen, kdur [, ip4] [, ip5] [...]
+
+
+ \textbf{schedwhen}
+ ktrigger, ``insname'', kwhen, kdur [, ip4] [, ip5] [...]
+
+
+ \textbf{seed}
+ ival
+
+
+ ar \textbf{sekere}
+ iamp, idettack [, inum] [, idamp] [, imaxshake]
+
+
+ \textbf{semitone}
+(x)
+
+
+ kr \textbf{sensekey}
+
+
+
+ kr \textbf{sense}
+
+
+
+ ktrig\_out \textbf{seqtime}
+ ktime\_unit, kstart, kloop, kinitndx, kfn\_times
+
+
+ \textbf{setctrl}
+ inum, ival, itype
+
+
+ \textbf{setksmps}
+ iksmps
+
+
+ \textbf{sfilist}
+ ifilhandle
+
+
+ ar \textbf{sfinstr3m}
+ ivel, inotenum, xamp, xfreq, instrnum, ifilhandle [, iflag] [, ioffset]
+
+
+ ar1, ar2 \textbf{sfinstr3}
+ ivel, inotenum, xamp, xfreq, instrnum, ifilhandle [, iflag] [, ioffset]
+
+
+ ar \textbf{sfinstrm}
+ ivel, inotenum, xamp, xfreq, instrnum, ifilhandle [, iflag] [, ioffset]
+
+
+ ar1, ar2 \textbf{sfinstr}
+ ivel, inotenum, xamp, xfreq, instrnum, ifilhandle [, iflag] [, ioffset]
+
+
+ ir \textbf{sfload}
+ ``filename''
+
+
+ \textbf{sfpassign}
+ istartindex, ifilhandle
+
+
+ ar \textbf{sfplay3m}
+ ivel, inotenum, xamp, xfreq, ipreindex [, iflag] [, ioffset]
+
+
+ ar1, ar2 \textbf{sfplay3}
+ ivel, inotenum, xamp, xfreq, ipreindex [, iflag] [, ioffset]
+
+
+ ar \textbf{sfplaym}
+ ivel, inotenum, xamp, xfreq, ipreindex [, iflag] [, ioffset]
+
+
+ ar1, ar2 \textbf{sfplay}
+ ivel, inotenum, xamp, xfreq, ipreindex [, iflag] [, ioffset]
+
+
+ \textbf{sfplist}
+ ifilhandle
+
+
+ ir \textbf{sfpreset}
+ iprog, ibank, ifilhandle, ipreindex
+
+
+ ar \textbf{shaker}
+ kamp, kfreq, kbeans, kdamp, ktimes [, idecay]
+
+
+ \textbf{sinh}
+(x) (no rate restriction)
+
+
+ \textbf{sininv}
+(x) (no rate restriction)
+
+
+ \textbf{sin}
+(x) (no rate restriction)
+
+
+ ar \textbf{sleighbells}
+ kamp, idettack [, inum] [, idamp] [, imaxshake] [, ifreq] [, ifreq1] [, ifreq2]
+
+
+ k1,...,k16 \textbf{slider16f}
+ ichan, ictlnum1, imin1, imax1, init1, ifn1, icutoff1,..., ictlnum16, imin16, imax16, init16, ifn16, icutoff16
+
+
+ i1,...,i16 \textbf{slider16}
+ ichan, ictlnum1, imin1, imax1, init1, ifn1,..., ictlnum16, imin16, imax16, init16, ifn16
+
+
+ k1,...,k16 \textbf{slider16}
+ ichan, ictlnum1, imin1, imax1, init1, ifn1,..., ictlnum16, imin16, imax16, init16, ifn16
+
+
+ k1,...,k32 \textbf{slider32f}
+ ichan, ictlnum1, imin1, imax1, init1, ifn1, icutoff1,..., ictlnum32, imin32, imax32, init32, ifn32, icutoff32
+
+
+ i1,...,i32 \textbf{slider32}
+ ichan, ictlnum1, imin1, imax1, init1, ifn1,..., ictlnum32, imin32, imax32, init32, ifn32
+
+
+ k1,...,k32 \textbf{slider32}
+ ichan, ictlnum1, imin1, imax1, init1, ifn1,..., ictlnum32, imin32, imax32, init32, ifn32
+
+
+ k1,...,k64 \textbf{slider64f}
+ ichan, ictlnum1, imin1, imax1, init1, ifn1, icutoff1,..., ictlnum64, imin64, imax64, init64, ifn64, icutoff64
+
+
+ i1,...,i64 \textbf{slider64}
+ ichan, ictlnum1, imin1, imax1, init1, ifn1,..., ictlnum64, imin64, imax64, init64, ifn64
+
+
+ k1,...,k64 \textbf{slider64}
+ ichan, ictlnum1, imin1, imax1, init1, ifn1,..., ictlnum64, imin64, imax64, init64, ifn64
+
+
+ k1,...,k8 \textbf{slider8f}
+ ichan, ictlnum1, imin1, imax1, init1, ifn1, icutoff1,..., ictlnum8, imin8, imax8, init8, ifn8, icutoff8
+
+
+ i1,...,i8 \textbf{slider8}
+ ichan, ictlnum1, imin1, imax1, init1, ifn1,..., ictlnum8, imin8, imax8, init8, ifn8
+
+
+ k1,...,k8 \textbf{slider8}
+ ichan, ictlnum1, imin1, imax1, init1, ifn1,..., ictlnum8, imin8, imax8, init8, ifn8
+
+
+ ar [, ac] \textbf{sndwarp}
+ xamp, xtimewarp, xresample, ifn1, ibeg, iwsize, irandw, ioverlap, ifn2, itimemode
+
+
+ ar1, ar2 [,ac1] [, ac2] \textbf{sndwarpst}
+ xamp, xtimewarp, xresample, ifn1, ibeg, iwsize, irandw, ioverlap, ifn2, itimemode
+
+
+ ar1 \textbf{soundin}
+ ifilcod [, iskptim] [, iformat]
+
+
+ ar1, ar2 \textbf{soundin}
+ ifilcod [, iskptim] [, iformat]
+
+
+ ar1, ar2, ar3 \textbf{soundin}
+ ifilcod [, iskptim] [, iformat]
+
+
+ ar1, ar2, ar3, ar4 \textbf{soundin}
+ ifilcod [, iskptim] [, iformat]
+
+
+ \textbf{soundout}
+ asig1, ifilcod [, iformat]
+
+
+ a1, a2, a3, a4 \textbf{space}
+ asig, ifn, ktime, kreverbsend, kx, ky
+
+
+ aW, aX, aY, aZ \textbf{spat3di}
+ ain, iX, iY, iZ, idist, ift, imode [, istor]
+
+
+ aW, aX, aY, aZ \textbf{spat3d}
+ ain, kX, kY, kZ, idist, ift, imode, imdel, iovr [, istor]
+
+
+ \textbf{spat3dt}
+ ioutft, iX, iY, iZ, idist, ift, imode, irlen [, iftnocl]
+
+
+ k1 \textbf{spdist}
+ ifn, ktime, kx, ky
+
+
+ wsig \textbf{specaddm}
+ wsig1, wsig2 [, imul2]
+
+
+ wsig \textbf{specdiff}
+ wsigin
+
+
+ \textbf{specdisp}
+ wsig, iprd [, iwtflg]
+
+
+ wsig \textbf{specfilt}
+ wsigin, ifhtim
+
+
+ wsig \textbf{spechist}
+ wsigin
+
+
+ koct, kamp \textbf{specptrk}
+ wsig, kvar, ilo, ihi, istr, idbthresh, inptls, irolloff [, iodd] [, iconfs] [, interp] [, ifprd] [, iwtflg]
+
+
+ wsig \textbf{specscal}
+ wsigin, ifscale, ifthresh
+
+
+ ksum \textbf{specsum}
+ wsig [, interp]
+
+
+ wsig \textbf{spectrum}
+ xsig, iprd, iocts, ifrqa [, iq] [, ihann] [, idbout] [, idsprd] [, idsinrs]
+
+
+ a1, a2, a3, a4 \textbf{spsend}
+
+
+
+ \textbf{sqrt}
+(x) (no rate restriction)
+
+
+ \textbf{sr}
+ = iarg
+
+
+ ar \textbf{stix}
+ iamp, idettack [, inum] [, idamp] [, imaxshake]
+
+
+ ar \textbf{streson}
+ asig, kfr, ifdbgain
+
+
+ \textbf{strset}
+ iarg, istring
+
+
+ \textbf{subinstrinit}
+ instrnum [, p4] [, p5] [...]
+
+
+ \textbf{subinstrinit}
+ ``insname'' [, p4] [, p5] [...]
+
+
+ a1, [...] [, a8] \textbf{subinstr}
+ instrnum [, p4] [, p5] [...]
+
+
+ a1, [...] [, a8] \textbf{subinstr}
+ ``insname'' [, p4] [, p5] [...]
+
+
+ ar \textbf{sum}
+ asig1 [, asig2] [, asig3] [...]
+
+
+ alow, ahigh, aband \textbf{svfilter}
+ asig, kcf, kq [, iscl]
+
+
+ ar \textbf{table3}
+ andx, ifn [, ixmode] [, ixoff] [, iwrap]
+
+
+ ir \textbf{table3}
+ indx, ifn [, ixmode] [, ixoff] [, iwrap]
+
+
+ kr \textbf{table3}
+ kndx, ifn [, ixmode] [, ixoff] [, iwrap]
+
+
+ \textbf{tablecopy}
+ kdft, ksft
+
+
+ \textbf{tablegpw}
+ kfn
+
+
+ \textbf{tableicopy}
+ idft, isft
+
+
+ \textbf{tableigpw}
+ ifn
+
+
+ ar \textbf{tableikt}
+ xndx, kfn [, ixmode] [, ixoff] [, iwrap]
+
+
+ kr \textbf{tableikt}
+ kndx, kfn [, ixmode] [, ixoff] [, iwrap]
+
+
+ \textbf{tableimix}
+ idft, idoff, ilen, is1ft, is1off, is1g, is2ft, is2off, is2g
+
+
+ ar \textbf{tablei}
+ andx, ifn [, ixmode] [, ixoff] [, iwrap]
+
+
+ ir \textbf{tablei}
+ indx, ifn [, ixmode] [, ixoff] [, iwrap]
+
+
+ kr \textbf{tablei}
+ kndx, ifn [, ixmode] [, ixoff] [, iwrap]
+
+
+ \textbf{tableiw}
+ isig, indx, ifn [, ixmode] [, ixoff] [, iwgmode]
+
+
+ ar \textbf{tablekt}
+ xndx, kfn [, ixmode] [, ixoff] [, iwrap]
+
+
+ kr \textbf{tablekt}
+ kndx, kfn [, ixmode] [, ixoff] [, iwrap]
+
+
+ \textbf{tablemix}
+ kdft, kdoff, klen, ks1ft, ks1off, ks1g, ks2ft, ks2off, ks2g
+
+
+ ir \textbf{tableng}
+ ifn
+
+
+ kr \textbf{tableng}
+ kfn
+
+
+ ar \textbf{tablera}
+ kfn, kstart, koff
+
+
+ \textbf{tableseg}
+ ifn1, idur1, ifn2 [, idur2] [, ifn3] [...]
+
+
+ ar \textbf{table}
+ andx, ifn [, ixmode] [, ixoff] [, iwrap]
+
+
+ ir \textbf{table}
+ indx, ifn [, ixmode] [, ixoff] [, iwrap]
+
+
+ kr \textbf{table}
+ kndx, ifn [, ixmode] [, ixoff] [, iwrap]
+
+
+ kstart \textbf{tablewa}
+ kfn, asig, koff
+
+
+ \textbf{tablewkt}
+ asig, andx, kfn [, ixmode] [, ixoff] [, iwgmode]
+
+
+ \textbf{tablewkt}
+ ksig, kndx, kfn [, ixmode] [, ixoff] [, iwgmode]
+
+
+ \textbf{tablew}
+ asig, andx, ifn [, ixmode] [, ixoff] [, iwgmode]
+
+
+ \textbf{tablew}
+ isig, indx, ifn [, ixmode] [, ixoff] [, iwgmode]
+
+
+ \textbf{tablew}
+ ksig, kndx, ifn [, ixmode] [, ixoff] [, iwgmode]
+
+
+ ar \textbf{tablexkt}
+ xndx, kfn, kwarp, iwsize [, ixmode] [, ixoff] [, iwrap]
+
+
+ \textbf{tablexseg}
+ ifn1, idur1, ifn2 [, idur2] [, ifn3] [...]
+
+
+ ar \textbf{tambourine}
+ kamp, idettack [, inum] [, idamp] [, imaxshake] [, ifreq] [, ifreq1] [, ifreq2]
+
+
+ \textbf{tanh}
+(x) (no rate restriction)
+
+
+ ar \textbf{taninv2}
+ ay, ax
+
+
+ ir \textbf{taninv2}
+ iy, ix
+
+
+ kr \textbf{taninv2}
+ ky, kx
+
+
+ \textbf{taninv}
+(x) (no rate restriction)
+
+
+ \textbf{tan}
+(x) (no rate restriction)
+
+
+ ar \textbf{tbvcf}
+ asig, xfco, xres, kdist, kasym
+
+
+ ktemp \textbf{tempest}
+ kin, iprd, imindur, imemdur, ihp, ithresh, ihtim, ixfdbak, istartempo, ifn [, idisprd] [, itweek]
+
+
+ \textbf{tempo}
+ ktempo, istartempo
+
+
+ kr \textbf{tempoval}
+
+
+
+ \textbf{tigoto}
+ label
+
+
+ kr \textbf{timeinstk}
+
+
+
+ kr \textbf{timeinsts}
+
+
+
+ kr \textbf{timeinsts}
+
+
+
+ ir \textbf{timek}
+
+
+
+ kr \textbf{timek}
+
+
+
+ ir \textbf{times}
+
+
+
+ kr \textbf{times}
+
+
+
+ \textbf{timout}
+ istrt, idur, label
+
+
+ ir \textbf{tival}
+
+
+
+ kr \textbf{tlineto}
+ ksig, ktime, ktrig
+
+
+ kr \textbf{tonek}
+ ksig, khp [, iskip]
+
+
+ ar \textbf{tone}
+ asig, khp [, iskip]
+
+
+ ar \textbf{tonex}
+ asig, khp [, inumlayer] [, iskip]
+
+
+ ar \textbf{transeg}
+ ia, idur, itype, ib [, idur2] [, itype] [, ic] ...
+
+
+ kr \textbf{transeg}
+ ia, idur, itype, ib [, idur2] [, itype] [, ic] ...
+
+
+ kout \textbf{trigger}
+ ksig, kthreshold, kmode
+
+
+ \textbf{trigseq}
+ ktrig\_in, kstart, kloop, kinitndx, kfn\_values, kout1 [, kout2] [...]
+
+
+ ar \textbf{trirand}
+ krange
+
+
+ ir \textbf{trirand}
+ krange
+
+
+ kr \textbf{trirand}
+ krange
+
+
+ \textbf{turnoff}
+
+
+
+ \textbf{turnon}
+ insnum [, itime]
+
+
+ ar \textbf{unirand}
+ krange
+
+
+ ir \textbf{unirand}
+ krange
+
+
+ kr \textbf{unirand}
+ krange
+
+
+ ar \textbf{upsamp}
+ ksig
+
+
+ aout = \textbf{urd}
+(ktableNum)
+
+
+ iout = \textbf{urd}
+(itableNum)
+
+
+ kout = \textbf{urd}
+(ktableNum)
+
+
+ ar \textbf{valpass}
+ asig, krvt, xlpt, imaxlpt [, iskip] [, insmps]
+
+
+ ar1, ..., ar16 \textbf{vbap16move}
+ asig, ispread, ifldnum, ifld1 [, ifld2] [...]
+
+
+ ar1, ..., ar16 \textbf{vbap16}
+ asig, iazim [, ielev] [, ispread]
+
+
+ ar1, ar2, ar3, ar4 \textbf{vbap4move}
+ asig, ispread, ifldnum, ifld1 [, ifld2] [...]
+
+
+ ar1, ar2, ar3, ar4 \textbf{vbap4}
+ asig, iazim [, ielev] [, ispread]
+
+
+ ar1, ..., ar8 \textbf{vbap8move}
+ asig, ispread, ifldnum, ifld1 [, ifld2] [...]
+
+
+ ar1, ..., ar8 \textbf{vbap8}
+ asig, iazim [, ielev] [, ispread]
+
+
+ \textbf{vbaplsinit}
+ idim, ilsnum [, idir1] [, idir2] [...] [, idir32]
+
+
+ \textbf{vbapzmove}
+ inumchnls, istartndx, asig, idur, ispread, ifldnum, ifld1, ifld2, [...]
+
+
+ \textbf{vbapz}
+ inumchnls, istartndx, asig, iazim [, ielev] [, ispread]
+
+
+ kfn \textbf{vco2ft}
+ kcps, iwave [, inyx]
+
+
+ ifn \textbf{vco2ift}
+ icps, iwave [, inyx]
+
+
+ ifn \textbf{vco2init}
+ iwave [, ibasfn] [, ipmul] [, iminsiz] [, imaxsiz] [, isrcft]
+
+
+ ar \textbf{vco2}
+ kamp, kcps [, imode] [, kpw] [, kphs] [, inyx]
+
+
+ ar \textbf{vcomb}
+ asig, krvt, xlpt, imaxlpt [, iskip] [, insmps]
+
+
+ ar \textbf{vco}
+ xamp, xcps, iwave, kpw [, ifn] [, imaxd] [, ileak] [, inyx] [, iphs]
+
+
+ ar \textbf{vdelay3}
+ asig, adel, imaxdel [, iskip]
+
+
+ ar \textbf{vdelay}
+ asig, adel, imaxdel [, iskip]
+
+
+ aout1, aout2, aout3, aout4 \textbf{vdelayxq}
+ ain1, ain2, ain3, ain4, adl, imd, iws [, ist]
+
+
+ aout \textbf{vdelayx}
+ ain, adl, imd, iws [, ist]
+
+
+ aout1, aout2 \textbf{vdelayxs}
+ ain1, ain2, adl, imd, iws [, ist]
+
+
+ aout1, aout2, aout3, aout4 \textbf{vdelayxwq}
+ ain1, ain2, ain3, ain4, adl, imd, iws [, ist]
+
+
+ aout \textbf{vdelayxw}
+ ain, adl, imd, iws [, ist]
+
+
+ aout1, aout2 \textbf{vdelayxws}
+ ain1, ain2, adl, imd, iws [, ist]
+
+
+ ival \textbf{veloc}
+ [ilow] [, ihigh]
+
+
+ ar \textbf{vibes}
+ kamp, kfreq, ihrd, ipos, imp, kvibf, kvamp, ivibfn, idec
+
+
+ kout \textbf{vibrato}
+ kAverageAmp, kAverageFreq, kRandAmountAmp, kRandAmountFreq, kAmpMinRate, kAmpMaxRate, kcpsMinRate, kcpsMaxRate, ifn [, iphs]
+
+
+ kout \textbf{vibr}
+ kAverageAmp, kAverageFreq, ifn
+
+
+ \textbf{vincr}
+ asig, aincr
+
+
+ ar \textbf{vlowres}
+ asig, kfco, kres, iord, ksep
+
+
+ ar \textbf{voice}
+ kamp, kfreq, kphoneme, kform, kvibf, kvamp, ifn, ivfn
+
+
+ ar \textbf{vpvoc}
+ ktimpnt, kfmod, ifile [, ispecwp] [, ifn]
+
+
+ ar \textbf{waveset}
+ ain, krep [, ilen]
+
+
+ ar \textbf{weibull}
+ ksigma, ktau
+
+
+ ir \textbf{weibull}
+ ksigma, ktau
+
+
+ kr \textbf{weibull}
+ ksigma, ktau
+
+
+ ar \textbf{wgbowedbar}
+ kamp, kfreq, kpos, kbowpres, kgain [, iconst] [, itvel] [, ibowpos] [, ilow]
+
+
+ ar \textbf{wgbow}
+ kamp, kfreq, kpres, krat, kvibf, kvamp, ifn [, iminfreq]
+
+
+ ar \textbf{wgbrass}
+ kamp, kfreq, ktens, iatt, kvibf, kvamp, ifn [, iminfreq]
+
+
+ ar \textbf{wgclar}
+ kamp, kfreq, kstiff, iatt, idetk, kngain, kvibf, kvamp, ifn [, iminfreq]
+
+
+ ar \textbf{wgflute}
+ kamp, kfreq, kjet, iatt, idetk, kngain, kvibf, kvamp, ifn [, iminfreq] [, ijetrf] [, iendrf]
+
+
+ ar \textbf{wgpluck2}
+ iplk, kamp, icps, kpick, krefl
+
+
+ ar \textbf{wgpluck}
+ icps, iamp, kpick, iplk, idamp, ifilt, axcite
+
+
+ ar \textbf{wguide1}
+ asig, xfreq, kcutoff, kfeedback
+
+
+ ar \textbf{wguide2}
+ asig, xfreq1, xfreq2, kcutoff1, kcutoff2, kfeedback1, kfeedback2
+
+
+ ar \textbf{wrap}
+ asig, klow, khigh
+
+
+ ir \textbf{wrap}
+ isig, ilow, ihigh
+
+
+ kr \textbf{wrap}
+ ksig, klow, khigh
+
+
+ aout \textbf{wterrain}
+ kamp, kpch, k\_xcenter, k\_ycenter, k\_xradius, k\_yradius, itabx, itaby
+
+
+ ar \textbf{xadsr}
+ iatt, idec, islev, irel [, idel]
+
+
+ kr \textbf{xadsr}
+ iatt, idec, islev, irel [, idel]
+
+
+ xinarg1 [, xinarg2] ... [xinargN] \textbf{xin}
+
+
+
+ \textbf{xout}
+ xoutarg1 [, xoutarg2] ... [, xoutargN]
+
+
+ kpos, kvel \textbf{xscanmap}
+ iscan, kamp, kvamp [, iwhich]
+
+
+ \textbf{xscansmap}
+ kpos, kvel, iscan, kamp, kvamp [, iwhich]
+
+
+ ar \textbf{xscans}
+ kamp, kfreq, ifntraj, id [, iorder]
+
+
+ \textbf{xscanu}
+ init, irate, ifnvel, ifnmass, ifnstif, ifncentr, ifndamp, kmass, kstif, kcentr, kdamp, ileft, iright, kpos, kstrngth, ain, idisp, id
+
+
+ \textbf{xtratim}
+ iextradur
+
+
+ kx, ky \textbf{xyin}
+ iprd, ixmin, ixmax, iymin, iymax [, ixinit] [, iyinit]
+
+
+ \textbf{zacl}
+ kfirst, klast
+
+
+ \textbf{zakinit}
+ isizea, isizek
+
+
+ ar \textbf{zamod}
+ asig, kzamod
+
+
+ ar \textbf{zarg}
+ kndx, kgain
+
+
+ ar \textbf{zar}
+ kndx
+
+
+ \textbf{zawm}
+ asig, kndx [, imix]
+
+
+ \textbf{zaw}
+ asig, kndx
+
+
+ ar \textbf{zfilter2}
+ asig, kdamp, kfreq, iM, iN, ib0, ib1, ..., ibM, ia1,ia2, ..., iaN
+
+
+ ir \textbf{zir}
+ indx
+
+
+ \textbf{ziwm}
+ isig, indx [, imix]
+
+
+ \textbf{ziw}
+ isig, indx
+
+
+ \textbf{zkcl}
+ kfirst, klast
+
+
+ kr \textbf{zkmod}
+ ksig, kzkmod
+
+
+ kr \textbf{zkr}
+ kndx
+
+
+ \textbf{zkwm}
+ ksig, kndx [, imix]
+
+
+ \textbf{zkw}
+ ksig, kndx
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+Csound64 &  &Index
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

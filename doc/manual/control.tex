@@ -1,0 +1,81 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{control}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{control}
+control --  Configurable slider controls for realtime user input. \subsection*{Description}
+
+
+  Configurable slider controls for realtime user input. Requires Winsound or TCL/TK. \emph{control}
+ reads a slider's value. 
+\subsection*{Syntax}
+
+
+ kr \textbf{control}
+ knum
+\subsection*{Performance}
+
+
+ \emph{knum}
+ -- number of the slider to be read. 
+
+
+  Calling \emph{control}
+ will create a new slider on the screen. There is no theoretical limit to the number of sliders. Windows and TCL/TK use only integers for slider values, so the values may need rescaling. GUIs usually pass values at a fairly slow rate, so it may be advisable to pass the output of control through \emph{port}
+. 
+\subsection*{Examples}
+
+
+  See the \emph{setctrl}
+ opcode for an example. 
+\subsection*{See Also}
+
+
+ \emph{setctrl}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cccc}
+Author: John ffitch &University of Bath, Codemist. Ltd. &Bath, UK &May, 2000
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 4.06
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+comb &Up &convle
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

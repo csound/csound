@@ -1,0 +1,86 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{FLsetVal}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{FLsetVal}
+FLsetVal --  Sets the value of a FLTK valuator at control-rate. \subsection*{Description}
+
+
+ \emph{FLsetVal}
+ is almost identical to \emph{FLsetVal\_i}
+. Except it operates at k-rate and it affects the target valuator only when \emph{ktrig}
+ is set to a non-zero value. 
+\subsection*{Syntax}
+
+
+ \textbf{FLsetVal}
+ ktrig, kvalue, ihandle
+\subsection*{Initialization}
+
+
+ \emph{ihandle}
+ -- an integer number (used as unique identifier) taken from the output of a previously located widget opcode (which corresponds to the target widget). It is used to unequivocally identify the widget when modifying its appearance with this class of opcodes. The user must not set the \emph{ihandle}
+ value directly, otherwise a Csound crash will occur. 
+\subsection*{Performance}
+
+
+ \emph{ktrig}
+ -- not implemented yet. 
+
+
+ \emph{kvalue}
+ -- not implemented yet. 
+\subsection*{See Also}
+
+
+ \emph{FLcolor}
+, \emph{FLcolor2}
+, \emph{FLhide}
+, \emph{FLlabel}
+, \emph{FLsetAlign}
+, \emph{FLsetBox}
+, \emph{FLsetColor}
+, \emph{FLsetColor2}
+, \emph{FLsetFont}
+, \emph{FLsetPosition}
+, \emph{FLsetSize}
+, \emph{FLsetText}
+, \emph{FLsetTextColor}
+, \emph{FLsetTextSize}
+, \emph{FLsetTextType}
+, \emph{FLsetVal\_i}
+, \emph{FLshow}
+
+\subsection*{Credits}
+
+
+ Author: Gabriel Maldonado
+
+
+ New in version 4.22
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+FLsetVal\_i &Up &FLshow
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

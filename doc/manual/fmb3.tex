@@ -1,0 +1,198 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{fmb3}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{fmb3}
+fmb3 --  Uses FM synthesis to create a Hammond B3 organ sound. \subsection*{Description}
+
+
+  Uses FM synthesis to create a Hammond B3 organ sound. It comes from a family of FM sounds, all using 4 basic oscillators and various architectures, as used in the TX81Z synthesizer. 
+\subsection*{Syntax}
+
+
+ ar \textbf{fmb3}
+ kamp, kfreq, kc1, kc2, kvdepth, kvrate, ifn1, ifn2, ifn3, ifn4, ivfn
+\subsection*{Initialization}
+
+
+ \emph{fmb3}
+ takes 5 tables for initialization. The first 4 are the basic inputs and the last is the low frequency oscillator (LFO) used for vibrato. The last table should usually be a sine wave. 
+
+
+  The initial waves should be: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ \emph{ifn1}
+ -- sine wave
+
+\item 
+
+ \emph{ifn2}
+ -- sine wave
+
+\item 
+
+ \emph{ifn3}
+ -- sine wave
+
+\item 
+
+ \emph{ifn4}
+ -- sine wave
+
+
+\end{itemize}
+\subsection*{Performance}
+
+
+ \emph{kamp}
+ -- Amplitude of note. 
+
+
+ \emph{kfreq}
+ -- Frequency of note played. 
+
+
+ \emph{kc1, kc2}
+ -- Controls for the synthesizer: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ \emph{kc1}
+ -- Total mod index
+
+\item 
+
+ \emph{kc2}
+ -- Crossfade of two modulators
+
+\item 
+
+ \emph{Algorithm}
+ -- 4
+
+
+\end{itemize}
+
+
+ \emph{kvdepth}
+ -- Vibrator depth 
+
+
+ \emph{kvrate}
+ -- Vibrator rate 
+\subsection*{Examples}
+
+
+  Here is an example of the fmb3 opcode. It uses the files \emph{fmb3.orc}
+ and \emph{fmb3.sco}
+. 
+
+
+ \textbf{Example 1. Example of the fmb3 opcode.}
+
+\begin{lstlisting}
+/* fmb3.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  kamp = 15000
+  kfreq = 440
+  kc1 = 5
+  kc2 = 5
+  kvdepth = 0.005
+  kvrate = 6
+  ifn1 = 1
+  ifn2 = 1
+  ifn3 = 1
+  ifn4 = 1
+  ivfn = 1
+
+  a1 fmb3 kamp, kfreq, kc1, kc2, kvdepth, kvrate,  \
+          ifn1, ifn2, ifn3, ifn4, ivfn
+  out a1
+endin
+/* fmb3.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* fmb3.sco */
+; Table #1, a sine wave.
+f 1 0 32768 10 1
+
+; Play Instrument #1 for two seconds.
+i 1 0 2
+e
+/* fmb3.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{fmbell}
+, \emph{fmmetal}
+, \emph{fmpercfl}
+, \emph{fmrhode}
+, \emph{fmwurlie}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: John ffitch (after Perry Cook) &University of Bath, Codemist Ltd. &Bath, UK
+
+\end{tabular}
+
+
+
+ 
+
+
+ Example written by Kevin Conder.
+
+
+ New in Csound version 3.47
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+FLvalue &Up &fmbell
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

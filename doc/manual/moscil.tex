@@ -1,0 +1,101 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{moscil}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{moscil}
+moscil --  Sends a stream of the MIDI notes. \subsection*{Description}
+
+
+  Sends a stream of the MIDI notes. 
+\subsection*{Syntax}
+
+
+ \textbf{moscil}
+ kchn, knum, kvel, kdur, kpause
+\subsection*{Performance}
+
+
+ \emph{kchn}
+ -- MIDI channel number (1-16) 
+
+
+ \emph{knum}
+ -- note number (0-127) 
+
+
+ \emph{kvel}
+ -- velocity (0-127) 
+
+
+ \emph{kdur}
+ -- note duration in seconds 
+
+
+ \emph{kpause}
+ -- pause duration after each noteoff and before new note in seconds 
+
+
+ \emph{moscil}
+ and \emph{midion}
+ are the most powerful MIDI OUT opcodes. \emph{moscil}
+ (MIDI oscil) plays a stream of notes of \emph{kdur}
+ duration. Channel, pitch, velocity, duration and pause can be controlled at k-rate, allowing very complex algorithmically generated melodic lines. When current instrument is deactivated, the note played by current instance of \emph{moscil}
+ is forcedly truncated. 
+
+
+  Any number of \emph{moscil}
+ opcodes can appear in the same Csound instrument, allowing a counterpoint-style polyphony within a single instrument. 
+\subsection*{See Also}
+
+
+ \emph{midion}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Gabriel Maldonado &Italy &May 1997
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 3.47
+
+
+ Thanks goes to Rasmus Ekman for pointing out the correct MIDI channel and controller number ranges.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+moogvcf &Up &mpulse
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

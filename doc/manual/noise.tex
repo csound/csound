@@ -1,0 +1,124 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{noise}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{noise}
+noise --  A white noise generator with an IIR lowpass filter. \subsection*{Description}
+
+
+  A white noise generator with an IIR lowpass filter. 
+\subsection*{Syntax}
+
+
+ ar \textbf{noise}
+ xamp, kbeta
+\subsection*{Initialization}
+
+
+ \emph{ioffset}
+ -- the delay before the first impulse. If it is negative, the value is taken as the number of samples, otherwise it is in seconds. Default is zero. 
+\subsection*{Performance}
+
+
+ \emph{xamp}
+ -- amplitude of final output 
+
+
+ \emph{kbeta}
+ -- beta of the lowpass filter. Should be in the range of 0 to 1. 
+
+
+  The filter equation is: 
+
+
+ y\_n = sqrt(1-beta\^{}2) * x\_n + beta Y\_(n-1)\\ 
+       
+ where \emph{x\_n}
+ is white noise. \subsection*{Examples}
+
+
+  Here is an example of the noise opcode. It uses the files \emph{noise.orc}
+ and \emph{noise.sco}
+. 
+
+
+ \textbf{Example 1. Example of the noise opcode.}
+
+\begin{lstlisting}
+/* noise.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  kamp = 30000
+
+  ; Change the beta value linearly from 0 to 1.
+  kbeta line 0, p3, 1
+
+  a1 noise kamp, kbeta
+  out a1
+endin
+/* noise.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* noise.sco */
+; Play Instrument #1 for one second.
+i 1 0 1
+e
+/* noise.sco */
+        
+\end{lstlisting}
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cccc}
+Author: John ffitch &University of Bath, Codemist. Ltd. &Bath, UK &December 2000
+
+\end{tabular}
+
+
+
+ 
+
+
+ Example written by Kevin Conder.
+
+
+ New in Csound version 4.10
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+nlfilt &Up &noteoff
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,104 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{log10}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{log10}
+log10 --  Returns a base 10 log. \subsection*{Description}
+
+
+  Returns the base 10 log of \emph{x}
+ (\emph{x}
+ positive only). 
+
+
+  The argument value is restricted for \emph{log}
+, \emph{log10}
+, and \emph{sqrt}
+. 
+\subsection*{Syntax}
+
+
+ \textbf{log10}
+(x) (no rate restriction)
+
+
+  where the argument within the parentheses may be an expression. Value converters perform arithmetic translation from units of one kind to units of another. The result can then be a term in a further expression. 
+\subsection*{Examples}
+
+
+  Here is an example of the log10 opcode. It uses the files \emph{log10.orc}
+ and \emph{log10.sco}
+. 
+
+
+ \textbf{Example 1. Example of the log10 opcode.}
+
+\begin{lstlisting}
+/* log10.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  i1 = log10(8)
+  print i1
+endin
+/* log10.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* log10.sco */
+; Play Instrument #1 for one second.
+i 1 0 1
+e
+/* log10.sco */
+        
+\end{lstlisting}
+ Its output should include a line like this: \begin{lstlisting}
+instr 1:  i1 = 0.903
+      
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{abs}
+, \emph{exp}
+, \emph{frac}
+, \emph{int}
+, \emph{log}
+, \emph{i}
+, \emph{sqrt}
+
+\subsection*{Credits}
+
+
+ Example written by Kevin Conder.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+log &Up &logbtwo
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

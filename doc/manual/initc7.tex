@@ -1,0 +1,106 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{initc7}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{initc7}
+initc7 --  Initializes the controller used to create a 7-bit MIDI value. \subsection*{Description}
+
+
+  Initializes MIDI controller \emph{ictlno}
+ with \emph{ivalue}
+
+\subsection*{Syntax}
+
+
+ \textbf{initc7}
+ ichan, ictlno, ivalue
+\subsection*{Initialization}
+
+
+ \emph{ichan}
+ -- MIDI channel (1-16) 
+
+
+ \emph{ictlno}
+ -- controller number (0-127) 
+
+
+ \emph{ivalue}
+ -- floating point value (must be within 0 to 1) 
+\subsection*{Performance}
+
+
+ \emph{initc7}
+ can be used together with both \emph{midic7}
+ and \emph{ctrl7}
+ opcodes for initializing the first controller's value. \emph{ivalue}
+ argument must be set with a number within 0 to 1. An error occurs if it is not. Use the following formula to set \emph{ivalue}
+ according with \emph{midic7}
+ and \emph{ctrl7}
+ min and max range: 
+
+
+ ivalue = (initial\_value - min) / (max - min)\\ 
+        
+\subsection*{See Also}
+
+
+ \emph{ctrl7}
+, \emph{ctrl14}
+, \emph{ctrl21}
+, \emph{ctrlinit}
+, \emph{initc14}
+, \emph{initc21}
+, \emph{midic7}
+, \emph{midic14}
+, \emph{midic21}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Author: Gabriel Maldonado &Italy
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 3.47
+
+
+ Thanks goes to Rasmus Ekman for pointing out the correct MIDI channel and controller number ranges.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+initc21 &Up &ink
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,191 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{\#define}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{\#define}
+\#define --  Defines a macro. \subsection*{Description}
+
+
+  Macros are textual replacements which are made in the orchestra as it is being read. The macro system in Csound is a very simple one, and uses the characters \# and \$ to define and call macros. This can save typing, and can lead to a coherent structure and consistent style. This is similar to, but independent of, the \emph{macro system in the score language}
+. 
+
+
+ \emph{\#define NAME}
+ -- defines a simple macro. The name of the macro must begin with a letter and can consist of any combination of letters and numbers. Case is significant. This form is limiting, in that the variable names are fixed. More flexibility can be obtained by using a macro with arguments, described below. 
+
+
+ \emph{\#define NAME}
+(\emph{a' b' c'}
+) -- defines a macro with arguments. This can be used in more complex situations. The name of the macro must begin with a letter and can consist of any combination of letters and numbers. Within the replacement text, the arguments can be substituted by the form: \$A. In fact, the implementation defines the arguments as simple macros. There may be up to 5 arguments, and the names may be any choice of letters. Remember that case is significant in macro names. 
+\subsection*{Syntax}
+
+
+ \textbf{\#define}
+ NAME \# replacement text \#
+
+
+ \textbf{\#define}
+ NAME(a' b' c') \# replacement text \#
+\subsection*{Initialization}
+
+
+ \emph{\# replacement text \#}
+ -- The replacement text is any character string (not containing a \#) and can extend over mutliple lines. The replacement text is enclosed within the \# characters, which ensure that additional characters are not inadvertently captured. 
+\subsection*{Performance}
+
+
+  Some care is needed with textual replacement macros, as they can sometimes do strange things. They take no notice of any meaning, so spaces are significant. This is why, unlike the C programming language, the definition has the replacement text surrounded by \# characters. Used carefully, this simple macro system is a powerful concept, but it can be abused. 
+\subsection*{Examples}
+
+
+  Here is a simple example of the defining a macro. It uses the files \emph{define.orc}
+ and \emph{define.sco}
+. 
+
+
+ \textbf{Example 1. Simple example of the define macro.}
+
+\begin{lstlisting}
+/* define.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Define the macros.
+#define VOLUME #5000#
+#define FREQ #440#
+#define TABLE #1#
+
+; Instrument #1
+instr 1
+  ; Use the macros.
+  ; This will be expanded to "a1 oscil 5000, 440, 1".
+  a1 oscil $VOLUME, $FREQ, $TABLE
+
+  ; Send it to the output.
+  out a1
+endin
+/* define.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* define.sco */
+; Define Table #1 with an ordinary sine wave.
+f 1 0 32768 10 1 
+         
+; Play Instrument #1 for two seconds.
+i 1 0 2
+e
+/* define.sco */
+        
+\end{lstlisting}
+ Its output should include lines like this: \begin{lstlisting}
+Macro definition for VOLUME
+Macro definition for CPS
+Macro definition for TABLE
+      
+\end{lstlisting}
+
+
+  Here is an example of the defining a macro with arguments. It uses the files \emph{define\_args.orc}
+ and \emph{define\_args.sco}
+. 
+
+
+ \textbf{Example 2. Example of the define macro with arguments.}
+
+\begin{lstlisting}
+/* define_args.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Define the oscillator macro.
+#define OSCMACRO(VOLUME'FREQ'TABLE) #oscil $VOLUME, $FREQ, $TABLE#
+
+; Instrument #1
+instr 1
+  ; Use the oscillator macro.
+  ; This will be expanded to "a1 oscil 5000, 440, 1".
+  a1 $OSCMACRO(5000'440'1)
+
+  ; Send it to the output.
+  out a1
+endin
+/* define_args.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* define_args.sco */
+; Define Table #1 with an ordinary sine wave.
+f 1 0 32768 10 1 
+         
+; Play Instrument #1 for two seconds.
+i 1 0 2
+e
+/* define_args.sco */
+        
+\end{lstlisting}
+ Its output should include lines like this: \begin{lstlisting}
+Macro definition for OSCMACRO
+      
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{\$NAME}
+, \emph{\#undef}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cccc}
+Author: John ffitch &University of Bath/Codemist Ltd. &Bath, UK &April 1998
+
+\end{tabular}
+
+
+
+ 
+
+
+ Examples written by Kevin Conder.
+
+
+ New in Csound version 3.48
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+!= &Up &\#include
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

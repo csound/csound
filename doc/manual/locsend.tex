@@ -1,0 +1,206 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{locsend}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{locsend}
+locsend --  Distributes the audio signals of a previous \emph{locsig}
+ opcode. \subsection*{Description}
+
+
+ \emph{locsend}
+ depends upon the existence of a previously defined \emph{locsig}
+. The number of output signals must match the number in the previous \emph{locsig}
+. The output signals from \emph{locsend}
+ are derived from the values given for distance and reverb in the \emph{locsig}
+ and are ready to be sent to local or global reverb units (see example below). The reverb amount and the balance between the 2 or 4 channels are calculated in the same way as described in the Dodge book (an essential text!). 
+\subsection*{Syntax}
+
+
+ a1, a2 \textbf{locsend}
+
+
+
+ a1, a2, a3, a4 \textbf{locsend}
+
+\subsection*{Examples}
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+  asig some audio signal
+  kdegree            \emph{line}
+    0, p3, 360
+  kdistance          \emph{line}
+    1, p3, 10
+  a1, a2, a3, a4     \emph{locsig}
+  asig, kdegree, kdistance, .1
+  ar1, ar2, ar3, ar4 \emph{locsend}
+
+  ga1 = ga1+ar1
+  ga2 = ga2+ar2
+  ga3 = ga3+ar3
+  ga4 = ga4+ar4
+                     \emph{outq}
+    a1, a2, a3, a4
+\emph{endin}
+
+
+\emph{instr}
+ 99 ; reverb instrument
+  a1                 \emph{reverb2}
+ ga1, 2.5, .5
+  a2                 \emph{reverb2}
+ ga2, 2.5, .5
+  a3                 \emph{reverb2}
+ ga3, 2.5, .5
+  a4                 \emph{reverb2}
+ ga4, 2.5, .5
+                     \emph{outq}
+    a1, a2, a3, a4
+  ga1=0
+  ga2=0
+  ga3=0
+  ga4=0
+        
+\end{lstlisting}
+
+
+ 
+
+
+  In the above example, the signal, \emph{asig}
+, is sent around a complete circle once during the duration of a note while at the same time it becomes more and more ``distant'' from the listeners' location. \emph{locsig}
+ sends the appropriate amount of the signal internally to \emph{locsend}
+. The outputs of the \emph{locsend}
+ are added to global accumulators in a common Csound style and the global signals are used as inputs to the reverb units in a separate instrument. 
+
+
+ \emph{locsig}
+ is useful for quad and stereo panning as well as fixed placed of sounds anywhere between two loudspeakers. Below is an example of the fixed placement of sounds in a stereo field. 
+
+
+ 
+
+
+ 
+\begin{lstlisting}
+\emph{instr}
+ 1
+  a1, a2             \emph{locsig}
+  asig, p4, p5, .1
+  ar1, ar2           \emph{locsend}
+
+  ga1=ga1+ar1
+  ga2=ga2+ar2
+                     \emph{outs}
+ a1, a
+\emph{endin
+instr}
+ 99 
+  ; reverb....
+\emph{endin}
+
+        
+\end{lstlisting}
+
+
+ 
+
+
+  A few notes: 
+
+
+ 
+\begin{lstlisting}
+  ;place the sound in the left speaker and near:
+  i1 0 1 0 1
+  
+  ;place the sound in the right speaker and far:
+  i1 1 1 90 25
+  
+  ;place the sound equally between left and right and in the middle ground distance:
+  i1 2 1 45 12
+  e
+        
+\end{lstlisting}
+
+
+ 
+
+
+  The next example shows a simple intuitive use of the distance value to simulate Doppler shift. The same value is used to scale the frequency as is used as the distance input to \emph{locsig}
+. 
+
+
+ 
+\begin{lstlisting}
+  kdistance          \emph{line}
+    1, p3, 10
+  kfreq = (ifreq * 340) / (340 + kdistance)
+  asig               \emph{oscili}
+  iamp, kfreq, 1
+  kdegree            \emph{line}
+    0, p3, 360
+  a1, a2, a3, a4     \emph{locsig}
+  asig, kdegree, kdistance, .1
+  ar1, ar2, ar3, ar4 \emph{locsend}
+
+        
+\end{lstlisting}
+
+
+ 
+\subsection*{See Also}
+
+
+ \emph{locsig}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{ccc}
+Author: Richard Karpen &Seattle, WA USA &1998
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 3.48
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+linsegr &Up &locsig
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

@@ -1,0 +1,251 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{FLroller}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{FLroller}
+FLroller --  A FLTK widget that creates a transversal knob. \subsection*{Description}
+
+
+ \emph{FLroller}
+ is a sort of knob, but put transversally. 
+\subsection*{Syntax}
+
+
+ kout, ihandle \textbf{FLroller}
+ ``label'', imin, imax, istep, iexp, itype, idisp, iwidth, iheight, ix, iy
+\subsection*{Initialization}
+
+
+ \emph{ihandle}
+ -- a handle value (an integer number) that unequivocally references a corresponding widget. This is used by other opcodes that modify a widget's properties (see \emph{Modifying FLTK Widget Appearance}
+). It is automatically output by \emph{FLroller}
+ and must not be set by the user label. (The user label is a double-quoted string containing some user-provided text placed near the widget.) 
+
+
+ \emph{``label''}
+ -- a double-quoted string containing some user-provided text, placed near the corresponding widget. 
+
+
+ \emph{imin}
+ -- minimum value of output range. 
+
+
+ \emph{imax}
+ -- maximum value of output range. 
+
+
+ \emph{istep}
+ -- a floating-point number indicating the increment of valuator value corresponding to of each mouse click. The \emph{istep}
+ argument allows the user to arbitrarily slow roller's motion, enabling arbitrary precision. 
+
+
+ \emph{iexp}
+ -- an integer number denoting the behaviour of valuator: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ 0 = valuator output is linear
+
+\item 
+
+ -1 = valuator output is exponential
+
+
+\end{itemize}
+
+
+  All other positive numbers for \emph{iexp}
+ indicate the number of an existing table that is used for indexing. Linear interpolation is provided in table indexing. A negative table number suppresses interpolation. 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Warning &\textbf{IMPORTANT!}
+ \\
+  &
+
+  Notice that the tables used by valuators must be created with the \emph{ftgen}
+ opcode and placed in the orchestra before the corresponding valuator. They can not placed in the score. In fact, tables placed in the score are created later than the initialization of the opcodes placed in the header section of the orchestra. 
+
+
+\end{tabular}
+
+
+
+ \emph{itype}
+ -- an integer number denoting the appearance of the valuator. 
+
+
+  The \emph{itype}
+ argument can be set to the following values: 
+
+
+ 
+\begin{itemize}
+\item 
+
+ 1 - horizontal roller
+
+\item 
+
+ 2 - vertical roller
+
+
+\end{itemize}
+
+
+ \emph{idisp}
+ -- a handle value that was output from a previous instance of the \emph{FLvalue}
+ opcode to display the current value of the current valuator in the \emph{FLvalue}
+ widget itself. If the user doesn't want to use this feature that displays current values, it must be set to a negative number by the user. 
+
+
+ \emph{iwidth}
+ -- width of widget. 
+
+
+ \emph{iheight}
+ -- height of widget. 
+
+
+ \emph{ix}
+ -- horizontal position of upper left corner of the valuator, relative to the upper left corner of corresponding window (expressed in pixels). 
+
+
+ \emph{iy}
+ -- vertical position of upper left corner of the valuator, relative to the upper left corner of corresponding window (expressed in pixels). 
+\subsection*{Performance}
+
+
+ \emph{kout}
+ -- output value 
+
+
+ \emph{FLroller}
+ is a sort of knob, but put transversally: 
+
+
+ \includegraphics[scale=1]{flroller} 
+
+
+ FLroller.
+\subsection*{Examples}
+
+
+  Here is an example of the flroller opcode. It uses the files \emph{flroller.orc}
+ and \emph{flroller.sco}
+. 
+
+
+ \textbf{Example 1. Example of the flroller opcode.}
+
+\begin{lstlisting}
+/* flroller.orc */
+; A sine with oscillator with flroller controlled frequency
+sr = 44100
+kr = 441
+ksmps = 100
+nchnls = 1
+
+FLpanel "Frequency Roller", 900, 400, 50, 50
+    ; Minimum value output by the roller
+    imin = 200
+    ; Maximum value output by the roller
+    imax = 5000
+    ; Increment with each pixel
+    istep = 1
+    ; Logarithmic type roller selected
+    iexp = -1 
+    ; Roller graphic type (1=horizontal)
+    itype = 1
+    ; Display handle (-1=not used)
+    idisp = -1
+    ; Width of the roller in pixels
+    iwidth = 300
+    ; Height of the roller in pixels
+    iheight = 50 
+    ; Distance of the left edge of the knob
+    ; from the left edge of the panel 
+    ix = 300
+    ; Distance of the top edge of the knob
+    ; from the top edge of the panel
+    iy = 50
+
+    gkfreq, ihandle FLroller "Frequency", imin, imax, istep, iexp, itype, idisp, iwidth, iheight, ix, iy
+; End of panel contents
+FLpanelEnd
+; Run the widget thread!
+FLrun
+
+instr 1
+    iamp = 15000
+    ifn = 1
+    asig oscili iamp, gkfreq, ifn
+    out asig
+endin
+/* flroller.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* flroller.sco */
+; Function table that defines a single cycle
+; of a sine wave.
+f 1 0 1024 10 1
+
+; Instrument 1 will play a note for 1 hour.
+i 1 0 3600
+e
+/* flroller.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{FLcount}
+, \emph{FLjoy}
+, \emph{FLkeyb}
+, \emph{FLknob}
+, \emph{FLslider}
+, \emph{FLtext}
+
+\subsection*{Credits}
+
+
+ Author: Gabriel Maldonado
+
+
+ New in version 4.22
+
+
+ Example written by Iain McCurdy, edited by Kevin Conder.
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+FLprintk2 &Up &FLrun
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}

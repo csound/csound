@@ -1,0 +1,161 @@
+\begin{comment}
+\documentclass[10pt]{article}
+\usepackage{fullpage, graphicx, url}
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+\title{biquad}
+\begin{document}
+
+
+\begin{tabular}{ccc}
+The Alternative Csound Reference Manual & & \\
+Previous & &Next
+
+\end{tabular}
+
+%\hline 
+\end{comment}
+\section{biquad}
+biquad --  A sweepable general purpose biquadratic digital filter. \subsection*{Description}
+
+
+  A sweepable general purpose biquadratic digital filter. 
+\subsection*{Syntax}
+
+
+ ar \textbf{biquad}
+ asig, kb0, kb1, kb2, ka0, ka1, ka2 [, iskip]
+\subsection*{Initialization}
+
+
+ \emph{iskip}
+ (optional, default=0) -- if non-zero, intialization will be skipped. Default value 0. (New in Csound version 3.50) 
+\subsection*{Performance}
+
+
+ \emph{asig}
+ -- input signal 
+
+
+ \emph{biquad}
+ is a general purpose biquadratic digital filter of the form: 
+
+
+   a0*y(n) + a1*y[n-1] + a2*y[n-2] = b0*x[n] + b1*x[n-1] + b2*x[n-2]\\ 
+       
+
+
+  This filter has the following frequency response: 
+
+
+          B(Z)   b0 + b1*Z-1  + b2*Z-2\\ 
+   H(Z) = ---- = ------------------\\ 
+          A(Z)   a0 + a1*Z-1  + a2*Z-2\\ 
+       
+
+
+  This type of filter is often encountered in digital signal processing literature. It allows six user-defined k-rate coefficients. 
+\subsection*{Examples}
+
+
+  Here is an example of the biquad opcode. It uses the files \emph{biquad.orc}
+ and \emph{biquad.sco}
+. 
+
+
+ \textbf{Example 1. Example of the biquad opcode.}
+
+\begin{lstlisting}
+/* biquad.orc */
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 2
+
+; Instrument #1.
+instr 1
+  ; Get the values from the score.
+  idur = p3
+  iamp = p4
+  icps = cpspch(p5)
+  kfco = p6
+  krez = p7
+
+  ; Calculate the biquadratic filter's coefficients 
+  kfcon = 2*3.14159265*kfco/sr
+  kalpha = 1-2*krez*cos(kfcon)*cos(kfcon)+krez*krez*cos(2*kfcon)
+  kbeta = krez*krez*sin(2*kfcon)-2*krez*cos(kfcon)*sin(kfcon)
+  kgama = 1+cos(kfcon)
+  km1 = kalpha*kgama+kbeta*sin(kfcon)
+  km2 = kalpha*kgama-kbeta*sin(kfcon)
+  kden = sqrt(km1*km1+km2*km2)
+  kb0 = 1.5*(kalpha*kalpha+kbeta*kbeta)/kden
+  kb1 = kb0
+  kb2 = 0
+  ka0 = 1
+  ka1 = -2*krez*cos(kfcon)
+  ka2 = krez*krez
+  
+  ; Generate an input signal.
+  axn vco 1, icps, 1
+
+  ; Filter the input signal.
+  ayn biquad axn, kb0, kb1, kb2, ka0, ka1, ka2
+  outs ayn*iamp/2, ayn*iamp/2
+endin
+/* biquad.orc */
+        
+\end{lstlisting}
+\begin{lstlisting}
+/* biquad.sco */
+; Table #1, a sine wave.
+f 1 0 16384 10 1
+
+;    Sta  Dur  Amp    Pitch Fco   Rez
+i 1  0.0  1.0  20000  6.00  1000  .8
+i 1  1.0  1.0  20000  6.03  2000  .95
+e
+/* biquad.sco */
+        
+\end{lstlisting}
+\subsection*{See Also}
+
+
+ \emph{biquada}
+, \emph{moogvcf}
+, \emph{rezzy}
+
+\subsection*{Credits}
+
+
+ 
+
+
+ 
+
+
+\begin{tabular}{cc}
+Author: Hans Mikelson &October 1998
+
+\end{tabular}
+
+
+
+ 
+
+
+ New in Csound version 3.49
+%\hline 
+
+
+\begin{comment}
+\begin{tabular}{lcr}
+Previous &Home &Next \\
+bexprnd &Up &biquada
+
+\end{tabular}
+
+
+\end{document}
+\end{comment}
