@@ -1,12 +1,13 @@
 2004-10-24  Michael Gogins <gogins@pipeline.com>
 
-	* Updated build system for gcc 3.4.2 (candidate), changed some flags to avoid
-    DLL relocation errors on Windows that caused problems with restarting CsoundVST,
-    and with debugging.
-    
-    * First draft of complete Csound 5 manual with Kevin Conder documentation included.
-    There are as yet many errors with tables and graphics, but all (or almost all) 
-    of the text appears to be good.
+	* Updated build system for gcc 3.4.2 (candidate), changed some
+	flags to avoid DLL relocation errors on Windows that caused
+	problems with restarting CsoundVST, and with debugging.
+
+	* First draft of complete Csound 5 manual with Kevin Conder
+	documentation included.  There are as yet many errors with tables
+	and graphics, but all (or almost all) of the text appears to be
+	good.
 
 2004-10-21  John ffitch  <jpff@codemist.co.uk>
 
@@ -23,9 +24,9 @@
 	easier use of algorithmic composition classes in other
 	Csound-based systems.
 
-    * Updated csound.pdf with API documentation.
+	* Updated csound.pdf with API documentation.
 
-    * Restored real-time audio code to more functional version.
+	* Restored real-time audio code to more functional version.
 
 2004-10-16  John ffitch  <jpff@codemist.co.uk>
 
@@ -110,9 +111,9 @@
 	* Implemented threads and mutexes in the Csound API for Windows and Linux,
 	in Top/threads.c.
 
-	* Implemented low-latency PortAudio with a blocking wrapper that uses 
-    mutexes for asynchronus ASIO on MinGW/Windows, in InOut/pa_blocking.c and 
-	H/pa_blocking.h.
+	* Implemented low-latency PortAudio with a blocking wrapper that
+	uses mutexes for asynchronus ASIO on MinGW/Windows, in
+	InOut/pa_blocking.c and H/pa_blocking.h.
 
 	* Fixed Top/threads.c so it compiles on Linux.
 
@@ -161,7 +162,7 @@
 2004-07-19  Michael Gogins <gogins@pipeline.com>
 
 	* Andres Cabrera suggested a global vst audio output opcode, so I added
-    vstplugg to do that. I changed the documentation to reflect it.
+	vstplugg to do that. I changed the documentation to reflect it.
 
 2004-07-18  Steven Yi <stevenyi@csounds.com>
 
