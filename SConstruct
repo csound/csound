@@ -253,7 +253,6 @@ Engine/swrite.c
 Engine/twarp.c
 InOut/libsnd.c
 InOut/libsnd_u.c
-InOut/sfheader.c
 InOut/winascii.c
 InOut/windin.c
 InOut/window.c
@@ -355,7 +354,6 @@ Engine/swrite.c
 Engine/twarp.c 
 InOut/libsnd.c 
 InOut/libsnd_u.c
-InOut/sfheader.c 
 InOut/winascii.c 
 InOut/window.c 
 InOut/winEPS.c 
