@@ -13,11 +13,11 @@ INC = ../../H
 
 OBJS =  het_main.@OBJEXT@ $T/hetro.@OBJEXT@ $T/filopen.@OBJEXT@ \
 	$T/sfheader.@OBJEXT@ $T/soundin.@OBJEXT@ \
-	$T/aiff.@OBJEXT@ $T/ieee80.@OBJEXT@ $T/memalloc.@OBJEXT@ \
-	$T/wave.@OBJEXT@ $T/window.@OBJEXT@ $T/winFLTK.@OBJEXT@ \
+	$T/memalloc.@OBJEXT@ $T/memfiles.@OBJEXT@ \
+	$T/window.@OBJEXT@ $T/winFLTK.@OBJEXT@ \
 	$T/FL_graph.@OBJEXT@ $T/winEPS.@OBJEXT@ $T/aifc.@OBJEXT@ \
 	$T/winascii.@OBJEXT@ $T/sdif.@OBJEXT@ $T/sdif-mem.@OBJEXT@ \
-	$T/getstring.@OBJEXT@
+	$T/getstring.@OBJEXT@ $T/natben.@OBJEXT@
 
 adsyns:	hetro
 

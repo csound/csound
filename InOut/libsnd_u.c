@@ -42,7 +42,7 @@ char* type2string(int x)
     case TYP_PVF: return "PVF";
     case TYP_XI: return "XI";
     case TYP_HTK: return "HTK";
-      //case TYP_SDS: return "SDS";
+    case TYP_SDS: return "SDS";
     }
 }
 
@@ -114,7 +114,6 @@ int SAsndgetset(
     p->analonly = 1;
     if ((infile = sndgetset(p)) < 0)            /* open sndfil, do skiptime */
       return(-1);
-
     if (p->framesrem < 0 ) {
       if (O.msglevel & WARNMSG)
         printf(Str(X_1318,
@@ -140,10 +139,58 @@ int SAsndgetset(
     return(infd);
 }
 
-long getsndin(int fd, MYFLT *fp, long nlocs, SOUNDIN *p)
+long getsndin(SNDFILE *fd, MYFLT *fp, long nlocs, SOUNDIN *p)
         /* a simplified soundin */
 {
-    return 0;
+    long  n, nread;
+    MYFLT *fbeg = fp, *fend = fp + nlocs, gain;
+    MYFLT scalefac = e0dbfs;
+
+    if (p->aiffdata != NULL && p->aiffdata->gainfac > 0)
+      gain = p->aiffdata->gainfac;
+    else {
+      gain = FL(1.0);
+      /*RWD 3:2000*/
+      if (p->do_floatscaling)
+        scalefac *= p->fscalefac;
+    }
+    if (p->nchanls == 1 || p->channel == ALLCHNLS) {  /* MONO or ALLCHNLS */
+      MYFLT  *inbufp, *bufend;
+      inbufp = p->inbufp;
+      bufend = p->bufend;
+      while (nlocs--) {
+        if (inbufp >= bufend) {
+          if ((n = sreadin(fd,p->inbuf,SNDINBUFSIZ,p)) == 0)
+            break;
+          inbufp = p->inbuf;
+          bufend = p->inbuf + n;
+        }
+        *fp++ = (MYFLT)(*inbufp++) * scalefac * gain;
+      }
+    }
+    else {                                /* MULTI-CHANNEL, SELECT ONE */
+      int chcnt = 0, chreq = p->channel, nchanls = p->nchanls;
+      MYFLT  *inbufp, *bufend;
+      inbufp = p->inbufp;
+      bufend = p->bufend;
+      nlocs *= nchanls;
+      while (nlocs--) {
+        if (inbufp >= bufend) {
+          if ((n = sreadin(fd,p->inbuf,SNDINBUFSIZ,p)) == 0)
+            break;
+          inbufp = (float *) p->inbuf;
+          bufend = (float *) (p->inbuf + n);
+        }
+        if (++chcnt == chreq)
+          *fp++ = (MYFLT)(*inbufp) * scalefac * gain;
+        inbufp++;
+        if (chcnt == nchanls) chcnt = 0;
+      }
+    }
+    nread = fp - fbeg;
+    while (fp < fend)    /* if incomplete */
+      *fp++ = FL(0.0);   /*  pad with 0's */
+    return(nread);
 }
 
 SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
@@ -157,7 +204,6 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
     SNDFILE *infile;
     SF_INFO sfinfo;
     long    filno;
-    long    sndinbufsiz = SNDINBUFSIZ;
 
     if ((n = p->OUTOCOUNT) && n > 24) { /* if appl,chkchnls */
       sprintf(errmsg,Str(X_1209,"soundin: illegal no of receiving channels"));
@@ -188,6 +234,7 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
     sf_command(infile, SFC_SET_NORM_FLOAT, NULL, SF_FALSE);
 #endif
     p->fdch.fd = infile;
+    p->nchanls = sfinfo.channels;
 /*     printf("*** sfinfo: frames=%lld\tsamplerate=%d\tchannels=%d\n" */
 /*            "***       : format=%d\tsections=%d\tseekable=%d\n" */
 /*            "***       : infile=%p\n", */
@@ -201,7 +248,7 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
     p->endfile = 0;
     p->filetyp = 0;         /* initially non-typed for readheader */
     curr_func_sr = (MYFLT)sfinfo.samplerate;
-#ifdef never
+#ifdef WHEN_LOOPING_WRITTEN
       if (hdr->filetyp == TYP_AIFF                  /*    chk the hdr codes  */
           && hdr->aiffdata != NULL
           && hdr->aiffdata->loopmode1 != 0          /* looping aiff:         */
@@ -280,10 +327,9 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
       p->audrem = sfinfo.frames * sfinfo.channels;
       p->framesrem = sfinfo.frames;    /*   find frames rem */
       skipframes = (long)(*p->iskptim * p->sr);
-      framesinbuf = sndinbufsiz / p->sampframsiz;
+      framesinbuf = SNDINBUFSIZ / p->sampframsiz;
       if (skipframes < framesinbuf) {              /* if sound within 1st buf */
-        int nreq;
-        nreq = sndinbufsiz;
+        int nreq = SNDINBUFSIZ;
         n = sreadin(infile, p->inbuf, nreq, p);
         p->bufend = p->inbuf+n;
         p->inbufp = p->inbuf + skipframes * p->sampframsiz;
@@ -291,7 +337,7 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
       else {                                          /* for greater skiptime: */
         if (sf_seek(infile, (off_t)skipframes, SEEK_SET) < 0)  /* else seek to bndry */
           die(Str(X_1208,"soundin seek error"));
-        if ((n = sreadin(NULL,p->inbuf,sndinbufsiz,p)) == 0) /* now rd fulbuf */
+        if ((n = sreadin(NULL,p->inbuf,SNDINBUFSIZ,p)) == 0) /* now rd fulbuf */
           p->endfile = 1;
         p->inbufp = p->inbuf;
         p->bufend = p->inbuf + n;
@@ -338,15 +384,14 @@ int sreadin(                    /* special handling of sound input       */
     SNDFILE *infile = p->fdch.fd;
     int nsamples = nbytes/sizeof(MYFLT);
     MYFLT *inb = (MYFLT*)inbuf;
-/*     printf("*** sreadin: %p\n",infile); */
     do {
-/*       printf("***        : ntot=%d nbytes=%d reading %d\n", */
-/*              ntot, nbytes, (nsamples-ntot)/nchnls); */
-      n = sf_read_MYFLT(infile, inb+ntot, (nsamples-ntot)/nchnls);
+/*       printf("***        : ntot=%d nbytes=%d nsamples=%d nchnls=%d\n", */
+/*              ntot, nbytes, nsamples, p->nchanls); */
+      n = sf_read_MYFLT(infile, inb+ntot, (nsamples-ntot)/p->nchanls);
 /*       printf("***        : n=%d\n", n); */
       if (n<0)
         die(Str(X_1201,"soundfile read error"));
-    } while (n > 0 && (ntot += n*nchnls) < nsamples);
+    } while (n > 0 && (ntot += n*p->nchanls) < nsamples);
     if (p->audrem > 0) {        /* AIFF:                  */
       if (ntot > p->audrem)     /*   chk haven't exceeded */
         ntot = p->audrem;       /*   limit of audio data  */

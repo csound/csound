@@ -12,11 +12,11 @@ T = ../..
 INC = ../../H
 
 OBJS =  lpc_main.@OBJEXT@ $T/lpanal.@OBJEXT@ $T/lptrkfns.@OBJEXT@ \
-	$T/filopen.@OBJEXT@ $T/sfheader.@OBJEXT@ $T/soundin.@OBJEXT@ \
-	$T/aiff.@OBJEXT@ $T/wave.@OBJEXT@ $T/ieee80.@OBJEXT@ \
-        $T/memalloc.@OBJEXT@ $T/window.@OBJEXT@ $T/winFLTK.@OBJEXT@ \
-	$T/winascii.@OBJEXT@ $T/winEPS.@OBJEXT@ $T/aifc.@OBJEXT@ \
-	$T/getstring.@OBJEXT@ $T/FL_graph.@OBJEXT@
+	$T/filopen.@OBJEXT@ $T/sfheader.@OBJEXT@ $T/libsnd@OBJEXT@ \
+	$T/libsnd_u.@OBJEXT@ $T/memalloc.@OBJEXT@ $T/memfiles@OBJEXT@ \
+	$T/window.@OBJEXT@ $T/winFLTK.@OBJEXT@ $T/rtpa.@OBJEXT@ \
+	$T/winascii.@OBJEXT@ $T/winEPS.@OBJEXT@ $T/memfiles.@OBJEXT@ \
+	$T/getstring.@OBJEXT@ $T/FL_graph.@OBJEXT@ $T/natben.@OBJEXT@
 
 lpcs:		lpanal
 
