@@ -607,7 +607,6 @@ int csoundMain(void *csound, int argc, char **argv)
 #ifdef mills_macintosh
 #else
 extern void csoundMessageV(void *, const char *, va_list);
-extern void csoundMessageS(void *, const char *, va_list);
 void err_printf(char *fmt, ...)
 {
     va_list a;

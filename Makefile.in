@@ -1,1667 +1,422 @@
-# Makefile.in generated automatically by automake 1.4-p5 from Makefile.am
+#								Csound Makefile
+# edit the following definitions according to need:
 
-# Copyright (C) 1994, 1995-8, 1999, 2001 Free Software Foundation, Inc.
-# This Makefile.in is free software; the Free Software Foundation
-# gives unlimited permission to copy and/or distribute it,
-# with or without modifications, as long as this notice is preserved.
+INCLUDE	= @includedir@
+LIB	= @datadir@
+DEST	= @bindir@
+MAN	= @mandir@
+MAN1	= $(MAN)/man1
+CAT1	= $(MAN)/cat1
+# these directories must exist for stages beyond 'make csound'
 
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
-# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-# PARTICULAR PURPOSE.
+CDEP =
+COBS =	$(COBJS)
+CC = @CC@
+# choose either -
+#	CDEP =			for UNIX
+#	COBS = $(COBJS)
+#	CC = cc
+# or -
+#	CDEP = $(CRFILE)	for MSDOS
+#	COBS = @$(CDEP)
+#	CC = gcc
+#	.c.$(o):
+#		$(CC) $(CFLAGS) -c $*.c -o $@
 
-# Csound uses this one master Makefile.am 
-# to build and install all targets on all autotools platforms.
-# All targets are specified below in order of increasing dependency.
-# All configuration questions are asked and answered in configure.ac, 
-# and all configuration results are implemented in config.h and in this file.
-# Unless you are adding new library dependencies or new platforms to the Csound build,
-# this is the only build system file that you should need to modify.
+DEFINES = -DBETA
+# In autoconf stuff
+# choose any of -
+#	-DWINDOWS   include window system calls (X11, SGI, or FG graphics)
+#	-DRTAUDIO   include real-time sound i/o via DEC or other audio-board
+#	-DHAVE_FLTK include FLTK widgets (requires FLTK 1.1.x)
+#	-DHPUX -D_HPUX_SOURCE	for HP compilation under HP Unix
+#	-DPIPES     if system supports popen and pclose calls
+# at most one of -
+#	-DSFIRCAM   read/write IRCAM-format soundfiles, with 1024-byte header;
+#	-DSFSUN41   read/write SUN4.1-format soundfiles, with their own header;
+#	-DNeXT      read/write NeXT-format soundfiles, with their own header;
+#			(else read/write sound with no headers)
+# and at most one of -
+#	-DDEC		send rtaudio calls to DEC audio device handler
+#	-DSGI		send rtaudio calls to SGI audio device handler
+#	-Dsun		send rtaudio calls to sun audio device handler
+#	-Dsol		send rtaudio calls to solaris audio handler
+#	-DHP		send rtaudio calls to HP  audio device handler
+#	-DLINUX		send rtaudio calls to Linux audio device handler
+# Defining LINUX also enables an additional command-line option (-V <volume>)
+# and includes an extra header in 'midirecv.c'.
+# If LINUX is defined, but the target is Linux on a big-endian architecture
+# (e.g., Linux on SPARC [not tested]), you should also define -
+#       -DLINUX_BE      Linux audio device handler for big-endian samples
 
-############################
-# 
-#	ALL TARGETS
+CFLAGS = @CFLAGS@ @CYGWINCFLAGS@ @XCFLAGS@ $(RPM_OPT_FLAGS) $(DEFINES)
+LDFLAGS = @LDFLAGS@ @CYGWINLDFLAGS@
+#	-O		Simple optimisation
+#	-O2		to be more specific about the optimization level
+#	-f		compile single-precision floats (4.3,VAX,DEC-RISC)
+# 	-fsingle	as above, for SUN Unix
+# 	-float -cckr 	as above, for SGI Unix
+#	-f68881		employ the 68881 co-processor
+#	-ffpa		employ the SUN fl-pt accelerator
+#	-f -DWITHx87	for PC with 80x87 floating-point coprocessor
+#	-w -D__STDC__	for PC
+#	-Aa		for HP to invoke ANSI C compiler
+#	+e		for HPUX rtaudio compilation
+#	+x		generate HP inline 68020 and 68881 code
+#	+Nd1200		expand SYS5 pass3 tablesize
+#	-DWITHx87	for fpt chip on LINUX
+#	-march=i586 -mcpu=i686	Recommended for GNU/Linux is PentiumIII/Athlon.#
+#			Still not clear for which processor this works
+#	-malign-loops=4	Recommended for GNU/Linux
+#	-malign-jumps=4	Recommended for GNU/Linux
+#       -malign-functions=4
+#       -fno-gcse -fno-strict-aliasing    (recommended bug-arounds for gcc 2.9x)
+#       -mfancy-math-387                  (may not be necessary, but safe to add)
+#       -ffast-math                       produces faster and smaller code, not
+#						 fully tested:
+#   these produce larger code, but may (or may not) be faster:
+#     -fomit-frame-pointer
+#     -finline-functions                  (N.B. do not use this with gcc 2.95.2)
+#     -funroll-loops                      (unfortunately this option generates
+#                                           much larger executables)
+#	-I/usr/demo/SOUND		to find SUN4.1 audio includes
+#	-I/usr/include/X11R4		to find HP X11 includes, v.4
+#	-I/usr/include/sys		to find NeXT malloc.h
+#	-I/usr/openwin/include		Solaris openwin interface
+#	-I/usr/demo/SOUND/include	Solaris sound interface
+#       -I/usr/X11R6/include            non-RedHat distributions of Linux
+
+# uncomment these if HAVE_FLTK was enabled in DEFINES
 #
-############################
+CXX = @CXX@
+o = @OBJEXT@
+# source and object files for FLTK widgets
+CXXFLAGS = -I H -fno-exceptions -fno-rtti @WINCXXFLAGS@
+FLTKSRC = @FLTKSRC@
+FLTKOBJ = @FLTKOBJ@
+#FLTKLIB = -lfltk -lpthread -lg++
+FLTKLIB = @WINLDFLAGS@
+AUDLIBS = @AUDLIBS@
+# libraries required by widgets.cpp
+#	/usr/lib/libpthread.a			suitable for distribution,
+#	/usr/lib/libstdc++-libc6.2-2.a.3	but increases size; the
+#						directiories and version
+#						numbers are system-dependent)
 
-#	The makedb program for compiling xmg files:
+LIBS =	$(FLTKLIB) $(AUDLIBS) @X_LIBS@ @LIBS@
+#	-lefence
 
+WINSRC = @WINSRC@
+WINOBJ = @WINOBJ@
+
+AUDSRC = @AUDSRC@
+AUDOBJ = @AUDOBJ@
+AUDHDR = @AUDHDR@
+
+# The Csound MAKE can be run in separate stages, or as a single command.
+# To create just the 'csound' executable, type
+#	make csound
+# This module contains most of the functions below as Utility options
+# (see the Csound manual), but they are also available as standalones:
+
+# To create the standalone 'hetro', 'lpanal', 'pvanal', type
+#	make hetro
+#	make lpanal
+#	make pvanal
+# To create all three standalones, type
+#	make anals
+
+# To create standalone 'scot', 'cscore', 'scsort', 'extract', type
+#	make scots
+#	make cscores
+#	make scsort
+#	make extract
+# To create all four standalones, type
+#	make utils1
+
+# To create standalone 'sndinfo', type
+#	make sndinfo
+# or
+#	make utils2
+
+# To create all the above, from 'csound' to 'utils2', type
+#	make all
+
+# If you have completed the above, and have defined the INCLUDE, LIB & DEST
+# directories, you can now install all the executables in a single command:
+#	make install
+
+# do not edit below this line
+# --------------------------------------------------------------------------
+
+# macros passed to lower-level Makefile files
+#
+MAC = "DEFINES=$(DEFINES)"
+
+MAKE = make $(MAC)
 
 SHELL = @SHELL@
-
-srcdir = @srcdir@
-top_srcdir = @top_srcdir@
-VPATH = @srcdir@
-prefix = @prefix@
-exec_prefix = @exec_prefix@
-
-bindir = @bindir@
-sbindir = @sbindir@
-libexecdir = @libexecdir@
-datadir = @datadir@
-sysconfdir = @sysconfdir@
-sharedstatedir = @sharedstatedir@
-localstatedir = @localstatedir@
-libdir = @libdir@
-infodir = @infodir@
-mandir = @mandir@
-includedir = @includedir@
-oldincludedir = /usr/include
-
-DESTDIR =
-
-pkgdatadir = $(datadir)/@PACKAGE@
-pkglibdir = $(libdir)/@PACKAGE@
-pkgincludedir = $(includedir)/@PACKAGE@
-
-top_builddir = .
-
-ACLOCAL = @ACLOCAL@
-AUTOCONF = @AUTOCONF@
-AUTOMAKE = @AUTOMAKE@
-AUTOHEADER = @AUTOHEADER@
-
-INSTALL = @INSTALL@
-INSTALL_PROGRAM = @INSTALL_PROGRAM@ $(AM_INSTALL_PROGRAM_FLAGS)
-INSTALL_DATA = @INSTALL_DATA@
-INSTALL_SCRIPT = @INSTALL_SCRIPT@
-transform = @program_transform_name@
-
-NORMAL_INSTALL = :
-PRE_INSTALL = :
-POST_INSTALL = :
-NORMAL_UNINSTALL = :
-PRE_UNINSTALL = :
-POST_UNINSTALL = :
-host_alias = @host_alias@
-host_triplet = @host@
-CC = @CC@
-CSOUND_CFLAGS = @CSOUND_CFLAGS@
-CSOUND_CPPFLAGS = @CSOUND_CPPFLAGS@
-CSOUND_CXXFLAGS = @CSOUND_CXXFLAGS@
-CSOUND_LDADD = @CSOUND_LDADD@
-CSOUND_LDFLAGS = @CSOUND_LDFLAGS@
-CXX = @CXX@
-FLTK_CONFIG = @FLTK_CONFIG@
-LIBCSOUND_CFLAGS = @LIBCSOUND_CFLAGS@
-LIBCSOUND_CPPFLAGS = @LIBCSOUND_CPPFLAGS@
-LIBCSOUND_CXXFLAGS = @LIBCSOUND_CXXFLAGS@
-LIBCSOUND_LDFLAGS = @LIBCSOUND_LDFLAGS@
-LIBCSOUND_LIBADD = @LIBCSOUND_LIBADD@
-LIBTOOL = @LIBTOOL@
-PLUGIN_CFLAGS = @PLUGIN_CFLAGS@
-PLUGIN_CPPFLAGS = @PLUGIN_CPPFLAGS@
-PLUGIN_LDFLAGS = @PLUGIN_LDFLAGS@
-PLUGIN_LIBADD = @PLUGIN_LIBADD@
-RANLIB = @RANLIB@
-TCLTK = @TCLTK@
-UTILITY_CFLAGS = @UTILITY_CFLAGS@
-UTILITY_CPPFLAGS = @UTILITY_CPPFLAGS@
-UTILITY_LDADD = @UTILITY_LDADD@
-UTILITY_LDFLAGS = @UTILITY_LDFLAGS@
-bin_PROGRAMS = makedb csound cscore cvanal dnoise envext extract extractor het_export het_import hetro lpanal lpc_export lpc_import mixer pv_export  pv_import  pvanal pvlook scale scot scsort sdif2ad sndinfo srconv
-
-# bin_PROGRAMS+=csoundgui
-# Note that _csoundvst is a "module" to dlopen, not a "shared library" to link...
-# lib_LTLIBRARIES+=_csoundvst.la
-# ...and the standalone csoundvst always uses dlopen to run _csoundvst.
-# bin_PROGRAMS+=csoundvst
-
-#	Convenience library for utility programs:
-
-lib_LTLIBRARIES = libcsound.la libustub.la
-pkglib_LTLIBRARIES = babo.la bbcut.la biquad.la butter.la clfilt.la cross2.la dam.la filter.la flanger.la follow.la grain.la grain4.la hrtferX.la locsig.la lowpassr.la midiops2.la midiops3.la modal4.la nlfilt.la oscbnk.la phisem.la physmod.la pitch.la pluck.la repluck.la scansyn.la scansynx.la sfont.la sndwarp.la space.la spat3d.la ugensa.la uggab.la ugmoss.la ugsc.la wave_terrain.la
-
-#	Extra files and scripts:
-
-EXTRA_DIST = csound.spec Doxyfile
-
-############################
-# 
-#	ALL SOURCES AND RULES
-#
-############################
-
-#	Note that conditionals (AM_CONDITIONAL) must be used for source variables,
-#	but substititions (AC_SUBST) can be used for all other variables.
-
-#	The makedb program for compiling xmg files:
-
-makedb_SOURCES = strings/makedb.c
-
-#	The Csound engine and API library
-
-EXTRA_libcsound_la_SOURCES = \
-InOut/rtpa.c
-
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@libcsound_la_SOURCES = @CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@\
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/auxfd.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/entry1.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/entry2.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/express.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/extract.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/fgens.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/filopen.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/insert.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/linevent.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/memalloc.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/memfiles.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/musmon.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/namedins.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/oload.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/otran.c	\
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/rdorch.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/rdscor.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/scsort.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/scxtract.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/sort.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/sread.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/swrite.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/twarp.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/3Dug.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/aiff.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/aops.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/BeAudio.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/cmath.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/complex.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/config.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/control.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/convolve.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/cs.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/cscore.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/csdl.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/csgui.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/CSliders.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/csound.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/csoundCore.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/CsoundLib.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/cwindow.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/cwindows.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/DECaudio.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/DECplay.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/diskin.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/disprep.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/dn_res.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/dpwelib.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/dsputil.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/dumpf.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/effects.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/fft.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/fhtfun.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/foo.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/fout.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/ftgen.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/fwguide.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/ieee80.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/insert.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/lipfilt.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/lpc.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/midiinterop.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/midioops.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/midiops.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/midiops2.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/midiout.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/mw_misc.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/namedins.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/noise.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/nshakers.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/oload.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/onepole.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/onezero.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/OpcLoad.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/opcode.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/oscils.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/OSC-sock.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/pitch.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/prototyp.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/pstream.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/pvadd.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/pvdefs.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/pvfileio.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/pvinterp.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/pvoc.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/pvocext.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/pvread.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/pvxanal.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/resource.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/revsets.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/rtNetBSD.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/schedule.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/scot.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/sdif.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/sdif-mem.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/sf.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/sfheader.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/sftype.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/slider.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/sndinfUG.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/solarisAudio.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/sort.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/soundio.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/spectra.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/sysdep.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/text.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/typetabl.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/ugens1.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/ugens2.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/ugens3.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/ugens4.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/ugens5.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/ugens6.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/ugens7.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/ugens8.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/ugens9.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/uggab.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/ugmoss.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/ugsc.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/ustub.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/vbap.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/vdelay.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/version.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/vpvoc.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/wave.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/wguide.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/widgets.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/windin.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@H/winEPS.h \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/aifc.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/aiff.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/ieee80.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/libsnd.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/sfheader.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/soundin.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/soundio.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/wave.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/winascii.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/windin.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/window.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/winEPS.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/aops.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/cmath.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/control.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/diskin.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/disprep.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/dnfft.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/dsputil.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/dumpf.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/fft.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/fout.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/fprint.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/lptrkfns.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/mididevice.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/midiinterop.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/midiops.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/midiout.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/midirecv.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/midisend.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/mxfft.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/oscils.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/pstream.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/pvadd.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/pvfileio.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/pvinterp.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/pvoc.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/pvocext.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/pvread.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/pvsanal.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/pvxanal.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/schedule.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/sdif.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/sdif-mem.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/sndinfUG.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/ugens1.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/ugens2.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/ugens3.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/ugens4.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/ugens5.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/ugens6.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/ugens7.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/ugens8.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/ugens9.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/ugrw1.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/ugrw2.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/vbap.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/vbap_eight.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/vbap_four.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/vbap_sixteen.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/vbap_zak.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/vdelay.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/vpvoc.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/argdecode.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/cscore_internal.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/cscorfns.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/csound.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/cvanal.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/dl_opcodes.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/dnoise.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/getstring.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/hetro.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/load_opcodes.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/lpanal.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/main.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/one_file.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/opcode.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/pvanal.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/pvlook.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/scot.c \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/sndinfo.c	\
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@ InOut/rtSGI.c InOut/SGIplay.c
-@CONDITIONAL_sun_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@libcsound_la_SOURCES = @CONDITIONAL_sun_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/rtSUN.c
-@CONDITIONAL_DEC_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@libcsound_la_SOURCES = @CONDITIONAL_DEC_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/rtDEC.c InOut/DECaudio.c InOut/DECplay.c H/DECplay.h
-@CONDITIONAL_HP_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@libcsound_la_SOURCES = @CONDITIONAL_HP_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/rtDEC.c InOut/DECaudio.c InOut/DECplay.c H/DECplay.h
-@CONDITIONAL_WIN32_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@libcsound_la_SOURCES = @CONDITIONAL_WIN32_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/rtpa.c
-@CONDITIONAL_LINUX_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@libcsound_la_SOURCES = @CONDITIONAL_LINUX_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/rtpa.c
-@CONDITIONAL_WINDOWS_TRUE@@CONDITIONAL_USE_FLTK_TRUE@libcsound_la_SOURCES = @CONDITIONAL_WINDOWS_TRUE@@CONDITIONAL_USE_FLTK_TRUE@InOut/winFLTK.c InOut/FL_graph.cpp 
-@CONDITIONAL_WINDOWS_TRUE@@CONDITIONAL_USE_FLTK_TRUE@@CONDITIONAL_USE_FLTK_WIDGETS_TRUE@libcsound_la_SOURCES = @CONDITIONAL_WINDOWS_TRUE@@CONDITIONAL_USE_FLTK_TRUE@@CONDITIONAL_USE_FLTK_WIDGETS_TRUE@InOut/widgets.cpp
-@CONDITIONAL_WINDOWS_TRUE@@CONDITIONAL_USE_X11_TRUE@libcsound_la_SOURCES = @CONDITIONAL_WINDOWS_TRUE@@CONDITIONAL_USE_X11_TRUE@InOut/winX11.c
-
-libcsound_la_CPPFLAGS = @LIBCSOUND_CPPFLAGS@
-libcsound_la_CFLAGS = @LIBCSOUND_CFLAGS@
-libcsound_la_CXXFLAGS = @LIBCSOUND_CXXFLAGS@
-libcsound_la_LIBADD = @LIBCSOUND_LIBADD@
-libcsound_la_LDFLAGS = @LIBCSOUND_LDFLAGS@
-
-#	User interfaces for Csound:
-
-csound_SOURCES = frontends/csound/csound_main.c
-csound_DEPENDENCIES = xmg libcsound.la
-csound_CPPFLAGS = @CSOUND_CPPFLAGS@
-csound_CFLAGS = @CSOUND_CFLAGS@
-csound_CXXFLAGS = @CSOUND_CXXFLAGS@
-csound_LDFLAGS = @CSOUND_LDFLAGS@
-csound_LDADD = @CSOUND_LDADD@
-
-#	Plugin opcodes 
-#	(note that they are "modules" to dlopen, not "shared libraries" to link):
-
-babo_la_SOURCES = Opcodes/babo.c
-babo_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-babo_la_CFLAGS = @PLUGIN_CFLAGS@
-babo_la_LDFLAGS = @PLUGIN_LDFLAGS@
-babo_la_LIBADD = @PLUGIN_LIBADD@
-
-bbcut_la_SOURCES = Opcodes/bbcut.c
-bbcut_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-bbcut_la_CFLAGS = @PLUGIN_CFLAGS@
-bbcut_la_LDFLAGS = @PLUGIN_LDFLAGS@
-bbcut_la_LIBADD = @PLUGIN_LIBADD@
-
-biquad_la_SOURCES = Opcodes/biquad.c
-biquad_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-biquad_la_CFLAGS = @PLUGIN_CFLAGS@
-biquad_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-biquad_la_LIBADD = @PLUGIN_LIBADD@
-
-butter_la_SOURCES = Opcodes/butter.c
-butter_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-butter_la_CFLAGS = @PLUGIN_CFLAGS@
-butter_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-butter_la_LIBADD = @PLUGIN_LIBADD@
-
-clfilt_la_SOURCES = Opcodes/clfilt.c
-clfilt_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-clfilt_la_CFLAGS = @PLUGIN_CFLAGS@
-clfilt_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-clfilt_la_LIBADD = @PLUGIN_LIBADD@
-
-cross2_la_SOURCES = Opcodes/cross2.c
-cross2_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-cross2_la_CFLAGS = @PLUGIN_CFLAGS@
-cross2_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-cross2_la_LIBADD = @PLUGIN_LIBADD@
-
-dam_la_SOURCES = Opcodes/dam.c
-dam_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-dam_la_CFLAGS = @PLUGIN_CFLAGS@
-dam_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-dam_la_LIBADD = @PLUGIN_LIBADD@
-
-filter_la_SOURCES = Opcodes/filter.c
-filter_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-filter_la_CFLAGS = @PLUGIN_CFLAGS@
-filter_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-filter_la_LIBADD = @PLUGIN_LIBADD@
-
-flanger_la_SOURCES = Opcodes/flanger.c
-flanger_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-flanger_la_CFLAGS = @PLUGIN_CFLAGS@
-flanger_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-flanger_la_LIBADD = @PLUGIN_LIBADD@
-
-follow_la_SOURCES = Opcodes/follow.c
-follow_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-follow_la_CFLAGS = @PLUGIN_CFLAGS@
-follow_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-follow_la_LIBADD = @PLUGIN_LIBADD@
-
-grain_la_SOURCES = Opcodes/grain.c
-grain_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-grain_la_CFLAGS = @PLUGIN_CFLAGS@
-grain_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-grain_la_LIBADD = @PLUGIN_LIBADD@
-
-grain4_la_SOURCES = Opcodes/grain4.c
-grain4_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-grain4_la_CFLAGS = @PLUGIN_CFLAGS@
-grain4_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-grain4_la_LIBADD = @PLUGIN_LIBADD@
-
-hrtferX_la_SOURCES = Opcodes/hrtferX.c \
-Top/natben.c
-
-hrtferX_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-hrtferX_la_CFLAGS = @PLUGIN_CFLAGS@
-hrtferX_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-hrtferX_la_LIBADD = @PLUGIN_LIBADD@
-
-locsig_la_SOURCES = Opcodes/locsig.c
-locsig_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-locsig_la_CFLAGS = @PLUGIN_CFLAGS@
-locsig_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-locsig_la_LIBADD = @PLUGIN_LIBADD@
-
-lowpassr_la_SOURCES = Opcodes/lowpassr.c
-lowpassr_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-lowpassr_la_CFLAGS = @PLUGIN_CFLAGS@
-lowpassr_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-lowpassr_la_LIBADD = @PLUGIN_LIBADD@
-
-midiops2_la_SOURCES = Opcodes/midiops2.c
-midiops2_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-midiops2_la_CFLAGS = @PLUGIN_CFLAGS@
-midiops2_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-midiops2_la_LIBADD = @PLUGIN_LIBADD@
-
-midiops3_la_SOURCES = Opcodes/midiops3.c
-midiops3_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-midiops3_la_CFLAGS = @PLUGIN_CFLAGS@
-midiops3_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-midiops3_la_LIBADD = @PLUGIN_LIBADD@
-
-modal4_la_SOURCES = Opcodes/modal4.c \
-Opcodes/physutil.c 
-
-modal4_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-modal4_la_CFLAGS = @PLUGIN_CFLAGS@
-modal4_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-modal4_la_LIBADD = @PLUGIN_LIBADD@
-
-nlfilt_la_SOURCES = Opcodes/nlfilt.c
-nlfilt_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-nlfilt_la_CFLAGS = @PLUGIN_CFLAGS@
-nlfilt_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-nlfilt_la_LIBADD = @PLUGIN_LIBADD@
-
-oscbnk_la_SOURCES = Opcodes/oscbnk.c
-oscbnk_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-oscbnk_la_CFLAGS = @PLUGIN_CFLAGS@
-oscbnk_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-oscbnk_la_LIBADD = @PLUGIN_LIBADD@
-
-phisem_la_SOURCES = Opcodes/phisem.c
-phisem_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-phisem_la_CFLAGS = @PLUGIN_CFLAGS@
-phisem_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-phisem_la_LIBADD = @PLUGIN_LIBADD@
-
-physmod_la_SOURCES = Opcodes/physmod.c \
-Opcodes/physutil.c \
-Opcodes/mandolin.c \
-Opcodes/singwave.c \
-Opcodes/fm4op.c \
-Opcodes/moog1.c \
-Opcodes/shaker.c \
-Opcodes/bowedbar.c
-
-physmod_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-physmod_la_CFLAGS = @PLUGIN_CFLAGS@
-physmod_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-physmod_la_LIBADD = @PLUGIN_LIBADD@
-
-pitch_la_SOURCES = Opcodes/pitch.c \
-Opcodes/pitch0.c \
-Opcodes/spectra.c
-
-pitch_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-pitch_la_CFLAGS = @PLUGIN_CFLAGS@
-pitch_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-pitch_la_LIBADD = @PLUGIN_LIBADD@
-
-pluck_la_SOURCES = Opcodes/pluck.c
-pluck_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-pluck_la_CFLAGS = @PLUGIN_CFLAGS@
-pluck_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-pluck_la_LIBADD = @PLUGIN_LIBADD@
-
-repluck_la_SOURCES = Opcodes/repluck.c
-repluck_CPPFLAGS = @PLUGIN_CPPFLAGS@
-repluck_CFLAGS = @PLUGIN_CFLAGS@
-repluck_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-repluck_la_LIBADD = @PLUGIN_LIBADD@
-
-scansyn_la_SOURCES = Opcodes/scansyn.c
-scansyn_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-scansyn_la_CFLAGS = @PLUGIN_CFLAGS@
-scansyn_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-scansyn_la_LIBADD = @PLUGIN_LIBADD@
-
-scansynx_la_SOURCES = Opcodes/scansynx.c
-scansynx_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-scansynx_la_CFLAGS = @PLUGIN_CFLAGS@
-scansynx_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-scansynx_la_LIBADD = @PLUGIN_LIBADD@
-
-sfont_la_SOURCES = Opcodes/sfont.c
-sfont_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-sfont_la_CFLAGS = @PLUGIN_CFLAGS@
-sfont_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-sfont_la_LIBADD = @PLUGIN_LIBADD@
-
-sndwarp_la_SOURCES = Opcodes/sndwarp.c
-sndwarp_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-sndwarp_la_CFLAGS = @PLUGIN_CFLAGS@
-sndwarp_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-sndwarp_la_LIBADD = @PLUGIN_LIBADD@
-
-space_la_SOURCES = Opcodes/space.c
-space_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-space_la_CFLAGS = @PLUGIN_CFLAGS@
-space_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-space_la_LIBADD = @PLUGIN_LIBADD@
-
-spat3d_la_SOURCES = Opcodes/spat3d.c
-spat3d_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-spat3d_la_CFLAGS = @PLUGIN_CFLAGS@
-spat3d_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-spat3d_la_LIBADD = @PLUGIN_LIBADD@
-
-ugensa_la_SOURCES = Opcodes/ugensa.c
-ugensa_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-ugensa_la_CFLAGS = @PLUGIN_CFLAGS@
-ugensa_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-ugensa_la_LIBADD = @PLUGIN_LIBADD@
-
-uggab_la_SOURCES = Opcodes/uggab.c
-uggab_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-uggab_la_CFLAGS = @PLUGIN_CFLAGS@
-uggab_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-uggab_la_LIBADD = @PLUGIN_LIBADD@
-
-ugmoss_la_SOURCES = Opcodes/ugmoss.c
-ugmoss_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-ugmoss_la_CFLAGS = @PLUGIN_CFLAGS@
-ugmoss_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-ugmoss_la_LIBADD = @PLUGIN_LIBADD@
-
-ugsc_la_SOURCES = Opcodes/ugsc.c
-ugsc_la_CPPFLAGS = @PLUGIN_CPPFLAGS@
-ugsc_la_CFLAGS = @PLUGIN_CFLAGS@
-ugsc_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-ugsc_la_LIBADD = @PLUGIN_LIBADD@
-
-wave_terrain_la_SOURCES = Opcodes/wave-terrain.c
-wave_terrain_CPPFLAGS = @PLUGIN_CPPFLAGS@
-wave_terrain_CFLAGS = @PLUGIN_CFLAGS@
-wave_terrain_la_LDFLAGS = @PLUGIN_LDFLAGS@ 
-wave_terrain_la_LIBADD = @PLUGIN_LIBADD@
-
-#	Convenience library for utility programs:
-
-libustub_la_SOURCES = \
-Engine/extract.c \
-Engine/filopen.c \
-Engine/memalloc.c \
-Engine/memfiles.c \
-Engine/scsort.c \
-Engine/scxtract.c \
-Engine/sort.c \
-Engine/sread.c \
-Engine/swrite.c \
-Engine/twarp.c \
-InOut/aifc.c \
-InOut/aiff.c \
-InOut/FL_graph.cpp \
-InOut/ieee80.c \
-InOut/libsnd.c \
-InOut/sfheader.c \
-InOut/soundin.c \
-InOut/soundio.c \
-InOut/ulaw.c \
-InOut/wave.c \
-InOut/winascii.c \
-InOut/window.c \
-InOut/winEPS.c \
-InOut/winFLTK.c \
-OOps/dsputil.c \
-OOps/fft.c \
-OOps/mxfft.c \
-OOps/lptrkfns.c \
-OOps/pvfileio.c \
-OOps/pvoc.c \
-OOps/pvocext.c \
-OOps/pvread.c \
-OOps/pvsanal.c \
-OOps/pvxanal.c \
-OOps/sdif.c \
-Top/cvanal.c \
-Top/getstring.c \
-Top/hetro.c \
-Top/lpanal.c \
-Top/pvanal.c \
-Top/pvlook.c \
-Top/scot.c \
-Top/sndinfo.c \
-Top/ustub.c	
-
-
-libustub_la_CPPFLAGS = @LIBCSOUND_CPPFLAGS@
-libustub_la_CFLAGS = @LIBCSOUND_CFLAGS@
-libustub_la_CXXFLAGS = @LIBCSOUND_CXXFLAGS@
-libustub_la_LIBADD = @LIBCSOUND_LIBADD@
-libustub_la_LDFLAGS = @LIBCSOUND_LDFLAGS@
-
-#	Utility programs:
-
-# To use Cscore for algorithmic composition, provide your own cscore_main.c and rebuild cscore.
-cscore_SOURCES = util1/cscore/cscore_main.c
-cscore_CPPFLAGS = @UTILITY_CPPFLAGS@
-cscore_CFLAGS = @UTILITY_CFLAGS@
-cscore_LDADD = .libs/libcsound.a @UTILITY_LDADD@
-cscore_LDFLAGS = @UTILITY_LDFLAGS@
-
-cvanal_SOURCES = anal/convol/cvl_main.c
-cvanal_CPPFLAGS = @UTILITY_CPPFLAGS@
-cvanal_CFLAGS = @UTILITY_CFLAGS@
-cvanal_LDADD = .libs/libustub.a @UTILITY_LDADD@
-cvanal_LDFLAGS = @UTILITY_LDFLAGS@
-
-dnoise_SOURCES = util2/dnoise.dir/dnoise_main.c
-dnoise_CPPFLAGS = @UTILITY_CPPFLAGS@
-dnoise_CFLAGS = @UTILITY_CFLAGS@
-dnoise_LDADD = .libs/libcsound.a @UTILITY_LDADD@
-dnoise_LDFLAGS = @UTILITY_LDFLAGS@
-
-envext_SOURCES = util2/envext/envext.c
-envext_CPPFLAGS = @UTILITY_CPPFLAGS@
-envext_CFLAGS = @UTILITY_CFLAGS@
-envext_LDADD = .libs/libustub.a @UTILITY_LDADD@
-envext_LDFLAGS = @UTILITY_LDFLAGS@
-
-extract_SOURCES = util1/sortex/xmain.c
-extract_CPPFLAGS = @UTILITY_CPPFLAGS@
-extract_CFLAGS = @UTILITY_CFLAGS@
-extract_LDADD = .libs/libustub.a @UTILITY_LDADD@
-extract_LDFLAGS = @UTILITY_LDFLAGS@
-
-extractor_SOURCES = util2/mixer/xtrct.c
-extractor_CPPFLAGS = @UTILITY_CPPFLAGS@
-extractor_CFLAGS = @UTILITY_CFLAGS@
-extractor_LDADD = .libs/libustub.a @UTILITY_LDADD@
-extractor_LDFLAGS = @UTILITY_LDFLAGS@
-
-het_export_SOURCES = util2/exports/het_export.c
-het_export_CPPFLAGS = @UTILITY_CPPFLAGS@
-het_export_CFLAGS = @UTILITY_CFLAGS@
-het_export_LDADD = .libs/libustub.a @UTILITY_LDADD@
-het_export_LDFLAGS = @UTILITY_LDFLAGS@
-
-het_import_SOURCES = util2/exports/het_import.c
-het_import_CPPFLAGS = @UTILITY_CPPFLAGS@
-het_import_CFLAGS = @UTILITY_CFLAGS@
-het_import_LDADD = .libs/libustub.a @UTILITY_LDADD@
-het_import_LDFLAGS = @UTILITY_LDFLAGS@
-
-hetro_SOURCES = anal/adsyn/het_main.c
-hetro_CPPFLAGS = @UTILITY_CPPFLAGS@
-hetro_CFLAGS = @UTILITY_CFLAGS@
-hetro_LDADD = .libs/libustub.a @UTILITY_LDADD@
-hetro_LDFLAGS = @UTILITY_LDFLAGS@
-
-lpanal_SOURCES = anal/lpc/lpc_main.c
-lpanal_CPPFLAGS = @UTILITY_CPPFLAGS@
-lpanal_CFLAGS = @UTILITY_CFLAGS@
-lpanal_LDADD = .libs/libustub.a @UTILITY_LDADD@
-lpanal_LDFLAGS = @UTILITY_LDFLAGS@
-
-lpc_export_SOURCES = util2/exports/lpc_export.c
-lpc_export_CPPFLAGS = @UTILITY_CPPFLAGS@
-lpc_export_CFLAGS = @UTILITY_CFLAGS@
-lpc_export_LDADD = .libs/libustub.a @UTILITY_LDADD@
-lpc_export_LDFLAGS = @UTILITY_LDFLAGS@
-
-lpc_import_SOURCES = util2/exports/lpc_import.c
-lpc_import_CPPFLAGS = @UTILITY_CPPFLAGS@
-lpc_import_CFLAGS = @UTILITY_CFLAGS@
-lpc_import_LDADD = .libs/libustub.a @UTILITY_LDADD@
-lpc_import_LDFLAGS = @UTILITY_LDFLAGS@
-
-mixer_SOURCES = util2/mixer/mixer.c
-mixer_CPPFLAGS = @UTILITY_CPPFLAGS@
-mixer_CFLAGS = @UTILITY_CFLAGS@
-mixer_LDADD = .libs/libustub.a @UTILITY_LDADD@
-mixer_LDFLAGS = @UTILITY_LDFLAGS@
-
-pv_export_SOURCES = util2/exports/pv_export.c
-pv_export_CPPFLAGS = @UTILITY_CPPFLAGS@
-pv_export_CFLAGS = @UTILITY_CFLAGS@
-pv_export_LDADD = .libs/libustub.a @UTILITY_LDADD@
-pv_export_LDFLAGS = @UTILITY_LDFLAGS@
-
-pv_import_SOURCES = util2/exports/pv_import.c
-pv_import_CPPFLAGS = @UTILITY_CPPFLAGS@
-pv_import_CFLAGS = @UTILITY_CFLAGS@
-pv_import_LDADD = .libs/libustub.a @UTILITY_LDADD@
-pv_import_LDFLAGS = @UTILITY_LDFLAGS@
-
-pvanal_SOURCES = anal/pvoc/pvc_main.c
-pvanal_CPPFLAGS = @UTILITY_CPPFLAGS@
-pvanal_CFLAGS = @UTILITY_CFLAGS@
-pvanal_LDADD = .libs/libustub.a @UTILITY_LDADD@
-pvanal_LDFLAGS = @UTILITY_LDFLAGS@
-
-pvlook_SOURCES = util2/pvlook.dir/pvl_main.c
-pvlook_CPPFLAGS = @UTILITY_CPPFLAGS@
-pvlook_CFLAGS = @UTILITY_CFLAGS@
-pvlook_LDADD = .libs/libustub.a @UTILITY_LDADD@
-pvlook_LDFLAGS = @UTILITY_LDFLAGS@
-
-scale_SOURCES = util2/scale.dir/scale.c
-scale_CPPFLAGS = @UTILITY_CPPFLAGS@
-scale_CFLAGS = @UTILITY_CFLAGS@
-scale_LDADD = .libs/libustub.a @UTILITY_LDADD@
-scale_LDFLAGS = @UTILITY_LDFLAGS@
-
-scot_SOURCES = util1/scot/scot_main.c
-scot_CPPFLAGS = @UTILITY_CPPFLAGS@
-scot_CFLAGS = @UTILITY_CFLAGS@
-scot_LDADD = .libs/libustub.a @UTILITY_LDADD@
-scot_LDFLAGS = @UTILITY_LDFLAGS@
-
-scsort_SOURCES = util1/sortex/smain.c
-scsort_CPPFLAGS = @UTILITY_CPPFLAGS@
-scsort_CFLAGS = @UTILITY_CFLAGS@
-scsort_LDADD = .libs/libustub.a @UTILITY_LDADD@
-scsort_LDFLAGS = @UTILITY_LDFLAGS@
-
-sndinfo_SOURCES = util2/sndinfo/sndinfo_main.c
-sndinfo_CPPFLAGS = @UTILITY_CPPFLAGS@
-sndinfo_CFLAGS = @UTILITY_CFLAGS@
-sndinfo_LDADD = .libs/libustub.a @UTILITY_LDADD@
-sndinfo_LDFLAGS = @UTILITY_LDFLAGS@
-
-srconv_SOURCES = util2/dnoise.dir/srconv.c
-srconv_CPPFLAGS = @UTILITY_CPPFLAGS@
-srconv_CFLAGS = @UTILITY_CFLAGS@
-srconv_LDADD = .libs/libustub.a @UTILITY_LDADD@
-srconv_LDFLAGS = @UTILITY_LDFLAGS@
-
-sdif2ad_SOURCES = SDIF/sdif2adsyn.c \
-SDIF/sdif.c \
-SDIF/sdif.h \
-SDIF/sdif-mem.c \
-SDIF/sdif-mem.h
-
-sdif2ad_CPPFLAGS = @UTILITY_CPPFLAGS@
-sdif2ad_CFLAGS = @UTILITY_CFLAGS@
-sdif2ad_LDADD = .libs/libustub.a @UTILITY_LDADD@
-sdif2ad_LDFLAGS = @UTILITY_LDFLAGS@
-mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
-CONFIG_HEADER = ./[H/config.h]
-CONFIG_CLEAN_FILES =  csound.spec
-LTLIBRARIES =  $(lib_LTLIBRARIES) $(pkglib_LTLIBRARIES)
-
-
-DEFS = @DEFS@ -I. -I$(srcdir) -I./[H
-CPPFLAGS = @CPPFLAGS@
-LDFLAGS = @LDFLAGS@
-LIBS = @LIBS@
-X_CFLAGS = @X_CFLAGS@
-X_LIBS = @X_LIBS@
-X_EXTRA_LIBS = @X_EXTRA_LIBS@
-X_PRE_LIBS = @X_PRE_LIBS@
-libcsound_la_DEPENDENCIES = 
-@CONDITIONAL_WINDOWS_TRUE@@CONDITIONAL_USE_X11_TRUE@libcsound_la_OBJECTS =  \
-@CONDITIONAL_WINDOWS_TRUE@@CONDITIONAL_USE_X11_TRUE@InOut/winX11.lo
-@CONDITIONAL_WINDOWS_TRUE@@CONDITIONAL_USE_FLTK_TRUE@@CONDITIONAL_USE_FLTK_WIDGETS_TRUE@libcsound_la_OBJECTS =  \
-@CONDITIONAL_WINDOWS_TRUE@@CONDITIONAL_USE_FLTK_TRUE@@CONDITIONAL_USE_FLTK_WIDGETS_TRUE@InOut/winFLTK.lo \
-@CONDITIONAL_WINDOWS_TRUE@@CONDITIONAL_USE_FLTK_TRUE@@CONDITIONAL_USE_FLTK_WIDGETS_TRUE@InOut/FL_graph.lo \
-@CONDITIONAL_WINDOWS_TRUE@@CONDITIONAL_USE_FLTK_TRUE@@CONDITIONAL_USE_FLTK_WIDGETS_TRUE@InOut/widgets.lo
-@CONDITIONAL_WIN32_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@libcsound_la_OBJECTS =  \
-@CONDITIONAL_WIN32_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/rtpa.lo
-@CONDITIONAL_LINUX_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@libcsound_la_OBJECTS =  \
-@CONDITIONAL_LINUX_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/rtpa.lo
-@CONDITIONAL_DEC_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@libcsound_la_OBJECTS =  \
-@CONDITIONAL_DEC_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/rtDEC.lo \
-@CONDITIONAL_DEC_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/DECaudio.lo \
-@CONDITIONAL_DEC_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/DECplay.lo
-@CONDITIONAL_HP_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@libcsound_la_OBJECTS =  \
-@CONDITIONAL_HP_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/rtDEC.lo \
-@CONDITIONAL_HP_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/DECaudio.lo \
-@CONDITIONAL_HP_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/DECplay.lo
-@CONDITIONAL_WINDOWS_TRUE@@CONDITIONAL_USE_FLTK_TRUE@libcsound_la_OBJECTS =  \
-@CONDITIONAL_WINDOWS_TRUE@@CONDITIONAL_USE_FLTK_TRUE@InOut/winFLTK.lo \
-@CONDITIONAL_WINDOWS_TRUE@@CONDITIONAL_USE_FLTK_TRUE@InOut/FL_graph.lo
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@libcsound_la_OBJECTS =  \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/auxfd.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/entry1.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/entry2.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/express.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/extract.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/fgens.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/filopen.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/insert.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/linevent.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/memalloc.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/memfiles.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/musmon.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/namedins.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/oload.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/otran.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/rdorch.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/rdscor.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/scsort.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/scxtract.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/sort.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/sread.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/swrite.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Engine/twarp.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/aifc.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/aiff.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/ieee80.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/libsnd.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/sfheader.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/soundin.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/soundio.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/wave.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/winascii.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/windin.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/window.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/winEPS.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/aops.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/cmath.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/control.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/diskin.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/disprep.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/dnfft.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/dsputil.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/dumpf.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/fft.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/fout.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/fprint.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/lptrkfns.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/mididevice.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/midiinterop.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/midiops.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/midiout.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/midirecv.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/midisend.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/mxfft.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/oscils.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/pstream.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/pvadd.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/pvfileio.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/pvinterp.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/pvoc.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/pvocext.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/pvread.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/pvsanal.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/pvxanal.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/schedule.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/sdif.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/sdif-mem.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/sndinfUG.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/ugens1.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/ugens2.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/ugens3.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/ugens4.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/ugens5.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/ugens6.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/ugens7.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/ugens8.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/ugens9.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/ugrw1.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/ugrw2.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/vbap.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/vbap_eight.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/vbap_four.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/vbap_sixteen.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/vbap_zak.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/vdelay.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@OOps/vpvoc.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/argdecode.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/cscore_internal.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/cscorfns.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/csound.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/cvanal.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/dl_opcodes.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/dnoise.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/getstring.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/hetro.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/load_opcodes.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/lpanal.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/main.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/one_file.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/opcode.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/pvanal.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/pvlook.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/scot.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@Top/sndinfo.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/rtSGI.lo \
-@CONDITIONAL_SGI_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/SGIplay.lo
-@CONDITIONAL_sun_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@libcsound_la_OBJECTS =  \
-@CONDITIONAL_sun_TRUE@@CONDITIONAL_USE_RTAUDIO_TRUE@InOut/rtSUN.lo
-libustub_la_DEPENDENCIES = 
-libustub_la_OBJECTS =  Engine/extract.lo Engine/filopen.lo \
-Engine/memalloc.lo Engine/memfiles.lo Engine/scsort.lo \
-Engine/scxtract.lo Engine/sort.lo Engine/sread.lo Engine/swrite.lo \
-Engine/twarp.lo InOut/aifc.lo InOut/aiff.lo InOut/FL_graph.lo \
-InOut/ieee80.lo InOut/libsnd.lo InOut/sfheader.lo InOut/soundin.lo \
-InOut/soundio.lo InOut/ulaw.lo InOut/wave.lo InOut/winascii.lo \
-InOut/window.lo InOut/winEPS.lo InOut/winFLTK.lo OOps/dsputil.lo \
-OOps/fft.lo OOps/mxfft.lo OOps/lptrkfns.lo OOps/pvfileio.lo \
-OOps/pvoc.lo OOps/pvocext.lo OOps/pvread.lo OOps/pvsanal.lo \
-OOps/pvxanal.lo OOps/sdif.lo Top/cvanal.lo Top/getstring.lo \
-Top/hetro.lo Top/lpanal.lo Top/pvanal.lo Top/pvlook.lo Top/scot.lo \
-Top/sndinfo.lo Top/ustub.lo
-babo_la_DEPENDENCIES = 
-babo_la_OBJECTS =  Opcodes/babo.lo
-bbcut_la_DEPENDENCIES = 
-bbcut_la_OBJECTS =  Opcodes/bbcut.lo
-biquad_la_DEPENDENCIES = 
-biquad_la_OBJECTS =  Opcodes/biquad.lo
-butter_la_DEPENDENCIES = 
-butter_la_OBJECTS =  Opcodes/butter.lo
-clfilt_la_DEPENDENCIES = 
-clfilt_la_OBJECTS =  Opcodes/clfilt.lo
-cross2_la_DEPENDENCIES = 
-cross2_la_OBJECTS =  Opcodes/cross2.lo
-dam_la_DEPENDENCIES = 
-dam_la_OBJECTS =  Opcodes/dam.lo
-filter_la_DEPENDENCIES = 
-filter_la_OBJECTS =  Opcodes/filter.lo
-flanger_la_DEPENDENCIES = 
-flanger_la_OBJECTS =  Opcodes/flanger.lo
-follow_la_DEPENDENCIES = 
-follow_la_OBJECTS =  Opcodes/follow.lo
-grain_la_DEPENDENCIES = 
-grain_la_OBJECTS =  Opcodes/grain.lo
-grain4_la_DEPENDENCIES = 
-grain4_la_OBJECTS =  Opcodes/grain4.lo
-hrtferX_la_DEPENDENCIES = 
-hrtferX_la_OBJECTS =  Opcodes/hrtferX.lo Top/natben.lo
-locsig_la_DEPENDENCIES = 
-locsig_la_OBJECTS =  Opcodes/locsig.lo
-lowpassr_la_DEPENDENCIES = 
-lowpassr_la_OBJECTS =  Opcodes/lowpassr.lo
-midiops2_la_DEPENDENCIES = 
-midiops2_la_OBJECTS =  Opcodes/midiops2.lo
-midiops3_la_DEPENDENCIES = 
-midiops3_la_OBJECTS =  Opcodes/midiops3.lo
-modal4_la_DEPENDENCIES = 
-modal4_la_OBJECTS =  Opcodes/modal4.lo Opcodes/physutil.lo
-nlfilt_la_DEPENDENCIES = 
-nlfilt_la_OBJECTS =  Opcodes/nlfilt.lo
-oscbnk_la_DEPENDENCIES = 
-oscbnk_la_OBJECTS =  Opcodes/oscbnk.lo
-phisem_la_DEPENDENCIES = 
-phisem_la_OBJECTS =  Opcodes/phisem.lo
-physmod_la_DEPENDENCIES = 
-physmod_la_OBJECTS =  Opcodes/physmod.lo Opcodes/physutil.lo \
-Opcodes/mandolin.lo Opcodes/singwave.lo Opcodes/fm4op.lo \
-Opcodes/moog1.lo Opcodes/shaker.lo Opcodes/bowedbar.lo
-pitch_la_DEPENDENCIES = 
-pitch_la_OBJECTS =  Opcodes/pitch.lo Opcodes/pitch0.lo \
-Opcodes/spectra.lo
-pluck_la_DEPENDENCIES = 
-pluck_la_OBJECTS =  Opcodes/pluck.lo
-repluck_la_DEPENDENCIES = 
-repluck_la_OBJECTS =  Opcodes/repluck.lo
-scansyn_la_DEPENDENCIES = 
-scansyn_la_OBJECTS =  Opcodes/scansyn.lo
-scansynx_la_DEPENDENCIES = 
-scansynx_la_OBJECTS =  Opcodes/scansynx.lo
-sfont_la_DEPENDENCIES = 
-sfont_la_OBJECTS =  Opcodes/sfont.lo
-sndwarp_la_DEPENDENCIES = 
-sndwarp_la_OBJECTS =  Opcodes/sndwarp.lo
-space_la_DEPENDENCIES = 
-space_la_OBJECTS =  Opcodes/space.lo
-spat3d_la_DEPENDENCIES = 
-spat3d_la_OBJECTS =  Opcodes/spat3d.lo
-ugensa_la_DEPENDENCIES = 
-ugensa_la_OBJECTS =  Opcodes/ugensa.lo
-uggab_la_DEPENDENCIES = 
-uggab_la_OBJECTS =  Opcodes/uggab.lo
-ugmoss_la_DEPENDENCIES = 
-ugmoss_la_OBJECTS =  Opcodes/ugmoss.lo
-ugsc_la_DEPENDENCIES = 
-ugsc_la_OBJECTS =  Opcodes/ugsc.lo
-wave_terrain_la_DEPENDENCIES = 
-wave_terrain_la_OBJECTS =  Opcodes/wave-terrain.lo
-PROGRAMS =  $(bin_PROGRAMS)
-
-makedb_OBJECTS =  strings/makedb.o
-makedb_LDADD = $(LDADD)
-makedb_DEPENDENCIES = 
-makedb_LDFLAGS = 
-csound_OBJECTS =  frontends/csound/csound_main.o
-cscore_OBJECTS =  util1/cscore/cscore_main.o
-cscore_DEPENDENCIES =  .libs/libcsound.a
-cvanal_OBJECTS =  anal/convol/cvl_main.o
-cvanal_DEPENDENCIES =  .libs/libustub.a
-dnoise_OBJECTS =  util2/dnoise.dir/dnoise_main.o
-dnoise_DEPENDENCIES =  .libs/libcsound.a
-envext_OBJECTS =  util2/envext/envext.o
-envext_DEPENDENCIES =  .libs/libustub.a
-extract_OBJECTS =  util1/sortex/xmain.o
-extract_DEPENDENCIES =  .libs/libustub.a
-extractor_OBJECTS =  util2/mixer/xtrct.o
-extractor_DEPENDENCIES =  .libs/libustub.a
-het_export_OBJECTS =  util2/exports/het_export.o
-het_export_DEPENDENCIES =  .libs/libustub.a
-het_import_OBJECTS =  util2/exports/het_import.o
-het_import_DEPENDENCIES =  .libs/libustub.a
-hetro_OBJECTS =  anal/adsyn/het_main.o
-hetro_DEPENDENCIES =  .libs/libustub.a
-lpanal_OBJECTS =  anal/lpc/lpc_main.o
-lpanal_DEPENDENCIES =  .libs/libustub.a
-lpc_export_OBJECTS =  util2/exports/lpc_export.o
-lpc_export_DEPENDENCIES =  .libs/libustub.a
-lpc_import_OBJECTS =  util2/exports/lpc_import.o
-lpc_import_DEPENDENCIES =  .libs/libustub.a
-mixer_OBJECTS =  util2/mixer/mixer.o
-mixer_DEPENDENCIES =  .libs/libustub.a
-pv_export_OBJECTS =  util2/exports/pv_export.o
-pv_export_DEPENDENCIES =  .libs/libustub.a
-pv_import_OBJECTS =  util2/exports/pv_import.o
-pv_import_DEPENDENCIES =  .libs/libustub.a
-pvanal_OBJECTS =  anal/pvoc/pvc_main.o
-pvanal_DEPENDENCIES =  .libs/libustub.a
-pvlook_OBJECTS =  util2/pvlook.dir/pvl_main.o
-pvlook_DEPENDENCIES =  .libs/libustub.a
-scale_OBJECTS =  util2/scale.dir/scale.o
-scale_DEPENDENCIES =  .libs/libustub.a
-scot_OBJECTS =  util1/scot/scot_main.o
-scot_DEPENDENCIES =  .libs/libustub.a
-scsort_OBJECTS =  util1/sortex/smain.o
-scsort_DEPENDENCIES =  .libs/libustub.a
-sdif2ad_OBJECTS =  SDIF/sdif2adsyn.o SDIF/sdif.o SDIF/sdif-mem.o
-sdif2ad_DEPENDENCIES =  .libs/libustub.a
-sndinfo_OBJECTS =  util2/sndinfo/sndinfo_main.o
-sndinfo_DEPENDENCIES =  .libs/libustub.a
-srconv_OBJECTS =  util2/dnoise.dir/srconv.o
-srconv_DEPENDENCIES =  .libs/libustub.a
-CXXFLAGS = @CXXFLAGS@
-CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
-LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
-CXXLD = $(CXX)
-CXXLINK = $(LIBTOOL) --mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@
-CFLAGS = @CFLAGS@
-COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-CCLD = $(CC)
-LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
-DIST_COMMON =  README AUTHORS COPYING ChangeLog INSTALL Makefile.am \
-Makefile.in NEWS config.guess config.sub configure configure.ac \
-configure.in csound.spec.in install-sh
-
-
-PACKAGE = @PACKAGE@
-VERSION = @VERSION@
-
-DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
-
-TAR = gtar
-GZIP_ENV = --best
-SOURCES = $(libcsound_la_SOURCES) $(EXTRA_libcsound_la_SOURCES) $(libustub_la_SOURCES) $(babo_la_SOURCES) $(bbcut_la_SOURCES) $(biquad_la_SOURCES) $(butter_la_SOURCES) $(clfilt_la_SOURCES) $(cross2_la_SOURCES) $(dam_la_SOURCES) $(filter_la_SOURCES) $(flanger_la_SOURCES) $(follow_la_SOURCES) $(grain_la_SOURCES) $(grain4_la_SOURCES) $(hrtferX_la_SOURCES) $(locsig_la_SOURCES) $(lowpassr_la_SOURCES) $(midiops2_la_SOURCES) $(midiops3_la_SOURCES) $(modal4_la_SOURCES) $(nlfilt_la_SOURCES) $(oscbnk_la_SOURCES) $(phisem_la_SOURCES) $(physmod_la_SOURCES) $(pitch_la_SOURCES) $(pluck_la_SOURCES) $(repluck_la_SOURCES) $(scansyn_la_SOURCES) $(scansynx_la_SOURCES) $(sfont_la_SOURCES) $(sndwarp_la_SOURCES) $(space_la_SOURCES) $(spat3d_la_SOURCES) $(ugensa_la_SOURCES) $(uggab_la_SOURCES) $(ugmoss_la_SOURCES) $(ugsc_la_SOURCES) $(wave_terrain_la_SOURCES) $(makedb_SOURCES) $(csound_SOURCES) $(cscore_SOURCES) $(cvanal_SOURCES) $(dnoise_SOURCES) $(envext_SOURCES) $(extract_SOURCES) $(extractor_SOURCES) $(het_export_SOURCES) $(het_import_SOURCES) $(hetro_SOURCES) $(lpanal_SOURCES) $(lpc_export_SOURCES) $(lpc_import_SOURCES) $(mixer_SOURCES) $(pv_export_SOURCES) $(pv_import_SOURCES) $(pvanal_SOURCES) $(pvlook_SOURCES) $(scale_SOURCES) $(scot_SOURCES) $(scsort_SOURCES) $(sdif2ad_SOURCES) $(sndinfo_SOURCES) $(srconv_SOURCES)
-OBJECTS = $(libcsound_la_OBJECTS) $(libustub_la_OBJECTS) $(babo_la_OBJECTS) $(bbcut_la_OBJECTS) $(biquad_la_OBJECTS) $(butter_la_OBJECTS) $(clfilt_la_OBJECTS) $(cross2_la_OBJECTS) $(dam_la_OBJECTS) $(filter_la_OBJECTS) $(flanger_la_OBJECTS) $(follow_la_OBJECTS) $(grain_la_OBJECTS) $(grain4_la_OBJECTS) $(hrtferX_la_OBJECTS) $(locsig_la_OBJECTS) $(lowpassr_la_OBJECTS) $(midiops2_la_OBJECTS) $(midiops3_la_OBJECTS) $(modal4_la_OBJECTS) $(nlfilt_la_OBJECTS) $(oscbnk_la_OBJECTS) $(phisem_la_OBJECTS) $(physmod_la_OBJECTS) $(pitch_la_OBJECTS) $(pluck_la_OBJECTS) $(repluck_la_OBJECTS) $(scansyn_la_OBJECTS) $(scansynx_la_OBJECTS) $(sfont_la_OBJECTS) $(sndwarp_la_OBJECTS) $(space_la_OBJECTS) $(spat3d_la_OBJECTS) $(ugensa_la_OBJECTS) $(uggab_la_OBJECTS) $(ugmoss_la_OBJECTS) $(ugsc_la_OBJECTS) $(wave_terrain_la_OBJECTS) $(makedb_OBJECTS) $(csound_OBJECTS) $(cscore_OBJECTS) $(cvanal_OBJECTS) $(dnoise_OBJECTS) $(envext_OBJECTS) $(extract_OBJECTS) $(extractor_OBJECTS) $(het_export_OBJECTS) $(het_import_OBJECTS) $(hetro_OBJECTS) $(lpanal_OBJECTS) $(lpc_export_OBJECTS) $(lpc_import_OBJECTS) $(mixer_OBJECTS) $(pv_export_OBJECTS) $(pv_import_OBJECTS) $(pvanal_OBJECTS) $(pvlook_OBJECTS) $(scale_OBJECTS) $(scot_OBJECTS) $(scsort_OBJECTS) $(sdif2ad_OBJECTS) $(sndinfo_OBJECTS) $(srconv_OBJECTS)
-
-all: all-redirect
-.SUFFIXES:
-.SUFFIXES: .S .c .cpp .lo .o .s
-$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ Makefile.am $(top_srcdir)/configure.ac $(ACLOCAL_M4) 
-	cd $(top_srcdir) && $(AUTOMAKE) --gnu --include-deps Makefile
-
-Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
-	cd $(top_builddir) \
-	  && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
-
-
-config.status: $(srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
-	$(SHELL) ./config.status --recheck
-$(srcdir)/configure: @MAINTAINER_MODE_TRUE@$(srcdir)/configure.ac $(ACLOCAL_M4) $(CONFIGURE_DEPENDENCIES)
-	cd $(srcdir) && $(AUTOCONF)
-
-[H/config.h]: [H/stamp-h
-	@if test ! -f $@; then \
-		rm -f [H/stamp-h; \
-		$(MAKE) [H/stamp-h; \
-	else :; fi
-[H/stamp-h: $(srcdir)/[H/config.h].in $(top_builddir)/config.status
-	cd $(top_builddir) \
-	  && CONFIG_FILES= CONFIG_HEADERS=[H/config.h] \
-	     $(SHELL) ./config.status
-	@echo timestamp > [H/stamp-h 2> /dev/null
-$(srcdir)/[H/config.h].in: @MAINTAINER_MODE_TRUE@$(srcdir)/[H/stamp-h.in
-	@if test ! -f $@; then \
-		rm -f $(srcdir)/[H/stamp-h.in; \
-		$(MAKE) $(srcdir)/[H/stamp-h.in; \
-	else :; fi
-$(srcdir)/[H/stamp-h.in: $(top_srcdir)/configure.ac $(ACLOCAL_M4) 
-	cd $(top_srcdir) && $(AUTOHEADER)
-	@echo timestamp > $(srcdir)/[H/stamp-h.in 2> /dev/null
-
-mostlyclean-hdr:
-
-clean-hdr:
-
-distclean-hdr:
-	-rm -f [H/config.h]
-
-maintainer-clean-hdr:
-csound.spec: $(top_builddir)/config.status csound.spec.in
-	cd $(top_builddir) && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
-
-mostlyclean-libLTLIBRARIES:
-
-clean-libLTLIBRARIES:
-	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
-
-distclean-libLTLIBRARIES:
-
-maintainer-clean-libLTLIBRARIES:
-
-install-libLTLIBRARIES: $(lib_LTLIBRARIES)
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(DESTDIR)$(libdir)
-	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
-	  if test -f $$p; then \
-	    echo "$(LIBTOOL)  --mode=install $(INSTALL) $$p $(DESTDIR)$(libdir)/$$p"; \
-	    $(LIBTOOL)  --mode=install $(INSTALL) $$p $(DESTDIR)$(libdir)/$$p; \
-	  else :; fi; \
-	done
-
-uninstall-libLTLIBRARIES:
-	@$(NORMAL_UNINSTALL)
-	list='$(lib_LTLIBRARIES)'; for p in $$list; do \
-	  $(LIBTOOL)  --mode=uninstall rm -f $(DESTDIR)$(libdir)/$$p; \
-	done
-
-mostlyclean-pkglibLTLIBRARIES:
-
-clean-pkglibLTLIBRARIES:
-	-test -z "$(pkglib_LTLIBRARIES)" || rm -f $(pkglib_LTLIBRARIES)
-
-distclean-pkglibLTLIBRARIES:
-
-maintainer-clean-pkglibLTLIBRARIES:
-
-install-pkglibLTLIBRARIES: $(pkglib_LTLIBRARIES)
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(DESTDIR)$(pkglibdir)
-	@list='$(pkglib_LTLIBRARIES)'; for p in $$list; do \
-	  if test -f $$p; then \
-	    echo "$(LIBTOOL)  --mode=install $(INSTALL) $$p $(DESTDIR)$(pkglibdir)/$$p"; \
-	    $(LIBTOOL)  --mode=install $(INSTALL) $$p $(DESTDIR)$(pkglibdir)/$$p; \
-	  else :; fi; \
-	done
-
-uninstall-pkglibLTLIBRARIES:
-	@$(NORMAL_UNINSTALL)
-	list='$(pkglib_LTLIBRARIES)'; for p in $$list; do \
-	  $(LIBTOOL)  --mode=uninstall rm -f $(DESTDIR)$(pkglibdir)/$$p; \
-	done
-
-.c.o:
-	$(COMPILE) -c $<
-
-.s.o:
-	$(COMPILE) -c $<
-
-.S.o:
-	$(COMPILE) -c $<
-
-mostlyclean-compile:
-	-rm -f *.o core *.core
-
-clean-compile:
-
-distclean-compile:
-	-rm -f *.tab.c
-
-maintainer-clean-compile:
-
-.c.lo:
-	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
-
-.s.lo:
-	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
-
-.S.lo:
-	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
-
-mostlyclean-libtool:
-	-rm -f *.lo
-
-clean-libtool:
-	-rm -rf .libs _libs
-
-distclean-libtool:
-
-maintainer-clean-libtool:
-
-libcsound.la: $(libcsound_la_OBJECTS) $(libcsound_la_DEPENDENCIES)
-	$(LINK) -rpath $(libdir) $(libcsound_la_LDFLAGS) $(libcsound_la_OBJECTS) $(libcsound_la_LIBADD) $(LIBS)
-
-libustub.la: $(libustub_la_OBJECTS) $(libustub_la_DEPENDENCIES)
-	$(CXXLINK) -rpath $(libdir) $(libustub_la_LDFLAGS) $(libustub_la_OBJECTS) $(libustub_la_LIBADD) $(LIBS)
-
-babo.la: $(babo_la_OBJECTS) $(babo_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(babo_la_LDFLAGS) $(babo_la_OBJECTS) $(babo_la_LIBADD) $(LIBS)
-
-bbcut.la: $(bbcut_la_OBJECTS) $(bbcut_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(bbcut_la_LDFLAGS) $(bbcut_la_OBJECTS) $(bbcut_la_LIBADD) $(LIBS)
-
-biquad.la: $(biquad_la_OBJECTS) $(biquad_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(biquad_la_LDFLAGS) $(biquad_la_OBJECTS) $(biquad_la_LIBADD) $(LIBS)
-
-butter.la: $(butter_la_OBJECTS) $(butter_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(butter_la_LDFLAGS) $(butter_la_OBJECTS) $(butter_la_LIBADD) $(LIBS)
-
-clfilt.la: $(clfilt_la_OBJECTS) $(clfilt_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(clfilt_la_LDFLAGS) $(clfilt_la_OBJECTS) $(clfilt_la_LIBADD) $(LIBS)
-
-cross2.la: $(cross2_la_OBJECTS) $(cross2_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(cross2_la_LDFLAGS) $(cross2_la_OBJECTS) $(cross2_la_LIBADD) $(LIBS)
-
-dam.la: $(dam_la_OBJECTS) $(dam_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(dam_la_LDFLAGS) $(dam_la_OBJECTS) $(dam_la_LIBADD) $(LIBS)
-
-filter.la: $(filter_la_OBJECTS) $(filter_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(filter_la_LDFLAGS) $(filter_la_OBJECTS) $(filter_la_LIBADD) $(LIBS)
-
-flanger.la: $(flanger_la_OBJECTS) $(flanger_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(flanger_la_LDFLAGS) $(flanger_la_OBJECTS) $(flanger_la_LIBADD) $(LIBS)
-
-follow.la: $(follow_la_OBJECTS) $(follow_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(follow_la_LDFLAGS) $(follow_la_OBJECTS) $(follow_la_LIBADD) $(LIBS)
-
-grain.la: $(grain_la_OBJECTS) $(grain_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(grain_la_LDFLAGS) $(grain_la_OBJECTS) $(grain_la_LIBADD) $(LIBS)
-
-grain4.la: $(grain4_la_OBJECTS) $(grain4_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(grain4_la_LDFLAGS) $(grain4_la_OBJECTS) $(grain4_la_LIBADD) $(LIBS)
-
-hrtferX.la: $(hrtferX_la_OBJECTS) $(hrtferX_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(hrtferX_la_LDFLAGS) $(hrtferX_la_OBJECTS) $(hrtferX_la_LIBADD) $(LIBS)
-
-locsig.la: $(locsig_la_OBJECTS) $(locsig_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(locsig_la_LDFLAGS) $(locsig_la_OBJECTS) $(locsig_la_LIBADD) $(LIBS)
-
-lowpassr.la: $(lowpassr_la_OBJECTS) $(lowpassr_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(lowpassr_la_LDFLAGS) $(lowpassr_la_OBJECTS) $(lowpassr_la_LIBADD) $(LIBS)
-
-midiops2.la: $(midiops2_la_OBJECTS) $(midiops2_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(midiops2_la_LDFLAGS) $(midiops2_la_OBJECTS) $(midiops2_la_LIBADD) $(LIBS)
-
-midiops3.la: $(midiops3_la_OBJECTS) $(midiops3_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(midiops3_la_LDFLAGS) $(midiops3_la_OBJECTS) $(midiops3_la_LIBADD) $(LIBS)
-
-modal4.la: $(modal4_la_OBJECTS) $(modal4_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(modal4_la_LDFLAGS) $(modal4_la_OBJECTS) $(modal4_la_LIBADD) $(LIBS)
-
-nlfilt.la: $(nlfilt_la_OBJECTS) $(nlfilt_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(nlfilt_la_LDFLAGS) $(nlfilt_la_OBJECTS) $(nlfilt_la_LIBADD) $(LIBS)
-
-oscbnk.la: $(oscbnk_la_OBJECTS) $(oscbnk_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(oscbnk_la_LDFLAGS) $(oscbnk_la_OBJECTS) $(oscbnk_la_LIBADD) $(LIBS)
-
-phisem.la: $(phisem_la_OBJECTS) $(phisem_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(phisem_la_LDFLAGS) $(phisem_la_OBJECTS) $(phisem_la_LIBADD) $(LIBS)
-
-physmod.la: $(physmod_la_OBJECTS) $(physmod_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(physmod_la_LDFLAGS) $(physmod_la_OBJECTS) $(physmod_la_LIBADD) $(LIBS)
-
-pitch.la: $(pitch_la_OBJECTS) $(pitch_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(pitch_la_LDFLAGS) $(pitch_la_OBJECTS) $(pitch_la_LIBADD) $(LIBS)
-
-pluck.la: $(pluck_la_OBJECTS) $(pluck_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(pluck_la_LDFLAGS) $(pluck_la_OBJECTS) $(pluck_la_LIBADD) $(LIBS)
-
-repluck.la: $(repluck_la_OBJECTS) $(repluck_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(repluck_la_LDFLAGS) $(repluck_la_OBJECTS) $(repluck_la_LIBADD) $(LIBS)
-
-scansyn.la: $(scansyn_la_OBJECTS) $(scansyn_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(scansyn_la_LDFLAGS) $(scansyn_la_OBJECTS) $(scansyn_la_LIBADD) $(LIBS)
-
-scansynx.la: $(scansynx_la_OBJECTS) $(scansynx_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(scansynx_la_LDFLAGS) $(scansynx_la_OBJECTS) $(scansynx_la_LIBADD) $(LIBS)
-
-sfont.la: $(sfont_la_OBJECTS) $(sfont_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(sfont_la_LDFLAGS) $(sfont_la_OBJECTS) $(sfont_la_LIBADD) $(LIBS)
-
-sndwarp.la: $(sndwarp_la_OBJECTS) $(sndwarp_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(sndwarp_la_LDFLAGS) $(sndwarp_la_OBJECTS) $(sndwarp_la_LIBADD) $(LIBS)
-
-space.la: $(space_la_OBJECTS) $(space_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(space_la_LDFLAGS) $(space_la_OBJECTS) $(space_la_LIBADD) $(LIBS)
-
-spat3d.la: $(spat3d_la_OBJECTS) $(spat3d_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(spat3d_la_LDFLAGS) $(spat3d_la_OBJECTS) $(spat3d_la_LIBADD) $(LIBS)
-
-ugensa.la: $(ugensa_la_OBJECTS) $(ugensa_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(ugensa_la_LDFLAGS) $(ugensa_la_OBJECTS) $(ugensa_la_LIBADD) $(LIBS)
-
-uggab.la: $(uggab_la_OBJECTS) $(uggab_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(uggab_la_LDFLAGS) $(uggab_la_OBJECTS) $(uggab_la_LIBADD) $(LIBS)
-
-ugmoss.la: $(ugmoss_la_OBJECTS) $(ugmoss_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(ugmoss_la_LDFLAGS) $(ugmoss_la_OBJECTS) $(ugmoss_la_LIBADD) $(LIBS)
-
-ugsc.la: $(ugsc_la_OBJECTS) $(ugsc_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(ugsc_la_LDFLAGS) $(ugsc_la_OBJECTS) $(ugsc_la_LIBADD) $(LIBS)
-
-wave_terrain.la: $(wave_terrain_la_OBJECTS) $(wave_terrain_la_DEPENDENCIES)
-	$(LINK) -rpath $(pkglibdir) $(wave_terrain_la_LDFLAGS) $(wave_terrain_la_OBJECTS) $(wave_terrain_la_LIBADD) $(LIBS)
-
-mostlyclean-binPROGRAMS:
-
-clean-binPROGRAMS:
-	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
-
-distclean-binPROGRAMS:
-
-maintainer-clean-binPROGRAMS:
-
-install-binPROGRAMS: $(bin_PROGRAMS)
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(DESTDIR)$(bindir)
-	@list='$(bin_PROGRAMS)'; for p in $$list; do \
-	  if test -f $$p; then \
-	    echo " $(LIBTOOL)  --mode=install $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`"; \
-	    $(LIBTOOL)  --mode=install $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`; \
-	  else :; fi; \
-	done
-
-uninstall-binPROGRAMS:
-	@$(NORMAL_UNINSTALL)
-	list='$(bin_PROGRAMS)'; for p in $$list; do \
-	  rm -f $(DESTDIR)$(bindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`; \
-	done
-
-makedb: $(makedb_OBJECTS) $(makedb_DEPENDENCIES)
-	@rm -f makedb
-	$(LINK) $(makedb_LDFLAGS) $(makedb_OBJECTS) $(makedb_LDADD) $(LIBS)
-
-csound: $(csound_OBJECTS) $(csound_DEPENDENCIES)
-	@rm -f csound
-	$(LINK) $(csound_LDFLAGS) $(csound_OBJECTS) $(csound_LDADD) $(LIBS)
-
-cscore: $(cscore_OBJECTS) $(cscore_DEPENDENCIES)
-	@rm -f cscore
-	$(LINK) $(cscore_LDFLAGS) $(cscore_OBJECTS) $(cscore_LDADD) $(LIBS)
-
-cvanal: $(cvanal_OBJECTS) $(cvanal_DEPENDENCIES)
-	@rm -f cvanal
-	$(LINK) $(cvanal_LDFLAGS) $(cvanal_OBJECTS) $(cvanal_LDADD) $(LIBS)
-
-dnoise: $(dnoise_OBJECTS) $(dnoise_DEPENDENCIES)
-	@rm -f dnoise
-	$(LINK) $(dnoise_LDFLAGS) $(dnoise_OBJECTS) $(dnoise_LDADD) $(LIBS)
-
-envext: $(envext_OBJECTS) $(envext_DEPENDENCIES)
-	@rm -f envext
-	$(LINK) $(envext_LDFLAGS) $(envext_OBJECTS) $(envext_LDADD) $(LIBS)
-
-extract: $(extract_OBJECTS) $(extract_DEPENDENCIES)
-	@rm -f extract
-	$(LINK) $(extract_LDFLAGS) $(extract_OBJECTS) $(extract_LDADD) $(LIBS)
-
-extractor: $(extractor_OBJECTS) $(extractor_DEPENDENCIES)
-	@rm -f extractor
-	$(LINK) $(extractor_LDFLAGS) $(extractor_OBJECTS) $(extractor_LDADD) $(LIBS)
-
-het_export: $(het_export_OBJECTS) $(het_export_DEPENDENCIES)
-	@rm -f het_export
-	$(LINK) $(het_export_LDFLAGS) $(het_export_OBJECTS) $(het_export_LDADD) $(LIBS)
-
-het_import: $(het_import_OBJECTS) $(het_import_DEPENDENCIES)
-	@rm -f het_import
-	$(LINK) $(het_import_LDFLAGS) $(het_import_OBJECTS) $(het_import_LDADD) $(LIBS)
-
-hetro: $(hetro_OBJECTS) $(hetro_DEPENDENCIES)
-	@rm -f hetro
-	$(LINK) $(hetro_LDFLAGS) $(hetro_OBJECTS) $(hetro_LDADD) $(LIBS)
-
-lpanal: $(lpanal_OBJECTS) $(lpanal_DEPENDENCIES)
-	@rm -f lpanal
-	$(LINK) $(lpanal_LDFLAGS) $(lpanal_OBJECTS) $(lpanal_LDADD) $(LIBS)
-
-lpc_export: $(lpc_export_OBJECTS) $(lpc_export_DEPENDENCIES)
-	@rm -f lpc_export
-	$(LINK) $(lpc_export_LDFLAGS) $(lpc_export_OBJECTS) $(lpc_export_LDADD) $(LIBS)
-
-lpc_import: $(lpc_import_OBJECTS) $(lpc_import_DEPENDENCIES)
-	@rm -f lpc_import
-	$(LINK) $(lpc_import_LDFLAGS) $(lpc_import_OBJECTS) $(lpc_import_LDADD) $(LIBS)
-
-mixer: $(mixer_OBJECTS) $(mixer_DEPENDENCIES)
-	@rm -f mixer
-	$(LINK) $(mixer_LDFLAGS) $(mixer_OBJECTS) $(mixer_LDADD) $(LIBS)
-
-pv_export: $(pv_export_OBJECTS) $(pv_export_DEPENDENCIES)
-	@rm -f pv_export
-	$(LINK) $(pv_export_LDFLAGS) $(pv_export_OBJECTS) $(pv_export_LDADD) $(LIBS)
-
-pv_import: $(pv_import_OBJECTS) $(pv_import_DEPENDENCIES)
-	@rm -f pv_import
-	$(LINK) $(pv_import_LDFLAGS) $(pv_import_OBJECTS) $(pv_import_LDADD) $(LIBS)
-
-pvanal: $(pvanal_OBJECTS) $(pvanal_DEPENDENCIES)
-	@rm -f pvanal
-	$(LINK) $(pvanal_LDFLAGS) $(pvanal_OBJECTS) $(pvanal_LDADD) $(LIBS)
-
-pvlook: $(pvlook_OBJECTS) $(pvlook_DEPENDENCIES)
-	@rm -f pvlook
-	$(LINK) $(pvlook_LDFLAGS) $(pvlook_OBJECTS) $(pvlook_LDADD) $(LIBS)
-
-scale: $(scale_OBJECTS) $(scale_DEPENDENCIES)
-	@rm -f scale
-	$(LINK) $(scale_LDFLAGS) $(scale_OBJECTS) $(scale_LDADD) $(LIBS)
-
-scot: $(scot_OBJECTS) $(scot_DEPENDENCIES)
-	@rm -f scot
-	$(LINK) $(scot_LDFLAGS) $(scot_OBJECTS) $(scot_LDADD) $(LIBS)
-
-scsort: $(scsort_OBJECTS) $(scsort_DEPENDENCIES)
-	@rm -f scsort
-	$(LINK) $(scsort_LDFLAGS) $(scsort_OBJECTS) $(scsort_LDADD) $(LIBS)
-
-sdif2ad: $(sdif2ad_OBJECTS) $(sdif2ad_DEPENDENCIES)
-	@rm -f sdif2ad
-	$(LINK) $(sdif2ad_LDFLAGS) $(sdif2ad_OBJECTS) $(sdif2ad_LDADD) $(LIBS)
-
-sndinfo: $(sndinfo_OBJECTS) $(sndinfo_DEPENDENCIES)
-	@rm -f sndinfo
-	$(LINK) $(sndinfo_LDFLAGS) $(sndinfo_OBJECTS) $(sndinfo_LDADD) $(LIBS)
-
-srconv: $(srconv_OBJECTS) $(srconv_DEPENDENCIES)
-	@rm -f srconv
-	$(LINK) $(srconv_LDFLAGS) $(srconv_OBJECTS) $(srconv_LDADD) $(LIBS)
-.cpp.o:
-	$(CXXCOMPILE) -c $<
-.cpp.lo:
-	$(LTCXXCOMPILE) -c $<
-
-tags: TAGS
-
-ID: $(HEADERS) $(SOURCES) $(LISP)
-	list='$(SOURCES) $(HEADERS)'; \
-	unique=`for i in $$list; do echo $$i; done | \
-	  awk '    { files[$$0] = 1; } \
-	       END { for (i in files) print i; }'`; \
-	here=`pwd` && cd $(srcdir) \
-	  && mkid -f$$here/ID $$unique $(LISP)
-
-TAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) $(LISP)
-	tags=; \
-	here=`pwd`; \
-	list='$(SOURCES) $(HEADERS)'; \
-	unique=`for i in $$list; do echo $$i; done | \
-	  awk '    { files[$$0] = 1; } \
-	       END { for (i in files) print i; }'`; \
-	test -z "$(ETAGS_ARGS)$$unique$(LISP)$$tags" \
-	  || (cd $(srcdir) && etags $(ETAGS_ARGS) $$tags  $$unique $(LISP) -o $$here/TAGS)
-
-mostlyclean-tags:
-
-clean-tags:
-
-distclean-tags:
-	-rm -f TAGS ID
-
-maintainer-clean-tags:
-
-distdir = $(PACKAGE)-$(VERSION)
-top_distdir = $(distdir)
-
-# This target untars the dist file and tries a VPATH configuration.  Then
-# it guarantees that the distribution is self-contained by making another
-# tarfile.
-distcheck: dist
-	-rm -rf $(distdir)
-	GZIP=$(GZIP_ENV) $(TAR) zxf $(distdir).tar.gz
-	mkdir $(distdir)/=build
-	mkdir $(distdir)/=inst
-	dc_install_base=`cd $(distdir)/=inst && pwd`; \
-	cd $(distdir)/=build \
-	  && ../configure --srcdir=.. --prefix=$$dc_install_base \
-	  && $(MAKE) $(AM_MAKEFLAGS) \
-	  && $(MAKE) $(AM_MAKEFLAGS) dvi \
-	  && $(MAKE) $(AM_MAKEFLAGS) check \
-	  && $(MAKE) $(AM_MAKEFLAGS) install \
-	  && $(MAKE) $(AM_MAKEFLAGS) installcheck \
-	  && $(MAKE) $(AM_MAKEFLAGS) dist
-	-rm -rf $(distdir)
-	@banner="$(distdir).tar.gz is ready for distribution"; \
-	dashes=`echo "$$banner" | sed s/./=/g`; \
-	echo "$$dashes"; \
-	echo "$$banner"; \
-	echo "$$dashes"
-dist: distdir
-	-chmod -R a+r $(distdir)
-	GZIP=$(GZIP_ENV) $(TAR) chozf $(distdir).tar.gz $(distdir)
-	-rm -rf $(distdir)
-dist-all: distdir
-	-chmod -R a+r $(distdir)
-	GZIP=$(GZIP_ENV) $(TAR) chozf $(distdir).tar.gz $(distdir)
-	-rm -rf $(distdir)
-distdir: $(DISTFILES)
-	-rm -rf $(distdir)
-	mkdir $(distdir)
-	-chmod 777 $(distdir)
-	@for file in $(DISTFILES); do \
-	  d=$(srcdir); \
-	  if test -d $$d/$$file; then \
-	    cp -pr $$d/$$file $(distdir)/$$file; \
-	  else \
-	    test -f $(distdir)/$$file \
-	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
-	    || cp -p $$d/$$file $(distdir)/$$file || :; \
-	  fi; \
-	done
-info-am:
-info: info-am
-dvi-am:
-dvi: dvi-am
-check-am: all-am
-check: check-am
-installcheck-am:
-installcheck: installcheck-am
-install-exec-am: install-libLTLIBRARIES install-pkglibLTLIBRARIES \
-		install-binPROGRAMS
-install-exec: install-exec-am
-
-install-data-am:
-install-data: install-data-am
-
-install-am: all-am
-	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
-install: install-am
-uninstall-am: uninstall-libLTLIBRARIES uninstall-pkglibLTLIBRARIES \
-		uninstall-binPROGRAMS
-uninstall: uninstall-am
-all-am: Makefile $(LTLIBRARIES) $(PROGRAMS)
-all-redirect: all-am
-install-strip:
-	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
-installdirs:
-	$(mkinstalldirs)  $(DESTDIR)$(libdir) $(DESTDIR)$(pkglibdir) \
-		$(DESTDIR)$(bindir)
-
-
-mostlyclean-generic:
-
-clean-generic:
-
-distclean-generic:
-	-rm -f Makefile $(CONFIG_CLEAN_FILES)
-	-rm -f config.cache config.log stamp-h stamp-h[0-9]*
-
-maintainer-clean-generic:
-mostlyclean-am:  mostlyclean-hdr mostlyclean-libLTLIBRARIES \
-		mostlyclean-pkglibLTLIBRARIES mostlyclean-compile \
-		mostlyclean-libtool mostlyclean-binPROGRAMS \
-		mostlyclean-tags mostlyclean-generic
-
-mostlyclean: mostlyclean-am
-
-clean-am:  clean-hdr clean-libLTLIBRARIES clean-pkglibLTLIBRARIES \
-		clean-compile clean-libtool clean-binPROGRAMS \
-		clean-tags clean-generic mostlyclean-am
-
-clean: clean-am
-
-distclean-am:  distclean-hdr distclean-libLTLIBRARIES \
-		distclean-pkglibLTLIBRARIES distclean-compile \
-		distclean-libtool distclean-binPROGRAMS distclean-tags \
-		distclean-generic clean-am
-	-rm -f libtool
-
-distclean: distclean-am
-	-rm -f config.status
-
-maintainer-clean-am:  maintainer-clean-hdr \
-		maintainer-clean-libLTLIBRARIES \
-		maintainer-clean-pkglibLTLIBRARIES \
-		maintainer-clean-compile maintainer-clean-libtool \
-		maintainer-clean-binPROGRAMS maintainer-clean-tags \
-		maintainer-clean-generic distclean-am
-	@echo "This command is intended for maintainers to use;"
-	@echo "it deletes files that may require special tools to rebuild."
-
-maintainer-clean: maintainer-clean-am
-	-rm -f config.status
-
-.PHONY: mostlyclean-hdr distclean-hdr clean-hdr maintainer-clean-hdr \
-mostlyclean-libLTLIBRARIES distclean-libLTLIBRARIES \
-clean-libLTLIBRARIES maintainer-clean-libLTLIBRARIES \
-uninstall-libLTLIBRARIES install-libLTLIBRARIES \
-mostlyclean-pkglibLTLIBRARIES distclean-pkglibLTLIBRARIES \
-clean-pkglibLTLIBRARIES maintainer-clean-pkglibLTLIBRARIES \
-uninstall-pkglibLTLIBRARIES install-pkglibLTLIBRARIES \
-mostlyclean-compile distclean-compile clean-compile \
-maintainer-clean-compile mostlyclean-libtool distclean-libtool \
-clean-libtool maintainer-clean-libtool mostlyclean-binPROGRAMS \
-distclean-binPROGRAMS clean-binPROGRAMS maintainer-clean-binPROGRAMS \
-uninstall-binPROGRAMS install-binPROGRAMS tags mostlyclean-tags \
-distclean-tags clean-tags maintainer-clean-tags distdir info-am info \
-dvi-am dvi check check-am installcheck-am installcheck install-exec-am \
-install-exec install-data-am install-data install-am install \
-uninstall-am uninstall all-redirect all-am all installdirs \
-mostlyclean-generic distclean-generic clean-generic \
-maintainer-clean-generic clean mostlyclean distclean maintainer-clean
-
+E     = Engine
+I     = InOut
+T     = Top
+O     = OOps
+S     = SDIF
+
+CSRCX = $T/cscormai.c $T/natben.c
+
+CSRCE = \
+	$E/auxfd.c	\
+	$E/entry1.c	\
+	$E/entry2.c	\
+	$E/express.c	\
+	$E/extract.c	\
+	$E/fgens.c	\
+	$E/filopen.c	\
+	$E/insert.c	\
+	$E/linevent.c	\
+	$E/memalloc.c	\
+	$E/memfiles.c	\
+	$E/musmon.c	\
+	$E/namedins.c	\
+	$E/oload.c	\
+	$E/otran.c	\
+	$E/rdorch.c	\
+	$E/rdscor.c	\
+	$E/scsort.c	\
+	$E/scxtract.c	\
+	$E/sort.c	\
+	$E/sread.c	\
+	$E/swrite.c	\
+	$E/twarp.c
+
+CSRCI = \
+	$I/libsnd.c	\
+	$I/aifc.c       \
+	$I/aiff.c       \
+	$I/ieee80.c     \
+	$I/sfheader.c   \
+	$I/soundin.c    \
+	$I/soundio.c    \
+	$I/wave.c       \
+	$I/winEPS.c     \
+	$I/winascii.c   \
+	$I/windin.c     \
+	$I/window.c
+
+CSRCT = \
+	$T/argdecode.c	\
+	$T/cscore.c	\
+	$T/cscorfns.c	\
+	$T/cvanal.c	\
+	$T/dl_opcodes.c \
+	$T/dnoise.c 	\
+	$T/getstring.c	\
+	$T/hetro.c	\
+	$T/jpff_glue.c	\
+	$T/lpanal.c	\
+	$T/main.c	\
+	$T/one_file.c	\
+	$T/opcode.c	\
+	$T/pvanal.c	\
+	$T/pvlook.c	\
+	$T/scot.c       \
+	$T/sndinfo.c
+
+
+CSRCO = \
+	$O/aops.c	\
+	$O/cmath.c	\
+	$O/control.c	\
+	$O/diskin.c	\
+	$O/disprep.c	\
+	$O/dnfft.c	\
+	$O/dsputil.c	\
+	$O/dumpf.c	\
+	$O/fft.c	\
+	$O/fout.c	\
+	$O/lptrkfns.c	\
+	$O/mididevice.c	\
+	$O/midiinterop.c	\
+	$O/midiops.c	\
+	$O/midiout.c	\
+	$O/midirecv.c	\
+	$O/midisend.c	\
+	$O/mxfft.c	\
+	$O/oscils.c	\
+	$O/pitch0.c	\
+	$O/pstream.c	\
+	$O/pvadd.c	\
+	$O/pvfileio.c	\
+	$O/pvinterp.c	\
+	$O/pvoc.c	\
+	$O/pvocext.c	\
+	$O/pvread.c	\
+	$O/pvsanal.c	\
+	$O/pvxanal.c	\
+	$O/schedule.c	\
+	$O/sdif.c	\
+	$O/sdif-mem.c	\
+	$O/sndinfUG.c	\
+	$O/ugens1.c	\
+	$O/ugens2.c	\
+	$O/ugens3.c	\
+	$O/ugens4.c	\
+	$O/ugens5.c	\
+	$O/ugens6.c	\
+	$O/ugens7.c	\
+	$O/ugens8.c	\
+	$O/ugens9.c	\
+	$O/vbap.c	\
+	$O/vbap_eight.c	\
+	$O/vbap_four.c	\
+	$O/vbap_sixteen.c	\
+	$O/vbap_zak.c	\
+	$O/vdelay.c	\
+	$O/vpvoc.c
+
+CSRCS =	$(CSRCT) $(CSRCI) $(CSRCO) $(CSRCE) $(WINSRC) $(AUDSRC) $(FLTKSRC)
+
+COBJX = cscormai.$(o) natben.$(o)
+
+COBJE = \
+	auxfd.$(o)	\
+	entry1.$(o)	\
+	entry2.$(o)	\
+	express.$(o)	\
+	extract.$(o)	\
+	fgens.$(o)	\
+	filopen.$(o)	\
+	insert.$(o)	\
+	linevent.$(o)	\
+	memalloc.$(o)	\
+	memfiles.$(o)	\
+	musmon.$(o)	\
+	namedins.$(o)	\
+	oload.$(o)	\
+	otran.$(o)	\
+	rdorch.$(o)	\
+	rdscor.$(o)	\
+	scsort.$(o)	\
+	scxtract.$(o)	\
+	sort.$(o)	\
+	sread.$(o)	\
+	swrite.$(o)	\
+	twarp.$(o)
+
+COBJI = winascii.$(o) window.$(o) windin.$(o) winEPS.$(o) aiff.$(o) wave.$(o) \
+	ieee80.$(o) sfheader.$(o) soundin.$(o) soundio.$(o) aifc.$(o) libsnd.$(o)
+
+COBJT = \
+	argdecode.$(o)	\
+	cscore.$(o)	\
+	cscorfns.$(o)	\
+	cvanal.$(o)	\
+	dl_opcodes.$(o)	\
+	dnoise.$(o) 	\
+	getstring.$(o)	\
+	hetro.$(o)	\
+	jpff_glue.$(o)	\
+	lpanal.$(o)	\
+	main.$(o)	\
+	one_file.$(o)	\
+	opcode.$(o)	\
+	pvanal.$(o)	\
+	pvlook.$(o)	\
+	sndinfo.$(o)	\
+	scot.$(o)	\
+
+COBJO = \
+	aops.$(o)	\
+	cmath.$(o)	\
+	control.$(o)	\
+	diskin.$(o)	\
+	disprep.$(o)	\
+	dnfft.$(o)	\
+	dsputil.$(o)	\
+	dumpf.$(o)	\
+	fft.$(o)	\
+	fout.$(o)	\
+	lptrkfns.$(o)	\
+	mididevice.$(o)	\
+	midiinterop.$(o)	\
+	midiops.$(o)	\
+	midiout.$(o)	\
+	midirecv.$(o)	\
+	midisend.$(o)	\
+	mxfft.$(o)	\
+	oscils.$(o)	\
+	pitch0.$(o)	\
+	pstream.$(o)	\
+	pvadd.$(o)	\
+	pvfileio.$(o)	\
+	pvinterp.$(o)	\
+	pvoc.$(o)	\
+	pvocext.$(o)	\
+	pvread.$(o)	\
+	pvsanal.$(o)	\
+	pvxanal.$(o)	\
+	schedule.$(o)	\
+	sdif.$(o)	\
+	sdif-mem.$(o)	\
+	sndinfUG.$(o)	\
+	ugens1.$(o)	\
+	ugens2.$(o)	\
+	ugens3.$(o)	\
+	ugens4.$(o)	\
+	ugens5.$(o)	\
+	ugens6.$(o)	\
+	ugens7.$(o)	\
+	ugens8.$(o)	\
+	ugens9.$(o)	\
+	vbap.$(o)	\
+	vbap_eight.$(o)	\
+	vbap_four.$(o)	\
+	vbap_sixteen.$(o)	\
+	vbap_zak.$(o)	\
+	vdelay.$(o)	\
+	vpvoc.$(o)
+
+COBJS =	$(COBJT) $(COBJI) $(COBJO) $(COBJE) $(WINOBJ) $(AUDOBJ) $(FLTKOBJ)
+
+HDRS =  H/3Dug.h H/aiff.h H/aops.h H/bowed.h H/brass.h H/butter.h H/clarinet.h \
+	H/cmath.h H/convolve.h H/cs.h H/cscore.h H/dam.h H/diskin.h \
+	H/disprep.h H/dpwelib.h H/dsputil.h H/dumpf.h H/fft.h H/fhtfun.h \
+	H/filter.h H/flute.h H/fm4op.h H/follow.h H/ftgen.h H/grain.h H/grain4.h \
+	H/hrtferx.h H/ieee80.h H/insert.h H/lpc.h H/marimba.h H/midioops.h \
+	H/midiops.h H/midiops2.h H/midiout.h H/modal4.h H/moog1.h H/nlfilt.h \
+	H/oload.h H/physutil.h H/pluck.h H/prototyp.h H/ptrigtbl.h H/pvadd.h \
+	H/pvinterp.h H/pvoc.h H/pvread.h H/repluck.h H/revsets.h H/scot.h \
+	H/sfheader.h H/shaker.h H/singwave.h H/sndwarp.h H/sort.h H/soundio.h \
+	H/spectra.h H/sysdep.h H/ugens1.h H/ugens2.h H/ugens3.h H/ugens4.h \
+	H/ugens5.h H/ugens6.h H/ugens7.h H/ugens8.h H/ugens9.h H/ugensa.h \
+	H/ugrw1.h H/ugrw2.h H/vdelay.h H/version.h H/vibraphn.h H/vpvoc.h \
+	H/wave.h H/wavegde.h H/winEPS.h H/windin.h H/cwindow.h H/mandolin.h \
+	H/space.h H/locsig.h H/dcblockr.h H/pvocext.h H/flanger.h H/lowpassr.h \
+	H/uggab.h H/biquad.h H/schedule.h H/midiops3.h H/pitch.h H/text.h \
+	H/ugsc.h H/fout.h H/sndinfUG.h H/scansyn.h H/sf.h H/sfont.h H/sfenum.h \
+	H/sftype.h H/vbap.h H/control.h H/bowedbar.h H/phisem.h H/sdif.h \
+	H/sdif-mem.h H/babo.h H/ugmoss.h H/bbcut.h H/spat3d.h H/pstream.h \
+	H/pvfileio.h H/pvxanal.h H/oscbnk.h H/scansynx.h H/oscils.h \
+	H/wave-terrain.h H/clfilt.h H/midiinterop.h H/opcode.h H/csdl.h \
+	H/widgets.h H/namedins.h
+
+PROGS   = csound
+SUBDIRS = anals utils1 utils2 utils3
+LIBRARIES = opcodes
+
+all:		$(PROGS) $(SUBDIRS) $(LIBRARIES)	#must be run in this order
+
+csound:		$(COBJS) $(CSUM) $(CDEP) csound.xmg
+		$(CC) $(CFLAGS) -o csound $(LDFLAGS) $(COBJS) $(LIBS)
+
+TAGS:	$(CSRCS) $(HDRS)
+		etags $(CSRCS) $(HDRS)
+		(cd Opcodes; $(MAKE) TAGS)
+
+csound.a:	$(COBJS) $(CDEP)
+		-rm csound.a
+		ar q csound.a $(COBS)
+		-@RANLIB@ csound.a
 
 xmg:	American.xmg English.xmg csound.xmg
 
@@ -1673,7 +428,174 @@ English.xmg:	strings/english-strings makedb
 
 csound.xmg:	strings/all_strings English.xmg
 	cp English.xmg csound.xmg
+#	cp American.xmg csound.xmg
 
-# Tell versions [3.59,3.63) of GNU make to not export all variables.
-# Otherwise a system limit (for SysV at least) may be exceeded.
-.NOEXPORT:
+makedb:	strings/makedb.c H/text.h
+	$(CC) -I H -o makedb strings/makedb.c
+
+$(WINOBJ): $(	SRC)
+	$(CC) $(CFLAGS) -I H -c $I/$*.c -o $*.$(o)
+
+FL_graph.o: $I/FL_graph.cpp
+	$(CXX) $(CXXFLAGS) -I H -c $I/$*.cpp -o $*.$(o)
+
+$(FLTKOBJ): $(FLTKSRC)
+	$(CXX) $(CXXFLAGS) -I H -c $I/$*.cpp -o $*.$(o)
+
+$(AUDOBJ): $(AUDSRC)
+	$(CC) $(CFLAGS) -I H -c $I/$*.c -o $*.$(o)
+
+$(COBJE): $(CSRCE)
+	$(CC) $(CFLAGS) -I H -c $E/$*.c -o $*.$(o)
+
+$(COBJT): $(CSRCT)
+	$(CC) $(CFLAGS) -I H -c $T/$*.c -o $*.$(o)
+
+$(COBJX): $(CSRCX)
+	$(CC) $(CFLAGS) -I H -c $T/$*.c -o $*.$(o)
+
+$(COBJI): $(CSRCI)
+	$(CC) $(CFLAGS) -I H -c $I/$*.c -o $*.$(o)
+
+$(COBJO): $(CSRCO)
+	$(CC) $(CFLAGS) -I H -c $O/$*.c -o $*.$(o)
+
+.c.$(o):
+	$(CC) $(CFLAGS) -I H -c $*.c -o $*.$(o)
+
+natben.$(o):
+	$(CC) $(CFLAGS) -I H -c $T/natben.c -o natben.$(o)
+
+ADSYNS = hetro 						#targets in anal/adsyn
+LPCS = lpanal						#targets in anal/lpc
+PVOCS = pvanal 						#targets in anal/pvoc
+CVL = cvanal						#targets in anal/convol
+#targets in anal
+ANALS = adsyns $(ADSYNS) lpcs $(LPCS) pvocs $(PVOCS) cvl $(CVL)
+anals $(ANALS):
+		cd anal; $(MAKE) $@
+
+SCOTS = scots						#targets in util1/scot
+CSCORES = cscores					#targets in util1/cscore
+SORTEXS = scsort extract				#targets in util1/sortex
+UTILS1 = $(SCOTS) $(CSCORES) sortexs $(SORTEXS)		#targets in util1
+utils1 $(UTILS1): natben.$(o)
+		cd util1; $(MAKE) $@
+
+UTILS2 = sndinfos scale mixers extractor envelope pvlook dnoise srconv #targets in util2
+utils2 $(UTILS2):
+		cd util2; $(MAKE) $@
+
+UTIL3 = $S/sdif2adsyn.c $O/sdif.c $O/sdif-mem.c
+
+UTILS3 = sdif2ad
+utils3: $(UTILS3)
+
+opcodes:
+	(cd Opcodes; $(MAKE) $@)
+
+sdif2adsyn.$(o): $S/sdif2adsyn.c
+	$(CC) $(CFLAGS) -c -I H $S/sdif2adsyn.c
+
+sdif2ad: sdif2adsyn.$(o) sdif.$(o) sdif-mem.$(o)
+	$(CC) -I H sdif2adsyn.$(o) sdif.$(o) sdif-mem.$(o) -o sdif2ad
+
+install:	$(PROGS) $(CSA) csound.a sdif2ad
+		-strip $(PROGS)
+		-rm $(DEST)/csound
+		cp $(PROGS) $(DEST)
+		-rm $(LIB)/libcsound.a
+		-cp csound.a $(LIB)/libcsound.a
+		cd anal; $(MAKE) install
+		cd util1; $(MAKE) install
+		cd util2; $(MAKE) install
+		-cp sdif2ad $(DEST)/sdif2ad
+#		cd util3; $(MAKE) install
+
+MANPP = csound hetro lpanal pvanal
+manpp:
+		-for i in $(MANPP); do rm -f $(CAT1)/$$i.1; done
+		-for i in $(MANPP); do cp man/$$i.man $(MAN1)/$$i.1; done
+
+clean:
+		-rm $(COBS) cscormai.$(o) dmain.$(o) $(PROGS) $(CSA) dsound *.s
+		cd anal; $(MAKE) clean
+		cd util1; $(MAKE) clean
+		cd util2; $(MAKE) clean
+		cd testfils; rm -f core score.srt score.xtr
+		cd tutofils; rm -f core score.srt score.xtr
+		cd scorfils; rm -f core score.srt score.xtr
+		cd morefils; rm -f core score.srt score.xtr
+		cd midifils; rm -f core score.srt score.xtr
+		cd analfils; rm -f core pv.medlab
+		cd cscofils; rm -f core cscore csound *.$(o) *.out *.srt
+
+rmbak:
+		-rm *.bak *~
+		cd anal; $(MAKE) rmbak
+		cd util1; $(MAKE) rmbak
+		cd util2; $(MAKE) rmbak
+		cd man; rm -f *.bak *~
+		cd testfils; rm -f *.bak *~
+		cd tutofils; rm -f *.bak *~
+		cd scorfils; rm -f *.bak *~
+		cd morefils; rm -f *.bak *~
+		cd midifils; rm -f *.bak *~
+		cd cscofils; rm -f *.bak *~
+
+CSLinux.bin.tgz: /usr/local/bin/csound /usr/local/bin/hetro \
+	/usr/local/bin/lpanal /usr/local/bin/pvanal /usr/local/bin/scot \
+	/usr/local/bin/scsort /usr/local/bin/extract /usr/local/bin/sndinfo \
+	/usr/local/bin/scale /usr/local/bin/mixer /usr/local/bin/extractor \
+	/usr/local/bin/envext /usr/local/bin/pvlook /usr/local/bin/sdif2ad \
+	/usr/local/bin/dnoise /usr/local/bin/srconv
+	(cd /usr/local/bin; tar cvzf ~/csound/CSLinux.bin.tgz csound \
+	hetro lpanal pvanal scot scsort extract sndinfo scale mixer \
+	extractor envext pvlook sdif2ad dnoise srconv)
+
+Csound.tar.gz:  all_files \
+	$(<CSRCS) $(HDRS) \
+	LINUXaudio.c DECaudio.c DECplay.c HPplay.c DECaudio.h \
+	DECplay.h SGIplay.c anal/adsyn/main.c anal/adsyn/makef anal/lpc/main.c \
+	anal/lpc/makef anal/makef anal/makef anal/pvoc/main.c anal/pvoc/makef \
+	Makefile.sol cscofils/combine.c cscofils/default.c cscofils/pulse.c \
+	cscofils/sine.orc cscofils/sine.sco cscofils/switch.c cscofils/test.c \
+	cscofils/test2.c cscofils/README cscofils/aliases cscormai.c Makefile \
+	util1/cscore/makef util1/makef util1/scot/main.c util1/scot/makef \
+	util1/sortex/makef util1/sortex/smain.c util1/sortex/xmain.c \
+	util2/envext/envext.c util2/envext/makef util2/exports/Makefile \
+	util2/exports/het_export.c util2/exports/het_import.c \
+	util2/exports/lpc_export.c util2/exports/pv_export.c \
+	util2/exports/pv_import.c util2/makef util2/mixer/makef \
+	util2/mixer/mixer.c util2/mixer/xtrct.c util2/mkgraph/fg.h \
+	util2/mkgraph/fgdemo.c util2/mkgraph/mkgraph.c util2/scale.dir/makef \
+	util2/scale.dir/scale.c util2/sndinfo/main.c \
+	util2/sndinfo/makef util2/pvlook.dir/makef winSGI.c winbor.c winwat.c winfg.c
+		tar cvf - `cat all_files` | gzip > Csound.tar.gz
+
+distrib:	all Csound.tar.gz
+	cp MUSIC/csound/Csound.tar.gz ~ftp/pub/dream
+	cp MUSIC/csound/csound ~ftp/pub/dream/SGI
+	cp MUSIC/csound/anal/hetro ~ftp/pub/dream/SGI
+	cp MUSIC/csound/anal/lpanal ~ftp/pub/dream/SGI
+	cp MUSIC/csound/anal/pvanal ~ftp/pub/dream/SGI
+	cp MUSIC/csound/util1/scot/scot ~ftp/pub/dream/SGI
+	cp MUSIC/csound/util1/cscore/cscore.a ~ftp/pub/dream/SGI
+	cp MUSIC/csound/util1/sortex/extract ~ftp/pub/dream/SGI
+	cp MUSIC/csound/util1/sortex/scsort ~ftp/pub/dream/SGI
+	cp MUSIC/csound/util2/envext/envext ~ftp/pub/dream/SGI
+	cp MUSIC/csound/util2/exports/het_import ~ftp/pub/dream/SGI
+	cp MUSIC/csound/util2/exports/het_export ~ftp/pub/dream/SGI
+	cp MUSIC/csound/util2/exports/pv_import ~ftp/pub/dream/SGI
+	cp MUSIC/csound/util2/exports/pv_export ~ftp/pub/dream/SGI
+	cp MUSIC/csound/util2/exports/lpc_export ~ftp/pub/dream/SGI
+	cp MUSIC/csound/util2/mixer/mixer ~ftp/pub/dream/SGI
+	cp MUSIC/csound/util2/mixer/extractot ~ftp/pub/dream/SGI
+	cp MUSIC/csound/util2/scale.dir/scale ~ftp/pub/dream/SGI
+	cp MUSIC/csound/util2/sndinfo/sndinfo ~ftp/pub/dream/SGI
+
+depend:
+	@CC@ -M -I H $(CFLAGS) $(CSRCS) $(CSRMS) $(UTIL3) > deps
+	cat Makefile deps > makefile
+
+# DO NOT DELETE THIS LINE

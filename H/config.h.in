@@ -49,11 +49,32 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
+/* Define to 1 if you have the `Alib' library (-lAlib). */
+#undef HAVE_LIBALIB
+
+/* Define to 1 if you have the `asound' library (-lasound). */
+#undef HAVE_LIBASOUND
+
+/* Define to 1 if you have the `audio' library (-laudio). */
+#undef HAVE_LIBAUDIO
+
+/* Define to 1 if you have the `dl' library (-ldl). */
+#undef HAVE_LIBDL
+
 /* Define to 1 if you have the `fltk' library (-lfltk). */
 #undef HAVE_LIBFLTK
 
+/* Define to 1 if you have the `midi' library (-lmidi). */
+#undef HAVE_LIBMIDI
+
 /* Define to 1 if you have the `pthread' library (-lpthread). */
 #undef HAVE_LIBPTHREAD
+
+/* Define to 1 if you have the `sndfile' library (-lsndfile). */
+#undef HAVE_LIBSNDFILE
+
+/* Define to 1 if you have the `X11' library (-lX11). */
+#undef HAVE_LIBX11
 
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H

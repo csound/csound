@@ -386,7 +386,6 @@ extern "C" {
 	*/
 	PUBLIC void csoundMessage(void *csound, const char *format, ...);
 	PUBLIC void csoundMessageV(void *csound, const char *format, va_list args);
-	PUBLIC void csoundMessageS(void *csound, const char *format, va_list args);
 
 	/**
 	* Throws an informational message as a C++ exception.

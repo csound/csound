@@ -276,11 +276,6 @@ void csoundSetMessageCallback(void *csound,
     printf("DO NOT USE THIS INTERFACE(csoundSetMessageCallback)\n");
 }
 
-void csoundMessageS(void *csound, const char *format, va_list args)
-{
-    vprintf(format, args);
-}
-
 #ifndef FLTK_GUI
 void csoundMessageV(void *csound, const char *format, va_list args)
 {
