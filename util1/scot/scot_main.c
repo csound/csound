@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdarg.h>
+#include <stdlib.h>
 #include "text.h"
 
 void die(char *);
@@ -31,8 +32,8 @@ void err_printf(char *fmt, ...)
 
 int main(int argc, char **argv)
 {
-  FILE *infile,*outfile;
-  char *name;
+  FILE *infile = 0,*outfile = 0;
+  char *name = 0;
 
   init_getstring(argc, argv);
   if (argc==2)

@@ -40,7 +40,6 @@ void het_export_usage(void)
 
 int main(int argc, char **argv)
 {
-	MEMFIL *mfp;
 	MEMFIL *inf;
 	FILE *outf;
 	short *adp;
@@ -68,5 +67,6 @@ int main(int argc, char **argv)
 		else fprintf(outf, "%s%hd", (cc ? ",":""), *adp), cc = 1;
 	}
 	fclose(outf);
+	return 0;
 }
 
