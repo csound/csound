@@ -20,6 +20,7 @@
 * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 #include "Random.hpp"
+#include <boost/numeric/ublas/operation.hpp>
 
 namespace csound
 {
@@ -164,7 +165,8 @@ namespace csound
 				ublas::matrix<double> localCoordinates = getLocalCoordinates();
 				ublas::matrix<double> compositeCoordinates = ublas::prod(localCoordinates, globalCoordinates);
 				Event event(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
-				Event transformedEvent = ublas::prod(compositeCoordinates, event);
+				Event transformedEvent;
+				ublas::axpy_prod(compositeCoordinates, event, transformedEvent);
 				if (incrementTime)
 				{
 					double buffer = fabs(transformedEvent.getTime());
