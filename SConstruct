@@ -187,7 +187,7 @@ else:
 
 # Adding libraries and flags if using -mno-cygwin with cygwin
 
-if commonEnvironment['noCygwin'] and getPlatform() == 'cygwin':
+if (commonEnvironment['noCygwin'] == 1 and getPlatform() == 'cygwin'):
     print 'CONFIGURATION DECISION: Using -mno-cygwin.'
     commonEnvironment.Prepend(CCFLAGS = ['-mno-cygwin'])
     commonEnvironment.Prepend(CPPFLAGS = ['-mno-cygwin'])
@@ -391,7 +391,8 @@ if (commonEnvironment['useFLTK'] == 1 and fltkFound):
             guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
             csoundProgramEnvironment.Append(LINKFLAGS = ['-framework', 'Carbon'])
 
-if (commonEnvironment['usePortMIDI'] != 0 and portmidiFound):
+if (commonEnvironment['usePortMIDI'] and portmidiFound):
+    print 'Adding PortMIDI flags and libs'
     staticLibraryEnvironment.Append(CCFLAGS = '-DPORTMIDI')
     pluginEnvironment.Append(CCFLAGS = '-DPORTMIDI')
     csoundProgramEnvironment.Append(CCFLAGS = '-DPORTMIDI')
@@ -533,13 +534,14 @@ else:
 
 print commonEnvironment['usePortMIDI']
 print portmidiFound
-if not ((commonEnvironment['usePortMIDI'] != 0) and portmidiFound):
-    print 'CONFIGURATION DECISION: Building with internal MIDI.'
-    libCsoundSources.append('OOps/midirecv.c')
-else:
+print ((commonEnvironment['usePortMIDI']) and (portmidiFound==1))
+if ((commonEnvironment['usePortMIDI']) and (portmidiFound==1)):
     print 'CONFIGURATION DECISION: Building with PortMIDI.'
     libCsoundSources.append('InOut/pmidi.c')
     libCsoundSources.append('InOut/fmidi.c')
+else:
+    print 'CONFIGURATION DECISION: Building with internal MIDI.'
+    libCsoundSources.append('OOps/midirecv.c')
 
 if not ((commonEnvironment['useFLTK'] == 1 and fltkFound)):
     print 'CONFIGURATION DECISION: Not building with FLTK for graphs and widgets.'
@@ -553,7 +555,7 @@ staticLibrary = staticLibraryEnvironment.Library('csound',
     libCsoundSources)
 zipDependencies.append(staticLibrary)
     
-if not commonEnvironment['generatePdf']:
+if commonEnvironment['generatePdf']==0:
     print 'CONFIGURATION DECISION: Not generating PDF documentation.'
 else:
     print 'CONFIGURATION DECISION: Generating PDF documentation.'
@@ -940,7 +942,7 @@ else:
     # Build the Loris and Python opcodes here because they depend 
     # on the same things as CsoundVST.
     
-    if commonEnvironment['buildLoris']:
+    if commonEnvironment['buildLoris']==1:
         # For Loris, we build only the loris Python extension module and
         # the Csound opcodes (modified for Csound 5).
         # It is assumed that you have copied the contents of the Loris distribution
@@ -979,7 +981,7 @@ else:
     Depends(py, csoundvst)
     pluginLibraries.append(py)
 
-if not ((commonEnvironment['generateTags']) and (getPlatform() == 'linux' or getPlatform() == 'cygwin')):
+if not ((commonEnvironment['generateTags']==1) and (getPlatform() == 'linux' or getPlatform() == 'cygwin')):
     print "CONFIGURATION DECISION: Not calling TAGS"
 else:
     print "CONFIGURATION DECISION: Calling TAGS"
@@ -992,7 +994,7 @@ else:
     zipDependencies.append(tags)
     Depends(tags, staticLibrary)
 
-if not commonEnvironment['generateXmg']:
+if commonEnvironment['generateXmg']==0:
     print "CONFIGURATION DECISION: Not calling makedb"
 else:
     print "CONFIGURATION DECISION: Calling makedb"
