@@ -706,12 +706,10 @@ int lpshold(ENVIRON *csound, LOOPSEG *p)
       phs=p->phs=*p->iphase;
     else
       phs=p->phs;
-    
+
     for (j=1; j<nsegs; j++)
       argp[j] = *p->argums[j-1];
-	
     argp[nsegs] = *p->argums[0];
-	
     for ( j=0; j <nsegs; j+=2) 
       durtot += argp[j];
 
@@ -759,7 +757,7 @@ int loopsegp(ENVIRON *csound, LOOPSEGP *p)
 
     for (j=1; j<nsegs; j++)
       argp[j] = *p->argums[j-1];
-	
+
     argp[nsegs] = *p->argums[0];
 
     for ( j=0; j <nsegs; j+=2) 
@@ -797,7 +795,7 @@ int lpsholdp(ENVIRON *csound, LOOPSEGP *p)
 
     for (j=1; j<nsegs; j++)
       argp[j] = *p->argums[j-1];
-	
+
     argp[nsegs] = *p->argums[0];
 
     for ( j=0; j <nsegs; j+=2) 
