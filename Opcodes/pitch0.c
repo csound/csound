@@ -27,6 +27,7 @@
 #include "pitch.h"
 #include "uggab.h"
 #include "namedins.h"   /* IV - Oct 31 2002 */
+#include "csdl.h"
 
 int mute_inst(MUTE *p)
 {
@@ -97,136 +98,136 @@ int pfun(PFUN *p)
 }
 
 #ifdef BETA
-/* ********************************************************************** */
-/* *************** EXPERIMENT ******************************************* */
-/* ********************************************************************** */
-
-#include "ugens2.h"
-
-int Foscset(XOSC *p)
-{
-    FUNC        *ftp;
-
-    if ((ftp = ftnp2find(p->ifn)) != NULL) { /* Allow any length */
-      p->ftp = ftp;
-      if (*p->iphs >= 0) {
-        p->lphs = *p->iphs * ftp->flen;
-        while (p->lphs>ftp->flen) p->lphs -= ftp->flen;
-      }
-      else
-        p->lphs = FL(0.0);
-    }
-    return OK;
-}
-
-int Fosckk(XOSC *p)
-{
-    FUNC        *ftp;
-    MYFLT       amp, *ar, *ftbl;
-    MYFLT       inc, phs;
-    int nsmps = ksmps;
-    int flen;
-
-    ftp = p->ftp;
-    if (ftp==NULL) {
-      return perferror(Str(X_1106,"oscil: not initialised"));
-    }
-    flen = ftp->flen;
-    ftbl = ftp->ftable;
-    phs = p->lphs;
-    inc = (*p->xcps * flen) * onedsr;
-    amp = *p->xamp;
-    ar = p->sr;
-    do {
-      *ar++ = *(ftbl + (int)(phs)) * amp;
-      phs += inc;
-      if (phs>flen) phs -= flen;
-    } while (--nsmps);
-    p->lphs = phs;
-    return OK;
-}
-
-int Foscak(XOSC *p)
-{
-    FUNC        *ftp;
-    MYFLT       *ampp, *ar, *ftbl;
-    MYFLT       inc, phs;
-    int nsmps = ksmps;
-    int flen;
-
-    ftp = p->ftp;
-    if (ftp==NULL) {
-      return perferror(Str(X_1106,"oscil: not initialised"));
-    }
-    flen = ftp->flen;
-    ftbl = ftp->ftable;
-    phs = p->lphs;
-    inc = (*p->xcps * flen) * onedsr;
-    ampp = p->xamp;
-    ar = p->sr;
-    do {
-      *ar++ = *(ftbl + (int)(phs)) * *ampp++;
-      phs += inc;
-      if (phs>flen) phs -= flen;
-    } while (--nsmps);
-    p->lphs = phs;
-    return OK;
-}
-
-int Foscka(XOSC *p)
-{
-    FUNC        *ftp;
-    MYFLT       amp, *ar, *cpsp, *ftbl;
-    MYFLT       inc, phs;
-    int nsmps = ksmps;
-    int flen;
-
-    ftp = p->ftp;
-    if (ftp==NULL) {
-      return perferror(Str(X_1106,"oscil: not initialised"));
-    }
-    flen = ftp->flen;
-    ftbl = ftp->ftable;
-    phs = p->lphs;
-    inc = (*p->xcps * flen) * onedsr;
-    amp = *p->xamp;
-    cpsp = p->xcps;
-    ar = p->sr;
-    do {
-      MYFLT inc = (*cpsp++ *flen * onedsr);
-      *ar++ = *(ftbl + (int)(phs)) * amp;
-      phs += inc;
-      if (phs>flen) phs -= flen;
-    } while (--nsmps);
-    p->lphs = phs;
-    return OK;
-}
-
-int Foscaa(XOSC *p)
-{
-    FUNC        *ftp;
-    MYFLT       *ampp, *ar, *ftbl;
-    MYFLT       phs;
-    int nsmps = ksmps;
-    int flen;
-
-    ftp = p->ftp;
-    if (ftp==NULL) {
-      return perferror(Str(X_1106,"oscil: not initialised"));
-    }
-    flen = ftp->flen;
-    ftbl = ftp->ftable;
-    phs = p->lphs;
-    ampp = p->xamp;
-    ar = p->sr;
-    do {
-      MYFLT inc = (*p->xcps++ * flen) * onedsr;
-      *ar++ = *(ftbl + (int)(phs)) * *ampp++;
-      phs += inc;
-      if (phs>flen) phs -= flen;
-    } while (--nsmps);
-    p->lphs = phs;
-    return OK;
-}
+///* ********************************************************************** */
+///* *************** EXPERIMENT ******************************************* */
+///* ********************************************************************** */
+//
+//#include "ugens2.h"
+//
+//int Foscset(XOSC *p)
+//{
+//    FUNC        *ftp;
+//
+//    if ((ftp = ftnp2find(p->ifn)) != NULL) { /* Allow any length */
+//      p->ftp = ftp;
+//      if (*p->iphs >= 0) {
+//        p->lphs = *p->iphs * ftp->flen;
+//        while (p->lphs>ftp->flen) p->lphs -= ftp->flen;
+//      }
+//      else
+//        p->lphs = FL(0.0);
+//    }
+//    return OK;
+//}
+//
+//int Fosckk(XOSC *p)
+//{
+//    FUNC        *ftp;
+//    MYFLT       amp, *ar, *ftbl;
+//    MYFLT       inc, phs;
+//    int nsmps = ksmps;
+//    int flen;
+//
+//    ftp = p->ftp;
+//    if (ftp==NULL) {
+//      return perferror(Str(X_1106,"oscil: not initialised"));
+//    }
+//    flen = ftp->flen;
+//    ftbl = ftp->ftable;
+//    phs = p->lphs;
+//    inc = (*p->xcps * flen) * onedsr;
+//    amp = *p->xamp;
+//    ar = p->sr;
+//    do {
+//      *ar++ = *(ftbl + (int)(phs)) * amp;
+//      phs += inc;
+//      if (phs>flen) phs -= flen;
+//    } while (--nsmps);
+//    p->lphs = phs;
+//    return OK;
+//}
+//
+//int Foscak(XOSC *p)
+//{
+//    FUNC        *ftp;
+//    MYFLT       *ampp, *ar, *ftbl;
+//    MYFLT       inc, phs;
+//    int nsmps = ksmps;
+//    int flen;
+//
+//    ftp = p->ftp;
+//    if (ftp==NULL) {
+//      return perferror(Str(X_1106,"oscil: not initialised"));
+//    }
+//    flen = ftp->flen;
+//    ftbl = ftp->ftable;
+//    phs = p->lphs;
+//    inc = (*p->xcps * flen) * onedsr;
+//    ampp = p->xamp;
+//    ar = p->sr;
+//    do {
+//      *ar++ = *(ftbl + (int)(phs)) * *ampp++;
+//      phs += inc;
+//      if (phs>flen) phs -= flen;
+//    } while (--nsmps);
+//    p->lphs = phs;
+//    return OK;
+//}
+//
+//int Foscka(XOSC *p)
+//{
+//    FUNC        *ftp;
+//    MYFLT       amp, *ar, *cpsp, *ftbl;
+//    MYFLT       inc, phs;
+//    int nsmps = ksmps;
+//    int flen;
+//
+//    ftp = p->ftp;
+//    if (ftp==NULL) {
+//      return perferror(Str(X_1106,"oscil: not initialised"));
+//    }
+//    flen = ftp->flen;
+//    ftbl = ftp->ftable;
+//    phs = p->lphs;
+//    inc = (*p->xcps * flen) * onedsr;
+//    amp = *p->xamp;
+//    cpsp = p->xcps;
+//    ar = p->sr;
+//    do {
+//      MYFLT inc = (*cpsp++ *flen * onedsr);
+//      *ar++ = *(ftbl + (int)(phs)) * amp;
+//      phs += inc;
+//      if (phs>flen) phs -= flen;
+//    } while (--nsmps);
+//    p->lphs = phs;
+//    return OK;
+//}
+//
+//int Foscaa(XOSC *p)
+//{
+//    FUNC        *ftp;
+//    MYFLT       *ampp, *ar, *ftbl;
+//    MYFLT       phs;
+//    int nsmps = ksmps;
+//    int flen;
+//
+//    ftp = p->ftp;
+//    if (ftp==NULL) {
+//      return perferror(Str(X_1106,"oscil: not initialised"));
+//    }
+//    flen = ftp->flen;
+//    ftbl = ftp->ftable;
+//    phs = p->lphs;
+//    ampp = p->xamp;
+//    ar = p->sr;
+//    do {
+//      MYFLT inc = (*p->xcps++ * flen) * onedsr;
+//      *ar++ = *(ftbl + (int)(phs)) * *ampp++;
+//      phs += inc;
+//      if (phs>flen) phs -= flen;
+//    } while (--nsmps);
+//    p->lphs = phs;
+//    return OK;
+//}
 
 #endif
