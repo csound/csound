@@ -380,27 +380,27 @@ void ADSR_setAttackTime(ENVIRON *csound, ADSR *a, MYFLT aTime)
 {
     if (aTime < 0.0) {
       csound->Printf(csound->getstring_(X_1819,"negative times not allowed!!, correcting\n"));
-      a->attackRate = csound->onedsr_ *(-aTime);
+      a->attackRate = 1.0f /(-aTime*csound->esr_);
     }
-    else a->attackRate = csound->onedsr_ *aTime;
+    else a->attackRate = 1.0f / (aTime*csound->esr_);
 }
 
 void ADSR_setDecayTime(ENVIRON *csound, ADSR *a, MYFLT aTime)
 {
     if (aTime < 0.0) {
       csound->Printf(csound->getstring_(X_1819,"negative times not allowed!!, correcting\n"));
-      a->decayRate = csound->onedsr_ *(-aTime);
+      a->decayRate = 1.0f /(-aTime*csound->esr_);
     }
-    else a->decayRate = csound->onedsr_ *aTime;
+    else a->decayRate = 1.0f / (aTime*csound->esr_);
 }
 
 void ADSR_setReleaseTime(ENVIRON *csound, ADSR *a, MYFLT aTime)
 {
     if (aTime < 0.0) {
       csound->Printf(csound->getstring_(X_1819,"negative times not allowed!!, correcting\n"));
-      a->releaseRate = csound->onedsr_ *(-aTime);
+     a->releaseRate = 1.0f /(-aTime*csound->esr_);
     }
-    else a->releaseRate = csound->onedsr_ *aTime;
+    else a->releaseRate = 1.0f / (aTime*csound->esr_);
 }
 
 void ADSR_setAllTimes(ENVIRON *csound, ADSR *a, MYFLT attTime, MYFLT decTime,
