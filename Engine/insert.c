@@ -540,6 +540,16 @@ void orcompact(void)                    /* free all inactive instr spaces */
               if (off->dopadr) (*off->dopadr)(off);
               off = off->nxtp;
             }
+            
+            /* SYY - 2003.11.30
+             * call deinitialization on i-time opcodes
+             */
+            off = ip->nxti;
+            while (off != NULL) {
+            	if(off->dopadr) (*off->dopadr)(off);
+            	off = off->nxti;	
+            }
+            
             if (ip->opcod_iobufs && ip->insno > maxinsno)
               mfree(ip->opcod_iobufs);                  /* IV - Nov 10 2002 */
             if (ip->fdch.nxtchp != NULL)
