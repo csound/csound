@@ -162,8 +162,19 @@ int    ftsave_k_set(void*), ftload_k(void*);
                 7 =     1  AND (2  OR   4)                      */
 
 /* inarg types include the following:
+
+                i	irate scalar
+                k	krate scalar
+                a       arate vector
+                f       fregency variable
+                w       spectral variable
+                x       krate scalar or arate vector
+                S       String or irate
+                B       Boolean
+                l       Label
+     and codes
                 m       begins an indef list of iargs (any count)
-                M       begins an indef list of args (any count and rate)   IV - Sep 1 2002
+                M       begins an indef list of args (any count/rate) IV -2002/9/1
                 n       begins an indef list of iargs (nargs odd)
                 o       optional, defaulting to 0
                 p          "            "       1
