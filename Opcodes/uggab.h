@@ -217,4 +217,4 @@ typedef struct {
         MYFLT   num0, num1, num2, df0, df1,c3, c2;
 } RANDOM3;
 
-#endif // UGGAB_H
+#endif /* UGGAB_H */
