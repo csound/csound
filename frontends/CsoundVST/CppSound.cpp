@@ -413,6 +413,11 @@ void CppSound::scoreEvent(char opcode, std::vector<MYFLT> &pfields)
     csoundScoreEvent(csound, opcode, &pfields.front(), pfields.size());
 }
 
+CsoundFile *CppSound::getThisCsoundFile()
+{
+  return (CsoundFile *)this;
+}
+
 
 /**
 * Glue for incomplete Csound API.

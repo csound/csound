@@ -24,8 +24,8 @@
 #include "CsoundVstFltk.hpp"
 #include "System.hpp"
 
-const MYFLT CsoundVST::inputScale = (float) 32767.0;
-const MYFLT CsoundVST::outputScale = (float) (1.0 / 32767.0);
+double CsoundVST::inputScale = 32767.0;
+double CsoundVST::outputScale = (1.0 / 32767.0);
 std::list<VstMidiEvent> CsoundVST::midiEventQueue;
 
 CsoundVST::CsoundVST(audioMasterCallback audioMaster) : 

@@ -20,25 +20,32 @@
 * License along with this software; if not, write to the Free Software
 * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-#if defined(SWIGPYTHON)
+#if defined(SWIGJAVA)
 
-%module(directors="1") CsoundVST
+%module CsoundVST
 %{
 	#include "Silence.hpp"
+	#include "CsoundVST.hpp"
 %}
 %apply int { size_t };
-%feature("director") Node;
 %include "Silence.hpp"
 
-%pythoncode
-%{
-# Create one global instance of CppSound for CsoundVST to grab.
-# Create it in the main module, so that scripts for CsoundVST 
-# will also work in a standalone Python interpreter.
-import sys
-sys.modules["__main__"].csound = CppSound()
-sys.modules["__main__"].csound.thisown = 0
-sys.modules["__main__"].csound.setPythonMessageCallback()
+%pragma(java) jniclasscode=%{
+  static {
+    try {
+        System.loadLibrary("_CsoundVST");
+    } catch (UnsatisfiedLinkError e) {
+      System.err.println("_CsoundVST Native code library failed to load.\n" + e);
+      System.exit(1);
+    }
+  }
+%}
+
+%inline %{
+
+class JCsound : public CsoundVST {
+};
+
 %}
 
 #endif
