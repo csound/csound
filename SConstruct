@@ -366,12 +366,10 @@ if (commonEnvironment['useFLTK'] and fltkFound):
             ustubProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
             vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
             guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
-	    print "setup FLTK"
             commonEnvironment.Append(LINKFLAGS = ['-framework', 'Carbon'])
 
 ##### -framework ApplicationServices'))
 
-                    
 if getPlatform() == 'mingw':
     # These are the Windows system call libraries.
     csoundProgramEnvironment.Append(LIBS = ['kernel32'])
