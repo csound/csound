@@ -995,6 +995,31 @@ static long csoundNumExits_ = -1;
     csound->oparms_->odebug = debug;
   }
 
+  PUBLIC int csoundTableLength(void *csound_, int table)
+  {
+    ENVIRON *csound = (ENVIRON *)csound_;
+    FUNC *ftp = csound->ftfind_(table);
+    if(ftp) {
+        return ftp->flen;
+    } else {
+        return -1;
+    }   
+  }
+        
+  MYFLT csoundTableGet(void *csound_, int table, int index)
+  {
+    ENVIRON *csound = (ENVIRON *)csound_;
+    FUNC *ftp = csound->ftfind_(table);
+    return ftp->ftable[index];
+  }
+  
+  PUBLIC void csoundTableSet(void *csound_, int table, int index, MYFLT value)
+  {
+    ENVIRON *csound = (ENVIRON *)csound_;
+    FUNC *ftp = csound->ftfind_(table);
+    ftp->ftable[index] = value;
+  }
+
 #ifdef INGALLS
   /*
    * Returns a non-zero to the host,

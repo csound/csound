@@ -385,6 +385,22 @@ void CppSound::setPythonMessageCallback()
     csoundSetMessageCallback(csound, pythonMessageCallback);
 }
 
+int CppSound::tableLength(int table)
+{
+    return csoundTableLength(csound, table);
+}
+
+MYFLT CppSound::tableGet(int table, int index)
+{
+    return csoundTableGet(csound, table, index);
+}
+
+void CppSound::tableSet(int table, int index, MYFLT value)
+{
+    csoundTableSet(csound, table, index, value);
+}
+
+
 /**
 * Glue for incomplete Csound API.
 */
