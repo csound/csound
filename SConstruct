@@ -298,8 +298,8 @@ def buildzip(env, target, source):
     os.chdir('..')
     directories = string.split("csound5")
 
-    extensions = ".sln .csproj .vsproj .dev .def .am .sh .ac .in .dll .so .exe "
-    extensions = extensions + ".doc .mso .png .xml .mso .gif .jpg .jpeg .hlp .nb .wks .xls "
+    extensions = ".def .sh .dll .so .exe "
+    extensions = extensions + ".doc .mso .png .xml .gif .jpg .jpeg .nb .wks .xls "
     extensions = extensions + ".c .C .cpp .cxx .h .hpp .H .hxx .py .rc .res .fl .i .java .class "
     extensions = extensions + ".sf2 .SF2 .csd .aif .aiff .jar .smf .mid"
     extensions = string.split(extensions)
@@ -949,7 +949,7 @@ else:
         print 'CONFIGURATION DECISION: Building Java wrappers for CsoundVST.'
         csoundVstJavaWrapper = vstEnvironment.SharedObject('frontends/CsoundVST/JCsoundVST.i', SWIGFLAGS = [swigflags,'-java', '-package', 'CsoundVST'])
         csoundVstSources.append(csoundVstJavaWrapper)
-        jcsound = vstEnvironment.Java(target = 'frontends/CsoundVST/classes', source = '.')
+        jcsound = vstEnvironment.Java(target = 'frontends/CsoundVST/classes', source = '.', JAVACFLAGS = Split('''-source 1.4 -target 1.4'''))
         zipDependencies.append(jcsound)
     	jcsoundJar = vstEnvironment.Jar('CsoundVST.jar', 'frontends/CsoundVST/classes', JARCHDIR = 'frontends/CsoundVST/classes')
     else:
