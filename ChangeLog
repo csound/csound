@@ -1,3 +1,34 @@
+2005-02-05	Istvan Varga	<istvan@csounds.com>
+	* Engine/insert.c:
+	  Reworked kperf() so that it always performs one k-period, and
+	  does not check for real-time events (that is now done by
+	  sensevents()).
+	  beatexpire() and timexpire() take double argument instead of
+	  MYFLT.
+	* Engine/musmon.c:
+	  Call orcompact() in cleanup().
+	  Set real-time audio buffer sizes to more usable defaults.
+	  Replaced sensevents() with new version that always senses
+	  events for one k-period, and also handles real-time events;
+	  this new implementation of sensevents is also not as prone
+	  to drop notes as the original, but may still need some
+	  tweaking.
+	  playevents now simply calls sensevents() and kperf() in
+	  a loop, to eliminate redundant code.
+	  Misc. changes related to new kperf/sensevents.
+	* H/csound.h:
+	* Top/csound.c:
+	* Top/main.c:
+	  Fixes to re-entrancy bugs reported by Michael Gogins.
+	  New API function: int csoundPreCompile(void *csound),
+	  is optionally called before csoundCompile
+	* H/prototyp.h:
+	* InOut/FL_graph.cpp:
+	  Changed kperf prototype to 'void kperf(ENVIRON *csound)'.
+	  Global variable 'kcnt' has been removed.
+	* InOut/rtpa.c:
+	  Fixed bug in module selection (incorrect use of strcmp).
+
 2005-02-03	Istvan Varga	<istvan@csounds.com>
 	* SConstruct:
 	  Fixed (hopefully) the PortMIDI compile error.
