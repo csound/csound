@@ -1757,7 +1757,7 @@ int chunk_read(FILE *fil, CHUNK *chunk)
     ChangeByteOrder("d", (char *)&chunk->ckSize, 4);
     chunk->ckDATA = (BYTE *) malloc( chunk->ckSize);
 #ifdef BETA
-    printf("read chunk (%.4s) length %d\n", &chunk->ckID, chunk->ckSize);
+    printf("read chunk (%.4s) length %ld\n", (char*)&chunk->ckID, chunk->ckSize);
 #endif
     return fread(chunk->ckDATA,1,chunk->ckSize,fil);
 }
@@ -1790,7 +1790,7 @@ void fill_SfPointers(ENVIRON *csound)
     for  (j=4; j< main_chunk->ckSize;) {
       chkid = /* (DWORD *) chkp*/ dword(chkp);
 #ifdef BETA
-      printf("Looking at %.4s\n", &chkid);
+      printf("Looking at %.4s\n", (char*)&chkid);
 #endif
       if (chkid == s2d("LIST")) {
 #ifdef BETA
@@ -1800,13 +1800,13 @@ void fill_SfPointers(ENVIRON *csound)
         ChangeByteOrder("d", chkp, 4);
         size = /* (DWORD *) chkp */ dword(chkp);
 #ifdef BETA
-        printf("**size %d %d\n", size, *((DWORD *) chkp));
+        printf("**size %ld %ld\n", size, *((DWORD *) chkp));
 #endif
         j += 4; chkp += 4;
         chkid = /* (DWORD *) chkp */ dword(chkp);
 #ifdef BETA
-        printf("**chkid %p %p\n", chkid, *((DWORD *) chkp));
-        printf(":Looking at %.4s (%d)\n", &chkid, size);
+        printf("**chkid %p %p\n", (void*)chkid, (void*)(*((DWORD *) chkp)));
+        printf(":Looking at %.4s (%ld)\n", (char*)&chkid, size);
 #endif
         if (chkid == s2d("INFO")) {
 #ifdef BETA
@@ -1823,7 +1823,7 @@ void fill_SfPointers(ENVIRON *csound)
           smplChunk = (CHUNK *) chkp;
           soundFont->sampleData = (SHORT *) &smplChunk->ckDATA;
 #ifdef BETA
-          printf("Change %d and then %d times w\n", *(chkp + 4), size - 12);
+          printf("Change %d and then %ld times w\n", *(chkp + 4), size - 12);
 #endif
           ChangeByteOrder("d", chkp + 4, 4);
           ChangeByteOrder("w", chkp + 8, size - 12);
@@ -1946,7 +1946,7 @@ void fill_SfPointers(ENVIRON *csound)
             }
             else {
 #ifdef BETA
-              printf("Unknown sfont %.4s(%.8x)\n", &chkid, chkid);
+              printf("Unknown sfont %.4s(%.8lx)\n", (char*)&chkid, chkid);
 #endif
               shdrChunk = (CHUNK *) chkp;
               chkp += shdrChunk->ckSize+8;
@@ -1956,7 +1956,7 @@ void fill_SfPointers(ENVIRON *csound)
         }
         else {
 #ifdef BETA
-          printf("Unknown sfont %.4s(%.8x)\n", &chkid, chkid);
+          printf("Unknown sfont %.4s(%.8lx)\n", (char*)&chkid, chkid);
 #endif
           shdrChunk = (CHUNK *) chkp;
           chkp += shdrChunk->ckSize+8;
@@ -1965,7 +1965,7 @@ void fill_SfPointers(ENVIRON *csound)
       }
       else {
 #ifdef BETA
-        printf("Unknown sfont %.4s(%.8x)\n", &chkid, chkid);
+        printf("Unknown sfont %.4s(%.8lx)\n", (char*)&chkid, chkid);
 #endif
         shdrChunk = (CHUNK *) chkp;
         chkp += shdrChunk->ckSize+8;

@@ -74,6 +74,7 @@ static int infoTick(MANDOL *p)
 int mandolinset(MANDOL *p)
 {
     FUNC        *ftp;
+    ENVIRON *csound = p->h.insdshead->csound;
 
     if ((ftp = ftfind(p->ifn)) != NULL) p->soundfile = ftp;
     else {
@@ -93,9 +94,9 @@ int mandolinset(MANDOL *p)
       p->lastFreq = FL(50.0);
 /*     p->baseLoopGain = 0.995; */
 /*     p->loopGain = 0.999; */
-      make_DLineA(&p->delayLine1, p->length);
-      make_DLineA(&p->delayLine2, p->length);
-      make_DLineL(&p->combDelay, p->length);
+      make_DLineA(csound,&p->delayLine1, p->length);
+      make_DLineA(csound,&p->delayLine2, p->length);
+      make_DLineL(csound,&p->combDelay, p->length);
       make_OneZero(&p->filter1);
       make_OneZero(&p->filter2);
       p->lastLength = p->length * FL(0.5);
@@ -131,6 +132,7 @@ int mandolin(MANDOL *p)
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT lastOutput;
     MYFLT loopGain;
+    ENVIRON *csound = p->h.insdshead->csound;
 
     loopGain = *p->baseLoopGain + (p->lastFreq * FL(0.000005));
     if (loopGain>FL(1.0)) loopGain = FL(0.99999);
@@ -140,8 +142,8 @@ int mandolin(MANDOL *p)
     if (p->lastFreq != *p->frequency) {
       p->lastFreq = *p->frequency;
       p->lastLength = ( esr / p->lastFreq);        /* length - delays */
-      DLineA_setDelay(&p->delayLine1, (p->lastLength / *p->detuning) - FL(0.5));
-      DLineA_setDelay(&p->delayLine2, (p->lastLength * *p->detuning) - FL(0.5));
+      DLineA_setDelay(csound,&p->delayLine1, (p->lastLength / *p->detuning) - FL(0.5));
+      DLineA_setDelay(csound,&p->delayLine2, (p->lastLength * *p->detuning) - FL(0.5));
     }
 
     if ((--p->kloop) == 0) {
