@@ -177,17 +177,16 @@ void CsoundVST::closeView()
   editor->close();
 }
 
-void CsoundVST::midiDeviceOpen(void *csound)
+int CsoundVST::midiDeviceOpen(void *csound, void **userData,
+                               const char *devName)
 {
+  return 0;
 }
 
 void CsoundVST::performanceThreadRoutine()
 {
   getCppSound()->stop();
   getCppSound()->reset();
-  getCppSound()->setExternalMidiEnabled(false);
-  getCppSound()->setExternalMidiDeviceOpenCallback(0);
-  getCppSound()->setExternalMidiReadCallback(0);
   csoundSetMessageCallback(getCppSound()->getCsound(), &csound::System::message);
   if(getIsPython())
     {
@@ -197,8 +196,7 @@ void CsoundVST::performanceThreadRoutine()
       if(getIsVst())
 	{
 	  csound::System::inform("Python VST performance.\n");
-	  getCppSound()->setExternalMidiEnabled(true);
-	  getCppSound()->setExternalMidiDeviceOpenCallback(&CsoundVST::midiDeviceOpen);
+	  getCppSound()->setExternalMidiInOpenCallback(&CsoundVST::midiDeviceOpen);
 	  getCppSound()->setExternalMidiReadCallback(&CsoundVST::midiRead);
 	}
       runScript();
@@ -211,8 +209,7 @@ void CsoundVST::performanceThreadRoutine()
       if(getIsVst())
 	{
 	  csound::System::inform("Classic VST performance.\n");
-	  getCppSound()->setExternalMidiEnabled(true);
-	  getCppSound()->setExternalMidiDeviceOpenCallback(&CsoundVST::midiDeviceOpen);
+	  getCppSound()->setExternalMidiInOpenCallback(&CsoundVST::midiDeviceOpen);
 	  getCppSound()->setExternalMidiReadCallback(&CsoundVST::midiRead);
 	  if(getCppSound()->compile())
 	    {
@@ -386,7 +383,8 @@ long CsoundVST::processEvents(VstEvents *vstEvents)
     }
 }
 
-int CsoundVST::midiRead(void * csound, unsigned char *mbuf, int size)
+int CsoundVST::midiRead(void *csound, void *userData,
+                             unsigned char *midiData, int nbytes)
 {
   if(CsoundVST::midiEventQueue.empty())
     {
@@ -394,7 +392,7 @@ int CsoundVST::midiRead(void * csound, unsigned char *mbuf, int size)
     }
   else
     {
-      MIDIMESSAGE *midiMessage = (MIDIMESSAGE *)mbuf;
+      MIDIMESSAGE *midiMessage = (MIDIMESSAGE *)midiData;
       const VstMidiEvent &event = CsoundVST::midiEventQueue.front();
       midiMessage->bData[0] = event.midiData[0];
       midiMessage->bData[1] = event.midiData[1];
