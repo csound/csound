@@ -6,6 +6,13 @@
 
 int main(int argc, char **argv)
 {
+	
+    /* set stdout to non buffering if not outputing to console window */
+    if(!isatty(fileno(stdout)))
+    {
+        setvbuf(stdout, (char *)NULL, _IONBF, 0);
+    }    	
+	
     /*	Create Csound. */
     void *csound = csoundCreate(0);
     /*	One complete performance cycle. */
