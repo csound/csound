@@ -47,9 +47,11 @@ rescale.addChild(random)
 model.addChild(rescale)
 model.setTonesPerOctave(12.0)
 
-csound.load("c:/projects/csound5/examples/CsoundVST.csd")
-csound.setCommand("csound --opcode-lib=c:/projects/csound5/fluid.dll -RWdfo ./StrangeAttractor.wav ./StrangeAttractor.orc ./StrangeAttractor.sco")
+csound.load("/home/mkg/csound5/examples/CsoundVST.csd")
+csound.setCommand("csound -RWdfo ./StrangeAttractor.wav ./StrangeAttractor.orc ./StrangeAttractor.sco")
 model.render()
+
+
 
 
 

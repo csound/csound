@@ -27,9 +27,9 @@
 #ifdef _WIN32
 #       pragma warning(disable: 4117 4804)
 #endif
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
 
 #if defined(WIN32)
 #       include <process.h>
@@ -74,6 +74,7 @@
 #include <string>
 #include <fstream>
 #include <strstream>
+#include <cstdlib>
 
 using namespace std ;
 
@@ -149,40 +150,7 @@ FLkeyboard_init(void)
 #if defined(__cplusplus)
 extern "C" {
 #endif /* defined(__cplusplus) */
-
-#if !defined(HAVE_ITOA)
-
-#include <stdlib.h>
-
-static char *           /* IV - Sep 8 2002 */
-itoa(int value, char *buffer, int radix)
-{
-    const char *r10 = "%d";
-    const char *r16 = "%x";
-    const char *default_radix_fmt = "unknown radix value";
-    char *radix_fmt = (char *) NULL;
-    char *result = buffer != (char *) NULL ? buffer :
-      ((char *) malloc(256));
-
-    switch(radix) {
-    case 10:
-      radix_fmt = (char *) r10;
-      break;
-    case 16:
-      radix_fmt = (char *) r16;
-      break;
-    default:
-      radix_fmt = (char *) default_radix_fmt;
-      break;
-    };
-
-    sprintf(result, radix_fmt, value);
-
-    return result;
-}
-
-#endif /* !defined(HAVE_ITOA) */
-
+ 
 static void infoff(MYFLT p1)           /*  turn off an indef copy of instr p1  */
 {                               /*      called by musmon                */
     INSDS *ip;
@@ -2813,8 +2781,9 @@ extern "C" void fl_slider_bank(FLSLIDERBANK *p)
     for (int j =0; j< *p->inumsliders; j++) {
       string stemp;
       if (tempname == " ") {
-        char s[10];
-        stemp = itoa(j,s,10);
+        char s[40];
+	sprintf(s, "%d", j);
+	stemp = s;
       }
       else
         getline(sbuf, stemp, '@');
@@ -3252,7 +3221,8 @@ extern "C" int fl_button_bank(FLBUTTONBANK *p)
         Fl_Button *w;
         char    *btName=  new char[30];
         allocatedStrings.push_back(btName);
-        itoa( z, btName, 10); z++;
+	sprintf(btName, "%d", z);
+        z++;
         switch (type) {
         case 1: w= new Fl_Button(x, y, 10, 10, btName); break;
         case 2: w= new Fl_Light_Button(x, y, 10, 10, btName); break;
