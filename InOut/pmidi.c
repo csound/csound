@@ -56,7 +56,7 @@ extern void xturnon(int, long);
 extern void xturnoff(INSDS*);
 extern void insxtroff(short);
 
-PortMidiStream* midistream;
+PortMidiStream* midistream = 0;
 static int not_started = 1;
 
 void OpenMIDIDevice(ENVIRON *csound)
@@ -653,6 +653,9 @@ void MidiClose(ENVIRON *csound)
     csoundExternalMidiDeviceClose(csound);
   }
   else {
-    Pm_Close(midistream);
+    if(midistream) {
+      Pm_Close(midistream);
+      midistream = 0;
+    }
   }
 }
