@@ -28,8 +28,9 @@ extern "C" {
     02111-1307 USA
 */
 
+#if defined(HAVE_CONFIG_H)
 #include "config.h"
-
+#endif
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -38,6 +39,9 @@ extern "C" {
 # include <string.h>
 #elif HAVE_STRINGS_H
 # include <strings.h>
+#endif
+#ifdef HAVE_IO_H
+#include <io.h>
 #endif
 #include "sysdep.h"
 #include "cwindow.h"
@@ -130,7 +134,7 @@ typedef struct {
         int     sfread, sfwrite, sfheader, filetyp;
         int     inbufsamps, outbufsamps;
         int     informat, outformat;
-        int     insampsiz, outsampsiz;
+        int     insampsiz, sfsampsize;
         int     displays, graphsoff, postscript, msglevel;
         int     Beatmode, cmdTempo, oMaxLag;
         int     usingcscore, Linein, Midiin, FMidiin;
@@ -523,6 +527,7 @@ typedef struct ENVIRON_
   void (*RewindScore)(void *csound);
   void (*Message)(void *csound, const char *format, ...);
   void (*MessageV)(void *csound, const char *format, va_list args);
+  void (*Printf)(const char *format, ...);
   void (*ThrowMessage)(void *csound, const char *format, ...);
   void (*ThrowMessageV)(void *csound, const char *format, va_list args);
   void (*SetMessageCallback)(void *csound,
@@ -761,8 +766,7 @@ typedef struct ENVIRON_
 #include "prototyp.h"
 extern void err_printf(char *, ...);
 #ifdef USE_FLTK
-#define printf csoundMessage0
-extern void csoundMessage0(const char *, ...);
+extern void csoundPrintf(const char *, ...);
 #endif /* POLL_EVENTS */
 
 #ifdef WIN32

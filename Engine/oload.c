@@ -65,6 +65,7 @@ void csoundSetScoreOffsetSeconds(void *, MYFLT);
 void csoundRewindScore(void *);
 void csoundMessage(void *, const char *, ...);
 void csoundMessageV(void *, const char *, va_list);
+void csoundPrintf(const char *format, ...);
 void csoundThrowMessage(void *, const char *, ...);
 void csoundThrowMessageV(void *, const char *, va_list);
 void csoundSetMessageCallback(void *, void (*)(void *, const char *, va_list));
@@ -130,7 +131,7 @@ OPARMS  O_ = {0,0,          /* odebug, initonly */
               0,1,1,0,      /* sfread, sfwrite, sfheader, filetyp */
               0,0,          /* inbufsamps, outbufsamps */
               0,0,          /* informat, outformat */
-              0,0,          /* insampsiz, outsampsiz */
+              0,0,          /* insampsiz, sfsampsize */
               1,0,0,7,      /* displays, graphsoff, postscript, msglevel */
               0,0,0,        /* Beatmode, cmdTempo, oMaxLag */
               0,0,0,0,      /* usingcscore, Linein, Midiin, FMidiin */
@@ -174,6 +175,7 @@ ENVIRON cenviron_ = {
         csoundRewindScore,
         csoundMessage,
         csoundMessageV,
+        csoundPrintf,
         csoundThrowMessage,
         csoundThrowMessageV,
         csoundSetMessageCallback,

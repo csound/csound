@@ -26,8 +26,13 @@
 #  include <stdio.h>
 #endif
 
+#if defined(HAVE_CONFIG_H)
 #include "config.h"
+#endif
 
+#if defined(HAVE_STRING_H)
+#include <string.h>
+#endif
                                 /* Experiment with doubles or floats */
 #ifndef __FL_DEF
 #ifndef USE_DOUBLE

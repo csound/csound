@@ -28,6 +28,7 @@
 
 #include "cs.h"
 #include <math.h>
+#include <stdarg.h>
 
 OPARMS O, O_;                          
 ENVIRON cenviron, cenviron_;           
@@ -257,14 +258,39 @@ MYFLT ino(MYFLT x)
 }
 
 #ifdef WINDOWS
-int  Graphable(void){Graphable_();}
-void MakeGraph(WINDAT *x, char *y){MakeGraph_(x,y);}
-void MakeXYin(XYINDAT *x, MYFLT y, MYFLT z){MakeXYin_(x,y,z);}
-void DrawGraph(WINDAT *x){DrawGraph_(x);}
-void ReadXYin(XYINDAT *x){ReadXYin_(x);}
-void KillGraph(WINDAT *x){KillGraph_(x);}
-void KillXYin(XYINDAT *x){KillXYin_(x);}
-int  ExitGraph(void){ExitGraph_();}
+int  Graphable(void)
+{
+    return 0;
+}
+
+void MakeGraph(WINDAT *x, char *y)
+{
+}
+
+void MakeXYin(XYINDAT *x, MYFLT y, MYFLT z)
+{
+}
+
+void DrawGraph(WINDAT *x)
+{
+}
+
+void ReadXYin(XYINDAT *x)
+{
+}
+
+void KillGraph(WINDAT *x)
+{
+}
+
+void KillXYin(XYINDAT *x)
+{
+}
+
+int  ExitGraph(void)
+{
+    return 0;
+}
 #endif
 
 int csoundYield(void* csound)
@@ -273,7 +299,6 @@ int csoundYield(void* csound)
 }
 
 #ifndef CWIN
-#include <stdarg.h>
 
 void err_printf(char *fmt, ...)
 {
@@ -284,7 +309,7 @@ void err_printf(char *fmt, ...)
 }
 #endif
 
-void csoundMessage0(const char *format, ...)
+void csoundPrintf(const char *format, ...)
 {
     va_list args;
     va_start(args, format);
@@ -351,10 +376,10 @@ float MOD(float a, float bb)
 int writebuffer(MYFLT * obuf, int length)
 {
     spoutran(obuf, length);
-    audtran(outbuf, O.outsampsiz*length);
-    write(outfd, outbuf, O.outsampsiz*length);
+    audtran(outbuf, O.sfsampsize*length);
+    write(outfd, outbuf, O.sfsampsize*length);
     block++;
-    bytes += O.outsampsiz*length;
+    bytes += O.sfsampsize*length;
     if (O.rewrt_hdr) {
       rewriteheader(outfd, bytes);
       lseek(outfd, 0L, SEEK_END); /* Place at end again */
@@ -387,5 +412,10 @@ void beep(void)
 #else
     printf(Str(X_28,"%c\tbeep!\n"),'\007');
 #endif
+}
+
+int POLL_EVENTS()
+{
+	return 1;
 }
 

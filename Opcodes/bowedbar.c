@@ -108,7 +108,7 @@ static void make_DLineN(ENVIRON *csound, DLINEN *p, long length)
 static void DLineN_setDelay(ENVIRON *csound, DLINEN *p, int lag)
 {
     if (lag > p->length-1) {                   /* if delay is too big, */
-      printf(csound->getstring_(X_1769,
+      csound->Printf(csound->getstring_(X_1769,
                  "DLineN: Delay length too big ... setting to "
                  "maximum length of %ld.\n"),
              p->length-1);

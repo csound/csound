@@ -92,7 +92,7 @@ extern ENVIRON cenviron;
                         if (!(--argc) || (((s = *argv++) != NULL) && *s == '-')) \
                             dieu(MSG);
 
-static void dnoise_usage(int);
+void dnoise_usage(int);
 void fast(MYFLT*, int);
 void hamming(MYFLT *, int, int);
 void fsst(MYFLT *, int);
@@ -466,7 +466,7 @@ int dnoise(int argc, char **argv)
       exit(1);
     }
     if (O.outformat == 0) O.outformat = p->format;
-    O.outsampsiz = sfsampsize(O.outformat);
+    O.sfsampsize = sfsampsize(O.outformat);
     if (O.filetyp == TYP_AIFF) {
         if (!O.sfheader)
             die(Str(X_640,"cannot write AIFF soundfile with no header"));
@@ -607,7 +607,7 @@ int dnoise(int argc, char **argv)
 
     ibuflen = Chans * (M + 3 * D);
     obuflen = Chans * (L + 3 * I);
-    outbufsiz = obuflen * O.outsampsiz;/* calc outbuf size */
+    outbufsiz = obuflen * O.sfsampsize;/* calc outbuf size */
     outbuf = mmalloc((long)outbufsiz);                 /*  & alloc bufspace */
     printf(Str(X_1382,"writing %d-byte blks of %s to %s"),
            outbufsiz, getstrformat(O.outformat), O.outfilename);
@@ -1176,7 +1176,7 @@ int dnoise(int argc, char **argv)
     return 0;
 }
 
-static void dnoise_usage(int exitcode)
+void dnoise_usage(int exitcode)
 {
     err_printf(
             "usage: dnoise [flags] input_file\n"
@@ -1207,10 +1207,10 @@ static void dnoise_usage(int exitcode)
 int writebuffer(MYFLT * obuf, int length)
 {
     spoutran(obuf, length);
-    audtran(outbuf, O.outsampsiz*length);
-    write(outfd, outbuf, O.outsampsiz*length);
+    audtran(outbuf, O.sfsampsize*length);
+    write(outfd, outbuf, O.sfsampsize*length);
     block++;
-    bytes += O.outsampsiz*length;
+    bytes += O.sfsampsize*length;
     if (O.rewrt_hdr) {
       rewriteheader(outfd, bytes);
       lseek(outfd, 0L, SEEK_END); /* Place at end again */

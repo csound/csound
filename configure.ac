@@ -46,8 +46,6 @@ AM_PROG_CC_STDC
 
 # Checks for libraries.
 
-LDFLAGS="$LDFLAGS -L/usr/local/lib"
-
 AC_CHECK_LIB([dl], [dlsym])
 # AC_CHECK_LIB([midi], [midi_set_owner])
 AC_CHECK_LIB([pthread], [pthread_create])
@@ -148,7 +146,7 @@ AC_ARG_ENABLE(csoundvst,
 
 #	Compiler options used for all compilation.
 
-CPPFLAGS="$CPPFLAGS -DBETA -I$srcdir/H -I/usr/local/include -I/usr/local/boost -I/usr/include/Python2.3"
+CPPFLAGS="$CPPFLAGS -DBETA -I$srcdir/H"
 
 if test "x$GCC" = xyes; then
   case `$CC -dumpversion 2>/dev/null` in
@@ -159,7 +157,6 @@ if test "x$GCC" = xyes; then
   esac
 fi
 
-SOUNDFILE_LDFLAGS="-L/usr/local/lib"
 SOUNDFILE_LIBS="-lsndfile"
 
 #	Now we adapt compiler options to the platform.
@@ -180,7 +177,7 @@ case $host in
 	    AC_DEFINE([WIN32], 1, [Build for Win32 platform])
 	    CFLAGS="$CFLAGS -D_WIN32"
 	    CXXFLAGS="$CXXFLAGS -D_WIN32"
-        AUDIO_LDFLAGS="-mconsole -L/usr/local/lib"
+        AUDIO_LDFLAGS="-mconsole"
         AUDIO_LIBS="-lportaudio"
 	    ;;
     *linux*)

@@ -20,12 +20,12 @@
 * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 #pragma warning(disable: 4786)
+#include "CsoundFile.hpp"
 #include <ctime>
 #include <algorithm>
 #include <sstream>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include "CsoundFile.hpp"
 #include <cs.h>
 #include <oload.h>
 

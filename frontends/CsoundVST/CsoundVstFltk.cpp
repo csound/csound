@@ -23,13 +23,13 @@
 #include "config.h"
 #endif
 
-#include "CsoundVstFltk.hpp"
-#include "CsoundVST.hpp"
-#include "System.hpp"
 #include <FL/Fl_File_Chooser.H>
 #include <FL/x.H>
 #include <Python.h>
 #include <algorithm>
+#include "CsoundVstFltk.hpp"
+#include "CsoundVST.hpp"
+#include "System.hpp"
 
 static std::string about = 
 "CSOUND VST \n"

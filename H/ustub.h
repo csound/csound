@@ -57,5 +57,5 @@ void KillGraph_(WINDAT *);       /* remove a graph window */
 void KillXYin_(XYINDAT *);       /* remove a ms input window */
 int  ExitGraph_(void); /* print click-Exit message in most recently active window */
 void err_printf(char*, ...);
-
+void dnoise_usage(int exitcode);
 

@@ -65,7 +65,7 @@ extern  HEADATA *readheader(int, char *, SOUNDIN*);
 extern	int      SAsndgetset(char *, SOUNDIN**, MYFLT*, MYFLT*, MYFLT*, int);
 extern	long     getsndin(int, MYFLT *, long, SOUNDIN *);
 extern void bytrev2(char *, int), bytrev4(char *, int), rewriteheader(int,long);
-extern int  openout(char *, int), bytrevhost(void), getsizformat(int);
+extern int  openout(char *, int), bytrevhost(void), sfsampsize(int);
 extern void writeheader(int, char *);
 extern char *getstrformat(int);
 
@@ -381,9 +381,7 @@ int main(int argc, char **argv)
         srconv_usage(1);
       }
     }
-#ifdef RWD_DBFS
-            dbfs_init(DFLT_DBFS);
-#endif
+    dbfs_init(DFLT_DBFS);
     if (infile==NULL) {
       printf("No input given\n");
       srconv_usage(1);
@@ -449,7 +447,7 @@ int main(int argc, char **argv)
       esr = Rout;
     }
     if (O.outformat == 0) O.outformat = p->format;
-    O.outsampsiz = getsizformat(O.outformat);
+    O.sfsampsize = sfsampsize(O.outformat);
     if (O.filetyp == TYP_AIFF) {
         if (!O.sfheader)
           die(Str(X_640,"can't write AIFF soundfile with no header"));
@@ -507,7 +505,7 @@ int main(int argc, char **argv)
         else audtran = nullfn;
     }
     else audtran = nullfn;              /* else use standard audio puts */
-    outbufsiz = OBUF * O.outsampsiz;/* calc outbuf size */
+    outbufsiz = OBUF * O.sfsampsize;/* calc outbuf size */
     outbuf = mmalloc((long)outbufsiz);                 /*  & alloc bufspace */
     printf(Str(X_1382,"writing %d-byte blks of %s to %s"),
            outbufsiz, getstrformat(O.outformat), O.outfilename);

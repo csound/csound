@@ -98,7 +98,7 @@ void SoundFontLoad(ENVIRON *csound, char *fname)
 {
     FILE *fil;
     char pathnam[255];
-    printf("\n"
+    csound->Printf("\n"
            "******************************************\n"
            "**  Csound SoundFont2 support ver. 1.2  **\n"
            "**          by Gabriel Maldonado        **\n"
@@ -106,16 +106,9 @@ void SoundFontLoad(ENVIRON *csound, char *fname)
            "** http://web.tiscalinet.it/G-Maldonado **\n"
            "******************************************\n\n");
     if (( fil = fopen(fname,"rb")) == NULL) {
-#ifdef SSOUND
-/**
-* Declaring errno causes a problem with the Csound API library,
-* which is compiled with multi-threaded code generation.
-*/
-#else
 #if defined(WIN32) && !defined(__CYGWIN__)
 	extern volatile int _errno;
 	#define errno _errno
-#endif
 #endif
       char bb[256];
       strcpy(pathnam, fname);  /* in case of error message */
@@ -1756,7 +1749,7 @@ int chunk_read(FILE *fil, CHUNK *chunk)
     ChangeByteOrder("d", (char *)&chunk->ckSize, 4);
     chunk->ckDATA = (BYTE *) malloc( chunk->ckSize);
 #ifdef BETA
-    printf("read chunk (%.4s) length %ld\n", (char*)&chunk->ckID, chunk->ckSize);
+    fprintf(stdout, "read chunk (%.4s) length %ld\n", (char*)&chunk->ckID, chunk->ckSize);
 #endif
     return fread(chunk->ckDATA,1,chunk->ckSize,fil);
 }
@@ -1789,48 +1782,48 @@ void fill_SfPointers(ENVIRON *csound)
     for  (j=4; j< main_chunk->ckSize;) {
       chkid = /* (DWORD *) chkp*/ dword(chkp);
 #ifdef BETA
-      printf("Looking at %.4s\n", (char*)&chkid);
+      csound->Printf("Looking at %.4s\n", (char*)&chkid);
 #endif
       if (chkid == s2d("LIST")) {
 #ifdef BETA
-        printf("LIST ");
+        csound->Printf("LIST ");
 #endif
         j += 4; chkp += 4;
         ChangeByteOrder("d", chkp, 4);
         size = /* (DWORD *) chkp */ dword(chkp);
 #ifdef BETA
-        printf("**size %ld %ld\n", size, *((DWORD *) chkp));
+        csound->Printf("**size %ld %ld\n", size, *((DWORD *) chkp));
 #endif
         j += 4; chkp += 4;
         chkid = /* (DWORD *) chkp */ dword(chkp);
 #ifdef BETA
-        printf("**chkid %p %p\n", (void*)chkid, (void*)(*((DWORD *) chkp)));
-        printf(":Looking at %.4s (%ld)\n", (char*)&chkid, size);
+        csound->Printf("**chkid %p %p\n", (void*)chkid, (void*)(*((DWORD *) chkp)));
+        csound->Printf(":Looking at %.4s (%ld)\n", (char*)&chkid, size);
 #endif
         if (chkid == s2d("INFO")) {
 #ifdef BETA
-          printf("INFO ");
+          csound->Printf("INFO ");
 #endif
           chkp += size;
           j    += size;
         }
         else if (chkid == s2d("sdta")) {
 #ifdef BETA
-          printf("sdta ");
+          csound->Printf("sdta ");
 #endif
           j +=4; chkp += 4;
           smplChunk = (CHUNK *) chkp;
           soundFont->sampleData = (SHORT *) &smplChunk->ckDATA;
 #ifdef BETA
-          printf("Change %d and then %ld times w\n", *(chkp + 4), size - 12);
+          csound->Printf("Change %d and then %ld times w\n", *(chkp + 4), size - 12);
 #endif
           ChangeByteOrder("d", chkp + 4, 4);
           ChangeByteOrder("w", chkp + 8, size - 12);
 #ifdef BETA
           {
             DWORD i;
-            for (i=size-12; i< size+4; i++) printf("%c(%.2x)",chkp[i], chkp[i]);
-            printf("\n");
+            for (i=size-12; i< size+4; i++) csound->Printf("%c(%.2x)",chkp[i], chkp[i]);
+            csound->Printf("\n");
           }
 #endif
           chkp += size-4;
@@ -1838,7 +1831,7 @@ void fill_SfPointers(ENVIRON *csound)
         }
         else if (chkid  ==  s2d("pdta")) {
 #ifdef BETA
-          printf("pdta ");
+          csound->Printf("pdta ");
 #endif
           j += 4; chkp += 4;
           do {
@@ -1846,7 +1839,7 @@ void fill_SfPointers(ENVIRON *csound)
             /*            printf("::Looking at %.4s (%d)\n", &chkid, size); */
             if (chkid == s2d("phdr")) {
 #ifdef BETA
-              printf("phdr ");
+              csound->Printf("phdr ");
 #endif
               phdrChunk = (CHUNK *) chkp;
               soundFont->chunk.phdr= (sfPresetHeader *) &phdrChunk->ckDATA;
@@ -1857,7 +1850,7 @@ void fill_SfPointers(ENVIRON *csound)
             }
             else if (chkid == s2d("pbag")) {
 #ifdef BETA
-              printf("pbag ");
+              csound->Printf("pbag ");
 #endif
               pbagChunk = (CHUNK *) chkp;
               soundFont->chunk.pbag= (sfPresetBag *) &pbagChunk->ckDATA;
@@ -1868,7 +1861,7 @@ void fill_SfPointers(ENVIRON *csound)
             }
             else if (chkid == s2d("pmod")) {
 #ifdef BETA
-              printf("pmod ");
+              csound->Printf("pmod ");
 #endif
               pmodChunk = (CHUNK *) chkp;
               soundFont->chunk.pmod= (sfModList *) &pmodChunk->ckDATA;
@@ -1879,7 +1872,7 @@ void fill_SfPointers(ENVIRON *csound)
             }
             else if (chkid == s2d("pgen")) {
 #ifdef BETA
-              printf("pgen ");
+              csound->Printf("pgen ");
 #endif
               pgenChunk = (CHUNK *) chkp;
               soundFont->chunk.pgen= (sfGenList *) &pgenChunk->ckDATA;
@@ -1890,7 +1883,7 @@ void fill_SfPointers(ENVIRON *csound)
             }
             else if (chkid == s2d("inst")) {
 #ifdef BETA
-              printf("inst ");
+              csound->Printf("inst ");
 #endif
               instChunk = (CHUNK *) chkp;
               soundFont->chunk.inst= (sfInst *) &instChunk->ckDATA;
@@ -1901,7 +1894,7 @@ void fill_SfPointers(ENVIRON *csound)
             }
             else if (chkid == s2d("ibag")) {
 #ifdef BETA
-              printf("ibag ");
+              csound->Printf("ibag ");
 #endif
               ibagChunk = (CHUNK *) chkp;
               soundFont->chunk.ibag= (sfInstBag *) &ibagChunk->ckDATA;
@@ -1912,7 +1905,7 @@ void fill_SfPointers(ENVIRON *csound)
             }
             else if (chkid == s2d("imod")) {
 #ifdef BETA
-              printf("imod ");
+              csound->Printf("imod ");
 #endif
               imodChunk = (CHUNK *) chkp;
               soundFont->chunk.imod= (sfInstModList *) &imodChunk->ckDATA;
@@ -1923,7 +1916,7 @@ void fill_SfPointers(ENVIRON *csound)
             }
             else if (chkid == s2d("igen")) {
 #ifdef BETA
-              printf("igen ");
+              csound->Printf("igen ");
 #endif
               igenChunk = (CHUNK *) chkp;
               soundFont->chunk.igen= (sfInstGenList *) &igenChunk->ckDATA;
@@ -1934,7 +1927,7 @@ void fill_SfPointers(ENVIRON *csound)
             }
             else if (chkid == s2d("shdr")) {
 #ifdef BETA
-              printf("shdr ");
+              csound->Printf("shdr ");
 #endif
               shdrChunk = (CHUNK *) chkp;
               soundFont->chunk.shdr= (sfSample *) &shdrChunk->ckDATA;
@@ -1945,7 +1938,7 @@ void fill_SfPointers(ENVIRON *csound)
             }
             else {
 #ifdef BETA
-              printf("Unknown sfont %.4s(%.8lx)\n", (char*)&chkid, chkid);
+              csound->Printf("Unknown sfont %.4s(%.8lx)\n", (char*)&chkid, chkid);
 #endif
               shdrChunk = (CHUNK *) chkp;
               chkp += shdrChunk->ckSize+8;
@@ -1955,7 +1948,7 @@ void fill_SfPointers(ENVIRON *csound)
         }
         else {
 #ifdef BETA
-          printf("Unknown sfont %.4s(%.8lx)\n", (char*)&chkid, chkid);
+          csound->Printf("Unknown sfont %.4s(%.8lx)\n", (char*)&chkid, chkid);
 #endif
           shdrChunk = (CHUNK *) chkp;
           chkp += shdrChunk->ckSize+8;
@@ -1964,7 +1957,7 @@ void fill_SfPointers(ENVIRON *csound)
       }
       else {
 #ifdef BETA
-        printf("Unknown sfont %.4s(%.8lx)\n", (char*)&chkid, chkid);
+        csound->Printf("Unknown sfont %.4s(%.8lx)\n", (char*)&chkid, chkid);
 #endif
         shdrChunk = (CHUNK *) chkp;
         chkp += shdrChunk->ckSize+8;

@@ -788,6 +788,7 @@ libgrain4_la_LDFLAGS=@PLUGIN_LDFLAGS@
 libgrain4_la_LIBADD=@PLUGIN_LIBADD@
 
 libhrtferX_la_SOURCES=Opcodes/hrtferX.c \
+Top/natben.c
 libhrtferX_la_CPPFLAGS=@PLUGIN_CPPFLAGS@
 libhrtferX_la_CFLAGS=@PLUGIN_CFLAGS@
 libhrtferX_la_LDFLAGS=@PLUGIN_LDFLAGS@ 
@@ -1178,22 +1179,22 @@ frontends/CsoundVST/System.cpp
 if CONDITIONAL_IS_WIN32
 
 _CsoundVST_la_DEPENDENCIES=xmg libcsound.la
-_CsoundVST_la_CPPFLAGS=@LIBCSOUND_CPPFLAGS@ -D_MSC_VER -I/usr/include/python2.3 -Ifrontends/CsoundVST
+_CsoundVST_la_CPPFLAGS=@LIBCSOUND_CPPFLAGS@ -D_MSC_VER -Ifrontends/CsoundVST
 _CsoundVST_la_CFLAGS=@LIBCSOUND_CFLAGS@ -D_MSC_VER
 _CsoundVST_la_CXXFLAGS=@LIBCSOUND_CXXFLAGS@ -D_MSC_VER
 _CsoundVST_la_LIBADD=@LIBCSOUND_LIBADD@
 _CsoundVST_la_LDFLAGS=@LIBCSOUND_LDFLAGS@
 
 _CsoundVST.dll:	libcsound.la	
-	g++ -g -O2 -Wall -L/usr/local/lib -L.libs -L/usr/lib/python2.3/config -o _CsoundVST.dll -Wl,--out-implib,_CsoundVST.dll.a -L/usr/local/lib -shared -module --no-undefined -mconsole -L/usr/local/lib _csoundvst_la-AudioEffect.o _csoundvst_la-audioeffectx.o _csoundvst_la-Composition.o _csoundvst_la-Conversions.o _csoundvst_la-CppSound.o _csoundvst_la-CsoundFile.o _csoundvst_la-Cell.o _csoundvst_la-CsoundVST.o _csoundvst_la-CsoundVST_wrap.o _csoundvst_la-CsoundVstFltk.o _csoundvst_la-CsoundVstMain.o _csoundvst_la-CsoundVstUi.o _csoundvst_la-Event.o _csoundvst_la-Hocket.o _csoundvst_la-ImageToScore.o _csoundvst_la-Lindenmayer.o _csoundvst_la-MCRM.o _csoundvst_la-Midifile.o _csoundvst_la-MusicModel.o _csoundvst_la-Node.o _csoundvst_la-Random.o _csoundvst_la-Rescale.o _csoundvst_la-Score.o _csoundvst_la-ScoreNode.o _csoundvst_la-Shell.o _csoundvst_la-StrangeAttractor.o _csoundvst_la-System.o -mwindows -lfltk -lole32 -luuid -lcomctl32 -lwsock32 -lsupc++ -lpthread -lstdc++ -lcsound -lportaudio -lwinmm -lm -lpthread -lfltk -lpthread -lfltk -lfltk_images -lsndfile -lpthread -lswigpy -lpython2.3 
+	g++ -g -O2 -Wall -L.libs -o _CsoundVST.dll -Wl,--out-implib,_CsoundVST.dll.a -shared -module --no-undefined -mconsole _csoundvst_la-AudioEffect.o _csoundvst_la-audioeffectx.o _csoundvst_la-Composition.o _csoundvst_la-Conversions.o _csoundvst_la-CppSound.o _csoundvst_la-CsoundFile.o _csoundvst_la-Cell.o _csoundvst_la-CsoundVST.o _csoundvst_la-CsoundVST_wrap.o _csoundvst_la-CsoundVstFltk.o _csoundvst_la-CsoundVstMain.o _csoundvst_la-CsoundVstUi.o _csoundvst_la-Event.o _csoundvst_la-Hocket.o _csoundvst_la-ImageToScore.o _csoundvst_la-Lindenmayer.o _csoundvst_la-MCRM.o _csoundvst_la-Midifile.o _csoundvst_la-MusicModel.o _csoundvst_la-Node.o _csoundvst_la-Random.o _csoundvst_la-Rescale.o _csoundvst_la-Score.o _csoundvst_la-ScoreNode.o _csoundvst_la-Shell.o _csoundvst_la-StrangeAttractor.o _csoundvst_la-System.o -mwindows -lfltk -lole32 -luuid -lcomctl32 -lwsock32 -lsupc++ -lpthread -lstdc++ -lcsound -lportaudio -lwinmm -lm -lpthread -lfltk -lpthread -lfltk -lfltk_images -lsndfile -lpthread -lswigpy -lpython2.3 
 
 CsoundVST_SOURCES=frontends/csoundvst/csoundvst_main.cpp
 CsoundVST_DEPENDENCIES=_CsoundVST.dll
-CsoundVST_CPPFLAGS=@CSOUND_CPPFLAGS@ -I/usr/include/python2.3 -Ifrontends/CsoundVST
+CsoundVST_CPPFLAGS=@CSOUND_CPPFLAGS@ -Ifrontends/CsoundVST
 CsoundVST_CFLAGS=@CSOUND_CFLAGS@
 CsoundVST_CXXFLAGS=-mwindows @CSOUND_CXXFLAGS@
-CsoundVST_LDFLAGS=-mwindows @CSOUND_LDFLAGS@ -mwindows _CsoundVST.la -L/usr/lib/python2.3/config -lpython2.3
-CsoundVST_LDADD=@CSOUND_LDADD@
+CsoundVST_LDFLAGS=-mwindows @CSOUND_LDFLAGS@ -mwindows _CsoundVST.la -lpython2.3
+CsoundVST_LDADD=-mwindows @CSOUND_LDADD@
 
 CsoundVST.exe:	_CsoundVST.dll
 	g++ -g -O2 -Wall -D_WIN32 CsoundVST-csoundvst_main.o -mwindows -o CsoundVST.exe _CsoundVST.dll.a -L/GCC/gcc-3.3.1-3/.build/i686-pc-cygwin/libstdc++-v3/src -L/GCC/gcc-3.3.1-3/.build/i686-pc-cygwin/libstdc++-v3/src/.libs -L/GCC/gcc-3.3.1-3/.build/gcc -L/usr/i686-pc-cygwin/bin -L/usr/lib/gcc-lib/i686-pc-cygwin/3.3.1 -L/usr/lib/gcc-lib/i686-pc-cygwin/3.3.1/../../.. -lcygwin -luser32 -lkernel32 -ladvapi32 -lshell32 -lgcc -lstdc++
@@ -1201,7 +1202,7 @@ CsoundVST.exe:	_CsoundVST.dll
 else
 
 _CsoundVST_la_DEPENDENCIES=xmg libcsound.la
-_CsoundVST_la_CPPFLAGS=@LIBCSOUND_CPPFLAGS@ -I/usr/include/python2.3 -Ifrontends/CsoundVST
+_CsoundVST_la_CPPFLAGS=@LIBCSOUND_CPPFLAGS@ -Ifrontends/CsoundVST
 _CsoundVST_la_CFLAGS=@LIBCSOUND_CFLAGS@
 _CsoundVST_la_CXXFLAGS=@LIBCSOUND_CXXFLAGS@
 _CsoundVST_la_LIBADD=@LIBCSOUND_LIBADD@
@@ -1209,10 +1210,10 @@ _CsoundVST_la_LDFLAGS=-module @LIBCSOUND_LDFLAGS@
 
 CsoundVST_SOURCES=frontends/csoundvst/csoundvst_main.cpp
 CsoundVST_DEPENDENCIES=_CsoundVST.la
-CsoundVST_CPPFLAGS=@CSOUND_CPPFLAGS@ -I/usr/include/python2.3 -Ifrontends/CsoundVST
+CsoundVST_CPPFLAGS=@CSOUND_CPPFLAGS@ -Ifrontends/CsoundVST
 CsoundVST_CFLAGS=@CSOUND_CFLAGS@
 CsoundVST_CXXFLAGS=@CSOUND_CXXFLAGS@
-CsoundVST_LDFLAGS=@CSOUND_LDFLAGS@ -mwindows _CsoundVST.la -L/usr/lib/python2.3/config -lpython2.3
+CsoundVST_LDFLAGS=@CSOUND_LDFLAGS@ -mwindows _CsoundVST.la -lpython2.3
 CsoundVST_LDADD=@CSOUND_LDADD@
 
 endif

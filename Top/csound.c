@@ -43,6 +43,10 @@ extern "C" {
 
 #define csoundMaxExits 64
 
+#ifdef USE_FLTK
+int fltk_abort = 0;
+#endif
+
 	extern ENVIRON cenviron_;
 	static void* csoundExitFuncs_[csoundMaxExits];
 	static long csoundNumExits_ = -1;
@@ -257,7 +261,7 @@ extern "C" {
 
 	PUBLIC int csoundGetSampleSize(void *csound)
 	{
-		return O.outsampsiz; /* should we assume input is same as output ? */
+		return O.sfsampsize; /* should we assume input is same as output ? */
 	}
 
 	PUBLIC long csoundGetInputBufferSize(void *csound)
@@ -372,7 +376,7 @@ extern "C" {
 		va_end(args);
 	}
 
-	PUBLIC void csoundMessage0(const char *format, ...)
+	PUBLIC void csoundPrintf(const char *format, ...)
 	{
 		va_list args;
 		va_start(args, format);
@@ -549,7 +553,7 @@ extern "C" {
 
 	void recopen_mi(int nchanls, int dsize, float sr, int scale)
 	{
-		if (O.inbufsamps*O.outsampsiz != O.outbufsamps*O.insampsiz)
+		if (O.inbufsamps*O.sfsampsize != O.outbufsamps*O.insampsiz)
 			die("Input buffer must be the same size as Output buffer\n");
 		_rtInputBuf = mmalloc(O.inbufsamps*O.insampsiz);
 	}
@@ -701,7 +705,7 @@ extern "C" {
 
 	static void defaultCsoundMakeGraph(void *csound, WINDAT *windat, char *name)
 	{
-#if defined(WINDOWS) && defined(USE_FLTK)
+#if defined(USE_FLTK)
 		MakeGraph_(windat, name);
 #else
 		MakeAscii(windat, name);
@@ -722,7 +726,7 @@ extern "C" {
 
 	static void defaultCsoundDrawGraph(void *csound, WINDAT *windat)
 	{
-#if defined(WINDOWS) && defined(USE_FLTK)
+#if defined(USE_FLTK)
 		DrawGraph_(windat);
 #else
 		MakeAscii(windat, "");
