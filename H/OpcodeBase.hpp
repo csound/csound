@@ -11,9 +11,9 @@
 * DerivedClass : public OpcodeBase<DerivedClass> 
 * {
 * public:
-*     // All output fields must be declared first:
+*     // All output fields must be declared first as MYFLT *:
 *     MYFLT *aret1;
-*     // All input fields must be declared next:
+*     // All input fields must be declared next as MYFLT *:
 *     MYFLT *iarg1;
 *     MYFLT *karg2;
 *     MYFLT *aarg3;
@@ -23,8 +23,8 @@
 *     MYFLT state3;
 *     // Declare and implement only whichever of these are required:
 *     void initialize();
-*     void onKontrolSample();
-*     void onAudioSample;
+*     void kontrol();
+*     void audio;
 *     void deinitialize();
 * };
 */
@@ -40,19 +40,19 @@ public:
     {
         return reinterpret_cast<T *>(opcode)->initialize();
     }
-    int onKontrolSample()
+    int kontrol()
     {
         return NOTOK;
     }
-    static int onKontrolSample_(void *opcode)
+    static int kontrol_(void *opcode)
     {
         return reinterpret_cast<T *>(opcode)->onKontrolSample();
     }
-    int onAudioSample()
+    int audio()
     {
         return NOTOK;
     }
-    static int onAudioSample_(void *opcode)
+    static int audio_(void *opcode)
     {
         return reinterpret_cast<T *>(opcode)->onKontrolSample();
     }
