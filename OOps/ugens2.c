@@ -810,7 +810,7 @@ int ftkrchk(TABLE *p)
 int    ktablekt(TABLE *p)
 {
     if (ftkrchk(p)==OK) return ktable(p);
-    return OK;
+    return NOTOK;
 }
 
 int    tablekt(TABLE *p)
@@ -926,9 +926,9 @@ int oscnset(OSCILN *p)
       p->index = FL(0.0);
       p->maxndx = ftp->flen - FL(1.0);
       p->ntimes = (long)*p->itimes;
+      return OK;
     }
     else return NOTOK;
-    return OK;
 }
 
 int osciln(OSCILN *p)

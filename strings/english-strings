@@ -749,7 +749,7 @@
 749,"expseg (arate): not initialised"
 750,"expseg (krate): not initialised"
 751,"extending Floating pool to %d\n"
-752,"f%3.0f%8.2f%8.2f%8.2f"
+752,""
 753,"Failed to open MIDI output port to Csound Server.\n"
 754,""
 755,""

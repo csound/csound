@@ -264,7 +264,7 @@ int losset(LOSC *p)
       }
       return OK;
     }
-    return NOTOK;
+    return OK;
 
  lerr2:
     return initerror(Str(X_888,"illegal sustain loop data"));
