@@ -477,7 +477,7 @@ int csoundCompile(void *csound, int argc, char **argv)
       err_printf(Str(X_1386,"xfilename: %s\n"), xfilename);
 #if defined(SYS5) || defined(WIN32) || defined(__EMX__)
     {
-      if (O.odebug) setvbuf(stdout,0,_IONBF,80);
+      if (O.odebug) setvbuf(stdout,0,_IOLBF,0xff);
     }
 #else
 #if !defined(SYMANTEC) && !defined(mac_classic) && !defined(LATTICE)
