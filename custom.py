@@ -49,7 +49,7 @@ elif sys.platform[:3] == 'win':
     ################################################################
 
     #customLIBPATH.append('cygwin_import_libs')
-    platform = 'windows'
+    platform = 'mingw'
 else:
     platform = 'unsupported platform'
 

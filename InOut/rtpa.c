@@ -8,6 +8,7 @@ Uses PortAudio library without callbacks -- JPff
 
 #include "cs.h"
 #include "soundio.h"
+#include "pa_blocking.h"
 #include <portaudio.h>
 
 extern char    *sfoutname;                     /* soundout filename    */
@@ -34,6 +35,11 @@ void rtplay_(void *outbuf, int nbytes);
 int rtrecord_(void *inbuf_, int bytes_);
 
 static PaStream *pa_in = NULL, *pa_out = NULL;
+
+#if defined(WIN32)
+static PA_BLOCKING_STREAM *pabsRead = 0;
+static PA_BLOCKING_STREAM *pabsWrite = 0;
+#endif
 
 static  int oMaxLag;
 extern  OPARMS  O;
@@ -117,6 +123,14 @@ void recopen_(int nchnls_, int dsize_, float sr_, int scale_)
     paStreamParameters_.suggestedLatency = ((double) oMaxLag) / ((double) sr_);
     err_printf("Suggested PortAudio input latency = %f seconds.\n",
                paStreamParameters_.suggestedLatency);
+#if defined(WIN32)
+    paError = paBlockingReadOpen(&cenviron,
+        &pabsRead,
+        &paStreamParameters_);
+    if (paError != paNoError) goto error;
+    paError = Pa_StartStream(pabsRead->paStream);
+    if (paError != paNoError) goto error;
+#else
     paError = Pa_OpenStream(&pa_in,
                             &paStreamParameters_,
                             NULL,
@@ -128,6 +142,7 @@ void recopen_(int nchnls_, int dsize_, float sr_, int scale_)
     if (paError != paNoError) goto error;
     paError = Pa_StartStream(pa_in);
     if (paError != paNoError) goto error;
+#endif
     audrecv = rtrecord_;
     /* spinrecv = spinsf;    */   /* accumulate output */
     /* nzerotran = zerosf;   */    /* quick zeros */
@@ -188,6 +203,14 @@ void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
     paStreamParameters_.sampleFormat = paFloat32;
     err_printf("Suggested PortAudio output latency = %f seconds.\n",
                paStreamParameters_.suggestedLatency);
+#if defined(WIN32)
+    paError = paBlockingWriteOpen(&cenviron,
+        &pabsWrite,
+        &paStreamParameters_);
+    if (paError != paNoError) goto error;
+    paError = Pa_StartStream(pabsWrite->paStream);
+    if (paError != paNoError) goto error;
+#else
     paError = Pa_OpenStream(&pa_out,
                             NULL,
                             &paStreamParameters_,
@@ -199,6 +222,7 @@ void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
     if (paError != paNoError) goto error;
     paError = Pa_StartStream(pa_out);
     if (paError != paNoError) goto error;
+#endif
     audtran = rtplay_;
     spoutran = spoutsf;       /* accumulate output */
     nzerotran = zerosf;       /* quick zeros */
@@ -215,6 +239,9 @@ void playopen_(int nchnls_, int dsize_, float sr_, int scale_)
 
 int rtrecord_(void *inbuf_, int bytes_) /* get samples from ADC */
 {
+#if defined(WIN32)
+    paBlockingRead(pabsRead, (MYFLT *)inbuf_);
+#else
     int samples = bytes_ / sizeof(MYFLT);
     int frames = samples / nchnls;
 #if defined(USE_DOUBLE)
@@ -236,6 +263,7 @@ int rtrecord_(void *inbuf_, int bytes_) /* get samples from ADC */
     else {
         return samples;
     }
+#endif
 }
 
 void rtplay_(void *outbuf_, int bytes_) /* put samples to DAC  */
@@ -251,6 +279,9 @@ void rtplay_(void *outbuf_, int bytes_) /* put samples to DAC  */
 /* eliminate MIDI jitter by requesting that both be made synchronous with */
 /* the above audio I/O blocks, i.e. by setting -b to some 1 or 2 K-prds.  */
 {
+#if defined(WIN32)
+    paBlockingWrite(pabsWrite, (MYFLT *)outbuf_);
+#else
     int samples = bytes_ / sizeof(MYFLT);
     int frames = samples / nchnls;
 #if defined(USE_DOUBLE)
@@ -268,14 +299,20 @@ void rtplay_(void *outbuf_, int bytes_) /* put samples to DAC  */
       err_printf(Str(X_41,"PortAudio error %d: %s\n"),
                  paError, Pa_GetErrorText(paError));
     nrecs++;
+#endif
 }
 
 void rtclose_(void)             /* close the I/O device entirely  */
 {                               /* called only when both complete */
+#if defined(WIN32)
+    paBlockingClose(pabsRead);
+    paBlockingClose(pabsWrite);
+#else
     if (pa_in)
       Pa_AbortStream(pa_in);
     if (pa_out)
       Pa_AbortStream(pa_out);
     pa_in = pa_out = 0;
+#endif
 }
 
