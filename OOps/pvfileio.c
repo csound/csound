@@ -104,9 +104,6 @@ const GUID KSDATAFORMAT_SUBTYPE_PVOC = {
 #elif defined DOSGCC
 #define RD_OPTS  O_RDONLY | O_BINARY, 0
 #define WR_OPTS  O_TRUNC | O_CREAT | O_WRONLY | O_BINARY, 0644
-#elif defined LATTICE
-#define RD_OPTS  O_RDONLY | O_RAW, 0
-#define WR_OPTS  O_TRUNC | O_CREAT | O_WRONLY | O_RAW, 0644
 #else
 #ifndef O_BINARY
 # define O_BINARY (0)

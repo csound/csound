@@ -29,7 +29,7 @@
 MEMFIL *memfiles = NULL;
 
 extern int    isfullpath(char *);              /* def in filopen.c */
-extern char   *catpath(char *, char *);    /* def in filopen.c */
+extern char   *catpath(char *, char *);        /* def in filopen.c */
 
 #if !defined(mills_macintosh) && !defined(SYMANTEC)
 
@@ -37,8 +37,6 @@ static struct stat statbuf;
 
 #if defined DOSGCC
 #define RD_OPTS  O_RDONLY | O_BINARY, 0
-#elif defined LATTICE
-#define RD_OPTS  O_RDONLY | O_RAW, 0
 #else
 #ifndef O_BINARY
 # define O_BINARY (0)
@@ -55,12 +53,8 @@ static int LoadFile(            /* simulate the THINK_C LoadFile  */
     int fd;
 
     if ((fd = open(filnam, RD_OPTS)) < 0)       /* if cannot open the file */
-      return(1);                                /*    return 1            */
-#ifdef LATTICE
-    stat(filnam, &statbuf);
-#else
+      return (1);                               /*    return 1            */
     fstat(fd, &statbuf);                        /* else get its length */
-#endif
     *len = statbuf.st_size;
     *allocp = mmalloc((long)(*len));            /*   alloc as reqd     */
     if (read(fd, *allocp, (int)(*len)) != *len) /*   read file in      */

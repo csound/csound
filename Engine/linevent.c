@@ -97,7 +97,7 @@ void RTLineset(void)   /* set up Linebuf & ready the input files */
       Linecons = stdin;
       setvbuf(stdin, NULL, _IONBF, 0);
 #else
-#if defined(DOSGCC) || defined(LATTICE) || defined(__WATCOMC__) || defined(WIN32) || defined(mac_classic)
+#if defined(DOSGCC) || defined(__WATCOMC__) || defined(WIN32) || defined(mac_classic)
       setvbuf(stdin, NULL, _IONBF, 0);
       /*      WARNING("-L stdin:  system has no fcntl function to get stdin"); */
 #else
@@ -138,7 +138,7 @@ void RTclose(void)
     if (Linefd)
       close(Linefd);
     else {
-#if !defined(DOSGCC) && !defined(LATTICE) && !defined(__WATCOMC__) && !defined(WIN32) && !defined(mac_classic)
+#if !defined(DOSGCC) && !defined(__WATCOMC__) && !defined(WIN32) && !defined(mac_classic)
         fcntl(Linefd, F_SETFL, stdmode);
 #endif
     }
