@@ -1,3 +1,10 @@
+2004-11-11  Michael Gogins <gogins@pipeline.com>
+
+	* Changed the Python interface to CsoundVST to allow Python programmers
+    to derive new classes in Python from CsoundVST.Node, and these new classes
+    will function as C++ Node * objections in the CsoundVST C++ internals. This enables
+    Python Nodes to function as regular nodes in music graphs.
+
 2004-11-11  John ffitch  <jpff@codemist.co.uk>
 
 	* Engine/fgens.c: Removed static variables ftp and nargs and used
