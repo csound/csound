@@ -57,6 +57,7 @@ int PaBlockingReadStreamCallback(const void *input, void *output,
     if(!fltk_abort) {
         return paContinue;
     } else {
+        err_printf("Aborting paBlockingWriteStreamCallback...\n");
         return paAbort;
     }
 }
@@ -132,6 +133,7 @@ int paBlockingWriteStreamCallback(const void *input,
     if(!fltk_abort) {
         return paContinue;
     } else {
+        err_printf("Aborting paBlockingWriteStreamCallback...\n");
         return paAbort;
     }
 }
@@ -151,10 +153,10 @@ void paBlockingClose(PA_BLOCKING_STREAM *pabs)
 {
     if(pabs) {
         if(pabs->paStream) {
-            Pa_AbortStream(pabs->paStream);
-            pabs->paStream = 0;
-            mfree(pabs->actualBuffer);
-            mfree(pabs);
+            //Pa_AbortStream(pabs->paStream);
+            //pabs->paStream = 0;
+            //mfree(pabs->actualBuffer);
+            //mfree(pabs);
         }
     }
 }
