@@ -41,7 +41,7 @@ typedef struct VSTINFO_ {
 	MYFLT *iVSThandle;
 } VSTINFO ;
 
-typedef struct VSTPLUG_ {
+typedef struct VSTAUDIO_ {
 	OPDS h;
 	// Outputs.
 	MYFLT *aout1;
@@ -53,7 +53,7 @@ typedef struct VSTPLUG_ {
 	// State.
 	size_t framesPerBlock;
 	size_t channels;
-} VSTPLUG ;
+} VSTAUDIO ;
 
 typedef struct VSTNOTE_ {
 	OPDS h;	
@@ -67,7 +67,7 @@ typedef struct VSTNOTE_ {
 	MYFLT framesRemaining;
 } VSTNOTE ;
 
-typedef struct OUTVST_ {
+typedef struct VSTMIDIOUT_ {
 	OPDS h;
 	// Inputs.
 	MYFLT *iVSThandle;
@@ -79,18 +79,18 @@ typedef struct OUTVST_ {
 	MYFLT oldkstatus;
 	MYFLT oldkchan;
 	MYFLT oldkvalue;
-} OUTVST ;
+} VSTMIDIOUT;
 
-typedef struct VSTPRET_ {
+typedef struct VSTPARAMGET_ {
 	OPDS h;
 	// Outputs.
 	MYFLT *kvalue;
 	// Intputs.
 	MYFLT *iVSThandle;
 	MYFLT *kparam;
-} VSTPRET ;
+} VSTPARAMGET ;
 
-typedef struct VSTPSEND_ {
+typedef struct VSTPARAMSET_ {
 	OPDS h;
 	// Inputs.
 	MYFLT *iVSThandle;
@@ -99,14 +99,14 @@ typedef struct VSTPSEND_ {
 	// State.
 	MYFLT oldkparam;
 	MYFLT oldkvalue;
-} VSTPSEND ;
+} VSTPARAMSET ;
 
-typedef struct VSTBLOAD_ {
+typedef struct VSTBANKLOAD_ {
 	OPDS h;
 	// Inputs.
 	MYFLT *iVSThandle;
 	MYFLT *ibank;
-} VSTBLOAD;
+} VSTBANKLOAD;
 
 typedef struct VSTPROGSET_ {
 	OPDS h;

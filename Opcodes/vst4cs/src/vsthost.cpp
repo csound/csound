@@ -495,14 +495,14 @@ ERect VSTPlugin::GetEditorRect()
 
 void VSTPlugin::OpenEditor()
 {
-    if (aeffect->flags & effFlagsHasEditor== 1)	
-    {
-	GetEditorRect();
-	Debug("ERect top %d left %d right %d bottom %d.\n", rect.top, 
-			rect.left, rect.right, rect.bottom);
-    	window = new Fl_Window(rect.right, rect.bottom, GetName());
-    	Debug("Window 0x%x.\n", window);
-   	window->show();						
+    if(windowHandle)
+        return;
+    GetEditorRect();
+    Debug("ERect top %d left %d right %d bottom %d.\n", rect.top, rect.left, 
+        rect.right, rect.bottom);
+    window = new Fl_Window(rect.right, rect.bottom, GetName());
+    Debug("Window 0x%x.\n", window);
+    window->show();						
 	windowHandle = fl_xid(window);
 	Debug("windowHandle 0x%x.\n", windowHandle);
 	SetEditWindow(windowHandle);
@@ -513,6 +513,9 @@ void VSTPlugin::OpenEditor()
 
 void VSTPlugin::CloseEditor()
 {
+    if(!windowHandle)
+        return;
+    OnEditorClose();
     if (aeffect->flags & effFlagsHasEditor== 1)
     {
 	OnEditorClose();

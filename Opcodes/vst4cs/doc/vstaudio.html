@@ -5,17 +5,16 @@
 	<TITLE>vst4cs</TITLE>
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 1.1.1  (Win32)">
 	<META NAME="AUTHOR" CONTENT="Andres Cabrera">
-	<META NAME="CREATED" CONTENT="20040719;21052526">
+	<META NAME="CREATED" CONTENT="20040719;21052768">
 	<META NAME="CHANGEDBY" CONTENT="Michael Gogins">
-	<META NAME="CHANGED" CONTENT="20040719;21430392">
+	<META NAME="CHANGED" CONTENT="20040720;22295471">
 	<STYLE>
 	<!--
 		TD P { color: #000000 }
 		H1 { color: #000000 }
 		P { color: #000000 }
-		TH P { color: #000000 }
 		H2 { color: #000000 }
-		PRE { color: #000000 }
+		TH P { color: #000000 }
 		A:link { color: #0000ff }
 		A:visited { color: #840084 }
 	-->
@@ -45,39 +44,43 @@
 	</TR>
 </TABLE>
 <HR>
-<H1><A NAME="BABO"></A>vstbload</H1>
+<H1>vstaudio<SPAN STYLE="font-weight: medium">, </SPAN><B>vstaudiog</B></H1>
 <P><A NAME="AEN6067"></A>vst4cs -- VST plugin hosting in Csound on
 Windows. 
 </P>
 <H2><A NAME="AEN6072"></A>Description</H2>
-<P><I>vstbload</I> is used for loading parameter banks to a VST
-plugin.</P>
+<P><I>vstaudio</I> and <I>vstaudiog</I> are used for sending and
+receiving audio from a VST plugin. 
+</P>
+<P><I>vstaudio</I> is used within an instrument definition that
+contains a vstmidiout or vstnote opcode. It outputs audio for only
+that one instrument. Any audio remaining in the plugin after the end
+of the note, for example a reverb tail, will be cut off and should be
+dealt with using a damping envelope.</P>
+<P><I>vstplugg</I> (<SPAN STYLE="font-style: normal">vstaudio</SPAN><I>
+global</I>) is used in a separate instrument to process audio from
+any number of VST notes or MIDI events that share the same VST plugin
+instance (<I>instance</I>). The <I>vstplugg</I> instrument must be
+numbered higher than all the instruments receiving notes or MIDI
+data, and the note controlling the <I>vstplugg</I> instrument must
+have an indefinite duration, or at least a duration as long as the
+VST plugin is active.</P>
 <H2><A NAME="AEN6079"></A>Syntax</H2>
-<P><B>vstbload </B><SPAN STYLE="font-weight: medium">instance, ipath</SPAN></P>
+<P>aout1,aout2 <B>vstaudio </B>instance, ain1, ain2</P>
+<P>aout1,aout2 <B>vstplugg </B>instance, ain1, ain2</P>
 <H2>Initialization</H2>
 <P><I>instance</I> -- the number which identifies the plugin,
 returned previously by the <I>vstinit</I> opcode.</P>
-<P><I>ipath</I> -- the full pathname of the parameter bank (.fxb
-file). 
+<H2><A NAME="AEN60831"></A>Performance</H2>
+<P><I>aout1, aout2 </I>-- the audio output given by the plugin.</P>
+<P><I>ain1, ain2 </I>-- the audio sent to the plug in for processing.
+For vst instruments, input is usually ignored.</P>
+<H2><A NAME="AEN60832"></A>Examples</H2>
+<P STYLE="margin-bottom: 0in">See <I>vstmidiout</I> or <I>vstparamset</I>
+for examples.</P>
+<P STYLE="margin-bottom: 0in"><BR>
 </P>
-<H2><A NAME="AEN6083"></A>Performance</H2>
-<H2><A NAME="AEN60831"></A>Examples</H2>
-<PRE>/* orc */
-sr = 44100
-kr = 4410
-ksmps = 10
-nchnls = 2
-giHandle1 vstinit &quot;c:/vstplugins/cheeze/cheeze machine.dll&quot;,1
-instr 4
-vstbload gihandle1,&quot;c:/vstplugins/cheeze/chengo'scheese.fxb&quot;
-vstinfo gihandle1
-endin
-/* sco */
-i 3 0 21
-i4 1 1 57 32
-e
-</PRE><H2>
-<A NAME="AEN6152"></A>Credits</H2>
+<H2><A NAME="AEN6152"></A>Credits</H2>
 <TABLE WIDTH=156 BORDER=0 CELLPADDING=2 CELLSPACING=0>
 	<COL WIDTH=152>
 	<TR>

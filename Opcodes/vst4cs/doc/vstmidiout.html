@@ -5,9 +5,9 @@
 	<TITLE>vst4cs</TITLE>
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 1.1.1  (Win32)">
 	<META NAME="AUTHOR" CONTENT="Andres Cabrera">
-	<META NAME="CREATED" CONTENT="20040719;21052431">
+	<META NAME="CREATED" CONTENT="20040719;21052681">
 	<META NAME="CHANGEDBY" CONTENT="Michael Gogins">
-	<META NAME="CHANGED" CONTENT="20040719;21262200">
+	<META NAME="CHANGED" CONTENT="20040719;21444457">
 	<STYLE>
 	<!--
 		TD P { color: #000000 }
@@ -45,27 +45,27 @@
 	</TR>
 </TABLE>
 <HR>
-<H1><A NAME="BABO"></A>vstpret and vstpsend</H1>
+<H1><A NAME="BABO"></A>vstmidiout</H1>
 <P><A NAME="AEN6067"></A>vst4cs -- VST plugin hosting in Csound on
 Windows. 
 </P>
 <H2><A NAME="AEN6072"></A>Description</H2>
-<P><I>vstpret </I>and <I>vstpsend</I> are used for parameter
-comunication to and from a VST plugin.</P>
+<P><I>vstmidiout</I> is used for sending MIDI information to a vst
+plugin..</P>
 <H2><A NAME="AEN6079"></A>Syntax</H2>
-<P><SPAN STYLE="font-weight: medium">kvalue</SPAN><B> vstpret
-</B><SPAN STYLE="font-weight: medium">instance, kparam<BR><B>vstpsend</B>
-instance, kparam, kvalue</SPAN></P>
+<P><B>vstmidiout </B><SPAN STYLE="font-weight: medium">instance, kstatus,
+kchan, kdata1, kdata2</SPAN></P>
 <H2><A NAME="AEN6083"></A>Initialization</H2>
 <P><I>instance</I> -- the number which identifies the plugin,
 returned previously by the <I>vstinit</I> opcode.</P>
 <H2><A NAME="AEN60831"></A>Performance</H2>
-<P><I>kparam </I>-- The parameter number to retrieve or to modify.</P>
-<P><I>kvalue </I>-- the value to send or the the value returned by
-the plug in.</P>
-<P>Parameters vary according to the plugin. To find out what
-parameters are available, use the <I>verbose</I> option when loading
-the plugin with <B>vstinit</B>.</P>
+<P><I>kstatus </I>-- the type of midi message to be sent. Currently
+noteon (144), note off (128), Control Change (176),&nbsp; Program
+change (192), Aftertouch (208) and Pitch Bend (224) are supported.</P>
+<P><I>kchan </I>-- the MIDI channel transmitted on.</P>
+<P><I>kdata1, kdata2 </I>-- the MIDI data pair, which varies
+depending on kstatus. e.g. note/velocity for note on and note off,
+Controller number/value for control change.</P>
 <H2><A NAME="AEN60832"></A>Examples</H2>
 <PRE>/* orc */
 sr = 44100
@@ -75,13 +75,11 @@ nchnls = 2
 giHandle1 vstinit &quot;c:/vstplugins/cheeze/cheeze machine.dll&quot;,1
 instr 3
 ain1 = 0
-ab1, ab2 vstplug gihandle1, ain1, ain1
+ab1, ab2 vstaudio gihandle1, ain1, ain1
 outs ab1, ab2
 endin
 instr 4
-vstout gihandle1,144,1,p4,p5
-kline line 0,p3,1
-vstpsend gihandle1, 3, kline
+vstmidiout gihandle1,144,1,p4,p5
 endin
 /* sco */
 i 3 0 21
