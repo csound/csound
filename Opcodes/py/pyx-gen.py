@@ -53,7 +53,7 @@ def generate_x_method(f, action, context, rate0, triggered):
     if (rate0 == 'k' and context != 'private') or rate0 == 'i':
         print >> f, '  if (*p->string != SSTRCOD)'
         print >> f, '    {'
-        print >> f, '      ((ENVIRON *)csound_)->err_printf_("%s: a string is needed");' % (name)
+        print >> f, '      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "%s: a string is needed");' % (name)
         print >> f, '      return NOTOK;'
         print >> f, '    }'
         print >> f
@@ -81,14 +81,14 @@ def generate_x_method(f, action, context, rate0, triggered):
     print >> f, '  result = %(helper)s_in_given_context(source, %(ns)s);' % locals()
     print >> f, '  if (result == NULL)'
     print >> f, '    {'
-    print >> f, '      ((ENVIRON *)csound_)->err_printf_("py%(prefix)s%(action)s%(rate)s_%(rate0)srate: python exception\\n");' % locals()
+    print >> f, '      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "py%(prefix)s%(action)s%(rate)s_%(rate0)srate: python exception\\n");' % locals()
     print >> f, '      PyErr_Print();'
     print >> f, '      return NOTOK;'
     print >> f, '    }'
     if action == 'eval':
         print >> f, '  else if (!PyFloat_Check(result))'
         print >> f, '    {'
-        print >> f, '      ((ENVIRON *)csound_)->err_printf_("py%(prefix)s%(action)s%(rate)s_%(rate0)srate: expression must evaluate in a float\\n");' % locals()
+        print >> f, '      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "py%(prefix)s%(action)s%(rate)s_%(rate0)srate: expression must evaluate in a float\\n");' % locals()
         print >> f, '    }'
         print >> f, '  else'
         print >> f, '    {'

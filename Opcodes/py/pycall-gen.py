@@ -32,7 +32,7 @@ def generate_pycall_common_init_code(f, n, pre, post, rate, triggered=0):
     print >> f
     print >> f, '  if (*p->function != SSTRCOD)'
     print >> f, '    {'
-    print >> f, '      ((ENVIRON *)csound_)->err_printf_("%s: callable must be a string");' % (name)
+    print >> f, '      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "%s: callable must be a string");' % (name)
     print >> f, '      return NOTOK;'
     print >> f, '    }'
     print >> f
@@ -75,7 +75,7 @@ def generate_pycall_exception_handling_code(f, n, pre, post, rate, triggered=0):
     name = 'py%scall%d%s%s_%srate' % (pre, n, post, t, rate)
     print >> f, '  if (result == NULL)'
     print >> f, '    {'
-    print >> f, '      ((ENVIRON *)csound_)->err_printf_("%s: python exception\\n");' % (name)
+    print >> f, '      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "%s: python exception\\n");' % (name)
     print >> f, '      PyErr_Print();'
     print >> f, '      return NOTOK;'
     print >> f, '    }'
@@ -88,13 +88,13 @@ def generate_pycall_result_conversion_code(f, n, pre, post, rate, triggered=0):
         t, T = '', ''
     if n == 0:     
         print >> f, '  if (result != Py_None) {'
-        print >> f, '      ((ENVIRON *)csound_)->err_printf_("py%scall0%s%s_%srate: callable must return None\\n");' % (pre, post, t, rate)
+        print >> f, '      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "py%scall0%s%s_%srate: callable must return None\\n");' % (pre, post, t, rate)
         print >> f, '      return NOTOK; }'
 
     elif n == 1:
         print >> f, '  if (!PyFloat_Check(result))'
         print >> f, '    {'
-        print >> f, '      ((ENVIRON *)csound_)->err_printf_("py%scall1%s%s_%srate: callable must return a float\\n");' % (pre, post, t, rate)
+        print >> f, '      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "py%scall1%s%s_%srate: callable must return a float\\n");' % (pre, post, t, rate)
         print >> f, '      return NOTOK;'
         print >> f, '    }'
         print >> f, '  else'
@@ -109,7 +109,7 @@ def generate_pycall_result_conversion_code(f, n, pre, post, rate, triggered=0):
         name = 'py%scall%d%s%s_%srate' % (pre, n, post, t, rate)
         print >> f, '  if (!PyTuple_Check(result) || PyTuple_Size(result) != %d)' % n
         print >> f, '    {'
-        print >> f, '      ((ENVIRON *)csound_)->err_printf_("%s: callable must return %d values\\n");'  % (name, n)
+        print >> f, '      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "%s: callable must return %d values\\n");'  % (name, n)
         print >> f, '      return NOTOK;'
         print >> f, '    }'
         print >> f, '  else'
@@ -143,7 +143,7 @@ def generate_pylcall_irate_method(f, n, triggered=0):
     print >> f, '{'
     print >> f, '  if (*p->function != SSTRCOD)'
     print >> f, '    {'
-    print >> f, '      ((ENVIRON *)csound_)->err_printf_("%s: callable must be a string");' % (name)
+    print >> f, '      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "%s: callable must be a string");' % (name)
     print >> f, '      return NOTOK;'
     print >> f, '    }'
     print >> f

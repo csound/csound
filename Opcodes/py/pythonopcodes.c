@@ -150,7 +150,7 @@ int pycalln_krate(void *csound_, PYCALLN *p)
     }
   else
     {
-      ((ENVIRON*)csound_)->err_printf_("pycalln_krate: ERROR\n");
+      ((ENVIRON*)csound_)->Message( ((ENVIRON *)csound_), "pycalln_krate: ERROR\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -186,7 +186,7 @@ int pylcalln_krate(void *csound_, PYCALLN *p)
     }
   else
     {
-      ((ENVIRON*)csound_)->err_printf_("pycalln: ERROR\n");
+      ((ENVIRON*)csound_)->Message( ((ENVIRON *)csound_), "pycalln: ERROR\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -215,7 +215,7 @@ int pylcallni_irate(void *csound_, PYCALLN *p)
     }
   else
     {
-      ((ENVIRON*)csound_)->err_printf_("pycalln: ERROR\n");
+      ((ENVIRON*)csound_)->Message( ((ENVIRON *)csound_), "pycalln: ERROR\n");
       PyErr_Print();
       return NOTOK;
     }
