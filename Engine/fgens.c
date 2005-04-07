@@ -1391,7 +1391,7 @@ static void gen30(FUNC *ftp, ENVIRON *csound)
     i = maxh << 1;
     x[i++] *= maxfrac;
     x[i++] *= maxfrac;
-    for ( ; i < ((l1 > l2 ? l1 : l2) + 2); i++)
+    for ( ; i < (l1 + 2); i++)
       x[i] = FL(0.0);
     x[1] = x[l1];
     x[l1] = x[l1 + 1] = FL(0.0);
@@ -1840,7 +1840,7 @@ static void fterror(ENVIRON *csound, FGDATA *ff, char *s, ...)
     csound->MessageV(csound, s, args);
     va_end(args);
     csound->Message(csound, "\n");
-    csound->Message(csound, "f%3.0f %f8.2 %8.2f ",
+    csound->Message(csound, "f%3.0f %8.2f %8.2f ",
                             ff->e.p[1], ff->e.p2orig, ff->e.p3orig);
     if (ff->e.p[4] == SSTRCOD)
       csound->Message(csound, "%s", ff->e.strarg);
@@ -2290,23 +2290,22 @@ int ftgen(ENVIRON *csound, FTGEN *p) /* set up and call any GEN routine */
 
     ftevt = (EVTBLK *)mcalloc(csound, sizeof(EVTBLK) + FTPMAX * sizeof(MYFLT));
     ftevt->opcod = 'f';
+    ftevt->strarg = NULL;
     fp = &ftevt->p[1];
-    *fp++ = *p->p1;                               /* copy p1 - p5 */
-    *fp++ = FL(0.0);                              /* force time 0    */
-    *fp++ = *p->p3;
+    *fp++ = *p->p1;                             /* copy p1 - p5 */
+    *fp++ = ftevt->p2orig = FL(0.0);            /* force time 0    */
+    *fp++ = ftevt->p3orig = *p->p3;
     *fp++ = *p->p4;
     *fp++ = *p->p5;
     if ((nargs = p->INOCOUNT - 5) > 0) {
       MYFLT **argp = p->argums;
-      while (nargs--)                             /* copy rem arglist */
+      while (nargs--)                           /* copy rem arglist */
         *fp++ = **argp++;
     }
-    if (ftevt->p[5] == SSTRCOD) {                 /* if string p5    */
+    if (ftevt->p[5] == SSTRCOD) {               /* if string p5    */
       int n = (int)ftevt->p[4];
-      if (n<0) n = -n;
-      if (n == 1  ||
-          n == 23 ||
-          n == 28) {              /*   must be Gen01, 23 or 28 */
+      if (n < 0) n = -n;
+      if (n == 1 || n == 23 || n == 28) {       /*   must be Gen01, 23 or 28 */
         ftevt->strarg = p->STRARG;
       }
       else {
@@ -2314,10 +2313,10 @@ int ftgen(ENVIRON *csound, FTGEN *p) /* set up and call any GEN routine */
         return csoundInitError(csound, Str("ftgen string arg not allowed"));
       }
     }
-    else ftevt->strarg = NULL;                    /* else no string */
+    else ftevt->strarg = NULL;                  /* else no string */
     ftevt->pcnt = p->INOCOUNT;
-    if ((ftp = hfgens(csound, ftevt)) != NULL) /* call the fgen */
-      *p->ifno = (MYFLT)ftp->fno;                 /* record the fno */
+    if ((ftp = hfgens(csound, ftevt)) != NULL)  /* call the fgen */
+      *p->ifno = (MYFLT)ftp->fno;               /* record the fno */
     else if (ftevt->p[1] >=0) {
       mfree(csound, ftevt);
       return csoundInitError(csound, Str("ftgen error"));
