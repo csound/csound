@@ -6,7 +6,7 @@ pyexec_krate(void *csound_, PYEXEC *p)
 
   if (*p->string != SSTRCOD)
     {
-      ((ENVIRON *)csound_)->err_printf_("pyexec_krate: a string is needed");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyexec_krate: a string is needed");
       return NOTOK;
     }
 
@@ -15,7 +15,7 @@ pyexec_krate(void *csound_, PYEXEC *p)
   result = exec_file_in_given_context(source, 0);
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->err_printf_("pyexec_krate: python exception\n");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyexec_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -31,7 +31,7 @@ pyexeci_irate(void *csound_, PYEXEC *p)
 
   if (*p->string != SSTRCOD)
     {
-      ((ENVIRON *)csound_)->err_printf_("pyexeci_irate: a string is needed");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyexeci_irate: a string is needed");
       return NOTOK;
     }
 
@@ -40,7 +40,7 @@ pyexeci_irate(void *csound_, PYEXEC *p)
   result = exec_file_in_given_context(source, 0);
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->err_printf_("pyexeci_irate: python exception\n");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyexeci_irate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -69,7 +69,7 @@ pylexec_krate(void *csound_, PYEXEC *p)
   result = exec_file_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->err_printf_("pylexec_krate: python exception\n");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylexec_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -85,7 +85,7 @@ pylexeci_irate(void *csound_, PYEXEC *p)
 
   if (*p->string != SSTRCOD)
     {
-      ((ENVIRON *)csound_)->err_printf_("pylexeci_irate: a string is needed");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylexeci_irate: a string is needed");
       return NOTOK;
     }
 
@@ -96,7 +96,7 @@ pylexeci_irate(void *csound_, PYEXEC *p)
   result = exec_file_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->err_printf_("pylexeci_irate: python exception\n");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylexeci_irate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -112,7 +112,7 @@ pyexect_krate(void *csound_, PYEXECT *p)
 
   if (*p->string != SSTRCOD)
     {
-      ((ENVIRON *)csound_)->err_printf_("pyexect_krate: a string is needed");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyexect_krate: a string is needed");
       return NOTOK;
     }
 
@@ -123,7 +123,7 @@ pyexect_krate(void *csound_, PYEXECT *p)
   result = exec_file_in_given_context(source, 0);
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->err_printf_("pyexec_krate: python exception\n");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyexec_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -154,7 +154,7 @@ pylexect_krate(void *csound_, PYEXECT *p)
   result = exec_file_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->err_printf_("pylexec_krate: python exception\n");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylexec_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -170,7 +170,7 @@ pyrun_krate(void *csound_, PYRUN *p)
 
   if (*p->string != SSTRCOD)
     {
-      ((ENVIRON *)csound_)->err_printf_("pyrun_krate: a string is needed");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyrun_krate: a string is needed");
       return NOTOK;
     }
 
@@ -179,7 +179,7 @@ pyrun_krate(void *csound_, PYRUN *p)
   result = run_statement_in_given_context(source, 0);
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->err_printf_("pyrun_krate: python exception\n");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyrun_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -195,7 +195,7 @@ pyruni_irate(void *csound_, PYRUN *p)
 
   if (*p->string != SSTRCOD)
     {
-      ((ENVIRON *)csound_)->err_printf_("pyruni_irate: a string is needed");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyruni_irate: a string is needed");
       return NOTOK;
     }
 
@@ -204,7 +204,7 @@ pyruni_irate(void *csound_, PYRUN *p)
   result = run_statement_in_given_context(source, 0);
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->err_printf_("pyruni_irate: python exception\n");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyruni_irate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -233,7 +233,7 @@ pylrun_krate(void *csound_, PYRUN *p)
   result = run_statement_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->err_printf_("pylrun_krate: python exception\n");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylrun_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -249,7 +249,7 @@ pylruni_irate(void *csound_, PYRUN *p)
 
   if (*p->string != SSTRCOD)
     {
-      ((ENVIRON *)csound_)->err_printf_("pylruni_irate: a string is needed");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylruni_irate: a string is needed");
       return NOTOK;
     }
 
@@ -260,7 +260,7 @@ pylruni_irate(void *csound_, PYRUN *p)
   result = run_statement_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->err_printf_("pylruni_irate: python exception\n");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylruni_irate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -276,7 +276,7 @@ pyrunt_krate(void *csound_, PYRUNT *p)
 
   if (*p->string != SSTRCOD)
     {
-      ((ENVIRON *)csound_)->err_printf_("pyrunt_krate: a string is needed");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyrunt_krate: a string is needed");
       return NOTOK;
     }
 
@@ -287,7 +287,7 @@ pyrunt_krate(void *csound_, PYRUNT *p)
   result = run_statement_in_given_context(source, 0);
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->err_printf_("pyrun_krate: python exception\n");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyrun_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -318,7 +318,7 @@ pylrunt_krate(void *csound_, PYRUNT *p)
   result = run_statement_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->err_printf_("pylrun_krate: python exception\n");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylrun_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -334,7 +334,7 @@ pyeval_krate(void *csound_, PYEVAL *p)
 
   if (*p->string != SSTRCOD)
     {
-      ((ENVIRON *)csound_)->err_printf_("pyeval_krate: a string is needed");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyeval_krate: a string is needed");
       return NOTOK;
     }
 
@@ -343,13 +343,13 @@ pyeval_krate(void *csound_, PYEVAL *p)
   result = eval_string_in_given_context(source, 0);
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->err_printf_("pyeval_krate: python exception\n");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyeval_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
   else if (!PyFloat_Check(result))
     {
-      ((ENVIRON *)csound_)->err_printf_("pyeval_krate: expression must evaluate in a float\n");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyeval_krate: expression must evaluate in a float\n");
     }
   else
     {
@@ -367,7 +367,7 @@ pyevali_irate(void *csound_, PYEVAL *p)
 
   if (*p->string != SSTRCOD)
     {
-      ((ENVIRON *)csound_)->err_printf_("pyevali_irate: a string is needed");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyevali_irate: a string is needed");
       return NOTOK;
     }
 
@@ -376,13 +376,13 @@ pyevali_irate(void *csound_, PYEVAL *p)
   result = eval_string_in_given_context(source, 0);
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->err_printf_("pyevali_irate: python exception\n");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyevali_irate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
   else if (!PyFloat_Check(result))
     {
-      ((ENVIRON *)csound_)->err_printf_("pyevali_irate: expression must evaluate in a float\n");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyevali_irate: expression must evaluate in a float\n");
     }
   else
     {
@@ -413,13 +413,13 @@ pyleval_krate(void *csound_, PYEVAL *p)
   result = eval_string_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->err_printf_("pyleval_krate: python exception\n");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyleval_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
   else if (!PyFloat_Check(result))
     {
-      ((ENVIRON *)csound_)->err_printf_("pyleval_krate: expression must evaluate in a float\n");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyleval_krate: expression must evaluate in a float\n");
     }
   else
     {
@@ -437,7 +437,7 @@ pylevali_irate(void *csound_, PYEVAL *p)
 
   if (*p->string != SSTRCOD)
     {
-      ((ENVIRON *)csound_)->err_printf_("pylevali_irate: a string is needed");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylevali_irate: a string is needed");
       return NOTOK;
     }
 
@@ -448,13 +448,13 @@ pylevali_irate(void *csound_, PYEVAL *p)
   result = eval_string_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->err_printf_("pylevali_irate: python exception\n");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylevali_irate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
   else if (!PyFloat_Check(result))
     {
-      ((ENVIRON *)csound_)->err_printf_("pylevali_irate: expression must evaluate in a float\n");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylevali_irate: expression must evaluate in a float\n");
     }
   else
     {
@@ -472,7 +472,7 @@ pyevalt_krate(void *csound_, PYEVALT *p)
 
   if (*p->string != SSTRCOD)
     {
-      ((ENVIRON *)csound_)->err_printf_("pyevalt_krate: a string is needed");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyevalt_krate: a string is needed");
       return NOTOK;
     }
 
@@ -486,13 +486,13 @@ pyevalt_krate(void *csound_, PYEVALT *p)
   result = eval_string_in_given_context(source, 0);
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->err_printf_("pyeval_krate: python exception\n");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyeval_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
   else if (!PyFloat_Check(result))
     {
-      ((ENVIRON *)csound_)->err_printf_("pyeval_krate: expression must evaluate in a float\n");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyeval_krate: expression must evaluate in a float\n");
     }
   else
     {
@@ -529,13 +529,13 @@ pylevalt_krate(void *csound_, PYEVALT *p)
   result = eval_string_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->err_printf_("pyleval_krate: python exception\n");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyleval_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
   else if (!PyFloat_Check(result))
     {
-      ((ENVIRON *)csound_)->err_printf_("pyleval_krate: expression must evaluate in a float\n");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyleval_krate: expression must evaluate in a float\n");
     }
   else
     {
@@ -554,7 +554,7 @@ pyassign_krate(void *csound_, PYASSIGN *p)
 
   if (*p->string != SSTRCOD)
     {
-      ((ENVIRON *)csound_)->err_printf_("pyassign_krate: a string is needed");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyassign_krate: a string is needed");
       return NOTOK;
     }
 
@@ -563,7 +563,7 @@ pyassign_krate(void *csound_, PYASSIGN *p)
   result = run_statement_in_given_context(source, 0);
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->err_printf_("pyassign_krate: python exception\n");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyassign_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -579,7 +579,7 @@ pyassigni_irate(void *csound_, PYASSIGN *p)
 
   if (*p->string != SSTRCOD)
     {
-      ((ENVIRON *)csound_)->err_printf_("pyassigni_irate: a string is needed");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyassigni_irate: a string is needed");
       return NOTOK;
     }
 
@@ -588,7 +588,7 @@ pyassigni_irate(void *csound_, PYASSIGN *p)
   result = run_statement_in_given_context(source, 0);
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->err_printf_("pyassigni_irate: python exception\n");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyassigni_irate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -617,7 +617,7 @@ pylassign_krate(void *csound_, PYASSIGN *p)
   result = run_statement_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->err_printf_("pylassign_krate: python exception\n");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylassign_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -633,7 +633,7 @@ pylassigni_irate(void *csound_, PYASSIGN *p)
 
   if (*p->string != SSTRCOD)
     {
-      ((ENVIRON *)csound_)->err_printf_("pylassigni_irate: a string is needed");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylassigni_irate: a string is needed");
       return NOTOK;
     }
 
@@ -644,7 +644,7 @@ pylassigni_irate(void *csound_, PYASSIGN *p)
   result = run_statement_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->err_printf_("pylassigni_irate: python exception\n");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylassigni_irate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -660,7 +660,7 @@ pyassignt_krate(void *csound_, PYASSIGNT *p)
 
   if (*p->string != SSTRCOD)
     {
-      ((ENVIRON *)csound_)->err_printf_("pyassignt_krate: a string is needed");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyassignt_krate: a string is needed");
       return NOTOK;
     }
 
@@ -671,7 +671,7 @@ pyassignt_krate(void *csound_, PYASSIGNT *p)
   result = run_statement_in_given_context(source, 0);
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->err_printf_("pyassign_krate: python exception\n");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyassign_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -702,7 +702,7 @@ pylassignt_krate(void *csound_, PYASSIGNT *p)
   result = run_statement_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->err_printf_("pylassign_krate: python exception\n");
+      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylassign_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
