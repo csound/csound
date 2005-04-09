@@ -134,6 +134,8 @@ typedef struct {
         float   fscalefac;
         long    do_floatscaling;
         long    datpos;
+        char    sfname[128];
+        SNDFILE *sinfd;
 } SOUNDIN;
 
 typedef struct {

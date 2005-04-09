@@ -51,7 +51,7 @@ int aassign(ENVIRON *csound, ASSIGN *p)
     r = p->r;
     a = p->a;
     if (p->XINCODE) {
-      memmove(r, a, nsmps * sizeof(MYFLT)); /* Can we use memcpy?? */
+      if (r!=a) memcpy(r, a, nsmps * sizeof(MYFLT)); /* Can we use memcpy?? */
 /*       for (n=0; n<csound->ksmps; n++) */
 /*         r[n] = a[n]; */
     }
@@ -287,7 +287,7 @@ int aconval(ENVIRON *csound, CONVAL *p)
     if (*p->cond)
       s = p->a;
     else s = p->b;
-    memmove(r, s, csound->ksmps*sizeof(MYFLT));
+    if (r!=s) memcpy(r, s, csound->ksmps*sizeof(MYFLT));
     return OK;
 }
 
@@ -997,7 +997,7 @@ int in(ENVIRON *csound, INM *p)
 
     sp = spin;
     ar = p->ar;
-    memmove(ar, sp, csound->ksmps*sizeof(MYFLT));
+    memcpy(ar, sp, csound->ksmps*sizeof(MYFLT));
 /*     do { */
 /*       *ar++ = *sp++; */
 /*     } while (--nsmps); */
@@ -1146,7 +1146,7 @@ int out(ENVIRON *csound, OUTM *p)
     ap = p->asig;
     sp = spout;
     if (!spoutactive) {
-      memmove(sp, ap, nsmps*sizeof(MYFLT));
+      memcpy(sp, ap, nsmps*sizeof(MYFLT));
       spoutactive = 1;
     }
     else {
