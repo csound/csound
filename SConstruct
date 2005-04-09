@@ -142,6 +142,9 @@ opts.Add('Word64',
 opts.Add('dynamicCsoundLibrary',
     'Build dynamic Csound library instead of libcsound.a',
     '0')
+opts.Add('buildStkOpcodes',
+    "Build opcodes encapsulating Perry Cook's Synthesis Toolkit in C++ instruments and effects",
+    '0')
 opts.Add('install',
     'Enables the Install targets',
     '1')
@@ -255,6 +258,7 @@ fltkFound = configure.CheckHeader("FL/Fl.H", language = "C++")
 boostFound = configure.CheckHeader("boost/any.hpp", language = "C++")
 alsaFound = configure.CheckHeader("alsa/asoundlib.h", language = "C")
 jackFound = configure.CheckHeader("jack/jack.h", language = "C")
+stkFound = configure.CheckHeader("Opcodes/stk/include/Stk.h", language = "C++")
 
 if getPlatform() == 'mingw':
     commonEnvironment['ENV']['PATH'] = os.environ['PATH']
@@ -1001,14 +1005,14 @@ else:
         # the Csound opcodes (modified for Csound 5).
         # It is assumed that you have copied all contents of the Loris distribution
         # into the csound5/Opcodes/Loris directory, e.g.
-    # csound5/Opcodes/Loris/src/*, etc.
+    	# csound5/Opcodes/Loris/src/*, etc.
         lorisEnvironment = vstEnvironment.Copy();
         lorisEnvironment.Append(CCFLAGS = '-DHAVE_FFTW3_H -DDEBUG_LORISGENS -D_MSC_VER')
         lorisEnvironment.Append(CPPPATH = Split('Opcodes/Loris Opcodes/Loris/src ./'))
         lorisEnvironment.Append(LIBS = ['fftw3'])
         lorisSources = glob.glob('Opcodes/Loris/src/*.C')
         lorisSources.append('Opcodes/Loris/scripting/loris.i')
-    # The following file has been patched for Csound 5 and you should update it from Csound 5 CVS.
+    	# The following file has been patched for Csound 5 and you should update it from Csound 5 CVS.
         lorisSources.append('Opcodes/Loris/lorisgens5.C')
         lorisEnvironment.Append(SWIGPATH = ['./'])
         lorisEnvironment.Prepend(SWIGFLAGS = Split('-module loris -c++ -python -DHAVE_FFTW3_H -I./Opcodes/Loris/src -I.'))
@@ -1017,6 +1021,48 @@ else:
         pluginLibraries.append(loris)
     	libs.append(loris)
     	libs.append('loris.py')
+
+    if not (commonEnvironment['buildStkOpcodes'] == '1' and stkFound):
+	print 'CONFIGURATION DECISION: Not building STK opcodes.'
+    else:
+	print 'CONFIGURATION DECISION: Building STK opcodes.'
+	# For the STK opcodes, the STK distribution include, src, and rawwaves directories should be copied thusly:
+	# csound5/Opcodes/stk/include
+	# csound5/Opcodes/stk/src
+	# csound5/Opcodes/stk/rawwaves
+	# Then, the following sources (and any other future I/O or OS dependent sources) should be ignored:
+	removeSources = Split('''
+Opcodes/stk/src/Mutex.cpp 
+Opcodes/stk/src/RtAudio.cpp 
+Opcodes/stk/src/RtMidi.cpp 
+Opcodes/stk/src/RtDuplex.cpp
+Opcodes/stk/src/RtWvIn.cpp
+Opcodes/stk/src/RtWvOut.cpp
+Opcodes/stk/src/Socket.cpp
+Opcodes/stk/src/TcpWvIn.cpp
+Opcodes/stk/src/TcpWvOut.cpp
+Opcodes/stk/src/Thread.cpp
+''')
+	stkEnvironment = vstEnvironment.Copy()
+	if getPlatform() == 'mingw':
+		stkEnvironment.Append(CCFLAGS = '-D__OS_WINDOWS__ -D__LITTLE_ENDIAN__')
+	elif getPlatform() == 'linux':
+		stkEnvironment.Append(CCFLAGS = '-D__OS_LINUX__ -D__LITTLE_ENDIAN__')
+	elif getPlatform() == 'darwin':	
+		stkEnvironment.Append(CCFLAGS = '-D__OS_MACOSX__ -D__BIG_ENDIAN__')
+	stkEnvironment.Prepend(CPPPATH = Split('Opcodes/stk/include Opcodes/stk/src ./ ./../include'))
+	stkSources_ = glob.glob('Opcodes/stk/src/*.cpp')
+	# This is the one that actually defines the opcodes. They are straight wrappers, as simple as possible.
+	stkSources_.append('Opcodes/stk/stkOpcodes.cpp')
+	stkSources = []
+	for source in stkSources_:
+		stkSources.append(source.replace('\\', '/'))
+	for removeMe in removeSources:
+	    stkSources.remove(removeMe)
+	stk = stkEnvironment.SharedLibrary('stk', stkSources)
+        Depends(stk, csoundLibrary)
+	pluginLibraries.append(stk)
+	libs.append(stk)
 
     pyEnvironment = pluginEnvironment.Copy();
     if getPlatform() == 'linux':
