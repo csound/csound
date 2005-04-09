@@ -1,3 +1,12 @@
+2005-04-09  Michael Gogins <gogins@pipeline.com>
+	* Added "STKName" (e.g. "STKBowed") opcodes for all Perry Cook's 
+	Synthesis Toolkit in C++ (STK) 4.2.0 instruments in
+	his "demo" program, using Cook's original C++ code
+	with minimal wrapping (about 25 opcodes, varying in quality
+	from mediocre to very good). To build the opcodes,
+	copy the STK sources into the csound5/Opcodes/stk 
+	directory, as instructed in SConstruct.
+
 2005-04-09  John ffitch  <jpff@codemist.co.uk>
 
 	* InOut/libsnd.c (sndinset): 
