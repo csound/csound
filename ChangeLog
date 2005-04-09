@@ -5,7 +5,11 @@
 	with minimal wrapping (about 25 opcodes, varying in quality
 	from mediocre to very good). To build the opcodes,
 	copy the STK sources into the csound5/Opcodes/stk 
-	directory, as instructed in SConstruct.
+	directory, as instructed in SConstruct. All opcodes
+	have the same signature: 
+	asignal STKName ifrequency iloudness {kcontroller kvalue}
+	The RAWWAVE_PATH environment variable must be set to
+	point to the directory containing the "rawwaves" samples.
 
 2005-04-09  John ffitch  <jpff@codemist.co.uk>
 
