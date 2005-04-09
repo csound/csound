@@ -1,3 +1,9 @@
+2005-04-09  John ffitch  <jpff@codemist.co.uk>
+
+	* InOut/libsnd.c (sndinset): 
+	* H/soundio.h: 
+	* InOut/libsnd_u.c (sndgetset): Fix skipinit for soundin
+
 2005-04-06	Istvan Varga	<istvan@csounds.com>
 	* Engine/fgens.c:
 	  use csound->Message() instead of printf()

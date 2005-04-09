@@ -223,6 +223,14 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
       strcpy(soundiname, strsets[filno]);
     else
       sprintf(soundiname,"soundin.%ld",filno);  /* soundin.filno */
+    if ((int) *p->skipinit != 0) {
+      if (strcmp(p->sfname,soundiname)) {
+        printf("error: cannot tie to a new soundfile\n");
+        return NULL;
+      }
+      return p->sinfd;
+    }
+    strcpy(p->sfname,soundiname);
     sfname = soundiname;
     /* open with full dir paths */
     s = csoundFindInputFile(&cenviron, sfname, "SFDIR;SSDIR");
@@ -387,6 +395,7 @@ SNDFILE *sndgetset(SOUNDIN *p)  /* core of soundinset                */
         p->framesrem -= skipframes;             /* sampleframes to EOF   */
       p->datpos = 0;
       mfree(&cenviron, sfname);
+      p->sinfd = infile;
       return(infile);                           /* return the active fd  */
 
  errtn:
