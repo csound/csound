@@ -1,3 +1,7 @@
+2005-04-10  John ff  <jpff@codemist.co.uk>
+
+	* OOps/ugens2.c (itabl3): Missing return
+
 2005-04-09  Michael Gogins <gogins@pipeline.com>
 	* Added "STKName" (e.g. "STKBowed") opcodes for all Perry Cook's 
 	Synthesis Toolkit in C++ (STK) 4.2.0 instruments in
