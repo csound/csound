@@ -374,9 +374,8 @@ int pluck(ENVIRON *csound, PLUCK *p)
 #define MASK16   0xFFFFL
 #define MASK15   0x7FFFL
 
-static short
-rand16(void)    /* quick generate a random short between -32768 and 32767 */
-{
+static short rand16(void) 
+{         /* quick generate a random short between -32768 and 32767 */
     static long rand = 1000;
     rand *= RNDMUL;
     rand += 1L;
@@ -384,9 +383,8 @@ rand16(void)    /* quick generate a random short between -32768 and 32767 */
     return (short)rand;
 }
 
-static short
-rand15(void)    /* quick generate a random short between 0 and 32767 */
-{
+static short rand15(void) 
+{              /* quick generate a random short between 0 and 32767 */
     static long rand = 1000;
     rand *= RNDMUL;
     rand += 1L;
