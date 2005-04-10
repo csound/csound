@@ -83,7 +83,8 @@ int ainit(ENVIRON *csound, ASSIGN *p)
 }
 
 #define RELATN(OPNAME,OP) \
-    int OPNAME(ENVIRON *csound, RELAT *p) { *p->rbool = (*p->a OP *p->b) ? 1 : 0; return OK; }
+    int OPNAME(ENVIRON *csound, RELAT *p) \
+    { *p->rbool = (*p->a OP *p->b) ? 1 : 0; return OK; }
 
 RELATN(gt,>)
 RELATN(ge,>=)
@@ -93,7 +94,8 @@ RELATN(eq,==)
 RELATN(ne,!=)
 
 #define LOGCLX(OPNAME,OP) \
-  int OPNAME(ENVIRON *csound, LOGCL *p) { *p->rbool = (*p->ibool OP *p->jbool) ? 1 : 0; return OK; }
+  int OPNAME(ENVIRON *csound, LOGCL *p) \
+  { *p->rbool = (*p->ibool OP *p->jbool) ? 1 : 0; return OK; }
 
 LOGCLX(and,&&)
 LOGCLX(or,||)

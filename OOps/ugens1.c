@@ -55,14 +55,14 @@ int kline(ENVIRON *csound, LINE *p)
 int aline(ENVIRON *csound, LINE *p)
 {
     MYFLT       val, inc, *ar;
-    int n;
+    int n, nsmps=csound->ksmps;
 
     val = p->val;
     inc = p->incr;
     p->val += inc;              /* nxtval = val + inc */
     inc /= ensmps;
     ar = p->xr;
-    for (n=0; n<csound->ksmps; n++) {
+    for (n=0; n<nsmps; n++) {
       ar[n] = val;
       val += inc;       /* interp val for ksmps */
     }
@@ -99,7 +99,7 @@ int kexpon(ENVIRON *csound, EXPON *p)
 int expon(ENVIRON *csound, EXPON *p)
 {
     MYFLT       val, mlt, inc, *ar,nxtval;
-    int n;
+    int n, nsmps=csound->ksmps;
 
     val = p->val;
     mlt = p->mlt;
@@ -107,7 +107,7 @@ int expon(ENVIRON *csound, EXPON *p)
     inc = nxtval - val;
     inc /= ensmps;              /* increment per sample */
     ar = p->xr;
-    for (n=0; n<csound->ksmps; n++) {
+    for (n=0; n<nsmps; n++) {
       ar[n] = val;
       val += inc;       /* interp val for ksmps */
     }
@@ -200,7 +200,7 @@ int klnseg(ENVIRON *csound, LINSEG *p)
 int linseg(ENVIRON *csound, LINSEG *p)
 {
     MYFLT  val, ainc, *rs = p->rslt;
-    int         n;
+    int         n, nsmps=csound->ksmps;
 
     if (p->auxch.auxp==NULL) {  /* RWD fix */
       return csound->PerfError(csound, Str("linseg: not initialised (arate)\n"));
@@ -226,14 +226,14 @@ int linseg(ENVIRON *csound, LINSEG *p)
       p->curval = val + p->curinc;        /* advance the cur val  */
       if ((ainc = p->curainc) == FL(0.0))
         goto putk;
-      for (n=0; n<csound->ksmps; n++) {
+      for (n=0; n<nsmps; n++) {
         rs[n] = val;
         val += ainc;
       }
     }
     else {
     putk:
-      for (n=0; n<csound->ksmps; n++) {
+      for (n=0; n<nsmps; n++) {
         rs[n] = val;
       }
     }
@@ -384,7 +384,7 @@ int klnsegr(ENVIRON *csound, LINSEG *p)
 int linsegr(ENVIRON *csound, LINSEG *p)
 {
     MYFLT  val, ainc, *rs = p->rslt;
-    int    n;
+    int    n, nsmps=csound->ksmps;
 
     val = p->curval;                        /* sav the cur value    */
     if (p->segsrem) {                       /* if no more segs putk */
@@ -413,14 +413,14 @@ int linsegr(ENVIRON *csound, LINSEG *p)
       p->curval = val + p->curinc;          /* advance the cur val  */
       if ((ainc = p->curainc) == FL(0.0))
         goto putk;
-      for (n=0; n<csound->ksmps; n++) {
+      for (n=0; n<nsmps; n++) {
         rs[n] = val;
         val += ainc;
       }
     }
     else {
     putk:
-      for (n=0;n<csound->ksmps; n++) rs[n] = val;
+      for (n=0;n<nsmps; n++) rs[n] = val;
     }
     return OK;
 }
@@ -773,7 +773,7 @@ int kxpsegr(ENVIRON *csound, EXPSEG *p)
 int expsegr(ENVIRON *csound, EXPSEG *p)
 {
     MYFLT  val, amlt, *rs = p->rslt;
-    int    n;
+    int    n, nsmps=csound->ksmps;
 
     val = p->curval;                    /* sav the cur value    */
     if (p->segsrem) {                   /* if no more segs putk */
@@ -810,13 +810,13 @@ int expsegr(ENVIRON *csound, EXPSEG *p)
       p->curval = val * p->curmlt;        /* advance the cur val  */
       if ((amlt = p->curamlt) == FL(1.0))
         goto putk;
-      for (n=0; n<csound->ksmps; n++) {
+      for (n=0; n<nsmps; n++) {
         rs[n] = val;
         val *= amlt;
       }
     } else {
     putk:
-      for (n=0; n<csound->ksmps; n++) rs[n] = val;
+      for (n=0; n<nsmps; n++) rs[n] = val;
     }
     return OK;
 }
@@ -869,7 +869,7 @@ int klinen(ENVIRON *csound, LINEN *p)
 
 int linen(ENVIRON *csound, LINEN *p)
 {
-    int flag=0, n;
+    int flag=0, n, nsmps=csound->ksmps;
     MYFLT *rs,*sg,li,val,nxtval=FL(1.0);
 
     val = p->val;
@@ -891,13 +891,13 @@ int linen(ENVIRON *csound, LINEN *p)
     if (flag) {
       li = (nxtval - val)/ensmps;
       if (p->XINCODE) {
-        for (n=0; n<csound->ksmps; n++) {
+        for (n=0; n<nsmps; n++) {
           rs[n] = *sg++ * val;
           val += li;
         }
       }
       else {
-        for (n=0; n<csound->ksmps; n++) {
+        for (n=0; n<nsmps; n++) {
           rs[n] = *sg * val;
           val += li;
         }
@@ -905,11 +905,11 @@ int linen(ENVIRON *csound, LINEN *p)
     }
     else {
       if (p->XINCODE) {
-        for (n=0; n<csound->ksmps; n++) rs[n] = sg[n];
+        for (n=0; n<nsmps; n++) rs[n] = sg[n];
       }
       else {
         MYFLT ss = *sg;
-        for (n=0; n<csound->ksmps; n++) rs[n] = ss;
+        for (n=0; n<nsmps; n++) rs[n] = ss;
       }
     }
     return OK;
@@ -957,7 +957,7 @@ int klinenr(ENVIRON *csound, LINENR *p)
 
 int linenr(ENVIRON *csound, LINENR *p)
 {
-    int flag=0, n;
+    int flag=0, n, nsmps=csound->ksmps;
     MYFLT *rs,*sg,li,val,nxtval=FL(1.0);
 
     val = p->val;
@@ -978,14 +978,14 @@ int linenr(ENVIRON *csound, LINENR *p)
     if (flag) {
       li = (nxtval - val)/ensmps;
       if (p->XINCODE) {
-        for (n=0; n<csound->ksmps; n++) {
+        for (n=0; n<nsmps; n++) {
           rs[n] = sg[n] * val;
           val += li;
         }
       }
       else {
         MYFLT ss = *sg;
-        for (n=0; n<csound->ksmps; n++) {
+        for (n=0; n<nsmps; n++) {
           rs[n] =  ss * val;
           val += li;
         }
@@ -993,13 +993,13 @@ int linenr(ENVIRON *csound, LINENR *p)
     }
     else {
       if (p->XINCODE) {
-        for (n=0; n<csound->ksmps; n++) {
+        for (n=0; n<nsmps; n++) {
           rs[n] = sg[n];
         }
       }
       else {
         MYFLT ss = *sg;
-        for (n=0; n<csound->ksmps; n++) {
+        for (n=0; n<nsmps; n++) {
           rs[n] = ss;
         }
       }
@@ -1122,7 +1122,7 @@ int envlpx(ENVIRON *csound, ENVLPX *p)
 {
     FUNC        *ftp;
     long        phs;
-    int         n;
+    int         n, nsmps=csound->ksmps;
     MYFLT       *xamp, *rslt, val, nxtval, li, v1, fract, *ftab;
 
     xamp = p->xamp;
@@ -1160,14 +1160,14 @@ int envlpx(ENVIRON *csound, ENVLPX *p)
     p->val = nxtval;
     li = (nxtval - val)/ensmps; /* linear interpolation factor */
     if (p->XINCODE) {           /* for audio rate amplitude: */
-      for (n=0; n<csound->ksmps;n++) {
+      for (n=0; n<nsmps;n++) {
         rslt[n] = xamp[n] * val;
         val += li;
       }
     }
     else {
       MYFLT sxamp = *xamp;
-      for (n=0; n<csound->ksmps;n++) {
+      for (n=0; n<nsmps;n++) {
         rslt[n] = sxamp * val;
         val += li;
       }
@@ -1280,7 +1280,7 @@ int envlpxr(ENVIRON *csound, ENVLPR *p)
 #if defined(SYMANTEC) && !defined(THINK_C)
 #pragma options(!global_optimizer)
 #endif
-    int    n;
+    int    n, nsmps=csound->ksmps;
     long   rlscnt;
     MYFLT  *xamp, *rslt, val, nxtval, li;
 
@@ -1326,14 +1326,14 @@ int envlpxr(ENVIRON *csound, ENVLPR *p)
     else p->val = nxtval = val * p->mlt2;   /* else do seg 3 decay  */
     li = (nxtval - val) / ensmps;           /* all segs use interp  */
     if (p->XINCODE) {
-      for (n=0; n<csound->ksmps; n++) {
+      for (n=0; n<nsmps; n++) {
         rslt[n] = xamp[n] * val;
         val += li;
       }
     }
     else {
       MYFLT sxamp = *xamp;
-      for (n=0; n<csound->ksmps; n++) {
+      for (n=0; n<nsmps; n++) {
         rslt[n] = sxamp * val;
         val += li;
       }

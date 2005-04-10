@@ -151,48 +151,46 @@ int filepeak(ENVIRON *csound, SNDINFOPEAK *p)
     csound->Die(csound, Str("filepeak is not implemented"));
     return NOTOK;
 #if 0
-    HEADATA *hdr = NULL;
-    long readlong;
-    int i;
     int channel = (int)(*p->channel + FL(0.5));
-    SNDINFO info;
+    char    *sfname, *s, soundiname[512];
+    long    filno;
+    SNDFILE *sf;
+    SF_INFO sfinfo;
 
-    info.h = p->h;
-    info.r1 = p->r1;
-    info.ifilno = p->ifilno;
-    info.audsize = p->audsize;
-    if ((hdr = getsndinfo(&info)) != NULL
-        && !(readlong = hdr->readlong)) {         /* & hadn't readin audio */
-      if (channel > hdr->nchanls)
-        csound->Die(csound, Str("Input channel for peak exceeds number of channels in file"));
+    if (*p->ifilno == SSTRCOD) { /* if char string name given */
+      if (p->STRARG == NULL)
+        strcpy(soundiname,unquote(currevent->strarg));
+      else
+        strcpy(soundiname,unquote(p->STRARG));    /* unquote it,  else use */
+    }
+    else if ((filno=(long)*p->ifilno) <= strsmax && strsets != NULL &&
+             strsets[filno])
+      strcpy(soundiname, strsets[filno]);
+    else
+      sprintf(soundiname,"soundin.%ld",filno);  /* soundin.filno */
 
-      if (
-          hdr->filetyp == TYP_AIFF ||
-          hdr->filetyp == TYP_WAV) { /* assume maxamps are there, (this is bad) */
-        /* channel '0' is the overall maxamps */
-        /* *p->r1 = hdr->aiffdata->maxamps[(int)(*(p->channel))];*/
-        /*RWD*/
-        if (hdr->peaksvalid) {
-          if (channel==0) {
-            float fmaxamp = 0.0f;
-            /* get overall maxamp */
-            for (i=0;i < hdr->nchanls;i++)
-              if (fmaxamp < hdr->peaks[i].value) fmaxamp = hdr->peaks[i].value;
-            *p->r1 = fmaxamp;
-          }
-          else
-            *p->r1 = hdr->peaks[channel-1].value;
-        }
-      }
-      else { /* ## should we have an option to calculate peaks? */
-        csound->Die(csound, Str("No peak information contained in the header of this file"));
-      }
+    sfname = soundiname;
+    if (strcmp(sfname, "-i") == 0) {    /* get info on the -i    */
+      if (!O.infilename)                /* commandline inputfile */
+        csound->Die(csound, Str("no infile specified in the commandline"));
+      sfname = O.infilename;
     }
-    else {
-      /* RWD: we ought to be able to recover, in this situation ?
-         e.g return -1, which can be trapped in the orc. */
-      csound->Die(csound, Str("No valid header.  Cannot calculate peak values"));
+    s = csoundFindInputFile(csound, sfname, "SFDIR;SSDIR");
+    if (s == NULL) {                        /* open with full dir paths */
+      sprintf(errmsg,Str("diskinfo cannot open %s"), sfname);
+      /* RWD 5:2001 better to exit in this situation ! */
+      csound->Die(csound, errmsg);
     }
+    sfname = s;                             /* & record fullpath filnam */
+    sndfile = sf_open(sfname, SFM_READ, &sfinfo);
+    if (channel>sfinfo->channels)
+      csound->Die(csound,
+                  Str("Input channel for peak exceeds number "
+                      "of channels in file"));
+    peaks = (double*)mmalloc(sizeof(double)*sfinfo->channels);
+    sf_command (sndfile, SFC_CALC_MAX_ALL_CHANNELS, peaks, sizeof(peaks));
+    *p->r1 = peaks[channel];
+    mfree(peaks);
     return OK;
 #endif
 }

@@ -44,9 +44,9 @@ int ipow(ENVIRON *csound, POW *p)               /*      Power for i-rate */
     return OK;
 }
 
-int apow(ENVIRON *csound, POW *p)               /*      Power routine for a-rate  */
+int apow(ENVIRON *csound, POW *p)               /* Power routine for a-rate  */
 {
-    int n;
+    int n, nsmps = csound->ksmps;
     MYFLT *in = p->in, *out = p->sr;
     MYFLT powerOf = *p->powerOf;
 
@@ -62,7 +62,7 @@ int apow(ENVIRON *csound, POW *p)               /*      Power routine for a-rate
       }
     }
     else {
-      for (n=0; n<csound->ksmps; n++)
+      for (n=0; n<nsmps; n++)
         out[n] = (MYFLT)pow(in[n], powerOf) / *p->norm;
     }
     return OK;
@@ -86,11 +86,11 @@ int seedrand(ENVIRON *csound, PRAND *p)
 
 int auniform(ENVIRON *csound, PRAND *p)         /* Uniform distribution */
 {
-    int n;
+    int n, nsmps = csound->ksmps;
     MYFLT *out = p->out;
     MYFLT arg1 = *p->arg1;
 
-    for (n=0; n<csound->ksmps; n++)
+    for (n=0; n<nsmps; n++)
       out[n] = unifrand(arg1);
     return OK;
 }
@@ -103,11 +103,11 @@ int ikuniform(ENVIRON *csound, PRAND *p)
 
 int alinear(ENVIRON *csound, PRAND *p)          /* Linear random functions      */
 {
-    int n;
+    int n, nsmps = csound->ksmps;
     MYFLT *out = p->out;
     MYFLT arg1 = *p->arg1;
 
-    for (n=0; n<csound->ksmps; n++)
+    for (n=0; n<nsmps; n++)
       out[n] = linrand(arg1);
     return OK;
 }
@@ -120,11 +120,11 @@ int iklinear(ENVIRON *csound, PRAND *p)
 
 int atrian(ENVIRON *csound, PRAND *p)           /* Triangle random functions  */
 {
-    int n;
+    int n, nsmps = csound->ksmps;
     MYFLT *out = p->out;
     MYFLT arg1 = *p->arg1;
 
-    for (n=0; n<csound->ksmps; n++)
+    for (n=0; n<nsmps; n++)
       out[n] = trirand(arg1);
     return OK;
 }
@@ -137,11 +137,11 @@ int iktrian(ENVIRON *csound, PRAND *p)
 
 int aexp(ENVIRON *csound, PRAND *p)             /* Exponential random functions */
 {
-    int n;
+    int n, nsmps = csound->ksmps;
     MYFLT *out = p->out;
     MYFLT arg1 = *p->arg1;
 
-    for (n=0; n<csound->ksmps; n++)
+    for (n=0; n<nsmps; n++)
       out[n] = exprand(arg1);
     return OK;
 }
@@ -154,11 +154,11 @@ int ikexp(ENVIRON *csound, PRAND *p)
 
 int abiexp(ENVIRON *csound, PRAND *p)           /* Bilateral exponential rand */
 {                                               /* functions */
-    int n;
+    int n, nsmps = csound->ksmps;
     MYFLT *out = p->out;
     MYFLT arg1 = *p->arg1;
 
-    for (n=0; n<csound->ksmps; n++)
+    for (n=0; n<nsmps; n++)
       out[n] = biexprand(arg1);
     return OK;
 }
@@ -171,11 +171,11 @@ int ikbiexp(ENVIRON *csound, PRAND *p)
 
 int agaus(ENVIRON *csound, PRAND *p)            /* Gaussian random functions */
 {
-    int n;
+    int n, nsmps = csound->ksmps;
     MYFLT *out = p->out;
     MYFLT arg1 = *p->arg1;
 
-    for (n=0; n<csound->ksmps; n++)
+    for (n=0; n<nsmps; n++)
       out[n] = gaussrand(arg1);
     return OK;
 }
@@ -188,11 +188,11 @@ int ikgaus(ENVIRON *csound, PRAND *p)
 
 int acauchy(ENVIRON *csound, PRAND *p)          /* Cauchy random functions */
 {
-    int n;
+    int n, nsmps = csound->ksmps;
     MYFLT *out = p->out;
     MYFLT arg1 = *p->arg1;
 
-    for (n=0; n<csound->ksmps; n++)
+    for (n=0; n<nsmps; n++)
       out[n] = cauchrand(arg1);
     return OK;
 }
@@ -205,11 +205,11 @@ int ikcauchy(ENVIRON *csound, PRAND *p)
 
 int apcauchy(ENVIRON *csound, PRAND *p)         /* +ve Cauchy random functions */
 {
-    int n;
+    int n, nsmps = csound->ksmps;
     MYFLT *out = p->out;
     MYFLT arg1 = *p->arg1;
 
-    for (n=0; n<csound->ksmps; n++)
+    for (n=0; n<nsmps; n++)
       out[n] = pcauchrand(arg1);
     return OK;
 }
@@ -222,13 +222,13 @@ int ikpcauchy(ENVIRON *csound, PRAND *p)
 
 int abeta(ENVIRON *csound, PRAND *p)            /* Beta random functions   */
 {
-    int n;
+    int n, nsmps = csound->ksmps;
     MYFLT *out = p->out;
     MYFLT arg1 = *p->arg1;
     MYFLT arg2 = *p->arg2;
     MYFLT arg3 = *p->arg3;
 
-    for (n=0; n<csound->ksmps; n++)
+    for (n=0; n<nsmps; n++)
       out[n] = betarand(arg1, arg2, arg3);
     return OK;
 }
@@ -241,12 +241,12 @@ int ikbeta(ENVIRON *csound, PRAND *p)
 
 int aweib(ENVIRON *csound, PRAND *p)            /* Weibull randon functions */
 {
-    int n;
+    int n, nsmps = csound->ksmps;
     MYFLT *out = p->out;
     MYFLT arg1 = *p->arg1;
     MYFLT arg2 = *p->arg2;
 
-    for (n=0; n<csound->ksmps; n++)
+    for (n=0; n<nsmps; n++)
       out[n] = weibrand(arg1, arg2);
     return OK;
 }
@@ -259,11 +259,11 @@ int ikweib(ENVIRON *csound, PRAND *p)
 
 int apoiss(ENVIRON *csound, PRAND *p)           /*      Poisson random funcions */
 {
-    int n;
+    int n, nsmps = csound->ksmps;
     MYFLT *out = p->out;
     MYFLT arg1 = *p->arg1;
 
-    for (n=0; n<csound->ksmps; n++)
+    for (n=0; n<nsmps; n++)
       out[n] = poissrand(arg1);
     return OK;
 }
