@@ -2119,7 +2119,7 @@ static void gen01raw(FUNC *ftp, ENVIRON *csound)
       if ((ff->flen = p->framesrem) <= 0) { /*   get minsize from soundin */
         fterror(csound, ff, Str("deferred size, but filesize unknown")); return;
       }
-      csound->Message(csound, Str("**** defer length %ld\n"), ff->flen);
+      csound->Message(csound, Str("**** defer length %ld\n"), (long) ff->flen);
       if (p->channel == ALLCHNLS)
         ff->flen *= p->nchanls;
       ff->guardreq  = 1;
@@ -2160,7 +2160,7 @@ static void gen01raw(FUNC *ftp, ENVIRON *csound)
           maxend = ftp->end2;
         csound->Message(csound,
                         Str("\tlooping endpoint %ld exceeds ftsize %ld\n"),
-                        maxend, ff->flen);
+                        (long) maxend, (long) ff->flen);
         needsiz(csound, ff, maxend);
         truncmsg = 1;
       }
@@ -2180,7 +2180,7 @@ static void gen01raw(FUNC *ftp, ENVIRON *csound)
       /* Reduce msg */
       csound->Warning(csound, Str("GEN1: aiff file truncated by ftable size"));
       csound->Warning(csound, Str("\taudio samps %ld exceeds ftsize %ld"),
-                              p->framesrem, ff->flen);
+                              (long) p->framesrem, (long) ff->flen);
       needsiz(csound, ff, p->framesrem);     /* ????????????  */
     }
     ftp->soundend = inlocs / ftp->nchanls;   /* record end of sound samps */
