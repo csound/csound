@@ -284,7 +284,8 @@ void print_benchmark_info(void *csound, const char *s)
       return;
     rt = timers_get_real_time(p);
     ct = timers_get_CPU_time(p);
-    err_printf(Str("Elapsed time at %s: real: %.3fs, CPU: %.3fs\n"),
+    ((ENVIRON*)csound)->Message(csound,
+               Str("Elapsed time at %s: real: %.3fs, CPU: %.3fs\n"),
                (char*) s, rt, ct);
 }
 
@@ -331,19 +332,19 @@ int csoundCompile(void *csound_, int argc, char **argv)
     csoundCreateGlobalVariable(csound, "#CLEANUP", (size_t) 1);
     if (sizeof(MYFLT)==sizeof(float)) {
 #ifdef BETA
-      err_printf("Csound version %s beta (float samples) %s\n",
+      csound->Message(csound,"Csound version %s beta (float samples) %s\n",
                  PACKAGE_VERSION, __DATE__);
 #else
-      err_printf("Csound version %s (float samples) %s\n",
+      csound->Message(csound,"Csound version %s (float samples) %s\n",
                  PACKAGE_VERSION, __DATE__);
 #endif
     }
     else {
 #ifdef BETA
-      err_printf("Csound version %s beta (double samples) %s\n",
+      csound->Message(csound,"Csound version %s beta (double samples) %s\n",
                  PACKAGE_VERSION, __DATE__);
 #else
-      err_printf("Csound version %s (double samples) %s\n",
+      csound->Message(csound,"Csound version %s (double samples) %s\n",
                  PACKAGE_VERSION, __DATE__);
 #endif
     }
@@ -351,7 +352,7 @@ int csoundCompile(void *csound_, int argc, char **argv)
       char buffer[128];
 #include <sndfile.h>
       sf_command (NULL, SFC_GET_LIB_VERSION, buffer, 128);
-      err_printf("%s\n", buffer);
+      csound->Message(csound,"%s\n", buffer);
     }
 
     /* do not know file type yet */
@@ -382,7 +383,7 @@ int csoundCompile(void *csound_, int argc, char **argv)
       if (csrcname != NULL && csrcname[0] != '\0') {
         csrc = fopen(csrcname, "r");
         if (csrc == NULL)
-          err_printf(Str("WARNING: cannot open csoundrc file %s\n"), csrcname);
+          csound->Message(csound,Str("WARNING: cannot open csoundrc file %s\n"), csrcname);
       }
       if (csrc == NULL &&
           (csoundGetEnv(csound, "HOME") != NULL &&
@@ -391,7 +392,7 @@ int csoundCompile(void *csound_, int argc, char **argv)
         csrcname = (char*)
           malloc((size_t) strlen(csoundGetEnv(csound, "HOME")) + (size_t) 11);
         if (csrcname == NULL) {
-          err_printf(Str(" *** memory allocation failure\n"));
+          csound->Message(csound,Str(" *** memory allocation failure\n"));
           longjmp(csound->exitjmp, 1);
         }
         sprintf(csrcname, "%s%c%s",
@@ -420,7 +421,7 @@ int csoundCompile(void *csound_, int argc, char **argv)
       int   read_unified_file(void*, char **, char **);
       /* FIXME: allow orc/sco/csd name in CSD file: does this work ? */
       strcpy(orcNameMode, "normal");
-      err_printf("UnifiedCSD:  %s\n", orchname);
+      csound->Message(csound,"UnifiedCSD:  %s\n", orchname);
       if (!read_unified_file(csound, &orchname, &scorename)) {
         csound->Die(csound, Str("Decode failed....stopping"));
       }
@@ -497,11 +498,11 @@ int csoundCompile(void *csound_, int argc, char **argv)
     O.sfsampsize = sfsampsize(O.outformat);
     O.informat = O.outformat;       /* informat defaults; */
     O.insampsiz = O.sfsampsize;     /* resettable by readinheader */
-    err_printf(Str("orchname:  %s\n"), orchname);
+    csound->Message(csound,Str("orchname:  %s\n"), orchname);
     if (scorename != NULL)
-      err_printf(Str("scorename: %s\n"), scorename);
+      csound->Message(csound,Str("scorename: %s\n"), scorename);
     if (xfilename != NULL)
-      err_printf(Str("xfilename: %s\n"), xfilename);
+      csound->Message(csound,Str("xfilename: %s\n"), xfilename);
 #if defined(WIN32) || defined(__EMX__)
     {
       if (O.odebug) setvbuf(stdout,0,_IOLBF,0xff);
@@ -554,7 +555,7 @@ int csoundCompile(void *csound_, int argc, char **argv)
     if ((n = strlen(scorename)) > 4            /* if score ?.srt or ?.xtr */
         && (!strcmp(scorename+n-4,".srt") ||
             !strcmp(scorename+n-4,".xtr"))) {
-      err_printf(Str("using previous %s\n"),scorename);
+      csound->Message(csound,Str("using previous %s\n"),scorename);
       playscore = sortedscore = scorename;            /*   use that one */
     }
     else {
@@ -569,7 +570,7 @@ int csoundCompile(void *csound_, int argc, char **argv)
         csoundDie(csound, Str("cannot open scorefile %s"), scorename);
       if (!(scorout = fopen(sortedscore, "w")))
         csoundDie(csound, Str("cannot open %s for writing"), sortedscore);
-      err_printf(Str("sorting score ...\n"));
+      csound->Message(csound,Str("sorting score ...\n"));
       scsort(scorin, scorout);
       fclose(scorin);
       fclose(scorout);
@@ -583,13 +584,13 @@ int csoundCompile(void *csound_, int argc, char **argv)
         csoundDie(csound, Str("cannot reopen %s"), sortedscore);
       if (!(scorout = fopen(xtractedscore, "w")))
         csoundDie(csound, Str("cannot open %s for writing"), xtractedscore);
-      err_printf(Str("  ... extracting ...\n"));
+      csound->Message(csound,Str("  ... extracting ...\n"));
       scxtract(scorin, scorout, xfile);
       fclose(scorin);
       fclose(scorout);
       playscore = xtractedscore;
     }
-    err_printf(Str("\t... done\n"));
+    csound->Message(csound,Str("\t... done\n"));
     s = playscore;
     O.playscore = filnamp;
     while ((*filnamp++ = *s++));    /* copy sorted score name */

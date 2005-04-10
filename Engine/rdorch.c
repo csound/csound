@@ -318,7 +318,7 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
         typemask_tabl_out[pos] = *ptr++;
       }
     }
-    printf(Str("orch compiler:\n"));
+    csound->Message(csound,Str("orch compiler:\n"));
     if ((fp = fopen(orchname,"r")) == NULL)
       csoundDie(csound, Str("cannot open orch file %s"), orchname);
     if (fseek(fp, 0L, SEEK_END) != 0)
@@ -443,7 +443,7 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
             mname[i++] = c;
           } while (isalpha(c = getorchar())|| (i!=0 && (isdigit(c)||c=='_')));
           mname[i] = '\0';
-          printf(Str("Macro definition for %s\n"), mname);
+          csound->Message(csound,Str("Macro definition for %s\n"), mname);
           mm->name = mmalloc(csound, i+1);
           strcpy(mm->name, mname);
           if (c == '(') {       /* arguments */
@@ -471,7 +471,7 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
               }
               while (isspace(c)) c = getorchar();
             } while (c=='\'' || c=='#');
-            if (c!=')') printf(Str("macro error\n"));
+            if (c!=')') csound->Message(csound,Str("macro error\n"));
           }
           mm->acnt = arg;
           i = 0;
@@ -527,7 +527,8 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
             str->string = 0;
             str->file = fopen_path(mname, orchname, "INCDIR", "r");
             if (str->file==0) {
-              printf(Str("Cannot open #include'd file %s\n"), mname);
+              csound->Message(csound,
+                              Str("Cannot open #include'd file %s\n"), mname);
               /* Should this stop things?? */
             str--; input_cnt--;
             }
@@ -548,14 +549,14 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
               mname[i++] = c;
             } while (isalpha(c = getorchar())|| (i!=0 && (isdigit(c)||c=='_')));
             mname[i] = '\0';
-            printf("found: #ifdef %s\n", mname);
+/*             printf("found: #ifdef %s\n", mname); */
             mm = macros;
             while (mm != NULL) {  /* Find the definition */
               if (!(strcmp (mname, mm->name))) break;
               mm = mm->next;
             }
-            if (mm==NULL) printf("...not defined\n");
-            else printf("...defined\n");
+            if (mm==NULL) csound->Message(csound,"...not defined\n");
+            else csound->Message(csound,"...defined\n");
             /* Problem is what to do about it!! */
             lexerr("#ifdef not complete");
           }
@@ -569,7 +570,7 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
             mname[i++] = c;
           } while (isalpha(c = getorchar())|| (i!=0 && (isdigit(c)||c=='_')));
           mname[i] = '\0';
-          printf(Str("macro %s undefined\n"), mname);
+          csound->Message(csound,Str("macro %s undefined\n"), mname);
           if (strcmp(mname, macros->name)==0) {
             MACRO *mm=macros->next;
             mfree(csound, macros->name); mfree(csound, macros->body);
@@ -592,7 +593,7 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
           while (c!='\n') c = getorchar(); /* ignore rest of line */
         }
         else {
-          err_printf(Str("Warning: Unknown # option"));
+          csound->Message(csound,Str("Warning: Unknown # option"));
           ungetorchar(c);
           c = '#';
         }
@@ -695,7 +696,7 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
       *cp++ = '\n';                     /*    add one           */
     else --lincnt;
     linadr[lincnt+1] = NULL;            /* terminate the adrs list */
-    printf(Str("%d lines read\n"),lincnt);
+    csound->Message(csound,Str("%d lines read\n"),lincnt);
     fclose(fp);                         /* close the file       */
     curline = 0;                        /*   & reset to line 1  */
     while (macros) {                    /* Clear all macros */
@@ -1203,7 +1204,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         if ((c = argtyp(group[opgrpno ] )) != 'a') c = 'k';
         sprintf(str, "%s.%c", linopcod, c);
         if (!(isopcod(str))) {
-          printf(Str("Failed to find %s\n"), str);
+          csound->Message(csound,Str("Failed to find %s\n"), str);
           sprintf(errmsg,Str("output arg '%s' illegal type"),
                   group[nxtest]);
           synterr(errmsg);                      /* report syntax error     */
@@ -1267,8 +1268,9 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         else if (tran_nchnls == 8)  isopcod("outo");
         else if (tran_nchnls == 16) isopcod("outx");
         else if (tran_nchnls == 32) isopcod("out32");
-        err_printf(Str("%s inconsistent with global nchnls (%d); "
-                       "replaced with %s\n"), linopcod, tran_nchnls, opcod);
+        csound->Message(csound,Str("%s inconsistent with global nchnls (%d); "
+                                   "replaced with %s\n"),
+                        linopcod, tran_nchnls, opcod);
         tp->opnum = linopnum = opnum;
         tp->opcod = strsav(linopcod = opcod);
       }
@@ -1608,7 +1610,7 @@ int getopnum(char *s)           /* tst a string against opcodlst  */
     int     n;
 
     if ((n = find_opcode(&cenviron, s))) return n;  /* IV - Oct 31 2002 */
-    printf("opcode=%s\n", s);
+    cenviron.Message(&cenviron,"opcode=%s\n", s);
     csoundDie(&cenviron, Str("unknown opcode"));
     return(0);  /* compiler only */
 }
@@ -1699,10 +1701,10 @@ static void lblchk(void)
     for (req=0; req<lblcnt; req++ )
       if ((n = lblreq[req].reqline)) {
         char    *s;
-        printf(Str("error line %d.  unknown label:\n"),n);
+        cenviron.Message(&cenviron,Str("error line %d.  unknown label:\n"),n);
         s = linadr[n];
         do {
-          printf("%c", *s);
+          cenviron.Message(&cenviron,"%c", *s);
         } while (*s++ != '\n');
         synterrcnt++;
       }
@@ -1713,15 +1715,15 @@ void synterr(char *s)
     int c;
     char        *cp;
 
-    printf(Str("error:  %s"),s);
+    cenviron.Message(&cenviron,Str("error:  %s"),s);
     if ((cp = linadr[curline]) != NULL) {
-      printf(Str(", line %d:\n"),curline);
+      cenviron.Message(&cenviron,Str(", line %d:\n"),curline);
       do {
-        printf("%c", (c = *cp++));
+        cenviron.Message(&cenviron,"%c", (c = *cp++));
       } while (c != '\n');
     }
     else {
-      printf("\n");
+      cenviron.Message(&cenviron,"\n");
     }
     synterrcnt++;
 }
@@ -1743,15 +1745,19 @@ void synterrp(char *errp, char *s)
 static void lexerr(char *s)
 {
     struct in_stack *curr = str;
-    printf(Str("error:  %s"),s);
+    cenviron.Message(&cenviron,Str("error:  %s"),s);
     while (curr!=inputs) {
       if (curr->string) {
         MACRO *mm = macros;
         while (mm != curr->mac) mm = mm->next;
-        printf(Str("called from line %d of macro %s\n"), curr->line, mm->name);
+        cenviron.Message(&cenviron,
+                         Str("called from line %d of macro %s\n"),
+                         curr->line, mm->name);
       }
       else {
-        printf(Str("in line %f of file input %s\n"), curr->line, curr->body);
+        cenviron.Message(&cenviron,
+                         Str("in line %f of file input %s\n"),
+                         curr->line, curr->body);
       }
       curr--;
     }
@@ -1760,11 +1766,11 @@ static void lexerr(char *s)
 static void printgroups(int grpcnt)     /*   debugging aid (onto stdout) */
 {
     char        c, *cp = group[0];
-    printf("groups:\t");
+    cenviron.Message(&cenviron,"groups:\t");
     while (grpcnt--) {
-      printf("%s ", cp);
+      cenviron.Message(&cenviron,"%s ", cp);
       while ((c = *cp++));
     }
-    printf("\n");
+    cenviron.Message(&cenviron,"\n");
 }
 
