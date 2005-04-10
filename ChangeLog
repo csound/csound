@@ -1,3 +1,7 @@
+2005-04-10  Michael Gogins <gogins@pipeline.com>
+	* Updated the STK opcodes to take from 0 to 4 optional
+	krate controller-value pairs.
+	
 2005-04-10  John ff  <jpff@codemist.co.uk>
 
 	* OOps/ugens2.c (itabl3): Missing return
