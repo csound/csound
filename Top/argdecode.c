@@ -207,10 +207,12 @@ void usage(void)
 
 static void longusage(void *csound)
 {
-  err_printf(Str("Usage:\tcsound [-flags] orchfile scorefile\n"));
-  err_printf(Str("Legal flags are:\n"));
-  err_printf(Str("Long format:\n\n"));
-  err_printf("--format={alaw,ulaw,"
+    ENVIRON *p = (ENVIRON*)csound;
+
+  p->Message(csound,Str("Usage:\tcsound [-flags] orchfile scorefile\n"));
+  p->Message(csound,Str("Legal flags are:\n"));
+  p->Message(csound,Str("Long format:\n\n"));
+  p->Message(csound,"--format={alaw,ulaw,"
              "schar,uchar,float,short,long,24bit,rescale}\t Set sound type\n"
              "--aiff\t\t\tSet AIFF format\n"
              "--au\t\t\tSet AU format\n"
@@ -286,16 +288,17 @@ static void longusage(void *csound)
              );
   /* IV - Feb 19 2005 */
   dump_cfg_variables(csound);
-  err_printf(Str("\nShort form:\n"));
+  p->Message(csound,Str("\nShort form:\n"));
   print_short_usage(csound);
-  longjmp(((ENVIRON*) csound)->exitjmp, CSOUND_EXITJMP_SUCCESS);
+  longjmp(p->exitjmp, CSOUND_EXITJMP_SUCCESS);
 }
 
 void dieu(char *s)
 {
-  err_printf(Str("Csound Command ERROR:\t%s\n"), s);
-  usage();
-  longjmp(cenviron.exitjmp,1);
+    ENVIRON *csound = &cenviron;
+    csound->Message(csound,Str("Csound Command ERROR:\t%s\n"), s);
+    usage();
+    longjmp(cenviron.exitjmp,1);
 }
 
 typedef struct {
@@ -1211,7 +1214,8 @@ int argdecode(void *csound, int argc, char **argv_)
         else if (scorename == NULL)
           scorename = --s;
         else {
-          err_printf("argc=%d Additional string \"%s\"\n", argc, --s);
+          ENVIRON *p = (ENVIRON*)csound;
+          p->Message(csound,"argc=%d Additional string \"%s\"\n", argc, --s);
           dieu(Str("too many arguments"));
         }
       }

@@ -447,9 +447,10 @@ int sreadin(                    /* special handling of sound input       */
 
 void dbfs_init(MYFLT dbfs)
 {
+    ENVIRON *p=&cenviron;
     cenviron.dbfs_to_float = FL(1.0) / dbfs;
     cenviron.e0dbfs = dbfs;
     /* probably want this message written just before note messages start... */
-    err_printf(Str("0dBFS level = %.1f\n"), dbfs);
+    p->Message(&cenviron,Str("0dBFS level = %.1f\n"), dbfs);
 }
 

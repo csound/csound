@@ -1435,7 +1435,9 @@ void timers_struct_init(RTCLOCK *p)
 #else
       timeResolutionSeconds = 1.0;
 #endif
-      err_printf("time resolution is %.3f ns\n", 1.0e9 * timeResolutionSeconds);
+      cenviron.Message(&cenviron,
+                       "time resolution is %.3f ns\n",
+                       1.0e9 * timeResolutionSeconds);
     }
     p->real_time_to_seconds_scale = timeResolutionSeconds;
     p->CPU_time_to_seconds_scale = 1.0 / (double) CLOCKS_PER_SEC;

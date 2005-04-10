@@ -385,7 +385,8 @@ void otran(ENVIRON *csound)
                   sprintf(errmsg, Str("cannot redefine %s"), name);
                   synterr(errmsg); continue;
                 }
-                err_printf(Str("WARNING: redefined opcode: %s\n"), name);
+                csound->Message(csound,
+                                Str("WARNING: redefined opcode: %s\n"), name);
               }
               newopnum = opcListNumItems;
               /* IV - Oct 31 2002: reduced number of calls to mrealloc() */
@@ -615,8 +616,9 @@ void otran(ENVIRON *csound)
         synterr(Str("perf-pass statements illegal in header blk"));
     }
     if (synterrcnt) {
-      printf(Str("%d syntax errors in orchestra.  compilation invalid\n"),
-             synterrcnt);
+      csound->Message(csound,
+                      Str("%d syntax errors in orchestra.  compilation invalid\n"),
+                      synterrcnt);
       longjmp(csound->exitjmp, 1);
     }
     if (O.odebug) {
@@ -741,8 +743,9 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
           cenviron.nlabels += NLABELS;
           if (lblsp - labels >= cenviron.nlabels)
             cenviron.nlabels = lblsp - labels + 2;
-          printf(Str("LABELS list is full...extending to %d\n"),
-                 cenviron.nlabels);
+          cenviron.Message(&cenviron,
+                           Str("LABELS list is full...extending to %d\n"),
+                           cenviron.nlabels);
           labels =
             (char**)mrealloc(&cenviron, labels, cenviron.nlabels*sizeof(char*));
           lblsp = &labels[oldn];
@@ -794,8 +797,9 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
             if (largp - larg >= cenviron.ngotos) {
               int oldn = cenviron.ngotos;
               cenviron.ngotos += NGOTOS;
-              printf(Str("GOTOS list is full..extending to %d\n"),
-                     cenviron.ngotos);
+              cenviron.Message(&cenviron,
+                               Str("GOTOS list is full..extending to %d\n"),
+                               cenviron.ngotos);
               if (largp - larg >= cenviron.ngotos)
                 cenviron.ngotos = largp - larg + 1;
               larg = (LBLARG *)
@@ -913,7 +917,7 @@ static int constndx(char *s)    /* get storage ndx of float const value */
       /* csoundDie(&cenviron, "flconst pool is full"); */
       int indx = fp-pool;
       nconsts += NCONSTS;
-      printf(Str("extending Floating pool to %d\n"), nconsts);
+      cenviron.Message(&cenviron,Str("extending Floating pool to %d\n"), nconsts);
       pool = (MYFLT*)mrealloc(&cenviron, pool, nconsts*sizeof(MYFLT));
       fp = pool + indx;
     }
@@ -940,7 +944,7 @@ static void gblnamset(char *s) /* builds namelist & type counts for gbl names */
       if (ggg->nxtslot+1 >= ggg->namlim) {      /* chk for full table   */
 /*          csoundDie(&cenviron, "gbl namelist is full"); */
         if (ggg->next == NULL) {
-          err_printf( Str("Extending Global pool to %d\n"),
+          cenviron.Message(&cenviron,Str("Extending Global pool to %d\n"),
                       gblsize+=GNAMES);
           ggg->next = (struct namepool*)mmalloc(&cenviron, sizeof(struct namepool));
           ggg = ggg->next;
@@ -983,9 +987,10 @@ static NAME *lclnamset(char *s)
       if (lll->nxtslot+1 >= lll->namlim) {      /* chk for full table   */
         /*          csoundDie(&cenviron, "lcl namelist is full"); */
         if (lll->next == NULL) {
-          err_printf( Str("Extending Local pool to %d\n"),
-                      lclsize+=LNAMES);
-          lll->next = (struct namepool*)mmalloc(&cenviron, sizeof(struct namepool));
+          cenviron.Message(&cenviron,Str("Extending Local pool to %d\n"),
+                           lclsize+=LNAMES);
+          lll->next = (struct namepool*)mmalloc(&cenviron,
+                                                sizeof(struct namepool));
           lll = lll->next;
           lll->names = (NAME *)mmalloc(&cenviron, (long)(LNAMES*sizeof(NAME)));
           lll->namlim = lll->names + LNAMES;
@@ -1106,14 +1111,14 @@ void putop(TEXT *tp)
 /*     printf("\n"); */
     if ((n = tp->outlist->count)!=0) {
       nn = 0;
-      while (n--) printf("%s\t", tp->outlist->arg[nn++]);
+      while (n--) cenviron.Message(&cenviron,"%s\t", tp->outlist->arg[nn++]);
     }
-    else printf("\t");
-    printf("%s\t", tp->opcod);
+    else cenviron.Message(&cenviron,"\t");
+    cenviron.Message(&cenviron,"%s\t", tp->opcod);
     if ((n = tp->inlist->count)!=0) {
       nn = 0;
-      while (n--) printf("%s\t",tp->inlist->arg[nn++]);
+      while (n--) cenviron.Message(&cenviron,"%s\t",tp->inlist->arg[nn++]);
     }
-    printf("\n");
+    cenviron.Message(&cenviron,"\n");
 }
 
