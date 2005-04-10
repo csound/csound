@@ -275,7 +275,8 @@ int pvoc(ENVIRON *csound, PVOC *p)
     writeClrFromCircBuf(p->outBuf, ar, p->opBpos, csound->ksmps, circBufSize);
     p->opBpos += csound->ksmps;
     if (p->opBpos > circBufSize)     p->opBpos -= circBufSize;
-    addToCircBuf(buf2+csound->ksmps,p->outBuf,p->opBpos,buf2Size-csound->ksmps,circBufSize);
+    addToCircBuf(buf2+csound->ksmps,p->outBuf,
+                 p->opBpos,buf2Size-csound->ksmps,circBufSize);
     p->lastPex = pex;        /* needs to know last pitchexp to update phase */
     {
       int i;
