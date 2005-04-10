@@ -1,4 +1,4 @@
-/*  
+/*
     mixer.c
 
     Copyright (C) 1995 John ffitch
@@ -85,21 +85,13 @@ static SNDFILE *MXsndgetset(inputs *);
 static void MixSound(int, SNDFILE*);
 
 /* Externs */
-extern long getsndin(SNDFILE*, MYFLT *, long, SOUNDIN *);
 extern int  openout(char *, int), getsizformat(int);
 extern char *getstrformat(int);
-extern SNDFILE *sndgetset(SOUNDIN *);
 extern short sfsampsize(int);
-extern int type2sf(int);
-#ifdef  USE_DOUBLE
-#define sf_write_MYFLT  sf_write_double
-#else
-#define sf_write_MYFLT  sf_write_float
-#endif
 
 /* Static global variables */
 static  unsigned  outbufsiz;
-static  MYFLT     *outbuf; 
+static  MYFLT     *outbuf;
 static  int       outrange = 0;             /* Count samples out of range */
 static  OPARMS    OO;
 
@@ -112,7 +104,7 @@ static void usage(char *mesg)
     err_printf(Str("-A\tcreate an AIFF format output soundfile\n"));
     err_printf(Str("-W\tcreate a WAV format output soundfile\n"));
     err_printf(Str("-h\tno header on output soundfile\n"));
-    err_printf(Str("-8\t8-bit unsigned_char sound samples\n")); 
+    err_printf(Str("-8\t8-bit unsigned_char sound samples\n"));
     err_printf(Str("-c\t8-bit signed_char sound samples\n"));
     err_printf(Str("-8\t8-bit unsigned_char sound samples\n"));
 #ifdef never
@@ -192,6 +184,7 @@ static char set_output_format(char c, char outformch)
 
 int main(int argc, char **argv)
 {
+    ENVIRON     *csound = &cenviron;
     char        *inputfile = NULL;
     SNDFILE     *infd, *outfd;
     int         i;
@@ -386,9 +379,7 @@ int main(int argc, char **argv)
       }
     } while (--argc);
 
-#ifdef RWD_DBFS
-    dbfs_init(DFLT_DBFS);
-#endif
+    dbfs_init(csound, DFLT_DBFS);
     /* Read sound files */
     if (n==0) {
       if (O.msglevel & WARNMSG)
@@ -423,7 +414,7 @@ int main(int argc, char **argv)
       else mixin[i].start = mixin[0].p->nchanls*mixin[i].start;
       if (mixin[i].use_table) InitScaleTable(i);
     }
-    
+
     if (OO.outformat)                       /* if no audioformat yet  */
       O.outformat = OO.outformat;
     else O.outformat = mixin[0].p->format; /* Copy from first input file */
@@ -482,7 +473,7 @@ int main(int argc, char **argv)
     sfinfo.frames = -1;
     sfinfo.samplerate = (int)(cenviron.esr = mixin[0].p->sr);
     sfinfo.channels = cenviron.nchnls = mixin[0].p->nchanls ;
-    sfinfo.format = type2sf(O.filetyp)|format2sf(O.outformat);
+    sfinfo.format = TYPE2SF(O.filetyp) | FORMAT2SF(O.outformat);
     sfinfo.sections = 0;
     sfinfo.seekable = 0;
     outfd = sf_open_fd(openout(O.outfilename, 1), SFM_WRITE, &sfinfo, 1);
@@ -503,7 +494,7 @@ int main(int argc, char **argv)
     return 0;
 }
 
-static void 
+static void
 InitScaleTable(int i)
 {
     FILE *f = fopen(mixin[i].fname, "r");
@@ -575,7 +566,7 @@ InitScaleTable(int i)
     mixin[i].use_table = 1;
 }
 
-static MYFLT 
+static MYFLT
 gain(int n, int i)
 {
     if (!mixin[n].use_table) return mixin[n].factor;
@@ -596,39 +587,31 @@ gain(int n, int i)
 static SNDFILE*
 MXsndgetset(inputs *ddd)
 {
+    ENVIRON *csound = &cenviron;
     SNDFILE *infd;
-    MYFLT        dur;
-    static  ARGOFFS  argoffs = {0};     /* these for sndgetset */
-    static  OPTXT    optxt;
-    static  MYFLT    fzero = FL(0.0);
-    char         quotname[80];
-    SOUNDIN *    p;
-    static MYFLT sstrcod = (MYFLT)SSTRCOD;
+    MYFLT   dur;
+    SOUNDIN *p;
 
-    sssfinit();                 /* stand-alone init of SFDIR etc. */
-    cenviron.esr = FL(0.0);     /* set esr 0. with no orchestra   */
-    optxt.t.outoffs = &argoffs; /* point to dummy OUTOCOUNT       */
-    ddd->p = p = (SOUNDIN *) mcalloc(&cenviron, (long)sizeof(SOUNDIN));
+    csoundInitEnv(csound);      /* stand-alone init of SFDIR etc. */
+    csound->esr = FL(0.0);      /* set esr 0. with no orchestra   */
+    ddd->p = p = (SOUNDIN *) csound->Calloc(csound, sizeof(SOUNDIN));
     p->channel = ALLCHNLS;
-    p->h.optext = &optxt;
-    p->ifilno = &sstrcod;
-    p->iskptim = &fzero;
-    p->iformat = &fzero;
-    sprintf(quotname,"%c%s%c",'"',ddd->name,'"');
-    p->STRARG = quotname;
-    if ((infd = sndgetset(p)) == 0)            /* open sndfil, do skiptime */
+    p->skiptime = FL(0.0);
+    strcpy(p->sfname, ddd->name);
+    if ((infd = csound->sndgetset(csound, p)) == 0) /*open sndfil, do skiptime*/
       return(0);
     p->getframes = p->framesrem;
     dur = (MYFLT) p->getframes / p->sr;
     printf(Str("mixing %ld sample frames (%3.1f secs)\n"),
-           p->getframes, dur);
+           (long) p->getframes, dur);
     ddd->fd = infd;
     return(infd);
 }
 
-static void 
+static void
 MixSound(int n, SNDFILE *outfd)
 {
+    ENVIRON *csound = &cenviron;
     MYFLT buffer[4 * NUMBER_OF_SAMPLES];
     MYFLT ibuffer[4 * NUMBER_OF_SAMPLES];
     long  read_in;
@@ -657,12 +640,12 @@ MixSound(int n, SNDFILE *outfd)
       this_block = 0;
       for (i = 0; i<n; i++) {
         if (sample >= mixin[i].start) {
-          read_in = getsndin(mixin[i].fd, ibuffer,
-                             size*mixin[i].p->nchanls, mixin[i].p);
+          read_in = csound->getsndin(csound, mixin[i].fd, ibuffer,
+                                     size*mixin[i].p->nchanls, mixin[i].p);
           read_in /= mixin[i].p->nchanls;
           if (read_in > this_block) this_block = read_in;
           if (mixin[i].non_clear) {
-            for (k = 1; k<=mixin[i].p->nchanls; k++) 
+            for (k = 1; k<=mixin[i].p->nchanls; k++)
               if (mixin[i].channels[k]) {
                 for (j=0; j<read_in; j++) {
                   buffer[j*outputs+mixin[i].channels[k]-1] +=
@@ -731,7 +714,7 @@ MixSound(int n, SNDFILE *outfd)
     if (outrange)
       printf(Str("%d sample%s out of range\n"), outrange, outrange==1 ? " " : "s ");
     else
-      printf(Str("Max scale factor = %.3f\n"), 
+      printf(Str("Max scale factor = %.3f\n"),
              (MYFLT)SHORTMAX/(MYFLT)((max>-min)?max:-min) );
     return;
 }

@@ -124,17 +124,17 @@ extern  int     csoundYield(void *);
 
 int hetro(int argc, char **argv)  /* called from main.c or anal/adsyn/main.c */
 {
-        int      i, hno, infd, channel = 1;
+        ENVIRON  *csound = &cenviron;
+	SNDFILE  *infd;
+        int      i, hno, channel = 1;
         long     nsamps, smpspc, bufspc, mgfrspc;
         char     *dsp, *dspace, *mspace;
         double   *begbufs, *endbufs;
 
         SOUNDIN  *p;      /* space allocated by SAsndgetset() */
-extern  int      SAsndgetset(char *, SOUNDIN**, MYFLT*, MYFLT*, MYFLT*, int);
-extern  long     getsndin(int, MYFLT*, long, SOUNDIN*);
         /* must set this for 'standard' behaviour when analysing
            (assume re-entrant Csound) */
-        dbfs_init(DFLT_DBFS);
+        dbfs_init(csound, DFLT_DBFS);
 
         if (!(--argc)) {
           quit(Str("no arguments"));
@@ -220,18 +220,21 @@ extern  long     getsndin(int, MYFLT*, long, SOUNDIN*);
             quit(Str("input and begin times cannot be less than zero"));
                                            /* open sndfil, do skiptime */
         if (
-         (infd = SAsndgetset(infilnam,&p,&beg_time,&input_dur,&sr,channel))<0) {
+         (infd = csound->SAsndgetset(csound, infilnam, &p, &beg_time,
+                                     &input_dur, &sr, channel)) < 0) {
             sprintf(errmsg,Str("Cannot open %s"), retfilnam);
             quit (errmsg);
         }
         nsamps = p->getframes;
-        auxp = (MYFLT*)mmalloc(&cenviron, nsamps * sizeof(MYFLT));   /* alloc for MYFLTs */
-        if ((smpsin = getsndin(infd,auxp,nsamps,p)) <= 0) { /* & read them in */
+        /* alloc for MYFLTs */
+        auxp = (MYFLT*) csound->Malloc(csound, nsamps * sizeof(MYFLT));
+        /* & read them in */
+        if ((smpsin = csound->getsndin(csound, infd, auxp, nsamps, p)) <= 0) {
           printf("smpsin = %d\n", smpsin);
             sprintf(errmsg,Str("Read error on %s\n"), retfilnam);
             quit(errmsg);
         }
-        close(infd);
+        sf_close(infd);
 
         sr = (MYFLT)p->sr;                              /* sr now from open  */
         windsiz = (long)(sr / fund_est + FL(0.5));      /* samps in fund prd */
@@ -240,8 +243,8 @@ extern  long     getsndin(int, MYFLT*, long, SOUNDIN*);
           if (num_pts >= nsamps - windsiz)
             quit(Str("number of output points is too great"));
         }
-        else
-          if (num_pts > 32767 || num_pts >= nsamps - windsiz)            quit(Str("number of output points is too great"));
+        else if (num_pts > 32767 || num_pts >= nsamps - windsiz)
+          quit(Str("number of output points is too great"));
         delta_t = FL(1.0)/sr;
         t = FL(1.0)/fund_est;
         outdelta_t = (MYFLT)num_pts / (smpsin - windsiz);

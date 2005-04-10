@@ -29,7 +29,7 @@
 #include "soundio.h"
 #include "oload.h"
 
-int cvset(ENVIRON *csound, CONVOLVE *p)
+static int cvset(ENVIRON *csound, CONVOLVE *p)
 {
     char     cvfilnam[MAXNAME];
     MEMFIL   *mfp;
@@ -140,9 +140,37 @@ int cvset(ENVIRON *csound, CONVOLVE *p)
     return csound->InitError(csound, errmsg);
 }
 
-extern void writeFromCircBuf(MYFLT**, MYFLT**, MYFLT*, MYFLT*, long);
+/* Write from a circular buffer into a linear output buffer without
+   clearing data
+   UPDATES SOURCE & DESTINATION POINTERS TO REFLECT NEW POSITIONS */
+static void writeFromCircBuf(
+    MYFLT   **sce,
+    MYFLT   **dst,              /* Circular source and linear destination */
+    MYFLT   *sceStart,
+    MYFLT   *sceEnd,            /* Address of start & end of source buffer */
+    long    numToDo)            /* How many points to write (<= circBufSize) */
+{
+    MYFLT   *srcindex = *sce;
+    MYFLT   *dstindex = *dst;
+    long    breakPoint;     /* how many points to add before having to wrap */
 
-int convolve(ENVIRON *csound, CONVOLVE *p)
+    breakPoint = sceEnd - srcindex + 1;
+    if (numToDo >= breakPoint) { /*  we will do 2 in 1st loop, rest in 2nd. */
+      numToDo -= breakPoint;
+      for (; breakPoint > 0; --breakPoint) {
+        *dstindex++ = *srcindex++;
+      }
+      srcindex = sceStart;
+    }
+    for (; numToDo > 0; --numToDo) {
+      *dstindex++ = *srcindex++;
+    }
+    *sce = srcindex;
+    *dst = dstindex;
+    return;
+}
+
+static int convolve(ENVIRON *csound, CONVOLVE *p)
 {
     int    nsmpso=csound->ksmps,nsmpsi=csound->ksmps,nsmpso_sav,outcnt_sav;
     int    nchm1 = p->nchanls - 1,chn;
@@ -328,10 +356,7 @@ int convolve(ENVIRON *csound, CONVOLVE *p)
    allow this opcode to accept .con files.
    -ma++ april 2004 */
 
-extern SNDFILE *sndgetset(SOUNDIN *p);
-extern long getsndin(SNDFILE *fd, MYFLT *fp, long nlocs, SOUNDIN *p);
-
-int pconvset(ENVIRON *csound, PCONVOLVE *p)
+static int pconvset(ENVIRON *csound, PCONVOLVE *p)
 {
     int      channel = (*(p->channel) <= 0 ? ALLCHNLS : *(p->channel));
     SNDFILE *infd;
@@ -341,20 +366,23 @@ int pconvset(ENVIRON *csound, PCONVOLVE *p)
     MYFLT   *IRblock;
     MYFLT   ainput_dur, scaleFac;
 
-    static  MYFLT    format = FL(0.0), skptm = FL(0.0);
-    static  MYFLT    sstrcod = (MYFLT)SSTRCOD;
-    static  ARGOFFS  argofs = {0};
-    static  OPTXT    optxt;
-
     /* IV - 2005-04-06: fixed bug: was uninitialised */
     memset(&IRfile, 0, sizeof(SOUNDIN));
     /* open impulse response soundfile [code derived from SAsndgetset()] */
-    optxt.t.outoffs = &argofs;    /* point to dummy OUTOCOUNT       */
-    IRfile.h.optext = &optxt;
-    IRfile.ifilno = &sstrcod;
-    IRfile.iskptim = &skptm;
-    IRfile.iformat = &format;
-    IRfile.STRARG = p->STRARG;
+    IRfile.skiptime = FL(0.0);
+    if (*p->ifilno == SSTRCOD) {                /* if char string name given */
+      if (p->STRARG == NULL)
+        strcpy(IRfile.sfname, csound->unquote_(currevent->strarg));
+      else
+        strcpy(IRfile.sfname, csound->unquote_(p->STRARG));
+    }
+    else {
+      long filno = (long) ((double) *p->ifilno + 0.5);
+      if (filno >= 0 && filno <= strsmax && strsets != NULL && strsets[filno])
+        strcpy(IRfile.sfname, strsets[filno]);
+      else
+        sprintf(IRfile.sfname, "soundin.%ld", filno);   /* soundin.filno */
+    }
     IRfile.sr = 0;
     if (channel < 1 || ((channel > 4) && (channel != ALLCHNLS))) {
       sprintf(errmsg, "channel request %d illegal\n", channel);
@@ -362,7 +390,7 @@ int pconvset(ENVIRON *csound, PCONVOLVE *p)
     }
     IRfile.channel = channel;
     IRfile.analonly = 1;
-    if ((infd = sndgetset(&IRfile))==NULL) {
+    if ((infd = csound->sndgetset(csound, &IRfile)) == NULL) {
       return csound->PerfError(csound, "pconvolve: error while impulse file");
     }
 
@@ -377,7 +405,7 @@ int pconvset(ENVIRON *csound, PCONVOLVE *p)
       }
 
     csound->Message(csound, Str("analyzing %ld sample frames (%3.1f secs)\n"),
-           IRfile.getframes, ainput_dur);
+                            (long) IRfile.getframes, ainput_dur);
 
     p->nchanls = (channel != ALLCHNLS ? 1 : IRfile.nchanls);
     if (p->nchanls != p->OUTOCOUNT) {
@@ -414,7 +442,8 @@ int pconvset(ENVIRON *csound, PCONVOLVE *p)
     for (part = 0; part < p->numPartitions; part++) {
       /* get the block of input samples and normalize -- soundin code
          handles finding the right channel */
-      if ((read_in = getsndin(infd, inbuf, p->Hlen*p->nchanls, &IRfile)) <= 0)
+      if ((read_in = csound->getsndin(csound, infd, inbuf,
+                                      p->Hlen*p->nchanls, &IRfile)) <= 0)
         csound->Die(csound, "PCONVOLVE: less sound than expected!");
 
       /* take FFT of each channel */
@@ -471,7 +500,7 @@ int pconvset(ENVIRON *csound, PCONVOLVE *p)
     return OK;
 }
 
-int pconvolve(ENVIRON *csound, PCONVOLVE *p)
+static int pconvolve(ENVIRON *csound, PCONVOLVE *p)
 {
     int    nsmpsi = csound->ksmps;
     MYFLT  *ai = p->ain;
@@ -585,4 +614,15 @@ int pconvolve(ENVIRON *csound, PCONVOLVE *p)
     p->workWrite = workWrite;
     return OK;
 }
+
+static OENTRY localops[] = {
+    { "convolve", sizeof(CONVOLVE),   5, "mmmm", "aSo",
+            (SUBR) cvset,     (SUBR) NULL,    (SUBR) convolve   },
+    { "convle",   sizeof(CONVOLVE),   5, "mmmm", "aSo",
+            (SUBR) cvset,     (SUBR) NULL,    (SUBR) convolve   },
+    { "pconvolve",sizeof(PCONVOLVE),  5, "mmmm", "aSoo",
+            (SUBR) pconvset,  (SUBR) NULL,    (SUBR) pconvolve  }
+};
+
+LINKAGE
 

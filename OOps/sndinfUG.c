@@ -35,6 +35,19 @@
 #endif
 #include <sndfile.h>
 
+typedef struct {         /* struct for passing data to/from sfheader routines */
+    long    sr;
+    long    nchanls;
+    long    sampsize;
+    long    format;
+    long    hdrsize;
+    int     filetyp;
+    AIFFDAT *aiffdata;
+    long    audsize;
+    long    readlong;
+    long    firstlong;
+} HEADATA;
+
 static int anal_filelen(SNDINFO *p,MYFLT *p_length);
 
 static HEADATA *getsndinfo(ENVIRON *csound, SNDINFO *p)
@@ -78,7 +91,7 @@ static HEADATA *getsndinfo(ENVIRON *csound, SNDINFO *p)
       memset(&sfinfo, 0, sizeof(SF_INFO));
       sfinfo.samplerate = (int) (csound->esr + FL(0.5));
       sfinfo.channels = 1;
-      sfinfo.format = (int) format2sf(O.outformat) | (int) type2sf(TYP_RAW);
+      sfinfo.format = (int) FORMAT2SF(O.outformat) | (int) TYPE2SF(TYP_RAW);
       /* try again */
       sf = sf_open(sfname, SFM_READ, &sfinfo);
     }
@@ -90,7 +103,7 @@ static HEADATA *getsndinfo(ENVIRON *csound, SNDINFO *p)
     mfree(csound, sfname);
     hdr->sr = (long) sfinfo.samplerate;
     hdr->nchanls = (long) sfinfo.channels;
-    hdr->format = (long) sf2format(sfinfo.format);
+    hdr->format = (long) SF2FORMAT(sfinfo.format);
     switch ((int) hdr->format) {
       case AE_SHORT: hdr->sampsize = 2L; break;
       case AE_24INT: hdr->sampsize = 3L; break;
@@ -98,7 +111,7 @@ static HEADATA *getsndinfo(ENVIRON *csound, SNDINFO *p)
       case AE_FLOAT: hdr->sampsize = 4L; break;
       default:       hdr->sampsize = 1L; break;
     }
-    hdr->filetyp = (int) sf2type(sfinfo.format);
+    hdr->filetyp = (int) SF2TYPE(sfinfo.format);
     hdr->audsize = (long) sfinfo.frames * hdr->sampsize * hdr->nchanls;
     sf_close(sf);
     return hdr;

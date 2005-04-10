@@ -132,7 +132,7 @@ opts.Add('arch',
     'i686')
 opts.Add('cpu',
     'CPU type to use with gcc optimization flag (-mcpu=cpu). Requires gcc3opt to be enabled',
-    'pentium3')        
+    'pentium3')
 opts.Add('useGprof',
     'Build with profiling information (-pg).',
     '0')
@@ -514,7 +514,6 @@ OOps/ugens4.c
 OOps/ugens5.c
 OOps/ugens6.c
 OOps/ugens8.c
-OOps/ugens9.c
 OOps/ugrw1.c
 OOps/ugrw2.c
 OOps/vbap.c
@@ -686,6 +685,8 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('syncgrain',
     ['Opcodes/syncgrain.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('ugens7',
     ['Opcodes/ugens7.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('ugens9',
+    ['Opcodes/ugens9.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('ugensa',
     ['Opcodes/ugensa.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('uggab',
@@ -1035,9 +1036,9 @@ else:
 	# csound5/Opcodes/stk/rawwaves
 	# Then, the following sources (and any other future I/O or OS dependent sources) should be ignored:
 	removeSources = Split('''
-Opcodes/stk/src/Mutex.cpp 
-Opcodes/stk/src/RtAudio.cpp 
-Opcodes/stk/src/RtMidi.cpp 
+Opcodes/stk/src/Mutex.cpp
+Opcodes/stk/src/RtAudio.cpp
+Opcodes/stk/src/RtMidi.cpp
 Opcodes/stk/src/RtDuplex.cpp
 Opcodes/stk/src/RtWvIn.cpp
 Opcodes/stk/src/RtWvOut.cpp
@@ -1051,7 +1052,7 @@ Opcodes/stk/src/Thread.cpp
 		stkEnvironment.Append(CCFLAGS = '-D__OS_WINDOWS__ -D__LITTLE_ENDIAN__')
 	elif getPlatform() == 'linux':
 		stkEnvironment.Append(CCFLAGS = '-D__OS_LINUX__ -D__LITTLE_ENDIAN__')
-	elif getPlatform() == 'darwin':	
+	elif getPlatform() == 'darwin':
 		stkEnvironment.Append(CCFLAGS = '-D__OS_MACOSX__ -D__BIG_ENDIAN__')
 	stkEnvironment.Prepend(CPPPATH = Split('Opcodes/stk/include Opcodes/stk/src ./ ./../include'))
 	stkSources_ = glob.glob('Opcodes/stk/src/*.cpp')
@@ -1160,3 +1161,4 @@ if commonEnvironment['install']=='1':
         Install(LIB_DIR, libs))
 
     Alias('install', [installExecutables, installOpcodes, installLibs, installHeaders])
+
