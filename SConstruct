@@ -900,7 +900,10 @@ else:
     if getPlatform() == 'linux':
         vstEnvironment.Append(LIBS = ['python2.3', 'util', 'dl', 'm'])
         vstEnvironment.Append(CPPPATH = ['/usr/include/python2.3'])
-        vstEnvironment.Append(LIBPATH = ['/usr/lib/python2.3/config'])
+        if commonEnvironment['Word64']=='1':        
+            vstEnvironment.Append(LIBPATH = ['/usr/lib64/python2.3/config'])
+        else:
+            vstEnvironment.Append(LIBPATH = ['/usr/lib/python2.3/config'])
         vstEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
         vstEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
         guiProgramEnvironment.Prepend(LINKFLAGS = ['-mwindows', '_CsoundVST.so'])
@@ -1068,7 +1071,10 @@ Opcodes/stk/src/Thread.cpp
     if getPlatform() == 'linux':
         pyEnvironment.Append(LIBS = ['python2.3', 'util', 'dl', 'm'])
         pyEnvironment.Append(CPPPATH = ['/usr/local/include/python2.3'])
-        pyEnvironment.Append(LIBPATH = ['/usr/local/lib/python2.3/config'])
+        if commonEnvironment['Word64']=='1':
+            pyEnvironment.Append(LIBPATH = ['/usr/local/lib64/python2.3/config'])
+        else:
+            pyEnvironment.Append(LIBPATH = ['/usr/local/lib/python2.3/config'])
         pyEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
         pyEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
     elif getPlatform() == 'cygwin' or getPlatform() == 'mingw':
@@ -1131,13 +1137,14 @@ else:
 PREFIX = commonEnvironment['prefix']
 
 BIN_DIR = PREFIX + "/bin"
-OPCODE_DIR = PREFIX + "/lib/csound/opcodes"
 INCLUDE_DIR = PREFIX + "/include/csound"
 
 if commonEnvironment['Word64']=='1':
     LIB_DIR = PREFIX + "/lib64"
+    OPCODE_DIR = PREFIX + "/lib64/csound/opcodes"
 else:
     LIB_DIR = PREFIX + "/lib"
+    OPCODE_DIR = PREFIX + "/lib/csound/opcodes"
 
 if commonEnvironment['install']=='1':
     installExecutables = Alias('install-executables',
