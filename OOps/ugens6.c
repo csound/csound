@@ -57,11 +57,11 @@ int downsamp(ENVIRON *csound, DOWNSAMP *p)
 int upsamp(ENVIRON *csound, UPSAMP *p)
 {
     MYFLT       *ar, kval;
-    int n;
+    int n, nsmps=csound->ksmps;
 
     ar = p->ar;
     kval = *p->ksig;
-    for (n=0; n<csound->ksmps; n++) {
+    for (n=0; n<nsmps; n++) {
       ar[n] = kval;
     }
     return OK;
@@ -86,7 +86,7 @@ int interpset(ENVIRON *csound, INTERP *p)
 int interp(ENVIRON *csound, INTERP *p)
 {
     MYFLT       *ar, val, incr;
-    int n;
+    int n, nsmps=csound->ksmps;
 
     ar = p->rslt;
     if (p->init_k) {            /* IV - Sep 5 2002 */
@@ -95,7 +95,7 @@ int interp(ENVIRON *csound, INTERP *p)
     }
     val = p->prev;
     incr = (*p->xsig - val) / ensmps;
-    for (n=0; n<csound->ksmps; n++) {
+    for (n=0; n<nsmps; n++) {
       ar[n] = val += incr;
     }
     p->prev = val;
@@ -118,12 +118,12 @@ int kntegrate(ENVIRON *csound, INDIFF *p)
 int integrate(ENVIRON *csound, INDIFF *p)
 {
     MYFLT       *rslt, *asig, sum;
-    int n;
+    int n, nsmps=csound->ksmps;
 
     rslt = p->rslt;
     asig = p->xsig;
     sum = p->prev;
-    for (n=0; n<csound->ksmps; n++) {
+    for (n=0; n<nsmps; n++) {
       rslt[n] = sum += asig[n];
     }
     p->prev = sum;
@@ -142,12 +142,12 @@ int kdiff(ENVIRON *csound, INDIFF *p)
 int diff(ENVIRON *csound, INDIFF *p)
 {
     MYFLT       *ar, *asig, prev, tmp;
-    int n;
+    int n, nsmps=csound->ksmps;
 
     ar = p->rslt;
     asig = p->xsig;
     prev = p->prev;
-    for (n=0; n<csound->ksmps; n++) {
+    for (n=0; n<nsmps; n++) {
       tmp = asig[n];            /* IV - Sep 5 2002: fix to make */
       ar[n] = tmp - prev;       /* diff work when the input and */
       prev = tmp;               /* output argument is the same  */
@@ -175,14 +175,14 @@ int ksmphold(ENVIRON *csound, SAMPHOLD *p)
 int samphold(ENVIRON *csound, SAMPHOLD *p)
 {
     MYFLT       *ar, *asig, *agate, state;
-    int n;
+    int n, nsmps=csound->ksmps;
 
     ar = p->xr;
     asig = p->xsig;
     state = p->state;
     if (p->audiogate) {
       agate = p->xgate;
-      for (n=0; n<csound->ksmps; n++) {
+      for (n=0; n<nsmps; n++) {
         if (agate[n] > FL(0.0))
           state = asig[n];
         ar[n] = state;
@@ -190,12 +190,12 @@ int samphold(ENVIRON *csound, SAMPHOLD *p)
     }
     else {
       if (*p->xgate > FL(0.0)) {
-        for (n=0; n<csound->ksmps; n++) {
+        for (n=0; n<nsmps; n++) {
           ar[n] = state = asig[n];
         }
       }
       else {
-        for (n=0; n<csound->ksmps; n++) {
+        for (n=0; n<nsmps; n++) {
           ar[n] = state;
         }
       }
@@ -303,7 +303,7 @@ int tapset(ENVIRON *csound, DELTAP *p)
 int delay(ENVIRON *csound, DELAY *p)
 {
     MYFLT       *ar, *asig, *curp, *endp;
-    int n;
+    int n, nsmps = csound->ksmps;
 
     if (p->auxch.auxp==NULL) {  /* RWD fix */
       return csound->PerfError(csound, Str("delay: not initialised"));
@@ -312,7 +312,7 @@ int delay(ENVIRON *csound, DELAY *p)
     asig = p->asig;
     curp = p->curp;
     endp = (MYFLT *) p->auxch.endp;
-    for (n=0; n<csound->ksmps; n++) {
+    for (n=0; n<nsmps; n++) {
       MYFLT in = asig[n];       /* Allow overwriting form */
       ar[n] = *curp;
       *curp = in;
@@ -326,7 +326,7 @@ int delay(ENVIRON *csound, DELAY *p)
 int delayr(ENVIRON *csound, DELAYR *p)
 {
     MYFLT       *ar, *curp, *endp;
-    int n;
+    int n, nsmps = csound->ksmps;
 
     if (p->auxch.auxp==NULL) { /* RWD fix */
       return csound->PerfError(csound, Str("delayr: not initialised"));
@@ -334,7 +334,7 @@ int delayr(ENVIRON *csound, DELAYR *p)
     ar = p->ar;
     curp = p->curp;
     endp = (MYFLT *) p->auxch.endp;
-    for (n=0; n<csound->ksmps; n++) {
+    for (n=0; n<nsmps; n++) {
       ar[n] = *curp++;
       if (curp >= endp)
         curp = (MYFLT *) p->auxch.auxp;
@@ -346,7 +346,7 @@ int delayw(ENVIRON *csound, DELAYW *p)
 {
     DELAYR      *q = p->delayr;
     MYFLT       *asig, *curp, *endp;
-    int n;
+    int n, nsmps = csound->ksmps;
 
     if (q->auxch.auxp==NULL) { /* RWD fix */
       return csound->PerfError(csound, Str("delayw: not initialised"));
@@ -354,7 +354,7 @@ int delayw(ENVIRON *csound, DELAYW *p)
     asig = p->asig;
     curp = q->curp;
     endp = (MYFLT *) q->auxch.endp;
-    for (n=0; n<csound->ksmps; n++) {
+    for (n=0; n<nsmps; n++) {
       *curp = asig[n];
       if (++curp >= endp)
         curp = (MYFLT *) q->auxch.auxp;
@@ -367,7 +367,7 @@ int deltap(ENVIRON *csound, DELTAP *p)
 {
     DELAYR      *q = p->delayr;
     MYFLT       *ar, *tap, *endp;
-    int n;
+    int n, nsmps = csound->ksmps;
 
     if (q->auxch.auxp==NULL) { /* RWD fix */
       return csound->PerfError(csound, Str("deltap: not initialised"));
@@ -377,7 +377,7 @@ int deltap(ENVIRON *csound, DELTAP *p)
     while (tap < (MYFLT *) q->auxch.auxp)
       tap += q->npts;
     endp = (MYFLT *) q->auxch.endp;
-    for (n=0; n<csound->ksmps; n++) {
+    for (n=0; n<nsmps; n++) {
       if (tap >= endp)
         tap -= q->npts;
       ar[n] = *tap++;
@@ -389,7 +389,7 @@ int deltapi(ENVIRON *csound, DELTAP *p)
 {
     DELAYR      *q = p->delayr;
     MYFLT       *ar, *tap, *prv, *begp, *endp;
-    int nsmps = csound->ksmps;
+    int         n, nsmps = csound->ksmps;
     long        idelsmps;
     MYFLT       delsmps, delfrac;
 
@@ -405,19 +405,19 @@ int deltapi(ENVIRON *csound, DELTAP *p)
       delfrac = delsmps - idelsmps;
       tap = q->curp - idelsmps;
       while (tap < begp) tap += q->npts;
-      do {
+      for (n=0; n<nsmps; n++) {
         if (tap >= endp)
           tap -= q->npts;
         if ((prv = tap - 1) < begp)
           prv += q->npts;
-        *ar++ = *tap + (*prv - *tap) * delfrac;
+        ar[n] = *tap + (*prv - *tap) * delfrac;
         tap++;
-      } while (--nsmps);
+      }
     }
     else {
       MYFLT *timp = p->xdlt, *curq = q->curp;
-      do {
-        delsmps = *timp++ * csound->esr;
+      for (n=0; n<nsmps; n++) {
+        delsmps = timp[n] * csound->esr;
         idelsmps = (long)delsmps;
         delfrac = delsmps - idelsmps;
         tap = curq++ - idelsmps;
@@ -426,8 +426,8 @@ int deltapi(ENVIRON *csound, DELTAP *p)
           tap -= q->npts;
         if ((prv = tap - 1) < begp)
           prv += q->npts;
-        *ar++ = *tap + (*prv - *tap) * delfrac;
-      } while (--nsmps);
+        ar[n] = *tap + (*prv - *tap) * delfrac;
+      }
     }
     return OK;
 }
@@ -727,17 +727,16 @@ int del1set(ENVIRON *csound, DELAY1 *p)
 int delay1(ENVIRON *csound, DELAY1 *p)
 {
     MYFLT       *ar, *asig;
-    int nsmps = csound->ksmps - 1;
+    int         n, nsmps = csound->ksmps;
 
     ar = p->ar;
     asig = p->asig;
-    *ar++ = p->sav1;
-    if (nsmps) {
-      do {
-        *ar++ = *asig++;
-      } while (--nsmps);
+    ar[0] = p->sav1;
+    /* memmove(&ar[1], asig, sizeof(MYFLT)*(nsmps-1)); */
+    for (n=1; n<nsmps; n++) {
+      ar[n] = asig[n-1];
     }
-    p->sav1 = *asig;
+    p->sav1 = asig[n];
     return OK;
 }
 
@@ -775,7 +774,7 @@ int cmbset(ENVIRON *csound, COMB *p)
 
 int comb(ENVIRON *csound, COMB *p)
 {
-    int nsmps = csound->ksmps;
+    int n, nsmps = csound->ksmps;
     MYFLT       *ar, *asig, *xp, *endp;
     MYFLT       coef = p->coef;
 
@@ -804,20 +803,20 @@ int comb(ENVIRON *csound, COMB *p)
     endp = (MYFLT *) p->auxch.endp;
     ar = p->ar;
     asig = p->asig;
-    do {
-      *ar++ = *xp;
+    for (n=0; n<nsmps; n++) {
+      ar[n] = *xp;
       *xp *= coef;
-      *xp += *asig++;
+      *xp += asig[n];
       if (++xp >= endp)
         xp = (MYFLT *) p->auxch.auxp;
-    } while (--nsmps);
+    }
     p->pntr = xp;
     return OK;
 }
 
 int alpass(ENVIRON *csound, COMB *p)
 {
-    int nsmps = csound->ksmps;
+    int n, nsmps = csound->ksmps;
     MYFLT       *ar, *asig, *xp, *endp;
     MYFLT       y, z;
     MYFLT       coef = p->coef;
@@ -833,13 +832,13 @@ int alpass(ENVIRON *csound, COMB *p)
     endp = (MYFLT *) p->auxch.endp;
     ar = p->ar;
     asig = p->asig;
-    do {
+    for (n=0; n<nsmps; n++) {
       y = *xp;
-      *xp++ = z = coef * y + *asig++;
-      *ar++ = y - coef * z;
+      *xp++ = z = coef * y + asig[n];
+      ar[n] = y - coef * z;
       if (xp >= endp)
         xp = (MYFLT *) p->auxch.auxp;
-    } while (--nsmps);
+    }
     p->pntr = xp;
     return OK;
 }
@@ -973,7 +972,7 @@ int pan(ENVIRON *csound, PAN *p)
 {
     MYFLT       *r1, *r2, *r3, *r4, *sigp, ch1, ch2, ch3, ch4;
     long        xndx, yndx, flen;
-    int nsmps = csound->ksmps;
+    int n, nsmps = csound->ksmps;
     FUNC        *ftp;
 
     ftp = p->ftp;
@@ -1009,13 +1008,13 @@ int pan(ENVIRON *csound, PAN *p)
     r3 = p->r3;
     r4 = p->r4;
     sigp = p->asig;
-    do {
-      *r1++ = *sigp * ch1;
-      *r2++ = *sigp * ch2;
-      *r3++ = *sigp * ch3;
-      *r4++ = *sigp * ch4;
-      sigp++;
-    } while (--nsmps);
+    for (n=0; n<nsmps; n++) {
+      MYFLT sig = sigp[n];
+      r1[n] = sig * ch1;
+      r2[n] = sig * ch2;
+      r3[n] = sig * ch3;
+      r4[n] = sig * ch4;
+    }
     return OK;
 }
 
