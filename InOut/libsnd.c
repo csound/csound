@@ -206,10 +206,11 @@ static void writesf(void *csound_, MYFLT *outbuf, int nbytes)
       else if (O.heartbeat==2) putc('.', stderr);
       else if (O.heartbeat==3) {
         int n;
-        err_printf("%d(%.3f)%n", csound->nrecs, csound->nrecs/csound->ekr, &n);
-        while (n--) err_printf("\b");
+        csound->Message(csound,"%d(%.3f)%n",
+                        csound->nrecs, csound->nrecs/csound->ekr, &n);
+        while (n--) csound->Message(csound,"\b");
       }
-      else err_printf("\a");
+      else csound->Message(csound,"\a");
     }
 }
 
@@ -432,8 +433,9 @@ void sfopenin(void *csound_)        /* init for continuous soundin */
         csoundDie(csound, Str("isfinit: cannot open %s"), retfilnam);
       if (sfinfo.samplerate != (long) (csound->esr + FL(0.5)) &&
           (O.msglevel & WARNMSG)) {              /*    chk the hdr codes  */
-        printf(Str("WARNING: audio_in %s has sr = %ld, orch sr = %ld\n"),
-               sfname, sfinfo.samplerate, (long) (csound->esr + FL(0.5)));
+        csound->Message(csound,
+                        Str("WARNING: audio_in %s has sr = %ld, orch sr = %ld\n"),
+                        sfname, sfinfo.samplerate, (long) (csound->esr + FL(0.5)));
       }
       if (sfinfo.channels != csound->nchnls) {
         csoundDie(csound, Str("audio_in %s has %ld chnls, orch %d chnls"),
@@ -450,10 +452,10 @@ void sfopenin(void *csound_)        /* init for continuous soundin */
     /* calc inbufsize reqd */
     inbufsiz = (unsigned) (O.inbufsamps * sizeof(MYFLT));
     inbuf = (MYFLT *)mcalloc(csound, inbufsiz); /* alloc inbuf space */
-    printf(Str("reading %d-byte blks of %s from %s (%s)\n"),
-           O.inbufsamps * format_nbytes(O.informat),
-           getstrformat(O.informat), sfname,
-           type2string(fileType));
+    csound->Message(csound,Str("reading %d-byte blks of %s from %s (%s)\n"),
+                    O.inbufsamps * format_nbytes(O.informat),
+                    getstrformat(O.informat), sfname,
+                    type2string(fileType));
     isfopen = 1;
 }
 
@@ -479,7 +481,9 @@ void sfopenout(void *csound_)                   /* init for sound out       */
       osfd = fileno(pout);
       pipdevout = 1;
       if (O.filetyp == TYP_AIFF || O.filetyp == TYP_WAV) {
-        printf(Str("Output file type changed to IRCAM for use in pipe\n"));
+        csound->Message(csound,
+                        Str("Output file type changed to IRCAM "
+                            "for use in pipe\n"));
         O.filetyp = TYP_IRCAM;
       }
     }
@@ -600,15 +604,15 @@ void sfopenout(void *csound_)                   /* init for sound out       */
 outset:
     outbufsiz = (unsigned)O.outbufsamps * sizeof(MYFLT);/* calc outbuf size */
     outbufp = outbuf = mmalloc(csound, (long)outbufsiz); /*  & alloc bufspace */
-    printf(Str("writing %d-byte blks of %s to %s"),
-           O.outbufsamps * format_nbytes(O.outformat),
-           getstrformat(O.outformat), sfoutname);
+    csound->Message(csound,Str("writing %d-byte blks of %s to %s"),
+                    O.outbufsamps * format_nbytes(O.outformat),
+                    getstrformat(O.outformat), sfoutname);
     if (strcmp(O.outfilename,"devaudio") == 0   /* realtime output has no
                                                    header */
-        || strcmp(O.outfilename,"dac") == 0)  printf("\n");
-    else if (O.sfheader == 0) printf(Str(" (raw)\n"));
+        || strcmp(O.outfilename,"dac") == 0)  csound->Message(csound,"\n");
+    else if (O.sfheader == 0) csound->Message(csound,Str(" (raw)\n"));
     else
-      printf(" (%s)\n", type2string(O.filetyp));
+      csound->Message(csound," (%s)\n", type2string(O.filetyp));
     osfopen = 1;
     outbufrem = O.outbufsamps;
 }
@@ -672,15 +676,15 @@ void sfcloseout(void *csound_)
 #endif
 
  report:
-    printf(Str("%ld %d-byte soundblks of %s written to %s"),
-           csound->nrecs, O.outbufsamps * format_nbytes(O.outformat),
-           getstrformat(O.outformat), sfoutname);
+    csound->Message(csound,Str("%ld %d-byte soundblks of %s written to %s"),
+                    csound->nrecs, O.outbufsamps * format_nbytes(O.outformat),
+                    getstrformat(O.outformat), sfoutname);
     if (strcmp(O.outfilename,"devaudio") == 0       /* realtime output has no
                                                        header */
-        || strcmp(O.outfilename,"dac") == 0) printf("\n");
-    else if (O.sfheader == 0) printf(Str(" (raw)\n"));
+        || strcmp(O.outfilename,"dac") == 0) csound->Message(csound,"\n");
+    else if (O.sfheader == 0) csound->Message(csound,Str(" (raw)\n"));
     else
-      printf(" (%s)\n", type2string(O.filetyp));
+      csound->Message(csound," (%s)\n", type2string(O.filetyp));
     osfopen = 0;
 }
 
@@ -702,10 +706,12 @@ static void sndwrterr(void *csound, unsigned nret, unsigned nput)
   /* report soundfile write(osfd) error   */
   /* called after chk of write() bytecnt  */
 {
+    ENVIRON *p = (ENVIRON*)csound;
     void sfcloseout(void*);
-    printf(Str("soundfile write returned bytecount of %d, not %d\n"),
-           nret,nput);
-    printf(Str("(disk may be full...\n closing the file ...)\n"));
+    p->Message(csound,
+               Str("soundfile write returned bytecount of %d, not %d\n"),
+               nret,nput);
+    p->Message(csound,Str("(disk may be full...\n closing the file ...)\n"));
     outbufrem = O.outbufsamps;       /* consider buf is flushed */
     sfcloseout(csound);              /* & try to close the file */
     csoundDie(csound, Str("\t... closed\n"));
@@ -713,7 +719,7 @@ static void sndwrterr(void *csound, unsigned nret, unsigned nput)
 
 void sfnopenout(void)
 {
-    printf(Str("not writing to sound disk\n"));
+    cenviron.Message(&cenviron,Str("not writing to sound disk\n"));
     outbufrem = O.outbufsamps;          /* init counter, though not writing */
 }
 
