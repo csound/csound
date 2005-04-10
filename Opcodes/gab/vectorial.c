@@ -1243,13 +1243,13 @@ int ca_set(ENVIRON *csound,CELLA *p)
     if ((ftp = csound->FTnp2Find(csound,p->ioutFunc)) != NULL) {
       p->outVec = ftp->ftable;
       elements = (p->elements = (int) *p->ielements);
-      if ( elements >= ftp->flen )
+      if ( elements > ftp->flen )
         return csound->InitError(csound, "cella: invalid num of elements");
     }
     else return csound->InitError(csound, "cella: invalid output table");
     if ((ftp = csound->FTnp2Find(csound,p->initStateFunc)) != NULL) {
       initVec = (p->initVec = ftp->ftable);
-      if ( elements >= ftp->flen )
+      if ( elements > ftp->flen )
         return csound->InitError(csound, "cella: invalid num of elements");
     }
     else return csound->InitError(csound, "cella: invalid initial state table");
