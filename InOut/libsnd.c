@@ -325,8 +325,8 @@ int soundin(ENVIRON *csound, SOUNDIN_ *p)
       p->sndin_.inbufp = inbufp;
     }
     if (p->sndin_.inbufp >= p->sndin_.bufend) {
-      if ((n = sreadin(csound, p->fdch.fd, p->sndin_.inbuf, SNDINBUFSIZ, p))
-          == 0) {
+      if ((n = sreadin(csound, p->fdch.fd, p->sndin_.inbuf, SNDINBUFSIZ,
+                       &(p->sndin_))) == 0) {
         p->sndin_.endfile = 1;
         if (ntogo) goto filend;
         else return OK;
