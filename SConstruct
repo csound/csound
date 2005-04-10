@@ -153,7 +153,7 @@ opts.Add('install',
 # This section also sets up customized options for third-party libraries, which
 # should take priority over default options.
 
-commonEnvironment = Environment(options = opts)
+commonEnvironment = Environment(options = opts, ENV = {'PATH' : os.environ['PATH']})
 
 customCPPPATH = commonEnvironment['customCPPPATH']
 commonEnvironment.Prepend(CPPPATH = customCPPPATH)
