@@ -39,15 +39,12 @@
 #include "convolve.h"
 
 static void takeFFT(SOUNDIN *inputSound, CVSTRUCT *outputCVH,
-                     long Hlenpadded, int indfd, int ofd);
+                     long Hlenpadded, SNDFILE *infd, int ofd);
 static int quit(char *msg);
 static int CVAlloc(CVSTRUCT**, long, int, MYFLT, int, int, long, int, int);
 int csoundYield(void *csound);
 
 #define SF_UNK_LEN      -1      /* code for sndfile len unkown  */
-
-extern  int      SAsndgetset(char *, SOUNDIN**, MYFLT*, MYFLT*, MYFLT*, int);
-extern  long     getsndin(int, MYFLT *, long, SOUNDIN *);
 
 #define FIND(MSG)   if (*s == '\0')  \
                         if (!(--argc) || ((s = *++argv) && *s == '-'))  \
@@ -55,19 +52,21 @@ extern  long     getsndin(int, MYFLT *, long, SOUNDIN *);
 
 int cvanal(int argc, char **argv)
 {
+    ENVIRON *csound = &cenviron;
     CVSTRUCT *cvh;
     char    *infilnam, *outfilnam;
-    int     infd, ofd, err, channel = ALLCHNLS;
-    SOUNDIN  *p;  /* space allocated by SAsndgetset() */
+    SNDFILE *infd;
+    int     ofd, err, channel = ALLCHNLS;
+    SOUNDIN *p;  /* space allocated by SAsndgetset() */
 
-    MYFLT    beg_time = FL(0.0), input_dur = FL(0.0), sr = FL(0.0);
-    long     Estdatasiz,Hlen;
-    long     Hlenpadded = 1;
-    long     nb;
+    MYFLT   beg_time = FL(0.0), input_dur = FL(0.0), sr = FL(0.0);
+    long    Estdatasiz,Hlen;
+    long    Hlenpadded = 1;
+    long    nb;
 
     /* must set this for 'standard' behaviour when analysing
        (assume re-entrant Csound) */
-    dbfs_init(DFLT_DBFS);
+    dbfs_init(csound, DFLT_DBFS);
 
     if (!(--argc)) {
       return quit(Str("insufficient arguments"));
@@ -115,7 +114,8 @@ int cvanal(int argc, char **argv)
     infilnam = *argv++;
     outfilnam = *argv;
 
-    if ((infd = SAsndgetset(infilnam,&p,&beg_time,&input_dur,&sr,channel))<0) {
+    if ((infd = SAsndgetset(csound, infilnam, &p,
+                            &beg_time, &input_dur, &sr, channel)) < 0) {
       sprintf(errmsg,Str("error while opening %s"), retfilnam);
       return quit(errmsg);
     }
@@ -147,7 +147,7 @@ int cvanal(int argc, char **argv)
 /*      outputPVH->dataBsize = oframeAct * fftfrmBsiz; */
 /*      PVCloseWrHdr(ftFile, outputPVH); */    /* Rewrite dataBsize, Close files */
 
-    close(infd);
+    sf_close(infd);
     close(ofd);
     return 0;
 }
@@ -162,27 +162,28 @@ static int quit(char *msg)
 }
 
 static void takeFFT(
-    SOUNDIN         *p,
-    CVSTRUCT        *cvh,
-    long            Hlenpadded,
-    int             infd,
-    int             ofd)
+    SOUNDIN     *p,
+    CVSTRUCT    *cvh,
+    long        Hlenpadded,
+    SNDFILE     *infd,
+    int         ofd)
 {
-    long    i,j, read_in;
+    ENVIRON *csound = &cenviron;
+    int     i, j, read_in;
     MYFLT   *inbuf,*outbuf;
     MYFLT   *fp1,*fp2;
-    long    Hlen = cvh->Hlen;
+    int     Hlen = (int) cvh->Hlen;
     int     nchanls;
 
     nchanls = cvh->channel != ALLCHNLS ? 1 : cvh->src_chnls;
-    inbuf   = fp1 = (MYFLT *)mmalloc(&cenviron, Hlen * nchanls * sizeof(MYFLT));
-    if ( (read_in = getsndin(infd, inbuf, (long) (Hlen * nchanls), p))
-         < (long) (Hlen * nchanls))
-      csoundDie(&cenviron, Str("less sound than expected!"));
+    j = (int) (Hlen * nchanls);
+    inbuf = fp1 = (MYFLT *) csound->Malloc(csound, j * sizeof(MYFLT));
+    if ((read_in = csound->getsndin(csound, infd, inbuf, j, p)) < j)
+      csound->Die(csound, Str("less sound than expected!"));
 
     /* normalize the samples read in. */
     for (i = read_in; i--; ) {
-      *fp1++ *= cenviron.dbfs_to_float;
+      *fp1++ *= csound->dbfs_to_float;
     }
 
     fp1 = inbuf;
@@ -194,10 +195,10 @@ static void takeFFT(
         fp1 += nchanls;
       }
       fp1 = inbuf + i + 1;
-      csoundRealFFT(&cenviron, outbuf, (int) Hlenpadded);
+      csound->RealFFT(csound, outbuf, (int) Hlenpadded);
       outbuf[Hlenpadded] = outbuf[1];
       outbuf[1] = outbuf[Hlenpadded + 1L] = FL(0.0);
-      if (!csoundYield(&cenviron)) exit(1);
+      if (!csoundYield(csound)) exit(1);
       /* write straight out, just the indep vals */
       write(ofd, (char *)outbuf, cvh->dataBsize/nchanls);
       for (j = Hlenpadded - Hlen; j > 0; j--)

@@ -33,7 +33,6 @@
 #include "ugens6.h"
 #include "dsputil.h"
 #include "ugens8.h"
-#include "ugens9.h"
 #include "cwindow.h"
 #include "windin.h"
 #include "disprep.h"
@@ -217,8 +216,6 @@ int    lp2_set(void*,void*), lp2(void*,void*);
 int    phaser2set(void*,void*), phaser2(void*,void*);
 int    phaser1set(void*,void*), phaser1(void*,void*);
 int    balnset(void*,void*), balance(void*,void*);
-int    cvset(void*,void*), convolve(void*,void*);
-int    pconvset(void*,void*), pconvolve(void*,void*);
 
 /* thread vals, where isub=1, ksub=2, asub=4:
                 0 =     1  OR   2  (B out only)
@@ -539,7 +536,7 @@ OENTRY opcodlst_1[] = {
 { "pan",    S(PAN),   5, "aaaa", "akkioo",(SUBR)panset,NULL,   (SUBR)pan     },
 { "reverb", S(REVERB),  5, "a",  "ako",  (SUBR)rvbset, NULL,   (SUBR)reverb  },
 { "delayw", S(DELAYW),  5,  "",  "a",    (SUBR)delwset,NULL,   (SUBR)delayw  },
-{ "soundin",S(SOUNDIN), 5,"mmmmmmmmmmmmmmmmmmmmmmmm","Sooo",sndinset,NULL,soundin },
+{ "soundin",S(SOUNDIN_),5,"mmmmmmmmmmmmmmmmmmmmmmmm","Sooo",sndinset,NULL,soundin },
 { "soundout",S(SNDOUT), 5,      "",     "aSo",  sndo1set,NULL,  soundout},
 /* { "soundouts",S(SNDOUTS),5,     "",     "aaSo", sndo2set,NULL,  soundouts}, */
 { "in",     S(INM),     4,      "a",    "",     NULL,   NULL,   in      },
@@ -619,9 +616,6 @@ OENTRY opcodlst_1[] = {
 { "betarand.k",S(PRAND),2,      "k",    "kkk",  NULL,   ikbeta,NULL     },
 { "betarand.a",S(PRAND),4,      "a",    "kkk",  NULL,   NULL,  abeta    },
 { "seed",     S(PRAND), 1,      "",     "i",    seedrand, NULL, NULL    },
-{ "convolve", S(CONVOLVE),  5, "mmmm", "aSo",   cvset,   NULL, convolve },
-{ "convle",   S(CONVOLVE),  5, "mmmm", "aSo",   cvset,   NULL, convolve },
-{ "pconvolve",S(PCONVOLVE), 5, "mmmm", "aSoo", pconvset, NULL, pconvolve },
 { "tableseg", S(TABLESEG), 3,  "",      "iin",  tblesegset, ktableseg},
 { "ktableseg", S(TABLESEG), 3,  "",     "iin",  tblesegset, ktableseg},
 { "tablexseg", S(TABLESEG), 3, "",      "iin",  tblesegset, ktablexseg},

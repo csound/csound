@@ -48,11 +48,8 @@
 #include <assert.h>
 #endif
 
-extern int type2sf(int);
 extern char* type2string(int);
-#define format2sf(x) (x)
-extern  char    *getstrformat(int format);
-extern short sf2type(int);
+extern char  *getstrformat(int format);
 extern short sfsampsize(int);
 
 static int sreadinew(           /* special handling of sound input       */
@@ -106,7 +103,7 @@ static int sngetset(SOUNDINEW *p, char *sfname)
     }
     infile = sf_open_fd(sinfd, SFM_READ, &sfinfo, SF_TRUE);
     p->fdch.fd = infile;
-    p->format = sf2format(sfinfo.format);
+    p->format = SF2FORMAT(sfinfo.format);
     sfname = retfilnam;                        /* & record fullpath filnam */
     if (*p->iformat > 0)  /* convert spec'd format code */
        p->format = ((short)*p->iformat) | 0x100;
@@ -137,9 +134,9 @@ static int sngetset(SOUNDINEW *p, char *sfname)
     p->do_floatscaling = forReadHeader.do_floatscaling;
     p->fscalefac = forReadHeader.fscalefac;
 
-    p->format = (short)sf2format(sfinfo.format);
+    p->format = (short) SF2FORMAT(sfinfo.format);
     p->sampframsiz = (short)sfsampsize(sfinfo.format) * sfinfo.channels;
-    p->filetyp     = sf2type(sfinfo.format);
+    p->filetyp     = SF2TYPE(sfinfo.format);
     p->sr          = sfinfo.samplerate;
     p->nchanls     = (short)sfinfo.channels;
     p->audrem = p->audsize = sfinfo.frames;
@@ -707,7 +704,7 @@ int sndo1set(ENVIRON *csound, SNDOUT *p) /* init routine for instr soundout   */
                         (int) (*(p->c.iformat) + FL(0.5)));
         goto errtn;
     }
-    sfinfo.format = type2sf(p->c.filetyp)|format2sf(p->c.format);
+    sfinfo.format = TYPE2SF(p->c.filetyp) | FORMAT2SF(p->c.format);
     sfinfo.sections = 0;
     sfinfo.seekable = 0;
     outfile = sf_open_fd(soutfd, SFM_WRITE, &sfinfo, SF_TRUE);

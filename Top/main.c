@@ -326,7 +326,7 @@ int csoundCompile(void *csound_, int argc, char **argv)
     init_pvsys();
     /* utilities depend on this as well as orchs */
     csound->e0dbfs = DFLT_DBFS;         /* may get changed by an orch */
-    dbfs_init(csound->e0dbfs);
+    dbfs_init(csound, csound->e0dbfs);
     timers_struct_init((RTCLOCK*)
                        csoundQueryGlobalVariable(csound, "csRtClock"));
     csoundCreateGlobalVariable(csound, "#CLEANUP", (size_t) 1);

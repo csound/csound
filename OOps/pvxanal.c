@@ -37,7 +37,6 @@
 
 #define DEFAULT_BUFLEN (8192)   /* per channel */
 
-long getsndin(SNDFILE *fd, MYFLT *fp, long nlocs, SOUNDIN *p);
 /* Only supports PVOC_AMP_FREQ format for now */
 
 void fft_(MYFLT *, MYFLT *,int,int,int,int);
@@ -144,7 +143,7 @@ int pvxanal(SOUNDIN *p, SNDFILE *fd, const char *fname, long srate,
       goto error;
     }
 
-    while ((sampsread = getsndin(fd,inbuf,buflen_samps,p)) > 0) {
+    while ((sampsread = getsndin(&cenviron, fd, inbuf, buflen_samps, p)) > 0) {
       total_sampsread += sampsread;
       /* zeropad to full buflen */
       if (sampsread < buflen_samps) {
@@ -688,3 +687,4 @@ void vonhann(MYFLT *win, int winLen, int even)
         *(win+i) =(MYFLT)(0.5 + 0.5 *cos(ftmp*(double)i));
     }
 }
+

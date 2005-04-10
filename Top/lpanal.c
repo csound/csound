@@ -420,15 +420,14 @@ int DoPoleInterpolation(int poleCount,
  *
  */
 
-extern  int     SAsndgetset(char*, SOUNDIN **, MYFLT*, MYFLT*, MYFLT*, int);
-extern  long    getsndin(int, MYFLT*, long, SOUNDIN*);
-
 int lpanal(int argc, char **argv)
 {
+        ENVIRON *csound = &cenviron;
+        SNDFILE *infd;
         int     slice, analframes, counter, channel;
         MYFLT   *coef, beg_time, input_dur, sr = FL(0.0);
         char    *infilnam, *outfilnam;
-        int     infd, ofd;
+        int     ofd;
         double  errn, rms1, rms2, filterCoef[MAXPOLES+1];
         MYFLT   *sigbuf, *sigbuf2;      /* changed from short */
         long    n;
@@ -451,11 +450,11 @@ int lpanal(int argc, char **argv)
 
         /* must set this for 'standard' behaviour when analysing
            (assume re-entrant Csound) */
-        dbfs_init(DFLT_DBFS);
+        dbfs_init(csound, DFLT_DBFS);
 
    /* Allocates for analysis result buffer */
 
-        lpbuf = mcalloc(&cenviron, (long)LPBUFSIZ);
+        lpbuf = csound->Calloc(csound, LPBUFSIZ);
 
    /* Header is defined at buffer startup */
         lph = (LPHEADER *) lpbuf;
@@ -581,7 +580,8 @@ int lpanal(int argc, char **argv)
 
    /* Get information on input sound */
         if (
-         (infd = SAsndgetset(infilnam,&p,&beg_time,&input_dur,&sr,channel))<0) {
+         (infd = csound->SAsndgetset(csound, infilnam, &p, &beg_time,
+                                     &input_dur, &sr, channel)) < 0) {
             sprintf(errmsg,Str("error while opening %s"), retfilnam);
             quit(errmsg);
         }
@@ -621,7 +621,7 @@ int lpanal(int argc, char **argv)
         sigbuf2 = sigbuf + slice;
 
    /* Try to read first frame in buffer */
-        if ((n = getsndin(infd, sigbuf, (long)WINDIN, p)) < WINDIN)
+        if ((n = csound->getsndin(csound, infd, sigbuf, WINDIN, p)) < WINDIN)
             quit(Str("soundfile read error, could not fill first frame"));
 
    /* initialize frame pitch table ? */
@@ -762,7 +762,7 @@ int lpanal(int argc, char **argv)
 /*              *fp1++ = *fp2++;} */
 
         /* Get next sound frame */
-            if ((n = getsndin(infd, sigbuf2, (long)slice, p)) == 0)
+            if ((n = csound->getsndin(csound, infd, sigbuf2, slice, p)) == 0)
                 break;          /* refill til EOF */
             if (!csoundYield(&cenviron)) break;
         } while (counter < analframes); /* or nsmps done */
@@ -770,7 +770,7 @@ int lpanal(int argc, char **argv)
    /* clean up stuff */
         dispexit();
         printf(Str("%d lpc frames written to %s\n"), counter, outfilnam);
-        close(infd);
+        sf_close(infd);
         close(ofd);
         free(a); free(x);
         mfree(&cenviron, coef);

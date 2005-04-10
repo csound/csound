@@ -80,6 +80,8 @@ static  FUNC    *ftalloc(ENVIRON *);
 
 #define FTPMAX  (150)
 
+#define RNDINT(x) ((int) ((double) (x) + ((double) (x) < 0.0 ? -0.5 : 0.5)))
+
 void ftRESET(ENVIRON *csound)
 {
   int i;
@@ -2066,42 +2068,52 @@ static void gen01raw(FUNC *ftp, ENVIRON *csound)
                                 /* read ftable values from a sound file */
 {                               /* stops reading when table is full     */
     FGDATA  *ff = &(csound->ff);
-    static  ARGOFFS argoffs = {0};  /* OUTOCOUNT-not applicable yet */
-    static  OPTXT   optxt;          /* create dummy optext  */
     SOUNDIN *p;                     /*   for sndgetset      */
     AIFFDAT *adp;
-    extern  SNDFILE *sndgetset(SOUNDIN *);
-    extern  long    getsndin(SNDFILE *, MYFLT *, long, SOUNDIN *);
     SOUNDIN tmpspace;               /* create temporary opds */
     SNDFILE *fd;
     int     truncmsg = 0;
     long    inlocs = 0;
     int def=0;
 
-    optxt.t.outoffs = &argoffs;     /* point to dummy OUTOCOUNT */
     p = &tmpspace;
-    p->h.optext = &optxt;
-    p->ifilno   = &ff->e.p[5];
-    p->iskptim  = &ff->e.p[6];
-    p->iformat  = &ff->e.p[7];
-    p->channel  = (short)ff->e.p[8];
+    memset(p, 0, sizeof(SOUNDIN));
+    {
+      long  filno = (long) RNDINT(ff->e.p[5]);
+      int   fmt = (int) RNDINT(ff->e.p[7]);
+      if (filno == (long) SSTRCOD)
+        strcpy(p->sfname, unquote(ff->e.strarg));
+      else if (filno >= 0 && filno <= strsmax && strsets && strsets[filno])
+        strcpy(p->sfname, strsets[filno]);
+      else
+        sprintf(p->sfname, "soundin.%ld", filno);   /* soundin.filno */
+      switch (fmt) {
+        case 0: p->format = AE_SHORT; break;
+        case 1: p->format = AE_CHAR;  break;
+        case 2: p->format = AE_ALAW;  break;
+        case 3: p->format = AE_ULAW;  break;
+        case 4: p->format = AE_SHORT; break;
+        case 5: p->format = AE_LONG;  break;
+        case 6: p->format = AE_FLOAT; break;
+        default:
+          fterror(csound, ff, Str("invalid sample format: %d"), fmt);
+          return;
+      }
+    }
+    p->skiptime = ff->e.p[6];
+    p->channel  = (int) RNDINT(ff->e.p[8]);
     p->do_floatscaling = 0;
     if (p->channel < 0 /* || p->channel > ALLCHNLS-1 */) {
       fterror(csound, ff, Str("channel %d illegal"), (int) p->channel);
       return;
     }
-    if (p->channel == 0)                    /* snd is chan 1,2,..8 or all */
+    if (p->channel == 0)                      /* snd is chan 1,2,..8 or all */
       p->channel = ALLCHNLS;
     p->analonly = 0;
-    p->STRARG = ff->e.strarg;
     if (ff->flen == 0)
       csound->Message(csound, Str("deferred alloc\n"));
-    if ((fd = sndgetset(p))==NULL) {        /* sndinset to open the file */
+    if ((fd = sndgetset(csound, p))==NULL) {  /* sndinset to open the file */
       fterror(csound, ff, "Failed to open file"); return;
-    }
-    if (p->endfile) {
-      csound->Message(csound, Str("GEN1 early end-of-file\n"));
-      goto gn1rtn;
     }
     if (ff->flen==0) {                      /* deferred ftalloc requestd: */
       if ((ff->flen = p->framesrem) <= 0) { /*   get minsize from soundin */
@@ -2130,7 +2142,7 @@ static void gen01raw(FUNC *ftp, ENVIRON *csound)
       if (adp->gainfac == 0)
         adp->gainfac = FL(1.0);
       ftp->cpscvt = ftp->cvtbas / adp->natcps;  /*    copy data to FUNC */
-      ftp->loopmode1 = adp->loopmode1;       /* (getsndin does gain) */
+      ftp->loopmode1 = adp->loopmode1;          /* (getsndin does gain) */
       ftp->loopmode2 = adp->loopmode2;
       ftp->begin1 = adp->begin1;
       ftp->begin2 = adp->begin2;
@@ -2160,11 +2172,10 @@ static void gen01raw(FUNC *ftp, ENVIRON *csound)
       ftp->end1 = ftp->flenfrms;  /* Greg Sullivan */
     }
     /* read sound with opt gain */
-    if ((inlocs = getsndin(fd, ftp->ftable, ff->flenp1, p)) < 0) {
+    if ((inlocs = getsndin(csound, fd, ftp->ftable, ff->flenp1, p)) < 0) {
       fterror(csound, ff, Str("GEN1 read error"));
       return;
     }
- gn1rtn:
     if (p->audrem > 0 && !truncmsg && p->framesrem > ff->flen) {
       /* Reduce msg */
       csound->Warning(csound, Str("GEN1: aiff file truncated by ftable size"));
@@ -2813,8 +2824,6 @@ static void gen51(FUNC *ftp, ENVIRON *csound)   /* Gab 1/3/2005 */
       fp[j] = pp[grade] * factor * basefreq;
     }
 }
-
-#define RNDINT(x) ((int) ((double) (x) + ((double) (x) < 0.0 ? -0.5 : 0.5)))
 
 static void gen52 (FUNC *ftp, ENVIRON *csound)
 {

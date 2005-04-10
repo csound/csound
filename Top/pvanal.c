@@ -73,9 +73,6 @@ static  int      verbose = 0;
 static  FILE*    trfil = NULL; /* was stdout */
 static  int WindowType = 1;
 
-extern  OPARMS   O;
-extern  SNDFILE  *SAsndgetset(char*,SOUNDIN **,MYFLT*,MYFLT*,MYFLT*,int);
-extern  long     getsndin(SNDFILE *, MYFLT *, long, SOUNDIN *);
 extern  int      csoundYield(void*);
 
 #ifdef mills_macintosh
@@ -88,12 +85,13 @@ extern  int      csoundYield(void*);
 
 int pvanal(int argc, char **argv)
 {
+    ENVIRON *csound = &cenviron;
     PVSTRUCT *pvh;
     char    *infilnam, *outfilnam;
     SNDFILE *infd;
     int     ofd, err, channel = 1;
-    int     ovlp = 0;            /* number of overlapping windows to have */
-    SOUNDIN  *p;  /* space allocated by SAsndgetset() */
+    int     ovlp = 0;           /* number of overlapping windows to have */
+    SOUNDIN  *p;                /* space allocated by SAsndgetset() */
 
     MYFLT    beg_time = FL(0.0), input_dur = FL(0.0), sr = FL(0.0);
     long     oframeEst = 0, oframeAct;  /* output frms estimated, & actual */
@@ -103,7 +101,7 @@ int pvanal(int argc, char **argv)
 
     /* must set this for 'standard' behaviour when analysing
        (assume re-entrant Csound) */
-    dbfs_init(DFLT_DBFS);
+    dbfs_init(csound, DFLT_DBFS);
     trfil = stdout;
     O.displays = 0;
     WindowType = 1;
@@ -190,8 +188,8 @@ int pvanal(int argc, char **argv)
       quit(Str("pvanal cannot have both -w and -h"));
     /* open sndfil, do skiptime */
     channel = ALLCHNLS; /* we can analyse up to 8 chans with pvxanal! */
-    if ((infd = SAsndgetset(infilnam,&p,&beg_time,&input_dur,&sr,channel))
-        == NULL) {
+    if ((infd = csound->SAsndgetset(csound, infilnam, &p, &beg_time,
+                                    &input_dur, &sr, channel)) == NULL) {
       sprintf(errmsg,Str("error while opening %s"), retfilnam);
       quit(errmsg);
     }
@@ -306,6 +304,7 @@ static long takeFFTs(
     int             ofd,
     long            oframeEst)
 {
+    ENVIRON *csound = &cenviron;
     long    i = -1, nn, read_in;
     MYFLT   *inBuf, *tmpBuf, *oldInPh, *winBuf;
     MYFLT   *v;
@@ -326,8 +325,9 @@ static long takeFFTs(
     for (fp1=inBuf, nn=frameSize/2; nn--; )
       *fp1++ = FL(0.0);
                              /* .. and read in second half from file */
-    if ((read_in = getsndin(infd, fp1, (long)(frameSize/2),p)) < frameSize/2)
-      csoundDie(&cenviron, Str("insufficient sound for analysis"));
+    if ((read_in = csound->getsndin(csound, infd, fp1, (frameSize/2), p))
+        < frameSize/2)
+      csound->Die(csound, Str("insufficient sound for analysis"));
     for (nn = read_in; nn--; )
       /* IV - Jul 11 2002 */
       *fp1++ *= cenviron.dbfs_to_float;     /* normalize the samples read in */
@@ -372,12 +372,13 @@ static long takeFFTs(
         break;               /* mv conts fwrd by frameIncr, rd more pnts */
       for (fp1=inBuf+frameIncr, fp2=inBuf, nn=frameSize-frameIncr; nn--; )
         *fp2++ = *fp1++;     /* getsndin pads with zeros if not complete */
-      read_in = getsndin(infd, inBuf+frameSize-frameIncr, frameIncr, p);
+      read_in = csound->getsndin(csound, infd, inBuf+frameSize-frameIncr,
+                                 frameIncr, p);
       for (fp1 = inBuf+frameSize-frameIncr, nn = read_in; nn--; )
         /* IV - Jul 11 2002 */
-        *fp1++ *= cenviron.dbfs_to_float;   /* normalize samples just read in */
+        *fp1++ *= csound->dbfs_to_float;    /* normalize samples just read in */
       /* debug = 0; */
-      if (!csoundYield(&cenviron)) break;
+      if (!csoundYield(csound)) break;
     } while (i < oframeEst);
     if (!O.displays && !verbose) printf("%ld\n",i);
     if (i < oframeEst)

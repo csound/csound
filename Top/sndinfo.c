@@ -29,10 +29,10 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#include "soundio.h"
 
 extern char* sf2string(int);
 extern char* type2string(int);
-extern short sf2type(int);
 
 int sndinfo(int argc, char **argv)
 {
@@ -81,7 +81,7 @@ int sndinfo(int argc, char **argv)
         printf(Str("\tsrate %ld, %s, %ld bit %s, %4.2f seconds\n"),
                sf_info.samplerate, channame,
                sfsampsize(sf_info.format) * 8,
-               type2string(sf2type(sf_info.format)),
+               type2string(SF2TYPE(sf_info.format)),
                (MYFLT)sf_info.frames / sf_info.samplerate);
         printf(Str("\t(%ld sample frames)\n"),
                (long)sf_info.frames);
@@ -90,6 +90,4 @@ int sndinfo(int argc, char **argv)
     }
     return 0;
 }
-
-
 
