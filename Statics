@@ -222,11 +222,6 @@ OOps/sdif-mem.c:static void (*my_free)(void *memory, int numBytes);
 
 OOps/ugens3.c:static short *isintab = NULL;
 
-OOps/ugens4.c:static short
-OOps/ugens4.c:    static long rand = 1000;
-OOps/ugens4.c:static short
-OOps/ugens4.c:    static long rand = 1000;
-
 OOps/ugens5.c:static  int     currentLPCSlot=0 ;
 OOps/ugens5.c:static int max_lpc_slot=0;
 OOps/ugens5.c:static  LPREAD  **lprdadr=NULL;

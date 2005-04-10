@@ -1133,7 +1133,11 @@ PREFIX = commonEnvironment['prefix']
 BIN_DIR = PREFIX + "/bin"
 OPCODE_DIR = PREFIX + "/lib/csound/opcodes"
 INCLUDE_DIR = PREFIX + "/include/csound"
-LIB_DIR = PREFIX + "/lib"
+
+if commonEnvironment['Word64']=='1':
+    LIB_DIR = PREFIX + "/lib64"
+else:
+    LIB_DIR = PREFIX + "/lib"
 
 if commonEnvironment['install']=='1':
     installExecutables = Alias('install-executables',
