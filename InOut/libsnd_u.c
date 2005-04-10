@@ -316,7 +316,7 @@ void *sndgetset(void *csound_, void *p_)
     p->framesrem = (int64_t) sfinfo.frames;         /*   find frames rem */
     skipframes = (int) ((double) p->skiptime * (double) p->sr
                         + (p->skiptime >= FL(0.0) ? 0.5 : -0.5));
-    framesinbuf = (int) SNDINBUFSIZ / (int) sfinfo.channels;
+    framesinbuf = (int) SNDINBUFSIZ / (int) p->sampframsiz;
     p->endfile = 0;
     if (skipframes < 0) {
       n = -skipframes;
