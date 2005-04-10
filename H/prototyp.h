@@ -103,6 +103,11 @@ void    err_printf(char *, ...);
 char    *mytmpnam(char *);
 #endif
 
+void    *SAsndgetset(void*, char*, void*, MYFLT*, MYFLT*, MYFLT*, int);
+int     getsndin(void*, void*, MYFLT*, int, void*);
+void    *sndgetset(void*, void*);
+int     sreadin(void*, void*, MYFLT*, int, void*);
+
 void csoundPrintf(const char *format, ...);
 
 extern  OPARMS  O;

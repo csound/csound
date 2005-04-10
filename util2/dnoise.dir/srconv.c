@@ -61,8 +61,6 @@
                         if (!(--argc) || (((s = *argv++) != NULL) && *s == '-')) \
                             dieu(MSG);
 
-extern	SNDFILE *SAsndgetset(char *, SOUNDIN**, MYFLT*, MYFLT*, MYFLT*, int);
-extern	long     getsndin(SNDFILE *, MYFLT *, long, SOUNDIN *);
 extern int  openout(char *, int);
 extern void writeheader(int, char *);
 extern char *getstrformat(int);
@@ -78,7 +76,6 @@ static MYFLT       *outbuf;
 static SNDFILE *outfd;
 OPARMS	O = {0,0, 0,1,1,0, 0,0, 0,0, 0,0, 1,0,0,7, 0,0,0, 0,0,0,0, 0,0 };
 
-extern int type2sf(int);
 static int block = 0;
 
 static int writebuffer(MYFLT * obuf, int length)
@@ -167,6 +164,7 @@ static void dieu(char *s)
 
 int main(int argc, char **argv)
 {
+    ENVIRON *csound = &cenviron;
     MYFLT
       *input,     /* pointer to start of input buffer */
       *output,    /* pointer to start of output buffer */
@@ -383,14 +381,13 @@ int main(int argc, char **argv)
         usage(1);
       }
     }
-#ifdef RWD_DBFS
-            dbfs_init(DFLT_DBFS);
-#endif
+    dbfs_init(csound, DFLT_DBFS);
     if (infile==NULL) {
       printf("No input given\n");
       usage(1);
     }
-    if ((inf = SAsndgetset(infile,&p,&beg_time,&input_dur,&sr,channel))<0) {
+    if ((inf = csound->SAsndgetset(csound, infile, &p, &beg_time,
+                                   &input_dur, &sr, channel)) < 0) {
       fprintf(stderr,Str("error while opening %s"), infile);
       exit(1);
     }
@@ -493,9 +490,9 @@ int main(int argc, char **argv)
     }
 #endif
     sfinfo.frames = -1;
-    sfinfo.samplerate = (int)(cenviron.esr = p->sr);
-    sfinfo.channels = cenviron.nchnls = Chans = p->nchanls;
-    sfinfo.format = type2sf(O.filetyp)|format2sf(O.outformat);
+    sfinfo.samplerate = (int) (csound->esr = p->sr);
+    sfinfo.channels = csound->nchnls = Chans = p->nchanls;
+    sfinfo.format = TYPE2SF(O.filetyp) | FORMAT2SF(O.outformat);
     sfinfo.sections = 0;
     sfinfo.seekable = 0;
     outfd = sf_open_fd(openout(O.outfilename, 1), SFM_WRITE, &sfinfo, 1);
@@ -585,7 +582,7 @@ int main(int argc, char **argv)
 
 /* initialization: */
 
-    nread = getsndin(inf, input, IBUF2, p);
+    nread = csound->getsndin(csound, inf, input, IBUF2, p);
     nMax = (long)(input_dur * p->sr);
     nextIn = input + nread;
     for (i = nread; i < IBUF2; i++)
@@ -637,7 +634,7 @@ int main(int argc, char **argv)
             mMax += IBUF2;
             if (nextIn >= (input + IBUF))
               nextIn = input;
-            nread = getsndin(inf, nextIn, IBUF2, p);
+            nread = csound->getsndin(csound, inf, nextIn, IBUF2, p);
             nextIn += nread;
             if (nread < IBUF2)
               nMax = n + wLen + (nread / Chans) + 1;
@@ -693,7 +690,7 @@ int main(int argc, char **argv)
             mMax += IBUF2;
             if (nextIn >= (input + IBUF))
               nextIn = input;
-            nread = getsndin(inf, nextIn, IBUF2, p);
+            nread = csound->getsndin(csound, inf, nextIn, IBUF2, p);
             nextIn += nread;
             if (nread < IBUF2)
               nMax = n + wLen + (nread / Chans) + 1;

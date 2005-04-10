@@ -97,8 +97,6 @@ extern char *gargv[];
 extern int gargc;
 #endif
 
-extern int  SAsndgetset(char *, SOUNDIN**, MYFLT*, MYFLT*, MYFLT*, int);
-extern long getsndin(int, MYFLT *, long, SOUNDIN *);
 extern void bytrev2(char *, int), bytrev4(char *, int), rewriteheader(SNDFILE *,int);
 extern int  openout(char *, int), bytrevhost(void);
 extern short sfsampsize(int);
@@ -212,7 +210,7 @@ int dnoise(int argc, char **argv)
         lj,         /* to satisfy lame Microsoft compiler */
         lk;         /* to satisfy lame Microsoft compiler */
 
-    int     fp;     /* noise reference file */
+    SNDFILE *fp;    /* noise reference file */
 
     MYFLT
         Ninv,       /* 1. / N */
@@ -257,7 +255,7 @@ int dnoise(int argc, char **argv)
 
     SOUNDIN     *p, *pn;
     char        *infile = NULL, *outfile = NULL, *nfile = NULL;
-    int         inf;
+    SNDFILE     *inf;
     char        c, *s;
     int             channel = ALLCHNLS;
     MYFLT       beg_time = FL(0.0), input_dur = FL(0.0), sr = FL(0.0);
@@ -487,7 +485,8 @@ int dnoise(int argc, char **argv)
       err_printf( "Must have an example noise file (-I name)\n");
       exit(1);
     }
-    if ((inf = SAsndgetset(infile,&p,&beg_time,&input_dur,&sr,channel))<0) {
+    if ((inf = SAsndgetset(&cenviron, infile, &p, &beg_time,
+                           &input_dur, &sr, channel)) < 0) {
       err_printf(Str("error while opening %s"), infile);
       exit(1);
     }
@@ -525,7 +524,7 @@ int dnoise(int argc, char **argv)
       memset(&sfinfo, 0, sizeof(SF_INFO));
       sfinfo.samplerate = (int) p->sr;
       sfinfo.channels = (int) p->nchanls;
-      sfinfo.format = type2sf(O.filetyp) | format2sf(O.outformat);
+      sfinfo.format = TYPE2SF(O.filetyp) | FORMAT2SF(O.outformat);
       if (strcmp(O.outfilename, "stdout") != 0) {
         name = csoundFindOutputFile(&cenviron, O.outfilename, "SFDIR");
         if (name == NULL)
@@ -556,7 +555,8 @@ int dnoise(int argc, char **argv)
 
     /* read noise reference file */
 
-    if ((fp = SAsndgetset(nfile,&pn,&beg_ntime,&input_ndur,&srn,channel))<0) {
+    if ((fp = SAsndgetset(&cenviron, nfile, &pn, &beg_ntime,
+                          &input_ndur, &srn, channel)) < 0) {
       perror("dnoise: cannot open noise reference file\n");
       exit(1);
     }
@@ -802,14 +802,14 @@ int dnoise(int argc, char **argv)
 
     /* skip over nMin samples */
     while (nMin > (long) ibuflen) {
-      nread = getsndin(fp, ibuf1, ibuflen, pn);
+      nread = getsndin(&cenviron, fp, ibuf1, ibuflen, pn);
       if (nread < ibuflen) {
         ERR("dnoise: begin time is greater than EOF of noise file!");
       }
       nMin -= (long) ibuflen;
     }
     i = (int) nMin;
-    nread = getsndin(fp, ibuf1, i, pn);
+    nread = getsndin(&cenviron, fp, ibuf1, i, pn);
     if (nread < i) {
       ERR("dnoise: begin time is greater than EOF of noise file!");
     }
@@ -817,7 +817,7 @@ int dnoise(int argc, char **argv)
     lj = Beg;  /* single channel only */
     while (lj < End) {
       lj += (long) N;
-      nread = getsndin(fp, fbuf, N, pn);
+      nread = getsndin(&cenviron, fp, fbuf, N, pn);
       if (nread < N)
         break;
 
@@ -858,7 +858,7 @@ int dnoise(int argc, char **argv)
     for (i = 0; i < ibuflen; i++, f++)
         *f = FL(0.0);
     /* fill ibuf2 to start */
-    nread = getsndin(inf, ibuf2, ibuflen, p);
+    nread = getsndin(&cenviron, inf, ibuf2, ibuflen, p);
 /*     nread = read(inf, ibuf2, ibuflen*sizeof(MYFLT)); */
 /*     nread /= sizeof(MYFLT); */
     lnread = nread;
@@ -910,7 +910,7 @@ int dnoise(int argc, char **argv)
           ib2 = ib0;
           ibs -= ibuflen;
           /* fill ib2 */
-          nread = getsndin(inf, ib2, ibuflen, p);
+          nread = getsndin(&cenviron, inf, ib2, ibuflen, p);
           lnread += nread;
           f = ib2 + nread;
           for (i = nread; i < ibuflen; i++, f++)

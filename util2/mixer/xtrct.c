@@ -48,7 +48,6 @@
 #define FIND(MSG)   if (*s == '\0')  \
                         if (!(--argc) || ((s = *++argv) && *s == '-')) \
                             csoundDie(&cenviron, MSG);
-extern int type2sf(int);
 
 long        sample;         /* Time file starts in samples */
 long        stop;           /* Time file ends in samples */
@@ -68,10 +67,8 @@ static SNDFILE*  EXsndgetset(char *);
 static void ExtractSound(SNDFILE*, SNDFILE*);
 
 /* Externs */
-extern long getsndin(SNDFILE*, MYFLT *, long, SOUNDIN *);
 extern int  openout(char *, int);
 extern char *getstrformat(int);
-extern SNDFILE *sndgetset(SOUNDIN *);
 extern short sfsampsize(int);
 
 static void usage(char *mesg)
@@ -100,6 +97,7 @@ static void usage(char *mesg)
 int
 main(int argc, char **argv)
 {
+    ENVIRON     *csound = &cenviron;
     char        *inputfile = NULL;
     SNDFILE*    infd;
     SNDFILE*    outfd;
@@ -259,9 +257,7 @@ main(int argc, char **argv)
       }
     } while (--argc);
 
-#ifdef RWD_DBFS
-    dbfs_init(DFLT_DBFS);
-#endif
+    dbfs_init(csound, DFLT_DBFS);
     /* Read sound file */
     if (inputfile == NULL) usage("No input");
 
@@ -294,7 +290,7 @@ main(int argc, char **argv)
     sfinfo.frames = -1;
     sfinfo.samplerate = (int) (cenviron.esr + FL(0.5));
     sfinfo.channels = cenviron.nchnls;
-    sfinfo.format = type2sf(O.filetyp)|format2sf(O.outformat);
+    sfinfo.format = TYPE2SF(O.filetyp) | FORMAT2SF(O.outformat);
     sfinfo.sections = 0;
     sfinfo.seekable = 0;
     outfd = sf_open_fd(openout(O.outfilename, 1),SFM_WRITE, &sfinfo, 1);
@@ -309,35 +305,26 @@ main(int argc, char **argv)
 static SNDFILE*
 EXsndgetset(char *name)
 {
+    ENVIRON     *csound = &cenviron;
     SNDFILE*    infd;
-    MYFLT        dur;
-    static ARGOFFS argoffs = {0};     /* these for sndgetset */
-    static OPTXT optxt;
-    static MYFLT fzero = FL(0.0);
-    char         quotname[80];
-    static MYFLT sstrcod = (MYFLT)SSTRCOD;
+    MYFLT       dur;
 
-    sssfinit();                 /* stand-alone init of SFDIR etc. */
-    cenviron.esr = FL(0.0);     /* set esr 0. with no orchestra   */
-    optxt.t.outoffs = &argoffs; /* point to dummy OUTOCOUNT       */
-    p = (SOUNDIN *) mcalloc(&cenviron, (long)sizeof(SOUNDIN));
+    csoundInitEnv(csound);      /* stand-alone init of SFDIR etc. */
+    csound->esr = FL(0.0);      /* set esr 0. with no orchestra   */
+    p = (SOUNDIN *) csound->Calloc(csound, sizeof(SOUNDIN));
     p->channel = ALLCHNLS;
-    p->h.optext = &optxt;
-    p->ifilno = &sstrcod;
-    p->iskptim = &fzero;
-    p->iformat = &fzero;
-    sprintf(quotname,"%c%s%c",'"',name,'"');
-    p->STRARG = quotname;
-    if ((infd = sndgetset(p)) == 0)            /* open sndfil, do skiptime */
+    p->skiptime = FL(0.0);
+    strcpy(p->sfname, name);
+    if ((infd = csound->sndgetset(csound, p)) == 0) /*open sndfil, do skiptime*/
         return(0);
     p->getframes = p->framesrem;
     dur = (MYFLT) p->getframes / p->sr;
     printf("extracting from %ld sample frames (%3.1f secs)\n",
-           p->getframes, dur);
+           (long) p->getframes, dur);
     return(infd);
 }
 
-static void 
+static void
 ExtractSound(SNDFILE* infd, SNDFILE* outfd)
 {
     double buffer[NUMBER_OF_SAMPLES];

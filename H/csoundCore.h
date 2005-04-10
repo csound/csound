@@ -128,9 +128,14 @@ extern "C" {
 
 #define MAXNAME 128
 
-#define DFLT_DBFS (FL(32767.0))
+#define DFLT_DBFS (FL(32768.0))
 
-  void dbfs_init(MYFLT dbfs);
+  /*
+   *       Forward declaration.
+   */
+  struct ENVIRON_;
+
+  void dbfs_init(struct ENVIRON_ *csound, MYFLT dbfs);
 
   typedef struct {
     int     odebug, initonly;
@@ -284,11 +289,6 @@ extern "C" {
     int    dplsb;
     int    datenabl;
   } MCHNBLK;
-
-  /*
-   *       Forward declaration.
-   */
-  struct ENVIRON_;
 
   /* This struct holds the info for a concrete instrument event
      instance in performance. */
@@ -705,6 +705,9 @@ extern "C" {
     INSDS *(*instance_)(int insno);
     void (*rewriteheader_)(SNDFILE *ofd, int verbose);
     void (*writeheader)(int ofd, char *ofname);
+    void *(*SAsndgetset)(void*, char*, void*, MYFLT*, MYFLT*, MYFLT*, int);
+    void *(*sndgetset)(void*, void*);
+    int (*getsndin)(void*, void*, MYFLT*, int, void*);
     int (*PerformKsmpsAbsolute_)(void *csound);
     int (*GetDebug)(void *csound);
     void (*SetDebug)(void *csound, int d);

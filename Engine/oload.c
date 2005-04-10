@@ -164,6 +164,9 @@ const ENVIRON cenviron_ = {
         instance,
         rewriteheader,
         writeheader,
+        SAsndgetset,
+        sndgetset,
+        getsndin,
         csoundPerformKsmpsAbsolute,
         csoundGetDebug,
         csoundSetDebug,
@@ -688,7 +691,7 @@ void oload(ENVIRON *csound)
     csound->global_kcounter = csound->kcounter_;
     cpsoctinit(csound);
     reverbinit();
-    dbfs_init(csound->e0dbfs);
+    dbfs_init(csound, csound->e0dbfs);
     nspin = nspout = csound->ksmps * csound->nchnls;  /* alloc spin & spout */
     spin =  (MYFLT *) mcalloc(csound, nspin * sizeof(MYFLT));
     spout = (MYFLT *) mcalloc(csound, nspout * sizeof(MYFLT));

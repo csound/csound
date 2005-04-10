@@ -31,7 +31,7 @@
 #include <fcntl.h>
 
 static  SNDFILE *outfile;
-extern  SNDFILE *infile;
+static  SNDFILE *infile;
 static  char    *sfoutname;                     /* soundout filename    */
         MYFLT   *inbuf = NULL;
         MYFLT   *outbuf = NULL;                 /* contin sndio buffers */
@@ -62,19 +62,15 @@ extern  void    (*spinrecv)(void*), (*spoutran)(void*);
 extern  void    (*nzerotran)(void*, long);
 int     (*audrecv)(void*, MYFLT*, int);
 void    (*audtran)(void*, MYFLT*, int);
-SNDFILE *sndgetset(SOUNDIN *);
 
 extern  char    *getstrformat(int format);
 static  void    sndwrterr(void*, unsigned, unsigned);
 extern  unsigned long   nframes;
 
-extern int type2sf(int);
-extern short sf2type(int);
 extern char* type2string(int);
 extern short sfsampsize(int);
 
 extern  int     openin(char*);
-extern  OPARMS  O;
 
 /* return sample size (in bytes) of format 'fmt' */
 
@@ -236,80 +232,106 @@ void writeheader(int ofd, char *ofname)
     sf_command(outfile, SFC_UPDATE_HEADER_NOW, NULL, 0);
 }
 
-int sndinset(ENVIRON *csound, SOUNDIN *p) /* init routine for instr soundin  */
+int sndinset(ENVIRON *csound, SOUNDIN_ *p) /* init routine for instr soundin */
                             /* shares above sndgetset with SAsndgetset, gen01*/
 {
     SNDFILE *sinfd;
-    int     reinit = 0;
 
-    if (p->fdch.fd!=NULL) {                 /* if file already open, close it */
-          /* RWD: it is not safe to assume all compilers init this to 0 */
-          /* (IV: but it is allocated with mcalloc...) */
-      if ((int) *p->skipinit == 0) {
-        /* reload the file */
-        reinit++; sf_close(p->fdch.fd);
-      }
-      else
+    if (p->fdch.fd != NULL) {           /* if file already open, close it */
+      if (*p->skipinit != FL(0.0))
         return OK;
+      /* reload the file */
+      fdclose(&(p->fdch));
     }
-    p->channel = ALLCHNLS;                   /* reading all channels      */
-    p->analonly = 0;
-    if ((sinfd = sndgetset(p)) != NULL) {    /* if soundinset successful  */
-      p->fdch.fd = sinfd;                    /*    store & log the fd     */
-      if (!reinit) fdrecord(&p->fdch);       /*    instr will close later */
-      p->sampframsiz /= p->OUTOCOUNT;        /* IV - Nov 16 2002 */
+    if (*p->ifilno == SSTRCOD) {                /* if char string name given */
+      if (p->STRARG == NULL)
+        strcpy(p->sndin_.sfname, unquote(currevent->strarg));
+      else
+        strcpy(p->sndin_.sfname, unquote(p->STRARG)); /* unquote it, else use */
     }
-    else
-      return csound->InitError(csound, errmsg); /* else just print the errmsg */
+    else {
+      long filno = (long) ((double) *p->ifilno + 0.5);
+      if (filno >= 0 && filno <= strsmax && strsets != NULL && strsets[filno])
+        strcpy(p->sndin_.sfname, strsets[filno]);
+      else
+        sprintf(p->sndin_.sfname, "soundin.%ld", filno);  /* soundin.filno */
+    }
+    switch ((int) (*p->iformat + FL(0.5))) {
+      case 0: p->sndin_.format = AE_SHORT; break;
+      case 1: p->sndin_.format = AE_CHAR;  break;
+      case 2: p->sndin_.format = AE_ALAW;  break;
+      case 3: p->sndin_.format = AE_ULAW;  break;
+      case 4: p->sndin_.format = AE_SHORT; break;
+      case 5: p->sndin_.format = AE_LONG;  break;
+      case 6: p->sndin_.format = AE_FLOAT; break;
+      default:
+        csound->InitError(csound, Str("soundin: invalid sample format: %d"),
+                                  (int) (*p->iformat + FL(0.5)));
+        return NOTOK;
+    }
+    p->sndin_.outocount = (int) p->OUTOCOUNT;
+    p->sndin_.channel = ALLCHNLS;           /* reading all channels      */
+    p->sndin_.analonly = p->sndin_.endfile = p->sndin_.do_floatscaling = 0;
+    p->sndin_.skiptime = *(p->iskptim);
+    if ((sinfd = sndgetset(csound, &(p->sndin_))) != NULL) {
+      /* if soundinset successful: */
+      p->fdch.fd = sinfd;                   /*    store & log the fd     */
+      fdrecord(&p->fdch);                   /*    instr will close later */
+    }
+    else {
+      csound->inerrcnt_++;
+      return NOTOK;
+    }
     return OK;
 }
 
-int soundin(ENVIRON *csound, SOUNDIN *p)
+int soundin(ENVIRON *csound, SOUNDIN_ *p)
 {
     MYFLT       *r[24], scalefac;
     int         nsmps, ntogo, blksiz, chnsout, i = 0, n;
 
-    if (p->format == AE_FLOAT) {
-      if (p->filetyp == TYP_WAV || p->filetyp == TYP_AIFF) {
+    if (p->sndin_.format == AE_FLOAT) {
+      if (p->sndin_.filetyp == TYP_WAV || p->sndin_.filetyp == TYP_AIFF) {
         scalefac = csound->e0dbfs;
-        if (p->do_floatscaling)
-          scalefac *= p->fscalefac;
+        if (p->sndin_.do_floatscaling)
+          scalefac *= p->sndin_.fscalefac;
       }
       else
         scalefac = FL(1.0);
     }
     else
       scalefac = csound->e0dbfs;
-    if (!p->inbufp) {
+    if (!p->sndin_.inbufp) {
       return csound->PerfError(csound, Str("soundin: not initialised"));
     }
-    chnsout = p->OUTOCOUNT;
+    chnsout = p->sndin_.outocount;
     blksiz = chnsout * csound->ksmps;
     memcpy(r, p->r, chnsout * sizeof(MYFLT*));
     ntogo = blksiz;
-    if (p->endfile)
+    if (p->sndin_.endfile)
       goto filend;
-    nsmps = (p->bufend - p->inbufp);
+    nsmps = (p->sndin_.bufend - p->sndin_.inbufp);
     if (nsmps > blksiz)
       nsmps = blksiz;
     ntogo -= nsmps;
  sndin:
     {
-      MYFLT *inbufp = p->inbufp;
+      MYFLT *inbufp = p->sndin_.inbufp;
       do {
         *(r[i]++) = *inbufp++ * scalefac;
         if (++i >= chnsout) i = 0;
       } while (--nsmps);
-      p->inbufp = inbufp;
+      p->sndin_.inbufp = inbufp;
     }
-    if (p->inbufp >= p->bufend) {
-      if ((n = sreadin(p->fdch.fd, p->inbuf, SNDINBUFSIZ, p)) == 0) {
-        p->endfile = 1;
+    if (p->sndin_.inbufp >= p->sndin_.bufend) {
+      if ((n = sreadin(csound, p->fdch.fd, p->sndin_.inbuf, SNDINBUFSIZ, p))
+          == 0) {
+        p->sndin_.endfile = 1;
         if (ntogo) goto filend;
         else return OK;
       }
-      p->inbufp = p->inbuf;
-      p->bufend = p->inbuf + n;
+      p->sndin_.inbufp = p->sndin_.inbuf;
+      p->sndin_.bufend = p->sndin_.inbuf + n;
       if (ntogo > 0) {
         if ((nsmps = n)  > ntogo)
           nsmps = ntogo;
@@ -419,8 +441,8 @@ void sfopenin(void *csound_)        /* init for continuous soundin */
       }
       /* Do we care about the format?  Can assume float?? */
       O.insampsiz = sizeof(MYFLT);        /*    & cpy header vals  */
-      O.informat = sf2format(sfinfo.format);
-      fileType = (int) sf2type(sfinfo.format);
+      O.informat = SF2FORMAT(sfinfo.format);
+      fileType = (int) SF2TYPE(sfinfo.format);
       audrecv = readsf;  /* will use standard audio gets  */
     }
 
@@ -524,7 +546,7 @@ void sfopenout(void *csound_)                   /* init for sound out       */
       sfinfo.frames = -1;
       sfinfo.samplerate = (int) (csound->esr + FL(0.5));
       sfinfo.channels = csound->nchnls;
-      sfinfo.format = type2sf(O.filetyp)|format2sf(O.outformat);
+      sfinfo.format = TYPE2SF(O.filetyp) | FORMAT2SF(O.outformat);
       sfinfo.sections = 0;
       sfinfo.seekable = 0;
       if ((osfd = openout(O.outfilename, 3)) < 0)

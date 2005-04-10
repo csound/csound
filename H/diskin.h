@@ -21,6 +21,9 @@
     02111-1307 USA
 */
 
+#ifndef CSOUND_DISKIN_H
+#define CSOUND_DISKIN_H
+
 #define SNDINEWBUFSIZ  (4096)
 #ifndef TRUE
 #define TRUE (1)
@@ -47,4 +50,29 @@ typedef struct {
   long          do_floatscaling;
 } SOUNDINEW;
 
+#define SNDOUTSMPS   (1024)
+
+typedef struct {
+        MYFLT   *ifilcod, *iformat;
+        short   format, filetyp;
+        AIFFDAT *aiffdata;
+        void    (*swrtmethod)(int, MYFLT *, int);
+        FDCH    fdch;
+        MYFLT   *outbufp, *bufend;
+        MYFLT   outbuf[SNDOUTSMPS];
+} SNDCOM;
+
+typedef struct {
+        OPDS    h;
+        MYFLT   *asig;
+        SNDCOM  c;
+} SNDOUT;
+
+typedef struct {
+        OPDS    h;
+        MYFLT   *asig1, *asig2;
+        SNDCOM  c;
+} SNDOUTS;
+
+#endif      /* CSOUND_DISKIN_H */
 
