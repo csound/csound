@@ -363,6 +363,7 @@ def buildzip(env, target, source):
 csoundLibraryEnvironment = commonEnvironment.Copy()
 
 pluginEnvironment = commonEnvironment.Copy()
+pluginEnvironment.Append(LIBS = ['sndfile'])
 
 if getPlatform() == 'darwin':
     pluginEnvironment.Append(LINKFLAGS = ['-dynamiclib'])
