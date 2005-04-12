@@ -101,7 +101,7 @@ int wtPerf(ENVIRON *csound, WAVETER *p)
       /* MOVE SCANNING POINT ROUND THE ELLIPSE */
       theta += pch * dtpidsr;
     }
-    p->theta = theta;
+    p->theta = fmod(theta,TWOPI);
     return OK;
 }
 
