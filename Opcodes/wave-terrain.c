@@ -64,38 +64,44 @@ int wtinit(ENVIRON *csound, WAVETER *p)
     /* PUT SIZES INTO STRUCT FOR REFERENCE AT PERF TIME */
     p->sizx = (MYFLT)ftpx->flen;
     p->sizy = (MYFLT)ftpy->flen;
-    p->theta = FL(0.0);
+    p->theta = 0.0;
     return OK;
 }
 
 int wtPerf(ENVIRON *csound, WAVETER *p)
 {
-    int i;
+    int i, nsmps=csound->ksmps;
     int xloc, yloc;
     MYFLT xc, yc;
     MYFLT amp = *p->kamp;
-    MYFLT pch = *p->kpch;
+    double pch = (double)(*p->kpch);
+    MYFLT kcx = *(p->kcx), kcy = *(p->kcy);
+    MYFLT krx = *(p->krx), kry = *(p->kry);
+    MYFLT sizx = p->sizx, sizy = p->sizy;
+    double theta = p->theta;
+    double dtpidsr = (double)tpidsr;
 
-    for (i=0; i<csound->ksmps; i++) {
+    for (i=0; i<nsmps; i++) {
 
       /* COMPUTE LOCATION OF SCANNING POINT */
-      xc = *(p->kcx) + *(p->krx) * (MYFLT)sin((double)p->theta);
-      yc = *(p->kcy) + *(p->kry) * (MYFLT)cos((double)p->theta);
+      xc = kcx + krx * (MYFLT)sin(theta);
+      yc = kcy + kry * (MYFLT)cos(theta);
 
       /* MAP SCANNING POINT TO BE IN UNIT SQUARE */
       xc = xc-(MYFLT)floor(xc);
       yc = yc-(MYFLT)floor(yc);
 
       /* SCALE TO TABLE-SIZE SQUARE */
-      xloc = (int)(xc * p->sizx);
-      yloc = (int)(yc * p->sizy);
+      xloc = (int)(xc * sizx);
+      yloc = (int)(yc * sizy);
 
       /* OUTPUT AM OF TABLE VALUES * KAMP */
       p->aout[i] = p->xarr[xloc] * p->yarr[yloc] * amp;
 
       /* MOVE SCANNING POINT ROUND THE ELLIPSE */
-      p->theta += pch * tpidsr;
+      theta += pch * dtpidsr;
     }
+    p->theta = theta;
     return OK;
 }
 
@@ -163,7 +169,8 @@ int scantinit(ENVIRON *csound, SCANTABLE *p)
       return csound->InitError(csound, Str("Scantable: mass table not found"));
     }
     if (fstiff == NULL) {
-      return csound->InitError(csound, Str("Scantable: stiffness table not found"));
+      return csound->InitError(csound,
+                               Str("Scantable: stiffness table not found"));
     }
     if (fdamp == NULL) {
       return csound->InitError(csound, Str("Scantable: damping table not found"));

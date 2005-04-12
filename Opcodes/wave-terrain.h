@@ -42,7 +42,7 @@ typedef struct {
   AUXCH aux_x, aux_y;
 
   MYFLT sizx, sizy;
-  MYFLT theta;
+  double theta;
 
 } WAVETER;
 
