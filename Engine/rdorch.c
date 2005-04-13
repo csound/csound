@@ -153,7 +153,7 @@ ARGLST* copy_arglist(ARGLST *old)
 {
     size_t n = sizeof(ARGLST)+ old->count*sizeof(char*)-sizeof(char*);
     ARGLST *nn = (ARGLST*)mmalloc(&cenviron, n);
-/*     printf("copy_arglist: %d args\n", old->count); */
+/*  csound->Message(csound, "copy_arglist: %d args\n", old->count); */
     memcpy(nn, old, n);
     memset(old, 0, n);
     return nn;
@@ -164,7 +164,7 @@ ARGLST* copy_arglist(ARGLST *old)
 
 #define ungetorchar(c) if (str->string) str->body--; else ungetc(c, str->file)
 
-void skiporchar(void)
+static void skiporchar(ENVIRON *csound)
 {
     int c;
  top:
@@ -185,11 +185,11 @@ void skiporchar(void)
       c = getc(str->file);
       if (c == '\n' || c == '\r' || c == 26) {    /* MS-DOS spare ^Z */
         str->line++; linepos = -1;
-/*         printf("ends with %.2x\n", c); */
+/*      csound->Message(csound, "ends with %.2x\n", c); */
         if (c=='\r') {
           if ((c = getc(str->file))!='\n') ungetc(c, str->file);
         }
-/*         printf("...ends with %.2x\n", c); */
+/*      csound->Message(csound, "...ends with %.2x\n", c); */
         return;
       }
       if (c == EOF) {
@@ -198,7 +198,7 @@ void skiporchar(void)
           return;
         }
         fclose(str->file);
-        mfree(&cenviron, str->body);
+        mfree(csound, str->body);
         str--; input_cnt--;
         str->line++; linepos = -1;
         return;
@@ -208,7 +208,7 @@ void skiporchar(void)
     goto top;
 }
 
-int getorchar(void)
+static int getorchar(ENVIRON *csound)
 {
     int c;
  top:
@@ -226,14 +226,14 @@ int getorchar(void)
       if (c == EOF) {
         if (str == &inputs[0]) return EOF;
         fclose(str->file);
-        mfree(&cenviron, str->body);
+        mfree(csound, str->body);
         str--; input_cnt--; goto top;
       }
     }
     if (c == '\r') {
       int d;
       if ((d=getc(str->file)!='\n')) {
-/*         printf("next char is %c(%.2x)\n", d, d); */
+/*      csound->Message(csound, "next char is %c(%.2x)\n", d, d); */
         ungetc(d, str->file);
       }
       c = '\n';                 /* *** Problem here with line endings *** */
@@ -242,46 +242,50 @@ int getorchar(void)
       str->line++; linepos = -1;
     }
     else linepos++;
-    if (ingappop && pop)
+    if (ingappop && pop) {
       do {
         MACRO *nn = macros->next;
         int i;
 #ifdef MACDEBUG
-        printf("popping %s\n", macros->name);
+        csound->Message(csound, "popping %s\n", macros->name);
 #endif
-        mfree(&cenviron, macros->name); mfree(&cenviron, macros->body);
+        mfree(csound, macros->name); mfree(csound, macros->body);
         for (i=0; i<macros->acnt; i++)
-          mfree(&cenviron, macros->arg[i]);
-        mfree(&cenviron, macros);
+          mfree(csound, macros->arg[i]);
+        mfree(csound, macros);
         macros = nn;
         pop--;
       } while (pop);
+    }
     return c;
 }
 
-FILE *fopen_path(char *name, char *basename, char *env, char *mode)
+FILE *fopen_path(ENVIRON *csound, char *name, char *basename, char *env)
 {
     FILE *ff;
     char *p;
                                 /* First try to open name given */
-    strcpy(cenviron.name_full, name);
-    if ((ff = fopen(cenviron.name_full, mode))) return ff;
+    strcpy(csound->name_full, name);
+    if ((ff = fopen(csound->name_full, "rb")) != NULL)
+      return ff;
                                 /* if that fails try in base directory */
-    strcpy(cenviron.name_full, basename);
-    p = strrchr(cenviron.name_full, DIRSEP);
-#if !defined(mac_classic) && !defined(SYMANTECS)
-    if (p==NULL) p = strrchr(cenviron.name_full, '\\');
-#endif
+    strcpy(csound->name_full, basename);
+    p = strrchr(csound->name_full, DIRSEP);
+    if (p == NULL)
+      p = strrchr(csound->name_full, '/');
+    if (p == NULL)
+      p = strrchr(csound->name_full, '\\');
     if (p != NULL) {
       strcpy(p+1, name);
-      if ((ff = fopen(cenviron.name_full, mode))) return ff;
+      if ((ff = fopen(csound->name_full, "rb")) != NULL)
+        return ff;
     }
                                 /* or use env argument */
     ff = NULL;
-    p = csoundFindInputFile(&cenviron, name, env);
+    p = csoundFindInputFile(csound, name, env);
     if (p != NULL) {
-      ff = fopen(p, mode);
-      mfree(&cenviron, p);
+      ff = fopen(p, "rb");
+      mfree(csound, p);
     }
     return ff;
 }
@@ -347,13 +351,15 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
     lblreq = (LBLREQ*)mcalloc(csound, LBLMAX*sizeof(LBLREQ));
     lblmax = LBLMAX;
 
-    while ((c = getorchar()) != EOF) {  /* read entire orch file  */
-      if (cp == endspace-1) {           /* Must extend */
+    while ((c = getorchar(csound)) != EOF) {    /* read entire orch file  */
+      if (cp == endspace-1) {                   /* Must extend */
         char * orold = ortext;
         int i;
-        ortext = mrealloc(csound, ortext, ORCHSIZ += 400);
+        ORCHSIZ = ORCHSIZ + (ORCHSIZ >> 4) + 1L;
+        ORCHSIZ = (ORCHSIZ + 511L) & (~511L);
+        ortext = mrealloc(csound, ortext, ORCHSIZ);
         endspace = ortext + ORCHSIZ + 1;
-/*          printf("Orchestra Text extended to %d\n", ORCHSIZ); */
+/*      csound->Message(csound, "Orchestra Text extended to %ld\n", ORCHSIZ); */
         if (ortext != orold) {
           int adj = ortext - orold;
           for (i=1; i<=lincnt; i++)
@@ -363,7 +369,7 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
       }
       *cp++ = c;
       if (c == '{' && !openquote) {
-        char c2 = getorchar();
+        char c2 = getorchar(csound);
         if (c2 == '{') {
           heredoc = 1;
           *cp++ = c;
@@ -373,7 +379,7 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
         }
       }
       else if (c == '}' && heredoc) {
-        char c2 = getorchar();
+        char c2 = getorchar(csound);
         if (c2 == '}') {
           heredoc = 0;
           *cp++ = c;
@@ -383,16 +389,16 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
         }
       }
       if (c == ';' && !heredoc) {
-        skiporchar();
+        skiporchar(csound);
         c = '\n';
       }
       if (c == '"' && !heredoc) {
         openquote = !openquote;
       }
       if (c == '\\' && !heredoc) {  /* Continuation?? */
-        while ((c = getorchar())==' ' || c == '\t'); /* Ignore spaces */
+        while ((c = getorchar(csound))==' ' || c == '\t');  /* Ignore spaces */
         if (c==';') {                                /* Comments get skipped */
-          skiporchar();
+          skiporchar(csound);
           c = '\n';
         }
         if (c == '\n' || c == '\r') {
@@ -414,7 +420,7 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
         }
         srccnt++;
         if (++lincnt >= linmax) {
-/*                printf("too many lines...increasing\n"); */
+/*        csound->Message(csound, "too many lines...increasing\n"); */
           linmax += 100;
           linadr =
             (char **) mrealloc(csound, linadr, (long)(linmax+1)*sizeof(char *));
@@ -433,33 +439,34 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
         MACRO *mm = (MACRO*)mmalloc(csound, sizeof(MACRO));
         mm->margs = MARGS;  /* Initial size */
         cp--;
-        while (isspace(c = getorchar()));
+        while (isspace(c = getorchar(csound)));
         if (c=='d') {
-          if ((c = getorchar())!='e' || (c = getorchar())!='f' ||
-              (c = getorchar())!='i' || (c = getorchar())!='n' ||
-              (c = getorchar())!='e') lexerr(Str("Not #define"));
-          while (isspace(c = getorchar()));
+          if ((c = getorchar(csound))!='e' || (c = getorchar(csound))!='f' ||
+              (c = getorchar(csound))!='i' || (c = getorchar(csound))!='n' ||
+              (c = getorchar(csound))!='e') lexerr(Str("Not #define"));
+          while (isspace(c = getorchar(csound)));
           do {
             mname[i++] = c;
-          } while (isalpha(c = getorchar())|| (i!=0 && (isdigit(c)||c=='_')));
+          } while (isalpha(c = getorchar(csound)) ||
+                   (i != 0 && (isdigit(c) || c == '_')));
           mname[i] = '\0';
           csound->Message(csound,Str("Macro definition for %s\n"), mname);
           mm->name = mmalloc(csound, i+1);
           strcpy(mm->name, mname);
           if (c == '(') {       /* arguments */
 #ifdef MACDEBUG
-            printf("M-arguments: ");
+            csound->Message(csound, "M-arguments: ");
 #endif
             do {
-              while (isspace(c = getorchar()));
+              while (isspace(c = getorchar(csound)));
               i = 0;
               while (isalpha(c)|| (i!=0 && (isdigit(c)||c=='_'))) {
                 mname[i++] = c;
-                c = getorchar();
+                c = getorchar(csound);
               }
               mname[i] = '\0';
 #ifdef MACDEBUG
-              printf("%s\t", mname);
+              csound->Message(csound, "%s\t", mname);
 #endif
               mm->arg[arg] = mmalloc(csound, i+1);
               strcpy(mm->arg[arg++], mname);
@@ -469,19 +476,19 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
                 mm->margs += MARGS;
 /*                    lexerr(Str("Too many arguments to macro")); */
               }
-              while (isspace(c)) c = getorchar();
+              while (isspace(c)) c = getorchar(csound);
             } while (c=='\'' || c=='#');
             if (c!=')') csound->Message(csound,Str("macro error\n"));
           }
           mm->acnt = arg;
           i = 0;
-          while ((c = getorchar())!= '#'); /* Skip to next # */
+          while ((c = getorchar(csound)) != '#'); /* Skip to next # */
           mm->body = (char*)mmalloc(csound, 100);
-          while ((c = getorchar())!= '#') {
+          while ((c = getorchar(csound)) != '#') {
             mm->body[i++] = c;
             if (i>= size) mm->body = mrealloc(csound, mm->body, size += 100);
             if (c=='\\') {      /* allow escaped # */
-              mm->body[i++] = c = getorchar();
+              mm->body[i++] = c = getorchar(csound);
               if (i>= size) mm->body = mrealloc(csound, mm->body, size += 100);
             }
             if (c == '\n') {
@@ -492,27 +499,27 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
           mm->next = macros;
           macros = mm;
 #ifdef MACDEBUG
-          printf("Macro %s with %d arguments defined\n",
-                 mm->name, mm->acnt);
+          csound->Message(csound, "Macro %s with %d arguments defined\n",
+                                  mm->name, mm->acnt);
 #endif
           c = ' ';
         }
         else if (c=='i') {
           int delim;
-          c = getorchar();
+          c = getorchar(csound);
           if (c=='n') {         /* #include */
-            if ((c = getorchar())!='c' || (c = getorchar())!='l' ||
-                (c = getorchar())!='u' || (c = getorchar())!='d' ||
-                (c = getorchar())!='e')
+            if ((c = getorchar(csound))!='c' || (c = getorchar(csound))!='l' ||
+                (c = getorchar(csound))!='u' || (c = getorchar(csound))!='d' ||
+                (c = getorchar(csound))!='e')
               lexerr(Str("Not #include"));
-            while (isspace(c = getorchar()));
+            while (isspace(c = getorchar(csound)));
             delim = c;
             i = 0;
-            while ((c=getorchar())!=delim) mname[i++] = c;
+            while ((c=getorchar(csound))!=delim) mname[i++] = c;
             mname[i]='\0';
-            while ((c=getorchar())!='\n');
+            while ((c=getorchar(csound))!='\n');
 #ifdef MACDEBUG
-            printf("#include \"%s\"\n", mname);
+            csound->Message(csound, "#include \"%s\"\n", mname);
 #endif
             input_cnt++;
             if (input_cnt>=input_size) {
@@ -525,7 +532,7 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
             }
             str++;
             str->string = 0;
-            str->file = fopen_path(mname, orchname, "INCDIR", "r");
+            str->file = fopen_path(csound, mname, orchname, "INCDIR");
             if (str->file==0) {
               csound->Message(csound,
                               Str("Cannot open #include'd file %s\n"), mname);
@@ -540,16 +547,17 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
             }
           }
           else {
-            if (c !='f' || (c = getorchar())!='d' ||
-                (c = getorchar())!='e' || (c = getorchar())!='f')
+            if (c !='f' || (c = getorchar(csound))!='d' ||
+                (c = getorchar(csound))!='e' || (c = getorchar(csound))!='f')
               lexerr("Not #ifdef");
             /* #ifdef XXX */
-            while (isspace(c = getorchar()));
+            while (isspace(c = getorchar(csound)));
             do {
               mname[i++] = c;
-            } while (isalpha(c = getorchar())|| (i!=0 && (isdigit(c)||c=='_')));
+            } while (isalpha(c = getorchar(csound)) ||
+                     (i != 0 && (isdigit(c) || c == '_')));
             mname[i] = '\0';
-/*             printf("found: #ifdef %s\n", mname); */
+/*          csound->Message(csound, "found: #ifdef %s\n", mname); */
             mm = macros;
             while (mm != NULL) {  /* Find the definition */
               if (!(strcmp (mname, mm->name))) break;
@@ -562,13 +570,14 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
           }
         }
         else if (c=='u') {
-          if ((c = getorchar())!='n' || (c = getorchar())!='d' ||
-              (c = getorchar())!='e' || (c = getorchar())!='f')
+          if ((c = getorchar(csound))!='n' || (c = getorchar(csound))!='d' ||
+              (c = getorchar(csound))!='e' || (c = getorchar(csound))!='f')
             lexerr(Str("Not #undef"));
-          while (isspace(c = getorchar()));
+          while (isspace(c = getorchar(csound)));
           do {
             mname[i++] = c;
-          } while (isalpha(c = getorchar())|| (i!=0 && (isdigit(c)||c=='_')));
+          } while (isalpha(c = getorchar(csound)) ||
+                   (i != 0 && (isdigit(c) || c == '_')));
           mname[i] = '\0';
           csound->Message(csound,Str("macro %s undefined\n"), mname);
           if (strcmp(mname, macros->name)==0) {
@@ -590,7 +599,7 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
               mfree(csound, nn->arg[i]);
             mm->next = nn->next; mfree(csound, nn);
           }
-          while (c!='\n') c = getorchar(); /* ignore rest of line */
+          while (c!='\n') c = getorchar(csound);  /* ignore rest of line */
         }
         else {
           csound->Message(csound,Str("Warning: Unknown # option"));
@@ -604,7 +613,7 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
         int j;
         MACRO *mm, *mm_save = NULL;
         ingappop = 0;
-        while (isalpha(c=getorchar())|| (i!=0 && (isdigit(c)||c=='_'))) {
+        while (isalpha(c=getorchar(csound))|| (i!=0 && (isdigit(c)||c=='_'))) {
           name[i++] = c; name[i] = '\0';
           mm = macros;
           while (mm != NULL) {  /* Find the definition */
@@ -618,14 +627,14 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
           csound->Die(csound,
                       Str("Macro expansion symbol ($) without macro name"));
         }
-        if (strlen (mm->name) != (unsigned)i) {
-/*              fprintf (stderr, "Warning: $%s matches macro name $%s\n", */
-/*                              name, mm->name); */
+        if (strlen (mm->name) != (unsigned) i) {
+          csound->Warning(csound, Str("$%s matches macro name $%s"),
+                                  name, mm->name);
           do {
             ungetorchar (c);
             c = name[--i];
           } while ((unsigned)i >= strlen (mm->name));
-          c = getorchar (); i++;
+          c = getorchar(csound); i++;
         }
         if (c!='.') { ungetorchar(c); }
         if (mm==NULL) {
@@ -633,13 +642,14 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
           continue;
         }
 #ifdef MACDEBUG
-        printf("Found macro %s required %d arguments\n",
-               mm->name, mm->acnt);
+        csound->Message(csound, "Found macro %s required %d arguments\n",
+                                mm->name, mm->acnt);
 #endif
         /* Should bind arguments here */
         /* How do I recognise entities?? */
         if (mm->acnt) {
-          if ((c=getorchar())!='(') lexerr(Str("Syntax error in macro call"));
+          if ((c=getorchar(csound)) != '(')
+            lexerr(Str("Syntax error in macro call"));
           for (j=0; j<mm->acnt; j++) {
             char term = (j==mm->acnt-1 ? ')' : '\'');
             char trm1 = (j==mm->acnt-1 ? ')' : '#'); /* Compatability */
@@ -648,11 +658,11 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
             nn->name = mmalloc(csound, strlen(mm->arg[j])+1);
             strcpy(nn->name, mm->arg[j]);
 #ifdef MACDEBUG
-            printf("defining argument %s ", nn->name);
+            csound->Message(csound, "defining argument %s ", nn->name);
 #endif
             i = 0;
             nn->body = (char*)mmalloc(csound, 100);
-            while ((c = getorchar())!= term && c!=trm1) {
+            while ((c = getorchar(csound))!= term && c!=trm1) {
               if (i>98) {
                 csound->Die(csound, Str("Missing argument terminator\n%.98s"),
                                     nn->body);
@@ -665,7 +675,7 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
             }
             nn->body[i]='\0';
 #ifdef MACDEBUG
-            printf("as...#%s#\n", nn->body);
+            csound->Message(csound, "as...#%s#\n", nn->body);
 #endif
             nn->acnt = 0;       /* No arguments for arguments */
             nn->next = macros;
@@ -729,7 +739,7 @@ static int splitline(void) /* split next orch line into atomic groups, count */
  nxtlin:
     if ((lp = linadr[++curline]) == NULL)       /* point at next line   */
       return(0);
-    if (O.odebug) printf(Str("LINE %d:\n"),curline);
+    csound->DebugMsg(csound, Str("LINE %d:"), curline);
     linlabels = opgrpno = 0;
     grpcnt = prvif = prvelsif = logical = condassgn = parens = collecting = 0;
     cp = collectbuf;
@@ -744,8 +754,8 @@ static int splitline(void) /* split next orch line into atomic groups, count */
         mfree(csound, collectbuf);   /* Need to correct grp vector */
         collectbuf = nn;
         lenmax += LENMAX;
-/*              err_printf( "SplitLine buffer extended to %d\n", lenmax); */
-/*              csoundDie(csound, X_966,"line LENMAX exceeded"); */
+/*      csound->Message(csound, "SplitLine buffer extended to %d\n", lenmax); */
+/*      csound->Die(csound, "line LENMAX exceeded"); */
       }
       if (c == '"') {                     /* quoted string:    */
         if (collecting) {
@@ -791,10 +801,10 @@ static int splitline(void) /* split next orch line into atomic groups, count */
       if (c == '/' && *lp == '*') { /* C Style comments */
         char *ll, *eol;
         ll= strstr(lp++, "*/");
-      nxtl:   /* printf("%%%%%%%%%%at nxtl %.50s\n", lp); */
+      nxtl:   /* csound->Message(csound, "%%%%%%%%%%at nxtl %.50s\n", lp); */
         eol = strchr(lp, '\n');
         if (eol!=NULL && eol<ll) {
-          /*                 printf("%%%%%%%%%%newline in comment\n"); */
+  /*      csound->Message(csound, "%%%%%%%%%%newline in comment\n"); */
           lp = linadr[++curline];
           ll= strstr(lp, "*/");
           goto nxtl;
@@ -1051,7 +1061,7 @@ static int splitline(void) /* split next orch line into atomic groups, count */
     }
     linopnum = opnum;                   /* else save full line ops */
     linopcod = opcod;
-    if (O.odebug) printgroups(grpcnt);
+    if (csound->oparms->odebug) printgroups(grpcnt);
     return(grpcnt);
 }
 
@@ -1095,7 +1105,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
       nxtest = 0;
       tp->linenum = curline;
       /* IV - Jan 27 2005 */
-      if (O.expr_opt) {
+      if (csound->oparms->expr_opt) {
         int i = (int) linlabels + 1;
         if (((int) grpcnt - i) > 0 && group[i][0] == '=' &&
             group[i][1] == '\0') {
@@ -1169,7 +1179,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
       }
     }
     if (!strcmp(linopcod,"=")) {    /* IV - Jan 08 2003: '=' opcode */
-      if (O.expr_opt && csound->opcode_is_assign < 0) {
+      if (csound->oparms->expr_opt && csound->opcode_is_assign < 0) {
         /* if optimised away, skip line */
         nxtest = grpcnt; goto tstnxt;
       }
@@ -1189,7 +1199,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         if (c == '?')   c = 'a';                /* tmp */
         sprintf(str, "%s.%c", linopcod, c);
         if (!(isopcod(str))) {
-          printf(Str("Failed to find %s\n"), str);
+          csound->Message(csound, Str("Failed to find %s\n"), str);
           sprintf(errmsg,Str("output arg '%s' illegal type"),
                   group[nxtest]);
           synterr(errmsg);                      /* report syntax error     */
@@ -1198,7 +1208,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         }
         linopnum = opnum;
         linopcod = opcod;
-        if (O.odebug) printf(Str("modified opcod: %s\n"),opcod);
+        csound->DebugMsg(csound, Str("modified opcod: %s"), opcod);
       }
       else if (opcodlst[linopnum].dsblksiz == 0xfffd) {
         if ((c = argtyp(group[opgrpno ] )) != 'a') c = 'k';
@@ -1213,7 +1223,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         }
         linopnum = opnum;
         linopcod = opcod;
-        if (O.odebug) printf(Str("modified opcod: %s\n"),opcod);
+        csound->DebugMsg(csound, Str("modified opcod: %s"), opcod);
       }
       else if (opcodlst[linopnum].dsblksiz == 0xfffe) {
                                                 /* Two tags for OSCIL's    */
@@ -1225,7 +1235,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         isopcod(str); /*  opcode with suffix */
         linopnum = opnum;
         linopcod = opcod;
-        if (O.odebug) printf(Str("modified opcod: %s\n"),opcod);
+        csound->DebugMsg(csound, Str("modified opcod: %s"), opcod);
         c = argtyp(group[nxtest]);            /* reset outype params */
       }                                 /* need we reset outype again here ? */
       else if (opcodlst[linopnum].dsblksiz == 0xfffc) { /* For divz types */
@@ -1260,7 +1270,8 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
           (tran_nchnls == 16 && strncmp(linopcod,"outx",4) != 0) ||
           (tran_nchnls == 32 && strncmp(linopcod,"out32",5) != 0)
           ) {
-/*      printf("nchnls = %d; opcode = %s\n", tran_nchnls, linopcod); */
+/*      csound->Message(csound, "nchnls = %d; opcode = %s\n",
+                                tran_nchnls, linopcod);         */
         if (tran_nchnls == 1) isopcod("out");
         else if (tran_nchnls == 2)  isopcod("outs");
         else if (tran_nchnls == 4)  isopcod("outq");
@@ -1411,17 +1422,18 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         int i;
         size_t m = sizeof(ARGLST)+ (n-1)*sizeof(char*);
         tp->inlist = (ARGLST*)mrealloc(csound, tp->inlist, m);
-/*      printf("extend_arglist by %d args\n", n-tp->inlist->count); */
+/*      csound->Message(csound, "extend_arglist by %d args\n",
+                                n-tp->inlist->count);           */
         for (i=tp->inlist->count; i<n; i++) {
           tp->inlist->arg[i] = nxtarglist->arg[i];
-/*        printf("%d = %s:\n", i, tp->inlist->arg[i]); */
+/*        csound->Message(csound, "%d = %s:\n", i, tp->inlist->arg[i]); */
         }
         tp->inlist->count = n;
       }
       while (n--) {                     /* inargs:   */
         long    tfound_m, treqd_m = 0L;         /* IV - Oct 31 2002 */
         s = tp->inlist->arg[n];
-/*         printf("Looking at %s: n=%d nreqd=%d\n",s, n,nreqd); */
+/*      csound->Message(csound, "Looking at %s: n=%d nreqd=%d\n",s, n,nreqd); */
         if (n >= nreqd) {               /* det type required */
           if (types[nreqd-1] == 'z')
             treqd = 'z';
@@ -1436,7 +1448,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         }
         else treqd = types[n];          /*       or given)   */
         if (treqd == 'l') {             /* if arg takes lbl  */
-          if (O.odebug) printf(Str("treqd = l\n"));
+          csound->DebugMsg(csound, "treqd = l");
           lblrequest(s);                /*      req a search */
           continue;                     /*      chk it later */
         }
@@ -1444,11 +1456,10 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         /* IV - Oct 31 2002 */
         tfound_m = typemask_tabl[(unsigned char) tfound];
         if (!(tfound_m & (ARGTYP_c | ARGTYP_p | ARGTYP_S)) && !lgprevdef) {
-          sprintf(errmsg,
-                  Str("input arg '%s' used before defined"),s);
+          sprintf(errmsg, Str("input arg '%s' used before defined"), s);
           synterr(errmsg);
         }
-        if (O.odebug) printf("treqd %c, tfound %c\n",treqd,tfound);
+        csound->DebugMsg(csound, "treqd %c, tfound %c", treqd, tfound);
         if (tfound == 'a' && n < 15) { /*JMC added for FOG*/
           /* 4 for FOF, 8 for FOG; expanded to 15  */
           tp->xincod += (n < 2 ? (2 - n) : (1 << n));
@@ -1486,7 +1497,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
           }
       }
       }
-      if (O.odebug) printf(Str("xincod = %d\n"),tp->xincod);
+      csound->DebugMsg(csound, "xincod = %d", tp->xincod);
       /* IV - Sep 1 2002: added 'X' type, and xoutcod */
       tp->xoutcod = 0;
       /* IV - Oct 24 2002: moved argument parsing for xin here */
@@ -1533,7 +1544,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         /* IV - Sep 1 2002: xoutcod is the same as xincod for input, */
         /* but the lowest two bits are not swapped */
         if (tfound == 'a' && n < 15) tp->xoutcod |= (1 << n);
-        if (O.odebug) printf(Str("treqd %c, tfound %c\n"),treqd,tfound);
+        csound->DebugMsg(csound, "treqd %c, tfound %c", treqd, tfound);
         if (tfound_m & (ARGTYP_d | ARGTYP_w))
           if (lgprevdef) {
             sprintf(errmsg, Str("output name previously used, "

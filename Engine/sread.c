@@ -41,7 +41,7 @@ static void    carryerror(void), pcopy(int, int, SRTBLK*), salcinit(void);
 static void    salcblk(void), flushlin(void);
 static int     getop(void), getpfld(void);
        MYFLT   stof(char *);
-extern FILE    *fopen_path(char *, char *, char *, char *);
+extern FILE    *fopen_path(ENVIRON *, char *, char *, char *);
 
 #define MEMSIZ  16384           /* size of memory requests from system  */
 #define MARGIN  4096            /* minimum remaining before new request */
@@ -186,7 +186,8 @@ MYFLT operate(MYFLT a, MYFLT b, char c)
 
 static int getscochar(int expand) /* Read a score character, expanding macros */
 {                                 /* if flag set */
-    int c;
+    ENVIRON *csound = &cenviron;
+    int     c;
 top:
     if (str->string) {
       c= *str->body++;
@@ -201,11 +202,15 @@ top:
       if (c == EOF) {
         if (str == &inputs[0]) return EOF;
         fclose(str->file);
-        mfree(&cenviron, str->body);
+        mfree(csound, str->body);
         str--; input_cnt--; goto top;
       }
     }
-    if (c =='\r') c = '\n';     /* For macintosh */
+    if (c =='\r') {
+      if ((c = getc(str->file)) != '\n')
+        ungetc(c, str->file);   /* For macintosh */
+      c = '\n';
+    }
     if (c == '\n') {
       str->line++; linepos = -1;
     }
@@ -215,13 +220,13 @@ top:
         MACRO *nn = macros->next;
         int i;
 #ifdef MACDEBUG
-        cenviron.Message(&cenviron,"popping %s\n", macros->name);
+        csound->Message(csound,"popping %s\n", macros->name);
 #endif
-        mfree(&cenviron, macros->name); mfree(&cenviron, macros->body);
+        mfree(csound, macros->name); mfree(csound, macros->body);
         for (i=0; i<macros->acnt; i++) {
-          mfree(&cenviron, macros->arg[i]);
+          mfree(csound, macros->arg[i]);
         }
-        mfree(&cenviron, macros);
+        mfree(csound, macros);
         macros = nn;
         pop--;
       } while (pop);
@@ -242,12 +247,10 @@ top:
       }
       mm = mm_save;
       if (mm == NULL) {
-        csoundDie(&cenviron,
-                  Str("Macro expansion symbol ($) without macro name"));
+        csoundDie(csound, Str("Macro expansion symbol ($) without macro name"));
       }
       if (strlen (mm->name) != i) {
-/*         fprintf (stderr, "Warning: $%s matches macro name $%s\n", */
-/*                  name, mm->name); */
+        csound->Warning(csound, "$%s matches macro name $%s", name, mm->name);
         do {
           ungetscochar (c);
           c = name[--i];
@@ -256,13 +259,12 @@ top:
       }
       if (c!='.') { ungetscochar(c); }
 #ifdef MACDEBUG
-      cenviron.Message(&cenviron,"Macro %s found\n", name);
+      csound->Message(csound,"Macro %s found\n", name);
 #endif
       if (mm==NULL) scorerr(Str("Undefined macro"));
 #ifdef MACDEBUG
-      cenviron.Message(&cenviron,
-                       "Found macro %s required %d arguments\n",
-                       mm->name, mm->acnt);
+      csound->Message(csound, "Found macro %s required %d arguments\n",
+                              mm->name, mm->acnt);
 #endif
                                 /* Should bind arguments here */
                                 /* How do I recognise entities?? */
@@ -271,22 +273,22 @@ top:
         for (j=0; j<mm->acnt; j++) {
           char term = (j==mm->acnt-1 ? ')' : '\'');
           char trm1 = (j==mm->acnt-1 ? ')' : '#');
-          MACRO* nn = (MACRO*) mmalloc(&cenviron, sizeof(MACRO));
+          MACRO* nn = (MACRO*) mmalloc(csound, sizeof(MACRO));
           unsigned int size = 100;
-          nn->name = mmalloc(&cenviron, strlen(mm->arg[j])+1);
+          nn->name = mmalloc(csound, strlen(mm->arg[j])+1);
           strcpy(nn->name, mm->arg[j]);
 #ifdef MACDEBUG
-          cenviron.Message(&cenviron,"defining argument %s ", nn->name);
+          csound->Message(csound,"defining argument %s ", nn->name);
 #endif
           i = 0;
-          nn->body = (char*)mmalloc(&cenviron, 100);
+          nn->body = (char*)mmalloc(csound, 100);
           while ((c = getscochar(1))!= term && c != trm1) {
             nn->body[i++] = c;
-            if (i>= size) nn->body = mrealloc(&cenviron, nn->body, size += 100);
+            if (i>= size) nn->body = mrealloc(csound, nn->body, size += 100);
           }
           nn->body[i]='\0';
 #ifdef MACDEBUG
-          cenviron.Message(&cenviron,"as...#%s#\n", nn->body);
+          csound->Message(csound,"as...#%s#\n", nn->body);
 #endif
           nn->acnt = 0; /* No arguments for arguments */
           nn->next = macros;
@@ -297,10 +299,10 @@ top:
       if (input_cnt>=input_size) {
         int old = str-inputs;
         input_size += 20;
-/*         cenviron.Message(&cenviron,"Expanding includes to %d\n", input_size); */
-        inputs = mrealloc(&cenviron, inputs, input_size*sizeof(struct in_stack));
+/*      csound->Message(csound,"Expanding includes to %d\n", input_size); */
+        inputs = mrealloc(csound, inputs, input_size*sizeof(struct in_stack));
         if (inputs == NULL) {
-          csoundDie(&cenviron, Str("No space for include files"));
+          csoundDie(csound, Str("No space for include files"));
         }
         str = &inputs[old];     /* In case it moves */
       }
@@ -308,8 +310,8 @@ top:
       str->string = 1; str->body = mm->body; str->args = mm->acnt;
       str->mac = mm; str->line = 1;
 #ifdef MACDEBUG
-      cenviron.Message(&cenviron,
-                       "Macro %s definded as >>%s<<\n", mm->name, mm->body);
+      csound->Message(csound,
+                      "Macro %s definded as >>%s<<\n", mm->name, mm->body);
 #endif
       ingappop = 1;
       goto top;
@@ -331,7 +333,7 @@ top:
         case '5': case '6': case '7': case '8': case '9':
         case '.':
           if (type==1) {
-            csoundDie(&cenviron, Str("Number not allowed in context []"));
+            csoundDie(csound, Str("Number not allowed in context []"));
           }
           i = 0;
           while (isdigit(c) || c=='.' || c=='e' || c=='E') {
@@ -344,7 +346,7 @@ top:
           break;
         case '~':
           if (type==1) {
-            csoundDie(&cenviron, Str("Random not in context []"));
+            csoundDie(csound, Str("Random not in context []"));
           }
           *++pv = (MYFLT) rand()/(MYFLT)RAND_MAX;
           type = 1;
@@ -352,7 +354,7 @@ top:
           break;
         case '@':
           if (type==1) {
-            csoundDie(&cenviron, Str("Upper not in context []"));
+            csoundDie(csound, Str("Upper not in context []"));
           }
           {
             int n = 0;
@@ -371,7 +373,7 @@ top:
           break;
         case '+': case '-':
           if (type==0) {
-            csoundDie(&cenviron,
+            csoundDie(csound,
                       Str("Operator %c not allowed in context []"), c);
           }
           if (*op != '[' && *op != '(') {
@@ -385,7 +387,7 @@ top:
         case '/':
         case '%':
           if (type==0) {
-            csoundDie(&cenviron,
+            csoundDie(csound,
                       Str("Operator %c not allowed in context []"), c);
           }
           if (*op == '*' || *op == '/' || *op == '%') {
@@ -399,7 +401,7 @@ top:
         case '|':
         case '#':
           if (type==0) {
-            csoundDie(&cenviron,
+            csoundDie(csound,
                       Str("Operator %c not allowed in context []"), c);
           }
           if (*op == '|' || *op == '&' || *op == '#') {
@@ -411,14 +413,14 @@ top:
           *++op = c; c = getscochar(1); break;
         case '(':
           if (type==1) {
-            csoundDie(&cenviron,
+            csoundDie(csound,
                       Str("Open bracket not allowed in context []"));
           }
           type = 0;
           *++op = c; c = getscochar(1); break;
         case ')':
           if (type==0) {
-            csoundDie(&cenviron,
+            csoundDie(csound,
                       Str("Closing bracket not allowed in context []"));
           }
           while (*op != '(') {
@@ -433,7 +435,7 @@ top:
           *++op = c; c = getscochar(1); break;
         case ']':
           if (type==0) {
-            csoundDie(&cenviron,
+            csoundDie(csound,
                       Str("Closing bracket not allowed in context []"));
           }
           while (*op != '[') {
@@ -449,18 +451,18 @@ top:
           c = getscochar(1);
           continue;
         default:
-          cenviron.Message(&cenviron,"read %c(%.2x)\n", c, c);
-          csoundDie(&cenviron, Str("Incorrect evaluation"));
+          csound->Message(csound,"read %c(%.2x)\n", c, c);
+          csoundDie(csound, Str("Incorrect evaluation"));
         }
       } while (c!='$');
       /* Make string macro or value */
       sprintf(buffer, "%f", *pv);
-/*       printf("Buffer:>>>%s<<<\n", buffer); */
+/*    csound->Message(csound, "Buffer:>>>%s<<<\n", buffer); */
       {
-        MACRO* nn = (MACRO*) mmalloc(&cenviron, sizeof(MACRO));
-        nn->name = mmalloc(&cenviron, 2);
+        MACRO* nn = (MACRO*) mmalloc(csound, sizeof(MACRO));
+        nn->name = mmalloc(csound, 2);
         strcpy(nn->name, "[");
-        nn->body = (char*)mmalloc(&cenviron, strlen(buffer)+1);
+        nn->body = (char*)mmalloc(csound, strlen(buffer)+1);
         strcpy(nn->body, buffer);
         nn->acnt = 0;   /* No arguments for arguments */
         nn->next = macros;
@@ -468,12 +470,11 @@ top:
         input_cnt++;
         if (input_cnt>=input_size) {
           int old = str-inputs;
-/*           cenviron.Message(&cenviron,
-             "Expanding includes to %d\n", input_size+20); */
+/*        csound->Message(csound,"Expanding includes to %d\n",input_size+20); */
           input_size += 20;
-          inputs = mrealloc(&cenviron, inputs, input_size*sizeof(struct in_stack));
+          inputs = mrealloc(csound, inputs, input_size*sizeof(struct in_stack));
           if (inputs == NULL) {
-            csoundDie(&cenviron, Str("No space for include files"));
+            csoundDie(csound, Str("No space for include files"));
           }
           str = &inputs[old];     /* In case it moves */
         }
@@ -481,7 +482,7 @@ top:
         str->string = 1; str->body = nn->body; str->args = 0;
         str->mac = NULL; str->line = 1;
 #ifdef MACDEBUG
-        cenviron.Message(&cenviron,"[] defined as >>%s<<\n", nn->body);
+        csound->Message(csound,"[] defined as >>%s<<\n", nn->body);
 #endif
         ingappop = 1;
         goto top;
@@ -1236,6 +1237,7 @@ static void flushlin(void)      /* flush input to end-of-line;  inc lincnt */
 
 static int sget1(void)          /* get first non-white, non-comment char */
 {
+    ENVIRON *csound = &cenviron;
     int c;
 
  srch:
@@ -1249,7 +1251,7 @@ static int sget1(void)          /* get first non-white, non-comment char */
       goto srch;
     }
     if (c == '\\') {            /* Deal with continuations and specials */
-      /* cenviron.Message(&cenviron,"Escaped\n"); */
+   /* csound->Message(csound, "Escaped\n"); */
     again:
       c = getscochar(1);
       if (c==';') {
@@ -1258,7 +1260,7 @@ static int sget1(void)          /* get first non-white, non-comment char */
       }
       if (c==' ' || c=='\t') goto again;
       if (c!='\n' && c!=EOF) {
-        cenviron.Message(&cenviron,Str("Improper \\"));
+        csound->Message(csound, Str("Improper \\"));
         while (c!='\n' && c!=EOF) c = getscochar(1);
       }
       goto srch;
@@ -1285,14 +1287,14 @@ static int sget1(void)          /* get first non-white, non-comment char */
       int i=0;
       int arg = 0;
       int size = 100;
-      MACRO *mm = (MACRO*)mmalloc(&cenviron, sizeof(MACRO));
+      MACRO *mm = (MACRO*)mmalloc(csound, sizeof(MACRO));
       mm->margs = MARGS;
       while (isspace(c = getscochar(1)));
       if (c=='d') {
         if ((c = getscochar(1))!='e' || (c = getscochar(1))!='f' ||
             (c = getscochar(1))!='i' || (c = getscochar(1))!='n' ||
             (c = getscochar(1))!='e') {
-          cenviron.Message(&cenviron,Str("Not #define"));
+          csound->Message(csound, Str("Not #define"));
           flushlin();
           goto srch;
         }
@@ -1301,11 +1303,11 @@ static int sget1(void)          /* get first non-white, non-comment char */
           mname[i++] = c;
         } while (isalpha(c = getscochar(1)) || (i!=0 && (isdigit(c)||c=='_')));
         mname[i] = '\0';
-        cenviron.Message(&cenviron,Str("Macro definition for %s\n"), mname);
-        mm->name = mmalloc(&cenviron, i+1);
+        csound->Message(csound, Str("Macro definition for %s\n"), mname);
+        mm->name = mmalloc(csound, i+1);
         strcpy(mm->name, mname);
         if (c == '(') { /* arguments */
-          /*          cenviron.Message(&cenviron,"M-arguments: "); */
+/*        csound->Message(csound, "M-arguments: "); */
           do {
             while (isspace(c = getscochar(1)));
             i = 0;
@@ -1314,18 +1316,18 @@ static int sget1(void)          /* get first non-white, non-comment char */
               c = getscochar(1);
             }
             mname[i] = '\0';
-            /*          cenviron.Message(&cenviron,"%s\t", mname); */
-            mm->arg[arg] = mmalloc(&cenviron, i+1);
+/*          csound->Message(csound, "%s\t", mname); */
+            mm->arg[arg] = mmalloc(csound, i+1);
             strcpy(mm->arg[arg++], mname);
             if (arg>=mm->margs) {
-              mm = (MACRO*)mrealloc(&cenviron, mm,
+              mm = (MACRO*)mrealloc(csound, mm,
                                     sizeof(MACRO)+mm->margs*sizeof(char*));
               mm->margs += MARGS;
             }
             while (isspace(c)) c = getscochar(1);
           } while (c=='\'' || c=='#');
           if (c!=')') {
-            cenviron.Message(&cenviron,Str("macro error\n"));
+            csound->Message(csound, Str("macro error\n"));
             flushlin();
             goto srch;
           }
@@ -1333,23 +1335,23 @@ static int sget1(void)          /* get first non-white, non-comment char */
         mm->acnt = arg;
         i = 0;
         while ((c = getscochar(1))!= '#'); /* Skip to next # */
-        mm->body = (char*)mmalloc(&cenviron, 100);
+        mm->body = (char*)mmalloc(csound, 100);
         while ((c = getscochar(0))!= '#') {     /* Do not expand here!! */
           mm->body[i++] = c;
           if (i>= size)
-            mm->body = mrealloc(&cenviron, mm->body, size += 100);
+            mm->body = mrealloc(csound, mm->body, size += 100);
           if (c=='\\') {
             mm->body[i++] = getscochar(0); /* Allow escaped # */
             if (i>= size)
-              mm->body = mrealloc(&cenviron, mm->body, size += 100);
+              mm->body = mrealloc(csound, mm->body, size += 100);
           }
           if (c=='\n') lincnt++;
         }
         mm->body[i]='\0';
         mm->next = macros;
         macros = mm;
-        cenviron.Message(&cenviron,Str("Macro %s with %d arguments defined\n"),
-               mm->name, mm->acnt);
+        csound->Message(csound, Str("Macro %s with %d arguments defined\n"),
+                                mm->name, mm->acnt);
         c = ' ';
         flushlin();
         goto srch;
@@ -1359,7 +1361,7 @@ static int sget1(void)          /* get first non-white, non-comment char */
         if ((c = getscochar(1))!='n' || (c = getscochar(1))!='c' ||
             (c = getscochar(1))!='l' || (c = getscochar(1))!='u' ||
             (c = getscochar(1))!='d' || (c = getscochar(1))!='e') {
-          cenviron.Message(&cenviron,Str("Not #include"));
+          csound->Message(csound, Str("Not #include"));
           flushlin();
           goto srch;
         }
@@ -1373,17 +1375,16 @@ static int sget1(void)          /* get first non-white, non-comment char */
         if (input_cnt>=input_size) {
           int old = str-inputs;
           input_size += 20;
-/*           cenviron.Message(&cenviron,
-                              "Expanding includes to %d\n", input_size); */
-          inputs = mrealloc(&cenviron, inputs, input_size*sizeof(struct in_stack));
+/*        csound->Message(csound, "Expanding includes to %d\n", input_size); */
+          inputs = mrealloc(csound, inputs, input_size*sizeof(struct in_stack));
           if (inputs == NULL) {
-            csoundDie(&cenviron, Str("No space for include files"));
+            csoundDie(csound, Str("No space for include files"));
           }
           str = &inputs[old];     /* In case it moves */
         }
         str++;
         str->string = 0;
-        str->file = fopen_path(mname, scorename, "INCDIR", "r");
+        str->file = fopen_path(csound, mname, scorename, "INCDIR");
         if (str->file==0) {
           char buff[256];
           sprintf(buff,Str("Cannot open #include'd file %s\n"), mname);
@@ -1391,15 +1392,15 @@ static int sget1(void)          /* get first non-white, non-comment char */
 /*           str--; input_cnt--; */
         }
         else {
-          str->body = mmalloc(&cenviron, strlen(cenviron.name_full)+1);
-          strcpy(str->body, cenviron.name_full);
+          str->body = mmalloc(csound, strlen(csound->name_full)+1);
+          strcpy(str->body, csound->name_full);
           goto srch;
         }
       }
       else if (c=='u') {
         if ((c = getscochar(1))!='n' || (c = getscochar(1))!='d' ||
             (c = getscochar(1))!='e' || (c = getscochar(1))!='f') {
-          cenviron.Message(&cenviron,Str("Not #undef"));
+          csound->Message(csound,Str("Not #undef"));
           flushlin();
           goto srch;
         }
@@ -1408,13 +1409,13 @@ static int sget1(void)          /* get first non-white, non-comment char */
           mname[i++] = c;
         } while (isalpha(c = getscochar(1))|| (i!=0 && (isdigit(c)||'_')));
         mname[i] = '\0';
-        cenviron.Message(&cenviron,Str("macro %s undefined\n"), mname);
+        csound->Message(csound, Str("macro %s undefined\n"), mname);
         if (strcmp(mname, macros->name)==0) {
           MACRO *mm=macros->next;
-          mfree(&cenviron, macros->name); mfree(&cenviron, macros->body);
+          mfree(csound, macros->name); mfree(csound, macros->body);
           for (i=0; i<macros->acnt; i++)
-            mfree(&cenviron, macros->arg[i]);
-          mfree(&cenviron, macros); macros = mm;
+            mfree(csound, macros->arg[i]);
+          mfree(csound, macros); macros = mm;
         }
         else {
           MACRO *mm = macros;
@@ -1423,16 +1424,16 @@ static int sget1(void)          /* get first non-white, non-comment char */
             mm = nn; nn = nn->next;
             if (nn==NULL) scorerr(Str("Undefining undefined macro"));
           }
-          mfree(&cenviron, nn->name); mfree(&cenviron, nn->body);
+          mfree(csound, nn->name); mfree(csound, nn->body);
           for (i=0; i<nn->acnt; i++)
-            mfree(&cenviron, nn->arg[i]);
-          mm->next = nn->next; mfree(&cenviron, nn);
+            mfree(csound, nn->arg[i]);
+          mm->next = nn->next; mfree(csound, nn);
         }
         while (c!='\n') c = getscochar(1); /* ignore rest of line */
         lincnt++;
       }
       else {
-        cenviron.Message(&cenviron,Str("unknown # option"));
+        csound->Message(csound, Str("unknown # option"));
         flushlin();
         goto srch;
       }
