@@ -24,18 +24,6 @@
 #include "cs.h"                 /*                      UGENS4.C        */
 #include "ugens4.h"
 #include <math.h>
-#include <time.h>
-#ifdef HAVE_SYS_TIME_H
-#  include <sys/time.h>
-#endif
-#ifdef WIN32
-/* Need to undefine these else MSVC barfs */
-#undef u_char
-#undef u_short
-#undef u_int
-#undef u_long
-#include <windows.h>
-#endif
 
 int bzzset(ENVIRON *csound, BUZZ *p)
 {
@@ -413,7 +401,7 @@ static short rand15(void)
  *  Uses L. Schrage's method to avoid overflow problems.
  */
 
-#define BIPOLAR 0x4fffffff      /* Constant to make bipolar */
+#define BIPOLAR 0x7FFFFFFF      /* Constant to make bipolar */
 #define RIA 16807               /* multiplier */
 #define RIM 0x7FFFFFFFL         /* 2**31 - 1 */
 
@@ -443,25 +431,14 @@ int rndset(ENVIRON *csound, RAND *p)
     p->new = (*p->sel!=FL(0.0));
     if (*p->iseed >= FL(0.0)) {
       if (*p->iseed > FL(1.0)) {    /* As manual suggest sseed in range [0,1] */
-        time_t seed;            /* I reinterpret >1 as a time seed */
-#ifdef HAVE_GETTIMEOFDAY
-        struct timeval tv;
-        gettimeofday(&tv, NULL);
-        seed = (time_t)(1000000*tv.tv_sec + tv.tv_usec);
-#elif defined(WIN32)
-        FILETIME    t;
-        GetSystemTimeAsFileTime((LPFILETIME) &t);
-        seed = 2147483648ul * ((unsigned long) t.dwHighDateTime) +
-          ((unsigned long) t.dwLowDateTime >> 1);
-#else
-        seed = time(NULL);
-#endif
-        printf(Str("Seeding from current time %d\n"), seed);
+        unsigned long seed;         /* I reinterpret >1 as a time seed */
+        seed = timers_random_seed();
+        csound->Message(csound, Str("Seeding from current time %lu\n"), seed);
         if (!p->new) {
-          p->rand = 0xffff&(short)seed;
+          p->rand = (long) (seed & 0xFFFFUL);
         }
         else {
-          p->rand = (long) seed;
+          p->rand = (long) (seed % 0x7FFFFFFEUL) + 1L;
         }
       }
       else {
@@ -554,27 +531,16 @@ int rhset(ENVIRON *csound, RANDH *p)
     p->new = (*p->sel!=FL(0.0));
     if (*p->iseed >= FL(0.0)) {                       /* new seed:            */
       if (*p->iseed > FL(1.0)) {    /* As manual suggest sseed in range [0,1] */
-        time_t seed;            /* I reinterpret >1 as a time seed */
-#ifdef HAVE_GETTIMEOFDAY
-        struct timeval tv;
-        gettimeofday(&tv, NULL);
-        seed = (time_t)(1000000*tv.tv_sec + tv.tv_usec);
-#elif defined(WIN32)
-        FILETIME    t;
-        GetSystemTimeAsFileTime((LPFILETIME) &t);
-        seed = 2147483648ul * ((unsigned long) t.dwHighDateTime) +
-          ((unsigned long) t.dwLowDateTime >> 1);
-#else
-        seed = time(NULL);
-#endif
-        printf(Str("Seeding from current time %d\n"), seed);
+        unsigned long seed;         /* I reinterpret >1 as a time seed */
+        seed = timers_random_seed();
+        csound->Message(csound, Str("Seeding from current time %lu\n"), seed);
         if (!p->new) {
-          p->rand = 0xffff&(short)seed;
-          p->num1 = (MYFLT)seed * dv2_31;
+          p->rand = (long) (seed & 0xFFFFUL);
+          p->num1 = (MYFLT) ((short) p->rand) * DV32768;
         }
         else {
-          p->rand = (long) seed;
-          p->num1 = (MYFLT)(seed<<1) * dv2_31;
+          p->rand = (long) (seed % 0x7FFFFFFEUL) + 1L;
+          p->num1 = (MYFLT) ((long) ((unsigned)p->rand<<1) - BIPOLAR) * dv2_31;
         }
       }
       else if (!p->new) {
@@ -587,7 +553,7 @@ int rhset(ENVIRON *csound, RANDH *p)
         else p->rand = (long) (*p->iseed * FL(2147483648.0));
         p->rand = randint31(p->rand);
         p->rand = randint31(p->rand);
-        p->num1 = (MYFLT)(p->rand<<1) * dv2_31; /* store fnum      */
+        p->num1 = (MYFLT) ((long) ((unsigned)p->rand<<1) - BIPOLAR) * dv2_31;
       }
       p->phs = 0;                               /*      & phs           */
     }
@@ -663,20 +629,9 @@ int riset(ENVIRON *csound, RANDI *p)
     p->new = (*p->sel!=FL(0.0));
     if (*p->iseed >= FL(0.0)) {                       /* new seed:            */
       if (*p->iseed > FL(1.0)) {    /* As manual suggest sseed in range [0,1] */
-        time_t seed;            /* I reinterpret >1 as a time seed */
-#ifdef HAVE_GETTIMEOFDAY
-        struct timeval tv;
-        gettimeofday(&tv, NULL);
-        seed = (time_t)(1000000*tv.tv_sec + tv.tv_usec);
-#elif defined(WIN32)
-        FILETIME    t;
-        GetSystemTimeAsFileTime((LPFILETIME) &t);
-        seed = 2147483648ul * ((unsigned long) t.dwHighDateTime) +
-          ((unsigned long) t.dwLowDateTime >> 1);
-#else
-        seed = time(NULL);
-#endif
-        printf(Str("Seeding from current time %d\n"), seed);
+        unsigned long seed;         /* I reinterpret >1 as a time seed */
+        seed = timers_random_seed();
+        csound->Message(csound, Str("Seeding from current time %lu\n"), seed);
         if (!p->new) {
           short rand = (short)seed;
 /*           short ss = rand; */
@@ -690,7 +645,7 @@ int riset(ENVIRON *csound, RANDI *p)
 /*                  ss,ss,p->rand, p->rand, p->num1, p->num2); */
         }
         else {
-          p->rand = randint31((long)seed);
+          p->rand = randint31((long) (seed % 0x7FFFFFFEUL) + 1L);
           p->rand = randint31(p->rand);
           p->num1 = (MYFLT)(p->rand<<1) * dv2_31; /* store num1,2 */
           p->rand = randint31(p->rand);
