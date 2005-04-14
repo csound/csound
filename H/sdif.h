@@ -49,59 +49,30 @@ Music and Audio Technologies, University of California, Berkeley.
 
 */
 
-
 #ifndef CSOUND_SDIF_H
 #define CSOUND_SDIF_H
 
+#include "sysdep.h"
 
 /****************************************************/
 /* Create 32-bit and 64-bit int and float typedefs. */
 /****************************************************/
 
-#ifdef __sgi
-    typedef unsigned short sdif_unicode;
-    typedef int            sdif_int32;
-    typedef unsigned int   sdif_uint32;
-    typedef float          sdif_float32;
-    typedef double         sdif_float64;
-#elif defined(_WIN32) || defined(_WINDOWS)
-#undef  u_char
-#undef  u_short
-#undef  u_int
-#undef  u_long
-    #ifndef _WINDOWS_
-        #include <windows.h>
-    #endif
-    typedef unsigned short sdif_unicode;
-    typedef int            sdif_int32;
-    typedef unsigned int   sdif_uint32;
-    typedef float          sdif_float32;
-    typedef double         sdif_float64;
-#elif defined(__LINUX__)
-    typedef unsigned short sdif_unicode;
-    typedef int            sdif_int32;
-    typedef unsigned int   sdif_uint32;
-    typedef float          sdif_float32;
-    typedef double         sdif_float64;
-#else
+typedef uint16_t    sdif_unicode;
+typedef int32_t     sdif_int32;
+typedef uint32_t    sdif_uint32;
+typedef float       sdif_float32;
+typedef double      sdif_float64;
 
-    /* These won't necessarily be the right size on any conceivable
-       platform, so you may need to change them by hand.  The call to
-       SDIF_Init() performs a sanity check of the sizes of these types,
-       so if they're wrong you'll find out about it. */
-
-    typedef unsigned short sdif_unicode;
-    typedef long           sdif_int32;
-    typedef unsigned long  sdif_uint32;
-    typedef float          sdif_float32;
-    typedef double         sdif_float64;
-
+#if defined(_WIN32) || defined(_WINDOWS)
+#ifndef _WINDOWS_
+#include <windows.h>
+#endif
 #endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 /* Return value convention: Most of the procedures in this library return a
    value of type SDIFresult, with 0 for success and nonzero for various error

@@ -34,10 +34,6 @@
 #else
 // Hack to compile all this GNU stuff on Windows.
 #ifdef _MSC_VER                    
-#undef u_char
-#undef u_short
-#undef u_int
-#undef u_long
 #include <windows.h>
 #include <mmsystem.h>
 #endif
