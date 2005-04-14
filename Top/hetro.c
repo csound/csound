@@ -177,10 +177,10 @@ int hetro(int argc, char **argv)  /* called from main.c or anal/adsyn/main.c */
             case 'h':   FIND(Str("no harmonic count"))
                           sscanf(s,"%hd",&hmax);
               if (hmax > HMAX)
-                err_printf(Str("over %d harmonics but continuing"),
+                csound->Message(csound,Str("over %d harmonics but continuing"),
                            HMAX);
               if (hmax < 1) {
-                err_printf(Str("h of %d too low, reset to 1\n"),
+                csound->Message(csound,Str("h of %d too low, reset to 1\n"),
                            hmax);
                 hmax = 1;
               }
@@ -297,11 +297,11 @@ int hetro(int argc, char **argv)  /* called from main.c or anal/adsyn/main.c */
             max_frq = FL(0.0);
             max_amp = FL(0.0);
 
-            err_printf(Str("analyzing harmonic #%d\n"),hno);
-            err_printf(Str("freq est %6.1f,"), cur_est);
+            csound->Message(csound,Str("analyzing harmonic #%d\n"),hno);
+            csound->Message(csound,Str("freq est %6.1f,"), cur_est);
             hetdyn(hno);                /* perform actual computation */
             if (!csoundYield(&cenviron)) exit(1);
-            err_printf(Str(" max found %6.1f, rel amp %6.1f\n"), max_frq, max_amp);
+            csound->Message(csound,Str(" max found %6.1f, rel amp %6.1f\n"), max_frq, max_amp);
         }
         mfree(&cenviron, dspace);
 #ifdef mills_macintosh
@@ -311,7 +311,7 @@ int hetro(int argc, char **argv)  /* called from main.c or anal/adsyn/main.c */
             /*RWD if extension is .sdif, write as 1TRC frames */
             if (is_sdiffile(outfilnam)) {
               if (!writesdif()) {
-                err_printf(Str("Unable to write to SDIF file\n"));
+                csound->Message(csound,Str("Unable to write to SDIF file\n"));
                 mfree(&cenviron, mspace);
                 exit(1);
               }
@@ -514,7 +514,7 @@ static void quit (char *msg)
     sprintf(temp,Str("hetro:  %s\n\tanalysis aborted\n"),msg);
     csoundDie(&cenviron, temp);
 #else
-    err_printf(Str("hetro:  %s\n\tanalysis aborted\n"),msg);
+    cenviron.Message(&cenviron,Str("hetro:  %s\n\tanalysis aborted\n"),msg);
 #endif
     exit(1);
 }
@@ -557,7 +557,7 @@ static void filedump(void)     /* WRITE OUTPUT FILE in DATA-REDUCED format */
         maxampsum = ampsum;
     }
     scale = m_ampsum / maxampsum;
-    err_printf(Str("scale = %f\n"), scale);
+    cenviron.Message(&cenviron,Str("scale = %f\n"), scale);
 
     for (h = 0; h < hmax; h++) {
       for (pnt = 0; pnt < num_pts; pnt++) {
@@ -632,8 +632,8 @@ static void filedump(void)     /* WRITE OUTPUT FILE in DATA-REDUCED format */
       {
         int i;
         for (i=0; i<(mp-magout); i++)
-          err_printf( "%hd,", magout[i]);
-        err_printf( "\n");
+          csound->Message(csound, "%hd,", magout[i]);
+        csound->Message(csound, "\n");
       }
 #endif
       lenfil += nbytes;
@@ -644,15 +644,15 @@ static void filedump(void)     /* WRITE OUTPUT FILE in DATA-REDUCED format */
       {
         int i;
         for (i=0; i<(fp-frqout); i++)
-          err_printf( "%hd,", frqout[i]);
-        err_printf( "\n");
+          csound->Message(csound, "%hd,", frqout[i]);
+        csound->Message(csound, "\n");
       }
 #endif
       lenfil += nbytes;
       printf(Str("harmonic #%d:\tamp points %d, \tfrq points %d,\tpeakamp %d\n"),
              h,mpoints,fpoints,pkamp);
     }
-    err_printf(Str("wrote %ld bytes to %s\n"), lenfil, outfilnam);
+    cenviron.Message(&cenviron,Str("wrote %ld bytes to %s\n"), lenfil, outfilnam);
     close(ofd);
     mfree(&cenviron, magout);
     mfree(&cenviron, frqout);
@@ -680,7 +680,7 @@ static int writesdif(void)
     FILE        *sdiffile = NULL;
 
     if (SDIF_Init() != ESDIF_SUCCESS) {
-      err_printf(Str("OOPS: SDIF does not work on this machine!\n"));
+      cenviron.Message(&cenviron,Str("OOPS: SDIF does not work on this machine!\n"));
       return 0;
     }
 
@@ -707,7 +707,7 @@ static int writesdif(void)
 
     if ((r = SDIF_OpenWrite(outfilnam, &sdiffile))!=ESDIF_SUCCESS) {
       /* can get SDIF error messages, but trickly for CSTRINGS */
-      err_printf(Str("Error creating %s\n"),outfilnam);
+      cenviron.Message(&cenviron,Str("Error creating %s\n"),outfilnam);
       fclose(sdiffile);
       return 0;
     }
@@ -733,7 +733,7 @@ static int writesdif(void)
       sdif_float32 amp,freq,phase = 0.0f; /* cannot offer anything interesting with phase! */
       head.time = (sdif_float32) ((MYFLT)i * timesiz);
       if ((r = SDIF_WriteFrameHeader(&head,sdiffile))!=ESDIF_SUCCESS) {
-        err_printf(Str("Error writing SDIF frame header.\n"));
+        cenviron.Message(&cenviron,Str("Error writing SDIF frame header.\n"));
         return 0;
       }
       /*setup data matrix */
@@ -742,7 +742,7 @@ static int writesdif(void)
       SDIF_Copy4Bytes(mh.matrixType,"1TRC");
       mh.matrixDataType = SDIF_FLOAT32;
       if ((r = SDIF_WriteMatrixHeader(&mh,sdiffile))!=ESDIF_SUCCESS) {
-        err_printf(Str("Error writing SDIF matrix header.\n"));
+        cenviron.Message(&cenviron,Str("Error writing SDIF matrix header.\n"));
         return 0;
       }
       for (j=0;j < hmax;j++) {
@@ -755,13 +755,13 @@ static int writesdif(void)
             ((r = SDIF_Write4(&freq,1,sdiffile))!= ESDIF_SUCCESS)  ||
             ((r = SDIF_Write4(&amp,1,sdiffile))!= ESDIF_SUCCESS)   ||
             ((r = SDIF_Write4(&phase,1,sdiffile))!= ESDIF_SUCCESS)) {
-          err_printf(Str("Error writing SDIF data.\n"));
+          cenviron.Message(&cenviron,Str("Error writing SDIF data.\n"));
           return 0;
         }
       }
       /* 64-bit alignment can be relied upon here, so no need to calc padding */
     }
-    err_printf(Str("wrote %ld 1TRC frames to %s\n"), num_pts, outfilnam);
+    cenviron.Message(&cenviron,Str("wrote %ld 1TRC frames to %s\n"), num_pts, outfilnam);
     SDIF_CloseWrite(sdiffile);
     return 1;
 }
