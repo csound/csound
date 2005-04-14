@@ -49,15 +49,15 @@ int sndinfo(int argc, char **argv)
         continue;
       }
       if ((infd = openin(infilnam)) < 0) {
-        printf(Str("%s:\n\tcould not find\n"), retfilnam);
+        cenviron.Message(&cenviron,Str("%s:\n\tcould not find\n"), retfilnam);
         continue;
       }
       if ((hndl = sf_open_fd(infd, SFM_READ, &sf_info, 1))==NULL) {
-        printf(Str("%s: Not a sound file\n"), retfilnam);
+        cenviron.Message(&cenviron,Str("%s: Not a sound file\n"), retfilnam);
         close(infd);
       }
       else {
-        printf("%s:\n", retfilnam);
+        cenviron.Message(&cenviron,"%s:\n", retfilnam);
         switch (sf_info.channels) {
         case 1:
           strcpy(channame, Str("monaural"));
@@ -75,16 +75,17 @@ int sndinfo(int argc, char **argv)
           strcpy(channame, Str("oct"));
           break;
         default:
-          sprintf(channame, "%d-channel", sf_info.channels);
+          cenviron.Message(&cenviron,channame, "%d-channel", sf_info.channels);
           break;
         }
-        printf(Str("\tsrate %ld, %s, %ld bit %s, %4.2f seconds\n"),
-               sf_info.samplerate, channame,
-               sfsampsize(sf_info.format) * 8,
-               type2string(SF2TYPE(sf_info.format)),
-               (MYFLT)sf_info.frames / sf_info.samplerate);
-        printf(Str("\t(%ld sample frames)\n"),
-               (long)sf_info.frames);
+        cenviron.Message(&cenviron,
+                         Str("\tsrate %ld, %s, %ld bit %s, %4.2f seconds\n"),
+                         sf_info.samplerate, channame,
+                         sfsampsize(sf_info.format) * 8,
+                         type2string(SF2TYPE(sf_info.format)),
+                         (MYFLT)sf_info.frames / sf_info.samplerate);
+        cenviron.Message(&cenviron,Str("\t(%ld sample frames)\n"),
+                         (long)sf_info.frames);
         sf_close(hndl);
       }
     }

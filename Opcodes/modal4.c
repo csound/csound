@@ -100,8 +100,6 @@ void Modal4_setFreq(ENVIRON *csound, Modal4 *m, MYFLT frequency)
     Modal4_setRatioAndReson(csound, m, 3,m->ratios[3],m->resons[3]);
 }
 
-#include <stdio.h>
-
 void Modal4_setRatioAndReson(ENVIRON *csound,
                              Modal4 *m, int whichOne, MYFLT ratio,MYFLT reson)
 {
@@ -122,7 +120,7 @@ void Modal4_setRatioAndReson(ENVIRON *csound,
     BiQuad_setFreqAndReson(m->filters[whichOne], temp,reson);
 }
 
-void Modal4_strike(ENVIRON *csound, Modal4 *m, MYFLT amplitude)
+static void Modal4_strike(ENVIRON *csound, Modal4 *m, MYFLT amplitude)
 {
     int i;
     MYFLT temp;
@@ -144,7 +142,7 @@ void Modal4_strike(ENVIRON *csound, Modal4 *m, MYFLT amplitude)
 }
 
 
-void Modal4_damp(ENVIRON *csound, Modal4 *m, MYFLT amplitude)
+static void Modal4_damp(ENVIRON *csound, Modal4 *m, MYFLT amplitude)
 {
     int i;
     MYFLT temp;
@@ -157,7 +155,7 @@ void Modal4_damp(ENVIRON *csound, Modal4 *m, MYFLT amplitude)
     }
 }
 
-MYFLT Modal4_tick(Modal4 *m)
+static MYFLT Modal4_tick(Modal4 *m)
 {
     MYFLT temp,temp2;
     long itemp;

@@ -701,7 +701,7 @@ static int decode_long(void *csound, char *s, int argc, char **argv)
 #endif
     for (n=0; utilities[n].util!=NULL; n++) {
       if (strcmp(s,utilities[n].util) == 0) {
-        printf(Str(utilities[n].string));
+        ((ENVIRON*)csound)->Message(csound,Str(utilities[n].string));
 #ifdef mills_macintosh
         SIOUXSetTitle((unsigned char *)CtoPstr((char *)s));
 #endif
@@ -870,7 +870,7 @@ int argdecode(void *csound, int argc, char **argv_)
           for (n=0; utilities[n].util!=NULL; n++) {
             if (strcmp(s,utilities[n].util) == 0) {
               int retval;
-              printf(Str(utilities[n].string));
+              ((ENVIRON*)csound)->Message(csound, Str(utilities[n].string));
 #ifdef mills_macintosh
               SIOUXSetTitle((unsigned char *)CtoPstr((char *)s));
 #endif
