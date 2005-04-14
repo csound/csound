@@ -25,13 +25,6 @@
 #include "ugens1.h"
 #include <math.h>
 
-#ifdef MSVC /* VL MSVC fix */
-#      define  u_char  unsigned char
-#      define  u_short unsigned short
-#      define  u_int   unsigned int
-#      define  u_long  unsigned long
-#endif
-
 #define FHUND (FL(100.0))
 
 int linset(ENVIRON *csound, LINE *p)
@@ -653,7 +646,7 @@ int expseg(ENVIRON *csound, EXXPSEG *p)
 
 int xsgrset(ENVIRON *csound, EXPSEG *p)
 {
-    u_short relestim;
+    int     relestim;
     SEG     *segp;
     int     nsegs, n = 0;
     MYFLT   **argp, prvpt;
@@ -682,7 +675,7 @@ int xsgrset(ENVIRON *csound, EXPSEG *p)
       prvpt = segp->nxtpt;
       segp++;
     } while (--nsegs);
-    relestim = (u_short)(p->cursegp + p->segsrem - 1)->cnt;
+    relestim = (int) (p->cursegp + p->segsrem - 1)->cnt;
     if (relestim > p->h.insdshead->xtratim)
       p->h.insdshead->xtratim = relestim;
     return OK;
@@ -701,7 +694,7 @@ int xsgrset(ENVIRON *csound, EXPSEG *p)
 
 int mxdsrset(ENVIRON *csound, EXPSEG *p)
 {
-    u_short relestim;
+    int         relestim;
     SEG         *segp;
     int         nsegs;
     MYFLT       **argp = p->argums;
@@ -729,7 +722,7 @@ int mxdsrset(ENVIRON *csound, EXPSEG *p)
     segp[2].cnt = (long) (decay*csound->ekr + FL(0.5));
     segp[3].nxtpt = FL(0.001);
     segp[3].cnt = (long) (rel*csound->ekr + FL(0.5));
-    relestim = (u_short)(p->cursegp + p->segsrem - 1)->cnt;
+    relestim = (int) (p->cursegp + p->segsrem - 1)->cnt;
     p->xtra = (long)(*argp[5] * csound->ekr + FL(0.5));      /* Release time?? */
     if (relestim > p->h.insdshead->xtratim)
       p->h.insdshead->xtratim = relestim;
@@ -924,7 +917,7 @@ int lnrset(ENVIRON *csound, LINENR *p)
     }
     else p->inc1 = p->val = FL(1.0);
     if (*p->idec > FL(0.0)) {
-      u_short relestim = (u_short)(*p->idec * csound->ekr + FL(0.5));
+      int relestim = (int) (*p->idec * csound->ekr + FL(0.5));
       if (relestim > p->h.insdshead->xtratim)
         p->h.insdshead->xtratim = relestim;
       if (*p->iatdec <= FL(0.0)) {

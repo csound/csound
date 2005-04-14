@@ -1286,10 +1286,6 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
 #include <ctype.h>
 
 #if defined(WIN32)
-#undef u_char
-#undef u_short
-#undef u_int
-#undef u_long
 #include <windows.h>
 /* do not use UNIX code under Win32 */
 #ifdef __unix
