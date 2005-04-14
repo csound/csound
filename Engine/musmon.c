@@ -710,7 +710,7 @@ static int process_rt_event(ENVIRON *csound, int sensType)
 
 #define RNDINT(x) ((int) ((double) (x) + ((double) (x) < 0.0 ? -0.5 : 0.5)))
 
-extern  int     sensLine(void);
+extern  int     sensLine(ENVIRON *);
 extern  int     sensMidi(ENVIRON *);
 
 /* sense events for one k-period            */
@@ -841,7 +841,7 @@ int sensevents(ENVIRON *csound)
         }
       }
       if (O->Linein) {                      /* Linein events      */
-        while ((sensType = sensLine()) != 0) {
+        while ((sensType = sensLine(csound)) != 0) {
           if ((retval = process_rt_event(csound, sensType)) != 0)
             goto scode;
         }

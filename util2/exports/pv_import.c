@@ -36,13 +36,13 @@
 void usage(int);
 MYFLT getnum(FILE*, char *);
 
-void err_printf(char *fmt, ...)
-{
-    va_list a;
-    va_start(a, fmt);
-    vfprintf(stderr, fmt, a);
-    va_end(a);
-}
+/* void err_printf(char *fmt, ...) */
+/* { */
+/*     va_list a; */
+/*     va_start(a, fmt); */
+/*     vfprintf(stderr, fmt, a); */
+/*     va_end(a); */
+/* } */
 
 int main(int argc, char **argv)
 {
