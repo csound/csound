@@ -23,7 +23,7 @@
 
 #include "cs.h"                                    /*  SCXTRACT.C  */
 
-extern void  readxfil(FILE *), extract(void), swrite(void), sfree(void);
+extern void  readxfil(FILE *), extract(void), swrite(ENVIRON*), sfree(void);
 extern int sread(void);
 extern void sread_init(void);
 
@@ -44,7 +44,7 @@ int scxtract(FILE *scin, FILE * scout, FILE *xfile) /* called from xmain.c
         /*  allout();   */
         /*  textout();  */
         extract();
-        swrite();
+        swrite(&cenviron);
       }
     } while (n > 1);
     sfree();        /* return all memory used */

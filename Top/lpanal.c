@@ -49,7 +49,7 @@ static  double  (*a)[MAXPOLES];
 
 static  void    alpol(MYFLT *, double *, double *, double *, double *);
 static  void    gauss(double (*)[MAXPOLES], double*, double*);
-static  void    quit(char *), lpdieu(char *), usage(void);
+static  void    quit(char *), lpdieu(ENVIRON*,char *), usage(ENVIRON*);
 extern  void    ptable(MYFLT, MYFLT, MYFLT, int);
 extern  MYFLT   getpch(MYFLT*);
 extern  int     openout(char*, int);
@@ -69,7 +69,7 @@ static  WINDAT   pwindow;
 /* Search for an argument and report of not found */
 #define FIND(MSG)   if (*s == '\0')  \
                         if (!(--argc) || (((s = *++argv)!=0) && *s == '-'))  \
-                            lpdieu(MSG);
+                            lpdieu(csound,MSG);
 
 #include <math.h>
 #include <stdio.h>
@@ -477,7 +477,7 @@ int lpanal(int argc, char **argv)
 
    /* Parse argument until no more found %-( */
         if (!(--argc))
-            lpdieu(Str("insufficient arguments"));
+            lpdieu(csound,Str("insufficient arguments"));
         do {
             char *s = *++argv;
             if (*s++ == '-')
@@ -536,14 +536,14 @@ int lpanal(int argc, char **argv)
                 case 'a':       storePoles=TRUE;
                     break;
                 default: sprintf(errmsg,Str("unrecognised flag -%c"), *--s);
-                         lpdieu(errmsg);
+                         lpdieu(csound,errmsg);
                 }
             else break;
         } while (--argc);
 
    /* Do some checks on arguments we got */
 
-        if (argc != 2)  lpdieu(Str("incorrect number of filenames"));
+        if (argc != 2)  lpdieu(csound,Str("incorrect number of filenames"));
         infilnam = *argv++;
         outfilnam = *argv;
         if (poleCount > MAXPOLES)
@@ -561,22 +561,22 @@ int lpanal(int argc, char **argv)
             quit(Str("input and begin times cannot be less than zero"));
 
         if (verbose) {
-            err_printf(Str("Reading sound from %s, writing lpfile to %s\n"),
+            csound->Message(csound,Str("Reading sound from %s, writing lpfile to %s\n"),
                     infilnam, outfilnam);
-            err_printf(Str("poles=%d hopsize=%d begin=%4.1f duration=%4.1f\n"),
+            csound->Message(csound,Str("poles=%d hopsize=%d begin=%4.1f duration=%4.1f\n"),
                     poleCount, slice, beg_time, input_dur);
-            err_printf(Str("lpheader comment:\n%s\n"), lph->text);
+            csound->Message(csound,Str("lpheader comment:\n%s\n"), lph->text);
             if (pchlow > 0.)
-              err_printf(Str("pch track range: %5.1f - %5.1f Hz\n"),pchlow,pchhigh);
-            else err_printf(Str("pitch tracking inhibited\n"));
+              csound->Message(csound,Str("pch track range: %5.1f - %5.1f Hz\n"),pchlow,pchhigh);
+            else csound->Message(csound,Str("pitch tracking inhibited\n"));
         }
         if ((input_dur < 0) || (beg_time < 0))
             quit(Str("input and begin times cannot be less than zero"));
 
         if (storePoles)
-          err_printf(Str("Using pole storage method\n"));
+          csound->Message(csound,Str("Using pole storage method\n"));
         else
-          err_printf(Str("Using filter coefficient storage method\n"));
+          csound->Message(csound,Str("Using filter coefficient storage method\n"));
 
    /* Get information on input sound */
         if (
@@ -658,7 +658,7 @@ int lpanal(int argc, char **argv)
             if (doPitch)
                 coef[3] = getpch(sigbuf);
             else coef[3] = FL(0.0);
-            if (debug) err_printf("%d\t%9.4f\t%9.4f\t%9.4f\t%9.4f\n",
+            if (debug) csound->Message(csound,"%d\t%9.4f\t%9.4f\t%9.4f\t%9.4f\n",
                                counter, coef[0], coef[1], coef[2], coef[3]);
 #ifdef TRACE
             if (debug) fprintf(trace,"%d\t%9.4f\t%9.4f\t%9.4f\t%9.4f\n",
@@ -687,7 +687,7 @@ int lpanal(int argc, char **argv)
                        &poleFound,2000,&indic,workArray1);
 
               if (poleFound!=poleCount) {
-                err_printf(Str("Found only %d poles...sorry\n"), poleFound);
+                csound->Message(csound,Str("Found only %d poles...sorry\n"), poleFound);
 #if !defined(mills_macintosh)
                 exit(-1);
 #else
@@ -711,10 +711,10 @@ int lpanal(int argc, char **argv)
                 printf("filterCoef: %f\n", filterCoef[i]);
 #endif
                 if (filterCoef[i]-polyReal[poleCount-i]>1e-10)
-                  err_printf(Str("Error in coef %d : %f <> %f \n"),
+                  csound->Message(csound,Str("Error in coef %d : %f <> %f \n"),
                              i, filterCoef[i], polyReal[poleCount-i]);
               }
-              err_printf(".");
+              csound->Message(csound,".");
               InvertPoles(poleCount,polePart1,polePart2);
 #endif
                           /* Switch to pole magnitude and phase */
@@ -786,10 +786,10 @@ static void quit(char *msg)
         csoundDie(&cenviron, Str("analysis aborted"));
 }
 
-static void lpdieu(char *msg)
+static void lpdieu(ENVIRON* csound,char *msg)
 {
-        printf("lpanal: %s\n", msg);
-        usage();
+        csound->Message(csound,"lpanal: %s\n", msg);
+        usage(csound);
         exit(0);
 }
 
@@ -938,40 +938,40 @@ static void gauss(double (*a/*old*/)[MAXPOLES], double *bold, double b[])
     }
 }
 
-static void usage(void)
+static void usage(ENVIRON *csound)
 {
-    err_printf(Str("USAGE:\tlpanal [flags] infilename outfilename\n"));
-    err_printf(Str("\twhere flag options are:\n"));
-    err_printf(Str(
+    csound->Message(csound,Str("USAGE:\tlpanal [flags] infilename outfilename\n"));
+    csound->Message(csound,Str("\twhere flag options are:\n"));
+    csound->Message(csound,Str(
                "-s<srate>\tinput sample rate (defaults to header else %7.1f.)\n"),
                DFLT_SR);
-    err_printf(Str(
+    csound->Message(csound,Str(
                    "-c<chnlreq>\trequested channel of sound (default chan 1)\n"));
-    err_printf(Str(
+    csound->Message(csound,Str(
                "-b<begin>\tbegin time in seconds into soundfile (default 0.0)\n"));
-    err_printf(Str(
+    csound->Message(csound,Str(
          "-d<duration>\tseconds of sound to be analysed (default: to EOF)\n"));
-    err_printf(Str(
+    csound->Message(csound,Str(
                    "-p<npoles>\tnumber of poles for analysis (default %d)\n"),
                DEFpoleCount);
-    err_printf(Str(
+    csound->Message(csound,Str(
                    "-h<hopsize>\toffset between frames in samples (default %d)\n"),
                DEFSLICE);
-    err_printf(Str("\t\t\t(framesize will be twice <hopsize>)\n"));
-    err_printf(Str(
+    csound->Message(csound,Str("\t\t\t(framesize will be twice <hopsize>)\n"));
+    csound->Message(csound,Str(
                    "-C<string>\tcomment field of lp header (default empty)\n"));
-    err_printf(Str(
+    csound->Message(csound,Str(
                "-P<mincps>\tlower limit for pitch search (default %5.1f Hz)\n"),
                PITCHMIN);
-    err_printf(Str("\t\t\t(-P0 inhibits pitch tracking)\n"));
-    err_printf(Str(
+    csound->Message(csound,Str("\t\t\t(-P0 inhibits pitch tracking)\n"));
+    csound->Message(csound,Str(
                "-Q<maxcps>\tupper limit for pitch search (default %5.1f Hz)\n"),
                PITCHMAX);
-    err_printf(Str(
+    csound->Message(csound,Str(
                "-v<verblevel>\tprinting verbosity: 0=none, 1=verbose, 2=debug."));
-    err_printf(Str(" (default 0)\n"));
-    err_printf(Str("-g\tgraphical display of results\n"));
-    err_printf(Str("-a\t\talternate (pole) file storage\n"));
-    err_printf(Str("-- fname\tLog output to file\n"));
-    err_printf(Str("see also:  Csound Manual Appendix\n"));
+    csound->Message(csound,Str(" (default 0)\n"));
+    csound->Message(csound,Str("-g\tgraphical display of results\n"));
+    csound->Message(csound,Str("-a\t\talternate (pole) file storage\n"));
+    csound->Message(csound,Str("-- fname\tLog output to file\n"));
+    csound->Message(csound,Str("see also:  Csound Manual Appendix\n"));
 }

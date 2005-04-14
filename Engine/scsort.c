@@ -23,7 +23,7 @@
 
 #include "cs.h"                                          /*   SCSORT.C  */
 
-extern void sort(void), twarp(void), swrite(void), sfree(void);
+extern void sort(void), twarp(void), swrite(ENVIRON*), sfree(void);
 extern void sread_init(void);
 extern int sread(void);
 
@@ -43,7 +43,7 @@ void scsort(FILE *scin, FILE *scout)
 /*         printf("sread returns with %d\n", n); */
         sort();
         twarp();
-        swrite();
+        swrite(&cenviron);
       }
     } while (n > 1);
     sfree();        /* return all memory used */

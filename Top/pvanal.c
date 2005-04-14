@@ -50,7 +50,7 @@ extern int pvxanal(SOUNDIN *, SNDFILE *, const char *, long, long,
                    long, long, long, int, int);
 static long takeFFTs(SOUNDIN *inputSound, PVSTRUCT *outputPVH,
                      SNDFILE *sndfd, int fftd, long oframeEst);
-static void quit(char *msg);
+static void quit(ENVIRON *, char *msg);
 static void PrintBuf(MYFLT *buf, long size, char *msg);
 
 #define MINFRMMS        20      /* frame defaults to at least this many ms */
@@ -81,7 +81,7 @@ extern  int      csoundYield(void*);
 
 #define FIND(MSG)   if (*s == '\0')  \
                         if (!(--argc) || ((s = *++argv) && *s == '-'))  \
-                            quit(MSG);
+                            quit(csound,MSG);
 
 int pvanal(int argc, char **argv)
 {
@@ -106,7 +106,7 @@ int pvanal(int argc, char **argv)
     O.displays = 0;
     WindowType = 1;
     if (!(--argc))
-      quit(Str("insufficient arguments"));
+      quit(csound,Str("insufficient arguments"));
       do {
         char *s = *++argv;
         if (*s++ == '-')
@@ -149,11 +149,11 @@ int pvanal(int argc, char **argv)
             if (frameSize < MINFRMPTS || frameSize > MAXFRMPTS) {
               sprintf(errmsg,Str("frameSize must be between %d &%d\n"),
                       MINFRMPTS, MAXFRMPTS);
-              quit(errmsg);
+              quit(csound,errmsg);
             }
             if (frameSize < 1L || (frameSize & (frameSize - 1L)) != 0L) {
               sprintf(errmsg,Str("pvanal: frameSize must be 2^r"));
-              quit(errmsg);
+              quit(csound,errmsg);
             }
             break;
           case 'w':  FIND(Str("no windfact"));
@@ -170,28 +170,28 @@ int pvanal(int argc, char **argv)
             break;
           case 'V':  FIND(Str("no output file for trace"));
             trfil = fopen(s,"w");
-            if (trfil==NULL) quit(Str("Failed to open text file"));
+            if (trfil==NULL) quit(csound,Str("Failed to open text file"));
             printf(Str("Writing text form to file %s\n"), s);
           case 'v':
             verbose = 1;
             break;
-          default:   quit(Str("unrecognised switch option"));
+          default:   quit(csound,Str("unrecognised switch option"));
           }
         else break;
       } while (--argc);
 
-      if (argc !=  2) quit(Str("illegal number of filenames"));
+      if (argc !=  2) quit(csound,Str("illegal number of filenames"));
       infilnam = *argv++;
       outfilnam = *argv;
 
     if (ovlp && frameIncr)
-      quit(Str("pvanal cannot have both -w and -h"));
+      quit(csound,Str("pvanal cannot have both -w and -h"));
     /* open sndfil, do skiptime */
     channel = ALLCHNLS; /* we can analyse up to 8 chans with pvxanal! */
     if ((infd = csound->SAsndgetset(csound, infilnam, &p, &beg_time,
                                     &input_dur, &sr, channel)) == NULL) {
       sprintf(errmsg,Str("error while opening %s"), retfilnam);
-      quit(errmsg);
+      quit(csound,errmsg);
     }
     sr = (MYFLT)p->sr;
     /* setup frame size etc according to sampling rate */
@@ -211,14 +211,14 @@ int pvanal(int argc, char **argv)
     else frameIncr = frameSize/ovlp;
 
     if (ovlp < 2 || ovlp > 16) {
-      err_printf(Str("pvanal: %d is a bad window overlap index\n"),
+      csound->Message(csound,Str("pvanal: %d is a bad window overlap index\n"),
                  ovlp);
       exit(1);
     }
     oframeEst = (p->getframes - frameSize/2) / frameIncr;
-    printf("%ld infrsize, %ld infrInc\n", frameSize, frameIncr);
-    printf(Str("%ld output frames estimated\n"), oframeEst);
-
+    csound->Message(csound,"%ld infrsize, %ld infrInc\n", frameSize, frameIncr);
+    csound->Message(csound,Str("%ld output frames estimated\n"), oframeEst);
+    
     ext = strrchr(outfilnam,'.');
     /* Look for .pvx extension in any case */
     if (ext != NULL && ext[0]=='.' && tolower(ext[1]) == 'p' &&
@@ -229,7 +229,7 @@ int pvanal(int argc, char **argv)
                MAXPVXCHANS);
         return 1;
       }
-      printf(Str("pvanal: creating pvocex file\n"));
+      csound->Message(csound,Str("pvanal: creating pvocex file\n"));
       /* handle all messages in here, for now */
       if (pvxanal(p,infd,outfilnam,p->sr,p->nchanls,frameSize,frameIncr,
                   frameSize*2,PVOC_HAMMING,verbose))
@@ -242,14 +242,14 @@ int pvanal(int argc, char **argv)
       if ((err = PVAlloc(&pvh, Estdatasiz, PVMYFLT, sr, p->nchanls, frameSize,
                          frameIncr, fftfrmBsiz, PVPVOC, FL(0.0), sr/FL(2.0),
                          PVLIN, 4))) {
-        err_printf( "pvanal: %s\n", PVErrMsg(err));
+        csound->Message(csound, "pvanal: %s\n", PVErrMsg(err));
         exit(1);
       }
       if ((ofd = openout(outfilnam, 1)) < 0)     /* open the output PV file */
-        quit(Str("cannot create output file"));
+        quit(csound,Str("cannot create output file"));
       /* & wrt hdr into the file */
       if ((nb = write(ofd,(char *)pvh,(int)pvh->headBsize)) < pvh->headBsize)
-        quit(Str("cannot write header"));
+        quit(csound,Str("cannot write header"));
 
       dispinit();
       if (verbose) {
@@ -262,24 +262,24 @@ int pvanal(int argc, char **argv)
       }
       oframeAct = takeFFTs(p, pvh, infd, ofd, oframeEst);
       dispexit();
-      printf(Str("%ld output frames written\n"), oframeAct);
+      csound->Message(csound,Str("%ld output frames written\n"), oframeAct);
     }
     sf_close(infd);
-  /*     close(ofd); */
+    /*     close(ofd); */
 #if !defined(mills_macintosh)
     exit(0);
 #endif
     return (-1);
 }
 
-static void quit(char *msg)
+static void quit(ENVIRON *csound, char *msg)
 {
-        err_printf("pvanal error: %s\n", msg);
-        err_printf(
-        Str("Usage: pvanal [-n<frmsiz>] [-w<windfact> | "
-            "-h<hopsize>] [-g | -G<latch>] [-v | -V txtfile] "
-            "inputSoundfile outputFFTfile\n"));
-        exit(0);
+    csound->Message(csound, "pvanal error: %s\n", msg);
+    csound->Message(csound,
+                    Str("Usage: pvanal [-n<frmsiz>] [-w<windfact> | "
+                        "-h<hopsize>] [-g | -G<latch>] [-v | -V txtfile] "
+                        "inputSoundfile outputFFTfile\n"));
+    exit(0);
 }
 
 /*    if (debug) */
