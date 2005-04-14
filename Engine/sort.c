@@ -91,7 +91,7 @@ void sort(void)
       case 'e':
         break;
       default:
-        err_printf(Str("sort: illegal opcode %c(%.2x)\n"),
+        cenviron.Message(&cenviron,Str("sort: illegal opcode %c(%.2x)\n"),
                    bp->text[0],bp->text[0]);
         break;
       }

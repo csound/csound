@@ -70,12 +70,12 @@ static void unlock(ENVIRON *csound)
 #endif
 }
 
-static void awake(ENVIRON *csound)
-{
-#if defined USE_FLTK
-  Fl::awake();
-#endif
-}
+// static void awake(ENVIRON *csound)
+// {
+// #if defined USE_FLTK
+//   Fl::awake();
+// #endif
+// }
 
 extern ENVIRON cenviron;
 extern "C" int csoundYield(void *);
