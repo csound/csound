@@ -127,25 +127,6 @@ input  |    |------>|
 #include "babo.h"
 #include <math.h>
 
-/*
- * Add compilers that understand 'inline' here...
- */
-#if defined(__GNUC__)
-#       define  INLINE  inline
-#else
-#       define  INLINE          /* compilers that do not understand 'inline' */
-                                /* That is ANSI C Compilers */
-#define BaboMemory_samples(this) ((this)->samples)
-#define BaboMemory_start(this) ((MYFLT *) (this)->memptr.auxp)
-#define BaboMemory_end(this) ((MYFLT *) (this)->memptr.endp)
-#define BaboMemory_size(this) ((MYFLT *) (this)->memptr.size)
-#define BaboNode_input(this,input) (BaboDelay_input(&(this)->delay, input))
-#define BaboNode_feed_filter(this) \
-        (BaboLowPass_input(&(this)->filter, BaboDelay_output(&(this)->delay)))
-#define BaboNode_output(this) (BaboLowPass_output(&(this)->filter))
-#define BaboMatrix_coefficient(this,x,y) ((this)->fdn[x][y])
-#endif /* defined(__GNUC__) */
-
 #if !defined(FLT_MAX)
 #define FLT_MAX         (1.0e38)
 #endif
@@ -158,7 +139,7 @@ static const int sound_speed = 330;
 
 #define square(x)   ((x)*(x))
 
-INLINE long
+static inline long
 bround(MYFLT x)
 {
     return (long)(x >= 0 ? x + FL(0.5) : x - FL(0.5));
@@ -185,31 +166,29 @@ BaboMemory_create(ENVIRON *csound, BaboMemory *this, size_t size_in_floats)
     return this;
 }
 
-#if defined(__GNUC__)
-INLINE static size_t
+static inline size_t
 BaboMemory_samples(const BaboMemory *this)
 {
     return this->samples;
 }
 
-INLINE static MYFLT *
+static inline MYFLT *
 BaboMemory_start(const BaboMemory *this)
 {
     return (MYFLT *) this->memptr.auxp;
 }
 
-INLINE static MYFLT *
+static inline MYFLT *
 BaboMemory_end(const BaboMemory *this)
 {
     return (MYFLT *) this->memptr.endp;
 }
 
-INLINE static MYFLT *
+static inline MYFLT *
 BaboMemory_size(const BaboMemory *this)
 {
     return (MYFLT *) this->memptr.size;
 }
-#endif
 
 /*
  * common delay/tapline methods
@@ -281,13 +260,13 @@ BaboTapline_create(ENVIRON *csound, BaboTapline *this, MYFLT x, MYFLT y, MYFLT z
     return this;
 }
 
-INLINE static MYFLT
+static inline MYFLT
 BaboTapline_maxtime(ENVIRON *csound, BaboDelay *this)
 {
     return (((MYFLT) BaboMemory_samples(&this->core)) * onedsr);
 }
 
-INLINE static MYFLT
+static inline MYFLT
 BaboTapline_input(BaboTapline *this, MYFLT input)
 {
     return BaboDelay_input((BaboDelay *) this, input);
@@ -344,7 +323,7 @@ static MYFLT BaboTapline_single_output(ENVIRON *csound,
 }
 
 /* k-rate function */
-INLINE static void BaboTapline_preload_parameter(ENVIRON *csound,
+static inline void BaboTapline_preload_parameter(ENVIRON *csound,
                                                  BaboTapParameter *this,
                                                  MYFLT distance)
 {
@@ -432,7 +411,7 @@ BaboLowPass_create(BaboLowPass *this, MYFLT decay, MYFLT hidecay, MYFLT norm)
     return this;
 }
 
-INLINE static MYFLT
+static inline MYFLT
 BaboLowPass_input(BaboLowPass *this, MYFLT input)
 {
     this->z2 = this->z1;
@@ -440,7 +419,7 @@ BaboLowPass_input(BaboLowPass *this, MYFLT input)
     this->input = input;
     return input;
 }
-INLINE static MYFLT
+static inline MYFLT
 BaboLowPass_output(const BaboLowPass *this)
 {
     return  (this->a0 * this->input)    +
@@ -462,25 +441,23 @@ BaboNode_create(ENVIRON *csound, BaboNode *this, MYFLT time,
     return this;
 }
 
-#if defined(__GNUC__)
-INLINE static MYFLT
+static inline MYFLT
 BaboNode_input(BaboNode *this, MYFLT input)
 {
     return BaboDelay_input(&this->delay, input);
 }
 
-INLINE static void
+static inline void
 BaboNode_feed_filter(BaboNode *this)
 {
     BaboLowPass_input(&this->filter, BaboDelay_output(&this->delay));
 }
 
-INLINE static MYFLT
+static inline MYFLT
 BaboNode_output(const BaboNode *this)
 {
     return BaboLowPass_output(&this->filter);
 }
-#endif
 
 /*
  * Babo Matrix object methods
@@ -637,13 +614,11 @@ BaboMatrix_create(ENVIRON *csound,
     return this;
 }
 
-#if defined(__GNUC__)
-INLINE static MYFLT
+static inline MYFLT
 BaboMatrix_coefficient(const BaboMatrix *this, int x, int y)
 {
     return this->fdn[x][y];
 }
-#endif
 
 /* a-rate function */
 static void
@@ -735,7 +710,7 @@ resolve_defaults(BABO *p)
     p->diffusion_coeff  = *(p->odiffusion_coeff);
 }
 
-INLINE static MYFLT
+static inline MYFLT
 load_value_or_default(const FUNC *table, int idx, MYFLT dEfault)
 {
     MYFLT result = (table != (FUNC *) NULL && idx < table->flen) ?
@@ -781,7 +756,7 @@ verify_coherence(ENVIRON *csound, BABO *p)
  *
  */
 
-int
+static int
 baboset(ENVIRON *csound, void *entry)
 {
     BABO *p = (BABO *) entry;   /* assuming the engine is right... :)   */
@@ -797,7 +772,7 @@ baboset(ENVIRON *csound, void *entry)
     return OK;
 }
 
-int
+static int
 babo(ENVIRON *csound, void *entry)
 {
     BABO    *p          = (BABO *) entry;
