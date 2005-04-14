@@ -161,12 +161,5 @@ typedef struct
 #define BABO_DEFAULT_DIRECT                 (FL(0.5))
 #define BABO_DEFAULT_DIFFUSE                (FL(0.8))
 
-/*
- * Public prototypes (used by entry.c)
- */
-
-int baboset(ENVIRON*, void *p);
-int babo(ENVIRON*, void *p);
-
 #endif /* !defined(__babo_h__) */
 
