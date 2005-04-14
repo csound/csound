@@ -140,13 +140,13 @@ int clarinset(ENVIRON *csound, CLARIN *p)
     /*    p->noiseGain = 0.2f; */       /* Arguemnts; suggested values? */
     /*    p->vibrGain = 0.1f; */
       {
-        int relestim = (int)(csound->global_ekr * FL(0.1));
+        int relestim = (int)(csound->ekr * FL(0.1));
         /* 1/10th second decay extention */
         if (relestim > p->h.insdshead->xtratim)
           p->h.insdshead->xtratim = relestim;
       }
-      p->kloop = (int)(p->h.insdshead->offtim * csound->global_ekr)
-                 - (int)(csound->global_ekr * *p->attack);
+      p->kloop = (int) ((long) (p->h.insdshead->offtim * csound->ekr)
+                        - (long) (csound->ekr * *p->attack));
       csound->Message(csound, "offtim=%f  kloop=%d\n",
                               p->h.insdshead->offtim, p->kloop);
       p->envelope.rate = FL(0.0);
@@ -791,13 +791,13 @@ int brassset(ENVIRON *csound, BRASS *p)
       /*     LipFilt_setFreq(csound, &p->lipFilter, */
       /*                     p->lipTarget * (MYFLT)pow(4.0,(2.0* p->lipT) -1.0)); */
       {
-        int relestim = (int)(csound->global_ekr * FL(0.1));
+        int relestim = (int)(csound->ekr * FL(0.1));
         /* 1/10th second decay extention */
         if (relestim > p->h.insdshead->xtratim)
           p->h.insdshead->xtratim = relestim;
       }
-      p->kloop = (int)(p->h.insdshead->offtim * csound->global_ekr)
-                 - (int)(csound->global_ekr * *p->dettack);
+      p->kloop = (int) ((long) (p->h.insdshead->offtim * csound->ekr)
+                        - (long) (csound->ekr * *p->dettack));
     }
     return OK;
 }
