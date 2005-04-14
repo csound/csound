@@ -45,7 +45,8 @@ CsoundVST::CsoundVST(audioMasterCallback audioMaster) :
   vstCurrentSampleBlockEnd(0),
   vstCurrentSamplePosition(0),
   vstPriorSamplePosition(0),
-  csoundVstFltk(0)
+  csoundVstFltk(0),
+  isAutoPlayback(false)
 {
   setNumInputs(kNumInputs);		// stereo in
   setNumOutputs(kNumOutputs);		// stereo out
@@ -94,7 +95,8 @@ CsoundVST::CsoundVST() :
   vstCurrentSampleBlockEnd(0),
   vstCurrentSamplePosition(0),
   vstPriorSamplePosition(0),
-  csoundVstFltk(0)
+  csoundVstFltk(0),
+  isAutoPlayback(true)
 {
   setNumInputs(2);		// stereo in
   setNumOutputs(2);		// stereo out
@@ -224,6 +226,13 @@ void CsoundVST::performanceThreadRoutine()
 	  csound::System::inform("Classic performance.\n");
 	  cppSound->perform();
 	}     
+    }
+  if(isAutoPlayback) 
+    {
+      if(csoundVstFltk)
+	{
+	  csoundVstFltk->onEdit(0, 0);
+	}
     }
 }
 
@@ -761,6 +770,17 @@ int CsoundVST::run()
 {
   return Fl::run();
 }
+
+bool CsoundVST::getIsAutoPlayback() const
+{
+	return isAutoPlayback;
+}
+
+void CsoundVST::setIsAutoPlayback(bool isAutoPlayback)
+{
+	this->isAutoPlayback = isAutoPlayback;
+}
+
 
 extern "C"
 {

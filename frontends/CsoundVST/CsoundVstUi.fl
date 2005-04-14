@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0102 
+version 1.0106 
 header_name {.h} 
 code_name {.cpp}
 Function {make_window(CsoundVstFltk *csoundVstFltk)} {open
@@ -7,7 +7,7 @@ Function {make_window(CsoundVstFltk *csoundVstFltk)} {open
   Fl_Window {} {
     label CsoundVST
     user_data csoundVstFltk user_data_type {CsoundVstFltk*} open
-    xywh {183 74 609 431} color 48 labelsize 12 align 48 resizable
+    xywh {72 130 609 431} type Double color 48 labelsize 12 align 48 resizable
     code0 {\#include "CsoundVstFltk.hpp"} visible
   } {
     Fl_Tabs mainTabs {open
@@ -18,8 +18,8 @@ Function {make_window(CsoundVstFltk *csoundVstFltk)} {open
         xywh {4 65 601 360} box THIN_UP_BOX color 50 selection_color 47 labelfont 1 labelsize 12 resizable
       } {
         Fl_Input settingsEditSoundfileInput {
-          label {Edit soundfiles with} selected
-          tooltip {Program to be used for editing soundfiles} xywh {14 169 441 20} box THIN_DOWN_BOX selection_color 46 labelsize 12 align 5 textfont 4 textsize 11
+          label {Edit soundfiles with}
+          tooltip {Program to be used for editing soundfiles} xywh {14 169 216 20} box THIN_DOWN_BOX selection_color 46 labelsize 12 align 5 textfont 4 textsize 11
         }
         Fl_Group settingsVstPluginModeGroup {
           label {VST plugin mode} open
@@ -60,14 +60,20 @@ Function {make_window(CsoundVstFltk *csoundVstFltk)} {open
           tooltip {Csound command line} xywh {14 215 581 200} type Multiline box THIN_DOWN_BOX selection_color 46 labelsize 12 align 5 textfont 4 textsize 11 resizable
         }
         Fl_Group {} {open
-          xywh {455 78 140 112} align 0
+          xywh {455 78 140 117} align 0
         } {
-          Fl_Group {} {
-            image {C:/Documents and Settings/Owner/My Documents/My Pictures/Angel.JPG} xywh {465 78 130 112} box THIN_DOWN_BOX labelsize 12 align 80
+          Fl_Group {} {selected
+            image {C:/utah/home/mkg/projects/csound5/frontends/CsoundVST/angel.PNG} xywh {465 78 130 112} box THIN_DOWN_BOX labelsize 12 align 80
           } {}
           Fl_Group {} {
             xywh {455 79 10 111} align 16 resizable
           } {}
+        }
+        Fl_Check_Button autoPlayCheckButton {
+          label {Auto edit after performance}
+          user_data csoundVstFltk user_data_type {CsoundVstFltk*}
+          callback onAutoPlayCheckButton
+          tooltip {Enables the automatic opening of the output soundfile after performance} xywh {244 169 211 20} down_box DOWN_BOX when 1
         }
       }
       Fl_Group orchestraGroup {

@@ -84,6 +84,7 @@ protected:
   bool isVst;
   bool isPython;
   bool isMultiThreaded;
+  bool isAutoPlayback;
   size_t csoundFrameI;
   size_t csoundLastFrame;
   size_t channelI;
@@ -146,6 +147,8 @@ public:
   virtual void closeView();
   virtual bool getIsMultiThreaded() const;
   virtual void setIsMultiThreaded(bool isMultiThreaded);
+  virtual bool getIsAutoPlayback() const;
+  virtual void setIsAutoPlayback(bool autoPlay);
   static int midiDeviceOpen(void *csound, void **userData,
                                const char *devName);
 
