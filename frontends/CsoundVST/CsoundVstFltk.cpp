@@ -231,6 +231,7 @@ long CsoundVstFltk::open(void *parentWindow)
 		this->orchestraGroup = ::orchestraGroup;
 		this->scoreGroup = ::scoreGroup;
 		this->scriptGroup = ::scriptGroup;
+		this->autoPlayCheckButton = ::autoPlayCheckButton;
 		//	Read user preferences.
 		char buffer[0x500];
 		int number = 0;
@@ -240,6 +241,8 @@ long CsoundVstFltk::open(void *parentWindow)
 		csoundVST->setIsSynth(number);
 		preferences.get("IsPython", number, 0);
 		csoundVST->setIsPython(number);
+		preferences.get("IsAutoPlayback", number, 1);
+		csoundVST->setIsAutoPlayback(number);
 		this->mainTabs->value(settingsGroup);
 		this->csoundVstUi->show();
 		if(csoundVST->getIsVst())
@@ -316,6 +319,7 @@ void CsoundVstFltk::update()
 		this->settingsVstPluginModeInstrument->value(csoundVST->getIsSynth());
 		this->settingsCsoundPerformanceModeClassic->value(!csoundVST->getIsPython());
 		this->settingsCsoundPerformanceModePython->value(csoundVST->getIsPython());
+		this->autoPlayCheckButton->value(csoundVST->getIsAutoPlayback());
 		if(csoundVST->getIsPython())
 		{
 			onSettingsCsoundPerformanceModePython(settingsCsoundPerformanceModePython, this);	
@@ -598,7 +602,7 @@ void CsoundVstFltk::onStop(Fl_Button*, CsoundVstFltk* csoundVstFltk)
 	csound::System::message("ENDED CsoundVstFltk::onStop.\n");
 }
 
-void CsoundVstFltk::onEdit(Fl_Button*, CsoundVstFltk* csoundVstFltk)
+void CsoundVstFltk::onEdit(Fl_Button*, CsoundVstFltk*)
 {
 	csound::System::message("BEGAN CsoundVstFltk::onEdit...\n");
 	csoundVST->getCppSound()->stop();
@@ -672,7 +676,13 @@ void CsoundVstFltk::onSettingsApply(Fl_Button* fl_button, CsoundVstFltk* csoundV
 	preferences.set("SoundfileOpen", this->settingsEditSoundfileInput->value());
 	preferences.set("IsSynth", csoundVST->getIsSynth());
 	preferences.set("IsPython", csoundVST->getIsPython());
+	preferences.set("IsAutoPlayback", csoundVST->getIsAutoPlayback());
 	csound::System::message("ENDED CsoundVstFltk::onSettingsApply.\n");
+}
+
+void CsoundVstFltk::onAutoPlayCheckButton(Fl_Check_Button* button, CsoundVstFltk* csoundVstFltk)
+{
+	csoundVST->setIsAutoPlayback(button->value());
 }
 
 void onNew(Fl_Button* fl_button, CsoundVstFltk* csoundVstFltk)
@@ -745,4 +755,7 @@ void onSettingsApply(Fl_Button* fl_button, CsoundVstFltk* csoundVstFltk)
 	csoundVstFltk->onSettingsApply(fl_button, csoundVstFltk);
 }
 
-
+void onAutoPlayCheckButton(Fl_Check_Button* button, CsoundVstFltk* csoundVstFltk)
+{
+	csoundVstFltk->onAutoPlayCheckButton(button, csoundVstFltk);
+}

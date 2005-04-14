@@ -88,6 +88,7 @@ public:
 	Fl_Check_Button* settingsVstPluginModeInstrument;
 	Fl_Check_Button* settingsCsoundPerformanceModeClassic;
 	Fl_Check_Button* settingsCsoundPerformanceModePython;
+	Fl_Check_Button* autoPlayCheckButton;
 	Fl_Text_Buffer *aboutTextBuffer;
 	Fl_Text_Display *aboutTextDisplay;
 	Fl_Group *orchestraGroup;
@@ -124,6 +125,7 @@ public:
     void onSettingsCsoundPerformanceModeClassic(Fl_Check_Button*, CsoundVstFltk* csoundVstFltk);
     void onSettingsCsoundPerformanceModePython(Fl_Check_Button*, CsoundVstFltk* csoundVstFltk);
     void onSettingsApply(Fl_Button*, CsoundVstFltk* csoundVstFltk);
+   	void onAutoPlayCheckButton(Fl_Check_Button*, CsoundVstFltk* csoundVstFltk);
 };
 
 #endif
