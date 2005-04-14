@@ -65,8 +65,8 @@ void Modal4_setRatioAndReson(ENVIRON*,Modal4 *m, int whichOne, MYFLT ratio, MYFL
 #define Modal4_setMasterGain(m,Gain)    (m->masterGain = aGain)
 #define Modal4_setDirectGain(m,aGain)   (m->directGain = aGain)
 #define Modal4_setFiltGain(m,whichOne,gain) (BiQuad_setGain(m->filters[whichOne], gain))
-void Modal4_strike(ENVIRON *, Modal4 *m, MYFLT amplitude);
-void Modal4_damp(ENVIRON *, Modal4 *m, MYFLT amplitude);
-MYFLT Modal4_tick(Modal4 *);
+static void Modal4_strike(ENVIRON *, Modal4 *m, MYFLT amplitude);
+static void Modal4_damp(ENVIRON *, Modal4 *m, MYFLT amplitude);
+static MYFLT Modal4_tick(Modal4 *);
 
 #endif
