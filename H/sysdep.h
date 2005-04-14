@@ -24,19 +24,21 @@
 #ifndef CSOUND_SYSDEP_H
 #define CSOUND_SYSDEP_H
 
-#ifdef __STDC__                                              /* SYSDEP.H */
-#  include <stdlib.h>
-#  include <stdio.h>
-#endif
+#include <stdlib.h>                                     /* SYSDEP.H */
+#include <stdio.h>
 
 #if defined(HAVE_CONFIG_H)
 #include "config.h"
 #endif
 
-#if defined(HAVE_STRING_H)
+#ifdef HAVE_STRING_H
 #include <string.h>
+#elif HAVE_STRINGS_H
+#include <strings.h>
 #endif
-                                /* Experiment with doubles or floats */
+
+/* Experiment with doubles or floats */
+
 #ifndef __FL_DEF
 #ifndef USE_DOUBLE
 # define MYFLT float
@@ -49,101 +51,83 @@
 #endif
 
 #ifdef HAVE_FCNTL_H
-# include <fcntl.h>
+#include <fcntl.h>
 #endif
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 
+#ifdef HAVE_GCC3
+#undef HAVE_GCC3
+#endif
+#if (defined(__GNUC__) && (__GNUC__ >= 3))
+#define HAVE_GCC3 1
+#endif
+#ifdef HAVE_C99
+#undef HAVE_C99
+#endif
+#if (defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L))
+#define HAVE_C99 1
+#endif
+
+/* inline keyword: always available in C++, C99, and GCC 3.x and above */
+
+#if !(defined(HAVE_C99) || defined(HAVE_GCC3) || defined(__cplusplus))
+#ifndef inline
+#define inline
+#endif
+#endif
+
 #if defined(macintosh)
-# define mac_classic /* All Mac Compiles Before OSX, including Carbon */
-/* # define mills_macintosh /\* DEFINE THIS to COMPILE the Mills"Perf"Version */
-# include <stdlib.h>
-# include <stat.h>
-# define  SFDIGDES
-# define  WINDOWS
-/*# define  SFIRCAM*/
-# define  u_char  unsigned char
-# define  u_short unsigned short
-# define  u_int   unsigned int
-# define  u_long  unsigned long
-# define  O_NDELAY (0)
-# define DIRSEP ':'
+#  define mac_classic   /* All Mac Compiles Before OSX, including Carbon */
+/* #  define mills_macintosh  DEFINE THIS to COMPILE the Mills "Perf" Version */
+#  include <stat.h>
+#  define  WINDOWS
+#  define  O_NDELAY (0)
+#  define  DIRSEP ':'
 #elif defined(SYMANTEC)
-# include <stdlib.h>
-# include <unix.h>       /* for open() etc protos on mac */
-# define  SFDIGDES
-# define  WINDOWS       /* with winmac.c */
-# define  u_char  unsigned char
-# define  u_short unsigned short
-# define  u_int   unsigned int
-# define  u_long  unsigned long
-# define DIRSEP ':'
-extern  off_t lseek(int, off_t, int);
+#  include <unix.h>     /* for open() etc protos on mac */
+#  define  WINDOWS      /* with winmac.c */
+#  define  DIRSEP ':'
+   extern  off_t lseek(int, off_t, int);
 #else
 #  define DIRSEP '/'
-#  ifdef LATTICE
-#  define  u_char  unsigned char
-#  define  u_short unsigned short
-#  define  u_int   unsigned int
-#  define  u_long  unsigned long
-#ifdef HAVE_SYS_TYPES_H
+#  ifdef  LATTICE
+#    ifdef HAVE_SYS_TYPES_H
 #      include <sys/types.h>
-#endif
-#  else
-#     ifdef __WATCOMC__
-#      define  u_char  unsigned char
-#      define  u_short unsigned short
-#      define  u_int   unsigned int
-#      define  u_long  unsigned long
-#      if !defined(O_NDELAY)
-#       define  O_NDELAY (0)
-#      endif
-#      include <io.h>
-#     else
-#     ifdef WIN32
-#      undef  DIRSEP
-#      define DIRSEP '\\'
-#      ifndef MSVC
-#       define  u_char  unsigned char
-#       define  u_short unsigned short
-#       define  u_int   unsigned int
-#       define  u_long  unsigned long
-#      endif
-#      if !defined(O_NDELAY)
-#       define  O_NDELAY (0)
-#                  endif
-#      include <io.h>
-#     else
-#      ifdef DOSGCC
-#      if !defined(O_NDELAY)
-#       define  O_NDELAY (0)
-#                  endif
-#      endif
-#ifdef HAVE_SYS_TYPES_H
-#      include <sys/types.h>
-#endif
-#     endif
-/*  RWD for WIN32 on VC++ */
-#         ifndef _MSC_VER
-#     include <sys/file.h>
-#         endif
 #    endif
-#   endif
-# include <sys/stat.h>
-#endif
-
-#ifdef HAVE_STRING_H
-# include <string.h>
-#elif HAVE_STRINGS_H
-# include <strings.h>
-#endif
-
-#ifdef __BEOS__
-# if !defined(O_NDELAY) && !defined(CSSVINTERFACE_H)
-#  error "Please use Makefile.be to build the BeOS version of Csound."
-# endif
+#  else
+#    ifdef __WATCOMC__
+#      if !defined(O_NDELAY)
+#        define  O_NDELAY (0)
+#      endif
+#      include <io.h>
+#    else
+#      ifdef WIN32
+#        undef  DIRSEP
+#        define DIRSEP '\\'
+#        if !defined(O_NDELAY)
+#          define  O_NDELAY (0)
+#        endif
+#        include <io.h>
+#      else
+#        ifdef DOSGCC
+#          if !defined(O_NDELAY)
+#            define  O_NDELAY (0)
+#          endif
+#        endif
+#        ifdef HAVE_SYS_TYPES_H
+#          include <sys/types.h>
+#        endif
+#      endif
+/*  RWD for WIN32 on VC++ */
+#      ifndef _MSC_VER
+#        include <sys/file.h>
+#      endif
+#    endif
+#  endif
+#  include <sys/stat.h>
 #endif
 
 #ifdef HAVE_STDINT_H
