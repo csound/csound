@@ -142,17 +142,11 @@ static MYFLT Samp_tick(Wave *p)
     temp = (long) temp_time;    /*  Integer part of time address    */
     temp1 = temp + 1;
     if (temp1==p->wave->flen) temp1 = 0; /* Wrap!! */
-#ifdef DEBUG
-    csound->Message(csound, "Samp_tick: in (%d,%d)\n", temp, temp1);
-#endif
     /*  fractional part of time address */
     alpha = temp_time - (MYFLT)temp;
     lastOutput = p->wave->ftable[temp];  /* Do linear interpolation */
-#ifdef DEBUG
-    csound->Message(csound, "Part 1=%f\n", lastOutput);
-#endif
     /* same as alpha*data[temp+1] + (1-alpha)data[temp] */
-    lastOutput += (alpha * (p->wave->ftable[temp+1] - lastOutput));
+    lastOutput += (alpha * (p->wave->ftable[temp1] - lastOutput));
     /* End of vibrato tick */
     return lastOutput;
 }
@@ -195,7 +189,7 @@ int Moog1(ENVIRON *csound, MOOG1 *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       *ar = p->ar;
-    long        nsmps = csound->ksmps;
+    long        n, nsmps = csound->ksmps;
     MYFLT       temp;
     MYFLT       vib = *p->vibAmt;
 
@@ -224,7 +218,7 @@ int Moog1(ENVIRON *csound, MOOG1 *p)
     }
     p->vibr.rate = *p->vibf * p->vibr.wave->flen * onedsr;
 
-    do {
+    for (n = 0; n<nsmps; n++) {
       MYFLT     temp;
       MYFLT     output;
       long      itemp;
@@ -292,8 +286,8 @@ int Moog1(ENVIRON *csound, MOOG1 *p)
 #ifdef DEBUG
       csound->Message(csound, "Filter2_tick: %f\n", output);
 #endif
-      *ar++ = output*AMP_SCALE*FL(8.0);
-    } while (--nsmps);
+      ar[n] = output*AMP_SCALE*FL(8.0);
+    }
     return OK;
 }
 

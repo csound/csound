@@ -650,24 +650,24 @@ int tambourset(ENVIRON *csound, TAMBOURINE *p)
     p->finalZ2    = FL(0.0);
 
     p->num_objectsSave = p->num_objects = (MYFLT)TAMB_NUM_TIMBRELS;
-    p->soundDecay = TAMB_SOUND_DECAY;
-    p->systemDecay = TAMB_SYSTEM_DECAY;
-    p->gain = FL(24.0) / TAMB_NUM_TIMBRELS;
-    p->res_freq1 = TAMB_CYMB_FREQ1;
-    p->res_freq2 = TAMB_CYMB_FREQ2;
-    temp = (MYFLT)log((double)TAMB_NUM_TIMBRELS) * TAMB_GAIN /
+    p->soundDecay      = TAMB_SOUND_DECAY;
+    p->systemDecay     = TAMB_SYSTEM_DECAY;
+    p->gain            = FL(24.0) / TAMB_NUM_TIMBRELS;
+    p->res_freq1       = TAMB_CYMB_FREQ1;
+    p->res_freq2       = TAMB_CYMB_FREQ2;
+    temp               = (MYFLT)log((double)TAMB_NUM_TIMBRELS) * TAMB_GAIN /
       (MYFLT) TAMB_NUM_TIMBRELS;
-    p->gains0=temp*TAMB_SHELL_GAIN;
-    p->gains1=temp*FL(0.8);
-    p->gains2=temp;
-    p->coeffs01 = TAMB_SHELL_RESON * TAMB_SHELL_RESON;
-    p->coeffs00 = -TAMB_SHELL_RESON * FL(2.0) *
+    p->gains0          = temp*TAMB_SHELL_GAIN;
+    p->gains1          = temp*FL(0.8);
+    p->gains2          = temp;
+    p->coeffs01        = TAMB_SHELL_RESON * TAMB_SHELL_RESON;
+    p->coeffs00        = -TAMB_SHELL_RESON * FL(2.0) *
       (MYFLT)cos((double)TAMB_SHELL_FREQ * tpidsr);
-    p->coeffs11 = TAMB_CYMB_RESON * TAMB_CYMB_RESON;
-    p->coeffs10 = -TAMB_CYMB_RESON * FL(2.0) *
+    p->coeffs11        = TAMB_CYMB_RESON * TAMB_CYMB_RESON;
+    p->coeffs10        = -TAMB_CYMB_RESON * FL(2.0) *
       (MYFLT)cos((double)TAMB_CYMB_FREQ1 * tpidsr);
-    p->coeffs21 = TAMB_CYMB_RESON * TAMB_CYMB_RESON;
-    p->coeffs20 = -TAMB_CYMB_RESON * FL(2.0) *
+    p->coeffs21        = TAMB_CYMB_RESON * TAMB_CYMB_RESON;
+    p->coeffs20        = -TAMB_CYMB_RESON * FL(2.0) *
       (MYFLT)cos((double)TAMB_CYMB_FREQ2 * tpidsr);
                                 /* Note On */
     p->shakeEnergy = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
@@ -1035,36 +1035,36 @@ int wuter(ENVIRON *csound, WUTER *p)
             (MYFLT)cos((double)p->center_freqs2 * tpidsr);
         }
 
-        sndLevel *= soundDecay;        /* Each (all) event(s)  */
+        sndLevel    *= soundDecay;        /* Each (all) event(s)  */
         /* decay(s) exponentially  */
-        inputs0 = sndLevel;
-        inputs0 *= noise_tick();     /* Actual Sound is Random */
-        inputs1 = inputs0 * p->gains1;
-        inputs2 = inputs0 * p->gains2;
-        inputs0 *= p->gains0;
-        inputs0 -= p->outputs00*p->coeffs00;
-        inputs0 -= p->outputs01*p->coeffs01;
+        inputs0      = sndLevel;
+        inputs0     *= noise_tick();     /* Actual Sound is Random */
+        inputs1      = inputs0 * p->gains1;
+        inputs2      = inputs0 * p->gains2;
+        inputs0     *= p->gains0;
+        inputs0     -= p->outputs00*p->coeffs00;
+        inputs0     -= p->outputs01*p->coeffs01;
         p->outputs01 = p->outputs00;
         p->outputs00 = inputs0;
-        data = p->gains0*p->outputs00;
-        inputs1 -= p->outputs10*p->coeffs10;
-        inputs1 -= p->outputs11*p->coeffs11;
+        data         = p->gains0*p->outputs00;
+        inputs1     -= p->outputs10*p->coeffs10;
+        inputs1     -= p->outputs11*p->coeffs11;
         p->outputs11 = p->outputs10;
         p->outputs10 = inputs1;
-        data += p->gains1*p->outputs10;
-        inputs2 -= p->outputs20*p->coeffs20;
-        inputs2 -= p->outputs21*p->coeffs21;
+        data        += p->gains1*p->outputs10;
+        inputs2     -= p->outputs20*p->coeffs20;
+        inputs2     -= p->outputs21*p->coeffs21;
         p->outputs21 = p->outputs20;
         p->outputs20 = inputs2;
-        data += p->gains2*p->outputs20;
+        data        += p->gains2*p->outputs20;
 
-        p->finalZ2 = p->finalZ1;
-        p->finalZ1 = p->finalZ0;
-        p->finalZ0 = data * FL(4.0);
+        p->finalZ2   = p->finalZ1;
+        p->finalZ1   = p->finalZ0;
+        p->finalZ0   = data * FL(4.0);
 
-        lastOutput = p->finalZ2 - p->finalZ0;
-        lastOutput *= FL(0.005);
-        ar[n] = lastOutput*csound->e0dbfs;
+        lastOutput   = p->finalZ2 - p->finalZ0;
+        lastOutput  *= FL(0.005);
+        ar[n]        = lastOutput*csound->e0dbfs;
       }
       p->shakeEnergy = shakeEnergy;
       p->sndLevel = sndLevel;
@@ -1098,24 +1098,24 @@ int sleighset(ENVIRON *csound, SLEIGHBELLS *p)
     p->res_freq3 = SLEI_CYMB_FREQ3;
     p->res_freq4 = SLEI_CYMB_FREQ4;
     p->num_objectsSave = p->num_objects = (MYFLT)SLEI_NUM_BELLS;
-    p->soundDecay = SLEI_SOUND_DECAY;
-    p->systemDecay = SLEI_SYSTEM_DECAY;
-    temp = (MYFLT)log((double)SLEI_NUM_BELLS) /(MYFLT) SLEI_NUM_BELLS;
-    p->gain=temp;
-    p->coeffs01 = SLEI_CYMB_RESON * SLEI_CYMB_RESON;
-    p->coeffs00 = -SLEI_CYMB_RESON * FL(2.0) *
+    p->soundDecay      = SLEI_SOUND_DECAY;
+    p->systemDecay     = SLEI_SYSTEM_DECAY;
+    temp               = (MYFLT)log((double)SLEI_NUM_BELLS)/(MYFLT)SLEI_NUM_BELLS;
+    p->gain            = temp;
+    p->coeffs01        = SLEI_CYMB_RESON * SLEI_CYMB_RESON;
+    p->coeffs00        = -SLEI_CYMB_RESON * FL(2.0) *
       (MYFLT)cos((double)SLEI_CYMB_FREQ0 * tpidsr);
-    p->coeffs11 = SLEI_CYMB_RESON * SLEI_CYMB_RESON;
-    p->coeffs10 = -SLEI_CYMB_RESON * FL(2.0) *
+    p->coeffs11        = SLEI_CYMB_RESON * SLEI_CYMB_RESON;
+    p->coeffs10        = -SLEI_CYMB_RESON * FL(2.0) *
       (MYFLT)cos((double)SLEI_CYMB_FREQ1 * tpidsr);
-    p->coeffs21 = SLEI_CYMB_RESON * SLEI_CYMB_RESON;
-    p->coeffs20 = -SLEI_CYMB_RESON * FL(2.0) *
+    p->coeffs21        = SLEI_CYMB_RESON * SLEI_CYMB_RESON;
+    p->coeffs20        = -SLEI_CYMB_RESON * FL(2.0) *
       (MYFLT)cos((double)SLEI_CYMB_FREQ2 * tpidsr);
-    p->coeffs31 = SLEI_CYMB_RESON * SLEI_CYMB_RESON;
-    p->coeffs30 = -SLEI_CYMB_RESON * FL(2.0) *
+    p->coeffs31        = SLEI_CYMB_RESON * SLEI_CYMB_RESON;
+    p->coeffs30        = -SLEI_CYMB_RESON * FL(2.0) *
       (MYFLT)cos((double)SLEI_CYMB_FREQ3 * tpidsr);
-    p->coeffs41 = SLEI_CYMB_RESON * SLEI_CYMB_RESON;
-    p->coeffs40 = -SLEI_CYMB_RESON * FL(2.0) *
+    p->coeffs41        = SLEI_CYMB_RESON * SLEI_CYMB_RESON;
+    p->coeffs40        = -SLEI_CYMB_RESON * FL(2.0) *
       (MYFLT)cos((double)SLEI_CYMB_FREQ4 * tpidsr);
                                 /* Note On */
     p->shakeEnergy = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
