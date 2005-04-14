@@ -115,12 +115,12 @@ int mandolinset(ENVIRON *csound, MANDOL *p)
       p->dampTime = (long) p->lastLength;/* See tick method below         */
       p->waveDone = 0;
       {
-        int relestim = (int)(csound->global_ekr * FL(0.1));
+        int relestim = (int)(csound->ekr * FL(0.1));
         /* 1/10th second decay extention */
         if (relestim > p->h.insdshead->xtratim)
           p->h.insdshead->xtratim = relestim;
       }
-      p->kloop = (int)(p->h.insdshead->offtim * csound->global_ekr);
+      p->kloop = (int)(p->h.insdshead->offtim * csound->ekr);   /* ??? */
     }
     return OK;
 }
