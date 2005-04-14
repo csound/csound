@@ -79,9 +79,9 @@ static int debug   = 0;
 
 /* Static function prototypes */
 
-static void InitScaleTable(int);
-static MYFLT gain(int, int);
-static SNDFILE *MXsndgetset(inputs *);
+static void InitScaleTable(ENVIRON*,int);
+static MYFLT gain(ENVIRON*, int, int);
+static SNDFILE *MXsndgetset(ENVIRON*,inputs *);
 static void MixSound(int, SNDFILE*);
 
 /* Externs */
@@ -95,47 +95,51 @@ static  MYFLT     *outbuf;
 static  int       outrange = 0;             /* Count samples out of range */
 static  OPARMS    OO;
 
-static void usage(char *mesg)
+static void usage(ENVIRON *csound, char *mesg)
 {
-    err_printf( "%s\n", mesg);
-    err_printf(Str("Usage:\tmixer [-flags] soundfile [-flags] soundfile ...\n"));
-    err_printf(Str("Legal flags are:\n"));
-    err_printf(Str("-o fnam\tsound output filename\n"));
-    err_printf(Str("-A\tcreate an AIFF format output soundfile\n"));
-    err_printf(Str("-W\tcreate a WAV format output soundfile\n"));
-    err_printf(Str("-h\tno header on output soundfile\n"));
-    err_printf(Str("-8\t8-bit unsigned_char sound samples\n"));
-    err_printf(Str("-c\t8-bit signed_char sound samples\n"));
-    err_printf(Str("-8\t8-bit unsigned_char sound samples\n"));
-#ifdef never
-    err_printf(Str("-a\talaw sound samples\n"));
-#endif
-#ifdef ULAW
-    err_printf(Str("-u\tulaw sound samples\n"));
-#endif
-    err_printf(Str("-s\tshort_int sound samples\n"));
-    err_printf(Str("-l\tlong_int sound samples\n"));
-    err_printf(Str("-f\tfloat sound samples\n"));
-    err_printf(Str("-R\tcontinually rewrite header while writing soundfile (WAV/AIFF)\n"));
-    err_printf(Str("-H#\tprint a heartbeat style 1, 2 or 3 at each soundfile write\n"));
-    err_printf(Str("-N\tnotify (ring the bell) when score or miditrack is done\n"));
-    err_printf(Str("-F fpnum\tamount to scale amplitude for next input\n"));
-    err_printf(Str("-F fname\tfile of a scale table for next input\n"));
-    err_printf(Str("-S integer\tsample number at which to insert file\n"));
-    err_printf(Str("-T fpnum\ttime at which to insert file\n"));
-    err_printf(Str("-1 -2 -3 -4\tinclude named channel\n"));
-    err_printf(Str("-^ n m\tinclude channel n and output as channel m\n"));
-    err_printf(Str("-v\tverbose mode for debugging\n"));
-    err_printf(Str("-- fname\tLog output to file\n"));
-    err_printf(Str("flag defaults: mixer -s -otest -F 1.0 -S 0\n"));
+    csound->Message(csound,  "%s\n", mesg);
+    csound->Message(csound,
+                    Str("Usage:\tmixer [-flags] soundfile [-flags] soundfile ...\n"));
+    csound->Message(csound, Str("Legal flags are:\n"));
+    csound->Message(csound, Str("-o fnam\tsound output filename\n"));
+    csound->Message(csound, Str("-A\tcreate an AIFF format output soundfile\n"));
+    csound->Message(csound, Str("-W\tcreate a WAV format output soundfile\n"));
+    csound->Message(csound, Str("-h\tno header on output soundfile\n"));
+    csound->Message(csound, Str("-8\t8-bit unsigned_char sound samples\n"));
+    csound->Message(csound, Str("-c\t8-bit signed_char sound samples\n"));
+    csound->Message(csound, Str("-8\t8-bit unsigned_char sound samples\n"));
+    csound->Message(csound, Str("-a\talaw sound samples\n"));
+    csound->Message(csound, Str("-u\tulaw sound samples\n"));
+    csound->Message(csound, Str("-s\tshort_int sound samples\n"));
+    csound->Message(csound, Str("-l\tlong_int sound samples\n"));
+    csound->Message(csound, Str("-f\tfloat sound samples\n"));
+    csound->Message(csound, Str("-R\tcontinually rewrite header while writing "
+                                "soundfile (WAV/AIFF)\n"));
+    csound->Message(csound, Str("-H#\tprint a heartbeat style 1, 2 or 3 at "
+                                "each soundfile write\n"));
+    csound->Message(csound, Str("-N\tnotify (ring the bell) when score or "
+                                "miditrack is done\n"));
+    csound->Message(csound, Str("-F fpnum\tamount to scale amplitude for "
+                                "next input\n"));
+    csound->Message(csound, Str("-F fname\tfile of a scale table for next input\n"));
+    csound->Message(csound, Str("-S integer\tsample number at which to "
+                                "insert file\n"));
+    csound->Message(csound, Str("-T fpnum\ttime at which to insert file\n"));
+    csound->Message(csound, Str("-1 -2 -3 -4\tinclude named channel\n"));
+    csound->Message(csound, Str("-^ n m\tinclude channel n and output "
+                                "as channel m\n"));
+    csound->Message(csound, Str("-v\tverbose mode for debugging\n"));
+    csound->Message(csound, Str("-- fname\tLog output to file\n"));
+    csound->Message(csound, Str("flag defaults: mixer -s -otest -F 1.0 -S 0\n"));
     exit(1);
 }
 
-static char set_output_format(char c, char outformch)
+static char set_output_format(ENVIRON *csound, char c, char outformch)
 {
     if (OO.outformat && (O.msglevel & WARNMSG)) {
-      printf(Str("WARNING: Sound format -%c has been overruled by -%c\n"),
-             outformch, c);
+      csound->Message(csound,
+                      Str("WARNING: Sound format -%c has been overruled by -%c\n"),
+                      outformch, c);
     }
 
     switch (c) {
@@ -207,7 +211,7 @@ int main(int argc, char **argv)
         else if (strcmp(envoutyp,"IRCAM") == 0)
           OO.filetyp = TYP_IRCAM;
         else {
-          err_printf(Str("%s not a recognized SFOUTYP env setting"),
+          csound->Message(csound, Str("%s not a recognized SFOUTYP env setting"),
                      envoutyp);
           exit(1);
         }
@@ -219,7 +223,7 @@ int main(int argc, char **argv)
     mixin[n].fulltable = NULL; mixin[n].use_table = 0;
     for (i=1; i<5; i++) mixin[n].channels[i] = 0;
     if (!(--argc))
-      usage(Str("Insufficient arguments"));
+      usage(csound,Str("Insufficient arguments"));
     do {
       s = *++argv;
       if (*s++ == '-')                      /* read all flags:  */
@@ -249,7 +253,7 @@ int main(int argc, char **argv)
             if (OO.filetyp == TYP_WAV) {
               if (envoutyp == NULL) goto outtyp;
               if (O.msglevel & WARNMSG)
-                printf(Str("-A overriding local default WAV out"));
+                csound->Message(csound,Str("-A overriding local default WAV out"));
             }
             OO.filetyp = TYP_AIFF;     /* AIFF output request  */
             break;
@@ -258,7 +262,9 @@ int main(int argc, char **argv)
                 OO.filetyp == TYP_WAV) {
               if (envoutyp == NULL) goto outtyp;
               if (O.msglevel & WARNMSG)
-                printf(Str("WARNING: -J overriding local default AIFF/WAV out\n"));
+                csound->Message(csound,
+                                Str("WARNING: -J overriding local default "
+                                    "AIFF/WAV out\n"));
             }
             OO.filetyp = TYP_IRCAM;      /* IRCAM output request */
             break;
@@ -266,7 +272,7 @@ int main(int argc, char **argv)
             if (OO.filetyp == TYP_AIFF) {
               if (envoutyp == NULL) goto outtyp;
               if (O.msglevel & WARNMSG)
-                printf(Str("-W overriding local default AIFF out"));
+                csound->Message(csound,Str("-W overriding local default AIFF out"));
             }
             OO.filetyp = TYP_WAV;      /* WAV output request  */
             break;
@@ -287,7 +293,7 @@ int main(int argc, char **argv)
             while (*++s);
             if (mixin[n].time >= FL(0.0)) {
               if (O.msglevel & WARNMSG)
-                printf(Str("-S overriding -T"));
+                csound->Message(csound,Str("-S overriding -T"));
               mixin[n].time = -FL(1.0);
             }
             break;
@@ -297,7 +303,7 @@ int main(int argc, char **argv)
             while (*++s);
             if (mixin[n].start >= 0) {
               if (O.msglevel & WARNMSG)
-                printf(Str("-T overriding -S"));
+                csound->Message(csound,Str("-T overriding -S"));
               mixin[n].start = -1;
             }
             break;
@@ -323,7 +329,7 @@ int main(int argc, char **argv)
               while (*++s);
               if (src>4 || src<1 || dst>4 || dst<1) {
                 if (O.msglevel & WARNMSG)
-                  printf(Str("illegal channel number ignored"));
+                  csound->Message(csound,Str("illegal channel number ignored"));
                 break;
               }
               if (dst>outputs) outputs = dst;
@@ -341,7 +347,7 @@ int main(int argc, char **argv)
           case 's':
           case 'l':
           case 'f':
-            outformch = set_output_format(c, outformch);
+            outformch = set_output_format(csound, c, outformch);
             break;
           case 'R':
             O.rewrt_hdr = 1;
@@ -362,7 +368,7 @@ int main(int argc, char **argv)
             break;
           default:
             sprintf(errmsg,Str("unknown flag -%c"), c);
-            usage(errmsg);
+            usage(csound,errmsg);
           }
       else {
         int i;
@@ -370,7 +376,7 @@ int main(int argc, char **argv)
         if (!mixin[n].non_clear)
           for (i=1; i<5; i++) mixin[n].channels[i] = i;
         if (n++ >= NUMBER_OF_FILES) {
-          usage(Str("Too many mixin"));
+          usage(csound,Str("Too many mixin"));
         }
         mixin[n].start = -1;
         mixin[n].time = -1;
@@ -383,12 +389,12 @@ int main(int argc, char **argv)
     /* Read sound files */
     if (n==0) {
       if (O.msglevel & WARNMSG)
-        printf("No mixin");
+        csound->Message(csound,"No mixin");
       exit(1);
     }
     for (i=0; i<n; i++) {
-      if (!(infd = MXsndgetset(&mixin[i]))) {
-        err_printf(Str("%s: error while opening %s"),
+      if (!(infd = MXsndgetset(csound, &mixin[i]))) {
+        csound->Message(csound, Str("%s: error while opening %s"),
                    argv[0], inputfile);
         exit(1);
       }
@@ -396,7 +402,7 @@ int main(int argc, char **argv)
       if (i>0) {
         if (mixin[0].p->sr != mixin[i].p->sr) {
           if (O.msglevel & WARNMSG)
-            printf(Str("Input formats not the same"));
+            csound->Message(csound,Str("Input formats not the same"));
           exit(1);
         }
       }
@@ -412,7 +418,7 @@ int main(int argc, char **argv)
         mixin[i].start = (long)mixin[i].time*mixin[i].p->sr;
       else if (mixin[i].start < 0) mixin[i].start = 0;
       else mixin[i].start = mixin[0].p->nchanls*mixin[i].start;
-      if (mixin[i].use_table) InitScaleTable(i);
+      if (mixin[i].use_table) InitScaleTable(csound,i);
     }
 
     if (OO.outformat)                       /* if no audioformat yet  */
@@ -430,12 +436,8 @@ int main(int argc, char **argv)
       if (!O.sfheader)
         csoundDie(&cenviron, Str("can't write AIFF soundfile with no header"));
       if (
-#ifdef never
           O.outformat == AE_ALAW ||
-#endif
-#ifdef ULAW
           O.outformat == AE_ULAW ||
-#endif
           O.outformat == AE_FLOAT) {
         sprintf(errmsg,Str("AIFF does not support %s encoding"),
                 getstrformat(O.outformat));
@@ -446,12 +448,8 @@ int main(int argc, char **argv)
       if (!O.sfheader)
         csoundDie(&cenviron, Str("can't write WAV soundfile with no header"));
       if (
-#ifdef never
           O.outformat == AE_ALAW ||
-#endif
-#ifdef ULAW
           O.outformat == AE_ULAW ||
-#endif
           O.outformat == AE_FLOAT) {
         sprintf(errmsg,Str("WAV does not support %s encoding"),
                 getstrformat(O.outformat));
@@ -480,29 +478,29 @@ int main(int argc, char **argv)
     if (O.rewrt_hdr) sf_command(outfd, SFC_SET_UPDATE_HEADER_AUTO, NULL, 0);
     outbufsiz = NUMBER_OF_SAMPLES * outputs * O.sfsampsize;/* calc outbuf size */
     outbuf = mmalloc(&cenviron, (long)outbufsiz);       /*  & alloc bufspace */
-    printf(Str("writing %d-byte blks of %s to %s %s\n"),
-           outbufsiz, getstrformat(O.outformat), O.outfilename,
-           O.filetyp == TYP_AIFF ? "(AIFF)" :
-           O.filetyp == TYP_WAV ? "(WAV)" : "");
+    csound->Message(csound,Str("writing %d-byte blks of %s to %s %s\n"),
+                    outbufsiz, getstrformat(O.outformat), O.outfilename,
+                    O.filetyp == TYP_AIFF ? "(AIFF)" :
+                    O.filetyp == TYP_WAV ? "(WAV)" : "");
     MixSound(n, outfd);
     sf_close(outfd);
     if (O.ringbell) putc(7, stderr);
     return 0;
 
  outtyp:
-    usage(Str("output soundfile cannot be both AIFF and WAV"));
+    usage(csound,Str("output soundfile cannot be both AIFF and WAV"));
     return 0;
 }
 
 static void
-InitScaleTable(int i)
+InitScaleTable(ENVIRON *csound, int i)
 {
     FILE *f = fopen(mixin[i].fname, "r");
     MYFLT samplepert = (MYFLT)mixin[i].p->sr;
     MYFLT x, y;
     scalepoint *tt = (scalepoint*)malloc(sizeof(scalepoint));
     if (f == NULL) {
-      err_printf(Str("Cannot open scale table file %s\n"),
+      csound->Message(csound, Str("Cannot open scale table file %s\n"),
                  mixin[i].fname);
       exit(1);
     }
@@ -517,7 +515,7 @@ InitScaleTable(int i)
       scalepoint *newpoint;
       newpoint = (scalepoint*) malloc(sizeof(scalepoint));
       if (newpoint == NULL) {
-        err_printf(Str("Insufficient memory\n"));
+        csound->Message(csound, Str("Insufficient memory\n"));
         exit(1);
       }
       newpoint->x0 = tt->x1;
@@ -540,7 +538,7 @@ InitScaleTable(int i)
     {
       scalepoint *newpoint = (scalepoint*) malloc(sizeof(scalepoint));
       if (newpoint == NULL) {
-        err_printf( "Insufficient memory\n");
+        csound->Message(csound,  "Insufficient memory\n");
         exit(1);
       }
       tt->next = newpoint;
@@ -555,29 +553,29 @@ InitScaleTable(int i)
     }
     if (debug) {
       scalepoint *tt = mixin[i].table;
-      err_printf( "Scale table is\n");
+      csound->Message(csound, "Scale table is\n");
       while (tt != NULL) {
-        err_printf( "(%d %f) -> %d %f [%f]\n",
+        csound->Message(csound,  "(%d %f) -> %d %f [%f]\n",
                     tt->x0, tt->y0, tt->x1, tt->y1, tt->yr);
         tt = tt->next;
       }
-      err_printf( "END of Table\n");
+      csound->Message(csound,  "END of Table\n");
     }
     mixin[i].use_table = 1;
 }
 
 static MYFLT
-gain(int n, int i)
+gain(ENVIRON *csound, int n, int i)
 {
     if (!mixin[n].use_table) return mixin[n].factor;
     if (i<mixin[n].table->x0) mixin[n].table = mixin[n].fulltable;
     while (i<mixin[n].table->x0 ||
            i>=mixin[n].table->x1) {/* Get correct segment */
       if (debug)
-        err_printf( "Table %d: %d (%d %f) -> %d %f [%f]\n",
-                    n, i, mixin[n].table->x0, mixin[n].table->y0,
-                    mixin[n].table->x1, mixin[n].table->y1,
-                    mixin[n].table->yr);
+        csound->Message(csound, "Table %d: %d (%d %f) -> %d %f [%f]\n",
+                        n, i, mixin[n].table->x0, mixin[n].table->y0,
+                        mixin[n].table->x1, mixin[n].table->y1,
+                        mixin[n].table->yr);
       mixin[n].table = mixin[n].table->next;
     }
     return mixin[n].factor*(mixin[n].table->y0 +
@@ -585,9 +583,8 @@ gain(int n, int i)
 }
 
 static SNDFILE*
-MXsndgetset(inputs *ddd)
+MXsndgetset(ENVIRON *csound, inputs *ddd)
 {
-    ENVIRON *csound = &cenviron;
     SNDFILE *infd;
     MYFLT   dur;
     SOUNDIN *p;
@@ -602,8 +599,8 @@ MXsndgetset(inputs *ddd)
       return(0);
     p->getframes = p->framesrem;
     dur = (MYFLT) p->getframes / p->sr;
-    printf(Str("mixing %ld sample frames (%3.1f secs)\n"),
-           (long) p->getframes, dur);
+    csound->Message(csound,Str("mixing %ld sample frames (%3.1f secs)\n"),
+                    (long) p->getframes, dur);
     ddd->fd = infd;
     return(infd);
 }
@@ -650,7 +647,7 @@ MixSound(int n, SNDFILE *outfd)
                 for (j=0; j<read_in; j++) {
                   buffer[j*outputs+mixin[i].channels[k]-1] +=
                     ibuffer[j*outputs+k-1] *
-                    gain(i,sample+j+mixin[i].channels[k]-1);
+                    gain(csound,i,sample+j+mixin[i].channels[k]-1);
                 }
               }
             mixin[i].fulltable = mixin[i].table;
@@ -659,7 +656,7 @@ MixSound(int n, SNDFILE *outfd)
             for (k = 1; k<=mixin[i].p->nchanls; k++) {
               for (j=0; j<read_in; j++) {
                 buffer[j*outputs+k-1] +=
-                  ibuffer[j*outputs+k-1] * gain(i,sample+j+k-1) ;
+                  ibuffer[j*outputs+k-1] * gain(csound,i,sample+j+k-1) ;
               }
             }
             mixin[i].fulltable = mixin[i].table;
@@ -696,7 +693,7 @@ MixSound(int n, SNDFILE *outfd)
         else if (O.heartbeat==2) putc('.', stderr);
         else if (O.heartbeat==3) {
           int n;
-          err_printf( "%d%n", block, &n);
+          csound->Message(csound, "%d%n", block, &n);
           while (n--) putc(8, stderr);
         }
         else putc(7, stderr);
@@ -705,17 +702,20 @@ MixSound(int n, SNDFILE *outfd)
 
     }
     rewriteheader(outfd, bytes);
-    printf(Str("Max val %d at index %ld (time %.4f, chan %d) %d times\n"),
+    csound->Message(csound,
+                    Str("Max val %d at index %ld (time %.4f, chan %d) %d times\n"),
            (int)max,lmaxpos,tpersample*(lmaxpos/outputs),
            (int)lmaxpos%outputs,maxtimes);
-    printf(Str("Min val %d at index %ld (time %.4f, chan %d) %d times\n"),
-           (int)min,lminpos,tpersample*(lminpos/outputs),
-           (int)lminpos%outputs,mintimes);
+    csound->Message(csound,
+                    Str("Min val %d at index %ld (time %.4f, chan %d) %d times\n"),
+                    (int)min,lminpos,tpersample*(lminpos/outputs),
+                    (int)lminpos%outputs,mintimes);
     if (outrange)
-      printf(Str("%d sample%s out of range\n"), outrange, outrange==1 ? " " : "s ");
+      csound->Message(csound,Str("%d sample%s out of range\n"),
+                      outrange, outrange==1 ? " " : "s ");
     else
-      printf(Str("Max scale factor = %.3f\n"),
-             (MYFLT)SHORTMAX/(MYFLT)((max>-min)?max:-min) );
+      csound->Message(csound,Str("Max scale factor = %.3f\n"),
+                      (MYFLT)SHORTMAX/(MYFLT)((max>-min)?max:-min) );
     return;
 }
 

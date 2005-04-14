@@ -40,7 +40,7 @@
 
 static void takeFFT(SOUNDIN *inputSound, CVSTRUCT *outputCVH,
                      long Hlenpadded, SNDFILE *infd, int ofd);
-static int quit(char *msg);
+static int quit(ENVIRON*,char *msg);
 static int CVAlloc(CVSTRUCT**, long, int, MYFLT, int, int, long, int, int);
 int csoundYield(void *csound);
 
@@ -48,7 +48,7 @@ int csoundYield(void *csound);
 
 #define FIND(MSG)   if (*s == '\0')  \
                         if (!(--argc) || ((s = *++argv) && *s == '-'))  \
-                            return quit(MSG);
+                            return quit(csound,MSG);
 
 int cvanal(int argc, char **argv)
 {
@@ -69,7 +69,7 @@ int cvanal(int argc, char **argv)
     dbfs_init(csound, DFLT_DBFS);
 
     if (!(--argc)) {
-      return quit(Str("insufficient arguments"));
+      return quit(csound,Str("insufficient arguments"));
     }
     do {
       char *s = *++argv;
@@ -87,7 +87,7 @@ int cvanal(int argc, char **argv)
           FIND(Str("no channel"))
             sscanf(s,"%d",&channel);
           if ((channel < 1) || (channel > 4))
-            return quit(Str("channel must be in the range 1 to 4"));
+            return quit(csound,Str("channel must be in the range 1 to 4"));
           break;
         case 'b':
           FIND(Str("no begin time"))
@@ -105,19 +105,19 @@ int cvanal(int argc, char **argv)
           sscanf(s,"%f",&input_dur);
 #endif
           break;
-        default:   return quit(Str("unrecognised switch option"));
+        default:   return quit(csound,Str("unrecognised switch option"));
         }
       else break;
     } while (--argc);
 
-    if (argc !=  2) return quit(Str("illegal number of filenames"));
+    if (argc !=  2) return quit(csound,Str("illegal number of filenames"));
     infilnam = *argv++;
     outfilnam = *argv;
 
     if ((infd = SAsndgetset(csound, infilnam, &p,
                             &beg_time, &input_dur, &sr, channel)) < 0) {
       sprintf(errmsg,Str("error while opening %s"), retfilnam);
-      return quit(errmsg);
+      return quit(csound,errmsg);
     }
     sr = (MYFLT)p->sr;
 
@@ -132,15 +132,15 @@ int cvanal(int argc, char **argv)
     /* alloc & fill CV hdrblk */
     if ((err = CVAlloc(&cvh, Estdatasiz, CVMYFLT, sr, p->nchanls,channel,
                        Hlen,CVRECT,4))) {
-      err_printf( Str("cvanal: Error allocating header\n"));
+      csound->Message(csound, Str("cvanal: Error allocating header\n"));
       exit(1);
     }
 
     if ((ofd = openout(outfilnam, 1)) < 0)     /* open the output CV file */
-      return quit(Str("cannot create output file"));
+      return quit(csound,Str("cannot create output file"));
                                                /* & wrt hdr into the file */
     if ((nb = write(ofd,(char *)cvh,(int)cvh->headBsize)) < cvh->headBsize)
-      return quit(Str("cannot write header"));
+      return quit(csound,Str("cannot write header"));
 
     takeFFT(p, cvh, Hlenpadded,infd, ofd);
 
@@ -152,10 +152,10 @@ int cvanal(int argc, char **argv)
     return 0;
 }
 
-static int quit(char *msg)
+static int quit(ENVIRON *csound,char *msg)
 {
-    err_printf(Str("cvanal error: %s\n"), msg);
-    err_printf(Str("Usage: cvanal [-d<duration>] "
+    csound->Message(csound,Str("cvanal error: %s\n"), msg);
+    csound->Message(csound,Str("Usage: cvanal [-d<duration>] "
                          "[-c<channel>] [-b<begin time>] <input soundfile>"
                          " <output impulse response FFT file> \n"));
     return -1;

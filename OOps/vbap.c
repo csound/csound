@@ -561,7 +561,7 @@ void vbap_ls_init (ENVIRON *csound, VBAP_LS_INIT *p)
     dim = (int) *p->dim;
     printf("dim : %d\n",dim);
     if (!((dim==2) || (dim == 3))) {
-      err_printf(Str("Error in loudspeaker dimension.\n"));
+      csound->Message(csound,Str("Error in loudspeaker dimension.\n"));
       exit (-1);
     }
     count = (int) *p->ls_amount;
@@ -585,7 +585,7 @@ void vbap_ls_init (ENVIRON *csound, VBAP_LS_INIT *p)
     }
     ls_amount = (int)*p->ls_amount;
     if (ls_amount < dim) {
-      err_printf(Str("Too few loudspeakers\n"));
+      csound->Message(csound,Str("Too few loudspeakers\n"));
       exit (-1);
     }
 

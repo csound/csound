@@ -67,7 +67,7 @@ int     scxtract(FILE *, FILE *, FILE *);
 int     rdscor(EVTBLK *);
 int     musmon(ENVIRON*);
 void    RTLineset(void);
-int     sensLine(void);
+int     sensLine(ENVIRON *);
 void    fgens(ENVIRON *, EVTBLK *);
 FUNC    *csoundFTFind(void*, MYFLT*);
 FUNC    *csoundFTFindP(void*, MYFLT*);

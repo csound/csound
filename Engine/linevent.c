@@ -219,7 +219,7 @@ void writeLine(const char *text, long size)
     }
 }
 
-int sensLine(void)
+int sensLine(ENVIRON *csound)
     /* accumlate RT Linein buffer, & place completed events in EVTBLK */
 {   /* does more syntax checking than rdscor, since not preprocessed  */
     int c;
@@ -262,7 +262,7 @@ int sensLine(void)
             e->opcod = c;
             break;
           default:
-            err_printf(Str("unknown opcode %c\n"));
+            csound->Message(csound,Str("unknown opcode %c\n"));
             goto Lerr;
           }                                  /* for params that follow:  */
           for (fp = &e->p[1], pcnt = 0; c != LF && pcnt<PMAX; pcnt++) {
@@ -274,14 +274,14 @@ int sensLine(void)
             if (c == '"') {                /* if find character string  */
               char *sstrp;      /* IV - Oct 31 2002: allow string instrname */
               if (pcnt != 4 && (pcnt || e->opcod != 'i')) {
-                err_printf(Str("misplaced string\n")); /* (must be p5) */
+                csound->Message(csound,Str("misplaced string\n")); /* (must be p5) */
                 goto Lerr;
               }
               if ((sstrp = e->strarg) == NULL)
                 e->strarg = sstrp = mcalloc(&cenviron, (long)SSTRSIZ);
               while ((c = *cp++) != '"') {
                 if (c == LF) {
-                  err_printf(Str("unmatched quotes\n"));
+                  csound->Message(csound,Str("unmatched quotes\n"));
                   cp--;
                   goto Lerr;
                 }
@@ -296,7 +296,7 @@ int sensLine(void)
             if (c == '.'                        /*  if lone dot,       */
                 && ((n = *cp)==' ' || n=='\t' || n==LF)) {
               if (e->opcod != 'i' || prvop != 'i' || pcnt >= prvpcnt) {
-                err_printf(Str("dot carry has no reference\n"));
+                csound->Message(csound,Str("dot carry has no reference\n"));
                 goto Lerr;
               }
               if (e != prve) {                /*        pfld carry   */
@@ -321,7 +321,7 @@ int sensLine(void)
                 e->p[2] = prvp2;
             }
           if (pcnt < 3 && e->opcod !='e') {     /* check sufficient pfields */
-            err_printf(Str("too few pfields\n"));
+            csound->Message(csound,Str("too few pfields\n"));
             goto Lerr;
           }
           e->pcnt = pcnt;                      /*   &  record pfld count    */
@@ -331,7 +331,7 @@ int sensLine(void)
           prvp1 = e->p[1];
           prvp2 = e->p[2];
           if (pcnt == PMAX && c != LF) {
-            err_printf(Str("too many pfields\n"));
+            csound->Message(csound,Str("too many pfields\n"));
             while (*cp++ != LF)              /* flush any excess data     */
               ;
           }
@@ -339,7 +339,7 @@ int sensLine(void)
           while (cp < Linend)                  /* copy remaining data to    */
             *Linep++ = *cp++;                /*     beginning of Linebuf  */
           if (e->p[2] < 0.) {
-            err_printf(Str("-L with negative p2 illegal\n"));
+            csound->Message(csound,Str("-L with negative p2 illegal\n"));
             goto Lerr;
           }
           e->p2orig = e->p[2];
@@ -366,10 +366,10 @@ int sensLine(void)
     n = cp - Linebuf - 1;                     /* error position */
     while (*cp++ != LF);                      /* go on to LF    */
     *(cp-1) = '\0';                           /*  & insert NULL */
-    err_printf(Str("illegal RT scoreline:\n%s\n"), Linebuf);
+    csound->Message(csound,Str("illegal RT scoreline:\n%s\n"), Linebuf);
     while (n--)
-      err_printf(" ");
-    err_printf("^\n");                        /* mark the error */
+      csound->Message(csound," ");
+    csound->Message(csound,"^\n");                        /* mark the error */
     Linep = Linebuf;
     while (cp < Linend)
       *Linep++ = *cp++;                       /* mov rem data forward */

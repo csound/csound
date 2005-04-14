@@ -91,7 +91,7 @@ int vbap_SIXTEEN_control(ENVIRON *csound, VBAP_SIXTEEN  *p)
 
     MYFLT tmp_gains[SIXTEEN],sum=FL(0.0);
     if (p->dim == 2 && fabs(*p->ele) > 0.0) {
-      err_printf(Str("Warning: truncating elevation to 2-D plane\n"));
+      csound->Message(csound,Str("Warning: truncating elevation to 2-D plane\n"));
       *p->ele = FL(0.0);
     }
 
@@ -218,7 +218,7 @@ int vbap_SIXTEEN_init(ENVIRON *csound, VBAP_SIXTEEN  *p)
 
     /* other initialization */
     if (p->dim == 2 && fabs(*p->ele) > 0.0) {
-      err_printf(Str("Warning: truncating elevation to 2-D plane\n"));
+      csound->Message(csound,Str("Warning: truncating elevation to 2-D plane\n"));
       *p->ele = FL(0.0);
     }
     p->ang_dir.azi    = (MYFLT) *p->azi;
@@ -288,7 +288,7 @@ int vbap_SIXTEEN_moving_control(ENVIRON *csound, VBAP_SIXTEEN_MOVING  *p)
     MYFLT coeff, angle;
     MYFLT tmp_gains[SIXTEEN],sum=FL(0.0);
     if (p->dim == 2 && fabs(p->ang_dir.ele) > 0.0) {
-      err_printf(Str("Warning: truncating elevation to 2-D plane\n"));
+      csound->Message(csound,Str("Warning: truncating elevation to 2-D plane\n"));
       p->ang_dir.ele = FL(0.0);
     }
     if (*p->spread <FL(0.0))
@@ -317,7 +317,7 @@ int vbap_SIXTEEN_moving_control(ENVIRON *csound, VBAP_SIXTEEN_MOVING  *p)
         csound->Die(csound, Str("Missing fields in vbap16move\n"));
       if (*p->field_am >= 0.0 && p->dim == 2) /* point-to-point */
         if (fabs(fabs(*p->fld[p->next_fld] - *p->fld[p->curr_fld]) - 180.0) < 1.0)
-          err_printf(Str("Warning: Ambiguous transition 180 degrees.\n"));
+          csound->Message(csound,Str("Warning: Ambiguous transition 180 degrees.\n"));
     }
     if (*p->field_am >= FL(0.0)) { /* point-to-point */
       if (p->dim == 3) { /* 3-D*/
