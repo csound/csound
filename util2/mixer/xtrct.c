@@ -31,15 +31,9 @@
  *     Needs to take much more care
  */
 
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <ctype.h>
-#ifdef LINUX
-#include <unistd.h>
-#endif
 #include "cs.h"
 #include "soundio.h"
+#include <ctype.h>
 #include <sndfile.h>
 
 /* Constants */

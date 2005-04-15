@@ -24,9 +24,6 @@
 #include "cs.h"                                          /*  HETRO.C   */
 #include "soundio.h"
 #include <math.h>
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 
 /*RWD need to set this to prevent sdif.h including windows.h */
 #define _WINDOWS_
@@ -112,8 +109,6 @@ static  void    lowpass(double *, double *, long);
 static  void    average(long,double *,double *,long);
 static  void    output(long, int, int);
 static  void    output_ph(long), filedump(void), quit(char *);
-extern  int     close(int);
-extern  int     csoundYield(void *);
 
 #define sgn(x)  (x<0.0 ? -1 : 1)
 #define u(x)    (x>0.0 ? 1 : 0)
@@ -530,7 +525,6 @@ static void filedump(void)     /* WRITE OUTPUT FILE in DATA-REDUCED format */
     long    lenfil = 0;
     short   *TIME;
     MYFLT   timesiz;
-    extern  int     openout(char *, int);
 
     mags = (short **) mmalloc(&cenviron, hmax * sizeof(short*));
     freqs = (short **) mmalloc(&cenviron, hmax * sizeof(short*));

@@ -25,10 +25,6 @@
 #include <ctype.h>
 #include "namedins.h"   /* IV - Oct 31 2002 */
 
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-
 #ifdef sun
 #define   SEEK_SET        0
 #define   SEEK_CUR        1

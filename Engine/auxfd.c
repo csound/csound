@@ -22,12 +22,7 @@
 */
 
 #include "cs.h"                                 /*      AUXFD.C         */
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 #include <sndfile.h>
-
-/* INSDS   *curip; current insds, maintained by insert.c */
 
 static void auxrecord(void*, AUXCH *), auxchprint(INSDS *), fdchprint(INSDS *);
 
