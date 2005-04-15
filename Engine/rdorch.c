@@ -74,7 +74,7 @@ static  char    *opcod;                 /*  (line or subline)           */
 static  ARGLST  *nxtarglist, *nullist;
 #define strsav(x)  strsav_string(csound, x)
 static  void    intyperr(int n, char tfound, char expect);
-static  void    printgroups(int count);
+static  void    printgroups(ENVIRON *csound, int count);
 static  int     isopcod(char *s);
 static  void    lblrequest(char *s), lblfound(char *s);
 static  void    lblclear(void), lblchk(void);
@@ -98,9 +98,8 @@ static int linepos = -1;
 
 #include "typetabl.h"                   /* IV - Oct 31 2002 */
 
-void orchRESET(void)
+void orchRESET(ENVIRON *csound)
 {
-    ENVIRON *csound = &cenviron;
     int     i;
 
     mfree(csound, linadr); linadr=NULL;
@@ -718,9 +717,9 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
     nxtarglist = (ARGLST *) mmalloc(csound, sizeof(ARGLST) + 200*sizeof(char*));
 }
 
-static int splitline(void) /* split next orch line into atomic groups, count */
-{                          /*  labels this line, and set opgrpno where found */
-    ENVIRON *csound = &cenviron;
+static int splitline(ENVIRON *csound)
+{                          /* split next orch line into atomic groups, count */
+                           /*  labels this line, and set opgrpno where found */
     int grpcnt, prvif, prvelsif, logical, condassgn, parens;
     int c, collecting;
     char        *cp, *lp, *grpp=NULL;
@@ -1057,7 +1056,7 @@ static int splitline(void) /* split next orch line into atomic groups, count */
     }
     linopnum = opnum;                   /* else save full line ops */
     linopcod = opcod;
-    if (csound->oparms->odebug) printgroups(grpcnt);
+    if (csound->oparms->odebug) printgroups(csound, grpcnt);
     return(grpcnt);
 }
 
@@ -1091,13 +1090,13 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
 
  tstnxt:
     tp = &optext;
-    if (nxtest >= grpcnt) {             /* if done with prevline, */
-      csound->argcnt_offs = 0;      /* reset temporary variable index */
-      if (!(grpcnt = splitline()))      /*    attack next line    */
-        return((TEXT *)0);              /*    (else we're done)   */
-      for (nn=0; nn<grpcnt; nn++)       /*    save the group pntrs */
+    if (nxtest >= grpcnt) {                 /* if done with prevline, */
+      csound->argcnt_offs = 0;          /* reset temporary variable index */
+      if (!(grpcnt = splitline(csound)))    /*    attack next line    */
+        return((TEXT *)0);                  /*    (else we're done)   */
+      for (nn=0; nn<grpcnt; nn++)           /*    save the group pntrs */
         grpsav[nn] = group[nn];
-      xprtstno = grpcnt - 1;            /*    and reinit indices  */
+      xprtstno = grpcnt - 1;                /*    and reinit indices  */
       nxtest = 0;
       tp->linenum = curline;
       /* IV - Jan 27 2005 */
@@ -1770,14 +1769,14 @@ static void lexerr(char *s)
     }
 }
 
-static void printgroups(int grpcnt)     /*   debugging aid (onto stdout) */
-{
+static void printgroups(ENVIRON *csound, int grpcnt)
+{                                       /*   debugging aid (onto stdout) */
     char        c, *cp = group[0];
-    cenviron.Message(&cenviron,"groups:\t");
+    csound->Message(csound, "groups:\t");
     while (grpcnt--) {
-      cenviron.Message(&cenviron,"%s ", cp);
+      csound->Message(csound, "%s ", cp);
       while ((c = *cp++));
     }
-    cenviron.Message(&cenviron,"\n");
+    csound->Message(csound, "\n");
 }
 

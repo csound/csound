@@ -73,7 +73,7 @@ FUNC    *csoundFTFind(void*, MYFLT*);
 FUNC    *csoundFTFindP(void*, MYFLT*);
 FUNC    *csoundFTnp2Find(void*, MYFLT*);
 MYFLT   *csoundGetTable(void*, int, int*);
-void    beep(void);
+void    cs_beep(ENVIRON *);
 MYFLT   intpow(MYFLT, long);
 void    list_opcodes(int);
 short   sfsampsize(int);

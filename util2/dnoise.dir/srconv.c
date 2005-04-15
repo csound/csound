@@ -725,7 +725,7 @@ int main(int argc, char **argv)
     writebuffer(output, nread);
     printf("\n\n");
     sf_close(outfd);
-    if (O.ringbell) beep();
+    if (O.ringbell) cs_beep(&cenviron);
     exit(0);
 
 outtyp:

@@ -34,7 +34,6 @@
 #include <math.h>
 
 int     cleanup(void*);
-extern  void    kperf(ENVIRON*);
 
 #define SEGAMPS 01
 #define SORMSG  02
@@ -49,12 +48,11 @@ extern  int     insert(ENVIRON *, int, EVTBLK*);
 
 extern  void    print_benchmark_info(void*, const char*);     /* main.c */
 
-extern  void    RTLineset(void), MidiOpen(void *);
+extern  void    MidiOpen(void *);
 extern  void    m_chn_init_all(ENVIRON *);
-extern  void    scsort(FILE*, FILE*), oload(ENVIRON *), cscorinit(void);
+extern  void    scsort(FILE*, FILE*);
 extern  void    infoff(ENVIRON*, MYFLT), orcompact(ENVIRON*);
 extern  void    beatexpire(ENVIRON *, double), timexpire(ENVIRON *, double);
-extern  void    fgens(ENVIRON *,EVTBLK *);
 extern  void    sfopenin(void*), sfopenout(void*), sfnopenout(void);
 extern  void    iotranset(void), sfclosein(void*), sfcloseout(void*);
 extern  void    MidiClose(ENVIRON*);
@@ -65,7 +63,7 @@ static  int     lplayed = 0;
 static  int     segamps, sormsg;
 static  EVENT   **ep, **epend;  /* pointers for stepping through lplay list */
 static  EVENT   *lsect = NULL;
-        void    beep(void);
+        void    cs_beep(ENVIRON *);
 
 static void settempo(ENVIRON *csound, MYFLT tempo)
 {
@@ -108,9 +106,8 @@ int tempo(ENVIRON *csound, TEMPO *p)
     return OK;
 }
 
-void musRESET(void)
+void musRESET(ENVIRON *csound)
 {
-    ENVIRON *csound = &cenviron;
     /* belt, braces, and parachute */
     int i;
     for (i=0;i<MAXCHNLS;i++) {
@@ -136,9 +133,8 @@ void musRESET(void)
     lsect      = NULL;
 }
 
-void print_maxamp(MYFLT x)                     /* IV - Jul 9 2002 */
+void print_maxamp(ENVIRON *csound, MYFLT x)     /* IV - Jul 9 2002 */
 {
-    ENVIRON *csound = &cenviron;
     MYFLT   y;
 
     if (!(csound->oparms->msglevel & 0x60)) {   /* 0x00: raw amplitudes */
@@ -359,7 +355,7 @@ int cleanup(void *csound_)
       orngcnt[n] += (srngcnt[n] + csound->rngcnt[n]);
     }
     for (maxp = omaxamp, n = csound->nchnls; n--; )
-      print_maxamp (*maxp++);                   /* IV - Jul 9 2002 */
+      print_maxamp(csound, *maxp++);                    /* IV - Jul 9 2002 */
     if (csound->oparms->outformat != AE_FLOAT) {
       csound->Message(csound,Str("\n\t   overall samples out of range:"));
       for (rngp = orngcnt, n = csound->nchnls; n--; )
@@ -378,15 +374,15 @@ int cleanup(void *csound_)
     sfcloseout(csound);
     if (!csound->oparms->sfwrite)
       csound->Message(csound,Str("no sound written to disk\n"));
-    if (csound->oparms->ringbell) beep();
+    if (csound->oparms->ringbell)
+      cs_beep(csound);
     remove_tmpfiles(csound);
     return dispexit();      /* hold or terminate the display output     */
     /* for Mac, dispexit returns 0 to exit immediately */
 }
 
-void beep(void)
+void cs_beep(ENVIRON *csound)
 {
-    ENVIRON *csound = &cenviron;
 #ifdef mills_macintosh
     SysBeep(10000);
 #else
@@ -443,7 +439,7 @@ static void print_amp_values(ENVIRON *csound, int score_evt)
         csound->Message(csound,"  rtevent:\t   T%7.3f TT%7.3f M:",
                p->curp2 - p->timeOffs,  p->curp2);
       for (n = csound->nchnls, maxp = maxamp; n--; )
-        print_maxamp(*maxp++);          /* IV - Jul 9 2002 */
+        print_maxamp(csound, *maxp++);          /* IV - Jul 9 2002 */
       csound->Message(csound,"\n");
       if (csound->rngflg) {
         csound->Message(csound,Str("\t number of samples out of range:"));
@@ -491,7 +487,7 @@ static void section_amps(ENVIRON *csound, int enable_msgs)
         csound->Message(csound,
                         Str("end of lplay event list\t      peak amps:"));
       for (n = csound->nchnls, maxp = smaxamp; n--; )
-        print_maxamp(*maxp++);          /* IV - Jul 9 2002 */
+        print_maxamp(csound, *maxp++);          /* IV - Jul 9 2002 */
       csound->Message(csound,"\n");
       if (srngflg) {
         csound->Message(csound,Str("\t number of samples out of range:"));

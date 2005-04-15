@@ -271,7 +271,7 @@ int sensLine(ENVIRON *csound)
                 goto Lerr;
               }
               if ((sstrp = e->strarg) == NULL)
-                e->strarg = sstrp = mcalloc(&cenviron, (long)SSTRSIZ);
+                e->strarg = sstrp = mcalloc(csound, (long)SSTRSIZ);
               while ((c = *cp++) != '"') {
                 if (c == LF) {
                   csound->Message(csound,Str("unmatched quotes\n"));
@@ -338,8 +338,8 @@ int sensLine(ENVIRON *csound)
           e->p2orig = e->p[2];
           e->p3orig = e->p[3];
           Curblk->inuse = 1;
-          Curblk->oncounter = cenviron.global_kcounter
-                              + (long) (e->p[2] * cenviron.global_ekr);
+          Curblk->oncounter = csound->global_kcounter
+                              + (long) (e->p[2] * csound->global_ekr);
           Linsert(Curblk);
         }
         else Linep += n;           /* else just accum the chars */
@@ -347,7 +347,7 @@ int sensLine(ENVIRON *csound)
 
  Timchk:
     if (Firstact != NULL &&                 /* if an event is due now,*/
-        Firstact->oncounter <= cenviron.global_kcounter) {
+        Firstact->oncounter <= csound->global_kcounter) {
       Linevtblk = &Firstact->evtblk;
       Firstact->inuse = 0;                  /*   mark its space available    */
       Firstact = Firstact->nxtact;

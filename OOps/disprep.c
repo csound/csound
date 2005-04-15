@@ -29,9 +29,9 @@
 
 static  MYFLT   *fftcoefs = NULL;     /* malloc for fourier coefs, mag or db */
 
-void disprepRESET(void)
+void disprepRESET(ENVIRON *csound)
 {
-    if (fftcoefs) mfree(&cenviron, fftcoefs);
+    if (fftcoefs) mfree(csound, fftcoefs);
     fftcoefs = NULL;
 }
 
@@ -41,12 +41,12 @@ int printv(ENVIRON *csound, PRINTV *p)
     char   *txtp = p->STRARG;
     MYFLT  **valp = p->iargs;
 
-    printf("instr %d:", (int) p->h.insdshead->p1);      /* IV - Sep 8 2002 */
+    csound->Message(csound, "instr %d:", (int) p->h.insdshead->p1);
     while (nargs--) {
-      printf("  %s = %5.3f", txtp, **valp++);
+      csound->Message(csound, "  %s = %5.3f", txtp, **valp++);
       while (*txtp++);
     }
-    printf("\n");
+    csound->Message(csound, "\n");
     return OK;
 }
 
@@ -406,8 +406,9 @@ int tempeset(ENVIRON *csound, TEMPEST *p)
     p->yt1 = FL(0.0);
     p->fwdcoef = (MYFLT)pow(0.5, p->timcount/csound->ekr/(*p->ihtim));
     p->fwdmask = FL(0.0);
-    printf(Str("kin lopass coef1 %6.4f, fwd mask coef1 %6.4f\n"),
-           p->coef1,p->fwdcoef);
+    csound->Message(csound,
+                    Str("kin lopass coef1 %6.4f, fwd mask coef1 %6.4f\n"),
+                    p->coef1, p->fwdcoef);
     p->thresh = *p->ithresh;            /* record incoming loudness threshold */
     p->xfdbak = *p->ixfdbak;            /*    & expectation feedback fraction */
     p->tempscal = FL(60.0) * csound->ekr / p->timcount;
@@ -473,7 +474,7 @@ int tempest(ENVIRON *csound, TEMPEST *p)
         for (memp=p->stmemp,nn=npts,sumsqr=FL(0.0); nn--; memp++)
           sumsqr += *memp * *memp;
         RMStot = (MYFLT)sqrt(sumsqr/npts);
-        /*        printf("RMStot = %6.1f\n",RMStot);    */
+        /*        csound->Message(csound, "RMStot = %6.1f\n", RMStot);    */
         mults = lenmults;                       /* use the static lentables  */
         fracs = lenfracs;
         mulp = p->lmults;
@@ -508,7 +509,8 @@ int tempest(ENVIRON *csound, TEMPEST *p)
           RMScross = (MYFLT)sqrt(crossprods / p->ncross);
           if (RMScross < FL(1.4) * RMStot)         /* if RMScross significant:   */
             continue;
-          /*   printf("RMScross = %6.1f, lambda = %ld\n", RMScross, lambda  );  */
+          /*   csound->Message(csound, "RMScross = %6.1f, lambda = %ld\n",
+                                       RMScross, lambda);  */
           /*                  RMS *= *xscale++;     */
           unilam = lambda * mult;               /*    get unit lambda implied */
           lamtot += unilam * RMScross;          /*    & add weighted to total */
@@ -529,11 +531,12 @@ int tempest(ENVIRON *csound, TEMPEST *p)
       if (weightot) {                                     /* if accumed weights, */
         p->avglam = (p->avglam + lamtot/weightot)/FL(2.0); /* update the avglam */
         p->avglam /= p->tweek;
-        p->tempo = p->tempscal / p->avglam;             /*   & cvt to tempo    */
-/*       printf("lamtot %6.2f, weightot %6.2f, newavglam %6.2f, tempo %6.2f\n",
-                 lamtot, weightot, p->avglam, p->tempo);    */
-/*       printf("%6.1f\n",p->tempo);  */
-        fputc('.', stderr);
+        p->tempo = p->tempscal / p->avglam;         /*   & cvt to tempo    */
+/*      csound->Message(csound, "lamtot %6.2f, weightot %6.2f, "
+                                "newavglam %6.2f, tempo %6.2f\n",
+                                lamtot, weightot, p->avglam, p->tempo);    */
+/*      csound->Message(csound, "%6.1f\n", p->tempo);  */
+        csound->Message(csound, ".");
       }
       else p->tempo = FL(0.0);              /* else tempo is 0     */
       p->fwdmask = p->fwdmask * p->fwdcoef + kin;

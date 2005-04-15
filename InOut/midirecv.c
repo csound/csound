@@ -111,7 +111,6 @@
 
 #define MGLOB(x) (((ENVIRON*) csound)->midiGlobals->x)
 
-extern  void    beep(void);
         void    midNotesOff(ENVIRON *);
 
 static const MYFLT dsctl_map[12] = {

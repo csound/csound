@@ -138,30 +138,32 @@ SCOTABLE sco_table[100]; /* gab A9 */
 
 static void scorerr(char *s)
 {
+    ENVIRON *csound = &cenviron;
     struct in_stack *curr = str;
 
-    cenviron.Message(&cenviron,Str("score error:  %s on line %d position %d"),
+    csound->Message(csound,Str("score error:  %s on line %d position %d"),
            s, str->line, linepos);
 
     while (curr!=inputs) {
       if (curr->string) {
         MACRO *mm = NULL;
         while (mm != curr->mac) mm = mm->next;
-        cenviron.Message(&cenviron,Str("called from line %d of macro %s\n"),
+        csound->Message(csound,Str("called from line %d of macro %s\n"),
                curr->line, mm->name);
       }
       else {
-        cenviron.Message(&cenviron,Str("in line %f of file input %s\n"),
+        csound->Message(csound,Str("in line %f of file input %s\n"),
                curr->line, curr->body);
       }
       curr--;
     }
-    longjmp(cenviron.exitjmp, 1);
+    longjmp(csound->exitjmp, 1);
 }
 
 
 MYFLT operate(MYFLT a, MYFLT b, char c)
 {
+    ENVIRON *csound = &cenviron;
     MYFLT ans;
     extern MYFLT MOD(MYFLT,MYFLT);
 
@@ -176,7 +178,7 @@ MYFLT operate(MYFLT a, MYFLT b, char c)
     case '|': ans = (MYFLT)(((long)a)|((long)b)); break;
     case '#': ans = (MYFLT)(((long)a)^((long)b)); break;
     default:
-      csoundDie(&cenviron, Str("Internal error op=%c"), c);
+      csoundDie(csound, Str("Internal error op=%c"), c);
       ans = FL(0.0);    /* compiler only */
     }
     return ans;
@@ -501,6 +503,7 @@ static int repeat_index=0;
 
 static int nested_repeat(void)  /* gab A9*/
 {
+    ENVIRON *csound = &cenviron;
     repeat_cnt_n[repeat_index]--;
     if (repeat_cnt_n[repeat_index]==0) { /* Expired */
       if (repeat_index > 1) {
@@ -510,17 +513,17 @@ static int nested_repeat(void)  /* gab A9*/
           c[j]=' ';
           c[j+1]='\0';
         }
-        cenviron.Message(&cenviron,Str("%s Nested LOOP terminated, level:%d\n"),
+        csound->Message(csound,Str("%s Nested LOOP terminated, level:%d\n"),
                c,repeat_index);
 
       }
       else
-        cenviron.Message(&cenviron,Str("External LOOP terminated, level:%d\n"),
+        csound->Message(csound,Str("External LOOP terminated, level:%d\n"),
                repeat_index);
       if (strcmp(repeat_name_n[repeat_index], macros->name)==0) {
         MACRO *mm=macros->next;
-        mfree(&cenviron, macros->name); mfree(&cenviron, macros->body);
-        mfree(&cenviron, macros); macros = mm;
+        mfree(csound, macros->name); mfree(csound, macros->body);
+        mfree(csound, macros); macros = mm;
       }
       else {
         MACRO *mm = macros;
@@ -530,8 +533,8 @@ static int nested_repeat(void)  /* gab A9*/
           if (nn==NULL)
             scorerr(Str("Undefining undefined macro"));
         }
-        mfree(&cenviron, nn->name); mfree(&cenviron, nn->body);
-        mm->next = nn->next; mfree(&cenviron, nn);
+        mfree(csound, nn->name); mfree(csound, nn->body);
+        mm->next = nn->next; mfree(csound, nn);
       }
       repeat_index--;
     }
@@ -548,11 +551,11 @@ static int nested_repeat(void)  /* gab A9*/
           c[j]=' ';
           c[j+1]='\0';
         }
-        cenviron.Message(&cenviron,Str("%s  Nested LOOP section (%d) Level:%d\n"),
+        csound->Message(csound,Str("%s  Nested LOOP section (%d) Level:%d\n"),
                c, i, repeat_index);
       }
       else
-        cenviron.Message(&cenviron,Str(" External LOOP section (%d) Level:%d\n"),
+        csound->Message(csound,Str(" External LOOP section (%d) Level:%d\n"),
                i, repeat_index);
       *(nxp-2) = 's'; *nxp++ =  LF;
       return 1;
@@ -569,14 +572,15 @@ static MACRO *repeat_mm;
 
 static int do_repeat(void)      /* At end of section repeat if necessary */
 {
+    ENVIRON *csound = &cenviron;
     repeat_cnt--;
     if (repeat_cnt==0) { /* Expired */
       /* Delete macro */
-      cenviron.Message(&cenviron,Str("Loop terminated\n"));
+      csound->Message(csound,Str("Loop terminated\n"));
       if (strcmp(repeat_name, macros->name)==0) {
         MACRO *mm=macros->next;
-        mfree(&cenviron, macros->name); mfree(&cenviron, macros->body);
-        mfree(&cenviron, macros); macros = mm;
+        mfree(csound, macros->name); mfree(csound, macros->body);
+        mfree(csound, macros); macros = mm;
       }
       else {
         MACRO *mm = macros;
@@ -586,8 +590,8 @@ static int do_repeat(void)      /* At end of section repeat if necessary */
           if (nn==NULL)
             scorerr(Str("Undefining undefined macro"));
         }
-        mfree(&cenviron, nn->name); mfree(&cenviron, nn->body);
-        mm->next = nn->next; mfree(&cenviron, nn);
+        mfree(csound, nn->name); mfree(csound, nn->body);
+        mm->next = nn->next; mfree(csound, nn);
       }
     }
     else {
@@ -596,10 +600,10 @@ static int do_repeat(void)      /* At end of section repeat if necessary */
       sscanf(repeat_mm->body, "%d", &i);
       i = i + repeat_inc;
       sprintf(repeat_mm->body, "%d", i);
-      cenviron.Message(&cenviron,Str("Repeat section (%d)\n"), i);
+      csound->Message(csound,Str("Repeat section (%d)\n"), i);
       *(nxp-2) = 's'; *nxp++ = LF;
       if (nxp >= memend)                /* if this memblk exhausted */
-        expand_nxp(&cenviron);
+        expand_nxp(csound);
       return 1;
     }
     return 0;
@@ -607,7 +611,8 @@ static int do_repeat(void)      /* At end of section repeat if necessary */
 
 void sread_init(void)
 {
-    inputs = (struct in_stack*)mmalloc(&cenviron, 20*sizeof(struct in_stack));
+    ENVIRON *csound = &cenviron;
+    inputs = (struct in_stack*)mmalloc(csound, 20*sizeof(struct in_stack));
     input_size = 20;
     input_cnt = 0;
     str = inputs;
@@ -619,14 +624,15 @@ void sread_init(void)
 
 int sread(void)                 /*  called from main,  reads from SCOREIN   */
 {                               /*  each score statement gets a sortblock   */
+    ENVIRON *csound = &cenviron;
     int  rtncod;                /* return code to calling program:      */
                                 /*   2 = section read, more remaining   */
                                 /*   1 = last section,   0 = null file  */
-    bp = prvibp = cenviron.frstbp = NULL;
+    bp = prvibp = csound->frstbp = NULL;
     nxp = NULL;
     warpin = 0;
     lincnt = 1;
-    cenviron.sectcnt++;
+    csound->sectcnt++;
     rtncod = 1;
     salcinit();              /* init the mem space for this section */
 
@@ -653,7 +659,7 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
           char *old_nxp = nxp-2;
           getpfld();
           clock_base = stof(sp);
-          cenviron.Message(&cenviron,Str("Clockbase = %f\n"), clock_base);
+          csound->Message(csound,Str("Clockbase = %f\n"), clock_base);
           flushlin();
           op = getop();
           nxp = old_nxp;
@@ -700,7 +706,7 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
 /*           } */
           if (str->string) {
             int c;
-            cenviron.Message(&cenviron,Str("LOOP not at top level; ignored\n"));
+            csound->Message(csound,Str("LOOP not at top level; ignored\n"));
             do {    /* Ignore rest of line */
               c = getscochar(1);
             } while (c != LF && c != EOF);
@@ -709,7 +715,7 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
             char *nn = repeat_name_n[repeat_index];
             int c;
             repeat_mm_n[repeat_index] =
-              (MACRO*)mmalloc(&cenviron, sizeof(MACRO));
+              (MACRO*)mmalloc(csound, sizeof(MACRO));
             repeat_cnt_n[repeat_index] = 0;
             do {
               c = getscochar(1);
@@ -726,11 +732,11 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
                 st[j]=' ';
                 st[j+1]='\0';
               }
-              cenviron.Message(&cenviron,Str("%s Nested LOOP=%d Level:%d\n"), st,
+              csound->Message(csound,Str("%s Nested LOOP=%d Level:%d\n"), st,
                      repeat_cnt_n[repeat_index], repeat_index);
             }
             else
-              cenviron.Message(&cenviron,Str("External LOOP=%d Level:%d\n"),
+              csound->Message(csound,Str("External LOOP=%d Level:%d\n"),
                      repeat_cnt_n[repeat_index], repeat_index);
             do {
               c = getscochar(1);
@@ -742,14 +748,14 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
                       (isdigit(c)||c=='_')));
             *nn = '\0';
             /* Define macro for counter */
-            /* cenviron.Message(&cenviron,"Found macro definition for %s\n", */
+            /* csound->Message(csound,"Found macro definition for %s\n", */
             /*                           repeat_name); */
             repeat_mm_n[repeat_index]->name =
-              mmalloc(&cenviron, strlen(repeat_name_n[repeat_index])+1);
+              mmalloc(csound, strlen(repeat_name_n[repeat_index])+1);
             strcpy(repeat_mm_n[repeat_index]->name,
                    repeat_name_n[repeat_index]);
             repeat_mm_n[repeat_index]->acnt = 0;
-            repeat_mm_n[repeat_index]->body = (char*)mmalloc(&cenviron, 8);
+            repeat_mm_n[repeat_index]->body = (char*)mmalloc(csound, 8);
             sprintf(repeat_mm_n[repeat_index]->body, "%d", 0);
             repeat_mm_n[repeat_index]->next = macros;
             macros = repeat_mm_n[repeat_index];
@@ -781,10 +787,10 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
         /* Then remember this state */
         *(nxp-2) = 's'; *nxp++ = LF;
         if (nxp >= memend)              /* if this memblk exhausted */
-          expand_nxp(&cenviron);
+          expand_nxp(csound);
         if (str->string) {
           int c;
-          cenviron.Message(&cenviron,Str("Repeat not at top level; ignored\n"));
+          csound->Message(csound,Str("Repeat not at top level; ignored\n"));
           do {    /* Ignore rest of line */
             c = getscochar(1);
           } while (c != LF && c != EOF);
@@ -792,7 +798,7 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
         else {
           char *nn = repeat_name;
           int c;
-          repeat_mm = (MACRO*)mmalloc(&cenviron, sizeof(MACRO));
+          repeat_mm = (MACRO*)mmalloc(csound, sizeof(MACRO));
           repeat_cnt = 0;
           do {
             c = getscochar(1);
@@ -801,7 +807,7 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
             repeat_cnt = 10 * repeat_cnt + c - '0';
             c = getscochar(1);
           } while (isdigit(c));
-          cenviron.Message(&cenviron,Str("Repeats=%d\n"), repeat_cnt);
+          csound->Message(csound,Str("Repeats=%d\n"), repeat_cnt);
           do {
             c = getscochar(1);
           } while (c==' '||c=='\t');
@@ -813,10 +819,10 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
           /* Define macro for counter */
           /*             printf("Found macro definition for %s\n", */
           /*                     repeat_name); */
-          repeat_mm->name = mmalloc(&cenviron, strlen(repeat_name)+1);
+          repeat_mm->name = mmalloc(csound, strlen(repeat_name)+1);
           strcpy(repeat_mm->name, repeat_name);
           repeat_mm->acnt = 0;
-          repeat_mm->body = (char*)mmalloc(&cenviron, 8);
+          repeat_mm->body = (char*)mmalloc(csound, 8);
           sprintf(repeat_mm->body, "%d", 1); /* Set value */
           repeat_mm->next = macros;
           macros = repeat_mm;
@@ -852,26 +858,26 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
             buff[i++]=c;
           } while (isalpha(c=getscochar(1))|| (i!=0 && (isdigit(c)||c=='_')));
           buff[i]=0;
-          cenviron.Message(&cenviron,Str("Named section >>>%s<<<\n"), buff);
+          csound->Message(csound,Str("Named section >>>%s<<<\n"), buff);
           for (i=0; i<=next_name; i++)
             if (strcmp(buff, names[i].name)==0) break;
           if (i>next_name) {
             i = ++next_name;
-            names[i].name = (char*)mmalloc(&cenviron, i+1);
+            names[i].name = (char*)mmalloc(csound, i+1);
             strcpy(names[i].name, buff);
           }
-          else mfree(&cenviron, names[i].file);
+          else mfree(csound, names[i].file);
           flushlin();
           if (!str->string) {
             names[next_name].posit = ftell(str->file);
-            names[next_name].file = mmalloc(&cenviron, strlen(str->body)+1);
+            names[next_name].file = mmalloc(csound, strlen(str->body)+1);
             strcpy(names[next_name].file, str->body);
-            cenviron.Message(&cenviron,Str("%d: File %s position %ld\n"),
+            csound->Message(csound,Str("%d: File %s position %ld\n"),
                    next_name, names[next_name].file,
                    names[next_name].posit);
           }
           else {
-            cenviron.Message(&cenviron,
+            csound->Message(csound,
                              Str("Ignoring name %s not in file\n"), buff);
             names[i].name[0] = '\0'; /* Destroy name */
           }
@@ -895,20 +901,20 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
           flushlin();
           for (i = 0; i<=next_name; i++)
             if (strcmp(buff, names[i].name)==0) break;
-          if (i>next_name) cenviron.Message(&cenviron,Str("Name not found"), buff);
+          if (i>next_name) csound->Message(csound,Str("Name not found"), buff);
           else {
-            cenviron.Message(&cenviron,Str("Duplicate %d: %s (%s,%ld)\n"),
+            csound->Message(csound,Str("Duplicate %d: %s (%s,%ld)\n"),
                    i, buff, names[i].file, names[i].posit);
             input_cnt++;
             if (input_cnt>=input_size) {
               int old = str-inputs;
               input_size += 20;
-/*               cenviron.Message(&cenviron,
+/*               csound->Message(csound,
                                   "Expanding includes to %d\n", input_size); */
-              inputs = mrealloc(&cenviron, inputs,
+              inputs = mrealloc(csound, inputs,
                                 input_size*sizeof(struct in_stack));
               if (inputs == NULL) {
-                csoundDie(&cenviron, Str("No space for include files"));
+                csoundDie(csound, Str("No space for include files"));
               }
               str = &inputs[old];     /* In case it moves */
             }
@@ -917,10 +923,10 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
             str->file = fopen(names[i].file, "r");
             /*RWD 3:2000*/
             if (str->file==NULL) {
-              csoundDie(&cenviron, Str("cannot open input file %s"),
+              csoundDie(csound, Str("cannot open input file %s"),
                                    names[i].file);
             }
-            str->body = mmalloc(&cenviron, strlen(names[i].file)+1);
+            str->body = mmalloc(csound, strlen(names[i].file)+1);
             fseek(str->file, names[i].posit, SEEK_SET);
             strcpy(str->body, names[i].file);
           }
@@ -935,7 +941,7 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
           char *old_nxp = nxp-2;
           getpfld();
           warp_factor = stof(sp);
-          cenviron.Message(&cenviron,Str("Warp_factor = %f\n"), warp_factor);
+          csound->Message(csound,Str("Warp_factor = %f\n"), warp_factor);
           flushlin();
           op = getop();
           nxp = old_nxp;
@@ -957,12 +963,12 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
             goto ending;
           default:
             flushlin();
-/*             cenviron.Message(&cenviron,"Ignoring %c\n", op); */
+/*             csound->Message(csound,"Ignoring %c\n", op); */
           }
         };
         break;
       default:
-        cenviron.Message(&cenviron,Str("sread is confused on legal opcodes\n"));
+        csound->Message(csound,Str("sread is confused on legal opcodes\n"));
         break;
       }
     }
@@ -970,9 +976,9 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
     if (rtncod<0)               /* Ending so clear macros */
       while (macros!=NULL) {
         int i;
-        mfree(&cenviron, macros->body);
-        mfree(&cenviron, macros->name);
-        for (i=0; i<macros->acnt; i++) mfree(&cenviron, macros->arg[i]);
+        mfree(csound, macros->body);
+        mfree(csound, macros->name);
+        for (i=0; i<macros->acnt; i++) mfree(csound, macros->arg[i]);
         macros = macros->next;
       }
     return(--rtncod);
@@ -980,10 +986,11 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
 
 static void copylin(void)       /* copy source line to srtblk   */
 {
+    ENVIRON *csound = &cenviron;
     int c;
     nxp--;
     if (nxp >= memend)          /* if this memblk exhausted */
-      expand_nxp(&cenviron);
+      expand_nxp(csound);
     do {
       c = getscochar(1);
       *nxp++ = c;
@@ -1003,16 +1010,17 @@ static void copypflds(void)
 
 static void ifa(void)
 {
+    ENVIRON *csound = &cenviron;
     SRTBLK *prvbp;
     int n;
 
     bp->pcnt = 0;
     while (getpfld()) {             /* while there's another pfield,  */
       if (++bp->pcnt == PMAX) {
-        cenviron.Message(&cenviron,Str("sread: instr pcount exceeds PMAX\n"));
-        cenviron.Message(&cenviron,Str("\t sect %d line %d\n"),
-                         cenviron.sectcnt, lincnt);
-        cenviron.Message(&cenviron,Str("      remainder of line flushed\n"));
+        csound->Message(csound,Str("sread: instr pcount exceeds PMAX\n"));
+        csound->Message(csound,Str("\t sect %d line %d\n"),
+                         csound->sectcnt, lincnt);
+        csound->Message(csound,Str("      remainder of line flushed\n"));
         flushlin();
         continue;
       }
@@ -1020,15 +1028,15 @@ static void ifa(void)
         int foundplus = 0;
         if (*(sp+1)=='+') { sp++; foundplus = 1; }
         if (prvp2<0) {
-          cenviron.Message(&cenviron,Str("No previous event in ^\n"));
+          csound->Message(csound,Str("No previous event in ^\n"));
           prvp2 = bp->p2val = warp_factor*stof(sp+1);
         }
         else if (isspace(*(sp+1))) {
           /* stof() assumes no leading whitespace -- 070204, akozar */
-          cenviron.Message(&cenviron,Str(
-                         "sread: illegal space following %s, sect %d line %d:  "),
-                     (foundplus?"^+":"^"),cenviron.sectcnt,lincnt);
-          cenviron.Message(&cenviron,Str("   zero substituted.\n"));
+          csound->Message(csound, Str("sread: illegal space following %s, "
+                                      "sect %d line %d:  "),
+                                  (foundplus?"^+":"^"),csound->sectcnt,lincnt);
+          csound->Message(csound, Str("   zero substituted.\n"));
           prvp2 = bp->p2val = prvp2;
         }
         else prvp2 = bp->p2val = prvp2 + warp_factor*stof(sp+1);
@@ -1084,10 +1092,11 @@ static void ifa(void)
       break;
       }
     }
-    if (op == 'i'                   /* then carry any rem pflds */
-        && ((prvbp = prvibp) != NULL ||
-            (!bp->pcnt && (prvbp = bp->prvblk) != NULL && prvbp->text[0] == 'i'))
-        && (n = prvbp->pcnt - bp->pcnt) > 0) {
+    if (op == 'i' &&                /* then carry any rem pflds */
+        ((prvbp = prvibp) != NULL ||
+         (!bp->pcnt && (prvbp = bp->prvblk) != NULL &&
+          prvbp->text[0] == 'i')) &&
+        (n = prvbp->pcnt - bp->pcnt) > 0) {
       pcopy((int)bp->pcnt + 1, n, prvbp);
       bp->pcnt += n;
     }
@@ -1096,6 +1105,7 @@ static void ifa(void)
 
 static void setprv(void)        /*  set insno = (int) p1val     */
 {                               /*  prvibp = prv note, same insno */
+    ENVIRON *csound = &cenviron;
     SRTBLK *p = bp;
     short n;
 
@@ -1104,10 +1114,9 @@ static void setprv(void)        /*  set insno = (int) p1val     */
       /* unquote instrument name */
       c = name; while (*++s != '"') *c++ = *s; *c = '\0';
       /* find corresponding insno */
-      if (!(n = (short) named_instr_find(&cenviron, name))) {
-        cenviron.Message(&cenviron,
-                         Str("WARNING: instr %s not found, assuming insno = -1\n"),
-                   name);
+      if (!(n = (short) named_instr_find(csound, name))) {
+        csound->Message(csound, Str("WARNING: instr %s not found, "
+                                    "assuming insno = -1\n"), name);
         n = -1;
       }
     }
@@ -1124,17 +1133,17 @@ static void setprv(void)        /*  set insno = (int) p1val     */
 
 static void carryerror(void)    /* print offending text line */
 {                               /*      (partial)            */
+    ENVIRON *csound = &cenviron;
     char *p;
 
-    cenviron.Message(&cenviron,
-       Str(
-           "sread: illegal use of carry, sect %d line %d,   0 substituted\n"),
-       cenviron.sectcnt,lincnt);
+    csound->Message(csound,
+       Str("sread: illegal use of carry, sect %d line %d,   0 substituted\n"),
+       csound->sectcnt,lincnt);
     *(nxp-3) = SP;
     p = bp->text;
     while (p <= nxp-2)
-      cenviron.Message(&cenviron,"%c",*p++);
-    cenviron.Message(&cenviron,"<=\n");
+      csound->Message(csound,"%c",*p++);
+    csound->Message(csound,"<=\n");
     *(nxp-2) = '0';
 }
 
@@ -1183,8 +1192,9 @@ static void pcopy(int pfno, int ncopy, SRTBLK *prvbp)
 
 static void salcinit(void)    /* init the sorter mem space for a new section */
 {                             /*  alloc 1st memblk if nec; init *nxp to this */
+    ENVIRON *csound = &cenviron;
     if (curmem == NULL) {
-      curmem = (char*) mmalloc(&cenviron, (size_t) (MEMSIZ + MARGIN));
+      curmem = (char*) mmalloc(csound, (size_t) (MEMSIZ + MARGIN));
       memend = (char*) curmem + MEMSIZ;
     }
     nxp = (char*) curmem;
@@ -1193,14 +1203,15 @@ static void salcinit(void)    /* init the sorter mem space for a new section */
 static void salcblk(void)       /* alloc a srtblk from current mem space:   */
 {                               /*   align following *nxp, set new bp, nxp  */
     SRTBLK  *prvbp;             /*   set srtblk lnks, put op+blank in text  */
+    ENVIRON *csound = &cenviron;
 
     if (nxp >= memend)          /* if this memblk exhausted */
-      expand_nxp(&cenviron);
+      expand_nxp(csound);
     /* now allocate a srtblk from this space: */
     prvbp = bp;
     bp = (SRTBLK*) (((uintptr_t) nxp + (uintptr_t) 15) & ~((uintptr_t) 15));
-    if (cenviron.frstbp == NULL)
-      cenviron.frstbp = bp;
+    if (csound->frstbp == NULL)
+      csound->frstbp = bp;
     if (prvbp != NULL)
       prvbp->nxtblk = bp;           /* link with prev srtblk        */
     bp->prvblk = prvbp;
@@ -1213,14 +1224,15 @@ static void salcblk(void)       /* alloc a srtblk from current mem space:   */
 
 void sfree(void)                 /* free all sorter allocated space */
 {                                /*    called at completion of sort */
+    ENVIRON *csound = &cenviron;
     if (curmem != NULL) {
-      mfree(&cenviron, curmem);
+      mfree(csound, curmem);
       curmem = NULL;
     }
     while (str != &inputs[0]) {
       if (!str->string) {
         fclose(str->file);
-        mfree(&cenviron, str->body);
+        mfree(csound, str->body);
       }
       str--;
     }
@@ -1237,7 +1249,7 @@ static void flushlin(void)      /* flush input to end-of-line;  inc lincnt */
 
 static int sget1(void)          /* get first non-white, non-comment char */
 {
-    ENVIRON *csound = &cenviron;
+    ENVIRON *csound = csound;
     int c;
 
  srch:
@@ -1446,6 +1458,7 @@ static int sget1(void)          /* get first non-white, non-comment char */
 
 static int getop(void)          /* get next legal opcode */
 {
+    ENVIRON *csound = &cenviron;
     int c;
 
  nextc:
@@ -1471,10 +1484,10 @@ static int getop(void)          /* get next legal opcode */
     case EOF:
       break;            /* if ok, go with it    */
     default:            /*   else complain      */
-      cenviron.Message(&cenviron,
+      csound->Message(csound,
                        Str("sread: illegal opcode %c, sect %d line %d\n"),
-                       c,cenviron.sectcnt,lincnt);
-      cenviron.Message(&cenviron,Str("      remainder of line flushed\n"));
+                       c,csound->sectcnt,lincnt);
+      csound->Message(csound,Str("      remainder of line flushed\n"));
       flushlin();
       goto nextc;
     }
@@ -1484,6 +1497,7 @@ static int getop(void)          /* get next legal opcode */
 
 static int getpfld(void)             /* get pfield val from SCOREIN file */
 {                                    /*      set sp, nxp                 */
+    ENVIRON *csound = &cenviron;
     int  c;
     char *p;
 
@@ -1497,9 +1511,9 @@ static int getpfld(void)             /* get pfield val from SCOREIN file */
         && c != '"' && c != '~' ) {
       ungetscochar(c);                        /* then no more pfields    */
       if (linpos)
-        cenviron.Message(&cenviron,
+        csound->Message(csound,
                          Str("sread: unexpected char %c, sect %d line %d\n"),
-                   c, cenviron.sectcnt, lincnt);
+                   c, csound->sectcnt, lincnt);
       return(0);                              /*    so return            */
     }
     p = sp = nxp;                         /* else start copying to text  */
@@ -1508,22 +1522,22 @@ static int getpfld(void)             /* get pfield val from SCOREIN file */
     if (c == '"') {                           /* if have quoted string,  */
       /* IV - Oct 31 2002: allow string instr name for i and q events */
       if (bp->pcnt < 3 && !((op == 'i' || op == 'q') && !bp->pcnt)) {
-        cenviron.Message(&cenviron,
-                         Str("sread: illegally placed string, sect %d line %d\n"),
-                   cenviron.sectcnt,lincnt);
+        csound->Message(csound, Str("sread: illegally placed string, "
+                                    "sect %d line %d\n"),
+                                csound->sectcnt, lincnt);
         return(0);
       }
       while ((c = getscochar(1)) != '"') {
         if (c == LF || c == EOF) {
-          cenviron.Message(&cenviron,
+          csound->Message(csound,
                            Str("sread: unmatched quote, sect %d line %d\n"),
-                           cenviron.sectcnt,lincnt);
+                           csound->sectcnt, lincnt);
           return(0);
         }
         *p++ = c;                       /*   copy to matched quote */
         /* **** CHECK **** */
         if (p >= memend)
-          p = (char*) ((uintptr_t) p + expand_nxp(&cenviron));
+          p = (char*) ((uintptr_t) p + expand_nxp(csound));
         /* **** END CHECK **** */
       }
       *p++ = c;
@@ -1538,7 +1552,7 @@ static int getpfld(void)             /* get pfield val from SCOREIN file */
       *p++ = c;
       /* **** CHECK **** */
       if (p >= memend)
-        p = (char*) ((uintptr_t) p + expand_nxp(&cenviron));
+        p = (char*) ((uintptr_t) p + expand_nxp(csound));
       /* **** END CHECK **** */
     }
     ungetscochar(c);                        /* any illegal is delimiter */
@@ -1548,10 +1562,10 @@ static int getpfld(void)             /* get pfield val from SCOREIN file */
     return(1);                              /*  and report ok  */
 }
 
-MYFLT stof(char s[])            /* convert string to MYFLT  */
-                                /* (assumes no white space at beginning */
-{                               /*      but a blank or nl at end)       */
-                                /* sbrandon adds: or a \0, on NeXT m68k */
+MYFLT stof(char s[])              /* convert string to MYFLT  */
+                                  /* (assumes no white space at beginning */
+{                                 /*      but a blank or nl at end)       */
+    ENVIRON *csound = &cenviron;  /* sbrandon adds: or a \0, on NeXT m68k */
     char *p;
     MYFLT x = (MYFLT)strtod(s, &p);
 #if defined(NeXT) && defined(__BIG_ENDIAN__)
@@ -1559,15 +1573,15 @@ MYFLT stof(char s[])            /* convert string to MYFLT  */
     if (*(p - 1) == SP) p--;
 #endif
     if (s == p || (*p != SP && *p != LF)) {
-      cenviron.Message(&cenviron,
+      csound->Message(csound,
                        Str("sread: illegal number format, sect %d line %d:  "),
-                 cenviron.sectcnt,lincnt);
+                       csound->sectcnt, lincnt);
       p = s;
       while (*p != SP && *p != LF) {
-        cenviron.Message(&cenviron,"%c", *p);
+        csound->Message(csound,"%c", *p);
         *p++ = '0';
       }
-      cenviron.Message(&cenviron,Str("   zero substituted.\n"));
+      csound->Message(csound,Str("   zero substituted.\n"));
       return FL(0.0);
     }
     return x;
