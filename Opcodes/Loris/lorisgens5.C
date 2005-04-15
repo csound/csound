@@ -1154,7 +1154,7 @@ extern "C"
    * the table of OENTRY structures defined in this shared library.
    */
 
-  PUBLIC int opcode_size()
+  PUBLIC long opcode_size(void)
   {
     return sizeof(OENTRY) * 3;
   }
