@@ -63,9 +63,9 @@ int pvbufreadset(ENVIRON *csound, PVBUFREAD *p)
       p->fftBuf = fltp;       /* fltp += PVFFTSIZE; */ /* Not needed */
     }
 
-    if (*p->ifilno == SSTRCOD) {                         /* if strg name given */
-      extern char *unquote(char *name);
-      if (p->STRARG == NULL) strcpy(pvfilnam,unquote(currevent->strarg));
+    if (*p->ifilno == SSTRCOD) {                    /* if strg name given */
+      if (p->STRARG == NULL)
+        strcpy(pvfilnam, unquote(csound->currevent->strarg));
       else strcpy(pvfilnam, unquote(p->STRARG));
     }
     else if ((long)*p->ifilno <= strsmax && strsets != NULL &&
@@ -187,8 +187,8 @@ int pvinterpset(ENVIRON *csound, PVINTERP *p)
       p->window = fltp;
     }
     if (*p->ifilno == SSTRCOD) {                    /* if strg name given */
-      extern char *unquote(char *name);
-      if (p->STRARG == NULL) strcpy(pvfilnam,unquote(currevent->strarg));
+      if (p->STRARG == NULL)
+        strcpy(pvfilnam, unquote(csound->currevent->strarg));
       else strcpy(pvfilnam, unquote(p->STRARG));
     }
     else if ((long)*p->ifilno <= strsmax && strsets != NULL &&
@@ -382,9 +382,9 @@ int pvcrossset(ENVIRON *csound, PVCROSS *p)
         p->outBuf = fltp;      fltp += PVFFTSIZE;
         p->window = fltp;
     }
-    if (*p->ifilno == SSTRCOD) {                         /* if strg name given */
-      extern char *unquote(char *name);
-      if (p->STRARG == NULL) strcpy(pvfilnam,unquote(currevent->strarg));
+    if (*p->ifilno == SSTRCOD) {                      /* if strg name given */
+      if (p->STRARG == NULL)
+        strcpy(pvfilnam, unquote(csound->currevent->strarg));
       else strcpy(pvfilnam, unquote(p->STRARG));
     }
     else sprintf(pvfilnam,"pvoc.%d", (int)*p->ifilno); /* else pvoc.filnum   */

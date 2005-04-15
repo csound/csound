@@ -335,10 +335,10 @@ int spectrum(ENVIRON *csound, SPECTRUM *p)
         case 2:
           break;                            /*    or leave mag sqrd    */
         }
-        *dftp++ = (MYFLT)c;                       /* store in out spectrum   */
+        *dftp++ = (MYFLT)c;                 /* store in out spectrum   */
       }
     }
-    specp->ktimstamp = kcounter;                  /* time-stamp the output   */
+    specp->ktimstamp = csound->kcounter;    /* time-stamp the output   */
     return OK;
 }
 
@@ -496,10 +496,10 @@ int noctdft(ENVIRON *csound, NOCTDFT *p)
           if (c < .001) c = .001;
           c = 10. * log10(c);
         }
-        *dftp++ = c;                             /* store in out spectrum   */
+        *dftp++ = c;                            /* store in out spectrum   */
       }
     }
-    specp->ktimstamp = kcounter;                 /* time-stamp the output   */
+    specp->ktimstamp = csound->kcounter;        /* time-stamp the output   */
     return OK;
 }
 #endif
@@ -676,7 +676,7 @@ int specptrk(ENVIRON *csound, SPECPTRK *p)
 {
     SPECDAT *inspecp = p->wsig;
 
-    if (inspecp->ktimstamp == kcounter) {         /* if inspectrum is new:   */
+    if (inspecp->ktimstamp == csound->kcounter) {   /* if inspectrum is new: */
       MYFLT *inp = (MYFLT *) inspecp->auxch.auxp;
       MYFLT *endp = inp + inspecp->npts;
       MYFLT *inp2, sum, *fp;
@@ -827,14 +827,14 @@ int specsum(ENVIRON *csound, SPECSUM *p)        /* sum all vals of a spectrum an
     if (specp->auxch.auxp==NULL) { /* RWD fix */
       return csound->PerfError(csound, Str("specsum: not initialised"));
     }
-    if (specp->ktimstamp == kcounter) {                  /* if spectrum is new   */
+    if (specp->ktimstamp == csound->kcounter) { /* if spectrum is new   */
       MYFLT *valp = (MYFLT *) specp->auxch.auxp;
       MYFLT sum = FL(0.0);
-      long npts = specp->npts;                /*   sum all the values */
+      long npts = specp->npts;                  /*   sum all the values */
       do {
         sum += *valp++;
       } while (--npts);
-      if (p->kinterp)                                  /*   new kinc if interp */
+      if (p->kinterp)                           /*   new kinc if interp */
         p->kinc = (sum - p->kval) / specp->ktimprd;
       else p->kval = sum;
     }
@@ -881,7 +881,7 @@ int specaddm(ENVIRON *csound, SPECADDM *p)
         (p->waddm->auxch.auxp==NULL)) {
       return csound->PerfError(csound, Str("specaddm: not initialised"));
     }
-    if (p->wsig1->ktimstamp == kcounter) {           /* if inspec1 is new:     */
+    if (p->wsig1->ktimstamp == csound->kcounter) {  /* if inspec1 is new:     */
       MYFLT *in1p = (MYFLT *) p->wsig1->auxch.auxp;
       MYFLT *in2p = (MYFLT *) p->wsig2->auxch.auxp;
       MYFLT *outp = (MYFLT *) p->waddm->auxch.auxp;
@@ -889,9 +889,9 @@ int specaddm(ENVIRON *csound, SPECADDM *p)
       int   npts = p->wsig1->npts;
 
       do {
-        *outp++ = *in1p++ + *in2p++ * mul2;          /* out = in1 + in2 * mul2 */
+        *outp++ = *in1p++ + *in2p++ * mul2;         /* out = in1 + in2 * mul2 */
       } while (--npts);
-      p->waddm->ktimstamp = kcounter;           /* mark the output spec as new */
+      p->waddm->ktimstamp = csound->kcounter; /* mark the output spec as new */
     }
     return OK;
 }
@@ -937,7 +937,7 @@ int specdiff(ENVIRON *csound, SPECDIFF *p)
         (p->wdiff->auxch.auxp==NULL)) {
       return csound->PerfError(csound, Str("specdiff: not initialised"));
     }
-    if (inspecp->ktimstamp == kcounter) {     /* if inspectrum is new:     */
+    if (inspecp->ktimstamp == csound->kcounter) {   /* if inspectrum is new: */
       MYFLT *newp = (MYFLT *) inspecp->auxch.auxp;
       MYFLT *prvp = (MYFLT *) p->specsave.auxch.auxp;
       MYFLT *difp = (MYFLT *) p->wdiff->auxch.auxp;
@@ -945,16 +945,16 @@ int specdiff(ENVIRON *csound, SPECDIFF *p)
       int   npts = inspecp->npts;
 
       do {
-        newval = *newp++;                   /* compare new & old coefs */
+        newval = *newp++;                     /* compare new & old coefs */
         prvval = *prvp;
         if ((diff = newval-prvval) > FL(0.0)) {  /* if new coef > prv coef  */
           *difp++ = diff;
-          possum += diff;                 /*   enter & accum diff    */
+          possum += diff;                     /*   enter & accum diff    */
         }
-        else *difp++ = FL(0.0);                /* else enter zero         */
-        *prvp++ = newval;                   /* sav newval for nxt time */
+        else *difp++ = FL(0.0);               /* else enter zero         */
+        *prvp++ = newval;                     /* sav newval for nxt time */
       } while (--npts);
-      p->wdiff->ktimstamp = kcounter;     /* mark the output spec as new */
+      p->wdiff->ktimstamp = csound->kcounter; /* mark the output spec as new */
     }
     return OK;
 }
@@ -1025,29 +1025,29 @@ int specscal(ENVIRON *csound, SPECSCAL *p)
         (p->fscale==NULL)) {
       return csound->PerfError(csound, Str("specscal: not intiialised"));
     }
-    if (inspecp->ktimstamp == kcounter) {          /* if inspectrum is new:      */
+    if (inspecp->ktimstamp == csound->kcounter) {   /* if inspectrum is new: */
       SPECDAT *outspecp = p->wscaled;
       MYFLT *inp = (MYFLT *) inspecp->auxch.auxp;
       MYFLT *outp = (MYFLT *) outspecp->auxch.auxp;
       MYFLT *sclp = p->fscale;
       long npts = inspecp->npts;
 
-      if (p->thresh) {                              /* if thresh requested,    */
+      if (p->thresh) {                              /* if thresh requested,  */
         MYFLT *threshp = p->fthresh;
         MYFLT val;
         do {
-          if ((val = *inp++ - *threshp++) > FL(0.0)) /*   for vals above thresh */
-            *outp++ = val * *sclp;                   /*     scale & write out   */
-          else *outp++ = FL(0.0);                    /*   else output is 0.     */
+          if ((val = *inp++ - *threshp++) > FL(0.0)) /* for vals above thresh */
+            *outp++ = val * *sclp;                   /*     scale & write out */
+          else *outp++ = FL(0.0);                    /*   else output is 0.   */
           sclp++;
         } while (--npts);
       }
       else {
         do {
-          *outp++ = *inp++ * *sclp++;               /* no thresh: rescale only */
+          *outp++ = *inp++ * *sclp++;             /* no thresh: rescale only */
         } while (--npts);
       }
-      outspecp->ktimstamp = kcounter;               /* mark the outspec as new */
+      outspecp->ktimstamp = csound->kcounter;     /* mark the outspec as new */
     }
     return OK;
 }
@@ -1092,7 +1092,7 @@ int spechist(ENVIRON *csound, SPECHIST *p)
         (p->wacout->auxch.auxp==NULL)) {
       return csound->PerfError(csound, Str("spechist: not initialised"));
     }
-    if (inspecp->ktimstamp == kcounter) {     /* if inspectrum is new:     */
+    if (inspecp->ktimstamp == csound->kcounter) {   /* if inspectrum is new: */
       MYFLT *newp = (MYFLT *) inspecp->auxch.auxp;
       MYFLT *acup = (MYFLT *) p->accumer.auxch.auxp;
       MYFLT *outp = (MYFLT *) p->wacout->auxch.auxp;
@@ -1104,7 +1104,7 @@ int spechist(ENVIRON *csound, SPECHIST *p)
         *acup++ = newval;                   /* sav in accumulator   */
         *outp++ = newval;                   /* & copy to output     */
       } while (--npts);
-      p->wacout->ktimstamp = kcounter;     /* mark the output spec as new */
+      p->wacout->ktimstamp = csound->kcounter; /* mark the output spec as new */
     }
     return OK;
 }
@@ -1172,7 +1172,7 @@ int spfilset(ENVIRON *csound, SPECFILT *p)
 
 int specfilt(ENVIRON *csound, SPECFILT *p)
 {
-    if (p->wsig->ktimstamp == kcounter) {          /* if input spec is new,  */
+    if (p->wsig->ktimstamp == csound->kcounter) {   /* if input spec is new,  */
       SPECDAT *inspecp = p->wsig;
       SPECDAT *outspecp = p->wfil;
       MYFLT *newp = (MYFLT *) inspecp->auxch.auxp;
@@ -1188,7 +1188,7 @@ int specfilt(ENVIRON *csound, SPECFILT *p)
         *outp++ = curval = *persp;                 /*   output current point  */
         *persp++ = *coefp++ * curval + *newp++;    /*   decay & addin newval  */
       } while (--npts);
-      outspecp->ktimstamp = kcounter;              /* mark output spec as new */
+      outspecp->ktimstamp = csound->kcounter;      /* mark output spec as new */
     }
     return OK;
 }

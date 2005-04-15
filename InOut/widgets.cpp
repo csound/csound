@@ -1421,7 +1421,7 @@ extern "C" int save_snap(ENVIRON *csound, FLSAVESNAPS* p)
   if (fl_ask("Saving could overwrite the old file\n"
              "Are you sure you want to save?")==0) return OK;
   if (*p->filename == SSTRCOD) { // if char string name given
-    if (p->STRARG == NULL) strcpy(s,unquote(currevent->strarg));
+    if (p->STRARG == NULL) strcpy(s, unquote(csound->currevent->strarg));
     else strcpy(s, unquote(p->STRARG));
   }
   else if ((long)*p->filename <= strsmax &&
@@ -1472,7 +1472,7 @@ extern "C" int load_snap(ENVIRON *csound, FLLOADSNAPS* p)
   string   filename;
 
   if (*p->filename == SSTRCOD) { // if char string name given
-    if (p->STRARG == NULL) strcpy(s,unquote(currevent->strarg));
+    if (p->STRARG == NULL) strcpy(s, unquote(csound->currevent->strarg));
     else strcpy(s, unquote(p->STRARG));
   }
   else if ((long)*p->filename <= strsmax &&
@@ -1575,7 +1575,7 @@ char * GetString(MYFLT pname, char *t)
   char    *Name=  new char[MAXNAME];
   allocatedStrings.push_back(Name);
   if (pname == SSTRCOD) {
-    if (t == NULL) strcpy(Name,unquote(currevent->strarg));
+    if (t == NULL) strcpy(Name, unquote(cenviron.currevent->strarg));
     else strcpy(Name, unquote(t));
   }
   else if ((long)pname < strsmax && strsets != NULL && strsets[(long)pname])
@@ -2793,7 +2793,7 @@ extern "C" int fl_slider_bank(ENVIRON *csound, FLSLIDERBANK *p)
   char s[MAXNAME];
   char *t = p->STRARG;
   if (*p->names == SSTRCOD) {
-    if (t == NULL) strcpy(s,unquote(currevent->strarg));
+    if (t == NULL) strcpy(s, unquote(csound->currevent->strarg));
     else strcpy(s, unquote(t));
   }
   else if ((long)*p->names <= strsmax &&
@@ -3452,15 +3452,13 @@ extern "C" int fl_roller(ENVIRON *csound, FLROLLER *p)
 }
 
 
-// extern "C" long kcounter;       IV - Aug 23 2002
-
 extern "C" int FLprintkset(ENVIRON *csound, FLPRINTK *p)
 {
   if (*p->ptime < FL(1.0) / csound->global_ekr)
     p->ctime = FL(1.0) / csound->global_ekr;
   else        p->ctime = *p->ptime;
 
-  p->initime = (MYFLT) csound->kcounter_ * csound->onedkr_;
+  p->initime = (MYFLT) csound->kcounter * csound->onedkr_;
   p->cysofar = -1;
   return OK;
 }
@@ -3470,7 +3468,7 @@ extern "C" int FLprintk(ENVIRON *csound, FLPRINTK *p)
   MYFLT   timel;
   long    cycles;
 
-  timel = ((MYFLT) csound->kcounter_ * csound->onedkr_) - p->initime;
+  timel = ((MYFLT) csound->kcounter * csound->onedkr_) - p->initime;
   cycles = (long)(timel / p->ctime);
   if (p->cysofar < cycles) {
     p->cysofar = cycles;
@@ -3482,9 +3480,9 @@ extern "C" int FLprintk(ENVIRON *csound, FLPRINTK *p)
   return OK;
 }
 
-extern "C" int FLprintk2set(ENVIRON *csound, FLPRINTK2 *p)              // IV - Aug 27 2002
+extern "C" int FLprintk2set(ENVIRON *csound, FLPRINTK2 *p)  // IV - Aug 27 2002
 {
-  p->oldvalue = FL(-1.12123e35);      // hack to force printing first value
+  p->oldvalue = FL(-1.12123e35);        // hack to force printing first value
   return OK;
 }
 

@@ -211,7 +211,8 @@ static void install_signal_handler(void)
 #elif defined(CSWIN)
     int sigs[] = { SIGHUP, SIGINT, SIGQUIT, -1};
 #elif defined(WIN32)
-    int sigs[] = { SIGINT, SIGINT, SIGILL, SIGABRT, SIGFPE, SIGSEGV, SIGTERM, -1};
+    int sigs[] = { SIGINT, SIGINT, SIGILL, SIGABRT, SIGFPE, SIGSEGV, SIGTERM,
+                   -1 };
 #elif defined(__EMX__)
     int sigs[] = { SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGTRAP, SIGABRT, SIGBUS,
                    SIGFPE, SIGUSR1, SIGSEGV, SIGUSR2, SIGPIPE, SIGALRM, SIGTERM,
@@ -250,32 +251,31 @@ extern int musmon2(ENVIRON*);
 extern char *getstrformat(int);
 
 /* IV - Jan 28 2005 */
-void print_benchmark_info(void *csound, const char *s)
+void print_benchmark_info(void *csound_, const char *s)
 {
     double  rt, ct;
+    ENVIRON *csound = (ENVIRON*) csound_;
     RTCLOCK *p;
 
-    if ((O.msglevel & 0x80) == 0)
+    if ((csound->oparms->msglevel & 0x80) == 0)
       return;
     p = (RTCLOCK*) csoundQueryGlobalVariable(csound, "csRtClock");
     if (p == NULL)
       return;
     rt = timers_get_real_time(p);
     ct = timers_get_CPU_time(p);
-    ((ENVIRON*)csound)->Message(csound,
-               Str("Elapsed time at %s: real: %.3fs, CPU: %.3fs\n"),
-               (char*) s, rt, ct);
+    csound->Message(csound,
+                    Str("Elapsed time at %s: real: %.3fs, CPU: %.3fs\n"),
+                    (char*) s, rt, ct);
 }
 
-#ifdef MSVC
-_declspec(dllexport) /* VL linkage fix 11-04 */
-#endif
-int csoundCompile(void *csound_, int argc, char **argv)
+PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
 {
     ENVIRON *csound = (ENVIRON*) csound_;
-    char  *s, *orcNameMode;
-    char  *filnamp, *envoutyp = NULL;
-    int   n;
+    OPARMS  *O = csound->oparms;
+    char    *s, *orcNameMode;
+    char    *filnamp, *envoutyp = NULL;
+    int     n;
 
     /* for debugging only */
     if ((n = setjmp(csound->exitjmp))) {
@@ -333,10 +333,10 @@ int csoundCompile(void *csound_, int argc, char **argv)
     }
 
     /* do not know file type yet */
-    O.filetyp = -1;
-    O.sfheader = 0;
+    O->filetyp = -1;
+    O->sfheader = 0;
     install_signal_handler();
-    O.filnamspace = filnamp = mmalloc(csound, (size_t) 1024);
+    O->filnamspace = filnamp = mmalloc(csound, (size_t) 1024);
     peakchunks = 1;
     if (csoundCreateGlobalVariable(csound, "::argdecode::orcNameMode", 8) != 0)
       return -1;
@@ -360,7 +360,9 @@ int csoundCompile(void *csound_, int argc, char **argv)
       if (csrcname != NULL && csrcname[0] != '\0') {
         csrc = fopen(csrcname, "r");
         if (csrc == NULL)
-          csound->Message(csound,Str("WARNING: cannot open csoundrc file %s\n"), csrcname);
+          csound->Message(csound,
+                          Str("WARNING: cannot open csoundrc file %s\n"),
+                          csrcname);
       }
       if (csrc == NULL &&
           (csoundGetEnv(csound, "HOME") != NULL &&
@@ -369,8 +371,8 @@ int csoundCompile(void *csound_, int argc, char **argv)
         csrcname = (char*)
           malloc((size_t) strlen(csoundGetEnv(csound, "HOME")) + (size_t) 11);
         if (csrcname == NULL) {
-          csound->Message(csound,Str(" *** memory allocation failure\n"));
-          longjmp(csound->exitjmp, 1);
+          csound->Die(csound, Str(" *** memory allocation failure"));
+          return -1;
         }
         sprintf(csrcname, "%s%c%s",
                           csoundGetEnv(csound, "HOME"), DIRSEP, ".csoundrc");
@@ -423,17 +425,17 @@ int csoundCompile(void *csound_, int argc, char **argv)
     }
     /* done parsing csoundrc, CSD, and command line options */
     /* if sound file type is still not known, check SFOUTYP */
-    if (O.filetyp < 0) {
+    if (O->filetyp < 0) {
       envoutyp = csoundGetEnv(csound, "SFOUTYP");
       if (envoutyp != NULL && envoutyp[0] != '\0') {
         if (strcmp(envoutyp,"AIFF") == 0)
-          O.filetyp = TYP_AIFF;
+          O->filetyp = TYP_AIFF;
         else if (strcmp(envoutyp,"WAV") == 0 || strcmp(envoutyp,"WAVE") == 0)
-          O.filetyp = TYP_WAV;
+          O->filetyp = TYP_WAV;
         else if (strcmp(envoutyp,"IRCAM") == 0)
-          O.filetyp = TYP_IRCAM;
+          O->filetyp = TYP_IRCAM;
         else if (strcmp(envoutyp, "RAW") == 0)
-          O.filetyp = TYP_RAW;
+          O->filetyp = TYP_RAW;
         else {
           sprintf(errmsg, Str("%s not a recognised SFOUTYP env setting"),
                           envoutyp);
@@ -441,10 +443,10 @@ int csoundCompile(void *csound_, int argc, char **argv)
         }
       }
       else
-        O.filetyp = TYP_WAV;    /* default to WAV if even SFOUTYP is unset */
+        O->filetyp = TYP_WAV;   /* default to WAV if even SFOUTYP is unset */
     }
     /* everything other than a raw sound file has a header */
-    O.sfheader = (O.filetyp == TYP_RAW ? 0 : 1);
+    O->sfheader = (O->filetyp == TYP_RAW ? 0 : 1);
 
     if (scorename==NULL || strlen(scorename)==0) { /* No scorename yet */
       char *p;
@@ -460,35 +462,26 @@ int csoundCompile(void *csound_, int argc, char **argv)
       scorename = sconame;
       add_tmpfile(csound, sconame);     /* IV - Feb 03 2005 */
     }
-    if (O.Linein || O.Midiin || O.FMidiin)
-      O.RTevents = 1;
-    if (O.RTevents || O.sfread)
-      O.ksensing = 1;
-    if (!O.sfheader)
-      O.rewrt_hdr = 0;          /* cannot rewrite header of headerless file */
-    if (O.sr_override || O.kr_override) {
-      if (!O.sr_override || !O.kr_override)
+    if (O->Linein || O->Midiin || O->FMidiin)
+      O->RTevents = 1;
+    if (O->RTevents || O->sfread)
+      O->ksensing = 1;
+    if (!O->sfheader)
+      O->rewrt_hdr = 0;         /* cannot rewrite header of headerless file */
+    if (O->sr_override || O->kr_override) {
+      if (!O->sr_override || !O->kr_override)
         dieu(Str("srate and krate overrides must occur jointly"));
     }
-    if (!O.outformat)                       /* if no audioformat yet  */
-      O.outformat = AE_SHORT;               /*  default to short_ints */
-    O.sfsampsize = sfsampsize(O.outformat);
-    O.informat = O.outformat;       /* informat defaults; */
-    O.insampsiz = O.sfsampsize;     /* resettable by readinheader */
+    if (!O->outformat)                      /* if no audioformat yet  */
+      O->outformat = AE_SHORT;              /*  default to short_ints */
+    O->sfsampsize = sfsampsize(O->outformat);
+    O->informat = O->outformat;     /* informat defaults; */
+    O->insampsiz = O->sfsampsize;   /* resettable by readinheader */
     csound->Message(csound,Str("orchname:  %s\n"), orchname);
     if (scorename != NULL)
       csound->Message(csound,Str("scorename: %s\n"), scorename);
     if (xfilename != NULL)
       csound->Message(csound,Str("xfilename: %s\n"), xfilename);
-#if defined(WIN32) || defined(__EMX__)
-    {
-      if (O.odebug) setvbuf(stdout,0,_IOLBF,0xff);
-    }
-#else
-#if !defined(SYMANTEC) && !defined(mac_classic)
-    if (O.odebug) setlinebuf(stdout);
-#endif
-#endif
     /* IV - Oct 31 2002: moved orchestra compilation here, so that named */
     /* instrument numbers are known at the score read/sort stage */
     create_opcodlst(csound);    /* create initial opcode list if not done yet */
@@ -501,13 +494,13 @@ int csoundCompile(void *csound_, int argc, char **argv)
     if (!csoundYield(csound)) return (-1);
     /* IV - Oct 31 2002: now we can read and sort the score */
     if (scorename == NULL || scorename[0]=='\0') {
-      if (O.RTevents) {
+      if (O->RTevents) {
         csound->Message(csound, Str("realtime performance using dummy "
                                     "numeric scorefile\n"));
         goto perf;
       }
       else {
-        if (keep_tmp) {
+        if (csound->keep_tmp) {
           scorename = "score.srt";
         }
         else {
@@ -536,7 +529,7 @@ int csoundCompile(void *csound_, int argc, char **argv)
       playscore = sortedscore = scorename;            /*   use that one */
     }
     else {
-      if (keep_tmp) {
+      if (csound->keep_tmp) {
         playscore = sortedscore = "score.srt";
       }
       else {
@@ -569,16 +562,16 @@ int csoundCompile(void *csound_, int argc, char **argv)
     }
     csound->Message(csound,Str("\t... done\n"));
     s = playscore;
-    O.playscore = filnamp;
+    O->playscore = filnamp;
     while ((*filnamp++ = *s++));    /* copy sorted score name */
     /* IV - Jan 28 2005 */
     print_benchmark_info(csound, Str("end of score sort"));
  perf:
-    O.filnamsize = filnamp - O.filnamspace;
+    O->filnamsize = filnamp - O->filnamspace;
     /* open MIDI output (moved here from argdecode) */
     {
       extern void openMIDIout(void);
-      if (O.Midioutname != NULL && O.Midioutname[0] != '\0')
+      if (O->Midioutname != NULL && O->Midioutname[0] != '\0')
         openMIDIout();
     }
     return musmon(csound);

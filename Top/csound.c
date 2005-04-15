@@ -287,7 +287,7 @@ extern "C" {
       return returnValue;
     }
     _rtCurOutBufCount = 0;
-    sampsNeeded += O.outbufsamps;
+    sampsNeeded += ((ENVIRON*) csound)->oparms->outbufsamps;
     while (!done && sampsNeeded > 0) {
       done = sensevents(csound);
       if (done) {
@@ -338,22 +338,24 @@ extern "C" {
 
   PUBLIC int csoundGetSampleFormat(void *csound)
   {
-    return O.outformat; /* should we assume input is same as output ? */
+    /* should we assume input is same as output ? */
+    return ((ENVIRON*) csound)->oparms->outformat;
   }
 
   PUBLIC int csoundGetSampleSize(void *csound)
   {
-    return O.sfsampsize; /* should we assume input is same as output ? */
+    /* should we assume input is same as output ? */
+    return ((ENVIRON*) csound)->oparms->sfsampsize;
   }
 
   PUBLIC long csoundGetInputBufferSize(void *csound)
   {
-    return O.inbufsamps;
+    return ((ENVIRON*) csound)->oparms->inbufsamps;
   }
 
   PUBLIC long csoundGetOutputBufferSize(void *csound)
   {
-    return O.outbufsamps;
+    return ((ENVIRON*) csound)->oparms->outbufsamps;
   }
 
   PUBLIC void *csoundGetInputBuffer(void *csound)
@@ -368,12 +370,12 @@ extern "C" {
 
   PUBLIC MYFLT* csoundGetSpin(void *csound)
   {
-    return ((ENVIRON *)csound)->spin_;
+    return ((ENVIRON *)csound)->spin;
   }
 
   PUBLIC MYFLT* csoundGetSpout(void *csound)
   {
-    return ((ENVIRON *)csound)->spout_;
+    return ((ENVIRON *)csound)->spout;
   }
 
   PUBLIC MYFLT csoundGetScoreTime(void *csound)

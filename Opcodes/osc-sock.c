@@ -309,7 +309,7 @@ int osc_recv_set(ENVIRON *csound, OSCRECV *p)
       return csound->InitError(csound, "OSCrecv: no space left for service string (osc_sock_set)");
     if (*p->iservice == SSTRCOD) {
       if (p->STRARG == NULL)
-        strcpy(serviceName, csound->unquote_(currevent->strarg));
+        strcpy(serviceName, csound->unquote_(csound->currevent->strarg));
       else
         strcpy(serviceName, csound->unquote_(p->STRARG));
     }
@@ -928,7 +928,7 @@ int osc_send_set(ENVIRON *csound, OSCSEND *p)
     }
     if (*p->iaddr == SSTRCOD) {
       if (p->STRARG == NULL)
-        strcpy(p->oscAddr, csound->unquote_(currevent->strarg));
+        strcpy(p->oscAddr, csound->unquote_(csound->currevent->strarg));
       else
         strcpy(p->oscAddr, csound->unquote_(p->STRARG));
     }
@@ -943,7 +943,7 @@ int osc_send_set(ENVIRON *csound, OSCSEND *p)
         if ((hostName = malloc(MAX_HOST_LEN)) == NULL)
           return csound->InitError(csound, "OSCsend: no space left for host string");
         if (p->STRARG2 == NULL)
-          strcpy(hostName, csound->unquote_(currevent->strarg));
+          strcpy(hostName, csound->unquote_(csound->currevent->strarg));
         else
           strcpy(hostName, csound->unquote_(p->STRARG2));
       }

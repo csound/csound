@@ -242,7 +242,7 @@ static void adsrset1(LINSEG *p, int midip)
     int         nsegs;
     MYFLT       **argp = p->argums;
     MYFLT       dur;
-    MYFLT       len = curip->p3;
+    MYFLT       len = csound->curip->p3;
     MYFLT       release = *argp[3];
     long        relestim;
 
@@ -250,7 +250,7 @@ static void adsrset1(LINSEG *p, int midip)
     if (len<=FL(0.0)) len = FL(100000.0); /* MIDI case set long */
     len -= release;         /* len is time remaining */
     if (len<FL(0.0)) {         /* Odd case of release time greater than dur */
-      release = curip->p3; len = FL(0.0);
+      release = csound->curip->p3; len = FL(0.0);
     }
     nsegs = 6;          /* DADSR */
     if ((segp = (SEG *) p->auxch.auxp) == NULL ||
@@ -296,7 +296,7 @@ static void adsrset1(LINSEG *p, int midip)
     /* Should use p3 from score, but how.... */
     dur = len;
 /*      printf("    len=%f : sustain=%f\n",len, dur); */
-/*  dur = curip->p3 - *argp[4] - *argp[0] - *argp[1] - *argp[3]; */
+/*  dur = csound->curip->p3 - *argp[4] - *argp[0] - *argp[1] - *argp[3]; */
     segp->nxtpt = *argp[2];
     if ((segp->cnt = (long)(dur * csound->ekr + FL(0.5))) == 0)
       segp->cnt = 0;
@@ -541,7 +541,7 @@ int xdsrset(ENVIRON *csound, EXXPSEG *p)
     XSEG        *segp;
     int nsegs;
     MYFLT       **argp = p->argums;
-    MYFLT       len = curip->p3;
+    MYFLT       len = csound->curip->p3;
     MYFLT   delay = *argp[4], attack = *argp[0], decay = *argp[1];
     MYFLT   sus, dur;
     MYFLT   release = *argp[3];
@@ -549,7 +549,7 @@ int xdsrset(ENVIRON *csound, EXXPSEG *p)
     if (len<FL(0.0)) len = FL(100000.0); /* MIDI case set long */
     len -= release;         /* len is time remaining */
     if (len<FL(0.0)) {         /* Odd case of release time greater than dur */
-      release = curip->p3; len = FL(0.0);
+      release = csound->curip->p3; len = FL(0.0);
     }
     nsegs = 5;          /* DXDSR */
     if ((segp = (XSEG *) p->auxch.auxp) == NULL ||

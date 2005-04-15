@@ -361,7 +361,8 @@ int cleanup(void *csound_)
       for (rngp = orngcnt, n = csound->nchnls; n--; )
         csound->Message(csound,"%9ld", *rngp++);
     }
-    csound->Message(csound,Str("\n%d errors in performance\n"),perferrcnt);
+    csound->Message(csound, Str("\n%d errors in performance\n"),
+                            csound->perferrcnt);
     print_benchmark_info(csound, Str("end of performance"));
     /* close line input (-L) */
     RTclose(csound);
@@ -530,8 +531,8 @@ static int process_score_event(ENVIRON *csound, EVTBLK *evt, int rtEvt)
     int           insno, n;
 
     p = &(csound->sensEvents_state);
-    saved_currevent = currevent;
-    currevent = evt;
+    saved_currevent = csound->currevent;
+    csound->currevent = evt;
     switch (evt->opcod) {                       /* scorevt or Linevt:     */
     case 'e':           /* quit realtime */
     case 'l':
@@ -540,7 +541,7 @@ static int process_score_event(ENVIRON *csound, EVTBLK *evt, int rtEvt)
         xturnoff_now(csound, csound->frstoff);
         csound->frstoff = csound->frstoff->nxtoff;
       }
-      currevent = saved_currevent;
+      csound->currevent = saved_currevent;
       return (evt->opcod == 'l' ? 3 : (evt->opcod == 's' ? 1 : 2));
     case 'q':
       if (evt->p[1] == SSTRCOD && evt->strarg) {    /* IV - Oct 31 2002 */
@@ -548,7 +549,7 @@ static int process_score_event(ENVIRON *csound, EVTBLK *evt, int rtEvt)
           print_score_time(csound, rtEvt);
           csound->Message(csound, Str(" - note deleted. instr %s undefined\n"),
                                   evt->strarg);
-          perferrcnt++;
+          csound->perferrcnt++;
           break;
         }
         csound->Message(csound,Str("Setting instrument %s %s\n"),
@@ -562,7 +563,7 @@ static int process_score_event(ENVIRON *csound, EVTBLK *evt, int rtEvt)
           csound->Message(csound,
                           Str(" - note deleted. instr %d(%d) undefined\n"),
                           insno, maxinsno);
-          perferrcnt++;
+          csound->perferrcnt++;
           break;
         }
         csound->Message(csound,Str("Setting instrument %d %s\n"),
@@ -576,7 +577,7 @@ static int process_score_event(ENVIRON *csound, EVTBLK *evt, int rtEvt)
           print_score_time(csound, rtEvt);
           csound->Message(csound, Str(" - note deleted. instr %s undefined\n"),
                                   evt->strarg);
-          perferrcnt++;
+          csound->perferrcnt++;
           break;
         }
         evt->p[1] = (MYFLT) insno;
@@ -587,7 +588,7 @@ static int process_score_event(ENVIRON *csound, EVTBLK *evt, int rtEvt)
           csound->Message(csound, Str(" - note deleted.  "
                                       "i%d (%s) had %d init errors\n"),
                                   insno, evt->strarg, n);
-          perferrcnt++;
+          csound->perferrcnt++;
         }
       }
       else {                                        /* IV - Oct 31 2002 */
@@ -597,7 +598,7 @@ static int process_score_event(ENVIRON *csound, EVTBLK *evt, int rtEvt)
           csound->Message(csound,
                           Str(" - note deleted. instr %d(%d) undefined\n"),
                           insno, maxinsno);
-          perferrcnt++;
+          csound->perferrcnt++;
         }
         else if (evt->p[1] < FL(0.0))           /* if p1 neg,             */
           infoff(csound, -evt->p[1]);           /*  turnoff any infin cpy */
@@ -609,7 +610,7 @@ static int process_score_event(ENVIRON *csound, EVTBLK *evt, int rtEvt)
             csound->Message(csound,
                             Str(" - note deleted.  i%d had %d init errors\n"),
                             insno, n);
-            perferrcnt++;
+            csound->perferrcnt++;
           }
         }
       }
@@ -618,14 +619,18 @@ static int process_score_event(ENVIRON *csound, EVTBLK *evt, int rtEvt)
       fgens(csound, evt);
       break;
     case 'a':
-      p->curp2 = p->timeOffs + (double) evt->p[2] + (double) evt->p[3];
-      p->curbt = p->beatOffs + (double) evt->p2orig + (double) evt->p3orig;
-      csound->Message(csound,
-                      Str("time advanced %5.3f beats by score request\n"),
-                      evt->p3orig);
+      {
+        int kCnt;
+        kCnt = (int) ((double) csound->global_ekr * (double) evt->p[3] + 0.5);
+        if (kCnt > csound->advanceCnt) {
+          csound->advanceCnt = kCnt;
+          csound->Message(csound, Str("time advanced %5.3f beats "
+                                      "by score request\n"), evt->p3orig);
+        }
+      }
       break;
     }
-    currevent = saved_currevent;
+    csound->currevent = saved_currevent;
     return 0;
 }
 
@@ -674,7 +679,7 @@ static int process_rt_event(ENVIRON *csound, int sensType)
                                   p->curp2);
           csound->Message(csound, Str("instr %d had %d init errors\n"),
                                   insno, n);
-          perferrcnt++;
+          csound->perferrcnt++;
         }
       }
       else {                            /* else midi note OFF:    */
@@ -787,7 +792,7 @@ int sensevents(ENVIRON *csound)
         }
         else if (!(rdscor(e)))      /*    or rd nxt evt from scorfil */
           e->opcod = 'e';
-        currevent = e;
+        csound->currevent = e;
         switch (e->opcod) {
         case 'w':
           if (!O->Beatmode)                   /* Not beatmode: read 'w' */
@@ -808,7 +813,7 @@ int sensevents(ENVIRON *csound)
           csound->Message(csound, Str("error in score.  "
                                       "illegal opcode %c (ASCII %d)\n"),
                                   e->opcod, e->opcod);
-          perferrcnt++;
+          csound->perferrcnt++;
           continue;
         }
       }
@@ -865,7 +870,7 @@ int sensevents(ENVIRON *csound)
       section_amps(csound, 0);
     if (retval == 1) {                        /* if s code,        */
       orcompact(csound);                      /*   rtn inactiv spc */
-      if (actanchor.nxtact == NULL)           /*   if no indef ins */
+      if (csound->actanchor.nxtact == NULL)   /*   if no indef ins */
         rlsmemfiles(csound);                  /*    purge memfiles */
       csound->Message(csound,Str("SECTION %d:\n"), ++sectno);
       goto retest;                            /*   & back for more */
@@ -973,11 +978,11 @@ int insert_score_event(ENVIRON *csound, EVTBLK *evt, double time_ofs,
         /* if event should be handled now: */
         if (allow_now &&
             start_kcnt <= (unsigned long) csound->global_kcounter) {
-          int initErr = csound->inerrcnt_;
-          int perfErr = csound->perferrcnt_;
+          int initErr = csound->inerrcnt;
+          int perfErr = csound->perferrcnt;
           process_score_event(csound, evt, 1);
           /* check for errors */
-          if (csound->inerrcnt_ <= initErr && csound->perferrcnt_ <= perfErr)
+          if (csound->inerrcnt <= initErr && csound->perferrcnt <= perfErr)
             retval = 0;   /* no error */
           goto err_return;
         }

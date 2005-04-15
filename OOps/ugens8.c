@@ -62,7 +62,7 @@ int pvset(ENVIRON *csound, PVOC *p)
       if (p->STRARG!=NULL)
         strcpy(pvfilnam, p->STRARG);                   /*   use that         */
       else
-        strcpy(pvfilnam, currevent->strarg);
+        strcpy(pvfilnam, csound->currevent->strarg);
     }
     else if ((long)*p->ifilno <= strsmax && strsets != NULL &&
              strsets[(long)*p->ifilno])

@@ -1891,7 +1891,7 @@ static FUNC *ftalloc(ENVIRON *csound)
       if (ff->flen != ftp->flen) {          /* if redraw & diff len, */
         mfree(csound, (char *)ftp);         /*   release old space   */
         csound->flist[ff->fno] = NULL;
-        if (actanchor.nxtact != NULL) {     /*   & chk for danger    */
+        if (csound->actanchor.nxtact != NULL) { /*   & chk for danger    */
           csound->Warning(csound, Str("ftable %d relocating due to size "
                                       "change\ncurrently active instruments "
                                       "may find this disturbing"), ff->fno);
@@ -2132,7 +2132,7 @@ static void gen01raw(FUNC *ftp, ENVIRON *csound)
       ftp->flenfrms = ff->flen / p->nchanls; /* ?????????? */
       def           = 1;
     }
-    ftp->gen01args.sample_rate = curr_func_sr;
+    ftp->gen01args.sample_rate = csound->curr_func_sr;
     ftp->cvtbas = LOFACT * p->sr * onedsr;
     if ((adp = p->aiffdata) != NULL) {       /* if file was aiff,    */
       csound->Message(csound, Str("AIFF case\n"));
@@ -2347,7 +2347,8 @@ int ftload(ENVIRON *csound, FTLOAD *p)
     if ((nargs = p->INOCOUNT - 2) <= 0) goto err2;
 
     if (*p->ifilno == SSTRCOD) { /* if char string name given */
-      if (p->STRARG == NULL) strcpy(filename,unquote(currevent->strarg));
+      if (p->STRARG == NULL)
+        strcpy(filename, unquote(csound->currevent->strarg));
       else strcpy(filename,unquote(p->STRARG));    /* unquote it,  else use */
     }
     if (*p->iflag <= 0) {
@@ -2480,7 +2481,8 @@ int ftsave(ENVIRON *csound, FTLOAD *p)
     if ((nargs = p->INOCOUNT - 2) <= 0) goto err2;
 
     if (*p->ifilno == SSTRCOD) { /* if char string name given */
-      if (p->STRARG == NULL) strcpy(filename,unquote(currevent->strarg));
+      if (p->STRARG == NULL)
+        strcpy(filename, unquote(csound->currevent->strarg));
       else strcpy(filename,unquote(p->STRARG));    /* unquote it,  else use */
     }
     if (*p->iflag <= 0) {

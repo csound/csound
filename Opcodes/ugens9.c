@@ -42,7 +42,7 @@ static int cvset(ENVIRON *csound, CONVOLVE *p)
 
     if (*p->ifilno == SSTRCOD) {                    /* if strg name given */
       if (p->STRARG == NULL)
-        strcpy(cvfilnam, csound->unquote_(currevent->strarg));
+        strcpy(cvfilnam, csound->unquote_(csound->currevent->strarg));
       else
         strcpy(cvfilnam, csound->unquote_(p->STRARG));
     }
@@ -372,7 +372,7 @@ static int pconvset(ENVIRON *csound, PCONVOLVE *p)
     IRfile.skiptime = FL(0.0);
     if (*p->ifilno == SSTRCOD) {                /* if char string name given */
       if (p->STRARG == NULL)
-        strcpy(IRfile.sfname, csound->unquote_(currevent->strarg));
+        strcpy(IRfile.sfname, csound->unquote_(csound->currevent->strarg));
       else
         strcpy(IRfile.sfname, csound->unquote_(p->STRARG));
     }

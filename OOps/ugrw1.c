@@ -2758,7 +2758,7 @@ int zacl(ENVIRON *csound, ZACL *p)
 int timek(ENVIRON *csound, RDTIME *p)
 {
     /* Read the global variable kcounter and turn it into a float.   */
-    *p->rslt = (MYFLT) kcounter;
+    *p->rslt = (MYFLT) csound->kcounter;
     return OK;
 }
 
@@ -2767,7 +2767,7 @@ int timesr(ENVIRON *csound, RDTIME *p)
 {
     /* Read the global variable kcounter divide it by the k rate.    */
 
-    *p->rslt = (MYFLT) kcounter * onedkr ;
+    *p->rslt = (MYFLT) csound->kcounter * onedkr ;
     return OK;
 }
 
@@ -2782,7 +2782,7 @@ int timesr(ENVIRON *csound, RDTIME *p)
  */
 int instimset(ENVIRON *csound, RDTIME *p)
 {
-    p->instartk = kcounter;
+    p->instartk = csound->kcounter;
     *p->rslt = FL(0.0);
     return OK;
 }
@@ -2790,7 +2790,7 @@ int instimset(ENVIRON *csound, RDTIME *p)
 /*  void instimset1(RDTIME *p) */
 /*  { */
 /*      printf(Str("Deprecated opcode instime[ks].  Use timeinst[ks]\n")); */
-/*      p->instartk = kcounter; */
+/*      p->instartk = csound->kcounter; */
 /*      *p->rslt = FL(0.0); */
 /*  } */
 
@@ -2801,7 +2801,7 @@ int instimset(ENVIRON *csound, RDTIME *p)
  */
 int instimek(ENVIRON *csound, RDTIME *p)
 {
-    *p->rslt = (MYFLT) (kcounter - p->instartk);
+    *p->rslt = (MYFLT) (csound->kcounter - p->instartk);
     return OK;
 }
 
@@ -2812,7 +2812,7 @@ int instimek(ENVIRON *csound, RDTIME *p)
  */
 int instimes(ENVIRON *csound, RDTIME *p)
 {
-    *p->rslt = (MYFLT) (kcounter - p->instartk) * onedkr ;
+    *p->rslt = (MYFLT) (csound->kcounter - p->instartk) * onedkr ;
     return OK;
 }
 
@@ -2842,7 +2842,7 @@ int printkset(ENVIRON *csound, PRINTK *p)
     /* Set the initime variable - how many seconds in absolute time
      * when this instance of the instrument was initialised.     */
 
-    p->initime = (MYFLT) kcounter * onedkr;
+    p->initime = (MYFLT) csound->kcounter * onedkr;
 
     /* Set cysofar to - 1 so that on the first call to printk - when
      * cycle = 0, then there will be a print cycle.     */
@@ -2865,7 +2865,7 @@ int printk(ENVIRON *csound, PRINTK *p)
 
     /* Initialise variables.   */
 
-    timel =     ((MYFLT) kcounter * onedkr) - p->initime;
+    timel =     ((MYFLT) csound->kcounter * onedkr) - p->initime;
 
     /* Divide the current elapsed time by the cycle time and round down to
      * an integer.
@@ -2881,7 +2881,7 @@ int printk(ENVIRON *csound, PRINTK *p)
          * printv() in disprep.c.
          */
         printf(" i%4d ", p->h.insdshead->insno);
-        printf(Str("time %11.5f:"), (MYFLT) kcounter * onedkr);
+        printf(Str("time %11.5f:"), (MYFLT) csound->kcounter * onedkr);
         /* Print spaces and then the value we want to read.      */
         spcount = p->pspace + 1;
         do {
@@ -2914,7 +2914,7 @@ int printksset(ENVIRON *csound, PRINTKS *p)
     /* Set the initime variable - how many seconds in absolute time
      * when this instance of the instrument was initialised.     */
 
-    p->initime = (MYFLT) kcounter * onedkr;
+    p->initime = (MYFLT) csound->kcounter * onedkr;
 
     /* Set cysofar to - 1 so that on the first call to printk - when
      * cycle = 0, then there will be a print cycle.    */
@@ -2934,14 +2934,15 @@ int printksset(ENVIRON *csound, PRINTKS *p)
      * program (under DJGPP at least) seems to crash elsewhere if
      * the first parameter is "".     */
 
-    if (*p->ifilcod != SSTRCOD && p->STRARG==NULL && currevent->strarg==NULL) {
+    if (*p->ifilcod != SSTRCOD && p->STRARG == NULL &&
+        csound->currevent->strarg == NULL) {
       return
         csound->InitError(csound,
                           Str("printks param 1 was not a \"quoted string\""));
     }
     else {
       sarg = p->STRARG;
-      if (sarg==NULL) sarg = currevent->strarg;
+      if (sarg==NULL) sarg = csound->currevent->strarg;
       memset(p->txtstring, 0, 8192);   /* This line from matt ingalls */
       sdest = p->txtstring;
       /* Copy the string to the storage place in PRINTKS.
@@ -3146,7 +3147,7 @@ int printks(ENVIRON *csound, PRINTKS *p)
 
     /*-----------------------------------*/
 
-    timel =     ((MYFLT) kcounter * onedkr) - p->initime;
+    timel =     ((MYFLT) csound->kcounter * onedkr) - p->initime;
 
     /* Divide the current elapsed time by the cycle time and round down to
      * an integer.     */
@@ -3295,7 +3296,7 @@ int inz(ENVIRON *csound, IOZ *p)
     long indx, i;
     int nsmps = csound->ksmps;
 
-    readloc = spin;
+    readloc = csound->spin;
     /* Check to see this index is within the limits of za space.     */
     indx = (long) *p->ndx;
     if (indx > zalast) {
@@ -3309,7 +3310,7 @@ int inz(ENVIRON *csound, IOZ *p)
       writeloc = zastart + (indx * csound->ksmps);
       for (i=0; i<csound->nchnls; i++)
         for (nsmps=0; nsmps<csound->ksmps; nsmps++)
-          *writeloc++ = spin[i*csound->ksmps+nsmps];
+          *writeloc++ = csound->spin[i*csound->ksmps+nsmps];
     }
     return OK;
 }
@@ -3324,7 +3325,7 @@ int outz(ENVIRON *csound, IOZ *p)
 
     /*-----------------------------------*/
 
-    writeloc = spout;
+    writeloc = csound->spout;
 
     /* Check to see this index is within the limits of za space.    */
     indx = (long) *p->ndx;
@@ -3336,16 +3337,16 @@ int outz(ENVIRON *csound, IOZ *p)
     }
     /* Now read from the array in za space and write to the output. */
     readloc = zastart + (indx * csound->ksmps);
-    if (!spoutactive) {
+    if (!csound->spoutactive) {
       for (i=0; i<csound->nchnls; i++)
         for (nsmps=0; nsmps<csound->ksmps; nsmps++)
-          spout[i*csound->ksmps+nsmps] = *readloc++;
-      spoutactive = 1;
+          csound->spout[i*csound->ksmps+nsmps] = *readloc++;
+      csound->spoutactive = 1;
     }
     else {
       for (i=0; i<csound->nchnls; i++)
         for (nsmps=0; nsmps<csound->ksmps; nsmps++)
-          spout[i*csound->ksmps+nsmps] += *readloc++;
+          csound->spout[i*csound->ksmps+nsmps] += *readloc++;
     }
     return OK;
 }

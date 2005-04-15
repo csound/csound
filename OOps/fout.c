@@ -98,7 +98,7 @@ int outfile_set(ENVIRON *csound, OUTFILE *p)
       int j;
       char fname[FILENAME_MAX];
       /*extern char *unquote(char *name); */
-      if (p->STRARG == NULL) strcpy(fname,unquote(currevent->strarg));
+      if (p->STRARG == NULL) strcpy(fname,unquote(csound->currevent->strarg));
       else strcpy(fname, unquote(p->STRARG));
       for (j=0; j<file_num; j++) {
         if (!strcmp(file_opened[j].name,fname)) {
@@ -172,7 +172,7 @@ int koutfile_set(ENVIRON *csound, KOUTFILE *p)
       int j;
       char fname[FILENAME_MAX];
       /*extern char *unquote(char *name); */
-      if (p->STRARG == NULL) strcpy(fname,unquote(currevent->strarg)); /*gab B1*/
+      if (p->STRARG == NULL) strcpy(fname,unquote(csound->currevent->strarg));
       else strcpy(fname, unquote(p->STRARG));
       for (j=0; j<file_num; j++) {
         if (!strcmp(file_opened[j].name,fname)) {
@@ -231,7 +231,7 @@ int koutfile_set(ENVIRON *csound, KOUTFILE *p)
 /* syntax:
         ihandle fiopen "filename" [, iascii]
 */
-int fiopen(ENVIRON *csound, FIOPEN *p)          /* open a file and return its handle  */
+int fiopen(ENVIRON *csound, FIOPEN *p)  /* open a file and return its handle  */
 {                              /* the handle is simply a stack index */
     char fname[FILENAME_MAX];
     char *omodes[] = {"w", "r", "wb", "rb"};
@@ -275,7 +275,7 @@ int ioutfile_set(ENVIRON *csound, IOUTFILE *p)
       switch ((int) *p->iflag) {
       case 1: { /* with prefix (i-statement, p1, p2 and p3) */
         int p1 = (int) p->h.insdshead->insno;
-        double p2 =   (double) kcounter * onedkr;
+        double p2 =   (double) csound->kcounter * onedkr;
         double p3 = p->h.insdshead->p3;
         if (p3 > FL(0.0))
           fprintf(rfil, "i %i %f %f ", p1, p2, p3);
@@ -284,10 +284,10 @@ int ioutfile_set(ENVIRON *csound, IOUTFILE *p)
       }
       break;
       case 2: /* with prefix (start at 0 time) */
-        if (csound->fout_kreset == 0) csound->fout_kreset = kcounter;
+        if (csound->fout_kreset == 0) csound->fout_kreset = csound->kcounter;
         {
           int p1 = (int) p->h.insdshead->insno;
-          double p2= (double) (kcounter - csound->fout_kreset) * onedkr;
+          double p2= (double) (csound->kcounter - csound->fout_kreset) * onedkr;
           double p3 = p->h.insdshead->p3;
           if (p3 > FL(0.0))
             fprintf(rfil, "i %i %f %f ", p1, p2, p3);
@@ -318,11 +318,11 @@ int ioutfile_set_r(ENVIRON *csound, IOUTFILE_R *p)
     int *xtra;
     if (*(xtra = &(p->h.insdshead->xtratim)) < 1 )  /* gab-a5 revised */
       *xtra = 1;
-    p->counter =  kcounter;
+    p->counter =  csound->kcounter;
     p->done = 1;
     if (*p->iflag==2)
       if (csound->fout_kreset == 0)
-        csound->fout_kreset = kcounter;
+        csound->fout_kreset = csound->kcounter;
     return OK;
 }
 
@@ -345,7 +345,7 @@ int ioutfile_r(ENVIRON *csound, IOUTFILE_R *p)
           case 1:       {       /* whith prefix (i-statement, p1, p2 and p3) */
             int p1 = (int) p->h.insdshead->insno;
             double p2 = p->counter * onedkr;
-            double p3 = (double) (kcounter-p->counter) * onedkr;
+            double p3 = (double) (csound->kcounter-p->counter) * onedkr;
             fprintf(rfil, "i %i %f %f ", p1, p2, p3);
           }
             break;
@@ -353,7 +353,7 @@ int ioutfile_r(ENVIRON *csound, IOUTFILE_R *p)
             {
               int p1 = (int) p->h.insdshead->insno;
               double p2 = (p->counter - csound->fout_kreset) *onedkr;
-              double p3 = (double) (kcounter-p->counter) * onedkr;
+              double p3 = (double) (csound->kcounter-p->counter) * onedkr;
               fprintf(rfil, "i %i %f %f ", p1, p2, p3);
             }
             break;
@@ -386,7 +386,7 @@ int infile_set(ENVIRON *csound, INFILE *p)
       int j;
       /*extern char *unquote(char *name); */
       char fname[FILENAME_MAX];
-      if (p->STRARG == NULL) strcpy(fname,unquote(currevent->strarg));
+      if (p->STRARG == NULL) strcpy(fname,unquote(csound->currevent->strarg));
       else strcpy(fname, unquote(p->STRARG));
       for (j=0; j<file_num; j++) {
         if (!strcmp(file_opened[j].name,fname)) {
@@ -460,7 +460,7 @@ int kinfile_set(ENVIRON *csound, KINFILE *p)
       int j;
       /*extern char *unquote(char *name); */
       char fname[FILENAME_MAX];
-      if (p->STRARG == NULL) strcpy(fname,unquote(currevent->strarg)); /*gab B1*/
+      if (p->STRARG == NULL) strcpy(fname,unquote(csound->currevent->strarg));
       else strcpy(fname, unquote(p->STRARG));
       for (j=0; j<file_num || file_opened[j].name == NULL; j++) {
         if (!strcmp(file_opened[j].name,fname)) {
@@ -530,7 +530,7 @@ int i_infile(ENVIRON *csound, I_INFILE *p)
       int idx;
       /*extern char *unquote(char *name); */
 
-      if (p->STRARG == NULL) strcpy(fname,unquote(currevent->strarg));
+      if (p->STRARG == NULL) strcpy(fname,unquote(csound->currevent->strarg));
       else strcpy(fname, unquote(p->STRARG));
       for (j=0; j<file_num || file_opened[j].name == NULL; j++) {
         if (!strcmp(file_opened[j].name,fname)) {
@@ -663,13 +663,13 @@ int fprintf_set(ENVIRON *csound, FPRINTF *p)
     char *sarg = p->STRARG2;
     char *sdest = p->txtstring;
 
-    memset(p->txtstring, 0, 8192); /* *** Nasty to have exposed constant in code */
+    memset(p->txtstring, 0, 8192); /* Nasty to have exposed constant in code */
 
     if (*p->fname == SSTRCOD) { /* if char string name given */
       int j;
       char fname[FILENAME_MAX];
       /*extern char *unquote(char *name); */
-      if (p->STRARG == NULL) strcpy(fname,unquote(currevent->strarg));
+      if (p->STRARG == NULL) strcpy(fname,unquote(csound->currevent->strarg));
       else strcpy(fname, unquote(p->STRARG));
       for (j=0; j<= file_num; j++) {
         if (!strcmp(file_opened[j].name,fname)) {
@@ -719,7 +719,8 @@ int fprintf_set(ENVIRON *csound, FPRINTF *p)
       if ((temp  == '^') && (tempn != '^')) {
         *sdest++ = 0x1B; /* ESC */
       }
-      /* Look for a double caret and insert a single caret - stepping forward  one */
+      /* Look for a double caret and insert a single caret
+         - stepping forward one */
       else if ((temp  == '^') && (tempn == '^')) {
         *sdest++ = '^';
         sarg++;
@@ -730,7 +731,8 @@ int fprintf_set(ENVIRON *csound, FPRINTF *p)
         *sdest++ = 0x1B; /* ESC */
         *sdest++ = '[';
       }
-      /* Look for a double tilde and insert a tilde caret - stepping forward one.  */
+      /* Look for a double tilde and insert a tilde caret
+         - stepping forward one. */
       else if ((temp  == '~') && (tempn == '~')) {
         *sdest++ = '~';
         sarg++;
@@ -768,7 +770,8 @@ int fprintf_set(ENVIRON *csound, FPRINTF *p)
           break;
         }
       }
-      else if (temp == '%') { /* an extra option to specify tab and return as %t and %r*/
+      else if (temp == '%') {
+        /* an extra option to specify tab and return as %t and %r */
         switch (tempn) {
         case 'r': case 'R':
           *sdest++ = '\r';
