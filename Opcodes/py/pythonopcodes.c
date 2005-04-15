@@ -352,7 +352,7 @@ OENTRY oentries[] = {
 * Called by Csound to obtain the size of
 * the table of OENTRY structures defined in this shared library.
 */
-int opcode_size()
+long opcode_size(void)
 {
     return sizeof(oentries);
 }
