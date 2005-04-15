@@ -58,7 +58,7 @@ extern int    warped;
 static int    warpout = 0;
 
 
-void cscoreRESET(void)
+void cscoreRESET(ENVIRON *csound)
 {
     nxtfree   = NULL;
     nxtevt    = NULL;
@@ -71,7 +71,7 @@ void cscoreRESET(void)
       SPACE *p = &spaceanchor;
       SPACE *n;
       while ((n = p->nxtspace)!=NULL) {
-        if (p != &spaceanchor) mfree(&cenviron, n);
+        if (p != &spaceanchor) mfree(csound, n);
         p = n;
       }
     }

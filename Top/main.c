@@ -607,36 +607,36 @@ int csoundMain(void *csound_, int argc, char **argv)
 
 void mainRESET(ENVIRON *p)
 {
-    void adsynRESET(void);
-    void cscoreRESET(void);
-    void disprepRESET(void);
+    void adsynRESET(ENVIRON *);
+    void cscoreRESET(ENVIRON *);
+    void disprepRESET(ENVIRON *);
     void expRESET(ENVIRON *);
     void ftRESET(ENVIRON *);
     void insertRESET(ENVIRON *);
-    void lpcRESET(void);
-    void memRESET(void*);
-    void musRESET(void);
+    void lpcRESET(ENVIRON *);
+    void memRESET(ENVIRON *);
+    void musRESET(ENVIRON *);
     void oloadRESET(ENVIRON *);
-    void orchRESET(void);
-    void soundinRESET(void);
-    void tranRESET(void);
+    void orchRESET(ENVIRON *);
+    void soundinRESET(ENVIRON *);
+    void tranRESET(ENVIRON *);
 
 #if defined(USE_FLTK) && defined(never)        /* IV - Nov 30 2002 */
-    void widgetRESET(void);     /* N.B. this is not used yet, */
+    void widgetRESET(ENVIRON*); /* N.B. this is not used yet, */
                                 /* because it was not fully tested, */
-    widgetRESET();              /* and may crash on some systems */
+    widgetRESET(p);             /* and may crash on some systems */
 #endif
-    cscoreRESET();
+    cscoreRESET(p);
     expRESET(p);
     ftRESET(p);
-    disprepRESET();
+    disprepRESET(p);
     insertRESET(p);
-    musRESET();
-    tranRESET();
-    orchRESET();
-    soundinRESET();
-    adsynRESET();
-    lpcRESET();
+    musRESET(p);
+    tranRESET(p);
+    orchRESET(p);
+    soundinRESET(p);
+    adsynRESET(p);
+    lpcRESET(p);
     while (reset_list) {
       RESETTER *x = reset_list->next;
       (*reset_list->fn)(p);

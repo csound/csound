@@ -1584,7 +1584,7 @@ char * GetString(MYFLT pname, char *t)
 }
 
 
-extern "C" void widgetRESET(void)
+extern "C" void widgetRESET(ENVIRON *csound)
 {
   int j;
   for (j = allocatedStrings.size()-1; j >=0; j--)  {

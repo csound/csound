@@ -21,16 +21,14 @@
     02111-1307 USA
 */
 
-#include "cs.h"                 /*                              UGENS3.C        */
+#include "cs.h"                 /*                              UGENS3.C    */
 #include "ugens3.h"
 #include <math.h>
 #include "oload.h"
 
-extern void turnoff(void);
-
 static short *isintab = NULL;
 
-void adsynRESET(void)
+void adsynRESET(ENVIRON *csound)
 {
     isintab = NULL;   /* hope this is enough... */
 }
