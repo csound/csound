@@ -39,9 +39,6 @@
 extern struct Transport transport;
 extern Boolean displayText;
 
-extern char sfdir_path[];
-extern char sadir_path[];
-extern char ssdir_path[];
 extern char saved_scorename[];
 extern unsigned char mytitle[];
 extern Boolean util_perf;
@@ -51,11 +48,6 @@ static char listing_file[PATH_LEN];
 static int  vbuf;
 static int csNGraphs;
 static int rescale24 = 0;
-#endif
-
-#ifdef LINUX
-#include <unistd.h>
-extern void openMIDIout(void);
 #endif
 
 #define FIND(MSG)   if (*s == '\0')  \
@@ -161,11 +153,6 @@ static const char *shortUsageList[] = {
 #endif
 #ifdef mills_macintosh
   "_____________Macintosh Command Line Flags_________________",
-  "-X fnam\t Sound File Directory",
-  "-q fnam\t Sound Sample-In Directory",
-#ifdef never
-  "-Q fnam\t Analysis Directory",
-#endif
   "-V N\t Number of chars in screen buffer for output window",
   "-E N\t Number of tables in graphics window",
   "-p\t\t Play after rendering",
@@ -199,10 +186,12 @@ void print_short_usage(void *csound)
 
 void usage(void)
 {
-  csoundMessage(&cenviron, Str("Usage:\tcsound [-flags] orchfile scorefile\n"));
-  csoundMessage(&cenviron, Str("Legal flags are:\n"));
-  print_short_usage(&cenviron);
-  longjmp(cenviron.exitjmp,1);
+  ENVIRON *csound = &cenviron;
+
+  csound->Message(csound, Str("Usage:\tcsound [-flags] orchfile scorefile\n"));
+  csound->Message(csound, Str("Legal flags are:\n"));
+  print_short_usage(csound);
+  longjmp(csound->exitjmp, 1);
 }
 
 static void longusage(void *csound)
@@ -278,9 +267,6 @@ static void longusage(void *csound)
              "\n--graphs=N\tNumber of tables in graphics window\n"
              "--pollrate=N\n"
              "--play-on-end\t Play after rendering\n"
-             "--sample-directory=FNAME\n"
-             "--analysis-directory=FNAME\n"
-             "--sound_directory=FNAME\n"
              "--screen-buffer=N\tNumber of chars in screen buffer for "
              "output window\n"
              "--save-midi\tRecord and Save MIDI input to a file\n"
@@ -298,7 +284,7 @@ void dieu(char *s)
     ENVIRON *csound = &cenviron;
     csound->Message(csound,Str("Csound Command ERROR:\t%s\n"), s);
     usage();
-    longjmp(cenviron.exitjmp,1);
+    longjmp(csound->exitjmp, 1);
 }
 
 typedef struct {
@@ -465,18 +451,6 @@ static int decode_long(void *csound, char *s, int argc, char **argv)
   }
   else if (!(strcmp(s, "play-on-end"))) {
     SetPlayOnFinish(TRUE);
-    return 1;
-  }
-  else if (!(strncmp (s, "sample-directory=", 17))) {
-    s += 17;
-    if (*s == '\0') dieu(Str("no sound sample directory name")) ;
-    strcpy(ssdir_path,s);
-    return 1;
-  }
-  else if (!(strncmp (s, "analysis-directory=", 19))) {
-    s += 19;
-    if (*s == '\0') dieu(Str("no analysis directory name")) ;
-    strcpy(sadir_path,s);
     return 1;
   }
 #endif
@@ -743,15 +717,6 @@ static int decode_long(void *csound, char *s, int argc, char **argv)
     xfilename = s;
     return 1;
   }
-#ifdef mills_macintosh
-  /* -X fnam  Sound File Directory */
-  else if (!(strncmp(s, "sound_directory=", 16))) {
-    s += 16;
-    if (*s=='\0') dieu(Str("no sound file directory name"));
-    strcpy(sadir_path,s);
-    return 1;
-  }
-#endif
   else if (!(strcmp(s, "wave"))) {
     O.sfheader = 1;
     O.filetyp = TYP_WAV;      /* WAV output request */
@@ -886,23 +851,6 @@ int argdecode(void *csound, int argc, char **argv_)
           /********** commandline flags only for mac version***************/
           /*********************  matt 5/26/96 ****************************/
 #ifdef mills_macintosh
-        case 'q':
-          FIND(Str("no sound sample directory name")) ;
-          strcpy(ssdir_path, s);
-          s += (int) strlen(s);
-          break;
-#ifdef never
-        case 'Q':
-          FIND(Str("no analysis directory name")) ;
-          strcpy(sadir_path, s);
-          s += (int) strlen(s);
-          break;
-#endif
-        case 'X':
-          FIND(Str("no sound file directory name"));
-          strcpy(sfdir_path, s);
-          s += (int) strlen(s);
-          break;
         case 'V':
           FIND(Str("no screen buffer size"));
           sscanf(s,"%d",&vbuf);
@@ -1144,7 +1092,7 @@ int argdecode(void *csound, int argc, char **argv_)
             if (*s != '\0') {
               if (isdigit(*s)) full = *s++ - '0';
             }
-            create_opcodlst(&cenviron);
+            create_opcodlst(csound);
             if (csoundInitModules(csound) != 0)
               longjmp(((ENVIRON*) csound)->exitjmp, 1);
             list_opcodes(full);

@@ -30,9 +30,6 @@
 #include "soundio.h"
 #include "diskin.h"
 #include "oload.h" /* for strset */
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 #include <math.h>
 
 /* RWD 5:2001 added 24 bit file support */

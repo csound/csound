@@ -34,10 +34,6 @@
 #  include <malloc.h>
 #endif
 
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-
 #if defined(mac_classic) || defined(SYMANTEC) || defined(__FreeBSD__) || defined(__NetBSD__)
 #  define READMODE "rb"
 #  define WRITEMODE "wb+"
@@ -51,10 +47,6 @@
 
 #include "cs.h"
 #include "pvoc.h"
-
-#ifdef HAVE_FCNTL_H
-# include <fcntl.h>
-#endif
 
 /* static variables */
 static PVSTRUCT tmphdr;         /* scratch space for pre-load */

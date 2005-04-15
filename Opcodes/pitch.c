@@ -1706,9 +1706,6 @@ int Foscaa(ENVIRON *csound, XOSC *p)
 #ifdef HAVE_TERMIOS_H
 # include <termios.h>
 #endif
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 
 #ifdef HAVE_TERMIOS_H
 struct termios tty;

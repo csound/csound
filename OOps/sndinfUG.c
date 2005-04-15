@@ -30,9 +30,6 @@
 #include "oload.h" /* for strset */
 #include "pvoc.h"
 #include "pvfileio.h"
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 #include <sndfile.h>
 
 typedef struct {         /* struct for passing data to/from sfheader routines */

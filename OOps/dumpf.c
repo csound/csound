@@ -24,11 +24,6 @@
 #include "cs.h"                                      /*  DUMPF.C  */
 #include "dumpf.h"
 #include <ctype.h>
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-
-extern int  openout(char *, int);
 
 int kdmpset(ENVIRON *csound, KDUMP *p)
 {
@@ -250,7 +245,6 @@ int kdump4(ENVIRON *csound, KDUMP4 *p)
 /* ******************************************************************** */
 /* ******** READK and friends; new code 1999 Feb 14 by JPff    ******** */
 /* ******************************************************************** */
-extern int openin(char*);
 
 int krdset(ENVIRON *csound, KREAD *p)
 {

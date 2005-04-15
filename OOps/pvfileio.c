@@ -54,14 +54,6 @@
 */
 
 #include "cs.h"
-#include <stdio.h>
-#include <stdlib.h>
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-#ifdef HAVE_FCNTL_H
-# include <fcntl.h>
-#endif
 #ifndef mac_classic
 #ifdef HAVE_SYS_TYPES_H
 # include <sys/types.h>
