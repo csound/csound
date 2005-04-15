@@ -1,3 +1,12 @@
+2005-04-14  Michael Gogins <gogins@pipeline.com>
+	* Changed CsoundVST to print log messages to stderr (used to be
+	stdout) by default.
+	* Added option to CsoundVST to automatically open the output
+	soundfile for editing or listening at end of performance.
+	* Upgraded Windows installer to set OPCODEDIR, RAWWAVE_PATH,
+	PYTHONPATH, and PATH environment variables 
+	(uninstall does not work for PYTHONPATH).
+	
 2005-04-12  John ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/wave-terrain.c (wtPerf): Improved phase accumulation problem
