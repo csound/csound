@@ -54,7 +54,7 @@ int imidic7(ENVIRON *csound, MIDICTL2 *p)
     if ((ctlno = (long)*p->ictlno) < 0 || ctlno > 127)
       return csound->InitError(csound, Str("illegal controller number"));
     else {
-      value = (MYFLT)(curip->m_chnbp->ctl_val[ctlno] * oneTOf7bit);
+      value = (MYFLT)(csound->curip->m_chnbp->ctl_val[ctlno] * oneTOf7bit);
       if (*p->ifn > 0) {
         if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
           return NOTOK; /* if valid ftable, use value as index   */
@@ -110,8 +110,8 @@ int imidic14(ENVIRON *csound, MIDICTL3 *p)
         (ctlno2 = (long)*p->ictlno2) < 0 || ctlno2 > 127 )
       return csound->InitError(csound, Str("illegal controller number"));
     else {
-      value = (MYFLT) ((curip->m_chnbp->ctl_val[ctlno1] * 128 +
-                        curip->m_chnbp->ctl_val[ctlno2])
+      value = (MYFLT) ((csound->curip->m_chnbp->ctl_val[ctlno1] * 128 +
+                        csound->curip->m_chnbp->ctl_val[ctlno2])
                        * oneTOf14bit);
       if (*p->ifn > 0) {
         /* linear interpolation routine */
@@ -208,9 +208,9 @@ int imidic21(ENVIRON *csound, MIDICTL4 *p)
         (ctlno3 = (long)*p->ictlno3) < 0 || ctlno3 > 127)
       return csound->InitError(csound, Str("illegal controller number"));
     else {
-      value = (MYFLT) ((curip->m_chnbp->ctl_val[ctlno1] * 16384 +
-                        curip->m_chnbp->ctl_val[ctlno2] * 128   +
-                        curip->m_chnbp->ctl_val[ctlno3])
+      value = (MYFLT) ((csound->curip->m_chnbp->ctl_val[ctlno1] * 16384 +
+                        csound->curip->m_chnbp->ctl_val[ctlno2] * 128   +
+                        csound->curip->m_chnbp->ctl_val[ctlno3])
                        * oneTOf21bit);
       if (*p->ifn > 0) {
         /* linear interpolation routine */

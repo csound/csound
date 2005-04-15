@@ -64,7 +64,6 @@ extern  void    rdorchfile(ENVIRON*);
 extern  int     getopnum(char *);
 
 extern  void    (*spinrecv)(void*), (*spoutran)(void*);
-extern  void    (*nzerotran)(void*, long);
 extern  void    spoutsf(void*);
 
 #define KTYPE   1
@@ -75,11 +74,6 @@ extern  void    spoutsf(void*);
 #define Wfloats (sizeof(SPECDAT)/sizeof(MYFLT))
 #define PTYPE   5
 #define Pfloats (sizeof(PVSDAT) / sizeof(MYFLT))
-
-void csoundDefaultZeroTran(void *csound, long count)
-{
-    csound = csound; count = count;
-}
 
 void csoundDefaultSpinRecv(void *csound)
 {
@@ -93,7 +87,6 @@ void csoundDefaultSpouTran(void *csound)
 
 void tranRESET(ENVIRON *csound)
 {
-    nzerotran = csoundDefaultZeroTran;
     spinrecv = csoundDefaultSpinRecv;
     spoutran = spoutsf;
     gblsize     = GNAMES;

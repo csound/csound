@@ -29,7 +29,8 @@ int kdmpset(ENVIRON *csound, KDUMP *p)
 {
     if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
       char soundoname[1024];
-      if (p->STRARG == NULL) strcpy(soundoname,unquote(currevent->strarg));
+      if (p->STRARG == NULL)
+        strcpy(soundoname, unquote(csound->currevent->strarg));
       else strcpy(soundoname,unquote(p->STRARG));    /* unquote it, else use */
 
       if ((p->fdch.fdc = openout(soundoname,1)) < 0) {
@@ -56,7 +57,8 @@ int kdmp2set(ENVIRON *csound, KDUMP2 *p)
 {
     if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
       char soundoname[1024];
-      if (p->STRARG == NULL) strcpy(soundoname,unquote(currevent->strarg));
+      if (p->STRARG == NULL)
+        strcpy(soundoname, unquote(csound->currevent->strarg));
       else strcpy(soundoname,unquote(p->STRARG));    /* unquote it, else use */
 
       if ((p->fdch.fdc = openout(soundoname,1)) < 0) {
@@ -83,7 +85,8 @@ int kdmp3set(ENVIRON *csound, KDUMP3 *p)
 {
     if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
       char soundoname[1024];
-      if (p->STRARG == NULL) strcpy(soundoname,unquote(currevent->strarg));
+      if (p->STRARG == NULL)
+        strcpy(soundoname, unquote(csound->currevent->strarg));
       else strcpy(soundoname,unquote(p->STRARG));    /* unquote it, else use */
 
       if ((p->fdch.fdc = openout(soundoname,1)) < 0) {
@@ -110,7 +113,8 @@ int kdmp4set(ENVIRON *csound, KDUMP4 *p)
 {
     if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
       char soundoname[1024];
-      if (p->STRARG == NULL) strcpy(soundoname,unquote(currevent->strarg));
+      if (p->STRARG == NULL)
+        strcpy(soundoname, unquote(csound->currevent->strarg));
       else strcpy(soundoname,unquote(p->STRARG));    /* unquote it, else use */
 
       if ((p->fdch.fdc = openout(soundoname,1)) < 0) {
@@ -250,7 +254,8 @@ int krdset(ENVIRON *csound, KREAD *p)
 {
     if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
       char soundiname[1024];
-      if (p->STRARG == NULL) strcpy(soundiname,unquote(currevent->strarg));
+      if (p->STRARG == NULL)
+        strcpy(soundiname, unquote(csound->currevent->strarg));
       else strcpy(soundiname,unquote(p->STRARG));    /* unquote it, else use */
 
       if ((p->fdch.fdc = openin(soundiname)) < 0) {
@@ -280,7 +285,8 @@ int krd2set(ENVIRON *csound, KREAD2 *p)
 {
     if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
       char soundiname[1024];
-      if (p->STRARG == NULL) strcpy(soundiname,unquote(currevent->strarg));
+      if (p->STRARG == NULL)
+        strcpy(soundiname, unquote(csound->currevent->strarg));
       else strcpy(soundiname,unquote(p->STRARG));    /* unquote it, else use */
       if ((p->fdch.fdc = openin(soundiname)) < 0) {
         sprintf(errmsg,Str("Cannot open %s"), soundiname);
@@ -309,7 +315,8 @@ int krd3set(ENVIRON *csound, KREAD3 *p)
 {
     if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
       char soundiname[1024];
-      if (p->STRARG == NULL) strcpy(soundiname,unquote(currevent->strarg));
+      if (p->STRARG == NULL)
+        strcpy(soundiname, unquote(csound->currevent->strarg));
       else strcpy(soundiname,unquote(p->STRARG));    /* unquote it, else use */
       if ((p->fdch.fdc = openin(soundiname)) < 0) {
         sprintf(errmsg,Str("Cannot open %s"), soundiname);
@@ -338,7 +345,8 @@ int krd4set(ENVIRON *csound, KREAD4 *p)
 {
     if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
       char soundiname[1024];
-      if (p->STRARG == NULL) strcpy(soundiname,unquote(currevent->strarg));
+      if (p->STRARG == NULL)
+        strcpy(soundiname, unquote(csound->currevent->strarg));
       else strcpy(soundiname,unquote(p->STRARG));    /* unquote it, else use */
       if ((p->fdch.fdc = openin(soundiname)) < 0) {
         sprintf(errmsg,Str("Cannot open %s"), soundiname);

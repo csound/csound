@@ -39,7 +39,7 @@ void csoundAuxAlloc(void *csound, long nbytes, AUXCH *auxchp)
     auxchp->size = nbytes;              /* update the internal data  */
     auxchp->auxp = auxp;
     auxchp->endp = (char*) auxp + nbytes;
-    if (O.odebug) auxchprint(((ENVIRON*) csound)->curip_);
+    if (O.odebug) auxchprint(((ENVIRON*) csound)->curip);
 }
 
 static void auxrecord(void *csound, AUXCH *auxchp)
@@ -48,8 +48,8 @@ static void auxrecord(void *csound, AUXCH *auxchp)
 {
     AUXCH       *prvchp, *nxtchp;
 
-    prvchp = &(((ENVIRON*) csound)->curip_->auxch); /* from current insds,  */
-    while ((nxtchp = prvchp->nxtchp) != NULL)   /* chain through xplocs */
+    prvchp = &(((ENVIRON*) csound)->curip->auxch);  /* from current insds,  */
+    while ((nxtchp = prvchp->nxtchp) != NULL)       /* chain through xplocs */
       prvchp = nxtchp;
     prvchp->nxtchp = auxchp;                    /* then add this xploc  */
     auxchp->nxtchp = NULL;                      /* & terminate the chain */
@@ -60,12 +60,12 @@ void fdrecord(FDCH *fdchp)    /* put fdchp into chain of fd's for this instr */
 {
     FDCH        *prvchp, *nxtchp;
 
-    prvchp = &curip->fdch;                      /* from current insds,  */
+    prvchp = &(cenviron.curip->fdch);           /* from current insds,  */
     while ((nxtchp = prvchp->nxtchp) != NULL)   /* chain through fdlocs */
       prvchp = nxtchp;
     prvchp->nxtchp = fdchp;                     /* then add this fdloc  */
     fdchp->nxtchp = NULL;                       /* & terminate the chain */
-    if (O.odebug) fdchprint(curip);
+    if (O.odebug) fdchprint(cenviron.curip);
 }
 
 void fdclose(FDCH *fdchp)       /* close a file and remove from fd chain */
@@ -73,7 +73,7 @@ void fdclose(FDCH *fdchp)       /* close a file and remove from fd chain */
 {
     FDCH        *prvchp, *nxtchp;
 
-    prvchp = &curip->fdch;                      /* from current insds,  */
+    prvchp = &(cenviron.curip->fdch);           /* from current insds,  */
     while ((nxtchp = prvchp->nxtchp) != NULL) { /* chain through fdlocs */
       if (nxtchp == fdchp) {                    /*   till find this one */
         if (fdchp->fd)
@@ -82,12 +82,12 @@ void fdclose(FDCH *fdchp)       /* close a file and remove from fd chain */
           close(fdchp->fdc);                    /* then close the file  */
         fdchp->fd = 0;                          /*   delete the fd &    */
         prvchp->nxtchp = fdchp->nxtchp;         /* unlnk from fdchain   */
-        if (O.odebug) fdchprint(curip);
+        if (O.odebug) fdchprint(cenviron.curip);
         return;
       }
       else prvchp = nxtchp;
     }
-    fdchprint(curip);
+    fdchprint(cenviron.curip);
     csoundDie(&cenviron, Str("fdclose: no record of fd %d"), fdchp->fd);
 }
 

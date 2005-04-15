@@ -868,7 +868,7 @@ int adset(ENVIRON *csound, ADSYN *p)
         *ip++ = (short) (sin(TWOPI * n / ISINSIZ) * 32767.0);
     }
     if (*p->ifilcod == SSTRCOD) { /* if char string name given */
-      if (p->STRARG == NULL) strcpy(filnam,unquote(currevent->strarg));
+      if (p->STRARG == NULL) strcpy(filnam,unquote(csound->currevent->strarg));
       else strcpy(filnam, unquote(p->STRARG));
     }
     else if ((filno = (long)*p->ifilcod) <= strsmax && strsets != NULL &&

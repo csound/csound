@@ -57,7 +57,7 @@ static HEADATA *getsndinfo(ENVIRON *csound, SNDINFO *p)
 
     if (*p->ifilno == SSTRCOD) { /* if char string name given */
       if (p->STRARG == NULL)
-        strcpy(soundiname,unquote(currevent->strarg));
+        strcpy(soundiname,unquote(csound->currevent->strarg));
       else
         strcpy(soundiname,unquote(p->STRARG));    /* unquote it,  else use */
     }
@@ -169,7 +169,7 @@ int filepeak(ENVIRON *csound, SNDINFOPEAK *p)
 
     if (*p->ifilno == SSTRCOD) { /* if char string name given */
       if (p->STRARG == NULL)
-        strcpy(soundiname,unquote(currevent->strarg));
+        strcpy(soundiname,unquote(csound->currevent->strarg));
       else
         strcpy(soundiname,unquote(p->STRARG));    /* unquote it,  else use */
     }
@@ -209,6 +209,7 @@ int filepeak(ENVIRON *csound, SNDINFOPEAK *p)
 
 static int anal_filelen(SNDINFO *p,MYFLT *p_dur)
 {
+    ENVIRON *csound = &cenviron;
     char    *sfname, soundiname[256];
     long filno;
     int fd;
@@ -220,7 +221,7 @@ static int anal_filelen(SNDINFO *p,MYFLT *p_dur)
     /* leap thru std hoops to get the name */
     if (*p->ifilno == SSTRCOD) { /* if char string name given */
       if (p->STRARG == NULL)
-        strcpy(soundiname,unquote(currevent->strarg));
+        strcpy(soundiname,unquote(csound->currevent->strarg));
       else
         strcpy(soundiname,unquote(p->STRARG));    /* unquote it,  else use */
     }

@@ -92,7 +92,7 @@ int pfun(ENVIRON *csound, PFUN *p)
     MYFLT ans;
     csound->Message(csound, "p(%d) %f\n", n,*p->pnum);
     if (n<1 || n>PMAX) ans = FL(0.0);
-    else ans = currevent->p[n];
+    else ans = csound->currevent->p[n];
     *p->ans = ans;
     return OK;
 }
