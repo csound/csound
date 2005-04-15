@@ -2224,9 +2224,10 @@ Fl_Double_Window* make_window(CsoundVstFltk *csoundVstFltk) {
           }
           o->end();
         }
-        { Fl_Check_Button* o = autoPlayCheckButton = new Fl_Check_Button(244, 169, 211, 20, "Auto edit after performance");
+        { Fl_Check_Button* o = autoPlayCheckButton = new Fl_Check_Button(245, 170, 211, 20, "Auto edit after performance");
           o->tooltip("Enables the automatic opening of the output soundfile after performance");
           o->down_box(FL_DOWN_BOX);
+          o->labelsize(12);
           o->callback((Fl_Callback*)onAutoPlayCheckButton, (void*)(csoundVstFltk));
           o->when(FL_WHEN_CHANGED);
         }

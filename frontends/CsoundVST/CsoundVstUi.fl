@@ -45,7 +45,7 @@ Function {make_window(CsoundVstFltk *csoundVstFltk)} {open
           Fl_Check_Button settingsCsoundPerformanceModeClassic {
             label Classic
             user_data csoundVstFltk user_data_type {CsoundVstFltk*}
-            callback onSettingsCsoundPerformanceModeClassic
+            callback onSettingsCsoundPerformanceModeClassic selected
             tooltip {Csound runs csd file or orc and sco files} xywh {245 98 85 21} type Radio down_box THIN_DOWN_BOX selection_color 42 labelsize 12 labelcolor 0 when 1
           }
           Fl_Check_Button settingsCsoundPerformanceModePython {
@@ -62,7 +62,7 @@ Function {make_window(CsoundVstFltk *csoundVstFltk)} {open
         Fl_Group {} {open
           xywh {455 78 140 117} align 0
         } {
-          Fl_Group {} {selected
+          Fl_Group {} {
             image {C:/utah/home/mkg/projects/csound5/frontends/CsoundVST/angel.PNG} xywh {465 78 130 112} box THIN_DOWN_BOX labelsize 12 align 80
           } {}
           Fl_Group {} {
@@ -73,7 +73,7 @@ Function {make_window(CsoundVstFltk *csoundVstFltk)} {open
           label {Auto edit after performance}
           user_data csoundVstFltk user_data_type {CsoundVstFltk*}
           callback onAutoPlayCheckButton
-          tooltip {Enables the automatic opening of the output soundfile after performance} xywh {244 169 211 20} down_box DOWN_BOX when 1
+          tooltip {Enables the automatic opening of the output soundfile after performance} xywh {245 170 211 20} down_box DOWN_BOX labelsize 12 when 1
         }
       }
       Fl_Group orchestraGroup {
