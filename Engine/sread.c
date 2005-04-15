@@ -1249,7 +1249,7 @@ static void flushlin(void)      /* flush input to end-of-line;  inc lincnt */
 
 static int sget1(void)          /* get first non-white, non-comment char */
 {
-    ENVIRON *csound = csound;
+    ENVIRON *csound = &cenviron;
     int c;
 
  srch:
