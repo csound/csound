@@ -79,7 +79,6 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "cs.h"
-#include "sfheader.h"
 #include "soundio.h"
 
 extern ENVIRON cenviron;
