@@ -192,10 +192,10 @@ void all_free(void *csound)
     } while (pp != NULL);
 }
 
-void memRESET(void *csound)
+void memRESET(ENVIRON *csound)
 {
     all_free(csound);
-    /*RWD 9:2000 not terribly vital, but good to do this somewhere... */
+    /* RWD 9:2000 not terribly vital, but good to do this somewhere... */
     pvsys_release();
 }
 

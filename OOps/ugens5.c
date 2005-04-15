@@ -37,10 +37,10 @@ static int max_lpc_slot=0;
 static  LPREAD  **lprdadr=NULL;
 static  char    lpfilname[MAXNAME];
 
-void lpcRESET(void)
+void lpcRESET(ENVIRON *csound)
 {
     currentLPCSlot = 0;
-    mfree(&cenviron, lprdadr);
+    mfree(csound, lprdadr);
     lprdadr = NULL;
 }
 
@@ -408,7 +408,6 @@ int lprdset(ENVIRON *csound, LPREAD *p)
 
  /* Build file name */
     if (*p->ifilno == SSTRCOD) { /* if char string name given */
-      extern char *unquote(char *name);
       if (p->STRARG == NULL) strcpy(lpfilname,unquote(currevent->strarg));
       else strcpy(lpfilname, unquote(p->STRARG));
     }
@@ -979,3 +978,4 @@ int lpinterpol(ENVIRON *csound, LPINTERPOL *p)
     }
     return OK;
 }
+

@@ -3350,16 +3350,3 @@ int outz(ENVIRON *csound, IOZ *p)
     return OK;
 }
 
-void RESET(struct ENVIRON_ *csound)        /* gab d7*/
-  /* zakRESET originally */
-{
-    if (csound->zkstart_ != NULL) {
-      csound->Free(csound, csound->zkstart_);
-      csound->zkstart_ = NULL;
-    }
-    if (csound->zastart_ != NULL) {
-      csound->Free(csound, csound->zastart_);
-      csound->zastart_ = NULL;
-    }
-}
-

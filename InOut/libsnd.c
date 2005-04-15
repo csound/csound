@@ -688,7 +688,7 @@ void sfcloseout(void *csound_)
     osfopen = 0;
 }
 
-void soundinRESET(void)
+void soundinRESET(ENVIRON *csound)
 {
     outfile = (SNDFILE*) NULL;
     infile = (SNDFILE*) NULL;

@@ -91,7 +91,7 @@ void csoundDefaultSpouTran(void *csound)
     csound = csound;
 }
 
-void tranRESET(void)
+void tranRESET(ENVIRON *csound)
 {
     nzerotran = csoundDefaultZeroTran;
     spinrecv = csoundDefaultSpinRecv;
@@ -110,24 +110,24 @@ void tranRESET(void)
     tran_ksmps  = -FL(1.0);
     tran_nchnls = DFLT_NCHNLS;
     tran_0dbfs  = FL(32768.0);
-    cenviron.nlabels = NLABELS;
+    csound->nlabels = NLABELS;
     /* IV - Oct 12 2002: free all instrument names */
-    while (cenviron.opcodeInfo != NULL) {
-      OPCODINFO *inm = cenviron.opcodeInfo->prv;
+    while (csound->opcodeInfo != NULL) {
+      OPCODINFO *inm = csound->opcodeInfo->prv;
       /* note: out_ndx_list should not be mfree'd */
-      if (cenviron.opcodeInfo->in_ndx_list != NULL)
-        mfree(&cenviron, cenviron.opcodeInfo->in_ndx_list);
-      mfree(&cenviron, cenviron.opcodeInfo);
-      cenviron.opcodeInfo = inm;
+      if (csound->opcodeInfo->in_ndx_list != NULL)
+        mfree(csound, csound->opcodeInfo->in_ndx_list);
+      mfree(csound, csound->opcodeInfo);
+      csound->opcodeInfo = inm;
     }
-    named_instr_free(&cenviron);        /* IV - Oct 31 2002 */
-    opcode_list_free(&cenviron);
+    named_instr_free(csound);        /* IV - Oct 31 2002 */
+    opcode_list_free(csound);
 }
 
 
 /* IV - Oct 12 2002: new function to parse arguments of opcode definitions */
 
-static int parse_opcode_args(OENTRY *opc)
+static int parse_opcode_args(ENVIRON *csound, OENTRY *opc)
 {
     OPCODINFO   *inm = (OPCODINFO*) opc->useropinfo;
     char    *types, *otypes;
@@ -199,7 +199,8 @@ static int parse_opcode_args(OENTRY *opc)
     inm->perf_outcnt = a_outcnt + k_outcnt;
     /* now build index lists for the various types of arguments */
     i = i_incnt + inm->perf_incnt + i_outcnt + inm->perf_outcnt;
-    i_inlist = inm->in_ndx_list = (short*) mmalloc(&cenviron, sizeof(short) * (i + 6));
+    i_inlist = inm->in_ndx_list = (short*) mmalloc(csound,
+                                                   sizeof(short) * (i + 6));
     a_inlist = i_inlist + i_incnt + 1;
     k_inlist = a_inlist + a_incnt + 1;
     i = 0; types = inm->intypes;
@@ -417,7 +418,7 @@ void otran(ENVIRON *csound)
               newopc->outypes = mmalloc(csound, strlen(alp->arg[1]) + 1);
                 /* IV - Sep 8 2002: opcodes have an optional arg for ksmps */
               newopc->intypes = mmalloc(csound, strlen(alp->arg[2]) + 2);
-              if (parse_opcode_args(newopc)) continue;
+              if (parse_opcode_args(csound, newopc)) continue;
               n = -2;
 /* ---- IV - Oct 16 2002: end of new code ----> */
               putop(&ip->t);
@@ -452,16 +453,8 @@ void otran(ENVIRON *csound)
                      pmax,lclnxtkcnt,lclnxtdcnt,lclnxtwcnt,lclnxtacnt,lclnxtpcnt);
             }
             ip->pmax = (int)pmax;
-#ifdef __alpha__
-            /*
-             * On Alpha we need to align at 2*sizeof(float) (i.e. 64 bits).
-             * So we round up.  heh 981101
-             */
-            ip->pextrab = ((n = pmax-3L) > 0) ?
-              (int)((n + 1) & ~0x1)*sizeof(MYFLT) : 0;
-#else
-            ip->pextrab = ((n = pmax-3L) > 0) ? (int)n*sizeof(MYFLT) : 0;
-#endif
+            ip->pextrab = ((n = pmax-3L) > 0 ? (int) n * sizeof(MYFLT) : 0);
+            ip->pextrab = ((int) ip->pextrab + 7) & (~7);
             ip->mdepends = threads >> 4;
             ip->lclkcnt = lclnxtkcnt;
             ip->lcldcnt = lclnxtdcnt;
@@ -695,6 +688,7 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
                                   /* allocs repl arg refs by offset ndx to */
                                   /* lcl/gbl space */
 {
+    ENVIRON     *csound = &cenviron;
     OPTXT       *optxt;
     OENTRY      *ep;
     int         n, opnum, inreqd;
@@ -705,9 +699,9 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
     ARGOFFS     *outoffs, *inoffs;
     int         indx, *ndxp;
 
-    labels = (char **)mmalloc(&cenviron, (cenviron.nlabels) * sizeof(char *));
+    labels = (char **)mmalloc(csound, (csound->nlabels) * sizeof(char *));
     lblsp = labels;
-    larg = (LBLARG *)mmalloc(&cenviron, (cenviron.ngotos) * sizeof(LBLARG));
+    larg = (LBLARG *)mmalloc(csound, (csound->ngotos) * sizeof(LBLARG));
     largp = larg;
     lclkcnt = tp->lclkcnt;
     lcldcnt = tp->lcldcnt;
@@ -720,8 +714,8 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
       lcl.next = NULL;
       while (lll) {
         struct namepool *n = lll->next;
-        mfree(&cenviron, lll->names);
-        mfree(&cenviron, lll);
+        mfree(csound, lll->names);
+        mfree(csound, lll);
         lll = n;
       }
     }
@@ -738,16 +732,16 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
           || opnum == ENDOP)            /* (IV - Oct 31 2002: or ENDOP) */
         break;
       if (opnum == LABEL) {
-        if (lblsp - labels >= cenviron.nlabels) {
+        if (lblsp - labels >= csound->nlabels) {
           int oldn = lblsp - labels;
-          cenviron.nlabels += NLABELS;
-          if (lblsp - labels >= cenviron.nlabels)
-            cenviron.nlabels = lblsp - labels + 2;
-          cenviron.Message(&cenviron,
+          csound->nlabels += NLABELS;
+          if (lblsp - labels >= csound->nlabels)
+            csound->nlabels = lblsp - labels + 2;
+          csound->Message(csound,
                            Str("LABELS list is full...extending to %d\n"),
-                           cenviron.nlabels);
+                           csound->nlabels);
           labels =
-            (char**)mrealloc(&cenviron, labels, cenviron.nlabels*sizeof(char*));
+            (char**)mrealloc(csound, labels, csound->nlabels*sizeof(char*));
           lblsp = &labels[oldn];
         }
         *lblsp++ = ttp->opcod;
@@ -782,7 +776,7 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
           }
         }
         else if (opnum == displop2 || opnum == displop3 ||
-                 opnum == cenviron.displop4) {
+                 opnum == csound->displop4) {
           char *s = inlist->arg[0];
           optxt->t.strargs[0] = strargptr;
           do {
@@ -794,16 +788,16 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
         ndxp = inoffs->indx;
         for (n=0; n < inlist->count; n++, argp++, ndxp++) {
           if (n < inreqd && ep->intypes[n] == 'l') {
-            if (largp - larg >= cenviron.ngotos) {
-              int oldn = cenviron.ngotos;
-              cenviron.ngotos += NGOTOS;
-              cenviron.Message(&cenviron,
+            if (largp - larg >= csound->ngotos) {
+              int oldn = csound->ngotos;
+              csound->ngotos += NGOTOS;
+              csound->Message(csound,
                                Str("GOTOS list is full..extending to %d\n"),
-                               cenviron.ngotos);
-              if (largp - larg >= cenviron.ngotos)
-                cenviron.ngotos = largp - larg + 1;
+                               csound->ngotos);
+              if (largp - larg >= csound->ngotos)
+                csound->ngotos = largp - larg + 1;
               larg = (LBLARG *)
-                mrealloc(&cenviron, larg, cenviron.ngotos * sizeof(LBLARG));
+                mrealloc(csound, larg, csound->ngotos * sizeof(LBLARG));
               largp = &larg[oldn];
             }
             if (O.odebug) printf("\t***lbl");  /* if arg is label,  */
@@ -844,11 +838,11 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
           *largp->ndxp = lp - labels + LABELOFS;
           goto nxt;
         }
-      csoundDie(&cenviron, Str("target label '%s' not found"), s);
+      csoundDie(csound, Str("target label '%s' not found"), s);
     }
     nxtargoffp = ndxp;
-    mfree(&cenviron, labels);
-    mfree(&cenviron, larg);
+    mfree(csound, labels);
+    mfree(csound, larg);
 }
 
 static void lgbuild(char *s)    /* build pool of floating const values  */
@@ -891,13 +885,13 @@ static int plgndx(char *s)      /* get storage ndx of const, pnum, lcl or gbl */
     return(indx);
 }
 
-static int constndx(char *s)    /* get storage ndx of float const value */
-                                /* builds value pool on 1st occurrence  */
-{                               /* final poolcount used in plgndx above  */
-    MYFLT       newval;         /* pool may be moved w. ndx still valid */
-    long        n;
-    MYFLT       *fp;
-    char        *str = s;
+static int constndx(char *s)        /* get storage ndx of float const value */
+{                                   /* builds value pool on 1st occurrence  */
+    ENVIRON *csound = &cenviron;    /* final poolcount used in plgndx above */
+    MYFLT   newval;                 /* pool may be moved w. ndx still valid */
+    long    n;
+    MYFLT   *fp;
+    char    *str = s;
 
 #ifdef USE_DOUBLE
     if (sscanf(s,"%lf",&newval) != 1) goto flerror;
@@ -914,11 +908,11 @@ static int constndx(char *s)    /* get storage ndx of float const value */
         return(fp - pool);                      /*    return w. index   */
     }
     if (++poolcount > nconsts) {
-      /* csoundDie(&cenviron, "flconst pool is full"); */
+      /* csoundDie(csound, "flconst pool is full"); */
       int indx = fp-pool;
       nconsts += NCONSTS;
-      cenviron.Message(&cenviron,Str("extending Floating pool to %d\n"), nconsts);
-      pool = (MYFLT*)mrealloc(&cenviron, pool, nconsts*sizeof(MYFLT));
+      csound->Message(csound,Str("extending Floating pool to %d\n"), nconsts);
+      pool = (MYFLT*)mrealloc(csound, pool, nconsts*sizeof(MYFLT));
       fp = pool + indx;
     }
     *fp = newval;                               /* else enter newval    */
@@ -933,6 +927,7 @@ static int constndx(char *s)    /* get storage ndx of float const value */
 
 static void gblnamset(char *s) /* builds namelist & type counts for gbl names */
 {
+    ENVIRON     *csound = &cenviron;
     NAME        *np = NULL;
     struct namepool *ggg;
 
@@ -942,13 +937,13 @@ static void gblnamset(char *s) /* builds namelist & type counts for gbl names */
           return;                               /*    return            */
 
       if (ggg->nxtslot+1 >= ggg->namlim) {      /* chk for full table   */
-/*          csoundDie(&cenviron, "gbl namelist is full"); */
+/*          csoundDie(csound, "gbl namelist is full"); */
         if (ggg->next == NULL) {
-          cenviron.Message(&cenviron,Str("Extending Global pool to %d\n"),
+          csound->Message(csound,Str("Extending Global pool to %d\n"),
                       gblsize+=GNAMES);
-          ggg->next = (struct namepool*)mmalloc(&cenviron, sizeof(struct namepool));
+          ggg->next = (struct namepool*)mmalloc(csound, sizeof(struct namepool));
           ggg = ggg->next;
-          ggg->names = (NAME *)mmalloc(&cenviron, (long)(GNAMES*sizeof(NAME)));
+          ggg->names = (NAME *)mmalloc(csound, (long)(GNAMES*sizeof(NAME)));
           ggg->namlim = ggg->names + GNAMES;
           ggg->nxtslot = ggg->names;
           ggg->next = NULL;
@@ -977,6 +972,7 @@ static NAME *lclnamset(char *s)
                         /* builds namelist & type counts for lcl names  */
                         /*   called by otran for each instr for lcl cnts */
 {                       /*   lists then redone by insprep via lcloffndx  */
+    ENVIRON     *csound = &cenviron;
     NAME        *np=NULL;
     struct namepool     *lll;
 
@@ -985,14 +981,14 @@ static NAME *lclnamset(char *s)
         if (strcmp(s,np->namep) == 0)   /* if name is there     */
           return(np);                   /*    return ptr        */
       if (lll->nxtslot+1 >= lll->namlim) {      /* chk for full table   */
-        /*          csoundDie(&cenviron, "lcl namelist is full"); */
+        /*          csoundDie(csound, "lcl namelist is full"); */
         if (lll->next == NULL) {
-          cenviron.Message(&cenviron,Str("Extending Local pool to %d\n"),
+          csound->Message(csound,Str("Extending Local pool to %d\n"),
                            lclsize+=LNAMES);
-          lll->next = (struct namepool*)mmalloc(&cenviron,
+          lll->next = (struct namepool*)mmalloc(csound,
                                                 sizeof(struct namepool));
           lll = lll->next;
-          lll->names = (NAME *)mmalloc(&cenviron, (long)(LNAMES*sizeof(NAME)));
+          lll->names = (NAME *)mmalloc(csound, (long)(LNAMES*sizeof(NAME)));
           lll->namlim = lll->names + LNAMES;
           lll->nxtslot = lll->names;
           lll->next = NULL;
@@ -1019,6 +1015,7 @@ static NAME *lclnamset(char *s)
 static int gbloffndx(char *s)   /* get named offset index into gbl dspace */
                                 /* called only after otran and gblfixed valid */
 {
+    ENVIRON     *csound = &cenviron;
     NAME        *np;
     int indx;
     struct namepool *ggg = &gbl;
@@ -1032,10 +1029,10 @@ static int gbloffndx(char *s)   /* get named offset index into gbl dspace */
           return(indx);
         }
       if (ggg->nxtslot+1 < ggg->namlim)
-        csoundDie(&cenviron, Str("unexpected global name")); /* else complain */
+        csoundDie(csound, Str("unexpected global name")); /* else complain */
       ggg = ggg->next;
       if (ggg == NULL)
-        csoundDie(&cenviron, Str("no pool for unexpected global name"));
+        csoundDie(csound, Str("no pool for unexpected global name"));
     }
 }
 
@@ -1043,6 +1040,7 @@ static int lcloffndx(char *s)   /* get named offset index into instr lcl */
                                 /* dspace called by insprep aftr lclcnts,*/
                                 /* lclfixed valid */
 {
+    ENVIRON     *csound = &cenviron;
     NAME        *np = lclnamset(s);             /* rebuild the table    */
     int indx = 0;
     int Pfloatsize = Pfloats;
@@ -1054,7 +1052,7 @@ static int lcloffndx(char *s)   /* get named offset index into instr lcl */
     case ATYPE:  indx = lclfixed + np->count;  break;
                 /*RWD ???? */
     case PTYPE: indx = lclkcnt + np->count * Pfloatsize; break;
-    default:     csoundDie(&cenviron, Str("unknown nametype"));  break;
+    default:     csoundDie(csound, Str("unknown nametype"));  break;
     }
     return(indx);                       /*   and rtn this offset */
 }
@@ -1094,6 +1092,7 @@ int lgexist(char *s)            /* tests whether variable name exists   */
 
 void putop(TEXT *tp)
 {
+    ENVIRON *csound = &cenviron;
     int n, nn;
 
 /*     if (n = tp->outlist->count) { */
@@ -1111,14 +1110,14 @@ void putop(TEXT *tp)
 /*     printf("\n"); */
     if ((n = tp->outlist->count)!=0) {
       nn = 0;
-      while (n--) cenviron.Message(&cenviron,"%s\t", tp->outlist->arg[nn++]);
+      while (n--) csound->Message(csound,"%s\t", tp->outlist->arg[nn++]);
     }
-    else cenviron.Message(&cenviron,"\t");
-    cenviron.Message(&cenviron,"%s\t", tp->opcod);
+    else csound->Message(csound,"\t");
+    csound->Message(csound,"%s\t", tp->opcod);
     if ((n = tp->inlist->count)!=0) {
       nn = 0;
-      while (n--) cenviron.Message(&cenviron,"%s\t",tp->inlist->arg[nn++]);
+      while (n--) csound->Message(csound,"%s\t",tp->inlist->arg[nn++]);
     }
-    cenviron.Message(&cenviron,"\n");
+    csound->Message(csound,"\n");
 }
 
