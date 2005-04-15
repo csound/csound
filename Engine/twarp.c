@@ -88,7 +88,7 @@ void twarp(void)        /* time-warp a score section acc to T-statement */
       case 'e':
         break;
       default:
-        err_printf(Str("twarp: illegal opcode\n"));
+        cenviron.Message(&cenviron,Str("twarp: illegal opcode\n"));
         break;
       }
     } while ((bp = bp->nxtblk) != NULL);
@@ -156,13 +156,13 @@ int realtset(SRTBLK *bp)
     return(1);
 
  error1:
-    err_printf(Str("twarp: t has extra or disordered beat value\n"));
+    csound->Message(csound,Str("twarp: t has extra or disordered beat value\n"));
     return(0);
  error2:
-    err_printf(Str("twarp: t has non-positive tempo\n"));
+    csound->Message(csound,Str("twarp: t has non-positive tempo\n"));
     return(0);
  error3:
-    err_printf(Str("twarp: t segments exceed twarp array\n"));
+    csound->Message(csound,Str("twarp: t segments exceed twarp array\n"));
     return(0);
 }
 

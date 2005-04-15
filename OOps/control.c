@@ -192,12 +192,12 @@ int ocontrol(ENVIRON *csound, SCNTRL *p)
           else strcpy(buffer,unquote(p->STRARG));    /* unquote it,  else use */
         }
         else sprintf(buffer, "Control %d", slider);
-        printf("Slider %d set to %s\n", slider, buffer);
+        csound->Message(csound,"Slider %d set to %s\n", slider, buffer);
         fprintf(wish_cmd, "setlab %d \"%s\"\n", slider, buffer);
         break;
       }
     default:
-      err_printf("Unknown control %d\n", c);
+      csound->Message(csound,"Unknown control %d\n", c);
       return NOTOK;
     }
     return OK;

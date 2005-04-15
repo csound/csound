@@ -316,8 +316,8 @@ int dnoise(int argc, char **argv)
               if (O.filetyp == TYP_WAV) {
                 if (envoutyp == NULL) goto outtyp;
                 if (O.msglevel & WARNMSG)
-                  printf(Str(
-                             "WARNING: -A overriding local default WAV out\n"));
+                  cenviron.Message(&cenviron, 
+                                   Str("WARNING: -A overriding local default WAV out\n"));
               }
               O.filetyp = TYP_AIFF;     /* AIFF output request*/
               break;
@@ -466,28 +466,28 @@ int dnoise(int argc, char **argv)
             case 'V':
               Verbose = 1; break;
             default:
-              printf("Looking at %c\n", c);
+              cenviron.Message(&cenviron, "Looking at %c\n", c);
               dnoise_usage(1);    /* this exits with error */
             }
           }
         }
         else if (infile==NULL) {
           infile = --s;
-          printf("Infile set to %s\n", infile);
+          cenviron.Message(&cenviron, "Infile set to %s\n", infile);
         }
         else {
-          printf("End with %s\n", s);
+          cenviron.Message(&cenviron, "End with %s\n", s);
           dnoise_usage(1);
         }
       }
     }
     if (nfile==NULL) {
-      err_printf( "Must have an example noise file (-I name)\n");
+      cenviron.Message(&cenviron, "Must have an example noise file (-I name)\n");
       exit(1);
     }
     if ((inf = SAsndgetset(&cenviron, infile, &p, &beg_time,
                            &input_dur, &sr, channel)) < 0) {
-      err_printf(Str("error while opening %s"), infile);
+      cenviron.Message(&cenviron, Str("error while opening %s"), infile);
       exit(1);
     }
     if (O.outformat == 0) O.outformat = p->format;
@@ -562,7 +562,7 @@ int dnoise(int argc, char **argv)
     }
 
     if (sr != srn) {
-      err_printf( "Incompatible sample rates\n");
+      cenviron.Message(&cenviron, "Incompatible sample rates\n");
       exit(1);
     }
     /* calculate begin and end times in NOISE file */
@@ -580,7 +580,8 @@ int dnoise(int argc, char **argv)
       if (i >= N)
         break;
     if (i != N)
-      err_printf("dnoise: warning - N not a valid power of two; "
+      cenviron.Message(&cenviron,
+                       "dnoise: warning - N not a valid power of two; "
               "revised N = %d\n",i);
     N = i;
     N2 = N / 2;
@@ -589,7 +590,7 @@ int dnoise(int argc, char **argv)
 
     if (W != -1) {
       if (M != 0)
-        err_printf("dnoise: warning - don't specify both M and W\n");
+        cenviron.Message(&cenviron, "dnoise: warning - don't specify both M and W\n");
       else
         if (W == 0)
           M = 4*N;
@@ -603,7 +604,7 @@ int dnoise(int argc, char **argv)
               if (W == 3)
                 M = N2;
               else
-                err_printf("dnoise: warning - invalid W ignored\n");
+                cenviron.Message(&cenviron, "dnoise: warning - invalid W ignored\n");
     }
 
     if (M == 0)
@@ -617,7 +618,7 @@ int dnoise(int argc, char **argv)
       Leven = 1;
 
     if (M < 7)
-      err_printf("dnoise: warning - M is too small\n");
+      cenviron.Message(&cenviron, "dnoise: warning - M is too small\n");
 
     if (D == 0)
       D = M / 8;
@@ -641,9 +642,9 @@ int dnoise(int argc, char **argv)
     obuflen = Chans * (L + 3 * I);
     outbufsiz = obuflen * sizeof(MYFLT);                /* calc outbuf size */
     outbuf = mmalloc(&cenviron, (size_t) outbufsiz);    /*  & alloc bufspace */
-    printf(Str("writing %d-byte blks of %s to %s"),
+    cenviron.Message(&cenviron, Str("writing %d-byte blks of %s to %s"),
            outbufsiz, getstrformat(O.outformat), O.outfilename);
-    printf(" (%s)\n", type2string(O.filetyp));
+    cenviron.Message(&cenviron, " (%s)\n", type2string(O.filetyp));
 /*     spoutran = spoutsf; */
 
     minv = FL(1.0) / (MYFLT)m;
@@ -1137,7 +1138,8 @@ int dnoise(int argc, char **argv)
         nImodR += D;
         if (nImodR > (long) R) {
           nImodR -= (long) R;
-          err_printf("%5.1f seconds of input complete\n",(time+D*invR));
+          cenviron.Message(&cenviron,
+                           "%5.1f seconds of input complete\n",(time+D*invR));
         }
       }
 
@@ -1157,11 +1159,11 @@ int dnoise(int argc, char **argv)
     printf("\n\n");
     sf_close(outfd);
     if (Verbose) {
-      err_printf("processing complete\n");
-      err_printf("N = %d\n",N);
-      err_printf("M = %d\n",M);
-      err_printf("L = %d\n",L);
-      err_printf("D = %d\n",D);
+      cenviron.Message(&cenviron, "processing complete\n");
+      cenviron.Message(&cenviron, "N = %d\n",N);
+      cenviron.Message(&cenviron, "M = %d\n",M);
+      cenviron.Message(&cenviron, "L = %d\n",L);
+      cenviron.Message(&cenviron, "D = %d\n",D);
     }
 
     exit(0);
@@ -1178,7 +1180,7 @@ int dnoise(int argc, char **argv)
 
 void dnoise_usage(int exitcode)
 {
-    err_printf(
+    cenviron.Message(&cenviron,
             "usage: dnoise [flags] input_file\n"
             "\nflags:\n"
             "N = # of bandpass filters (1024)\n"
@@ -1236,11 +1238,11 @@ static int writebuffer(MYFLT *outbuf, int nsmps)
       else if (O.heartbeat==2) putc('.', stderr);
       else if (O.heartbeat==3) {
         int n;
-        err_printf("%d(%.3f)%n",
+        cenviron.Message(&cenviron,"%d(%.3f)%n",
                    cenviron.nrecs, cenviron.nrecs/cenviron.ekr, &n);
-        while (n--) err_printf("\b");
+        while (n--) cenviron.Message(&cenviron,"\b");
       }
-      else err_printf("\a");
+      else cenviron.Message(&cenviron,"\a");
     }
     return nsmps;
 }
