@@ -88,7 +88,7 @@ int ctrlinit(ENVIRON *csound, CTLINIT *p)
 
 int notnum(ENVIRON *csound, MIDIKMB *p)      /* valid only at I-time */
 {
-    *p->r = curip->m_pitch;
+    *p->r = csound->curip->m_pitch;
     return OK;
 }
 
@@ -98,7 +98,7 @@ int cpstmid(ENVIRON *csound, CPSTABLE *p)
 {
     FUNC  *ftp;
     MYFLT *func;
-    int notenum = curip->m_pitch;
+    int notenum = csound->curip->m_pitch;
     int grade;
     int numgrades;
     int basekeymidi;
@@ -131,7 +131,7 @@ int cpstmid(ENVIRON *csound, CPSTABLE *p)
 
 int veloc(ENVIRON *csound, MIDIMAP *p)          /* valid only at I-time */
 {
-    *p->r = *p->ilo + curip->m_veloc * (*p->ihi - *p->ilo) * dv127;
+    *p->r = *p->ilo + csound->curip->m_veloc * (*p->ihi - *p->ilo) * dv127;
     return OK;
 }
 
@@ -150,7 +150,7 @@ int pchmidib(ENVIRON *csound, MIDIKMB *p)
 {
     INSDS *lcurip = p->h.insdshead;
     double fract, oct, ioct;
-    MCHNBLK *xxx = curip->m_chnbp;
+    MCHNBLK *xxx = csound->curip->m_chnbp;
     MYFLT bend = pitchbend_value(xxx);
     oct = (lcurip->m_pitch + (bend * p->scale)) / FL(12.0) + FL(3.0);
     fract = modf(oct, &ioct);
@@ -240,7 +240,7 @@ int ampmidi(ENVIRON *csound, MIDIAMP *p)  /* convert midi veloc to amplitude */
     long  fno;
     FUNC *ftp;
 
-    amp = curip->m_veloc / FL(128.0);             /* amp = normalised veloc */
+    amp = csound->curip->m_veloc / FL(128.0);     /* amp = normalised veloc */
     if ((fno = (long)*p->ifn) > 0) {              /* if valid ftable,       */
       if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
         return NOTOK;                             /*     use amp as index   */
@@ -290,7 +290,7 @@ int imidictl(ENVIRON *csound, MIDICTL *p)
     long  ctlno;
     if ((ctlno = (long)*p->ictlno) < 0 || ctlno > 127)
       csound->InitError(csound, Str("illegal controller number"));
-    else *p->r = MIDI_VALUE(curip->m_chnbp, ctl_val[ctlno])
+    else *p->r = MIDI_VALUE(csound->curip->m_chnbp, ctl_val[ctlno])
                  * (*p->ihi - *p->ilo) * dv127 + *p->ilo;
     return OK;
 }
@@ -321,8 +321,8 @@ int imidiaft(ENVIRON *csound, MIDICTL *p)
     long  ctlno;
     if ((ctlno = (long)*p->ictlno) < 0 || ctlno > 127)
       csound->InitError(csound, Str("illegal controller number"));
-    else *p->r = MIDI_VALUE(curip->m_chnbp, polyaft[ctlno])
-           * (*p->ihi - *p->ilo) * dv127 + *p->ilo;
+    else *p->r = MIDI_VALUE(csound->curip->m_chnbp, polyaft[ctlno])
+                 * (*p->ihi - *p->ilo) * dv127 + *p->ilo;
     return OK;
 }
 
@@ -378,8 +378,10 @@ int pgmassign(ENVIRON *csound, PGMASSIGN *p)
       if (p->STRARG != NULL)
         ins = (int) strarg2insno(csound, p->inst, p->STRARG);
       else
-        ins = (int) strarg2insno(csound, p->inst, unquote(currevent->strarg));
-    } else
+        ins = (int) strarg2insno(csound,
+                                 p->inst, unquote(csound->currevent->strarg));
+    }
+    else
       ins = (int) (*(p->inst) + FL(0.5));
     if (*(p->ipgm) < FL(0.5)) {         /* program <= 0: assign all pgms */
       if (!chn) {                           /* on all channels */

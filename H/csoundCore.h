@@ -787,32 +787,32 @@ extern "C" {
     MYFLT         *zastart_;
     long          zklast_;
     long          zalast_;
-    long          kcounter_;
-    EVTBLK        *currevent_;
+    long          kcounter;
+    EVTBLK        *currevent;
     MYFLT         onedkr_;
     MYFLT         onedsr_;
     MYFLT         kicvt_;
     MYFLT         sicvt_;
-    MYFLT         *spin_;
-    MYFLT         *spout_;
-    int           nspin_;
-    int           nspout_;
-    int           spoutactive_;
-    int           keep_tmp_;
-    int           dither_output_;
+    MYFLT         *spin;
+    MYFLT         *spout;
+    int           nspin;
+    int           nspout;
+    int           spoutactive;
+    int           keep_tmp;
+    int           dither_output;
     OENTRY        *opcodlst_;
     void          *opcode_list;     /* IV - Oct 31 2002 */
     OENTRY        *oplstend_;
     long          holdrand_;
     int           maxinsno_;
     int           maxopcno_;        /* IV - Oct 24 2002 */
-    INSDS         *curip_;
+    INSDS         *curip;
     EVTBLK        *Linevtblk_;
     long          nrecs;
     FILE*         Linepipe;
     int           Linefd_;
     MYFLT         *ls_table_;
-    MYFLT         curr_func_sr_;
+    MYFLT         curr_func_sr;
     char          *retfilnam_;
     INSTRTXT      **instrtxtp_;
 #define ERRSIZ (200)
@@ -837,10 +837,10 @@ extern "C" {
     int           sectcnt;
     MCHNBLK       *m_chnbp[MAXCHAN];
     MYFLT         *cpsocfrc;
-    int           inerrcnt_, synterrcnt_, perferrcnt_;
+    int           inerrcnt, synterrcnt_, perferrcnt;
     char          strmsg_[100];
     INSTRTXT      instxtanchor_;
-    INSDS         actanchor_;
+    INSDS         actanchor;
     long          rngcnt[MAXCHNLS];
     short         rngflg, multichan;
     EVTNODE       *OrcTrigEvts;             /* List of events to be started */
@@ -916,6 +916,7 @@ extern "C" {
     TOKEN         **revp, **pushp, **argp, **endlist;
     char          *assign_outarg;
     int           argcnt_offs, opcode_is_assign, assign_type;
+    int           advanceCnt;
   } ENVIRON;
 
 #include "text.h"

@@ -371,7 +371,8 @@ const ENVIRON cenviron_ = {
         NULL, NULL,     /*  revp, pushp         */
         NULL, NULL,     /*  argp, endlist       */
         (char*) NULL,   /*  assign_outarg       */
-        0, 0, 0         /*  argcnt_offs, opcode_is_assign, assign_type */
+        0, 0, 0,        /*  argcnt_offs, opcode_is_assign, assign_type */
+        0               /*  advanceCnt          */
 };
 
 /* globals to be removed eventually... */
@@ -389,11 +390,11 @@ void oloadRESET(ENVIRON *csound)
 
     memset(&instxtanchor, 0, sizeof(INSTRTXT));
     csound->argoffspace = NULL;
-    pool        = NULL;
-    gbloffbas   = NULL;
-    spin        = NULL;
-    spout       = NULL;
-    O.odebug    = 0;
+    pool          = NULL;
+    gbloffbas     = NULL;
+    csound->spin  = NULL;
+    csound->spout = NULL;
+    O.odebug      = 0;
     /* IV - Oct 31 2002: clear instrtxtp array */
     while (tp) {
       INSTRTXT  *nxttp = tp->nxtinstxt;
@@ -452,7 +453,7 @@ void oloadRESET(ENVIRON *csound)
     csound->global_onedkr    = csound->onedkr_;
     csound->global_hfkprd    = csound->hfkprd_;
     csound->global_kicvt     = csound->kicvt_;
-    csound->global_kcounter  = csound->kcounter_;
+    csound->global_kcounter  = csound->kcounter;
     csound->rtin_dev         = 1024;
     csound->rtout_dev        = 1024;
 }
@@ -688,13 +689,14 @@ void oload(ENVIRON *csound)
     csound->global_onedkr   = csound->onedkr_;
     csound->global_hfkprd   = csound->hfkprd_;
     csound->global_kicvt    = csound->kicvt_;
-    csound->global_kcounter = csound->kcounter_;
+    csound->global_kcounter = csound->kcounter;
     cpsoctinit(csound);
     reverbinit();
     dbfs_init(csound, csound->e0dbfs);
-    nspin = nspout = csound->ksmps * csound->nchnls;  /* alloc spin & spout */
-    spin =  (MYFLT *) mcalloc(csound, nspin * sizeof(MYFLT));
-    spout = (MYFLT *) mcalloc(csound, nspout * sizeof(MYFLT));
+    csound->nspout = csound->ksmps * csound->nchnls;  /* alloc spin & spout */
+    csound->nspin = csound->nspout;
+    csound->spin  = (MYFLT *) mcalloc(csound, csound->nspin * sizeof(MYFLT));
+    csound->spout = (MYFLT *) mcalloc(csound, csound->nspout * sizeof(MYFLT));
 }
 
 INSDS *

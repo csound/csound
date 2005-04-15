@@ -87,9 +87,10 @@ int pvaddset(ENVIRON *csound, PVADD *p)
        return NOTOK;
     p->AmpGateFunc = AmpGateFunc;
 
-    if (*p->ifilno == SSTRCOD) {                         /* if strg name given */
+    if (*p->ifilno == SSTRCOD) {                /* if strg name given */
       extern char *unquote(char *name);
-      if (p->STRARG == NULL) strcpy(pvfilnam,unquote(currevent->strarg));
+      if (p->STRARG == NULL)
+        strcpy(pvfilnam, unquote(csound->currevent->strarg));
       else strcpy(pvfilnam, unquote(p->STRARG));
     }
     else if ((long)*p->ifilno <= strsmax && strsets != NULL &&

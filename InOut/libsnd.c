@@ -59,9 +59,8 @@ FILE *pin, *pout;
 #endif
 
 extern  void    (*spinrecv)(void*), (*spoutran)(void*);
-extern  void    (*nzerotran)(void*, long);
-int     (*audrecv)(void*, MYFLT*, int);
-void    (*audtran)(void*, MYFLT*, int);
+        int     (*audrecv)(void*, MYFLT*, int);
+        void    (*audtran)(void*, MYFLT*, int);
 
 extern  char    *getstrformat(int format);
 static  void    sndwrterr(void*, unsigned, unsigned);
@@ -86,9 +85,8 @@ static int format_nbytes(int fmt)
     return 1;
 }
 
-/* The interface requires 3 functions:
+/* The interface requires 2 functions:
    spoutran to transfer nspout items to buffer
-   nzerotran to transfer nspout zeros to buffer
    audtran to actually write the data
 
    spoutran is called with nchnls*ksamps items and this need to be
@@ -99,11 +97,11 @@ static int format_nbytes(int fmt)
 void spoutsf(void *csound_)
 {
     ENVIRON       *csound = (ENVIRON*) csound_;
-    int           n, spoutrem = nspout;
+    int           n, spoutrem = csound->nspout;
     MYFLT         *maxampp = maxamp;
     unsigned long *maxps = maxpos;
     long          *rngp;                /* RWD Nov 2001 */
-    MYFLT         *sp = spout;
+    MYFLT         *sp = csound->spout;
     MYFLT         absamp;
 
  nchk:
@@ -153,33 +151,6 @@ void spoutsf(void *csound_)
       }
       outbufrem = O.outbufsamps;
       if (spoutrem) goto nchk;
-    }
-}
-
-void zerosf(void *csound, long len)
-{
-    int   n, smpsrem, clearcnt = 0;
-
-    if (!osfopen)  return;
-    smpsrem = nspout * (int)len;        /* calculate total smps to go   */
- nchk:
-    if ((n = smpsrem) > (int)outbufrem) /* if smps remaining > buf rem, */
-      n = outbufrem;                    /*      prepare to send in parts  */
-    smpsrem -= n;
-    outbufrem -= n;
-    if (clearcnt < O.outbufsamps) {
-      clearcnt += n;                    /* clear buf only till clean */
-      do {
-        *outbufp++ = FL(0.0);
-      } while (--n);
-    }
-    else outbufp += n;
-    if (!outbufrem) {
-      ((ENVIRON*) csound)->nrecs++;
-      audtran(csound, outbuf, outbufsiz);   /* Flush */
-      outbufp = (MYFLT*)outbuf;
-      outbufrem = O.outbufsamps;
-      if (smpsrem) goto nchk;
     }
 }
 
@@ -246,7 +217,7 @@ int sndinset(ENVIRON *csound, SOUNDIN_ *p) /* init routine for instr soundin */
     }
     if (*p->ifilno == SSTRCOD) {                /* if char string name given */
       if (p->STRARG == NULL)
-        strcpy(p->sndin_.sfname, unquote(currevent->strarg));
+        strcpy(p->sndin_.sfname, unquote(csound->currevent->strarg));
       else
         strcpy(p->sndin_.sfname, unquote(p->STRARG)); /* unquote it, else use */
     }
@@ -280,7 +251,7 @@ int sndinset(ENVIRON *csound, SOUNDIN_ *p) /* init routine for instr soundin */
       fdrecord(&p->fdch);                   /*    instr will close later */
     }
     else {
-      csound->inerrcnt_++;
+      csound->inerrcnt++;
       return NOTOK;
     }
     return OK;
@@ -528,7 +499,6 @@ void sfopenout(void *csound_)                   /* init for sound out       */
         parm.sampleFormat = O.outformat;
         parm.sampleRate = (float) csound->esr;
         spoutran = spoutsf;
-        nzerotran = zerosf;
         /* open devaudio for output */
         if (csound->playopen_callback(csound, &parm) != 0)
           csoundDie(csound, Str("Failed to initialise real time audio output"));
@@ -569,11 +539,10 @@ void sfopenout(void *csound_)                   /* init for sound out       */
         /*      ioctl(   );   */
         pipdevout = 1;
       }
-      if (dither_output)        /* This may not be written yet!! */
+      if (csound->dither_output)    /* This may not be written yet!! */
         sf_command(outfile, SFC_SET_DITHER_ON_WRITE, NULL, SF_TRUE);
-      spoutran = spoutsf;       /* accumulate output */
-      nzerotran = zerosf;       /* quick zeros */
-      audtran = writesf;        /* flush buffer */
+      spoutran = spoutsf;           /* accumulate output */
+      audtran = writesf;            /* flush buffer */
       /* Write any tags. */
       {
         ENVIRON *p;
@@ -700,7 +669,7 @@ void soundinRESET(ENVIRON *csound)
     outbufrem = (unsigned) 0;
 }
 
-void (*spinrecv)(void*), (*spoutran)(void*), (*nzerotran)(void*, long);
+void (*spinrecv)(void*), (*spoutran)(void*);
 
 static void sndwrterr(void *csound, unsigned nret, unsigned nput)
   /* report soundfile write(osfd) error   */
@@ -741,7 +710,7 @@ static void sndfilein(void *csound_)
         } while ((int) inbufrem < (int) O.inbufsamps);
         bufpos = 0;
       }
-      spin[i] = inbuf[bufpos++] * csound->e0dbfs;
+      csound->spin[i] = inbuf[bufpos++] * csound->e0dbfs;
       inbufrem--;
     }
 }

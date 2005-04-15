@@ -83,7 +83,7 @@ int pvreadset(ENVIRON *csound, PVREAD *p)
       if (p->STRARG!=NULL)
         strcpy(pvfilnam, unquote(p->STRARG));        /*   use that         */
       else
-        strcpy(pvfilnam, unquote(currevent->strarg));
+        strcpy(pvfilnam, unquote(csound->currevent->strarg));
     }
     else if ((long)*p->ifilno <= strsmax && strsets != NULL &&
              strsets[(long)*p->ifilno])

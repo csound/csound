@@ -88,7 +88,7 @@ int schedule(ENVIRON *csound, SCHED *p)
       if (p->STRARG != NULL)
         which = (int) named_instr_find(csound, p->STRARG);
       else
-        which = (int) named_instr_find(csound, currevent->strarg);
+        which = (int) named_instr_find(csound, csound->currevent->strarg);
     }
     else
       which = (int) (FL(0.5) + *p->which);
@@ -174,7 +174,8 @@ int kschedule(ENVIRON *csound, WSCHED *p)
       int which =
         (*p->which == SSTRCOD) ?
          (p->STRARG != NULL ? named_instr_find(csound, p->STRARG)
-                              : named_instr_find(csound, currevent->strarg))
+                              : named_instr_find(csound,
+                                                 csound->currevent->strarg))
          : (int) (FL(0.5) + *p->which);
       if (which < 1 || which > csound->maxinsno_ ||
           csound->instrtxtp_[which] == NULL) {
@@ -385,7 +386,7 @@ int triginset(ENVIRON *csound, TRIGINSTR *p)
        Therefore, if we should start something at the very first k-cycle of
        performance, we must thus do it now, lest it be one k-cycle late.
        But in ktriginstr() we'll need to use kcounter-1 to set the start time
-       of new events. So add a separate variable for the kcounter offset (-1). */
+       of new events. So add a separate variable for the kcounter offset (-1) */
     if (csound->global_kcounter == 0 &&
         *p->trigger != FZERO /*&& *p->args[1] <= FZERO*/) {
       p->kadjust = 0;   /* No kcounter offset at this time */
@@ -410,14 +411,14 @@ static int get_absinsno(ENVIRON *csound, TRIGINSTR *p)
       if (p->STRARG != NULL)
         insno = (int) strarg2insno_p(csound, p->STRARG);
       else
-        insno = (int) strarg2insno_p(csound, currevent->strarg);
+        insno = (int) strarg2insno_p(csound, csound->currevent->strarg);
     }
     else
       insno = (int) fabs((double) *p->args[0]);
     /* Check that instrument is defined */
     if (insno < 1 || insno > maxinsno || instrtxtp[insno] == NULL) {
       printf(Str("schedkwhen ignored. Instrument %d undefined\n"), insno);
-      perferrcnt++;
+      csound->perferrcnt++;
       return -1;
     }
     return insno;
@@ -459,7 +460,7 @@ int ktriginstr(ENVIRON *csound, TRIGINSTR *p)
         absinsno = get_absinsno(csound, p);
         if (absinsno < 1)
           return NOTOK;
-        ip = &actanchor;
+        ip = &(csound->actanchor);
         while ((ip = ip->nxtact) != NULL)
           if (ip->insno == absinsno) numinst++;
         if (numinst >= (int) *p->maxinst)
@@ -469,7 +470,7 @@ int ktriginstr(ENVIRON *csound, TRIGINSTR *p)
 
     /* Create the new event */
     if (*p->args[0] == SSTRCOD)
-      evt.strarg = (p->STRARG != NULL ? p->STRARG : currevent->strarg);
+      evt.strarg = (p->STRARG != NULL ? p->STRARG : csound->currevent->strarg);
     else
       evt.strarg = NULL;
     evt.opcod = 'i';

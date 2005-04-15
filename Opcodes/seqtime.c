@@ -37,7 +37,7 @@ int seqtim_set(ENVIRON *csound, SEQTIM *p)   /* by G.Maldonado */
       p->newtime = p->table[p->ndx-1];
     else
       p->newtime = 0;
-    p->start = kcounter * onedkr ;
+    p->start = csound->kcounter * onedkr ;
     start = (long) *p->kstart;
     loop = (long) *p->kloop;
     if (loop > 0) {
@@ -75,14 +75,14 @@ int seqtim(ENVIRON *csound, SEQTIM *p)
       }
 
       if (p->curr_unit_time != *p->unit_time) {
-        double constant = p->start - kcounter * onedkr;
+        double constant = p->start - csound->kcounter * onedkr;
         double difference_new = p->newtime * p->curr_unit_time + constant;
         double difference_old = p->newtime * *p->unit_time     + constant;
         double difference = difference_new - difference_old;
         p->start = p->start + difference;
         p->curr_unit_time = *p->unit_time;
       }
-      if (kcounter * onedkr > p->newtime * *p->unit_time + p->start) {
+      if (csound->kcounter * onedkr > p->newtime * *p->unit_time + p->start) {
         float curr_val = p->table[p->ndx];
         p->first_flag = 0;
         p->newtime += curr_val;
@@ -140,7 +140,7 @@ int seqtim2_set(ENVIRON *csound, SEQTIM2 *p)
     p->done=0;
     p->table =  ftp->ftable;
     p->newtime = p->table[p->ndx];
-    p->start = kcounter * onedkr ;
+    p->start = csound->kcounter * onedkr ;
     start = (long) *p->kstart;
     loop = (long) *p->kloop;
     if (loop > 0 ) {
@@ -182,14 +182,14 @@ int seqtim2(ENVIRON *csound, SEQTIM2 *p)
         p->table = ftp->ftable;
       }
       if (p->curr_unit_time != *p->unit_time) {
-        double constant = p->start - kcounter * onedkr;
+        double constant = p->start - csound->kcounter * onedkr;
         double difference_new = p->newtime * p->curr_unit_time + constant;
         double difference_old = p->newtime * *p->unit_time     + constant;
         double difference = difference_new - difference_old;
         p->start = p->start + difference;
         p->curr_unit_time = *p->unit_time;
       }
-      if (kcounter * onedkr > p->newtime * *p->unit_time + p->start) {
+      if (csound->kcounter * onedkr > p->newtime * *p->unit_time + p->start) {
         float curr_val = p->table[p->ndx];
         p->newtime += p->table[p->ndx];
         if (loop > 0 ) {

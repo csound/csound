@@ -322,7 +322,7 @@ int pitch(ENVIRON *csound, PITCH *p)
         *dftp++ = (MYFLT)c;                   /* store in out spectrum   */
       }
     }
-    specp->ktimstamp = kcounter;              /* time-stamp the output   */
+    specp->ktimstamp = csound->kcounter;      /* time-stamp the output   */
 
  nxt:
                                 /* specptrk */

@@ -181,8 +181,8 @@ int clarin(ENVIRON *csound, CLARIN *p)
       p->envelope.rate = p->envelope.value / (*p->dettack * csound->esr);
       p->envelope.target =  FL(0.0);
       csound->Message(csound, "Set off phase time = %f Breath v,r = %f, %f\n",
-                              (MYFLT) kcounter / csound->ekr, p->envelope.value,
-                              p->envelope.rate);
+                              (MYFLT) csound->kcounter / csound->ekr,
+                              p->envelope.value, p->envelope.rate);
     }
 
     for (n=0;n<nsmps;n++) {

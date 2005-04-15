@@ -244,7 +244,8 @@ int newsndinset(ENVIRON *csound, SOUNDINEW *p)       /* init routine for diskin 
       goto errtn;
     }
     if (*p->ifilno == SSTRCOD) { /* if char string name given */
-      if (p->STRARG == NULL) strcpy(soundiname,unquote(currevent->strarg));
+      if (p->STRARG == NULL)
+        strcpy(soundiname, unquote(csound->currevent->strarg));
       else strcpy(soundiname,unquote(p->STRARG));    /* unquote it, else use */
     }
     else if ((filno=(long)*p->ifilno) <= strsmax && strsets != NULL &&

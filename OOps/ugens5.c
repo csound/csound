@@ -406,9 +406,10 @@ int lprdset(ENVIRON *csound, LPREAD *p)
     }
     lprdadr[currentLPCSlot] = p;
 
- /* Build file name */
+    /* Build file name */
     if (*p->ifilno == SSTRCOD) { /* if char string name given */
-      if (p->STRARG == NULL) strcpy(lpfilname,unquote(currevent->strarg));
+      if (p->STRARG == NULL)
+        strcpy(lpfilname, unquote(csound->currevent->strarg));
       else strcpy(lpfilname, unquote(p->STRARG));
     }
     else if ((filno = (long)*p->ifilno) <= strsmax && strsets != NULL &&
