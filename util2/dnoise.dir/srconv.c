@@ -44,15 +44,11 @@
  */
 
 #include "cs.h"
-#include "sfheader.h"
 #include "soundio.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#ifdef LINUX
-#include <unistd.h>
-#endif
 
 #define IBUF 	(4096)
 #define IBUF2 	(IBUF/2)
