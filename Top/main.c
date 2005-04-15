@@ -30,29 +30,15 @@
 #include "csound.h"
 #include "csmodule.h"
 #include <ctype.h>              /* For isdigit */
+#include <sndfile.h>
 
 #ifdef mills_macintosh
 #include <SIOUX.h>
 #include "perf.h"
 #include"MacTransport.h"
-
 #define PATH_LEN        128
-
-extern struct Transport transport;
-extern Boolean displayText;
-
-extern char sfdir_path[];
-extern char sadir_path[];
-extern char ssdir_path[];
 extern char saved_scorename[];
 extern unsigned char mytitle[];
-extern Boolean util_perf;
-static char *foo;
-static char listing_file[PATH_LEN];
-static int  vbuf;
-static int csNGraphs;
-static MYFLT temp;
-extern int RescaleFloatFile;
 #endif
 
 static  char    *sortedscore = NULL;
@@ -62,17 +48,10 @@ static  char    nme[255];
 static  char    *playscore = NULL;     /* unless we extract */
 static  FILE    *scorin, *scorout, *xfile;
 extern  void    dieu(char *);
-extern  OPARMS  O;
-extern  ENVIRON cenviron;
-extern int argdecode(void*, int, char**);
-extern void init_pvsys(void);
-extern int csoundYield(void *);
+extern  int     argdecode(void*, int, char**);
+extern  void    init_pvsys(void);
 
 #include <signal.h>
-
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 
 #ifdef MSVC
 #include <windows.h>
@@ -267,9 +246,8 @@ void create_opcodlst(void *csound)
     csoundLoadExternals(csound);
 }
 
-extern  int    musmon(ENVIRON*), musmon2(ENVIRON*);
-extern  char  *getstrformat(int);
-extern  short  sfsampsize(int);
+extern int musmon2(ENVIRON*);
+extern char *getstrformat(int);
 
 /* IV - Jan 28 2005 */
 void print_benchmark_info(void *csound, const char *s)
@@ -301,8 +279,8 @@ int csoundCompile(void *csound_, int argc, char **argv)
 
     /* for debugging only */
     if ((n = setjmp(csound->exitjmp))) {
-      fprintf(stderr,
-              " *** WARNING: longjmp() called during csoundPreCompile() ***\n");
+      csound->Message(csound, " *** WARNING: longjmp() called during "
+                              "csoundPreCompile() ***\n");
       return (-(abs(n)));
     }
 
@@ -350,7 +328,6 @@ int csoundCompile(void *csound_, int argc, char **argv)
     }
     {
       char buffer[128];
-#include <sndfile.h>
       sf_command (NULL, SFC_GET_LIB_VERSION, buffer, 128);
       csound->Message(csound,"%s\n", buffer);
     }
@@ -514,7 +491,7 @@ int csoundCompile(void *csound_, int argc, char **argv)
 #endif
     /* IV - Oct 31 2002: moved orchestra compilation here, so that named */
     /* instrument numbers are known at the score read/sort stage */
-    create_opcodlst(&cenviron); /* create initial opcode list if not done yet */
+    create_opcodlst(csound);    /* create initial opcode list if not done yet */
     /* IV - Jan 31 2005: initialise external modules */
     if (csoundInitModules(csound) != 0)
       longjmp(csound->exitjmp, 1);
@@ -607,22 +584,25 @@ int csoundCompile(void *csound_, int argc, char **argv)
     return musmon(csound);
 }
 
-int csoundMain(void *csound, int argc, char **argv)
+int csoundMain(void *csound_, int argc, char **argv)
 {
-    jmp_buf lj;
-    int returnvalue;
-    extern void csoundMessage(void *, const char *, ...);
-    if ((returnvalue = setjmp(lj))) {
-      csoundMessage(csound, "Error return.");
+    ENVIRON *csound = (ENVIRON*) csound_;
+    int     returnvalue;
+
+    if ((returnvalue = setjmp(csound->exitjmp))) {
+      csound->Message(csound, "Error return.\n");
       return returnvalue;
     }
-
     returnvalue = csoundCompile(csound, argc, argv);
-    printf("Compile returns %d\n", returnvalue);
+    csound->Message(csound, "Compile returns %d\n", returnvalue);
     if (returnvalue) return returnvalue;
-    printf("musmon returns %d\n", returnvalue);
-    if (returnvalue) return returnvalue;
-    return musmon2(csound);
+    if ((returnvalue = setjmp(csound->exitjmp))) {
+      csound->Message(csound, "Error return.\n");
+      return returnvalue;
+    }
+    returnvalue = musmon2(csound);
+    csound->Message(csound, "musmon returns %d\n", returnvalue);
+    return returnvalue;
 }
 
 void mainRESET(ENVIRON *p)

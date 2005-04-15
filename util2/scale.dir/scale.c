@@ -27,15 +27,10 @@
 *   and a certain amount of lifting from Csound itself  *
 \*******************************************************/
 
-#include <stdio.h>
-#include <stdlib.h>
-#ifdef HAVE_CTYPE_H
-#include <ctype.h>
-#endif
 #include "cs.h"
 #include "soundio.h"
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
+#ifdef HAVE_CTYPE_H
+#include <ctype.h>
 #endif
 
 /* Constants */

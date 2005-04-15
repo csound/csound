@@ -26,9 +26,6 @@
 #include "lpc.h"
 #include "cwindow.h"
 #include <math.h>
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 
 /* LPC analysis, modified by BV 8'92 for linkage to audio files via soundin.c.
  * Currently set for maximum of 50 poles, & max anal segment of 1000 samples,
@@ -52,9 +49,6 @@ static  void    gauss(double (*)[MAXPOLES], double*, double*);
 static  void    quit(char *), lpdieu(ENVIRON*,char *), usage(ENVIRON*);
 extern  void    ptable(MYFLT, MYFLT, MYFLT, int);
 extern  MYFLT   getpch(MYFLT*);
-extern  int     openout(char*, int);
-extern  int     csoundYield(void *);
-extern  OPARMS  O;
 
 #ifdef mills_macintosh
 #include "MacTransport.h"

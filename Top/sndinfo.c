@@ -26,9 +26,6 @@
 
 #include "cs.h"                                       /*  SNDINFO.C  */
 #include <sndfile.h>
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 #include "soundio.h"
 
 extern char* sf2string(int);

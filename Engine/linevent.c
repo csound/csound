@@ -22,16 +22,9 @@
 */
 
 #include "cs.h"             /*                              LINEVENT.C      */
-#include <stdlib.h>
 #include <ctype.h>
 #if defined(mills_macintosh) || defined(SYMANTEC)
 #include <console.h>
-#endif
-#ifdef HAVE_FCNTL_H
-# include <fcntl.h>
-#endif
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
 #endif
 
 #include "linevent.h"

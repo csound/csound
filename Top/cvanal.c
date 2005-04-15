@@ -31,9 +31,6 @@
 /************************************************************************/
 
 #include "cs.h"
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 #include "soundio.h"
 #include "dsputil.h"
 #include "convolve.h"

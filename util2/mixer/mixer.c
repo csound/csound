@@ -33,12 +33,9 @@
  */
 
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <unistd.h>
 #include "cs.h"
 #include "soundio.h"
+#include <ctype.h>
 
 /* Constants */
 

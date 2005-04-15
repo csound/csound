@@ -30,17 +30,12 @@
  * $Id$
  * ==============================================================
  */
-                                /* As not ANSI */
-#ifndef gcc
-#define inline
-#endif
 
 #include "csdl.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
-#include <unistd.h>
 #include <sys/types.h>
 #include <sys/time.h>
 /* UDP */

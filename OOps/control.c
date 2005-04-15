@@ -35,9 +35,6 @@
 # include <sys/types.h>
 #endif
 #include <signal.h>
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 
 static char cmd[100];
 static int wish_pid = 0;

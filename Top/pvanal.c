@@ -40,9 +40,6 @@
 #include "pvoc.h"
 #include "pvxanal.h"
 #include <ctype.h>
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 #include <sndfile.h>
 
                  /* prototype arguments */
@@ -72,8 +69,6 @@ static  int      latch = 200;
 static  int      verbose = 0;
 static  FILE*    trfil = NULL; /* was stdout */
 static  int WindowType = 1;
-
-extern  int      csoundYield(void*);
 
 #ifdef mills_macintosh
 #include "MacTransport.h"
