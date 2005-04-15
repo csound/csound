@@ -47,7 +47,7 @@ namespace csound
 
   void Logger::write(const char *text)
   {
-    fprintf(stdout, text);
+    fprintf(stderr, text);
   }
 
   ThreadLock::ThreadLock() : lock(0)
@@ -169,7 +169,7 @@ namespace csound
       }
     else
       {
-	vfprintf(stdout, format, valist);
+	vfprintf(stderr, format, valist);
       }
   }
 
@@ -181,7 +181,7 @@ namespace csound
       }
     else
       {
-	vfprintf(stdout, format, valist);
+	vfprintf(stderr, format, valist);
       }
   }
 
