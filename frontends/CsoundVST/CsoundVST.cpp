@@ -227,7 +227,7 @@ void CsoundVST::performanceThreadRoutine()
 	  cppSound->perform();
 	}     
     }
-  if(isAutoPlayback) 
+  if(isAutoPlayback && !isVst) 
     {
       if(csoundVstFltk)
 	{
