@@ -605,8 +605,15 @@ extern "C"
 
   PUBLIC OENTRY *opcode_init(ENVIRON *csound)
   {
-    std::string path = std::getenv("RAWWAVE_PATH");
-    Stk::setRawwavePath(path);
+    const char *path = std::getenv("RAWWAVE_PATH");
+    if(!path) 
+      {
+	csound->Message(csound, "Error: define environment variable RAWWAVE_PATH (points to rawwaves directory) to use STK opcodes.\n");
+      }
+    else
+      {
+	Stk::setRawwavePath(path);
+      }
     return oentries;
   }
 };
