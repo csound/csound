@@ -1,3 +1,8 @@
+2005-04-16  John ffitch  <jpff@codemist.co.uk>
+
+	* InOut/libsnd.c (sfopenin): Changed in and out channel mismatch
+	to a warning.  Trest with care!
+
 2005-04-14  Michael Gogins <gogins@pipeline.com>
 	* Changed CsoundVST to print log messages to stderr (used to be
 	stdout) by default.
