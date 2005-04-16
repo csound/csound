@@ -500,10 +500,12 @@ void oload(ENVIRON *csound)
       }
     }
     /* why I want oload() to return an error value.... */
-    if (csound->e0dbfs <= 0.0)
+    if (csound->e0dbfs <= FL(0.0))
       csoundDie(csound, Str("bad value for 0dbfs: must be positive."));
     if (O.odebug)
-      printf("esr = %7.1f, ekr = %7.1f, ksmps = %d, nchnls = %d 0dbfs = %.1f\n",
+      csound->Message(csound,
+                      "esr = %7.1f, ekr = %7.1f, ksmps = %d, nchnls = %d "
+                      "0dbfs = %.1f\n",
              csound->esr, csound->ekr, csound->ksmps, csound->nchnls,
              csound->e0dbfs);
     if (O.sr_override) {        /* if command-line overrides, apply now */
@@ -535,7 +537,7 @@ void oload(ENVIRON *csound)
     while ((ip = ip->nxtinstxt) != NULL) {      /* EXPAND NDX for A Cells */
       optxt = (OPTXT *) ip;             /*   (and set localen)    */
       lclabeg = (long)(ip->pmax + ip->lclfixed + 1);
-      if (O.odebug) printf("lclabeg %ld\n",lclabeg);
+      if (O.odebug) csound->Message(csound, "lclabeg %ld\n",lclabeg);
       ip->localen = ((long) ip->lclfixed
                      + (long) ip->lclacnt * (long) csound->ksmps)
                     * (long) sizeof(MYFLT);
@@ -600,7 +602,7 @@ void oload(ENVIRON *csound)
           }
           if (strsets[indx] != NULL) {
             if (O.msglevel & WARNMSG)
-              printf(Str("WARNING: strset index conflict\n"));
+              csound->Message(csound, Str("WARNING: strset index conflict\n"));
           }
           else {
             strsets[indx] = ttp->strargs[0];
@@ -611,14 +613,15 @@ void oload(ENVIRON *csound)
           printf("PSET: isno=%ld, pmax=%d\n", insno, ip->pmax);
           if ((n = aoffp->count) != ip->pmax) {
             if (O.msglevel & WARNMSG)
-              printf(errmsg,Str("WARNING: i%ld pset args != pmax\n"), insno);
+              csound->Message(csound, errmsg,
+                              Str("WARNING: i%ld pset args != pmax\n"), insno);
             if (n < ip->pmax) n = ip->pmax; /* cf pset, pmax    */
           }                                   /* alloc the larger */
           ip->psetdata = (MYFLT *) mcalloc(csound, (long)n * sizeof(MYFLT));
           for (n=aoffp->count,fp1=ip->psetdata,ndxp=aoffp->indx;
                n--; ) {
             *fp1++ = gbloffbas[*ndxp++];
-            printf("..%f..", *(fp1-1));
+            csound->Message(csound,"..%f..", *(fp1-1));
           }
           printf("\n");
           break;

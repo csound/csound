@@ -252,7 +252,7 @@ top:
         csoundDie(csound, Str("Macro expansion symbol ($) without macro name"));
       }
       if (strlen (mm->name) != i) {
-        csound->Warning(csound, "$%s matches macro name $%s", name, mm->name);
+/*      csound->Warning(csound, "$%s matches macro name $%s", name, mm->name); */
         do {
           ungetscochar (c);
           c = name[--i];
