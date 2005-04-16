@@ -115,7 +115,7 @@ void orchRESET(ENVIRON *csound)
     linopcod   = NULL;
     linlabels  = 0;
     lgprevdef  = 0;
-    synterrcnt = 0;
+    csound->synterrcnt = 0;
     lblcnt     = 0;
     opnum      = 0;
     opcod      = NULL;
@@ -1257,26 +1257,25 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
          linopcod[3] == 'q'  || linopcod[3] == 'h' ||
          linopcod[3] == 'o'  || linopcod[3] == 'x' ||
          linopcod[3] == '3'     ))
-      if ((tran_nchnls == 1  && strcmp(linopcod,"out" ) != 0)    ||
-          (tran_nchnls == 2  && strncmp(linopcod,"outs",4) != 0) ||
-          (tran_nchnls == 4  && strncmp(linopcod,"outq",4) != 0) ||
-          (tran_nchnls == 6  && strncmp(linopcod,"outh",4) != 0) ||
-          (tran_nchnls == 8  && strncmp(linopcod,"outo",4) != 0) ||
-          (tran_nchnls == 16 && strncmp(linopcod,"outx",4) != 0) ||
-          (tran_nchnls == 32 && strncmp(linopcod,"out32",5) != 0)
-          ) {
+      if ((csound->tran_nchnls == 1  && strcmp(linopcod,"out" ) != 0)    ||
+          (csound->tran_nchnls == 2  && strncmp(linopcod,"outs",4) != 0) ||
+          (csound->tran_nchnls == 4  && strncmp(linopcod,"outq",4) != 0) ||
+          (csound->tran_nchnls == 6  && strncmp(linopcod,"outh",4) != 0) ||
+          (csound->tran_nchnls == 8  && strncmp(linopcod,"outo",4) != 0) ||
+          (csound->tran_nchnls == 16 && strncmp(linopcod,"outx",4) != 0) ||
+          (csound->tran_nchnls == 32 && strncmp(linopcod,"out32",5) != 0)) {
 /*      csound->Message(csound, "nchnls = %d; opcode = %s\n",
                                 tran_nchnls, linopcod);         */
-        if (tran_nchnls == 1) isopcod("out");
-        else if (tran_nchnls == 2)  isopcod("outs");
-        else if (tran_nchnls == 4)  isopcod("outq");
-        else if (tran_nchnls == 6)  isopcod("outh");
-        else if (tran_nchnls == 8)  isopcod("outo");
-        else if (tran_nchnls == 16) isopcod("outx");
-        else if (tran_nchnls == 32) isopcod("out32");
+        if      (csound->tran_nchnls == 1)  isopcod("out");
+        else if (csound->tran_nchnls == 2)  isopcod("outs");
+        else if (csound->tran_nchnls == 4)  isopcod("outq");
+        else if (csound->tran_nchnls == 6)  isopcod("outh");
+        else if (csound->tran_nchnls == 8)  isopcod("outo");
+        else if (csound->tran_nchnls == 16) isopcod("outx");
+        else if (csound->tran_nchnls == 32) isopcod("out32");
         csound->Message(csound,Str("%s inconsistent with global nchnls (%d); "
                                    "replaced with %s\n"),
-                        linopcod, tran_nchnls, opcod);
+                        linopcod, csound->tran_nchnls, opcod);
         tp->opnum = linopnum = opnum;
         tp->opcod = strsav(linopcod = opcod);
       }
@@ -1700,37 +1699,39 @@ noprob:
 
 static void lblchk(void)
 {
+    ENVIRON *csound = &cenviron;
     int req;
     int n;
 
     for (req=0; req<lblcnt; req++ )
       if ((n = lblreq[req].reqline)) {
         char    *s;
-        cenviron.Message(&cenviron,Str("error line %d.  unknown label:\n"),n);
+        csound->Message(csound, Str("error line %d.  unknown label:\n"), n);
         s = linadr[n];
         do {
-          cenviron.Message(&cenviron,"%c", *s);
+          csound->Message(csound, "%c", *s);
         } while (*s++ != '\n');
-        synterrcnt++;
+        csound->synterrcnt++;
       }
 }
 
 void synterr(char *s)
 {
-    int c;
-    char        *cp;
+    ENVIRON *csound = &cenviron;
+    char    *cp;
+    int     c;
 
-    cenviron.Message(&cenviron,Str("error:  %s"),s);
+    csound->Message(csound, Str("error:  %s"), s);
     if ((cp = linadr[curline]) != NULL) {
-      cenviron.Message(&cenviron,Str(", line %d:\n"),curline);
+      csound->Message(csound, Str(", line %d:\n"), curline);
       do {
-        cenviron.Message(&cenviron,"%c", (c = *cp++));
+        csound->Message(csound, "%c", (c = *cp++));
       } while (c != '\n');
     }
     else {
-      cenviron.Message(&cenviron,"\n");
+      csound->Message(csound, "\n");
     }
-    synterrcnt++;
+    csound->synterrcnt++;
 }
 
 void synterrp(char *errp, char *s)

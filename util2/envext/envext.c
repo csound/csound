@@ -72,7 +72,7 @@ main(int argc, char **argv)
     char        c, *s;
     OPARMS      OO;
 
-    peakchunks = 1;
+    csound->peakchunks = 1;
 
     init_getstring(argc, argv);
     csoundPreCompile(csoundCreate(NULL));

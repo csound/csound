@@ -98,8 +98,8 @@ void spoutsf(void *csound_)
 {
     ENVIRON       *csound = (ENVIRON*) csound_;
     int           n, spoutrem = csound->nspout;
-    MYFLT         *maxampp = maxamp;
-    unsigned long *maxps = maxpos;
+    MYFLT         *maxampp = csound->maxamp;
+    unsigned long *maxps = csound->maxpos;
     long          *rngp;                /* RWD Nov 2001 */
     MYFLT         *sp = csound->spout;
     MYFLT         absamp;
@@ -120,14 +120,14 @@ void spoutsf(void *csound_)
       if (absamp >= 0) {                 /* +ive samp:   */
         if (absamp > csound->e0dbfs) {   /* out of range?     */
           /*   report it*/
-          rngp = csound->rngcnt + (maxampp - maxamp);
+          rngp = csound->rngcnt + (maxampp - csound->maxamp);
           (*rngp)++;
           csound->rngflg = 1;
         }
       }
       else {                             /* ditto -ive samp */
         if (absamp < -(csound->e0dbfs)) {
-          rngp = csound->rngcnt + (maxampp - maxamp);
+          rngp = csound->rngcnt + (maxampp - csound->maxamp);
           (*rngp)++;
           csound->rngflg = 1;
         }
@@ -137,8 +137,8 @@ void spoutsf(void *csound_)
         *outbufp++ = absamp;
       if (csound->multichan) {
         maxps++;
-        if (++maxampp >= maxampend)
-          maxampp = maxamp, maxps = maxpos, nframes++;
+        if (++maxampp >= csound->maxampend)
+          maxampp = csound->maxamp, maxps = csound->maxpos, nframes++;
       }
       else nframes++;
       sp++;
@@ -402,17 +402,15 @@ void sfopenin(void *csound_)        /* init for continuous soundin */
       infile = sf_open_fd(isfd, SFM_READ, &sfinfo, SF_TRUE);
       if (infile == NULL)
         csoundDie(csound, Str("isfinit: cannot open %s"), retfilnam);
-      if (sfinfo.samplerate != (long) (csound->esr + FL(0.5)) &&
-          (O.msglevel & WARNMSG)) {              /*    chk the hdr codes  */
-        csound->Message(csound,
-                        Str("WARNING: audio_in %s has sr = %ld, orch sr = %ld\n"),
-                        sfname, sfinfo.samplerate, (long) (csound->esr + FL(0.5)));
+      if (sfinfo.samplerate != (int) (csound->esr + FL(0.5))) {
+        /*    chk the hdr codes  */
+        csound->Warning(csound, Str("audio_in %s has sr = %ld, orch sr = %ld"),
+                                sfname, (long) sfinfo.samplerate,
+                                (long) (csound->esr + FL(0.5)));
       }
-      if (sfinfo.channels != csound->nchnls &&
-          (O.msglevel & WARNMSG)) {
-        csound->Message(csound,
-                        Str("WARNING: audio_in %s has %ld chnls, orch %d chnls"),
-                        sfname, sfinfo.channels, csound->nchnls);
+      if (sfinfo.channels != csound->nchnls) {
+        csound->Warning(csound, Str("audio_in %s has %ld chnls, orch %d chnls"),
+                                sfname, (long) sfinfo.channels, csound->nchnls);
       }
       /* Do we care about the format?  Can assume float?? */
       O.insampsiz = sizeof(MYFLT);        /*    & cpy header vals  */
@@ -535,7 +533,7 @@ void sfopenout(void *csound_)                   /* init for sound out       */
       /* IV - Feb 22 2005: clip integer formats */
       if (O.outformat != AE_FLOAT && O.outformat != AE_DOUBLE)
         sf_command(outfile, SFC_SET_CLIPPING, NULL, SF_TRUE);
-      if (peakchunks)
+      if (csound->peakchunks)
         sf_command(outfile, SFC_SET_ADD_PEAK_CHUNK, NULL, SF_TRUE);
       if (strcmp(sfoutname, "/dev/audio") == 0) {
         /*      ioctl(   );   */

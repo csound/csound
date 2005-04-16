@@ -545,7 +545,7 @@ static int decode_long(void *csound_, char *s, int argc, char **argv)
   }
   /* -K */
   else if (!(strcmp (s, "nopeaks"))) {
-    peakchunks = 0;     /* Do not write peak information */
+    csound->peakchunks = 0;     /* Do not write peak information */
     return 1;
   }
   /*
@@ -715,7 +715,7 @@ static int decode_long(void *csound_, char *s, int argc, char **argv)
   else if (!(strncmp(s, "extract-score=", 14))) {
     s += 14;
     if (*s=='\0') dieu(Str("no xfilename"));
-    xfilename = s;
+    csound->xfilename = s;
     return 1;
   }
   else if (!(strcmp(s, "wave"))) {
@@ -1001,7 +1001,7 @@ int argdecode(void *csound_, int argc, char **argv_)
           break;
         case 'x':
           FIND(Str("no xfilename"));
-          xfilename = s;            /* extractfile name */
+          csound->xfilename = s;     /* extractfile name */
           while (*++s);
           break;
         case 't':
@@ -1087,7 +1087,7 @@ int argdecode(void *csound_, int argc, char **argv_)
                                 until performance time */
           break;
         case 'K':
-          peakchunks = 0;     /* Do not write peak information */
+          csound->peakchunks = 0; /* Do not write peak information */
           break;
         case 'z':
           {

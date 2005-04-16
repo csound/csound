@@ -111,15 +111,15 @@ void musRESET(ENVIRON *csound)
     /* belt, braces, and parachute */
     int i;
     for (i=0;i<MAXCHNLS;i++) {
-      maxamp[i]  = 0.0f;
-      smaxamp[i] = 0.0f;
-      omaxamp[i] = 0.0f;
-      csound->rngcnt[i] = 0;
-      srngcnt[i] = 0;
-      orngcnt[i] = 0;
-      omaxpos[i] = smaxpos[i] = maxpos[i] = 1;
+      csound->maxamp[i]   = FL(0.0);
+      csound->smaxamp[i]  = FL(0.0);
+      csound->omaxamp[i]  = FL(0.0);
+      csound->rngcnt[i]   = 0;
+      srngcnt[i]          = 0;
+      orngcnt[i]          = 0;
+      csound->omaxpos[i] = csound->smaxpos[i] = csound->maxpos[i] = 1;
     }
-    maxampend  = NULL;
+    csound->maxampend  = NULL;
     csound->rngflg = 0;
     srngflg    = 0;
     csound->multichan = 0;
@@ -236,7 +236,7 @@ int musmon(ENVIRON *csound)
     csound->Message(csound,Str("orch now loaded\n"));
 
     csound->multichan = (csound->nchnls > 1) ? 1:0;
-    maxampend = &maxamp[csound->nchnls];
+    csound->maxampend = &(csound->maxamp[csound->nchnls]);
     segamps = O->msglevel & SEGAMPS;
     sormsg = O->msglevel & SORMSG;
 
@@ -350,11 +350,13 @@ int cleanup(void *csound_)
       fclose(scfp); scfp = NULL;
     }
     for (n = 0; n < csound->nchnls; n++) {
-      if (smaxamp[n] > omaxamp[n]) omaxamp[n] = smaxamp[n];
-      if (maxamp[n] > omaxamp[n]) omaxamp[n] = maxamp[n];
+      if (csound->smaxamp[n] > csound->omaxamp[n])
+        csound->omaxamp[n] = csound->smaxamp[n];
+      if (csound->maxamp[n] > csound->omaxamp[n])
+        csound->omaxamp[n] = csound->maxamp[n];
       orngcnt[n] += (srngcnt[n] + csound->rngcnt[n]);
     }
-    for (maxp = omaxamp, n = csound->nchnls; n--; )
+    for (maxp = csound->omaxamp, n = csound->nchnls; n--; )
       print_maxamp(csound, *maxp++);                    /* IV - Jul 9 2002 */
     if (csound->oparms->outformat != AE_FLOAT) {
       csound->Message(csound,Str("\n\t   overall samples out of range:"));
@@ -439,7 +441,7 @@ static void print_amp_values(ENVIRON *csound, int score_evt)
       else
         csound->Message(csound,"  rtevent:\t   T%7.3f TT%7.3f M:",
                p->curp2 - p->timeOffs,  p->curp2);
-      for (n = csound->nchnls, maxp = maxamp; n--; )
+      for (n = csound->nchnls, maxp = csound->maxamp; n--; )
         print_maxamp(csound, *maxp++);          /* IV - Jul 9 2002 */
       csound->Message(csound,"\n");
       if (csound->rngflg) {
@@ -453,8 +455,9 @@ static void print_amp_values(ENVIRON *csound, int score_evt)
       csound->rngflg = 0;
       srngflg++;
     }
-    for (n = csound->nchnls, maxp = maxamp - 1, smaxp = smaxamp - 1,
-         maxps = maxpos - 1, smaxps = smaxpos - 1,
+    for (n = csound->nchnls,
+         maxp = csound->maxamp - 1, smaxp = csound->smaxamp - 1,
+         maxps = csound->maxpos - 1, smaxps = csound->smaxpos - 1,
          rngp = csound->rngcnt, srngp = srngcnt; n--; ) {
       ++maxps; ++smaxps;
       if (*++maxp > *++smaxp) {
@@ -487,7 +490,7 @@ static void section_amps(ENVIRON *csound, int enable_msgs)
       else if (enable_msgs == 2)
         csound->Message(csound,
                         Str("end of lplay event list\t      peak amps:"));
-      for (n = csound->nchnls, maxp = smaxamp; n--; )
+      for (n = csound->nchnls, maxp = csound->smaxamp; n--; )
         print_maxamp(csound, *maxp++);          /* IV - Jul 9 2002 */
       csound->Message(csound,"\n");
       if (srngflg) {
@@ -499,8 +502,8 @@ static void section_amps(ENVIRON *csound, int enable_msgs)
     }
     srngflg = 0;
     for (n = csound->nchnls,
-         smaxp = smaxamp - 1, maxp = omaxamp - 1,
-         smaxps = smaxpos - 1, maxps = omaxpos - 1,
+         smaxp = csound->smaxamp - 1, maxp = csound->omaxamp - 1,
+         smaxps = csound->smaxpos - 1, maxps = csound->omaxpos - 1,
          srngp = srngcnt, rngp = orngcnt; n--; ) {
       ++maxps; ++smaxps;
       if (*++smaxp > *++maxp) {
@@ -581,8 +584,8 @@ static int process_score_event(ENVIRON *csound, EVTBLK *evt, int rtEvt)
           break;
         }
         evt->p[1] = (MYFLT) insno;
-        if (csound->oparms->Beatmode && evt->p3orig >= FL(0.0))
-          evt->p[3] = evt->p3orig * p->beatTime;
+        if (csound->oparms->Beatmode && evt->p3orig > FL(0.0))
+          evt->p[3] = evt->p3orig * (MYFLT) csound->sensEvents_state.beatTime;
         if ((n = insert(csound, insno, evt))) { /* else alloc, init, activate */
           print_score_time(csound, rtEvt);
           csound->Message(csound, Str(" - note deleted.  "
@@ -603,8 +606,8 @@ static int process_score_event(ENVIRON *csound, EVTBLK *evt, int rtEvt)
         else if (evt->p[1] < FL(0.0))           /* if p1 neg,             */
           infoff(csound, -evt->p[1]);           /*  turnoff any infin cpy */
         else {
-          if (csound->oparms->Beatmode && evt->p3orig >= FL(0.0))
-            evt->p[3] = evt->p3orig * p->beatTime;
+          if (csound->oparms->Beatmode && evt->p3orig > FL(0.0))
+            evt->p[3] = evt->p3orig * (MYFLT) csound->sensEvents_state.beatTime;
           if ((n = insert(csound, insno, evt))) { /* else alloc,init,activat */
             print_score_time(csound, rtEvt);
             csound->Message(csound,
