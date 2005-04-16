@@ -60,7 +60,7 @@ void    cpsoctinit(ENVIRON*), reverbinit(void);
 void    dispinit(void);
 void    sssfinit(void);
 int     init0(ENVIRON*);
-INSDS   *instance(int);
+INSDS   *instance(ENVIRON *, int);
 int     openin(char *), openout(char *, int);
 void    scsort(FILE *, FILE *);
 int     scxtract(FILE *, FILE *, FILE *);

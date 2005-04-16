@@ -87,23 +87,23 @@ void csoundDefaultSpouTran(void *csound)
 
 void tranRESET(ENVIRON *csound)
 {
-    spinrecv = csoundDefaultSpinRecv;
-    spoutran = spoutsf;
-    gblsize     = GNAMES;
-    lclsize     = LNAMES;
-    nullist     = NULL;
-    nulloffs    = NULL;
-    nxtargoffp  = argofflim = NULL;
-    strargspace = strargptr = NULL;
-    gblnxtkcnt  = 0;
-    gblnxtacnt  = 0;
-    strargsize  = 0L;
-    tran_sr     = -FL(1.0);
-    tran_kr     = -FL(1.0);
-    tran_ksmps  = -FL(1.0);
-    tran_nchnls = DFLT_NCHNLS;
-    tran_0dbfs  = FL(32768.0);
-    csound->nlabels = NLABELS;
+    spinrecv            = csoundDefaultSpinRecv;
+    spoutran            = spoutsf;
+    gblsize             = GNAMES;
+    lclsize             = LNAMES;
+    nullist             = NULL;
+    nulloffs            = NULL;
+    nxtargoffp          = argofflim = NULL;
+    strargspace         = strargptr = NULL;
+    gblnxtkcnt          = 0;
+    gblnxtacnt          = 0;
+    strargsize          = 0L;
+    csound->tran_sr     = FL(-1.0);
+    csound->tran_kr     = FL(-1.0);
+    csound->tran_ksmps  = FL(-1.0);
+    csound->tran_nchnls = DFLT_NCHNLS;
+    csound->tran_0dbfs  = DFLT_DBFS;
+    csound->nlabels     = NLABELS;
     /* IV - Oct 12 2002: free all instrument names */
     while (csound->opcodeInfo != NULL) {
       OPCODINFO *inm = csound->opcodeInfo->prv;
@@ -229,10 +229,11 @@ static int parse_opcode_args(ENVIRON *csound, OENTRY *opc)
 
 void otran(ENVIRON *csound)
 {
+    OPARMS      *O = csound->oparms;
     TEXT        *tp, *getoptxt(int *);
     int         init = 1;
     INSTRTXT    *ip = NULL;
-    INSTRTXT    *prvinstxt = &instxtanchor;
+    INSTRTXT    *prvinstxt = &(csound->instxtanchor);
     OPTXT       *bp, *prvbp = NULL;
     ARGLST      *alp;
     char        *s;
@@ -305,12 +306,13 @@ void otran(ENVIRON *csound)
                     int old_maxinsno = maxinsno;
                     /* expand */
                     while (n>maxinsno) maxinsno += MAXINSNO;
-/*                err_printf(Str("Extending instr number from %d to %d\n"),
-                  old_maxinsno, maxinsno); */
+/*                  csound->Message(csound, Str("Extending instr number "
+                                                "from %d to %d\n"),
+                                            old_maxinsno, maxinsno); */
                     instrtxtp = (INSTRTXT**)
                       mrealloc(csound, instrtxtp,
                                (long)((1+maxinsno)*sizeof(INSTRTXT*)));
-                  /* Array expected to be nulled so.... */
+                    /* Array expected to be nulled so.... */
                     for (i=old_maxinsno+1; i<=maxinsno; i++) instrtxtp[i]=NULL;
                   }
 /*                   else if (n<0) { */
@@ -440,10 +442,12 @@ void otran(ENVIRON *csound)
             txtcpy((char *)&bp->t, (char *)tp);
             prvbp->nxtop = bp;
             bp->nxtop = NULL;   /* terminate the optxt chain */
-            if (O.odebug) {
+            if (O->odebug) {
               putop(&bp->t);
-              printf("pmax %ld, kcnt %d, dcnt %d, wcnt %d, acnt %d pcnt %d\n",
-                     pmax,lclnxtkcnt,lclnxtdcnt,lclnxtwcnt,lclnxtacnt,lclnxtpcnt);
+              csound->Message(csound, "pmax %ld, kcnt %d, dcnt %d, "
+                                      "wcnt %d, acnt %d pcnt %d\n",
+                                      pmax, lclnxtkcnt, lclnxtdcnt,
+                                      lclnxtwcnt, lclnxtacnt, lclnxtpcnt);
             }
             ip->pmax = (int)pmax;
             ip->pextrab = ((n = pmax-3L) > 0 ? (int) n * sizeof(MYFLT) : 0);
@@ -469,7 +473,7 @@ void otran(ENVIRON *csound)
             prvbp = prvbp->nxtop = bp;  /* link into optxt chain */
             threads |= opcodlst[opnum].thread;
             opdstot += opcodlst[opnum].dsblksiz;        /* sum opds's */
-            if (O.odebug) putop(&bp->t);
+            if (O->odebug) putop(&bp->t);
             if (opnum == displop1)                      /* display op arg ? */
               for (alp=bp->t.inlist, nn=alp->count; nn>0; ) {
                 s = alp->arg[--nn];
@@ -501,16 +505,16 @@ void otran(ENVIRON *csound)
                   && strcmp(bp->t.opcod,"=.r")==0) {  /*  (assume const)  */
                 MYFLT constval = pool[constndx(bp->t.inlist->arg[0])];
                 if (strcmp(s,"sr") == 0)
-                  tran_sr = constval;             /* modify otran defaults*/
+                  csound->tran_sr = constval;         /* modify otran defaults*/
                 else if (strcmp(s,"kr") == 0)
-                  tran_kr = constval;
+                  csound->tran_kr = constval;
                 else if (strcmp(s,"ksmps") == 0)
-                  tran_ksmps = constval;
+                  csound->tran_ksmps = constval;
                 else if (strcmp(s,"nchnls") == 0)
-                  tran_nchnls = (int)constval;
+                  csound->tran_nchnls = (int)constval;
                 /* we have set this as reserved in rdorch.c */
                 else if (strcmp(s,"0dbfs") == 0)
-                  tran_0dbfs = constval;
+                  csound->tran_0dbfs = constval;
               }
             }
             n = 0;              /* Mark as unfinished */
@@ -536,53 +540,52 @@ void otran(ENVIRON *csound)
           /* Array expected to be nulled so.... */
           while (++i <= maxopcno) instrtxtp[i] = NULL;
         }
-          inm->instno = num;
-          instrtxtp[num] = inm->ip;
-          inm = inm->prv;
-        }
+        inm->instno = num;
+        instrtxtp[num] = inm->ip;
+        inm = inm->prv;
+      }
     }
     /* Deal with defaults and consistency */
-    if (tran_ksmps == -FL(1.0)) {
-      if (tran_sr == -FL(1.0)) tran_sr = DFLT_SR;
-      if (tran_kr == -FL(1.0)) tran_kr = DFLT_KR;
-      tran_ksmps = (MYFLT)((int) (tran_sr / tran_kr));
+    if (csound->tran_ksmps == FL(-1.0)) {
+      if (csound->tran_sr == FL(-1.0)) csound->tran_sr = DFLT_SR;
+      if (csound->tran_kr == FL(-1.0)) csound->tran_kr = DFLT_KR;
+      csound->tran_ksmps = (MYFLT) ((int) (csound->tran_sr / csound->tran_kr
+                                           + FL(0.5)));
     }
-    else if (tran_kr == -FL(1.0)) {
-      if (tran_sr == -1) tran_sr = DFLT_SR;
-      if (tran_ksmps == -1) {
-        tran_kr = DFLT_KR;
-        tran_ksmps = (MYFLT)((int)(tran_sr/tran_kr));
-      }
-      tran_kr = tran_sr / tran_ksmps;
+    else if (csound->tran_kr == FL(-1.0)) {
+      if (csound->tran_sr == FL(-1.0)) csound->tran_sr = DFLT_SR;
+      csound->tran_kr = csound->tran_sr / csound->tran_ksmps;
     }
-    else if (tran_sr == -FL(1.0)) {
-      tran_sr = tran_kr * tran_ksmps;
+    else if (csound->tran_sr == FL(-1.0)) {
+      csound->tran_sr = csound->tran_kr * csound->tran_ksmps;
     }
                                 /* That deals with missing values */
                                 /* However we do need ksmps to be integer */
     /* IV - Feb 18 2003 */
     {
 #ifndef USE_DOUBLE
-      double    max_err = 1.0e-6;
+      double    max_err = 5.0e-7;
 #else
       double    max_err = 1.0e-12;
 #endif
       char      sbuf[256];
       sprintf(sbuf, "sr = %.7g, kr = %.7g, ksmps = %.7g",
-                    tran_sr, tran_kr, tran_ksmps);
-      if (tran_ksmps < FL(0.75) ||
-          fabs(((double) tran_ksmps
-                / (double) ((int) (tran_ksmps + FL(0.5)))) - 1.0) > max_err) {
+                    csound->tran_sr, csound->tran_kr, csound->tran_ksmps);
+      if (csound->tran_ksmps < FL(0.75) ||
+          fabs((double) csound->tran_ksmps
+               / (double) ((int) (csound->tran_ksmps + FL(0.5))) - 1.0)
+          > max_err) {
         strcat(sbuf, "\n"); strcat(sbuf, Str("error: invalid ksmps value"));
       }
-      if (tran_sr <= FL(0.0)) {
+      if (csound->tran_sr <= FL(0.0)) {
         strcat(sbuf, "\n"); strcat(sbuf, Str("error: invalid sample rate"));
       }
-      if (tran_kr <= FL(0.0)) {
+      if (csound->tran_kr <= FL(0.0)) {
         strcat(sbuf, "\n"); strcat(sbuf, Str("error: invalid control rate"));
       }
-      if (fabs(((double) tran_sr
-                / ((double) tran_kr * (double) tran_ksmps)) - 1.0) > max_err) {
+      if (fabs((double) csound->tran_sr
+               / ((double) csound->tran_kr * (double) csound->tran_ksmps)
+               - 1.0) > max_err) {
         strcat(sbuf, "\n");
         strcat(sbuf, Str("error: inconsistent sr, kr, ksmps"));
       }
@@ -590,7 +593,7 @@ void otran(ENVIRON *csound)
         synterr(Str(sbuf));
     }
 
-    ip = instxtanchor.nxtinstxt;
+    ip = csound->instxtanchor.nxtinstxt;
     bp = (OPTXT *) ip;
     while (bp != (OPTXT *) NULL && (bp = bp->nxtop) != NULL) {
       /* chk instr 0 for illegal perfs */
@@ -601,19 +604,19 @@ void otran(ENVIRON *csound)
           (!thread && bp->t.pftype != 'b'))
         synterr(Str("perf-pass statements illegal in header blk"));
     }
-    if (synterrcnt) {
-      csound->Message(csound,
-                      Str("%d syntax errors in orchestra.  compilation invalid\n"),
-                      synterrcnt);
+    if (csound->synterrcnt) {
+      csound->Message(csound, Str("%d syntax errors in orchestra.  "
+                                  "compilation invalid\n"), csound->synterrcnt);
       longjmp(csound->exitjmp, 1);
     }
-    if (O.odebug) {
+    if (O->odebug) {
       long n; MYFLT *p;
-      printf("poolcount = %ld, strargsize = %ld\n", poolcount,strargsize);
-      printf("pool:");
+      csound->Message(csound, "poolcount = %ld, strargsize = %ld\n",
+                              poolcount, strargsize);
+      csound->Message(csound, "pool:");
       for (n = poolcount, p = pool; n--; p++)
-        printf("\t%g", *p);
-      printf("\n");
+        csound->Message(csound, "\t%g", *p);
+      csound->Message(csound, "\n");
     }
     gblfixed = gblnxtkcnt;
     gblacount = gblnxtacnt;
@@ -622,7 +625,7 @@ void otran(ENVIRON *csound)
       strargspace = mcalloc(csound, (long)strargsize);
       strargptr = strargspace;
     }
-    ip = &instxtanchor;
+    ip = &(csound->instxtanchor);
     for (sumcount = 0; (ip = ip->nxtinstxt) != NULL; ) {/* for each instxt */
       OPTXT *optxt = (OPTXT *) ip;
       int optxtcount = 0;
@@ -644,37 +647,37 @@ void otran(ENVIRON *csound)
     nulloffs = (ARGOFFS *) csound->argoffspace; /* setup the null argoff */
     *nxtargoffp++ = 0;
     argofflim = nxtargoffp + sumcount;
-    ip = &instxtanchor;
+    ip = &(csound->instxtanchor);
     while ((ip = ip->nxtinstxt) != NULL)        /* add all other entries */
         insprep(ip);                            /*   as combined offsets */
-    if (O.odebug) {
+    if (O->odebug) {
       int *p = csound->argoffspace;
-      printf("argoff array:\n");
+      csound->Message(csound, "argoff array:\n");
       do {
-        printf("\t%d", *p++);
+        csound->Message(csound, "\t%d", *p++);
       } while (p < argofflim);
-      printf("\n");
+      csound->Message(csound, "\n");
     }
     if (nxtargoffp != argofflim)
       csoundDie(csound, Str("inconsistent argoff sumcount"));
     if (strargsize && strargptr != strargspace + strargsize)
       csoundDie(csound, Str("inconsistent strarg sizecount"));
 
-    ip = &instxtanchor;                         /* set the OPARMS values */
+    ip = &(csound->instxtanchor);               /* set the OPARMS values */
     instxtcount = optxtcount = 0;
     while ((ip = ip->nxtinstxt) != NULL) {
       instxtcount += 1;
       optxtcount += ip->optxtcount;
     }
-    O.instxtcount = instxtcount;
-    O.optxtsize = instxtcount * sizeof(INSTRTXT) + optxtcount * sizeof(OPTXT);
-    O.poolcount = poolcount;
-    O.gblfixed = gblnxtkcnt;
-    O.gblacount = gblnxtacnt;
-    O.argoffsize = argoffsize;
-    O.argoffspace = (char *) csound->argoffspace;
-    O.strargsize = strargsize;
-    O.strargspace = strargspace;
+    O->instxtcount = instxtcount;
+    O->optxtsize = instxtcount * sizeof(INSTRTXT) + optxtcount * sizeof(OPTXT);
+    O->poolcount = poolcount;
+    O->gblfixed = gblnxtkcnt;
+    O->gblacount = gblnxtacnt;
+    O->argoffsize = argoffsize;
+    O->argoffspace = (char *) csound->argoffspace;
+    O->strargsize = strargsize;
+    O->strargspace = strargspace;
 }
 
 static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
@@ -682,6 +685,7 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
                                   /* lcl/gbl space */
 {
     ENVIRON     *csound = &cenviron;
+    OPARMS      *O = csound->oparms;
     OPTXT       *optxt;
     OENTRY      *ep;
     int         n, opnum, inreqd;
@@ -741,7 +745,7 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
         continue;
       }
       ep = &opcodlst[opnum];
-      if (O.odebug) printf("%s argndxs:", ep->opname);
+      if (O->odebug) csound->Message(csound, "%s argndxs:", ep->opname);
       if ((outlist = ttp->outlist) == nullist || !outlist->count)
         ttp->outoffs = nulloffs;
       else {
@@ -751,7 +755,7 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
         ndxp = outoffs->indx;
         while (n--) {
           *ndxp++ = indx = plgndx(*argp++);
-          if (O.odebug) printf("\t%d",indx);
+          if (O->odebug) csound->Message(csound, "\t%d",indx);
         }
       }
       if ((inlist = ttp->inlist) == nullist || !inlist->count)
@@ -793,9 +797,10 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
                 mrealloc(csound, larg, csound->ngotos * sizeof(LBLARG));
               largp = &larg[oldn];
             }
-            if (O.odebug) printf("\t***lbl");  /* if arg is label,  */
+            if (O->odebug)
+              csound->Message(csound, "\t***lbl");  /* if arg is label,  */
             largp->lbltxt = *argp;
-            largp->ndxp = ndxp;         /*  defer till later */
+            largp->ndxp = ndxp;                     /*  defer till later */
             largp++;
           }
           else {
@@ -815,12 +820,12 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
               indx = 1;                 /*  cod=1st pool val */
             }
             else indx = plgndx(s);      /* else normal index */
-            if (O.odebug) printf("\t%d",indx);
+            if (O->odebug) csound->Message(csound, "\t%d",indx);
             *ndxp = indx;
           }
         }
       }
-      if (O.odebug) printf("\n");
+      if (O->odebug) csound->Message(csound, "\n");
     }
  nxt:
     while (--largp >= larg) {                   /* resolve the lbl refs */
@@ -874,7 +879,7 @@ static int plgndx(char *s)      /* get storage ndx of const, pnum, lcl or gbl */
     else if (c == 'g' || (c == '#' && *(s+1) == 'g') || gexist(s))
       indx = (int) (poolcount + 1 + gbloffndx(s));
     else indx = - (lclpmax + 1 + lcloffndx(s));
-/*     printf(" [%s -> %d (%x)]\n", s, indx, indx); */
+/*     csound->Message(csound, " [%s -> %d (%x)]\n", s, indx, indx); */
     return(indx);
 }
 
@@ -909,7 +914,7 @@ static int constndx(char *s)        /* get storage ndx of float const value */
       fp = pool + indx;
     }
     *fp = newval;                               /* else enter newval    */
-/*      printf("Constant %d: %f\n", fp-pool, newval); */
+/*      csound->Message(csound, "Constant %d: %f\n", fp-pool, newval); */
     return(fp - pool);                          /*   and return new ndx */
 
  flerror:
@@ -930,11 +935,11 @@ static void gblnamset(char *s) /* builds namelist & type counts for gbl names */
           return;                               /*    return            */
 
       if (ggg->nxtslot+1 >= ggg->namlim) {      /* chk for full table   */
-/*          csoundDie(csound, "gbl namelist is full"); */
+/*      csoundDie(csound, "gbl namelist is full"); */
         if (ggg->next == NULL) {
           csound->Message(csound,Str("Extending Global pool to %d\n"),
                       gblsize+=GNAMES);
-          ggg->next = (struct namepool*)mmalloc(csound, sizeof(struct namepool));
+          ggg->next = (struct namepool*)mmalloc(csound,sizeof(struct namepool));
           ggg = ggg->next;
           ggg->names = (NAME *)mmalloc(csound, (long)(GNAMES*sizeof(NAME)));
           ggg->namlim = ggg->names + GNAMES;

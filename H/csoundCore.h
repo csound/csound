@@ -78,7 +78,7 @@ extern "C" {
 #define PMAX       (1000)
 #define VARGMAX    (1001)
 #define TOKMAX  50L             /* Should be 50 but bust */
-  /* IV - Oct 24 2002: max number of input/output args for user defined opcodes */
+/* IV - Oct 24 2002: max number of input/output args for user defined opcodes */
 #define OPCODENUMOUTS   24
 
 #define ORTXT      h.optext->t
@@ -126,7 +126,8 @@ extern "C" {
 #define DFLT_NCHNLS 1
 #define MAXCHNLS   256
 
-#define MAXNAME 128
+#define MAXNAME (128)
+#define ERRSIZ  (200)
 
 #define DFLT_DBFS (FL(32768.0))
 
@@ -226,8 +227,8 @@ extern "C" {
   } INSTRTXT;
 
 
-  /* A chain of TEXT structs. Note that this is identical with the first two
-     members of struct INSTRTEXT, and is so typecast at various points in code. */
+/* A chain of TEXT structs. Note that this is identical with the first two
+   members of struct INSTRTEXT, and is so typecast at various points in code. */
   typedef struct op {
     struct op * nxtop;
     TEXT    t;
@@ -493,6 +494,7 @@ extern "C" {
 
 #include "sort.h"
 #include "midiops2.h"
+
   typedef void    (*GEN)(FUNC *, struct ENVIRON_ *);
 
   /* sensevents() state */
@@ -702,7 +704,7 @@ extern "C" {
     long (*strarg2insno_)(struct ENVIRON_ *csound, MYFLT *p, char *s);
     long (*strarg2opcno_)(struct ENVIRON_ *csound, MYFLT *p, char *s,
                                                    int force_opcode);
-    INSDS *(*instance_)(int insno);
+    INSDS *(*instance)(struct ENVIRON_ *csound, int insno);
     void (*rewriteheader_)(SNDFILE *ofd, int verbose);
     void (*writeheader)(int ofd, char *ofname);
     void *(*SAsndgetset)(void*, char*, void*, MYFLT*, MYFLT*, MYFLT*, int);
@@ -738,7 +740,8 @@ extern "C" {
                                        void *min, void *max,
                                        const char *shortDesc,
                                        const char *longDesc);
-    int (*SetConfigurationVariable)(void *csound, const char *name, void *value);
+    int (*SetConfigurationVariable)(void *csound,
+                                    const char *name, void *value);
     int (*ParseConfigurationVariable)(void *csound, const char *name,
                                       const char *value);
     csCfgVariable_t *(*QueryConfigurationVariable)(void *csound,
@@ -774,15 +777,15 @@ extern "C" {
     MYFLT         global_hfkprd, global_kicvt;
     MYFLT         cpu_power_busy;
     long          global_kcounter;
-    char          *orchname_, *scorename_, *xfilename_;
+    char          *orchname_, *scorename_, *xfilename;
     MYFLT         e0dbfs;
     /* oload.h */
-    RESETTER      *reset_list_;
+    RESETTER      *reset_list;
     short         nlabels;
     short         ngotos;
     int           strsmax_;
     char          **strsets_;
-    int           peakchunks_;
+    int           peakchunks;
     MYFLT         *zkstart_;
     MYFLT         *zastart_;
     long          zklast_;
@@ -803,7 +806,7 @@ extern "C" {
     OENTRY        *opcodlst_;
     void          *opcode_list;     /* IV - Oct 31 2002 */
     OENTRY        *oplstend_;
-    long          holdrand_;
+    long          holdrand;
     int           maxinsno_;
     int           maxopcno_;        /* IV - Oct 24 2002 */
     INSDS         *curip;
@@ -815,15 +818,14 @@ extern "C" {
     MYFLT         curr_func_sr;
     char          *retfilnam_;
     INSTRTXT      **instrtxtp_;
-#define ERRSIZ (200)
     char          errmsg_[ERRSIZ];   /* sprintf space for compiling msgs */
     FILE*         scfp_;
     FILE*         oscfp_;
-    MYFLT         maxamp_[MAXCHNLS];
-    MYFLT         smaxamp_[MAXCHNLS];
-    MYFLT         omaxamp_[MAXCHNLS];
-    MYFLT         *maxampend_;
-    unsigned long maxpos_[MAXCHNLS], smaxpos_[MAXCHNLS], omaxpos_[MAXCHNLS];
+    MYFLT         maxamp[MAXCHNLS];
+    MYFLT         smaxamp[MAXCHNLS];
+    MYFLT         omaxamp[MAXCHNLS];
+    MYFLT         *maxampend;
+    unsigned long maxpos[MAXCHNLS], smaxpos[MAXCHNLS], omaxpos[MAXCHNLS];
     int           reinitflag;
     int           tieflag;
     FILE*         scorein_;
@@ -837,9 +839,9 @@ extern "C" {
     int           sectcnt;
     MCHNBLK       *m_chnbp[MAXCHAN];
     MYFLT         *cpsocfrc;
-    int           inerrcnt, synterrcnt_, perferrcnt;
+    int           inerrcnt, synterrcnt, perferrcnt;
     char          strmsg_[100];
-    INSTRTXT      instxtanchor_;
+    INSTRTXT      instxtanchor;
     INSDS         actanchor;
     long          rngcnt[MAXCHNLS];
     short         rngflg, multichan;
@@ -847,9 +849,9 @@ extern "C" {
     EVTNODE       *freeEvtNodes;
     char          name_full[256];           /* Remember name used */
     int           Mforcdecs, Mxtroffs, MTrkend;
-    MYFLT         tran_sr_,tran_kr_,tran_ksmps_;
-    MYFLT         tran_0dbfs_;
-    int           tran_nchnls_;
+    MYFLT         tran_sr, tran_kr, tran_ksmps;
+    MYFLT         tran_0dbfs;
+    int           tran_nchnls;
     MYFLT         tpidsr_, pidsr_, mpidsr_, mtpdsr_;
     OPARMS        *oparms;
     void          *hostdata;
@@ -921,11 +923,7 @@ extern "C" {
 
 #include "text.h"
 
-#if defined(mac_classic) || defined(SYMANTEC)
-# define __cdecl
-#endif
-
-#if (!defined(__BEOS__) || defined(__MWERKS__)) && !(defined(__CYGWIN__) || defined(WIN32))
+#if !(defined(__CYGWIN__) || defined(WIN32) || defined(__cdecl))
 #  define __cdecl
 #endif
 

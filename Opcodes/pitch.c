@@ -483,18 +483,30 @@ int mac(ENVIRON *csound, SUM *p)
     return OK;
 }
 
-#ifdef __unix
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif
-#include <sys/resource.h>
-#else
-#include <time.h>
-#endif
+typedef struct {
+    RTCLOCK r;
+    double  counters[33];
+    int     running[33];
+} CPU_CLOCK;
 
-int counters[33] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                    0};
+static void initClockStruct(ENVIRON *csound, void **p)
+{
+    *p = csound->QueryGlobalVariable(csound, "readClock::counters");
+    if (*p == NULL) {
+      csound->CreateGlobalVariable(csound, "readClock::counters",
+                                           sizeof(CPU_CLOCK));
+      *p = csound->QueryGlobalVariable(csound, "readClock::counters");
+      csound->timers_struct_init(&(((CPU_CLOCK*) (*p))->r));
+    }
+}
+
+static inline CPU_CLOCK *getClockStruct(ENVIRON *csound, void **p)
+{
+    if (*p == NULL)
+      initClockStruct(csound, p);
+    return (CPU_CLOCK*) (*p);
+}
+
 int clockset(ENVIRON *csound, CLOCK *p)
 {
     p->c = (int)*p->cnt;
@@ -503,53 +515,37 @@ int clockset(ENVIRON *csound, CLOCK *p)
     return OK;
 }
 
-#ifdef someday
-__forceinline LONGLONG __cdecl getCpuCycleCount()
-{
- __asm
- {
-  rdtsc
- }
-}
-#endif
-
 int clockon(ENVIRON *csound, CLOCK *p)
 {
-#if defined(__unix)
-    struct rusage r;
-    getrusage(0, &r);
-    counters[p->c] -= 1000*r.ru_utime.tv_sec + r.ru_utime.tv_usec/1000 +
-                      1000*r.ru_stime.tv_sec + r.ru_stime.tv_usec/1000;
-#elif defined(someday)
-    LONGLONG t1;
-    counters[p->c] -= (int)getCpuCycleCount();
-#else
-    counters[p->c] -= clock();
-#endif
+    CPU_CLOCK *clk = getClockStruct(csound, &(p->clk));
+    if (!clk->running[p->c]) {
+      clk->running[p->c] = 1;
+      clk->counters[p->c] = csound->timers_get_CPU_time(&(clk->r));
+    }
     return OK;
 }
 
 int clockoff(ENVIRON *csound, CLOCK *p)
-     {
-#if defined(__unix)
-    struct rusage r;
-    getrusage(0, &r);
-    counters[p->c] += 1000*r.ru_utime.tv_sec + r.ru_utime.tv_usec/1000 +
-                      1000*r.ru_stime.tv_sec + r.ru_stime.tv_usec/1000;
-#elif defined(someday)                                           /* ugmoss.c */
-    LONGLONG t1;
-    counters[p->c] += (int)getCpuCycleCount();
-#else
-    counters[p->c] += clock();
-#endif
+{
+    CPU_CLOCK *clk = getClockStruct(csound, &(p->clk));
+    if (clk->running[p->c]) {
+      clk->running[p->c] = 0;
+      clk->counters[p->c] = csound->timers_get_CPU_time(&(clk->r))
+                            - clk->counters[p->c];
+    }
     return OK;
 }
 
 int clockread(ENVIRON *csound, CLKRD *p)
 {
+    CPU_CLOCK *clk = getClockStruct(csound, &(p->clk));
     int cnt = (int) *p->a;
     if (cnt < 0 || cnt > 32) cnt = 32;
-    *p->r = (MYFLT)counters[cnt];
+    if (clk->running[cnt])
+      return csound->InitError(csound, Str("clockread: clock still running, "
+                                           "call clockoff first"));
+    /* result in ms */
+    *p->r = (MYFLT) (clk->counters[cnt] * 1000.0);
     return OK;
 }
 

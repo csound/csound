@@ -82,7 +82,7 @@ int prealloc(ENVIRON *csound, CPU_PERC *p)
     if (n < 1) return NOTOK;
     /* IV - Oct 24 2002 */
     a = (int) *p->ipercent - instrtxtp[n]->active;
-    for ( ; a > 0; a--) csound->instance_(n);
+    for ( ; a > 0; a--) csound->instance(csound, n);
     return OK;
 }
 

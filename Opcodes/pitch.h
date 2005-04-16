@@ -55,6 +55,7 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *cnt;
+        void    *clk;
         int     c;
 } CLOCK;
 
@@ -62,6 +63,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *r;
         MYFLT   *a;
+        void    *clk;
 } CLKRD;
 
 typedef struct {

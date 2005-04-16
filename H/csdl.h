@@ -31,10 +31,8 @@ extern "C" {
 #include "csoundCore.h"
 #include <limits.h>
 
-#define reset_list          csound->reset_list_
 #define strsets             csound->strsets_
 #define strsmax             csound->strsmax_
-#define peakchunks          csound->peakchunks_
 #define zkstart             csound->zkstart_
 #define zastart             csound->zastart_
 #define zklast              csound->zklast_
@@ -45,7 +43,6 @@ extern "C" {
 #define sicvt               csound->sicvt_
 #define opcodlst            csound->opcodlst_
 #define oplstend            csound->oplstend_
-#define holdrand            csound->holdrand_
 #define maxinsno            csound->maxinsno_
 #define maxopcno            csound->maxopcno_
 #define Linevtblk           csound->Linevtblk_
@@ -54,32 +51,17 @@ extern "C" {
 #define retfilnam           csound->retfilnam_
 #define orchname            csound->orchname_
 #define scorename           csound->scorename_
-#define xfilename           csound->xfilename_
 #define instrtxtp           csound->instrtxtp_
 #define errmsg              csound->errmsg_
 #define scfp                csound->scfp_
 #define oscfp               csound->oscfp_
-#define maxamp              csound->maxamp_
-#define smaxamp             csound->smaxamp_
-#define omaxamp             csound->omaxamp_
-#define maxampend           csound->maxampend_
-#define maxpos              csound->maxpos_
-#define smaxpos             csound->smaxpos_
-#define omaxpos             csound->omaxpos_
 #define SCOREIN             csound->scorein_
 #define SCOREOUT            csound->scoreout_
 #define ensmps              csound->ensmps_
 #define hfkprd              csound->hfkprd_
 #define pool                csound->pool_
 #define M_CHNBP             csound->m_chnbp
-#define synterrcnt          csound->synterrcnt_
 #define strmsg              csound->strmsg_
-#define instxtanchor        csound->instxtanchor_
-#define tran_sr             csound->tran_sr_
-#define tran_kr             csound->tran_kr_
-#define tran_ksmps          csound->tran_ksmps_
-#define tran_0dbfs          csound->tran_0dbfs_
-#define tran_nchnls         csound->tran_nchnls_
 #define tpidsr              csound->tpidsr_
 #define pidsr               csound->pidsr_
 #define mpidsr              csound->mpidsr_

@@ -27,9 +27,7 @@
 #include <math.h>
 #include "namedins.h"           /* IV - Oct 31 2002 */
 
-extern INSDS   *instance(int);
-extern void    showallocs(void);
-extern INSDS   *insert_event(ENVIRON*, MYFLT, MYFLT, MYFLT, int, MYFLT **, int);
+extern INSDS  *insert_event(ENVIRON*, MYFLT, MYFLT, MYFLT, int, MYFLT **, int);
 
 typedef struct rsched {
   void          *parent;
