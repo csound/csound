@@ -1088,19 +1088,6 @@ void putop(TEXT *tp)
     ENVIRON *csound = &cenviron;
     int n, nn;
 
-/*     if (n = tp->outlist->count) { */
-/*      nn = 0; */
-/*      while (n--) */
-/*          putstrg(tp->outlist->arg[nn++]); */
-/*     } */
-/*     else { printf("\t"); } */
-/*     putstrg(tp->opcod); */
-/*     if (n = tp->inlist->count) { */
-/*      nn = 0; */
-/*      while (n--) */
-/*          putstrg(tp->inlist->arg[nn++]); */
-/*     } */
-/*     printf("\n"); */
     if ((n = tp->outlist->count)!=0) {
       nn = 0;
       while (n--) csound->Message(csound,"%s\t", tp->outlist->arg[nn++]);
