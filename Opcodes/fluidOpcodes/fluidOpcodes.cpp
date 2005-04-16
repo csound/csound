@@ -525,7 +525,7 @@ extern "C"
 	fluid_synth_noteoff(fluid_engines[fluidId], 
 			    iMidiChannel, 
 			    iMidiData1); 
-	warn(csound, "Releasing: s:%3d c:%3d k:%3d v:%3d\n",
+	warn(csound, "Releasing:  s:%3d c:%3d k:%3d v:%3d\n",
 	     iMidiStatus,
 	     iMidiChannel,
 	     iMidiData1,
