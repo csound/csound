@@ -36,7 +36,7 @@ static int mystrcmp(const void *v1, const void *v2)
     sortable *s2 = (sortable *)v2;
     int ans;
 /*     printf("Compare %s and %s =>", s1, s2); */
-/* Make this stop at _ would improve things */
+/* Make this stop at . would improve things */
     ans = strcmp(s1->name, s2->name);
 /*     printf(" %d\n", ans); */
     return ans;
@@ -99,7 +99,8 @@ void list_opcodes(int level)
                                 /* Print in 4 columns */
     for (j = 0, k = 0; j< list->size; j++) {
       if (level == 0) {
-        if (j>0 && strcmp( list->table[j-1].name,  list->table[j].name)==0) continue;
+        if (j>0 &&
+            strcmp( list->table[j-1].name,  list->table[j].name)==0) continue;
         k++;
         if ((k%3)==0) {
           printf("\n"); len = 0;

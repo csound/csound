@@ -205,7 +205,7 @@ int scantinit(ENVIRON *csound, SCANTABLE *p)
 
 int scantPerf(ENVIRON *csound, SCANTABLE *p)
 {
-    int i;
+    int i, nsmps = csound->ksmps;
     MYFLT force, fc1, fc2;
     int next, last;
 
@@ -215,8 +215,9 @@ int scantPerf(ENVIRON *csound, SCANTABLE *p)
     FUNC *fstiff = csound->FTFind(csound, p->i_stiff);
     FUNC *fdamp  = csound->FTFind(csound, p->i_damp);
     FUNC *fvel   = csound->FTFind(csound, p->i_vel);
-
-
+    MYFLT inc = p->size * *(p->kpch) * onedsr;
+    MYFLT amp = *(p->kamp);
+    MYFLT pos = p->pos;
 
 /* CALCULATE NEW POSITIONS
  *
@@ -257,16 +258,17 @@ int scantPerf(ENVIRON *csound, SCANTABLE *p)
       }
     }
 
-    for (i=0; i<csound->ksmps; i++) {
+    for (i=0; i<nsmps; i++) {
 
       /* NO INTERPOLATION */
-      p->aout[i] = fpoint->ftable[(int)(p->pos)] * *(p->kamp);
+      p->aout[i] = fpoint->ftable[(int)pos] * amp;
 
-      p->pos += p->size * *(p->kpch) * onedsr;
-      if (p->pos > p->size) {
-        p->pos -= p->size;
+      pos += inc /* p->size * *(p->kpch) * onedsr */;
+      if (pos > p->size) {
+        pos -= p->size;
       }
     }
+    p->pos = pos;
 
     /* COPY NEW VALUES TO FTABLE
      *

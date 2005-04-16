@@ -184,11 +184,11 @@ BaboMemory_end(const BaboMemory *this)
     return (MYFLT *) this->memptr.endp;
 }
 
-static inline MYFLT *
-BaboMemory_size(const BaboMemory *this)
-{
-    return (MYFLT *) this->memptr.size;
-}
+/* static inline MYFLT * */
+/* BaboMemory_size(const BaboMemory *this) */
+/* { */
+/*     return (MYFLT *) this->memptr.size; */
+/* } */
 
 /*
  * common delay/tapline methods

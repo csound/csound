@@ -1399,8 +1399,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
           case 'M':     /* IV - Sep 1 2002 */
           case 'm': nreqd--;
             break;
-          default:  synterr(
-                            Str("insufficient required arguments"));
+          default:  synterr(Str("insufficient required arguments"));
             goto chkin;
           }
         } while (incnt < nreqd);
