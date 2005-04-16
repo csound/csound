@@ -337,7 +337,7 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
     O->sfheader = 0;
     install_signal_handler();
     O->filnamspace = filnamp = mmalloc(csound, (size_t) 1024);
-    peakchunks = 1;
+    csound->peakchunks = 1;
     if (csoundCreateGlobalVariable(csound, "::argdecode::orcNameMode", 8) != 0)
       return -1;
     orcNameMode = (char*) csoundQueryGlobalVariable(csound,
@@ -480,8 +480,8 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
     csound->Message(csound,Str("orchname:  %s\n"), orchname);
     if (scorename != NULL)
       csound->Message(csound,Str("scorename: %s\n"), scorename);
-    if (xfilename != NULL)
-      csound->Message(csound,Str("xfilename: %s\n"), xfilename);
+    if (csound->xfilename != NULL)
+      csound->Message(csound, Str("xfilename: %s\n"), csound->xfilename);
     /* IV - Oct 31 2002: moved orchestra compilation here, so that named */
     /* instrument numbers are known at the score read/sort stage */
     create_opcodlst(csound);    /* create initial opcode list if not done yet */
@@ -545,11 +545,11 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
       fclose(scorin);
       fclose(scorout);
     }
-    if (xfilename != NULL) {                        /* optionally extract */
+    if (csound->xfilename != NULL) {            /* optionally extract */
       if (!strcmp(scorename,"score.xtr"))
         csoundDie(csound, Str("cannot extract %s, name conflict"), scorename);
-      if (!(xfile = fopen(xfilename, "r")))
-        csoundDie(csound, Str("cannot open extract file %s"), xfilename);
+      if (!(xfile = fopen(csound->xfilename, "r")))
+        csoundDie(csound, Str("cannot open extract file %s"),csound->xfilename);
       if (!(scorin = fopen(sortedscore, "r")))
         csoundDie(csound, Str("cannot reopen %s"), sortedscore);
       if (!(scorout = fopen(xtractedscore, "w")))
@@ -630,11 +630,11 @@ void mainRESET(ENVIRON *p)
     soundinRESET(p);
     adsynRESET(p);
     lpcRESET(p);
-    while (reset_list) {
-      RESETTER *x = reset_list->next;
-      (*reset_list->fn)(p);
-      mfree(p, reset_list);
-      reset_list = x;
+    while (p->reset_list) {
+      RESETTER *x = p->reset_list->next;
+      p->reset_list->fn(p);
+      mfree(p, p->reset_list);
+      p->reset_list = x;
     }
     scoreRESET(p);
     oloadRESET(p);              /* should be called last but changed!! */

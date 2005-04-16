@@ -33,10 +33,8 @@ extern "C" {
 
 #include "csoundCore.h"
 
-#define reset_list          cenviron.reset_list_
 #define strsets             cenviron.strsets_
 #define strsmax             cenviron.strsmax_
-#define peakchunks          cenviron.peakchunks_
 #define zkstart             cenviron.zkstart_
 #define zastart             cenviron.zastart_
 #define zklast              cenviron.zklast_
@@ -47,7 +45,6 @@ extern "C" {
 #define sicvt               cenviron.sicvt_
 #define opcodlst            cenviron.opcodlst_
 #define oplstend            cenviron.oplstend_
-#define holdrand            cenviron.holdrand_
 #define maxinsno            cenviron.maxinsno_
 #define maxopcno            cenviron.maxopcno_
 #define Linevtblk           cenviron.Linevtblk_
@@ -56,32 +53,17 @@ extern "C" {
 #define retfilnam           cenviron.retfilnam_
 #define orchname            cenviron.orchname_
 #define scorename           cenviron.scorename_
-#define xfilename           cenviron.xfilename_
 #define instrtxtp           cenviron.instrtxtp_
 #define errmsg              cenviron.errmsg_
 #define scfp                cenviron.scfp_
 #define oscfp               cenviron.oscfp_
-#define maxamp              cenviron.maxamp_
-#define smaxamp             cenviron.smaxamp_
-#define omaxamp             cenviron.omaxamp_
-#define maxampend           cenviron.maxampend_
-#define maxpos              cenviron.maxpos_
-#define smaxpos             cenviron.smaxpos_
-#define omaxpos             cenviron.omaxpos_
 #define SCOREIN             cenviron.scorein_
 #define SCOREOUT            cenviron.scoreout_
 #define ensmps              cenviron.ensmps_
 #define hfkprd              cenviron.hfkprd_
 #define pool                cenviron.pool_
 #define M_CHNBP             cenviron.m_chnbp
-#define synterrcnt          cenviron.synterrcnt_
 #define strmsg              cenviron.strmsg_
-#define instxtanchor        cenviron.instxtanchor_
-#define tran_sr             cenviron.tran_sr_
-#define tran_kr             cenviron.tran_kr_
-#define tran_ksmps          cenviron.tran_ksmps_
-#define tran_0dbfs          cenviron.tran_0dbfs_
-#define tran_nchnls         cenviron.tran_nchnls_
 #define tpidsr              cenviron.tpidsr_
 #define pidsr               cenviron.pidsr_
 #define mpidsr              cenviron.mpidsr_

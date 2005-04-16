@@ -73,13 +73,13 @@ int apow(ENVIRON *csound, POW *p)               /* Power routine for a-rate  */
 int seedrand(ENVIRON *csound, PRAND *p)
 {
     if ((unsigned int)*p->out == 0) {
-      holdrand = time(NULL);
-      printf(Str("Seeding from current time %d\n"), holdrand);
-      srand((unsigned int)holdrand);
+      csound->holdrand = time(NULL);
+      printf(Str("Seeding from current time %d\n"), csound->holdrand);
+      srand((unsigned int) csound->holdrand);
     }
     else {
       printf(Str("Seeding with %.3f\n"), *p->out);
-      srand((unsigned int)(holdrand = (int)*p->out));
+      srand((unsigned int) (csound->holdrand = (int)*p->out));
     }
     return OK;
 }
@@ -435,3 +435,4 @@ MYFLT poissrand(MYFLT l)        /*      Poisson distribution routine    */
 
     return (r3);
 }
+

@@ -167,10 +167,12 @@ typedef struct {
 
 
 #define oneUp31Bit      (4.656612875245796924105750827168e-10)
-#define randGab         (MYFLT)((double) \
-               (((holdrand=holdrand*214013L+2531011L)>>1)&0x7fffffff)*oneUp31Bit)
-#define BiRandGab   (MYFLT)((double) \
-               (holdrand = holdrand*(-214013L) + 2531011L)*oneUp31Bit)
+#define randGab   (MYFLT) ((double)     \
+        (((csound->holdrand = csound->holdrand * 214013L + 2531011L) >> 1)  \
+         & 0x7fffffff) * oneUp31Bit)
+#define BiRandGab (MYFLT) ((double)     \
+        (csound->holdrand = csound->holdrand * (-214013L) + 2531011L)       \
+        * oneUp31Bit)
 
 typedef struct  {
         OPDS    h;
@@ -218,3 +220,4 @@ typedef struct {
 } RANDOM3;
 
 #endif /* UGGAB_H */
+
