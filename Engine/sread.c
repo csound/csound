@@ -513,13 +513,16 @@ static int nested_repeat(void)  /* gab A9*/
           c[j]=' ';
           c[j+1]='\0';
         }
-        csound->Message(csound,Str("%s Nested LOOP terminated, level:%d\n"),
-               c,repeat_index);
+        if (csound->oparms->msglevel)
+          csound->Message(csound,Str("%s Nested LOOP terminated, level:%d\n"),
+                          c,repeat_index);
 
       }
-      else
-        csound->Message(csound,Str("External LOOP terminated, level:%d\n"),
-               repeat_index);
+      else {
+        if (csound->oparms->msglevel)
+          csound->Message(csound,Str("External LOOP terminated, level:%d\n"),
+                          repeat_index);
+      }
       if (strcmp(repeat_name_n[repeat_index], macros->name)==0) {
         MACRO *mm=macros->next;
         mfree(csound, macros->name); mfree(csound, macros->body);
@@ -551,12 +554,15 @@ static int nested_repeat(void)  /* gab A9*/
           c[j]=' ';
           c[j+1]='\0';
         }
-        csound->Message(csound,Str("%s  Nested LOOP section (%d) Level:%d\n"),
-               c, i, repeat_index);
+        if (csound->oparms->msglevel)
+          csound->Message(csound,Str("%s  Nested LOOP section (%d) Level:%d\n"),
+                          c, i, repeat_index);
       }
-      else
-        csound->Message(csound,Str(" External LOOP section (%d) Level:%d\n"),
-               i, repeat_index);
+      else {
+        if (csound->oparms->msglevel)
+          csound->Message(csound,Str(" External LOOP section (%d) Level:%d\n"),
+                          i, repeat_index);
+      }
       *(nxp-2) = 's'; *nxp++ =  LF;
       return 1;
     }
@@ -576,7 +582,8 @@ static int do_repeat(void)      /* At end of section repeat if necessary */
     repeat_cnt--;
     if (repeat_cnt==0) { /* Expired */
       /* Delete macro */
-      csound->Message(csound,Str("Loop terminated\n"));
+      if (csound->oparms->msglevel)
+        csound->Message(csound,Str("Loop terminated\n"));
       if (strcmp(repeat_name, macros->name)==0) {
         MACRO *mm=macros->next;
         mfree(csound, macros->name); mfree(csound, macros->body);
@@ -600,7 +607,8 @@ static int do_repeat(void)      /* At end of section repeat if necessary */
       sscanf(repeat_mm->body, "%d", &i);
       i = i + repeat_inc;
       sprintf(repeat_mm->body, "%d", i);
-      csound->Message(csound,Str("Repeat section (%d)\n"), i);
+      if (csound->oparms->msglevel)
+        csound->Message(csound,Str("Repeat section (%d)\n"), i);
       *(nxp-2) = 's'; *nxp++ = LF;
       if (nxp >= memend)                /* if this memblk exhausted */
         expand_nxp(csound);
@@ -659,7 +667,8 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
           char *old_nxp = nxp-2;
           getpfld();
           clock_base = stof(sp);
-          csound->Message(csound,Str("Clockbase = %f\n"), clock_base);
+          if (csound->oparms->msglevel)
+            csound->Message(csound,Str("Clockbase = %f\n"), clock_base);
           flushlin();
           op = getop();
           nxp = old_nxp;
@@ -732,12 +741,15 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
                 st[j]=' ';
                 st[j+1]='\0';
               }
-              csound->Message(csound,Str("%s Nested LOOP=%d Level:%d\n"), st,
-                     repeat_cnt_n[repeat_index], repeat_index);
+              if (csound->oparms->msglevel)
+                csound->Message(csound,Str("%s Nested LOOP=%d Level:%d\n"), st,
+                                repeat_cnt_n[repeat_index], repeat_index);
             }
-            else
-              csound->Message(csound,Str("External LOOP=%d Level:%d\n"),
-                     repeat_cnt_n[repeat_index], repeat_index);
+            else {
+              if (csound->oparms->msglevel)
+                csound->Message(csound,Str("External LOOP=%d Level:%d\n"),
+                                repeat_cnt_n[repeat_index], repeat_index);
+            }
             do {
               c = getscochar(1);
             } while (c==' '||c=='\t');
@@ -807,7 +819,8 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
             repeat_cnt = 10 * repeat_cnt + c - '0';
             c = getscochar(1);
           } while (isdigit(c));
-          csound->Message(csound,Str("Repeats=%d\n"), repeat_cnt);
+          if (csound->oparms->msglevel)
+            csound->Message(csound,Str("Repeats=%d\n"), repeat_cnt);
           do {
             c = getscochar(1);
           } while (c==' '||c=='\t');
@@ -858,7 +871,8 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
             buff[i++]=c;
           } while (isalpha(c=getscochar(1))|| (i!=0 && (isdigit(c)||c=='_')));
           buff[i]=0;
-          csound->Message(csound,Str("Named section >>>%s<<<\n"), buff);
+          if (csound->oparms->msglevel)
+            csound->Message(csound,Str("Named section >>>%s<<<\n"), buff);
           for (i=0; i<=next_name; i++)
             if (strcmp(buff, names[i].name)==0) break;
           if (i>next_name) {
@@ -872,9 +886,10 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
             names[next_name].posit = ftell(str->file);
             names[next_name].file = mmalloc(csound, strlen(str->body)+1);
             strcpy(names[next_name].file, str->body);
-            csound->Message(csound,Str("%d: File %s position %ld\n"),
-                   next_name, names[next_name].file,
-                   names[next_name].posit);
+            if (csound->oparms->msglevel)
+              csound->Message(csound,Str("%d: File %s position %ld\n"),
+                              next_name, names[next_name].file,
+                              names[next_name].posit);
           }
           else {
             csound->Message(csound,
@@ -941,7 +956,8 @@ int sread(void)                 /*  called from main,  reads from SCOREIN   */
           char *old_nxp = nxp-2;
           getpfld();
           warp_factor = stof(sp);
-          csound->Message(csound,Str("Warp_factor = %f\n"), warp_factor);
+          if (csound->oparms->msglevel)
+            csound->Message(csound,Str("Warp_factor = %f\n"), warp_factor);
           flushlin();
           op = getop();
           nxp = old_nxp;
@@ -1315,7 +1331,8 @@ static int sget1(void)          /* get first non-white, non-comment char */
           mname[i++] = c;
         } while (isalpha(c = getscochar(1)) || (i!=0 && (isdigit(c)||c=='_')));
         mname[i] = '\0';
-        csound->Message(csound, Str("Macro definition for %s\n"), mname);
+        if (csound->oparms->msglevel)
+          csound->Message(csound, Str("Macro definition for %s\n"), mname);
         mm->name = mmalloc(csound, i+1);
         strcpy(mm->name, mname);
         if (c == '(') { /* arguments */
@@ -1423,7 +1440,8 @@ static int sget1(void)          /* get first non-white, non-comment char */
           mname[i++] = c;
         } while (isalpha(c = getscochar(1))|| (i!=0 && (isdigit(c)||'_')));
         mname[i] = '\0';
-        csound->Message(csound, Str("macro %s undefined\n"), mname);
+        if (csound->oparms->msglevel)
+          csound->Message(csound, Str("macro %s undefined\n"), mname);
         if (strcmp(mname, macros->name)==0) {
           MACRO *mm=macros->next;
           mfree(csound, macros->name); mfree(csound, macros->body);
