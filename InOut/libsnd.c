@@ -408,9 +408,11 @@ void sfopenin(void *csound_)        /* init for continuous soundin */
                         Str("WARNING: audio_in %s has sr = %ld, orch sr = %ld\n"),
                         sfname, sfinfo.samplerate, (long) (csound->esr + FL(0.5)));
       }
-      if (sfinfo.channels != csound->nchnls) {
-        csoundDie(csound, Str("audio_in %s has %ld chnls, orch %d chnls"),
-                          sfname, sfinfo.channels, csound->nchnls);
+      if (sfinfo.channels != csound->nchnls &&
+          (O.msglevel & WARNMSG)) {
+        csound->Message(csound,
+                        Str("WARNING: audio_in %s has %ld chnls, orch %d chnls"),
+                        sfname, sfinfo.channels, csound->nchnls);
       }
       /* Do we care about the format?  Can assume float?? */
       O.insampsiz = sizeof(MYFLT);        /*    & cpy header vals  */
