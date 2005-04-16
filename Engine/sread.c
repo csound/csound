@@ -1362,8 +1362,10 @@ static int sget1(void)          /* get first non-white, non-comment char */
         mm->body[i]='\0';
         mm->next = macros;
         macros = mm;
+#ifdef MACDEBUG
         csound->Message(csound, Str("Macro %s with %d arguments defined\n"),
                                 mm->name, mm->acnt);
+#endif
         c = ' ';
         flushlin();
         goto srch;
