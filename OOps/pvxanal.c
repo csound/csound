@@ -39,12 +39,12 @@
 
 /* Only supports PVOC_AMP_FREQ format for now */
 
-void fft_(MYFLT *, MYFLT *,int,int,int,int);
-void fftmx(MYFLT *,MYFLT *,int,int,int,int,int,int *,
-           MYFLT *,MYFLT *,MYFLT *,MYFLT *,int *,int[]);
-void reals_(MYFLT *,MYFLT *,int,int);
+extern void fft_(ENVIRON*,MYFLT *, MYFLT *,int,int,int,int);
+extern void fftmx(MYFLT *,MYFLT *,int,int,int,int,int,int *,
+                  MYFLT *,MYFLT *,MYFLT *,MYFLT *,int *,int[]);
+void reals_(ENVIRON*,MYFLT *,MYFLT *,int,int);
 void pvx_release(PVX **ppvx,long chans);
-static long generate_frame(PVX *pvx,MYFLT *fbuf,float *outanal,
+static long generate_frame(ENVIRON*,PVX *pvx,MYFLT *fbuf,float *outanal,
                            long samps,int frametype);
 static void chan_split(const MYFLT *inbuf,MYFLT **chbuf,long insize,long chans);
 static int init(PVX **pvx,long srate,long fftsize,long winsize,
@@ -57,8 +57,8 @@ void vonhann(MYFLT *win,int winLen,int even);
 
 /* not sure how to use 'verbose' yet; but it's here...*/
 /* cannot add display code, as we may have 8 channels here...*/
-int pvxanal(SOUNDIN *p, SNDFILE *fd, const char *fname, long srate,
-            long chans, long fftsize, long overlap, long winsize,
+int pvxanal(ENVIRON *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
+            long srate, long chans, long fftsize, long overlap, long winsize,
             pv_wtype wintype, int verbose)
 {
 
@@ -83,12 +83,14 @@ int pvxanal(SOUNDIN *p, SNDFILE *fd, const char *fname, long srate,
     if (ext == NULL || ext[0]!='.' || tolower(ext[1]) != 'p' ||
         tolower(ext[2]) != 'v' ||
         tolower(ext[3]) != 'x' || ext[4] != '\0') {
-      printf(Str("pvxanal: outfile name must use extension .pvx\n"));
+      csound->Message(csound,
+                      Str("pvxanal: outfile name must use extension .pvx\n"));
       return 1;
     }
     if (chans > MAXPVXCHANS) {
-      printf(Str(
-                 "pvxanal - source has too many channels: Maxchans = %d.\n"),
+      csound->Message(csound,
+                      Str("pvxanal - source has too many channels: "
+                          "Maxchans = %d.\n"),
              MAXPVXCHANS);
       return 1;
     }
@@ -137,7 +139,8 @@ int pvxanal(SOUNDIN *p, SNDFILE *fd, const char *fname, long srate,
                               PVOC_AMP_FREQ,srate,stype,
                               wintype,0.0f,NULL,winsize);
     if (pvfile < 0) {
-      printf(Str("pvxanal: unable to create analysis file: %s"),
+      csound->Message(csound,
+                      Str("pvxanal: unable to create analysis file: %s"),
              pvoc_errorstr());
       rc = 1;
       goto error;
@@ -157,11 +160,12 @@ int pvxanal(SOUNDIN *p, SNDFILE *fd, const char *fname, long srate,
         for (k=0;k < chans;k++) {
           frame = frame_c[k];
           chanbuf = inbuf_c[k];
-          generate_frame(pvx[k],chanbuf+i,frame,overlap,PVOC_AMP_FREQ);
+          generate_frame(csound, pvx[k],chanbuf+i,frame,overlap,PVOC_AMP_FREQ);
 
           if (!pvoc_putframes(pvfile,frame,1)) {
-            printf(Str("pvxanal: error writing analysis frames: %s\n"),
-                   pvoc_errorstr());
+            csound->Message(csound,
+                            Str("pvxanal: error writing analysis frames: %s\n"),
+                            pvoc_errorstr());
             rc = 1;
             goto error;
           }
@@ -169,7 +173,7 @@ int pvxanal(SOUNDIN *p, SNDFILE *fd, const char *fname, long srate,
         }
       }
       if ((blocks_written/chans) %20 == 0) {
-        printf("%ld\n",blocks_written/chans);
+        csound->Message(csound,"%ld\n",blocks_written/chans);
       }
       if (total_sampsread >= p->getframes*chans) break;
     }
@@ -183,18 +187,19 @@ int pvxanal(SOUNDIN *p, SNDFILE *fd, const char *fname, long srate,
       for (k=0;k < chans;k++) {
         frame = frame_c[k];
         chanbuf = inbuf_c[k];
-        generate_frame(pvx[k],chanbuf+i,frame,overlap,PVOC_AMP_FREQ);
+        generate_frame(csound,pvx[k],chanbuf+i,frame,overlap,PVOC_AMP_FREQ);
         if (!pvoc_putframes(pvfile,frame,1)) {
-          printf(Str("pvxanal: error writing analysis frames: %s\n"),
-                 pvoc_errorstr());
+          csound->Message(csound,
+                          Str("pvxanal: error writing analysis frames: %s\n"),
+                          pvoc_errorstr());
           rc = 1;
           goto error;
         }
         blocks_written++;
       }
     }
-    printf(Str("\n%ld %d-chan blocks written to %s\n"),
-           blocks_written/chans,chans,fname);
+    csound->Message(csound,Str("\n%ld %d-chan blocks written to %s\n"),
+                    blocks_written/chans,chans,fname);
 
  error:
     if (inbuf)
@@ -461,7 +466,8 @@ void pvx_release(PVX **ppvx,long chans)
 #define MAX(a,b) (a>b ? a : b)
 #define MIN(a,b) (a<b ? a : b)
 /* RWD outanal MUST be 32bit */
-long generate_frame(PVX *pvx,MYFLT *fbuf,float *outanal,long samps,int frametype)
+long generate_frame(ENVIRON *csound,
+                    PVX *pvx,MYFLT *fbuf,float *outanal,long samps,int frametype)
 {
     /*sblen = decfac = D */
     /*static int sblen = 0; */
@@ -531,10 +537,10 @@ long generate_frame(PVX *pvx,MYFLT *fbuf,float *outanal,long samps,int frametype
     }
 #ifdef USE_FFTW
     rfftwnd_one_real_to_complex(forward_plan,anal,NULL);
-    /* reals_(anal,banal,N2,-2); */
+    /* reals_(csound,anal,banal,N2,-2); */
 #else
-    fft_(anal,banal,1,pvx->N2,1,-2);
-    reals_(anal,banal,pvx->N2,-2);
+    fft_(csound,anal,banal,1,pvx->N2,1,-2);
+    reals_(csound,anal,banal,pvx->N2,-2);
 #endif
     /* conversion: The real and imaginary values in anal are converted to
        magnitude and angle-difference-per-second (assuming an

@@ -30,7 +30,10 @@ static char *rcsid = "$Id$";
  */
 /*
  *      $Log$
- *      Revision 1.6  2005-02-18 16:21:14  istvanv
+ *      Revision 1.7  2005-04-17 17:56:25  jpff
+ *      Warnings
+ *
+ *      Revision 1.6  2005/02/18 16:21:14  istvanv
  *      added csound pointer to mmalloc, auxalloc, and other functions
  *
  *      Revision 1.5  2005/01/27 19:22:50  istvanv
@@ -61,10 +64,10 @@ static char *rcsid = "$Id$";
 #include <math.h>
 #include "pvoc.h"
 
-void fft_(MYFLT *, MYFLT *, int, int, int, int);
+void fft_(ENVIRON *,MYFLT *, MYFLT *, int, int, int, int);
 void fftmx(MYFLT *, MYFLT *, int, int, int, int, int,
       int*, MYFLT *, MYFLT *, MYFLT *, MYFLT *, int *, int[]);
-void reals_(MYFLT *, MYFLT *, int, int);
+void reals_(ENVIRON *,MYFLT *, MYFLT *, int, int);
 
 /*
  *-----------------------------------------------------------------------
@@ -76,11 +79,11 @@ void reals_(MYFLT *, MYFLT *, int, int);
  *      this is the call from C:
  *              fft_(anal,banal,&one,&N2,&one,&mtwo);
  *      CHANGED TO:-
- *              fft_(anal,banal,one,N2,one,mtwo);
+ *              fft_(csound,anal,banal,one,N2,one,mtwo);
  */
 
 void
-fft_(MYFLT *a, MYFLT *b, int nseg, int n, int nspn, int isn)
+fft_(ENVIRON *csound, MYFLT *a, MYFLT *b, int nseg, int n, int nspn, int isn)
   /*    *a,       pointer to array 'anal'  */
   /*    *b;       pointer to array 'banal' */
 {
@@ -117,7 +120,7 @@ fft_(MYFLT *a, MYFLT *b, int nseg, int n, int nspn, int isn)
     ntot=abs(nspn*nseg);
 
     if (isn*ntot == 0) {
-      err_printf(Str("\nerror - zero in fft parameters %d %d %d %d"),
+      csound->Message(csound,Str("\nerror - zero in fft parameters %d %d %d %d"),
               nseg, n, nspn, isn);
       return;
     }
@@ -148,8 +151,8 @@ fft_(MYFLT *a, MYFLT *b, int nseg, int n, int nspn, int isn)
     if (m <= kt+1)
       maxp = m + kt + 1;
     if (m+kt > 15) {
-      err_printf(
-              Str("\nerror - fft parameter n has more than 15 factors : %d"), n);
+      csound->Message(csound,
+                      Str("\nerror - fft parameter n has more than 15 factors : %d"), n);
       return;
     }
     if (kt!=0) {
@@ -818,11 +821,11 @@ lbl570:
 
  *              reals_(anal,banal,N2,mtwo);
  *      which has been changed from CARL call
- *              reals_(anal,banal,&N2,&mtwo);
+ *              reals_(csound,anal,banal,&N2,&mtwo);
  */
 
 void
-reals_(MYFLT *a, MYFLT *b, int n, int isn)
+reals_(ENVIRON *csound, MYFLT *a, MYFLT *b, int n, int isn)
 
   /*    *a,       a refers to an array of floats 'anal'   */
   /*    *b;       b refers to an array of floats 'banal'  */
@@ -849,7 +852,8 @@ reals_(MYFLT *a, MYFLT *b, int n, int isn)
     inc = abs(isn);
     nf = abs(n);
     if (nf*isn==0) {
-      err_printf(Str("\nerror - zero in reals parameters : %d : %d "),n,isn);
+      csound->Message(csound,
+                      Str("\nerror - zero in reals parameters : %d : %d "),n,isn);
       return;
     }
     nk = (nf*inc) + 2;

@@ -60,7 +60,9 @@ static int scanflt(MYFLT *pfld)
     }
     if (!((c>='0' && c<='9') || c=='+' || c=='-' || c=='.')) {
         ungetc(c,scfp);
-        printf(Str("ERROR: illegal character %c(%.2x) in scoreline: "), c, c);
+        cenviron.Message(&cenviron,
+                         Str("ERROR: illegal character %c(%.2x) in scoreline: "),
+                         c, c);
         dumpline();
         return(0);
     }
@@ -78,9 +80,9 @@ static void dumpline(void)      /* print the line while flushing it */
     int c;
     FILE *xx = scfp;
     while ((c = getc(xx)) != EOF && c != '\n') {
-        printf("%c", c);
+        cenviron.Message(&cenviron,"%c", c);
     }
-    printf(Str("\n\tremainder of line flushed\n"));
+    cenviron.Message(&cenviron,Str("\n\tremainder of line flushed\n"));
 }
 
 
@@ -124,7 +126,7 @@ unwarped:   e->opcod = c;                    /* UNWARPED scorefile:  */
                 ungetc(c,scfp);                            /* pfld:  back up */
                 if (!scanflt(++pp))  break;                /*   & read value */
                 if (pp >= plim) {
-                    printf(Str("ERROR: too many pfields: "));
+                    cenviron.Message(&cenviron,Str("ERROR: too many pfields: "));
                     dumpline();
                     break;
                 }
