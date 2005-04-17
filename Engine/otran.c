@@ -734,9 +734,10 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
           csound->nlabels += NLABELS;
           if (lblsp - labels >= csound->nlabels)
             csound->nlabels = lblsp - labels + 2;
-          csound->Message(csound,
-                           Str("LABELS list is full...extending to %d\n"),
-                           csound->nlabels);
+          if(csound->oparms->msglevel)
+            csound->Message(csound,
+                            Str("LABELS list is full...extending to %d\n"),
+                            csound->nlabels);
           labels =
             (char**)mrealloc(csound, labels, csound->nlabels*sizeof(char*));
           lblsp = &labels[oldn];
@@ -788,9 +789,10 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
             if (largp - larg >= csound->ngotos) {
               int oldn = csound->ngotos;
               csound->ngotos += NGOTOS;
-              csound->Message(csound,
-                               Str("GOTOS list is full..extending to %d\n"),
-                               csound->ngotos);
+              if(csound->oparms->msglevel)
+                csound->Message(csound,
+                                Str("GOTOS list is full..extending to %d\n"),
+                                csound->ngotos);
               if (largp - larg >= csound->ngotos)
                 csound->ngotos = largp - larg + 1;
               larg = (LBLARG *)
@@ -909,7 +911,8 @@ static int constndx(char *s)        /* get storage ndx of float const value */
       /* csoundDie(csound, "flconst pool is full"); */
       int indx = fp-pool;
       nconsts += NCONSTS;
-      csound->Message(csound,Str("extending Floating pool to %d\n"), nconsts);
+      if(csound->oparms->msglevel)
+        csound->Message(csound,Str("extending Floating pool to %d\n"), nconsts);
       pool = (MYFLT*)mrealloc(csound, pool, nconsts*sizeof(MYFLT));
       fp = pool + indx;
     }
@@ -937,8 +940,9 @@ static void gblnamset(char *s) /* builds namelist & type counts for gbl names */
       if (ggg->nxtslot+1 >= ggg->namlim) {      /* chk for full table   */
 /*      csoundDie(csound, "gbl namelist is full"); */
         if (ggg->next == NULL) {
-          csound->Message(csound,Str("Extending Global pool to %d\n"),
-                      gblsize+=GNAMES);
+          if(csound->oparms->msglevel)
+            csound->Message(csound,Str("Extending Global pool to %d\n"),
+                            gblsize+=GNAMES);
           ggg->next = (struct namepool*)mmalloc(csound,sizeof(struct namepool));
           ggg = ggg->next;
           ggg->names = (NAME *)mmalloc(csound, (long)(GNAMES*sizeof(NAME)));
@@ -981,8 +985,9 @@ static NAME *lclnamset(char *s)
       if (lll->nxtslot+1 >= lll->namlim) {      /* chk for full table   */
         /*          csoundDie(csound, "lcl namelist is full"); */
         if (lll->next == NULL) {
-          csound->Message(csound,Str("Extending Local pool to %d\n"),
-                           lclsize+=LNAMES);
+          if(csound->oparms->msglevel)
+            csound->Message(csound,Str("Extending Local pool to %d\n"),
+                            lclsize+=LNAMES);
           lll->next = (struct namepool*)mmalloc(csound,
                                                 sizeof(struct namepool));
           lll = lll->next;
