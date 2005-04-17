@@ -445,7 +445,8 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
           } while (isalpha(c = getorchar(csound)) ||
                    (i != 0 && (isdigit(c) || c == '_')));
           mname[i] = '\0';
-          csound->Message(csound,Str("Macro definition for %s\n"), mname);
+          if (csound->oparms->msglevel)
+            csound->Message(csound,Str("Macro definition for %s\n"), mname);
           mm->name = mmalloc(csound, i+1);
           strcpy(mm->name, mname);
           if (c == '(') {       /* arguments */
