@@ -158,7 +158,7 @@ void fgens(ENVIRON *csound, EVTBLK *evtblkp)
     if ((genum = (long)ff->e.p[4])==SSTRCOD) {
       /* A named gen given so search the list of extra gens */
       NAMEDGEN *n = namedgen;
-      csound->DebugMsg(csound, "*** Named fgen %s", ff->e.strarg);
+/*       csound->DebugMsg(csound, "*** Named fgen %s", ff->e.strarg); */
       while (n) {
         if (strcmp(n->name, ff->e.strarg)==0) {    /* Look up by name */
           genum = n->genum;
@@ -2872,7 +2872,7 @@ static void gen52 (FUNC *ftp, ENVIRON *csound)
 int allocgen(ENVIRON *csound, char *s, GEN fn)
 {
     NAMEDGEN *n = namedgen;
-    csound->DebugMsg(csound, Str("**** allocgen %s to %p"), s, fn);
+/*     csound->DebugMsg(csound, Str("**** allocgen %s to %p"), s, fn); */
     while (n!=NULL) {
       if (strcmp(s, n->name)==0) return n->genum;
       n = n->next;
