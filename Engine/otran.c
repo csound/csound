@@ -227,6 +227,17 @@ static int parse_opcode_args(ENVIRON *csound, OENTRY *opc)
     return err;
 }
 
+static int pnum(char *s)        /* check a char string for pnum format  */
+                                /*   and return the pnum ( >= 0 )       */
+{                               /* else return -1                       */
+    int n;
+
+    if (*s == 'p' || *s == 'P')
+      if (sscanf(++s, "%d", &n))
+        return(n);
+    return(-1);
+}
+
 void otran(ENVIRON *csound)
 {
     OPARMS      *O = csound->oparms;
@@ -247,7 +258,8 @@ void otran(ENVIRON *csound)
     lcl.names = (NAME *)mmalloc(csound, (long)(LNAMES*sizeof(NAME)));
     lcl.namlim = lcl.names + LNAMES;
     lcl.next = NULL;
-    instrtxtp = (INSTRTXT **) mcalloc(csound, (1+maxinsno) * sizeof(INSTRTXT*));
+    csound->instrtxtp = (INSTRTXT **) mcalloc(csound, (1 + csound->maxinsno)
+                                                      * sizeof(INSTRTXT*));
     csound->opcodeInfo = NULL;          /* IV - Oct 20 2002 */
     opcode_list_create(csound);         /* IV - Oct 31 2002 */
 
@@ -302,29 +314,30 @@ void otran(ENVIRON *csound)
                     synterr(Str("illegal instr number"));
                     err++; continue;
                   }
-                  if (n > maxinsno) {
-                    int old_maxinsno = maxinsno;
+                  if (n > csound->maxinsno) {
+                    int old_maxinsno = csound->maxinsno;
                     /* expand */
-                    while (n>maxinsno) maxinsno += MAXINSNO;
+                    while (n>csound->maxinsno) csound->maxinsno += MAXINSNO;
 /*                  csound->Message(csound, Str("Extending instr number "
                                                 "from %d to %d\n"),
-                                            old_maxinsno, maxinsno); */
-                    instrtxtp = (INSTRTXT**)
-                      mrealloc(csound, instrtxtp,
-                               (long)((1+maxinsno)*sizeof(INSTRTXT*)));
+                                            old_maxinsno, csound->maxinsno); */
+                    csound->instrtxtp = (INSTRTXT**)
+                      mrealloc(csound, csound->instrtxtp, (1 + csound->maxinsno)
+                                                          * sizeof(INSTRTXT*));
                     /* Array expected to be nulled so.... */
-                    for (i=old_maxinsno+1; i<=maxinsno; i++) instrtxtp[i]=NULL;
+                    for (i = old_maxinsno + 1; i <= csound->maxinsno; i++)
+                      csound->instrtxtp[i] = NULL;
                   }
-/*                   else if (n<0) { */
-/*                     synterr(Str("illegal instr number")); */
-/*                     continue; */
-/*                   } */
-                  if (instrtxtp[n] != NULL) {
+/*                else if (n<0) { */
+/*                  synterr(Str("illegal instr number")); */
+/*                  continue; */
+/*                } */
+                  if (csound->instrtxtp[n] != NULL) {
                     sprintf(errmsg,Str("instr %ld redefined"),n);
                     synterr(errmsg);
                     err++; continue;
                   }
-                  instrtxtp[n] = ip;
+                  csound->instrtxtp[n] = ip;
                 }
                 else {                  /* named instrument */
                   long  insno_priority = -1L;
@@ -526,22 +539,23 @@ void otran(ENVIRON *csound)
     /* now add the instruments with names, assigning them fake instr numbers */
     named_instr_assign_numbers(csound);         /* IV - Oct 31 2002 */
     if (csound->opcodeInfo) {
-      int num = maxinsno;       /* store after any other instruments */
+      int num = csound->maxinsno;       /* store after any other instruments */
       OPCODINFO *inm = csound->opcodeInfo;
       /* IV - Oct 31 2002: now add user defined opcodes */
       while (inm) {
         /* we may need to expand the instrument array */
-        if (++num > maxopcno) {
+        if (++num > csound->maxopcno) {
           int i;
-          i = (maxopcno > 0 ? maxopcno : maxinsno);
-          maxopcno = i + MAXINSNO;
-          instrtxtp = (INSTRTXT**)
-            mrealloc(csound, instrtxtp, (1 + maxopcno) * sizeof(INSTRTXT*));
+          i = (csound->maxopcno > 0 ? csound->maxopcno : csound->maxinsno);
+          csound->maxopcno = i + MAXINSNO;
+          csound->instrtxtp = (INSTRTXT**)
+            mrealloc(csound, csound->instrtxtp, (1 + csound->maxopcno)
+                                                * sizeof(INSTRTXT*));
           /* Array expected to be nulled so.... */
-          while (++i <= maxopcno) instrtxtp[i] = NULL;
+          while (++i <= csound->maxopcno) csound->instrtxtp[i] = NULL;
         }
         inm->instno = num;
-        instrtxtp[num] = inm->ip;
+        csound->instrtxtp[num] = inm->ip;
         inm = inm->prv;
       }
     }

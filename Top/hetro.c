@@ -217,7 +217,7 @@ int hetro(int argc, char **argv)  /* called from main.c or anal/adsyn/main.c */
         if (
          (infd = csound->SAsndgetset(csound, infilnam, &p, &beg_time,
                                      &input_dur, &sr, channel)) < 0) {
-            sprintf(errmsg,Str("Cannot open %s"), retfilnam);
+            sprintf(errmsg,Str("Cannot open %s"), csound->retfilnam);
             quit (errmsg);
         }
         nsamps = p->getframes;
@@ -226,7 +226,7 @@ int hetro(int argc, char **argv)  /* called from main.c or anal/adsyn/main.c */
         /* & read them in */
         if ((smpsin = csound->getsndin(csound, infd, auxp, nsamps, p)) <= 0) {
           printf("smpsin = %d\n", smpsin);
-            sprintf(errmsg,Str("Read error on %s\n"), retfilnam);
+            sprintf(errmsg,Str("Read error on %s\n"), csound->retfilnam);
             quit(errmsg);
         }
         sf_close(infd);

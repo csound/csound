@@ -34,19 +34,12 @@ void sssfinit(void)
 }
 
 char *unquote(char *name)       /* remove any quotes from a filename   */
-                                /* also for THINKC rm ./ & cvt / to :  */
 {
     static char newname[MAXNAME];
     char c, *old = name, *nnew = newname;
     do {
-      if ((c = *old++) != '"') {
-#if defined(mac_classic) || defined(SYMANTEC)
-        if (nnew == newname && (c == '.' || c == '/'))
-          continue;
-        if (c == '/')  c = DIRSEP;
-#endif
+      if ((c = *old++) != '"')
         *nnew++ = c;
-      }
     } while (c);
     return (newname);
 }
@@ -73,20 +66,21 @@ openin(char *filnam)/* open a file for reading. If not fullpath, will search: */
                    /*  current directory, then SSDIR (if defined), then SFDIR */
 {                  /*  returns normal fd, also sets a global return filename  */
                    /*  called by sndgetset (for soundin, gen01), and sfopenin */
-    char *pathnam;
-    int  infd;
+    ENVIRON *csound = &cenviron;
+    char    *pathnam;
+    int     infd;
 
-    pathnam = csoundFindInputFile(&cenviron, filnam, "SFDIR;SSDIR");
+    pathnam = csoundFindInputFile(csound, filnam, "SFDIR;SSDIR");
     infd = -1;
-    if (retfilnam != NULL)
-      mfree(&cenviron, retfilnam);
-    retfilnam = pathnam;
+    if (csound->retfilnam != NULL)
+      mfree(csound, csound->retfilnam);
+    csound->retfilnam = pathnam;
     if (pathnam != NULL)
       infd = open(pathnam, RD_OPTS);
     if (infd < 0)
-      csoundDie(&cenviron, Str("cannot open %s.  "
-                               "Not in cur dir, SSDIR or SFDIR as defined"),
-                           filnam);
+      csoundDie(csound, Str("cannot open %s.  "
+                            "Not in cur dir, SSDIR or SFDIR as defined"),
+                        filnam);
     return infd;
 }
 
@@ -96,27 +90,28 @@ int openout(              /* open a file for writing.  If not fullpath, then  */
 {                         /*   dirtyp 3 will put it in SFDIR else in cur dir  */
                           /* returns normal fd, & sets global return filename */
                           /* called by anals,dumpf (typ 1), sfopenout (typ 3) */
-    char *pathnam = NULL;
-    int  outfd = -1;
+    ENVIRON *csound = &cenviron;
+    char    *pathnam = NULL;
+    int     outfd = -1;
 
     if (dirtyp == 2) {
-      pathnam = csoundGetEnv(&cenviron, "SFDIR");
+      pathnam = csoundGetEnv(csound, "SFDIR");
       if (pathnam == NULL || pathnam[0] == '\0')
-        csoundDie(&cenviron, Str("cannot open %s, SFDIR undefined"), filnam);
+        csoundDie(csound, Str("cannot open %s, SFDIR undefined"), filnam);
     }
     else if (dirtyp < 1 || dirtyp > 3)
-      csoundDie(&cenviron, Str("openout: illegal dirtyp"));
+      csoundDie(csound, Str("openout: illegal dirtyp"));
     if (dirtyp == 2 || dirtyp == 3)
-      pathnam = csoundFindOutputFile(&cenviron, filnam, "SFDIR");
+      pathnam = csoundFindOutputFile(csound, filnam, "SFDIR");
     else
-      pathnam = csoundFindOutputFile(&cenviron, filnam, NULL);
-    if (retfilnam != NULL)
-      mfree(&cenviron, retfilnam);
-    retfilnam = pathnam;
+      pathnam = csoundFindOutputFile(csound, filnam, NULL);
+    if (csound->retfilnam != NULL)
+      mfree(csound, csound->retfilnam);
+    csound->retfilnam = pathnam;
     if (pathnam != NULL)
       outfd = open(pathnam, WR_OPTS);
     if (outfd < 0)
-      csoundDie(&cenviron, Str("cannot open %s."), filnam);
+      csoundDie(csound, Str("cannot open %s."), filnam);
     return outfd;
 }
 
@@ -125,19 +120,20 @@ int openout(              /* open a file for writing.  If not fullpath, then  */
 
 FILE *fopenin(char *filnam)
 {
-    char *pathnam;
-    FILE *infil;
+    ENVIRON *csound = &cenviron;
+    char    *pathnam;
+    FILE    *infil;
 
-    pathnam = csoundFindInputFile(&cenviron, filnam, "SFDIR;SSDIR;INCDIR");
+    pathnam = csoundFindInputFile(csound, filnam, "SFDIR;SSDIR;INCDIR");
     infil = NULL;
-    if (retfilnam != NULL)
-      mfree(&cenviron, retfilnam);
-    retfilnam = pathnam;
+    if (csound->retfilnam != NULL)
+      mfree(csound, csound->retfilnam);
+    csound->retfilnam = pathnam;
     if (pathnam != NULL)
       infil = fopen(pathnam, "r");
     if (infil == NULL)
-      csoundDie(&cenviron, Str("cannot open %s.  Not in cur dir, "
-                               "INCDIR SSDIR or SFDIR as defined"), filnam);
+      csoundDie(csound, Str("cannot open %s.  Not in cur dir, "
+                            "INCDIR SSDIR or SFDIR as defined"), filnam);
     return infil;
 }
 

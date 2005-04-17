@@ -45,15 +45,11 @@ extern "C" {
 #define sicvt               cenviron.sicvt_
 #define opcodlst            cenviron.opcodlst_
 #define oplstend            cenviron.oplstend_
-#define maxinsno            cenviron.maxinsno_
-#define maxopcno            cenviron.maxopcno_
 #define Linevtblk           cenviron.Linevtblk_
 #define Linefd              cenviron.Linefd_
 #define ls_table            cenviron.ls_table_
-#define retfilnam           cenviron.retfilnam_
 #define orchname            cenviron.orchname_
 #define scorename           cenviron.scorename_
-#define instrtxtp           cenviron.instrtxtp_
 #define errmsg              cenviron.errmsg_
 #define scfp                cenviron.scfp_
 #define oscfp               cenviron.oscfp_

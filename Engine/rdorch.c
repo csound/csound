@@ -1621,9 +1621,20 @@ int getopnum(char *s)           /* tst a string against opcodlst  */
     return(0);  /* compiler only */
 }
 
+static int pnum(char *s)        /* check a char string for pnum format  */
+                                /*   and return the pnum ( >= 0 )       */
+{                               /* else return -1                       */
+    int n;
+
+    if (*s == 'p' || *s == 'P')
+      if (sscanf(++s, "%d", &n))
+        return(n);
+    return(-1);
+}
+
 char argtyp(char *s)    /* find arg type:  d, w, a, k, i, c, p, r, S, B, b */
 {                       /*   also set lgprevdef if !c && !p && !S */
-    extern int pnum(char *), lgexist(char *);
+    extern int lgexist(char *);
     char c = *s;
 
     /*trap this before parsing for a number! */

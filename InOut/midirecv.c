@@ -123,13 +123,14 @@ static const short datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0 };
 void MidiOpen(ENVIRON *csound)
                       /* open a Midi event stream for reading, alloc bufs */
 {                     /*     callable once from main.c                    */
+    OPARMS  *O = csound->oparms;
     /* First set up buffers. */
-    int i;
+    int     i;
     MGLOB(Midevtblk) = (MEVENT *) mcalloc(csound, (long) sizeof(MEVENT));
     MGLOB(sexp) = 0;
     /* Then open device... */
-    if (O.Midiin) {
-      i = csoundExternalMidiInOpen(csound, &MGLOB(midiInUserData), O.Midiname);
+    if (O->Midiin) {
+      i = csoundExternalMidiInOpen(csound, &MGLOB(midiInUserData), O->Midiname);
       if (i != 0) {
         csound->Die(csound,
                     Str(" *** error opening MIDI in device: %d (%s)"),
@@ -137,8 +138,8 @@ void MidiOpen(ENVIRON *csound)
       }
     }
     /* and file. */
-    if (O.FMidiin && O.FMidiname != NULL) {
-      i = csoundMIDIFileOpen(csound, O.FMidiname);
+    if (O->FMidiin && O->FMidiname != NULL) {
+      i = csoundMIDIFileOpen(csound, O->FMidiname);
       if (i != 0) {
         csound->Die(csound, Str("Failed to load MIDI file."));
       }
@@ -213,8 +214,8 @@ void m_chanmsg(ENVIRON *csound, MEVENT *mep)
       if (chn->insno <= 0)          /* ignore if channel is muted */
         break;
       n = (short) chn->pgm2ins[mep->dat1];      /* program change -> INSTR  */
-      if (n > 0 && n <= maxinsno                /* if corresp instr exists  */
-          && instrtxtp[n] != NULL) {            /*     assign as insno      */
+      if (n > 0 && n <= csound->maxinsno &&     /* if corresp instr exists  */
+          csound->instrtxtp[n] != NULL) {       /*     assign as insno      */
         chn->insno = n;                         /* else ignore prog. change */
         csound->Message(csound, Str("midi channel %d now using instr %d\n"),
                                 mep->chan + 1, chn->insno);
@@ -368,8 +369,9 @@ void m_chn_init_all(ENVIRON *csound)
     short   chan;
 
     defaultinsno = 0;
-    while (++defaultinsno <= (int) maxinsno && instrtxtp[defaultinsno] == NULL);
-    if (defaultinsno > (int) maxinsno)
+    while (++defaultinsno <= (int) csound->maxinsno &&
+           csound->instrtxtp[defaultinsno] == NULL);
+    if (defaultinsno > (int) csound->maxinsno)
       defaultinsno = 0;         /* no instruments */
     for (chan = (short) 0; chan < (short) 16; chan++) {
       /* alloc a midi control blk for midi channel */
@@ -377,7 +379,7 @@ void m_chn_init_all(ENVIRON *csound)
       M_CHNBP[chan] = chn = (MCHNBLK*) mcalloc(csound, sizeof(MCHNBLK));
       n = (int) chan + 1;
       /* if corresponding instrument exists, assign as insno, */
-      if (n <= (int) maxinsno && instrtxtp[n] != NULL)
+      if (n <= (int) csound->maxinsno && csound->instrtxtp[n] != NULL)
         chn->insno = (short) n;
       else if (defaultinsno > 0)
         chn->insno = (short) defaultinsno;
@@ -411,7 +413,7 @@ int m_chinsno(ENVIRON *csound, short chan, short insno)
       csound->Message(csound, Str("MIDI channel %d muted\n"), (int) chan + 1);
     }
     else {
-      if (insno > maxinsno || instrtxtp[insno] == NULL) {
+      if (insno > csound->maxinsno || csound->instrtxtp[insno] == NULL) {
         csound->Message(csound, Str("Insno = %d\n"), insno);
         return csound->InitError(csound, Str("unknown instr"));
       }
@@ -455,16 +457,18 @@ void midNotesOff(ENVIRON *csound) /* turn off ALL curr midi notes, ALL chnls */
 }
 
 int sensMidi(ENVIRON *csound)
-{                          /* sense a MIDI event, collect the data & dispatch */
-    short   c, type;       /*  called from kperf(), return(2) if MIDI on/off  */
+{                       /* sense a MIDI event, collect the data & dispatch */
+                        /*  called from kperf(), return(2) if MIDI on/off  */
     MEVENT  *mep = MGLOB(Midevtblk);
+    OPARMS  *O = csound->oparms;
     int     n;
+    short   c, type;
 
  nxtchr:
     if (MGLOB(bufp) >= MGLOB(endatp)) {
       MGLOB(bufp) = &(MGLOB(mbuf)[0]);
       MGLOB(endatp) = MGLOB(bufp);
-      if (O.Midiin) {                   /* read MIDI device */
+      if (O->Midiin) {                  /* read MIDI device */
         n = csoundExternalMidiRead(csound, MGLOB(midiInUserData),
                                    MGLOB(bufp), MBUFSIZ);
         if (n < 0)
@@ -474,7 +478,7 @@ int sensMidi(ENVIRON *csound)
         else
           MGLOB(endatp) += (int) n;
       }
-      if (O.FMidiin) {                  /* read MIDI file */
+      if (O->FMidiin) {                 /* read MIDI file */
         n = csoundMIDIFileRead(csound, MGLOB(endatp),
                                MBUFSIZ - (int) (MGLOB(endatp) - MGLOB(bufp)));
         if (n > 0)

@@ -34,16 +34,16 @@ int kdmpset(ENVIRON *csound, KDUMP *p)
       else strcpy(soundoname,unquote(p->STRARG));    /* unquote it, else use */
 
       if ((p->fdch.fdc = openout(soundoname,1)) < 0) {
-        sprintf(errmsg,Str("Cannot open %s"), soundoname);
-        return csound->InitError(csound, errmsg);
+        return csound->InitError(csound, Str("Cannot open %s"), soundoname);
       }
       p->fdch.fd = NULL;        /* Character file not audio */
-      fdrecord(&p->fdch);
+      fdrecord(csound, &p->fdch);
       if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
         return csound->InitError(csound, Str("unknown format request"));
       }
       if (p->format == 2 || p->format == 3) {
-        return csound->InitError(csound, Str("alaw and ulaw not implemented here"));
+        return csound->InitError(csound,
+                                 Str("alaw and ulaw not implemented here"));
       }
       if ((p->timcount = (long)(*p->iprd * csound->ekr)) <= 0)
         p->timcount = 1;
@@ -62,16 +62,16 @@ int kdmp2set(ENVIRON *csound, KDUMP2 *p)
       else strcpy(soundoname,unquote(p->STRARG));    /* unquote it, else use */
 
       if ((p->fdch.fdc = openout(soundoname,1)) < 0) {
-        sprintf(errmsg,Str("Cannot open %s"), soundoname);
-        return csound->InitError(csound, errmsg);
+        return csound->InitError(csound, Str("Cannot open %s"), soundoname);
       }
       p->fdch.fd = NULL;        /* Character file not audio */
-      fdrecord(&p->fdch);
+      fdrecord(csound, &p->fdch);
       if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
         return csound->InitError(csound, Str("unknown format request"));
       }
       if (p->format == 2 || p->format == 3) {
-        return csound->InitError(csound, Str("alaw and ulaw not implemented here"));
+        return csound->InitError(csound,
+                                 Str("alaw and ulaw not implemented here"));
       }
       if ((p->timcount = (long)(*p->iprd * csound->ekr)) <= 0)
         p->timcount = 1;
@@ -90,16 +90,16 @@ int kdmp3set(ENVIRON *csound, KDUMP3 *p)
       else strcpy(soundoname,unquote(p->STRARG));    /* unquote it, else use */
 
       if ((p->fdch.fdc = openout(soundoname,1)) < 0) {
-        sprintf(errmsg,Str("Cannot open %s"), soundoname);
-        return csound->InitError(csound, errmsg);
+        return csound->InitError(csound, Str("Cannot open %s"), soundoname);
       }
       p->fdch.fd = NULL;        /* Character file not audio */
-      fdrecord(&p->fdch);
+      fdrecord(csound, &p->fdch);
       if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
         return csound->InitError(csound, Str("unknown format request"));
       }
       if (p->format == 2 || p->format == 3) {
-        return csound->InitError(csound, Str("alaw and ulaw not implemented here"));
+        return csound->InitError(csound,
+                                 Str("alaw and ulaw not implemented here"));
       }
       if ((p->timcount = (long)(*p->iprd * csound->ekr)) <= 0)
         p->timcount = 1;
@@ -118,16 +118,16 @@ int kdmp4set(ENVIRON *csound, KDUMP4 *p)
       else strcpy(soundoname,unquote(p->STRARG));    /* unquote it, else use */
 
       if ((p->fdch.fdc = openout(soundoname,1)) < 0) {
-        sprintf(errmsg,Str("Cannot open %s"), soundoname);
-        return csound->InitError(csound, errmsg);
+        return csound->InitError(csound, Str("Cannot open %s"), soundoname);
       }
       p->fdch.fd = NULL;        /* Character file not audio */
-      fdrecord(&p->fdch);
+      fdrecord(csound, &p->fdch);
       if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
         return csound->InitError(csound, Str("unknown format request"));
       }
       if (p->format == 2 || p->format == 3) {
-        return csound->InitError(csound, Str("alaw and ulaw not implemented here"));
+        return csound->InitError(csound,
+                                 Str("alaw and ulaw not implemented here"));
       }
       if ((p->timcount = (long)(*p->iprd * csound->ekr)) <= 0)
         p->timcount = 1;
@@ -137,63 +137,60 @@ int kdmp4set(ENVIRON *csound, KDUMP4 *p)
     return OK;
 }
 
-static MYFLT kval[4];     /* handle up to four ksig arguments */
-
-static void nkdump(int ofd, int format, int nk)
+static void nkdump(ENVIRON *csound, MYFLT *kp, int ofd, int format, int nk)
 {
-    char  outbuf[80];
+    char  buf1[128], outbuf[256];
     int   len = 0;
-    MYFLT *kp = kval;
 
     switch(format) {               /* place formatted kvals into outbuf */
     case 1: {
-      char *bp = outbuf;
+      int8_t *bp = (int8_t*) outbuf;
       len = nk;
       while (nk--)
-        *bp++ = (char)(*kp++ / FL(256.0));
+        *bp++ = (int8_t) *kp++;
       break;
     }
     case 4: {
-      short *bp = (short *) outbuf;
-      len = nk * sizeof(short);
+      int16_t *bp = (int16_t*) outbuf;
+      len = nk * 2;
       while (nk--)
-        *bp++ = (short) *kp++;
+        *bp++ = (int16_t) *kp++;
       break;
     }
     case 5: {
-      long *bp = (long *) outbuf;
-      len = nk * sizeof(long);
+      int32_t *bp = (int32_t*) outbuf;
+      len = nk * 4;
       while (nk--)
-        *bp++ = (long) *kp++;
+        *bp++ = (int32_t) *kp++;
       break;
     }
     case 6: {
-      MYFLT *bp = (MYFLT *) outbuf;
-      len = nk * sizeof(MYFLT);
+      float *bp = (float*) outbuf;
+      len = nk * sizeof(float);
       while (nk--)
-        *bp++ = *kp++;
+        *bp++ = (float) *kp++;
       break;
     }
     case 7:
-      *outbuf = '\0';
+      outbuf[0] = '\0';
       while (--nk) {
-        sprintf(errmsg,"%ld\t", (long) *kp++);
-        strcat(outbuf, errmsg);
+        sprintf(buf1, "%ld\t", (long) *kp++);
+        strcat(outbuf, buf1);
       }
-      sprintf(errmsg,"%ld\n", (long) *kp);
-      strcat(outbuf, errmsg);
+      sprintf(buf1, "%ld\n", (long) *kp);
+      strcat(outbuf, buf1);
       len = strlen(outbuf);
       break;
     case 8: *outbuf = '\0';
       while (--nk) {
-        sprintf(errmsg,"%6.4f\t", *kp++);
-        strcat(outbuf, errmsg);
+        sprintf(buf1, "%6.4f\t", *kp++);
+        strcat(outbuf, buf1);
       }
-      sprintf(errmsg,"%6.4f\n", *kp);
-      strcat(outbuf, errmsg);
+      sprintf(buf1, "%6.4f\n", *kp);
+      strcat(outbuf, buf1);
       len = strlen(outbuf);
       break;
-    default: csoundDie(&cenviron, Str("unknown kdump format"));
+    default: csound->Die(csound, Str("unknown kdump format"));
     }
     write(ofd, outbuf, len);            /* now write the buffer */
 }
@@ -201,46 +198,54 @@ static void nkdump(int ofd, int format, int nk)
 
 int kdump(ENVIRON *csound, KDUMP *p)
 {
+    MYFLT kval[4];
+
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
       kval[0] = *p->ksig;
-      nkdump(p->fdch.fdc, p->format, 1);
+      nkdump(csound, &(kval[0]), p->fdch.fdc, p->format, 1);
     }
     return OK;
 }
 
 int kdump2(ENVIRON *csound, KDUMP2 *p)
 {
+    MYFLT kval[4];
+
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
       kval[0] = *p->ksig1;
       kval[1] = *p->ksig2;
-      nkdump(p->fdch.fdc, p->format, 2);
+      nkdump(csound, &(kval[0]), p->fdch.fdc, p->format, 2);
     }
     return OK;
 }
 
 int kdump3(ENVIRON *csound, KDUMP3 *p)
 {
+    MYFLT kval[4];
+
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
       kval[0] = *p->ksig1;
       kval[1] = *p->ksig2;
       kval[2] = *p->ksig3;
-      nkdump(p->fdch.fdc, p->format, 3);
+      nkdump(csound, &(kval[0]), p->fdch.fdc, p->format, 3);
     }
     return OK;
 }
 
 int kdump4(ENVIRON *csound, KDUMP4 *p)
 {
+    MYFLT kval[4];
+
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
       kval[0] = *p->ksig1;
       kval[1] = *p->ksig2;
       kval[2] = *p->ksig3;
       kval[3] = *p->ksig4;
-      nkdump(p->fdch.fdc, p->format, 4);
+      nkdump(csound, &(kval[0]), p->fdch.fdc, p->format, 4);
     }
     return OK;
 }
@@ -259,20 +264,20 @@ int krdset(ENVIRON *csound, KREAD *p)
       else strcpy(soundiname,unquote(p->STRARG));    /* unquote it, else use */
 
       if ((p->fdch.fdc = openin(soundiname)) < 0) {
-        sprintf(errmsg,Str("Cannot open %s"), soundiname);
-        return csound->InitError(csound, errmsg);
+        return csound->InitError(csound, Str("Cannot open %s"), soundiname);
       }
       p->fdch.fd = NULL;        /* Character file not audio */
-      fdrecord(&p->fdch);
+      fdrecord(csound, &p->fdch);
       if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
         return csound->InitError(csound, Str("unknown format request"));
       }
       if (p->format == 2 || p->format == 3) {
-        return csound->InitError(csound, Str("alaw and ulaw not implemented here"));
+        return csound->InitError(csound,
+                                 Str("alaw and ulaw not implemented here"));
       }
       if ((p->timcount = (long)(*p->iprd * csound->ekr)) <= 0)
         p->timcount = 1;
-      p->countdown = p->timcount;
+      p->countdown = 0;
     }
     else {
       return csound->InitError(csound, Str("need quoted filename"));
@@ -289,20 +294,20 @@ int krd2set(ENVIRON *csound, KREAD2 *p)
         strcpy(soundiname, unquote(csound->currevent->strarg));
       else strcpy(soundiname,unquote(p->STRARG));    /* unquote it, else use */
       if ((p->fdch.fdc = openin(soundiname)) < 0) {
-        sprintf(errmsg,Str("Cannot open %s"), soundiname);
-        return csound->InitError(csound, errmsg);
+        return csound->InitError(csound, Str("Cannot open %s"), soundiname);
       }
       p->fdch.fd = NULL;        /* Character file not audio */
-      fdrecord(&p->fdch);
+      fdrecord(csound, &p->fdch);
       if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
         return csound->InitError(csound, Str("unknown format request"));
       }
       if (p->format == 2 || p->format == 3) {
-        return csound->InitError(csound, Str("alaw and ulaw not implemented here"));
+        return csound->InitError(csound,
+                                 Str("alaw and ulaw not implemented here"));
       }
       if ((p->timcount = (long)(*p->iprd * csound->ekr)) <= 0)
         p->timcount = 1;
-      p->countdown = p->timcount;
+      p->countdown = 0;
     }
     else {
       return csound->InitError(csound, Str("need quoted filename"));
@@ -319,20 +324,20 @@ int krd3set(ENVIRON *csound, KREAD3 *p)
         strcpy(soundiname, unquote(csound->currevent->strarg));
       else strcpy(soundiname,unquote(p->STRARG));    /* unquote it, else use */
       if ((p->fdch.fdc = openin(soundiname)) < 0) {
-        sprintf(errmsg,Str("Cannot open %s"), soundiname);
-        return csound->InitError(csound, errmsg);
+        return csound->InitError(csound, Str("Cannot open %s"), soundiname);
       }
       p->fdch.fd = NULL;        /* Character file not audio */
-      fdrecord(&p->fdch);
+      fdrecord(csound, &p->fdch);
       if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
         return csound->InitError(csound, Str("unknown format request"));
       }
       if (p->format == 2 || p->format == 3) {
-        return csound->InitError(csound, Str("alaw and ulaw not implemented here"));
+        return csound->InitError(csound,
+                                 Str("alaw and ulaw not implemented here"));
       }
       if ((p->timcount = (long)(*p->iprd * csound->ekr)) <= 0)
         p->timcount = 1;
-      p->countdown = p->timcount;
+      p->countdown = 0;
     }
     else {
       return csound->InitError(csound, Str("need quoted filename"));
@@ -349,20 +354,20 @@ int krd4set(ENVIRON *csound, KREAD4 *p)
         strcpy(soundiname, unquote(csound->currevent->strarg));
       else strcpy(soundiname,unquote(p->STRARG));    /* unquote it, else use */
       if ((p->fdch.fdc = openin(soundiname)) < 0) {
-        sprintf(errmsg,Str("Cannot open %s"), soundiname);
-        return csound->InitError(csound, errmsg);
+        return csound->InitError(csound, Str("Cannot open %s"), soundiname);
       }
       p->fdch.fd = NULL;        /* Character file not audio */
-      fdrecord(&p->fdch);
+      fdrecord(csound, &p->fdch);
       if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
         return csound->InitError(csound, Str("unknown format request"));
       }
       if (p->format == 2 || p->format == 3) {
-        return csound->InitError(csound, Str("alaw and ulaw not implemented here"));
+        return csound->InitError(csound,
+                                 Str("alaw and ulaw not implemented here"));
       }
       if ((p->timcount = (long)(*p->iprd * csound->ekr)) <= 0)
         p->timcount = 1;
-      p->countdown = p->timcount;
+      p->countdown = 0;
     }
     else {
       return csound->InitError(csound, Str("need quoted filename"));
@@ -371,41 +376,40 @@ int krd4set(ENVIRON *csound, KREAD4 *p)
     return OK;
 }
 
-static void nkread(int ifd, int format, int nk)
+static void nkread(ENVIRON *csound, MYFLT *kp, int ifd, int format, int nk)
 {
     int   len;
     char  inbuf[256];
-    MYFLT *kp = kval;
 
     switch(format) {               /* place formatted kvals into outbuf */
     case 1: {
-      unsigned char *bp = (unsigned char*)inbuf;
+      int8_t *bp = (int8_t*) inbuf;
       len = nk;
       read(ifd, inbuf, len);            /* now read the buffer */
       while (nk--) {
-        *kp++ = FL(256.0) * *bp++;
+        *kp++ = (MYFLT) *bp++;
         break;
       }
     }
     case 4: {
-      short *bp = (short *) inbuf;
-      len = nk * sizeof(short);
+      int16_t *bp = (int16_t*) inbuf;
+      len = nk * 2;
       read(ifd, inbuf, len);            /* now read the buffer */
       while (nk--)
         *kp++ = (MYFLT) *bp++;
       break;
     }
     case 5: {
-      long *bp = (long *) inbuf;
-      len = nk * sizeof(long);
+      int32_t *bp = (int32_t*) inbuf;
+      len = nk * 4;
       read(ifd, inbuf, len);            /* now read the buffer */
       while (nk--)
         *kp++ = (MYFLT) *bp++;
       break;
     }
     case 6: {
-      MYFLT *bp = (MYFLT *) inbuf;
-      len = nk * sizeof(MYFLT);
+      float *bp = (float*) inbuf;
+      len = nk * sizeof(float);
       read(ifd, inbuf, len);            /* now read the buffer */
       while (nk--)
         *kp++ = (MYFLT) *bp++;
@@ -449,16 +453,18 @@ static void nkread(int ifd, int format, int nk)
         kp++;
       }
       break;
-    default: csoundDie(&cenviron, Str("unknown kdump format"));
+    default: csound->Die(csound, Str("unknown kdump format"));
     }
 }
 
 int kread(ENVIRON *csound, KREAD *p)
 {
+    MYFLT kval[4];
+
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
-      nkread(p->fdch.fdc, p->format, 1);
-      *p->k1 = kval[0];
+      nkread(csound, &(kval[0]), p->fdch.fdc, p->format, 1);
+      *p->k1 = p->k[0] = kval[0];
     }
     else *p->k1 = p->k[0];
     return OK;
@@ -466,11 +472,13 @@ int kread(ENVIRON *csound, KREAD *p)
 
 int kread2(ENVIRON *csound, KREAD2 *p)
 {
+    MYFLT kval[4];
+
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
-      nkread(p->fdch.fdc, p->format, 2);
-      *p->k1 = kval[0];
-      *p->k2 = kval[1];
+      nkread(csound, &(kval[0]), p->fdch.fdc, p->format, 2);
+      *p->k1 = p->k[0] = kval[0];
+      *p->k2 = p->k[1] = kval[1];
     }
     else {
       *p->k1 = p->k[0];
@@ -481,12 +489,14 @@ int kread2(ENVIRON *csound, KREAD2 *p)
 
 int kread3(ENVIRON *csound, KREAD3 *p)
 {
+    MYFLT kval[4];
+
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
-      nkread(p->fdch.fdc, p->format, 2);
-      *p->k1 = kval[0];
-      *p->k2 = kval[1];
-      *p->k3 = kval[2];
+      nkread(csound, &(kval[0]), p->fdch.fdc, p->format, 3);
+      *p->k1 = p->k[0] = kval[0];
+      *p->k2 = p->k[1] = kval[1];
+      *p->k3 = p->k[2] = kval[2];
     }
     else {
       *p->k1 = p->k[0];
@@ -498,13 +508,15 @@ int kread3(ENVIRON *csound, KREAD3 *p)
 
 int kread4(ENVIRON *csound, KREAD4 *p)
 {
+    MYFLT kval[4];
+
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
-      nkread(p->fdch.fdc, p->format, 2);
-      *p->k1 = kval[0];
-      *p->k2 = kval[1];
-      *p->k3 = kval[2];
-      *p->k4 = kval[3];
+      nkread(csound, &(kval[0]), p->fdch.fdc, p->format, 4);
+      *p->k1 = p->k[0] = kval[0];
+      *p->k2 = p->k[1] = kval[1];
+      *p->k3 = p->k[2] = kval[2];
+      *p->k4 = p->k[3] = kval[3];
     }
     else {
       *p->k1 = p->k[0];
@@ -514,3 +526,4 @@ int kread4(ENVIRON *csound, KREAD4 *p)
     }
     return OK;
 }
+

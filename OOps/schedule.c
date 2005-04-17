@@ -90,8 +90,8 @@ int schedule(ENVIRON *csound, SCHED *p)
     }
     else
       which = (int) (FL(0.5) + *p->which);
-    if (which < 1 || which > csound->maxinsno_ ||
-        csound->instrtxtp_[which] == NULL) {
+    if (which < 1 || which > csound->maxinsno ||
+        csound->instrtxtp[which] == NULL) {
       return csound->InitError(csound, Str("Instrument not defined"));
     }
     {
@@ -175,8 +175,8 @@ int kschedule(ENVIRON *csound, WSCHED *p)
                               : named_instr_find(csound,
                                                  csound->currevent->strarg))
          : (int) (FL(0.5) + *p->which);
-      if (which < 1 || which > csound->maxinsno_ ||
-          csound->instrtxtp_[which] == NULL) {
+      if (which < 1 || which > csound->maxinsno ||
+          csound->instrtxtp[which] == NULL) {
         return csound->PerfError(csound, Str("Instrument not defined"));
       }
       p->midi = (dur <= FL(0.0));
@@ -414,8 +414,10 @@ static int get_absinsno(ENVIRON *csound, TRIGINSTR *p)
     else
       insno = (int) fabs((double) *p->args[0]);
     /* Check that instrument is defined */
-    if (insno < 1 || insno > maxinsno || instrtxtp[insno] == NULL) {
-      printf(Str("schedkwhen ignored. Instrument %d undefined\n"), insno);
+    if (insno < 1 || insno > csound->maxinsno ||
+        csound->instrtxtp[insno] == NULL) {
+      csound->Message(csound, Str("schedkwhen ignored. "
+                                  "Instrument %d undefined\n"), insno);
       csound->perferrcnt++;
       return -1;
     }
@@ -482,9 +484,8 @@ int ktriginstr(ENVIRON *csound, TRIGINSTR *p)
     /* Set start time from kwhen */
     if (evt.p[2] < FZERO) {
       evt.p[2] = FZERO;
-      if (O.msglevel & WARNMSG)
-        printf(Str("WARNING: schedkwhen warning: "
-                   "negative kwhen reset to zero\n"));
+      csound->Warning(csound,
+                      Str("schedkwhen warning: negative kwhen reset to zero"));
     }
     /* Reset min pause counter */
     if (*p->mintime > FZERO)
