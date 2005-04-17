@@ -22,13 +22,15 @@
 */
 
 #include "csoundCore.h"
-#include "csound.h"
 #include "soundio.h"
 #include "diskin2.h"
-
 #include <math.h>
 
-static void diskin2_read_buffer(DISKIN2 *p, int bufReadPos)
+static
+#ifdef HAVE_GCC3
+  __attribute__ ((__noinline__))
+#endif
+void diskin2_read_buffer(DISKIN2 *p, int bufReadPos)
 {
     MYFLT *tmp;
     long  nsmps;
