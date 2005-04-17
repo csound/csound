@@ -216,6 +216,7 @@ int    lp2_set(void*,void*), lp2(void*,void*);
 int    phaser2set(void*,void*), phaser2(void*,void*);
 int    phaser1set(void*,void*), phaser1(void*,void*);
 int    balnset(void*,void*), balance(void*,void*);
+int    prealloc(void*, void*);
 
 /* thread vals, where isub=1, ksub=2, asub=4:
                 0 =     1  OR   2  (B out only)
@@ -738,6 +739,7 @@ OENTRY opcodlst_1[] = {
 { "limit.i", S(LIMIT),  1, "i",     "iii",  (SUBR)klimit,  NULL,    NULL       },
 { "limit.k",  S(LIMIT), 3, "k",     "xkk",  (SUBR)limitset, (SUBR)klimit, NULL },
 { "limit.a",  S(LIMIT), 5, "a",     "xkk",  (SUBR)limitset, NULL,  (SUBR)limit },
+{ "prealloc", S(AOP),   1, "",      "Sio",  (SUBR)prealloc, NULL, NULL  }
 };
 
 long oplength_1 = sizeof(opcodlst_1);

@@ -43,15 +43,11 @@ extern "C" {
 #define sicvt               csound->sicvt_
 #define opcodlst            csound->opcodlst_
 #define oplstend            csound->oplstend_
-#define maxinsno            csound->maxinsno_
-#define maxopcno            csound->maxopcno_
 #define Linevtblk           csound->Linevtblk_
 #define Linefd              csound->Linefd_
 #define ls_table            csound->ls_table_
-#define retfilnam           csound->retfilnam_
 #define orchname            csound->orchname_
 #define scorename           csound->scorename_
-#define instrtxtp           csound->instrtxtp_
 #define errmsg              csound->errmsg_
 #define scfp                csound->scfp_
 #define oscfp               csound->oscfp_

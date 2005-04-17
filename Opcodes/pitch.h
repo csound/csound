@@ -278,7 +278,6 @@ int pitch(ENVIRON*,PITCH *p);
 int pitchamdf(ENVIRON*,PITCHAMDF *p);
 int pitchamdfset(ENVIRON*,PITCHAMDF *p);
 int pitchset(ENVIRON*,PITCH *p);
-int prealloc(ENVIRON*,CPU_PERC *p);
 int trnseg(ENVIRON*,TRANSEG *p);
 int trnset(ENVIRON*,TRANSEG *p);
 int varicol(ENVIRON*,VARI *p);

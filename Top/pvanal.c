@@ -185,7 +185,7 @@ int pvanal(int argc, char **argv)
     channel = ALLCHNLS; /* we can analyse up to 8 chans with pvxanal! */
     if ((infd = csound->SAsndgetset(csound, infilnam, &p, &beg_time,
                                     &input_dur, &sr, channel)) == NULL) {
-      sprintf(errmsg,Str("error while opening %s"), retfilnam);
+      sprintf(errmsg,Str("error while opening %s"), csound->retfilnam);
       quit(csound,errmsg);
     }
     sr = (MYFLT)p->sr;

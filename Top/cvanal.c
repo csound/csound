@@ -113,7 +113,7 @@ int cvanal(int argc, char **argv)
 
     if ((infd = SAsndgetset(csound, infilnam, &p,
                             &beg_time, &input_dur, &sr, channel)) < 0) {
-      sprintf(errmsg,Str("error while opening %s"), retfilnam);
+      sprintf(errmsg,Str("error while opening %s"), csound->retfilnam);
       return quit(csound,errmsg);
     }
     sr = (MYFLT)p->sr;

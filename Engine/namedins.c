@@ -154,28 +154,28 @@ void named_instr_assign_numbers (ENVIRON *csound)
     inm_last = inm_first + 1;
     while (--insno_priority > -3) {
       if (insno_priority == -2) {
-        num = maxinsno;                 /* find last used instr number */
-        while (!csound->instrtxtp_[num] && --num);
+        num = csound->maxinsno;         /* find last used instr number */
+        while (!csound->instrtxtp[num] && --num);
       }
       for (inm = *inm_first; inm; inm = inm->prv) {
         if ((int) inm->instno != insno_priority) continue;
         /* the following is based on code by Matt J. Ingalls */
         /* find an unused number and use it */
-        while (++num <= maxinsno && instrtxtp[num]);
+        while (++num <= csound->maxinsno && csound->instrtxtp[num]);
         /* we may need to expand the instrument array */
-        if (num > maxinsno) {
-          int m = maxinsno;
-          maxinsno += MAXINSNO; /* Expand */
-          instrtxtp = (INSTRTXT**)
-            mrealloc(csound, csound->instrtxtp_,
-                             (long) ((1 + maxinsno) * sizeof(INSTRTXT*)));
+        if (num > csound->maxinsno) {
+          int m = csound->maxinsno;
+          csound->maxinsno += MAXINSNO; /* Expand */
+          csound->instrtxtp = (INSTRTXT**)
+            mrealloc(csound, csound->instrtxtp,
+                             (1 + csound->maxinsno) * sizeof(INSTRTXT*));
           /* Array expected to be nulled so.... */
-          while (++m <= maxinsno) instrtxtp[m] = NULL;
+          while (++m <= csound->maxinsno) csound->instrtxtp[m] = NULL;
         }
         /* hack: "name" actually points to the corresponding INSTRNAME */
         inm2 = (INSTRNAME*) (inm->name);    /* entry in the table */
         inm2->instno = (long) num;
-        instrtxtp[num] = inm2->ip;
+        csound->instrtxtp[num] = inm2->ip;
         if (csound->oparms->msglevel)
           csound->Message(csound, Str("instr %s uses instrument number %d\n"),
                                   inm2->name, num);
@@ -226,7 +226,7 @@ long strarg2insno (ENVIRON *csound, MYFLT *p, char *s)
     }
     else {      /* numbered instrument */
       insno = (long) *p;
-      if (insno < 1 || insno > maxinsno || !instrtxtp[insno]) {
+      if (insno < 1 || insno > csound->maxinsno || !csound->instrtxtp[insno]) {
         csound->InitError(csound, "Cannot Find Instrument %d", (int) insno);
         return -1;
       }
@@ -265,7 +265,8 @@ long strarg2opcno (ENVIRON *csound, MYFLT *p, char *s, int force_opcode)
       }
       else {      /* numbered instrument */
         insno = (long) *p;
-        if (insno < 1 || insno > maxinsno || !instrtxtp[insno]) {
+        if (insno < 1 || insno > csound->maxinsno ||
+            !csound->instrtxtp[insno]) {
           csound->InitError(csound, "Cannot Find Instrument %d", (int) insno);
           return -1;
         }

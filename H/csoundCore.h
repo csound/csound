@@ -217,7 +217,9 @@ extern "C" {
     MYFLT   *psetdata;              /* Used for pset opcode */
     struct insds * instance;        /* Chain of allocated instances of
                                        this instrument */
-    struct insds * lst_instance, *act_instance;     /* IV - Oct 26 2002 */
+    struct insds * lst_instance;    /* last allocated instance */
+    struct insds * act_instance;    /* Chain of free (inactive) instances */
+                                    /* (pointer to next one is INSDS.nxtact) */
     struct instr * nxtinstxt;       /* Next instrument in orch (num order) */
     int     active;                 /* To count activations for control */
     int     maxalloc;
@@ -704,7 +706,6 @@ extern "C" {
     long (*strarg2insno_)(struct ENVIRON_ *csound, MYFLT *p, char *s);
     long (*strarg2opcno_)(struct ENVIRON_ *csound, MYFLT *p, char *s,
                                                    int force_opcode);
-    INSDS *(*instance)(struct ENVIRON_ *csound, int insno);
     void (*rewriteheader_)(SNDFILE *ofd, int verbose);
     void (*writeheader)(int ofd, char *ofname);
     void *(*SAsndgetset)(void*, char*, void*, MYFLT*, MYFLT*, MYFLT*, int);
@@ -807,8 +808,8 @@ extern "C" {
     void          *opcode_list;     /* IV - Oct 31 2002 */
     OENTRY        *oplstend_;
     long          holdrand;
-    int           maxinsno_;
-    int           maxopcno_;        /* IV - Oct 24 2002 */
+    int           maxinsno;
+    int           maxopcno;         /* IV - Oct 24 2002 */
     INSDS         *curip;
     EVTBLK        *Linevtblk_;
     long          nrecs;
@@ -816,9 +817,9 @@ extern "C" {
     int           Linefd_;
     MYFLT         *ls_table_;
     MYFLT         curr_func_sr;
-    char          *retfilnam_;
-    INSTRTXT      **instrtxtp_;
-    char          errmsg_[ERRSIZ];   /* sprintf space for compiling msgs */
+    char          *retfilnam;
+    INSTRTXT      **instrtxtp;
+    char          errmsg_[ERRSIZ];  /* sprintf space for compiling msgs */
     FILE*         scfp_;
     FILE*         oscfp_;
     MYFLT         maxamp[MAXCHNLS];
@@ -919,6 +920,7 @@ extern "C" {
     char          *assign_outarg;
     int           argcnt_offs, opcode_is_assign, assign_type;
     int           advanceCnt;
+    MYFLT         *gbloffbas;   /* was static in oload.c */
   } ENVIRON;
 
 #include "text.h"
