@@ -2891,7 +2891,7 @@ int allocgen(ENVIRON *csound, char *s, GEN fn)
     else csound->gensub = (GEN*)mrealloc(csound, csound->gensub,
                                          csound->genmax*sizeof(GEN));
     csound->gensub[csound->genmax-1] = fn;
-    csound->DebugMsg(csound, Str("**** allocated %d"), csound->genmax-1);
+/*     csound->DebugMsg(csound, Str("**** allocated %d"), csound->genmax-1); */
     return csound->genmax-1;
 }
 
