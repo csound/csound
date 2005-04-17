@@ -135,7 +135,8 @@ static char *pfout(ENVIRON *csound, SRTBLK *bp, char *p,int lincnt, int pcnt)
       break;
     case '{':
     case '}':
-      printf(Str("Deprecated -- use round brackets instead of curly\n"));
+      csound->Message(csound,
+                      Str("Deprecated -- use round brackets instead of curly\n"));
     case '(':
     case ')':
       p = expramp(csound, bp, p, lincnt, pcnt);

@@ -545,7 +545,7 @@ int ftlptim(ENVIRON *csound, EVAL *p)
     else {
       *p->r = FL(0.0);
       if (O.msglevel & WARNMSG)
-        printf(Str("WARNING: non-looping sample\n"));
+        csound->Message(csound,Str("WARNING: non-looping sample\n"));
     }
     return OK;
 }

@@ -34,14 +34,14 @@
 
 
 /* CARL/CDP fft routines  */
-extern void fft_(MYFLT *, MYFLT *,int,int,int,int);
+extern void fft_(ENVIRON*, MYFLT *, MYFLT *,int,int,int,int);
 extern void fftmx(MYFLT *,MYFLT *,int,int,int,int,int,int *,
                   MYFLT *,MYFLT *,MYFLT *,MYFLT *,int *,int[]);
-extern void reals_(MYFLT *,MYFLT *,int,int);
+extern void reals_(ENVIRON*,MYFLT *,MYFLT *,int,int);
 
 
-static void generate_frame(PVSANAL *p);
-static void process_frame(PVSYNTH *p);
+static void generate_frame(ENVIRON*,PVSANAL *p);
+static void process_frame(ENVIRON*,PVSYNTH *p);
 void    hamming(MYFLT *win,int winLen,int even);
 void    vonhann(MYFLT *win,int winLen,int even);
 
@@ -163,7 +163,7 @@ int pvsanalset(ENVIRON *csound, PVSANAL *p)
     return OK;
 }
 
-static void generate_frame(PVSANAL *p)
+static void generate_frame(ENVIRON *csound, PVSANAL *p)
 {
     int got, tocp,i,j,k;
     int N = p->fsig->N;
@@ -229,8 +229,8 @@ static void generate_frame(PVSANAL *p)
     rfftwnd_one_real_to_complex(forward_plan,anal,NULL);
 
 #else
-    fft_(anal,banal,1,N2,1,-2);
-    reals_(anal,banal,N2,-2);
+    fft_(csound,anal,banal,1,N2,1,-2);
+    reals_(csound,anal,banal,N2,-2);
 #endif
     /* conversion: The real and imaginary values in anal are converted to
        magnitude and angle-difference-per-second (assuming an
@@ -315,12 +315,12 @@ static void generate_frame(PVSANAL *p)
 }
 
 
-static void anal_tick(PVSANAL *p,MYFLT samp)
+static void anal_tick(ENVIRON *csound, PVSANAL *p,MYFLT samp)
 {
     MYFLT *inbuf = (MYFLT *) (p->overlapbuf.auxp);
 
     if (p->inptr== p->fsig->overlap) {
-      generate_frame(p);
+      generate_frame(csound, p);
       p->fsig->framecount++;
       p->inptr = 0;
 
@@ -342,7 +342,7 @@ int pvsanal(ENVIRON *csound, PVSANAL *p)
     }
 
     for (i=0; i < csound->ksmps; i++)
-      anal_tick(p,ain[i]);
+      anal_tick(csound,p,ain[i]);
     return OK;
 }
 
@@ -515,18 +515,18 @@ int pvsynthset(ENVIRON *csound, PVSYNTH *p)
     return OK;
 }
 
-static MYFLT synth_tick(PVSYNTH *p)
+static MYFLT synth_tick(ENVIRON *csound, PVSYNTH *p)
 {
     MYFLT *outbuf = (MYFLT *) (p->overlapbuf.auxp);
 
     if (p->outptr== p->fsig->overlap) {
-      process_frame(p);
+      process_frame(csound, p);
       p->outptr = 0;
     }
     return outbuf[p->outptr++];
 }
 
-static void process_frame(PVSYNTH *p)
+static void process_frame(ENVIRON *csound, PVSYNTH *p)
 {
     int n,i,j,k,NO,NO2;
     float *anal;                                        /* RWD MUST be 32bit */
@@ -615,8 +615,8 @@ static void process_frame(PVSYNTH *p)
 #ifdef USE_FFTW
     rfftwnd_one_complex_to_real(inverse_plan,(fftw_complex * )syn,NULL);
 #else
-    reals_(syn,bsyn,NO2,2);
-    fft_(syn,bsyn,1,NO2,1,2);
+    reals_(csound,syn,bsyn,NO2,2);
+    fft_(csound, syn,bsyn,1,NO2,1,2);
 #endif
     j = p->nO - synWinLen - 1;
     while (j < 0)
@@ -681,7 +681,7 @@ int pvsynth(ENVIRON *csound, PVSYNTH *p)
       csound->Die(csound, Str("pvsynth: Not Initialised.\n"));
     }
     for (i=0;i < csound->ksmps;i++)
-      aout[i] = synth_tick(p);
+      aout[i] = synth_tick(csound, p);
     return OK;
 }
 
