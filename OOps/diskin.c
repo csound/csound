@@ -101,7 +101,7 @@ static int sngetset(SOUNDINEW *p, char *sfname)
     infile = sf_open_fd(sinfd, SFM_READ, &sfinfo, SF_TRUE);
     p->fdch.fd = infile;
     p->format = SF2FORMAT(sfinfo.format);
-    sfname = retfilnam;                        /* & record fullpath filnam */
+    sfname = cenviron.retfilnam;                /* & record fullpath filnam */
     if (*p->iformat > 0)  /* convert spec'd format code */
        p->format = ((short)*p->iformat) | 0x100;
     p->endfile = 0;
@@ -327,7 +327,7 @@ int newsndinset(ENVIRON *csound, SOUNDINEW *p)       /* init routine for diskin 
 
     /*****  if soundinset successful  ********/
     if (sinfd != NULL) {
-      fdrecord(&p->fdch);              /*     instr will close later */
+      fdrecord(csound, &p->fdch);       /*     instr will close later */
 
       p->guardpt = p->bufend - csound->nchnls;
       p->phs = 0.0;
@@ -336,7 +336,7 @@ int newsndinset(ENVIRON *csound, SOUNDINEW *p)       /* init routine for diskin 
     else return csound->InitError(csound, errmsg);
 
  errtn:
-    return NOTOK;                      /*              return empty handed */
+    return NOTOK;                       /*              return empty handed */
 }
 
 
@@ -713,15 +713,15 @@ int sndo1set(ENVIRON *csound, SNDOUT *p) /* init routine for instr soundout   */
 #else
     sf_command(outfile, SFC_SET_NORM_FLOAT, NULL, SF_FALSE);
 #endif
-    sfname = retfilnam;
+    sfname = csound->retfilnam;
     printf(Str("opening %s outfile %s\n"), type2string(p->c.filetyp), sfname);
     p->c.outbufp = p->c.outbuf;             /* fix - isro 20-11-96 */
     p->c.bufend = p->c.outbuf + SNDOUTSMPS; /* fix - isro 20-11-96 */
     p->c.fdch.fd = outfile; /* WRONG */     /*     store & log the fd     */
-    fdrecord(&p->c.fdch);                   /*     instr will close later */
+    fdrecord(csound, &p->c.fdch);           /*     instr will close later */
     return OK;
  errtn:
-    return csound->InitError(csound, errmsg);               /* else just print the errmsg */
+    return csound->InitError(csound, errmsg);   /* else just print the errmsg */
 }
 
 int soundout(ENVIRON *csound, SNDOUT *p)

@@ -40,17 +40,17 @@ int mute_inst(ENVIRON *csound, MUTE *p)
     else {
       csound->Message(csound, Str("Allowing instrument %d to start\n"), n);
     }
-    instrtxtp[n]->muted = onoff;
+    csound->instrtxtp[n]->muted = onoff;
     return OK;
 }
 
 int instcount(ENVIRON *csound, INSTCNT *p)
 {
     int n = (int)*p->ins;
-    if (n<0 || n>maxinsno || instrtxtp[n]==NULL)
+    if (n<0 || n > csound->maxinsno || csound->instrtxtp[n] == NULL)
       *p->cnt = FL(0.0);
     else
-      *p->cnt = (MYFLT)instrtxtp[n]->active;
+      *p->cnt = (MYFLT) csound->instrtxtp[n]->active;
     return OK;
 }
 
@@ -59,30 +59,18 @@ int instcount(ENVIRON *csound, INSTCNT *p)
 int cpuperc(ENVIRON *csound, CPU_PERC *p)
 {
     int n = (int) *p->instrnum;
-    if (n>=0 && n<=maxinsno && instrtxtp[n]!=NULL)  /* If instrument exists */
-      instrtxtp[n]->cpuload = *p->ipercent;
+    if (n > 0 && n <= csound->maxinsno && csound->instrtxtp[n] != NULL)
+      /* If instrument exists */
+      csound->instrtxtp[n]->cpuload = *p->ipercent;
     return OK;
 }
 
 int maxalloc(ENVIRON *csound, CPU_PERC *p)
 {
     int n = (int) *p->instrnum;
-    if (n>=0 && n<=maxinsno && instrtxtp[n]!=NULL)  /* If instrument exists */
-      instrtxtp[n]->maxalloc = (int)*p->ipercent;
-    return OK;
-}
-
-int prealloc(ENVIRON *csound, CPU_PERC *p)
-{
-    int     n, a;
-
-    /* IV - Oct 31 2002 */
-    n = (int) csound->strarg2opcno_(csound, p->instrnum, p->STRARG,
-                                            (*p->iopc == FL(0.0) ? 0 : 1));
-    if (n < 1) return NOTOK;
-    /* IV - Oct 24 2002 */
-    a = (int) *p->ipercent - instrtxtp[n]->active;
-    for ( ; a > 0; a--) csound->instance(csound, n);
+    if (n > 0 && n <= csound->maxinsno && csound->instrtxtp[n] != NULL)
+      /* If instrument exists */
+      csound->instrtxtp[n]->maxalloc = (int)*p->ipercent;
     return OK;
 }
 

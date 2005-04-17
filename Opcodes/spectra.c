@@ -1226,7 +1226,6 @@ static OENTRY localops[] = {
 { "clip", S(CLIP),       5,  "a", "aiiv", (SUBR)clip_set, NULL, (SUBR)clip       },
 { "cpuprc", S(CPU_PERC), 1,     "",     "ii",   (SUBR)cpuperc, NULL, NULL        },
 /* IV - Oct 20 2002 */
-{ "prealloc", S(CPU_PERC), 1,   "",     "Sio",  (SUBR)prealloc, NULL, NULL       },
 { "maxalloc", S(CPU_PERC), 1,   "",     "ii",   (SUBR)maxalloc, NULL, NULL       },
 { "active.i", S(INSTCNT),1,     "i",    "i",    (SUBR)instcount, NULL, NULL      },
 { "active.k", S(INSTCNT),2,     "k",    "k",    NULL, (SUBR)instcount, NULL      },

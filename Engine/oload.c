@@ -36,17 +36,12 @@ int csoundGetAPIVersion(void);
 
 void dispset(WINDAT *, MYFLT *, long, char *, int, char *);
 void display(WINDAT *);
-MYFLT intpow(MYFLT, long);
-char *unquote(char *);
-void rewriteheader(SNDFILE* ofd, int verbose);
 void writeheader(int ofd, char *ofname);
 int playopen_dummy(void *csound, csRtAudioParams *parm);
 void rtplay_dummy(void *csound, void *outBuf, int nbytes);
 int recopen_dummy(void *csound, csRtAudioParams *parm);
 int rtrecord_dummy(void *csound, void *inBuf, int nbytes);
 void rtclose_dummy(void *csound);
-
-static  MYFLT   *gbloffbas;
 
 static const OPARMS O_ = {
               0,0,          /* odebug, initonly */
@@ -161,7 +156,6 @@ const ENVIRON cenviron_ = {
         getopnum,
         strarg2insno,
         strarg2opcno,
-        instance,
         rewriteheader,
         writeheader,
         SAsndgetset,
@@ -372,16 +366,13 @@ const ENVIRON cenviron_ = {
         NULL, NULL,     /*  argp, endlist       */
         (char*) NULL,   /*  assign_outarg       */
         0, 0, 0,        /*  argcnt_offs, opcode_is_assign, assign_type */
-        0               /*  advanceCnt          */
+        0,              /*  advanceCnt          */
+        (MYFLT*) NULL   /*  gbloffbas           */
 };
 
 /* globals to be removed eventually... */
 OPARMS O;
 ENVIRON cenviron;
-
-int     pnum(char*);
-
-extern  void    cpsoctinit(ENVIRON*);
 
 /* RWD for reentry */
 void oloadRESET(ENVIRON *csound)
@@ -391,7 +382,7 @@ void oloadRESET(ENVIRON *csound)
     memset(&(csound->instxtanchor), 0, sizeof(INSTRTXT));
     csound->argoffspace     = NULL;
     pool                    = NULL;
-    gbloffbas               = NULL;
+    csound->gbloffbas       = NULL;
     csound->spin            = NULL;
     csound->spout           = NULL;
     csound->oparms->odebug  = 0;
@@ -402,10 +393,10 @@ void oloadRESET(ENVIRON *csound)
       INSDS *ip = tp->instance;
       while (ip) {                              /* free all instances, */
         INSDS *nxtip = ip->nxtinstance;
-        if (ip->opcod_iobufs && ip->insno > maxinsno)   /* IV - Nov 10 2002 */
+        if (ip->opcod_iobufs && ip->insno > csound->maxinsno)
           mfree(csound, ip->opcod_iobufs);
         if (ip->fdch.nxtchp)
-          fdchclose(ip);
+          fdchclose(csound, ip);
         if (ip->auxch.nxtchp)
           auxchfree(csound, ip);
         mfree(csound, ip);
@@ -418,7 +409,7 @@ void oloadRESET(ENVIRON *csound)
       mfree(csound, tp);
       tp = nxttp;
     }
-    mfree(csound, instrtxtp);           /* Start again */
+    mfree(csound, csound->instrtxtp);           /* Start again */
     /**
      * Copy everything EXCEPT the function pointers.
      * This is tricky because of those blasted macros!
@@ -529,7 +520,7 @@ void oload(ENVIRON *csound)
     gblspace[2] = ensmps;           /*   curr vals  */
     gblspace[3] = (MYFLT) csound->nchnls;
     gblspace[4] = csound->e0dbfs;
-    gbloffbas = pool - 1;
+    csound->gbloffbas = pool - 1;
 
     gblabeg = O->poolcount + O->gblfixed + 1;
     ip = &(csound->instxtanchor);
@@ -542,13 +533,13 @@ void oload(ENVIRON *csound)
                     * (long) sizeof(MYFLT);
       /* align to 64 bits */
       ip->localen = (ip->localen + 7L) & (~7L);
-      for (insno=0, n=0; insno <= maxinsno; insno++)
-        if (instrtxtp[insno] == ip)  n++;              /* count insnos  */
+      for (insno=0, n=0; insno <= csound->maxinsno; insno++)
+        if (csound->instrtxtp[insno] == ip)  n++;           /* count insnos  */
       lp = ip->inslist = (long *) mmalloc(csound, (long)(n+1) * sizeof(long));
-      for (insno=0; insno <= maxinsno; insno++)
-        if (instrtxtp[insno] == ip)  *lp++ = insno;    /* creat inslist */
-      *lp = -1;                                        /*   & terminate */
-      insno = *ip->inslist;                            /* get the first */
+      for (insno=0; insno <= csound->maxinsno; insno++)
+        if (csound->instrtxtp[insno] == ip)  *lp++ = insno; /* creat inslist */
+      *lp = -1;                                             /*   & terminate */
+      insno = *ip->inslist;                                 /* get the first */
       while ((optxt = optxt->nxtop) !=  NULL) {
         TEXT *ttp = &optxt->t;
         ARGOFFS *aoffp;
@@ -584,7 +575,7 @@ void oload(ENVIRON *csound)
           if (strsets == NULL)
             strsets = (char **)
               mcalloc(csound, (long)((strsmax=STRSMAX)+1) * sizeof(char *));
-          indx = (long)gbloffbas[*aoffp->indx];
+          indx = (long) csound->gbloffbas[*aoffp->indx];
           if (indx >= strsmax) {
             long newmax = strsmax + STRSMAX;
             int i;
@@ -593,8 +584,8 @@ void oload(ENVIRON *csound)
                                         strsets, (newmax + 1) * sizeof(char*));
             /* ??? */
             for (i=strsmax; i<newmax+1; i++) strsets[i] = NULL;
-/*            for (i=0; i<newmax+1; i++)
-                csound->Message(csound, "strset[%d]: %p\n", i, strsets[i]); */
+/*          for (i=0; i<newmax+1; i++)
+              csound->Message(csound, "strset[%d]: %p\n", i, strsets[i]); */
             strsmax = newmax;
           }
           if (strsets == NULL || indx < 0) { /* No space left or -ve index */
@@ -618,7 +609,7 @@ void oload(ENVIRON *csound)
           ip->psetdata = (MYFLT *) mcalloc(csound, (long)n * sizeof(MYFLT));
           for (n=aoffp->count,fp1=ip->psetdata,ndxp=aoffp->indx;
                n--; ) {
-            *fp1++ = gbloffbas[*ndxp++];
+            *fp1++ = csound->gbloffbas[*ndxp++];
             csound->Message(csound,"..%f..", *(fp1-1));
           }
           csound->Message(csound, "\n");
@@ -643,8 +634,8 @@ void oload(ENVIRON *csound)
         }
       }
     }
-/*  pctlist = (MYFLT **) mcalloc(csound, (long)256 * sizeof(MYFLT *)); */
-/*  insbusy = (int *) mcalloc(csound, (long)((maxinsno+1) * sizeof(int))); */
+/*  pctlist = (MYFLT **) mcalloc(csound, 256 * sizeof(MYFLT *)); */
+/*  insbusy = (int *) mcalloc(csound, (csound->maxinsno+1) * sizeof(int)); */
 
     csoundInitEnv(csound);      /* must be called before instr 0 initiates */
 
@@ -697,201 +688,5 @@ void oload(ENVIRON *csound)
     csound->nspin = csound->nspout;
     csound->spin  = (MYFLT *) mcalloc(csound, csound->nspin * sizeof(MYFLT));
     csound->spout = (MYFLT *) mcalloc(csound, csound->nspout * sizeof(MYFLT));
-}
-
-INSDS *instance(ENVIRON *csound, int insno)
-{                               /* create instance of an instr template */
-    INSTRTXT *tp;               /*   allocates and sets up all pntrs    */
-    INSDS   *ip;
-    OPTXT   *optxt;
-    OPDS    *opds, *prvids, *prvpds;
-    OENTRY  *ep;
-    LBLBLK  **lopds, **lopdsp;
-    LARGNO  *larg, *largp/* = larg */;
-    int     n, pextent, opnum, reqd;
-    char    *nxtopds, *opdslim;
-    MYFLT   **argpp, *fltp, *lclbas, *lcloffbas, *csetoffbas = NULL;
-    ARGOFFS *aoffp;
-    int     indx, posndx;
-    int     *ndxp;
-    MCHNBLK *chp = NULL;
-    OPARMS  *O = csound->oparms;
-
-    lopds = (LBLBLK**)mmalloc(csound, sizeof(LBLBLK*)*csound->nlabels);
-    lopdsp = lopds;
-    larg = (LARGNO*)mmalloc(csound, sizeof(LARGNO)*csound->ngotos);
-    largp = larg;
-    lopdsp = lopds;
-    tp = instrtxtp[insno];
-    if (tp->mdepends & 06) {                /* if need midi chan, chk ok */
-      MCHNBLK **chpp = M_CHNBP;
-      for (n = MAXCHAN; n--; ) {
-        if ((chp = *chpp++) !=((MCHNBLK*)NULL))     {
-          csetoffbas = chp->ctl_val;
-          if (!chp->insno) {
-            chp->insno = insno;
-            csound->Message(csound, Str("instr %d seeking midi chnl data, "
-                                        "assigned chnl %d\n"),
-                                    (int) insno, (int) chp->insno);
-            break;
-          }
-          if (chp->insno != insno)
-            continue;
-        }
-      }
-    }
-    pextent = sizeof(INSDS) + tp->pextrab;          /* alloc new space,  */
-    ip = (INSDS *) mcalloc(csound, (long)pextent + tp->localen + tp->opdstot);
-    ip->csound = csound;
-    if (tp->mdepends & 06)
-      ip->m_chnbp = chp;
-    /* IV - Oct 26 2002: replaced with faster version (no search) */
-    ip->prvinstance = tp->lst_instance;
-    if (tp->lst_instance)
-      tp->lst_instance->nxtinstance = ip;
-    else
-      tp->instance = ip;
-    tp->lst_instance = ip;
-    /* IV - Nov 10 2002 */
-    if (insno > maxinsno) {
-      int pcnt;
-      ip->nxtact = tp->act_instance;                /* next free instance */
-      tp->act_instance = ip;                        /* for user opcodes */
-      pcnt = (int) tp->opcode_info->perf_incnt;
-      pcnt += (int) tp->opcode_info->perf_outcnt;
-      pcnt = sizeof(OPCOD_IOBUFS) + sizeof(MYFLT*) * (pcnt << 1);
-      ip->opcod_iobufs = (void*) mmalloc(csound, pcnt);
-    }
-    lcloffbas = &ip->p0;
-    lclbas = (MYFLT *)((char *)ip + pextent);       /* split local space */
-    nxtopds = (char *)lclbas + tp->localen;
-    opdslim = nxtopds + tp->opdstot;
-    if (O->odebug)
-      csound->Message(csound,
-                      Str("instr %d allocated at %p\n\tlclbas %p, opds %p\n"),
-                      insno, ip, lclbas, nxtopds);
-    optxt = (OPTXT *)tp;
-    prvids = prvpds = (OPDS *)ip;
-    while ((optxt = optxt->nxtop) != NULL) {        /* for each op in instr */
-      TEXT *ttp = &optxt->t;
-      if ((opnum = ttp->opnum) == ENDIN           /*  (until ENDIN)  */
-          || opnum == ENDOP)      /* IV - Sep 8 2002: (or ENDOP) */
-        break;
-      if (opnum == STRSET) {
-        nxtopds +=  2 * sizeof(MYFLT*);
-        continue; /* Only at load time */
-      }
-      if (opnum == PSET) {
-        ip->p1 = (MYFLT)insno; continue;
-      }
-      ep = &opcodlst[opnum];                        /* for all ops:     */
-      opds = (OPDS *) nxtopds;                      /*   take reqd opds */
-      nxtopds += ep->dsblksiz;
-      if (O->odebug)
-        csound->Message(csound, Str("op %d (%s) allocated at %p\n"),
-                                opnum, ep->opname, opds);
-      opds->optext = optxt;                         /* set common headata */
-      opds->insdshead = ip;
-      if (opnum == LABEL) {                         /* LABEL:       */
-        LBLBLK  *lblbp = (LBLBLK *) opds;
-        lblbp->prvi = prvids;                       /*    save i/p links */
-        lblbp->prvp = prvpds;
-        *lopdsp++ = lblbp;                          /*    log the lbl bp */
-        continue;                                   /*    for later refs */
-      }
-      if ((ep->thread & 07)==0) {                   /* thread 1 OR 2:  */
-        if (ttp->pftype == 'b') {
-          prvids = prvids->nxti = opds;
-          opds->iopadr = ep->iopadr;
-        }
-        else {
-          prvpds = prvpds->nxtp = opds;
-          opds->opadr = ep->kopadr;
-        }
-        goto args;
-      }
-      if ((ep->thread & 01)!=0) {                   /* thread 1:        */
-        prvids = prvids->nxti = opds;               /* link into ichain */
-        opds->iopadr = ep->iopadr;                  /*   & set exec adr */
-        if (opds->iopadr == NULL)
-          csoundDie(csound, Str("null iopadr"));
-      }
-      if ((n = ep->thread & 06)!=0) {               /* thread 2 OR 4:   */
-        prvpds = prvpds->nxtp = opds;               /* link into pchain */
-        if (!(n & 04) ||
-            (ttp->pftype == 'k' && ep->kopadr != NULL))
-          opds->opadr = ep->kopadr;                 /*      krate or    */
-        else opds->opadr = ep->aopadr;              /*      arate       */
-        if (O->odebug)
-          csound->Message(csound, "opadr = %p\n", opds->opadr);
-        if (opds->opadr == NULL)
-          csoundDie(csound, Str("null opadr"));
-      }
-      opds->dopadr = ep->dopadr;
-    args:
-      argpp = (MYFLT **)((char *)opds + sizeof(OPDS));
-      if (O->odebug)
-        csound->Message(csound, "argptrs:");
-      aoffp = ttp->outoffs;                         /* for outarg codes: */
-      reqd = strlen(ep->outypes);
-      for (n=aoffp->count, ndxp=aoffp->indx; n--; reqd--) {
-        if ((indx = *ndxp++) > 0)            /* cvt index to lcl/gbl adr */
-          fltp = gbloffbas + indx;
-        else if ((posndx = -indx) < CBAS)
-          fltp = lcloffbas + posndx;
-        else
-          fltp = csetoffbas + posndx - CBAS;
-        if (O->odebug)
-          csound->Message(csound, "\t%p", fltp);
-        *argpp++ = fltp;
-      }
-      while (reqd--) {                              /* if more outypes, pad */
-        if (O->odebug)
-          csound->Message(csound, "\tPADOUT");
-        *argpp++ = NULL;
-      }
-      aoffp = ttp->inoffs;                          /* for inarg codes: */
-      for (n=aoffp->count, ndxp=aoffp->indx; n--; ) {
-        if ((indx = *ndxp++) < LABELIM) {
-          if (O->odebug)
-            csound->Message(csound, "\t***lbl");
-          largp->lblno = indx - LABELOFS;           /* if label ref, defer */
-          largp->argpp = argpp++;
-          largp++;
-        } else {
-          if (indx > 0)                         /* else cvt ndx to lcl/gbl */
-            fltp = gbloffbas + indx;
-          else if ((posndx = -indx) < CBAS)
-            fltp = lcloffbas + posndx;
-          else
-            fltp = csetoffbas + posndx - CBAS;
-          if (O->odebug)
-            csound->Message(csound, "\t%p", fltp);
-          *argpp++ = fltp;
-        }
-      }
-      if (O->odebug)
-        csound->Message(csound, "\n");
-    }
-    if (nxtopds != opdslim) {
-      csound->Message(csound, Str("nxtopds = %p opdslim = %p\n"),
-                              nxtopds, opdslim);
-      if (nxtopds > opdslim)
-        csoundDie(csound, Str("inconsistent opds total"));
-    }
-    while (--largp >= larg)
-      *largp->argpp = (MYFLT *) lopds[largp->lblno]; /* now label refs */
-    return(ip);
-}
-
-int pnum(char *s)               /* check a char string for pnum format  */
-                                /*   and return the pnum ( >= 0 )       */
-{                               /* else return -1                       */
-    int n;
-
-    if (*s == 'p' || *s == 'P')
-      if (sscanf(++s, "%d", &n))
-        return(n);
-    return(-1);
 }
 

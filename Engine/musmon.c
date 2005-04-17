@@ -63,7 +63,6 @@ static  int     lplayed = 0;
 static  int     segamps, sormsg;
 static  EVENT   **ep, **epend;  /* pointers for stepping through lplay list */
 static  EVENT   *lsect = NULL;
-        void    cs_beep(ENVIRON *);
 
 static void settempo(ENVIRON *csound, MYFLT tempo)
 {
@@ -557,21 +556,21 @@ static int process_score_event(ENVIRON *csound, EVTBLK *evt, int rtEvt)
         }
         csound->Message(csound,Str("Setting instrument %s %s\n"),
                evt->strarg, (evt->p[3] == 0 ? Str("off") : Str("on")));
-        instrtxtp[insno]->muted = (short) evt->p[3];
+        csound->instrtxtp[insno]->muted = (short) evt->p[3];
       }
       else {                                        /* IV - Oct 31 2002 */
         insno = abs((int) evt->p[1]);
-        if (insno > maxinsno || instrtxtp[insno] == NULL) {
+        if (insno > csound->maxinsno || csound->instrtxtp[insno] == NULL) {
           print_score_time(csound, rtEvt);
           csound->Message(csound,
                           Str(" - note deleted. instr %d(%d) undefined\n"),
-                          insno, maxinsno);
+                          insno, csound->maxinsno);
           csound->perferrcnt++;
           break;
         }
         csound->Message(csound,Str("Setting instrument %d %s\n"),
                insno, (evt->p[3] == 0 ? Str("off") : (Str("on"))));
-        instrtxtp[insno]->muted = (short) evt->p[3];
+        csound->instrtxtp[insno]->muted = (short) evt->p[3];
       }
       break;
     case 'i':
@@ -596,11 +595,11 @@ static int process_score_event(ENVIRON *csound, EVTBLK *evt, int rtEvt)
       }
       else {                                        /* IV - Oct 31 2002 */
         insno = abs((int) evt->p[1]);
-        if (insno > maxinsno || instrtxtp[insno] == NULL) {
+        if (insno > csound->maxinsno || csound->instrtxtp[insno] == NULL) {
           print_score_time(csound, rtEvt);
           csound->Message(csound,
                           Str(" - note deleted. instr %d(%d) undefined\n"),
-                          insno, maxinsno);
+                          insno, csound->maxinsno);
           csound->perferrcnt++;
         }
         else if (evt->p[1] < FL(0.0))           /* if p1 neg,             */
@@ -714,7 +713,6 @@ static int process_rt_event(ENVIRON *csound, int sensType)
 
 #define RNDINT(x) ((int) ((double) (x) + ((double) (x) < 0.0 ? -0.5 : 0.5)))
 
-extern  int     sensLine(ENVIRON *);
 extern  int     sensMidi(ENVIRON *);
 
 /* sense events for one k-period            */
@@ -1000,7 +998,7 @@ int insert_score_event(ENVIRON *csound, EVTBLK *evt, double time_ofs,
           i = (int) named_instr_find(csound, evt->strarg);
         else
           i = (int) fabs((double) p[1]);
-        if (i < 1 || i > csound->maxinsno_ || csound->instrtxtp_[i] == NULL) {
+        if (i < 1 || i > csound->maxinsno || csound->instrtxtp[i] == NULL) {
           csoundMessage(csound, Str("insert_score_event(): invalid instrument "
                                     "number or name\n"));
           goto err_return;

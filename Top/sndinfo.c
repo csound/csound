@@ -33,6 +33,7 @@ extern char* type2string(int);
 
 int sndinfo(int argc, char **argv)
 {
+    ENVIRON *csound = &cenviron;
     char    *infilnam;
     char    channame[32];
     int     infd;
@@ -46,15 +47,17 @@ int sndinfo(int argc, char **argv)
         continue;
       }
       if ((infd = openin(infilnam)) < 0) {
-        cenviron.Message(&cenviron,Str("%s:\n\tcould not find\n"), retfilnam);
+        csound->Message(csound, Str("%s:\n\tcould not find\n"),
+                                csound->retfilnam);
         continue;
       }
       if ((hndl = sf_open_fd(infd, SFM_READ, &sf_info, 1))==NULL) {
-        cenviron.Message(&cenviron,Str("%s: Not a sound file\n"), retfilnam);
+        csound->Message(csound, Str("%s: Not a sound file\n"),
+                                csound->retfilnam);
         close(infd);
       }
       else {
-        cenviron.Message(&cenviron,"%s:\n", retfilnam);
+        csound->Message(csound, "%s:\n", csound->retfilnam);
         switch (sf_info.channels) {
         case 1:
           strcpy(channame, Str("monaural"));
@@ -72,17 +75,17 @@ int sndinfo(int argc, char **argv)
           strcpy(channame, Str("oct"));
           break;
         default:
-          cenviron.Message(&cenviron,channame, "%d-channel", sf_info.channels);
+          csound->Message(csound, channame, "%d-channel", sf_info.channels);
           break;
         }
-        cenviron.Message(&cenviron,
-                         Str("\tsrate %ld, %s, %ld bit %s, %4.2f seconds\n"),
-                         sf_info.samplerate, channame,
-                         sfsampsize(sf_info.format) * 8,
-                         type2string(SF2TYPE(sf_info.format)),
-                         (MYFLT)sf_info.frames / sf_info.samplerate);
-        cenviron.Message(&cenviron,Str("\t(%ld sample frames)\n"),
-                         (long)sf_info.frames);
+        csound->Message(csound,
+                        Str("\tsrate %ld, %s, %ld bit %s, %4.2f seconds\n"),
+                        (long) sf_info.samplerate, channame,
+                        (long) (sfsampsize(sf_info.format) * 8),
+                        type2string(SF2TYPE(sf_info.format)),
+                        (MYFLT)sf_info.frames / sf_info.samplerate);
+        csound->Message(csound, Str("\t(%ld sample frames)\n"),
+                                (long) sf_info.frames);
         sf_close(hndl);
       }
     }

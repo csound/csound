@@ -213,7 +213,7 @@ int sndinset(ENVIRON *csound, SOUNDIN_ *p) /* init routine for instr soundin */
       if (*p->skipinit != FL(0.0))
         return OK;
       /* reload the file */
-      fdclose(&(p->fdch));
+      fdclose(csound, &(p->fdch));
     }
     if (*p->ifilno == SSTRCOD) {                /* if char string name given */
       if (p->STRARG == NULL)
@@ -248,7 +248,7 @@ int sndinset(ENVIRON *csound, SOUNDIN_ *p) /* init routine for instr soundin */
     if ((sinfd = sndgetset(csound, &(p->sndin_))) != NULL) {
       /* if soundinset successful: */
       p->fdch.fd = sinfd;                   /*    store & log the fd     */
-      fdrecord(&p->fdch);                   /*    instr will close later */
+      fdrecord(csound, &p->fdch);           /*    instr will close later */
     }
     else {
       csound->inerrcnt++;
@@ -396,12 +396,12 @@ void sfopenin(void *csound_)        /* init for continuous soundin */
     else {                      /* else build filename and open that */
       SF_INFO sfinfo;
       if ((isfd = openin(O.infilename)) < 0)
-        csoundDie(csound, Str("isfinit: cannot open %s"), retfilnam);
-      sfname = retfilnam;
+        csoundDie(csound, Str("isfinit: cannot open %s"), csound->retfilnam);
+      sfname = csound->retfilnam;
       memset(&sfinfo, 0, sizeof(SF_INFO));
       infile = sf_open_fd(isfd, SFM_READ, &sfinfo, SF_TRUE);
       if (infile == NULL)
-        csoundDie(csound, Str("isfinit: cannot open %s"), retfilnam);
+        csoundDie(csound, Str("isfinit: cannot open %s"), csound->retfilnam);
       if (sfinfo.samplerate != (int) (csound->esr + FL(0.5))) {
         /*    chk the hdr codes  */
         csound->Warning(csound, Str("audio_in %s has sr = %ld, orch sr = %ld"),
@@ -506,14 +506,14 @@ void sfopenout(void *csound_)                   /* init for sound out       */
         audtran = (void (*)(void*, MYFLT*, int)) csound->rtplay_callback;
         outbufrem = parm.bufSamp_SW * parm.nChannels;
       }
-      osfd = DEVAUDIO;                         /* dummy file descriptor */
-      pipdevout = 1;                           /* no backward seeks !   */
-      goto outset;                             /* no header needed      */
+      osfd = DEVAUDIO;                          /* dummy file descriptor */
+      pipdevout = 1;                            /* no backward seeks !   */
+      goto outset;                              /* no header needed      */
     }
     else if (strcmp(O.outfilename,"null") == 0) {
       osfd = -1;
-      sfoutname = mmalloc(csound, (long)strlen(retfilnam)+1);
-      strcpy(sfoutname, retfilnam);       /*   & preserve the name */
+      sfoutname = mmalloc(csound, strlen(csound->retfilnam) + 1);
+      strcpy(sfoutname, csound->retfilnam);     /*   & preserve the name */
     }
     else {  /* else open sfdir or cwd */
       SF_INFO sfinfo;
@@ -524,9 +524,9 @@ void sfopenout(void *csound_)                   /* init for sound out       */
       sfinfo.sections = 0;
       sfinfo.seekable = 0;
       if ((osfd = openout(O.outfilename, 3)) < 0)
-        csoundDie(csound, Str("sfinit: cannot open %s"), retfilnam);
-      sfoutname = mmalloc(csound, (long)strlen(retfilnam)+1);
-      strcpy(sfoutname, retfilnam);       /*   & preserve the name */
+        csoundDie(csound, Str("sfinit: cannot open %s"), csound->retfilnam);
+      sfoutname = mmalloc(csound, strlen(csound->retfilnam) + 1);
+      strcpy(sfoutname, csound->retfilnam);     /*   & preserve the name */
       outfile = sf_open_fd(osfd, SFM_WRITE, &sfinfo, 1);
       if (outfile == NULL)
         csoundDie(csound, Str("sfinit: cannot open %s"), sfoutname);
