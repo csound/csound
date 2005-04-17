@@ -575,7 +575,8 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
           } while (isalpha(c = getorchar(csound)) ||
                    (i != 0 && (isdigit(c) || c == '_')));
           mname[i] = '\0';
-          csound->Message(csound,Str("macro %s undefined\n"), mname);
+          if(csound->oparms->msglevel)
+            csound->Message(csound,Str("macro %s undefined\n"), mname);
           if (strcmp(mname, macros->name)==0) {
             MACRO *mm=macros->next;
             mfree(csound, macros->name); mfree(csound, macros->body);
