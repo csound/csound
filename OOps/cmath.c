@@ -74,11 +74,12 @@ int seedrand(ENVIRON *csound, PRAND *p)
 {
     if ((unsigned int)*p->out == 0) {
       csound->holdrand = time(NULL);
-      printf(Str("Seeding from current time %d\n"), csound->holdrand);
+      csound->Message(csound,
+                      Str("Seeding from current time %d\n"), csound->holdrand);
       srand((unsigned int) csound->holdrand);
     }
     else {
-      printf(Str("Seeding with %.3f\n"), *p->out);
+      csound->Message(csound,Str("Seeding with %.3f\n"), *p->out);
       srand((unsigned int) (csound->holdrand = (int)*p->out));
     }
     return OK;

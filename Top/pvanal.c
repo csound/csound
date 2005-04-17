@@ -43,7 +43,7 @@
 #include <sndfile.h>
 
                  /* prototype arguments */
-extern int pvxanal(SOUNDIN *, SNDFILE *, const char *, long, long,
+extern int pvxanal(ENVIRON *, SOUNDIN *, SNDFILE *, const char *, long, long,
                    long, long, long, int, int);
 static long takeFFTs(SOUNDIN *inputSound, PVSTRUCT *outputPVH,
                      SNDFILE *sndfd, int fftd, long oframeEst);
@@ -226,7 +226,7 @@ int pvanal(int argc, char **argv)
       }
       csound->Message(csound,Str("pvanal: creating pvocex file\n"));
       /* handle all messages in here, for now */
-      if (pvxanal(p,infd,outfilnam,p->sr,p->nchanls,frameSize,frameIncr,
+      if (pvxanal(csound, p,infd,outfilnam,p->sr,p->nchanls,frameSize,frameIncr,
                   frameSize*2,PVOC_HAMMING,verbose))
         csoundDie(&cenviron, Str("error generating pvocex file.\n"));
     }

@@ -117,7 +117,8 @@ void RTLineset(void)   /* set up Linebuf & ready the input files */
 #endif
     else if ((Linefd = open(O.Linename, O_RDONLY | O_NDELAY  MODE)) < 0)
       csoundDie(&cenviron, Str("Cannot open %s"), O.Linename);
-    printf(Str("stdmode = %.8x Linefd = %d\n"), stdmode, Linefd);
+    cenviron.Message(&cenviron,Str("stdmode = %.8x Linefd = %d\n"),
+                     stdmode, Linefd);
 }
 
 #ifdef PIPES
@@ -131,7 +132,8 @@ void RTclose(void *csound_)
     if (csound->oparms->Linein == 0)
       return;
     csound->oparms->Linein = 0;
-    printf(Str("stdmode = %.8x Linefd = %d\n"), stdmode, csound->Linefd_);
+   csound->Message(csound,
+                   Str("stdmode = %.8x Linefd = %d\n"), stdmode, csound->Linefd_);
 #if defined(mills_macintosh) || defined(SYMANTEC)
     if (Linecons != NULL) fclose(Linecons);
 #else
@@ -202,13 +204,15 @@ void writeLine(const char *text, long size)
       }
       else {
         if (O.msglevel & WARNMSG)
-          printf(Str("WARNING: LineBuffer Overflow - Input Data has been Lost\n"));
+          cenviron.Message(&cenviron,
+                           Str("WARNING: LineBuffer Overflow - Input Data has been Lost\n"));
       }
     }
     else {
       if (O.msglevel & WARNMSG)
-        printf(Str(
-                  "WARNING: Input ignored, RT Line Events (-L) has not been initialised\n"));
+        cenviron.Message(&cenviron,
+                         Str("WARNING: Input ignored, RT Line Events (-L) "
+                             "has not been initialised\n"));
     }
 }
 
@@ -237,7 +241,6 @@ int sensLine(ENVIRON *csound)
 #endif
                         Linep > Linebuf))
       {
-        /*      printf("sensLine %d CHARS\n",n);  */
         Linend = Linep + (n>0 ? n : 0);
         /*        if ((c = *(Linend - 1)) == LF || containsLF(Linep,Linend)) { */
         if (containsLF(Linebuf,Linend)) {
