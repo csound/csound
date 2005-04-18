@@ -822,8 +822,8 @@ if getPlatform() == 'linux':
 
 pluginLibraries.append(pluginEnvironment.SharedLibrary('cvanal',
     ['util/cvanal.c']))
-#pluginLibraries.append(pluginEnvironment.SharedLibrary('dnoise',
-#    ['util/dnoise.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('dnoise',
+    ['util/dnoise.c']))
 #pluginLibraries.append(pluginEnvironment.SharedLibrary('hetro',
 #    ['util/hetro.c']))
 #pluginLibraries.append(pluginEnvironment.SharedLibrary('lpanal',

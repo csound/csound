@@ -21,7 +21,6 @@
     02111-1307 USA
 */
 
-
 /*
  *    PROGRAM:    dnoise - de-noise a recording
  *
@@ -74,44 +73,36 @@
         higher sample rate than 16KHz might indicate a higher N.
 */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include "cs.h"
+#include "csdl.h"
 #include "soundio.h"
+#include <math.h>
+#include <ctype.h>
 
-extern ENVIRON cenviron;
+#define ERR(x)                          \
+{                                       \
+    csound->Message(csound, Str(x));    \
+    return -1;                          \
+}
 
-#define ERR(x)          perror(x); exit(1)
-#define FIND(MSG)   if (*s == '\0')  \
-                        if (!(--argc) || (((s = *argv++) != NULL) && *s == '-')) \
-                            dieu(MSG)
+#define FIND(x)                                                     \
+{                                                                   \
+    if (*s == '\0') {                                               \
+      if (!(--argc) || (((s = *argv++) != NULL) && *s == '-')) {    \
+        csound->Message(csound, "%s\n", Str(x));                    \
+        return dnoise_usage(csound, -1);                            \
+      }                                                             \
+    }                                                               \
+}
 
-void dnoise_usage(int);
-void hamming(MYFLT *, int, int);
-#ifdef mills_macintoshxx
-extern void do_mac_dialogs(void);
-extern char *gargv[];
-extern int gargc;
-#endif
+static  int     dnoise_usage(ENVIRON *, int);
+static  void    hamming(MYFLT *, int, int);
+static  char    *getStrFormat(ENVIRON *, int);
+static  int     sfSampSize(int);
+static  char    *type2string(int);
 
-extern void bytrev2(char *, int), bytrev4(char *, int), rewriteheader(SNDFILE *,int);
-extern int  openout(char *, int), bytrevhost(void);
-extern short sfsampsize(int);
-extern void writeheader(int, char *);
-extern char *getstrformat(int);
-extern void dieu(char*);
-extern char* type2string(int);
+static int writebuffer(ENVIRON *, SNDFILE *, MYFLT *, int);
 
-static int writebuffer(MYFLT *, int);
-/* Static global variables */
-static unsigned outbufsiz;
-/*static MFLT     *outbuf; */
-
-static SNDFILE* outfd;
-
-static void fast(MYFLT *b, int N)
+static void fast(ENVIRON *csound, MYFLT *b, int N)
 {
   /* The DC term is returned in location b[0] with b[1] set to 0.
      Thereafter, the i'th harmonic is returned as a complex
@@ -122,12 +113,12 @@ static void fast(MYFLT *b, int N)
      above.
   */
 
-    csoundRealFFT(&cenviron, b, N);
+    csound->RealFFT(csound, b, N);
     b[N] = b[1];
     b[1] = b[N + 1] = FL(0.0);
 }
 
-static void fsst(MYFLT *b, int N)
+static void fsst(ENVIRON *csound, MYFLT *b, int N)
 {
   /* This subroutine synthesizes the real vector b[k] for k=0, 1,
      ..., N-1 from the fourier coefficients stored in the b
@@ -141,16 +132,19 @@ static void fsst(MYFLT *b, int N)
     MYFLT scaleVal;
     int   i;
 
-    scaleVal = csoundGetInverseRealFFTScale(&cenviron, N);
+    scaleVal = csound->GetInverseRealFFTScale(csound, N);
     b[1] = b[N];
     b[N] = b[N + 1] = FL(0.0);
     for (i = 0; i < N; i++)
       b[i] *= scaleVal;
-    csoundInverseRealFFT(&cenviron, b, N);
+    csound->InverseRealFFT(csound, b, N);
 }
 
-int dnoise(int argc, char **argv)
+static int dnoise(void *csound_, int argc, char **argv)
 {
+    ENVIRON *csound = (ENVIRON*) csound_;
+    OPARMS  *O = csound->oparms;
+
     MYFLT   beg = -FL(1.0), end = -FL(1.0);
     long    Beg = 0, End = 99999999;
 
@@ -254,31 +248,30 @@ int dnoise(int argc, char **argv)
 
     SOUNDIN     *p, *pn;
     char        *infile = NULL, *outfile = NULL, *nfile = NULL;
-    SNDFILE     *inf;
+    SNDFILE     *inf, *outfd = NULL;
     char        c, *s;
     int             channel = ALLCHNLS;
     MYFLT       beg_time = FL(0.0), input_dur = FL(0.0), sr = FL(0.0);
     MYFLT       beg_ntime = FL(0.0), input_ndur = FL(0.0), srn = FL(0.0);
     char        *envoutyp = NULL;
+    unsigned int  outbufsiz = 0U;
     char        outformch = 's';
 
-    init_getstring(argc, argv);
-    cenviron.e0dbfs = cenviron.dbfs_to_float = FL(1.0);
+    csound->e0dbfs = csound->dbfs_to_float = FL(1.0);
 
-    O.filnamspace = outfile = (char*)mmalloc(&cenviron, (long)1024);
-    nfile = (char*)mmalloc(&cenviron, (long)1024);
-    if ((envoutyp = csoundGetEnv(&cenviron, "SFOUTYP")) != NULL) {
+    O->filnamspace = outfile = (char*) csound->Calloc(csound, (size_t) 1024);
+    nfile = (char*) csound->Calloc(csound, (size_t) 1024);
+    if ((envoutyp = csound->GetEnv(csound, "SFOUTYP")) != NULL) {
       if (strcmp(envoutyp,"AIFF") == 0)
-        O.filetyp = TYP_AIFF;
+        O->filetyp = TYP_AIFF;
       else if (strcmp(envoutyp,"WAV") == 0)
-        O.filetyp = TYP_WAV;
+        O->filetyp = TYP_WAV;
       else if (strcmp(envoutyp,"IRCAM") == 0)
-        O.filetyp = TYP_IRCAM;
+        O->filetyp = TYP_IRCAM;
       else {
-        sprintf(errmsg,
-                Str("%s not a recognised SFOUTYP env setting"),
-                envoutyp);
-        dieu(errmsg);
+        csound->Message(csound, Str("%s not a recognised SFOUTYP env setting"),
+                                envoutyp);
+        return -1;
       }
     }
     {
@@ -293,101 +286,83 @@ int dnoise(int argc, char **argv)
               while (*++s);
               break;
             case 'o':
-              FIND(Str("no outfilename"));
-                O.outfilename = outfile;            /* soundout name */
+              FIND("no outfilename");
+                O->outfilename = outfile;            /* soundout name */
               while ((*outfile++ = *s++)); s--;
-              if (strcmp(O.outfilename,"stdin") == 0)
-                csoundDie(&cenviron, Str("-o cannot be stdin"));
-              if (strcmp(O.outfilename,"stdout") == 0) {
-                if ((O.stdoutfd = dup(1)) < 0) /* redefine stdout */
-                  csoundDie(&cenviron, Str("too many open files"));
-                dup2(2,1);                /* & send 1's to stderr */
+              if (strcmp(O->outfilename, "stdin") == 0) {
+                csound->Message(csound, Str("-o cannot be stdin\n"));
+                return -1;
               }
+              if (strcmp(O->outfilename, "stdout") == 0)
+                O->stdoutfd = 1;
               break;
             case 'i':
-              FIND(Str("no noisefilename"));
+              FIND("no noisefilename");
               {
                 char *nn = nfile;
                 while ((*nn++ = *s++)); s--;
               }
               break;
             case 'A':
-              if (O.filetyp == TYP_WAV) {
-                if (envoutyp == NULL) goto outtyp;
-                if (O.msglevel & WARNMSG)
-                  cenviron.Message(&cenviron, 
-                                   Str("WARNING: -A overriding local default WAV out\n"));
-              }
-              O.filetyp = TYP_AIFF;     /* AIFF output request*/
+              if (O->filetyp == TYP_WAV)
+                csound->Warning(csound,
+                                Str("-A overriding local default WAV out"));
+              O->filetyp = TYP_AIFF;    /* AIFF output request*/
               break;
             case 'J':
-              if (O.filetyp == TYP_AIFF ||
-                  O.filetyp == TYP_WAV) {
-                if (envoutyp == NULL) goto outtyp;
-                if (O.msglevel & WARNMSG)
-                  printf(Str(
-                             "WARNING: -J overriding local default "
-                             "AIFF/WAV out\n"));
-              }
-              O.filetyp = TYP_IRCAM;      /* IRCAM output request */
+              if (O->filetyp == TYP_AIFF || O->filetyp == TYP_WAV)
+                csound->Warning(csound, Str("-J overriding local default "
+                                            "AIFF/WAV out"));
+              O->filetyp = TYP_IRCAM;   /* IRCAM output request */
               break;
             case 'W':
-              if (O.filetyp == TYP_AIFF) {
-                if (envoutyp == NULL) goto outtyp;
-                if (O.msglevel & WARNMSG)
-                  printf(Str(
-                             "WARNING: -W overriding local default AIFF out\n"));
-              }
-              O.filetyp = TYP_WAV;      /* WAV output request */
+              if (O->filetyp == TYP_AIFF)
+                csound->Warning(csound,
+                                Str("-W overriding local default AIFF out"));
+              O->filetyp = TYP_WAV;      /* WAV output request */
               break;
             case 'h':
-              O.sfheader = 0;           /* skip sfheader  */
+              O->filetyp = TYP_RAW;
+              O->sfheader = 0;           /* skip sfheader  */
               break;
             case 'c':
-              if (O.outformat) goto outform;
               outformch = c;
-              O.outformat = AE_CHAR;     /* 8-bit char soundfile */
+              O->outformat = AE_CHAR;     /* 8-bit char soundfile */
               break;
             case '8':
-              if (O.outformat) goto outform;
               outformch = c;
-              O.outformat = AE_UNCH;     /* 8-bit unsigned char file */
+              O->outformat = AE_UNCH;     /* 8-bit unsigned char file */
               break;
             case 'a':
-              if (O.outformat) goto outform;
               outformch = c;
-              O.outformat = AE_ALAW;     /* a-law soundfile */
+              O->outformat = AE_ALAW;     /* a-law soundfile */
               break;
             case 'u':
-              if (O.outformat) goto outform;
               outformch = c;
-              O.outformat = AE_ULAW;     /* mu-law soundfile */
+              O->outformat = AE_ULAW;     /* mu-law soundfile */
               break;
             case 's':
-              if (O.outformat) goto outform;
               outformch = c;
-              O.outformat = AE_SHORT;    /* short_int soundfile */
+              O->outformat = AE_SHORT;    /* short_int soundfile */
               break;
             case 'l':
-              if (O.outformat) goto outform;
               outformch = c;
-              O.outformat = AE_LONG;     /* long_int soundfile */
+              O->outformat = AE_LONG;     /* long_int soundfile */
               break;
             case 'f':
-              if (O.outformat) goto outform;
               outformch = c;
-              O.outformat = AE_FLOAT;    /* float soundfile */
+              O->outformat = AE_FLOAT;    /* float soundfile */
               break;
             case 'R':
-              O.rewrt_hdr = 1;
+              O->rewrt_hdr = 1;
               break;
             case 'H':
               if (isdigit(*s)) {
                 int n;
-                sscanf(s, "%d%n", &O.heartbeat, &n);
+                sscanf(s, "%d%n", &O->heartbeat, &n);
                 s += n;
               }
-              else O.heartbeat = 1;
+              else O->heartbeat = 1;
               break;
             case 't':
               FIND("no t arg");
@@ -465,80 +440,66 @@ int dnoise(int argc, char **argv)
             case 'V':
               Verbose = 1; break;
             default:
-              cenviron.Message(&cenviron, "Looking at %c\n", c);
-              dnoise_usage(1);    /* this exits with error */
+              csound->Message(csound, "Looking at %c\n", c);
+              return dnoise_usage(csound, -1);  /* this exits with error */
             }
           }
         }
         else if (infile==NULL) {
           infile = --s;
-          cenviron.Message(&cenviron, "Infile set to %s\n", infile);
+          csound->Message(csound, "Infile set to %s\n", infile);
         }
         else {
-          cenviron.Message(&cenviron, "End with %s\n", s);
-          dnoise_usage(1);
+          csound->Message(csound, "End with %s\n", s);
+          return dnoise_usage(csound, -1);
         }
       }
     }
     if (nfile==NULL) {
-      cenviron.Message(&cenviron, "Must have an example noise file (-I name)\n");
+      csound->Message(csound, "Must have an example noise file (-I name)\n");
       exit(1);
     }
-    if ((inf = SAsndgetset(&cenviron, infile, &p, &beg_time,
-                           &input_dur, &sr, channel)) < 0) {
-      cenviron.Message(&cenviron, Str("error while opening %s"), infile);
+    if ((inf = csound->SAsndgetset(csound, infile, &p, &beg_time,
+                                   &input_dur, &sr, channel)) < 0) {
+      csound->Message(csound, Str("error while opening %s"), infile);
       exit(1);
     }
-    if (O.outformat == 0) O.outformat = p->format;
-    O.sfsampsize = sfsampsize(O.outformat);
-    if (O.filetyp == TYP_AIFF) {
-      if (!O.sfheader)
-        csoundDie(&cenviron, Str("cannot write AIFF soundfile with no header"));
-      if (O.outformat == AE_ALAW ||
-          O.outformat == AE_ULAW ||
-          O.outformat == AE_FLOAT) {
-        sprintf(errmsg,Str("AIFF does not support %s encoding"),
-                getstrformat(O.outformat));
-        csoundDie(&cenviron, errmsg);
-      }
+    if (O->outformat == 0) O->outformat = p->format;
+    O->sfsampsize = sfSampSize(O->outformat);
+    if (O->filetyp == TYP_RAW) {
+      O->sfheader = 0;
+      O->rewrt_hdr = 0;
     }
-    if (O.filetyp == TYP_WAV) {
-      if (!O.sfheader)
-        csoundDie(&cenviron, Str("cannot write WAV soundfile with no header"));
-      if (O.outformat == AE_ALAW ||
-          O.outformat == AE_ULAW ||
-          O.outformat == AE_FLOAT) {
-        sprintf(errmsg,Str("WAV does not support %s encoding"),
-                getstrformat(O.outformat));
-        csoundDie(&cenviron, errmsg);
-      }
-    }
-    if (O.rewrt_hdr && !O.sfheader)
-      csoundDie(&cenviron, Str("cannot rewrite header if no header requested"));
-    if (O.outfilename == NULL)
-      O.outfilename = "test";
+    else
+      O->sfheader = 1;
+    if (O->outfilename == NULL)
+      O->outfilename = "test";
     {
       SF_INFO sfinfo;
       char    *name;
       memset(&sfinfo, 0, sizeof(SF_INFO));
       sfinfo.samplerate = (int) p->sr;
       sfinfo.channels = (int) p->nchanls;
-      sfinfo.format = TYPE2SF(O.filetyp) | FORMAT2SF(O.outformat);
-      if (strcmp(O.outfilename, "stdout") != 0) {
-        name = csoundFindOutputFile(&cenviron, O.outfilename, "SFDIR");
-        if (name == NULL)
-          csoundDie(&cenviron, Str("cannot open %s."), O.outfilename);
+      sfinfo.format = TYPE2SF(O->filetyp) | FORMAT2SF(O->outformat);
+      if (strcmp(O->outfilename, "stdout") != 0) {
+        name = csound->FindOutputFile(csound, O->outfilename, "SFDIR");
+        if (name == NULL) {
+          csound->Message(csound, Str("cannot open %s.\n"), O->outfilename);
+          return -1;
+        }
         outfd = sf_open(name, SFM_WRITE, &sfinfo);
-        mfree(&cenviron, name);
+        csound->Free(csound, name);
       }
       else
-        outfd = sf_open_fd(O.stdoutfd, SFM_WRITE, &sfinfo, 1);
-      if (outfd == NULL)
-        csoundDie(&cenviron, Str("cannot open %s."), O.outfilename);
+        outfd = sf_open_fd(O->stdoutfd, SFM_WRITE, &sfinfo, 1);
+      if (outfd == NULL) {
+        csound->Message(csound, Str("cannot open %s."), O->outfilename);
+        return -1;
+      }
       sf_command(outfd, SFC_SET_CLIPPING, NULL, SF_TRUE);
     }
-    cenviron.esr = (MYFLT)p->sr;
-    cenviron.nchnls = Chans = p->nchanls;
+    csound->esr = (MYFLT) p->sr;
+    csound->nchnls = Chans = p->nchanls;
 
     /* read header info */
     if (R < FL(0.0))
@@ -554,14 +515,14 @@ int dnoise(int argc, char **argv)
 
     /* read noise reference file */
 
-    if ((fp = SAsndgetset(&cenviron, nfile, &pn, &beg_ntime,
-                          &input_ndur, &srn, channel)) < 0) {
+    if ((fp = csound->SAsndgetset(csound, nfile, &pn, &beg_ntime,
+                                  &input_ndur, &srn, channel)) < 0) {
       perror("dnoise: cannot open noise reference file\n");
       exit(1);
     }
 
     if (sr != srn) {
-      cenviron.Message(&cenviron, "Incompatible sample rates\n");
+      csound->Message(csound, "Incompatible sample rates\n");
       exit(1);
     }
     /* calculate begin and end times in NOISE file */
@@ -579,7 +540,7 @@ int dnoise(int argc, char **argv)
       if (i >= N)
         break;
     if (i != N)
-      cenviron.Message(&cenviron,
+      csound->Message(csound,
                        "dnoise: warning - N not a valid power of two; "
               "revised N = %d\n",i);
     N = i;
@@ -589,21 +550,18 @@ int dnoise(int argc, char **argv)
 
     if (W != -1) {
       if (M != 0)
-        cenviron.Message(&cenviron, "dnoise: warning - don't specify both M and W\n");
+        csound->Message(csound,
+                        "dnoise: warning - don't specify both M and W\n");
+      else if (W == 0)
+        M = 4*N;
+      else if (W == 1)
+        M = 2*N;
+      else if (W == 2)
+        M = N;
+      else if (W == 3)
+        M = N2;
       else
-        if (W == 0)
-          M = 4*N;
-        else
-          if (W == 1)
-            M = 2*N;
-          else
-            if (W == 2)
-              M = N;
-            else
-              if (W == 3)
-                M = N2;
-              else
-                cenviron.Message(&cenviron, "dnoise: warning - invalid W ignored\n");
+        csound->Message(csound, "dnoise: warning - invalid W ignored\n");
     }
 
     if (M == 0)
@@ -617,7 +575,7 @@ int dnoise(int argc, char **argv)
       Leven = 1;
 
     if (M < 7)
-      cenviron.Message(&cenviron, "dnoise: warning - M is too small\n");
+      csound->Message(csound, "dnoise: warning - M is too small\n");
 
     if (D == 0)
       D = M / 8;
@@ -639,12 +597,15 @@ int dnoise(int argc, char **argv)
 
     ibuflen = Chans * (M + 3 * D);
     obuflen = Chans * (L + 3 * I);
-    outbufsiz = obuflen * sizeof(MYFLT);                /* calc outbuf size */
-    outbuf = mmalloc(&cenviron, (size_t) outbufsiz);    /*  & alloc bufspace */
-    cenviron.Message(&cenviron, Str("writing %d-byte blks of %s to %s"),
-           outbufsiz, getstrformat(O.outformat), O.outfilename);
-    cenviron.Message(&cenviron, " (%s)\n", type2string(O.filetyp));
-/*     spoutran = spoutsf; */
+    outbufsiz = obuflen * sizeof(MYFLT);                 /* calc outbuf size */
+#if 0
+    outbuf = csound->Malloc(csound, (size_t) outbufsiz); /* & alloc bufspace */
+#endif
+    csound->Message(csound, Str("writing %u-byte blks of %s to %s"),
+                    outbufsiz, getStrFormat(csound, O->outformat),
+                    O->outfilename);
+    csound->Message(csound, " (%s)\n", type2string(O->filetyp));
+/*  spoutran = spoutsf; */
 
     minv = FL(1.0) / (MYFLT)m;
     md = m / 2;
@@ -663,14 +624,15 @@ int dnoise(int argc, char **argv)
         window is renormalized so that the phase vocoder amplitude
         estimates are properly scaled.  */
 
-    if ((aWin = (MYFLT *) calloc((size_t)(M+Meven),sizeof(MYFLT))) == NULL) {
+    if ((aWin = (MYFLT*) csound->Calloc(csound,
+                                        (M+Meven) * sizeof(MYFLT))) == NULL) {
       ERR("dnoise: insufficient memory\n");
     }
 
     aLen = M/2;
     aWin += aLen;
 
-    hamming(aWin,aLen,Meven);
+    hamming(aWin, aLen, Meven);
     for (i = 1; i <= aLen; i++) {
       aWin[-i] = aWin[i-1];
     }
@@ -679,8 +641,9 @@ int dnoise(int argc, char **argv)
       if (Meven)
         *aWin *= (MYFLT)N * (MYFLT) sin(PI*0.5/(double)N) /( PI_F*FL(0.5));
       for (i = 1; i <= aLen; i++)
-        aWin[i] *= (MYFLT) (N * sin(PI*((double) i+.5*(double) Meven)/(double) N)
-          / (PI*(i+0.5*(double) Meven)));
+        aWin[i] *= (MYFLT) (N * sin(PI * ((double) i + 0.5 * (double) Meven)
+                                    / (double) N)
+                            / (PI * (i + 0.5 * (double) Meven)));
       for (i = 1; i <= aLen; i++)
         aWin[-i] = aWin[i - Meven];
     }
@@ -689,7 +652,7 @@ int dnoise(int argc, char **argv)
     for (i = -aLen; i <= aLen; i++)
       sum += aWin[i];
 
-    sum = FL(2.0) / sum;        /*factor of 2 comes in later in trig identity*/
+    sum = FL(2.0) / sum;    /* factor of 2 comes in later in trig identity */
 
     for (i = -aLen; i <= aLen; i++)
       aWin[i] *= sum;
@@ -701,7 +664,8 @@ int dnoise(int argc, char **argv)
         scale factor), and both are even in length.  If N < M,
         then an interpolating synthesis window is used. */
 
-    if ((sWin = (MYFLT *) calloc((size_t)(L+Leven),sizeof(MYFLT))) == NULL) {
+    if ((sWin = (MYFLT*) csound->Calloc(csound,
+                                        (L+Leven) * sizeof(MYFLT))) == NULL) {
       ERR("dnoise: insufficient memory\n");
     }
 
@@ -709,7 +673,7 @@ int dnoise(int argc, char **argv)
     sWin += sLen;
 
     if (M <= N) {
-      hamming(sWin,sLen,Leven);
+      hamming(sWin, sLen, Leven);
       for (i = 1; i <= sLen; i++)
         sWin[-i] = sWin[i - Leven];
 
@@ -726,15 +690,16 @@ int dnoise(int argc, char **argv)
         sWin[i] *= sum;
     }
     else {
-      hamming(sWin,sLen,Leven);
+      hamming(sWin, sLen, Leven);
       for (i = 1; i <= sLen; i++)
         sWin[-i] = sWin[i - Leven];
 
       if (Leven)
         *sWin *= (MYFLT) (I * sin(PI*0.5/(double) I) / (PI*0.5));
       for (i = 1; i <= sLen; i++)
-        sWin[i] *= (MYFLT)(I * sin(PI*((double) i+0.5*(double) Leven)/(double) I)
-          / (PI*((double) i+0.5*(double) Leven)));
+        sWin[i] *= (MYFLT)(I * sin(PI * ((double) i + 0.5 * (double) Leven)
+                                   / (double) I)
+                           / (PI * ((double) i + 0.5 * (double) Leven)));
       for (i = 1; i <= sLen; i++)
         sWin[i] = sWin[i - Leven];
 
@@ -751,10 +716,12 @@ int dnoise(int argc, char **argv)
         then nextIn jumps back to the beginning, and the old
         values are written over. */
 
-    if ((ibuf1 = (MYFLT *) calloc((size_t)ibuflen,sizeof(MYFLT))) == NULL) {
+    if ((ibuf1 = (MYFLT *) csound->Calloc(csound,
+                                          ibuflen * sizeof(MYFLT))) == NULL) {
       ERR("dnoise: insufficient memory\n");
     }
-    if ((ibuf2 = (MYFLT *) calloc((size_t)ibuflen,sizeof(MYFLT))) == NULL) {
+    if ((ibuf2 = (MYFLT *) csound->Calloc(csound,
+                                          ibuflen * sizeof(MYFLT))) == NULL) {
       ERR("dnoise: insufficient memory\n");
     }
 
@@ -764,17 +731,19 @@ int dnoise(int argc, char **argv)
         of the buffer to zero.  When nextOut reaches the end of
         the buffer, it jumps back to the beginning.  */
 
-    if ((obuf1 = (MYFLT *) calloc((size_t)obuflen,sizeof(MYFLT))) == NULL) {
+    if ((obuf1 = (MYFLT*) csound->Calloc(csound,
+                                         obuflen * sizeof(MYFLT))) == NULL) {
       ERR("dnoise: insufficient memory\n");
     }
-    if ((obuf2 = (MYFLT *) calloc((size_t)obuflen,sizeof(MYFLT))) == NULL) {
+    if ((obuf2 = (MYFLT*) csound->Calloc(csound,
+                                         obuflen * sizeof(MYFLT))) == NULL) {
       ERR("dnoise: insufficient memory\n");
     }
 
     /* set up analysis buffer for (N/2 + 1) channels: The input is real,
         so the other channels are redundant. */
 
-    if ((fbuf = (MYFLT *) calloc((size_t)Np2,sizeof(MYFLT))) == NULL) {
+    if ((fbuf = (MYFLT*) csound->Calloc(csound, Np2 * sizeof(MYFLT))) == NULL) {
       ERR("dnoise: insufficient memory\n");
     }
 
@@ -783,33 +752,38 @@ int dnoise(int argc, char **argv)
         averaging them all together.  Multiply by th*th to
         establish threshold for noise-gating in each bin. */
 
-    if ((nref = (MYFLT *) calloc((N2+1),sizeof(MYFLT))) == NULL) {
+    if ((nref = (MYFLT*) csound->Calloc(csound,
+                                        (N2 + 1) * sizeof(MYFLT))) == NULL) {
       ERR("dnoise: insufficient memory\n");
     }
 
-    if ((mbuf =(MYFLT *)calloc(m*Np2,sizeof(MYFLT))) == NULL) {
+    if ((mbuf = (MYFLT*) csound->Calloc(csound,
+                                        (m * Np2) * sizeof(MYFLT))) == NULL) {
       ERR("dnoise: insufficient memory\n");
     }
-    if ((nbuf =(MYFLT *)calloc(m*Np2,sizeof(MYFLT))) == NULL) {
+    if ((nbuf = (MYFLT*) csound->Calloc(csound,
+                                        (m * Np2) * sizeof(MYFLT))) == NULL) {
       ERR("dnoise: insufficient memory\n");
     }
-    if ((rsum =(MYFLT *)calloc(N2+1,sizeof(MYFLT))) == NULL) {
+    if ((rsum = (MYFLT*) csound->Calloc(csound,
+                                        (N2 + 1) * sizeof(MYFLT))) == NULL) {
       ERR("dnoise: insufficient memory\n");
     }
-    if ((ssum =(MYFLT *)calloc(N2+1,sizeof(MYFLT))) == NULL) {
+    if ((ssum = (MYFLT*) csound->Calloc(csound,
+                                        (N2 + 1) * sizeof(MYFLT))) == NULL) {
       ERR("dnoise: insufficient memory\n");
     }
 
     /* skip over nMin samples */
     while (nMin > (long) ibuflen) {
-      nread = getsndin(&cenviron, fp, ibuf1, ibuflen, pn);
+      nread = csound->getsndin(csound, fp, ibuf1, ibuflen, pn);
       if (nread < ibuflen) {
         ERR("dnoise: begin time is greater than EOF of noise file!");
       }
       nMin -= (long) ibuflen;
     }
     i = (int) nMin;
-    nread = getsndin(&cenviron, fp, ibuf1, i, pn);
+    nread = csound->getsndin(csound, fp, ibuf1, i, pn);
     if (nread < i) {
       ERR("dnoise: begin time is greater than EOF of noise file!");
     }
@@ -817,14 +791,14 @@ int dnoise(int argc, char **argv)
     lj = Beg;  /* single channel only */
     while (lj < End) {
       lj += (long) N;
-      nread = getsndin(&cenviron, fp, fbuf, N, pn);
+      nread = csound->getsndin(csound, fp, fbuf, N, pn);
       if (nread < N)
         break;
 
       fbuf[N] = FL(0.0);
       fbuf[N + 1] = FL(0.0);
 
-      fast(fbuf,N);
+      fast(csound, fbuf, N);
 
       f = fbuf;
       for (i = 0; i <= N+1; i++, f++)
@@ -858,7 +832,7 @@ int dnoise(int argc, char **argv)
     for (i = 0; i < ibuflen; i++, f++)
         *f = FL(0.0);
     /* fill ibuf2 to start */
-    nread = getsndin(&cenviron, inf, ibuf2, ibuflen, p);
+    nread = csound->getsndin(csound, inf, ibuf2, ibuflen, p);
 /*     nread = read(inf, ibuf2, ibuflen*sizeof(MYFLT)); */
 /*     nread /= sizeof(MYFLT); */
     lnread = nread;
@@ -910,7 +884,7 @@ int dnoise(int argc, char **argv)
           ib2 = ib0;
           ibs -= ibuflen;
           /* fill ib2 */
-          nread = getsndin(&cenviron, inf, ib2, ibuflen, p);
+          nread = csound->getsndin(csound, inf, ib2, ibuflen, p);
           lnread += nread;
           f = ib2 + nread;
           for (i = nread; i < ibuflen; i++, f++)
@@ -926,11 +900,11 @@ int dnoise(int argc, char **argv)
           }
           else {
             if ((oCnt + obuflen) < nMaxOut) {
-              oCnt += writebuffer(ob1, obuflen);
+              oCnt += writebuffer(csound, outfd, ob1, obuflen);
             }
             else {
               i = (int) (nMaxOut - oCnt);
-              oCnt += writebuffer(ob1, i);
+              oCnt += writebuffer(csound, outfd, ob1, i);
             }
           }
           /* zero ob1 */
@@ -984,7 +958,7 @@ int dnoise(int argc, char **argv)
           *f += *w * *ibp;
         }
 
-        fast(fbuf,N);
+        fast(csound, fbuf, N);
 
         /* noise reduction: for each bin, calculate average magnitude-squared
             and calculate corresponding gain.  Apply this gain to delayed
@@ -1094,7 +1068,7 @@ int dnoise(int argc, char **argv)
         phase vocoder channel outputs at time n are inverse Fourier
         transformed, windowed, and added into the output array. */
 
-        fsst(fbuf,N);
+        fsst(csound, fbuf, N);
 
         lk = nO - (long) sLen - 1;            /*time shift*/
         while (lk < 0)
@@ -1137,7 +1111,7 @@ int dnoise(int argc, char **argv)
         nImodR += D;
         if (nImodR > (long) R) {
           nImodR -= (long) R;
-          cenviron.Message(&cenviron,
+          csound->Message(csound,
                            "%5.1f seconds of input complete\n",(time+D*invR));
         }
       }
@@ -1147,39 +1121,30 @@ int dnoise(int argc, char **argv)
     nMaxOut = (long) (nMax * Chans);
     i = (int) (nMaxOut - oCnt);
     if (i > obuflen) {
-      writebuffer(ob1, obuflen);
+      writebuffer(csound, outfd, ob1, obuflen);
       i -= obuflen;
       ob1 = ob2;
     }
     if (i > 0)
-      writebuffer(ob1, i);
+      writebuffer(csound, outfd, ob1, i);
 
-/*     rewriteheader(outfd, 0); */
-    printf("\n\n");
+/*  rewriteheader(outfd, 0); */
+    csound->Message(csound, "\n\n");
     sf_close(outfd);
     if (Verbose) {
-      cenviron.Message(&cenviron, "processing complete\n");
-      cenviron.Message(&cenviron, "N = %d\n",N);
-      cenviron.Message(&cenviron, "M = %d\n",M);
-      cenviron.Message(&cenviron, "L = %d\n",L);
-      cenviron.Message(&cenviron, "D = %d\n",D);
+      csound->Message(csound, "processing complete\n");
+      csound->Message(csound, "N = %d\n", N);
+      csound->Message(csound, "M = %d\n", M);
+      csound->Message(csound, "L = %d\n", L);
+      csound->Message(csound, "D = %d\n", D);
     }
 
-    exit(0);
-
- outtyp:
-    dieu(Str("output soundfile cannot be both AIFF and WAV"));
-    exit(1);
- outform:
-    sprintf(errmsg,Str("sound output format cannot be both -%c and -%c"),
-            outformch, c);
-    dnoise_usage(1);
     return 0;
 }
 
-void dnoise_usage(int exitcode)
+static int dnoise_usage(ENVIRON *csound, int exitcode)
 {
-    cenviron.Message(&cenviron,
+    csound->Message(csound,
             "usage: dnoise [flags] input_file\n"
             "\nflags:\n"
             "N = # of bandpass filters (1024)\n"
@@ -1201,48 +1166,128 @@ void dnoise_usage(int exitcode)
             "J : IRCAM format output\n"
             );
 
-    exit(exitcode);
+    return exitcode;
 }
 
-static void sndwrterr(unsigned nret, unsigned nput) /* report soundfile write(osfd)
-                                                error      */
-  /* called after chk of write() bytecnt  */
-{
-    void sfcloseout(void);
-    printf(Str("soundfile write returned sample count of %d, not %d\n"),
-           nret,nput);
-    printf(Str("(disk may be full...\n closing the file ...)\n"));
-    sfcloseout();                    /* & try to close the file */
-    csoundDie(&cenviron, Str("\t... closed\n"));
+static void sndwrterr(ENVIRON *csound, SNDFILE *outfd,
+                      int nret, int nput)
+                                /* report soundfile write(osfd) error      */
+{                               /*    called after chk of write() bytecnt  */
+    csound->Message(csound, Str("soundfile write returned sample count of %d, "
+                                "not %d\n"), nret, nput);
+    csound->Message(csound, Str("(disk may be full...\n"
+                                " closing the file ...)\n"));
+    sf_close(outfd);            /* & try to close the file */
+    /* FIXME: should clean up */
+    csound->Die(csound, Str("\t... closed\n"));
 }
 
-static int writebuffer(MYFLT *outbuf, int nsmps)
+static int writebuffer(ENVIRON *csound, SNDFILE *outfd,
+                       MYFLT *outbuf, int nsmps)
 {
-    int n;
+    OPARMS  *O = csound->oparms;
+    int     n;
     if (outfd == NULL) return 0;
     n = sf_write_MYFLT(outfd, outbuf, nsmps);
-    if (n < nsmps)
-      sndwrterr(n, nsmps);
-    if (O.rewrt_hdr)
-      rewriteheader(outfd,0);
-    cenviron.nrecs++;           /* JPff fix */
-    if (O.heartbeat) {
-      if (O.heartbeat==1) {
-#ifdef SYMANTEC
-        nextcurs();
-#else
-        putc("|/-\\"[cenviron.nrecs & 3], stderr); putc(8, stderr);
-#endif
+    if (n < nsmps) {
+      sndwrterr(csound, outfd, n, nsmps);
+      return -1;
+    }
+    if (O->rewrt_hdr)
+      csound->rewriteheader_(outfd, 0);
+    csound->nrecs++;           /* JPff fix */
+    if (O->heartbeat) {
+      if (O->heartbeat==1) {
+        csound->Message(csound, "%c\010", "|/-\\"[csound->nrecs & 3]);
       }
-      else if (O.heartbeat==2) putc('.', stderr);
-      else if (O.heartbeat==3) {
+      else if (O->heartbeat == 2)
+        csound->Message(csound, ".");
+      else if (O->heartbeat == 3) {
         int n;
-        cenviron.Message(&cenviron,"%d(%.3f)%n",
-                   cenviron.nrecs, cenviron.nrecs/cenviron.ekr, &n);
-        while (n--) cenviron.Message(&cenviron,"\b");
+        csound->Message(csound,"%d(%.3f)%n",
+                   csound->nrecs, csound->nrecs/csound->ekr, &n);
+        while (n--) csound->Message(csound,"\b");
       }
-      else cenviron.Message(&cenviron,"\a");
+      else csound->Message(csound,"\a");
     }
     return nsmps;
+}
+
+static char *getStrFormat(ENVIRON *csound, int format)
+{
+    switch (format) {
+      case  AE_UNCH:    return Str("unsigned bytes");
+      case  AE_CHAR:    return Str("signed chars");
+      case  AE_ALAW:    return Str("alaw bytes");
+      case  AE_ULAW:    return Str("ulaw bytes");
+      case  AE_SHORT:   return Str("shorts");
+      case  AE_LONG:    return Str("longs");
+      case  AE_FLOAT:   return Str("floats");
+      case  AE_24INT:   return Str("24bit ints");
+    }
+    return Str("unknown");
+}
+
+static int sfSampSize(int type)
+{
+    switch (type & SF_FORMAT_SUBMASK) {
+      case SF_FORMAT_PCM_16:    return 2;       /* Signed 16 bit data */
+      case SF_FORMAT_PCM_24:    return 3;       /* Signed 24 bit data */
+      case SF_FORMAT_PCM_32:                    /* Signed 32 bit data */
+      case SF_FORMAT_FLOAT:     return 4;       /* 32 bit float data */
+      case SF_FORMAT_DOUBLE:    return 8;       /* 64 bit float data */
+    }
+    return 1;
+}
+
+static char *type2string(int x)
+{
+    switch (x) {
+      case TYP_WAV:     return "WAV";
+      case TYP_AIFF:    return "AIFF";
+      case TYP_AU:      return "AU";
+      case TYP_RAW:     return "RAW";
+      case TYP_PAF:     return "PAF";
+      case TYP_SVX:     return "SVX";
+      case TYP_NIST:    return "NIST";
+      case TYP_VOC:     return "VOC";
+      case TYP_IRCAM:   return "IRCAM";
+      case TYP_W64:     return "W64";
+      case TYP_MAT4:    return "MAT4";
+      case TYP_MAT5:    return "MAT5";
+      case TYP_PVF:     return "PVF";
+      case TYP_XI:      return "XI";
+      case TYP_HTK:     return "HTK";
+#ifdef SF_FORMAT_SDS
+      case TYP_SDS:     return "SDS";
+#endif
+      default:          return "(unknown)";
+    }
+}
+
+static void hamming(MYFLT *win, int winLen, int even)
+{
+    double  ftmp;
+    int     i;
+
+    ftmp = PI / winLen;
+
+    if (even) {
+      for (i = 0; i < winLen; i++)
+        win[i] = (MYFLT) (0.54 + 0.46 * cos(ftmp * ((double) i + 0.5)));
+      win[winLen] = FL(0.0);
+    }
+    else {
+      win[0] = FL(1.0);
+      for (i = 1; i <= winLen; i++)
+        win[i] = (MYFLT) (0.54 + 0.46 * cos(ftmp * (double) i));
+    }
+}
+
+/* module interface */
+
+PUBLIC int csoundModuleCreate(void *csound)
+{
+    return (((ENVIRON*) csound)->AddUtility(csound, "dnoise", dnoise));
 }
 
