@@ -820,6 +820,9 @@ if getPlatform() == 'linux':
 
 # Utility programs.
 
+pluginLibraries.append(pluginEnvironment.SharedLibrary('cvanal',
+    ['util/cvanal.c']))
+
 executables.append(csoundProgramEnvironment.Program('cscore',
     ['util1/cscore/cscore_main.c']))
 executables.append(csoundProgramEnvironment.Program('cvanal',
