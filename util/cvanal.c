@@ -30,16 +30,20 @@
 /*  Greg Sullivan                                                       */
 /************************************************************************/
 
-#include "cs.h"
+#include "csoundCore.h"
 #include "soundio.h"
-#include "dsputil.h"
 #include "convolve.h"
 
-static void takeFFT(SOUNDIN *inputSound, CVSTRUCT *outputCVH,
-                     long Hlenpadded, SNDFILE *infd, int ofd);
-static int quit(ENVIRON*,char *msg);
-static int CVAlloc(CVSTRUCT**, long, int, MYFLT, int, int, long, int, int);
-int csoundYield(void *csound);
+#ifdef Str
+#undef Str
+#endif
+#define Str(x) (((ENVIRON*) csound)->LocalizeString(x))
+
+static int takeFFT(ENVIRON *csound, SOUNDIN *inputSound, CVSTRUCT *outputCVH,
+                   long Hlenpadded, SNDFILE *infd, FILE *ofd);
+static int quit(ENVIRON*, char *msg);
+static int CVAlloc(ENVIRON*, CVSTRUCT**, long, int, MYFLT,
+                   int, int, long, int, int);
 
 #define SF_UNK_LEN      -1      /* code for sndfile len unkown  */
 
@@ -47,26 +51,22 @@ int csoundYield(void *csound);
                         if (!(--argc) || ((s = *++argv) && *s == '-'))  \
                             return quit(csound,MSG);
 
-int cvanal(int argc, char **argv)
+static int cvanal(void *csound_, int argc, char **argv)
 {
-    ENVIRON *csound = &cenviron;
+    ENVIRON *csound = (ENVIRON*) csound_;
     CVSTRUCT *cvh;
     char    *infilnam, *outfilnam;
     SNDFILE *infd;
-    int     ofd, err, channel = ALLCHNLS;
+    FILE    *ofd;
+    int     err, channel = ALLCHNLS;
     SOUNDIN *p;  /* space allocated by SAsndgetset() */
-
     MYFLT   beg_time = FL(0.0), input_dur = FL(0.0), sr = FL(0.0);
-    long    Estdatasiz,Hlen;
+    long    Estdatasiz, Hlen;
     long    Hlenpadded = 1;
-    long    nb;
-
-    /* must set this for 'standard' behaviour when analysing
-       (assume re-entrant Csound) */
-    dbfs_init(csound, DFLT_DBFS);
+    char    err_msg[512];
 
     if (!(--argc)) {
-      return quit(csound,Str("insufficient arguments"));
+      return quit(csound, Str("insufficient arguments"));
     }
     do {
       char *s = *++argv;
@@ -75,48 +75,48 @@ int cvanal(int argc, char **argv)
         case 's':
           FIND(Str("no sampling rate"))
 #ifdef USE_DOUBLE
-          sscanf(s,"%lf",&sr);
+          sscanf(s, "%lf", &sr);
 #else
-          sscanf(s,"%f",&sr);
+          sscanf(s, "%f", &sr);
 #endif
           break;
         case 'c':
           FIND(Str("no channel"))
-            sscanf(s,"%d",&channel);
+            sscanf(s, "%d", &channel);
           if ((channel < 1) || (channel > 4))
-            return quit(csound,Str("channel must be in the range 1 to 4"));
+            return quit(csound, Str("channel must be in the range 1 to 4"));
           break;
         case 'b':
           FIND(Str("no begin time"))
 #ifdef USE_DOUBLE
-          sscanf(s,"%lf",&beg_time);
+          sscanf(s, "%lf", &beg_time);
 #else
-          sscanf(s,"%f",&beg_time);
+          sscanf(s, "%f", &beg_time);
 #endif
           break;
         case 'd':
           FIND(Str("no duration time"))
 #ifdef USE_DOUBLE
-          sscanf(s,"%lf",&input_dur);
+          sscanf(s, "%lf", &input_dur);
 #else
-          sscanf(s,"%f",&input_dur);
+          sscanf(s, "%f", &input_dur);
 #endif
           break;
-        default:   return quit(csound,Str("unrecognised switch option"));
+        default:   return quit(csound, Str("unrecognised switch option"));
         }
       else break;
     } while (--argc);
 
-    if (argc !=  2) return quit(csound,Str("illegal number of filenames"));
+    if (argc !=  2) return quit(csound, Str("illegal number of filenames"));
     infilnam = *argv++;
     outfilnam = *argv;
 
-    if ((infd = SAsndgetset(csound, infilnam, &p,
-                            &beg_time, &input_dur, &sr, channel)) < 0) {
-      sprintf(errmsg,Str("error while opening %s"), csound->retfilnam);
-      return quit(csound,errmsg);
+    if ((infd = csound->SAsndgetset(csound, infilnam, &p, &beg_time,
+                                    &input_dur, &sr, channel)) < 0) {
+      sprintf(err_msg, Str("error while opening %s"), csound->retfilnam);
+      return quit(csound, err_msg);
     }
-    sr = (MYFLT)p->sr;
+    sr = (MYFLT) p->sr;
 
     Hlen = p->getframes;
     while (Hlenpadded < 2*Hlen-1)
@@ -127,64 +127,69 @@ int cvanal(int argc, char **argv)
       Estdatasiz *= p->nchanls;
 
     /* alloc & fill CV hdrblk */
-    if ((err = CVAlloc(&cvh, Estdatasiz, CVMYFLT, sr, p->nchanls,channel,
-                       Hlen,CVRECT,4))) {
+    if ((err = CVAlloc(csound, &cvh, Estdatasiz, CVMYFLT, sr,
+                       p->nchanls, channel, Hlen, CVRECT, 4))) {
       csound->Message(csound, Str("cvanal: Error allocating header\n"));
-      exit(1);
+      return -1;
     }
-
-    if ((ofd = openout(outfilnam, 1)) < 0)     /* open the output CV file */
-      return quit(csound,Str("cannot create output file"));
+    {
+      char  *outName;
+      ofd = NULL;
+      outName = csound->FindOutputFile(csound, outfilnam, "SFDIR");
+      if (outName != NULL) {
+        ofd = fopen(outName, "wb");
+        csound->Free(csound, outName);
+      }
+    }
+    if (ofd == NULL)                           /* open the output CV file */
+      return quit(csound, Str("cannot create output file"));
                                                /* & wrt hdr into the file */
-    if ((nb = write(ofd,(char *)cvh,(int)cvh->headBsize)) < cvh->headBsize)
-      return quit(csound,Str("cannot write header"));
+    if ((long) fwrite(cvh, 1, cvh->headBsize, ofd) < cvh->headBsize)
+      return quit(csound, Str("cannot write header"));
 
-    takeFFT(p, cvh, Hlenpadded,infd, ofd);
-
-/*      outputPVH->dataBsize = oframeAct * fftfrmBsiz; */
-/*      PVCloseWrHdr(ftFile, outputPVH); */    /* Rewrite dataBsize, Close files */
+    if (takeFFT(csound, p, cvh, Hlenpadded, infd, ofd) != 0)
+      return -1;
 
     sf_close(infd);
-    close(ofd);
+    fclose(ofd);
     return 0;
 }
 
-static int quit(ENVIRON *csound,char *msg)
+static int quit(ENVIRON *csound, char *msg)
 {
-    csound->Message(csound,Str("cvanal error: %s\n"), msg);
-    csound->Message(csound,Str("Usage: cvanal [-d<duration>] "
-                         "[-c<channel>] [-b<begin time>] <input soundfile>"
-                         " <output impulse response FFT file> \n"));
+    csound->Message(csound, Str("cvanal error: %s\n"), msg);
+    csound->Message(csound, Str("Usage: cvanal [-d<duration>] "
+                            "[-c<channel>] [-b<begin time>] <input soundfile>"
+                            " <output impulse response FFT file> \n"));
     return -1;
 }
 
-static void takeFFT(
-    SOUNDIN     *p,
-    CVSTRUCT    *cvh,
-    long        Hlenpadded,
-    SNDFILE     *infd,
-    int         ofd)
+static int takeFFT(ENVIRON *csound, SOUNDIN *p, CVSTRUCT *cvh,
+                   long Hlenpadded, SNDFILE *infd, FILE *ofd)
 {
-    ENVIRON *csound = &cenviron;
     int     i, j, read_in;
-    MYFLT   *inbuf,*outbuf;
-    MYFLT   *fp1,*fp2;
+    MYFLT   *inbuf, *outbuf;
+    MYFLT   *fp1, *fp2;
     int     Hlen = (int) cvh->Hlen;
     int     nchanls;
 
     nchanls = cvh->channel != ALLCHNLS ? 1 : cvh->src_chnls;
     j = (int) (Hlen * nchanls);
     inbuf = fp1 = (MYFLT *) csound->Malloc(csound, j * sizeof(MYFLT));
-    if ((read_in = csound->getsndin(csound, infd, inbuf, j, p)) < j)
-      csound->Die(csound, Str("less sound than expected!"));
-
+    if ((read_in = csound->getsndin(csound, infd, inbuf, j, p)) < j) {
+      csound->Message(csound, Str("less sound than expected!\n"));
+      return -1;
+    }
     /* normalize the samples read in. */
     for (i = read_in; i--; ) {
       *fp1++ *= csound->dbfs_to_float;
     }
 
     fp1 = inbuf;
-    outbuf = fp2 = (MYFLT *)MakeBuf(Hlenpadded + 2);
+    outbuf = fp2 = (MYFLT*) csound->Malloc(csound,
+                                           sizeof(MYFLT) * (Hlenpadded + 2));
+    for (i = 0; i < (Hlenpadded + 2); i++)
+      outbuf[i] = FL(0.0);
 
     for (i = 0; i < nchanls; i++) {
       for (j = Hlen; j > 0; j--) {
@@ -195,16 +200,17 @@ static void takeFFT(
       csound->RealFFT(csound, outbuf, (int) Hlenpadded);
       outbuf[Hlenpadded] = outbuf[1];
       outbuf[1] = outbuf[Hlenpadded + 1L] = FL(0.0);
-      if (!csoundYield(csound)) exit(1);
       /* write straight out, just the indep vals */
-      write(ofd, (char *)outbuf, cvh->dataBsize/nchanls);
+      fwrite(outbuf, 1, cvh->dataBsize/nchanls, ofd);
       for (j = Hlenpadded - Hlen; j > 0; j--)
         *fp2++ = FL(0.0);
       fp2 = outbuf;
-    } /* end i loop */
+    }
+    return 0;
 }
 
 static int CVAlloc(
+    ENVIRON     *csound,
     CVSTRUCT    **pphdr,        /* returns address of new block */
     long        dataBsize,      /* desired bytesize of datablock */
     int         dataFormat,     /* data format - PVMYFLT etc */
@@ -220,11 +226,11 @@ static int CVAlloc(
        Returns CVE_MALLOC  (& **pphdr = NULL) if malloc fails
                CVE_OK      otherwise  */
 {
-    long        hSize;
+    long  hSize;
 
     hSize = sizeof(CVSTRUCT) + infoBsize - CVDFLTBYTS;
-    if (( (*pphdr) = (CVSTRUCT *)malloc((size_t)hSize)) == NULL )
-        return(CVE_MALLOC);
+    if (( (*pphdr) = (CVSTRUCT *) csound->Malloc(csound, hSize)) == NULL )
+      return(CVE_MALLOC);
     (*pphdr)->magic = CVMAGIC;
     (*pphdr)->headBsize = hSize;
     (*pphdr)->dataBsize = dataBsize;
@@ -236,5 +242,12 @@ static int CVAlloc(
     (*pphdr)->Format = Format;
     /* leave info bytes undefined */
     return(CVE_OK);
+}
+
+/* module interface */
+
+PUBLIC int csoundModuleCreate(void *csound)
+{
+    return (((ENVIRON*) csound)->AddUtility(csound, "cvanal", cvanal));
 }
 
