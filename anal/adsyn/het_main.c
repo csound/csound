@@ -19,15 +19,22 @@
     along with Csound; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-#include <stdio.h>
-#include "cs.h"
+
+#include "csoundCore.h"
+
+static const char *utilName = "hetro";
 
 int main(int argc, char **argv)
 {
-    scorename = "Hetro";
-    orchname = "Hetro";
-    init_getstring(argc,argv);
-    csoundPreCompile(csoundCreate(NULL));
-    return hetro(argc,argv);
+    ENVIRON *csound;
+    int     retval;
+    init_getstring(argc, argv);
+    csound = (ENVIRON*) csoundCreate(NULL);
+    csoundPreCompile(csound);
+    csound->orchname_ = (char*) utilName;
+    csound->scorename_ = (char*) utilName;
+    retval = csound->Utility(csound, utilName, argc, argv);
+    csoundDestroy(csound);
+    return retval;
 }
 

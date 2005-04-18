@@ -292,22 +292,6 @@ void InvertPoles(int count, double *real, double *imag)
     }
 }
 
-void
- DumpPolesF(int poleCount, MYFLT *part1, MYFLT *part2, int isMagn, char *where)
-{
-#ifdef TRACE_POLES
-    int i;
-
-    printf("%s\n", where);
-    for (i=0; i<poleCount; i++) {
-      if (isMagn)
-        printf(Str("magnitude: %f   Phase: %f\n"), part1[i], part2[i]);
-      else
-        printf(Str("Real: %f   Imag: %f\n"), part1[i], part2[i]);
-    }
-#endif
-}
-
 void DumpPoles(int poleCount, double *part1, double *part2, int isMagn, char *where)
 {
 #ifdef TRACE_POLES
@@ -321,91 +305,6 @@ void DumpPoles(int poleCount, double *part1, double *part2, int isMagn, char *wh
         printf(Str("Real: %f   Imag: %f\n"), part1[i], part2[i]);
     }
 #endif
-}
-
-void SortPoles(int poleCount, MYFLT *poleMagn, MYFLT *polePhas)
-{
-    int i, j;
-    MYFLT diff, fTemp;
-    int shouldSwap;
-
-    /*  DumpPolesF(poleCount, poleMagn, polePhas, 1, "Before sort"); */
-
-    for (i=1; i<poleCount; i++) {
-      for (j=0; j<i; j++) {
-
-        shouldSwap = FALSE;
-
-        diff = (MYFLT)(fabs(polePhas[j])-fabs(polePhas[i]));
-        if (diff>1e-10)
-          shouldSwap = TRUE;
-        else if (diff>-1e-10) {
-          diff = poleMagn[j]-poleMagn[i];
-
-          if (diff>1e-10)
-            shouldSwap = TRUE;
-          else if (diff>-1e-10)
-            {
-              if (polePhas[j]>polePhas[i])
-                shouldSwap = TRUE;
-            }
-        }
-        if (shouldSwap) {
-          fTemp = poleMagn[i];
-          poleMagn[i] = poleMagn[j];
-          poleMagn[j] = fTemp;
-
-          fTemp = polePhas[i];
-          polePhas[i] = polePhas[j];
-          polePhas[j] = fTemp;
-        }
-      }
-    }
-        /*      DumpPolesF(poleCount, poleMagn, polePhas, 1, "After sort"); */
-}
-
-int DoPoleInterpolation(int poleCount,
-                        MYFLT *pm1, MYFLT *pp1,
-                        MYFLT *pm2, MYFLT *pp2,
-                        MYFLT factor, MYFLT *outMagn, MYFLT *outPhas)
-{
-    int i;
-
-    if (poleCount%2!=0) {
-      printf (Str("Cannot handle uneven pole count yet \n"));
-      return (FALSE);
-    }
-
-    for (i=0; i<poleCount; i++) {
-      if (fabs(fabs(pp1[i])-PI)<1e-5) {
-        pm1[i] = -pm1[i];
-        pp1[i] = FL(0.0);
-      }
-
-      if (fabs(fabs(pp2[i])-PI)<1e-5) {
-        pm2[i] = -pm2[i];
-        pp2[i] = FL(0.0);
-      }
-    }
-
-    /* Sort poles according to abs(phase) */
-
-    SortPoles(poleCount, pm1, pp1);
-    SortPoles(poleCount, pm2, pp2);
-
-        /*      DumpPolesF(poleCount, pm1, pp1, 1, "Sorted poles 1"); */
-        /*      DumpPolesF(poleCount, pm2, pp2, 1, "Sorted poles 2"); */
-
-        /*      printf ("factor=%f\n", factor); */
-
-    for (i=0; i<poleCount; i++) {
-      outMagn[i] = pm1[i]+(pm2[i]-pm1[i])*factor;
-      outPhas[i] = pp1[i]+(pp2[i]-pp1[i])*factor;
-    }
-
-    DumpPolesF(poleCount, outMagn, outPhas, 1, "Interpolated poles");
-
-    return(TRUE);
 }
 
 /*
