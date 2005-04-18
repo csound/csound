@@ -20,44 +20,82 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
+
 #if defined(HAVE_CONFIG_H)
 #include "config.h"
 #endif
-
-#include "cs.h"                                       /*  SNDINFO.C  */
+#include "csdl.h"                                   /*  SNDINFO.C  */
 #include <sndfile.h>
 #include "soundio.h"
 
-extern char* sf2string(int);
-extern char* type2string(int);
-
-int sndinfo(int argc, char **argv)
+static int sfSampSize(int type)
 {
-    ENVIRON *csound = &cenviron;
-    char    *infilnam;
+    switch (type & SF_FORMAT_SUBMASK) {
+      case SF_FORMAT_PCM_16:    return 2;       /* Signed 16 bit data */
+      case SF_FORMAT_PCM_24:    return 3;       /* Signed 24 bit data */
+      case SF_FORMAT_PCM_32:                    /* Signed 32 bit data */
+      case SF_FORMAT_FLOAT:     return 4;       /* 32 bit float data */
+      case SF_FORMAT_DOUBLE:    return 8;       /* 64 bit float data */
+    }
+    return 1;
+}
+
+static char *type2string(int x)
+{
+    switch (x) {
+      case TYP_WAV:     return "WAV";
+      case TYP_AIFF:    return "AIFF";
+      case TYP_AU:      return "AU";
+      case TYP_RAW:     return "RAW";
+      case TYP_PAF:     return "PAF";
+      case TYP_SVX:     return "SVX";
+      case TYP_NIST:    return "NIST";
+      case TYP_VOC:     return "VOC";
+      case TYP_IRCAM:   return "IRCAM";
+      case TYP_W64:     return "W64";
+      case TYP_MAT4:    return "MAT4";
+      case TYP_MAT5:    return "MAT5";
+      case TYP_PVF:     return "PVF";
+      case TYP_XI:      return "XI";
+      case TYP_HTK:     return "HTK";
+#ifdef SF_FORMAT_SDS
+      case TYP_SDS:     return "SDS";
+#endif
+      default:          return "(unknown)";
+    }
+}
+
+static int sndinfo(void *csound_, int argc, char **argv)
+{
+    ENVIRON *csound = (ENVIRON*) csound_;
+    char    *infilnam, *fname;
     char    channame[32];
-    int     infd;
+    int     retval = 0;
     SF_INFO sf_info;
     SNDFILE *hndl;
 
     while (--argc) {
       infilnam = *++argv;
-      if (strncmp(infilnam, "-j", 2)==0) { /* Skip -j option */
-        if (infilnam[2]!='\0') ++argv, --argc;
+      if (strncmp(infilnam, "-j", 2) == 0) {    /* Skip -j option */
+        if (infilnam[2] != '\0') ++argv, --argc;
         continue;
       }
-      if ((infd = openin(infilnam)) < 0) {
-        csound->Message(csound, Str("%s:\n\tcould not find\n"),
-                                csound->retfilnam);
+      fname = csound->FindInputFile(csound, infilnam, "SFDIR;SSDIR");
+      if (fname == NULL) {
+        csound->Message(csound, Str("%s:\n\tcould not find\n"), infilnam);
+        retval = -1;
         continue;
       }
-      if ((hndl = sf_open_fd(infd, SFM_READ, &sf_info, 1))==NULL) {
-        csound->Message(csound, Str("%s: Not a sound file\n"),
-                                csound->retfilnam);
-        close(infd);
+      hndl = sf_open(fname, SFM_READ, &sf_info);
+      if (hndl == NULL) {
+        csound->Message(csound, Str("%s: Not a sound file\n"), fname);
+        csound->Free(csound, fname);
+        retval = -1;
+        continue;
       }
       else {
-        csound->Message(csound, "%s:\n", csound->retfilnam);
+        csound->Message(csound, "%s:\n", fname);
+        csound->Free(csound, fname);
         switch (sf_info.channels) {
         case 1:
           strcpy(channame, Str("monaural"));
@@ -75,20 +113,27 @@ int sndinfo(int argc, char **argv)
           strcpy(channame, Str("oct"));
           break;
         default:
-          csound->Message(csound, channame, "%d-channel", sf_info.channels);
+          sprintf(channame, "%d-channel", sf_info.channels);
           break;
         }
         csound->Message(csound,
-                        Str("\tsrate %ld, %s, %ld bit %s, %4.2f seconds\n"),
+                        Str("\tsrate %ld, %s, %ld bit %s, %5.3f seconds\n"),
                         (long) sf_info.samplerate, channame,
-                        (long) (sfsampsize(sf_info.format) * 8),
+                        (long) (sfSampSize(sf_info.format) * 8),
                         type2string(SF2TYPE(sf_info.format)),
-                        (MYFLT)sf_info.frames / sf_info.samplerate);
+                        (MYFLT) sf_info.frames / sf_info.samplerate);
         csound->Message(csound, Str("\t(%ld sample frames)\n"),
                                 (long) sf_info.frames);
         sf_close(hndl);
       }
     }
-    return 0;
+    return retval;
+}
+
+/* module interface */
+
+PUBLIC int csoundModuleCreate(void *csound)
+{
+    return (((ENVIRON*) csound)->AddUtility(csound, "sndinfo", sndinfo));
 }
 
