@@ -202,6 +202,8 @@ const ENVIRON cenviron_ = {
         csoundRealFFT,
         csoundInverseRealFFT,
         csoundRealFFTMult,
+        csoundAddUtility,
+        csoundRunUtility,
         playopen_dummy,
         rtplay_dummy,
         recopen_dummy,

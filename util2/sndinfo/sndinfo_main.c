@@ -1,5 +1,5 @@
-/*  
-    XXX code for 
+/*
+    XXX code for
 
     Copyright (C) 1991 John ffitch
 
@@ -19,15 +19,22 @@
     along with Csound; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-#include "cs.h"
-#include <stdio.h>
 
-int main(int argc,char **argv)
+#include "csoundCore.h"
+
+static const char *utilName = "sndinfo";
+
+int main(int argc, char **argv)
 {
-    init_getstring(argc,argv);
-    csoundPreCompile(csoundCreate(NULL));
-    cenviron.e0dbfs = DFLT_DBFS;
-    sndinfo(argc,argv);
-    return 0;
+    ENVIRON *csound;
+    int     retval;
+    init_getstring(argc, argv);
+    csound = (ENVIRON*) csoundCreate(NULL);
+    csoundPreCompile(csound);
+    csound->orchname_ = (char*) utilName;
+    csound->scorename_ = (char*) utilName;
+    retval = csound->Utility(csound, utilName, argc, argv);
+    csoundDestroy(csound);
+    return retval;
 }
 

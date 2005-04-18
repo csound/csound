@@ -49,6 +49,7 @@ extern "C" {
 #include "version.h"
 #include <sndfile.h>
 #include "csound.h"
+#include "cs_util.h"
 
 #define OK        (0)
 #define NOTOK     (-1)
@@ -761,6 +762,9 @@ extern "C" {
     void (*InverseRealFFT)(void *csound, MYFLT *buf, int FFTsize);
     void (*RealFFTMult)(void *csound, MYFLT *outbuf, MYFLT *buf1, MYFLT *buf2,
                         int FFTsize, MYFLT scaleFac);
+    int (*AddUtility)(void *csound_, const char *name,
+                      int (*UtilFunc)(void*, int, char**));
+    int (*Utility)(void *csound_, const char *name, int argc, char **argv);
     /* real-time audio callbacks */
     int (*playopen_callback)(void *csound, csRtAudioParams *parm);
     void (*rtplay_callback)(void *csound, void *outBuf, int nbytes);

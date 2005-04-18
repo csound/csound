@@ -529,22 +529,16 @@ Top/cscore_internal.c
 Top/cscorfns.c
 Top/csmodule.c
 Top/csound.c
-Top/cvanal.c
 Top/dl_opcodes.c
-Top/dnoise.c
 Top/getstring.c
-Top/hetro.c
-Top/lpanal.c
 Top/main.c
 Top/natben.c
 Top/new_opts.c
 Top/one_file.c
 Top/opcode.c
-Top/pvanal.c
-Top/pvlook.c
 Top/scot.c
-Top/sndinfo.c
 Top/threads.c
+Top/utility.c
 ''')
 
 if (commonEnvironment['usePortMIDI']=='1' and portmidiFound):
