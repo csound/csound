@@ -1,3 +1,18 @@
+2005-04-18	Istvan Varga	<istvan@csounds.com>
+	* Top/utility.c, H/cs_util.h:
+	  new files for dynamically loading utilities
+	* cvanal.c, dnoise.c, hetro.c, lpanal.c, pvanal.c, pvlook.c, sndinfo.c:
+	  moved from Top/ to util/
+	  utilities converted to plugin libraries (not done yet for hetro,
+	  lpanal, and pvlook; also pvanal is limited to old format for now)
+	* H/pvoc.h, OOps/pvoc.c:
+	  moved functions only used by pvanal to pvanal.c
+	* H/prototyp.h:
+	  removed prototypes for utilities
+	* Engine/oload.c, H/csoundCore.h, Top/argdecode.c:
+	  ENVIRON: API functions for adding and running utilities
+	  changed command line parser for new utility API
+
 2005-04-16  John ffitch  <jpff@codemist.co.uk>
 
 	* InOut/libsnd.c (sfopenin): Changed in and out channel mismatch
@@ -9,9 +24,9 @@
 	* Added option to CsoundVST to automatically open the output
 	soundfile for editing or listening at end of performance.
 	* Upgraded Windows installer to set OPCODEDIR, RAWWAVE_PATH,
-	PYTHONPATH, and PATH environment variables 
+	PYTHONPATH, and PATH environment variables
 	(uninstall does not work for PYTHONPATH).
-	
+
 2005-04-12  John ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/wave-terrain.c (wtPerf): Improved phase accumulation problem
@@ -19,28 +34,28 @@
 2005-04-10  Michael Gogins <gogins@pipeline.com>
 	* Updated the STK opcodes to take from 0 to 4 optional
 	krate controller-value pairs.
-	
+
 2005-04-10  John ff  <jpff@codemist.co.uk>
 
 	* OOps/ugens2.c (itabl3): Missing return
 
 2005-04-09  Michael Gogins <gogins@pipeline.com>
-	* Added "STKName" (e.g. "STKBowed") opcodes for all Perry Cook's 
+	* Added "STKName" (e.g. "STKBowed") opcodes for all Perry Cook's
 	Synthesis Toolkit in C++ (STK) 4.2.0 instruments in
 	his "demo" program, using Cook's original C++ code
 	with minimal wrapping (about 25 opcodes, varying in quality
 	from mediocre to very good). To build the opcodes,
-	copy the STK sources into the csound5/Opcodes/stk 
+	copy the STK sources into the csound5/Opcodes/stk
 	directory, as instructed in SConstruct. All opcodes
-	have the same signature: 
+	have the same signature:
 	asignal STKName ifrequency iloudness {kcontroller kvalue}
 	The RAWWAVE_PATH environment variable must be set to
 	point to the directory containing the "rawwaves" samples.
 
 2005-04-09  John ffitch  <jpff@codemist.co.uk>
 
-	* InOut/libsnd.c (sndinset): 
-	* H/soundio.h: 
+	* InOut/libsnd.c (sndinset):
+	* H/soundio.h:
 	* InOut/libsnd_u.c (sndgetset): Fix skipinit for soundin
 
 2005-04-06	Istvan Varga	<istvan@csounds.com>
@@ -144,7 +159,7 @@
 
 	* Engine/swrite.c: Remove statics from swrite.c
 
-	* Engine/oload.c: 
+	* Engine/oload.c:
 	* Engine/twarp.c: Removed statics from file twarp.c
 
 2005-03-29	Istvan Varga	<istvan@csounds.com>
@@ -252,7 +267,7 @@
 2005-03-21  John ffitch  <jpff@codemist.co.uk>
 
 	* Engine/sread.c (MARGIN): Increase to 600, but needs to be
-	rethought 
+	rethought
 
 2005-03-18	Istvan Varga	<istvan@csounds.com>
 	* Engine/oload.c:
