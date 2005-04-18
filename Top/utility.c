@@ -45,18 +45,19 @@ PUBLIC int csoundAddUtility(void *csound_, const char *name,
       do {
         if (strcmp(p->name, name) == 0)
           return -1;    /* name is already in use */
+        if (p->nxt == NULL)
+          break;
         p = p->nxt;
-      } while (p != NULL);
-      p = csound->Malloc(csound, sizeof(csUtility_t));
-      p->name = csound->Malloc(csound, strlen(name) + 1);
-      strcpy(p->name, name);
-      p->nxt = (csUtility_t*) csound->QueryGlobalVariable(csound, list_var);
-      p->UtilFunc = UtilFunc;
-      return 0;
+      } while (1);
+      p->nxt = csound->Malloc(csound, sizeof(csUtility_t));
+      p = p->nxt;
     }
-    if (csound->CreateGlobalVariable(csound,list_var,sizeof(csUtility_t)) != 0)
-      return -1;
-    p = (csUtility_t*) csound->QueryGlobalVariable(csound, list_var);
+    else {
+      if (csound->CreateGlobalVariable(csound, list_var,
+                                               sizeof(csUtility_t)) != 0)
+        return -1;
+      p = (csUtility_t*) csound->QueryGlobalVariable(csound, list_var);
+    }
     p->name = csound->Malloc(csound, strlen(name) + 1);
     strcpy(p->name, name);
     p->nxt = NULL;
