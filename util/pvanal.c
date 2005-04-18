@@ -33,22 +33,26 @@
 /************************************************************************/
 /************************************************************************/
 
-#include "cs.h"
+#include "csdl.h"
 #include "cwindow.h"
 #include "soundio.h"
-#include "dsputil.h"
 #include "pvoc.h"
+#if 0
 #include "pvxanal.h"
+#endif
+#include <math.h>
 #include <ctype.h>
 #include <sndfile.h>
 
                  /* prototype arguments */
+#if 0
 extern int pvxanal(ENVIRON *, SOUNDIN *, SNDFILE *, const char *, long, long,
                    long, long, long, int, int);
-static long takeFFTs(SOUNDIN *inputSound, PVSTRUCT *outputPVH,
-                     SNDFILE *sndfd, int fftd, long oframeEst);
-static void quit(ENVIRON *, char *msg);
-static void PrintBuf(MYFLT *buf, long size, char *msg);
+#endif
+static long takeFFTs(ENVIRON *csound, SOUNDIN *inputSound, PVSTRUCT *outputPVH,
+                     SNDFILE *sndfd, FILE *ofd, long oframeEst, long frameSize,
+                     int WindowType, long frameIncr, long fftfrmBsiz);
+static int  quit(ENVIRON *, char *msg);
 
 #define MINFRMMS        20      /* frame defaults to at least this many ms */
 #define MAXFRMPTS       65536
@@ -56,52 +60,208 @@ static void PrintBuf(MYFLT *buf, long size, char *msg);
 #define OVLP_DEF        4       /* default frame overlap factor */
 #define SF_UNK_LEN      -1      /* code for sndfile len unkown  */
 
-int         debug = 0;          /* tweaked inside ! */
-char        *programName = "PVANAL";  /* TEMP FOR pvoc.c ******/
-
-static  long frameSize  = 0;        /* size of FFT frames */
-static  long frameIncr  = 0;        /* step between successive frames */
-static  long fftfrmBsiz = 0;        /* bytes of fft output frame      */
-static  WINDAT   dwindow;
-/* static  MYFLT    max = 0.0; */
-static  int      cnt = 0;
-static  int      latch = 200;
-static  int      verbose = 0;
-static  FILE*    trfil = NULL; /* was stdout */
-static  int WindowType = 1;
-
-#ifdef mills_macintosh
-#include "MacTransport.h"
-#endif
-
 #define FIND(MSG)   if (*s == '\0')  \
                         if (!(--argc) || ((s = *++argv) && *s == '-'))  \
-                            quit(csound,MSG);
+                            return quit(csound, MSG);
 
-int pvanal(int argc, char **argv)
+static MYFLT *MakeBuf(ENVIRON *csound, long size)
 {
-    ENVIRON *csound = &cenviron;
+    MYFLT *res, *p;
+    long  i;
+    p = res = (MYFLT *) csound->Malloc(csound, size * sizeof(MYFLT));
+    for (i = 0; i < size; ++i) *p++ = FL(0.0);
+    return res;
+}
+
+static void FillHalfWin(MYFLT *wBuf, long size, MYFLT max, int hannq)
+    /* 1 => hanning window else hamming */
+{
+    MYFLT       a, b;
+    long        i;
+    if (hannq)  a = FL(0.50), b = FL(0.50);
+    else        a = FL(0.54), b = FL(0.46);
+    /* NB: size/2 + 1 long - just indep terms */
+    size /= 2;              /* to fix scaling */
+    for (i = 0; i <= size; ++i)
+      wBuf[i] = max * (a - b * (MYFLT) cos(PI * (MYFLT) i / (MYFLT) size));
+}
+
+static MYFLT *MakeHalfWin(ENVIRON *csound, long size, MYFLT max, int hannq)
+                /* Effective window size (altho only s/2+1 alloc'd */
+                /* 1 => hanning window else hamming */
+{   /* NB: size/2 + 1 long - just indep terms */
+    MYFLT *wBuf = (MYFLT*) csound->Malloc(csound, (size/2 + 1) * sizeof(MYFLT));
+    FillHalfWin(wBuf, size, max, hannq);
+    return wBuf;
+}
+
+static void ApplyHalfWin(MYFLT *buf, MYFLT *win, long len)
+{   /* Window only store 1st half, is symmetric */
+    long j, lenOn2 = (len/2L);
+    for (j = lenOn2 + 1; j--; )                 *buf++ *= *win++;
+    for (j = len - lenOn2 - 1, win--; j--; )    *buf++ *= *--win;
+}
+
+static void Rect2Polar(MYFLT *buffer, long size)
+{
+    long        i;
+    MYFLT       *real, *imag;
+    double      re, im;
+    MYFLT       mag;
+
+    real = buffer;
+    imag = buffer + 1;
+    for (i = 0; i < size; ++i) {
+      re = (double) real[2L * i];
+      im = (double) imag[2L * i];
+      real[2L * i] = mag = (MYFLT) sqrt(re*re + im*im);
+      if (mag == FL(0.0))
+        imag[2L * i] = FL(0.0);
+      else
+        imag[2L * i] = (MYFLT) atan2(im, re);
+    }
+}
+
+#define MMmaskPhs(p,q,s) /* p is pha, q is as int, s is 1/PI */ \
+    q = (int) (s * p);                                          \
+    p -= PI_F * (MYFLT) ((int) ((q + ((q >= 0) ? (q & 1) : -(q & 1)))));
+
+static void UnwrapPhase(MYFLT *buf, long size, MYFLT *oldPh)
+{
+    long    i;
+    MYFLT   *pha;
+    MYFLT   p, oneOnPi;
+    int     z;
+
+    pha = buf + 1;
+    oneOnPi = FL(1.0) / PI_F;
+    for (i = 0; i < size; ++i) {
+      p = pha[2L * i];
+      p -= oldPh[i];              /* find change since last frame */
+      MMmaskPhs(p, z, oneOnPi);
+      /* MmaskPhs(p); */
+      oldPh[i] = pha[2L * i];   /* hold actual phase for next diffce */
+      pha[2L * i] = p;          /* .. but write back phase change */
+    }
+}
+
+static void PhaseToFrq(MYFLT *buf, long size, MYFLT incr, MYFLT sampRate)
+{
+    long    i;
+    MYFLT   *pha,p,q,oneOnPi;
+    int     z;
+    MYFLT   srOn2pi, binMidFrq, frqPerBin;
+    MYFLT   expectedDphas,eDphIncr;
+
+    pha = buf + 1;
+    srOn2pi = sampRate / (FL(2.0) * PI_F * incr);
+    frqPerBin = sampRate / ((MYFLT) ((size - 1L) * 2L));
+    binMidFrq = FL(0.0);
+    /* Of course, you get some phase shift with spot-on frq coz time shift */
+    expectedDphas = FL(0.0);
+    eDphIncr = FL(2.0) * PI_F * incr / ((MYFLT) ((size - 1L) * 2L));
+    oneOnPi = FL(1.0) / PI_F;
+    for (i = 0; i < size; ++i) {
+      q = p = pha[2L * i] - expectedDphas;
+      MMmaskPhs(p, z, oneOnPi);
+      pha[2L * i] = p;
+      pha[2L * i] *= srOn2pi;
+      pha[2L * i] += binMidFrq;
+      expectedDphas += eDphIncr;
+      expectedDphas -= TWOPI_F * (MYFLT) ((int) (expectedDphas * oneOnPi));
+      binMidFrq += frqPerBin;
+    }
+}
+
+static char *PVErrMsg(ENVIRON *csound, int err)
+{                                       /* return string for error code */
+    switch (err) {
+      case PVE_OK:        return Str("No PV error");
+      case PVE_NOPEN:     return Str("Cannot open PV file");
+      case PVE_NPV:       return Str("Object/file not PVOC");
+      case PVE_MALLOC:    return Str("No memory for PVOC");
+      case PVE_RDERR:     return Str("Error reading PVOC file");
+      case PVE_WRERR:     return Str("Error writing PVOC file");
+    }
+    return Str("Unspecified error");
+}
+
+static int PVAlloc(
+    ENVIRON     *csound,
+    PVSTRUCT    **pphdr,        /* returns address of new block */
+    long        dataBsize,      /* desired bytesize of datablock */
+    int         dataFormat,     /* data format - PVMYFLT etc */
+    MYFLT       srate,          /* sampling rate of original in Hz */
+    int         chans,          /* channels of original .. ? */
+    long        frSize,         /* frame size of analysis */
+    long        frIncr,         /* frame increment (hop) of analysis */
+    long        fBsize,         /* bytes in each data frame of file */
+    int         frMode,         /* format of frames: PVPOLAR, PVPVOC etc */
+    MYFLT       minF,           /* frequency of lowest bin */
+    MYFLT       maxF,           /* frequency of highest bin */
+    int         fqMode,         /* freq. spacing mode - PVLIN / PVLOG */
+    int         infoBsize)      /* bytes to allocate in info region */
+    /* Allocate memory for a new PVSTRUCT+data block;
+       fill in header according to passed in data.
+       Returns PVE_MALLOC  (& **pphdr = NULL) if malloc fails
+               PVE_OK      otherwise  */
+{
+    long        bSize, hSize;
+
+    hSize = sizeof(PVSTRUCT) + infoBsize - PVDFLTBYTS;
+    if (dataBsize == PV_UNK_LEN)
+        bSize = hSize;
+    else
+        bSize = dataBsize + hSize;
+    if (( (*pphdr) = (PVSTRUCT*) csound->Malloc(csound, bSize)) == NULL )
+      return(PVE_MALLOC);
+    (*pphdr)->magic        = PVMAGIC;
+    (*pphdr)->headBsize    = hSize;
+    (*pphdr)->dataBsize    = dataBsize;
+    (*pphdr)->dataFormat   = dataFormat;
+    (*pphdr)->samplingRate = srate;
+    (*pphdr)->channels     = chans;
+    (*pphdr)->frameSize    = frSize;
+    (*pphdr)->frameIncr    = frIncr;
+    (*pphdr)->frameBsize   = fBsize;
+    (*pphdr)->frameFormat  = frMode;
+    (*pphdr)->minFreq      = minF;
+    (*pphdr)->maxFreq      = maxF;
+    (*pphdr)->freqFormat   = fqMode;
+    /* leave info bytes undefined */
+    return(PVE_OK);
+}
+
+static int pvanal(void *csound_, int argc, char **argv)
+{
+    ENVIRON *csound = (ENVIRON*) csound_;
     PVSTRUCT *pvh;
     char    *infilnam, *outfilnam;
     SNDFILE *infd;
-    int     ofd, err, channel = 1;
+    FILE    *ofd;
+    int     err, channel = 1;
     int     ovlp = 0;           /* number of overlapping windows to have */
-    SOUNDIN  *p;                /* space allocated by SAsndgetset() */
+    SOUNDIN *p;                 /* space allocated by SAsndgetset() */
 
-    MYFLT    beg_time = FL(0.0), input_dur = FL(0.0), sr = FL(0.0);
-    long     oframeEst = 0, oframeAct;  /* output frms estimated, & actual */
-    long     Estdatasiz;
-    long     nb;
-    char     *ext;
+    MYFLT   beg_time = FL(0.0), input_dur = FL(0.0), sr = FL(0.0);
+    long    oframeEst = 0, oframeAct;   /* output frms estimated, & actual */
+    long    Estdatasiz;
+    long    frameSize  = 0;     /* size of FFT frames */
+    long    frameIncr  = 0;     /* step between successive frames */
+    long    fftfrmBsiz = 0;     /* bytes of fft output frame      */
+#if 0
+    WINDAT  dwindow;
+#endif
+ /* MYFLT   max = 0.0; */
+ /* int     cnt = 0; */
+    int     latch = 200;
+    FILE    *trfil = stdout;
+    int     WindowType = 1;
+    char    err_msg[512];
 
-    /* must set this for 'standard' behaviour when analysing
-       (assume re-entrant Csound) */
-    dbfs_init(csound, DFLT_DBFS);
-    trfil = stdout;
-    O.displays = 0;
-    WindowType = 1;
+    csound->oparms->displays = 0;
     if (!(--argc))
-      quit(csound,Str("insufficient arguments"));
+      return quit(csound, Str("insufficient arguments"));
       do {
         char *s = *++argv;
         if (*s++ == '-')
@@ -111,82 +271,89 @@ int pvanal(int argc, char **argv)
             break;
           case 's': FIND(Str("no sampling rate"));
 #if defined(USE_DOUBLE)
-            sscanf(s,"%lf",&sr);
+            sscanf(s, "%lf", &sr);
 #else
-            sscanf(s,"%f",&sr);
+            sscanf(s, "%f", &sr);
 #endif
             break;
           case 'c':  FIND(Str("no channel"));
-            sscanf(s,"%d",&channel);
+            sscanf(s, "%d", &channel);
             break;
           case 'b':  FIND(Str("no begin time"));
 #if defined(USE_DOUBLE)
-            sscanf(s,"%lf",&beg_time);
+            sscanf(s, "%lf", &beg_time);
 #else
-            sscanf(s,"%f",&beg_time);
+            sscanf(s, "%f", &beg_time);
 #endif
             break;
           case 'd':  FIND(Str("no duration time"));
 #if defined(USE_DOUBLE)
-            sscanf(s,"%lf",&input_dur);
+            sscanf(s, "%lf", &input_dur);
 #else
-            sscanf(s,"%f",&input_dur);
+            sscanf(s, "%f", &input_dur);
 #endif
             break;
           case 'H':
             {
               int c = *s++;
-              if (c=='M' || c=='\0') WindowType = 0;
+              if (c == 'M' || c == '\0')
+                WindowType = 0;
             }
             break;
           case 'n':  FIND(Str("no framesize"));
-            sscanf(s,"%ld",&frameSize);
+            sscanf(s, "%ld", &frameSize);
             if (frameSize < MINFRMPTS || frameSize > MAXFRMPTS) {
-              sprintf(errmsg,Str("frameSize must be between %d &%d\n"),
-                      MINFRMPTS, MAXFRMPTS);
-              quit(csound,errmsg);
+              sprintf(err_msg, Str("frameSize must be between %d &%d\n"),
+                               MINFRMPTS, MAXFRMPTS);
+              return quit(csound, err_msg);
             }
             if (frameSize < 1L || (frameSize & (frameSize - 1L)) != 0L) {
-              sprintf(errmsg,Str("pvanal: frameSize must be 2^r"));
-              quit(csound,errmsg);
+              sprintf(err_msg, Str("pvanal: frameSize must be 2^r"));
+              return quit(csound, err_msg);
             }
             break;
           case 'w':  FIND(Str("no windfact"));
-            sscanf(s,"%d",&ovlp);
+            sscanf(s, "%d", &ovlp);
             break;
           case 'h':  FIND(Str("no hopsize"));
-            sscanf(s,"%ld",&frameIncr);
+            sscanf(s, "%ld", &frameIncr);
             break;
-          case 'g':  O.displays = 1;
+          case 'g':  csound->oparms->displays = 1;
             break;
           case 'G':  FIND(Str("no latch"));
-            sscanf(s,"%d",&latch);
-            O.displays = 1;
+            sscanf(s, "%d", &latch);
+            csound->oparms->displays = 1;
             break;
           case 'V':  FIND(Str("no output file for trace"));
-            trfil = fopen(s,"w");
-            if (trfil==NULL) quit(csound,Str("Failed to open text file"));
-            printf(Str("Writing text form to file %s\n"), s);
+            trfil = fopen(s, "w");
+            if (trfil == NULL)
+              return quit(csound, Str("Failed to open text file"));
+            csound->Message(csound, Str("Writing text form to file %s\n"), s);
+#if 0
           case 'v':
             verbose = 1;
             break;
-          default:   quit(csound,Str("unrecognised switch option"));
+#endif
+            break;
+          default:
+            return quit(csound, Str("unrecognised switch option"));
           }
         else break;
       } while (--argc);
 
-      if (argc !=  2) quit(csound,Str("illegal number of filenames"));
+      if (argc != 2)
+        return quit(csound, Str("illegal number of filenames"));
       infilnam = *argv++;
       outfilnam = *argv;
 
     if (ovlp && frameIncr)
-      quit(csound,Str("pvanal cannot have both -w and -h"));
+      return quit(csound, Str("pvanal cannot have both -w and -h"));
     /* open sndfil, do skiptime */
     channel = ALLCHNLS; /* we can analyse up to 8 chans with pvxanal! */
     if ((infd = csound->SAsndgetset(csound, infilnam, &p, &beg_time,
                                     &input_dur, &sr, channel)) == NULL) {
-      sprintf(errmsg,Str("error while opening %s"), csound->retfilnam);
-      quit(csound,errmsg);
+      sprintf(err_msg, Str("error while opening %s"), infilnam);
+      return quit(csound, err_msg);
     }
     sr = (MYFLT)p->sr;
     /* setup frame size etc according to sampling rate */
@@ -206,100 +373,106 @@ int pvanal(int argc, char **argv)
     else frameIncr = frameSize/ovlp;
 
     if (ovlp < 2 || ovlp > 16) {
-      csound->Message(csound,Str("pvanal: %d is a bad window overlap index\n"),
-                 ovlp);
-      exit(1);
+      csound->Message(csound, Str("pvanal: %d is a bad window overlap index\n"),
+                              ovlp);
+      return -1;
     }
     oframeEst = (p->getframes - frameSize/2) / frameIncr;
-    csound->Message(csound,"%ld infrsize, %ld infrInc\n", frameSize, frameIncr);
-    csound->Message(csound,Str("%ld output frames estimated\n"), oframeEst);
-    
-    ext = strrchr(outfilnam,'.');
+    csound->Message(csound, Str("%ld infrsize, %ld infrInc\n"),
+                            (long) frameSize, (long) frameIncr);
+    csound->Message(csound, Str("%ld output frames estimated\n"),
+                            (long) oframeEst);
+
+#if 0
+    ext = strrchr(outfilnam, '.');
     /* Look for .pvx extension in any case */
-    if (ext != NULL && ext[0]=='.' && tolower(ext[1]) == 'p' &&
+    if (ext != NULL && ext[0] == '.' && tolower(ext[1]) == 'p' &&
         tolower(ext[2]) == 'v' && tolower(ext[3]) == 'x' && ext[4] == '\0') {
       /* even for old pvoc file, is absence of extension OK? */
       if (p->nchanls > MAXPVXCHANS) {
-        printf(Str("pvxanal - source has too many channels: Maxchans = %d.\n"),
-               MAXPVXCHANS);
-        return 1;
+        csound->Message(csound, Str("pvxanal - source has too many channels: "
+                                    "Maxchans = %d.\n"), MAXPVXCHANS);
+        return -1;
       }
-      csound->Message(csound,Str("pvanal: creating pvocex file\n"));
+      csound->Message(csound, Str("pvanal: creating pvocex file\n"));
       /* handle all messages in here, for now */
-      if (pvxanal(csound, p,infd,outfilnam,p->sr,p->nchanls,frameSize,frameIncr,
-                  frameSize*2,PVOC_HAMMING,verbose))
-        csoundDie(&cenviron, Str("error generating pvocex file.\n"));
+      if (pvxanal(csound, p, infd, outfilnam, p->sr, p->nchanls, frameSize,
+                  frameIncr, frameSize * 2, PVOC_HAMMING, verbose)) {
+        csound->Message(csound, Str("error generating pvocex file.\n"));
+        return -1;
+      }
     }
     else {
+#endif
       fftfrmBsiz = sizeof(MYFLT) * 2 * (frameSize/2 + 1);
       Estdatasiz = oframeEst * fftfrmBsiz;
       /* alloc & fill PV hdrblk */
-      if ((err = PVAlloc(&pvh, Estdatasiz, PVMYFLT, sr, p->nchanls, frameSize,
+      if ((err = PVAlloc(csound,
+                         &pvh, Estdatasiz, PVMYFLT, sr, p->nchanls, frameSize,
                          frameIncr, fftfrmBsiz, PVPVOC, FL(0.0), sr/FL(2.0),
                          PVLIN, 4))) {
-        csound->Message(csound, "pvanal: %s\n", PVErrMsg(err));
-        exit(1);
+        csound->Message(csound, "pvanal: %s\n", PVErrMsg(csound, err));
+        return -1;
       }
-      if ((ofd = openout(outfilnam, 1)) < 0)     /* open the output PV file */
-        quit(csound,Str("cannot create output file"));
+      ofd = NULL;
+      {
+        char *fname = csound->FindOutputFile(csound, outfilnam, "SADIR");
+        if (fname != NULL) {
+          ofd = fopen(fname, "wb");
+          csound->Free(csound, fname);
+        }
+      }
+      if (ofd == NULL)          /* open the output PV file */
+        return quit(csound, Str("cannot create output file"));
       /* & wrt hdr into the file */
-      if ((nb = write(ofd,(char *)pvh,(int)pvh->headBsize)) < pvh->headBsize)
-        quit(csound,Str("cannot write header"));
-
+      if ((long) fwrite(pvh, 1, pvh->headBsize, ofd) < pvh->headBsize)
+        return quit(csound, Str("cannot write header"));
+#if 0
       dispinit();
       if (verbose) {
         fprintf(trfil, "Size=%ld Format=%ld Rate=%g Channels=%ld\n",
                 pvh->dataBsize/pvh->frameBsize, pvh->dataFormat,
-                pvh->samplingRate,pvh->channels);
+                pvh->samplingRate, pvh->channels);
         fprintf(trfil, "FrameSize=%ld FrameInc=%ld MinFreq=%g MaxFreq=%g\n",
                 pvh->frameSize, pvh->frameIncr, pvh->minFreq, pvh->maxFreq);
         fprintf(trfil, "LogLin=%ld\n\n", pvh->freqFormat);
       }
-      oframeAct = takeFFTs(p, pvh, infd, ofd, oframeEst);
-      dispexit();
-      csound->Message(csound,Str("%ld output frames written\n"), oframeAct);
-    }
-    sf_close(infd);
-    /*     close(ofd); */
-#if !defined(mills_macintosh)
-    exit(0);
 #endif
-    return (-1);
+      oframeAct = takeFFTs(csound, p, pvh, infd, ofd, oframeEst,
+                           frameSize, WindowType, frameIncr, fftfrmBsiz);
+      sf_close(infd);
+      fclose(ofd);
+      if (oframeAct < 0L)
+        return -1;
+  /*  dispexit();   */
+      csound->Message(csound, Str("%ld output frames written\n"),
+                              (long) oframeAct);
+#if 0
+    }
+#endif
+    return 0;
 }
 
-static void quit(ENVIRON *csound, char *msg)
+static int quit(ENVIRON *csound, char *msg)
 {
     csound->Message(csound, "pvanal error: %s\n", msg);
     csound->Message(csound,
                     Str("Usage: pvanal [-n<frmsiz>] [-w<windfact> | "
                         "-h<hopsize>] [-g | -G<latch>] [-v | -V txtfile] "
                         "inputSoundfile outputFFTfile\n"));
-    exit(0);
+    return -1;
 }
 
-/*    if (debug) */
-/*      printf("Framesiz %ld, framInc %ld\n",frameSize, frameIncr); */
-    /* If we dealt with frames that hit the ends properly, we'd have */
-    /*         (size/sizeof(short))/frameIncr frames (>= 1/2 inside file) */
-/*    frameWords = frameSize + 2L; */ /* each frame has Mag & phase for n/2 +1 */
-/*    if (inputSound->dataBsize != SF_UNK_LEN) */
-/*      printf("Est. frames %ld\n", inputSound->dataBsize/(dsize*frameIncr)); */
-
-/*      chans = 1;  */    /* will write # chans into PV header tho' only mono */
 /*
  * takeFFTs
  *  Go through the (mono) input sound frame by frame and find the
  *  magnitude and phase change for a string of FFT bins
  */
 
-static long takeFFTs(
-    SOUNDIN         *p,
-    PVSTRUCT        *outputPVH,
-    SNDFILE         *infd,
-    int             ofd,
-    long            oframeEst)
+static long takeFFTs(ENVIRON *csound, SOUNDIN *p, PVSTRUCT *outputPVH,
+                     SNDFILE *infd, FILE *ofd, long oframeEst, long frameSize,
+                     int WindowType, long frameIncr, long fftfrmBsiz)
 {
-    ENVIRON *csound = &cenviron;
     long    i = -1, nn, read_in;
     MYFLT   *inBuf, *tmpBuf, *oldInPh, *winBuf;
     MYFLT   *v;
@@ -308,87 +481,80 @@ static long takeFFTs(
     MYFLT   *fp1, *fp2;
     IGN(outputPVH);
 
-    inBuf   = (MYFLT *)MakeBuf(frameSize * 2L);
-    tmpBuf  = MakeBuf(frameSize + 2L);
-    v       = MakeBuf(frameSize);
-    oldInPh = MakeBuf(frameSize);
-    winBuf  = MakeHalfWin(frameSize,FL(1.0),WindowType);
-
-    dispset(&dwindow,v,frameSize/2,"pvanalwin",0,"PVANAL");
-
+    inBuf   = (MYFLT*) MakeBuf(csound, frameSize * 2L);
+    tmpBuf  = MakeBuf(csound, frameSize + 2L);
+    v       = MakeBuf(csound, frameSize);
+    oldInPh = MakeBuf(csound, frameSize);
+    winBuf  = MakeHalfWin(csound, frameSize, FL(1.0), WindowType);
+#if 0
+    dispset(&dwindow, v, frameSize/2, "pvanalwin", 0, "PVANAL");
+#endif
                              /* initially, clear first half of buffer .. */
-    for (fp1=inBuf, nn=frameSize/2; nn--; )
+    for (fp1 = inBuf, nn = frameSize/2; nn--; )
       *fp1++ = FL(0.0);
                              /* .. and read in second half from file */
     if ((read_in = csound->getsndin(csound, infd, fp1, (frameSize/2), p))
-        < frameSize/2)
-      csound->Die(csound, Str("insufficient sound for analysis"));
+        < frameSize/2) {
+      csound->Message(csound, Str("insufficient sound for analysis\n"));
+      return -1L;
+    }
     for (nn = read_in; nn--; )
       /* IV - Jul 11 2002 */
-      *fp1++ *= cenviron.dbfs_to_float;     /* normalize the samples read in */
+      *fp1++ *= csound->dbfs_to_float;      /* normalize the samples read in */
     oframeEst -= 1;
-    if (!O.displays && !verbose) printf(Str("frame: "));
+    if (!csound->oparms->displays /* && !verbose */)
+      csound->Message(csound, Str("frame: "));
     do {
-      if (((++i)%20)==0)
-        if (!O.displays && !verbose) {
-          printf("%ld ", i); fflush(stdout); }
+      if (((++i)%20) == 0)
+        if (!csound->oparms->displays /* && !verbose */) {
+          csound->Message(csound, "%ld ", (long) i);
+        }
       /*        copy the current frame */
-      for (fp1=inBuf, fp2=tmpBuf, nn=frameSize; nn--; )
+      for (fp1 = inBuf, fp2 = tmpBuf, nn = frameSize; nn--; )
         *fp2++ = *fp1++;
-      /*    PrintBuf(tmpBuf, frameSize, "floated");  */
-      ApplyHalfWin(tmpBuf,winBuf,frameSize);
-      /*    PrintBuf(tmpBuf, frameSize, "windo'd"); */
-      csoundRealFFT(&cenviron, tmpBuf, (int) frameSize);
+      ApplyHalfWin(tmpBuf, winBuf, frameSize);
+      csound->RealFFT(csound, tmpBuf, (int) frameSize);
       tmpBuf[frameSize] = tmpBuf[1];
       tmpBuf[1] = tmpBuf[frameSize + 1L] = FL(0.0);
-      /*    PrintBuf(tmpBuf, frameSize, X_761,"fft'd"); */
       Rect2Polar(tmpBuf, fsIndepVals);
-      /*    PrintBuf(tmpBuf, frameSize, "toPolar"); */
       UnwrapPhase(tmpBuf, fsIndepVals, oldInPh);
-      /*    PrintBuf(tmpBuf, frameSize, "unWrapped"); */
       PhaseToFrq(tmpBuf, fsIndepVals, (MYFLT)frameIncr, (MYFLT)sampRate);
-      /*    PrintBuf(tmpBuf, frameSize, "toFrq"); */
       /* write straight out, just the indep vals */
-      write(ofd, (char *)tmpBuf, fftfrmBsiz);
-      if (verbose) {
-        char msg[20];
-        sprintf(msg, Str("Frame %ld"), i);
-        PrintBuf(tmpBuf, frameSize, msg);
-      }
-      if (O.displays) {
+      fwrite(tmpBuf, 1, fftfrmBsiz, ofd);
+#if 0
+      if (csound->oparms->displays) {
         int j;
-        for (j=0; j<frameSize; j += 2) v[j/2] = tmpBuf[j];
-        sprintf(dwindow.caption,"%ld",i);
+        for (j = 0; j<frameSize; j += 2) v[j/2] = tmpBuf[j];
+        sprintf(dwindow.caption, "%ld", i);
         display(&dwindow);
         if (dwindow.oabsmax > dwindow.absmax) cnt++; else cnt = 0;
         if (cnt>latch) dwindow.oabsmax = dwindow.absmax;
       }
+#endif
       if (!read_in)            /* if previous read had hit EOF, we're done */
         break;               /* mv conts fwrd by frameIncr, rd more pnts */
-      for (fp1=inBuf+frameIncr, fp2=inBuf, nn=frameSize-frameIncr; nn--; )
+      for (fp1 = inBuf+frameIncr, fp2 = inBuf, nn = frameSize-frameIncr; nn--; )
         *fp2++ = *fp1++;     /* getsndin pads with zeros if not complete */
       read_in = csound->getsndin(csound, infd, inBuf+frameSize-frameIncr,
                                  frameIncr, p);
       for (fp1 = inBuf+frameSize-frameIncr, nn = read_in; nn--; )
         /* IV - Jul 11 2002 */
         *fp1++ *= csound->dbfs_to_float;    /* normalize samples just read in */
-      /* debug = 0; */
-      if (!csoundYield(csound)) break;
+#if 0
+      if (!csound->Yield(csound)) break;
+#endif
     } while (i < oframeEst);
-    if (!O.displays && !verbose) printf("%ld\n",i);
+    if (!csound->oparms->displays /* && !verbose */)
+      csound->Message(csound, "%ld\n", (int) i);
     if (i < oframeEst)
-      printf(Str("\tearly end of file\n"));
+      csound->Message(csound, Str("\tearly end of file\n"));
     return((long)i + 1);
 }
 
-#define DBGPTS 8
-static void PrintBuf(MYFLT *buf, long size, char *msg)
+/* module interface */
+
+PUBLIC int csoundModuleCreate(void *csound)
 {
-    int   i;
-/*      if (!debug) return;   */
-    fprintf(trfil,"%s:",msg);
-    for (i=0; i<size; ++i)
-      fprintf(trfil,"%7.2f ",buf[i]);
-    fprintf(trfil, "\n");
+    return (((ENVIRON*) csound)->AddUtility(csound, "pvanal", pvanal));
 }
 
