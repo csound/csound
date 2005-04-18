@@ -82,7 +82,7 @@ PUBLIC int csoundRunUtility(void *csound_, const char *name,
         break;
       p = p->nxt;
     } while (1);
-    csound->Message(csound, Str("UTIL %s:\n"), name);
+    csound->Message(csound, Str("util %s:\n"), name);
     return (p->UtilFunc(csound, argc, argv));
 
  notFound:
