@@ -33,11 +33,6 @@
 extern "C" {
 #endif
 
-int     hetro(int argc, char **argv), lpanal(int argc, char **argv);
-int     pvanal(int argc, char **argv), cvanal(int argc, char **argv);
-int     sndinfo(int argc, char **argv), pvlook(int argc, char **argv);
-int     dnoise(int argc, char **argv);
-void    dnoise_usage(int);
 void    cscorinit(void), cscore(ENVIRON*);
 void    *mmalloc(void*, size_t), *mcalloc(void*, size_t);
 void    *mrealloc(void*, void*, size_t), mfree(void*, void*);

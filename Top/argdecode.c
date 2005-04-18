@@ -34,18 +34,8 @@
 #include "perf.h"
 #include"MacTransport.h"
 
-#define PATH_LEN        128
-
-extern struct Transport transport;
-extern Boolean displayText;
-
-extern char saved_scorename[];
-extern unsigned char mytitle[];
-extern Boolean util_perf;
 extern unsigned short pollEventRate;
-
-static char listing_file[PATH_LEN];
-static int  vbuf;
+static int vbuf;
 static int csNGraphs;
 static int rescale24 = 0;
 #endif
@@ -286,23 +276,6 @@ void dieu(char *s)
     usage();
     longjmp(csound->exitjmp, 1);
 }
-
-typedef struct {
-  char *util;
-  int (*fn)(int, char**);
-  char *string;
-} UTILS;
-
-UTILS utilities[] = {
-  { "hetro",   hetro,   "util HETRO:\n" },
-  { "lpanal",  lpanal,  "util LPANAL:\n" },
-  { "pvanal",  pvanal,  "util PVANAL:\n" },
-  { "sndinfo", sndinfo, "util SNDINFO:\n" },
-  { "cvanal",  cvanal,  "util CVANAL:\n" },
-  { "pvlook",  pvlook,  "util PVLOOK:\n" },
-  { "dnoise",  dnoise,  "util DNOISE:\n" },
-  { NULL, NULL, 0}
-};
 
 void set_output_format(OPARMS *O, char c)
 {
@@ -667,28 +640,14 @@ static int decode_long(void *csound_, char *s, int argc, char **argv)
     return 1;
   }
   else if (!(strncmp (s, "utility=", 8))) {
-    int n, retval;
+    int retval;
     s += 8;
     if (*s=='\0') dieu(Str("no utility name"));
-#ifdef mills_macintosh
-    util_perf = true;
-    transport.state |= kUtilPerf;
-#endif
-    for (n=0; utilities[n].util!=NULL; n++) {
-      if (strcmp(s,utilities[n].util) == 0) {
-        csound->Message(csound,Str(utilities[n].string));
-#ifdef mills_macintosh
-        SIOUXSetTitle((unsigned char *)CtoPstr((char *)s));
-#endif
-        retval = (utilities[n].fn)(argc,argv);
-        if (!retval)
-          longjmp(csound->exitjmp, CSOUND_EXITJMP_SUCCESS);
-        else
-          longjmp(csound->exitjmp, abs(retval));
-      }
-    }
-    csoundDie(csound, Str("-U %s not a valid UTIL name"),s);
-    return 0;
+    retval = csound->Utility(csound, s, argc, argv);
+    if (!retval)
+      longjmp(csound->exitjmp, CSOUND_EXITJMP_SUCCESS);
+    else
+      longjmp(csound->exitjmp, abs(retval));
   }
   /* -v */
   else if (!(strcmp (s, "verbose"))) {
@@ -831,26 +790,14 @@ int argdecode(void *csound_, int argc, char **argv_)
         switch(c) {
         case 'U':
           FIND(Str("no utility name"));
-#ifdef mills_macintosh
-          util_perf = true;
-          transport.state |= kUtilPerf;
-#endif
-          for (n=0; utilities[n].util!=NULL; n++) {
-            if (strcmp(s,utilities[n].util) == 0) {
-              int retval;
-              csound->Message(csound, Str(utilities[n].string));
-#ifdef mills_macintosh
-              SIOUXSetTitle((unsigned char *)CtoPstr((char *)s));
-#endif
-              retval = (utilities[n].fn)(argc,argv);
-              if (!retval)
-                longjmp(csound->exitjmp, CSOUND_EXITJMP_SUCCESS);
-              else
-                longjmp(csound->exitjmp, abs(retval));
-            }
+          {
+            int retval = csound->Utility(csound, s, argc, argv);
+            if (!retval)
+              longjmp(csound->exitjmp, CSOUND_EXITJMP_SUCCESS);
+            else
+              longjmp(csound->exitjmp, abs(retval));
           }
-          csoundDie(csound, Str("-U %s not a valid UTIL name"),s);
-          return(0);
+          break;
           /********** commandline flags only for mac version***************/
           /*********************  matt 5/26/96 ****************************/
 #ifdef mills_macintosh

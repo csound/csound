@@ -489,14 +489,171 @@ int lprdset(ENVIRON *csound, LPREAD *p)
     return csound->InitError(csound, errmsg);
 }
 
+static void
+ DumpPolesF(int poleCount, MYFLT *part1, MYFLT *part2, int isMagn, char *where)
+{
+#ifdef TRACE_POLES
+    int i;
+
+    printf("%s\n", where);
+    for (i=0; i<poleCount; i++) {
+      if (isMagn)
+        printf(Str("magnitude: %f   Phase: %f\n"), part1[i], part2[i]);
+      else
+        printf(Str("Real: %f   Imag: %f\n"), part1[i], part2[i]);
+    }
+#endif
+}
+
+static void SortPoles(int poleCount, MYFLT *poleMagn, MYFLT *polePhas)
+{
+    int i, j;
+    MYFLT diff, fTemp;
+    int shouldSwap;
+
+    /*  DumpPolesF(poleCount, poleMagn, polePhas, 1, "Before sort"); */
+
+    for (i=1; i<poleCount; i++) {
+      for (j=0; j<i; j++) {
+
+        shouldSwap = 0;
+
+        diff = (MYFLT)(fabs(polePhas[j])-fabs(polePhas[i]));
+        if (diff>1e-10)
+          shouldSwap = 1;
+        else if (diff>-1e-10) {
+          diff = poleMagn[j]-poleMagn[i];
+
+          if (diff>1e-10)
+            shouldSwap = 1;
+          else if (diff>-1e-10)
+            {
+              if (polePhas[j]>polePhas[i])
+                shouldSwap = 1;
+            }
+        }
+        if (shouldSwap) {
+          fTemp = poleMagn[i];
+          poleMagn[i] = poleMagn[j];
+          poleMagn[j] = fTemp;
+
+          fTemp = polePhas[i];
+          polePhas[i] = polePhas[j];
+          polePhas[j] = fTemp;
+        }
+      }
+    }
+/*  DumpPolesF(poleCount, poleMagn, polePhas, 1, "After sort"); */
+}
+
+static int DoPoleInterpolation(int poleCount,
+                               MYFLT *pm1, MYFLT *pp1,
+                               MYFLT *pm2, MYFLT *pp2,
+                               MYFLT factor, MYFLT *outMagn, MYFLT *outPhas)
+{
+    int i;
+
+    if (poleCount%2!=0) {
+      printf (Str("Cannot handle uneven pole count yet \n"));
+      return (0);
+    }
+
+    for (i=0; i<poleCount; i++) {
+      if (fabs(fabs(pp1[i])-PI)<1e-5) {
+        pm1[i] = -pm1[i];
+        pp1[i] = FL(0.0);
+      }
+
+      if (fabs(fabs(pp2[i])-PI)<1e-5) {
+        pm2[i] = -pm2[i];
+        pp2[i] = FL(0.0);
+      }
+    }
+
+    /* Sort poles according to abs(phase) */
+
+    SortPoles(poleCount, pm1, pp1);
+    SortPoles(poleCount, pm2, pp2);
+
+        /*      DumpPolesF(poleCount, pm1, pp1, 1, "Sorted poles 1"); */
+        /*      DumpPolesF(poleCount, pm2, pp2, 1, "Sorted poles 2"); */
+
+        /*      printf ("factor=%f\n", factor); */
+
+    for (i=0; i<poleCount; i++) {
+      outMagn[i] = pm1[i]+(pm2[i]-pm1[i])*factor;
+      outPhas[i] = pp1[i]+(pp2[i]-pp1[i])*factor;
+    }
+
+    DumpPolesF(poleCount, outMagn, outPhas, 1, "Interpolated poles");
+
+    return(1);
+}
+
+static inline void InvertPoles(int count, double *real, double *imag)
+{
+    int    i;
+    double pr,pi,mag;
+
+    for (i=0; i<count; i++) {
+      pr = real[i];
+      pi = imag[i];
+      mag = pr*pr+pi*pi;
+      real[i] = pr/mag;
+      imag[i] = -pi/mag;
+    }
+}
+
+/*
+ *
+ * Resynthetize filter coefficients from poles values
+ *
+ */
+
+static inline void
+    synthetize(int    poleCount,
+               double *poleReal, double *poleImag,
+               double *polyReal, double *polyImag)
+{
+    int    j, k;
+    double pr, pi, cr, ci;
+
+    polyReal[0] = 1;
+    polyImag[0] = 0;
+
+    for (j=0; j<poleCount; j++) {
+      polyReal[j+1] = 1;
+      polyImag[j+1] = 0;
+
+      pr = poleReal[j];
+      pi = poleImag[j];
+
+      for (k=j; k>=0; k--) {
+        cr = polyReal[k];
+        ci = polyImag[k];
+
+        polyReal[k] = -(cr*pr-ci*pi);
+        polyImag[k] = -(ci*pr+cr*pi);
+
+        if (k>0) {
+            polyReal[k] += polyReal[k-1];
+            polyImag[k] += polyImag[k-1];
+        }
+      }
+    }
+
+    /* Makes it 1+a1.x+...+anXn */
+
+    pr = polyReal[0];
+    for (j=0; j<=poleCount; j++)
+      polyReal[j] /= pr;
+}
+
 /*
  *
  * LPREAD k/a time access. This will setup current pole values
  *
  */
-
-extern int DoPoleInterpolation(int, MYFLT *, MYFLT *, MYFLT *, MYFLT *,
-                               MYFLT, MYFLT *, MYFLT *);
 
 int lpread(ENVIRON *csound, LPREAD *p)
 {
@@ -511,7 +668,7 @@ int lpread(ENVIRON *csound, LPREAD *p)
     if (p->mfp==NULL) {
       return csound->PerfError(csound, Str("lpread: not initialised"));
     }
-  /* Locate frame position range */
+    /* Locate frame position range */
     if ((framphase = (long)(*p->ktimpt*p->framrat16)) < 0) { /* for kfram reqd */
       return csound->PerfError(csound, Str("lpread timpnt < 0"));
     }
@@ -523,12 +680,12 @@ int lpread(ENVIRON *csound, LPREAD *p)
           printf(Str("WARNING: lpread ktimpnt truncated to last frame\n"));
       }
     }
-  /* Locate frames bounding current time */
-    nn = (framphase >> 16) * p->nvals + p->headlongs;        /* see NB above!! */
-    bp = (MYFLT *)p->mfp->beginp + nn;              /* locate begin this frame */
-    np = bp + p->nvals;                             /* & interp betw adj frams */
+    /* Locate frames bounding current time */
+    nn = (framphase >> 16) * p->nvals + p->headlongs;   /* see NB above!! */
+    bp = (MYFLT *)p->mfp->beginp + nn;          /* locate begin this frame */
+    np = bp + p->nvals;                         /* & interp betw adj frams */
     fract = (framphase & 0x0FFFFL) / FL(65536.0);
-   /* Interpolate freq/amplpitude and store in opcode */
+    /* Interpolate freq/amplpitude and store in opcode */
     *p->krmr = *bp + (*np - *bp) * fract;   bp++;   np++; /* for 4 rslts */
     *p->krmo = *bp + (*np - *bp) * fract;   bp++;   np++;
     *p->kerr = *bp + (*np - *bp) * fract;   bp++;   np++;
@@ -601,10 +758,6 @@ int lprsnset(ENVIRON *csound, LPRESON *p)
  * LPRESON: k & a time access. Will actually filter the signal
  *                  Uses a circular buffer to store previous signal values.
  */
-
-void DumpPoles(int, double *, double *, int, char *);
-void InvertPoles(int, double *, double *);
-void synthetize(int, double *, double *, double *, double *);
 
 int lpreson(ENVIRON *csound, LPRESON *p)
 {
