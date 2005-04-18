@@ -50,7 +50,6 @@
 
 /* static variables */
 static PVSTRUCT tmphdr;         /* scratch space for pre-load */
-static char unspecMsg[27] = "Unspecified error :        ";
 /* want to 'fill in' at      012345678901234567890... [20..27] */
 #define USMINDX 20      /* where to write into above string ^ */
 
@@ -127,63 +126,6 @@ FILE *PVOpenAllocRdHdr(char *path, PVSTRUCT **phdr)
     return(pvf);
 }
 
-#ifdef never
-int PVReadFile(char *filename, PVSTRUCT **pphdr)
-    /* read in the header and all the data */
-    /* returns PVE_NOPEN   if cannot open
-               PVE_NPV     if not a PVOC file
-               PVE_RDERR   if reads fail
-               PVE_MALLOC  if cannot get memory
-               PVE_OK      otherwise    */
-{
-    FILE        *fil;
-    int         i, err = PVE_OK;
-    long        headBsize, dataBsize, count;
-    int         infoBsize;
-    size_t      num;
-
-    if ((fil = fopen(filename, READMODE)) == NULL)
-        return(PVE_NOPEN);
-    *pphdr = NULL;
-    err = PVReadHdr(fil, &tmphdr);
-    if (err == PVE_OK) {
-      headBsize = tmphdr.headBsize;
-      infoBsize = headBsize - sizeof(PVSTRUCT) + PVDFLTBYTS;
-      if (infoBsize < 0)
-        err = PVE_NPV;
-    }
-    if (err == PVE_OK) {
-      dataBsize = tmphdr.dataBsize;
-      err = PVAlloc(pphdr, dataBsize, PVMYFLT, (MYFLT)1000,
-                    1, 0L, 0L, 0L, PVPOLAR, (MYFLT)0, (MYFLT)1,
-                    PVLIN, infoBsize);
-    }
-    if (err == PVE_OK) {
-      /* copy over what we already read */
-      for (i = 0; i < sizeof(PVSTRUCT)/2; ++i)
-        ((short *)*pphdr)[i] = ((short *)&tmphdr)[i];
-      /* figure how many bytes expected left */
-      if (dataBsize == PV_UNK_LEN)
-        count = infoBsize - PVDFLTBYTS;
-      else
-        count = dataBsize + infoBsize - PVDFLTBYTS;
-      if ((num = fread( (void *)((*pphdr)+1),
-                        (size_t)1, (size_t)count, fil)) < (size_t)count )
-        {
-          cenviron.Message(&cenviron,
-                           Str("PVRead: wanted %d got %ld\n"), num, count);
-          err = PVE_RDERR;
-        }
-    }
-    if ((err != PVE_OK) && (*pphdr != NULL)) {
-      PVFree(*pphdr);
-      *pphdr = NULL;
-    }
-    fclose(fil);
-    return(err);
-}
-#endif
-
 FILE *PVOpenWrHdr(char *filename, PVSTRUCT *phdr)
 {
     FILE        *fil = NULL;
@@ -243,84 +185,4 @@ void PVCloseWrHdr(FILE *file, PVSTRUCT *phdr)
       }
     }
 }
-
-int PVAlloc(
-    PVSTRUCT    **pphdr,        /* returns address of new block */
-    long        dataBsize,      /* desired bytesize of datablock */
-    int         dataFormat,     /* data format - PVMYFLT etc */
-    MYFLT       srate,          /* sampling rate of original in Hz */
-    int         chans,          /* channels of original .. ? */
-    long        frSize,         /* frame size of analysis */
-    long        frIncr,         /* frame increment (hop) of analysis */
-    long        fBsize,         /* bytes in each data frame of file */
-    int         frMode,         /* format of frames: PVPOLAR, PVPVOC etc */
-    MYFLT       minF,           /* frequency of lowest bin */
-    MYFLT       maxF,           /* frequency of highest bin */
-    int         fqMode,         /* freq. spacing mode - PVLIN / PVLOG */
-    int         infoBsize)      /* bytes to allocate in info region */
-    /* Allocate memory for a new PVSTRUCT+data block;
-       fill in header according to passed in data.
-       Returns PVE_MALLOC  (& **pphdr = NULL) if malloc fails
-               PVE_OK      otherwise  */
-{
-    long        bSize, hSize;
-
-    hSize = sizeof(PVSTRUCT) + infoBsize - PVDFLTBYTS;
-    if (dataBsize == PV_UNK_LEN)
-        bSize = hSize;
-    else
-        bSize = dataBsize + hSize;
-/*      bSize += sizeof(PVSTRUCT) + infoBsize - PVDFLTBYTS; Greg Sullivan<<<<< */
-    if (( (*pphdr) = (PVSTRUCT *)malloc((size_t)bSize)) == NULL )
-      return(PVE_MALLOC);
-    (*pphdr)->magic        = PVMAGIC;
-    (*pphdr)->headBsize    = hSize;
-    (*pphdr)->dataBsize    = dataBsize;
-    (*pphdr)->dataFormat   = dataFormat;
-    (*pphdr)->samplingRate = srate;
-    (*pphdr)->channels     = chans;
-    (*pphdr)->frameSize    = frSize;
-    (*pphdr)->frameIncr    = frIncr;
-    (*pphdr)->frameBsize   = fBsize;
-    (*pphdr)->frameFormat  = frMode;
-    (*pphdr)->minFreq      = minF;
-    (*pphdr)->maxFreq      = maxF;
-    (*pphdr)->freqFormat   = fqMode;
-    /* leave info bytes undefined */
-    return(PVE_OK);
-}
-
-void PVFree(PVSTRUCT *phdr)     /* release a PVOC block */
-{
-    mfree(&cenviron, phdr);     /* let operating system sort it out */
-}
-
-char *PVErrMsg(int err)         /* return string for error code */
-{
-    switch (err) {
-    case PVE_OK:        return(Str("No PV error"));
-    case PVE_NOPEN:     return(Str("Cannot open PV file"));
-    case PVE_NPV:       return(Str("Object/file not PVOC"));
-    case PVE_MALLOC:    return(Str("No memory for PVOC"));
-    case PVE_RDERR:     return(Str("Error reading PVOC file"));
-    case PVE_WRERR:     return(Str("Error writing PVOC file"));
-    default:
-      sprintf(unspecMsg, "Unspecified error : %d",err);
-      return(unspecMsg);
-    }
-}
-
-void PVDie(int err, char *msg)  /* what else to do with your error code */
-{
-    if (msg != NULL && *msg)
-      cenviron.Message(&cenviron,
-                       Str("%s: error: %s (%s)\n"),"pvoc",PVErrMsg(err),msg);
-    else
-      cenviron.Message(&cenviron,Str("%s: error: %s\n"),"pvoc",PVErrMsg(err));
-    exit(1);
-}
-
-
-
-
 

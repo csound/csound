@@ -828,8 +828,8 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('cvanal',
 #    ['util/hetro.c']))
 #pluginLibraries.append(pluginEnvironment.SharedLibrary('lpanal',
 #    ['util/lpanal.c']))
-#pluginLibraries.append(pluginEnvironment.SharedLibrary('pvanal',
-#    ['util/pvanal.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('pvanal',
+    ['util/pvanal.c']))
 #pluginLibraries.append(pluginEnvironment.SharedLibrary('pvlook',
 #    ['util/pvlook.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('sndinfo',

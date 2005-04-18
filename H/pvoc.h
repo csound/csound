@@ -39,8 +39,6 @@
 #include "sysdep.h"
 #endif
 
-extern char *programName;       /* used by PVDie() - you must provide */
-
 #define PVMAGIC 517730  /* look at it upside-down, esp on a 7-seg display */
 
 #define PVDFLTBYTS 4
@@ -61,7 +59,7 @@ typedef struct pvstruct
     MYFLT       maxFreq;                /* freq in Hz of highest (or next) */
     long        freqFormat;             /* (int) flag for log/lin frq */
     char        info[PVDFLTBYTS];       /* extendable byte area */
-    } PVSTRUCT;
+} PVSTRUCT;
 
 /* Error codes returned by PVOC file functions */
 #define PVE_OK          0       /* no error*/
@@ -96,7 +94,7 @@ typedef struct pvstruct
 /* Some handy typedefs (one anyway) */
 typedef struct {
     MYFLT mag, pha;
-    } cpxpolar;
+} cpxpolar;
 
 /********************************/
 /* exported function prototypes */
@@ -105,16 +103,10 @@ typedef struct {
 char *PVDataLoc(PVSTRUCT *phdr);        /* return ptr to data block */
 int   PVReadHdr(FILE *fil, PVSTRUCT *phdr);       /* pass in PVH */
 FILE *PVOpenAllocRdHdr(char *path, PVSTRUCT **phdr); /* allocs PVH */
-int   PVReadFile(char *filename, PVSTRUCT **phdr);   /* allocates new PVH+ */
 int   PVWriteHdr(FILE *fil, PVSTRUCT *phdr);
 FILE *PVOpenWrHdr(char *filename, PVSTRUCT *phdr);
 int   PVWriteFile(char *filename, PVSTRUCT *phdr);   /* write out PVH+  */
 void  PVCloseWrHdr(FILE *file, PVSTRUCT *phdr);
-int   PVAlloc(PVSTRUCT **pphdr, long dataBsize, int dFmt, MYFLT srate,
-              int chans, long frSize, long frIncr, long fBsize, int frMode,
-              MYFLT minF, MYFLT maxF, int fqMode, int infoBsize);
-void  PVFree(PVSTRUCT *phdr);                        /* release PVH +   */
-char *PVErrMsg(int err);                /* return string for error code */
-void  PVDie(int err, char *msg);        /* exit routine */
 
 #endif /* !_PVOC_H_ */
+
