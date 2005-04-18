@@ -822,6 +822,18 @@ if getPlatform() == 'linux':
 
 pluginLibraries.append(pluginEnvironment.SharedLibrary('cvanal',
     ['util/cvanal.c']))
+#pluginLibraries.append(pluginEnvironment.SharedLibrary('dnoise',
+#    ['util/dnoise.c']))
+#pluginLibraries.append(pluginEnvironment.SharedLibrary('hetro',
+#    ['util/hetro.c']))
+#pluginLibraries.append(pluginEnvironment.SharedLibrary('lpanal',
+#    ['util/lpanal.c']))
+#pluginLibraries.append(pluginEnvironment.SharedLibrary('pvanal',
+#    ['util/pvanal.c']))
+#pluginLibraries.append(pluginEnvironment.SharedLibrary('pvlook',
+#    ['util/pvlook.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('sndinfo',
+    ['util/sndinfo.c']))
 
 executables.append(csoundProgramEnvironment.Program('cscore',
     ['util1/cscore/cscore_main.c']))
