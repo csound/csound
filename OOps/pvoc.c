@@ -72,8 +72,8 @@ int PVReadHdr(FILE *fil, PVSTRUCT *phdr)
         return(PVE_RDERR);
     if ((num = fread((void *)phdr, (size_t)1, (size_t)sizeof(PVSTRUCT), fil))
                     < (size_t)sizeof(PVSTRUCT)) {
-      err_printf( Str("PVRdH: wanted %d got %d\n"),
-                  (size_t)sizeof(PVSTRUCT), num);
+      cenviron.Message(&cenviron, Str("PVRdH: wanted %d got %d\n"),
+                       (size_t)sizeof(PVSTRUCT), num);
       return(PVE_RDERR);
     }
     if (phdr->magic != PVMAGIC)
@@ -146,43 +146,39 @@ int PVReadFile(char *filename, PVSTRUCT **pphdr)
         return(PVE_NOPEN);
     *pphdr = NULL;
     err = PVReadHdr(fil, &tmphdr);
-    if (err == PVE_OK)
+    if (err == PVE_OK) {
+      headBsize = tmphdr.headBsize;
+      infoBsize = headBsize - sizeof(PVSTRUCT) + PVDFLTBYTS;
+      if (infoBsize < 0)
+        err = PVE_NPV;
+    }
+    if (err == PVE_OK) {
+      dataBsize = tmphdr.dataBsize;
+      err = PVAlloc(pphdr, dataBsize, PVMYFLT, (MYFLT)1000,
+                    1, 0L, 0L, 0L, PVPOLAR, (MYFLT)0, (MYFLT)1,
+                    PVLIN, infoBsize);
+    }
+    if (err == PVE_OK) {
+      /* copy over what we already read */
+      for (i = 0; i < sizeof(PVSTRUCT)/2; ++i)
+        ((short *)*pphdr)[i] = ((short *)&tmphdr)[i];
+      /* figure how many bytes expected left */
+      if (dataBsize == PV_UNK_LEN)
+        count = infoBsize - PVDFLTBYTS;
+      else
+        count = dataBsize + infoBsize - PVDFLTBYTS;
+      if ((num = fread( (void *)((*pphdr)+1),
+                        (size_t)1, (size_t)count, fil)) < (size_t)count )
         {
-        headBsize = tmphdr.headBsize;
-        infoBsize = headBsize - sizeof(PVSTRUCT) + PVDFLTBYTS;
-        if (infoBsize < 0)
-            err = PVE_NPV;
+          cenviron.Message(&cenviron,
+                           Str("PVRead: wanted %d got %ld\n"), num, count);
+          err = PVE_RDERR;
         }
-    if (err == PVE_OK)
-        {
-            dataBsize = tmphdr.dataBsize;
-            err = PVAlloc(pphdr, dataBsize, PVMYFLT, (MYFLT)1000,
-                          1, 0L, 0L, 0L, PVPOLAR, (MYFLT)0, (MYFLT)1,
-                          PVLIN, infoBsize);
-        }
-    if (err == PVE_OK)
-        {
-        /* copy over what we already read */
-            for (i = 0; i < sizeof(PVSTRUCT)/2; ++i)
-                ((short *)*pphdr)[i] = ((short *)&tmphdr)[i];
-            /* figure how many bytes expected left */
-            if (dataBsize == PV_UNK_LEN)
-                count = infoBsize - PVDFLTBYTS;
-            else
-                count = dataBsize + infoBsize - PVDFLTBYTS;
-            if ((num = fread( (void *)((*pphdr)+1),
-                              (size_t)1, (size_t)count, fil)) < (size_t)count )
-                {
-                    err_printf(
-                            Str("PVRead: wanted %d got %ld\n"), num, count);
-                    err = PVE_RDERR;
-                }
-        }
-    if ((err != PVE_OK) && (*pphdr != NULL))
-        {
-            PVFree(*pphdr);
-            *pphdr = NULL;
-        }
+    }
+    if ((err != PVE_OK) && (*pphdr != NULL)) {
+      PVFree(*pphdr);
+      *pphdr = NULL;
+    }
     fclose(fil);
     return(err);
 }
@@ -317,9 +313,10 @@ char *PVErrMsg(int err)         /* return string for error code */
 void PVDie(int err, char *msg)  /* what else to do with your error code */
 {
     if (msg != NULL && *msg)
-      err_printf(Str("%s: error: %s (%s)\n"),"pvoc",PVErrMsg(err),msg);
+      cenviron.Message(&cenviron,
+                       Str("%s: error: %s (%s)\n"),"pvoc",PVErrMsg(err),msg);
     else
-      err_printf(Str("%s: error: %s\n"),"pvoc",PVErrMsg(err));
+      cenviron.Message(&cenviron,Str("%s: error: %s\n"),"pvoc",PVErrMsg(err));
     exit(1);
 }
 
