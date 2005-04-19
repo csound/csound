@@ -838,9 +838,9 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('sndinfo',
 executables.append(csoundProgramEnvironment.Program('cscore',
     ['util1/cscore/cscore_main.c']))
 executables.append(csoundProgramEnvironment.Program('cvanal',
-    ['anal/convol/cvl_main.c']))
+    ['util/cvl_main.c']))
 executables.append(csoundProgramEnvironment.Program('dnoise',
-    ['util2/dnoise.dir/dnoise_main.c']))
+    ['util/dnoise_main.c']))
 executables.append(csoundProgramEnvironment.Program('envext',
     ['util2/envext/envext.c']))
 executables.append(csoundProgramEnvironment.Program('extract',
@@ -852,9 +852,9 @@ executables.append(csoundProgramEnvironment.Program('het_export',
 executables.append(csoundProgramEnvironment.Program('het_import',
     ['util2/exports/het_import.c']))
 executables.append(csoundProgramEnvironment.Program('hetro',
-    ['anal/adsyn/het_main.c']))
+    ['util/het_main.c']))
 executables.append(csoundProgramEnvironment.Program('lpanal',
-    ['anal/lpc/lpc_main.c']))
+    ['util/lpc_main.c']))
 executables.append(csoundProgramEnvironment.Program('lpc_export',
     ['util2/exports/lpc_export.c']))
 executables.append(csoundProgramEnvironment.Program('lpc_import',
@@ -866,9 +866,9 @@ executables.append(csoundProgramEnvironment.Program('pv_export',
 executables.append(csoundProgramEnvironment.Program('pv_import',
     ['util2/exports/pv_import.c']))
 executables.append(csoundProgramEnvironment.Program('pvanal',
-    ['anal/pvoc/pvc_main.c']))
+    ['util/pvc_main.c']))
 executables.append(csoundProgramEnvironment.Program('pvlook',
-    ['util2/pvlook.dir/pvl_main.c']))
+    ['util/pvl_main.c']))
 executables.append(csoundProgramEnvironment.Program('scale',
     ['util2/scale.dir/scale.c']))
 executables.append(csoundProgramEnvironment.Program('scot',
@@ -880,7 +880,7 @@ executables.append(csoundProgramEnvironment.Program('sdif2ad',
     SDIF/sdif.c
     SDIF/sdif-mem.c''')))
 executables.append(csoundProgramEnvironment.Program('sndinfo',
-    ['util2/sndinfo/sndinfo_main.c']))
+    ['util/sndinfo_main.c']))
 executables.append(csoundProgramEnvironment.Program('srconv',
     ['util2/dnoise.dir/srconv.c']))
 executables.append(commonEnvironment.Program('cs', ['util1/csd_util/cs.c']))
