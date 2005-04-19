@@ -81,7 +81,7 @@
 #define ERR(x)                          \
 {                                       \
     csound->Message(csound, Str(x));    \
-    return -1;                          \
+    goto err_return;                    \
 }
 
 #define FIND(x)                                                     \
@@ -203,7 +203,7 @@ static int dnoise(void *csound_, int argc, char **argv)
         lj,         /* to satisfy lame Microsoft compiler */
         lk;         /* to satisfy lame Microsoft compiler */
 
-    SNDFILE *fp;    /* noise reference file */
+    SNDFILE *fp = NULL; /* noise reference file */
 
     MYFLT
         Ninv,       /* 1. / N */
@@ -248,9 +248,9 @@ static int dnoise(void *csound_, int argc, char **argv)
 
     SOUNDIN     *p, *pn;
     char        *infile = NULL, *outfile = NULL, *nfile = NULL;
-    SNDFILE     *inf, *outfd = NULL;
+    SNDFILE     *inf = NULL, *outfd = NULL;
     char        c, *s;
-    int             channel = ALLCHNLS;
+    int         channel = ALLCHNLS;
     MYFLT       beg_time = FL(0.0), input_dur = FL(0.0), sr = FL(0.0);
     MYFLT       beg_ntime = FL(0.0), input_ndur = FL(0.0), srn = FL(0.0);
     char        *envoutyp = NULL;
@@ -455,14 +455,18 @@ static int dnoise(void *csound_, int argc, char **argv)
         }
       }
     }
-    if (nfile==NULL) {
-      csound->Message(csound, "Must have an example noise file (-I name)\n");
-      exit(1);
+    if (infile == NULL) {
+      csound->Message(csound, "dnoise: no input file\n");
+      return dnoise_usage(csound, -1);
+    }
+    if (nfile == NULL) {
+      csound->Message(csound, "Must have an example noise file (-i name)\n");
+      return -1;
     }
     if ((inf = csound->SAsndgetset(csound, infile, &p, &beg_time,
                                    &input_dur, &sr, channel)) < 0) {
       csound->Message(csound, Str("error while opening %s"), infile);
-      exit(1);
+      return -1;
     }
     if (O->outformat == 0) O->outformat = p->format;
     O->sfsampsize = sfSampSize(O->outformat);
@@ -485,7 +489,7 @@ static int dnoise(void *csound_, int argc, char **argv)
         name = csound->FindOutputFile(csound, O->outfilename, "SFDIR");
         if (name == NULL) {
           csound->Message(csound, Str("cannot open %s.\n"), O->outfilename);
-          return -1;
+          goto err_return;
         }
         outfd = sf_open(name, SFM_WRITE, &sfinfo);
         csound->Free(csound, name);
@@ -494,7 +498,7 @@ static int dnoise(void *csound_, int argc, char **argv)
         outfd = sf_open_fd(O->stdoutfd, SFM_WRITE, &sfinfo, 1);
       if (outfd == NULL) {
         csound->Message(csound, Str("cannot open %s."), O->outfilename);
-        return -1;
+        goto err_return;
       }
       sf_command(outfd, SFC_SET_CLIPPING, NULL, SF_TRUE);
     }
@@ -509,21 +513,21 @@ static int dnoise(void *csound_, int argc, char **argv)
     p->nchanls = Chans;
 
     if (Chans > 2) {
-      perror("dnoise: input MUST be mono or stereo\n");
-      exit(1);
+      csound->Message(csound, "dnoise: input MUST be mono or stereo\n");
+      goto err_return;
     }
 
     /* read noise reference file */
 
     if ((fp = csound->SAsndgetset(csound, nfile, &pn, &beg_ntime,
                                   &input_ndur, &srn, channel)) < 0) {
-      perror("dnoise: cannot open noise reference file\n");
-      exit(1);
+      csound->Message(csound, "dnoise: cannot open noise reference file\n");
+      goto err_return;
     }
 
     if (sr != srn) {
       csound->Message(csound, "Incompatible sample rates\n");
-      exit(1);
+      goto err_return;
     }
     /* calculate begin and end times in NOISE file */
     if (beg >= FL(0.0)) Beg = (long) (beg * R);
@@ -585,14 +589,14 @@ static int dnoise(void *csound_, int argc, char **argv)
     lj = (long) M + 3 * (long) D;
     lj *= (long) Chans;
     if (lj > 32767) {
-      perror("dnoise: M too large\n");
-      exit(1);
+      csound->Message(csound, "dnoise: M too large\n");
+      goto err_return;
     }
     lj = (long) L + 3 * (long) I;
     lj *= (long) Chans;
     if (lj > 32767) {
-      perror("dnoise: L too large\n");
-      exit(1);
+      csound->Message(csound, "dnoise: L too large\n");
+      goto err_return;
     }
 
     ibuflen = Chans * (M + 3 * D);
@@ -1131,6 +1135,8 @@ static int dnoise(void *csound_, int argc, char **argv)
 /*  rewriteheader(outfd, 0); */
     csound->Message(csound, "\n\n");
     sf_close(outfd);
+    sf_close(inf);
+    sf_close(fp);
     if (Verbose) {
       csound->Message(csound, "processing complete\n");
       csound->Message(csound, "N = %d\n", N);
@@ -1140,6 +1146,12 @@ static int dnoise(void *csound_, int argc, char **argv)
     }
 
     return 0;
+
+ err_return:
+    if (outfd != NULL)  sf_close(outfd);
+    if (inf != NULL)    sf_close(inf);
+    if (fp != NULL)     sf_close(fp);
+    return -1;
 }
 
 static int dnoise_usage(ENVIRON *csound, int exitcode)
@@ -1147,6 +1159,8 @@ static int dnoise_usage(ENVIRON *csound, int exitcode)
     csound->Message(csound,
             "usage: dnoise [flags] input_file\n"
             "\nflags:\n"
+            "i = noise reference soundfile\n"
+            "o = output file\n"
             "N = # of bandpass filters (1024)\n"
             "w = filter overlap factor: {0,1,(2),3} DON'T USE -w AND -M\n"
             "M = analysis window length (N-1 unless -w is specified)\n"
