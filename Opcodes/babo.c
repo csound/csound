@@ -263,7 +263,7 @@ BaboTapline_create(ENVIRON *csound, BaboTapline *this, MYFLT x, MYFLT y, MYFLT z
 static inline MYFLT
 BaboTapline_maxtime(ENVIRON *csound, BaboDelay *this)
 {
-    return (((MYFLT) BaboMemory_samples(&this->core)) * onedsr);
+    return (((MYFLT) BaboMemory_samples(&this->core)) * csound->onedsr);
 }
 
 static inline MYFLT

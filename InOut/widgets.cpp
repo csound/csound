@@ -1,24 +1,24 @@
 /*
-  widgets.cpp:
+    widgets.cpp:
 
-  Copyright (C) 2002 Gabriel Maldonado
+    Copyright (C) 2002 Gabriel Maldonado
 
-  This file is part of Csound.
+    This file is part of Csound.
 
-  The Csound Library is free software; you can redistribute it
-  and/or modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
 
-  Csound is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU Lesser General Public License for more details.
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public
-  License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
 */
 
 
@@ -1424,10 +1424,10 @@ extern "C" int save_snap(ENVIRON *csound, FLSAVESNAPS* p)
     if (p->STRARG == NULL) strcpy(s, unquote(csound->currevent->strarg));
     else strcpy(s, unquote(p->STRARG));
   }
-  else if ((long)*p->filename <= strsmax &&
-           strsets != NULL && strsets[(long)*p->filename])
-    strcpy(s, strsets[(long)*p->filename]);
-  else sprintf(s,"snap.%d", (int)*p->filename);
+  else if ((long) *p->filename <= csound->strsmax &&
+           csound->strsets != NULL && csound->strsets[(long) *p->filename])
+    strcpy(s, csound->strsets[(long) *p->filename]);
+  else sprintf(s,"snap.%d", (int) *p->filename);
   s2 = csound->FindOutputFile(csound, s, "SNAPDIR");
   if (s2 == NULL)
     return csound->InitError(csound, Str("FLsavesnap: cannot open file"));
@@ -1475,10 +1475,10 @@ extern "C" int load_snap(ENVIRON *csound, FLLOADSNAPS* p)
     if (p->STRARG == NULL) strcpy(s, unquote(csound->currevent->strarg));
     else strcpy(s, unquote(p->STRARG));
   }
-  else if ((long)*p->filename <= strsmax &&
-           strsets != NULL && strsets[(long)*p->filename])
-    strcpy(s, strsets[(long)*p->filename]);
-  else sprintf(s,"snap.%d", (int)*p->filename);
+  else if ((long) *p->filename <= csound->strsmax &&
+           csound->strsets != NULL && csound->strsets[(long) *p->filename])
+    strcpy(s, csound->strsets[(long) *p->filename]);
+  else sprintf(s,"snap.%d", (int) *p->filename);
   s2 = csound->FindInputFile(csound, s, "SNAPDIR");
   if (s2 == NULL)
     return csound->InitError(csound, Str("FLloadsnap: cannot open file"));
@@ -1572,14 +1572,16 @@ extern "C" int load_snap(ENVIRON *csound, FLLOADSNAPS* p)
 
 char * GetString(MYFLT pname, char *t)
 {
+  ENVIRON *csound = &cenviron;
   char    *Name=  new char[MAXNAME];
   allocatedStrings.push_back(Name);
   if (pname == SSTRCOD) {
-    if (t == NULL) strcpy(Name, unquote(cenviron.currevent->strarg));
+    if (t == NULL) strcpy(Name, unquote(csound->currevent->strarg));
     else strcpy(Name, unquote(t));
   }
-  else if ((long)pname < strsmax && strsets != NULL && strsets[(long)pname])
-    strcpy(Name, strsets[(long)pname]);
+  else if ((long) pname < csound->strsmax &&
+           csound->strsets != NULL && csound->strsets[(long) pname])
+    strcpy(Name, csound->strsets[(long) pname]);
   return Name;
 }
 
@@ -2796,9 +2798,9 @@ extern "C" int fl_slider_bank(ENVIRON *csound, FLSLIDERBANK *p)
     if (t == NULL) strcpy(s, unquote(csound->currevent->strarg));
     else strcpy(s, unquote(t));
   }
-  else if ((long)*p->names <= strsmax &&
-           strsets != NULL && strsets[(long)*p->names]) {
-    strcpy(s, strsets[(long)*p->names]);
+  else if ((long) *p->names <= csound->strsmax &&
+           csound->strsets != NULL && csound->strsets[(long) *p->names]) {
+    strcpy(s, csound->strsets[(long) *p->names]);
   }
   string tempname(s);
   stringstream sbuf;
@@ -2813,9 +2815,9 @@ extern "C" int fl_slider_bank(ENVIRON *csound, FLSLIDERBANK *p)
   MYFLT *minmaxtable = NULL, *typetable = NULL, *outable, *exptable = NULL;
 
   if (*p->ioutable  < 1) {
-    if (zkstart != NULL &&
-        zklast > (long) (*p->inumsliders + *p->ioutablestart_ndx))
-      outable = zkstart + (long) *p->ioutablestart_ndx;
+    if (csound->zkstart != NULL &&
+        csound->zklast > (long) (*p->inumsliders + *p->ioutablestart_ndx))
+      outable = csound->zkstart + (long) *p->ioutablestart_ndx;
     else {
       return csound->InitError(csound, "invalid ZAK space allocation");
     }
@@ -3458,7 +3460,7 @@ extern "C" int FLprintkset(ENVIRON *csound, FLPRINTK *p)
     p->ctime = FL(1.0) / csound->global_ekr;
   else        p->ctime = *p->ptime;
 
-  p->initime = (MYFLT) csound->kcounter * csound->onedkr_;
+  p->initime = (MYFLT) csound->kcounter * csound->onedkr;
   p->cysofar = -1;
   return OK;
 }
@@ -3468,7 +3470,7 @@ extern "C" int FLprintk(ENVIRON *csound, FLPRINTK *p)
   MYFLT   timel;
   long    cycles;
 
-  timel = ((MYFLT) csound->kcounter * csound->onedkr_) - p->initime;
+  timel = ((MYFLT) csound->kcounter * csound->onedkr) - p->initime;
   cycles = (long)(timel / p->ctime);
   if (p->cysofar < cycles) {
     p->cysofar = cycles;

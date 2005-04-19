@@ -900,8 +900,9 @@ int nreverb_set(ENVIRON *csound, NREV *p)   /* 6-comb/lowpass,
         while (!prime(c_time))  c_time += 2;
         p->c_time[i] = (MYFLT)c_time;
 
-        p->c_gain[i] = (MYFLT)exp((double)(LOG001 * (p->c_time[i]*onedsr) /
-                                           (ngc_gain[i] * *p->time)));
+        p->c_gain[i] = (MYFLT) exp((double) (LOG001 * (p->c_time[i]
+                                                       * csound->onedsr)
+                                             / (ngc_gain[i] * *p->time)));
         p->g[i] = *p->hdif;
         p->c_gain[i] = p->c_gain[i] * (FL(1.0) - p->g[i]);
         p->z[i] = FL(0.0);
@@ -917,8 +918,9 @@ int nreverb_set(ENVIRON *csound, NREV *p)   /* 6-comb/lowpass,
         if (a_time % 2 == 0)  a_time += 1;
         while (!prime(a_time))  a_time += 2;
         p->a_time[i] = (MYFLT)a_time;
-        p->a_gain[i] = (MYFLT)exp((double)(LOG001 * (p->a_time[i]*onedsr) /
-                                           (nga_gain * *p->time)));
+        p->a_gain[i] = (MYFLT) exp((double) (LOG001 * (p->a_time[i]
+                                                       * csound->onedsr)
+                                             / (nga_gain * *p->time)));
         csound->AuxAlloc(csound, (long) p->a_time[i] * sizeof(MYFLT),
                                  &p->aaux[i]);
         p->abuf_cur[i] = (MYFLT *)p->aaux[i].auxp;
@@ -958,16 +960,18 @@ int nreverb(ENVIRON *csound, NREV *p)
         time = FL(0.001);
       }
       for (i = 0; i < Combs; i++)   {
-        p->c_gain[i] = (MYFLT)exp((double)(LOG001 * (p->c_time[i]*onedsr) /
-                                           (ngc_gain[i] * time)));
+        p->c_gain[i] = (MYFLT) exp((double) (LOG001 * (p->c_time[i]
+                                                       * csound->onedsr)
+                                             / (ngc_gain[i] * time)));
         p->g[i] = hdif;
         p->c_gain[i] = p->c_gain[i] * (1 - p->g[i]);
         p->z[i] = FL(0.0);
       }
 
       for (i = 0; i < Alpas; i++)
-        p->a_gain[i] = (MYFLT)exp((double)(LOG001 * (p->a_time[i]*onedsr) /
-                                           (nga_gain * time)));
+        p->a_gain[i] = (MYFLT) exp((double) (LOG001 * (p->a_time[i]
+                                                       * csound->onedsr)
+                                             / (nga_gain * time)));
 
       p->prev_time = time;
       p->prev_hdif = hdif;
@@ -1149,8 +1153,9 @@ int reverbx_set(ENVIRON *csound, NREV2 *p)
         /*err_printf("reverbx B: p->c_time[%d] %f\n",
                 i, p->c_time[i]); */
 #endif
-        p->c_gain[i] = (MYFLT)exp((double)(LOG001 * (p->c_time[i]*onedsr) /
-                                           (p->c_orggains[i] * *p->time)));
+        p->c_gain[i] = (MYFLT) exp((double) (LOG001 * (p->c_time[i]
+                                                       * csound->onedsr)
+                                             / (p->c_orggains[i] * *p->time)));
         p->g[i] = *p->hdif;
         p->c_gain[i] = p->c_gain[i] * (FL(1.0) - p->g[i]);
         p->z[i] = FL(0.0);
@@ -1163,7 +1168,7 @@ int reverbx_set(ENVIRON *csound, NREV2 *p)
       for (i = 0; i < p->numCombs; i++) {
         p->pcbuf_cur[i+1] = p->cbuf_cur[i+1] =
           p->cbuf_cur[i] + (int)p->c_time[i];
-        p->c_time[i] *= onedsr;    /* Scale to save division in reverbx */
+        p->c_time[i] *= csound->onedsr; /* Scale to save division in reverbx */
       }
       n = 0;
       for (i = 0; i < p->numAlpas; i++) {
@@ -1176,9 +1181,10 @@ int reverbx_set(ENVIRON *csound, NREV2 *p)
           if (a_time % 2 == 0)  a_time += 1;
           while(!prime( a_time))  a_time += 2;
         }
-        p->a_time[i] = (MYFLT)a_time;
-        p->a_gain[i] = (MYFLT)exp((double)(LOG001 * (p->a_time[i]*onedsr) /
-                                           (p->a_orggains[i] * *p->time)));
+        p->a_time[i] = (MYFLT) a_time;
+        p->a_gain[i] = (MYFLT) exp((double) (LOG001 * (p->a_time[i]
+                                                       * csound->onedsr)
+                                             / (p->a_orggains[i] * *p->time)));
         n += a_time;
       }
       csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aaux);
@@ -1189,7 +1195,7 @@ int reverbx_set(ENVIRON *csound, NREV2 *p)
       for (i = 0; i < p->numAlpas; i++) {
         p->pabuf_cur[i+1] = p->abuf_cur[i+1] =
           p->abuf_cur[i] + (int)p->a_time[i];
-        p->a_time[i] *= onedsr;    /* Scale to save division in reverbx */
+        p->a_time[i] *= csound->onedsr; /* Scale to save division in reverbx */
       }
     }
 

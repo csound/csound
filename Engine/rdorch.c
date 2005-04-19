@@ -146,8 +146,9 @@ void orchRESET(ENVIRON *csound)
 
 ARGLST* copy_arglist(ARGLST *old)
 {
+    ENVIRON *csound = &cenviron;
     size_t n = sizeof(ARGLST)+ old->count*sizeof(char*)-sizeof(char*);
-    ARGLST *nn = (ARGLST*)mmalloc(&cenviron, n);
+    ARGLST *nn = (ARGLST*)mmalloc(csound, n);
 /*  csound->Message(csound, "copy_arglist: %d args\n", old->count); */
     memcpy(nn, old, n);
     memset(old, 0, n);
@@ -1181,17 +1182,15 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         nxtest = grpcnt; goto tstnxt;
       }
     }
-    if (nxtest <= opgrpno-1) {  /* Some aopcodes do not have ans! */
+    if (nxtest <= opgrpno-1) {          /* Some aopcodes do not have ans! */
       c = argtyp(group[nxtest]);        /* use outype to modify some opcodes */
-      if (strcmp(linopcod,"=") == 0
-          || opcodlst[linopnum].dsblksiz == 0xffff  /* Flagged as translating */
-          || (( strcmp(linopcod,"table") == 0 ||        /*    with prefix   */
-                strcmp(linopcod,"tablei") == 0 ||
-                strcmp(linopcod,"table3") == 0 ||
-                strcmp(linopcod,"wrap") == 0 ||
-                strcmp(linopcod,"mirror") == 0)
-              && (c == 'i' || c == 'p'))
-          ) {
+      if (strcmp(linopcod,"=") == 0 ||          /* Flagged as translating */
+          csound->opcodlst[linopnum].dsblksiz == 0xffff ||
+          (( strcmp(linopcod, "table") == 0 ||  /*    with prefix   */
+             strcmp(linopcod, "tablei") == 0 ||
+             strcmp(linopcod, "table3") == 0 ||
+             strcmp(linopcod, "wrap") == 0 ||
+             strcmp(linopcod, "mirror") == 0) && (c == 'i' || c == 'p'))) {
         if (c == 'p')   c = 'i';
         if (c == '?')   c = 'a';                /* tmp */
         sprintf(str, "%s.%c", linopcod, c);
@@ -1207,7 +1206,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         linopcod = opcod;
         csound->DebugMsg(csound, Str("modified opcod: %s"), opcod);
       }
-      else if (opcodlst[linopnum].dsblksiz == 0xfffd) {
+      else if (csound->opcodlst[linopnum].dsblksiz == 0xfffd) {
         if ((c = argtyp(group[opgrpno ] )) != 'a') c = 'k';
         sprintf(str, "%s.%c", linopcod, c);
         if (!(isopcod(str))) {
@@ -1222,7 +1221,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         linopcod = opcod;
         csound->DebugMsg(csound, Str("modified opcod: %s"), opcod);
       }
-      else if (opcodlst[linopnum].dsblksiz == 0xfffe) {
+      else if (csound->opcodlst[linopnum].dsblksiz == 0xfffe) {
                                                 /* Two tags for OSCIL's    */
   /*    if (strcmp(linopcod,"oscil") == 0  */
   /*        || strcmp(linopcod,"oscili") == 0) { */
@@ -1233,9 +1232,10 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         linopnum = opnum;
         linopcod = opcod;
         csound->DebugMsg(csound, Str("modified opcod: %s"), opcod);
-        c = argtyp(group[nxtest]);            /* reset outype params */
+        c = argtyp(group[nxtest]);      /* reset outype params */
       }                                 /* need we reset outype again here ? */
-      else if (opcodlst[linopnum].dsblksiz == 0xfffc) { /* For divz types */
+      else if (csound->opcodlst[linopnum].dsblksiz == 0xfffc) {
+        /* For divz types */
         c = argtyp(group[opgrpno  ]);
         d = argtyp(group[opgrpno+1]);
         if ((c=='i' || c=='c') && (d=='i' || d=='c')) c='i',d = 'i';
@@ -1336,7 +1336,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
       else instrblk = 0;
     }
     else {                                      /* for all other opcodes:  */
-      OENTRY    *ep = opcodlst + tp->opnum;
+      OENTRY    *ep = csound->opcodlst + tp->opnum;
       int       n, nreqd;
       char      tfound = '\0', treqd, *types = NULL;
       char      xtypes[OPCODENUMOUTS + 1];      /* IV - Oct 24 2002 */
@@ -1601,11 +1601,12 @@ static void intyperr(int n, char tfound, char expect)
 static int isopcod(char *s)     /* tst a string against opcodlst  */
                                 /*   & set op carriers if matched */
 {
+    ENVIRON *csound = &cenviron;
     int     n;
 
-    if (!(n = find_opcode(&cenviron, s))) return (0);   /* IV - Oct 31 2002 */
+    if (!(n = find_opcode(csound, s))) return (0);      /* IV - Oct 31 2002 */
     opnum = n;                          /* on corr match,   */
-    opcod = opcodlst[n].opname;         /*  set op carriers */
+    opcod = csound->opcodlst[n].opname; /*  set op carriers */
 
     return(1);                          /*  & report success */
 }
@@ -1613,11 +1614,12 @@ static int isopcod(char *s)     /* tst a string against opcodlst  */
 int getopnum(char *s)           /* tst a string against opcodlst  */
                                 /*   & return with opnum          */
 {
+    ENVIRON *csound = &cenviron;
     int     n;
 
-    if ((n = find_opcode(&cenviron, s))) return n;  /* IV - Oct 31 2002 */
-    cenviron.Message(&cenviron,"opcode=%s\n", s);
-    csoundDie(&cenviron, Str("unknown opcode"));
+    if ((n = find_opcode(csound, s))) return n;  /* IV - Oct 31 2002 */
+    csound->Message(csound,"opcode=%s\n", s);
+    csoundDie(csound, Str("unknown opcode"));
     return(0);  /* compiler only */
 }
 
@@ -1672,16 +1674,16 @@ static void lblclear(void)
 
 static void lblrequest(char *s)
 {
-    int req;
+    ENVIRON *csound = &cenviron;
+    int     req;
 
     for (req=0; req<lblcnt; req++)
       if (strcmp(lblreq[req].label,s) == 0)
         return;
     if (++lblcnt >= lblmax) {
-      LBLREQ *tmp = mrealloc(&cenviron, lblreq,
-                                        (lblmax += LBLMAX)*sizeof(LBLREQ));
+      LBLREQ *tmp = mrealloc(csound, lblreq, (lblmax += LBLMAX)*sizeof(LBLREQ));
       if (tmp==NULL)
-        csoundDie(&cenviron, Str("label list is full"));
+        csoundDie(csound, Str("label list is full"));
       lblreq = tmp;
     }
     lblreq[req].reqline = curline;
@@ -1690,7 +1692,8 @@ static void lblrequest(char *s)
 
 static void lblfound(char *s)
 {
-    int req;
+    ENVIRON *csound = &cenviron;
+    int     req;
 
     for (req=0; req<lblcnt; req++ )
       if (strcmp(lblreq[req].label,s) == 0) {
@@ -1699,10 +1702,9 @@ static void lblfound(char *s)
         goto noprob;
       }
     if (++lblcnt >= lblmax) {
-      LBLREQ *tmp = mrealloc(&cenviron, lblreq,
-                                        (lblmax += LBLMAX)*sizeof(LBLREQ));
+      LBLREQ *tmp = mrealloc(csound, lblreq, (lblmax += LBLMAX)*sizeof(LBLREQ));
       if (tmp==NULL)
-        csoundDie(&cenviron, Str("label list is full"));
+        csoundDie(csound, Str("label list is full"));
       lblreq = tmp;
     }
     lblreq[req].label = s;
@@ -1749,34 +1751,34 @@ void synterr(char *s)
 
 void synterrp(char *errp, char *s)
 {
-    char        *cp;
+    ENVIRON *csound = &cenviron;
+    char    *cp;
 
     synterr(s);
     cp = linadr[curline];
     while (cp < errp) {
       int ch = *cp++;
       if (ch != '\t') ch = ' ';
-      csoundMessage(&cenviron, "%c", ch);
+      csoundMessage(csound, "%c", ch);
     }
-    csoundMessage(&cenviron, "^\n");
+    csoundMessage(csound, "^\n");
 }
 
 static void lexerr(char *s)
 {
+    ENVIRON *csound = &cenviron;
     struct in_stack *curr = str;
-    cenviron.Message(&cenviron,Str("error:  %s"),s);
+    csound->Message(csound, Str("error:  %s"), s);
     while (curr!=inputs) {
       if (curr->string) {
         MACRO *mm = macros;
         while (mm != curr->mac) mm = mm->next;
-        cenviron.Message(&cenviron,
-                         Str("called from line %d of macro %s\n"),
-                         curr->line, mm->name);
+        csound->Message(csound, Str("called from line %d of macro %s\n"),
+                                curr->line, mm->name);
       }
       else {
-        cenviron.Message(&cenviron,
-                         Str("in line %f of file input %s\n"),
-                         curr->line, curr->body);
+        csound->Message(csound, Str("in line %f of file input %s\n"),
+                                curr->line, curr->body);
       }
       curr--;
     }

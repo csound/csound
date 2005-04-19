@@ -151,7 +151,7 @@ int iout_on_dur_set(ENVIRON *csound, OUT_ON_DUR *p)
     p->vel = (temp = abs((int) *p->ivel)) < 128 ? temp : 127;
 
     note_on(p->chn,p->num, p->vel);
-    p->istart_time = (MYFLT) csound->kcounter * onedkr ;
+    p->istart_time = (MYFLT) csound->kcounter * csound->onedkr;
     p->fl_expired = FALSE;
     p->fl_extra_dur = FALSE;
     return OK;
@@ -161,7 +161,8 @@ int iout_on_dur_set(ENVIRON *csound, OUT_ON_DUR *p)
 int iout_on_dur(ENVIRON *csound, OUT_ON_DUR *p)
 {
     if (!(p->fl_expired)) {
-      MYFLT actual_dur = (MYFLT) csound->kcounter * onedkr - p->istart_time;
+      MYFLT actual_dur = (MYFLT) csound->kcounter * csound->onedkr
+                         - p->istart_time;
       MYFLT dur = *p->idur;
       if (dur < actual_dur) {
         p->fl_expired = TRUE;
@@ -178,7 +179,8 @@ int iout_on_dur(ENVIRON *csound, OUT_ON_DUR *p)
 int iout_on_dur2(ENVIRON *csound, OUT_ON_DUR *p)
 {
     if (!(p->fl_expired)) {
-      MYFLT actual_dur = (MYFLT) csound->kcounter * onedkr - p->istart_time;
+      MYFLT actual_dur = (MYFLT) csound->kcounter * csound->onedkr
+                         - p->istart_time;
       MYFLT dur = *p->idur;
       if (dur < actual_dur) {
         p->fl_expired = TRUE;
@@ -207,7 +209,7 @@ int moscil_set(ENVIRON *csound, MOSCIL *p)
     if (p->h.insdshead->xtratim < EXTRA_TIME)
       /* if not initialised by another opcode */
       p->h.insdshead->xtratim = EXTRA_TIME;
-    p->istart_time = (MYFLT) csound->kcounter * onedkr;
+    p->istart_time = (MYFLT) csound->kcounter * csound->onedkr;
     p->fl_first_note   = TRUE;
     p->fl_note_expired = TRUE;
     p->fl_end_note     = FALSE;
@@ -226,7 +228,7 @@ int moscil(ENVIRON *csound, MOSCIL *p)
         p->fl_end_note     = TRUE;
         note_off(p->last_chn,p->last_num,p->last_vel);
       }
-      else if (p->last_dur < (MYFLT) csound->kcounter * onedkr
+      else if (p->last_dur < (MYFLT) csound->kcounter * csound->onedkr
                              - p->istart_time) {
         p->fl_note_expired = TRUE;
         note_off(p->last_chn,p->last_num,p->last_vel);
@@ -235,13 +237,13 @@ int moscil(ENVIRON *csound, MOSCIL *p)
     else {
       if (!p->fl_end_note
           && p->last_pause + p->last_dur <
-             (MYFLT) csound->kcounter * onedkr - p->istart_time
+             (MYFLT) csound->kcounter * csound->onedkr - p->istart_time
           && !(p->h.insdshead->relesing)) {
         MYFLT ftemp;
         p->istart_time = p->istart_time + p->last_pause + p->last_dur;
         p->last_dur   =         /* dur must be at least 1/kr */
-          (ftemp = *p->kdur) > 0 ? ftemp : onedkr;
-        p->last_pause = (ftemp = *p->kpause) > 0 ? ftemp : onedkr;
+          (ftemp = *p->kdur) > 0 ? ftemp : csound->onedkr;
+        p->last_pause = (ftemp = *p->kpause) > 0 ? ftemp : csound->onedkr;
  first_note:
         {
           int temp;
@@ -288,7 +290,7 @@ int kvar_out_on(ENVIRON *csound, KOUT_ON *p)
       }
       else {
         int temp;
-        int curr_chn = (temp = abs((int) *p->kchn-1)) < NUMCHN ? temp : NUMCHN-1;
+        int curr_chn = (temp = abs((int)*p->kchn-1)) < NUMCHN ? temp : NUMCHN-1;
         int curr_num = (temp = abs((int) *p->knum)) < 128    ? temp : 127;
         int curr_vel = (temp = abs((int) *p->kvel)) < 128    ? temp : 127;
 
@@ -416,7 +418,7 @@ int out_pitch_bend(ENVIRON *csound, OUT_PB *p)
       int value;
       MYFLT min = *p->min;
       if (p->h.insdshead->prvinstance != NULL)
-        return OK; /* if prev instance already allocated in the same MIDI chan */
+        return OK; /* if prev instance already allocated in the same MIDI chn */
       value = (int)((*p->value - min) * 16383. / (*p->max - min));
       value = value < 16384  ?  value : 16383;
       value = value > -1     ?  value : 0;
@@ -541,11 +543,11 @@ int mdelay_set(ENVIRON *csound, MDELAY *p)
 }
 
 
-int mdelay(ENVIRON *csound, MDELAY *p)                                                                          /*gab-A6 fixed*/
+int mdelay(ENVIRON *csound, MDELAY *p)                  /*gab-A6 fixed*/
 {
     int read_index = p->read_index % DELTAB_LENGTH;
     int write_index = p->write_index % DELTAB_LENGTH;
-    MYFLT present_time =  csound->kcounter * onedkr;
+    MYFLT present_time =  csound->kcounter * csound->onedkr;
 
     if (((int) *p->in_status == 0x90 || (int) *p->in_status == 0x80)) {
       p->status[write_index] = (int) *p->in_status;

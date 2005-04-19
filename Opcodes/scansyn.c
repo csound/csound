@@ -476,7 +476,7 @@ int scsns_init(ENVIRON *csound, PSCSNS *p)
     /* Reset oscillator phase */
     p->phs = FL(0.0);
     /* Oscillator ratio */
-    p->fix = (MYFLT)p->tlen*onedsr;
+    p->fix = (MYFLT)p->tlen*csound->onedsr;
     return OK;
 }
 

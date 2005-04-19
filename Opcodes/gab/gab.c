@@ -478,7 +478,7 @@ int adsynt2(ENVIRON *csound,ADSYNT2 *p)
       amp2 = *prevAmp;
       amp = *amptbl++ * amp0;
       cps = *freqtbl++ * cps0;
-      inc = (long) (cps * sicvt);
+      inc = (long) (cps * csound->sicvt);
       phs = *lphs;
       ampIncr = (amp - *prevAmp) / ensmps;
       do {

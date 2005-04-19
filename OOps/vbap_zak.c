@@ -196,14 +196,14 @@ int vbap_zak_init(ENVIRON *csound, VBAP_ZAK  *p)
     int n = p->n = (int)(*p->numb + FL(0.5)); /* Set size */
     /* Check to see this index is within the limits of za space.    */
     indx = (long) *p->ndx;
-    if (indx > zalast) {
+    if (indx > csound->zalast) {
       return csound->PerfError(csound, Str("outz index > isizea. No output"));
     }
     else if (indx < 0) {
       return csound->PerfError(csound, Str("outz index < 0. No output."));
     }
     /* Now read from the array in za space and write to the output. */
-    p->out_array     = csound->zastart_ + (indx * csound->ksmps);/* outputs */
+    p->out_array     = csound->zastart + (indx * csound->ksmps);/* outputs */
     csound->AuxAlloc(csound, p->n*sizeof(MYFLT)*4, &p->auxch);
     p->curr_gains    = (MYFLT*)p->auxch.auxp;
     p->beg_gains     = p->curr_gains + p->n;
@@ -490,14 +490,14 @@ int vbap_zak_moving_init(ENVIRON *csound, VBAP_ZAK_MOVING  *p)
     p->n = (int)(*p->numb + FL(0.5)); /* Set size */
     /* Check to see this index is within the limits of za space.    */
     indx = (long) *p->ndx;
-    if (indx > zalast) {
+    if (indx > csound->zalast) {
       return csound->PerfError(csound, Str("outz index > isizea. No output"));
     }
     else if (indx < 0) {
       return csound->PerfError(csound, Str("outz index < 0. No output."));
     }
     /* Now read from the array in za space and write to the output. */
-    p->out_array     = csound->zastart_ + (indx * csound->ksmps);/* outputs */
+    p->out_array     = csound->zastart + (indx * csound->ksmps);/* outputs */
     csound->AuxAlloc(csound, p->n*sizeof(MYFLT)*4, &p->auxch);
     p->curr_gains    = (MYFLT*)p->auxch.auxp;
     p->beg_gains     = p->curr_gains + p->n;

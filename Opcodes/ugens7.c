@@ -101,8 +101,8 @@ int fof(ENVIRON *csound, FOFS *p)
     form = p->xform;
     ftp1 = p->ftp1;
     ftp2 = p->ftp2;
-    fund_inc = (long)(*fund * sicvt);
-    form_inc = (long)(*form * sicvt);
+    fund_inc = (long)(*fund * csound->sicvt);
+    form_inc = (long)(*form * csound->sicvt);
     do {
       if (p->fundphs & MAXLEN) {               /* if phs has wrapped */
         p->fundphs &= PHMASK;
@@ -163,8 +163,8 @@ int fof(ENVIRON *csound, FOFS *p)
       p->fundphs += fund_inc;
       if (p->xincod) {
         if (p->ampcod)    amp++;
-        if (p->fundcod)   fund_inc = (long)(*++fund * sicvt);
-        if (p->formcod)   form_inc = (long)(*++form * sicvt);
+        if (p->fundcod)   fund_inc = (long)(*++fund * csound->sicvt);
+        if (p->formcod)   form_inc = (long)(*++form * csound->sicvt);
       }
       p->durtogo--;
       ar++;
@@ -191,7 +191,7 @@ static int newpulse(ENVIRON *csound,
     if (*fund == FL(0.0))                               /* formant phs */
       ovp->formphs = 0;
     else ovp->formphs = (long)(p->fundphs * *form / *fund) & PHMASK;
-    ovp->forminc = (long)(*form * sicvt);
+    ovp->forminc = (long)(*form * csound->sicvt);
     if (*p->kband != p->prvband) {                    /* bw: exp dec */
       p->prvband = *p->kband;
       p->expamp = (MYFLT)exp((double)(*p->kband * mpidsr));
@@ -200,12 +200,12 @@ static int newpulse(ENVIRON *csound,
     /* Init grain rise ftable phase. Negative kform values make
        the kris (ifnb) initial index go negative and crash csound.
        So insert another if-test with compensating code. */
-    if (*p->kris >= onedsr && *form != FL(0.0)) {      /* init fnb ris */
+    if (*p->kris >= csound->onedsr && *form != FL(0.0)) {   /* init fnb ris */
       if (*form < FL(0.0) && ovp->formphs != 0)
         ovp->risphs = (long)((MAXLEN - ovp->formphs) / -*form / *p->kris);
       else
         ovp->risphs = (long)(ovp->formphs / *form / *p->kris);
-      ovp->risinc = (long)(sicvt / *p->kris);
+      ovp->risinc = (long)(csound->sicvt / *p->kris);
       rismps = MAXLEN / ovp->risinc;
     }
     else {
@@ -220,7 +220,7 @@ static int newpulse(ENVIRON *csound,
     ovp->curamp = octamp * p->preamp;                /* set startamp  */
     ovp->expamp = p->expamp;
     if ((ovp->dectim = (long)(*p->kdec * csound->esr)) > 0) /*  fnb dec  */
-      ovp->decinc = (long)(sicvt / *p->kdec);
+      ovp->decinc = (long)(csound->sicvt / *p->kdec);
     ovp->decphs = PHMASK;
     if (!p->foftype) {
       /* Make fof take k-rate phase increment:
@@ -267,7 +267,7 @@ int harmset(ENVIRON *csound, HARMON *p)
     if ((p->autoktim = (long)(*p->iptrkprd * csound->ekr + FL(0.5))) < 1)
       p->autoktim = 1;
     p->autokcnt = 1;              /* init for immediate autocorr attempt */
-    p->lsicvt = FL(65536.0) * onedsr;
+    p->lsicvt = FL(65536.0) * csound->onedsr;
     p->cpsmode = ((*p->icpsmode != FL(0.0)));
     p->inp1 = p->bufp;
     p->inp2 = p->midp;

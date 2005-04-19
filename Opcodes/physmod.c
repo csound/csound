@@ -346,7 +346,7 @@ int flute(ENVIRON *csound, FLUTE *p)
       p->outputGain = amp + FL(0.001);
       p->lastamp = amp;
     }
-    p->v_rate = *p->vibFreq * v_len * onedsr;
+    p->v_rate = *p->vibFreq * v_len * csound->onedsr;
                                 /* Start SetFreq */
     if (p->lastFreq != *p->frequency) { /* It changed */
       p->lastFreq = *p->frequency;
@@ -554,7 +554,7 @@ int bowed(ENVIRON *csound, BOWED *p)
       DLineL_setDelay(&p->neckDelay, /* bow to nut (finger) length */
                       p->baseDelay *(FL(1.0) - p->lastbeta));
     }
-    p->v_rate = *p->vibFreq * p->vibr->flen * onedsr;
+    p->v_rate = *p->vibFreq * p->vibr->flen * csound->onedsr;
     if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
     if ((--p->kloop) == 0) {
       ADSR_setDecayRate(csound, &p->adsr, (FL(1.0) - p->adsr.value) * FL(0.005));
@@ -813,7 +813,7 @@ int brass(ENVIRON *csound, BRASS *p)
     MYFLT vibGain = *p->vibAmt;
     MYFLT vTime = p->v_time;
 
-    p->v_rate = *p->vibFreq * v_len * onedsr;
+    p->v_rate = *p->vibFreq * v_len * csound->onedsr;
     /*   vibr->setFreq(6.137); */
     /* vibrGain = 0.05; */            /* breath periodic vibrato component  */
     if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;

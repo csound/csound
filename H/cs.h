@@ -33,20 +33,6 @@ extern "C" {
 
 #include "csoundCore.h"
 
-#define strsets             cenviron.strsets_
-#define strsmax             cenviron.strsmax_
-#define zkstart             cenviron.zkstart_
-#define zastart             cenviron.zastart_
-#define zklast              cenviron.zklast_
-#define zalast              cenviron.zalast_
-#define onedkr              cenviron.onedkr_
-#define onedsr              cenviron.onedsr_
-#define kicvt               cenviron.kicvt_
-#define sicvt               cenviron.sicvt_
-#define opcodlst            cenviron.opcodlst_
-#define oplstend            cenviron.oplstend_
-#define Linevtblk           cenviron.Linevtblk_
-#define Linefd              cenviron.Linefd_
 #define ls_table            cenviron.ls_table_
 #define orchname            cenviron.orchname_
 #define scorename           cenviron.scorename_

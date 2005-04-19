@@ -64,9 +64,9 @@ int pvset(ENVIRON *csound, PVOC *p)
       else
         strcpy(pvfilnam, csound->currevent->strarg);
     }
-    else if ((long)*p->ifilno <= strsmax && strsets != NULL &&
-             strsets[(long)*p->ifilno])
-      strcpy(pvfilnam, strsets[(long)*p->ifilno]);
+    else if ((long)*p->ifilno <= csound->strsmax && csound->strsets != NULL &&
+             csound->strsets[(long)*p->ifilno])
+      strcpy(pvfilnam, csound->strsets[(long)*p->ifilno]);
     else sprintf(pvfilnam,"pvoc.%d", (int)*p->ifilno); /* else pvoc.filnum   */
 
     if ((mfp = p->mfp) == NULL ||

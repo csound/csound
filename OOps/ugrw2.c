@@ -206,7 +206,7 @@ int kport(ENVIRON *csound, KPORT *p)
      *
      */
     if (p->prvhtim != *p->khtim) {
-      p->c2 = (MYFLT)pow(0.5, (double)onedkr / *p->khtim);
+      p->c2 = (MYFLT)pow(0.5, (double)csound->onedkr / *p->khtim);
       p->c1 = FL(1.0) - p->c2;
       p->prvhtim = *p->khtim;
     }

@@ -261,7 +261,7 @@ int grainsetv4(ENVIRON *csound, GRAINV4 *p)
     csound->Message(csound, "granule_set: Funtion table length in samples is "
                             "%ld\n", ftp->flen);
     csound->Message(csound, "granule_set: Funtion table length in seconds is "
-                            "%f\n", (MYFLT)ftp->flen * onedsr);
+                            "%f\n", (MYFLT)ftp->flen * csound->onedsr);
 #endif
     if (*p->ithd != 0) {        /* Do thresholding.... */
 #ifdef BETA
@@ -276,7 +276,8 @@ int grainsetv4(ENVIRON *csound, GRAINV4 *p)
       csound->Message(csound, "granule_set: Function table shrink to "
                               "%ld samples\n", ftp->flen);
       csound->Message(csound, "granule_set: Function table shrink to %f sec "
-                              "after thresholding\n", (MYFLT)ftp->flen*onedsr);
+                              "after thresholding\n",
+                              (MYFLT) ftp->flen * csound->onedsr);
 #endif
     }
 

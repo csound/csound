@@ -198,7 +198,7 @@ int insert(ENVIRON *csound, int insno, EVTBLK *newevtp)
     while ((csound->ids = csound->ids->nxti) != NULL) {
       if (O->odebug)
         csound->Message(csound, "init %s:\n",
-                                opcodlst[csound->ids->optext->t.opnum].opname);
+                        csound->opcodlst[csound->ids->optext->t.opnum].opname);
       /* $$$$ CHECK RETURN CODE $$$$ */
       err |= (*csound->ids->iopadr)(csound, csound->ids);
     }
@@ -331,7 +331,7 @@ int MIDIinsert(ENVIRON *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     while ((csound->ids = csound->ids->nxti) != NULL) {
       if (O->odebug)
         csound->Message(csound, "init %s:\n",
-                                opcodlst[csound->ids->optext->t.opnum].opname);
+                        csound->opcodlst[csound->ids->optext->t.opnum].opname);
       /* $$$ CHECK RETURN CODE $$$ */
       err |= (*csound->ids->iopadr)(csound, csound->ids);
     }
@@ -925,7 +925,7 @@ int useropcdset(ENVIRON *csound, UOPCODE *p)
     g_ksmps = p->l_ksmps = csound->ksmps;       /* default ksmps */
     p->ksmps_scale = 1;
     /* look up the 'fake' instr number, and opcode name */
-    inm = (OPCODINFO*) opcodlst[p->h.optext->t.opnum].useropinfo;
+    inm = (OPCODINFO*) csound->opcodlst[p->h.optext->t.opnum].useropinfo;
     instno = inm->instno;
     tp = csound->instrtxtp[instno];
     /* set local ksmps if defined by user */
@@ -941,7 +941,10 @@ int useropcdset(ENVIRON *csound, UOPCODE *p)
     }
     /* save old globals */
     g_ensmps = ensmps;
-    g_ekr = csound->ekr; g_onedkr = onedkr; g_hfkprd = hfkprd; g_kicvt = kicvt;
+    g_ekr = csound->ekr;
+    g_onedkr = csound->onedkr;
+    g_hfkprd = hfkprd;
+    g_kicvt = csound->kicvt;
     /* set up local variables depending on ksmps, also change globals */
     if (p->l_ksmps != g_ksmps) {
       csound->ksmps = p->l_ksmps;
@@ -949,9 +952,9 @@ int useropcdset(ENVIRON *csound, UOPCODE *p)
       p->l_ensmps = ensmps = pool[O->poolcount + 2] = (MYFLT) p->l_ksmps;
       p->l_ekr = csound->ekr =
                  pool[O->poolcount + 1] = csound->esr / p->l_ensmps;
-      p->l_onedkr = onedkr = FL(1.0) / p->l_ekr;
+      p->l_onedkr = csound->onedkr = FL(1.0) / p->l_ekr;
       p->l_hfkprd = hfkprd = FL(0.5) / p->l_ekr;
-      p->l_kicvt = kicvt = (MYFLT) FMAXLEN / p->l_ekr;
+      p->l_kicvt = csound->kicvt = (MYFLT) FMAXLEN / p->l_ekr;
       csound->kcounter *= p->ksmps_scale;
     }
 
@@ -1032,7 +1035,7 @@ int useropcdset(ENVIRON *csound, UOPCODE *p)
     if (csound->ksmps != g_ksmps) {
       csound->ksmps = g_ksmps; ensmps = pool[O->poolcount + 2] = g_ensmps;
       csound->ekr = pool[O->poolcount + 1] = g_ekr;
-      onedkr = g_onedkr; hfkprd = g_hfkprd; kicvt = g_kicvt;
+      csound->onedkr = g_onedkr; hfkprd = g_hfkprd; csound->kicvt = g_kicvt;
       csound->kcounter = csound->kcounter / p->ksmps_scale;
       /* IV - Sep 17 2002: also select perf routine */
       p->h.opadr = (SUBR) useropcd1;
@@ -1154,9 +1157,9 @@ int setksmpsset(ENVIRON *csound, SETKSMPS *p)
     pp->l_ksmps = csound->ksmps = l_ksmps;
     pp->l_ensmps = ensmps = pool[O->poolcount + 2] = (MYFLT) csound->ksmps;
     pp->l_ekr = csound->ekr = pool[O->poolcount + 1] = csound->esr / ensmps;
-    pp->l_onedkr = onedkr = FL(1.0) / csound->ekr;
+    pp->l_onedkr = csound->onedkr = FL(1.0) / csound->ekr;
     pp->l_hfkprd = hfkprd = FL(0.5) / csound->ekr;
-    pp->l_kicvt = kicvt = (MYFLT) FMAXLEN / csound->ekr;
+    pp->l_kicvt = csound->kicvt = (MYFLT) FMAXLEN / csound->ekr;
     csound->kcounter *= pp->ksmps_scale;
     return OK;
 }
@@ -1304,7 +1307,7 @@ INSDS *insert_event(ENVIRON *csound,
     /* do init pass for this instr */
     while ((csound->ids = csound->ids->nxti) != NULL) {
       /*    if (O->odebug) csound->Message(csound, "init %s:\n",
-            opcodlst[csound->ids->optext->t.opnum].opname);      */
+            csound->opcodlst[csound->ids->optext->t.opnum].opname);      */
       (*csound->ids->iopadr)(csound, csound->ids);
     }
     if (csound->inerrcnt || ip->p3 == FL(0.0)) {
@@ -1460,13 +1463,20 @@ int useropcd1(ENVIRON *csound, UOPCODE *p)
     /* update release flag */
     p->ip->relesing = p->parent_ip->relesing;   /* IV - Nov 16 2002 */
     /* save old globals */
-    g_ksmps = csound->ksmps; g_ensmps = ensmps;
-    g_ekr = csound->ekr; g_onedkr = onedkr; g_hfkprd = hfkprd; g_kicvt = kicvt;
+    g_ksmps = csound->ksmps;
+    g_ensmps = ensmps;
+    g_ekr = csound->ekr;
+    g_onedkr = csound->onedkr;
+    g_hfkprd = hfkprd;
+    g_kicvt = csound->kicvt;
     g_kcounter = csound->kcounter;
     /* set local ksmps and related values */
-    csound->ksmps = p->l_ksmps; ensmps = pool[O->poolcount + 2] = p->l_ensmps;
+    csound->ksmps = p->l_ksmps;
+    ensmps = pool[O->poolcount + 2] = p->l_ensmps;
     csound->ekr = pool[O->poolcount + 1] = p->l_ekr;
-    onedkr = p->l_onedkr; hfkprd = p->l_hfkprd; kicvt = p->l_kicvt;
+    csound->onedkr = p->l_onedkr;
+    hfkprd = p->l_hfkprd;
+    csound->kicvt = p->l_kicvt;
     csound->kcounter = csound->kcounter * p->ksmps_scale;
 
     if (csound->ksmps == 1) {           /* special case for local kr == sr */
@@ -1530,7 +1540,7 @@ int useropcd1(ENVIRON *csound, UOPCODE *p)
     /* restore globals */
     csound->ksmps = g_ksmps; ensmps = pool[O->poolcount + 2] = g_ensmps;
     csound->ekr = pool[O->poolcount + 1] = g_ekr;
-    onedkr = g_onedkr; hfkprd = g_hfkprd; kicvt = g_kicvt;
+    csound->onedkr = g_onedkr; hfkprd = g_hfkprd; csound->kicvt = g_kicvt;
     csound->kcounter = g_kcounter;
     csound->pds = saved_pds;
     /* check if instrument was deactivated (e.g. by perferror) */
@@ -1751,7 +1761,7 @@ static void instance(ENVIRON *csound, int insno)
       if (opnum == PSET) {
         ip->p1 = (MYFLT)insno; continue;
       }
-      ep = &opcodlst[opnum];                        /* for all ops:     */
+      ep = &(csound->opcodlst[opnum]);              /* for all ops:     */
       opds = (OPDS *) nxtopds;                      /*   take reqd opds */
       nxtopds += ep->dsblksiz;
       if (O->odebug)

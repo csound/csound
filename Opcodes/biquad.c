@@ -137,7 +137,7 @@ int moogvcf(ENVIRON *csound, MOOGVCF *p)
 
     if (max==FL(1.0)) max = FL(1.0); /* Avoid disaster? */
 
-    fcon    = FL(2.0)*fco * onedsr;         /* normalised freq. 0 to Nyquist */
+    fcon    = FL(2.0)*fco * csound->onedsr; /* normalised freq. 0 to Nyquist */
     kp      = FL(3.6)*fcon-FL(1.6)*fcon*fcon-FL(1.0);  /* Emperical tuning   */
     pp1d2   = (kp+FL(1.0))*FL(0.5);         /* Timesaver                  */
     scale   = (MYFLT)exp((1.0-(double)pp1d2)*1.386249); /* Scaling factor  */
@@ -167,7 +167,7 @@ int moogvcf(ENVIRON *csound, MOOGVCF *p)
         res = *(++resptr);
       }
       if ((p->rezcod==1) || (p->fcocod==1)) {
-        fcon    = FL(2.0)*fco*onedsr;       /* normalised freq. 0 to Nyquist */
+        fcon    = FL(2.0)*fco*csound->onedsr; /* normalised frq. 0 to Nyquist */
         kp      = FL(3.6)*fcon-FL(1.6)*fcon*fcon-FL(1.0); /* Emperical tuning */
         pp1d2   = (kp+FL(1.0))*FL(0.5);                   /* Timesaver */
         scale   = (MYFLT)exp((1.0-(double)pp1d2)*1.386249); /* Scaling factor */
@@ -416,7 +416,7 @@ int vco(ENVIRON *csound, VCO *p)
       return csound->PerfError(csound, Str("vco: not initialised"));
     }
     ftbl = ftp->ftable;
-    sicvt2 = sicvt * FL(0.5);  /* for theta/2 */
+    sicvt2 = csound->sicvt * FL(0.5);  /* for theta/2 */
     lobits = ftp->lobits;
     lenmask = ftp->lenmask;
     ampp = p->xamp;

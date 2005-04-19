@@ -275,7 +275,7 @@ int ioutfile_set(ENVIRON *csound, IOUTFILE *p)
       switch ((int) *p->iflag) {
       case 1: { /* with prefix (i-statement, p1, p2 and p3) */
         int p1 = (int) p->h.insdshead->insno;
-        double p2 =   (double) csound->kcounter * onedkr;
+        double p2 =   (double) csound->kcounter * csound->onedkr;
         double p3 = p->h.insdshead->p3;
         if (p3 > FL(0.0))
           fprintf(rfil, "i %i %f %f ", p1, p2, p3);
@@ -287,7 +287,8 @@ int ioutfile_set(ENVIRON *csound, IOUTFILE *p)
         if (csound->fout_kreset == 0) csound->fout_kreset = csound->kcounter;
         {
           int p1 = (int) p->h.insdshead->insno;
-          double p2= (double) (csound->kcounter - csound->fout_kreset) * onedkr;
+          double p2 = (double) (csound->kcounter - csound->fout_kreset)
+                      * csound->onedkr;
           double p3 = p->h.insdshead->p3;
           if (p3 > FL(0.0))
             fprintf(rfil, "i %i %f %f ", p1, p2, p3);
@@ -344,16 +345,17 @@ int ioutfile_r(ENVIRON *csound, IOUTFILE_R *p)
           switch ((int) *p->iflag) {
           case 1:       {       /* whith prefix (i-statement, p1, p2 and p3) */
             int p1 = (int) p->h.insdshead->insno;
-            double p2 = p->counter * onedkr;
-            double p3 = (double) (csound->kcounter-p->counter) * onedkr;
+            double p2 = p->counter * csound->onedkr;
+            double p3 = (double) (csound->kcounter-p->counter) * csound->onedkr;
             fprintf(rfil, "i %i %f %f ", p1, p2, p3);
           }
             break;
           case 2: /* with prefix (start at 0 time) */
             {
               int p1 = (int) p->h.insdshead->insno;
-              double p2 = (p->counter - csound->fout_kreset) *onedkr;
-              double p3 = (double) (csound->kcounter-p->counter) * onedkr;
+              double p2 = (p->counter - csound->fout_kreset) *csound->onedkr;
+              double p3 = (double) (csound->kcounter-p->counter)
+                          * csound->onedkr;
               fprintf(rfil, "i %i %f %f ", p1, p2, p3);
             }
             break;

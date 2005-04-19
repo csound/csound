@@ -104,7 +104,7 @@ int ags(ENVIRON *csound, PGRA *p)   /*  Granular U.G. a-rate main routine   */
     if (kglen > *p->imkglen) kglen = *p->imkglen;
 
     ekglen  = (long)(csound->esr * kglen);   /* Useful constant */
-    inc2    = (long)(sicvt / kglen); /* Constant for each cycle */
+    inc2    = (long)(csound->sicvt / kglen); /* Constant for each cycle */
     bufsize = csound->ksmps + ekglen;
     xdns    = p->xdns;
     xamp    = p->xamp;
@@ -122,7 +122,7 @@ int ags(ENVIRON *csound, PGRA *p)   /*  Granular U.G. a-rate main routine   */
         amp = *xamp + Unirand(*p->kabnd);
         isc = (long) Unirand(p->pr);
         isc2 = 0;
-        inc = (long) ((*xlfr + Unirand(*p->kbnd)) * sicvt);
+        inc = (long) ((*xlfr + Unirand(*p->kbnd)) * csound->sicvt);
 
         temp = buf + i;
         n = ekglen;
@@ -135,7 +135,7 @@ int ags(ENVIRON *csound, PGRA *p)   /*  Granular U.G. a-rate main routine   */
       }
 
       xdns += p->dnsadv;
-      gcount += *xdns * onedsr;
+      gcount += *xdns * csound->onedsr;
       xamp += p->ampadv;
       xlfr += p->lfradv;
     }
