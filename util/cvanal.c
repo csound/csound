@@ -130,6 +130,7 @@ static int cvanal(void *csound_, int argc, char **argv)
     if ((err = CVAlloc(csound, &cvh, Estdatasiz, CVMYFLT, sr,
                        p->nchanls, channel, Hlen, CVRECT, 4))) {
       csound->Message(csound, Str("cvanal: Error allocating header\n"));
+      sf_close(infd);
       return -1;
     }
     {
@@ -141,15 +142,20 @@ static int cvanal(void *csound_, int argc, char **argv)
         csound->Free(csound, outName);
       }
     }
-    if (ofd == NULL)                           /* open the output CV file */
+    if (ofd == NULL) {                          /* open the output CV file */
+      sf_close(infd);
       return quit(csound, Str("cannot create output file"));
-                                               /* & wrt hdr into the file */
-    if ((long) fwrite(cvh, 1, cvh->headBsize, ofd) < cvh->headBsize)
+    }                                           /* & wrt hdr into the file */
+    if ((long) fwrite(cvh, 1, cvh->headBsize, ofd) < cvh->headBsize) {
+      sf_close(infd);
+      fclose(ofd);
       return quit(csound, Str("cannot write header"));
-
-    if (takeFFT(csound, p, cvh, Hlenpadded, infd, ofd) != 0)
+    }
+    if (takeFFT(csound, p, cvh, Hlenpadded, infd, ofd) != 0) {
+      sf_close(infd);
+      fclose(ofd);
       return -1;
-
+    }
     sf_close(infd);
     fclose(ofd);
     return 0;
