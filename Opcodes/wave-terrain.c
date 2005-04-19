@@ -215,7 +215,7 @@ int scantPerf(ENVIRON *csound, SCANTABLE *p)
     FUNC *fstiff = csound->FTFind(csound, p->i_stiff);
     FUNC *fdamp  = csound->FTFind(csound, p->i_damp);
     FUNC *fvel   = csound->FTFind(csound, p->i_vel);
-    MYFLT inc = p->size * *(p->kpch) * onedsr;
+    MYFLT inc = p->size * *(p->kpch) * csound->onedsr;
     MYFLT amp = *(p->kamp);
     MYFLT pos = p->pos;
 
@@ -263,7 +263,7 @@ int scantPerf(ENVIRON *csound, SCANTABLE *p)
       /* NO INTERPOLATION */
       p->aout[i] = fpoint->ftable[(int)pos] * amp;
 
-      pos += inc /* p->size * *(p->kpch) * onedsr */;
+      pos += inc /* p->size * *(p->kpch) * csound->onedsr */;
       if (pos > p->size) {
         pos -= p->size;
       }

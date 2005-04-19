@@ -655,7 +655,7 @@ int adsynt(ENVIRON *csound, ADSYNT *p)
       nsmps = csound->ksmps;
       amp = *amptbl++ * amp0;
       cps = *freqtbl++ * cps0;
-      inc = (long) (cps * sicvt);
+      inc = (long) (cps * csound->sicvt);
       phs = *lphs;
       do {
         *ar++ += *(ftbl + (phs >> lobits)) * amp;
@@ -754,7 +754,7 @@ int hsboscil(ENVIRON *csound, HSBOSC  *p)
       amp = mtab[(int)((octoffs / (MYFLT)octcnt) * mtablen)] * amp0;
       if (freq > hesr)
         amp = FL(0.0);
-      inc = (long)(freq * sicvt);
+      inc = (long)(freq * csound->sicvt);
       do {
         fract = PFRAC(phs);
         ftab = ftp->ftable + (phs >> lobits);
@@ -1134,7 +1134,7 @@ int kphsorbnk(ENVIRON *csound, PHSORBNK *p)
     }
 
     *p->sr = (MYFLT)(phs = curphs[index]);
-    if ((phs += *p->xcps * onedkr) >= 1.0)
+    if ((phs += *p->xcps * csound->onedkr) >= 1.0)
       phs -= 1.0;
     else if (phs < 1.0)
       phs += 1.0;
@@ -1165,7 +1165,7 @@ int phsorbnk(ENVIRON *csound, PHSORBNK *p)
     if (p->XINCODE) {
       MYFLT *cps = p->xcps;
       do {
-        incr = (double)(*cps++ * onedsr);
+        incr = (double)(*cps++ * csound->onedsr);
         *rs++ = (MYFLT)phase;
         phase += incr;
         if (phase >= 1.0)
@@ -1175,7 +1175,7 @@ int phsorbnk(ENVIRON *csound, PHSORBNK *p)
       } while (--nsmps);
     }
     else {
-      incr = (double)(*p->xcps * onedsr);
+      incr = (double)(*p->xcps * csound->onedsr);
       do {
         *rs++ = (MYFLT)phase;
         phase += incr;
@@ -1592,7 +1592,7 @@ int Fosckk(ENVIRON *csound, XOSC *p)
     flen = ftp->flen;
     ftbl = ftp->ftable;
     phs = p->lphs;
-    inc = (*p->xcps * flen) * onedsr;
+    inc = (*p->xcps * flen) * csound->onedsr;
     amp = *p->xamp;
     ar = p->sr;
     do {
@@ -1619,7 +1619,7 @@ int Foscak(ENVIRON *csound, XOSC *p)
     flen = ftp->flen;
     ftbl = ftp->ftable;
     phs = p->lphs;
-    inc = (*p->xcps * flen) * onedsr;
+    inc = (*p->xcps * flen) * csound->onedsr;
     ampp = p->xamp;
     ar = p->sr;
     do {
@@ -1646,12 +1646,12 @@ int Foscka(ENVIRON *csound, XOSC *p)
     flen = ftp->flen;
     ftbl = ftp->ftable;
     phs = p->lphs;
-    inc = (*p->xcps * flen) * onedsr;
+    inc = (*p->xcps * flen) * csound->onedsr;
     amp = *p->xamp;
     cpsp = p->xcps;
     ar = p->sr;
     do {
-      MYFLT inc = (*cpsp++ *flen * onedsr);
+      MYFLT inc = (*cpsp++ *flen * csound->onedsr);
       *ar++ = *(ftbl + (int)(phs)) * amp;
       phs += inc;
       if (phs>flen) phs -= flen;
@@ -1678,7 +1678,7 @@ int Foscaa(ENVIRON *csound, XOSC *p)
     ampp = p->xamp;
     ar = p->sr;
     do {
-      MYFLT inc = (*p->xcps++ * flen) * onedsr;
+      MYFLT inc = (*p->xcps++ * flen) * csound->onedsr;
       *ar++ = *(ftbl + (int)(phs)) * *ampp++;
       phs += inc;
       if (phs>flen) phs -= flen;
@@ -2008,7 +2008,7 @@ int lpf18set(ENVIRON *csound, LPF18 *p)
 int lpf18db(ENVIRON *csound, LPF18 *p)
 {
     int         nsmps = csound->ksmps;
-    MYFLT kfcn = FL(2.0) * *p->fco * onedsr;
+    MYFLT kfcn = FL(2.0) * *p->fco * csound->onedsr;
     MYFLT kp   = ((-FL(2.7528)*kfcn + FL(3.0429))*kfcn +
                   FL(1.718))*kfcn - FL(0.9984);
     MYFLT kp1 = kp+FL(1.0);

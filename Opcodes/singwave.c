@@ -137,7 +137,7 @@ void SingWave_setFreq(ENVIRON *csound, SingWave *p, MYFLT aFreq)
 {
     MYFLT temp = p->rate;
 
-    p->rate = (MYFLT)p->wave->flen * aFreq * onedsr;
+    p->rate = (MYFLT)p->wave->flen * aFreq * csound->onedsr;
     temp -= p->rate;
     if (temp<0) temp = - temp;
     Envelope_setTarget(&p->pitchEnvelope, p->rate);

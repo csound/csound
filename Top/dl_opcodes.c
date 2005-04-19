@@ -426,8 +426,9 @@ void *csoundGetLibrarySymbol(void *library, const char *procedureName)
 
 #define MAX_PLUGINS 1024
 
-int csoundLoadExternal(void *csound, const char* libraryPath)
+int csoundLoadExternal(void *csound_, const char* libraryPath)
 {
+    ENVIRON *csound = (ENVIRON*) csound_;
     void    *handle;
     OENTRY  *opcodlst_n;
     long    length, olength;
@@ -498,17 +499,17 @@ int csoundLoadExternal(void *csound, const char* libraryPath)
     }
     opcodlst_n = (*init)(csound);
     if (length > 0L) {
-      olength = oplstend-opcodlst;
+      olength = csound->oplstend - csound->opcodlst;
       if (O.odebug) {
         printf("Got opcodlst 0x%x\noplstend=0x%x, opcodlst=0x%x, length=%d.\n",
-               opcodlst_n, oplstend, opcodlst, olength);
+               opcodlst_n, csound->oplstend, csound->opcodlst, olength);
         printf("Adding %d bytes (%d opcodes) -- first opcode is '%s'.\n",
-               length, length/sizeof(OENTRY), opcodlst_n[0].opname);
+               length, length / sizeof(OENTRY), opcodlst_n[0].opname);
       }
-      opcodlst = (OENTRY*) mrealloc(csound, opcodlst,
-                                    olength*sizeof(OENTRY) + length);
-      memcpy(opcodlst+olength, opcodlst_n, length);
-      oplstend = opcodlst + olength + length/sizeof(OENTRY);
+      csound->opcodlst = (OENTRY*) mrealloc(csound, csound->opcodlst,
+                                            olength * sizeof(OENTRY) + length);
+      memcpy(csound->opcodlst + olength, opcodlst_n, length);
+      csound->oplstend = csound->opcodlst + olength + length / sizeof(OENTRY);
     }
     return 0;
 

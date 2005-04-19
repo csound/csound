@@ -1149,12 +1149,13 @@ int spfilset(ENVIRON *csound, SPECFILT *p)
     {
       long  nn = npts;
       MYFLT *flp = p->coefs;
-      double halftim, reittim = inspecp->ktimprd * onedkr;
+      double halftim, reittim = inspecp->ktimprd * csound->onedkr;
       do {
         if ((halftim = *flp) > 0.)
           *flp++ = (MYFLT)pow(0.5, reittim/halftim);
         else {
-          return csound->InitError(csound, Str("htim ftable must be all-positive"));
+          return csound->InitError(csound,
+                                   Str("htim ftable must be all-positive"));
         }
       } while (--nn);
     }

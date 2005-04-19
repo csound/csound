@@ -25,7 +25,6 @@
 #include "cwindow.h"                            /*  graph window mgr    */
 #include "winEPS.h"                             /* PostSCript routines  */
                                                 /*  dpwe 16may90        */
-extern OPARMS O;
 
 static void (*makeFn)(WINDAT*, char*);  /* pointer to window make fn - */
 extern void MakeAscii(WINDAT *, char *);/*     either teletype         */

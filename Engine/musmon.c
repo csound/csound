@@ -649,7 +649,7 @@ static int process_rt_event(ENVIRON *csound, int sensType)
       print_amp_values(csound, 0);
     }
     if (sensType == 1) {                  /*    for Linein,       */
-      evt = Linevtblk;                    /*      get its evtblk  */
+      evt = csound->Linevtblk;            /*      get its evtblk  */
       evt->p[2] = p->curp2 - p->timeOffs; /*      & insert curp2  */
       retval = process_score_event(csound, evt, 1);
     }

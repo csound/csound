@@ -145,7 +145,7 @@ static int sngetset(SOUNDINEW *p, char *sfname)
 }
 
 
-int newsndinset(ENVIRON *csound, SOUNDINEW *p)       /* init routine for diskin   */
+int newsndinset(ENVIRON *csound, SOUNDINEW *p)  /* init routine for diskin   */
 {
 /****************************************************
         revision history
@@ -169,6 +169,8 @@ int newsndinset(ENVIRON *csound, SOUNDINEW *p)       /* init routine for diskin 
     /* RWD 5:2001 need this as var, change size to read 24bit data */
     /* should go in SOUNDINEW struct eventually */
     long snewbufsize = SNDINEWBUFSIZ;
+
+    csound->Warning(csound, Str("diskin is deprecated. Use diskin2 instead."));
 
     if (*p->skipinit != FL(0.0)) return OK;
     if (skiptime < 0) {
@@ -248,9 +250,9 @@ int newsndinset(ENVIRON *csound, SOUNDINEW *p)       /* init routine for diskin 
         strcpy(soundiname, unquote(csound->currevent->strarg));
       else strcpy(soundiname,unquote(p->STRARG));    /* unquote it, else use */
     }
-    else if ((filno=(long)*p->ifilno) <= strsmax && strsets != NULL &&
-             strsets[filno])
-      strcpy(soundiname, strsets[filno]);
+    else if ((filno = (long) *p->ifilno) <= csound->strsmax &&
+             csound->strsets != NULL && csound->strsets[filno])
+      strcpy(soundiname, csound->strsets[filno]);
     else sprintf(soundiname,"soundin.%ld",filno);  /* soundin.filno */
     sfname = soundiname;
     if (!sngetset(p, sfname))
@@ -677,9 +679,9 @@ int sndo1set(ENVIRON *csound, SNDOUT *p) /* init routine for instr soundout   */
     if (p->c.fdch.fd != NULL)   return OK;  /* if file already open, rtn  */
     if (*p->c.ifilcod == SSTRCOD)
       strcpy(sndoutname, unquote(p->STRARG));
-    else if ((filno = (int)*p->c.ifilcod) <= strsmax && strsets != NULL &&
-             strsets[filno])
-      strcpy(sndoutname, strsets[filno]);
+    else if ((filno = (int) *p->c.ifilcod) <= csound->strsmax &&
+             csound->strsets != NULL && csound->strsets[filno])
+      strcpy(sndoutname, csound->strsets[filno]);
     else
       sprintf(sndoutname,"soundout.%d", filno);
     sfname = sndoutname;

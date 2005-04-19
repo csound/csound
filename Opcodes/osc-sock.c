@@ -947,12 +947,13 @@ int osc_send_set(ENVIRON *csound, OSCSEND *p)
         else
           strcpy(hostName, csound->unquote_(p->STRARG2));
       }
-      else if ((hostNo = (long)*p->ihost) < -strsmax &&
-               strsets != NULL && strsets[hostNo]) {
+      else if ((hostNo = (long)*p->ihost) <= csound->strsmax &&
+               csound->strsets != NULL && csound->strsets[hostNo]) {
         if ((hostName = malloc(MAX_HOST_LEN)) == NULL) {
-          return csound->InitError(csound, "OSCsend: no space left for host string");
+          return csound->InitError(csound,
+                                   "OSCsend: no space left for host string");
         }
-        strcpy(hostName, strsets[hostNo]);
+        strcpy(hostName, csound->strsets[hostNo]);
       }
       else {
         hostName = LOCALHOST_NAME; /* Is this correct?? */

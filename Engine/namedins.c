@@ -292,7 +292,7 @@ long strarg2opcno (ENVIRON *csound, MYFLT *p, char *s, int force_opcode)
 
 void opcode_list_create (ENVIRON *csound)
 {
-    int     n = csound->oplstend_ - csound->opcodlst_;
+    int     n = csound->oplstend - csound->opcodlst;
 
     if (csound->opcode_list) {
       csound->Die(csound,
@@ -310,7 +310,7 @@ void opcode_list_create (ENVIRON *csound)
 void opcode_list_add_entry (ENVIRON *csound, int opnum, int check_redefine)
 {
     unsigned char   h = 0;
-    unsigned char   *c = (unsigned char*) csound->opcodlst_[opnum].opname - 1;
+    unsigned char   *c = (unsigned char*) csound->opcodlst[opnum].opname - 1;
 
     /* calculate hash value for opcode name */
     while (*++c) h = name_hash(h, *c);
@@ -318,25 +318,25 @@ void opcode_list_add_entry (ENVIRON *csound, int opnum, int check_redefine)
     if (check_redefine) {
       int   *n = (int*) csound->opcode_list + h;
       /* check if an opcode with the same name is already defined */
-      while (*n && strcmp(csound->opcodlst_[*n].opname,
-                          csound->opcodlst_[opnum].opname)) {
-        n = &(csound->opcodlst_[*n].prvnum);
+      while (*n && strcmp(csound->opcodlst[*n].opname,
+                          csound->opcodlst[opnum].opname)) {
+        n = &(csound->opcodlst[*n].prvnum);
       }
       if (!*n) goto newopc;
       /* redefine */
-      csound->opcodlst_[opnum].prvnum = csound->opcodlst_[*n].prvnum;
+      csound->opcodlst[opnum].prvnum = csound->opcodlst[*n].prvnum;
       *n = opnum;
     }
     else {
 newopc:
       /* new opcode */
-      csound->opcodlst_[opnum].prvnum = ((int*) csound->opcode_list)[h];
+      csound->opcodlst[opnum].prvnum = ((int*) csound->opcode_list)[h];
       ((int*) csound->opcode_list)[h] = opnum;
     }
     if (csound->oparms->odebug && (csound->oparms->msglevel & 0x100000))
       csound->Message(csound,
                       "Added opcode opname = %s, hash = %d, opnum = %d\n",
-                      csound->opcodlst_[opnum].opname, (int) h, opnum);
+                      csound->opcodlst[opnum].opname, (int) h, opnum);
 }
 
 /* free memory used by opcode list */
@@ -345,7 +345,7 @@ extern int useropcdset(void*, void*);
 
 void opcode_list_free (ENVIRON *csound)
 {
-    OENTRY  *ep = csound->oplstend_;
+    OENTRY  *ep = csound->oplstend;
 
     if (!csound->opcode_list) return;
     /* free memory used by temporary list, */
@@ -357,8 +357,8 @@ void opcode_list_free (ENVIRON *csound)
       mfree(csound, ep->outypes);
     }
     /* and opcodlst */
-    mfree(csound, csound->opcodlst_);
-    csound->opcodlst_ = csound->oplstend_ = NULL;
+    mfree(csound, csound->opcodlst);
+    csound->opcodlst = csound->oplstend = NULL;
 }
 
 /* find opcode with the specified name in opcode list */
@@ -373,8 +373,8 @@ int find_opcode(ENVIRON *csound, char *opname)
     while (*++c) h = name_hash(h, *c);
     /* now find entry in opcode chain */
     n = ((int*) csound->opcode_list)[h];
-    while (n && strcmp(csound->opcodlst_[n].opname, opname))
-      n = csound->opcodlst_[n].prvnum;
+    while (n && strcmp(csound->opcodlst[n].opname, opname))
+      n = csound->opcodlst[n].prvnum;
 
     return n;
 }

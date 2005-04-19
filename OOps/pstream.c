@@ -325,9 +325,9 @@ int pvsfreadset(ENVIRON *csound, PVSFREAD *p)
       else
         strcpy(pvfilnam, unquote(csound->currevent->strarg));
     }
-    else if ((long)*p->ifilno < strsmax && strsets != NULL &&
-             strsets[(long)*p->ifilno])
-      strcpy(pvfilnam, strsets[(long)*p->ifilno]);
+    else if ((long)*p->ifilno < csound->strsmax && csound->strsets != NULL &&
+             csound->strsets[(long)*p->ifilno])
+      strcpy(pvfilnam, csound->strsets[(long)*p->ifilno]);
     /* do people still use this system? */
     else sprintf(pvfilnam,"pvoc.%d", (int)*p->ifilno); /* else pvoc.filnum   */
     mfp = p->mfp;

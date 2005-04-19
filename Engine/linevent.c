@@ -29,11 +29,6 @@
 
 #include "linevent.h"
 
-extern int close(int);
-#if !defined(mills_macintosh) && !defined(SYMANTEC) && !defined(LINUX) && !defined(__MACH__)
-extern int read(int, void*, unsigned);
-#endif
-
 #ifdef PIPES
 # if defined(SGI) || defined(LINUX) || defined(NeXT) || defined(__MACH__)
 #  define _popen popen
@@ -65,15 +60,14 @@ typedef struct levtblk {
 static LEVTBLK  *Firstblk = NULL;
 static LEVTBLK  *Firstact = NULL;
 
-extern OPARMS O;
-extern ENVIRON cenviron;
 static int stdmode;
 
 void RTLineset(void)   /* set up Linebuf & ready the input files */
 {                      /*     callable once from musmon.c        */
-    Firstblk = (LEVTBLK *) mcalloc(&cenviron, (long)sizeof(LEVTBLK));
+    ENVIRON *csound = &cenviron;
+    Firstblk = (LEVTBLK *) mcalloc(csound, (long)sizeof(LEVTBLK));
     Firstact = NULL;
-    Linebuf = mcalloc(&cenviron, (long)LBUFSIZ);
+    Linebuf = mcalloc(csound, (long)LBUFSIZ);
     Linebufend = Linebuf + LBUFSIZ;
     Linep = Linebuf;
     if (strcmp(O.Linename,"stdin") == 0) {
@@ -94,20 +88,20 @@ void RTLineset(void)   /* set up Linebuf & ready the input files */
       setvbuf(stdin, NULL, _IONBF, 0);
       /* WARNING("-L stdin:  system has no fcntl function to get stdin"); */
   #else
-      if (fcntl(Linefd, F_SETFL,
-                (stdmode =fcntl(Linefd, F_GETFL, 0)) | O_NDELAY) < 0)
-        csoundDie(&cenviron, Str("-L stdin fcntl failed"));
+      if (fcntl(csound->Linefd, F_SETFL,
+                (stdmode = fcntl(csound->Linefd, F_GETFL, 0)) | O_NDELAY) < 0)
+        csoundDie(csound, Str("-L stdin fcntl failed"));
   #endif
 #endif
     }
 #ifdef PIPES
     else if (O.Linename[0]=='|') {
-      cenviron.Linepipe = _popen(&(O.Linename[1]), "r");
-      if (cenviron.Linepipe == NULL) {
-        FILE *xxx = cenviron.Linepipe;
-        Linefd = fileno(xxx);
+      csound->Linepipe = _popen(&(O.Linename[1]), "r");
+      if (csound->Linepipe == NULL) {
+        FILE *xxx = csound->Linepipe;
+        csound->Linefd = fileno(xxx);
       }
-      else csoundDie(&cenviron, Str("Cannot open %s"), O.Linename);
+      else csoundDie(csound, Str("Cannot open %s"), O.Linename);
     }
 #endif
 #if defined(mills_macintosh) || defined(SYMANTEC)
@@ -115,10 +109,10 @@ void RTLineset(void)   /* set up Linebuf & ready the input files */
 #else
 #define MODE ,0
 #endif
-    else if ((Linefd = open(O.Linename, O_RDONLY | O_NDELAY  MODE)) < 0)
-      csoundDie(&cenviron, Str("Cannot open %s"), O.Linename);
-    cenviron.Message(&cenviron,Str("stdmode = %.8x Linefd = %d\n"),
-                     stdmode, Linefd);
+    else if ((csound->Linefd = open(O.Linename, O_RDONLY | O_NDELAY  MODE)) < 0)
+      csoundDie(csound, Str("Cannot open %s"), O.Linename);
+    csound->Message(csound, Str("stdmode = %.8x Linefd = %d\n"),
+                     stdmode, csound->Linefd);
 }
 
 #ifdef PIPES
@@ -132,8 +126,8 @@ void RTclose(void *csound_)
     if (csound->oparms->Linein == 0)
       return;
     csound->oparms->Linein = 0;
-   csound->Message(csound,
-                   Str("stdmode = %.8x Linefd = %d\n"), stdmode, csound->Linefd_);
+   csound->Message(csound, Str("stdmode = %.8x Linefd = %d\n"),
+                           stdmode, csound->Linefd);
 #if defined(mills_macintosh) || defined(SYMANTEC)
     if (Linecons != NULL) fclose(Linecons);
 #else
@@ -143,11 +137,11 @@ void RTclose(void *csound_)
   #endif
     else {
       if (strcmp(csound->oparms->Linename, "stdin") != 0)
-        close(csound->Linefd_);
+        close(csound->Linefd);
   #if !defined(DOSGCC) && !defined(__WATCOMC__) && !defined(WIN32) && \
       !defined(mills_macintosh)
       else
-        fcntl(csound->Linefd_, F_SETFL, stdmode);
+        fcntl(csound->Linefd, F_SETFL, stdmode);
   #endif
     }
 #endif      /* !(mills_macintosh || SYMANTEC) */
@@ -165,8 +159,8 @@ static int containsLF(char *cp, char *endp)/* does string segment contain LF? */
     return(0);
 }
 
-static LEVTBLK *getblk(void)/* get blk from the LEVTBLK pool, or alloc a new one */
-{
+static LEVTBLK *getblk(void)
+{                       /* get blk from the LEVTBLK pool, or alloc a new one */
     LEVTBLK *curp = Firstblk, *nxtp;
 
     while (curp->inuse) {
@@ -179,8 +173,8 @@ static LEVTBLK *getblk(void)/* get blk from the LEVTBLK pool, or alloc a new one
     return(curp);
 }
 
-static void Linsert(LEVTBLK *curp) /* insert blk into the time-ordered linevent queue */
-{
+static void Linsert(LEVTBLK *curp)
+{                       /* insert blk into the time-ordered linevent queue */
     LEVTBLK *nxtp = Firstact, *prvp = NULL;
 
     while (nxtp != NULL && nxtp->inuse && nxtp->oncounter <= curp->oncounter) {
@@ -197,6 +191,7 @@ static void Linsert(LEVTBLK *curp) /* insert blk into the time-ordered linevent 
     coming in from stdin/Linefd for -L*/
 void writeLine(const char *text, long size)
 {
+    ENVIRON *csound = &cenviron;
     if (Linebuf) {
       if ((Linep + size) < Linebufend) {
         memcpy(Linep, text, size);
@@ -204,15 +199,14 @@ void writeLine(const char *text, long size)
       }
       else {
         if (O.msglevel & WARNMSG)
-          cenviron.Message(&cenviron,
-                           Str("WARNING: LineBuffer Overflow - Input Data has been Lost\n"));
+          csound->Message(csound, Str("WARNING: LineBuffer Overflow - "
+                                      "Input Data has been Lost\n"));
       }
     }
     else {
       if (O.msglevel & WARNMSG)
-        cenviron.Message(&cenviron,
-                         Str("WARNING: Input ignored, RT Line Events (-L) "
-                             "has not been initialised\n"));
+        csound->Message(csound, Str("WARNING: Input ignored, RT Line Events "
+                                    "(-L) has not been initialised\n"));
     }
 }
 
@@ -232,17 +226,18 @@ int sensLine(ENVIRON *csound)
     static MYFLT prvp1 = FL(0.0);
     static MYFLT prvp2 = FL(0.0);
 
-    if (Linefd >= 0 && (
+    if (csound->Linefd >= 0 &&
+        (
 #if defined(mills_macintosh) || defined(SYMANTEC)
-                        ((n = fread((void *)Linep, (size_t)1,
-                                    (size_t)(Linebufend-Linep), Linecons)) > 0) ||
+         ((n = fread((void *)Linep, (size_t)1,
+                     (size_t)(Linebufend-Linep), Linecons)) > 0) ||
 #else
-                        ((n = read(Linefd, Linep, Linebufend-Linep)) > 0) ||
+         ((n = read(csound->Linefd, Linep, Linebufend - Linep)) > 0) ||
 #endif
-                        Linep > Linebuf))
+         Linep > Linebuf))
       {
         Linend = Linep + (n>0 ? n : 0);
-        /*        if ((c = *(Linend - 1)) == LF || containsLF(Linep,Linend)) { */
+  /*    if ((c = *(Linend - 1)) == LF || containsLF(Linep,Linend)) { */
         if (containsLF(Linebuf,Linend)) {
           cp = Linebuf;
           Curblk = getblk();          /* get a blk from the levtblk pool */
@@ -270,7 +265,8 @@ int sensLine(ENVIRON *csound)
             if (c == '"') {                /* if find character string  */
               char *sstrp;      /* IV - Oct 31 2002: allow string instrname */
               if (pcnt != 4 && (pcnt || e->opcod != 'i')) {
-                csound->Message(csound,Str("misplaced string\n")); /* (must be p5) */
+                /* (must be p5) */
+                csound->Message(csound,Str("misplaced string\n"));
                 goto Lerr;
               }
               if ((sstrp = e->strarg) == NULL)
@@ -351,7 +347,7 @@ int sensLine(ENVIRON *csound)
  Timchk:
     if (Firstact != NULL &&                 /* if an event is due now,*/
         Firstact->oncounter <= csound->global_kcounter) {
-      Linevtblk = &Firstact->evtblk;
+      csound->Linevtblk = &Firstact->evtblk;
       Firstact->inuse = 0;                  /*   mark its space available    */
       Firstact = Firstact->nxtact;
       return(1);                            /*   & report Line-type RTevent  */

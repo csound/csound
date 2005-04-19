@@ -77,8 +77,6 @@ static void unlock(ENVIRON *csound)
 // #endif
 // }
 
-extern ENVIRON cenviron;
-extern "C" int csoundYield(void *);
 Fl_Window *form = NULL;
 Fl_Choice *choice;
 Fl_Button *end;

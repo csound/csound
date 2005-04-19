@@ -541,16 +541,16 @@ int ftlptim(ENVIRON *csound, EVAL *p)
     FUNC    *ftp;
     if ((ftp = csound->FTnp2Find(csound,p->a)) == NULL) return OK;
     if (ftp->loopmode1)
-      *p->r = ftp->begin1 * onedsr;
+      *p->r = ftp->begin1 * csound->onedsr;
     else {
       *p->r = FL(0.0);
-      if (O.msglevel & WARNMSG)
+      if (csound->oparms->msglevel & WARNMSG)
         csound->Message(csound,Str("WARNING: non-looping sample\n"));
     }
     return OK;
 }
 
-int numsamp(ENVIRON *csound, EVAL *p)           /***** nsamp by G.Maldonado ****/
+int numsamp(ENVIRON *csound, EVAL *p)       /***** nsamp by G.Maldonado ****/
 {
     FUNC        *ftp;
     if ((ftp = csound->FTFind(csound, p->a)) != NULL)

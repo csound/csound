@@ -92,8 +92,8 @@ int fog(ENVIRON *csound, FOGS *p)
     speed = p->xspd;
     ftp1 = p->ftp1;
     ftp2 = p->ftp2;
-    fund_inc = (long)(*fund * sicvt);
-    form_inc = (long)(*ptch * fogcvt);  /*form_inc = *form * sicvt;*/
+    fund_inc = (long)(*fund * csound->sicvt);
+    form_inc = (long)(*ptch * fogcvt);  /*form_inc = *form * csound->sicvt;*/
 /*      speed_inc = *speed * fogcvt; */   /*JMC for FOG--out for phs version*/
     for (n=0;n<nsmps;n++) {
       if (p->fundphs & MAXLEN) {                       /* if phs has wrapped */
@@ -147,9 +147,9 @@ int fog(ENVIRON *csound, FOGS *p)
       p->spdphs &= PHMASK; /*JMC for FOG*/
       if (p->xincod) {
         if (p->ampcod)    amp++;
-        if (p->fundcod)   fund_inc = (long)(*++fund * sicvt);
+        if (p->fundcod)   fund_inc = (long)(*++fund * csound->sicvt);
         if (p->formcod)   form_inc = (long)(*++ptch * fogcvt);
-/*form_inc = *++form * sicvt;*/
+/*form_inc = *++form * csound->sicvt;*/
 /*      if (p->speedcod)  speed_inc = *++speed * fogcvt; */  /*JMC for FOG*/
       }
       p->durtogo--;
@@ -161,7 +161,7 @@ static int newpulse(ENVIRON *csound, FOGS *p, OVERLAP *ovp, MYFLT  *amp,
                     MYFLT *fund, MYFLT *ptch)
 {
     MYFLT       octamp = *amp, oct;
-    MYFLT       form = *ptch /sicvt, fogcvt = p->fogcvt;  /*added JMC for Fog*/
+    MYFLT       form = *ptch / csound->sicvt, fogcvt = p->fogcvt;
     long   rismps, newexp = 0;
     if ((ovp->timrem = (long)(*p->kdur * csound->esr)) > p->durtogo &&
         (*p->iskip==FL(0.0)))  /* ringtime    */
@@ -175,19 +175,20 @@ static int newpulse(ENVIRON *csound, FOGS *p, OVERLAP *ovp, MYFLT  *amp,
     }
     if (*fund == 0.0)                               /* formant phs */
       ovp->formphs = 0;
-/* else ovp->formphs = (long)((p->fundphs * form / *fund) + p->spdphs) & PHMASK; */
+/*  else
+     ovp->formphs = (long)((p->fundphs * form / *fund) + p->spdphs) & PHMASK; */
     else ovp->formphs = (long)(p->fundphs * form / *fund) & PHMASK;
     ovp->forminc = (long)(*ptch * fogcvt);/*JMC for FOG*/
-    /*ovp->forminc = *form * sicvt;*/
+    /*ovp->forminc = *form * csound->sicvt;*/
     if (*p->kband != p->prvband) {                    /* bw: exp dec */
       p->prvband = *p->kband;
       p->expamp = (MYFLT)exp(*p->kband * mpidsr);
       newexp = 1;
     }
-    if (*p->kris >= onedsr && form != 0.0) {                /* init fnb ris */
+    if (*p->kris >= csound->onedsr && form != 0.0) {  /* init fnb ris */
       ovp->risphs = (unsigned long)(ovp->formphs / (fabs(form))
                                     / *p->kris); /* JPff fix */
-      ovp->risinc = (long)(sicvt / *p->kris);
+      ovp->risinc = (long)(csound->sicvt / *p->kris);
       rismps = MAXLEN / ovp->risinc;
     }
     else {
@@ -196,7 +197,8 @@ static int newpulse(ENVIRON *csound, FOGS *p, OVERLAP *ovp, MYFLT  *amp,
     }
 
     /* p->spdphs (soundfile ftable index) must be added to
-       ovp->formphs (sound ftable reading rate) AFTER ovp-risphs is calculated */
+       ovp->formphs (sound ftable reading rate)
+       AFTER ovp-risphs is calculated */
     ovp->formphs = (ovp->formphs + p->spdphs) & PHMASK;
 
     if (newexp || rismps != p->prvsmps) {            /* if new params */
@@ -207,7 +209,7 @@ static int newpulse(ENVIRON *csound, FOGS *p, OVERLAP *ovp, MYFLT  *amp,
     ovp->curamp = octamp * p->preamp;                /* set startamp  */
     ovp->expamp = p->expamp;
     if ((ovp->dectim = (long)(*p->kdec * csound->esr)) > 0) /*      fnb dec  */
-      ovp->decinc = (long)(sicvt / *p->kdec);
+      ovp->decinc = (long)(csound->sicvt / *p->kdec);
     ovp->decphs = PHMASK;
     return(1);
 }

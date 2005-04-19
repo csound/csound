@@ -61,9 +61,9 @@ static HEADATA *getsndinfo(ENVIRON *csound, SNDINFO *p)
       else
         strcpy(soundiname,unquote(p->STRARG));    /* unquote it,  else use */
     }
-    else if ((filno=(long)*p->ifilno) <= strsmax && strsets != NULL &&
-             strsets[filno])
-      strcpy(soundiname, strsets[filno]);
+    else if ((filno = (long) *p->ifilno) <= csound->strsmax &&
+             csound->strsets != NULL && csound->strsets[filno])
+      strcpy(soundiname, csound->strsets[filno]);
     else
       sprintf(soundiname,"soundin.%ld",filno);  /* soundin.filno */
 
@@ -153,8 +153,8 @@ int filesr(ENVIRON *csound, SNDINFO *p)
     return OK;
 }
 
-
-/*RWD 8:2001: now supports all relevant files, and scans overall peak properly */
+/* RWD 8:2001: now supports all relevant files, */
+/* and scans overall peak properly */
 
 int filepeak(ENVIRON *csound, SNDINFOPEAK *p)
 {
@@ -173,9 +173,9 @@ int filepeak(ENVIRON *csound, SNDINFOPEAK *p)
       else
         strcpy(soundiname,unquote(p->STRARG));    /* unquote it,  else use */
     }
-    else if ((filno=(long)*p->ifilno) <= strsmax && strsets != NULL &&
-             strsets[filno])
-      strcpy(soundiname, strsets[filno]);
+    else if ((filno = (long) *p->ifilno) <= csound->strsmax &&
+             csound->strsets != NULL && csound->strsets[filno])
+      strcpy(soundiname, csound->strsets[filno]);
     else
       sprintf(soundiname,"soundin.%ld",filno);  /* soundin.filno */
 
@@ -225,9 +225,9 @@ static int anal_filelen(SNDINFO *p,MYFLT *p_dur)
       else
         strcpy(soundiname,unquote(p->STRARG));    /* unquote it,  else use */
     }
-    else if ((filno=(long)*p->ifilno) <= strsmax && strsets != NULL &&
-             strsets[filno])
-      strcpy(soundiname, strsets[filno]);
+    else if ((filno = (long) *p->ifilno) <= csound->strsmax &&
+             csound->strsets != NULL && csound->strsets[filno])
+      strcpy(soundiname, csound->strsets[filno]);
     else
       sprintf(soundiname,"soundin.%ld",filno);  /* soundin.filno */
 

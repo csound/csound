@@ -48,8 +48,6 @@ static  long    poolcount, strargsize = 0, argoffsize;
 static  int     nconsts;
 static  int     displop1, displop2, displop3;
 
-extern  OPARMS  O;
-
 static  int     gexist(char *), gbloffndx(char *), lcloffndx(char *);
 static  int     constndx(char *);
 static  void    insprep(INSTRTXT *), lgbuild(char *);
@@ -364,7 +362,8 @@ void otran(ENVIRON *csound)
             }
             else {      /* opcode definition with string name */
               OENTRY *opc, *newopc = NULL;              /* IV - Oct 31 2002 */
-              long  opcListNumItems = oplstend - opcodlst, newopnum;
+              long  opcListNumItems = csound->oplstend - csound->opcodlst;
+              long  newopnum;
               OPCODINFO *inm;
               char  *name = alp->arg[0];
 
@@ -400,11 +399,11 @@ void otran(ENVIRON *csound)
               newopnum = opcListNumItems;
               /* IV - Oct 31 2002: reduced number of calls to mrealloc() */
               if (!(newopnum & 0xFFL) || !csound->opcodeInfo)
-                opcodlst = (OENTRY *)
-                  mrealloc(csound, opcodlst,
+                csound->opcodlst = (OENTRY *)
+                  mrealloc(csound, csound->opcodlst,
                            sizeof(OENTRY) * ((newopnum | 0xFFL) + 1L));
-              oplstend = newopc = opcodlst + newopnum;
-              oplstend++;
+              csound->oplstend = newopc = csound->opcodlst + newopnum;
+              csound->oplstend++;
               /* IV - Oct 31 2002 */
               /* store the name in a linked list (note: must use mcalloc) */
               inm = (OPCODINFO *) mcalloc(csound, sizeof(OPCODINFO));
@@ -416,7 +415,7 @@ void otran(ENVIRON *csound)
               csound->opcodeInfo = inm;
               /* IV - Oct 31 2002: */
               /* create a fake opcode so we can call it as such */
-              opc = opcodlst + find_opcode(csound, ".userOpcode");
+              opc = csound->opcodlst + find_opcode(csound, ".userOpcode");
               memcpy(newopc, opc, sizeof(OENTRY));
               newopc->opname = name;
               newopc->useropinfo = (void*) inm; /* ptr to opcode parameters */
@@ -484,8 +483,8 @@ void otran(ENVIRON *csound)
             bp = (OPTXT *) mcalloc(csound, (long)sizeof(OPTXT));
             txtcpy((char *)&bp->t,(char *)tp);
             prvbp = prvbp->nxtop = bp;  /* link into optxt chain */
-            threads |= opcodlst[opnum].thread;
-            opdstot += opcodlst[opnum].dsblksiz;        /* sum opds's */
+            threads |= csound->opcodlst[opnum].thread;
+            opdstot += csound->opcodlst[opnum].dsblksiz;    /* sum opds's */
             if (O->odebug) putop(&bp->t);
             if (opnum == displop1)                      /* display op arg ? */
               for (alp=bp->t.inlist, nn=alp->count; nn>0; ) {
@@ -614,7 +613,7 @@ void otran(ENVIRON *csound)
       int thread, opnum = bp->t.opnum;
       if (opnum == ENDIN) break;
       if (opnum == LABEL || opnum == STRSET) continue;
-      if ((thread = opcodlst[opnum].thread) & 06 ||
+      if ((thread = csound->opcodlst[opnum].thread) & 06 ||
           (!thread && bp->t.pftype != 'b'))
         synterr(Str("perf-pass statements illegal in header blk"));
     }
@@ -759,7 +758,7 @@ static void insprep(INSTRTXT *tp) /* prep an instr template for efficient */
         *lblsp++ = ttp->opcod;
         continue;
       }
-      ep = &opcodlst[opnum];
+      ep = &(csound->opcodlst[opnum]);
       if (O->odebug) csound->Message(csound, "%s argndxs:", ep->opname);
       if ((outlist = ttp->outlist) == nullist || !outlist->count)
         ttp->outoffs = nulloffs;

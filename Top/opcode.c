@@ -28,7 +28,7 @@
                                 /*  4 april 02 -- ma++ */
                                 /*  restructure to retrieve externally  */
 #include "cs.h"
-#include "H/opcode.h"
+#include "opcode.h"
 
 static int mystrcmp(const void *v1, const void *v2)
 {
@@ -45,21 +45,21 @@ static int mystrcmp(const void *v1, const void *v2)
 /* create a list of all the opcodes */
 /* caller is responsible for disposing the*/
 /* returned list! - use dispose_opcode_list() */
-opcodelist *new_opcode_list(void)
+static opcodelist *new_opcode_list(ENVIRON *csound)
 {
-    OENTRY *ops = opcodlst;
-    opcodelist *list = (opcodelist *)mmalloc(&cenviron, sizeof(opcodelist));
+    OENTRY *ops = csound->opcodlst;
+    opcodelist *list = (opcodelist *)mmalloc(csound, sizeof(opcodelist));
 
                                 /* All this hassle 'cos of MAC */
-    long n = (long)((char*)oplstend-(char *)opcodlst);
+    long n = (long)((char*)csound->oplstend-(char *)csound->opcodlst);
     n /= sizeof(OENTRY);
     n *= sizeof(sortable);
 
     list->size = 0;
-    list->table = (sortable*)mmalloc(&cenviron, n);
+    list->table = (sortable*)mmalloc(csound, n);
                                 /* Skip first entry */
-    while (++ops<oplstend) {
-      char *x = mmalloc(&cenviron, strlen(ops->opname)+1);
+    while (++ops<csound->oplstend) {
+      char *x = mmalloc(csound, strlen(ops->opname)+1);
       strcpy(x, ops->opname);
       list->table[list->size].name = x;
       if ((x=strchr(x,'.'))) *x = '\0';
@@ -71,30 +71,31 @@ opcodelist *new_opcode_list(void)
         list->size ++;
     }
                                 /* Sort into alphabetical order */
-    printf(Str("%d opcodes\n"), list->size);
+    csound->Message(csound, Str("%d opcodes\n"), list->size);
     qsort(list->table, list->size, sizeof(sortable), mystrcmp);
 
    return list;
 }
 
-void dispose_opcode_list(opcodelist *list)
+static void dispose_opcode_list(ENVIRON *csound, opcodelist *list)
 {
     if (list) {
       while (list->size--) {
-        mfree(&cenviron, list->table[list->size].name);
+        mfree(csound, list->table[list->size].name);
       }
 
-      mfree(&cenviron, list->table);
-      mfree(&cenviron, list);
+      mfree(csound, list->table);
+      mfree(csound, list);
     }
 }
 
 void list_opcodes(int level)
 {
-    int j, k;
-    int len = 0;
+    ENVIRON *csound = &cenviron;
+    int     j, k;
+    int     len = 0;
 
-    opcodelist *list = new_opcode_list();
+    opcodelist *list = new_opcode_list(csound);
 
                                 /* Print in 4 columns */
     for (j = 0, k = 0; j< list->size; j++) {
@@ -103,36 +104,37 @@ void list_opcodes(int level)
             strcmp( list->table[j-1].name,  list->table[j].name)==0) continue;
         k++;
         if ((k%3)==0) {
-          printf("\n"); len = 0;
+          csound->Message(csound, "\n"); len = 0;
         }
         else {
           do {
-            printf(" ");
+            csound->Message(csound, " ");
             len++;
           } while (len<20*(k%3));
         }
-        printf("%s", list->table[j].name);
+        csound->Message(csound, "%s", list->table[j].name);
         len += strlen(list->table[j].name);
       }
       else {
         char *ans = list->table[j].ans, *arg = list->table[j].args;
-        printf("%s", list->table[j].name);
+        csound->Message(csound, "%s", list->table[j].name);
         len = strlen(list->table[j].name);
         do {
-          printf(" ");
+          csound->Message(csound, " ");
           len++;
         } while (len<10);
         if (ans==NULL || *ans=='\0') ans = "(null)";
         if (arg==NULL || *arg=='\0') arg = "(null)";
-        printf("%s", ans);
+        csound->Message(csound, "%s", ans);
         len = strlen(ans);
         do {
-          printf(" ");
+          csound->Message(csound, " ");
           len++;
         } while (len<8);
-        printf("%s\n", arg);
+        csound->Message(csound, "%s\n", arg);
       }
     }
-    printf("\n");
-    dispose_opcode_list(list);
+    csound->Message(csound, "\n");
+    dispose_opcode_list(csound, list);
 }
+

@@ -46,7 +46,7 @@ void lpcRESET(ENVIRON *csound)
 
 int porset(ENVIRON *csound, PORT *p)
 {
-    p->c2 = (MYFLT)pow(0.5, (double)onedkr / *p->ihtim);
+    p->c2 = (MYFLT)pow(0.5, (double)csound->onedkr / *p->ihtim);
     p->c1 = FL(1.0) - p->c2;
     if (*p->isig >= FL(0.0))
       p->yt1 = *p->isig;
@@ -412,9 +412,9 @@ int lprdset(ENVIRON *csound, LPREAD *p)
         strcpy(lpfilname, unquote(csound->currevent->strarg));
       else strcpy(lpfilname, unquote(p->STRARG));
     }
-    else if ((filno = (long)*p->ifilno) <= strsmax && strsets != NULL &&
-             strsets[filno])
-      strcpy(lpfilname, strsets[filno]);
+    else if ((filno = (long) *p->ifilno) <= csound->strsmax &&
+             csound->strsets != NULL && csound->strsets[filno])
+      strcpy(lpfilname, csound->strsets[filno]);
     else
       sprintf(lpfilname,"lp.%ld",filno);
 
