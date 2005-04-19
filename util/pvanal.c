@@ -239,7 +239,7 @@ static int pvanal(void *csound_, int argc, char **argv)
     char    *infilnam, *outfilnam;
     SNDFILE *infd;
     FILE    *ofd;
-    int     err, channel = 1;
+    int     err, channel = ALLCHNLS;
     int     ovlp = 0;           /* number of overlapping windows to have */
     SOUNDIN *p;                 /* space allocated by SAsndgetset() */
 
@@ -349,7 +349,6 @@ static int pvanal(void *csound_, int argc, char **argv)
     if (ovlp && frameIncr)
       return quit(csound, Str("pvanal cannot have both -w and -h"));
     /* open sndfil, do skiptime */
-    channel = ALLCHNLS; /* we can analyse up to 8 chans with pvxanal! */
     if ((infd = csound->SAsndgetset(csound, infilnam, &p, &beg_time,
                                     &input_dur, &sr, channel)) == NULL) {
       sprintf(err_msg, Str("error while opening %s"), infilnam);
@@ -374,7 +373,8 @@ static int pvanal(void *csound_, int argc, char **argv)
 
     if (ovlp < 2 || ovlp > 16) {
       csound->Message(csound, Str("pvanal: %d is a bad window overlap index\n"),
-                              ovlp);
+                              (int) ovlp);
+      sf_close(infd);
       return -1;
     }
     oframeEst = (p->getframes - frameSize/2) / frameIncr;
@@ -412,6 +412,7 @@ static int pvanal(void *csound_, int argc, char **argv)
                          frameIncr, fftfrmBsiz, PVPVOC, FL(0.0), sr/FL(2.0),
                          PVLIN, 4))) {
         csound->Message(csound, "pvanal: %s\n", PVErrMsg(csound, err));
+        sf_close(infd);
         return -1;
       }
       ofd = NULL;
@@ -422,11 +423,16 @@ static int pvanal(void *csound_, int argc, char **argv)
           csound->Free(csound, fname);
         }
       }
-      if (ofd == NULL)          /* open the output PV file */
+      if (ofd == NULL) {        /* open the output PV file */
+        sf_close(infd);
         return quit(csound, Str("cannot create output file"));
+      }
       /* & wrt hdr into the file */
-      if ((long) fwrite(pvh, 1, pvh->headBsize, ofd) < pvh->headBsize)
+      if ((long) fwrite(pvh, 1, pvh->headBsize, ofd) < pvh->headBsize) {
+        sf_close(infd);
+        fclose(ofd);
         return quit(csound, Str("cannot write header"));
+      }
 #if 0
       dispinit();
       if (verbose) {
@@ -453,13 +459,27 @@ static int pvanal(void *csound_, int argc, char **argv)
     return 0;
 }
 
+static const char *pvanal_usage_txt[] = {
+    "Usage: pvanal [options...] inputSoundfile outputFFTfile",
+    "Options:",
+    "    -c <channel>",
+    "    -b <beginTime>",
+    "    -d <duration>",
+    "    -n <frameSize>",
+    "    -w <windowOverlap> | -h <hopSize>",
+    "    -g | -G <latch>",
+    "    -v | -V <txtFile>",
+    "    -H: use Hamming window instead of Hanning",
+    NULL
+};
+
 static int quit(ENVIRON *csound, char *msg)
 {
+    int i;
+
     csound->Message(csound, "pvanal error: %s\n", msg);
-    csound->Message(csound,
-                    Str("Usage: pvanal [-n<frmsiz>] [-w<windfact> | "
-                        "-h<hopsize>] [-g | -G<latch>] [-v | -V txtfile] "
-                        "inputSoundfile outputFFTfile\n"));
+    for (i = 0; pvanal_usage_txt[i] != NULL; i++)
+      csound->Message(csound, "%s\n", Str(pvanal_usage_txt[i]));
     return -1;
 }
 
@@ -545,7 +565,7 @@ static long takeFFTs(ENVIRON *csound, SOUNDIN *p, PVSTRUCT *outputPVH,
 #endif
     } while (i < oframeEst);
     if (!csound->oparms->displays /* && !verbose */)
-      csound->Message(csound, "%ld\n", (int) i);
+      csound->Message(csound, "%ld\n", (long) i);
     if (i < oframeEst)
       csound->Message(csound, Str("\tearly end of file\n"));
     return((long)i + 1);

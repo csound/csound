@@ -117,13 +117,13 @@ void *SAsndgetset(
                                   "will attempt requested duration"));
     }
     else {
-      if (*ainput_dur == FL(0.0)) {         /* 0 durtim, use to EOF */
+      if (*ainput_dur <= FL(0.0)) {         /* 0 durtim, use to EOF */
         p->getframes = p->framesrem;
         *ainput_dur = (MYFLT) ((double) p->getframes / (double) p->sr);
       }
       /* else chk that input dur is within filetime rem */
       else {
-        p->getframes = (int64_t) p->sr * (int64_t) ((double) *ainput_dur + 0.5);
+        p->getframes = (int64_t) ((double) p->sr * (double) *ainput_dur + 0.5);
         if (p->getframes > p->framesrem) {
           p->getframes = p->framesrem;
           csound->Warning(csound, Str("full requested duration not available"));
