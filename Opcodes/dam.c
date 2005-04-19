@@ -53,8 +53,8 @@ int daminit(ENVIRON *csound, DAM *p)
    /* the computed values are stored in the opcode data structure p */
    /* for later use in the main processing                          */
 
-    p->rspeed = (*p->rtime)*onedsr*FL(1000.0);
-    p->fspeed = (*p->ftime)*onedsr*FL(1000.0);
+    p->rspeed = (*p->rtime)*csound->onedsr*FL(1000.0);
+    p->fspeed = (*p->ftime)*csound->onedsr*FL(1000.0);
 
    /* Initialize power value and buffer */
 

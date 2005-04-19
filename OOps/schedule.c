@@ -320,7 +320,7 @@ int lfoa(ENVIRON *csound, LFO *p)
     MYFLT       *ar, amp;
 
     phs = p->phs;
-    inc = (long)((*p->xcps * (MYFLT)MAXPHASE)*onedsr);
+    inc = (long)((*p->xcps * (MYFLT)MAXPHASE) * csound->onedsr);
     amp = *p->kamp;
     ar = p->res;
     for (n=0; n<csound->ksmps; n++) {

@@ -48,7 +48,7 @@ int metro(ENVIRON *csound, METRO *p)
       *p->sr = FL(1.0);
       p->flag = 0;
     }
-    else if ((phs += *p->xcps * onedkr) >= 1.0) {
+    else if ((phs += *p->xcps * csound->onedkr) >= 1.0) {
       *p->sr = FL(1.0);
       phs -= 1.0;
       p->flag = 0;
@@ -145,7 +145,7 @@ int timeseq_set(ENVIRON *csound, TIMEDSEQ *p)
 
 int timeseq(ENVIRON *csound, TIMEDSEQ *p)
 {
-    MYFLT *table = p->table, minDist = onedkr;
+    MYFLT *table = p->table, minDist = csound->onedkr;
     MYFLT phs = *p->kphs, endseq = p->endSeq;
     int  j,k, numParm = p->numParm, endIndex = p->endIndex;
     while (phs > endseq)

@@ -82,12 +82,12 @@ int foscil(ENVIRON *csound, FOSC *p)
         car = cps * xcar;
         mod = cps * xmod;
         ndx = *p->kndx * mod;
-        minc = (long)(mod * sicvt);
+        minc = (long)(mod * csound->sicvt);
         mphs &= PHMASK;
         fmod = *(ftab + (mphs >>lobits)) * ndx;
         mphs += minc;
         cfreq = car + fmod;
-        cinc = (long)(cfreq * sicvt);
+        cinc = (long)(cfreq * csound->sicvt);
         cphs &= PHMASK;
         ar[n] = *(ftab + (cphs >>lobits)) * amp;
         cphs += cinc;
@@ -99,13 +99,13 @@ int foscil(ENVIRON *csound, FOSC *p)
       car = cps * *carp;
       mod = cps * *modp;
       ndx = *p->kndx * mod;
-      minc = (long)(mod * sicvt);
+      minc = (long)(mod * csound->sicvt);
       for (n=0;n<csound->ksmps;n++) {
         mphs &= PHMASK;
         fmod = *(ftab + (mphs >>lobits)) * ndx;
         mphs += minc;
         cfreq = car + fmod;
-        cinc = (long)(cfreq * sicvt);
+        cinc = (long)(cfreq * csound->sicvt);
         cphs &= PHMASK;
         ar[n] = *(ftab + (cphs >>lobits)) * amp;
         cphs += cinc;
@@ -147,7 +147,7 @@ int foscili(ENVIRON *csound, FOSC *p)
         car = cps * xcar;
         mod = cps * xmod;
         ndx = *p->kndx * mod;
-        minc = (long)(mod * sicvt);
+        minc = (long)(mod * csound->sicvt);
         mphs &= PHMASK;
         fract = PFRAC(mphs);
         ftab = ftp->ftable + (mphs >>lobits);
@@ -155,7 +155,7 @@ int foscili(ENVIRON *csound, FOSC *p)
         fmod = (v1 + (*ftab - v1) * fract) * ndx;
         mphs += minc;
         cfreq = car + fmod;
-        cinc = (long)(cfreq * sicvt);
+        cinc = (long)(cfreq * csound->sicvt);
         cphs &= PHMASK;
         fract = PFRAC(cphs);
         ftab = ftp->ftable + (cphs >>lobits);
@@ -169,7 +169,7 @@ int foscili(ENVIRON *csound, FOSC *p)
       car = cps * *carp;
       mod = cps * *modp;
       ndx = *p->kndx * mod;
-      minc = (long)(mod * sicvt);
+      minc = (long)(mod * csound->sicvt);
       for (n=0;n<csound->ksmps;n++) {
         mphs &= PHMASK;
         fract = PFRAC(mphs);
@@ -178,7 +178,7 @@ int foscili(ENVIRON *csound, FOSC *p)
         fmod = (v1 + (*ftab - v1) * fract) * ndx;
         mphs += minc;
         cfreq = car + fmod;
-        cinc = (long)(cfreq * sicvt);
+        cinc = (long)(cfreq * csound->sicvt);
         cphs &= PHMASK;
         fract = PFRAC(cphs);
         ftab = ftp->ftable + (cphs >>lobits);
@@ -871,9 +871,9 @@ int adset(ENVIRON *csound, ADSYN *p)
       if (p->STRARG == NULL) strcpy(filnam,unquote(csound->currevent->strarg));
       else strcpy(filnam, unquote(p->STRARG));
     }
-    else if ((filno = (long)*p->ifilcod) <= strsmax && strsets != NULL &&
-             strsets[filno])
-      strcpy(filnam, strsets[filno]);
+    else if ((filno = (long) *p->ifilcod) <= csound->strsmax &&
+             csound->strsets != NULL && csound->strsets[filno])
+      strcpy(filnam, csound->strsets[filno]);
     else sprintf(filnam,"adsyn.%ld",filno);/* else adsyn.filnum */
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename,filnam) != 0) {
       if ((mfp = ldmemfile(csound, filnam)) == NULL) {  /*   readfile if reqd */
@@ -947,8 +947,9 @@ int adsyn(ENVIRON *csound, ADSYN *p)
     }
     /* IV - Jul 11 2002 */
     ampscale = *p->kamod * csound->dbfs_to_float; /* since 15-bit sine table */
-    frqscale = *p->kfmod * ISINSIZ * onedsr;
-    timkincr = (long)(*p->ksmod*FL(1024000.0)*onedkr); /* 1024 * msecs of analysis */
+    frqscale = *p->kfmod * ISINSIZ * csound->onedsr;
+    /* 1024 * msecs of analysis */
+    timkincr = (long)(*p->ksmod*FL(1024000.0)*csound->onedkr);
     sp = (long *) p->rslt;                     /* use out array for sums */
     nsmps = csound->ksmps;
     do {

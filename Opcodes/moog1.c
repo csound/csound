@@ -194,8 +194,8 @@ int Moog1(ENVIRON *csound, MOOG1 *p)
     MYFLT       vib = *p->vibAmt;
 
     p->baseFreq = *p->frequency;
-    p->attk.rate = p->baseFreq * FL(0.01) * p->attk.wave->flen * onedsr;
-    p->loop.rate = p->baseFreq            * p->loop.wave->flen * onedsr;
+    p->attk.rate = p->baseFreq * FL(0.01) * p->attk.wave->flen * csound->onedsr;
+    p->loop.rate = p->baseFreq            * p->loop.wave->flen * csound->onedsr;
     p->attackGain = amp * FL(0.5);
     p->loopGain = amp;
     if (*p->filterQ != p->oldfilterQ) {
@@ -216,7 +216,7 @@ int Moog1(ENVIRON *csound, MOOG1 *p)
       p->filters[0].sweepRate = p->oldfilterRate * RATE_NORM;
       p->filters[1].sweepRate = p->oldfilterRate * RATE_NORM;
     }
-    p->vibr.rate = *p->vibf * p->vibr.wave->flen * onedsr;
+    p->vibr.rate = *p->vibf * p->vibr.wave->flen * csound->onedsr;
 
     for (n = 0; n<nsmps; n++) {
       MYFLT     temp;
@@ -227,7 +227,7 @@ int Moog1(ENVIRON *csound, MOOG1 *p)
       if (vib != FL(0.0)) {
         temp = vib * Samp_tick(&p->vibr);
         p->loop.rate = p->baseFreq * (FL(1.0) + temp) *
-                       (MYFLT)(p->loop.wave->flen) * onedsr;
+                       (MYFLT)(p->loop.wave->flen) * csound->onedsr;
       }
 
       p->attk.time += p->attk.rate;           /*  Update current time    */

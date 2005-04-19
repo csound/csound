@@ -32,7 +32,7 @@
 #ifndef MIN_SHORT
 #define MIN_SHORT (-32768)
 #endif
-extern  ENVIRON cenviron;
+
 #define CBAS    0x7F000000
 #define VMAGIC  0x56444154L             /* "VDAT" */
 
@@ -96,3 +96,4 @@ typedef struct  {
 
 PGMBNK *getchnbnk(MCHNBLK*);
 MYFLT *getkeyparms(MCHNBLK*,int);
+

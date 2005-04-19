@@ -32,7 +32,7 @@ int linset(ENVIRON *csound, LINE *p)
     MYFLT       dur;
 
     if ((dur = *p->idur) > FL(0.0)) {
-      p->incr = (*p->ib - *p->ia) / dur * onedkr;
+      p->incr = (*p->ib - *p->ia) / dur * csound->onedkr;
       p->val = *p->ia;
     }
     return OK;
@@ -70,7 +70,7 @@ int expset(ENVIRON *csound, EXPON *p)
       a = *p->ia;
       b = *p->ib;
       if ((a * b) > FL(0.0)) {
-        p->mlt = (MYFLT) pow((double)(b / a),(onedkr/(double)dur));
+        p->mlt = (MYFLT) pow((double)(b / a),(csound->onedkr/(double)dur));
         p->val = a;
       }
       else if (a == FL(0.0))
@@ -259,7 +259,8 @@ static void adsrset1(LINSEG *p, int midip)
       p->cursegp = segp = (SEG *) p->auxch.auxp;
       segp[nsegs-1].cnt = MAXPOS; /* set endcount for safety */
     }
-    else if (**argp > FL(0.0)) memset(p->auxch.auxp, 0, (long)nsegs*sizeof(SEG));
+    else if (**argp > FL(0.0))
+      memset(p->auxch.auxp, 0, (long)nsegs*sizeof(SEG));
     if (**argp <= FL(0.0))  return;       /* if idur1 <= 0, skip init  */
     p->curval = FL(0.0);
     p->curcnt = 0;
@@ -306,7 +307,7 @@ static void adsrset1(LINSEG *p, int midip)
     if ((segp->cnt = (long)(release * csound->ekr + FL(0.5))) == 0)
       segp->cnt = 0;
     if (midip) {
-      p->xtra = (long)(*argp[5] * csound->ekr + FL(0.5));      /* Release time?? */
+      p->xtra = (long)(*argp[5] * csound->ekr + FL(0.5));   /* Release time?? */
       relestim = (p->cursegp + p->segsrem - 1)->cnt;
 /*       printf("MIDI case xtra=%ld release=%ld\n", p->xtra, relestim); */
       if (relestim > p->h.insdshead->xtratim)
@@ -434,7 +435,7 @@ int xsgset(ENVIRON *csound, EXXPSEG *p)
     }
     argp = p->argums;
     nxtval = **argp++;
-    if (**argp <= FL(0.0))  return OK;            /* if idur1 <= 0, skip init  */
+    if (**argp <= FL(0.0))  return OK;          /* if idur1 <= 0, skip init  */
     p->cursegp = segp;                          /* else proceed from 1st seg */
     segp--;
     do {
@@ -514,7 +515,7 @@ int xsgset2(ENVIRON *csound, EXPSEG2 *p)  /*gab-A1 (G.Maldonado) */
 
 
 /***************************************/
-int expseg2(ENVIRON *csound, EXPSEG2 *p)                  /*gab-A1 (G.Maldonado) */
+int expseg2(ENVIRON *csound, EXPSEG2 *p)            /* gab-A1 (G.Maldonado) */
 {
     XSEG        *segp;
     int         n;
@@ -557,9 +558,9 @@ int xdsrset(ENVIRON *csound, EXXPSEG *p)
       csound->AuxAlloc(csound, (long)nsegs*sizeof(XSEG), &p->auxch);
       segp = (XSEG *) p->auxch.auxp;
     }
-    segp[nsegs-1].cnt = MAXPOS; /* set endcount for safety */
-    if (**argp <= FL(0.0))  return OK;            /* if idur1 <= 0, skip init  */
-    p->cursegp = segp;          /* else setup null seg0 */
+    segp[nsegs-1].cnt = MAXPOS;         /* set endcount for safety */
+    if (**argp <= FL(0.0))  return OK;  /* if idur1 <= 0, skip init  */
+    p->cursegp = segp;                  /* else setup null seg0 */
     p->segsrem = nsegs;
     delay += FL(0.001);
     if (delay > len) delay = len; len -= delay;
@@ -707,11 +708,11 @@ int mxdsrset(ENVIRON *csound, EXPSEG *p)
       csound->AuxAlloc(csound, (long)nsegs*sizeof(SEG), &p->auxch);
       segp = (SEG *) p->auxch.auxp;
     }
-    if (**argp <= FL(0.0))  return OK;            /* if idur1 <= 0, skip init  */
-    p->cursegp = segp-1;          /* else setup null seg0 */
+    if (**argp <= FL(0.0))  return OK;  /* if idur1 <= 0, skip init  */
+    p->cursegp = segp-1;                /* else setup null seg0 */
     p->segsrem = nsegs+1;
     p->curval = FL(0.001);
-    p->curcnt = 0;                  /* else setup null seg0         */
+    p->curcnt = 0;                      /* else setup null seg0 */
     delay += FL(0.001);
     attack -= FL(0.001);
     segp[0].nxtpt = FL(0.001);
@@ -723,7 +724,7 @@ int mxdsrset(ENVIRON *csound, EXPSEG *p)
     segp[3].nxtpt = FL(0.001);
     segp[3].cnt = (long) (rel*csound->ekr + FL(0.5));
     relestim = (int) (p->cursegp + p->segsrem - 1)->cnt;
-    p->xtra = (long)(*argp[5] * csound->ekr + FL(0.5));      /* Release time?? */
+    p->xtra = (long)(*argp[5] * csound->ekr + FL(0.5));     /* Release time?? */
     if (relestim > p->h.insdshead->xtratim)
       p->h.insdshead->xtratim = relestim;
     return OK;
@@ -923,7 +924,8 @@ int lnrset(ENVIRON *csound, LINENR *p)
       if (*p->iatdec <= FL(0.0)) {
         return csound->InitError(csound, Str("non-positive iatdec"));
       }
-      else p->mlt2 = (MYFLT) pow((double)*p->iatdec, ((double)onedkr/ *p->idec));
+      else p->mlt2 = (MYFLT) pow((double)*p->iatdec,
+                                 ((double)csound->onedkr / *p->idec));
     }
     else p->mlt2 = FL(1.0);
     p->lin1 = FL(0.0);
@@ -1034,7 +1036,7 @@ int evxset(ENVIRON *csound, ENVLPX *p)
       else asym = FL(0.0);
       if ((irise = *p->irise) > FL(0.0)) {
         p->phs = 0;
-        p->ki = (long) (kicvt / irise);
+        p->ki = (long) (csound->kicvt / irise);
         p->val = *ftp->ftable;
       }
       else {
@@ -1061,7 +1063,7 @@ int evxset(ENVIRON *csound, ENVLPX *p)
           return csound->InitError(csound, Str("non-positive iatdec"));
         }
         p->mlt2 = (MYFLT) pow((double)*p->iatdec,
-                              ((double)onedkr / *p->idec));
+                              ((double)csound->onedkr / *p->idec));
       }
       p->cnt1 = cnt1;
       p->asym = asym;
@@ -1089,7 +1091,8 @@ int knvlpx(ENVIRON *csound, ENVLPX *p)
       if (phs >= MAXLEN) {  /* check that 2**N+1th pnt is good */
         p->val = *(ftp->ftable + ftp->flen );
         if (!p->val) {
-          return csound->PerfError(csound, Str("envlpx rise func ends with zero"));
+          return csound->PerfError(csound,
+                                   Str("envlpx rise func ends with zero"));
         }
         p->val -= p->asym;
         phs = -1L;
@@ -1134,7 +1137,8 @@ int envlpx(ENVIRON *csound, ENVLPX *p)
       if (phs >= MAXLEN) {  /* check that 2**N+1th pnt is good */
         nxtval = *(ftp->ftable + ftp->flen );
         if (!nxtval) {
-          return csound->PerfError(csound, Str("envlpx rise func ends with zero"));
+          return csound->PerfError(csound,
+                                   Str("envlpx rise func ends with zero"));
         }
         nxtval -= p->asym;
         phs = -1;
@@ -1200,7 +1204,7 @@ int evrset(ENVIRON *csound, ENVLPR *p)
     else asym = FL(0.0);
     if ((irise = *p->irise) > FL(0.0)) {
       p->phs = 0L;
-      p->ki = (long) (kicvt / irise);
+      p->ki = (long) (csound->kicvt / irise);
       p->val = *ftp->ftable;
     }
     else {
@@ -1211,7 +1215,7 @@ int evrset(ENVIRON *csound, ENVLPR *p)
     if (!(*(ftp->ftable + ftp->flen))) {
       return csound->InitError(csound, Str("rise func ends with zero"));
     }
-    p->mlt1 = (MYFLT)pow((double)iatss, (double)onedkr);
+    p->mlt1 = (MYFLT)pow((double)iatss, (double)csound->onedkr);
     if (*p->idec > FL(0.0)) {
       long rlscnt = (long)(*p->idec * csound->ekr + FL(0.5));
       if ((p->rindep = (long)*p->irind))

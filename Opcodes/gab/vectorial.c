@@ -702,7 +702,7 @@ int vport(ENVIRON *csound,VPORT *p)
     int elements = p->elements;
     MYFLT *vector = p->vector, *yt1 = p->yt1, c1, c2;
     if (p->prvhtim != *p->khtim) {
-      p->c2 = (MYFLT)pow(0.5, (double)onedkr / *p->khtim);
+      p->c2 = (MYFLT)pow(0.5, (double)csound->onedkr / *p->khtim);
       p->c1 = FL(1.0) - p->c2;
       p->prvhtim = *p->khtim;
     }
@@ -804,7 +804,7 @@ int vrandh(ENVIRON *csound,VRANDH *p)
       *vector++ += *num1++ * value;
     } while (--elements);
 
-    p->phs += (long)(*p->kcps * kicvt);
+    p->phs += (long)(*p->kcps * csound->kicvt);
     if (p->phs >= MAXLEN) {
       p->phs &= PHMASK;
       elements = p->elements;
@@ -858,7 +858,7 @@ int vrandi(ENVIRON *csound,VRANDI *p)
       *vector++ += (*num1++ + (MYFLT)p->phs * *dfdmax++) * value;
     } while (--elements);
 
-    p->phs += (long)(*p->kcps * kicvt);
+    p->phs += (long)(*p->kcps * csound->kicvt);
     if (p->phs >= MAXLEN) {
       p->phs &= PHMASK;
       elements = p->elements;

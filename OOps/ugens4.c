@@ -54,7 +54,7 @@ int buzz(ENVIRON *csound, BUZZ *p)
       return csound->PerfError(csound, Str("buzz: not initialised"));
     }
     ftbl = ftp->ftable;
-    sicvt2 = sicvt * FL(0.5);           /* for theta/2  */
+    sicvt2 = csound->sicvt * FL(0.5);           /* for theta/2  */
     lobits = ftp->lobits;
     lenmask = ftp->lenmask;
     ampp = p->xamp;
@@ -161,7 +161,7 @@ int gbuzz(ENVIRON *csound, GBUZZ *p)
       p->prvn = (short)n;
     }
     scal =  *ampp * p->rsumr;
-    inc = (long)(*cpsp * sicvt);
+    inc = (long)(*cpsp * csound->sicvt);
     ar = p->ar;
     nn = csound->ksmps;
     do {
@@ -183,7 +183,7 @@ int gbuzz(ENVIRON *csound, GBUZZ *p)
       lphs += inc;
       lphs &= PHMASK;
       if (p->cpscod)
-        inc = (long)(*(++cpsp) * sicvt);
+        inc = (long)(*(++cpsp) * csound->sicvt);
     } while (--nn);
     p->last = last;
     p->lphs = lphs;
@@ -203,8 +203,10 @@ int plukset(ENVIRON *csound, PLUCK *p)
     MYFLT       *ap, *fp;
     MYFLT       phs, phsinc;
 
-    if ((npts = (long)(csound->esr / *p->icps))<PLUKMIN)  /* npts is wavelen in sampls */
+    if ((npts = (long)(csound->esr / *p->icps)) < PLUKMIN) {
+                                        /* npts is wavelen in sampls */
       npts = PLUKMIN;                   /*  (but at least min size)  */
+    }
     if ((auxp = p->auxch.auxp) == NULL ||
         npts > p->maxpts) {     /* get newspace    */
       csound->AuxAlloc(csound, (npts+1)*sizeof(MYFLT),&p->auxch);
@@ -226,7 +228,8 @@ int plukset(ENVIRON *csound, PLUCK *p)
     }
     *ap = *(MYFLT *)auxp;                               /* last= copy of 1st */
     p->npts = npts;
-    p->sicps = (npts * FL(256.0) + FL(128.0)) * onedsr; /* tuned pitch convt */
+    /* tuned pitch convt */
+    p->sicps = (npts * FL(256.0) + FL(128.0)) * csound->onedsr;
     p->phs256 = 0;
     p->method = (short)*p->imeth;
     p->param1 = *p->ipar1;
@@ -236,26 +239,31 @@ int plukset(ENVIRON *csound, PLUCK *p)
       break;
     case 2:     /* stretch factor: param1 >= 1 */
       if (p->param1 < FL(1.0))
-        return csound->InitError(csound, Str("illegal stretch factor(param1) value"));
+        return csound->InitError(csound,
+                                 Str("illegal stretch factor(param1) value"));
       else p->thresh1 =  (short)(FL(32768.0) / p->param1);
       break;
     case 3: /* roughness factor: 0 <= param1 <= 1 */
       if (p->param1 < FL(0.0) || p->param1 > FL(1.0))
-        return csound->InitError(csound, Str("illegal roughness factor(param1) value"));
+        return csound->InitError(csound,
+                                 Str("illegal roughness factor(param1) value"));
       else
         p->thresh1 = (short)(FL(32768.0) * p->param1);
       break;
     case 4: /* rough and stretch factor: 0 <= param1 <= 1, param2 >= 1 */
       if (p->param1 < FL(0.0) || p->param1 > FL(1.0))
-        return csound->InitError(csound, Str("illegal roughness factor(param1) value"));
+        return csound->InitError(csound,
+                                 Str("illegal roughness factor(param1) value"));
       else p->thresh1 = (short)(FL(32768.0) * p->param1);
       if (p->param2 < FL(1.0))
-        return csound->InitError(csound, Str("illegal stretch factor(param2) value"));
+        return csound->InitError(csound,
+                                 Str("illegal stretch factor(param2) value"));
       else p->thresh2 = (short)(FL(32768.0) / p->param2);
       break;
     case 5: /* weighting coeff's: param1 + param2 <= 1 */
       if (p->param1 + p->param2 > 1)
-        return csound->InitError(csound, Str("coefficients too large(param1 + param2)"));
+        return csound->InitError(csound, Str("coefficients too large "
+                                             "(param1 + param2)"));
       break;
     case 6: /* ignore any given parameters */
       break;
@@ -281,7 +289,8 @@ int pluck(ENVIRON *csound, PLUCK *p)
     phs256 = p->phs256;
     ltwopi = p->npts << 8;
     if (phsinc > ltwopi) {
-      return csound->PerfError(csound, Str("pluck: kcps more than sample rate"));
+      return csound->PerfError(csound,
+                               Str("pluck: kcps more than sample rate"));
     }
     nsmps = csound->ksmps;
     do {
@@ -362,7 +371,7 @@ int pluck(ENVIRON *csound, PLUCK *p)
 #define MASK16   0xFFFFL
 #define MASK15   0x7FFFL
 
-static short rand16(void) 
+static short rand16(void)
 {         /* quick generate a random short between -32768 and 32767 */
     static long rand = 1000;
     rand *= RNDMUL;
@@ -371,7 +380,7 @@ static short rand16(void)
     return (short)rand;
 }
 
-static short rand15(void) 
+static short rand15(void)
 {              /* quick generate a random short between 0 and 32767 */
     static long rand = 1000;
     rand *= RNDMUL;
@@ -566,12 +575,12 @@ int krandh(ENVIRON *csound, RANDH *p)
 {
     /* IV - Jul 11 2002 */
     *p->ar = *p->base + p->num1 * *p->xamp;     /* rslt = num * amp     */
-    p->phs += (long)(*p->xcps * kicvt);         /* phs += inc           */
+    p->phs += (long)(*p->xcps * csound->kicvt); /* phs += inc           */
     if (p->phs >= MAXLEN) {                     /* when phs overflows,  */
       p->phs &= PHMASK;                         /*      mod the phs     */
       if (!p->new) {
         short rand = (short)p->rand;
-        rand *= RNDMUL;                 /*      & recalc number */
+        rand *= RNDMUL;                         /*      & recalc number */
         rand += 1;
         p->num1 = (MYFLT)rand * DV32768;        /* IV - Jul 11 2002 */
         p->rand = rand;
@@ -595,7 +604,7 @@ int randh(ENVIRON *csound, RANDH *p)
     cpsp = p->xcps;
     ampp = p->xamp;
     ar = p->ar;
-    inc = (long)(*cpsp++ * sicvt);
+    inc = (long)(*cpsp++ * csound->sicvt);
     do {
       /* IV - Jul 11 2002 */
       *ar++ = base + p->num1 * *ampp;   /* rslt = num * amp */
@@ -603,7 +612,7 @@ int randh(ENVIRON *csound, RANDH *p)
         ampp++;
       phs += inc;                               /* phs += inc       */
       if (p->cpscod)
-        inc = (long)(*cpsp++ * sicvt);
+        inc = (long)(*cpsp++ * csound->sicvt);
       if (phs >= MAXLEN) {                      /* when phs o'flows, */
         phs &= PHMASK;
         if (!p->new) {
@@ -682,14 +691,14 @@ int krandi(ENVIRON *csound, RANDI *p)
 {                                       /* rslt = (num1 + diff*phs) * amp */
     /* IV - Jul 11 2002 */
     *p->ar = *p->base + (p->num1 + (MYFLT)p->phs * p->dfdmax) * *p->xamp;
-    p->phs += (long)(*p->xcps * kicvt); /* phs += inc           */
-    if (p->phs >= MAXLEN) {             /* when phs overflows,  */
-      p->phs &= PHMASK;                 /*      mod the phs     */
+    p->phs += (long)(*p->xcps * csound->kicvt); /* phs += inc           */
+    if (p->phs >= MAXLEN) {                     /* when phs overflows,  */
+      p->phs &= PHMASK;                         /*      mod the phs     */
       if (!p->new) {
         short rand = p->rand;
-        rand *= RNDMUL;         /*      recalc random   */
+        rand *= RNDMUL;                         /*      recalc random   */
         rand += 1;
-        p->num1 = p->num2;              /*      & new num vals  */
+        p->num1 = p->num2;                      /*      & new num vals  */
         p->num2 = (MYFLT)rand * DV32768;        /* IV - Jul 11 2002 */
         p->rand = rand;
       }
@@ -714,7 +723,7 @@ int randi(ENVIRON *csound, RANDI *p)
     cpsp = p->xcps;
     ampp = p->xamp;
     ar = p->ar;
-    inc = (long)(*cpsp++ * sicvt);
+    inc = (long)(*cpsp++ * csound->sicvt);
     do {
       /* IV - Jul 11 2002 */
       *ar++ = base + (p->num1 + (MYFLT)phs * p->dfdmax) * *ampp;
@@ -722,7 +731,7 @@ int randi(ENVIRON *csound, RANDI *p)
         ampp++;
       phs += inc;                               /* phs += inc       */
       if (p->cpscod)
-        inc = (long)(*cpsp++ * sicvt);          /*   (nxt inc)      */
+        inc = (long)(*cpsp++ * csound->sicvt);  /*   (nxt inc)      */
       if (phs >= MAXLEN) {                      /* when phs o'flows, */
         phs &= PHMASK;
         if (!p->new) {

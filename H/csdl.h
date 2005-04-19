@@ -31,20 +31,6 @@ extern "C" {
 #include "csoundCore.h"
 #include <limits.h>
 
-#define strsets             csound->strsets_
-#define strsmax             csound->strsmax_
-#define zkstart             csound->zkstart_
-#define zastart             csound->zastart_
-#define zklast              csound->zklast_
-#define zalast              csound->zalast_
-#define onedkr              csound->onedkr_
-#define onedsr              csound->onedsr_
-#define kicvt               csound->kicvt_
-#define sicvt               csound->sicvt_
-#define opcodlst            csound->opcodlst_
-#define oplstend            csound->oplstend_
-#define Linevtblk           csound->Linevtblk_
-#define Linefd              csound->Linefd_
 #define ls_table            csound->ls_table_
 #define orchname            csound->orchname_
 #define scorename           csound->scorename_

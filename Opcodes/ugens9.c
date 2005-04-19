@@ -46,9 +46,9 @@ static int cvset(ENVIRON *csound, CONVOLVE *p)
       else
         strcpy(cvfilnam, csound->unquote_(p->STRARG));
     }
-    else if ((long)*p->ifilno <= strsmax && strsets != NULL &&
-             strsets[(long)*p->ifilno])
-      strcpy(cvfilnam, strsets[(long)*p->ifilno]);
+    else if ((long) *p->ifilno <= csound->strsmax && csound->strsets != NULL &&
+             csound->strsets[(long) *p->ifilno])
+      strcpy(cvfilnam, csound->strsets[(long) *p->ifilno]);
     else sprintf(cvfilnam,
                  "convolve.%d", (int)*p->ifilno); /* else convolve.filnum   */
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename, cvfilnam) != 0)
@@ -378,8 +378,9 @@ static int pconvset(ENVIRON *csound, PCONVOLVE *p)
     }
     else {
       long filno = (long) ((double) *p->ifilno + 0.5);
-      if (filno >= 0 && filno <= strsmax && strsets != NULL && strsets[filno])
-        strcpy(IRfile.sfname, strsets[filno]);
+      if (filno >= 0 && filno <= csound->strsmax && csound->strsets != NULL &&
+          csound->strsets[filno])
+        strcpy(IRfile.sfname, csound->strsets[filno]);
       else
         sprintf(IRfile.sfname, "soundin.%ld", filno);   /* soundin.filno */
     }

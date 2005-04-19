@@ -84,8 +84,6 @@
 #define MyPS_FONT      "/Times-Roman"
 #define MyPS_FONTSIZE  (FL(20.0))
 
-extern OPARMS O;                         /* Get sound output file name       */
-
 static int   winPSinitialized = 0;
 static int   psFileOk = 0;               /* Flag for ``psFile opened O.K.''  */
 static FILE *psFile;

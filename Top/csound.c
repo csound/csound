@@ -1122,7 +1122,7 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
     /* dispose_opcode_list(list); */
   }
 
-  PUBLIC int csoundAppendOpcode(void *csound,
+  PUBLIC int csoundAppendOpcode(void *csound_,
                                 char *opname,
                                 int dsblksiz,
                                 int thread,
@@ -1133,22 +1133,21 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
                                 int (*aopadr)(void *, void *),
                                 int (*dopadr)(void *, void *))
   {
-    int oldSize = (int)((char *)((ENVIRON *)csound)->oplstend_ -
-                        (char *)((ENVIRON *)csound)->opcodlst_);
+    ENVIRON *csound = (ENVIRON*) csound_;
+    int oldSize = (int) ((char*) csound->oplstend - (char*) csound->opcodlst);
     int newSize = oldSize + sizeof(OENTRY);
     int oldCount = oldSize / sizeof(OENTRY);
     int newCount = oldCount + 1;
-    OENTRY *oldOpcodlst = ((ENVIRON *)csound)->opcodlst_;
-    ((ENVIRON *)csound)->opcodlst_ =
-      (OENTRY *) mrealloc(csound, ((ENVIRON *)csound)->opcodlst_, newSize);
-    if(!((ENVIRON *)csound)->opcodlst_) {
-      ((ENVIRON *)csound)->opcodlst_ = oldOpcodlst;
+    OENTRY *oldOpcodlst = csound->opcodlst;
+    csound->opcodlst = (OENTRY*) mrealloc(csound, csound->opcodlst, newSize);
+    if (!csound->opcodlst) {
+      csound->opcodlst = oldOpcodlst;
       csoundMessage(csound, "Failed to allocate new opcode entry.\n");
       return -1;
     }
     else {
-      OENTRY *oentry = ((ENVIRON *)csound)->opcodlst_ + oldCount;
-      ((ENVIRON *)csound)->oplstend_ = ((ENVIRON *)csound)->opcodlst_ + newCount;
+      OENTRY *oentry = csound->opcodlst + oldCount;
+      csound->oplstend = csound->opcodlst + newCount;
       oentry->opname = opname;
       oentry->dsblksiz = dsblksiz;
       oentry->thread = thread;

@@ -2083,8 +2083,9 @@ static void gen01raw(FUNC *ftp, ENVIRON *csound)
       int   fmt = (int) RNDINT(ff->e.p[7]);
       if (filno == (long) SSTRCOD)
         strcpy(p->sfname, unquote(ff->e.strarg));
-      else if (filno >= 0 && filno <= strsmax && strsets && strsets[filno])
-        strcpy(p->sfname, strsets[filno]);
+      else if (filno >= 0 && filno <= csound->strsmax &&
+               csound->strsets && csound->strsets[filno])
+        strcpy(p->sfname, csound->strsets[filno]);
       else
         sprintf(p->sfname, "soundin.%ld", filno);   /* soundin.filno */
       switch (fmt) {
@@ -2133,7 +2134,7 @@ static void gen01raw(FUNC *ftp, ENVIRON *csound)
       def           = 1;
     }
     ftp->gen01args.sample_rate = csound->curr_func_sr;
-    ftp->cvtbas = LOFACT * p->sr * onedsr;
+    ftp->cvtbas = LOFACT * p->sr * csound->onedsr;
     if ((adp = p->aiffdata) != NULL) {       /* if file was aiff,    */
       csound->Message(csound, Str("AIFF case\n"));
       /* set up some necessary header stuff if not in aiff file */
@@ -2753,8 +2754,9 @@ void gen43(FUNC *ftp, ENVIRON *csound)
     if (*filno == SSTRCOD) {
       strcpy(filename, (char *)(&ff->e.strarg[0]));
     }
-    else if ((long)*filno < strsmax && strsets != NULL && strsets[(long)*filno])
-      strcpy(filename, strsets[(long)*filno]);
+    else if ((long) *filno < csound->strsmax && csound->strsets != NULL &&
+             csound->strsets[(long) *filno])
+      strcpy(filename, csound->strsets[(long)*filno]);
     else sprintf(filename,"pvoc.%d", (int)*filno); /* pvoc.filnum   */
     if (!pvx_loadfile_mem(filename,&p, &mfp)) csoundDie(csound, errmsg);
 

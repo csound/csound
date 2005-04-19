@@ -91,7 +91,6 @@ void    rlsmemfiles(void*);
 int     delete_memfile(void*, const char*);
 int     find_memfile(void*, const char*, MEMFIL**);
 void    add_memfil(void*, MEMFIL*);
-void    err_printf(char *, ...);
 
 #ifdef WIN32
 #define tmpnam mytmpnam
@@ -103,10 +102,17 @@ int     getsndin(void*, void*, MYFLT*, int, void*);
 void    *sndgetset(void*, void*);
 int     sreadin(void*, void*, MYFLT*, int, void*);
 
-void csoundPrintf(const char *format, ...);
-
+#ifdef HAVE_GCC3
+__attribute__ ((__deprecated__)) void csoundPrintf(const char *format, ...);
+__attribute__ ((__deprecated__)) void err_printf(char *, ...);
+extern  __attribute__ ((__deprecated__)) OPARMS  O;
+extern  __attribute__ ((__deprecated__)) ENVIRON cenviron;
+#else
+void    csoundPrintf(const char *format, ...);
+void    err_printf(char *, ...);
 extern  OPARMS  O;
 extern  ENVIRON cenviron;
+#endif
 extern  int     fltk_abort;
 extern  MYFLT   *inbuf;
 extern  MYFLT   *outbuf;

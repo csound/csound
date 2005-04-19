@@ -223,8 +223,9 @@ int sndinset(ENVIRON *csound, SOUNDIN_ *p) /* init routine for instr soundin */
     }
     else {
       long filno = (long) ((double) *p->ifilno + 0.5);
-      if (filno >= 0 && filno <= strsmax && strsets != NULL && strsets[filno])
-        strcpy(p->sndin_.sfname, strsets[filno]);
+      if (filno >= 0 && filno <= csound->strsmax &&
+          csound->strsets != NULL && csound->strsets[filno])
+        strcpy(p->sndin_.sfname, csound->strsets[filno]);
       else
         sprintf(p->sndin_.sfname, "soundin.%ld", filno);  /* soundin.filno */
     }
