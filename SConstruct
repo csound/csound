@@ -830,8 +830,8 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('dnoise',
 #    ['util/lpanal.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('pvanal',
     ['util/pvanal.c']))
-#pluginLibraries.append(pluginEnvironment.SharedLibrary('pvlook',
-#    ['util/pvlook.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('pvlook',
+    ['util/pvlook.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('sndinfo',
     ['util/sndinfo.c']))
 
