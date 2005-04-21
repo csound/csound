@@ -1,3 +1,10 @@
+2005-04-14  Michael Gogins <gogins@pipeline.com>
+	* Added (very) basic Java GUI front end for Csound.
+	It is the main class in CsoundVST.jar. To be extended.
+	The purpose of this work is to embed Csound5 in Kandid,
+	an interactive graphics program for evolving pictures, and
+	adapt Kandid for evolving pieces.
+
 2005-04-18	Istvan Varga	<istvan@csounds.com>
 	* Top/utility.c, H/cs_util.h:
 	  new files for dynamically loading utilities
