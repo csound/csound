@@ -624,8 +624,8 @@ void sread_init(void)
     input_size = 20;
     input_cnt = 0;
     str = inputs;
-    str->file = SCOREIN;
-    str->string = 0; str->body = scorename;
+    str->file = csound->scorein;
+    str->string = 0; str->body = csound->scorename;
     str->line = 1; str->mac = NULL;
 }
 
@@ -1415,7 +1415,7 @@ static int sget1(void)          /* get first non-white, non-comment char */
         }
         str++;
         str->string = 0;
-        str->file = fopen_path(csound, mname, scorename, "INCDIR");
+        str->file = fopen_path(csound, mname, csound->scorename, "INCDIR");
         if (str->file==0) {
           char buff[256];
           sprintf(buff,Str("Cannot open #include'd file %s\n"), mname);

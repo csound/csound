@@ -21,15 +21,15 @@
     02111-1307 USA
 */
 
-#include "cs.h"                         /*                      CSCORFNS.C      */
+#include "cs.h"             /*                      CSCORFNS.C      */
 #include "cscore.h"
 
 #define TYP_FREE   0
 #define TYP_EVENT  1
 #define TYP_EVLIST 2
 #define TYP_SPACE  3
-#define WMYFLTS    4       /* extra floats for warped events */
-#define NSLOTS     100     /* default slots in lcreat list   */
+#define WMYFLTS    4        /* extra floats for warped events */
+#define NSLOTS     100      /* default slots in lcreat list   */
 #define MAXALLOC   32768L
 
 typedef struct space {
@@ -275,31 +275,31 @@ void putev(EVENT *e)                      /* put an event to cscore outfile */
         int  c = e->op;
 
         if (c == 's')  warpout = 0;     /* new section:  init to non-warped */
-        putc(c, oscfp);
+        putc(c, cenviron.oscfp);
         q = &e->p[1];
         if ((pcnt = e->pcnt)) {
-            if (pcnt--)         fprintf(oscfp," %g",*q++);
+            if (pcnt--)         fprintf(cenviron.oscfp," %g",*q++);
             else goto termin;
             if (pcnt--) {
-                if (warpout)    fprintf(oscfp," %g", e->p2orig);
-                                fprintf(oscfp," %g",*q++);
+                if (warpout)    fprintf(cenviron.oscfp," %g", e->p2orig);
+                                fprintf(cenviron.oscfp," %g",*q++);
             }
             else goto termin;
             if (pcnt--) {
-                if (warpout)    fprintf(oscfp," %g", e->p3orig);
-                                fprintf(oscfp," %g",*q++);
+                if (warpout)    fprintf(cenviron.oscfp," %g", e->p3orig);
+                                fprintf(cenviron.oscfp," %g",*q++);
             }
             else goto termin;
             while (pcnt--)
-                fprintf(oscfp," %g",*q++);
+                fprintf(cenviron.oscfp," %g",*q++);
         }
-termin: putc((int)'\n', oscfp);
+termin: putc((int)'\n', cenviron.oscfp);
         if (c == 'w')  warpout = 1; /* was warp statement: sect now warped */
 }
 
 void putstr(char *s)
 {
-        fprintf(oscfp,"%s\n", s);
+        fprintf(cenviron.oscfp,"%s\n", s);
         if (*s == 's')  warpout = 0;
         else if (*s == 'w') warpout = 1;
 }
@@ -679,7 +679,8 @@ static void savinfdata(         /* store input file data */
         int    n;
 
         if ((infp = infiles) == NULL) {
-            infp = infiles = (INFILE *) mcalloc(&cenviron, (long)MAXOPEN * sizeof(INFILE));
+            infp = infiles = (INFILE *) mcalloc(&cenviron, MAXOPEN
+                                                           * sizeof(INFILE));
             goto save;
         }
         for (n = MAXOPEN; n--; infp++)
@@ -708,7 +709,7 @@ static void makecurrent(FILE *fp)
         if ((infp = infiles) != NULL)
             for (n = MAXOPEN; n--; infp++)
                 if (infp->iscfp == fp) {
-                    scfp = fp;
+                    cenviron.scfp = fp;
                     nxtevt = infp->next;
                     nxtevtblk = (EVTBLK *) &nxtevt->strarg;
                     curuntil = infp->until;
@@ -727,13 +728,14 @@ void cscorinit(void)            /* verify initial scfp, init other data */
 {                               /* record & make all this current       */
         EVENT *next;
 
-        if (scfp == NULL) {
+        if (cenviron.scfp == NULL) {
             printf(Str("cscorinit: scorin not yet open"));
             exit(0);
         }
-        next = createv(PMAX);              /* creat EVENT blk receiving buf */
-        savinfdata(scfp, next, FL(0.0), 1, 0);/* curuntil 0, wasend, non-warp  */
-        makecurrent(scfp);                 /* make all this current         */
+        next = createv(PMAX);               /* creat EVENT blk receiving buf */
+        savinfdata(cenviron.scfp,
+                   next, FL(0.0), 1, 0);    /* curuntil 0, wasend, non-warp  */
+        makecurrent(cenviron.scfp);         /* make all this current         */
 }
 
 FILE *filopen(char *name)       /* open new cscore input file, init data */
@@ -766,7 +768,7 @@ void filclose(FILE *fp)
                     infp->iscfp = NULL;
                     mfree(&cenviron, (char *)infp->next);
                     fclose(fp);
-                    if (scfp == fp) scfp = NULL;
+                    if (cenviron.scfp == fp) cenviron.scfp = NULL;
                     return;
                 }
         printf(Str("filclose: fp not recorded\n"));
@@ -774,18 +776,18 @@ void filclose(FILE *fp)
 
 FILE *getcurfp(void)
 {
-        if (scfp == NULL) {
+        if (cenviron.scfp == NULL) {
             printf(Str("getcurfp: no fp current\n"));
             exit(0);
         }
-        return(scfp);
+        return(cenviron.scfp);
 }
 
 void setcurfp(FILE *fp)         /* save the current infil states */
                                 /* make fp & its states current  */
 {
-        if (scfp != NULL)
-            savinfdata(scfp, nxtevt, curuntil, wasend, warped);
+        if (cenviron.scfp != NULL)
+            savinfdata(cenviron.scfp, nxtevt, curuntil, wasend, warped);
         makecurrent(fp);
 }
 
@@ -801,3 +803,4 @@ int lcount(EVLIST *a)                   /* count entries in event list */
       n++;
     return(n);
 }
+

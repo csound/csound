@@ -61,7 +61,7 @@ int pitchset(ENVIRON *csound, PITCH *p)    /* pitch - uses specta technology */
     MYFLT   weight, weightsum, dbthresh, ampthresh;
 
                                 /* RMS of input signal */
-    b = FL(2.0) - (MYFLT)cos((double)(10.0 * tpidsr));
+    b = FL(2.0) - (MYFLT)cos((double)(10.0 * csound->tpidsr));
     p->c2 = b - (MYFLT)sqrt((double)(b * b - 1.0));
     p->c1 = FL(1.0) - p->c2;
     if (!*p->istor) p->prvq = FL(0.0);

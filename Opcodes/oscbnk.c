@@ -433,8 +433,8 @@ static int oscbnk(ENVIRON *csound, OSCBNK *p)
     p->lf2_scl = (*(p->args[10]) - *(p->args[9])) / csound->ekr;
     p->lf2_ofs = *(p->args[9]) / csound->ekr;         /* LFO2 freq.   */
     if (p->ieqmode >= 0) {
-      p->eqo_scl = (*(p->args[13]) - *(p->args[12])) * tpidsr;
-      p->eqo_ofs = *(p->args[12]) * tpidsr;           /* EQ omega */
+      p->eqo_scl = (*(p->args[13]) - *(p->args[12])) * csound->tpidsr;
+      p->eqo_ofs = *(p->args[12]) * csound->tpidsr;   /* EQ omega */
       p->eql_scl = *(p->args[15]) - (p->eql_ofs= *(p->args[14]));/* EQ level */
       p->eqq_scl = *(p->args[17]) - (p->eqq_ofs= *(p->args[16]));/* EQ Q     */
     }
@@ -1994,7 +1994,7 @@ static int vco2set(ENVIRON *csound, VCO2 *p)
     if (x > FL(0.5)) x = FL(0.5);
     p->p_min = x / (MYFLT) VCO2_MAX_NPART;
     p->p_scl = x;
-    p->dv_ksmps = FL(1.0) / ensmps;
+    p->dv_ksmps = FL(1.0) / csound->ensmps;
     return OK;
 }
 

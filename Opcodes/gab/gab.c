@@ -62,12 +62,12 @@ int kresonx(ENVIRON *csound, KRESONX *p) /* Gabriel Maldonado, modified  */
 
     if (*p->kcf != p->prvcf) {
       p->prvcf = *p->kcf;
-      p->cosf = (MYFLT) cos((double)(*p->kcf * tpidsr * csound->ksmps));
+      p->cosf = (MYFLT) cos((double)(*p->kcf * csound->tpidsr * csound->ksmps));
       flag = 1;
     }
     if (*p->kbw != p->prvbw) {
       p->prvbw = *p->kbw;
-      p->c3 = (MYFLT) exp((double)(*p->kbw * mtpdsr * csound->ksmps));
+      p->c3 = (MYFLT) exp((double)(*p->kbw * csound->mtpdsr * csound->ksmps));
       flag = 1;
     }
     if (flag) {
@@ -480,7 +480,7 @@ int adsynt2(ENVIRON *csound,ADSYNT2 *p)
       cps = *freqtbl++ * cps0;
       inc = (long) (cps * csound->sicvt);
       phs = *lphs;
-      ampIncr = (amp - *prevAmp) / ensmps;
+      ampIncr = (amp - *prevAmp) / csound->ensmps;
       do {
         *ar++ += *(ftbl + (phs >> lobits)) * amp2;
         phs += inc;

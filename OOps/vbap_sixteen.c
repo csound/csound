@@ -194,10 +194,10 @@ int vbap_SIXTEEN_init(ENVIRON *csound, VBAP_SIXTEEN  *p)
     int i,j;
     MYFLT *ptr;
     LS_SET *ls_set_ptr;
-    p->dim       = (int) ls_table[0];   /*reading in loudspeaker info */
-    p->ls_am     = (int) ls_table[1];
-    p->ls_set_am = (int) ls_table[2];
-    ptr = &(ls_table[3]);
+    p->dim       = (int) cenviron.ls_table[0];   /*reading in loudspeaker info */
+    p->ls_am     = (int) cenviron.ls_table[1];
+    p->ls_set_am = (int) cenviron.ls_table[2];
+    ptr = &(cenviron.ls_table[3]);
     csound->AuxAlloc(csound, p->ls_set_am * sizeof (LS_SET), &p->aux);
     if (p->aux.auxp==NULL) {
       return csound->InitError(csound, Str("could not allocate memory"));
@@ -470,10 +470,10 @@ int vbap_SIXTEEN_moving_init(ENVIRON *csound, VBAP_SIXTEEN_MOVING  *p)
     MYFLT *ptr;
     LS_SET *ls_set_ptr;
     /*reading in loudspeaker info */
-    p->dim       = (int) ls_table[0];
-    p->ls_am     = (int) ls_table[1];
-    p->ls_set_am = (int) ls_table[2];
-    ptr = &(ls_table[3]);
+    p->dim       = (int) cenviron.ls_table[0];
+    p->ls_am     = (int) cenviron.ls_table[1];
+    p->ls_set_am = (int) cenviron.ls_table[2];
+    ptr = &(cenviron.ls_table[3]);
     csound->AuxAlloc(csound, p->ls_set_am * sizeof (LS_SET), &p->aux);
     if (p->aux.auxp == NULL) {
       return csound->InitError(csound, Str("could not allocate memory"));

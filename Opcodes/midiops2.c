@@ -218,8 +218,8 @@ int imidic21(ENVIRON *csound, MIDICTL4 *p)
         MYFLT phase;
         MYFLT *base;
         if (ftp == NULL) {
-          sprintf(errmsg, Str("Invalid ftable no. %f"), p->ifn);
-          return csound->InitError(csound, errmsg);
+          sprintf(csound->errmsg, Str("Invalid ftable no. %f"), p->ifn);
+          return csound->InitError(csound, csound->errmsg);
         }
         phase = value * ftp->flen;
         base = ftp->ftable + (long)(phase);
@@ -303,7 +303,8 @@ int ictrl7(ENVIRON *csound, CTRL7 *p)
     if ((ctlno = (long)*p->ictlno) < 0 || ctlno > 127)
       return csound->InitError(csound, Str("illegal controller number"));
     else {
-      value = (MYFLT)(M_CHNBP[(int) *p->ichan-1]->ctl_val[ctlno]* oneTOf7bit);
+      value = (MYFLT) (csound->m_chnbp[(int) *p->ichan-1]->ctl_val[ctlno]
+                       * oneTOf7bit);
       if (*p->ifn > 0) {
         if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
           return NOTOK;               /* if valid ftable,use value as index   */
@@ -338,8 +339,8 @@ int ctrl7set(ENVIRON *csound, CTRL7 *p)
 
 int ctrl7(ENVIRON *csound, CTRL7 *p)
 {
-    MYFLT value = (MYFLT) (M_CHNBP[(int) *p->ichan-1]->ctl_val[p->ctlno] *
-                           oneTOf7bit);
+    MYFLT value = (MYFLT) (csound->m_chnbp[(int) *p->ichan-1]->ctl_val[p->ctlno]
+                           * oneTOf7bit);
     if (p->flag)  {             /* if valid ftable,use value as index   */
       value =
         *(p->ftp->ftable + (long)(value*p->ftp->flen)); /* no interpolation */
@@ -364,8 +365,8 @@ int ictrl14(ENVIRON *csound, CTRL14 *p)
     else if ((chan=(int) *p->ichan-1) < 0 || chan > 15)
       return csound->InitError(csound, Str("illegal midi channel"));
     else {
-      value = (MYFLT)((M_CHNBP[chan]->ctl_val[ctlno1] * 128 +
-                       M_CHNBP[chan]->ctl_val[ctlno2]) * oneTOf14bit);
+      value = (MYFLT)((csound->m_chnbp[chan]->ctl_val[ctlno1] * 128 +
+                       csound->m_chnbp[chan]->ctl_val[ctlno2]) * oneTOf14bit);
 
       if (*p->ifn > 0) {
         /* linear interpolation routine */
@@ -373,8 +374,8 @@ int ictrl14(ENVIRON *csound, CTRL14 *p)
         MYFLT phase;
         MYFLT *base;
         if (ftp == NULL) {
-          sprintf(errmsg, Str("Invalid ftable no. %f"), p->ifn);
-          return csound->InitError(csound, errmsg);
+          sprintf(csound->errmsg, Str("Invalid ftable no. %f"), p->ifn);
+          return csound->InitError(csound, csound->errmsg);
         }
         phase = value * ftp->flen;
         base = ftp->ftable + (long)(phase);
@@ -415,8 +416,8 @@ int ctrl14(ENVIRON *csound, CTRL14 *p)
     MYFLT value;
     int chan=(int) *p->ichan-1;
 
-    value = (MYFLT)((M_CHNBP[chan]->ctl_val[p->ctlno1] * 128 +
-                     M_CHNBP[chan]->ctl_val[p->ctlno2]) * oneTOf14bit);
+    value = (MYFLT)((csound->m_chnbp[chan]->ctl_val[p->ctlno1] * 128 +
+                     csound->m_chnbp[chan]->ctl_val[p->ctlno2]) * oneTOf14bit);
 
     if (p->flag)  {             /* if valid ftable,use value as index   */
                                 /* linear interpolation routine */
@@ -447,9 +448,9 @@ int ictrl21(ENVIRON *csound, CTRL21 *p)
     else if ((chan=(int) *p->ichan-1) < 0 || chan > 15)
       return csound->InitError(csound, Str("illegal midi channel"));
     else {
-      value = (MYFLT)((M_CHNBP[chan]->ctl_val[ctlno1] * 16384 +
-                       M_CHNBP[chan]->ctl_val[ctlno2] * 128   +
-                       M_CHNBP[chan]->ctl_val[ctlno3]) * oneTOf21bit);
+      value = (MYFLT)((csound->m_chnbp[chan]->ctl_val[ctlno1] * 16384 +
+                       csound->m_chnbp[chan]->ctl_val[ctlno2] * 128   +
+                       csound->m_chnbp[chan]->ctl_val[ctlno3]) * oneTOf21bit);
 
       if (*p->ifn > 0) {
         /* linear interpolation routine */
@@ -457,8 +458,8 @@ int ictrl21(ENVIRON *csound, CTRL21 *p)
         MYFLT phase;
         MYFLT *base;
         if (ftp == NULL) {
-          sprintf(errmsg, Str("Invalid ftable no. %f"), p->ifn);
-          return csound->InitError(csound, errmsg);
+          sprintf(csound->errmsg, Str("Invalid ftable no. %f"), p->ifn);
+          return csound->InitError(csound, csound->errmsg);
         }
         phase = value * ftp->flen;
         base = ftp->ftable + (long)(phase);
@@ -501,9 +502,9 @@ int ctrl21(ENVIRON *csound, CTRL21 *p)
 {
     MYFLT value;
     int chan=(int) *p->ichan-1;
-    value = (M_CHNBP[chan]->ctl_val[p->ctlno1] * 16384 +
-             M_CHNBP[chan]->ctl_val[p->ctlno2] * 128   +
-             M_CHNBP[chan]->ctl_val[p->ctlno3]) / f21bit;
+    value = (csound->m_chnbp[chan]->ctl_val[p->ctlno1] * 16384 +
+             csound->m_chnbp[chan]->ctl_val[p->ctlno2] * 128   +
+             csound->m_chnbp[chan]->ctl_val[p->ctlno3]) / f21bit;
 
     if (p->flag)  {     /* if valid ftable,use value as index   */
         /* linear interpolation routine */
@@ -522,9 +523,12 @@ int initc7(ENVIRON *csound, INITC7 *p) /* for setting a precise value use the fo
     int chan;
     if ((fvalue = *p->ivalue) < 0. || fvalue > 1. )
       return csound->InitError(csound, Str("value out of range"));
-    else if ((chan=(int) *p->ichan-1) < 0 || chan > 15 || !M_CHNBP[chan])
+    else if ((chan = (int) *p->ichan-1) < 0 || chan > 15 ||
+             !csound->m_chnbp[chan])
       return csound->InitError(csound, Str("illegal midi channel"));
-    else M_CHNBP[chan]->ctl_val[(int) *p->ictlno] = fvalue * f7bit + FL(0.5);
+    else
+      csound->m_chnbp[chan]->ctl_val[(int) *p->ictlno] = fvalue * f7bit
+                                                         + FL(0.5);
     return OK;
 }
 
@@ -534,14 +538,15 @@ int initc14(ENVIRON *csound, INITC14 *p)
     int value, msb, lsb, chan;
     if ((fvalue = *p->ivalue) < FL(0.0) || fvalue > FL(1.0) )
       return csound->InitError(csound, Str("value out of range"));
-    else if ((chan=(int) *p->ichan-1) < 0 || chan > 15 || !M_CHNBP[chan])
+    else if ((chan = (int) *p->ichan - 1) < 0 || chan > 15 ||
+             !csound->m_chnbp[chan])
       return csound->InitError(csound, Str("illegal midi channel"));
     else {
       value = (int)(fvalue * f14bit +FL(0.5));
       msb = value >> 7;
       lsb = value & 0x7F;
-      M_CHNBP[chan]->ctl_val[(int) *p->ictlno1] = (MYFLT)msb;
-      M_CHNBP[chan]->ctl_val[(int) *p->ictlno2] = (MYFLT)lsb;
+      csound->m_chnbp[chan]->ctl_val[(int) *p->ictlno1] = (MYFLT)msb;
+      csound->m_chnbp[chan]->ctl_val[(int) *p->ictlno2] = (MYFLT)lsb;
     }
     return OK;
 }
@@ -552,16 +557,17 @@ int initc21(ENVIRON *csound, INITC21 *p)
     int value, msb, xsb, lsb, chan;
     if ((fvalue = *p->ivalue) < FL(0.0) || fvalue > FL(1.0) )
       csound->InitError(csound, Str("value out of range"));
-    else if ((chan=(int) *p->ichan-1) < 0 || chan > 15 || !M_CHNBP[chan])
+    else if ((chan = (int) *p->ichan - 1) < 0 || chan > 15 ||
+             !csound->m_chnbp[chan])
       return csound->InitError(csound, Str("illegal midi channel"));
     else {
       value = (int)(fvalue * f21bit +FL(0.5));
       msb = value >> 14;
       xsb = (value >> 7) & 0x7F;
       lsb = value & 0x7F;
-      M_CHNBP[chan]->ctl_val[(int) *p->ictlno1] = (MYFLT)msb;
-      M_CHNBP[chan]->ctl_val[(int) *p->ictlno2] = (MYFLT)xsb;
-      M_CHNBP[chan]->ctl_val[(int) *p->ictlno3] = (MYFLT)lsb;
+      csound->m_chnbp[chan]->ctl_val[(int) *p->ictlno1] = (MYFLT)msb;
+      csound->m_chnbp[chan]->ctl_val[(int) *p->ictlno2] = (MYFLT)xsb;
+      csound->m_chnbp[chan]->ctl_val[(int) *p->ictlno3] = (MYFLT)lsb;
     }
     return OK;
 }

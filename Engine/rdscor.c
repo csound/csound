@@ -31,16 +31,18 @@ static void dumpline(void);
 
 static void flushline(void)             /* flush scorefile to next newline */
 {
-    int c;
-    FILE *xx = scfp;
+    ENVIRON *csound = &cenviron;
+    int     c;
+    FILE    *xx = csound->scfp;
     while ((c = getc(xx)) != EOF && c != '\n')
         ;
 }
 
 static int scanflt(MYFLT *pfld)
 {   /* read a MYFLT from scorefile; return 1 if OK, else 0 */
-    int  c;
-    FILE *xx = scfp;
+    ENVIRON *csound = &cenviron;
+    int     c;
+    FILE    *xx = csound->scfp;
     while ((c = getc(xx)) == ' ' || c == '\t')  /* skip leading white space */
         ;
     if (c == ';') {             /* Comments terminate line */
@@ -50,7 +52,7 @@ static int scanflt(MYFLT *pfld)
     if (c == '"') {                               /* if find a quoted string  */
         char *sstrp;
         if ((sstrp = sstrbuf) == NULL)
-            sstrp = sstrbuf = mmalloc(&cenviron, (long)SSTRSIZ);
+            sstrp = sstrbuf = mmalloc(csound, (long)SSTRSIZ);
         while ((c = getc(xx)) != '"')
             *sstrp++ = c;                         /*   copy the characters    */
         *sstrp++ = '\0';
@@ -59,42 +61,44 @@ static int scanflt(MYFLT *pfld)
         return(1);
     }
     if (!((c>='0' && c<='9') || c=='+' || c=='-' || c=='.')) {
-        ungetc(c,scfp);
-        cenviron.Message(&cenviron,
-                         Str("ERROR: illegal character %c(%.2x) in scoreline: "),
-                         c, c);
+        ungetc(c, csound->scfp);
+        csound->Message(csound,
+                        Str("ERROR: illegal character %c(%.2x) in scoreline: "),
+                        c, c);
         dumpline();
         return(0);
     }
-    ungetc(c,scfp);
+    ungetc(c, csound->scfp);
 #ifdef USE_DOUBLE
-    fscanf(scfp, "%lf", pfld);
+    fscanf(csound->scfp, "%lf", pfld);
 #else
-    fscanf(scfp, "%f", pfld);
+    fscanf(csound->scfp, "%f", pfld);
 #endif
     return(1);
 }
 
 static void dumpline(void)      /* print the line while flushing it */
 {
-    int c;
-    FILE *xx = scfp;
+    ENVIRON *csound = &cenviron;
+    int     c;
+    FILE    *xx = csound->scfp;
     while ((c = getc(xx)) != EOF && c != '\n') {
-        cenviron.Message(&cenviron,"%c", c);
+        csound->Message(csound, "%c", c);
     }
-    cenviron.Message(&cenviron,Str("\n\tremainder of line flushed\n"));
+    csound->Message(csound, Str("\n\tremainder of line flushed\n"));
 }
 
 
 int rdscor(EVTBLK *e)           /* read next score-line from scorefile */
                                 /*  & maintain section warped status   */
 {                               /*      presumes good format if warped */
-    MYFLT *pp, *plim;
-    int  c;
-    FILE *xx = scfp;
+    ENVIRON *csound = &cenviron;
+    MYFLT   *pp, *plim;
+    int     c;
+    FILE    *xx = csound->scfp;
 
-    if (scfp == NULL) {    /* if no concurrent scorefile  */
-        e->opcod = 'f';    /*     return an 'f 0 3600'    */
+    if (csound->scfp == NULL) { /* if no concurrent scorefile  */
+        e->opcod = 'f';         /*     return an 'f 0 3600'    */
         e->p[1] = FL(0.0);
         e->p[2] = FL(3600.0);
         e->p2orig = FL(3600.0);
@@ -120,13 +124,13 @@ unwarped:   e->opcod = c;                    /* UNWARPED scorefile:  */
             pp = &e->p[0];
             plim = &e->p[PMAX];              /*    caution, irregular format */
             while (1) {
-                while ((c = getc(xx))==' ' || c=='\t');  /* eat whitespace */
-                if (c == ';')  { flushline();  break; }    /* comments? skip */
-                if (c == '\n' || c == EOF)   break;        /* newline? done  */
-                ungetc(c,scfp);                            /* pfld:  back up */
-                if (!scanflt(++pp))  break;                /*   & read value */
+                while ((c = getc(xx))==' ' || c=='\t'); /* eat whitespace */
+                if (c == ';')  { flushline();  break; } /* comments? skip */
+                if (c == '\n' || c == EOF)   break;     /* newline? done  */
+                ungetc(c, csound->scfp);                /* pfld:  back up */
+                if (!scanflt(++pp))  break;             /*   & read value */
                 if (pp >= plim) {
-                    cenviron.Message(&cenviron,Str("ERROR: too many pfields: "));
+                    csound->Message(csound, Str("ERROR: too many pfields: "));
                     dumpline();
                     break;
                 }
@@ -156,12 +160,13 @@ unwarped:   e->opcod = c;                    /* UNWARPED scorefile:  */
                         }
 setp:       e->pcnt = pp - &e->p[0];                   /* count the pfields */
             if (sstrlen) {                /* if string arg present, save it */
-                e->strarg = mmalloc(&cenviron, (long) sstrlen);
+                e->strarg = mmalloc(csound, (long) sstrlen);
                 strcpy(e->strarg, sstrbuf);
                 sstrlen = 0;
             }
             return(1);
         }
-    fclose(scfp); scfp = NULL;
+    fclose(csound->scfp); csound->scfp = NULL;
     return(0);
 }
+

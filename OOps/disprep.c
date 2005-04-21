@@ -83,9 +83,9 @@ int dspset(ENVIRON *csound, DSPLAY *p)
     }
     p->nxtp = (MYFLT *) auxp;
     p->pntcnt = npts;
-    sprintf(strmsg,Str("instr %d, signal %s:"),
-            p->h.insdshead->insno, p->STRARG);
-    dispset(&p->dwindow,(MYFLT *)auxp,bufpts,strmsg,
+    sprintf(csound->strmsg, Str("instr %d, signal %s:"),
+                            p->h.insdshead->insno, p->STRARG);
+    dispset(&p->dwindow, (MYFLT *)auxp, bufpts, csound->strmsg,
             (int)*p->iwtflg,Str("display"));
     return OK;
 }
@@ -156,9 +156,9 @@ int dsplay(ENVIRON *csound, DSPLAY *p)
     return OK;
 }
 
-int fftset(ENVIRON *csound, DSPFFT *p)          /* fftset, dspfft -- calc Fast Fourier */
-                                /* Transform of collected samples and  */
-                                /* displays coefficients (mag or db)   */
+int fftset(ENVIRON *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier */
+                                       /* Transform of collected samples and  */
+                                       /* displays coefficients (mag or db)   */
 {
     long  window_size, step_size;
     int   hanning;
@@ -201,10 +201,10 @@ int fftset(ENVIRON *csound, DSPFFT *p)          /* fftset, dspfft -- calc Fast F
                   FL(1.0), hanning);  /* fill with proper values */
       if (fftcoefs == NULL)           /* room for WINDMAX*2 floats (fft size) */
         fftcoefs = (MYFLT *) mmalloc(csound, (long)WINDMAX * 2 * sizeof(MYFLT));
-      sprintf(strmsg,Str("instr %d, signal %s, fft (%s):"),
+      sprintf(csound->strmsg, Str("instr %d, signal %s, fft (%s):"),
               p->h.insdshead->insno,
               p->STRARG, p->dbout ? Str("db") : Str("mag"));
-      dispset(&p->dwindow,fftcoefs,p->ncoefs,strmsg,
+      dispset(&p->dwindow, fftcoefs, p->ncoefs, csound->strmsg,
               (int)*p->iwtflg,Str("fft"));
     }
     return OK;
@@ -357,8 +357,9 @@ int tempeset(ENVIRON *csound, TEMPEST *p)
       p->stmemnow = p->stmemp + nptsm1;
     }
     if (p->dtimcnt && !(p->dwindow.windid)) {  /* init to display stmem & exp */
-      sprintf(strmsg, "instr %d tempest:", p->h.insdshead->insno);
-      dispset(&p->dwindow,p->stmemp,(long)npts*2,strmsg,0,Str("tempest"));
+      sprintf(csound->strmsg, "instr %d tempest:", p->h.insdshead->insno);
+      dispset(&p->dwindow, p->stmemp, (long) npts * 2, csound->strmsg, 0,
+              Str("tempest"));
       p->dwindow.danflag = 1;                    /* for mid-scale axis */
     }
     {
@@ -366,10 +367,10 @@ int tempeset(ENVIRON *csound, TEMPEST *p)
       long phs = 0;
       long inc = (long)PHMASK / npts;
       long nn, lobits = ftp->lobits;
-      for (fltp=p->hbeg, nn=npts*4; nn--; )     /* clr 2 circ & 1st 2 lin bufs */
+      for (fltp=p->hbeg, nn=npts*4; nn--; )   /* clr 2 circ & 1st 2 lin bufs */
         *fltp++ = FL(0.0);
-      for (fltp=p->ftable+npts, nn=npts; nn--; ) {    /* now sample the ftable  */
-        *--fltp = *(funp + (phs >> lobits));    /* backwards into tbl buf */
+      for (fltp=p->ftable+npts, nn=npts; nn--; ) {  /* now sample the ftable  */
+        *--fltp = *(funp + (phs >> lobits));        /* backwards into tbl buf */
         phs += inc;
       }
     }

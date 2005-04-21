@@ -1,7 +1,8 @@
 /*
     ugens6.h:
 
-    Copyright (C) 1991-2000 Barry Vercoe, John ffitch, Jens Groh, Hans Mikelson, Istvan Varga
+    Copyright (C) 1991-2000 Barry Vercoe, John ffitch, Jens Groh,
+                            Hans Mikelson, Istvan Varga
 
     This file is part of Csound.
 
@@ -155,8 +156,9 @@ int delay1(ENVIRON*,DELAY1 *p);
 int cmbset(ENVIRON*,COMB *p);
 int comb(ENVIRON*,COMB *p);
 int alpass(ENVIRON*,COMB *p);
-void reverbinit(void);
+void reverbinit(ENVIRON *);
 int rvbset(ENVIRON*,REVERB *p);
 int reverb(ENVIRON*,REVERB *p);
 int panset(ENVIRON*,PAN *p);
 int pan(ENVIRON*,PAN *p);
+

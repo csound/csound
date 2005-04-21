@@ -75,7 +75,7 @@ NAMEDGEN *namedgen = NULL;
 #define tpd360  (0.017453293)
 
 static  void    fterror(ENVIRON *, FGDATA *, char *, ...);
-static  void    ftresdisp(FGDATA *, FUNC*);
+static  void    ftresdisp(ENVIRON *, FGDATA *, FUNC*);
 static  FUNC    *ftalloc(ENVIRON *);
 
 #define FTPMAX  (150)
@@ -221,7 +221,7 @@ void fgens(ENVIRON *csound, EVTBLK *evtblkp)
 
     if (!ff->fterrcnt && ftp){
       /* VL 11.01.05 for deferred GEN01, it's called in gen01raw */
-      ftresdisp(ff,ftp);                        /* rescale and display */
+      ftresdisp(csound, ff, ftp);               /* rescale and display */
     }
 }
 
@@ -713,9 +713,9 @@ static void gen15(FUNC *ftp, ENVIRON *csound)
       *sinp++ = h * (MYFLT)sin((double)angle);    /* and save the sine */
     }
     nargs -= nh;
-    gen13(ftp, csound);                           /* call gen13   */
+    gen13(ftp, csound);                         /* call gen13   */
     if (ff->fterrcnt) return;
-    ftresdisp(ff,ftp);                            /* and display fno   */
+    ftresdisp(csound, ff, ftp);                 /* and display fno   */
     lp13 = (long *)ftp;
     ff->fno++;                                  /* alloc eq. space for fno+1 */
     ftp = ftalloc(csound);
@@ -1855,7 +1855,7 @@ static void fterror(ENVIRON *csound, FGDATA *ff, char *s, ...)
     ff->fterrcnt++;
 }
 
-static void ftresdisp(FGDATA *ff, FUNC *ftp)
+static void ftresdisp(ENVIRON *csound, FGDATA *ff, FUNC *ftp)
 {                       /* set guardpt, rescale the function, and display it */
     MYFLT       *fp, *finp = &ftp->ftable[ff->flen];
     MYFLT       abs, maxval;
@@ -1874,9 +1874,9 @@ static void ftresdisp(FGDATA *ff, FUNC *ftp)
         for (fp=ftp->ftable; fp<=finp; fp++)
           *fp /= maxval;
     }
-    sprintf(strmsg, Str("ftable %d:"), ff->fno);
-    dispset(&dwindow, ftp->ftable, (long) (ff->flen + ff->guardreq), strmsg,
-            0, "ftable");
+    sprintf(csound->strmsg, Str("ftable %d:"), ff->fno);
+    dispset(&dwindow, ftp->ftable, (long) (ff->flen + ff->guardreq),
+            csound->strmsg, 0, "ftable");
     display(&dwindow);
 }
 
@@ -2186,7 +2186,8 @@ static void gen01raw(FUNC *ftp, ENVIRON *csound)
     }
     ftp->soundend = inlocs / ftp->nchanls;   /* record end of sound samps */
     sf_close(fd);
-    if (def) ftresdisp(ff,ftp); /* VL: 11.01.05  for deferred alloc tables */
+    if (def)
+      ftresdisp(csound, ff, ftp); /* VL: 11.01.05  for deferred alloc tables */
 }
 
 #define FTPLERR(s)     {fterror(csound, ff, s); \
@@ -2286,10 +2287,10 @@ FUNC *hfgens(ENVIRON *csound, EVTBLK *evtblkp)
       csound->gensub = (GEN*)mmalloc(csound, csound->genmax*sizeof(GEN));
       memcpy(csound->gensub, or_sub, sizeof(or_sub));
     }
-    (*csound->gensub[genum])(ftp, csound);     /* call gen subroutine  */
+    (*csound->gensub[genum])(ftp, csound);      /* call gen subroutine  */
 
     if (!ff->fterrcnt)
-      ftresdisp(ff,ftp);                       /* rescale and display */
+      ftresdisp(csound, ff, ftp);               /* rescale and display */
     return(ftp);
 }
 
@@ -2604,7 +2605,8 @@ typedef struct _pvstabledat {
 
 /* lifted almost straight from Richard Dobson's code */
 
-static int pvx_loadfile_mem(const char *fname,PVSTABLEDAT *p, MEMFIL **mfp)
+static int pvx_loadfile_mem(ENVIRON *csound,
+                            const char *fname,PVSTABLEDAT *p, MEMFIL **mfp)
 {
     PVOCDATA pvdata;
     WAVEFORMATEX fmt;
@@ -2619,7 +2621,7 @@ static int pvx_loadfile_mem(const char *fname,PVSTABLEDAT *p, MEMFIL **mfp)
 
     pvx_id = pvoc_openfile(fname,&pvdata,&fmt);
     if (pvx_id < 0) {
-      sprintf(errmsg,Str("unable to open pvocex file %s.\n"),fname);
+      sprintf(csound->errmsg, Str("unable to open pvocex file %s.\n"), fname);
       return 0;
     }
     /* fft size must be <= PVFRAMSIZE (=8192) for Csound */
@@ -2630,29 +2632,31 @@ static int pvx_loadfile_mem(const char *fname,PVSTABLEDAT *p, MEMFIL **mfp)
 
     /* also, accept only 32bit floats for now */
     if (pvdata.wWordFormat != PVOC_IEEE_FLOAT){
-      sprintf(errmsg,Str("pvoc-ex file %s is not 32bit floats\n"),fname);
+      sprintf(csound->errmsg, Str("pvoc-ex file %s is not 32bit floats\n"),
+                              fname);
       return 0;
     }
 
     /* FOR NOW, accept only PVOC_AMP_FREQ : later, we can convert */
     /* NB Csound knows no other: frameFormat is not read anywhere! */
     if (pvdata.wAnalFormat != PVOC_AMP_FREQ){
-      sprintf(errmsg,Str("pvoc-ex file %s not in AMP_FREQ format\n"),fname);
+      sprintf(csound->errmsg, Str("pvoc-ex file %s not in AMP_FREQ format\n"),
+                              fname);
       return 0;
     }
 
     /* ignore the window spec until we can use it! */
     totalframes = pvoc_framecount(pvx_id);
     if (totalframes == 0){
-      sprintf(errmsg,Str("pvoc-ex file %s is empty!\n"),fname);
+      sprintf(csound->errmsg, Str("pvoc-ex file %s is empty!\n"), fname);
       return 0;
     }
 
-    if (!find_memfile(&cenviron, fname, &mfil)){
+    if (!find_memfile(csound, fname, &mfil)){
       mem_wanted = totalframes * 2 * pvdata.nAnalysisBins * sizeof(float);
       /* try for the big block first! */
 
-      memblock = (float *) mmalloc(&cenviron, mem_wanted);
+      memblock = (float *) mmalloc(csound, mem_wanted);
 
       pFrame = memblock;
       /* despite using pvocex infile, and pvocex-style resynth, we ~still~
@@ -2667,20 +2671,20 @@ static int pvx_loadfile_mem(const char *fname,PVSTABLEDAT *p, MEMFIL **mfp)
           break;          /* read error, but may still have something to use */
         /* scale amps to Csound range, to fit fsig */
         for (j=0;j < framelen; j+=2) {
-          pFrame[j] *= (float) cenviron.e0dbfs;
+          pFrame[j] *= (float) csound->e0dbfs;
         }
         pFrame += framelen;
       }
       if (rc <0){
-        sprintf(errmsg,Str("error reading pvoc-ex file %s\n"),fname);
-        mfree(&cenviron, memblock);
+        sprintf(csound->errmsg, Str("error reading pvoc-ex file %s\n"), fname);
+        mfree(csound, memblock);
         return 0;
       }
       if (i < totalframes){
-        sprintf(errmsg,
+        sprintf(csound->errmsg,
                 Str("error reading pvoc-ex file %s after %d frames\n"),
-                fname,i);
-        mfree(&cenviron, memblock);
+                fname, i);
+        mfree(csound, memblock);
         return 0;
       }
     }
@@ -2711,7 +2715,7 @@ static int pvx_loadfile_mem(const char *fname,PVSTABLEDAT *p, MEMFIL **mfp)
 
     /* Need to assign an MEMFIL to mfp */
     if (mfil==NULL){
-      mfil = (MEMFIL *)  mmalloc(&cenviron, sizeof(MEMFIL));
+      mfil = (MEMFIL *)  mmalloc(csound, sizeof(MEMFIL));
       /* just hope the filename is short enough...! */
       mfil->next = NULL;
       mfil->filename[0] = '\0';
@@ -2720,9 +2724,9 @@ static int pvx_loadfile_mem(const char *fname,PVSTABLEDAT *p, MEMFIL **mfp)
       mfil->endp = mfil->beginp + mem_wanted;
       mfil->length = mem_wanted;
       /*from memfiles.c */
-      csoundMessage(&cenviron, Str("file %s (%ld bytes) loaded into memory\n"),
-                               fname, mem_wanted);
-      add_memfil(&cenviron, mfil);
+      csoundMessage(csound, Str("file %s (%ld bytes) loaded into memory\n"),
+                            fname, mem_wanted);
+      add_memfil(csound, mfil);
     }
 
     *mfp = mfil;
@@ -2758,7 +2762,8 @@ void gen43(FUNC *ftp, ENVIRON *csound)
              csound->strsets[(long) *filno])
       strcpy(filename, csound->strsets[(long)*filno]);
     else sprintf(filename,"pvoc.%d", (int)*filno); /* pvoc.filnum   */
-    if (!pvx_loadfile_mem(filename,&p, &mfp)) csoundDie(csound, errmsg);
+    if (!pvx_loadfile_mem(csound, filename, &p, &mfp))
+      csoundDie(csound, csound->errmsg);
 
     channel = &ff->e.p[6];
 

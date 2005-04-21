@@ -71,7 +71,7 @@ int hibut(ENVIRON *csound, BFIL *p)     /*      Hipass filter   */
 
       a = p->a;
       p->lkf = *p->kfc;
-      c = (MYFLT)tan((double)(pidsr * p->lkf));
+      c = (MYFLT)tan((double)(csound->pidsr * p->lkf));
 
       a[1] = FL(1.0) / ( FL(1.0) + ROOT2 * c + c * c);
       a[2] = -(a[1] + a[1]);
@@ -105,7 +105,7 @@ int lobut(ENVIRON *csound, BFIL *p)     /*      Lopass filter   */
 
       a = p->a;
       p->lkf = *p->kfc;
-      c = FL(1.0) / (MYFLT)tan((double)(pidsr * p->lkf));
+      c = FL(1.0) / (MYFLT)tan((double)(csound->pidsr * p->lkf));
       a[1] = FL(1.0) / ( FL(1.0) + ROOT2 * c + c * c);
       a[2] = a[1] + a[1];
       a[3] = a[1];
@@ -135,8 +135,8 @@ int bpbut(ENVIRON *csound, BBFIL *p)    /*      Bandpass filter */
       a = p->a;
       p->lkf = *p->kfo;
       p->lkb = *p->kbw;
-      c = FL(1.0) / (MYFLT)tan((double)(pidsr * p->lkb));
-      d = FL(2.0) * (MYFLT)cos((double)(tpidsr * p->lkf));
+      c = FL(1.0) / (MYFLT)tan((double)(csound->pidsr * p->lkb));
+      d = FL(2.0) * (MYFLT)cos((double)(csound->tpidsr * p->lkf));
       a[1] = FL(1.0) / ( FL(1.0) + c);
       a[2] = FL(0.0);
       a[3] = -a[1];
@@ -169,8 +169,8 @@ int bcbut(ENVIRON *csound, BBFIL *p)    /*      Band reject filter      */
       a = p->a;
       p->lkf = *p->kfo;
       p->lkb = *p->kbw;
-      c = (MYFLT)tan((double)(pidsr * p->lkb));
-      d = FL(2.0) * (MYFLT)cos((double)(tpidsr * p->lkf));
+      c = (MYFLT)tan((double)(csound->pidsr * p->lkb));
+      d = FL(2.0) * (MYFLT)cos((double)(csound->tpidsr * p->lkf));
       a[1] = FL(1.0) / ( FL(1.0) + c);
       a[2] = - d * a[1];
       a[3] = a[1];

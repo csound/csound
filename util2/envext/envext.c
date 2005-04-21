@@ -97,8 +97,8 @@ main(int argc, char **argv)
             while (*++s);
             break;
           default:
-            sprintf(errmsg,"unknown flag -%c", c);
-            envext_usage(errmsg);
+            sprintf(csound->errmsg,"unknown flag -%c", c);
+            envext_usage(csound->errmsg);
           }
       else if (inputfile == NULL) {
         inputfile = --s;

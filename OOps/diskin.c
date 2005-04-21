@@ -55,12 +55,13 @@ static int sreadinew(           /* special handling of sound input       */
     int     nsamples,           /*                                       */
     SOUNDINEW *p)               /* extra arg passed for filetyp testing  */
 {                               /* on POST-HEADER reads of audio samples */
+    ENVIRON *csound = &cenviron;
     MYFLT  scalefac;
     int    n, ntot = 0;
 
     do {
       if ((n = sf_read_MYFLT(infd, inbuf + ntot, nsamples - ntot)) < 0)
-        csoundDie(&cenviron, Str("soundfile read error"));
+        csoundDie(csound, Str("soundfile read error"));
     } while (n > 0 && (ntot += n) < nsamples);
     if (p->audrem > 0) {      /* AIFF:                  */
       if (ntot > p->audrem)   /*   chk haven't exceeded */
@@ -71,7 +72,7 @@ static int sreadinew(           /* special handling of sound input       */
 
     /*RWD 3:2000 expanded format fixups ; more efficient here than in
       soundinew() ?  (well, saves a LOT of typing!) */
-    scalefac = cenviron.e0dbfs;
+    scalefac = csound->e0dbfs;
     if (p->format == AE_FLOAT) {
       if (p->filetyp == TYP_WAV || p->filetyp == TYP_AIFF) {
         if (p->do_floatscaling)
@@ -89,19 +90,20 @@ static int sreadinew(           /* special handling of sound input       */
 
 static int sngetset(SOUNDINEW *p, char *sfname)
 {
+    ENVIRON *csound = &cenviron;
     int     sinfd;
     SNDFILE *infile;
     SF_INFO sfinfo;
     SOUNDIN forReadHeader;
 
     if ((sinfd = openin(sfname)) < 0) {     /* open with full dir paths */
-      sprintf(errmsg,Str("diskin cannot open %s"), sfname);
+      sprintf(csound->errmsg, Str("diskin cannot open %s"), sfname);
       goto errtn;
     }
     infile = sf_open_fd(sinfd, SFM_READ, &sfinfo, SF_TRUE);
     p->fdch.fd = infile;
     p->format = SF2FORMAT(sfinfo.format);
-    sfname = cenviron.retfilnam;                /* & record fullpath filnam */
+    sfname = csound->retfilnam;                /* & record fullpath filnam */
     if (*p->iformat > 0)  /* convert spec'd format code */
        p->format = ((short)*p->iformat) | 0x100;
     p->endfile = 0;
@@ -112,10 +114,10 @@ static int sngetset(SOUNDINEW *p, char *sfname)
     forReadHeader.filetyp = p->filetyp;
     forReadHeader.audrem = p->audrem;
 
-    if (sfinfo.samplerate != (int) cenviron.esr) {  /* non-anal:  cmp w. esr */
+    if (sfinfo.samplerate != (int) csound->esr) {  /* non-anal:  cmp w. esr */
       if (O.msglevel & WARNMSG)
         printf(Str("WARNING: %s sr = %ld, orch sr = %7.1f\n"),
-               sfname, sfinfo.samplerate, cenviron.esr);
+               sfname, sfinfo.samplerate, csound->esr);
     }
 
     if (sfinfo.channels != p->OUTOCOUNT) {         /*        chk nchanls */
@@ -242,7 +244,7 @@ int newsndinset(ENVIRON *csound, SOUNDINEW *p)  /* init routine for diskin   */
     /********  open the file  ***********/
     if ((n = p->OUTOCOUNT) &&
         n != 1 && n != 2 && n != 4 && n != 6 && n != 8) { /* if appl,chkchnls */
-      sprintf(errmsg,Str("diskin: illegal no of receiving channels"));
+      sprintf(csound->errmsg, Str("diskin: illegal no of receiving channels"));
       goto errtn;
     }
     if (*p->ifilno == SSTRCOD) { /* if char string name given */
@@ -335,7 +337,7 @@ int newsndinset(ENVIRON *csound, SOUNDINEW *p)  /* init routine for diskin   */
       p->phs = 0.0;
       return OK;
     }
-    else return csound->InitError(csound, errmsg);
+    else return csound->InitError(csound, csound->errmsg);
 
  errtn:
     return NOTOK;                       /*              return empty handed */
@@ -686,7 +688,7 @@ int sndo1set(ENVIRON *csound, SNDOUT *p) /* init routine for instr soundout   */
       sprintf(sndoutname,"soundout.%d", filno);
     sfname = sndoutname;
     if ((soutfd = openout(sfname, 1)) < 0) {   /* if openout successful */
-      sprintf(errmsg,Str("soundout cannot open %s"), sfname);
+      sprintf(csound->errmsg, Str("soundout cannot open %s"), sfname);
       goto errtn;
     }
     sfinfo.frames = -1;
@@ -700,8 +702,8 @@ int sndo1set(ENVIRON *csound, SNDOUT *p) /* init routine for instr soundout   */
       case 5: p->c.format = AE_LONG; break;
       case 6: p->c.format = AE_FLOAT; break;
       default:
-        sprintf(errmsg, Str("soundout: invalid sample format: %d"),
-                        (int) (*(p->c.iformat) + FL(0.5)));
+        sprintf(csound->errmsg, Str("soundout: invalid sample format: %d"),
+                                (int) (*(p->c.iformat) + FL(0.5)));
         goto errtn;
     }
     sfinfo.format = TYPE2SF(p->c.filetyp) | FORMAT2SF(p->c.format);
@@ -723,7 +725,8 @@ int sndo1set(ENVIRON *csound, SNDOUT *p) /* init routine for instr soundout   */
     fdrecord(csound, &p->c.fdch);           /*     instr will close later */
     return OK;
  errtn:
-    return csound->InitError(csound, errmsg);   /* else just print the errmsg */
+    /* else just print the errmsg */
+    return csound->InitError(csound, csound->errmsg);
 }
 
 int soundout(ENVIRON *csound, SNDOUT *p)

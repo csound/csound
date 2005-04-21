@@ -54,12 +54,12 @@ static int cvset(ENVIRON *csound, CONVOLVE *p)
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename, cvfilnam) != 0)
                                 /* if file not already readin */
       if ( (mfp = csound->ldmemfile_(csound, cvfilnam)) == NULL) {
-        sprintf(errmsg,Str("CONVOLVE cannot load %s"), cvfilnam);
+        sprintf(csound->errmsg,Str("CONVOLVE cannot load %s"), cvfilnam);
         goto cverr;
       }
     cvh = (CVSTRUCT *)mfp->beginp;
     if (cvh->magic != CVMAGIC) {
-      sprintf(errmsg,Str("%s not a CONVOLVE file (magic %ld)"),
+      sprintf(csound->errmsg,Str("%s not a CONVOLVE file (magic %ld)"),
               cvfilnam, cvh->magic );
       goto cverr;
     }
@@ -70,7 +70,7 @@ static int cvset(ENVIRON *csound, CONVOLVE *p)
       if (p->OUTOCOUNT == nchanls)
         p->nchanls = nchanls;
       else {
-        sprintf(errmsg,
+        sprintf(csound->errmsg,
                 Str("CONVOLVE: output channels not equal "
                     "to number of channels in source"));
         goto cverr;
@@ -79,7 +79,7 @@ static int cvset(ENVIRON *csound, CONVOLVE *p)
     else {
       if (*p->channel <= nchanls) {
         if (p->OUTOCOUNT != 1) {
-          sprintf(errmsg,
+          sprintf(csound->errmsg,
                   Str("CONVOLVE: output channels not equal "
                       "to number of channels in source"));
           goto cverr;
@@ -88,7 +88,7 @@ static int cvset(ENVIRON *csound, CONVOLVE *p)
           p->nchanls = 1;
       }
       else {
-        sprintf(errmsg,
+        sprintf(csound->errmsg,
                 Str("CONVOLVE: channel number greater than "
                     "number of channels in source"));
         goto cverr;
@@ -102,28 +102,31 @@ static int cvset(ENVIRON *csound, CONVOLVE *p)
     if ((p->nchanls == 1) && (*p->channel > 0))
       p->H += (Hlenpadded + 2) * (int)(*p->channel - 1);
 
-    if ((cvh->samplingRate) != csound->esr &&
-        (csound->oparms->msglevel & WARNMSG)) {  /* & chk the data */
-      csound->Message(csound, Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
-              cvfilnam, cvh->samplingRate, csound->esr);
+    if (cvh->samplingRate != csound->esr) {
+      /* & chk the data */
+      csound->Warning(csound, Str("%s''s srate = %8.0f, orch's srate = %8.0f"),
+                              cvfilnam, cvh->samplingRate, csound->esr);
     }
     if (cvh->dataFormat != CVMYFLT) {
-      sprintf(errmsg,Str("unsupported CONVOLVE data format %ld in %s"),
+      sprintf(csound->errmsg,Str("unsupported CONVOLVE data format %ld in %s"),
               cvh->dataFormat, cvfilnam);
       goto cverr;
     }
 
     /* Determine size of circular output buffer */
     if (Hlen >= csound->ksmps)
-      obufsiz = (long)ceil( (double)Hlen / (double)csound->ksmps ) * csound->ksmps;
+      obufsiz = (long) ceil((double) Hlen / (double) csound->ksmps)
+                * csound->ksmps;
     else
-      obufsiz = (long)ceil( (double)csound->ksmps / (double)Hlen ) * Hlen;
+      obufsiz = (long) ceil((double) csound->ksmps / (double) Hlen) * Hlen;
 
-    if (p->auxch.auxp == NULL) {              /* if no buffers yet, alloc now */
+    if (p->auxch.auxp == NULL) {            /* if no buffers yet, alloc now */
       MYFLT *fltp;
-      csound->AuxAlloc(csound, (long)(((Hlenpadded+2) + p->nchanls*((Hlen - 1) + obufsiz)
-                       + (p->nchanls > 1 ? (Hlenpadded+2) : 0))*sizeof(MYFLT)),
-               &p->auxch);
+      csound->AuxAlloc(csound, (long) (((Hlenpadded + 2)
+                                        + p->nchanls * ((Hlen - 1) + obufsiz)
+                                        + (p->nchanls > 1 ?
+                                           (Hlenpadded + 2) : 0))
+                                       * sizeof(MYFLT)), &p->auxch);
       fltp = (MYFLT *) p->auxch.auxp;
       p->fftbuf = fltp;   fltp += (Hlenpadded + 2); /* and insert addresses */
       p->olap = fltp;     fltp += p->nchanls*(Hlen - 1);
@@ -137,7 +140,7 @@ static int cvset(ENVIRON *csound, CONVOLVE *p)
     p->outhead = p->outail = p->outbuf;
     return OK;
  cverr:
-    return csound->InitError(csound, errmsg);
+    return csound->InitError(csound, csound->errmsg);
 }
 
 /* Write from a circular buffer into a linear output buffer without
@@ -386,8 +389,8 @@ static int pconvset(ENVIRON *csound, PCONVOLVE *p)
     }
     IRfile.sr = 0;
     if (channel < 1 || ((channel > 4) && (channel != ALLCHNLS))) {
-      sprintf(errmsg, "channel request %d illegal\n", channel);
-      return csound->PerfError(csound, errmsg);
+      sprintf(csound->errmsg, "channel request %d illegal\n", channel);
+      return csound->PerfError(csound, csound->errmsg);
     }
     IRfile.channel = channel;
     IRfile.analonly = 1;
@@ -395,9 +398,9 @@ static int pconvset(ENVIRON *csound, PCONVOLVE *p)
       return csound->PerfError(csound, "pconvolve: error while impulse file");
     }
 
-    if ((IRfile.framesrem < 0) && (csound->oparms->msglevel & WARNMSG)) {
-      csound->Message(csound, Str("WARNING: undetermined file length, will attempt "
-                 "requested duration"));
+    if (IRfile.framesrem < 0) {
+      csound->Warning(csound, Str("undetermined file length, "
+                                  "will attempt requested duration"));
       ainput_dur = FL(0.0);     /* This is probably wrong -- JPff */
     }
     else {
@@ -410,8 +413,8 @@ static int pconvset(ENVIRON *csound, PCONVOLVE *p)
 
     p->nchanls = (channel != ALLCHNLS ? 1 : IRfile.nchanls);
     if (p->nchanls != p->OUTOCOUNT) {
-      return csound->PerfError(csound, "PCONVOLVE: number of output channels not equal "
-                       "to input channels");
+      return csound->PerfError(csound, "PCONVOLVE: number of output channels "
+                                       "not equal to input channels");
     }
 
     if (IRfile.sr != csound->esr && (csound->oparms->msglevel & WARNMSG)) {
@@ -522,8 +525,8 @@ static int pconvolve(ENVIRON *csound, PCONVOLVE *p)
         MYFLT *workBuf = (MYFLT*) p->workBuf.auxp;
 
         /* FFT the input (to create X) */
-        *workWrite = FL(0.0); /* zero out nyquist bin from last fft result - maybe
-                                 is ignored for input(?) but just in case.. */
+        *workWrite = FL(0.0); /* zero out nyquist bin from last fft result
+                           - maybe is ignored for input(?) but just in case.. */
         csound->RealFFT(csound, workBuf, (int) p->Hlenpadded);
         workBuf[p->Hlenpadded] = workBuf[1];
         workBuf[1] = workBuf[p->Hlenpadded + 1L] = FL(0.0);
@@ -542,7 +545,8 @@ static int pconvolve(ENVIRON *csound, PCONVOLVE *p)
         }
 
         /* Perform inverse FFT of the ondeck partion block */
-        buf = (MYFLT *)p->convBuf.auxp + p->curPart * p->nchanls * hlenpaddedplus2;
+        buf = (MYFLT*) p->convBuf.auxp
+              + p->curPart * p->nchanls * hlenpaddedplus2;
         for (i = 0; i < p->nchanls; i++) {
           MYFLT *bufp;
           bufp = buf + i * hlenpaddedplus2;
@@ -551,7 +555,8 @@ static int pconvolve(ENVIRON *csound, PCONVOLVE *p)
           csound->InverseRealFFT(csound, bufp, (int) p->Hlenpadded);
         }
         /* We only take only the last Hlen output samples so we first zero out
-           the first half for next time, then we copy the rest to output buffer */
+           the first half for next time, then we copy the rest to output buffer
+         */
         for (j = 0; j < p->nchanls; j++) {
           MYFLT *outp = p->outWrite + j;
           for (i = 0; i < p->Hlen; i++)
@@ -569,7 +574,8 @@ static int pconvolve(ENVIRON *csound, PCONVOLVE *p)
         if (p->outWrite >= (MYFLT *)p->output.endp)
           p->outWrite -= p->outBufSiz/sizeof(MYFLT);
         p->outCount += p->Hlen;
-        if (++p->curPart == p->numPartitions) /* advance to the next partition */
+        if (++p->curPart == p->numPartitions)
+          /* advance to the next partition */
           p->curPart = 0;
         /* copy the saved input into the work buffer for next time around */
         memcpy(p->workBuf.auxp, input, p->Hlen * sizeof(MYFLT));

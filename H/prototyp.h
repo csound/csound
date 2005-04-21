@@ -39,12 +39,25 @@ void    *mrealloc(void*, void*, size_t), mfree(void*, void*);
 void    csoundAuxAlloc(void*, long, AUXCH *), auxchfree(void*, INSDS *);
 void    fdrecord(ENVIRON *, FDCH *), fdclose(ENVIRON *, FDCH *);
 void    fdchclose(ENVIRON *, INSDS *);
+void    synterr(char *), synterrp(char *, char *);
+#ifdef HAVE_GCC3
+__attribute__ ((__noreturn__, __format__(__printf__, 2, 3)))
+  void    csoundDie(void *, const char *, ...);
+__attribute__ ((__format__(__printf__, 2, 3)))
+  int     csoundInitError(void *, const char *, ...);
+__attribute__ ((__format__(__printf__, 2, 3)))
+  int     csoundPerfError(void *, const char *, ...);
+__attribute__ ((__format__(__printf__, 2, 3)))
+  void    csoundWarning(void *, const char *, ...);
+__attribute__ ((__format__(__printf__, 2, 3)))
+  void    csoundDebugMsg(void *, const char *, ...);
+#else
+void    csoundDie(void *, const char *, ...);
 int     csoundInitError(void *, const char *, ...);
 int     csoundPerfError(void *, const char *, ...);
-void    synterr(char *), synterrp(char *, char *);
-void    csoundDie(void *, const char *, ...);
 void    csoundWarning(void *, const char *, ...);
 void    csoundDebugMsg(void *, const char *, ...);
+#endif
 void    putop(TEXT *), putstrg(char *);
 void    rdorchfile(ENVIRON*), otran(ENVIRON*), resetouts(ENVIRON*);
 char    argtyp(char *);
@@ -52,9 +65,13 @@ TEXT    *getoptxt(int *);
 int     express(ENVIRON *, char *);
 int     getopnum(char *), lgexist(char *);
 void    oload(ENVIRON*);
-void    cpsoctinit(ENVIRON*), reverbinit(void);
+void    cpsoctinit(ENVIRON*), reverbinit(ENVIRON*);
 void    dispinit(void);
-void    sssfinit(void);
+/* replaced by csoundInitEnv() */
+#ifdef HAVE_GCC3
+__attribute__ ((__deprecated__))
+#endif
+  void    sssfinit(void);
 int     init0(ENVIRON*);
 int     openin(char *), openout(char *, int);
 void    scsort(FILE *, FILE *);
@@ -102,9 +119,12 @@ int     getsndin(void*, void*, MYFLT*, int, void*);
 void    *sndgetset(void*, void*);
 int     sreadin(void*, void*, MYFLT*, int, void*);
 
+/* to be removed... */
 #ifdef HAVE_GCC3
-__attribute__ ((__deprecated__)) void csoundPrintf(const char *format, ...);
-__attribute__ ((__deprecated__)) void err_printf(char *, ...);
+__attribute__ ((__deprecated__, __format__(__printf__, 1, 2)))
+  void csoundPrintf(const char *format, ...);
+__attribute__ ((__deprecated__, __format__(__printf__, 1, 2)))
+  void err_printf(char *, ...);
 extern  __attribute__ ((__deprecated__)) OPARMS  O;
 extern  __attribute__ ((__deprecated__)) ENVIRON cenviron;
 #else
@@ -113,6 +133,8 @@ void    err_printf(char *, ...);
 extern  OPARMS  O;
 extern  ENVIRON cenviron;
 #endif
+#define printf  csoundPrintf
+
 extern  int     fltk_abort;
 extern  MYFLT   *inbuf;
 extern  MYFLT   *outbuf;

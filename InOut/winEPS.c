@@ -315,6 +315,7 @@ PS_drawAxes(char *cxmin, char *cxmax, char *cymin, char *cymax)
 
 void PS_DrawGraph(WINDAT *wdptr)
 {
+    ENVIRON *csound = &cenviron;
     int   iskip = (wdptr->npts < MyPS_WIDTH) ? 1 :
                   (int)(wdptr->npts / MyPS_WIDTH);
     MYFLT xmin, xmax, ymin, ymax, xx, yy, dx, dy, fnts;
@@ -362,10 +363,10 @@ void PS_DrawGraph(WINDAT *wdptr)
       fprintf(psFile,"(date: %s ) show \n", ps_date);
       yy = MyPS_YORIG + MyPS_HEIGHT + FL(6.0)*fnts*FL(1.5);
       fprintf(psFile,"%f  %f  moveto \n", xx, yy);
-      fprintf(psFile,"(scorefile: %s) show \n", scorename);
+      fprintf(psFile,"(scorefile: %s) show \n", csound->scorename);
       yy = MyPS_YORIG + MyPS_HEIGHT + FL(5.0)*fnts*FL(1.5);
       fprintf(psFile,"%f  %f  moveto \n", xx, yy);
-      fprintf(psFile,"(orch_file: %s) show \n", orchname);
+      fprintf(psFile,"(orch_file: %s) show \n", csound->orchname);
       yy = MyPS_YORIG + MyPS_HEIGHT + FL(4.0)*fnts*FL(1.5);
       fprintf(psFile,"%f  %f  moveto \n", xx, yy);
       fprintf(psFile,"(maximum  : %f) show \n", wdptr->max);

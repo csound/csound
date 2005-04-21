@@ -31,54 +31,32 @@ extern "C" {
 #include "csoundCore.h"
 #include <limits.h>
 
-#define ls_table            csound->ls_table_
-#define orchname            csound->orchname_
-#define scorename           csound->scorename_
-#define errmsg              csound->errmsg_
-#define scfp                csound->scfp_
-#define oscfp               csound->oscfp_
-#define SCOREIN             csound->scorein_
-#define SCOREOUT            csound->scoreout_
-#define ensmps              csound->ensmps_
-#define hfkprd              csound->hfkprd_
-#define pool                csound->pool_
-#define M_CHNBP             csound->m_chnbp
-#define strmsg              csound->strmsg_
-#define tpidsr              csound->tpidsr_
-#define pidsr               csound->pidsr_
-#define mpidsr              csound->mpidsr_
-#define mtpdsr              csound->mtpdsr_
-
 #ifdef Str
 #undef Str
 #endif
 #define Str(x) (((ENVIRON*) csound)->LocalizeString(x))
 
-#define LINKAGE long opcode_size(void)          \
-                {                               \
-                    return sizeof(localops);    \
-                }                               \
-                                                \
-                OENTRY *opcode_init(ENVIRON *xx)\
-                {                               \
-                    return localops;            \
-                }
+#define LINKAGE                         \
+PUBLIC long opcode_size(void)           \
+{                                       \
+    return (long) sizeof(localops);     \
+}                                       \
+                                        \
+PUBLIC OENTRY *opcode_init(ENVIRON *xx) \
+{                                       \
+    return localops;                    \
+}
 
-#define FLINKAGE long opcode_size(void)                        \
-                {                                              \
-                    if (localops==NULL) return LONG_MIN;       \
-                    else return ((sizeof(localops))|LONG_MIN); \
-                }                                              \
-                                                               \
-                OENTRY *opcode_init(ENVIRON *xx)               \
-                {                                              \
-                    return localops;                           \
-                }                                              \
-                                                               \
-                NGFENS *fgen_init(ENVIRON *xx)                 \
-                {                                              \
-                    return localfgens;                         \
-                }
+#define FLINKAGE                        \
+PUBLIC long opcode_size(void)           \
+{   if (localops == NULL) return LONG_MIN;              \
+    else return ((long) sizeof(localops) | LONG_MIN); } \
+                                        \
+PUBLIC OENTRY *opcode_init(ENVIRON *xx) \
+{   return localops;    }               \
+                                        \
+PUBLIC NGFENS *fgen_init(ENVIRON *xx)   \
+{   return localfgens;  }
 
 #ifdef __cplusplus
 };

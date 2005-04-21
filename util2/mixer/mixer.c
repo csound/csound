@@ -45,7 +45,7 @@
 #define NUMBER_OF_FILES (20)
 #define FIND(MSG)   if (*s == '\0')  \
                         if (!(--argc) || ((s = *++argv) && *s == '-')) \
-                            csoundDie(&cenviron, MSG);
+                            csoundDie(csound, MSG);
 typedef struct scalepoint {
     MYFLT y0;
     MYFLT y1;
@@ -200,7 +200,7 @@ int main(int argc, char **argv)
     memset(&OO, 0, sizeof(OO));
     /* Check arguments */
     {
-      if ((envoutyp = csoundGetEnv(&cenviron, "SFOUTYP")) != NULL) {
+      if ((envoutyp = csoundGetEnv(csound, "SFOUTYP")) != NULL) {
         if (strcmp(envoutyp,"AIFF") == 0)
           OO.filetyp = TYP_AIFF;
         else if (strcmp(envoutyp,"WAV") == 0)
@@ -214,7 +214,7 @@ int main(int argc, char **argv)
         }
       }
     }
-    O.filnamspace = filnamp = mmalloc(&cenviron, (long)1024);
+    O.filnamspace = filnamp = mmalloc(csound, (long)1024);
     mixin[n].start = -1; mixin[n].time = -FL(1.0);
     mixin[n].factor = FL(1.0); mixin[n].non_clear = 0;
     mixin[n].fulltable = NULL; mixin[n].use_table = 0;
@@ -235,13 +235,13 @@ int main(int argc, char **argv)
               O.outfilename = filnamp;            /* soundout name */
             while ((*filnamp++ = *s++)); s--;
             if (strcmp(O.outfilename,"stdin") == 0)
-              csoundDie(&cenviron, Str("-o cannot be stdin"));
+              csoundDie(csound, Str("-o cannot be stdin"));
             if (strcmp(O.outfilename,"stdout") == 0) {
 #if defined mac_classic || defined SYMANTEC || defined BCC || defined __WATCOMC__ || defined WIN32
-              csoundDie(&cenviron, Str("stdout audio not supported"));
+              csoundDie(csound, Str("stdout audio not supported"));
 #else
               if ((O.stdoutfd = dup(1)) < 0) /* redefine stdout */
-                csoundDie(&cenviron, Str("too many open files"));
+                csoundDie(csound, Str("too many open files"));
               dup2(2,1);                /* & send 1's to stderr */
 #endif
             }
@@ -364,8 +364,8 @@ int main(int argc, char **argv)
             debug = 1;
             break;
           default:
-            sprintf(errmsg,Str("unknown flag -%c"), c);
-            usage(csound,errmsg);
+            sprintf(csound->errmsg, Str("unknown flag -%c"), c);
+            usage(csound, csound->errmsg);
           }
       else {
         int i;
@@ -431,30 +431,30 @@ int main(int argc, char **argv)
     if (OO.filetyp) O.filetyp = OO.filetyp;
     if (O.filetyp == TYP_AIFF) {
       if (!O.sfheader)
-        csoundDie(&cenviron, Str("can't write AIFF soundfile with no header"));
+        csoundDie(csound, Str("can't write AIFF soundfile with no header"));
       if (
           O.outformat == AE_ALAW ||
           O.outformat == AE_ULAW ||
           O.outformat == AE_FLOAT) {
-        sprintf(errmsg,Str("AIFF does not support %s encoding"),
-                getstrformat(O.outformat));
-        csoundDie(&cenviron, errmsg);
+        sprintf(csound->errmsg, Str("AIFF does not support %s encoding"),
+                                getstrformat(O.outformat));
+        csoundDie(csound, csound->errmsg);
       }
     }
     if (O.filetyp == TYP_WAV) {
       if (!O.sfheader)
-        csoundDie(&cenviron, Str("can't write WAV soundfile with no header"));
+        csoundDie(csound, Str("can't write WAV soundfile with no header"));
       if (
           O.outformat == AE_ALAW ||
           O.outformat == AE_ULAW ||
           O.outformat == AE_FLOAT) {
-        sprintf(errmsg,Str("WAV does not support %s encoding"),
-                getstrformat(O.outformat));
-        csoundDie(&cenviron, errmsg);
+        sprintf(csound->errmsg, Str("WAV does not support %s encoding"),
+                                getstrformat(O.outformat));
+        csoundDie(csound, csound->errmsg);
       }
     }
     if (O.rewrt_hdr && !O.sfheader)
-      csoundDie(&cenviron, Str("can't rewrite header if no header requested"));
+      csoundDie(csound, Str("can't rewrite header if no header requested"));
 #ifdef NeXT
     if (O.outfilename == NULL && !O.filetyp) O.outfilename = "test.snd";
     else if (O.outfilename == NULL) O.outfilename = "test";
@@ -466,15 +466,15 @@ int main(int argc, char **argv)
     }
 #endif
     sfinfo.frames = -1;
-    sfinfo.samplerate = (int)(cenviron.esr = mixin[0].p->sr);
-    sfinfo.channels = cenviron.nchnls = mixin[0].p->nchanls ;
+    sfinfo.samplerate = (int)(csound->esr = mixin[0].p->sr);
+    sfinfo.channels = csound->nchnls = mixin[0].p->nchanls ;
     sfinfo.format = TYPE2SF(O.filetyp) | FORMAT2SF(O.outformat);
     sfinfo.sections = 0;
     sfinfo.seekable = 0;
     outfd = sf_open_fd(openout(O.outfilename, 1), SFM_WRITE, &sfinfo, 1);
     if (O.rewrt_hdr) sf_command(outfd, SFC_SET_UPDATE_HEADER_AUTO, NULL, 0);
     outbufsiz = NUMBER_OF_SAMPLES * outputs * O.sfsampsize;/* calc outbuf size */
-    outbuf = mmalloc(&cenviron, (long)outbufsiz);       /*  & alloc bufspace */
+    outbuf = mmalloc(csound, (long)outbufsiz);       /*  & alloc bufspace */
     csound->Message(csound,Str("writing %d-byte blks of %s to %s %s\n"),
                     outbufsiz, getstrformat(O.outformat), O.outfilename,
                     O.filetyp == TYP_AIFF ? "(AIFF)" :
@@ -674,7 +674,7 @@ MixSound(int n, SNDFILE *outfd)
         if (buffer[j] < min) min = buffer[j], lminpos = sample+j, mintimes=1;
       }
       sf_write_MYFLT(outfd, outbuf,
-                     O.sfsampsize * this_block * outputs / cenviron.nchnls);
+                     O.sfsampsize * this_block * outputs / csound->nchnls);
       block++;
       bytes += O.sfsampsize*this_block*outputs;
       if (O.heartbeat) {

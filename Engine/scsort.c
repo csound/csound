@@ -31,19 +31,20 @@ void scsort(FILE *scin, FILE *scout)
     /* called from smain.c or some other main */
     /* reads,sorts,timewarps each score sect in turn */
 {
-    int n;
+    ENVIRON *csound = &cenviron;
+    int     n;
 
-    SCOREIN = scin;
-    SCOREOUT = scout;
+    csound->scorein = scin;
+    csound->scoreout = scout;
 
-    cenviron.sectcnt = 0;
+    csound->sectcnt = 0;
     sread_init();
     do {
       if ((n = sread()) > 0) {
 /*         printf("sread returns with %d\n", n); */
         sort();
         twarp();
-        swrite(&cenviron);
+        swrite(csound);
       }
     } while (n > 1);
     sfree();        /* return all memory used */

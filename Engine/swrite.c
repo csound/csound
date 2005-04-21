@@ -33,9 +33,10 @@ static char   *prevp(ENVIRON *,SRTBLK *, char *, int, int);
 static char   *ramp(ENVIRON *,SRTBLK *, char *, int, int);
 static char   *expramp(ENVIRON *,SRTBLK *, char *, int, int);
 static char   *randramp(ENVIRON *,SRTBLK *, char *, int, int);
-static char   *pfStr(ENVIRON *,char *, int, int), *fpnum(ENVIRON *,char *, int, int);
+static char   *pfStr(ENVIRON *,char *, int, int);
+static char   *fpnum(ENVIRON *,char *, int, int);
 
-#define fltout(n) fprintf(SCOREOUT, "%.6f", n)
+#define fltout(n) fprintf(csound->scoreout, "%.6f", n)
 
 void swrite(ENVIRON *csound)
 {
@@ -47,15 +48,15 @@ void swrite(ENVIRON *csound)
       return;
     lincnt = 0;
     if ((c = bp->text[0]) != 'w'
-        && c != 's' && c != 'e') {     /* if no warp stmnt but real data,  */
-      fprintf(SCOREOUT,"w 0 60\n");    /* create warp-format indicator */
+        && c != 's' && c != 'e') {      /*   if no warp stmnt but real data,  */
+      fprintf(csound->scoreout, "w 0 60\n");  /* create warp-format indicator */
       lincnt++;
     }
  nxtlin:
-    lincnt++;                          /* now for each line:           */
+    lincnt++;                           /* now for each line:           */
     p = bp->text;
     c = *p++;
-    putc(c,SCOREOUT);
+    putc(c, csound->scoreout);
     isntAfunc = 1;
     switch (c) {
     case 'f':
@@ -63,23 +64,23 @@ void swrite(ENVIRON *csound)
     case 'q':
     case 'i':
     case 'a':
-      putc(*p++,SCOREOUT);
+      putc(*p++, csound->scoreout);
       while ((c = *p++) != SP && c != LF)
-        putc(c,SCOREOUT);                       /* put p1       */
-      putc(c,SCOREOUT);
+        putc(c, csound->scoreout);              /* put p1       */
+      putc(c, csound->scoreout);
       if (c == LF)
         break;
       fltout(bp->p2val);                        /* put p2val,   */
-      putc(SP,SCOREOUT);
+      putc(SP, csound->scoreout);
       fltout(bp->newp2);                        /*   newp2,     */
       while ((c = *p++) != SP && c != LF)
         ;
-      putc(c,SCOREOUT);                         /*   and delim  */
+      putc(c, csound->scoreout);                /*   and delim  */
       if (c == LF)
         break;
       if (isntAfunc) {
         fltout(bp->p3val);                      /* put p3val,   */
-        putc(SP,SCOREOUT);
+        putc(SP, csound->scoreout);
         fltout(bp->newp3);                      /*   newp3,     */
         while ((c = *p++) != SP && c != LF)
           ;
@@ -88,7 +89,7 @@ void swrite(ENVIRON *csound)
         char temp[256];
         sprintf(temp,"%ld ",(long)bp->p3val);   /* put p3val  */
         fpnum(csound,temp, lincnt, pcnt);
-        putc(SP,SCOREOUT);
+        putc(SP, csound->scoreout);
         sprintf(temp,"%ld ",(long)bp->newp3);   /* put newp3  */
         fpnum(csound,temp, lincnt, pcnt);
         while ((c = *p++) != SP && c != LF)
@@ -97,23 +98,24 @@ void swrite(ENVIRON *csound)
       pcnt = 3;
       while (c != LF) {
         pcnt++;
-        putc(SP,SCOREOUT);
-        p = pfout(csound,bp,p,lincnt,pcnt);            /* now put each pfield  */
+        putc(SP, csound->scoreout);
+        p = pfout(csound,bp,p,lincnt,pcnt);     /* now put each pfield  */
         c = *p++;
       }
-      putc('\n', SCOREOUT);
+      putc('\n', csound->scoreout);
       break;
     case 'w':
     case 't':
     case 's':
     case 'e':
       while ((c = *p++) != LF)        /* put entire line      */
-        putc(c,SCOREOUT);
-      putc(LF,SCOREOUT);
+        putc(c, csound->scoreout);
+      putc(LF, csound->scoreout);
       break;
     default:
-      csound->Message(csound,Str("swrite: unexpected opcode, section %d line %d\n"),
-                 cenviron.sectcnt,lincnt);
+      csound->Message(csound,
+                      Str("swrite: unexpected opcode, section %d line %d\n"),
+                      csound->sectcnt, lincnt);
       break;
     }
     if ((bp = bp->nxtblk) != NULL)
@@ -135,8 +137,8 @@ static char *pfout(ENVIRON *csound, SRTBLK *bp, char *p,int lincnt, int pcnt)
       break;
     case '{':
     case '}':
-      csound->Message(csound,
-                      Str("Deprecated -- use round brackets instead of curly\n"));
+      csound->Message(csound, Str("Deprecated "
+                                  "-- use round brackets instead of curly\n"));
     case '(':
     case ')':
       p = expramp(csound, bp, p, lincnt, pcnt);
@@ -210,7 +212,7 @@ static char *nextp(ENVIRON *csound, SRTBLK *bp, char *p, int lincnt, int pcnt)
       while (*p != SP && *p != LF)
         csound->Message(csound,"%c", *p++);
       csound->Message(csound,Str("   Zero substituted\n"));
-      putc('0',SCOREOUT);
+      putc('0', csound->scoreout);
     }
     return(p);
 }
@@ -243,18 +245,18 @@ static char *prevp(ENVIRON *csound, SRTBLK *bp, char *p, int lincnt, int pcnt)
     error:
       csound->Message(csound,
           Str("swrite: output, sect%d line%d p%d makes illegal reference to "),
-          cenviron.sectcnt,lincnt,pcnt);
+          csound->sectcnt,lincnt,pcnt);
       while (q < p)
         csound->Message(csound,"%c", *q++);
       while (*p != SP && *p != LF)
         csound->Message(csound,"%c", *p++);
       csound->Message(csound,Str("   Zero substituted\n"));
-      putc('0',SCOREOUT);
+      putc('0', csound->scoreout);
     }
     return(p);
 }
 
-static char *ramp(ENVIRON *csound, SRTBLK *bp, char *p, int lincnt, int pcnt) 
+static char *ramp(ENVIRON *csound, SRTBLK *bp, char *p, int lincnt, int pcnt)
   /* NB np's may reference a ramp but ramps must terminate in valid nums */
 {
     char *q;
@@ -307,14 +309,14 @@ extern  MYFLT stof(char*);
  error1:
     csound->Message(csound,
         Str("swrite: output, sect%d line%d p%d has illegal ramp symbol\n"),
-        cenviron.sectcnt,lincnt,pcnt);
+        csound->sectcnt,lincnt,pcnt);
     goto put0;
  error2:
-    csound->Message(csound,Str("swrite: output, sect%d line%d p%d ramp has illegal"
-                               " forward or backward ref\n"),
-                    cenviron.sectcnt,lincnt,pcnt);
+    csound->Message(csound, Str("swrite: output, sect%d line%d p%d ramp "
+                                "has illegal forward or backward ref\n"),
+                            csound->sectcnt, lincnt, pcnt);
  put0:
-    putc('0',SCOREOUT);
+    putc('0', csound->scoreout);
     return(psav);
 }
 
@@ -375,18 +377,19 @@ static char *expramp(ENVIRON *csound, SRTBLK *bp, char *p, int lincnt, int pcnt)
  error1:
     csound->Message(csound,Str("swrite: output, sect%d line%d p%d has illegal"
                    " expramp symbol\n"),
-               cenviron.sectcnt,lincnt,pcnt);
+               csound->sectcnt,lincnt,pcnt);
     goto put0;
  error2:
-    csound->Message(csound,Str("swrite: output, sect%d line%d p%d expramp has illegal "
-                   "forward or backward ref\n"),
-               cenviron.sectcnt,lincnt,pcnt);
+    csound->Message(csound, Str("swrite: output, sect%d line%d p%d expramp "
+                                "has illegal forward or backward ref\n"),
+                            csound->sectcnt, lincnt, pcnt);
  put0:
-    putc('0',SCOREOUT);
+    putc('0', csound->scoreout);
     return(psav);
 }
 
-static char *randramp(ENVIRON *csound, SRTBLK *bp, char *p, int lincnt, int pcnt)
+static char *randramp(ENVIRON *csound,
+                      SRTBLK *bp, char *p, int lincnt, int pcnt)
   /* NB np's may reference a ramp but ramps must terminate in valid nums */
 {
     char *q;
@@ -438,29 +441,28 @@ static char *randramp(ENVIRON *csound, SRTBLK *bp, char *p, int lincnt, int pcnt
  error1:
     csound->Message(csound,Str("swrite: output, sect%d line%d p%d has illegal"
                    " expramp symbol\n"),
-               cenviron.sectcnt,lincnt,pcnt);
+               csound->sectcnt,lincnt,pcnt);
     goto put0;
  error2:
     csound->Message(csound,Str("swrite: output, sect%d line%d p%d expramp has"
                                " illegal forward or backward ref\n"),
-               cenviron.sectcnt,lincnt,pcnt);
+               csound->sectcnt,lincnt,pcnt);
  put0:
-    putc('0',SCOREOUT);
+    putc('0', csound->scoreout);
     return(psav);
 }
 
-static char *pfStr(ENVIRON *csound, char *p, int lincnt, int pcnt) /* moves quoted ascii string */
-                              /* to SCOREOUT file  with no internal format chk */
-{
-    char *q = p;
-    putc(*p++,SCOREOUT);
+static char *pfStr(ENVIRON *csound, char *p, int lincnt, int pcnt)
+{                             /* moves quoted ascii string to SCOREOUT file */
+    char *q = p;              /*   with no internal format chk              */
+    putc(*p++, csound->scoreout);
     while (*p != '"')
-      putc(*p++,SCOREOUT);
-    putc(*p++,SCOREOUT);
+      putc(*p++, csound->scoreout);
+    putc(*p++, csound->scoreout);
     if (*p != SP && *p != LF) {
-      csound->Message(csound,Str("swrite: output, sect%d line%d p%d has illegally"
-                                 " terminated string   "),
-                      csound->sectcnt,lincnt,pcnt);
+      csound->Message(csound, Str("swrite: output, sect%d line%d p%d "
+                                  "has illegally terminated string   "),
+                              csound->sectcnt, lincnt, pcnt);
       while (q < p)
         csound->Message(csound,"%c", *q++);
       while (*p != SP && *p != LF)
@@ -481,41 +483,41 @@ static char *fpnum(ENVIRON *csound,
     if (*p == '+')
       p++;
     if (*p == '-')
-      putc(*p++,SCOREOUT);
+      putc(*p++, csound->scoreout);
     dcnt = 0;
     while (isdigit(*p)) {
-      putc(*p++,SCOREOUT);
+      putc(*p++, csound->scoreout);
       dcnt++;
     }
     if (*p == '.')
-      putc(*p++,SCOREOUT);
+      putc(*p++, csound->scoreout);
     while (isdigit(*p)) {
-      putc(*p++,SCOREOUT);
+      putc(*p++, csound->scoreout);
       dcnt++;
     }
     if (*p == 'E' || *p == 'e') { /* Allow exponential notation */
-      putc(*p++,SCOREOUT);
+      putc(*p++, csound->scoreout);
       dcnt++;
       if (*p == '+' || *p == '-') {
-        putc(*p++,SCOREOUT);
+        putc(*p++, csound->scoreout);
         dcnt++;
       }
       while (isdigit(*p)) {
-        putc(*p++,SCOREOUT);
+        putc(*p++, csound->scoreout);
         dcnt++;
       }
     }
     if ((*p != SP && *p != LF) || !dcnt) {
       csound->Message(csound,Str("swrite: output, sect%d line%d p%d has "
                                  "illegal number  "),
-                      cenviron.sectcnt,lincnt,pcnt);
+                      csound->sectcnt,lincnt,pcnt);
       while (q < p)
         csound->Message(csound,"%c", *q++);
       while (*p != SP && *p != LF)
         csound->Message(csound,"%c", *p++);
       csound->Message(csound,Str("    String truncated\n"));
       if (!dcnt)
-        putc('0',SCOREOUT);
+        putc('0', csound->scoreout);
     }
     return(p);
 }

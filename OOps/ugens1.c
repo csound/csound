@@ -53,7 +53,7 @@ int aline(ENVIRON *csound, LINE *p)
     val = p->val;
     inc = p->incr;
     p->val += inc;              /* nxtval = val + inc */
-    inc /= ensmps;
+    inc /= csound->ensmps;
     ar = p->xr;
     for (n=0; n<nsmps; n++) {
       ar[n] = val;
@@ -98,7 +98,7 @@ int expon(ENVIRON *csound, EXPON *p)
     mlt = p->mlt;
     nxtval = val * mlt;
     inc = nxtval - val;
-    inc /= ensmps;              /* increment per sample */
+    inc /= csound->ensmps;              /* increment per sample */
     ar = p->xr;
     for (n=0; n<nsmps; n++) {
       ar[n] = val;
@@ -214,7 +214,7 @@ int linseg(ENVIRON *csound, LINSEG *p)
           goto chk1;
         }                                 /*   poslen = new slope */
         p->curinc = (segp->nxtpt - val) / segp->cnt;
-        p->curainc = p->curinc / ensmps;
+        p->curainc = p->curinc / csound->ensmps;
       }
       p->curval = val + p->curinc;        /* advance the cur val  */
       if ((ainc = p->curainc) == FL(0.0))
@@ -235,9 +235,8 @@ int linseg(ENVIRON *csound, LINSEG *p)
 
 /* **** ADSR is just a construction and use of linseg */
 
-static void adsrset1(LINSEG *p, int midip)
+static void adsrset1(ENVIRON *csound, LINSEG *p, int midip)
 {
-    ENVIRON     *csound = &cenviron;
     SEG         *segp;
     int         nsegs;
     MYFLT       **argp = p->argums;
@@ -255,7 +254,7 @@ static void adsrset1(LINSEG *p, int midip)
     nsegs = 6;          /* DADSR */
     if ((segp = (SEG *) p->auxch.auxp) == NULL ||
         nsegs*sizeof(SEG) < (unsigned int)p->auxch.size) {
-      csoundAuxAlloc(&cenviron, (long)nsegs*sizeof(SEG), &p->auxch);
+      csoundAuxAlloc(csound, (long) nsegs * sizeof(SEG), &p->auxch);
       p->cursegp = segp = (SEG *) p->auxch.auxp;
       segp[nsegs-1].cnt = MAXPOS; /* set endcount for safety */
     }
@@ -320,13 +319,13 @@ static void adsrset1(LINSEG *p, int midip)
 
 int adsrset(ENVIRON *csound, LINSEG *p)
 {
-    adsrset1(p, 0);
+    adsrset1(csound, p, 0);
     return OK;
 }
 
 int madsrset(ENVIRON *csound, LINSEG *p)
 {
-    adsrset1(p, 1);
+    adsrset1(csound, p, 1);
     return OK;
 }
 
@@ -402,7 +401,7 @@ int linsegr(ENVIRON *csound, LINSEG *p)
           goto chk2;
         }                                   /*   else get new slope */
         p->curinc = (segp->nxtpt - val) / segp->cnt;
-        p->curainc = p->curinc / ensmps;
+        p->curainc = p->curinc / csound->ensmps;
       }
       p->curval = val + p->curinc;          /* advance the cur val  */
       if ((ainc = p->curainc) == FL(0.0))
@@ -459,11 +458,11 @@ int xsgset(ENVIRON *csound, EXXPSEG *p)
  experr:
     n = segp - p->cursegp + 1;
     if (val == FL(0.0))
-      sprintf(errmsg,Str("ival%d is zero"), n);
+      sprintf(csound->errmsg, Str("ival%d is zero"), n);
     else if (nxtval == FL(0.0))
-      sprintf(errmsg,Str("ival%d is zero"), n+1);
-    else sprintf(errmsg,Str("ival%d sign conflict"), n+1);
-    return csound->InitError(csound, errmsg);
+      sprintf(csound->errmsg, Str("ival%d is zero"), n+1);
+    else sprintf(csound->errmsg, Str("ival%d sign conflict"), n+1);
+    return csound->InitError(csound, csound->errmsg);
 }
 
 int xsgset2(ENVIRON *csound, EXPSEG2 *p)  /*gab-A1 (G.Maldonado) */
@@ -506,10 +505,10 @@ int xsgset2(ENVIRON *csound, EXPSEG2 *p)  /*gab-A1 (G.Maldonado) */
  experr:
     n = segp - p->cursegp + 1;
     if (val == FL(0.0))
-      sprintf(errmsg,Str("ival%d is zero"), n);
+      sprintf(csound->errmsg, Str("ival%d is zero"), n);
     else if (nxtval == FL(0.0))
-      sprintf(errmsg,Str("ival%d is zero"), n+1);
-    else sprintf(errmsg,Str("ival%d sign conflict"), n+1);
+      sprintf(csound->errmsg, Str("ival%d is zero"), n+1);
+    else sprintf(csound->errmsg, Str("ival%d sign conflict"), n+1);
     return NOTOK;
 }
 
@@ -635,7 +634,7 @@ int expseg(ENVIRON *csound, EXXPSEG *p)
       p->cursegp = ++segp;
     val = segp->val;
     nxtval = val * segp->mlt;
-    li = (nxtval - val) / ensmps;
+    li = (nxtval - val) / csound->ensmps;
     rs = p->rslt;
     for (n=0; n<csound->ksmps; n++) {
       rs[n] = val;
@@ -684,11 +683,11 @@ int xsgrset(ENVIRON *csound, EXPSEG *p)
  experr:
     n = segp - p->cursegp + 2;
     if (prvpt == FL(0.0))
-      sprintf(errmsg,Str("ival%d is zero"), n);
+      sprintf(csound->errmsg, Str("ival%d is zero"), n);
     else if (segp->nxtpt == FL(0.0))
-      sprintf(errmsg,Str("ival%d is zero"), n+1);
-    else sprintf(errmsg,Str("ival%d sign conflict"), n+1);
-    return csound->InitError(csound, errmsg);
+      sprintf(csound->errmsg, Str("ival%d is zero"), n+1);
+    else sprintf(csound->errmsg, Str("ival%d sign conflict"), n+1);
+    return csound->InitError(csound, csound->errmsg);
 }
 
 /* **** MXDSR is just a construction and use of expseg */
@@ -798,7 +797,7 @@ int expsegr(ENVIRON *csound, EXPSEG *p)
         else {
           p->curmlt = (MYFLT) pow((double)(segp->nxtpt/val),
                                   1.0/(double)segp->cnt);
-          p->curamlt = (MYFLT) pow(p->curmlt,  1.0/(double)ensmps);
+          p->curamlt = (MYFLT) pow(p->curmlt,  1.0/(double)csound->ensmps);
         }
       }
       p->curval = val * p->curmlt;        /* advance the cur val  */
@@ -883,7 +882,7 @@ int linen(ENVIRON *csound, LINEN *p)
     else p->cnt2--;
     p->val = nxtval;
     if (flag) {
-      li = (nxtval - val)/ensmps;
+      li = (nxtval - val)/csound->ensmps;
       if (p->XINCODE) {
         for (n=0; n<nsmps; n++) {
           rs[n] = *sg++ * val;
@@ -971,7 +970,7 @@ int linenr(ENVIRON *csound, LINENR *p)
     }
     p->val = nxtval;
     if (flag) {
-      li = (nxtval - val)/ensmps;
+      li = (nxtval - val)/csound->ensmps;
       if (p->XINCODE) {
         for (n=0; n<nsmps; n++) {
           rs[n] = sg[n] * val;
@@ -1155,7 +1154,7 @@ int envlpx(ENVIRON *csound, ENVLPX *p)
       else nxtval *= p->mlt2;
     }
     p->val = nxtval;
-    li = (nxtval - val)/ensmps; /* linear interpolation factor */
+    li = (nxtval - val)/csound->ensmps; /* linear interpolation factor */
     if (p->XINCODE) {           /* for audio rate amplitude: */
       for (n=0; n<nsmps;n++) {
         rslt[n] = xamp[n] * val;
@@ -1321,7 +1320,7 @@ int envlpxr(ENVIRON *csound, ENVLPR *p)
       }
     }
     else p->val = nxtval = val * p->mlt2;   /* else do seg 3 decay  */
-    li = (nxtval - val) / ensmps;           /* all segs use interp  */
+    li = (nxtval - val) / csound->ensmps;   /* all segs use interp  */
     if (p->XINCODE) {
       for (n=0; n<nsmps; n++) {
         rslt[n] = xamp[n] * val;

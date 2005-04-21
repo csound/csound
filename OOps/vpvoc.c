@@ -218,10 +218,10 @@ int vpvset(ENVIRON *csound, VPVOC *p)
       csound->AuxAlloc(csound, sizeof(TABLESEG), &p->auxtab);
       p->tableseg = (TABLESEG*) p->auxtab.auxp;
       if ((p->tableseg->outfunc = csound->FTFind(csound, p->isegtab)) == NULL) {
-        sprintf(errmsg,
+        sprintf(csound->errmsg,
                 Str("vpvoc: Could not find ifnmagctrl table %f\n"),
                 *p->isegtab);
-        return csound->InitError(csound, errmsg);
+        return csound->InitError(csound, csound->errmsg);
       }
     }
 
@@ -250,12 +250,12 @@ int vpvset(ENVIRON *csound, VPVOC *p)
     if ((mfp = p->mfp) == NULL
       || strcmp(mfp->filename, pvfilnam) != 0) /* if file not already readin */
         if ( (mfp = ldmemfile(csound, pvfilnam)) == NULL) {
-            sprintf(errmsg,Str("PVOC cannot load %s"), pvfilnam);
+            sprintf(csound->errmsg,Str("PVOC cannot load %s"), pvfilnam);
             goto pverr;
         }
     pvh = (PVSTRUCT *)mfp->beginp;
     if (pvh->magic != PVMAGIC) {
-        sprintf(errmsg,Str("%s not a PVOC file (magic %ld)"),
+        sprintf(csound->errmsg,Str("%s not a PVOC file (magic %ld)"),
                 pvfilnam, pvh->magic );
         goto pverr;
     }
@@ -268,22 +268,22 @@ int vpvset(ENVIRON *csound, VPVOC *p)
              pvfilnam, p->asr, csound->esr);
     }
     if (pvh->dataFormat != PVMYFLT) {
-      sprintf(errmsg,Str("unsupported PVOC data format %ld in %s"),
+      sprintf(csound->errmsg,Str("unsupported PVOC data format %ld in %s"),
               pvh->dataFormat, pvfilnam);
       goto pverr;
     }
     if (p->frSiz > PVFRAMSIZE) {
-      sprintf(errmsg,Str("PVOC frame %d bigger than %ld in %s"),
+      sprintf(csound->errmsg,Str("PVOC frame %d bigger than %ld in %s"),
               p->frSiz, PVFRAMSIZE, pvfilnam);
       goto pverr;
     }
     if (p->frSiz < PVFRAMSIZE/8) {
-      sprintf(errmsg,Str("PVOC frame %ld seems too small in %s"),
+      sprintf(csound->errmsg,Str("PVOC frame %ld seems too small in %s"),
               p->frSiz, pvfilnam);
       goto pverr;
     }
     if (chans != 1) {
-      sprintf(errmsg,Str("%d chans (not 1) in PVOC file %s"),
+      sprintf(csound->errmsg,Str("%d chans (not 1) in PVOC file %s"),
               chans, pvfilnam);
       goto pverr;
     }
@@ -312,7 +312,8 @@ int vpvset(ENVIRON *csound, VPVOC *p)
         p->lastPhase[i] = FL(0.0);
     }
     if ( (OPWLEN/2 + 1)>PVWINLEN ) {
-        sprintf(errmsg, Str("ksmps of %d needs wdw of %d, max is %d for pv %s\n"),
+        sprintf(csound->errmsg,
+                Str("ksmps of %d needs wdw of %d, max is %d for pv %s\n"),
                 csound->ksmps, (OPWLEN/2 + 1), PVWINLEN, pvfilnam);
         goto pverr;
     }
@@ -326,7 +327,7 @@ int vpvset(ENVIRON *csound, VPVOC *p)
     return OK;
 
  pverr:
-    return csound->InitError(csound, errmsg);
+    return csound->InitError(csound, csound->errmsg);
 }
 
 

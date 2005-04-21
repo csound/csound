@@ -50,7 +50,7 @@
       unsigned char *slnum = p->slnum;                            \
       MYFLT *min = p->min, *max= p->max;                          \
       FUNC **ftp = p->ftp;                                        \
-      MYFLT *chanblock = (MYFLT *) M_CHNBP[chan]->ctl_val;        \
+      MYFLT *chanblock = (MYFLT *) csound->m_chnbp[chan]->ctl_val;  \
       while (j++ < n) {                                           \
       *slnum = (unsigned char) *sld->ictlno;                      \
         if (*slnum > 127) {                                       \
@@ -80,7 +80,7 @@
     MYFLT value;                                                  \
     int j = 0;                                                    \
     FUNC **ftp = p->ftp-1;                                        \
-    MYFLT *chanblock = (MYFLT *) M_CHNBP[p->slchan]->ctl_val;     \
+    MYFLT *chanblock = (MYFLT *) csound->m_chnbp[p->slchan]->ctl_val; \
     unsigned char  *slnum = p->slnum;                             \
     MYFLT *min = p->min, *max = p->max;                           \
     MYFLT **result = p->r;                                        \
@@ -159,7 +159,7 @@ int slider64(ENVIRON *csound, SLIDER64 *p)
       FUNC **ftp = p->ftp;                                        \
       MYFLT     b;                                                \
       MYFLT *yt1 = p->yt1, *c1=p->c1, *c2=p->c2;                  \
-      MYFLT *chanblock = (MYFLT *) M_CHNBP[chan]->ctl_val;        \
+      MYFLT *chanblock = (MYFLT *) csound->m_chnbp[chan]->ctl_val;  \
       while (j++ < 8) {                                           \
       *slnum = (unsigned char) *sld->ictlno;                      \
         if (*slnum > 127) {                                       \
@@ -181,7 +181,9 @@ int slider64(ENVIRON *csound, SLIDER64 *p)
                                                                   \
                 /*----- init filtering coeffs*/                   \
         *yt1++ = FL(0.0);                                         \
-        b = (MYFLT)(2.0 - cos((double)(*(sld++)->ihp * tpidsr * csound->ksmps))); \
+        b = (MYFLT)(2.0 - cos((double)(*(sld++)->ihp              \
+                                       * csound->tpidsr           \
+                                       * csound->ksmps)));        \
         *c2 = (MYFLT)(b - sqrt((double)(b * b - FL(1.0))));       \
         *c1++ = FL(1.0) - *c2++;                                  \
       }                                                           \
@@ -194,7 +196,7 @@ int slider64(ENVIRON *csound, SLIDER64 *p)
     MYFLT value;                                                  \
     int j = 0;                                                    \
     FUNC **ftp = p->ftp-1;                                        \
-    MYFLT *chanblock = (MYFLT *) M_CHNBP[p->slchan]->ctl_val;     \
+    MYFLT *chanblock = (MYFLT *) csound->m_chnbp[p->slchan]->ctl_val; \
     unsigned char  *slnum = p->slnum;                             \
     MYFLT *min = p->min, *max = p->max;                           \
     MYFLT **result = p->r;                                        \
@@ -267,7 +269,7 @@ int slider64f(ENVIRON *csound, SLIDER64f *p)
       int j = 0;                                                  \
       ISLD *sld = p->s;                                           \
       unsigned char slnum;                                        \
-      MYFLT *chanblock = (MYFLT *) M_CHNBP[chan]->ctl_val;        \
+      MYFLT *chanblock = (MYFLT *) csound->m_chnbp[chan]->ctl_val;  \
       FUNC *ftp;                                                  \
       MYFLT **result = p->r;                                      \
                                                                   \
@@ -330,7 +332,7 @@ int islider64(ENVIRON *csound, ISLIDER64 *p)
       unsigned char *slnum_lsb = p->slnum_lsb;                         \
       MYFLT *min = p->min, *max= p->max;                               \
       FUNC **ftp = p->ftp;                                             \
-      MYFLT *chanblock = (MYFLT *) M_CHNBP[chan]->ctl_val;             \
+      MYFLT *chanblock = (MYFLT *) csound->m_chnbp[chan]->ctl_val;     \
                                                                        \
       while (j++ < n) {                                                \
         *slnum_msb = (unsigned char)*sld->ictlno_msb;                  \
@@ -370,7 +372,7 @@ int islider64(ENVIRON *csound, ISLIDER64 *p)
     MYFLT value;                                                       \
     int j = 0;                                                         \
     FUNC **ftp = p->ftp-1;                                             \
-    MYFLT *chanblock = (MYFLT *) M_CHNBP[p->slchan]->ctl_val;          \
+    MYFLT *chanblock = (MYFLT *) csound->m_chnbp[p->slchan]->ctl_val;  \
     unsigned char  *slnum_msb = p->slnum_msb;                          \
     unsigned char  *slnum_lsb = p->slnum_lsb;                          \
     MYFLT *min = p->min, *max = p->max;                                \
@@ -425,7 +427,7 @@ int slider32bit14(ENVIRON *csound, SLIDER32BIT14 *p)
       ISLD14 *sld = p->s;                                              \
       unsigned char slnum_msb;                                         \
       unsigned char slnum_lsb;                                         \
-      MYFLT *chanblock = (MYFLT *) M_CHNBP[chan]->ctl_val;             \
+      MYFLT *chanblock = (MYFLT *) csound->m_chnbp[chan]->ctl_val;     \
       MYFLT **result = p->r;                                           \
                                                                        \
       while (j++ < n) {                                                \

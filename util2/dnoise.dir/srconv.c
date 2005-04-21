@@ -246,10 +246,10 @@ int main(int argc, char **argv)
       else if (strcmp(envoutyp,"IRCAM") == 0)
         O.filetyp = TYP_IRCAM;
       else {
-        sprintf(errmsg,
+        sprintf(cenviron.errmsg,
                 Str("%s not a recognized SFOUTYP env setting"),
                 envoutyp);
-        dieu(errmsg);
+        dieu(cenviron.errmsg);
       }
     }
 
@@ -456,9 +456,9 @@ int main(int argc, char **argv)
             O.outformat == AE_ALAW ||
             O.outformat == AE_ULAW ||
             O.outformat == AE_FLOAT) {
-          sprintf(errmsg,Str("AIFF does not support %s encoding"),
+          sprintf(cenviron.errmsg,Str("AIFF does not support %s encoding"),
                   getstrformat(O.outformat));
-          csoundDie(&cenviron, errmsg);
+          csoundDie(&cenviron, cenviron.errmsg);
         }
     }
     if (O.filetyp == TYP_WAV) {
@@ -468,9 +468,9 @@ int main(int argc, char **argv)
             O.outformat == AE_ALAW ||
             O.outformat == AE_ULAW ||
             O.outformat == AE_FLOAT) {
-          sprintf(errmsg,Str("WAV does not support %s encoding"),
+          sprintf(cenviron.errmsg,Str("WAV does not support %s encoding"),
                   getstrformat(O.outformat));
-          csoundDie(&cenviron, errmsg);
+          csoundDie(&cenviron, cenviron.errmsg);
         }
     }
     if (O.rewrt_hdr && !O.sfheader)
@@ -796,3 +796,4 @@ static void kaiser(int nf, MYFLT *w, int n, int ieo, MYFLT beta)
     }
     return;
 }
+

@@ -383,7 +383,7 @@ void oloadRESET(ENVIRON *csound)
 
     memset(&(csound->instxtanchor), 0, sizeof(INSTRTXT));
     csound->argoffspace     = NULL;
-    pool                    = NULL;
+    csound->pool            = NULL;
     csound->gbloffbas       = NULL;
     csound->spin            = NULL;
     csound->spout           = NULL;
@@ -440,10 +440,10 @@ void oloadRESET(ENVIRON *csound)
     memcpy(csound->oparms, &O_, sizeof(OPARMS));
     /* IV - Sep 8 2002: also reset saved globals */
     csound->global_ksmps     = csound->ksmps;
-    csound->global_ensmps    = csound->ensmps_;
+    csound->global_ensmps    = csound->ensmps;
     csound->global_ekr       = csound->ekr;
     csound->global_onedkr    = csound->onedkr;
-    csound->global_hfkprd    = csound->hfkprd_;
+    csound->global_hfkprd    = csound->hfkprd;
     csound->global_kicvt     = csound->kicvt;
     csound->global_kcounter  = csound->kcounter;
     csound->rtin_dev         = 1024;
@@ -467,7 +467,7 @@ void oload(ENVIRON *p)
     OPTXT   *optxt;
     OPARMS  *O = p->oparms;
     p->esr = p->tran_sr; p->ekr = p->tran_kr;
-    p->ksmps = (int) ((ensmps = p->tran_ksmps) + FL(0.5));
+    p->ksmps = (int) ((p->ensmps = p->tran_ksmps) + FL(0.5));
     ip = p->instxtanchor.nxtinstxt;        /* for instr 0 optxts:  */
     optxt = (OPTXT *) ip;
     while ((optxt = optxt->nxtop) !=  NULL) {
@@ -480,11 +480,11 @@ void oload(ENVIRON *p)
       inoffp = ttp->inoffs;             /* to find sr.. assigns */
       if (outoffp->count == 1 && inoffp->count == 1) {
         int rindex = (int) outoffp->indx[0] - (int) O->poolcount;
-        MYFLT conval = pool[inoffp->indx[0] - 1];
+        MYFLT conval = p->pool[inoffp->indx[0] - 1];
         switch (rindex) {
         case 1:  p->esr = conval;  break;  /* & use those values */
         case 2:  p->ekr = conval;  break;  /*  to set params now */
-        case 3:  p->ksmps = (int) ((ensmps = conval) + FL(0.5));   break;
+        case 3:  p->ksmps = (int) ((p->ensmps = conval) + FL(0.5));   break;
         case 4:  p->nchnls = (int) (conval + FL(0.5));  break;
         case 5:  p->e0dbfs = conval; break;
         default: break;
@@ -501,8 +501,8 @@ void oload(ENVIRON *p)
     if (O->sr_override) {        /* if command-line overrides, apply now */
       p->esr = (MYFLT) O->sr_override;
       p->ekr = (MYFLT) O->kr_override;
-      p->ksmps = (int) ((ensmps = ((MYFLT) O->sr_override
-                                   / (MYFLT) O->kr_override)) + FL(0.5));
+      p->ksmps = (int) ((p->ensmps = ((MYFLT) O->sr_override
+                                      / (MYFLT) O->kr_override)) + FL(0.5));
       p->Message(p, Str("sample rate overrides: "
                         "esr = %7.1f, ekr = %7.1f, ksmps = %d\n"),
                     p->esr, p->ekr, p->ksmps);
@@ -510,17 +510,17 @@ void oload(ENVIRON *p)
     combinedsize = (O->poolcount + O->gblfixed + O->gblacount * p->ksmps)
                    * sizeof(MYFLT);
     combinedspc = (MYFLT *)mcalloc(p, (long)combinedsize);
-    for (fp1 = pool, fp2 = combinedspc, nn = O->poolcount; nn--; )
+    for (fp1 = p->pool, fp2 = combinedspc, nn = O->poolcount; nn--; )
       *fp2++ = *fp1++;              /* copy pool into combined space */
-    mfree(p, (void *)pool);
-    pool = combinedspc;
-    gblspace = pool + O->poolcount;
+    mfree(p, (void *) p->pool);
+    p->pool = combinedspc;
+    gblspace = p->pool + O->poolcount;
     gblspace[0] = p->esr;           /*   & enter        */
     gblspace[1] = p->ekr;           /*   rsvd word      */
-    gblspace[2] = ensmps;           /*   curr vals      */
+    gblspace[2] = p->ensmps;        /*   curr vals      */
     gblspace[3] = (MYFLT) p->nchnls;
     gblspace[4] = p->e0dbfs;
-    p->gbloffbas = pool - 1;
+    p->gbloffbas = p->pool - 1;
 
     gblabeg = O->poolcount + O->gblfixed + 1;
     ip = &(p->instxtanchor);
@@ -651,7 +651,7 @@ void oload(ENVIRON *p)
         strcat(s, Str("error: invalid ksmps value"));
         csoundDie(p, s);
       }
-      gblspace[2] = ensmps = (MYFLT) p->ksmps;
+      gblspace[2] = p->ensmps = (MYFLT) p->ksmps;
       if (gblspace[0] <= FL(0.0)) {
         strcat(s, Str("error: invalid sample rate"));
         csoundDie(p, s);
@@ -665,25 +665,25 @@ void oload(ENVIRON *p)
         csoundDie(p, s);
       }
     }
-    tpidsr = TWOPI_F / p->esr;                     /* now set internal  */
-    mtpdsr = -tpidsr;                                   /*    consts         */
-    pidsr = PI_F / p->esr;
-    mpidsr = -pidsr;
+    p->tpidsr = TWOPI_F / p->esr;               /* now set internal  */
+    p->mtpdsr = -(p->tpidsr);                   /*    consts         */
+    p->pidsr = PI_F / p->esr;
+    p->mpidsr = -(p->pidsr);
     p->sicvt = FMAXLEN / p->esr;
     p->kicvt = FMAXLEN / p->ekr;
-    hfkprd = FL(0.5) / p->ekr;
+    p->hfkprd = FL(0.5) / p->ekr;
     p->onedsr = FL(1.0) / p->esr;
     p->onedkr = FL(1.0) / p->ekr;
     /* IV - Sep 8 2002: save global variables that depend on ksmps */
     p->global_ksmps     = p->ksmps;
-    p->global_ensmps    = p->ensmps_;
+    p->global_ensmps    = p->ensmps;
     p->global_ekr       = p->ekr;
     p->global_onedkr    = p->onedkr;
-    p->global_hfkprd    = p->hfkprd_;
+    p->global_hfkprd    = p->hfkprd;
     p->global_kicvt     = p->kicvt;
     p->global_kcounter  = p->kcounter;
     cpsoctinit(p);
-    reverbinit();
+    reverbinit(p);
     dbfs_init(p, p->e0dbfs);
     p->nspout = p->ksmps * p->nchnls;  /* alloc spin & spout */
     p->nspin = p->nspout;

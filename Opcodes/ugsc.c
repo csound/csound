@@ -55,7 +55,7 @@ int svf(ENVIRON *csound, SVF *p)
     int nsmps = csound->ksmps;
 
     /* calculate frequency and Q coefficients */
-    f1 = FL(2.0) * (MYFLT)sin((double)(kfco * pidsr));
+    f1 = FL(2.0) * (MYFLT)sin((double)(kfco * csound->pidsr));
     if (kq<FL(0.000001)) kq = FL(1.0); /* Protect against division by zero */
     q1 = FL(1.0) / kq;
 
@@ -217,8 +217,8 @@ int resonr(ENVIRON *csound, RESONZ *p)
     MYFLT kcf = *p->kcf, kbw = *p->kbw;
     int nsmps = csound->ksmps;
 
-    r = (MYFLT)exp((double)(kbw * mpidsr));
-    c1 = FL(2.0) * r * (MYFLT)cos((double)(kcf * tpidsr));
+    r = (MYFLT)exp((double)(kbw * csound->mpidsr));
+    c1 = FL(2.0) * r * (MYFLT)cos((double)(kcf * csound->tpidsr));
     c2 = r * r;
 
     /* calculation of scaling coefficients */
@@ -269,8 +269,8 @@ int resonz(ENVIRON *csound, RESONZ *p)
     MYFLT kcf = *p->kcf, kbw = *p->kbw;
     int nsmps = csound->ksmps;
 
-    r = (MYFLT)exp(-(double)(kbw * pidsr));
-    c1 = FL(2.0) * r * (MYFLT)cos((double)(tpidsr*kcf));
+    r = (MYFLT)exp(-(double)(kbw * csound->pidsr));
+    c1 = FL(2.0) * r * (MYFLT)cos((double)(csound->tpidsr*kcf));
     c2 = r * r;
 
     /* Normalizing factors derived from equations in Ken Steiglitz,
@@ -361,7 +361,7 @@ int phaser1(ENVIRON *csound, PHASER1 *p)
      * frequency value into a useable coefficient for the
      * allpass filters.
      */
-    wp = pidsr * coef;
+    wp = csound->pidsr * coef;
     beta = (FL(1.0) - wp)/(FL(1.0) + wp);
 
     do {
@@ -453,8 +453,8 @@ int phaser2(ENVIRON *csound, PHASER2 *p)
          * notch, while the pole radius determines the q of
          * the notch.
          */
-        r = (MYFLT)exp(-(double)(freq * pidsr / kq));
-        b = -FL(2.0) * r * (MYFLT)cos((double)(freq * tpidsr));
+        r = (MYFLT)exp(-(double)(freq * csound->pidsr / kq));
+        b = -FL(2.0) * r * (MYFLT)cos((double)(freq * csound->tpidsr));
         a = r * r;
 
         /* Difference equations for implementing canonical
@@ -490,8 +490,10 @@ int lp2(ENVIRON *csound, LP2 *p)
     MYFLT kfco = *p->kfco, kres = *p->kres;
     int nsmps = csound->ksmps;
 
-    temp = mpidsr * kfco / kres; /* (-PI_F * kfco / (kres * csound->esr)); */
-    a = FL(2.0) * (MYFLT)(cos((double)(kfco * tpidsr)) * exp((double)temp));
+    temp = csound->mpidsr * kfco / kres;
+      /* (-PI_F * kfco / (kres * csound->esr)); */
+    a = FL(2.0) * (MYFLT) (cos((double) (kfco * csound->tpidsr))
+                           * exp((double) temp));
     b = (MYFLT)exp((double)(temp+temp));
     c = FL(1.0) - a + b;
 

@@ -40,7 +40,7 @@ static int util_perform(ENVIRON *csound, const char *name,
         return -(abs(n));
     }
     csoundPreCompile(csound);
-    csound->scorename_ = csound->orchname_ = (char*) name;
+    csound->scorename = csound->orchname = (char*) name;
     return (csound->Utility(csound, name, argc, argv));
 }
 

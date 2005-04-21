@@ -45,7 +45,7 @@ typedef struct {         /* struct for passing data to/from sfheader routines */
     long    firstlong;
 } HEADATA;
 
-static int anal_filelen(SNDINFO *p,MYFLT *p_length);
+static int anal_filelen(ENVIRON *csound, SNDINFO *p, MYFLT *p_length);
 
 static HEADATA *getsndinfo(ENVIRON *csound, SNDINFO *p)
 {
@@ -69,15 +69,15 @@ static HEADATA *getsndinfo(ENVIRON *csound, SNDINFO *p)
 
     sfname = soundiname;
     if (strcmp(sfname, "-i") == 0) {    /* get info on the -i    */
-      if (!O.infilename)                /* commandline inputfile */
+      if (!csound->oparms->infilename)  /* commandline inputfile */
         csound->Die(csound, Str("no infile specified in the commandline"));
-      sfname = O.infilename;
+      sfname = csound->oparms->infilename;
     }
     s = csoundFindInputFile(csound, sfname, "SFDIR;SSDIR");
     if (s == NULL) {                        /* open with full dir paths */
-      sprintf(errmsg,Str("diskinfo cannot open %s"), sfname);
+      sprintf(csound->errmsg, Str("diskinfo cannot open %s"), sfname);
       /* RWD 5:2001 better to exit in this situation ! */
-      csound->Die(csound, errmsg);
+      csound->Die(csound, csound->errmsg);
     }
     sfname = s;                             /* & record fullpath filnam */
     hdr = (HEADATA*) mcalloc(csound, sizeof(HEADATA));
@@ -88,14 +88,15 @@ static HEADATA *getsndinfo(ENVIRON *csound, SNDINFO *p)
       memset(&sfinfo, 0, sizeof(SF_INFO));
       sfinfo.samplerate = (int) (csound->esr + FL(0.5));
       sfinfo.channels = 1;
-      sfinfo.format = (int) FORMAT2SF(O.outformat) | (int) TYPE2SF(TYP_RAW);
+      sfinfo.format = (int) FORMAT2SF(csound->oparms->outformat)
+                      | (int) TYPE2SF(TYP_RAW);
       /* try again */
       sf = sf_open(sfname, SFM_READ, &sfinfo);
     }
     if (sf == NULL) {
-      sprintf(errmsg, Str("diskinfo cannot open %s"), sfname);
+      sprintf(csound->errmsg, Str("diskinfo cannot open %s"), sfname);
       mfree(csound, sfname);
-      csound->Die(csound, errmsg);
+      csound->Die(csound, csound->errmsg);
     }
     mfree(csound, sfname);
     hdr->sr = (long) sfinfo.samplerate;
@@ -119,7 +120,7 @@ int filelen(ENVIRON *csound, SNDINFO *p)
     HEADATA *hdr;
     MYFLT dur = FL(0.0);        /*RWD 8:2001 */
 
-    if (anal_filelen(p, &dur)) {
+    if (anal_filelen(csound, p, &dur)) {
       *(p->r1) = dur;
     }
     /* RWD 8:2001 now set to quit on failure, else we have bad hdr */
@@ -181,15 +182,15 @@ int filepeak(ENVIRON *csound, SNDINFOPEAK *p)
 
     sfname = soundiname;
     if (strcmp(sfname, "-i") == 0) {    /* get info on the -i    */
-      if (!O.infilename)                /* commandline inputfile */
+      if (!csound->oparms->infilename)  /* commandline inputfile */
         csound->Die(csound, Str("no infile specified in the commandline"));
-      sfname = O.infilename;
+      sfname = csound->oparms->infilename;
     }
     s = csoundFindInputFile(csound, sfname, "SFDIR;SSDIR");
     if (s == NULL) {                        /* open with full dir paths */
-      sprintf(errmsg,Str("diskinfo cannot open %s"), sfname);
+      sprintf(csound->errmsg, Str("diskinfo cannot open %s"), sfname);
       /* RWD 5:2001 better to exit in this situation ! */
-      csound->Die(csound, errmsg);
+      csound->Die(csound, csound->errmsg);
     }
     sfname = s;                             /* & record fullpath filnam */
     sndfile = sf_open(sfname, SFM_READ, &sfinfo);
@@ -207,9 +208,8 @@ int filepeak(ENVIRON *csound, SNDINFOPEAK *p)
 
 /* RWD 8:2001 support analysis files in filelen opcode  */
 
-static int anal_filelen(SNDINFO *p,MYFLT *p_dur)
+static int anal_filelen(ENVIRON *csound, SNDINFO *p,MYFLT *p_dur)
 {
-    ENVIRON *csound = &cenviron;
     char    *sfname, soundiname[256];
     long filno;
     int fd;
@@ -260,7 +260,7 @@ static int anal_filelen(SNDINFO *p,MYFLT *p_dur)
         /* just assume PVMYFLT format for now... */
         nframes = (MYFLT) (hdr.dataBsize / (nchans * frsiz * sizeof(float)));
         arate   = srate /  overlap;
-        dur             = (nframes / nchans) / arate;
+        dur     = (nframes / nchans) / arate;
         *p_dur  = dur;
         fclose(fp);
         return 1;
