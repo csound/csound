@@ -991,7 +991,7 @@ else:
         csoundVstSources.append(csoundVstJavaWrapper)
         jcsound = vstEnvironment.Java(target = 'frontends/CsoundVST/classes', source = '.', JAVACFLAGS = Split('''-source 1.4 -target 1.4'''))
         zipDependencies.append(jcsound)
-    	jcsoundJar = vstEnvironment.Jar('CsoundVST.jar', 'frontends/CsoundVST/classes', JARCHDIR = 'frontends/CsoundVST/classes')
+    	jcsoundJar = vstEnvironment.Jar('CsoundVST.jar', ['manifest.mf', 'frontends/CsoundVST/classes'], JARCHDIR = 'frontends/CsoundVST/classes')
     else:
 	print 'CONFIGURATION DECISION: Not building Java wrappers for CsoundVST.'
     csoundvst = vstEnvironment.SharedLibrary('CsoundVST', csoundVstSources, SHLIBPREFIX = '_')
