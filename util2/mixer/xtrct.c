@@ -242,8 +242,8 @@ main(int argc, char **argv)
             debug = 1;
             break;
           default:
-            sprintf(errmsg,"unknown flag -%c", c);
-            usage(errmsg);
+            sprintf(csound->errmsg, "unknown flag -%c", c);
+            usage(csound->errmsg);
           }
       else {
         if (inputfile != NULL) usage("Too many inputs");

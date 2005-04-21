@@ -75,14 +75,14 @@ int pvbufreadset(ENVIRON *csound, PVBUFREAD *p)
     if ((mfp = p->mfp) == NULL ||
         strcmp(mfp->filename, pvfilnam) != 0) { /* if file not already readin */
       if ( (mfp = ldmemfile(csound, pvfilnam)) == NULL) {
-        sprintf(errmsg,Str("PVOC cannot load %s"), pvfilnam);
+        sprintf(csound->errmsg, Str("PVOC cannot load %s"), pvfilnam);
         goto pverr;
       }
     }
     pvh = (PVSTRUCT *)mfp->beginp;
     if (pvh->magic != PVMAGIC) {
-      sprintf(errmsg,Str("%s not a PVOC file (magic %ld)"),
-              pvfilnam, pvh->magic );
+      sprintf(csound->errmsg, Str("%s not a PVOC file (magic %ld)"),
+                              pvfilnam, pvh->magic);
       goto pverr;
     }
     p->frSiz = pvh->frameSize;
@@ -94,23 +94,23 @@ int pvbufreadset(ENVIRON *csound, PVBUFREAD *p)
              pvfilnam, p->asr, csound->esr);
     }
     if (pvh->dataFormat != PVMYFLT) {
-      sprintf(errmsg,Str("unsupported PVOC data format %ld in %s"),
-              pvh->dataFormat, pvfilnam);
+      sprintf(csound->errmsg, Str("unsupported PVOC data format %ld in %s"),
+                              pvh->dataFormat, pvfilnam);
       goto pverr;
     }
     if (p->frSiz > PVFRAMSIZE) {
-      sprintf(errmsg,Str("PVOC frame %d bigger than %ld in %s"),
-              p->frSiz, PVFRAMSIZE, pvfilnam);
+      sprintf(csound->errmsg, Str("PVOC frame %d bigger than %ld in %s"),
+                              p->frSiz, PVFRAMSIZE, pvfilnam);
       goto pverr;
     }
     if (p->frSiz < 128) {
-      sprintf(errmsg,Str("PVOC frame %ld seems too small in %s"),
-              p->frSiz, pvfilnam);
+      sprintf(csound->errmsg, Str("PVOC frame %ld seems too small in %s"),
+                              p->frSiz, pvfilnam);
       goto pverr;
     }
     if (chans != 1) {
-      sprintf(errmsg,Str("%d chans (not 1) in PVOC file %s"),
-              chans, pvfilnam);
+      sprintf(csound->errmsg, Str("%d chans (not 1) in PVOC file %s"),
+                              chans, pvfilnam);
       goto pverr;
     }
     p->frPtr = (MYFLT *) ((char *)pvh+pvh->headBsize);
@@ -121,7 +121,7 @@ int pvbufreadset(ENVIRON *csound, PVBUFREAD *p)
     p->prFlg = 1;    /* true */
 
     if ((OPWLEN/2 + 1)>PVWINLEN ) {
-      sprintf(errmsg,
+      sprintf(csound->errmsg,
               Str("ksmps of %d needs wdw of %d, max is %d for pv %s\n"),
               csound->ksmps, (OPWLEN/2 + 1), PVWINLEN, pvfilnam);
       goto pverr;
@@ -130,7 +130,7 @@ int pvbufreadset(ENVIRON *csound, PVBUFREAD *p)
     return OK;
 
  pverr:
-    return csound->InitError(csound, errmsg);
+    return csound->InitError(csound, csound->errmsg);
 }
 
 
@@ -198,14 +198,14 @@ int pvinterpset(ENVIRON *csound, PVINTERP *p)
     if ((mfp = p->mfp) == NULL ||
         strcmp(mfp->filename, pvfilnam) != 0) { /* if file not already readin */
       if ( (mfp = ldmemfile(csound, pvfilnam)) == NULL) {
-        sprintf(errmsg,Str("PVOC cannot load %s"), pvfilnam);
+        sprintf(csound->errmsg, Str("PVOC cannot load %s"), pvfilnam);
         goto pverr;
       }
     }
     pvh = (PVSTRUCT *)mfp->beginp;
     if (pvh->magic != PVMAGIC) {
-      sprintf(errmsg,Str("%s not a PVOC file (magic %ld)"),
-              pvfilnam, pvh->magic );
+      sprintf(csound->errmsg, Str("%s not a PVOC file (magic %ld)"),
+                              pvfilnam, pvh->magic);
       goto pverr;
     }
     p->frSiz = pvh->frameSize;
@@ -217,23 +217,23 @@ int pvinterpset(ENVIRON *csound, PVINTERP *p)
              pvfilnam, p->asr, csound->esr);
     }
     if (pvh->dataFormat != PVMYFLT) {
-      sprintf(errmsg,Str("unsupported PVOC data format %ld in %s"),
-              pvh->dataFormat, pvfilnam);
+      sprintf(csound->errmsg, Str("unsupported PVOC data format %ld in %s"),
+                              pvh->dataFormat, pvfilnam);
       goto pverr;
     }
     if (p->frSiz > PVFRAMSIZE) {
-      sprintf(errmsg,Str("PVOC frame %d bigger than %ld in %s"),
-              p->frSiz, PVFRAMSIZE, pvfilnam);
+      sprintf(csound->errmsg, Str("PVOC frame %d bigger than %ld in %s"),
+                              p->frSiz, PVFRAMSIZE, pvfilnam);
       goto pverr;
     }
     if (p->frSiz < PVFRAMSIZE/8) {
-      sprintf(errmsg,Str("PVOC frame %ld seems too small in %s"),
-              p->frSiz, pvfilnam);
+      sprintf(csound->errmsg, Str("PVOC frame %ld seems too small in %s"),
+                              p->frSiz, pvfilnam);
       goto pverr;
     }
     if (chans != 1) {
-      sprintf(errmsg,Str("%d chans (not 1) in PVOC file %s"),
-              chans, pvfilnam);
+      sprintf(csound->errmsg, Str("%d chans (not 1) in PVOC file %s"),
+                              chans, pvfilnam);
       goto pverr;
     }
     /* Check that pv->frSiz is a power of two too ? */
@@ -258,7 +258,7 @@ int pvinterpset(ENVIRON *csound, PVINTERP *p)
       p->lastPhase[i] = FL(0.0);
     }
     if ((OPWLEN/2 + 1)>PVWINLEN) {
-      sprintf(errmsg,
+      sprintf(csound->errmsg,
               Str("ksmps of %d needs wdw of %d, max is %d for pv %s\n"),
               csound->ksmps, (OPWLEN/2 + 1), PVWINLEN, pvfilnam);
       goto pverr;
@@ -274,7 +274,7 @@ int pvinterpset(ENVIRON *csound, PVINTERP *p)
     return OK;
 
  pverr:
-    return csound->InitError(csound, errmsg);
+    return csound->InitError(csound, csound->errmsg);
 }
 
 
@@ -391,14 +391,14 @@ int pvcrossset(ENVIRON *csound, PVCROSS *p)
     if ((mfp = p->mfp) == NULL ||
         strcmp(mfp->filename, pvfilnam) != 0) {/* if file not already readin */
         if ( (mfp = ldmemfile(csound, pvfilnam)) == NULL) {
-            sprintf(errmsg,Str("PVOC cannot load %s"), pvfilnam);
+            sprintf(csound->errmsg, Str("PVOC cannot load %s"), pvfilnam);
             goto pverr;
         }
     }
     pvh = (PVSTRUCT *)mfp->beginp;
     if (pvh->magic != PVMAGIC) {
-        sprintf(errmsg,Str("%s not a PVOC file (magic %ld)"),
-                pvfilnam, pvh->magic );
+        sprintf(csound->errmsg, Str("%s not a PVOC file (magic %ld)"),
+                                pvfilnam, pvh->magic);
         goto pverr;
     }
     p->frSiz = pvh->frameSize;
@@ -410,23 +410,23 @@ int pvcrossset(ENVIRON *csound, PVCROSS *p)
              pvfilnam, p->asr, csound->esr);
     }
     if (pvh->dataFormat != PVMYFLT) {
-        sprintf(errmsg,Str("unsupported PVOC data format %ld in %s"),
-                pvh->dataFormat, pvfilnam);
+        sprintf(csound->errmsg, Str("unsupported PVOC data format %ld in %s"),
+                                pvh->dataFormat, pvfilnam);
         goto pverr;
     }
     if (p->frSiz > PVFRAMSIZE) {
-        sprintf(errmsg,Str("PVOC frame %d bigger than %ld in %s"),
-                p->frSiz, PVFRAMSIZE, pvfilnam);
+        sprintf(csound->errmsg, Str("PVOC frame %d bigger than %ld in %s"),
+                                p->frSiz, PVFRAMSIZE, pvfilnam);
         goto pverr;
     }
     if (p->frSiz < PVFRAMSIZE/8) {
-        sprintf(errmsg,Str("PVOC frame %ld seems too small in %s"),
-                p->frSiz, pvfilnam);
+        sprintf(csound->errmsg, Str("PVOC frame %ld seems too small in %s"),
+                                p->frSiz, pvfilnam);
         goto pverr;
     }
     if (chans != 1) {
-        sprintf(errmsg,Str("%d chans (not 1) in PVOC file %s"),
-                chans, pvfilnam);
+        sprintf(csound->errmsg, Str("%d chans (not 1) in PVOC file %s"),
+                                chans, pvfilnam);
         goto pverr;
     }
     /* Check that pv->frSiz is a power of two too ? */
@@ -449,7 +449,8 @@ int pvcrossset(ENVIRON *csound, PVCROSS *p)
         p->lastPhase[i] = FL(0.0);
     }
     if ((OPWLEN/2 + 1)>PVWINLEN ) {
-        sprintf(errmsg, Str("ksmps of %d needs wdw of %d, max is %d for pv %s\n"),
+        sprintf(csound->errmsg,
+                Str("ksmps of %d needs wdw of %d, max is %d for pv %s\n"),
                 csound->ksmps, (OPWLEN/2 + 1), PVWINLEN, pvfilnam);
         goto pverr;
     }
@@ -463,7 +464,7 @@ int pvcrossset(ENVIRON *csound, PVCROSS *p)
     return OK;
 
 pverr:
-    return csound->InitError(csound, errmsg);
+    return csound->InitError(csound, csound->errmsg);
 }
 
 

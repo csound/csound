@@ -97,7 +97,7 @@ int pvreadset(ENVIRON *csound, PVREAD *p)
         return OK;
       }
       if ( (mfp = ldmemfile(csound, pvfilnam)) == NULL) {
-        sprintf(errmsg,Str("PVREAD cannot load %s"), pvfilnam);
+        sprintf(csound->errmsg, Str("PVREAD cannot load %s"), pvfilnam);
         goto pverr;
       }
     }
@@ -113,8 +113,8 @@ int pvreadset(ENVIRON *csound, PVREAD *p)
       csound->AuxAlloc(csound, sizeof(MYFLT)*PVFFTSIZE, &p->fftBuf);
     pvh = (PVSTRUCT *)mfp->beginp;
     if (pvh->magic != PVMAGIC) {
-      sprintf(errmsg,Str("%s not a PVOC file (magic %ld)"),
-              pvfilnam, pvh->magic );
+      sprintf(csound->errmsg, Str("%s not a PVOC file (magic %ld)"),
+                              pvfilnam, pvh->magic );
       goto pverr;
     }
     p->frSiz = pvh->frameSize;
@@ -123,26 +123,26 @@ int pvreadset(ENVIRON *csound, PVREAD *p)
     if ((p->asr = pvh->samplingRate) != csound->esr &&
         (O.msglevel & WARNMSG)) { /* & chk the data */
       printf(Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
-              pvfilnam, p->asr, csound->esr);
+             pvfilnam, p->asr, csound->esr);
     }
     if (pvh->dataFormat != PVMYFLT) {
-      sprintf(errmsg,Str("unsupported PVOC data format %ld in %s"),
-              pvh->dataFormat, pvfilnam);
+      sprintf(csound->errmsg, Str("unsupported PVOC data format %ld in %s"),
+                              pvh->dataFormat, pvfilnam);
       goto pverr;
     }
     if (p->frSiz > PVFRAMSIZE) {
-      sprintf(errmsg,Str("PVOC frame %d bigger than %ld in %s"),
-              p->frSiz, PVFRAMSIZE, pvfilnam);
+      sprintf(csound->errmsg, Str("PVOC frame %d bigger than %ld in %s"),
+                              p->frSiz, PVFRAMSIZE, pvfilnam);
       goto pverr;
     }
     if (p->frSiz < 128) {
-      sprintf(errmsg,Str("PVOC frame %ld seems too small in %s"),
-              p->frSiz, pvfilnam);
+      sprintf(csound->errmsg, Str("PVOC frame %ld seems too small in %s"),
+                              p->frSiz, pvfilnam);
       goto pverr;
     }
     if (chans != 1) {
-      sprintf(errmsg,Str("%d chans (not 1) in PVOC file %s"),
-              chans, pvfilnam);
+      sprintf(csound->errmsg, Str("%d chans (not 1) in PVOC file %s"),
+                              chans, pvfilnam);
       goto pverr;
     }
     /* Check that pv->frSiz is a power of two too ? */
@@ -158,7 +158,7 @@ int pvreadset(ENVIRON *csound, PVREAD *p)
 
     return OK;
  pverr:
-    return csound->InitError(csound, errmsg);
+    return csound->InitError(csound, csound->errmsg);
 }
 
 int pvread(ENVIRON *csound, PVREAD *p)
@@ -219,42 +219,43 @@ int pvocex_loadfile(const char *fname,PVREAD *p,MEMFIL **mfp)
     pvx_fftsize = 2 * (pvdata.nAnalysisBins-1);
     framelen = 2 * pvdata.nAnalysisBins;
     if (pvx_fftsize > PVFRAMSIZE) {
-      sprintf(errmsg,"pvoc-ex file %s: FFT size %ld too large for Csound\n",
-              fname,pvx_fftsize);
+      sprintf(csound->errmsg,
+              "pvoc-ex file %s: FFT size %ld too large for Csound\n",
+              fname, pvx_fftsize);
       return 0;
     }
 
     /* have to reject m/c files for now, until opcodes upgraded*/
     if (fmt.nChannels > 1) {
-      sprintf(errmsg,"pvoc-ex file %s is not mono\n",fname);
+      sprintf(csound->errmsg, "pvoc-ex file %s is not mono\n", fname);
       return 0;
     }
 
     /* also, accept only 32bit floats for now */
     if (pvdata.wWordFormat == PVOC_IEEE_FLOAT) {
-      sprintf(errmsg,"pvoc-ex file %s is not 32bit floats\n",fname);
+      sprintf(csound->errmsg, "pvoc-ex file %s is not 32bit floats\n", fname);
       return 0;
     }
 
     /* FOR NOW, accept only PVOC_AMP_FREQ : later, we can convert */
     /* NB Csound knows no other: frameFormat is not read anywhere! */
     if (pvdata.wAnalFormat != PVOC_AMP_FREQ) {
-      sprintf(errmsg,"pvoc-ex file %s not in AMP_FREQ format\n",fname);
+      sprintf(csound->errmsg, "pvoc-ex file %s not in AMP_FREQ format\n",fname);
       return 0;
     }
     /* ignore the window spec until we can use it! */
     totalframes = pvoc_framecount(pvx_id);
 
     if (totalframes == 0) {
-      sprintf(errmsg,"pvoc-ex file %s is empty!\n",fname);
+      sprintf(csound->errmsg, "pvoc-ex file %s is empty!\n", fname);
       return 0;
     }
-    if (!find_memfile(&cenviron, fname, &mfil)) {
+    if (!find_memfile(csound, fname, &mfil)) {
       mem_wanted = totalframes * 2 * pvdata.nAnalysisBins * sizeof(float);
       /* try for the big block first! */
-      memblock = (float *) mmalloc(&cenviron, mem_wanted);
+      memblock = (float *) mmalloc(csound, mem_wanted);
       if (p->fftBuf.auxp  == NULL) /* Allocate space dynamically */
-        csoundAuxAlloc(&cenviron, sizeof(MYFLT)*PVFFTSIZE, &p->fftBuf);
+        csoundAuxAlloc(csound, sizeof(MYFLT)*PVFFTSIZE, &p->fftBuf);
 
       /* fill'er-up */
       /* need to loop, as we need to rescale amplitudes for Csound */
@@ -274,16 +275,17 @@ int pvocex_loadfile(const char *fname,PVREAD *p,MEMFIL **mfp)
       }
       pvoc_closefile(pvx_id);
       if (rc <0) {
-        sprintf(errmsg,"error reading pvoc-ex file %s\n",fname);
-        mfree(&cenviron, memblock);
-        mfree(&cenviron, p->fftBuf.auxp);
+        sprintf(csound->errmsg, "error reading pvoc-ex file %s\n", fname);
+        mfree(csound, memblock);
+        mfree(csound, p->fftBuf.auxp);
         return 0;
       }
       if (i < totalframes) {
-        sprintf(errmsg,"error reading pvoc-ex file %s after %d frames\n",
-                fname,i);
-        mfree(&cenviron, memblock);
-        mfree(&cenviron, p->fftBuf.auxp);
+        sprintf(csound->errmsg,
+                "error reading pvoc-ex file %s after %d frames\n",
+                fname, i);
+        mfree(csound, memblock);
+        mfree(csound, p->fftBuf.auxp);
         return 0;
       }
     }
@@ -311,7 +313,7 @@ int pvocex_loadfile(const char *fname,PVREAD *p,MEMFIL **mfp)
 
     /* Need to assign the MEMFIL to p->mfp in calling func */
     if (mfil==NULL) {
-      mfil = (MEMFIL *)  mmalloc(&cenviron, sizeof(MEMFIL));
+      mfil = (MEMFIL *)  mmalloc(csound, sizeof(MEMFIL));
       /* just hope the filename is short enough...! */
       mfil->next = NULL;
       mfil->filename[0] = '\0';
@@ -322,7 +324,7 @@ int pvocex_loadfile(const char *fname,PVREAD *p,MEMFIL **mfp)
       /*from memfiles.c */
       printf(Str("file %s (%ld bytes) loaded into memory\n"),
              fname,mem_wanted);
-      add_memfil(&cenviron, mfil);
+      add_memfil(csound, mfil);
     }
     *mfp = mfil;
     return 1;

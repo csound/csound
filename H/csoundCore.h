@@ -31,19 +31,9 @@ extern "C" {
 #if defined(HAVE_CONFIG_H)
 #include "config.h"
 #endif
-#include <stdarg.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <setjmp.h>
-#ifdef HAVE_STRING_H
-# include <string.h>
-#elif HAVE_STRINGS_H
-# include <strings.h>
-#endif
-#ifdef HAVE_IO_H
-#include <io.h>
-#endif
 #include "sysdep.h"
+#include <stdarg.h>
+#include <setjmp.h>
 #include "cwindow.h"
 #include "opcode.h"
 #include "version.h"
@@ -593,7 +583,12 @@ extern "C" {
     MYFLT (*GetScoreOffsetSeconds)(void *csound);
     void (*SetScoreOffsetSeconds)(void *csound, MYFLT offset);
     void (*RewindScore)(void *csound);
-    void (*Message)(void *csound, const char *format, ...);
+#ifdef HAVE_GCC3
+    __attribute__ ((__format__ (__printf__, 2, 3)))
+      void (*Message)(void *csound, const char *format, ...);
+#else
+      void (*Message)(void *csound, const char *format, ...);
+#endif
     void (*MessageV)(void *csound, const char *format, va_list args);
     void (*ThrowMessage)(void *csound, const char *format, ...);
     void (*ThrowMessageV)(void *csound, const char *format, va_list args);
@@ -691,11 +686,24 @@ extern "C" {
     void *(*Calloc)(void *csound, size_t nbytes);
     void *(*ReAlloc)(void *csound, void *oldp, size_t nbytes);
     void (*Free)(void *csound, void *ptr);
+#ifdef HAVE_GCC3
+    __attribute__ ((__noreturn__, __format__(__printf__, 2, 3)))
+      void (*Die)(void *csound, const char *msg, ...);
+    __attribute__ ((__format__(__printf__, 2, 3)))
+      int (*InitError)(void *csound, const char *msg, ...);
+    __attribute__ ((__format__(__printf__, 2, 3)))
+      int (*PerfError)(void *csound, const char *msg, ...);
+    __attribute__ ((__format__(__printf__, 2, 3)))
+      void (*Warning)(void *csound, const char *msg, ...);
+    __attribute__ ((__format__(__printf__, 2, 3)))
+      void (*DebugMsg)(void *csound, const char *msg, ...);
+#else
     void (*Die)(void *csound, const char *msg, ...);
     int (*InitError)(void *csound, const char *msg, ...);
     int (*PerfError)(void *csound, const char *msg, ...);
     void (*Warning)(void *csound, const char *msg, ...);
     void (*DebugMsg)(void *csound, const char *msg, ...);
+#endif
     /* Internal functions that are needed */
     void (*dispset)(WINDAT *, MYFLT *, long, char *, int, char *);
     void (*display)(WINDAT *);
@@ -782,7 +790,7 @@ extern "C" {
     MYFLT         global_hfkprd, global_kicvt;
     MYFLT         cpu_power_busy;
     long          global_kcounter;
-    char          *orchname_, *scorename_, *xfilename;
+    char          *orchname, *scorename, *xfilename;
     MYFLT         e0dbfs;
     /* oload.h */
     RESETTER      *reset_list;
@@ -819,13 +827,13 @@ extern "C" {
     long          nrecs;
     FILE*         Linepipe;
     int           Linefd;
-    MYFLT         *ls_table_;
+    MYFLT         *ls_table;
     MYFLT         curr_func_sr;
     char          *retfilnam;
     INSTRTXT      **instrtxtp;
-    char          errmsg_[ERRSIZ];  /* sprintf space for compiling msgs */
-    FILE*         scfp_;
-    FILE*         oscfp_;
+    char          errmsg[ERRSIZ];   /* sprintf space for compiling msgs */
+    FILE*         scfp;
+    FILE*         oscfp;
     MYFLT         maxamp[MAXCHNLS];
     MYFLT         smaxamp[MAXCHNLS];
     MYFLT         omaxamp[MAXCHNLS];
@@ -833,10 +841,10 @@ extern "C" {
     unsigned long maxpos[MAXCHNLS], smaxpos[MAXCHNLS], omaxpos[MAXCHNLS];
     int           reinitflag;
     int           tieflag;
-    FILE*         scorein_;
-    FILE*         scoreout_;
-    MYFLT         ensmps_, hfkprd_;
-    MYFLT         *pool_;
+    FILE*         scorein;
+    FILE*         scoreout;
+    MYFLT         ensmps, hfkprd;
+    MYFLT         *pool;
     int           *argoffspace;
     INSDS         *frstoff;
     jmp_buf       exitjmp;
@@ -845,7 +853,7 @@ extern "C" {
     MCHNBLK       *m_chnbp[MAXCHAN];
     MYFLT         *cpsocfrc;
     int           inerrcnt, synterrcnt, perferrcnt;
-    char          strmsg_[100];
+    char          strmsg[192];
     INSTRTXT      instxtanchor;
     INSDS         actanchor;
     long          rngcnt[MAXCHNLS];
@@ -857,7 +865,7 @@ extern "C" {
     MYFLT         tran_sr, tran_kr, tran_ksmps;
     MYFLT         tran_0dbfs;
     int           tran_nchnls;
-    MYFLT         tpidsr_, pidsr_, mpidsr_, mtpdsr_;
+    MYFLT         tpidsr, pidsr, mpidsr, mtpdsr;
     OPARMS        *oparms;
     void          *hostdata;
     OPCODINFO     *opcodeInfo;      /* IV - Oct 20 2002 */
@@ -870,9 +878,9 @@ extern "C" {
     unsigned int  rtout_dev;
     char *        rtout_devs;
     int           displop4;
-    void          *file_opened_;
-    int           file_max_;
-    int           file_num_;
+    void          *file_opened;
+    int           file_max;
+    int           file_num;
     int           nchanik;
     MYFLT*        chanik;
     int           nchania;

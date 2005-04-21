@@ -31,20 +31,21 @@ int scxtract(FILE *scin, FILE * scout, FILE *xfile) /* called from xmain.c
                                                        or some other main */
                                 /*   extracts events from each score sect */
 {                               /*   according to the controlling xfile   */
-    int n;
+    ENVIRON *csound = &cenviron;
+    int     n;
 
     readxfil(xfile);
-    SCOREIN = scin;
-    SCOREOUT = scout;
+    csound->scorein = scin;
+    csound->scoreout = scout;
 
-    cenviron.sectcnt = 0;
+    csound->sectcnt = 0;
     sread_init();
     do {
       if ((n = sread()) > 0) {
         /*  allout();   */
         /*  textout();  */
         extract();
-        swrite(&cenviron);
+        swrite(csound);
       }
     } while (n > 1);
     sfree();        /* return all memory used */

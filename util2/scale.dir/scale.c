@@ -283,8 +283,8 @@ int main(int argc, char **argv)
             O.ringbell = 1;             /* notify on completion */
             break;
           default:
-            sprintf(errmsg,Str("unknown flag -%c"), c);
-            usage(errmsg);
+            sprintf(csound->errmsg,Str("unknown flag -%c"), c);
+            usage(csound->errmsg);
           }
       else if (inputfile == NULL) {
         inputfile = --s;
@@ -353,9 +353,10 @@ int main(int argc, char **argv)
 
  outtyp:
     usage(Str("output soundfile cannot be both AIFF and WAV"));
-    sprintf(errmsg,Str("sound output format cannot be both -%c and -%c"),
+    sprintf(csound->errmsg,
+            Str("sound output format cannot be both -%c and -%c"),
             outformch, c);
-    usage(errmsg);
+    usage(csound->errmsg);
     exit(1);
 }
 

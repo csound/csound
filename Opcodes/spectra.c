@@ -518,18 +518,20 @@ int spdspset(ENVIRON *csound, SPECDISP *p)
       SPECDAT *specp = p->wsig;
       DOWNDAT *downp = specp->downsrcp;
       if (downp->lofrq > 5.) {
-        sprintf(strmsg, Str("instr %d %s, dft (%s), %ld octaves (%d - %d Hz):"),
+        sprintf(csound->strmsg,
+                Str("instr %d %s, dft (%s), %ld octaves (%d - %d Hz):"),
                 p->h.insdshead->insno, p->STRARG, outstring[specp->dbout],
                 downp->nocts, (int)downp->lofrq, (int)downp->hifrq);
       }
       else {                      /* more detail if low frequency  */
-        sprintf(strmsg,
+        sprintf(csound->strmsg,
                 Str("instr %d %s, dft (%s), %ld octaves (%3.1f - %3.1f Hz):"),
                 p->h.insdshead->insno, p->STRARG, outstring[specp->dbout],
                 downp->nocts, downp->lofrq, downp->hifrq);
       }
       csound->dispset(&p->dwindow, (MYFLT*) specp->auxch.auxp,
-                      (long)specp->npts, strmsg, (int)*p->iwtflg, "specdisp");
+                      (long)specp->npts, csound->strmsg, (int)*p->iwtflg,
+                      "specdisp");
     }
     p->countdown = p->timcount;          /* prime the countdown */
     return OK;
@@ -1242,12 +1244,12 @@ static OENTRY localops[] = {
 #endif
 };
 
-long opcode_size(void)
+PUBLIC long opcode_size(void)
 {
     return sizeof(localops);
 }
 
-OENTRY *opcode_init(ENVIRON *xx)
+PUBLIC OENTRY *opcode_init(ENVIRON *xx)
 {
 /*  xx->displop4 = xx->getopnum_("specdisp"); /\* This will not work!!! *\/ */
     return localops;

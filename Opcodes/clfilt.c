@@ -44,7 +44,7 @@ int clfiltset(ENVIRON *csound, CLFILT *p)
     int m, nsec;
     MYFLT pbr = *p->pbr, sbr = *p->sbr;        /* As cannot change */
     p->prvfreq = *p->freq;
-    tanfpi = (MYFLT)tan(-mpidsr*(*p->freq));
+    tanfpi = (MYFLT)tan(-csound->mpidsr*(*p->freq));
     tanfpi2 = tanfpi*tanfpi;
     cotfpi = FL(1.0)/tanfpi;
     cotfpi2 = cotfpi*cotfpi;
@@ -307,7 +307,7 @@ int clfilt(ENVIRON *csound, CLFILT *p)
     }
     if (*p->freq != p->prvfreq) {      /* Only reset if freq changes */
       p->prvfreq = *p->freq;
-      tanfpi = (MYFLT)tan(-mpidsr*(*p->freq));
+      tanfpi = (MYFLT)tan(-csound->mpidsr*(*p->freq));
       tanfpi2 = tanfpi*tanfpi;
       cotfpi = FL(1.0)/tanfpi;
       cotfpi2 = cotfpi*cotfpi;

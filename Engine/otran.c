@@ -146,13 +146,13 @@ static int parse_opcode_args(ENVIRON *csound, OENTRY *opc)
         i_incnt++; *otypes++ = *types;
         break;
       default:
-        sprintf(errmsg, "invalid input type for opcode %s", inm->name);
-        synterr(errmsg); err++;
+        sprintf(csound->errmsg, "invalid input type for opcode %s", inm->name);
+        synterr(csound->errmsg); err++;
       }
       i++; types++;
       if (i > OPCODENUMOUTS) {
-        sprintf(errmsg, "too many input args for opcode %s", inm->name);
-        synterr(errmsg); err++; break;
+        sprintf(csound->errmsg, "too many input args for opcode %s", inm->name);
+        synterr(csound->errmsg); err++; break;
       }
     }
     *otypes++ = 'o'; *otypes = '\0';    /* optional arg for local ksmps */
@@ -176,13 +176,14 @@ static int parse_opcode_args(ENVIRON *csound, OENTRY *opc)
         i_outcnt++; *otypes++ = *types;
         break;
       default:
-        sprintf(errmsg, "invalid output type for opcode %s", inm->name);
-        synterr(errmsg); err++;
+        sprintf(csound->errmsg, "invalid output type for opcode %s", inm->name);
+        synterr(csound->errmsg); err++;
       }
       i++; types++;
       if (i >= OPCODENUMOUTS) {
-        sprintf(errmsg, "too many output args for opcode %s", inm->name);
-        synterr(errmsg); err++; break;
+        sprintf(csound->errmsg, "too many output args for opcode %s",
+                                inm->name);
+        synterr(csound->errmsg); err++; break;
       }
     }
     *otypes = '\0';
@@ -276,9 +277,9 @@ void otran(ENVIRON *csound)
 /*  csound->displop4 = getopnum("specdisp"); */
 
     rdorchfile(csound);                 /* go read orch file    */
-    if (pool == NULL) {
-      pool = (MYFLT *)mmalloc(csound, (long)NCONSTS * sizeof(MYFLT));
-      *pool = (MYFLT)SSTRCOD;
+    if (csound->pool == NULL) {
+      csound->pool = (MYFLT *)mmalloc(csound, (long)NCONSTS * sizeof(MYFLT));
+      *(csound->pool) = (MYFLT) SSTRCOD;
       poolcount = 1;
       nconsts = NCONSTS;
     }
@@ -331,8 +332,8 @@ void otran(ENVIRON *csound)
 /*                  continue; */
 /*                } */
                   if (csound->instrtxtp[n] != NULL) {
-                    sprintf(errmsg,Str("instr %ld redefined"),n);
-                    synterr(errmsg);
+                    sprintf(csound->errmsg,Str("instr %ld redefined"),(long)n);
+                    synterr(csound->errmsg);
                     err++; continue;
                   }
                   csound->instrtxtp[n] = ip;
@@ -349,8 +350,8 @@ void otran(ENVIRON *csound)
                   }
                   /* IV - Oct 31 2002: store the name */
                   if (!named_instr_alloc(csound, c, ip, insno_priority)) {
-                    sprintf(errmsg,"instr %s redefined", c);
-                    synterr(errmsg);
+                    sprintf(csound->errmsg, "instr %s redefined", c);
+                    synterr(csound->errmsg);
                     err++; continue;
                   }
                   ip->insname = c;  /* IV - Nov 10 2002: also in INSTRTXT */
@@ -378,10 +379,10 @@ void otran(ENVIRON *csound)
                 continue;
               }
               if (ip->t.inlist->count != 3) {
-                sprintf(errmsg, Str("opcode declaration error "
-                                    "(usage: opcode name, outtypes, intypes) "
-                                    "-- opcode %s"), name);
-                synterr(errmsg);
+                sprintf(csound->errmsg, Str("opcode declaration error (usage: "
+                                            "opcode name, outtypes, intypes) "
+                                            "-- opcode %s"), name);
+                synterr(csound->errmsg);
                 continue;
               }
 
@@ -390,8 +391,8 @@ void otran(ENVIRON *csound)
               if (newopnum) {
                 /* IV - Oct 31 2002: redefine old opcode if possible */
                 if (newopnum < SETEND || !strcmp(name, "subinstr")) {
-                  sprintf(errmsg, Str("cannot redefine %s"), name);
-                  synterr(errmsg); continue;
+                  sprintf(csound->errmsg, Str("cannot redefine %s"), name);
+                  synterr(csound->errmsg); continue;
                 }
                 csound->Message(csound,
                                 Str("WARNING: redefined opcode: %s\n"), name);
@@ -515,7 +516,7 @@ void otran(ENVIRON *csound)
               else lgbuild(s);
               if (!nn && bp->t.opcod[1] == '.'        /* rsvd glbal = n ? */
                   && strcmp(bp->t.opcod,"=.r")==0) {  /*  (assume const)  */
-                MYFLT constval = pool[constndx(bp->t.inlist->arg[0])];
+                MYFLT constval = csound->pool[constndx(bp->t.inlist->arg[0])];
                 if (strcmp(s,"sr") == 0)
                   csound->tran_sr = constval;         /* modify otran defaults*/
                 else if (strcmp(s,"kr") == 0)
@@ -627,7 +628,7 @@ void otran(ENVIRON *csound)
       csound->Message(csound, "poolcount = %ld, strargsize = %ld\n",
                               poolcount, strargsize);
       csound->Message(csound, "pool:");
-      for (n = poolcount, p = pool; n--; p++)
+      for (n = poolcount, p = csound->pool; n--; p++)
         csound->Message(csound, "\t%g", *p);
       csound->Message(csound, "\n");
     }
@@ -916,26 +917,27 @@ static int constndx(char *s)        /* get storage ndx of float const value */
      * as this function is used to retrieve constants as well....
      * I (JPff) have not understood this yet.
      */
-    for (fp=pool,n=poolcount; n--; fp++) {      /* now search constpool */
-      if (newval == *fp)                        /* if val is there      */
-        return(fp - pool);                      /*    return w. index   */
+    for (fp=csound->pool, n=poolcount; n--; fp++) { /* now search constpool */
+      if (newval == *fp)                            /* if val is there      */
+        return (fp - csound->pool);                 /*    return w. index   */
     }
     if (++poolcount > nconsts) {
       /* csoundDie(csound, "flconst pool is full"); */
-      int indx = fp-pool;
+      int indx = fp - csound->pool;
       nconsts += NCONSTS;
       if(csound->oparms->msglevel)
         csound->Message(csound,Str("extending Floating pool to %d\n"), nconsts);
-      pool = (MYFLT*)mrealloc(csound, pool, nconsts*sizeof(MYFLT));
-      fp = pool + indx;
+      csound->pool = (MYFLT*) mrealloc(csound, csound->pool,
+                                               nconsts * sizeof(MYFLT));
+      fp = csound->pool + indx;
     }
-    *fp = newval;                               /* else enter newval    */
-/*      csound->Message(csound, "Constant %d: %f\n", fp-pool, newval); */
-    return(fp - pool);                          /*   and return new ndx */
+    *fp = newval;                                   /* else enter newval    */
+/*  csound->Message(csound, "Constant %d: %f\n", fp - csound->pool, newval); */
+    return (fp - csound->pool);                     /*   and return new ndx */
 
  flerror:
-    sprintf(errmsg,Str("numeric syntax '%s'"),str);
-    synterr(errmsg);
+    sprintf(csound->errmsg, Str("numeric syntax '%s'"),str);
+    synterr(csound->errmsg);
     return(0);
 }
 
@@ -954,8 +956,8 @@ static void gblnamset(char *s) /* builds namelist & type counts for gbl names */
 /*      csoundDie(csound, "gbl namelist is full"); */
         if (ggg->next == NULL) {
           if(csound->oparms->msglevel)
-            csound->Message(csound,Str("Extending Global pool to %d\n"),
-                            gblsize+=GNAMES);
+            csound->Message(csound, Str("Extending Global pool to %d\n"),
+                                    gblsize += GNAMES);
           ggg->next = (struct namepool*)mmalloc(csound,sizeof(struct namepool));
           ggg = ggg->next;
           ggg->names = (NAME *)mmalloc(csound, (long)(GNAMES*sizeof(NAME)));
@@ -999,8 +1001,8 @@ static NAME *lclnamset(char *s)
         /*          csoundDie(csound, "lcl namelist is full"); */
         if (lll->next == NULL) {
           if(csound->oparms->msglevel)
-            csound->Message(csound,Str("Extending Local pool to %d\n"),
-                            lclsize+=LNAMES);
+            csound->Message(csound, Str("Extending Local pool to %d\n"),
+                                    lclsize += LNAMES);
           lll->next = (struct namepool*)mmalloc(csound,
                                                 sizeof(struct namepool));
           lll = lll->next;

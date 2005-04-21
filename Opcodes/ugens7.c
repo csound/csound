@@ -194,7 +194,7 @@ static int newpulse(ENVIRON *csound,
     ovp->forminc = (long)(*form * csound->sicvt);
     if (*p->kband != p->prvband) {                    /* bw: exp dec */
       p->prvband = *p->kband;
-      p->expamp = (MYFLT)exp((double)(*p->kband * mpidsr));
+      p->expamp = (MYFLT)exp((double)(*p->kband * csound->mpidsr));
       newexp = 1;
     }
     /* Init grain rise ftable phase. Negative kform values make
@@ -302,7 +302,7 @@ int harmon(ENVIRON *csound, HARMON *p)
     if (*p->kest != p->prvest &&
         *p->kest != FL(0.0)) {    /* if new pitch estimate */
       MYFLT estperiod = csound->esr / *p->kest;
-      double b = 2.0 - cos((double)(*p->kest * tpidsr));
+      double b = 2.0 - cos((double)(*p->kest * csound->tpidsr));
       p->c2 = (MYFLT)(b - sqrt(b*b - 1.0)); /*   recalc lopass coefs */
       p->c1 = FL(1.0) - p->c2;
       p->prvest = *p->kest;

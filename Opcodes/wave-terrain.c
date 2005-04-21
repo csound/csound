@@ -79,7 +79,7 @@ int wtPerf(ENVIRON *csound, WAVETER *p)
     MYFLT krx = *(p->krx), kry = *(p->kry);
     MYFLT sizx = p->sizx, sizy = p->sizy;
     double theta = p->theta;
-    double dtpidsr = (double)tpidsr;
+    double dtpidsr = (double) csound->tpidsr;
 
     for (i=0; i<nsmps; i++) {
 

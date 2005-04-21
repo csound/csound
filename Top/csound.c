@@ -428,9 +428,9 @@ extern "C" {
 
   PUBLIC void csoundRewindScore(void *csound)
   {
-    if(((ENVIRON *)csound)->scfp_)
+    if(((ENVIRON *)csound)->scfp)
       {
-        fseek(((ENVIRON *)csound)->scfp_, 0, SEEK_SET);
+        fseek(((ENVIRON *)csound)->scfp, 0, SEEK_SET);
       }
   }
 
@@ -468,21 +468,9 @@ extern "C" {
     va_end(args);
   }
 
-  static int deprecated_printf_cnt = 0;
-
-  static void print_deprecated_printf(const char *s)
-  {
-    if (deprecated_printf_cnt >= 10)
-      return;
-    deprecated_printf_cnt++;
-    csoundMessage(&cenviron,
-                  "WARNING: use csound->Message() instead of %s()\n", s);
-  }
-
   void csoundPrintf(const char *format, ...)
   {
     va_list args;
-    print_deprecated_printf("printf");
     va_start(args, format);
     csoundMessageCallback_(&cenviron, format, args);
     va_end(args);
@@ -491,7 +479,6 @@ extern "C" {
   void err_printf(char *fmt, ...)
   {
     va_list a;
-    print_deprecated_printf("err_printf");
     va_start(a, fmt);
     csoundMessageCallback_(&cenviron, fmt, a);
     va_end(a);
@@ -1241,7 +1228,6 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
     mainRESET(csound);
     csoundIsScorePending_ = 1;
     csoundScoreOffsetSeconds_ = (MYFLT) 0.0;
-    deprecated_printf_cnt = 0;
   }
 
   PUBLIC int csoundGetDebug(void *csound)

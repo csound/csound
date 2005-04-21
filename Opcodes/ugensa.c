@@ -182,7 +182,7 @@ static int newpulse(ENVIRON *csound, FOGS *p, OVERLAP *ovp, MYFLT  *amp,
     /*ovp->forminc = *form * csound->sicvt;*/
     if (*p->kband != p->prvband) {                    /* bw: exp dec */
       p->prvband = *p->kband;
-      p->expamp = (MYFLT)exp(*p->kband * mpidsr);
+      p->expamp = (MYFLT)exp(*p->kband * csound->mpidsr);
       newexp = 1;
     }
     if (*p->kris >= csound->onedsr && form != 0.0) {  /* init fnb ris */

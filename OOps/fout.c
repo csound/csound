@@ -45,20 +45,18 @@ struct fileinTag {
     long        cnt;
 };
 
-#define file_opened ((struct fileinTag *)(csound->file_opened_))
-#define file_max (csound->file_max_)
-#define file_num (csound->file_num_)
-
 static void close_files(void)
 {
 #ifdef ACCESS_TO_ENVIRON
-    while (file_num>=0) {
-      printf("%d (%s):", file_num, file_opened[file_num].name);
-      if (file_opened[file_num].raw != NULL)
-        fclose(file_opened[file_num].raw);
+    while (csound->file_num>=0) {
+      printf("%d (%s):", csound->file_num,
+             ((struct fileinTag*) csound->file_opened)[csound->file_num].name);
+      if (((struct fileinTag*) csound->file_opened)[csound->file_num].raw
+          != NULL)
+        fclose(((struct fileinTag*) csound->file_opened)[csound->file_num].raw);
       else
-        sf_close(file_opened[file_num].file);
-      file_num--;
+        sf_close(((struct fileinTag*) csound->file_opened)[csound->file_num].file);
+      csound->file_num--;
       printf(Str("\t... closed\n"));
     }
 #endif
@@ -70,7 +68,7 @@ int outfile(ENVIRON *csound, OUTFILE *p)
     MYFLT **args = p->argums;
     MYFLT vals[VARGMAX];
     if (p->fp==NULL) {
-      FILE* fp = file_opened[p->idx].raw;
+      FILE* fp = ((struct fileinTag*) csound->file_opened)[p->idx].raw;
       for (k=0; k<csound->ksmps; k++) {
         for (j=0;j<nargs;j++)
           fprintf(fp, "%g ", args[j][k]);
@@ -100,9 +98,9 @@ int outfile_set(ENVIRON *csound, OUTFILE *p)
       /*extern char *unquote(char *name); */
       if (p->STRARG == NULL) strcpy(fname,unquote(csound->currevent->strarg));
       else strcpy(fname, unquote(p->STRARG));
-      for (j=0; j<file_num; j++) {
-        if (!strcmp(file_opened[j].name,fname)) {
-          p->fp = file_opened[j].file;
+      for (j=0; j<csound->file_num; j++) {
+        if (!strcmp(((struct fileinTag*) csound->file_opened)[j].name, fname)) {
+          p->fp = ((struct fileinTag*) csound->file_opened)[j].file;
           p->idx = n = j;
           return OK;
         }
@@ -127,25 +125,29 @@ int outfile_set(ENVIRON *csound, OUTFILE *p)
       if ((p->fp = sf_open(fname,SFM_WRITE,&sfinfo)) == NULL)
         csound->Die(csound, Str("fout: cannot open outfile %s"),fname);
       else { /* put the file in the opened stack */
-        file_num++;
-        if (file_num>=file_max) {
-          if (file_max==0) atexit(close_files);
-          file_max += 4;        /* Expand by 4 each time */
-          csound->file_opened_ = (void*)
-            mrealloc(csound, file_opened, sizeof(struct fileinTag)*file_max);
+        csound->file_num++;
+        if (csound->file_num>=csound->file_max) {
+          if (csound->file_max==0) atexit(close_files);
+          csound->file_max += 4;        /* Expand by 4 each time */
+          csound->file_opened = (void*)
+            mrealloc(csound, csound->file_opened,
+                             sizeof(struct fileinTag) * csound->file_max);
         }
-        file_opened[file_num].name = (char*) mmalloc(csound, strlen(fname)+1);
-        strcpy(file_opened[file_num].name, fname);
-        file_opened[file_num].file = p->fp;
-        file_opened[file_num].raw = NULL;
-        p->idx = n = file_num;
-        file_opened[file_num].cnt = 0;
+        ((struct fileinTag*) csound->file_opened)[csound->file_num].name =
+          (char*) mmalloc(csound, strlen(fname)+1);
+        strcpy(((struct fileinTag*) csound->file_opened)[csound->file_num].name,
+               fname);
+        ((struct fileinTag*)csound->file_opened)[csound->file_num].file = p->fp;
+        ((struct fileinTag*) csound->file_opened)[csound->file_num].raw = NULL;
+        p->idx = n = csound->file_num;
+        ((struct fileinTag*) csound->file_opened)[csound->file_num].cnt = 0;
       }
     }
     else { /* file handle as argument */
       n = (int)*p->fname;
-      if (n>file_num || ((p->fp = file_opened[n].file) == NULL &&
-                         file_opened[n].raw == NULL))
+      if (n > csound->file_num ||
+          ((p->fp=((struct fileinTag*) csound->file_opened)[n].file) == NULL &&
+           ((struct fileinTag*) csound->file_opened)[n].raw == NULL))
         csound->Die(csound, Str("fout: invalid file handle"));
     }
     return OK;
@@ -174,9 +176,9 @@ int koutfile_set(ENVIRON *csound, KOUTFILE *p)
       /*extern char *unquote(char *name); */
       if (p->STRARG == NULL) strcpy(fname,unquote(csound->currevent->strarg));
       else strcpy(fname, unquote(p->STRARG));
-      for (j=0; j<file_num; j++) {
-        if (!strcmp(file_opened[j].name,fname)) {
-          p->fp = file_opened[j].file;
+      for (j=0; j<csound->file_num; j++) {
+        if (!strcmp(((struct fileinTag*) csound->file_opened)[j].name, fname)) {
+          p->fp = ((struct fileinTag*) csound->file_opened)[j].file;
           p->idx = n = j;
           goto done;
         }
@@ -201,23 +203,27 @@ int koutfile_set(ENVIRON *csound, KOUTFILE *p)
       if ((p->fp = sf_open(fname, SFM_WRITE, &sfinfo)) == NULL)
         csound->Die(csound, Str("foutk: cannot open outfile %s"),fname);
       else { /* put the file in the opened stack */
-        file_num++;
-        if (file_num>=file_max) {
-          if (file_max==0) atexit(close_files);
-          file_max += 4;
-          csound->file_opened_ = (void*)
-            mrealloc(csound, file_opened, sizeof(struct fileinTag)*file_max);
+        csound->file_num++;
+        if (csound->file_num>=csound->file_max) {
+          if (csound->file_max==0) atexit(close_files);
+          csound->file_max += 4;
+          csound->file_opened = (void*)
+            mrealloc(csound, csound->file_opened,
+                             sizeof(struct fileinTag) * csound->file_max);
         }
-        file_opened[file_num].name = (char*)mmalloc(csound, strlen(fname)+1);
-        strcpy(file_opened[file_num].name, fname);
-        file_opened[file_num].file=p->fp;
-        p->idx = n = file_num;
-        file_opened[file_num].cnt = 0;
+        ((struct fileinTag*) csound->file_opened)[csound->file_num].name =
+          (char*) mmalloc(csound, strlen(fname)+1);
+        strcpy(((struct fileinTag*) csound->file_opened)[csound->file_num].name,
+               fname);
+        ((struct fileinTag*) csound->file_opened)[csound->file_num].file=p->fp;
+        p->idx = n = csound->file_num;
+        ((struct fileinTag*) csound->file_opened)[csound->file_num].cnt = 0;
       }
     }
     else { /* file handle argument */
       n = (int)*p->fname;
-      if (n>file_num || (p->fp = file_opened[n].file) == NULL)
+      if (n > csound->file_num ||
+          (p->fp = ((struct fileinTag*) csound->file_opened)[n].file) == NULL)
         csound->Die(csound, Str("fout: invalid file handle"));
     }
  done:
@@ -242,18 +248,21 @@ int fiopen(ENVIRON *csound, FIOPEN *p)  /* open a file and return its handle  */
     if ((rfp = fopen(fname,omodes[idx])) == NULL)
       csound->Die(csound, Str("fout: cannot open outfile %s"),fname);
     if (idx>1) setbuf(rfp, NULL);
-    file_num++;
-    if (file_num>=file_max) {
-      if (file_max==0) atexit(close_files);
-      file_max += 4;
-      csound->file_opened_ = (void*)
-        mrealloc(csound, file_opened, sizeof(struct fileinTag)*file_max);
+    csound->file_num++;
+    if (csound->file_num>=csound->file_max) {
+      if (csound->file_max==0) atexit(close_files);
+      csound->file_max += 4;
+      csound->file_opened = (void*)
+        mrealloc(csound, csound->file_opened,
+                         sizeof(struct fileinTag) * csound->file_max);
     }
-    file_opened[file_num].name = (char*)mmalloc(csound, strlen(fname)+1);
-    strcpy(file_opened[file_num].name, fname);
-    file_opened[file_num].file=NULL;
-    file_opened[file_num].raw=rfp;
-    *p->ihandle = (MYFLT) file_num;
+    ((struct fileinTag*) csound->file_opened)[csound->file_num].name =
+      (char*) mmalloc(csound, strlen(fname)+1);
+    strcpy(((struct fileinTag*) csound->file_opened)[csound->file_num].name,
+           fname);
+    ((struct fileinTag*) csound->file_opened)[csound->file_num].file = NULL;
+    ((struct fileinTag*) csound->file_opened)[csound->file_num].raw = rfp;
+    *p->ihandle = (MYFLT) csound->file_num;
     return OK;
     }
 
@@ -267,9 +276,9 @@ int ioutfile_set(ENVIRON *csound, IOUTFILE *p)
     MYFLT **args=p->argums;
     FILE* rfil;
     int n = (int) *p->ihandle;
-    if (n<0 || n>file_num)
+    if (n<0 || n>csound->file_num)
       csound->Die(csound, Str("fouti: invalid file handle"));
-    rfil = file_opened[n].raw;
+    rfil = ((struct fileinTag*) csound->file_opened)[n].raw;
     if (rfil == NULL) csound->Die(csound, Str("fouti: invalid file handle"));
     if (*p->iascii == 0) { /* ascii format */
       switch ((int) *p->iflag) {
@@ -336,9 +345,9 @@ int ioutfile_r(ENVIRON *csound, IOUTFILE_R *p)
         MYFLT **args=p->argums;
         FILE *rfil;
         int n = (int) *p->ihandle;
-        if (n<0 || n>file_num)
+        if (n<0 || n>csound->file_num)
           csound->Die(csound, Str("fouti: invalid file handle"));
-        rfil = file_opened[n].raw;
+        rfil = ((struct fileinTag*) csound->file_opened)[n].raw;
         if (rfil == NULL)
           csound->Die(csound, Str("fouti: invalid file handle"));
         if (*p->iascii == 0) { /* ascii format */
@@ -390,31 +399,36 @@ int infile_set(ENVIRON *csound, INFILE *p)
       char fname[FILENAME_MAX];
       if (p->STRARG == NULL) strcpy(fname,unquote(csound->currevent->strarg));
       else strcpy(fname, unquote(p->STRARG));
-      for (j=0; j<file_num; j++) {
-        if (!strcmp(file_opened[j].name,fname)) {
-          p->fp = file_opened[j].file;
+      for (j=0; j<csound->file_num; j++) {
+        if (!strcmp(((struct fileinTag*) csound->file_opened)[j].name, fname)) {
+          p->fp = ((struct fileinTag*) csound->file_opened)[j].file;
           goto done;
         }
       }
       if (( p->fp = sf_open(fname, SFM_READ, &sfinfo)) == NULL)
         csound->Die(csound, Str("fin: cannot open infile %s"),fname);
       else { /* put the file in the opened stack */
-        file_num++;
-        if (file_num>=file_max) {
-          if (file_max==0) atexit(close_files);
-          file_max += 4;
-          csound->file_opened_ = (void*)
-            mrealloc(csound, file_opened, sizeof(struct fileinTag)*file_max);
+        csound->file_num++;
+        if (csound->file_num>=csound->file_max) {
+          if (csound->file_max==0) atexit(close_files);
+          csound->file_max += 4;
+          csound->file_opened = (void*)
+            mrealloc(csound, csound->file_opened,
+                             sizeof(struct fileinTag) * csound->file_max);
         }
-        file_opened[file_num].name = (char*)mmalloc(csound, strlen(fname)+1);
-        strcpy(file_opened[file_num].name, fname);
-        file_opened[file_num].file=p->fp;
-        file_opened[file_num].raw=NULL;
+        ((struct fileinTag*) csound->file_opened)[csound->file_num].name =
+          (char*) mmalloc(csound, strlen(fname)+1);
+        strcpy(((struct fileinTag*) csound->file_opened)[csound->file_num].name,
+               fname);
+        ((struct fileinTag*) csound->file_opened)[csound->file_num].file=p->fp;
+        ((struct fileinTag*) csound->file_opened)[csound->file_num].raw = NULL;
       }
     }
     else { /* file handle argument */
       int n = (int) *p->fname;
-      if (n<0 || n> file_num || (p->fp = file_opened[n].file) == NULL)
+      if (n < 0 ||
+          n > csound->file_num ||
+          (p->fp = ((struct fileinTag*) csound->file_opened)[n].file) == NULL)
         csound->Die(csound, Str("fin: invalid file handle"));
     }
  done:
@@ -464,30 +478,37 @@ int kinfile_set(ENVIRON *csound, KINFILE *p)
       char fname[FILENAME_MAX];
       if (p->STRARG == NULL) strcpy(fname,unquote(csound->currevent->strarg));
       else strcpy(fname, unquote(p->STRARG));
-      for (j=0; j<file_num || file_opened[j].name == NULL; j++) {
-        if (!strcmp(file_opened[j].name,fname)) {
-          p->fp = file_opened[j].file;
+      for (j = 0; j < csound->file_num ||
+                  ((struct fileinTag*) csound->file_opened)[j].name == NULL;
+           j++) {
+        if (!strcmp(((struct fileinTag*) csound->file_opened)[j].name, fname)) {
+          p->fp = ((struct fileinTag*) csound->file_opened)[j].file;
           goto done;
         }
       }
       if (( p->fp = sf_open(fname,SFM_READ, &sfinfo)) == NULL)
         csound->Die(csound, Str("fin: cannot open infile %s"),fname);
       else { /* put the file in the opened stack */
-        file_num++;
-        if (file_num>=file_max) {
-          if (file_max==0) atexit(close_files);
-          file_max += 4;
-          csound->file_opened_ = (void*)
-            mrealloc(csound, file_opened, sizeof(struct fileinTag)*file_max);
+        csound->file_num++;
+        if (csound->file_num>=csound->file_max) {
+          if (csound->file_max==0) atexit(close_files);
+          csound->file_max += 4;
+          csound->file_opened = (void*)
+            mrealloc(csound, csound->file_opened,
+                             sizeof(struct fileinTag) * csound->file_max);
         }
-        file_opened[file_num].name = (char*)mmalloc(csound, strlen(fname)+1);
-        strcpy(file_opened[file_num].name, fname);
-        file_opened[file_num].file=p->fp;
+        ((struct fileinTag*) csound->file_opened)[csound->file_num].name =
+          (char*) mmalloc(csound, strlen(fname)+1);
+        strcpy(((struct fileinTag*) csound->file_opened)[csound->file_num].name,
+               fname);
+        ((struct fileinTag*) csound->file_opened)[csound->file_num].file=p->fp;
       }
     }
     else {/* file handle argument */
       int n = (int) *p->fname;
-      if (n<0 || n>file_num || (p->fp = file_opened[n].file) == NULL)
+      if (n < 0 ||
+          n > csound->file_num ||
+          (p->fp = ((struct fileinTag*) csound->file_opened)[n].file) == NULL)
         csound->Die(csound, Str("fink: invalid file handle"));
     }
  done:
@@ -534,9 +555,11 @@ int i_infile(ENVIRON *csound, I_INFILE *p)
 
       if (p->STRARG == NULL) strcpy(fname,unquote(csound->currevent->strarg));
       else strcpy(fname, unquote(p->STRARG));
-      for (j=0; j<file_num || file_opened[j].name == NULL; j++) {
-        if (!strcmp(file_opened[j].name,fname)) {
-          fp = file_opened[j].raw;
+      for (j = 0; j < csound->file_num ||
+                  ((struct fileinTag*) csound->file_opened)[j].name == NULL;
+           j++) {
+        if (!strcmp(((struct fileinTag*) csound->file_opened)[j].name, fname)) {
+          fp = ((struct fileinTag*) csound->file_opened)[j].raw;
           goto done;
         }
       }
@@ -545,22 +568,27 @@ int i_infile(ENVIRON *csound, I_INFILE *p)
       if (( fp = fopen(fname,omodes[idx])) == NULL)
         csound->Die(csound, Str("fin: cannot open infile %s"),fname);
       else { /* put the file in the opened stack */
-        file_num++;
-        if (file_num>=file_max) {
-          if (file_max==0) atexit(close_files);
-          file_max += 4;
-          csound->file_opened_ = (void*)
-            mrealloc(csound, file_opened, sizeof(struct fileinTag)*file_max);
+        csound->file_num++;
+        if (csound->file_num>=csound->file_max) {
+          if (csound->file_max==0) atexit(close_files);
+          csound->file_max += 4;
+          csound->file_opened = (void*)
+            mrealloc(csound, csound->file_opened,
+                             sizeof(struct fileinTag) * csound->file_max);
         }
-        file_opened[file_num].name = (char*)mmalloc(csound, strlen(fname)+1);
-        strcpy(file_opened[file_num].name, fname);
-        file_opened[file_num].raw=fp;
-        file_opened[file_num].file=NULL;
+        ((struct fileinTag*) csound->file_opened)[csound->file_num].name =
+          (char*) mmalloc(csound, strlen(fname)+1);
+        strcpy(((struct fileinTag*) csound->file_opened)[csound->file_num].name,
+               fname);
+        ((struct fileinTag*) csound->file_opened)[csound->file_num].raw = fp;
+        ((struct fileinTag*) csound->file_opened)[csound->file_num].file = NULL;
       }
     }
     else {/* file handle argument */
       int n = (int) *p->fname;
-      if (n<0 || n>file_num || (fp = file_opened[n].raw) == NULL)
+      if (n < 0 ||
+          n > csound->file_num ||
+          (fp = ((struct fileinTag*) csound->file_opened)[n].raw) == NULL)
         csound->Die(csound, Str("fink: invalid file handle"));
     }
  done:
@@ -673,9 +701,9 @@ int fprintf_set(ENVIRON *csound, FPRINTF *p)
       /*extern char *unquote(char *name); */
       if (p->STRARG == NULL) strcpy(fname,unquote(csound->currevent->strarg));
       else strcpy(fname, unquote(p->STRARG));
-      for (j=0; j<= file_num; j++) {
-        if (!strcmp(file_opened[j].name,fname)) {
-          p->fp = file_opened[j].raw;
+      for (j=0; j<= csound->file_num; j++) {
+        if (!strcmp(((struct fileinTag*) csound->file_opened)[j].name, fname)) {
+          p->fp = ((struct fileinTag*) csound->file_opened)[j].raw;
           p->idx = n = j;
           goto done;
         }
@@ -684,23 +712,27 @@ int fprintf_set(ENVIRON *csound, FPRINTF *p)
       if ((p->fp = fopen(fname,"wb")) == NULL)
         csound->Die(csound, Str("fprint: cannot open outfile %s"),fname);
       else { /* put the file in the opened stack */
-        file_num++;
-        if (file_num>=file_max) {
-          if (file_max==0) atexit(close_files);
-          file_max += 4;
-          csound->file_opened_ = (void*)
-            mrealloc(csound, file_opened, sizeof(struct fileinTag)*file_max);
+        csound->file_num++;
+        if (csound->file_num>=csound->file_max) {
+          if (csound->file_max==0) atexit(close_files);
+          csound->file_max += 4;
+          csound->file_opened = (void*)
+            mrealloc(csound, csound->file_opened,
+                             sizeof(struct fileinTag) * csound->file_max);
         }
-        file_opened[file_num].name = (char*) mmalloc(csound, strlen(fname)+1);
-        strcpy(file_opened[file_num].name, fname);
-        file_opened[file_num].raw = p->fp;
-        p->idx = n = file_num;
-        file_opened[file_num].cnt = 0;
+        ((struct fileinTag*) csound->file_opened)[csound->file_num].name =
+          (char*) mmalloc(csound, strlen(fname)+1);
+        strcpy(((struct fileinTag*) csound->file_opened)[csound->file_num].name,
+               fname);
+        ((struct fileinTag*) csound->file_opened)[csound->file_num].raw = p->fp;
+        p->idx = n = csound->file_num;
+        ((struct fileinTag*) csound->file_opened)[csound->file_num].cnt = 0;
       }
     }
     else { /* file handle as argument */
       n = (int)*p->fname;
-      if (n>file_num || (p->fp = file_opened[n].raw) == NULL)
+      if (n > csound->file_num ||
+          (p->fp = ((struct fileinTag*) csound->file_opened)[n].raw) == NULL)
         csound->Die(csound, Str("fout: invalid file handle"));
     }
 

@@ -70,11 +70,11 @@ int oscils_set(ENVIRON *csound, OSCILS *p)
 {
     int     iflg;
 
-    iflg = (int)(*(p->iflg) + FL(0.5)) & 0x07;   /* check flags */
-    if (iflg & 1) return OK;           /* skip init, nothing to do */
-    p->use_double = (iflg & 2 ? 1 : 0);           /* use doubles internally */
-    init_sine_gen((double) *(p->iamp), (double)(*(p->icps) * tpidsr),
-                  (double)(*(p->iphs) * TWOPI_F),
+    iflg = (int) (*(p->iflg) + FL(0.5)) & 0x07; /* check flags */
+    if (iflg & 1) return OK;                    /* skip init, nothing to do */
+    p->use_double = (iflg & 2 ? 1 : 0);         /* use doubles internally */
+    init_sine_gen((double) *(p->iamp), (double) (*(p->icps) * csound->tpidsr),
+                  (double) (*(p->iphs) * TWOPI_F),
                    &(p->xd), &(p->cd), &(p->vd));
     if (!(p->use_double)) {
       p->x = (MYFLT) p->xd;       /* use floats */

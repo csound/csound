@@ -209,10 +209,10 @@ int vbap_zak_init(ENVIRON *csound, VBAP_ZAK  *p)
     p->beg_gains     = p->curr_gains + p->n;
     p->end_gains     = p->beg_gains + p->n;
     p->updated_gains = p->end_gains + p->n;
-    p->dim           = (int) ls_table[0];   /*reading in loudspeaker info */
-    p->ls_am         = (int) ls_table[1];
-    p->ls_set_am     = (int) ls_table[2];
-    ptr              = &(ls_table[3]);
+    p->dim           = (int) cenviron.ls_table[0];   /*reading in loudspeaker info */
+    p->ls_am         = (int) cenviron.ls_table[1];
+    p->ls_set_am     = (int) cenviron.ls_table[2];
+    ptr              = &(cenviron.ls_table[3]);
     csound->AuxAlloc(csound, p->ls_set_am * sizeof (LS_SET), &p->aux);
     if (p->aux.auxp==NULL) {
       return csound->InitError(csound, Str("could not allocate memory"));
@@ -504,10 +504,10 @@ int vbap_zak_moving_init(ENVIRON *csound, VBAP_ZAK_MOVING  *p)
     p->end_gains     = p->beg_gains + p->n;
     p->updated_gains = p->end_gains + p->n;
     /*reading in loudspeaker info */
-    p->dim           = (int) ls_table[0];
-    p->ls_am         = (int) ls_table[1];
-    p->ls_set_am     = (int) ls_table[2];
-    ptr              = &(ls_table[3]);
+    p->dim           = (int) cenviron.ls_table[0];
+    p->ls_am         = (int) cenviron.ls_table[1];
+    p->ls_set_am     = (int) cenviron.ls_table[2];
+    ptr              = &(cenviron.ls_table[3]);
     csound->AuxAlloc(csound, p->ls_set_am * sizeof (LS_SET), &p->aux);
     if (p->aux.auxp==NULL) {
       return csound->InitError(csound, Str("could not allocate memory"));

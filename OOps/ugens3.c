@@ -877,7 +877,7 @@ int adset(ENVIRON *csound, ADSYN *p)
     else sprintf(filnam,"adsyn.%ld",filno);/* else adsyn.filnum */
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename,filnam) != 0) {
       if ((mfp = ldmemfile(csound, filnam)) == NULL) {  /*   readfile if reqd */
-        sprintf(errmsg,Str("ADSYN cannot load %s"),filnam);
+        sprintf(csound->errmsg, Str("ADSYN cannot load %s"),filnam);
         goto adserr;
       }
       p->mfp = mfp;                               /*   & record         */
@@ -907,15 +907,15 @@ int adset(ENVIRON *csound, ADSYN *p)
           ptlfp->phs = 0;                /*  and clr the phase */
           break;
         default:
-          sprintf(errmsg,Str("illegal code %d encountered"),val);
+          sprintf(csound->errmsg, Str("illegal code %d encountered"), val);
           goto adserr;
         }
       }
     } while (adp < endata);
     if (ptlap != ptlfp) {
-      sprintf(errmsg,Str("%d amp tracks, %d freq tracks"),
-              ptlap - (PTLPTR*)p->aux.auxp - 1,
-              ptlfp - (PTLPTR*)p->aux.auxp - 1);
+      sprintf(csound->errmsg, Str("%d amp tracks, %d freq tracks"),
+                              ptlap - (PTLPTR*)p->aux.auxp - 1,
+                              ptlfp - (PTLPTR*)p->aux.auxp - 1);
       goto adserr;
     }
     ptlap->nxtp = NULL;   /* terminate the chain */
@@ -924,9 +924,9 @@ int adset(ENVIRON *csound, ADSYN *p)
     return OK;
 
  adsful:
-    sprintf(errmsg,Str("partial count exceeds MAXPTLS"));
+    sprintf(csound->errmsg, Str("partial count exceeds MAXPTLS"));
  adserr:
-    return csound->InitError(csound, errmsg);
+    return csound->InitError(csound, csound->errmsg);
 }
 
 #define ADSYN_MAXLONG FL(2147483647.0)

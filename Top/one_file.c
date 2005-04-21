@@ -483,8 +483,9 @@ int blank_buffer(void)
     return TRUE;
 }
 
-int read_unified_file(void *csound, char **pname, char **score)
+int read_unified_file(void *csound_, char **pname, char **score)
 {
+    ENVIRON *csound = (ENVIRON*) csound_;
     char *name = *pname;
     FILE *unf  = fopen(name, "rb"); /* Need to open in binary to deal with
                                        MIDI and the like. */
@@ -521,7 +522,7 @@ int read_unified_file(void *csound, char **pname, char **score)
       }
       else if (strstr(p,"<CsOptions>") == buffer) {
         csoundMessage(csound, Str("Creating options\n"));
-        orchname = NULL;  /* allow orchestra/score name in CSD file */
+        csound->orchname = NULL;    /* allow orchestra/score name in CSD file */
         r = readOptions(csound, unf);
         result = r && result;
       }

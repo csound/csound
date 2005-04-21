@@ -285,7 +285,7 @@ int musmon(ENVIRON *csound)
     iotranset();                    /* point recv & tran to audio formatter */
 
     /*        if (!O->Linein) { */  /*  *************** */
-    if (!(scfp = fopen(O->playscore, "r"))) {
+    if (!(csound->scfp = fopen(O->playscore, "r"))) {
       if (!O->Linein) {
         csoundDie(csound, Str("cannot reopen %s"), O->playscore);
       }
@@ -296,25 +296,26 @@ int musmon(ENVIRON *csound)
         lsect->op = 'l';
       }
       csound->Message(csound,Str("using Cscore processing\n"));
-      if (!(oscfp = fopen("cscore.out", "w")))  /* override stdout in   */
+      /* override stdout in */
+      if (!(csound->oscfp = fopen("cscore.out", "w")))
         csoundDie(csound, Str("cannot create cscore.out"));
       /* rdscor for cscorefns */
       cscorinit();
       cscore(csound);      /* call cscore, optionally re-enter via lplay() */
-      fclose(oscfp);
-      fclose(scfp); scfp = NULL;
+      fclose(csound->oscfp); csound->oscfp = NULL;
+      fclose(csound->scfp); csound->scfp = NULL;
       if (lplayed) return 0;
 
-      if (!(scfp = fopen("cscore.out", "r")))   /*   rd from cscore.out */
+      if (!(csound->scfp = fopen("cscore.out", "r"))) /*  rd from cscore.out */
         csoundDie(csound, Str("cannot reopen cscore.out"));
-      if (!(oscfp = fopen("cscore.srt", "w")))  /*   writ to cscore.srt */
+      if (!(csound->oscfp = fopen("cscore.srt", "w"))) /* writ to cscore.srt */
         csoundDie(csound, Str("cannot reopen cscore.srt"));
       csound->Message(csound,Str("sorting cscore.out ..\n"));
-      scsort(scfp, oscfp);                      /* call the sorter again */
-      fclose(scfp); scfp = NULL;
-      fclose(oscfp);
-      csound->Message(csound,Str("\t... done\n"));
-      if (!(scfp = fopen("cscore.srt", "r")))   /*   rd from cscore.srt */
+      scsort(csound->scfp, csound->oscfp);          /* call the sorter again */
+      fclose(csound->scfp); csound->scfp = NULL;
+      fclose(csound->oscfp); csound->oscfp = NULL;
+      csound->Message(csound, Str("\t... done\n"));
+      if (!(csound->scfp = fopen("cscore.srt", "r"))) /*  rd from cscore.srt */
         csoundDie(csound, Str("cannot reopen cscore.srt"));
       csound->Message(csound,Str("playing from cscore.srt\n"));
       O->usingcscore = 0;
@@ -345,8 +346,8 @@ int cleanup(void *csound_)
 
     orcompact(csound);
     csound->Message(csound,Str("end of score.\t\t   overall amps:"));
-    if (scfp) {
-      fclose(scfp); scfp = NULL;
+    if (csound->scfp) {
+      fclose(csound->scfp); csound->scfp = NULL;
     }
     for (n = 0; n < csound->nchnls; n++) {
       if (csound->smaxamp[n] > csound->omaxamp[n])
@@ -673,7 +674,7 @@ static int process_rt_event(ENVIRON *csound, int sensType)
       MCHNBLK *chn;
       /* realtime or Midifile  */
       mep = csound->midiGlobals->Midevtblk;
-      chn = M_CHNBP[mep->chan];
+      chn = csound->m_chnbp[mep->chan];
       insno = chn->insno;
       if (mep->type == NOTEON_TYPE && mep->dat2) {      /* midi note ON: */
         if ((n = MIDIinsert(csound,insno,chn,mep))) {   /* alloc,init,activ */

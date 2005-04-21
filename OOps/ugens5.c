@@ -64,7 +64,7 @@ int tonset(ENVIRON *csound, TONE *p)
     {
       double b;
       p->prvhp = *p->khp;
-      b = 2.0 - cos((double)(p->prvhp * tpidsr));
+      b = 2.0 - cos((double)(p->prvhp * csound->tpidsr));
       p->c2 = (MYFLT)(b - sqrt(b * b - 1.0));
       p->c1 = FL(1.0) - p->c2;
     }
@@ -83,7 +83,7 @@ int tone(ENVIRON *csound, TONE *p)
     if (*p->khp != p->prvhp) {
       double b;
       p->prvhp = *p->khp;
-      b = 2.0 - cos((double)(p->prvhp * tpidsr));
+      b = 2.0 - cos((double)(p->prvhp * csound->tpidsr));
       p->c2 = c2 = (MYFLT)(b - sqrt(b * b - 1.0));
       p->c1 = c1 = FL(1.0) - c2;
     }
@@ -101,7 +101,7 @@ int tonsetx(ENVIRON *csound, TONEX *p) /* From Gabriel Maldonado, modified for a
     {
       double b;
       p->prvhp = *p->khp;
-      b = 2.0 - cos((double)(*p->khp * tpidsr));
+      b = 2.0 - cos((double)(*p->khp * csound->tpidsr));
       p->c2 = (MYFLT)(b - sqrt(b * b - 1.0));
       p->c1 = FL(1.0) - p->c2;
     }
@@ -125,7 +125,7 @@ int tonex(ENVIRON *csound, TONEX *p)     /* From Gabriel Maldonado, modified */
     if (*p->khp != p->prvhp) {
       double b;
       p->prvhp = *p->khp;
-      b = 2.0 - cos((double)(*p->khp * tpidsr));
+      b = 2.0 - cos((double)(*p->khp * csound->tpidsr));
       p->c2 = (MYFLT)(b - sqrt(b * b - 1.0));
       p->c1 = FL(1.0) - p->c2;
     }
@@ -155,7 +155,7 @@ int atone(ENVIRON *csound, TONE *p)
     if (*p->khp != p->prvhp) {
       double b;
       p->prvhp = *p->khp;
-      b = 2.0 - cos((double)(*p->khp * tpidsr));
+      b = 2.0 - cos((double)(*p->khp * csound->tpidsr));
       p->c2 = c2 = (MYFLT)(b - sqrt(b * b - 1.0));
 /*      p->c1 = c1 = FL(1.0) - c2; */
     }
@@ -179,7 +179,7 @@ int atonex(ENVIRON *csound, TONEX *p)     /* Gavriel Maldonado, modified */
     if (*p->khp != p->prvhp) {
       double b;
       p->prvhp = *p->khp;
-      b = 2.0 - cos((double)(*p->khp * tpidsr));
+      b = 2.0 - cos((double)(*p->khp * csound->tpidsr));
       p->c2 = (MYFLT)(b - sqrt(b * b - 1.0));
       /*p->c1 = 1. - p->c2;*/
     }
@@ -206,8 +206,8 @@ int rsnset(ENVIRON *csound, RESON *p)
     int scale;
     p->scale = scale = (int)*p->iscl;
     if (scale && scale != 1 && scale != 2) {
-      sprintf(errmsg,Str("illegal reson iscl value, %f"),*p->iscl);
-      return csound->InitError(csound, errmsg);
+      sprintf(csound->errmsg,Str("illegal reson iscl value, %f"),*p->iscl);
+      return csound->InitError(csound, csound->errmsg);
     }
     p->prvcf = p->prvbw = -FL(100.0);
     if (!(*p->istor))
@@ -224,12 +224,12 @@ int reson(ENVIRON *csound, RESON *p)
 
     if (*p->kcf != p->prvcf) {
       p->prvcf = *p->kcf;
-      p->cosf = (MYFLT)cos((double)(p->prvcf * tpidsr));
+      p->cosf = (MYFLT)cos((double)(p->prvcf * csound->tpidsr));
       flag = 1;                 /* Mark as changed */
     }
     if (*p->kbw != p->prvbw) {
       p->prvbw = *p->kbw;
-      c3 = p->c3 = (MYFLT)exp((double)(p->prvbw * mtpdsr));
+      c3 = p->c3 = (MYFLT)exp((double)(p->prvbw * csound->mtpdsr));
       flag = 1;                /* Mark as changed */
     }
     if (flag) {
@@ -267,8 +267,8 @@ int rsnsetx(ENVIRON *csound, RESONX *p) /* Gabriel Maldonado, modifies for arb o
       csound->AuxAlloc(csound, (long)(p->loop*2*sizeof(MYFLT)), &p->aux);
     p->yt1 = (MYFLT*)p->aux.auxp; p->yt2 = (MYFLT*)p->aux.auxp + p->loop;
     if (scale && scale != 1 && scale != 2) {
-      sprintf(errmsg,Str("illegal reson iscl value, %f"),*p->iscl);
-      return csound->InitError(csound, errmsg);
+      sprintf(csound->errmsg,Str("illegal reson iscl value, %f"),*p->iscl);
+      return csound->InitError(csound, csound->errmsg);
     }
     p->prvcf = p->prvbw = -FL(100.0);
 
@@ -288,12 +288,12 @@ int resonx(ENVIRON *csound, RESONX *p) /* Gabriel Maldonado, modified  */
 
     if (*p->kcf != p->prvcf) {
       p->prvcf = *p->kcf;
-      p->cosf = (MYFLT) cos((double)(*p->kcf * tpidsr));
+      p->cosf = (MYFLT) cos((double)(*p->kcf * csound->tpidsr));
       flag = 1;
     }
     if (*p->kbw != p->prvbw) {
       p->prvbw = *p->kbw;
-      p->c3 = (MYFLT) exp((double)(*p->kbw * mtpdsr));
+      p->c3 = (MYFLT) exp((double)(*p->kbw * csound->mtpdsr));
       flag = 1;
     }
     if (flag) {
@@ -341,12 +341,12 @@ int areson(ENVIRON *csound, RESON *p)
 
     if (*p->kcf != p->prvcf) {
       p->prvcf = *p->kcf;
-      p->cosf = (MYFLT)cos((double)(*p->kcf * tpidsr));
+      p->cosf = (MYFLT)cos((double)(*p->kcf * csound->tpidsr));
       flag = 1;
     }
     if (*p->kbw != p->prvbw) {
       p->prvbw = *p->kbw;
-      p->c3 = (MYFLT)exp((double)(*p->kbw * mtpdsr));
+      p->c3 = (MYFLT)exp((double)(*p->kbw * csound->mtpdsr));
       flag = 1;
     }
     if (flag) {
@@ -423,7 +423,7 @@ int lprdset(ENVIRON *csound, LPREAD *p)
       goto lpend;                             /* rtn if file prv known */
     /* Load analysis in memory file */
     if ((mfp = ldmemfile(csound, lpfilname)) == NULL) { /* else read file  */
-      sprintf(errmsg,Str("LPREAD cannot load %s"),lpfilname);
+      sprintf(csound->errmsg,Str("LPREAD cannot load %s"),lpfilname);
       goto lperr;
     }
     /* Store memory file location in opcode */
@@ -455,7 +455,7 @@ int lprdset(ENVIRON *csound, LPREAD *p)
       p->framrat16 = lph->framrate * FL(65536.0);/* scaled framno cvt */
     }
     else if (BYTREVL(lph->lpmagic) == LP_MAGIC) {   /* Header reversed:  */
-      sprintf(errmsg,Str("file %s bytes are in wrong order"),lpfilname);
+      sprintf(csound->errmsg,Str("file %s bytes are in wrong order"),lpfilname);
       goto lperr;
     }
     else {                                          /* No Header on file:*/
@@ -464,13 +464,13 @@ int lprdset(ENVIRON *csound, LPREAD *p)
       p->nvals = p->npoles + 4;
       p->framrat16 = *p->ifrmrate * FL(65536.0);
       if (!p->npoles || !p->framrat16) {
-        sprintf(errmsg,Str("insufficient args and no file header"));
+        sprintf(csound->errmsg,Str("insufficient args and no file header"));
         goto lperr;
       }
     }
     /* Check  pole number */
     if (p->npoles > MAXPOLES) {
-      sprintf(errmsg,Str("npoles > MAXPOLES"));
+      sprintf(csound->errmsg,Str("npoles > MAXPOLES"));
       goto lperr;
     }
     /* Look for total frame data size (file size - header) */
@@ -486,7 +486,7 @@ int lprdset(ENVIRON *csound, LPREAD *p)
     return OK;
 
  lperr:
-    return csound->InitError(csound, errmsg);
+    return csound->InitError(csound, csound->errmsg);
 }
 
 static void
@@ -868,8 +868,8 @@ int lpfreson(ENVIRON *csound, LPFRESON *p)
 
     if (*p->kfrqratio != p->prvratio) {             /* for new freqratio */
       if (*p->kfrqratio <= FL(0.0)) {
-        sprintf(errmsg,Str("illegal frqratio, %5.2f"),*p->kfrqratio);
-        return csound->PerfError(csound, errmsg);
+        sprintf(csound->errmsg,Str("illegal frqratio, %5.2f"),*p->kfrqratio);
+        return csound->PerfError(csound, csound->errmsg);
       }                                             /*      calculate d  */
       p->d = (*p->kfrqratio - FL(1.0)) / (*p->kfrqratio + FL(1.0));
       p->prvratio = *p->kfrqratio;
@@ -920,7 +920,7 @@ int rmsset(ENVIRON *csound, RMS *p)
 {
     double   b;
 
-    b = 2.0 - cos((double)(*p->ihp * tpidsr));
+    b = 2.0 - cos((double)(*p->ihp * csound->tpidsr));
     p->c2 = (MYFLT)(b - sqrt(b*b - 1.0));
     p->c1 = FL(1.0) - p->c2;
     if (!*p->istor)
@@ -932,7 +932,7 @@ int gainset(ENVIRON *csound, GAIN *p)
 {
     double   b;
 
-    b = 2.0 - cos((double)(*p->ihp * tpidsr));
+    b = 2.0 - cos((double)(*p->ihp * csound->tpidsr));
     p->c2 = (MYFLT)(b - sqrt(b*b - 1.0));
     p->c1 = FL(1.0) - p->c2;
     if (!*p->istor)
@@ -944,7 +944,7 @@ int balnset(ENVIRON *csound, BALANCE *p)
 {
     double   b;
 
-    b = 2.0 - cos((double)(*p->ihp * tpidsr));
+    b = 2.0 - cos((double)(*p->ihp * csound->tpidsr));
     p->c2 = (MYFLT)(b - sqrt(b*b - 1.0));
     p->c1 = FL(1.0) - p->c2;
     if (!*p->istor)

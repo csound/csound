@@ -108,7 +108,7 @@ int wguide1(ENVIRON *csound, WGUIDE1 *p)
     if (*p->filt_khp != p->prvhp) {
       MYFLT b;
       p->prvhp = *p->filt_khp;
-      b = FL(2.0) - (MYFLT)cos((double)(*p->filt_khp * tpidsr));
+      b = FL(2.0) - (MYFLT)cos((double)(*p->filt_khp * csound->tpidsr));
       p->c2 = b - (MYFLT)sqrt((double)(b * b - 1.0));
       p->c1 = FL(1.0) - p->c2;
     }
@@ -219,14 +219,14 @@ int wguide2(ENVIRON *csound, WGUIDE2 *p)
     if (*p->filt_khp1 != p->prvhp1) {
       MYFLT b;
       p->prvhp1 = *p->filt_khp1;
-      b = FL(2.0) - (MYFLT)cos((double)(*p->filt_khp1 * tpidsr));
+      b = FL(2.0) - (MYFLT)cos((double)(*p->filt_khp1 * csound->tpidsr));
       p->c2_1 = b - (MYFLT)sqrt((double)(b * b) - 1.0);
       p->c1_1 = FL(1.0) - p->c2_1;
     }
     if (*p->filt_khp2 != p->prvhp2) {
       MYFLT b;
       p->prvhp2 = *p->filt_khp2;
-      b = FL(2.0) - (MYFLT)cos((double)(*p->filt_khp2 * tpidsr));
+      b = FL(2.0) - (MYFLT)cos((double)(*p->filt_khp2 * csound->tpidsr));
       p->c2_2 = b - (MYFLT)sqrt((double)(b * b) - 1.0);
       p->c1_2 = FL(1.0) - p->c2_2;
     }

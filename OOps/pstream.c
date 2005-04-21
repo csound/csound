@@ -21,7 +21,8 @@
     02111-1307 USA
 */
 
-/* TODO: split into two files: pvsimp.c for just the CARL anal/synth code, under LGPL,
+/* TODO:
+   split into two files: pvsimp.c for just the CARL anal/synth code, under LGPL,
    pvsops.c for everythng else, under ????
 */
 
@@ -35,17 +36,8 @@
 #include <assert.h>
 #endif
 
-#ifdef _WIN32
-# define MY_INLINE __inline
-# ifdef _MSC_VER
-# pragma message ("pvsadsyn: Using inline oscil")
-# endif
-#else
-#define MY_INLINE
-#endif
-
 /* TODO: a generic form of this function! Oh for C++... */
-static int pvx_loadfile(const char *fname,PVSFREAD *p,MEMFIL **mfp);
+static int pvx_loadfile(ENVIRON *, const char *, PVSFREAD *, MEMFIL **);
 
 int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
 {
@@ -74,7 +66,7 @@ int fassign(ENVIRON *csound, FASSIGN *p)
     fsrc = (float *) p->fsrc->frame.auxp;
 
     framesize = p->fsrc->N + 2;
-    if (p->fout->framecount == p->fsrc->framecount)     /* avoid duplicate copying */
+    if (p->fout->framecount == p->fsrc->framecount) /* avoid duplicate copying*/
       for (i=0;i < framesize;i++)
         *fout++ = *fsrc++;
     return OK;
@@ -110,8 +102,8 @@ int pvadsynset(ENVIRON *csound, PVADS *p)
       csound->Die(csound, Str("pvadsyn: format must be amp-freq (0).\n"));
     p->format = p->fsig->format;
     /* interesting question: could noscs be krate variable?
-     * answer: yes, but adds complexity to oscbank, as have to set/reset each osc when started
-     and stopped */
+     * answer: yes, but adds complexity to oscbank,
+               as have to set/reset each osc when started and stopped */
 
     /* check bin params */
     startbin = (long) *p->ibin;            /* default 0 */
@@ -123,14 +115,16 @@ int pvadsynset(ENVIRON *csound, PVADS *p)
     /* calc final max bin target */
     p->maxosc = startbin + (n_oscs * binoffset);
     if (p->maxosc > noscs)
-      csound->Die(csound, Str("pvsadsyn: ibin + (inoscs * ibinoffset) too large."));
+      csound->Die(csound, Str("pvsadsyn: "
+                              "ibin + (inoscs * ibinoffset) too large."));
 
     p->outptr = 0;
     p->lastframe = 0;
-/*     p->one_over_sr = (float)onedsr); */
-/*     p->pi_over_sr = (float)(pidsr); */
+/*  p->one_over_sr = (float) csound->onedsr; */
+/*  p->pi_over_sr = (float) csound->pidsr; */
     p->one_over_overlap = (float)(FL(1.0) / p->overlap);
-    /* alloc for all oscs; in case we can do something with them dynamically, one day */
+    /* alloc for all oscs;
+       in case we can do something with them dynamically, one day */
     if (p->a.auxp==NULL)
       csound->AuxAlloc(csound, noscs * sizeof(MYFLT),&p->a);
     if (p->x.auxp==NULL)
@@ -153,17 +147,18 @@ int pvadsynset(ENVIRON *csound, PVADS *p)
     return OK;
 }
 /* c/o John Lazzaro, for SAOL, and many other sources */
-static MY_INLINE MYFLT fastoscil(MYFLT *a,MYFLT *x,MYFLT *y)
+static inline MYFLT fastoscil(MYFLT *a, MYFLT *x, MYFLT *y)
 {
     *x = *x - *a * *y;
     *y = *y + *a * *x;
-    if (*y<-FL(1.0))*y=-FL(1.0);          /* expensive, but worth it for evenness?*/
-    if (*y>FL(1.0)) *y = FL(1.0);
+    /* expensive, but worth it for evenness ? */
+    if (*y < FL(-1.0)) *y = FL(-1.0);
+    if (*y > FL(1.0))  *y = FL(1.0);
     return *y;
 }
 
 
-static void adsyn_frame(PVADS *p)
+static void adsyn_frame(ENVIRON *csound, PVADS *p)
 {
     int i,j;
     long startbin,lastbin,binoffset;
@@ -173,7 +168,7 @@ static void adsyn_frame(PVADS *p)
     MYFLT *a,*x,*y;
     MYFLT *amps,*freqs,*lastamps;
     MYFLT ffac = *p->kfmod;
-    MYFLT nyquist = cenviron.esr * FL(0.5);
+    MYFLT nyquist = csound->esr * FL(0.5);
     /* we add to outbuf, so clear it first*/
     memset(p->outbuf.auxp,0,p->overlap * sizeof(MYFLT));
 
@@ -196,13 +191,15 @@ static void adsyn_frame(PVADS *p)
       /* kill stuff over Nyquist. Need to worry about vlf values? */
       if (freqs[i] > nyquist)
         amps[i] = FL(0.0);
-      a[i] = (MYFLT )(2.0 * sin( freqs[i] * (double)pidsr));
+      a[i] = (MYFLT )(2.0 * sin( freqs[i] * (double) csound->pidsr));
     }
 
-    /* we need to interp amplitude, but seems we can avoid doing freqs too, for pvoc
-       so can use direct calc for speed.
-       But large overlap size is not a good idea. */
-    /* if compiler cannot inline fastoscil, would be worth doing so by hand here */
+    /* we need to interp amplitude, but seems we can avoid doing freqs too,
+       for pvoc so can use direct calc for speed.
+       But large overlap size is not a good idea.
+       If compiler cannot inline fastoscil,
+       would be worth doing so by hand here ?
+     */
     for (i=startbin;i < lastbin;i+=binoffset) {
       MYFLT thisamp = lastamps[i];
       MYFLT delta_amp = (amps[i] - thisamp) * p->one_over_overlap;
@@ -217,12 +214,12 @@ static void adsyn_frame(PVADS *p)
 
 
 
-static MYFLT adsyn_tick(PVADS *p)
+static MYFLT adsyn_tick(ENVIRON *csound, PVADS *p)
 {
     MYFLT *outbuf = (MYFLT *) (p->outbuf.auxp);
 
     if (p->outptr== p->fsig->overlap) {
-      adsyn_frame(p);
+      adsyn_frame(csound, p);
       p->outptr = 0;
       p->lastframe = p->fsig->framecount;
     }
@@ -240,7 +237,7 @@ int pvadsyn(ENVIRON *csound, PVADS *p)
       csound->Die(csound, Str("pvsynth: Not initialised.\n"));
     }
     for (i=0;i < csound->ksmps;i++)
-      aout[i] = adsyn_tick(p);
+      aout[i] = adsyn_tick(csound, p);
     return OK;
 }
 
@@ -259,11 +256,12 @@ int pvscrosset(ENVIRON *csound, PVSCROSS *p)
 
     /* make sure fdest is same format */
     if (!fsigs_equal(p->fsrc,p->fdest))
-      csound->Die(csound, Str("pvscross: source and dest signals must have same format\n"));
+      csound->Die(csound, Str("pvscross: source and dest signals "
+                              "must have same format\n"));
 
     /* setup output signal */
-    if (p->fout->frame.auxp==NULL)
-      csound->AuxAlloc(csound, (N+2)*sizeof(float),&p->fout->frame);     /* RWD MUST be 32bit */
+    if (p->fout->frame.auxp==NULL)                      /* RWD MUST be 32bit */
+      csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
     p->fout->N =  N;
     p->fout->overlap = p->overlap;
     p->fout->winsize = p->winsize;
@@ -281,7 +279,7 @@ int pvscross(ENVIRON *csound, PVSCROSS *p)
     long i,N = p->fftsize;
     MYFLT amp1 = (MYFLT) fabs(*p->kamp1);
     MYFLT amp2 = (MYFLT) fabs(*p->kamp2);
-    float *fsrc = (float *) p->fsrc->frame.auxp;          /* RWD all must be 32bit */
+    float *fsrc = (float *) p->fsrc->frame.auxp;    /* RWD all must be 32bit */
     float *fdest = (float *) p->fdest->frame.auxp;
     float *fout = (float *) p->fout->frame.auxp;
 
@@ -331,10 +329,11 @@ int pvsfreadset(ENVIRON *csound, PVSFREAD *p)
     /* do people still use this system? */
     else sprintf(pvfilnam,"pvoc.%d", (int)*p->ifilno); /* else pvoc.filnum   */
     mfp = p->mfp;
-    if ((mfp == NULL) || strcmp(mfp->filename, pvfilnam) != 0) {/* if file not already readin */
-      if (!pvx_loadfile(pvfilnam,p,&mfp))
+    if ((mfp == NULL) || strcmp(mfp->filename, pvfilnam) != 0) {
+      /* if file not already readin */
+      if (!pvx_loadfile(csound, pvfilnam, p, &mfp))
         /* or get pvsys error message ? */
-        csound->Die(csound, errmsg);
+        csound->Die(csound, csound->errmsg);
       p->mfp = mfp;
     }
 
@@ -342,12 +341,15 @@ int pvsfreadset(ENVIRON *csound, PVSFREAD *p)
       csound->Die(csound, Str("pvsfread: file is empty!\n"));
     /* special case if only one frame - it is an impulse response */
     if (p->nframes == 1)
-      csound->Die(csound, Str("pvsfread: file has only one frame (= impulse response).\n"));
+      csound->Die(csound, Str("pvsfread: file has only one frame "
+                              "(= impulse response).\n"));
     if (p->overlap < csound->ksmps)
-      csound->Die(csound, Str("pvsfread: analysis frame overlap must be >= ksmps\n"));
+      csound->Die(csound, Str("pvsfread: analysis frame overlap "
+                              "must be >= ksmps\n"));
     p->blockalign = (p->fftsize+2) * p->chans;
     if ((*p->ichan) >= p->chans)
-      csound->Die(csound, Str("pvsfread: ichan value exceeds file channel count.\n"));
+      csound->Die(csound, Str("pvsfread: ichan value exceeds "
+                              "file channel count.\n"));
     if ((long) (*p->ichan) < 0)
       csound->Die(csound, Str("pvsfread: ichan cannot be negative.\n"));
 
@@ -355,12 +357,13 @@ int pvsfreadset(ENVIRON *csound, PVSFREAD *p)
     /* setup output signal */
     if (p->fout->frame.auxp==NULL)
       csound->AuxAlloc(csound, (N+2)*sizeof(float),&p->fout->frame);
-    /* init sig with first frame from file, regardless (always zero amps, but with bin freqs) */
-    memptr = (float *) mfp->beginp;                              /* RWD MUST be 32bit */
-    frptr = (float *) p->fout->frame.auxp;               /* RWD MUST be 32bit */
+    /* init sig with first frame from file,
+       regardless (always zero amps, but with bin freqs) */
+    memptr = (float *) mfp->beginp;                     /* RWD MUST be 32bit */
+    frptr = (float *) p->fout->frame.auxp;              /* RWD MUST be 32bit */
     for (i=0;i < p->fftsize+2; i++)
       *frptr++ =   *memptr++;
-    p->membase += p->blockalign;        /* move to second frame in file, as startpoint*/
+    p->membase += p->blockalign;  /* move to 2nd frame in file, as startpoint */
     p->chanoffset = (long) (*p->ichan) * (N+2);
     p->nframes--;
     p->fout->N           =  N;
@@ -405,7 +408,8 @@ int pvsfread(ENVIRON *csound, PVSFREAD *p)
       }
       else {
         /* gotta interpolate */
-        /* any optimizations possible here?  Avoid v samll frac values? higher-order interp? */
+        /* any optimizations possible here ?
+           Avoid v samll frac values ? higher-order interp ? */
         frame2pos = frame1pos+p->chans;
         frac = framepos - (MYFLT) frame1pos;
         pframe1 = pmem + (frame1pos * p->blockalign) + p->chanoffset;
@@ -443,10 +447,11 @@ int pvsmaskaset(ENVIRON *csound, PVSMASKA *p)
     p->format  = p->fsrc->format;
     p->fftsize = N;
     if (!(p->format==PVS_AMP_FREQ) || (p->format==PVS_AMP_PHASE))
-      csound->Die(csound, Str("pvsmaska: signal format must be amp-phase or amp-freq.\n"));
+      csound->Die(csound, Str("pvsmaska: "
+                              "signal format must be amp-phase or amp-freq."));
     /* setup output signal */
-    if (p->fout->frame.auxp==NULL)
-      csound->AuxAlloc(csound, (N+2)*sizeof(float),&p->fout->frame);    /* RWD MUST be 32bit */
+    if (p->fout->frame.auxp==NULL)                      /* RWD MUST be 32bit */
+      csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
     p->fout->N =  N;
     p->fout->overlap = p->overlap;
     p->fout->winsize = p->winsize;
@@ -479,13 +484,13 @@ int pvsmaska(ENVIRON *csound, PVSMASKA *p)
     int i;
     long flen, nbins;
     MYFLT *ftable;
-    float *fout,*fsrc;                                          /* RWD MUST be 32bit */
+    float *fout,*fsrc;                      /* RWD MUST be 32bit */
     float margin,depth = (float)*p->kdepth;
 
 
     flen = p->maskfunc->flen + 1;
     ftable = p->maskfunc->ftable;
-    fout = (float *) p->fout->frame.auxp;  /* RWD both MUST be 32bit */
+    fout = (float *) p->fout->frame.auxp;   /* RWD both MUST be 32bit */
     fsrc = (float *) p->fsrc->frame.auxp;
 
     if (fout==NULL)
@@ -495,8 +500,8 @@ int pvsmaska(ENVIRON *csound, PVSMASKA *p)
       /* need the warning: but krate linseg can give below-zeroes incorrectly */
       if (!p->nwarned)  {
         if (O.msglevel & WARNMSG)
-          printf(Str(
-                     "WARNING: pvsmaska: negative value for kdepth; clipped to zero.\n"));
+          printf(Str("WARNING: pvsmaska: negative value for kdepth; "
+                     "clipped to zero.\n"));
         p->nwarned = 1;
       }
       depth = FL(0.0);
@@ -543,7 +548,7 @@ int pvsftwset(ENVIRON *csound, PVSFTW *p)
 {
     int i;
     MYFLT *ftablea,*ftablef;
-    float *fsrc;                                                 /* RWD MUST be 32bit */
+    float *fsrc;                                        /* RWD MUST be 32bit */
     long flena,flenf,nbins, N = p->fsrc->N;
     /* source fsig */
     p->overlap = p->fsrc->overlap;
@@ -555,7 +560,8 @@ int pvsftwset(ENVIRON *csound, PVSFTW *p)
     p->lastframe = 0;
 
     if (!(p->format==PVS_AMP_FREQ) || (p->format==PVS_AMP_PHASE))
-      csound->Die(csound, Str("pvsftw: signal format must be amp-phase or amp-freq.\n"));
+      csound->Die(csound, Str("pvsftw: signal format must be "
+                              "amp-phase or amp-freq.\n"));
     if (*p->ifna < 1.0f)
       csound->Die(csound, Str("pvsftw: bad value for ifna.\n"));
     if (*p->ifnf < 0.0f)                /* 0 = notused */
@@ -563,7 +569,7 @@ int pvsftwset(ENVIRON *csound, PVSFTW *p)
     p->outfna = csound->FTFind(csound, p->ifna);
     if (p->outfna==NULL)
       return NOTOK;
-    fsrc = (float *) p->fsrc->frame.auxp;                 /* RWD MUST be 32bit */
+    fsrc = (float *) p->fsrc->frame.auxp;               /* RWD MUST be 32bit */
     /* init table, one presumes with zero amps */
     nbins = p->fftsize/2 + 1;
     flena = p->outfna->flen + 1;
@@ -656,7 +662,8 @@ int pvsftrset(ENVIRON *csound, PVSFTR *p)
     nbins = p->fftsize/2 + 1;
 
     if (!(p->format==PVS_AMP_FREQ) || (p->format==PVS_AMP_PHASE))
-      csound->Die(csound, Str("pvsftr: signal format must be amp-phase or amp-freq.\n"));
+      csound->Die(csound, Str("pvsftr: signal format must be "
+                              "amp-phase or amp-freq.\n"));
     /* ifn = 0 = notused */
     if (*p->ifna < 0.0f)
       csound->Die(csound, Str("pvsftr: bad value for ifna.\n"));
@@ -675,7 +682,7 @@ int pvsftrset(ENVIRON *csound, PVSFTR *p)
       if (flena < nbins)
         csound->Die(csound, Str("pvsftr: amps ftable too small.\n"));
     }
-    fdest = (float *) p->fdest->frame.auxp;                /* RWD MUST be 32bit */
+    fdest = (float *) p->fdest->frame.auxp;             /* RWD MUST be 32bit */
 
     /*** setup first frame ?? */
     if (p->ftablea)
@@ -747,9 +754,10 @@ int pvsinfo(ENVIRON *csound, PVSINFO *p)
 
 
 
-/*  despite basic parity in analysis and synthesis, we still have to rescale the amplitudes
-    by 32768 to fit Csound's notion of 0dBFS. Note we do NOT try to rescale to match the old
-    .pv format.
+/*  despite basic parity in analysis and synthesis,
+    we still have to rescale the amplitudes
+    by 32768 to fit Csound's notion of 0dBFS.
+    Note we do NOT try to rescale to match the old .pv format.
 */
 
 /* custom version of ldmemfile();
@@ -759,7 +767,8 @@ int pvsinfo(ENVIRON *csound, PVSINFO *p)
 
 /* RWD NB PVOCEX format always 32bit, so no MYFLTs here! */
 
-static int pvx_loadfile(const char *fname,PVSFREAD *p,MEMFIL **mfp)
+static int pvx_loadfile(ENVIRON *csound,
+                        const char *fname, PVSFREAD *p, MEMFIL **mfp)
 {
     PVOCDATA pvdata;
     WAVEFORMATEX fmt;
@@ -774,7 +783,7 @@ static int pvx_loadfile(const char *fname,PVSFREAD *p,MEMFIL **mfp)
 
     pvx_id = pvoc_openfile(fname,&pvdata,&fmt);
     if (pvx_id < 0) {
-      sprintf(errmsg,Str("unable to open pvocex file %s.\n"),fname);
+      sprintf(csound->errmsg, Str("unable to open pvocex file %s.\n"), fname);
       return 0;
     }
     /* fft size must be <= PVFRAMSIZE (=8192) for Csound */
@@ -786,43 +795,47 @@ static int pvx_loadfile(const char *fname,PVSFREAD *p,MEMFIL **mfp)
 
     /* also, accept only 32bit floats for now */
     if (pvdata.wWordFormat != PVOC_IEEE_FLOAT) {
-      sprintf(errmsg,Str("pvoc-ex file %s is not 32bit floats\n"),fname);
+      sprintf(csound->errmsg,
+              Str("pvoc-ex file %s is not 32bit floats\n"), fname);
       return 0;
     }
 
     /* FOR NOW, accept only PVOC_AMP_FREQ : later, we can convert */
     /* NB Csound knows no other: frameFormat is not read anywhere! */
     if (pvdata.wAnalFormat != PVOC_AMP_FREQ) {
-      sprintf(errmsg,Str("pvoc-ex file %s not in AMP_FREQ format\n"),fname);
+      sprintf(csound->errmsg,
+              Str("pvoc-ex file %s not in AMP_FREQ format\n"), fname);
       return 0;
     }
     p->format = PVS_AMP_FREQ;
     /* ignore the window spec until we can use it! */
     totalframes = pvoc_framecount(pvx_id);
     if (totalframes == 0) {
-      sprintf(errmsg,Str("pvoc-ex file %s is empty!\n"),fname);
+      sprintf(csound->errmsg,
+              Str("pvoc-ex file %s is empty!\n"), fname);
       return 0;
     }
 
-    if (!find_memfile(&cenviron, fname, &mfil)) {
+    if (!find_memfile(csound, fname, &mfil)) {
       mem_wanted = totalframes * 2 * pvdata.nAnalysisBins * sizeof(float);
       /* try for the big block first! */
 
-      memblock = (float *) mmalloc(&cenviron, mem_wanted);
+      memblock = (float *) mmalloc(csound, mem_wanted);
 
       pFrame = memblock;
       /* despite using pvocex infile, and pvocex-style resynth, we ~still~
          have to rescale to Csound's internal range! This is because all pvocex
-         calculations assume +-1 floatsam i/o. It seems preferable to do this here,
-         rather than force the user to do so. Csound might change one day...*/
+         calculations assume +-1 floatsam i/o.
+         It seems preferable to do this here, rather than force the user
+         to do so. Csound might change one day...*/
 
       for (i=0;i < totalframes;i++) {
         rc = pvoc_getframes(pvx_id,pFrame,1);
         if (rc != 1)
-          break;                /* read error, but may still have something to use */
+          break;        /* read error, but may still have something to use */
         /* scale amps to Csound range, to fit fsig */
         for (j=0;j < framelen; j+=2) {
-          pFrame[j] *= (float) cenviron.e0dbfs;
+          pFrame[j] *= (float) csound->e0dbfs;
         }
 #ifdef _DEBUG
         assert(pFrame[1] < 200.f);
@@ -830,13 +843,15 @@ static int pvx_loadfile(const char *fname,PVSFREAD *p,MEMFIL **mfp)
         pFrame += framelen;
       }
       if (rc <0) {
-        sprintf(errmsg,Str("error reading pvoc-ex file %s\n"),fname);
-        mfree(&cenviron, memblock);
+        sprintf(csound->errmsg, Str("error reading pvoc-ex file %s\n"), fname);
+        mfree(csound, memblock);
         return 0;
       }
       if (i < totalframes) {
-        sprintf(errmsg,Str("error reading pvoc-ex file %s after %d frames\n"),fname,i);
-        mfree(&cenviron, memblock);
+        sprintf(csound->errmsg,
+                Str("error reading pvoc-ex file %s after %d frames\n"),
+                fname, i);
+        mfree(csound, memblock);
         return 0;
       }
     }
@@ -846,10 +861,10 @@ static int pvx_loadfile(const char *fname,PVSFREAD *p,MEMFIL **mfp)
     pvoc_closefile(pvx_id);
 
 
-    if ((p->arate = (MYFLT) fmt.nSamplesPerSec) != cenviron.esr &&
+    if ((p->arate = (MYFLT) fmt.nSamplesPerSec) != csound->esr &&
         (O.msglevel & WARNMSG)) { /* & chk the data */
       printf(Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
-              fname, p->arate, cenviron.esr);
+              fname, p->arate, csound->esr);
     }
     p->fftsize  = pvx_fftsize;
     p->winsize  = pvx_winsize;
@@ -857,7 +872,7 @@ static int pvx_loadfile(const char *fname,PVSFREAD *p,MEMFIL **mfp)
     p->overlap  = pvdata.dwOverlap;
     p->chans    = fmt.nChannels;
     p->nframes = (unsigned) totalframes;
-    p->arate    = cenviron.esr / (MYFLT) p->overlap;
+    p->arate    = csound->esr / (MYFLT) p->overlap;
     wtype = (pv_wtype) pvdata.wWindowType;
     switch (wtype) {
     case PVOC_DEFAULT:
@@ -876,7 +891,7 @@ static int pvx_loadfile(const char *fname,PVSFREAD *p,MEMFIL **mfp)
 
     /* Need to assign an MEMFIL to p->mfp */
     if (mfil==NULL) {
-      mfil = (MEMFIL *)  mmalloc(&cenviron, sizeof(MEMFIL));
+      mfil = (MEMFIL *)  mmalloc(csound, sizeof(MEMFIL));
       /* just hope the filename is short enough...! */
       mfil->next = NULL;
       mfil->filename[0] = '\0';
@@ -886,10 +901,11 @@ static int pvx_loadfile(const char *fname,PVSFREAD *p,MEMFIL **mfp)
       mfil->length = mem_wanted;
       /*from memfiles.c */
       printf(Str("file %s (%ld bytes) loaded into memory\n"), fname,mem_wanted);
-      add_memfil(&cenviron, mfil);
+      add_memfil(csound, mfil);
     }
 
     *mfp = mfil;
 
     return 1;
 }
+

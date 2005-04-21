@@ -33,29 +33,6 @@ extern "C" {
 
 #include "csoundCore.h"
 
-#define ls_table            cenviron.ls_table_
-#define orchname            cenviron.orchname_
-#define scorename           cenviron.scorename_
-#define errmsg              cenviron.errmsg_
-#define scfp                cenviron.scfp_
-#define oscfp               cenviron.oscfp_
-#define SCOREIN             cenviron.scorein_
-#define SCOREOUT            cenviron.scoreout_
-#define ensmps              cenviron.ensmps_
-#define hfkprd              cenviron.hfkprd_
-#define pool                cenviron.pool_
-#define M_CHNBP             cenviron.m_chnbp
-#define strmsg              cenviron.strmsg_
-#define tpidsr              cenviron.tpidsr_
-#define pidsr               cenviron.pidsr_
-#define mpidsr              cenviron.mpidsr_
-#define mtpdsr              cenviron.mtpdsr_
-
-#ifdef printf
-#undef printf
-#endif
-#define printf csoundPrintf
-
 /*
  * Move the C++ guards to enclose the entire file,
  * in order to enable C++ to #include this file.
