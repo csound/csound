@@ -304,8 +304,9 @@ size_t CppSound::getSpoutSize() const
 void CppSound::inputMessage(std::string istatement)
 {
   std::vector<MYFLT> pfields;
-  boost::tokenizer<> tokens(istatement);
-  boost::tokenizer<>::iterator it = tokens.begin();
+  typedef boost::char_separator<char> charsep;
+  boost::tokenizer<charsep> tokens(istatement, charsep(" "));
+  boost::tokenizer<charsep>::iterator it = tokens.begin();
   std::string opcode = *it;
   for( ++it; it != tokens.end(); ++it) {
     pfields.push_back(atof(it->c_str()));
