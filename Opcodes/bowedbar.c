@@ -155,7 +155,7 @@ int bowedbar(ENVIRON *csound, BOWEDBAR *p)
       }
 
       for (i=0; i<p->nr_modes; i++) {
-        MYFLT R = FL(1.0) - p->freq * p->modes[i] * pidsr;
+        MYFLT R = FL(1.0) - p->freq * p->modes[i] * csound->pidsr;
         BiQuad_clear(&p->bandpass[i]);
         BiQuad_setFreqAndReson(p->bandpass[i], p->freq * p->modes[i], R);
         BiQuad_setEqualGainZeroes(p->bandpass[i]);

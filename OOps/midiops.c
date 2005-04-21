@@ -73,7 +73,7 @@ int ctrlinit(ENVIRON *csound, CTLINIT *p)
         MCHNBLK *chn;
         MYFLT **argp = p->ctrls;
         short ctlno, nctls = nargs >> 1;
-        chn = M_CHNBP[chnl];
+        chn = csound->m_chnbp[chnl];
         do {
             ctlno = (short) **argp++;
             if (ctlno < 0 || ctlno > 127) {
@@ -192,8 +192,9 @@ int cpsmidi(ENVIRON *csound, MIDIKMB *p)
 {
     INSDS *lcurip = p->h.insdshead;
     long  loct;
-/*    loct = (long)(((lcurip->m_pitch + */
-/*       pitchbend_value(lcurip->m_chnbp) * p->iscal)/ 12.0f + 3.0f) * OCTRES); */
+/*    loct = (long)(((lcurip->m_pitch +
+ *       pitchbend_value(lcurip->m_chnbp) * p->iscal)/ 12.0f + 3.0f) * OCTRES);
+ */
     loct = (long)((lcurip->m_pitch/ FL(12.0) + FL(3.0)) * OCTRES);
     *p->r = CPSOCTL(loct);
     return OK;
@@ -358,7 +359,7 @@ int midichn(ENVIRON *csound, MIDICHN *p)
       *(p->ichn) = FL(0.0);
     else {
       nn = 0;
-      while (nn < 16 && M_CHNBP[nn] != p->h.insdshead->m_chnbp) nn++;
+      while (nn < 16 && csound->m_chnbp[nn] != p->h.insdshead->m_chnbp) nn++;
       *(p->ichn) = (nn < 16 ? (MYFLT) (nn + 1) : FL(0.0));
     }
     return OK;
@@ -387,12 +388,12 @@ int pgmassign(ENVIRON *csound, PGMASSIGN *p)
       if (!chn) {                           /* on all channels */
         for (chn = 0; chn < 16; chn++)
           for (pgm = 0; pgm < 128; pgm++)
-            M_CHNBP[chn]->pgm2ins[pgm] = ins;
+            csound->m_chnbp[chn]->pgm2ins[pgm] = ins;
       }
       else {                                /* or selected channel only */
         chn--;
         for (pgm = 0; pgm < 128; pgm++)
-          M_CHNBP[chn]->pgm2ins[pgm] = ins;
+          csound->m_chnbp[chn]->pgm2ins[pgm] = ins;
       }
     }
     else {                              /* program > 0: assign selected pgm */
@@ -403,11 +404,11 @@ int pgmassign(ENVIRON *csound, PGMASSIGN *p)
       }
       if (!chn) {                           /* on all channels */
         for (chn = 0; chn < 16; chn++)
-          M_CHNBP[chn]->pgm2ins[pgm] = ins;
+          csound->m_chnbp[chn]->pgm2ins[pgm] = ins;
       }
       else {                                /* or selected channel only */
         chn--;
-        M_CHNBP[chn]->pgm2ins[pgm] = ins;
+        csound->m_chnbp[chn]->pgm2ins[pgm] = ins;
       }
     }
     return OK;
@@ -416,19 +417,19 @@ int pgmassign(ENVIRON *csound, PGMASSIGN *p)
 int ichanctl(ENVIRON *csound, CHANCTL *p)
 {
     long  ctlno, chan = (long)(*p->ichano - FL(1.0));
-    if (chan < 0 || chan > 15 || M_CHNBP[chan] == NULL)
+    if (chan < 0 || chan > 15 || csound->m_chnbp[chan] == NULL)
         csound->InitError(csound, Str("illegal channel number"));
     if ((ctlno = (long)*p->ictlno) < 0 || ctlno > 127)
         csound->InitError(csound, Str("illegal controller number"));
-    else *p->r = M_CHNBP[chan]->ctl_val[ctlno] * (*p->ihi - *p->ilo) * dv127
-                + *p->ilo;
+    else *p->r = csound->m_chnbp[chan]->ctl_val[ctlno] * (*p->ihi - *p->ilo)
+                 * dv127 + *p->ilo;
     return OK;
 }
 
 int chctlset(ENVIRON *csound, CHANCTL *p)
 {
     long  ctlno, chan = (long)(*p->ichano - FL(1.0));
-    if (chan < 0 || chan > 15 || M_CHNBP[chan] == NULL) {
+    if (chan < 0 || chan > 15 || csound->m_chnbp[chan] == NULL) {
       csound->InitError(csound, Str("illegal channel number"));
       return NOTOK;
     }
@@ -447,7 +448,7 @@ int chctlset(ENVIRON *csound, CHANCTL *p)
 
 int chanctl(ENVIRON *csound, CHANCTL *p)
 {
-    *p->r = M_CHNBP[p->chano]->ctl_val[p->ctlno] * p->scale + p->lo;
+    *p->r = csound->m_chnbp[p->chano]->ctl_val[p->ctlno] * p->scale + p->lo;
     return OK;
 }
 

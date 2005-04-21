@@ -99,14 +99,14 @@ int pvaddset(ENVIRON *csound, PVADD *p)
     else sprintf(pvfilnam,"pvoc.%d", (int)*p->ifilno);
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename, pvfilnam) != 0)
       if ( (mfp = ldmemfile(csound, pvfilnam)) == NULL) {
-        sprintf(errmsg,Str("PVADD cannot load %s"), pvfilnam);
+        sprintf(csound->errmsg, Str("PVADD cannot load %s"), pvfilnam);
         goto pverr;
       }
 
     pvh = (PVSTRUCT *)mfp->beginp;
     if (pvh->magic != PVMAGIC) {
-      sprintf(errmsg,Str("%s not a PVOC file (magic %ld)"),
-              pvfilnam, pvh->magic );
+      sprintf(csound->errmsg, Str("%s not a PVOC file (magic %ld)"),
+                              pvfilnam, pvh->magic );
       goto pverr;
     }
 
@@ -140,23 +140,23 @@ int pvaddset(ENVIRON *csound, PVADD *p)
              pvfilnam, p->asr, csound->esr);
     }
     if (pvh->dataFormat != PVMYFLT) {
-      sprintf(errmsg,Str("unsupported PV data format %ld in %s"),
-              pvh->dataFormat, pvfilnam);
+      sprintf(csound->errmsg, Str("unsupported PV data format %ld in %s"),
+                              pvh->dataFormat, pvfilnam);
       goto pverr;
     }
     if (p->frSiz > PVFRAMSIZE) {
-      sprintf(errmsg,Str("PV frame %d bigger than %ld in %s"),
-              p->frSiz, PVFRAMSIZE, pvfilnam);
+      sprintf(csound->errmsg, Str("PV frame %d bigger than %ld in %s"),
+                              p->frSiz, PVFRAMSIZE, pvfilnam);
       goto pverr;
     }
     if (p->frSiz < 128) {
-      sprintf(errmsg,Str("PV frame %ld seems too small in %s"),
-              p->frSiz, pvfilnam);
+      sprintf(csound->errmsg, Str("PV frame %ld seems too small in %s"),
+                              p->frSiz, pvfilnam);
       goto pverr;
     }
     if (chans != 1) {
-      sprintf(errmsg,Str("%d chans (not 1) in PVOC file %s"),
-              chans, pvfilnam);
+      sprintf(csound->errmsg, Str("%d chans (not 1) in PVOC file %s"),
+                              chans, pvfilnam);
       goto pverr;
     }
 
@@ -189,7 +189,7 @@ int pvaddset(ENVIRON *csound, PVADD *p)
     return OK;
 
  pverr:
-    return csound->InitError(csound, errmsg);
+    return csound->InitError(csound, csound->errmsg);
 }
 
 int pvadd(ENVIRON *csound, PVADD *p)

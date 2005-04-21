@@ -702,7 +702,7 @@ int pareq(ENVIRON *csound, PAREQ *p)
     /* Low Shelf */
     if (p->imode == 1) {
       MYFLT sq = (MYFLT)sqrt(2.0*(double)v);
-      omega = tpidsr*fc;
+      omega = csound->tpidsr*fc;
       k = (MYFLT) tan((double)omega*0.5);
       kk = k*k;
       vkk = v*kk;
@@ -716,7 +716,7 @@ int pareq(ENVIRON *csound, PAREQ *p)
     /* High Shelf */
     else if (p->imode == 2) {
       MYFLT sq = (MYFLT)sqrt(2.0*(double)v);
-      omega = tpidsr*fc;
+      omega = csound->tpidsr*fc;
       k = (MYFLT) tan((PI - (double)omega)*0.5);
       kk = k*k;
       vkk = v*kk;
@@ -729,7 +729,7 @@ int pareq(ENVIRON *csound, PAREQ *p)
     }
     /* Peaking EQ */
     else {
-      omega = tpidsr*fc;
+      omega = csound->tpidsr*fc;
       k = (MYFLT) tan((double)omega*0.5);
       kk = k*k;
       vk = v*k;
@@ -1118,7 +1118,7 @@ int bqrez(ENVIRON *csound, REZZY *p)
     fco    = *fcoptr;
     rez    = *rezptr;
 
-    theta = (double)fco * (double)tpidsr;
+    theta = (double)fco * (double)csound->tpidsr;
     sin2 = (MYFLT) sin(theta) * FL(0.5);
     cos2 = (MYFLT) cos(theta);
     beta = (rez - sin2) / (rez + sin2);
@@ -1159,7 +1159,7 @@ int bqrez(ENVIRON *csound, REZZY *p)
           rez = *(++rezptr);
         }
         if ((p->rezcod == 1) || (p->fcocod == 1)) {
-          theta = (double) fco * (double) tpidsr;
+          theta = (double) fco * (double) csound->tpidsr;
           sin2 = (MYFLT) sin(theta) * FL(0.5);
           cos2 = (MYFLT) cos(theta);
           beta = (rez - sin2) / (rez + sin2);
@@ -1189,7 +1189,7 @@ int bqrez(ENVIRON *csound, REZZY *p)
           rez = *(++rezptr);
         }
         if ((p->rezcod == 1) || (p->fcocod == 1)) {
-          theta = (double) fco * (double) tpidsr;
+          theta = (double) fco * (double) csound->tpidsr;
           sin2  = (MYFLT) sin(theta) * FL(0.5);
           cos2  = (MYFLT) cos(theta);
           beta  = (rez - sin2) / (rez + sin2);
@@ -1219,7 +1219,7 @@ int bqrez(ENVIRON *csound, REZZY *p)
           rez = *(++rezptr);
         }
         if ((p->rezcod == 1) || (p->fcocod == 1)) {
-          theta = (double) fco * (double) tpidsr;
+          theta = (double) fco * (double) csound->tpidsr;
           sin2 = (MYFLT) sin(theta) * FL(0.5);
           cos2 = (MYFLT) cos(theta);
           beta = (rez - sin2) / (rez + sin2);

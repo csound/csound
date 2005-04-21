@@ -661,8 +661,8 @@ int cpsxpch(ENVIRON *csound, XENH *p)
       FUNC* ftp = csound->FTFind(csound, &t);
       long len;
       if (ftp == NULL) {
-        sprintf(errmsg, Str("No tuning table %d\n"), (int)(- *p->et));
-        return csound->PerfError(csound, errmsg);
+        sprintf(csound->errmsg, Str("No tuning table %d\n"), (int)(- *p->et));
+        return csound->PerfError(csound, csound->errmsg);
       }
       len = ftp->flen;
       while (fract>len) {
@@ -690,8 +690,8 @@ int cps2pch(ENVIRON *csound, XENH *p)
       FUNC* ftp = csound->FTFind(csound, &t);
       long len;
       if (ftp == NULL) {
-        sprintf(errmsg,Str("No tuning table %d\n"), (int)(- *p->et));
-        return csound->PerfError(csound, errmsg);
+        sprintf(csound->errmsg, Str("No tuning table %d\n"), (int)(- *p->et));
+        return csound->PerfError(csound, csound->errmsg);
       }
       len = ftp->flen;
       while (fract>len) {

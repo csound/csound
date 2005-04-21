@@ -319,12 +319,12 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
       }
     }
     csound->Message(csound,Str("orch compiler:\n"));
-    if ((fp = fopen(orchname,"r")) == NULL)
-      csoundDie(csound, Str("cannot open orch file %s"), orchname);
+    if ((fp = fopen(csound->orchname, "r")) == NULL)
+      csoundDie(csound, Str("cannot open orch file %s"), csound->orchname);
     if (fseek(fp, 0L, SEEK_END) != 0)
-      csoundDie(csound, Str("cannot find end of file %s"), orchname);
+      csoundDie(csound, Str("cannot find end of file %s"), csound->orchname);
     if ((ORCHSIZ = ftell(fp)) <= 0)
-      csoundDie(csound, Str("ftell error on %s"), orchname);
+      csoundDie(csound, Str("ftell error on %s"), csound->orchname);
     rewind(fp);
     inputs = (struct in_stack*)mmalloc(csound, 20*sizeof(struct in_stack));
     input_size = 20;
@@ -332,7 +332,7 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
     str = inputs;
     str->string = 0;
     str->file = fp;
-    str->body = orchname;
+    str->body = csound->orchname;
     ortext = mmalloc(csound, ORCHSIZ + 1);              /* alloc mem spaces */
     linadr = (char **) mmalloc(csound, (long)(LINMAX+1)*sizeof(char **));
     srclin = (short *) mmalloc(csound, (long)(LINMAX+1)*sizeof(short));
@@ -529,7 +529,7 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
             }
             str++;
             str->string = 0;
-            str->file = fopen_path(csound, mname, orchname, "INCDIR");
+            str->file = fopen_path(csound, mname, csound->orchname, "INCDIR");
             if (str->file==0) {
               csound->Message(csound,
                               Str("Cannot open #include'd file %s\n"), mname);
@@ -977,8 +977,8 @@ static int splitline(ENVIRON *csound)
       else if (c == ':' && condassgn)
         ;
       else {
-        sprintf(errmsg,Str("illegal character %c"),c);
-        synterrp(lp-1,errmsg);
+        sprintf(csound->errmsg, Str("illegal character %c"), c);
+        synterrp(lp - 1, csound->errmsg);
       }
       *cp++ = c;                        /* then collect the char   */
     }                                   /*  and loop for next      */
@@ -1196,9 +1196,9 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         sprintf(str, "%s.%c", linopcod, c);
         if (!(isopcod(str))) {
           csound->Message(csound, Str("Failed to find %s\n"), str);
-          sprintf(errmsg,Str("output arg '%s' illegal type"),
-                  group[nxtest]);
-          synterr(errmsg);                      /* report syntax error     */
+          sprintf(csound->errmsg, Str("output arg '%s' illegal type"),
+                                  group[nxtest]);
+          synterr(csound->errmsg);              /* report syntax error     */
           nxtest = 100;                         /* step way over this line */
           goto tstnxt;                          /* & go to next            */
         }
@@ -1211,9 +1211,9 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         sprintf(str, "%s.%c", linopcod, c);
         if (!(isopcod(str))) {
           csound->Message(csound,Str("Failed to find %s\n"), str);
-          sprintf(errmsg,Str("output arg '%s' illegal type"),
-                  group[nxtest]);
-          synterr(errmsg);                      /* report syntax error     */
+          sprintf(csound->errmsg, Str("output arg '%s' illegal type"),
+                                  group[nxtest]);
+          synterr(csound->errmsg);              /* report syntax error     */
           nxtest = 100;                         /* step way over this line */
           goto tstnxt;                          /* & go to next            */
         }
@@ -1451,8 +1451,8 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         /* IV - Oct 31 2002 */
         tfound_m = typemask_tabl[(unsigned char) tfound];
         if (!(tfound_m & (ARGTYP_c | ARGTYP_p | ARGTYP_S)) && !lgprevdef) {
-          sprintf(errmsg, Str("input arg '%s' used before defined"), s);
-          synterr(errmsg);
+          sprintf(csound->errmsg, Str("input arg '%s' used before defined"), s);
+          synterr(csound->errmsg);
         }
         csound->DebugMsg(csound, "treqd %c, tfound %c", treqd, tfound);
         if (tfound == 'a' && n < 15) { /*JMC added for FOG*/
@@ -1542,14 +1542,14 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         csound->DebugMsg(csound, "treqd %c, tfound %c", treqd, tfound);
         if (tfound_m & (ARGTYP_d | ARGTYP_w))
           if (lgprevdef) {
-            sprintf(errmsg, Str("output name previously used, "
-                                "type '%c' must be uniquely defined"), tfound);
-            synterr(errmsg);
+            sprintf(csound->errmsg, Str("output name previously used, type '%c'"
+                                        " must be uniquely defined"), tfound);
+            synterr(csound->errmsg);
           }
         /* IV - Oct 31 2002: simplified code */
         if (!(tfound_m & typemask_tabl_out[(unsigned char) treqd])) {
-        sprintf(errmsg,Str("output arg '%s' illegal type"),s);
-        synterr(errmsg);
+        sprintf(csound->errmsg, Str("output arg '%s' illegal type"),s);
+        synterr(csound->errmsg);
       }
       }
       if (incnt) {
@@ -1566,36 +1566,35 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
 
 static void intyperr(int n, char tfound, char expect)
 {
-        char *s = grpsav[opgrpno + n];
-        char t[10];
+    ENVIRON *csound = &cenviron;
+    char    *s = grpsav[opgrpno + n];
+    char    t[10];
 
-        switch (tfound) {
-        case 'd':
-        case 'w':
-        case 'f':
-        case 'a':
-        case 'k':
-        case 'i':
-        case 'p': t[0] = tfound;
-                  t[1] = '\0';
-                  break;
-        case 'r':
-        case 'c': strcpy(t,"const");
-                  break;
-        case 'S': strcpy(t,"string");
-                  break;
-        case 'b':
-        case 'B': strcpy(t,"boolean");
-                  break;
-        case '?': strcpy(t,"?");
-                  break;
-        }
-        sprintf(
-                errmsg,
-                Str(
-                    "input arg '%s' of type %s not allowed when expecting %c"),
-                s,t,expect);
-        synterr(errmsg);
+    switch (tfound) {
+    case 'd':
+    case 'w':
+    case 'f':
+    case 'a':
+    case 'k':
+    case 'i':
+    case 'p': t[0] = tfound;
+              t[1] = '\0';
+              break;
+    case 'r':
+    case 'c': strcpy(t,"const");
+              break;
+    case 'S': strcpy(t,"string");
+              break;
+    case 'b':
+    case 'B': strcpy(t,"boolean");
+              break;
+    case '?': strcpy(t,"?");
+              break;
+    }
+    sprintf(csound->errmsg,
+            Str("input arg '%s' of type %s not allowed when expecting %c"),
+            s, t, expect);
+    synterr(csound->errmsg);
 }
 
 static int isopcod(char *s)     /* tst a string against opcodlst  */

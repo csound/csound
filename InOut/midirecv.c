@@ -178,7 +178,7 @@ static void ctlreset(ENVIRON *csound, short chan)
     MCHNBLK *chn;
     int     i;
 
-    chn = M_CHNBP[chan];
+    chn = csound->m_chnbp[chan];
     for (i = 1; i <= 109; i++)                  /* from ctlr 1 to ctlr 109 */
       chn->ctl_val[i] = FL(0.0);                /*   reset all ctlrs to 0  */
     /* exceptions:  */
@@ -204,7 +204,7 @@ static void ctlreset(ENVIRON *csound, short chan)
 
 void m_chanmsg(ENVIRON *csound, MEVENT *mep)
 {
-    MCHNBLK *chn = M_CHNBP[mep->chan];
+    MCHNBLK *chn = csound->m_chnbp[mep->chan];
     short n;
     MYFLT *fp;
 
@@ -376,7 +376,7 @@ void m_chn_init_all(ENVIRON *csound)
     for (chan = (short) 0; chan < (short) 16; chan++) {
       /* alloc a midi control blk for midi channel */
       /*  & assign default instrument number       */
-      M_CHNBP[chan] = chn = (MCHNBLK*) mcalloc(csound, sizeof(MCHNBLK));
+      csound->m_chnbp[chan] = chn = (MCHNBLK*) mcalloc(csound, sizeof(MCHNBLK));
       n = (int) chan + 1;
       /* if corresponding instrument exists, assign as insno, */
       if (n <= (int) csound->maxinsno && csound->instrtxtp[n] != NULL)
@@ -407,7 +407,7 @@ int m_chinsno(ENVIRON *csound, short chan, short insno)
 
     if (chan < 0 || chan > 15)
       return csound->InitError(csound, Str("illegal channel number"));
-    chn = M_CHNBP[chan];
+    chn = csound->m_chnbp[chan];
     if (insno <= 0) {
       chn->insno = -1;
       csound->Message(csound, Str("MIDI channel %d muted\n"), (int) chan + 1);

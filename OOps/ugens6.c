@@ -94,7 +94,7 @@ int interp(ENVIRON *csound, INTERP *p)
       p->prev = *p->xsig;
     }
     val = p->prev;
-    incr = (*p->xsig - val) / ensmps;
+    incr = (*p->xsig - val) / csound->ensmps;
     for (n=0; n<nsmps; n++) {
       ar[n] = val += incr;
     }
@@ -843,20 +843,22 @@ int alpass(ENVIRON *csound, COMB *p)
     return OK;
 }
 
-static  MYFLT   revlptimes[6] ={FL(0.0297), FL(0.0371), FL(0.0411),
-                                FL(0.0437), FL(0.005), FL(0.0017)};
+/* FIXME: statics: should be moved to ENVIRON */
+
+static const MYFLT revlptimes[6] = {FL(0.0297), FL(0.0371), FL(0.0411),
+                                    FL(0.0437), FL(0.005), FL(0.0017)};
 static  long    revlpsiz[6];
 static  long    revlpsum;
 
-void reverbinit(void)                   /* called once by oload */
+void reverbinit(ENVIRON *csound)        /* called once by oload */
 {                                       /*  to init reverb data */
-    MYFLT       *lptimp = revlptimes;
+    MYFLT       *lptimp = (MYFLT*) revlptimes;
     long        *lpsizp = revlpsiz;
     int n = 6;
 
     revlpsum = 0;
     do {
-      *lpsizp = (long)(*lptimp++ * cenviron.esr);
+      *lpsizp = (long) ((double) *lptimp++ * (double) csound->esr + 0.5);
       revlpsum += *lpsizp++;
     } while (--n);
 }
@@ -903,7 +905,7 @@ int reverb(ENVIRON *csound, REVERB *p)
       return csound->PerfError(csound, Str("reverb: not intialised"));
     }
     if (p->prvt != *p->krvt) {
-      MYFLT     *lptimp = revlptimes;
+      MYFLT     *lptimp = (MYFLT*) revlptimes;
       MYFLT     logdrvt = log001 / *p->krvt;
       p->c1 = (MYFLT)exp(logdrvt * *lptimp++);
       p->c2 = (MYFLT)exp(logdrvt * *lptimp++);

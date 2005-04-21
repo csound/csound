@@ -205,7 +205,7 @@ int cabasaset(ENVIRON *csound, CABASA *p)
     p->resons = CABA_RESON;
     p->coeffs1 = CABA_RESON * CABA_RESON;
     p->coeffs0 = - CABA_RESON * FL(2.0) *
-      (MYFLT)cos((double)CABA_CENTER_FREQ * tpidsr);
+      (MYFLT)cos((double)CABA_CENTER_FREQ * csound->tpidsr);
                                 /* Note On */
     p->shakeEnergy = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
     if (p->shakeEnergy > MAX_SHAKE) p->shakeEnergy = MAX_SHAKE;
@@ -304,7 +304,7 @@ int sekereset(ENVIRON *csound, SEKERE *p)
     p->resons = SEKE_RESON;
     p->coeffs1 = SEKE_RESON * SEKE_RESON;
     p->coeffs0 = - SEKE_RESON * FL(2.0) *
-      (MYFLT)cos((double)SEKE_CENTER_FREQ * tpidsr);
+      (MYFLT)cos((double)SEKE_CENTER_FREQ * csound->tpidsr);
                                 /* Note On */
     p->shakeEnergy = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
     if (p->shakeEnergy > MAX_SHAKE) p->shakeEnergy = MAX_SHAKE;
@@ -407,7 +407,7 @@ int sandset(ENVIRON *csound, SEKERE *p)
     p->resons = SANDPAPR_RESON;
     p->coeffs1 = SANDPAPR_RESON * SANDPAPR_RESON;
     p->coeffs0 = - SANDPAPR_RESON * FL(2.0) *
-      (MYFLT)cos((double)SANDPAPR_CENTER_FREQ * tpidsr);
+      (MYFLT)cos((double)SANDPAPR_CENTER_FREQ * csound->tpidsr);
                                 /* Note On */
     p->shakeEnergy = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
     if (p->shakeEnergy > MAX_SHAKE) p->shakeEnergy = MAX_SHAKE;
@@ -435,7 +435,7 @@ int stixset(ENVIRON *csound, SEKERE *p)
     p->resons = STIX1_RESON;
     p->coeffs1 = STIX1_RESON * STIX1_RESON;
     p->coeffs0 = - STIX1_RESON * FL(2.0) *
-      (MYFLT)cos((double)STIX1_CENTER_FREQ * tpidsr);
+      (MYFLT)cos((double)STIX1_CENTER_FREQ * csound->tpidsr);
                                 /* Note On */
     p->shakeEnergy = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
     if (p->shakeEnergy > MAX_SHAKE) p->shakeEnergy = MAX_SHAKE;
@@ -461,7 +461,7 @@ int crunchset(ENVIRON *csound, CABASA *p)
     p->resons = CRUNCH1_RESON;
     p->coeffs1 = CRUNCH1_RESON * CRUNCH1_RESON;
     p->coeffs0 = - CRUNCH1_RESON * FL(2.0) *
-      (MYFLT)cos((double)CRUNCH1_CENTER_FREQ * tpidsr);
+      (MYFLT)cos((double)CRUNCH1_CENTER_FREQ * csound->tpidsr);
                                 /* Note On */
     p->shakeEnergy = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
     if (p->shakeEnergy > MAX_SHAKE) p->shakeEnergy = MAX_SHAKE;
@@ -499,11 +499,11 @@ int guiroset(ENVIRON *csound, GUIRO *p)
 
     p->coeffs01 = GUIR_GOURD_RESON * GUIR_GOURD_RESON;
     p->coeffs00 = -GUIR_GOURD_RESON * FL(2.0) *
-      (MYFLT)cos((double)GUIR_GOURD_FREQ * tpidsr);
+      (MYFLT)cos((double)GUIR_GOURD_FREQ * csound->tpidsr);
 
     p->coeffs11 = GUIR_GOURD_RESON2 * GUIR_GOURD_RESON2;
     p->coeffs10 = -GUIR_GOURD_RESON2 * FL(2.0) *
-      (MYFLT)cos((double)GUIR_GOURD_FREQ2 * tpidsr);
+      (MYFLT)cos((double)GUIR_GOURD_FREQ2 * csound->tpidsr);
 
     p->ratchet = FL(0.0);
     p->ratchetPos = 10;
@@ -542,12 +542,12 @@ int guiro(ENVIRON *csound, GUIRO *p)
     if (*p->freq != FL(0.0) && *p->freq !=  p->res_freqSave) {
       p->res_freqSave = *p->freq;
       p->coeffs00 = -GUIR_GOURD_RESON * FL(2.0) *
-        (MYFLT)cos((double)p->res_freqSave * tpidsr);
+        (MYFLT)cos((double)p->res_freqSave * csound->tpidsr);
     }
     if (*p->freq2 != p->res_freq2) {
       p->res_freq2 = *p->freq2;
       p->coeffs10 = -GUIR_GOURD_RESON2 * FL(2.0) *
-        (MYFLT)cos((double)p->res_freq2 * tpidsr);
+        (MYFLT)cos((double)p->res_freq2 * csound->tpidsr);
     }
     if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
     if ((--p->kloop) == 0) {
@@ -662,13 +662,13 @@ int tambourset(ENVIRON *csound, TAMBOURINE *p)
     p->gains2          = temp;
     p->coeffs01        = TAMB_SHELL_RESON * TAMB_SHELL_RESON;
     p->coeffs00        = -TAMB_SHELL_RESON * FL(2.0) *
-      (MYFLT)cos((double)TAMB_SHELL_FREQ * tpidsr);
+      (MYFLT)cos((double)TAMB_SHELL_FREQ * csound->tpidsr);
     p->coeffs11        = TAMB_CYMB_RESON * TAMB_CYMB_RESON;
     p->coeffs10        = -TAMB_CYMB_RESON * FL(2.0) *
-      (MYFLT)cos((double)TAMB_CYMB_FREQ1 * tpidsr);
+      (MYFLT)cos((double)TAMB_CYMB_FREQ1 * csound->tpidsr);
     p->coeffs21        = TAMB_CYMB_RESON * TAMB_CYMB_RESON;
     p->coeffs20        = -TAMB_CYMB_RESON * FL(2.0) *
-      (MYFLT)cos((double)TAMB_CYMB_FREQ2 * tpidsr);
+      (MYFLT)cos((double)TAMB_CYMB_FREQ2 * csound->tpidsr);
                                 /* Note On */
     p->shakeEnergy = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
     p->shake_damp = FL(0.0);
@@ -692,7 +692,7 @@ int tambourine(ENVIRON *csound, TAMBOURINE *p)
     if (*p->freq != FL(0.0) && *p->freq != p->res_freq) {
       p->res_freq = *p->freq;
       p->coeffs00 = -TAMB_SHELL_RESON * FL(2.0) *
-        (MYFLT)cos((double)p->res_freq * tpidsr);
+        (MYFLT)cos((double)p->res_freq * csound->tpidsr);
     }
     if (*p->damp != FL(0.0) && *p->damp != p->shake_damp) {
       p->shake_damp = *p->damp;
@@ -706,12 +706,12 @@ int tambourine(ENVIRON *csound, TAMBOURINE *p)
     if (*p->freq1 != FL(0.0) && *p->freq1 != p->res_freq1) {
       p->res_freq1 = *p->freq1;
       p->coeffs10 = -TAMB_CYMB_RESON * FL(2.0) *
-        (MYFLT)cos((double)p->res_freq1 * tpidsr);
+        (MYFLT)cos((double)p->res_freq1 * csound->tpidsr);
     }
     if (*p->freq2 != FL(0.0) && *p->freq2 != p->res_freq2) {
       p->res_freq2 = *p->freq2;
       p->coeffs20 = -TAMB_CYMB_RESON * FL(2.0) *
-        (MYFLT)cos((double)p->res_freq2 * tpidsr);
+        (MYFLT)cos((double)p->res_freq2 * csound->tpidsr);
     }
     if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
     if ((--p->kloop) == 0) {
@@ -730,10 +730,10 @@ int tambourine(ENVIRON *csound, TAMBOURINE *p)
           sndLevel += p->gain * shakeEnergy;
           temp_rand = p->res_freq1 * (FL(1.0) + (FL(0.05) * noise_tick()));
           p->coeffs10 = -TAMB_CYMB_RESON * FL(2.0) *
-            (MYFLT)cos((double)temp_rand * tpidsr);
+            (MYFLT)cos((double)temp_rand * csound->tpidsr);
           temp_rand = p->res_freq2 * (FL(1.0) + (FL(0.05) * noise_tick()));
           p->coeffs20 = -TAMB_CYMB_RESON * FL(2.0) *
-            (MYFLT)cos((double)temp_rand * tpidsr);
+            (MYFLT)cos((double)temp_rand * csound->tpidsr);
         }
         inputs0 = sndLevel * noise_tick();      /* Actual Sound is Random */
         inputs1 = inputs0;
@@ -795,13 +795,13 @@ int bambooset(ENVIRON *csound, BAMBOO *p)
     p->gain=temp;
     p->coeffs01 = BAMB_RESON * BAMB_RESON;
     p->coeffs00 = -BAMB_RESON * FL(2.0) *
-      (MYFLT)cos((double)BAMB_CENTER_FREQ0 * tpidsr);
+      (MYFLT)cos((double)BAMB_CENTER_FREQ0 * csound->tpidsr);
     p->coeffs11 = BAMB_RESON * BAMB_RESON;
     p->coeffs10 = -BAMB_RESON * FL(2.0) *
-      (MYFLT)cos((double)BAMB_CENTER_FREQ1 * tpidsr);
+      (MYFLT)cos((double)BAMB_CENTER_FREQ1 * csound->tpidsr);
     p->coeffs21 = BAMB_RESON * BAMB_RESON;
     p->coeffs20 = -BAMB_RESON * FL(2.0) *
-      (MYFLT)cos((double)BAMB_CENTER_FREQ2 * tpidsr);
+      (MYFLT)cos((double)BAMB_CENTER_FREQ2 * csound->tpidsr);
                                 /* Note On */
     p->shakeEnergy = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
     p->shake_damp = FL(0.0);
@@ -824,7 +824,7 @@ int bamboo(ENVIRON *csound, BAMBOO *p)
     if (*p->freq != FL(0.0) && *p->freq != p->res_freq0) {
       p->res_freq0 = *p->freq;
       p->coeffs00 = -BAMB_RESON * FL(2.0) *
-        (MYFLT)cos((double)p->res_freq0 * tpidsr);
+        (MYFLT)cos((double)p->res_freq0 * csound->tpidsr);
     }
     if (*p->damp != FL(0.0) && *p->damp != p->shake_damp) {
       p->shake_damp = *p->damp;
@@ -838,12 +838,12 @@ int bamboo(ENVIRON *csound, BAMBOO *p)
     if (*p->freq1 != FL(0.0) && *p->freq1 != p->res_freq1) {
       p->res_freq1 = *p->freq1;
       p->coeffs10 = -BAMB_RESON * FL(2.0) *
-        (MYFLT)cos((double)p->res_freq1 * tpidsr);
+        (MYFLT)cos((double)p->res_freq1 * csound->tpidsr);
     }
     if (*p->freq2 != FL(0.0) && *p->freq2 != p->res_freq2) {
       p->res_freq2 = *p->freq2;
       p->coeffs20 = -BAMB_RESON * FL(2.0) *
-        (MYFLT)cos((double)p->res_freq2 * tpidsr);
+        (MYFLT)cos((double)p->res_freq2 * csound->tpidsr);
     }
     if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
     if ((--p->kloop) == 0) {
@@ -862,15 +862,15 @@ int bamboo(ENVIRON *csound, BAMBOO *p)
           sndLevel += shakeEnergy;
           temp_rand = p->res_freq0 * (FL(1.0) + (FL(0.2) * noise_tick()));
           p->coeffs00 = -BAMB_RESON * FL(2.0) *
-            (MYFLT)cos((double)temp_rand * tpidsr);
+            (MYFLT)cos((double)temp_rand * csound->tpidsr);
           temp_rand = p->res_freq1 * (FL(1.0) +
                                       (FL(0.2) * noise_tick()));
           p->coeffs10 = -BAMB_RESON * FL(2.0) *
-            (MYFLT)cos((double)temp_rand * tpidsr);
+            (MYFLT)cos((double)temp_rand * csound->tpidsr);
           temp_rand = p->res_freq2 * (FL(1.0) +
                                       (FL(0.2) * noise_tick()));
           p->coeffs20 = -BAMB_RESON * FL(2.0) *
-            (MYFLT)cos((double)temp_rand * tpidsr);
+            (MYFLT)cos((double)temp_rand * csound->tpidsr);
         }
         inputs0      = sndLevel * noise_tick();  /* Actual Sound is Random */
         inputs1      = inputs0;
@@ -930,13 +930,13 @@ int wuterset(ENVIRON *csound, WUTER *p)
     p->gains0 = p->gains1 = p->gains2 = temp;
     p->coeffs01 = WUTR_RESON * WUTR_RESON;
     p->coeffs00 = -WUTR_RESON * FL(2.0) *
-      (MYFLT)cos((double)WUTR_CENTER_FREQ0 * tpidsr);
+      (MYFLT)cos((double)WUTR_CENTER_FREQ0 * csound->tpidsr);
     p->coeffs11 = WUTR_RESON * WUTR_RESON;
     p->coeffs10 = -WUTR_RESON * FL(2.0) *
-      (MYFLT)cos((double)WUTR_CENTER_FREQ1 * tpidsr);
+      (MYFLT)cos((double)WUTR_CENTER_FREQ1 * csound->tpidsr);
     p->coeffs21 = WUTR_RESON * WUTR_RESON;
     p->coeffs20 = -WUTR_RESON * FL(2.0) *
-      (MYFLT)cos((double)WUTR_CENTER_FREQ2 * tpidsr);
+      (MYFLT)cos((double)WUTR_CENTER_FREQ2 * csound->tpidsr);
                                 /* Note On */
     p->shakeEnergy = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
     p->shake_damp = FL(0.0);
@@ -958,7 +958,7 @@ int wuter(ENVIRON *csound, WUTER *p)
     if (*p->freq != FL(0.0) && *p->freq != p->res_freq0) {
       p->res_freq0 = *p->freq;
       p->coeffs00 = -WUTR_RESON * FL(2.0) *
-        (MYFLT)cos((double)p->res_freq0 * tpidsr);
+        (MYFLT)cos((double)p->res_freq0 * csound->tpidsr);
     }
     if (*p->damp != FL(0.0) && *p->damp != p->shake_damp) {
       p->shake_damp = *p->damp;
@@ -972,12 +972,12 @@ int wuter(ENVIRON *csound, WUTER *p)
     if (*p->freq1 != FL(0.0) && *p->freq1 != p->res_freq1) {
       p->res_freq1 = *p->freq1;
       p->coeffs10 = -WUTR_RESON * FL(2.0) *
-        (MYFLT)cos((double)p->res_freq1 * tpidsr);
+        (MYFLT)cos((double)p->res_freq1 * csound->tpidsr);
     }
     if (*p->freq2 != FL(0.0) && *p->freq2 != p->res_freq2) {
       p->res_freq2 = *p->freq2;
       p->coeffs20 = -WUTR_RESON * FL(2.0) *
-        (MYFLT)cos((double)p->res_freq2 * tpidsr);
+        (MYFLT)cos((double)p->res_freq2 * csound->tpidsr);
     }
     if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
     if ((--p->kloop) == 0) {
@@ -1020,19 +1020,19 @@ int wuter(ENVIRON *csound, WUTER *p)
         if (p->gains0 >  FL(0.001)) {
           p->center_freqs0  *= WUTR_FREQ_SWEEP;
           p->coeffs00 = -WUTR_RESON * FL(2.0) *
-            (MYFLT)cos((double)p->center_freqs0 * tpidsr);
+            (MYFLT)cos((double)p->center_freqs0 * csound->tpidsr);
         }
         p->gains1 *= WUTR_RESON;
         if (p->gains1 > FL(0.001)) {
           p->center_freqs1 *= WUTR_FREQ_SWEEP;
           p->coeffs10 = -WUTR_RESON * FL(2.0) *
-            (MYFLT)cos((double)p->center_freqs1 * tpidsr);
+            (MYFLT)cos((double)p->center_freqs1 * csound->tpidsr);
         }
         p->gains2 *= WUTR_RESON;
         if (p->gains2 > FL(0.001)) {
           p->center_freqs2 *= WUTR_FREQ_SWEEP;
           p->coeffs20 = -WUTR_RESON * FL(2.0) *
-            (MYFLT)cos((double)p->center_freqs2 * tpidsr);
+            (MYFLT)cos((double)p->center_freqs2 * csound->tpidsr);
         }
 
         sndLevel    *= soundDecay;        /* Each (all) event(s)  */
@@ -1104,19 +1104,19 @@ int sleighset(ENVIRON *csound, SLEIGHBELLS *p)
     p->gain            = temp;
     p->coeffs01        = SLEI_CYMB_RESON * SLEI_CYMB_RESON;
     p->coeffs00        = -SLEI_CYMB_RESON * FL(2.0) *
-      (MYFLT)cos((double)SLEI_CYMB_FREQ0 * tpidsr);
+      (MYFLT)cos((double)SLEI_CYMB_FREQ0 * csound->tpidsr);
     p->coeffs11        = SLEI_CYMB_RESON * SLEI_CYMB_RESON;
     p->coeffs10        = -SLEI_CYMB_RESON * FL(2.0) *
-      (MYFLT)cos((double)SLEI_CYMB_FREQ1 * tpidsr);
+      (MYFLT)cos((double)SLEI_CYMB_FREQ1 * csound->tpidsr);
     p->coeffs21        = SLEI_CYMB_RESON * SLEI_CYMB_RESON;
     p->coeffs20        = -SLEI_CYMB_RESON * FL(2.0) *
-      (MYFLT)cos((double)SLEI_CYMB_FREQ2 * tpidsr);
+      (MYFLT)cos((double)SLEI_CYMB_FREQ2 * csound->tpidsr);
     p->coeffs31        = SLEI_CYMB_RESON * SLEI_CYMB_RESON;
     p->coeffs30        = -SLEI_CYMB_RESON * FL(2.0) *
-      (MYFLT)cos((double)SLEI_CYMB_FREQ3 * tpidsr);
+      (MYFLT)cos((double)SLEI_CYMB_FREQ3 * csound->tpidsr);
     p->coeffs41        = SLEI_CYMB_RESON * SLEI_CYMB_RESON;
     p->coeffs40        = -SLEI_CYMB_RESON * FL(2.0) *
-      (MYFLT)cos((double)SLEI_CYMB_FREQ4 * tpidsr);
+      (MYFLT)cos((double)SLEI_CYMB_FREQ4 * csound->tpidsr);
                                 /* Note On */
     p->shakeEnergy = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
     p->shake_damp = FL(0.0);
@@ -1139,7 +1139,7 @@ int sleighbells(ENVIRON *csound, SLEIGHBELLS *p)
     if (*p->freq != FL(0.0) && *p->freq != p->res_freq0) {
       p->res_freq0 = *p->freq;
       p->coeffs00 = -SLEI_CYMB_RESON * FL(2.0) *
-        (MYFLT)cos((double)p->res_freq0 * tpidsr);
+        (MYFLT)cos((double)p->res_freq0 * csound->tpidsr);
     }
     if (*p->damp != FL(0.0) && *p->damp != p->shake_damp) {
       p->shake_damp = *p->damp;
@@ -1153,12 +1153,12 @@ int sleighbells(ENVIRON *csound, SLEIGHBELLS *p)
     if (*p->freq1 != FL(0.0) && *p->freq1 != p->res_freq1) {
       p->res_freq1 = *p->freq1;
       p->coeffs10 = -SLEI_CYMB_RESON * FL(2.0) *
-        (MYFLT)cos((double)p->res_freq1 * tpidsr);
+        (MYFLT)cos((double)p->res_freq1 * csound->tpidsr);
     }
     if (*p->freq2 != FL(0.0) && *p->freq2 != p->res_freq2) {
       p->res_freq2 = *p->freq2;
       p->coeffs20 = -SLEI_CYMB_RESON * FL(2.0) *
-        (MYFLT)cos((double)p->res_freq2 * tpidsr);
+        (MYFLT)cos((double)p->res_freq2 * csound->tpidsr);
     }
     if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
     if ((--p->kloop) == 0) {
@@ -1177,19 +1177,19 @@ int sleighbells(ENVIRON *csound, SLEIGHBELLS *p)
           sndLevel += p->gain * shakeEnergy;
           temp_rand = p->res_freq0 * (FL(1.0) + (FL(0.03) * noise_tick()));
           p->coeffs00 = -SLEI_CYMB_RESON * FL(2.0) *
-            (MYFLT)cos((double)temp_rand * tpidsr);
+            (MYFLT)cos((double)temp_rand * csound->tpidsr);
           temp_rand = p->res_freq1 * (FL(1.0) + (FL(0.03) * noise_tick()));
           p->coeffs10 = -SLEI_CYMB_RESON * FL(2.0) *
-            (MYFLT)cos((double)temp_rand * tpidsr);
+            (MYFLT)cos((double)temp_rand * csound->tpidsr);
           temp_rand = p->res_freq2 * (FL(1.0) + (FL(0.03) * noise_tick()));
           p->coeffs20 = -SLEI_CYMB_RESON * FL(2.0) *
-            (MYFLT)cos((double)temp_rand * tpidsr);
+            (MYFLT)cos((double)temp_rand * csound->tpidsr);
           temp_rand = p->res_freq3 * (FL(1.0) + (FL(0.03) * noise_tick()));
           p->coeffs30 = -SLEI_CYMB_RESON * FL(2.0) *
-            (MYFLT)cos((double)temp_rand * tpidsr);
+            (MYFLT)cos((double)temp_rand * csound->tpidsr);
           temp_rand = p->res_freq4 * (FL(1.0) + (FL(0.03) * noise_tick()));
           p->coeffs40 = -SLEI_CYMB_RESON * FL(2.0) *
-            (MYFLT)cos((double)temp_rand * tpidsr);
+            (MYFLT)cos((double)temp_rand * csound->tpidsr);
         }
         inputs0      = sndLevel * noise_tick();     /* Actual Sound is Random */
         inputs1      = inputs0;

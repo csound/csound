@@ -414,7 +414,11 @@ extern "C" {
   /**
    * Displays an informational message.
    */
-  PUBLIC void csoundMessage(void *csound, const char *format, ...);
+  PUBLIC
+#ifdef HAVE_GCC3
+    __attribute__ ((__format__(__printf__, 2, 3)))
+#endif
+      void csoundMessage(void *csound, const char *format, ...);
   PUBLIC void csoundMessageV(void *csound, const char *format, va_list args);
 
   /**

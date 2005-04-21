@@ -721,10 +721,10 @@ void LipFilt_setFreq(ENVIRON *csound, LipFilt *p, MYFLT frequency)
 {
     MYFLT coeffs[2];
     coeffs[0] = FL(2.0) * FL(0.997) *
-      (MYFLT)cos(csound->tpidsr_ * (double)frequency);        /* damping should  */
-    coeffs[1] = -FL(0.997) * FL(0.997);              /* change with lip */
-    BiQuad_setPoleCoeffs(p, coeffs);                 /* parameters, but */
-    BiQuad_setGain(*p, FL(0.03));                    /* not yet.        */
+      (MYFLT)cos(csound->tpidsr * (double)frequency);   /* damping should  */
+    coeffs[1] = -FL(0.997) * FL(0.997);                 /* change with lip */
+    BiQuad_setPoleCoeffs(p, coeffs);                    /* parameters, but */
+    BiQuad_setGain(*p, FL(0.03));                       /* not yet.        */
 }
 
 /*  NOTE:  Here we should add lip tension                 */

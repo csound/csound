@@ -620,12 +620,12 @@ void  calculate_3x3_matrixes(struct ls_triplet_chain *ls_triplets,
     }
 
     /* calculations and data storage to a global array */
-    ls_table = (MYFLT *) malloc( (triplet_amount*12 + 3) * sizeof (MYFLT));
-    ls_table[0] = FL(3.0); /*dimension*/
-    ls_table[1] = (MYFLT) ls_amount;
-    ls_table[2] = (MYFLT) triplet_amount;
+    cenviron.ls_table = (MYFLT *) malloc( (triplet_amount*12 + 3) * sizeof (MYFLT));
+    cenviron.ls_table[0] = FL(3.0); /*dimension*/
+    cenviron.ls_table[1] = (MYFLT) ls_amount;
+    cenviron.ls_table[2] = (MYFLT) triplet_amount;
     tr_ptr = ls_triplets;
-    ptr = (MYFLT *) &(ls_table[3]);
+    ptr = (MYFLT *) &(cenviron.ls_table[3]);
     while(tr_ptr != NULL) {
       lp1 =  &(lss[tr_ptr->ls_nos[0]].coords);
       lp2 =  &(lss[tr_ptr->ls_nos[1]].coords);
@@ -660,13 +660,13 @@ void  calculate_3x3_matrixes(struct ls_triplet_chain *ls_triplets,
     for (i=0; i < triplet_amount; i++) {
       printf(Str("Triplet %d Loudspeakers: "), i);
       for (j=0; j < 3; j++) {
-        printf("%d ", (int) ls_table[k++]);
+        printf("%d ", (int) cenviron.ls_table[k++]);
       }
       printf("\n");
 
       /*    printf("\nMatrix ");*/
       for (j=0; j < 9; j++) {
-        /*printf("%f ", ls_table[k]);*/
+        /*printf("%f ", cenviron.ls_table[k]);*/
         k++;
       }
       /*    printf("\n\n");*/
@@ -733,11 +733,11 @@ void choose_ls_tuplets( ls lss[CHANNELS],
       printf("%.1f ", lss[i].angles.azi / atorad);
     printf("\n");
 #endif
-    ls_table = (MYFLT*) malloc ((amount * 6 + 3 + 100 ) * sizeof (MYFLT));
-    ls_table[0] = FL(2.0); /*dimension*/
-    ls_table[1] = (MYFLT) ls_amount;
-    ls_table[2] = (MYFLT) amount;
-    ptr = &(ls_table[3]);
+    cenviron.ls_table = (MYFLT*) malloc ((amount * 6 + 3 + 100 ) * sizeof (MYFLT));
+    cenviron.ls_table[0] = FL(2.0); /*dimension*/
+    cenviron.ls_table[1] = (MYFLT) ls_amount;
+    cenviron.ls_table[2] = (MYFLT) amount;
+    ptr = &(cenviron.ls_table[3]);
     for (i=0;i<ls_amount - 1;i++) {
       if (exist[i] == 1) {
         *(ptr++) = (MYFLT)sorted_lss[i]+1;
@@ -759,13 +759,13 @@ void choose_ls_tuplets( ls lss[CHANNELS],
     for (i=0; i < amount; i++) {
       printf(Str("Pair %d Loudspeakers: "), i);
       for (j=0; j < 2; j++) {
-        printf("%d ", (int) ls_table[k++]);
+        printf("%d ", (int) cenviron.ls_table[k++]);
       }
       printf("\n");
 
       /*    printf("\nMatrix ");*/
       for (j=0; j < 4; j++) {
-        /*printf("%f ", ls_table[k]);*/
+        /*printf("%f ", cenviron.ls_table[k]);*/
         k++;
       }
       /*    printf("\n\n");*/
@@ -870,8 +870,6 @@ void new_spread_dir(CART_VEC *spreaddir, CART_VEC vscartdir,
     spreaddir->z /= power;
 }
 
-
-
 void new_spread_base(CART_VEC spreaddir, CART_VEC vscartdir,
                      MYFLT spread, CART_VEC *spread_base)
 {
@@ -889,3 +887,4 @@ void new_spread_base(CART_VEC spreaddir, CART_VEC vscartdir,
     spread_base->y /= power;
     spread_base->z /= power;
 }
+

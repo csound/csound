@@ -1057,8 +1057,9 @@ int argdecode(void *csound_, int argc, char **argv_)
           {
             FILE *ind = fopen(s, "r");
             if (ind==0) {
-              sprintf(errmsg, Str("Cannot open indirection file %s\n"), s);
-              dieu(errmsg);
+              sprintf(csound->errmsg, Str("Cannot open indirection file %s\n"),
+                                      s);
+              dieu(csound->errmsg);
             }
             else {
               readOptions(csound, ind);
@@ -1092,8 +1093,8 @@ int argdecode(void *csound_, int argc, char **argv_)
           while (*(++s));
           break;
         default:
-          sprintf(errmsg,Str("unknown flag -%c"), c);
-          dieu(errmsg);
+          sprintf(csound->errmsg, Str("unknown flag -%c"), c);
+          dieu(csound->errmsg);
         }
       }
     }
@@ -1107,10 +1108,10 @@ int argdecode(void *csound_, int argc, char **argv_)
         longjmp(csound->exitjmp, 1);
       }
       if (orcNameMode == NULL || strcmp(orcNameMode, "ignore") != 0) {
-        if (orchname == NULL)
-          orchname = --s;
-        else if (scorename == NULL)
-          scorename = --s;
+        if (csound->orchname == NULL)
+          csound->orchname = --s;
+        else if (csound->scorename == NULL)
+          csound->scorename = --s;
         else {
           csound->Message(csound,"argc=%d Additional string \"%s\"\n",argc,--s);
           dieu(Str("too many arguments"));

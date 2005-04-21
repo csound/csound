@@ -245,7 +245,8 @@ int ktone(ENVIRON *csound, KTONE *p)
        * so tpidsr * ksmps = 2 * pi / k rate.
        * We need this since we are filtering at k rate, not a rate. */
 
-      b = FL(2.0) - (MYFLT)cos((double)(*p->khp * tpidsr * csound->ksmps));
+      b = FL(2.0)
+          - (MYFLT) cos((double) (*p->khp * csound->tpidsr * csound->ksmps));
       p->c2 = b - (MYFLT)sqrt((double)(b * b - 1.0));
       p->c1 = FL(1.0) - p->c2;
     }
@@ -264,7 +265,8 @@ int katone(ENVIRON *csound, KTONE *p)
     if (*p->khp != p->prvhp) {
       MYFLT b;
       p->prvhp = *p->khp;
-      b = FL(2.0) - (MYFLT)cos((double)(*p->khp * tpidsr * csound->ksmps));
+      b = FL(2.0)
+          - (MYFLT) cos((double) (*p->khp * csound->tpidsr * csound->ksmps));
       p->c2 = b - (MYFLT)sqrt((double)(b * b - 1.));
       p->c1 = FL(1.0) - p->c2;
     }
@@ -288,8 +290,8 @@ int krsnset(ENVIRON *csound, KRESON *p)
 
     p->scale = scale = (int)*p->iscl;
     if (scale && scale != 1 && scale != 2) {
-      sprintf(errmsg,Str("Illegal resonk iscl value, %f"),*p->iscl);
-      return csound->InitError(csound, errmsg);
+      return csound->InitError(csound, Str("Illegal resonk iscl value, %f"),
+                                       *p->iscl);
     }
     /* Put dummy values into previous centre freq and bandwidth.         */
     p->prvcf = p->prvbw = -FL(100.0);
@@ -311,7 +313,7 @@ int kreson(ENVIRON *csound, KRESON *p)
      * cosf = cos (2pi * freq / krate)                   */
     if (*p->kcf != p->prvcf) {
       p->prvcf = *p->kcf;
-      p->cosf = (MYFLT)cos((double)(*p->kcf * tpidsr * csound->ksmps));
+      p->cosf = (MYFLT)cos((double)(*p->kcf * csound->tpidsr * csound->ksmps));
       flag = 1;
     }
 
@@ -319,7 +321,7 @@ int kreson(ENVIRON *csound, KRESON *p)
      * c3 = exp (-2pi * bwidth / krate)                  */
     if (*p->kbw != p->prvbw) {
       p->prvbw = *p->kbw;
-      p->c3 = (MYFLT)exp((double)(*p->kbw * mtpdsr * csound->ksmps));
+      p->c3 = (MYFLT)exp((double)(*p->kbw * csound->mtpdsr * csound->ksmps));
       flag = 1;
     }
     /* Final calculations for the factors
@@ -382,12 +384,12 @@ int kareson(ENVIRON *csound, KRESON *p)
     /*      or 1/.5  (sine) */
     if (*p->kcf != p->prvcf) {
       p->prvcf = *p->kcf;
-      p->cosf = (MYFLT)cos((double)(*p->kcf * tpidsr * csound->ksmps));
+      p->cosf = (MYFLT)cos((double)(*p->kcf * csound->tpidsr * csound->ksmps));
       flag = 1;
     }
     if (*p->kbw != p->prvbw) {
       p->prvbw = *p->kbw;
-      p->c3 = (MYFLT)exp((double)(*p->kbw * mtpdsr * csound->ksmps));
+      p->c3 = (MYFLT)exp((double)(*p->kbw * csound->mtpdsr * csound->ksmps));
       flag = 1;
     }
     if (flag) {

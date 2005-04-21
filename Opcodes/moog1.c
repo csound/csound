@@ -106,7 +106,7 @@ MYFLT FormSwep_tick(ENVIRON *csound,
       }
       p->poleCoeffs[1] = - (p->currentReson * p->currentReson);
       p->poleCoeffs[0] = FL(2.0) * p->currentReson *
-        (MYFLT)cos(csound->tpidsr_ * (double)p->currentFreq);
+        (MYFLT)cos(csound->tpidsr * (double)p->currentFreq);
     }
 
     temp = p->currentGain * sample;
