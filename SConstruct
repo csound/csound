@@ -66,6 +66,10 @@ print "System platform is '" + sys.platform + "'."
 # Define configuration options.
 
 opts = Options('custom.py')
+opts.Add('CC')
+opts.Add('CXX')
+opts.Add('LINK')
+opts.Add('LINKFLAGS')
 opts.Add('customCPPPATH', 'List of custom CPPPATH variables')
 opts.Add('customCCFLAGS')
 opts.Add('customCXXFLAGS')
@@ -924,7 +928,7 @@ else:
     if getPlatform() == 'linux':
         vstEnvironment.Append(LIBS = ['python2.3', 'util', 'dl', 'm'])
         vstEnvironment.Append(CPPPATH = ['/usr/include/python2.3'])
-        if commonEnvironment['Word64']=='1':        
+        if commonEnvironment['Word64']=='1':
             vstEnvironment.Append(LIBPATH = ['/usr/lib64/python2.3/config'])
         else:
             vstEnvironment.Append(LIBPATH = ['/usr/lib/python2.3/config'])
