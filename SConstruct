@@ -115,6 +115,9 @@ opts.Add('generateZip',
 opts.Add('buildLoris',
     'Set to 1 to build the Loris Python extension and opcodes',
     '1')
+opts.Add('useOSC',
+    'Set to 1 if you want OSC support',
+    '0')
 opts.Add('prefix',
     'Base directory for installs.  Defaults to /usr/local.',
     '/usr/local')
@@ -258,6 +261,7 @@ fltkFound = configure.CheckHeader("FL/Fl.H", language = "C++")
 boostFound = configure.CheckHeader("boost/any.hpp", language = "C++")
 alsaFound = configure.CheckHeader("alsa/asoundlib.h", language = "C")
 jackFound = configure.CheckHeader("jack/jack.h", language = "C")
+oscFound = configure.CheckHeader("lo/lo.h", language = "C")
 stkFound = configure.CheckHeader("Opcodes/stk/include/Stk.h", language = "C++")
 
 if getPlatform() == 'mingw':
@@ -760,6 +764,15 @@ else:
     jackEnvironment.Append(LIBS = ['pthread'])
     pluginLibraries.append(jackEnvironment.SharedLibrary('rtjack',
                                                          ['InOut/rtjack.c']))
+
+if (not(commonEnvironment['useOSC']=='1' and oscFound)):
+    print "CONFIGURATION DECISION: Not building OSC plugin."
+else:
+    print "CONFIGURATION DECISION: Building OSC plugin."
+    oscEnvironment = pluginEnvironment.Copy()
+    oscEnvironment.Append(LIBS = ['lo'])
+    pluginLibraries.append(oscEnvironment.SharedLibrary('osc',
+                                                         ['Opcodes/OSC.c']))
 
 # FLUIDSYNTH OPCODES
 
