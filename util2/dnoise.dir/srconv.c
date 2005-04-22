@@ -67,7 +67,7 @@ extern char *type2string(int);
 
 /* Static global variables */
 static unsigned    outbufsiz;
-static MYFLT       *outbuf;
+static MYFLT       *out_buf;
 
 static SNDFILE *outfd;
 OPARMS	O = {0,0, 0,1,1,0, 0,0, 0,0, 0,0, 1,0,0,7, 0,0,0, 0,0,0,0, 0,0 };
@@ -76,7 +76,7 @@ static int block = 0;
 
 static int writebuffer(MYFLT * obuf, int length)
 {
-    sf_write_MYFLT(outfd, outbuf, length);
+    sf_write_MYFLT(outfd, out_buf, length);
     block++;
     if (O.rewrt_hdr)
        rewriteheader(outfd,0);
@@ -494,7 +494,7 @@ int main(int argc, char **argv)
     outfd = sf_open_fd(openout(O.outfilename, 1), SFM_WRITE, &sfinfo, 1);
     if (O.rewrt_hdr) sf_command(outfd, SFC_SET_UPDATE_HEADER_AUTO, NULL, 0);
     outbufsiz = OBUF * O.sfsampsize;                    /* calc outbuf size */
-    outbuf = mmalloc(&cenviron, (long)outbufsiz);       /*  & alloc bufspace */
+    out_buf = mmalloc(&cenviron, (long)outbufsiz);      /*  & alloc bufspace */
     printf(Str("writing %d-byte blks of %s to %s"),
            outbufsiz, getstrformat(O.outformat), O.outfilename);
     printf(" %s\n", type2string(O.filetyp));
