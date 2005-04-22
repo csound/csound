@@ -88,7 +88,7 @@ extern short sfsampsize(int);
 
 /* Static global variables */
 static  unsigned  outbufsiz;
-static  MYFLT     *outbuf;
+static  MYFLT     *out_buf;
 static  int       outrange = 0;             /* Count samples out of range */
 static  OPARMS    OO;
 
@@ -474,7 +474,7 @@ int main(int argc, char **argv)
     outfd = sf_open_fd(openout(O.outfilename, 1), SFM_WRITE, &sfinfo, 1);
     if (O.rewrt_hdr) sf_command(outfd, SFC_SET_UPDATE_HEADER_AUTO, NULL, 0);
     outbufsiz = NUMBER_OF_SAMPLES * outputs * O.sfsampsize;/* calc outbuf size */
-    outbuf = mmalloc(csound, (long)outbufsiz);       /*  & alloc bufspace */
+    out_buf = mmalloc(csound, (long)outbufsiz);       /*  & alloc bufspace */
     csound->Message(csound,Str("writing %d-byte blks of %s to %s %s\n"),
                     outbufsiz, getstrformat(O.outformat), O.outfilename,
                     O.filetyp == TYP_AIFF ? "(AIFF)" :
@@ -673,7 +673,7 @@ MixSound(int n, SNDFILE *outfd)
         if (buffer[j] > max) max = buffer[j], lmaxpos = sample+j, maxtimes=1;
         if (buffer[j] < min) min = buffer[j], lminpos = sample+j, mintimes=1;
       }
-      sf_write_MYFLT(outfd, outbuf,
+      sf_write_MYFLT(outfd, out_buf,
                      O.sfsampsize * this_block * outputs / csound->nchnls);
       block++;
       bytes += O.sfsampsize*this_block*outputs;
