@@ -57,7 +57,7 @@ extern short sfsampsize(int);
 /* Static global variables */
 static  SOUNDIN    *p;  /* space allocated by SAsndgetset() */
 static  unsigned   outbufsiz;
-static  MYFLT      *outbuf;
+static  MYFLT      *out_buf;
 static  int        outrange = 0;            /* Count samples out of range */
 static  OPARMS     OO;
 
@@ -332,7 +332,7 @@ int main(int argc, char **argv)
       outfd = openout(O.outfilename, 1);
       outfile = sf_open_fd(outfd, SFM_WRITE, &sfinfo, 1);
       outbufsiz = 1024 * O.sfsampsize;                  /* calc outbuf size  */
-      outbuf = mmalloc(&cenviron, (long)outbufsiz);     /*  & alloc bufspace */
+      out_buf = mmalloc(&cenviron, (long)outbufsiz);    /*  & alloc bufspace */
       printf(Str("writing %d-byte blks of %s to %s %s\n"),
              outbufsiz, getstrformat(O.outformat), O.outfilename,
              type2string(O.filetyp));
