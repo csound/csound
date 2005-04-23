@@ -1,3 +1,8 @@
+2005-04-23  John ffitch  <jpff@codemist.co.uk>
+
+	* SConstruct (guiProgramEnvironment): Need dl and pthreads even
+	without FLTK
+
 2005-04-14  Michael Gogins <gogins@pipeline.com>
 	* Added (very) basic Java GUI front end for Csound.
 	It is the main class in CsoundVST.jar. To be extended.
