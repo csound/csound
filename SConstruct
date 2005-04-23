@@ -214,7 +214,7 @@ else:
 # Define different build environments for different types of targets.
 
 if getPlatform() == 'linux':
-    commonEnvironment.Append(CCFLAGS = "-DLINUX")
+    commonEnvironment.Append(CCFLAGS = "D-LINUX")
     commonEnvironment.Append(CPPPATH = '/usr/local/include')
     commonEnvironment.Append(CPPPATH = '/usr/include')
     commonEnvironment.Append(CPPPATH = '/usr/X11R6/include')
@@ -392,6 +392,11 @@ if commonEnvironment['useALSA']=='1' and alsaFound:
 elif commonEnvironment['usePortAudio']=='1' and portaudioFound:
     guiProgramEnvironment.Append(LINKFLAGS = '-mwindows')
 
+if getPlatform() == 'linux':
+    csoundProgramEnvironment.Append(LIBS = ['dl', 'pthread'])
+    vstEnvironment.Append(LIBS = ['dl'])
+    guiProgramEnvironment.Append(LIBS = ['dl'])
+
 if (commonEnvironment['useFLTK'] == '1' and fltkFound):
     csoundLibraryEnvironment.Append(CCFLAGS = '-DWINDOWS')
     pluginEnvironment.Append(CCFLAGS = '-DWINDOWS')
@@ -404,10 +409,6 @@ if (commonEnvironment['useFLTK'] == '1' and fltkFound):
     vstEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
     guiProgramEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
     csoundProgramEnvironment.Append(LIBS = ['fltk'])
-    if getPlatform() == 'linux':
-        csoundProgramEnvironment.Append(LIBS = ['dl'])
-        vstEnvironment.Append(LIBS = ['dl'])
-        guiProgramEnvironment.Append(LIBS = ['dl'])
     if getPlatform() == 'linux' or getPlatform() == 'cygwin':
         csoundProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
         vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
