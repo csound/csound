@@ -462,6 +462,9 @@ Section "${PRODUCT}" SecCopyUI
   Push "PYTHONPATH"
   Push "$1;$INSTDIR"
   Call WriteEnvStr
+  Push "SFOUTYP"
+  Push "WAV"
+  Call WriteEnvStr
 
   ;Create uninstaller
   WriteUninstaller "$INSTDIR\Uninstall.exe"
@@ -549,6 +552,8 @@ Section "Uninstall"
   Call un.DeleteEnvStr 
   Push "RAWWAVE_PATH"
   Call un.DeleteEnvStr 
+  Push "SFOUTYP"
+  Call un.DeleteEnvStr
 
   DeleteRegKey /ifempty HKCU "Software\${PRODUCT}"
 
