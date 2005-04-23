@@ -934,6 +934,7 @@ extern "C" {
     int           advanceCnt;
     MYFLT         *gbloffbas;       /* was static in oload.c */
     void          *otranGlobals;
+    void          *rdorchGlobals;
   } ENVIRON;
 
 #include "text.h"

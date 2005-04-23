@@ -148,12 +148,12 @@ static int parse_opcode_args(ENVIRON *csound, OENTRY *opc)
         break;
       default:
         sprintf(csound->errmsg, "invalid input type for opcode %s", inm->name);
-        synterr(csound->errmsg); err++;
+        synterr(csound, csound->errmsg); err++;
       }
       i++; types++;
       if (i > OPCODENUMOUTS) {
         sprintf(csound->errmsg, "too many input args for opcode %s", inm->name);
-        synterr(csound->errmsg); err++; break;
+        synterr(csound, csound->errmsg); err++; break;
       }
     }
     *otypes++ = 'o'; *otypes = '\0';    /* optional arg for local ksmps */
@@ -178,13 +178,13 @@ static int parse_opcode_args(ENVIRON *csound, OENTRY *opc)
         break;
       default:
         sprintf(csound->errmsg, "invalid output type for opcode %s", inm->name);
-        synterr(csound->errmsg); err++;
+        synterr(csound, csound->errmsg); err++;
       }
       i++; types++;
       if (i >= OPCODENUMOUTS) {
         sprintf(csound->errmsg, "too many output args for opcode %s",
                                 inm->name);
-        synterr(csound->errmsg); err++; break;
+        synterr(csound, csound->errmsg); err++; break;
       }
     }
     *otypes = '\0';
@@ -305,19 +305,19 @@ void otran(ENVIRON *csound)
             if (opnum == INSTR) {
               int err = 0, cnt, i;
               if (!alp->count) {  /* IV - Sep 8 2002: check for missing name */
-                synterr(Str("missing instrument number or name"));
+                synterr(csound, Str("missing instrument number or name"));
                 continue;
               }
               /* IV - Oct 16 2002: allow both numbers and names for instr */
               for (cnt = 0; cnt < alp->count; cnt++) {
                 char *c = alp->arg[cnt];
                 if (strlen(c) <= 0) {
-                  synterr(Str("missing instrument number or name"));
+                  synterr(csound, Str("missing instrument number or name"));
                   err++; continue;
                 }
                 if (isdigit(*c)) {      /* numbered instrument */
                   if (!sscanf(c, "%ld", &n) || n < 0) {
-                    synterr(Str("illegal instr number"));
+                    synterr(csound, Str("illegal instr number"));
                     err++; continue;
                   }
                   if (n > csound->maxinsno) {
@@ -335,12 +335,12 @@ void otran(ENVIRON *csound)
                       csound->instrtxtp[i] = NULL;
                   }
 /*                else if (n<0) { */
-/*                  synterr(Str("illegal instr number")); */
+/*                  synterr(csound, Str("illegal instr number")); */
 /*                  continue; */
 /*                } */
                   if (csound->instrtxtp[n] != NULL) {
                     sprintf(csound->errmsg,Str("instr %ld redefined"),(long)n);
-                    synterr(csound->errmsg);
+                    synterr(csound, csound->errmsg);
                     err++; continue;
                   }
                   csound->instrtxtp[n] = ip;
@@ -352,13 +352,13 @@ void otran(ENVIRON *csound)
                   }
                   /* IV - Oct 31 2002: some error checking */
                   if (!check_instr_name(c)) {
-                    synterr(Str("invalid name for instrument"));
+                    synterr(csound, Str("invalid name for instrument"));
                     err++; continue;
                   }
                   /* IV - Oct 31 2002: store the name */
                   if (!named_instr_alloc(csound, c, ip, insno_priority)) {
                     sprintf(csound->errmsg, "instr %s redefined", c);
-                    synterr(csound->errmsg);
+                    synterr(csound, csound->errmsg);
                     err++; continue;
                   }
                   ip->insname = c;  /* IV - Nov 10 2002: also in INSTRTXT */
@@ -377,19 +377,19 @@ void otran(ENVIRON *csound)
 
               /* some error checking */
               if (!alp->count || (strlen(name) <= 0)) {
-                  synterr(Str("No opcode name"));
+                  synterr(csound, Str("No opcode name"));
                   continue;
                 }
               /* IV - Oct 31 2002 */
               if (!check_instr_name(name)) {
-                synterr(Str("invalid name for opcode"));
+                synterr(csound, Str("invalid name for opcode"));
                 continue;
               }
               if (ip->t.inlist->count != 3) {
                 sprintf(csound->errmsg, Str("opcode declaration error (usage: "
                                             "opcode name, outtypes, intypes) "
                                             "-- opcode %s"), name);
-                synterr(csound->errmsg);
+                synterr(csound, csound->errmsg);
                 continue;
               }
 
@@ -399,7 +399,7 @@ void otran(ENVIRON *csound)
                 /* IV - Oct 31 2002: redefine old opcode if possible */
                 if (newopnum < SETEND || !strcmp(name, "subinstr")) {
                   sprintf(csound->errmsg, Str("cannot redefine %s"), name);
-                  synterr(csound->errmsg); continue;
+                  synterr(csound, csound->errmsg); continue;
                 }
                 csound->Message(csound,
                                 Str("WARNING: redefined opcode: %s\n"), name);
@@ -544,7 +544,7 @@ void otran(ENVIRON *csound)
         }
     }
     if (n != -1)
-      synterr(Str("Missing endin"));
+      synterr(csound, Str("Missing endin"));
     /* now add the instruments with names, assigning them fake instr numbers */
     named_instr_assign_numbers(csound);         /* IV - Oct 31 2002 */
     if (csound->opcodeInfo) {
@@ -613,7 +613,7 @@ void otran(ENVIRON *csound)
         strcat(sbuf, Str("error: inconsistent sr, kr, ksmps"));
       }
       if (strchr(sbuf, '\n') != NULL)
-        synterr(Str(sbuf));
+        synterr(csound, Str(sbuf));
     }
 
     ip = csound->instxtanchor.nxtinstxt;
@@ -625,7 +625,7 @@ void otran(ENVIRON *csound)
       if (opnum == LABEL || opnum == STRSET) continue;
       if ((thread = csound->opcodlst[opnum].thread) & 06 ||
           (!thread && bp->t.pftype != 'b'))
-        synterr(Str("perf-pass statements illegal in header blk"));
+        synterr(csound, Str("perf-pass statements illegal in header blk"));
     }
     if (csound->synterrcnt) {
       csound->Message(csound, Str("%d syntax errors in orchestra.  "
@@ -940,7 +940,7 @@ static int constndx(ENVIRON *csound, char *s)
 
  flerror:
     sprintf(csound->errmsg, Str("numeric syntax '%s'"),str);
-    synterr(csound->errmsg);
+    synterr(csound, csound->errmsg);
     return(0);
 }
 
