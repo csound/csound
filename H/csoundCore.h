@@ -707,20 +707,20 @@ extern "C" {
     /* Internal functions that are needed */
     void (*dispset)(WINDAT *, MYFLT *, long, char *, int, char *);
     void (*display)(WINDAT *);
-    MYFLT (*intpow_)(MYFLT, long);
-    char *(*unquote_)(char *);
-    MEMFIL *(*ldmemfile_)(void*, const char*);
-    FUNC *(*hfgens_)(struct ENVIRON_*, EVTBLK *);
-    int (*getopnum_)(char *s);
-    long (*strarg2insno_)(struct ENVIRON_ *csound, MYFLT *p, char *s);
-    long (*strarg2opcno_)(struct ENVIRON_ *csound, MYFLT *p, char *s,
-                                                   int force_opcode);
-    void (*rewriteheader_)(SNDFILE *ofd, int verbose);
+    MYFLT (*intpow)(MYFLT, long);
+    char *(*unquote)(char *);
+    MEMFIL *(*ldmemfile)(void*, const char*);
+    FUNC *(*hfgens)(struct ENVIRON_*, EVTBLK *);
+    int (*getopnum)(struct ENVIRON_*, char *s);
+    long (*strarg2insno)(struct ENVIRON_ *csound, MYFLT *p, char *s);
+    long (*strarg2opcno)(struct ENVIRON_ *csound, MYFLT *p, char *s,
+                                                  int force_opcode);
+    void (*rewriteheader)(SNDFILE *ofd, int verbose);
     void (*writeheader)(int ofd, char *ofname);
     void *(*SAsndgetset)(void*, char*, void*, MYFLT*, MYFLT*, MYFLT*, int);
     void *(*sndgetset)(void*, void*);
     int (*getsndin)(void*, void*, MYFLT*, int, void*);
-    int (*PerformKsmpsAbsolute_)(void *csound);
+    int (*PerformKsmpsAbsolute)(void *csound);
     int (*GetDebug)(void *csound);
     void (*SetDebug)(void *csound, int d);
     int (*TableLength)(void *csound, int table);
@@ -932,7 +932,8 @@ extern "C" {
     char          *assign_outarg;
     int           argcnt_offs, opcode_is_assign, assign_type;
     int           advanceCnt;
-    MYFLT         *gbloffbas;   /* was static in oload.c */
+    MYFLT         *gbloffbas;       /* was static in oload.c */
+    void          *otranGlobals;
   } ENVIRON;
 
 #include "text.h"

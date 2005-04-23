@@ -275,10 +275,10 @@ int scsnux_init(ENVIRON *csound, PSCSNUX *p)
       char filnam[256];
       MEMFIL *mfp;
       if (p->STRARG == NULL)
-        strcpy(filnam, csound->unquote_(csound->currevent->strarg));
-      else strcpy(filnam, csound->unquote_(p->STRARG));
+        strcpy(filnam, csound->unquote(csound->currevent->strarg));
+      else strcpy(filnam, csound->unquote(p->STRARG));
       /* readfile if reqd */
-      if ((mfp = csound->ldmemfile_(csound, filnam)) == NULL) {
+      if ((mfp = csound->ldmemfile(csound, filnam)) == NULL) {
         return csound->InitError(csound, Str("SCANU cannot load %s"), filnam);
       }
       else {

@@ -58,12 +58,12 @@ int     csoundPerfError(void *, const char *, ...);
 void    csoundWarning(void *, const char *, ...);
 void    csoundDebugMsg(void *, const char *, ...);
 #endif
-void    putop(TEXT *), putstrg(char *);
+void    putop(ENVIRON *, TEXT *), putstrg(char *);
 void    rdorchfile(ENVIRON*), otran(ENVIRON*), resetouts(ENVIRON*);
-char    argtyp(char *);
-TEXT    *getoptxt(int *);
+char    argtyp(ENVIRON *, char *);
+TEXT    *getoptxt(ENVIRON *, int *);
 int     express(ENVIRON *, char *);
-int     getopnum(char *), lgexist(char *);
+int     getopnum(ENVIRON *, char *), lgexist(ENVIRON *, char *);
 void    oload(ENVIRON*);
 void    cpsoctinit(ENVIRON*), reverbinit(ENVIRON*);
 void    dispinit(void);

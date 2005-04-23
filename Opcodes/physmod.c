@@ -456,7 +456,7 @@ MYFLT BowTabl_lookup(ENVIRON *csound, BowTabl *b, MYFLT sample)
     input = sample /* + b->offSet*/ ;          /*  add bias to sample      */
     input *= b->slope;                         /*  scale it                */
     lastOutput = (MYFLT)fabs(input) + FL(0.75); /*  below min delta, frict = 1 */
-    lastOutput = csound->intpow_(lastOutput,-4L);
+    lastOutput = csound->intpow(lastOutput,-4L);
 /* if (lastOutput < FL(0.0) ) lastOutput = FL(0.0); */ /* minimum frict is 0.0 */
     if (lastOutput > FL(1.0)) lastOutput = FL(1.0); /*  maximum friction is 1.0 */
     return lastOutput;

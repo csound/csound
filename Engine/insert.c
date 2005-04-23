@@ -671,7 +671,7 @@ int csoundInitError(void *csound_, const char *s, ...)
     csoundMessageV(csound, s, args);
     va_end(args);
     csoundMessage(csound, "\n");
-    putop(&csound->ids->optext->t);
+    putop(csound, &(csound->ids->optext->t));
 
     return ++(csound->inerrcnt);
 }
@@ -711,7 +711,7 @@ int csoundPerfError(void *csound_, const char *s, ...)
     csoundMessageV(csound, s, args);
     va_end(args);
     csoundMessage(csound, "\n");
-    putop(&csound->pds->optext->t);
+    putop(csound, &(csound->pds->optext->t));
     csoundMessage(csound, Str("   note aborted\n"));
     csound->perferrcnt++;
     xturnoff_now((ENVIRON*) csound, ip);      /* rm ins fr actlist */

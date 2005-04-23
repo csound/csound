@@ -1711,7 +1711,7 @@ static int vco2_tables_create(ENVIRON *csound, int waveform, int base_ftable,
         e.p[3] = e.p3orig = (MYFLT) tables->tables[i].size;
         e.p[4] = FL(-2.0);           /* GEN02 */
         e.p[5] = FL(0.0);
-        if ((ftp = csound->hfgens_(csound, &e)) == NULL) return -1;
+        if ((ftp = csound->hfgens(csound, &e)) == NULL) return -1;
         tables->tables[i].ftable = ftp->ftable;
         base_ftable++;                /* next table number */
       }
