@@ -1208,7 +1208,7 @@ static int writebuffer(ENVIRON *csound, SNDFILE *outfd,
       return -1;
     }
     if (O->rewrt_hdr)
-      csound->rewriteheader_(outfd, 0);
+      csound->rewriteheader(outfd, 0);
     csound->nrecs++;           /* JPff fix */
     if (O->heartbeat) {
       if (O->heartbeat==1) {
@@ -1218,8 +1218,9 @@ static int writebuffer(ENVIRON *csound, SNDFILE *outfd,
         csound->Message(csound, ".");
       else if (O->heartbeat == 3) {
         int n;
-        csound->Message(csound,"%d(%.3f)%n",
-                   csound->nrecs, csound->nrecs/csound->ekr, &n);
+        csound->Message(csound, "%ld(%.3f)%n",
+                                (long) csound->nrecs,
+                                (MYFLT) csound->nrecs / csound->ekr, &n);
         while (n--) csound->Message(csound,"\b");
       }
       else csound->Message(csound,"\a");

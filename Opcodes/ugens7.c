@@ -214,7 +214,7 @@ static int newpulse(ENVIRON *csound,
     }
     if (newexp || rismps != p->prvsmps) {            /* if new params */
       if ((p->prvsmps = rismps))                     /*   redo preamp */
-        p->preamp = csound->intpow_(p->expamp, -rismps);
+        p->preamp = csound->intpow(p->expamp, -rismps);
       else p->preamp = FL(1.0);
     }
     ovp->curamp = octamp * p->preamp;                /* set startamp  */
@@ -358,7 +358,7 @@ int harmon(ENVIRON *csound, HARMON *p)
           maxval = *autop;
           maxp = autop;
 #ifdef BETA
-          csound->Message(csound, "new maxval %f at %ld\n", maxval, maxp);
+          csound->Message(csound, "new maxval %f at %ld\n", maxval, (long)maxp);
 #endif
         }
         autop++;

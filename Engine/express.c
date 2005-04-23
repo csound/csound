@@ -39,7 +39,6 @@ static  const char    strmult[] = "*";
 
 static  void    putokens(ENVIRON*), putoklist(ENVIRON*);
 static  int     nontermin(int);
-extern  char    argtyp(char *);
 
 void expRESET(ENVIRON *csound)
 {
@@ -213,7 +212,7 @@ int express(ENVIRON *csound, char *s)
           prec = 14;            /* function call */
         }
         else {
-          c = argtyp(s);
+          c = argtyp(csound, s);
           /* terms: precedence depends on type (a < k < i) */
           if      (c == 'a')    prec = 16;
           else if (c == 'k')    prec = 17;
@@ -223,7 +222,7 @@ int express(ENVIRON *csound, char *s)
       }
       (csound->token++)->prec = prec;
     }
-    if (O.odebug) putokens(csound);
+    if (csound->oparms->odebug) putokens(csound);
 
 #define CONDVAL 2
 #define LOGOPS  3
@@ -262,7 +261,7 @@ int express(ENVIRON *csound, char *s)
       *csound->revp++ = *csound->pushp++;
 
     csound->endlist = csound->revp;             /* count of pol operators */
-    if (O.odebug) putoklist(csound);
+    if (csound->oparms->odebug) putoklist(csound);
     for (csound->revp = csound->tokenlist, polcnt = 0;
          csound->revp < csound->endlist; )
       if ((*csound->revp++)->prec < TERMS)      /*  is no w. prec < TERMS */
@@ -288,19 +287,19 @@ int express(ENVIRON *csound, char *s)
       }
       argcnt = csound->argp - csound->tokenlist;
       if (prec == FCALL && argcnt >= 1) {       /*   function call:  */
-        pp->incount = 1;                         /*     takes one arg */
+        pp->incount = 1;                        /*     takes one arg */
         pp->arg[1] = copystring((*--csound->argp)->str);
-        c = argtyp(pp->arg[1]);                  /* whose aki type */
+        c = argtyp(csound, pp->arg[1]);         /* whose aki type */
         if (c == 'B' || c == 'b')
           XERROR(Str("misplaced relational op"))
         if (c != 'a' && c != 'k')
-          c = 'i';                               /*   (simplified)  */
+          c = 'i';                              /*   (simplified)  */
         sprintf(op, "%s.%c", (*csound->revp)->str, c); /* Type at end now */
         if (strcmp(op,"i.k") == 0) {
           outype = 'i';                          /* i(karg) is irreg. */
           if (pp->arg[1][0] == '#' && pp->arg[1][1] == 'k') {
             /* IV - Jan 15 2003: input arg should not be a k-rate expression */
-            if (O.expr_opt) {
+            if (csound->oparms->expr_opt) {
               XERROR(Str("i() with expression argument not "
                          "allowed with --expression-opt"));
             }
@@ -331,7 +330,7 @@ int express(ENVIRON *csound, char *s)
         c = *(*csound->revp)->str;
         pp->incount = 1;                    /*   copy 1 arg txts    */
         pp->arg[1] = copystring((*--csound->argp)->str);
-        e = argtyp(pp->arg[1]);
+        e = argtyp(csound, pp->arg[1]);
         if (e == 'B' || e == 'b')
           XERROR(Str("misplaced relational op"));
         if (c == '\254' || c == '~') {
@@ -360,8 +359,8 @@ int express(ENVIRON *csound, char *s)
         pp->incount = 2;                    /*   copy 2 arg txts */
         pp->arg[2] = copystring((*--csound->argp)->str);
         pp->arg[1] = copystring((*--csound->argp)->str);
-        e = argtyp(pp->arg[1]);
-        d = argtyp(pp->arg[2]);             /*   now use argtyps */
+        e = argtyp(csound, pp->arg[1]);
+        d = argtyp(csound, pp->arg[2]);     /*   now use argtyps */
         if (e == 'B' || e == 'b' || d == 'B' || d == 'b' )
           XERROR(Str("misplaced relational op"))
 /*      csound->Message(csound, "op=%s e=%c c=%c d=%c\n", op, e, c, d); */
@@ -394,8 +393,8 @@ int express(ENVIRON *csound, char *s)
         pp->incount = 2;                        /*   & 2 arg txts   */
         pp->arg[2] = copystring((*--csound->argp)->str);
         pp->arg[1] = copystring((*--csound->argp)->str);
-        c = argtyp(pp->arg[1]);
-        d = argtyp(pp->arg[2]);             /*   now use argtyps */
+        c = argtyp(csound, pp->arg[1]);
+        d = argtyp(csound, pp->arg[2]);     /*   now use argtyps */
         if (c == 'a' || d == 'a')           /*   to determ outs  */
           XERROR(Str("audio relational"))
         if (c == 'B' || c == 'b' || d == 'B' || d == 'b' )
@@ -409,8 +408,8 @@ int express(ENVIRON *csound, char *s)
         pp->incount = 2;                    /*   & 2 arg txts */
         pp->arg[2] = copystring((*--csound->argp)->str);
         pp->arg[1] = copystring((*--csound->argp)->str);
-        c = argtyp(pp->arg[1]);
-        d = argtyp(pp->arg[2]);             /*   now use argtyps */
+        c = argtyp(csound, pp->arg[1]);
+        d = argtyp(csound, pp->arg[2]);     /*   now use argtyps */
         if (c == 'b' && d == 'b')           /*   to determ outs  */
           outype = 'b';
         else if ((c == 'B' || c == 'b') &&
@@ -424,9 +423,9 @@ int express(ENVIRON *csound, char *s)
         pp->arg[3] = copystring((*--csound->argp)->str);
         pp->arg[2] = copystring((*--csound->argp)->str);
         pp->arg[1] = copystring((*--csound->argp)->str);
-        b = argtyp(pp->arg[1]);
-        c = argtyp(pp->arg[2]);
-        d = argtyp(pp->arg[3]);
+        b = argtyp(csound, pp->arg[1]);
+        c = argtyp(csound, pp->arg[2]);
+        d = argtyp(csound, pp->arg[3]);
         if ((b != 'B' && b != 'b') ||       /*   chk argtypes, */
             c == 'B' || c == 'b'   || d == 'B' || d == 'b' ||
             (c == 'a' && d != 'a') || (d == 'a' && c != 'a'))
@@ -440,7 +439,7 @@ int express(ENVIRON *csound, char *s)
       }
       else XERROR(Str("insufficient terms"))
       s = &buffer[0] /* pp->arg[0] */;      /* now create outarg acc. to type */
-      if (!O.expr_opt) {
+      if (!csound->oparms->expr_opt) {
         /* IV - Jan 08 2003: old code: should work ... */
         if      (outype == 'a') sprintf(s, "#a%d", csound->acount++);
         else if (outype == 'k') sprintf(s, "#k%d", csound->kcount++);
