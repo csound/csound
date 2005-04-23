@@ -730,11 +730,11 @@ int delay1(ENVIRON *csound, DELAY1 *p)
     int         n, nsmps = csound->ksmps;
 
     ar = p->ar;
-    asig = p->asig;
+    asig = p->asig - 1;
     ar[0] = p->sav1;
     /* memmove(&ar[1], asig, sizeof(MYFLT)*(nsmps-1)); */
-    for (n=1; n<nsmps; n++) {
-      ar[n] = asig[n-1];
+    for (n = 1; n < nsmps; n++) {
+      ar[n] = asig[n];
     }
     p->sav1 = asig[n];
     return OK;
