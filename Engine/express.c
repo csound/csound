@@ -511,7 +511,7 @@ int express(ENVIRON *csound, char *s)
     XERROR(Str("term count"))
 
  error:
-    synterr(Str("expression syntax"));    /* or gracefully report error*/
+    synterr(csound, Str("expression syntax"));  /* or gracefully report error*/
     csound->Message(csound, " %s: %s\n", xprmsg, sorig);
     strcpy(csound->tokenstring, "1");
     return -1;

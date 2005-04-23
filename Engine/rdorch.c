@@ -42,59 +42,80 @@ typedef struct  {
 } LBLREQ;
 
 #define MARGS   (3)
+
 typedef struct MACRO {          /* To store active macros */
-  char          *name;          /* Use is by name */
-  int           acnt;           /* Count of arguments */
-  char          *body;          /* The text of the macro */
-  struct MACRO  *next;          /* Chain of active macros */
-  int           margs;          /* ammount of space for args */
-  char          *arg[MARGS];    /* With these arguments */
+    char          *name;        /* Use is by name */
+    int           acnt;         /* Count of arguments */
+    char          *body;        /* The text of the macro */
+    struct MACRO  *next;        /* Chain of active macros */
+    int           margs;        /* ammount of space for args */
+    char          *arg[MARGS];  /* With these arguments */
 } MACRO;
 
-static  MACRO   *macros = NULL;
+typedef struct in_stack {
+    short   string;
+    short   args;
+    char    *body;
+    FILE    *file;
+    MACRO   *mac;
+    short   line;
+} IN_STACK;
 
-static  long    lenmax = LENMAX;        /* Length of input line buffer  */
-static  char    **linadr;               /* adr of each line in text     */
-static  short   *srclin;                /* text no. of expanded lines   */
-static  int     curline;                /* current line being examined  */
-static  char    *collectbuf = NULL;     /* splitline collect buffer     */
-static  char    **group;                /* splitline local storage      */
-static  char    **grpsav;               /* copy of above                */
-static  long    grpmax = GRPMAX;        /* Size of group structure      */
-static  int     opgrpno;                /* grpno identified as opcode   */
-static  int     linopnum;               /* data for opcode in this line */
-static  char    *linopcod;
-static  int     linlabels;              /* count of labels this line    */
-static  LBLREQ  *lblreq;
-static  int     lblmax;
-static  int     lblcnt;
-static  int     lgprevdef = 0;
-static  int     opnum;                  /* opcod data carriers          */
-static  char    *opcod;                 /*  (line or subline)           */
-static  ARGLST  *nxtarglist, *nullist;
-#define strsav(x)  strsav_string(csound, x)
-static  void    intyperr(int n, char tfound, char expect);
-static  void    printgroups(ENVIRON *csound, int count);
-static  int     isopcod(char *s);
-static  void    lblrequest(char *s), lblfound(char *s);
-static  void    lblclear(void), lblchk(void);
+typedef struct iflabel {            /* for if/else/endif */
+    char    els[256];
+    char    end[256];
+    struct  iflabel *prv;
+} IFLABEL;
 
-static  FILE    *fp;
-struct in_stack {
-  short string;
-  short args;
-  char  *body;
-  FILE  *file;
-  MACRO *mac;
-  short line;
-};
+typedef struct {
+    MACRO   *macros;
+    long    lenmax /* = LENMAX */;  /* Length of input line buffer  */
+    char    **linadr;               /* adr of each line in text     */
+    short   *srclin;                /* text no. of expanded lines   */
+    int     curline;                /* current line being examined  */
+    char    *collectbuf;            /* splitline collect buffer     */
+    char    **group;                /* splitline local storage      */
+    char    **grpsav;               /* copy of above                */
+    long    grpmax /* = GRPMAX */;  /* Size of group structure      */
+    int     opgrpno;                /* grpno identified as opcode   */
+    int     linopnum;               /* data for opcode in this line */
+    char    *linopcod;
+    int     linlabels;              /* count of labels this line    */
+    LBLREQ  *lblreq;
+    int     lblmax;
+    int     lblcnt;
+    int     lgprevdef;
+    int     opnum;                  /* opcod data carriers          */
+    char    *opcod;                 /*  (line or subline)           */
+    ARGLST  *nxtarglist, *nullist;
+    IN_STACK  *inputs, *str;
+    FILE    *fp;
+    int     input_size, input_cnt;
+    int     pop;                    /* Number of macros to pop      */
+    int     ingappop /* = 1 */;
+    int     linepos /* = -1 */;
+    long    *typemask_tabl;
+    long    *typemask_tabl_in, *typemask_tabl_out;
+    long    orchsiz;
+    IFLABEL *iflabels;
+    int     repeatingElseifLine;
+    long    tempNum /* = 300L */;
+    int     repeatingElseLine;
+    short   grpcnt, nxtest /* = 1 */;
+    short   xprtstno, polcnt;
+    short   instrblk, instrcnt;
+    short   opcodblk;               /* IV - Sep 8 2002 */
+    TEXT    optext;                 /* struct to be passed back to caller */
+} RDORCH_GLOBALS;
 
-static struct in_stack *inputs = NULL, *str;
-static int input_size = 0, input_cnt = 0;
-static int pop = 0;             /* Number of macros to pop */
-static int ingappop = 1;
-static void lexerr(char*);
-static int linepos = -1;
+#define ST(x)   (((RDORCH_GLOBALS*) ((ENVIRON*) csound)->rdorchGlobals)->x)
+
+static  void    intyperr(ENVIRON *, int, char, char);
+static  void    printgroups(ENVIRON *, int);
+static  int     isopcod(ENVIRON *, char *);
+static  void    lblrequest(ENVIRON *, char *), lblfound(ENVIRON *, char *);
+static  void    lblclear(ENVIRON *), lblchk(ENVIRON *);
+static  void    lexerr(ENVIRON *, char *);
 
 #include "typetabl.h"                   /* IV - Oct 31 2002 */
 
@@ -102,52 +123,38 @@ void orchRESET(ENVIRON *csound)
 {
     int     i;
 
-    mfree(csound, linadr); linadr=NULL;
-    mfree(csound, srclin); srclin=NULL;
-    curline    = 0;
-    group      = NULL;
-    grpsav     = NULL;
-    collectbuf = NULL;
-    lenmax     = LENMAX;
-    grpmax     = GRPMAX;
-    opgrpno    = 0;
-    linopnum   = 0;
-    linopcod   = NULL;
-    linlabels  = 0;
-    lgprevdef  = 0;
     csound->synterrcnt = 0;
-    lblcnt     = 0;
-    opnum      = 0;
-    opcod      = NULL;
-    if (nxtarglist!=NULL) {
-      mfree(csound, nxtarglist); nxtarglist = NULL;
-    }
-    if (nullist!=NULL) {
-      mfree(csound, nullist); nullist = NULL;
-    }
     strsav_destroy(csound);
-    while (macros) {
-      mfree(csound, macros->body);
-      mfree(csound, macros->name);
-      for (i = 0; i < macros->acnt; i++) mfree(csound, macros->arg[i]);
-      macros = macros->next;
+
+    if (csound->rdorchGlobals == NULL)
+      return;
+
+    mfree(csound, ST(linadr));
+    mfree(csound, ST(srclin));
+    if (ST(nxtarglist) != NULL)
+      mfree(csound, ST(nxtarglist));
+    if (ST(nullist) != NULL)
+      mfree(csound, ST(nullist));
+    while (ST(macros)) {
+      mfree(csound, ST(macros)->body);
+      mfree(csound, ST(macros)->name);
+      for (i = 0; i < ST(macros)->acnt; i++)
+        mfree(csound, ST(macros)->arg[i]);
+      ST(macros) = ST(macros)->next;
     }
-    pop        = 0;
-    ingappop   = 1;
-    linepos    = -1;
     /* IV - Oct 31 2002 */
-    if (typemask_tabl) {
-      mfree(csound, typemask_tabl);
-      mfree(csound, typemask_tabl_in);
-      mfree(csound, typemask_tabl_out);
-      typemask_tabl = typemask_tabl_in = typemask_tabl_out = NULL;
+    if (ST(typemask_tabl)) {
+      mfree(csound, ST(typemask_tabl));
+      mfree(csound, ST(typemask_tabl_in));
+      mfree(csound, ST(typemask_tabl_out));
     }
+    csound->Free(csound, csound->rdorchGlobals);
+    csound->rdorchGlobals = NULL;
 }
 
-ARGLST* copy_arglist(ARGLST *old)
+ARGLST* copy_arglist(ENVIRON *csound, ARGLST *old)
 {
-    ENVIRON *csound = &cenviron;
-    size_t n = sizeof(ARGLST)+ old->count*sizeof(char*)-sizeof(char*);
+    size_t n = sizeof(ARGLST) + old->count * sizeof(char*) - sizeof(char*);
     ARGLST *nn = (ARGLST*)mmalloc(csound, n);
 /*  csound->Message(csound, "copy_arglist: %d args\n", old->count); */
     memcpy(nn, old, n);
@@ -155,52 +162,56 @@ ARGLST* copy_arglist(ARGLST *old)
     return nn;
 }
 
-                                /* Two functions to read/unread chracters from
-                                 * a stack of file and macro inputs */
+/* Two functions to read/unread chracters from
+ * a stack of file and macro inputs */
 
-#define ungetorchar(c) if (str->string) str->body--; else ungetc(c, str->file)
+#define ungetorchar(c)                      \
+{                                           \
+    if (ST(str)->string) ST(str)->body--;   \
+    else ungetc(c, ST(str)->file);          \
+}
 
 static void skiporchar(ENVIRON *csound)
 {
     int c;
  top:
-    if (str->string) {
-      c= *str->body++;
+    if (ST(str)->string) {
+      c= *ST(str)->body++;
       if (c == '\n' || c == '\r') {
-        str->line++; linepos = -1;
+        ST(str)->line++; ST(linepos) = -1;
         return;
       }
       if (c == '\0') {
-        pop += str->args;
-        str--; input_cnt--;
-        linepos = -1;
+        ST(pop) += ST(str)->args;
+        ST(str)--; ST(input_cnt)--;
+        ST(linepos) = -1;
         return;
       }
     }
     else {
-      c = getc(str->file);
+      c = getc(ST(str)->file);
       if (c == '\n' || c == '\r' || c == 26) {    /* MS-DOS spare ^Z */
-        str->line++; linepos = -1;
+        ST(str)->line++; ST(linepos) = -1;
 /*      csound->Message(csound, "ends with %.2x\n", c); */
         if (c=='\r') {
-          if ((c = getc(str->file))!='\n') ungetc(c, str->file);
+          if ((c = getc(ST(str)->file))!='\n') ungetc(c, ST(str)->file);
         }
 /*      csound->Message(csound, "...ends with %.2x\n", c); */
         return;
       }
       if (c == EOF) {
-        if (str == &inputs[0]) {
-          linepos = -1;
+        if (ST(str) == &ST(inputs)[0]) {
+          ST(linepos) = -1;
           return;
         }
-        fclose(str->file);
-        mfree(csound, str->body);
-        str--; input_cnt--;
-        str->line++; linepos = -1;
+        fclose(ST(str)->file);
+        mfree(csound, ST(str)->body);
+        ST(str)--; ST(input_cnt)--;
+        ST(str)->line++; ST(linepos) = -1;
         return;
       }
     }
-    linepos++;
+    ST(linepos)++;
     goto top;
 }
 
@@ -208,50 +219,50 @@ static int getorchar(ENVIRON *csound)
 {
     int c;
  top:
-    if (str->string) {
-      c= *str->body++;
+    if (ST(str)->string) {
+      c= *ST(str)->body++;
       if (c == '\0') {
-        pop += str->args;
-        str--; input_cnt--;
+        ST(pop) += ST(str)->args;
+        ST(str)--; ST(input_cnt)--;
         goto top;
       }
     }
     else {
-      c = getc(str->file);
+      c = getc(ST(str)->file);
       if (c == 26) goto top;    /* MS-DOS spare ^Z */
       if (c == EOF) {
-        if (str == &inputs[0]) return EOF;
-        fclose(str->file);
-        mfree(csound, str->body);
-        str--; input_cnt--; goto top;
+        if (ST(str) == &ST(inputs)[0]) return EOF;
+        fclose(ST(str)->file);
+        mfree(csound, ST(str)->body);
+        ST(str)--; ST(input_cnt)--; goto top;
       }
     }
     if (c == '\r') {
       int d;
-      if ((d=getc(str->file)!='\n')) {
+      if ((d=getc(ST(str)->file)!='\n')) {
 /*      csound->Message(csound, "next char is %c(%.2x)\n", d, d); */
-        ungetc(d, str->file);
+        ungetc(d, ST(str)->file);
       }
       c = '\n';                 /* *** Problem here with line endings *** */
     }
     if (c == '\n') {
-      str->line++; linepos = -1;
+      ST(str)->line++; ST(linepos) = -1;
     }
-    else linepos++;
-    if (ingappop && pop) {
+    else ST(linepos)++;
+    if (ST(ingappop) && ST(pop)) {
       do {
-        MACRO *nn = macros->next;
+        MACRO *nn = ST(macros)->next;
         int i;
 #ifdef MACDEBUG
-        csound->Message(csound, "popping %s\n", macros->name);
+        csound->Message(csound, "popping %s\n", ST(macros)->name);
 #endif
-        mfree(csound, macros->name); mfree(csound, macros->body);
-        for (i=0; i<macros->acnt; i++)
-          mfree(csound, macros->arg[i]);
-        mfree(csound, macros);
-        macros = nn;
-        pop--;
-      } while (pop);
+        mfree(csound, ST(macros)->name); mfree(csound, ST(macros)->body);
+        for (i=0; i<ST(macros)->acnt; i++)
+          mfree(csound, ST(macros)->arg[i]);
+        mfree(csound, ST(macros));
+        ST(macros) = nn;
+        ST(pop)--;
+      } while (ST(pop));
     }
     return c;
 }
@@ -286,80 +297,88 @@ FILE *fopen_path(ENVIRON *csound, char *name, char *basename, char *env)
     return ff;
 }
 
-static  long    ORCHSIZ;
-
 void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
 {
-    int c, lincnt;
-    int srccnt;
-    char        *cp, *endspace, *ortext;
-    int linmax = LINMAX;        /* Maximum number of lines      */
-    int heredoc = 0, openquote = 0;
+    int     c, lincnt;
+    int     srccnt;
+    char    *cp, *endspace, *ortext;
+    int     linmax = LINMAX;        /* Maximum number of lines      */
+    int     heredoc = 0, openquote = 0;
 
+    if (csound->rdorchGlobals == NULL) {
+      csound->rdorchGlobals = csound->Calloc(csound, sizeof(RDORCH_GLOBALS));
+      ST(lenmax)    = LENMAX;
+      ST(grpmax)    = GRPMAX;
+      ST(ingappop)  = 1;
+      ST(linepos)   = -1;
+      ST(tempNum)   = 300L;
+      ST(nxtest)    = 1;
+    }
     /* IV - Oct 31 2002: create tables for easier checking for common types */
-    if (!typemask_tabl) {
-      long *ptr = typetabl1;
-      typemask_tabl = (long*) mcalloc(csound, sizeof(long) * 256);
-      typemask_tabl_in = (long*) mcalloc(csound, sizeof(long) * 256);
-      typemask_tabl_out = (long*) mcalloc(csound, sizeof(long) * 256);
+    if (!ST(typemask_tabl)) {
+      long *ptr = (long*) typetabl1;
+      ST(typemask_tabl) = (long*) mcalloc(csound, sizeof(long) * 256);
+      ST(typemask_tabl_in) = (long*) mcalloc(csound, sizeof(long) * 256);
+      ST(typemask_tabl_out) = (long*) mcalloc(csound, sizeof(long) * 256);
       while (*ptr) {            /* basic types (both for input */
         long pos = *ptr++;      /* and output) */
-        typemask_tabl[pos] = typemask_tabl_in[pos] = typemask_tabl_out[pos] =
-          *ptr++;
+        ST(typemask_tabl)[pos] = ST(typemask_tabl_in)[pos] =
+                                 ST(typemask_tabl_out)[pos] = *ptr++;
       }
-      ptr = typetabl2;
+      ptr = (long*) typetabl2;
       while (*ptr) {            /* input types */
         long pos = *ptr++;
-        typemask_tabl_in[pos] = *ptr++;
+        ST(typemask_tabl_in)[pos] = *ptr++;
       }
-      ptr = typetabl3;
+      ptr = (long*) typetabl3;
       while (*ptr) {            /* output types */
         long pos = *ptr++;
-        typemask_tabl_out[pos] = *ptr++;
+        ST(typemask_tabl_out)[pos] = *ptr++;
       }
     }
     csound->Message(csound,Str("orch compiler:\n"));
-    if ((fp = fopen(csound->orchname, "r")) == NULL)
+    if ((ST(fp) = fopen(csound->orchname, "r")) == NULL)
       csoundDie(csound, Str("cannot open orch file %s"), csound->orchname);
-    if (fseek(fp, 0L, SEEK_END) != 0)
+    if (fseek(ST(fp), 0L, SEEK_END) != 0)
       csoundDie(csound, Str("cannot find end of file %s"), csound->orchname);
-    if ((ORCHSIZ = ftell(fp)) <= 0)
+    if ((ST(orchsiz) = ftell(ST(fp))) <= 0)
       csoundDie(csound, Str("ftell error on %s"), csound->orchname);
-    rewind(fp);
-    inputs = (struct in_stack*)mmalloc(csound, 20*sizeof(struct in_stack));
-    input_size = 20;
-    input_cnt = 0;
-    str = inputs;
-    str->string = 0;
-    str->file = fp;
-    str->body = csound->orchname;
-    ortext = mmalloc(csound, ORCHSIZ + 1);              /* alloc mem spaces */
-    linadr = (char **) mmalloc(csound, (long)(LINMAX+1)*sizeof(char **));
-    srclin = (short *) mmalloc(csound, (long)(LINMAX+1)*sizeof(short));
+    rewind(ST(fp));
+    ST(inputs) = (struct in_stack*)mmalloc(csound, 20*sizeof(struct in_stack));
+    ST(input_size) = 20;
+    ST(input_cnt) = 0;
+    ST(str) = ST(inputs);
+    ST(str)->string = 0;
+    ST(str)->file = ST(fp);
+    ST(str)->body = csound->orchname;
+    ortext = mmalloc(csound, ST(orchsiz) + 1);          /* alloc mem spaces */
+    ST(linadr) = (char **) mmalloc(csound, (long)(LINMAX+1)*sizeof(char **));
+    ST(srclin) = (short *) mmalloc(csound, (long)(LINMAX+1)*sizeof(short));
     strsav_create(csound);
-    srclin[1] = 1;
+    ST(srclin)[1] = 1;
     lincnt = srccnt = 1;
-    cp = linadr[1] = ortext;
-    endspace = ortext + ORCHSIZ + 1;
-    strsav("sr");
-    group = (char **)mcalloc(csound, (GRPMAX+1)*sizeof(char*));
-    grpsav= (char **)mcalloc(csound, (GRPMAX+1)*sizeof(char*));
-    lblreq = (LBLREQ*)mcalloc(csound, LBLMAX*sizeof(LBLREQ));
-    lblmax = LBLMAX;
+    cp = ST(linadr)[1] = ortext;
+    endspace = ortext + ST(orchsiz) + 1;
+    strsav_string(csound, "sr");
+    ST(group) = (char **)mcalloc(csound, (GRPMAX+1)*sizeof(char*));
+    ST(grpsav)= (char **)mcalloc(csound, (GRPMAX+1)*sizeof(char*));
+    ST(lblreq) = (LBLREQ*)mcalloc(csound, LBLMAX*sizeof(LBLREQ));
+    ST(lblmax) = LBLMAX;
 
     while ((c = getorchar(csound)) != EOF) {    /* read entire orch file  */
       if (cp == endspace-1) {                   /* Must extend */
         char * orold = ortext;
         int i;
-        ORCHSIZ = ORCHSIZ + (ORCHSIZ >> 4) + 1L;
-        ORCHSIZ = (ORCHSIZ + 511L) & (~511L);
-        ortext = mrealloc(csound, ortext, ORCHSIZ);
-        endspace = ortext + ORCHSIZ + 1;
-/*      csound->Message(csound, "Orchestra Text extended to %ld\n", ORCHSIZ); */
+        ST(orchsiz) = ST(orchsiz) + (ST(orchsiz) >> 4) + 1L;
+        ST(orchsiz) = (ST(orchsiz) + 511L) & (~511L);
+        ortext = mrealloc(csound, ortext, ST(orchsiz));
+        endspace = ortext + ST(orchsiz) + 1;
+/*      csound->Message(csound, "Orchestra Text extended to %ld\n",
+                                ST(orchsiz)); */
         if (ortext != orold) {
           int adj = ortext - orold;
           for (i=1; i<=lincnt; i++)
-            linadr[i] += adj; /* Relocate */
+            ST(linadr)[i] += adj; /* Relocate */
           cp += adj;
         }
       }
@@ -400,33 +419,34 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
         if (c == '\n' || c == '\r') {
           cp--;                                      /* Ignore newline */
           srccnt++;                                  /*    record a fakeline */
-/*            srclin[++lincnt] = 0; */
-/*            linadr[lincnt] = cp; */
+/*        ST(srclin)[++lincnt] = 0; */
+/*        ST(linadr)[lincnt] = cp; */
         }
         else  {
           *(cp-1) = c;
         }
       }
       else if (c == '\n' || c == '\r') {             /* at each new line */
-        char *lp = linadr[lincnt];
+        char *lp = ST(linadr)[lincnt];
         while ((c = *lp) == ' ' || c == '\t')
           lp++;
         if (*lp != '\n' && *lp != ';') {
-          curline = lincnt - 1;
+          ST(curline) = lincnt - 1;
         }
         srccnt++;
         if (++lincnt >= linmax) {
 /*        csound->Message(csound, "too many lines...increasing\n"); */
           linmax += 100;
-          linadr =
-            (char **) mrealloc(csound, linadr, (long)(linmax+1)*sizeof(char *));
-          srclin =
-            (short *) mrealloc(csound, srclin, (long)(linmax+1)*sizeof(short));
+          ST(linadr) = (char**) mrealloc(csound, ST(linadr), (linmax + 1)
+                                                             * sizeof(char*));
+          ST(srclin) = (short*) mrealloc(csound, ST(srclin), (linmax + 1)
+                                                             * sizeof(short));
         }
-        srclin[lincnt] = srccnt;
-        linadr[lincnt] = cp;            /* record the adrs */
+        ST(srclin)[lincnt] = srccnt;
+        ST(linadr)[lincnt] = cp;            /* record the adrs */
       }
-      else if (c == '#' && linepos==0 && !heredoc) {/* Start Macro definition */
+      else if (c == '#' && ST(linepos) == 0 && !heredoc) {
+        /* Start Macro definition */
         /* also deal with #include here */
         char mname[100];
         int i=0;
@@ -439,7 +459,8 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
         if (c=='d') {
           if ((c = getorchar(csound))!='e' || (c = getorchar(csound))!='f' ||
               (c = getorchar(csound))!='i' || (c = getorchar(csound))!='n' ||
-              (c = getorchar(csound))!='e') lexerr(Str("Not #define"));
+              (c = getorchar(csound))!='e')
+            lexerr(csound, Str("Not #define"));
           while (isspace(c = getorchar(csound)));
           do {
             mname[i++] = c;
@@ -471,7 +492,7 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
                 mm = (MACRO*)mrealloc(csound, mm,
                                       sizeof(MACRO)+mm->margs*sizeof(char*));
                 mm->margs += MARGS;
-/*                    lexerr(Str("Too many arguments to macro")); */
+/*              lexerr(csound, Str("Too many arguments to macro")); */
               }
               while (isspace(c)) c = getorchar(csound);
             } while (c=='\'' || c=='#');
@@ -493,8 +514,8 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
             }
           }
           mm->body[i]='\0';
-          mm->next = macros;
-          macros = mm;
+          mm->next = ST(macros);
+          ST(macros) = mm;
 #ifdef MACDEBUG
           csound->Message(csound, "Macro %s with %d arguments defined\n",
                                   mm->name, mm->acnt);
@@ -508,7 +529,7 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
             if ((c = getorchar(csound))!='c' || (c = getorchar(csound))!='l' ||
                 (c = getorchar(csound))!='u' || (c = getorchar(csound))!='d' ||
                 (c = getorchar(csound))!='e')
-              lexerr(Str("Not #include"));
+              lexerr(csound, Str("Not #include"));
             while (isspace(c = getorchar(csound)));
             delim = c;
             i = 0;
@@ -518,35 +539,37 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
 #ifdef MACDEBUG
             csound->Message(csound, "#include \"%s\"\n", mname);
 #endif
-            input_cnt++;
-            if (input_cnt>=input_size) {
-              input_size += 20;
-              inputs = mrealloc(csound,
-                                inputs, input_size*sizeof(struct in_stack));
-              if (inputs == NULL) {
+            ST(input_cnt)++;
+            if (ST(input_cnt)>=ST(input_size)) {
+              ST(input_size) += 20;
+              ST(inputs) = mrealloc(csound, ST(inputs), ST(input_size)
+                                                        * sizeof(IN_STACK));
+              if (ST(inputs) == NULL) {
                 csoundDie(csound, Str("No space for include files"));
               }
             }
-            str++;
-            str->string = 0;
-            str->file = fopen_path(csound, mname, csound->orchname, "INCDIR");
-            if (str->file==0) {
+            ST(str)++;
+            ST(str)->string = 0;
+            ST(str)->file = fopen_path(csound,
+                                       mname, csound->orchname, "INCDIR");
+            if (ST(str)->file==0) {
               csound->Message(csound,
                               Str("Cannot open #include'd file %s\n"), mname);
               /* Should this stop things?? */
-            str--; input_cnt--;
+              ST(str)--; ST(input_cnt)--;
             }
             else {
-              str->body = (char*)mmalloc(csound, strlen(csound->name_full)+1);
-              strcpy(str->body, csound->name_full);     /* Remember name */
-              str->line = 1;
-              linepos = -1;
+              ST(str)->body = (char*) mmalloc(csound,
+                                              strlen(csound->name_full) + 1);
+              strcpy(ST(str)->body, csound->name_full);     /* Remember name */
+              ST(str)->line = 1;
+              ST(linepos) = -1;
             }
           }
           else {
             if (c !='f' || (c = getorchar(csound))!='d' ||
                 (c = getorchar(csound))!='e' || (c = getorchar(csound))!='f')
-              lexerr("Not #ifdef");
+              lexerr(csound, "Not #ifdef");
             /* #ifdef XXX */
             while (isspace(c = getorchar(csound)));
             do {
@@ -555,7 +578,7 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
                      (i != 0 && (isdigit(c) || c == '_')));
             mname[i] = '\0';
 /*          csound->Message(csound, "found: #ifdef %s\n", mname); */
-            mm = macros;
+            mm = ST(macros);
             while (mm != NULL) {  /* Find the definition */
               if (!(strcmp (mname, mm->name))) break;
               mm = mm->next;
@@ -563,13 +586,13 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
             if (mm==NULL) csound->Message(csound,"...not defined\n");
             else csound->Message(csound,"...defined\n");
             /* Problem is what to do about it!! */
-            lexerr("#ifdef not complete");
+            lexerr(csound, "#ifdef not complete");
           }
         }
         else if (c=='u') {
           if ((c = getorchar(csound))!='n' || (c = getorchar(csound))!='d' ||
               (c = getorchar(csound))!='e' || (c = getorchar(csound))!='f')
-            lexerr(Str("Not #undef"));
+            lexerr(csound, Str("Not #undef"));
           while (isspace(c = getorchar(csound)));
           do {
             mname[i++] = c;
@@ -578,19 +601,20 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
           mname[i] = '\0';
           if(csound->oparms->msglevel)
             csound->Message(csound,Str("macro %s undefined\n"), mname);
-          if (strcmp(mname, macros->name)==0) {
-            MACRO *mm=macros->next;
-            mfree(csound, macros->name); mfree(csound, macros->body);
-            for (i=0; i<macros->acnt; i++)
-              mfree(csound, macros->arg[i]);
-            mfree(csound, macros); macros = mm;
+          if (strcmp(mname, ST(macros)->name)==0) {
+            MACRO *mm=ST(macros)->next;
+            mfree(csound, ST(macros)->name); mfree(csound, ST(macros)->body);
+            for (i=0; i<ST(macros)->acnt; i++)
+              mfree(csound, ST(macros)->arg[i]);
+            mfree(csound, ST(macros)); ST(macros) = mm;
           }
           else {
-            MACRO *mm = macros;
+            MACRO *mm = ST(macros);
             MACRO *nn = mm->next;
             while (strcmp(mname, nn->name)!=0) {
               mm = nn; nn = nn->next;
-              if (nn==NULL) lexerr(Str("Undefining undefined macro"));
+              if (nn == NULL)
+                lexerr(csound, Str("Undefining undefined macro"));
             }
             mfree(csound, nn->name); mfree(csound, nn->body);
             for (i=0; i<nn->acnt; i++)
@@ -610,10 +634,10 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
         int i=0;
         int j;
         MACRO *mm, *mm_save = NULL;
-        ingappop = 0;
+        ST(ingappop) = 0;
         while (isalpha(c=getorchar(csound))|| (i!=0 && (isdigit(c)||c=='_'))) {
           name[i++] = c; name[i] = '\0';
-          mm = macros;
+          mm = ST(macros);
           while (mm != NULL) {  /* Find the definition */
             if (!(strcmp (name, mm->name))) break;
             mm = mm->next;
@@ -634,9 +658,9 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
           } while ((unsigned)i >= strlen (mm->name));
           c = getorchar(csound); i++;
         }
-        if (c!='.') { ungetorchar(c); }
-        if (mm==NULL) {
-          lexerr(Str("Undefined macro"));
+        if (c != '.') ungetorchar(c);
+        if (mm == NULL) {
+          lexerr(csound, Str("Undefined macro"));
           continue;
         }
 #ifdef MACDEBUG
@@ -646,8 +670,8 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
         /* Should bind arguments here */
         /* How do I recognise entities?? */
         if (mm->acnt) {
-          if ((c=getorchar(csound)) != '(')
-            lexerr(Str("Syntax error in macro call"));
+          if ((c = getorchar(csound)) != '(')
+            lexerr(csound, Str("Syntax error in macro call"));
           for (j=0; j<mm->acnt; j++) {
             char term = (j==mm->acnt-1 ? ')' : '\'');
             char trm1 = (j==mm->acnt-1 ? ')' : '#'); /* Compatability */
@@ -676,25 +700,25 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
             csound->Message(csound, "as...#%s#\n", nn->body);
 #endif
             nn->acnt = 0;       /* No arguments for arguments */
-            nn->next = macros;
-            macros = nn;
+            nn->next = ST(macros);
+            ST(macros) = nn;
           }
         }
         cp--;           /* Ignore $ sign */
-        input_cnt++;
-        if (input_cnt>=input_size) {
-          input_size += 20;
-          inputs = mrealloc(csound,
-                            inputs, input_size*sizeof(struct in_stack));
-          if (inputs == NULL) {
+        ST(input_cnt)++;
+        if (ST(input_cnt)>=ST(input_size)) {
+          ST(input_size) += 20;
+          ST(inputs) = mrealloc(csound,
+                            ST(inputs), ST(input_size)*sizeof(struct in_stack));
+          if (ST(inputs) == NULL) {
             csoundDie(csound, Str("No space for include files"));
           }
         }
-        str++;
-        str->string = 1; str->body = mm->body; str->args = mm->acnt;
-        str->mac = mm;
-        str->line = 1;
-        ingappop = 1;
+        ST(str)++;
+        ST(str)->string = 1; ST(str)->body = mm->body; ST(str)->args = mm->acnt;
+        ST(str)->mac = mm;
+        ST(str)->line = 1;
+        ST(ingappop) = 1;
       }
     }
     if (cp >= endspace) {                               /* Ought to extend */
@@ -703,91 +727,92 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
     if (*(cp-1) != '\n')                /* if no final NL,      */
       *cp++ = '\n';                     /*    add one           */
     else --lincnt;
-    linadr[lincnt+1] = NULL;            /* terminate the adrs list */
+    ST(linadr)[lincnt+1] = NULL;            /* terminate the adrs list */
     csound->Message(csound,Str("%d lines read\n"),lincnt);
-    fclose(fp);                         /* close the file       */
-    curline = 0;                        /*   & reset to line 1  */
-    while (macros) {                    /* Clear all macros */
+    fclose(ST(fp));                         /* close the file       */
+    ST(curline) = 0;                        /*   & reset to line 1  */
+    while (ST(macros)) {                    /* Clear all macros */
       int i;
-      mfree(csound, macros->body);
-      mfree(csound, macros->name);
-      for (i=0; i<macros->acnt; i++) mfree(csound, macros->arg[i]);
-      macros = macros->next;
+      mfree(csound, ST(macros)->body);
+      mfree(csound, ST(macros)->name);
+      for (i=0; i<ST(macros)->acnt; i++) mfree(csound, ST(macros)->arg[i]);
+      ST(macros) = ST(macros)->next;
     }
-    nullist = (ARGLST *) mmalloc(csound,
+    ST(nullist) = (ARGLST *) mmalloc(csound,
                                  sizeof(ARGLST)); /* nullist is a count only */
-    nullist->count = 0;
-    nxtarglist = (ARGLST *) mmalloc(csound, sizeof(ARGLST) + 200*sizeof(char*));
+    ST(nullist)->count = 0;
+    ST(nxtarglist) = (ARGLST*) mmalloc(csound, sizeof(ARGLST)
+                                               + 200 * sizeof(char*));
 }
 
 static int splitline(ENVIRON *csound)
 {                          /* split next orch line into atomic groups, count */
                            /*  labels this line, and set opgrpno where found */
-    int grpcnt, prvif, prvelsif, logical, condassgn, parens;
-    int c, collecting;
-    char        *cp, *lp, *grpp=NULL;
-    static struct iflabel {             /* for if/else/endif */
-      char els[256];
-      char end[256];
-      struct iflabel *prv;
-    } *iflabels = NULL;
+    int     grpcnt, prvif, prvelsif, logical, condassgn, parens;
+    int     c, collecting;
+    char    *cp, *lp, *grpp = NULL;
 
-    if (collectbuf == NULL)
-      collectbuf = mcalloc(csound, (long)lenmax);
+    if (ST(collectbuf) == NULL)
+      ST(collectbuf) = mcalloc(csound, (long)ST(lenmax));
  nxtlin:
-    if ((lp = linadr[++curline]) == NULL)       /* point at next line   */
+    if ((lp = ST(linadr)[++ST(curline)]) == NULL)   /* point at next line   */
       return(0);
-    csound->DebugMsg(csound, Str("LINE %d:"), curline);
-    linlabels = opgrpno = 0;
+    csound->DebugMsg(csound, Str("LINE %d:"), ST(curline));
+    ST(linlabels) = ST(opgrpno) = 0;
     grpcnt = prvif = prvelsif = logical = condassgn = parens = collecting = 0;
-    cp = collectbuf;
+    cp = ST(collectbuf);
     while ((c = *lp++) != '\n') {               /* for all chars this line:  */
-      if (cp - collectbuf >= lenmax) {
+      if (cp - ST(collectbuf) >= ST(lenmax)) {
         int i;
-        char *nn = mcalloc(csound, lenmax+LENMAX);
-        memcpy(nn, collectbuf, lenmax); /* Copy data */
+        char *nn = mcalloc(csound, ST(lenmax)+LENMAX);
+        memcpy(nn, ST(collectbuf), ST(lenmax)); /* Copy data */
         if (nn==NULL) csoundDie(csound, Str("line LENMAX exceeded"));
-        cp = (cp - collectbuf) + nn;    /* Adjust pointer  */
-        for (i=0; i<grpcnt; i++) group[i] += (nn-collectbuf);
-        mfree(csound, collectbuf);   /* Need to correct grp vector */
-        collectbuf = nn;
-        lenmax += LENMAX;
-/*      csound->Message(csound, "SplitLine buffer extended to %d\n", lenmax); */
+        cp = (cp - ST(collectbuf)) + nn;        /* Adjust pointer  */
+        for (i=0; i<grpcnt; i++) ST(group)[i] += (nn-ST(collectbuf));
+        mfree(csound, ST(collectbuf));          /* Need to correct grp vector */
+        ST(collectbuf) = nn;
+        ST(lenmax) += LENMAX;
+/*      csound->Message(csound, "SplitLine buffer extended to %d\n",
+                                ST(lenmax)); */
 /*      csound->Die(csound, "line LENMAX exceeded"); */
       }
       if (c == '"') {                     /* quoted string:    */
         if (collecting) {
-          synterrp(lp-1,Str("unexpected quote character"));
+          synterrp(csound, lp - 1, Str("unexpected quote character"));
           continue;
         }
-        if (grpcnt >= grpmax) {
-          group = (char **)mrealloc(csound, group,
-                                            ((grpmax+=GRPMAX)+1)*sizeof(char*));
-          grpsav = (char **) mrealloc(csound, grpsav, (grpmax+1)*sizeof(char*));
+        if (grpcnt >= ST(grpmax)) {
+          ST(grpmax) += GRPMAX;
+          ST(group) = (char**) mrealloc(csound, ST(group), (ST(grpmax) + 1)
+                                                           * sizeof(char*));
+          ST(grpsav) = (char**) mrealloc(csound, ST(grpsav), (ST(grpmax) + 1)
+                                                             * sizeof(char*));
         }
-        grpp = group[grpcnt++] = cp;
+        grpp = ST(group)[grpcnt++] = cp;
         *cp++ = c;                      /*  cpy to nxt quote */
         while ((*cp++ = c = *lp++) != '"' && c != '\n');
         if (c == '\n')
-          synterrp(lp-1,Str("unmatched quotes"));
+          synterrp(csound, lp - 1, Str("unmatched quotes"));
         collecting = 1;                 /*   & resume chking */
         continue;
       }
       if (c == '{' && *lp == '{') {     /* multiline quoted string:    */
         if (collecting) {
-          synterrp(lp-1,Str("unexpected quote character"));
+          synterrp(csound, lp - 1, Str("unexpected quote character"));
           continue;
         }
-        if (grpcnt >= grpmax) {
-          group = (char **)mrealloc(csound, group,
-                                            ((grpmax+=GRPMAX)+1)*sizeof(char*));
-          grpsav = (char **) mrealloc(csound, grpsav, (grpmax+1)*sizeof(char*));
+        if (grpcnt >= ST(grpmax)) {
+          ST(grpmax) += GRPMAX;
+          ST(group) = (char **)mrealloc(csound, ST(group), (ST(grpmax) + 1)
+                                                           * sizeof(char*));
+          ST(grpsav) = (char **) mrealloc(csound, ST(grpsav), (ST(grpmax) + 1)
+                                                              * sizeof(char*));
         }
-        grpp = group[grpcnt++] = cp;
+        grpp = ST(group)[grpcnt++] = cp;
         *cp++ = c;                      /*  cpy to nxt quote */
         while (!((*cp++ = c = *lp++) == '}' && *(lp-2) == '}')) {
           if (c == '\n')
-            ++curline;
+            ++ST(curline);
         }
         collecting = 1;                 /*   & resume chking */
         continue;
@@ -803,19 +828,19 @@ static int splitline(ENVIRON *csound)
         eol = strchr(lp, '\n');
         if (eol!=NULL && eol<ll) {
   /*      csound->Message(csound, "%%%%%%%%%%newline in comment\n"); */
-          lp = linadr[++curline];
+          lp = ST(linadr)[++ST(curline)];
           ll= strstr(lp, "*/");
           goto nxtl;
         }
         if (ll == NULL) {
-          synterrp(lp-2, Str("Unmatched comment"));
+          synterrp(csound, lp - 2, Str("Unmatched comment"));
           lp = eol+1; break;
         }
         lp = ll+2;
         continue;
       }
       if (c == ' ' || c == '\t') {      /* spaces, tabs:     */
-        if (!opgrpno && collecting) {   /*  those before args */
+        if (!ST(opgrpno) && collecting) {   /*  those before args */
           *cp++ = '\0';                 /*  can be delimitrs  */
           collecting = 0;
           if (strcmp(grpp,"if") == 0) { /* of if opcod */
@@ -824,130 +849,129 @@ static int splitline(ENVIRON *csound)
             prvif++;
           }
           else if (strcmp(grpp,"elseif") == 0) { /* of elseif opcod */
-            static int repeatingElseifLine = 0;
-            if (!iflabels) { /* check to see we had an 'if' before  */
-              synterr(Str("invalid 'elseif' statement.  "
-                          "must have a corresponding 'if'\n"));
+            if (!ST(iflabels)) { /* check to see we had an 'if' before  */
+              synterr(csound, Str("invalid 'elseif' statement.  "
+                                  "must have a corresponding 'if'\n"));
               goto nxtlin;
             }
             /* check to see we did not have an 'else' before */
-            if (!iflabels->els[0]) {
-              synterr(Str("'elseif' statement cannot occur after an 'else'"));
+            if (!ST(iflabels)->els[0]) {
+              synterr(csound,
+                      Str("'elseif' statement cannot occur after an 'else'"));
               goto nxtlin;
             }
             /* 'elseif' requires 2 additional lines */
-            if (repeatingElseifLine) {
+            if (ST(repeatingElseifLine)) {
               /* add the 'elselabel' */
-              linlabels++;
-              strcpy(grpp, iflabels->els);
-              cp = grpp + strlen(iflabels->els) + 1;
+              ST(linlabels)++;
+              strcpy(grpp, ST(iflabels)->els);
+              cp = grpp + strlen(ST(iflabels)->els) + 1;
               /* finally replace the 'elseif' with a 'goto' */
-              grpp = group[grpcnt++] = cp;
+              grpp = ST(group)[grpcnt++] = cp;
               strcpy(grpp,"cggoto");
               cp = grpp + 7;
               prvif++;
               prvelsif++;
-              repeatingElseifLine = 0;
+              ST(repeatingElseifLine) = 0;
             }
             else {
               /* first add a 'goto endif' for the previous if */
               strcpy(grpp, "goto");
-              if (isopcod(grpp))
-                opgrpno = grpcnt;
+              if (isopcod(csound, grpp))
+                ST(opgrpno) = grpcnt;
               cp = grpp + 5;
-              grpp = group[grpcnt++] = cp;
-              strcpy(grpp, iflabels->end);
-              cp = grpp + strlen(iflabels->end) + 1;
-              curline--; /* roll back one and parse this line again */
-              repeatingElseifLine++;
+              grpp = ST(group)[grpcnt++] = cp;
+              strcpy(grpp, ST(iflabels)->end);
+              cp = grpp + strlen(ST(iflabels)->end) + 1;
+              ST(curline)--; /* roll back one and parse this line again */
+              ST(repeatingElseifLine)++;
               /* for some reason only goto [and not return] works here ? */
               goto nxtlin;
             }
           }
-          if (isopcod(grpp))            /*   or maybe others */
-            opgrpno = grpcnt;
+          if (isopcod(csound, grpp))        /*   or maybe others */
+            ST(opgrpno) = grpcnt;
         }
-        continue;                       /* now discard blanks*/
+        continue;                           /* now discard blanks*/
       }
-      if (c == ':' && collecting && grpcnt == linlabels+1) {
-        linlabels++;                    /* colon in 1st grps */
-        *cp++ = '\0';                   /*  is also delimitr */
-        collecting = 0;                 /*  (do not copy it) */
+      if (c == ':' && collecting && grpcnt == ST(linlabels)+1) {
+        ST(linlabels)++;                    /* colon in 1st grps */
+        *cp++ = '\0';                       /*  is also delimitr */
+        collecting = 0;                     /*  (do not copy it) */
         continue;
       }
-      if (c == '=' && !opgrpno) {       /* assign befor args */
-        if (collecting)                 /* can be a delimitr */
+      if (c == '=' && !ST(opgrpno)) {       /* assign befor args */
+        if (collecting)                     /* can be a delimitr */
           *cp++ = '\0';
-        grpp = group[grpcnt++] = cp;    /* is itslf an opcod */
+        grpp = ST(group)[grpcnt++] = cp;    /* is itslf an opcod */
         *cp++ = c;
         *cp++ = '\0';
-        isopcod(grpp);
-        opgrpno = grpcnt;
-        collecting = 0;                 /* & self-delimiting */
+        isopcod(csound, grpp);
+        ST(opgrpno) = grpcnt;
+        collecting = 0;                     /* & self-delimiting */
         continue;
       }
-      if (c == ',') {                   /* comma:        */
+      if (c == ',') {                       /* comma:            */
         if (!collecting)
-          synterrp(lp-1,Str("misplaced comma"));
+          synterrp(csound, lp - 1, Str("misplaced comma"));
         if (parens) {
-          synterrp(lp-2,Str("unbalanced parens"));
+          synterrp(csound, lp - 2, Str("unbalanced parens"));
           parens = 0;
         }
-        *cp++ = '\0';                   /*  terminate strng */
+        *cp++ = '\0';                       /*  terminate strng  */
         collecting = logical = condassgn = 0;
         continue;
       }
-      if (prvif && collecting) {        /* for prev "if":    */
-        if (strncmp(lp-1,"goto",4) == 0) {/* if found "goto" */
-          *cp++ = '\0';                 /*      delimit cond */
-          lp += 3;                      /*      & step over  */
+      if (prvif && collecting) {            /* for prev "if":    */
+        if (strncmp(lp-1,"goto",4) == 0) {  /* if found "goto"   */
+          *cp++ = '\0';                     /*      delimit cond */
+          lp += 3;                          /*      & step over  */
           prvif = collecting = 0;
           continue;
         }
-        else if ((c == 'i' || c == 'k') /*  if preced i or k */
-                 && strncmp(lp,"goto",4) == 0) { /*  before "goto"  */
-          *(group[opgrpno-1]+1) = c;    /*     modify cggoto */
-          isopcod(group[opgrpno-1]);
-          *cp++ = '\0';                 /*     then delimit  */
-          lp += 4;                      /*      etc          */
+        else if ((c == 'i' || c == 'k') &&          /*  if preced i or k */
+                 strncmp(lp, "goto", 4) == 0) {     /*  before "goto"    */
+          *(ST(group)[ST(opgrpno) - 1] + 1) = c;    /*     modify cggoto */
+          isopcod(csound, ST(group)[ST(opgrpno) - 1]);
+          *cp++ = '\0';                             /*     then delimit  */
+          lp += 4;                                  /*      etc          */
           prvif = collecting = 0;
           continue;
         }
         else if (strncmp(lp-1,"then",4) == 0) {
-          struct iflabel *prv = iflabels;
-          static long tempNum = 300;
-
+          struct iflabel *prv = ST(iflabels);
           /* modify cggoto */
-          *(group[opgrpno-1]+1) = 'n';
-          isopcod(group[opgrpno-1]);
+          *(ST(group)[ST(opgrpno)-1]+1) = 'n';
+          isopcod(csound, ST(group)[ST(opgrpno) - 1]);
           *cp++ = '\0';
           lp += 3;
           prvif = collecting = 0;
-          grpp = group[grpcnt++] = cp;
+          grpp = ST(group)[grpcnt++] = cp;
           /* synthesize labels to represent an else and endif */
           if (prvelsif) { /* elseif, so we just need a new elselabel */
-            sprintf(iflabels->els, "__else_%ld",tempNum++);
+            sprintf(ST(iflabels)->els, "__else_%ld",ST(tempNum)++);
             prvelsif = 0;
           }
           else {
             /* this is a new if, so put a whole new label struct on the stack */
-            iflabels = (struct iflabel *) mmalloc(csound,
-                                                  sizeof(struct iflabel));
-            iflabels->prv = prv;
-            sprintf(iflabels->end, "__endif_%ld",tempNum++);
-            sprintf(iflabels->els, "__else_%ld", tempNum++);
+            ST(iflabels) = (struct iflabel *) mmalloc(csound,
+                                                      sizeof(struct iflabel));
+            ST(iflabels)->prv = prv;
+            sprintf(ST(iflabels)->end, "__endif_%ld",ST(tempNum)++);
+            sprintf(ST(iflabels)->els, "__else_%ld", ST(tempNum)++);
           }
           /* we set the 'goto' label to the 'else' label */
-          strcpy(grpp, iflabels->els);
+          strcpy(grpp, ST(iflabels)->els);
           continue;
         }
       }
       if (!collecting++) {              /* remainder are     */
-        if (grpcnt >= grpmax) {         /* collectable chars */
-          group = (char**)mcalloc(csound, ((grpmax+=GRPMAX)+1)*sizeof(char*));
-          grpsav =(char**)mcalloc(csound, (grpmax+1)*sizeof(char*));
+        if (grpcnt >= ST(grpmax)) {     /* collectable chars */
+          ST(grpmax) += GRPMAX;
+          ST(group) = (char**)  mcalloc(csound, (ST(grpmax)+1) * sizeof(char*));
+          ST(grpsav) = (char**) mcalloc(csound, (ST(grpmax)+1) * sizeof(char*));
         }
-        grpp = group[grpcnt++] = cp;
+        grpp = ST(group)[grpcnt++] = cp;
       }
       if (*lp == c && (c == '<' || c == '>')) {         /* <<, >> */
         lp++; *cp++ = c;
@@ -978,7 +1002,7 @@ static int splitline(ENVIRON *csound)
         ;
       else {
         sprintf(csound->errmsg, Str("illegal character %c"), c);
-        synterrp(lp - 1, csound->errmsg);
+        synterrp(csound, lp - 1, csound->errmsg);
       }
       *cp++ = c;                        /* then collect the char   */
     }                                   /*  and loop for next      */
@@ -988,58 +1012,58 @@ static int splitline(ENVIRON *csound)
          <elselabel>
          to do this, we parse the current twice */
       if (strncmp(grpp,"else", 4) == 0) { /* 'else' */
-        static int repeatingElseLine = 0;
-        if (!iflabels) { /* check to see we had an 'if' before  */
-          synterr(Str("invalid 'else' statement.  "
-                      "must have a corresponding 'if'"));
+        if (!ST(iflabels)) { /* check to see we had an 'if' before  */
+          synterr(csound, Str("invalid 'else' statement.  "
+                              "must have a corresponding 'if'"));
           goto nxtlin;
         }
-        if (repeatingElseLine) {        /* add the elselabel */
-          if (!iflabels->els[0]) { /* check to see we had not another 'else' */
-            synterr(Str("duplicate 'else' statement"));
+        if (ST(repeatingElseLine)) {        /* add the elselabel */
+          if (!ST(iflabels)->els[0]) {
+            /* check to see we had not another 'else' */
+            synterr(csound, Str("duplicate 'else' statement"));
             goto nxtlin;
           }
-          linlabels++;
-          strcpy(grpp, iflabels->els);
-          cp = grpp + strlen(iflabels->els);
-          iflabels->els[0] = '\0';
-          repeatingElseLine = 0;
+          ST(linlabels)++;
+          strcpy(grpp, ST(iflabels)->els);
+          cp = grpp + strlen(ST(iflabels)->els);
+          ST(iflabels)->els[0] = '\0';
+          ST(repeatingElseLine) = 0;
         }
         else {                          /* add the goto statement */
           strcpy(grpp, "goto");
-          if (isopcod(grpp))
-            opgrpno = grpcnt;
+          if (isopcod(csound, grpp))
+            ST(opgrpno) = grpcnt;
           cp = grpp + 5;
-          grpp = group[grpcnt++] = cp;
-          strcpy(grpp, iflabels->end);
-          cp += strlen(iflabels->end);
-          curline--; /* roll back one and parse this line again */
-          repeatingElseLine = 1;
+          grpp = ST(group)[grpcnt++] = cp;
+          strcpy(grpp, ST(iflabels)->end);
+          cp += strlen(ST(iflabels)->end);
+          ST(curline)--; /* roll back one and parse this line again */
+          ST(repeatingElseLine) = 1;
         }
       }
       else if (strncmp(grpp,"endif", 5) == 0) {
         /* replace 'endif' with the synthesized label */
         struct iflabel *prv;
-        if (!iflabels) { /* check to see we had an 'if' before  */
-          synterr(Str("invalid 'endif' statement.  "
-                      "must have a corresponding 'if'"));
+        if (!ST(iflabels)) { /* check to see we had an 'if' before  */
+          synterr(csound, Str("invalid 'endif' statement.  "
+                              "must have a corresponding 'if'"));
           goto nxtlin;
         }
-        if (iflabels->els[0]) {
+        if (ST(iflabels)->els[0]) {
           /* we had no 'else' statement, so we need to insert the elselabel */
-          linlabels++;
-          strcpy(grpp, iflabels->els);
-          cp = grpp + strlen(iflabels->els);
-          iflabels->els[0] = '\0';
-          curline--; /* roll back one and parse this line again */
+          ST(linlabels)++;
+          strcpy(grpp, ST(iflabels)->els);
+          cp = grpp + strlen(ST(iflabels)->els);
+          ST(iflabels)->els[0] = '\0';
+          ST(curline)--; /* roll back one and parse this line again */
         }
         else {
-          prv = iflabels->prv;
-          linlabels++;
-          strcpy(grpp, iflabels->end);
-          cp = grpp + strlen(iflabels->end);
-          mfree(csound, iflabels);
-          iflabels = prv;
+          prv = ST(iflabels)->prv;
+          ST(linlabels)++;
+          strcpy(grpp, ST(iflabels)->end);
+          cp = grpp + strlen(ST(iflabels)->end);
+          mfree(csound, ST(iflabels));
+          ST(iflabels) = prv;
         }
       }
     }
@@ -1047,70 +1071,62 @@ static int splitline(ENVIRON *csound)
       goto nxtlin;                      /*      try another        */
     if (collecting) {                   /* if still collecting,    */
       *cp = '\0';                       /*      terminate          */
-      if (!opgrpno)                     /*      & chk for opcod    */
-        if (isopcod(grpp))
-          opgrpno = grpcnt;
+      if (!ST(opgrpno))                 /*      & chk for opcod    */
+        if (isopcod(csound, grpp))
+          ST(opgrpno) = grpcnt;
     }
-    if (parens)                         /* check balanced parens   */
-      synterrp(lp-1,Str("unbalanced parens"));
-    if (grpcnt > linlabels && !opgrpno) {       /* if no full line opcod,  */
-      synterr(Str("no legal opcode"));   /*      complain &         */
-      goto nxtlin;                              /*      try another        */
+    if (parens)                                   /* check balanced parens   */
+      synterrp(csound, lp - 1, Str("unbalanced parens"));
+    if (grpcnt > ST(linlabels) && !ST(opgrpno)) { /* if no full line opcod,  */
+      synterr(csound, Str("no legal opcode"));    /*      complain &         */
+      goto nxtlin;                                /*      try another        */
     }
-    linopnum = opnum;                   /* else save full line ops */
-    linopcod = opcod;
+    ST(linopnum) = ST(opnum);                     /* else save full line ops */
+    ST(linopcod) = ST(opcod);
     if (csound->oparms->odebug) printgroups(csound, grpcnt);
     return(grpcnt);
 }
 
-static  void    lblclear(void), lblrequest(char *);
-static  void    lblfound(char *), lblchk(void);
-
 TEXT *getoptxt(ENVIRON *csound, int *init)
 {                               /* get opcod and args from current line */
                                 /*      returns pntr to a TEXT struct   */
-    static      short   grpcnt = 0, nxtest = 1;
-    static      short   xprtstno = 0, polcnt = 0;
-    static      short   instrblk = 0, instrcnt = 0;
-    static      short   opcodblk = 0;   /* IV - Sep 8 2002 */
-    static      TEXT    optext; /* struct to be passed back to caller   */
-
     TEXT        *tp;
     char        c, d, str[20], *s;
     int         nn, incnt, outcnt;
 
     if (*init) {
-      grpcnt   = 0;
-      nxtest   = 1;
-      xprtstno = 0;
-      polcnt   = 0;
-      instrblk = 0;
-      opcodblk = 0;     /* IV - Sep 8 2002 */
-      instrcnt = 0;
+      ST(grpcnt)   = 0;
+      ST(nxtest)   = 1;
+      ST(xprtstno) = 0;
+      ST(polcnt)   = 0;
+      ST(instrblk) = 0;
+      ST(opcodblk) = 0;     /* IV - Sep 8 2002 */
+      ST(instrcnt) = 0;
       *init    = 0;
-      memset(&optext,0,sizeof(TEXT));
+      memset(&ST(optext),0,sizeof(TEXT));
     }
 
  tstnxt:
-    tp = &optext;
-    if (nxtest >= grpcnt) {                 /* if done with prevline, */
+    tp = &ST(optext);
+    if (ST(nxtest) >= ST(grpcnt)) {                 /* if done with prevline, */
       csound->argcnt_offs = 0;          /* reset temporary variable index */
-      if (!(grpcnt = splitline(csound)))    /*    attack next line    */
+      if (!(ST(grpcnt) = splitline(csound)))    /*    attack next line    */
         return((TEXT *)0);                  /*    (else we're done)   */
-      for (nn=0; nn<grpcnt; nn++)           /*    save the group pntrs */
-        grpsav[nn] = group[nn];
-      xprtstno = grpcnt - 1;                /*    and reinit indices  */
-      nxtest = 0;
-      tp->linenum = curline;
+      for (nn=0; nn<ST(grpcnt); nn++)           /*    save the group pntrs */
+        ST(grpsav)[nn] = ST(group)[nn];
+      ST(xprtstno) = ST(grpcnt) - 1;                /*    and reinit indices  */
+      ST(nxtest) = 0;
+      tp->linenum = ST(curline);
       /* IV - Jan 27 2005 */
       if (csound->oparms->expr_opt) {
-        int i = (int) linlabels + 1;
-        if (((int) grpcnt - i) > 0 && group[i][0] == '=' &&
-            group[i][1] == '\0') {
+        int i = (int) ST(linlabels) + 1;
+        if (((int) ST(grpcnt) - i) > 0 && ST(group)[i][0] == '=' &&
+            ST(group)[i][1] == '\0') {
           /* if opcode is '=', save outarg and type for expression optimiser */
           csound->opcode_is_assign = 1;
-          csound->assign_type = (int) argtyp(csound, group[linlabels]);
-          csound->assign_outarg = strsav(group[linlabels]);
+          csound->assign_type = (int) argtyp(csound, ST(group)[ST(linlabels)]);
+          csound->assign_outarg = strsav_string(csound,
+                                                ST(group)[ST(linlabels)]);
         }
         else {
           csound->opcode_is_assign = csound->assign_type = 0;
@@ -1118,222 +1134,230 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
         }
       }
     }
-    if (linlabels) {
-      s = strsav(group[nxtest]);
-      lblfound(s);
+    if (ST(linlabels)) {
+      s = strsav_string(csound, ST(group)[ST(nxtest)]);
+      lblfound(csound, s);
       tp->opnum = LABEL;
       tp->opcod = s;
-      tp->inlist = tp->outlist = nullist;
-      linlabels--;
-      nxtest++;
+      tp->inlist = tp->outlist = ST(nullist);
+      ST(linlabels)--;
+      ST(nxtest)++;
       return(tp);
     }
-    if (!instrcnt) {                    /* send initial "instr 0"    */
+    if (!ST(instrcnt)) {                          /* send initial "instr 0"  */
       tp->opnum = INSTR;
-      tp->opcod = strsav("instr");      /*    to hold global assigns */
-      tp->outlist = nullist;
-      nxtarglist->count = 1;
-      nxtarglist->arg[0] = strsav("0");
-      tp->inlist = copy_arglist(nxtarglist);
-      instrcnt = instrblk = 1;
+      tp->opcod = strsav_string(csound, "instr"); /*  to hold global assigns */
+      tp->outlist = ST(nullist);
+      ST(nxtarglist)->count = 1;
+      ST(nxtarglist)->arg[0] = strsav_string(csound, "0");
+      tp->inlist = copy_arglist(csound, ST(nxtarglist));
+      ST(instrcnt) = ST(instrblk) = 1;
       return(tp);
-    }                                   /*  then at 1st real INSTR,  */
-                                        /*  (IV - Sep 8 2002) or OPCODE, */
-    if (instrcnt == 1 && instrblk && (opnum == INSTR || opnum == OPCODE)) {
-      tp->opnum = ENDIN;                /*  send an endin to */
-      tp->opcod = strsav("endin");      /*  term instr 0 blk */
-      tp->outlist = tp->inlist = nullist;
-      instrblk = 0;
-      instrcnt = 2;
+    }                                             /* then at 1st real INSTR, */
+                                                  /*               or OPCODE, */
+    if (ST(instrcnt) == 1 && ST(instrblk) &&
+        (ST(opnum) == INSTR || ST(opnum) == OPCODE)) {
+      tp->opnum = ENDIN;                          /*  send an endin to */
+      tp->opcod = strsav_string(csound, "endin"); /*  term instr 0 blk */
+      tp->outlist = tp->inlist = ST(nullist);
+      ST(instrblk) = 0;
+      ST(instrcnt) = 2;
       return(tp);
     }
-    while (xprtstno >= 0) {             /* for each arg (last 1st):  */
-      if (!polcnt)                      /* if not midst of expressn  */
-        polcnt = express(csound, group[xprtstno--]); /* tst nxtarg   */
-      if (polcnt < 0) {                 /* polish but arg only,      */
-        group[xprtstno+1] = strsav(csound->tokenstring); /* redo ptr */
-        polcnt = 0;                     /* & contin                  */
+    while (ST(xprtstno) >= 0) {             /* for each arg (last 1st):  */
+      if (!ST(polcnt))
+        /* if not midst of expressn: tst nxtarg */
+        ST(polcnt) = express(csound, ST(group)[ST(xprtstno)--]);
+      if (ST(polcnt) < 0) {
+        /* polish but arg only: redo ptr & contin */
+        ST(group)[ST(xprtstno)+1] = strsav_string(csound, csound->tokenstring);
+        ST(polcnt) = 0;
       }
-      else if (polcnt) {
-        POLISH  *pol;                       /* for real polish ops, */
+      else if (ST(polcnt)) {
+        POLISH  *pol;                           /* for real polish ops, */
         int n;
-        pol = &(csound->polish[--polcnt]);  /*    grab top one      */
-        if (isopcod(pol->opcod) == 0) {     /* and check it out     */
-          synterr(Str("illegal opcod from expr anal"));
+        pol = &(csound->polish[--ST(polcnt)]);  /*    grab top one      */
+        if (isopcod(csound, pol->opcod) == 0) { /* and check it out     */
+          synterr(csound, Str("illegal opcod from expr anal"));
           goto tstnxt;
         }
-        tp->opnum = opnum;                  /* ok to send subop     */
-        tp->opcod = strsav(opcod);
-        nxtarglist->count = outcnt = 1;
-        nxtarglist->arg[0] = strsav(pol->arg[0]);
-        tp->outlist = copy_arglist(nxtarglist);
-        n = nxtarglist->count = incnt = pol->incount;
-        do  nxtarglist->arg[n-1] = strsav(pol->arg[n]);
+        tp->opnum = ST(opnum);                  /* ok to send subop     */
+        tp->opcod = strsav_string(csound, ST(opcod));
+        ST(nxtarglist)->count = outcnt = 1;
+        ST(nxtarglist)->arg[0] = strsav_string(csound, pol->arg[0]);
+        tp->outlist = copy_arglist(csound, ST(nxtarglist));
+        n = ST(nxtarglist)->count = incnt = pol->incount;
+        do  ST(nxtarglist)->arg[n-1] = strsav_string(csound, pol->arg[n]);
         while (--n);
-        tp->inlist = copy_arglist(nxtarglist);
-        if (!polcnt)                    /* last op? hit the grp ptr */
-          group[xprtstno+1] = tp->outlist->arg[0];
+        tp->inlist = copy_arglist(csound, ST(nxtarglist));
+        if (!ST(polcnt))                    /* last op? hit the grp ptr */
+          ST(group)[ST(xprtstno)+1] = tp->outlist->arg[0];
         goto spctst;
       }
     }
-    if (!strcmp(linopcod,"=")) {    /* IV - Jan 08 2003: '=' opcode */
+    if (!strcmp(ST(linopcod),"=")) {    /* IV - Jan 08 2003: '=' opcode */
       if (csound->oparms->expr_opt && csound->opcode_is_assign < 0) {
         /* if optimised away, skip line */
-        nxtest = grpcnt; goto tstnxt;
+        ST(nxtest) = ST(grpcnt); goto tstnxt;
       }
     }
-    if (nxtest <= opgrpno-1) {           /* Some aopcodes do not have ans! */
-      c = argtyp(csound, group[nxtest]); /* use outype to modify some opcodes */
-      if (strcmp(linopcod,"=") == 0 ||          /* Flagged as translating */
-          csound->opcodlst[linopnum].dsblksiz == 0xffff ||
-          (( strcmp(linopcod, "table") == 0 ||  /*    with prefix   */
-             strcmp(linopcod, "tablei") == 0 ||
-             strcmp(linopcod, "table3") == 0 ||
-             strcmp(linopcod, "wrap") == 0 ||
-             strcmp(linopcod, "mirror") == 0) && (c == 'i' || c == 'p'))) {
+    if (ST(nxtest) <= ST(opgrpno) - 1) {
+      /* Some aopcodes do not have ans!    */
+      /* use outype to modify some opcodes */
+      c = argtyp(csound, ST(group)[ST(nxtest)]);
+      if (strcmp(ST(linopcod),"=") == 0 ||          /* Flagged as translating */
+          csound->opcodlst[ST(linopnum)].dsblksiz == 0xffff ||
+          (( strcmp(ST(linopcod), "table") == 0 ||  /*    with prefix   */
+             strcmp(ST(linopcod), "tablei") == 0 ||
+             strcmp(ST(linopcod), "table3") == 0 ||
+             strcmp(ST(linopcod), "wrap") == 0 ||
+             strcmp(ST(linopcod), "mirror") == 0) && (c == 'i' || c == 'p'))) {
         if (c == 'p')   c = 'i';
         if (c == '?')   c = 'a';                /* tmp */
-        sprintf(str, "%s.%c", linopcod, c);
-        if (!(isopcod(str))) {
+        sprintf(str, "%s.%c", ST(linopcod), c);
+        if (!(isopcod(csound, str))) {
           csound->Message(csound, Str("Failed to find %s\n"), str);
           sprintf(csound->errmsg, Str("output arg '%s' illegal type"),
-                                  group[nxtest]);
-          synterr(csound->errmsg);              /* report syntax error     */
-          nxtest = 100;                         /* step way over this line */
+                                  ST(group)[ST(nxtest)]);
+          synterr(csound, csound->errmsg);      /* report syntax error     */
+          ST(nxtest) = 100;                     /* step way over this line */
           goto tstnxt;                          /* & go to next            */
         }
-        linopnum = opnum;
-        linopcod = opcod;
-        csound->DebugMsg(csound, Str("modified opcod: %s"), opcod);
+        ST(linopnum) = ST(opnum);
+        ST(linopcod) = ST(opcod);
+        csound->DebugMsg(csound, Str("modified opcod: %s"), ST(opcod));
       }
-      else if (csound->opcodlst[linopnum].dsblksiz == 0xfffd) {
-        if ((c = argtyp(csound, group[opgrpno ] )) != 'a') c = 'k';
-        sprintf(str, "%s.%c", linopcod, c);
-        if (!(isopcod(str))) {
-          csound->Message(csound,Str("Failed to find %s\n"), str);
+      else if (csound->opcodlst[ST(linopnum)].dsblksiz == 0xfffd) {
+        if ((c = argtyp(csound, ST(group)[ST(opgrpno) ] )) != 'a') c = 'k';
+        sprintf(str, "%s.%c", ST(linopcod), c);
+        if (!(isopcod(csound, str))) {
+          csound->Message(csound, Str("Failed to find %s\n"), str);
           sprintf(csound->errmsg, Str("output arg '%s' illegal type"),
-                                  group[nxtest]);
-          synterr(csound->errmsg);              /* report syntax error     */
-          nxtest = 100;                         /* step way over this line */
+                                  ST(group)[ST(nxtest)]);
+          synterr(csound, csound->errmsg);      /* report syntax error     */
+          ST(nxtest) = 100;                     /* step way over this line */
           goto tstnxt;                          /* & go to next            */
         }
-        linopnum = opnum;
-        linopcod = opcod;
-        csound->DebugMsg(csound, Str("modified opcod: %s"), opcod);
+        ST(linopnum) = ST(opnum);
+        ST(linopcod) = ST(opcod);
+        csound->DebugMsg(csound, Str("modified opcod: %s"), ST(opcod));
       }
-      else if (csound->opcodlst[linopnum].dsblksiz == 0xfffe) {
+      else if (csound->opcodlst[ST(linopnum)].dsblksiz == 0xfffe) {
                                                 /* Two tags for OSCIL's    */
-  /*    if (strcmp(linopcod,"oscil") == 0  */
-  /*        || strcmp(linopcod,"oscili") == 0) { */
-        if ((c = argtyp(csound, group[opgrpno ] )) != 'a') c = 'k';
-        if ((d = argtyp(csound, group[opgrpno+1])) != 'a') d = 'k';
-        sprintf(str,"%s.%c%c",linopcod,c,d);
-        isopcod(str); /*  opcode with suffix */
-        linopnum = opnum;
-        linopcod = opcod;
-        csound->DebugMsg(csound, Str("modified opcod: %s"), opcod);
-        c = argtyp(csound, group[nxtest]);      /* reset outype params */
+  /*    if (strcmp(ST(linopcod),"oscil") == 0  */
+  /*        || strcmp(ST(linopcod),"oscili") == 0) { */
+        if ((c = argtyp(csound, ST(group)[ST(opgrpno) ] )) != 'a') c = 'k';
+        if ((d = argtyp(csound, ST(group)[ST(opgrpno)+1])) != 'a') d = 'k';
+        sprintf(str, "%s.%c%c", ST(linopcod), c, d);
+        isopcod(csound, str);   /*  opcode with suffix */
+        ST(linopnum) = ST(opnum);
+        ST(linopcod) = ST(opcod);
+        csound->DebugMsg(csound, Str("modified opcod: %s"), ST(opcod));
+        c = argtyp(csound, ST(group)[ST(nxtest)]);  /* reset outype params */
       }                                 /* need we reset outype again here ? */
-      else if (csound->opcodlst[linopnum].dsblksiz == 0xfffc) {
+      else if (csound->opcodlst[ST(linopnum)].dsblksiz == 0xfffc) {
         /* For divz types */
-        c = argtyp(csound, group[opgrpno  ]);
-        d = argtyp(csound, group[opgrpno+1]);
+        c = argtyp(csound, ST(group)[ST(opgrpno)  ]);
+        d = argtyp(csound, ST(group)[ST(opgrpno)+1]);
         if ((c=='i' || c=='c') && (d=='i' || d=='c')) c='i',d = 'i';
         else {
           if (c != 'a') c = 'k';
           if (d != 'a') d = 'k';
         }
         sprintf(str,"divz.%c%c",c,d);
-        isopcod(str); /*  opcode with suffix */
-        linopnum = opnum;
-        linopcod = opcod;
+        isopcod(csound, str);   /*  opcode with suffix */
+        ST(linopnum) = ST(opnum);
+        ST(linopcod) = ST(opcod);
       }
     }
-    tp->opnum = linopnum;                       /* now use identified   */
-    tp->opcod = strsav(linopcod);               /*   full line opcode   */
+    tp->opnum = ST(linopnum);                         /* now use identified   */
+    tp->opcod = strsav_string(csound, ST(linopcod));  /*   full line opcode   */
     /* IV - Oct 24 2002: check for invalid use of setksmps */
-    if (!opcodblk && !strcmp(linopcod, "setksmps"))
-      synterr(Str("setksmps is allowed only in user opcodes"));
-    if (strncmp(linopcod,"out",3) == 0 && /* but take case of MIDI ops */
-        (linopcod[3] == '\0' || linopcod[3] == 's' ||
-         linopcod[3] == 'q'  || linopcod[3] == 'h' ||
-         linopcod[3] == 'o'  || linopcod[3] == 'x' ||
-         linopcod[3] == '3'     ))
-      if ((csound->tran_nchnls == 1  && strcmp(linopcod,"out" ) != 0)    ||
-          (csound->tran_nchnls == 2  && strncmp(linopcod,"outs",4) != 0) ||
-          (csound->tran_nchnls == 4  && strncmp(linopcod,"outq",4) != 0) ||
-          (csound->tran_nchnls == 6  && strncmp(linopcod,"outh",4) != 0) ||
-          (csound->tran_nchnls == 8  && strncmp(linopcod,"outo",4) != 0) ||
-          (csound->tran_nchnls == 16 && strncmp(linopcod,"outx",4) != 0) ||
-          (csound->tran_nchnls == 32 && strncmp(linopcod,"out32",5) != 0)) {
+    if (!ST(opcodblk) && !strcmp(ST(linopcod), "setksmps"))
+      synterr(csound, Str("setksmps is allowed only in user defined opcodes"));
+    if (strncmp(ST(linopcod),"out",3) == 0 && /* but take case of MIDI ops */
+        (ST(linopcod)[3] == '\0' || ST(linopcod)[3] == 's' ||
+         ST(linopcod)[3] == 'q'  || ST(linopcod)[3] == 'h' ||
+         ST(linopcod)[3] == 'o'  || ST(linopcod)[3] == 'x' ||
+         ST(linopcod)[3] == '3'     ))
+      if ((csound->tran_nchnls == 1  && strcmp(ST(linopcod),"out" ) != 0)    ||
+          (csound->tran_nchnls == 2  && strncmp(ST(linopcod),"outs",4) != 0) ||
+          (csound->tran_nchnls == 4  && strncmp(ST(linopcod),"outq",4) != 0) ||
+          (csound->tran_nchnls == 6  && strncmp(ST(linopcod),"outh",4) != 0) ||
+          (csound->tran_nchnls == 8  && strncmp(ST(linopcod),"outo",4) != 0) ||
+          (csound->tran_nchnls == 16 && strncmp(ST(linopcod),"outx",4) != 0) ||
+          (csound->tran_nchnls == 32 && strncmp(ST(linopcod),"out32",5) != 0)) {
 /*      csound->Message(csound, "nchnls = %d; opcode = %s\n",
-                                tran_nchnls, linopcod);         */
-        if      (csound->tran_nchnls == 1)  isopcod("out");
-        else if (csound->tran_nchnls == 2)  isopcod("outs");
-        else if (csound->tran_nchnls == 4)  isopcod("outq");
-        else if (csound->tran_nchnls == 6)  isopcod("outh");
-        else if (csound->tran_nchnls == 8)  isopcod("outo");
-        else if (csound->tran_nchnls == 16) isopcod("outx");
-        else if (csound->tran_nchnls == 32) isopcod("out32");
-        csound->Message(csound,Str("%s inconsistent with global nchnls (%d); "
-                                   "replaced with %s\n"),
-                        linopcod, csound->tran_nchnls, opcod);
-        tp->opnum = linopnum = opnum;
-        tp->opcod = strsav(linopcod = opcod);
+                                tran_nchnls, ST(linopcod));         */
+        if      (csound->tran_nchnls == 1)  isopcod(csound, "out");
+        else if (csound->tran_nchnls == 2)  isopcod(csound, "outs");
+        else if (csound->tran_nchnls == 4)  isopcod(csound, "outq");
+        else if (csound->tran_nchnls == 6)  isopcod(csound, "outh");
+        else if (csound->tran_nchnls == 8)  isopcod(csound, "outo");
+        else if (csound->tran_nchnls == 16) isopcod(csound, "outx");
+        else if (csound->tran_nchnls == 32) isopcod(csound, "out32");
+        csound->Message(csound, Str("%s inconsistent with global nchnls (%d); "
+                                    "replaced with %s\n"),
+                                ST(linopcod), csound->tran_nchnls, ST(opcod));
+        tp->opnum = ST(linopnum) = ST(opnum);
+        tp->opcod = strsav_string(csound, ST(linopcod) = ST(opcod));
       }
     incnt = outcnt = 0;
-    while (nxtest < opgrpno-1)          /* create the out arglist  */
-      nxtarglist->arg[outcnt++] = strsav(group[nxtest++]);
-    nxtarglist->count = outcnt;
+    while (ST(nxtest) < ST(opgrpno)-1)          /* create the out arglist  */
+      ST(nxtarglist)->arg[outcnt++] =
+        strsav_string(csound, ST(group)[ST(nxtest)++]);
+    ST(nxtarglist)->count = outcnt;
     if (outcnt == 0)
-      tp->outlist = nullist;
+      tp->outlist = ST(nullist);
     else {
-      tp->outlist = copy_arglist(nxtarglist); /* & prep ins */
+      tp->outlist = copy_arglist(csound, ST(nxtarglist));   /* & prep ins */
     }
-    nxtest++;
-    while (nxtest < grpcnt)                     /*      & ensuing inargs  */
-      nxtarglist->arg[incnt++] = strsav(group[nxtest++]);
-    nxtarglist->count = incnt;
+    ST(nxtest)++;
+    while (ST(nxtest) < ST(grpcnt))             /*      & ensuing inargs  */
+      ST(nxtarglist)->arg[incnt++] =
+        strsav_string(csound, ST(group)[ST(nxtest)++]);
+    ST(nxtarglist)->count = incnt;
     if (incnt==0)
-      tp->inlist = nullist;
-    else tp->inlist = copy_arglist(nxtarglist);
-    grpcnt = 0;                         /* all done w. these groups */
+      tp->inlist = ST(nullist);
+    else tp->inlist = copy_arglist(csound, ST(nxtarglist));
+    ST(grpcnt) = 0;                             /* all done w. these groups */
 
  spctst:
     tp->xincod = 0;
     if (tp->opnum == OPCODE) {  /* IV - Sep 8 2002: added OPCODE and ENDOP */
-      if (opcodblk)
-        synterr(Str("opcode blks cannot be nested (missing 'endop'?)"));
-      else if (instrblk)
-        synterr(Str("opcode not allowed in instr block"));
-      else instrblk = opcodblk = 1;
+      if (ST(opcodblk))
+        synterr(csound, Str("opcode blks cannot be nested (missing 'endop'?)"));
+      else if (ST(instrblk))
+        synterr(csound, Str("opcode not allowed in instr block"));
+      else ST(instrblk) = ST(opcodblk) = 1;
       resetouts(csound);                        /* reset #out counts */
-      lblclear();                               /* restart labelist  */
+      lblclear(csound);                         /* restart labelist  */
     }
     else if (tp->opnum == ENDOP) {      /* IV - Sep 8 2002:     ENDOP:  */
-      lblchk();                         /* chk missed labels */
-      if (!instrblk)
-        synterr(Str("unmatched endop"));
-      else if (!opcodblk)
-        synterr(Str("endop not allowed in instr block"));
-      else instrblk = opcodblk = 0;
+      lblchk(csound);                   /* chk missed labels */
+      if (!ST(instrblk))
+        synterr(csound, Str("unmatched endop"));
+      else if (!ST(opcodblk))
+        synterr(csound, Str("endop not allowed in instr block"));
+      else ST(instrblk) = ST(opcodblk) = 0;
     }
     else if (tp->opnum == INSTR) {      /* IV - Sep 8 2002: for opcod INSTR  */
-      if (opcodblk)     /* IV - Sep 8 2002 */
-        synterr(Str("instr not allowed in opcode block"));
-      else if (instrblk)
-        synterr(Str("instr blocks cannot be nested (missing 'endin'?)"));
-      else instrblk = 1;
+      if (ST(opcodblk))     /* IV - Sep 8 2002 */
+        synterr(csound, Str("instr not allowed in opcode block"));
+      else if (ST(instrblk))
+        synterr(csound,
+                Str("instr blocks cannot be nested (missing 'endin'?)"));
+      else ST(instrblk) = 1;
       resetouts(csound);                        /* reset #out counts */
-      lblclear();                               /* restart labelist  */
+      lblclear(csound);                         /* restart labelist  */
     }
     else if (tp->opnum == ENDIN) {              /* ENDIN:       */
-      lblchk();                                 /* chk missed labels */
-      if (opcodblk)
-        synterr(Str("endin not allowed in opcode blk"));  /* IV - Sep 8 2002 */
-      else if (!instrblk)
-        synterr(Str("unmatched endin"));
-      else instrblk = 0;
+      lblchk(csound);                           /* chk missed labels */
+      if (ST(opcodblk))
+        synterr(csound, Str("endin not allowed in opcode blk"));
+      else if (!ST(instrblk))
+        synterr(csound, Str("unmatched endin"));
+      else ST(instrblk) = 0;
     }
     else {                                      /* for all other opcodes:  */
       OENTRY    *ep = csound->opcodlst + tp->opnum;
@@ -1341,14 +1365,14 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
       char      tfound = '\0', treqd, *types = NULL;
       char      xtypes[OPCODENUMOUTS + 1];      /* IV - Oct 24 2002 */
 
-      if (!instrblk)
-        synterr(Str("misplaced opcode"));
+      if (!ST(instrblk))
+        synterr(csound, Str("misplaced opcode"));
       /* IV - Oct 24 2002: moved argument parsing for xout here */
       n = incnt;
       nreqd = -1;
       if (!strcmp(ep->opname, "xout")) {
-        if (!opcodblk)
-          synterr(Str("xout is allowed only in user opcodes"));
+        if (!ST(opcodblk))
+          synterr(csound, Str("xout is allowed only in user defined opcodes"));
         else {
           /* IV - Oct 24 2002: opcodeInfo always points to the most recently */
           /* defined user opcode (or named instrument) structure; in this */
@@ -1375,52 +1399,52 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
       if (n > nreqd) {                  /* IV - Oct 24 2002: end of new code */
         if ((treqd = types[nreqd-1]) == 'n') {/* indef args: */
           if (!(incnt & 01))          /* require odd */
-            synterr(Str("missing or extra arg"));
+            synterr(csound, Str("missing or extra arg"));
         }       /* IV - Sep 1 2002: added 'M' */
         else if (treqd != 'm' && treqd != 'z' &&
                  treqd != 'y' && treqd != 'Z' && treqd != 'M')/* else any no */
-          synterr(Str("too many input args"));
+          synterr(csound, Str("too many input args"));
       }
       else if (incnt < nreqd) {         /*  or set defaults: */
         do {
           switch (types[incnt]) {
           case 'k':             /* Will this work?  Doubtful code.... */
-          case 'o': nxtarglist->arg[incnt++] = strsav("0");
+          case 'o': ST(nxtarglist)->arg[incnt++] = strsav_string(csound, "0");
             break;
-          case 'p': nxtarglist->arg[incnt++] = strsav("1");
+          case 'p': ST(nxtarglist)->arg[incnt++] = strsav_string(csound, "1");
             break;
-          case 'q': nxtarglist->arg[incnt++] = strsav("10");
+          case 'q': ST(nxtarglist)->arg[incnt++] = strsav_string(csound, "10");
             break;
-          case 'v': nxtarglist->arg[incnt++] = strsav(".5");
+          case 'v': ST(nxtarglist)->arg[incnt++] = strsav_string(csound, ".5");
             break;
-          case 'h': nxtarglist->arg[incnt++] = strsav("127");
+          case 'h': ST(nxtarglist)->arg[incnt++] = strsav_string(csound, "127");
             break;
-          case 'j': nxtarglist->arg[incnt++] = strsav("-1");
+          case 'j': ST(nxtarglist)->arg[incnt++] = strsav_string(csound, "-1");
             break;
           case 'M':     /* IV - Sep 1 2002 */
           case 'm': nreqd--;
             break;
-          default:  synterr(Str("insufficient required arguments"));
+          default:  synterr(csound, Str("insufficient required arguments"));
             goto chkin;
           }
         } while (incnt < nreqd);
-        nxtarglist->count = n = incnt;          /*    in extra space */
-        if (tp->inlist == nullist && incnt > 0) {
+        ST(nxtarglist)->count = n = incnt;          /*    in extra space */
+        if (tp->inlist == ST(nullist) && incnt > 0) {
                                 /*MWB 2/11/97 fixed bug that prevented an
                                   opcode with only optional arguments from
                                   properly loading defaults */
-          tp->inlist = copy_arglist(nxtarglist);
+          tp->inlist = copy_arglist(csound, ST(nxtarglist));
         }
       }
     chkin:
       if (n>tp->inlist->count) {
         int i;
-        size_t m = sizeof(ARGLST)+ (n-1)*sizeof(char*);
-        tp->inlist = (ARGLST*)mrealloc(csound, tp->inlist, m);
+        size_t m = sizeof(ARGLST) + (n - 1) * sizeof(char*);
+        tp->inlist = (ARGLST*) mrealloc(csound, tp->inlist, m);
 /*      csound->Message(csound, "extend_arglist by %d args\n",
                                 n-tp->inlist->count);           */
         for (i=tp->inlist->count; i<n; i++) {
-          tp->inlist->arg[i] = nxtarglist->arg[i];
+          tp->inlist->arg[i] = ST(nxtarglist)->arg[i];
 /*        csound->Message(csound, "%d = %s:\n", i, tp->inlist->arg[i]); */
         }
         tp->inlist->count = n;
@@ -1444,15 +1468,15 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
         else treqd = types[n];          /*       or given)   */
         if (treqd == 'l') {             /* if arg takes lbl  */
           csound->DebugMsg(csound, "treqd = l");
-          lblrequest(s);                /*      req a search */
+          lblrequest(csound, s);        /*      req a search */
           continue;                     /*      chk it later */
         }
         tfound = argtyp(csound, s);     /* else get arg type */
         /* IV - Oct 31 2002 */
-        tfound_m = typemask_tabl[(unsigned char) tfound];
-        if (!(tfound_m & (ARGTYP_c | ARGTYP_p | ARGTYP_S)) && !lgprevdef) {
+        tfound_m = ST(typemask_tabl)[(unsigned char) tfound];
+        if (!(tfound_m & (ARGTYP_c | ARGTYP_p | ARGTYP_S)) && !ST(lgprevdef)) {
           sprintf(csound->errmsg, Str("input arg '%s' used before defined"), s);
-          synterr(csound->errmsg);
+          synterr(csound, csound->errmsg);
         }
         csound->DebugMsg(csound, "treqd %c, tfound %c", treqd, tfound);
         if (tfound == 'a' && n < 15) { /*JMC added for FOG*/
@@ -1460,38 +1484,38 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
           tp->xincod += (n < 2 ? (2 - n) : (1 << n));
         }
         /* IV - Oct 31 2002: simplified code */
-        if (!(tfound_m & typemask_tabl_in[(unsigned char) treqd])) {
+        if (!(tfound_m & ST(typemask_tabl_in)[(unsigned char) treqd])) {
           /* check for exceptional types */
           switch (treqd) {
           case 'Z':                             /* indef kakaka ... */
             if (!(tfound_m & (n & 1 ? ARGTYP_a : ARGTYP_ipcrk)))
-              intyperr(n, tfound, treqd);
+              intyperr(csound, n, tfound, treqd);
             break;
           case 'x':
             treqd_m = ARGTYP_ipcr;              /* also allows i-rate */
           case 's':                             /* a- or k-rate */
             treqd_m |= ARGTYP_a | ARGTYP_k;
             if (tfound_m & treqd_m) {
-              if (tfound == 'a' && tp->outlist != nullist) {
+              if (tfound == 'a' && tp->outlist != ST(nullist)) {
                 long outyp_m =                  /* ??? */
-                  typemask_tabl[(unsigned char) argtyp(csound,
+                  ST(typemask_tabl)[(unsigned char) argtyp(csound,
                                                        tp->outlist->arg[0])];
                 if (outyp_m & (ARGTYP_a | ARGTYP_d | ARGTYP_w)) break;
-            }
+              }
               else
-            break;
-          }
-            intyperr(n, tfound, treqd);
+                break;
+            }
+            intyperr(csound, n, tfound, treqd);
             break;
           case 'S':     /* string (k-rate is allowed for event & schedkwhen) */
             if (tfound == 'k' && !(strcmp(ep->opname, "event")
                                    && strcmp(ep->opname, "schedkwhen")))
           break;
           default:
-            intyperr(n, tfound, treqd);
+            intyperr(csound, n, tfound, treqd);
             break;
           }
-      }
+        }
       }
       csound->DebugMsg(csound, "xincod = %d", tp->xincod);
       /* IV - Sep 1 2002: added 'X' type, and xoutcod */
@@ -1500,8 +1524,8 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
       n = outcnt;
       nreqd = -1;
       if (!strcmp(ep->opname, "xin")) {
-        if (!opcodblk)
-          synterr(Str("xin is allowed only in user opcodes"));
+        if (!ST(opcodblk))
+          synterr(csound, Str("xin is allowed only in user opcodes"));
         else {
           /* IV - Oct 24 2002: opcodeInfo always points to the most recently */
           /* defined user opcode (or named instrument) structure; in this */
@@ -1528,7 +1552,7 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
       if ((n != nreqd)                  /* IV - Oct 24 2002: end of new code */
           && ((*types != (char)'m' && *types != (char)'z' && *types != 'X')
               || !n || n > MAXCHNLS))
-        synterr(Str("illegal no of output args"));
+        synterr(csound, Str("illegal no of output args"));
       if (n > nreqd) n = nreqd; /* IV - Oct 24 2002: need this check */
       while (n--) {                                     /* outargs:  */
         long    tfound_m;       /* IV - Oct 31 2002 */
@@ -1536,39 +1560,38 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
         treqd = types[n];
         tfound = argtyp(csound, s);                     /*  found    */
         /* IV - Oct 31 2002 */
-        tfound_m = typemask_tabl[(unsigned char) tfound];
+        tfound_m = ST(typemask_tabl)[(unsigned char) tfound];
         /* IV - Sep 1 2002: xoutcod is the same as xincod for input, */
         /* but the lowest two bits are not swapped */
         if (tfound == 'a' && n < 15) tp->xoutcod |= (1 << n);
         csound->DebugMsg(csound, "treqd %c, tfound %c", treqd, tfound);
         if (tfound_m & (ARGTYP_d | ARGTYP_w))
-          if (lgprevdef) {
+          if (ST(lgprevdef)) {
             sprintf(csound->errmsg, Str("output name previously used, type '%c'"
                                         " must be uniquely defined"), tfound);
-            synterr(csound->errmsg);
+            synterr(csound, csound->errmsg);
           }
         /* IV - Oct 31 2002: simplified code */
-        if (!(tfound_m & typemask_tabl_out[(unsigned char) treqd])) {
+        if (!(tfound_m & ST(typemask_tabl_out)[(unsigned char) treqd])) {
         sprintf(csound->errmsg, Str("output arg '%s' illegal type"),s);
-        synterr(csound->errmsg);
+        synterr(csound, csound->errmsg);
       }
       }
       if (incnt) {
         if (ep->intypes[0] != 'l')      /* intype defined by 1st inarg */
           tp->intype = argtyp(csound, tp->inlist->arg[0]);
-        else tp->intype = 'l';  /*   (unless label)  */
+        else tp->intype = 'l';          /*   (unless label)  */
       }
       if (outcnt)                       /* pftype defined by outarg */
         tp->pftype = tfound;
-      else tp->pftype = tp->intype;   /*    else by 1st inarg     */
+      else tp->pftype = tp->intype;     /*    else by 1st inarg     */
     }
     return(tp);                         /* return the text blk */
 }
 
-static void intyperr(int n, char tfound, char expect)
+static void intyperr(ENVIRON *csound, int n, char tfound, char expect)
 {
-    ENVIRON *csound = &cenviron;
-    char    *s = grpsav[opgrpno + n];
+    char    *s = ST(grpsav)[ST(opgrpno) + n];
     char    t[10];
 
     switch (tfound) {
@@ -1595,20 +1618,18 @@ static void intyperr(int n, char tfound, char expect)
     sprintf(csound->errmsg,
             Str("input arg '%s' of type %s not allowed when expecting %c"),
             s, t, expect);
-    synterr(csound->errmsg);
+    synterr(csound, csound->errmsg);
 }
 
-static int isopcod(char *s)     /* tst a string against opcodlst  */
-                                /*   & set op carriers if matched */
-{
-    ENVIRON *csound = &cenviron;
-    int     n;
+static int isopcod(ENVIRON *csound, char *s)
+{                               /* tst a string against opcodlst  */
+    int     n;                  /*   & set op carriers if matched */
 
     if (!(n = find_opcode(csound, s))) return (0);      /* IV - Oct 31 2002 */
-    opnum = n;                          /* on corr match,   */
-    opcod = csound->opcodlst[n].opname; /*  set op carriers */
+    ST(opnum) = n;                          /* on corr match,   */
+    ST(opcod) = csound->opcodlst[n].opname; /*  set op carriers */
 
-    return(1);                          /*  & report success */
+    return(1);                              /*  & report success */
 }
 
 int getopnum(ENVIRON *csound, char *s)
@@ -1648,7 +1669,7 @@ char argtyp(ENVIRON *csound, char *s)
       if (c == '"' || c == '{')
         return('S');                              /* quoted String */
     }
-    lgprevdef = lgexist(csound, s);               /* (lgprev) */
+    ST(lgprevdef) = lgexist(csound, s);               /* (lgprev) */
     if (strcmp(s,"sr") == 0    || strcmp(s,"kr") == 0 ||
         strcmp(s,"0dbfs") == 0 ||
         strcmp(s,"ksmps") == 0 || strcmp(s,"nchnls") == 0)
@@ -1664,62 +1685,61 @@ char argtyp(ENVIRON *csound, char *s)
     else return('?');
 }
 
-static void lblclear(void)
+static void lblclear(ENVIRON *csound)
 {
-    lblcnt = 0;
+    ST(lblcnt) = 0;
 }
 
-static void lblrequest(char *s)
+static void lblrequest(ENVIRON *csound, char *s)
 {
-    ENVIRON *csound = &cenviron;
     int     req;
 
-    for (req=0; req<lblcnt; req++)
-      if (strcmp(lblreq[req].label,s) == 0)
+    for (req=0; req<ST(lblcnt); req++)
+      if (strcmp(ST(lblreq)[req].label,s) == 0)
         return;
-    if (++lblcnt >= lblmax) {
-      LBLREQ *tmp = mrealloc(csound, lblreq, (lblmax += LBLMAX)*sizeof(LBLREQ));
+    if (++ST(lblcnt) >= ST(lblmax)) {
+      ST(lblmax) += LBLMAX;
+      LBLREQ *tmp = mrealloc(csound, ST(lblreq), ST(lblmax) * sizeof(LBLREQ));
       if (tmp==NULL)
         csoundDie(csound, Str("label list is full"));
-      lblreq = tmp;
+      ST(lblreq) = tmp;
     }
-    lblreq[req].reqline = curline;
-    lblreq[req].label =s;
+    ST(lblreq)[req].reqline = ST(curline);
+    ST(lblreq)[req].label =s;
 }
 
-static void lblfound(char *s)
+static void lblfound(ENVIRON *csound, char *s)
 {
-    ENVIRON *csound = &cenviron;
     int     req;
 
-    for (req=0; req<lblcnt; req++ )
-      if (strcmp(lblreq[req].label,s) == 0) {
-        if (lblreq[req].reqline == 0)
-          synterr(Str("duplicate label"));
+    for (req=0; req<ST(lblcnt); req++ )
+      if (strcmp(ST(lblreq)[req].label,s) == 0) {
+        if (ST(lblreq)[req].reqline == 0)
+          synterr(csound, Str("duplicate label"));
         goto noprob;
       }
-    if (++lblcnt >= lblmax) {
-      LBLREQ *tmp = mrealloc(csound, lblreq, (lblmax += LBLMAX)*sizeof(LBLREQ));
+    if (++ST(lblcnt) >= ST(lblmax)) {
+      ST(lblmax) += LBLMAX;
+      LBLREQ *tmp = mrealloc(csound, ST(lblreq), ST(lblmax) * sizeof(LBLREQ));
       if (tmp==NULL)
         csoundDie(csound, Str("label list is full"));
-      lblreq = tmp;
+      ST(lblreq) = tmp;
     }
-    lblreq[req].label = s;
+    ST(lblreq)[req].label = s;
 noprob:
-    lblreq[req].reqline = 0;
+    ST(lblreq)[req].reqline = 0;
 }
 
-static void lblchk(void)
+static void lblchk(ENVIRON *csound)
 {
-    ENVIRON *csound = &cenviron;
     int req;
     int n;
 
-    for (req=0; req<lblcnt; req++ )
-      if ((n = lblreq[req].reqline)) {
+    for (req=0; req<ST(lblcnt); req++ )
+      if ((n = ST(lblreq)[req].reqline)) {
         char    *s;
         csound->Message(csound, Str("error line %d.  unknown label:\n"), n);
-        s = linadr[n];
+        s = ST(linadr)[n];
         do {
           csound->Message(csound, "%c", *s);
         } while (*s++ != '\n');
@@ -1727,15 +1747,14 @@ static void lblchk(void)
       }
 }
 
-void synterr(char *s)
+void synterr(ENVIRON *csound, char *s)
 {
-    ENVIRON *csound = &cenviron;
     char    *cp;
     int     c;
 
     csound->Message(csound, Str("error:  %s"), s);
-    if ((cp = linadr[curline]) != NULL) {
-      csound->Message(csound, Str(", line %d:\n"), curline);
+    if ((cp = ST(linadr)[ST(curline)]) != NULL) {
+      csound->Message(csound, Str(", line %d:\n"), ST(curline));
       do {
         csound->Message(csound, "%c", (c = *cp++));
       } while (c != '\n');
@@ -1746,29 +1765,28 @@ void synterr(char *s)
     csound->synterrcnt++;
 }
 
-void synterrp(char *errp, char *s)
+void synterrp(ENVIRON *csound, char *errp, char *s)
 {
-    ENVIRON *csound = &cenviron;
     char    *cp;
 
-    synterr(s);
-    cp = linadr[curline];
+    synterr(csound, s);
+    cp = ST(linadr)[ST(curline)];
     while (cp < errp) {
       int ch = *cp++;
       if (ch != '\t') ch = ' ';
-      csoundMessage(csound, "%c", ch);
+      csound->Message(csound, "%c", ch);
     }
-    csoundMessage(csound, "^\n");
+    csound->Message(csound, "^\n");
 }
 
-static void lexerr(char *s)
+static void lexerr(ENVIRON *csound, char *s)
 {
-    ENVIRON *csound = &cenviron;
-    struct in_stack *curr = str;
+    IN_STACK  *curr = ST(str);
+
     csound->Message(csound, Str("error:  %s"), s);
-    while (curr!=inputs) {
+    while (curr != ST(inputs)) {
       if (curr->string) {
-        MACRO *mm = macros;
+        MACRO *mm = ST(macros);
         while (mm != curr->mac) mm = mm->next;
         csound->Message(csound, Str("called from line %d of macro %s\n"),
                                 curr->line, mm->name);
@@ -1783,7 +1801,8 @@ static void lexerr(char *s)
 
 static void printgroups(ENVIRON *csound, int grpcnt)
 {                                       /*   debugging aid (onto stdout) */
-    char        c, *cp = group[0];
+    char    c, *cp = ST(group)[0];
+
     csound->Message(csound, "groups:\t");
     while (grpcnt--) {
       csound->Message(csound, "%s ", cp);

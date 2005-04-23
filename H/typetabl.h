@@ -28,9 +28,6 @@
 /* macros and tables for checking variable types (included from rdorch.c) */
 /* written by Istvan Varga, Nov 2002 */
 
-static long *typemask_tabl = NULL;
-static long *typemask_tabl_in = NULL, *typemask_tabl_out = NULL;
-
 /* list of available Csound signal types (currently, there are 13) */
 
 #define ARGTYP_a        0x00000001L     /* a-rate */
@@ -57,7 +54,7 @@ static long *typemask_tabl_in = NULL, *typemask_tabl_out = NULL;
 
 /* basic types */
 
-static long typetabl1[27] = {
+static const long typetabl1[27] = {
     'a',    ARGTYP_a,       'k',    ARGTYP_k,       'i',    ARGTYP_i,
     'p',    ARGTYP_p,       'c',    ARGTYP_c,       'r',    ARGTYP_r,
     'S',    ARGTYP_S,       'd',    ARGTYP_d,       'w',    ARGTYP_w,
@@ -70,7 +67,7 @@ static long typetabl1[27] = {
 
 /* input types */
 
-static long typetabl2[31] = {
+static const long typetabl2[31] = {
     'z',    ARGTYP_ipcrk,               'y',    ARGTYP_a,
     'S',    (ARGTYP_S | ARGTYP_ipcr),   'M',    ARGTYP_aipcrk,
     'B',    (ARGTYP_B | ARGTYP_b),      'k',    ARGTYP_ipcrk,
@@ -82,7 +79,7 @@ static long typetabl2[31] = {
 
 /* output types */
 
-static long typetabl3[13] = {
+static const long typetabl3[13] = {
     's',    (ARGTYP_a | ARGTYP_k),      'i',    (ARGTYP_i | ARGTYP_p),
     'B',    (ARGTYP_B | ARGTYP_b),      'm',    ARGTYP_a,
     'z',    ARGTYP_k,   'X',    (ARGTYP_a | ARGTYP_k | ARGTYP_i | ARGTYP_p),
