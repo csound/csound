@@ -39,7 +39,7 @@ void    *mrealloc(void*, void*, size_t), mfree(void*, void*);
 void    csoundAuxAlloc(void*, long, AUXCH *), auxchfree(void*, INSDS *);
 void    fdrecord(ENVIRON *, FDCH *), fdclose(ENVIRON *, FDCH *);
 void    fdchclose(ENVIRON *, INSDS *);
-void    synterr(char *), synterrp(char *, char *);
+void    synterr(ENVIRON *, char *), synterrp(ENVIRON *, char *, char *);
 #ifdef HAVE_GCC3
 __attribute__ ((__noreturn__, __format__(__printf__, 2, 3)))
   void    csoundDie(void *, const char *, ...);

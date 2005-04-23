@@ -31,43 +31,6 @@ Engine/musmon.c:static  int     segamps, sormsg;
 Engine/musmon.c:static  EVENT   **ep, **epend;  /* pointers for stepping through lplay list */
 Engine/musmon.c:static  EVENT   *lsect = NULL;
 
-Engine/rdorch.c:static  MACRO   *macros = NULL;
-Engine/rdorch.c:static  long    lenmax = LENMAX;        /* Length of input line buffer  */
-Engine/rdorch.c:static  char    **linadr;               /* adr of each line in text     */
-Engine/rdorch.c:static  short   *srclin;                /* text no. of expanded lines   */
-Engine/rdorch.c:static  int     curline;                /* current line being examined  */
-Engine/rdorch.c:static  char    *collectbuf = NULL;     /* splitline collect buffer     */
-Engine/rdorch.c:static  char    **group;                /* splitline local storage      */
-Engine/rdorch.c:static  char    **grpsav;               /* copy of above                */
-Engine/rdorch.c:static  long    grpmax = GRPMAX;        /* Size of group structure      */
-Engine/rdorch.c:static  int     opgrpno;                /* grpno identified as opcode   */
-Engine/rdorch.c:static  int     linopnum;               /* data for opcode in this line */
-Engine/rdorch.c:static  char    *linopcod;
-Engine/rdorch.c:static  int     linlabels;              /* count of labels this line    */
-Engine/rdorch.c:static  LBLREQ  *lblreq;
-Engine/rdorch.c:static  int     lblmax;
-Engine/rdorch.c:static  int     lblcnt;
-Engine/rdorch.c:static  int     lgprevdef = 0;
-Engine/rdorch.c:static  int     opnum;                  /* opcod data carriers          */
-Engine/rdorch.c:static  char    *opcod;                 /*  (line or subline)           */
-Engine/rdorch.c:static  ARGLST  *nxtarglist, *nullist;
-Engine/rdorch.c:static  FILE    *fp;
-Engine/rdorch.c:static struct in_stack *inputs = NULL, *str;
-Engine/rdorch.c:static int input_size = 0, input_cnt = 0;
-Engine/rdorch.c:static int pop = 0;             /* Number of macros to pop */
-Engine/rdorch.c:static int ingappop = 1;
-Engine/rdorch.c:static int linepos = -1;
-Engine/rdorch.c:static  long    ORCHSIZ;
-Engine/rdorch.c:    static struct iflabel {             /* for if/else/endif */
-Engine/rdorch.c:            static int repeatingElseifLine = 0;
-Engine/rdorch.c:          static long tempNum = 0;
-Engine/rdorch.c:        static int repeatingElseLine = 0;
-Engine/rdorch.c:    static      short   grpcnt = 0, nxtest = 1;
-Engine/rdorch.c:    static      short   xprtstno = 0, polcnt = 0;
-Engine/rdorch.c:    static      short   instrblk = 0, instrcnt = 0;
-Engine/rdorch.c:    static      short   opcodblk = 0;   /* IV - Sep 8 2002 */
-Engine/rdorch.c:    static      TEXT    optext; /* struct to be passed back to caller   */
-
 Engine/rdscor.c:static char *sstrbuf = NULL;
 Engine/rdscor.c:static int  sstrlen = 0;
 

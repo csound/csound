@@ -370,7 +370,8 @@ const ENVIRON cenviron_ = {
         0, 0, 0,        /*  argcnt_offs, opcode_is_assign, assign_type */
         0,              /*  advanceCnt          */
         (MYFLT*) NULL,  /*  gbloffbas           */
-        NULL            /*  otranGlobals        */
+        NULL,           /*  otranGlobals        */
+        NULL            /*  rdorchGlobals       */
 };
 
 /* globals to be removed eventually... */
