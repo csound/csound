@@ -1066,8 +1066,9 @@ static int splitline(ENVIRON *csound)
 static  void    lblclear(void), lblrequest(char *);
 static  void    lblfound(char *), lblchk(void);
 
-TEXT *getoptxt(int *init)       /* get opcod and args from current line */
-{                               /*      returns pntr to a TEXT struct   */
+TEXT *getoptxt(ENVIRON *csound, int *init)
+{                               /* get opcod and args from current line */
+                                /*      returns pntr to a TEXT struct   */
     static      short   grpcnt = 0, nxtest = 1;
     static      short   xprtstno = 0, polcnt = 0;
     static      short   instrblk = 0, instrcnt = 0;
@@ -1075,9 +1076,8 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
     static      TEXT    optext; /* struct to be passed back to caller   */
 
     TEXT        *tp;
-    char        c, d, str[20], *s, argtyp(char *);
+    char        c, d, str[20], *s;
     int         nn, incnt, outcnt;
-    ENVIRON     *csound = &cenviron;
 
     if (*init) {
       grpcnt   = 0;
@@ -1109,7 +1109,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
             group[i][1] == '\0') {
           /* if opcode is '=', save outarg and type for expression optimiser */
           csound->opcode_is_assign = 1;
-          csound->assign_type = (int) argtyp(group[linlabels]);
+          csound->assign_type = (int) argtyp(csound, group[linlabels]);
           csound->assign_outarg = strsav(group[linlabels]);
         }
         else {
@@ -1182,8 +1182,8 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         nxtest = grpcnt; goto tstnxt;
       }
     }
-    if (nxtest <= opgrpno-1) {          /* Some aopcodes do not have ans! */
-      c = argtyp(group[nxtest]);        /* use outype to modify some opcodes */
+    if (nxtest <= opgrpno-1) {           /* Some aopcodes do not have ans! */
+      c = argtyp(csound, group[nxtest]); /* use outype to modify some opcodes */
       if (strcmp(linopcod,"=") == 0 ||          /* Flagged as translating */
           csound->opcodlst[linopnum].dsblksiz == 0xffff ||
           (( strcmp(linopcod, "table") == 0 ||  /*    with prefix   */
@@ -1207,7 +1207,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         csound->DebugMsg(csound, Str("modified opcod: %s"), opcod);
       }
       else if (csound->opcodlst[linopnum].dsblksiz == 0xfffd) {
-        if ((c = argtyp(group[opgrpno ] )) != 'a') c = 'k';
+        if ((c = argtyp(csound, group[opgrpno ] )) != 'a') c = 'k';
         sprintf(str, "%s.%c", linopcod, c);
         if (!(isopcod(str))) {
           csound->Message(csound,Str("Failed to find %s\n"), str);
@@ -1225,19 +1225,19 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
                                                 /* Two tags for OSCIL's    */
   /*    if (strcmp(linopcod,"oscil") == 0  */
   /*        || strcmp(linopcod,"oscili") == 0) { */
-        if ((c = argtyp(group[opgrpno ] )) != 'a') c = 'k';
-        if ((d = argtyp(group[opgrpno+1])) != 'a') d = 'k';
+        if ((c = argtyp(csound, group[opgrpno ] )) != 'a') c = 'k';
+        if ((d = argtyp(csound, group[opgrpno+1])) != 'a') d = 'k';
         sprintf(str,"%s.%c%c",linopcod,c,d);
         isopcod(str); /*  opcode with suffix */
         linopnum = opnum;
         linopcod = opcod;
         csound->DebugMsg(csound, Str("modified opcod: %s"), opcod);
-        c = argtyp(group[nxtest]);      /* reset outype params */
+        c = argtyp(csound, group[nxtest]);      /* reset outype params */
       }                                 /* need we reset outype again here ? */
       else if (csound->opcodlst[linopnum].dsblksiz == 0xfffc) {
         /* For divz types */
-        c = argtyp(group[opgrpno  ]);
-        d = argtyp(group[opgrpno+1]);
+        c = argtyp(csound, group[opgrpno  ]);
+        d = argtyp(csound, group[opgrpno+1]);
         if ((c=='i' || c=='c') && (d=='i' || d=='c')) c='i',d = 'i';
         else {
           if (c != 'a') c = 'k';
@@ -1447,7 +1447,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
           lblrequest(s);                /*      req a search */
           continue;                     /*      chk it later */
         }
-        tfound = argtyp(s);             /* else get arg type */
+        tfound = argtyp(csound, s);     /* else get arg type */
         /* IV - Oct 31 2002 */
         tfound_m = typemask_tabl[(unsigned char) tfound];
         if (!(tfound_m & (ARGTYP_c | ARGTYP_p | ARGTYP_S)) && !lgprevdef) {
@@ -1474,7 +1474,8 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
             if (tfound_m & treqd_m) {
               if (tfound == 'a' && tp->outlist != nullist) {
                 long outyp_m =                  /* ??? */
-                  typemask_tabl[(unsigned char) argtyp(tp->outlist->arg[0])];
+                  typemask_tabl[(unsigned char) argtyp(csound,
+                                                       tp->outlist->arg[0])];
                 if (outyp_m & (ARGTYP_a | ARGTYP_d | ARGTYP_w)) break;
             }
               else
@@ -1533,7 +1534,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
         long    tfound_m;       /* IV - Oct 31 2002 */
         s = tp->outlist->arg[n];
         treqd = types[n];
-        tfound = argtyp(s);                     /*  found    */
+        tfound = argtyp(csound, s);                     /*  found    */
         /* IV - Oct 31 2002 */
         tfound_m = typemask_tabl[(unsigned char) tfound];
         /* IV - Sep 1 2002: xoutcod is the same as xincod for input, */
@@ -1554,7 +1555,7 @@ TEXT *getoptxt(int *init)       /* get opcod and args from current line */
       }
       if (incnt) {
         if (ep->intypes[0] != 'l')      /* intype defined by 1st inarg */
-          tp->intype = argtyp(tp->inlist->arg[0]);
+          tp->intype = argtyp(csound, tp->inlist->arg[0]);
         else tp->intype = 'l';  /*   (unless label)  */
       }
       if (outcnt)                       /* pftype defined by outarg */
@@ -1610,16 +1611,14 @@ static int isopcod(char *s)     /* tst a string against opcodlst  */
     return(1);                          /*  & report success */
 }
 
-int getopnum(char *s)           /* tst a string against opcodlst  */
-                                /*   & return with opnum          */
-{
-    ENVIRON *csound = &cenviron;
-    int     n;
+int getopnum(ENVIRON *csound, char *s)
+{                               /* tst a string against opcodlst  */
+    int     n;                  /*   & return with opnum          */
 
     if ((n = find_opcode(csound, s))) return n;  /* IV - Oct 31 2002 */
     csound->Message(csound,"opcode=%s\n", s);
-    csoundDie(csound, Str("unknown opcode"));
-    return(0);  /* compiler only */
+    csound->Die(csound, Str("unknown opcode"));
+/*  return(0);    compiler only */
 }
 
 static int pnum(char *s)        /* check a char string for pnum format  */
@@ -1633,10 +1632,9 @@ static int pnum(char *s)        /* check a char string for pnum format  */
     return(-1);
 }
 
-char argtyp(char *s)    /* find arg type:  d, w, a, k, i, c, p, r, S, B, b */
-{                       /*   also set lgprevdef if !c && !p && !S */
-    extern int lgexist(char *);
-    char c = *s;
+char argtyp(ENVIRON *csound, char *s)
+{                       /* find arg type:  d, w, a, k, i, c, p, r, S, B, b */
+    char c = *s;        /*   also set lgprevdef if !c && !p && !S */
 
     /*trap this before parsing for a number! */
     /* two situations: defined at header level: 0dbfs = 1.0
@@ -1650,7 +1648,7 @@ char argtyp(char *s)    /* find arg type:  d, w, a, k, i, c, p, r, S, B, b */
       if (c == '"' || c == '{')
         return('S');                              /* quoted String */
     }
-    lgprevdef = lgexist(s);                     /* (lgprev) */
+    lgprevdef = lgexist(csound, s);               /* (lgprev) */
     if (strcmp(s,"sr") == 0    || strcmp(s,"kr") == 0 ||
         strcmp(s,"0dbfs") == 0 ||
         strcmp(s,"ksmps") == 0 || strcmp(s,"nchnls") == 0)

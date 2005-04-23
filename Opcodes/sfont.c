@@ -145,7 +145,7 @@ int SfLoad(ENVIRON *csound, SFLOAD *p)  /* open a file and return its handle */
 {                                      /* the handle is simply a stack index */
     char fname[256];
     SFBANK *sf;
-    strcpy(fname, csound->unquote_(p->STRARG));
+    strcpy(fname, csound->unquote(p->STRARG));
     Gfname = fname;
     SoundFontLoad(csound, fname);
     *p->ihandle = (float) currSFndx;

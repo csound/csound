@@ -42,9 +42,9 @@ static int cvset(ENVIRON *csound, CONVOLVE *p)
 
     if (*p->ifilno == SSTRCOD) {                    /* if strg name given */
       if (p->STRARG == NULL)
-        strcpy(cvfilnam, csound->unquote_(csound->currevent->strarg));
+        strcpy(cvfilnam, csound->unquote(csound->currevent->strarg));
       else
-        strcpy(cvfilnam, csound->unquote_(p->STRARG));
+        strcpy(cvfilnam, csound->unquote(p->STRARG));
     }
     else if ((long) *p->ifilno <= csound->strsmax && csound->strsets != NULL &&
              csound->strsets[(long) *p->ifilno])
@@ -53,7 +53,7 @@ static int cvset(ENVIRON *csound, CONVOLVE *p)
                  "convolve.%d", (int)*p->ifilno); /* else convolve.filnum   */
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename, cvfilnam) != 0)
                                 /* if file not already readin */
-      if ( (mfp = csound->ldmemfile_(csound, cvfilnam)) == NULL) {
+      if ( (mfp = csound->ldmemfile(csound, cvfilnam)) == NULL) {
         sprintf(csound->errmsg,Str("CONVOLVE cannot load %s"), cvfilnam);
         goto cverr;
       }
@@ -375,9 +375,9 @@ static int pconvset(ENVIRON *csound, PCONVOLVE *p)
     IRfile.skiptime = FL(0.0);
     if (*p->ifilno == SSTRCOD) {                /* if char string name given */
       if (p->STRARG == NULL)
-        strcpy(IRfile.sfname, csound->unquote_(csound->currevent->strarg));
+        strcpy(IRfile.sfname, csound->unquote(csound->currevent->strarg));
       else
-        strcpy(IRfile.sfname, csound->unquote_(p->STRARG));
+        strcpy(IRfile.sfname, csound->unquote(p->STRARG));
     }
     else {
       long filno = (long) ((double) *p->ifilno + 0.5);
