@@ -10,7 +10,7 @@ pyexec_krate(void *csound_, PYEXEC *p)
       return NOTOK;
     }
 
-  strcpy(source, ((ENVIRON *)csound_)->unquote_(p->STRARG));
+  strcpy(source, ((ENVIRON *)csound_)->unquote(p->STRARG));
 
   result = exec_file_in_given_context(source, 0);
   if (result == NULL)
@@ -35,7 +35,7 @@ pyexeci_irate(void *csound_, PYEXEC *p)
       return NOTOK;
     }
 
-  strcpy(source, ((ENVIRON *)csound_)->unquote_(p->STRARG));
+  strcpy(source, ((ENVIRON *)csound_)->unquote(p->STRARG));
 
   result = exec_file_in_given_context(source, 0);
   if (result == NULL)
@@ -64,7 +64,7 @@ pylexec_krate(void *csound_, PYEXEC *p)
   char source[1024];
   PyObject *result;
 
-  strcpy(source, ((ENVIRON *)csound_)->unquote_(p->STRARG));
+  strcpy(source, ((ENVIRON *)csound_)->unquote(p->STRARG));
 
   result = exec_file_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
@@ -91,7 +91,7 @@ pylexeci_irate(void *csound_, PYEXEC *p)
 
   create_private_namespace_if_needed(&p->h);
 
-  strcpy(source, ((ENVIRON *)csound_)->unquote_(p->STRARG));
+  strcpy(source, ((ENVIRON *)csound_)->unquote(p->STRARG));
 
   result = exec_file_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
@@ -118,7 +118,7 @@ pyexect_krate(void *csound_, PYEXECT *p)
 
   if (!*p->trigger) return OK;
 
-  strcpy(source, ((ENVIRON *)csound_)->unquote_(p->STRARG));
+  strcpy(source, ((ENVIRON *)csound_)->unquote(p->STRARG));
 
   result = exec_file_in_given_context(source, 0);
   if (result == NULL)
@@ -149,7 +149,7 @@ pylexect_krate(void *csound_, PYEXECT *p)
 
   if (!*p->trigger) return OK;
 
-  strcpy(source, ((ENVIRON *)csound_)->unquote_(p->STRARG));
+  strcpy(source, ((ENVIRON *)csound_)->unquote(p->STRARG));
 
   result = exec_file_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
@@ -174,7 +174,7 @@ pyrun_krate(void *csound_, PYRUN *p)
       return NOTOK;
     }
 
-  strcpy(source, ((ENVIRON *)csound_)->unquote_(p->STRARG));
+  strcpy(source, ((ENVIRON *)csound_)->unquote(p->STRARG));
 
   result = run_statement_in_given_context(source, 0);
   if (result == NULL)
@@ -199,7 +199,7 @@ pyruni_irate(void *csound_, PYRUN *p)
       return NOTOK;
     }
 
-  strcpy(source, ((ENVIRON *)csound_)->unquote_(p->STRARG));
+  strcpy(source, ((ENVIRON *)csound_)->unquote(p->STRARG));
 
   result = run_statement_in_given_context(source, 0);
   if (result == NULL)
@@ -228,7 +228,7 @@ pylrun_krate(void *csound_, PYRUN *p)
   char source[40960];
   PyObject *result;
 
-  strcpy(source, ((ENVIRON *)csound_)->unquote_(p->STRARG));
+  strcpy(source, ((ENVIRON *)csound_)->unquote(p->STRARG));
 
   result = run_statement_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
@@ -255,7 +255,7 @@ pylruni_irate(void *csound_, PYRUN *p)
 
   create_private_namespace_if_needed(&p->h);
 
-  strcpy(source, ((ENVIRON *)csound_)->unquote_(p->STRARG));
+  strcpy(source, ((ENVIRON *)csound_)->unquote(p->STRARG));
 
   result = run_statement_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
@@ -282,7 +282,7 @@ pyrunt_krate(void *csound_, PYRUNT *p)
 
   if (!*p->trigger) return OK;
 
-  strcpy(source, ((ENVIRON *)csound_)->unquote_(p->STRARG));
+  strcpy(source, ((ENVIRON *)csound_)->unquote(p->STRARG));
 
   result = run_statement_in_given_context(source, 0);
   if (result == NULL)
@@ -313,7 +313,7 @@ pylrunt_krate(void *csound_, PYRUNT *p)
 
   if (!*p->trigger) return OK;
 
-  strcpy(source, ((ENVIRON *)csound_)->unquote_(p->STRARG));
+  strcpy(source, ((ENVIRON *)csound_)->unquote(p->STRARG));
 
   result = run_statement_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
@@ -338,7 +338,7 @@ pyeval_krate(void *csound_, PYEVAL *p)
       return NOTOK;
     }
 
-  strcpy(source, ((ENVIRON *)csound_)->unquote_(p->STRARG));
+  strcpy(source, ((ENVIRON *)csound_)->unquote(p->STRARG));
 
   result = eval_string_in_given_context(source, 0);
   if (result == NULL)
@@ -371,7 +371,7 @@ pyevali_irate(void *csound_, PYEVAL *p)
       return NOTOK;
     }
 
-  strcpy(source, ((ENVIRON *)csound_)->unquote_(p->STRARG));
+  strcpy(source, ((ENVIRON *)csound_)->unquote(p->STRARG));
 
   result = eval_string_in_given_context(source, 0);
   if (result == NULL)
@@ -408,7 +408,7 @@ pyleval_krate(void *csound_, PYEVAL *p)
   char source[1024];
   PyObject *result;
 
-  strcpy(source, ((ENVIRON *)csound_)->unquote_(p->STRARG));
+  strcpy(source, ((ENVIRON *)csound_)->unquote(p->STRARG));
 
   result = eval_string_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
@@ -443,7 +443,7 @@ pylevali_irate(void *csound_, PYEVAL *p)
 
   create_private_namespace_if_needed(&p->h);
 
-  strcpy(source, ((ENVIRON *)csound_)->unquote_(p->STRARG));
+  strcpy(source, ((ENVIRON *)csound_)->unquote(p->STRARG));
 
   result = eval_string_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
@@ -481,7 +481,7 @@ pyevalt_krate(void *csound_, PYEVALT *p)
       *p->result = p->oresult;
     }
 
-  strcpy(source, ((ENVIRON *)csound_)->unquote_(p->STRARG));
+  strcpy(source, ((ENVIRON *)csound_)->unquote(p->STRARG));
 
   result = eval_string_in_given_context(source, 0);
   if (result == NULL)
@@ -524,7 +524,7 @@ pylevalt_krate(void *csound_, PYEVALT *p)
       *p->result = p->oresult;
     }
 
-  strcpy(source, ((ENVIRON *)csound_)->unquote_(p->STRARG));
+  strcpy(source, ((ENVIRON *)csound_)->unquote(p->STRARG));
 
   result = eval_string_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
@@ -558,7 +558,7 @@ pyassign_krate(void *csound_, PYASSIGN *p)
       return NOTOK;
     }
 
-  sprintf(source, "%s = %f", ((ENVIRON *)csound_)->unquote_(p->STRARG), *p->value);
+  sprintf(source, "%s = %f", ((ENVIRON *)csound_)->unquote(p->STRARG), *p->value);
 
   result = run_statement_in_given_context(source, 0);
   if (result == NULL)
@@ -583,7 +583,7 @@ pyassigni_irate(void *csound_, PYASSIGN *p)
       return NOTOK;
     }
 
-  sprintf(source, "%s = %f", ((ENVIRON *)csound_)->unquote_(p->STRARG), *p->value);
+  sprintf(source, "%s = %f", ((ENVIRON *)csound_)->unquote(p->STRARG), *p->value);
 
   result = run_statement_in_given_context(source, 0);
   if (result == NULL)
@@ -612,7 +612,7 @@ pylassign_krate(void *csound_, PYASSIGN *p)
   char source[1024];
   PyObject *result;
 
-  sprintf(source, "%s = %f", ((ENVIRON *)csound_)->unquote_(p->STRARG), *p->value);
+  sprintf(source, "%s = %f", ((ENVIRON *)csound_)->unquote(p->STRARG), *p->value);
 
   result = run_statement_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
@@ -639,7 +639,7 @@ pylassigni_irate(void *csound_, PYASSIGN *p)
 
   create_private_namespace_if_needed(&p->h);
 
-  sprintf(source, "%s = %f", ((ENVIRON *)csound_)->unquote_(p->STRARG), *p->value);
+  sprintf(source, "%s = %f", ((ENVIRON *)csound_)->unquote(p->STRARG), *p->value);
 
   result = run_statement_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
@@ -666,7 +666,7 @@ pyassignt_krate(void *csound_, PYASSIGNT *p)
 
   if (!*p->trigger) return OK;
 
-  sprintf(source, "%s = %f", ((ENVIRON *)csound_)->unquote_(p->STRARG), *p->value);
+  sprintf(source, "%s = %f", ((ENVIRON *)csound_)->unquote(p->STRARG), *p->value);
 
   result = run_statement_in_given_context(source, 0);
   if (result == NULL)
@@ -697,7 +697,7 @@ pylassignt_krate(void *csound_, PYASSIGNT *p)
 
   if (!*p->trigger) return OK;
 
-  sprintf(source, "%s = %f", ((ENVIRON *)csound_)->unquote_(p->STRARG), *p->value);
+  sprintf(source, "%s = %f", ((ENVIRON *)csound_)->unquote(p->STRARG), *p->value);
 
   result = run_statement_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
