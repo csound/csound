@@ -56,7 +56,7 @@ def generate_pycall_common_call_code(f, context, withinit, triggered):
         skip = 2
     else:
         skip = 1
-    print >> f, '  format_call_statement(command, ((ENVIRON *)csound_)->unquote_(p->STRARG), p->INOCOUNT, p->args, %d);' % skip
+    print >> f, '  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, %d);' % skip
     print >> f
     if context == 'private':
         print >> f, '  result = eval_string_in_given_context(command, 0);'
