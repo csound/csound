@@ -1639,7 +1639,7 @@ int getopnum(ENVIRON *csound, char *s)
     if ((n = find_opcode(csound, s))) return n;  /* IV - Oct 31 2002 */
     csound->Message(csound,"opcode=%s\n", s);
     csound->Die(csound, Str("unknown opcode"));
-/*  return(0);    compiler only */
+    return NOTOK;
 }
 
 static int pnum(char *s)        /* check a char string for pnum format  */

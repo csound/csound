@@ -1,3 +1,7 @@
+2005-04-24  John ffitch  <jpff@codemist.co.uk>
+
+	* Top/one_file.c (read_unified_file): Added licence top level field
+
 2005-04-23  John ffitch  <jpff@codemist.co.uk>
 
 	* SConstruct (guiProgramEnvironment): Need dl and pthreads even
