@@ -1698,8 +1698,9 @@ static void lblrequest(ENVIRON *csound, char *s)
       if (strcmp(ST(lblreq)[req].label,s) == 0)
         return;
     if (++ST(lblcnt) >= ST(lblmax)) {
+      LBLREQ *tmp;
       ST(lblmax) += LBLMAX;
-      LBLREQ *tmp = mrealloc(csound, ST(lblreq), ST(lblmax) * sizeof(LBLREQ));
+      tmp = mrealloc(csound, ST(lblreq), ST(lblmax) * sizeof(LBLREQ));
       if (tmp==NULL)
         csoundDie(csound, Str("label list is full"));
       ST(lblreq) = tmp;
@@ -1719,8 +1720,9 @@ static void lblfound(ENVIRON *csound, char *s)
         goto noprob;
       }
     if (++ST(lblcnt) >= ST(lblmax)) {
+      LBLREQ *tmp;
       ST(lblmax) += LBLMAX;
-      LBLREQ *tmp = mrealloc(csound, ST(lblreq), ST(lblmax) * sizeof(LBLREQ));
+      tmp = mrealloc(csound, ST(lblreq), ST(lblmax) * sizeof(LBLREQ));
       if (tmp==NULL)
         csoundDie(csound, Str("label list is full"));
       ST(lblreq) = tmp;
