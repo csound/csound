@@ -464,6 +464,22 @@ static int checkVersion(FILE *unf)
     return result;
 }
 
+static int checkLicence(FILE *unf)
+{
+    char *p;
+    printf("**** Licence Information****\n");
+    while (my_fgets(buffer, CSD_MAX_LINE_LEN, unf)!= NULL) {
+      p = buffer;
+      while (*p==' '||*p=='\t') p++;
+      if (strstr(p, "</CsLicence>")!=NULL) {
+        printf("**** End of Licence Information****\n");
+        return TRUE;
+      }
+      printf("**** %s ****\n", p);
+    }
+    return TRUE;
+}
+
 static int eat_to_eol(char *buf)
 {
     int i=0;
@@ -554,6 +570,10 @@ int read_unified_file(void *csound_, char **pname, char **score)
       }
       else if (strstr(p,"<CsVersion>") == buffer) {
         r = checkVersion(unf);
+        result = r && result;
+      }
+      else if (strstr(p,"<CsLicence>") == buffer) {
+        r = checkLicence(unf);
         result = r && result;
       }
       else if (blank_buffer()) continue;
