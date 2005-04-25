@@ -859,7 +859,6 @@ int adset(ENVIRON *csound, ADSYN *p)
     short  *adp, *endata, val;
     PTLPTR *ptlap, *ptlfp, *ptlim;
     int size;
-    long        filno;
 
     if (isintab == NULL) {          /* if no sin table yet, make one */
       short *ip;
@@ -867,14 +866,7 @@ int adset(ENVIRON *csound, ADSYN *p)
       for (n = 0; n < ISINSIZ; n++)
         *ip++ = (short) (sin(TWOPI * n / ISINSIZ) * 32767.0);
     }
-    if (*p->ifilcod == SSTRCOD) { /* if char string name given */
-      if (p->STRARG == NULL) strcpy(filnam,unquote(csound->currevent->strarg));
-      else strcpy(filnam, unquote(p->STRARG));
-    }
-    else if ((filno = (long) *p->ifilcod) <= csound->strsmax &&
-             csound->strsets != NULL && csound->strsets[filno])
-      strcpy(filnam, csound->strsets[filno]);
-    else sprintf(filnam,"adsyn.%ld",filno);/* else adsyn.filnum */
+    csound->strarg2name(csound, filnam, p->ifilcod, "adsyn.", p->XINSTRCODE);
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename,filnam) != 0) {
       if ((mfp = ldmemfile(csound, filnam)) == NULL) {  /*   readfile if reqd */
         sprintf(csound->errmsg, Str("ADSYN cannot load %s"),filnam);

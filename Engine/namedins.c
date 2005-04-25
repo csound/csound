@@ -214,13 +214,13 @@ void named_instr_free (ENVIRON *csound)
 /* return value is -1 if the instrument cannot be found */
 /* (in such cases, csoundInitError() is also called) */
 
-long strarg2insno (ENVIRON *csound, MYFLT *p, char *s)
+long strarg2insno (ENVIRON *csound, MYFLT *p, int is_string)
 {
     long    insno;
 
-    if (*p == SSTRCOD) {
-      if (!(insno = named_instr_find(csound, s))) {
-        csound->InitError(csound, "instr %s not found", s);
+    if (is_string) {
+      if ((insno = named_instr_find(csound, (char*) p)) <= 0) {
+        csound->InitError(csound, "instr %s not found", (char*) p);
         return -1;
       }
     }
@@ -255,13 +255,13 @@ long strarg2insno_p (ENVIRON *csound, char *s)
 /* return value is -1 if the instrument cannot be found */
 /* (in such cases, csoundInitError() is also called) */
 
-long strarg2opcno (ENVIRON *csound, MYFLT *p, char *s, int force_opcode)
+long strarg2opcno (ENVIRON *csound, MYFLT *p, int is_string, int force_opcode)
 {
     long    insno = 0;
 
     if (!force_opcode) {        /* try instruments first, if enabled */
-      if (*p == SSTRCOD) {
-        insno = named_instr_find(csound, s);
+      if (is_string) {
+        insno = named_instr_find(csound, (char*) p);
       }
       else {      /* numbered instrument */
         insno = (long) *p;
@@ -272,9 +272,9 @@ long strarg2opcno (ENVIRON *csound, MYFLT *p, char *s, int force_opcode)
         }
       }
     }
-    if (!insno && *p == SSTRCOD) {          /* if no instrument was found, */
+    if (!insno && is_string) {              /* if no instrument was found, */
       OPCODINFO *inm = csound->opcodeInfo;  /* search for user opcode */
-      while (inm && strcmp(inm->name, s)) inm = inm->prv;
+      while (inm && strcmp(inm->name, (char*) p)) inm = inm->prv;
       if (inm) insno = (long) inm->instno;
     }
     if (insno < 1) {
@@ -283,6 +283,45 @@ long strarg2opcno (ENVIRON *csound, MYFLT *p, char *s, int force_opcode)
       insno = -1;
     }
     return insno;
+}
+
+char *strarg2name(ENVIRON *csound, char *s, MYFLT *p, const char *baseName,
+                                   int is_string)
+{
+    if (is_string) {
+      /* opcode string argument */
+      if (s == NULL)
+        s = mmalloc(csound, strlen((char*) p) + 1);
+      strcpy(s, (char*) p);
+    }
+    else if (*p == SSTRCOD) {
+      /* p-field string, unquote and copy */
+      char  *s2 = csound->currevent->strarg;
+      int   i = 0;
+      if (s == NULL)
+        s = mmalloc(csound, strlen(csound->currevent->strarg) + 1);
+      if (*s2 == '"')
+        s2++;
+      while (*s2 != '"' && *s2 != '\0')
+        s[i++] = *(s2++);
+      s[i] = '\0';
+    }
+    else {
+      int   i = (int) ((double) *p + (*p >= FL(0.0) ? 0.5 : -0.5));
+      if (i >= 0 && i <= (int) csound->strsmax &&
+          csound->strsets != NULL && csound->strsets[i] != NULL) {
+        if (s == NULL)
+          s = mmalloc(csound, strlen(csound->strsets[i]) + 1);
+        strcpy(s, csound->strsets[i]);
+      }
+      else {
+        if (s == NULL)
+          /* allocate +20 characters, assuming sizeof(int) <= 8 */
+          s = mmalloc(csound, strlen(baseName) + 21);
+        sprintf(s, "%s%d", baseName, i);
+      }
+    }
+    return s;
 }
 
 /* ----------------------------------------------------------------------- */

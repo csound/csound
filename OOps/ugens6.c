@@ -160,7 +160,7 @@ int samphset(ENVIRON *csound, SAMPHOLD *p)
 {
     if (!(*p->istor))
       p->state = *p->ival;
-    p->audiogate = (p->XINCODE & 01) ? 1 : 0;
+    p->audiogate = (p->XINCODE & 02) ? 1 : 0;
     return OK;
 }
 

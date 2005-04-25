@@ -397,9 +397,8 @@ int lprdset(ENVIRON *csound, LPREAD *p)
     MEMFIL   *mfp;
     long     magic;
     long     totvals;  /* NB - presumes sizeof(MYFLT) == sizeof(long) !! */
-    long filno;
 
- /* Store adress of opcode for other lpXXXX init to point to */
+    /* Store adress of opcode for other lpXXXX init to point to */
     if (lprdadr==NULL || currentLPCSlot>max_lpc_slot) {
       max_lpc_slot = currentLPCSlot+MAX_LPC_SLOT;
       lprdadr = (LPREAD**) mrealloc(csound, lprdadr, max_lpc_slot*sizeof(LPREAD*));
@@ -407,18 +406,9 @@ int lprdset(ENVIRON *csound, LPREAD *p)
     lprdadr[currentLPCSlot] = p;
 
     /* Build file name */
-    if (*p->ifilno == SSTRCOD) { /* if char string name given */
-      if (p->STRARG == NULL)
-        strcpy(lpfilname, unquote(csound->currevent->strarg));
-      else strcpy(lpfilname, unquote(p->STRARG));
-    }
-    else if ((filno = (long) *p->ifilno) <= csound->strsmax &&
-             csound->strsets != NULL && csound->strsets[filno])
-      strcpy(lpfilname, csound->strsets[filno]);
-    else
-      sprintf(lpfilname,"lp.%ld",filno);
+    csound->strarg2name(csound, lpfilname, p->ifilno, "lp.", p->XINSTRCODE);
 
- /* Do not reload existing file ? */
+    /* Do not reload existing file ? */
     if ((mfp = p->mfp) != NULL && strcmp(mfp->filename,lpfilname) == 0)
       goto lpend;                             /* rtn if file prv known */
     /* Load analysis in memory file */

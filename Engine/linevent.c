@@ -375,25 +375,33 @@ int eventOpcode(ENVIRON *csound, LINEVENT *p)
 {
     EVTBLK  evt;
     int     i;
+    char    opcod;
 
-    if (*p->args[0] != SSTRCOD || p->STRARG == NULL ||
-        (*p->STRARG != 'i' && *p->STRARG != 'q' && *p->STRARG != 'f' &&
-         *p->STRARG != 'e'))
+    if (!(p->XINSTRCODE & 1) ||
+        ((opcod = ((char*) p->args[0])[0]) != 'i' && opcod != 'q' &&
+         opcod != 'f' && opcod != 'e'))
       return csound->PerfError(csound, Str("event param 1 must be "
                                            "\"i\", \"q\", \"f\", or \"e\""));
     evt.strarg = NULL;
-    evt.opcod = *p->STRARG;
+    evt.opcod = opcod;
     evt.pcnt = p->INOCOUNT - 1;
     /* IV - Oct 31 2002: allow string argument */
-    if (evt.pcnt > 0 && *p->args[1] == SSTRCOD) {
-      if (evt.opcod != 'i' && evt.opcod != 'q')
-        return
-          csound->PerfError(csound, Str("event: string name is allowed "
-                                        "only for \"i\" and \"q\" events"));
-      evt.strarg = p->STRARG2;
+    if (evt.pcnt > 0) {
+      if (p->XINSTRCODE & 2) {
+        if (evt.opcod != 'i' && evt.opcod != 'q')
+          return
+            csound->PerfError(csound, Str("event: string name is allowed "
+                                          "only for \"i\" and \"q\" events"));
+        evt.p[1] = SSTRCOD;
+        evt.strarg = (char*) p->args[1];
+      }
+      else {
+        evt.p[1] = *p->args[1];
+        evt.strarg = NULL;
+      }
+      for (i = 2; i <= evt.pcnt; i++)
+        evt.p[i] = *p->args[i];
     }
-    for (i = 1; i <= evt.pcnt; i++)
-      evt.p[i] = *p->args[i];
     return (insert_score_event(csound, &evt,
                                csound->sensEvents_state.curTime, 0) == 0 ?
             OK : NOTOK);
@@ -405,26 +413,33 @@ int eventOpcodeI(ENVIRON *csound, LINEVENT *p)
 {
     EVTBLK  evt;
     int     i;
+    char    opcod;
 
-    if (*p->args[0] != SSTRCOD || p->STRARG == NULL ||
-        (*p->STRARG != 'i' && *p->STRARG != 'q' && *p->STRARG != 'f' &&
-         *p->STRARG != 'e'))
-      return
-        csound->InitError(csound, Str("event param 1 must be "
-                                      "\"i\", \"q\", \"f\", or \"e\""));
+    if (!(p->XINSTRCODE & 1) ||
+        ((opcod = ((char*) p->args[0])[0]) != 'i' && opcod != 'q' &&
+         opcod != 'f' && opcod != 'e'))
+      return csound->InitError(csound, Str("event param 1 must be "
+                                           "\"i\", \"q\", \"f\", or \"e\""));
     evt.strarg = NULL;
-    evt.opcod = *p->STRARG;
+    evt.opcod = opcod;
     evt.pcnt = p->INOCOUNT - 1;
     /* IV - Oct 31 2002: allow string argument */
-    if (evt.pcnt > 0 && *p->args[1] == SSTRCOD) {
-      if (evt.opcod != 'i' && evt.opcod != 'q')
-        return
-          csound->InitError(csound, Str("event: string name is allowed "
-                                        "only for \"i\" and \"q\" events"));
-      evt.strarg = p->STRARG2;
+    if (evt.pcnt > 0) {
+      if (p->XINSTRCODE & 2) {
+        if (evt.opcod != 'i' && evt.opcod != 'q')
+          return
+            csound->InitError(csound, Str("event: string name is allowed "
+                                          "only for \"i\" and \"q\" events"));
+        evt.p[1] = SSTRCOD;
+        evt.strarg = (char*) p->args[1];
+      }
+      else {
+        evt.p[1] = *p->args[1];
+        evt.strarg = NULL;
+      }
+      for (i = 2; i <= evt.pcnt; i++)
+        evt.p[i] = *p->args[i];
     }
-    for (i = 1; i <= evt.pcnt; i++)
-      evt.p[i] = *p->args[i];
     return (insert_score_event(csound, &evt,
                                csound->sensEvents_state.curTime, 1) == 0 ?
             OK : NOTOK);

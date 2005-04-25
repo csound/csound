@@ -178,8 +178,8 @@ static void writesf(void *csound_, MYFLT *outbuf, int nbytes)
       else if (O->heartbeat==2) putc('.', stderr);
       else if (O->heartbeat==3) {
         int n;
-        csound->Message(csound,"%d(%.3f)%n",
-                        csound->nrecs, csound->nrecs/csound->ekr, &n);
+        csound->Message(csound,"%ld(%.3f)%n",
+                        (long) csound->nrecs, csound->nrecs/csound->ekr, &n);
         while (n--) csound->Message(csound,"\b");
       }
       else csound->Message(csound,"\a");
@@ -216,20 +216,8 @@ int sndinset(ENVIRON *csound, SOUNDIN_ *p) /* init routine for instr soundin */
       /* reload the file */
       fdclose(csound, &(p->fdch));
     }
-    if (*p->ifilno == SSTRCOD) {                /* if char string name given */
-      if (p->STRARG == NULL)
-        strcpy(p->sndin_.sfname, unquote(csound->currevent->strarg));
-      else
-        strcpy(p->sndin_.sfname, unquote(p->STRARG)); /* unquote it, else use */
-    }
-    else {
-      long filno = (long) ((double) *p->ifilno + 0.5);
-      if (filno >= 0 && filno <= csound->strsmax &&
-          csound->strsets != NULL && csound->strsets[filno])
-        strcpy(p->sndin_.sfname, csound->strsets[filno]);
-      else
-        sprintf(p->sndin_.sfname, "soundin.%ld", filno);  /* soundin.filno */
-    }
+    csound->strarg2name(csound, p->sndin_.sfname, p->ifilno, "soundin.",
+                                p->XINSTRCODE);
     switch ((int) (*p->iformat + FL(0.5))) {
       case 0: p->sndin_.format = AE_SHORT; break;
       case 1: p->sndin_.format = AE_CHAR;  break;

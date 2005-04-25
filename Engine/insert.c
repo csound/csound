@@ -34,6 +34,8 @@
 #include "MacTransport.h"
 #endif
 
+extern  MYFLT   *strConstIndex2Ptr(ENVIRON *csound, int ndx);
+
 static  void    showallocs(ENVIRON *);
 static  void    deact(ENVIRON *, INSDS *);
 static  void    schedofftim(ENVIRON *, INSDS *);
@@ -832,7 +834,8 @@ int subinstrset(ENVIRON *csound, SUBINST *p)
     init_op = (p->h.opadr == NULL ? 1 : 0);
     inarg_ofs = (init_op ? 0 : SUBINSTNUMOUTS);
     /* IV - Oct 31 2002 */
-    if ((instno = strarg2insno(csound, p->ar[inarg_ofs], p->STRARG)) < 0)
+    if ((instno = strarg2insno(csound, p->ar[inarg_ofs], (p->XINSTRCODE & 1)))
+        < 0)
       return NOTOK;
     /* IV - Oct 9 2002: need this check */
     if (!init_op && p->OUTOCOUNT > csound->nchnls) {
@@ -1176,7 +1179,7 @@ int setksmpsset(ENVIRON *csound, SETKSMPS *p)
 int nstrnumset(ENVIRON *csound, NSTRNUM *p)
 {
     /* IV - Oct 31 2002 */
-    *(p->i_insno) = (MYFLT) strarg2insno(csound, p->iname, p->STRARG);
+    *(p->i_insno) = (MYFLT) strarg2insno(csound, p->iname, (p->XINSTRCODE & 1));
     return (*(p->i_insno) > FL(0.0) ? OK : NOTOK);
 }
 
@@ -1691,12 +1694,12 @@ static void instance(ENVIRON *csound, int insno)
     OPDS    *opds, *prvids, *prvpds;
     OENTRY  *ep;
     LBLBLK  **lopds, **lopdsp;
-    LARGNO  *larg, *largp/* = larg */;
+    LARGNO  *larg, *largp;
     int     n, pextent, opnum, reqd;
     char    *nxtopds, *opdslim;
-    MYFLT   **argpp, *fltp, *lclbas, *lcloffbas, *csetoffbas = NULL;
+    MYFLT   **argpp, *fltp, *lclbas, *lcloffbas;
     ARGOFFS *aoffp;
-    int     indx, posndx;
+    int     indx;
     int     *ndxp;
     MCHNBLK *chp = NULL;
     OPARMS  *O = csound->oparms;
@@ -1711,7 +1714,6 @@ static void instance(ENVIRON *csound, int insno)
       MCHNBLK **chpp = csound->m_chnbp;
       for (n = MAXCHAN; n--; ) {
         if ((chp = *chpp++) !=((MCHNBLK*)NULL))     {
-          csetoffbas = chp->ctl_val;
           if (!chp->insno) {
             chp->insno = insno;
             csound->Message(csound, Str("instr %d seeking midi chnl data, "
@@ -1818,40 +1820,41 @@ static void instance(ENVIRON *csound, int insno)
       argpp = (MYFLT **)((char *)opds + sizeof(OPDS));
       if (O->odebug)
         csound->Message(csound, "argptrs:");
-      aoffp = ttp->outoffs;                         /* for outarg codes: */
+      aoffp = ttp->outoffs;                     /* for outarg codes: */
       reqd = strlen(ep->outypes);
       for (n=aoffp->count, ndxp=aoffp->indx; n--; reqd--) {
-        if ((indx = *ndxp++) > 0)            /* cvt index to lcl/gbl adr */
+        if ((indx = *ndxp++) > 0)               /* cvt index to lcl/gbl adr */
+          /* outarg cannot be string constant, do not need to check */
           fltp = csound->gbloffbas + indx;
-        else if ((posndx = -indx) < CBAS)
-          fltp = lcloffbas + posndx;
         else
-          fltp = csetoffbas + posndx - CBAS;
+          fltp = lcloffbas + (-indx);
         if (O->odebug)
           csound->Message(csound, "\t%p", fltp);
         *argpp++ = fltp;
       }
-      while (reqd--) {                              /* if more outypes, pad */
+      while (reqd--) {                          /* if more outypes, pad */
         if (O->odebug)
           csound->Message(csound, "\tPADOUT");
         *argpp++ = NULL;
       }
-      aoffp = ttp->inoffs;                          /* for inarg codes: */
+      aoffp = ttp->inoffs;                      /* for inarg codes: */
       for (n=aoffp->count, ndxp=aoffp->indx; n--; ) {
         if ((indx = *ndxp++) < LABELIM) {
           if (O->odebug)
             csound->Message(csound, "\t***lbl");
-          largp->lblno = indx - LABELOFS;           /* if label ref, defer */
+          largp->lblno = indx - LABELOFS;       /* if label ref, defer */
           largp->argpp = argpp++;
           largp++;
         }
         else {
-          if (indx > 0)                         /* else cvt ndx to lcl/gbl */
-            fltp = csound->gbloffbas + indx;
-          else if ((posndx = -indx) < CBAS)
-            fltp = lcloffbas + posndx;
+          if (indx > 0) {                       /* else cvt ndx to lcl/gbl */
+            if (indx >= STR_OFS)
+              fltp = strConstIndex2Ptr(csound, (indx - (STR_OFS + 1)));
+            else
+              fltp = csound->gbloffbas + indx;
+          }
           else
-            fltp = csetoffbas + posndx - CBAS;
+            fltp = lcloffbas + (-indx);
           if (O->odebug)
             csound->Message(csound, "\t%p", fltp);
           *argpp++ = fltp;
@@ -1874,7 +1877,8 @@ int prealloc(ENVIRON *csound, AOP *p)
 {
     int     n, a;
 
-    n = (int) strarg2opcno(csound, p->r, p->STRARG, (*p->b == FL(0.0) ? 0 : 1));
+    n = (int) strarg2opcno(csound, p->r, (p->XINSTRCODE & 1),
+                                   (*p->b == FL(0.0) ? 0 : 1));
     if (n < 1)
       return NOTOK;
     a = (int) *p->a - csound->instrtxtp[n]->active;

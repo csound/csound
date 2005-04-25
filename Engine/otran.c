@@ -42,19 +42,19 @@ typedef struct {
     ARGLST    *nullist;
     ARGOFFS   *nulloffs;
     int       lclkcnt, lcldcnt, lclwcnt, lclfixed;
-    int       lclpcnt, lclnxtpcnt;
-    int       lclnxtkcnt, lclnxtdcnt, lclnxtwcnt, lclnxtacnt;
-    int       gblnxtkcnt, gblnxtacnt, gblfixed, gblacount;
+    int       lclpcnt, lclscnt, lclacnt, lclnxtpcnt;
+    int       lclnxtkcnt, lclnxtdcnt, lclnxtwcnt, lclnxtacnt, lclnxtscnt;
+    int       gblnxtkcnt, gblnxtacnt, gblnxtscnt;
+    int       gblfixed, gblacount, gblscount;
     int       *nxtargoffp, *argofflim, lclpmax;
-    char      *strargspace, *strargptr;
-    long      poolcount, strargsize, argoffsize;
+    MYFLT     **strpool;
+    long      poolcount, strpool_cnt, argoffsize;
     int       nconsts;
-    int       displop1, displop2, displop3;
 } OTRAN_GLOBALS;
 
 static  int     gexist(ENVIRON *, char *), gbloffndx(ENVIRON *, char *);
 static  int     lcloffndx(ENVIRON *, char *);
-static  int     constndx(ENVIRON *, char *);
+static  int     constndx(ENVIRON *, char *), strconstndx(ENVIRON *, char *);
 static  void    insprep(ENVIRON *, INSTRTXT *);
 static  void    lgbuild(ENVIRON *, char *);
 static  void    gblnamset(ENVIRON *, char *);
@@ -74,10 +74,11 @@ extern  void    spoutsf(void*);
 #define DTYPE   2
 #define WTYPE   3
 #define ATYPE   4
-#define Dfloats (sizeof(DOWNDAT)/sizeof(MYFLT))
-#define Wfloats (sizeof(SPECDAT)/sizeof(MYFLT))
+#define Dfloats ((sizeof(DOWNDAT) + sizeof(MYFLT) - 1) / sizeof(MYFLT))
+#define Wfloats ((sizeof(SPECDAT) + sizeof(MYFLT) - 1) / sizeof(MYFLT))
 #define PTYPE   5
-#define Pfloats (sizeof(PVSDAT) / sizeof(MYFLT))
+#define Pfloats ((sizeof(PVSDAT) + sizeof(MYFLT) - 1) / sizeof(MYFLT))
+#define STYPE   6
 
 void csoundDefaultSpinRecv(void *csound)
 {
@@ -268,6 +269,8 @@ void otran(ENVIRON *csound)
     csound->opcodeInfo = NULL;          /* IV - Oct 20 2002 */
     opcode_list_create(csound);         /* IV - Oct 31 2002 */
 
+    strconstndx(csound, "\"\"");
+
     gblnamset(csound, "sr");    /* enter global reserved words */
     gblnamset(csound, "kr");
     gblnamset(csound, "ksmps");
@@ -276,16 +279,11 @@ void otran(ENVIRON *csound)
     gblnamset(csound, "$sr");   /* incl command-line overrides */
     gblnamset(csound, "$kr");
     gblnamset(csound, "$ksmps");
-    /* opnums that need "signal name" */
-    ST(displop1) = getopnum(csound, "print");
-    ST(displop2) = getopnum(csound, "display");
-    ST(displop3) = getopnum(csound, "dispfft");
-/*  csound->displop4 = getopnum(csound, "specdisp"); */
 
     rdorchfile(csound);                 /* go read orch file    */
     if (csound->pool == NULL) {
-      csound->pool = (MYFLT *)mmalloc(csound, (long)NCONSTS * sizeof(MYFLT));
-      *(csound->pool) = (MYFLT) SSTRCOD;
+      csound->pool = (MYFLT *) mmalloc(csound, NCONSTS * sizeof(MYFLT));
+      csound->pool[0] = FL(0.0);
       ST(poolcount) = 1;
       ST(nconsts) = NCONSTS;
     }
@@ -451,7 +449,7 @@ void otran(ENVIRON *csound)
             }
             ST(lclnxtkcnt) = ST(lclnxtdcnt) = 0;        /*   for rebuilding  */
             ST(lclnxtwcnt) = ST(lclnxtacnt) = 0;
-            ST(lclnxtpcnt) = 0;
+            ST(lclnxtpcnt) = ST(lclnxtscnt) = 0;
             opdstot = 0;
             threads = 0;
             pmax = 3L;                  /* set minimum pflds */
@@ -465,10 +463,10 @@ void otran(ENVIRON *csound)
             if (O->odebug) {
               putop(csound, &bp->t);
               csound->Message(csound, "pmax %ld, kcnt %d, dcnt %d, "
-                                      "wcnt %d, acnt %d pcnt %d\n",
+                                      "wcnt %d, acnt %d, pcnt %d, scnt %d\n",
                                       pmax, ST(lclnxtkcnt), ST(lclnxtdcnt),
                                       ST(lclnxtwcnt), ST(lclnxtacnt),
-                                      ST(lclnxtpcnt));
+                                      ST(lclnxtpcnt), ST(lclnxtscnt));
             }
             ip->pmax = (int)pmax;
             ip->pextrab = ((n = pmax-3L) > 0 ? (int) n * sizeof(MYFLT) : 0);
@@ -478,9 +476,8 @@ void otran(ENVIRON *csound)
             ip->lcldcnt = ST(lclnxtdcnt);
             ip->lclwcnt = ST(lclnxtwcnt);
             ip->lclacnt = ST(lclnxtacnt);
-            ip->lclfixed = ST(lclnxtkcnt) + ST(lclnxtdcnt) * Dfloats
-                                          + ST(lclnxtwcnt) * Wfloats;
-            ip->lclpcnt  = ST(lclnxtpcnt);
+            ip->lclpcnt = ST(lclnxtpcnt);
+            ip->lclscnt = ST(lclnxtscnt);
             ip->lclfixed = ST(lclnxtkcnt) + ST(lclnxtdcnt) * Dfloats
                                           + ST(lclnxtwcnt) * Wfloats
                                           + ST(lclnxtpcnt) * Pfloats;
@@ -495,29 +492,18 @@ void otran(ENVIRON *csound)
             threads |= csound->opcodlst[opnum].thread;
             opdstot += csound->opcodlst[opnum].dsblksiz;  /* sum opds's */
             if (O->odebug) putop(csound, &bp->t);
-            if (opnum == ST(displop1))                    /* display op arg ? */
-              for (alp=bp->t.inlist, nn=alp->count; nn>0; ) {
-                s = alp->arg[--nn];
-                ST(strargsize) += (long)strlen(s) +  1L;/* sum the chars */
-              }
-            if (opnum == ST(displop2) || opnum == ST(displop3) ||
-                opnum == csound->displop4) {
-              alp=bp->t.inlist;
-              s = alp->arg[0];
-              ST(strargsize) += (long)strlen(s) + 1L;
-            }
             for (alp=bp->t.inlist, nn=alp->count; nn>0; ) {
               s = alp->arg[--nn];
-              if (*s == '"') {                        /* "string" arg ? */
-                ST(strargsize) += (long)strlen(s) - 1L; /* sum real chars */
-                continue;
-              }
               if ((n = pnum(s)) >= 0)
                 { if (n > pmax)  pmax = n; }
               else lgbuild(csound, s);
             }
             for (alp=bp->t.outlist, nn=alp->count; nn>0; ) {
               s = alp->arg[--nn];
+              if (*s == '"') {
+                synterr(csound, Str("string constant used as output"));
+                continue;
+              }
               if ((n = pnum(s)) >= 0) {
                 if (n > pmax)  pmax = n;
               }
@@ -634,35 +620,36 @@ void otran(ENVIRON *csound)
     }
     if (O->odebug) {
       long n; MYFLT *p;
-      csound->Message(csound, "poolcount = %ld, strargsize = %ld\n",
-                              ST(poolcount), ST(strargsize));
+      csound->Message(csound, "poolcount = %ld, strpool_cnt = %ld\n",
+                              ST(poolcount), ST(strpool_cnt));
       csound->Message(csound, "pool:");
       for (n = ST(poolcount), p = csound->pool; n--; p++)
         csound->Message(csound, "\t%g", *p);
       csound->Message(csound, "\n");
+      csound->Message(csound, "strpool:");
+      for (n = 0L; n < ST(strpool_cnt); n++)
+        csound->Message(csound, "\t\"%s\"", (char*) (ST(strpool)[n]));
+      csound->Message(csound, "\n");
     }
     ST(gblfixed) = ST(gblnxtkcnt);
     ST(gblacount) = ST(gblnxtacnt);
+    ST(gblscount) = ST(gblnxtscnt);
 
-    if (ST(strargsize)) {
-      ST(strargspace) = mcalloc(csound, (long)ST(strargsize));
-      ST(strargptr) = ST(strargspace);
-    }
     ip = &(csound->instxtanchor);
     for (sumcount = 0; (ip = ip->nxtinstxt) != NULL; ) {/* for each instxt */
       OPTXT *optxt = (OPTXT *) ip;
       int optxtcount = 0;
-      while ((optxt = optxt->nxtop) != NULL) {/* for each op in instr  */
+      while ((optxt = optxt->nxtop) != NULL) {      /* for each op in instr  */
         TEXT *ttp = &optxt->t;
         optxtcount += 1;
-        if (ttp->opnum == ENDIN                 /*    (until ENDIN)      */
+        if (ttp->opnum == ENDIN                     /*    (until ENDIN)      */
             || ttp->opnum == ENDOP) break;  /* (IV - Oct 26 2002: or ENDOP) */
         if ((count = ttp->inlist->count)!=0)
-          sumcount += count +1;           /* count the non-nullist */
+          sumcount += count +1;                     /* count the non-nullist */
         if ((count = ttp->outlist->count)!=0)       /* slots in all arglists */
           sumcount += count +1;
       }
-      ip->optxtcount = optxtcount;              /* optxts in this instxt */
+      ip->optxtcount = optxtcount;                  /* optxts in this instxt */
     }
     ST(argoffsize) = (sumcount + 1) * sizeof(int);  /* alloc all plus 1 null */
     /* as argoff ints */
@@ -684,8 +671,6 @@ void otran(ENVIRON *csound)
     }
     if (ST(nxtargoffp) != ST(argofflim))
       csoundDie(csound, Str("inconsistent argoff sumcount"));
-    if (ST(strargsize) && ST(strargptr) != ST(strargspace) + ST(strargsize))
-      csoundDie(csound, Str("inconsistent strarg sizecount"));
 
     ip = &(csound->instxtanchor);               /* set the OPARMS values */
     instxtcount = optxtcount = 0;
@@ -698,10 +683,9 @@ void otran(ENVIRON *csound)
     O->poolcount = ST(poolcount);
     O->gblfixed = ST(gblnxtkcnt);
     O->gblacount = ST(gblnxtacnt);
+    O->gblscount = ST(gblnxtscnt);
     O->argoffsize = ST(argoffsize);
     O->argoffspace = (char *) csound->argoffspace;
-    O->strargsize = ST(strargsize);
-    O->strargspace = ST(strargspace);
 }
 
 /* prep an instr template for efficient allocs  */
@@ -728,7 +712,9 @@ static void insprep(ENVIRON *csound, INSTRTXT *tp)
     ST(lcldcnt) = tp->lcldcnt;
     ST(lclwcnt) = tp->lclwcnt;
     ST(lclfixed) = tp->lclfixed;
-    ST(lclpcnt)  = tp->lclpcnt;
+    ST(lclpcnt) = tp->lclpcnt;
+    ST(lclscnt) = tp->lclscnt;
+    ST(lclacnt) = tp->lclacnt;
     ST(lcl).nxtslot = ST(lcl).names;                    /* clear lcl namlist */
     if (ST(lcl).next) {
       struct namepool *lll = ST(lcl).next;
@@ -742,13 +728,12 @@ static void insprep(ENVIRON *csound, INSTRTXT *tp)
     }
     ST(lclnxtkcnt) = ST(lclnxtdcnt) = 0;        /*   for rebuilding  */
     ST(lclnxtwcnt) = ST(lclnxtacnt) = 0;
-    ST(lclnxtpcnt) = 0;
+    ST(lclnxtpcnt) = ST(lclnxtscnt) = 0;
     ST(lclpmax) = tp->pmax;                     /* set pmax for plgndx */
     ndxp = ST(nxtargoffp);
     optxt = (OPTXT *)tp;
     while ((optxt = optxt->nxtop) != NULL) {    /* for each op in instr */
       TEXT *ttp = &optxt->t;
-      int whichstr = 0;
       if ((opnum = ttp->opnum) == ENDIN         /*  (until ENDIN)  */
           || opnum == ENDOP)            /* (IV - Oct 31 2002: or ENDOP) */
         break;
@@ -788,23 +773,6 @@ static void insprep(ENVIRON *csound, INSTRTXT *tp)
       else {
         ttp->inoffs = inoffs = (ARGOFFS *) ndxp;
         inoffs->count = inlist->count;
-        if (opnum == ST(displop1)) {                /* display op arg ? */
-          optxt->t.strargs[0] = ST(strargptr);
-          for (n=0; n < inlist->count; n++ ) {
-            char *s = inlist->arg[n];
-            do {
-              *ST(strargptr)++ = *s;       /*   copy all args  */
-            } while (*s++);
-          }
-        }
-        else if (opnum == ST(displop2) || opnum == ST(displop3) ||
-                 opnum == csound->displop4) {
-          char *s = inlist->arg[0];
-          optxt->t.strargs[0] = ST(strargptr);
-          do {
-            *ST(strargptr)++ = *s;         /*   or just the 1st */
-          } while (*s++);
-        }
         inreqd = strlen(ep->intypes);
         argp = inlist->arg;                     /* get inarg indices */
         ndxp = inoffs->indx;
@@ -831,17 +799,7 @@ static void insprep(ENVIRON *csound, INSTRTXT *tp)
           }
           else {
             char *s = *argp;
-            if (*s == '"') {            /* string argument: save strargs ptr */
-              optxt->t.strargs[whichstr++] = ST(strargptr);
-              s++;
-              do {
-                char c = *s++;
-                *ST(strargptr)++ = c;   /*  copy w/o quotes  */
-              } while (*s != '"');
-              *ST(strargptr)++ = '\0';  /*  terminate string */
-              indx = 1;                 /*  cod=1st pool val */
-            }
-            else indx = plgndx(csound, s);  /* else normal index */
+            indx = plgndx(csound, s);
             if (O->odebug) csound->Message(csound, "\t%d",indx);
             *ndxp = indx;
           }
@@ -869,13 +827,15 @@ static void lgbuild(ENVIRON *csound, char *s)
 {                               /* build pool of floating const values  */
     char c;                     /* build lcl/gbl list of ds names, offsets */
                                 /*   (no need to save the returned values) */
-    if (((c = *s) >= '0' && c <= '9') ||
-        c == '.' || c == '-' || c == '+')
-        constndx(csound, s);
+    if (((c = *s) >= '0' && c <= '9') || c == '.' || c == '-' || c == '+')
+      constndx(csound, s);
+    else if (c == '"')
+      strconstndx(csound, s);
     else if (!(lgexist(csound, s))) {
-      if (c == 'g' || (c == '#' && *(s+1) == 'g'))
+      if (c == 'g' || (c == '#' && s[1] == 'g'))
         gblnamset(csound, s);
-      else lclnamset(csound, s);
+      else
+        lclnamset(csound, s);
     }
 }
 
@@ -885,20 +845,65 @@ static int plgndx(ENVIRON *csound, char *s)
     int         n, indx;        /* pnum/lcl negativ-1 called only after      */
                                 /* poolcount & lclpmax are finalised */
     c = *s;
-    if (
-        /* must trap 0dbfs as name starts with a digit! */
-        strcmp(s,"0dbfs") && ((c >= '0' && c <= '9') ||
-                              c == '.' || c == '-' || c == '+')
-        ) {
+    /* must trap 0dbfs as name starts with a digit! */
+    if ((c >= '1' && c <= '9') || c == '.' || c == '-' || c == '+' ||
+        (c == '0' && strcmp(s, "0dbfs") != 0))
       indx = constndx(csound, s) + 1;
-    }
+    else if (c == '"')
+      indx = strconstndx(csound, s) + STR_OFS + 1;
     else if ((n = pnum(s)) >= 0)
-      indx = - n;
+      indx = -n;
     else if (c == 'g' || (c == '#' && *(s+1) == 'g') || gexist(csound, s))
       indx = (int) (ST(poolcount) + 1 + gbloffndx(csound, s));
-    else indx = - (ST(lclpmax) + 1 + lcloffndx(csound, s));
-/*     csound->Message(csound, " [%s -> %d (%x)]\n", s, indx, indx); */
+    else
+      indx = -(ST(lclpmax) + 1 + lcloffndx(csound, s));
+/*    csound->Message(csound, " [%s -> %d (%x)]\n", s, indx, indx); */
     return(indx);
+}
+
+static int strconstndx(ENVIRON *csound, char *s)
+{                                   /* get storage ndx of string const value */
+    MYFLT   *str;                   /* builds value pool on 1st occurrence   */
+    int     i, cnt;
+
+    /* check syntax */
+    if ((int) strlen(s) < 2 || *s != '"' || s[(int) strlen(s) - 1] != '"') {
+      sprintf(csound->errmsg, Str("string syntax '%s'"), s);
+      synterr(csound, csound->errmsg);
+      return 0;
+    }
+    /* make an unquoted copy of the string constant, */
+    /* aligned to MYFLT boundary */
+    cnt = ((int) strlen(s) + (int) sizeof(MYFLT) - 2) / (int) sizeof(MYFLT);
+    str = (MYFLT*) csound->Malloc(csound, cnt * sizeof(MYFLT));
+    for (i = 0; i < ((int) strlen(s) - 2); i++)
+      ((char*) str)[i] = s[i + 1];
+    ((char*) str)[i] = '\0';
+    /* check if a copy of the string is already stored */
+    for (i = 0; i < ST(strpool_cnt); i++) {
+      if (strcmp(((char*) str), ((char*) ST(strpool)[i])) == 0) {
+        csound->Free(csound, str);
+        return i;
+      }
+    }
+    /* not found, store new string */
+    cnt = ST(strpool_cnt)++;
+    if (!(cnt & 0x7F)) {
+      /* extend list */
+      if (!cnt)
+        ST(strpool) = csound->Malloc(csound, 0x80 * sizeof(MYFLT*));
+      else
+        ST(strpool) = csound->ReAlloc(csound, ST(strpool), (cnt + 0x80)
+                                                           * sizeof(MYFLT*));
+    }
+    ST(strpool)[cnt] = str;
+    /* and return index */
+    return cnt;
+}
+
+MYFLT *strConstIndex2Ptr(ENVIRON *csound, int ndx)
+{
+    return ST(strpool)[ndx];
 }
 
 static int constndx(ENVIRON *csound, char *s)
@@ -981,6 +986,10 @@ static void gblnamset(ENVIRON *csound, char *s)
       np->type = ATYPE;
       np->count = ST(gblnxtacnt)++;
     }
+    else if (*s == 'S') {
+      np->type = STYPE;
+      np->count = ST(gblnxtscnt)++;
+    }
     else {
       np->type = KTYPE;
       np->count = ST(gblnxtkcnt)++;
@@ -1024,6 +1033,7 @@ static NAME *lclnamset(ENVIRON *csound, char *s)
       case 'w': np->type = WTYPE; np->count = ST(lclnxtwcnt)++; break;
       case 'a': np->type = ATYPE; np->count = ST(lclnxtacnt)++; break;
       case 'f': np->type = PTYPE; np->count = ST(lclnxtpcnt)++; break;
+      case 's': np->type = STYPE; np->count = ST(lclnxtscnt)++; break;
       default:  np->type = KTYPE; np->count = ST(lclnxtkcnt)++; break;
     }
     return(np);
@@ -1037,10 +1047,13 @@ static int gbloffndx(ENVIRON *csound, char *s)
 
     while (1) {
       for (np=ggg->names; np<ggg->nxtslot; np++)  /* search gbl namelist: */
-        if (strcmp(s,np->namep) == 0) { /* if name is there     */
-          if (np->type == ATYPE)
-            indx = ST(gblfixed) + np->count;
-          else indx = np->count;        /*    return w. index   */
+        if (strcmp(s, np->namep) == 0) {          /* if name is there     */
+          indx = np->count;
+          switch (np->type) {
+            case STYPE: indx += ST(gblacount);
+            case ATYPE: indx += ST(gblfixed);
+          }
+          /* return w. index */
           return(indx);
         }
       if (ggg->nxtslot+1 < ggg->namlim)
@@ -1062,11 +1075,12 @@ static int lcloffndx(ENVIRON *csound, char *s)
       case KTYPE: indx = np->count;  break;
       case DTYPE: indx = ST(lclkcnt) + np->count * Dfloats;  break;
       case WTYPE: indx = ST(lclkcnt) + ST(lcldcnt) * Dfloats
-                                      + np->count * Wfloats;  break;
-      case ATYPE: indx = ST(lclfixed) + np->count;  break;
-                  /*RWD ???? */
-      case PTYPE: indx = ST(lclkcnt) + np->count * Pfloatsize; break;
-      default:    csoundDie(csound, Str("unknown nametype"));  break;
+                                     + np->count * Wfloats;  break;
+      case ATYPE: indx = ST(lclfixed) + np->count;           break;
+                  /* RWD ???? */
+      case PTYPE: indx = ST(lclkcnt) + np->count * Pfloatsize;    break;
+      case STYPE: indx = ST(lclfixed) + ST(lclacnt) + np->count;  break;
+      default:    csoundDie(csound, Str("unknown nametype"));     break;
     }
     return(indx);                       /*   and rtn this offset */
 }

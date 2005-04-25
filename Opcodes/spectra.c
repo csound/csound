@@ -520,13 +520,15 @@ int spdspset(ENVIRON *csound, SPECDISP *p)
       if (downp->lofrq > 5.) {
         sprintf(csound->strmsg,
                 Str("instr %d %s, dft (%s), %ld octaves (%d - %d Hz):"),
-                p->h.insdshead->insno, p->STRARG, outstring[specp->dbout],
+                p->h.insdshead->insno, "" /* FIXME: p->STRARG */,
+                outstring[specp->dbout],
                 downp->nocts, (int)downp->lofrq, (int)downp->hifrq);
       }
       else {                      /* more detail if low frequency  */
         sprintf(csound->strmsg,
                 Str("instr %d %s, dft (%s), %ld octaves (%3.1f - %3.1f Hz):"),
-                p->h.insdshead->insno, p->STRARG, outstring[specp->dbout],
+                p->h.insdshead->insno, "" /* FIXME: p->STRARG */,
+                outstring[specp->dbout],
                 downp->nocts, downp->lofrq, downp->hifrq);
       }
       csound->dispset(&p->dwindow, (MYFLT*) specp->auxch.auxp,

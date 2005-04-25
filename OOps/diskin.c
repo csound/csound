@@ -96,14 +96,15 @@ static int sngetset(SOUNDINEW *p, char *sfname)
     SF_INFO sfinfo;
     SOUNDIN forReadHeader;
 
-    if ((sinfd = openin(sfname)) < 0) {     /* open with full dir paths */
+    memset(&forReadHeader, 0, sizeof(SOUNDIN));
+    if ((sinfd = openin(sfname)) < 0) {         /* open with full dir paths */
       sprintf(csound->errmsg, Str("diskin cannot open %s"), sfname);
       goto errtn;
     }
     infile = sf_open_fd(sinfd, SFM_READ, &sfinfo, SF_TRUE);
     p->fdch.fd = infile;
     p->format = SF2FORMAT(sfinfo.format);
-    sfname = csound->retfilnam;                /* & record fullpath filnam */
+    sfname = csound->retfilnam;                 /* & record fullpath filnam */
     if (*p->iformat > 0)  /* convert spec'd format code */
        p->format = ((short)*p->iformat) | 0x100;
     p->endfile = 0;
@@ -165,7 +166,7 @@ int newsndinset(ENVIRON *csound, SOUNDINEW *p)  /* init routine for diskin   */
     int     n;
     char    *sfname, soundiname[128];
     SNDFILE *sinfd = NULL;
-    long    nbytes, filno;
+    long    nbytes;
     MYFLT   skiptime = *p->iskptim;
 
     /* RWD 5:2001 need this as var, change size to read 24bit data */
@@ -247,15 +248,9 @@ int newsndinset(ENVIRON *csound, SOUNDINEW *p)  /* init routine for diskin   */
       sprintf(csound->errmsg, Str("diskin: illegal no of receiving channels"));
       goto errtn;
     }
-    if (*p->ifilno == SSTRCOD) { /* if char string name given */
-      if (p->STRARG == NULL)
-        strcpy(soundiname, unquote(csound->currevent->strarg));
-      else strcpy(soundiname,unquote(p->STRARG));    /* unquote it, else use */
-    }
-    else if ((filno = (long) *p->ifilno) <= csound->strsmax &&
-             csound->strsets != NULL && csound->strsets[filno])
-      strcpy(soundiname, csound->strsets[filno]);
-    else sprintf(soundiname,"soundin.%ld",filno);  /* soundin.filno */
+    /* if char string name given */
+    csound->strarg2name(csound, soundiname, p->ifilno, "soundin.",
+                                p->XINSTRCODE);
     sfname = soundiname;
     if (!sngetset(p, sfname))
       return FALSE;
@@ -673,19 +668,14 @@ void soundinew(ENVIRON *csound, SOUNDINEW *p)    /*  a-rate routine for soundine
 
 int sndo1set(ENVIRON *csound, SNDOUT *p) /* init routine for instr soundout   */
 {
-    int    soutfd, filno;
+    int    soutfd;
     char   *sfname, sndoutname[128];
     SF_INFO sfinfo;
     SNDFILE *outfile;
 
     if (p->c.fdch.fd != NULL)   return OK;  /* if file already open, rtn  */
-    if (*p->c.ifilcod == SSTRCOD)
-      strcpy(sndoutname, unquote(p->STRARG));
-    else if ((filno = (int) *p->c.ifilcod) <= csound->strsmax &&
-             csound->strsets != NULL && csound->strsets[filno])
-      strcpy(sndoutname, csound->strsets[filno]);
-    else
-      sprintf(sndoutname,"soundout.%d", filno);
+    csound->strarg2name(csound, sndoutname, p->c.ifilcod, "soundout.",
+                                p->XINSTRCODE);
     sfname = sndoutname;
     if ((soutfd = openout(sfname, 1)) < 0) {   /* if openout successful */
       sprintf(csound->errmsg, Str("soundout cannot open %s"), sfname);
