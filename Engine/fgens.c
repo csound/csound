@@ -2306,27 +2306,30 @@ int ftgen(ENVIRON *csound, FTGEN *p) /* set up and call any GEN routine */
     ftevt->strarg = NULL;
     fp = &ftevt->p[1];
     *fp++ = *p->p1;                             /* copy p1 - p5 */
-    *fp++ = ftevt->p2orig = FL(0.0);            /* force time 0    */
+    *fp++ = ftevt->p2orig = FL(0.0);            /* force time 0 */
     *fp++ = ftevt->p3orig = *p->p3;
     *fp++ = *p->p4;
-    *fp++ = *p->p5;
-    if ((nargs = p->INOCOUNT - 5) > 0) {
-      MYFLT **argp = p->argums;
-      while (nargs--)                           /* copy rem arglist */
-        *fp++ = **argp++;
-    }
-    if (ftevt->p[5] == SSTRCOD) {               /* if string p5    */
-      int n = (int)ftevt->p[4];
+    if (p->XINSTRCODE) {                        /* string argument: */
+      int n = (int) ftevt->p[4];
+      *fp++ = SSTRCOD;
       if (n < 0) n = -n;
       if (n == 1 || n == 23 || n == 28) {       /*   must be Gen01, 23 or 28 */
-        ftevt->strarg = p->STRARG;
+        ftevt->strarg = (char*) p->p5;
       }
       else {
         mfree(csound, ftevt);
         return csoundInitError(csound, Str("ftgen string arg not allowed"));
       }
     }
-    else ftevt->strarg = NULL;                  /* else no string */
+    else {
+      *fp++ = *p->p5;
+      ftevt->strarg = NULL;                     /* else no string */
+    }
+    if ((nargs = p->INOCOUNT - 5) > 0) {
+      MYFLT **argp = p->argums;
+      while (nargs--)                           /* copy rem arglist */
+        *fp++ = **argp++;
+    }
     ftevt->pcnt = p->INOCOUNT;
     if ((ftp = hfgens(csound, ftevt)) != NULL)  /* call the fgen */
       *p->ifno = (MYFLT)ftp->fno;               /* record the fno */
@@ -2348,11 +2351,8 @@ int ftload(ENVIRON *csound, FTLOAD *p)
 
     if ((nargs = p->INOCOUNT - 2) <= 0) goto err2;
 
-    if (*p->ifilno == SSTRCOD) { /* if char string name given */
-      if (p->STRARG == NULL)
-        strcpy(filename, unquote(csound->currevent->strarg));
-      else strcpy(filename,unquote(p->STRARG));    /* unquote it,  else use */
-    }
+    if (p->XINSTRCODE)                      /* if char string name given */
+      strcpy(filename, (char*) p->ifilno);  /* FIXME: and what if not ? */
     if (*p->iflag <= 0) {
       if (!(file = fopen(filename, "rb"))) goto err3;
       while (nargs--)  {
@@ -2482,11 +2482,8 @@ int ftsave(ENVIRON *csound, FTLOAD *p)
 
     if ((nargs = p->INOCOUNT - 2) <= 0) goto err2;
 
-    if (*p->ifilno == SSTRCOD) { /* if char string name given */
-      if (p->STRARG == NULL)
-        strcpy(filename, unquote(csound->currevent->strarg));
-      else strcpy(filename,unquote(p->STRARG));    /* unquote it,  else use */
-    }
+    if (p->XINSTRCODE)                      /* if char string name given */
+      strcpy(filename, (char*) p->ifilno);  /* FIXME: and what if not ? */
     if (*p->iflag <= 0) {
       if (!(file = fopen(filename, "wb"))) goto err3;
       while (nargs--) {

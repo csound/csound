@@ -202,23 +202,11 @@ int diskin2_init(ENVIRON *csound, DISKIN2 *p)
       fdclose(csound, &(p->fdch));
     }
     /* open file */
-    if (*(p->iFileCode) == SSTRCOD && p->STRARG != NULL) {
-      s = p->STRARG;
-      i = 0;
-      /* unquote name */
-      while (*s == '"')
-        s++;
-      while (*s != '"' && *s != '\0')
-        name[i++] = *(s++);     /* FIXME: can overflow with very long string */
-      name[i] = '\0';
-    }
-    else
-      sprintf(name, "soundin.%d", (int) (*(p->iFileCode)
-                                         + (*(p->iFileCode) >= FL(0.0) ?
-                                            FL(0.5) : FL(-0.5))));
-    s = csound->FindInputFile(csound, &(name[0]), "SFDIR;SSDIR");
+    /* FIXME: name can overflow with very long string */
+    csound->strarg2name(csound, name, p->iFileCode, "soundin.", p->XINSTRCODE);
+    s = csound->FindInputFile(csound, name, "SFDIR;SSDIR");
     if (s == NULL) {
-      csound->Message(csound, Str("diskin2: opening '%s':\n"), &(name[0]));
+      csound->Message(csound, Str("diskin2: opening '%s':\n"), name);
       csound->InitError(csound,
                         Str("cannot find file in any of the search paths"));
       return NOTOK;

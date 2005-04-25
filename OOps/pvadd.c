@@ -87,16 +87,7 @@ int pvaddset(ENVIRON *csound, PVADD *p)
        return NOTOK;
     p->AmpGateFunc = AmpGateFunc;
 
-    if (*p->ifilno == SSTRCOD) {                /* if strg name given */
-      extern char *unquote(char *name);
-      if (p->STRARG == NULL)
-        strcpy(pvfilnam, unquote(csound->currevent->strarg));
-      else strcpy(pvfilnam, unquote(p->STRARG));
-    }
-    else if ((long)*p->ifilno <= csound->strsmax && csound->strsets != NULL &&
-             csound->strsets[(long)*p->ifilno])
-      strcpy(pvfilnam, csound->strsets[(long)*p->ifilno]);
-    else sprintf(pvfilnam,"pvoc.%d", (int)*p->ifilno);
+    csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", p->XINSTRCODE);
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename, pvfilnam) != 0)
       if ( (mfp = ldmemfile(csound, pvfilnam)) == NULL) {
         sprintf(csound->errmsg, Str("PVADD cannot load %s"), pvfilnam);

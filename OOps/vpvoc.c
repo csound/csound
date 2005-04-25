@@ -236,17 +236,7 @@ int vpvset(ENVIRON *csound, VPVOC *p)
         p->outBuf = fltp;      fltp += PVFFTSIZE;
         p->window = fltp;
     }
-    if (*p->ifilno == SSTRCOD) {                       /* if strg name given */
-      if (p->STRARG!=NULL)
-        strcpy(pvfilnam, unquote(p->STRARG));          /*   use that         */
-      else
-        strcpy(pvfilnam, unquote(csound->currevent->strarg));
-    }
-    else if ((long)*p->ifilno <= csound->strsmax && csound->strsets != NULL &&
-             csound->strsets[(long)*p->ifilno]) {
-      strcpy(pvfilnam, csound->strsets[(long)*p->ifilno]);
-    }
-    else sprintf(pvfilnam,"pvoc.%d", (int)*p->ifilno); /* else pvoc.filnum   */
+    csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", p->XINSTRCODE);
     if ((mfp = p->mfp) == NULL
       || strcmp(mfp->filename, pvfilnam) != 0) /* if file not already readin */
         if ( (mfp = ldmemfile(csound, pvfilnam)) == NULL) {

@@ -51,22 +51,11 @@ static HEADATA *getsndinfo(ENVIRON *csound, SNDINFO *p)
 {
     HEADATA *hdr = NULL;
     char    *sfname, *s, soundiname[512];
-    long    filno;
     SNDFILE *sf;
     SF_INFO sfinfo;
 
-    if (*p->ifilno == SSTRCOD) { /* if char string name given */
-      if (p->STRARG == NULL)
-        strcpy(soundiname,unquote(csound->currevent->strarg));
-      else
-        strcpy(soundiname,unquote(p->STRARG));    /* unquote it,  else use */
-    }
-    else if ((filno = (long) *p->ifilno) <= csound->strsmax &&
-             csound->strsets != NULL && csound->strsets[filno])
-      strcpy(soundiname, csound->strsets[filno]);
-    else
-      sprintf(soundiname,"soundin.%ld",filno);  /* soundin.filno */
-
+    csound->strarg2name(csound, soundiname, p->ifilno, "soundin.",
+                                p->XINSTRCODE);
     sfname = soundiname;
     if (strcmp(sfname, "-i") == 0) {    /* get info on the -i    */
       if (!csound->oparms->infilename)  /* commandline inputfile */
@@ -164,22 +153,11 @@ int filepeak(ENVIRON *csound, SNDINFOPEAK *p)
 #if 0
     int channel = (int)(*p->channel + FL(0.5));
     char    *sfname, *s, soundiname[512];
-    long    filno;
     SNDFILE *sf;
     SF_INFO sfinfo;
 
-    if (*p->ifilno == SSTRCOD) { /* if char string name given */
-      if (p->STRARG == NULL)
-        strcpy(soundiname,unquote(csound->currevent->strarg));
-      else
-        strcpy(soundiname,unquote(p->STRARG));    /* unquote it,  else use */
-    }
-    else if ((filno = (long) *p->ifilno) <= csound->strsmax &&
-             csound->strsets != NULL && csound->strsets[filno])
-      strcpy(soundiname, csound->strsets[filno]);
-    else
-      sprintf(soundiname,"soundin.%ld",filno);  /* soundin.filno */
-
+    csound->strarg2name(csound, soundiname, p->ifilno, "soundin.",
+                                p->XINSTRCODE);
     sfname = soundiname;
     if (strcmp(sfname, "-i") == 0) {    /* get info on the -i    */
       if (!csound->oparms->infilename)  /* commandline inputfile */
@@ -211,7 +189,6 @@ int filepeak(ENVIRON *csound, SNDINFOPEAK *p)
 static int anal_filelen(ENVIRON *csound, SNDINFO *p,MYFLT *p_dur)
 {
     char    *sfname, soundiname[256];
-    long filno;
     int fd;
     FILE *fp;
     PVOCDATA pvdata;
@@ -219,20 +196,9 @@ static int anal_filelen(ENVIRON *csound, SNDINFO *p,MYFLT *p_dur)
     MYFLT nframes,nchans,srate,overlap,arate,dur;
 
     /* leap thru std hoops to get the name */
-    if (*p->ifilno == SSTRCOD) { /* if char string name given */
-      if (p->STRARG == NULL)
-        strcpy(soundiname,unquote(csound->currevent->strarg));
-      else
-        strcpy(soundiname,unquote(p->STRARG));    /* unquote it,  else use */
-    }
-    else if ((filno = (long) *p->ifilno) <= csound->strsmax &&
-             csound->strsets != NULL && csound->strsets[filno])
-      strcpy(soundiname, csound->strsets[filno]);
-    else
-      sprintf(soundiname,"soundin.%ld",filno);  /* soundin.filno */
-
+    csound->strarg2name(csound, soundiname, p->ifilno, "soundin.",
+                                p->XINSTRCODE);
     sfname = soundiname;
-
     /* my prerogative: try pvocex file first! */
     fd = pvoc_openfile(sfname,&pvdata,&fmt);
     if (fd >= 0) {

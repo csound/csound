@@ -27,113 +27,97 @@
 
 int kdmpset(ENVIRON *csound, KDUMP *p)
 {
-    if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
-      char soundoname[1024];
-      if (p->STRARG == NULL)
-        strcpy(soundoname, unquote(csound->currevent->strarg));
-      else strcpy(soundoname,unquote(p->STRARG));    /* unquote it, else use */
-
-      if ((p->fdch.fdc = openout(soundoname,1)) < 0) {
-        return csound->InitError(csound, Str("Cannot open %s"), soundoname);
-      }
-      p->fdch.fd = NULL;        /* Character file not audio */
-      fdrecord(csound, &p->fdch);
-      if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
-        return csound->InitError(csound, Str("unknown format request"));
-      }
-      if (p->format == 2 || p->format == 3) {
-        return csound->InitError(csound,
-                                 Str("alaw and ulaw not implemented here"));
-      }
-      if ((p->timcount = (long)(*p->iprd * csound->ekr)) <= 0)
-        p->timcount = 1;
-      p->countdown = p->timcount;
+    /* open in curdir or pathname */
+    char soundoname[1024];
+    csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.",
+                                p->XINSTRCODE);
+    if ((p->fdch.fdc = openout(soundoname,1)) < 0) {
+      return csound->InitError(csound, Str("Cannot open %s"), soundoname);
     }
-    else return csound->InitError(csound, Str("need quoted filename"));
+    p->fdch.fd = NULL;        /* Character file not audio */
+    fdrecord(csound, &p->fdch);
+    if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
+      return csound->InitError(csound, Str("unknown format request"));
+    }
+    if (p->format == 2 || p->format == 3) {
+      return csound->InitError(csound,
+                               Str("alaw and ulaw not implemented here"));
+    }
+    if ((p->timcount = (long)(*p->iprd * csound->ekr)) <= 0)
+      p->timcount = 1;
+    p->countdown = p->timcount;
     return OK;
 }
 
 int kdmp2set(ENVIRON *csound, KDUMP2 *p)
 {
-    if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
-      char soundoname[1024];
-      if (p->STRARG == NULL)
-        strcpy(soundoname, unquote(csound->currevent->strarg));
-      else strcpy(soundoname,unquote(p->STRARG));    /* unquote it, else use */
-
-      if ((p->fdch.fdc = openout(soundoname,1)) < 0) {
-        return csound->InitError(csound, Str("Cannot open %s"), soundoname);
-      }
-      p->fdch.fd = NULL;        /* Character file not audio */
-      fdrecord(csound, &p->fdch);
-      if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
-        return csound->InitError(csound, Str("unknown format request"));
-      }
-      if (p->format == 2 || p->format == 3) {
-        return csound->InitError(csound,
-                                 Str("alaw and ulaw not implemented here"));
-      }
-      if ((p->timcount = (long)(*p->iprd * csound->ekr)) <= 0)
-        p->timcount = 1;
-      p->countdown = p->timcount;
+    /* open in curdir or pathname */
+    char soundoname[1024];
+    csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.",
+                                p->XINSTRCODE);
+    if ((p->fdch.fdc = openout(soundoname,1)) < 0) {
+      return csound->InitError(csound, Str("Cannot open %s"), soundoname);
     }
-    else return csound->InitError(csound, Str("need quoted filename"));
+    p->fdch.fd = NULL;        /* Character file not audio */
+    fdrecord(csound, &p->fdch);
+    if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
+      return csound->InitError(csound, Str("unknown format request"));
+    }
+    if (p->format == 2 || p->format == 3) {
+      return csound->InitError(csound,
+                               Str("alaw and ulaw not implemented here"));
+    }
+    if ((p->timcount = (long)(*p->iprd * csound->ekr)) <= 0)
+      p->timcount = 1;
+    p->countdown = p->timcount;
     return OK;
 }
 
 int kdmp3set(ENVIRON *csound, KDUMP3 *p)
 {
-    if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
-      char soundoname[1024];
-      if (p->STRARG == NULL)
-        strcpy(soundoname, unquote(csound->currevent->strarg));
-      else strcpy(soundoname,unquote(p->STRARG));    /* unquote it, else use */
-
-      if ((p->fdch.fdc = openout(soundoname,1)) < 0) {
-        return csound->InitError(csound, Str("Cannot open %s"), soundoname);
-      }
-      p->fdch.fd = NULL;        /* Character file not audio */
-      fdrecord(csound, &p->fdch);
-      if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
-        return csound->InitError(csound, Str("unknown format request"));
-      }
-      if (p->format == 2 || p->format == 3) {
-        return csound->InitError(csound,
-                                 Str("alaw and ulaw not implemented here"));
-      }
-      if ((p->timcount = (long)(*p->iprd * csound->ekr)) <= 0)
-        p->timcount = 1;
-      p->countdown = p->timcount;
+    /* open in curdir or pathname */
+    char soundoname[1024];
+    csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.",
+                                p->XINSTRCODE);
+    if ((p->fdch.fdc = openout(soundoname,1)) < 0) {
+      return csound->InitError(csound, Str("Cannot open %s"), soundoname);
     }
-    else return csound->InitError(csound, Str("need quoted filename"));
+    p->fdch.fd = NULL;        /* Character file not audio */
+    fdrecord(csound, &p->fdch);
+    if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
+      return csound->InitError(csound, Str("unknown format request"));
+    }
+    if (p->format == 2 || p->format == 3) {
+      return csound->InitError(csound,
+                               Str("alaw and ulaw not implemented here"));
+    }
+    if ((p->timcount = (long)(*p->iprd * csound->ekr)) <= 0)
+      p->timcount = 1;
+    p->countdown = p->timcount;
     return OK;
 }
 
 int kdmp4set(ENVIRON *csound, KDUMP4 *p)
 {
-    if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
-      char soundoname[1024];
-      if (p->STRARG == NULL)
-        strcpy(soundoname, unquote(csound->currevent->strarg));
-      else strcpy(soundoname,unquote(p->STRARG));    /* unquote it, else use */
-
-      if ((p->fdch.fdc = openout(soundoname,1)) < 0) {
-        return csound->InitError(csound, Str("Cannot open %s"), soundoname);
-      }
-      p->fdch.fd = NULL;        /* Character file not audio */
-      fdrecord(csound, &p->fdch);
-      if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
-        return csound->InitError(csound, Str("unknown format request"));
-      }
-      if (p->format == 2 || p->format == 3) {
-        return csound->InitError(csound,
-                                 Str("alaw and ulaw not implemented here"));
-      }
-      if ((p->timcount = (long)(*p->iprd * csound->ekr)) <= 0)
-        p->timcount = 1;
-      p->countdown = p->timcount;
+    /* open in curdir or pathname */
+    char soundoname[1024];
+    csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.",
+                                p->XINSTRCODE);
+    if ((p->fdch.fdc = openout(soundoname,1)) < 0) {
+      return csound->InitError(csound, Str("Cannot open %s"), soundoname);
     }
-    else return csound->InitError(csound, Str("need quoted filename"));
+    p->fdch.fd = NULL;        /* Character file not audio */
+    fdrecord(csound, &p->fdch);
+    if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
+      return csound->InitError(csound, Str("unknown format request"));
+    }
+    if (p->format == 2 || p->format == 3) {
+      return csound->InitError(csound,
+                               Str("alaw and ulaw not implemented here"));
+    }
+    if ((p->timcount = (long)(*p->iprd * csound->ekr)) <= 0)
+      p->timcount = 1;
+    p->countdown = p->timcount;
     return OK;
 }
 
@@ -257,121 +241,100 @@ int kdump4(ENVIRON *csound, KDUMP4 *p)
 
 int krdset(ENVIRON *csound, KREAD *p)
 {
-    if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
-      char soundiname[1024];
-      if (p->STRARG == NULL)
-        strcpy(soundiname, unquote(csound->currevent->strarg));
-      else strcpy(soundiname,unquote(p->STRARG));    /* unquote it, else use */
-
-      if ((p->fdch.fdc = openin(soundiname)) < 0) {
-        return csound->InitError(csound, Str("Cannot open %s"), soundiname);
-      }
-      p->fdch.fd = NULL;        /* Character file not audio */
-      fdrecord(csound, &p->fdch);
-      if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
-        return csound->InitError(csound, Str("unknown format request"));
-      }
-      if (p->format == 2 || p->format == 3) {
-        return csound->InitError(csound,
-                                 Str("alaw and ulaw not implemented here"));
-      }
-      if ((p->timcount = (long)(*p->iprd * csound->ekr)) <= 0)
-        p->timcount = 1;
-      p->countdown = 0;
+    /* open in curdir or pathname */
+    char soundiname[1024];
+    csound->strarg2name(csound, soundiname, p->ifilcod, "readk.",
+                                p->XINSTRCODE);
+    if ((p->fdch.fdc = openin(soundiname)) < 0) {
+      return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     }
-    else {
-      return csound->InitError(csound, Str("need quoted filename"));
+    p->fdch.fd = NULL;        /* Character file not audio */
+    fdrecord(csound, &p->fdch);
+    if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
+      return csound->InitError(csound, Str("unknown format request"));
     }
+    if (p->format == 2 || p->format == 3) {
+      return csound->InitError(csound,
+                               Str("alaw and ulaw not implemented here"));
+    }
+    if ((p->timcount = (long)(*p->iprd * csound->ekr)) <= 0)
+      p->timcount = 1;
+    p->countdown = 0;
     p->k[0] = p->k[1] = p->k[2] = p->k[3] = FL(0.0);
     return OK;
 }
 
 int krd2set(ENVIRON *csound, KREAD2 *p)
 {
-    if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
-      char soundiname[1024];
-      if (p->STRARG == NULL)
-        strcpy(soundiname, unquote(csound->currevent->strarg));
-      else strcpy(soundiname,unquote(p->STRARG));    /* unquote it, else use */
-      if ((p->fdch.fdc = openin(soundiname)) < 0) {
-        return csound->InitError(csound, Str("Cannot open %s"), soundiname);
-      }
-      p->fdch.fd = NULL;        /* Character file not audio */
-      fdrecord(csound, &p->fdch);
-      if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
-        return csound->InitError(csound, Str("unknown format request"));
-      }
-      if (p->format == 2 || p->format == 3) {
-        return csound->InitError(csound,
-                                 Str("alaw and ulaw not implemented here"));
-      }
-      if ((p->timcount = (long)(*p->iprd * csound->ekr)) <= 0)
-        p->timcount = 1;
-      p->countdown = 0;
+    /* open in curdir or pathname */
+    char soundiname[1024];
+    csound->strarg2name(csound, soundiname, p->ifilcod, "readk.",
+                                p->XINSTRCODE);
+    if ((p->fdch.fdc = openin(soundiname)) < 0) {
+      return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     }
-    else {
-      return csound->InitError(csound, Str("need quoted filename"));
+    p->fdch.fd = NULL;        /* Character file not audio */
+    fdrecord(csound, &p->fdch);
+    if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
+      return csound->InitError(csound, Str("unknown format request"));
     }
+    if (p->format == 2 || p->format == 3) {
+      return csound->InitError(csound,
+                               Str("alaw and ulaw not implemented here"));
+    }
+    if ((p->timcount = (long)(*p->iprd * csound->ekr)) <= 0)
+      p->timcount = 1;
+    p->countdown = 0;
     p->k[0] = p->k[1] = p->k[2] = p->k[3] = FL(0.0);
     return OK;
 }
 
 int krd3set(ENVIRON *csound, KREAD3 *p)
 {
-    if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
-      char soundiname[1024];
-      if (p->STRARG == NULL)
-        strcpy(soundiname, unquote(csound->currevent->strarg));
-      else strcpy(soundiname,unquote(p->STRARG));    /* unquote it, else use */
-      if ((p->fdch.fdc = openin(soundiname)) < 0) {
-        return csound->InitError(csound, Str("Cannot open %s"), soundiname);
-      }
-      p->fdch.fd = NULL;        /* Character file not audio */
-      fdrecord(csound, &p->fdch);
-      if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
-        return csound->InitError(csound, Str("unknown format request"));
-      }
-      if (p->format == 2 || p->format == 3) {
-        return csound->InitError(csound,
-                                 Str("alaw and ulaw not implemented here"));
-      }
-      if ((p->timcount = (long)(*p->iprd * csound->ekr)) <= 0)
-        p->timcount = 1;
-      p->countdown = 0;
+    /* open in curdir or pathname */
+    char soundiname[1024];
+    csound->strarg2name(csound, soundiname, p->ifilcod, "readk.",
+                                p->XINSTRCODE);
+    if ((p->fdch.fdc = openin(soundiname)) < 0) {
+      return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     }
-    else {
-      return csound->InitError(csound, Str("need quoted filename"));
+    p->fdch.fd = NULL;        /* Character file not audio */
+    fdrecord(csound, &p->fdch);
+    if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
+      return csound->InitError(csound, Str("unknown format request"));
     }
+    if (p->format == 2 || p->format == 3) {
+      return csound->InitError(csound,
+                               Str("alaw and ulaw not implemented here"));
+    }
+    if ((p->timcount = (long)(*p->iprd * csound->ekr)) <= 0)
+      p->timcount = 1;
+    p->countdown = 0;
     p->k[0] = p->k[1] = p->k[2] = p->k[3] = FL(0.0);
     return OK;
 }
 
 int krd4set(ENVIRON *csound, KREAD4 *p)
 {
-    if (*p->ifilcod == SSTRCOD) {       /* open in curdir or pathname */
-      char soundiname[1024];
-      if (p->STRARG == NULL)
-        strcpy(soundiname, unquote(csound->currevent->strarg));
-      else strcpy(soundiname,unquote(p->STRARG));    /* unquote it, else use */
-      if ((p->fdch.fdc = openin(soundiname)) < 0) {
-        return csound->InitError(csound, Str("Cannot open %s"), soundiname);
-      }
-      p->fdch.fd = NULL;        /* Character file not audio */
-      fdrecord(csound, &p->fdch);
-      if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
-        return csound->InitError(csound, Str("unknown format request"));
-      }
-      if (p->format == 2 || p->format == 3) {
-        return csound->InitError(csound,
-                                 Str("alaw and ulaw not implemented here"));
-      }
-      if ((p->timcount = (long)(*p->iprd * csound->ekr)) <= 0)
-        p->timcount = 1;
-      p->countdown = 0;
+    /* open in curdir or pathname */
+    char soundiname[1024];
+    csound->strarg2name(csound, soundiname, p->ifilcod, "readk.",
+                                p->XINSTRCODE);
+    if ((p->fdch.fdc = openin(soundiname)) < 0) {
+      return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     }
-    else {
-      return csound->InitError(csound, Str("need quoted filename"));
+    p->fdch.fd = NULL;        /* Character file not audio */
+    fdrecord(csound, &p->fdch);
+    if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
+      return csound->InitError(csound, Str("unknown format request"));
     }
+    if (p->format == 2 || p->format == 3) {
+      return csound->InitError(csound,
+                               Str("alaw and ulaw not implemented here"));
+    }
+    if ((p->timcount = (long)(*p->iprd * csound->ekr)) <= 0)
+      p->timcount = 1;
+    p->countdown = 0;
     p->k[0] = p->k[1] = p->k[2] = p->k[3] = FL(0.0);
     return OK;
 }

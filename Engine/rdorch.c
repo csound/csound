@@ -761,22 +761,19 @@ static int splitline(ENVIRON *csound)
     ST(linlabels) = ST(opgrpno) = 0;
     grpcnt = prvif = prvelsif = logical = condassgn = parens = collecting = 0;
     cp = ST(collectbuf);
-    while ((c = *lp++) != '\n') {               /* for all chars this line:  */
+    while ((c = *lp++) != '\n') {         /* for all chars this line:  */
       if (cp - ST(collectbuf) >= ST(lenmax)) {
-        int i;
-        char *nn = mcalloc(csound, ST(lenmax)+LENMAX);
-        memcpy(nn, ST(collectbuf), ST(lenmax)); /* Copy data */
-        if (nn==NULL) csoundDie(csound, Str("line LENMAX exceeded"));
-        cp = (cp - ST(collectbuf)) + nn;        /* Adjust pointer  */
-        for (i=0; i<grpcnt; i++) ST(group)[i] += (nn-ST(collectbuf));
-        mfree(csound, ST(collectbuf));          /* Need to correct grp vector */
-        ST(collectbuf) = nn;
+        char  *nn;
+        int   i;
         ST(lenmax) += LENMAX;
-/*      csound->Message(csound, "SplitLine buffer extended to %d\n",
-                                ST(lenmax)); */
-/*      csound->Die(csound, "line LENMAX exceeded"); */
+        nn = mrealloc(csound, ST(collectbuf), ST(lenmax));
+        cp += (nn - ST(collectbuf));      /* Adjust pointer */
+        /* Need to correct grp vector */
+        for (i = 0; i < grpcnt; i++)
+          ST(group)[i] += (nn - ST(collectbuf));
+        ST(collectbuf) = nn;
       }
-      if (c == '"') {                     /* quoted string:    */
+      if (c == '"') {                     /* quoted string: */
         if (collecting) {
           synterrp(csound, lp - 1, Str("unexpected quote character"));
           continue;
@@ -789,14 +786,14 @@ static int splitline(ENVIRON *csound)
                                                              * sizeof(char*));
         }
         grpp = ST(group)[grpcnt++] = cp;
-        *cp++ = c;                      /*  cpy to nxt quote */
+        *cp++ = c;                        /*  cpy to nxt quote */
         while ((*cp++ = c = *lp++) != '"' && c != '\n');
         if (c == '\n')
           synterrp(csound, lp - 1, Str("unmatched quotes"));
-        collecting = 1;                 /*   & resume chking */
+        collecting = 1;                   /*   & resume chking */
         continue;
       }
-      if (c == '{' && *lp == '{') {     /* multiline quoted string:    */
+      if (c == '{' && *lp == '{') {       /* multiline quoted string:    */
         if (collecting) {
           synterrp(csound, lp - 1, Str("unexpected quote character"));
           continue;
@@ -809,12 +806,27 @@ static int splitline(ENVIRON *csound)
                                                               * sizeof(char*));
         }
         grpp = ST(group)[grpcnt++] = cp;
-        *cp++ = c;                      /*  cpy to nxt quote */
-        while (!((*cp++ = c = *lp++) == '}' && *(lp-2) == '}')) {
+        c = '"';                          /*  cpy to nxt quote */
+        do {
+          *cp++ = c;
+          if (cp - ST(collectbuf) >= ST(lenmax)) {
+            char  *nn;
+            int   i;
+            ST(lenmax) += LENMAX;
+            nn = mrealloc(csound, ST(collectbuf), ST(lenmax));
+            cp += (nn - ST(collectbuf));  /* Adjust pointer */
+            /* Need to correct grp vector */
+            for (i = 0; i < grpcnt; i++)
+              ST(group)[i] += (nn - ST(collectbuf));
+            ST(collectbuf) = nn;
+          }
+          c = *(++lp);
           if (c == '\n')
             ++ST(curline);
-        }
-        collecting = 1;                 /*   & resume chking */
+        } while (!(c == '}' && lp[1] == '}'));
+        lp += 2;
+        *cp++ = '"';
+        collecting = 1;                   /*   & resume chking */
         continue;
       }
       if (c == ';') {
@@ -1091,7 +1103,7 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
 {                               /* get opcod and args from current line */
                                 /*      returns pntr to a TEXT struct   */
     TEXT        *tp;
-    char        c, d, str[20], *s;
+    char        c, d, str[32], *s;
     int         nn, incnt, outcnt;
 
     if (*init) {
@@ -1323,7 +1335,7 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
     ST(grpcnt) = 0;                             /* all done w. these groups */
 
  spctst:
-    tp->xincod = 0;
+    tp->xinstrcod = tp->xincod = 0;
     if (tp->opnum == OPCODE) {  /* IV - Sep 8 2002: added OPCODE and ENDOP */
       if (ST(opcodblk))
         synterr(csound, Str("opcode blks cannot be nested (missing 'endop'?)"));
@@ -1474,15 +1486,16 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
         tfound = argtyp(csound, s);     /* else get arg type */
         /* IV - Oct 31 2002 */
         tfound_m = ST(typemask_tabl)[(unsigned char) tfound];
-        if (!(tfound_m & (ARGTYP_c | ARGTYP_p | ARGTYP_S)) && !ST(lgprevdef)) {
+        if (!(tfound_m & (ARGTYP_c|ARGTYP_p)) && !ST(lgprevdef) && *s != '"') {
           sprintf(csound->errmsg, Str("input arg '%s' used before defined"), s);
           synterr(csound, csound->errmsg);
         }
         csound->DebugMsg(csound, "treqd %c, tfound %c", treqd, tfound);
-        if (tfound == 'a' && n < 15) { /*JMC added for FOG*/
+        if (tfound == 'a' && n < 31)    /* JMC added for FOG */
           /* 4 for FOF, 8 for FOG; expanded to 15  */
-          tp->xincod += (n < 2 ? (2 - n) : (1 << n));
-        }
+          tp->xincod |= (1 << n);
+        if (tfound == 'S' && n < 31)
+          tp->xinstrcod |= (1 << n);
         /* IV - Oct 31 2002: simplified code */
         if (!(tfound_m & ST(typemask_tabl_in)[(unsigned char) treqd])) {
           /* check for exceptional types */
@@ -1505,12 +1518,6 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
               else
                 break;
             }
-            intyperr(csound, n, tfound, treqd);
-            break;
-          case 'S':     /* string (k-rate is allowed for event & schedkwhen) */
-            if (tfound == 'k' && !(strcmp(ep->opname, "event")
-                                   && strcmp(ep->opname, "schedkwhen")))
-          break;
           default:
             intyperr(csound, n, tfound, treqd);
             break;
@@ -1519,7 +1526,7 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
       }
       csound->DebugMsg(csound, "xincod = %d", tp->xincod);
       /* IV - Sep 1 2002: added 'X' type, and xoutcod */
-      tp->xoutcod = 0;
+      tp->xoutstrcod = tp->xoutcod = 0;
       /* IV - Oct 24 2002: moved argument parsing for xin here */
       n = outcnt;
       nreqd = -1;
@@ -1561,9 +1568,11 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
         tfound = argtyp(csound, s);                     /*  found    */
         /* IV - Oct 31 2002 */
         tfound_m = ST(typemask_tabl)[(unsigned char) tfound];
-        /* IV - Sep 1 2002: xoutcod is the same as xincod for input, */
-        /* but the lowest two bits are not swapped */
-        if (tfound == 'a' && n < 15) tp->xoutcod |= (1 << n);
+        /* IV - Sep 1 2002: xoutcod is the same as xincod for input */
+        if (tfound == 'a' && n < 31)
+          tp->xoutcod |= (1 << n);
+        if (tfound == 'S' && n < 31)
+          tp->xoutstrcod |= (1 << n);
         csound->DebugMsg(csound, "treqd %c, tfound %c", treqd, tfound);
         if (tfound_m & (ARGTYP_d | ARGTYP_w))
           if (ST(lgprevdef)) {
@@ -1661,14 +1670,13 @@ char argtyp(ENVIRON *csound, char *s)
     /* two situations: defined at header level: 0dbfs = 1.0
      *  and returned as a value:  idb = 0dbfs
      */
-    if (strcmp(s,"0dbfs")) {
-      if ((c >= '0' && c <= '9') || c == '.' || c == '-' || c == '+')
-        return('c');                              /* const */
-      if (pnum(s) >= 0)
-        return('p');                              /* pnum */
-      if (c == '"' || c == '{')
-        return('S');                              /* quoted String */
-    }
+    if ((c >= '1' && c <= '9') || c == '.' || c == '-' || c == '+' ||
+        (c == '0' && strcmp(s, "0dbfs") != 0))
+      return('c');                              /* const */
+    if (pnum(s) >= 0)
+      return('p');                              /* pnum */
+    if (c == '"')
+      return('S');                              /* quoted String */
     ST(lgprevdef) = lgexist(csound, s);               /* (lgprev) */
     if (strcmp(s,"sr") == 0    || strcmp(s,"kr") == 0 ||
         strcmp(s,"0dbfs") == 0 ||
@@ -1680,7 +1688,7 @@ char argtyp(ENVIRON *csound, char *s)
       c = *(++s);
     if (c == 'g')
       c = *(++s);
-    if (strchr("akiBbf", c) != NULL)
+    if (strchr("akiBbfS", c) != NULL)
       return(c);
     else return('?');
 }

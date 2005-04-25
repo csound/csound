@@ -92,12 +92,13 @@ int outfile_set(ENVIRON *csound, OUTFILE *p)
     SF_INFO sfinfo;
 
     p->nargs = p->INOCOUNT-2;
-    if (*p->fname == SSTRCOD) { /* if char string name given */
+    if (p->XINSTRCODE || *p->fname == SSTRCOD) { /* if char string name given */
       int j;
       char fname[FILENAME_MAX];
-      /*extern char *unquote(char *name); */
-      if (p->STRARG == NULL) strcpy(fname,unquote(csound->currevent->strarg));
-      else strcpy(fname, unquote(p->STRARG));
+      if (p->XINSTRCODE)
+        strcpy(fname, (char*) p->fname);
+      else
+        strcpy(fname, unquote(csound->currevent->strarg));
       for (j=0; j<csound->file_num; j++) {
         if (!strcmp(((struct fileinTag*) csound->file_opened)[j].name, fname)) {
           p->fp = ((struct fileinTag*) csound->file_opened)[j].file;
@@ -170,12 +171,13 @@ int koutfile_set(ENVIRON *csound, KOUTFILE *p)
     int n;
     SF_INFO sfinfo;
     p->nargs = p->INOCOUNT-2;
-    if (*p->fname == SSTRCOD) {/*gab B1*/ /* if char string name given */
+    if (p->XINSTRCODE || *p->fname == SSTRCOD) { /* if char string name given */
       int j;
       char fname[FILENAME_MAX];
-      /*extern char *unquote(char *name); */
-      if (p->STRARG == NULL) strcpy(fname,unquote(csound->currevent->strarg));
-      else strcpy(fname, unquote(p->STRARG));
+      if (p->XINSTRCODE)
+        strcpy(fname, (char*) p->fname);
+      else
+        strcpy(fname, unquote(csound->currevent->strarg));
       for (j=0; j<csound->file_num; j++) {
         if (!strcmp(((struct fileinTag*) csound->file_opened)[j].name, fname)) {
           p->fp = ((struct fileinTag*) csound->file_opened)[j].file;
@@ -243,7 +245,7 @@ int fiopen(ENVIRON *csound, FIOPEN *p)  /* open a file and return its handle  */
     char *omodes[] = {"w", "r", "wb", "rb"};
     FILE *rfp = NULL;
     int idx = (int)*p->iascii;
-    strcpy(fname, unquote(p->STRARG));
+    strcpy(fname, (char*) p->fname);
     if (idx<0 || idx>3) idx=0;
     if ((rfp = fopen(fname,omodes[idx])) == NULL)
       csound->Die(csound, Str("fout: cannot open outfile %s"),fname);
@@ -393,12 +395,13 @@ int ioutfile_r(ENVIRON *csound, IOUTFILE_R *p)
 int infile_set(ENVIRON *csound, INFILE *p)
 {
     SF_INFO sfinfo;
-    if (*p->fname == SSTRCOD) { /* if char string name given */
+    if (p->XINSTRCODE || *p->fname == SSTRCOD) { /* if char string name given */
       int j;
-      /*extern char *unquote(char *name); */
       char fname[FILENAME_MAX];
-      if (p->STRARG == NULL) strcpy(fname,unquote(csound->currevent->strarg));
-      else strcpy(fname, unquote(p->STRARG));
+      if (p->XINSTRCODE)
+        strcpy(fname, (char*) p->fname);
+      else
+        strcpy(fname, unquote(csound->currevent->strarg));
       for (j=0; j<csound->file_num; j++) {
         if (!strcmp(((struct fileinTag*) csound->file_opened)[j].name, fname)) {
           p->fp = ((struct fileinTag*) csound->file_opened)[j].file;
@@ -472,12 +475,13 @@ int infile_act(ENVIRON *csound, INFILE *p)
 int kinfile_set(ENVIRON *csound, KINFILE *p)
 {
     SF_INFO sfinfo;
-    if (*p->fname == SSTRCOD) { /* if char string name given */
+    if (p->XINSTRCODE || *p->fname == SSTRCOD) { /* if char string name given */
       int j;
-      /*extern char *unquote(char *name); */
       char fname[FILENAME_MAX];
-      if (p->STRARG == NULL) strcpy(fname,unquote(csound->currevent->strarg));
-      else strcpy(fname, unquote(p->STRARG));
+      if (p->XINSTRCODE)
+        strcpy(fname, (char*) p->fname);
+      else
+        strcpy(fname, unquote(csound->currevent->strarg));
       for (j = 0; j < csound->file_num ||
                   ((struct fileinTag*) csound->file_opened)[j].name == NULL;
            j++) {
@@ -547,14 +551,14 @@ int i_infile(ENVIRON *csound, I_INFILE *p)
     int j, nargs;
     FILE *fp = NULL;
     MYFLT **args = p->argums;
-    if (*p->fname == SSTRCOD) {/* if char string name given */
+    if (p->XINSTRCODE || *p->fname == SSTRCOD) {/* if char string name given */
       char fname[FILENAME_MAX];
       char *omodes[] = {"r", "r", "rb"};
       int idx;
-      /*extern char *unquote(char *name); */
-
-      if (p->STRARG == NULL) strcpy(fname,unquote(csound->currevent->strarg));
-      else strcpy(fname, unquote(p->STRARG));
+      if (p->XINSTRCODE)
+        strcpy(fname, (char*) p->fname);
+      else
+        strcpy(fname, unquote(csound->currevent->strarg));
       for (j = 0; j < csound->file_num ||
                   ((struct fileinTag*) csound->file_opened)[j].name == NULL;
            j++) {
@@ -690,17 +694,19 @@ int clear(ENVIRON *csound, CLEARS *p)
 int fprintf_set(ENVIRON *csound, FPRINTF *p)
 {
     int n;
-    char *sarg = p->STRARG2;
+    char *sarg = (char*) p->fmt;
     char *sdest = p->txtstring;
 
     memset(p->txtstring, 0, 8192); /* Nasty to have exposed constant in code */
 
-    if (*p->fname == SSTRCOD) { /* if char string name given */
+    if ((p->XINSTRCODE & 1) || *p->fname == SSTRCOD) {
+      /* if char string name given */
       int j;
       char fname[FILENAME_MAX];
-      /*extern char *unquote(char *name); */
-      if (p->STRARG == NULL) strcpy(fname,unquote(csound->currevent->strarg));
-      else strcpy(fname, unquote(p->STRARG));
+      if (p->XINSTRCODE & 1)
+        strcpy(fname, (char*) p->fname);
+      else
+        strcpy(fname, unquote(csound->currevent->strarg));
       for (j=0; j<= csound->file_num; j++) {
         if (!strcmp(((struct fileinTag*) csound->file_opened)[j].name, fname)) {
           p->fp = ((struct fileinTag*) csound->file_opened)[j].raw;
