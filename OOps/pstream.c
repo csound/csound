@@ -317,17 +317,7 @@ int pvsfreadset(ENVIRON *csound, PVSFREAD *p)
     MEMFIL   *mfp;
     float       *frptr,*memptr;          /* RWD pvocex format: MUST be 32bit */
 
-    if (*p->ifilno == SSTRCOD) {                     /* if strg name given */
-      if (p->STRARG!=NULL)
-        strcpy(pvfilnam, p->STRARG);                 /*   use that         */
-      else
-        strcpy(pvfilnam, unquote(csound->currevent->strarg));
-    }
-    else if ((long)*p->ifilno < csound->strsmax && csound->strsets != NULL &&
-             csound->strsets[(long)*p->ifilno])
-      strcpy(pvfilnam, csound->strsets[(long)*p->ifilno]);
-    /* do people still use this system? */
-    else sprintf(pvfilnam,"pvoc.%d", (int)*p->ifilno); /* else pvoc.filnum   */
+    csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", p->XINSTRCODE);
     mfp = p->mfp;
     if ((mfp == NULL) || strcmp(mfp->filename, pvfilnam) != 0) {
       /* if file not already readin */

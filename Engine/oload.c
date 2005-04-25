@@ -156,6 +156,7 @@ const ENVIRON cenviron_ = {
         getopnum,
         strarg2insno,
         strarg2opcno,
+        strarg2name,
         rewriteheader,
         writeheader,
         SAsndgetset,
@@ -371,7 +372,10 @@ const ENVIRON cenviron_ = {
         0,              /*  advanceCnt          */
         (MYFLT*) NULL,  /*  gbloffbas           */
         NULL,           /*  otranGlobals        */
-        NULL            /*  rdorchGlobals       */
+        NULL,           /*  rdorchGlobals       */
+        NULL,           /*  sreadGlobals        */
+        256,            /*  maxStrVarLen        */
+        0               /*  strVar_MYFLT        */
 };
 
 /* globals to be removed eventually... */
@@ -463,11 +467,12 @@ void oloadRESET(ENVIRON *csound)
 
 void oload(ENVIRON *p)
 {
-    long    n, nn, combinedsize, gblabeg, lclabeg, insno, *lp;
+    long    n, nn, combinedsize, gblabeg, gblsbeg, lclabeg, lclsbeg, insno, *lp;
     MYFLT   *combinedspc, *gblspace, *fp1, *fp2;
     INSTRTXT *ip;
     OPTXT   *optxt;
     OPARMS  *O = p->oparms;
+
     p->esr = p->tran_sr; p->ekr = p->tran_kr;
     p->ksmps = (int) ((p->ensmps = p->tran_ksmps) + FL(0.5));
     ip = p->instxtanchor.nxtinstxt;        /* for instr 0 optxts:  */
@@ -523,15 +528,22 @@ void oload(ENVIRON *p)
     gblspace[3] = (MYFLT) p->nchnls;
     gblspace[4] = p->e0dbfs;
     p->gbloffbas = p->pool - 1;
+    /* number of MYFLT locations to allocate for a string variable */
+    p->strVar_MYFLT = (p->maxStrVarLen + (int) sizeof(MYFLT) - 1)
+                      / (int) sizeof(MYFLT);
+    p->maxStrVarLen = p->strVar_MYFLT * (int) sizeof(MYFLT);
 
     gblabeg = O->poolcount + O->gblfixed + 1;
+    gblsbeg = gblabeg + O->gblacount * p->ksmps;
     ip = &(p->instxtanchor);
-    while ((ip = ip->nxtinstxt) != NULL) {      /* EXPAND NDX for A Cells */
-      optxt = (OPTXT *) ip;                     /*   (and set localen)    */
-      lclabeg = (long)(ip->pmax + ip->lclfixed + 1);
-      if (O->odebug) p->Message(p, "lclabeg %ld\n",lclabeg);
+    while ((ip = ip->nxtinstxt) != NULL) {      /* EXPAND NDX for A & S Cells */
+      optxt = (OPTXT *) ip;                     /*   (and set localen)        */
+      lclabeg = (long) (ip->pmax + ip->lclfixed + 1);
+      lclsbeg = (long) (lclabeg + ip->lclacnt * p->ksmps);
+      if (O->odebug) p->Message(p, "lclabeg %ld\n", lclabeg);
       ip->localen = ((long) ip->lclfixed
-                     + (long) ip->lclacnt * (long) p->ksmps)
+                     + (long) ip->lclacnt * (long) p->ksmps
+                     + (long) ip->lclscnt * (long) p->strVar_MYFLT)
                     * (long) sizeof(MYFLT);
       /* align to 64 bits */
       ip->localen = (ip->localen + 7L) & (~7L);
@@ -543,36 +555,45 @@ void oload(ENVIRON *p)
       *lp = -1;                                         /*   & terminate */
       insno = *ip->inslist;                             /* get the first */
       while ((optxt = optxt->nxtop) !=  NULL) {
-        TEXT *ttp = &optxt->t;
+        TEXT    *ttp = &optxt->t;
         ARGOFFS *aoffp;
-        long  indx;
-        long posndx;
-        int *ndxp;
-        int opnum = ttp->opnum;
+        long    indx;
+        long    posndx;
+        int     *ndxp;
+        int     opnum = ttp->opnum;
         if (opnum == ENDIN || opnum == ENDOP) break;    /* IV - Sep 8 2002 */
         if (opnum == LABEL) continue;
-        aoffp = ttp->outoffs;
-        n=aoffp->count;
-        for (ndxp=aoffp->indx; n--; ndxp++) {
+        aoffp = ttp->outoffs;           /* ------- OUTARGS -------- */
+        n = aoffp->count;
+        for (ndxp = aoffp->indx; n--; ndxp++) {
 /*        p->Message(p, "**** indx = %d (%x); gblabeg=%d lclabeg=%d\n",
                         *ndxp, *ndxp, gblabeg, lclabeg); */
-          if ((indx = *ndxp) > gblabeg) {
-            indx = gblabeg + (indx - gblabeg) * p->ksmps;
+          indx = *ndxp;
+          if (indx > 0) {               /* positive index: global   */
+            if (indx >= STR_OFS)        /* string constant          */
+              p->Die(p, Str("internal error: string constant outarg"));
+            if (indx > gblsbeg)         /* global string variable   */
+              indx = gblsbeg + (indx - gblsbeg) * p->strVar_MYFLT;
+            else if (indx > gblabeg)    /* global a-rate variable   */
+              indx = gblabeg + (indx - gblabeg) * p->ksmps;
+            else if (indx <= 3 && O->sr_override &&
+                     ip == p->instxtanchor.nxtinstxt)   /* for instr 0 */
+              indx += 3;        /* deflect any old sr,kr,ksmps targets */
           }
-          else if (indx <= 0 && (posndx = -indx) > lclabeg
-                   && indx >= LABELIM) {
-            indx = -(lclabeg + (posndx - lclabeg) * p->ksmps);
+          else {                        /* negative index: local    */
+            posndx = -indx;
+            if (indx < LABELIM)         /* label                    */
+              continue;
+            if (posndx > lclsbeg)       /* local string variable    */
+              indx = -(lclsbeg + (posndx - lclsbeg) * p->strVar_MYFLT);
+            else if (posndx > lclabeg)  /* local a-rate variable    */
+              indx = -(lclabeg + (posndx - lclabeg) * p->ksmps);
           }
-          else if (indx > 0 && indx <= 3 && O->sr_override &&
-                   ip == p->instxtanchor.nxtinstxt) {  /* for instr 0 */
-            indx += 3;    /* deflect any old sr,kr,ksmps targets */
-          }
-          else continue;
           *ndxp = (int) indx;
         }
         aoffp = ttp->inoffs;            /* inargs:                  */
         if (opnum >= SETEND) goto realops;
-        switch (opnum) {                /*      do oload SETs NOW  */
+        switch (opnum) {                /*      do oload SETs NOW   */
         case STRSET:
           if (p->strsets == NULL)
             p->strsets = (char **)
@@ -598,9 +619,9 @@ void oload(ENVIRON *p)
           if (p->strsets[indx] != NULL) {
             p->Warning(p, Str("strset index conflict"));
           }
-          else {
+/*        else {    FIXME: strsets is broken, use new string implementation
             p->strsets[indx] = ttp->strargs[0];
-          }
+          }                                     */
           p->Message(p, "Strsets[%ld]:%s\n", indx, p->strsets[indx]);
           break;
         case PSET:
@@ -622,17 +643,28 @@ void oload(ENVIRON *p)
         continue;       /* no runtime role for the above SET types */
 
       realops:
-        n = aoffp->count;
-        for (ndxp=aoffp->indx; n--; ndxp++) {
-/*        p->Message(p, "**** indx = %d (%x)\n", *ndxp, *ndxp); */
-          if ((indx = (long)*ndxp) > gblabeg) {
-            indx = gblabeg + (indx - gblabeg) * p->ksmps;
+        n = aoffp->count;               /* -------- INARGS -------- */
+        for (ndxp = aoffp->indx; n--; ndxp++) {
+/*        p->Message(p, "**** indx = %d (%x); gblabeg=%d lclabeg=%d\n",
+                        *ndxp, *ndxp, gblabeg, lclabeg); */
+          indx = *ndxp;
+          if (indx > 0) {               /* positive index: global   */
+            if (indx >= STR_OFS)        /* string constant          */
+              continue;
+            if (indx > gblsbeg)         /* global string variable   */
+              indx = gblsbeg + (indx - gblsbeg) * p->strVar_MYFLT;
+            else if (indx > gblabeg)    /* global a-rate variable   */
+              indx = gblabeg + (indx - gblabeg) * p->ksmps;
           }
-          else if (indx <= 0 && (posndx = -indx) > lclabeg
-                   && indx >= LABELIM) {
-            indx = -(lclabeg + (posndx - lclabeg) * p->ksmps);
+          else {                        /* negative index: local    */
+            posndx = -indx;
+            if (indx < LABELIM)         /* label                    */
+              continue;
+            if (posndx > lclsbeg)       /* local string variable    */
+              indx = -(lclsbeg + (posndx - lclsbeg) * p->strVar_MYFLT);
+            else if (posndx > lclabeg)  /* local a-rate variable    */
+              indx = -(lclabeg + (posndx - lclabeg) * p->ksmps);
           }
-          else continue;
           *ndxp = (int) indx;
         }
       }

@@ -38,13 +38,12 @@ void disprepRESET(ENVIRON *csound)
 int printv(ENVIRON *csound, PRINTV *p)
 {
     int    nargs = p->INOCOUNT;
-    char   *txtp = p->STRARG;
+    char   **txtp = p->h.optext->t.inlist->arg;
     MYFLT  **valp = p->iargs;
 
     csound->Message(csound, "instr %d:", (int) p->h.insdshead->p1);
     while (nargs--) {
-      csound->Message(csound, "  %s = %5.3f", txtp, **valp++);
-      while (*txtp++);
+      csound->Message(csound, "  %s = %5.3f", *txtp++, **valp++);
     }
     csound->Message(csound, "\n");
     return OK;
@@ -84,7 +83,8 @@ int dspset(ENVIRON *csound, DSPLAY *p)
     p->nxtp = (MYFLT *) auxp;
     p->pntcnt = npts;
     sprintf(csound->strmsg, Str("instr %d, signal %s:"),
-                            p->h.insdshead->insno, p->STRARG);
+                            p->h.insdshead->insno,
+                            p->h.optext->t.inlist->arg[0]);
     dispset(&p->dwindow, (MYFLT *)auxp, bufpts, csound->strmsg,
             (int)*p->iwtflg,Str("display"));
     return OK;
@@ -202,8 +202,8 @@ int fftset(ENVIRON *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier */
       if (fftcoefs == NULL)           /* room for WINDMAX*2 floats (fft size) */
         fftcoefs = (MYFLT *) mmalloc(csound, (long)WINDMAX * 2 * sizeof(MYFLT));
       sprintf(csound->strmsg, Str("instr %d, signal %s, fft (%s):"),
-              p->h.insdshead->insno,
-              p->STRARG, p->dbout ? Str("db") : Str("mag"));
+              p->h.insdshead->insno, p->h.optext->t.inlist->arg[0],
+              p->dbout ? Str("db") : Str("mag"));
       dispset(&p->dwindow, fftcoefs, p->ncoefs, csound->strmsg,
               (int)*p->iwtflg,Str("fft"));
     }

@@ -72,21 +72,19 @@ extern "C" {
 /* IV - Oct 24 2002: max number of input/output args for user defined opcodes */
 #define OPCODENUMOUTS   24
 
-#define ORTXT      h.optext->t
-#define INCOUNT    ORTXT.inlist->count
-#define OUTCOUNT   ORTXT.outlist->count
-#define INOCOUNT   ORTXT.inoffs->count
-#define OUTOCOUNT  ORTXT.outoffs->count
-#define XINCODE    ORTXT.xincod
-#  define XINARG1  (p->XINCODE & 2)
-#  define XINARG2  (p->XINCODE & 1)
-#  define XINARG3  (p->XINCODE & 4)
-#  define XINARG4  (p->XINCODE & 8)
-#define XOUTCODE   ORTXT.xoutcod        /* IV - Sep 1 2002 */
-#define STRARG     ORTXT.strargs[0]
-#define STRARG2    ORTXT.strargs[1]
-#define STRARG3    ORTXT.strargs[2]
-#define STRARG4    ORTXT.strargs[3]
+#define ORTXT       h.optext->t
+#define INCOUNT     ORTXT.inlist->count
+#define OUTCOUNT    ORTXT.outlist->count
+#define INOCOUNT    ORTXT.inoffs->count
+#define OUTOCOUNT   ORTXT.outoffs->count
+#define XINCODE     ORTXT.xincod
+#  define XINARG1   (p->XINCODE & 1)
+#  define XINARG2   (p->XINCODE & 2)
+#  define XINARG3   (p->XINCODE & 4)
+#  define XINARG4   (p->XINCODE & 8)
+#define XOUTCODE    ORTXT.xoutcod       /* IV - Apr 25 2005 */
+#define XINSTRCODE  ORTXT.xinstrcod
+#define XOUTSTRCODE ORTXT.xoutstrcod
 
 #define MAXLEN     0x1000000L
 #define FMAXLEN    ((MYFLT)(MAXLEN))
@@ -144,9 +142,9 @@ extern "C" {
     int     rewrt_hdr, heartbeat, gen01defer;
     long    sr_override, kr_override;
     long    instxtcount, optxtsize;
-    long    poolcount, gblfixed, gblacount;
-    long    argoffsize, strargsize, filnamsize;
-    char    *argoffspace, *strargspace, *filnamspace;
+    long    poolcount, gblfixed, gblacount, gblscount;
+    long    argoffsize, filnamsize;
+    char    *argoffspace, *filnamspace;
     char    *infilename, *outfilename, *playscore;
     char    *Linename, *Midiname, *FMidiname;
     char    *Midioutname;   /* jjk 09252000 - MIDI output device, -Q option */
@@ -178,13 +176,14 @@ extern "C" {
     int     linenum;        /* Line num in orch file (currently buggy!)  */
     int     opnum;          /* Opcode index in opcodlst[] */
     char    *opcod;         /* Pointer to opcode name in global pool */
-    char    *strargs[4];    /* (Unquoted) array of file names if opcode uses */
     ARGLST  *inlist;        /* Input args (pointer to item in name list) */
     ARGLST  *outlist;
     ARGOFFS *inoffs;        /* Input args (index into list of values) */
     ARGOFFS *outoffs;
     int     xincod;         /* Rate switch for multi-rate opcode functions */
     int     xoutcod;        /* output rate switch (IV - Sep 1 2002) */
+    int     xinstrcod;      /* Type switch for string arguments */
+    int     xoutstrcod;
     char    intype;         /* Type of first input argument (g,k,a,w etc) */
     char    pftype;         /* Type of output argument (k, a etc) */
   } TEXT;
@@ -199,7 +198,7 @@ extern "C" {
     int     mdepends;               /* Opcode type (i/k/a) */
     int     lclkcnt, lcldcnt;       /* Storage reqs for this instr */
     int     lclwcnt, lclacnt;
-    int     lclpcnt;
+    int     lclpcnt, lclscnt;
     int     lclfixed, optxtcount;
     short   muted;
     long    localen;
@@ -708,13 +707,17 @@ extern "C" {
     void (*dispset)(WINDAT *, MYFLT *, long, char *, int, char *);
     void (*display)(WINDAT *);
     MYFLT (*intpow)(MYFLT, long);
-    char *(*unquote)(char *);
+#ifdef HAVE_GCC3
+    __attribute__ ((__deprecated__))
+#endif
+      char *(*unquote)(char *);
     MEMFIL *(*ldmemfile)(void*, const char*);
     FUNC *(*hfgens)(struct ENVIRON_*, EVTBLK *);
     int (*getopnum)(struct ENVIRON_*, char *s);
-    long (*strarg2insno)(struct ENVIRON_ *csound, MYFLT *p, char *s);
-    long (*strarg2opcno)(struct ENVIRON_ *csound, MYFLT *p, char *s,
+    long (*strarg2insno)(struct ENVIRON_ *csound, MYFLT *p, int is_string);
+    long (*strarg2opcno)(struct ENVIRON_ *csound, MYFLT *p, int is_string,
                                                   int force_opcode);
+    char *(*strarg2name)(struct ENVIRON_*, char*, MYFLT*, const char*, int);
     void (*rewriteheader)(SNDFILE *ofd, int verbose);
     void (*writeheader)(int ofd, char *ofname);
     void *(*SAsndgetset)(void*, char*, void*, MYFLT*, MYFLT*, MYFLT*, int);
@@ -935,6 +938,9 @@ extern "C" {
     MYFLT         *gbloffbas;       /* was static in oload.c */
     void          *otranGlobals;
     void          *rdorchGlobals;
+    void          *sreadGlobals;
+    int           maxStrVarLen;     /* maximum length of string variables + 1 */
+    int           strVar_MYFLT;     /* number of MYFLT locations for string */
   } ENVIRON;
 
 #include "text.h"

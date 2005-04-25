@@ -90,7 +90,10 @@ MYFLT   intpow(MYFLT, long);
 void    list_opcodes(int);
 short   sfsampsize(int);
 void    rewriteheader(SNDFILE* ofd, int verbose);
-char    *unquote(char *);
+#ifdef HAVE_GCC3
+  __attribute__ ((__deprecated__))
+#endif
+    char  *unquote(char *);
 void    scoreRESET(ENVIRON *p);
 void    kperf(ENVIRON*);
 void    writeLine(const char *text, long size);

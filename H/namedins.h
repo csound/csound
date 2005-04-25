@@ -65,7 +65,7 @@ void named_instr_free (ENVIRON*);
 /* return value is -1 if the instrument cannot be found */
 /* (in such cases, csoundInitError() is also called) */
 
-long strarg2insno (ENVIRON*, MYFLT*, char*);
+long strarg2insno (ENVIRON*, MYFLT*, int);
 
 /* same as strarg2insno, but runs at perf time, */
 /* and does not support numbered instruments */
@@ -79,7 +79,9 @@ long strarg2insno_p (ENVIRON*, char*);
 /* return value is -1 if the instrument cannot be found */
 /* (in such cases, csoundInitError() is also called) */
 
-long strarg2opcno (ENVIRON*, MYFLT*, char*, int);
+long strarg2opcno (ENVIRON*, MYFLT*, int, int);
+
+char *strarg2name(ENVIRON*, char*, MYFLT*, const char*, int);
 
 /* ----------------------------------------------------------------------- */
 /* the following functions are for efficient management of the opcode list */

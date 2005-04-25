@@ -33,8 +33,8 @@
 #define MIN_SHORT (-32768)
 #endif
 
-#define CBAS    0x7F000000
-#define VMAGIC  0x56444154L             /* "VDAT" */
+#define STR_OFS 0x78000000      /* string constant index base */
+#define VMAGIC  0x56444154      /* "VDAT" */
 
 #define STRSMAX 8
 

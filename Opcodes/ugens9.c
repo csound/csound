@@ -40,17 +40,8 @@ static int cvset(ENVIRON *csound, CONVOLVE *p)
     if (csound->oparms->odebug)
       csound->Message(csound, CONVOLVE_VERSION_STRING);
 
-    if (*p->ifilno == SSTRCOD) {                    /* if strg name given */
-      if (p->STRARG == NULL)
-        strcpy(cvfilnam, csound->unquote(csound->currevent->strarg));
-      else
-        strcpy(cvfilnam, csound->unquote(p->STRARG));
-    }
-    else if ((long) *p->ifilno <= csound->strsmax && csound->strsets != NULL &&
-             csound->strsets[(long) *p->ifilno])
-      strcpy(cvfilnam, csound->strsets[(long) *p->ifilno]);
-    else sprintf(cvfilnam,
-                 "convolve.%d", (int)*p->ifilno); /* else convolve.filnum   */
+    csound->strarg2name(csound, cvfilnam, p->ifilno, "convolve.",
+                                p->XINSTRCODE);
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename, cvfilnam) != 0)
                                 /* if file not already readin */
       if ( (mfp = csound->ldmemfile(csound, cvfilnam)) == NULL) {
@@ -186,7 +177,7 @@ static int convolve(ENVIRON *csound, CONVOLVE *p)
     long   Hlen = p->Hlen;
     long   Hlenm1 = Hlen - 1;
     long   obufsiz = p->obufsiz;
-    MYFLT  *outhead;
+    MYFLT  *outhead = NULL;
     MYFLT  *outail = p->outail;
     MYFLT  *olap;
     MYFLT  *X;
@@ -373,20 +364,8 @@ static int pconvset(ENVIRON *csound, PCONVOLVE *p)
     memset(&IRfile, 0, sizeof(SOUNDIN));
     /* open impulse response soundfile [code derived from SAsndgetset()] */
     IRfile.skiptime = FL(0.0);
-    if (*p->ifilno == SSTRCOD) {                /* if char string name given */
-      if (p->STRARG == NULL)
-        strcpy(IRfile.sfname, csound->unquote(csound->currevent->strarg));
-      else
-        strcpy(IRfile.sfname, csound->unquote(p->STRARG));
-    }
-    else {
-      long filno = (long) ((double) *p->ifilno + 0.5);
-      if (filno >= 0 && filno <= csound->strsmax && csound->strsets != NULL &&
-          csound->strsets[filno])
-        strcpy(IRfile.sfname, csound->strsets[filno]);
-      else
-        sprintf(IRfile.sfname, "soundin.%ld", filno);   /* soundin.filno */
-    }
+    csound->strarg2name(csound, IRfile.sfname, p->ifilno, "soundin.",
+                                p->XINSTRCODE);
     IRfile.sr = 0;
     if (channel < 1 || ((channel > 4) && (channel != ALLCHNLS))) {
       sprintf(csound->errmsg, "channel request %d illegal\n", channel);
@@ -623,11 +602,11 @@ static int pconvolve(ENVIRON *csound, PCONVOLVE *p)
 }
 
 static OENTRY localops[] = {
-    { "convolve", sizeof(CONVOLVE),   5, "mmmm", "aSo",
+    { "convolve", sizeof(CONVOLVE),   5, "mmmm", "aTo",
             (SUBR) cvset,     (SUBR) NULL,    (SUBR) convolve   },
-    { "convle",   sizeof(CONVOLVE),   5, "mmmm", "aSo",
+    { "convle",   sizeof(CONVOLVE),   5, "mmmm", "aTo",
             (SUBR) cvset,     (SUBR) NULL,    (SUBR) convolve   },
-    { "pconvolve",sizeof(PCONVOLVE),  5, "mmmm", "aSoo",
+    { "pconvolve",sizeof(PCONVOLVE),  5, "mmmm", "aToo",
             (SUBR) pconvset,  (SUBR) NULL,    (SUBR) pconvolve  }
 };
 

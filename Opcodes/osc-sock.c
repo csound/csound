@@ -31,6 +31,8 @@
  * ==============================================================
  */
 
+#if 0
+
 #include "csdl.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -1110,4 +1112,6 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
+
+#endif
 

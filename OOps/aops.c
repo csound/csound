@@ -1566,12 +1566,8 @@ int outch(ENVIRON *csound, OUTCH *p)
 /* invalue and outvalue are used with the csoundAPI */
 int invalset(ENVIRON *csound, INVAL *p)
 {
-    if (*p->valID == SSTRCOD) {
-      if (p->STRARG != NULL)
-        strcpy(p->channelName, unquote(p->STRARG));
-      else
-        strcpy(p->channelName, unquote(csound->currevent->strarg));
-    }
+    if (p->XINSTRCODE)
+      strcpy(p->channelName, (char*) p->valID);
     else
       sprintf(p->channelName, "%d", (int)(*p->valID+FL(0.5)));
     return OK;
@@ -1587,12 +1583,8 @@ int kinval(ENVIRON *csound, INVAL *p)
 
 int outvalset(ENVIRON *csound, OUTVAL *p)
 {
-    if (*p->valID == SSTRCOD) {
-      if (p->STRARG != NULL)
-        strcpy(p->channelName, unquote(p->STRARG));
-      else
-        strcpy(p->channelName, unquote(csound->currevent->strarg));
-    }
+    if (p->XINSTRCODE)
+      strcpy(p->channelName, (char*) p->valID);
     else
       sprintf(p->channelName, "%d", (int)(*p->valID+FL(0.5)));
     return OK;

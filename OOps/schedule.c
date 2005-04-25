@@ -82,12 +82,10 @@ int schedule(ENVIRON *csound, SCHED *p)
         ss = rr; rr = rr->next;
       }
     }
-    if (*p->which == SSTRCOD) {
-      if (p->STRARG != NULL)
-        which = (int) named_instr_find(csound, p->STRARG);
-      else
-        which = (int) named_instr_find(csound, csound->currevent->strarg);
-    }
+    if (p->XINSTRCODE)
+      which = (int) named_instr_find(csound, (char*) p->which);
+    else if (*p->which == SSTRCOD)
+      which = (int) named_instr_find(csound, csound->currevent->strarg);
     else
       which = (int) (FL(0.5) + *p->which);
     if (which < 1 || which > csound->maxinsno ||
@@ -169,12 +167,13 @@ int kschedule(ENVIRON *csound, WSCHED *p)
       double starttime;
       RSCHED *rr;
       MYFLT dur = *p->dur;
-      int which =
-        (*p->which == SSTRCOD) ?
-         (p->STRARG != NULL ? named_instr_find(csound, p->STRARG)
-                              : named_instr_find(csound,
-                                                 csound->currevent->strarg))
-         : (int) (FL(0.5) + *p->which);
+      int which;
+      if (p->XINSTRCODE)
+        which = (int) named_instr_find(csound, (char*) p->which);
+      else if (*p->which == SSTRCOD)
+        which = (int) named_instr_find(csound, csound->currevent->strarg);
+      else
+        which = (int) (FL(0.5) + *p->which);
       if (which < 1 || which > csound->maxinsno ||
           csound->instrtxtp[which] == NULL) {
         return csound->PerfError(csound, Str("Instrument not defined"));
@@ -404,13 +403,10 @@ static int get_absinsno(ENVIRON *csound, TRIGINSTR *p)
 
     /* Get absolute instr num */
     /* IV - Oct 31 2002: allow string argument for named instruments */
-    /* Instrument cannot be S and k so this does not work yet */
-    if (*p->args[0] == SSTRCOD) {
-      if (p->STRARG != NULL)
-        insno = (int) strarg2insno_p(csound, p->STRARG);
-      else
-        insno = (int) strarg2insno_p(csound, csound->currevent->strarg);
-    }
+    if (p->XINSTRCODE)
+      insno = (int) strarg2insno_p(csound, (char*) p->args[0]);
+    else if (*p->args[0] == SSTRCOD)
+      insno = (int) strarg2insno_p(csound, csound->currevent->strarg);
     else
       insno = (int) fabs((double) *p->args[0]);
     /* Check that instrument is defined */
@@ -469,17 +465,25 @@ int ktriginstr(ENVIRON *csound, TRIGINSTR *p)
     }
 
     /* Create the new event */
-    if (*p->args[0] == SSTRCOD)
-      evt.strarg = (p->STRARG != NULL ? p->STRARG : csound->currevent->strarg);
-    else
+    if (p->XINSTRCODE) {
+      evt.strarg = (char*) p->args[0];
+      evt.p[1] = SSTRCOD;
+    }
+    else if (*p->args[0] == SSTRCOD) {
+      evt.strarg = unquote(csound->currevent->strarg);
+      evt.p[1] = SSTRCOD;
+    }
+    else {
       evt.strarg = NULL;
+      evt.p[1] = *p->args[0];
+    }
     evt.opcod = 'i';
     evt.pcnt = argnum = p->INOCOUNT - 3;
     /* Add current time (see note about kadjust in triginset() above) */
     starttime = (double) (csound->global_kcounter + p->kadjust)
                 * (double) csound->global_onedkr;
     /* Copy all arguments to the new event */
-    for (i = 0; i < argnum; i++)
+    for (i = 1; i < argnum; i++)
       evt.p[i + 1] = *p->args[i];
     /* Set start time from kwhen */
     if (evt.p[2] < FZERO) {
