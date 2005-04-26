@@ -73,9 +73,9 @@ def generate_x_method(f, action, context, rate0, triggered):
         print >> f
 
     if action == 'assign':
-        print >> f, '  sprintf(source, "%s = %f", ((ENVIRON *)csound_)->unquote(p->STRARG), *p->value);'
+        print >> f, '  sprintf(source, "%s = %f", (char *)p->string, *p->value);'
     else:
-        print >> f, '  strcpy(source, ((ENVIRON *)csound_)->unquote(p->STRARG));'
+        print >> f, '  strcpy(source, (char *)p->string);'
     print >> f
     
     print >> f, '  result = %(helper)s_in_given_context(source, %(ns)s);' % locals()

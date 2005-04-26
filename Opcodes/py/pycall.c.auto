@@ -10,7 +10,7 @@ pycall0_krate(void *csound_, PYCALL0 *p)
       return NOTOK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, 0);
 
@@ -54,7 +54,7 @@ pylcall0_krate(void *csound_, PYCALL0 *p)
       return NOTOK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
@@ -85,7 +85,7 @@ pylcall0i_irate(void *csound_, PYCALL0 *p)
       return NOTOK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   create_private_namespace_if_needed(&p->h);
 
@@ -123,7 +123,7 @@ pycall0t_krate(void *csound_, PYCALL0T *p)
        return OK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, 0);
 
@@ -172,7 +172,7 @@ pylcall0t_krate(void *csound_, PYCALL0T *p)
        return OK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
@@ -203,7 +203,7 @@ pycall1_krate(void *csound_, PYCALL1 *p)
       return NOTOK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, 0);
 
@@ -254,7 +254,7 @@ pylcall1_krate(void *csound_, PYCALL1 *p)
       return NOTOK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
@@ -292,7 +292,7 @@ pylcall1i_irate(void *csound_, PYCALL1 *p)
       return NOTOK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   create_private_namespace_if_needed(&p->h);
 
@@ -338,7 +338,7 @@ pycall1t_krate(void *csound_, PYCALL1T *p)
        return OK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, 0);
 
@@ -395,7 +395,7 @@ pylcall1t_krate(void *csound_, PYCALL1T *p)
        return OK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
@@ -433,7 +433,7 @@ pycall2_krate(void *csound_, PYCALL2 *p)
       return NOTOK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, 0);
 
@@ -484,7 +484,7 @@ pylcall2_krate(void *csound_, PYCALL2 *p)
       return NOTOK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
@@ -522,7 +522,7 @@ pylcall2i_irate(void *csound_, PYCALL2 *p)
       return NOTOK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   create_private_namespace_if_needed(&p->h);
 
@@ -569,7 +569,7 @@ pycall2t_krate(void *csound_, PYCALL2T *p)
        return OK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, 0);
 
@@ -627,7 +627,7 @@ pylcall2t_krate(void *csound_, PYCALL2T *p)
        return OK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
@@ -665,7 +665,7 @@ pycall3_krate(void *csound_, PYCALL3 *p)
       return NOTOK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, 0);
 
@@ -717,7 +717,7 @@ pylcall3_krate(void *csound_, PYCALL3 *p)
       return NOTOK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
@@ -756,7 +756,7 @@ pylcall3i_irate(void *csound_, PYCALL3 *p)
       return NOTOK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   create_private_namespace_if_needed(&p->h);
 
@@ -805,7 +805,7 @@ pycall3t_krate(void *csound_, PYCALL3T *p)
        return OK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, 0);
 
@@ -865,7 +865,7 @@ pylcall3t_krate(void *csound_, PYCALL3T *p)
        return OK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
@@ -904,7 +904,7 @@ pycall4_krate(void *csound_, PYCALL4 *p)
       return NOTOK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, 0);
 
@@ -957,7 +957,7 @@ pylcall4_krate(void *csound_, PYCALL4 *p)
       return NOTOK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
@@ -997,7 +997,7 @@ pylcall4i_irate(void *csound_, PYCALL4 *p)
       return NOTOK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   create_private_namespace_if_needed(&p->h);
 
@@ -1048,7 +1048,7 @@ pycall4t_krate(void *csound_, PYCALL4T *p)
        return OK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, 0);
 
@@ -1110,7 +1110,7 @@ pylcall4t_krate(void *csound_, PYCALL4T *p)
        return OK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
@@ -1150,7 +1150,7 @@ pycall5_krate(void *csound_, PYCALL5 *p)
       return NOTOK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, 0);
 
@@ -1204,7 +1204,7 @@ pylcall5_krate(void *csound_, PYCALL5 *p)
       return NOTOK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
@@ -1245,7 +1245,7 @@ pylcall5i_irate(void *csound_, PYCALL5 *p)
       return NOTOK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   create_private_namespace_if_needed(&p->h);
 
@@ -1298,7 +1298,7 @@ pycall5t_krate(void *csound_, PYCALL5T *p)
        return OK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, 0);
 
@@ -1362,7 +1362,7 @@ pylcall5t_krate(void *csound_, PYCALL5T *p)
        return OK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
@@ -1403,7 +1403,7 @@ pycall6_krate(void *csound_, PYCALL6 *p)
       return NOTOK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, 0);
 
@@ -1458,7 +1458,7 @@ pylcall6_krate(void *csound_, PYCALL6 *p)
       return NOTOK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
@@ -1500,7 +1500,7 @@ pylcall6i_irate(void *csound_, PYCALL6 *p)
       return NOTOK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   create_private_namespace_if_needed(&p->h);
 
@@ -1555,7 +1555,7 @@ pycall6t_krate(void *csound_, PYCALL6T *p)
        return OK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, 0);
 
@@ -1621,7 +1621,7 @@ pylcall6t_krate(void *csound_, PYCALL6T *p)
        return OK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
@@ -1663,7 +1663,7 @@ pycall7_krate(void *csound_, PYCALL7 *p)
       return NOTOK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, 0);
 
@@ -1719,7 +1719,7 @@ pylcall7_krate(void *csound_, PYCALL7 *p)
       return NOTOK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
@@ -1762,7 +1762,7 @@ pylcall7i_irate(void *csound_, PYCALL7 *p)
       return NOTOK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   create_private_namespace_if_needed(&p->h);
 
@@ -1819,7 +1819,7 @@ pycall7t_krate(void *csound_, PYCALL7T *p)
        return OK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, 0);
 
@@ -1887,7 +1887,7 @@ pylcall7t_krate(void *csound_, PYCALL7T *p)
        return OK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
@@ -1930,7 +1930,7 @@ pycall8_krate(void *csound_, PYCALL8 *p)
       return NOTOK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, 0);
 
@@ -1987,7 +1987,7 @@ pylcall8_krate(void *csound_, PYCALL8 *p)
       return NOTOK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
@@ -2031,7 +2031,7 @@ pylcall8i_irate(void *csound_, PYCALL8 *p)
       return NOTOK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 1);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   create_private_namespace_if_needed(&p->h);
 
@@ -2090,7 +2090,7 @@ pycall8t_krate(void *csound_, PYCALL8T *p)
        return OK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, 0);
 
@@ -2160,7 +2160,7 @@ pylcall8t_krate(void *csound_, PYCALL8T *p)
        return OK;
     }
 
-  format_call_statement(command, ((ENVIRON *)csound_)->unquote(p->STRARG), p->INOCOUNT, p->args, 2);
+  format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 2);
 
   result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
