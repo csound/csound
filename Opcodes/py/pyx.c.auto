@@ -4,12 +4,6 @@ pyexec_krate(void *csound_, PYEXEC *p)
   char source[1024];
   PyObject *result;
 
-  if (*p->string != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyexec_krate: a string is needed");
-      return NOTOK;
-    }
-
   strcpy(source, (char *)p->string);
 
   result = exec_file_in_given_context(source, 0);
@@ -29,12 +23,6 @@ pyexeci_irate(void *csound_, PYEXEC *p)
   char source[1024];
   PyObject *result;
 
-  if (*p->string != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyexeci_irate: a string is needed");
-      return NOTOK;
-    }
-
   strcpy(source, (char *)p->string);
 
   result = exec_file_in_given_context(source, 0);
@@ -51,8 +39,6 @@ pyexeci_irate(void *csound_, PYEXEC *p)
 int
 pylexec_irate(void *csound_, PYEXEC *p)
 {
-  if (*p->string != SSTRCOD)
-    return NOTOK;
 
   create_private_namespace_if_needed(&p->h);
   return OK;
@@ -83,12 +69,6 @@ pylexeci_irate(void *csound_, PYEXEC *p)
   char source[1024];
   PyObject *result;
 
-  if (*p->string != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylexeci_irate: a string is needed");
-      return NOTOK;
-    }
-
   create_private_namespace_if_needed(&p->h);
 
   strcpy(source, (char *)p->string);
@@ -110,12 +90,6 @@ pyexect_krate(void *csound_, PYEXECT *p)
   char source[1024];
   PyObject *result;
 
-  if (*p->string != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyexect_krate: a string is needed");
-      return NOTOK;
-    }
-
   if (!*p->trigger) return OK;
 
   strcpy(source, (char *)p->string);
@@ -134,8 +108,6 @@ pyexect_krate(void *csound_, PYEXECT *p)
 int
 pylexect_irate(void *csound_, PYEXECT *p)
 {
-  if (*p->string != SSTRCOD)
-    return NOTOK;
 
   create_private_namespace_if_needed(&p->h);
   return OK;
@@ -168,12 +140,6 @@ pyrun_krate(void *csound_, PYRUN *p)
   char source[40960];
   PyObject *result;
 
-  if (*p->string != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyrun_krate: a string is needed");
-      return NOTOK;
-    }
-
   strcpy(source, (char *)p->string);
 
   result = run_statement_in_given_context(source, 0);
@@ -193,12 +159,6 @@ pyruni_irate(void *csound_, PYRUN *p)
   char source[40960];
   PyObject *result;
 
-  if (*p->string != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyruni_irate: a string is needed");
-      return NOTOK;
-    }
-
   strcpy(source, (char *)p->string);
 
   result = run_statement_in_given_context(source, 0);
@@ -215,8 +175,6 @@ pyruni_irate(void *csound_, PYRUN *p)
 int
 pylrun_irate(void *csound_, PYRUN *p)
 {
-  if (*p->string != SSTRCOD)
-    return NOTOK;
 
   create_private_namespace_if_needed(&p->h);
   return OK;
@@ -247,12 +205,6 @@ pylruni_irate(void *csound_, PYRUN *p)
   char source[40960];
   PyObject *result;
 
-  if (*p->string != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylruni_irate: a string is needed");
-      return NOTOK;
-    }
-
   create_private_namespace_if_needed(&p->h);
 
   strcpy(source, (char *)p->string);
@@ -274,12 +226,6 @@ pyrunt_krate(void *csound_, PYRUNT *p)
   char source[40960];
   PyObject *result;
 
-  if (*p->string != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyrunt_krate: a string is needed");
-      return NOTOK;
-    }
-
   if (!*p->trigger) return OK;
 
   strcpy(source, (char *)p->string);
@@ -298,8 +244,6 @@ pyrunt_krate(void *csound_, PYRUNT *p)
 int
 pylrunt_irate(void *csound_, PYRUNT *p)
 {
-  if (*p->string != SSTRCOD)
-    return NOTOK;
 
   create_private_namespace_if_needed(&p->h);
   return OK;
@@ -332,12 +276,6 @@ pyeval_krate(void *csound_, PYEVAL *p)
   char source[1024];
   PyObject *result;
 
-  if (*p->string != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyeval_krate: a string is needed");
-      return NOTOK;
-    }
-
   strcpy(source, (char *)p->string);
 
   result = eval_string_in_given_context(source, 0);
@@ -365,12 +303,6 @@ pyevali_irate(void *csound_, PYEVAL *p)
   char source[1024];
   PyObject *result;
 
-  if (*p->string != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyevali_irate: a string is needed");
-      return NOTOK;
-    }
-
   strcpy(source, (char *)p->string);
 
   result = eval_string_in_given_context(source, 0);
@@ -395,8 +327,6 @@ pyevali_irate(void *csound_, PYEVAL *p)
 int
 pyleval_irate(void *csound_, PYEVAL *p)
 {
-  if (*p->string != SSTRCOD)
-    return NOTOK;
 
   create_private_namespace_if_needed(&p->h);
   return OK;
@@ -435,12 +365,6 @@ pylevali_irate(void *csound_, PYEVAL *p)
   char source[1024];
   PyObject *result;
 
-  if (*p->string != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylevali_irate: a string is needed");
-      return NOTOK;
-    }
-
   create_private_namespace_if_needed(&p->h);
 
   strcpy(source, (char *)p->string);
@@ -469,12 +393,6 @@ pyevalt_krate(void *csound_, PYEVALT *p)
 {
   char source[1024];
   PyObject *result;
-
-  if (*p->string != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyevalt_krate: a string is needed");
-      return NOTOK;
-    }
 
   if (!*p->trigger)
     {
@@ -506,8 +424,6 @@ pyevalt_krate(void *csound_, PYEVALT *p)
 int
 pylevalt_irate(void *csound_, PYEVALT *p)
 {
-  if (*p->string != SSTRCOD)
-    return NOTOK;
 
   create_private_namespace_if_needed(&p->h);
   return OK;
@@ -552,12 +468,6 @@ pyassign_krate(void *csound_, PYASSIGN *p)
   char source[1024];
   PyObject *result;
 
-  if (*p->string != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyassign_krate: a string is needed");
-      return NOTOK;
-    }
-
   sprintf(source, "%s = %f", (char *)p->string, *p->value);
 
   result = run_statement_in_given_context(source, 0);
@@ -577,12 +487,6 @@ pyassigni_irate(void *csound_, PYASSIGN *p)
   char source[1024];
   PyObject *result;
 
-  if (*p->string != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyassigni_irate: a string is needed");
-      return NOTOK;
-    }
-
   sprintf(source, "%s = %f", (char *)p->string, *p->value);
 
   result = run_statement_in_given_context(source, 0);
@@ -599,8 +503,6 @@ pyassigni_irate(void *csound_, PYASSIGN *p)
 int
 pylassign_irate(void *csound_, PYASSIGN *p)
 {
-  if (*p->string != SSTRCOD)
-    return NOTOK;
 
   create_private_namespace_if_needed(&p->h);
   return OK;
@@ -631,12 +533,6 @@ pylassigni_irate(void *csound_, PYASSIGN *p)
   char source[1024];
   PyObject *result;
 
-  if (*p->string != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylassigni_irate: a string is needed");
-      return NOTOK;
-    }
-
   create_private_namespace_if_needed(&p->h);
 
   sprintf(source, "%s = %f", (char *)p->string, *p->value);
@@ -658,12 +554,6 @@ pyassignt_krate(void *csound_, PYASSIGNT *p)
   char source[1024];
   PyObject *result;
 
-  if (*p->string != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyassignt_krate: a string is needed");
-      return NOTOK;
-    }
-
   if (!*p->trigger) return OK;
 
   sprintf(source, "%s = %f", (char *)p->string, *p->value);
@@ -682,8 +572,6 @@ pyassignt_krate(void *csound_, PYASSIGNT *p)
 int
 pylassignt_irate(void *csound_, PYASSIGNT *p)
 {
-  if (*p->string != SSTRCOD)
-    return NOTOK;
 
   create_private_namespace_if_needed(&p->h);
   return OK;

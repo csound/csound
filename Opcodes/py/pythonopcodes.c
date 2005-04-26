@@ -136,8 +136,8 @@ int pycalln_krate(void *csound_, PYCALLN *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != SSTRCOD)
-    return NOTOK;
+/*   if (*p->function != SSTRCOD) */
+/*     return NOTOK; */
 
   format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, (int)*p->nresult + 1);
 
@@ -159,8 +159,8 @@ int pycalln_krate(void *csound_, PYCALLN *p)
 
 int pylcalln_irate(void *csound_, PYCALLN *p)
 {
-  if (*p->function != SSTRCOD)
-    return NOTOK;
+/*   if (*p->function != SSTRCOD) */
+/*     return NOTOK; */
 
   create_private_namespace_if_needed(&p->h);
   return OK;
@@ -172,8 +172,8 @@ int pylcalln_krate(void *csound_, PYCALLN *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != SSTRCOD)
-    return NOTOK;
+/*   if (*p->function != SSTRCOD) */
+/*     return NOTOK; */
 
   format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, (int)*p->nresult + 1);
 
@@ -199,8 +199,8 @@ int pylcallni_irate(void *csound_, PYCALLN *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != SSTRCOD)
-    return NOTOK;
+/*   if (*p->function != SSTRCOD) */
+/*     return NOTOK; */
 
   create_private_namespace_if_needed(&p->h);
 

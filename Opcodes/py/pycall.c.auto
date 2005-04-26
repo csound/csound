@@ -4,12 +4,6 @@ pycall0_krate(void *csound_, PYCALL0 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pycall0_krate: callable must be a string");
-      return NOTOK;
-    }
-
   format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, 0);
@@ -32,11 +26,6 @@ pycall0_krate(void *csound_, PYCALL0 *p)
 int
 pylcall0_irate(void *csound_, PYCALL0 *p)
 {
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall0_irate: callable must be a string");
-      return NOTOK;
-    }
 
   create_private_namespace_if_needed(&p->h);
   return OK;
@@ -47,12 +36,6 @@ pylcall0_krate(void *csound_, PYCALL0 *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall0_krate: callable must be a string");
-      return NOTOK;
-    }
 
   format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
@@ -78,12 +61,6 @@ pylcall0i_irate(void *csound_, PYCALL0 *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall0i_irate: callable must be a string");
-      return NOTOK;
-    }
 
   format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
@@ -112,12 +89,6 @@ pycall0t_krate(void *csound_, PYCALL0T *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pycall0t_krate: callable must be a string");
-      return NOTOK;
-    }
-
   if (!*p->trigger)
     {
        return OK;
@@ -145,11 +116,6 @@ pycall0t_krate(void *csound_, PYCALL0T *p)
 int
 pylcall0t_irate(void *csound_, PYCALL0T *p)
 {
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall0t_irate: callable must be a string");
-      return NOTOK;
-    }
 
   create_private_namespace_if_needed(&p->h);
   return OK;
@@ -160,12 +126,6 @@ pylcall0t_krate(void *csound_, PYCALL0T *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall0t_krate: callable must be a string");
-      return NOTOK;
-    }
 
   if (!*p->trigger)
     {
@@ -197,12 +157,6 @@ pycall1_krate(void *csound_, PYCALL1 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pycall1_krate: callable must be a string");
-      return NOTOK;
-    }
-
   format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, 0);
@@ -232,11 +186,6 @@ pycall1_krate(void *csound_, PYCALL1 *p)
 int
 pylcall1_irate(void *csound_, PYCALL1 *p)
 {
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall1_irate: callable must be a string");
-      return NOTOK;
-    }
 
   create_private_namespace_if_needed(&p->h);
   return OK;
@@ -247,12 +196,6 @@ pylcall1_krate(void *csound_, PYCALL1 *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall1_krate: callable must be a string");
-      return NOTOK;
-    }
 
   format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
@@ -285,12 +228,6 @@ pylcall1i_irate(void *csound_, PYCALL1 *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall1i_irate: callable must be a string");
-      return NOTOK;
-    }
 
   format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
@@ -325,12 +262,6 @@ pycall1t_krate(void *csound_, PYCALL1T *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pycall1t_krate: callable must be a string");
-      return NOTOK;
-    }
 
   if (!*p->trigger)
     {
@@ -367,11 +298,6 @@ pycall1t_krate(void *csound_, PYCALL1T *p)
 int
 pylcall1t_irate(void *csound_, PYCALL1T *p)
 {
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall1t_irate: callable must be a string");
-      return NOTOK;
-    }
 
   create_private_namespace_if_needed(&p->h);
   return OK;
@@ -382,12 +308,6 @@ pylcall1t_krate(void *csound_, PYCALL1T *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall1t_krate: callable must be a string");
-      return NOTOK;
-    }
 
   if (!*p->trigger)
     {
@@ -427,12 +347,6 @@ pycall2_krate(void *csound_, PYCALL2 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pycall2_krate: callable must be a string");
-      return NOTOK;
-    }
-
   format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, 0);
@@ -462,11 +376,6 @@ pycall2_krate(void *csound_, PYCALL2 *p)
 int
 pylcall2_irate(void *csound_, PYCALL2 *p)
 {
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall2_irate: callable must be a string");
-      return NOTOK;
-    }
 
   create_private_namespace_if_needed(&p->h);
   return OK;
@@ -477,12 +386,6 @@ pylcall2_krate(void *csound_, PYCALL2 *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall2_krate: callable must be a string");
-      return NOTOK;
-    }
 
   format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
@@ -515,12 +418,6 @@ pylcall2i_irate(void *csound_, PYCALL2 *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall2i_irate: callable must be a string");
-      return NOTOK;
-    }
 
   format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
@@ -555,12 +452,6 @@ pycall2t_krate(void *csound_, PYCALL2T *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pycall2t_krate: callable must be a string");
-      return NOTOK;
-    }
 
   if (!*p->trigger)
     {
@@ -598,11 +489,6 @@ pycall2t_krate(void *csound_, PYCALL2T *p)
 int
 pylcall2t_irate(void *csound_, PYCALL2T *p)
 {
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall2t_irate: callable must be a string");
-      return NOTOK;
-    }
 
   create_private_namespace_if_needed(&p->h);
   return OK;
@@ -613,12 +499,6 @@ pylcall2t_krate(void *csound_, PYCALL2T *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall2t_krate: callable must be a string");
-      return NOTOK;
-    }
 
   if (!*p->trigger)
     {
@@ -659,12 +539,6 @@ pycall3_krate(void *csound_, PYCALL3 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pycall3_krate: callable must be a string");
-      return NOTOK;
-    }
-
   format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, 0);
@@ -695,11 +569,6 @@ pycall3_krate(void *csound_, PYCALL3 *p)
 int
 pylcall3_irate(void *csound_, PYCALL3 *p)
 {
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall3_irate: callable must be a string");
-      return NOTOK;
-    }
 
   create_private_namespace_if_needed(&p->h);
   return OK;
@@ -710,12 +579,6 @@ pylcall3_krate(void *csound_, PYCALL3 *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall3_krate: callable must be a string");
-      return NOTOK;
-    }
 
   format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
@@ -749,12 +612,6 @@ pylcall3i_irate(void *csound_, PYCALL3 *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall3i_irate: callable must be a string");
-      return NOTOK;
-    }
 
   format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
@@ -790,12 +647,6 @@ pycall3t_krate(void *csound_, PYCALL3T *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pycall3t_krate: callable must be a string");
-      return NOTOK;
-    }
 
   if (!*p->trigger)
     {
@@ -835,11 +686,6 @@ pycall3t_krate(void *csound_, PYCALL3T *p)
 int
 pylcall3t_irate(void *csound_, PYCALL3T *p)
 {
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall3t_irate: callable must be a string");
-      return NOTOK;
-    }
 
   create_private_namespace_if_needed(&p->h);
   return OK;
@@ -850,12 +696,6 @@ pylcall3t_krate(void *csound_, PYCALL3T *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall3t_krate: callable must be a string");
-      return NOTOK;
-    }
 
   if (!*p->trigger)
     {
@@ -898,12 +738,6 @@ pycall4_krate(void *csound_, PYCALL4 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pycall4_krate: callable must be a string");
-      return NOTOK;
-    }
-
   format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, 0);
@@ -935,11 +769,6 @@ pycall4_krate(void *csound_, PYCALL4 *p)
 int
 pylcall4_irate(void *csound_, PYCALL4 *p)
 {
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall4_irate: callable must be a string");
-      return NOTOK;
-    }
 
   create_private_namespace_if_needed(&p->h);
   return OK;
@@ -950,12 +779,6 @@ pylcall4_krate(void *csound_, PYCALL4 *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall4_krate: callable must be a string");
-      return NOTOK;
-    }
 
   format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
@@ -990,12 +813,6 @@ pylcall4i_irate(void *csound_, PYCALL4 *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall4i_irate: callable must be a string");
-      return NOTOK;
-    }
 
   format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
@@ -1032,12 +849,6 @@ pycall4t_krate(void *csound_, PYCALL4T *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pycall4t_krate: callable must be a string");
-      return NOTOK;
-    }
 
   if (!*p->trigger)
     {
@@ -1079,11 +890,6 @@ pycall4t_krate(void *csound_, PYCALL4T *p)
 int
 pylcall4t_irate(void *csound_, PYCALL4T *p)
 {
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall4t_irate: callable must be a string");
-      return NOTOK;
-    }
 
   create_private_namespace_if_needed(&p->h);
   return OK;
@@ -1094,12 +900,6 @@ pylcall4t_krate(void *csound_, PYCALL4T *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall4t_krate: callable must be a string");
-      return NOTOK;
-    }
 
   if (!*p->trigger)
     {
@@ -1144,12 +944,6 @@ pycall5_krate(void *csound_, PYCALL5 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pycall5_krate: callable must be a string");
-      return NOTOK;
-    }
-
   format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, 0);
@@ -1182,11 +976,6 @@ pycall5_krate(void *csound_, PYCALL5 *p)
 int
 pylcall5_irate(void *csound_, PYCALL5 *p)
 {
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall5_irate: callable must be a string");
-      return NOTOK;
-    }
 
   create_private_namespace_if_needed(&p->h);
   return OK;
@@ -1197,12 +986,6 @@ pylcall5_krate(void *csound_, PYCALL5 *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall5_krate: callable must be a string");
-      return NOTOK;
-    }
 
   format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
@@ -1238,12 +1021,6 @@ pylcall5i_irate(void *csound_, PYCALL5 *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall5i_irate: callable must be a string");
-      return NOTOK;
-    }
 
   format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
@@ -1281,12 +1058,6 @@ pycall5t_krate(void *csound_, PYCALL5T *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pycall5t_krate: callable must be a string");
-      return NOTOK;
-    }
 
   if (!*p->trigger)
     {
@@ -1330,11 +1101,6 @@ pycall5t_krate(void *csound_, PYCALL5T *p)
 int
 pylcall5t_irate(void *csound_, PYCALL5T *p)
 {
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall5t_irate: callable must be a string");
-      return NOTOK;
-    }
 
   create_private_namespace_if_needed(&p->h);
   return OK;
@@ -1345,12 +1111,6 @@ pylcall5t_krate(void *csound_, PYCALL5T *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall5t_krate: callable must be a string");
-      return NOTOK;
-    }
 
   if (!*p->trigger)
     {
@@ -1397,12 +1157,6 @@ pycall6_krate(void *csound_, PYCALL6 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pycall6_krate: callable must be a string");
-      return NOTOK;
-    }
-
   format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, 0);
@@ -1436,11 +1190,6 @@ pycall6_krate(void *csound_, PYCALL6 *p)
 int
 pylcall6_irate(void *csound_, PYCALL6 *p)
 {
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall6_irate: callable must be a string");
-      return NOTOK;
-    }
 
   create_private_namespace_if_needed(&p->h);
   return OK;
@@ -1451,12 +1200,6 @@ pylcall6_krate(void *csound_, PYCALL6 *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall6_krate: callable must be a string");
-      return NOTOK;
-    }
 
   format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
@@ -1493,12 +1236,6 @@ pylcall6i_irate(void *csound_, PYCALL6 *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall6i_irate: callable must be a string");
-      return NOTOK;
-    }
 
   format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
@@ -1537,12 +1274,6 @@ pycall6t_krate(void *csound_, PYCALL6T *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pycall6t_krate: callable must be a string");
-      return NOTOK;
-    }
 
   if (!*p->trigger)
     {
@@ -1588,11 +1319,6 @@ pycall6t_krate(void *csound_, PYCALL6T *p)
 int
 pylcall6t_irate(void *csound_, PYCALL6T *p)
 {
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall6t_irate: callable must be a string");
-      return NOTOK;
-    }
 
   create_private_namespace_if_needed(&p->h);
   return OK;
@@ -1603,12 +1329,6 @@ pylcall6t_krate(void *csound_, PYCALL6T *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall6t_krate: callable must be a string");
-      return NOTOK;
-    }
 
   if (!*p->trigger)
     {
@@ -1657,12 +1377,6 @@ pycall7_krate(void *csound_, PYCALL7 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pycall7_krate: callable must be a string");
-      return NOTOK;
-    }
-
   format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, 0);
@@ -1697,11 +1411,6 @@ pycall7_krate(void *csound_, PYCALL7 *p)
 int
 pylcall7_irate(void *csound_, PYCALL7 *p)
 {
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall7_irate: callable must be a string");
-      return NOTOK;
-    }
 
   create_private_namespace_if_needed(&p->h);
   return OK;
@@ -1712,12 +1421,6 @@ pylcall7_krate(void *csound_, PYCALL7 *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall7_krate: callable must be a string");
-      return NOTOK;
-    }
 
   format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
@@ -1755,12 +1458,6 @@ pylcall7i_irate(void *csound_, PYCALL7 *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall7i_irate: callable must be a string");
-      return NOTOK;
-    }
 
   format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
@@ -1800,12 +1497,6 @@ pycall7t_krate(void *csound_, PYCALL7T *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pycall7t_krate: callable must be a string");
-      return NOTOK;
-    }
 
   if (!*p->trigger)
     {
@@ -1853,11 +1544,6 @@ pycall7t_krate(void *csound_, PYCALL7T *p)
 int
 pylcall7t_irate(void *csound_, PYCALL7T *p)
 {
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall7t_irate: callable must be a string");
-      return NOTOK;
-    }
 
   create_private_namespace_if_needed(&p->h);
   return OK;
@@ -1868,12 +1554,6 @@ pylcall7t_krate(void *csound_, PYCALL7T *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall7t_krate: callable must be a string");
-      return NOTOK;
-    }
 
   if (!*p->trigger)
     {
@@ -1924,12 +1604,6 @@ pycall8_krate(void *csound_, PYCALL8 *p)
   char command[1024];
   PyObject *result;
 
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pycall8_krate: callable must be a string");
-      return NOTOK;
-    }
-
   format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
   result = eval_string_in_given_context(command, 0);
@@ -1965,11 +1639,6 @@ pycall8_krate(void *csound_, PYCALL8 *p)
 int
 pylcall8_irate(void *csound_, PYCALL8 *p)
 {
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall8_irate: callable must be a string");
-      return NOTOK;
-    }
 
   create_private_namespace_if_needed(&p->h);
   return OK;
@@ -1980,12 +1649,6 @@ pylcall8_krate(void *csound_, PYCALL8 *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall8_krate: callable must be a string");
-      return NOTOK;
-    }
 
   format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
@@ -2024,12 +1687,6 @@ pylcall8i_irate(void *csound_, PYCALL8 *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall8i_irate: callable must be a string");
-      return NOTOK;
-    }
 
   format_call_statement(command, (char *)p->function, p->INOCOUNT, p->args, 1);
 
@@ -2070,12 +1727,6 @@ pycall8t_krate(void *csound_, PYCALL8T *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pycall8t_krate: callable must be a string");
-      return NOTOK;
-    }
 
   if (!*p->trigger)
     {
@@ -2125,11 +1776,6 @@ pycall8t_krate(void *csound_, PYCALL8T *p)
 int
 pylcall8t_irate(void *csound_, PYCALL8T *p)
 {
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall8t_irate: callable must be a string");
-      return NOTOK;
-    }
 
   create_private_namespace_if_needed(&p->h);
   return OK;
@@ -2140,12 +1786,6 @@ pylcall8t_krate(void *csound_, PYCALL8T *p)
 {
   char command[1024];
   PyObject *result;
-
-  if (*p->function != SSTRCOD)
-    {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylcall8t_krate: callable must be a string");
-      return NOTOK;
-    }
 
   if (!*p->trigger)
     {
