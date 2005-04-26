@@ -67,7 +67,7 @@ extern "C"
 		}
 		char vstplugname[0x100];
 		if (*p->iplugin == SSTRCOD) {
-			strcpy(vstplugname, p->STRARG);          
+			strcpy(vstplugname, (char *)p->iplugin);          
 		}
 		else 
            plugin->Log("Invalid plugin name.\n");
@@ -299,7 +299,7 @@ extern "C"
 		void *dummyPointer = 0;          
 		char bankname[64];
 		if (*p->ibank == SSTRCOD) {
-			strcpy(bankname, p->STRARG);          /*   use that         */
+			strcpy(bankname, (char *)p->ibank);          /*   use that         */
 		}
 		CFxBank fxBank(bankname);            /* load the bank                     */
 		plugin->Dispatch(effBeginLoadBank, 
