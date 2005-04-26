@@ -203,7 +203,7 @@ int diskin2_init(ENVIRON *csound, DISKIN2 *p)
     }
     /* open file */
     /* FIXME: name can overflow with very long string */
-    csound->strarg2name(csound, name, p->iFileCode, "soundin.", p->XINSTRCODE);
+    csound->strarg2name(csound, name, p->iFileCode, "soundin.", p->XSTRCODE);
     s = csound->FindInputFile(csound, name, "SFDIR;SSDIR");
     if (s == NULL) {
       csound->Message(csound, Str("diskin2: opening '%s':\n"), name);

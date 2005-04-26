@@ -55,7 +55,7 @@ static HEADATA *getsndinfo(ENVIRON *csound, SNDINFO *p)
     SF_INFO sfinfo;
 
     csound->strarg2name(csound, soundiname, p->ifilno, "soundin.",
-                                p->XINSTRCODE);
+                                p->XSTRCODE);
     sfname = soundiname;
     if (strcmp(sfname, "-i") == 0) {    /* get info on the -i    */
       if (!csound->oparms->infilename)  /* commandline inputfile */
@@ -157,7 +157,7 @@ int filepeak(ENVIRON *csound, SNDINFOPEAK *p)
     SF_INFO sfinfo;
 
     csound->strarg2name(csound, soundiname, p->ifilno, "soundin.",
-                                p->XINSTRCODE);
+                                p->XSTRCODE);
     sfname = soundiname;
     if (strcmp(sfname, "-i") == 0) {    /* get info on the -i    */
       if (!csound->oparms->infilename)  /* commandline inputfile */
@@ -197,7 +197,7 @@ static int anal_filelen(ENVIRON *csound, SNDINFO *p,MYFLT *p_dur)
 
     /* leap thru std hoops to get the name */
     csound->strarg2name(csound, soundiname, p->ifilno, "soundin.",
-                                p->XINSTRCODE);
+                                p->XSTRCODE);
     sfname = soundiname;
     /* my prerogative: try pvocex file first! */
     fd = pvoc_openfile(sfname,&pvdata,&fmt);

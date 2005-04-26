@@ -406,7 +406,7 @@ int lprdset(ENVIRON *csound, LPREAD *p)
     lprdadr[currentLPCSlot] = p;
 
     /* Build file name */
-    csound->strarg2name(csound, lpfilname, p->ifilno, "lp.", p->XINSTRCODE);
+    csound->strarg2name(csound, lpfilname, p->ifilno, "lp.", p->XSTRCODE);
 
     /* Do not reload existing file ? */
     if ((mfp = p->mfp) != NULL && strcmp(mfp->filename,lpfilname) == 0)

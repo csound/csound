@@ -377,7 +377,7 @@ int eventOpcode(ENVIRON *csound, LINEVENT *p)
     int     i;
     char    opcod;
 
-    if (!(p->XINSTRCODE & 1) ||
+    if (!(p->XSTRCODE & 1) ||
         ((opcod = ((char*) p->args[0])[0]) != 'i' && opcod != 'q' &&
          opcod != 'f' && opcod != 'e'))
       return csound->PerfError(csound, Str("event param 1 must be "
@@ -387,7 +387,7 @@ int eventOpcode(ENVIRON *csound, LINEVENT *p)
     evt.pcnt = p->INOCOUNT - 1;
     /* IV - Oct 31 2002: allow string argument */
     if (evt.pcnt > 0) {
-      if (p->XINSTRCODE & 2) {
+      if (p->XSTRCODE & 2) {
         if (evt.opcod != 'i' && evt.opcod != 'q')
           return
             csound->PerfError(csound, Str("event: string name is allowed "
@@ -415,7 +415,7 @@ int eventOpcodeI(ENVIRON *csound, LINEVENT *p)
     int     i;
     char    opcod;
 
-    if (!(p->XINSTRCODE & 1) ||
+    if (!(p->XSTRCODE & 1) ||
         ((opcod = ((char*) p->args[0])[0]) != 'i' && opcod != 'q' &&
          opcod != 'f' && opcod != 'e'))
       return csound->InitError(csound, Str("event param 1 must be "
@@ -425,7 +425,7 @@ int eventOpcodeI(ENVIRON *csound, LINEVENT *p)
     evt.pcnt = p->INOCOUNT - 1;
     /* IV - Oct 31 2002: allow string argument */
     if (evt.pcnt > 0) {
-      if (p->XINSTRCODE & 2) {
+      if (p->XSTRCODE & 2) {
         if (evt.opcod != 'i' && evt.opcod != 'q')
           return
             csound->InitError(csound, Str("event: string name is allowed "

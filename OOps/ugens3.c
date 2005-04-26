@@ -866,7 +866,7 @@ int adset(ENVIRON *csound, ADSYN *p)
       for (n = 0; n < ISINSIZ; n++)
         *ip++ = (short) (sin(TWOPI * n / ISINSIZ) * 32767.0);
     }
-    csound->strarg2name(csound, filnam, p->ifilcod, "adsyn.", p->XINSTRCODE);
+    csound->strarg2name(csound, filnam, p->ifilcod, "adsyn.", p->XSTRCODE);
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename,filnam) != 0) {
       if ((mfp = ldmemfile(csound, filnam)) == NULL) {  /*   readfile if reqd */
         sprintf(csound->errmsg, Str("ADSYN cannot load %s"),filnam);

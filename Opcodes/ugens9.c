@@ -41,7 +41,7 @@ static int cvset(ENVIRON *csound, CONVOLVE *p)
       csound->Message(csound, CONVOLVE_VERSION_STRING);
 
     csound->strarg2name(csound, cvfilnam, p->ifilno, "convolve.",
-                                p->XINSTRCODE);
+                                p->XSTRCODE);
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename, cvfilnam) != 0)
                                 /* if file not already readin */
       if ( (mfp = csound->ldmemfile(csound, cvfilnam)) == NULL) {
@@ -365,7 +365,7 @@ static int pconvset(ENVIRON *csound, PCONVOLVE *p)
     /* open impulse response soundfile [code derived from SAsndgetset()] */
     IRfile.skiptime = FL(0.0);
     csound->strarg2name(csound, IRfile.sfname, p->ifilno, "soundin.",
-                                p->XINSTRCODE);
+                                p->XSTRCODE);
     IRfile.sr = 0;
     if (channel < 1 || ((channel > 4) && (channel != ALLCHNLS))) {
       sprintf(csound->errmsg, "channel request %d illegal\n", channel);

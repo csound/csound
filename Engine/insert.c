@@ -834,7 +834,7 @@ int subinstrset(ENVIRON *csound, SUBINST *p)
     init_op = (p->h.opadr == NULL ? 1 : 0);
     inarg_ofs = (init_op ? 0 : SUBINSTNUMOUTS);
     /* IV - Oct 31 2002 */
-    if ((instno = strarg2insno(csound, p->ar[inarg_ofs], (p->XINSTRCODE & 1)))
+    if ((instno = strarg2insno(csound, p->ar[inarg_ofs], (p->XSTRCODE & 1)))
         < 0)
       return NOTOK;
     /* IV - Oct 9 2002: need this check */
@@ -1179,7 +1179,7 @@ int setksmpsset(ENVIRON *csound, SETKSMPS *p)
 int nstrnumset(ENVIRON *csound, NSTRNUM *p)
 {
     /* IV - Oct 31 2002 */
-    *(p->i_insno) = (MYFLT) strarg2insno(csound, p->iname, (p->XINSTRCODE & 1));
+    *(p->i_insno) = (MYFLT) strarg2insno(csound, p->iname, (p->XSTRCODE & 1));
     return (*(p->i_insno) > FL(0.0) ? OK : NOTOK);
 }
 
@@ -1762,13 +1762,9 @@ static void instance(ENVIRON *csound, int insno)
     prvids = prvpds = (OPDS *)ip;
     while ((optxt = optxt->nxtop) != NULL) {        /* for each op in instr */
       TEXT *ttp = &optxt->t;
-      if ((opnum = ttp->opnum) == ENDIN           /*  (until ENDIN)  */
-          || opnum == ENDOP)      /* IV - Sep 8 2002: (or ENDOP) */
+      if ((opnum = ttp->opnum) == ENDIN             /*  (until ENDIN)  */
+          || opnum == ENDOP)                        /*  (or ENDOP)     */
         break;
-      if (opnum == STRSET) {
-        nxtopds +=  2 * sizeof(MYFLT*);
-        continue; /* Only at load time */
-      }
       if (opnum == PSET) {
         ip->p1 = (MYFLT)insno; continue;
       }
@@ -1877,7 +1873,7 @@ int prealloc(ENVIRON *csound, AOP *p)
 {
     int     n, a;
 
-    n = (int) strarg2opcno(csound, p->r, (p->XINSTRCODE & 1),
+    n = (int) strarg2opcno(csound, p->r, (p->XSTRCODE & 1),
                                    (*p->b == FL(0.0) ? 0 : 1));
     if (n < 1)
       return NOTOK;

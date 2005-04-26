@@ -250,7 +250,7 @@ int newsndinset(ENVIRON *csound, SOUNDINEW *p)  /* init routine for diskin   */
     }
     /* if char string name given */
     csound->strarg2name(csound, soundiname, p->ifilno, "soundin.",
-                                p->XINSTRCODE);
+                                p->XSTRCODE);
     sfname = soundiname;
     if (!sngetset(p, sfname))
       return FALSE;
@@ -675,7 +675,7 @@ int sndo1set(ENVIRON *csound, SNDOUT *p) /* init routine for instr soundout   */
 
     if (p->c.fdch.fd != NULL)   return OK;  /* if file already open, rtn  */
     csound->strarg2name(csound, sndoutname, p->c.ifilcod, "soundout.",
-                                p->XINSTRCODE);
+                                p->XSTRCODE);
     sfname = sndoutname;
     if ((soutfd = openout(sfname, 1)) < 0) {   /* if openout successful */
       sprintf(csound->errmsg, Str("soundout cannot open %s"), sfname);

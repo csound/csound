@@ -56,7 +56,7 @@ int massign(ENVIRON *csound, MASSIGN *p)
 
     if (*(p->insno) < FL(0.5))
       return m_chinsno(csound, chnl, (short) 0);
-    if ((instno = strarg2insno(csound, p->insno, p->XINSTRCODE)) < 1)
+    if ((instno = strarg2insno(csound, p->insno, p->XSTRCODE)) < 1)
       return NOTOK;
     return m_chinsno(csound, chnl, (short) instno);
 }
@@ -375,7 +375,7 @@ int pgmassign(ENVIRON *csound, PGMASSIGN *p)
     if (chn < 0 || chn > 16)
       return csound->InitError(csound, Str("illegal channel number"));
     /* IV - Oct 31 2002: allow named instruments */
-    if (p->XINSTRCODE || *p->inst == SSTRCOD) {
+    if (p->XSTRCODE || *p->inst == SSTRCOD) {
       MYFLT buf[128];
       csound->strarg2name(csound, (char*) buf, p->inst, "", 1);
       ins = (int) strarg2insno(csound, buf, 1);

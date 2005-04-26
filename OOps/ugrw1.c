@@ -2934,14 +2934,14 @@ int printksset(ENVIRON *csound, PRINTKS *p)
      * program (under DJGPP at least) seems to crash elsewhere if
      * the first parameter is "".     */
 
-    if (!p->XINSTRCODE &&
+    if (!p->XSTRCODE &&
         (*p->ifilcod != SSTRCOD || csound->currevent->strarg == NULL)) {
       return
         csound->InitError(csound,
                           Str("printks param 1 was not a \"quoted string\""));
     }
     else {
-      sarg = (p->XINSTRCODE ? (char*) p->ifilcod : csound->currevent->strarg);
+      sarg = (p->XSTRCODE ? (char*) p->ifilcod : csound->currevent->strarg);
       memset(p->txtstring, 0, 8192);   /* This line from matt ingalls */
       sdest = p->txtstring;
       /* Copy the string to the storage place in PRINTKS.
