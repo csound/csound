@@ -217,7 +217,7 @@ int sndinset(ENVIRON *csound, SOUNDIN_ *p) /* init routine for instr soundin */
       fdclose(csound, &(p->fdch));
     }
     csound->strarg2name(csound, p->sndin_.sfname, p->ifilno, "soundin.",
-                                p->XINSTRCODE);
+                                p->XSTRCODE);
     switch ((int) (*p->iformat + FL(0.5))) {
       case 0: p->sndin_.format = AE_SHORT; break;
       case 1: p->sndin_.format = AE_CHAR;  break;

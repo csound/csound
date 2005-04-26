@@ -274,7 +274,7 @@ int scsnux_init(ENVIRON *csound, PSCSNUX *p)
     else {                      /* New format matrix */
       char filnam[256];
       MEMFIL *mfp;
-      if (!p->XINSTRCODE)
+      if (!p->XSTRCODE)
         strcpy(filnam, csound->unquote(csound->currevent->strarg));
       else strcpy(filnam, (char*) p->i_f);
       /* readfile if reqd */

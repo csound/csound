@@ -156,6 +156,16 @@ extern "C" {
                     CSOUNDCFG_STRING, 0, NULL, &max_len,
                     id_option_table[i][2], NULL);
     }
+    /* max. length of string variables */
+    {
+      int minVal = 10;
+      int maxVal = 10000;
+      csoundCreateConfigurationVariable(csound, "max_str_len",
+                                        &(p->strVarMaxLen),
+                                        CSOUNDCFG_INTEGER, 0, &minVal, &maxVal,
+                                        "Maximum length of "
+                                        "string variables + 1", NULL);
+    }
     /* now load and pre-initialise external modules for this instance */
     /* this function returns an error value that may be worth checking */
     return csoundLoadModules(csound);

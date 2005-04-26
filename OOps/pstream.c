@@ -317,7 +317,7 @@ int pvsfreadset(ENVIRON *csound, PVSFREAD *p)
     MEMFIL   *mfp;
     float       *frptr,*memptr;          /* RWD pvocex format: MUST be 32bit */
 
-    csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", p->XINSTRCODE);
+    csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", p->XSTRCODE);
     mfp = p->mfp;
     if ((mfp == NULL) || strcmp(mfp->filename, pvfilnam) != 0) {
       /* if file not already readin */

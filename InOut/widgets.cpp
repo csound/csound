@@ -1100,7 +1100,7 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators)
     opcode_name = fld.opcode_name = ((OPDS *) (v.opcode))->optext->t.opcod;
     if (opcode_name == "FLslider") {
       FLSLIDER *p = (FLSLIDER *) (v.opcode);
-      fld.widg_name = GetString(p->name, p->XINSTRCODE);
+      fld.widg_name = GetString(p->name, p->XSTRCODE);
       val = *p->kout; min = *p->imin; max =*p->imax;
       if (val < min) val=min;
       else if (val>max) val=max;
@@ -1109,7 +1109,7 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators)
     }
     else if (opcode_name == "FLslidBnk") {
       FLSLIDERBANK *p = (FLSLIDERBANK *) (v.opcode);
-      fld.widg_name = GetString(p->names, p->XINSTRCODE);
+      fld.widg_name = GetString(p->names, p->XSTRCODE);
       int numsliders = (int) *p->inumsliders;
       fld.sldbnk = p->slider_data;
       fld.sldbnkValues = new MYFLT[numsliders];
@@ -1137,7 +1137,7 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators)
     }
     else if (opcode_name == "FLknob") {
       FLKNOB *p = (FLKNOB *) (v.opcode);
-      fld.widg_name = GetString(p->name, p->XINSTRCODE);
+      fld.widg_name = GetString(p->name, p->XSTRCODE);
       val = *p->kout; min = *p->imin; max =*p->imax;
       if (val < min) val=min;
       else if (val>max) val=max;
@@ -1146,7 +1146,7 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators)
     }
     else if (opcode_name == "FLroller") {
       FLROLLER *p = (FLROLLER *) (v.opcode);
-      fld.widg_name = GetString(p->name, p->XINSTRCODE);
+      fld.widg_name = GetString(p->name, p->XSTRCODE);
       val = *p->kout; min = *p->imin; max =*p->imax;
       if (val < min) val=min;
       else if (val>max) val=max;
@@ -1155,7 +1155,7 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators)
     }
     else if (opcode_name == "FLtext") {
       FLTEXT *p = (FLTEXT *) (v.opcode);
-      fld.widg_name = GetString(p->name, p->XINSTRCODE);
+      fld.widg_name = GetString(p->name, p->XSTRCODE);
       val = *p->kout; min = *p->imin; max =*p->imax;
       if (val < min) val=min;
       else if (val>max) val=max;
@@ -1164,7 +1164,7 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators)
     }
     else if (opcode_name == "FLjoy") {
       FLJOYSTICK *p = (FLJOYSTICK *) (v.opcode);
-      fld.widg_name = GetString(p->name, p->XINSTRCODE);
+      fld.widg_name = GetString(p->name, p->XSTRCODE);
       val = *p->koutx; min = *p->iminx; max =*p->imaxx;
       if (val < min) val=min;
       else if (val>max) val=max;
@@ -1178,20 +1178,20 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators)
     }
     else if (opcode_name == "FLbutton") {
       FLBUTTON *p = (FLBUTTON *) (v.opcode);
-      fld.widg_name = GetString(p->name, p->XINSTRCODE);
+      fld.widg_name = GetString(p->name, p->XSTRCODE);
       fld.value = (*p->kout == *p->ion ? 1 : 0);    // IV - Aug 27 2002
       fld.min = 0; fld.max = 1; fld.exp = LIN_;
     }
     else if (opcode_name == "FLbutBank") {
       FLBUTTONBANK *p = (FLBUTTONBANK *) (v.opcode);
       fld.widg_name = "No name for FLbutbank";
-      //fld.widg_name = GetString(p->name, p->XINSTRCODE);
+      //fld.widg_name = GetString(p->name, p->XSTRCODE);
       fld.value = *p->kout;
       fld.min = 0; fld.max = 1; fld.exp = LIN_;
     }
     else if (opcode_name == "FLcount") {
       FLCOUNTER *p = (FLCOUNTER *) (v.opcode);
-      fld.widg_name = GetString(p->name, p->XINSTRCODE);
+      fld.widg_name = GetString(p->name, p->XSTRCODE);
       val = *p->kout; min = *p->imin; max =*p->imax;
       if (min != max) {
         if (val < min) val=min;
@@ -1202,11 +1202,11 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators)
     }
     else if (opcode_name == "FLvalue") {
       FLVALUE *p = (FLVALUE *) (v.opcode);
-      fld.widg_name = GetString(p->name, p->XINSTRCODE);
+      fld.widg_name = GetString(p->name, p->XSTRCODE);
     }
     else if (opcode_name == "FLbox") {
       FL_BOX *p = (FL_BOX *) (v.opcode);
-      fld.widg_name = GetString(p->itext, p->XINSTRCODE);
+      fld.widg_name = GetString(p->itext, p->XSTRCODE);
     }
   }
 }
@@ -1419,7 +1419,7 @@ extern "C" int save_snap(ENVIRON *csound, FLSAVESNAPS* p)
   // put here some warning message!!
   if (fl_ask("Saving could overwrite the old file\n"
              "Are you sure you want to save?")==0) return OK;
-  csound->strarg2name(csound, s, p->filename, "snap.", p->XINSTRCODE);
+  csound->strarg2name(csound, s, p->filename, "snap.", p->XSTRCODE);
   s2 = csound->FindOutputFile(csound, s, "SNAPDIR");
   if (s2 == NULL)
     return csound->InitError(csound, Str("FLsavesnap: cannot open file"));
@@ -1463,7 +1463,7 @@ extern "C" int load_snap(ENVIRON *csound, FLLOADSNAPS* p)
   char     s[MAXNAME], *s2;
   string   filename;
 
-  csound->strarg2name(csound, s, p->filename, "snap.", p->XINSTRCODE);
+  csound->strarg2name(csound, s, p->filename, "snap.", p->XSTRCODE);
   s2 = csound->FindInputFile(csound, s, "SNAPDIR");
   if (s2 == NULL)
     return csound->InitError(csound, Str("FLloadsnap: cannot open file"));
@@ -2034,7 +2034,7 @@ extern "C" void FLkeyb(ENVIRON *csound, FLKEYB *p)
 
 extern "C" void StartPanel(ENVIRON *csound, FLPANEL *p)
 {
-  char* panelName = GetString(p->name, p->XINSTRCODE);
+  char* panelName = GetString(p->name, p->XSTRCODE);
 
   int x = (int) *p->ix, y = (int) *p->iy,
     width = (int) *p->iwidth, height = (int) *p->iheight;
@@ -2143,7 +2143,7 @@ extern "C" int EndTabs(ENVIRON *csound, FLTABSEND *p)
 //-----------
 extern "C" int StartGroup(ENVIRON *csound, FLGROUP *p)
 {
-  char *Name = GetString(p->name, p->XINSTRCODE);
+  char *Name = GetString(p->name, p->XSTRCODE);
   Fl_Group *o = new Fl_Group ((int) *p->ix, (int) *p->iy,
                               (int) *p->iwidth, (int) *p->iheight,Name);
   widget_attributes(o);
@@ -2486,7 +2486,7 @@ extern "C" int fl_setTextType(ENVIRON *csound, FL_SET_FONT *p)
 
 extern "C" int fl_box(ENVIRON *csound, FL_BOX *p)
 {
-  char *text = GetString(p->itext, p->XINSTRCODE);
+  char *text = GetString(p->itext, p->XSTRCODE);
   Fl_Box *o =  new Fl_Box((int)*p->ix, (int)*p->iy,
                           (int)*p->iwidth, (int)*p->iheight, text);
   widget_attributes(o);
@@ -2545,7 +2545,7 @@ extern "C" int fl_box(ENVIRON *csound, FL_BOX *p)
 
 extern "C" int fl_setText(ENVIRON *csound, FL_SET_TEXT *p)
 {
-  char *text = GetString(p->itext, p->XINSTRCODE);
+  char *text = GetString(p->itext, p->XSTRCODE);
   ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
   Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
   o->label(text);
@@ -2648,7 +2648,7 @@ extern "C" int fl_align(ENVIRON *csound, FL_TALIGN *p)
 
 extern "C" int fl_value(ENVIRON *csound, FLVALUE *p)
 {
-  char *controlName = GetString(p->name, p->XINSTRCODE);
+  char *controlName = GetString(p->name, p->XSTRCODE);
   int ix, iy, iwidth, iheight;
   if (*p->ix<0) ix = FL_ix;       else  FL_ix = ix = (int) *p->ix;
   if (*p->iy<0) iy = FL_iy;       else  FL_iy = iy = (int) *p->iy;
@@ -2676,7 +2676,7 @@ extern "C" int fl_value(ENVIRON *csound, FLVALUE *p)
 
 extern "C" int fl_slider(ENVIRON *csound, FLSLIDER *p)
 {
-  char *controlName = GetString(p->name, p->XINSTRCODE);
+  char *controlName = GetString(p->name, p->XSTRCODE);
   int ix,iy,iwidth, iheight,itype, iexp;
 
   if (*p->iy < 0) {
@@ -2771,7 +2771,7 @@ extern "C" int fl_slider(ENVIRON *csound, FLSLIDER *p)
 extern "C" int fl_slider_bank(ENVIRON *csound, FLSLIDERBANK *p)
 {
   char s[MAXNAME];
-  if (p->XINSTRCODE)
+  if (p->XSTRCODE)
     strcpy(s, (char*) p->names);
   else if ((long) *p->names <= csound->strsmax &&
            csound->strsets != NULL && csound->strsets[(long) *p->names]) {
@@ -2960,7 +2960,7 @@ extern "C" int fl_slider_bank(ENVIRON *csound, FLSLIDERBANK *p)
 
 extern "C" int fl_joystick(ENVIRON *csound, FLJOYSTICK *p)
 {
-  char *Name = GetString(p->name, p->XINSTRCODE);
+  char *Name = GetString(p->name, p->XSTRCODE);
   int ix,iy,iwidth, iheight, iexpx, iexpy;
 
   if (*p->ix < 0)  ix = 10; // omitted options: set default
@@ -3063,7 +3063,7 @@ extern "C" int fl_joystick(ENVIRON *csound, FLJOYSTICK *p)
 
 extern "C" int fl_knob(ENVIRON *csound, FLKNOB *p)
 {
-  char *controlName = GetString(p->name, p->XINSTRCODE);
+  char *controlName = GetString(p->name, p->XSTRCODE);
   int ix,iy,iwidth, itype, iexp;
 
   if (*p->iy < 0) iy = FL_iy;
@@ -3156,7 +3156,7 @@ extern "C" int fl_knob(ENVIRON *csound, FLKNOB *p)
 
 extern "C" int fl_text(ENVIRON *csound, FLTEXT *p)
 {
-  char *controlName = GetString(p->name, p->XINSTRCODE);
+  char *controlName = GetString(p->name, p->XSTRCODE);
   int ix,iy,iwidth,iheight,itype;
   MYFLT   istep;
 
@@ -3210,7 +3210,7 @@ extern "C" int fl_text(ENVIRON *csound, FLTEXT *p)
 
 extern "C" int fl_button(ENVIRON *csound, FLBUTTON *p)
 {
-  char *Name = GetString(p->name, p->XINSTRCODE);
+  char *Name = GetString(p->name, p->XSTRCODE);
   int type = (int) *p->itype;
   if (type >9 ) { // ignored when getting snapshots
     if (O.msglevel & WARNMSG)
@@ -3255,7 +3255,7 @@ extern "C" int fl_button(ENVIRON *csound, FLBUTTON *p)
 
 extern "C" int fl_button_bank(ENVIRON *csound, FLBUTTONBANK *p)
 {
-  char *Name = "/0"; //GetString(p->name, p->XINSTRCODE);
+  char *Name = "/0"; //GetString(p->name, p->XSTRCODE);
   int type = (int) *p->itype;
   if (type >9 ) { // ignored when getting snapshots
     if (O.msglevel & WARNMSG)
@@ -3304,7 +3304,7 @@ extern "C" int fl_button_bank(ENVIRON *csound, FLBUTTONBANK *p)
 
 extern "C" int fl_counter(ENVIRON *csound, FLCOUNTER *p)
 {
-  char *controlName = GetString(p->name, p->XINSTRCODE);
+  char *controlName = GetString(p->name, p->XSTRCODE);
   //      int ix,iy,iwidth,iheight,itype;
   //      MYFLT   istep1, istep2;
 
@@ -3344,7 +3344,7 @@ extern "C" int fl_counter(ENVIRON *csound, FLCOUNTER *p)
 
 extern "C" int fl_roller(ENVIRON *csound, FLROLLER *p)
 {
-  char *controlName = GetString(p->name, p->XINSTRCODE);
+  char *controlName = GetString(p->name, p->XSTRCODE);
   int ix,iy,iwidth, iheight,itype, iexp ;
   double istep;
   if (*p->iy < 0) {

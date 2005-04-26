@@ -46,6 +46,7 @@
 #include "widgets.h"                    /* IV - Aug 23 2002 */
 #endif
 #include "linevent.h"
+#include "str_ops.h"
 
 #define S       sizeof
 
@@ -409,6 +410,22 @@ OENTRY opcodlst_2[] = {
 { "multitap", S(MDEL),  5,      "a",    "am",   (SUBR)multitap_set,NULL,(SUBR)multitap_play},
 { "comb",   S(COMB),    5,      "a",    "akioo", (SUBR)cmbset,NULL,   (SUBR)comb    },
 { "alpass", S(COMB),    5,      "a",    "akioo", (SUBR)cmbset,NULL,   (SUBR)alpass  },
+ {  "strset",   S(STRSET_OP),   1,  "",     "iS",
+    (SUBR) strset_init, (SUBR) NULL, (SUBR) NULL                        },
+ {  "strget",   S(STRGET_OP),   1,  "S",    "i",
+    (SUBR) strget_init, (SUBR) NULL, (SUBR) NULL                        },
+ {  "strcpy",   S(STRCPY_OP),   1,  "S",    "S",
+    (SUBR) strcpy_opcode_init, (SUBR) NULL, (SUBR) NULL                 },
+ {  "strcpyk",  S(STRCPY_OP),   3,  "S",    "S",
+    (SUBR) strcpy_opcode_init, (SUBR) strcpy_opcode_perf, (SUBR) NULL   },
+ {  "strcat",   S(STRCAT_OP),   1,  "S",    "SS",
+    (SUBR) strcat_opcode_init, (SUBR) NULL, (SUBR) NULL                 },
+ {  "strcatk",  S(STRCAT_OP),   3,  "S",    "SS",
+    (SUBR) strcat_opcode_init, (SUBR) strcat_opcode_perf, (SUBR) NULL   },
+ {  "strcmp",   S(STRCAT_OP),   1,  "i",    "SS",
+    (SUBR) strcpy_opcode_init, (SUBR) NULL, (SUBR) NULL                 },
+ {  "strcmpk",  S(STRCAT_OP),   3,  "k",    "SS",
+    (SUBR) strcmp_opcode, (SUBR) strcmp_opcode, (SUBR) NULL             }
 };
 
 long oplength_2 = sizeof(opcodlst_2);

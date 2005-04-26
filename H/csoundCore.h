@@ -54,9 +54,8 @@ extern "C" {
 #define ENDOP     4
 #define LABEL     5
 #define SETBEG    6
-#define STRSET    6
-#define PSET      7
-#define SETEND    8
+#define PSET      6
+#define SETEND    7
   /* #define VSET      6 */
   /* #define GVSET     7 */
   /* #define VDIM      8 */
@@ -83,8 +82,8 @@ extern "C" {
 #  define XINARG3   (p->XINCODE & 4)
 #  define XINARG4   (p->XINCODE & 8)
 #define XOUTCODE    ORTXT.xoutcod       /* IV - Apr 25 2005 */
-#define XINSTRCODE  ORTXT.xinstrcod
-#define XOUTSTRCODE ORTXT.xoutstrcod
+#define XSTRCODE    ORTXT.xincod_str
+#define XOUTSTRCODE ORTXT.xoutcod_str
 
 #define MAXLEN     0x1000000L
 #define FMAXLEN    ((MYFLT)(MAXLEN))
@@ -182,8 +181,8 @@ extern "C" {
     ARGOFFS *outoffs;
     int     xincod;         /* Rate switch for multi-rate opcode functions */
     int     xoutcod;        /* output rate switch (IV - Sep 1 2002) */
-    int     xinstrcod;      /* Type switch for string arguments */
-    int     xoutstrcod;
+    int     xincod_str;     /* Type switch for string arguments */
+    int     xoutcod_str;
     char    intype;         /* Type of first input argument (g,k,a,w etc) */
     char    pftype;         /* Type of output argument (k, a etc) */
   } TEXT;
@@ -714,10 +713,10 @@ extern "C" {
     MEMFIL *(*ldmemfile)(void*, const char*);
     FUNC *(*hfgens)(struct ENVIRON_*, EVTBLK *);
     int (*getopnum)(struct ENVIRON_*, char *s);
-    long (*strarg2insno)(struct ENVIRON_ *csound, MYFLT *p, int is_string);
-    long (*strarg2opcno)(struct ENVIRON_ *csound, MYFLT *p, int is_string,
+    long (*strarg2insno)(struct ENVIRON_ *csound, void *p, int is_string);
+    long (*strarg2opcno)(struct ENVIRON_ *csound, void *p, int is_string,
                                                   int force_opcode);
-    char *(*strarg2name)(struct ENVIRON_*, char*, MYFLT*, const char*, int);
+    char *(*strarg2name)(struct ENVIRON_*, char*, void*, const char*, int);
     void (*rewriteheader)(SNDFILE *ofd, int verbose);
     void (*writeheader)(int ofd, char *ofname);
     void *(*SAsndgetset)(void*, char*, void*, MYFLT*, MYFLT*, MYFLT*, int);
@@ -880,7 +879,6 @@ extern "C" {
     char *        rtin_devs;
     unsigned int  rtout_dev;
     char *        rtout_devs;
-    int           displop4;
     void          *file_opened;
     int           file_max;
     int           file_num;
@@ -939,8 +937,8 @@ extern "C" {
     void          *otranGlobals;
     void          *rdorchGlobals;
     void          *sreadGlobals;
-    int           maxStrVarLen;     /* maximum length of string variables + 1 */
-    int           strVar_MYFLT;     /* number of MYFLT locations for string */
+    int           strVarMaxLen;     /* maximum length of string variables + 1 */
+    int           strVarSamples;     /* number of MYFLT locations for string */
   } ENVIRON;
 
 #include "text.h"

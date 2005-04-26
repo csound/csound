@@ -2309,7 +2309,7 @@ int ftgen(ENVIRON *csound, FTGEN *p) /* set up and call any GEN routine */
     *fp++ = ftevt->p2orig = FL(0.0);            /* force time 0 */
     *fp++ = ftevt->p3orig = *p->p3;
     *fp++ = *p->p4;
-    if (p->XINSTRCODE) {                        /* string argument: */
+    if (p->XSTRCODE) {                        /* string argument: */
       int n = (int) ftevt->p[4];
       *fp++ = SSTRCOD;
       if (n < 0) n = -n;
@@ -2351,7 +2351,7 @@ int ftload(ENVIRON *csound, FTLOAD *p)
 
     if ((nargs = p->INOCOUNT - 2) <= 0) goto err2;
 
-    if (p->XINSTRCODE)                      /* if char string name given */
+    if (p->XSTRCODE)                      /* if char string name given */
       strcpy(filename, (char*) p->ifilno);  /* FIXME: and what if not ? */
     if (*p->iflag <= 0) {
       if (!(file = fopen(filename, "rb"))) goto err3;
@@ -2482,7 +2482,7 @@ int ftsave(ENVIRON *csound, FTLOAD *p)
 
     if ((nargs = p->INOCOUNT - 2) <= 0) goto err2;
 
-    if (p->XINSTRCODE)                      /* if char string name given */
+    if (p->XSTRCODE)                      /* if char string name given */
       strcpy(filename, (char*) p->ifilno);  /* FIXME: and what if not ? */
     if (*p->iflag <= 0) {
       if (!(file = fopen(filename, "wb"))) goto err3;

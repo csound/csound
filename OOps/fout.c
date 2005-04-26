@@ -92,10 +92,10 @@ int outfile_set(ENVIRON *csound, OUTFILE *p)
     SF_INFO sfinfo;
 
     p->nargs = p->INOCOUNT-2;
-    if (p->XINSTRCODE || *p->fname == SSTRCOD) { /* if char string name given */
+    if (p->XSTRCODE || *p->fname == SSTRCOD) { /* if char string name given */
       int j;
       char fname[FILENAME_MAX];
-      if (p->XINSTRCODE)
+      if (p->XSTRCODE)
         strcpy(fname, (char*) p->fname);
       else
         strcpy(fname, unquote(csound->currevent->strarg));
@@ -171,10 +171,10 @@ int koutfile_set(ENVIRON *csound, KOUTFILE *p)
     int n;
     SF_INFO sfinfo;
     p->nargs = p->INOCOUNT-2;
-    if (p->XINSTRCODE || *p->fname == SSTRCOD) { /* if char string name given */
+    if (p->XSTRCODE || *p->fname == SSTRCOD) { /* if char string name given */
       int j;
       char fname[FILENAME_MAX];
-      if (p->XINSTRCODE)
+      if (p->XSTRCODE)
         strcpy(fname, (char*) p->fname);
       else
         strcpy(fname, unquote(csound->currevent->strarg));
@@ -395,10 +395,10 @@ int ioutfile_r(ENVIRON *csound, IOUTFILE_R *p)
 int infile_set(ENVIRON *csound, INFILE *p)
 {
     SF_INFO sfinfo;
-    if (p->XINSTRCODE || *p->fname == SSTRCOD) { /* if char string name given */
+    if (p->XSTRCODE || *p->fname == SSTRCOD) { /* if char string name given */
       int j;
       char fname[FILENAME_MAX];
-      if (p->XINSTRCODE)
+      if (p->XSTRCODE)
         strcpy(fname, (char*) p->fname);
       else
         strcpy(fname, unquote(csound->currevent->strarg));
@@ -475,10 +475,10 @@ int infile_act(ENVIRON *csound, INFILE *p)
 int kinfile_set(ENVIRON *csound, KINFILE *p)
 {
     SF_INFO sfinfo;
-    if (p->XINSTRCODE || *p->fname == SSTRCOD) { /* if char string name given */
+    if (p->XSTRCODE || *p->fname == SSTRCOD) { /* if char string name given */
       int j;
       char fname[FILENAME_MAX];
-      if (p->XINSTRCODE)
+      if (p->XSTRCODE)
         strcpy(fname, (char*) p->fname);
       else
         strcpy(fname, unquote(csound->currevent->strarg));
@@ -551,11 +551,11 @@ int i_infile(ENVIRON *csound, I_INFILE *p)
     int j, nargs;
     FILE *fp = NULL;
     MYFLT **args = p->argums;
-    if (p->XINSTRCODE || *p->fname == SSTRCOD) {/* if char string name given */
+    if (p->XSTRCODE || *p->fname == SSTRCOD) {/* if char string name given */
       char fname[FILENAME_MAX];
       char *omodes[] = {"r", "r", "rb"};
       int idx;
-      if (p->XINSTRCODE)
+      if (p->XSTRCODE)
         strcpy(fname, (char*) p->fname);
       else
         strcpy(fname, unquote(csound->currevent->strarg));
@@ -699,11 +699,11 @@ int fprintf_set(ENVIRON *csound, FPRINTF *p)
 
     memset(p->txtstring, 0, 8192); /* Nasty to have exposed constant in code */
 
-    if ((p->XINSTRCODE & 1) || *p->fname == SSTRCOD) {
+    if ((p->XSTRCODE & 1) || *p->fname == SSTRCOD) {
       /* if char string name given */
       int j;
       char fname[FILENAME_MAX];
-      if (p->XINSTRCODE & 1)
+      if (p->XSTRCODE & 1)
         strcpy(fname, (char*) p->fname);
       else
         strcpy(fname, unquote(csound->currevent->strarg));

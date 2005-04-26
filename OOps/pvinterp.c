@@ -63,7 +63,7 @@ int pvbufreadset(ENVIRON *csound, PVBUFREAD *p)
       p->fftBuf = fltp;       /* fltp += PVFFTSIZE; */ /* Not needed */
     }
 
-    csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", p->XINSTRCODE);
+    csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", p->XSTRCODE);
     if ((mfp = p->mfp) == NULL ||
         strcmp(mfp->filename, pvfilnam) != 0) { /* if file not already readin */
       if ( (mfp = ldmemfile(csound, pvfilnam)) == NULL) {
@@ -178,7 +178,7 @@ int pvinterpset(ENVIRON *csound, PVINTERP *p)
       p->outBuf = fltp;      fltp += PVFFTSIZE;
       p->window = fltp;
     }
-    csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", p->XINSTRCODE);
+    csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", p->XSTRCODE);
     if ((mfp = p->mfp) == NULL ||
         strcmp(mfp->filename, pvfilnam) != 0) { /* if file not already readin */
       if ( (mfp = ldmemfile(csound, pvfilnam)) == NULL) {
@@ -366,7 +366,7 @@ int pvcrossset(ENVIRON *csound, PVCROSS *p)
         p->outBuf = fltp;      fltp += PVFFTSIZE;
         p->window = fltp;
     }
-    csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", p->XINSTRCODE);
+    csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", p->XSTRCODE);
     if ((mfp = p->mfp) == NULL ||
         strcmp(mfp->filename, pvfilnam) != 0) {/* if file not already readin */
         if ( (mfp = ldmemfile(csound, pvfilnam)) == NULL) {

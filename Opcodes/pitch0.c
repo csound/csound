@@ -31,7 +31,7 @@
 
 int mute_inst(ENVIRON *csound, MUTE *p)
 {
-    int n = (int) csound->strarg2insno(csound, p->ins, p->XINSTRCODE);
+    int n = (int) csound->strarg2insno(csound, p->ins, p->XSTRCODE);
     int onoff = (*p->onoff == FL(0.0) ? 0 : 1);
     if (n < 1) return NOTOK;
     if (onoff==0) {

@@ -1566,7 +1566,7 @@ int outch(ENVIRON *csound, OUTCH *p)
 /* invalue and outvalue are used with the csoundAPI */
 int invalset(ENVIRON *csound, INVAL *p)
 {
-    if (p->XINSTRCODE)
+    if (p->XSTRCODE)
       strcpy(p->channelName, (char*) p->valID);
     else
       sprintf(p->channelName, "%d", (int)(*p->valID+FL(0.5)));
@@ -1583,7 +1583,7 @@ int kinval(ENVIRON *csound, INVAL *p)
 
 int outvalset(ENVIRON *csound, OUTVAL *p)
 {
-    if (p->XINSTRCODE)
+    if (p->XSTRCODE)
       strcpy(p->channelName, (char*) p->valID);
     else
       sprintf(p->channelName, "%d", (int)(*p->valID+FL(0.5)));

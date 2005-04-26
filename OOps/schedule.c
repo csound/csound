@@ -82,7 +82,7 @@ int schedule(ENVIRON *csound, SCHED *p)
         ss = rr; rr = rr->next;
       }
     }
-    if (p->XINSTRCODE)
+    if (p->XSTRCODE)
       which = (int) named_instr_find(csound, (char*) p->which);
     else if (*p->which == SSTRCOD)
       which = (int) named_instr_find(csound, csound->currevent->strarg);
@@ -168,7 +168,7 @@ int kschedule(ENVIRON *csound, WSCHED *p)
       RSCHED *rr;
       MYFLT dur = *p->dur;
       int which;
-      if (p->XINSTRCODE)
+      if (p->XSTRCODE)
         which = (int) named_instr_find(csound, (char*) p->which);
       else if (*p->which == SSTRCOD)
         which = (int) named_instr_find(csound, csound->currevent->strarg);
@@ -403,7 +403,7 @@ static int get_absinsno(ENVIRON *csound, TRIGINSTR *p)
 
     /* Get absolute instr num */
     /* IV - Oct 31 2002: allow string argument for named instruments */
-    if (p->XINSTRCODE)
+    if (p->XSTRCODE)
       insno = (int) strarg2insno_p(csound, (char*) p->args[0]);
     else if (*p->args[0] == SSTRCOD)
       insno = (int) strarg2insno_p(csound, csound->currevent->strarg);
@@ -465,7 +465,7 @@ int ktriginstr(ENVIRON *csound, TRIGINSTR *p)
     }
 
     /* Create the new event */
-    if (p->XINSTRCODE) {
+    if (p->XSTRCODE) {
       evt.strarg = (char*) p->args[0];
       evt.p[1] = SSTRCOD;
     }

@@ -319,7 +319,6 @@ const ENVIRON cenviron_ = {
         NULL,           /*  rtin_devs           */
         1024,           /*  rtout_dev           */
         NULL,           /*  rtout_devs          */
-        -1,             /*  displop4            */
         NULL,           /*  file_opened         */
         0,              /*  file_max            */
         -1,             /*  file_num            */
@@ -374,8 +373,8 @@ const ENVIRON cenviron_ = {
         NULL,           /*  otranGlobals        */
         NULL,           /*  rdorchGlobals       */
         NULL,           /*  sreadGlobals        */
-        256,            /*  maxStrVarLen        */
-        0               /*  strVar_MYFLT        */
+        256,            /*  strVarMaxLen        */
+        0               /*  strVarSamples       */
 };
 
 /* globals to be removed eventually... */
@@ -529,9 +528,9 @@ void oload(ENVIRON *p)
     gblspace[4] = p->e0dbfs;
     p->gbloffbas = p->pool - 1;
     /* number of MYFLT locations to allocate for a string variable */
-    p->strVar_MYFLT = (p->maxStrVarLen + (int) sizeof(MYFLT) - 1)
-                      / (int) sizeof(MYFLT);
-    p->maxStrVarLen = p->strVar_MYFLT * (int) sizeof(MYFLT);
+    p->strVarSamples = (p->strVarMaxLen + (int) sizeof(MYFLT) - 1)
+                       / (int) sizeof(MYFLT);
+    p->strVarMaxLen = p->strVarSamples * (int) sizeof(MYFLT);
 
     gblabeg = O->poolcount + O->gblfixed + 1;
     gblsbeg = gblabeg + O->gblacount * p->ksmps;
@@ -543,7 +542,7 @@ void oload(ENVIRON *p)
       if (O->odebug) p->Message(p, "lclabeg %ld\n", lclabeg);
       ip->localen = ((long) ip->lclfixed
                      + (long) ip->lclacnt * (long) p->ksmps
-                     + (long) ip->lclscnt * (long) p->strVar_MYFLT)
+                     + (long) ip->lclscnt * (long) p->strVarSamples)
                     * (long) sizeof(MYFLT);
       /* align to 64 bits */
       ip->localen = (ip->localen + 7L) & (~7L);
@@ -573,7 +572,7 @@ void oload(ENVIRON *p)
             if (indx >= STR_OFS)        /* string constant          */
               p->Die(p, Str("internal error: string constant outarg"));
             if (indx > gblsbeg)         /* global string variable   */
-              indx = gblsbeg + (indx - gblsbeg) * p->strVar_MYFLT;
+              indx = gblsbeg + (indx - gblsbeg) * p->strVarSamples;
             else if (indx > gblabeg)    /* global a-rate variable   */
               indx = gblabeg + (indx - gblabeg) * p->ksmps;
             else if (indx <= 3 && O->sr_override &&
@@ -585,7 +584,7 @@ void oload(ENVIRON *p)
             if (indx < LABELIM)         /* label                    */
               continue;
             if (posndx > lclsbeg)       /* local string variable    */
-              indx = -(lclsbeg + (posndx - lclsbeg) * p->strVar_MYFLT);
+              indx = -(lclsbeg + (posndx - lclsbeg) * p->strVarSamples);
             else if (posndx > lclabeg)  /* local a-rate variable    */
               indx = -(lclabeg + (posndx - lclabeg) * p->ksmps);
           }
@@ -594,36 +593,6 @@ void oload(ENVIRON *p)
         aoffp = ttp->inoffs;            /* inargs:                  */
         if (opnum >= SETEND) goto realops;
         switch (opnum) {                /*      do oload SETs NOW   */
-        case STRSET:
-          if (p->strsets == NULL)
-            p->strsets = (char **)
-              mcalloc(p, ((p->strsmax = STRSMAX)+1) * sizeof(char*));
-          indx = (long) p->gbloffbas[*aoffp->indx];
-          if (indx >= p->strsmax) {
-            long newmax = p->strsmax + STRSMAX;
-            int i;
-            while (indx > newmax) newmax += STRSMAX;
-            p->strsets = (char**) mrealloc(p, p->strsets,
-                                              (newmax + 1) * sizeof(char*));
-            /* ??? */
-            for (i = p->strsmax; i <= newmax; i++)
-              p->strsets[i] = NULL;
-/*          for (i = 0; i <= newmax; i++)
-              p->Message(p, "strset[%d]: %p\n", i, p->strsets[i]); */
-            p->strsmax = newmax;
-          }
-          if (p->strsets == NULL || indx < 0) {
-            /* No space left or -ve index */
-            p->Die(p, Str("illegal strset index"));
-          }
-          if (p->strsets[indx] != NULL) {
-            p->Warning(p, Str("strset index conflict"));
-          }
-/*        else {    FIXME: strsets is broken, use new string implementation
-            p->strsets[indx] = ttp->strargs[0];
-          }                                     */
-          p->Message(p, "Strsets[%ld]:%s\n", indx, p->strsets[indx]);
-          break;
         case PSET:
           p->Message(p, "PSET: isno=%ld, pmax=%d\n", insno, ip->pmax);
           if ((n = aoffp->count) != ip->pmax) {
@@ -652,7 +621,7 @@ void oload(ENVIRON *p)
             if (indx >= STR_OFS)        /* string constant          */
               continue;
             if (indx > gblsbeg)         /* global string variable   */
-              indx = gblsbeg + (indx - gblsbeg) * p->strVar_MYFLT;
+              indx = gblsbeg + (indx - gblsbeg) * p->strVarSamples;
             else if (indx > gblabeg)    /* global a-rate variable   */
               indx = gblabeg + (indx - gblabeg) * p->ksmps;
           }
@@ -661,7 +630,7 @@ void oload(ENVIRON *p)
             if (indx < LABELIM)         /* label                    */
               continue;
             if (posndx > lclsbeg)       /* local string variable    */
-              indx = -(lclsbeg + (posndx - lclsbeg) * p->strVar_MYFLT);
+              indx = -(lclsbeg + (posndx - lclsbeg) * p->strVarSamples);
             else if (posndx > lclabeg)  /* local a-rate variable    */
               indx = -(lclabeg + (posndx - lclabeg) * p->ksmps);
           }

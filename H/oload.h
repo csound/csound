@@ -36,8 +36,6 @@
 #define STR_OFS 0x78000000      /* string constant index base */
 #define VMAGIC  0x56444154      /* "VDAT" */
 
-#define STRSMAX 8
-
 typedef struct  {
         char    *namep;
         int     type, count;
