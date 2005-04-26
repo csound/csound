@@ -627,8 +627,8 @@ int lorisread_setup( ENVIRON *csound, LORISREAD * params )
   //if ( *params->ifilnam == SSTRCOD )
   {
     //	use strg name, if given:
-    //sdiffilname = unquote(params->STRARG);
-    sdiffilname = params->STRARG;
+    //sdiffilname = unquote(params->strarg);
+    sdiffilname = (char *)params->ifilnam;
   }
   /* unclear what this does, not described in pvoc docs
      else if ((long)*p->ifilnam <= strsmax && strsets != NULL && strsets[(long)*p->ifilnam])
