@@ -517,6 +517,7 @@ OOps/schedule.c
 OOps/sdif.c
 OOps/sdif-mem.c
 OOps/sndinfUG.c
+OOps/str_ops.c
 OOps/ugens1.c
 OOps/ugens2.c
 OOps/ugens3.c

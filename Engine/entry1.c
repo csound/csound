@@ -271,7 +271,6 @@ OENTRY opcodlst_1[] = {
 { "opcode", 0,          0,      "",     "",     NULL, NULL, NULL        },
 { "endop",  0,          0,      "",     "",     NULL, NULL, NULL        },
 { "$label", S(LBLBLK),  0,      "",     ""                              },
-{ "strset", S(STRNG),   0,      "",     "iT"    /* oload time only */   },
 { "pset",   S(PVSET),   0,      "",     "m"                             },
 { "ftgen",  S(FTGEN),   1,      "i",   "iiiiTm",ftgen                   },
 { "ctrlinit",S(CTLINIT),1,      "",     "im",   ctrlinit                },

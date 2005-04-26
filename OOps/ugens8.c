@@ -58,7 +58,7 @@ int pvset(ENVIRON *csound, PVOC *p)
     FUNC     *AmpGateFunc = NULL;
     int      old_format = 1;
 
-    csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", p->XINSTRCODE);
+    csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", p->XSTRCODE);
 
     if ((mfp = p->mfp) == NULL ||
         strcmp(mfp->filename, pvfilnam) != 0) { /* if file not already readin */

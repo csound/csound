@@ -774,10 +774,12 @@ static int splitline(ENVIRON *csound)
         ST(collectbuf) = nn;
       }
       if (c == '"') {                     /* quoted string: */
+#if 0
         if (collecting) {
           synterrp(csound, lp - 1, Str("unexpected quote character"));
           continue;
         }
+#endif
         if (grpcnt >= ST(grpmax)) {
           ST(grpmax) += GRPMAX;
           ST(group) = (char**) mrealloc(csound, ST(group), (ST(grpmax) + 1)
@@ -794,10 +796,12 @@ static int splitline(ENVIRON *csound)
         continue;
       }
       if (c == '{' && *lp == '{') {       /* multiline quoted string:    */
+#if 0
         if (collecting) {
           synterrp(csound, lp - 1, Str("unexpected quote character"));
           continue;
         }
+#endif
         if (grpcnt >= ST(grpmax)) {
           ST(grpmax) += GRPMAX;
           ST(group) = (char **)mrealloc(csound, ST(group), (ST(grpmax) + 1)
@@ -1335,7 +1339,7 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
     ST(grpcnt) = 0;                             /* all done w. these groups */
 
  spctst:
-    tp->xinstrcod = tp->xincod = 0;
+    tp->xincod_str = tp->xincod = 0;
     if (tp->opnum == OPCODE) {  /* IV - Sep 8 2002: added OPCODE and ENDOP */
       if (ST(opcodblk))
         synterr(csound, Str("opcode blks cannot be nested (missing 'endop'?)"));
@@ -1410,7 +1414,7 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
         nreqd = strlen(types = ep->intypes);
       if (n > nreqd) {                  /* IV - Oct 24 2002: end of new code */
         if ((treqd = types[nreqd-1]) == 'n') {/* indef args: */
-          if (!(incnt & 01))          /* require odd */
+          if (!(incnt & 01))            /* require odd */
             synterr(csound, Str("missing or extra arg"));
         }       /* IV - Sep 1 2002: added 'M' */
         else if (treqd != 'm' && treqd != 'z' &&
@@ -1495,7 +1499,7 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
           /* 4 for FOF, 8 for FOG; expanded to 15  */
           tp->xincod |= (1 << n);
         if (tfound == 'S' && n < 31)
-          tp->xinstrcod |= (1 << n);
+          tp->xincod_str |= (1 << n);
         /* IV - Oct 31 2002: simplified code */
         if (!(tfound_m & ST(typemask_tabl_in)[(unsigned char) treqd])) {
           /* check for exceptional types */
@@ -1526,7 +1530,7 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
       }
       csound->DebugMsg(csound, "xincod = %d", tp->xincod);
       /* IV - Sep 1 2002: added 'X' type, and xoutcod */
-      tp->xoutstrcod = tp->xoutcod = 0;
+      tp->xoutcod_str = tp->xoutcod = 0;
       /* IV - Oct 24 2002: moved argument parsing for xin here */
       n = outcnt;
       nreqd = -1;
@@ -1572,7 +1576,7 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
         if (tfound == 'a' && n < 31)
           tp->xoutcod |= (1 << n);
         if (tfound == 'S' && n < 31)
-          tp->xoutstrcod |= (1 << n);
+          tp->xoutcod_str |= (1 << n);
         csound->DebugMsg(csound, "treqd %c, tfound %c", treqd, tfound);
         if (tfound_m & (ARGTYP_d | ARGTYP_w))
           if (ST(lgprevdef)) {

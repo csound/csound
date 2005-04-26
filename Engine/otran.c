@@ -608,7 +608,7 @@ void otran(ENVIRON *csound)
       /* chk instr 0 for illegal perfs */
       int thread, opnum = bp->t.opnum;
       if (opnum == ENDIN) break;
-      if (opnum == LABEL || opnum == STRSET) continue;
+      if (opnum == LABEL) continue;
       if ((thread = csound->opcodlst[opnum].thread) & 06 ||
           (!thread && bp->t.pftype != 'b'))
         synterr(csound, Str("perf-pass statements illegal in header blk"));

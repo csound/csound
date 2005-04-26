@@ -214,7 +214,7 @@ void named_instr_free (ENVIRON *csound)
 /* return value is -1 if the instrument cannot be found */
 /* (in such cases, csoundInitError() is also called) */
 
-long strarg2insno (ENVIRON *csound, MYFLT *p, int is_string)
+long strarg2insno (ENVIRON *csound, void *p, int is_string)
 {
     long    insno;
 
@@ -225,7 +225,7 @@ long strarg2insno (ENVIRON *csound, MYFLT *p, int is_string)
       }
     }
     else {      /* numbered instrument */
-      insno = (long) *p;
+      insno = (long) *((MYFLT*) p);
       if (insno < 1 || insno > csound->maxinsno || !csound->instrtxtp[insno]) {
         csound->InitError(csound, "Cannot Find Instrument %d", (int) insno);
         return -1;
@@ -255,7 +255,7 @@ long strarg2insno_p (ENVIRON *csound, char *s)
 /* return value is -1 if the instrument cannot be found */
 /* (in such cases, csoundInitError() is also called) */
 
-long strarg2opcno (ENVIRON *csound, MYFLT *p, int is_string, int force_opcode)
+long strarg2opcno (ENVIRON *csound, void *p, int is_string, int force_opcode)
 {
     long    insno = 0;
 
@@ -264,7 +264,7 @@ long strarg2opcno (ENVIRON *csound, MYFLT *p, int is_string, int force_opcode)
         insno = named_instr_find(csound, (char*) p);
       }
       else {      /* numbered instrument */
-        insno = (long) *p;
+        insno = (long) *((MYFLT*) p);
         if (insno < 1 || insno > csound->maxinsno ||
             !csound->instrtxtp[insno]) {
           csound->InitError(csound, "Cannot Find Instrument %d", (int) insno);
@@ -285,7 +285,44 @@ long strarg2opcno (ENVIRON *csound, MYFLT *p, int is_string, int force_opcode)
     return insno;
 }
 
-char *strarg2name(ENVIRON *csound, char *s, MYFLT *p, const char *baseName,
+/* create file name from opcode argument (string or MYFLT)      */
+/*   ENVIRON *csound:                                           */
+/*      pointer to Csound instance                              */
+/*   char *s:                                                   */
+/*      output buffer, should have enough space; if NULL, the   */
+/*      required amount of memory is allocated and returned     */
+/*   void *p:                                                   */
+/*      opcode argument, is interpreted as char* or MYFLT*,     */
+/*      depending on the 'is_string' parameter                  */
+/*   const char *baseName:                                      */
+/*      name prefix to be used if the 'p' argument is MYFLT,    */
+/*      and it is neither SSTRCOD, nor a valid index to strset  */
+/*      space.                                                  */
+/*      For example, if "soundin." is passed as baseName, file  */
+/*      names in the format "soundin.%d" will be generated.     */
+/*      baseName may be an empty string, but should not be NULL */
+/*   int is_string:                                             */
+/*      if non-zero, 'p' is interpreted as a char* pointer and  */
+/*      is used as the file name. Otherwise, it is expected to  */
+/*      point to a MYFLT value, and the following are tried:    */
+/*        1. if the value is SSTRCOD, the string argument of    */
+/*           the current score event is used (string p-field)   */
+/*        2. if the value, rounded to the nearest integer, is a */
+/*           valid index to strset space, the strset string is  */
+/*           used                                               */
+/*        3. the file name is generated using baseName and the  */
+/*           value rounded to the nearest integer, as described */
+/*           above                                              */
+/*      'is_string' is usually p->XSTRCODE for an opcode with   */
+/*      only one string argument, otherwise it is               */
+/*      p->XSTRCODE & (1 << (argno - 1))                        */
+/*   return value:                                              */
+/*      pointer to the output string; if 's' is not NULL, it is */
+/*      always the same as 's', otherwise it is allocated with  */
+/*      mmalloc() and the caller is responsible for freeing the */
+/*      allocated memory with mfree() or csound->Free()         */
+
+char *strarg2name(ENVIRON *csound, char *s, void *p, const char *baseName,
                                    int is_string)
 {
     if (is_string) {
@@ -294,7 +331,7 @@ char *strarg2name(ENVIRON *csound, char *s, MYFLT *p, const char *baseName,
         s = mmalloc(csound, strlen((char*) p) + 1);
       strcpy(s, (char*) p);
     }
-    else if (*p == SSTRCOD) {
+    else if (*((MYFLT*) p) == SSTRCOD) {
       /* p-field string, unquote and copy */
       char  *s2 = csound->currevent->strarg;
       int   i = 0;
@@ -307,7 +344,8 @@ char *strarg2name(ENVIRON *csound, char *s, MYFLT *p, const char *baseName,
       s[i] = '\0';
     }
     else {
-      int   i = (int) ((double) *p + (*p >= FL(0.0) ? 0.5 : -0.5));
+      int   i = (int) ((double) *((MYFLT*) p)
+                       + (*((MYFLT*) p) >= FL(0.0) ? 0.5 : -0.5));
       if (i >= 0 && i <= (int) csound->strsmax &&
           csound->strsets != NULL && csound->strsets[i] != NULL) {
         if (s == NULL)

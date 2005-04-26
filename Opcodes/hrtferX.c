@@ -84,7 +84,7 @@ int hrtferxkSet(ENVIRON *csound, HRTFER *p)
       return NOTOK; /* not reached */
     }
 
-    if (p->XINSTRCODE)
+    if (p->XSTRCODE)
       strcpy(filename, (char*) p->ifilno);
     else {
       csound->Message(csound, Str("\nLast argument must be the string "

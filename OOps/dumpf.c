@@ -30,7 +30,7 @@ int kdmpset(ENVIRON *csound, KDUMP *p)
     /* open in curdir or pathname */
     char soundoname[1024];
     csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.",
-                                p->XINSTRCODE);
+                                p->XSTRCODE);
     if ((p->fdch.fdc = openout(soundoname,1)) < 0) {
       return csound->InitError(csound, Str("Cannot open %s"), soundoname);
     }
@@ -54,7 +54,7 @@ int kdmp2set(ENVIRON *csound, KDUMP2 *p)
     /* open in curdir or pathname */
     char soundoname[1024];
     csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.",
-                                p->XINSTRCODE);
+                                p->XSTRCODE);
     if ((p->fdch.fdc = openout(soundoname,1)) < 0) {
       return csound->InitError(csound, Str("Cannot open %s"), soundoname);
     }
@@ -78,7 +78,7 @@ int kdmp3set(ENVIRON *csound, KDUMP3 *p)
     /* open in curdir or pathname */
     char soundoname[1024];
     csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.",
-                                p->XINSTRCODE);
+                                p->XSTRCODE);
     if ((p->fdch.fdc = openout(soundoname,1)) < 0) {
       return csound->InitError(csound, Str("Cannot open %s"), soundoname);
     }
@@ -102,7 +102,7 @@ int kdmp4set(ENVIRON *csound, KDUMP4 *p)
     /* open in curdir or pathname */
     char soundoname[1024];
     csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.",
-                                p->XINSTRCODE);
+                                p->XSTRCODE);
     if ((p->fdch.fdc = openout(soundoname,1)) < 0) {
       return csound->InitError(csound, Str("Cannot open %s"), soundoname);
     }
@@ -244,7 +244,7 @@ int krdset(ENVIRON *csound, KREAD *p)
     /* open in curdir or pathname */
     char soundiname[1024];
     csound->strarg2name(csound, soundiname, p->ifilcod, "readk.",
-                                p->XINSTRCODE);
+                                p->XSTRCODE);
     if ((p->fdch.fdc = openin(soundiname)) < 0) {
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     }
@@ -269,7 +269,7 @@ int krd2set(ENVIRON *csound, KREAD2 *p)
     /* open in curdir or pathname */
     char soundiname[1024];
     csound->strarg2name(csound, soundiname, p->ifilcod, "readk.",
-                                p->XINSTRCODE);
+                                p->XSTRCODE);
     if ((p->fdch.fdc = openin(soundiname)) < 0) {
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     }
@@ -294,7 +294,7 @@ int krd3set(ENVIRON *csound, KREAD3 *p)
     /* open in curdir or pathname */
     char soundiname[1024];
     csound->strarg2name(csound, soundiname, p->ifilcod, "readk.",
-                                p->XINSTRCODE);
+                                p->XSTRCODE);
     if ((p->fdch.fdc = openin(soundiname)) < 0) {
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     }
@@ -319,7 +319,7 @@ int krd4set(ENVIRON *csound, KREAD4 *p)
     /* open in curdir or pathname */
     char soundiname[1024];
     csound->strarg2name(csound, soundiname, p->ifilcod, "readk.",
-                                p->XINSTRCODE);
+                                p->XSTRCODE);
     if ((p->fdch.fdc = openin(soundiname)) < 0) {
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     }
