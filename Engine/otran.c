@@ -1033,7 +1033,7 @@ static NAME *lclnamset(ENVIRON *csound, char *s)
       case 'w': np->type = WTYPE; np->count = ST(lclnxtwcnt)++; break;
       case 'a': np->type = ATYPE; np->count = ST(lclnxtacnt)++; break;
       case 'f': np->type = PTYPE; np->count = ST(lclnxtpcnt)++; break;
-      case 's': np->type = STYPE; np->count = ST(lclnxtscnt)++; break;
+      case 'S': np->type = STYPE; np->count = ST(lclnxtscnt)++; break;
       default:  np->type = KTYPE; np->count = ST(lclnxtkcnt)++; break;
     }
     return(np);

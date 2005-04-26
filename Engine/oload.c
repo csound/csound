@@ -467,7 +467,7 @@ void oloadRESET(ENVIRON *csound)
 void oload(ENVIRON *p)
 {
     long    n, nn, combinedsize, gblabeg, gblsbeg, lclabeg, lclsbeg, insno, *lp;
-    MYFLT   *combinedspc, *gblspace, *fp1, *fp2;
+    MYFLT   *combinedspc, *gblspace, *fp1;
     INSTRTXT *ip;
     OPTXT   *optxt;
     OPARMS  *O = p->oparms;
@@ -513,12 +513,17 @@ void oload(ENVIRON *p)
                         "esr = %7.1f, ekr = %7.1f, ksmps = %d\n"),
                     p->esr, p->ekr, p->ksmps);
     }
-    combinedsize = (O->poolcount + O->gblfixed + O->gblacount * p->ksmps)
-                   * sizeof(MYFLT);
-    combinedspc = (MYFLT *)mcalloc(p, (long)combinedsize);
-    for (fp1 = p->pool, fp2 = combinedspc, nn = O->poolcount; nn--; )
-      *fp2++ = *fp1++;              /* copy pool into combined space */
-    mfree(p, (void *) p->pool);
+    /* number of MYFLT locations to allocate for a string variable */
+    p->strVarSamples = (p->strVarMaxLen + (int) sizeof(MYFLT) - 1)
+                       / (int) sizeof(MYFLT);
+    p->strVarMaxLen = p->strVarSamples * (int) sizeof(MYFLT);
+
+    combinedsize = O->poolcount + O->gblfixed
+                   + O->gblacount * p->ksmps + O->gblscount * p->strVarSamples;
+    combinedspc = (MYFLT*) mcalloc(p, combinedsize * sizeof(MYFLT));
+    /* copy pool into combined space */
+    memcpy(combinedspc, p->pool, O->poolcount * sizeof(MYFLT));
+    mfree(p, (void*) p->pool);
     p->pool = combinedspc;
     gblspace = p->pool + O->poolcount;
     gblspace[0] = p->esr;           /*   & enter        */
@@ -527,19 +532,16 @@ void oload(ENVIRON *p)
     gblspace[3] = (MYFLT) p->nchnls;
     gblspace[4] = p->e0dbfs;
     p->gbloffbas = p->pool - 1;
-    /* number of MYFLT locations to allocate for a string variable */
-    p->strVarSamples = (p->strVarMaxLen + (int) sizeof(MYFLT) - 1)
-                       / (int) sizeof(MYFLT);
-    p->strVarMaxLen = p->strVarSamples * (int) sizeof(MYFLT);
 
     gblabeg = O->poolcount + O->gblfixed + 1;
-    gblsbeg = gblabeg + O->gblacount * p->ksmps;
+    gblsbeg = gblabeg + O->gblacount;
     ip = &(p->instxtanchor);
     while ((ip = ip->nxtinstxt) != NULL) {      /* EXPAND NDX for A & S Cells */
       optxt = (OPTXT *) ip;                     /*   (and set localen)        */
       lclabeg = (long) (ip->pmax + ip->lclfixed + 1);
-      lclsbeg = (long) (lclabeg + ip->lclacnt * p->ksmps);
-      if (O->odebug) p->Message(p, "lclabeg %ld\n", lclabeg);
+      lclsbeg = (long) (lclabeg + ip->lclacnt);
+      if (O->odebug) p->Message(p, "lclabeg %ld, lclsbeg %ld\n",
+                                   lclabeg, lclsbeg);
       ip->localen = ((long) ip->lclfixed
                      + (long) ip->lclacnt * (long) p->ksmps
                      + (long) ip->lclscnt * (long) p->strVarSamples)
