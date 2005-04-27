@@ -422,8 +422,8 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
 /*        ST(srclin)[++lincnt] = 0; */
 /*        ST(linadr)[lincnt] = cp; */
         }
-        else  {
-          *(cp-1) = c;
+        else {
+          *cp++ = c;
         }
       }
       else if (c == '\n' || c == '\r') {             /* at each new line */

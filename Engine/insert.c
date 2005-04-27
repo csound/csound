@@ -34,8 +34,6 @@
 #include "MacTransport.h"
 #endif
 
-extern  MYFLT   *strConstIndex2Ptr(ENVIRON *csound, int ndx);
-
 static  void    showallocs(ENVIRON *);
 static  void    deact(ENVIRON *, INSDS *);
 static  void    schedofftim(ENVIRON *, INSDS *);
@@ -1820,7 +1818,6 @@ static void instance(ENVIRON *csound, int insno)
       reqd = strlen(ep->outypes);
       for (n=aoffp->count, ndxp=aoffp->indx; n--; reqd--) {
         if ((indx = *ndxp++) > 0)               /* cvt index to lcl/gbl adr */
-          /* outarg cannot be string constant, do not need to check */
           fltp = csound->gbloffbas + indx;
         else
           fltp = lcloffbas + (-indx);
@@ -1843,12 +1840,8 @@ static void instance(ENVIRON *csound, int insno)
           largp++;
         }
         else {
-          if (indx > 0) {                       /* else cvt ndx to lcl/gbl */
-            if (indx >= STR_OFS)
-              fltp = strConstIndex2Ptr(csound, (indx - (STR_OFS + 1)));
-            else
-              fltp = csound->gbloffbas + indx;
-          }
+          if (indx > 0)                         /* else cvt ndx to lcl/gbl */
+            fltp = csound->gbloffbas + indx;
           else
             fltp = lcloffbas + (-indx);
           if (O->odebug)
