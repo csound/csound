@@ -377,6 +377,16 @@ const ENVIRON cenviron_ = {
         0               /*  strVarSamples       */
 };
 
+/* otran.c */
+extern  void    get_strpool_ptrs(ENVIRON *csound,
+                                 int *strpool_cnt, char ***strpool);
+extern  void    strpool_delete(ENVIRON *csound);
+
+static  int     strlen_to_samples(const char *s);
+static  void    unquote_string(char *dst, const char *src);
+static  int     create_strconst_ndx_list(ENVIRON *csound, int **lst, int offs);
+static  void    convert_strconst_pool(ENVIRON *csound, MYFLT *dst);
+
 /* globals to be removed eventually... */
 OPARMS O;
 ENVIRON cenviron;
@@ -466,11 +476,13 @@ void oloadRESET(ENVIRON *csound)
 
 void oload(ENVIRON *p)
 {
-    long    n, nn, combinedsize, gblabeg, gblsbeg, lclabeg, lclsbeg, insno, *lp;
+    long    n, nn, combinedsize, insno, *lp;
+    long    gblabeg, gblsbeg, gblscbeg, lclabeg, lclsbeg;
     MYFLT   *combinedspc, *gblspace, *fp1;
     INSTRTXT *ip;
     OPTXT   *optxt;
     OPARMS  *O = p->oparms;
+    int     *strConstIndexList;
 
     p->esr = p->tran_sr; p->ekr = p->tran_kr;
     p->ksmps = (int) ((p->ensmps = p->tran_ksmps) + FL(0.5));
@@ -517,9 +529,14 @@ void oload(ENVIRON *p)
     p->strVarSamples = (p->strVarMaxLen + (int) sizeof(MYFLT) - 1)
                        / (int) sizeof(MYFLT);
     p->strVarMaxLen = p->strVarSamples * (int) sizeof(MYFLT);
+    /* calculate total size of global pool */
+    combinedsize = O->poolcount                 /* floating point constants */
+                   + O->gblfixed                /* k-rate / spectral        */
+                   + O->gblacount * p->ksmps            /* a-rate variables */
+                   + O->gblscount * p->strVarSamples;   /* string variables */
+    gblscbeg = combinedsize + 1;                /* string constants         */
+    combinedsize += create_strconst_ndx_list(p, &strConstIndexList, gblscbeg);
 
-    combinedsize = O->poolcount + O->gblfixed
-                   + O->gblacount * p->ksmps + O->gblscount * p->strVarSamples;
     combinedspc = (MYFLT*) mcalloc(p, combinedsize * sizeof(MYFLT));
     /* copy pool into combined space */
     memcpy(combinedspc, p->pool, O->poolcount * sizeof(MYFLT));
@@ -532,6 +549,8 @@ void oload(ENVIRON *p)
     gblspace[3] = (MYFLT) p->nchnls;
     gblspace[4] = p->e0dbfs;
     p->gbloffbas = p->pool - 1;
+    /* string constants: unquote, convert escape sequences, and copy to pool */
+    convert_strconst_pool(p, (MYFLT*) p->gbloffbas + (long) gblscbeg);
 
     gblabeg = O->poolcount + O->gblfixed + 1;
     gblsbeg = gblabeg + O->gblacount;
@@ -610,7 +629,6 @@ void oload(ENVIRON *p)
           p->Message(p, "\n");
           break;
         }
-
         continue;       /* no runtime role for the above SET types */
 
       realops:
@@ -621,8 +639,8 @@ void oload(ENVIRON *p)
           indx = *ndxp;
           if (indx > 0) {               /* positive index: global   */
             if (indx >= STR_OFS)        /* string constant          */
-              continue;
-            if (indx > gblsbeg)         /* global string variable   */
+              indx = (long) strConstIndexList[indx - (long) (STR_OFS + 1)];
+            else if (indx > gblsbeg)    /* global string variable   */
               indx = gblsbeg + (indx - gblsbeg) * p->strVarSamples;
             else if (indx > gblabeg)    /* global a-rate variable   */
               indx = gblabeg + (indx - gblabeg) * p->ksmps;
@@ -640,6 +658,8 @@ void oload(ENVIRON *p)
         }
       }
     }
+    p->Free(p, strConstIndexList);
+
 /*  pctlist = (MYFLT **) mcalloc(p, 256 * sizeof(MYFLT *)); */
 /*  insbusy = (int *) mcalloc(p, (p->maxinsno+1) * sizeof(int)); */
 
@@ -694,5 +714,82 @@ void oload(ENVIRON *p)
     p->nspin = p->nspout;
     p->spin  = (MYFLT *) mcalloc(p, p->nspin * sizeof(MYFLT));
     p->spout = (MYFLT *) mcalloc(p, p->nspout * sizeof(MYFLT));
+}
+
+/* get size of string in MYFLT units */
+
+static int strlen_to_samples(const char *s)
+{
+    int n = (int) strlen(s);
+    n = (n + (int) sizeof(MYFLT)) / (int) sizeof(MYFLT);
+    return n;
+}
+
+/* convert string constant */
+
+static void unquote_string(char *dst, const char *src)
+{
+    int i, j, n = (int) strlen(src) - 1;
+    for (i = 1, j = 0; i < n; i++) {
+      if (src[i] != '\\')
+        dst[j++] = src[i];
+      else {
+        switch (src[++i]) {
+        case 'a':   dst[j++] = '\a';  break;
+        case 'b':   dst[j++] = '\b';  break;
+        case 'f':   dst[j++] = '\f';  break;
+        case 'n':   dst[j++] = '\n';  break;
+        case 'r':   dst[j++] = '\r';  break;
+        case 't':   dst[j++] = '\t';  break;
+        case 'v':   dst[j++] = '\v';  break;
+        case '"':   dst[j++] = '"';   break;
+        case '\\':  dst[j++] = '\\';  break;
+        default:
+          if (src[i] >= '0' && src[i] <= '7') {
+            int k = 0, l = (int) src[i] - '0';
+            while (++k < 3 && src[i + 1] >= '0' && src[i + 1] <= '7')
+              l = (l << 3) | ((int) src[++i] - '0');
+            dst[j++] = (char) l;
+          }
+          else {
+            dst[j++] = '\\'; i--;
+          }
+        }
+      }
+    }
+    dst[j] = '\0';
+}
+
+static int create_strconst_ndx_list(ENVIRON *csound, int **lst, int offs)
+{
+    int     *ndx_lst;
+    char    **strpool;
+    int     strpool_cnt, ndx, i;
+
+    get_strpool_ptrs(csound, &strpool_cnt, &strpool);
+    /* strpool_cnt always >= 1 because of empty string at index 0 */
+    ndx_lst = (int*) csound->Malloc(csound, strpool_cnt * sizeof(int));
+    for (i = 0, ndx = offs; i < strpool_cnt; i++) {
+      ndx_lst[i] = ndx;
+      ndx += strlen_to_samples(strpool[i]);
+    }
+    *lst = ndx_lst;
+    /* return with total size in MYFLT units */
+    return (ndx - offs);
+}
+
+static void convert_strconst_pool(ENVIRON *csound, MYFLT *dst)
+{
+    char    **strpool, *s;
+    int     strpool_cnt, ndx, i;
+
+    get_strpool_ptrs(csound, &strpool_cnt, &strpool);
+    for (ndx = i = 0; i < strpool_cnt; i++) {
+      s = (char*) ((MYFLT*) dst + (int) ndx);
+      unquote_string(s, strpool[i]);
+      ndx += strlen_to_samples(strpool[i]);
+    }
+    /* original pool is no longer needed */
+    strpool_delete(csound);
 }
 
