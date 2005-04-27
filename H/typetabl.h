@@ -67,14 +67,14 @@ static const long typetabl1[27] = {
 
 /* input types */
 
-static const long typetabl2[33] = {
+static const long typetabl2[35] = {
     'z',    ARGTYP_ipcrk,               'y',    ARGTYP_a,
     'T',    (ARGTYP_S | ARGTYP_ipcr),   'U',    (ARGTYP_S | ARGTYP_ipcrk),
-    'M',    ARGTYP_aipcrk,  'B',    (ARGTYP_B | ARGTYP_b),
-    'k',    ARGTYP_ipcrk,   'h',    ARGTYP_ipcr,    'i',    ARGTYP_ipcr,
-    'j',    ARGTYP_ipcr,    'm',    ARGTYP_ipcr,    'n',    ARGTYP_ipcr,
-    'o',    ARGTYP_ipcr,    'p',    ARGTYP_ipcr,    'q',    ARGTYP_ipcr,
-    'v',    ARGTYP_ipcr,
+    'M',    ARGTYP_aipcrk,              'N',    (ARGTYP_S | ARGTYP_aipcrk),
+    'B',    (ARGTYP_B | ARGTYP_b),      'k',    ARGTYP_ipcrk,
+    'h',    ARGTYP_ipcr,    'i',    ARGTYP_ipcr,    'j',    ARGTYP_ipcr,
+    'm',    ARGTYP_ipcr,    'n',    ARGTYP_ipcr,    'o',    ARGTYP_ipcr,
+    'p',    ARGTYP_ipcr,    'q',    ARGTYP_ipcr,    'v',    ARGTYP_ipcr,
     0L
 };
 

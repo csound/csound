@@ -1413,12 +1413,12 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
       if (nreqd < 0)    /* for other opcodes */
         nreqd = strlen(types = ep->intypes);
       if (n > nreqd) {                  /* IV - Oct 24 2002: end of new code */
-        if ((treqd = types[nreqd-1]) == 'n') {/* indef args: */
-          if (!(incnt & 01))            /* require odd */
+        if ((treqd = types[nreqd-1]) == 'n') {  /* indef args: */
+          if (!(incnt & 01))                    /* require odd */
             synterr(csound, Str("missing or extra arg"));
         }       /* IV - Sep 1 2002: added 'M' */
-        else if (treqd != 'm' && treqd != 'z' &&
-                 treqd != 'y' && treqd != 'Z' && treqd != 'M')/* else any no */
+        else if (treqd != 'm' && treqd != 'z' && treqd != 'y' &&
+                 treqd != 'Z' && treqd != 'M' && treqd != 'N') /* else any no */
           synterr(csound, Str("too many input args"));
       }
       else if (incnt < nreqd) {         /*  or set defaults: */
@@ -1437,7 +1437,8 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
             break;
           case 'j': ST(nxtarglist)->arg[incnt++] = strsav_string(csound, "-1");
             break;
-          case 'M':     /* IV - Sep 1 2002 */
+          case 'M':
+          case 'N':
           case 'm': nreqd--;
             break;
           default:  synterr(csound, Str("insufficient required arguments"));
@@ -1470,16 +1471,14 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
         s = tp->inlist->arg[n];
 /*      csound->Message(csound, "Looking at %s: n=%d nreqd=%d\n",s, n,nreqd); */
         if (n >= nreqd) {               /* det type required */
-          if (types[nreqd-1] == 'z')
-            treqd = 'z';
-          else if (types[nreqd-1] == 'y')
-            treqd = 'y';
-          else if (types[nreqd-1] == 'Z')
-            treqd = 'Z';
-          else if (types[nreqd-1] == 'M')       /* IV - Sep 1 2002 */
-            treqd = 'M';
-          else
-            treqd = 'i';                /*   (indef in-type */
+          switch (types[nreqd-1]) {
+            case 'M':
+            case 'N':
+            case 'Z':
+            case 'y':
+            case 'z':   treqd = types[nreqd-1]; break;
+            default:    treqd = 'i';    /*   (indef in-type) */
+          }
         }
         else treqd = types[n];          /*       or given)   */
         if (treqd == 'l') {             /* if arg takes lbl  */
