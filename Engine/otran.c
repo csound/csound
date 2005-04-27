@@ -47,14 +47,15 @@ typedef struct {
     int       gblnxtkcnt, gblnxtacnt, gblnxtscnt;
     int       gblfixed, gblacount, gblscount;
     int       *nxtargoffp, *argofflim, lclpmax;
-    MYFLT     **strpool;
+    char      **strpool;
     long      poolcount, strpool_cnt, argoffsize;
     int       nconsts;
 } OTRAN_GLOBALS;
 
 static  int     gexist(ENVIRON *, char *), gbloffndx(ENVIRON *, char *);
 static  int     lcloffndx(ENVIRON *, char *);
-static  int     constndx(ENVIRON *, char *), strconstndx(ENVIRON *, char *);
+static  int     constndx(ENVIRON *, char *);
+static  int     strconstndx(ENVIRON *, const char *);
 static  void    insprep(ENVIRON *, INSTRTXT *);
 static  void    lgbuild(ENVIRON *, char *);
 static  void    gblnamset(ENVIRON *, char *);
@@ -280,7 +281,7 @@ void otran(ENVIRON *csound)
     gblnamset(csound, "$kr");
     gblnamset(csound, "$ksmps");
 
-    rdorchfile(csound);                 /* go read orch file    */
+    rdorchfile(csound);         /* go read orch file    */
     if (csound->pool == NULL) {
       csound->pool = (MYFLT *) mmalloc(csound, NCONSTS * sizeof(MYFLT));
       csound->pool[0] = FL(0.0);
@@ -438,10 +439,10 @@ void otran(ENVIRON *csound)
             }
             ST(lcl).nxtslot = ST(lcl).names;    /* clear lcl namlist */
             if (ST(lcl).next) {
-                struct namepool *lll = ST(lcl).next;
+                NAMEPOOL *lll = ST(lcl).next;
                 ST(lcl).next = NULL;
                 while (lll) {
-                    struct namepool *n = lll->next;
+                    NAMEPOOL *n = lll->next;
                     mfree(csound, lll->names);
                     mfree(csound, lll);
                     lll = n;
@@ -628,7 +629,7 @@ void otran(ENVIRON *csound)
       csound->Message(csound, "\n");
       csound->Message(csound, "strpool:");
       for (n = 0L; n < ST(strpool_cnt); n++)
-        csound->Message(csound, "\t\"%s\"", (char*) (ST(strpool)[n]));
+        csound->Message(csound, "\t%s", ST(strpool)[n]);
       csound->Message(csound, "\n");
     }
     ST(gblfixed) = ST(gblnxtkcnt);
@@ -717,10 +718,10 @@ static void insprep(ENVIRON *csound, INSTRTXT *tp)
     ST(lclacnt) = tp->lclacnt;
     ST(lcl).nxtslot = ST(lcl).names;                    /* clear lcl namlist */
     if (ST(lcl).next) {
-      struct namepool *lll = ST(lcl).next;
+      NAMEPOOL *lll = ST(lcl).next;
       ST(lcl).next = NULL;
       while (lll) {
-        struct namepool *n = lll->next;
+        NAMEPOOL *n = lll->next;
         mfree(csound, lll->names);
         mfree(csound, lll);
         lll = n;
@@ -861,49 +862,55 @@ static int plgndx(ENVIRON *csound, char *s)
     return(indx);
 }
 
-static int strconstndx(ENVIRON *csound, char *s)
+/* for oload.c */
+
+void get_strpool_ptrs(ENVIRON *csound, int *strpool_cnt, char ***strpool)
+{
+    *strpool_cnt = ST(strpool_cnt);
+    *strpool = ST(strpool);
+}
+
+void strpool_delete(ENVIRON *csound)
+{
+    int i;
+
+    if (ST(strpool) == NULL)
+      return;
+    for (i = 0; i < (int) ST(strpool_cnt); i++)
+      csound->Free(csound, ST(strpool)[i]);
+    csound->Free(csound, ST(strpool));
+    ST(strpool) = NULL;
+    ST(strpool_cnt) = 0;
+}
+
+static int strconstndx(ENVIRON *csound, const char *s)
 {                                   /* get storage ndx of string const value */
-    MYFLT   *str;                   /* builds value pool on 1st occurrence   */
-    int     i, cnt;
+    int     i, cnt;                 /* builds value pool on 1st occurrence   */
 
     /* check syntax */
-    if ((int) strlen(s) < 2 || *s != '"' || s[(int) strlen(s) - 1] != '"') {
+    cnt = (int) strlen(s);
+    if (cnt < 2 || *s != '"' || s[cnt - 1] != '"') {
       sprintf(csound->errmsg, Str("string syntax '%s'"), s);
       synterr(csound, csound->errmsg);
       return 0;
     }
-    /* make an unquoted copy of the string constant, */
-    /* aligned to MYFLT boundary */
-    cnt = ((int) strlen(s) + (int) sizeof(MYFLT) - 2) / (int) sizeof(MYFLT);
-    str = (MYFLT*) csound->Malloc(csound, cnt * sizeof(MYFLT));
-    for (i = 0; i < ((int) strlen(s) - 2); i++)
-      ((char*) str)[i] = s[i + 1];
-    ((char*) str)[i] = '\0';
     /* check if a copy of the string is already stored */
     for (i = 0; i < ST(strpool_cnt); i++) {
-      if (strcmp(((char*) str), ((char*) ST(strpool)[i])) == 0) {
-        csound->Free(csound, str);
+      if (strcmp(s, ST(strpool)[i]) == 0)
         return i;
-      }
     }
     /* not found, store new string */
     cnt = ST(strpool_cnt)++;
     if (!(cnt & 0x7F)) {
       /* extend list */
-      if (!cnt)
-        ST(strpool) = csound->Malloc(csound, 0x80 * sizeof(MYFLT*));
-      else
-        ST(strpool) = csound->ReAlloc(csound, ST(strpool), (cnt + 0x80)
-                                                           * sizeof(MYFLT*));
+      if (!cnt) ST(strpool) = csound->Malloc(csound, 0x80 * sizeof(MYFLT*));
+      else      ST(strpool) = csound->ReAlloc(csound, ST(strpool),
+                                              (cnt + 0x80) * sizeof(MYFLT*));
     }
-    ST(strpool)[cnt] = str;
+    ST(strpool)[cnt] = (char*) csound->Malloc(csound, strlen(s) + 1);
+    strcpy(ST(strpool)[cnt], s);
     /* and return index */
     return cnt;
-}
-
-MYFLT *strConstIndex2Ptr(ENVIRON *csound, int ndx)
-{
-    return ST(strpool)[ndx];
 }
 
 static int constndx(ENVIRON *csound, char *s)
@@ -951,8 +958,8 @@ static int constndx(ENVIRON *csound, char *s)
 
 static void gblnamset(ENVIRON *csound, char *s)
 {                           /* builds namelist & type counts for gbl names */
-    NAME        *np = NULL;
-    struct namepool *ggg;
+    NAME      *np = NULL;
+    NAMEPOOL  *ggg;
 
     for (ggg=&ST(gbl); ggg!=NULL; ggg=ggg->next) {
       for (np=ggg->names; np<ggg->nxtslot; np++)/* search gbl namelist: */
@@ -965,7 +972,7 @@ static void gblnamset(ENVIRON *csound, char *s)
           if(csound->oparms->msglevel)
             csound->Message(csound, Str("Extending Global pool to %d\n"),
                                     ST(gblsize) += GNAMES);
-          ggg->next = (struct namepool*)mmalloc(csound,sizeof(struct namepool));
+          ggg->next = (NAMEPOOL*) mmalloc(csound, sizeof(NAMEPOOL));
           ggg = ggg->next;
           ggg->names = (NAME *)mmalloc(csound, (long)(GNAMES*sizeof(NAME)));
           ggg->namlim = ggg->names + GNAMES;
@@ -1011,8 +1018,7 @@ static NAME *lclnamset(ENVIRON *csound, char *s)
           if(csound->oparms->msglevel)
             csound->Message(csound, Str("Extending Local pool to %d\n"),
                                     ST(lclsize) += LNAMES);
-          lll->next = (struct namepool*)mmalloc(csound,
-                                                sizeof(struct namepool));
+          lll->next = (NAMEPOOL*) mmalloc(csound, sizeof(NAMEPOOL));
           lll = lll->next;
           lll->names = (NAME *)mmalloc(csound, (long)(LNAMES*sizeof(NAME)));
           lll->namlim = lll->names + LNAMES;
