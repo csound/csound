@@ -55,6 +55,22 @@ typedef struct {
     MYFLT   *str2;
 } STRCAT_OP;
 
+typedef struct {
+    OPDS    h;
+    MYFLT   *r;
+    MYFLT   *sfmt;
+    MYFLT   *args[64];
+} SPRINTF_OP;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *str;
+    MYFLT   *ktrig;
+    MYFLT   *no_newline;
+    MYFLT   prv_ktrig;
+    int     noNewLine;
+} PUTS_OP;
+
 /*
  {  "strset",   S(STRSET_OP),   1,  "",     "iS",
     (SUBR) strset_init, (SUBR) NULL, (SUBR) NULL                        },
@@ -72,6 +88,12 @@ typedef struct {
     (SUBR) strcpy_opcode_init, (SUBR) NULL, (SUBR) NULL                 },
  {  "strcmpk",  S(STRCAT_OP),   3,  "k",    "SS",
     (SUBR) strcmp_opcode, (SUBR) strcmp_opcode, (SUBR) NULL             },
+ {  "sprintf",  S(SPRINTF_OP),  1,  "S",    "SN",
+    (SUBR) sprintf_opcode_init, (SUBR) NULL, (SUBR) NULL                },
+ {  "sprintfk", S(SPRINTF_OP),  3,  "S",    "SN",
+    (SUBR) sprintf_opcode_init, (SUBR) sprintf_opcode_perf, (SUBR) NULL },
+ {  "puts",     S(PUTS_OP),     3,  "",     "Sko",
+    (SUBR) puts_opcode_init, (SUBR) puts_opcode_perf, (SUBR) NULL       },
 */
 
 #ifndef CSOUND_STR_OPS_C
@@ -83,6 +105,10 @@ int strcpy_opcode_perf(void *, void *);
 int strcat_opcode_init(void *, void *);
 int strcat_opcode_perf(void *, void *);
 int strcmp_opcode(void *, void *);
+int sprintf_opcode_init(void *, void *);
+int sprintf_opcode_perf(void *, void *);
+int puts_opcode_init(void *, void *);
+int puts_opcode_perf(void *, void *);
 
 #endif      /* CSOUND_STR_OPS_C */
 
