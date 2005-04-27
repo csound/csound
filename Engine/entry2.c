@@ -178,7 +178,8 @@ int    ftsave_k_set(void*,void*), ftload_k(void*,void*);
                 l       Label
      and codes
                 m       begins an indef list of iargs (any count)
-                M       begins an indef list of args (any count/rate) IV -2002/9/1
+                M       begins an indef list of args (any count/rate i,k,a)
+                N       begins an indef list of args (any count/rate i,k,a,S)
                 n       begins an indef list of iargs (nargs odd)
                 o       optional, defaulting to 0
                 p          "            "       1
@@ -425,7 +426,13 @@ OENTRY opcodlst_2[] = {
  {  "strcmp",   S(STRCAT_OP),   1,  "i",    "SS",
     (SUBR) strcpy_opcode_init, (SUBR) NULL, (SUBR) NULL                 },
  {  "strcmpk",  S(STRCAT_OP),   3,  "k",    "SS",
-    (SUBR) strcmp_opcode, (SUBR) strcmp_opcode, (SUBR) NULL             }
+    (SUBR) strcmp_opcode, (SUBR) strcmp_opcode, (SUBR) NULL             },
+ {  "sprintf",  S(SPRINTF_OP),  1,  "S",    "SN",
+    (SUBR) sprintf_opcode_init, (SUBR) NULL, (SUBR) NULL                },
+ {  "sprintfk", S(SPRINTF_OP),  3,  "S",    "SN",
+    (SUBR) sprintf_opcode_init, (SUBR) sprintf_opcode_perf, (SUBR) NULL },
+ {  "puts",     S(PUTS_OP),     3,  "",     "Sko",
+    (SUBR) puts_opcode_init, (SUBR) puts_opcode_perf, (SUBR) NULL       }
 };
 
 long oplength_2 = sizeof(opcodlst_2);

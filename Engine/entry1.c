@@ -242,7 +242,8 @@ int    prealloc(void*, void*);
                 l       Label
      and codes
                 m       begins an indef list of iargs (any count)
-                M       begins an indef list of args (any count/rate) IV 2002/9/1
+                M       begins an indef list of args (any count/rate i,k,a)
+                N       begins an indef list of args (any count/rate i,k,a,S)
                 n       begins an indef list of iargs (nargs odd)
                 o       optional, defaulting to 0
                 p       "            "          1
