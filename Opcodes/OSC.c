@@ -26,7 +26,7 @@ int osc_send_set(ENVIRON *csound, OSCSEND *p)
       pp = NULL;
     else
       sprintf(port, "%d", (int)(*p->port+FL(0.5)));
-    hh = p->STRARG;
+    hh = (char*) p->host;
     if (*hh=='\0') hh = NULL;
     t = lo_address_new(hh, pp);
     p->addr = t;
@@ -55,40 +55,40 @@ int osc_send(ENVIRON *csound, OSCSEND *p)
       switch ((int)(*p->type+FL(0.5))) {
       default:
       case 0:
-        lo_send(p->addr, p->STRARG2, "i", (int)(FL(0.5)+*p->d1));
+        lo_send(p->addr, (char*) p->dest, "i", (int)(FL(0.5)+*p->d1));
         return OK;
       case 1:
-        lo_send(p->addr, p->STRARG2, "s", p->STRARG3);
+        lo_send(p->addr, (char*) p->dest, "s", (char*) p->d1);
         return OK;
       case 2:
-        lo_send(p->addr, p->STRARG2, "f", (float)(*p->d1));
+        lo_send(p->addr, (char*) p->dest, "f", (float) *p->d1);
         return OK;
       case 3:
-        lo_send(p->addr, p->STRARG2, "ii", (int)(*p->d1), (int)(*p->d2));
+        lo_send(p->addr, (char*) p->dest, "ii", (int) *p->d1, (int) *p->d2);
         return OK;
       case 4:
-        lo_send(p->addr, p->STRARG2, "is", (int)(*p->d1), p->STRARG3);
+        lo_send(p->addr, (char*) p->dest, "is", (int) *p->d1, (char*) p->d1);
         return OK;
       case 5:
-        lo_send(p->addr, p->STRARG2, "if", (int)(*p->d1), (float)(*p->d2));
+        lo_send(p->addr, (char*) p->dest, "if", (int) *p->d1, (float) *p->d2);
         return OK;
       case 6:
-        lo_send(p->addr, p->STRARG2, "fi", (float)(*p->d1), (int)(*p->d2));
+        lo_send(p->addr, (char*) p->dest, "fi", (float) *p->d1, (int) *p->d2);
         return OK;
       case 7:
-        lo_send(p->addr, p->STRARG2, "ff", (float)(*p->d1), (float)(*p->d2));
+        lo_send(p->addr, (char*) p->dest, "ff", (float) *p->d1, (float) *p->d2);
         return OK;
       case 8:
-        lo_send(p->addr, p->STRARG2, "fs", (float)(*p->d1), p->STRARG3);
+        lo_send(p->addr, (char*) p->dest, "fs", (float) *p->d1, (char*) p->d1);
         return OK;
       case 9:
-        lo_send(p->addr, p->STRARG2, "si", p->STRARG3, (int)(*p->d2));
+        lo_send(p->addr, (char*) p->dest, "si", (char*) p->d1, (int) *p->d2);
         return OK;
       case 10:
-        lo_send(p->addr, p->STRARG2, "sf", p->STRARG3, (float)(*p->d2));
+        lo_send(p->addr, (char*) p->dest, "sf", (char*) p->d1, (float) *p->d2);
         return OK;
       case 11:
-        lo_send(p->addr, p->STRARG2, "ss", p->STRARG3, p->STRARG4);
+        lo_send(p->addr, (char*) p->dest, "ss", (char*) p->d1, (char*) p->d2);
         return OK;
       }
     }
@@ -98,7 +98,8 @@ int osc_send(ENVIRON *csound, OSCSEND *p)
 #define S(x) sizeof(x)
 
 static OENTRY localops[] = {
-{ "OSCsend", S(OSCSEND),  3, "",  "kSiSiSS", (SUBR)osc_send_set, (SUBR)osc_send }
+{ "OSCsend", S(OSCSEND),  3, "",  "kSiSiUU", (SUBR)osc_send_set, (SUBR)osc_send }
 };
 
 LINKAGE
+
