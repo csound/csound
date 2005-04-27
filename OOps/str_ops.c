@@ -193,7 +193,7 @@ static int sprintf_opcode(ENVIRON *csound, SPRINTF_OP *p)
     int     len = 0, maxLen = csound->strVarMaxLen;
     int     numVals = (int) p->INOCOUNT - 1, strCode = p->XSTRCODE >> 1;
     char    strseg[2048], *outstring = (char*) p->r, *fmt = (char*) p->sfmt;
-    MYFLT   **kvals = p->args, *pp;
+    MYFLT   **kvals = p->args, *pp = NULL;
     int     i = 0, j = 0, n;
     char    *segwaiting = NULL;
     int     maxChars;
@@ -207,104 +207,102 @@ static int sprintf_opcode(ENVIRON *csound, SPRINTF_OP *p)
       return -1;
     }
     while (1) {
-      maxChars = maxLen - len;
-      if (*fmt == '%' || *fmt == '\0') {
-        /* if already a segment waiting, then lets print it */
-        if (segwaiting != NULL) {
-          strseg[i] = '\0';
-          if (numVals <= 0) {
-            sprintf(csound->errmsg,
-                    Str("sprintf: insufficient arguments for format"));
-            return -1;
-          }
-          numVals--;
-          if ((*segwaiting == 's' && !(strCode & 1)) ||
-              (*segwaiting != 's' && (strCode & 1))) {
-            sprintf(csound->errmsg,
-                    Str("sprintf: argument type inconsistent with format"));
-            return -1;
-          }
-          strCode >>= 1;
-          pp = kvals[j++];
-          switch (*segwaiting) {
-          case 'd':
-          case 'i':
-          case 'o':
-          case 'x':
-          case 'X':
-          case 'u':
-          case 'c':
-#ifdef HAVE_SNPRINTF
-            n = snprintf(outstring, maxChars, strseg, (int) RNDINT(*pp));
-#else
-            n = sprintf(outstring, strseg, (int) RNDINT(*pp));
-#endif
-            break;
-          case 'e':
-          case 'E':
-          case 'f':
-          case 'F':
-          case 'g':
-          case 'G':
-#ifdef HAVE_SNPRINTF
-            n = snprintf(outstring, maxChars, strseg, (double) *pp);
-#else
-            n = sprintf(outstring, strseg, (double) *pp);
-#endif
-            break;
-          case 's':
-            if (pp == p->r) {
-              sprintf(csound->errmsg, Str("sprintf: output argument may not be "
-                                          "the same as any of the input args"));
-              return -1;
-            }
-#ifdef HAVE_SNPRINTF
-            n = snprintf(outstring, maxChars, strseg, (char*) pp);
-#else
-            n = sprintf(outstring, strseg, (char*) pp);
-#endif
-            break;
-          case '%':
-#ifdef HAVE_SNPRINTF
-            n = snprintf(outstring, maxChars, strseg);
-#else
-            n = sprintf(outstring, strseg);
-#endif
-          default:
-            sprintf(csound->errmsg, Str("sprintf: invalid format string"));
-            return -1;
-          }
-          if (n < 0 || n >= maxChars) {
-#ifdef HAVE_SNPRINTF
-            /* safely detected excess string length */
-            sprintf(csound->errmsg, Str("sprintf: buffer overflow"));
-#else
-            /* wrote past end of buffer - hope that did not already crash ! */
-            csound->Die(csound, Str("sprintf: buffer overflow"));
-#endif
-            return -1;
-          }
-          outstring += n;
-          len += n;
-          i = 0;
-        }
-        if (*fmt == '\0')
-          break;
-        /* copy the '%' */
-        strseg[i++] = *fmt++;
-        /* find the format code */
-        segwaiting = fmt;
-        while (*segwaiting && !isalpha(*segwaiting))
-          segwaiting++;
-      }
-      else
-        strseg[i++] = *fmt++;
-      if (i >= 2048) {
+      if (i >= 2047) {
         sprintf(csound->errmsg, Str("sprintf: format string too long"));
         return -1;
       }
+      if (*fmt != '%' && *fmt != '\0') {
+        strseg[i++] = *fmt++;
+        continue;
+      }
+      if (fmt[0] == '%' && fmt[1] == '%') {
+        strseg[i++] = *fmt++;
+        strseg[i++] = *fmt++;
+        continue;
+      }
+      /* if already a segment waiting, then lets print it */
+      if (segwaiting != NULL) {
+        maxChars = maxLen - len;
+        strseg[i] = '\0';
+        if (numVals <= 0) {
+          sprintf(csound->errmsg,
+                  Str("sprintf: insufficient arguments for format"));
+          return -1;
+        }
+        numVals--;
+        if ((*segwaiting == 's' && !(strCode & 1)) ||
+            (*segwaiting != 's' && (strCode & 1))) {
+          sprintf(csound->errmsg,
+                  Str("sprintf: argument type inconsistent with format"));
+          return -1;
+        }
+        strCode >>= 1;
+        pp = kvals[j++];
+        switch (*segwaiting) {
+        case 'd':
+        case 'i':
+        case 'o':
+        case 'x':
+        case 'X':
+        case 'u':
+        case 'c':
+#ifdef HAVE_SNPRINTF
+          n = snprintf(outstring, maxChars, strseg, (int) RNDINT(*pp));
+#else
+          n = sprintf(outstring, strseg, (int) RNDINT(*pp));
+#endif
+          break;
+        case 'e':
+        case 'E':
+        case 'f':
+        case 'F':
+        case 'g':
+        case 'G':
+#ifdef HAVE_SNPRINTF
+          n = snprintf(outstring, maxChars, strseg, (double) *pp);
+#else
+          n = sprintf(outstring, strseg, (double) *pp);
+#endif
+          break;
+        case 's':
+          if (pp == p->r) {
+            sprintf(csound->errmsg, Str("sprintf: output argument may not be "
+                                        "the same as any of the input args"));
+            return -1;
+          }
+#ifdef HAVE_SNPRINTF
+          n = snprintf(outstring, maxChars, strseg, (char*) pp);
+#else
+          n = sprintf(outstring, strseg, (char*) pp);
+#endif
+          break;
+        default:
+          sprintf(csound->errmsg, Str("sprintf: invalid format string"));
+          return -1;
+        }
+        if (n < 0 || n >= maxChars) {
+#ifdef HAVE_SNPRINTF
+          /* safely detected excess string length */
+          sprintf(csound->errmsg, Str("sprintf: buffer overflow"));
+#else
+          /* wrote past end of buffer - hope that did not already crash ! */
+          csound->Die(csound, Str("sprintf: buffer overflow"));
+#endif
+          return -1;
+        }
+        outstring += n;
+        len += n;
+        i = 0;
+      }
+      if (*fmt == '\0')
+        break;
+      /* copy the '%' */
+      strseg[i++] = *fmt++;
+      /* find the format code */
+      segwaiting = fmt;
+      while (!isalpha(*segwaiting) && *segwaiting != '\0')
+        segwaiting++;
     }
-
     if (numVals > 0) {
       sprintf(csound->errmsg, Str("sprintf: too many arguments for format"));
       return -1;
