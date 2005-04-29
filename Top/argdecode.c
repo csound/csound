@@ -1,24 +1,24 @@
 /*
-  argdecode.c:
+    argdecode.c:
 
-  Copyright (C) 1998 John ffitch
+    Copyright (C) 1998 John ffitch
 
-  This file is part of Csound.
+    This file is part of Csound.
 
-  The Csound Library is free software; you can redistribute it
-  and/or modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
 
-  Csound is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU Lesser General Public License for more details.
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public
-  License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
 */
 
 
@@ -39,6 +39,8 @@ static int vbuf;
 static int csNGraphs;
 static int rescale24 = 0;
 #endif
+
+extern void strset_option(ENVIRON *csound, char *s);    /* from str_ops.c */
 
 #define FIND(MSG)   if (*s == '\0')  \
                       if (!(--argc) || (((s = *++argv) != NULL) && *s == '-')) \
@@ -243,6 +245,7 @@ static void longusage(void *csound)
              "--expression-opt\toptimise use of temporary variables in expressions\n"
              "--env:NAME=VALUE\tset environment variable NAME to VALUE\n"
              "--env:NAME+=VALUE\tappend VALUE to environment variable NAME\n"
+             "--strsetN=VALUE\t\tset strset table at index N to VALUE\n"
              "--utility=NAME\t\trun utility program\n"
              "--verbose\t\tverbose orch translation\n"
              "--list-opcodes\t\tList opcodes in this version\n"
@@ -633,6 +636,10 @@ static int decode_long(void *csound_, char *s, int argc, char **argv)
       return 1;
     else
       return 0;
+  }
+  else if (!(strncmp (s, "strset", 6))) {
+    strset_option(csound, s + 6);
+    return 1;
   }
   /* -T terminate the performance when miditrack is done */
   else if (!(strcmp (s, "terminate-on-midi"))) {
