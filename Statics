@@ -34,37 +34,6 @@ Engine/musmon.c:static  EVENT   *lsect = NULL;
 Engine/rdscor.c:static char *sstrbuf = NULL;
 Engine/rdscor.c:static int  sstrlen = 0;
 
-Engine/sread.c:static SRTBLK  *bp, *prvibp;    /* current srtblk,  prev w/same int(p1) */
-Engine/sread.c:static char    *sp, *nxp;       /* string pntrs into srtblk text        */
-Engine/sread.c:static int     op;              /* opcode of current event              */
-Engine/sread.c:static int     warpin;          /* input format sensor                  */
-Engine/sread.c:static int     linpos;          /* line position sensor                 */
-Engine/sread.c:static int     lincnt;          /* count of lines/section in scorefile  */
-Engine/sread.c:static MYFLT   prvp2 = -FL(1.0);        /* Last event time */
-Engine/sread.c:static MYFLT   clock_base = FL(0.0);
-Engine/sread.c:static MYFLT   warp_factor = FL(1.0);
-Engine/sread.c:static MEMHDR *basmem = NULL;
-Engine/sread.c:static MEMHDR *curmem;
-Engine/sread.c:static char   *memend;          /* end of cur memblk     */
-Engine/sread.c:static  MACRO   *macros = NULL;
-Engine/sread.c:static int next_name = -1;
-Engine/sread.c:static struct in_stack *inputs = NULL, *str; /* Currently allow 20 maximum */
-Engine/sread.c:static int input_size = 0, input_cnt = 0;
-Engine/sread.c:static int pop = 0;                          /* Number of macros to pop */
-Engine/sread.c:static int ingappop = 1;                     /* Are we in a popable gap? */
-Engine/sread.c:static int linepos = -1;
-Engine/sread.c:static char repeat_name_n[40][40];
-Engine/sread.c:static int repeat_cnt_n[40] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-Engine/sread.c:static long repeat_point_n[40];
-Engine/sread.c:static int repeat_inc_n = 1;
-Engine/sread.c:static MACRO *repeat_mm_n[40];
-Engine/sread.c:static int repeat_index=0;
-Engine/sread.c:static char repeat_name[40];
-Engine/sread.c:static int repeat_cnt = 0;
-Engine/sread.c:static long repeat_point;
-Engine/sread.c:static int repeat_inc = 1;
-Engine/sread.c:static MACRO *repeat_mm;
-
 InOut/libsnd.c:static  SNDFILE *outfile;
 InOut/libsnd.c:static  SNDFILE *infile;
 InOut/libsnd.c:static  char    *sfoutname;                     /* soundout filename    */

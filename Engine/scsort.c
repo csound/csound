@@ -23,9 +23,10 @@
 
 #include "cs.h"                                          /*   SCSORT.C  */
 
-extern void sort(void), twarp(void), swrite(ENVIRON*), sfree(void);
-extern void sread_init(void);
-extern int sread(void);
+extern void sort(void), twarp(void), swrite(ENVIRON*);
+extern void sfree(ENVIRON *csound);
+extern void sread_init(ENVIRON *csound);
+extern int  sread(ENVIRON *csound);
 
 void scsort(FILE *scin, FILE *scout)
     /* called from smain.c or some other main */
@@ -38,15 +39,15 @@ void scsort(FILE *scin, FILE *scout)
     csound->scoreout = scout;
 
     csound->sectcnt = 0;
-    sread_init();
+    sread_init(csound);
     do {
-      if ((n = sread()) > 0) {
-/*         printf("sread returns with %d\n", n); */
+      if ((n = sread(csound)) > 0) {
+/*      csound->Message(csound, Str("sread returns with %d\n"), n); */
         sort();
         twarp();
         swrite(csound);
       }
     } while (n > 1);
-    sfree();        /* return all memory used */
+    sfree(csound);              /* return all memory used */
 }
 
