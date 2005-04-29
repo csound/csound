@@ -94,6 +94,14 @@ typedef struct {
     (SUBR) sprintf_opcode_init, (SUBR) sprintf_opcode_perf, (SUBR) NULL },
  {  "puts",     S(PUTS_OP),     3,  "",     "Sko",
     (SUBR) puts_opcode_init, (SUBR) puts_opcode_perf, (SUBR) NULL       },
+ {  "strtod",   S(STRSET_OP),   1,  "i",    "T",
+    (SUBR) strtod_opcode_init, (SUBR) NULL, (SUBR) NULL                 },
+ {  "strtodk",  S(STRSET_OP),   3,  "k",    "U",
+    (SUBR) strtod_opcode_init, (SUBR) strtod_opcode_perf, (SUBR) NULL   },
+ {  "strtol",   S(STRSET_OP),   1,  "i",    "T",
+    (SUBR) strtol_opcode_init, (SUBR) NULL, (SUBR) NULL                 },
+ {  "strtolk",  S(STRSET_OP),   3,  "k",    "U",
+    (SUBR) strtol_opcode_init, (SUBR) strtol_opcode_perf, (SUBR) NULL   },
 */
 
 #ifndef CSOUND_STR_OPS_C
@@ -109,6 +117,10 @@ int sprintf_opcode_init(void *, void *);
 int sprintf_opcode_perf(void *, void *);
 int puts_opcode_init(void *, void *);
 int puts_opcode_perf(void *, void *);
+int strtod_opcode_init(void *, void *);
+int strtod_opcode_perf(void *, void *);
+int strtol_opcode_init(void *, void *);
+int strtol_opcode_perf(void *, void *);
 
 #endif      /* CSOUND_STR_OPS_C */
 
