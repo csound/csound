@@ -39,41 +39,62 @@
 
 /* strset by John ffitch */
 
-int strset_init(ENVIRON *csound, STRSET_OP *p)
+static void str_set(ENVIRON *csound, int ndx, const char *s)
 {
-    int   indx = (int) ((double) *(p->indx)
-                        + (*(p->indx) >= FL(0.0) ? 0.5 : -0.5));
-    char  *val = (char*) p->str;
-
     if (csound->strsets == NULL) {
       csound->strsmax = STRSMAX;
       csound->strsets = (char **) csound->Calloc(csound, (csound->strsmax + 1)
                                                          * sizeof(char*));
     }
-    if (indx > (int) csound->strsmax) {
-      int   newmax = (int) csound->strsmax + (int) STRSMAX;
-      int   i;
-      while (indx > newmax)
-        newmax += (int) STRSMAX;
+    if (ndx > (int) csound->strsmax) {
+      int   i, newmax;
+      /* assumes power of two STRSMAX */
+      newmax = (ndx | (STRSMAX - 1)) + 1;
       csound->strsets = (char**) csound->ReAlloc(csound, csound->strsets,
                                                  (newmax + 1) * sizeof(char*));
       for (i = (csound->strsmax + 1); i <= newmax; i++)
         csound->strsets[i] = NULL;
       csound->strsmax = newmax;
     }
-    if (csound->strsets == NULL || indx < 0) {
-      /* No space left or -ve index */
+    if (ndx < 0)    /* -ve index */
       csound->Die(csound, Str("illegal strset index"));
+
+    if (csound->strsets[ndx] != NULL) {
+      if (strcmp(s, csound->strsets[ndx]) == 0)
+        return;
+      if (csound->oparms->msglevel & WARNMSG) {
+        csound->Warning(csound, Str("strset index conflict at %d"), ndx);
+        csound->Warning(csound, Str("previous value: '%s', replaced with '%s'"),
+                                csound->strsets[ndx], s);
+      }
+      csound->Free(csound, csound->strsets[ndx]);
     }
-    if (csound->strsets[indx] != NULL) {
-      csound->Warning(csound, Str("strset index conflict at %d"));
-      csound->Warning(csound, Str("previous value: '%s', replaced with '%s'"),
-                              csound->strsets[indx], val);
-    }
-    csound->strsets[indx] = val;
+    csound->strsets[ndx] = (char*) csound->Malloc(csound, strlen(s) + 1);
+    strcpy(csound->strsets[ndx], s);
     if ((csound->oparms->msglevel & 7) == 7)
-      csound->Message(csound, "Strsets[%d]: '%s'\n", indx, val);
+      csound->Message(csound, "Strsets[%d]: '%s'\n", ndx, s);
+}
+
+int strset_init(ENVIRON *csound, STRSET_OP *p)
+{
+    str_set(csound, (int) RNDINT(*p->indx), (char*) p->str);
     return OK;
+}
+
+/* for argdecode.c */
+
+void strset_option(ENVIRON *csound, char *s)
+{
+    int indx = 0;
+
+    if (!isdigit(*s))
+      csound->Die(csound, Str("--strset: invalid format"));
+    do {
+      indx = (indx * 10) + (int) (*s++ - '0');
+    } while (isdigit(*s));
+    if (*s++ != '=')
+      csound->Die(csound, Str("--strset: invalid format"));
+    str_set(csound, indx, s);
 }
 
 int strget_init(ENVIRON *csound, STRGET_OP *p)
@@ -343,7 +364,7 @@ int puts_opcode_init(ENVIRON *csound, PUTS_OP *p)
 
 int puts_opcode_perf(ENVIRON *csound, PUTS_OP *p)
 {
-    if (*p->ktrig > FL(0.0) && *p->ktrig != p->prv_ktrig) {
+    if (*p->ktrig != p->prv_ktrig && *p->ktrig > FL(0.0)) {
       p->prv_ktrig = *p->ktrig;
       if (!p->noNewLine)
         csound->Message(csound, "%s\n", (char*) p->str);
@@ -351,5 +372,121 @@ int puts_opcode_perf(ENVIRON *csound, PUTS_OP *p)
         csound->Message(csound, "%s", (char*) p->str);
     }
     return OK;
+}
+
+static int strtod_opcode(ENVIRON *csound, STRSET_OP *p,
+                         int (*err_func)(void*, const char*, ...))
+{
+    char    *s = NULL, *tmp;
+    double  x;
+
+    if (p->XSTRCODE)
+      s = (char*) p->str;
+    else {
+      if (*p->str == SSTRCOD)
+        s = csound->currevent->strarg;
+      else {
+        int ndx = (int) RNDINT(*p->str);
+        if (ndx >= 0 && ndx <= (int) csound->strsmax && csound->strsets != NULL)
+          s = csound->strsets[ndx];
+      }
+      if (s == NULL)
+        return err_func(csound, Str("strtod: empty string"));
+    }
+    while (*s == ' ' || *s == '\t') s++;
+    if (*s == '\0')
+      return err_func(csound, Str("strtod: empty string"));
+    x = strtod(s, &tmp);
+    if (*tmp != '\0')
+      return err_func(csound, Str("strtod: invalid format"));
+    *p->indx = (MYFLT) x;
+    return OK;
+}
+
+int strtod_opcode_init(ENVIRON *csound, STRSET_OP *p)
+{
+    return strtod_opcode(csound, p, (int (*)(void*, const char*, ...))
+                                    csound->InitError);
+}
+
+int strtod_opcode_perf(ENVIRON *csound, STRSET_OP *p)
+{
+    return strtod_opcode(csound, p, (int (*)(void*, const char*, ...))
+                                    csound->PerfError);
+}
+
+static int strtol_opcode(ENVIRON *csound, STRSET_OP *p,
+                         int (*err_func)(void*, const char*, ...))
+{
+    char  *s = NULL;
+    int   sgn = 0, radix = 10;
+    long  x = 0L;
+
+    if (p->XSTRCODE)
+      s = (char*) p->str;
+    else {
+      if (*p->str == SSTRCOD)
+        s = csound->currevent->strarg;
+      else {
+        int ndx = (int) RNDINT(*p->str);
+        if (ndx >= 0 && ndx <= (int) csound->strsmax && csound->strsets != NULL)
+          s = csound->strsets[ndx];
+      }
+      if (s == NULL)
+        return err_func(csound, Str("strtol: empty string"));
+    }
+    while (*s == ' ' || *s == '\t') s++;
+    if (*s == '\0')
+      return err_func(csound, Str("strtol: empty string"));
+    if (*s == '+') s++;
+    else if (*s == '-') sgn++, s++;
+    if (*s == '0') {
+      if (s[1] == 'x' || s[1] == 'X')
+        radix = 16, s += 2;
+      else if (s[1] != '\0')
+        radix = 8, s++;
+      else {
+        *p->indx = FL(0.0);
+        return OK;
+      }
+    }
+    if (*s == '\0')
+      return err_func(csound, Str("strtol: invalid format"));
+    switch (radix) {
+      case 8:
+        while (*s >= '0' && *s <= '7') x = (x * 8L) + (long) (*s++ - '0');
+        break;
+      case 10:
+        while (*s >= '0' && *s <= '9') x = (x * 10L) + (long) (*s++ - '0');
+        break;
+      default:
+        while (1) {
+          if (*s >= '0' && *s <= '9')
+            x = (x * 16L) + (long) (*s++ - '0');
+          else if (*s >= 'A' && *s <= 'F')
+            x = (x * 16L) + (long) (*s++ - 'A') + 10L;
+          else if (*s >= 'a' && *s <= 'f')
+            x = (x * 16L) + (long) (*s++ - 'a') + 10L;
+          else
+            break;
+        }
+    }
+    if (*s != '\0')
+      return err_func(csound, Str("strtol: invalid format"));
+    if (sgn) x = -x;
+    *p->indx = (MYFLT) x;
+    return OK;
+}
+
+int strtol_opcode_init(ENVIRON *csound, STRSET_OP *p)
+{
+    return strtol_opcode(csound, p, (int (*)(void*, const char*, ...))
+                                    csound->InitError);
+}
+
+int strtol_opcode_perf(ENVIRON *csound, STRSET_OP *p)
+{
+    return strtol_opcode(csound, p, (int (*)(void*, const char*, ...))
+                                    csound->PerfError);
 }
 
