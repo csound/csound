@@ -23,9 +23,10 @@
 
 #include "cs.h"                                    /*  SCXTRACT.C  */
 
-extern void  readxfil(FILE *), extract(void), swrite(ENVIRON*), sfree(void);
-extern int sread(void);
-extern void sread_init(void);
+extern void readxfil(FILE *), extract(void), swrite(ENVIRON*);
+extern void sfree(ENVIRON *csound);
+extern int  sread(ENVIRON *csound);
+extern void sread_init(ENVIRON *csound);
 
 int scxtract(FILE *scin, FILE * scout, FILE *xfile) /* called from xmain.c
                                                        or some other main */
@@ -39,16 +40,16 @@ int scxtract(FILE *scin, FILE * scout, FILE *xfile) /* called from xmain.c
     csound->scoreout = scout;
 
     csound->sectcnt = 0;
-    sread_init();
+    sread_init(csound);
     do {
-      if ((n = sread()) > 0) {
+      if ((n = sread(csound)) > 0) {
         /*  allout();   */
         /*  textout();  */
         extract();
         swrite(csound);
       }
     } while (n > 1);
-    sfree();        /* return all memory used */
+    sfree(csound);              /* return all memory used */
     return(0);
 }
 

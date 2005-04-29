@@ -97,10 +97,10 @@ void twarp(void)        /* time-warp a score section acc to T-statement */
 int realtset(SRTBLK *bp)
 {
     ENVIRON *csound = &cenviron;    /* function should take this as argument */
-    char *p;
-    char c;
-    MYFLT tempo, betspan, durbas, avgdur, stof(char*);
-    TSEG *tp, *prvtp;
+    char    *p;
+    char    c;
+    MYFLT   tempo, betspan, durbas, avgdur, stof(ENVIRON *, char *);
+    TSEG    *tp, *prvtp;
 
     if (csound->tseg == NULL) {               /* if no space yet, alloc */
       csound->tseg = mmalloc(csound, (long)TSEGMAX * sizeof(TSEG));
@@ -111,11 +111,11 @@ int realtset(SRTBLK *bp)
       goto error1;
     p = bp->text;                             /* first go to p1        */
     p += 2;
-    if ((tp->betbas = stof(p)) != 0)          /* betbas1 must be zero  */
+    if ((tp->betbas = stof(csound, p)) != 0)  /* betbas1 must be zero  */
       goto error1;
     while ((c = *p++) != SP)
       ;
-    if ((tempo = stof(p)) <= 0)               /* durbas = 60/tempo     */
+    if ((tempo = stof(csound, p)) <= 0)       /* durbas = 60/tempo     */
       goto error2;
     if (bp->pcnt == 2 && tempo == FL(60.0))   /* just t0 60 means done */
       return(0);
@@ -127,12 +127,12 @@ int realtset(SRTBLK *bp)
       prvtp = tp;
       if (++tp > (TSEG*) csound->tplim)
         goto error3;
-      tp->betbas = stof(p);                   /* betbas = time         */
+      tp->betbas = stof(csound, p);           /* betbas = time         */
       while ((c = *p++) != SP && c != LF)
         ;
       if (c == LF)
         goto error1;
-      if ((tempo = stof(p)) <= 0)             /* get tempo             */
+      if ((tempo = stof(csound, p)) <= 0)     /* get tempo             */
         goto error2;
       if ((betspan = tp->betbas - prvtp->betbas) <= 0) {
         if (betspan < 0)                      /* if time = lastime */
