@@ -69,7 +69,7 @@ extern  unsigned long   nframes;
 extern char* type2string(int);
 extern short sfsampsize(int);
 
-extern  int     openin(char*);
+extern  int     openin(ENVIRON *, char *);
 
 /* return sample size (in bytes) of format 'fmt' */
 
@@ -386,7 +386,7 @@ void sfopenin(void *csound_)        /* init for continuous soundin */
     }
     else {                      /* else build filename and open that */
       SF_INFO sfinfo;
-      if ((isfd = openin(O->infilename)) < 0)
+      if ((isfd = openin(csound, O->infilename)) < 0)
         csoundDie(csound, Str("isfinit: cannot open %s"), csound->retfilnam);
       sfname = csound->retfilnam;
       memset(&sfinfo, 0, sizeof(SF_INFO));
@@ -515,7 +515,7 @@ void sfopenout(void *csound_)                   /* init for sound out       */
       sfinfo.format = TYPE2SF(O->filetyp) | FORMAT2SF(O->outformat);
       sfinfo.sections = 0;
       sfinfo.seekable = 0;
-      if ((osfd = openout(O->outfilename, 3)) < 0)
+      if ((osfd = openout(csound, O->outfilename, 3)) < 0)
         csoundDie(csound, Str("sfinit: cannot open %s"), csound->retfilnam);
       sfoutname = mmalloc(csound, strlen(csound->retfilnam) + 1);
       strcpy(sfoutname, csound->retfilnam);     /*   & preserve the name */
@@ -683,9 +683,8 @@ static void sndwrterr(void *csound, unsigned nret, unsigned nput)
     csoundDie(csound, Str("\t... closed\n"));
 }
 
-void sfnopenout(void)
+void sfnopenout(ENVIRON *csound)
 {
-    ENVIRON *csound = &cenviron;
     csound->Message(csound, Str("not writing to sound disk\n"));
     /* init counter, though not writing */
     outbufrem = csound->oparms->outbufsamps;

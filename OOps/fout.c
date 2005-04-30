@@ -45,6 +45,18 @@ struct fileinTag {
     long        cnt;
 };
 
+static void unquote(char *dst, char *src)
+{
+    if (src[0] == '"') {
+      int len = (int) strlen(src) - 2;
+      strcpy(dst, src + 1);
+      if (len >= 0 && dst[len] == '"')
+        dst[len] = '\0';
+    }
+    else
+      strcpy(dst, src);
+}
+
 static void close_files(void)
 {
 #ifdef ACCESS_TO_ENVIRON
@@ -98,7 +110,7 @@ int outfile_set(ENVIRON *csound, OUTFILE *p)
       if (p->XSTRCODE)
         strcpy(fname, (char*) p->fname);
       else
-        strcpy(fname, unquote(csound->currevent->strarg));
+        unquote(fname, csound->currevent->strarg);
       for (j=0; j<csound->file_num; j++) {
         if (!strcmp(((struct fileinTag*) csound->file_opened)[j].name, fname)) {
           p->fp = ((struct fileinTag*) csound->file_opened)[j].file;
@@ -115,7 +127,7 @@ int outfile_set(ENVIRON *csound, OUTFILE *p)
         sfinfo.format = SF_FORMAT_PCM_16 | SF_FORMAT_RAW;
         break;
       case 2:
-        sfinfo.format = SF_FORMAT_PCM_16 | O.filetyp;
+        sfinfo.format = SF_FORMAT_PCM_16 | csound->oparms->filetyp;
         p->cnt = 0;
         break;
       default:
@@ -177,7 +189,7 @@ int koutfile_set(ENVIRON *csound, KOUTFILE *p)
       if (p->XSTRCODE)
         strcpy(fname, (char*) p->fname);
       else
-        strcpy(fname, unquote(csound->currevent->strarg));
+        unquote(fname, csound->currevent->strarg);
       for (j=0; j<csound->file_num; j++) {
         if (!strcmp(((struct fileinTag*) csound->file_opened)[j].name, fname)) {
           p->fp = ((struct fileinTag*) csound->file_opened)[j].file;
@@ -195,7 +207,7 @@ int koutfile_set(ENVIRON *csound, KOUTFILE *p)
         sfinfo.format = SF_FORMAT_PCM_16 | SF_FORMAT_RAW;
         break;
       case 2:
-        sfinfo.format = SF_FORMAT_PCM_16 | O.filetyp;
+        sfinfo.format = SF_FORMAT_PCM_16 | csound->oparms->filetyp;
         p->cnt = 0;
         break;
       default:
@@ -401,7 +413,7 @@ int infile_set(ENVIRON *csound, INFILE *p)
       if (p->XSTRCODE)
         strcpy(fname, (char*) p->fname);
       else
-        strcpy(fname, unquote(csound->currevent->strarg));
+        unquote(fname, csound->currevent->strarg);
       for (j=0; j<csound->file_num; j++) {
         if (!strcmp(((struct fileinTag*) csound->file_opened)[j].name, fname)) {
           p->fp = ((struct fileinTag*) csound->file_opened)[j].file;
@@ -481,7 +493,7 @@ int kinfile_set(ENVIRON *csound, KINFILE *p)
       if (p->XSTRCODE)
         strcpy(fname, (char*) p->fname);
       else
-        strcpy(fname, unquote(csound->currevent->strarg));
+        unquote(fname, csound->currevent->strarg);
       for (j = 0; j < csound->file_num ||
                   ((struct fileinTag*) csound->file_opened)[j].name == NULL;
            j++) {
@@ -558,7 +570,7 @@ int i_infile(ENVIRON *csound, I_INFILE *p)
       if (p->XSTRCODE)
         strcpy(fname, (char*) p->fname);
       else
-        strcpy(fname, unquote(csound->currevent->strarg));
+        unquote(fname, csound->currevent->strarg);
       for (j = 0; j < csound->file_num ||
                   ((struct fileinTag*) csound->file_opened)[j].name == NULL;
            j++) {
@@ -706,7 +718,7 @@ int fprintf_set(ENVIRON *csound, FPRINTF *p)
       if (p->XSTRCODE & 1)
         strcpy(fname, (char*) p->fname);
       else
-        strcpy(fname, unquote(csound->currevent->strarg));
+        unquote(fname, csound->currevent->strarg);
       for (j=0; j<= csound->file_num; j++) {
         if (!strcmp(((struct fileinTag*) csound->file_opened)[j].name, fname)) {
           p->fp = ((struct fileinTag*) csound->file_opened)[j].raw;

@@ -253,8 +253,8 @@ int vpvset(ENVIRON *csound, VPVOC *p)
     frInc    = pvh->frameIncr;
     chans    = pvh->channels;
     if ((p->asr = pvh->samplingRate) != csound->esr &&
-        (O.msglevel & WARNMSG)) { /* & chk the data */
-      printf(Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
+        (csound->oparms->msglevel & WARNMSG)) { /* & chk the data */
+      csound->Message(csound, Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
              pvfilnam, p->asr, csound->esr);
     }
     if (pvh->dataFormat != PVMYFLT) {
@@ -362,8 +362,8 @@ int vpvoc(ENVIRON *csound, VPVOC *p)
       frIndx = (MYFLT)p->maxFr;
       if (p->prFlg) {
         p->prFlg = 0;   /* false */
-        if (O.msglevel & WARNMSG)
-          printf(Str("WARNING: PVOC ktimpnt truncated to last frame\n"));
+        if (csound->oparms->msglevel & WARNMSG)
+          csound->Message(csound, Str("WARNING: PVOC ktimpnt truncated to last frame\n"));
       }
     }
     FetchIn(p->frPtr,buf,size,frIndx);
@@ -383,7 +383,7 @@ int vpvoc(ENVIRON *csound, VPVOC *p)
     /**/
     if ( specwp == 0 || (p->prFlg)++ == -(int)specwp) { /* ?screws up when prFlg used */
       /* specwp=0 => normal; specwp = -n => just nth frame */
-      if (specwp<0) printf(Str("PVOC debug : one frame gets through \n"));
+      if (specwp<0) csound->Message(csound, Str("PVOC debug : one frame gets through \n"));
       if (specwp>0)
         PreWarpSpec(buf, asize, pex);
       Polar2Rect(buf,size);

@@ -544,8 +544,8 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
         csoundDie(csound, Str("cannot open scorefile %s"), csound->scorename);
       if (!(scorout = fopen(sortedscore, "w")))
         csoundDie(csound, Str("cannot open %s for writing"), sortedscore);
-      csound->Message(csound,Str("sorting score ...\n"));
-      scsort(scorin, scorout);
+      csound->Message(csound, Str("sorting score ...\n"));
+      scsort(csound, scorin, scorout);
       fclose(scorin);
       fclose(scorout);
     }
@@ -560,7 +560,7 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
       if (!(scorout = fopen(xtractedscore, "w")))
         csoundDie(csound, Str("cannot open %s for writing"), xtractedscore);
       csound->Message(csound,Str("  ... extracting ...\n"));
-      scxtract(scorin, scorout, xfile);
+      scxtract(csound, scorin, scorout, xfile);
       fclose(scorin);
       fclose(scorout);
       playscore = xtractedscore;
@@ -575,9 +575,9 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
     O->filnamsize = filnamp - O->filnamspace;
     /* open MIDI output (moved here from argdecode) */
     {
-      extern void openMIDIout(void);
+      extern void openMIDIout(ENVIRON *);
       if (O->Midioutname != NULL && O->Midioutname[0] != '\0')
-        openMIDIout();
+        openMIDIout(csound);
     }
     return musmon(csound);
 }

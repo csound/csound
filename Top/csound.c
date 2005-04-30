@@ -45,12 +45,19 @@ extern "C" {
 
   PUBLIC void *csoundCreate(void *hostdata)
   {
-    /* FIXME: should use malloc() eventually */
-    ENVIRON *csound = &cenviron;
+    ENVIRON *csound = (ENVIRON*) malloc(sizeof(ENVIRON));
+    if (csound == NULL)
+      return NULL;
     memcpy(csound, &cenviron_, sizeof(ENVIRON));
-    csoundReset(csound);
+    csound->oparms = (OPARMS*) malloc(sizeof(OPARMS));
+    if (csound->oparms == NULL) {
+      free(csound);
+      return NULL;
+    }
+    memset(csound->oparms, 0, sizeof(OPARMS));
     csound->hostdata = hostdata;
-    return csound;
+    csoundReset(csound);
+    return (void*) csound;
   }
 
   /* dummy real time MIDI functions */
@@ -185,9 +192,8 @@ extern "C" {
   PUBLIC void csoundDestroy(void *csound)
   {
     csoundReset(csound);
-#ifdef some_fine_day
+    free(((ENVIRON*) csound)->oparms);
     free(csound);
-#endif
   }
 
   PUBLIC int csoundGetVersion()
@@ -480,18 +486,15 @@ extern "C" {
 
   void csoundPrintf(const char *format, ...)
   {
-    va_list args;
-    va_start(args, format);
-    csoundMessageCallback_(&cenviron, format, args);
-    va_end(args);
+    fprintf(stderr, " *** error: use csound->Message() instead of printf()\n");
+    exit(-1);
   }
 
   void err_printf(char *fmt, ...)
   {
-    va_list a;
-    va_start(a, fmt);
-    csoundMessageCallback_(&cenviron, fmt, a);
-    va_end(a);
+    fprintf(stderr,
+            " *** error: use csound->Message() instead of err_printf()\n");
+    exit(-1);
   }
 
   void csoundDie(void *csound, const char *msg, ...)
@@ -565,7 +568,7 @@ extern "C" {
 
   PUBLIC void csoundInputMessage(void *csound, const char *message)
   {
-    writeLine(message, strlen(message));
+    writeLine((ENVIRON*) csound, message, strlen(message));
   }
 
   static char inChar_ = 0;
@@ -1321,9 +1324,9 @@ static void get_CPU_cycle_time(void)
     /* if frequency is not known yet */
     f = fopen("/proc/cpuinfo", "r");
     if (f == NULL) {
-      csoundDie(&cenviron, "Cannot open /proc/cpuinfo. "
-                           "Support for RDTSC is not available.");
-      return;
+      fprintf(stderr, "Cannot open /proc/cpuinfo. "
+                      "Support for RDTSC is not available.\n");
+      exit(-1);
     }
     /* find CPU frequency */
     while (fgets(buf, 256, f) != NULL) {
@@ -1351,9 +1354,9 @@ static void get_CPU_cycle_time(void)
     }
     fclose(f);
     if (timeResolutionSeconds <= 0.0) {
-      csoundDie(&cenviron, "No valid CPU frequency entry "
-                           "was found in /proc/cpuinfo.");
-      return;
+      fprintf(stderr, "No valid CPU frequency entry "
+                      "was found in /proc/cpuinfo.\n");
+      exit(-1);
     }
     /* MHz -> seconds */
     timeResolutionSeconds = 0.000001 / timeResolutionSeconds;
@@ -1428,9 +1431,8 @@ void timers_struct_init(RTCLOCK *p)
 #else
       timeResolutionSeconds = 1.0;
 #endif
-      cenviron.Message(&cenviron,
-                       "time resolution is %.3f ns\n",
-                       1.0e9 * timeResolutionSeconds);
+      fprintf(stderr, "time resolution is %.3f ns\n",
+                      1.0e9 * timeResolutionSeconds);
     }
     p->real_time_to_seconds_scale = timeResolutionSeconds;
     p->CPU_time_to_seconds_scale = 1.0 / (double) CLOCKS_PER_SEC;

@@ -101,7 +101,7 @@ void PS_MakeGraph(WINDAT *wdptr, char *name)
 
     if (!winPSinitialized) {
       winPSinitialized++;
-      filenam = O.outfilename;
+      filenam = cenviron.oparms->outfilename;
       if (filenam == NULL)
         filenam = "test"; /* O.outfilename not set yet */
 

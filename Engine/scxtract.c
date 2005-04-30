@@ -23,16 +23,15 @@
 
 #include "cs.h"                                    /*  SCXTRACT.C  */
 
-extern void readxfil(FILE *), extract(void), swrite(ENVIRON*);
+extern void readxfil(FILE *), extract(ENVIRON*), swrite(ENVIRON*);
 extern void sfree(ENVIRON *csound);
 extern int  sread(ENVIRON *csound);
 extern void sread_init(ENVIRON *csound);
 
-int scxtract(FILE *scin, FILE * scout, FILE *xfile) /* called from xmain.c
-                                                       or some other main */
+int scxtract(ENVIRON *csound, FILE *scin, FILE * scout, FILE *xfile)
+                                /* called from xmain.c or some other main */
                                 /*   extracts events from each score sect */
 {                               /*   according to the controlling xfile   */
-    ENVIRON *csound = &cenviron;
     int     n;
 
     readxfil(xfile);
@@ -45,7 +44,7 @@ int scxtract(FILE *scin, FILE * scout, FILE *xfile) /* called from xmain.c
       if ((n = sread(csound)) > 0) {
         /*  allout();   */
         /*  textout();  */
-        extract();
+        extract(csound);
         swrite(csound);
       }
     } while (n > 1);

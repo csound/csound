@@ -150,7 +150,6 @@ const ENVIRON cenviron_ = {
         dispset,
         display,
         intpow,
-        unquote,
         ldmemfile,
         hfgens,
         getopnum,
@@ -308,7 +307,7 @@ const ENVIRON cenviron_ = {
         DFLT_DBFS,      /*  tran_0dbfs          */
         DFLT_NCHNLS,    /*  tran_nchnls         */
         FL(-1.0), FL(-1.0), FL(-1.0), FL(-1.0), /* tpidsr,pidsr,mpidsr,mtpdsr */
-        &O,             /*  oparms              */
+        (OPARMS*) NULL, /*  oparms              */
         NULL,           /*  hostData            */
         NULL,           /*  opcodeInfo          */
         NULL,           /*  instrumentNames     */
@@ -387,9 +386,8 @@ static  void    unquote_string(char *dst, const char *src);
 static  int     create_strconst_ndx_list(ENVIRON *csound, int **lst, int offs);
 static  void    convert_strconst_pool(ENVIRON *csound, MYFLT *dst);
 
-/* globals to be removed eventually... */
-OPARMS O;
-ENVIRON cenviron;
+/* stub to be removed soon... */
+ENVIRON cenviron = { NULL };
 
 /* RWD for reentry */
 void oloadRESET(ENVIRON *csound)
@@ -429,20 +427,21 @@ void oloadRESET(ENVIRON *csound)
     mfree(csound, csound->instrtxtp);           /* Start again */
     /**
      * Copy everything EXCEPT the function pointers.
-     * This is tricky because of those blasted macros!
      * We do it by saving them and copying them back again...
      */
     {
-      void    *tempGlobals, *saved_memalloc_db;
+      void    *tempGlobals, *saved_memalloc_db = csound->memalloc_db;
+      void    *saved_hostdata = csound->hostdata;
+      OPARMS  *saved_oparms = csound->oparms;
       size_t  length = (size_t) ((uintptr_t) &(csound->ids)
                                  - (uintptr_t) csound);
-      /* save memalloc chain pointer for memRESET() */
-      saved_memalloc_db = csound->memalloc_db;
       tempGlobals = malloc(length);     /* hope that this does not fail... */
       memcpy(tempGlobals, (void*) csound, length);
       memcpy(csound, &cenviron_, sizeof(ENVIRON));
       memcpy((void*) csound, tempGlobals, length);
       free(tempGlobals);
+      csound->hostdata = saved_hostdata;
+      csound->oparms = saved_oparms;
       csound->memalloc_db = saved_memalloc_db;
       /* reset rtaudio function pointers */
       csound->recopen_callback = recopen_dummy;
@@ -451,7 +450,6 @@ void oloadRESET(ENVIRON *csound)
       csound->rtplay_callback = rtplay_dummy;
       csound->rtclose_callback = rtclose_dummy;
     }
-    csound->oparms = &O;
     memcpy(csound->oparms, &O_, sizeof(OPARMS));
     /* IV - Sep 8 2002: also reset saved globals */
     csound->global_ksmps     = csound->ksmps;

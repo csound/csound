@@ -263,7 +263,7 @@ EVENT * getev(void)                  /* get nxt event from input score buf */
         if (nxtevt->op != '\0')
             e = copyev(nxtevt);
         else e = NULL;
-        if (!(rdscor(nxtevtblk)))
+        if (!(rdscor(&cenviron, nxtevtblk)))
             nxtevt->op = '\0';
         return(e);
 }
@@ -716,7 +716,7 @@ static void makecurrent(FILE *fp)
                     wasend = infp->wasend;
                     warped = infp->warped;
                     if (nxtevt->op == '\0')
-                        if (!(rdscor(nxtevtblk)))
+                        if (!(rdscor(&cenviron, nxtevtblk)))
                             nxtevt->op = '\0';
                     return;
                 }

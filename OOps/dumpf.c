@@ -31,7 +31,7 @@ int kdmpset(ENVIRON *csound, KDUMP *p)
     char soundoname[1024];
     csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.",
                                 p->XSTRCODE);
-    if ((p->fdch.fdc = openout(soundoname,1)) < 0) {
+    if ((p->fdch.fdc = openout(csound, soundoname,1)) < 0) {
       return csound->InitError(csound, Str("Cannot open %s"), soundoname);
     }
     p->fdch.fd = NULL;        /* Character file not audio */
@@ -55,7 +55,7 @@ int kdmp2set(ENVIRON *csound, KDUMP2 *p)
     char soundoname[1024];
     csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.",
                                 p->XSTRCODE);
-    if ((p->fdch.fdc = openout(soundoname,1)) < 0) {
+    if ((p->fdch.fdc = openout(csound, soundoname,1)) < 0) {
       return csound->InitError(csound, Str("Cannot open %s"), soundoname);
     }
     p->fdch.fd = NULL;        /* Character file not audio */
@@ -79,7 +79,7 @@ int kdmp3set(ENVIRON *csound, KDUMP3 *p)
     char soundoname[1024];
     csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.",
                                 p->XSTRCODE);
-    if ((p->fdch.fdc = openout(soundoname,1)) < 0) {
+    if ((p->fdch.fdc = openout(csound, soundoname,1)) < 0) {
       return csound->InitError(csound, Str("Cannot open %s"), soundoname);
     }
     p->fdch.fd = NULL;        /* Character file not audio */
@@ -103,7 +103,7 @@ int kdmp4set(ENVIRON *csound, KDUMP4 *p)
     char soundoname[1024];
     csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.",
                                 p->XSTRCODE);
-    if ((p->fdch.fdc = openout(soundoname,1)) < 0) {
+    if ((p->fdch.fdc = openout(csound, soundoname,1)) < 0) {
       return csound->InitError(csound, Str("Cannot open %s"), soundoname);
     }
     p->fdch.fd = NULL;        /* Character file not audio */
@@ -245,7 +245,7 @@ int krdset(ENVIRON *csound, KREAD *p)
     char soundiname[1024];
     csound->strarg2name(csound, soundiname, p->ifilcod, "readk.",
                                 p->XSTRCODE);
-    if ((p->fdch.fdc = openin(soundiname)) < 0) {
+    if ((p->fdch.fdc = openin(csound, soundiname)) < 0) {
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     }
     p->fdch.fd = NULL;        /* Character file not audio */
@@ -270,7 +270,7 @@ int krd2set(ENVIRON *csound, KREAD2 *p)
     char soundiname[1024];
     csound->strarg2name(csound, soundiname, p->ifilcod, "readk.",
                                 p->XSTRCODE);
-    if ((p->fdch.fdc = openin(soundiname)) < 0) {
+    if ((p->fdch.fdc = openin(csound, soundiname)) < 0) {
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     }
     p->fdch.fd = NULL;        /* Character file not audio */
@@ -295,7 +295,7 @@ int krd3set(ENVIRON *csound, KREAD3 *p)
     char soundiname[1024];
     csound->strarg2name(csound, soundiname, p->ifilcod, "readk.",
                                 p->XSTRCODE);
-    if ((p->fdch.fdc = openin(soundiname)) < 0) {
+    if ((p->fdch.fdc = openin(csound, soundiname)) < 0) {
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     }
     p->fdch.fd = NULL;        /* Character file not audio */
@@ -320,7 +320,7 @@ int krd4set(ENVIRON *csound, KREAD4 *p)
     char soundiname[1024];
     csound->strarg2name(csound, soundiname, p->ifilcod, "readk.",
                                 p->XSTRCODE);
-    if ((p->fdch.fdc = openin(soundiname)) < 0) {
+    if ((p->fdch.fdc = openin(csound, soundiname)) < 0) {
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     }
     p->fdch.fd = NULL;        /* Character file not audio */
