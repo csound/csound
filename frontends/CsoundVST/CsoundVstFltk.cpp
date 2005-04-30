@@ -239,19 +239,26 @@ long CsoundVstFltk::open(void *parentWindow)
 		this->settingsEditSoundfileInput->value(buffer);
 		preferences.get("IsSynth", number, 0);
 		csoundVST->setIsSynth(number);
-		preferences.get("IsPython", number, 0);
-		csoundVST->setIsPython(number);
-		preferences.get("IsAutoPlayback", number, 1);
-		csoundVST->setIsAutoPlayback(number);
 		this->mainTabs->value(settingsGroup);
 		this->csoundVstUi->show();
 		if(csoundVST->getIsVst())
 		{
-			//this->csoundVstUi->make_current();
 #if defined(WIN32)
 			SetParent((HWND) fl_xid(this->csoundVstUi), (HWND) parentWindow);
 #endif
 			this->csoundVstUi->position(0, 0);
+			csoundVST->setIsPython(false);
+			this->settingsCsoundPerformanceModeClassic->deactivate();
+			this->settingsCsoundPerformanceModePython->deactivate();
+			csoundVST->setIsAutoPlayback(false);
+			this->autoPlayCheckButton->deactivate();
+		} 
+		else 
+		{
+			preferences.get("IsPython", number, 0);
+			csoundVST->setIsPython(number);
+			preferences.get("IsAutoPlayback", number, 1);
+			csoundVST->setIsAutoPlayback(number);
 		}
 		this->aboutTextBuffer->text(removeCarriageReturns(about));
 		update();

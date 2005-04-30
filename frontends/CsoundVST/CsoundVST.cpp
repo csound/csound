@@ -59,6 +59,7 @@ CsoundVST::CsoundVST(audioMasterCallback audioMaster) :
   int number = 0;
   csoundVstFltk->preferences.get("IsSynth", number, 0);
   if(audioMaster)
+  {
     if(number)
       {
 	AudioEffectX::isSynth(true);
@@ -67,6 +68,7 @@ CsoundVST::CsoundVST(audioMasterCallback audioMaster) :
       {
 	AudioEffectX::isSynth(false);
       }
+  }
   wantEvents(true);
   programsAreChunks(true);
   curProgram = 0;
