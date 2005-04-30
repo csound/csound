@@ -23,30 +23,27 @@
 
 #include "cs.h"                 /*                              RDSCOR.C */
 
-/* FILE   *oscfp = NULL;*/     /* default Cscore outfile */
 int    warped = 0;
 static char *sstrbuf = NULL;
 static int  sstrlen = 0;
-static void dumpline(void);
+static void dumpline(ENVIRON *);
 
-static void flushline(void)             /* flush scorefile to next newline */
+static void flushline(ENVIRON *csound)  /* flush scorefile to next newline */
 {
-    ENVIRON *csound = &cenviron;
     int     c;
     FILE    *xx = csound->scfp;
     while ((c = getc(xx)) != EOF && c != '\n')
         ;
 }
 
-static int scanflt(MYFLT *pfld)
+static int scanflt(ENVIRON *csound, MYFLT *pfld)
 {   /* read a MYFLT from scorefile; return 1 if OK, else 0 */
-    ENVIRON *csound = &cenviron;
     int     c;
     FILE    *xx = csound->scfp;
     while ((c = getc(xx)) == ' ' || c == '\t')  /* skip leading white space */
         ;
     if (c == ';') {             /* Comments terminate line */
-      flushline();
+      flushline(csound);
       return 0;
     }
     if (c == '"') {                               /* if find a quoted string  */
@@ -65,7 +62,7 @@ static int scanflt(MYFLT *pfld)
         csound->Message(csound,
                         Str("ERROR: illegal character %c(%.2x) in scoreline: "),
                         c, c);
-        dumpline();
+        dumpline(csound);
         return(0);
     }
     ungetc(c, csound->scfp);
@@ -77,9 +74,8 @@ static int scanflt(MYFLT *pfld)
     return(1);
 }
 
-static void dumpline(void)      /* print the line while flushing it */
+static void dumpline(ENVIRON *csound)   /* print the line while flushing it */
 {
-    ENVIRON *csound = &cenviron;
     int     c;
     FILE    *xx = csound->scfp;
     while ((c = getc(xx)) != EOF && c != '\n') {
@@ -89,10 +85,9 @@ static void dumpline(void)      /* print the line while flushing it */
 }
 
 
-int rdscor(EVTBLK *e)           /* read next score-line from scorefile */
-                                /*  & maintain section warped status   */
-{                               /*      presumes good format if warped */
-    ENVIRON *csound = &cenviron;
+int rdscor(ENVIRON *csound, EVTBLK *e) /* read next score-line from scorefile */
+                                       /*  & maintain section warped status   */
+{                                      /*      presumes good format if warped */
     MYFLT   *pp, *plim;
     int     c;
     FILE    *xx = csound->scfp;
@@ -112,7 +107,7 @@ int rdscor(EVTBLK *e)           /* read next score-line from scorefile */
         case '\n':
             continue;            /* skip leading white space */
         case ';':
-            flushline();
+            flushline(csound);
             continue;
         case 's':
         case 't':
@@ -125,13 +120,13 @@ unwarped:   e->opcod = c;                    /* UNWARPED scorefile:  */
             plim = &e->p[PMAX];              /*    caution, irregular format */
             while (1) {
                 while ((c = getc(xx))==' ' || c=='\t'); /* eat whitespace */
-                if (c == ';')  { flushline();  break; } /* comments? skip */
+                if (c == ';') { flushline(csound); break; } /* comments? skip */
                 if (c == '\n' || c == EOF)   break;     /* newline? done  */
                 ungetc(c, csound->scfp);                /* pfld:  back up */
-                if (!scanflt(++pp))  break;             /*   & read value */
+                if (!scanflt(csound, ++pp))  break;     /*   & read value */
                 if (pp >= plim) {
                     csound->Message(csound, Str("ERROR: too many pfields: "));
-                    dumpline();
+                    dumpline(csound);
                     break;
                 }
             }
@@ -144,17 +139,18 @@ unwarped:   e->opcod = c;                    /* UNWARPED scorefile:  */
             return(1);
         default:                                /* WARPED scorefile:       */
             if (!warped) goto unwarped;
-            e->opcod = c;                                        /* opcod */
+            e->opcod = c;                                       /* opcod */
             pp = &e->p[0];
             plim = &e->p[PMAX];
-            if (getc(xx) != '\n' && scanflt(++pp))             /* p1      */
-              if (getc(xx) != '\n' && scanflt(&e->p2orig))     /* p2 orig */
-                if (getc(xx) != '\n' && scanflt(++pp))         /* p2 warp */
-                  if (getc(xx) != '\n' && scanflt(&e->p3orig)) /* p3 orig */
-                    if (getc(xx) != '\n' && scanflt(++pp))     /* p3 warp */
-                      while (getc(xx) != '\n' && scanflt(++pp))/* p4....  */
+            if (getc(xx) != '\n' && scanflt(csound, ++pp))         /* p1      */
+              if (getc(xx) != '\n' && scanflt(csound, &e->p2orig)) /* p2 orig */
+                if (getc(xx) != '\n' && scanflt(csound, ++pp))     /* p2 warp */
+                  if (getc(xx) != '\n' && scanflt(csound, &e->p3orig)) /* p3  */
+                    if (getc(xx) != '\n' && scanflt(csound, ++pp)) /* p3 warp */
+                      while (getc(xx) != '\n' && scanflt(csound, ++pp))
+                        /* p4....  */
                         if (pp >= plim) {
-                          flushline();
+                          flushline(csound);
                           ++pp;
                           break;
                         }

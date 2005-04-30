@@ -32,7 +32,7 @@ typedef struct {
         MYFLT timbas;
 } TSEG;
 
-int realtset(SRTBLK *);
+int realtset(ENVIRON *, SRTBLK *);
 
 void scoreRESET(ENVIRON *p)
 {
@@ -43,21 +43,21 @@ void scoreRESET(ENVIRON *p)
 }
 
 
-void twarp(void)        /* time-warp a score section acc to T-statement */
+void twarp(ENVIRON *csound) /* time-warp a score section acc to T-statement */
 {
     SRTBLK *bp;
-    MYFLT absp3, endtime, realt(MYFLT);
+    MYFLT absp3, endtime, realt(ENVIRON *, MYFLT);
     int negp3;
 
-    if ((bp = cenviron.frstbp) == NULL)     /* if null file,         */
+    if ((bp = csound->frstbp) == NULL)      /* if null file,         */
       return;
     while (bp->text[0] != 't')              /*  or cannot find a t,  */
       if ((bp = bp->nxtblk) == NULL)
         return;                             /*      we are done      */
     bp->text[0] = 'w';                      /* else mark the t used  */
-    if (!realtset(bp))                      /*  and init the t-array */
+    if (!realtset(csound, bp))              /*  and init the t-array */
       return;                               /* (done if t0 60 or err) */
-    bp  = cenviron.frstbp;
+    bp  = csound->frstbp;
     negp3 = 0;
     do {
       switch (bp->text[0]) {                /* else warp all timvals */
@@ -67,8 +67,8 @@ void twarp(void)        /* time-warp a score section acc to T-statement */
           negp3++;
         }
         endtime = bp->newp2 + absp3;
-        bp->newp2 = realt(bp->newp2);
-        bp->newp3 = realt(endtime) - bp->newp2;
+        bp->newp2 = realt(csound, bp->newp2);
+        bp->newp3 = realt(csound, endtime) - bp->newp2;
         if (negp3) {
           bp->newp3 = -bp->newp3;
           negp3--;
@@ -76,11 +76,11 @@ void twarp(void)        /* time-warp a score section acc to T-statement */
         break;
       case 'a':
         endtime = bp->newp2 + bp->newp3;
-        bp->newp2 = realt(bp->newp2);
-        bp->newp3 = realt(endtime) - bp->newp2;
+        bp->newp2 = realt(csound, bp->newp2);
+        bp->newp3 = realt(csound, endtime) - bp->newp2;
         break;
       case 'f':
-        bp->newp2 = realt(bp->newp2);
+        bp->newp2 = realt(csound, bp->newp2);
         break;
       case 't':
       case 'w':
@@ -88,15 +88,14 @@ void twarp(void)        /* time-warp a score section acc to T-statement */
       case 'e':
         break;
       default:
-        cenviron.Message(&cenviron,Str("twarp: illegal opcode\n"));
+        csound->Message(csound, Str("twarp: illegal opcode\n"));
         break;
       }
     } while ((bp = bp->nxtblk) != NULL);
 }
 
-int realtset(SRTBLK *bp)
+int realtset(ENVIRON *csound, SRTBLK *bp)
 {
-    ENVIRON *csound = &cenviron;    /* function should take this as argument */
     char    *p;
     char    c;
     MYFLT   tempo, betspan, durbas, avgdur, stof(ENVIRON *, char *);
@@ -166,9 +165,8 @@ int realtset(SRTBLK *bp)
     return(0);
 }
 
-MYFLT realt(MYFLT srctim)
+MYFLT realt(ENVIRON *csound, MYFLT srctim)
 {
-    ENVIRON *csound = &cenviron;    /* function should take this as argument */
     TSEG *tp;
     MYFLT diff;
 

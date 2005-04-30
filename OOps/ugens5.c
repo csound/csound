@@ -425,19 +425,19 @@ int lprdset(ENVIRON *csound, LPREAD *p)
     if ((magic==LP_MAGIC)||(magic==LP_MAGIC2)) {
       p->storePoles = (magic==LP_MAGIC2);
 
-      printf(Str("Using %s type of file.\n"),
+      csound->Message(csound, Str("Using %s type of file.\n"),
              p->storePoles?Str("pole"):Str("filter coefficient"));
       /* Store header length */
       p->headlongs = lph->headersize/sizeof(long);
       /* Check if input values where available */
       if (*p->inpoles || *p->ifrmrate) {
-        if (O.msglevel & WARNMSG)
-          printf(Str("WARNING: lpheader overriding inputs\n"));
+        if (csound->oparms->msglevel & WARNMSG)
+          csound->Message(csound, Str("WARNING: lpheader overriding inputs\n"));
       }
       /* Check orc/analysis sample rate compatibility */
       if (lph->srate != csound->esr) {
-        if (O.msglevel & WARNMSG)
-          printf(Str("WARNING: lpfile srate != orch sr\n"));
+        if (csound->oparms->msglevel & WARNMSG)
+          csound->Message(csound, Str("WARNING: lpfile srate != orch sr\n"));
       }
       p->npoles = lph->npoles;                /* note npoles, etc. */
       /* Store header info in opcode */
@@ -467,8 +467,8 @@ int lprdset(ENVIRON *csound, LPREAD *p)
     totvals = (mfp->length/sizeof(long)) - p->headlongs;   /* see NB above!! */
     /* Store the size of a frame in integer */
     p->lastfram16 = (((totvals - p->nvals) / p->nvals) << 16) - 1;
-    if (O.odebug)
-      printf(Str(
+    if (csound->oparms->odebug)
+      csound->Message(csound, Str(
                  "npoles %ld, nvals %ld, totvals %ld, lastfram16 = %lx\n"),
              p->npoles, p->nvals, totvals, p->lastfram16);
  lpend:
@@ -485,12 +485,12 @@ static void
 #ifdef TRACE_POLES
     int i;
 
-    printf("%s\n", where);
+    csound->Message(csound, "%s\n", where);
     for (i=0; i<poleCount; i++) {
       if (isMagn)
-        printf(Str("magnitude: %f   Phase: %f\n"), part1[i], part2[i]);
+        csound->Message(csound, Str("magnitude: %f   Phase: %f\n"), part1[i], part2[i]);
       else
-        printf(Str("Real: %f   Imag: %f\n"), part1[i], part2[i]);
+        csound->Message(csound, Str("Real: %f   Imag: %f\n"), part1[i], part2[i]);
     }
 #endif
 }
@@ -666,8 +666,8 @@ int lpread(ENVIRON *csound, LPREAD *p)
       framphase = p->lastfram16;
       if (!p->lastmsg) {
         p->lastmsg = 1;
-        if (O.msglevel & WARNMSG)
-          printf(Str("WARNING: lpread ktimpnt truncated to last frame\n"));
+        if (csound->oparms->msglevel & WARNMSG)
+          csound->Message(csound, Str("WARNING: lpread ktimpnt truncated to last frame\n"));
       }
     }
     /* Locate frames bounding current time */
@@ -711,15 +711,15 @@ int lpread(ENVIRON *csound, LPREAD *p)
       }
       while (--nn);
     }
-/*  if (O.odebug) {
-      printf("phase:%lx fract:%6.2f rmsr:%6.2f rmso:%6.2f kerr:%6.2f kcps:%6.2f\n",
+/*  if (csound->oparms->odebug) {
+      csound->Message(csound, "phase:%lx fract:%6.2f rmsr:%6.2f rmso:%6.2f kerr:%6.2f kcps:%6.2f\n",
              framphase,fract,*p->krmr,*p->krmo,*p->kerr,*p->kcps);
       cp = p->kcoefs;
       nn = p->npoles;
       do {
-        printf(" %6.2f",*cp++);
+        csound->Message(csound, " %6.2f",*cp++);
       } while (--nn);
-      printf("\n");
+      csound->Message(csound, "\n");
     }  */
     return OK;
 }

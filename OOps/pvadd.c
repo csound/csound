@@ -126,8 +126,8 @@ int pvaddset(ENVIRON *csound, PVADD *p)
     p->mems=memsize;
 
     if ((p->asr = pvh->samplingRate) != csound->esr &&
-        (O.msglevel & WARNMSG)) { /* & chk the data */
-      printf(Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
+        (csound->oparms->msglevel & WARNMSG)) { /* & chk the data */
+      csound->Message(csound, Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
              pvfilnam, p->asr, csound->esr);
     }
     if (pvh->dataFormat != PVMYFLT) {
@@ -175,7 +175,7 @@ int pvaddset(ENVIRON *csound, PVADD *p)
     ibins = (*p->ibins==0 ? size/2 : (int)*p->ibins);
     p->maxbin = ibins + (int)*p->ibinoffset;
     p->maxbin = (p->maxbin > size/2 ? size/2 : p->maxbin);
-    /*  printf("maxbin=%d\n", p->maxbin); fflush(stdout); */
+    /*  csound->Message(csound, "maxbin=%d\n", p->maxbin); fflush(stdout); */
 
     return OK;
 
@@ -212,8 +212,8 @@ int pvadd(ENVIRON *csound, PVADD *p)
       frIndx = (MYFLT)p->maxFr;
       if (p->prFlg) {
         p->prFlg = 0;   /* false */
-        if (O.msglevel & WARNMSG)
-          printf(Str("WARNING: PVADD ktimpnt truncated to last frame"));
+        if (csound->oparms->msglevel & WARNMSG)
+          csound->Message(csound, Str("WARNING: PVADD ktimpnt truncated to last frame"));
       }
     }
     FetchInForAdd(p->frPtr,p->buf, size, frIndx,

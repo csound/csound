@@ -357,7 +357,7 @@ void *sndgetset(void *csound_, void *p_)
       /* else seek to bndry */
       if (sf_seek(infile, (sf_count_t) skipframes, SEEK_SET) < 0) {
         sf_close(infile);
-        csound->Free(&cenviron, sfname);
+        csound->Free(csound, sfname);
         csound->Die(csound, Str("soundin seek error"));
         return NULL;
       }

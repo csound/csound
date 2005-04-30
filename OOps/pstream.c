@@ -489,8 +489,8 @@ int pvsmaska(ENVIRON *csound, PVSMASKA *p)
     if (depth < FL(0.0)) {
       /* need the warning: but krate linseg can give below-zeroes incorrectly */
       if (!p->nwarned)  {
-        if (O.msglevel & WARNMSG)
-          printf(Str("WARNING: pvsmaska: negative value for kdepth; "
+        if (csound->oparms->msglevel & WARNMSG)
+          csound->Message(csound, Str("WARNING: pvsmaska: negative value for kdepth; "
                      "clipped to zero.\n"));
         p->nwarned = 1;
       }
@@ -498,8 +498,8 @@ int pvsmaska(ENVIRON *csound, PVSMASKA *p)
     }
     if (depth > 1.0f) {
       if (!p->pwarned)  {
-        if (O.msglevel & WARNMSG)
-          printf(Str("WARNING: pvsmaska: kdepth > 1: clipped.\n"));
+        if (csound->oparms->msglevel & WARNMSG)
+          csound->Message(csound, Str("WARNING: pvsmaska: kdepth > 1: clipped.\n"));
         p->pwarned = 1;
       }
       depth = FL(1.0);
@@ -852,8 +852,8 @@ static int pvx_loadfile(ENVIRON *csound,
 
 
     if ((p->arate = (MYFLT) fmt.nSamplesPerSec) != csound->esr &&
-        (O.msglevel & WARNMSG)) { /* & chk the data */
-      printf(Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
+        (csound->oparms->msglevel & WARNMSG)) { /* & chk the data */
+      csound->Message(csound, Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
               fname, p->arate, csound->esr);
     }
     p->fftsize  = pvx_fftsize;
@@ -890,7 +890,7 @@ static int pvx_loadfile(ENVIRON *csound,
       mfil->endp = mfil->beginp + mem_wanted;
       mfil->length = mem_wanted;
       /*from memfiles.c */
-      printf(Str("file %s (%ld bytes) loaded into memory\n"), fname,mem_wanted);
+      csound->Message(csound, Str("file %s (%ld bytes) loaded into memory\n"), fname,mem_wanted);
       add_memfil(csound, mfil);
     }
 

@@ -33,7 +33,7 @@
 #include "ftgen.h"
 
 /* New function in FILOPEN.C to look around for (text) files */
-extern FILE *fopenin(char* filnam);
+extern FILE *fopenin(ENVIRON *csound, char *filnam);
 extern double besseli(double);
 
 /* Start of moving static data into a single structure */
@@ -70,7 +70,8 @@ typedef struct namedgen {
         int              genum;
         struct namedgen *next;
 } NAMEDGEN;
-NAMEDGEN *namedgen = NULL;
+
+static  NAMEDGEN *namedgen = NULL;
 
 #define tpd360  (0.017453293)
 
@@ -1034,17 +1035,17 @@ static void gen23(FUNC *ftp, ENVIRON *csound)
     MYFLT       *fp;
     FILE        *infile;
 
-    if (!(infile=fopenin(ff->e.strarg))) {
+    if (!(infile = fopenin(csound, ff->e.strarg))) {
       fterror(csound, ff, Str("error opening ASCII file")); return;
     }
     p = buf;
     if (ftp==NULL) {
         /* Start counting elements */
       ff->flen = 0;
-      while ((c= getc(infile)) != EOF) {
+      while ((c = getc(infile)) != EOF) {
         if (!isspace(c)) {
           if (c == ';') {
-            while ((c= getc(infile)) != '\n') ;
+            while ((c = getc(infile)) != '\n') ;
           }
           else *p++ = c;
         }
@@ -1253,7 +1254,7 @@ static void gen28(FUNC *ftp, ENVIRON *csound)
 
     finp = fp + ff->flen;
     strcpy(filename,ff->e.strarg);
-    if ((filp = fopenin(filename)) == NULL) goto gen28err1;
+    if ((filp = fopenin(csound, filename)) == NULL) goto gen28err1;
 
     x = (MYFLT*)mmalloc(csound, arraysize*sizeof(MYFLT));
     y = (MYFLT*)mmalloc(csound, arraysize*sizeof(MYFLT));
@@ -2037,7 +2038,7 @@ static void gen01(FUNC *ftp, ENVIRON *csound)
     if (nargs < 4) {
       fterror(csound, ff, Str("insufficient arguments")); return;
     }
-    if (O.gen01defer) {
+    if (csound->oparms->gen01defer) {
       /* We're deferring the soundfile load until performance time,
          so allocate the function table descriptor, save the arguments,
          and get out */
@@ -2081,8 +2082,16 @@ static void gen01raw(FUNC *ftp, ENVIRON *csound)
     {
       long  filno = (long) RNDINT(ff->e.p[5]);
       int   fmt = (int) RNDINT(ff->e.p[7]);
-      if (filno == (long) SSTRCOD)
-        strcpy(p->sfname, unquote(ff->e.strarg));
+      if (filno == (long) SSTRCOD) {
+        if (ff->e.strarg[0] == '"') {
+          int len = (int) strlen(ff->e.strarg) - 2;
+          strcpy(p->sfname, ff->e.strarg + 1);
+          if (len >= 0 && p->sfname[len] == '"')
+            p->sfname[len] = '\0';
+        }
+        else
+          strcpy(p->sfname, ff->e.strarg);
+      }
       else if (filno >= 0 && filno <= csound->strsmax &&
                csound->strsets && csound->strsets[filno])
         strcpy(p->sfname, csound->strsets[filno]);

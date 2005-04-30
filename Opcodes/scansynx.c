@@ -65,6 +65,17 @@
 /* Window to be applied at external force */
 static MYFLT *ewin = NULL;
 
+static void unquote(char *dst, char *src)
+{
+    if (src[0] == '"') {
+      int len = (int) strlen(src) - 2;
+      strcpy(dst, src + 1);
+      if (len >= 0 && dst[len] == '"')
+        dst[len] = '\0';
+    }
+    else
+      strcpy(dst, src);
+}
 
 /****************************************************************************
  *      Helper functions and macros for updater                            *
@@ -275,7 +286,7 @@ int scsnux_init(ENVIRON *csound, PSCSNUX *p)
       char filnam[256];
       MEMFIL *mfp;
       if (!p->XSTRCODE)
-        strcpy(filnam, csound->unquote(csound->currevent->strarg));
+        unquote(filnam, csound->currevent->strarg);
       else strcpy(filnam, (char*) p->i_f);
       /* readfile if reqd */
       if ((mfp = csound->ldmemfile(csound, filnam)) == NULL) {

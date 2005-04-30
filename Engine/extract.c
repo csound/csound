@@ -93,19 +93,19 @@ void readxfil(FILE *xfp)        /* read the extract control file */
     offtime = f0.newp2 = f0.p2val = offbeat;
 }
 
-void extract(void)      /* extract instr events within the time period */
+void extract(ENVIRON *csound) /* extract instr events within the time period */
 {
-    SRTBLK *bp;
-    MYFLT turnoff, anticip;
-    int   warped;
+    SRTBLK  *bp;
+    MYFLT   turnoff, anticip;
+    int     warped;
     static  int   sectno, a0done;
-    extern  int   realtset(SRTBLK *);
-    extern  MYFLT realt(MYFLT);
+    extern  int   realtset(ENVIRON *, SRTBLK *);
+    extern  MYFLT realt(ENVIRON *, MYFLT);
 
-    if ((bp = cenviron.frstbp) == NULL)     /* if null file         */
+    if ((bp = csound->frstbp) == NULL)      /* if null file         */
       return;
     if (++sectno > offsect) {               /* or later section,    */
-      cenviron.frstbp = NULL;
+      csound->frstbp = NULL;
       return;                               /*      return          */
     }
 
@@ -133,11 +133,11 @@ void extract(void)      /* extract instr events within the time period */
       do {
         switch(bp->text[0]) {
         case 'w':
-          warped = realtset(bp);
+          warped = realtset(csound, bp);
           if (sectno == onsect && warped)
-            ontime = a0.newp3 = realt(onbeat);
+            ontime = a0.newp3 = realt(csound, onbeat);
           if (sectno == offsect && warped)
-            offtime = f0.newp2 = realt(offbeat);
+            offtime = f0.newp2 = realt(csound, offbeat);
           include(bp);
           break;
         case 't':
@@ -198,7 +198,7 @@ void extract(void)      /* extract instr events within the time period */
         }
       } while ((bp = bp->nxtblk) != NULL);
     }
-    cenviron.frstbp = frstout;
+    csound->frstbp = frstout;
     if (prvout != NULL)
       prvout->nxtblk = NULL;
 }

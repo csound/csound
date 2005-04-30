@@ -854,54 +854,54 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('pvlook',
 pluginLibraries.append(pluginEnvironment.SharedLibrary('sndinfo',
     ['util/sndinfo.c']))
 
-executables.append(csoundProgramEnvironment.Program('cscore',
-    ['util1/cscore/cscore_main.c']))
+#executables.append(csoundProgramEnvironment.Program('cscore',
+#    ['util1/cscore/cscore_main.c']))
 executables.append(csoundProgramEnvironment.Program('cvanal',
     ['util/cvl_main.c']))
 executables.append(csoundProgramEnvironment.Program('dnoise',
     ['util/dnoise_main.c']))
-executables.append(csoundProgramEnvironment.Program('envext',
-    ['util2/envext/envext.c']))
+#executables.append(csoundProgramEnvironment.Program('envext',
+#    ['util2/envext/envext.c']))
 executables.append(csoundProgramEnvironment.Program('extract',
     ['util1/sortex/xmain.c']))
-executables.append(csoundProgramEnvironment.Program('extractor',
-    ['util2/mixer/xtrct.c']))
-executables.append(csoundProgramEnvironment.Program('het_export',
-    ['util2/exports/het_export.c']))
-executables.append(csoundProgramEnvironment.Program('het_import',
-    ['util2/exports/het_import.c']))
+#executables.append(csoundProgramEnvironment.Program('extractor',
+#    ['util2/mixer/xtrct.c']))
+#executables.append(csoundProgramEnvironment.Program('het_export',
+#    ['util2/exports/het_export.c']))
+#executables.append(csoundProgramEnvironment.Program('het_import',
+#    ['util2/exports/het_import.c']))
 executables.append(csoundProgramEnvironment.Program('hetro',
     ['util/het_main.c']))
 executables.append(csoundProgramEnvironment.Program('lpanal',
     ['util/lpc_main.c']))
-executables.append(csoundProgramEnvironment.Program('lpc_export',
-    ['util2/exports/lpc_export.c']))
-executables.append(csoundProgramEnvironment.Program('lpc_import',
-    ['util2/exports/lpc_import.c']))
-executables.append(csoundProgramEnvironment.Program('mixer',
-    ['util2/mixer/mixer.c']))
-executables.append(csoundProgramEnvironment.Program('pv_export',
-    ['util2/exports/pv_export.c']))
-executables.append(csoundProgramEnvironment.Program('pv_import',
-    ['util2/exports/pv_import.c']))
+#executables.append(csoundProgramEnvironment.Program('lpc_export',
+#    ['util2/exports/lpc_export.c']))
+#executables.append(csoundProgramEnvironment.Program('lpc_import',
+#    ['util2/exports/lpc_import.c']))
+#executables.append(csoundProgramEnvironment.Program('mixer',
+#    ['util2/mixer/mixer.c']))
+#executables.append(csoundProgramEnvironment.Program('pv_export',
+#    ['util2/exports/pv_export.c']))
+#executables.append(csoundProgramEnvironment.Program('pv_import',
+#    ['util2/exports/pv_import.c']))
 executables.append(csoundProgramEnvironment.Program('pvanal',
     ['util/pvc_main.c']))
 executables.append(csoundProgramEnvironment.Program('pvlook',
     ['util/pvl_main.c']))
-executables.append(csoundProgramEnvironment.Program('scale',
-    ['util2/scale.dir/scale.c']))
-executables.append(csoundProgramEnvironment.Program('scot',
-    ['util1/scot/scot_main.c']))
+#executables.append(csoundProgramEnvironment.Program('scale',
+#    ['util2/scale.dir/scale.c']))
+#executables.append(csoundProgramEnvironment.Program('scot',
+#    ['util1/scot/scot_main.c']))
 executables.append(csoundProgramEnvironment.Program('scsort',
     ['util1/sortex/smain.c']))
-executables.append(csoundProgramEnvironment.Program('sdif2ad',
-    Split('''SDIF/sdif2adsyn.c
-    SDIF/sdif.c
-    SDIF/sdif-mem.c''')))
+#executables.append(csoundProgramEnvironment.Program('sdif2ad',
+#    Split('''SDIF/sdif2adsyn.c
+#    SDIF/sdif.c
+#    SDIF/sdif-mem.c''')))
 executables.append(csoundProgramEnvironment.Program('sndinfo',
     ['util/sndinfo_main.c']))
-executables.append(csoundProgramEnvironment.Program('srconv',
-    ['util2/dnoise.dir/srconv.c']))
+#executables.append(csoundProgramEnvironment.Program('srconv',
+#    ['util2/dnoise.dir/srconv.c']))
 executables.append(commonEnvironment.Program('cs', ['util1/csd_util/cs.c']))
 executables.append(commonEnvironment.Program('csb64enc',
                                              Split('''util1/csd_util/base64.c

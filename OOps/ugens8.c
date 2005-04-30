@@ -89,7 +89,7 @@ int pvset(ENVIRON *csound, PVOC *p)
           goto pverr;
         }
         else
-          printf(Str("applied byte-reversal\n"));
+          csound->Message(csound, Str("applied byte-reversal\n"));
       }
       chans    = pvh->channels;
       p->frSiz = pvh->frameSize;
@@ -121,8 +121,8 @@ int pvset(ENVIRON *csound, PVOC *p)
     p->mems=memsize;
     if (old_format) {
       if ((p->asr = pvh->samplingRate) != csound->esr &&
-          (O.msglevel & WARNMSG)) { /* & chk the data */
-        printf(Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
+          (csound->oparms->msglevel & WARNMSG)) { /* & chk the data */
+        csound->Message(csound, Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
                 pvfilnam, p->asr, csound->esr);
       }
       if (pvh->dataFormat != PVMYFLT) {
@@ -233,8 +233,8 @@ int pvoc(ENVIRON *csound, PVOC *p)
       frIndx = (MYFLT)p->maxFr;
       if (p->prFlg) {
         p->prFlg = 0;   /* false */
-        if (O.msglevel & WARNMSG)
-          printf(Str("WARNING: PVOC ktimpnt truncated to last frame\n"));
+        if (csound->oparms->msglevel & WARNMSG)
+          csound->Message(csound, Str("WARNING: PVOC ktimpnt truncated to last frame\n"));
       }
     }
     FetchIn(p->frPtr,buf,size,frIndx);
@@ -379,8 +379,8 @@ static int pvx_loadfile(ENVIRON *csound,
       memblock = (float *) mfil->beginp;
     pvoc_closefile(pvx_id);
     if ((p->asr = (MYFLT) fmt.nSamplesPerSec) != csound->esr &&
-        (O.msglevel & WARNMSG)) { /* & chk the data */
-      printf(Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
+        (csound->oparms->msglevel & WARNMSG)) { /* & chk the data */
+      csound->Message(csound, Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
               fname, p->asr, csound->esr);
     }
     p->frSiz    = pvx_fftsize;
@@ -405,7 +405,7 @@ static int pvx_loadfile(ENVIRON *csound,
       mfil->endp = mfil->beginp + mem_wanted;
       mfil->length = mem_wanted;
       /*from memfiles.c */
-      printf(Str("file %s (%ld bytes) loaded into memory\n"),
+      csound->Message(csound, Str("file %s (%ld bytes) loaded into memory\n"),
              fname,mem_wanted);
       add_memfil(csound, mfil);
     }

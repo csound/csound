@@ -1,4 +1,4 @@
-/*  
+/*
     smain.c
 
     Copyright (C) 1991 Barry Vercoe, John ffitch
@@ -23,12 +23,14 @@
 #include <string.h>
 #include <stdlib.h>
 
-/* char        *scorename = NULL; */
 int main(void)                           /* stdio stub for standalone scsort */
 {
+    ENVIRON *csound;
+
     init_getstring(0, NULL);
-    csoundPreCompile(csoundCreate(NULL));
-    scsort(stdin,stdout);
+    csound = (ENVIRON*) csoundCreate(NULL);
+    csoundPreCompile(csound);
+    scsort(csound, stdin, stdout);
     return 0;
-}         
+}
 

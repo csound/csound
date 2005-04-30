@@ -50,10 +50,10 @@ extern  void    print_benchmark_info(void*, const char*);     /* main.c */
 
 extern  void    MidiOpen(void *);
 extern  void    m_chn_init_all(ENVIRON *);
-extern  void    scsort(FILE*, FILE*);
+extern  void    scsort(ENVIRON *, FILE *, FILE *);
 extern  void    infoff(ENVIRON*, MYFLT), orcompact(ENVIRON*);
 extern  void    beatexpire(ENVIRON *, double), timexpire(ENVIRON *, double);
-extern  void    sfopenin(void*), sfopenout(void*), sfnopenout(void);
+extern  void    sfopenin(void*), sfopenout(void*), sfnopenout(ENVIRON *);
 extern  void    iotranset(void), sfclosein(void*), sfcloseout(void*);
 extern  void    MidiClose(ENVIRON*);
 extern  void    RTclose(void*);
@@ -239,7 +239,7 @@ int musmon(ENVIRON *csound)
     segamps = O->msglevel & SEGAMPS;
     sormsg = O->msglevel & SORMSG;
 
-    if (O->Linein) RTLineset();         /* if realtime input expected     */
+    if (O->Linein) RTLineset(csound);   /* if realtime input expected     */
     if (O->outbufsamps < 0) {           /* if k-aligned iobufs requested  */
       /* set from absolute value */
       O->outbufsamps *= -(csound->ksmps);
@@ -281,7 +281,8 @@ int musmon(ENVIRON *csound)
       sfopenin(csound);                 /*   open the infile or device  */
     if (O->sfwrite)                     /* if audio-out requested,      */
       sfopenout(csound);                /*   open the outfile or device */
-    else sfnopenout();
+    else
+      sfnopenout(csound);
     iotranset();                    /* point recv & tran to audio formatter */
 
     /*        if (!O->Linein) { */  /*  *************** */
@@ -311,7 +312,7 @@ int musmon(ENVIRON *csound)
       if (!(csound->oscfp = fopen("cscore.srt", "w"))) /* writ to cscore.srt */
         csoundDie(csound, Str("cannot reopen cscore.srt"));
       csound->Message(csound,Str("sorting cscore.out ..\n"));
-      scsort(csound->scfp, csound->oscfp);          /* call the sorter again */
+      scsort(csound, csound->scfp, csound->oscfp);  /* call the sorter again */
       fclose(csound->scfp); csound->scfp = NULL;
       fclose(csound->oscfp); csound->oscfp = NULL;
       csound->Message(csound, Str("\t... done\n"));
@@ -786,13 +787,13 @@ int sensevents(ENVIRON *csound)
       }
       else {
         /* else read next score event */
-        if (O->usingcscore) {       /*    get next lplay event       */
-          if (ep < epend)                              /* nxt event  */
+        if (O->usingcscore) {           /*    get next lplay event      */
+          if (ep < epend)                              /* nxt event     */
             memcpy(e, (EVTBLK *) &((*ep++)->strarg), sizeof(EVTBLK));
-          else                                         /* else lcode */
+          else                                         /* else lcode    */
             memcpy(e, (EVTBLK *) &(lsect->strarg), sizeof(EVTBLK));
         }
-        else if (!(rdscor(e)))      /*    or rd nxt evt from scorfil */
+        else if (!(rdscor(csound, e)))  /*   or rd nxt evt from scorfil */
           e->opcod = 'e';
         csound->currevent = e;
         switch (e->opcod) {

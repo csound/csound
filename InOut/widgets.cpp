@@ -1056,7 +1056,7 @@ struct VALUATOR_FIELD {
   //  if (sldbnkValues !=0) delete sldbnkValues; }
 };
 
-char *GetString(MYFLT *pname, int is_string);
+static char *GetString(ENVIRON *csound, MYFLT *pname, int is_string);
 
 struct SNAPSHOT {
   int is_empty;
@@ -1093,6 +1093,7 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators)
   for (int i=0; i < (int) valuators.size(); i++) {
     string  opcode_name, widg_name;
     ADDR_SET_VALUE& v  = valuators[i];
+    ENVIRON *csound = (ENVIRON*) (((OPDS *) (v.opcode))->insdshead->csound);
     if ((int) fields.size() < i+1)
       fields.resize(i+1);
     VALUATOR_FIELD& fld = fields[i];
@@ -1100,7 +1101,7 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators)
     opcode_name = fld.opcode_name = ((OPDS *) (v.opcode))->optext->t.opcod;
     if (opcode_name == "FLslider") {
       FLSLIDER *p = (FLSLIDER *) (v.opcode);
-      fld.widg_name = GetString(p->name, p->XSTRCODE);
+      fld.widg_name = GetString(csound, p->name, p->XSTRCODE);
       val = *p->kout; min = *p->imin; max =*p->imax;
       if (val < min) val=min;
       else if (val>max) val=max;
@@ -1109,7 +1110,7 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators)
     }
     else if (opcode_name == "FLslidBnk") {
       FLSLIDERBANK *p = (FLSLIDERBANK *) (v.opcode);
-      fld.widg_name = GetString(p->names, p->XSTRCODE);
+      fld.widg_name = GetString(csound, p->names, p->XSTRCODE);
       int numsliders = (int) *p->inumsliders;
       fld.sldbnk = p->slider_data;
       fld.sldbnkValues = new MYFLT[numsliders];
@@ -1137,7 +1138,7 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators)
     }
     else if (opcode_name == "FLknob") {
       FLKNOB *p = (FLKNOB *) (v.opcode);
-      fld.widg_name = GetString(p->name, p->XSTRCODE);
+      fld.widg_name = GetString(csound, p->name, p->XSTRCODE);
       val = *p->kout; min = *p->imin; max =*p->imax;
       if (val < min) val=min;
       else if (val>max) val=max;
@@ -1146,7 +1147,7 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators)
     }
     else if (opcode_name == "FLroller") {
       FLROLLER *p = (FLROLLER *) (v.opcode);
-      fld.widg_name = GetString(p->name, p->XSTRCODE);
+      fld.widg_name = GetString(csound, p->name, p->XSTRCODE);
       val = *p->kout; min = *p->imin; max =*p->imax;
       if (val < min) val=min;
       else if (val>max) val=max;
@@ -1155,7 +1156,7 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators)
     }
     else if (opcode_name == "FLtext") {
       FLTEXT *p = (FLTEXT *) (v.opcode);
-      fld.widg_name = GetString(p->name, p->XSTRCODE);
+      fld.widg_name = GetString(csound, p->name, p->XSTRCODE);
       val = *p->kout; min = *p->imin; max =*p->imax;
       if (val < min) val=min;
       else if (val>max) val=max;
@@ -1164,7 +1165,7 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators)
     }
     else if (opcode_name == "FLjoy") {
       FLJOYSTICK *p = (FLJOYSTICK *) (v.opcode);
-      fld.widg_name = GetString(p->name, p->XSTRCODE);
+      fld.widg_name = GetString(csound, p->name, p->XSTRCODE);
       val = *p->koutx; min = *p->iminx; max =*p->imaxx;
       if (val < min) val=min;
       else if (val>max) val=max;
@@ -1178,20 +1179,20 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators)
     }
     else if (opcode_name == "FLbutton") {
       FLBUTTON *p = (FLBUTTON *) (v.opcode);
-      fld.widg_name = GetString(p->name, p->XSTRCODE);
+      fld.widg_name = GetString(csound, p->name, p->XSTRCODE);
       fld.value = (*p->kout == *p->ion ? 1 : 0);    // IV - Aug 27 2002
       fld.min = 0; fld.max = 1; fld.exp = LIN_;
     }
     else if (opcode_name == "FLbutBank") {
       FLBUTTONBANK *p = (FLBUTTONBANK *) (v.opcode);
       fld.widg_name = "No name for FLbutbank";
-      //fld.widg_name = GetString(p->name, p->XSTRCODE);
+      //fld.widg_name = GetString(csound, p->name, p->XSTRCODE);
       fld.value = *p->kout;
       fld.min = 0; fld.max = 1; fld.exp = LIN_;
     }
     else if (opcode_name == "FLcount") {
       FLCOUNTER *p = (FLCOUNTER *) (v.opcode);
-      fld.widg_name = GetString(p->name, p->XSTRCODE);
+      fld.widg_name = GetString(csound, p->name, p->XSTRCODE);
       val = *p->kout; min = *p->imin; max =*p->imax;
       if (min != max) {
         if (val < min) val=min;
@@ -1202,11 +1203,11 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators)
     }
     else if (opcode_name == "FLvalue") {
       FLVALUE *p = (FLVALUE *) (v.opcode);
-      fld.widg_name = GetString(p->name, p->XSTRCODE);
+      fld.widg_name = GetString(csound, p->name, p->XSTRCODE);
     }
     else if (opcode_name == "FLbox") {
       FL_BOX *p = (FL_BOX *) (v.opcode);
-      fld.widg_name = GetString(p->itext, p->XSTRCODE);
+      fld.widg_name = GetString(csound, p->itext, p->XSTRCODE);
     }
   }
 }
@@ -1214,11 +1215,14 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators)
 int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
 {
   if (is_empty) {
-    return csoundInitError(&cenviron, "empty snapshot");
+/*  FIXME: should have ENVIRON* pointer here */
+/*  return csoundInitError(csound, "empty snapshot"); */
+    return -1;
   }
   for (int j =0; j< (int) valuators.size(); j++) {
     Fl_Widget* o = (Fl_Widget*) (valuators[j].WidgAddress);
     void *opcode = valuators[j].opcode;
+    ENVIRON *csound = (ENVIRON*) (((OPDS*) opcode)->insdshead->csound);
     VALUATOR_FIELD& fld = fields[j];
     string opcode_name = fld.opcode_name;
 
@@ -1237,7 +1241,7 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
         ((Fl_Positioner*) o)->xvalue(log(val/fld.min) / log(base)) ;
         break;
       default:
-        if (O.msglevel & WARNMSG) printf("WARNING (SNAPSHOT::get): "
+        if (csound->oparms->msglevel & WARNMSG) csound->Message(csound, "WARNING (SNAPSHOT::get): "
                                          "not implemented yet; exp=%d\n", fld.exp);
         break;
       }
@@ -1254,8 +1258,8 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
         ((Fl_Positioner*) o)->yvalue(log(val/fld.min2) / log(base)) ;
         break;
       default:
-        if (O.msglevel & WARNMSG)
-          printf("WARNING (SNAPSHOT::get): "
+        if (csound->oparms->msglevel & WARNMSG)
+          csound->Message(csound, "WARNING (SNAPSHOT::get): "
                  "not implemented yet; exp2=%d\n", fld.exp2);
         break;
       }
@@ -1303,8 +1307,8 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
         default:
           ((Fl_Valuator *) grup->child(j))->value(val);
           /*
-            if (O.msglevel & WARNMSG)
-            printf("WARNING: not implemented yet (bogus)");
+            if (csound->oparms->msglevel & WARNMSG)
+            csound->Message(csound, "WARNING: not implemented yet (bogus)");
             break;
           */
         }
@@ -1324,8 +1328,8 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
         ((Fl_Valuator*) o)->value(log(val/fld.min) / log(base)) ;
         break;
       default:
-        if (O.msglevel & WARNMSG)
-          printf("WARNING (SNAPSHOT::get): not implemented yet; "
+        if (csound->oparms->msglevel & WARNMSG)
+          csound->Message(csound, "WARNING (SNAPSHOT::get): not implemented yet; "
                  "exp=%d\n", fld.exp);
         break;
       }
@@ -1555,9 +1559,8 @@ extern "C" int load_snap(ENVIRON *csound, FLLOADSNAPS* p)
 
 //-----------
 
-char *GetString(MYFLT *pname, int is_string)
+static char *GetString(ENVIRON *csound, MYFLT *pname, int is_string)
 {
-  ENVIRON *csound = &cenviron;
   char    *Name = new char[MAXNAME];
   allocatedStrings.push_back(Name);
   return csound->strarg2name(csound, Name, pname, "", is_string);
@@ -1664,7 +1667,7 @@ static void __cdecl fltkKeybRun(void *userdata)
     }
 
   }
-  if (O.msglevel & WARNMSG) printf("WARNING: end of keyboard thread\n");
+  if (csound->oparms->msglevel & WARNMSG) csound->Message(csound, "WARNING: end of keyboard thread\n");
 }
 #endif
 
@@ -2034,7 +2037,7 @@ extern "C" void FLkeyb(ENVIRON *csound, FLKEYB *p)
 
 extern "C" void StartPanel(ENVIRON *csound, FLPANEL *p)
 {
-  char* panelName = GetString(p->name, p->XSTRCODE);
+  char* panelName = GetString(csound, p->name, p->XSTRCODE);
 
   int x = (int) *p->ix, y = (int) *p->iy,
     width = (int) *p->iwidth, height = (int) *p->iheight;
@@ -2143,7 +2146,7 @@ extern "C" int EndTabs(ENVIRON *csound, FLTABSEND *p)
 //-----------
 extern "C" int StartGroup(ENVIRON *csound, FLGROUP *p)
 {
-  char *Name = GetString(p->name, p->XSTRCODE);
+  char *Name = GetString(csound, p->name, p->XSTRCODE);
   Fl_Group *o = new Fl_Group ((int) *p->ix, (int) *p->iy,
                               (int) *p->iwidth, (int) *p->iheight,Name);
   widget_attributes(o);
@@ -2286,8 +2289,8 @@ extern "C" int fl_setWidgetValuei(ENVIRON *csound, FL_SET_WIDGET_VALUE_I *p)
     val = (log(val/v.min) / log(base)) ;
     break;
   default:
-    if (O.msglevel & WARNMSG)
-      printf("WARNING (fl_setWidgetValuei): "
+    if (csound->oparms->msglevel & WARNMSG)
+      csound->Message(csound, "WARNING (fl_setWidgetValuei): "
              "not implemented yet; exp=%d\n", v.exponential);
   }
   Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -2320,8 +2323,8 @@ extern "C" int fl_setWidgetValuei(ENVIRON *csound, FL_SET_WIDGET_VALUE_I *p)
   else if (strcmp(((OPDS *) v.opcode)->optext->t.opcod, "FLbox"))
     ((Fl_Valuator *)o)->value(val);
   else
-    if (O.msglevel & WARNMSG)
-      printf("WARNING: System error: value() method called from "
+    if (csound->oparms->msglevel & WARNMSG)
+      csound->Message(csound, "WARNING: System error: value() method called from "
              "non-valuator object\n");
   o->do_callback(o, v.opcode);
   unlock(csound);
@@ -2348,8 +2351,8 @@ extern "C" int fl_setWidgetValue_set(ENVIRON *csound, FL_SET_WIDGET_VALUE *p)
     p->log_base = log(base);
     break;
   default:
-    if (O.msglevel & WARNMSG)
-      printf("WARNING (fl_setWidgetValue_set): "
+    if (csound->oparms->msglevel & WARNMSG)
+      csound->Message(csound, "WARNING (fl_setWidgetValue_set): "
              "not implemented yet; exp=%d\n", v.exponential);
     return NOTOK;
   }
@@ -2371,7 +2374,7 @@ extern "C" int fl_setWidgetValue(ENVIRON *csound, FL_SET_WIDGET_VALUE *p)
       val = (log(val/p->min) / p->log_base) ;
       break;
     default:
-      if (O.msglevel & WARNMSG) printf("WARNING (fl_setWidgetValue): not "
+      if (csound->oparms->msglevel & WARNMSG) csound->Message(csound, "WARNING (fl_setWidgetValue): not "
                                        "implemented yet; exp=%d\n", p->exp);
       return NOTOK;
     }
@@ -2486,7 +2489,7 @@ extern "C" int fl_setTextType(ENVIRON *csound, FL_SET_FONT *p)
 
 extern "C" int fl_box(ENVIRON *csound, FL_BOX *p)
 {
-  char *text = GetString(p->itext, p->XSTRCODE);
+  char *text = GetString(csound, p->itext, p->XSTRCODE);
   Fl_Box *o =  new Fl_Box((int)*p->ix, (int)*p->iy,
                           (int)*p->iwidth, (int)*p->iheight, text);
   widget_attributes(o);
@@ -2545,7 +2548,7 @@ extern "C" int fl_box(ENVIRON *csound, FL_BOX *p)
 
 extern "C" int fl_setText(ENVIRON *csound, FL_SET_TEXT *p)
 {
-  char *text = GetString(p->itext, p->XSTRCODE);
+  char *text = GetString(csound, p->itext, p->XSTRCODE);
   ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
   Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
   o->label(text);
@@ -2648,7 +2651,7 @@ extern "C" int fl_align(ENVIRON *csound, FL_TALIGN *p)
 
 extern "C" int fl_value(ENVIRON *csound, FLVALUE *p)
 {
-  char *controlName = GetString(p->name, p->XSTRCODE);
+  char *controlName = GetString(csound, p->name, p->XSTRCODE);
   int ix, iy, iwidth, iheight;
   if (*p->ix<0) ix = FL_ix;       else  FL_ix = ix = (int) *p->ix;
   if (*p->iy<0) iy = FL_iy;       else  FL_iy = iy = (int) *p->iy;
@@ -2676,7 +2679,7 @@ extern "C" int fl_value(ENVIRON *csound, FLVALUE *p)
 
 extern "C" int fl_slider(ENVIRON *csound, FLSLIDER *p)
 {
-  char *controlName = GetString(p->name, p->XSTRCODE);
+  char *controlName = GetString(csound, p->name, p->XSTRCODE);
   int ix,iy,iwidth, iheight,itype, iexp;
 
   if (*p->iy < 0) {
@@ -2705,8 +2708,8 @@ extern "C" int fl_slider(ENVIRON *csound, FLSLIDER *p)
   }
 
   if (itype > 10 && iexp == EXP_) {
-    if (O.msglevel & WARNMSG)
-      printf("WARNING: FLslider exponential, using non-labeled slider\n");
+    if (csound->oparms->msglevel & WARNMSG)
+      csound->Message(csound, "WARNING: FLslider exponential, using non-labeled slider\n");
     itype -= 10;
   }
 
@@ -2960,7 +2963,7 @@ extern "C" int fl_slider_bank(ENVIRON *csound, FLSLIDERBANK *p)
 
 extern "C" int fl_joystick(ENVIRON *csound, FLJOYSTICK *p)
 {
-  char *Name = GetString(p->name, p->XSTRCODE);
+  char *Name = GetString(csound, p->name, p->XSTRCODE);
   int ix,iy,iwidth, iheight, iexpx, iexpy;
 
   if (*p->ix < 0)  ix = 10; // omitted options: set default
@@ -3063,7 +3066,7 @@ extern "C" int fl_joystick(ENVIRON *csound, FLJOYSTICK *p)
 
 extern "C" int fl_knob(ENVIRON *csound, FLKNOB *p)
 {
-  char *controlName = GetString(p->name, p->XSTRCODE);
+  char *controlName = GetString(csound, p->name, p->XSTRCODE);
   int ix,iy,iwidth, itype, iexp;
 
   if (*p->iy < 0) iy = FL_iy;
@@ -3156,7 +3159,7 @@ extern "C" int fl_knob(ENVIRON *csound, FLKNOB *p)
 
 extern "C" int fl_text(ENVIRON *csound, FLTEXT *p)
 {
-  char *controlName = GetString(p->name, p->XSTRCODE);
+  char *controlName = GetString(csound, p->name, p->XSTRCODE);
   int ix,iy,iwidth,iheight,itype;
   MYFLT   istep;
 
@@ -3210,11 +3213,11 @@ extern "C" int fl_text(ENVIRON *csound, FLTEXT *p)
 
 extern "C" int fl_button(ENVIRON *csound, FLBUTTON *p)
 {
-  char *Name = GetString(p->name, p->XSTRCODE);
+  char *Name = GetString(csound, p->name, p->XSTRCODE);
   int type = (int) *p->itype;
   if (type >9 ) { // ignored when getting snapshots
-    if (O.msglevel & WARNMSG)
-      printf("WARNING: FLbutton \"%s\" ignoring snapshot capture retrieve\n",
+    if (csound->oparms->msglevel & WARNMSG)
+      csound->Message(csound, "WARNING: FLbutton \"%s\" ignoring snapshot capture retrieve\n",
              Name);
     type = type-10;
   }
@@ -3247,19 +3250,19 @@ extern "C" int fl_button(ENVIRON *csound, FLBUTTON *p)
   o->callback((Fl_Callback*)fl_callbackButton,(void *) p);
   AddrSetValue.push_back(ADDR_SET_VALUE(0, 0, 0, (void *) o, (void *) p));
   *p->ihandle = AddrSetValue.size()-1;
-  O.RTevents = 1;     /* Make sure kperf() looks for RT events */
-  O.ksensing = 1;
-  O.OrcEvts  = 1;     /* - of the appropriate type */
+  csound->oparms->RTevents = 1;     /* Make sure kperf() looks for RT events */
+  csound->oparms->ksensing = 1;
+  csound->oparms->OrcEvts  = 1;     /* - of the appropriate type */
   return OK;
 }
 
 extern "C" int fl_button_bank(ENVIRON *csound, FLBUTTONBANK *p)
 {
-  char *Name = "/0"; //GetString(p->name, p->XSTRCODE);
+  char *Name = "/0"; //GetString(csound, p->name, p->XSTRCODE);
   int type = (int) *p->itype;
   if (type >9 ) { // ignored when getting snapshots
-    if (O.msglevel & WARNMSG)
-      printf("WARNING: FLbutton \"%s\" ignoring snapshot capture retrieve\n",
+    if (csound->oparms->msglevel & WARNMSG)
+      csound->Message(csound, "WARNING: FLbutton \"%s\" ignoring snapshot capture retrieve\n",
              Name);
     type = type-10;
   }
@@ -3296,15 +3299,15 @@ extern "C" int fl_button_bank(ENVIRON *csound, FLBUTTONBANK *p)
 
   //AddrSetValue.push_back(ADDR_SET_VALUE(0, 0, 0, (void *) o, (void *) p));
   *p->ihandle = AddrSetValue.size()-1;
-  O.RTevents = 1;     /* Make sure kperf() looks for RT events */
-  O.ksensing = 1;
-  O.OrcEvts  = 1;     /* - of the appropriate type */
+  csound->oparms->RTevents = 1;     /* Make sure kperf() looks for RT events */
+  csound->oparms->ksensing = 1;
+  csound->oparms->OrcEvts  = 1;     /* - of the appropriate type */
   return OK;
 }
 
 extern "C" int fl_counter(ENVIRON *csound, FLCOUNTER *p)
 {
-  char *controlName = GetString(p->name, p->XSTRCODE);
+  char *controlName = GetString(csound, p->name, p->XSTRCODE);
   //      int ix,iy,iwidth,iheight,itype;
   //      MYFLT   istep1, istep2;
 
@@ -3313,8 +3316,8 @@ extern "C" int fl_counter(ENVIRON *csound, FLCOUNTER *p)
   widget_attributes(o);
   int type = (int) *p->itype;
   if (type >9 ) { // ignored when getting snapshots
-    if (O.msglevel & WARNMSG)
-      printf("WARNING: FLcount \"%s\" ignoring snapshot capture retrieve\n",
+    if (csound->oparms->msglevel & WARNMSG)
+      csound->Message(csound, "WARNING: FLcount \"%s\" ignoring snapshot capture retrieve\n",
              controlName);
     type = type-10;
   }
@@ -3334,9 +3337,9 @@ extern "C" int fl_counter(ENVIRON *csound, FLCOUNTER *p)
   o->callback((Fl_Callback*)fl_callbackCounter,(void *) p);
   AddrSetValue.push_back(ADDR_SET_VALUE(1, 0, 100000, (void *) o, (void *) p));
   *p->ihandle = AddrSetValue.size()-1;
-  O.RTevents = 1;     /* Make sure kperf() looks for RT events */
-  O.ksensing = 1;
-  O.OrcEvts  = 1;     /* - of the appropriate type */
+  csound->oparms->RTevents = 1;     /* Make sure kperf() looks for RT events */
+  csound->oparms->ksensing = 1;
+  csound->oparms->OrcEvts  = 1;     /* - of the appropriate type */
   return OK;
 }
 
@@ -3344,7 +3347,7 @@ extern "C" int fl_counter(ENVIRON *csound, FLCOUNTER *p)
 
 extern "C" int fl_roller(ENVIRON *csound, FLROLLER *p)
 {
-  char *controlName = GetString(p->name, p->XSTRCODE);
+  char *controlName = GetString(csound, p->name, p->XSTRCODE);
   int ix,iy,iwidth, iheight,itype, iexp ;
   double istep;
   if (*p->iy < 0) {

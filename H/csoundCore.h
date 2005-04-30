@@ -706,10 +706,6 @@ extern "C" {
     void (*dispset)(WINDAT *, MYFLT *, long, char *, int, char *);
     void (*display)(WINDAT *);
     MYFLT (*intpow)(MYFLT, long);
-#ifdef HAVE_GCC3
-    __attribute__ ((__deprecated__))
-#endif
-      char *(*unquote)(char *);
     MEMFIL *(*ldmemfile)(void*, const char*);
     FUNC *(*hfgens)(struct ENVIRON_*, EVTBLK *);
     int (*getopnum)(struct ENVIRON_*, char *s);

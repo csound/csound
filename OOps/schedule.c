@@ -44,6 +44,18 @@ static RSCHED *kicked = NULL;
 
 #define FZERO (FL(0.0))    /* (Shouldn't there be global decl's for these?) */
 
+static void unquote(char *dst, char *src)
+{
+    if (src[0] == '"') {
+      int len = (int) strlen(src) - 2;
+      strcpy(dst, src + 1);
+      if (len >= 0 && dst[len] == '"')
+        dst[len] = '\0';
+    }
+    else
+      strcpy(dst, src);
+}
+
 static void queue_event(ENVIRON *csound,
                         MYFLT instr, double when, MYFLT dur,
                         int narg, MYFLT **args)
@@ -425,6 +437,7 @@ int ktriginstr(ENVIRON *csound, TRIGINSTR *p)
     double  starttime;
     int     i, argnum;
     EVTBLK  evt;
+    char    name[512];
 
     if (p->timrem > 0)
       p->timrem--;
@@ -470,7 +483,8 @@ int ktriginstr(ENVIRON *csound, TRIGINSTR *p)
       evt.p[1] = SSTRCOD;
     }
     else if (*p->args[0] == SSTRCOD) {
-      evt.strarg = unquote(csound->currevent->strarg);
+      unquote(name, csound->currevent->strarg);
+      evt.strarg = name;
       evt.p[1] = SSTRCOD;
     }
     else {
