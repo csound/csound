@@ -378,7 +378,7 @@ FunctionEnd
 ;Pages
 
   !insertmacro MUI_PAGE_WELCOME
-  !insertmacro MUI_PAGE_LICENSE "..\..\readme.txt"
+  !insertmacro MUI_PAGE_LICENSE "..\..\readme-csound5.txt"
   !insertmacro MUI_PAGE_DIRECTORY
   
   ;Start Menu Folder Page Configuration
@@ -390,7 +390,7 @@ FunctionEnd
   
   !insertmacro MUI_PAGE_INSTFILES
 
-  !define MUI_FINISHPAGE_SHOWREADME readme.txt
+  !define MUI_FINISHPAGE_SHOWREADME readme-csound5.txt
   !define MUI_FINISHPAGE_SHOWREADME_CHECKED
   !insertmacro MUI_PAGE_FINISH
 
