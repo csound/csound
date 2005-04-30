@@ -28,22 +28,6 @@
 #include <unix.h>
 #endif
 
-void sssfinit(void)
-{
-    csoundInitEnv(&cenviron);
-}
-
-char *unquote(char *name)       /* remove any quotes from a filename   */
-{
-    static char newname[MAXNAME];
-    char c, *old = name, *nnew = newname;
-    do {
-      if ((c = *old++) != '"')
-        *nnew++ = c;
-    } while (c);
-    return (newname);
-}
-
 #if defined MSVC
 #define RD_OPTS  O_RDONLY | O_BINARY
 #define WR_OPTS  O_TRUNC | O_CREAT | O_WRONLY | O_BINARY,_S_IWRITE
@@ -61,12 +45,11 @@ char *unquote(char *name)       /* remove any quotes from a filename   */
 #define WR_OPTS  O_TRUNC | O_CREAT | O_WRONLY | O_BINARY, 0644
 #endif
 
-int
-openin(char *filnam)/* open a file for reading. If not fullpath, will search: */
-                   /*  current directory, then SSDIR (if defined), then SFDIR */
-{                  /*  returns normal fd, also sets a global return filename  */
-                   /*  called by sndgetset (for soundin, gen01), and sfopenin */
-    ENVIRON *csound = &cenviron;
+int openin(ENVIRON *csound, char *filnam)
+                    /* open a file for reading. If not fullpath, will search: */
+                    /* current directory, then SSDIR (if defined), then SFDIR */
+{                   /* returns normal fd, also sets a global return filename  */
+                    /* called by sndgetset (for soundin, gen01), and sfopenin */
     char    *pathnam;
     int     infd;
 
@@ -84,16 +67,13 @@ openin(char *filnam)/* open a file for reading. If not fullpath, will search: */
     return infd;
 }
 
-int openout(              /* open a file for writing.  If not fullpath, then  */
-            char *filnam, /*   dirtyp 1 will put it in the current directory  */
-            int  dirtyp)  /*   dirtyp 2 will put it in SFDIR                  */
-{                         /*   dirtyp 3 will put it in SFDIR else in cur dir  */
+int openout(ENVIRON *csound, char *filnam, int  dirtyp)
+{                         /* open a file for writing.  If not fullpath, then  */
+    char *pathnam = NULL; /*   dirtyp 1 will put it in the current directory  */
+    int  outfd = -1;      /*   dirtyp 2 will put it in SFDIR                  */
+                          /*   dirtyp 3 will put it in SFDIR else in cur dir  */
                           /* returns normal fd, & sets global return filename */
                           /* called by anals,dumpf (typ 1), sfopenout (typ 3) */
-    ENVIRON *csound = &cenviron;
-    char    *pathnam = NULL;
-    int     outfd = -1;
-
     if (dirtyp == 2) {
       pathnam = csoundGetEnv(csound, "SFDIR");
       if (pathnam == NULL || pathnam[0] == '\0')
@@ -118,9 +98,8 @@ int openout(              /* open a file for writing.  If not fullpath, then  */
 /* fopenin() - patches fopen calls, searching file in current dir, INCDIR,
    SSDIR or SFDIR, in that order. Modelled on openin() above. (re May 2000) */
 
-FILE *fopenin(char *filnam)
+FILE *fopenin(ENVIRON *csound, char *filnam)
 {
-    ENVIRON *csound = &cenviron;
     char    *pathnam;
     FILE    *infil;
 

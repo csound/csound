@@ -25,7 +25,7 @@
 #include "cs.h"                                       /*    MIDISEND.C    */
 #include "midioops.h"
 
-void send_midi_message(int status, int data1, int data2)
+void send_midi_message(ENVIRON *csound, int status, int data1, int data2)
 {
     unsigned char buf[4];
 
@@ -35,74 +35,74 @@ void send_midi_message(int status, int data1, int data2)
     switch (status & 0xF0) {
       case 0xC0:
       case 0xD0:
-        csoundExternalMidiWrite(&cenviron,
-                                cenviron.midiGlobals->midiOutUserData,
+        csoundExternalMidiWrite(csound,
+                                csound->midiGlobals->midiOutUserData,
                                 &(buf[0]), 2);
         break;
       case 0xF0:
         if (status >= 0xF8) {
-          csoundExternalMidiWrite(&cenviron,
-                                  cenviron.midiGlobals->midiOutUserData,
+          csoundExternalMidiWrite(csound,
+                                  csound->midiGlobals->midiOutUserData,
                                   &(buf[0]), 1);
         }
         break;
       default:
-        csoundExternalMidiWrite(&cenviron,
-                                cenviron.midiGlobals->midiOutUserData,
+        csoundExternalMidiWrite(csound,
+                                csound->midiGlobals->midiOutUserData,
                                 &(buf[0]), 3);
     }
 }
 
-void note_on(int chan, int num, int vel)
+void note_on(ENVIRON *csound, int chan, int num, int vel)
 {
-    send_midi_message((chan & 0x0F) | MD_NOTEON, num, vel);
+    send_midi_message(csound, (chan & 0x0F) | MD_NOTEON, num, vel);
 }
 
-void note_off(int chan, int num, int vel)
+void note_off(ENVIRON *csound, int chan, int num, int vel)
 {
-    send_midi_message((chan & 0x0F) | MD_NOTEOFF, num, vel);
+    send_midi_message(csound, (chan & 0x0F) | MD_NOTEOFF, num, vel);
 }
 
-void control_change(int chan, int num, int value)
+void control_change(ENVIRON *csound, int chan, int num, int value)
 {
-    send_midi_message((chan & 0x0F) | MD_CNTRLCHG, num, value);
+    send_midi_message(csound, (chan & 0x0F) | MD_CNTRLCHG, num, value);
 }
 
-void after_touch(int chan, int value)
+void after_touch(ENVIRON *csound, int chan, int value)
 {
-    send_midi_message((chan & 0x0F) | MD_CHANPRESS, value, 0);
+    send_midi_message(csound, (chan & 0x0F) | MD_CHANPRESS, value, 0);
 }
 
-void program_change(int chan, int num)
+void program_change(ENVIRON *csound, int chan, int num)
 {
-    send_midi_message((chan & 0x0F) | MD_PGMCHG, num, 0);
+    send_midi_message(csound, (chan & 0x0F) | MD_PGMCHG, num, 0);
 }
 
-void pitch_bend(int chan, int lsb, int msb)
+void pitch_bend(ENVIRON *csound, int chan, int lsb, int msb)
 {
-    send_midi_message((chan & 0x0F) | MD_PTCHBENDCHG, lsb, msb);
+    send_midi_message(csound, (chan & 0x0F) | MD_PTCHBENDCHG, lsb, msb);
 }
 
-void poly_after_touch(int chan, int note_num, int value)
+void poly_after_touch(ENVIRON *csound, int chan, int note_num, int value)
 {
-    send_midi_message((chan & 0x0F) | MD_POLYAFTER, note_num, value);
+    send_midi_message(csound, (chan & 0x0F) | MD_POLYAFTER, note_num, value);
 }
 
-void openMIDIout(void)
+void openMIDIout(ENVIRON *csound)
 {
     int retval;
 
-    if (cenviron.midiGlobals->MIDIoutDONE)
+    if (csound->midiGlobals->MIDIoutDONE)
       return;
-    cenviron.midiGlobals->MIDIoutDONE = 1;
+    csound->midiGlobals->MIDIoutDONE = 1;
 
-    retval = csoundExternalMidiOutOpen(&cenviron,
-                                       &(cenviron.midiGlobals->midiOutUserData),
-                                       O.Midioutname);
+    retval = csoundExternalMidiOutOpen(csound,
+                                       &(csound->midiGlobals->midiOutUserData),
+                                       csound->oparms->Midioutname);
     if (retval != 0) {
-      csoundDie(&cenviron,
+      csoundDie(csound,
                 Str(" *** error opening MIDI out device: %d (%s)"),
-                retval, csoundExternalMidiErrorString(&cenviron, retval));
+                retval, csoundExternalMidiErrorString(csound, retval));
     }
 }
 

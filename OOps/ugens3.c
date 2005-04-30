@@ -202,14 +202,14 @@ int losset(ENVIRON *csound, LOSC *p)
         p->cpscvt = ftp->cvtbas / *p->ibas;
       else if ((p->cpscvt = ftp->cpscvt) == FL(0.0)) {
         p->cpscvt = FL(261.62561); /* Middle C */
-        if (O.msglevel & WARNMSG)
-          printf(Str("WARNING: no legal base frequency\n"));
+        if (csound->oparms->msglevel & WARNMSG)
+          csound->Message(csound, Str("WARNING: no legal base frequency\n"));
         /* goto lerr1; */
       }
       if ((p->mod1 = (short)*p->imod1) < 0) {
         if ((p->mod1 = ftp->loopmode1) == 0) {
-          if (O.msglevel & WARNMSG)
-            printf(Str(
+          if (csound->oparms->msglevel & WARNMSG)
+            csound->Message(csound, Str(
                    "WARNING: locscil: sustain defers to non-looping source\n"));
         }
         p->beg1 = ftp->begin1;

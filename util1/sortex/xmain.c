@@ -1,4 +1,4 @@
-/*  
+/*
     xmain.c
 
     Copyright (C) 1991 Barry Vercoe, John ffitch
@@ -26,18 +26,21 @@
 int main(int ac, char **av)         /* stdio stub for standalone extract */
                                     /*     first opens the control xfile */
 {
-    FILE *xfp;
+    ENVIRON *csound;
+    FILE    *xfp;
+
     init_getstring(0, NULL);
-    csoundPreCompile(csoundCreate(NULL));
+    csound = (ENVIRON*) csoundCreate(NULL);
+    csoundPreCompile(csound);
     ac--;  av++;
     if (ac != 1) {
-      fprintf(stderr,"usage: extract xfile <in >out\n");
+      csound->Message(csound, "usage: extract xfile <in >out\n");
       exit(1);
     }
-    if ((xfp = fopen(*av,"r")) == NULL) {
-      fprintf(stderr,"extract: can't open %s\n", *av);
+    if ((xfp = fopen(*av, "r")) == NULL) {
+      csound->Message(csound, "extract: can't open %s\n", *av);
       exit(1);
     }
-    return(scxtract(stdin,stdout,xfp));
+    return (scxtract(csound, stdin, stdout, xfp));
 }
 

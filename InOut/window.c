@@ -26,6 +26,8 @@
 #include "winEPS.h"                             /* PostSCript routines  */
                                                 /*  dpwe 16may90        */
 
+static OPARMS O;    /* FIXME: stub */
+
 static void (*makeFn)(WINDAT*, char*);  /* pointer to window make fn - */
 extern void MakeAscii(WINDAT *, char *);/*     either teletype         */
 extern void MakeGraph(WINDAT *,char *); /*     or some graphics system */
@@ -87,7 +89,7 @@ static void RdXYDummy(XYINDAT *wdptr)
 void dispinit(void)     /* called once on initialisation of program to  */
 {                       /*   choose between teletype or bitmap graphics */
     if (!O.displays) {
-      printf(Str("displays suppressed\n"));
+      csoundMessage(&cenviron, Str("displays suppressed\n"));
       makeFn = DummyFn2;
       drawFn = DummyFn1;
       killFn = DummyFn1;

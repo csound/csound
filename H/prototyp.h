@@ -67,18 +67,13 @@ int     getopnum(ENVIRON *, char *), lgexist(ENVIRON *, char *);
 void    oload(ENVIRON*);
 void    cpsoctinit(ENVIRON*), reverbinit(ENVIRON*);
 void    dispinit(void);
-/* replaced by csoundInitEnv() */
-#ifdef HAVE_GCC3
-__attribute__ ((__deprecated__))
-#endif
-  void    sssfinit(void);
 int     init0(ENVIRON*);
-int     openin(char *), openout(char *, int);
-void    scsort(FILE *, FILE *);
-int     scxtract(FILE *, FILE *, FILE *);
-int     rdscor(EVTBLK *);
-int     musmon(ENVIRON*);
-void    RTLineset(void);
+int     openin(ENVIRON *, char *), openout(ENVIRON *, char *, int);
+void    scsort(ENVIRON *, FILE *, FILE *);
+int     scxtract(ENVIRON *, FILE *, FILE *, FILE *);
+int     rdscor(ENVIRON *, EVTBLK *);
+int     musmon(ENVIRON *);
+void    RTLineset(ENVIRON *);
 int     sensLine(ENVIRON *);
 void    fgens(ENVIRON *, EVTBLK *);
 FUNC    *csoundFTFind(void*, MYFLT*);
@@ -90,13 +85,9 @@ MYFLT   intpow(MYFLT, long);
 void    list_opcodes(int);
 short   sfsampsize(int);
 void    rewriteheader(SNDFILE* ofd, int verbose);
-#ifdef HAVE_GCC3
-  __attribute__ ((__deprecated__))
-#endif
-    char  *unquote(char *);
 void    scoreRESET(ENVIRON *p);
 void    kperf(ENVIRON*);
-void    writeLine(const char *text, long size);
+void    writeLine(ENVIRON *csound, const char *text, long size);
 void    mainRESET(ENVIRON *);
 void    create_opcodlst(void *csound);
 int     readOptions(void*, FILE*);
@@ -128,12 +119,10 @@ __attribute__ ((__deprecated__, __format__(__printf__, 1, 2)))
   void csoundPrintf(const char *format, ...);
 __attribute__ ((__deprecated__, __format__(__printf__, 1, 2)))
   void err_printf(char *, ...);
-extern  __attribute__ ((__deprecated__)) OPARMS  O;
 extern  __attribute__ ((__deprecated__)) ENVIRON cenviron;
 #else
 void    csoundPrintf(const char *format, ...);
 void    err_printf(char *, ...);
-extern  OPARMS  O;
 extern  ENVIRON cenviron;
 #endif
 #define printf  csoundPrintf

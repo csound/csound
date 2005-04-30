@@ -2225,13 +2225,13 @@ int zkr(ENVIRON *csound, ZKR *p)
     indx = (long) *p->ndx;
     if (indx > csound->zklast) {
       *p->rslt = FL(0.0);
-      if (O.msglevel & WARNMSG)
-        printf(Str("WARNING: zkr index > isizek. Returning 0.\n"));
+      if (csound->oparms->msglevel & WARNMSG)
+        csound->Message(csound, Str("WARNING: zkr index > isizek. Returning 0.\n"));
     }
     else if (indx < 0) {
       *p->rslt = FL(0.0);
-      if (O.msglevel & WARNMSG)
-        printf(Str("WARNING: zkr index < 0. Returning 0.\n"));
+      if (csound->oparms->msglevel & WARNMSG)
+        csound->Message(csound, Str("WARNING: zkr index < 0. Returning 0.\n"));
     }
     else {
         /* Now read from the zk space and write to the destination. */
@@ -2259,13 +2259,13 @@ int zir(ENVIRON *csound, ZKR *p)
 
     indx = (long) *p->ndx;
     if (indx > csound->zklast) {
-      if (O.msglevel & WARNMSG)
-        printf(Str("WARNING: zir index > isizek. Returning 0.\n"));
+      if (csound->oparms->msglevel & WARNMSG)
+        csound->Message(csound, Str("WARNING: zir index > isizek. Returning 0.\n"));
       *p->rslt = FL(0.0);
     }
     else if (indx < 0) {
-      if (O.msglevel & WARNMSG)
-        printf(Str("WARNING: zir index < 0. Returning 0.\n"));
+      if (csound->oparms->msglevel & WARNMSG)
+        csound->Message(csound, Str("WARNING: zir index < 0. Returning 0.\n"));
       *p->rslt = FL(0.0);
     }
     else {
@@ -2880,14 +2880,14 @@ int printk(ENVIRON *csound, PRINTK *p)
          * Print instrument number and time. Instrument number stuff from
          * printv() in disprep.c.
          */
-        printf(" i%4d ", p->h.insdshead->insno);
-        printf(Str("time %11.5f:"), (MYFLT) csound->kcounter * csound->onedkr);
+        csound->Message(csound, " i%4d ", p->h.insdshead->insno);
+        csound->Message(csound, Str("time %11.5f:"), (MYFLT) csound->kcounter * csound->onedkr);
         /* Print spaces and then the value we want to read.      */
         spcount = p->pspace + 1;
         do {
-          printf(" ");
+          csound->Message(csound, " ");
         } while (--spcount);
-        printf("%11.5f\n", *p->val);
+        csound->Message(csound, "%11.5f\n", *p->val);
       }
     return OK;
 }
@@ -3158,7 +3158,7 @@ int printks(ENVIRON *csound, PRINTKS *p)
         p->cysofar = cycles;
         /* Do the print cycle. */
         sprints(string, p->txtstring, p->kvals, p->INOCOUNT-2);
-        printf(string);
+        csound->Message(csound, string);
 
 #ifdef REMOVE_WE_CAN_NOW_USE_PRINTF_CHAR_CODE_INSTEAD
         char *txtptr = p->txtstring;
@@ -3175,9 +3175,9 @@ int printks(ENVIRON *csound, PRINTKS *p)
         if (*txtptr == '#') {
           /* print the 0 to 255 value of the float - this gives wrap-around
            * for out of range values.      */
-          printf("%c", 255 & (int)FLOOR(*p->kval1));
+          csound->Message(csound, "%c", 255 & (int)FLOOR(*p->kval1));
           /* printf the rest of the string, if any.   */
-          printf(++txtptr, *p->kval2, *p->kval3, *p->kval4, 0, 0, 0);
+          csound->Message(csound, ++txtptr, *p->kval2, *p->kval3, *p->kval4, 0, 0, 0);
                                 /* What on earth are these zeros for!!! */
         }
         else {
@@ -3187,7 +3187,7 @@ int printks(ENVIRON *csound, PRINTKS *p)
            * Put a few dummy variables on the end for Justin - just in case we
            * put too many % format specifiers in the string.
            */
-          printf(txtptr, *p->kval1, *p->kval2, *p->kval3, *p->kval4, 0, 0);
+          csound->Message(csound, txtptr, *p->kval1, *p->kval2, *p->kval3, *p->kval4, 0, 0);
         }
 #endif
       }
@@ -3206,7 +3206,7 @@ int printsset(ENVIRON *csound, PRINTS *p)
     pk.ptime = &ptime;
     printksset(csound,&pk);
     sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1);
-    printf(string);
+    csound->Message(csound, string);
     return OK;
 }
 
@@ -3277,12 +3277,12 @@ int printk2(ENVIRON *csound, PRINTK2 *p)
     MYFLT   value = *p->val;
     int     spcount;
     if (p->oldvalue != value) {
-      printf(" i%d", p->h.insdshead->insno);
+      csound->Message(csound, " i%d", p->h.insdshead->insno);
       spcount = p->pspace + 1;
       do {
-        printf(" ");
+        csound->Message(csound, " ");
       } while (--spcount);
-      printf("%11.5f\n", *p->val);
+      csound->Message(csound, "%11.5f\n", *p->val);
       p->oldvalue = value;
     }
     return OK;

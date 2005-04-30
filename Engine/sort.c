@@ -21,9 +21,9 @@
     02111-1307 USA
 */
 
-#include "cs.h"                                       /*   SORT.C  */
+#include "cs.h"                                 /*   SORT.C  */
 
-static void sorter(void)                       /* the main sorting routine */
+static void sorter(ENVIRON *csound)             /* the main sorting routine */
 {
     SRTBLK *newbp, *prvbp;
     SRTBLK *bp;
@@ -31,7 +31,7 @@ static void sorter(void)                       /* the main sorting routine */
     MYFLT diff;
     int prdiff, indiff;
 
-    bp = cenviron.frstbp;
+    bp = csound->frstbp;
     while ((newbp = bp->nxtblk) != NULL
            && (c = newbp->text[0]) != 's' && c != 'e') {
       prvbp = newbp;
@@ -57,19 +57,19 @@ static void sorter(void)                       /* the main sorting routine */
           prvbp->nxtblk = prvbp->nxtblk->prvblk = newbp;
         }
         else {
-          newbp->nxtblk = cenviron.frstbp;    /* or at top */
-          cenviron.frstbp = cenviron.frstbp->prvblk = newbp;
+          newbp->nxtblk = csound->frstbp;    /* or at top */
+          csound->frstbp = csound->frstbp->prvblk = newbp;
         }
       }
       else bp = newbp;                        /*  else loop nxtblk */
     }
 }
 
-void sort(void)
+void sort(ENVIRON *csound)
 {
     SRTBLK *bp;
 
-    if ((bp = cenviron.frstbp) == NULL)
+    if ((bp = csound->frstbp) == NULL)
       return;
     do  {
       switch (bp->text[0]) {
@@ -91,11 +91,11 @@ void sort(void)
       case 'e':
         break;
       default:
-        cenviron.Message(&cenviron,Str("sort: illegal opcode %c(%.2x)\n"),
-                   bp->text[0],bp->text[0]);
+        csound->Message(csound, Str("sort: illegal opcode %c(%.2x)\n"),
+                                bp->text[0], bp->text[0]);
         break;
       }
     } while ((bp = bp->nxtblk) != NULL);
-    sorter();
+    sorter(csound);
 }
 

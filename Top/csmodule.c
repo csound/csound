@@ -107,9 +107,10 @@ typedef struct csoundModule_s {
 
 /* load all modules from plugin directory, and build module database */
 
-static int build_module_database(void *csound)
+static int build_module_database(void *csound_)
 {
 #ifdef HAVE_DIRENT_H
+    ENVIRON         *csound = (ENVIRON*) csound_;
     DIR             *dir;
     struct dirent   *f;
     csoundModule_t  *m, **plugin_db;
@@ -131,7 +132,7 @@ static int build_module_database(void *csound)
 #endif
     dir = opendir(dname);
     if (dir == (DIR*) NULL) {
-      err_printf(Str("Error opening plugin directory '%s': %s\n"),
+      csound->Message(csound, Str("Error opening plugin directory '%s': %s\n"),
                  dname, strerror(errno));
       return CSOUND_ERROR;
     }
@@ -182,7 +183,8 @@ static int build_module_database(void *csound)
       h = (void*) csoundOpenLibrary(buf1);
       free((void*) buf1);
       if (h == NULL) {
-        err_printf(Str("WARNING: could not open library '%s'\n"), fname);
+        csound->Message(csound, Str("WARNING: could not open library '%s'\n"),
+                                fname);
         continue;
       }
       /* check if it is actually a Csound plugin file */
@@ -192,8 +194,9 @@ static int build_module_database(void *csound)
         sym = (void*) csoundGetLibrarySymbol(h, "opcode_size");
         if (sym == NULL) {
           /* if it is not even an opcode library, print warning */
-          err_printf(Str("WARNING: '%s' is not a Csound plugin library\n"),
-                     fname);
+          csound->Message(csound,
+                          Str("WARNING: '%s' is not a Csound plugin library\n"),
+                          fname);
         }
         csoundCloseLibrary(h);
         continue;
@@ -255,8 +258,9 @@ static void destroy_module_database(void *csound)
  * some modules could not be loaded or initialised, and CSOUND_MEMORY
  * if a memory allocation failure has occured.
  */
-int csoundLoadModules(void *csound)
+int csoundLoadModules(void *csound_)
 {
+    ENVIRON         *csound = (ENVIRON*) csound_;
     csoundModule_t  *m, **plugin_db;
     int             i, retval;
 
@@ -285,11 +289,11 @@ int csoundLoadModules(void *csound)
         i = m->PreInitFunc(csound);
         if (i != 0) {
           retval = CSOUND_ERROR;
-          err_printf(Str("Error in pre-initialisation function of module '%s'"),
-                     m->name);
+          csound->Message(csound, Str("Error in pre-initialisation function "
+                                      "of module '%s'"), m->name);
           if (m->ErrCodeToStr != NULL)
-            err_printf(": %s", Str(m->ErrCodeToStr(i)));
-          err_printf("\n");
+            csound->Message(csound, ": %s", Str(m->ErrCodeToStr(i)));
+          csound->Message(csound, "\n");
         }
       }
       m = m->nxt;
@@ -304,8 +308,9 @@ int csoundLoadModules(void *csound)
  * Return value is CSOUND_SUCCESS if there was no error, and CSOUND_ERROR if
  * some modules could not be initialised.
  */
-int csoundInitModules(void *csound)
+int csoundInitModules(void *csound_)
 {
+    ENVIRON         *csound = (ENVIRON*) csound_;
     csoundModule_t  *m, **plugin_db;
     int             i, retval;
 
@@ -322,10 +327,10 @@ int csoundInitModules(void *csound)
         i = m->InitFunc(csound);
         if (i != 0) {
           retval = CSOUND_ERROR;
-          err_printf(Str("Error starting module '%s'"), m->name);
+          csound->Message(csound, Str("Error starting module '%s'"), m->name);
           if (m->ErrCodeToStr != NULL)
-            err_printf(": %s", Str(m->ErrCodeToStr(i)));
-          err_printf("\n");
+            csound->Message(csound, ": %s", Str(m->ErrCodeToStr(i)));
+          csound->Message(csound, "\n");
         }
       }
       m = m->nxt;
@@ -340,8 +345,9 @@ int csoundInitModules(void *csound)
  * Return value is CSOUND_SUCCESS if there was no error, and
  * CSOUND_ERROR if some modules could not be de-initialised.
  */
-int csoundDestroyModules(void *csound)
+int csoundDestroyModules(void *csound_)
 {
+    ENVIRON         *csound = (ENVIRON*) csound_;
     csoundModule_t  *m, **plugin_db;
     int             i, retval;
 
@@ -358,10 +364,11 @@ int csoundDestroyModules(void *csound)
         i = m->DestFunc(csound);
         if (i != 0) {
           retval = CSOUND_ERROR;
-          err_printf(Str("Error de-initialising module '%s'"), m->name);
+          csound->Message(csound, Str("Error de-initialising module '%s'"),
+                                  m->name);
           if (m->ErrCodeToStr != NULL)
-            err_printf(": %s", Str(m->ErrCodeToStr(i)));
-          err_printf("\n");
+            csound->Message(csound, ": %s", Str(m->ErrCodeToStr(i)));
+          csound->Message(csound, "\n");
         }
       }
       m = m->nxt;

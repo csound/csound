@@ -23,16 +23,15 @@
 
 #include "cs.h"                                          /*   SCSORT.C  */
 
-extern void sort(void), twarp(void), swrite(ENVIRON*);
+extern void sort(ENVIRON*), twarp(ENVIRON*), swrite(ENVIRON*);
 extern void sfree(ENVIRON *csound);
 extern void sread_init(ENVIRON *csound);
 extern int  sread(ENVIRON *csound);
 
-void scsort(FILE *scin, FILE *scout)
+void scsort(ENVIRON *csound, FILE *scin, FILE *scout)
     /* called from smain.c or some other main */
     /* reads,sorts,timewarps each score sect in turn */
 {
-    ENVIRON *csound = &cenviron;
     int     n;
 
     csound->scorein = scin;
@@ -43,8 +42,8 @@ void scsort(FILE *scin, FILE *scout)
     do {
       if ((n = sread(csound)) > 0) {
 /*      csound->Message(csound, Str("sread returns with %d\n"), n); */
-        sort();
-        twarp();
+        sort(csound);
+        twarp(csound);
         swrite(csound);
       }
     } while (n > 1);

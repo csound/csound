@@ -530,8 +530,8 @@ int read_unified_file(void *csound_, char **pname, char **score)
         *pname = orcname;
         *score = sconame;
         if (midiSet) {
-          O.FMidiname = midname;
-          O.FMidiin = 1;
+          csound->oparms->FMidiname = midname;
+          csound->oparms->FMidiin = 1;
         }
         fclose(unf);
         return result;
@@ -584,8 +584,8 @@ int read_unified_file(void *csound_, char **pname, char **score)
     *pname = orcname;
     *score = sconame;
     if (midiSet) {
-      O.FMidiname = midname;
-      O.FMidiin = 1;
+      csound->oparms->FMidiname = midname;
+      csound->oparms->FMidiin = 1;
     }
     fclose(unf);
     return result;

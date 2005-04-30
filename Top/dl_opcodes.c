@@ -84,9 +84,11 @@ void *csoundOpenLibrary(const char *libraryPath)
 #endif
     ){
       library = dlopen(libraryPath, RTLD_NOW | RTLD_GLOBAL );
+#if 0
       if (!library) {
         fprintf(stderr, "Error '%s' in dlopen(%s).\n", dlerror(), libraryPath);
       }
+#endif
     }
     return library;
 }
@@ -132,7 +134,9 @@ static const char *error(int setget, const char *str, ...)
       /* We prefer to use the dyld error string if getset is 1*/
       if (setget == 0) {
         NSLinkEditError(&ler, &lerno, &file, &dylderrstr);
+#if 0
         fprintf(stderr,"dyld: %s\n",dylderrstr);
+#endif
         if (dylderrstr && strlen(dylderrstr))
           strncpy(errstr,dylderrstr,ERR_STR_LEN);
       }
@@ -196,9 +200,11 @@ void *csoundOpenLibrary(const char *libraryPath)
     static int (*make_private_module_public) (NSModule module) = NULL;
     unsigned int flags =  NSLINKMODULE_OPTION_RETURN_ON_ERROR |
                           NSLINKMODULE_OPTION_PRIVATE;
+#if 0
     if (O.odebug) {
       printf("csoundOpenLibrary\n");
     }
+#endif
     /* If we got no path, the app wants the global namespace,
        use -1 as the marker in this case */
     if (!libraryPath)
@@ -206,14 +212,18 @@ void *csoundOpenLibrary(const char *libraryPath)
     /* Create the object file image, works for things linked
        with the -bundle arg to ld */
     ofirc = NSCreateObjectFileImageFromFile(libraryPath, &ofi);
+#if 0
     if (O.odebug) {
       printf("ofirc=%d\n", ofirc);
     }
+#endif
     switch (ofirc) {
     case NSObjectFileImageSuccess:
+#if 0
       if (O.odebug) {
         printf("ofirc=NSObjectFileImageSuccess\n");
       }
+#endif
       /* It was okay, so use NSLinkModule to link in the image */
       module = NSLinkModule(ofi, libraryPath,flags);
       /* Don't forget to destroy the object file
@@ -229,9 +239,11 @@ void *csoundOpenLibrary(const char *libraryPath)
       make_private_module_public(module);
       break;
     case NSObjectFileImageInappropriateFile:
+#if 0
       if (O.odebug) {
         printf("ofirc=NSObjectFileImageInappropriateFile\n");
       }
+#endif
       /* It may have been a dynamic library rather
          than a bundle, try to load it */
       module = (void *)NSAddImage(libraryPath,
@@ -311,9 +323,11 @@ void *dlopen(const char *path, int mode)
     ofirc = NSCreateObjectFileImageFromFile(path, &ofi);
     switch (ofirc) {
     case NSObjectFileImageSuccess:
+#if 0
       if (O.odebug) {
         printf("ofirc=NSObjectFileImageSuccess\n");
       }
+#endif
       /* It was okay, so use NSLinkModule to link in the image */
       module = NSLinkModule(ofi, path,flags);
       /* Don't forget to destroy the object file
@@ -329,9 +343,11 @@ void *dlopen(const char *path, int mode)
       make_private_module_public(module);
       break;
     case NSObjectFileImageInappropriateFile:
+#if 0
        if (O.odebug) {
         printf("ofirc=NSObjectFileImageInappropriateFile\n");
       }
+#endif
      /* It may have been a dynamic library rather
          than a bundle, try to load it */
       module = (void *)NSAddImage(path,
@@ -500,11 +516,15 @@ int csoundLoadExternal(void *csound_, const char* libraryPath)
     opcodlst_n = (*init)(csound);
     if (length > 0L) {
       olength = csound->oplstend - csound->opcodlst;
-      if (O.odebug) {
-        printf("Got opcodlst 0x%x\noplstend=0x%x, opcodlst=0x%x, length=%d.\n",
-               opcodlst_n, csound->oplstend, csound->opcodlst, olength);
-        printf("Adding %d bytes (%d opcodes) -- first opcode is '%s'.\n",
-               length, length / sizeof(OENTRY), opcodlst_n[0].opname);
+      if (csound->oparms->odebug) {
+        csound->Message(csound, Str("Got opcodlst 0x%x\noplstend=0x%x, "
+                                    "opcodlst=0x%x, length=%d.\n"),
+                                opcodlst_n, csound->oplstend,
+                                csound->opcodlst, olength);
+        csound->Message(csound, Str("Adding %d bytes (%d opcodes) "
+                                    "-- first opcode is '%s'.\n"),
+                                length, length / sizeof(OENTRY),
+                                opcodlst_n[0].opname);
       }
       csound->opcodlst = (OENTRY*) mrealloc(csound, csound->opcodlst,
                                             olength * sizeof(OENTRY) + length);
@@ -527,10 +547,11 @@ struct dirent *readdir(DIR*);
 int closedir(DIR*);
 #endif
 
-int csoundLoadExternals(void *csound)
+int csoundLoadExternals(void *csound_)
 {
-    char *s, *buffer;
-    int  i, j;
+    ENVIRON *csound = (ENVIRON*) csound_;
+    char    *s, *buffer;
+    int     i, j;
 
     buffer = (char*) mcalloc(csound, (size_t) 1024);
 #if defined(HAVE_DIRENT_H)
@@ -561,13 +582,13 @@ int csoundLoadExternals(void *csound)
       if (opcodedir == NULL)
         opcodedir = ".";
       if (warn64bit > 0)
-        printf("WARNING: OPCODEDIR64 undefined, loading 64 bit libraries "
-               "from OPCODEDIR\n");
-      if (O.odebug) {
+        csound->Message(csound, Str("WARNING: OPCODEDIR64 undefined, loading "
+                                    "64 bit libraries from OPCODEDIR\n"));
+      if (csound->oparms->odebug) {
         if (warn64bit < 0)
-          printf("OPCODEDIR64='%s'.\n", opcodedir);
+          csound->Message(csound, "OPCODEDIR64='%s'.\n", opcodedir);
         else
-          printf("OPCODEDIR='%s'.\n", opcodedir);
+          csound->Message(csound, "OPCODEDIR='%s'.\n", opcodedir);
       }
       directory = opendir(opcodedir);
       while ((file = readdir(directory)) != 0) {
@@ -594,7 +615,7 @@ int csoundLoadExternals(void *csound)
       return 1;
     }
     /* IV - Feb 19 2005 */
-    printf("Loading command-line libraries:\n");
+    csound->Message(csound, Str("Loading command-line libraries:\n"));
     i = j = -1;
     do {
       i++; j++;
@@ -603,7 +624,7 @@ int csoundLoadExternals(void *csound)
         j = -1;
         if (buffer[0] != '\0') {
           if (csoundLoadExternal(csound, buffer) == 0)
-            printf("  %s\n", buffer);
+            csound->Message(csound, "  %s\n", buffer);
         }
       }
       else
