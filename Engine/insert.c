@@ -595,7 +595,6 @@ void kperf(ENVIRON *csound)
          /* perform currently active instrs for one kperiod */
          /*      & send audio result to output buffer    */
 {
-    extern  void    (*spinrecv)(void*), (*spoutran)(void*);
     INSDS   *ip;
     int     i;
 
@@ -621,7 +620,7 @@ void kperf(ENVIRON *csound)
     }
     /* for one kcnt: */
     if (csound->oparms->sfread)         /*   if audio_infile open  */
-      (*spinrecv)(csound);              /*      fill the spin buf  */
+      csound->spinrecv(csound);         /*      fill the spin buf  */
     csound->spoutactive = 0;            /*   make spout inactive   */
     ip = &(csound->actanchor);
     while ((ip = ip->nxtact) != NULL) { /* for each instr active:  */
@@ -633,7 +632,7 @@ void kperf(ENVIRON *csound)
     if (!csound->spoutactive)           /*   results now in spout? */
       for (i = 0; i < (int) csound->nspout; i++)
         csound->spout[i] = FL(0.0);
-    (*spoutran)(csound);                /*      send to audio_out  */
+    csound->spoutran(csound);           /*      send to audio_out  */
 }
 
 int csoundInitError(void *csound_, const char *s, ...)

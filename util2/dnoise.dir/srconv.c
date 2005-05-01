@@ -57,8 +57,8 @@
                         if (!(--argc) || (((s = *argv++) != NULL) && *s == '-')) \
                             dieu(MSG);
 
-extern int  openout(char *, int);
-extern void writeheader(int, char *);
+extern int  openout(ENVIRON *, char *, int);
+extern void writeheader(ENVIRON *, int, char *);
 extern char *getstrformat(int);
 
 static void kaiser(int, MYFLT *, int, int, MYFLT);
