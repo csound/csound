@@ -99,10 +99,7 @@ static int format_nbytes(int fmt)
 static void spoutsf(void *csound_)
 {
     ENVIRON       *csound = (ENVIRON*) csound_;
-    int           n, spoutrem = csound->nspout;
-    MYFLT         *maxampp = csound->maxamp;
-    unsigned long *maxps = csound->maxpos;
-    long          *rngp;                /* RWD Nov 2001 */
+    int           n, chn = 0, spoutrem = csound->nspout;
     MYFLT         *sp = csound->spout;
     MYFLT         absamp;
 
@@ -113,36 +110,27 @@ static void spoutsf(void *csound_)
     spoutrem -= n;
     ST(outbufrem) -= n;
     do {
-      absamp = *sp;
-      if (absamp < FL(0.0)) {
-        if ((-absamp) > *maxampp) {     /*  maxamp this seg  */
-          *maxampp = -absamp;
-          *maxps = ST(nframes);
-        }
-      }
-      else {
-        if (absamp > *maxampp) {
-          *maxampp = absamp;
-          *maxps = ST(nframes);
-        }
-      }
-      absamp *= csound->dbfs_to_float;
+      absamp = *sp++;
       if (ST(osfopen))
-        *ST(outbufp)++ = absamp;
-      if (absamp > FL(1.0)) {           /* out of range?     */
-        /*   report it  */
-        rngp = csound->rngcnt + (maxampp - csound->maxamp);
-        (*rngp)++;
+        *ST(outbufp)++ = absamp * csound->dbfs_to_float;
+      if (absamp < FL(0.0))
+        absamp = -absamp;
+      if (absamp > csound->maxamp[chn]) {   /*  maxamp this seg  */
+        csound->maxamp[chn] = absamp;
+        csound->maxpos[chn] = ST(nframes);
+      }
+      if (absamp > csound->e0dbfs) {        /* out of range?     */
+        csound->rngcnt[chn]++;              /*  report it        */
         csound->rngflg = 1;
       }
       if (csound->multichan) {
-        maxps++;
-        if (++maxampp >= csound->maxampend)
-          maxampp = csound->maxamp, maxps = csound->maxpos, ST(nframes)++;
+        if (++chn >= csound->nchnls)
+          chn = 0, ST(nframes)++;
       }
-      else ST(nframes)++;
-      sp++;
+      else
+        ST(nframes)++;
     } while (--n);
+
     if (!ST(outbufrem)) {
       if (ST(osfopen)) {
         csound->nrecs++;
@@ -612,7 +600,6 @@ void sfclosein(void *csound_)
 #endif
         sf_close(ST(infile));
     ST(isfopen) = 0;
-    return;
 }
 
 void sfcloseout(void *csound_)
