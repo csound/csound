@@ -41,15 +41,10 @@ extern char saved_scorename[];
 extern unsigned char mytitle[];
 #endif
 
-static  char    *sortedscore = NULL;
-static  char    *xtractedscore = "score.xtr";
-static  char    scnm[255];
-static  char    nme[255];
-static  char    *playscore = NULL;     /* unless we extract */
-static  FILE    *scorin, *scorout, *xfile;
 extern  void    dieu(void *, char *);
 extern  int     argdecode(void*, int, char**);
 extern  void    init_pvsys(void);
+extern  char    *get_sconame(void *csound);     /* one_file.c */
 
 #ifdef MSVC
 #include <windows.h>
@@ -110,6 +105,11 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
     OPARMS  *O = csound->oparms;
     char    *s, *orcNameMode;
     char    *filnamp, *envoutyp = NULL;
+    char    *sortedscore = NULL;
+    char    *xtractedscore = "score.xtr";
+    char    *sconame = get_sconame(csound);
+    char    *playscore = NULL;      /* unless we extract */
+    FILE    *scorin = NULL, *scorout = NULL, *xfile = NULL;
     int     n;
 
     /* for debugging only */
@@ -287,8 +287,6 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
       /* No scorename yet */
       char *p;
       FILE *scof;
-      extern char sconame[];
-      void deleteScore(void);
       tmpnam(sconame);              /* Generate score name */
       if ((p=strchr(sconame, '.')) != NULL) *p='\0'; /* with extention */
       strcat(sconame, ".sco");
@@ -340,6 +338,7 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
           csound->scorename = "score.srt";
         }
         else {
+          char *scnm = csound->Calloc(csound, (size_t) 256);
           csound->scorename = tmpnam(scnm);
           add_tmpfile(csound, csound->scorename);       /* IV - Feb 03 2005 */
         }
@@ -369,6 +368,7 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
         playscore = sortedscore = "score.srt";
       }
       else {
+        char *nme = csound->Calloc(csound, (size_t) 256);
         playscore = sortedscore = tmpnam(nme);
         add_tmpfile(csound, playscore);         /* IV - Feb 03 2005 */
       }
@@ -395,6 +395,7 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
       scxtract(csound, scorin, scorout, xfile);
       fclose(scorin);
       fclose(scorout);
+      fclose(xfile);
       playscore = xtractedscore;
     }
     csound->Message(csound,Str("\t... done\n"));

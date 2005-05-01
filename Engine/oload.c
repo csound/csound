@@ -373,7 +373,12 @@ const ENVIRON cenviron_ = {
         NULL,           /*  rdorchGlobals       */
         NULL,           /*  sreadGlobals        */
         256,            /*  strVarMaxLen        */
-        0               /*  strVarSamples       */
+        0,              /*  strVarSamples       */
+        NULL,           /*  extractGlobals      */
+        NULL,           /*  libsndGlobals       */
+        NULL,           /*  lineventGlobals     */
+        NULL,           /*  musmonGlobals       */
+        NULL            /*  oneFileGlobals      */
 };
 
 /* otran.c */
