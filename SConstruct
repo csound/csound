@@ -818,25 +818,6 @@ if getPlatform() == 'mingw' and fltkFound:
          Opcodes/vst4cs/src/vsthost.cpp
          ''')))
 
-# Experimental OSC Opcodes ** THIS DOES NOT WORK **
-if getPlatform() == 'linux':
-    oscEnvironment = pluginEnvironment.Copy()
-    pluginLibraries.append(oscEnvironment.SharedLibrary('osc-sock',
-        Split('''
-        Opcodes/osc-sock.c
-        Opcodes/OSC-Kit/NetworkReturnAddress.c
-        Opcodes/OSC-Kit/OSC-address-space.c
-        Opcodes/OSC-Kit/OSC-callbacklist.c
-        Opcodes/OSC-Kit/OSC-client.c
-        Opcodes/OSC-Kit/OSC-drop.c
-        Opcodes/OSC-Kit/OSC-pattern-match.c
-        Opcodes/OSC-Kit/OSC-priority-queue.c
-        Opcodes/OSC-Kit/OSC-receive.c
-        Opcodes/OSC-Kit/OSC-string-help.c
-        Opcodes/OSC-Kit/OSC-system-dependent.c
-        Opcodes/OSC-Kit/OSC-timetag.c
-        ''')))
-
 # Utility programs.
 
 pluginLibraries.append(pluginEnvironment.SharedLibrary('cvanal',
