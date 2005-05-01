@@ -778,7 +778,7 @@ else:
     oscEnvironment = pluginEnvironment.Copy()
     oscEnvironment.Append(LIBS = ['lo'])
     pluginLibraries.append(oscEnvironment.SharedLibrary('osc',
-                                                         ['Opcodes/OSC.c']))
+                                                        ['Opcodes/OSC.c']))
 
 # FLUIDSYNTH OPCODES
 

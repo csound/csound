@@ -84,11 +84,9 @@ void *csoundOpenLibrary(const char *libraryPath)
 #endif
     ){
       library = dlopen(libraryPath, RTLD_NOW | RTLD_GLOBAL );
-#if 0
       if (!library) {
         fprintf(stderr, "Error '%s' in dlopen(%s).\n", dlerror(), libraryPath);
       }
-#endif
     }
     return library;
 }
