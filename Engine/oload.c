@@ -32,16 +32,16 @@
 
 #define DKEY_DFLT  60
 
-int csoundGetAPIVersion(void);
+int     csoundGetAPIVersion(void);
 
-void dispset(WINDAT *, MYFLT *, long, char *, int, char *);
-void display(WINDAT *);
-void writeheader(int ofd, char *ofname);
-int playopen_dummy(void *csound, csRtAudioParams *parm);
-void rtplay_dummy(void *csound, void *outBuf, int nbytes);
-int recopen_dummy(void *csound, csRtAudioParams *parm);
-int rtrecord_dummy(void *csound, void *inBuf, int nbytes);
-void rtclose_dummy(void *csound);
+void    dispset(WINDAT *, MYFLT *, long, char *, int, char *);
+void    display(WINDAT *);
+void    writeheader(ENVIRON *csound, int ofd, char *ofname);
+int     playopen_dummy(void *csound, csRtAudioParams *parm);
+void    rtplay_dummy(void *csound, void *outBuf, int nbytes);
+int     recopen_dummy(void *csound, csRtAudioParams *parm);
+int     rtrecord_dummy(void *csound, void *inBuf, int nbytes);
+void    rtclose_dummy(void *csound);
 
 static const OPARMS O_ = {
               0,0,          /* odebug, initonly */
@@ -375,10 +375,14 @@ const ENVIRON cenviron_ = {
         256,            /*  strVarMaxLen        */
         0,              /*  strVarSamples       */
         NULL,           /*  extractGlobals      */
-        NULL,           /*  libsndGlobals       */
+        NULL,           /*  oneFileGlobals      */
         NULL,           /*  lineventGlobals     */
         NULL,           /*  musmonGlobals       */
-        NULL            /*  oneFileGlobals      */
+        NULL,           /*  libsndGlobals       */
+        (void (*)(void*)) NULL,         /*  spinrecv        */
+        (void (*)(void*)) NULL,         /*  spoutran        */
+        (int (*)(void*, MYFLT*, int)) NULL,     /*  audrecv */
+        (void (*)(void*, MYFLT*, int)) NULL     /*  audtran */
 };
 
 /* otran.c */

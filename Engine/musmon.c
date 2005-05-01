@@ -54,7 +54,7 @@ extern  void    scsort(ENVIRON *, FILE *, FILE *);
 extern  void    infoff(ENVIRON*, MYFLT), orcompact(ENVIRON*);
 extern  void    beatexpire(ENVIRON *, double), timexpire(ENVIRON *, double);
 extern  void    sfopenin(void*), sfopenout(void*), sfnopenout(ENVIRON *);
-extern  void    iotranset(void), sfclosein(void*), sfcloseout(void*);
+extern  void    iotranset(ENVIRON*), sfclosein(void*), sfcloseout(void*);
 extern  void    MidiClose(ENVIRON*);
 extern  void    RTclose(void*);
 
@@ -283,7 +283,7 @@ int musmon(ENVIRON *csound)
       sfopenout(csound);                /*   open the outfile or device */
     else
       sfnopenout(csound);
-    iotranset();                    /* point recv & tran to audio formatter */
+    iotranset(csound);          /* point recv & tran to audio formatter */
 
     /*        if (!O->Linein) { */  /*  *************** */
     if (!(csound->scfp = fopen(O->playscore, "r"))) {

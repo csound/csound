@@ -48,8 +48,8 @@ static void  ScaleSound(SNDFILE *, SNDFILE *);
 static float FindAndReportMax(SNDFILE *);
 
 /* Externs */
-extern int  openout(char *, int), getsizformat(int);
-extern void writeheader(int, char*);
+extern int  openout(ENVIRON *, char *, int), getsizformat(int);
+extern void writeheader(ENVIRON *, int, char *);
 extern char *getstrformat(int);
 extern char* type2string(int);
 extern short sfsampsize(int);
