@@ -50,7 +50,6 @@ int main(int argc, char **argv)                     \
 {                                                   \
     ENVIRON *csound;                                \
     int     retval;                                 \
-    init_getstring(argc, argv);                     \
     csound = (ENVIRON*) csoundCreate(NULL);         \
     retval = util_perform(csound, x, argc, argv);   \
     csoundDestroy(csound);                          \
