@@ -21,12 +21,23 @@ extern "C" {
     float *actualBuffer;
   } PA_BLOCKING_STREAM;
 
+int paBlockingReadWriteOpen(ENVIRON *csound,
+    PA_BLOCKING_STREAM **pabs_in, PA_BLOCKING_STREAM **pabs_out, PaStreamParameters *paParameters,
+    csRtAudioParams *parm);
+    
+  int paBlockingReadWriteStreamCallback(const void *input,
+                                 void *output,
+                                 unsigned long frameCount,
+                                 const PaStreamCallbackTimeInfo* timeInfo,
+                                 PaStreamCallbackFlags statusFlags,
+                                 void *userData);
+
   int paBlockingReadOpen(ENVIRON *csound,
                          PA_BLOCKING_STREAM **pabs_,
                          PaStreamParameters *paParameters,
                          csRtAudioParams *parm);
 
-  void paBlockingRead(PA_BLOCKING_STREAM *pabs, MYFLT *buffer);
+  void paBlockingRead(PA_BLOCKING_STREAM *pabs, int samples, MYFLT *buffer);
 
   int paBlockingReadStreamCallback(const void *input, void *output,
                                    unsigned long frameCount,
