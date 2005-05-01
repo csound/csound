@@ -419,6 +419,18 @@ bool CppSound::getFLTKThreadLocking()
   return csoundGetFLTKThreadLocking(csound);
 }
 
+std::string CppSound::getOutputSoundfileName() const
+{
+  if(csound->oparms->outfilename)
+    {
+      return csound->oparms->outfilename;
+    }
+  else
+    {
+      return "";
+    }
+}
+
 /**
  * Glue for incomplete Csound API.
  */

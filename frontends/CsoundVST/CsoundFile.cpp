@@ -398,14 +398,7 @@ std::string CsoundFile::getMidiFilename() const
 
 std::string CsoundFile::getOutputSoundfileName() const
 {
-	if(O.outfilename)
-	{
-		return O.outfilename;
-	}
-	else
-	{
-		return "";
-	}
+  return "default";
 }
 
 std::string CsoundFile::getOrchestra() const
