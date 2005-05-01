@@ -27,7 +27,6 @@
 #include <time.h>
 
 #define EIPT3 (25.0/3.0)
-static  double  oct;
 #define LOGTWO  (0.69314718056)
 
 int rassign(ENVIRON *csound, ASSIGN *p)
@@ -591,7 +590,7 @@ void cpsoctinit(ENVIRON *csound)        /* init the arrays, called by oload */
 
 int octpch(ENVIRON *csound, EVAL *p)
 {
-    double      fract;
+    double fract, oct;
     fract = modf((double)*p->a, &oct);
     fract *= EIPT3;
     *p->r = (MYFLT) (oct + fract);
@@ -600,7 +599,7 @@ int octpch(ENVIRON *csound, EVAL *p)
 
 int pchoct(ENVIRON *csound, EVAL *p)
 {
-    double fract;
+    double fract, oct;
     fract = modf((double)*p->a, &oct);
     fract *= 0.12;
     *p->r = (MYFLT)(oct + fract);
@@ -636,7 +635,7 @@ int octcps(ENVIRON *csound, EVAL *p)
 
 int cpspch(ENVIRON *csound, EVAL *p)
 {
-    double      fract;
+    double fract, oct;
     long   loct;
 
     fract = modf((double) *p->a, &oct);

@@ -170,6 +170,13 @@ extern "C" {
    */
 
   /**
+   * Initialise Csound library.
+   * Returns zero on success.
+   */
+
+  PUBLIC int csoundInitialize(int *argc, char ***argv);
+
+  /**
    * Creates an instance of Csound.
    * Returns an opaque pointer that must be passed to most Csound API functions.
    * The hostData parameter can be null, or it can be a pointer to any sort of
@@ -837,6 +844,10 @@ extern "C" {
    * Destroys the indicated monitor object.
    */
   PUBLIC void csoundDestroyThreadLock(void *csound, void *lock);
+
+  PUBLIC void csoundLock(void);
+
+  PUBLIC void csoundUnLock(void);
 
   /**
    * Sets whether or not the FLTK widget thread calls Fl::lock().

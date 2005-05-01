@@ -142,9 +142,8 @@ int main(int argc, char **argv)
       return -1;
 #endif
 
-    /* load string database files; this should be done here, and not in */
-    /* csoundCompile(), as the strings are global to all instances */
-    init_getstring(argc, argv);
+    /* initialise Csound library */
+    csoundInitialize(&argc, &argv);
     /*  Create Csound. */
     csound = csoundCreate(NULL);
     /*  One complete performance cycle. */
