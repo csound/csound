@@ -11,10 +11,6 @@ Engine/extract.c:static SRTBLK e  = { NULL,NULL,0,0,FL(0.0),FL(0.0),FL(0.0),FL(0
 Engine/extract.c:    static  int   sectno, a0done;
 
 Engine/fgens.c:    static      WINDAT  dwindow; /* Why is this static? */
-Engine/fgens.c:    static  ARGOFFS argoffs = {0};  /* OUTOCOUNT-not applicable yet */
-Engine/fgens.c:    static  OPTXT   optxt;          /* create dummy optext  */
-
-Engine/filopen.c:    static char newname[MAXNAME];
 
 Engine/linevent.c:static char *Linebuf = NULL, *Linep = NULL, *Linebufend = NULL;
 Engine/linevent.c:static FILE *Linecons;
@@ -66,7 +62,6 @@ InOut/winEPS.c:static FILE *psFile;
 InOut/winEPS.c:static char  ps_date[40];                /* Print time & date on every plot  */
 InOut/winEPS.c:static int   currentPage = 0;            /* Current page number              */
 
-OOps/aops.c:static  double  oct;
 OOps/aops.c:static double rndfrac = 0.5;
 
 OOps/control.c:static char cmd[100];
@@ -87,8 +82,6 @@ OOps/disprep.c:        mults = lenmults;                       /* use the static
 
 OOps/dsputil.c:static MYFLT *sncTab = NULL;    /* point to our sin(x)/x lookup table */
 OOps/dsputil.c:static  MYFLT   *env = (MYFLT *)NULL;   /* Scratch buffer to hold 'envelope' */
-
-OOps/dumpf.c:static MYFLT kval[4];     /* handle up to four ksig arguments */
 
 OOps/lptrkfns.c:static MYFLT   *tphi[FREQS],*tpsi[FREQS]; /* prv tphi[50][5][25],tpsi[50][6][25] */
 OOps/lptrkfns.c:static MYFLT   *tgamph[FREQS], *tgamps[FREQS], freq[FREQS];
@@ -146,10 +139,6 @@ Opcodes/fm4op.c:static MYFLT    FM4Op_attTimes[32];
 
 Opcodes/locsig.c:static  LOCSIG  *locsigaddr;
 
-Opcodes/oscbnk.c:    static MYFLT    x;
-Opcodes/oscbnk.c:    static long     n;
-Opcodes/oscbnk.c:    static MYFLT    lfo1val = FL(0.0), lfo2val = FL(0.0);
-
 Opcodes/osc-sock.c:static oscStateStruct *oscState;
 Opcodes/osc-sock.c:static OSCBoolean oscIsUp = FALSE;
 Opcodes/osc-sock.c:static int oscSockFD = 0;
@@ -174,12 +163,6 @@ Opcodes/singwave.c:static int step = 0;
 Opcodes/space.c:static SPACE    *spaceaddr;
 
 Opcodes/spectra.c:static MYFLT bicoefs[] =
-
-Opcodes/ugens6.c:static   DELAYR   *first_delayr = NULL;   /* fifo anchor */
-Opcodes/ugens6.c:static   DELAYR   *last_delayr = NULL;   /* fifo anchor */
-Opcodes/ugens6.c:static  MYFLT   revlptimes[6] ={FL(0.0297), FL(0.0371), FL(0.0411),
-Opcodes/ugens6.c:static  long    revlpsiz[6];
-Opcodes/ugens6.c:static  long    revlpsum;
 
 Opcodes/ugens7.c:static int hrngflg=0;
 
@@ -259,11 +242,6 @@ Top/lpanal.c:static  double  (*a)[MAXPOLES];
 Top/lpanal.c:static  WINDAT   pwindow;
 Top/lpanal.c:static void alpol(MYFLT *sig, double *errn,
 
-Top/main.c:static char *foo;
-Top/main.c:static char listing_file[PATH_LEN];
-Top/main.c:static int  vbuf;
-Top/main.c:static int csNGraphs;
-Top/main.c:static MYFLT temp;
 Top/main.c:static  char    *sortedscore = NULL;
 Top/main.c:static  char    *xtractedscore = "score.xtr";
 Top/main.c:static  char    scnm[255];

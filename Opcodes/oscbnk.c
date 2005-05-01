@@ -152,8 +152,8 @@ static MYFLT oscbnk_rand(OSCBNK *p)
 
 static MYFLT oscbnk_interp_read_limit(MYFLT phase, MYFLT *ft, long flen)
 {
-    static MYFLT    x;
-    static long     n;
+    MYFLT x;
+    long  n;
 
     if (phase < FL(0.0)) return ft[0];
     else phase *= (MYFLT) flen;
@@ -171,7 +171,7 @@ static void oscbnk_lfo(OSCBNK *p, OSCBNK_OSC *o)
     unsigned long   n;
     int     eqmode;
     MYFLT   f, l, q, k, kk, vk, vkk, vkdq, sq;
-    static MYFLT    lfo1val = FL(0.0), lfo2val = FL(0.0);
+    MYFLT   lfo1val = FL(0.0), lfo2val = FL(0.0);
 
     /* lfo1val = LFO1 output, lfo2val = LFO2 output */
 
@@ -547,10 +547,10 @@ static int oscbnk(ENVIRON *csound, OSCBNK *p)
 
 static int grain2set(ENVIRON *csound, GRAIN2 *p)
 {
-    int i;
-    FUNC        *ftp;
-    long        n;
-    double      x, y;
+    int     i;
+    FUNC    *ftp;
+    long    n;
+    double  x, y;
 
     /* check opcode params */
 
@@ -604,8 +604,8 @@ static void grain2_init_grain_phase(GRAIN2_OSC *o, unsigned long frq,
                                     unsigned long w_frq, MYFLT frq_scl,
                                     int f_nolock)
 {
-    double      d;
-    MYFLT       f;
+    double  d;
+    MYFLT   f;
 
     if (!(w_frq)) return;
     if (f_nolock) {
@@ -625,7 +625,7 @@ static void grain2_init_grain_phase(GRAIN2_OSC *o, unsigned long frq,
 
 static void grain2_init_grain(GRAIN2 *p, GRAIN2_OSC *o)
 {
-    MYFLT       f;
+    MYFLT   f;
 
     /* random phase */
 
@@ -647,10 +647,10 @@ static void grain2_init_grain(GRAIN2 *p, GRAIN2_OSC *o)
 
 static int grain2(ENVIRON *csound, GRAIN2 *p)
 {
-    int i, nn, w_interp, g_interp, f_nolock;
+    int         i, nn, w_interp, g_interp, f_nolock;
     MYFLT       *aout, *ft, *w_ft, grain_frq, frq_scl, pfrac, w_pfrac, f, a, k;
-    unsigned long       n, mask, lobits, w_mask, w_lobits;
-    unsigned long       g_frq, w_frq;
+    unsigned long n, mask, lobits, w_mask, w_lobits;
+    unsigned long g_frq, w_frq;
     GRAIN2_OSC  *o;
     FUNC        *ftp;
 
@@ -719,7 +719,7 @@ static int grain2(ENVIRON *csound, GRAIN2 *p)
         n = o->window_phs >> w_lobits; a = w_ft[n++];
         if (w_interp)
           a += (w_ft[n] - a) * (MYFLT) ((long) (o->window_phs & w_mask))
-            * w_pfrac;
+               * w_pfrac;
         o->window_phs += w_frq;
         /* mix to output */
         *aout += a * k;
@@ -744,9 +744,9 @@ static int grain2(ENVIRON *csound, GRAIN2 *p)
 
 static int grain3set(ENVIRON *csound, GRAIN3 *p)
 {
-    int i;
-    FUNC        *ftp;
-    long        n;
+    int   i;
+    FUNC  *ftp;
+    long  n;
 
     /* check opcode params */
 
@@ -787,7 +787,7 @@ static int grain3set(ENVIRON *csound, GRAIN3 *p)
 static void grain3_init_grain(GRAIN3 *p, GRAIN2_OSC *o,
                               unsigned long w_ph, unsigned long g_ph)
 {
-    MYFLT       f;
+    MYFLT f;
 
     /* start phase */
 
@@ -804,8 +804,7 @@ static void grain3_init_grain(GRAIN3 *p, GRAIN2_OSC *o,
     }
     else {                              /* lock frequency */
       f *= p->frq_scl;
-      o->grain_frq_int = (p->grain_frq + OSCBNK_PHS2INT(f))
-        & OSCBNK_PHSMSK;
+      o->grain_frq_int = (p->grain_frq + OSCBNK_PHS2INT(f)) & OSCBNK_PHSMSK;
     }
 }
 
@@ -813,13 +812,13 @@ static void grain3_init_grain(GRAIN3 *p, GRAIN2_OSC *o,
 
 static int grain3(ENVIRON *csound, GRAIN3 *p)
 {
-    int i, nn, w_interp, g_interp, f_nolock;
-    MYFLT       *aout0, *aout, *ft, *w_ft, frq_scl, pfrac, w_pfrac, f, a, k;
-    MYFLT       wfdivxf, w_frq_f, x_frq_f;
-    unsigned long       n, mask, lobits, w_mask, w_lobits;
-    unsigned long       *phs, frq, x_ph, x_frq, g_ph, g_frq, w_ph, w_frq;
-    GRAIN2_OSC  *o;
-    FUNC        *ftp;
+    int           i, nn, w_interp, g_interp, f_nolock;
+    MYFLT         *aout0, *aout, *ft, *w_ft, frq_scl, pfrac, w_pfrac, f, a, k;
+    MYFLT         wfdivxf, w_frq_f, x_frq_f;
+    unsigned long n, mask, lobits, w_mask, w_lobits;
+    unsigned long *phs, frq, x_ph, x_frq, g_ph, g_frq, w_ph, w_frq;
+    GRAIN2_OSC    *o;
+    FUNC          *ftp;
 
     /* clear output */
 
@@ -1004,8 +1003,8 @@ static int rnd31set(ENVIRON *csound, RND31 *p)
 
 static int rnd31i(ENVIRON *csound, RND31 *p)
 {
-    MYFLT       rpow;
-    int         rmode;
+    MYFLT rpow;
+    int   rmode;
 
     /* random distribution */
     rpow = *(p->rpow);
@@ -1039,8 +1038,8 @@ static int rnd31i(ENVIRON *csound, RND31 *p)
 
 static int rnd31k(ENVIRON *csound, RND31 *p)
 {
-    MYFLT       rpow;
-    int rmode;
+    MYFLT rpow;
+    int   rmode;
 
     if ((p->seed < 1L) || (p->seed > 0x7FFFFFFEL)) {
       return csound->PerfError(csound, Str("rnd31: not initialised"));
