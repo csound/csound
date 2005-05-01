@@ -1,3 +1,32 @@
+2005-05-01	Istvan Varga	<istvan@csounds.com>
+	* H/csound.h:
+	* Top/threads.c:
+	  new functions: csoundLock(), csoundUnLock()
+	* Top/argdecode.c:
+	  added ENVIRON* argument to usage() and dieu()
+	* Top/csound.c:
+	* Top/main.c:
+	  - maintain a global list of allocated Csound instances, delete
+	  all on exit or fatal signal
+	  - new interface function: csoundInitialize(), for global
+	  initialisation of Csound library; if not done yet, the first
+	  call of csoundCreate() will also call csoundInitialize()
+	  - moved signal handler from main.c to csound.c (still not quite
+	  right, should really be done by host application)
+	  - removed some unused/useless static variables
+
+2005-04-30	Istvan Varga	<istvan@csounds.com>
+	* removed global variable O - use csound->oparms instead
+	* Top/csound.c:
+	  - dynamically allocate and destroy Csound instances, rather than
+	  using cenviron. Some old code still uses cenviron (and is thus now
+	  broken), and should be revised.
+	  - made calls to deprecated functions csoundPrintf() (#defined as
+	  printf()) and err_printf() fatal errors.
+
+2005-04-29	Istvan Varga	<istvan@csounds.com>
+	* removed all static variables from Engine/sread.c
+
 2005-04-30  Michael Gogins <gogins@pipeline.com>
 	* Disabled GUI options for Python mode and for auto-play
 	when in VST plugin mode, to prevent side effects.
