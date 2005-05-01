@@ -538,11 +538,13 @@ int csoundLoadExternal(void *csound_, const char* libraryPath)
 }
 
 #ifdef __MACH__
+#ifdef DIRENT_FIX
 /* There is something odd on OSX about dirent.h */
 typedef void* DIR;
 DIR opendir(const char *);
 struct dirent *readdir(DIR*);
 int closedir(DIR*);
+#endif
 #endif
 
 int csoundLoadExternals(void *csound_)

@@ -154,7 +154,10 @@ opts.Add('buildStkOpcodes',
     '0')
 opts.Add('install',
     'Enables the Install targets',
-    '1')
+    '1')    
+opts.Add('useDirentFix',
+"On OSX use the fixes for dirent.h (needed with earlier OS versions and development tools)",
+    '0')
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -224,6 +227,9 @@ elif getPlatform() == 'darwin':
     commonEnvironment.Append(CCFLAGS = "-DMACOSX")
     commonEnvironment.Append(CCFLAGS = "-Wall")
     commonEnvironment.Append(CCFLAGS = "-DPIPES")
+    if (commonEnvironment['useDirentFix'] == '1'):
+        print 'Using OSX dirent fix'
+        commonEnvironment.Append(CCFLAGS = "-DDIRENT_FIX")
 elif getPlatform() == 'mingw' or getPlatform() == 'cygwin':
     commonEnvironment.Append(CPPPATH = '/usr/local/include')
     commonEnvironment.Append(CPPPATH = '/usr/include')
@@ -374,7 +380,7 @@ pluginEnvironment = commonEnvironment.Copy()
 pluginEnvironment.Append(LIBS = ['sndfile'])
 
 if getPlatform() == 'darwin':
-    pluginEnvironment.Append(LINKFLAGS = ['-dynamiclib'])
+    pluginEnvironment.Append(LINKFLAGS = ['-framework', 'CoreMidi', '-framework', 'CoreFoundation', '-framework', 'CoreAudio'])
     pluginEnvironment['SHLIBSUFFIX'] = '.dylib'
 
 csoundProgramEnvironment = commonEnvironment.Copy()

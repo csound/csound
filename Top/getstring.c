@@ -27,10 +27,12 @@
 #include <sys/types.h>
 #include <dirent.h>
 #ifdef __MACH__
+#ifdef DIRENT_FIX
 typedef void* DIR;
 DIR opendir(const char *);
 struct dirent *readdir(DIR*);
 int closedir(DIR*);
+#endif
 #endif
 #endif
 #include "csound.h"
