@@ -46,6 +46,14 @@ PUBLIC void csoundDestroyThreadLock(void *csound, void *lock)
     CloseHandle((HANDLE) lock);
 }
 
+PUBLIC void csoundLock(void)
+{
+}
+
+PUBLIC void csoundUnLock(void)
+{
+}
+
 #elif defined(LINUX) || defined(__CYGWIN__) || defined(__MACH__)
 
 #include <pthread.h>
@@ -104,6 +112,18 @@ void csoundDestroyThreadLock(void *csound, void *lock)
     mfree(csound, lock);
 }
 
+static  pthread_mutex_t cs_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+PUBLIC void csoundLock(void)
+{
+    pthread_mutex_lock(&cs_mutex);
+}
+
+PUBLIC void csoundUnLock(void)
+{
+    pthread_mutex_unlock(&cs_mutex);
+}
+
 #else
 
 PUBLIC void *csoundCreateThread(void *csound,
@@ -122,7 +142,13 @@ PUBLIC int csoundJoinThread(void *csound, void *thread)
     return 0;
 }
 
+PUBLIC void csoundLock(void)
+{
+}
+
+PUBLIC void csoundUnLock(void)
+{
+}
+
 #endif
-
-
 
