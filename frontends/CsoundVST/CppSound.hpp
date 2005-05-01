@@ -294,6 +294,11 @@ public:
    * Return whether the FLTK widgets thread calls Fl::lock().
    */
   virtual bool getFLTKThreadLocking();
+  /**
+   * Return the name of the output soundfile from the Csound
+   * parameters structure.
+   */
+  virtual std::string CppSound::getOutputSoundfileName() const;
 };
 
 #endif
