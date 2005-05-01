@@ -47,11 +47,9 @@ static  char    scnm[255];
 static  char    nme[255];
 static  char    *playscore = NULL;     /* unless we extract */
 static  FILE    *scorin, *scorout, *xfile;
-extern  void    dieu(char *);
+extern  void    dieu(void *, char *);
 extern  int     argdecode(void*, int, char**);
 extern  void    init_pvsys(void);
-
-#include <signal.h>
 
 #ifdef MSVC
 #include <windows.h>
@@ -61,172 +59,7 @@ extern  void    init_pvsys(void);
 # include <sys/types.h>
 #endif
 
-#if !defined(LINUX) && !defined(SGI) && !defined(__BEOS__) && !defined(__MACH__)
-static char *signal_to_string(int sig)
-{
-    switch(sig) {
-#ifdef SIGHUP
-    case SIGHUP:        return "Hangup";
-#endif
-#ifdef SIGINT
-    case SIGINT:        return "Interrupt";
-#endif
-#ifdef SIGQUIT
-    case SIGQUIT:       return "Quit";
-#endif
-#ifdef SIGILL
-    case SIGILL:        return "Illegal instruction";
-#endif
-#ifdef SIGTRAP
-    case SIGTRAP:       return "Trace trap";
-#endif
-#ifdef SIGABRT
-    case SIGABRT:       return "Abort";
-#endif
-#ifdef SIGBUS
-    case SIGBUS:        return "BUS error";
-#endif
-#ifdef SIGFPE
-    case SIGFPE:        return "Floating-point exception";
-#endif
-#ifdef SIGUSR1
-    case SIGUSR1:       return "User-defined signal 1";
-#endif
-#ifdef SIGSEGV
-    case SIGSEGV:       return "Segmentation violation";
-#endif
-#ifdef SIGUSR2
-    case SIGUSR2:       return "User-defined signal 2";
-#endif
-#ifdef SIGPIPE
-    case SIGPIPE:       return "Broken pipe";
-#endif
-#ifdef SIGALRM
-    case SIGALRM:       return "Alarm clock";
-#endif
-#ifdef SIGTERM
-    case SIGTERM:       return "Termination";
-#endif
-#ifdef SIGSTKFLT
-    case SIGSTKFLT:     return "???";
-#endif
-#ifdef SIGCHLD
-    case SIGCHLD:       return "Child status has changed";
-#endif
-#ifdef SIGCONT
-    case SIGCONT:       return "Continue";
-#endif
-#ifdef SIGSTOP
-    case SIGSTOP:       return "Stop, unblockable";
-#endif
-#ifdef SIGTSTP
-    case SIGTSTP:       return "Keyboard stop";
-#endif
-#ifdef SIGTTIN
-    case SIGTTIN:       return "Background read from tty";
-#endif
-#ifdef SIGTTOU
-    case SIGTTOU:       return "Background write to tty";
-#endif
-#ifdef SIGURG
-    case SIGURG:        return "Urgent condition on socket ";
-#endif
-#ifdef SIGXCPU
-    case SIGXCPU:       return "CPU limit exceeded";
-#endif
-#ifdef SIGXFSZ
-    case SIGXFSZ:       return "File size limit exceeded ";
-#endif
-#ifdef SIGVTALRM
-    case SIGVTALRM:     return "Virtual alarm clock ";
-#endif
-#ifdef SIGPROF
-    case SIGPROF:       return "Profiling alarm clock";
-#endif
-#ifdef SIGWINCH
-    case SIGWINCH:      return "Window size change ";
-#endif
-#ifdef SIGIO
-    case SIGIO:         return "I/O now possible";
-#endif
-#ifdef SIGPWR
-    case SIGPWR:        return "Power failure restart";
-#endif
-    default:
-      return "???";
-    }
-}
-
-#ifndef __MACH__
-void psignal(int sig, char *str)
-{
-    err_printf( "%s: %s\n", str, signal_to_string(sig));
-}
-#endif
-#endif
-
-#if defined(__BEOS__)
-void psignal(int sig, char *str)
-{
-    err_printf("%s: %s\n", str, strsignal(sig));
-}
-#endif
-
 extern int cleanup(void *csound);
-
-static void signal_handler(int sig)
-{
-#if defined(USE_FLTK) && defined(SIGALRM)
-    if (sig == SIGALRM) return;
-#endif
-    psignal(sig, "Csound tidy up");
-    fltk_abort = 1;
-    /* FIXME: cannot have a csound pointer here, but signal handling */
-    /* should be done by the host application anyway, and not by the */
-    /* Csound library */
-    cleanup((void*) &cenviron);
-#ifdef LINUX
-    usleep(250000);
-#else
-#ifndef MSVC /* VL MSVC fix */
-    sleep(1);
-#else
-    Sleep(1000);
-#endif
-#endif
-    exit(1);
-}
-
-static void install_signal_handler(void)
-{
-    int *x;
-#if defined(LINUX) || defined(SGI) || defined(sol)
-    int sigs[] = { SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGTRAP, SIGABRT, SIGIOT,
-                   SIGBUS, SIGFPE, SIGSEGV, SIGPIPE, SIGALRM, SIGTERM, SIGXCPU,
-                   SIGXFSZ, -1};
-#elif defined(__MACH__)
-    int sigs[] = { SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGTRAP, SIGABRT, SIGIOT,
-                   SIGBUS, SIGFPE, SIGSEGV, SIGPIPE,          SIGTERM, SIGXCPU,
-                   SIGXFSZ, -1};
-#elif defined(CSWIN)
-    int sigs[] = { SIGHUP, SIGINT, SIGQUIT, -1};
-#elif defined(WIN32)
-    int sigs[] = { SIGINT, SIGINT, SIGILL, SIGABRT, SIGFPE, SIGSEGV, SIGTERM,
-                   -1 };
-#elif defined(__EMX__)
-    int sigs[] = { SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGTRAP, SIGABRT, SIGBUS,
-                   SIGFPE, SIGUSR1, SIGSEGV, SIGUSR2, SIGPIPE, SIGALRM, SIGTERM,
-                   SIGCHLD, -1 };
-#else
-    int sigs[] = { -1};
-#endif
-
-    for (x = sigs; *x > 0; x++)
-      signal(*x, signal_handler);
-#if defined(__MACH__)
-    signal(SIGALRM, SIG_IGN);
-#endif
-}
 
 void create_opcodlst(void *csound_)
 {
@@ -337,7 +170,6 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
     /* do not know file type yet */
     O->filetyp = -1;
     O->sfheader = 0;
-    install_signal_handler();
     O->filnamspace = filnamp = mmalloc(csound, (size_t) 1024);
     csound->peakchunks = 1;
     if (csoundCreateGlobalVariable(csound, "::argdecode::orcNameMode", 8) != 0)
@@ -345,7 +177,7 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
     orcNameMode = (char*) csoundQueryGlobalVariable(csound,
                                                     "::argdecode::orcNameMode");
     if (--argc == 0) {
-      dieu(Str("insufficient arguments"));
+      dieu(csound, Str("insufficient arguments"));
     }
     /* command line: allow orc/sco/csd name */
     strcpy(orcNameMode, "normal");
@@ -395,7 +227,7 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
     }
     /* check for CSD file */
     if (csound->orchname == NULL)
-      dieu(Str("no orchestra name"));
+      dieu(csound, Str("no orchestra name"));
     else if ((strcmp(csound->orchname+strlen(csound->orchname)-4, ".csd")==0 ||
               strcmp(csound->orchname+strlen(csound->orchname)-4, ".CSD")==0) &&
              (csound->scorename==NULL || strlen(csound->scorename)==0)) {
@@ -442,7 +274,7 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
         else {
           sprintf(csound->errmsg,
                   Str("%s not a recognised SFOUTYP env setting"), envoutyp);
-          dieu(csound->errmsg);
+          dieu(csound, csound->errmsg);
         }
       }
       else
@@ -474,7 +306,7 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
       O->rewrt_hdr = 0;         /* cannot rewrite header of headerless file */
     if (O->sr_override || O->kr_override) {
       if (!O->sr_override || !O->kr_override)
-        dieu(Str("srate and krate overrides must occur jointly"));
+        dieu(csound, Str("srate and krate overrides must occur jointly"));
     }
     if (!O->outformat)                      /* if no audioformat yet  */
       O->outformat = AE_SHORT;              /*  default to short_ints */

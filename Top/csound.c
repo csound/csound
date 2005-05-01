@@ -31,21 +31,233 @@ extern "C" {
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <signal.h>
+#ifdef HAVE_SYS_TYPES_H
+# include <sys/types.h>
+#endif
+#ifdef WIN32
+# include <windows.h>
+#endif
+
 #include "csound.h"
 #include "csoundCore.h"
 #include "prototyp.h"
 #include "csmodule.h"
 
   int fltk_abort = 0;
-#define csoundMaxExits 64
-  static void* csoundExitFuncs_[csoundMaxExits];
-  static long csoundNumExits_ = -1;
 
   extern const ENVIRON cenviron_;
 
+  typedef struct csInstance_s {
+    ENVIRON             *csound;
+    struct csInstance_s *nxt;
+  } csInstance_t;
+
+  static  int           init_done = 0;
+  static  csInstance_t  *instance_list = NULL;
+
+  static void destroy_all_instances(void)
+  {
+    csInstance_t  *p;
+    csoundLock(); p = instance_list; csoundUnLock();
+    if (p == NULL)
+      return;
+    fltk_abort = 1;
+    while (1) {
+      csoundLock(); p = instance_list; csoundUnLock();
+      if (p == NULL)
+        break;
+      csoundDestroy(p->csound);
+    }
+#ifdef LINUX
+    usleep(250000);
+#else
+#ifndef MSVC /* VL MSVC fix */
+    sleep(1);
+#else
+    Sleep(1000);
+#endif
+#endif
+  }
+
+#if !defined(LINUX) && !defined(SGI) && !defined(__BEOS__) && !defined(__MACH__)
+  static char *signal_to_string(int sig)
+  {
+    switch(sig) {
+#ifdef SIGHUP
+    case SIGHUP:        return "Hangup";
+#endif
+#ifdef SIGINT
+    case SIGINT:        return "Interrupt";
+#endif
+#ifdef SIGQUIT
+    case SIGQUIT:       return "Quit";
+#endif
+#ifdef SIGILL
+    case SIGILL:        return "Illegal instruction";
+#endif
+#ifdef SIGTRAP
+    case SIGTRAP:       return "Trace trap";
+#endif
+#ifdef SIGABRT
+    case SIGABRT:       return "Abort";
+#endif
+#ifdef SIGBUS
+    case SIGBUS:        return "BUS error";
+#endif
+#ifdef SIGFPE
+    case SIGFPE:        return "Floating-point exception";
+#endif
+#ifdef SIGUSR1
+    case SIGUSR1:       return "User-defined signal 1";
+#endif
+#ifdef SIGSEGV
+    case SIGSEGV:       return "Segmentation violation";
+#endif
+#ifdef SIGUSR2
+    case SIGUSR2:       return "User-defined signal 2";
+#endif
+#ifdef SIGPIPE
+    case SIGPIPE:       return "Broken pipe";
+#endif
+#ifdef SIGALRM
+    case SIGALRM:       return "Alarm clock";
+#endif
+#ifdef SIGTERM
+    case SIGTERM:       return "Termination";
+#endif
+#ifdef SIGSTKFLT
+    case SIGSTKFLT:     return "???";
+#endif
+#ifdef SIGCHLD
+    case SIGCHLD:       return "Child status has changed";
+#endif
+#ifdef SIGCONT
+    case SIGCONT:       return "Continue";
+#endif
+#ifdef SIGSTOP
+    case SIGSTOP:       return "Stop, unblockable";
+#endif
+#ifdef SIGTSTP
+    case SIGTSTP:       return "Keyboard stop";
+#endif
+#ifdef SIGTTIN
+    case SIGTTIN:       return "Background read from tty";
+#endif
+#ifdef SIGTTOU
+    case SIGTTOU:       return "Background write to tty";
+#endif
+#ifdef SIGURG
+    case SIGURG:        return "Urgent condition on socket ";
+#endif
+#ifdef SIGXCPU
+    case SIGXCPU:       return "CPU limit exceeded";
+#endif
+#ifdef SIGXFSZ
+    case SIGXFSZ:       return "File size limit exceeded ";
+#endif
+#ifdef SIGVTALRM
+    case SIGVTALRM:     return "Virtual alarm clock ";
+#endif
+#ifdef SIGPROF
+    case SIGPROF:       return "Profiling alarm clock";
+#endif
+#ifdef SIGWINCH
+    case SIGWINCH:      return "Window size change ";
+#endif
+#ifdef SIGIO
+    case SIGIO:         return "I/O now possible";
+#endif
+#ifdef SIGPWR
+    case SIGPWR:        return "Power failure restart";
+#endif
+    default:
+      return "???";
+    }
+  }
+
+#ifndef __MACH__
+  void psignal(int sig, char *str)
+  {
+    err_printf( "%s: %s\n", str, signal_to_string(sig));
+  }
+#endif
+#endif
+
+#if defined(__BEOS__)
+  void psignal(int sig, char *str)
+  {
+    err_printf("%s: %s\n", str, strsignal(sig));
+  }
+#endif
+
+  static void signal_handler(int sig)
+  {
+#if defined(USE_FLTK)
+#if defined(LINUX) || defined(NETBSD) || defined(__MACH__)
+    if (sig == SIGALRM)
+      return;
+#endif
+#endif
+    psignal(sig, "Csound tidy up");
+    fltk_abort = 1;
+    exit(1);
+  }
+
+  static void install_signal_handler(void)
+  {
+    int *x;
+    int sigs[] = {
+#if defined(LINUX) || defined(SGI) || defined(sol) || defined(__MACH__)
+      SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGTRAP, SIGABRT, SIGIOT, SIGBUS,
+      SIGFPE, SIGSEGV, SIGPIPE, SIGALRM, SIGTERM, SIGXCPU, SIGXFSZ,
+#elif defined(CSWIN)
+      SIGHUP, SIGINT, SIGQUIT,
+#elif defined(WIN32)
+      SIGINT, SIGILL, SIGABRT, SIGFPE, SIGSEGV, SIGTERM,
+#elif defined(__EMX__)
+      SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGTRAP, SIGABRT, SIGBUS, SIGFPE,
+      SIGUSR1, SIGSEGV, SIGUSR2, SIGPIPE, SIGALRM, SIGTERM, SIGCHLD,
+#endif
+      -1
+    };
+    for (x = sigs; *x > 0; x++)
+      signal(*x, signal_handler);
+  }
+
+  static int getTimeResolution(void);
+
+  PUBLIC int csoundInitialize(int *argc, char ***argv)
+  {
+    csoundLock();
+    if (init_done) {
+      csoundUnLock();
+      return (init_done > 0 ? 0 : -1);
+    }
+    init_done = 1;
+    csoundUnLock();
+    init_getstring(*argc, *argv);
+    if (getTimeResolution() != 0) {
+      init_done = -1;
+      return -1;
+    }
+    install_signal_handler();
+    atexit(destroy_all_instances);
+    return 0;
+  }
+
   PUBLIC void *csoundCreate(void *hostdata)
   {
-    ENVIRON *csound = (ENVIRON*) malloc(sizeof(ENVIRON));
+    ENVIRON       *csound;
+    csInstance_t  *p;
+    if (!init_done) {
+      int argc = 1;
+      char *argv_[2] = { "csound", NULL };
+      char **argv = &(argv_[0]);
+      if (csoundInitialize(&argc, &argv) != 0)
+        return NULL;
+    }
+    csound = (ENVIRON*) malloc(sizeof(ENVIRON));
     if (csound == NULL)
       return NULL;
     memcpy(csound, &cenviron_, sizeof(ENVIRON));
@@ -56,6 +268,17 @@ extern "C" {
     }
     memset(csound->oparms, 0, sizeof(OPARMS));
     csound->hostdata = hostdata;
+    p = (csInstance_t*) malloc(sizeof(csInstance_t));
+    if (p == NULL) {
+      free(csound->oparms);
+      free(csound);
+      return NULL;
+    }
+    csoundLock();
+    p->csound = csound;
+    p->nxt = instance_list;
+    instance_list = p;
+    csoundUnLock();
     csoundReset(csound);
     return (void*) csound;
   }
@@ -191,6 +414,22 @@ extern "C" {
 
   PUBLIC void csoundDestroy(void *csound)
   {
+    csInstance_t  *p, *prv = NULL;
+    csoundLock();
+    p = instance_list;
+    while (p != NULL && p->csound != csound) {
+      prv = p; p = p->nxt;
+    }
+    if (p == NULL) {
+      csoundUnLock();
+      return;
+    }
+    if (prv == NULL)
+      instance_list = p->nxt;
+    else
+      prv->nxt = p->nxt;
+    csoundUnLock();
+    free(p);
     csoundReset(csound);
     free(((ENVIRON*) csound)->oparms);
     free(csound);
@@ -319,13 +558,6 @@ extern "C" {
   PUBLIC void csoundCleanup(void *csound)
   {
     cleanup(csound);
-    /* Call all the funcs registered with atexit(). */
-    while (csoundNumExits_ >= 0)
-      {
-        void (*func)(void) = csoundExitFuncs_[csoundNumExits_];
-        func();
-        csoundNumExits_--;
-      }
   }
 
   /*
@@ -1286,7 +1518,6 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
 #include <ctype.h>
 
 #if defined(WIN32)
-#include <windows.h>
 /* do not use UNIX code under Win32 */
 #ifdef __unix
 #undef __unix
@@ -1312,12 +1543,11 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
 /* hopefully cannot change during performance */
 static double timeResolutionSeconds = -1.0;
 
-#if defined(HAVE_RDTSC)
-
 /* find out CPU frequency based on /proc/cpuinfo */
 
-static void get_CPU_cycle_time(void)
+static int getTimeResolution(void)
 {
+#if defined(HAVE_RDTSC)
     FILE    *f;
     char    buf[256];
 
@@ -1326,7 +1556,7 @@ static void get_CPU_cycle_time(void)
     if (f == NULL) {
       fprintf(stderr, "Cannot open /proc/cpuinfo. "
                       "Support for RDTSC is not available.\n");
-      exit(-1);
+      return -1;
     }
     /* find CPU frequency */
     while (fgets(buf, 256, f) != NULL) {
@@ -1356,13 +1586,28 @@ static void get_CPU_cycle_time(void)
     if (timeResolutionSeconds <= 0.0) {
       fprintf(stderr, "No valid CPU frequency entry "
                       "was found in /proc/cpuinfo.\n");
-      exit(-1);
+      return -1;
     }
     /* MHz -> seconds */
     timeResolutionSeconds = 0.000001 / timeResolutionSeconds;
+#elif defined(__unix) || defined(SGI) || defined(LINUX)
+    timeResolutionSeconds = 0.000001;
+#elif defined(WIN32)
+    {
+      LARGE_INTEGER tmp;
+      QueryPerformanceFrequency(&tmp);
+      timeResolutionSeconds = (double) ((unsigned long) tmp.LowPart);
+      timeResolutionSeconds += (double) ((long) tmp.HighPart)
+                               * 4294967296.0;
+      timeResolutionSeconds = 1.0 / timeResolutionSeconds;
+    }
+#else
+    timeResolutionSeconds = 1.0;
+#endif
+    fprintf(stderr, "time resolution is %.3f ns\n",
+                    1.0e9 * timeResolutionSeconds);
+    return 0;
 }
-
-#endif          /* HAVE_RDTSC */
 
 /* macro for getting real time */
 
@@ -1413,27 +1658,6 @@ static void get_CPU_cycle_time(void)
 
 void timers_struct_init(RTCLOCK *p)
 {
-    if (timeResolutionSeconds < 0.0) {
-      /* set time resolution if not known yet */
-#if defined(HAVE_RDTSC)
-      get_CPU_cycle_time();
-#elif defined(__unix) || defined(SGI) || defined(LINUX)
-      timeResolutionSeconds = 0.000001;
-#elif defined(WIN32)
-      {
-        LARGE_INTEGER tmp;
-        QueryPerformanceFrequency(&tmp);
-        timeResolutionSeconds = (double) ((unsigned long) tmp.LowPart);
-        timeResolutionSeconds += (double) ((long) tmp.HighPart)
-                                 * 4294967296.0;
-        timeResolutionSeconds = 1.0 / timeResolutionSeconds;
-      }
-#else
-      timeResolutionSeconds = 1.0;
-#endif
-      fprintf(stderr, "time resolution is %.3f ns\n",
-                      1.0e9 * timeResolutionSeconds);
-    }
     p->real_time_to_seconds_scale = timeResolutionSeconds;
     p->CPU_time_to_seconds_scale = 1.0 / (double) CLOCKS_PER_SEC;
     get_real_time(p->starttime_real_high, p->starttime_real_low)

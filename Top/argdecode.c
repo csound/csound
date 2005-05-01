@@ -44,7 +44,7 @@ extern void strset_option(ENVIRON *csound, char *s);    /* from str_ops.c */
 
 #define FIND(MSG)   if (*s == '\0')  \
                       if (!(--argc) || (((s = *++argv) != NULL) && *s == '-')) \
-                         dieu(MSG);
+                         dieu(csound, MSG);
 
 #define STDINASSIGN_SNDFILE     1
 #define STDINASSIGN_LINEIN      2
@@ -176,9 +176,9 @@ void print_short_usage(void *csound)
                      IOBUFSAMPS, IODACSAMPS);
 }
 
-void usage(void)
+static void usage(void *csound_)
 {
-  ENVIRON *csound = &cenviron;
+  ENVIRON *csound = (ENVIRON*) csound_;
 
   csound->Message(csound, Str("Usage:\tcsound [-flags] orchfile scorefile\n"));
   csound->Message(csound, Str("Legal flags are:\n"));
@@ -272,11 +272,11 @@ static void longusage(void *csound)
   longjmp(p->exitjmp, CSOUND_EXITJMP_SUCCESS);
 }
 
-void dieu(char *s)
+void dieu(void *csound_, char *s)
 {
-    ENVIRON *csound = &cenviron;
+    ENVIRON *csound = (ENVIRON*) csound_;
     csound->Message(csound,Str("Csound Command ERROR:\t%s\n"), s);
-    usage();
+    usage(csound);
     longjmp(csound->exitjmp, 1);
 }
 
@@ -388,14 +388,14 @@ static int decode_long(void *csound_, char *s, int argc, char **argv)
   }
   else if (!(strncmp (s, "iobufsamps=", 11))) {
     s += 11;
-    if (*s=='\0') dieu(Str("no iobufsamps"));
+    if (*s=='\0') dieu(csound, Str("no iobufsamps"));
     /* defaults in musmon.c */
     O->inbufsamps = O->outbufsamps = atoi(s);
     return 1;
   }
   else if (!(strncmp (s, "hardwarebufsamps=", 17))) {
     s += 17;
-    if (*s=='\0') dieu(Str("no hardware bufsamps"));
+    if (*s=='\0') dieu(csound, Str("no hardware bufsamps"));
     O->inbufsamps = O->outbufsamps = atoi(s);
     return 1;
   }
@@ -416,14 +416,14 @@ static int decode_long(void *csound_, char *s, int argc, char **argv)
   /* -E N */
   else if (!(strncmp (s, "graphs=", 7))) {
     s += 7;
-    if (*s=='\0') dieu(Str("no number of graphs"));
+    if (*s=='\0') dieu(csound, Str("no number of graphs"));
     csNGraphs = atoi(s);
     SetCsNGraphs(csNGraphs);
     return 1;
   }
   else if (!(strncmp (s, "pollrate=", 9))) {
     s += 9;
-    if (*s == '\0') dieu(Str("no poll event rate"));
+    if (*s == '\0') dieu(csound, Str("no poll event rate"));
     pollEventRate = atoi(s);
     return 1;
   }
@@ -434,7 +434,7 @@ static int decode_long(void *csound_, char *s, int argc, char **argv)
 #endif
   else if (!(strncmp (s, "midifile=", 9))) {
     s += 9;
-    if (*s == '\0') dieu(Str("no midifile name"));
+    if (*s == '\0') dieu(csound, Str("no midifile name"));
     O->FMidiname = s;            /* Midifile name */
     if (!strcmp(O->FMidiname,"stdin")) {
       set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
@@ -473,13 +473,13 @@ static int decode_long(void *csound_, char *s, int argc, char **argv)
   else if (strncmp(s, "pyvar=", 6) == 0) {
     s += 6;
     if (python_add_cmdline_definition(s))
-      dieu(Str("invalid python variable definition syntax"));
+      dieu(csound, Str("invalid python variable definition syntax"));
     return 1;
   }
 #endif
   else if (!(strncmp (s, "input=", 6))) {
     s += 6;
-    if (*s == '\0') dieu(Str("no infilename"));
+    if (*s == '\0') dieu(csound, Str("no infilename"));
     O->infilename = s;   /* soundin name */
     if (strcmp(O->infilename,"stdout") == 0)
       csoundDie(csound, Str("input cannot be stdout"));
@@ -515,7 +515,7 @@ static int decode_long(void *csound_, char *s, int argc, char **argv)
   */
   else if (!(strncmp(s, "control-rate=", 13))) {
     s += 13;
-    if (*s=='\0') dieu(Str("no control rate"));
+    if (*s=='\0') dieu(csound, Str("no control rate"));
     O->kr_override = atoi(s);
     return 1;
   }
@@ -529,7 +529,7 @@ static int decode_long(void *csound_, char *s, int argc, char **argv)
   */
   else if (!(strncmp (s, "score-in=", 9))) {
     s += 9;
-    if (*s=='\0') dieu(Str("no Linein score device_name"));
+    if (*s=='\0') dieu(csound, Str("no Linein score device_name"));
     O->Linename = s;
     if (!strcmp(O->Linename,"stdin")) {
       set_stdin_assign(csound, STDINASSIGN_LINEIN, 1);
@@ -547,7 +547,7 @@ static int decode_long(void *csound_, char *s, int argc, char **argv)
   */
   else if (!(strncmp (s, "messagelevel=", 13))) {
     s += 13;
-    if (*s=='\0') dieu(Str("no message level"));
+    if (*s=='\0') dieu(csound, Str("no message level"));
     O->msglevel = atoi(s);
     return 1;
   }
@@ -556,7 +556,7 @@ static int decode_long(void *csound_, char *s, int argc, char **argv)
   */
   else if (!(strncmp (s, "midi-device=", 12))) {
     s += 12;
-    if (*s=='\0') dieu(Str("no midi device_name"));
+    if (*s=='\0') dieu(csound, Str("no midi device_name"));
     O->Midiname = s;
     if (!strcmp(O->Midiname,"stdin")) {
       set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 1);
@@ -581,10 +581,10 @@ static int decode_long(void *csound_, char *s, int argc, char **argv)
   }
   else if (!(strncmp (s, "output=", 7))) {
     s += 7;
-    if (*s == '\0') dieu(Str("no outfilename"));
+    if (*s == '\0') dieu(csound, Str("no outfilename"));
     O->outfilename = s;          /* soundout name */
     if (strcmp(O->outfilename,"stdin") == 0)
-      dieu(Str("-o cannot be stdin"));
+      dieu(csound, Str("-o cannot be stdin"));
     if (strcmp(O->outfilename,"stdout") == 0) {
       set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 1);
 #if defined(WIN32) || defined(mills_macintosh)
@@ -598,7 +598,7 @@ static int decode_long(void *csound_, char *s, int argc, char **argv)
   }
   else if (!(strncmp (s, "logfile=", 8))) {
     s += 8;
-    if (*s=='\0') dieu(Str("no log file"));
+    if (*s=='\0') dieu(csound, Str("no log file"));
     return 1;
   }
   /* -r N */
@@ -649,7 +649,7 @@ static int decode_long(void *csound_, char *s, int argc, char **argv)
   else if (!(strncmp (s, "utility=", 8))) {
     int retval;
     s += 8;
-    if (*s=='\0') dieu(Str("no utility name"));
+    if (*s=='\0') dieu(csound, Str("no utility name"));
     retval = csound->Utility(csound, s, argc, argv);
     if (!retval)
       longjmp(csound->exitjmp, CSOUND_EXITJMP_SUCCESS);
@@ -665,7 +665,7 @@ static int decode_long(void *csound_, char *s, int argc, char **argv)
   /* -V N  Number of chars in screen buffer for output window */
   else if (!(strncmp(s, "screen-buffer=", 14))) {
     s += 14;
-    if (*s=='\0') dieu(Str("no screen buffer size"));
+    if (*s=='\0') dieu(csound, Str("no screen buffer size"));
     vbuf = atoi(s);
     fflush(stdout);
     setvbuf(stdout, NULL, _IOFBF, vbuf);
@@ -680,7 +680,7 @@ static int decode_long(void *csound_, char *s, int argc, char **argv)
   /* -x fnam extract from score.srt using extract file 'fnam' */
   else if (!(strncmp(s, "extract-score=", 14))) {
     s += 14;
-    if (*s=='\0') dieu(Str("no xfilename"));
+    if (*s=='\0') dieu(csound, Str("no xfilename"));
     csound->xfilename = s;
     return 1;
   }
@@ -872,7 +872,7 @@ int argdecode(void *csound_, int argc, char **argv_)
           O->outfilename = s;          /* soundout name */
           s += (int) strlen(s);
           if (strcmp(O->outfilename,"stdin") == 0)
-            dieu(Str("-o cannot be stdin"));
+            dieu(csound, Str("-o cannot be stdin"));
           if (strcmp(O->outfilename,"stdout") == 0) {
             set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 1);
 #if defined(WIN32) || defined(mills_macintosh)
@@ -964,7 +964,7 @@ int argdecode(void *csound_, int argc, char **argv_)
             int val;
             sscanf(s,"%d%n",&val, &n);/* use this tempo .. */
             s += n;
-            if (val < 0) dieu(Str("illegal tempo"));
+            if (val < 0) dieu(csound, Str("illegal tempo"));
             else if (val == 0) {
               csound->keep_tmp = 1;
               break;
@@ -1066,7 +1066,7 @@ int argdecode(void *csound_, int argc, char **argv_)
             if (ind==0) {
               sprintf(csound->errmsg, Str("Cannot open indirection file %s\n"),
                                       s);
-              dieu(csound->errmsg);
+              dieu(csound, csound->errmsg);
             }
             else {
               readOptions(csound, ind);
@@ -1101,7 +1101,7 @@ int argdecode(void *csound_, int argc, char **argv_)
           break;
         default:
           sprintf(csound->errmsg, Str("unknown flag -%c"), c);
-          dieu(csound->errmsg);
+          dieu(csound, csound->errmsg);
         }
       }
     }
@@ -1121,7 +1121,7 @@ int argdecode(void *csound_, int argc, char **argv_)
           csound->scorename = --s;
         else {
           csound->Message(csound,"argc=%d Additional string \"%s\"\n",argc,--s);
-          dieu(Str("too many arguments"));
+          dieu(csound, Str("too many arguments"));
         }
       }
     }
