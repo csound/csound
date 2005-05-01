@@ -242,18 +242,6 @@ Top/lpanal.c:static  double  (*a)[MAXPOLES];
 Top/lpanal.c:static  WINDAT   pwindow;
 Top/lpanal.c:static void alpol(MYFLT *sig, double *errn,
 
-Top/main.c:static  char    *sortedscore = NULL;
-Top/main.c:static  char    *xtractedscore = "score.xtr";
-Top/main.c:static  char    scnm[255];
-Top/main.c:static  char    nme[255];
-Top/main.c:static  char    *playscore = NULL;     /* unless we extract */
-Top/main.c:static  FILE    *scorin, *scorout, *xfile;
-
-Top/one_file.c:static char buffer[CSD_MAX_LINE_LEN];
-Top/one_file.c:static char orcname[L_tmpnam+4];
-Top/one_file.c:static char midname[L_tmpnam+4];
-Top/one_file.c:static int midiSet;
-
 Top/scot.c:static char curline[MAXLINE+1]; /* current line of infile */
 Top/scot.c:static int inx,                 /* column # */
 Top/scot.c:static FILE *infile,*outfile;
