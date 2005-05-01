@@ -1,3 +1,11 @@
+2005-04-30  Michael Gogins <gogins@pipeline.com>
+	* Disabled GUI options for Python mode and for auto-play
+	when in VST plugin mode, to prevent side effects.
+	* Improved version of CsoundVST.csd orchestra for VST plugin use,
+	using the Csound mixer and some effects.
+	* Updated CsoundVST for removal of various static variables
+	in Csound.
+
 2005-04-24  John ffitch  <jpff@codemist.co.uk>
 
 	* Top/one_file.c (read_unified_file): Added licence top level field
