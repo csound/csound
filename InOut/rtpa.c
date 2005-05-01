@@ -12,8 +12,11 @@
 #include "pa_blocking.h"
 #include <portaudio.h>
 
+
 static PA_BLOCKING_STREAM *pabsRead = 0;
 static PA_BLOCKING_STREAM *pabsWrite = 0;
+static int isASIOopen = 0;
+static int openOnce = 0;
 
 static  int oMaxLag;
 
@@ -101,11 +104,17 @@ static int recopen_(void *csound, csRtAudioParams *parm)
 {
     struct PaStreamParameters paStreamParameters_;
     PaError paError = Pa_Initialize();
+    
 #if defined(LINUX)
     PaAlsaStreamInfo info;
 #endif
     listPortAudioDevices(csound);
-    if (paError != paNoError) goto error;
+    if (paError != paNoError) {
+    ((ENVIRON*) csound)->Message(csound, Str("PortAudio error %d: %s.\n"),
+                                         paError, Pa_GetErrorText(paError));
+    return -1;        
+    }
+    
     oMaxLag = parm->bufSamp_HW; /* import DAC setting from command line   */
     if (oMaxLag <= 0)           /* if DAC sampframes ndef in command line */
       oMaxLag = IODACSAMPS;     /*    use the default value               */
@@ -144,20 +153,23 @@ static int recopen_(void *csound, csRtAudioParams *parm)
 #endif
     paStreamParameters_.channelCount = parm->nChannels;
     paStreamParameters_.sampleFormat = paFloat32;
-    ((ENVIRON*) csound)->Message(csound, "Suggested PortAudio input latency = "
+    ((ENVIRON*) csound)->Message(csound, "Suggested PortAudio latency = "
                                          "%f seconds.\n",
                                          paStreamParameters_.suggestedLatency);
-    paError = paBlockingReadOpen(csound, &pabsRead, &paStreamParameters_,
+    /* VL: we will open the device full-duplex if asked to open it for input */
+    paError = paBlockingReadWriteOpen(csound, &pabsRead, &pabsWrite, &paStreamParameters_,
                                  parm);
-    if (paError != paNoError) goto error;
-    ((ENVIRON*) csound)->Message(csound,
-                                 Str("Opened PortAudio input device %i.\n"),
-                                 paStreamParameters_.device);
-    return 0;
- error:
+    if (paError != paNoError){
     ((ENVIRON*) csound)->Message(csound, Str("PortAudio error %d: %s.\n"),
                                          paError, Pa_GetErrorText(paError));
-    return -1;
+    return -1;        
+    }
+    ((ENVIRON*) csound)->Message(csound,
+                                 Str("Opened PortAudio full-duplex device  %i.\n"),
+                                 paStreamParameters_.device);
+    openOnce = 1;
+    isASIOopen = 1;
+    return 0;
 }
 
 static int playopen_(void *csound, csRtAudioParams *parm)
@@ -169,7 +181,11 @@ static int playopen_(void *csound, csRtAudioParams *parm)
     PaAlsaStreamInfo info;
 #endif
     listPortAudioDevices(csound);
-    if (paError != paNoError) goto error;
+    if (paError != paNoError) {
+    ((ENVIRON*) csound)->Message(csound, Str("PortAudio error %d: %s.\n"),
+                                         paError, Pa_GetErrorText(paError));
+    return -1;        
+    }
     oMaxLag = parm->bufSamp_HW; /* import DAC setting from command line   */
     if (oMaxLag <= 0)           /* if DAC sampframes ndef in command line */
       oMaxLag = IODACSAMPS;     /*    use the default value               */
@@ -208,26 +224,31 @@ static int playopen_(void *csound, csRtAudioParams *parm)
 #endif
     paStreamParameters_.channelCount = parm->nChannels;
     paStreamParameters_.sampleFormat = paFloat32;
+
+   if(!openOnce) {
     ((ENVIRON*) csound)->Message(csound, "Suggested PortAudio output latency = "
                                          "%f seconds.\n",
                                          paStreamParameters_.suggestedLatency);
-    paError = paBlockingWriteOpen(csound, &pabsWrite, &paStreamParameters_,
+     paError = paBlockingWriteOpen(csound, &pabsWrite, &paStreamParameters_,
                                   parm);
-    if (paError != paNoError) goto error;
-    ((ENVIRON*) csound)->Message(csound,
-                                 Str("Opened PortAudio output device %i.\n"),
-                                 paStreamParameters_.device);
-    return 0;
- error:
+    if (paError != paNoError) {
     ((ENVIRON*) csound)->Message(csound, Str("PortAudio error %d: %s.\n"),
                                          paError, Pa_GetErrorText(paError));
     return -1;
+    }
+    ((ENVIRON*) csound)->Message(csound,
+                                 Str("Opened PortAudio output device %i.\n"),
+                                 paStreamParameters_.device);
+    }
+    return 0;
+
 }
 
 /* get samples from ADC */
 static int rtrecord_(void *csound, void *inbuf_, int bytes_)
 {
-    paBlockingRead(pabsRead, (MYFLT *)inbuf_);
+    int samples = bytes_ / sizeof(MYFLT);
+    paBlockingRead(pabsRead, samples,(MYFLT *)inbuf_);
     return bytes_;
 }
 
@@ -253,7 +274,7 @@ static void rtclose_(void *csound)      /* close the I/O device entirely  */
 {
                                         /* called only when both complete */
     paBlockingClose(csound, pabsRead);
-    paBlockingClose(csound, pabsWrite);
+    if(!openOnce) paBlockingClose(csound, pabsWrite);
     Pa_Terminate();
 }
 
