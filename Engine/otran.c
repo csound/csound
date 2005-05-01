@@ -24,7 +24,6 @@
 #include "cs.h"                 /*                              OTRAN.C */
 #include "oload.h"
 #include <math.h>
-#include <string.h>
 #include "pstream.h"
 #include "namedins.h"           /* IV - Oct 31 2002 */
 #include <ctype.h>
@@ -61,13 +60,9 @@ static  void    lgbuild(ENVIRON *, char *);
 static  void    gblnamset(ENVIRON *, char *);
 static  int     plgndx(ENVIRON *, char *);
 static  NAME    *lclnamset(ENVIRON *, char *);
-        void    putop(ENVIRON *, TEXT *);
 
 #define txtcpy(a,b) memcpy(a,b,sizeof(TEXT));
 #define ST(x)   (((OTRAN_GLOBALS*) ((ENVIRON*) csound)->otranGlobals)->x)
-
-extern  void    rdorchfile(ENVIRON*);
-extern  void    spoutsf(void*);
 
 #define KTYPE   1
 #define DTYPE   2
@@ -79,20 +74,8 @@ extern  void    spoutsf(void*);
 #define Pfloats ((sizeof(PVSDAT) + sizeof(MYFLT) - 1) / sizeof(MYFLT))
 #define STYPE   6
 
-void csoundDefaultSpinRecv(void *csound)
-{
-    csound = csound;
-}
-
-void csoundDefaultSpouTran(void *csound)
-{
-    csound = csound;
-}
-
 void tranRESET(ENVIRON *csound)
 {
-    csound->spinrecv    = csoundDefaultSpinRecv;
-    csound->spoutran    = spoutsf;
     if (csound->otranGlobals != NULL) {
       csound->Free(csound, csound->otranGlobals);
       csound->otranGlobals = NULL;

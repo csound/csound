@@ -113,31 +113,28 @@ void spoutsf(void *csound_)
     spoutrem -= n;
     ST(outbufrem) -= n;
     do {
-      if ((absamp = *sp) < FL(0.0))
-        absamp = -absamp;
-      if (absamp > *maxampp) {           /*  maxamp this seg  */
-        *maxampp = absamp;
-        *maxps = ST(nframes);
-      }
       absamp = *sp;
-      if (absamp >= 0) {                 /* +ive samp:        */
-        if (absamp > csound->e0dbfs) {   /* out of range?     */
-          /*   report it*/
-          rngp = csound->rngcnt + (maxampp - csound->maxamp);
-          (*rngp)++;
-          csound->rngflg = 1;
+      if (absamp < FL(0.0)) {
+        if ((-absamp) > *maxampp) {     /*  maxamp this seg  */
+          *maxampp = -absamp;
+          *maxps = ST(nframes);
         }
       }
-      else {                             /* ditto -ive samp */
-        if (absamp < -(csound->e0dbfs)) {
-          rngp = csound->rngcnt + (maxampp - csound->maxamp);
-          (*rngp)++;
-          csound->rngflg = 1;
+      else {
+        if (absamp > *maxampp) {
+          *maxampp = absamp;
+          *maxps = ST(nframes);
         }
       }
       absamp *= csound->dbfs_to_float;
       if (ST(osfopen))
         *ST(outbufp)++ = absamp;
+      if (absamp > FL(1.0)) {           /* out of range?     */
+        /*   report it  */
+        rngp = csound->rngcnt + (maxampp - csound->maxamp);
+        (*rngp)++;
+        csound->rngflg = 1;
+      }
       if (csound->multichan) {
         maxps++;
         if (++maxampp >= csound->maxampend)
@@ -150,7 +147,7 @@ void spoutsf(void *csound_)
       if (ST(osfopen)) {
         csound->nrecs++;
         csound->audtran(csound, ST(outbuf), ST(outbufsiz)); /* Flush buffer */
-        ST(outbufp) = (MYFLT *) ST(outbuf);
+        ST(outbufp) = (MYFLT*) ST(outbuf);
       }
       ST(outbufrem) = csound->oparms->outbufsamps;
       if (spoutrem) goto nchk;
@@ -727,6 +724,7 @@ void iotranset(ENVIRON *csound)
     /* direct recv & tran calls to the right audio formatter  */
 {   /*                            & init its audio_io bufptr  */
     csound->spinrecv = sndfilein;
+    csound->spoutran = spoutsf;
 }
 
 void bytrev4(char *buf, int nbytes)     /* reverse bytes in buf of longs */
