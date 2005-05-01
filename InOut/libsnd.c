@@ -96,7 +96,7 @@ static int format_nbytes(int fmt)
    audtran to flush when this happens.
 */
 
-void spoutsf(void *csound_)
+static void spoutsf(void *csound_)
 {
     ENVIRON       *csound = (ENVIRON*) csound_;
     int           n, spoutrem = csound->nspout;
@@ -675,12 +675,12 @@ static void sndwrterr(void *csound, unsigned nret, unsigned nput)
   /* report soundfile write(osfd) error   */
   /* called after chk of write() bytecnt  */
 {
-    ENVIRON *p = (ENVIRON*)csound;
+    ENVIRON *p = (ENVIRON*) csound;
     void sfcloseout(void*);
     p->Message(csound,
                Str("soundfile write returned bytecount of %d, not %d\n"),
-               nret,nput);
-    p->Message(csound,Str("(disk may be full...\n closing the file ...)\n"));
+               nret, nput);
+    p->Message(csound, Str("(disk may be full...\n closing the file ...)\n"));
     ST(outbufrem) = p->oparms->outbufsamps;     /* consider buf is flushed */
     sfcloseout(csound);                         /* & try to close the file */
     csoundDie(csound, Str("\t... closed\n"));
