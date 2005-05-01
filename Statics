@@ -30,19 +30,6 @@ Engine/musmon.c:static  EVENT   *lsect = NULL;
 Engine/rdscor.c:static char *sstrbuf = NULL;
 Engine/rdscor.c:static int  sstrlen = 0;
 
-InOut/libsnd.c:static  SNDFILE *outfile;
-InOut/libsnd.c:static  SNDFILE *infile;
-InOut/libsnd.c:static  char    *sfoutname;                     /* soundout filename    */
-InOut/libsnd.c:static  MYFLT   *outbufp;                       /* MYFLT pntr           */
-InOut/libsnd.c:static  unsigned inbufrem;
-InOut/libsnd.c:static  unsigned outbufrem;                     /* in monosamps         */
-InOut/libsnd.c:static  unsigned inbufsiz,  outbufsiz;          /* alloc in sfopenin/out     */
-InOut/libsnd.c:static  int     isfd;
-InOut/libsnd.c:static  int     osfd;
-InOut/libsnd.c:static  int     pipdevin = 0, pipdevout = 0;    /* mod by sfopenin,sfopenout */
-InOut/libsnd.c:static  SOUNDIN *p;    /* to be passed via sreadin() */
-InOut/libsnd.c:static  long    datpos= 0L;       /* Used in resetting only */
-
 InOut/pmidi.c:static  int             not_started = 1;
 
 InOut/rtpa.c:static PA_BLOCKING_STREAM *pabsRead = 0;

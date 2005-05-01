@@ -606,16 +606,6 @@ extern "C" {
     return ((ENVIRON*) csound)->oparms->outbufsamps;
   }
 
-  PUBLIC void *csoundGetInputBuffer(void *csound)
-  {
-    return inbuf;
-  }
-
-  PUBLIC void *csoundGetOutputBuffer(void *csound)
-  {
-    return outbuf;
-  }
-
   PUBLIC MYFLT* csoundGetSpin(void *csound)
   {
     return ((ENVIRON *)csound)->spin;

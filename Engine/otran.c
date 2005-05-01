@@ -67,8 +67,6 @@ static  NAME    *lclnamset(ENVIRON *, char *);
 #define ST(x)   (((OTRAN_GLOBALS*) ((ENVIRON*) csound)->otranGlobals)->x)
 
 extern  void    rdorchfile(ENVIRON*);
-
-extern  void    (*spinrecv)(void*), (*spoutran)(void*);
 extern  void    spoutsf(void*);
 
 #define KTYPE   1
@@ -93,8 +91,8 @@ void csoundDefaultSpouTran(void *csound)
 
 void tranRESET(ENVIRON *csound)
 {
-    spinrecv            = csoundDefaultSpinRecv;
-    spoutran            = spoutsf;
+    csound->spinrecv    = csoundDefaultSpinRecv;
+    csound->spoutran    = spoutsf;
     if (csound->otranGlobals != NULL) {
       csound->Free(csound, csound->otranGlobals);
       csound->otranGlobals = NULL;

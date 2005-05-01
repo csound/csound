@@ -714,7 +714,7 @@ extern "C" {
                                                   int force_opcode);
     char *(*strarg2name)(struct ENVIRON_*, char*, void*, const char*, int);
     void (*rewriteheader)(SNDFILE *ofd, int verbose);
-    void (*writeheader)(int ofd, char *ofname);
+    void (*writeheader)(struct ENVIRON_ *csound, int ofd, char *ofname);
     void *(*SAsndgetset)(void*, char*, void*, MYFLT*, MYFLT*, MYFLT*, int);
     void *(*sndgetset)(void*, void*);
     int (*getsndin)(void*, void*, MYFLT*, int, void*);
@@ -934,12 +934,16 @@ extern "C" {
     void          *rdorchGlobals;
     void          *sreadGlobals;
     int           strVarMaxLen;     /* maximum length of string variables + 1 */
-    int           strVarSamples;     /* number of MYFLT locations for string */
+    int           strVarSamples;    /* number of MYFLT locations for string */
     void          *extractGlobals;
-    void          *libsndGlobals;
+    void          *oneFileGlobals;
     void          *lineventGlobals;
     void          *musmonGlobals;
-    void          *oneFileGlobals;
+    void          *libsndGlobals;
+    void          (*spinrecv)(void*);
+    void          (*spoutran)(void*);
+    int           (*audrecv)(void*, MYFLT*, int);
+    void          (*audtran)(void*, MYFLT*, int);
   } ENVIRON;
 
 #include "text.h"
