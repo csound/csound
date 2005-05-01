@@ -30,16 +30,11 @@
 
 #define CSD_MAX_LINE_LEN    4096
 
-/* FIXME: remove all these static variables */
-static char buffer[CSD_MAX_LINE_LEN];
 #ifdef WIN32
 #undef L_tmpnam
 #define L_tmpnam (200)
 #endif
-static char orcname[L_tmpnam+4];
-       char sconame[L_tmpnam+4];
-static char midname[L_tmpnam+4];
-static int midiSet;
+
 #ifndef TRUE
 #define TRUE (1)
 #define FALSE (0)
@@ -49,6 +44,16 @@ typedef struct namelst {
   char           *name;
   struct namelst *next;
 } NAMELST;
+
+typedef struct {
+    char    buffer[CSD_MAX_LINE_LEN];
+    char    orcname[L_tmpnam + 4];
+    char    sconame[L_tmpnam + 4];
+    char    midname[L_tmpnam + 4];
+    int     midiSet;
+} ONE_FILE_GLOBALS;
+
+#define ST(x)   (((ONE_FILE_GLOBALS*) ((ENVIRON*) csound)->oneFileGlobals)->x)
 
 #ifdef WIN32
 char *mytmpnam(char *a)
@@ -61,6 +66,20 @@ char *mytmpnam(char *a)
     return a;
 }
 #endif
+
+static void alloc_globals(void *csound)
+{
+    if (((ENVIRON*) csound)->oneFileGlobals == NULL) {
+      ((ENVIRON*) csound)->oneFileGlobals = mcalloc(csound,
+                                                    sizeof(ONE_FILE_GLOBALS));
+    }
+}
+
+char *get_sconame(void *csound)
+{
+    alloc_globals(csound);
+    return ST(sconame);
+}
 
 static char *my_fgets(char *s, int n, FILE *stream)
 {
@@ -134,10 +153,11 @@ int readOptions(void *csound, FILE *unf)
     int argc = 0;
     char *argv[100];
 
-    while (my_fgets(buffer, CSD_MAX_LINE_LEN, unf)!= NULL) {
-      p = buffer;
+    alloc_globals(csound);
+    while (my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf)!= NULL) {
+      p = ST(buffer);
       while (*p==' ' || *p=='\t') p++;
-      if (strstr(p,"</CsOptions>") == buffer) {
+      if (strstr(p,"</CsOptions>") == ST(buffer)) {
         return TRUE;
       }
       /**
@@ -178,8 +198,8 @@ int readOptions(void *csound, FILE *unf)
             if (*p=='*') {
               p++; goto top;
             }
-            my_fgets(buffer, CSD_MAX_LINE_LEN, unf);
-            p = buffer; goto top;
+            my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf);
+            p = ST(buffer); goto top;
           }
           argv[++argc] = p;
         }
@@ -204,23 +224,23 @@ static int createOrchestra(void *csound, FILE *unf)
     char *p;
     FILE *orcf;
 
-    tmpnam(orcname);            /* Generate orchestra name */
-    if ((p=strchr(orcname, '.')) != NULL) *p='\0'; /* with extention */
-    strcat(orcname, ".orc");
-    orcf = fopen(orcname, "w");
-    csoundMessage(csound, Str("Creating %s (%p)\n"), orcname, orcf);
+    tmpnam(ST(orcname));            /* Generate orchestra name */
+    if ((p=strchr(ST(orcname), '.')) != NULL) *p='\0'; /* with extention */
+    strcat(ST(orcname), ".orc");
+    orcf = fopen(ST(orcname), "w");
+    csoundMessage(csound, Str("Creating %s (%p)\n"), ST(orcname), orcf);
     if (orcf == NULL) {
-      csoundDie(csound, Str("Failed to create %s"), orcname);
+      csoundDie(csound, Str("Failed to create %s"), ST(orcname));
     }
-    while (my_fgets(buffer, CSD_MAX_LINE_LEN, unf)!= NULL) {
-      p = buffer;
+    while (my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf)!= NULL) {
+      p = ST(buffer);
       while (*p==' '||*p=='\t') p++;
-      if (strstr(p,"</CsInstruments>") == buffer) {
+      if (strstr(p,"</CsInstruments>") == ST(buffer)) {
         fclose(orcf);
-        add_tmpfile(csound, orcname);           /* IV - Feb 03 2005 */
+        add_tmpfile(csound, ST(orcname));           /* IV - Feb 03 2005 */
         return TRUE;
       }
-      else fputs(buffer, orcf);
+      else fputs(ST(buffer), orcf);
     }
     return FALSE;
 }
@@ -231,23 +251,23 @@ static int createScore(void *csound, FILE *unf)
     char *p;
     FILE *scof;
 
-    tmpnam(sconame);            /* Generate score name */
-    if ((p=strchr(sconame, '.')) != NULL) *p='\0'; /* with extention */
-    strcat(sconame, ".sco");
-    scof = fopen(sconame, "w");
+    tmpnam(ST(sconame));            /* Generate score name */
+    if ((p=strchr(ST(sconame), '.')) != NULL) *p='\0'; /* with extention */
+    strcat(ST(sconame), ".sco");
+    scof = fopen(ST(sconame), "w");
         /*RWD 3:2000*/
     if (scof==NULL)
       return FALSE;
 
-    while (my_fgets(buffer, CSD_MAX_LINE_LEN, unf)!= NULL) {
-      p = buffer;
+    while (my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf)!= NULL) {
+      p = ST(buffer);
       while (*p==' '||*p=='\t') p++;
-     if (strstr(p,"</CsScore>") == buffer) {
+     if (strstr(p,"</CsScore>") == ST(buffer)) {
         fclose(scof);
-        add_tmpfile(csound, sconame);           /* IV - Feb 03 2005 */
+        add_tmpfile(csound, ST(sconame));           /* IV - Feb 03 2005 */
         return TRUE;
       }
-      else fputs(buffer, scof);
+      else fputs(ST(buffer), scof);
     }
     return FALSE;
 }
@@ -259,18 +279,18 @@ static int createMIDI(void *csound, FILE *unf)
     FILE *midf;
     int c;
 
-    if (tmpnam(midname)==NULL) { /* Generate MIDI file name */
+    if (tmpnam(ST(midname))==NULL) { /* Generate MIDI file name */
       csoundDie(csound, Str("Cannot create temporary file for MIDI subfile"));
     }
-    if ((p=strchr(midname, '.')) != NULL) *p='\0'; /* with extention */
-    strcat(midname, ".mid");
-    midf = fopen(midname, "wb");
+    if ((p=strchr(ST(midname), '.')) != NULL) *p='\0'; /* with extention */
+    strcat(ST(midname), ".mid");
+    midf = fopen(ST(midname), "wb");
     if (midf==NULL) {
       csoundDie(csound, Str("Cannot open temporary file (%s) for MIDI subfile"),
-                        midname);
+                        ST(midname));
     }
-    my_fgets(buffer, CSD_MAX_LINE_LEN, unf);
-    if (sscanf(buffer, Str("Size = %d"), &size)==0) {
+    my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf);
+    if (sscanf(ST(buffer), Str("Size = %d"), &size)==0) {
       csoundDie(csound, Str("Error in reading MIDI subfile -- no size read"));
     }
     for (; size > 0; size--) {
@@ -278,13 +298,13 @@ static int createMIDI(void *csound, FILE *unf)
       putc(c, midf);
     }
     fclose(midf);
-    add_tmpfile(csound, midname);               /* IV - Feb 03 2005 */
-    midiSet = TRUE;
+    add_tmpfile(csound, ST(midname));               /* IV - Feb 03 2005 */
+    ST(midiSet) = TRUE;
     while (TRUE) {
-      if (my_fgets(buffer, CSD_MAX_LINE_LEN, unf)!= NULL) {
-        p = buffer;
+      if (my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf)!= NULL) {
+        p = ST(buffer);
         while (*p==' '||*p=='\t') p++;
-        if (strstr(p,"</CsMidifile>") == buffer) {
+        if (strstr(p,"</CsMidifile>") == ST(buffer)) {
           return TRUE;
         }
       }
@@ -344,25 +364,25 @@ static int createMIDI2(void *csound, FILE *unf)
     char *p;
     FILE *midf;
 
-    if (tmpnam(midname)==NULL) { /* Generate MIDI file name */
+    if (tmpnam(ST(midname))==NULL) { /* Generate MIDI file name */
       csoundDie(csound, Str("Cannot create temporary file for MIDI subfile"));
     }
-    if ((p=strchr(midname, '.')) != NULL) *p='\0'; /* with extention */
-    strcat(midname, ".mid");
-    midf = fopen(midname, "wb");
+    if ((p=strchr(ST(midname), '.')) != NULL) *p='\0'; /* with extention */
+    strcat(ST(midname), ".mid");
+    midf = fopen(ST(midname), "wb");
     if (midf==NULL) {
       csoundDie(csound, Str("Cannot open temporary file (%s) for MIDI subfile"),
-                        midname);
+                        ST(midname));
     }
     read_base64(csound, unf, midf);
     fclose(midf);
-    add_tmpfile(csound, midname);               /* IV - Feb 03 2005 */
-    midiSet = TRUE;
+    add_tmpfile(csound, ST(midname));               /* IV - Feb 03 2005 */
+    ST(midiSet) = TRUE;
     while (TRUE) {
-      if (my_fgets(buffer, CSD_MAX_LINE_LEN, unf)!= NULL) {
-        p = buffer;
+      if (my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf)!= NULL) {
+        p = ST(buffer);
         while (*p==' '||*p=='\t') p++;
-        if (strstr(p,"</CsMidifileB>") == buffer) {
+        if (strstr(p,"</CsMidifileB>") == ST(buffer)) {
           return TRUE;
         }
       }
@@ -376,7 +396,7 @@ static int createSample(void *csound, FILE *unf)
     FILE *smpf;
     char sampname[256];
 
-    sscanf(buffer, "<CsSampleB filename=%d>", &num);
+    sscanf(ST(buffer), "<CsSampleB filename=%d>", &num);
     sprintf(sampname, "soundin.%d", num);
     if ((smpf=fopen(sampname, "r")) != NULL) {
       fclose(smpf);
@@ -390,10 +410,10 @@ static int createSample(void *csound, FILE *unf)
     fclose(smpf);
     add_tmpfile(csound, sampname);              /* IV - Feb 03 2005 */
     while (TRUE) {
-      if (my_fgets(buffer, CSD_MAX_LINE_LEN, unf)!= NULL) {
-        char *p = buffer;
+      if (my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf)!= NULL) {
+        char *p = ST(buffer);
         while (*p==' '||*p=='\t') p++;
-        if (strstr(p,"</CsSampleB>") == buffer) {
+        if (strstr(p,"</CsSampleB>") == ST(buffer)) {
           return TRUE;
         }
       }
@@ -407,7 +427,7 @@ static int createFile(void *csound, FILE *unf)
     char filename[256];
 
     filename[0] = '\0';
-    sscanf(buffer, "<CsFileB filename=%s>", filename);
+    sscanf(ST(buffer), "<CsFileB filename=%s>", filename);
     if (filename[0] != '\0' && filename[strlen(filename) - 1] == '>')
       filename[strlen(filename) - 1] = '\0';
     if ((smpf=fopen(filename, "r")) != NULL) {
@@ -423,10 +443,10 @@ static int createFile(void *csound, FILE *unf)
     add_tmpfile(csound, filename);              /* IV - Feb 03 2005 */
 
     while (TRUE) {
-      if (my_fgets(buffer, CSD_MAX_LINE_LEN, unf)!= NULL) {
-        char *p = buffer;
+      if (my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf)!= NULL) {
+        char *p = ST(buffer);
         while (*p==' '||*p=='\t') p++;
-        if (strstr(p,"</CsFileB>") == buffer) {
+        if (strstr(p,"</CsFileB>") == ST(buffer)) {
           return TRUE;
         }
       }
@@ -434,14 +454,14 @@ static int createFile(void *csound, FILE *unf)
     return FALSE;
 }
 
-static int checkVersion(FILE *unf)
+static int checkVersion(void *csound, FILE *unf)
 {
     char *p;
     int major = 0, minor = 0;
     int result = TRUE;
     int version = csoundGetVersion();
-    while (my_fgets(buffer, CSD_MAX_LINE_LEN, unf)!= NULL) {
-      p = buffer;
+    while (my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf)!= NULL) {
+      p = ST(buffer);
       while (*p==' '||*p=='\t') p++;
       if (strstr(p, "</CsVersion>")==0)
         return result;
@@ -464,18 +484,18 @@ static int checkVersion(FILE *unf)
     return result;
 }
 
-static int checkLicence(FILE *unf)
+static int checkLicence(void *csound, FILE *unf)
 {
     char *p;
-    printf("**** Licence Information****\n");
-    while (my_fgets(buffer, CSD_MAX_LINE_LEN, unf)!= NULL) {
-      p = buffer;
-      while (*p==' '||*p=='\t') p++;
-      if (strstr(p, "</CsLicence>")!=NULL) {
-        printf("**** End of Licence Information****\n");
+    csoundMessage(csound, Str("**** Licence Information ****\n"));
+    while (my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf) != NULL) {
+      p = ST(buffer);
+      while (*p == ' ' || *p == '\t') p++;
+      if (strstr(p, "</CsLicence>") != NULL) {
+        csoundMessage(csound, Str("**** End of Licence Information ****\n"));
         return TRUE;
       }
-      printf("**** %s ****\n", p);
+      csoundMessage(csound, "**** %s ****\n", p);
     }
     return TRUE;
 }
@@ -487,13 +507,13 @@ static int eat_to_eol(char *buf)
     return i;   /* keep the \n for further processing */
 }
 
-int blank_buffer(void)
+static int blank_buffer(void *csound)
 {
     int i=0;
-    if (buffer[i] == ';')
-      i += eat_to_eol(&buffer[i]);
-    while (buffer[i]!='\n' && buffer[i]!='\0') {
-      if (buffer[i]!=' ' && buffer[i]!='\t') return FALSE;
+    if (ST(buffer)[i] == ';')
+      i += eat_to_eol(&ST(buffer)[i]);
+    while (ST(buffer)[i] != '\n' && ST(buffer)[i] != '\0') {
+      if (ST(buffer)[i] != ' ' && ST(buffer)[i] != '\t') return FALSE;
       i++;
     }
     return TRUE;
@@ -502,89 +522,89 @@ int blank_buffer(void)
 int read_unified_file(void *csound_, char **pname, char **score)
 {
     ENVIRON *csound = (ENVIRON*) csound_;
-    char *name = *pname;
-    FILE *unf  = fopen(name, "rb"); /* Need to open in binary to deal with
-                                       MIDI and the like. */
-    int result = TRUE;
-    int started = FALSE;
-    int r;
-        /*RWD 3:2000  fopen can fail...*/
-    if (unf==NULL)
+    char  *name = *pname;
+    FILE  *unf  = fopen(name, "rb");    /* Need to open in binary to deal with
+                                           MIDI and the like. */
+    int   result = TRUE;
+    int   started = FALSE;
+    int   r;
+    /* RWD 3:2000 fopen can fail... */
+    if (unf == NULL)
       return 0;
-
-    orcname[0] = sconame[0] = midname[0] = '\0';
-    midiSet = FALSE;
+    alloc_globals(csound);
+    ST(orcname)[0] = ST(sconame)[0] = ST(midname)[0] = '\0';
+    ST(midiSet) = FALSE;
 #ifdef _DEBUG
     csoundMessage(csound, "Calling unified file system with %s\n", name);
 #endif
-    while (my_fgets(buffer, CSD_MAX_LINE_LEN, unf)) {
-      char *p = buffer;
+    while (my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf)) {
+      char *p = ST(buffer);
       while (*p==' '||*p=='\t') p++;
-      if (strstr(p,"<CsoundSynthesizer>") == buffer ||
-          strstr(p,"<CsoundSynthesiser>") == buffer) {
+      if (strstr(p,"<CsoundSynthesizer>") == ST(buffer) ||
+          strstr(p,"<CsoundSynthesiser>") == ST(buffer)) {
         csoundMessage(csound, Str("STARTING FILE\n"));
         started = TRUE;
       }
-      else if (strstr(p,"</CsoundSynthesizer>") == buffer ||
-               strstr(p,"</CsoundSynthesiser>") == buffer) {
-        *pname = orcname;
-        *score = sconame;
-        if (midiSet) {
-          csound->oparms->FMidiname = midname;
+      else if (strstr(p,"</CsoundSynthesizer>") == ST(buffer) ||
+               strstr(p,"</CsoundSynthesiser>") == ST(buffer)) {
+        *pname = ST(orcname);
+        *score = ST(sconame);
+        if (ST(midiSet)) {
+          csound->oparms->FMidiname = ST(midname);
           csound->oparms->FMidiin = 1;
         }
         fclose(unf);
         return result;
       }
-      else if (strstr(p,"<CsOptions>") == buffer) {
+      else if (strstr(p,"<CsOptions>") == ST(buffer)) {
         csoundMessage(csound, Str("Creating options\n"));
         csound->orchname = NULL;    /* allow orchestra/score name in CSD file */
         r = readOptions(csound, unf);
         result = r && result;
       }
-      else if (strstr(p,"<CsInstruments>") == buffer) {
+      else if (strstr(p,"<CsInstruments>") == ST(buffer)) {
         csoundMessage(csound, Str("Creating orchestra\n"));
         r = createOrchestra(csound, unf);
         result = r && result;
       }
-      else if (strstr(p,"<CsScore>") == buffer) {
+      else if (strstr(p,"<CsScore>") == ST(buffer)) {
         csoundMessage(csound, Str("Creating score\n"));
         r = createScore(csound, unf);
         result = r && result;
       }
-      else if (strstr(p,"<CsMidifile>") == buffer) {
+      else if (strstr(p,"<CsMidifile>") == ST(buffer)) {
         r = createMIDI(csound, unf);
         result = r && result;
       }
-      else if (strstr(p,"<CsMidifileB>") == buffer) {
+      else if (strstr(p,"<CsMidifileB>") == ST(buffer)) {
         r = createMIDI2(csound, unf);
         result = r && result;
       }
-      else if (strstr(p,"<CsSampleB filename=") == buffer) {
+      else if (strstr(p,"<CsSampleB filename=") == ST(buffer)) {
         r = createSample(csound, unf);
         result = r && result;
       }
-      else if (strstr(p,"<CsFileB filename=") == buffer) {
+      else if (strstr(p,"<CsFileB filename=") == ST(buffer)) {
         r = createFile(csound, unf);
         result = r && result;
       }
-      else if (strstr(p,"<CsVersion>") == buffer) {
-        r = checkVersion(unf);
+      else if (strstr(p,"<CsVersion>") == ST(buffer)) {
+        r = checkVersion(csound, unf);
         result = r && result;
       }
-      else if (strstr(p,"<CsLicence>") == buffer) {
-        r = checkLicence(unf);
+      else if (strstr(p,"<CsLicence>") == ST(buffer)) {
+        r = checkLicence(csound, unf);
         result = r && result;
       }
-      else if (blank_buffer()) continue;
-      else if (started && strchr(p, '<') == buffer) {
-        csoundMessage(csound, Str("unknown command: %s\n"), buffer);
+      else if (blank_buffer(csound)) continue;
+      else if (started && strchr(p, '<') == ST(buffer)) {
+        csoundMessage(csound, Str("unknown command: %s\n"), ST(buffer));
       }
     }
-    *pname = orcname;
-    *score = sconame;
-    if (midiSet) {
-      csound->oparms->FMidiname = midname;
+    *pname = ST(orcname);
+    *score = ST(sconame);
+    if (ST(midiSet)) {
+      csound->oparms->FMidiname = ST(midname);
       csound->oparms->FMidiin = 1;
     }
     fclose(unf);

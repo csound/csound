@@ -935,6 +935,11 @@ extern "C" {
     void          *sreadGlobals;
     int           strVarMaxLen;     /* maximum length of string variables + 1 */
     int           strVarSamples;     /* number of MYFLT locations for string */
+    void          *extractGlobals;
+    void          *libsndGlobals;
+    void          *lineventGlobals;
+    void          *musmonGlobals;
+    void          *oneFileGlobals;
   } ENVIRON;
 
 #include "text.h"
