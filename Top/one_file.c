@@ -50,6 +50,7 @@ typedef struct {
     char    orcname[L_tmpnam + 4];
     char    sconame[L_tmpnam + 4];
     char    midname[L_tmpnam + 4];
+    char    *licence;
     int     midiSet;
 } ONE_FILE_GLOBALS;
 
@@ -487,7 +488,9 @@ static int checkVersion(void *csound, FILE *unf)
 static int checkLicence(void *csound, FILE *unf)
 {
     char *p;
+    int len = 1;
     csoundMessage(csound, Str("**** Licence Information ****\n"));
+    ST(licence) = NULL;
     while (my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf) != NULL) {
       p = ST(buffer);
       while (*p == ' ' || *p == '\t') p++;
@@ -496,6 +499,8 @@ static int checkLicence(void *csound, FILE *unf)
         return TRUE;
       }
       csoundMessage(csound, "**** %s ****\n", p);
+      ST(licence) = realloc(ST(licence), len = len+strlen(ST(buffer)));
+      strcat(ST(licence), ST(buffer));
     }
     return TRUE;
 }

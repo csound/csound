@@ -535,6 +535,10 @@ void sfopenout(void *csound_)                   /* init for sound out       */
         s = (char*) (p->QueryGlobalVariable(p, "::SF::id_title"));
         if (s != NULL && s[0] != '\0')
           sf_set_string(ST(outfile), SF_STR_TITLE, s);
+        /*
+       *** if   oneFileGlobals->licence is set the 
+       *** sf_set_string(ST(outfile), SF_STR_COPYRIGHT, oneFileGlobals->licence)
+       */
         s = (char*) (p->QueryGlobalVariable(p, "::SF::id_copyright"));
         if (s != NULL && s[0] != '\0')
           sf_set_string(ST(outfile), SF_STR_COPYRIGHT, s);
