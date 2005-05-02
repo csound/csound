@@ -783,6 +783,8 @@ else:
     print "CONFIGURATION DECISION: Building OSC plugin."
     oscEnvironment = pluginEnvironment.Copy()
     oscEnvironment.Append(LIBS = ['lo'])
+    oscEnvironment.Append(LIBS = ['pthread'])
+#    commonEnvironment.Append(LIBS = ['lo'])
     pluginLibraries.append(oscEnvironment.SharedLibrary('osc',
                                                         ['Opcodes/OSC.c']))
 
