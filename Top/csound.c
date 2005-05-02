@@ -25,13 +25,18 @@
  * 30 May 2002 - mkg add csound "this" pointer argument back into merge.
  * 27 Jun 2002 - mkg complete Linux dl code and Makefile
  */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <stdio.h>
+#include "csoundCore.h"
+#include "csmodule.h"
+
 #include <stdarg.h>
 #include <signal.h>
+#include <time.h>
+#include <ctype.h>
 #ifdef HAVE_SYS_TYPES_H
 # include <sys/types.h>
 #endif
@@ -39,21 +44,23 @@ extern "C" {
 # include <windows.h>
 #endif
 
-#include "csound.h"
-#include "csoundCore.h"
-#include "prototyp.h"
-#include "csmodule.h"
-
   int fltk_abort = 0;
 
+  /* from oload.c, initial state of ENVIRON structure */
   extern const ENVIRON cenviron_;
+  /* from threads.c */
+  void csoundLock(void);
+  void csoundUnLock(void);
 
   typedef struct csInstance_s {
     ENVIRON             *csound;
     struct csInstance_s *nxt;
   } csInstance_t;
 
-  static  int           init_done = 0;
+  /* initialisation state: */
+  /* 0: not done yet, 1: complete, 2: in progress, -1: failed */
+  static  volatile  int init_done = 0;
+  /* chain of allocated Csound instances */
   static  csInstance_t  *instance_list = NULL;
 
   static void destroy_all_instances(void)
@@ -69,14 +76,12 @@ extern "C" {
         break;
       csoundDestroy(p->csound);
     }
-#ifdef LINUX
+#if defined(LINUX) || defined(__unix) || defined(__unix__) || defined(__MACH__)
     usleep(250000);
-#else
-#ifndef MSVC /* VL MSVC fix */
-    sleep(1);
-#else
+#elif defined(WIN32)
     Sleep(1000);
-#endif
+#else
+    sleep(1);
 #endif
   }
 
@@ -229,20 +234,35 @@ extern "C" {
 
   PUBLIC int csoundInitialize(int *argc, char ***argv)
   {
-    csoundLock();
-    if (init_done) {
-      csoundUnLock();
-      return (init_done > 0 ? 0 : -1);
-    }
-    init_done = 1;
+    int n;
+    do {
+      csoundLock();
+      n = init_done;
+      switch (n) {
+        case 2:
+          csoundUnLock();
+#if defined(LINUX) || defined(__unix) || defined(__unix__) || defined(__MACH__)
+          usleep(1000);
+#elif defined(WIN32)
+          Sleep(1);
+#endif
+        case 0:
+          break;
+        default:
+          csoundUnLock();
+          return (n >= 0 ? 0 : -1);
+      }
+    } while (n);
+    init_done = 2;
     csoundUnLock();
     init_getstring(*argc, *argv);
     if (getTimeResolution() != 0) {
-      init_done = -1;
+      csoundLock(); init_done = -1; csoundUnLock();
       return -1;
     }
     install_signal_handler();
     atexit(destroy_all_instances);
+    csoundLock(); init_done = 1; csoundUnLock();
     return 0;
   }
 
@@ -250,7 +270,7 @@ extern "C" {
   {
     ENVIRON       *csound;
     csInstance_t  *p;
-    if (!init_done) {
+    if (init_done != 1) {
       int argc = 1;
       char *argv_[2] = { "csound", NULL };
       char **argv = &(argv_[0]);
@@ -1503,9 +1523,6 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
   }
 
 /* -------- IV - Jan 27 2005: timer functions -------- */
-
-#include <time.h>
-#include <ctype.h>
 
 #if defined(WIN32)
 /* do not use UNIX code under Win32 */

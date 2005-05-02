@@ -46,11 +46,13 @@ PUBLIC void csoundDestroyThreadLock(void *csound, void *lock)
     CloseHandle((HANDLE) lock);
 }
 
-PUBLIC void csoundLock(void)
+/* internal functions for csound.c */
+
+void csoundLock(void)
 {
 }
 
-PUBLIC void csoundUnLock(void)
+void csoundUnLock(void)
 {
 }
 
@@ -112,14 +114,16 @@ void csoundDestroyThreadLock(void *csound, void *lock)
     mfree(csound, lock);
 }
 
+/* internal functions for csound.c */
+
 static  pthread_mutex_t cs_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-PUBLIC void csoundLock(void)
+void csoundLock(void)
 {
     pthread_mutex_lock(&cs_mutex);
 }
 
-PUBLIC void csoundUnLock(void)
+void csoundUnLock(void)
 {
     pthread_mutex_unlock(&cs_mutex);
 }
@@ -142,11 +146,13 @@ PUBLIC int csoundJoinThread(void *csound, void *thread)
     return 0;
 }
 
-PUBLIC void csoundLock(void)
+/* internal functions for csound.c */
+
+void csoundLock(void)
 {
 }
 
-PUBLIC void csoundUnLock(void)
+void csoundUnLock(void)
 {
 }
 

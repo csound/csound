@@ -82,7 +82,7 @@ FUNC    *csoundFTnp2Find(void*, MYFLT*);
 MYFLT   *csoundGetTable(void*, int, int*);
 void    cs_beep(ENVIRON *);
 MYFLT   intpow(MYFLT, long);
-void    list_opcodes(int);
+void    list_opcodes(ENVIRON *, int);
 short   sfsampsize(int);
 void    rewriteheader(SNDFILE* ofd, int verbose);
 void    scoreRESET(ENVIRON *p);
@@ -128,8 +128,6 @@ extern  ENVIRON cenviron;
 #define printf  csoundPrintf
 
 extern  int     fltk_abort;
-extern  MYFLT   *inbuf;
-extern  MYFLT   *outbuf;
 
 #ifdef __cplusplus
 }
