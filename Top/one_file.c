@@ -488,14 +488,17 @@ static int checkVersion(void *csound, FILE *unf)
 static int checkLicence(void *csound, FILE *unf)
 {
     char *p;
-    int len = 1;
+    int len = 20;
     csoundMessage(csound, Str("**** Licence Information ****\n"));
-    ST(licence) = NULL;
+    ST(licence) = (char*)malloc(20);
+    strcpy(ST(licence), "::SF::id_copyright=");
     while (my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf) != NULL) {
       p = ST(buffer);
       while (*p == ' ' || *p == '\t') p++;
       if (strstr(p, "</CsLicence>") != NULL) {
         csoundMessage(csound, Str("**** End of Licence Information ****\n"));
+        putenv(ST(licence));    /* Sets environment...... */
+        free(ST(licence));
         return TRUE;
       }
       csoundMessage(csound, "**** %s ****\n", p);
