@@ -21,12 +21,6 @@ Engine/linevent.c:    static EVTBLK *prve = NULL;
 Engine/linevent.c:    static char prvop = ' ';
 Engine/linevent.c:    static int prvpcnt = 0;
 
-Engine/musmon.c:static  short   sectno = 0;
-Engine/musmon.c:static  int     lplayed = 0;
-Engine/musmon.c:static  int     segamps, sormsg;
-Engine/musmon.c:static  EVENT   **ep, **epend;  /* pointers for stepping through lplay list */
-Engine/musmon.c:static  EVENT   *lsect = NULL;
-
 Engine/rdscor.c:static char *sstrbuf = NULL;
 Engine/rdscor.c:static int  sstrlen = 0;
 

@@ -274,7 +274,6 @@ const ENVIRON cenviron_ = {
         { FL(0.0)},     /*  maxamp              */
         { FL(0.0)},     /*  smaxamp             */
         { FL(0.0)},     /*  omaxamp             */
-        NULL,           /*  maxampend           */
         {0}, {0}, {0},  /*  maxpos, smaxpos, omaxpos */
         0,              /*  reinitflag          */
         0,              /*  tieflag             */
@@ -382,7 +381,10 @@ const ENVIRON cenviron_ = {
         (void (*)(void*)) NULL,         /*  spinrecv        */
         (void (*)(void*)) NULL,         /*  spoutran        */
         (int (*)(void*, MYFLT*, int)) NULL,     /*  audrecv */
-        (void (*)(void*, MYFLT*, int)) NULL     /*  audtran */
+        (void (*)(void*, MYFLT*, int)) NULL,    /*  audtran */
+        0,              /*  warped              */
+        0,              /*  sstrlen             */
+        (char*) NULL    /*  sstrbuf             */
 };
 
 /* otran.c */

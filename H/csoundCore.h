@@ -835,7 +835,6 @@ extern "C" {
     MYFLT         maxamp[MAXCHNLS];
     MYFLT         smaxamp[MAXCHNLS];
     MYFLT         omaxamp[MAXCHNLS];
-    MYFLT         *maxampend;
     unsigned long maxpos[MAXCHNLS], smaxpos[MAXCHNLS], omaxpos[MAXCHNLS];
     int           reinitflag;
     int           tieflag;
@@ -944,6 +943,9 @@ extern "C" {
     void          (*spoutran)(void*);
     int           (*audrecv)(void*, MYFLT*, int);
     void          (*audtran)(void*, MYFLT*, int);
+    int           warped;           /* rdscor.c */
+    int           sstrlen;
+    char          *sstrbuf;
   } ENVIRON;
 
 #include "text.h"

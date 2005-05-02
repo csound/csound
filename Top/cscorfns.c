@@ -64,7 +64,7 @@ void cscoreRESET(ENVIRON *csound)
     nxtevt    = NULL;
     nxtevtblk = NULL;
     infiles   = NULL;
-    warped    = warpout  = 0;
+    csound->warped  = warpout  = 0;
     evtmp     = NULL;
     evtmpblk  = NULL;
     if (spaceanchor.nxtspace != NULL) {
@@ -77,289 +77,296 @@ void cscoreRESET(ENVIRON *csound)
     }
 }
 
-static SPACE *morespace(void)   /* alloc large amount of memory, keep in a */
-{                               /* chain. Put SPACE blk at top & init rem as */
-                                /* a FREE blk */
-        SPACE *space, *prvspace;
-        CSHDR *free;
+static SPACE *morespace(ENVIRON *csound)
+{                               /* alloc large amount of memory, keep in a */
+    SPACE *space, *prvspace;    /* chain. Put SPACE blk at top & init rem as */
+    CSHDR *free;                /* a FREE blk */
 
-        prvspace = &spaceanchor;
-        while ((space = prvspace->nxtspace) != NULL)
-            prvspace = space;
-        space = (SPACE *) mmalloc(&cenviron, (long) MAXALLOC);
-        prvspace->nxtspace = space;
-        space->nxtspace = NULL;
-        space->h.prvblk = NULL;
-        space->h.nxtblk = (CSHDR *) ((char *) space + sizeof(SPACE));
-        space->h.type = TYP_SPACE;
-        space->h.size = sizeof(SPACE);
-        free = space->h.nxtblk;
-        free->prvblk = (CSHDR *) space;    /* init rem as a TYP_FREE blk */
-        free->nxtblk = NULL;
-        free->type = TYP_FREE;
-        free->size = MAXALLOC - sizeof(SPACE);
-        return(space);
+    prvspace = &spaceanchor;
+    while ((space = prvspace->nxtspace) != NULL)
+      prvspace = space;
+    space = (SPACE *) mmalloc(csound, (long) MAXALLOC);
+    prvspace->nxtspace = space;
+    space->nxtspace = NULL;
+    space->h.prvblk = NULL;
+    space->h.nxtblk = (CSHDR *) ((char *) space + sizeof(SPACE));
+    space->h.type = TYP_SPACE;
+    space->h.size = sizeof(SPACE);
+    free = space->h.nxtblk;
+    free->prvblk = (CSHDR *) space;    /* init rem as a TYP_FREE blk */
+    free->nxtblk = NULL;
+    free->type = TYP_FREE;
+    free->size = MAXALLOC - sizeof(SPACE);
+    return(space);
 }
 
-static CSHDR *getfree(int minfreesiz)
+static CSHDR *getfree(ENVIRON *csound, int minfreesiz)
     /* search space chains for min size free blk */
     /* else alloc new space blk & reset fast free */
 {
-        SPACE *curspace;
-        CSHDR *blkp;
+    SPACE *curspace;
+    CSHDR *blkp;
 
-        curspace = &spaceanchor;
-        while ((curspace = curspace->nxtspace) != NULL) {
-            blkp = curspace->h.nxtblk;
-            do {
-                if (blkp->type == TYP_FREE && blkp->size >= minfreesiz)
-                    return(blkp);
-            } while ((blkp = blkp->nxtblk) != NULL);
-        }
-        curspace = morespace();              /* else alloc more space, and  */
-        nxtfree = curspace->h.nxtblk;        /* reset the fast free pointer */
-        return(nxtfree);
+    curspace = &spaceanchor;
+    while ((curspace = curspace->nxtspace) != NULL) {
+      blkp = curspace->h.nxtblk;
+      do {
+        if (blkp->type == TYP_FREE && blkp->size >= minfreesiz)
+          return(blkp);
+      } while ((blkp = blkp->nxtblk) != NULL);
+    }
+    curspace = morespace(csound);        /* else alloc more space, and  */
+    nxtfree = curspace->h.nxtblk;        /* reset the fast free pointer */
+    return(nxtfree);
 }
 
 static void csfree(CSHDR *bp)
     /* return a TYP_EVENT or TYP_EVLIST to free space */
     /* consolidate with any prev or follow free space */
 {
-        CSHDR *prvp, *nxtp;
+    CSHDR *prvp, *nxtp;
 
-        if ((prvp = bp->prvblk) != NULL && prvp->type == TYP_FREE) {
-            if ((nxtp = bp->nxtblk) != NULL && nxtp->type == TYP_FREE) {
-                if ((prvp->nxtblk = nxtp->nxtblk) != NULL)
-                    nxtp->nxtblk->prvblk = prvp;
-                prvp->size += bp->size + nxtp->size;
-            }
-            else {
-                if ((prvp->nxtblk = bp->nxtblk) != NULL)
-                    bp->nxtblk->prvblk = prvp;
-                prvp->size += bp->size;
-            }
-        }
-        else {
-            if ((nxtp = bp->nxtblk) != NULL && nxtp->type == TYP_FREE) {
-                if ((bp->nxtblk = nxtp->nxtblk) != NULL)
-                    nxtp->nxtblk->prvblk = bp;
-                bp->size += nxtp->size;
-            }
-            bp->type = TYP_FREE;
-        }
+    if ((prvp = bp->prvblk) != NULL && prvp->type == TYP_FREE) {
+      if ((nxtp = bp->nxtblk) != NULL && nxtp->type == TYP_FREE) {
+        if ((prvp->nxtblk = nxtp->nxtblk) != NULL)
+          nxtp->nxtblk->prvblk = prvp;
+        prvp->size += bp->size + nxtp->size;
+      }
+      else {
+        if ((prvp->nxtblk = bp->nxtblk) != NULL)
+          bp->nxtblk->prvblk = prvp;
+        prvp->size += bp->size;
+      }
+    }
+    else {
+      if ((nxtp = bp->nxtblk) != NULL && nxtp->type == TYP_FREE) {
+        if ((bp->nxtblk = nxtp->nxtblk) != NULL)
+          nxtp->nxtblk->prvblk = bp;
+        bp->size += nxtp->size;
+      }
+      bp->type = TYP_FREE;
+    }
 }
 
 EVLIST * lcreat(int nslots)         /* creat an array of event pointer slots */
 {
-        CSHDR *newblk, *newfree;
-        EVLIST *a;
-        int   needsiz = sizeof(EVLIST) + nslots * sizeof(EVENT *);
-        int   minfreesiz = needsiz + sizeof(CSHDR);
+    ENVIRON *csound = &cenviron;    /* FIXME: stub */
+    CSHDR *newblk, *newfree;
+    EVLIST *a;
+    int   needsiz = sizeof(EVLIST) + nslots * sizeof(EVENT *);
+    int   minfreesiz = needsiz + sizeof(CSHDR);
 
-        if (nxtfree != NULL && nxtfree->size >= minfreesiz)
-            newblk = nxtfree;
-        else newblk = getfree(minfreesiz);
-        newfree = (CSHDR *) ((char *)newblk + needsiz);
-        newfree->prvblk = newblk;
-        newfree->nxtblk = newblk->nxtblk;
-        newfree->type = TYP_FREE;
-        newfree->size = newblk->size - needsiz;
-        newblk->nxtblk = newfree;
-        newblk->type = TYP_EVLIST;
-        newblk->size = needsiz;
-        if (newblk == nxtfree)  nxtfree = newfree;
-        a = (EVLIST *) newblk;
-        a->nslots = nslots;
-        a->nevents= 0;
-        return(a);
+    if (nxtfree != NULL && nxtfree->size >= minfreesiz)
+      newblk = nxtfree;
+    else newblk = getfree(csound, minfreesiz);
+    newfree = (CSHDR *) ((char *)newblk + needsiz);
+    newfree->prvblk = newblk;
+    newfree->nxtblk = newblk->nxtblk;
+    newfree->type = TYP_FREE;
+    newfree->size = newblk->size - needsiz;
+    newblk->nxtblk = newfree;
+    newblk->type = TYP_EVLIST;
+    newblk->size = needsiz;
+    if (newblk == nxtfree)  nxtfree = newfree;
+    a = (EVLIST *) newblk;
+    a->nslots = nslots;
+    a->nevents= 0;
+    return(a);
 }
 
 EVENT * createv(int pcnt)                   /* creat a new event space */
 {
-        CSHDR *newblk, *newfree;
-        EVENT *e;
-        int   needsiz = sizeof(EVENT) + pcnt * sizeof(MYFLT);
-        int   minfreesiz = needsiz + sizeof(CSHDR);
+    ENVIRON *csound = &cenviron;    /* FIXME: stub */
+    CSHDR *newblk, *newfree;
+    EVENT *e;
+    int   needsiz = sizeof(EVENT) + pcnt * sizeof(MYFLT);
+    int   minfreesiz = needsiz + sizeof(CSHDR);
 
-        if (nxtfree != NULL && nxtfree->size >= minfreesiz)
-            newblk = nxtfree;
-        else newblk = getfree(minfreesiz);
-        newfree = (CSHDR *) ((char *)newblk + needsiz);
-        newfree->prvblk = newblk;
-        newfree->nxtblk = newblk->nxtblk;
-        newfree->type = TYP_FREE;
-        newfree->size = newblk->size - needsiz;
-        newblk->nxtblk = newfree;
-        newblk->type = TYP_EVENT;
-        newblk->size = needsiz;
-        if (newblk == nxtfree)  nxtfree = newfree;
-        e = (EVENT *) newblk;
-        e->pcnt = pcnt;
-        return(e);
+    if (nxtfree != NULL && nxtfree->size >= minfreesiz)
+      newblk = nxtfree;
+    else newblk = getfree(csound, minfreesiz);
+    newfree = (CSHDR *) ((char *)newblk + needsiz);
+    newfree->prvblk = newblk;
+    newfree->nxtblk = newblk->nxtblk;
+    newfree->type = TYP_FREE;
+    newfree->size = newblk->size - needsiz;
+    newblk->nxtblk = newfree;
+    newblk->type = TYP_EVENT;
+    newblk->size = needsiz;
+    if (newblk == nxtfree)  nxtfree = newfree;
+    e = (EVENT *) newblk;
+    e->pcnt = pcnt;
+    return(e);
 }
 
 EVENT * copyev(EVENT *e)                     /* make a new copy of an event */
 {
-        EVENT *f;
-        int  n;
-        MYFLT *p, *q;
+    EVENT *f;
+    int  n;
+    MYFLT *p, *q;
 
-        n = e->pcnt;
-        f = createv(n);
-        f->op = e->op;
-        f->strarg = e->strarg;
-        p = &e->p2orig;
-        q = &f->p2orig;
-        n += WMYFLTS;
-        while (n--)
-            *q++ = *p++;
-        return(f);
+    n = e->pcnt;
+    f = createv(n);
+    f->op = e->op;
+    f->strarg = e->strarg;
+    p = &e->p2orig;
+    q = &f->p2orig;
+    n += WMYFLTS;
+    while (n--)
+      *q++ = *p++;
+    return(f);
 }
 
 /* RWD: cannot addd init arg as this is a std public func */
 /* Can only do reentry by moving statics outside: fortunately, */
 /* names are unique */
 
-EVENT * defev(char *s)                    /* define an event from string arg */
+EVENT * defev(char *s)                  /* define an event from string arg */
 {
-        MYFLT *p, *q;
+    ENVIRON *csound = &cenviron;    /* FIXME: stub */
+    MYFLT *p, *q;
 
-        if (evtmp == NULL) {
-            evtmp = createv(PMAX);
-            evtmpblk = (EVTBLK *) &evtmp->strarg;
-        }
-        while (*s == ' ')
-            s++;
-        evtmp->op = *s++;                               /* read opcode */
-        while (*s == ' ')
-            s++;
-        p = &evtmp->p[1];
-        q = &evtmp->p[PMAX];
+    if (evtmp == NULL) {
+      evtmp = createv(PMAX);
+      evtmpblk = (EVTBLK *) &evtmp->strarg;
+    }
+    while (*s == ' ')
+      s++;
+    evtmp->op = *s++;                       /* read opcode */
+    while (*s == ' ')
+      s++;
+    p = &evtmp->p[1];
+    q = &evtmp->p[PMAX];
 #ifdef USE_DOUBLE
-        while (sscanf(s,"%lf",p++) > 0) {                /* read pfields */
+    while (sscanf(s,"%lf",p++) > 0) {       /* read pfields */
 #else
-        while (sscanf(s,"%f",p++) > 0) {                /* read pfields */
+    while (sscanf(s,"%f",p++) > 0) {        /* read pfields */
 #endif
-            while ((*s >= '0' && *s <= '9') || *s == '.' || *s == '-')
-                s++;
-            while (*s == ' ')
-                s++;
-            if (p > q && *s != '\0')  {         /* too many ? */
-                p++;
-                printf(Str("PMAX exceeded, string event truncated.\n"));
-                break;
-            }
-        }
-        evtmp->pcnt = p - &evtmp->p[1] - 1;   /* set count of params recvd */
-        evtmp->p2orig = evtmp->p[2];
-        evtmp->p3orig = evtmp->p[3];
-        return(copyev(evtmp));                /* copy event to a new space */
+      while ((*s >= '0' && *s <= '9') || *s == '.' || *s == '-')
+        s++;
+      while (*s == ' ')
+        s++;
+      if (p > q && *s != '\0')  {           /* too many ? */
+        p++;
+        csound->Message(csound,
+                        Str("PMAX exceeded, string event truncated.\n"));
+        break;
+      }
+    }
+    evtmp->pcnt = p - &evtmp->p[1] - 1;     /* set count of params recvd */
+    evtmp->p2orig = evtmp->p[2];
+    evtmp->p3orig = evtmp->p[3];
+    return(copyev(evtmp));                  /* copy event to a new space */
 }
 
 EVENT * getev(void)                  /* get nxt event from input score buf */
 {                                                 /*   and  refill the buf */
-        EVENT *e;
+    ENVIRON *csound = &cenviron;    /* FIXME: stub */
+    EVENT *e;
 
-        if (nxtevt->op != '\0')
-            e = copyev(nxtevt);
-        else e = NULL;
-        if (!(rdscor(&cenviron, nxtevtblk)))
-            nxtevt->op = '\0';
-        return(e);
+    if (nxtevt->op != '\0')
+      e = copyev(nxtevt);
+    else e = NULL;
+    if (!(rdscor(csound, nxtevtblk)))
+      nxtevt->op = '\0';
+    return(e);
 }
 
-void putev(EVENT *e)                      /* put an event to cscore outfile */
+void putev(EVENT *e)                    /* put an event to cscore outfile */
 {
-        int  pcnt;
-        MYFLT *q;
-        int  c = e->op;
+    ENVIRON *csound = &cenviron;    /* FIXME: stub */
+    int  pcnt;
+    MYFLT *q;
+    int  c = e->op;
 
-        if (c == 's')  warpout = 0;     /* new section:  init to non-warped */
-        putc(c, cenviron.oscfp);
-        q = &e->p[1];
-        if ((pcnt = e->pcnt)) {
-            if (pcnt--)         fprintf(cenviron.oscfp," %g",*q++);
-            else goto termin;
-            if (pcnt--) {
-                if (warpout)    fprintf(cenviron.oscfp," %g", e->p2orig);
-                                fprintf(cenviron.oscfp," %g",*q++);
-            }
-            else goto termin;
-            if (pcnt--) {
-                if (warpout)    fprintf(cenviron.oscfp," %g", e->p3orig);
-                                fprintf(cenviron.oscfp," %g",*q++);
-            }
-            else goto termin;
-            while (pcnt--)
-                fprintf(cenviron.oscfp," %g",*q++);
-        }
-termin: putc((int)'\n', cenviron.oscfp);
-        if (c == 'w')  warpout = 1; /* was warp statement: sect now warped */
+    if (c == 's')  warpout = 0;         /* new section:  init to non-warped */
+    putc(c, csound->oscfp);
+    q = &e->p[1];
+    if ((pcnt = e->pcnt)) {
+      if (pcnt--)       fprintf(csound->oscfp," %g",*q++);
+      else goto termin;
+      if (pcnt--) {
+        if (warpout)    fprintf(csound->oscfp," %g", e->p2orig);
+                        fprintf(csound->oscfp," %g",*q++);
+      }
+      else goto termin;
+      if (pcnt--) {
+        if (warpout)    fprintf(csound->oscfp," %g", e->p3orig);
+                        fprintf(csound->oscfp," %g",*q++);
+      }
+      else goto termin;
+      while (pcnt--)
+        fprintf(csound->oscfp," %g",*q++);
+    }
+ termin:
+    putc((int)'\n', csound->oscfp);
+    if (c == 'w')  warpout = 1; /* was warp statement: sect now warped */
 }
 
 void putstr(char *s)
 {
-        fprintf(cenviron.oscfp,"%s\n", s);
-        if (*s == 's')  warpout = 0;
-        else if (*s == 'w') warpout = 1;
+    ENVIRON *csound = &cenviron;    /* FIXME: stub */
+    fprintf(csound->oscfp,"%s\n", s);
+    if (*s == 's')  warpout = 0;
+    else if (*s == 'w') warpout = 1;
 }
 
 static EVLIST * lexpand(EVLIST *a)
     /* expand an event list by NSLOTS more slots */
     /* copy the previous list, free up the old   */
 {
-        EVLIST *b;
-        EVENT **p, **q;
-        int n;
+    EVLIST *b;
+    EVENT **p, **q;
+    int n;
 
-        b = lcreat(a->nslots + NSLOTS);
-        b->nevents = n = a->nevents;
-        p = &a->e[1];
-        q = &b->e[1];
-        while (n--)
-            *q++ = *p++;
-        csfree((CSHDR *) a);
-        return(b);
+    b = lcreat(a->nslots + NSLOTS);
+    b->nevents = n = a->nevents;
+    p = &a->e[1];
+    q = &b->e[1];
+    while (n--)
+      *q++ = *p++;
+    csfree((CSHDR *) a);
+    return(b);
 }
 
 EVLIST * lappev(EVLIST *a, EVENT *e) /* append an event to a list */
 {
-        int  n;
+    int  n;
 
-        if ((n = a->nevents) == a->nslots)
-            a = lexpand(a);
-        a->e[n+1] = e;
-        a->nevents++;
-        return(a);
+    if ((n = a->nevents) == a->nslots)
+      a = lexpand(a);
+    a->e[n+1] = e;
+    a->nevents++;
+    return(a);
 }
 
 EVLIST * lappstrev(EVLIST *a, char *s) /* append a string event to a list */
 {
-        EVENT *e = defev(s);
-        return(lappev(a,e));
+    EVENT *e = defev(s);
+    return(lappev(a,e));
 }
 
 EVLIST * lget(void)          /* get section events from the scorefile */
 {
-        EVLIST *a;
-        EVENT *e, **p;
-        int nevents = 0;
+    EVLIST *a;
+    EVENT *e, **p;
+    int nevents = 0;
 
-        a = lcreat(NSLOTS);
-        p = &a->e[1];
-        while ((e = getev()) != NULL) {
-            if (e->op == 's' || e->op == 'e')
-                break;
-            if (nevents == a->nslots) {
-                a->nevents = nevents;
-                a = lexpand(a);
-                p = &a->e[nevents+1];
-            }
-            *p++ = e;
-            nevents++;
-        }
+    a = lcreat(NSLOTS);
+    p = &a->e[1];
+    while ((e = getev()) != NULL) {
+      if (e->op == 's' || e->op == 'e')
+        break;
+      if (nevents == a->nslots) {
         a->nevents = nevents;
-        return(a);
+        a = lexpand(a);
+        p = &a->e[nevents+1];
+      }
+      *p++ = e;
+      nevents++;
+    }
+    a->nevents = nevents;
+    return(a);
 }
 
 static MYFLT curuntil;           /* initialised to zero by filopen */
@@ -367,431 +374,441 @@ static int   wasend;             /* ditto */
 
 EVLIST * lgetuntil(MYFLT beatno) /* get section events from the scorefile */
 {
-        EVLIST *a;
-        EVENT *e, **p;
-        int nevents = 0;
-        char op;
+    EVLIST *a;
+    EVENT *e, **p;
+    int nevents = 0;
+    char op;
 
-        a = lcreat(NSLOTS);
-        p = &a->e[1];
-        while ((op = nxtevt->op) == 't' || op == 'w' || op == 's' || op == 'e'
-          || (op != '\0' && nxtevt->p2orig < beatno)) {
-            e = getev();
-            if (e->op == 's') {
-                wasend = 1;
-                break;
-            }
-            if (e->op == 'e')
-                break;
-            if (nevents == a->nslots) {
-                a->nevents = nevents;
-                a = lexpand(a);
-                p = &a->e[nevents+1];
-            }
-            *p++ = e;
-            nevents++;
-        }
+    a = lcreat(NSLOTS);
+    p = &a->e[1];
+    while ((op = nxtevt->op) == 't' || op == 'w' || op == 's' || op == 'e'
+           || (op != '\0' && nxtevt->p2orig < beatno)) {
+      e = getev();
+      if (e->op == 's') {
+        wasend = 1;
+        break;
+      }
+      if (e->op == 'e')
+        break;
+      if (nevents == a->nslots) {
         a->nevents = nevents;
-        return(a);
+        a = lexpand(a);
+        p = &a->e[nevents+1];
+      }
+      *p++ = e;
+      nevents++;
+    }
+    a->nevents = nevents;
+    return(a);
 }
 
 EVLIST * lgetnext(MYFLT nbeats) /* get section events from the scorefile */
 {
-        if (wasend) {
-            wasend = 0;
-            curuntil = nbeats;
-        }
-        else curuntil += nbeats;
-        return(lgetuntil(curuntil));
+    if (wasend) {
+      wasend = 0;
+      curuntil = nbeats;
+    }
+    else curuntil += nbeats;
+    return(lgetuntil(curuntil));
 }
 
 void lput(EVLIST *a)            /* put listed events to cscore output */
 {
-        EVENT **p;
-        int  n;
+    EVENT **p;
+    int  n;
 
-        n = a->nevents;
-        p = &a->e[1];
-        while (n--)
-            putev(*p++);
+    n = a->nevents;
+    p = &a->e[1];
+    while (n--)
+      putev(*p++);
 }
 
 EVLIST * lcopy(EVLIST *a)
 {
-        EVLIST *b;
-        EVENT **p, **q;
-        int  n = a->nevents;
+    EVLIST *b;
+    EVENT **p, **q;
+    int  n = a->nevents;
 
-        b = lcreat(n);
-        b->nevents = n;
-        p = &a->e[1];
-        q = &b->e[1];
-        while (n--)
-            *q++ = *p++;
-        return(b);
+    b = lcreat(n);
+    b->nevents = n;
+    p = &a->e[1];
+    q = &b->e[1];
+    while (n--)
+      *q++ = *p++;
+    return(b);
 }
 
 EVLIST * lcopyev(EVLIST *a)
 {
-        EVLIST *b;
-        EVENT **p, **q;
-        int  n = a->nevents;
+    EVLIST *b;
+    EVENT **p, **q;
+    int  n = a->nevents;
 
-        b = lcreat(n);
-        b->nevents = n;
-        p = &a->e[1];
-        q = &b->e[1];
-        while (n--)
-            *q++ = copyev(*p++);
-        return(b);
+    b = lcreat(n);
+    b->nevents = n;
+    p = &a->e[1];
+    q = &b->e[1];
+    while (n--)
+      *q++ = copyev(*p++);
+    return(b);
 }
 
 EVLIST * lcat(EVLIST *a, EVLIST *b)
 {
-        EVENT **p, **q;
-        int i, j;
+    EVENT **p, **q;
+    int i, j;
 
-        i = a->nevents;
-        j = b->nevents;
-        if (i + j >= a->nslots) {
-            EVLIST *c;
-            int n = i;
-            c = lcreat(i+j);
-            p = &a->e[1];
-            q = &c->e[1];
-            while (n--)
-                *q++ = *p++;
-            csfree((CSHDR *) a);
-            a = c;
-        }
-        a->nevents = i+j;
-        p = &a->e[i+1];
-        q = &b->e[1];
-        while (j--)
-            *p++ = *q++;
-        return(a);
+    i = a->nevents;
+    j = b->nevents;
+    if (i + j >= a->nslots) {
+      EVLIST *c;
+      int n = i;
+      c = lcreat(i+j);
+      p = &a->e[1];
+      q = &c->e[1];
+      while (n--)
+        *q++ = *p++;
+      csfree((CSHDR *) a);
+      a = c;
+    }
+    a->nevents = i+j;
+    p = &a->e[i+1];
+    q = &b->e[1];
+    while (j--)
+      *p++ = *q++;
+    return(a);
 }
 
 void lsort(EVLIST *a)   /* put evlist pointers into chronological order */
 {
-        EVENT **p, **q;
-        EVENT *e, *f;
-        int  n, gap, i, j;
+    EVENT **p, **q;
+    EVENT *e, *f;
+    int  n, gap, i, j;
 
-        n = a->nevents;
-        e = a->e[n];
-        if (e->op == 's' || e->op == 'e')
-            --n;
-        for (gap = n/2;  gap > 0;  gap /=2)
-            for (i = gap;  i < n;  i++)
-                for (j = i-gap;  j >= 0;  j -= gap) {
-                    p = &a->e[j+1];     e = *p;
-                    q = &a->e[j+1+gap]; f = *q;
-                    if (e->op == 'w')
-                        break;
-                    if (e->p[2] < f->p[2])
-                        break;
-                    if (e->p[2] == f->p[2]) {
-                        if (e->op == f->op) {
-                            if (e->op == 'f')
-                                break;
-                            if (e->p[1] < f->p[1])
-                                break;
-                            if (e->p[1] == f->p[1])
-                                if (e->p[3] <= f->p[3])
-                                    break;
-                        }
-                        else if (e->op < f->op)
-                            break;
-                    }
-                    *p = f;  *q = e;
-                }
+    n = a->nevents;
+    e = a->e[n];
+    if (e->op == 's' || e->op == 'e')
+      --n;
+    for (gap = n/2;  gap > 0;  gap /=2)
+      for (i = gap;  i < n;  i++)
+        for (j = i-gap;  j >= 0;  j -= gap) {
+          p = &a->e[j+1];     e = *p;
+          q = &a->e[j+1+gap]; f = *q;
+          if (e->op == 'w')
+            break;
+          if (e->p[2] < f->p[2])
+            break;
+          if (e->p[2] == f->p[2]) {
+            if (e->op == f->op) {
+              if (e->op == 'f')
+                break;
+              if (e->p[1] < f->p[1])
+                break;
+              if (e->p[1] == f->p[1])
+                if (e->p[3] <= f->p[3])
+                  break;
+            }
+            else if (e->op < f->op)
+              break;
+          }
+          *p = f;  *q = e;
+        }
 }
 
 EVLIST * lxins(EVLIST *a, char *s) /* list extract by instr numbers */
 {
-        int  x[5], xcnt;
-        int xn, *xp, insno, n;
-        EVENT **p, **q, *e;
-        EVLIST *b, *c;
+    int     x[5], xcnt;
+    int     xn, *xp, insno, n;
+    EVENT   **p, **q, *e;
+    EVLIST  *b, *c;
 
-        xcnt = sscanf(s,"%d%d%d%d%d",&x[0],&x[1],&x[2],&x[3],&x[4]);
-        n = a->nevents;
-        b = lcreat(n);
-        p = &a->e[1];
-        q = &b->e[1];
-        while ((n--) && (e = *p++) != NULL) {
-            if (e->op != 'i')
-                *q++ = e;
-            else {
-                insno = (int)e->p[1];
-                xn = xcnt;  xp = x;
-                while (xn--)
-                    if (*xp++ == insno) {
-                        *q++ = e;
-                        break;
-                    }
-            }
-        }
-        c = lcopy(b);
-        csfree((CSHDR *) b);
-        return(c);
+    xcnt = sscanf(s,"%d%d%d%d%d",&x[0],&x[1],&x[2],&x[3],&x[4]);
+    n = a->nevents;
+    b = lcreat(n);
+    p = &a->e[1];
+    q = &b->e[1];
+    while ((n--) && (e = *p++) != NULL) {
+      if (e->op != 'i')
+        *q++ = e;
+      else {
+        insno = (int)e->p[1];
+        xn = xcnt;  xp = x;
+        while (xn--)
+          if (*xp++ == insno) {
+            *q++ = e;
+            break;
+          }
+      }
+    }
+    c = lcopy(b);
+    csfree((CSHDR *) b);
+    return(c);
 }
 
 EVLIST * lxtimev(EVLIST *a, MYFLT from, MYFLT to) /* list extract by time */
 {
-        EVENT **p, **q, *e;
-        EVLIST *b, *c;
-        MYFLT maxp3;
-        int  n;
+    EVENT **p, **q, *e;
+    EVLIST *b, *c;
+    MYFLT maxp3;
+    int  n;
 
-        n = a->nevents;
-        b = lcreat(n);
-        p = &a->e[1];
-        q = &b->e[1];
-        maxp3 = to - from;
-        while ((n--) && (e = *p++) != NULL)
-            switch (e->op) {
-            case 'f':
-                    if (e->p[2] < to) {
-                        *q++ = e = copyev(e);
-                        if (e->p[2] <= from)
-                            e->p[2] = FL(0.0);
-                        else e->p[2] -= from;
-                    }
-                    break;
-            case 'i':
-                    if (e->p[2] < from) {
-                        if (e->p[2] + e->p[3] > from) {
-                            *q++ = e = copyev(e);
-                            e->p[3] -= from - e->p[2];
-                            e->p[2] = FL(0.0);
-                            if (e->p[3] > maxp3)
-                                e->p[3] = maxp3;
-                        }
-                    }
-                    else if (e->p[2] < to) {
-                        *q++ = e = copyev(e);
-                        if (e->p[2] + e->p[3] > to)
-                            e->p[3] = to - e->p[2];
-                        e->p[2] -= from;
-                    }
-                    break;
-            default:
-                    *q++ = copyev(e);
-                    break;
-            }
-        c = lcopy(b);
-        csfree((CSHDR *) b);
-        return(c);
+    n = a->nevents;
+    b = lcreat(n);
+    p = &a->e[1];
+    q = &b->e[1];
+    maxp3 = to - from;
+    while ((n--) && (e = *p++) != NULL)
+      switch (e->op) {
+      case 'f':
+        if (e->p[2] < to) {
+          *q++ = e = copyev(e);
+          if (e->p[2] <= from)
+            e->p[2] = FL(0.0);
+          else e->p[2] -= from;
+        }
+        break;
+      case 'i':
+        if (e->p[2] < from) {
+          if (e->p[2] + e->p[3] > from) {
+            *q++ = e = copyev(e);
+            e->p[3] -= from - e->p[2];
+            e->p[2] = FL(0.0);
+            if (e->p[3] > maxp3)
+              e->p[3] = maxp3;
+          }
+        }
+        else if (e->p[2] < to) {
+          *q++ = e = copyev(e);
+          if (e->p[2] + e->p[3] > to)
+            e->p[3] = to - e->p[2];
+            e->p[2] -= from;
+        }
+        break;
+      default:
+        *q++ = copyev(e);
+        break;
+      }
+    c = lcopy(b);
+    csfree((CSHDR *) b);
+    return(c);
 }
 
-static void
-fp2chk(EVLIST *a, char *s) /* look for f statements with non-0 p[2] */
-{
-        EVENT *e, **ep = &a->e[1];
-        int n = a->nevents, count = 0;
+static void fp2chk(ENVIRON *csound, EVLIST *a, char *s)
+{                               /* look for f statements with non-0 p[2] */
+    EVENT *e, **ep = &a->e[1];
+    int n = a->nevents, count = 0;
 
-        while (n--)
-            if ((e = *ep++) && e->op == 'f' && e->p[2] != 0.)
-                count++;
-        if (count)
-            printf(Str("%s found %d f event%s with non-zero p2\n"),
-                   s, count, count==1 ? "" : Str("s"));
+    while (n--)
+      if ((e = *ep++) && e->op == 'f' && e->p[2] != 0.)
+        count++;
+    if (count)
+      csound->Message(csound, Str("%s found %d f event%s with non-zero p2\n"),
+                              s, count, count==1 ? "" : Str("s"));
 }
 
 EVLIST * lsepf(EVLIST *a)       /* separate f events from evlist */
 {
-        EVLIST *b, *c;
-        EVENT **p, **q, **r;
-        int   n;
+    ENVIRON *csound = &cenviron;    /* FIXME: stub */
+    EVLIST  *b, *c;
+    EVENT   **p, **q, **r;
+    int     n;
 
-        n = a->nevents;
-        b = lcreat(n);
-        p = q = &a->e[1];
-        r = &b->e[1];
-        while (n--) {
-            if ((*p)->op == 'f')
-                *r++ = *p++;
-            else *q++ = *p++;
-        }
-        a->nevents = q - &a->e[1];
-        b->nevents = r - &b->e[1];
-        c = lcopy(b);
-        csfree((CSHDR *) b);
-        fp2chk(c,"lsepf");
-        return(c);
+    n = a->nevents;
+    b = lcreat(n);
+    p = q = &a->e[1];
+    r = &b->e[1];
+    while (n--) {
+      if ((*p)->op == 'f')
+        *r++ = *p++;
+      else *q++ = *p++;
+    }
+    a->nevents = q - &a->e[1];
+    b->nevents = r - &b->e[1];
+    c = lcopy(b);
+    csfree((CSHDR *) b);
+    fp2chk(csound, c, "lsepf");
+    return(c);
 }
 
 EVLIST * lseptwf(EVLIST *a)     /* separate t,w,f events from evlist */
 {
-        EVLIST *b, *c;
-        EVENT **p, **q, **r;
-        int   n, op;
+    ENVIRON *csound = &cenviron;    /* FIXME: stub */
+    EVLIST *b, *c;
+    EVENT **p, **q, **r;
+    int   n, op;
 
-        n = a->nevents;
-        b = lcreat(n);
-        p = q = &a->e[1];
-        r = &b->e[1];
-        while (n--) {
-            if ((op = (*p)->op) == 't' || op == 'w' || op == 'f')
-                *r++ = *p++;
-            else *q++ = *p++;
-        }
-        a->nevents = q - &a->e[1];
-        b->nevents = r - &b->e[1];
-        c = lcopy(b);
-        csfree((CSHDR *) b);
-        fp2chk(c,"lseptwf");
-        return(c);
+    n = a->nevents;
+    b = lcreat(n);
+    p = q = &a->e[1];
+    r = &b->e[1];
+    while (n--) {
+      if ((op = (*p)->op) == 't' || op == 'w' || op == 'f')
+        *r++ = *p++;
+      else *q++ = *p++;
+    }
+    a->nevents = q - &a->e[1];
+    b->nevents = r - &b->e[1];
+    c = lcopy(b);
+    csfree((CSHDR *) b);
+    fp2chk(csound, c, "lseptwf");
+    return(c);
 }
 
 void relev(EVENT *e)            /* give back event space */
 {
-        csfree((CSHDR *) e);
+    csfree((CSHDR *) e);
 }
 
 void lrel(EVLIST *a)                    /* give back list space */
 {
-        csfree((CSHDR *) a);
+    csfree((CSHDR *) a);
 }
 
 void lrelev(EVLIST *a)          /* give back list and its event spaces */
 {
-        EVENT **p = &a->e[1];
-        int  n = a->nevents;
+    EVENT **p = &a->e[1];
+    int  n = a->nevents;
 
-        while (n--)
-            csfree((CSHDR *) *p++);
-        csfree((CSHDR *) a);
+    while (n--)
+      csfree((CSHDR *) *p++);
+    csfree((CSHDR *) a);
 }
 
 #define MAXOPEN 5
 
 static void savinfdata(         /* store input file data */
+  ENVIRON *csound,
   FILE  *fp,
   EVENT *next,
   MYFLT until,
   int   wasend,
   int   warp)
 {
-        INFILE *infp;
-        int    n;
+    INFILE *infp;
+    int    n;
 
-        if ((infp = infiles) == NULL) {
-            infp = infiles = (INFILE *) mcalloc(&cenviron, MAXOPEN
-                                                           * sizeof(INFILE));
-            goto save;
-        }
-        for (n = MAXOPEN; n--; infp++)
-            if (infp->iscfp == fp)
-                goto save;
-        for (infp = infiles, n = MAXOPEN; n--; infp++)
-            if (infp->iscfp == NULL)
-                goto save;
-        printf(Str("too many input files open\n"));
-        exit(0);
+    if ((infp = infiles) == NULL) {
+      infp = infiles = (INFILE *) mcalloc(csound, MAXOPEN * sizeof(INFILE));
+      goto save;
+    }
+    for (n = MAXOPEN; n--; infp++)
+      if (infp->iscfp == fp)
+        goto save;
+    for (infp = infiles, n = MAXOPEN; n--; infp++)
+      if (infp->iscfp == NULL)
+        goto save;
+    csound->Message(csound, Str("too many input files open\n"));
+    exit(0);
 
-save:   infp->iscfp = fp;
-        infp->next = next;
-        infp->until = until;
-        infp->wasend = wasend;
-        infp->warped = warp;
+ save:
+    infp->iscfp = fp;
+    infp->next = next;
+    infp->until = until;
+    infp->wasend = wasend;
+    infp->warped = warp;
 }
 
-static void makecurrent(FILE *fp)
+static void makecurrent(ENVIRON *csound, FILE *fp)
                                 /* make fp the cur scfp & retreive other data */
                                 /* set nxtevtblk to subset cs.h EVTBLK struct */
 {                               /* if nxtevt buffer is empty, read one event  */
-        INFILE *infp;
-        int    n;
+    INFILE *infp;
+    int    n;
 
-        if ((infp = infiles) != NULL)
-            for (n = MAXOPEN; n--; infp++)
-                if (infp->iscfp == fp) {
-                    cenviron.scfp = fp;
-                    nxtevt = infp->next;
-                    nxtevtblk = (EVTBLK *) &nxtevt->strarg;
-                    curuntil = infp->until;
-                    wasend = infp->wasend;
-                    warped = infp->warped;
-                    if (nxtevt->op == '\0')
-                        if (!(rdscor(&cenviron, nxtevtblk)))
-                            nxtevt->op = '\0';
-                    return;
-                }
-        printf(Str("makecurrent: fp not recorded\n"));
-        exit(0);
+    if ((infp = infiles) != NULL)
+      for (n = MAXOPEN; n--; infp++)
+        if (infp->iscfp == fp) {
+          csound->scfp = fp;
+          nxtevt = infp->next;
+          nxtevtblk = (EVTBLK *) &nxtevt->strarg;
+          curuntil = infp->until;
+          wasend = infp->wasend;
+          csound->warped = infp->warped;
+          if (nxtevt->op == '\0')
+            if (!(rdscor(csound, nxtevtblk)))
+              nxtevt->op = '\0';
+          return;
+        }
+    csound->Message(csound, Str("makecurrent: fp not recorded\n"));
+    exit(0);
 }
 
 void cscorinit(void)            /* verify initial scfp, init other data */
 {                               /* record & make all this current       */
-        EVENT *next;
+    ENVIRON *csound = &cenviron;    /* FIXME: stub */
+    EVENT   *next;
 
-        if (cenviron.scfp == NULL) {
-            printf(Str("cscorinit: scorin not yet open"));
-            exit(0);
-        }
-        next = createv(PMAX);               /* creat EVENT blk receiving buf */
-        savinfdata(cenviron.scfp,
-                   next, FL(0.0), 1, 0);    /* curuntil 0, wasend, non-warp  */
-        makecurrent(cenviron.scfp);         /* make all this current         */
+    if (csound->scfp == NULL) {
+      csound->Message(csound, Str("cscorinit: scorin not yet open"));
+      exit(0);
+    }
+    next = createv(PMAX);               /* creat EVENT blk receiving buf */
+    savinfdata(csound, csound->scfp,
+               next, FL(0.0), 1, 0);    /* curuntil 0, wasend, non-warp  */
+    makecurrent(csound, csound->scfp);  /* make all this current         */
 }
 
 FILE *filopen(char *name)       /* open new cscore input file, init data */
                                 /* & save;  no rdscor until made current */
 {
-        FILE *fp;
-        EVENT *next;
+    ENVIRON *csound = &cenviron;    /* FIXME: stub */
+    FILE    *fp;
+    EVENT   *next;
 
-        if ((fp = fopen(name, "r")) == NULL) {
-            printf(Str("error in opening %s\n"), name);
-            exit(0);
-        }
-        next = createv(PMAX);             /* alloc a receiving evtblk     */
-        savinfdata(fp, next, FL(0.0), 1, 0); /* save all, wasend, non-warped */
-        return(fp);
+    if ((fp = fopen(name, "r")) == NULL) {
+      csound->Message(csound, Str("error in opening %s\n"), name);
+      exit(0);
+    }
+    /* alloc a receiving evtblk */
+    next = createv(PMAX);
+    /* save all, wasend, non-warped */
+    savinfdata(csound, fp, next, FL(0.0), 1, 0);
+    return(fp);
 }
 
 void filclose(FILE *fp)
 {
-        INFILE *infp;
-        int n;
+    ENVIRON *csound = &cenviron;    /* FIXME: stub */
+    INFILE *infp;
+    int n;
 
-        if (fp == NULL) {
-            printf(Str("filclose: NULL file pointer\n"));
-            return;
+    if (fp == NULL) {
+      csound->Message(csound, Str("filclose: NULL file pointer\n"));
+      return;
+    }
+    if ((infp = infiles) != NULL)
+      for (n = MAXOPEN; n--; infp++)
+        if (infp->iscfp == fp) {
+          infp->iscfp = NULL;
+          mfree(csound, (char *)infp->next);
+          fclose(fp);
+          if (csound->scfp == fp) csound->scfp = NULL;
+          return;
         }
-        if ((infp = infiles) != NULL)
-            for (n = MAXOPEN; n--; infp++)
-                if (infp->iscfp == fp) {
-                    infp->iscfp = NULL;
-                    mfree(&cenviron, (char *)infp->next);
-                    fclose(fp);
-                    if (cenviron.scfp == fp) cenviron.scfp = NULL;
-                    return;
-                }
-        printf(Str("filclose: fp not recorded\n"));
+    csound->Message(csound, Str("filclose: fp not recorded\n"));
 }
 
 FILE *getcurfp(void)
 {
-        if (cenviron.scfp == NULL) {
-            printf(Str("getcurfp: no fp current\n"));
-            exit(0);
-        }
-        return(cenviron.scfp);
+    ENVIRON *csound = &cenviron;    /* FIXME: stub */
+    if (csound->scfp == NULL) {
+      csound->Message(csound, Str("getcurfp: no fp current\n"));
+      exit(0);
+    }
+    return(csound->scfp);
 }
 
 void setcurfp(FILE *fp)         /* save the current infil states */
                                 /* make fp & its states current  */
 {
-        if (cenviron.scfp != NULL)
-            savinfdata(cenviron.scfp, nxtevt, curuntil, wasend, warped);
-        makecurrent(fp);
+    ENVIRON *csound = &cenviron;    /* FIXME: stub */
+    if (csound->scfp != NULL)
+      savinfdata(csound,
+                 csound->scfp, nxtevt, curuntil, wasend, csound->warped);
+    makecurrent(csound, fp);
 }
 
-int lcount(EVLIST *a)                   /* count entries in event list */
+int lcount(EVLIST *a)           /* count entries in event list */
 {
     EVENT **p;
     int  n, nrem;
