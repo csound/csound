@@ -21,11 +21,6 @@ Engine/linevent.c:    static EVTBLK *prve = NULL;
 Engine/linevent.c:    static char prvop = ' ';
 Engine/linevent.c:    static int prvpcnt = 0;
 
-Engine/rdscor.c:static char *sstrbuf = NULL;
-Engine/rdscor.c:static int  sstrlen = 0;
-
-InOut/pmidi.c:static  int             not_started = 1;
-
 InOut/rtpa.c:static PA_BLOCKING_STREAM *pabsRead = 0;
 InOut/rtpa.c:static PA_BLOCKING_STREAM *pabsWrite = 0;
 InOut/rtpa.c:static  int oMaxLag;

@@ -119,7 +119,7 @@ static int recopen_(void *csound, csRtAudioParams *parm)
     if (oMaxLag <= 0)           /* if DAC sampframes ndef in command line */
       oMaxLag = IODACSAMPS;     /*    use the default value               */
 #if defined(LINUX)
-    printf("extdev=%p\n", parm->devName);
+    ((ENVIRON*) csound)->Message(csound, "extdev=%p\n", parm->devName);
     if (parm->devName != NULL && strlen(parm->devName) != 0) {
       info.deviceString = parm->devName;
       ((ENVIRON*) csound)->Message(csound, "Using Portaudio input device %s.\n",

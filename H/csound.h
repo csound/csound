@@ -845,10 +845,6 @@ extern "C" {
    */
   PUBLIC void csoundDestroyThreadLock(void *csound, void *lock);
 
-  PUBLIC void csoundLock(void);
-
-  PUBLIC void csoundUnLock(void);
-
   /**
    * Sets whether or not the FLTK widget thread calls Fl::lock().
    */
