@@ -54,9 +54,7 @@ static SPACE  spaceanchor = { { NULL, NULL, TYP_SPACE, 0 }, NULL };
 static CSHDR  *nxtfree = NULL;   /* fast pointer to yet unused free space */
 static EVENT  *nxtevt = NULL;    /* to hold nxt infil event, PMAX pfields */
 static EVTBLK *nxtevtblk;        /* cs.h EVTBLK subset of EVENT nxtevt    */
-extern int    warped;
 static int    warpout = 0;
-
 
 void cscoreRESET(ENVIRON *csound)
 {
