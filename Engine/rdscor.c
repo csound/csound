@@ -23,9 +23,6 @@
 
 #include "cs.h"                 /*                              RDSCOR.C */
 
-int    warped = 0;
-static char *sstrbuf = NULL;
-static int  sstrlen = 0;
 static void dumpline(ENVIRON *);
 
 static void flushline(ENVIRON *csound)  /* flush scorefile to next newline */
@@ -46,15 +43,15 @@ static int scanflt(ENVIRON *csound, MYFLT *pfld)
       flushline(csound);
       return 0;
     }
-    if (c == '"') {                               /* if find a quoted string  */
+    if (c == '"') {                             /* if find a quoted string  */
         char *sstrp;
-        if ((sstrp = sstrbuf) == NULL)
-            sstrp = sstrbuf = mmalloc(csound, (long)SSTRSIZ);
+        if ((sstrp = csound->sstrbuf) == NULL)
+            sstrp = csound->sstrbuf = mmalloc(csound, SSTRSIZ);
         while ((c = getc(xx)) != '"')
-            *sstrp++ = c;                         /*   copy the characters    */
+            *sstrp++ = c;                       /*   copy the characters    */
         *sstrp++ = '\0';
-        *pfld = SSTRCOD;                          /*   flag with hifloat      */
-        sstrlen = sstrp - sstrbuf;                /*    & overall length      */
+        *pfld = SSTRCOD;                        /*   flag with hifloat      */
+        csound->sstrlen = sstrp - csound->sstrbuf;  /*    & overall length  */
         return(1);
     }
     if (!((c>='0' && c<='9') || c=='+' || c=='-' || c=='.')) {
@@ -105,19 +102,19 @@ int rdscor(ENVIRON *csound, EVTBLK *e) /* read next score-line from scorefile */
         case ' ':
         case '\t':
         case '\n':
-            continue;            /* skip leading white space */
+            continue;               /* skip leading white space */
         case ';':
             flushline(csound);
             continue;
         case 's':
         case 't':
-            warped = 0;
+            csound->warped = 0;
             goto unwarped;
         case 'w':
-            warped = 1;          /* w statement is itself unwarped */
-unwarped:   e->opcod = c;                    /* UNWARPED scorefile:  */
+            csound->warped = 1;     /* w statement is itself unwarped */
+unwarped:   e->opcod = c;                   /*  UNWARPED scorefile:         */
             pp = &e->p[0];
-            plim = &e->p[PMAX];              /*    caution, irregular format */
+            plim = &e->p[PMAX];             /*    caution, irregular format */
             while (1) {
                 while ((c = getc(xx))==' ' || c=='\t'); /* eat whitespace */
                 if (c == ';') { flushline(csound); break; } /* comments? skip */
@@ -138,7 +135,7 @@ unwarped:   e->opcod = c;                    /* UNWARPED scorefile:  */
             e->pcnt = 0;
             return(1);
         default:                                /* WARPED scorefile:       */
-            if (!warped) goto unwarped;
+            if (!csound->warped) goto unwarped;
             e->opcod = c;                                       /* opcod */
             pp = &e->p[0];
             plim = &e->p[PMAX];
@@ -155,10 +152,10 @@ unwarped:   e->opcod = c;                    /* UNWARPED scorefile:  */
                           break;
                         }
 setp:       e->pcnt = pp - &e->p[0];                   /* count the pfields */
-            if (sstrlen) {                /* if string arg present, save it */
-                e->strarg = mmalloc(csound, (long) sstrlen);
-                strcpy(e->strarg, sstrbuf);
-                sstrlen = 0;
+            if (csound->sstrlen) {        /* if string arg present, save it */
+                e->strarg = mmalloc(csound, csound->sstrlen);
+                strcpy(e->strarg, csound->sstrbuf);
+                csound->sstrlen = 0;
             }
             return(1);
         }
