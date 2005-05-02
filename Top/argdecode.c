@@ -709,7 +709,7 @@ static int decode_long(void *csound_, char *s, int argc, char **argv)
     create_opcodlst(csound);
     if (csoundInitModules(csound) != 0)
       longjmp(csound->exitjmp, 1);
-    list_opcodes(full);
+    list_opcodes(csound, full);
     longjmp(csound->exitjmp, CSOUND_EXITJMP_SUCCESS);
   }
   /* -Z */
@@ -1052,7 +1052,7 @@ int argdecode(void *csound_, int argc, char **argv_)
             create_opcodlst(csound);
             if (csoundInitModules(csound) != 0)
               longjmp(csound->exitjmp, 1);
-            list_opcodes(full);
+            list_opcodes(csound, full);
           }
           longjmp(csound->exitjmp, CSOUND_EXITJMP_SUCCESS);
           break;
@@ -1096,7 +1096,7 @@ int argdecode(void *csound_, int argc, char **argv_)
           break;
         case '+':                                     /* IV - Feb 01 2005 */
           if (parse_option_as_cfgvar(csound, (char*) s - 2) != 0)
-            longjmp(csound->exitjmp,1);
+            longjmp(csound->exitjmp, 1);
           while (*(++s));
           break;
         default:

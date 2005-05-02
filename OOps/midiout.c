@@ -323,7 +323,7 @@ int out_controller (ENVIRON *csound, OUT_CONTR *p)
       value = (value < 128) ?  value : 127;
       value = (value > -1) ?  value : 0;
       if (value != p->last_value) {
-        /* printf("out contr value: %d\n", value); */
+        /* csound->Message(csound, "out contr value: %d\n", value); */
         control_change(csound, (int)*p->chn-1,(int)*p->num ,value);
         p->last_value = value;
       }
@@ -400,8 +400,7 @@ int out_controller14 (ENVIRON *csound, OUT_CONTR14 *p)
       if (value != p->last_value) {
         unsigned int msb = value >> 7;
         unsigned int lsb = value & 0x7F;
-        printf(Str("out contr14 msb:%x lsb:%x\n"), msb, lsb);
-
+        csound->Message(csound, Str("out contr14 msb:%x lsb:%x\n"), msb, lsb);
         control_change(csound, (int) *p->chn-1, (int)*p->msb_num, msb);
         control_change(csound, (int)*p->chn-1, (int)*p->lsb_num, lsb);
         p->last_value = value;

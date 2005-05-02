@@ -37,7 +37,6 @@
 #endif
 #define Str(x) (((ENVIRON*) csound)->LocalizeString(x))
 
-static  int             not_started = 1;
 static  const   int     datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0 };
 
 static int portMidi_getDeviceCount(int output)
@@ -126,18 +125,11 @@ static void portMidi_listDevices(ENVIRON *csound, int output)
 
 static int start_portmidi(ENVIRON *csound)
 {
-    if (not_started < 0)
-      return -1;
-    if (!not_started)
-      return 0;
-    not_started = 0;
     if (Pm_Initialize() != pmNoError) {
-      not_started = -1;
       csound->Message(csound, Str(" *** error initialising PortMIDI\n"));
       return -1;
     }
     if (Pt_Start(1, NULL, NULL) != ptNoError) {
-      not_started = -1;
       csound->Message(csound, Str(" *** error initialising PortTime\n"));
       return -1;
     }
@@ -444,6 +436,12 @@ int csoundModuleInit(void *csound)
     p->SetExternalMidiOutOpenCallback(csound, OpenMidiOutDevice_);
     p->SetExternalMidiWriteCallback(csound, WriteMidiData_);
     p->SetExternalMidiOutCloseCallback(csound, CloseMidiOutDevice_);
+    return 0;
+}
+
+int csoundModuleDestroy(void *csound)
+{
+    Pm_Terminate();
     return 0;
 }
 

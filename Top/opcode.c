@@ -89,15 +89,13 @@ static void dispose_opcode_list(ENVIRON *csound, opcodelist *list)
     }
 }
 
-void list_opcodes(int level)
+void list_opcodes(ENVIRON *csound, int level)
 {
-    ENVIRON *csound = &cenviron;
     int     j, k;
     int     len = 0;
 
     opcodelist *list = new_opcode_list(csound);
-
-                                /* Print in 4 columns */
+                                                /* Print in 4 columns */
     for (j = 0, k = 0; j< list->size; j++) {
       if (level == 0) {
         if (j>0 &&
