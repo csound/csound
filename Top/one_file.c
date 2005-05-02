@@ -47,10 +47,10 @@ typedef struct namelst {
 
 typedef struct {
     char    buffer[CSD_MAX_LINE_LEN];
+    NAMELST *toremove;
     char    orcname[L_tmpnam + 4];
     char    sconame[L_tmpnam + 4];
     char    midname[L_tmpnam + 4];
-    char    *licence;
     int     midiSet;
 } ONE_FILE_GLOBALS;
 
@@ -110,40 +110,31 @@ static char *my_fgets(char *s, int n, FILE *stream)
 
 void remove_tmpfiles(void *csound)              /* IV - Feb 03 2005 */
 {                               /* use one fn to delete all temporary files */
-    NAMELST **toremove;
-    toremove = (NAMELST**) csoundQueryGlobalVariable(csound, "*tmpFileList");
-    if (toremove == NULL)
-      return;
-    while ((*toremove) != NULL) {
-      NAMELST *nxt = (*toremove)->next;
+    alloc_globals(csound);
+    while (ST(toremove) != NULL) {
+      NAMELST *nxt = ST(toremove)->next;
 #ifdef BETA
-      csoundMessage(csound,
-                    "Removing temporary file %s ...\n", (*toremove)->name);
+      csoundMessage(csound, Str("Removing temporary file %s ...\n"),
+                            ST(toremove)->name);
 #endif
-      if (remove((*toremove)->name))
-        csoundMessage(csound,
-                      Str("WARNING: could not remove %s\n"), (*toremove)->name);
-      mfree(csound, (*toremove)->name);
-      mfree(csound, (*toremove));
-      (*toremove) = nxt;
+      if (remove(ST(toremove)->name))
+        csoundMessage(csound, Str("WARNING: could not remove %s\n"),
+                              ST(toremove)->name);
+      mfree(csound, ST(toremove)->name);
+      mfree(csound, ST(toremove));
+      ST(toremove) = nxt;
     }
-    csoundDestroyGlobalVariable(csound, "*tmpFileList");
 }
 
 void add_tmpfile(void *csound, char *name)      /* IV - Feb 03 2005 */
 {                               /* add temporary file to delete list */
-    NAMELST *tmp, **toremove;
-    toremove = (NAMELST**) csoundQueryGlobalVariable(csound, "*tmpFileList");
-    if (toremove == NULL) {
-      csoundCreateGlobalVariable(csound, "*tmpFileList", sizeof(NAMELST*));
-      toremove = (NAMELST**) csoundQueryGlobalVariable(csound, "*tmpFileList");
-      (*toremove) = (NAMELST*) NULL;
-    }
+    NAMELST *tmp;
+    alloc_globals(csound);
     tmp = (NAMELST*) mmalloc(csound, sizeof(NAMELST));
     tmp->name = (char*) mmalloc(csound, strlen(name) + 1);
     strcpy(tmp->name, name);
-    tmp->next = (*toremove);
-    (*toremove) = tmp;
+    tmp->next = ST(toremove);
+    ST(toremove) = tmp;
 }
 
 extern int argdecode(void*, int, char**);
@@ -487,25 +478,30 @@ static int checkVersion(void *csound, FILE *unf)
 
 static int checkLicence(void *csound, FILE *unf)
 {
-    char *p;
+    char *p, *licence;
     int len = 20;
     csoundMessage(csound, Str("**** Licence Information ****\n"));
-    ST(licence) = (char*)malloc(20);
-    strcpy(ST(licence), "::SF::id_copyright=");
+    licence = (char*) malloc(len);
+    licence[0] = '\0';
     while (my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf) != NULL) {
       p = ST(buffer);
       while (*p == ' ' || *p == '\t') p++;
       if (strstr(p, "</CsLicence>") != NULL) {
         csoundMessage(csound, Str("**** End of Licence Information ****\n"));
-        putenv(ST(licence));    /* Sets environment...... */
-        free(ST(licence));
+        csoundDestroyGlobalVariable(csound, "::SF::csd_licence");
+        csoundCreateGlobalVariable(csound, "::SF::csd_licence", len);
+        p = (char*) csoundQueryGlobalVariable(csound, "::SF::csd_licence");
+        strcpy(p, licence);
+        free(licence);
         return TRUE;
       }
       csoundMessage(csound, "**** %s ****\n", p);
-      ST(licence) = realloc(ST(licence), len = len+strlen(ST(buffer)));
-      strcat(ST(licence), ST(buffer));
+      len += strlen(ST(buffer));
+      licence = realloc(licence, len);
+      strcat(licence, ST(buffer));
     }
-    return TRUE;
+    free(licence);
+    return FALSE;
 }
 
 static int eat_to_eol(char *buf)
