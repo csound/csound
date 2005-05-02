@@ -381,6 +381,8 @@ pluginEnvironment.Append(LIBS = ['sndfile'])
 
 if getPlatform() == 'darwin':
     pluginEnvironment.Append(LINKFLAGS = ['-framework', 'CoreMidi', '-framework', 'CoreFoundation', '-framework', 'CoreAudio'])
+    if (commonEnvironment['useDirentFix'] == '1'):
+        pluginEnvironment.Append(LINKFLAGS = ['-dynamiclib'])
     pluginEnvironment['SHLIBSUFFIX'] = '.dylib'
 
 csoundProgramEnvironment = commonEnvironment.Copy()
