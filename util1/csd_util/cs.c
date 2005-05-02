@@ -117,6 +117,16 @@ void split_filename(char *fullname, char *dir, char *bas)
     strcpy(bas, fullname + (m + 1));
 }
 
+#ifdef __MACH__
+#ifdef DIRENT_FIX
+/* There is something odd on OSX about dirent.h */
+typedef void* DIR;
+DIR opendir(const char *);
+struct dirent *readdir(DIR*);
+int closedir(DIR*);
+#endif
+#endif
+
 void create_file_list(void)
 {
     DIR             *d;
