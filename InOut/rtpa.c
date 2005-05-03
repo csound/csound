@@ -4,6 +4,11 @@
     It provides an interface between Csound realtime record/play calls
     and the device-driver code that controls the actual hardware.
     Uses PortAudio library without callbacks -- JPff
+    
+    We will open the device full-duplex if asked to open it for
+    input, regardless whether we are asked to open it for output. 
+    In that case we only open ONCE not twice(for input and output,
+    separately) - VL
 */
 
 #include "csoundCore.h"
@@ -12,18 +17,13 @@
 #include "pa_blocking.h"
 #include <portaudio.h>
 
-
-static PA_BLOCKING_STREAM *pabsRead = 0;
-static PA_BLOCKING_STREAM *pabsWrite = 0;
-static int isASIOopen = 0;
-static int openOnce = 0;
-
-static  int oMaxLag;
-
 #ifdef Str
 #undef Str
 #endif
 #define Str(x)  (((ENVIRON*) csound)->LocalizeString(x))
+
+#define INS 1
+#define OUTS 0
 
 typedef struct PaAlsaStreamInfo
 {
@@ -34,43 +34,6 @@ typedef struct PaAlsaStreamInfo
 }
 PaAlsaStreamInfo;
 
-/* IV - Feb 02 2005: module interface functions */
-
-int csoundModuleCreate(void *csound)
-{
-    /* nothing to do, report success */
-    ((ENVIRON*) csound)->Message(csound, "PortAudio real-time audio module "
-                                         "for Csound\n");
-    return 0;
-}
-
-static int playopen_(void*, csRtAudioParams*);
-static int recopen_(void*, csRtAudioParams*);
-static void rtplay_(void*, void*, int);
-static int rtrecord_(void*, void*, int);
-static void rtclose_(void*);
-
-int csoundModuleInit(void *csound)
-{
-    ENVIRON *p;
-    char    *drv;
-
-    p = (ENVIRON*) csound;
-    drv = (char*) (p->QueryGlobalVariable(csound, "_RTAUDIO"));
-    if (drv == NULL)
-      return 0;
-    if (!(strcmp(drv, "portaudio") == 0 || strcmp(drv, "PortAudio") == 0 ||
-          strcmp(drv, "portAudio") == 0 || strcmp(drv, "Portaudio") == 0 ||
-          strcmp(drv, "pa") == 0 || strcmp(drv, "PA") == 0))
-      return 0;
-    p->Message(csound, "rtaudio: PortAudio module enabled\n");
-    p->SetPlayopenCallback(csound, playopen_);
-    p->SetRecopenCallback(csound, recopen_);
-    p->SetRtplayCallback(csound, rtplay_);
-    p->SetRtrecordCallback(csound, rtrecord_);
-    p->SetRtcloseCallback(csound, rtclose_);
-    return 0;
-}
 
 void listPortAudioDevices(void *csound)
 {
@@ -103,8 +66,10 @@ static int recopen_(void *csound, csRtAudioParams *parm)
      /* open for audio input */
 {
     struct PaStreamParameters paStreamParameters_;
+    PA_BLOCKING_STREAM *pabs;
+    int oMaxLag;
+    int *openOnce;
     PaError paError = Pa_Initialize();
-    
 #if defined(LINUX)
     PaAlsaStreamInfo info;
 #endif
@@ -157,8 +122,8 @@ static int recopen_(void *csound, csRtAudioParams *parm)
                                          "%f seconds.\n",
                                          paStreamParameters_.suggestedLatency);
     /* VL: we will open the device full-duplex if asked to open it for input */
-    paError = paBlockingReadWriteOpen(csound, &pabsRead, &pabsWrite, &paStreamParameters_,
-                                 parm);
+    pabs =  ((ENVIRON*) csound)->QueryGlobalVariable(csound,"pabsReadWritep");
+    paError = paBlockingReadWriteOpen(csound, pabs, &paStreamParameters_, parm);
     if (paError != paNoError){
     ((ENVIRON*) csound)->Message(csound, Str("PortAudio error %d: %s.\n"),
                                          paError, Pa_GetErrorText(paError));
@@ -167,8 +132,8 @@ static int recopen_(void *csound, csRtAudioParams *parm)
     ((ENVIRON*) csound)->Message(csound,
                                  Str("Opened PortAudio full-duplex device  %i.\n"),
                                  paStreamParameters_.device);
-    openOnce = 1;
-    isASIOopen = 1;
+    openOnce = (int *)((ENVIRON*) csound)->QueryGlobalVariable(csound,"openOnce");
+    *openOnce = 1;
     return 0;
 }
 
@@ -176,7 +141,11 @@ static int playopen_(void *csound, csRtAudioParams *parm)
      /* open for audio output */
 {
     struct PaStreamParameters paStreamParameters_;
+    PA_BLOCKING_STREAM *pabs;
+    int oMaxLag;
+    int *openOnce;
     PaError paError = Pa_Initialize();
+
 #if defined(LINUX)
     PaAlsaStreamInfo info;
 #endif
@@ -206,7 +175,7 @@ static int playopen_(void *csound, csRtAudioParams *parm)
       if (parm->devNum == 1024) {
         parm->devNum = paStreamParameters_.device = Pa_GetDefaultOutputDevice();
         paStreamParameters_.suggestedLatency =
-          Pa_GetDeviceInfo(parm->devNum)->defaultLowOutputLatency;
+        Pa_GetDeviceInfo(parm->devNum)->defaultLowOutputLatency;
         ((ENVIRON*) csound)->Message(csound,
                                      Str("No PortAudio output device given; "
                                          "defaulting to device %d.\n"),
@@ -224,22 +193,26 @@ static int playopen_(void *csound, csRtAudioParams *parm)
 #endif
     paStreamParameters_.channelCount = parm->nChannels;
     paStreamParameters_.sampleFormat = paFloat32;
-
-   if(!openOnce) {
-    ((ENVIRON*) csound)->Message(csound, "Suggested PortAudio output latency = "
+    openOnce = (int *)((ENVIRON*) csound)->QueryGlobalVariable(csound,"openOnce");
+    if(!*openOnce) {
+        ((ENVIRON*) csound)->Message(csound, "Suggested PortAudio output latency = "
                                          "%f seconds.\n",
-                                         paStreamParameters_.suggestedLatency);
-     paError = paBlockingWriteOpen(csound, &pabsWrite, &paStreamParameters_,
-                                  parm);
-    if (paError != paNoError) {
-    ((ENVIRON*) csound)->Message(csound, Str("PortAudio error %d: %s.\n"),
+                                     paStreamParameters_.suggestedLatency);
+                                                   
+        pabs =  (PA_BLOCKING_STREAM *)
+                ((ENVIRON*) csound)->QueryGlobalVariable(csound,"pabsReadWritep");  
+    	paError = paBlockingWriteOpen(csound, pabs, &paStreamParameters_, parm);
+        if (paError != paNoError) {
+                ((ENVIRON*) csound)->Message(csound, Str("PortAudio error %d: %s.\n"),
                                          paError, Pa_GetErrorText(paError));
-    return -1;
-    }
-    ((ENVIRON*) csound)->Message(csound,
+                return -1;
+        }
+
+        ((ENVIRON*) csound)->Message(csound,
                                  Str("Opened PortAudio output device %i.\n"),
                                  paStreamParameters_.device);
     }
+
     return 0;
 
 }
@@ -247,34 +220,69 @@ static int playopen_(void *csound, csRtAudioParams *parm)
 /* get samples from ADC */
 static int rtrecord_(void *csound, void *inbuf_, int bytes_)
 {
+    PA_BLOCKING_STREAM *pabs;
     int samples = bytes_ / sizeof(MYFLT);
-    paBlockingRead(pabsRead, samples,(MYFLT *)inbuf_);
+    pabs = (PA_BLOCKING_STREAM *)((ENVIRON*) csound)->QueryGlobalVariable(csound,"pabsReadWritep");
+    paBlockingRead(&pabs[INS], samples,(MYFLT *)inbuf_);
     return bytes_;
 }
 
 /* put samples to DAC  */
 static void rtplay_(void *csound, void *outbuf_, int bytes_)
-  /* N.B. This routine serves as a THROTTLE in Csound Realtime Performance, */
-  /* delaying the actual writes and return until the hardware output buffer */
-  /* passes a sample-specific THRESHOLD.  If the I/O BLOCKING functionality */
-  /* is implemented ACCURATELY by the vendor-supplied audio-library write,  */
-  /* that is sufficient.  Otherwise, requires some kind of IOCTL from here. */
-  /* This functionality is IMPORTANT when other realtime I/O is occurring,  */
-  /* such as when external MIDI data is being collected from a serial port. */
-  /* Since Csound polls for MIDI input at the software synthesis K-rate     */
-  /* (the resolution of all software-synthesized events), the user can      */
-  /* eliminate MIDI jitter by requesting that both be made synchronous with */
-  /* the above audio I/O blocks, i.e. by setting -b to some 1 or 2 K-prds.  */
 {
-    int samples = bytes_ / sizeof(MYFLT);
-    paBlockingWrite(pabsWrite, samples, (MYFLT *)outbuf_);
+     PA_BLOCKING_STREAM *pabs;
+     int samples = bytes_ / sizeof(MYFLT);
+     pabs = (PA_BLOCKING_STREAM *)((ENVIRON*) csound)->QueryGlobalVariable(csound,"pabsReadWritep");
+     paBlockingWrite(&pabs[OUTS], samples, (MYFLT *)outbuf_);
+
 }
 
 static void rtclose_(void *csound)      /* close the I/O device entirely  */
 {
                                         /* called only when both complete */
-    paBlockingClose(csound, pabsRead);
-    if(!openOnce) paBlockingClose(csound, pabsWrite);
+    paBlockingClose(csound,((ENVIRON*) csound)->QueryGlobalVariable(csound,"pabsReadWritep"));
+    /* VL: pabsReadWritep holds the whole memory block for pabsWrite & pabsRead on full-duplex */
+    ((ENVIRON*) csound)->DestroyGlobalVariable(csound, "pabsReadWritep"); 
+    ((ENVIRON*) csound)->DestroyGlobalVariable(csound, "openOnce"); 
     Pa_Terminate();
+}
+
+/* IV - Feb 02 2005: module interface functions */
+
+int csoundModuleCreate(void *csound)
+{
+    /* nothing to do, report success */
+    ((ENVIRON*) csound)->Message(csound, "PortAudio real-time audio module "
+                                         "for Csound\n");
+    return 0;
+}
+
+int csoundModuleInit(void *csound)
+{
+    ENVIRON *p;
+    char    *drv;
+    int  *ptr;
+
+    p = (ENVIRON*) csound;
+    drv = (char*) (p->QueryGlobalVariable(csound, "_RTAUDIO"));
+    if (drv == NULL)
+      return 0;
+    if (!(strcmp(drv, "portaudio") == 0 || strcmp(drv, "PortAudio") == 0 ||
+          strcmp(drv, "portAudio") == 0 || strcmp(drv, "Portaudio") == 0 ||
+          strcmp(drv, "pa") == 0 || strcmp(drv, "PA") == 0))
+      return 0;
+    /* memory for PA_BLOCKING_STREAM dataspace for both input and output */
+    p->CreateGlobalVariable(csound, "pabsReadWritep",  sizeof(PA_BLOCKING_STREAM)*2);
+    p->CreateGlobalVariable(csound, "openOnce", sizeof(int));
+    ptr = (int *)p->QueryGlobalVariable(csound,"openOnce");
+    *ptr = 0; 
+    
+    p->Message(csound, "rtaudio: PortAudio module enabled\n");
+    p->SetPlayopenCallback(csound, playopen_);
+    p->SetRecopenCallback(csound, recopen_);
+    p->SetRtplayCallback(csound, rtplay_);
+    p->SetRtrecordCallback(csound, rtrecord_);
+    p->SetRtcloseCallback(csound, rtclose_);
+    return 0;
 }
 

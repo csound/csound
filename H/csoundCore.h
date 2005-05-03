@@ -582,7 +582,7 @@ extern "C" {
     void (*SetScoreOffsetSeconds)(void *csound, MYFLT offset);
     void (*RewindScore)(void *csound);
 #ifdef HAVE_GCC3
-    __attribute__ ((__format__ (__printf__, 2, 3)))
+    __attribute__ ((__format__ (__printf__, 2, 3))) 
       void (*Message)(void *csound, const char *format, ...);
     __attribute__ ((__format__ (__printf__, 3, 4)))
       void (*MessageS)(void *csound, int attr, const char *format, ...);
