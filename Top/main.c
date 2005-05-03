@@ -54,8 +54,6 @@ extern  char    *get_sconame(void *csound);     /* one_file.c */
 # include <sys/types.h>
 #endif
 
-extern int cleanup(void *csound);
-
 void create_opcodlst(void *csound_)
 {
     ENVIRON *csound = (ENVIRON*) csound_;
@@ -477,14 +475,5 @@ void mainRESET(ENVIRON *p)
     scoreRESET(p);
     oloadRESET(p);              /* should be called last but changed!! */
     memRESET(p);
-}
-
-/**
-* For re-entrancy.
-*/
-
-void csoundMainCleanup(void *csound)
-{
-    cleanup(csound);            /* IV - Feb 03 2005 */
 }
 
