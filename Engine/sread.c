@@ -1254,8 +1254,9 @@ static void salcblk(ENVIRON *csound)
       csound->frstbp = ST(bp);
     if (prvbp != NULL)
       prvbp->nxtblk = ST(bp);           /* link with prev srtblk        */
-    ST(bp)->prvblk = prvbp;
     ST(bp)->nxtblk = NULL;
+    ST(bp)->prvblk = prvbp;
+    ST(bp)->insno = 0;
     ST(nxp) = &(ST(bp)->text[0]);
     *ST(nxp)++ = ST(op);                /* place op, blank into text    */
     *ST(nxp)++ = SP;
@@ -1628,8 +1629,8 @@ MYFLT stof(ENVIRON *csound, char s[])           /* convert string to MYFLT  */
 #endif
     if (s == p || (*p != SP && *p != LF)) {
       csound->Message(csound,
-                       Str("sread: illegal number format, sect %d line %d:  "),
-                       csound->sectcnt, ST(lincnt));
+                      Str("sread: illegal number format, sect %d line %d:  "),
+                      csound->sectcnt, ST(lincnt));
       p = s;
       while (*p != SP && *p != LF) {
         csound->Message(csound,"%c", *p);
