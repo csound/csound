@@ -354,9 +354,9 @@ int puts_opcode_init(ENVIRON *csound, PUTS_OP *p)
     p->noNewLine = (*p->no_newline == FL(0.0) ? 0 : 1);
     if (*p->ktrig > FL(0.0)) {
       if (!p->noNewLine)
-        csound->Message(csound, "%s\n", (char*) p->str);
+        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", (char*) p->str);
       else
-        csound->Message(csound, "%s", (char*) p->str);
+        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", (char*) p->str);
     }
     p->prv_ktrig = *p->ktrig;
     return OK;
@@ -367,9 +367,9 @@ int puts_opcode_perf(ENVIRON *csound, PUTS_OP *p)
     if (*p->ktrig != p->prv_ktrig && *p->ktrig > FL(0.0)) {
       p->prv_ktrig = *p->ktrig;
       if (!p->noNewLine)
-        csound->Message(csound, "%s\n", (char*) p->str);
+        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", (char*) p->str);
       else
-        csound->Message(csound, "%s", (char*) p->str);
+        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", (char*) p->str);
     }
     return OK;
 }

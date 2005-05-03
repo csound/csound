@@ -75,14 +75,15 @@ void display(WINDAT*);
 WINDAT *NewWin(char *, int);
 void   DoDisp(WINDAT *,MYFLT *,int);
 
-int  Graphable(void);           /* initialise windows.  Returns 1 if X ok */
-void MakeGraph(WINDAT *, char *);       /* create wdw for a graph */
-void MakeXYin(XYINDAT *, MYFLT, MYFLT);
+int  Graphable(void *csound);   /* initialise windows.  Returns 1 if X ok */
+void MakeGraph(void *, WINDAT *, char *);       /* create wdw for a graph */
+void MakeXYin(void *, XYINDAT *, MYFLT, MYFLT);
                                 /* create a mouse input window; init scale */
-void DrawGraph(WINDAT *);       /* update graph in existing window */
-void ReadXYin(XYINDAT *);       /* fetch latest value from ms input wdw */
-void KillGraph(WINDAT *);       /* remove a graph window */
-void KillXYin(XYINDAT *);       /* remove a ms input window */
-int  ExitGraph(void); /* print click-Exit message in most recently active window */
+void DrawGraph(void *, WINDAT *);   /* update graph in existing window */
+void ReadXYin(void *, XYINDAT *);   /* fetch latest value from ms input wdw */
+void KillGraph(void *, WINDAT *);   /* remove a graph window */
+void KillXYin(void *, XYINDAT *);   /* remove a ms input window */
+int  ExitGraph(void*); /* print click-Exit msg in most recently active window */
 
 #endif  /*      CWINDOW_H */
+

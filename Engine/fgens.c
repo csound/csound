@@ -1838,11 +1838,11 @@ static void fterror(ENVIRON *csound, FGDATA *ff, char *s, ...)
 {
     va_list args;
 
-    csound->Message(csound, Str("ftable %d: "), ff->fno);
+    csound->MessageS(csound, CSOUNDMSG_ERROR, Str("ftable %d: "), ff->fno);
     va_start(args, s);
-    csound->MessageV(csound, s, args);
+    csound->MessageV(csound, CSOUNDMSG_ERROR, s, args);
     va_end(args);
-    csound->Message(csound, "\n");
+    csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
     csound->Message(csound, "f%3.0f %8.2f %8.2f ",
                             ff->e.p[1], ff->e.p2orig, ff->e.p3orig);
     if (ff->e.p[4] == SSTRCOD)
@@ -2885,7 +2885,7 @@ static void gen52 (FUNC *ftp, ENVIRON *csound)
 int allocgen(ENVIRON *csound, char *s, GEN fn)
 {
     NAMEDGEN *n = namedgen;
-/*     csound->DebugMsg(csound, Str("**** allocgen %s to %p"), s, fn); */
+/*  csound->DebugMsg(csound, Str("**** allocgen %s to %p"), s, fn); */
     while (n!=NULL) {
       if (strcmp(s, n->name)==0) return n->genum;
       n = n->next;
@@ -2904,7 +2904,7 @@ int allocgen(ENVIRON *csound, char *s, GEN fn)
     else csound->gensub = (GEN*)mrealloc(csound, csound->gensub,
                                          csound->genmax*sizeof(GEN));
     csound->gensub[csound->genmax-1] = fn;
-/*     csound->DebugMsg(csound, Str("**** allocated %d"), csound->genmax-1); */
+/*  csound->DebugMsg(csound, Str("**** allocated %d"), csound->genmax-1); */
     return csound->genmax-1;
 }
 

@@ -643,11 +643,11 @@ int csoundInitError(void *csound_, const char *s, ...)
 
     /* RWD: need this! */
     if (csound->ids == NULL) {
-      csoundMessage(csound, Str("\nINIT ERROR: "));
+      csoundMessageS(csound, CSOUNDMSG_ERROR, Str("\nINIT ERROR: "));
       va_start(args, s);
-      csoundMessageV(csound, s, args);
+      csoundMessageV(csound, CSOUNDMSG_ERROR, s, args);
       va_end(args);
-      csoundMessage(csound, "\n");
+      csoundMessageS(csound, CSOUNDMSG_ERROR, "\n");
       longjmp(csound->exitjmp, 1);
     }
     /* IV - Oct 16 2002: check for subinstr and user opcode */
@@ -658,18 +658,21 @@ int csoundInitError(void *csound_, const char *s, ...)
       while (ip->opcod_iobufs)
         ip = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->parent_ip;
       if (buf->opcode_info)
-        csoundMessage(csound, Str("INIT ERROR in instr %d (opcode %s): "),
-                              ip->insno, buf->opcode_info->name);
+        csoundMessageS(csound, CSOUNDMSG_ERROR,
+                       Str("INIT ERROR in instr %d (opcode %s): "),
+                       ip->insno, buf->opcode_info->name);
       else
-        csoundMessage(csound, Str("INIT ERROR in instr %d (subinstr %d): "),
-                              ip->insno, csound->ids->insdshead->insno);
+        csoundMessageS(csound, CSOUNDMSG_ERROR,
+                       Str("INIT ERROR in instr %d (subinstr %d): "),
+                       ip->insno, csound->ids->insdshead->insno);
     }
     else
-      csoundMessage(csound, Str("INIT ERROR in instr %d: "), ip->insno);
+      csoundMessageS(csound, CSOUNDMSG_ERROR, Str("INIT ERROR in instr %d: "),
+                                              ip->insno);
     va_start(args, s);
-    csoundMessageV(csound, s, args);
+    csoundMessageV(csound, CSOUNDMSG_ERROR, s, args);
     va_end(args);
-    csoundMessage(csound, "\n");
+    csoundMessageS(csound, CSOUNDMSG_ERROR, "\n");
     putop(csound, &(csound->ids->optext->t));
 
     return ++(csound->inerrcnt);
@@ -683,11 +686,11 @@ int csoundPerfError(void *csound_, const char *s, ...)
 
     /* RWD and probably this too... */
     if (csound->pds == NULL) {
-      csoundMessage(csound, Str("\nPERF ERROR: "));
+      csoundMessageS(csound, CSOUNDMSG_ERROR, Str("\nPERF ERROR: "));
       va_start(args, s);
-      csoundMessageV(csound, s, args);
+      csoundMessageV(csound, CSOUNDMSG_ERROR, s, args);
       va_end(args);
-      csoundMessage(csound, "\n");
+      csoundMessageS(csound, CSOUNDMSG_ERROR, "\n");
       longjmp(csound->exitjmp, 1);
     }
     /* IV - Oct 16 2002: check for subinstr and user opcode */
@@ -698,18 +701,21 @@ int csoundPerfError(void *csound_, const char *s, ...)
       while (ip->opcod_iobufs)
         ip = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->parent_ip;
       if (buf->opcode_info)
-        csoundMessage(csound, Str("PERF ERROR in instr %d (opcode %s): "),
-                              ip->insno, buf->opcode_info->name);
+        csoundMessageS(csound, CSOUNDMSG_ERROR,
+                       Str("PERF ERROR in instr %d (opcode %s): "),
+                       ip->insno, buf->opcode_info->name);
       else
-        csoundMessage(csound, Str("PERF ERROR in instr %d (subinstr %d): "),
-                              ip->insno, csound->pds->insdshead->insno);
+        csoundMessageS(csound, CSOUNDMSG_ERROR,
+                       Str("PERF ERROR in instr %d (subinstr %d): "),
+                       ip->insno, csound->pds->insdshead->insno);
     }
     else
-      csoundMessage(csound, Str("PERF ERROR in instr %d: "), ip->insno);
+      csoundMessageS(csound, CSOUNDMSG_ERROR, Str("PERF ERROR in instr %d: "),
+                                              ip->insno);
     va_start(args, s);
-    csoundMessageV(csound, s, args);
+    csoundMessageV(csound, CSOUNDMSG_ERROR, s, args);
     va_end(args);
-    csoundMessage(csound, "\n");
+    csoundMessageS(csound, CSOUNDMSG_ERROR, "\n");
     putop(csound, &(csound->pds->optext->t));
     csoundMessage(csound, Str("   note aborted\n"));
     csound->perferrcnt++;
@@ -717,8 +723,8 @@ int csoundPerfError(void *csound_, const char *s, ...)
     while (csound->pds->nxtp != NULL)
       csound->pds = csound->pds->nxtp;        /* loop to last opds */
 
-    return csound->perferrcnt;
-}                                             /* contin from there */
+    return csound->perferrcnt;                /* contin from there */
+}
 
 int igoto(ENVIRON *csound, GOTO *p)
 {

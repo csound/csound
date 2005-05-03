@@ -34,7 +34,6 @@
 #define DKEY_DFLT  60
 
 int     csoundGetAPIVersion(void);
-
 void    dispset(WINDAT *, MYFLT *, long, char *, int, char *);
 void    display(WINDAT *);
 void    writeheader(ENVIRON *csound, int ofd, char *ofname);
@@ -43,6 +42,15 @@ void    rtplay_dummy(void *csound, void *outBuf, int nbytes);
 int     recopen_dummy(void *csound, csRtAudioParams *parm);
 int     rtrecord_dummy(void *csound, void *inBuf, int nbytes);
 void    rtclose_dummy(void *csound);
+void    csoundDefaultMessageCallback(void *csound, int attr,
+                                     const char *format, va_list args);
+void    csoundDefaultThrowMessageCallback(void *csound, const char *format,
+                                                        va_list args);
+void    defaultCsoundMakeGraph(void *csound, WINDAT *windat, char *name);
+void    defaultCsoundDrawGraph(void *csound, WINDAT *windat);
+void    defaultCsoundKillGraph(void *csound, WINDAT *windat);
+int     defaultCsoundExitGraph(void *csound);
+int     defaultCsoundYield(void *csound);
 
 static const OPARMS O_ = {
               0,0,          /* odebug, initonly */
@@ -93,6 +101,7 @@ const ENVIRON cenviron_ = {
         csoundSetScoreOffsetSeconds,
         csoundRewindScore,
         csoundMessage,
+        csoundMessageS,
         csoundMessageV,
         csoundThrowMessage,
         csoundThrowMessageV,
@@ -212,6 +221,13 @@ const ENVIRON cenviron_ = {
         rtclose_dummy,
         (void (*)(void*, char*, MYFLT*)) NULL,
         (void (*)(void*, char*, MYFLT)) NULL,
+        csoundDefaultMessageCallback,
+        csoundDefaultThrowMessageCallback,
+        defaultCsoundMakeGraph,
+        defaultCsoundDrawGraph,
+        defaultCsoundKillGraph,
+        defaultCsoundExitGraph,
+        defaultCsoundYield,
         /*
         * Data fields.
         */
@@ -385,7 +401,13 @@ const ENVIRON cenviron_ = {
         (void (*)(void*, MYFLT*, int)) NULL,    /*  audtran */
         0,              /*  warped              */
         0,              /*  sstrlen             */
-        (char*) NULL    /*  sstrbuf             */
+        (char*) NULL,   /*  sstrbuf             */
+        1,              /*  enableMsgAttr       */
+        0,              /*  sampsNeeded         */
+        FL(0.0),        /*  csoundScoreOffsetSeconds_   */
+        0,              /*  csoundIsScorePending_       */
+        0,              /*  inChar_             */
+        1               /*  isGraphable_        */
 };
 
 /* otran.c */

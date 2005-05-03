@@ -3,7 +3,8 @@
 /*
  * C S O U N D
  *
- * An auto-extensible system for making music on computers by means of software alone.
+ * An auto-extensible system for making music on computers
+ * by means of software alone.
  * Copyright (c) 2001 by Michael Gogins. All rights reserved.
  *
  * L I C E N S E
@@ -22,6 +23,7 @@
  * License along with this software; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+
 /** \file
  * \brief Declares the public Csound application programming interface (API).
  * \author John P. Fitch, Michael Gogins, Matt Ingalls, and John D. Ramsdell
@@ -30,34 +32,36 @@
  *
  * The purposes of the Csound API are as follows:
  *
- * \li Declare a stable public application programming interface (API) for Csound
- * in csound.h. This is the only header file that needs to be #included
- * by users of the Csound API.
+ * \li Declare a stable public application programming interface (API)
+ *     for Csound in csound.h. This is the only header file that needs
+ *     to be #included by users of the Csound API.
  *
- * \li Hide the internal implementation details of Csound from users of the API,
- * so that development of Csound can proceed without affecting code that uses the API.
+ * \li Hide the internal implementation details of Csound from users of
+ *     the API, so that development of Csound can proceed without affecting
+ *     code that uses the API.
  *
  * \b Users
  *
  * Users of the Csound API fall into two main categories: hosts, and plugins.
  *
  * \li Hosts are applications that use Csound as a software synthesis engine.
- * Hosts can link with the Csound API either statically or dynamically.
+ *     Hosts can link with the Csound API either statically or dynamically.
  *
  * \li Plugins are shared libraries loaded by Csound at run time to implement
- * external opcodes and/or drivers for audio or MIDI input and output.
+ *     external opcodes and/or drivers for audio or MIDI input and output.
  *
  * Hosts using the Csound API must #include <csound.h>, and link with the
  * Csound API library.
  *
- * Hosts must first create an instance of Csound using the \c csoundCreate API function.
- * When hosts are finished using Csound, they must destroy the instance of csound
- * using the \c csoundDestroy API function. Most of the other Csound API functions
- * take the Csound instance as their first argument.
+ * Hosts must first create an instance of Csound using the \c csoundCreate
+ * API function. When hosts are finished using Csound, they must destroy the
+ * instance of csound using the \c csoundDestroy API function.
+ * Most of the other Csound API functions take the Csound instance as their
+ * first argument.
  * Hosts can call either the standalone API functions defined in csound.h,
- * e.g. \c csoundGetSr(csound), or the function pointers in the Csound instance structure,
- * e.g. csound->GetSr(csound). Each function in the Csound API has a corresponding
- * function pointer in the Csound instance structure.
+ * e.g. \c csoundGetSr(csound), or the function pointers in the Csound instance
+ * structure, e.g. csound->GetSr(csound). Each function in the Csound API has
+ * a corresponding function pointer in the Csound instance structure.
  *
  * Here is the complete code for the simplest possible Csound API host,
  * a command-line Csound application:
@@ -68,43 +72,40 @@
  *
  * int main(int argc, char **argv)
  * {
- *               void *csound = csoundCreate(0);
- *               int result = csoundPerform(csound, argc, argv);
- *               csoundDestroy(csound);
- *               return result;
- *       }
+ *     void *csound = csoundCreate(0);
+ *     int result = csoundPerform(csound, argc, argv);
+ *     csoundDestroy(csound);
+ *     return result;
+ * }
  *
  * \endcode
  *
  * All opcodes, including plugins, receive a pointer to their host
- * instance of Csound in the opcode structure itself. Therefore,
- * plugins MUST NOT create an instance of Csound, and MUST call the
- * Csound API function pointers off the Csound instance pointer in the
- * insdshead member of the OPDS structure, for example:
+ * instance of Csound as the first argument. Therefore, plugins MUST NOT
+ * create an instance of Csound, and MUST call the Csound API function
+ * pointers off the Csound instance pointer.
  *
  * \code
- * MYFLT sr = MyOpcodeStructure->h.insdshead->csound->GetSr(MyOpcodeStructure->h.insdshead->csound);
+ * MYFLT sr = csound->GetSr(csound);
  * \endcode
  *
- * In general, plugins should ONLY access Csound functionality through the API function
- * pointers.
+ * In general, plugins should ONLY access Csound functionality through the
+ * API function pointers.
  *
  * \b TODO
  *
- * The Csound API is not finished. At this time, Csound does not
- * support creating multiple instances of Csound in a single process,
- * and the Csound API functions do not all take a pointer to the Csound
- * instance as their first argument. This needs to be changed.
+ * The Csound API is not finished. At this time, the Csound API functions
+ * do not all take a pointer to the Csound instance as their first argument.
+ * This needs to be changed.
  *
  * In addition, some new functions need to be added to the API for
  * various purposes:
  *
- * \li Create and destroy function tables, get and set function table data.
- *
- * \li Support for plugin audio, MIDI, and control drivers.
+ * \li Create and destroy function tables.
  *
  * \li Support for configurating and accessing realtime audio busses.
  */
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -193,8 +194,8 @@ extern "C" {
   PUBLIC int csoundPreCompile(void *csound);
 
   /**
-   * Returns a pointer to the requested interface, if available, in the interface
-   * argument, and its version number, in the version argument.
+   * Returns a pointer to the requested interface, if available, in the
+   * interface argument, and its version number, in the version argument.
    * Returns 0 for success and 1 for failure.
    */
   PUBLIC int csoundQueryInterface(const char *name, void **iface, int *version);
@@ -270,8 +271,9 @@ extern "C" {
    * Performs Csound, sensing real-time and score events
    * and processing one buffer's worth (-b frames) of interleaved audio.
    * Returns a pointer to the new output audio in 'outputAudio'
-   * Note that csoundCompile must be called first, then call csoundGetOutputBuffer()
-   * and csoundGetInputBuffer() to get the pointer to csound's i/o buffers.
+   * Note that csoundCompile must be called first, then call
+   * csoundGetOutputBuffer() and csoundGetInputBuffer() to get the pointer
+   * to csound's I/O buffers.
    * Returns false during performance, and true when performance is finished.
    */
   PUBLIC int csoundPerformBuffer(void *csound);
@@ -356,7 +358,8 @@ extern "C" {
 
   /**
    * Returns the address of the Csound audio output working buffer (spout).
-   * Enables external software to read audio from Csound after calling csoundPerformKsmps.
+   * Enables external software to read audio from Csound after calling
+   * csoundPerformKsmps.
    */
   PUBLIC MYFLT *csoundGetSpout(void *csound);
 
@@ -426,24 +429,35 @@ extern "C" {
     __attribute__ ((__format__(__printf__, 2, 3)))
 #endif
       void csoundMessage(void *csound, const char *format, ...);
-  PUBLIC void csoundMessageV(void *csound, const char *format, va_list args);
+
+  PUBLIC
+#ifdef HAVE_GCC3
+    __attribute__ ((__format__(__printf__, 3, 4)))
+#endif
+      void csoundMessageS(void *csound, int attr, const char *format, ...);
+
+  PUBLIC void csoundMessageV(void *csound, int attr, const char *format,
+                                                     va_list args);
 
   /**
    * Throws an informational message as a C++ exception.
    */
   PUBLIC void csoundThrowMessage(void *csound, const char *format, ...);
-  PUBLIC void csoundThrowMessageV(void *csound, const char *format, va_list args);
+  PUBLIC void csoundThrowMessageV(void *csound, const char *format,
+                                                va_list args);
 
   /**
    * Sets a function to be called by Csound to print an informational message.
    */
   PUBLIC void csoundSetMessageCallback(void *csound,
                               void (*csoundMessageCallback)(void *csound,
+                                                            int attr,
                                                             const char *format,
                                                             va_list valist));
 
   /**
-   * Sets a function for Csound to stop execution with an error message or exception.
+   * Sets a function for Csound to stop execution with an error message or
+   * exception.
    */
   PUBLIC void csoundSetThrowMessageCallback(void *csound,
                               void (*throwMessageCallback)(void *csound,
@@ -461,7 +475,8 @@ extern "C" {
   PUBLIC void csoundSetMessageLevel(void *csound, int messageLevel);
 
   /**
-   * Input a NULL-terminated string (as if from a console) usually used for lineevents
+   * Input a NULL-terminated string (as if from a console)
+   * usually used for lineevents
    */
   PUBLIC void csoundInputMessage(void *csound, const char *message);
 
@@ -655,6 +670,7 @@ extern "C" {
    * to Csound's internal opcode list.
    * The opcode list is extended by one slot,
    * and the parameters are copied into the new slot.
+   * Returns zero on success.
    */
   PUBLIC int csoundAppendOpcode(void *csound, char *opname, int dsblksiz,
                                 int thread, char *outypes, char *intypes,
@@ -689,21 +705,17 @@ extern "C" {
    */
 
   /*
-   * Platform-independent function
-   * to load a shared library.
+   * Platform-independent function to load a shared library.
    */
   PUBLIC void *csoundOpenLibrary(const char *libraryPath);
 
   /*
-   * Platform-independent function
-   * to unload a shared library.
+   * Platform-independent function to unload a shared library.
    */
-  PUBLIC void *csoundCloseLibrary(void *library);
+  PUBLIC int csoundCloseLibrary(void *library);
 
   /*
-   * Platform-independent function
-   * to get a symbol address
-   * in a shared library.
+   * Platform-independent function to get a symbol address in a shared library.
    */
   PUBLIC void *csoundGetLibrarySymbol(void *library, const char *symbolName);
 
@@ -746,14 +758,16 @@ extern "C" {
   } csRtAudioParams;
 
   /**
-   * Sets a function to be called by Csound for opening real-time audio playback.
+   * Sets a function to be called by Csound for opening real-time
+   * audio playback.
    */
   PUBLIC void csoundSetPlayopenCallback(void *csound,
-                                        int (*playopen__)(void *csound,
-                                                          csRtAudioParams *parm));
+                                    int (*playopen__)(void *csound,
+                                                      csRtAudioParams *parm));
 
   /**
-   * Sets a function to be called by Csound for performing real-time audio playback.
+   * Sets a function to be called by Csound for performing real-time
+   * audio playback.
    */
   PUBLIC void csoundSetRtplayCallback(void *csound,
                                       void (*rtplay__)(void *csound,
@@ -761,14 +775,16 @@ extern "C" {
                                                        int nbytes));
 
   /**
-   * Sets a function to be called by Csound for opening real-time audio recording.
+   * Sets a function to be called by Csound for opening real-time
+   * audio recording.
    */
   PUBLIC void csoundSetRecopenCallback(void *csound,
                                        int (*recopen_)(void *csound,
                                                        csRtAudioParams *parm));
 
   /**
-   * Sets a function to be called by Csound for performing real-time audio recording.
+   * Sets a function to be called by Csound for performing real-time
+   * audio recording.
    */
   PUBLIC void csoundSetRtrecordCallback(void *csound,
                                         int (*rtrecord__)(void *csound,
@@ -814,7 +830,9 @@ extern "C" {
    * null for failure.
    * The userdata pointer is passed to the thread routine.
    */
-  PUBLIC void *csoundCreateThread(void *csound, int (*threadRoutine)(void *userdata), void *userdata);
+  PUBLIC void *csoundCreateThread(void *csound,
+                                  int (*threadRoutine)(void *userdata),
+                                  void *userdata);
 
   /**
    * Waits until the indicated thread's routine has finished.
@@ -833,7 +851,8 @@ extern "C" {
    * or when the period has elapsed, whichever is sooner.
    * If the period is 0, the wait is infinite.
    */
-  PUBLIC void csoundWaitThreadLock(void *csound, void *lock, size_t milliseconds);
+  PUBLIC void csoundWaitThreadLock(void *csound, void *lock,
+                                                 size_t milliseconds);
 
   /**
    * Notifies the indicated monitor object.
@@ -962,6 +981,7 @@ typedef struct RTCLOCK_S {
 #include "cfgvar.h"
 #include "envvar.h"
 #include "fftlib.h"
+#include "msg_attr.h"
 
 #ifdef __cplusplus
 };

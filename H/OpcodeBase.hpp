@@ -69,7 +69,7 @@ public:
       va_list args;
       va_start(args, format);
       if(csound) {
-            csound->MessageV(csound, format, args);
+            csound->MessageV(csound, 0, format, args);
       }
       else {
             vfprintf(stdout, format, args);
@@ -83,7 +83,7 @@ public:
       if(csound) {
           if(csound->GetMessageLevel(csound) & WARNMSG ||
              csound->GetDebug(csound)) {
-              csound->MessageV(csound, format, args);
+              csound->MessageV(csound, 0, format, args);
           }
       }
       else {

@@ -120,7 +120,7 @@ void musRESET(ENVIRON *csound)
       csound->smaxamp[i]  = FL(0.0);
       csound->omaxamp[i]  = FL(0.0);
       csound->rngcnt[i]   = 0;
-      csound->omaxpos[i] = csound->smaxpos[i] = csound->maxpos[i] = 1;
+      csound->omaxpos[i]  = csound->smaxpos[i] = csound->maxpos[i] = 1;
     }
     csound->rngflg      = 0;
     csound->multichan   = 0;
@@ -128,8 +128,6 @@ void musRESET(ENVIRON *csound)
 
 static void print_maxamp(ENVIRON *csound, MYFLT x)
 {
-    MYFLT   y;
-
     if (!(csound->oparms->msglevel & 0x60)) {   /* 0x00: raw amplitudes */
       if (csound->e0dbfs > FL(3000.0))
         csound->Message(csound, "%9.1f", x);
@@ -142,34 +140,28 @@ static void print_maxamp(ENVIRON *csound, MYFLT x)
       else
         csound->Message(csound, "%9.4f", x);
     }
-    else {                      /* dB values */
-      y = x / csound->e0dbfs;   /* relative level */
+    else {                              /* dB values */
+      int   attr = 0;
+      MYFLT y = x / csound->e0dbfs;     /* relative level */
       if (y < FL(1.0e-10)) {
         /* less than -200 dB: print zero */
         csound->Message(csound, "      0  ");
         return;
       }
-      y = FL(20.0) * (MYFLT) log10 ((double) y);
-      switch (csound->oparms->msglevel & 0x60) {
-        case 0x60:                              /* 0x60: dB with all colors */
-          if (y >= FL(0.0))                             /* >= 0 dB: red */
-            csound->Message(csound, "\033[1m\033[31m%+9.2f\033[m", y);
-          else if (y >= FL(-6.0))                       /* -6..0 dB: yellow */
-            csound->Message(csound, "\033[1m\033[33m%+9.2f\033[m", y);
+      y = FL(20.0) * (MYFLT) log10((double) y);
+      if (csound->oparms->msglevel & 0x40) {
+        if (y >= FL(0.0))                               /* >= 0 dB: red */
+          attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_RED;
+        else if (csound->oparms->msglevel & 0x20) {
+          if (y >= FL(-6.0))                            /* -6..0 dB: yellow */
+            attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_YELLOW;
           else if (y >= FL(-24.0))                      /* -24..-6 dB: green */
-            csound->Message(csound, "\033[1m\033[32m%+9.2f\033[m", y);
+            attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_GREEN;
           else                                          /* -200..-24 dB: blue */
-            csound->Message(csound, "\033[1m\033[34m%+9.2f\033[m", y);
-          break;
-        case 0x40:                              /* 0x40: dB with overrange */
-          if (y >= FL(0.0))                             /* >= 0 dB: red */
-            csound->Message(csound, "\033[1m\033[31m%+9.2f\033[m", y);
-          else
-            csound->Message(csound, "%+9.2f", y);
-          break;
-        default:                                /* 0x20: dB with no colors */
-          csound->Message(csound, "%+9.2f", y);
+            attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_BLUE;
+        }
       }
+      csound->MessageS(csound, attr, "%+9.2f", y);
     }
 }
 
