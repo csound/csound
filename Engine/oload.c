@@ -22,8 +22,9 @@
 */
 
 #include "cs.h"                 /*                              OLOAD.C   */
-#include "oload.h"
 #include <math.h>
+#include <setjmp.h>
+#include "oload.h"
 #include "midiops.h"
 #include "insert.h"
 #include "ftgen.h"
@@ -436,6 +437,8 @@ void oloadRESET(ENVIRON *csound)
       tp = nxttp;
     }
     mfree(csound, csound->instrtxtp);           /* Start again */
+    /* delete temporary files created by this Csound instance */
+    remove_tmpfiles(csound);
     /**
      * Copy everything EXCEPT the function pointers.
      * We do it by saving them and copying them back again...
@@ -444,8 +447,10 @@ void oloadRESET(ENVIRON *csound)
       void    *tempGlobals, *saved_memalloc_db = csound->memalloc_db;
       void    *saved_hostdata = csound->hostdata;
       OPARMS  *saved_oparms = csound->oparms;
-      size_t  length = (size_t) ((uintptr_t) &(csound->ids)
-                                 - (uintptr_t) csound);
+      jmp_buf saved_exitjmp;
+      size_t  length;
+      memcpy(&saved_exitjmp, &(csound->exitjmp), sizeof(jmp_buf));
+      length = (size_t) ((uintptr_t) &(csound->ids) - (uintptr_t) csound);
       tempGlobals = malloc(length);     /* hope that this does not fail... */
       memcpy(tempGlobals, (void*) csound, length);
       memcpy(csound, &cenviron_, sizeof(ENVIRON));
@@ -454,6 +459,7 @@ void oloadRESET(ENVIRON *csound)
       csound->hostdata = saved_hostdata;
       csound->oparms = saved_oparms;
       csound->memalloc_db = saved_memalloc_db;
+      memcpy(&(csound->exitjmp), &saved_exitjmp, sizeof(jmp_buf));
       /* reset rtaudio function pointers */
       csound->recopen_callback = recopen_dummy;
       csound->playopen_callback = playopen_dummy;

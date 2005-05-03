@@ -79,9 +79,7 @@ using namespace std ;
 extern "C" {
 #include "cs.h"
 #include "oload.h"
-  extern int cleanup(void *csound);
 }
-#undef exit
 
 #define CSOUND_WIDGETS_CPP 1
 #include "widgets.h"
@@ -1647,7 +1645,6 @@ static void __cdecl fltkRun(void *userdata)
   csound->Message(csound, "end of widget thread\n");
 #if defined(LINUX) || defined(NETBSD)
   // IV - Aug 27 2002: exit if all windows are closed
-  cleanup(csound);
   exit(0);
 #endif
 }

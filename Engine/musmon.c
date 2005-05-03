@@ -33,8 +33,6 @@
 #include "oload.h"
 #include <math.h>
 
-int     cleanup(void*);
-
 #define SEGAMPS 01
 #define SORMSG  02
 
@@ -327,10 +325,10 @@ int musmon2(ENVIRON *csound)
     if (csound->musmonGlobals == NULL)
       csound->musmonGlobals = csound->Calloc(csound, sizeof(MUSMON_GLOBALS));
     playevents(csound);              /* play all events in the score */
-    return cleanup(csound);
+    return csoundCleanup(csound);
 }
 
-int cleanup(void *csound_)
+PUBLIC int csoundCleanup(void *csound_)
 {
     ENVIRON *csound = (ENVIRON*) csound_;
     MYFLT   *maxp;
@@ -381,7 +379,6 @@ int cleanup(void *csound_)
       csound->Message(csound, Str("no sound written to disk\n"));
     if (csound->oparms->ringbell)
       cs_beep(csound);
-    remove_tmpfiles(csound);
     return dispexit();      /* hold or terminate the display output     */
     /* for Mac, dispexit returns 0 to exit immediately */
 }
