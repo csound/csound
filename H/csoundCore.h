@@ -584,14 +584,18 @@ extern "C" {
 #ifdef HAVE_GCC3
     __attribute__ ((__format__ (__printf__, 2, 3)))
       void (*Message)(void *csound, const char *format, ...);
+    __attribute__ ((__format__ (__printf__, 3, 4)))
+      void (*MessageS)(void *csound, int attr, const char *format, ...);
 #else
       void (*Message)(void *csound, const char *format, ...);
+      void (*MessageS)(void *csound, int attr, const char *format, ...);
 #endif
-    void (*MessageV)(void *csound, const char *format, va_list args);
+    void (*MessageV)(void *csound, int attr, const char *format, va_list args);
     void (*ThrowMessage)(void *csound, const char *format, ...);
     void (*ThrowMessageV)(void *csound, const char *format, va_list args);
     void (*SetMessageCallback)(void *csound,
                                void (*csoundMessageCallback)(void *hostData,
+                                                             int attr,
                                                              const char *format,
                                                              va_list valist));
     void (*SetThrowMessageCallback)(void *csound,
@@ -771,7 +775,7 @@ extern "C" {
     int (*AddUtility)(void *csound_, const char *name,
                       int (*UtilFunc)(void*, int, char**));
     int (*Utility)(void *csound_, const char *name, int argc, char **argv);
-    /* real-time audio callbacks */
+    /* callback function pointers - not part of the API */
     int (*playopen_callback)(void *csound, csRtAudioParams *parm);
     void (*rtplay_callback)(void *csound, void *outBuf, int nbytes);
     int (*recopen_callback)(void *csound, csRtAudioParams *parm);
@@ -779,6 +783,15 @@ extern "C" {
     void (*rtclose_callback)(void *csound);
     void (*InputValueCallback_)(void *csound, char *channelName, MYFLT *value);
     void (*OutputValueCallback_)(void *csound, char *channelName, MYFLT value);
+    void (*csoundMessageCallback_)(void *csound, int attr, const char *format,
+                                                           va_list args);
+    void (*csoundThrowMessageCallback_)(void *csound, const char *format,
+                                                      va_list args);
+    void (*csoundMakeGraphCallback_)(void *csound, WINDAT *windat, char *name);
+    void (*csoundDrawGraphCallback_)(void *csound, WINDAT *windat);
+    void (*csoundKillGraphCallback_)(void *csound, WINDAT *windat);
+    int (*csoundExitGraphCallback_)(void *csound);
+    int (*csoundYieldCallback_)(void *csound);
     /* End of internals */
     OPDS          *ids, *pds;       /* used by init and perf loops */
     int           ksmps, nchnls;
@@ -946,6 +959,12 @@ extern "C" {
     int           warped;           /* rdscor.c */
     int           sstrlen;
     char          *sstrbuf;
+    int           enableMsgAttr;    /* csound.c */
+    int           sampsNeeded;
+    MYFLT         csoundScoreOffsetSeconds_;
+    int           csoundIsScorePending_;
+    int           inChar_;
+    int           isGraphable_;
   } ENVIRON;
 
 #include "text.h"

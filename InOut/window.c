@@ -28,47 +28,61 @@
 
 static OPARMS O;    /* FIXME: stub */
 
-static void (*makeFn)(WINDAT*, char*);  /* pointer to window make fn - */
-extern void MakeAscii(WINDAT *, char *);/*     either teletype         */
-extern void MakeGraph(WINDAT *,char *); /*     or some graphics system */
+/* pointer to window make fn - */
+/*     either teletype         */
+/*     or some graphics system */
+static void (*makeFn)(void *, WINDAT *, char *);
+extern void MakeAscii(void *, WINDAT *, char *);
+extern void MakeGraph(void *, WINDAT *, char *);
+/* pointer to appropriate drawing fn */
+static void (*drawFn)(void *, WINDAT *);
+extern void DrawAscii(void *, WINDAT *);
+extern void DrawGraph(void *, WINDAT *);
+/* pointer to window destroy fn */
+static void (*killFn)(void *, WINDAT *);
+extern void KillAscii(void *, WINDAT *);
+extern void KillGraph(void *, WINDAT *);
+/* pointer to xyinput window creator */
+       void (*mkxyFn)(void *, XYINDAT *, MYFLT, MYFLT);
+static void MkXYDummy(void *, XYINDAT *, MYFLT, MYFLT);
+extern void MakeXYin(void *, XYINDAT *, MYFLT, MYFLT);
+/* pointer to xyinput window reader */
+       void (*rdxyFn)(void *, XYINDAT *);
+static void RdXYDummy(void *, XYINDAT *);
+extern void ReadXYin(void *, XYINDAT *);
 
-static void (*drawFn)(WINDAT *);        /* pointer to appropriate drawing fn */
-extern void DrawAscii(WINDAT *);
-extern void DrawGraph(WINDAT *);
+static int (*exitFn)(void *) = NULL; /* pointer to window last exit fn - returns
+                                        0 to exit immediately */
+extern int ExitGraph(void *);
 
-static void (*killFn)(WINDAT *);        /* pointer to window destroy fn */
-extern void KillAscii(WINDAT *);
-extern void KillGraph(WINDAT *);
+/* somewhere to invoke for no display */
 
-       void (*mkxyFn)(XYINDAT *, MYFLT, MYFLT); /* pointer to xyinput window creator */
-static void MkXYDummy(XYINDAT *, MYFLT, MYFLT);
-extern void MakeXYin(XYINDAT *, MYFLT, MYFLT);
-
-       void (*rdxyFn)(XYINDAT *);       /* pointer to xyinput window reader */
-static void RdXYDummy(XYINDAT *);
-extern void ReadXYin(XYINDAT *);
-
-static int (*exitFn)(void) = NULL; /* pointer to window last exit fn - returns
-                                      0 to exit immediately */
-extern int ExitGraph(void);
-
-static void DummyFn2(WINDAT *p, char *s) /* somewhere to invoke for no display */
+static void DummyFn2(void *csound, WINDAT *p, char *s)
 {
-    IGN(p); IGN(s);
+    IGN(csound); IGN(p); IGN(s);
 }
 
-static void DummyFn1(WINDAT *p)          /* somewhere to invoke for no display */
+/* somewhere to invoke for no display */
+
+static void DummyFn1(void *csound, WINDAT *p)
 {
-    IGN(p);
+    IGN(csound); IGN(p);
 }
 
-static int DummyRFn(void) /* somewhere to invoke that returns 1 (!) for */
-{                         /* dummy exit fn */
-    return(0);            /* Used to be 1 but seems silly (MR/JPff) */
+/* somewhere to invoke that returns 1 (!) for */
+/* dummy exit fn */
+/* Used to be 1 but seems silly (MR/JPff) */
+
+static int DummyRFn(void *csound)
+{
+    IGN(csound); return(0);
 }
 
-static void MkXYDummy(XYINDAT *wdptr, MYFLT x, MYFLT y) /* initial proportions */
+/* initial proportions */
+
+static void MkXYDummy(void *csound, XYINDAT *wdptr, MYFLT x, MYFLT y)
 {
+    IGN(csound);
     wdptr->windid = 0;  /* xwin = MakeWindow(1);        */
     wdptr->down = 0;    /* by def released after Make */
 
@@ -77,8 +91,9 @@ static void MkXYDummy(XYINDAT *wdptr, MYFLT x, MYFLT y) /* initial proportions *
     wdptr->x = x;       wdptr->y = y;
 }
 
-static void RdXYDummy(XYINDAT *wdptr)
+static void RdXYDummy(void *csound, XYINDAT *wdptr)
 {
+    IGN(csound);
     IGN(wdptr);
 /*      wdptr->m_x = m_x;       wdptr->m_y = m_y;
         wdptr->x = ((MYFLT)m_x-gra_x)/(MYFLT)gra_w;
@@ -89,7 +104,10 @@ static void RdXYDummy(XYINDAT *wdptr)
 void dispinit(void)     /* called once on initialisation of program to  */
 {                       /*   choose between teletype or bitmap graphics */
     if (!O.displays) {
+/*
       csoundMessage(&cenviron, Str("displays suppressed\n"));
+*/
+      fprintf(stderr, Str("displays suppressed\n"));
       makeFn = DummyFn2;
       drawFn = DummyFn1;
       killFn = DummyFn1;
@@ -98,7 +116,7 @@ void dispinit(void)     /* called once on initialisation of program to  */
       exitFn = DummyRFn;
     }
 #ifdef WINDOWS
-    else if (!O.graphsoff && Graphable()) {
+    else if (!O.graphsoff && Graphable(&cenviron)) {
                        /* provided by window driver: is this session able? */
       makeFn = MakeGraph;
       drawFn = DrawGraph;
@@ -129,13 +147,14 @@ void dispset(                            /* setup a new window */
      int    waitflg,
      char   *label)
 {
+    ENVIRON *csound = (ENVIRON*) NULL;
     char *s = caption;
     char *t = wdptr->caption;
     char *tlim = t + CAPSIZE - 1;
 
     if (!O.displays) return;            /* return if displays disabled */
     if (!wdptr->windid) {               /* if no window defined for this str  */
-      (*makeFn)(wdptr,label);           /*    create one  */
+      (*makeFn)(csound, wdptr, label);  /*    create one  */
       if (O.postscript)
         PS_MakeGraph(wdptr,label);      /* open PS file + write header        */
     }
@@ -159,15 +178,16 @@ void dispkill(WINDAT *wdptr)
      * Fixed bug - used to throw an exception if killFn was null.
      */
     if (killFn) {
-      (*killFn)(wdptr);
+      (*killFn)((ENVIRON*) NULL, wdptr);
     }
 }
 
 int dispexit(void)
 {
     if (O.postscript) PS_ExitGraph(); /* Write trailer to PostScript file  */
-    if (exitFn!=NULL)
-      return (*exitFn)();         /* prompt for exit from last active window */
+    if (exitFn != NULL)
+      /* prompt for exit from last active window */
+      return (*exitFn)((ENVIRON*) NULL);
     else
       return 0;
 }
@@ -203,6 +223,7 @@ void display(WINDAT *wdptr)     /* prepare a MYFLT array, then call the */
     else if (pol == (short)NEGPOL && max > FL(0.0)) pol = (short)BIPOL;
     wdptr->polarity = pol;
 
-    (*drawFn)(wdptr);                    /* now graph the function */
+    (*drawFn)((ENVIRON*) NULL, wdptr);    /* now graph the function */
     if (O.postscript) PS_DrawGraph(wdptr);/* Write postscript code  */
 }
+

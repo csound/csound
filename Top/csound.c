@@ -416,6 +416,10 @@ extern "C" {
                                         "Maximum length of "
                                         "string variables + 1", NULL);
     }
+    csoundCreateConfigurationVariable(csound, "msg_color", &(p->enableMsgAttr),
+                                      CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
+                                      "Enable message attributes (colors etc.)",
+                                      NULL);
     /* now load and pre-initialise external modules for this instance */
     /* this function returns an error value that may be worth checking */
     return csoundLoadModules(csound);
@@ -531,35 +535,27 @@ extern "C" {
     return done;
   }
 
+  /* external host's outbuffer passed in csoundPerformBuffer() */
 
-  /* external host's outbuffer passed in csoundPerformBuffer()
-   */
-
-  PUBLIC int csoundPerformBuffer(void *csound)
+  PUBLIC int csoundPerformBuffer(void *csound_)
   {
+    ENVIRON *csound = (ENVIRON*) csound_;
     volatile int returnValue;
-    /* Number of samples still needed to create before returning.
-     */
-    static int sampsNeeded = 0;
-    int sampsPerKperf = csoundGetKsmps(csound) * csoundGetNchnls(csound);
-    int done = 0;
-    /* Setup jmp for return after an exit().
-     */
-    if ((returnValue = setjmp(((ENVIRON*) csound)->exitjmp))) {
-      csoundMessage(csound, "Early return from csoundPerformBuffer().\n");
+    int     done;
+    /* Setup jmp for return after an exit(). */
+    if ((returnValue = setjmp(csound->exitjmp))) {
+      csoundMessage(csound_, "Early return from csoundPerformBuffer().\n");
       return returnValue;
     }
-    sampsNeeded += ((ENVIRON*) csound)->oparms->outbufsamps;
-    while (!done && sampsNeeded > 0) {
-      done = sensevents(csound);
-      if (done) {
+    csound->sampsNeeded += csound->oparms->outbufsamps;
+    while (csound->sampsNeeded > 0) {
+      if ((done = sensevents(csound)))
         return done;
-      }
-      if (!((ENVIRON*) csound)->oparms->initonly)
+      if (!csound->oparms->initonly)
         kperf(csound);
-      sampsNeeded -= sampsPerKperf;
+      csound->sampsNeeded -= csound->nspout;
     }
-    return done;
+    return 0;
   }
 
   /*
@@ -642,28 +638,24 @@ extern "C" {
    * SCORE HANDLING
    */
 
-  static int csoundIsScorePending_ = 0;
-
   PUBLIC int csoundIsScorePending(void *csound)
   {
-    return csoundIsScorePending_;
+    return ((ENVIRON*) csound)->csoundIsScorePending_;
   }
 
   PUBLIC void csoundSetScorePending(void *csound, int pending)
   {
-    csoundIsScorePending_ = pending;
+    ((ENVIRON*) csound)->csoundIsScorePending_ = pending;
   }
-
-  static MYFLT csoundScoreOffsetSeconds_ = (MYFLT) 0.0;
 
   PUBLIC void csoundSetScoreOffsetSeconds(void *csound, MYFLT offset)
   {
-    csoundScoreOffsetSeconds_ = offset;
+    ((ENVIRON*) csound)->csoundScoreOffsetSeconds_ = offset;
   }
 
   PUBLIC MYFLT csoundGetScoreOffsetSeconds(void *csound)
   {
-    return csoundScoreOffsetSeconds_;
+    return ((ENVIRON*) csound)->csoundScoreOffsetSeconds_;
   }
 
   PUBLIC void csoundRewindScore(void *csound)
@@ -674,37 +666,67 @@ extern "C" {
       }
   }
 
-  static void csoundDefaultMessageCallback(void *csound,
-                                           const char *format, va_list args)
+  void csoundDefaultMessageCallback(void *csound, int attr,
+                                    const char *format, va_list args)
   {
 #if defined(WIN32) || defined(mills_macintosh)
     vfprintf(stdout, format, args);
 #else
+    if (!attr) {
+      vfprintf(stderr, format, args);
+      return;
+    }
+    if ((attr & CSOUNDMSG_TYPE_MASK) == CSOUNDMSG_ORCH)
+      attr |= CSOUNDMSG_FG_BOLD;
+    if (attr & CSOUNDMSG_BG_MASK)
+      fprintf(stderr, "\033[4%cm", ((attr & 0x70) >> 4) + '0');
+    if (attr & CSOUNDMSG_FG_BOLD)
+      fprintf(stderr, "\033[1m");
+    if (attr & CSOUNDMSG_FG_MASK)
+      fprintf(stderr, "\033[3%cm", (attr & 7) + '0');
     vfprintf(stderr, format, args);
+    fprintf(stderr, "\033[m");
 #endif
   }
 
-  static void (*csoundMessageCallback_)(void *csound,
-                                        const char *format, va_list args) =
-  csoundDefaultMessageCallback;
-
-  PUBLIC void csoundSetMessageCallback(void *csound,
-                 void (*csoundMessageCallback)(void *csound,
-                                               const char *format, va_list args))
+  void csoundDefaultThrowMessageCallback(void *csound, const char *format,
+                                                       va_list args)
   {
-    csoundMessageCallback_ = csoundMessageCallback;
+    csoundDefaultMessageCallback(csound, CSOUNDMSG_ERROR, format, args);
   }
 
-  PUBLIC void csoundMessageV(void *csound, const char *format, va_list args)
+  PUBLIC void csoundSetMessageCallback(void *csound,
+                            void (*csoundMessageCallback)(void *csound,
+                                                          int attr,
+                                                          const char *format,
+                                                          va_list args))
   {
-    csoundMessageCallback_(csound, format, args);
+    ((ENVIRON*) csound)->csoundMessageCallback_ = csoundMessageCallback;
+  }
+
+  PUBLIC void csoundMessageV(void *csound, int attr,
+                             const char *format, va_list args)
+  {
+    if (((ENVIRON*) csound)->enableMsgAttr == 0)
+      attr = 0;
+    ((ENVIRON*) csound)->csoundMessageCallback_(csound, attr, format, args);
   }
 
   PUBLIC void csoundMessage(void *csound, const char *format, ...)
   {
     va_list args;
     va_start(args, format);
-    csoundMessageCallback_(csound, format, args);
+    ((ENVIRON*) csound)->csoundMessageCallback_(csound, 0, format, args);
+    va_end(args);
+  }
+
+  PUBLIC void csoundMessageS(void *csound, int attr, const char *format, ...)
+  {
+    va_list args;
+    if (((ENVIRON*) csound)->enableMsgAttr == 0)
+      attr = 0;
+    va_start(args, format);
+    ((ENVIRON*) csound)->csoundMessageCallback_(csound, attr, format, args);
     va_end(args);
   }
 
@@ -714,20 +736,14 @@ extern "C" {
     exit(-1);
   }
 
-  void err_printf(char *fmt, ...)
-  {
-    fprintf(stderr,
-            " *** error: use csound->Message() instead of err_printf()\n");
-    exit(-1);
-  }
-
   void csoundDie(void *csound, const char *msg, ...)
   {
     va_list args;
     va_start(args, msg);
-    csoundMessageCallback_(csound, msg, args);
+    ((ENVIRON*) csound)->csoundMessageCallback_(csound,
+                                                CSOUNDMSG_ERROR, msg, args);
     va_end(args);
-    csoundMessage(csound, "\n");
+    csoundMessageS(csound, CSOUNDMSG_ERROR, "\n");
     longjmp(((ENVIRON*) csound)->exitjmp, 1);
   }
 
@@ -738,7 +754,7 @@ extern "C" {
       return;
     csoundMessage(csound, Str("WARNING: "));
     va_start(args, msg);
-    csoundMessageCallback_(csound, msg, args);
+    ((ENVIRON*) csound)->csoundMessageCallback_(csound, 0, msg, args);
     va_end(args);
     csoundMessage(csound, "\n");
   }
@@ -749,34 +765,31 @@ extern "C" {
     if (!(((ENVIRON*) csound)->oparms->odebug))
       return;
     va_start(args, msg);
-    csoundMessageCallback_(csound, msg, args);
+    ((ENVIRON*) csound)->csoundMessageCallback_(csound, 0, msg, args);
     va_end(args);
     csoundMessage(csound, "\n");
   }
-
-  static void (*csoundThrowMessageCallback_)(void *csound,
-                                             const char *format,
-                                             va_list args) =
-  csoundDefaultMessageCallback;
 
   PUBLIC void csoundSetThrowMessageCallback(void *csound,
                     void (*csoundThrowMessageCallback)(void *csound,
                                                        const char *format,
                                                        va_list args))
   {
-    csoundThrowMessageCallback_ = csoundThrowMessageCallback;
+    ((ENVIRON*) csound)->csoundThrowMessageCallback_ =
+      csoundThrowMessageCallback;
   }
 
-  PUBLIC void csoundThrowMessageV(void *csound, const char *format, va_list args)
+  PUBLIC void csoundThrowMessageV(void *csound, const char *format,
+                                                va_list args)
   {
-    csoundThrowMessageCallback_(csound, format, args);
+    ((ENVIRON*) csound)->csoundThrowMessageCallback_(csound, format, args);
   }
 
   PUBLIC void csoundThrowMessage(void *csound, const char *format, ...)
   {
     va_list args;
     va_start(args, format);
-    csoundThrowMessageCallback_(csound, format, args);
+    ((ENVIRON*) csound)->csoundThrowMessageCallback_(csound, format, args);
     va_end(args);
   }
 
@@ -795,16 +808,14 @@ extern "C" {
     writeLine((ENVIRON*) csound, message, strlen(message));
   }
 
-  static char inChar_ = 0;
-
   PUBLIC void csoundKeyPress(void *csound, char c)
   {
-    inChar_ = c;
+    ((ENVIRON*) csound)->inChar_ = (int) ((unsigned char) c);
   }
 
-  char getChar()
+  char getChar(void *csound)
   {
-    return inChar_;
+    return (char) ((ENVIRON*)csound)->inChar_;
   }
 
   /*
@@ -1212,121 +1223,110 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
    *    FUNCTION TABLE DISPLAY.
    */
 
-  static int isGraphable_ = 1;
-
   PUBLIC void csoundSetIsGraphable(void *csound, int isGraphable)
   {
-    isGraphable_ = isGraphable;
+    ((ENVIRON*) csound)->isGraphable_ = isGraphable;
   }
 
-  int Graphable()
+  int Graphable(void *csound)
   {
-    return isGraphable_;
+    return ((ENVIRON*) csound)->isGraphable_;
   }
 
-  static void defaultCsoundMakeGraph(void *csound, WINDAT *windat, char *name)
+  void defaultCsoundMakeGraph(void *csound, WINDAT *windat, char *name)
   {
 #if defined(USE_FLTK)
-    extern void MakeGraph_(WINDAT *,char*);
-    MakeGraph_(windat, name);
+    extern void MakeGraph_(void *, WINDAT *, char *);
+    MakeGraph_(csound, windat, name);
 #else
-    extern void MakeAscii(WINDAT *,char*);
-    MakeAscii(windat, name);
+    extern void MakeAscii(void *, WINDAT *, char *);
+    MakeAscii(csound, windat, name);
 #endif
   }
-
-  static void (*csoundMakeGraphCallback_)(void *csound,
-                                          WINDAT *windat,
-                                          char *name) = defaultCsoundMakeGraph;
 
   PUBLIC void csoundSetMakeGraphCallback(void *csound,
-                                         void (*makeGraphCallback)(void *csound,
-                                                                   WINDAT *windat,
-                                                                   char *name))
+                                    void (*makeGraphCallback)(void *csound,
+                                                              WINDAT *windat,
+                                                              char *name))
   {
-    csoundMakeGraphCallback_ = makeGraphCallback;
+    ((ENVIRON*) csound)->csoundMakeGraphCallback_ = makeGraphCallback;
   }
 
-  void MakeGraph(WINDAT *windat, char *name)
+  void MakeGraph(void *csound, WINDAT *windat, char *name)
   {
-    csoundMakeGraphCallback_(&cenviron, windat, name);
+    ((ENVIRON*) csound)->csoundMakeGraphCallback_(csound, windat, name);
   }
 
-  static void defaultCsoundDrawGraph(void *csound, WINDAT *windat)
+  void defaultCsoundDrawGraph(void *csound, WINDAT *windat)
   {
 #if defined(USE_FLTK)
-    extern void DrawGraph_(WINDAT *);
-    DrawGraph_(windat);
+    extern void DrawGraph_(void *, WINDAT *);
+    DrawGraph_(csound, windat);
 #else
-    extern void MakeAscii(WINDAT *, char*);
-    MakeAscii(windat, "");
+    extern void DrawAscii(void *, WINDAT *);
+    DrawAscii(csound, windat);
 #endif
   }
 
-  static void (*csoundDrawGraphCallback_)(void *csound,
-                                          WINDAT *windat) = defaultCsoundDrawGraph;
-
   PUBLIC void csoundSetDrawGraphCallback(void *csound,
-                                         void (*drawGraphCallback)(void *csound,
-                                                                   WINDAT *windat))
+                                    void (*drawGraphCallback)(void *csound,
+                                                              WINDAT *windat))
   {
-    csoundDrawGraphCallback_ = drawGraphCallback;
+    ((ENVIRON*) csound)->csoundDrawGraphCallback_ = drawGraphCallback;
   }
 
-  void DrawGraph(WINDAT *windat)
+  void DrawGraph(void *csound, WINDAT *windat)
   {
-    csoundDrawGraphCallback_(&cenviron, windat);
+    ((ENVIRON*) csound)->csoundDrawGraphCallback_(csound, windat);
   }
 
-  static void defaultCsoundKillGraph(void *csound, WINDAT *windat)
+  void defaultCsoundKillGraph(void *csound, WINDAT *windat)
   {
-    extern void KillAscii(WINDAT *wdptr);
-    KillAscii(windat);
+#if defined(USE_FLTK)
+    extern void KillGraph_(void *, WINDAT *);
+    KillGraph_(csound, windat);
+#else
+    extern void KillAscii(void *, WINDAT *);
+    KillAscii(csound, windat);
+#endif
   }
-
-  static void (*csoundKillGraphCallback_)(void *csound,
-                                          WINDAT *windat) = defaultCsoundKillGraph;
 
   PUBLIC void csoundSetKillGraphCallback(void *csound,
-                                         void (*killGraphCallback)(void *csound,
-                                                                   WINDAT *windat))
+                                    void (*killGraphCallback)(void *csound,
+                                                              WINDAT *windat))
   {
-    csoundKillGraphCallback_ = killGraphCallback;
+    ((ENVIRON*) csound)->csoundKillGraphCallback_ = killGraphCallback;
   }
 
-  void KillGraph(WINDAT *windat)
+  void KillGraph(void *csound, WINDAT *windat)
   {
-    csoundKillGraphCallback_(&cenviron, windat);
+    ((ENVIRON*) csound)->csoundKillGraphCallback_(csound, windat);
   }
 
-  static int defaultCsoundExitGraph(void *csound)
+  int defaultCsoundExitGraph(void *csound)
   {
     return CSOUND_SUCCESS;
   }
 
-  static int (*csoundExitGraphCallback_)(void *csound) = defaultCsoundExitGraph;
-
   PUBLIC void csoundSetExitGraphCallback(void *csound,
                                          int (*exitGraphCallback)(void *csound))
   {
-    csoundExitGraphCallback_ = exitGraphCallback;
+    ((ENVIRON*) csound)->csoundExitGraphCallback_ = exitGraphCallback;
   }
 
-  int ExitGraph()
+  int ExitGraph(void *csound)
   {
-    return csoundExitGraphCallback_(0);
+    return ((ENVIRON*) csound)->csoundExitGraphCallback_(csound);
   }
 
-  void MakeXYin(XYINDAT *xyindat, MYFLT x, MYFLT y)
+  void MakeXYin(void *csound, XYINDAT *xyindat, MYFLT x, MYFLT y)
   {
-    csoundMessage(&cenviron,
-                  "xyin not supported. use invalue opcode instead.\n");
+    csoundMessage(csound, "xyin not supported. use invalue opcode instead.\n");
   }
 
-  void ReadXYin(XYINDAT *xyindat)
+  void ReadXYin(void *csound, XYINDAT *xyindat)
   {
-    csoundMessage(&cenviron,
-                  "xyin not supported. use invlaue opcodes instead.\n");
+    csoundMessage(csound, "xyin not supported. use invlaue opcodes instead.\n");
   }
 
   /*
@@ -1434,19 +1434,17 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
 
   int defaultCsoundYield(void *csound)
   {
-    return POLL_EVENTS(csound);
+    return POLL_EVENTS((ENVIRON*) csound);
   }
-
-  static int (*csoundYieldCallback_)(void *csound) = defaultCsoundYield;
 
   void csoundSetYieldCallback(void *csound, int (*yieldCallback)(void *csound))
   {
-    csoundYieldCallback_ = yieldCallback;
+    ((ENVIRON*) csound)->csoundYieldCallback_ = yieldCallback;
   }
 
   int csoundYield(void *csound)
   {
-    return csoundYieldCallback_(csound);
+    return ((ENVIRON*) csound)->csoundYieldCallback_(csound);
   }
 
   extern void csoundDeleteAllGlobalVariables(void *csound);
@@ -1461,10 +1459,7 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
     /* named dynamic "global" variables of Csound instance */
     csoundDeleteAllConfigurationVariables(csound);
     csoundDeleteAllGlobalVariables(csound);
-
     mainRESET(csound);
-    csoundIsScorePending_ = 1;
-    csoundScoreOffsetSeconds_ = (MYFLT) 0.0;
   }
 
   PUBLIC int csoundGetDebug(void *csound)

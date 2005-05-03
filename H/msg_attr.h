@@ -46,7 +46,7 @@
 #define CSOUNDMSG_FG_CYAN       (0x0106)
 #define CSOUNDMSG_FG_WHITE      (0x0107)
 
-#define CSOUNDMSG_FG_BOLD       (0x0108)
+#define CSOUNDMSG_FG_BOLD       (0x0008)
 
 #define CSOUNDMSG_BG_BLACK      (0x0200)
 #define CSOUNDMSG_BG_RED        (0x0210)
@@ -59,30 +59,9 @@
 
  /* ------------------------------------------------------------------------ */
 
-#define CSOUNDMSG_FG_MASK       (0x010F)
+#define CSOUNDMSG_TYPE_MASK     (0x7000)
+#define CSOUNDMSG_FG_MASK       (0x0107)
 #define CSOUNDMSG_BG_MASK       (0x0270)
-
-#define CS_COLOR_FG_BLACK       "\033[30m"
-#define CS_COLOR_FG_RED         "\033[31m"
-#define CS_COLOR_FG_GREEN       "\033[32m"
-#define CS_COLOR_FG_YELLOW      "\033[33m"
-#define CS_COLOR_FG_BLUE        "\033[34m"
-#define CS_COLOR_FG_MAGENTA     "\033[35m"
-#define CS_COLOR_FG_CYAN        "\033[36m"
-#define CS_COLOR_FG_WHITE       "\033[37m"
-
-#define CS_COLOR_FG_BOLD        "\033[1m"
-
-#define CS_COLOR_BG_BLACK       "\033[40m"
-#define CS_COLOR_BG_RED         "\033[41m"
-#define CS_COLOR_BG_GREEN       "\033[42m"
-#define CS_COLOR_BG_ORANGE      "\033[43m"
-#define CS_COLOR_BG_BLUE        "\033[44m"
-#define CS_COLOR_BG_MAGENTA     "\033[45m"
-#define CS_COLOR_BG_CYAN        "\033[46m"
-#define CS_COLOR_BG_GREY        "\033[47m"
-
-#define CS_COLOR_OFF            "\033[m"
 
 #endif      /* CSOUND_MSG_ATTR_H */
 

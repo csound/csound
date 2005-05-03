@@ -53,9 +53,9 @@ void *csoundOpenLibrary(const char *libraryPath)
     return library;
 }
 
-void *csoundCloseLibrary(void *library)
+int csoundCloseLibrary(void *library)
 {
-    return (void *)FreeLibrary((HINSTANCE) library);
+    return (int) FreeLibrary((HINSTANCE) library);
 }
 
 void *csoundGetLibrarySymbol(void *library, const char *procedureName)
@@ -91,10 +91,10 @@ void *csoundOpenLibrary(const char *libraryPath)
     return library;
 }
 
-void *csoundCloseLibrary(void *library)
+int csoundCloseLibrary(void *library)
 {
-  void *returnValue = 0;
-  returnValue = (void *)dlclose(library);
+  int returnValue;
+  returnValue = (int) dlclose(library);
   return returnValue;
 }
 
@@ -265,18 +265,18 @@ void *csoundOpenLibrary(const char *libraryPath)
     return module;
 }
 
-void *csoundCloseLibrary(void *library)
+int csoundCloseLibrary(void *library)
 {
     if ((((struct mach_header *)library)->magic == MH_MAGIC) ||
         (((struct mach_header *)library)->magic == MH_CIGAM)) {
       error(-1, "Can't remove dynamic libraries on darwin");
-      return NULL;
+      return -1;
     }
     if (!NSUnLinkModule(library, 0)) {
       error(0, "unable to unlink module %s", NSNameOfModule(library));
-      return NULL;
+      return -1;
     }
-    return NULL;
+    return 0;
 }
 
 void *csoundGetLibrarySymbol(void *library, const char *procedureName)
@@ -417,20 +417,19 @@ void *dlsym(void *handle, const char *symbol)
 
 void *csoundOpenLibrary(const char *libraryPath)
 {
-        void *library = NULL;
-        return library;
+    void *library = NULL;
+    return library;
 }
 
-void *csoundCloseLibrary(void *library)
+int csoundCloseLibrary(void *library)
 {
-        void *returnValue = NULL;
-        return returnValue;
+    return 0;
 }
 
 void *csoundGetLibrarySymbol(void *library, const char *procedureName)
 {
-        void *procedureAddress = NULL;
-        return procedureAddress;
+    void *procedureAddress = NULL;
+    return procedureAddress;
 }
 
 #endif
